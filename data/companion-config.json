@@ -36,7 +36,7 @@
         "followArriveDist": 55,
         "combatRange": 640,
         "safeDistance": 230,
-        "castFrozenMs": 650,
+        "castFrozenMs": 1300,
         "castCooldown": 350,
         "walkSpeed": 115,
         "runSpeed": 185,
@@ -46,6 +46,11 @@
         "teleportHardDist": 1100
       },
       "animations": {
+        "idle": {
+          "src": "assets/companions/luna/idle.png",
+          "frameWidth": 512, "frameHeight": 512, "cols": 1, "rows": 1,
+          "frameCount": 1, "frames": [0, 0], "frameRate": 1, "repeat": -1
+        },
         "walk": {
           "src": "assets/companions/luna/walking.png",
           "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 4,
@@ -60,7 +65,7 @@
         "spell": {
           "src": "assets/companions/luna/spelling.png",
           "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 4,
-          "frameCount": 32, "frames": [0, 31], "frameRate": 20, "repeat": 0
+          "frameCount": 32, "frames": [0, 31], "frameRate": 20, "repeat": -1
         }
       },
       "weaponType": "staff"

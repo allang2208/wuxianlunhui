@@ -20,6 +20,14 @@ import { DungeonMapSystem } from '../world/dungeon-map-system.js';
 import { COMBAT_FORMULAS } from '../config/combat-formulas.js';
 import { getTributeGoldMultiplier, getTributeKillMpHealRatio, getTributeKillHpHealRatio, getTributeMonsterDamageTakenMul, getMoonshadowConfig, rollTributeDrop } from '../config/tribute-effects.js';
 
+// 友方阵营组：玩家与友军互相免疫伤害（防御塔/基地/掩体/伙伴等，2026-08-14）
+const FRIENDLY_FACTIONS = new Set(['player', 'companion']);
+
+/** 友方免伤判定：source 与 target 同属友方阵营组则禁止伤害 */
+export function isFriendlyFire(source, target) {
+    return !!(source && target && FRIENDLY_FACTIONS.has(source._faction) && FRIENDLY_FACTIONS.has(target._faction));
+}
+
         /**
          * 根据配置计算怪物金币掉落
          * @param {number} level - 怪物等级
@@ -56,6 +64,8 @@ import { getTributeGoldMultiplier, getTributeKillMpHealRatio, getTributeKillHpHe
                 this.statusEffects = []; // { type, duration, remaining, icon, name, color, stacks }
             }
             takeDamage(damage, source, damageType = 'physical', isMelee = true) {
+                // 友方免伤：玩家/友军不能伤害同为友方的单位（防御塔/基地/掩体/伙伴）
+                if (isFriendlyFire(source, this)) return 0;
                 // 新增：怪物之间不互相攻击
                 if (this._faction === 'enemy' && source && source._faction === 'enemy') return;
                 // 应用伤害公式：伤害 = 攻击力² / (攻击力 + 防御力)

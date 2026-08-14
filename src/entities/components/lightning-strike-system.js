@@ -77,6 +77,9 @@ export class LightningStrikeSystem {
             const aim = Renderer.screenToWorld(Input.mouse.x, Input.mouse.y);
             aimX = aim.x;
             aimY = aim.y;
+        } else if (src.target && src.target.active) {
+            aimX = src.target.x;
+            aimY = src.target.y;
         }
 
         // ===== 三重判定（2026-08-02 定稿）：失败不消耗冷却/耗蓝/链式强化 =====
@@ -89,7 +92,7 @@ export class LightningStrikeSystem {
         const nearMouse = [];
         for (const e of entities) {
             if (!e || e === src || !e.active || !e.hittable) continue;
-            if (e._faction === src._faction) continue;
+            if (!this._isHostileFaction(e._faction, src._faction)) continue;
             const dAim = Math.hypot(e.x - aimX, e.y - aimY);
             if (dAim <= aimRadius) {
                 nearMouse.push({ e, dAim, dPlayer: Math.hypot(e.x - src.x, e.y - src.y) });
@@ -228,7 +231,7 @@ export class LightningStrikeSystem {
         let best = null, bestDist = Infinity;
         for (const e of entities) {
             if (!e || e === this.source || !e.active || !e.hittable) continue;
-            if (e._faction === this.source._faction) continue;
+            if (!this._isHostileFaction(e._faction, this.source._faction)) continue;
             if (exclude && exclude.includes(e)) continue;
             const d = Math.hypot(e.x - x, e.y - y);
             if (d > range || d >= bestDist) continue;
@@ -236,6 +239,16 @@ export class LightningStrikeSystem {
             best = e;
         }
         return best;
+    }
+
+    /**
+     * faction grouping (2026-08-14): player/companion are allies, both hostile to enemy;
+     * enemy casters are hostile to everything non-enemy. Prevents companion spells
+     * from hitting the player.
+     */
+    _isHostileFaction(ef, sf) {
+        if (sf === 'enemy') return ef !== 'enemy';
+        return ef === 'enemy';
     }
 
     /** 视线检测：玩家→目标 线段是否被墙体阻挡（WallSystem.resolve 畅通时原样返回目标点） */

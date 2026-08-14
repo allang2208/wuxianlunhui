@@ -6,7 +6,9 @@ import { AttackRangeEffect } from '../effects/attack-range-effect.js';
 import { WeaponAnimConfig } from '../items/weapon-anim-config.js';
 import { DamagePipeline } from './damage-pipeline.js';
 import { COMBAT_CONFIG } from '../config/combat-config.js';
+import { nowMs } from '../entities/player/anim-state.js';
 import { PERSPECTIVE_SCALE_Y } from '../config/perspective-config.js';
+import { isFriendlyFire } from '../entities/damageable-entity.js';
 
 import { EffectManager } from '../effects/effect-manager.js';
 import { ProjectileFactory } from '../utils/projectile-factory.js';
@@ -120,8 +122,8 @@ function applyEnchantOnHit(weapon, target, source) {
                 const candidates = this._queryNearbyEntities(originX, originY, effectiveRange + 100, source, entities);
                 candidates.forEach(entity => {
                     if (entity === source || !entity.active || !entity.hittable) return;
-                    // 新增：怪物之间不互相攻击
-                    if (source._faction === 'enemy' && entity._faction === 'enemy') return;
+                    // 友方免伤 + 怪物之间不互相攻击
+                    if (isFriendlyFire(source, entity) || (source._faction === 'enemy' && entity._faction === 'enemy')) return;
                     if (slashShape.intersectsEntity(entity)) {
                         const baseDamage = source.getCurrentWeaponAtk ? source.getCurrentWeaponAtk() : Math.floor((this.config.damage.min + this.config.damage.max) / 2);
                         const damage = baseDamage;
@@ -221,7 +223,7 @@ function applyEnchantOnHit(weapon, target, source) {
                     knockback: this.config.knockback,
                     entities: entities,
                     active: true,
-                    startTime: Date.now(),         // 判定开始时间
+                    startTime: nowMs(),         // 判定开始时间（Phase 3：墙钟→单调时钟，写者/读者同口径）
                     totalHitCount: 0,              // 整个攻击累计命中数
                     totalKillCount: 0,           // 整个攻击累计击杀数
                     dynamicRange: this.config.dynamicRange || 0,
@@ -235,7 +237,7 @@ function applyEnchantOnHit(weapon, target, source) {
                 if (!pt || !pt.active) return;
                 // 攻击判定持续时间：覆盖 windup + swing 阶段
                 const hitDurationMs = this.config.hitDurationMs || 500;
-                if (Date.now() - pt.startTime > hitDurationMs) { pt.active = false; return; }
+                if (nowMs() - pt.startTime > hitDurationMs) { pt.active = false; return; }
                 const range = pt.range, width = pt.width, angle = pt.angle;
                 const ax = pt.x, ay = pt.y; // 使用攻击起始时的固定位置
                 let hitCount = 0, killCount = 0;
@@ -250,8 +252,8 @@ function applyEnchantOnHit(weapon, target, source) {
                 candidates.forEach(entity => {
                     if (entity === source || !entity.active || !entity.hittable) return;
                     if (pt.hitSet.has(entity)) return; // 已命中过
-                    // 新增：怪物之间不互相攻击
-                    if (source._faction === 'enemy' && entity._faction === 'enemy') return;
+                    // 友方免伤 + 怪物之间不互相攻击
+                    if (isFriendlyFire(source, entity) || (source._faction === 'enemy' && entity._faction === 'enemy')) return;
                     // 墙壁视线检测：不能攻击墙后的目标
                     // [FIX-LOS] 防守结构（掩体/基地）贴身免 LOS：掩体中心在自身 face 线后方，
                     // 从墙背面挥击时到中心的射线必被自身/相邻掩体段误挡，导致贴身啃墙零伤害
@@ -347,8 +349,8 @@ function applyEnchantOnHit(weapon, target, source) {
                     candidates.forEach(entity => {
                         if (entity === source || !entity.active || !entity.hittable) return;
                         if (pt.hitSet.has(entity)) return; // 已命中过
-                        // 新增：怪物之间不互相攻击
-                        if (source._faction === 'enemy' && entity._faction === 'enemy') return;
+                        // 友方免伤 + 怪物之间不互相攻击
+                        if (isFriendlyFire(source, entity) || (source._faction === 'enemy' && entity._faction === 'enemy')) return;
                         // 墙壁视线检测：不能攻击墙后的目标
                         if (WallSystem.blocked(ax, ay, entity.x, entity.y)) return;
                         if (!this._sectorIntersectsEntity(ax, ay, angle, range, halfArc, entity)) return;
@@ -385,8 +387,8 @@ function applyEnchantOnHit(weapon, target, source) {
                     candidates.forEach(entity => {
                         if (entity === source || !entity.active || !entity.hittable) return;
                         if (pt.hitSet.has(entity)) return; // 已命中过
-                        // 新增：怪物之间不互相攻击
-                        if (source._faction === 'enemy' && entity._faction === 'enemy') return;
+                        // 友方免伤 + 怪物之间不互相攻击
+                        if (isFriendlyFire(source, entity) || (source._faction === 'enemy' && entity._faction === 'enemy')) return;
                         // 墙壁视线检测：不能攻击墙后的目标
                         if (WallSystem.blocked(ax, ay, entity.x, entity.y)) return;
                         if (!rectShape.intersectsEntity(entity)) return;

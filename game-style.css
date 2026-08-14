@@ -27,6 +27,8 @@
         .side-menu-btn img { width: 100%; height: 100%; object-fit: fill; transition: all 0.2s; border-radius: 6px; }
         .side-menu-btn:hover { box-shadow: 0 0 12px rgba(255, 215, 0, 0.4); }
         .side-menu-btn:hover img { transform: scale(1.25); filter: drop-shadow(0 0 6px rgba(255, 215, 0, 0.8)); }
+        .side-menu-emoji { font-size: 36px; line-height: 1; transition: transform 0.2s, filter 0.2s; }
+        .side-menu-btn:hover .side-menu-emoji { transform: scale(1.2); filter: drop-shadow(0 0 6px rgba(255, 215, 0, 0.8)); }
         .side-menu-btn.active { box-shadow: 0 0 8px rgba(122, 154, 106, 0.3); }
         .side-menu-btn .key-hint { position: absolute; bottom: 2px; right: 4px; font-size: 20px; font-weight: bold; color: #ffd700; font-family: monospace; text-shadow: 0 0 4px rgba(255, 215, 0, 0.8); animation: keyHintBlink 1.2s ease-in-out infinite; }
         .side-menu-btn .panel-label { position: absolute; bottom: -20px; font-size: 11px; color: #ffd700; font-family: SimHei, "Microsoft YaHei", "黑体", sans-serif; text-shadow: 0 0 4px rgba(255, 215, 0, 0.8); animation: keyHintBlink 1.2s ease-in-out infinite; white-space: nowrap; }
@@ -2574,6 +2576,190 @@
 .quest-tracker-obj { font-size: 11px; color: #b4a599; padding: 2px 0; }
 .quest-tracker-obj.completed { color: #7a9a6a; text-decoration: line-through; }
 .quest-tracker-empty { font-size: 11px; color: #6b5d4f; }
+
+        /* ===== 组队栏（替换左侧任务追踪栏位置） ===== */
+        .party-bar {
+            position: absolute; top: 225px; left: 10px; width: 220px;
+            background: rgba(42, 37, 32, 0.85); border: 2px solid #5a4d3f;
+            border-radius: 8px; padding: 10px 14px; z-index: 11;
+            font-family: SimHei, "Microsoft YaHei", "黑体", sans-serif;
+        }
+        .party-bar-title { font-size: 13px; font-weight: 700; color: #ffd700; margin-bottom: 8px; text-shadow: 0 0 4px rgba(255, 215, 0, 0.4); }
+        .party-bar-grid { display: flex; flex-direction: column; gap: 6px; }
+        .party-slot {
+            display: flex; align-items: center; gap: 8px; padding: 5px 8px;
+            background: rgba(20, 17, 14, 0.7); border: 1px solid #4a4034; border-radius: 6px;
+            cursor: pointer; transition: border-color .15s, background .15s;
+        }
+        .party-slot:hover { border-color: #c8a84e; background: rgba(40, 33, 24, 0.9); }
+        .party-slot--empty { justify-content: center; border-style: dashed; }
+        .party-slot-avatar { width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; font-size: 20px; background: #1d1814; border-radius: 50%; flex-shrink: 0; }
+        .party-slot-plus { font-size: 20px; color: #8a7d5f; }
+        .party-slot-name { font-size: 12px; color: #d4c5a9; flex: 1; }
+        .party-slot-level { font-size: 11px; color: #a89a7f; }
+
+        /* ===== 寻找帮手（卡片选择） ===== */
+        .recruit-overlay {
+            position: fixed; inset: 0; display: none; align-items: center; justify-content: center;
+            background: rgba(0, 0, 0, 0.62); z-index: 4400; font-family: SimHei, "Microsoft YaHei", "黑体", sans-serif;
+        }
+        .recruit-panel {
+            width: 780px; max-height: 82vh; overflow-y: auto; background: #1c1915;
+            border: 2px solid #6a5a44; border-radius: 10px; padding: 16px 20px;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.6);
+        }
+        .recruit-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+        .recruit-title { font-size: 17px; font-weight: 700; color: #ffd700; }
+        .recruit-close { background: #3a2f24; border: 1px solid #6a5a44; color: #cbb; border-radius: 5px; padding: 2px 10px; cursor: pointer; }
+        .recruit-sub { font-size: 12px; color: #9a8d78; margin-bottom: 12px; }
+        .recruit-status { min-height: 20px; font-size: 13px; margin-bottom: 8px; padding: 6px 10px; border-radius: 5px; display: none; }
+        .recruit-status--ok { display: block; background: rgba(70, 110, 70, 0.35); border: 1px solid #7a9a6a; color: #a8d8a0; }
+        .recruit-status--warn { display: block; background: rgba(140, 120, 60, 0.35); border: 1px solid #c8a84e; color: #e0c878; }
+        .recruit-status--err { display: block; background: rgba(140, 60, 60, 0.35); border: 1px solid #c86060; color: #e8a0a0; }
+        .recruit-cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+        .recruit-card {
+            background: #241f19; border: 1px solid #4a4034; border-radius: 8px; padding: 12px;
+            display: flex; flex-direction: column; gap: 4px;
+        }
+        .recruit-card--disabled { opacity: 0.55; }
+        .recruit-card-avatar { font-size: 34px; text-align: center; }
+        .recruit-card-name { font-size: 15px; font-weight: 700; color: #e8d9b8; }
+        .recruit-card-title { font-size: 12px; color: #c8a84e; }
+        .recruit-card-desc { font-size: 12px; color: #a99b84; line-height: 1.5; }
+        .recruit-card-growth { font-size: 11px; color: #7f9a7a; }
+        .recruit-card-btn {
+            margin-top: 6px; background: linear-gradient(to bottom, #5a4a32, #46391f);
+            border: 1px solid #8a744a; color: #f0e2c0; border-radius: 5px; padding: 6px 0; cursor: pointer; font-size: 13px;
+        }
+        .recruit-card-btn:disabled { cursor: not-allowed; opacity: 0.6; }
+
+        /* ===== 队员面板：玩家 system-panel 同款（右侧滑出 45vw 全高） ===== */
+        .companion-overlay {
+            position: fixed; inset: 0; display: none; z-index: 4300;
+            background: rgba(0, 0, 0, 0.35); font-family: SimHei, "Microsoft YaHei", "黑体", sans-serif;
+        }
+        /* 复用 .system-panel 样式（右侧滑出/毛玻璃/全高 + .active 滑入动画，与原生背包一致） */
+        .companion-system-panel { min-width: 480px; }
+        /* 头部栏：成员切换 chips + 当前队员 + 移出/关闭 */
+        .companion-headbar { display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: rgba(20, 20, 25, 0.5); border-bottom: 1px solid rgba(60, 60, 70, 0.4); flex-shrink: 0; }
+        .companion-headbar-chips { display: flex; gap: 6px; overflow-x: auto; flex: 1; padding: 2px 0; }
+        .companion-headbar-chips::-webkit-scrollbar { height: 4px; }
+        .companion-headbar-chips::-webkit-scrollbar-thumb { background: #5a4d3f; border-radius: 2px; }
+        .companion-headbar-empty { font-size: 12px; color: #8a7d6b; }
+        .companion-member-chip {
+            display: flex; align-items: center; gap: 6px; padding: 3px 10px; cursor: pointer;
+            background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(200, 200, 200, 0.35); border-radius: 16px; flex-shrink: 0;
+        }
+        .companion-member-chip:hover { border-color: #8a7d6b; }
+        .companion-member-chip.active { border-color: #ffd700; background: rgba(255, 215, 0, 0.15); }
+        .companion-chip-avatar { font-size: 16px; }
+        .companion-chip-name { font-size: 12px; color: #c0c0c0; }
+        .companion-chip-level { font-size: 11px; color: #8a8a8a; }
+        .companion-headbar-info { display: flex; align-items: center; gap: 6px; font-size: 14px; color: #c0c0c0; flex-shrink: 0; }
+        .companion-headbar-avatar { font-size: 20px; }
+        .companion-headbar-name { font-weight: 700; color: #d4c5a9; }
+        .companion-title { font-size: 12px; color: #8a7d6b; }
+        .companion-headbar-level { color: #a0907a; font-weight: 600; }
+        .companion-headbar-exp { font-size: 11px; color: #8a7d6b; }
+        .companion-remove { background: #4a2b2b; border: 1px solid #8a4a4a; color: #e0b0b0; border-radius: 5px; padding: 4px 8px; cursor: pointer; font-size: 12px; flex-shrink: 0; }
+        .companion-close { background: #3a2f24; border: 1px solid #6a5a44; color: #cbb; border-radius: 5px; padding: 2px 10px; cursor: pointer; flex-shrink: 0; }
+        .companion-note { margin-top: 10px; font-size: 11px; color: #6b5d4f; }
+        .companion-empty { text-align: center; padding: 60px 0; color: #8a7d6b; }
+        .companion-empty-text { font-size: 14px; margin-bottom: 14px; }
+        .companion-empty-recruit {
+            background: linear-gradient(to bottom, #5a4a32, #46391f); border: 1px solid #8a744a;
+            color: #f0e2c0; border-radius: 6px; padding: 8px 22px; cursor: pointer; font-size: 14px;
+        }
+
+        /* ===== 队员装备栏：复制玩家 equip-grid（3×5 网格毛玻璃 + diablo-slot 全套） ===== */
+        .companion-equip-grid {
+            display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(5, 1fr);
+            gap: 6px; padding: 8px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.85), rgba(240, 240, 240, 0.9));
+            border: 2px solid rgba(200, 200, 200, 0.5); border-radius: 12px; height: 100%;
+            backdrop-filter: blur(8px);
+        }
+        .companion-equip-grid .companion-diablo-slot {
+            position: relative; width: 100%; height: 100%; min-height: 0; border-radius: 8px; border-width: 2px;
+            display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 6px 24px 0 0;
+            transition: all 0.15s ease;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(230, 230, 230, 1));
+            border: 2px solid rgba(200, 200, 200, 0.6); cursor: pointer;
+        }
+        .companion-equip-grid .companion-diablo-slot:hover { border-color: rgba(150, 150, 150, 0.8); background: linear-gradient(180deg, rgba(255, 255, 255, 1), rgba(240, 240, 240, 1)); }
+        .companion-equip-grid .companion-diablo-slot.equipped { border-color: rgba(120, 120, 120, 0.7); background: linear-gradient(180deg, rgba(80, 80, 80, 0.95), rgba(60, 60, 60, 1)); }
+        .companion-equip-grid .companion-diablo-slot.drag-over { border-color: #d4c5a9 !important; box-shadow: 0 0 16px rgba(212, 197, 169, 0.4); background: linear-gradient(180deg, rgba(70, 130, 200, 0.7), rgba(50, 100, 170, 0.8)); transform: scale(1.03); }
+        .companion-equip-grid .companion-diablo-slot .slot-icon { font-size: 32px; width: 35%; height: 100%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; position: absolute; top: 0; left: 10%; margin-left: 3px; }
+        .companion-equip-grid .companion-diablo-slot .slot-icon img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5)); }
+        .companion-equip-grid .companion-diablo-slot .slot-rarity { position: absolute; left: 2%; top: 0; bottom: 0; font-size: 10px; color: #000; font-weight: 700; writing-mode: vertical-rl; text-orientation: upright; letter-spacing: 2px; pointer-events: none; z-index: 2; padding: 4px 2px; border-radius: 3px; display: flex; align-items: center; justify-content: center; }
+        .companion-equip-grid .companion-diablo-slot .slot-rarity.rarity-common { background: rgba(180, 180, 180, 0.85); }
+        .companion-equip-grid .companion-diablo-slot .slot-rarity.rarity-uncommon { background: rgba(122, 200, 122, 0.7); }
+        .companion-equip-grid .companion-diablo-slot .slot-rarity.rarity-rare { background: rgba(122, 158, 200, 0.7); }
+        .companion-equip-grid .companion-diablo-slot .slot-rarity.rarity-epic { background: rgba(180, 122, 200, 0.7); }
+        .companion-equip-grid .companion-diablo-slot .slot-rarity.rarity-mythic { background: rgba(230, 150, 60, 0.78); }
+        .companion-equip-grid .companion-diablo-slot .slot-rarity.rarity-legendary { background: rgba(215, 60, 55, 0.8); }
+        .companion-equip-grid .companion-diablo-slot .slot-name { position: absolute; right: 20%; top: 50%; transform: translateY(-50%); width: 40%; font-size: 14px; color: #000; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 600; letter-spacing: 0.3px; text-shadow: 0 1px 2px rgba(255, 255, 255, 0.7); pointer-events: none; line-height: 1.2; }
+        .companion-equip-grid .companion-diablo-slot.equipped .slot-name { color: #fff; font-weight: 700; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7); }
+
+        /* ===== 队员背包：复制玩家背包格（5 列网格 + inv-cell 风格） ===== */
+        .companion-pack-grid { display: grid; grid-template-columns: repeat(5, 1fr); grid-auto-rows: 56px; gap: 2px; padding: 4px; overflow-y: auto; flex: 1; }
+        .companion-pack-grid::-webkit-scrollbar { width: 6px; }
+        .companion-pack-grid::-webkit-scrollbar-track { background: #2a2520; border-radius: 3px; }
+        .companion-pack-grid::-webkit-scrollbar-thumb { background: #5a4d3f; border-radius: 3px; }
+        .companion-cell {
+            font-size: 18px; height: 56px; aspect-ratio: unset; display: flex; align-items: center; justify-content: center;
+            border-radius: 8px; position: relative; user-select: none; text-align: center; padding: 2px; word-break: break-all;
+            background: linear-gradient(to bottom, rgba(80, 80, 80, 0.95), rgba(60, 60, 60, 1));
+            border: 2px solid rgba(100, 100, 100, 0.6); color: #fff;
+        }
+        .companion-cell[draggable="true"] { cursor: grab; }
+        .companion-cell img { width: 32px; height: 32px; pointer-events: none; border-radius: 4px; }
+        .companion-cell.drag-over { border-color: #d4c5a9 !important; box-shadow: 0 0 16px rgba(212, 197, 169, 0.4); background: linear-gradient(180deg, rgba(70, 130, 200, 0.7), rgba(50, 100, 170, 0.8)); transform: scale(1.03); }
+
+        /* ===== 玩家背包栏：贴合在队员 system-panel 左侧 ===== */
+        .companion-player-pack {
+            display: none; flex-direction: column; position: absolute; top: 0; right: calc(45vw + 4px); bottom: 0;
+            /* 与玩家系统面板同宽（45vw）→ 背包格子尺寸自然一致（玩家格 165×56） */
+            width: 45vw; background: rgba(20, 20, 25, 0.85); border-left: 1px solid rgba(60, 60, 70, 0.5);
+            padding: 4px; overflow-y: auto;
+            /* 与原生背包同款滑入动画（右侧滑入） */
+            transform: translateX(100%); transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .companion-player-pack.pack-active {
+            transform: translateX(0);
+        }
+        /* 玩家装备栏（与右侧 gear-layout 对齐）：装备栏 50% + 背包 flex 1，水平分界一致 */
+        .companion-player-head {
+            flex-shrink: 0; height: 91px; display: flex; align-items: center; justify-content: center;
+            font-size: 14px; font-weight: 700; color: #ffd700; letter-spacing: 1px;
+        }
+        .companion-player-pack .companion-player-gear { height: calc(100% - 91px); }
+        .companion-player-pack .companion-player-equip-col { flex: 0 0 50%; min-height: 0; }
+        .companion-player-pack .companion-player-inv-col { flex: 1; min-height: 0; }
+        .companion-player-pack .companion-player-equip-col .equip-grid { height: 100%; }
+        .companion-player-grid { display: grid; grid-template-columns: repeat(5, 1fr); grid-auto-rows: 56px; gap: 2px; padding: 4px; overflow-y: auto; flex: 1; }
+        .companion-player-grid::-webkit-scrollbar { width: 6px; }
+        .companion-player-grid::-webkit-scrollbar-thumb { background: #5a4d3f; border-radius: 3px; }
+        /* 玩家背包栏格子：与玩家系统面板背包格完全一致（非正方形、行高 56px、字号 18） */
+        .companion-player-grid .inv-cell { font-size: 18px; height: 56px; aspect-ratio: unset; }
+        .companion-player-grid .inv-cell img { width: 32px; height: 32px; pointer-events: none; border-radius: 4px; }
+        .companion-player-grid .inv-stack { font-size: 11px; bottom: 3px; right: 5px; font-weight: bold; text-shadow: 0 1px 2px rgba(0,0,0,0.9); }
+        .companion-skill-placeholder { color: #6b5d4f; font-size: 12px; padding: 20px 0; text-align: center; }
+
+        /* ===== 出征队员界面栏（四圆圈） ===== */
+        .expedition-member-bar { display: flex; gap: 14px; padding: 8px 4px; }
+        .expedition-member-circle {
+            width: 86px; height: 104px; border-radius: 12px; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; gap: 4px; cursor: pointer;
+            background: #241f19; border: 2px solid #4a4034; transition: border-color .15s;
+        }
+        .expedition-member-circle:hover { border-color: #c8a84e; }
+        .expedition-member-circle--empty { border-style: dashed; }
+        .expedition-member-circle--player { border-color: #8a744a; }
+        .expedition-member-avatar { font-size: 30px; line-height: 1; }
+        .expedition-member-plus { font-size: 30px; color: #8a7d5f; line-height: 1; }
+        .expedition-member-name { font-size: 12px; color: #d4c5a9; }
+        .expedition-member-level { font-size: 11px; color: #a89a7f; }
 
         /* ===== 仓库面板（与改造/附魔栏同款弹出收回动画） ===== */
         .warehouse-panel {

@@ -1,4 +1,5 @@
 import { WallSystem } from '../../world/wall-system.js';
+import { nowMs } from '../player/anim-state.js';
 import { Renderer } from '../../world/renderer.js';
 import { Input } from '../../ui/input.js';
 import { loadImage } from '../../utils/image-loader.js';
@@ -49,7 +50,12 @@ export class BoltSkillSystem {
 
     _isHostile(entity) {
         if (!entity || entity === this.source) return false;
-        return entity._faction !== this.source._faction;
+        // 阵营分组（2026-08-14）：player/companion 互为友军，都只敌视 enemy；
+        // enemy 施法者敌视一切非 enemy。防止侍从（companion faction）施法误伤玩家。
+        const sf = this.source._faction;
+        const ef = entity._faction;
+        if (sf === 'enemy') return ef !== 'enemy';
+        return ef === 'enemy';
     }
 
     _isMagic() {
@@ -211,7 +217,7 @@ export class BoltSkillSystem {
                 return;
             }
             // 悬浮动画（摇摆相位 / 帧动画）
-            const now = Date.now() / 1000;
+            const now = nowMs() / 1000; // Phase 3：单调时钟（仅作摇摆相位）
             spikes.forEach(spike => {
                 if (!spike.active || spike.launched) return;
                 // 发射前待机：推进椭圆环绕角（绕施法者圆柱体转圈）

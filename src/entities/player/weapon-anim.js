@@ -13,6 +13,7 @@ import { Easing } from '../../config/math-utils.js';
 import { CONFIG } from '../../config/config.js';
 import { COMBAT_CONFIG } from '../../config/combat-config.js';
 import { playerTextureKey, getPlayerAnimDurationMs } from '../../config/player-anim.js';
+import { enterAttackHold, clearPose, nowMs } from './anim-state.js';
 
 const weaponAnimMixin = {
     // 初始化武器动画状态
@@ -53,12 +54,12 @@ const weaponAnimMixin = {
         switch (anim.state) {
             case 'idle':
                 // 旋转待机动画
-                if (anim.spinEnd && Date.now() < anim.spinEnd) {
-                    const t = 1 - (anim.spinEnd - Date.now()) / anim.spinDuration;
-                    anim.angle = wa.idleAngle + Math.sin(Date.now() / 400) * 0.06 + t * Math.PI * 8;
+                if (anim.spinEnd && nowMs() < anim.spinEnd) {
+                    const t = 1 - (anim.spinEnd - nowMs()) / anim.spinDuration;
+                    anim.angle = wa.idleAngle + Math.sin(nowMs() / 400) * 0.06 + t * Math.PI * 8;
                 } else {
                     anim.spinEnd = 0;
-                    anim.angle = wa.idleAngle + Math.sin(Date.now() / 400) * 0.06;
+                    anim.angle = wa.idleAngle + Math.sin(nowMs() / 400) * 0.06;
                     
                     // 装备双手武器时不播放旋转待机动画
                     const _idleItem = this.equipments[this.weaponMode];
@@ -67,11 +68,11 @@ const weaponAnimMixin = {
                         anim.nextSpin = 0;
                         anim.spinEnd = 0;
                     } else if (!anim.nextSpin) {
-                        anim.nextSpin = Date.now() + 3000 + Math.random() * 3000;
-                    } else if (Date.now() >= anim.nextSpin) {
+                        anim.nextSpin = nowMs() + 3000 + Math.random() * 3000;
+                    } else if (nowMs() >= anim.nextSpin) {
                         anim.spinDuration = 650;
-                        anim.spinEnd = Date.now() + anim.spinDuration;
-                        anim.nextSpin = Date.now() + anim.spinDuration + 3000 + Math.random() * 3000;
+                        anim.spinEnd = nowMs() + anim.spinDuration;
+                        anim.nextSpin = nowMs() + anim.spinDuration + 3000 + Math.random() * 3000;
                     }
                 }
                 break;
@@ -108,7 +109,7 @@ const weaponAnimMixin = {
                     this._pendingThrust.active = true;
                 }
                 if (this._pendingThrust && this._pendingThrust.active) {
-                    if (Date.now() - this._pendingThrust.startTime <= 500) {
+                    if (nowMs() - this._pendingThrust.startTime <= 500) {
                         this.attacks.melee.checkTriangleHit(this);
                     } else {
                         this._pendingThrust.active = false;
@@ -259,8 +260,9 @@ const weaponAnimMixin = {
         // 防止同一手重复启动 Tween：只有当前没在攻击动画中才启动
         if (anim.state === 'attacking') return;
 
-        // 新攻击启动：清除上一段的定格保持窗口
-        this._attackHoldUntil = 0;
+        // 新攻击启动：清除上一段的定格保持窗口（pose session 全清——本路径只由 update.js 近战输入
+        // 守卫（!_attackRecovering && !_dashRecoverAt）进入，recover/dashFreeze 字段本就为假，等价原单清 hold）
+        clearPose(this);
 
         anim.isAttacking = true;
         anim.state = 'attacking';
@@ -294,7 +296,7 @@ const weaponAnimMixin = {
             const COMBO_WINDOW_MS = COMBAT_CONFIG.meleeCombo?.stage1HoldMs ?? 500;
             // 2026-08-03：二段攻击的末帧定格（连段窗口）固定 0.2s，一段保持 0.5s
             const STAGE2_HOLD_MS = COMBAT_CONFIG.meleeCombo?.stage2HoldMs ?? 200;
-            const now = performance.now();
+            const now = nowMs();
             // 连段窗口按上一段判定：二段结束后只剩 0.2s 可再连（回一段），一段后仍 0.5s
             const prevChainWindow = this._meleeComboStage === 2 ? STAGE2_HOLD_MS : COMBO_WINDOW_MS;
             const chained = hand === 'main' && this._lastMeleeAttackEnd && (now - this._lastMeleeAttackEnd) <= prevChainWindow;
@@ -326,12 +328,14 @@ const weaponAnimMixin = {
                 // 预写连段定格窗口：Phaser 4 每帧顺序 PRE_UPDATE(动画) → UPDATE(Tween)，
                 // 动画播完帧上 animationcomplete 早于 Tween onComplete 触发——若在 onComplete
                 // 才写这些字段，GameScene 的完成回调读到的是旧值，会把贴图切回 idle（定格失效，
-                // 首次攻击与 1500ms 二段必现）；收势中被新攻击打断也要解除收势标记
-                this._attackRecovering = false;
-                this._attackHoldAnimKey = animKey;
+                // 首次攻击与 1500ms 二段必现）；enterAttackHold 不变量：写 hold 同时清 recover
+                //（收势中被新攻击打断也要解除收势标记）
                 this._lastMeleeAttackEnd = now + totalDuration; // onComplete 会按实际结束时间复写
-                // 定格时长按当前段：二段末帧停 0.2s，一段末帧停 0.5s
-                this._attackHoldUntil = now + totalDuration + (stage === 2 ? STAGE2_HOLD_MS : COMBO_WINDOW_MS);
+                enterAttackHold(this, {
+                    animKey,
+                    // 定格时长按当前段：二段末帧停 0.2s，一段末帧停 0.5s
+                    untilMs: now + totalDuration + (stage === 2 ? STAGE2_HOLD_MS : COMBO_WINDOW_MS),
+                });
             }
 
             // 统一由 GameScene 播放并记录攻击起始时间，用于逐帧武器同步
@@ -373,7 +377,7 @@ const weaponAnimMixin = {
                             hitChecked = true;
                             self.attacks.melee.checkStageHit(self, hitCheckCfg);
                         }
-                    } else if (Date.now() - self._pendingThrust.startTime <= 500) {
+                    } else if (nowMs() - self._pendingThrust.startTime <= 500) {
                         self.attacks.melee.checkTriangleHit(self);
                     } else {
                         self._pendingThrust.active = false;
@@ -383,14 +387,17 @@ const weaponAnimMixin = {
                     anim.isAttacking = false;
                     anim.state = 'idle';
                     if (hand === 'main') {
-                        self._lastMeleeAttackEnd = performance.now(); // 连段窗口起点
+                        self._lastMeleeAttackEnd = nowMs(); // 连段窗口起点
                         // 攻击后定格保持：按段区分（一段 0.5s / 二段 0.2s，=各自连段窗口）——
                         // 定格期间武器朝向绑定身体 flipX（身体冻结故武器冻结），超时播 recover 收势
-                        self._attackHoldAnimKey = animKey;
                         // 2026-08-03 修复：此前这里固定 +500，把二段预写的 200ms 定格覆盖成 500ms
                         //（SKILL"实机采样二段 holdMs=200"实为冻结管线未触发 onComplete 采到的预写值）
-                        self._attackHoldUntil = self._lastMeleeAttackEnd
-                            + (self._meleeComboStage === 2 ? STAGE2_HOLD_MS : COMBO_WINDOW_MS);
+                        // 红线：与上方预写构成"预写 → onComplete 复写"两次写序列，次序/位置不得改动
+                        enterAttackHold(self, {
+                            animKey,
+                            untilMs: self._lastMeleeAttackEnd
+                                + (self._meleeComboStage === 2 ? STAGE2_HOLD_MS : COMBO_WINDOW_MS),
+                        });
                     }
                     if (self._pendingThrust) {
                         self._pendingThrust.active = false;
@@ -437,7 +444,7 @@ const weaponAnimMixin = {
                     ease: 'Quad.easeOut',
                     onUpdate: function() {
                         if (self._pendingThrust && self._pendingThrust.active) {
-                            if (Date.now() - self._pendingThrust.startTime <= 500) {
+                            if (nowMs() - self._pendingThrust.startTime <= 500) {
                                 self.attacks.melee.checkTriangleHit(self);
                             } else {
                                 self._pendingThrust.active = false;

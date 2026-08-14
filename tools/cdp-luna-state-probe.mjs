@@ -138,7 +138,8 @@ const cResult = await ev(`(async () => {
 console.log(`before=${JSON.stringify(cResult.before)} after=${JSON.stringify(cResult.after)}`);
 console.log(cResult.samples.map(s => `${s.anim}/${s.cast}/${s.timer}/${s.frozen}/${s.sprAnim || '-'}/${s.sprFrame}`).join('  '));
 const sawSpell = cResult.after.cast === 'casting' && cResult.after.anim === 'spell' && cResult.after.frozen === true
-    && cResult.after.timer > 0;
+    && cResult.after.timer > 0
+    && cResult.samples.some(s => (s.sprAnim || '').includes('spell'));
 console.log(`C: mp=${cResult.mp} fbCd=${Math.round(cResult.fbCd)}`);
 console.log(sawSpell ? 'PASS C: 施法 spell' : 'FAIL C: 未施法');
 
@@ -153,6 +154,35 @@ await ev(`(() => {
 states = await sampleStates(8, 250);
 console.log(states.map(s => `${s.anim}/${s.cast}`).join('  '));
 console.log(states.some(s => s.anim === 'run') ? 'PASS D: flee run' : 'FAIL D: 未 flee');
+
+console.log('\\n=== E. 渲染层 spell 动画直接验证（不受 headless 掉帧影响） ===');
+const eResult = await ev(`(() => {
+  const s = window.__phaserScene;
+  const luna = window.Game.PartySystem.getMember('mage_luna');
+  // 清理敌人，手动设施法状态 → 同步一次渲染层
+  const { entities } = window.Game;
+  entities.delete('state_probe_enemy');
+  luna._castState = 'casting';
+  luna._frozenForCast = true;
+  luna._animState = 'spell';
+  luna.vx = 0; luna.vy = 0; luna.isMoving = false;
+  s._syncCompanionSprites(window.Game);
+  const spr = s._companionSprites['mage_luna'];
+  const playing = spr.anims.isPlaying ? spr.anims.currentAnim.key : null;
+  const texExists = s.textures.exists('companion_mage_luna_spell');
+  const animExists = s.anims.exists('companion_mage_luna_spell');
+  const cfgSpell = !!(luna.animations && luna.animations.spell);
+  // 清回 idle
+  luna._castState = 'idle'; luna._frozenForCast = false; luna._animState = 'idle';
+  s._syncCompanionSprites(window.Game);
+  const idleFrame = spr.frame.name;
+  const idleTex = spr.texture.key;
+  return { playing, texExists, animExists, cfgSpell, idleFrame, idleTex };
+})()`);
+console.log(JSON.stringify(eResult));
+const passE = eResult.texExists && eResult.animExists && eResult.cfgSpell && eResult.playing === 'companion_mage_luna_spell'
+    && eResult.idleTex === 'companion_mage_luna_idle';
+console.log(passE ? 'PASS E: 渲染层 spell 播放 + idle 停帧' : 'FAIL E: 渲染层问题');
 
 await ev(`(() => { const { entities } = window.Game; entities.delete('state_probe_enemy'); return true; })()`);
 await cleanup(0);

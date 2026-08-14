@@ -1418,6 +1418,16 @@
         }
       ]
     },
+    "dashLerp": {
+      "type": "lerp",
+      "grip": { "x": 0.30, "y": 0.50 },
+      "from": { "x": -89, "y": -40, "rotation": -100 },
+      "to": { "x": 76, "y": 71, "rotation": 115 },
+      "scale": 1.5,
+      "stretchX": 1.048,
+      "stretchY": 1,
+      "blurPeak": 12
+    },
     "walkFrames": {
       "type": "perFrame",
       "frames": [

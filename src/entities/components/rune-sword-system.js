@@ -1,4 +1,5 @@
 import { WeaponAnimConfig } from '../../items/weapon-anim-config.js';
+import { nowMs } from '../player/anim-state.js';
 import { WallSystem } from '../../world/wall-system.js';
 import { Renderer } from '../../world/renderer.js';
 import { Input } from '../../ui/input.js';
@@ -82,7 +83,7 @@ export class RuneSwordSystem {
         // 更新飞行中的剑
         this._updateFlyingBlades(dt, entities);
         // 更新悬浮剑的摇摆效果
-        const now = Date.now() / 1000;
+        const now = nowMs() / 1000; // Phase 3：单调时钟（仅作摇摆相位）
         this.player._runeSwordSwords.forEach(s => {
             if (s.active && !s.launched && !s.fading) {
                 s.swayTimer = now + s.id * 0.5; // 不同初始相位
@@ -216,7 +217,7 @@ export class RuneSwordSystem {
             startAngle: 0,
             startRotation: this.player.rotation,
             targetRotation: (() => { const sp = Renderer.worldToScreen(this.player.x, this.player.y); return Math.atan2(Input.mouse.y - sp.y, Input.mouse.x - sp.x); })(),
-            startTime: Date.now(),
+            startTime: nowMs(), // Phase 3：墙钟→单调时钟（读者 subsystems.js 同链）
             duration: (WeaponAnimConfig.stab && WeaponAnimConfig.stab.recoverMs) || 500
         };
         this.player._runeSwordSpecialActive = false;

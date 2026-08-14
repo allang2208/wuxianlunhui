@@ -5,6 +5,7 @@ import { segmentHitsTorso } from '../physics/torso-hitbox.js';
 import { ELEVATION } from '../physics/collider.js';
 import { PERSPECTIVE_SCALE_Y } from '../config/perspective-config.js';
 import SpatialPartitionSystem from '../systems/spatial-partition-system.js';
+import { isFriendlyFire } from '../entities/damageable-entity.js';
 
 class Projectile {
     constructor(x, y, angle, speed, maxRange, size, damage, piercing, source, entities, image, isTracer = false, isGold = false, isDarkGold = false, damageType = 'physical', _noRender = false, isGreen = false, isSpit = false, poisonChance = 0, poisonStacks = 1, textureKey = null) {
@@ -53,6 +54,7 @@ class Projectile {
             for (const entity of candidates) {
                 // 友军伤害免疫：跳过同阵营目标（放在 hitTargets 检查之前，避免同一友军被反复判断）
                 if (entity === this.source || !entity.active || !entity.hittable ||
+                    isFriendlyFire(this.source, entity) ||
                     (this.source && this.source._faction && entity._faction && this.source._faction === entity._faction) ||
                     this.hitTargets.has(entity)) continue;
                 if (this._isHittingEntity(entity, prevX, prevY)) {
@@ -99,7 +101,7 @@ class Projectile {
         if (!WallSystem || !WallSystem.blocked) return false;
         const emb = this._embeddedWalls;
         // 普通墙（嵌墙面线 + 其阶梯块 + 嵌墙矩形除外）撞线即死
-        const ignore = emb ? {
+        let ignore = emb ? {
             segs: new Set(emb.segs.map(e => e.seg)),
             rects: new Set([
                 ...(emb.clearedRects || []),
@@ -107,6 +109,17 @@ class Projectile {
                 ...emb.segs.flatMap(e => e.linked ? [...e.linked] : []),
             ]),
         } : null;
+        // 防御塔弹丸：忽略己方掩体墙段——塔可越过己方掩体射击（2026-08-14）
+        if (this.source && this.source._isDefenseTower && WallSystem && WallSystem.isoSegments) {
+            const coverSegs = new Set(WallSystem.isoSegments.filter((s) => s && s._cover));
+            if (coverSegs.size) {
+                if (!ignore) {
+                    ignore = { segs: coverSegs, rects: null };
+                } else {
+                    ignore.segs = new Set([...(ignore.segs || []), ...coverSegs]);
+                }
+            }
+        }
         if (WallSystem.blocked(prevX, prevY, this.x, this.y, ignore)) return true;
         if (!emb) return false;
         if (!emb.clearedRects) emb.clearedRects = new Set();

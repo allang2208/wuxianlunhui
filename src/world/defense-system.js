@@ -303,21 +303,46 @@ export const COVER_FOOT = {
 export const DEFENSE_TOWER_VISUAL = {
     base: { w: 170, h: 262, footOffsetY: 131 },
     arm: {
-        // 2026-08-12 重做：Blender 圆柱塔基 + 机械臂（纯色无贴图，参考版）。
-        // 机械臂贴图指向 +x（自然角 0），枢轴=臂根部柱中心，尖端=腕部挂载中心；
-        // 标定见 tools/prep-defense-tower.py（模型 2.56px/unit、游戏 1.343 game-px/unit）
-        w: 360,
-        h: 85,
-        s: 360 / 687,
-        pivot: { x: 41, y: 73 },
-        tip: { x: 669, y: 80 },
-        naturalAngle: 0,
+        // 2026-08-14 预渲染 3D 旋转帧：Blender 绕塔顶轴渲染 48 帧（7.5°×48），
+        // 每帧真等距透视（肘关节/前臂随角度真实转动），游戏按 aimAngle 选帧显示，
+        // 不再对单帧贴图做 2D 旋转。标定见 tools/prep-defense-tower-frames.py。
+        w: 137,
+        h: 86,
+        s: 137 / 261,
+        frames: 48,
+        frameW: 261,
+        frameH: 164,
+        pivot: { x: 131, y: 82 }, // 帧内枢轴像素（竖枢轴柱投影，各帧恒定）
         pivotWorldY: 235,
+        // 臂尖椭圆路径（模型单位，等距投影：x 全量、y 按 0.5 缩短）：
+        // tipOX = gameScale*k*reach*cosθ；tipOY = gameScale*k*(0.5*reach*sinθ - 0.866*dz)
+        // （θ=aimAngle，游戏 y 向下；2026-08-14 修正下半区枪口落到塔顶的符号 bug）
+        reach: 50,
+        dz: 0,
+        k: 2.56,
+        gameScale: 0.524691,
+        naturalAngle: 0,
     },
     weapon: {
         // 挂载武器显示高度（按高度等比缩放，与玩家枪械 setScale 口径一致；朝左 flipY）
-        heights: { bow: 120, pkm: 100, akm: 96, m416: 96, qbz191: 92, qjb201: 100, shotgun: 105, energy_lmg: 100 },
-        defaultHeight: 90,
+        // 2026-08-14：按新短臂（70px 高）等比缩小约 40%
+        heights: { bow: 48, pkm: 40, akm: 38, m416: 38, qbz191: 37, qjb201: 40, shotgun: 42, energy_lmg: 40 },
+        defaultHeight: 36,
+        // 枪管裁剪（"枪插进机械臂"假象，2026-08-14）：武器贴图只取前 1/3 枪管段，
+        // 切口端（origin x=0）对齐臂尖，看起来枪管从机械臂/钩子里伸出。
+        // 纹理坐标 = 贴图内枪管段裁剪框；height = 枪管显示厚度（游戏px，对齐臂梁 ~11px）。
+        // 按 weaponId 配置（霰弹 super90/saiga12k 同 type 不同贴图必须区分）；
+        // 未配置的武器（如弓）退回整枪渲染（heights）。
+        barrel: {
+            weapon6:  { x: 1326, y: 950,  w: 619, h: 149, height: 11 }, // PKM
+            weapon7:  { x: 1337, y: 884,  w: 623, h: 183, height: 11 }, // AKM
+            weapon21: { x: 1334, y: 828,  w: 623, h: 193, height: 11 }, // M416
+            weapon8:  { x: 1335, y: 586,  w: 625, h: 251, height: 12 }, // QBZ-191
+            weapon11: { x: 1325, y: 916,  w: 619, h: 151, height: 11 }, // QJB-201
+            weapon12: { x: 1335, y: 1010, w: 625, h: 175, height: 12 }, // Super90
+            weapon13: { x: 1335, y: 500,  w: 625, h: 283, height: 14 }, // SAIGA-12K
+            weapon15: { x: 1335, y: 886,  w: 625, h: 381, height: 16 }, // 能量轻机枪
+        },
     },
 };
 
@@ -336,6 +361,7 @@ class DefenseBase extends Combatant {
         this.id = config.id || 'defense_base';
         this._isDefenseStructure = true;
         this.noSeparation = true;
+        this.immovable = true; // 基地核心同掩体口径：不可被击退/移动（2026-08-14 补齐）
         this.noNameLabel = true; // 名字/HP 走 _syncNeutralEntities 的贴图标签（避免与 HUD 重复）
         this._noShadow = true;   // 障碍物取消脚底阴影（贴图自带接地底座，无投影）
         const def = config.def ?? DEFENSE_CONFIG.base.def;
@@ -517,6 +543,7 @@ class DefenseTower extends Combatant {
         this._isDefenseTower = true;
         this._skipNeutralSprite = true; // 塔由 GameScene._syncDefenseTowers 三层渲染（基座/臂/武器）
         this.noSeparation = true;
+        this.immovable = true; // 防御塔同掩体口径：不可被击退/移动（2026-08-14 补齐）
         const def = config.def ?? DEFENSE_CONFIG.tower.def;
         const mdef = config.mdef ?? DEFENSE_CONFIG.tower.mdef;
         this.def = def;
@@ -622,6 +649,34 @@ class DefenseTower extends Combatant {
         if (slot !== 'weapon' || !this._ammoState || !this._ammoState.weapon) return;
         const st = this._ammoState.weapon;
         st.reloadTime = Math.max(120, Math.round(st.reloadTime * this.moduleMults().reload));
+    }
+
+    /** 弹药存在判定（玩家口径）：弹匣有剩余且非换弹中 */
+    _hasAmmo(slot) {
+        if (!this._ammoState || !this._ammoState[slot]) {
+            this._initAmmoForSlot(slot);
+        }
+        const state = this._ammoState && this._ammoState[slot];
+        return state && state.current > 0 && !state.reloading;
+    }
+
+    /** 消耗 1 发弹药；打空自动进入换弹 */
+    _consumeAmmo(slot) {
+        const state = this._ammoState && this._ammoState[slot];
+        if (!state || state.current <= 0) return false;
+        state.current--;
+        if (state.current <= 0) {
+            this._startReload(slot);
+        }
+        return true;
+    }
+
+    /** 换弹守卫：换弹中/满弹不重复触发（基类会无条件重置换弹计时，
+     *  否则 canFire 每帧自动换弹导致永远装不完） */
+    _startReload(slot) {
+        const state = this._ammoState && this._ammoState[slot];
+        if (!state || state.reloading || state.current >= state.max) return false;
+        return super._startReload(slot);
     }
 
     /** 过热/散热模块倍率：Combatant._updateOverheat 读 weapon.heatParams，此处按模块倍率改写后委托 */
@@ -772,7 +827,13 @@ class DefenseTower extends Combatant {
             if (typeof e.x !== 'number' || typeof e.y !== 'number') continue;
             const d = Math.hypot(e.x - this.x, e.y - this.y);
             if (d > this.range) continue;
-            if (WallSystem && typeof WallSystem.blocked === 'function' && WallSystem.blocked(this.x, this.y, e.x, e.y)) continue;
+            // 索敌视线：真实墙壁仍阻挡，但己方掩体墙段不阻挡——防御塔可越过己方掩体射击（2026-08-14）
+            if (WallSystem && typeof WallSystem.blocked === 'function') {
+                const coverIgnore = WallSystem.isoSegments
+                    ? { segs: new Set(WallSystem.isoSegments.filter((s) => s && s._cover)) }
+                    : null;
+                if (WallSystem.blocked(this.x, this.y, e.x, e.y, coverIgnore)) continue;
+            }
             if (d < bestD) {
                 bestD = d;
                 best = e;
@@ -804,25 +865,34 @@ class DefenseTower extends Combatant {
     /** 单发开火：枪口偏移 + 墙体回退 + 弹丸（复用 Combatant.fireProjectile）+ 枪口火焰/开火火光/弹壳 */
     _fireShot(aimX, aimY, entities) {
         if (!this._attackKey || !this.attacks[this._attackKey]) return false;
-        // 枪口 = 机械臂尖（枢轴 + 旋转后的臂尖偏移）+ 沿瞄准方向小幅前置
+        // 枪口 = 机械臂尖（椭圆臂尖路径：等距投影 x 全量、y 0.5 缩短）+ 沿瞄准方向小幅前置
         const V = DEFENSE_TOWER_VISUAL;
-        const s = V.arm.s;
         const pivotX = this.x;
         const pivotY = this.y - V.arm.pivotWorldY;
-        const rot = this.aimAngle - V.arm.naturalAngle;
-        const tdx = (V.arm.tip.x - V.arm.pivot.x) * s;
-        const tdy = (V.arm.tip.y - V.arm.pivot.y) * s;
-        const cosR = Math.cos(rot);
-        const sinR = Math.sin(rot);
-        let mx = pivotX + tdx * cosR - tdy * sinR + Math.cos(this.aimAngle) * 16;
-        let my = pivotY + tdx * sinR + tdy * cosR + Math.sin(this.aimAngle) * 16;
+        const m = this._mirrored ? -1 : 1;
+        const tipOX = V.arm.gameScale * V.arm.k * V.arm.reach * Math.cos(this.aimAngle) * m;
+        const tipOY = V.arm.gameScale * V.arm.k * (0.5 * V.arm.reach * Math.sin(this.aimAngle) - 0.866 * V.arm.dz);
+        // 枪口：枪管模式下在枪管尖端（臂尖 + 枪管长度沿枪管方向）；否则臂尖前移 16px
+        const barrelCfg = V.weapon.barrel && this.weaponItem && (V.weapon.barrel[this.weaponItem.weaponId] || V.weapon.barrel[this.weaponItem.weaponType]);
+        let wAng = Math.atan2(0.5 * V.arm.reach * Math.sin(this.aimAngle) - 0.866 * V.arm.dz, V.arm.reach * Math.cos(this.aimAngle));
+        if (this._mirrored) wAng = Math.PI - wAng;
+        const muzzleLen = barrelCfg ? barrelCfg.w * (barrelCfg.height / barrelCfg.h) : 16;
+        let mx = pivotX + tipOX + Math.cos(wAng) * muzzleLen;
+        let my = pivotY + tipOY + Math.sin(wAng) * muzzleLen;
         const ox = this.x;
         const oy = this.y;
-        // 枪口点落进墙内时回退到可达点，防止子弹出生即撞墙消失
+        // 枪口回退只针对真实墙壁：己方掩体段不参与（塔可越掩体射击）——
+        // 否则 resolve 会把枪口沿掩体段滑回塔脚（"下沉到底座" bug，2026-08-14 修复）
         if (WallSystem && typeof WallSystem.resolve === 'function') {
-            const resolved = WallSystem.resolve(ox, oy, mx, my, 4);
-            mx = resolved.x;
-            my = resolved.y;
+            const coverIgnore = WallSystem.isoSegments
+                ? { segs: new Set(WallSystem.isoSegments.filter((s) => s && s._cover)) }
+                : null;
+            const wallBlockedOnly = WallSystem.blocked(ox, oy, mx, my, coverIgnore);
+            if (wallBlockedOnly) {
+                const resolved = WallSystem.resolve(ox, oy, mx, my, 4);
+                mx = resolved.x;
+                my = resolved.y;
+            }
         }
         this.x = mx;
         this.y = my;
@@ -860,6 +930,18 @@ class DefenseTower extends Combatant {
         this.aimAngle += Math.max(-maxStep, Math.min(maxStep, diff));
     }
 
+    /** 塔被摧毁：停火、停止渲染、从实体分离中移除（怪物可穿过废墟） */
+    takeDamage(damage, source, damageType, isMelee) {
+        const wasAlive = this.hp > 0;
+        super.takeDamage(damage, source, damageType, isMelee);
+        if (wasAlive && this.hp <= 0) {
+            this.active = false;
+            if (EffectManager) {
+                EffectManager.add(new FloatingTextEffect(this.x, this.y - 30, '防御塔被摧毁', '#ff8855'));
+            }
+        }
+    }
+
     update(dt, entities) {
         super.update(dt);
         if (!this.active || this.hp <= 0) return;
@@ -871,6 +953,13 @@ class DefenseTower extends Combatant {
         this._recalcDamage(typeof window !== 'undefined' && window.Game ? window.Game.player : null);
         const target = this._acquireTarget(entities);
         this._updateAim(dt, target);
+        // 过热驱动（与玩家"持续开火"口径一致）：有目标 + 有弹 + 非换弹 + 未过热才算开火中；
+        // 冷却（attack.canUse）不参与——机枪连续压制时枪管持续升温
+        const isFiring = !!(target && target.active
+            && this._hasAmmo('weapon')
+            && !this._isReloading('weapon')
+            && !(this._overheatOverheated && this.weaponItem && this.weaponItem.weaponType === this._overheatWeaponType));
+        if (typeof this._updateOverheat === 'function') this._updateOverheat(dt, isFiring);
         if (target) {
             this._aimTargetPos = {
                 x: target.x,

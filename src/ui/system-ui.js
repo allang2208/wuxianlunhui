@@ -9,6 +9,7 @@ import { SkillManager } from './skill-manager.js';
 import { GameUIManager } from './game-ui-manager.js';
 import { CodexManager } from './codex-manager.js';
 import { StatusTooltipHelper } from './status-tooltip-helper.js';
+import { EventBus } from '../core/event-bus.js';
 
 export const UI_DATA_CONFIG = {
     topBar: [
@@ -115,6 +116,8 @@ export const SystemUI = {
         // 'inventory' 已整合到 'equip' 页面
         if (tab === 'inventory') tab = 'equip';
         this.isOpen = true; this.currentTab = tab;
+        // 打开背包/其他系统面板时关闭组队面板（companion-panel 监听 'ui:panel-open'）
+        EventBus.emit('ui:panel-open', { tab });
         // 打开面板时隐藏右侧侧边栏图标
         queryAllElements('.side-menu').forEach(m => m.classList.add('hidden'));
         const panel = getElement('systemPanel'), overlay = getElement('panelOverlay');

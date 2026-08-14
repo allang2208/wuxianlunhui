@@ -1,5 +1,371 @@
 # 变更日志
 
+### 对话：侍从系统框架（2026-08-12，占位符建模/贴图，待用户验收）
+- **数据层**：`data/companion-config.json` 4 名候选侍从（重剑/占星/巡林/祭司，占位头像 emoji +
+  `modelPlaceholder` 路径，初始六维/成长规则引用）；`src/config/companion-growth.js` 成长规则
+  注册表（warrior/mage/ranger/priest/balanced + `registerGrowthRule(id,fn)` 扩展接口，升级属性点
+  自动分配不硬编码）。
+- **实体层**：`src/entities/companion.js` 数据模型与玩家对齐——六维 data / level/exp/maxExp /
+  equipments / backpack / skills 占位；`gainExp` 战斗专用（升级曲线=玩家 computeMaxExp，升级
+  回满 HP/MP，属性点按 growthRule 自动分配）；`serialize/fromSerialized` 存档接口。
+- **队伍层**：`src/systems/party-system.js` 最多 3 名侍从（玩家+3=4 人队），增删/满员/重复拦截、
+  `grantCombatExp` **与玩家同额、无平分机制**、onChange 订阅刷新。
+- **UI**：① 组队栏 `party-ui.js` 替换左侧任务追踪栏（questTracker 隐藏，4 槽：玩家+3 侍从，
+  空=加号、有=头像/名/Lv）；② 寻找帮手 `recruit-ui.js` 卡片选择（4 卡，满员/已招募禁用）；
+  ③ 队员面板 `companion-panel.js` 右侧栏（属性/装备背包/技能三 tab，技能占位；背包格接收玩家
+  背包/装备栏拖动转移）；④ 出征界面四圆圈队员栏（`expeditionMemberBar`，空=加号、有=头像）。
+- **经验挂钩**：damageable-entity 击杀结算在玩家 gainExp 后同步 `PartySystem.grantCombatExp`。
+- **验证**：`scripts/test-party-system.mjs` 20/20（成长规则/升级分配/满员/经验全量分发）；
+  lint 0 error / vite build ✅；CDP 探针 `tools/cdp-party-framework.mjs` 全链路实机通过
+  （组队栏 4 槽/追踪隐藏、招募 4 卡、加入 2 人、队员面板 3 tab 12 背包格、拖动转移、出征
+  四圆圈）；GLM 复核组队栏/出征界面正常。
+- **框架说明**：战斗模型/贴图仍为占位（modelPlaceholder 未渲染）；队员技能为空占位；队员装备
+  属性结算/战斗 AI/存档落盘留待下一步；升级仅战斗经验一条路（无野外经验入口）。
+
+### 对话：队员与玩家装备通用（2026-08-12 补充）
+- **检查结论**：初版框架队员装备栏仅静态展示，未复用玩家装备规则/装备动作/属性结算——已补齐。
+- **共享规则**：新增 `src/ui/equip/equip-rules.js`（`canEquipSlot` 武器进武器槽/盾限副手/
+  双手互斥/按 equipSlot + `getEquipmentBonuses` bonusStats/bonusPerEnhance/defense），
+  **玩家 drag-drop-manager 与侍从共用**（原 _canEquipSlot 改调共享，行为不变）。
+- **Companion 装备流程**：`equipFromBackpack`（自动槽位：单手主手→weapon2→offhand→全满替换
+  主手；盾进副手且卸双手主手；双手武器只进主手；目标槽被占替换回包）、`unequip`（卸下回包）、
+  `canEquip`/`getEquipmentBonuses`、`calculateCombatStats`（六维差值法 + atk/def 同玩家公式）、
+  updateMaxStats 计入装备 maxHp/maxMp。
+- **队员面板交互**：背包格双击装备、装备槽点击卸下；背包格 draggable 拖回玩家背包
+  （`text/companion-item` 源 → drag-drop-manager inv-cell drop → EventBus
+  `companion:moveToPlayerBackpack`）；玩家背包/装备栏可拖入队员装备槽（canEquip 不合法还回玩家）。
+- **坑**：探针/调试用 `window.Game.PartySystem/RecruitUI/CompanionPanel/ExpeditionSystem`
+  单一权威（Runtime.evaluate 里 dynamic import 会创建平行模块实例，addCompanion 加到平行实例
+  而 UI 读静态实例——实测抓出）；物品转移/回包 `slot` 字段必须最后写。
+- **验证**：单测扩至 41/41（共享规则/自动槽位/替换回包/卸下/装备六维结算）；实机 CDP
+  装备通用全链路 true（玩家→队员装备槽、属性生效、背包装备、卸下回包、队员→玩家背包）。
+
+### 对话：技能系统通用模块（2026-08-12 补充）
+- **检查结论**：技能定义/公式/修炼（skills.json + SkillLevelSystem）已数据驱动，但构建、列表
+  渲染、升级回调绑定玩家——已抽通用模块。
+- **skill-formula.js（新，纯函数单一来源）**：从 data-loader 提取 `parseSkillFormula` /
+  `parseSkillExpFormula` / `buildSkillFromJSON`（安全白名单求值 + 效果缓存），
+  **data-loader 改为委托**（玩家路径行为不变），侍从共用同一来源，无漂移。
+- **skill-system.js（新，通用技能系统）**：`buildSkillMap`（按 id 构建）、`getSkill`/`getSkillEffect`、
+  `grantSkillExp`（修炼升级，逻辑与 SkillLevelSystem 同源内联——保持无 Phaser 依赖可单测）、
+  `onSkillLevelUp`（按 effectFormula 属性奖励应用，无坐标单位跳过特效）、`renderSkillList`
+  （通用技能卡渲染：icon/名/等级/经验条）。
+- **Companion 接入**：`skills = buildSkillMap(archive.skills)`（companion-config.skills 为 id 数组，
+  当前空=占位；填 id 即自动拥有/修炼/渲染）；队员面板技能 tab 走 `renderSkillList`。
+- **验证**：单测 49/49（通用构建/效果/修炼升级/属性奖励/满级封顶/未知技能忽略）；实机 CDP
+  运行时注入圣光 → 队员面板渲染 1 张技能卡、修炼升级 Lv1→2；lint 0 error / build ✅。
+
+### 对话：队员管理入口 + 管理界面（2026-08-12 补充）
+- **右侧栏目按钮**：`hud-panels-misc.js` 的 side-menu 新增「👥 队员管理」按钮
+  （支持 emoji 按钮项），点击 `CompanionPanel.openManage()`。
+- **管理界面**：CompanionPanel 升级——顶部队员切换条（头像/名/等级，点击切换当前队员，
+  高亮选中）、空状态（无队员显示"暂无侍从" + 寻找帮手按钮）、打开时隐藏右侧 side-menu
+  （关闭恢复）；属性/装备背包/技能三 tab 与之前一致。
+- **招募资格释放**：PartySystem.removeCompanion 同时 `_recruitedIds.delete(id)`——
+  移出队员后可重新招募（原实现永久占位导致移出后无法再加回，实机抓出）。
+- **验证**：单测 50/50（新增移出后可重新招募）；实机 CDP 管理界面全链路（空状态/招募按钮、
+  双队员 chip、默认选中第一名、点击切换）；GLM 复核界面正常；lint 0 error / build ✅。
+
+### 对话：解除招募保留状态 + 再招募继承（2026-08-12 补充）
+- **需求**：解除招募后队员等级/属性/装备/技能/背包等全部保留，下次招募继承。
+- **实现**：PartySystem 新增 `_roster` 档案库（archiveId → Companion.serialize()）——
+  `removeCompanion` 移出前存档案；`addCompanion` 有档案则 `Companion.fromSerialized` 恢复，
+  无档案新建；`_recruitedIds` 移除（"已在队"由 inParty 拦截）；招募卡片显示
+  「再次加入（继承状态）」/「加入队伍」；`serializeRoster()/restoreRoster()` 存档接口预留。
+- **验证**：单测 59/59（新增升级+装备+背包→移除→再招募：等级/属性/装备/背包/经验全继承）；
+  实机 CDP 凯斯 Lv1→升级装备→移除→再招募 Lv2/dex14/箭袋全继承、卡片显示已解锁；
+  lint 0 error / build ✅。
+
+### 对话：招募黑屏修复——废弃高斯武器滤镜停用（2026-08-12）
+- **现象**：运行后点招募直接黑屏；`FilterBlurHigh` 创建 WebGL framebuffer 失败
+  （Framebuffer Unsupported）→ context lost → 渲染器崩溃。
+- **根因**：`GameScene._applyWeaponBlur` 仍调用废弃的 `filters.internal.addBlur`
+  （Phaser 旧版高斯滤镜，SKILL 早已标记"观感失败、残影替代"）——在部分 GPU/浏览器下
+  创建模糊帧缓冲失败即整体崩溃；触发点是任意走到武器同步（攻击/冲刺/特殊动画）的帧。
+- **修复**：`_ensureWeaponBlur` 直接返回 null、`_applyWeaponBlur` 改为 no-op（保留签名兼容
+  调用点），彻底不再创建滤镜；运动模糊由残影（_syncWeaponGhosts）承担（原正式方案）。
+- **验证**：回归探针 `tools/cdp-recruit-no-crash.mjs`——注入剑 + 攻击/冲刺/直接调
+  _applyWeaponBlur + 打开招募：渲染器正常、0 页面错误、画面非黑屏（GLM 复核）；lint/build ✅。
+
+### 对话：招募"加入队伍"点击排查 + 按钮反馈加固（2026-08-12）
+- **现象**：点击招募界面的"加入队伍"按钮无反应。
+- **排查**：CDP 全路径复现均正常——程序化点击（members+1、弹窗关闭）、真实鼠标事件
+  （Input.dispatchMouseEvent）、roster 恢复路径（"再次加入（继承状态）"）、
+  serialize→fromSerialized 往返（单测覆盖带技能/装备/背包，65/65 无异常）。
+- **结论**：代码路径无 bug；最可能为用户浏览器 HMR 混合旧模块（黑屏修复前旧会话）。
+- **加固**：`recruit-ui.js` 按钮 onclick 加 try/catch + 明确反馈——失败显示
+  「队伍已满 / 已在队中 / 加入失败（未知档案）/ 加入出错」并短暂禁用（1.2s 后重渲染），
+  杜绝"点了没反应"；同时重启 vite dev server 清模块状态。
+- **用户侧**：Ctrl+F5 强刷后重试；若仍失败，F12 Console 报错即为定位线索。
+
+### 对话：招募点击二轮排查——图层/命中测试全查 + 交互加固（2026-08-12）
+- **全面排查**（CDP 诊断探针 cdp-recruit-hittest.mjs）：按钮中心 elementFromPoint 命中
+  按钮本身、pointer-events 链全 auto、z-index 4200 正确、**无任何覆盖元素**——
+  标准环境无图层问题；真实鼠标事件（Input.dispatchMouseEvent）点击正常加入。
+- **加固（防边缘环境"点了没反应"）**：
+  ① 卡片点击改为 **overlay 级事件委托**（重建卡片后绑定不丢失）；
+  ② **点卡片任意位置**都触发加入（不再局限于按钮）；
+  ③ 招募面板加**状态反馈条**：成功「✅ 已加入」（500ms 后自动关闭）、
+     失败「⚠️ 原因」、异常「❌ 错误信息」——任何结果必有可见反馈。
+- **验证**：新招募/再次招募（roster 恢复）/真实鼠标点击三段全通过；lint 0 error / build ✅。
+- **用户侧**：Ctrl+F5 强刷后点卡片任意处；若仍有问题，状态条会显示具体原因可直接反馈。
+
+### 对话：队员背包双栏——同步弹出玩家背包贴合左侧（2026-08-12）
+- **需求**：打开队员背包界面时同步弹出玩家背包界面，完全复制并贴合在队员背包栏左侧。
+- **实现**：`companion-panel.js` overlay 改为双栏布局（`.companion-panel-wrap`）——
+  左侧 `.companion-player-pack`（玩家背包栏：标题 + 背包格 + 拖动提示）+ 右侧队员面板
+  （贴合时圆角切换 `.with-pack`）；切到「装备背包」tab 渲染玩家背包格
+  （`EquipManager.backpackItems` 实时读取），其他 tab / 空状态隐藏。
+- **拖动**：玩家背包格 draggable（dragstart 写 `EquipManager._dragDropManager._dragSrc`），
+  拖到右侧队员背包/装备槽走既有转移接口；转移后双栏同步重渲染。
+- **验证**：实机 CDP——equip tab 显示玩家背包栏（10 格、含物品格 draggable）、队员面板
+  贴合圆角、切 status 隐藏、玩家背包格→队员背包转移成功；GLM 复核两面板贴合无缝隙、
+  物品正常显示；lint 0 error / build ✅。
+
+### 对话：玩家背包栏真正复刻（2026-08-12 返工，用户指出此前只是物品名占位）
+- **读透玩家背包实现**：slot-renderer.updateInventorySlots（格子渲染管线）、equip tab HTML
+  （.gear-inventory-col + .inventory-grid 格子创建）、inv-cell CSS（稀有度竖条/图标/名字/堆叠/
+  强化改造附魔标签）、EquipTooltipManager.bindInventoryTooltip（按 data-slot 解析物品）、
+  drag-drop-manager 拖拽源格式（dragSrc {type:'inventory', slot}）。
+- **复刻实现**：`_renderPlayerPack` 生成与玩家背包**逐字段一致**的格子——
+  `.inv-cell.occupied` + `inv-rarity rarity-<key>` + `inv-enhanced/inv-crafted/inv-enchanted`
+  标签 + 图标 img（或 icon）+ `inv-name` + `inv-stack`（堆叠>1）+ data-slot/dragType='inventory'/
+  dragId/itemName + draggable；tooltip 复用 `EquipTooltipManager.bindInventoryTooltip()`
+  （复制格自动生效）；拖拽源写 `EquipManager._dragDropManager._dragSrc`（与玩家背包格同口径，
+  只作源不作放置目标）；容器用 `.companion-player-grid`（不用 .inventory-grid，避免
+  updateInventorySlots 的 queryAllElements 全局索引把复制格 slot 错位）。
+- **验证**：CDP 格式核验——复制格类名/HTML/稀有度/名字/堆叠/强化标签/dragType 与玩家渲染
+  逻辑完全一致；GLM 复核格子显示物品、两栏布局正常；lint/build ✅。
+
+### 对话：属性面板 / 技能面板全面复制玩家格式（2026-08-12）
+- **属性页**：`_statusHtml` 重写为玩家系统面板同款 `.status-page` 结构——头部
+  （名字/称号/Lv/成长规则）+ 状态条（生命/魔法/体力/经验 bar-fill）+ 基础属性
+  （六维两列 attr-list）+ 战斗属性（物攻/物防/魔攻/暴击等）+ 详细信息 + 侍从档案
+  （成长规则/武器类型/角色/头像），数据取队员 data（atk/def/matk 由 calculateCombatStats 算）。
+- **技能页**：`skill-system.renderSkillList` 卡片改为玩家技能页同款 `.skill-card` 结构
+  （skill-icon 图标/ skill-name / skill-level / skill-exp-bar+fill），复用全局 CSS；
+  队员配置 skills 后自动按玩家格式渲染网格。
+- **验证**：CDP——属性页 5 section / 4 状态条 / 27 属性项 / 头部"凯斯 巡林猎手"；
+  技能页 4 卡（剑精通/风车/暴击/冲刺攻击）skill-card 格式全字段一致；GLM 复核属性页与
+  技能网格均与常规 RPG 面板一致；lint 0 error / build ✅。
+
+### 对话：招募↔队员管理交互审计修复（2026-08-12 返工，用户指出"点加入隐藏面板+不加载新队员"）
+- **审计发现三处粗糙点**：
+  ① RecruitUI 打开时临时隐藏队员管理（早期规避 z-index 冲突的权宜之计）——招募 z-index
+     已 4400 > 队员管理 4300，无需隐藏；隐藏反而导致"点加入后面板消失"；
+  ② 隐藏期间 companion onChange 的刷新条件是 `display===block`（false），恢复显示后
+     内容不刷新 → 新队员不显示；
+  ③ 空状态（无队员）招募后 `_memberId` 停留 null → 面板继续显示"暂无侍从"。
+- **修复**：① 删除 RecruitUI 隐藏/恢复队员管理逻辑（靠 z-index 层级叠加）；
+  ② 保留 onChange 刷新，且空状态加入后自动选中第一名队员；
+  ③ 一并核对招募背景关闭、出征栏招募等分支。
+- **验证**（新探针 tools/cdp-recruit-interact.mjs 三场景）：
+  A 管理打开→招募→加入：招募关闭、**管理保持显示**、新队员出现在面板+成员列表；
+  B 空状态→招募→加入：自动选中新队员、不再显示空状态；
+  C 招募背景关闭：管理仍在。全回归（单测 65/65 + party 探针 + 招募点击探针）通过；
+  lint 0 error / build ✅。
+
+### 对话：侍从装备+魔法跑通测试与审计（2026-08-12，测试后已还原）
+- **单测扩至 80/80**：装备（法杖 weapon/法袍 armor 自动槽位、bonusStats 六维/maxMp、
+  defense 含强化、matkFormula）、魔法（圣光/火球构建、效果公式 Lv1→Lv2、修炼升级）、
+  装备+技能序列化往返全保留。
+- **审计发现并修复**：`Companion.calculateCombatStats` 漏算装备 `matkFormula`
+  （法杖等魔法武器攻击公式，玩家侧有 _getEquipmentMatkBonus）→ 队员魔攻恒 0；
+  已按玩家公式补齐（base + 强化×enhanceBase + int×intMul + wis×wisMul）。
+- **实机跑通**（探针 tools/cdp-companion-gear-magic.mjs）：祭司装备法杖+法袍 →
+  int 9→12 / wis 14→16 / matk 0→34 / maxMp 285→360 / def 0→23（属性页正确显示）；
+  注入圣光+火球 → 技能页 2 卡、圣光修炼 Lv1→2、效果 healBase 10→15；GLM 复核属性页/
+  技能页正常。
+- **已还原**：队伍清空、档案清空（PartySystem.init）、玩家背包恢复快照、玩家装备恢复。
+
+### 对话：队员界面真正复刻玩家 system-panel（2026-08-12 二轮返工，用户指出"界面展示效果不一致"）
+- **问题**：此前队员面板是自造"右侧窄栏 + 自定义 tab/装备槽/背包"结构，虽复用部分类名
+  但外层容器/装备页布局与玩家 system-panel 完全不同，展示效果不一致。
+- **读透玩家结构**：`.system-panel`（右侧滑出 45vw 全高毛玻璃）+ `.panel-tabs`/`.panel-tab`
+  + `.tab-page`；装备页 `.gear-layout` = 上方 `.gear-equip-col`（`.equip-grid` 3×5 网格
+  毛玻璃 + 15 个 `.diablo-slot`：slot-icon 左 + slot-rarity 竖条 + slot-name 右）+
+  下方 `.gear-inventory-col`（5 列 `.inv-cell` 背包格）。
+- **重构**：队员面板改为 **`.system-panel` 同款**（右滑 45vw 全高、毛玻璃、panel-tabs
+  状态/装备背包/技能、三个 tab-page）；headbar 承载成员切换 chips + 当前队员 + 移出/关闭；
+  装备页完整复制 gear-layout（装备槽 15 个 `companion-diablo-slot` 复制 diablo-slot 全套
+  样式 + 背包 `companion-pack-grid`/`companion-cell` 复制 inv-cell 样式）；装备渲染与玩家
+  updateEquipSlots 同格式（icon/稀有度竖条/名字/equipped 态）；玩家背包栏贴合在面板左侧。
+- **类名隔离**：装备槽/背包用 `companion-*` 类（复制玩家样式），避免玩家渲染器
+  （queryAllElements('.diablo-slot' / '.inventory-grid .inv-cell')）与 tooltip 全局绑定污染。
+- **验证**：CDP——system-panel 853px(45vw)/全高/right 0、3 tab、3 page、headbar、
+  status-page 5 区块、15 装备槽 + 3×5 网格、12 背包格、玩家背包栏贴合、装备 equipped/
+  名字/图标渲染、技能卡 2 张；GLM 复核"与玩家系统面板一致（毛玻璃/tab/状态条/属性区块）"；
+  全回归（单测 80/80 + party/招募交互探针）通过；lint 0 error / build ✅。
+
+### 对话：玩家背包装备栏完整复制（2026-08-12 补充）
+- **需求**：左侧"玩家背包栏"此前只有背包格，缺玩家装备栏——补齐与玩家系统面板一致的
+  完整"装备栏 + 背包"结构。
+- **实现**：`companion-player-pack` 改为 gear-layout 同款——上方玩家装备栏
+  （`.equip-grid` 3×5 网格 + 15 个 `.diablo-slot`，**复用玩家渲染器**
+  `EquipManager.updateEquipSlots()` 遍历填充玩家装备 + `bindEquipTooltip` 自动绑 tooltip）
+  + 下方玩家背包格（自渲染，格式同玩家）；装备栏槽可拖出（dragSrc type='equip'，
+  拖到右侧队员装备槽/背包走既有转移）。
+- **验证**：CDP——玩家装备栏 15 槽、装备 filled/equipped/名字正确、pack 显示、
+  拖玩家护甲→队员装备槽成功（movedToMember + playerSlotCleared）；GLM 复核
+  "左侧玩家装备背包栏（3×5 装备槽 + 背包格）+ 右侧队员面板"布局正常；
+  全回归（单测 80/80）通过；lint 0 error / build ✅。
+
+### 对话：玩家背包双界面同步审计（2026-08-12）
+- **审计结论**：队员面板左侧"玩家背包栏"与玩家系统面板背包是**同一份数据**
+  （EquipManager.backpackItems），但**两套 DOM**——队员侧操作已同步到玩家面板
+  （转移调 updateInventorySlots），玩家侧操作**原先不同步**（updateInventorySlots
+  只刷玩家面板，不触发队员侧重渲染）。
+- **修复**：`CompanionPanel._syncPlayerPackHook` 包装 `EquipManager.updateInventorySlots`——
+  玩家背包任何操作刷新后，若队员面板打开且装备背包 tab，同步刷新左侧玩家背包栏
+  （玩家装备栏由 updateEquipSlots 遍历 .diablo-slot 天然同步）。
+- **验证**（探针 tools/cdp-backpack-sync.mjs 双向）：
+  A 队员侧移走物品 → 玩家系统面板同步清空 ✓；
+  B 玩家侧 updateInventorySlots → 队员面板玩家背包栏同步清空 ✓（修复后）；
+  全回归（单测 80/80 + UI/招募探针）通过；lint 0 error / build ✅。
+
+### 对话：右侧栏"队员管理"图标替换（2026-08-12）
+- **素材**：`E:\无尽轮回\游戏\素材库\UI\组队.png`（1536²，金色手臂交叉握合 + 红色六边形）
+  → 复制入库 `assets/ui/icons/party.png`。
+- **实现**：hud-panels-misc.js 侧边栏"队员管理"按钮由 emoji（👥）改为 icon
+  `assets/ui/icons/party.png`（与其他侧边栏按钮同款 img 渲染）。
+- **验证**：CDP——按钮 img src=party.png、无 emoji、点击正常打开队员管理；
+  GLM 裁剪放大确认"红色六边形 + 金色手臂交叉握合组队图标 + 队员管理标签"；
+  lint 0 error / build ✅。
+
+### 对话：背包格子格式统一 + 拖回玩家背包修复（2026-08-12）
+- **问题 1**：玩家背包栏格子继承了 .inv-cell 基类 `aspect-ratio:1` → 56×56 正方形，
+  比玩家系统面板背包格（宽扁）小；栏宽 360px 也偏窄。
+- **修复 1**：`.companion-player-grid .inv-cell` 覆盖 `aspect-ratio:unset; height:56px;
+  font-size:18px` + img 32px（与玩家 `.gear-inventory-col .inv-cell` 一致）；
+  玩家背包栏加宽 360→480px。实测格子 88×56 扁形（GLM 复核"宽>高、与玩家风格一致"）。
+- **问题 2**：队员背包物品拖不回玩家背包——左侧玩家背包栏格子无 ondrop 接收
+  （此前只支持拖回玩家系统面板的背包格）。
+- **修复 2**：`_renderPlayerPack` 的玩家背包栏格子加 `ondragover/ondrop`，接收
+  `companion-item` 源 → EventBus `companion:moveToPlayerBackpack` 移到对应格。
+- **验证**：CDP——格子 88×56（aspect unset）、拖队员物品到玩家背包栏格子
+  （movedBack + memberCleared true）；双向同步探针（A 队员→玩家、B 玩家→队员）仍全过；
+  单测 80/80；lint 0 error / build ✅。
+
+### 对话：玩家背包栏与玩家系统面板同宽（2026-08-12 用户指出"背包大小差太多，没复制格式"）
+- **实测**：玩家系统面板背包格 165×56（5 列）；此前左侧玩家背包栏宽 480px → 格子仅 88×56，
+  差近一倍。
+- **修复**：左侧玩家背包栏宽度改为 **45vw**（与玩家系统面板同宽）——背包格子随栏宽自适应，
+  实测 **162×56 vs 玩家 165×56**（差 3px 来自 padding），"两个背包一样大小"达成；
+  上方玩家装备栏（3×5 网格）也随之与玩家系统面板同尺寸。
+- **验证**：CDP 实测格子 162×56（对照玩家 165×56）；拖回玩家背包仍正常
+  （movedBack/memberCleared true）；双向同步回归全过；单测 80/80；lint/build ✅。
+
+### 对话：组队面板对齐 + 原生弹出动画 + 打开其他面板自动关闭（2026-08-12）
+- **左右对齐**：左侧玩家背包栏与右侧队员面板均 45vw 全高（top/bottom 0），装备栏 3×5
+  网格 + 背包分区结构对称；格子 162×56 vs 玩家 165×56 一致。
+- **弹出动画与原生背包一致**：companion-system-panel 复用 `.system-panel` 的
+  `.active` 机制（translateX(100%)→0，0.25s cubic-bezier 滑入）；companion-player-pack
+  同款滑入（pack-active）；close 先滑出 260ms 后隐藏。
+- **打开其他面板关闭组队面板**：SystemUI.open（背包/状态/技能/图鉴）与
+  ExpeditionSystem.open 均 emit `ui:panel-open` → CompanionPanel 监听后关闭。
+- **验证**（探针 tools/cdp-party-anim-close.mjs）：打开动画 before=false（起始
+  translateX(100%)）/after=true（滑入）；打开玩家背包 → 组队面板关闭 + 玩家面板打开；
+  打开出征 → 组队面板关闭；双向背包同步回归全过（A/B true）；单测 80/80；lint/build ✅。
+
+### 对话：玩家背包栏收起动画 + 左右装备/背包水平对齐（2026-08-12）
+- **收起动画**：切到状态/技能 tab 时玩家背包栏先移除 pack-active（滑出动画），
+  260ms 后隐藏（与弹出动画对称）；切回装备背包 tab 显示时滑入。
+- **水平对齐**（用户指出"装备栏、背包栏水平位置一致，右侧原生背包为参考"）：
+  左侧 pack 顶部加 91px 占位头（对齐右侧 headbar+panel-tabs 高度，实测 rightGearTop=95），
+  左侧 gear-layout 起点 y95 = 右侧 y95；装备栏高度 441 vs 443、分界线差仅 2px、
+  背包区底部 980 vs 984——两侧装备栏/背包分界线水平对齐；pack 结构改为与右侧
+  gear-layout 同构（装备栏 flex 0 0 50% + 背包 flex 1）。
+- **验证**：CDP——leftGearTop=rightGearTop=95、alignDiff=2、收起动画
+  （pack-active 移除→260ms 隐藏）；GLM 复核"两侧装备栏/背包分界线对齐、对称、布局正常"；
+  格子 164×56（玩家 165×56）、拖回/双向同步回归全过；单测 80/80；lint/build ✅。
+
+### 对话：组队功能全面审计——排查并修复 5 个 bug（2026-08-12）
+- **① 技能序列化方法丢失（高危）**：Companion.serialize 的 skills 经 JSON 序列化丢掉
+  getEffect/getExpForNext 方法，fromSerialized 直接赋纯数据 → 档案恢复后技能无法取效果/修炼
+  （grantSkillExp 调 getExpForNext 会 TypeError）。修复：skill-system 新增
+  `restoreSkills(savedSkills, skillData)` 按 id 重建技能对象再覆盖等级/经验，
+  Companion.fromSerialized 改用它。
+- **② 装备替换满包静默丢旧装备（高危）**：equipFromBackpack 替换被占槽时
+  `_stashToBackpack` 背包满则静默丢旧装备。修复：替换/卸下前检查 `_findFreeBackpackSlot`，
+  满则拒绝（返回 null，新装备不进、旧装备保留）。
+- **③ close 定时器竞态**：close 设 260ms 后隐藏 overlay，快速重开（<260ms）会被旧定时器
+  隐藏。修复：`_show()` 清除 `_closeTimer`。
+- **④ 队员背包满仍可拖入（超容量）**：_moveFromPlayerToCompanion 直接 push 无视容量。
+  修复：满则拒绝 + `_returnToPlayerBackpack` 还回玩家背包（玩家背包也满掉脚下，杜绝丢失）。
+- **⑤ 队员槽替换满包丢旧装（UI 路径）**：_equipFromPlayerToSlot 替换时同 ②。
+  修复：检查空位，满则拒绝 + 还回玩家背包；顺带把"不合法还回"统一走
+  `_returnToPlayerBackpack`。
+- **验证**：单测 89/89（新增技能方法恢复/满包替换拒绝/满包卸下拒绝）；
+  CDP 审计探针（close 快速重开 overlayVisible true、档案恢复 rejoin、技能序列化保留）；
+  全回归（招募/加入/背包/交互探针）通过；lint 0 error / build ✅。
+
+### 对话：队员默认背包 10 格（2026-08-12）
+- `Companion.maxBackpackSlots` 12 → 10（与玩家 EquipManager.maxBackpackSlots 一致）；
+  玩家背包栏兜底 12 → 10。CDP 实测 memberMax=10、playerMax=10、same=true。
+  单测 89/89、lint/build ✅。
+
+### 对话：每级成长 +10 生命/魔法 + 露娜专属成长与技能（2026-08-12）
+- **每级成长**：玩家（base.js updateMaxStats）与队员（companion.js updateMaxStats）
+  统一加 `(level - 1) * 10` 到 maxHp/maxMp——每升一级 +10 生命、+10 魔法（1 级为 0）。
+- **露娜成长**：companion-growth mage 规则改为固定 2 点 1:1（每级 +1 智力 +1 精神）。
+- **露娜技能**：companion-config mage_luna `skills: ["fireball","iceSpike","lightningStrike"]`
+  + `unlockSkills: { "holyLight": 10 }`；Companion 新增 `_unlockSkills` + `_checkUnlocks()`
+  （构造/升级时按解锁等级自动加入技能，通用机制）。
+- **验证**：单测 99/99（露娜初始 3 技能、10 级解锁圣光、每级 +1 智 +1 精、每级 +10 生命、
+  +10 魔法下限）；CDP 实机露娜 Lv10：skills0=[火球/冰锥/闪电]、holyUnlocked=true、
+  int/wis +9、hp +90、mp +225（含属性加成）；lint 0 error / build ✅。
+
+### 对话：露娜动作动画导入（2026-08-12）
+- **素材**：`Y:\工作\无尽轮回\scratch\luna-sheets` 的 walking/running/spelling.png
+  （均 4096×2048 = 8×4 网格 512²，女性法师/深色长袍/蓝色法杖，GLM 确认帧完整）
+  → 复制入库 `assets/companions/luna/`。
+- **配置**：companion-config mage_luna 新增 `animations`——
+  walk（32 帧/24fps/循环）、run（32 帧/16fps/循环）、spell（32 帧/20fps/一次）；
+  Companion 构造读入 `this.animations`，serialize/fromSerialized 保留。
+- **验证**：单测 103/103（walk/run/spell 配置 + 序列化保留）；CDP 实机配置生效 +
+  三素材 HTTP 200（尺寸匹配源）；lint/build ✅。
+
+### 对话：露娜渲染进场景跟随玩家（2026-08-12）
+- **实现**：
+  - BootScene 配置驱动加载/注册侍从动画——遍历 companion-config.companions 的
+    animations，spritesheet 纹理/动画键 `companion_<id>_<动画>`（如
+    companion_mage_luna_walk/run/spell）；
+  - GameScene 新增 `_companionSprites` + `_syncCompanionSprites()`（每帧 update 调用）：
+    有动作素材的队员自动创建 Phaser Sprite 跟随玩家（左后偏移，翻转镜像），
+    按玩家状态切换动画——施法播 spell / 冲刺播 run / 移动播 walk / 站立停帧；
+    移出队伍的队员 sprite 自动销毁；地图模式隐藏。
+- **验证**：CDP——sprite 创建（companion_mage_luna_walk）、跟随位置正确、
+  walk/run/spell 三动画切换全部生效；GLM 复核场景中"骷髅玩家 + 露娜法师
+  （深色长袍/蓝色法杖）两个角色清晰可见"；lint 0 error / build ✅。
+
+### 对话：招募点击无反应根因定位——z-index 层级冲突（2026-08-12）
+- **定位（用户排查线索）**：队员管理面板打开的情况下点招募"加入队伍"无反应。
+- **根因**：`.recruit-overlay` z-index 4200 **低于** `.companion-overlay` 4300——
+  队员管理打开时招募界面被盖在下层，点击"加入队伍"实际命中队员管理的全屏遮罩，
+  事件未到达招募卡片 → 无反应且无报错（此前 headless 独立打开招募全部正常，
+  正是漏了"双面板叠加"这个场景）。
+- **修复**：① 招募 z-index 提到 4400（始终最上层）；② 打开招募时临时隐藏队员管理面板
+  （关闭招募后恢复），杜绝双 overlay 叠层。
+- **验证**：CDP 复现原场景——队员管理打开 → 招募 → 真实鼠标点击加入 → members+1、
+  招募关闭、队员管理恢复、0 错误；全链路回归（单测 65/65 + party 探针）通过；lint/build ✅。
+
+### 对话：冲刺攻击武器轨迹升级——剑柄锚手 + 起始/结束双端点线性插值（2026-08-12）
+- **需求**：冲刺攻击武器剑柄绑定在手上，以起始位置/结束位置为参考，随人物贴图动画
+  线性位移 + 角度旋转（替代 30 帧 perFrame 手调）。
+- **实现**：新增 `sword.dashLerp` 配置块（type=lerp，`from/to {x,y,rotation}` +
+  `grip {x,y}` 剑柄锚点 + scale/stretch/blurPeak），`WeaponTransform.getLerpDashPosition()`
+  按 progress 线性插值位置/角度（字面线性，不做短弧解卷绕——perFrame 端点 -100°→115°
+  是大扫意图）；GameScene `_syncSpecialWeaponAnim` 优先走 dashLerp：**origin=剑柄点
+  （翻转镜像 X）→ 旋转绕剑柄 → 剑柄钉在插值位置、剑身绕手转**；非冲刺路径复位
+  origin 0.5（普通攻击/待机不残留绕剑柄旋转）。旧 `sword.dash` perFrame 30 帧数据
+  原样保留可回退（面板冲刺页继续可用）。
+- **验证**：`scripts/test-dash-lerp.mjs` 16/16（端点/中点/镜像/角度/模糊/复位）；
+  lint 0 error / vite build ✅；CDP 实机探针 `tools/cdp-dash-lerp.mjs` 确认
+  origin(0.3,0.5)、角度 -100°→7.5°→115°、位置 511→593.5→676 线性、冲刺结束 origin
+  复位 0.5；GLM 复核中段/结束帧"剑柄在手、无穿模、冲刺挥砍动势成立"。
+- **调参入口**：`public/data/weapon-anim-config.json` 的 `sword.dashLerp`
+  （from/to 即起止剑柄位置+剑身角；grip 为剑柄在贴图内分数位置，默认 0.3/0.5）。
+
 ### 对话：C 级「恶魔洞窟」新地牢全流程（2026-08-11，矿洞主题）
 - **素材**（远程 5080 FLUX.2 dev / MiniMax H3，全部走项目标准工作流）：
   ① 岩壁墙 `demon_wall_straight.png`（Blender 白模深度 + FLUX depth + prep 标定，
@@ -6908,3 +7274,162 @@
 - **修改文件**：src/world/chest-room-system.js（新）、combat-room-system.js、dungeon-map-system.js、boss-reward-system.js、wall-gate.js、wall-system.js、dungeon-floor-texture.js、zombie-dungeon.js、GameScene.js、BootScene.js、reward-system.js、expedition-system.js、dungeon-config.js、dungeon-spawn-utils.js、data/dungeon-config.json、data/wall-prefabs.json、tools/gate-top-warp.py（新）、tools/chest-video-frames.py（新）、assets/terrain/chest_*.png、chest_open.png、wall_gate.png、assets/sounds/environment/chest_open.mp3、SKILL.md、CHANGELOG.md。
 - **测试结果**：lint ✅（0 error）；vite build ✅；几何模拟（宝箱房锚定/深度/排除区）✅；烘焙级渲染验证（阴影带/门闸拼接）✅。
 - **已知问题**：实机待验证——宝箱房全流程（倒计时/开门/开箱/离场确认）、宝箱怪位暂按金币兜底、A 级宝箱贴图缺（暂用 B）。
+
+## 2026-08-12（露娜 walking/running 动画循环优化）
+
+### 对话：walking 首尾衔接 + running 起步/循环分离
+- **需求**：walking 第一帧和最后一帧要配合流畅；running 由「起步 + 奔跑」构成，起跑
+  后进入循环。
+- **像素分析**（`tools/ai-gen/analyze-sheet-loop.py`，alpha 剪影差异 0..1）：
+  walking 原 [0,31] 首尾 0.113、[0,25] 0.048；全表扫描最优循环段为 **[7,31]
+  （0.023）**——7 与 31 均为双脚并拢的「过步姿态」，首尾几乎无缝。running 起步
+  [0,18]（19 帧，18→19 衔接 0.040）+ 循环 [19,31]（13 帧，31→19 包裹 0.104，
+  为该素材 10-16 帧短循环中的最优档）。
+- **实现**：
+  - `data/companion-config.json`：walk `frames:[0,25]→[7,31]`；run 新增
+    `startFrames:[0,18] + startFrameRate:16 + startRepeat:0` 与
+    `loopFrames:[19,31] + frameRate:16 + repeat:-1`。
+  - `src/phaser/scenes/BootScene.js`：`startFrames/loopFrames` 两段注册——生成
+    `<key>_start`（播一次）+ `<key>`（循环），共用 sheet 纹理。
+  - `src/phaser/scenes/GameScene.js` `_syncCompanionSprites`：run 用 sprite
+    `lunaRunning` data 标记起步态，起步播完 `once('animationcomplete')` 切循环，
+    停止复位；**站立/停帧帧号改为跟随 walk 动画首帧**（`anims.walk.frames[0]` +
+    `companionIdleFrame` data），避免循环起点不在 0 时静止→走路跳变。
+- **验证**：单测 104/104（含 walk [7,31] / run 两段断言）；lint 0 error；
+  vite build ✅；CDP 探针 `tools/cdp-luna-anim.mjs`（headless 派发真实 Shift+W
+  键盘事件驱动状态）——注册 walk 25 帧 [7,31]、run_start 19 帧、run_loop 13 帧；
+  站立帧 7；walk 实测 11→31→11 环绕；run 起步→循环切换 completes=1、复位站立帧 7。
+- **注意**：`_isSprinting`/`isMoving` 每帧由 Input/速度重算，headless 探针须派发
+  真实键盘事件（`KeyboardEvent('keydown',{code:'ShiftLeft'})`）并补丁
+  `_isFacingMouse`，直接改字段会被覆盖；Phaser 4 动画帧索引用
+  `frames[i].textureFrame`。
+
+### 对话：running 循环闪回修复（水平漂移归一化，2026-08-12 二轮）
+- **现象**：用户反馈 running 循环「截取得生硬、闪回卡顿明显」。
+- **根因**：AI 生成的 running.png 整张 sheet 每帧人物沿水平方向漂移——帧 19 包围盒
+  x46-465（质心 243.7）→ 帧 31 x22-489（质心 260.6），循环 31→19 回跳时人物整体
+  横跳 ~25px；原始剪影差异 31 vs 19 = 0.104 里大部分是位置差而非姿态差。平移对齐后
+  同对差异仅 0.068，与相邻帧（0.02~0.06）同级——证明漂移是闪回主因。
+- **修复**：新增 `tools/ai-gen/luna-run-align.py`，把 running 全部 32 帧按内容质心
+  水平对齐（自动求可行参考 X=256 避免裁切、保持 512×512），导出
+  `assets/companions/luna/running_norm.png`；`data/companion-config.json` 的
+  `run.src` 指向归一化图。起跑段与循环段共用同一张图，18→19 衔接与 31→19 回跳均无
+  位置跳变。代码零改动（纹理键不变）。
+- **验证**：单测 104/104（run.src 断言更新为 running_norm.png）；lint 0 error；
+  vite build ✅；CDP 探针 `tools/cdp-luna-anim.mjs` 新增「循环漂移」检查——循环中
+  人物质心跨度 **0px**（旧图 ~30px），起步→循环切换、站立帧 7 均正常。
+- **教训**：新增/修改动作 sheet 后先查每帧 bbox/质心；跨度 >2px 即需归一化，否则
+  循环回跳必然闪回。像素分析法应先排除位置漂移再看姿态差异。
+
+### 对话：站立姿态改为奔跑首帧（2026-08-12 三修）
+- **背景**：用户定位到循环问题是**原视频本身**的断点（running.gif 的 22 帧周期
+  31→10 回跳 0.112，是源素材自带的剪辑缝），并指示：先调用奔跑第一帧作为 idle。
+- **实现**（`src/phaser/scenes/GameScene.js` `_syncCompanionSprites`）：创建队员精灵
+  时若存在奔跑动画（`anims.run` + 纹理已加载），站立/停帧姿态 = **奔跑纹理第 0 帧**
+  （`companionIdleKey=companion_<id>_run` + `companionIdleFrame=0`），无奔跑素材才退回
+  walk 首帧；站立分支改为 `setTexture(idleKey, idleFrame)`（跨纹理不能只 setFrame）。
+  起跑 `run_start` 即从帧 0 开始 → idle→冲刺完全连续；walk/run/spell 播放仍由
+  Phaser play() 自动切纹理。
+- **验证**：CDP 探针 `tools/cdp-luna-anim.mjs` 站立帧 = `{frame:0, texKey:
+  companion_mage_luna_run}`；walk 循环、run 起步→循环、循环质心 0px 均正常；单测
+  104/104、lint 0 error、vite build ✅。
+- **注意**：探针里「停止冲刺后复位帧」读到 7 是移动惯性（isMoving 尚未衰减）走了
+  walk 分支，非 idle 分支；显式 idle 断言才是运行纹理帧 0。
+
+### 对话：Luna 贴图放大匹配玩家单位（2026-08-12）
+- **需求**：Luna 所有贴图（walking/running/spelling）放大，与玩家单位一致。
+- **实现**（`src/phaser/scenes/GameScene.js` `_syncCompanionSprites`）：显示尺寸由写死
+  110 改为引用 `PLAYER_DEFAULTS.physics.spriteSize`（当前 173），与玩家精灵
+  `setDisplaySize(spriteSize, spriteSize)` 完全同尺寸；三张 sheet 共用同一 sprite，
+  一处改动全部生效。跟随水平偏移 95 → 150（按 110→173 比例拉远，避免放大后与玩家
+  贴图重叠遮挡）。
+- **验证**：CDP 探针站立帧 `display: {w:173, h:173}` 与 `playerDisplay` 一致；walk
+  循环、run 起步→循环、循环质心 0px、站立帧 0 均正常；单测 104/104、lint 0 error、
+  vite build ✅。
+
+## 2026-08-14（露娜 CompanionAI：跟随/施法/远离近战/地牢寻路）
+
+### 对话：给露娜设计新 AI
+- **需求**：远程后排单位，兼顾施法、移动、远离近战怪物、地牢寻路跟随玩家，状态机合理。
+- **设计**：状态机 `idle → follow → advance → cast → flee`（决策纯函数
+  `src/ai/companion-ai-decision.js`，零依赖可单测；技能选择闪电群控 > 火球群伤 >
+  冰锥单体）。决策 tick 120ms，移动/施法每帧执行。
+- **实现**：
+  - `src/ai/companion-ai.js`（新）：CompanionAI 运行时——目标只在 combatRange×1.3
+    内选择（不跨图追残血）；近战威胁贴脸 → flee（撤退点=背离威胁+朝玩家）；施法站定
+    650ms（_frozenForCast 锁移动 + spell 动画）；跟随点=玩家左后 150px，到位停步。
+  - `src/entities/companion.js`：战斗字段（active/x/y/vx/vy/_faction='companion'/
+    技能冷却等）；serialize 白名单不受影响。
+  - `src/systems/party-system.js`：registerAI 工厂表 + updateCombat 主循环（不静态
+    import AI，保持 node 单测可跑）；Game.js 注册 mage_luna 并在实体 update 后驱动。
+  - `src/systems/movement-system.js`：寻路目标改为 moveGoal = _tacticalTarget 优先
+    （露娜的跟随点/站位/撤退点走寻路；敌人无 _tacticalTarget 时行为不变）。
+  - 敌我安全：BoltSkillSystem._isHostile 与 LightningStrikeSystem 改阵营分组
+    （player/companion 互为友军只敌视 enemy）——露娜火球/闪电不误伤玩家。
+  - `src/phaser/scenes/GameScene.js`：_syncCompanionSprites 按 aiConfig 分叉，AI 队员
+    按自身坐标/动画状态渲染。
+  - `data/companion-config.json`：mage_luna 加 `ai` 配置（远程法师参数）。
+- **验证**：单测 116/116（新增 12 条决策/技能选择断言）；lint 0 error；vite build ✅；
+  CDP `tools/cdp-luna-ai.mjs`：跟随移动、施法锁定目标且火球命中 46 伤害、耗蓝 110、
+  **玩家 0 伤害**、近战贴脸 60→224px 撤退；`tools/cdp-luna-anim.mjs`：AI 驱动
+  idle=奔跑首帧 / follow walk 循环 / cast spell / flee run 循环质心 0px；组队 UI
+  回归（companion-ui / recruit-interact）通过。
+- **已知限制**：圣光 10 级解锁暂未接入 AI（需友军分组改造）；露娜暂不被怪物仇恨；
+  怪物攻击露娜/受击受身/死亡待后续战斗模型接入。
+
+### 对话：露娜地牢生成卡墙外修复（2026-08-14 二修）
+- **现象**：一进入地牢露娜就被卡在墙外，无法测试。
+- **排查**：初始位置 = 裸偏移（player.x±150）无任何合法性检查；且 AI 会追远处目标
+  （站位点=目标周围环），在地牢里越追越远甚至跑到墙外。
+- **修复**（`src/ai/companion-ai.js`）：
+  - `_findValidSpawn`：生成/重定位落点检查——跟随点优先 → 8 方向螺旋外扩 →
+    `WallSystem.canMoveTo` 校验 → `findSafeSpawn` → 玩家脚下兜底。
+  - 场景切换检测：`SceneManager.currentScene` 变化 → 清路径/target → 重新找合法落点。
+  - 每 1.5s 卡墙自愈：canMoveTo=false（卡进墙）**或离玩家 >1200px**（墙外空地
+    canMoveTo 仍 true 但寻路不连通）或路径反复失败 → 拉回玩家附近合法点。
+  - advance 不追远目标：站位点离玩家 >followOffset×3.3 → 站桩等目标进射程（远程后排
+    定位，避免地牢跑丢/卡墙）。
+  - `_followPoint` 也走 canMoveTo 校验 + 500ms 缓存，跟随点不再可能落在墙内。
+- **验证**：新探针 `tools/cdp-luna-dungeon-spawn.mjs` 用主实例
+  `ExpeditionSystem.depart()` 真实进地牢（动态 import 会创建平行模块实例——勿用）：
+  露娜生成在玩家 ~200px 内、canMoveTo 合法、1s 内移动、遇到近战怪 flee 撤退、
+  战斗锁定目标输出（地牢黑狼被打至残血）；卡墙自愈实测：丢到 4000,4000 后 1.5s
+  拉回玩家 154px；单测 116/116、lint 0 error、vite build ✅。
+
+### 对话：队友防卡死瞬移（2026-08-14 三修，行业方案调研）
+- **现象**：露娜仍会卡在门上；要求全网调研 2D 防卡死方案，检测卡死后瞬移脱离，
+  只作用于组队队友。
+- **行业调研结论**（搜索 L4D/Godot/Gmod/Unvanquished 等实现）：共识 =
+  ① 检测：短时间（2~3s）实际位移 ≈0 且有移动意图即判卡死；② 先软脱困（侧向/反向
+  尝试）；③ 多次失败兜底**瞬移到最近可达点**（L4D 传送下一路径点、Godot
+  `map_get_closest_point` 取导航最近点、Gmod-Auto-Unstuck 延迟几秒后传送），加
+  冷却防反复传送。
+- **落地**（`src/ai/companion-ai.js`，仅队员）：每 400ms 位置采样，2s 窗口位移
+  <10px 且仍有移动意图（_tacticalTarget 未到达 / 攻击目标在射程外）→ 卡死；连续
+  2 次确认 → 瞬移：卡死点半径 50~200px 螺旋搜"更靠近玩家"的合法点（canMoveTo
+  校验）→ 兜底玩家附近合法点；4s 冷却。施法站定/无移动意图不误判。
+  **关键背景**：MovementSystem 对"卡在关着的门洞"是 GATE-WAIT（面向怪物等门开），
+  队友版不走等待逻辑，直接瞬移跟上玩家。
+- **验证**：CDP 探针动态加测试墙段、把露娜放墙段中央（canMoveTo=false、想动动不了）
+  → 2.8s 内自动瞬移到玩家 38px 处合法点（teleported=true、legalAfter=true）；
+  跟随/施法/撤退/落点自愈全部回归通过；地牢生成 193px 内合法；单测 116/116、
+  lint 0 error、vite build ✅。
+
+### 对话：露娜渲染三修（图层/主动走位/逃跑朝向，2026-08-14 四修）
+- **① 图层错误（墙壁之上）**：AI 队员精灵 depth 固定 `playerSprite.depth+0.5`，墙后
+  也显示在墙前。修复：`GameScene._updateDynamicDepths` 增加侍从段——AI 队员按世界 Y
+  计算 depth（脚底+10 + `junctionCorrectedDepth`，与敌人同口径）；纯渲染队员保持
+  玩家层。实测：露娜 depth=666 按自身 y 计算（玩家 630），墙后正确被遮挡。
+- **② 进入地牢不主动找位置**：地图模式残留坐标带进战斗房（DungeonMapSystem
+  map↔combat 切换不触发重定位）。修复：`CompanionAI` 监听 `DungeonMapSystem.state`
+  变化 → 清路径/目标并重定位到玩家附近合法点；advance 时玩家距离 >450px 优先跟近
+  玩家（保持阵型，不站桩落单）；距离自愈阈值 1200→900。实测：清怪后玩家移动 320px，
+  露娜主动跟随移动 177px 走向跟随点。
+- **③ 逃跑面朝怪物**：aiMode 的 flipX 一直跟随玩家镜像。修复：按自身方向——移动时
+  面朝 vx 方向（往哪走面朝哪）、施法面朝 target、idle 保持上次朝向
+  （`_lastFaceRight`）。实测：敌人贴脸 → flee 朝左跑，flipX=true（面左），
+  `facesMoveDir=true`。
+- **验证**：cdp-luna-ai（跟随/施法/撤退/落点自愈/卡死瞬移/朝向+深度全绿）、
+  cdp-luna-dungeon-spawn（生成 189px 合法、清怪后主动跟随）、cdp-luna-anim
+  （idle 奔跑首帧/follow walk 循环/flee run 质心 0px）通过；单测 116/116、
+  lint 0 error、vite build ✅。

@@ -175,8 +175,8 @@ export class BootScene extends Scene {
         }
         // 世界-122 防御塔（基座+上方机械臂武器挂载点）
         this.load.image('obstacle_defense_tower', 'assets/terrain/obstacle_defense_tower.png');
-        // 世界-122 防御塔机械臂（独立贴图，绕塔顶枢轴 360° 旋转）
-        this.load.image('obstacle_defense_tower_arm', 'assets/terrain/obstacle_defense_tower_arm.png');
+        // 世界-122 防御塔机械臂（预渲染 3D 旋转帧，48 帧等距透视，按 aimAngle 选帧）
+        this.load.spritesheet('obstacle_defense_tower_arm_frames', 'assets/terrain/obstacle_defense_tower_arm_frames.png', { frameWidth: 261, frameHeight: 164 });
         // 世界-122 陷阱（4 类 × F→A 六档，2026-08-07 新增）
         for (const type of Object.keys(TRAP_CONFIG)) {
             for (const grade of TRAP_GRADES) {

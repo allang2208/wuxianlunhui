@@ -13,6 +13,7 @@ import { VerticalSector, VerticalRect } from '../../physics/skill-shapes.js';
 import { EffectManager } from '../../effects/effect-manager.js';
 import { BloodHitEffect as HitEffect, BloodHitEffect as CritEffect } from '../../effects/blood-hit-effect.js';
 import { SkillManager } from '../../ui/skill-manager.js';
+import { enterDashFreeze, nowMs } from '../player/anim-state.js';
 import { SoundManager } from '../../ui/sound-manager.js';
 class DashSystem {
     constructor(player) {
@@ -209,7 +210,7 @@ class DashSystem {
                     startAngle: endState.dashAngle || Math.PI / 1800,
                     startRotation: this.player.rotation,
                     targetRotation: (() => { const sp = Renderer.worldToScreen(this.player.x, this.player.y); return Math.atan2(Input.mouse.y - sp.y, Input.mouse.x - sp.x); })(),
-                    startTime: Date.now(),
+                    startTime: nowMs(), // Phase 3：墙钟→单调时钟（读者 subsystems.js/GameScene.js 同链）
                     duration: (WeaponAnimConfig.stab && WeaponAnimConfig.stab.recoverMs) || 500
                 };
                 // [FIX] 冲刺攻击结束确保武器动画状态恢复，防止体力回复被卡住
@@ -287,7 +288,7 @@ class DashSystem {
                     this._spawnFireTrail();
                 }
                 if (!this.player._dashSlashStartTime) {
-                    this.player._dashSlashStartTime = Date.now();
+                    this.player._dashSlashStartTime = nowMs();
                 }
             } else {
                 this.player._isDashing = false;
@@ -301,7 +302,7 @@ class DashSystem {
                 this.player._dashSlashStartTime = null;
                 // 恢复动画延迟 0.5s 播放（末帧定格），由 GameScene._updatePlayerAnimation 到点触发；
                 // 定格期武器停在 dash 轨迹末帧（perFrame progress=1），恢复走近战同款滑回（dash-system 不再建旧公式复位动画）
-                this.player._dashRecoverAt = performance.now() + 500;
+                enterDashFreeze(this.player, nowMs() + 500);
                 // [FIX] 冲刺攻击结束确保武器动画状态恢复，防止体力回复被卡住
                 if (this.player.weaponAnim) {
                     this.player.weaponAnim.state = 'idle';
@@ -351,7 +352,7 @@ class DashSystem {
                         this.player._dashSlashEffect = null;
                         this.player._dashThrustPhase = null;
                         this.player._dashSlashStartTime = null;
-                        this.player._dashRecoverAt = performance.now() + 500;
+                        enterDashFreeze(this.player, nowMs() + 500);
                         SkillManager.addDashExp(this.player, this.player._dashHitSet.size, 0);
                         return;
                     }
@@ -374,7 +375,7 @@ class DashSystem {
                     const convergeY = (WEAPON_ANIM.holdY + 6);
                     this.player._goldenConvergeEffect.setConverge(convergeX, convergeY);
                 }
-                const slashElapsed = this.player._dashSlashStartTime ? Date.now() - this.player._dashSlashStartTime : 0;
+                const slashElapsed = this.player._dashSlashStartTime ? nowMs() - this.player._dashSlashStartTime : 0;
                 if (slashElapsed <= effect.slashWindowMs) {
                     this._checkHit(entities, activeSkillId);
                 }
@@ -407,10 +408,10 @@ class DashSystem {
                 rectLength += currentItem._craftEffects.rangeDelta;
             }
             if (!this.player._dashThrustPhase) {
-                this.player._dashThrustPhase = { startTime: Date.now(), lastHitIndex: -1, totalHitCount: 0, totalKillCount: 0, hitTargets: new Set() };
+                this.player._dashThrustPhase = { startTime: nowMs(), lastHitIndex: -1, totalHitCount: 0, totalKillCount: 0, hitTargets: new Set() };
             }
             const phase = this.player._dashThrustPhase;
-            const elapsed = Date.now() - phase.startTime;
+            const elapsed = nowMs() - phase.startTime;
             const hitTickInterval = effect.hitTickInterval;
             const thrustMaxHits = effect.thrustMaxHits;
             const hitIndex = Math.floor(elapsed / hitTickInterval);

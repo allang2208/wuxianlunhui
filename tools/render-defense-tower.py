@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""世界-122 防御塔建模（路线：Blender 几何 + 纯色材质，无贴图）：
+"""世界-122 防御塔建模（路线：Blender 几何 + 纯色/贴图材质）：
 塔基 = 圆柱柱身 + 底部法兰 + 顶部平台；机械臂 = 枢轴柱 + 上臂 + 肘关节 +
 前臂 + 腕部武器挂载，绕塔顶 360°（游戏内屏幕空间旋转）。
 相机：正交 + 30° 俯视（匹配世界-122 ry/rx=0.5 等距投影，与 render-cover-real.py 同口径）。
 输出：base.png（仅塔基）、arm.png（仅机械臂，指向 +x，枢轴在左侧端部）。
+可选第 4 参：底座混凝土贴图路径（PNG），给塔基全部部件上贴图。
 """
 import bpy
 import math
@@ -17,11 +18,27 @@ def clear_scene():
     bpy.ops.object.delete()
 
 
+def _get_bsdf(nt):
+    node = nt.nodes.get("Principled BSDF")
+    if node is None:
+        for n in nt.nodes:
+            if n.type == "BSDF_PRINCIPLED":
+                node = n
+                break
+    if node is None:
+        node = nt.nodes.new("ShaderNodeBsdfPrincipled")
+        out = nt.nodes.get("Material Output")
+        if out is None:
+            out = nt.nodes.new("ShaderNodeOutputMaterial")
+        nt.links.new(node.outputs["BSDF"], out.inputs["Surface"])
+    return node
+
+
 def flat_material(name, color, roughness=0.7, metal=0.15):
     mat = bpy.data.materials.new(name)
     mat.use_nodes = True
     nt = mat.node_tree
-    bsdf = nt.nodes.get("Principled BSDF")
+    bsdf = _get_bsdf(nt)
     bsdf.inputs["Base Color"].default_value = (*color, 1.0)
     bsdf.inputs["Roughness"].default_value = roughness
     bsdf.inputs["Metallic"].default_value = metal
@@ -33,6 +50,19 @@ def add_cylinder(name, r, h, z, mat, segments=28, x=0.0, y=0.0):
         radius=r, depth=h, vertices=segments, location=(x, y, z))
     o = bpy.context.active_object
     o.name = name
+    o.data.materials.append(mat)
+    return o
+
+
+def add_hbeam(name, x0, x1, r, z_center, mat, seg=8, y=0.0):
+    """水平横梁（圆柱沿 X 轴，机械臂节段用，多边形截面更机械感）。"""
+    bpy.ops.mesh.primitive_cylinder_add(
+        radius=r, depth=(x1 - x0), vertices=seg,
+        location=((x0 + x1) / 2, y, z_center))
+    o = bpy.context.active_object
+    o.name = name
+    o.rotation_euler = (0, math.radians(90), 0)
+    bpy.ops.object.transform_apply(rotation=True)
     o.data.materials.append(mat)
     return o
 
@@ -72,20 +102,27 @@ def build_base(steel, dark, light):
 def build_arm(steel, dark, light, accent):
     objs = []
     z_plat = 154.0
-    # 枢轴柱（立在平台中心）
-    objs.append(add_cylinder("pivot", 17, 46, z_plat + 23, dark))
-    # 上臂（指向 +x）
-    objs.append(add_box("upper_arm", 8, 128, -10, 10, z_plat + 4, z_plat + 22, steel))
-    # 肘关节
-    objs.append(add_cylinder("elbow", 15, 42, z_plat + 13, dark, x=128))
-    # 前臂
-    objs.append(add_box("forearm", 128, 228, -8, 8, z_plat + 8, z_plat + 22, steel))
-    # 腕部挂载
-    objs.append(add_box("wrist", 228, 258, -13, 13, z_plat + 6, z_plat + 24, light))
-    objs.append(add_box("mount_acc", 236, 252, -8, 8, z_plat + 24, z_plat + 32, accent))
-    # 关节螺栓点缀
-    objs.append(add_sphere("bolt_elbow", 6, 128, 0, z_plat + 13, light))
-    objs.append(add_sphere("bolt_pivot", 8, 0, 0, z_plat + 23, light))
+    # 2026-08-14 重做：机械臂缩短到底座范围内（枢轴→尖端 ≈37 模型单位 ≈50 游戏px，
+    # 底座半径 ≈63 单位），关节化结构（肩座/上臂横梁/肘关节/前臂/腕部挂载）。
+    # 枢轴 z 保持 z_plat+23=177（与旧版一致，pivotWorldY=235 视觉锚点不变）。
+    z_pivot = z_plat + 23.0
+    # 肩座（枢轴柱，立在平台中心；枢轴=其中心）
+    objs.append(add_cylinder("shoulder", 17, 40, z_pivot, dark))
+    # 上臂横梁（六棱柱，8 段截面，指向 +x）
+    objs.append(add_hbeam("upper_arm", 6, 22, 8.5, z_pivot - 4, steel, seg=8))
+    # 上臂顶护板（机械感薄板）
+    objs.append(add_box("upper_plate", 4, 23, -10, 10, z_pivot + 9, z_pivot + 15, light))
+    # 肘关节（竖圆柱 + 顶部螺栓）
+    objs.append(add_cylinder("elbow", 12, 28, z_pivot, dark, x=22))
+    objs.append(add_sphere("bolt_elbow", 6, 22, 0, z_pivot + 14, light))
+    # 前臂横梁（略细、略低，形成自然折角）
+    objs.append(add_hbeam("forearm", 22, 37, 6, z_pivot - 5, steel, seg=8))
+    # 前臂加强环
+    objs.append(add_cylinder("forearm_ring", 7, 7, z_pivot - 5, dark, x=30))
+    # 腕部挂载（竖圆柱 + 顶部 accent 挂载件；accent 质心 = 自动标定的尖端）
+    objs.append(add_cylinder("wrist", 8, 22, z_pivot - 3, light, x=37))
+    objs.append(add_cylinder("mount_acc", 4.5, 10, z_pivot + 8, accent, x=37))
+    objs.append(add_sphere("bolt_pivot", 8, 0, 0, z_pivot, light))
     return objs
 
 
@@ -110,7 +147,18 @@ def setup_camera(objs, ortho_scale, target=(0, 0, 0)):
 def setup_lighting():
     world = bpy.data.worlds.new("env")
     world.use_nodes = True
-    bg = world.node_tree.nodes["Background"]
+    bg = world.node_tree.nodes.get("Background")
+    if bg is None:
+        for n in world.node_tree.nodes:
+            if n.type == "BACKGROUND":
+                bg = n
+                break
+    if bg is None:
+        bg = world.node_tree.nodes.new("ShaderNodeBackground")
+        out = world.node_tree.nodes.get("World Output")
+        if out is None:
+            out = world.node_tree.nodes.new("ShaderNodeOutputWorld")
+        world.node_tree.links.new(bg.outputs["Background"], out.inputs["Surface"])
     bg.inputs[0].default_value = (0.5, 0.5, 0.54, 1.0)
     bg.inputs[1].default_value = 1.0
     bpy.context.scene.world = world
@@ -127,6 +175,22 @@ def setup_lighting():
     fill = bpy.data.objects.new("fill", fill_data)
     bpy.context.scene.collection.objects.link(fill)
     fill.location = (-10, -8, 6)
+
+
+def textured_material(name, tex_path, base_scale=1.0):
+    """混凝土贴图材质：Base Color = 图片纹理（EEVEE 直出，无 AO/Mix 防刷纯色）。"""
+    mat = bpy.data.materials.new(name)
+    mat.use_nodes = True
+    nt = mat.node_tree
+    bsdf = _get_bsdf(nt)
+    tex = nt.nodes.new("ShaderNodeTexImage")
+    img = bpy.data.images.load(tex_path)
+    tex.image = img
+    tex.extension = "REPEAT"
+    nt.links.new(tex.outputs["Color"], bsdf.inputs["Base Color"])
+    bsdf.inputs["Roughness"].default_value = 0.85
+    bsdf.inputs["Metallic"].default_value = 0.05
+    return mat
 
 
 def render(out_path):
@@ -147,9 +211,10 @@ def render(out_path):
 def main():
     import sys
     argv = sys.argv[sys.argv.index("--") + 1:]
-    if len(argv) != 3:
-        sys.exit("usage: blender --background --python render-defense-tower.py -- base.png arm.png ortho_scale")
+    if len(argv) < 3:
+        sys.exit("usage: blender --background --python render-defense-tower.py -- base.png arm.png ortho_scale [concrete_tex.png]")
     base_path, arm_path, ortho_scale = argv[0], argv[1], float(argv[2])
+    tex_path = argv[3] if len(argv) > 3 else None
 
     steel = flat_material("steel", (0.44, 0.47, 0.52), 0.6, 0.35)
     dark = flat_material("dark", (0.30, 0.33, 0.38), 0.7, 0.3)
@@ -158,10 +223,14 @@ def main():
 
     setup_lighting()
 
-    # 塔基
+    # 塔基（可选：混凝土贴图材质）
     clear_scene()
     setup_lighting()
-    base_objs = build_base(steel, dark, light)
+    if tex_path:
+        concrete = textured_material("concrete", tex_path)
+        base_objs = build_base(concrete, concrete, concrete)
+    else:
+        base_objs = build_base(steel, dark, light)
     cam = setup_camera(base_objs, ortho_scale, target=(0, 0, 75))
     bpy.context.scene.camera = cam
     render(base_path)
@@ -170,7 +239,7 @@ def main():
     clear_scene()
     setup_lighting()
     arm_objs = build_arm(steel, dark, light, accent)
-    cam2 = setup_camera(arm_objs, ortho_scale, target=(129, 0, 175))
+    cam2 = setup_camera(arm_objs, ortho_scale, target=(18, 0, 177))
     bpy.context.scene.camera = cam2
     render(arm_path)
 

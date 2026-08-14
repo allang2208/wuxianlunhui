@@ -3950,8 +3950,8 @@
         },
         "oracle_robe_helmet": {
             "name": "神谕法帽",
-            "type": "??",
-            "icon": "??",
+            "type": "头盔",
+            "icon": "🧙",
             "category": "armor",
             "rarity": "mythic",
             "level": 18,
@@ -3970,23 +3970,23 @@
             },
             "stats": [
                 {
-                    "name": "????",
+                    "name": "物理防御",
                     "value": "+11",
                     "pos": true
                 },
                 {
-                    "name": "??",
+                    "name": "精神",
                     "value": "+4",
                     "pos": true
                 }
             ],
-            "desc": "????????/??/?????????????????-28%?????+35%?",
+            "desc": "神谕三件套（法帽/法袍/长靴）之一。三件齐穿激活：技能冷却-28%、魔法伤害+35%。",
             "iconImage": "assets/icons/equipment/神谕法帽.png"
         },
         "oracle_robe_armor": {
             "name": "神谕法袍",
-            "type": "??",
-            "icon": "??",
+            "type": "盔甲",
+            "icon": "🧙",
             "category": "armor",
             "rarity": "mythic",
             "level": 18,
@@ -4005,23 +4005,23 @@
             },
             "stats": [
                 {
-                    "name": "????",
+                    "name": "物理防御",
                     "value": "+15",
                     "pos": true
                 },
                 {
-                    "name": "??",
+                    "name": "智力",
                     "value": "+4",
                     "pos": true
                 }
             ],
-            "desc": "????????/??/?????????????????-28%?????+35%?",
+            "desc": "神谕三件套（法帽/法袍/长靴）之一。三件齐穿激活：技能冷却-28%、魔法伤害+35%。",
             "iconImage": "assets/icons/equipment/神谕法袍.png"
         },
         "oracle_robe_boots": {
             "name": "神谕长靴",
-            "type": "??",
-            "icon": "??",
+            "type": "靴子",
+            "icon": "👢",
             "category": "armor",
             "rarity": "mythic",
             "level": 18,
@@ -4034,12 +4034,12 @@
             },
             "stats": [
                 {
-                    "name": "????",
+                    "name": "物理防御",
                     "value": "+6",
                     "pos": true
                 }
             ],
-            "desc": "????????/??/?????????????????-28%?????+35%?",
+            "desc": "神谕三件套（法帽/法袍/长靴）之一。三件齐穿激活：技能冷却-28%、魔法伤害+35%。",
             "iconImage": "assets/icons/equipment/神谕长靴.png"
         },
         "holy_helmet": {
