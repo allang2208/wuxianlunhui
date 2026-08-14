@@ -12,6 +12,8 @@ import { Game } from '../game.js';
 import { WallSystem } from './wall-system.js';
 import { pathFinder } from '../ai/pathfinder.js';
 import { Combatant } from '../entities/combatant.js';
+import { DamageableEntity } from '../entities/damageable-entity.js';
+import { getAmmoConfig } from '../config/gun-ammo.js';
 import {
     BlackWolf, ZombieDogEnemy, ZombieWizard, Mutant3, SpitterZombie, FatZombie,
     Zombie, ArmoredKnight, Shounao, FlySwarm, FlyHand, PoisonMaggot, MinerZombie,
@@ -676,7 +678,37 @@ class DefenseTower extends Combatant {
     _startReload(slot) {
         const state = this._ammoState && this._ammoState[slot];
         if (!state || state.reloading || state.current >= state.max) return false;
-        return super._startReload(slot);
+        const started = super._startReload(slot);
+        if (started) {
+            // 单发装填标记（Super90 管仓式：一次一发；玩家口径读 getAmmoConfig）
+            const item = this.equipments && this.equipments[slot];
+            const ammoCfg = getAmmoConfig(item);
+            state.singleReloadMode = !!(ammoCfg && ammoCfg.singleReloadMode);
+        }
+        return started;
+    }
+
+    /** 换弹推进（2026-08-15 Super90 重设计）：单发装填一次一发、装满才停；
+     *  装填中 canFire 拦截 → "没有装满不开火"。普通武器仍一次装满。 */
+    _updateReload(dt) {
+        const state = this._ammoState && this._ammoState.weapon;
+        if (!state || !state.reloading) return;
+        state.reloadTimer -= dt;
+        if (state.reloadTimer <= 0) {
+            state.reloadTimer = 0;
+            if (state.singleReloadMode) {
+                state.current = Math.min(state.max, state.current + 1);
+                if (state.current >= state.max) {
+                    state.reloading = false;
+                    state.singleReloadMode = false;
+                } else {
+                    state.reloadTimer = state.reloadTime; // 继续装下一发
+                }
+            } else {
+                state.reloading = false;
+                state.current = state.max;
+            }
+        }
     }
 
     /** 过热/散热模块倍率：Combatant._updateOverheat 读 weapon.heatParams，此处按模块倍率改写后委托 */
@@ -849,36 +881,29 @@ class DefenseTower extends Combatant {
         const aimX = target.x;
         const aimY = (target.collider ? target.collider.y : target.y) - 40;
         if (this.weaponItem.weaponType === 'shotgun') {
-            // 散弹：一次击发多发弹丸（直接复用开火特效）
+            // 散弹：一次击发 = 1 发弹壳，多发弹丸共享一个枪口 + 一次特效（2026-08-15 修复）
             const pellets = this.weaponItem.pelletCount || (this.weaponItem.weaponId === 'saiga12k' ? 4 : 6);
-            for (let i = 0; i < pellets; i++) {
-                attack.cooldown = 0;
-                const jx = aimX + (Math.random() - 0.5) * 90;
-                const jy = aimY + (Math.random() - 0.5) * 90;
-                this._fireShot(jx, jy, entities);
-            }
+            this._fireBlast(aimX, aimY, entities, pellets);
         } else {
             this._fireShot(aimX, aimY, entities);
         }
     }
 
-    /** 单发开火：枪口偏移 + 墙体回退 + 弹丸（复用 Combatant.fireProjectile）+ 枪口火焰/开火火光/弹壳 */
-    _fireShot(aimX, aimY, entities) {
-        if (!this._attackKey || !this.attacks[this._attackKey]) return false;
-        // 枪口 = 机械臂尖（椭圆臂尖路径：等距投影 x 全量、y 0.5 缩短）+ 沿瞄准方向小幅前置
+    /** 枪口点 = 枪管尖端（椭圆臂尖 + 枪管长度，与渲染同口径；墙体回退忽略己方掩体段） */
+    _muzzlePoint() {
         const V = DEFENSE_TOWER_VISUAL;
         const pivotX = this.x;
         const pivotY = this.y - V.arm.pivotWorldY;
         const m = this._mirrored ? -1 : 1;
         const tipOX = V.arm.gameScale * V.arm.k * V.arm.reach * Math.cos(this.aimAngle) * m;
         const tipOY = V.arm.gameScale * V.arm.k * (0.5 * V.arm.reach * Math.sin(this.aimAngle) - 0.866 * V.arm.dz);
-        // 枪口：枪管模式下在枪管尖端（臂尖 + 枪管长度沿枪管方向）；否则臂尖前移 16px
         const barrelCfg = V.weapon.barrel && this.weaponItem && (V.weapon.barrel[this.weaponItem.weaponId] || V.weapon.barrel[this.weaponItem.weaponType]);
         let wAng = Math.atan2(0.5 * V.arm.reach * Math.sin(this.aimAngle) - 0.866 * V.arm.dz, V.arm.reach * Math.cos(this.aimAngle));
         if (this._mirrored) wAng = Math.PI - wAng;
         const muzzleLen = barrelCfg ? barrelCfg.w * (barrelCfg.height / barrelCfg.h) : 16;
-        let mx = pivotX + tipOX + Math.cos(wAng) * muzzleLen;
-        let my = pivotY + tipOY + Math.sin(wAng) * muzzleLen;
+        const rootInset = barrelCfg ? (barrelCfg.inset ?? 7) : 0;
+        let mx = pivotX + tipOX + Math.cos(wAng) * (muzzleLen - rootInset);
+        let my = pivotY + tipOY + Math.sin(wAng) * (muzzleLen - rootInset);
         const ox = this.x;
         const oy = this.y;
         // 枪口回退只针对真实墙壁：己方掩体段不参与（塔可越掩体射击）——
@@ -894,23 +919,63 @@ class DefenseTower extends Combatant {
                 my = resolved.y;
             }
         }
-        this.x = mx;
-        this.y = my;
-        const fired = this.fireProjectile(aimX, aimY, entities, { slot: 'weapon' });
-        this.x = ox;
-        this.y = oy;
-        if (!fired) return false;
+        return { mx, my };
+    }
+
+    /** 枪口特效（火焰/开火火光/弹壳/音效）——散弹一次击发只播一次 */
+    _muzzleEffects(mx, my, aimX, aimY) {
         const angle = Math.atan2(aimY - my, aimX - mx);
         EffectFactory.createMuzzleFlash(mx, my, angle, 1.4);
         const scene = typeof window !== 'undefined' ? window.__phaserScene : null;
         if (scene && typeof scene.playMuzzleFire === 'function') {
             scene.playMuzzleFire(mx, my);
         }
-        EffectFactory.createShellCasing(mx, my, angle, oy);
+        EffectFactory.createShellCasing(mx, my, angle, this.y);
         const snd = TOWER_FIRE_SOUNDS[this.weaponItem ? this.weaponItem.weaponId : ''] || TOWER_FIRE_SOUNDS[this.weaponItem ? this.weaponItem.weaponType : ''];
         if (snd && SoundManager && typeof SoundManager.playFile === 'function') {
             SoundManager.playFile(snd);
         }
+    }
+
+    /** 单发开火：枪口偏移 + 墙体回退 + 弹丸（复用 Combatant.fireProjectile）+ 枪口特效 */
+    _fireShot(aimX, aimY, entities) {
+        if (!this._attackKey || !this.attacks[this._attackKey]) return false;
+        const p = this._muzzlePoint();
+        const mx = p.mx, my = p.my;
+        const ox = this.x;
+        const oy = this.y;
+        this.x = mx;
+        this.y = my;
+        const fired = this.fireProjectile(aimX, aimY, entities, { slot: 'weapon' });
+        this.x = ox;
+        this.y = oy;
+        if (!fired) return false;
+        this._muzzleEffects(mx, my, aimX, aimY);
+        return true;
+    }
+
+    /** 散弹一次击发：多发弹丸共享一个枪口、扣 1 发弹壳、播一次特效（2026-08-15 修复） */
+    _fireBlast(aimX, aimY, entities, pelletCount) {
+        if (!this._attackKey || !this.attacks[this._attackKey]) return false;
+        const p = this._muzzlePoint();
+        const mx = p.mx, my = p.my;
+        const ox = this.x;
+        const oy = this.y;
+        const attack = this.attacks[this._attackKey];
+        this.x = mx;
+        this.y = my;
+        let fired = false;
+        for (let i = 0; i < pelletCount; i++) {
+            attack.cooldown = 0; // 弹丸间不互相挡冷却
+            const jx = aimX + (Math.random() - 0.5) * 90;
+            const jy = aimY + (Math.random() - 0.5) * 90;
+            if (this.fireProjectile(jx, jy, entities, { slot: 'weapon', noAmmoConsume: true })) fired = true;
+        }
+        this.x = ox;
+        this.y = oy;
+        if (!fired) return false;
+        this._consumeAmmo('weapon'); // 一次击发 = 1 发弹壳
+        this._muzzleEffects(mx, my, aimX, aimY);
         return true;
     }
 

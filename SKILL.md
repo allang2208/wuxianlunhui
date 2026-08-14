@@ -1265,7 +1265,7 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
 
 - **挥砍特效 A+B（2026-07-27 落地，2026-07-29 改残影实现）**：perFrame 帧数据可加 `blurX/blurY` 与 `stretchX/stretchY`（乘 displaySize）——插值/面板输入/保存直写全链路支持；播种用帧间位移推导（峰值帧最强，端点为零）。**游戏内运动模糊 = 残影（afterimage）**：`GameScene._syncWeaponGhosts` 沿 perFrame 轨迹回放 3 道历史姿态武器副本（透明度 0.34/0.23/0.11 递减，步长 0.035~0.085 进度随强度伸缩，强度=max(blurX,blurY) 归一到峰值 12，<1.5 不出残影）——攻击/冲刺两分支共用，攻击结束/弓分支/Tween 分支/地图模式各兜底隐藏。**旧高斯滤镜方案已废弃**：`filters.internal.addBlur` 链路实测"激活但观感失败"——高斯模糊对 3px 宽细剑是能量摊薄，峰值帧剑身近乎消失（CDP 像素级对比取证），且面板大尺寸慢放预览放大了"生效"的错觉。面板预览模糊仍是 canvas filter 近似。
 - **📍固定点工具（2026-07-27）**：武器参数区下方按钮——点击进入放置模式后点画布武器即标记（存武器局部坐标，逆变换：平移→反向旋转→÷缩放），红点刚性跟随武器跨帧显示（校准握把/刃尖用）；有标记时点按钮=清除。**面板 DOM 改动注意**：真实面板 DOM 由 `src/ui/panels/dev-tools.js` 程序化构建，`ui/components/dev-tool-panel.html` 是无引用的死文件，勿改。**攻击输入全锁**：`weaponAnim.isAttacking` 期间移动/闪避/新攻击/切武器/冲刺/右键特殊攻击/风车/推击全部无效（注意：闪避不再能取消攻击）。
-- **近战连段与收势（2026-07-27）**：perFrame 攻击 Tween 结束时记 `_lastMeleeAttackEnd` 并设 `_attackHoldUntil`（=连段窗口 1000ms）——窗口内定格末帧等待连段（stage 1↔2，`attack_sword`/`attack_sword_2`，武器轨迹按 `_meleeComboStage` 选 attack/attack2 块）；窗口内再攻击派生下一段；无输入则播 `recover` 收势动画回 idle；移动立即取消定格/收势。攻击期输入全锁（见 📍固定点工具条目）。新段（如三段突刺）：加 `attack_sword_3` 姿态+weapon-anim 轮换数组扩展+attack3 轨迹块。
+- **近战连段与收势（2026-07-27；三段已落地 2026-08-13）**：perFrame 攻击 Tween 结束时记 `_lastMeleeAttackEnd` 并设 `_attackHoldUntil`（=连段窗口）——窗口内定格末帧等待连段；窗口内再攻击派生下一段；无输入则播 `recover` 收势动画回 idle；移动立即取消定格/收势。攻击期输入全锁（见 📍固定点工具条目）。**三段连段（挥击×2+突刺×1，2026-08-13）**：stage 1 过顶下劈 `attack_sword`（12帧/600ms）→ 2 肩高快劈 `attack_sword_2`（12帧/600ms）→ 3 弓步突刺 `attack_sword_3`（16帧/800ms，终结段）→ 回 1；段数映射/定格/收势梯度收口 `src/entities/player/anim-state.js`（`MELEE_STAGE_ANIM_KEYS`/`meleeStageCfgKey`/`meleeStageHoldMs`/`meleeStageRecoverMs`，纹理/轨迹块缺失逐级回退 stage3→2→1），时长配置 `data/combat-config.json` `meleeCombo.stageN{HoldMs,RecoverMs}`（500/200/300 + -/300/400）；武器轨迹块 `sword.attack/attack2/attack3`（12/12/16 点，attack3=rect 判定 damageMul 2.0，初始种子值待 DevTool 逐帧精调）。新 sheet 格 512×512（管线 `tools/prep-melee3-sheets.py`，色偏中性化+留档），frameWeights 口径已退役统一 frameDurations。
 
 - **逐帧导出交接（2026-07-27 改为直写）**：💾保存 = 内存生效 + **直接合并进 `public/data/weapon-anim-config.json`**（保留 attack 下 trail 等字段，写前滚动备份 `weapon-frames/weapon-anim-config.backup.json`）+ 覆盖写 `weapon-frames/latest.js`（仅记录/回滚参考）+ 剪贴板。**保存即永久生效，无需通知助手合并**；Vite 走 `/__save-weapon-frames` 中间件（改中间件需重启 dev server），Electron 走 `save-weapon-frames` IPC。需回滚时用 backup.json 还原或叫助手处理。**多段轨迹（2026-07-27）**：`attack`/`attack2` 块各存一段轨迹，面板切对应动画页调整即按块保存；运行时连段按 `_meleeComboStage` 选块；`WeaponTransform.getInterpolatedPerFramePosition(..., cfgKey)` 支持选块。
 - **静态姿态**（gun_idle 等）：面板拖武器到手上 → 💾保存（每状态 `holdOffsetX/Y + idleRotation/idleScale`）。
@@ -4136,6 +4136,65 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
 - 替换素材前先把旧图备份到 `assets/terrain/.bak-*`（保持可选回退）。
 - 换模型后 pivot/tip/pivotWorldY/naturalAngle 四参数必须随新图同步重标定，不能只换 png。
 
+### 防御塔战斗机制沉淀（2026-08-14/15 定稿，世界-122 防守塔全套）
+
+> 以下机制全部在 `defense-system.js` / `GameScene._syncDefenseTowers` 落地并实机验证，
+> 新防守单位/塔类功能一律按此口径开展。
+
+**友方免伤（玩家/友军不能伤害己方建筑）**
+- `damageable-entity.js` 导出 `isFriendlyFire(source, target)`：player/companion 阵营组互免。
+- 三条链路全部拦截：`takeDamage`（伤害入口）、`attack.js` 四处近战命中、`projectile.js` 同阵营跳过。
+- 防御塔/基地/掩体都因此无法被玩家和友军伤害；敌人照常可攻击（防守玩法成立）。
+
+**防御塔越己方掩体射击**
+- 掩体 face 线段注册进 `WallSystem.isoSegments`（带 `_cover: true`）。
+- 塔的索敌（`_acquireTarget`）与弹丸（`projectile.js _isBlockedByWall`）都忽略 `_cover` 段——
+  真实墙壁仍挡，己方掩体不挡。
+- 枪口墙体回退（`WallSystem.resolve`）同样只认真实墙：先用"忽略掩体段"的 `blocked` 判定，
+  仅真实墙阻挡才回退；否则 resolve 会把枪口沿掩体滑回塔脚（"下沉到底座" bug）。
+
+**图层锚点与阻挡口径**
+- 塔三层深度 = **脚底锚**：基座 `e.y+2`、机械臂 `e.y+2.5`、武器 `e.y+3`
+  （怪物脚底 y < 塔脚 → 塔盖怪物；y > 塔脚 → 怪物盖塔，与全游戏 depth=地面锚线 一致）。
+- 阻挡：塔只挡**怪物**（`game.js resolveCollisions`：防御塔与 player/companion 跳过分离）；
+  塔被摧毁 `active=false` → 停火/停渲染/分离跳过（怪物可穿过废墟）。
+
+**换弹/过热（玩家口径复制）**
+- 弹药：塔覆盖 `_hasAmmo`/`_consumeAmmo`（Combatant 默认无限弹，玩家口径才真扣）；
+  `_startReload` 加守卫防 canFire 每帧重置换弹计时 + 读 `getAmmoConfig.singleReloadMode`。
+- 过热：`update()` 驱动 `_updateOverheat(dt, isFiring)`；isFiring = 有目标+有弹+非换弹+未过热
+  （冷却不参与，机枪持续压制升温）；PKM/QJB/能量机枪按 heatParams 过热锁火。
+- 防御塔开火命中**不触发玩家震屏**：`damage-pipeline.js` 的 `GunFeel.onPlayerHit` 排除
+  `_isDefenseStructure`（否则塔命中会走玩家命中反馈）。
+
+**机械臂预渲染 3D 旋转帧（解决"单臂 2D 旋转僵硬"）**
+- Blender 单独建模（竖枢轴柱+横杆+弧形钩），绕塔顶轴渲染 48 帧（7.5°×48）等距透视，
+  游戏按 aimAngle 选帧（`render-defense-tower-frames.py` + `prep-defense-tower-frames.py`）。
+- 世界旋转 = **-aimAngle**（游戏 y 向下，屏幕顺时针=世界逆时针的镜像）；镜像塔取反+flipX 帧。
+- 臂尖是**椭圆路径**：tipOX = gs·k·reach·cosθ；tipOY = gs·k·(0.5·reach·sinθ − 0.866·dz)
+  （x 全量、y 0.5 缩短；dz=挂载件相对枢轴 z 偏移）。**y 分量符号必须 +0.5·sinθ**，
+  写反会"下半区枪口落到塔顶/底座"。
+- 相机锁定验证法：探针必须停 `_updateCamera` + 固定相机，否则玩家/相机漂移导致截图定位失效。
+
+**枪管裁剪（"枪插进机械臂"假象）**
+- 武器贴图只取前 1/3 枪管段裁成独立贴图 `tower_barrel_<weaponId>.png`（`prep-tower-barrels.py`），
+  切口端 origin(0,0.5) 对齐臂尖并内嵌 7px（`inset` 可配）→ 枪管从机械臂/钩子伸出。
+- **不要用运行时 `setCrop`**：与旋转/origin 组合存在渲染兼容问题（精灵状态对但不可见）。
+- 枪口 = 内嵌后根 + 枪管长度沿枪管方向（`_muzzlePoint` 与渲染同口径）。
+- 配置按 weaponId（霰弹 super90/saiga12k 同 type 不同贴图必须区分）。
+
+**霰弹枪重设计（Super90 / S12K）**
+- 一次击发 = 1 发弹壳：`_fireBlast` 多发弹丸共享一个枪口、扣 1 弹、播一次特效
+  （`Combatant.fireProjectile` 支持 `config.noAmmoConsume`，调用方统一扣弹）。
+- Super90（weapon12）：max 7、**单发装填**（400ms/发，`_updateReload` 逐发 +1，装满才停）、
+  333ms 间隔、6 弹丸。S12K（weapon13）：max 12、**整匣换弹**（2s 一次装满）、150ms、4 弹丸。
+- 装填中 `canFire` 拦截 → "打空换弹、没装满不开火"。
+
+**金属贴图流程**
+- 机械臂金属材质：`flux2-klein-4b-walltex`（riveted steel 族）生成无缝贴图 →
+  `render-defense-tower-frames.py` 第 4 参传贴图覆盖全部件 → 重渲染 48 帧；
+  几何不变时标定零变化（帧尺寸/枢轴不变）。
+
 #### 新障碍物碰撞体 + 图层（2026-08-04 定稿）
 - 掩体/塔入库后必须补 `ISO_WALL_GEO` 注册：`category:'obstacle'` + `editor` 显示名
   （摆墙编辑器障碍物类自动上架）；foot=底部 15% 带实测（矩形 footprint 碰撞）；
@@ -5095,6 +5154,53 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
   怪在射程内仍由 cast 分支站定施法；距离自愈阈值 1200→900。③ **朝向**——aiMode
   flipX 由自身决定：移动时面朝 vx 方向（往哪走面朝哪）、施法面朝 target、idle 保持
   上次朝向（`_lastFaceRight`），不再跟随玩家镜像（逃跑时不再面朝怪物）。
+- **露娜初始魔法 600 + 消耗品自动使用（2026-08-15）**：
+  - `companion-config.json` mage_luna 加 `baseMaxMp: 600`——companion.js
+    `_maxMpOverride` 覆盖 maxMp 基础公式（600 基准 + 每级 10 + 装备加成），
+    serialize/fromSerialized 保留。
+  - `companion.consumableSettings`：`{ enabled, hpThreshold:0.3, mpThreshold:0.25,
+    useLowToHigh:true }`，序列化保留。
+  - AI 自动用药（CompanionAI `_useAutoConsumable`，1s 节流）：HP/MP 各自独立判定
+    （**勿用 `!used` 串联——生命和魔法可能同时低于阈值**），背包选对应恢复药水
+    （level 升序 → 恢复量升序 = 低级→高级），用 `applyConsumableEffect` 生效并扣
+    堆叠，通知 PartySystem 刷新 UI。
+  - UI：companion-panel 装备页背包栏加「⚙️ 消耗品设置」按钮 → 展开面板（启用开关/
+    HP 阈值/MP 阈值/背包消耗品列表/保存）。新增更高级消耗品（equipment.json
+    consumable + level 字段）自动参与低级→高级排序，无需改代码。
+- **露娜 walk/run 视频重建管线（2026-08-15，walking and running.mp4）**：
+  `tools/ai-gen/luna-wr-rebuild.py`（须 ComfyUI venv python 运行）——PyAV 抽帧 →
+  BiRefNet（ComfyUI-RMBG）抠图（unpremultiply 防白边）→ 对齐（脚底 FEET_Y 固定 +
+  水平**内容质心**精确居中 CENTER_X，质心跨度 <1.5px，循环回跳无位置跳动）→ 拼
+  512×512 sheet。视频 24fps/121 帧分段：walk 循环 f12-37（26 帧，回跳对齐差异
+  0.017 无缝）；run 起步 f81-97（17 帧）+ 循环 f98-120（23 帧，衔接 0.054、
+  回跳 0.086 = 素材最优）。配置：walk frames [0,25]@24；run startFrames [0,16]+
+  loopFrames [17,39]@24。**坑**：sheet 未填满的行尾是空白 cell，循环回跳校验必须
+  用实际 frameCount 的最后一帧，不能按 cols×rows 全表算（会把空白帧当回跳帧）。
+- **spell 动画跳过/占据排查（2026-08-15）**：两个真 bug——
+  ① `_tryCast` 写计时器到 `c._castTimer`（companion 字段），但 `_updateCast` 误读
+    `this._castTimer`（AI 实例字段恒 0）→ 施法首帧即结束、spell 动画被跳过；统一到
+    `c._castTimer`。② `_applyAction` 开头的施法锁定检查在 flee 之前提前 return——
+    近战贴脸时 decide 已返回 'flee'，但施法锁定把 flee 分支（含打断施法）拦下，
+    露娜站桩 spell 不逃跑；修为例外：`action === 'flee'` 跳过施法锁定、打断施法逃跑
+    （决策纯函数同步：威胁贴脸优先级高于施法站定）。
+  诊断探针 `tools/cdp-luna-spell-diag.mjs`：注册检查 + 施法期间逐帧采样
+  （castState/currentAnim/frame/texKey）+ 手动 `_tryCast` 渲染验证。
+- **露娜朝向/内置CD/普通攻击（2026-08-15）**：
+  - **朝向**：GameScene aiMode——逃跑（`member._lastAction==='flee'` 且移动中）面朝
+    移动方向；其余（idle/施法/走位）**始终面朝目标**（member.target 优先，否则扫
+    Game.entities 最近敌人）。`_lastAction` 由 CompanionAI 同步到 companion
+    （`c._lastAction = action`）——渲染层读 member 而非 AI 实例，否则恒 undefined。
+  - **法术内置 CD**：`_castCooldown` 默认 2000ms，所有法术共享最小释放间隔；
+    `_pickReadySpell` 开头 `if (c._castCooldown > 0) return null`；普通攻击不占用
+    该 CD（独立 `_basicAtkCd`）。
+  - **普通攻击**：config `basicAttackRange 600 / basicAttackSpeed 600 /
+    basicAttackInterval 2000 / basicAttackDamageMul 0.2`；CompanionAI `_tryBasicAttack`
+    发射蓝色光球（`_basic` 状态，600px/s 直线飞行、600px 射程），命中造成
+    `matk×0.2` 伤害，攻击动作播 spell 动画（castState=casting + _castTimer=500ms）；
+    GameScene `_syncCompanionBasics` 渲染光球（impact_dot 纹理 + 蓝 tint + ADD 混合）。
+    决策：无法术可用（CD/MP/射程）且普通攻击就绪 → cast 分支 fallback 普通攻击。
+  验证探针 `tools/cdp-luna-basic.mjs`（内置 CD 递减、普通攻击 dmg=matk×0.2、idle
+  朝向目标左右切换）。
 - **掉队瞬移理智判定 + walk/run 切换（2026-08-14 五修，用户需求）**：
   - 需求①：被卡在门外进不来 → 距离过远瞬移回玩家身边，但**区分卡住 vs 正常 AI 远离**
     （躲避敌人/寻找输出位置离玩家远是合法的，不该瞬移）。
