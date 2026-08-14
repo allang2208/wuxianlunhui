@@ -184,5 +184,32 @@ const passE = eResult.texExists && eResult.animExists && eResult.cfgSpell && eRe
     && eResult.idleTex === 'companion_mage_luna_idle';
 console.log(passE ? 'PASS E: 渲染层 spell 播放 + idle 停帧' : 'FAIL E: 渲染层问题');
 
+console.log('\\n=== F. walk 动画循环切换（walk→idle→walk 恢复播放） ===');
+const fResult = await ev(`(() => {
+  const s = window.__phaserScene;
+  const luna = window.Game.PartySystem.getMember('mage_luna');
+  const spr = s._companionSprites['mage_luna'];
+  const snap = () => ({ playing: spr.anims.isPlaying, key: spr.anims.isPlaying ? spr.anims.currentAnim.key : null,
+                        frame: spr.frame.name, tex: spr.texture.key });
+  // 1. walk
+  luna._animState = 'walk'; luna._castState = 'idle'; luna._frozenForCast = false;
+  s._syncCompanionSprites(window.Game);
+  const w1 = snap();
+  // 2. idle（停帧）
+  luna._animState = 'idle';
+  s._syncCompanionSprites(window.Game);
+  const i1 = snap();
+  // 3. 再 walk（应恢复播放）
+  luna._animState = 'walk';
+  s._syncCompanionSprites(window.Game);
+  const w2 = snap();
+  return { w1, i1, w2 };
+})()`);
+console.log(JSON.stringify(fResult));
+const passF = fResult.w1.playing && fResult.w1.key === 'companion_mage_luna_walk'
+    && !fResult.i1.playing && fResult.i1.tex === 'companion_mage_luna_idle'
+    && fResult.w2.playing && fResult.w2.key === 'companion_mage_luna_walk';
+console.log(passF ? 'PASS F: walk 循环切换恢复播放' : 'FAIL F: walk 切换问题');
+
 await ev(`(() => { const { entities } = window.Game; entities.delete('state_probe_enemy'); return true; })()`);
 await cleanup(0);

@@ -5143,6 +5143,18 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
     `_syncCompanionSprites` → sprite 播放 `companion_mage_luna_spell` ✓；清回 idle →
     停帧 `companion_mage_luna_idle` 帧 0 ✓。**headless 掉帧会压缩施法窗**（_castTimer 按 dt 递减），
     AI 层施法验证看 after 状态，渲染层播放由 E 场景直接验证。单测 135/135。
+- **walking 动画不播放（2026-08-14 八修，动画状态机三连 bug 收口）**：
+  - 根因：idle 停帧用 `sprite.setTexture(idleKey, idleFrame)` 停止动画后，
+    `sprite.anims.currentAnim` 仍残留旧动画引用；切回同一动画（如 walk）时
+    `currentAnim.key === walkKey` → 跳过 play → **动画卡在停帧不播**。
+    上一轮为修 spell 把重播条件从 `!isPlaying || key!==X` 收紧成 `key!==X`，恰好引入此回归。
+  - 修复：三个动画分支恢复 `!sprite.anims.isPlaying || currentAnim.key !== X` 判重播——
+    **前提是 spell 已 repeat -1**（循环播放中 isPlaying 恒 true，不会因"播完一次"误重播）；
+    只有被 idle 停帧打断（isPlaying=false）时才重新播放。
+  - 教训：**渲染层动画切换的判重播必须同时覆盖"动画未播"和"键变化"**；
+    改判重播条件前先确认动画 repeat 语义（repeat 0 会自然停 → 不能只查 isPlaying；
+    repeat -1 循环 → isPlaying 恒 true → 可安全用）。探针 F 场景：
+    walk→idle→walk 循环切换恢复播放 ✓。单测 135/135、npm test 51/51。
 
 ---
 
