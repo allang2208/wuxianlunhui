@@ -5095,6 +5095,25 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
   怪在射程内仍由 cast 分支站定施法；距离自愈阈值 1200→900。③ **朝向**——aiMode
   flipX 由自身决定：移动时面朝 vx 方向（往哪走面朝哪）、施法面朝 target、idle 保持
   上次朝向（`_lastFaceRight`），不再跟随玩家镜像（逃跑时不再面朝怪物）。
+- **掉队瞬移理智判定 + walk/run 切换（2026-08-14 五修，用户需求）**：
+  - 需求①：被卡在门外进不来 → 距离过远瞬移回玩家身边，但**区分卡住 vs 正常 AI 远离**
+    （躲避敌人/寻找输出位置离玩家远是合法的，不该瞬移）。
+  - 实现：decision 纯函数 `shouldRelocateCompanion`——超过 teleportDist(700) 后，
+    flee（逃近战威胁，撤退点含朝玩家分量会自动收敛）/ advance 站位（站位点离玩家
+    ≤followOffset×3.3）/ 施法锁定 / 距离在缩小（有效追赶）→ 不瞬移；
+    其余（掉队、路径反复失败 stuckCount≥2、撞墙）→ 瞬移；超 teleportHardDist(1100)
+    无条件瞬移兜底。**掉队判定必须看"距离趋势"**：跟着玩家跑时距离可能瞬时拉大，
+    只要每帧都在缩小就是正常追赶。
+  - 需求②：离玩家过远 / 逃避敌人 / 寻找位置输出 → running；小范围移动 → walking。
+    实现：`shouldUseRun(mode, dist, cfg)`——flee 永远 run；其余按移动距离（优先取
+    预寻路 PathManager 剩余路径长度，绕墙比直线更真实）超 runDist(260) 用 run。
+    `_setMoveState` 同步 maxSpeed（run→runSpeed/walk→walkSpeed）。advance 归队
+    （离玩家>450）直接 run。
+  - 配置：companion-config.json `ai` 字段可覆盖 runDist/teleportDist/teleportHardDist。
+  - 露娜 running 接入 24 帧版：`assets/companions/luna/running.png`（8×3、24 帧完整
+    双步周期）——**完整周期循环不能拆 startFrames**（24 帧拆 6+18 会让循环段不是
+    整数周期，接缝左右脚错位）；配置只给 loopFrames [0,23]，BootScene 无 startFrames
+    时走 frames 默认分支全帧循环。单测 133/133（新增 run 判定/掉队判定 17 条）。
 
 ---
 
