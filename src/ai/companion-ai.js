@@ -314,6 +314,19 @@ export class CompanionAI {
         const c = this.c;
         const { player, threat, targetDist, spell } = ctx;
         c._tacticalTarget = null;
+        // 施法锁定中：保持 spell 动画并停止移动，直接返回——
+        // 决策仍返回 'cast'（casting 优先），但 spell 可能已进 CD 为 null，
+        // 不能走下方默认 idle 重置（会把施法动画砍掉）。
+        if (c._castState !== 'idle' || c._frozenForCast) {
+            c._animState = 'spell';
+            c.vx = 0; c.vy = 0; c.isMoving = false;
+            return;
+        }
+        // 默认回 idle 并停止：防止分支条件未命中（flee 无威胁 / cast 无目标 /
+        // advance 无目标）时残留上一帧动画状态——"run 常态化 / spell 不放"的根因。
+        // 各分支命中后会用 _setMoveState 覆盖；MovementSystem 随后按 _tacticalTarget 重算位移。
+        this._setMoveState('idle');
+        c.vx = 0; c.vy = 0; c.isMoving = false;
 
         switch (action) {
             case 'cast':
@@ -345,15 +358,10 @@ export class CompanionAI {
                         const maxFollow = (this.cfg.followOffset || 150) * 3.3;
                         if (Math.hypot(sp.x - player.x, sp.y - player.y) <= maxFollow) {
                             c._tacticalTarget = sp;
-                            // 寻找位置输出：路程远（直线/绕墙路径）→ run；近距离站位微调 → walk
+                            // 寻找位置输出：站位距离远 → run；近距离站位微调 → walk
                             const dist = Math.hypot(sp.x - c.x, sp.y - c.y);
-                            const pathLen = this._remainingPathLength();
-                            this._setMoveState(this._shouldRun(Math.max(dist, pathLen ?? dist), 'advance') ? 'run' : 'walk');
-                        } else {
-                            this._setMoveState('idle');
+                            this._setMoveState(this._shouldRun(dist, 'advance') ? 'run' : 'walk');
                         }
-                    } else {
-                        this._setMoveState('idle');
                     }
                 }
                 break;
@@ -364,16 +372,10 @@ export class CompanionAI {
                 if (dist > (this.cfg.followArriveDist || 55)) {
                     c._tacticalTarget = fp;
                     // 跟随：离玩家/跟随点远 → run 快速归队；小范围调整 → walk
-                    const pathLen = this._remainingPathLength();
-                    this._setMoveState(this._shouldRun(Math.max(dist, pathLen ?? dist), 'follow') ? 'run' : 'walk');
-                } else {
-                    this._setMoveState('idle');
+                    this._setMoveState(this._shouldRun(dist, 'follow') ? 'run' : 'walk');
                 }
                 break;
             }
-            default:
-                this._setMoveState('idle');
-                c.vx = 0; c.vy = 0; c.isMoving = false;
         }
     }
 
@@ -385,24 +387,11 @@ export class CompanionAI {
     }
 
     /**
-     * 预寻路整合：剩余路径长度（PathManager.path 逐段累加）。
-     * 比直线距离更真实——绕墙/绕门时路径远但直线近，跑/走判定应看实际要走的路程。
-     * @returns {number|null} 无路径时返回 null
-     */
-    _remainingPathLength() {
-        const pm = this.c && this.c._pathManager;
-        if (!pm || !pm.path || pm.path.length < 2) return null;
-        let len = 0;
-        for (let i = 1; i < pm.path.length; i++) {
-            len += Math.hypot(pm.path[i].x - pm.path[i - 1].x, pm.path[i].y - pm.path[i - 1].y);
-        }
-        return len;
-    }
-
-    /**
      * walk/run 判定（2026-08-14 用户需求）：
      * flee（逃避敌人）永远 run；其余按移动距离——超过 runDist 用 run（长距离奔袭/寻找输出位置），
-     * 小范围移动用 walk。距离优先取预寻路剩余路径长度（更能反映真实路程）。
+     * 小范围移动用 walk。距离用"到战术目标（跟随点/站位点）的直线距离"——
+     * 注意：决策瞬间 PathManager.path 仍是旧目标的（MovementSystem 下帧才重算），
+     * 读路径长度会 stale 导致误判 run，故不用；预寻路整合点在卡住检测（stuckCount）。
      */
     _shouldRun(dist, mode) {
         return shouldUseRun(mode, dist, this.cfg);
