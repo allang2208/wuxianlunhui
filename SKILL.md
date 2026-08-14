@@ -5163,6 +5163,18 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
     按高度对齐后 idle 宽 175 vs walk 202-243，显得瘦小。折中：target_h 461→500、feet_y 505
     （宽 189、高 500，视觉面积约为 walk 的 92%）。**站立姿态窄是素材比例，强行宽度匹配会超高出格**。
     动画对齐基准：所有动画 frameWidth/frameHeight 512、显示由 spriteSize 控制。
+- **BiRefNet 细长物体尖端羽化（2026-08-14 十修，running 法杖尖端消失）**：
+  - 症状：游戏里 running 法杖尖端像被截掉一段；但源视频完整（BiRefNet alpha bbox 离右缘
+    300px+）、精灵图 bbox 无贴边、GLM 说"完整"——**所有常规检测都漏了**。
+  - 根因：BiRefNet 显著性分割对**细长尖端**支持弱——帧 30/31 法杖尖端 alpha 只有 166/171
+    （<74%），深色背景下尖端"半透明消失"，但 bbox(alpha>16) 和 max_x 检测都正常。
+  - 检测方法：**逐帧查尖端 max_alpha / 最右 5 列 alpha 均值 vs 前 10 列**——正常渐变
+    均值差 <30%，羽化帧差 >40% 且 max_alpha <200。
+  - 修复：**融合抠图**——`alpha_final = where(BiRefNet<190 & 阈值(gray<232)有深色, 阈值, BiRefNet)`，
+    只把 BiRefNet 漏掉的深色细节（法杖尖端）用阈值补回，主体仍走 BiRefNet；
+    再灰底判据清理白边。24 帧尖端 max_alpha 全 255，右5列均值 158→188+。
+  - 教训：**细长物体（法杖/武器/触角）抠图后必须查尖端 alpha 渐变**，不能只看 bbox；
+    GLM 对细长半透明尖端也判不准（两次矛盾），像素证据优先。
 
 ---
 
