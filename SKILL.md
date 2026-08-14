@@ -717,6 +717,22 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
 - **成品 v3**：候选 2 帧 30-61 窗口，seam=1.43（远小于内均 5.73）、接缝帧差 7.38、接缝质心跳变 1.4px；
   双步周期 31 帧交替规整。已替换 running.png（v2 备份 running_v2_20260814.png）。
 
+#### 7c. 32 帧数学约束与 24 帧定稿（2026-08-14 三轮，用户确认 24 帧）
+用户仍反馈"第 16 帧左右脚互换"，且 GLM 多次判断前后矛盾（同帧组两次答不同前腿）——
+**根因是跑步自然步频与 32 帧规格冲突，不是单纯 AI 质量问题**：
+- **实测所有候选双步周期**：候选 2/5=31 帧、候选 6=25-26 帧（模板匹配 24）、候选 7 不规整；
+  **32 帧无法被任何自然周期整除**，32 帧循环接缝必然左右脚相位错位。
+- **陷阱：像素同相 ≠ 语义同相**。候选 2/5 的 32 帧窗口接缝腿差仅 1.4（侧视左右脚互换时轮廓相似），
+  但语义上左右脚已换——这就是"接缝帧差小却左右脚互换"的原因。
+- **语义同相验证（模板匹配，比 GLM 可靠）**：取 GLM 确认的右腿前帧/左腿前帧做腿部模板，
+  每帧"右前度" = 与右模板相似度 - 与左模板相似度（cosine）；窗口首尾右前度同为显著正值
+  （>+0.15）才算真同相。候选 6 帧 0/24/48/72/96 右前度 +0.16~+0.20 → 双步周期 24 帧。
+- **定稿（24 帧精灵图）**：候选 6 帧 24-47（首尾右前度 +0.197/+0.165 同相），接缝帧差 10.83
+  （低于内均 14.75）、质心跳变 2.3px；GLM 确认帧 23→0 均右腿前（无互换）、帧 10-13 左腿保持换腿自然。
+  已替换 `assets/companions/luna/running.png`（24 帧 8×3、2048×1536；v3 备份 running_v3_20260814.png）。
+- **教训**：强制帧数规格前先测步态周期——循环帧数必须是周期的整数倍，否则左右脚必然错位；
+  AI 跑步视频步频在 24~31 帧区间，常用 24 帧规格恰好落在范围内，32 帧是"最差"选择。
+
 #### 8. 远程 5080 H3 生成故障排查（2026-08-13 实录）
 - **症状**：提交即 `SamplerCustomAdvanced` 执行失败，`NotImplementedError: No operator found for
   memory_efficient_attention_forward`，`fa3F/cutlassF-pt ... requires device with capability <(8,0)
@@ -5014,6 +5030,71 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
   + 动态 import src 模块（静态 import 在 loader 注册前解析会报 ERR_IMPORT_ATTRIBUTE_MISSING）。
 - 新增侍从技能/战斗模型/装备属性结算/存档落盘：在框架对应留白处接入（skills 空对象、
   modelPlaceholder 未渲染、equipments 无属性结算）。
+
+## 侍从战斗 AI（CompanionAI，2026-08-14，远程法师露娜）
+
+- **架构**：`src/ai/companion-ai-decision.js`（零依赖纯函数：`decideCompanionAction`
+  状态机 + `pickCompanionSpell` 技能选择，可单测）→ `src/ai/companion-ai.js`
+  （CompanionAI 运行时：决策 tick 120ms + 每帧移动/施法推进）。
+  状态机：`idle → follow → advance → cast → flee`（优先级：施法站定 > 近战威胁贴脸
+  flee > 射程内施法 > 推进站位 > 跟随 > idle）。
+- **挂载**：PartySystem 只存 AI 工厂注册表（`registerAI(id, factory)` +
+  `updateCombat(dt, entities, player)`），**不静态 import companion-ai.js**（其依赖链
+  带 JSON import，node 单测会挂）；Game.js 启动时注册 mage_luna 工厂，主循环在实体
+  update 后调用 updateCombat。companion-config.json 的 `ai` 字段配置
+  followOffset/combatRange/safeDistance/castFrozenMs 等。
+- **移动复用 MovementSystem**：companion 补战斗字段（active/x/y/vx/vy/maxSpeed/
+  groundRadius/_faction='companion'）。MovementSystem 2026-08-14 起支持
+  `_tacticalTarget` 作为寻路目标（moveGoal = 战术目标优先，其次攻击目标）——露娜的
+  跟随点/施法站位/撤退点都是 _tacticalTarget，路径朝战术点生成而非敌人。
+- **敌我判定安全**：BoltSkillSystem._isHostile 与 LightningStrikeSystem 改为阵营分组
+  （player/companion 互为友军、只敌视 enemy；enemy 敌视一切非 enemy）——露娜
+  _faction='companion'，火球/闪电不会误伤玩家。怪物 PerceptionSystem 只选 player
+  目标，露娜不会被仇恨（纯远程输出）。
+- **技能复用玩家系统**：露娜构造 FireballSystem/IceSpikeSystem/LightningStrikeSystem/
+  HolyLightSystem；**BoltSkillSystem 非玩家需二次 trigger**（第一次凝聚、第二次发射）；
+  施法射程从 skills.json effectFormula 读 maxRange（通常缺省）→ AI 用
+  SKILL_RANGE_FALLBACK（火球 1200/冰锥 800/闪电 600）兜底；MP 消耗由 AI 自行扣除
+  （非玩家系统不扣）。技能优先级：闪电（群控）> 火球（群伤）> 冰锥（单体）。
+- **远程后排策略**：目标只在 combatRange×1.3 内选择（不跨图追残血）；近战威胁
+  （attackRange<220 且无 ranged）进入 safeDistance → flee（撤退点=背离威胁+朝玩家）；
+  施法站定 _frozenForCast 锁定移动并保持 spell 动画。寻路跟随点=玩家左后
+  followOffset。
+- **渲染**：GameScene._syncCompanionSprites 按 `member.aiConfig` 分叉——AI 队员位置
+  用 member.x/y、动画按 member._animState（spell/run/walk/idle，idle=奔跑首帧）；
+  无 AI 队员保持原玩家状态驱动逻辑。
+- **验证**：单测 116/116（含 12 条决策/技能选择纯函数）；CDP `tools/cdp-luna-ai.mjs`
+  （跟随/施法命中 46 伤害/不误伤玩家/撤退 60→224px）与 `tools/cdp-luna-anim.mjs`
+  （AI 驱动：idle 奔跑首帧、follow walk 循环、cast spell、flee run 循环质心 0px）。
+- **已知限制**：圣光（10 级解锁）暂未接入 AI（holyLight 敌我判定按同阵营治疗，需
+  友军分组改造后启用）；露娜不会被怪物仇恨；撤退为战术点寻路（地牢空旷场景可用）。
+- **生成位置三保险（2026-08-14 二修）**：① 初始/场景切换生成用 `_findValidSpawn`
+  （跟随点优先 → 8 方向螺旋外扩 → `WallSystem.canMoveTo` 校验 → `findSafeSpawn` →
+  玩家脚下兜底），不再裸偏移导致生成进墙；② 场景切换检测（`SceneManager.currentScene`
+  变化 → 清路径/target → 重新找落点）；③ 每 1.5s 卡墙自愈——当前位置 canMoveTo 为
+  false（卡进墙）或**离玩家 >1200px**（墙外无墙空地 canMoveTo 仍为 true，但寻路不
+  连通）或路径反复失败（stuckCount≥3）→ 拉回玩家附近合法点。另修：advance 站位点
+  离玩家 >followOffset×3.3 不追（远程后排不追远目标，避免在地牢跑丢/卡墙外）。
+  探针 `tools/cdp-luna-dungeon-spawn.mjs` 用主实例 `ExpeditionSystem.depart()`
+  真实进地牢（**勿用 Runtime.evaluate 动态 import 模块——会创建平行实例**）：露娜
+  生成在玩家 ~200px 内、canMoveTo 合法、能移动/撤退/战斗输出。
+- **队友防卡死瞬移（2026-08-14 三修，仅作用于队员）**：MovementSystem 的
+  GATE-WAIT 面向怪物（卡在关着的门洞前选择等待，开门自然恢复）——队友不等待。
+  CompanionAI 独立位移检测：每 400ms 采样，**2s 窗口总位移 <10px 且仍有移动意图**
+  （战术目标未到达或攻击目标在射程外）→ 卡死；连续 2 次确认 → 瞬移脱离：优先
+  卡死点半径 50~200px 螺旋搜索"更靠近玩家"的合法点（canMoveTo 校验），否则瞬移到
+  玩家附近合法点；4s 冷却防抖动。只作用于队员（玩家/敌人不受影响）。行业参考：
+  L4D survivor bot 卡死传送到下一路径点、Godot `map_get_closest_point` 拉回导航
+  最近点、Gmod-Auto-Unstuck 检测后延迟瞬移、Unvanquished 先侧向脱困再兜底。
+- **队友渲染三修（2026-08-14 四修）**：① **图层**——AI 队员精灵 depth 由
+  `_updateDynamicDepths` 按世界 Y 计算（脚底+10 + junctionCorrectedDepth，与敌人同
+  口径），不再固定 `playerSprite.depth+0.5`（否则墙后也显示在墙前）；纯渲染队员
+  保持玩家层。② **主动找位置**——监听 `DungeonMapSystem.state`（map↔combat）变化：
+  玩家被传送时露娜清路径/目标并重定位到玩家附近合法点（同场景切换机制），避免残留
+  地图坐标；advance 时玩家距离 >450px 优先跟近玩家（保持阵型，远程后排不落单），
+  怪在射程内仍由 cast 分支站定施法；距离自愈阈值 1200→900。③ **朝向**——aiMode
+  flipX 由自身决定：移动时面朝 vx 方向（往哪走面朝哪）、施法面朝 target、idle 保持
+  上次朝向（`_lastFaceRight`），不再跟随玩家镜像（逃跑时不再面朝怪物）。
 
 ---
 
