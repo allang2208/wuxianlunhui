@@ -5128,6 +5128,21 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
   - 实机探针 `tools/cdp-luna-state-probe.mjs`：静止→idle、远移→run→walk→idle、
     施法→spell（_tryCast 后 cast=casting/anim=spell/timer=650/frozen=true）、近战→flee(run)，
     全部 PASS。**CDP 高频采样要在页面内循环**（evaluate 往返延迟会错过 650ms 施法窗）。
+- **spell 动画不播放（2026-08-14 七修，根因在渲染层）**：
+  - 根因：`_syncCompanionSprites` 判重播用 `!sprite.anims.isPlaying || key!==spellKey`——
+    spell 动画 repeat 0 播完一次 isPlaying=false → **每帧从头重播，永远卡在前几帧**
+    （视觉上"没播放/闪一下"）。修复：三个动画分支统一改为**只在动画键变化时播放**
+    （`currentAnim?.key !== targetKey`）。
+  - spell 动画 repeat 0 → **-1**（施法期间循环播放完整施法动作）；castFrozenMs 650 → 1300ms
+    （32 帧@20fps=1.6s 循环的 80%，动作清晰可见；650ms 太短一闪而过）。
+  - **idle 素材接入（2026-08-14）**：`E:\无尽轮回\游戏\素材库\人物\luna\luna.png`（2048² 白底）
+    → BiRefNet 抠图 + 去污染 → 512 格对齐（top19/bottom479/高461/中心256，与 walk/run/spell 一致）
+    → `assets/companions/luna/idle.png` → companion-config `animations.idle`（单帧）
+    → 渲染层 idle 停帧优先取 idle 动画首帧（原为 run 首帧）。
+  - 探针新增 E 场景（渲染层直接验证）：手动设 castState=casting/_animState=spell →
+    `_syncCompanionSprites` → sprite 播放 `companion_mage_luna_spell` ✓；清回 idle →
+    停帧 `companion_mage_luna_idle` 帧 0 ✓。**headless 掉帧会压缩施法窗**（_castTimer 按 dt 递减），
+    AI 层施法验证看 after 状态，渲染层播放由 E 场景直接验证。单测 135/135。
 
 ---
 

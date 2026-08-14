@@ -219,7 +219,9 @@ check('露娜 walk 动画配置（循环首尾平滑 [7,31]）', lunaC.animation
     check('露娜 run 动画配置（24帧完整周期循环）', lunaC.animations.run && lunaC.animations.run.src.includes('running.png')
         && lunaC.animations.run.frameCount === 24 && lunaC.animations.run.rows === 3);
     check('露娜 run 循环覆盖全帧', lunaC.animations.run.loopFrames[0] === 0 && lunaC.animations.run.loopFrames[1] === 23);
-check('露娜 spell 动画配置', lunaC.animations.spell && lunaC.animations.spell.src.includes('spelling.png'));
+    check('露娜 spell 动画配置', lunaC.animations.spell && lunaC.animations.spell.src.includes('spelling.png'));
+    check('露娜 idle 动画配置', lunaC.animations.idle && lunaC.animations.idle.src.includes('idle.png'));
+    check('露娜 spell 施法循环', lunaC.animations.spell.repeat === -1);
 const lunaSer = lunaC.serialize();
 check('动画配置序列化保留', lunaSer.animations && lunaSer.animations.walk && lunaSer.animations.walk.src.includes('walking.png'));
 
