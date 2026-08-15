@@ -466,6 +466,8 @@ export class GameScene extends Scene {
             const runKey = `companion_${animId}_run`;
             if (!anims.walk || !this.textures.exists(walkKey)) continue; // 无动作素材不渲染
             activeIds.add(member.id);
+            // 显示基准：单位可配置 displaySize（仓鼠矿工略小于玩家），缺省与玩家一致
+            const size = member.displaySize || PLAYER_DEFAULTS.physics.spriteSize;
             let sprite = this._companionSprites[member.id];
             if (!sprite) {
                 const fw = anims.walk.frameWidth || 512;
@@ -480,26 +482,15 @@ export class GameScene extends Scene {
                 sprite = this.add.sprite(player.x, player.y, idleKey, idleFrame);
                 sprite.setOrigin(0.5, 0.5);
                 const longest = Math.max(fw, fh);
-                // 显示尺寸：单位可配置 displaySize（仓鼠矿工略小于玩家），缺省与玩家一致
-                const size = member.displaySize || PLAYER_DEFAULTS.physics.spriteSize;
                 sprite.setDisplaySize(fw * size / longest, fh * size / longest);
                 sprite.setData('companionIdleKey', idleKey);
                 sprite.setData('companionIdleFrame', idleFrame);
                 sprite.setDepth(this.playerSprite.depth + 0.5);
                 this._companionSprites[member.id] = sprite;
             }
-            // 位置：AI 队员用自身逻辑坐标（跟随/站位/撤退由 AI 移动）；纯渲染队员跟随玩家左后偏移
-            const aiMode = !!member.aiConfig;
-            // 脚底偏移（companion-config spriteOffsetY）：精灵帧内脚底不在帧中心时下移贴地
-            const spriteOffY = member.spriteOffsetY || 0;
-            if (aiMode) {
-                sprite.setPosition(member.x, member.y + spriteOffY);
-            } else {
-                const offX = facingRight ? -150 : 150;
-                sprite.setPosition(player.x + offX, player.y + 34 + spriteOffY);
-            }
             // 朝向：AI 队员——逃跑面朝移动方向；其余（idle/施法/走位）始终面朝目标
             // （最近敌人）；无目标按移动方向。纯渲染队员仍跟随玩家镜像。
+            const aiMode = !!member.aiConfig;
             let faceRight = facingRight;
             if (aiMode) {
                 // 仓鼠矿工移动（walk）始终朝向实际移动方向（vx），不倒退走路——
@@ -584,29 +575,41 @@ export class GameScene extends Scene {
                         sprite.play(spellKey, true);
                     }
                 } else if (st === 'defend' && anims.defend && this.textures.exists(`companion_${animId}_defend`)) {
-                    // 剑盾防御（伊莉丝）：enter 播 1~8 帧一次 → hold 停帧第 8 帧 → exit 播剩余一次
+                    // 剑盾防御（伊莉丝）：enter 播 1~8 帧一次 → hold 停帧第 8 帧（2s 持盾减伤+常态弹反）
+                    // → exit 播剩余一次。2026-08-17 修复"重复动画"两处根因：
+                    // ① 阶段读 member._defendPhase（AI 现已逐段镜像），此前恒 undefined → 永远走 enter；
+                    // ② enter/exit 播完停末帧，不再用 !isPlaying 当重播条件（播完即回放 = 重复动画）。
                     const defendKey = `companion_${animId}_defend`;
+                    const holdFrame = anims.defend.holdFrame ?? 7;
                     const phase = member._defendPhase || 'enter';
                     if (phase === 'enter') {
                         const startKey = `${defendKey}_start`;
-                        if (sprite.getData('defPhase') !== 'enter'
-                            || !sprite.anims.isPlaying || sprite.anims.currentAnim?.key !== startKey) {
+                        if (sprite.getData('defPhase') !== 'enter') {
                             sprite.setData('defPhase', 'enter');
                             sprite.play(startKey, true);
+                        } else if (!sprite.anims.isPlaying || sprite.anims.currentAnim?.key !== startKey) {
+                            // 播完/被打断：停 enter 末帧（= 第 8 帧），等 AI 切 hold，不重播
+                            if (sprite.texture.key !== defendKey || sprite.frame.name !== holdFrame) {
+                                sprite.setTexture(defendKey, holdFrame);
+                            }
                         }
                     } else if (phase === 'hold') {
                         sprite.setData('defPhase', 'hold');
                         if (sprite.anims.isPlaying) sprite.anims.stop();
-                        const holdFrame = anims.defend.holdFrame ?? 7;
                         if (sprite.texture.key !== defendKey || sprite.frame.name !== holdFrame) {
                             sprite.setTexture(defendKey, holdFrame);
                         }
                     } else {
                         const endKey = `${defendKey}_end`;
-                        if (sprite.getData('defPhase') !== 'exit'
-                            || !sprite.anims.isPlaying || sprite.anims.currentAnim?.key !== endKey) {
+                        const exitLast = (anims.defend.exitFrames ? anims.defend.exitFrames[1] : 18) ?? 18;
+                        if (sprite.getData('defPhase') !== 'exit') {
                             sprite.setData('defPhase', 'exit');
                             sprite.play(endKey, true);
+                        } else if (!sprite.anims.isPlaying || sprite.anims.currentAnim?.key !== endKey) {
+                            // 播完/被打断：停 exit 末帧（第 19 帧），等 AI 切 idle，不重播
+                            if (sprite.texture.key !== defendKey || sprite.frame.name !== exitLast) {
+                                sprite.setTexture(defendKey, exitLast);
+                            }
                         }
                     }
                 } else if (st === 'attack' && anims.attack && this.textures.exists(`companion_${animId}_attack`)) {
@@ -646,7 +649,10 @@ export class GameScene extends Scene {
                         sprite.play(runKey, true);
                     }
                 } else if (st === 'walk') {
-                    // 静止→移动：先播一次完整 walking（walk_start），再循环第 3~12 帧（walk）
+                    // 静止→移动：播放行走动画（2026-08-17 用户口径：任何小范围移动都强制播
+                    // walking，取消移动门槛）。伊莉丝 walking 前两帧前摇已从素材删除、单段
+                    // 12 帧循环（无 startFrames 走简单路径）；仓鼠矿工保留起步全播+循环
+                    // 两段式（配置带 startFrames 时走两段）。
                     sprite.setData('lunaRunning', false);
                     const walkStartKey = `${walkKey}_start`;
                     if (anims.walk.startFrames && this.anims.exists(walkStartKey)) {
@@ -720,6 +726,29 @@ export class GameScene extends Scene {
                 if (idleKey && (sprite.texture.key !== idleKey || sprite.frame.name !== idleFrame)) {
                     sprite.setTexture(idleKey, idleFrame);
                 }
+            }
+            // 位置：AI 队员用自身逻辑坐标（跟随/站位/撤退由 AI 移动）；纯渲染队员跟随玩家左后偏移
+            // 脚底偏移（companion-config spriteOffsetY）：精灵帧内脚底不在帧中心时下移贴地
+            const spriteOffY = member.spriteOffsetY || 0;
+            // 射击台（2026-08-16 四版）：连续抬升——_platformLift 由走廊内位置插值
+            // （0~platformHeight），走上台阶平滑升高，不再布尔瞬移
+            const platformLift = member._platformLift || 0;
+            // 跨动作统一显示归一化（2026-08-17 伊莉丝六动作统一尺度）：
+            // 各动作帧格规格可不同（512×512~960×1024），内容统一按 S=461/171 摆放、
+            // 脚底固定 0.9375×格高——显示尺寸按当前帧格线性映射（512 格 = size 基准），
+            // 竖直补 -(格高-512)×0.4375×normS 让脚底在所有动作下贴同一世界线。
+            // 旧实现只在创建时按 walk 帧格设置一次，帧格规格不同的动作会整体缩放/漂移
+            // （上一次重建"大小无法统一"的渲染侧根因）。
+            const normS = size / 512;
+            const frameW = (sprite.frame && sprite.frame.width) || 512;
+            const frameH = (sprite.frame && sprite.frame.height) || 512;
+            sprite.setDisplaySize(frameW * normS, frameH * normS);
+            const feetCorr = -(frameH - 512) * 0.4375 * normS;
+            if (aiMode) {
+                sprite.setPosition(member.x, member.y + spriteOffY - platformLift + feetCorr);
+            } else {
+                const offX = facingRight ? -150 : 150;
+                sprite.setPosition(player.x + offX, player.y + 34 + spriteOffY - platformLift + feetCorr);
             }
             sprite.setVisible(true);
         }
@@ -827,11 +856,14 @@ export class GameScene extends Scene {
         // 原有模式：同步位置到物理体（用于碰撞检测）
         if (Game.player && this.playerSprite && this.playerSprite.body) {
             const playerShift = this._getFootOffsetY(Game.player, this.playerSprite);
+            // 射击台（2026-08-16 四版）：连续抬升——_platformLift 由走廊内位置插值，
+            // 走上台阶平滑升高；深度随之变浅（画在平台/地面单位之前）
+            const platformLift = Game.player._platformLift || 0;
             Game.player.footOffsetY = playerShift;
-            this.playerSprite.setPosition(Game.player.x, Game.player.y - playerShift);
+            this.playerSprite.setPosition(Game.player.x, Game.player.y - playerShift - platformLift);
             this._syncPlayerHandLayer();
             applyBodyFootOffset(this.playerSprite, playerShift);
-            this.playerSprite.body.reset(Game.player.x, Game.player.y - playerShift);
+            this.playerSprite.body.reset(Game.player.x, Game.player.y - playerShift - platformLift);
         }
 
         // 同步所有敌人（自动为缺失 Sprite 的敌人创建占位 Sprite）
@@ -891,6 +923,8 @@ export class GameScene extends Scene {
         let playerNatural = 0, playerCorrected = 0;
         if (this.playerSprite && this.playerSprite.active) {
             const footOffsetY = this._getFootOffsetY(Game.player, this.playerSprite);
+            // 射击台（2026-08-16）：sprite 已上移平台高度，自然深度 = 站台顶面 + 10；
+            // 平台顶面 face 线参与仲裁（顶面前实体抬到顶面之上）
             playerNatural = this.playerSprite.y + footOffsetY + 10;
             // 衔接处遮挡仲裁（斜墙 flat 深度在衔接处的几何误差修正）；
             // frontRange = 贴图脚底→头顶高度（封顶 280）：墙前该范围内像素仍与墙重叠时也要抬升。
@@ -899,6 +933,13 @@ export class GameScene extends Scene {
             // 把它算成 72，只有真实高度 144 的一半——通道上侧墙"稍远离即被挡"的死带根因）
             const playerFrontRange = Math.min(280, Math.max(60, footOffsetY + this.playerSprite.displayHeight / 2));
             playerCorrected = WallSystem.junctionCorrectedDepth(Game.player.x, Game.player.y, playerNatural, playerFrontRange);
+            // 射击台（2026-08-16 四版）：连续抬升下自然深度已随 sprite.y 上移变浅；
+            // 但平台贴图锚定接地线（_faceDepth=y+12），台上单位必须画在平台贴图之上——
+            // 抬升越高越浅，最低保证平台之上（台阶中途也正确，不再整张强制 +1 覆盖）
+            const platRef = Game.player._platformRef;
+            if (platRef && platRef._faceDepth != null && Game.player._platformLift > 0) {
+                playerCorrected = Math.max(playerCorrected, platRef._faceDepth + 1);
+            }
             this.playerSprite.setDepth(playerCorrected);
         }
 
@@ -933,8 +974,14 @@ export class GameScene extends Scene {
                 if (!unit || !unit.aiConfig) continue;
                 const footOffsetY = this._getFootOffsetY(unit, sprite);
                 const frontRange = Math.min(280, Math.max(60, footOffsetY + sprite.displayHeight / 2));
-                const d = WallSystem.junctionCorrectedDepth(
+                let d = WallSystem.junctionCorrectedDepth(
                     unit.x, unit.y, sprite.y + footOffsetY + 10, frontRange);
+                // 射击台（2026-08-16 四版）：连续抬升下自然深度已变浅，
+                // 台上单位保证画在平台贴图之上（台阶中途也正确）
+                const platRef = unit._platformRef;
+                if (platRef && platRef._faceDepth != null && unit._platformLift > 0) {
+                    d = Math.max(d, platRef._faceDepth + 1);
+                }
                 sprite.setDepth(d);
             }
         }
@@ -1393,7 +1440,12 @@ export class GameScene extends Scene {
         const sceneBaseZoom = (SceneManager && SceneManager.currentScene === 'scene8') ? 0.7 : 1;
         // zoom punch：开火瞬间视角轻微推近（2D 等价 FOV punch），GunFeel 内指数回落
         const zoom = sceneBaseZoom * (1 + GunFeel.zoomPunch);
-        if (Math.abs(this.cameras.main.zoom - zoom) > 0.0004) this.cameras.main.setZoom(zoom);
+        if (Math.abs(this.cameras.main.zoom - zoom) > 0.0004) {
+            this.cameras.main.setZoom(zoom);
+            // 双保险：zoom 变化显式失效小地图静态层缓存（缓存键虽含 zoom，
+            // 但 _syncHud 先于本函数运行，首帧可能按旧 zoom 重绘——显式失效确保下一帧纠正）
+            this._minimapStaticKey = null;
+        }
         // 相机 origin 固定 (0,0)：缩放枢轴锚定屏幕左上角——scrollFactor-0 的固定 UI（小地图等）
         // 在任意 zoom 下按"屏幕位置 = 绘制坐标 × zoom"一致换算（origin 0.5 会按视图中心枢轴
         // 平移缩放固定 UI，世界-122 zoom 0.7 时小地图被推到屏幕中部——2026-08-15 修复）
@@ -5525,16 +5577,20 @@ export class GameScene extends Scene {
         g.lineStyle((bg.lineWidth || 1) * invZ, borderColor.color, borderColor.alpha);
         g.strokeRect(mx * invZ, my * invZ, minimapW * invZ, minimapH * invZ);
 
-        // 墙壁
+        // 墙壁（裁剪到框内：墙可带负坐标/越界坐标，与动态层 inBox 同口径，防画出小地图外）
         if (WallSystem && WallSystem.walls) {
             const wallColor = this._parseColor(styles.wall || 'rgba(80,80,80,0.5)', 0x505050, 0.5);
             g.fillStyle(wallColor.color, wallColor.alpha);
+            const boxX0 = mx, boxY0 = my, boxX1 = mx + minimapW, boxY1 = my + minimapH;
             for (const w of WallSystem.walls) {
                 const wx = mx + w.x * scale;
                 const wy = my + w.y * scale;
                 const ww = Math.max(0.5, w.w * scale);
                 const wh = Math.max(0.5, w.h * scale);
-                g.fillRect(wx * invZ, wy * invZ, ww * invZ, wh * invZ);
+                const x0 = Math.max(wx, boxX0), y0 = Math.max(wy, boxY0);
+                const x1 = Math.min(wx + ww, boxX1), y1 = Math.min(wy + wh, boxY1);
+                if (x1 <= x0 || y1 <= y0) continue;
+                g.fillRect(x0 * invZ, y0 * invZ, (x1 - x0) * invZ, (y1 - y0) * invZ);
             }
         }
     }
@@ -5566,23 +5622,31 @@ export class GameScene extends Scene {
         const clampX = (x) => Math.max(mx, Math.min(mx + minimapW, x));
         const clampY = (y) => Math.max(my, Math.min(my + minimapH, y));
 
-        // 墙壁数量或世界尺寸变化时才重绘静态层（墙数可能跨场景恰好相同，尺寸必须参与缓存键）
+        // 墙壁数量或世界尺寸/相机 zoom 变化时才重绘静态层：
+        // 墙数可能跨场景恰好相同、尺寸必须参与缓存键（2026-08-15 地牢→主神空间教训）；
+        // zoom 也必须参与（2026-08-16 世界-122 教训：_syncHud 先于 _updateCamera 运行时
+        // 静态层按旧 zoom 的 invZ 绘制、之后 zoom 变化却不重绘 → 背景被相机缩放错位，
+        // 动态视野框画到背景框外 + 与左上菜单按钮重叠）
         const wallCount = WallSystem && WallSystem.walls ? WallSystem.walls.length : 0;
-        const staticKey = wallCount + ':' + worldW + 'x' + worldH;
+        const camZoomForKey = Math.round(((this.cameras.main && this.cameras.main.zoom) || 1) * 1000) / 1000;
+        const staticKey = wallCount + ':' + worldW + 'x' + worldH + '@' + camZoomForKey;
         if (staticKey !== this._minimapStaticKey) {
             this._redrawMinimapStatic();
             this._minimapStaticKey = staticKey;
         }
 
-        // 相机视野框（与框求交集，超框部分不画）
-        // 相机视野框（与帧求交集，超框部分不画）。
+        // 相机视野框（与框求交集，超框部分不画）。
         // 2026-08-14：可视世界范围 = VIEW / 相机 zoom——之前无视缩放，世界-122（zoom 0.7）
         // 的黄色视野框比实际视野小一圈，改按实时 zoom 换算（任意缩放通用）。
+        // 2026-08-16：视口尺寸改用 Phaser 实际 scale（与 _updateCamera 同源），
+        // 不再用固定 CONFIG.VIEW_WIDTH/HEIGHT——窗口非 1920×1080 时视野框会偏小/偏大。
         const camZoom = (this.cameras.main && this.cameras.main.zoom) || 1;
-        const camX = mx + (Camera.x - CONFIG.VIEW_WIDTH / (2 * camZoom)) * scale;
-        const camY = my + (Camera.y - CONFIG.VIEW_HEIGHT / (2 * camZoom)) * scale;
-        const viewW = Math.max(1, (CONFIG.VIEW_WIDTH / camZoom) * scale);
-        const viewH = Math.max(1, (CONFIG.VIEW_HEIGHT / camZoom) * scale);
+        const viewportW = (this.scale && this.scale.width) || CONFIG.VIEW_WIDTH || 1920;
+        const viewportH = (this.scale && this.scale.height) || CONFIG.VIEW_HEIGHT || 1080;
+        const camX = mx + (Camera.x - viewportW / (2 * camZoom)) * scale;
+        const camY = my + (Camera.y - viewportH / (2 * camZoom)) * scale;
+        const viewW = Math.max(1, (viewportW / camZoom) * scale);
+        const viewH = Math.max(1, (viewportH / camZoom) * scale);
         const viewColor = this._parseColor(styles.viewFrame || 'rgba(255,200,0,0.6)', 0xffc800, 0.6);
         const fx1 = Math.max(camX, mx), fy1 = Math.max(camY, my);
         const fx2 = Math.min(camX + viewW, mx + minimapW), fy2 = Math.min(camY + viewH, my + minimapH);

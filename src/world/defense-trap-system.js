@@ -16,6 +16,7 @@ import { Game } from '../game.js';
 import { Entity } from '../entities/entity.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
+import { BuildingSinkEffect } from '../effects/building-sink.js';
 import { SoundManager } from '../ui/sound-manager.js';
 import { burstParticles } from '../effects/combat-fx.js';
 import { BasePanel } from '../ui/panels/base-panel.js';
@@ -239,9 +240,12 @@ class DefenseTrap extends Entity {
         this.hp = Math.max(0, this.hp - finalDmg);
         this.data.hp = this.hp;
         if (wasAlive && this.hp <= 0) {
-            this.active = false;
+            // 2026-08-16：沉陷死亡（推广）——实体由 BuildingSinkEffect 接管后失效
+            this.hittable = false;
+            this._sinking = true;
             if (EffectManager) {
                 EffectManager.add(new FloatingTextEffect(this.x, this.y - 24, '陷阱被摧毁', '#ff8855'));
+                EffectManager.add(new BuildingSinkEffect(this));
             }
         }
     }
