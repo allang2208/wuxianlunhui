@@ -742,6 +742,33 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
 - **教训**：强制帧数规格前先测步态周期——循环帧数必须是周期的整数倍，否则左右脚必然错位；
   AI 跑步视频步频在 24~31 帧区间，常用 24 帧规格恰好落在范围内，32 帧是"最差"选择。
 
+#### 7d. 已有 AI 角色六动作精灵图重做（2026-08-16 伊莉丝 Elise 实战）
+
+背景：素材库已有 4×8 切好的六张 4096×2048（idle 1/walk 14/run 23/attack 28/
+defend 19/windmill 23 帧），只需按 SKILL 对齐三铁律重建入库，**不需要重新出图**。
+成品参考 `tools/ai-gen/elise-sprite-align.py`（luna-run-align 同款口径）。
+
+- **重建脚本铁律（踩坑实录）**：
+  - 脚底定位必须用**缩放后内容高**：`dy = FEET_Y - nh`（`nh=round(h*scale)`）。
+    写成 `FEET_Y - bottom*scale` 会把整帧顶到格子外 → 内容全部被裁剪到几像素
+    （idle 只剩 13px 高，肉眼即"截取不全"）。
+  - 水平平移 clamp 边界：`dx ∈ [2, 510-(nw-1)]`（内容左右缘落在 [2,510]）。
+    写反（`[2-(nw-1), 510]`）会让宽帧右缘溢出 511 被裁。
+  - alpha 阈值：度量口径 alpha>16。若用 alpha>40，attacking f5 剑尖
+    （alpha 仅 16~40）会被当噪点断掉；同理 windmill 剑弧等细长部件。
+  - 连通域去噪只用于确实有散布噪点的 sheet（defend f12/f13 右下角 9px 脏点，
+    alpha>16 下仍是独立小域、距主体 >24px，合并规则不会误删）。
+- **每 sheet 缩放口径**（512 格、脚底 480）：idle/walk/run/defend 站姿 461 高
+  （露娜同款）；**attack 1.75**（源图挥剑帧宽 262，1.80 时最宽帧右缘溢出；
+  剑举过头帧 f5 单独 1.441 保整把剑含剑尖到 y0）；**windmill 1.52**
+  （旋转剑弧宽 319，统一缩放保证剑弧完整入格，角色偏小是源图宽弧的必然）。
+- **验收量化**：成品 512 格扫描——walk/run/defend/windmill 质心 X 跨度 ≤2.3px、
+  0 贴边；attack 因挥剑姿态剑尖右伸，质心跨度 ~46px 属正常，内容完整不裁切
+  （裁切判据 = 帧 bbox 触格边缘，不是质心跨度）。
+- **风车动画不播的排查**：先确认 `_animState==='windmill'` 且 sprite 动画键
+  `companion_warrior_bruno_windmill` 已注册、`wmPlayed` 复位逻辑（idle 分支）
+  正常；坏精灵图（全部缩到角落）会让动画"看起来没播"——先验图再查代码。
+
 #### 8. 远程 5080 H3 生成故障排查（2026-08-13 实录）
 - **症状**：提交即 `SamplerCustomAdvanced` 执行失败，`NotImplementedError: No operator found for
   memory_efficient_attention_forward`，`fa3F/cutlassF-pt ... requires device with capability <(8,0)
@@ -4570,6 +4597,13 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
   displayScale 0.41）；`gateConfigFor(grade)`；基地固定门用 `GATE_CONFIG`（D 级）。
 - **状态机**：默认关闭（门洞碰撞注册）；友军（player/companion，150px）靠近自动开门，
   离开 1.2s 延时关门；`BuildableGate.gateMode`：auto/locked/open（建筑面板详情按钮切换）。
+- **感应中心铁律（2026-08-16 门卡死根修）**：开门检测半径必须用**门洞物理中心**
+  （`_gateSeg` 面线中点，存 `_detectX/_detectY`），不能用精灵中心 `_cx/_cy`
+  （BuildableGate 的 `_spriteCx/_spriteCy`）——等距贴图偏移让精灵中心偏入门内 ~74px
+  （基地门实测 (1138,2037) vs 门洞 (1156,2111)），**门外单位被关门段挡在 150px 检测
+  半径外永远触发不了开门** → 矿工过门卡死左右摆动（2026-08-16 用户实测复现 +
+  CDP A3 阶段回归锚点：`gate._detectX/_detectY === seg 中点`、矿工站门外侧 100px
+  关门面 1s 内自动开门）。
 - **建筑面板**：B 面板六档 `gate_<g>_v` 条目（能源，费用=掩体HP×0.25），
   吸附端点 `GATE_SNAP`（与掩体互相吸附，SNAP_OVERLAP 回退），幽灵预览 + F 镜像，
   可被攻击/修理（修理走建筑面板详情按钮，费率同掩体）。
@@ -5324,8 +5358,9 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
 - PerceptionSystem `_isValidTarget`：放行 `_faction==='companion' && _enemyTargetable`，
   防守怪 `_preferDefenseTargets` 按交战半径锁定（与玩家同链，免 LOS 口径不变）。
 - 验证：`scripts/test-hamster-miner.mjs`（数据+接线契约）+ `tools/cdp-hamster-miner.mjs`
-  （实机 36 项：小屋生成/属性/最近节点/**A2 出生房内自动寻路出基地（pmValid 生效、
-  无传送跳变、离开小屋>150px）**/采矿挥锄+间隔定格第6帧/每2s-100/行走两段式/
+  （实机 38 项：小屋生成/属性/最近节点/**A2 出生房内自动寻路出基地（pmValid 生效、
+  无传送跳变、离开小屋>150px）**/**A3 基地门双向感应（感应中心=门洞物理中心、
+  矿工站门外侧 100px 关门面自动开门，防门卡死回归）**/采矿挥锄+间隔定格第6帧/每2s-100/行走两段式/
   双向移动朝向（**探针按不变量采样：vx>0 必朝右、vx<0 必朝左，固定时刻采样会撞上
   寻路绕障转向瞬间**）/交战自卫生效/**J 真实回屋寻路（无传送，maxJump<60）**/
   **K 多矿工数量模块并发卸货（能量不丢）**/背包物流/小屋暂存面板/dying 移除）；
@@ -5334,6 +5369,30 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
 ---
 
 ## 10. UI、面板与组队系统
+
+### 小地图（GameScene 静态层/动态层，2026-08-16 布局修复沉淀）
+
+- **结构**：静态层 `_minimapStaticGraphics`（背景/边框/墙壁，缓存重绘）+ 动态层
+  `_minimapDynamicGraphics`（视野框/实体点/玩家箭头，每帧 clear 重绘）+ 标题 text，
+  全部 scrollFactor(0) + depth 99999，`_syncHud` 里调用（NPC 对话时隐藏）。
+- **scrollFactor(0) 对象在 zoom≠1 下的定位铁律**：Phaser 4 对 scrollFactor=0 的图形
+  仍乘相机 zoom（只是不随相机滚动）——所有绘制坐标必须 × `1/zoom`（`_minimapInvZoom`），
+  屏幕位置 = 绘制坐标；`Camera` 必须 `setOrigin(0,0)`（origin 0.5 会按视图中心枢轴
+  平移缩放，zoom 0.7 时小地图被推到屏幕中部，2026-08-15 修复）。
+- **⚠ 静态层缓存键必须含 zoom（2026-08-16 世界-122 实锤）**：缓存键
+  `wallCount:worldWxworldH` 缺 zoom——切到世界-122（zoom 0.7）时 `_syncHud` 先于
+  `_updateCamera` 运行，静态层按上一场景 zoom=1 的 invZ 绘制；之后 zoom 变化但键不变
+  → **永不重绘**，背景被相机缩放成 105×105 @ (7,42)：视野框（动态层按正确 invZ）
+  画出背景框外 + 背景顶部与左上菜单按钮重叠。修复：缓存键加 zoom 维度 +
+  `_updateCamera` 里 zoom 变化时显式 `_minimapStaticKey = null` 双保险（SKILL #31
+  「缓存键必须包含全部渲染输入 + 场景切换处显式失效」的又一例证）。
+- **视野框视口尺寸用 `this.scale.width/height`**（与 `_updateCamera` 同源），不要用
+  固定 `CONFIG.VIEW_WIDTH/HEIGHT`——窗口非 1920×1080 时黄色视野框偏小/偏大。
+- **静态层墙壁绘制也要框内裁剪**（与动态层 `inBox` 同口径）：墙可带负坐标/越界
+  坐标，不裁剪会画出小地图框外。
+- 验证：`tools/cdp-minimap-probe*.mjs` 解析两层的 commandBuffer（FILL_RECT=3/
+  LINE_TO=4/MOVE_TO=5）换算屏幕坐标，断言静态层背景 == 配置位置尺寸、视野框 ⊆ 框内；
+  截图 `tools/verify-shots/minimap-*.png`。
 
 ### 面板生命周期框架（2026-07-21 新增，新面板优先复用）
 
@@ -5859,6 +5918,34 @@ _playSound(key) {
   ffmpeg `volume=1.5` → 入库 -23.0dB，播放端默认 volume=1.0 不再乘系数（避免双份放大）。
   文件峰值已 0dB 后（mean 接近满幅）再放大只能走播放音量参数 `playFile(path, v)` 或声道音量，
   禁止对文件再放大（会削波失真）。
+
+#### 步骤5: 程序化合成音效（numpy 管线，2026-08-16 铁闸门开/关）
+> 素材优先级 = **用户提供 > 合成兜底**：世界-122 铁闸门音效一轮用合成（
+> `gen-gate-sounds.py`），二轮被用户素材 `D:\即时重放\1.mp3` 替换（`gate_iron.mp3`，
+> 开/关共用），合成 wav 与脚本已删除。本节保留为**无素材时的通用能力**。
+
+没有现成素材的机械/环境音效可程序化合成，零素材依赖、可复现、无版权问题：
+
+- **合成先例**：`tools/ai-gen/add-weapon.py`（枪械开火/换弹/装备；合成管线范本）。
+- **基本构件**：`_noise(n, seed)` 白噪声 → `_bandpass(x, lo, hi)` FFT 带通（金属摩擦 =
+  中频 500~2600Hz；撞击 = 低频 90~300Hz 主体 + 高频泛音）→ `_env_exp(n, tau)` 指数衰减
+  （咔嗒/撞击用 tau=dur/3）→ `_click(amp, dur, lo, hi, seed)` 短促爆点。
+- **金属撞击 = 多谐波衰减正弦簇**：低频 thump（如 98Hz, tau=dur/2.2）+ 钢体共振（262Hz ×0.6）
+  + 泛音（523/1046Hz 递减）+ 带通噪声爆点 ×0.5——单频正弦干瘪，多谐波才有"金属感"。
+- **滑轨/摩擦 = 带通噪声 × 包络 + 周期刮擦**：滑动包络用 `sin(πt)^0.9`（渐强渐弱模拟
+  门先加速后减速）；"滑轮过缝"用每隔 ~65~85ms 一个 30ms 短噪声爆发（`_rail_slide`）。
+- **时长对齐动画**：世界-122 门动画 `GATE_GEOM.animMs`=650ms → 开门 0.85s（咔嗒+滑动+末端
+  锁扣）、关门 1.0s（滑动+0.65s 处撞击+锁扣）；RMS 分段检查确认结构（关门 0.6~0.7s 段应有
+  撞击尖峰）。
+- **输出**：44100Hz 16bit 立体声 WAV（`np.stack([out, np.roll(out, 2~4)])` 轻微立体声），
+  文件直接进 `assets/sounds/environment/`；`.venv-sprites\\Scripts\\python.exe` 运行。
+- **接入**：世界内机关/建筑音效走 `SoundManager.playWorld(path, x, y)`（距离衰减），
+  声源坐标取**感应中心**（门洞物理中心 `_detectX/_detectY`，非精灵中心——等距偏移会让
+  远距离单位听不到）。玩家自身音效仍走 `playFile`。
+- **验证**：CDP 探针拦截模块单例 `SoundManager.playWorld` 记录调用路径/坐标——
+  **必须按 performance 资源表的真实 URL import**（裸路径在 HMR 后拿到空单例/不同实例，
+  patch 不生效；SKILL #27 同款坑）；波形 RMS 分段 + 频谱质心（开门 ~2kHz 中高频、关门
+  ~1.4kHz 低频）数值验证结构。
 
 ---
 
