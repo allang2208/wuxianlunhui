@@ -135,6 +135,11 @@ export class BootScene extends Scene {
         // billboard 平视/平底/无阴影/透明底，与防御塔同视角体系；EnergyNodeSystem 运行时生成仅作兜底）
         this.load.image('energy_node', 'assets/terrain/energy_node.png');
         this.load.image('energy_node_depleted', 'assets/terrain/energy_node_depleted.png');
+        // 2026-08-15 二版：随机多形态变体 v1~v6（随机晶体数量/高低/倾角/底座形状 + 接地接触阴影烘焙）
+        for (let v = 1; v <= 6; v++) {
+            this.load.image(`energy_node_v${v}`, `assets/terrain/energy_node_v${v}.png`);
+            this.load.image(`energy_node_depleted_v${v}`, `assets/terrain/energy_node_depleted_v${v}.png`);
+        }
         // 沼泽地墙（柴墙直墙 + 藤蔓门闸 16 帧）
         this.load.image('swamp_wall_straight', 'assets/terrain/swamp_wall_straight.png');
         this.load.spritesheet('swamp_gate', 'assets/terrain/swamp_gate.png', { frameWidth: 640, frameHeight: 612, endFrame: 15 });

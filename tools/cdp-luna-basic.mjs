@@ -131,7 +131,7 @@ console.log('普通攻击:', await ev(`(async () => {
   const basicFired = !!(luna._basic && luna._basic.active);
   const basicGone = !luna._basic && (hpBefore - fake.hp > 0);
   const dmg = hpBefore - fake.hp;
-  const expected = Math.max(1, Math.floor(matk * 0.2));
+  const expected = Math.max(1, Math.floor(matk * 1.0));
   const ai2 = ai;
   entities.delete('basic_enemy');
   return {
@@ -175,7 +175,7 @@ console.log('普通攻击诊断:', await ev(`(async () => {
     s0,
     s1,
     dmg: 1000 - s1.hp,
-    expected: Math.floor(100 * 0.2),
+    expected: Math.floor(100 * 1.0),
   };
 })()`));
 
@@ -211,6 +211,122 @@ console.log('idle朝向目标:', await ev(`(async () => {
   return {
     targetRightFaceRight: faceRight,
     targetLeftFaceLeft: faceLeft,
+  };
+})()`));
+
+console.log('flee停用:', await ev(`(async () => {
+  const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+  const { PartySystem, entities } = window.Game;
+  const luna = PartySystem.getMember('mage_luna');
+  for (const [k, e] of Array.from(entities.entries())) {
+    if (e && e !== luna && e._faction === 'enemy') entities.delete(k);
+  }
+  luna.target = null;
+  luna._command = null;
+  luna.x = 640; luna.y = 620;
+  luna._castState = 'idle'; luna._frozenForCast = false; luna._castTimer = 0;
+  const fake = {
+    id: 'flee_off_enemy', active: true, hittable: true,
+    x: luna.x + 60, y: luna.y, vx: 0, vy: 0,
+    hp: 500, maxHp: 500, groundRadius: 20, bodyHeight: 130,
+    attackRange: 70, attacks: { melee: {} }, _faction: 'enemy',
+    takeDamage(dmg) { this.hp -= dmg; },
+    update() { this.x = window.Game.PartySystem.getMember('mage_luna').x + 50; this.y = window.Game.PartySystem.getMember('mage_luna').y; },
+  };
+  entities.set('flee_off_enemy', fake);
+  const ai = luna._aiInstance || PartySystem._aiInstances['mage_luna'];
+  const before = { x: luna.x, y: luna.y };
+  await sleep(900);
+  const moved = Math.hypot(luna.x - before.x, luna.y - before.y);
+  const lastAction = luna._lastAction;
+  entities.delete('flee_off_enemy');
+  return {
+    fleeDisabled: lastAction !== 'flee',
+    lastAction,
+    notRetreating: moved < 80,
+  };
+})()`));
+
+console.log('采集统一攻击:', await ev(`(async () => {
+  const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+  const { PartySystem, entities } = window.Game;
+  const luna = PartySystem.getMember('mage_luna');
+  for (const [k, e] of Array.from(entities.entries())) {
+    if (e && e !== luna && (e._faction === 'enemy' || e._isEnergyNode)) entities.delete(k);
+  }
+  luna.target = null;
+  luna.x = 640; luna.y = 620;
+  luna.data.matk = 25; // 无装备真实魔攻（int13×1.5+wis12×0.5=25）
+  luna._castState = 'idle'; luna._frozenForCast = false; luna._castTimer = 0;
+  luna._basic = null; luna._basicAtkCd = 0;
+  luna._command = { mode: 'gather', point: { x: luna.x, y: luna.y } };
+  const node = {
+    _isEnergyNode: true, active: true, _depleted: false,
+    x: luna.x + 300, y: luna.y, hp: 1000, maxHp: 1000,
+    takeDamage(dmg) { this.hp -= dmg; }, update() {},
+  };
+  entities.set('gather_test_node', node);
+  const ai = luna._aiInstance || PartySystem._aiInstances['mage_luna'];
+  ai._basicAtkCd = 0; // 重置 AI 实例的普通攻击 CD
+  luna._basic = null;
+  const hpBefore = node.hp;
+  await sleep(1500);
+  const dmg = hpBefore - node.hp;
+  const realMatk = luna.data.matk || 0;
+  const diag = {
+    basicAtkCdAtEnd: Math.round(ai._basicAtkCd),
+    basicAtEnd: luna._basic ? { dist: Math.round(luna._basic.dist) } : null,
+    command: luna._command ? luna._command.mode : null,
+  };
+  entities.delete('gather_test_node');
+  luna._command = null;
+  return {
+    usedSameAttack: dmg > 0 && dmg === Math.max(1, Math.floor(realMatk * 1.0)),
+    dmg,
+    realMatk,
+    expected: Math.max(1, Math.floor(realMatk * 1.0)),
+    lastAction: ai ? ai._lastAction : null,
+    diag,
+  };
+})()`));
+
+console.log('移动目标预判瞄准:', await ev(`(async () => {
+  const { PartySystem, entities } = window.Game;
+  const luna = PartySystem.getMember('mage_luna');
+  for (const [k, e] of Array.from(entities.entries())) {
+    if (e && e !== luna && e._faction === 'enemy') entities.delete(k);
+  }
+  luna.target = null;
+  luna.x = 640; luna.y = 620;
+  luna._castState = 'idle'; luna._frozenForCast = false; luna._castTimer = 0;
+  const fake = {
+    id: 'lead_enemy', active: true, hittable: true,
+    x: luna.x + 300, y: luna.y, vx: 120, vy: -60,
+    hp: 500, maxHp: 500, groundRadius: 20, bodyHeight: 130,
+    attackRange: 70, attacks: { melee: {} }, _faction: 'enemy',
+    takeDamage(dmg) { this.hp -= dmg; }, update() {},
+  };
+  entities.set('lead_enemy', fake);
+  const ai = luna._aiInstance || PartySystem._aiInstances['mage_luna'];
+  ai._basicAtkCd = 0;
+  luna._basic = null;
+  ai._tryBasicAttack(fake);
+  const b = luna._basic;
+  const directAng = Math.atan2(fake.y - luna.y, fake.x - luna.x);
+  const leadAng = b ? b.angle : null;
+  // 直接验证 AimHelper.lead 拦截点（平行模块纯函数，结果一致）
+  const { AimHelper } = await import('/src/utils/aim-helper.js');
+  const lead = AimHelper.lead(luna.x, luna.y, fake.x, fake.y, fake.vx, fake.vy, 600);
+  const ledPoint = { x: Math.round(lead.x), y: Math.round(lead.y) };
+  entities.delete('lead_enemy');
+  luna._basic = null;
+  return {
+    targetVx: fake.vx,
+    ledAheadOfTarget: ledPoint.x > fake.x && ledPoint.y < fake.y,
+    directAng: +directAng.toFixed(3),
+    leadAng: leadAng !== null ? +leadAng.toFixed(3) : null,
+    ledPoint,
+    ledAngleValid: leadAng !== null && Math.abs(leadAng - Math.atan2(ledPoint.y - luna.y, ledPoint.x - luna.x)) < 0.05,
   };
 })()`));
 

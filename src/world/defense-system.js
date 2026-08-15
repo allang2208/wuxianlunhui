@@ -117,6 +117,9 @@ export const DEFENSE_CONFIG = {
         hpPerWave: 0.16,
         atkPerWave: 0.08,
         alertRange: 3800,
+        // A 移动（2026-08-15）：怪物最终目标仍是基地/建筑，但沿途交战半径内的
+        // 玩家/侍从也会被锁定攻击（类似 RTS 的 A 键攻击移动）；脱离后自动回归推进
+        engageHostileRange: 320,
         // 防守局内金币经济（2026-08-07）：击杀掉落走本倍率（怪物标 _noGoldDrop，
         // 不走地面掉落物，直接进背包），随波次成长；精英 ×2 / 领主 ×3
         goldDropMul: 6,
@@ -145,6 +148,19 @@ export const DEFENSE_CONFIG = {
 
 /** 防御塔可装载武器（远程武器，手枪除外） */
 const TOWER_WEAPON_TYPES = ['bow', 'pkm', 'akm', 'm416', 'qbz191', 'qjb201', 'shotgun', 'energy_lmg'];
+
+/**
+ * 防御塔命中盒（世界坐标，相对塔脚）：覆盖整塔视觉范围——基座（170×262，脚底下 y-262..y）、
+ * 顶部机械臂（枢轴 y-235，臂展 ±112）与挂载武器。2026-08-15：点击塔任意部位开面板 +
+ * 悬停金色轮廓共用此矩形（旧版仅塔脚 70px 圆，点塔身/塔顶脱靶）。
+ */
+const TOWER_HIT = { cx: 0, cy: -135, hw: 115, hh: 175 };
+
+/** 世界点是否命中防御塔（整塔矩形） */
+function pointHitsTower(wx, wy, t) {
+    return wx >= t.x + TOWER_HIT.cx - TOWER_HIT.hw && wx <= t.x + TOWER_HIT.cx + TOWER_HIT.hw
+        && wy >= t.y + TOWER_HIT.cy - TOWER_HIT.hh && wy <= t.y + TOWER_HIT.cy + TOWER_HIT.hh;
+}
 
 /** 防御塔每发基准伤害（按武器类型；行业惯例按 DPS 反推的占位数值，后续数值打磨） */
 const BASE_WEAPON_DAMAGE = { bow: 42, pkm: 6, akm: 9, m416: 8, qbz191: 10, qjb201: 7, shotgun: 10, energy_lmg: 8 };
@@ -223,9 +239,9 @@ const NORMAL_POOL = [
     { type: 'zombie', weight: 16 },
     { type: 'minerZombie', weight: 12 },
     { type: 'fatZombie', weight: 11 },
-    // 僵尸犬已移除（2026-08-15）：该类是唯一不合并 enemyConfigData 的怪，
-    // 无配置构造时名字兜底成「测试敌人」+ 贴图却是僵尸犬——世界-122 防守刷出的
-    // 「测试怪物」残留根因。用户要求删除，不再进防守刷怪池。
+    // 僵尸犬（2026-08-15 恢复）：类构造器已合并 enemyConfigData（08-15 早些时候修复
+    // 「测试敌人」兜底根因）+ showWeapon 默认 false，无配置构造即完整可用。
+    { type: 'zombieDog', weight: 8 },
     { type: 'blackWolf', weight: 9 },
     { type: 'spitterZombie', weight: 7 },
     { type: 'flySwarm', weight: 7 },
@@ -393,6 +409,7 @@ class DefenseBase extends Combatant {
         this.data.def = def;
         this.data.mdef = mdef;
         // 贴图直接用现有素材（大理石祭坛）
+        // （2026-08-15 曾试 Blender 重建+AI 大理石贴图 defense_base_altar，用户验收不如旧版已退回）
         this.spriteCfg = { idleKey: 'npc_altar', size: 220, sizeH: 214, footOffsetY: 107 };
         this.footOffsetY = 107;
         this._onDestroyed = config.onDestroyed || null;
@@ -1091,6 +1108,7 @@ class DefenseTowerPanel extends BasePanel {
     buildContent(el) {
         el.style.cssText = [
             'position:fixed;right:26px;top:50%;transform:translateY(-50%);width:410px;',
+            'max-height:88vh;overflow-y:auto;',
             'background:rgba(16,15,13,0.97);border:2px solid #6a5a3a;border-radius:10px;',
             'padding:16px 18px;color:#d4c5a9;font-family:SimHei,"Microsoft YaHei",sans-serif;',
             'box-shadow:0 8px 30px rgba(0,0,0,0.65);z-index:9000;',
@@ -1105,10 +1123,10 @@ class DefenseTowerPanel extends BasePanel {
             </div>
             <div id="dtWeaponSlot" style="border:1px dashed #6a5a3a;border-radius:8px;padding:10px;margin-bottom:10px;background:rgba(0,0,0,0.25);"></div>
             <div style="font-size:13px;color:#9a8a6a;margin-bottom:6px;">可装载武器（背包 · 远程 · 手枪除外）</div>
-            <div id="dtWeaponList" style="max-height:210px;overflow-y:auto;border:1px solid #3a3528;border-radius:8px;padding:4px 8px;margin-bottom:12px;"></div>
+            <div id="dtWeaponList" style="max-height:150px;overflow-y:auto;border:1px solid #3a3528;border-radius:8px;padding:4px 8px;margin-bottom:12px;"></div>
             <div id="dtUpgrade" style="border:1px solid #4a4a2a;border-radius:8px;padding:10px;background:rgba(60,50,20,0.18);"></div>
             <div id="dtModules" style="margin-top:10px;border:1px solid #3a4a5a;border-radius:8px;padding:10px;background:rgba(20,40,60,0.18);"></div>
-            <div id="dtStatHint" style="margin-top:8px;font-size:12px;color:#8a8a8a;"></div>
+            <div id="dtChip" style="margin-top:10px;border:1px solid #2a6a5f;border-radius:8px;padding:12px;background:rgba(12,30,28,0.28);"></div>
         `;
         el.querySelector('#dtClose').addEventListener('click', () => this.close());
     }
@@ -1300,10 +1318,38 @@ class DefenseTowerPanel extends BasePanel {
             btn.addEventListener('click', () => this._upgradeModule(t, btn.dataset.mod, player));
         });
 
-        // 六维参考
+        // 神经芯片 · 射手演算（六维面板，2026-08-15）：塔载芯片以计算机演算模拟玩家六维，
+        // 火力结算走 _statMul（六维 × 各系数），此处把六维与逐项贡献展示出来
+        const chip = el.querySelector('#dtChip');
         const d = player && player.data ? player.data : {};
-        el.querySelector('#dtStatHint').textContent =
-            `六维加成参考：力量 ${d.str ?? 10} / 敏捷 ${d.dex ?? 10} / 体质 ${d.con ?? 10} / 智力 ${d.int ?? 10} / 精神 ${d.wis ?? 10} / 幸运 ${d.luck ?? 10}`;
+        const CHIP_STATS = [
+            { key: 'str', name: '力量', coef: 0.008 },
+            { key: 'dex', name: '敏捷', coef: 0.010 },
+            { key: 'con', name: '体质', coef: 0.004 },
+            { key: 'int', name: '智力', coef: 0.006 },
+            { key: 'wis', name: '精神', coef: 0.006 },
+            { key: 'luck', name: '幸运', coef: 0.004 },
+        ];
+        let chipTotal = 0;
+        const chipCells = CHIP_STATS.map((s) => {
+            const v = d[s.key] ?? 10;
+            const contrib = v * s.coef * 100;
+            chipTotal += contrib;
+            return `<div style="border:1px solid #234a44;border-radius:6px;background:rgba(0,0,0,0.3);padding:7px 4px;text-align:center;">
+                <div style="font-size:12px;color:#7fb8ac;">${s.name}</div>
+                <div style="font-size:16px;font-weight:700;color:#e8f4f0;margin:2px 0;">${v}</div>
+                <div style="font-size:11px;color:#6a9a92;">+${contrib.toFixed(1)}%</div>
+            </div>`;
+        }).join('');
+        chip.innerHTML = `
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                <span style="font-size:13px;font-weight:700;color:#7fe0c8;">🧠 神经芯片 · 射手演算</span>
+                <span style="font-size:12px;color:#9adfcf;">火力合计 <b>+${chipTotal.toFixed(1)}%</b></span>
+            </div>
+            <div style="font-size:11px;color:#6a9a92;margin-bottom:8px;line-height:1.6;">
+                塔载神经芯片接入轮回者神经数据流，由计算机演算模拟射手六维，实时驱动火力结算
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;">${chipCells}</div>`;
         // 出售（2026-08-14）：返还 50% 建造能源，武器归还背包
         const sellBtn = el.querySelector('#dtSell');
         if (sellBtn) {
@@ -1342,7 +1388,7 @@ class DefenseTowerPanel extends BasePanel {
             this.refresh();
         });
         el.querySelector('#dtModules').innerHTML = '';
-        el.querySelector('#dtStatHint').textContent = '';
+        el.querySelector('#dtChip').innerHTML = '';
         const sellBtn = el.querySelector('#dtSell');
         if (sellBtn) sellBtn.style.display = 'none';
     }
@@ -1808,8 +1854,9 @@ export const DefenseSystem = {
         // 防守击杀金币：不走地面掉落物，由 DefenseSystem 结算直接进背包
         monster._noGoldDrop = true;
         monster._defenseGoldMul = DEFENSE_CONFIG.spawn.goldDropMul || 1;
-        // 防守模式：只锁定基地/防御塔（PerceptionSystem/Enemy._findNearestPlayer 已支持）
+        // 防守模式：最终目标基地/建筑（_preferDefenseTargets），沿途交战见 _engageHostileRange
         monster._preferDefenseTargets = true;
+        monster._engageHostileRange = DEFENSE_CONFIG.spawn.engageHostileRange;
         monster._alertRange = DEFENSE_CONFIG.spawn.alertRange;
         // aggro 归一化：pacing AI 怪（黑狼 _aggroRange 2500）出生点距基地 ~3000px，
         // aggro 小于 alertRange 会原地踱步不进场；统一抬到 alertRange（ai.defenseAggroRange 可覆盖）
@@ -1980,6 +2027,58 @@ export const DefenseSystem = {
     },
 
     /**
+     * 遍历所有存活防御塔（towers 数组 + Game.entities 兜底扫描，按 id 去重）
+     * 点击命中与悬停轮廓共用（2026-08-15 抽出）
+     */
+    _iterActiveTowers() {
+        const seen = new Set();
+        const out = [];
+        if (Game && Game.entities) {
+            for (const e of Game.entities.values()) {
+                if (e && e._isDefenseTower && e.active && !seen.has(e.id)) {
+                    seen.add(e.id);
+                    out.push(e);
+                }
+            }
+        }
+        for (const t of this.towers) {
+            if (t && t.active && !seen.has(t.id)) { seen.add(t.id); out.push(t); }
+        }
+        return out;
+    },
+
+    /**
+     * 悬停追踪（2026-08-15）：鼠标悬停防御塔整塔范围 → 记录 _hoverTower，
+     * GameScene._syncDefenseTowers 每帧读它给三层贴图加金色轮廓；同时切换手型光标。
+     * 建筑/编辑模式或指针在右侧面板上时不悬停。
+     */
+    _hoverTower: null,
+    updateHover(mx, my) {
+        if (!this.active) { this._setHoverTower(null); return; }
+        if (Game && (Game._wallEditMode || Game._buildMode)) { this._setHoverTower(null); return; }
+        // 面板打开时指针悬在右侧面板（DOM）上不穿透到场景
+        const panel = this._panel;
+        if (panel && panel.isOpen && typeof window !== 'undefined' && mx > window.innerWidth - 460) {
+            this._setHoverTower(null);
+            return;
+        }
+        const mw = Renderer.screenToWorld(mx, my);
+        let hit = null;
+        for (const t of this._iterActiveTowers()) {
+            if (pointHitsTower(mw.x, mw.y, t)) { hit = t; break; }
+        }
+        this._setHoverTower(hit);
+    },
+
+    _setHoverTower(t) {
+        if (this._hoverTower === t) return;
+        this._hoverTower = t;
+        if (typeof document === 'undefined') return;
+        const cv = document.querySelector('canvas');
+        if (cv) cv.style.cursor = t ? 'pointer' : '';
+    },
+
+    /**
      * 点击交互：点防御塔打开面板（再次点击关闭）；点基地核心显示剩余耐久
      * @param {number} mx 屏幕 X
      * @param {number} my 屏幕 Y
@@ -1998,21 +2097,15 @@ export const DefenseSystem = {
         };
         // 点击目标：优先自身 towers 数组，同时兜底扫描 Game.entities（测试/运行期
         // 直接入实体表的塔也要可点；按实体 id 去重，避免同塔重复命中）
-        const seen = new Set();
-        const candidates = [];
-        if (Game && Game.entities) {
-            for (const e of Game.entities.values()) {
-                if (e && e._isDefenseTower && e.active) {
-                    if (!seen.has(e.id)) { seen.add(e.id); candidates.push(e); }
-                }
-            }
-        }
-        for (const t of this.towers) {
-            if (t && t.active && !seen.has(t.id)) candidates.push(t);
-        }
+        const candidates = this._iterActiveTowers();
         for (const t of candidates) {
             if (!t.active) continue;
-            if (!inReach(t, 70)) continue;
+            // 玩家交互距离 260px 保留；命中判定 = 整塔矩形（基座/机械臂/挂载武器全视觉范围）
+            const pdx = t.x - player.x;
+            const pdy = t.y - player.y;
+            if (Math.sqrt(pdx * pdx + pdy * pdy) > 260) continue;
+            const mw = Renderer.screenToWorld(mx, my);
+            if (!pointHitsTower(mw.x, mw.y, t)) continue;
             if (panel.isOpen && panel.tower === t) {
                 panel.close();
             } else {

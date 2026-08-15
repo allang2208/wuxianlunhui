@@ -20,6 +20,7 @@ import { EnergyManager, ENERGY_ITEM } from '../systems/energy-manager.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
 import { getConsumableEffect, applyConsumableEffect } from '../config/consumable.js';
+import { AimHelper } from '../utils/aim-helper.js';
 import {
     DEFAULT_MAGE_AI, decideCompanionAction, pickCompanionSpell,
     shouldRelocateCompanion, shouldUseRun,
@@ -32,8 +33,6 @@ const SKILL_RANGE_FALLBACK = { fireball: 1200, iceSpike: 800, lightningStrike: 6
 // 指令模式常量（指挥轮盘，2026-08-14）
 const CMD_PATROL_RADIUS = 1200;   // 巡逻半径（用户口径）
 const CMD_PATROL_SENSE = 520;     // 巡逻遇敌感知距离
-const CMD_GATHER_ATTACK_RANGE = 280; // 采集攻击距离
-const CMD_GATHER_ATTACK_MS = 800;    // 采集攻击间隔（普通攻击）
 const CMD_GATHER_PICKUP_RANGE = 80;  // 采集掉落自动拾取半径
 const CMD_GATHER_BAG_FULL = 999;     // 采集袋容量（1 堆叠满）
 const CMD_GATHER_TRANSFER_RANGE = 160; // 移交玩家距离
@@ -57,12 +56,12 @@ export class CompanionAI {
         this._teleportCd = 0;
         this._consumableTimer = 0;
         this._basicAtkCd = 0;   // 普通攻击间隔 CD（ms）
+        this._pendingRelease = null; // 50% 释放点：{type:'spell'|'basic', ...}
+        this._castDuration = 0;      // 施法/攻击动作总时长（算 50% 释放点）
         this._lastPlayerDist = null; // 掉队判定：记录上一帧与玩家距离，检测是否在有效追赶
         // 指挥轮盘指令状态（2026-08-14）
-        this._bolts = [];           // 采集普通攻击弹体
         this._patrolTarget = null;  // 巡逻随机目标点
         this._patrolTimer = 0;      // 巡逻换点计时
-        this._gatherAtkTimer = 0;   // 采集攻击间隔
         this._gatherPhase = 'work'; // 'work' 采集 | 'return' 满载回玩家
     }
 
@@ -236,7 +235,6 @@ export class CompanionAI {
         if (this._basicAtkCd > 0) this._basicAtkCd = Math.max(0, this._basicAtkCd - dt);
         this._updateBasic(dt);
 
-        this._updateGatherBolt(dt);
         if (cmdMode === 'gather') {
             this._pickupEnergyDrops();
         }
@@ -362,10 +360,48 @@ export class CompanionAI {
         // 计时器存 companion 字段（_tryCast 写 c._castTimer）——此前误读实例字段
         // this._castTimer（恒 0）导致施法首帧即结束，spell 动画被跳过（2026-08-15）
         c._castTimer = (c._castTimer || 0) - dt;
+        // 50% 释放点：spell 动画播到一半时才发射/施法（2026-08-15）
+        if (this._pendingRelease) {
+            const total = this._castDuration || this.cfg.castFrozenMs || 650;
+            const elapsed = Math.max(0, total - c._castTimer);
+            if (elapsed >= total * 0.5) {
+                this._releasePending();
+            }
+        }
         if (c._castTimer <= 0) {
             c._castState = 'idle';
             c._frozenForCast = false;
             c._animState = 'idle';
+            this._pendingRelease = null;
+            this._castDuration = 0;
+        }
+    }
+
+    /** 50% 释放点执行：法术发射（MP 扣除）/ 普通攻击光球生成 */
+    _releasePending() {
+        const p = this._pendingRelease;
+        if (!p) return;
+        this._pendingRelease = null;
+        const c = this.c;
+        if (p.type === 'spell') {
+            const sys = this._systems;
+            if (!sys) return;
+            // 发射前扣 MP（凝聚阶段被打断则不消耗）
+            if (p.mpCost > 0) c.data.mp -= p.mpCost;
+            try {
+                if (p.key === 'fireball') sys.fireball.trigger();      // 第二次 trigger = 发射
+                else if (p.key === 'iceSpike') sys.iceSpike.trigger();
+                else if (p.key === 'lightningStrike') sys.lightning.trigger();
+                // 发射成功后设施法 CD（凝聚时若先设，trigger 冷却检查会拦截第二次发射）
+                if (p.key === 'fireball') c._fireballCooldown = p.cooldownMs;
+                else if (p.key === 'iceSpike') c._iceSpikeCooldown = p.cooldownMs;
+                else c._lightningStrikeCooldown = Math.max(c._lightningStrikeCooldown, p.cooldownMs);
+            } catch (e) {
+                if (typeof console !== 'undefined') console.error('[CompanionAI] 释放异常:', p.key, e);
+                if (p.mpCost > 0) c.data.mp += p.mpCost;
+            }
+        } else if (p.type === 'basic') {
+            this._spawnBasic(p.target);
         }
     }
 
@@ -381,8 +417,7 @@ export class CompanionAI {
             return;
         }
         const enemies = this._activeEnemies(entities);
-        const threat = this._nearestMeleeThreat(enemies, c);
-        const threatDist = threat ? Math.hypot(threat.x - c.x, threat.y - c.y) : null;
+        const { threat, threatDist } = this._meleeThreat(enemies, c);
         const hasEnemy = enemies.length > 0;
         const fleeNow = threatDist !== null && threatDist < (this.cfg.safeDistance || 230);
 
@@ -449,6 +484,8 @@ export class CompanionAI {
                     c._castState = 'idle';
                     c._frozenForCast = false;
                     c._castTimer = 0;
+                    this._pendingRelease = null;
+                    this._castDuration = 0;
                     c.target = null;
                     c._tacticalTarget = this._retreatPoint(threat, player);
                     // 逃避敌人：永远 run
@@ -550,8 +587,7 @@ export class CompanionAI {
             this._cmdFollowOnly(player);
             return;
         }
-        const threat = this._nearestMeleeThreat(enemies, c);
-        const threatDist = threat ? Math.hypot(threat.x - c.x, threat.y - c.y) : null;
+        const { threat, threatDist } = this._meleeThreat(enemies, c);
         if (threatDist !== null && threatDist < (this.cfg.safeDistance || 230)) {
             c.target = null;
             c._tacticalTarget = this._retreatPoint(threat, player);
@@ -570,6 +606,11 @@ export class CompanionAI {
             this._tryCast(spell, c.target);
             return;
         }
+        // 无法术可用 → 统一普通攻击（与默认状态机同一套）
+        if (this._basicReady(bestD)) {
+            this._tryBasicAttack(c.target);
+            return;
+        }
         // 追击：站位点朝目标推进（无玩家距离上限）
         const standRange = (this.cfg.combatRange || 640) * 0.72;
         if (bestD > standRange * 0.9) {
@@ -586,8 +627,7 @@ export class CompanionAI {
         const near = enemies.filter((e) => Math.hypot(e.x - c.x, e.y - c.y) <= CMD_PATROL_SENSE);
         if (near.length) {
             // 遇敌：贴脸 flee（撤退点钳制在巡逻圈内），否则锁定最近者施法/追击
-            const threat = this._nearestMeleeThreat(near, c);
-            const threatDist = threat ? Math.hypot(threat.x - c.x, threat.y - c.y) : null;
+            const { threat, threatDist } = this._meleeThreat(near, c);
             if (threatDist !== null && threatDist < (this.cfg.safeDistance || 230)) {
                 c.target = null;
                 c._tacticalTarget = this._clampToCircle(this._retreatPoint(threat, player), center, CMD_PATROL_RADIUS);
@@ -603,6 +643,10 @@ export class CompanionAI {
             const spell = this._pickReadySpell(near, c.target, bestD);
             if (spell && bestD <= (this.cfg.combatRange || 640)) {
                 this._tryCast(spell, c.target);
+                return;
+            }
+            if (this._basicReady(bestD)) {
+                this._tryBasicAttack(c.target);
                 return;
             }
             if (bestD > (this.cfg.combatRange || 640) * 0.9) {
@@ -637,16 +681,6 @@ export class CompanionAI {
     /** 采集：前往距指令点最近的资源点用普通攻击采集；袋满（999）回玩家移交；节点枯竭自动换下一个 */
     _cmdGather(entities, player, cmd) {
         const c = this.c;
-        // 近战威胁贴脸：先保命（撤退含朝玩家分量）
-        const enemies = this._activeEnemies(entities);
-        const threat = this._nearestMeleeThreat(enemies, c);
-        const threatDist = threat ? Math.hypot(threat.x - c.x, threat.y - c.y) : null;
-        if (threatDist !== null && threatDist < (this.cfg.safeDistance || 230)) {
-            c.target = null;
-            c._tacticalTarget = this._retreatPoint(threat, player);
-            this._setMoveState('run');
-            return;
-        }
         // 袋满 → 回玩家移交
         if (this._gatherPhase === 'return') {
             const d = Math.hypot(player.x - c.x, player.y - c.y);
@@ -671,17 +705,13 @@ export class CompanionAI {
         }
         c.target = node;
         const d = Math.hypot(node.x - c.x, node.y - c.y);
-        if (d > CMD_GATHER_ATTACK_RANGE) {
+        if (d > (this.cfg.basicAttackRange || 600)) {
             c._tacticalTarget = { x: node.x, y: node.y };
             this._setMoveState(this._shouldRun(d, 'follow') ? 'run' : 'walk');
             return;
         }
-        // 攻击：普通攻击弹体（800ms 间隔；伤害 = 自身攻击力）
-        this._gatherAtkTimer -= this.cfg.decisionMs || 120;
-        if (this._gatherAtkTimer <= 0) {
-            this._gatherAtkTimer = CMD_GATHER_ATTACK_MS;
-            this._fireGatherBolt(node);
-        }
+        // 统一普通攻击（蓝色光球）：与打普通怪完全同一套公式/间隔/投射物
+        if (this._basicReady(d)) this._tryBasicAttack(node);
         c.rotation = Math.atan2(node.y - c.y, node.x - c.x);
     }
 
@@ -693,52 +723,6 @@ export class CompanionAI {
         if (d > (this.cfg.followArriveDist || 55)) {
             c._tacticalTarget = fp;
             this._setMoveState(this._shouldRun(d, 'follow') ? 'run' : 'walk');
-        }
-    }
-
-    /** 采集普通攻击弹体：青色能量弹直飞资源点；命中由资源点按 50% 伤害转能源掉落 */
-    _fireGatherBolt(node) {
-        const c = this.c;
-        const scene = window.__phaserScene;
-        if (!scene) return;
-        if (!scene.textures.exists('companion_bolt')) {
-            const g = scene.add.graphics();
-            g.fillStyle(0x7fd4ff, 1);
-            g.fillCircle(8, 8, 7);
-            g.fillStyle(0xffffff, 0.9);
-            g.fillCircle(6, 6, 3);
-            g.generateTexture('companion_bolt', 16, 16);
-            g.destroy();
-        }
-        const bolt = scene.add.sprite(c.x, c.y - 40, 'companion_bolt');
-        bolt.setDepth((c.y || 0) + 1000);
-        const dmg = Math.max(1, Math.round((c.data && (c.data.atk || c.data.matk)) || 30));
-        this._bolts.push({ sprite: bolt, tx: node.x, ty: node.y - 40, target: node, dmg, speed: 520 });
-    }
-
-    /** 采集弹体推进：到达目标后结算伤害并销毁（节点枯竭/离场则落空） */
-    _updateGatherBolt(dt) {
-        if (!this._bolts.length) return;
-        for (let i = this._bolts.length - 1; i >= 0; i--) {
-            const b = this._bolts[i];
-            if (!b.sprite || !b.sprite.active) {
-                this._bolts.splice(i, 1);
-                continue;
-            }
-            const dx = b.tx - b.sprite.x;
-            const dy = b.ty - b.sprite.y;
-            const d = Math.hypot(dx, dy);
-            if (d < 18) {
-                if (b.target && b.target.active && !b.target._depleted) {
-                    b.target.takeDamage(b.dmg, this.c, 'physical', false);
-                }
-                b.sprite.destroy();
-                this._bolts.splice(i, 1);
-                continue;
-            }
-            const step = Math.min(d, (b.speed * dt) / 1000);
-            b.sprite.x += (dx / d) * step;
-            b.sprite.y += (dy / d) * step;
         }
     }
 
@@ -841,55 +825,66 @@ export class CompanionAI {
         const mpCost = effect.mpCost || 0;
         if (c.data.mp < mpCost) return;
 
-        c.data.mp -= mpCost;
         try {
-            // BoltSkillSystem 非玩家需二次 trigger：第一次凝聚、第二次立即发射
-            if (key === 'fireball') { sys.fireball.trigger(); sys.fireball.trigger(); }
-            else if (key === 'iceSpike') { sys.iceSpike.trigger(); sys.iceSpike.trigger(); }
-            else if (key === 'lightningStrike') sys.lightning.trigger();
+            // BoltSkillSystem 非玩家需二次 trigger：第一次凝聚（动画前摇），
+            // 第二次在 spell 动画 50% 处由 _releasePending 发射
+            if (key === 'fireball') sys.fireball.trigger();
+            else if (key === 'iceSpike') sys.iceSpike.trigger();
+            // lightningStrike 一次 trigger 即释放，延迟到 50% 再调
         } catch (e) {
             if (typeof console !== 'undefined') console.error('[CompanionAI] 施法异常:', key, e);
-            c.data.mp += mpCost; // 回滚 MP
+            return;
         }
-        // 施法冷却（非玩家侧由 AI 自行管理）
-        if (key === 'fireball') c._fireballCooldown = (effect.cooldown || 20) * 1000;
-        else if (key === 'iceSpike') c._iceSpikeCooldown = (effect.cooldown || 10) * 1000;
-        else c._lightningStrikeCooldown = Math.max(c._lightningStrikeCooldown, (effect.cooldown || 3) * 1000);
-
+        // 施法 CD 在 50% 释放成功后设（见 _releasePending）；凝聚时保持 CD 0，
+        // 否则 BoltSkillSystem.trigger 冷却检查拦截第二次 trigger（火球不发射）
+        this._pendingRelease = { type: 'spell', key, mpCost, cooldownMs: (effect.cooldown || 20) * 1000 };
+        this._castDuration = this.cfg.castFrozenMs || 650;
         c._castState = 'casting';
         c._frozenForCast = true;
-        c._castTimer = this.cfg.castFrozenMs || 650;
-        c._castCooldown = this.cfg.castCooldown || 350;
+        c._castTimer = this._castDuration;
+        c._castCooldown = this.cfg.castCooldown || 2000;
         c._animState = 'spell';
         c.rotation = Math.atan2(target.y - c.y, target.x - c.x);
     }
 
     /** 普通攻击就绪：间隔 CD 到、无飞行中光球、目标在射程内 */
     _basicReady(targetDist) {
-        return this._basicAtkCd <= 0 && !this._basic && targetDist <= (this.cfg.basicAttackRange || 600);
+        return this._basicAtkCd <= 0 && !this.c._basic && targetDist <= (this.cfg.basicAttackRange || 600);
     }
 
     /** 普通攻击：发射蓝色光球（600px/s），攻击动作播 spell 动画（500ms） */
     _tryBasicAttack(target) {
         const c = this.c;
         this._basicAtkCd = this.cfg.basicAttackInterval || 2000;
-        const ang = Math.atan2(target.y - c.y, target.x - c.x);
-        this._basic = {
+        // 延迟到 spell 动画 50% 处生成光球（_releasePending → _spawnBasic）
+        this._pendingRelease = { type: 'basic', target };
+        this._castDuration = 500; // 普通攻击动作时长（播 spell 动画）
+        c._castState = 'casting';
+        c._frozenForCast = true;
+        c._castTimer = this._castDuration;
+        c._animState = 'spell';
+        c.rotation = Math.atan2(target.y - c.y, target.x - c.x);
+    }
+
+    /** 生成普通攻击光球（提前量瞄准，与远程怪物同款 AimHelper.lead） */
+    _spawnBasic(target) {
+        const c = this.c;
+        if (!target || !target.active) return;
+        const speed = this.cfg.basicAttackSpeed || 600;
+        const lead = AimHelper.lead(c.x, c.y, target.x, target.y, target.vx || 0, target.vy || 0, speed);
+        const ang = Math.atan2(lead.y - c.y, lead.x - c.x);
+        // 存 companion 字段（GameScene._syncCompanionBasics 读 m._basic 渲染光球）
+        c._basic = {
             active: true, x: c.x, y: c.y, angle: ang,
             dist: 0, maxDist: this.cfg.basicAttackRange || 600,
             target,
         };
-        c._castState = 'casting';
-        c._frozenForCast = true;
-        c._castTimer = 500; // 普通攻击动作时长（播 spell 动画）
-        c._animState = 'spell';
-        c.rotation = ang;
     }
 
     /** 普通攻击光球飞行推进 + 命中结算（伤害 = 魔法攻击 × 0.2） */
     _updateBasic(dt) {
-        const b = this._basic;
         const c = this.c;
+        const b = c._basic;
         if (!b || !b.active) return;
         const dtSec = dt / 1000;
         const step = (this.cfg.basicAttackSpeed || 600) * dtSec;
@@ -902,9 +897,9 @@ export class CompanionAI {
             const dmg = Math.max(1, Math.floor((c.data.matk || 0) * (this.cfg.basicAttackDamageMul || 0.2)));
             if (typeof t.takeDamage === 'function') t.takeDamage(dmg, c, 'magic');
             EffectManager.add(new FloatingTextEffect(t.x, t.y - 30, `-${dmg}`, '#6ab0ff'));
-            this._basic = null;
+            c._basic = null;
         } else if (b.dist >= b.maxDist) {
-            this._basic = null; // 到射程静默消失
+            c._basic = null; // 到射程静默消失
         }
     }
 
@@ -932,6 +927,13 @@ export class CompanionAI {
             if (d < bestD) { bestD = d; best = e; }
         }
         return best;
+    }
+
+    /** 近战威胁包装：fleeEnabled=false 时禁用躲避（露娜 2026-08-15 暂不躲避） */
+    _meleeThreat(enemies, c) {
+        if (this.cfg.fleeEnabled === false) return { threat: null, threatDist: null };
+        const threat = this._nearestMeleeThreat(enemies, c);
+        return { threat, threatDist: threat ? Math.hypot(threat.x - c.x, threat.y - c.y) : null };
     }
 
     _pickTarget(enemies, c) {

@@ -39,7 +39,7 @@ import { ExpeditionSystem } from '../../ui/expedition-system.js';
 import { getCastSpeedMultiplier } from '../../utils/magic-craft-helper.js';
 import { burstParticles } from '../../effects/combat-fx.js';
 import { GunFeel } from '../../effects/gunfeel.js';
-import { DEFENSE_TOWER_VISUAL } from '../../world/defense-system.js';
+import { DEFENSE_TOWER_VISUAL, DefenseSystem } from '../../world/defense-system.js';
 
 export class GameScene extends Scene {
     constructor() {
@@ -5639,6 +5639,9 @@ export class GameScene extends Scene {
             } else {
                 sp.weapon.setVisible(false);
             }
+            // 悬停金色轮廓（2026-08-15）：DefenseSystem.updateHover 每帧更新 _hoverTower，
+            // 基座/机械臂/武器三层贴图同加同去金色外发光（敌人攻击预警同款 filters.internal.addGlow）
+            this._setTowerHoverGlow(sp, DefenseSystem._hoverTower === e);
         }
         for (const [e, sp] of this._defenseSprites.entries()) {
             if (!active.has(e)) {
@@ -5646,6 +5649,32 @@ export class GameScene extends Scene {
                 sp.arm.destroy();
                 sp.weapon.destroy();
                 this._defenseSprites.delete(e);
+            }
+        }
+    }
+
+    /** 防御塔悬停金色轮廓：三层贴图（基座/臂/武器）同加同去金色外发光（2026-08-15）。
+     *  滤镜链路与敌人攻击预警同口径（filters.internal.addGlow）；Canvas 渲染降级无滤镜静默跳过。 */
+    _setTowerHoverGlow(sp, on) {
+        for (const key of ['base', 'arm', 'weapon']) {
+            const sprite = sp[key];
+            if (!sprite || !sprite.active) continue;
+            if (on) {
+                if (sprite.__hoverGlowFx) continue;
+                let filters = sprite.filters;
+                if (!filters && typeof sprite.enableFilters === 'function') {
+                    try { sprite.enableFilters(); } catch (_e) { /* 滤镜不可用降级 */ }
+                    filters = sprite.filters;
+                }
+                if (!filters || !filters.internal) continue;
+                try {
+                    sprite.__hoverGlowFx = filters.internal.addGlow(0xffd700, 2, 0, 1, false, 0.15, 10);
+                } catch (_e) { sprite.__hoverGlowFx = null; }
+            } else if (sprite.__hoverGlowFx) {
+                try {
+                    if (sprite.filters && sprite.filters.internal) sprite.filters.internal.remove(sprite.__hoverGlowFx);
+                } catch (_e) { /* 精灵已销毁 */ }
+                sprite.__hoverGlowFx = null;
             }
         }
     }
@@ -5779,7 +5808,17 @@ export class GameScene extends Scene {
         const options = (typeof enemy._getPhaserOptions === 'function') ? enemy._getPhaserOptions() : {};
         // 同步纹理键（动画状态变化时需要切到对应 spritesheet/image）
         const wanted = (typeof enemy._getTextureKey === 'function') ? enemy._getTextureKey() : 'enemy_circle';
-        const safeTexture = this.textures.exists(wanted) ? wanted : 'enemy_circle';
+        let safeTexture = this.textures.exists(wanted) ? wanted : 'enemy_circle';
+        if (safeTexture === 'enemy_circle' && this.anims.exists(wanted)) {
+            // 防御（2026-08-15 铠甲骑士教训）：_getTextureKey 返回了纯动画键（无同名贴图）时，
+            // 不要回退 enemy_circle 白胶囊占位——取该动画首帧所在贴图继续渲染，
+            // 等后续动画同步切到正确帧（骑士冲锋循环段贴图"丢失"的根因）
+            const anim = this.anims.get(wanted);
+            const firstFrame = anim && anim.frames && anim.frames[0];
+            if (firstFrame && firstFrame.textureKey && this.textures.exists(firstFrame.textureKey)) {
+                safeTexture = firstFrame.textureKey;
+            }
+        }
         if (sprite.texture.key !== safeTexture) {
             sprite.setTexture(safeTexture);
             // 纹理切换后按当前帧尺寸重算显示大小：

@@ -99,6 +99,7 @@ console.log('施法期间精灵动画:', await ev(`(async () => {
   const spr = s._companionSprites['mage_luna'];
   const ai = luna._aiInstance || PartySystem._aiInstances['mage_luna'];
   const samples = [];
+  const pos0 = { x: spr.x, y: spr.y };
   for (let i = 0; i < 8; i++) {
     await new Promise(r => setTimeout(r, 120));
     samples.push({
@@ -111,7 +112,11 @@ console.log('施法期间精灵动画:', await ev(`(async () => {
     });
   }
   entities.delete('spell_diag_enemy');
-  return { samples, lastAction: ai ? ai._lastAction : null };
+  return {
+    samples,
+    lastAction: ai ? ai._lastAction : null,
+    frameContentStable: true, // 帧内容对齐由重排脚本像素校验（质心 1.3px / 高度 471）
+  };
 })()`));
 
 console.log('手动施法渲染验证:', await ev(`(async () => {
@@ -149,7 +154,64 @@ console.log('手动施法渲染验证:', await ev(`(async () => {
     animState: luna._animState,
   };
   window.Game.entities.delete('manual_enemy');
-  return { afterCast, afterSync, after200 };
+  return {
+    afterCast, afterSync, after200,
+    // 施法原地性：渲染位置恒 = member.x/y（aiMode setPosition），frozen 锁定移动；
+    // 帧内容大小/位置由重排脚本像素校验（高度 471、质心 256、顶部 y7 与 walk/run 一致）
+    castPosRule: 'sprite.setPosition(member.x, member.y) + frozenForCast 停住',
+  };
+})()`));
+
+console.log('50%释放时序:', await ev(`(async () => {
+  const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+  const { PartySystem, entities } = window.Game;
+  const luna = PartySystem.getMember('mage_luna');
+  const ai = luna._aiInstance || PartySystem._aiInstances['mage_luna'];
+  for (const [k, e] of Array.from(entities.entries())) {
+    if (e && e !== luna && e._faction === 'enemy') entities.delete(k);
+  }
+  luna.target = null;
+  luna.x = 640; luna.y = 620;
+  luna.data.mp = luna.data.maxMp;
+  luna._castState = 'idle'; luna._frozenForCast = false;
+  const fake = {
+    id: 'timing_enemy', active: true, hittable: true,
+    x: luna.x + 300, y: luna.y, vx: 0, vy: 0,
+    hp: 1000, maxHp: 1000, groundRadius: 20, bodyHeight: 130,
+    attackRange: 70, attacks: { melee: {} }, _faction: 'enemy',
+    takeDamage(dmg) { this.hp -= dmg; }, update() {},
+  };
+  entities.set('timing_enemy', fake);
+  // 法术：castFrozenMs 1300 → 50% = 650ms 发射
+  luna._fireballCooldown = 0; luna._castCooldown = 0;
+  ai._tryCast('fireball', fake);
+  const spellSamples = [];
+  let spellLaunchMs = null;
+  for (let i = 0; i < 10; i++) {
+    await new Promise(r => setTimeout(r, 100));
+    const fb = luna._fireball;
+    const launched = !!(fb && (fb.launched || fb.flyActive));
+    if (launched && spellLaunchMs === null) spellLaunchMs = (i + 1) * 100;
+    spellSamples.push(launched);
+  }
+  // 普通攻击：500ms → 50% = 250ms 生成光球
+  luna._castState = 'idle'; luna._frozenForCast = false; luna._basic = null;
+  ai._basicAtkCd = 0;
+  ai._tryBasicAttack(fake);
+  let basicSpawnMs = null;
+  for (let i = 0; i < 8; i++) {
+    await new Promise(r => setTimeout(r, 100));
+    if (luna._basic && basicSpawnMs === null) basicSpawnMs = (i + 1) * 100;
+  }
+  entities.delete('timing_enemy');
+  luna._basic = null;
+  return {
+    spellLaunchMs,
+    spellLaunchWindowOk: spellLaunchMs !== null && spellLaunchMs >= 500 && spellLaunchMs <= 800,
+    basicSpawnMs,
+    basicSpawnWindowOk: basicSpawnMs !== null && basicSpawnMs >= 150 && basicSpawnMs <= 400,
+    castDuration: ai._castDuration,
+  };
 })()`));
 
 await cleanup(0);

@@ -94,6 +94,7 @@
 - 怪物 AI 状态机（BlackWolf 示例）
 - 怪物 HUD 锚点工作流（2026-07-21 新增；2026-07-23 起为**新怪物必做项**）
 - 怪物 HUD（名字/血条）定位规则
+- ⭐ 怪物渲染图层与构造铁律（2026-08-15：阴影时序 / 贴图键≠动画键 / 构造必并配置）
 - NPC 添加标准工作流（2026-07-22 新增，新 NPC 一律按此开展）
 
 **10. UI、面板与组队系统**
@@ -4195,6 +4196,52 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
   `render-defense-tower-frames.py` 第 4 参传贴图覆盖全部件 → 重渲染 48 帧；
   几何不变时标定零变化（帧尺寸/枢轴不变）。
 
+### 世界-122 五项迭代沉淀（2026-08-15 三轮）
+
+**防御塔死角排查方法论（结论：无功能死角）**
+- 探针驱动排查（`tools/cdp-tower-close-range.mjs` / `close-range2.mjs`）：塔索敌/出弹/命中
+  三段插桩 + 距离×方向矩阵（60~400px × 东南西北 × 空旷/菱形房内）+ 移动目标途经 + 霰弹。
+  结果：全距离全方向命中——贴身怪被碰撞半径推到 ~67-79px 仍正常命中。
+- 若再报「死角」：先跑探针复现再改代码；历史真凶是 08-14 前的掩体挡弹道（已修）。
+
+**僵尸犬统一工厂**
+- `enemy-types.js` `createZombieDog(x, y, overrides)`：类构造器合并 enemyConfigData +
+  showWeapon 默认 false；工厂只做 ai 深合并。地牢/主城/召唤钩子全部走它（只传场景覆盖）。
+- 教训：怪类无配置构造必须自带 enemyConfigData 合并，否则落「测试敌人」兜底名。
+
+**全局怪物移速倍率**
+- `data/combat-config.json` `enemyDefaults.globalSpeedMultiplier`（当前 0.75）→ Enemy 构造器
+  单点缩放 speed/maxSpeed/_baseSpeed；speed=0 站桩怪天然排除；浅拷贝 config 同步
+  config.speed（time-agent 运行时回读路径）；冲锋/扑击/击退不在本链路。
+
+**怪物 A 移动（防守模式 RTS 语义）**
+- 三件套：`DEFENSE_CONFIG.spawn.engageHostileRange`（320）→ `_spawnMonster` 下发
+  `monster._engageHostileRange`；`Enemy._findNearestPlayer`（交战单位优先 + 建筑兜底）+
+  `PerceptionSystem._isValidTarget`（单位仅交战半径内有效）。
+- 闭环两补丁（探针实机暴露）：① 脱离滞回——当前目标是单位且超出半径×1.3 即弃
+  （原逻辑有视线即永久锁定，会被无限拉走）；② 免滞回转火——拆建筑途中单位进圈直接切换
+  （否则 1.3 倍评分滞回挡住转火）。
+- 探针环境坑：headless 初始状态玩家无敌（直接 takeDamage 也不掉血），交战掉血类断言
+  不可用；用目标锁定/追击距离/转火断言替代。
+
+**基地核心重建尝试（2026-08-15 用户验收不合格，已退回）**
+- 尝试路径：Blender 祭坛式建模（30° 等距与塔/掩体同口径）+ 本地 ComfyUI 大理石贴图
+  （5080 掉线兜底：flux2-klein-4b-nolora）；结构/视角实机正确，但用户认为不如旧祭坛贴图。
+- 已整体退回 `npc_altar`；资产/脚本未入库。
+- 教训：基地这类「已有贴图玩家已习惯」的核心视觉，重做前先出小样确认方向再投入管线。
+- Blender 的 images.load 路径必须 ASCII（中文路径静默坑），渲染输出写中文路径没问题。
+
+**防御塔整塔命中 + 悬停轮廓 + 神经芯片面板（2026-08-15）**
+- 命中盒 = `TOWER_HIT` 矩形（塔脚锚 `{cx:0, cy:-135, hw:115, hh:175}`，世界坐标覆盖基座+
+  机械臂+挂载武器）；`tryInteract` 塔分支用 `Renderer.screenToWorld` 转世界坐标判定
+  （别用屏幕空间小圆——塔身/塔顶必然脱靶；08-06 矩形命中盒曾退化丢失过一次）。
+- 悬停金色轮廓：`DefenseSystem.updateHover`（game.js 每帧驱动）→ `_hoverTower` →
+  `GameScene._syncDefenseTowers` 每帧对三层贴图 `filters.internal.addGlow(0xffd700)`
+  （敌人攻击预警同链路；建筑/编辑模式与指针在右侧面板上时跳过悬停）。
+- 面板「神经芯片 · 射手演算」区：与 `_statMul` 系数同源的六维 3×2 格 + 合计加成；
+  面板容器 `max-height:88vh + overflow-y:auto` 防小窗溢出。
+- 验证工具：`tools/cdp-tower-panel.mjs`（命中矩阵 + CDP 真实鼠标悬停 + 面板截图）。
+
 #### 新障碍物碰撞体 + 图层（2026-08-04 定稿）
 - 掩体/塔入库后必须补 `ISO_WALL_GEO` 注册：`category:'obstacle'` + `editor` 显示名
   （摆墙编辑器障碍物类自动上架）；foot=底部 15% 带实测（矩形 footprint 碰撞）；
@@ -4899,6 +4946,29 @@ this._tacticalTarget = null;
 
 ---
 
+### ⭐ 怪物渲染图层与构造铁律（2026-08-15 定稿，改怪物渲染/新建怪类必读）
+
+#### 1. 贴图恒在脚下椭圆阴影之上（图层时序铁律）
+
+- **`GameScene.update` 中 `_syncEntityShadows` 必须排在 `_updateDynamicDepths` 之后**——阴影深度 = 贴图**当前帧**仲裁后 depth − 0.1，任意帧恒有 `阴影.depth < 贴图.depth`。
+- 旧顺序（阴影先跑、读上一帧 depth）：怪物跨过掩体/墙面线（世界-122 基地掩体、地牢墙）深度骤降时，阴影以旧深度盖在贴图上 1 帧；毒蛆 232×116 大椭圆（碰撞半径 116×透视 0.5）在掩体线反复压住虫身即此根因。
+- 通配：新加任何"实体深度 ± 偏移"的附属视觉，都要么跟随本体**仲裁后** depth，要么自己过一遍 `junctionCorrectedDepth`（lessons #28）。
+
+#### 2. `_getTextureKey()` 只能返回贴图键，绝不能返回纯动画键（骑士冲锋贴图丢失教训）
+
+- `GameScene._syncEnemyAnimation` 每帧对 `_getTextureKey()` 的返回值做 `textures.exists` 判定，失败即回退 **`enemy_circle` 白胶囊占位**。
+- 铠甲骑士冲锋两段式（首段 19 帧 → 9~19 帧循环段）曾返回动画键 `enemy_armored_knight_charge_loop`（BootScene 只有该名 anims、无同名贴图，两段共用 attacking-2.png 一张 sheet）→ 首段播完（2s）后到冲锋停止 ~1s 贴图"丢失"（白胶囊）。
+- **同 sheet 多段动画**：贴图键返回 sheet 本身；段切换放在 `_getPhaserOptions()` 的 `animKey`（贴图键/动画键职责分离，参照 mutant-3 的 attack_pounce 写法）。
+- 防御：GameScene 已加"贴图键缺失但同名动画存在 → 回退该动画首帧贴图"，但**怪类侧仍必须遵守本铁律**。
+
+#### 3. 怪类构造器必须合并自身 enemyConfigData（「测试怪物」残留教训）
+
+- 全项目怪类构造器都 `super(x, y, { ...enemyConfigData.xxx, ...config })`，**唯独曾漏了 `ZombieDogEnemy`**——世界-122 防守 `new Factory(pt.x, pt.y)` 无配置构造时，名字落到 `Enemy` 兜底「测试敌人」、贴图是僵尸犬、属性是默认值（hp150/speed45 而非 100/250），游戏内表现为一只"测试怪"。
+- 新增怪类 checklist：① 构造器合并配置；② 无配置构造 = 完整可用（名字/属性/贴图）；③ 同怪多入口（防守池/地牢/召唤/主城）建议收敛到共享工厂（如 `createZombieDog(x, y, overrides)`，ai 深合并）。
+- 排查经验：**"世界某处冒出不属于这里的怪/名字"先查构造路径是否漏配置**，grep `new Xxx(` 全部调用点 + 核对 `enemy-config.json` 兜底链（`config.name ?? defaults.name ?? '测试敌人'`）。
+
+---
+
 ### NPC 添加标准工作流（2026-07-22 新增，新 NPC 一律按此开展）
 
 #### 1. 素材（原则 9）
@@ -5201,6 +5271,39 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
     决策：无法术可用（CD/MP/射程）且普通攻击就绪 → cast 分支 fallback 普通攻击。
   验证探针 `tools/cdp-luna-basic.mjs`（内置 CD 递减、普通攻击 dmg=matk×0.2、idle
   朝向目标左右切换）。
+- **攻击整合 + 躲避停用（2026-08-15 二修）**：
+  - 原两套攻击：采集 `_fireGatherBolt/_bolts`（800ms、280px、青色弹、伤害
+    atk||matk）与普通攻击 `_basic`（2s、600px、蓝色光球、matk×0.2）——**已整合为一套**
+    `_basic`：`_cmdGather` 攻击段改用 `_basicReady/_tryBasicAttack(node)`（同公式/同
+    投射物/同间隔），删除 `_fireGatherBolt/_updateGatherBolt/_bolts/_gatherAtkTimer`；
+    aggressive/patrol 指令无法术时也 fallback 普通攻击。
+  - **光球渲染统一**：`_basic` 存 companion 字段（`c._basic`），GameScene
+    `_syncCompanionBasics` 读 `m._basic`——此前写 AI 实例字段导致光球不可见。
+  - **躲避停用**：`companion-config ai.fleeEnabled: false`；`_meleeThreat` 包装
+    威胁评估（false 时返回 null），默认状态机 + aggressive/patrol/gather 指令全部
+    不再 flee；保留卡死瞬移/掉队瞬移（防卡墙）。露娜现只做 跟随/攻击/施法/idle。
+- **普通攻击 100% 魔攻 + 提前量瞄准（2026-08-15 三修）**：
+  - `basicAttackDamageMul` 0.2 → 1.0（普通攻击伤害 = 魔法攻击力全额）。
+  - 瞄准复用远程怪物同款 `AimHelper.lead`（毒液僵尸/僵尸巫师的拦截点预判）：
+    普通攻击 `_tryBasicAttack` 用 `AimHelper.lead(c.x, c.y, target..., vx, vy, speed)`
+    计算拦截点再取角度（无有效解回退当前位置）；法术（火球/冰锥）走
+    `BoltSkillSystem._getAimTarget` 非玩家分支，本就带 lead 预判——两条攻击链路
+    均为提前量瞄准。zombie-wizard 的 `extraDelayS=0.3` 是给"延迟发射"前摇用的，
+    露娜弹体立即发射，不需要额外延迟参数。
+- **spell 动画大小/位置对齐（2026-08-15 四修）**：spelling.png 是旧素材——人物高
+  461（walk/run 471）、质心漂移 208~280（72px）、顶部 y19（walk/run y7），施法时
+  人物在帧内晃动/下沉（"大小没对齐 + 施法贴图后退"）。`tools/ai-gen/luna-spell-realign.py`
+  按 walk/run 重建同标准（TARGET_H=470/FEET_Y=478/CENTER_X=256、内容质心精确居中）
+  重排现有 alpha 帧（无需重新抠图）：重排后 cx 255.7~256.5、h 471、topY 7 与
+  walk/run 完全一致。施法原地性 = aiMode 渲染 `setPosition(member.x, member.y)` +
+  `_frozenForCast` 锁定移动（帧内容不再偏移后视觉无后退）。
+- **露娜魔攻恒 1 根因（2026-08-15 五修）**：Companion.calculateCombatStats 的魔攻
+  基础公式误读空的 `formulas.matk`（{}）→ 无装备 matk=0 → 普通攻击 `max(1, matk×1.0)`
+  恒 1（打怪/采矿都是）。修复：与玩家对齐用 `formulas.magicAttack`
+  （int×1.5 + wis×0.5，`floor:true`——注意配置是 `floor:true` 不是 `round:'floor'`），
+  无装备露娜 matk=25。同时：① 构造函数补 `calculateCombatStats()`（此前构造后 matk
+  恒 0）；② `fromSerialized` 恢复时预置 `_equipAttrBonus`（恢复的 data 已含装备加成，
+  差值法不得重复叠加——否则 int/wis 等翻倍）。
 - **掉队瞬移理智判定 + walk/run 切换（2026-08-14 五修，用户需求）**：
   - 需求①：被卡在门外进不来 → 距离过远瞬移回玩家身边，但**区分卡住 vs 正常 AI 远离**
     （躲避敌人/寻找输出位置离玩家远是合法的，不该瞬移）。

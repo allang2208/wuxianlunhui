@@ -118,6 +118,7 @@ console.log('施法:', await ev(`(async () => {
     castState: luna._castState,
     animState: luna._animState,
     fireActive: !!luna._fireballActive || !!(luna._fireball && luna._fireball.active),
+    fireball: luna._fireball ? { launched: luna._fireball.launched, flyActive: luna._fireball.flyActive, dist: Math.round(luna._fireball.flyDistance || 0), targetDist: Math.round(luna._fireball.targetDist || 0) } : null,
     enemyHpDelta: hpBefore - window.__aiEnemy.hp,
     mpDelta: mpBefore - luna.data.mp,
     playerHpDelta: p.data.hp - playerHpBefore,
@@ -127,7 +128,7 @@ console.log('施法:', await ev(`(async () => {
   return res;
 })()`));
 
-console.log('撤退:', await ev(`(async () => {
+console.log('贴脸不逃跑(flee停用):', await ev(`(async () => {
   const sleep = (ms) => new Promise(r => setTimeout(r, ms));
   const { PartySystem } = window.Game;
   const luna = PartySystem.getMember('mage_luna');
@@ -148,7 +149,7 @@ console.log('撤退:', await ev(`(async () => {
     moved: Math.round(Math.hypot(after.x - before.x, after.y - before.y)),
     distBefore: Math.round(distBefore),
     distAfter: Math.round(distAfter),
-    distGrew: distAfter > distBefore,
+    fleeDisabled: (ai ? ai._lastAction : null) !== 'flee' && Math.abs(after.x - before.x) < 60,
   };
   // 清理
   window.Game.entities.delete('ai_test_enemy');
@@ -237,7 +238,7 @@ console.log('逃跑朝向+图层深度:', await ev(`(async () => {
     if (e && e !== luna && e._faction === 'enemy') entities.delete(k);
   }
   luna.target = null;
-  // 放一个贴脸敌人（露娜右侧）→ flee 朝左跑 → 应面朝左（flipX=true）
+  // 放一个右侧敌人（flee 已停用）→ 应面朝目标（右侧 → 面右）
   const fake = {
     id: 'flee_face_enemy', active: true, hittable: true,
     x: luna.x + 55, y: luna.y, vx: 0, vy: 0,
@@ -249,17 +250,14 @@ console.log('逃跑朝向+图层深度:', await ev(`(async () => {
   entities.set('flee_face_enemy', fake);
   await sleep(900);
   const spr = ps._companionSprites['mage_luna'];
-  const movingLeft = luna.vx < -5;
-  const faceLeft = !!spr.flipX;
+  const faceRight = !spr.flipX;
   const diag = { lastAction: luna._lastAction, vx: Math.round(luna.vx), castState: luna._castState };
   // 深度：AI 队员按世界 Y 排序（脚底+10），不再固定 playerSprite.depth+0.5
   const footOffset = ps._getFootOffsetY(luna, spr);
   const expectedDepth = spr.y + footOffset + 10;
   entities.delete('flee_face_enemy');
   return {
-    movingLeft,
-    faceLeft,
-    facesMoveDir: movingLeft === faceLeft,
+    faceRightTarget: faceRight,
     diag,
     depth: spr.depth,
     expectedDepth: Math.round(expectedDepth),

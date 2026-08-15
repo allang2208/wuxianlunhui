@@ -1,5 +1,83 @@
 # 变更日志
 
+### 对话：防御塔整塔命中 + 悬停金色轮廓 + 神经芯片六维面板（2026-08-15 四轮）
+- **整塔命中盒（点击塔任意部位开面板）**：
+  - 旧版命中 = 塔脚 70px 圆（探针实测：塔身中部/塔顶机械臂点击全部脱靶，与 08-06 SKILL 记载的
+    矩形命中盒已退化丢失）。
+  - 修复：`TOWER_HIT` 矩形（塔脚锚 `{cx:0, cy:-135, hw:115, hh:175}`，世界坐标覆盖基座 170×262 +
+    机械臂/挂载武器），`tryInteract` 塔分支改世界坐标矩形判定（`Renderer.screenToWorld`），
+    玩家 260px 交互距离不变；塔遍历抽出 `_iterActiveTowers()`（towers 数组 + Game.entities 兜底去重）。
+- **悬停金色轮廓**：
+  - `DefenseSystem.updateHover(mx, my)` 每帧由 game.js 主循环驱动（建筑/编辑模式与指针在右侧
+    面板上时跳过）；命中塔 → `_hoverTower` + 画布手型光标。
+  - `GameScene._syncDefenseTowers` 每帧读 `_hoverTower`，基座/机械臂/武器三层贴图同加同去
+    金色外发光（`_setTowerHoverGlow`：filters.internal.addGlow(0xffd700)，与敌人攻击预警同链路，
+    Canvas 渲染降级静默跳过）。
+- **防御塔面板扩充（神经芯片六维区）**：
+  - 底部一行文字「六维加成参考」升级为「🧠 神经芯片 · 射手演算」区：介绍文案（塔载神经芯片
+    接入轮回者神经数据流，由计算机演算模拟射手六维，实时驱动火力结算）+ 3×2 六维格
+    （名称/数值/逐项火力贡献 %）+ 头部合计加成（与 `_statMul` 系数同源：力 0.8%/敏 1.0%/
+    智 0.6%/精 0.6%/体 0.4%/运 0.4%）。
+  - 排版：区块青色科技色调（#2a6a5f/#7fe0c8，与模块区蓝色同族）；武器列表 210→150px；
+    面板容器加 `max-height:88vh + overflow-y:auto`（小窗口不溢出，可滚动）。
+- **验证**：`tools/cdp-tower-panel.mjs`——命中矩阵 foot/body/arm=true、outside=false；
+  真实 CDP 鼠标移动 → 三层贴图 glow 滤镜挂载 + 手型光标，移出即清除；面板截图复核排版。
+  eslint 0 error；npm test 全绿；vite build ✅。
+
+### 对话：铠甲骑士冲锋后贴图丢失修复（2026-08-15）
+- **现象**：骑士释放完冲刺攻击后约 1 秒贴图丢失（冲锋 19 帧动画播完到冲锋停止之间）。
+- **根因**：`ArmoredKnight._getTextureKey()` 在冲锋循环段返回 `enemy_armored_knight_charge_loop`——
+  这是**动画键不是贴图键**（BootScene 只有该名的 anims，没有同名字贴图）。`_syncEnemyAnimation`
+  按贴图键 `textures.exists` 判定失败 → 回退 `enemy_circle` 白胶囊占位贴图。
+- **修复**：
+  1. `armored-knight.js`：`_getTextureKey()` 冲锋段统一返回贴图键 `enemy_armored_knight_charge`
+     （首段/循环段共用一张 sheet）；循环段切换改由 `_getPhaserOptions` 的 `animKey`
+     （`enemy_armored_knight_charge_loop` 动画）独立表达——贴图键与动画键职责分离；
+  2. `GameScene._syncEnemyAnimation` 防御：贴图键不存在但同名动画键存在时，回退到该动画
+     首帧所在贴图，而不是 `enemy_circle` 占位（杜绝同类"贴图键/动画键混淆"再现）。
+- **验证**：待 eslint / vite build / npm test；实机待用户复测（骑士冲锋全程贴图连续，冲锋
+  后直接回 idle/walk，无白胶囊占位段）。
+
+### 对话：世界-122 五项——塔死角探针定位/僵尸犬恢复统一/全局减速/A移动/基地大理石祭坛重建（2026-08-15 三轮）
+- **防御塔近距离射击死角排查（结论：当前构建无功能死角）**：
+  - 探针复现（`tools/cdp-tower-close-range.mjs` + `cdp-tower-close-range2.mjs`）：60~400px ×
+    东南西北 × 空旷区/菱形房内双塔，AKM + Super90 霰弹 + 移动犬途经——全部正常索敌/出弹/命中
+    （60px 贴身怪被碰撞推开到 ~67-79px 后仍全命中；霰弹 60/100px 直接击毙）。
+  - 静态排查链：索敌无最小射程、弹丸三重扫掠命中、空间网格无近距排除、枪口嵌墙不触发。
+  - 结论：用户观察到的死角大概率是 08-14「越掩体射击」修复（当日才推送）前的旧行为；
+    探针留作回归工具。实机待用户复测确认。
+- **僵尸犬恢复刷新 + 创建路径统一**：
+  - 恢复：NORMAL_POOL 加回 zombieDog（weight 8）——08-15 早些时候删除的根因（无配置构造兜底
+    「测试敌人」）已由类构造器合并 enemyConfigData 根治，当日补充 showWeapon 默认 false。
+  - 统一：enemy-types.js 导出唯一工厂 `createZombieDog(x, y, overrides)`（ai 深合并），
+    zombie-dungeon.js 本地 createZombieDog、game.js spawnMainZombieDog、巫师/集合体召唤钩子
+    全部改走共享工厂（只传场景 AI 覆盖）。
+- **全局怪物移速 -25%（全部模式，站桩怪除外）**：
+  - `data/combat-config.json` enemyDefaults 新增 `globalSpeedMultiplier: 0.75`（数据驱动可回调）。
+  - 入口 Enemy 构造器：speed>0 才缩放（speed=0 站桩怪——矿洞/墓碑/煮锅/集合体天然排除）；
+    浅拷贝 config 同步缩放 config.speed（time-agent 运行时回读路径覆盖，不污染 enemyConfigData
+    单例）；maxSpeed/_baseSpeed 继承，FSM 阶段切换倍率自动跟随。
+  - 只减普通移动：冲锋/扑击/lunge 攻击位移、击退不受影响；祭品减速继续独立叠加。
+  - 测试：`scripts/test-monster-speed.mjs` 9 项（数据契约+源码接线，已挂入 npm test 链）。
+- **怪物 A 移动（终极目标基地，沿途攻击敌对目标，RTS A 键语义）**：
+  - `DEFENSE_CONFIG.spawn.engageHostileRange = 320`；防守怪 `_engageHostileRange` 随刷怪下发。
+  - `Enemy._findNearestPlayer`：交战半径内最近玩家/侍从优先，建筑任意距离兜底（模式闸门
+    _preferDefenseTargets，半径未配置保持旧行为）。
+  - `PerceptionSystem._isValidTarget`：非结构玩家阵营单位仅交战半径内有效。
+  - 两处补齐探针暴露的闭环缺口：① 脱离——当前目标是交战单位且超出半径 ×1.3 滞回即弃
+    （原逻辑有视线即永久锁定，会被单位无限拉出）；② 转火——拆建筑途中单位进入交战半径，
+    免 1.3 倍滞回直接切换。
+  - 验证：`tools/cdp-defense-amove.mjs`——A 交战锁定追击 / B 远离锁建筑推进 / C 脱离回落建筑 /
+    D 拆墙途中玩家贴近转火，全过。（贴脸掉血未检出系探针环境玩家初始无敌：直接 takeDamage 也
+    不掉血，与本次改动无关。）
+- **基地核心 Blender 重建尝试 → 用户验收不合格，已整体退回（2026-08-15）**：
+  - 尝试：祭坛式建模（三层方台座+金线+中央碑）+ 本地 ComfyUI 大理石贴图（5080 掉线改
+    flux2-klein-4b-nolora），30° 等距；实机截图结构正确但用户验收「不如旧版本」。
+  - 退回：`DefenseBase.spriteCfg` 恢复 `npc_altar`（220×214/footOffsetY 107），BootScene 注册行、
+    生成资产与一次性脚本全部移除（未提交，无 git 历史）。
+  - 结论：基地核心维持旧祭坛贴图；日后若要重做需先明确用户不喜欢的点（造型/配色/风格）。
+- **验证总闸**：eslint 0 error；npm test 全绿（含 test-monster-speed 9/9）；vite build ✅。
+
 ### 对话：删除世界-122「测试怪物」残留 + 怪物贴图恒在脚下阴影之上（2026-08-15）
 - **删除防守模式「测试怪物」（僵尸犬贴图）**：
   - 根因：世界-122 `DefenseSystem._spawnMonster` 以 `new Factory(pt.x, pt.y)` 无配置构造，
@@ -7622,3 +7700,72 @@
 - **坑**：探针场景间状态耦合（施法残留/决策时序）会导致单次采样偶发不稳定——核心
   机制用手动 `_tryBasicAttack`/逐帧采样做确定性验证；`_lastAction` 必须写回
   companion 供渲染层消费（AI 实例字段渲染层拿不到）。
+
+### 对话：攻击公式整合（采矿/普通怪统一）+ 躲避 AI 暂停（2026-08-15 二修）
+- **需求**：排查发现露娜有两套攻击（采集 `_fireGatherBolt` 与普通攻击 `_basic`），
+  普通攻击不生效、采集攻击无法打普通怪——整合成一套攻击公式，采矿与正常攻击共用；
+  躲避 AI 有问题先暂停，只保留正常攻击和 idle。
+- **整合**：采集攻击删除（`_fireGatherBolt/_updateGatherBolt/_bolts/_gatherAtkTimer`
+  及常量），`_cmdGather` 攻击段统一走 `_basicReady/_tryBasicAttack`（蓝色光球、
+  600px 射程、600px/s、2s 间隔、伤害 matk×0.2、播 spell 动画）——与打普通怪完全
+  同一套；aggressive/patrol 指令无法术时也 fallback 普通攻击。
+- **光球渲染修复**：`_basic` 改存 companion 字段（`c._basic`）——此前写在 AI 实例
+  上，GameScene `_syncCompanionBasics` 读 `m._basic` 永远拿不到，光球不可见。
+- **躲避暂停**：`companion-config ai.fleeEnabled: false`；`_meleeThreat` 统一包装
+  威胁评估（false 时返回 null），默认状态机 + aggressive/patrol/gather 全部不再
+  flee；卡死瞬移/掉队瞬移保留（防卡墙）。露娜行为 = 跟随/推进/施法/普通攻击/idle。
+- **验证**：cdp-luna-basic——采集节点 dmg=20（=matk100×0.2，与普通怪完全同公式）、
+  gather 模式生效、普通攻击 dmg=20、idle 朝向目标、flee 停用（贴脸 lastAction=cast
+  不逃跑）；cdp-luna-ai 贴脸不逃跑/卡死瞬移/深度全绿；spell 持续、消耗品自动用药
+  回归通过；单测 143/143、lint 0 error、vite build ✅。
+
+### 对话：普通攻击 100% 魔攻 + 远程怪物提前量瞄准（2026-08-15 三修）
+- **需求**：普通攻击伤害改为魔法攻击力 100%；阅读远程怪物（毒液僵尸/僵尸巫师）的
+  提前量瞄准方式，应用到露娜的法术和普通攻击。
+- **实现**：
+  - `companion-config basicAttackDamageMul` 0.2 → 1.0（采集与普通怪共用同公式，
+    同步生效）。
+  - 瞄准：普通攻击 `_tryBasicAttack` 用 `AimHelper.lead`（与 spitter-zombie /
+    zombie-wizard 同款拦截方程：目标匀速直线运动下弹体与目标同时到达的拦截点，
+    无有效解回退当前位置）计算预判角度；法术（火球/冰锥）走
+    `BoltSkillSystem._getAimTarget` 非玩家分支本就带 lead 预判——两条链路统一。
+- **验证**：cdp-luna-basic——采集 dmg=100（matk100×1.0）；移动目标预判：目标
+  vx=120/vy=-60 时拦截点 (1015,582) 在目标 (940,620) 前方，光球角度与拦截点一致
+  （ledAngleValid）；施法/卡死瞬移/flee 停用回归全绿；单测 143/143、lint 0 error、
+  vite build ✅。
+- **说明**：zombie-wizard 的 `extraDelayS=0.3` 是为"延迟 300ms 发射的前摇"补偿的，
+  露娜法术/普通攻击弹体立即发射，不需要额外延迟参数。
+
+### 对话：spell 动画大小/位置对齐修复（2026-08-15 四修）
+- **现象**：spell 动画大小没对齐；施法时贴图会后退（视觉上人物后移）。
+- **排查**：spelling.png 为旧素材（8-12），与新 idle/walk/run（8-14/8-15 重建）
+  对齐标准不一致——人物高 461（walk/run 471）、顶部 y19（walk/run y7）、**水平质心
+  漂移 208~280（72px）**：施法动画播放时人物在帧内左右晃动/下沉，看起来"大小不对 +
+  后退"。
+- **修复**：新脚本 `tools/ai-gen/luna-spell-realign.py`——读现有 spelling.png 的
+  alpha，按 walk/run 重建同标准（TARGET_H=470/FEET_Y=478/CENTER_X=256、内容质心
+  精确居中）重排 32 帧（无需重新抠图）。重排后：质心跨度 72px→1.3px、高度 461→471、
+  顶部 y19→7，与 walking/running 完全一致。施法原地性由机制保证：aiMode 渲染
+  `sprite.setPosition(member.x, member.y)` + `_frozenForCast` 施法锁定停住。
+- **验证**：像素统计 spelling=walking=running（cx 255.7~256.5 / h 471 / topY 7）；
+  CDP spell-diag 施法动画帧递增播放正常、手动施法 after200 仍 casting；单测
+  143/143、lint 0 error、vite build ✅。
+
+### 对话：露娜攻击矿物伤害恒 1 排查（2026-08-15 五修）
+- **现象**：露娜攻击矿物时伤害永远是 1。
+- **根因**：`Companion.calculateCombatStats` 魔攻基础公式读
+  `formulas.matk?.intMultiplier/wisMultiplier`——`combat-formulas.json` 的
+  `player.matk` 是空对象 {} → 无装备露娜 matk=0 → 普通攻击
+  `max(1, matk×1.0)` 恒 1。玩家侧用的是 `formulas.magicAttack`（int×1.5+wis×0.5），
+  无装备也有基础魔攻。
+- **修复**（`src/entities/companion.js`）：
+  - matk 基础公式改用 `formulas.magicAttack`（缺省
+    {intMultiplier:1.5, wisMultiplier:0.5, floor:true}），floor 判定读 `floor:true`
+    字段（配置不是 round）；无装备露娜 matk = floor(13×1.5+12×0.5) = 25。
+  - 构造函数补 `calculateCombatStats()`（此前构造后 matk 恒 0，要等升级/装备才算）。
+  - `fromSerialized` 预置 `_equipAttrBonus`（恢复的 data 已含装备六维加成，差值法
+    不得重复叠加——否则 int/wis 翻倍导致属性继承测试失败）。
+- **验证**：单测 144/144（新增"无装备基础魔攻 25"断言，属性继承往返通过）；CDP
+  采集统一攻击 dmg=25（真实无装备 matk×1.0，不再是 1）；法术伤害随 matk 提升
+  （施法 enemyHpDelta 46→81，更合理）；移动预判/flee 停用/卡死瞬移回归全绿；
+  lint 0 error、vite build ✅。

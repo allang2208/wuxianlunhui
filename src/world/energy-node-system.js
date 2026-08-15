@@ -34,11 +34,24 @@ class EnergyNode extends DamageableEntity {
         this.noSeparation = true;   // 不参与实体分离
         this._noShadow = true;      // 自带接地底座的贴图取消脚底阴影
         this.noNameLabel = true;    // 名字/HP 走 _syncNeutralEntities 统一标签
-        // 贴图（2026-08-15 入库）：Blender 白模+AI 材质渲染 756×714（aspect 1.059）——
-        // sizeH = size / aspect，贴图已裁剪到底边（土堆贴地），footOffsetY = sizeH/2 锚定脚点
-        const aspect = 1.059;
+        // 贴图（2026-08-15 二版）：随机多形态变体 v1~v6（晶体数量/高低/倾角/底座随机），
+        // 每变体宽高比不同 → 从 Phaser 纹理帧实测尺寸换算 sizeH/footOffsetY（贴图底部=土堆贴地），
+        // 变体纹理缺失时回退基础 'energy_node'（运行时占位生成兜底）。
+        this._variant = 1 + Math.floor(Math.random() * 6);
+        const scene = window.__phaserScene;
+        const vKey = `energy_node_v${this._variant}`;
+        const hasVariant = !!(scene && scene.textures && scene.textures.exists(vKey));
+        const texKey = hasVariant ? vKey : 'energy_node';
+        let aspect = 1.059;
+        if (scene && scene.textures && scene.textures.exists(texKey)) {
+            const frame = scene.textures.getFrame(texKey);
+            if (frame && frame.realWidth > 0 && frame.realHeight > 0) {
+                aspect = frame.realWidth / frame.realHeight;
+            }
+        }
+        this._texKey = texKey;
         this.spriteCfg = {
-            idleKey: 'energy_node',
+            idleKey: texKey,
             size: ENERGY_CONFIG.nodeSize,
             sizeH: Math.round(ENERGY_CONFIG.nodeSize / aspect),
             footOffsetY: Math.round(ENERGY_CONFIG.nodeSize / aspect) / 2,

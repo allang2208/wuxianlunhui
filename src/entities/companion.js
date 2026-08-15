@@ -97,6 +97,7 @@ export class Companion {
         this._iceSpikeCooldown = 0;
         this._lightningStrikeCooldown = 0;
         this._holyLightCooldown = 0;
+        this.calculateCombatStats(); // 初始化战斗属性（matk 等，含无装备基础魔攻）
         this.updateMaxStats();
         this.data.hp = this.data.maxHp;
         this.data.mp = this.data.maxMp;
@@ -300,7 +301,11 @@ export class Companion {
                 matk += flat + d.int * intMul + d.wis * wisMul;
             }
         }
-        d.matk = Math.round(matk + d.int * (formulas.matk?.intMultiplier || 0) + d.wis * (formulas.matk?.wisMultiplier || 0));
+        // 魔攻基础公式与玩家对齐（formulas.magicAttack：int×1.5 + wis×0.5，floor）。
+        // 此前误读空的 formulas.matk（{}）→ 无装备时 matk=0 → 普通攻击恒 1（2026-08-15）
+        const matkF = formulas.magicAttack || { intMultiplier: 1.5, wisMultiplier: 0.5, floor: true };
+        const baseMatk = matk + d.int * (matkF.intMultiplier || 0) + d.wis * (matkF.wisMultiplier || 0);
+        d.matk = matkF.floor ? Math.floor(baseMatk) : Math.round(baseMatk);
         const defF = formulas.defense || { conMultiplier: 1.2, strMultiplier: 0.3, round: 'floor' };
         const raw = d.con * (defF.conMultiplier || 1.2) + d.str * (defF.strMultiplier || 0.3) + (eq.defense || 0);
         d.def = defF.round === 'floor' ? Math.floor(raw) : Math.round(raw);
@@ -352,6 +357,10 @@ export class Companion {
         if (s.maxBackpackSlots) c.maxBackpackSlots = s.maxBackpackSlots;
         if (s.baseMaxMp) c._maxMpOverride = s.baseMaxMp;
         if (s.consumableSettings) c.consumableSettings = { enabled: true, hpThreshold: 0.3, mpThreshold: 0.25, useLowToHigh: true, ...s.consumableSettings };
+        // 预置装备六维差值：恢复的 data 已含装备加成，差值法不得重复叠加
+        const eq = c.getEquipmentBonuses();
+        c._equipAttrBonus = { str: eq.str || 0, dex: eq.dex || 0, int: eq.int || 0, con: eq.con || 0, wis: eq.wis || 0, luck: eq.luck || 0 };
+        c.calculateCombatStats();
         c.updateMaxStats();
         return c;
     }

@@ -8,7 +8,7 @@
  * 事件分布：按配置 typeRatios（默认 combat 70% / event 30%）
  */
 
-import { CircleEnemy, ZombieDogEnemy, ZombieWizard, Mutant3, SpitterZombie, FatZombie, Zombie, ArmoredKnight, Shounao, FlySwarm, FlyHand, TimeAgentAssault, TimeAgentShield, PoisonMaggot, MinerZombie, LanternMinerZombie, ForemanZombie, MineCave, Tombstone, OreSpider, Witch, Cauldron } from '../entities/enemy-types.js';
+import { CircleEnemy, createZombieDog as createZombieDogBase, ZombieWizard, Mutant3, SpitterZombie, FatZombie, Zombie, ArmoredKnight, Shounao, FlySwarm, FlyHand, TimeAgentAssault, TimeAgentShield, PoisonMaggot, MinerZombie, LanternMinerZombie, ForemanZombie, MineCave, Tombstone, OreSpider, Witch, Cauldron } from '../entities/enemy-types.js';
 import { UIState } from '../ui/ui-state.js';
 import { NPCDialogue } from '../ui/npc-dialogue.js';
 
@@ -35,21 +35,11 @@ export function createBasicZombie(x, y) {
     });
 }
 
+// 地牢口径僵尸犬：永久警戒。2026-08-15 起统一走 enemy-types 共享工厂
+// （配置合并在类构造器 + createZombieDog 一处），本地只传场景 AI 覆盖。
 function createZombieDog(x, y) {
-    const cfg = enemyConfigData.zombieDog;
-    if (!cfg) {
-        console.warn('[ZombieDungeon] Missing enemy config: zombieDog');
-        return new ZombieDogEnemy(x, y, { name: 'zombieDog', hp: 100, maxHp: 100, size: 12, showWeapon: false });
-    }
-    return new ZombieDogEnemy(x, y, {
-        ...cfg,
-        showWeapon: false,
-        ai: {
-            ...(cfg.ai || {}),
-            aggroRange: 9999,
-            loseTimeout: 999999,
-            alertRange: 9999
-        }
+    return createZombieDogBase(x, y, {
+        ai: { aggroRange: 9999, loseTimeout: 999999, alertRange: 9999 }
     });
 }
 

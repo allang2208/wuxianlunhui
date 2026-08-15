@@ -81,6 +81,7 @@ description: >
 
 - **工作前先复制素材**：把外部 `素材库/怪物/xxx/*.png` 复制到项目 `assets/enemies/xxx/` 再开始改代码，避免路径错乱和版本不一致。
 - **`_getTextureKey()` 必须与动画源 spritesheet 一致**：`_syncEnemyAnimation` 每帧先 `setTexture(textureKey)` 再 `play(animKey)`。如果 `textureKey` 和动画实际引用的 spritesheet 不是同一张图，动画会卡在第一帧。
+- **`_getTextureKey()` 只能返回贴图键，绝不能返回纯动画键（2026-08-15 铠甲骑士教训）**：`_syncEnemyAnimation` 对 `textures.exists(返回值)` 判失败就回退 `enemy_circle` 白胶囊占位——骑士冲锋循环段曾返回动画键 `enemy_armored_knight_charge_loop`（只有 anims 没有同名贴图），首段 19 帧播完后直到冲锋停止的 ~1s 贴图"丢失"。同 sheet 多段动画（intro/loop）的贴图键必须返回 sheet 本身，段切换放 `_getPhaserOptions` 的 `animKey`（贴图键/动画键职责分离，参照 mutant-3）。GameScene 已加防御：贴图键缺失但同名动画存在时回退该动画首帧贴图而非 enemy_circle。
 - **用 `_attackAnimTimer` 锁住 `MovementSystem` 的朝向覆盖**：特殊冲刺/飞扑阶段把 `_attackAnimTimer` 设为非 0，`MovementSystem` 会提前返回，不会把 `enemy.rotation` 重新指向当前目标。
 - **Phaser 残影**：在特殊移动中每隔几十 ms 用当前 `textureKey`/`frame`/`displayWidth`/`displayHeight`/`flipX` 克隆一个 `scene.add.sprite()`，alpha 0.5，再用 tween 淡出销毁即可。对于侧视角精灵图，通常只需 flipX 表示左右，不需要设置 `rotation`，否则会倾斜。
 - **新精灵图先扫空白帧再注册动画**：4×8 切割的 sheet 尾部/多余格可能是全空帧，按满格注册循环动画会周期性播空白帧 = 贴图"时常消失"（毒液僵尸 idle 24 格仅帧 0 有内容的实证）。用 PIL 按格扫 alpha>10 像素数核对注册帧区间；静态待机就注册单帧（0..0）。

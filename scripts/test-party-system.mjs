@@ -197,6 +197,7 @@ const lunaArchive = companionConfigData.default.companions.find(a => a.id === 'm
 const lunaC = new Companion(lunaArchive);
 check('露娜初始魔法 600', lunaC.data.maxMp === 600, `maxMp ${lunaC.data.maxMp}`);
 check('露娜初始魔法值满', lunaC.data.mp === lunaC.data.maxMp);
+check('露娜无装备基础魔攻 25（int×1.5+wis×0.5，与玩家对齐）', lunaC.data.matk === 25, `matk ${lunaC.data.matk}`);
 check('消耗品设置默认启用+阈值', lunaC.consumableSettings.enabled === true
     && lunaC.consumableSettings.hpThreshold === 0.3 && lunaC.consumableSettings.mpThreshold === 0.25);
 check('露娜初始火球', !!lunaC.skills.fireball);

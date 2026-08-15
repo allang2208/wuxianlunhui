@@ -1,0 +1,9 @@
+{
+  "elevation": 30,
+  "primitives": [
+    { "type": "cylinder", "radius": 0.30, "depth": 4.2, "pos": [0.5, 0, 2.0], "rot": [0, 14, 0] },
+    { "type": "sphere", "radius": 1.4, "pos": [1.7, 0, 4.3] },
+    { "type": "sphere", "radius": 1.0, "pos": [2.6, 0.2, 3.8] },
+    { "type": "sphere", "radius": 0.8, "pos": [1.0, -0.1, 5.2] }
+  ]
+}

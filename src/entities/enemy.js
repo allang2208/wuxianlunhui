@@ -39,6 +39,19 @@ import { loadImage } from '../utils/image-loader.js';
                 // 防止旧配置中 speed 写成 0.2 这类相对值导致完全不动；
                 // 显式配置 0 表示站桩单位（如首领"集合体"），不再强制改 45
                 if (this.speed > 0 && this.speed < 1) this.speed = 45;
+                // 全局怪物移速倍率（2026-08-15：全部模式怪物普通移动 -25%）：
+                // 只缩放 speed/maxSpeed/_baseSpeed 常规移动链路；冲锋/扑击等攻击位移
+                // （_updateLunge 等）与击退不受影响；站桩单位（speed=0）天然排除。
+                const globalSpeedMul = defaults.globalSpeedMultiplier ?? 1;
+                if (globalSpeedMul !== 1 && this.speed > 0) {
+                    this.speed = Math.round(this.speed * globalSpeedMul * 100) / 100;
+                    // time-agent 等在运行时回读 this.config.speed 的怪类也要拿到缩放值；
+                    // 浅拷贝避免污染共享 enemyConfigData 单例
+                    if (typeof config.speed === 'number' && config.speed > 0) {
+                        config = { ...config, speed: this.speed };
+                        this.config = config;
+                    }
+                }
                 this.maxSpeed = this.speed;
                 this._rangedDamageReduction = config.rangedDamageReduction ?? 0;
                 this.accel = config.accel ?? defaults.accel ?? 0.7;
@@ -324,20 +337,42 @@ import { loadImage } from '../utils/image-loader.js';
             _findNearestPlayer(entities) {
                 let nearestPlayer = null;
                 let nearestDist = Infinity;
+                // A 移动（2026-08-15）：防守怪最终目标仍是建筑；沿途交战半径内的
+                // 玩家/侍从优先锁定，建筑作任意距离兜底（无交战目标时继续推进基地）。
+                // 注意模式闸门是 _preferDefenseTargets 而非交战半径——半径未配置时
+                // 保持旧行为（只锁建筑），避免防守怪转追玩家。
+                const defenseMode = !!this._preferDefenseTargets;
+                const engageRange = defenseMode ? (this._engageHostileRange ?? 0) : 0;
+                let nearestStructure = null;
+                let structureDist = Infinity;
                 const arr = entities && entities.values ? Array.from(entities.values()) : entities;
                 if (!arr) return { entity: null, distance: Infinity };
                 for (const e of arr) {
                     if (e && e._faction === 'player' && e.active) {
-                        // 防守模式（世界-122 进攻波次）：只锁定基地/防御塔
-                        if (this._preferDefenseTargets && !e._isDefenseStructure) continue;
                         const dx = e.x - this.x;
                         const dy = e.y - this.y;
                         const d = Math.sqrt(dx * dx + dy * dy);
+                        if (defenseMode && !e._isDefenseStructure) {
+                            // 沿途交战目标：仅交战半径内有效（未配置则保持旧行为跳过）
+                            if (engageRange && d <= engageRange && d < nearestDist) {
+                                nearestDist = d;
+                                nearestPlayer = e;
+                            }
+                            continue;
+                        }
+                        if (defenseMode) {
+                            // 防守结构（基地/防御塔/掩体）：任意距离兜底
+                            if (d < structureDist) { structureDist = d; nearestStructure = e; }
+                            continue;
+                        }
                         if (d < nearestDist) {
                             nearestDist = d;
                             nearestPlayer = e;
                         }
                     }
+                }
+                if (defenseMode && !nearestPlayer && nearestStructure) {
+                    return { entity: nearestStructure, distance: structureDist };
                 }
                 return { entity: nearestPlayer, distance: nearestDist };
             }

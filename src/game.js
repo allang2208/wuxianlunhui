@@ -37,7 +37,7 @@ import { CombatSystem } from './systems/combat-system.js';
 import { CONFIG } from './config/config.js';
 import { TargetDummy } from './entities/target-dummy.js';
 import { Player } from './entities/player.js';
-import { BlackWolf, ZombieDogEnemy } from './entities/enemy-types.js';
+import { BlackWolf, createZombieDog } from './entities/enemy-types.js';
 import { ZombieWizard } from './entities/enemy-types/zombie-wizard.js';
 import { Mutant3 } from './entities/enemy-types/mutant-3.js';
 import { SpitterZombie } from './entities/enemy-types/spitter-zombie.js';
@@ -754,16 +754,13 @@ export const Game = {
         const origin = (Renderer && Renderer._getSceneOrigin) ? Renderer._getSceneOrigin() : (
             GAME_CONFIG.scenes?.mainHub?.origin || { x: 3825, y: 1886 }
         );
-        const zombieDogCfg = enemyConfigData.zombieDog || {};
-        // [FIX] 主城测试犬不再硬编码攻击/速度/碰撞等属性，直接复用 zombieDog 配置，
-        // 仅保留较高的 80 HP 作为测试目标。
-        const dog = new ZombieDogEnemy(origin.x + 250, origin.y + 120, {
-            ...zombieDogCfg,
+        // 主城测试犬：统一走 createZombieDog 共享工厂（2026-08-15），
+        // 仅保留较高的 80 HP 作为测试目标 + 永久警戒 AI 覆盖。
+        const dog = createZombieDog(origin.x + 250, origin.y + 120, {
             name: '僵尸犬',
             hp: 80, maxHp: 80,
-            showWeapon: false,
             _alertRange: Infinity,
-            ai: { ...(zombieDogCfg.ai || {}), aggroRange: 9999, pacingRange: 0, loseTimeout: 999999 }
+            ai: { aggroRange: 9999, pacingRange: 0, loseTimeout: 999999 }
         });
         this.entities.set('enemy_main_zombie_dog', dog);
     },
@@ -785,11 +782,9 @@ export const Game = {
                 loseTimeout: 999999
             }
         });
-        wizard._createZombieDog = (x, y) => new ZombieDogEnemy(x, y, {
-            ...enemyConfigData.zombieDog,
+        wizard._createZombieDog = (x, y) => createZombieDog(x, y, {
             name: '僵尸犬',
             hp: 80, maxHp: 80,
-            showWeapon: false,
             ai: { aggroRange: 9999, pacingRange: 0, loseTimeout: 999999 }
         });
         this.entities.set('enemy_main_zombie_wizard', wizard);
@@ -812,11 +807,9 @@ export const Game = {
                 loseTimeout: 999999
             }
         });
-        mutant._createZombieDog = (x, y) => new ZombieDogEnemy(x, y, {
-            ...enemyConfigData.zombieDog,
+        mutant._createZombieDog = (x, y) => createZombieDog(x, y, {
             name: '僵尸犬',
             hp: 80, maxHp: 80,
-            showWeapon: false,
             ai: { aggroRange: 9999, pacingRange: 0, loseTimeout: 999999 }
         });
         this.entities.set('enemy_main_mutant3', mutant);
@@ -1261,6 +1254,11 @@ if (Input.mouse.leftPressed) {
             for (const key of dropKeysToDelete) {
                 this.entities.delete(key);
             }
+        }
+
+        // 世界-122：防御塔悬停金色轮廓追踪（每帧；命中盒=整塔矩形，2026-08-15）
+        if (DefenseSystem && DefenseSystem.active && typeof DefenseSystem.updateHover === 'function') {
+            DefenseSystem.updateHover(Input.mouse.x, Input.mouse.y);
         }
 
         // ===== 空间分区重建：必须在实体/战斗/AI/投射物更新前完成 =====
