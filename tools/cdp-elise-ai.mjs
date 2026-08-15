@@ -52,6 +52,20 @@ const ev = async (expression) => {
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 await send('Runtime.enable');
 
+await send('Runtime.enable');
+ws.onmessage = (ev) => {
+    const m = JSON.parse(ev.data);
+    if (m.id && pending.has(m.id)) { pending.get(m.id)(m); pending.delete(m.id); return; }
+    if (m.method === 'Runtime.consoleAPICalled') {
+        const txt = (m.params.args || []).map(a => a.value ?? a.description ?? '').join(' ');
+        if (/error|Error|elise/i.test(txt)) console.log('[page]', txt.slice(0, 200));
+    }
+    if (m.method === 'Runtime.exceptionThrown') {
+        const d = m.params.exceptionDetails;
+        console.log('[page-exc]', (d.exception?.description || d.text || '').slice(0, 300));
+    }
+};
+
 console.log('boot:', await ev(`(async () => {
   const sleep = (ms) => new Promise(r => setTimeout(r, ms));
   let t0 = Date.now();
@@ -60,7 +74,7 @@ console.log('boot:', await ev(`(async () => {
   t0 = Date.now();
   while (!(window.Game.player && window.__phaserScene)) { if (Date.now()-t0>60000) return 'no scene'; await sleep(400); }
   await sleep(1500);
-  return 'ready';
+  return 'ready: ' + document.title + ' / hasGame=' + !!window.Game + ' / scene=' + (window.__phaserScene ? 'y' : 'n');
 })()`));
 
 console.log('招募+初始:', await ev(`(async () => {
