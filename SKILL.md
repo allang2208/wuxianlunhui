@@ -1265,14 +1265,15 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
 教训：上一版「AI 直出大理石 + 祭坛式建模」用户验收不过，这版「采样祭坛贴图 + 立方体底座」
 一次通过——核心视觉有现成素材时，先采样再考虑出图。
 
-**宝箱（主神空间仓库 NPC，2026-08-16）**：主神空间「仓库」NPC 贴图实为**打开状态宝箱**
+**宝箱（主神空间仓库 NPC，2026-08-16）**：主神空间「仓库」NPC 贴图实为宝箱
 （`warehouse.png` == `chest_opened.png`）。**视角铁律：原版 chest_closed/opened 是
 2:1 等距菱形（尖顶-宽中-尖底，轮廓分析确认），建模必须 elevation 30 + azimuth 45**，
-不能用正面平视（曾用 5°/15° 正面均被用户退回）。**材质从原图提取**：chest_body_tex
-（内容 55~85% 横带，米白浅木 182,170,156）+ chest_lid_tex（5~30% 盖内 214,208,198），
-不程序化生成；结构 = 箱体 + 后仰开盖（lid 材质）+ 发光开口（宝藏光）+ 铁箍/锁。
-入库紧身裁剪 684×581，NPC sprite `size:180 / sizeH:153 / footOffsetY:77`，
-clickArea 180×153。教训：先做原图轮廓/材质分析再建模（角度与材质双对齐）。
+不能用正面平视（曾用 5°/15° 正面均被用户退回）。**造型铁律：下方立方体箱身 +
+上方放倒半圆柱拱盖**（render-factory-real.py 新增 cylinder 图元 = 半圆柱，
+保留 z≥0 上拱、底平贴箱顶）；**材质从原图提取**：chest_body_tex（内容 55~85% 横带，
+米白浅木 182,170,156），不程序化生成；铁箍/锁用 demon_iron_tex。
+入库紧身裁剪 674×626，NPC sprite `size:180 / sizeH:167 / footOffsetY:84`，
+clickArea 180×167。教训：先做原图轮廓/材质分析再建模（角度与造型双对齐）。
 
 ---
 

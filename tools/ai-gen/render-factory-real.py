@@ -132,6 +132,24 @@ def make_prism(L, W, H):
     return o
 
 
+def make_half_cylinder(L, R, segments=32):
+    """放倒的半圆柱（拱形盖）：轴沿 X，保留 z>=0 的上拱，底面平切在 z=0（贴箱体顶面）。"""
+    bpy.ops.mesh.primitive_cylinder_add(radius=R, depth=L, vertices=segments)
+    o = bpy.context.active_object
+    o.rotation_euler = (0, math.radians(90), 0)  # 轴 Z -> X
+    bpy.context.view_layer.update()
+    bpy.ops.object.transform_apply(rotation=True, scale=True)
+    import bmesh
+    bpy.ops.object.mode_set(mode="EDIT")
+    bm = bmesh.from_edit_mesh(o.data)
+    for v in list(bm.verts):
+        if v.co.z < -0.001:
+            bm.verts.remove(v)
+    bmesh.update_edit_mesh(o.data)
+    bpy.ops.object.mode_set(mode="OBJECT")
+    return o
+
+
 def make_textured_mat(name, img, roughness=0.85, metallic=0.0, bump_strength=0.25):
     mat = bpy.data.materials.new(name)
     mat.use_nodes = True
@@ -230,7 +248,12 @@ def build_scene(spec, slide):
         rot_z = rot[2]
     for i, p in enumerate(spec["primitives"]):
         t = p.get("type", "box")
-        if t == "prism":
+        if t == "cylinder":
+            w, d, h = p["size"]
+            o = make_half_cylinder(w, d)
+            o.scale = (1, 1, h / d if d else 1)
+            o.location = (0, 0, 0)
+        elif t == "prism":
             w, d, h = p["size"]
             o = make_prism(w, d, h)
         else:
@@ -247,7 +270,9 @@ def build_scene(spec, slide):
             bevel_corners(o, amount=float(p["bevel"]),
                           segments=int(p.get("bevelSegments", 3)),
                           top_only=bool(p.get("bevelTopOnly", False)))
-        box_full_uv(o)
+        # 圆柱/半圆柱保持默认柱面 UV（box_full_uv 只适合轴对齐盒面）
+        if t != "cylinder":
+            box_full_uv(o)
         if p.get("material") == "lid":
             o.data.materials.append(lid_mat)
         elif p.get("material") == "roof":
