@@ -32,6 +32,7 @@ check('移动速度 = 80', hamsterCfg.ai.walkSpeed === 80 && hamsterCfg.ai.runSp
     `walkSpeed=${hamsterCfg.ai.walkSpeed}`);
 check('攻击间隔 = 2000ms / 伤害 = 100', hamsterCfg.ai.attackInterval === 2000 && hamsterCfg.ai.attackDamage === 100);
 check('采矿/攻击距离 = 50px', hamsterCfg.ai.miningRange === 50, `miningRange=${hamsterCfg.ai.miningRange}`);
+check('贴图显示尺寸 = 99（132 × 75%）', hamsterCfg.displaySize === 99, `displaySize=${hamsterCfg.displaySize}`);
 check('隐藏背包默认容量 = 500', hamsterCfg.ai.backpackCapacity === 500,
     `capacity=${hamsterCfg.ai.backpackCapacity}`);
 check('idle 动画 = 1 帧', hamsterCfg.animations.idle.frameCount === 1 && hamsterCfg.animations.idle.frames[0] === 0);
@@ -111,6 +112,11 @@ check('死亡态 = dying', /_animState = 'dying'/.test(entSrc));
 check('实体隐藏背包字段 + 死亡丢失携带能量', /_energyCarried = 0/.test(entSrc)
     && /_energyCapacity = this\.aiConfig\?\.backpackCapacity \|\| 500/.test(entSrc)
     && /丢失 \$\{this\._energyCarried\} 能量/.test(entSrc));
+check('实体碰撞体积缩小 25%（groundRadius 19.5 / bodyHeight 97.5 / size 63）',
+    /this\.groundRadius = Math\.round\(26 \* 0\.75 \* 10\) \/ 10/.test(entSrc)
+    && /this\.collisionRadius = this\.groundRadius/.test(entSrc)
+    && /this\.bodyHeight = Math\.round\(130 \* 0\.75 \* 10\) \/ 10/.test(entSrc)
+    && /this\.size = Math\.round\(84 \* 0\.75\)/.test(entSrc));
 check('实体 addMinedEnergy 直接入包（上限=容量）', /addMinedEnergy\(amount\)/.test(entSrc)
     && /this\._energyCarried \+= take/.test(entSrc));
 
@@ -144,6 +150,11 @@ check('GameScene 行走两段式 = 起步完整 walking → 循环第 3~12 帧',
 check('GameScene 移动始终朝向移动方向（walk 按 vx，不倒退）',
     /member\._isHamsterMiner && moving/.test(gsSrc) && /faceRight = member\.vx > 0/.test(gsSrc)
     && /_animState === 'walk' \|\| Math\.abs\(member\.vx\) > 5/.test(gsSrc));
+check('GameScene 名称/血条按侍从精灵锚定（贴图缩放自动跟随）',
+    /this\._companionSprites\[entity\.id\]/.test(gsSrc)
+    && /sprite\.displayHeight \* 0\.5/.test(gsSrc));
+check('GameScene 中立标签实体跳过 HUD 名字（防建筑重复名字）',
+    /this\._neutralSprites && this\._neutralSprites\.has\(entity\)/.test(gsSrc));
 check('GameScene 动态深度含友方单位', /window\.Game\.friendlyUnits/.test(gsSrc));
 
 const bootSrc = fs.readFileSync(path.join(ROOT, 'src/phaser/scenes/BootScene.js'), 'utf-8');

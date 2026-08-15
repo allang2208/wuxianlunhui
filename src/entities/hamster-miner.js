@@ -32,8 +32,12 @@ export class HamsterMiner extends Companion {
         this._enemyTargetable = true; // 防守怪可锁定（露娜无此标记，保持不拉仇恨）
         this.x = x;
         this.y = y;
-        this.collisionRadius = this.groundRadius || 26;
-        this.size = 84; // distanceToEntityShape 兜底
+        // 贴图/碰撞体积缩小 25%（2026-08-15）：显示 132→99（displaySize 由配置驱动），
+        // 碰撞 groundRadius 26→19.5、bodyHeight 130→97.5、size 84→63
+        this.groundRadius = Math.round(26 * 0.75 * 10) / 10;      // 19.5
+        this.collisionRadius = this.groundRadius;
+        this.bodyHeight = Math.round(130 * 0.75 * 10) / 10;       // 97.5
+        this.size = Math.round(84 * 0.75);                        // 63（distanceToEntityShape 兜底）
         this.hittable = true;
         this.hitFlash = 0;
         // 隐藏背包（2026-08-15）：采矿自动装填能量，默认 500，仓鼠小屋「背包扩容」每级 +100
