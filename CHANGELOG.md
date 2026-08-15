@@ -1,14 +1,71 @@
 # 变更日志
+### 对话：世界122 防守模式波次预算制重构 + 防守怪 25% 经验（2026-08-15）
+- **波次预算制配波（用户确认方案）**：`defense-system.js` 废弃"只数公式 + 单一加权随机池"，
+  改为威胁预算制——每波预算 = `waveBudgetBase 26 × 1.15^(n-1)` TP，怪物按角色池 TP 成本
+  （僵尸3/矿工4/胖5/狗3/狼5/喷吐6/蝇群2）从预算中抽取；`wavePlan` 十波角色解锁时间表
+  （尸潮→+坦克→犬袭→酸液→空袭→重压→混合→精英卫队→总攻预演→决战），波次公告带主题名。
+- **硬约束（防脸黑）**：单一类型 ≤ 单波 40%（解锁类型 <3 时自动放宽到 1/类型数，否则约束
+  不可满足）；远程+空中 ≤ 预算 30%（杜绝喷吐 930 射程白嫖塔局）；快速 ≤ 预算 35%；
+  每波类型数 ≥ min(3, 解锁类型数)；角色取整浪费的 TP 由炮灰兜底填充贴齐只数曲线。
+- **精英/领主脚本化**：30s/90s 现实时间计时器停用（与清怪速度脱钩导致堆叠/加班怪），
+  改由 wavePlan 固定编组（W3/W6/W8/W9 精英、W5 迷你领主 lordMul 0.6、W8 领主、W10 双领主+双精英），
+  血量仍走 eliteHpMul/lordHpMul × 波次成长；旧配置字段保留兼容未删。
+- **防守怪击杀经验 25%（用户要求）**：`damageable-entity.js` onDeath 新增 `_defenseMonster`
+  分支——地面金币掉落仍关闭（金币由 DefenseSystem 结算直接进背包不变），经验按原值 25% 发放
+  （`Math.max(1, floor(base × 0.25))`，保留压级/越级 tag），侍从队 PartySystem 同额。
+- **验证**：`_composeWave` 100 次抽样模拟（W1=7只纯近战 / W10≈23只+2精英+2领主，
+  远程+空中只数占比 ≤30%、快速 ≤33%、类型多样性达标）；node --check 两文件通过；
+  test-energy 18/18、test-regressions 179/0、test-monster-speed 9/0。
+  注意：test-config-integrity 报 energy_node/energy_node_depleted 贴图缺失为并行会话在途的
+  既有问题，与本次改动无关。备份：backup/v2026-08-15_08-22-51。
+
+### 对话：树木二轮重做——写实高瘦五树种 + 场景加载随机散布特性（2026-08-15 六轮）
+- **画风重做（v1 卡通风验收不合格）**：5 棵全部改为写实风格 + 高瘦形态，树种区分差异——
+  白杨（柱形窄冠）/橡树（高冠粗干）/白桦（白皮轻冠）/枯树（无叶枝干）/松树（层叠针叶）。
+  管线不变（白模 30° 深度 + flux2-dev-depth），提示词改写实锚定（photograph of a real tree +
+  自然低饱和 + 树皮/枝叶细节；负面词注：flux2 类型不吃 negative，靠正向提示词锁定）。
+  新规格 `_blockout_specs/tree_iso2_<species>.json`；生图 `gen-tree-iso2-assets.py`；
+  入库 `process-tree-iso2-assets.py`（BiRefNet 进程内合成）。键位映射：poplar→tall /
+  oak→bushy / birch→twin / dead→wind / pine→tiered；编辑器名同步更新（白杨·高瘦 等）。
+  旧版备份：v1 等距版在 `.bak-tree-iso1-20260815/`，更早平视版在 `.bak-tree-20260815/`。
+- **场景加载随机散布（正式特性）**：`_loadScene8` 新增 `_scatterTreesScene8`——
+  加载时全图随机散布 100 棵（`scenes.scene8.treeScatter` 配置：enabled/count/minDist/
+  scaleJitter/bounds/exclude 可调）；排除基地房/玩家出生点/能源点/刷怪点；走 isoVisuals +
+  rebuildIsoCollision 真实碰撞；缩放 = obstacleH/geo.h × (1±0.1)。
+  **调用顺序铁律**：必须在 DefenseSystem.setup 之前调用（rebuildIsoCollision 只保留门闸
+  isoSegments，掩体墙段在 setup 时才注册）。
+- **CDP 探针环境坑（本轮实踩，SKILL 铁律再强化）**：HMR/整页刷新后页面模块带 `?t=` 版本，
+  探针裸 `import('/src/...')` 会拿到**空单例副本**（游戏实例 100 棵树、探针读到 0）——
+  断言一律优先用 window 全局（window.Game/SceneManager/__phaserScene/DefenseSystem），
+  或按 performance 资源表的真实 URL import；长会话探针要对「页面被 HMR 刷新打回主场景」
+  做韧性重导航（currentScene 校验）。
+- **验证**：scene8 加载即散布（页面自身 console 证实 100 棵、掩体 14 段完好）；
+  实机截图（scatter-feature/tree-realistic-*）五树种写实落地、接地/层次/分布正常；
+  eslint 0 error；npm test 全绿；vite build ✅。
+- **注意（并行会话在途）**：scene8 地砖 swampbrick_new1 缺失走回退地板（控制台有警告），
+  与本批无关，待其会话收尾确认。
+
+### 对话：平滑弧形刀光暂停（2026-08-16）
+- 用户反馈当前表现仍偏僵硬，暂时取消游戏内显示。
+- `sword.arc.enabled = false`；`SwordArcTrail` 代码与配置保留，后续重做直接改回 true。
+- 版本：0.377。
+
+
+### 对话：弧形刀光柔化——透明度淡出 + 粒子（2026-08-16）
+- 去掉整条 Ribbon 单色填充，改为逐段四边形绘制；
+- 每段按生命进度执行 fadeIn/fadeOut 透明度曲线；
+- 剑身衔接端用 `headWidthMul: 0.25` 收窄，尾端归零；
+- 段间补圆点，边缘撒 `particleCount` 个粒子；
+- 消除箭头/菱形和生硬拼接感。
+- 版本：0.377。
 
 
 ### 对话：弧形刀光通用性修复（2026-08-16）
 - 排查确认 `SwordArcTrail` 没有 `scene8/main` 场景分支，也不是隐藏代码问题。
 - 世界-122 不可见主因是亮色地面让半透明白色弧光对比度不足。
-- 修复：新增 `outlineEnabled` 黑色轮廓底层；二轮继续加强对比度——
-  outlineAlpha 0.16→0.3、outlineHalfWidth 0.58→0.68、alphaCore 0.52→0.8、
-  alphaMid 0.24→0.4、alphaOuter 0.14→0.22、lifeMs 180→220、maxCount 20→28；
-  刀光深度从剑下一层改为剑上一层（只要剑可见，刀光必然可见）；
-  不写场景判断，所有地图通用。
+- 修复：`SwordArcTrail` 不再依赖 `worldEffectsGroup` 可见性，直接挂在场景显示列表，
+  仅地图选择界面按 `_mapModeActive` 隐藏；黑色轮廓底层 + 加强 alpha + 深度剑上一层，
+  确保主神空间/世界-122 都可见。
 - 版本：0.377。
 
 

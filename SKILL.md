@@ -24,6 +24,7 @@
 - 黑狼动画升级（2026-08-06，H3 全动作管线落地）
 - 阶段性进度总结（2026-08-04：生图标准工作流 + 提示词固化定稿）
 - 阶段性进度总结（2026-08-04 二轮：生图入口优先级调整 + FLUX.2 dev Depth ControlNet 视角锁定）
+- 树木等距素材管线（2026-08-15 两轮定稿：白模 30° 深度锁 → flux2-dev-depth → BiRefNet 进程内合成，新树/植被一律按此开展）
 
 **3. 玩家角色与武器动画**
 - 玩家角色动画标准工作流（射击/近战新动作一律按此开展，2026-07-26 定稿）
@@ -40,7 +41,7 @@
 - 二段攻击（attack_sword_2）双手横挥优化（2026-08-03）
 - 冲刺攻击（dash_attack）跟手优化（2026-08-03 初版；2026-08-16 dashHand 剑柄锚手定稿）
 - 挥砍剑气轨迹（SwordAuraTrail，2026-08-16 已停用，代码保留）
-- 平滑弧形刀光（SwordArcTrail，2026-08-16 重做）
+- 平滑弧形刀光（SwordArcTrail，2026-08-16 已暂停，代码保留）
 - 交互式开发工具（DevTool）与攻击动画插帧系统
 
 **4. 武器与装备系统**
@@ -78,12 +79,14 @@
 
 **7. 世界-122 防守地图**
 - 世界-122 防守地图（雏形，2026-08-04）
+- 世界-122 迭代沉淀（2026-08-15：塔死角排查/塔整塔命中+悬停轮廓+神经芯片面板/基地退回/树木散布）
 - 后续打磨方向（未做）
 
 **8. AI 寻路、碰撞与移动**
 - 智能寻路系统（参考《环世界》PathManager）
 - 寻路性能优化（2026-08-03 落地，改寻路代码前必读）
 - 大场景 AI 索敌 + 寻路（2026-08-08 定稿，世界-122 驱动、机制全局生效）
+- 防守怪物 A 移动 + 全局移速倍率（2026-08-15：交战半径沿途攻击/脱离滞回/免滞回转火；enemyDefaults.globalSpeedMultiplier）
 - 常见陷阱：isReachable 步数限制导致路径计算失败
 - 伪 3D 碰撞重构记录（进行中）
 - 树木碰撞体优化（大怪物卡树问题）
@@ -1204,6 +1207,29 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
 
 ---
 
+### 树木等距素材管线（2026-08-15 两轮定稿，新树/植被素材按此开展）
+
+**管线（白模深度锁视角 → 生图 → 抠图入库）**
+- 白模：`_blockout_specs/tree_iso2_<species>.json`（trunk 圆柱 + 树冠球/层叠圆柱，
+  **elevation 30** = 防御塔/掩体同视角；billboard 资产 ≤12°）→ `blender-depth-render.py`
+  出深度图（输出走 %TEMP% ASCII 路径）。
+- 生图：`gen-tree-iso2-assets.py`（flux2-dev-depth @5080，24 步 cfg 3.5）。
+- **画风锚定**：写实 = `photograph of a real tree` + 自然低饱和 + 树皮/枝叶细节
+  （flux2 类型不吃 negative 词，全靠正向锁定；v1 卡通风被用户退回——卡通/写实分歧
+  必须首轮小样验收）。5 变体用**树种区分法**（白杨/橡树/白桦/枯树/松树）——同一形态族
+  （高瘦）+ 物种差异，比形状差异更自然。
+- **抠图铁律**：`ai-asset.py cutout` 子命令经 rmbg_cutout CLI 只出灰度掩膜（会把掩膜当
+  成品入库）；入库必须进程内 `predict_alpha` 合成 RGBA（rebuild-h3-birefnet 同款），
+  且整个进程跑 ComfyUI venv python（torch + ComfyUI-RMBG）。
+- 入库：`process-tree-iso2-assets.py`（紧身裁剪 + 底部树干保留检查 + 旧图备份
+  `.bak-tree-*` + 同名键覆盖 + 打印 ISO_WALL_GEO 注册值）。
+- **摆放缩放**：isoVisuals 件显示缩放 = `obstacleH / geo.h`（摆墙编辑器口径）；裸推 piece
+  不给 scaleX 会按贴图原尺寸放大数倍（实机探针实踩）。
+- 工具链：`gen-tree-iso2-assets.py` / `process-tree-iso2-assets.py` /
+  `_blockout_specs/tree_iso2_*.json`；v1 等距卡通风版备份 `.bak-tree-iso1-20260815/`。
+
+---
+
 ## 3. 玩家角色与武器动画
 
 ### 玩家角色动画标准工作流（射击/近战新动作一律按此开展，2026-07-26 定稿）
@@ -1670,6 +1696,9 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
 
 ### 平滑弧形刀光（SwordArcTrail，2026-08-16 重做）
 
+> **状态（2026-08-16）**：当前平滑弧形刀光已暂停——`sword.arc.enabled = false`。
+> 代码与配置保留，后续重新启用时改回 `true` 即可。
+
 - **旧剑气已停用**：`sword.aura.enabled = false`；不再使用短线/贴图残影方案。
 - **新方案**：`src/effects/sword-arc-trail.js`
   1. 连续采样剑的视觉中心与显示尺寸；
@@ -1680,12 +1709,15 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
 - **配置**：`sword.arc`
   （enabled / intervalMs / lifeMs / maxCount / tailLength / trailBackOffset /
   minMoveDistance / color / coreHalfWidth / midHalfWidth / outerHalfWidth /
-  alphaOuter / alphaMid / alphaCore / outlineEnabled / outlineColor / outlineAlpha / outlineHalfWidth / smoothSteps）。
+  alphaOuter / alphaMid / alphaCore / outlineEnabled / outlineColor / outlineAlpha / outlineHalfWidth / headWidthMul / fadeInRatio / fadeOutRatio / particleEnabled / particleCount / particleAlpha / smoothSteps）。
 - **通用性排查结论（2026-08-16）**：新效果没有 `scene8/main` 之类的场景分支，代码是通用的。
-  世界-122 看不到的主因仍是亮色地面把半透明白色弧光洗掉；修复不是按场景打补丁，而是加一层
-  黑色轮廓底层（`outlineEnabled`）并提高核心层 alpha，任何背景都可见。
+  世界-122 看不到时，先排除了组可见性：`SwordArcTrail` 不再挂 `worldEffectsGroup`，而是直接
+  使用场景 Graphics，并只在地图选择界面按 `_mapModeActive` 显式隐藏；同时加黑色轮廓底层提高对比度。
 - **深度（2026-08-16 二轮）**：刀光从剑下一层改为剑上一层（`weaponSprite.depth + 1`），
   保证剑可见时刀光一定可见；外层宽度仍用 `outerHalfWidth` 控制，避免过大。
+- **柔化拼接（2026-08-16 三轮）**：不再整条 Ribbon 单色填充，改为逐段四边形填充，
+  每段按生命进度做 `fadeInRatio/fadeOutRatio` 透明度曲线；与剑衔接端用 `headWidthMul` 收窄，
+  尾端宽度归零；段间补小圆点，并沿边缘撒 `particleCount` 个淡出粒子，消除箭头/菱形硬边。
 - **调参**：想让弧线更圆滑调大 `smoothSteps`；想更长调大 `lifeMs`/`tailLength`；
   想更亮调大 `alphaCore/alphaMid`；外层宽度不要超过剑宽太多，`outerHalfWidth` 建议 ≤0.6。
 - **经验**：贴图残影线很难做平滑刀光，轨迹 Ribbon + Catmull-Rom + 多层宽度叠加更接近
@@ -4301,33 +4333,17 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
   `render-defense-tower-frames.py` 第 4 参传贴图覆盖全部件 → 重渲染 48 帧；
   几何不变时标定零变化（帧尺寸/枢轴不变）。
 
-### 世界-122 五项迭代沉淀（2026-08-15 三轮）
+### 世界-122 迭代沉淀（2026-08-15：塔死角排查/基地退回/塔 UI/树木散布）
+
+> 沉底归位：僵尸犬统一工厂 → 第 9 区「怪物渲染图层与构造铁律」#3；怪物 A 移动 +
+> 全局移速倍率 → 第 8 区；树木素材管线（等距重做 + 写实 v2 + 抠图/摆放坑）→ 第 2 区；
+> CDP 探针坑 → 第 8 区大场景 AI 索敌的 CDP 探针坑条目。
 
 **防御塔死角排查方法论（结论：无功能死角）**
 - 探针驱动排查（`tools/cdp-tower-close-range.mjs` / `close-range2.mjs`）：塔索敌/出弹/命中
   三段插桩 + 距离×方向矩阵（60~400px × 东南西北 × 空旷/菱形房内）+ 移动目标途经 + 霰弹。
   结果：全距离全方向命中——贴身怪被碰撞半径推到 ~67-79px 仍正常命中。
 - 若再报「死角」：先跑探针复现再改代码；历史真凶是 08-14 前的掩体挡弹道（已修）。
-
-**僵尸犬统一工厂**
-- `enemy-types.js` `createZombieDog(x, y, overrides)`：类构造器合并 enemyConfigData +
-  showWeapon 默认 false；工厂只做 ai 深合并。地牢/主城/召唤钩子全部走它（只传场景覆盖）。
-- 教训：怪类无配置构造必须自带 enemyConfigData 合并，否则落「测试敌人」兜底名。
-
-**全局怪物移速倍率**
-- `data/combat-config.json` `enemyDefaults.globalSpeedMultiplier`（当前 0.75）→ Enemy 构造器
-  单点缩放 speed/maxSpeed/_baseSpeed；speed=0 站桩怪天然排除；浅拷贝 config 同步
-  config.speed（time-agent 运行时回读路径）；冲锋/扑击/击退不在本链路。
-
-**怪物 A 移动（防守模式 RTS 语义）**
-- 三件套：`DEFENSE_CONFIG.spawn.engageHostileRange`（320）→ `_spawnMonster` 下发
-  `monster._engageHostileRange`；`Enemy._findNearestPlayer`（交战单位优先 + 建筑兜底）+
-  `PerceptionSystem._isValidTarget`（单位仅交战半径内有效）。
-- 闭环两补丁（探针实机暴露）：① 脱离滞回——当前目标是单位且超出半径×1.3 即弃
-  （原逻辑有视线即永久锁定，会被无限拉走）；② 免滞回转火——拆建筑途中单位进圈直接切换
-  （否则 1.3 倍评分滞回挡住转火）。
-- 探针环境坑：headless 初始状态玩家无敌（直接 takeDamage 也不掉血），交战掉血类断言
-  不可用；用目标锁定/追击距离/转火断言替代。
 
 **基地核心重建尝试（2026-08-15 用户验收不合格，已退回）**
 - 尝试路径：Blender 祭坛式建模（30° 等距与塔/掩体同口径）+ 本地 ComfyUI 大理石贴图
@@ -4347,14 +4363,13 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
   面板容器 `max-height:88vh + overflow-y:auto` 防小窗溢出。
 - 验证工具：`tools/cdp-tower-panel.mjs`（命中矩阵 + CDP 真实鼠标悬停 + 面板截图）。
 
-**树木五变体等距重做（2026-08-15：elevation 12→30，与防御塔同视角）**
-- 管线：`tree_iso_<name>.json` 白模（elevation 30）→ blender-depth-render 深度图 →
-  `gen-tree-iso-assets.py`（flux2-dev-depth 24 步）→ `process-tree-iso-assets.py` 抠图入库。
-- **抠图铁律**：`ai-asset.py cutout` 子命令经 rmbg_cutout CLI 只出灰度掩膜，入库必须进程内
-  `predict_alpha` 合成 RGBA；整个进程跑 ComfyUI venv python（torch + ComfyUI-RMBG）。
-- **摆放缩放**：isoVisuals 件显示缩放 = `obstacleH / geo.h`（编辑器口径）；裸推 piece 不给
-  scaleX 会按贴图原尺寸放大数倍。注册值打印已由 process 脚本自动给出。
-- 替换旧件纪律：同名键覆盖 + 旧图备份 `assets/terrain/.bak-tree-*` + ISO_WALL_GEO 按实测更新。
+**场景树木随机散布特性（2026-08-15 定稿）**
+- `_loadScene8` 里 `_scatterTreesScene8`（配置 `scenes.scene8.treeScatter`：enabled/count/
+  minDist/scaleJitter/bounds/exclude 可调）；排除基地房/玩家出生点/能源点/刷怪点；
+  走 isoVisuals + rebuildIsoCollision 真实碰撞；缩放 = obstacleH/geo.h × (1±0.1)。
+- **调用顺序铁律**：必须在 DefenseSystem.setup 之前调用（rebuildIsoCollision 只保留门闸
+  isoSegments，掩体墙段在 setup 时才注册——树先建碰撞、掩体后注册，顺序反了树没碰撞）。
+- 实机验证工具：`tools/cdp-tree-pure-shot.mjs`（纯 __phaserScene 截图，零模块依赖）。
 
 #### 新障碍物碰撞体 + 图层（2026-08-04 定稿）
 - 掩体/塔入库后必须补 `ISO_WALL_GEO` 注册：`category:'obstacle'` + `editor` 显示名
@@ -4696,6 +4711,11 @@ if (enemy._pathManager) {
   DefenseSystem.active 恒 false）——必须按 resource entries 真实带 `?t=` query 的 URL import
   （__imp 模式，见 tools/cdp-defense-ai-verify.mjs / cdp-defense-audit.mjs）；探针挂 `__v` 的
   页面被 HMR 重载后会失效，工具需 boot()/injectProbe() 函数化 + 失效自动重建。
+  **2026-08-15 补强**：整页刷新后页面模块带 `?t=`，探针裸 import 拿到空单例副本
+  （游戏 100 棵树、探针读 0）——断言一律优先 window 全局（window.Game/SceneManager/
+  __phaserScene/DefenseSystem）或 performance 资源表真实 URL；长会话探针要对「页面被
+  HMR 刷新打回主场景」做韧性重导航（读数前先校验 `sm.currentScene`），且跨调用不得把
+  状态挂 window（刷新即丢，每条 eval 自包含）。
 
 ### 二轮优化口径（2026-08-08：感知降频/局部失效/半径桶/门闸软成本/墙背啃墙）
 - **感知降频**：有活跃目标的怪 PerceptionSystem 100ms tick；无目标怪与战术小队成员每帧不变。
@@ -4712,6 +4732,26 @@ if (enemy._pathManager) {
   attackDistance ?? attackRange×1.15）免 LOS——perception `_checkLineOfSight`、
   combat-system LOS 分支、attack.js `checkTriangleHit` 命中判定**三处必须同口径**，
   漏任何一处墙背出手都会断（P3 回归就是漏了 attack.js）。
+
+### 防守怪物 A 移动 + 全局移速倍率（2026-08-15 定稿）
+
+**A 移动（RTS A 键语义：终极目标基地，沿途攻击任何敌对目标）**
+- 三件套：`DEFENSE_CONFIG.spawn.engageHostileRange`（320）→ `_spawnMonster` 下发
+  `monster._engageHostileRange`；`Enemy._findNearestPlayer`（交战半径内单位优先 +
+  建筑任意距离兜底，模式闸门 `_preferDefenseTargets` 而非半径——半径未配置保持旧行为）+
+  `PerceptionSystem._isValidTarget`（非结构单位仅交战半径内有效）。
+- 闭环两补丁（探针实机暴露）：① 脱离滞回——当前目标是单位且超出半径×1.3 即弃
+  （原逻辑有视线即永久锁定，会被单位无限拉出）；② 免滞回转火——拆建筑途中单位进圈
+  直接切换（否则 1.3 倍评分滞回挡住转火）。
+- 探针环境坑：headless 初始状态玩家无敌（直接 takeDamage 也不掉血），交战掉血类断言
+  不可用；用目标锁定/追击距离/转火断言替代（验证 `tools/cdp-defense-amove.mjs`）。
+
+**全局怪物移速倍率（全部模式通用）**
+- `data/combat-config.json` `enemyDefaults.globalSpeedMultiplier`（当前 0.75）→ Enemy 构造器
+  单点缩放 speed/maxSpeed/_baseSpeed；speed=0 站桩怪（矿洞/墓碑/煮锅/集合体）天然排除；
+  浅拷贝 config 同步 config.speed（time-agent 运行时回读路径，不污染 enemyConfigData 单例）；
+  冲锋/扑击/lunge 攻击位移与击退不在本链路，祭品减速（getTributeMonsterMoveSlowMul）独立叠加。
+- 契约测试：`scripts/test-monster-speed.mjs`（数据契约 + 源码接线，防接线被改没）。
 
 ---
 
