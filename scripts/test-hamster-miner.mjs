@@ -32,13 +32,17 @@ check('移动速度 = 80', hamsterCfg.ai.walkSpeed === 80 && hamsterCfg.ai.runSp
     `walkSpeed=${hamsterCfg.ai.walkSpeed}`);
 check('攻击间隔 = 2000ms / 伤害 = 100', hamsterCfg.ai.attackInterval === 2000 && hamsterCfg.ai.attackDamage === 100);
 check('idle 动画 = 1 帧', hamsterCfg.animations.idle.frameCount === 1 && hamsterCfg.animations.idle.frames[0] === 0);
-check('walking 动画 = 12 帧 [0,11]', hamsterCfg.animations.walk.frameCount === 12
-    && hamsterCfg.animations.walk.frames[0] === 0 && hamsterCfg.animations.walk.frames[1] === 11);
-check('mining 动画 = 19 帧，起步 [0,18] 完整循环 → 循环 [4,18]（第5~19帧）',
+check('walking 两段式 = 起步完整 [0,11] + 循环第3~12帧 [2,11]',
+    hamsterCfg.animations.walk.frameCount === 12
+    && hamsterCfg.animations.walk.startFrames[0] === 0 && hamsterCfg.animations.walk.startFrames[1] === 11
+    && hamsterCfg.animations.walk.startRepeat === 0
+    && hamsterCfg.animations.walk.loopFrames[0] === 2 && hamsterCfg.animations.walk.loopFrames[1] === 11
+    && hamsterCfg.animations.walk.repeat === -1);
+check('mining 动画 = 19 帧，起步 [0,18] 完整循环 → 单次 [4,18]（第5~19帧，repeat 0）',
     hamsterCfg.animations.mining.frameCount === 19
     && hamsterCfg.animations.mining.startFrames[0] === 0 && hamsterCfg.animations.mining.startFrames[1] === 18
     && hamsterCfg.animations.mining.loopFrames[0] === 4 && hamsterCfg.animations.mining.loopFrames[1] === 18
-    && hamsterCfg.animations.mining.startRepeat === 0 && hamsterCfg.animations.mining.repeat === -1);
+    && hamsterCfg.animations.mining.startRepeat === 0 && hamsterCfg.animations.mining.repeat === 0);
 check('dying 动画 = 11 帧 [0,10]，只播一次', hamsterCfg.animations.dying.frameCount === 11
     && hamsterCfg.animations.dying.frames[0] === 0 && hamsterCfg.animations.dying.frames[1] === 10
     && hamsterCfg.animations.dying.repeat === 0);
@@ -70,6 +74,8 @@ check('AI 攻击间隔读取 attackInterval', /this\._attackInterval = this\.cfg
 check('AI 移速读取 walkSpeed', /this\.cfg\.walkSpeed \?\? 80/.test(aiSrc));
 check('AI 采矿/交战共用 mining 态、移动 walk、无节点 idle',
     /_animState = 'mining'/.test(aiSrc) && /_animState = 'walk'/.test(aiSrc) && /_animState = 'idle'/.test(aiSrc));
+check('AI 每次攻击命中置 _miningSwing（渲染层播挥锄）',
+    (aiSrc.match(/_miningSwing = true/g) || []).length >= 2);
 
 // ---- 4. 源码接线：实体受击/死亡/仇恨 ----
 const entSrc = fs.readFileSync(path.join(ROOT, 'src/entities/hamster-miner.js'), 'utf-8');
@@ -82,8 +88,11 @@ check('死亡态 = dying', /_animState = 'dying'/.test(entSrc));
 const gsSrc = fs.readFileSync(path.join(ROOT, 'src/phaser/scenes/GameScene.js'), 'utf-8');
 check('GameScene 渲染友方单位（friendlyUnits）', /_game\.friendlyUnits/.test(gsSrc));
 check('GameScene 支持 mining/dying 动画状态', /st === 'mining'/.test(gsSrc) && /st === 'dying'/.test(gsSrc));
-check('GameScene 采矿不播动画、定格第 4 帧（索引 3）',
-    /setTexture\(miningKey, 3\)/.test(gsSrc) && /sprite\.anims\.stop\(\)/.test(gsSrc));
+check('GameScene 采矿 = 攻击触发播挥锄、间隔定格第 4 帧（索引 3）',
+    /member\._miningSwing/.test(gsSrc) && /miningStartKey/.test(gsSrc)
+    && /setTexture\(miningKey, 3\)/.test(gsSrc));
+check('GameScene 行走两段式 = 起步完整 walking → 循环第 3~12 帧',
+    /hamsterWalk/.test(gsSrc) && /walkStartKey/.test(gsSrc));
 check('GameScene 动态深度含友方单位', /window\.Game\.friendlyUnits/.test(gsSrc));
 
 const bootSrc = fs.readFileSync(path.join(ROOT, 'src/phaser/scenes/BootScene.js'), 'utf-8');

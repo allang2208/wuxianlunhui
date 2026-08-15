@@ -239,6 +239,57 @@ check('恢复后魔法与序列化一致（600 基准 + 每级10）', lunaRestor
     && lunaRestored.data.maxMp === 600 + (lunaC.data.level - 1) * 10, `maxMp ${lunaRestored.data.maxMp}`);
 check('恢复后消耗品设置保留', lunaRestored.consumableSettings && lunaRestored.consumableSettings.enabled === true);
 
+// --- 露娜装备限制：只能法杖（武器）+ 法袍类套装（防具，+魔法攻击力套装） ---
+const lunaRules = lunaC.equipRules || {};
+check('露娜 equipRules 武器限法杖', Array.isArray(lunaRules.weaponTypes) && lunaRules.weaponTypes.includes('staff'),
+    JSON.stringify(lunaRules.weaponTypes));
+check('露娜 equipRules 防具限法袍套装（robe/eclipse/lunar/oracle_robe）',
+    ['robe', 'eclipse', 'lunar', 'oracle_robe'].every(s => lunaRules.armorSets.includes(s)),
+    JSON.stringify(lunaRules.armorSets));
+check('露娜 equipNote 文案', lunaC.equipNote === '只能装备法杖和法袍类装备', lunaC.equipNote);
+const lunaStaff = { name: '学徒长杖', category: 'weapon_melee', weaponType: 'staff', equipSlot: 'weapon' };
+const lunaSword = { name: '生锈长剑', category: 'weapon_melee', weaponType: 'sword', equipSlot: 'weapon' };
+const lunaGun = { name: 'AKM', category: 'weapon_ranged', weaponType: 'akm', isTwoHanded: true, equipSlot: 'weapon' };
+const lunaRobe = { name: '秘法长袍', category: 'armor', equipSlot: 'armor', armorSet: 'robe' };
+const lunaLunarArmor = { name: '苍月法袍', category: 'armor', equipSlot: 'armor', armorSet: 'lunar' };
+const lunaHeavy = { name: '天罡重甲', category: 'armor', equipSlot: 'armor', armorSet: 'tiangang' };
+const lunaPlainArmor = { name: '无套装护甲', category: 'armor', equipSlot: 'armor' };
+const lunaRing = { name: '秘法戒指', category: 'accessory', equipSlot: 'ring1' };
+check('露娜可装备法杖→weapon', lunaC.canEquip(lunaStaff, 'weapon') === true);
+check('露娜禁装备长剑→weapon', lunaC.canEquip(lunaSword, 'weapon') === false);
+check('露娜禁装备枪械→weapon', lunaC.canEquip(lunaGun, 'weapon') === false);
+check('露娜可装备法袍套装（robe）→armor', lunaC.canEquip(lunaRobe, 'armor') === true);
+check('露娜可装备法袍套装（lunar）→armor', lunaC.canEquip(lunaLunarArmor, 'armor') === true);
+check('露娜禁装备重甲套装（tiangang）→armor', lunaC.canEquip(lunaHeavy, 'armor') === false);
+check('露娜禁装备无套装护甲→armor', lunaC.canEquip(lunaPlainArmor, 'armor') === false);
+check('露娜首饰不受限（accessory）', lunaC.canEquip(lunaRing, 'ring1') === true);
+// 法杖自动装备走 equipFromBackpack 也被拦截（非 staff 不进装备槽）
+const lunaPack = new Companion({ id: 't_luna_rules', name: '露娜规则测试', baseLevel: 1,
+    baseData: { str: 4, dex: 6, int: 13, con: 6, wis: 12, luck: 6 }, growthRule: 'mage',
+    equipRules: { weaponTypes: ['staff'], armorSets: ['robe', 'eclipse', 'lunar', 'oracle_robe'] } });
+lunaPack.backpack.push({ slot: 0, ...JSON.parse(JSON.stringify(lunaSword)) });
+lunaPack.backpack.push({ slot: 1, ...JSON.parse(JSON.stringify(lunaRobe)) });
+lunaPack.backpack.push({ slot: 2, ...JSON.parse(JSON.stringify(lunaStaff)) });
+check('露娜背包自动装备：长剑被拒（留在背包）', lunaPack.equipFromBackpack(0) === null
+    && lunaPack.backpack.some(b => b.slot === 0) && !lunaPack.equipments.weapon);
+check('露娜背包自动装备：法袍→armor', lunaPack.equipFromBackpack(1) === 'armor');
+check('露娜背包自动装备：法杖→weapon', lunaPack.equipFromBackpack(2) === 'weapon');
+// 无 equipRules 的队友不受限制（warrior_bruno 等）
+const bruno = PartySystem.getMember('warrior_bruno') || new Companion({ id: 'warrior_bruno', name: '布鲁诺', baseLevel: 1, baseData: { str: 12, dex: 8, int: 4, con: 12, wis: 6, luck: 4 }, growthRule: 'warrior', weaponType: 'sword' });
+check('无限制队友可装备长剑', bruno.canEquip(lunaSword, 'weapon') === true);
+check('无限制队友可装备任意护甲', bruno.canEquip(lunaHeavy, 'armor') === true);
+// 解散再招募（roster 继承）后限制仍在
+const lunaRulesSer = lunaC.serialize();
+check('equipRules 序列化保留', lunaRulesSer.equipRules && lunaRulesSer.equipRules.weaponTypes.includes('staff')
+    && lunaRulesSer.equipRules.armorSets.includes('lunar'));
+check('equipNote 序列化保留', lunaRulesSer.equipNote === '只能装备法杖和法袍类装备');
+const lunaRulesRestored = Companion.fromSerialized(lunaRulesSer);
+check('恢复后仍禁长剑', lunaRulesRestored.canEquip(lunaSword, 'weapon') === false);
+check('恢复后仍可装法杖', lunaRulesRestored.canEquip(lunaStaff, 'weapon') === true);
+check('恢复后仍禁重甲', lunaRulesRestored.canEquip(lunaHeavy, 'armor') === false);
+check('恢复后仍可装法袍', lunaRulesRestored.canEquip(lunaRobe, 'armor') === true);
+check('恢复后注释保留', lunaRulesRestored.equipNote === '只能装备法杖和法袍类装备');
+
 // --- 装备通用规则（与玩家共用 equip-rules） ---
 const sword = { name: '剑', category: 'weapon_melee', weaponType: 'sword', equipSlot: 'weapon' };
 const shield = { name: '盾', category: 'weapon_melee', weaponType: 'shield', equipSlot: 'offhand' };

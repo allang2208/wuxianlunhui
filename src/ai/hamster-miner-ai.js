@@ -167,6 +167,7 @@ export class HamsterMinerAI {
         this._attackTimer = this._attackInterval;
         if (typeof enemy.takeDamage === 'function') {
             enemy.takeDamage(this._attackDamage, m, 'physical', true);
+            m._miningSwing = true; // 攻击命中 → 渲染层播一次挥锄动画（2026-08-15）
         }
     }
 
@@ -179,6 +180,7 @@ export class HamsterMinerAI {
         this._attackTimer = this._attackInterval;
         if (typeof node.takeDamage === 'function') {
             const dealt = node.takeDamage(this._attackDamage, m, 'physical', true) || 0;
+            m._miningSwing = true; // 攻击命中 → 渲染层播一次挥锄动画（2026-08-15）
             // 采矿效率：矿点按 gatherRatio 掉能源之外，效率加成直接注入背包
             if (this.miningMult > 1.001 && EnergyManager) {
                 const bonus = Math.round(dealt * (ENERGY_CONFIG.gatherRatio || 0.5) * (this.miningMult - 1));

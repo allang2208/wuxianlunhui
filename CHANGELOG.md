@@ -1,4 +1,36 @@
 # 变更日志
+### 对话：仓鼠矿工动画口径修正——采矿挥锄触发式 + 行走两段式（2026-08-15）
+- **采矿动画（用户二轮口径）**：不再“全程定格”也不再“全程循环”——
+  攻击间隔（2s）内定格 mining 第 4 帧（索引 3）；**攻击命中瞬间播一次挥锄动画**：
+  首次播完整 1~19 帧（mining_start），之后每次播第 5~19 帧（mining，repeat 0 单次），
+  播完回到第 4 帧定格。AI 每次 `_tryAttack`/`_tryAttackEnemy` 命中置
+  `_miningSwing=true` 通知渲染层；GameScene 采矿分支按此播动画，动画完成回调
+  定格第 4 帧；挥锄播放期间不被 interval 分支打断（修复“只播一帧”bug）。
+- **行走动画两段式（用户口径）**：静止→移动先播一次完整 walking（1~12 帧，
+  walk_start，repeat 0），之后循环第 3~12 帧（walk，repeat -1）；
+  GameScene walk 分支按 `hamsterWalk` 标记起步→循环，回到 idle 复位。
+- **配置**：`data/hamster-miner-config.json` walk 改 startFrames [0,11] +
+  loopFrames [2,11]；mining repeat -1 → 0（单次挥锄）。
+- **验证**：契约测试 31/31；CDP 实机探针 17/17——采矿先 mining_start 后 mining、
+  间隔定格 frame3、每 2s -100；行走先 walk_start 后 walk 循环；eslint 0 error；
+  vite build 通过。
+### 对话：仓鼠矿工迭代——采矿动画定格第4帧 + 小屋构造崩溃修复 + 棕色圆圈排查（2026-08-15）
+- **采矿动画改版（用户口径）**：采矿/攻击间隔期间不再播放攻击动画，
+  GameScene 采矿分支改为定格 mining 贴图第 4 帧（索引 3，`setTexture(miningKey, 3)` +
+  停动画）；原「完整 19 帧起步 + 5~19 帧循环」两段式渲染代码移除（BootScene 两段式
+  注册保留，素材帧配置不变，方便日后改回）。
+- **仓鼠小屋构造崩溃修复（hamster-hut-system.js）**：`HamsterHut` 构造里
+  `this.data.def/mdef` 报 TypeError——DamageableEntity 不创建 `this.data`
+  （只有 Combatant 子类有），已删除这两行，小屋可正常建造生成矿工。
+- **棕色大圆排查结论**：逐帧像素级核验四张精灵图（idle/walking/mining/dying）均无
+  圆形色块（连通域+色板分析），GLM-4.6V 复核一致；代码侧矿工只渲染自身精灵，
+  无任何圆形叠加层。最可能来源：vite dev server 文件监听崩溃（EBUSY，见
+  vite-dev-dashlerp.log）导致部分大贴图加载失败，回退到 `neutral_circle` 白/米色
+  占位圆（小屋等 spriteCfg 缺图时 300×300）。重启 dev server 后如仍复现，请截图确认。
+- **验证**：契约测试 29 项全过（含「采矿定格第4帧」接线）；eslint 0 error；
+  vite build 通过。CDP 实机探针 `tools/cdp-hamster-miner.mjs` 已适配小屋生成 +
+  交战自卫生效 + 定格帧断言（headless Edge 大资源并发加载偶发 ERR_FAILED 时
+  会自动预取重试）。
 ### 对话：铁栅栏滑动门全套 + 三段深度图层（2026-08-15）
 - **建模/贴图（F→A 六档）**：Blender 几何（左右细柱 + 圆柱铁栅栏，无上下横梁）+ 掩体同款
   砖墙/铸铁材质；`render-cover-gate.py --slide` 渲染 16 帧 → `compose-cover-gate.py` 合成

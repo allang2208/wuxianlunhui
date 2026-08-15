@@ -28,7 +28,7 @@ process.on('exit', () => { try { if (edge) edge.kill(); } catch {} rmProfile(); 
 
 edge = spawn(EDGE, [
     '--headless=new', `--remote-debugging-port=${CDP_PORT}`,
-    '--window-size=1920,1080', '--no-first-run', '--no-default-browser-check',
+    '--window-size=1280,720', '--no-first-run', '--no-default-browser-check',
     `--user-data-dir=${profile}`, APP_URL,
 ], { stdio: 'ignore' });
 await new Promise((r) => setTimeout(r, 7000));
@@ -64,7 +64,7 @@ function check(name, cond, detail = '') {
 
 // headless Edge 并发加载大 PNG 会 ERR_FAILED（Phaser loader 卡住）——
 // 先预取这些大资源进 HTTP 缓存，再启动游戏让 Phaser 走缓存命中。
-const PREWARM = [
+const PREWARM = process.env.CDP_NO_PREWARM === '1' ? [] : [
     '/assets/enemies/amalgam/attacking.png',
     '/assets/enemies/amalgam/attacking-2.png',
     '/assets/enemies/flyswarm/idle.png',
@@ -214,55 +214,74 @@ check('AI 锁定最近能源节点（非单位）', a.targetIsNode === true && a
     `anim=${a.anim}`);
 
 // ---------- B. 采矿：定格第 4 帧 + 每 2s 100 伤害 ----------
-console.log('B. 采矿定格与伤害');
+console.log('B. 采矿挥锄 + 间隔定格 + 伤害');
 const b0 = await rawEval(`(async () => {
     const sleep = (ms) => new Promise(r => setTimeout(r, ms));
     const miner = [...window.Game.entities.values()].find(e => e && e._isHamsterMiner && e.active);
     miner.x = miner.target.x + 30; miner.y = miner.target.y;
     miner._tacticalTarget = null;
-    await sleep(900);
+    await sleep(400);
     const sc = window.__phaserScene;
     const sprite = sc && sc._companionSprites ? sc._companionSprites[miner.id] : null;
-    return {
-        anim: miner._animState,
-        targetIsNode: !!(miner.target && miner.target._isEnergyNode),
-        texKey: sprite ? sprite.texture.key : null,
-        frame: sprite ? sprite.frame.name : null,
-        isPlaying: sprite ? sprite.anims.isPlaying : null,
-    };
-})()`);
-check('进入采矿态 mining', b0.anim === 'mining', `anim=${b0.anim}`);
-check('采矿不播动画，定格第 4 帧（索引 3）',
-    b0.texKey === 'companion_hamster_miner_mining' && b0.frame === 3 && b0.isPlaying === false,
-    `tex=${b0.texKey} frame=${b0.frame} playing=${b0.isPlaying}`);
-const b1 = await rawEval(`(async () => {
-    const sleep = (ms) => new Promise(r => setTimeout(r, ms));
-    const miner = [...window.Game.entities.values()].find(e => e && e._isHamsterMiner && e.active);
     const node = miner.target;
     const events = [];
     let prev = node.hp, prevT = Date.now();
+    const samples = [];
     for (let i = 0; i < 21; i++) {
         await sleep(200);
+        const playing = !!sprite.anims.isPlaying;
+        const key = playing ? sprite.anims.currentAnim.key
+            : (sprite.texture.key + ':' + sprite.frame.name);
         const cur = node.hp;
+        let drop = 0;
         if (cur < prev) {
-            events.push({ drop: prev - cur, gap: Date.now() - prevT });
+            drop = prev - cur;
+            events.push({ drop, gap: Date.now() - prevT });
             prev = cur; prevT = Date.now();
         }
+        samples.push({ playing, key, drop });
     }
-    const sc = window.__phaserScene;
-    const sprite = sc._companionSprites[miner.id];
     return {
         events,
-        stillStatic: !!(sprite && sprite.texture.key === 'companion_hamster_miner_mining'
-            && sprite.frame.name === 3 && !sprite.anims.isPlaying),
+        anim: miner._animState,
+        targetIsNode: !!(miner.target && miner.target._isEnergyNode),
+        playingKeys: [...new Set(samples.filter(s => s.playing).map(s => s.key))],
+        hasStaticFrame4: samples.some(s => !s.playing && s.key === 'companion_hamster_miner_mining:3'),
     };
 })()`);
+check('进入采矿态 mining', b0.anim === 'mining', `anim=${b0.anim}`);
+check('攻击触发播挥锄：先完整段 mining_start、后续第 5~19 帧 mining',
+    b0.playingKeys.includes('companion_hamster_miner_mining_start')
+    && b0.playingKeys.includes('companion_hamster_miner_mining'),
+    JSON.stringify(b0.playingKeys));
+check('攻击间隔定格第 4 帧（非播放时 tex=mining frame=3）', b0.hasStaticFrame4 === true);
 check('每 2s 造成 100 伤害（≥2 次、每次 -100、间隔 1700~2400ms）',
-    b1.events.length >= 2
-    && b1.events.every(e => e.drop === 100)
-    && b1.events.slice(1).every((e, i) => e.gap >= 1700 && e.gap <= 2400),
-    JSON.stringify(b1.events));
-check('攻击间隔期间持续定格第 4 帧', b1.stillStatic === true);
+    b0.events.length >= 2
+    && b0.events.every(e => e.drop === 100)
+    && b0.events.slice(1).every((e, i) => e.gap >= 1700 && e.gap <= 2400),
+    JSON.stringify(b0.events));
+
+// ---------- B2. 行走两段式：起步完整 walking → 循环第 3~12 帧 ----------
+console.log('B2. 行走两段式');
+const bw = await rawEval(`(async () => {
+    const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+    const miner = [...window.Game.entities.values()].find(e => e && e._isHamsterMiner && e.active);
+    const node = miner.target;
+    miner.x = node.x - 260; miner.y = node.y + 40;
+    miner._tacticalTarget = { x: node.x, y: node.y };
+    miner._animState = 'idle';
+    const sc = window.__phaserScene;
+    const sprite = sc._companionSprites[miner.id];
+    if (sprite.anims.isPlaying) sprite.anims.stop();
+    await sleep(350);
+    const k1 = sprite.anims.isPlaying ? sprite.anims.currentAnim.key : null;
+    await sleep(1300);
+    const k2 = sprite.anims.isPlaying ? sprite.anims.currentAnim.key : null;
+    return { anim: miner._animState, k1, k2 };
+})()`);
+check('静止→移动先播完整 walking（walk_start）', bw.anim === 'walk' && bw.k1 === 'companion_hamster_miner_walk_start',
+    `anim=${bw.anim} k1=${bw.k1}`);
+check('起步后循环第 3~12 帧（walk）', bw.k2 === 'companion_hamster_miner_walk', `k2=${bw.k2}`);
 
 // ---------- C. 敌人交战（小屋防御）与回采矿 ----------
 console.log('C. 交战自卫生效 + 回采矿');
