@@ -1275,8 +1275,14 @@ if (Input.mouse.leftPressed) {
 
         // 预同步所有 Collider：子类 update 经常覆盖 super.update，导致 collider 位置停留在出生点。
         // 在战斗/AI 前统一同步一次，确保近战、投射物命中判定使用最新坐标。
+        // 2026-08-17 防御性守卫：entities 里可能存在非标准 collider 对象（探针假实体/占位体等），
+        // 无条件调用 syncPosition 会每帧抛 TypeError 中断整个 update——本循环在
+        // PartySystem.updateCombat（侍从 AI）之前，崩溃直接导致伊莉丝攻击/风车等
+        // 状态机永远不触发（动画"不播放"）。只对真 Collider 实例同步。
         for (const e of this.entities.values()) {
-            if (e.collider) e.collider.syncPosition();
+            if (e.collider && typeof e.collider.syncPosition === 'function') {
+                e.collider.syncPosition();
+            }
         }
 
         // === [REFACTOR-START] 单次遍历：实体基础 update + 外部系统驱动 + 收集敌人 ===
@@ -1293,7 +1299,7 @@ this._battleCommanderEnemies = [];
             if (e._editorFrozen) continue;
 e.update(dt, this.entities);
 // 玩家 update 会移动并触发攻击，同步其 Collider 供后续敌人 AI/战斗作为目标使用
-            if (e === this.player && e.collider) {
+            if (e === this.player && e.collider && typeof e.collider.syncPosition === 'function') {
                 e.collider.syncPosition();
             }
 if (e instanceof Enemy) {
@@ -1308,7 +1314,7 @@ MovementSystem.update(e, dt, this.entities);
 }
                 // 敌人在 MovementSystem 移动后、CombatSystem 判定前同步 Collider，
                 // 保证敌人自身攻击形状原点与目标 Collider 都为当前帧位置。
-                if (e.collider) {
+                if (e.collider && typeof e.collider.syncPosition === 'function') {
                     e.collider.syncPosition();
                 }
                 if (CombatSystem) {

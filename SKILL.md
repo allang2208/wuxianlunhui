@@ -644,6 +644,39 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
 
 ---
 
+### 主角一段攻击（attack_sword）关键帧→H3 两段式挥砍重生（2026-08-15 定稿入库）
+
+手绘关键帧 A起手/B命中/C收势 → H3 首尾帧插值 AB、BC 两段视频 → 拼 12 帧 sheet。
+针对旧 v2 三连反馈（双手→单手、僵硬、要前移）：新动作=上步单手反手挥砍+弓步前倾。
+
+- **四步管线**（全部 ComfyUI venv python，产物落 `Y:\工作\无尽轮回\scratch\player_attack_sword\`）：
+  1. `prep-player-attack-keyframes.py`：原图 BiRefNet 抠图→alpha 去污染→对齐→纯色底
+     1024×576 关键帧（**H3 I2V 的 first/last frame 只读 RGB 不读 alpha，必须先抠再合成纯色底**；
+     底色写 `keyframes/bg.txt`，本次=纯黄 #FFFF00，主体骨白/黑描边与黄色距极远）；
+  2. `run-player-attack-sword.py --seeds 1,2,3,4`：AB/BC 两段 × 4 种子（每段 5.17s/124 帧 ≈7min）；
+  3. `analyze-player-attack-sword.py`：PyAV 定量（漂移/贴边/背景残差/左右运动密度）+ contact sheet；
+     **肉眼复看用逐帧 montage 裁主体放大**（contact 256px 格太小看不清手臂弧线）；
+  4. `build-player-attack-sheet.py --ab-end 44 --bc-end 50`：抠黄（max 通道距>45 + 闭运算 + 羽化）
+     → **去黄溢色**（alpha>0 且 min(R,G)-B>24 → 亮度均值，骨白 R-B≈+6~10 不误伤）
+     → 视觉均匀重采样（挥砍段自动加密）→ 对齐入库规格。
+- **选 seed 结论**：AB=s01、BC=s01（center_x_std 4.9/3.7、零贴边、弧线连贯；s02 腿部几乎不动、
+  s04 中心漂移 21px 淘汰）。
+- **活动窗口别信单一阈值**：AB 收尾静止早（窗口 [0,44] 即可，末帧必须已是 B 姿势才能接 BC），
+  BC 挥砍到 ~50 后长尾静止（[0,50] 切尾防静止帧稀释采样）；用 `--ab-end/--bc-end` 手动指定，
+  末帧=完全伸展 → 定格帧=攻击满弓姿势，正好做连段窗口定格。
+- **对齐规格（现网 attack_sword 实测标定）**：格 512×512、4×3、12 帧；站立身高 432、
+  脚底基线 y=492、帧0 格内 cx=209.5；固定缩放（AB 帧0 身高→432 全帧同比例）+ keep-dx
+  保留格内前移（dx 实测 +23→-4 弧内变化）；config `frameDurations 50×12` 不动，
+  **最大伸展落在 f10~f11，与 hitCheck f9 基本对齐**。
+- **入库**：旧图留档 `backup/2026-08-15-player-attack-h3/`；新 sheet 直接覆盖
+  `assets/player/attack_sword.png`（帧数/格规格不变，player-anim-config.json 零改动）；
+  **武器轨迹 `sword.attack` 12 点按旧身体调的，需 DevTool 逐帧重对**（同 v2 换入时的遗留动作）。
+- **坑**：cv2.imwrite 写中文路径静默失败（返回 False 不报错）→ `cv2.imencode` +
+  `Path.write_bytes` 或 PIL 保存；analyze 脚本 `np.max(axis=2)` 对 (N,3) 边界样本炸
+  AxisError → 用 `axis=-1` 兼容。
+
+---
+
 ### 人形角色视频→精灵图全流程（2026-08-12 露娜 Luna 四动作 32 帧实战定稿）
 
 适用：已有角色动作视频（walk/run/jump/spell），直接产出游戏精灵图，不再走 AI 生图。
@@ -768,6 +801,53 @@ defend 19/windmill 23 帧），只需按 SKILL 对齐三铁律重建入库，**�
 - **风车动画不播的排查**：先确认 `_animState==='windmill'` 且 sprite 动画键
   `companion_warrior_bruno_windmill` 已注册、`wmPlayed` 复位逻辑（idle 分支）
   正常；坏精灵图（全部缩到角落）会让动画"看起来没播"——先验图再查代码。
+
+#### 7e. 多动作统一角色尺度：多格规格 + 渲染归一化（2026-08-17 伊莉丝 v2 定稿）
+
+7d 的"512 格一刀切 + 每 sheet 独立缩放"有硬伤：attacking/windmill 剑弧宽（源 262/319px），
+512 格装不下统一尺度 → 被迫小缩放（1.75/1.52），游戏内角色挥剑缩到走路体型 65%、风车 53%；
+f5 举剑帧单独缩放（身体 245）；且 512 格下宽帧质心对齐 clamp → run 循环帧水平跳 18.8px、
+defend 持盾帧右偏 13px。**结论：武器弧远超身体宽的动作，格子必须按内容选型，不能一刀切。**
+另：idle 待机图后续换源为 `素材库/人物/Elise/抠图版本.png`（用户指定，1536² 透明底全身
+持剑盾），同样按本节口径重建（全身内容高 461/脚底 480/质心 256/512 格）入库统一大小。
+
+- **统一尺度铁律**：所有动作共用**同一个全局缩放 S**（伊莉丝 = 461/171，站立身体高 461 =
+  露娜同款），不做每 sheet 独立缩放、不做逐帧拉高——跨动作身体大小一致，动作间切换无缩放跳变。
+- **格规格按最大内容选型**：每 sheet 量出最大帧内容 w/h × S，格宽还要满足"质心对齐到格心
+  不 clamp"（伊莉丝 attack 最宽帧质心在内容 34% 处 → 960 格；windmill 52% → 896 格）。
+  帧格可非正方形（attack 960×1024：f5 举剑 898 高完整入格，**不再单独缩小**）。
+  布局 cols/rows 按帧数自由选（attack 28 帧 5×6、windmill 23 帧 5×5），不再沿袭源图 8×4。
+- **脚底统一 0.9375×格高**（512→480 / 640→600 / 1024→960）：脚底偏移只与格高相关，
+  渲染侧可用单一公式归一化。
+- **渲染归一化（改图必须同步改渲染，本次"大小无法统一"的渲染侧根因）**：Phaser 换纹理时
+  按新帧格重算显示尺寸——只改图不改渲染，帧格一变角色就整体缩放/漂移。GameScene 每帧按
+  当前帧格线性映射：`setDisplaySize(帧格W×size/512, 帧格H×size/512)` + 位置补
+  `-(帧格H-512)×0.4375×size/512`（512 格 = 显示基准，全 512 格的露娜/仓鼠零影响）。
+  派生公式：内容高统一 461 → 世界高 = 461×size/512 恒等；脚底世界偏移 = 0.4375×格高×size/512。
+- **验收口径**：重建后逐帧扫 alpha>16——质心 X 跨度 ≤5px（clamp 归零）、0 贴边、0 裁剪、
+  非空帧必须连续 0..N-1、尾格全空；GLM 单张查"六动作首帧身体大小是否一致"（多图并排会串扰，
+  只做定性）；GIF 按游戏内播放口径生成（walk=起步全播+循环段、run 同、attack/windmill 单次、
+  defend=enter+hold+exit）。
+- **契约测试**：`scripts/test-elise-sheets.mjs` 锁格规格 + sheet 实物 IHDR×配置一致性，
+  防止"改配置漏改素材"或退回小格缩水（已入 npm test）。
+- **二轮修复（实机反馈，2026-08-17）**：
+  - **循环闪回 = 末帧与段内某帧同相**：run 循环 [10,22] 末帧 f22 与 f11 腿部同相
+    （腿部 IoU 0.565 vs 段内均值 0.252）且是周期外最深迈步帧 → 接缝同一条腿连播两次。
+    修：`loopFrames [10,22]→[10,21]`（删末帧）。诊断法：腿部区域（bbox 底部 35%）IoU 比
+    全身像素差灵敏——接缝帧差 42.6 看着"正常"，腿部 IoU 才暴露同相。
+  - **idle 漂移 = 起步前摇帧原地重播**：walking f0/f1 是"前倾重心偏移、未迈步"的准备帧
+    （GLM 确认），AI 跟随微调反复 idle↔walk → 前摇原地抖。凡"状态动画+起步前摇"结构的动作，
+    起步段必须排除非步态前摇帧。
+  - **最终口径（五轮，用户拍板）**：① **前摇帧直接从素材删除**（walking.png 14 帧裁成
+    12 帧 4×3，不是只在配置里跳帧）；② **取消一切移动门槛**——状态是 walk 就无条件播
+    行走动画，任何小范围移动都强制走 walking（静止时 AI 切 idle 分支显示待机）。
+    教训：移动门槛（逐帧位移采样/isMoving+宽限）都会引入"待机姿态滑行"或"动画只播
+    一两帧"的观感问题，用户最终选择"纯步态素材 + 无条件播放"——**先删素材里的非步态
+    前摇帧，门槛能不加就不加**。
+  - **AI 阶段字段与渲染同源（防御重复动画根因）**：AI 把防御阶段存实例字段
+    `this._defendPhase`、渲染读 `member._defendPhase` → 恒 undefined → 永远按 enter 重播。
+    阶段字段一律写到实体成员（与 `_animState` 同口径）；渲染侧一次性动画（repeat 0）
+    只在阶段变化时 play 一次、播完停末帧，不能用 `!isPlaying` 当重播条件（播完即回放）。
 
 #### 8. 远程 5080 H3 生成故障排查（2026-08-13 实录）
 - **症状**：提交即 `SamplerCustomAdvanced` 执行失败，`NotImplementedError: No operator found for
@@ -4613,6 +4693,58 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
   （实体脚线在段前 → 抬到段上；段后 → 压到段下）；开门移除栅栏段；镜像 h 左右柱深度互换。
 - 已知取舍：实体站在门洞中同时跨左右柱时，整门三段的抬升/压制按各段面线独立判定，
   跨两段的重叠区以最近段为准，极端位置可能有 ±1 段误差，可接受。
+
+### 射击台（FiringPlatform，2026-08-16 四版定稿：连续抬升 + 亮踏面台阶 + 条件深度）
+
+- **需求来源**：围墙内玩家/友方远程弹道被己方掩体墙段（`_cover`）挡，站上射击台后可
+  越过围墙向外攻击。
+- **⚠ 一二版教训（用户打回两次）**：① 台阶/平台不能沿 local-x 横排（rot 44.8 时投影
+  "台阶左平台右"方向反）——台阶沿 local-y 纵深排列；② 不要自研 box 堆叠——**直接参考
+  掩体：复制拓宽立方体 + 台阶衔接，rot.z 与掩体一致（44.8）**，平台主体平行墙（同掩体
+  沿墙放置），台阶向房内延伸；③ 贴图走**生图管线**（flux2-klein-4b-walltex LoRA 生成
+  材质纹理 → render-cover-real.py Blender 渲染），不用渲染器直接贴墙砖。
+- **⚠ 三版教训（用户打回第三次）**：① 布尔登台 = 进站台区瞬间抬满 platformHeight =
+  **瞬移**；② 满高 box 堆叠的台阶立面全是墙材质、踏面不可见 = **没有坡度感**；③ depth
+  无条件抬到 _faceDepth+1 = **透视图层错乱**。四版三项修复：
+  - **连续抬升**：新增 `getLift(ux,uy)`——"登台走廊" = 以顶面中心为近墙端、沿
+    -wallNormal（房内）延伸 `corridorLen=300`、半宽 100 的矩形带；单位投影到走廊轴得
+    纵深进度 t → 抬升 = (1-t)×platformHeight（0~291 连续插值，走廊外归 0）。
+    `_updatePlatformStates` 改存 `u._platformLift` 连续值（非布尔），GameScene 玩家/侍从
+    sprite 上移量读它——CDP 实测 WALK lifts 291→255→218→182→145→109→73→36→0 平滑
+    递减，**无瞬移**。
+  - **台阶坡度**：spec 每级台阶 = wall 立面 26 高 + **light 材质踏面** 8 高
+    （render-cover-real.py 新增 light 浅色素面 0.72,0.66,0.58 带高光），5 级
+    252×88→272×108 逐级加宽，立面+踏面交替可见 = 真实阶梯感。
+  - **条件深度**：GameScene 只在 `_platformLift > 0` 时才把台上单位 depth 抬到
+    `平台._faceDepth+1`（玩家 + 侍从两处），地面单位不受影响。
+- **资产**：`_depth_templates/firing_platform_spec.json`（5 级台阶 252×88 起逐级加宽
+  272×108，wall 26 高 + light 8 高踏面，pos.y -262→-30；平台主体 300×150×40 +
+  288×150×76 + 270×130×30，rot 44.8，soil 土底座）→ 材质 `comfyui-gen.py --model
+  flux2-klein-4b-walltex`（1024×668 横向砖墙，16 步 4 秒）→ render-cover-real.py 渲染 →
+  紧身裁剪 → `firing_platform.png` + `firing_platform_h.png`（flipX 镜像贴 h 向墙；
+  内容 567×677 → 显示 260×310，footOffsetY 155，脚底=接地线）。
+- **站台顶面标定**（贴图几何）：平台顶面中心 ≈ 内容 (400, 40)、接地线 y=676 →
+  显示偏移 `_topOffsetX≈+54/_topOffsetY≈-136`、`platformHeight≈291`（玩家在台上
+  sprite 上移量 = (676-40)×310/677）、`_topCx/_topCy`（顶面中心）、
+  `_zoneHalfW/H=90/70`（兼容旧判定区）。
+- **贴墙几何（用户口径三版起）**：平台主体**沿墙放置**（拓宽掩体，与掩体同向/同 rot），
+  实体 = 墙段中点 + 内侧法线 × (墙半厚 26 + 余量 30)；台阶（贴图底部）朝房内延伸；
+  玩家建造走 `_snapPlatformToWall` 同口径；F 镜像贴墙另一侧，orient 随墙段 face 方向。
+- **登台判定**（DefenseSystem._updatePlatformStates）：玩家 + **PartySystem.members** +
+  Game.friendlyUnits（Companion 不在 Game.entities——门感应同款坑）脚线 → getLift 连续
+  值；`isOnPlatform = lift>0` 兼容旧调用；走出走廊自动归 0。
+- **越墙攻击三件套**：① `Projectile._isBlockedByWall` 忽略掩体段条件扩展
+  `_isDefenseTower || _onPlatform`；② `BoltSkillSystem._updateFlying` 台上施法者传
+  ignore；③ `WallSystem.resolve/canMoveTo/_nearestBlockingSeg` 加 ignore 透传
+  （网格 + 线性双路径都要，`_linearNearestBlockingSeg` 易漏）。
+- **深度铁律**：平台顶面线离地面 291px > junctionCorrectedDepth 窗口（60/280），
+  **仲裁不生效**——平台贴图深度锚定接地线 `_faceDepth = y+12`（与掩体同规则），
+  台上单位在 GameScene 显式 `max(仲裁深度, 平台._faceDepth+1)`，**且仅当
+  _platformLift>0**（玩家 + 侍从两处）。
+- **验证**：CDP 探针（tools/cdp-platform-probe.mjs）——平台生成/贴图渲染（260×310@
+  正确位置）/getLift 连续抬升（实测 291→0 平滑递减无瞬移）/登台 true↔false；
+  resolve ignore 透传（无 ignore 被掩体挡→滑动，有 ignore 直达 passedThrough）；
+  eslint/build/npm test 全绿。headless 相机不驱动 rAF，**视觉/朝向实机复测**。
 
 ---
 

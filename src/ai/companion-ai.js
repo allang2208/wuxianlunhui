@@ -162,6 +162,18 @@ export class CompanionAI {
             if (c._pathManager) c._pathManager._clearPath();
             c._tacticalTarget = null;
             c.target = null;
+            // 中断残留战斗状态（2026-08-17）：攻击/防御/风车中途切场景会让 _tickWarrior
+            // 永远 return（defendPhase 非空）或动画状态卡死——攻击/风车动画不再触发
+            this._meleeAtkTimer = 0;
+            this._meleeHitDone = false;
+            this._defendPhase = null;
+            c._defendPhase = null;
+            this._defendTimer = 0;
+            c._defending = false;
+            this._whirlwindHitSet = null;
+            this._whirlwindTimer = 0;
+            c._frozenForCast = false;
+            c._animState = 'idle';
         }
         // 地牢房间切换（map↔combat 等）：玩家被传送，露娜同步重定位到玩家附近，
         // 避免残留地图模式坐标导致"进入地牢后不主动寻找位置/卡在墙外"
@@ -225,6 +237,7 @@ export class CompanionAI {
             this._meleeAtkTimer = 0;
             this._meleeHitDone = false;
             this._defendPhase = null;
+            c._defendPhase = null; // 渲染层阶段镜像（GameScene 读 member._defendPhase）
             this._defendTimer = 0;
             c._defending = false;
             this._whirlwindHitSet = null;
@@ -797,6 +810,12 @@ export class CompanionAI {
         if (d > (this.cfg.followArriveDist || 55)) {
             c._tacticalTarget = fp;
             this._setMoveState(this._shouldRun(d, 'follow') ? 'run' : 'walk');
+        } else {
+            // 到达：立即停步（与 _tickWarrior 到达分支同款修复，防 idle 姿态滑行）
+            c._tacticalTarget = null;
+            if (c._pathManager) c._pathManager._clearPath();
+            c.vx = 0; c.vy = 0; c.isMoving = false;
+            this._setMoveState('idle');
         }
     }
 
@@ -931,6 +950,13 @@ export class CompanionAI {
             this._lastAction = 'follow';
             c._lastAction = 'follow';
         } else {
+            // 到达跟随点：立即停步（2026-08-17 探针实锤"idle 漂移"根因）——此前只切了
+            // idle 动画状态，_tacticalTarget 未清、速度未归零，MovementSystem 继续朝旧
+            // 目标点推进剩余 ~55px（arriveDist 与寻路自身到达阈值之间的差距），
+            // 角色以待机姿态滑行 ≈0.6s = 用户看到的"idle 漂移"。
+            c._tacticalTarget = null;
+            if (c._pathManager) c._pathManager._clearPath();
+            c.vx = 0; c.vy = 0; c.isMoving = false;
             this._setMoveState('idle');
             this._lastAction = 'idle';
             c._lastAction = 'idle';
@@ -1031,6 +1057,7 @@ export class CompanionAI {
         if (this._defendPhase || this._defendCd > 0 || c._castState !== 'idle' || c._frozenForCast) return;
         const cfg = this.cfg;
         this._defendPhase = 'enter';
+        c._defendPhase = 'enter'; // 渲染层阶段镜像（GameScene 读 member._defendPhase，2026-08-17 修复"重复动画"）
         this._defendTimer = cfg.defendEnterMs || 500;
         c._defending = false; // 进入阶段尚未生效，hold 期才置位
         c._frozenForCast = true;
@@ -1086,6 +1113,7 @@ export class CompanionAI {
         this._defendTimer -= dt;
         if (this._defendPhase === 'enter' && this._defendTimer <= 0) {
             this._defendPhase = 'hold';
+            c._defendPhase = 'hold';
             this._defendTimer = cfg.defendHoldMs || 2000;
             c._defending = true; // 持盾防御 + 常态弹反生效
             // 持盾防御修炼：每次进入防御姿态按 meleeBlock 给经验（弹反另计，见 Companion.takeDamage）
@@ -1096,10 +1124,12 @@ export class CompanionAI {
             }
         } else if (this._defendPhase === 'hold' && this._defendTimer <= 0) {
             this._defendPhase = 'exit';
+            c._defendPhase = 'exit';
             this._defendTimer = cfg.defendExitMs || 500;
             c._defending = false;
         } else if (this._defendPhase === 'exit' && this._defendTimer <= 0) {
             this._defendPhase = null;
+            c._defendPhase = null;
             this._defendTimer = 0;
             c._defending = false;
             c._frozenForCast = false;

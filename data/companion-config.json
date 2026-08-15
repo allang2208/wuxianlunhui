@@ -24,7 +24,7 @@
         "role": "melee_swordshield",
         "followOffset": 90,
         "followArriveDist": 60,
-        "meleeRange": 165,
+        "meleeRange": 82.5,
         "engageRange": 460,
         "fleeEnabled": false,
         "attackInterval": 2000,
@@ -50,36 +50,34 @@
       "animations": {
         "idle": {
           "src": "assets/companions/elise/idle.png",
-          "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 4,
+          "frameWidth": 512, "frameHeight": 512, "cols": 1, "rows": 1,
           "frameCount": 1, "frames": [0, 0], "frameRate": 1, "repeat": -1
         },
         "walk": {
           "src": "assets/companions/elise/walking.png",
-          "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 4,
-          "frameCount": 14, "frames": [0, 13],
-          "startFrames": [0, 13], "startFrameRate": 10, "startRepeat": 0,
-          "loopFrames": [2, 13], "frameRate": 10, "repeat": -1
+          "frameWidth": 640, "frameHeight": 640, "cols": 4, "rows": 3,
+          "frameCount": 12, "frames": [0, 11], "frameRate": 10, "repeat": -1
         },
         "run": {
           "src": "assets/companions/elise/running.png",
-          "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 4,
+          "frameWidth": 640, "frameHeight": 640, "cols": 5, "rows": 5,
           "frameCount": 23, "frames": [0, 22],
           "startFrames": [0, 22], "startFrameRate": 12, "startRepeat": 0,
-          "loopFrames": [10, 22], "frameRate": 12, "repeat": -1
+          "loopFrames": [10, 21], "frameRate": 12, "repeat": -1
         },
         "attack": {
           "src": "assets/companions/elise/attacking.png",
-          "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 4,
+          "frameWidth": 960, "frameHeight": 1024, "cols": 5, "rows": 6,
           "frameCount": 28, "frames": [0, 27], "frameRate": 18.6666667, "repeat": 0
         },
         "windmill": {
           "src": "assets/companions/elise/windmill.png",
-          "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 4,
+          "frameWidth": 896, "frameHeight": 640, "cols": 5, "rows": 5,
           "frameCount": 23, "frames": [0, 22], "frameRate": 28.75, "repeat": 0
         },
         "defend": {
           "src": "assets/companions/elise/defending.png",
-          "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 4,
+          "frameWidth": 640, "frameHeight": 640, "cols": 4, "rows": 5,
           "frameCount": 19, "frames": [0, 18],
           "enterFrames": [0, 7], "enterFrameRate": 16, "holdFrame": 7,
           "exitFrames": [8, 18], "exitFrameRate": 22, "frameRate": 22, "repeat": 0

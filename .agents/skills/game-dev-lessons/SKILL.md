@@ -696,3 +696,131 @@ this.ai = config.ai || {};
 - **新增贴图/动画记得四件套**：资产入库（`assets/companions/elise/windmill.png`）、
   config animations 注册（frameCount/frames/frameRate）、GameScene 动画分支、
   契约测试断言（帧数/帧区间/effect 数值）。
+
+## 44. scrollFactor(0) 固定 UI 的缓存键必须含相机 zoom（2026-08-16 小地图错位）
+
+- **症状**：世界-122（zoom 0.7）左上角小地图背景被压缩到 105×105 且偏移（位置约
+  (7,42)），黄色视野框画出背景框外、背景顶部与左上「☰ 菜单」按钮重叠；主神空间
+  （zoom 1）正常。
+- **根因**：小地图静态层（背景/墙）按 `wallCount:worldWxworldH` 缓存，键里没有
+  zoom。切场景后 `_syncHud` 先于 `_updateCamera` 运行，静态层按上一场景 zoom=1 的
+  invZ 重绘；随后 zoom 变 0.7 但缓存键不变 → 永不重绘 → 显示时被相机缩放错位。
+  动态层（视野框/实体点）每帧用当前 invZ 重绘，因此与静态层错位。
+- **修复三件套**：① 缓存键加 zoom 维度（`wallCount:WxH@zoom`）；② `_updateCamera`
+  里 zoom 变化时显式置 `_minimapStaticKey = null`（双保险，覆盖同帧先于相机更新的
+  时序）；③ 视野框视口尺寸用 `this.scale.width/height`（与相机同源）而非固定
+  CONFIG 值，静态层墙绘制也做框内裁剪（与动态层 inBox 同口径）。
+- **通则**：凡「绘制坐标 × 1/zoom 抵消相机缩放」的固定 UI，其**重绘触发条件**必须
+  把 zoom 纳入（缓存键或显式失效），否则跨 zoom 场景切换后必错位；验证用 commandBuffer
+  解析换算屏幕坐标断言（FILL_RECT=3/LINE_TO=4/MOVE_TO=5）。
+
+## 45. 无素材机械/环境音效：先问用户要素材，没有再 numpy 合成（2026-08-16 铁闸门）
+
+- **素材优先级**：用户提供 > 程序化合成。世界-122 铁闸门音效一轮用 numpy 合成了
+  open/close 两个 wav，用户随后给出 `D:\即时重放\1.mp3`（2.72s）→ 开/关共用单文件
+  `assets/sounds/environment/gate_iron.mp3`，合成文件与脚本删除。**做音效前先问用户
+  有没有现成素材**，合成只是兜底（`tools/ai-gen/add-weapon.py` 是合成管线范本）。
+- **接入**：世界内机关/建筑音效走 `SoundManager.playWorld(path, x, y)`（距离衰减），
+  坐标取**感应中心/门洞物理中心**（`_detectX/_detectY`），非精灵中心（等距偏移会让
+  远处单位听不到）；玩家自身音效才走 `playFile`。
+- **验证**：CDP 拦截模块单例 `SoundManager.playWorld` 记录调用路径/坐标——**必须按
+  performance 资源表的真实 URL import**（裸路径/`window.SoundManager` 在 HMR 后拿到
+  空单例或不同实例，patch 不生效；SKILL #27 同款坑）；删除旧素材后 grep 全库确认
+  零残留引用。
+- **通用教训**：新音效需求先问用户/查 `assets/sounds/` 与 SKILL 音效章节；波形数值
+  验证（RMS 分段/频谱质心）比"听感猜测"可靠。
+
+## 46. 多动作角色精灵图：帧格按内容选型 + 渲染归一化双配套（2026-08-17 伊莉丝）
+
+- **症状**：伊莉丝六动作 512 格一刀切，attacking/windmill 剑弧过宽被迫小缩放 →
+  游戏内挥剑时身体缩到走路 65%、风车 53%；换大格重建后若只改图不改渲染，Phaser 换
+  纹理按新帧格重算显示尺寸 → 角色随动作切换整体缩放/漂移（"连精灵图大小都无法统一"）。
+- **正解三件套**：
+  1. **全局统一缩放 S**（所有动作同一系数，如 461/171），不做每 sheet 独立缩放/逐帧拉高；
+  2. **帧格按最大内容选型**（武器弧宽超身体的动作用更大格，可非正方形，如 attack 960×1024），
+     脚底统一 0.9375×格高；
+  3. **渲染归一化**：GameScene 每帧按当前帧格线性映射显示尺寸
+     `setDisplaySize(帧W×size/512, 帧H×size/512)` + 位置补 `-(帧H-512)×0.4375×size/512`
+     （512 格 = 显示基准 → 全 512 格的其它角色零影响）。
+- **格子选型先算质心 clamp**：宽帧（剑伸一侧）内容质心可能偏到 34% 处，质心对齐格心
+  所需的格宽 = 最大内容宽 + 2×(格心 - 内容质心)，算不够宽就回到水平跳动老路。
+- **验收量化**：重建后逐帧扫——质心 X 跨度 ≤5px、0 贴边、非空帧连续 0..N-1、尾格全空；
+  契约测试锁「格规格 + sheet 实物 IHDR × 配置」一致性。
+- **循环接缝诊断要用腿部 IoU，别只看全身帧差**（2026-08-17 run 闪回）：接缝全身像素差
+  42.6 落在"正常步幅"区间，但末帧 f22 与段内 f11 腿部 IoU 0.565（段内均值 0.252）= 同一条腿
+  在前连播两次 → 闪回。修法 = 循环段删末帧（[10,22]→[10,21]），起步段保持完整。
+- **状态动画的起步前摇帧（最终口径：删素材 + 无条件播放，别加门槛）**（2026-08-17 idle 漂移）：
+  walk 起步 f0/f1 是"前倾未迈步"准备帧，AI 跟随微调反复 idle↔walk 会让前摇原地抖。
+  反复试了三种移动门槛（逐帧位移采样 → 渲染/逻辑帧率不同步时动画只播一两帧；isMoving
+  → 待机姿态滑行），用户最终拍板：**前摇帧直接从素材删除**（sheet 重排）+ **取消一切
+  移动门槛**（状态是 walk 就无条件播动画，静止时 AI 切 idle 分支）——纯步态素材配无条件
+  播放最稳。教训：状态动画的"播放门槛"类机制容易引入新观感问题，能靠素材解决就不加逻辑。
+- **"到达"分支必须停步：清战术目标 + 归零速度（2026-08-17 idle 漂移真正根因）**：
+  伊莉丝五轮"idle 漂移"最终靠逐帧探针实锤——AI 判定到达（fd≤arriveDist）只切了动画状态，
+  `_tacticalTarget` 未清、vx 未归零，MovementSystem 继续朝旧目标点推进"AI 到达阈值与
+  寻路自身到达阈值之间的差距"（~55px，0.6s），角色以待机姿态滑行。凡"状态机判定到达"
+  的分支，必须同时清 `_tacticalTarget` + `_pathManager._clearPath()` + vx/vy/isMoving
+  归零（通用 `_applyAction` 开头就是这么做的，自研状态机要照抄）。**观感类 bug 反复修
+  不好时，先写探针逐帧采样实体坐标/精灵坐标/动画状态，把"谁在动"钉死再修**。
+- **AI 状态机字段与渲染读的字段必须同源**（2026-08-17 防御重复动画）：AI 把防御阶段
+  存实例字段 `this._defendPhase`、渲染读 `member._defendPhase`（恒 undefined → 永远按
+  enter 阶段重播）。凡"AI 状态驱动动画阶段"的字段，一律写到实体成员上（与
+  `_animState` 同口径），或至少在每次变迁处镜像。另：一次性动画（repeat 0）的渲染分支
+  不能用 `!isPlaying` 当重播条件——播完即回放；只在阶段变化时 play 一次，播完停末帧等
+  逻辑切换。
+- **主循环里对实体通用方法的调用必须 typeof 守卫**（2026-08-17 攻击/风车不播放）：game.js
+  "预同步所有 Collider"循环对任何带 collider 字段的对象无条件 `e.collider.syncPosition()`——
+  非标准 collider 对象每帧抛 TypeError 中断 update，且循环排在 PartySystem.updateCombat
+  （AI）之前 → AI 永远跑不到 → 状态动画永不触发（表象是"动画不播放"，根因在主循环崩溃）。
+  凡"遍历 entities 调方法"的地方一律 `typeof x.method === 'function'` 守卫；诊断时优先看
+  控制台有没有每帧重复的异常——主循环中断的表象千奇百怪（某个动画不播/怪不动/波次不刷）。
+- **AI 实例跨场景残留战斗状态**：攻击/防御/风车中途切场景，AI 实例字段（_defendPhase 等）
+  不清零会让 `_tickWarrior` 首行 return 永久短路。场景切换重置块必须一并中断
+  meleeAtkTimer/defendPhase/whirlwindHitSet/frozenForCast 并把 _animState 复位 idle。
+
+## 47. 高台/射击台：2.5D 假高度 + 弹道忽略掩体段（2026-08-16 四版定稿）
+
+- **需求**：围墙内远程攻击被己方掩体墙段（`WallSystem.isoSegments` 里 `_cover:true`）
+  挡——需要"站上高台越过围墙攻击"。
+- **⚠ 打回三次的教训**：
+  - ① 台阶/平台不能沿 local-x 横排（rot 44.8 投影成"台阶左平台右"方向反）——台阶沿
+    local-y 纵深排列；
+  - ② **不要自研 box 堆叠**——直接参考掩体：复制拓宽立方体（300×150 起三级堆叠）作
+    平台主体 + 台阶衔接，**rot.z 与掩体一致（44.8）**，平台主体平行墙（同掩体沿墙放置），
+    台阶向房内延伸；
+  - ③ 贴图走**生图管线**（`comfyui-gen.py --model flux2-klein-4b-walltex` 生成材质 →
+    render-cover-real.py Blender 渲染），不用渲染器直接贴墙砖；
+  - ④（三版打回）**布尔登台 = 瞬移**：进站台区瞬间抬满 platformHeight 很突兀——必须
+    **连续插值**。做法：登台走廊 = 以顶面中心为近墙端、沿 -wallNormal（房内）延伸
+    300px、半宽 100px 的矩形带；`getLift(ux,uy)` 把单位投影到走廊轴得纵深进度 t →
+    抬升 = (1-t)×platformHeight（0~291 连续，走廊外归 0）；DefenseSystem 每帧存
+    `u._platformLift` 连续值（不是布尔），渲染层 sprite 上移量读它；
+  - ⑤（三版打回）**台阶要有坡度**：满高 box 堆叠的立面全是墙材质、踏面不可见 = 不像
+    台阶——每级 = wall 立面（26 高）+ **light 材质踏面**（8 高浅色素面带高光，
+    render-cover-real.py 新增 light 材质），立面+踏面交替可见；
+  - ⑥（三版打回）**depth 要条件化**：无条件把台上单位抬到 `平台._faceDepth+1` 会覆盖
+    地面单位图层——只在 `_platformLift > 0` 时才抬（玩家 + 侍从渲染两处都要）。
+- **越墙三件套**：① 投射物 `Projectile._isBlockedByWall` 忽略掩体段条件扩展
+  `_isDefenseTower || _onPlatform`（防御塔 2026-08-14 已有同机制，直接复用）；
+  ② 魔法弹道 `BoltSkillSystem._updateFlying` 台上施法者传 ignore；
+  ③ `WallSystem.resolve/canMoveTo/_nearestBlockingSeg` 加 ignore 透传——
+  **网格 + 线性双路径都要改**（`_linearNearestBlockingSeg` 最易漏，漏了台上弹道
+  仍会被 `_nearestBlockingSeg` 的滑动分支挡回）。
+- **登台判定**：DefenseSystem 每帧扫玩家 + PartySystem.members + friendlyUnits
+  （**Companion 不在 Game.entities**——门感应同款坑），脚线位置算 getLift 连续值 →
+  `_onPlatform/_platformLift/_platformRef`，走出走廊归 0。
+- **2.5D 假高度**：平台贴图是"竖塔"（接地线→顶面 291px），玩家在台上 sprite 上移
+  platformHeight 即"站在顶面"；深度**不能靠 junctionCorrectedDepth**（顶面线离地面
+  291px > 仲裁窗口 60/280，不生效）——贴图深度锚定接地线 `_faceDepth=y+12`，台上单位
+  显式 `max(仲裁, 平台._faceDepth+1)`（**仅当 _platformLift>0**）。
+- **建造吸附两种口径**：掩体/门 = 纵向端点吸附（`_snapPosition` 端点贴合沿墙延续）；
+  平台 = **沿墙放置**（拓宽掩体，实体 = 墙段中点 + 墙内侧法线 × (墙半厚 26+30)，
+  台阶向房内延伸；F 镜像贴墙另一侧；`orient` 随墙段 face 方向，h 向墙用 flipX 镜像贴图）。
+- **Blender 建模**：render-cover-real.py 管线（与掩体完全同款：box 组合 + rot.z 44.8 +
+  elevation 30 + soil 土底座），**材质走生图管线** `comfyui-gen.py --model
+  flux2-klein-4b-walltex`（1024×668 横向砖墙 16 步），渲染后**紧身裁剪**再按内容
+  宽高比设显示尺寸/footOffsetY（四版：内容 567×677 → 显示 260×310，footOffsetY 155）；
+  h 版 = flipX 镜像派生。
+- **验证**：CDP 探针——getLift 连续抬升（实测 WALK lifts 291→255→218→182→145→109→
+  73→36→0 平滑递减，无瞬移）、登台 true↔false、resolve ignore 透传（无 ignore 被挡→
+  滑动 / 有 ignore 直达）、贴图渲染尺寸正确；headless 相机不驱动 rAF，视觉实机复测。
