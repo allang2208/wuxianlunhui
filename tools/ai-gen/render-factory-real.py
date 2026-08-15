@@ -133,25 +133,57 @@ def make_prism(L, W, H):
 
 
 def make_half_cylinder(L, R, segments=32):
-    """放倒的半圆柱（拱形盖）：轴沿 X，保留 z>=0 的上拱，底面平切在 z=0（贴箱体顶面）。"""
-    bpy.ops.mesh.primitive_cylinder_add(radius=R, depth=L, vertices=segments)
+    """放倒的半圆柱（拱形盖）：轴沿 X，上拱 + 两端实心端盖 + 底面平切 z=0。
+    显式建网格（旧法用圆柱裁剪，切掉下半后两端端盖是空的——holes_fill 也没补上）。"""
+    bpy.ops.mesh.primitive_cube_add(size=2)
     o = bpy.context.active_object
-    o.rotation_euler = (0, math.radians(90), 0)  # 轴 Z -> X
-    bpy.context.view_layer.update()
-    bpy.ops.object.transform_apply(rotation=True, scale=True)
+    bpy.ops.object.mode_set(mode="EDIT")
+    bpy.ops.mesh.select_all(action="SELECT")
+    bpy.ops.mesh.delete(type="VERT")
+    bpy.ops.object.mode_set(mode="OBJECT")
     import bmesh
     bpy.ops.object.mode_set(mode="EDIT")
     bm = bmesh.from_edit_mesh(o.data)
-    for v in list(bm.verts):
-        if v.co.z < -0.001:
-            bm.verts.remove(v)
-    # 两端封口：切掉下半后，两端半圆开口用边界环填充成实心端盖
-    bm.normal_update()
-    boundary = [e for e in bm.edges if not e.is_manifold]
-    if boundary:
-        bmesh.ops.holes_fill(bm, edges=boundary, sides=0)
+    half = L / 2
+    rings = []
+    for s in range(segments + 1):
+        theta = math.pi * s / segments  # 0..180° 上拱
+        y = R * math.cos(theta)
+        z = R * math.sin(theta)
+        ring = [bm.verts.new((-half, y, z)), bm.verts.new((half, y, z))]
+        rings.append(ring)
+    # 拱面（沿 X 连接两环）
+    for s in range(segments):
+        a0, a1 = rings[s]
+        b0, b1 = rings[s + 1]
+        bm.faces.new([a0, a1, b1, b0])
+    # 两端实心半圆端盖
+    for end in (0, 1):
+        arc = [rings[s][end] for s in range(segments + 1)]
+        center = bm.verts.new((half if end else -half, 0, 0))
+        for s in range(segments):
+            bm.faces.new([center, arc[s], arc[s + 1]])
+    # 底面（z=0 矩形）
+    bm.faces.new([rings[0][0], rings[0][1], rings[-1][1], rings[-1][0]])
     bmesh.update_edit_mesh(o.data)
     bpy.ops.object.mode_set(mode="OBJECT")
+    # UV：拱面沿长度 u / 沿弧 v；端盖极坐标；底面平面
+    uvl = o.data.uv_layers.new(name="UVMap")
+    for poly in o.data.polygons:
+        is_fan = len(poly.vertices) == 3
+        is_base = all(abs(o.data.vertices[v].co.z) < 0.001 for v in poly.vertices)
+        for li in poly.loop_indices:
+            co = o.data.vertices[o.data.loops[li].vertex_index].co
+            if is_base:
+                u = (co.x + half) / L
+                v = (co.y + R) / (2 * R)
+            elif is_fan:
+                u = 0.5 + 0.5 * co.y / R
+                v = 0.5 + 0.5 * co.z / R
+            else:
+                u = (co.x + half) / L
+                v = math.atan2(co.z, co.y) / math.pi
+            uvl.data[li].uv = (u, v)
     return o
 
 
