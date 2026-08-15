@@ -31,6 +31,7 @@ check('生命值 = 200（base 100 + con10×10）', miner.data.maxHp === 200 && m
 check('移动速度 = 80', hamsterCfg.ai.walkSpeed === 80 && hamsterCfg.ai.runSpeed === 80,
     `walkSpeed=${hamsterCfg.ai.walkSpeed}`);
 check('攻击间隔 = 2000ms / 伤害 = 100', hamsterCfg.ai.attackInterval === 2000 && hamsterCfg.ai.attackDamage === 100);
+check('采矿/攻击距离 = 50px', hamsterCfg.ai.miningRange === 50, `miningRange=${hamsterCfg.ai.miningRange}`);
 check('隐藏背包默认容量 = 500', hamsterCfg.ai.backpackCapacity === 500,
     `capacity=${hamsterCfg.ai.backpackCapacity}`);
 check('idle 动画 = 1 帧', hamsterCfg.animations.idle.frameCount === 1 && hamsterCfg.animations.idle.frames[0] === 0);
@@ -71,7 +72,7 @@ check('AI 采矿目标只认 _isEnergyNode 且跳过枯竭', /_isEnergyNode/.tes
 check('AI 敌人交战：engageRange 内 _nearestEnemy → 近战 takeDamage（小屋防御）',
     /_nearestEnemy\(entities, this\._engageRange\)/.test(aiSrc)
     && /_tryAttackEnemy\(\)/.test(aiSrc) && /enemy\.takeDamage\(this\._attackDamage/.test(aiSrc));
-check('AI 攻击只对节点 takeDamage，伤害 = attackDamage',
+check('AI 采矿攻击只对节点 takeDamage（伤害 = attackDamage；效率加成装包）',
     /node\.takeDamage\(this\._attackDamage/.test(aiSrc));
 check('AI 攻击间隔读取 attackInterval', /this\._attackInterval = this\.cfg\.attackInterval \?\? 2000/.test(aiSrc));
 check('AI 移速读取 walkSpeed', /this\.cfg\.walkSpeed \?\? 80/.test(aiSrc));
@@ -86,12 +87,19 @@ check('AI 背包物流：work/return/unload 三阶段 + 自动拾取 + 回屋卸
 check('AI 采矿效率加成装入隐藏背包（不再直注玩家）',
     /m\._energyCarried \+= take/.test(aiSrc));
 check('AI 寻路可达接近点：矿点边缘点（避开 A* 障碍中心）+ 回屋边缘点',
-    /approachDist = Math\.max\(this\._miningRange/.test(aiSrc)
+    /const miningRange = this\._miningRange \+ nodeR/.test(aiSrc)
+    && /Math\.min\(Math\.max\(this\._miningRange/.test(aiSrc)
     && /m\._tacticalTarget = \{ x: node\.x \+ \(dx \/ dd\) \* approachDist/.test(aiSrc)
     && /approach = 64/.test(aiSrc));
 check('AI 卡死看门狗 + 满载防抖（_checkStuck/_returnTriggered）',
     /_checkStuck\(dt\)/.test(aiSrc) && /_returnTriggered/.test(aiSrc)
     && /WallSystem\.findSafeSpawn/.test(aiSrc));
+check('AI 卡死升级：连续卡死直接传送到矿点旁合法点（终结顶墙死循环）',
+    /_stuckEscalation/.test(aiSrc) && /near\.x \+ Math\.cos\(a\) \* 95/.test(aiSrc)
+    && /WallSystem\.canMoveTo\(px, py/.test(aiSrc));
+check('AI 矿点接近点：障碍外扩 +40 且钳制在采矿范围内（-15）',
+    /nodeR \+ \(m\.groundRadius \|\| 26\) \+ 40/.test(aiSrc)
+    && /miningRange - 15/.test(aiSrc));
 
 // ---- 4. 源码接线：实体受击/死亡/仇恨 ----
 const entSrc = fs.readFileSync(path.join(ROOT, 'src/entities/hamster-miner.js'), 'utf-8');

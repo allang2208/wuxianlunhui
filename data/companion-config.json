@@ -13,9 +13,7 @@
       "baseLevel": 1,
       "baseExp": 0,
       "baseData": { "str": 13, "dex": 8, "int": 4, "con": 13, "wis": 6, "luck": 4 },
-      "skills": [],
-      "displaySize": 200,
-      "spriteOffsetY": -38,
+      "skills": ["swordMastery", "shieldDefense"],
       "equipRules": {
         "weaponTypes": ["sword", "shield"],
         "oneHandedWeaponsOnly": true,

@@ -8,7 +8,7 @@
 import { computeMaxExp } from '../config/exp-system.js';
 import { allocateOnLevelUp } from '../config/companion-growth.js';
 import { canEquipSlot, getEquipmentBonuses, isOneHandedItem } from '../ui/equip/equip-rules.js';
-import { buildSkillMap, restoreSkills } from '../systems/skill-system.js';
+import { buildSkillMap, restoreSkills, grantCompanionSkillExp } from '../systems/skill-system.js';
 import COMBAT_FORMULAS from '../../data/combat-formulas.json';
 
 const ATTR_KEYS = ['str', 'dex', 'int', 'con', 'wis', 'luck'];
@@ -242,6 +242,12 @@ export class Companion {
                 if (typeof attacker.applyKnockback === 'function') {
                     const angle = Math.atan2(attacker.y - this.y, attacker.x - this.x);
                     attacker.applyKnockback(angle, defense.parryKnockback || 100);
+                }
+                // 持盾防御修炼：弹反成功 +parry 经验（与玩家 addShieldDefenseExp 同 expRewards）
+                const sd = this.skills && this.skills.shieldDefense;
+                if (sd) {
+                    const rw = sd.expRewards || {};
+                    grantCompanionSkillExp(this, 'shieldDefense', rw.parry || 10);
                 }
             }
             const dealt = raw * remainingRatio;

@@ -5,6 +5,7 @@ import { isSwordCategory } from '../config/gun-ammo.js';
 import { getElement } from '../utils/dom-utils.js';
 import { TimerManager } from '../utils/timer-manager.js';
 import { SystemUI } from './system-ui.js';
+import { grantCompanionSkillExp } from '../systems/skill-system.js';
 import {
     getSkillMagicCategory,
     getSkillMagicTier,
@@ -16,6 +17,11 @@ export const SkillManager = {
     _currentFilter: 'all', // 当前筛选条件：all|passive|active|magic
     _addSkillExp(player, skill, gained) {
         if (!skill || skill.level >= skill.maxLevel || gained <= 0) return;
+        // 队友技能修炼（露娜魔法等）：走纯函数升级（companion-safe），不经过玩家技能面板
+        if (player && player._faction === 'companion') {
+            grantCompanionSkillExp(player, skill.id, gained);
+            return;
+        }
         SkillLevelSystem.addExp(skill, gained, player);
         SkillLevelSystem.refreshUI(skill.id);
     },

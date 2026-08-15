@@ -42,7 +42,7 @@ export const HAMSTER_CONFIG = {
         baseDamage: 100,          // 每次攻击伤害基准（采矿与近战共用）
         attackIntervalMs: 2000,   // 攻击间隔基准
         walkSpeed: 80,            // 移动速度基准（升级 +5%/级）
-        miningRange: 80,
+        miningRange: 50,
         engageRange: 340,
         attackRange: 48,
         miningMult: 1,            // 采矿效率倍率（升级 +15%/级）

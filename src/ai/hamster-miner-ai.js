@@ -37,6 +37,7 @@ export class HamsterMinerAI {
         this._lastPosX = 0;
         this._lastPosY = 0;
         this._stuckStreak = 0;
+        this._stuckEscalation = 0; // 连续卡死升级：先原地脱困，再直接传送到目标附近
     }
 
     /** 仓鼠小屋升级后刷新战斗参数（间隔/伤害/移速/采矿效率） */
@@ -245,7 +246,16 @@ export class HamsterMinerAI {
         }
         // 赶路：朝矿点移动（移速 80）——目标用矿点边缘可达点（矿点本身是 A* 障碍，
         // 直接寻路到中心会失败/卡住；接近点须在 障碍半径+自身半径 之外且进入采矿范围）
-        const approachDist = Math.max(this._miningRange, (node.groundRadius || 45) + (m.groundRadius || 26) + 20);
+        // 接近点再外扩 40px：路径终点避开矿点 A* 实体障碍（45+26=71），
+        // 并远离墙体死区——否则路径末段节点贴近障碍会被 _checkValidity 判阻挡反复修复
+        // 接近点必须：① 在矿点 A* 实体障碍之外（可到达）；② 在采矿范围之内（到位即触发采矿）。
+        // 采矿距离收到 50 后，采矿范围 = 50 + 节点半径(45) = 95，接近点夹到 ~80
+        const nodeR = node.groundRadius || 45;
+        const miningRange = this._miningRange + nodeR;
+        const approachDist = Math.max(
+            nodeR + (m.groundRadius || 26) + 5,
+            Math.min(Math.max(this._miningRange, nodeR + (m.groundRadius || 26) + 40), miningRange - 15)
+        );
         const dx = m.x - node.x;
         const dy = m.y - node.y;
         const dd = Math.hypot(dx, dy) || 1;
@@ -271,15 +281,44 @@ export class HamsterMinerAI {
         this._lastPosY = m.y;
         if (moved > 3) {
             this._stuckStreak = 0;
+            this._stuckEscalation = 0;
             return;
         }
         this._stuckStreak++;
         if (this._stuckStreak < 2) return;
         this._stuckStreak = 0;
         if (this._phase === 'work') {
-            // 重新选最近矿点（原目标可能不可达）
+            // 卡死脱困：可能卡进墙体死区（MovementSystem resolve 反复 clear 路径）。
+            // 第一次先原地脱离 + 重选矿点；连续卡死（升级）→ 直接传送到矿点附近合法点，
+            // 终结「顶墙 → 清路径 → 直线顶墙」死循环（与 CompanionAI 卡死瞬移同款兜底）
+            this._stuckEscalation++;
+            const near = this._stuckEscalation >= 2 ? (m.target || null) : null;
+            const anchor = near && near.active ? near : m;
+            if (WallSystem && typeof WallSystem.findSafeSpawn === 'function') {
+                let sp = null;
+                if (near && near.active) {
+                    // 传送到矿点旁 95px 合法点（避免落在矿点中心/障碍上）
+                    for (let i = 0; i < 8; i++) {
+                        const a = (i / 8) * Math.PI * 2 + Math.random() * 0.5;
+                        const px = near.x + Math.cos(a) * 95;
+                        const py = near.y + Math.sin(a) * 95;
+                        if (!WallSystem.canMoveTo || WallSystem.canMoveTo(px, py, m.groundRadius || 24)) {
+                            sp = { x: px, y: py };
+                            break;
+                        }
+                    }
+                }
+                if (!sp) sp = WallSystem.findSafeSpawn(anchor.x, anchor.y, m.groundRadius || 24);
+                if (sp && Number.isFinite(sp.x) && Number.isFinite(sp.y)
+                    && Math.hypot(sp.x - m.x, sp.y - m.y) > 5) {
+                    m.x = sp.x;
+                    m.y = sp.y;
+                }
+            }
+            if (near) this._stuckEscalation = 0;
             m.target = null;
             m._tacticalTarget = null;
+            if (m._pathManager) m._pathManager._clearPath();
         } else if (this._phase === 'return' && m._hut && m._hut.active) {
             // 传送到小屋附近合法点
             if (WallSystem && typeof WallSystem.findSafeSpawn === 'function') {
