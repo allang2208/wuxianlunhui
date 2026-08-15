@@ -536,6 +536,16 @@ export const CompanionPanel = {
         return wrap.innerHTML;
     },
 
+    /** 队友技能修炼刷新入口：面板打开且停在"技能"页时重绘（战斗中获得技能经验后调用） */
+    refreshSkillTabIfOpen() {
+        if (!this._overlay || this._overlay.style.display !== 'block') return;
+        if (this._currentTab !== 'skill') return;
+        const m = this._member();
+        if (!m) return;
+        const skillTab = this._overlay.querySelector('#tab-skill');
+        if (skillTab) skillTab.innerHTML = this._skillHtml(m);
+    },
+
     _bindEquipPage(m) {
         this._renderEquipSlots(m);
         const cells = this._overlay.querySelectorAll('.companion-pack-grid .companion-cell');

@@ -95,6 +95,26 @@ export function grantSkillExp(owner, skillId, amount, opts = {}) {
     return leveled;
 }
 
+/** 队友技能修炼（2026-08-15 伊莉丝剑精通/持盾防御、露娜魔法）：纯函数升级 + 队友技能栏刷新 */
+export function grantCompanionSkillExp(companion, skillId, amount) {
+    const leveled = grantSkillExp(companion, skillId, amount);
+    if (amount > 0 && getSkill(companion, skillId)) {
+        refreshCompanionSkillPanel();
+    }
+    return leveled;
+}
+
+/** 队友技能栏刷新：面板打开且停在"技能"页时重绘（无面板/未初始化忽略） */
+export function refreshCompanionSkillPanel() {
+    if (typeof window === 'undefined') return;
+    try {
+        const panel = window.Game && window.Game.CompanionPanel;
+        if (panel && typeof panel.refreshSkillTabIfOpen === 'function') {
+            panel.refreshSkillTabIfOpen();
+        }
+    } catch (_e) { /* 面板未初始化/场景切换中忽略 */ }
+}
+
 /**
  * 通用技能升级回调（玩家 SkillManager.onLevelUp 的通用版）：
  * 按 effectFormula 里的属性奖励字段应用（strBonus/dexBonus/intBonus/conBonus/wisBonus/luckBonus），

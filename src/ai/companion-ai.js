@@ -20,6 +20,7 @@ import { EnergyManager, ENERGY_ITEM } from '../systems/energy-manager.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
 import { getConsumableEffect, applyConsumableEffect } from '../config/consumable.js';
+import { grantCompanionSkillExp } from '../systems/skill-system.js';
 import { AimHelper } from '../utils/aim-helper.js';
 import {
     DEFAULT_MAGE_AI, decideCompanionAction, pickCompanionSpell,
@@ -1044,6 +1045,12 @@ export class CompanionAI {
             this._defendPhase = 'hold';
             this._defendTimer = cfg.defendHoldMs || 2000;
             c._defending = true; // 持盾防御 + 常态弹反生效
+            // 持盾防御修炼：每次进入防御姿态按 meleeBlock 给经验（弹反另计，见 Companion.takeDamage）
+            const sd = c.skills && c.skills.shieldDefense;
+            if (sd) {
+                const rw = sd.expRewards || {};
+                grantCompanionSkillExp(c, 'shieldDefense', rw.meleeBlock || 2);
+            }
         } else if (this._defendPhase === 'hold' && this._defendTimer <= 0) {
             this._defendPhase = 'exit';
             this._defendTimer = cfg.defendExitMs || 500;
@@ -1084,6 +1091,14 @@ export class CompanionAI {
         if (d > range + 20) return; // 目标走出范围：空挥
         const dmg = Math.max(1, Math.floor((c.data.atk || 0) * (this.cfg.attackDamageMul || 1.25)));
         if (typeof t.takeDamage === 'function') t.takeDamage(dmg, c, 'physical');
+        // 剑精通修炼：命中 +hit，击杀 +kill（与玩家 addMeleeExp 同 expRewards）
+        const sm = c.skills && c.skills.swordMastery;
+        if (sm) {
+            const rw = sm.expRewards || {};
+            let gained = rw.hit || 0;
+            if (t.hp <= 0) gained += rw.kill || 0;
+            if (gained > 0) grantCompanionSkillExp(c, 'swordMastery', gained);
+        }
         if (EffectManager) {
             EffectManager.add(new FloatingTextEffect(t.x, t.y - 30, `-${dmg}`, '#ffb45e'));
         }

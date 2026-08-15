@@ -5,7 +5,7 @@ const { allocateOnLevelUp, registerGrowthRule } = await import('../src/config/co
 const { Companion } = await import('../src/entities/companion.js');
 const { PartySystem } = await import('../src/systems/party-system.js');
 const { canEquipSlot, getEquipmentBonuses } = await import('../src/ui/equip/equip-rules.js');
-const { buildSkillMap, grantSkillExp, getSkillEffect } = await import('../src/systems/skill-system.js');
+const { buildSkillMap, grantSkillExp, getSkillEffect, grantCompanionSkillExp } = await import('../src/systems/skill-system.js');
 const {
     decideCompanionAction, pickCompanionSpell,
     shouldRelocateCompanion, shouldUseRun, DEFAULT_MAGE_AI,
@@ -13,6 +13,22 @@ const {
 } = await import('../src/ai/companion-ai-decision.js');
 
 const fakeSkillData2 = () => ({
+    swordMastery: {
+        id: 'swordMastery', name: '剑精通', icon: '⚔', iconImage: '',
+        description: '精通剑术，每次挥舞都更加致命',
+        maxLevel: 20, tags: [{ name: '被动', type: 'passive' }],
+        expFormula: '100 + (level - 1) * 100',
+        effectFormula: { atkBonus: 'level', cooldownReduction: 'level * 0.01', dexBonus: 'level' },
+        expRewards: { hit: 1, multiHit: 3, kill: 10 },
+    },
+    shieldDefense: {
+        id: 'shieldDefense', name: '持盾防御', icon: '🛡', iconImage: '',
+        description: '精通盾牌防御之术',
+        maxLevel: 20, tags: [{ name: '被动', type: 'passive' }],
+        expFormula: '100 + (level - 1) * 100',
+        effectFormula: { defBonusPercent: 'level * 0.02', damageReductionBonus: 'level * 0.02', parryStunBonus: 'Math.floor(level / 5) * 0.25' },
+        expRewards: { parry: 10, meleeBlock: 2, rangedBlock: 5 },
+    },
     holyLight: {
         id: 'holyLight', name: '圣光', icon: '✨', iconImage: '', description: '魔法治疗/伤害',
         maxLevel: 20, tags: [{ name: '魔法', type: 'magic' }, { name: '主动', type: 'active' }],
@@ -397,6 +413,52 @@ const eliseDef2 = new Companion(eliseArchive);
 eliseDef2.data.hp = 100;
 const plainHit = eliseDef2.takeDamage(50, null);
 check('未防御照常承伤', plainHit.damage === 50 && plainHit.parried === false);
+
+// --- 伊莉丝技能：剑精通 + 持盾防御（配置已挂载，修炼/升级链路） ---
+check('伊莉丝已配置剑精通', !!elise.skills.swordMastery && elise.skills.swordMastery.name === '剑精通');
+check('伊莉丝已配置持盾防御', !!elise.skills.shieldDefense && elise.skills.shieldDefense.name === '持盾防御');
+const smExp0 = elise.skills.swordMastery.exp;
+check('剑精通修炼加经验', grantSkillExp(elise, 'swordMastery', 50) === false
+    && elise.skills.swordMastery.exp === smExp0 + 50);
+check('剑精通修炼升级', grantSkillExp(elise, 'swordMastery', elise.skills.swordMastery.maxExp) === true
+    && elise.skills.swordMastery.level >= 2);
+let sdGuard = 0;
+while (elise.skills.shieldDefense.level < 3 && sdGuard++ < 30) {
+    grantSkillExp(elise, 'shieldDefense', elise.skills.shieldDefense.maxExp);
+}
+check('持盾防御修炼升级（可到 Lv3）', elise.skills.shieldDefense.level >= 3,
+    `lv=${elise.skills.shieldDefense.level}`);
+check('剑精通升级回调应用敏捷（dexBonus）', elise.data.dex >= 8 + elise.skills.swordMastery.level,
+    `dex=${elise.data.dex} lv=${elise.skills.swordMastery.level}`);
+const eliseSkillSer = elise.serialize();
+const eliseSkillRestored = Companion.fromSerialized(eliseSkillSer);
+check('伊莉丝技能序列化保留等级', eliseSkillRestored.skills.swordMastery.level === elise.skills.swordMastery.level
+    && eliseSkillRestored.skills.shieldDefense.level === elise.skills.shieldDefense.level
+    && eliseSkillRestored.skills.swordMastery.getEffect !== undefined);
+// 队友技能修炼助手（companion-safe，不触发玩家 SkillManager）
+const lunaSkillExp0 = lunaC.skills.iceSpike.exp;
+grantCompanionSkillExp(lunaC, 'iceSpike', 20);
+check('队友技能修炼助手加经验', lunaC.skills.iceSpike.exp === lunaSkillExp0 + 20);
+
+// --- 露娜魔法修炼/升级（火球/冰锥/闪电，10 级解锁圣光后也可修炼） ---
+check('露娜有火球', !!lunaC.skills.fireball && !!lunaC.skills.iceSpike && !!lunaC.skills.lightningStrike);
+const lunaMagicGuard = { fireball: 0, iceSpike: 0, lightningStrike: 0, holyLight: 0 };
+const lvlMagic = (id) => {
+    const sk = lunaC.skills[id];
+    let g = 0;
+    while (sk.level < 2 && g++ < 30) grantSkillExp(lunaC, id, sk.maxExp);
+    return sk.level;
+};
+check('露娜火球可修炼升级', lvlMagic('fireball') >= 2, `lv=${lunaC.skills.fireball.level}`);
+check('露娜冰锥可修炼升级', lvlMagic('iceSpike') >= 2, `lv=${lunaC.skills.iceSpike.level}`);
+check('露娜闪电可修炼升级', lvlMagic('lightningStrike') >= 2, `lv=${lunaC.skills.lightningStrike.level}`);
+check('露娜 10 级解锁圣光', !!lunaC.skills.holyLight);
+check('露娜圣光可修炼升级', lvlMagic('holyLight') >= 2, `lv=${lunaC.skills.holyLight.level}`);
+const lunaMagicSer = lunaC.serialize();
+const lunaMagicRestored = Companion.fromSerialized(lunaMagicSer);
+check('露娜魔法序列化保留等级', lunaMagicRestored.skills.fireball.level === lunaC.skills.fireball.level
+    && lunaMagicRestored.skills.holyLight.level === lunaC.skills.holyLight.level
+    && typeof lunaMagicRestored.skills.fireball.getEffect === 'function');
 
 // --- 装备通用规则（与玩家共用 equip-rules） ---
 const sword = { name: '剑', category: 'weapon_melee', weaponType: 'sword', equipSlot: 'weapon' };
