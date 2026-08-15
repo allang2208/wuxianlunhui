@@ -350,14 +350,16 @@ check('伊莉丝防御参数（400px / >3 敌 / 0.5+2+0.5s）', elise.aiConfig.d
 const eliseSer = elise.serialize();
 check('伊莉丝序列化保留 equipRules', eliseSer.equipRules && eliseSer.equipRules.weaponTypes.includes('shield')
     && eliseSer.equipRules.armorSets.includes('tiangang'));
-check('伊莉丝序列化保留 displaySize/spriteOffsetY', eliseSer.displaySize === 200 && eliseSer.spriteOffsetY === -38);
+// 与露娜同一套显示参数：不配 displaySize/spriteOffsetY（默认 144/无偏移），素材已按露娜规格归一化
+check('伊莉丝用默认显示参数（与露娜一致）', elise.displaySize === 0 && elise.spriteOffsetY === 0
+    && eliseSer.displaySize === undefined && eliseSer.spriteOffsetY === undefined);
 const eliseRestored = Companion.fromSerialized(eliseSer);
 check('伊莉丝恢复后仍限单手剑', eliseRestored.canEquip(eliseSword, 'weapon') === true
     && eliseRestored.canEquip(eliseTwoHandSword, 'weapon') === false
     && eliseRestored.canEquip(lunaStaff, 'weapon') === false);
 check('伊莉丝恢复后仍限重甲', eliseRestored.canEquip(eliseHeavy, 'armor') === true
     && eliseRestored.canEquip(eliseLightArmor, 'armor') === false);
-check('伊莉丝恢复后渲染尺寸保留', eliseRestored.displaySize === 200 && eliseRestored.spriteOffsetY === -38);
+check('伊莉丝恢复后仍用默认显示参数', eliseRestored.displaySize === 0 && eliseRestored.spriteOffsetY === 0);
 
 // --- 剑盾防御触发判定（纯函数）：半径 400 内 >3 敌 或 有远程敌 ---
 const mkEnemy = (x, y, over = {}) => ({ x, y, attacks: {}, ...over });
