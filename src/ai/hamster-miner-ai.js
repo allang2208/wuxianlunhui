@@ -246,7 +246,16 @@ export class HamsterMinerAI {
         }
         // 赶路：朝矿点移动（移速 80）——目标用矿点边缘可达点（矿点本身是 A* 障碍，
         // 直接寻路到中心会失败/卡住；接近点须在 障碍半径+自身半径 之外且进入采矿范围）
-        const approachDist = Math.max(this._miningRange, (node.groundRadius || 45) + (m.groundRadius || 26) + 20);
+        // 接近点再外扩 40px：路径终点避开矿点 A* 实体障碍（45+26=71），
+        // 并远离墙体死区——否则路径末段节点贴近障碍会被 _checkValidity 判阻挡反复修复
+        // 接近点必须：① 在矿点 A* 实体障碍之外（可到达）；② 在采矿范围之内（到位即触发采矿）。
+        // 采矿距离收到 50 后，采矿范围 = 50 + 节点半径(45) = 95，接近点夹到 ~80
+        const nodeR = node.groundRadius || 45;
+        const miningRange = this._miningRange + nodeR;
+        const approachDist = Math.max(
+            nodeR + (m.groundRadius || 26) + 5,
+            Math.min(Math.max(this._miningRange, nodeR + (m.groundRadius || 26) + 40), miningRange - 15)
+        );
         const dx = m.x - node.x;
         const dy = m.y - node.y;
         const dd = Math.hypot(dx, dy) || 1;

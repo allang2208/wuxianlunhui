@@ -15,7 +15,7 @@
     "role": "miner",
     "walkSpeed": 80,
     "runSpeed": 80,
-    "miningRange": 80,
+    "miningRange": 50,
     "attackInterval": 2000,
     "attackDamage": 100,
     "backpackCapacity": 500,
