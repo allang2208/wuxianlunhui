@@ -376,6 +376,30 @@ const e2 = await rawEval(`(async () => {
 check('背包扩容升级：每级 +100（500 → 600）', e2.ok === true && e2.before === 500 && e2.after === 600 && e2.minerCap === 600,
     JSON.stringify(e2));
 
+const e3 = await rawEval(`(async () => {
+    try {
+        const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+        const miner = [...window.Game.entities.values()].find(e => e && e._isHamsterMiner && e.active);
+        const hut = miner._hut;
+        const { HamsterHutSystem } = await window.__imp('hamster-hut-system');
+        const panel = HamsterHutSystem._ensurePanel();
+        if (!panel.isOpen) panel.openFor(hut, window.Game.player);
+        await sleep(600); // 等一次 500ms 实时刷新
+        const statusEl = document.querySelector('#hhStatus');
+        const statusText = statusEl ? statusEl.textContent : '';
+        const hasLabel = statusText.includes('暂存能量');
+        const timerActive = !!panel._refreshTimer;
+        panel.close();
+        const timerCleared = !panel._refreshTimer;
+        return { hasLabel, timerActive, timerCleared, tail: statusText.slice(-220) };
+    } catch (err) {
+        return { hasLabel: false, err: String(err && err.stack || err).slice(0, 300) };
+    }
+})()`);
+console.log('e3 raw:', JSON.stringify(e3));
+check('小屋面板显示「暂存能量」+ 500ms 实时刷新定时器', e3 && e3.hasLabel === true && e3.timerActive === true
+    && e3.timerCleared === true, JSON.stringify(e3));
+
 // ---------- D. 死亡：dying 动画 + 移除 ----------
 console.log('D. 死亡流程');
 const d = await rawEval(`(async () => {

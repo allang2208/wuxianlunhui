@@ -473,6 +473,7 @@ class HamsterHutPanel extends BasePanel {
         super({ id: 'hamsterHutPanel', className: 'hamster-hut-panel', stateKey: 'hamsterHut' });
         this.hut = null;
         this.player = null;
+        this._refreshTimer = null; // 面板打开期间 500ms 实时刷新（暂存能量/矿工背包）
     }
 
     buildContent(el) {
@@ -502,6 +503,15 @@ class HamsterHutPanel extends BasePanel {
         this.player = player;
         this.open();
         this.refresh();
+        if (this._refreshTimer) clearInterval(this._refreshTimer);
+        this._refreshTimer = setInterval(() => {
+            if (this.isOpen && this.hut && this.hut.active) {
+                this.refresh();
+            } else {
+                clearInterval(this._refreshTimer);
+                this._refreshTimer = null;
+            }
+        }, 500);
     }
 
     onOpen() {
@@ -510,6 +520,10 @@ class HamsterHutPanel extends BasePanel {
     }
 
     onClose() {
+        if (this._refreshTimer) {
+            clearInterval(this._refreshTimer);
+            this._refreshTimer = null;
+        }
         if (this.el) this.el.style.display = 'none';
         this.hut = null;
         this.player = null;
@@ -545,8 +559,11 @@ class HamsterHutPanel extends BasePanel {
                 攻击间隔 <b style="color:#ff9d7a;">${mults.attackInterval}ms</b><br>
                 移动速度 <b style="color:#ff9d7a;">${mults.walkSpeed}</b> ·
                 采矿效率 <b style="color:#7fd4ff;">+${Math.round((mults.miningMult - 1) * 100)}%</b><br>
-                矿工背包 <b style="color:#8ad0ff;">${carriedTotal}/${capTotal}</b> ·
-                小屋暂存 <b style="color:#ffaa55;">${h._storedEnergy || 0}</b>
+                矿工背包 <b style="color:#8ad0ff;">${carriedTotal}/${capTotal}</b>
+            </div>
+            <div style="margin-top:8px;padding:7px 10px;border:1px solid #8a6a2a;border-radius:8px;background:rgba(110,80,30,0.22);display:flex;justify-content:space-between;align-items:center;">
+                <span style="font-size:13px;color:#ffd7a0;">📦 暂存能量</span>
+                <span style="font-size:15px;font-weight:700;color:#ffcc66;">${h._storedEnergy || 0}</span>
             </div>`;
 
         const modBox = el.querySelector('#hhModules');
