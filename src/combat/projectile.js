@@ -53,9 +53,12 @@ class Projectile {
             const candidates = this._getCandidateEntities(prevX, prevY);
             for (const entity of candidates) {
                 // 友军伤害免疫：跳过同阵营目标（放在 hitTargets 检查之前，避免同一友军被反复判断）
+                // 开发工具「友军伤害」开启时放行（isFriendlyFire 已随开关返回 false，
+                // 同阵营硬过滤也要一并放行，否则枪弹打掩体/队友仍被跳过，2026-08-16）
+                const devFF = (typeof window !== 'undefined' && window.Game && window.Game._devFriendlyFire);
                 if (entity === this.source || !entity.active || !entity.hittable ||
                     isFriendlyFire(this.source, entity) ||
-                    (this.source && this.source._faction && entity._faction && this.source._faction === entity._faction) ||
+                    (!devFF && this.source && this.source._faction && entity._faction && this.source._faction === entity._faction) ||
                     this.hitTargets.has(entity)) continue;
                 if (this._isHittingEntity(entity, prevX, prevY)) {
                     this.hitTargets.add(entity);
@@ -110,7 +113,9 @@ class Projectile {
             ]),
         } : null;
         // 防御塔弹丸：忽略己方掩体墙段——塔可越过己方掩体射击（2026-08-14）
-        if (this.source && this.source._isDefenseTower && WallSystem && WallSystem.isoSegments) {
+        // 射击台（2026-08-16）：站在射击台上的单位（玩家/友方，_onPlatform）同样忽略
+        // 己方掩体段，可越过围墙向外远程攻击（与防御塔同机制）
+        if (this.source && (this.source._isDefenseTower || this.source._onPlatform) && WallSystem && WallSystem.isoSegments) {
             const coverSegs = new Set(WallSystem.isoSegments.filter((s) => s && s._cover));
             if (coverSegs.size) {
                 if (!ignore) {
