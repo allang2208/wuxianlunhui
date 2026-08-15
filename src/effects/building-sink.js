@@ -21,7 +21,29 @@ class BuildingSinkEffect {
         this._dustTimer = 0;
         this._dust = [];              // { g, x, y, t, life, size }
         this._finished = false;
+        this._sprite = null;          // 接管的中性精灵（实体已失效，由特效独立驱动）
+        this._label = null;
+        this._footOffsetY = 0;
+        this._faceDepth = 0;
         this._content = null;         // 贴图内容测量：{ frameW, frameH, bottomTexel, padding, contentH }
+    }
+
+    /** 接管精灵并立即让实体失效（怪物/碰撞/寻路全部跳过，杜绝坍塌推开怪物） */
+    _detach(e) {
+        if (this._sprite) return;
+        const scene = (typeof window !== 'undefined') ? window.__phaserScene : null;
+        const data = scene && scene._neutralSprites ? scene._neutralSprites.get(e) : null;
+        if (!data || !data.sprite) return;
+        this._sprite = data.sprite;
+        this._label = data.label || null;
+        this._footOffsetY = e.footOffsetY || 0;
+        this._faceDepth = (typeof e._faceDepth === 'number') ? e._faceDepth : (e.y + 12);
+        scene._neutralSprites.delete(e); // 交特效接管，GameScene 不再管理/销毁
+        if (this._label) this._label.setVisible(false);
+        // 实体立即失效并从实体表移除：所有系统（目标/分离/寻路/空间网格）跳过它
+        e.active = false;
+        const game = (typeof window !== 'undefined') ? window.Game : null;
+        if (game && game.entities && e.id) game.entities.delete(e.id);
     }
 
     /** 测量贴图内容底端（最低不透明像素=与地面衔接线），缓存在首次 update */
@@ -68,13 +90,9 @@ class BuildingSinkEffect {
 
     update(dt = 16.67) {
         const e = this.entity;
-        const scene = (typeof window !== 'undefined') ? window.__phaserScene : null;
-        const data = scene && scene._neutralSprites ? scene._neutralSprites.get(e) : null;
-        const sprite = data && data.sprite;
-        if (!e || !sprite || e.active === false) {
-            this._finish();
-            return;
-        }
+        this._detach(e);
+        const sprite = this._sprite;
+        if (!sprite) { this._finish(); return; }
         const c = this._measureContent(sprite);
         if (!c) {
             this._finish();
@@ -87,15 +105,12 @@ class BuildingSinkEffect {
         const totalSink = c.contentH * 1.02;
         const target = totalSink * (p * (2 - p)); // easeOutQuad
         const step = Math.max(0, target - this.sinkPx);
-        if (step > 0) {
-            e.y += step;
-            this.sinkPx += step;
-            // 深度跟随下沉（掩体 _faceDepth 固定，沉陷时逐步后移避免浮在墙前实体之上）
-            if (typeof e._faceDepth === 'number') e._faceDepth += step;
-        }
+        this.sinkPx += step;
         // 原地消失：不做任何缩放/压扁；精灵同步下移的同时，把「地面线以下」的底部
         // 裁掉——可见部分底边始终钉在原地面线，顶部一路降到地面接缝处消失（不整图下滑）
         if (sprite.active) {
+            sprite.setPosition(e.x, this.baseY + this.sinkPx - this._footOffsetY);
+            sprite.setDepth(this._faceDepth + this.sinkPx);
             if (c.frameH > 0 && c.displayH > 0) {
                 // 可见底边钉在贴图内容底端（地面接缝 G0 = baseY - padding）
                 const visibleH = Math.max(0, c.contentH - this.sinkPx);
@@ -172,11 +187,10 @@ class BuildingSinkEffect {
         this.active = false;
         for (const d of this._dust) if (d.g) d.g.destroy();
         this._dust = [];
-        const e = this.entity;
-        if (!e) return;
-        e.active = false;
-        const game = (typeof window !== 'undefined') ? window.Game : null;
-        if (game && game.entities && e.id) game.entities.delete(e.id);
+        if (this._sprite && this._sprite.active) this._sprite.destroy();
+        if (this._label && this._label.active) this._label.destroy();
+        this._sprite = null;
+        this._label = null;
     }
 }
 
