@@ -338,8 +338,9 @@ console.log('风车（whirlwind）实机:', await ev(`(async () => {
   const hp0 = [fake1.hp, fake2.hp, fake3.hp];
   const samples = [];
   await sleep(200); // 等 AI 决策 tick
-  for (let i = 0; i < 30; i++) {
-    await sleep(100);
+  // 手动驱动 PartySystem.updateCombat 逐帧推进（16ms/帧 × 70 帧 ≈ 1.1s，覆盖 0.8s 风车）
+  for (let i = 0; i < 70; i++) {
+    PartySystem.updateCombat(16, window.Game.entities, window.Game.player);
     const spr = ps._companionSprites['warrior_bruno'];
     samples.push({
       anim: elise._animState,
@@ -348,6 +349,7 @@ console.log('风车（whirlwind）实机:', await ev(`(async () => {
       wmCd: Math.round(ai._whirlwindCd || 0),
       hits: ai._whirlwindHits || 0,
     });
+    await sleep(10);
   }
   entities.delete('ww1'); entities.delete('ww2'); entities.delete('ww3');
   const hpDeltas = [fake1.hp, fake2.hp, fake3.hp].map((h, i) => hp0[i] - h);
