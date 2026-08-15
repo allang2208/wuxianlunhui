@@ -25,6 +25,7 @@ export class HamsterMiner extends Companion {
         super(archive);
 
         this._isHamsterMiner = true;
+        this.animId = 'hamster_miner'; // 多实例共用素材动画键（渲染按 animId 取键）
         this._enemyTargetable = true; // 防守怪可锁定（露娜无此标记，保持不拉仇恨）
         this.x = x;
         this.y = y;

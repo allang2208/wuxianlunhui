@@ -87,6 +87,9 @@ const MovementSystem = {
             return;
         }
 
+        // [GATE-PURSUIT] 防守怪过门追击检查（内部 500ms 节流，2026-08-15 用户要求）
+        if (enemy._defenseMonster) this._checkGatePursuit(enemy, dt);
+
         // 恐惧状态：失控逃跑——强制朝恐惧源相反方向移动（移速按层数削减），不做其他移动决策
         if (enemy.hasStatusEffect && enemy.hasStatusEffect('fear')) {
             const src = enemy._fearSource;
@@ -610,6 +613,85 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
             enemy._stuckTimer = 0;
             enemy._lastX = enemy.x;
             enemy._lastY = enemy.y;
+        }
+    },
+
+    /**
+     * [GATE-PURSUIT] 开门追击（2026-08-15 用户要求，世界-122 防守怪）：
+     * 建造门（BuildableGate）敞开时，若高价值目标（基地 > 玩家 > 玩家单位）在门内侧
+     * 且路径畅通（怪物→门口、门口→目标均无墙体遮挡），放弃啃墙、优先穿门追击。
+     * 追击期间置 _gatePursuit 标记（感知系统豁免交战半径脱离与换目标滞回），
+     * 进入交战圈/目标失效/追击目标变更后清除标记，回落正常规则。
+     */
+    _checkGatePursuit(enemy, dt) {
+        enemy._gatePursuitTimer = (enemy._gatePursuitTimer || 0) + dt;
+        if (enemy._gatePursuitTimer < 500) return;
+        enemy._gatePursuitTimer = 0;
+        // 追击进行中：目标失效/追击目标被换/已进入交战圈 → 退出追击态（回落正常规则）
+        if (enemy._gatePursuit) {
+            const t = enemy.target;
+            if (!t || !t.active || t !== enemy._gatePursuitTarget) {
+                enemy._gatePursuit = false;
+                enemy._gatePursuitTarget = null;
+                return;
+            }
+            const engage = enemy._engageHostileRange ?? 320;
+            if (Math.hypot(t.x - enemy.x, t.y - enemy.y) <= engage) {
+                enemy._gatePursuit = false;
+                enemy._gatePursuitTarget = null;
+            }
+            return;
+        }
+        // 已与玩家/单位交战中不打扰
+        if (enemy.target && enemy.target.active && !enemy.target._isDefenseStructure) return;
+        if (!Game || !Game.entities) return;
+        // 最近的敞开建造门（900px 内；门洞段开门时已从 isoSegments 移除，寻路自然穿门）
+        let gate = null, gd = Infinity;
+        for (const e of Game.entities.values()) {
+            if (!e || !e._isCoverGate || !e.active || e.hp <= 0 || e.state !== 'open') continue;
+            const d = Math.hypot(e.x - enemy.x, e.y - enemy.y);
+            if (d <= 900 && d < gd) { gate = e; gd = d; }
+        }
+        if (!gate || !gate._faceLine) return;
+        const A = gate._faceLine[0], B = gate._faceLine[1];
+        const gx = (A.x + B.x) / 2, gy = (A.y + B.y) / 2;
+        const sideOf = (px, py) => Math.sign((B.x - A.x) * (py - A.y) - (B.y - A.y) * (px - A.x));
+        const eSide = sideOf(enemy.x, enemy.y);
+        if (eSide === 0) return;
+        // 探测点沿法向两侧各让 40px，避免射线端点恰好压在墙线上误判遮挡
+        const nx = -(B.y - A.y), ny = (B.x - A.x);
+        const nl = Math.hypot(nx, ny) || 1;
+        const probe = (side) => ({ x: gx + (nx / nl) * 40 * side, y: gy + (ny / nl) * 40 * side });
+        const sideOfProbe = probe(eSide);   // 怪物侧
+        const inProbe = probe(-eSide);      // 门内侧
+        if (WallSystem && WallSystem.blocked
+            && WallSystem.blocked(enemy.x, enemy.y, sideOfProbe.x, sideOfProbe.y)) return; // 怪物→门口畅通
+        // 高价值候选：基地 > 玩家 > 玩家单位（companion 需 _enemyTargetable）
+        const cands = [];
+        for (const e of Game.entities.values()) {
+            if (!e || !e.active) continue;
+            if (e._isDefenseBase) cands.push({ e, pri: 3 });
+            else if (e === Game.player) cands.push({ e, pri: 2 });
+            else if (e._faction === 'companion' && e._enemyTargetable) cands.push({ e, pri: 1 });
+        }
+        cands.sort((a, b) => b.pri - a.pri);
+        for (const { e: t } of cands) {
+            if (t.hp !== undefined && t.hp <= 0) continue;
+            if (sideOf(t.x, t.y) !== -eSide) continue;                    // 须在门内侧
+            if (Math.hypot(t.x - gx, t.y - gy) > 1500) continue;          // 门内有限范围
+            if (WallSystem && WallSystem.blocked
+                && WallSystem.blocked(inProbe.x, inProbe.y, t.x, t.y)) continue; // 门口→目标畅通
+            if (enemy.target !== t) {
+                enemy.target = t;
+                enemy._lastKnownTargetPos = { x: t.x, y: t.y };
+                enemy._lostSightTimer = 0;
+                if (enemy._pathManager && pathFinder) {
+                    enemy._pathManager.forceRecalc(pathFinder, t.x, t.y, true);
+                }
+            }
+            enemy._gatePursuit = true;
+            enemy._gatePursuitTarget = t;
+            return;
         }
     },
 

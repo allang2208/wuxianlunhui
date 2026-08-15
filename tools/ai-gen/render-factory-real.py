@@ -106,6 +106,32 @@ def _local_to_world(lx, ly, lz, rot_z_deg):
     return (lx * c - ly * s, lx * s + ly * c, lz)
 
 
+def make_prism(L, W, H):
+    """三角棱柱（等腰三角形截面，沿 X 延伸），底边平：坡屋顶用。"""
+    bpy.ops.mesh.primitive_cube_add(size=2)
+    o = bpy.context.active_object
+    bpy.ops.object.mode_set(mode="EDIT")
+    bpy.ops.mesh.select_all(action="SELECT")
+    bpy.ops.mesh.delete(type="VERT")
+    bpy.ops.object.mode_set(mode="OBJECT")
+    import bmesh
+    bpy.ops.object.mode_set(mode="EDIT")
+    bm = bmesh.from_edit_mesh(o.data)
+    verts = [
+        bm.verts.new((-L / 2, -W / 2, 0)), bm.verts.new((-L / 2, W / 2, 0)),
+        bm.verts.new((-L / 2, 0, H)), bm.verts.new((L / 2, -W / 2, 0)),
+        bm.verts.new((L / 2, W / 2, 0)), bm.verts.new((L / 2, 0, H)),
+    ]
+    bm.faces.new([verts[0], verts[2], verts[1]])
+    bm.faces.new([verts[3], verts[4], verts[5]])
+    bm.faces.new([verts[0], verts[1], verts[4], verts[3]])
+    bm.faces.new([verts[1], verts[2], verts[5], verts[4]])
+    bm.faces.new([verts[0], verts[3], verts[5], verts[2]])
+    bmesh.update_edit_mesh(o.data)
+    bpy.ops.object.mode_set(mode="OBJECT")
+    return o
+
+
 def make_textured_mat(name, img, roughness=0.85, metallic=0.0, bump_strength=0.25):
     mat = bpy.data.materials.new(name)
     mat.use_nodes = True
@@ -195,10 +221,15 @@ def build_scene(spec, slide):
         rot = p.get("rot", [0, 0, 0])
         rot_z = rot[2]
     for i, p in enumerate(spec["primitives"]):
-        bpy.ops.mesh.primitive_cube_add(size=2)
-        o = bpy.context.active_object
-        w, d, h = p["size"]
-        o.scale = (w / 2, d / 2, h / 2)
+        t = p.get("type", "box")
+        if t == "prism":
+            w, d, h = p["size"]
+            o = make_prism(w, d, h)
+        else:
+            bpy.ops.mesh.primitive_cube_add(size=2)
+            o = bpy.context.active_object
+            w, d, h = p["size"]
+            o.scale = (w / 2, d / 2, h / 2)
         o.name = f"factory_{i}"
         pos = p.get("pos", [0, 0, 0])
         rot = p.get("rot", [0, 0, 0])

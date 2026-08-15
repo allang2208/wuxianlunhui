@@ -460,8 +460,10 @@ export class GameScene extends Scene {
         const facingRight = !this.playerSprite.flipX;
         for (const member of members) {
             const anims = member.animations || {};
-            const walkKey = `companion_${member.id}_walk`;
-            const runKey = `companion_${member.id}_run`;
+            // 动画键按 animId（仓鼠矿工多只实例共用 'hamster_miner' 素材键）
+            const animId = member.animId || member.id;
+            const walkKey = `companion_${animId}_walk`;
+            const runKey = `companion_${animId}_run`;
             if (!anims.walk || !this.textures.exists(walkKey)) continue; // 无动作素材不渲染
             activeIds.add(member.id);
             let sprite = this._companionSprites[member.id];
@@ -470,7 +472,7 @@ export class GameScene extends Scene {
                 const fh = anims.walk.frameHeight || 512;
                 // 站立姿态：优先 idle 动画首帧（2026-08-14 新增 idle 素材）；
                 // 其次奔跑动画首帧（idle→起跑完全连续）；无奔跑素材退回 walk 首帧
-                const idleTexKey = `companion_${member.id}_idle`;
+                const idleTexKey = `companion_${animId}_idle`;
                 const hasIdleTex = anims.idle && this.textures.exists(idleTexKey);
                 const runIdle = anims.run && this.textures.exists(runKey);
                 const idleKey = hasIdleTex ? idleTexKey : (runIdle ? runKey : walkKey);
@@ -523,12 +525,12 @@ export class GameScene extends Scene {
                 else sprite.clearTint();
             }
             // 动画：施法 > 冲刺 > 移动 > 站立停帧
-            const spellKey = `companion_${member.id}_spell`;
+            const spellKey = `companion_${animId}_spell`;
             if (aiMode) {
                 // AI 状态驱动：dying > mining > spell > run > walk > idle（站立帧 = 待机首帧）
                 const st = member._animState || 'idle';
-                const miningKey = `companion_${member.id}_mining`;
-                const dyingKey = `companion_${member.id}_dying`;
+                const miningKey = `companion_${animId}_mining`;
+                const dyingKey = `companion_${animId}_dying`;
                 if (st === 'dying' && anims.dying && this.textures.exists(dyingKey)) {
                     // 死亡动画只播一次（repeat 0），播完停在最后一帧；防每帧重播
                     if (!sprite.getData('hamsterDying')) {
@@ -536,26 +538,12 @@ export class GameScene extends Scene {
                         sprite.play(dyingKey, true);
                     }
                 } else if (st === 'mining' && anims.mining && this.textures.exists(miningKey)) {
-                    // 采矿两段式：进入采矿先播完整 19 帧（mining_start），
-                    // 之后持续循环 5~19 帧（mining）——2026-08-15 用户口径
-                    const miningStartKey = `${miningKey}_start`;
-                    if (!sprite.getData('hamsterMining')) {
-                        sprite.setData('hamsterMining', true);
-                        if (anims.mining.startFrames && this.anims.exists(miningStartKey)) {
-                            sprite.play(miningStartKey, true);
-                            sprite.once('animationcomplete', () => {
-                                if (sprite.getData('hamsterMining')
-                                    && sprite.anims.currentAnim?.key === miningStartKey) {
-                                    sprite.play(miningKey, true);
-                                }
-                            });
-                        } else {
-                            sprite.play(miningKey, true);
-                        }
-                    } else if (!sprite.anims.isPlaying
-                        || (sprite.anims.currentAnim?.key !== miningKey
-                            && sprite.anims.currentAnim?.key !== miningStartKey)) {
-                        sprite.play(miningKey, true);
+                    // 采矿（攻击间隔）不播攻击动画：定格 mining 贴图第 4 帧（索引 3）——
+                    // 2026-08-15 用户口径，替代原「完整 19 帧起步 + 5~19 帧循环」两段式
+                    sprite.setData('hamsterMining', false);
+                    if (sprite.anims.isPlaying) sprite.anims.stop();
+                    if (sprite.texture.key !== miningKey || sprite.frame.name !== 3) {
+                        sprite.setTexture(miningKey, 3);
                     }
                 } else if (st === 'spell' && anims.spell && this.textures.exists(spellKey)) {
                     // 重播条件 = 动画已停止（被 idle 停帧 setTexture 打断）或键变化。

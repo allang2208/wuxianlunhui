@@ -15,7 +15,7 @@ export const HamsterMinerSystem = {
 
     /** 世界-122 进入时初始化（2026-08-15 起矿工改由「仓鼠小屋」建造生成，
      *  本系统不再自动生成免费矿工；保留 setup/teardown 兼容旧调用） */
-    setup(player) {
+    setup(_player) {
         this.teardown();
         this.active = true;
         if (!Array.isArray(Game.friendlyUnits)) Game.friendlyUnits = [];

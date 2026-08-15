@@ -99,7 +99,7 @@ class PerceptionSystemImpl {
             // A 移动脱离（2026-08-15，世界-122）：防守怪的当前目标是交战单位（非建筑）时，
             // 脱离交战半径 ×1.3 滞回即放弃——下个 tick 重选回落到建筑推进。
             // （原逻辑有视线即永久锁定目标，单位跑出交战圈会被无限追出，违背 A 移动语义）
-            if (enemy._preferDefenseTargets && !currentTarget._isDefenseStructure) {
+            if (enemy._preferDefenseTargets && !enemy._gatePursuit && !currentTarget._isDefenseStructure) {
                 const leash = (enemy._engageHostileRange ?? 0) * 1.3;
                 if (leash && MathUtils.distance(enemy.x, enemy.y, currentTarget.x, currentTarget.y) > leash) {
                     this._clearTarget(enemy);
@@ -154,7 +154,7 @@ class PerceptionSystemImpl {
                 // 否则怪物拆墙时对贴近的玩家/侍从无动于衷
                 const engageSwitch = !!(enemy._preferDefenseTargets
                     && enemy.target._isDefenseStructure && !betterTarget._isDefenseStructure);
-                if (engageSwitch || newScore > currentScore * 1.3) {
+                if (engageSwitch || (!enemy._gatePursuit && newScore > currentScore * 1.3)) {
                     enemy.target = betterTarget;
                     enemy._lastKnownTargetPos = { x: betterTarget.x, y: betterTarget.y };
                     enemy._lostSightTimer = 0;

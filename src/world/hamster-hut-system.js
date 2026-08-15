@@ -8,6 +8,7 @@
 import { Game } from '../game.js';
 import { DamageableEntity } from '../entities/damageable-entity.js';
 import { HamsterMiner } from '../entities/hamster-miner.js';
+import { GoldManager } from '../systems/gold-manager.js';
 import { EnergyManager } from '../systems/energy-manager.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
@@ -29,11 +30,11 @@ export const HAMSTER_CONFIG = {
         maxHp: 1500,
         tex: 'hamster_hut',
         displayW: 150,
-        displayH: 130,
-        footOffsetY: 65,
+        displayH: 147,
+        footOffsetY: 74,
         sellRefundRatio: 0.5,
         minerSpawnRadius: 70,
-        respawnMs: 15000,        // 矿工死亡后补员间隔
+        respawnMs: 60000,        // 矿工死亡后 1 分钟才补员
     },
     miner: {
         hp: 200,
@@ -46,21 +47,22 @@ export const HAMSTER_CONFIG = {
         attackRange: 48,
         miningMult: 1,            // 采矿效率倍率（升级 +15%/级）
     },
-    // 升级模块（per = 每级效果量；cost 为能源）
+    // 升级统一费用：每升一级消耗 1000 金币 + 500 能源（2026-08-15 用户口径）
+    upgradeCost: { gold: 1000, energy: 500 },
+    // 升级模块（per = 每级效果量；旧 baseCost/costGrowth 已弃用，费用统一走 upgradeCost）
     modules: {
-        mining:    { name: '采矿效率',   icon: '⛏️', per: 0.15, maxLevel: 10, baseCost: 120, costGrowth: 1.35, desc: '采矿产出 +{pct}%' },
-        attackSpd: { name: '攻击加速',   icon: '⚡', per: -0.06, maxLevel: 10, baseCost: 110, costGrowth: 1.35, desc: '攻击间隔 -{pct}%' },
-        damage:    { name: '攻击强化',   icon: '⚔️', per: 0.12, maxLevel: 10, baseCost: 130, costGrowth: 1.35, desc: '每次攻击伤害 +{pct}%' },
-        moveSpd:   { name: '机动强化',   icon: '👟', per: 0.05, maxLevel: 10, baseCost: 100, costGrowth: 1.35, desc: '移动速度 +{pct}%（每级 +5%）' },
-        count:     { name: '仓鼠增援',   icon: '🐹', per: 1,    maxLevel: 9,  baseCost: 200, costGrowth: 1.45, desc: '仓鼠矿工数量 +1' },
+        mining:    { name: '采矿效率',   icon: '⛏️', per: 0.15, maxLevel: 10, desc: '采矿产出 +{pct}%' },
+        attackSpd: { name: '攻击加速',   icon: '⚡', per: -0.06, maxLevel: 10, desc: '攻击间隔 -{pct}%' },
+        damage:    { name: '攻击强化',   icon: '⚔️', per: 0.12, maxLevel: 10, desc: '每次攻击伤害 +{pct}%' },
+        moveSpd:   { name: '机动强化',   icon: '👟', per: 0.05, maxLevel: 10, desc: '移动速度 +{pct}%（每级 +5%）' },
+        count:     { name: '仓鼠增援',   icon: '🐹', per: 1,    maxLevel: 5,  desc: '仓鼠矿工数量 +1' },
     },
 };
 
-/** 模块升级费用：baseCost × costGrowth^(当前等级-1) */
-export function getHutModuleCost(moduleId, currentLevel) {
-    const mod = HAMSTER_CONFIG.modules?.[moduleId];
-    if (!mod) return 0;
-    return Math.floor(mod.baseCost * Math.pow(mod.costGrowth, Math.max(0, currentLevel - 1)));
+/** 模块升级费用（统一）：1000 金币 + 500 能源，每级固定 */
+export function getHutModuleCost(moduleId, _currentLevel) {
+    if (!HAMSTER_CONFIG.modules?.[moduleId]) return null;
+    return { gold: HAMSTER_CONFIG.upgradeCost.gold, energy: HAMSTER_CONFIG.upgradeCost.energy };
 }
 
 /** 面板用：模块当前/下一级描述文本 */
@@ -122,8 +124,6 @@ export class HamsterHut extends DamageableEntity {
         this._noShadow = true;
         this.def = HAMSTER_CONFIG.hut.def;
         this.mdef = HAMSTER_CONFIG.hut.mdef;
-        this.data.def = this.def;
-        this.data.mdef = this.mdef;
         this.spriteCfg = {
             idleKey: HAMSTER_CONFIG.hut.tex,
             size: HAMSTER_CONFIG.hut.displayW,
@@ -137,6 +137,8 @@ export class HamsterHut extends DamageableEntity {
         this.miners = [];             // 本小屋拥有的仓鼠矿工
         this._minerSeq = 0;
         this._respawnTimer = 0;
+        this._doorState = 'closed';   // 'closed' | 'opening' | 'open' | 'closing'
+        this._pendingSpawn = false;   // 门动画结束后是否要生成矿工
         this._spawnInitialMiners();
         this.rebuildCollider();
     }
@@ -161,10 +163,11 @@ export class HamsterHut extends DamageableEntity {
         for (let i = 0; i < this.minerCount(); i++) this.spawnMiner();
     }
 
-    /** 生成一只仓鼠矿工（挂到本小屋，注册实体表 + 友方单位表） */
-    spawnMiner() {
+    /** 生成一只仓鼠矿工（挂到本小屋，注册实体表 + 友方单位表）
+     *  atDoor=true：出生在门前方（矿工从门口走出）；否则随机落在小屋附近 */
+    spawnMiner(atDoor = false) {
         if (!Game || !Game.entities) return null;
-        const spot = this._findMinerSpawn();
+        const spot = atDoor ? { x: this.x, y: this.y + 42 } : this._findMinerSpawn();
         const mults = this.mults();
         const miner = new HamsterMiner(spot.x, spot.y, {
             id: `${this.id}_miner_${++this._minerSeq}`,
@@ -184,6 +187,55 @@ export class HamsterHut extends DamageableEntity {
         Game.entities.set(miner.id, miner);
         if (Array.isArray(Game.friendlyUnits)) Game.friendlyUnits.push(miner);
         return miner;
+    }
+
+    /** 补员/增援：先播开门动画，开门完成后在门口生成矿工，再关门 */
+    _spawnWithDoor() {
+        const scene = typeof window !== 'undefined' ? window.__phaserScene : null;
+        const data = scene && scene._neutralSprites ? scene._neutralSprites.get(this) : null;
+        const sprite = data && data.sprite;
+        const anims = scene && scene.anims;
+        // 无精灵/无动画素材：直接生成，不卡补员
+        if (!sprite || !anims || !anims.exists('hamster_hut_door_open')) {
+            this.spawnMiner();
+            return;
+        }
+        if (this._doorState === 'opening' || this._doorState === 'open') {
+            this._pendingSpawn = true; // 开门中，等开门完成再生成
+            return;
+        }
+        this._pendingSpawn = true;
+        this._doorState = 'opening';
+        sprite.setTexture('hamster_hut_door');
+        sprite.setDisplaySize(this.spriteCfg.size, this.spriteCfg.sizeH);
+        sprite.play('hamster_hut_door_open', true);
+        sprite.once('animationcomplete', () => this._onDoorOpened(sprite));
+    }
+
+    _onDoorOpened(sprite) {
+        if (!this.active) return;
+        this._doorState = 'open';
+        if (this._pendingSpawn) {
+            this._pendingSpawn = false;
+            this.spawnMiner(true); // 门口出生
+        }
+        // 关门
+        this._doorState = 'closing';
+        if (sprite && sprite.scene && sprite.scene.anims && sprite.scene.anims.exists('hamster_hut_door_close')) {
+            sprite.play('hamster_hut_door_close', true);
+            sprite.once('animationcomplete', () => this._onDoorClosed(sprite));
+        } else {
+            this._doorState = 'closed';
+        }
+    }
+
+    _onDoorClosed(sprite) {
+        if (!this.active) return;
+        this._doorState = 'closed';
+        if (sprite && sprite.scene && sprite.scene.textures.exists('hamster_hut')) {
+            sprite.setTexture('hamster_hut');
+            sprite.setDisplaySize(this.spriteCfg.size, this.spriteCfg.sizeH);
+        }
     }
 
     /** 小屋附近合法落点（优先随机偏移，WallSystem 校验，兜底小屋脚下） */
@@ -212,17 +264,25 @@ export class HamsterHut extends DamageableEntity {
         return getHutModuleCost(moduleId, this.modules[moduleId] || 0);
     }
 
-    /** 玩家支付能源升级模块；数量模块升级时多生成一只仓鼠 */
+    /** 玩家支付 1000 金币 + 500 能源升级模块；数量模块升级时多生成一只仓鼠 */
     upgradeModule(moduleId, _player) {
         const mod = HAMSTER_CONFIG.modules?.[moduleId];
         if (!mod) return { ok: false, reason: '未知模块' };
         if (!this.canUpgradeModule(moduleId)) return { ok: false, reason: '模块已满级' };
         const cost = this.getModuleCost(moduleId);
-        if (!EnergyManager || !EnergyManager.deductEnergy(cost)) return { ok: false, reason: '能源不足' };
+        // 开发工具「无限资源」开启时升级不消耗金币/能源（2026-08-15）
+        const free = !!(Game && Game._devInfiniteResources);
+        if (!free) {
+            if (!GoldManager || !EnergyManager) return { ok: false, reason: '货币系统不可用' };
+            if (!cost || GoldManager.getGold() < cost.gold) return { ok: false, reason: '金币不足（每级需 1000 金币）' };
+            if (EnergyManager.getEnergy() < cost.energy) return { ok: false, reason: '能源不足（每级需 500 能源）' };
+            GoldManager.deductGold(cost.gold);
+            EnergyManager.deductEnergy(cost.energy);
+        }
         this.modules[moduleId] = (this.modules[moduleId] || 0) + 1;
         // 数量模块：立即多生成一只
         if (moduleId === 'count') {
-            this.spawnMiner();
+            this._spawnWithDoor();
         }
         // 其余模块：同步到现有矿工（间隔/伤害/移速/采矿效率）
         this.applyUpgradesToMiners();
@@ -254,7 +314,7 @@ export class HamsterHut extends DamageableEntity {
             this._respawnTimer -= dt;
             if (this._respawnTimer <= 0) {
                 this._respawnTimer = HAMSTER_CONFIG.hut.respawnMs;
-                this.spawnMiner();
+                this._spawnWithDoor();
             }
         } else {
             this._respawnTimer = HAMSTER_CONFIG.hut.respawnMs;
@@ -380,16 +440,16 @@ class HamsterHutPanel extends BasePanel {
         const el = this.el;
         if (!el || !this.hut) return;
         const h = this.hut;
-        const player = this.player || (typeof window !== 'undefined' && window.Game ? window.Game.player : null);
         const energy = EnergyManager ? EnergyManager.getEnergy() : 0;
         el.querySelector('#hhTitle').textContent = `🐹 仓鼠小屋`;
 
         const st = el.querySelector('#hhStatus');
         const mults = h.mults();
+        const gold = GoldManager ? GoldManager.getGold() : 0;
         st.innerHTML = `
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
                 <div><span style="color:#ffd700;font-weight:700;">等级 ${h.level}</span></div>
-                <div style="font-size:12px;color:#9a9a9a;">耐久 ${Math.ceil(h.hp)}/${h.maxHp} · 能源 <span style="color:#7fd4ff;">${energy}</span></div>
+                <div style="font-size:12px;color:#9a9a9a;">耐久 ${Math.ceil(h.hp)}/${h.maxHp} · 金币 <span style="color:#ffd700;">${gold}</span> · 能源 <span style="color:#7fd4ff;">${energy}</span></div>
             </div>
             <div style="font-size:12px;color:#c8b98a;line-height:1.7;">
                 仓鼠矿工 <span style="color:#8ad0ff;">${h.aliveMinerCount()}/${h.minerCount()}</span> ·
@@ -409,7 +469,7 @@ class HamsterHutPanel extends BasePanel {
             const btn = maxedMod
                 ? '<span style="color:#8a8a8a;font-size:12px;">已满级</span>'
                 : canBuy
-                    ? `<button data-mod="${mid}" style="background:#4a5a2a;color:#e8ffc8;border:1px solid #7a9a4a;border-radius:6px;padding:3px 10px;cursor:pointer;">升级 ${cost}能</button>`
+                    ? `<button data-mod="${mid}" style="background:#4a5a2a;color:#e8ffc8;border:1px solid #7a9a4a;border-radius:6px;padding:3px 10px;cursor:pointer;">升级 ${cost.gold}金+${cost.energy}能</button>`
                     : '<span style="color:#7a6a5a;font-size:11px;">🔒 未知模块</span>';
             return `
                 <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #22303a;gap:8px;">
@@ -422,8 +482,8 @@ class HamsterHutPanel extends BasePanel {
         }).join('');
         modBox.innerHTML = `
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-                <span style="font-size:13px;font-weight:700;color:#8ad0ff;">升级（能源）</span>
-                <span style="font-size:12px;color:#9a9a9a;">当前持有 ${energy} 能源</span>
+                <span style="font-size:13px;font-weight:700;color:#8ad0ff;">升级（每级 1000 金币 + 500 能源）</span>
+                <span style="font-size:12px;color:#9a9a9a;">持有 ${gold} 金 / ${energy} 能</span>
             </div>
             ${rows || '<div style="font-size:12px;color:#8a8a8a;">暂无模块</div>'}`;
         modBox.querySelectorAll('[data-mod]').forEach((btn) => {

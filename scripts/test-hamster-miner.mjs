@@ -60,14 +60,15 @@ check('无有效节点返回 null', pickNearestNode([], { x: 0, y: 0 }) === null
 // ---- 3. 源码接线：AI 只打能源矿点 ----
 const aiSrc = fs.readFileSync(path.join(ROOT, 'src/ai/hamster-miner-ai.js'), 'utf-8');
 check('AI 使用 pickNearestNode 寻最近矿点', /pickNearestNode/.test(aiSrc));
-check('AI 目标筛选只认 _isEnergyNode（不含 _faction 敌我枚举）',
-    /_isEnergyNode/.test(aiSrc) && !/_faction !== 'enemy'/.test(aiSrc)
-    && !/attacks\.ranged|attacks\.melee/.test(aiSrc));
+check('AI 采矿目标只认 _isEnergyNode 且跳过枯竭', /_isEnergyNode/.test(aiSrc) && /_depleted/.test(aiSrc));
+check('AI 敌人交战：engageRange 内 _nearestEnemy → 近战 takeDamage（小屋防御）',
+    /_nearestEnemy\(entities, this\._engageRange\)/.test(aiSrc)
+    && /_tryAttackEnemy\(\)/.test(aiSrc) && /enemy\.takeDamage\(this\._attackDamage/.test(aiSrc));
 check('AI 攻击只对节点 takeDamage，伤害 = attackDamage',
     /node\.takeDamage\(this\._attackDamage/.test(aiSrc));
 check('AI 攻击间隔读取 attackInterval', /this\._attackInterval = this\.cfg\.attackInterval \?\? 2000/.test(aiSrc));
 check('AI 移速读取 walkSpeed', /this\.cfg\.walkSpeed \?\? 80/.test(aiSrc));
-check('AI 采矿态 = mining / 移动态 = walk / 无节点 = idle',
+check('AI 采矿/交战共用 mining 态、移动 walk、无节点 idle',
     /_animState = 'mining'/.test(aiSrc) && /_animState = 'walk'/.test(aiSrc) && /_animState = 'idle'/.test(aiSrc));
 
 // ---- 4. 源码接线：实体受击/死亡/仇恨 ----
@@ -81,7 +82,8 @@ check('死亡态 = dying', /_animState = 'dying'/.test(entSrc));
 const gsSrc = fs.readFileSync(path.join(ROOT, 'src/phaser/scenes/GameScene.js'), 'utf-8');
 check('GameScene 渲染友方单位（friendlyUnits）', /_game\.friendlyUnits/.test(gsSrc));
 check('GameScene 支持 mining/dying 动画状态', /st === 'mining'/.test(gsSrc) && /st === 'dying'/.test(gsSrc));
-check('GameScene 采矿两段式（_start 完整帧 → 循环帧）', /hamsterMining/.test(gsSrc) && /miningStartKey/.test(gsSrc));
+check('GameScene 采矿不播动画、定格第 4 帧（索引 3）',
+    /setTexture\(miningKey, 3\)/.test(gsSrc) && /sprite\.anims\.stop\(\)/.test(gsSrc));
 check('GameScene 动态深度含友方单位', /window\.Game\.friendlyUnits/.test(gsSrc));
 
 const bootSrc = fs.readFileSync(path.join(ROOT, 'src/phaser/scenes/BootScene.js'), 'utf-8');

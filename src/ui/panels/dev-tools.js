@@ -488,6 +488,36 @@ export function createDevToolPanel() {
     cheatRow.append(btnCheat, cheatHint);
     skillRow.appendChild(cheatRow);
 
+    // ===== 测试开关：无限资源（建造建筑不消耗能源/金币） =====
+    const resourceRow = document.createElement('div');
+    resourceRow.style.cssText = 'display:flex;gap:8px;align-items:center;padding:6px 0;border-top:1px solid #3a3a3a;margin-top:6px;';
+    const btnResource = document.createElement('button');
+    btnResource.id = 'devToolInfiniteResource';
+    btnResource.className = 'dev-tool-menu-btn';
+    const syncResourceBtn = () => {
+        const on = !!(window.Game && window.Game._devInfiniteResources);
+        btnResource.textContent = on ? '∞ 无限资源：开' : '∞ 无限资源：关';
+        btnResource.style.background = on ? '#3a6b3a' : '';
+    };
+    btnResource.addEventListener('click', () => {
+        if (!window.Game) {
+            if (DevTool && typeof DevTool._showToast === 'function') DevTool._showToast('❌ 请先进入游戏');
+            return;
+        }
+        const next = !window.Game._devInfiniteResources;
+        window.Game._devInfiniteResources = next;
+        syncResourceBtn();
+        if (DevTool && typeof DevTool._showToast === 'function') {
+            DevTool._showToast(next ? '✅ 无限资源 已开启（建造不消耗能源/金币）' : '无限资源 已关闭');
+        }
+    });
+    syncResourceBtn();
+    const resourceHint = document.createElement('span');
+    resourceHint.textContent = '测试用：建造建筑/小屋升级不消耗能源和金币';
+    resourceHint.style.cssText = 'color:#9aa5b1;font-size:11px;';
+    resourceRow.append(btnResource, resourceHint);
+    skillRow.appendChild(resourceRow);
+
     skillWrap.appendChild(skillRow);
     contentSkill.appendChild(skillWrap);
     root.appendChild(contentSkill);
