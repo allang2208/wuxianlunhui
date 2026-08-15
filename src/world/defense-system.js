@@ -655,18 +655,21 @@ class DefenseCover extends Combatant {
     }
 
     takeDamage(damage, source, damageType, isMelee) {
-        const wasAlive = this.hp > 0;
-        super.takeDamage(damage, source, damageType, isMelee);
-        if (wasAlive && this.hp <= 0) {
-            // 2026-08-16：沉陷死亡（掩体试点）——先摘碰撞/停止受击，
-            // 精灵随 BuildingSinkEffect 下沉 + 底部灰烟掩盖，结束后清除实体（无废墟）
-            this.removeFromCollision();
-            this.hittable = false;
-            this._sinking = true;
-            if (EffectManager) {
-                EffectManager.add(new FloatingTextEffect(this.x, this.y - 30, '掩体被摧毁', '#ff8855'));
-                EffectManager.add(new BuildingSinkEffect(this));
-            }
+        // 沉陷死亡逻辑在 onDeath 接管（DamageableEntity.onDeath 默认 active=false +
+        // 血雾/死亡粒子，掩体需要保持活跃让精灵下沉）
+        return super.takeDamage(damage, source, damageType, isMelee);
+    }
+
+    /** 掩体沉陷死亡（2026-08-16 试点）：不设 active=false、不播血雾/死亡粒子；
+     *  精灵随 BuildingSinkEffect 下沉 + 底部灰烟掩盖，结束后清除实体（无废墟） */
+    onDeath(_source) {
+        this.active = true; // 保持活跃让中性精灵继续渲染；下沉结束时由特效置 false
+        this.hittable = false;
+        this._sinking = true;
+        this.removeFromCollision();
+        if (EffectManager) {
+            EffectManager.add(new FloatingTextEffect(this.x, this.y - 30, '掩体被摧毁', '#ff8855'));
+            EffectManager.add(new BuildingSinkEffect(this));
         }
     }
 
@@ -1635,6 +1638,8 @@ export const DefenseSystem = {
 
         this.towers = [];
         this.gates = []; // 建筑面板放置的铁栅栏门
+        this.platforms = []; // 射击台（预置 + 建筑面板放置）
+        this._placeInitialPlatform(); // 基地菱形房右上墙边预置 1 个射击台
         DEFENSE_CONFIG.towers.forEach((p, i) => {
             const tower = new DefenseTower(p.x, p.y, { id: `defense_tower_${i}` });
             Game.entities.set(`defense_tower_${i}`, tower);
@@ -1791,6 +1796,10 @@ export const DefenseSystem = {
             for (const g of this.gates) { if (g && typeof g.destroy === 'function') g.destroy(); }
             this.gates = [];
         }
+        if (this.platforms) {
+            for (const p of this.platforms) { if (p && typeof p.destroy === 'function') p.destroy(); }
+            this.platforms = [];
+        }
         this.base = null;
         this.towers = [];
         this.ruins = [];
@@ -1833,6 +1842,7 @@ export const DefenseSystem = {
         this._repairTick(dt);
         if (this.gate) this.gate.update(dt); // 友军靠近自动开门 / 离开延时关门
         for (const g of this.gates) { if (g && g.active) g.update(dt); } // 已放置的铁栅栏门
+        this._updatePlatformStates(); // 射击台登台判定（玩家/友方脚线在站台顶面 → _onPlatform）
         this._grantMonsterGold(dt);
         this._updateHud(dt);
         if (this.victory) return;
@@ -1868,6 +1878,71 @@ export const DefenseSystem = {
         }
         // 精英/领主旧计时器已停用（2026-08-15 用户确认方案）：改由 _startWave 按 wavePlan
         // 脚本化生成，与波次节奏挂钩；旧配置字段 eliteEveryMs/lordEveryMs 保留兼容，不再驱动生成
+    },
+
+    /**
+     * 射击台登台判定（2026-08-16）：玩家 + 玩家友方单位（PartySystem.members /
+     * Game.friendlyUnits）脚线落在任一平台站台顶面投影区 → _onPlatform = true +
+     * 记录 _platformRef（弹道/魔法据此忽略己方掩体段）；离开平台区域自动清除。
+     * 注意：Companion 在 PartySystem._members 不在 Game.entities（门感应同款坑）。
+     */
+    _updatePlatformStates() {
+        const platforms = this.platforms;
+        if (!platforms || !platforms.length) return;
+        // 收集候选单位：玩家 + 侍从/仓鼠矿工
+        const units = [];
+        const Game = (typeof window !== 'undefined') ? window.Game : null;
+        if (Game && Game.player) units.push(Game.player);
+        if (Game && Game.PartySystem && Array.isArray(Game.PartySystem.members)) {
+            for (const m of Game.PartySystem.members) if (m && m.active !== false) units.push(m);
+        }
+        if (Game && Array.isArray(Game.friendlyUnits)) {
+            for (const u of Game.friendlyUnits) {
+                if (u && u !== Game.player && u.active !== false && !units.includes(u)) units.push(u);
+            }
+        }
+        for (const u of units) {
+            const wasOn = !!u._onPlatform;
+            let on = null;
+            for (const p of platforms) {
+                if (!p || !p.active) continue;
+                if (typeof p.isOnPlatform === 'function' && p.isOnPlatform(u.x, u.y)) { on = p; break; }
+            }
+            u._onPlatform = !!on;
+            u._platformRef = on;
+            // 平台实机调试：状态变化时控制台留痕（低频，dev 模式）
+            if (wasOn !== !!on && typeof window !== 'undefined' && window.Game && window.Game._devMode) {
+                console.log(`[platform] ${u.name || u.id || 'unit'} ${on ? '登上' : '离开'}射击台`);
+            }
+        }
+    },
+
+    /** 预置射击台（scene8 加载时调用）：基地菱形房右上墙边（TR 边内侧，贴墙突出） */
+    _placeInitialPlatform() {
+        const room = DEFENSE_CONFIG.room;
+        if (!room || !room.enabled) return;
+        const b = DEFENSE_CONFIG.base;
+        // 右上墙边 = TR 边（从顶 T 到右 R）中点内侧：平台贴墙垂直突出（长轴 ⊥ 墙线）
+        const T = { x: b.x, y: b.y - room.ry };
+        const R = { x: b.x + room.rx, y: b.y };
+        const mx = (T.x + R.x) / 2, my = (T.y + R.y) / 2;
+        // TR 边方向（h "\" 向）：从 T(上) 到 R(右)，单位向量
+        const dx = R.x - T.x, dy = R.y - T.y;
+        const len = Math.hypot(dx, dy) || 1;
+        void len; // 方向向量仅用于墙内侧法线推导（见下）
+        // 墙内侧法线（指向房内 = 指向基地中心）：垂直于墙线
+        const inx = b.x - mx, iny = b.y - my;
+        const inLen = Math.hypot(inx, iny) || 1;
+        const nx = inx / inLen, ny = iny / inLen;
+        // 平台中心 = 墙线中点 + 法线 × (平台半长 + 墙半厚 + 余量)
+        // 平台长轴沿法线（垂直贴合墙面），贴图站台朝墙、台阶朝房内
+        const offset = 130 + 26 + 12; // 平台半长(约130) + 墙半厚(26) + 贴墙余量
+        const px = Math.round(mx + nx * offset);
+        const py = Math.round(my + ny * offset);
+        const platform = new FiringPlatform(px, py, { id: 'initial_firing_platform' });
+        if (Game && Game.entities) Game.entities.set('firing_platform_initial', platform);
+        this.platforms = this.platforms || [];
+        this.platforms.push(platform);
     },
 
     /**
@@ -2860,6 +2935,75 @@ const CoverGate = {
  * 与掩体墙同口径（可被攻击/修理、footprint/face 线/深度锚点），
  * 参与建筑吸附（GATE_SNAP），默认关闭，友军靠近自动开门、离开延时关门。
  */
+/**
+ * 世界-122 射击台（FiringPlatform，2026-08-16）：
+ * 三级台阶 + 顶部站台的防御建筑。玩家/友方走上站台（顶面区域判定 _onPlatform）后，
+ * 远程弹道/魔法忽略己方掩体墙段（_cover），可越过围墙向外攻击（与防御塔同机制）。
+ * - 贴图：Blender 建模渲染（30° 等距 + rot.z 44.8，与掩体/防御塔同视角），
+ *   `_blockout_specs/firing_platform.json` → `assets/terrain/firing_platform.png`；
+ *   内容 702×576，显示 260×213（aspect 1.219），footOffsetY 107（脚底=接地线）。
+ * - 站台顶面：贴图顶部窄带（内容 y≈17，距接地线 558px → 显示 207px）——
+ *   玩家在平台上时 sprite 上移 platformHeight（207px），视觉站在站台顶面；
+ *   深度自然变浅（sprite.y 上移 → natural depth 变小 → 画在平台/地面单位之前）。
+ * - 登台判定：脚线落在站台顶面投影区（以顶面中心为中心的矩形）→ _onPlatform。
+ * - 碰撞：不注册 WallSystem 墙段（玩家要走上去）；_isDefenseStructure 可被怪物锁定攻击。
+ * - 建造：B 面板条目，吸附时垂直贴合墙面（平台长轴 ⊥ 墙 face 线，贴墙内侧突出）。
+ */
+class FiringPlatform extends Combatant {
+    constructor(x, y, config = {}) {
+        const hp = config.hp ?? 800;
+        super(x, y, {
+            faction: 'player',
+            hp,
+            maxHp: hp,
+            size: config.size ?? 60,
+            collisionRadius: 30,
+            name: config.name ?? '射击台',
+        });
+        this.id = config.id || `firing_platform_${Math.random().toString(36).slice(2, 7)}`;
+        this._isFiringPlatform = true;
+        this._isDefenseStructure = true; // 怪物可锁定攻击（防御建筑）
+        this.noSeparation = true;
+        this.noNameLabel = true;
+        this._noShadow = true;   // 贴图自带接地底座
+        this.immovable = true;   // 不可击退/位移
+        // 显示（贴图内容 702×576，显示 260×213，脚底=接地线）
+        this.spriteCfg = { idleKey: 'firing_platform', size: 260, sizeH: 213, footOffsetY: 107 };
+        this.footOffsetY = 107;
+        this._facingLeft = !!config.mirror;
+        // 站台几何（世界坐标，从贴图标定）：
+        // 顶面中心在贴图 (x=424/702, y=17/576) → 显示偏移 (+27px, -207px)
+        // 顶面中心 = 实体脚底 + (27, -207)；顶面投影区 ≈ 180×140（半宽 90/半高 70）
+        this.platformHeight = 207;
+        this._topCx = x + 27;
+        this._topCy = y - 207;
+        this._zoneHalfW = 90;
+        this._zoneHalfH = 70;
+        // 贴图本体深度锚定 = 接地线（实体 y + 12，与掩体同规则）——平台是竖塔，
+        // 站台上的单位（sprite 已上移 207px，自然深度 = 顶面+10）天然比平台浅，
+        // 再在 GameScene 显式抬到 _faceDepth+1（顶面线离地面 >60px 仲裁窗口不生效，
+        // 不能靠 junctionCorrectedDepth；2026-08-16 设计修正）
+        this._faceLine = null; // 不参与 junctionCorrectedDepth（见上注释）
+        this._faceDepth = y + 12;
+        this.rebuildCollider();
+    }
+
+    /** 登台判定：脚线 (ux, uy) 是否落在站台顶面投影区 */
+    isOnPlatform(ux, uy) {
+        return Math.abs(ux - this._topCx) <= this._zoneHalfW
+            && Math.abs(uy - this._topCy) <= this._zoneHalfH;
+    }
+
+    /** 站台顶面世界坐标（供 GameScene 抬高玩家 sprite / 深度） */
+    topCenter() {
+        return { x: this._topCx, y: this._topCy };
+    }
+
+    destroy() {
+        this.active = false;
+    }
+}
+
 class BuildableGate extends Combatant {
     constructor(x, y, config = {}) {
         const grade = config.grade || 'D';
@@ -3159,6 +3303,6 @@ class BuildableGate extends Combatant {
 // _setRepairHeld / _repairTick 方法体保留备用，此处不再注册任何监听器。
 
 export {
-    DefenseBase, DefenseCover, DefenseTower, BuildableGate,
+    DefenseBase, DefenseCover, DefenseTower, BuildableGate, FiringPlatform,
     GATE_GEOM, GATE_GRADES, gateConfigFor, GATE_CONFIG, syncGateSeamDepths,
 };

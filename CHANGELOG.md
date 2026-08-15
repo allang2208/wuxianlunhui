@@ -1,10 +1,40 @@
 # 变更日志
+### 对话：世界-122 射击台——Blender 建模台阶平台 + 登台越墙远程攻击（2026-08-16）
+- **需求**：围墙内玩家/友方远程攻击被掩体墙挡（弹道撞 `_cover` 段），做可走上台阶的
+  射击台，站上后能越过围墙向外攻击。
+- **建模**（render-factory-real.py 管线，30° 等距 + rot.z 44.8 与世界-122 掩体/防御塔
+  同视角）：`_blockout_specs/firing_platform.json`（底座 + 三级台阶 + 站台，采样
+  `obstacle_cover_D_v.png` 砖墙材质）→ 渲染 → 紧身裁剪入库 `assets/terrain/firing_platform.png`
+  （内容 702×576，显示 260×213，footOffsetY 107）。
+- **实体** `FiringPlatform`（defense-system.js）：`_isFiringPlatform` + `_isDefenseStructure`
+  （可被怪物锁定攻击）；站台顶面几何从贴图标定（顶面中心 = 脚底 +(27,-207)，高 207px）；
+  `isOnPlatform(x,y)` 顶面投影区判定；贴图深度锚定接地线 `_faceDepth = y+12`。
+- **登台判定** `DefenseSystem._updatePlatformStates()`：玩家 + PartySystem.members +
+  Game.friendlyUnits 脚线在站台区 → `_onPlatform/_platformRef`（Companion 不在
+  Game.entities，需扫 PartySystem——门感应同款坑）。
+- **越墙攻击**：① 投射物 `Projectile._isBlockedByWall` 忽略己方掩体段条件扩展为
+  `_isDefenseTower || _onPlatform`（防御塔机制同款）；② 魔法 `BoltSkillSystem._updateFlying`
+  台上施法者传 ignore 掩体段；③ `WallSystem.resolve/canMoveTo/_nearestBlockingSeg` 加
+  ignore 透传（含网格/线性双路径）。
+- **视觉**（GameScene）：玩家/友方在台上 sprite 上移 platformHeight（207px），深度显式
+  `max(仲裁, 平台 _faceDepth+1)`——平台顶面线离地面 >60px 仲裁窗口不生效，须显式抬升。
+- **建造**（building-system.js）：B 面板「射击台」条目（400 能源）；**垂直贴合吸附**
+  `_snapPlatformToWall`（用户口径：掩体/门是纵向端点吸附，平台是长轴 ⊥ 墙 face 线贴墙
+  内侧突出，F 镜像贴墙另一侧）；`_canPlace` 平台分支（与其他平台 ≥240px 间距）。
+- **预置**：`_placeInitialPlatform` 基地菱形房 TR 边（右上墙）内侧贴墙放 1 个。
+- **验证**：CDP 探针——平台生成/贴图渲染（260×213@正确位置）/登台判定 true↔false/
+  resolve ignore 透传（无 ignore 被掩体挡→滑动，有 ignore 直达 passedThrough）/玩家台上
+  sprite 上移 + depth = 平台+1；eslint 0 error + vite build ✓ + npm test 全绿。
+  实机待用户复测（headless 截图暗背景为环境限制）。
 ### 对话：建筑沉陷死亡特效（掩体试点，2026-08-16）
 - 新特效 `src/effects/building-sink.js`：被摧毁建筑向下沉陷（easeOutQuad，总深≈显示高 58%）
   + 纵向压扁 + 尾段淡出；底部每 70ms 喷一撮多层灰烟（近实心核心+半透明边缘，
   深度走 WallSystem.junctionCorrectedDepth 墙遮挡正确）掩盖接缝；结束清除实体（无废墟）。
 - 接入：掩体 `DefenseCover.takeDamage` 摧毁分支改为——先摘碰撞/停止受击（hittable=false +
   removeFromCollision），精灵随特效下沉，结束后 active=false 并从实体表移除。
+- 根因修复：DamageableEntity.onDeath 死亡时默认 `active=false`（精灵立即被 GameScene 清理）
+  + 播血雾/死亡粒子——掩体改重写 `onDeath`：保持 active=true 让精灵继续渲染、跳过血雾，
+  由沉陷特效结束时再清除。
 - 关键实现点：直接推动实体 y 下沉（GameScene 中性精灵同步会跟随 e.y），并同步 `_faceDepth`
   跟随下沉，避免浮在墙前实体之上；烟尘并发上限 14 撮防波次同时爆多座失控。
 - 验证：eslint 0 error（既有 3 warning）、vite build ✅；下沉数学单测通过。
