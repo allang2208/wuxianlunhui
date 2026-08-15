@@ -154,7 +154,7 @@
           ],
           "player": 160,
           "energyNode": 140,
-          "spawnPoint": 180
+          "spawnPoint": 130
         }
       }
     }
@@ -327,16 +327,15 @@
       "noSeparation": true,
       "colliderOffsetY": -51.5,
       "sprite": {
-        "comment": "Blender ???????+???+??+??+???2026-08-16?????? 688x514??? 180x134???? 1.3385?",
+        "comment": "静态贴图（宝箱）：idleKey 为普通 image 纹理键（无动画）；noSeparation=true 固定不动、其他实体无法推动",
         "idleKey": "npc_warehouse",
         "size": 180,
-        "sizeH": 134,
-        "footOffsetY": 67
+        "footOffsetY": 64
       },
       "clickArea": {
-        "comment": "?????????? 688x514/??180x134 ????",
-        "width": 180,
-        "height": 134
+        "comment": "点击交互区域（按贴图内容收窄：内容 400×367/512 × size180 ≈ 141×129，锚定脚底）",
+        "width": 141,
+        "height": 129
       },
       "colliderOffsetX": 0,
       "height": 89.5
