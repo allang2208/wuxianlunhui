@@ -85,6 +85,13 @@ check('AI 背包物流：work/return/unload 三阶段 + 自动拾取 + 回屋卸
     && /_startUnload\(\)/.test(aiSrc) && /_energyCarried/.test(aiSrc));
 check('AI 采矿效率加成装入隐藏背包（不再直注玩家）',
     /m\._energyCarried \+= take/.test(aiSrc));
+check('AI 寻路可达接近点：矿点边缘点（避开 A* 障碍中心）+ 回屋边缘点',
+    /approachDist = Math\.max\(this\._miningRange/.test(aiSrc)
+    && /m\._tacticalTarget = \{ x: node\.x \+ \(dx \/ dd\) \* approachDist/.test(aiSrc)
+    && /approach = 64/.test(aiSrc));
+check('AI 卡死看门狗 + 满载防抖（_checkStuck/_returnTriggered）',
+    /_checkStuck\(dt\)/.test(aiSrc) && /_returnTriggered/.test(aiSrc)
+    && /WallSystem\.findSafeSpawn/.test(aiSrc));
 
 // ---- 4. 源码接线：实体受击/死亡/仇恨 ----
 const entSrc = fs.readFileSync(path.join(ROOT, 'src/entities/hamster-miner.js'), 'utf-8');
@@ -96,6 +103,13 @@ check('死亡态 = dying', /_animState = 'dying'/.test(entSrc));
 check('实体隐藏背包字段 + 死亡丢失携带能量', /_energyCarried = 0/.test(entSrc)
     && /_energyCapacity = this\.aiConfig\?\.backpackCapacity \|\| 500/.test(entSrc)
     && /丢失 \$\{this\._energyCarried\} 能量/.test(entSrc));
+check('实体 addMinedEnergy 直接入包（上限=容量）', /addMinedEnergy\(amount\)/.test(entSrc)
+    && /this\._energyCarried \+= take/.test(entSrc));
+
+const ensSrc = fs.readFileSync(path.join(ROOT, 'src/world/energy-node-system.js'), 'utf-8');
+check('能量节点：矿工攻击直接装包不落地（其余仍地面掉落）',
+    /source\._isHamsterMiner && typeof source\.addMinedEnergy === 'function'/.test(ensSrc)
+    && /Game\.dropItem/.test(ensSrc));
 
 const hutSrc = fs.readFileSync(path.join(ROOT, 'src/world/hamster-hut-system.js'), 'utf-8');
 check('小屋新增背包扩容模块（每级 +100，满级 10）',

@@ -5215,10 +5215,19 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
   到位（≤ miningRange + 节点半径）：站定 `_animState='mining'`（采矿与近战共用），
   每 attackInterval 调 `node.takeDamage(attackDamage, 自身, 'physical', true)`；
   **每次命中置 `m._miningSwing=true`** 通知渲染层播挥锄动画。
+- **寻路/避障铁律（2026-08-15 审计）**：矿工与怪物共用 `MovementSystem`
+  （A*/PathManager/墙碰撞/避障/卡住滑移）；**寻路目标禁止用障碍物中心**——
+  采矿目标用矿点边缘可达点（`approachDist = max(miningRange, 节点半径+自身半径+20)`，
+  避开 A* 实体障碍），回屋用小屋边缘接近点（64px，触发 70px）。AI 层再加卡死看门狗
+  （500ms 位移<3px 累计 2 次 → 挖矿重选目标 / 返回 `WallSystem.findSafeSpawn` 传送）；
+  满载用 `_returnTriggered` 防 work/return 振荡。
 - **背包物流三阶段**：`work`（采矿+自动拾取能量掉落进背包，150ms 节流）→
   背包满 `_startReturn` → 走回小屋 `_startUnload`（idle 2s，不移动不交战；
   小屋 `unloadMiner` 经 EnergyManager 进玩家背包，满则暂存小屋）→ 2s 后
   `closeDoor` + 重新出发。
+- **挖矿直接入包**：`EnergyNode.takeDamage` 对 `source._isHamsterMiner` 攻击走
+  `addMinedEnergy` 直接装隐藏背包（不产生地面掉落，其余来源仍掉落）；实体
+  `addMinedEnergy` 按容量封顶，满载后下个决策 tick 即回屋。
 - 小屋升级：`applyUpgrades(u)` 同步攻击间隔/伤害/移速/采矿效率；实体
   `applyHutUpgrades` 委托给 AI。
 

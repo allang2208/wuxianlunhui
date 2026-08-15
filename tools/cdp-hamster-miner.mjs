@@ -335,15 +335,21 @@ console.log('E. 背包物流与扩容');
 const e0 = await rawEval(`(async () => {
     const sleep = (ms) => new Promise(r => setTimeout(r, ms));
     const miner = [...window.Game.entities.values()].find(e => e && e._isHamsterMiner && e.active);
-    // 采矿一小段时间，应自动拾取地面能源进隐藏背包
+    const countDrops = () => [...window.Game.entities.values()]
+        .filter(e => e && e.itemData && e.itemData.category === 'energy').length;
+    // 采矿一小段时间：能量应直接装填隐藏背包（自身不产生地面掉落）
+    const dropsBefore = countDrops();
     const carried0 = miner._energyCarried;
     miner.x = miner.target.x + 30; miner.y = miner.target.y;
     miner._tacticalTarget = null;
     await sleep(4500);
-    return { carried0, carried1: miner._energyCarried, capacity: miner._energyCapacity };
+    return {
+        carried0, carried1: miner._energyCarried, capacity: miner._energyCapacity,
+        dropsBefore, dropsAfter: countDrops(),
+    };
 })()`);
-check('采矿自动拾取能量进隐藏背包', e0.carried1 > e0.carried0,
-    `carried ${e0.carried0}→${e0.carried1}`);
+check('采矿能量直接装填隐藏背包（自身不掉落地）', e0.carried1 > e0.carried0 && e0.dropsAfter <= e0.dropsBefore,
+    `carried ${e0.carried0}→${e0.carried1} drops ${e0.dropsBefore}→${e0.dropsAfter}`);
 
 const e1 = await rawEval(`(async () => {
     const sleep = (ms) => new Promise(r => setTimeout(r, ms));
