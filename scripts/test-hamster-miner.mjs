@@ -44,7 +44,8 @@ check('mining 动画 = 19 帧，起步 [0,18] 完整循环 → 单次 [4,18]（�
     hamsterCfg.animations.mining.frameCount === 19
     && hamsterCfg.animations.mining.startFrames[0] === 0 && hamsterCfg.animations.mining.startFrames[1] === 18
     && hamsterCfg.animations.mining.loopFrames[0] === 4 && hamsterCfg.animations.mining.loopFrames[1] === 18
-    && hamsterCfg.animations.mining.startRepeat === 0 && hamsterCfg.animations.mining.repeat === 0);
+    && hamsterCfg.animations.mining.startRepeat === 0 && hamsterCfg.animations.mining.repeat === 0
+    && hamsterCfg.animations.mining.waitFrame === 5);
 check('dying 动画 = 11 帧 [0,10]，只播一次', hamsterCfg.animations.dying.frameCount === 11
     && hamsterCfg.animations.dying.frames[0] === 0 && hamsterCfg.animations.dying.frames[1] === 10
     && hamsterCfg.animations.dying.repeat === 0);
@@ -84,6 +85,13 @@ check('AI 背包物流：work/return/unload 三阶段 + 自动拾取 + 回屋卸
     && /_startUnload\(\)/.test(aiSrc) && /_energyCarried/.test(aiSrc));
 check('AI 采矿效率加成装入隐藏背包（不再直注玩家）',
     /m\._energyCarried \+= take/.test(aiSrc));
+check('AI 寻路可达接近点：矿点边缘点（避开 A* 障碍中心）+ 回屋边缘点',
+    /approachDist = Math\.max\(this\._miningRange/.test(aiSrc)
+    && /m\._tacticalTarget = \{ x: node\.x \+ \(dx \/ dd\) \* approachDist/.test(aiSrc)
+    && /approach = 64/.test(aiSrc));
+check('AI 卡死看门狗 + 满载防抖（_checkStuck/_returnTriggered）',
+    /_checkStuck\(dt\)/.test(aiSrc) && /_returnTriggered/.test(aiSrc)
+    && /WallSystem\.findSafeSpawn/.test(aiSrc));
 
 // ---- 4. 源码接线：实体受击/死亡/仇恨 ----
 const entSrc = fs.readFileSync(path.join(ROOT, 'src/entities/hamster-miner.js'), 'utf-8');
@@ -95,6 +103,13 @@ check('死亡态 = dying', /_animState = 'dying'/.test(entSrc));
 check('实体隐藏背包字段 + 死亡丢失携带能量', /_energyCarried = 0/.test(entSrc)
     && /_energyCapacity = this\.aiConfig\?\.backpackCapacity \|\| 500/.test(entSrc)
     && /丢失 \$\{this\._energyCarried\} 能量/.test(entSrc));
+check('实体 addMinedEnergy 直接入包（上限=容量）', /addMinedEnergy\(amount\)/.test(entSrc)
+    && /this\._energyCarried \+= take/.test(entSrc));
+
+const ensSrc = fs.readFileSync(path.join(ROOT, 'src/world/energy-node-system.js'), 'utf-8');
+check('能量节点：矿工攻击直接装包不落地（其余仍地面掉落）',
+    /source\._isHamsterMiner && typeof source\.addMinedEnergy === 'function'/.test(ensSrc)
+    && /Game\.dropItem/.test(ensSrc));
 
 const hutSrc = fs.readFileSync(path.join(ROOT, 'src/world/hamster-hut-system.js'), 'utf-8');
 check('小屋新增背包扩容模块（每级 +100，满级 10）',
@@ -113,11 +128,14 @@ check('小屋暂存自动补入玩家背包', /_storedEnergy = Math\.max\(0, thi
 const gsSrc = fs.readFileSync(path.join(ROOT, 'src/phaser/scenes/GameScene.js'), 'utf-8');
 check('GameScene 渲染友方单位（friendlyUnits）', /_game\.friendlyUnits/.test(gsSrc));
 check('GameScene 支持 mining/dying 动画状态', /st === 'mining'/.test(gsSrc) && /st === 'dying'/.test(gsSrc));
-check('GameScene 采矿 = 攻击触发播挥锄、间隔定格第 4 帧（索引 3）',
+check('GameScene 采矿 = 攻击触发播挥锄、间隔定格 waitFrame（第 6 帧）',
     /member\._miningSwing/.test(gsSrc) && /miningStartKey/.test(gsSrc)
-    && /setTexture\(miningKey, 3\)/.test(gsSrc));
+    && /anims\.mining\.waitFrame \?\? 5/.test(gsSrc) && /setTexture\(miningKey, miningWaitFrame\)/.test(gsSrc));
 check('GameScene 行走两段式 = 起步完整 walking → 循环第 3~12 帧',
     /hamsterWalk/.test(gsSrc) && /walkStartKey/.test(gsSrc));
+check('GameScene 移动始终朝向移动方向（walk 按 vx，不倒退）',
+    /member\._isHamsterMiner && moving/.test(gsSrc) && /faceRight = member\.vx > 0/.test(gsSrc)
+    && /_animState === 'walk' \|\| Math\.abs\(member\.vx\) > 5/.test(gsSrc));
 check('GameScene 动态深度含友方单位', /window\.Game\.friendlyUnits/.test(gsSrc));
 
 const bootSrc = fs.readFileSync(path.join(ROOT, 'src/phaser/scenes/BootScene.js'), 'utf-8');

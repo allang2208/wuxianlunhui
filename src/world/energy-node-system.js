@@ -86,14 +86,19 @@ class EnergyNode extends DamageableEntity {
         const dealt = Math.max(0, before - this.hp);
         if (dealt <= 0) return dealt;
         const energy = Math.floor(dealt * ENERGY_CONFIG.gatherRatio);
-        if (energy > 0 && Game && typeof Game.dropItem === 'function') {
-            const ang = Math.random() * Math.PI * 2;
-            const r = 20 + Math.random() * 34; // 节点周围散落，避免全部重叠
-            Game.dropItem(
-                this.x + Math.cos(ang) * r,
-                this.y + Math.sin(ang) * r,
-                { ...ENERGY_ITEM, stack: energy }
-            );
+        if (energy > 0) {
+            if (source && source._isHamsterMiner && typeof source.addMinedEnergy === 'function') {
+                // 仓鼠矿工挖矿直接装填隐藏背包，不产生地面掉落（2026-08-15 用户口径）
+                source.addMinedEnergy(energy);
+            } else if (Game && typeof Game.dropItem === 'function') {
+                const ang = Math.random() * Math.PI * 2;
+                const r = 20 + Math.random() * 34; // 节点周围散落，避免全部重叠
+                Game.dropItem(
+                    this.x + Math.cos(ang) * r,
+                    this.y + Math.sin(ang) * r,
+                    { ...ENERGY_ITEM, stack: energy }
+                );
+            }
         }
         if (this.hp <= 0) {
             this._depleted = true;

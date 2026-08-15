@@ -538,9 +538,10 @@ export class GameScene extends Scene {
                         sprite.play(dyingKey, true);
                     }
                 } else if (st === 'mining' && anims.mining && this.textures.exists(miningKey)) {
-                    // 采矿动画 = 攻击触发时播一次挥锄，其余攻击间隔定格第 4 帧（索引 3）。
+                    // 采矿动画 = 攻击触发时播一次挥锄，其余攻击间隔定格 waitFrame（默认第 6 帧，索引 5）。
                     // AI 每次命中置 _miningSwing；首次完整 1~19 帧，之后第 5~19 帧单次。
                     const miningStartKey = `${miningKey}_start`;
+                    const miningWaitFrame = anims.mining.waitFrame ?? 5;
                     if (member._miningSwing && !sprite.getData('miningSwing')) {
                         sprite.setData('miningSwing', true);
                         const firstSwing = !sprite.getData('hamsterMining');
@@ -555,18 +556,18 @@ export class GameScene extends Scene {
                             if (anim && anim.key !== miningStartKey && anim.key !== miningKey) return;
                             sprite.setData('miningSwing', false);
                             member._miningSwing = false;
-                            // 挥完定格第 4 帧，直到下一次攻击
+                            // 挥完定格 waitFrame，直到下一次攻击
                             if (sprite.anims.isPlaying) sprite.anims.stop();
-                            if (sprite.texture.key !== miningKey || sprite.frame.name !== 3) {
-                                sprite.setTexture(miningKey, 3);
+                            if (sprite.texture.key !== miningKey || sprite.frame.name !== miningWaitFrame) {
+                                sprite.setTexture(miningKey, miningWaitFrame);
                             }
                         });
                     } else if (!sprite.getData('miningSwing')) {
-                        // 攻击间隔：定格第 4 帧
+                        // 攻击间隔：定格 waitFrame
                         sprite.setData('miningSwing', false);
                         if (sprite.anims.isPlaying) sprite.anims.stop();
-                        if (sprite.texture.key !== miningKey || sprite.frame.name !== 3) {
-                            sprite.setTexture(miningKey, 3);
+                        if (sprite.texture.key !== miningKey || sprite.frame.name !== miningWaitFrame) {
+                            sprite.setTexture(miningKey, miningWaitFrame);
                         }
                     }
                 } else if (st === 'spell' && anims.spell && this.textures.exists(spellKey)) {

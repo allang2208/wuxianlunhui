@@ -8,6 +8,7 @@
 // - 动画状态：walk（移动）/ mining（采矿或近战）/ idle（待机）。
 // ============================================================
 import { MovementSystem } from '../systems/movement-system.js';
+import { WallSystem } from '../world/wall-system.js';
 import { EnergyManager } from '../systems/energy-manager.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
@@ -30,6 +31,12 @@ export class HamsterMinerAI {
         this._phase = 'work';          // 'work' | 'return' | 'unload'
         this._unloadTimer = 0;
         this._pickupTimer = 0;
+        this._returnTriggered = false; // 满载只触发一次返回（防小屋消失后振荡）
+        // 卡死看门狗（2026-08-15）：走路长时间位移≈0 → 重新选点/传送到目标附近
+        this._stuckTimer = 0;
+        this._lastPosX = 0;
+        this._lastPosY = 0;
+        this._stuckStreak = 0;
     }
 
     /** 仓鼠小屋升级后刷新战斗参数（间隔/伤害/移速/采矿效率） */
@@ -115,6 +122,8 @@ export class HamsterMinerAI {
 
         // 移动中：交给 MovementSystem 寻路推进
         MovementSystem.update(m, dt, entities);
+        // 卡死看门狗：复用怪物避障机制外的兜底（重新规划/传送），避免被障碍卡死找不到目标
+        this._checkStuck(dt);
     }
 
     /**
@@ -160,13 +169,19 @@ export class HamsterMinerAI {
             const hut = m._hut;
             if (!hut || !hut.active) {
                 this._phase = 'work'; // 小屋没了（防御性兜底，正常随小屋销毁）
+                this._returnTriggered = true; // 背包仍满：不再反复触发返回
             } else {
                 const dist = Math.hypot(hut.x - m.x, hut.y - m.y);
                 if (dist <= 70) {
                     this._startUnload();
                 } else {
                     m.target = null;
-                    m._tacticalTarget = { x: hut.x, y: hut.y };
+                    // 走到小屋边缘可达点（小屋中心是碰撞体，直接寻路到中心可能失败）
+                    const dx = m.x - hut.x;
+                    const dy = m.y - hut.y;
+                    const d = Math.hypot(dx, dy) || 1;
+                    const approach = 64; // 小屋半径 40 + 矿工半径 26 = 66，取 64 贴近门边
+                    m._tacticalTarget = { x: hut.x + (dx / d) * approach, y: hut.y + (dy / d) * approach };
                     m._animState = 'walk';
                     m.maxSpeed = this.cfg.walkSpeed ?? 80;
                 }
@@ -177,9 +192,13 @@ export class HamsterMinerAI {
         // 工作阶段：隐藏背包满 → 返回小屋卸货
         const capacity = m._energyCapacity || 500;
         if (m._energyCarried >= capacity) {
-            this._startReturn();
+            if (!this._returnTriggered) {
+                this._returnTriggered = true;
+                this._startReturn();
+            }
             return;
         }
+        this._returnTriggered = false;
 
         // 当前矿点目标失效（枯竭/被清）→ 放弃，重新寻找
         const t = m.target;
@@ -224,10 +243,53 @@ export class HamsterMinerAI {
             m._lastFaceRight = node.x >= m.x;
             return;
         }
-        // 赶路：朝矿点移动（移速 80）
-        m._tacticalTarget = { x: node.x, y: node.y };
+        // 赶路：朝矿点移动（移速 80）——目标用矿点边缘可达点（矿点本身是 A* 障碍，
+        // 直接寻路到中心会失败/卡住；接近点须在 障碍半径+自身半径 之外且进入采矿范围）
+        const approachDist = Math.max(this._miningRange, (node.groundRadius || 45) + (m.groundRadius || 26) + 20);
+        const dx = m.x - node.x;
+        const dy = m.y - node.y;
+        const dd = Math.hypot(dx, dy) || 1;
+        m._tacticalTarget = { x: node.x + (dx / dd) * approachDist, y: node.y + (dy / dd) * approachDist };
         m._animState = 'walk';
         m.maxSpeed = this.cfg.walkSpeed ?? 80;
+    }
+
+    /** 卡死看门狗（2026-08-15）：走路 500ms 位移 <3px 累计 2 次 → 重新规划/传送 */
+    _checkStuck(dt) {
+        const m = this.m;
+        if (m._animState !== 'walk') {
+            this._stuckTimer = 0;
+            this._lastPosX = m.x;
+            this._lastPosY = m.y;
+            return;
+        }
+        this._stuckTimer += dt;
+        if (this._stuckTimer < 500) return;
+        this._stuckTimer = 0;
+        const moved = Math.hypot(m.x - this._lastPosX, m.y - this._lastPosY);
+        this._lastPosX = m.x;
+        this._lastPosY = m.y;
+        if (moved > 3) {
+            this._stuckStreak = 0;
+            return;
+        }
+        this._stuckStreak++;
+        if (this._stuckStreak < 2) return;
+        this._stuckStreak = 0;
+        if (this._phase === 'work') {
+            // 重新选最近矿点（原目标可能不可达）
+            m.target = null;
+            m._tacticalTarget = null;
+        } else if (this._phase === 'return' && m._hut && m._hut.active) {
+            // 传送到小屋附近合法点
+            if (WallSystem && typeof WallSystem.findSafeSpawn === 'function') {
+                const sp = WallSystem.findSafeSpawn(m._hut.x, m._hut.y, m.groundRadius || 24);
+                if (sp && Number.isFinite(sp.x) && Number.isFinite(sp.y)) {
+                    m.x = sp.x;
+                    m.y = sp.y;
+                }
+            }
+        }
     }
 
     /** 近战攻击敌人（间隔复用采矿攻击间隔；伤害 = 攻击力 × 伤害倍率） */

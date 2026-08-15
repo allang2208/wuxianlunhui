@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /* 仓鼠矿工实机验证（2026-08-15）：
    - 进入世界-122 后经「仓鼠小屋」生成矿工（属性 200HP/80 移速、友方阵营可被怪锁定）；
-   - AI：找最近能源矿点 → 赶路 walk → 到位采矿（定格 mining 第 4 帧，不播攻击动画）；
+   - AI：找最近能源矿点 → 赶路 walk → 到位采矿（定格 mining 第 6 帧，不播攻击动画）；
    - 攻击：每 2s 对矿点造成 100 伤害，绝不攻击其他单位（假敌人贴脸 hp 不变）；
    - 死亡：takeDamage 致死 → 播 dying 动画 → 自动从场景移除。
    用法：node tools/cdp-hamster-miner.mjs（需本地 vite dev server 5173）*/
@@ -213,7 +213,7 @@ check('移速 = 80', a.walkSpeed === 80);
 check('AI 锁定最近能源节点（非单位）', a.targetIsNode === true && a.targetIsNearest === true,
     `anim=${a.anim}`);
 
-// ---------- B. 采矿：定格第 4 帧 + 每 2s 100 伤害 ----------
+// ---------- B. 采矿：定格第 6 帧 + 每 2s 100 伤害 ----------
 console.log('B. 采矿挥锄 + 间隔定格 + 伤害');
 const b0 = await rawEval(`(async () => {
     const sleep = (ms) => new Promise(r => setTimeout(r, ms));
@@ -246,7 +246,7 @@ const b0 = await rawEval(`(async () => {
         anim: miner._animState,
         targetIsNode: !!(miner.target && miner.target._isEnergyNode),
         playingKeys: [...new Set(samples.filter(s => s.playing).map(s => s.key))],
-        hasStaticFrame4: samples.some(s => !s.playing && s.key === 'companion_hamster_miner_mining:3'),
+        hasStaticFrame6: samples.some(s => !s.playing && s.key === 'companion_hamster_miner_mining:5'),
     };
 })()`);
 check('进入采矿态 mining', b0.anim === 'mining', `anim=${b0.anim}`);
@@ -254,7 +254,7 @@ check('攻击触发播挥锄：先完整段 mining_start、后续第 5~19 帧 mi
     b0.playingKeys.includes('companion_hamster_miner_mining_start')
     && b0.playingKeys.includes('companion_hamster_miner_mining'),
     JSON.stringify(b0.playingKeys));
-check('攻击间隔定格第 4 帧（非播放时 tex=mining frame=3）', b0.hasStaticFrame4 === true);
+check('攻击间隔定格第 6 帧（非播放时 tex=mining frame=5）', b0.hasStaticFrame6 === true);
 check('每 2s 造成 100 伤害（≥2 次、每次 -100、间隔 1700~2400ms）',
     b0.events.length >= 2
     && b0.events.every(e => e.drop === 100)
@@ -278,11 +278,26 @@ const bw = await rawEval(`(async () => {
     const k1 = sprite.anims.isPlaying ? sprite.anims.currentAnim.key : null;
     await sleep(1300);
     const k2 = sprite.anims.isPlaying ? sprite.anims.currentAnim.key : null;
-    return { anim: miner._animState, k1, k2 };
+    // 向右走向矿点：贴图应朝右（不倒退）
+    const rightMoving = miner.vx > 0;
+    const rightFace = !sprite.flipX;
+    // 反向：移到矿点右侧朝左走
+    miner.x = node.x + 260; miner.y = node.y - 40;
+    miner._tacticalTarget = { x: node.x, y: node.y };
+    miner._animState = 'idle';
+    sprite.setData('hamsterWalk', false);
+    if (sprite.anims.isPlaying) sprite.anims.stop();
+    await sleep(500);
+    const leftMoving = miner.vx < 0;
+    const leftFace = sprite.flipX;
+    return { anim: miner._animState, k1, k2, rightMoving, rightFace, leftMoving, leftFace };
 })()`);
 check('静止→移动先播完整 walking（walk_start）', bw.anim === 'walk' && bw.k1 === 'companion_hamster_miner_walk_start',
     `anim=${bw.anim} k1=${bw.k1}`);
 check('起步后循环第 3~12 帧（walk）', bw.k2 === 'companion_hamster_miner_walk', `k2=${bw.k2}`);
+check('移动始终朝向移动方向（向右朝右、向左朝左，不倒退）',
+    bw.rightMoving === true && bw.rightFace === true && bw.leftMoving === true && bw.leftFace === true,
+    `right=${bw.rightMoving}/${bw.rightFace} left=${bw.leftMoving}/${bw.leftFace}`);
 
 // ---------- C. 敌人交战（小屋防御）与回采矿 ----------
 console.log('C. 交战自卫生效 + 回采矿');
@@ -320,15 +335,21 @@ console.log('E. 背包物流与扩容');
 const e0 = await rawEval(`(async () => {
     const sleep = (ms) => new Promise(r => setTimeout(r, ms));
     const miner = [...window.Game.entities.values()].find(e => e && e._isHamsterMiner && e.active);
-    // 采矿一小段时间，应自动拾取地面能源进隐藏背包
+    const countDrops = () => [...window.Game.entities.values()]
+        .filter(e => e && e.itemData && e.itemData.category === 'energy').length;
+    // 采矿一小段时间：能量应直接装填隐藏背包（自身不产生地面掉落）
+    const dropsBefore = countDrops();
     const carried0 = miner._energyCarried;
     miner.x = miner.target.x + 30; miner.y = miner.target.y;
     miner._tacticalTarget = null;
     await sleep(4500);
-    return { carried0, carried1: miner._energyCarried, capacity: miner._energyCapacity };
+    return {
+        carried0, carried1: miner._energyCarried, capacity: miner._energyCapacity,
+        dropsBefore, dropsAfter: countDrops(),
+    };
 })()`);
-check('采矿自动拾取能量进隐藏背包', e0.carried1 > e0.carried0,
-    `carried ${e0.carried0}→${e0.carried1}`);
+check('采矿能量直接装填隐藏背包（自身不掉落地）', e0.carried1 > e0.carried0 && e0.dropsAfter <= e0.dropsBefore,
+    `carried ${e0.carried0}→${e0.carried1} drops ${e0.dropsBefore}→${e0.dropsAfter}`);
 
 const e1 = await rawEval(`(async () => {
     const sleep = (ms) => new Promise(r => setTimeout(r, ms));

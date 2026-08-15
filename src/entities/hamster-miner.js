@@ -48,6 +48,15 @@ export class HamsterMiner extends Companion {
     get hp() { return this.data.hp; }
     get maxHp() { return this.data.maxHp; }
 
+    /** 挖矿直接进隐藏背包（矿工自身攻击不产生地面掉落，2026-08-15）；返回实际入包量 */
+    addMinedEnergy(amount) {
+        if (!(amount > 0)) return 0;
+        const space = Math.max(0, (this._energyCapacity || 500) - this._energyCarried);
+        const take = Math.min(amount, space);
+        this._energyCarried += take;
+        return take;
+    }
+
     /**
      * 受击入口（CombatSystem / DamagePipeline / 投射物统一调用）。
      * 死亡 → 播 dying 动画，结束后由 update 自清理。
