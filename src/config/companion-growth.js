@@ -10,7 +10,7 @@
 // ============================================================
 
 const GROWTH_RULES = {
-    // 重剑护卫：力量/体质为主，每级 2 点按 1:1 投入
+    // 剑盾护卫（伊莉丝）：力量/体质为主，每级 2 点按 1:1 投入
     warrior(companion, points) {
         const str = Math.ceil(points / 2);
         const con = Math.floor(points / 2);

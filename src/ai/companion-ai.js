@@ -24,7 +24,7 @@ import { AimHelper } from '../utils/aim-helper.js';
 import {
     DEFAULT_MAGE_AI, decideCompanionAction, pickCompanionSpell,
     shouldRelocateCompanion, shouldUseRun,
-    pickPatrolPoint, pickNearestNode,
+    shouldWarriorDefend, pickPatrolPoint, pickNearestNode,
 } from './companion-ai-decision.js';
 
 const MELEE_THREAT_RANGE = 220; // 攻击距离低于此值视为近战威胁
@@ -56,6 +56,12 @@ export class CompanionAI {
         this._teleportCd = 0;
         this._consumableTimer = 0;
         this._basicAtkCd = 0;   // 普通攻击间隔 CD（ms）
+        // ===== 剑盾近战（伊莉丝，2026-08-15）=====
+        this._meleeAtkTimer = 0;   // 近战攻击动画剩余 ms（attackAnimMs）
+        this._meleeHitDone = false;// 本次攻击是否已在命中帧结算
+        this._defendPhase = null;  // 防御阶段：'enter' | 'hold' | 'exit' | null
+        this._defendTimer = 0;     // 当前防御阶段剩余 ms
+        this._defendCd = 0;        // 防御结束冷却（defendCooldownMs）
         this._pendingRelease = null; // 50% 释放点：{type:'spell'|'basic', ...}
         this._castDuration = 0;      // 施法/攻击动作总时长（算 50% 释放点）
         this._castRecoverTimer = 0;  // 施法/攻击结束硬直（防动画刚完就滑动）
@@ -208,6 +214,12 @@ export class CompanionAI {
             this._pendingRelease = null;
             this._castDuration = 0;
             this._castRecoverTimer = 0;
+            // 剑盾近战：被控时中断攻击/防御姿态
+            this._meleeAtkTimer = 0;
+            this._meleeHitDone = false;
+            this._defendPhase = null;
+            this._defendTimer = 0;
+            c._defending = false;
         }
         // 施法/攻击结束硬直推进：期间保持冻结不移动，结束后恢复
         if (this._castRecoverTimer > 0) {
@@ -232,6 +244,11 @@ export class CompanionAI {
         if (this._decisionTimer <= 0) {
             this._decisionTimer = this.cfg.decisionMs || 120;
             this._tick(entities, player);
+        }
+
+        // 剑盾近战：攻击/防御状态机逐帧推进（决策只负责发起，进度由这里驱动）
+        if ((this.cfg.role || '').startsWith('melee')) {
+            this._updateWarriorCombat(dt);
         }
 
         // 移动（MovementSystem：寻路跟随/撤退/站位，施法锁定自动停步）
@@ -447,6 +464,11 @@ export class CompanionAI {
             if (c._castState !== 'idle' || c._frozenForCast) c._animState = 'spell';
             return;
         }
+        // 剑盾近战（伊莉丝）：独立状态机——防御 > 攻击 > 追击 > 跟随
+        if ((this.cfg.role || '').startsWith('melee')) {
+            this._tickWarrior(entities, player);
+            return;
+        }
         const enemies = this._activeEnemies(entities);
         const { threat, threatDist } = this._meleeThreat(enemies, c);
         const hasEnemy = enemies.length > 0;
@@ -590,6 +612,11 @@ export class CompanionAI {
     /** 非 follow 指令主入口（决策 tick 调用）：aggressive / patrol / gather / hold */
     _applyCommand(entities, player, cmd) {
         const c = this.c;
+        // 剑盾近战（伊莉丝）：指令走近战分支（aggressive/patrol 追击近战，gather 无远程回落跟随）
+        if ((this.cfg.role || '').startsWith('melee')) {
+            this._applyWarriorCommand(entities, player, cmd);
+            return;
+        }
         // 施法锁定中不打断
         if (c._castState !== 'idle' || c._frozenForCast) {
             c._animState = 'spell';
@@ -826,6 +853,251 @@ export class CompanionAI {
         let left = 0;
         for (const it of c.backpack) if (it && it.category === 'energy') left += it.stack || 0;
         this._gatherPhase = left > 0 ? 'return' : 'work';
+    }
+
+    // ==================== 剑盾近战（伊莉丝，2026-08-15）====================
+
+    /**
+     * 默认状态机：防御（范围内 >3 敌 或 有远程敌）> 近战攻击 > 追击 > 跟随玩家。
+     * 防御/攻击期间冻结移动（_frozenForCast），由 _updateWarriorCombat 逐帧推进。
+     */
+    _tickWarrior(entities, player) {
+        const c = this.c;
+        const cfg = this.cfg;
+        const enemies = this._activeEnemies(entities);
+
+        // 防御最高优先级：条件满足即举盾（可打断攻击/追击）
+        if (this._shouldDefend(enemies)) {
+            if (!this._defendPhase && this._defendCd <= 0) this._startDefend();
+            return;
+        }
+        if (this._defendPhase) return; // 防御中：站定不动
+        if (this._meleeAtkTimer > 0) return; // 攻击动画中：站定
+
+        // 目标维护
+        if (c.target && (!c.target.active || c.target.hp <= 0)) c.target = null;
+        if (enemies.length && !c.target) c.target = this._pickMeleeTarget(enemies, c);
+        const targetDist = c.target ? Math.hypot(c.target.x - c.x, c.target.y - c.y) : null;
+        const meleeRange = cfg.meleeRange || 165;
+        const engageRange = cfg.engageRange || 460;
+
+        if (c.target && targetDist !== null && targetDist <= meleeRange + (c.target.groundRadius || 20)) {
+            if (this._basicAtkCd <= 0) {
+                this._tryMeleeAttack(c.target);
+                return;
+            }
+            // 攻击冷却中：贴脸站定、面朝目标
+            c._tacticalTarget = null;
+            c.vx = 0; c.vy = 0; c.isMoving = false;
+            c._animState = 'idle';
+            c.rotation = Math.atan2(c.target.y - c.y, c.target.x - c.x);
+            this._lastAction = 'idle';
+            c._lastAction = 'idle';
+            return;
+        }
+        if (c.target && targetDist !== null && targetDist <= engageRange) {
+            c._tacticalTarget = { x: c.target.x, y: c.target.y };
+            this._setMoveState(this._shouldRun(targetDist, 'advance') ? 'run' : 'walk');
+            this._lastAction = 'advance';
+            c._lastAction = 'advance';
+            return;
+        }
+        // 无敌人/超出交战半径：跟随玩家
+        const fp = this._followPoint(player);
+        const fd = Math.hypot(fp.x - c.x, fp.y - c.y);
+        if (fd > (cfg.followArriveDist || 55)) {
+            c._tacticalTarget = fp;
+            this._setMoveState(this._shouldRun(fd, 'follow') ? 'run' : 'walk');
+            this._lastAction = 'follow';
+            c._lastAction = 'follow';
+        } else {
+            this._setMoveState('idle');
+            this._lastAction = 'idle';
+            c._lastAction = 'idle';
+        }
+    }
+
+    /** 剑盾近战指令：aggressive 全图追击；patrol 圈内反击/游走；hold 待命；gather 回落跟随 */
+    _applyWarriorCommand(entities, player, cmd) {
+        const c = this.c;
+        if (c._castState !== 'idle' || c._frozenForCast) return; // 攻击/防御锁定中
+        this._setMoveState('idle');
+        c.vx = 0; c.vy = 0; c.isMoving = false;
+        c._tacticalTarget = null;
+        switch (cmd.mode) {
+            case 'hold': c.target = null; break;
+            case 'aggressive': this._cmdWarriorAggressive(entities, player, null); break;
+            case 'patrol': this._cmdWarriorAggressive(entities, player, cmd); break;
+            case 'gather':
+            default: this._cmdFollowOnly(player); break;
+        }
+        if (c.target) c.rotation = Math.atan2(c.target.y - c.y, c.target.x - c.x);
+    }
+
+    /** 主动攻击/巡逻：追击最近敌人近战；防御条件满足仍优先举盾 */
+    _cmdWarriorAggressive(entities, player, cmd) {
+        const c = this.c;
+        const cfg = this.cfg;
+        let enemies = this._activeEnemies(entities);
+        if (cmd) {
+            enemies = enemies.filter(e => Math.hypot(e.x - c.x, e.y - c.y) <= CMD_PATROL_SENSE);
+        }
+        if (!enemies.length) {
+            if (cmd) this._patrolWander(cmd);
+            else this._cmdFollowOnly(player);
+            return;
+        }
+        if (this._shouldDefend(enemies)) {
+            if (!this._defendPhase && this._defendCd <= 0) this._startDefend();
+            return;
+        }
+        if (this._meleeAtkTimer > 0) return;
+        if (c.target && (!c.target.active || c.target.hp <= 0)) c.target = null;
+        if (!c.target) c.target = this._pickMeleeTarget(enemies, c);
+        const d = c.target ? Math.hypot(c.target.x - c.x, c.target.y - c.y) : null;
+        if (c.target && d !== null && d <= (cfg.meleeRange || 165) + (c.target.groundRadius || 20)) {
+            if (this._basicAtkCd <= 0) { this._tryMeleeAttack(c.target); return; }
+            c.vx = 0; c.vy = 0; c.isMoving = false;
+            c._animState = 'idle';
+            return;
+        }
+        if (c.target) {
+            c._tacticalTarget = { x: c.target.x, y: c.target.y };
+            this._setMoveState(this._shouldRun(d, 'advance') ? 'run' : 'walk');
+            return;
+        }
+        this._cmdFollowOnly(player);
+    }
+
+    /** 巡逻无目标：圈内随机游走（2~4s 换点；到位 idle） */
+    _patrolWander(cmd) {
+        const c = this.c;
+        const center = cmd.point || { x: c.x, y: c.y };
+        this._patrolTimer -= this.cfg.decisionMs || 120;
+        const arrived = this._patrolTarget
+            && Math.hypot(this._patrolTarget.x - c.x, this._patrolTarget.y - c.y) < 60;
+        if (!this._patrolTarget || arrived || this._patrolTimer <= 0) {
+            this._patrolTimer = 2000 + Math.random() * 2000;
+            this._patrolTarget = pickPatrolPoint({ center, radius: CMD_PATROL_RADIUS });
+        }
+        c._tacticalTarget = this._patrolTarget;
+        const d = Math.hypot(this._patrolTarget.x - c.x, this._patrolTarget.y - c.y);
+        if (d > 60) this._setMoveState(this._shouldRun(d, 'follow') ? 'run' : 'walk');
+    }
+
+    /** 防御触发判定（纯函数委托 companion-ai-decision.shouldWarriorDefend） */
+    _shouldDefend(enemies) {
+        const c = this.c;
+        const cfg = this.cfg;
+        return shouldWarriorDefend({
+            enemies,
+            cx: c.x, cy: c.y,
+            range: cfg.defendRange || 400,
+            enemyCount: cfg.defendEnemyCount || 3,
+        });
+    }
+
+    /** 进入防御：enter（0.5s 播 1~8 帧）→ hold（2s 持盾减伤+常态弹反）→ exit（0.5s 播剩余） */
+    _startDefend() {
+        const c = this.c;
+        if (this._defendPhase || this._defendCd > 0 || c._castState !== 'idle' || c._frozenForCast) return;
+        const cfg = this.cfg;
+        this._defendPhase = 'enter';
+        this._defendTimer = cfg.defendEnterMs || 500;
+        c._defending = false; // 进入阶段尚未生效，hold 期才置位
+        c._frozenForCast = true;
+        c._animState = 'defend';
+        c.vx = 0; c.vy = 0; c.isMoving = false;
+        c.target = null;
+        c._tacticalTarget = null;
+        c._lastAction = 'defend';
+        c._lastFaceRight = undefined; // 渲染层回退到最近敌人朝向
+    }
+
+    /** 防御状态机逐帧推进：enter → hold（持盾）→ exit → 结束；并推进防御冷却 */
+    _updateWarriorCombat(dt) {
+        const c = this.c;
+        const cfg = this.cfg;
+        if (this._defendCd > 0) this._defendCd = Math.max(0, this._defendCd - dt);
+
+        // 近战攻击推进：命中帧结算 + 动画结束解除冻结
+        if (this._meleeAtkTimer > 0) {
+            this._meleeAtkTimer -= dt;
+            const total = cfg.attackAnimMs || 1500;
+            const hitAt = ((cfg.attackHitFrame || 10) - 1) / (cfg.attackFrames || 28) * total;
+            if (!this._meleeHitDone && (total - this._meleeAtkTimer) >= hitAt) {
+                this._meleeHitDone = true;
+                this._dealMeleeHit();
+            }
+            if (this._meleeAtkTimer <= 0) {
+                this._meleeAtkTimer = 0;
+                c._frozenForCast = false;
+                c._animState = 'idle';
+            }
+            return;
+        }
+
+        // 防御推进
+        if (!this._defendPhase) return;
+        this._defendTimer -= dt;
+        if (this._defendPhase === 'enter' && this._defendTimer <= 0) {
+            this._defendPhase = 'hold';
+            this._defendTimer = cfg.defendHoldMs || 2000;
+            c._defending = true; // 持盾防御 + 常态弹反生效
+        } else if (this._defendPhase === 'hold' && this._defendTimer <= 0) {
+            this._defendPhase = 'exit';
+            this._defendTimer = cfg.defendExitMs || 500;
+            c._defending = false;
+        } else if (this._defendPhase === 'exit' && this._defendTimer <= 0) {
+            this._defendPhase = null;
+            this._defendTimer = 0;
+            c._defending = false;
+            c._frozenForCast = false;
+            c._animState = 'idle';
+            this._defendCd = cfg.defendCooldownMs || 3000;
+        }
+    }
+
+    /** 发起近战攻击：1.5s 动画（28 帧），命中帧由 _updateWarriorCombat 结算；攻击间隔 2s */
+    _tryMeleeAttack(target) {
+        const c = this.c;
+        const cfg = this.cfg;
+        this._basicAtkCd = cfg.attackInterval || 2000;
+        this._meleeAtkTimer = cfg.attackAnimMs || 1500;
+        this._meleeHitDone = false;
+        c._frozenForCast = true;
+        c._animState = 'attack';
+        c._castState = 'idle';
+        c.vx = 0; c.vy = 0; c.isMoving = false;
+        c.rotation = Math.atan2(target.y - c.y, target.x - c.x);
+        this._lastAction = 'attack';
+        c._lastAction = 'attack';
+    }
+
+    /** 命中帧结算：物理攻击 ×1.25，目标已出范围则空挥 */
+    _dealMeleeHit() {
+        const c = this.c;
+        const t = c.target;
+        if (!t || !t.active || t.hp <= 0) return;
+        const d = Math.hypot(t.x - c.x, t.y - c.y);
+        const range = (this.cfg.meleeRange || 165) + (t.groundRadius || 20);
+        if (d > range + 20) return; // 目标走出范围：空挥
+        const dmg = Math.max(1, Math.floor((c.data.atk || 0) * (this.cfg.attackDamageMul || 1.25)));
+        if (typeof t.takeDamage === 'function') t.takeDamage(dmg, c, 'physical');
+        if (EffectManager) {
+            EffectManager.add(new FloatingTextEffect(t.x, t.y - 30, `-${dmg}`, '#ffb45e'));
+        }
+        this._lastAttackAt = Date.now(); // 输出中：卡死判定窗口重置
+    }
+
+    /** 近战目标：最近敌人 */
+    _pickMeleeTarget(enemies, c) {
+        let best = null; let bestD = Infinity;
+        for (const e of enemies) {
+            const d = Math.hypot(e.x - c.x, e.y - c.y);
+            if (d < bestD) { bestD = d; best = e; }
+        }
+        return best;
     }
 
     // ==================== 技能 ====================

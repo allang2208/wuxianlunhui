@@ -9,6 +9,7 @@ const { buildSkillMap, grantSkillExp, getSkillEffect } = await import('../src/sy
 const {
     decideCompanionAction, pickCompanionSpell,
     shouldRelocateCompanion, shouldUseRun, DEFAULT_MAGE_AI,
+    shouldWarriorDefend,
 } = await import('../src/ai/companion-ai-decision.js');
 
 const fakeSkillData2 = () => ({
@@ -289,6 +290,111 @@ check('恢复后仍可装法杖', lunaRulesRestored.canEquip(lunaStaff, 'weapon'
 check('恢复后仍禁重甲', lunaRulesRestored.canEquip(lunaHeavy, 'armor') === false);
 check('恢复后仍可装法袍', lunaRulesRestored.canEquip(lunaRobe, 'armor') === true);
 check('恢复后注释保留', lunaRulesRestored.equipNote === '只能装备法杖和法袍类装备');
+
+// --- 剑盾护卫（伊莉丝 / warrior_bruno）：改名、职业、装备限制、动画配置 ---
+const companionConfigData2 = await import('../data/companion-config.json');
+const eliseArchive = companionConfigData2.default.companions.find(a => a.id === 'warrior_bruno');
+const elise = new Companion(eliseArchive);
+check('伊莉丝改名', elise.name === '伊莉丝', elise.name);
+check('伊莉丝职业=剑盾护卫', elise.title === '剑盾护卫', elise.title);
+check('伊莉丝 equipRules 武器=单手剑+盾', Array.isArray(elise.equipRules.weaponTypes)
+    && elise.equipRules.weaponTypes.includes('sword') && elise.equipRules.weaponTypes.includes('shield'),
+    JSON.stringify(elise.equipRules.weaponTypes));
+check('伊莉丝单手剑限制开启', elise.equipRules.oneHandedWeaponsOnly === true);
+check('伊莉丝 equipRules 防具=重甲（heavy/zhenyue/tiangang/oracle）',
+    ['heavy', 'zhenyue', 'tiangang', 'oracle'].every(s => elise.equipRules.armorSets.includes(s)),
+    JSON.stringify(elise.equipRules.armorSets));
+check('伊莉丝 equipNote 文案', elise.equipNote === '只能装备单手剑、盾牌和重甲', elise.equipNote);
+const eliseSword = { name: '生锈长剑', category: 'weapon_melee', weaponType: 'sword', equipSlot: 'weapon' };
+const eliseTwoHandSword = { name: '双手巨剑', category: 'weapon_melee', weaponType: 'sword', isTwoHanded: true, equipSlot: 'weapon' };
+const eliseShield = { name: '小圆盾', category: 'weapon_shield', weaponType: 'shield', equipSlot: 'offhand' };
+const eliseHeavy = { name: '壁垒重甲', category: 'armor', equipSlot: 'armor', armorSet: 'heavy' };
+const eliseOracleArmor = { name: '神域战甲', category: 'armor', equipSlot: 'armor', armorSet: 'oracle' };
+const eliseLightArmor = { name: '疾风轻甲', category: 'armor', equipSlot: 'armor', armorSet: 'light' };
+const eliseRobeArmor = { name: '秘法长袍', category: 'armor', equipSlot: 'armor', armorSet: 'robe' };
+const eliseRing = { name: '秘法戒指', category: 'accessory', equipSlot: 'ring1' };
+check('伊莉丝可装备单手剑→weapon', elise.canEquip(eliseSword, 'weapon') === true);
+check('伊莉丝可装备盾→offhand', elise.canEquip(eliseShield, 'offhand') === true);
+check('伊莉丝禁装备双手剑→weapon', elise.canEquip(eliseTwoHandSword, 'weapon') === false);
+check('伊莉丝禁装备法杖→weapon', elise.canEquip(lunaStaff, 'weapon') === false);
+check('伊莉丝禁装备远程弓→weapon', elise.canEquip({ name: '训练用弓', category: 'weapon_ranged', weaponType: 'bow', isTwoHanded: true, equipSlot: 'weapon' }, 'weapon') === false);
+check('伊莉丝可装备重甲（heavy）→armor', elise.canEquip(eliseHeavy, 'armor') === true);
+check('伊莉丝可装备重甲（oracle）→armor', elise.canEquip(eliseOracleArmor, 'armor') === true);
+check('伊莉丝禁装备轻甲（light）→armor', elise.canEquip(eliseLightArmor, 'armor') === false);
+check('伊莉丝禁装备法袍（robe）→armor', elise.canEquip(eliseRobeArmor, 'armor') === false);
+check('伊莉丝首饰不受限（accessory）', elise.canEquip(eliseRing, 'ring1') === true);
+check('露娜首饰同样不受限（accessory）', lunaC.canEquip(eliseRing, 'ring1') === true);
+// 动画配置：walk 14 / run 23（起步全播+循环 11~23 帧）/ attack 28 / defend 19（enter/hold/exit 三段）
+check('伊莉丝 walk 动画 14 帧', elise.animations.walk && elise.animations.walk.frameCount === 14
+    && elise.animations.walk.frames[0] === 0 && elise.animations.walk.frames[1] === 13);
+check('伊莉丝 run 动画 23 帧（起步全播 → 循环 11~23）', elise.animations.run
+    && elise.animations.run.frameCount === 23
+    && elise.animations.run.startFrames[0] === 0 && elise.animations.run.startFrames[1] === 22
+    && elise.animations.run.loopFrames[0] === 10 && elise.animations.run.loopFrames[1] === 22);
+check('伊莉丝 attack 动画 28 帧（1.5s 播完）', elise.animations.attack
+    && elise.animations.attack.frameCount === 28 && elise.animations.attack.repeat === 0
+    && Math.abs(elise.animations.attack.frameRate - 28 / 1.5) < 0.01);
+check('伊莉丝 defend 动画 19 帧（enter 1~8 → hold 第 8 帧 → exit 9~19）', elise.animations.defend
+    && elise.animations.defend.frameCount === 19
+    && elise.animations.defend.enterFrames[0] === 0 && elise.animations.defend.enterFrames[1] === 7
+    && elise.animations.defend.holdFrame === 7
+    && elise.animations.defend.exitFrames[0] === 8 && elise.animations.defend.exitFrames[1] === 18);
+check('伊莉丝 AI role=melee_swordshield', elise.aiConfig && elise.aiConfig.role === 'melee_swordshield');
+check('伊莉丝攻击参数（间隔 2s / 1.5s 动画 / 命中第 10 帧 / 物攻×1.25）', elise.aiConfig.attackInterval === 2000
+    && elise.aiConfig.attackAnimMs === 1500 && elise.aiConfig.attackHitFrame === 10
+    && Math.abs(elise.aiConfig.attackDamageMul - 1.25) < 1e-9);
+check('伊莉丝防御参数（400px / >3 敌 / 0.5+2+0.5s）', elise.aiConfig.defendRange === 400
+    && elise.aiConfig.defendEnemyCount === 3 && elise.aiConfig.defendEnterMs === 500
+    && elise.aiConfig.defendHoldMs === 2000 && elise.aiConfig.defendExitMs === 500);
+// 序列化保留：限制 + 渲染尺寸
+const eliseSer = elise.serialize();
+check('伊莉丝序列化保留 equipRules', eliseSer.equipRules && eliseSer.equipRules.weaponTypes.includes('shield')
+    && eliseSer.equipRules.armorSets.includes('tiangang'));
+check('伊莉丝序列化保留 displaySize/spriteOffsetY', eliseSer.displaySize === 200 && eliseSer.spriteOffsetY === -38);
+const eliseRestored = Companion.fromSerialized(eliseSer);
+check('伊莉丝恢复后仍限单手剑', eliseRestored.canEquip(eliseSword, 'weapon') === true
+    && eliseRestored.canEquip(eliseTwoHandSword, 'weapon') === false
+    && eliseRestored.canEquip(lunaStaff, 'weapon') === false);
+check('伊莉丝恢复后仍限重甲', eliseRestored.canEquip(eliseHeavy, 'armor') === true
+    && eliseRestored.canEquip(eliseLightArmor, 'armor') === false);
+check('伊莉丝恢复后渲染尺寸保留', eliseRestored.displaySize === 200 && eliseRestored.spriteOffsetY === -38);
+
+// --- 剑盾防御触发判定（纯函数）：半径 400 内 >3 敌 或 有远程敌 ---
+const mkEnemy = (x, y, over = {}) => ({ x, y, attacks: {}, ...over });
+const near4 = [mkEnemy(100, 0), mkEnemy(-100, 0), mkEnemy(0, 100), mkEnemy(0, -100)];
+const near3 = near4.slice(0, 3);
+check('防御触发：400px 内 4 敌 → true', shouldWarriorDefend({ enemies: near4, cx: 0, cy: 0, range: 400, enemyCount: 3 }) === true);
+check('防御触发：400px 内 3 敌 → false', shouldWarriorDefend({ enemies: near3, cx: 0, cy: 0, range: 400, enemyCount: 3 }) === false);
+check('防御触发：2 近战 + 1 远程 → true', shouldWarriorDefend({
+    enemies: [mkEnemy(100, 0), mkEnemy(-100, 0), mkEnemy(0, 100, { attacks: { ranged: true } })],
+    cx: 0, cy: 0, range: 400, enemyCount: 3,
+}) === true);
+check('防御触发：远程在范围外不触发', shouldWarriorDefend({
+    enemies: [mkEnemy(100, 0), mkEnemy(-100, 0), mkEnemy(600, 0, { attacks: { ranged: true } })],
+    cx: 0, cy: 0, range: 400, enemyCount: 3,
+}) === false);
+check('防御触发：attackRange>300 兜底判远程', shouldWarriorDefend({
+    enemies: [mkEnemy(100, 0), mkEnemy(-100, 0), mkEnemy(200, 0, { attackRange: 650 })],
+    cx: 0, cy: 0, range: 400, enemyCount: 3,
+}) === true);
+check('防御触发：rangedType 判远程', shouldWarriorDefend({
+    enemies: [mkEnemy(100, 0), mkEnemy(-100, 0), mkEnemy(200, 0, { rangedType: 'wizard' })],
+    cx: 0, cy: 0, range: 400, enemyCount: 3,
+}) === true);
+
+// --- 剑盾防御受击：hold 期持盾减伤 + 常态弹反（镜像玩家 ShieldSystem） ---
+const eliseDef = new Companion(eliseArchive);
+eliseDef.equipments.offhand = { name: '小圆盾', weaponType: 'shield', defense: { damageReduction: 0.5, parryStun: 2000, parryKnockback: 100 } };
+eliseDef.data.hp = 100;
+eliseDef._defending = true; // hold 期由 CompanionAI 置位
+const meleeAttacker = { _faction: 'enemy', _attackTimer: 100, x: 0, y: 50, applyStun() {}, applyKnockback() {} };
+const defHit = eliseDef.takeDamage(50, meleeAttacker, 'physical', true);
+check('防御中承伤 50%（damageReduction 0.5）', Math.abs(defHit.damage - 25) < 1e-9 && defHit.parried === true);
+check('防御中常态弹反：打断敌方攻击', meleeAttacker._attackTimer === 0);
+const eliseDef2 = new Companion(eliseArchive);
+eliseDef2.data.hp = 100;
+const plainHit = eliseDef2.takeDamage(50, null);
+check('未防御照常承伤', plainHit.damage === 50 && plainHit.parried === false);
 
 // --- 装备通用规则（与玩家共用 equip-rules） ---
 const sword = { name: '剑', category: 'weapon_melee', weaponType: 'sword', equipSlot: 'weapon' };
