@@ -1,11 +1,12 @@
 {
-  "elevation": 15,
-  "azimuth": 0,
+  "elevation": 30,
+  "azimuth": 45,
   "resolution": 1024,
   "bottom_y": 880,
   "max_width_frac": 0.8,
   "top_margin_px": 70,
-  "tex": "Y:/工作/无尽轮回/scratch/world122/raw/chest_wood_tex.png",
+  "tex": "Y:/工作/无尽轮回/scratch/world122/raw/chest_body_tex.png",
+  "lid_tex": "Y:/工作/无尽轮回/scratch/world122/raw/chest_lid_tex.png",
   "tex2": "Y:/工作/无尽轮回/scratch/demon_iron_tex.png",
   "interior_glow": "Y:/工作/无尽轮回/scratch/world122/raw/factory_interior_glow.png",
   "lighting": {
@@ -16,8 +17,8 @@
   },
   "primitives": [
     { "type": "box", "size": [130, 82, 52], "pos": [0, 0, 26], "rot": [0, 0, 0], "bevel": 5, "material": "wall" },
-    { "type": "box", "size": [144, 10, 62], "pos": [0, -30, 76], "rot": [118, 0, 0], "bevel": 4, "material": "wall" },
-    { "type": "box", "size": [120, 66, 6], "pos": [0, -34, 53], "rot": [0, 0, 0], "material": "interior" },
+    { "type": "box", "size": [146, 10, 62], "pos": [0, -30, 78], "rot": [115, 0, 0], "bevel": 4, "material": "lid" },
+    { "type": "box", "size": [122, 66, 6], "pos": [0, -35, 53], "rot": [0, 0, 0], "material": "interior" },
     { "type": "box", "size": [9, 10, 52], "pos": [-42, -42, 26], "rot": [0, 0, 0], "bevel": 2, "material": "iron" },
     { "type": "box", "size": [9, 10, 52], "pos": [42, -42, 26], "rot": [0, 0, 0], "bevel": 2, "material": "iron" },
     { "type": "box", "size": [24, 8, 30], "pos": [0, -43, 19], "rot": [0, 0, 0], "bevel": 2, "material": "iron" },

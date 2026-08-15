@@ -1266,11 +1266,13 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
 一次通过——核心视觉有现成素材时，先采样再考虑出图。
 
 **宝箱（主神空间仓库 NPC，2026-08-16）**：主神空间「仓库」NPC 贴图实为**打开状态宝箱**
-（`warehouse.png` == `chest_opened.png`），建模走正面偏俯视（elevation 15，开口可见）；
-结构 = 木纹箱体（程序化 chest_wood_tex：暖棕底+竖直木纹+节疤）+ 后仰开盖 + 发光开口
-（interior 材质=宝藏光）+ 铁箍/锁（demon_iron_tex）+ 箱脚；入库紧身裁剪 688×493，
-NPC sprite `size:180 / sizeH:129 / footOffsetY:65`，clickArea 180×129。
-教训：用户说「仓库」实际指宝箱——先看 NPC 现有贴图内容（config 注释/贴图比对）再建模。
+（`warehouse.png` == `chest_opened.png`）。**视角铁律：原版 chest_closed/opened 是
+2:1 等距菱形（尖顶-宽中-尖底，轮廓分析确认），建模必须 elevation 30 + azimuth 45**，
+不能用正面平视（曾用 5°/15° 正面均被用户退回）。**材质从原图提取**：chest_body_tex
+（内容 55~85% 横带，米白浅木 182,170,156）+ chest_lid_tex（5~30% 盖内 214,208,198），
+不程序化生成；结构 = 箱体 + 后仰开盖（lid 材质）+ 发光开口（宝藏光）+ 铁箍/锁。
+入库紧身裁剪 684×581，NPC sprite `size:180 / sizeH:153 / footOffsetY:77`，
+clickArea 180×153。教训：先做原图轮廓/材质分析再建模（角度与材质双对齐）。
 
 ---
 
