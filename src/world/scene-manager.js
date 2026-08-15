@@ -20,6 +20,7 @@ import { QuickBar } from '../ui/quick-bar.js';
 import { SystemUI } from '../ui/system-ui.js';
 import { DefenseSystem, DEFENSE_CONFIG } from './defense-system.js';
 import { EnergyNodeSystem } from './energy-node-system.js';
+import { HamsterMinerSystem } from './hamster-miner-system.js';
 import { ENERGY_CONFIG } from '../config/energy-config.js';
 import { BuildingSystem } from './building-system.js';
 import { DefenseTrapSystem } from './defense-trap-system.js';
@@ -141,6 +142,10 @@ export const SceneManager = {
             // 世界-122 能源资源点随场景离场拆除（实体由下方 Game.entities.clear 统一清理）
             if (EnergyNodeSystem && EnergyNodeSystem.active) {
                 EnergyNodeSystem.teardown();
+            }
+            // 世界-122 仓鼠矿工（玩家友方单位）随场景离场拆除
+            if (HamsterMinerSystem && HamsterMinerSystem.active) {
+                HamsterMinerSystem.teardown();
             }
             if (EffectManager && EffectManager.clearFloatingTexts) {
                 EffectManager.clearFloatingTexts();
@@ -991,6 +996,9 @@ export const SceneManager = {
 
         // 世界-122 能源资源点：散落地图，供玩家/队员攻击采集能源（修建/修理用）
         EnergyNodeSystem.setup();
+
+        // 世界-122 仓鼠矿工：玩家友方单位，自动找最近能源矿点采矿
+        HamsterMinerSystem.setup(player);
     },
 
     /**

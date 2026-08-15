@@ -101,6 +101,7 @@
 - 怪物 HUD（名字/血条）定位规则
 - ⭐ 怪物渲染图层与构造铁律（2026-08-15：阴影时序 / 贴图键≠动画键 / 构造必并配置）
 - NPC 添加标准工作流（2026-07-22 新增，新 NPC 一律按此开展）
+- 玩家友方单位添加工作流（2026-08-15 仓鼠矿工首航：世界-122 自动采矿）
 
 **10. UI、面板与组队系统**
 - 面板生命周期框架（2026-07-21 新增，新面板优先复用）
@@ -5145,6 +5146,59 @@ this._tacticalTarget = null;
 
 #### 5. 验证
 lint / vite build / test-collider / test-config-integrity；实机验证 idle/walk 切换、朝向翻转、游走范围与停留节奏、名字标签位置。
+
+### 玩家友方单位添加工作流（2026-08-15 仓鼠矿工首航，世界-122 自动采矿）
+
+> 新增「玩家阵营、可被怪锁定、自动执行任务（如采矿）」的非队员工时，一律走这套。
+> 首航范例：仓鼠矿工（`data/hamster-miner-config.json` + `src/entities/hamster-miner.js` +
+> `src/ai/hamster-miner-ai.js` + `src/world/hamster-miner-system.js`）。
+
+#### 1. 素材与帧布局
+- 精灵图入 `assets/companions/<id>/`（idle/walking/mining/dying 各一张），
+  512×512 帧、8 列 × 4 行网格（先目检行列与有效帧数，再配 frameCount）。
+- 动画帧配置放**独立** `data/<id>-config.json`，**不要**塞进 companion-config.json——
+  那会让它出现在招募池/队员面板；世界-122 工人类单位用独立配置 + BootScene 显式注册。
+
+#### 2. 数据（data/hamster-miner-config.json）
+- `baseData.con` 控 HP（公式 base100 + con×10 + 每级10；con=10 → 200）。
+- `ai`：`walkSpeed/runSpeed`（80）、`miningRange`（80）、`attackInterval`（2000）、
+  `attackDamage`（100）、`decisionMs`（120）。
+- `animations`：mining 用 **两段式** `startFrames:[0,18]`（完整 19 帧起步，播一次）
+  + `loopFrames:[4,18]`（第 5~19 帧循环）——用户口径「进采矿先播完整循环，
+  下一轮从第 5 帧开始循环」；dying `repeat:0` 只播一次。
+
+#### 3. 实体（src/entities/hamster-miner.js）
+- `extends Companion`（复用 data/六维/动画配置/运行时字段），`super(合成 archive)`。
+- `_faction='companion'`（友方）；**`_enemyTargetable=true`** 让防守怪可锁定
+  （露娜无此标记，保持不拉仇恨）；补 `hp/maxHp` getter + `takeDamage` +
+  死亡流程（`_animState='dying'` → 计时 → 从 entities/friendlyUnits 移除）。
+- `update(dt, entities)` 交给 `HamsterMinerAI` 驱动（注册进 Game.entities 由主循环调）。
+
+#### 4. AI（src/ai/hamster-miner-ai.js）
+- 每 120ms tick：`pickNearestNode`（只扫 `_isEnergyNode && active && !_depleted`）选最近矿点；
+  目标失效（枯竭）自动换下一个。**绝不**枚举 enemy 目标——只打矿点。
+- 赶路：`_tacticalTarget = 矿点` + MovementSystem.update（移速 80）；
+  到位（≤ miningRange + 节点半径）：站定 `_animState='mining'`，
+  每 attackInterval 调 `node.takeDamage(attackDamage, 自身, 'physical', true)`。
+
+#### 5. BootScene / GameScene
+- BootScene：加载 `companion_<id>_<动画>` 四张 sheet；动画注册沿用两段式
+  startFrames/loopFrames 逻辑（mining_start 播一次 → mining 循环）。
+- GameScene `_syncCompanionSprites`：渲染对象 = `PartySystem.members` +
+  `Game.friendlyUnits`；新增 `mining`（两段式：data 标记 hamsterMining 起步 →
+  once('animationcomplete') 切循环）与 `dying`（防重播 data 标记）动画分支；
+  受击白闪 `hitFlash`；尺寸 `member.displaySize ?? PLAYER_DEFAULTS`。
+- `_updateDynamicDepths` 的侍从深度查找也要带 friendlyUnits（墙后正常被遮挡）。
+
+#### 6. 生成/仇恨/验证
+- `src/world/hamster-miner-system.js`：scene8 `_loadScene8` 末尾 `setup(player)`
+  （合法落点：玩家偏移 → 8 方向螺旋 → findSafeSpawn → 玩家脚下）；
+  switchScene 离场 `teardown()`；`Game.friendlyUnits` 在 game.js 初始化。
+- PerceptionSystem `_isValidTarget`：放行 `_faction==='companion' && _enemyTargetable`，
+  防守怪 `_preferDefenseTargets` 按交战半径锁定（与玩家同链，免 LOS 口径不变）。
+- 验证：`scripts/test-hamster-miner.mjs`（数据+接线契约）+ `tools/cdp-hamster-miner.mjs`
+  （实机：生成/属性/最近节点/采矿两段式/每2s-100/不打单位/dying 移除）；
+  eslint 0 error + vite build。
 
 ---
 

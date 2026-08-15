@@ -10,6 +10,7 @@ import { WallSystem } from '../../world/wall-system.js';
 import { PLAYER_ANIMS, playerTextureKey } from '../../config/player-anim.js';
 import { TRAP_CONFIG, TRAP_GRADES } from '../../world/trap-config.js';
 import companionConfigData from '../../../data/companion-config.json';
+import hamsterMinerConfig from '../../../data/hamster-miner-config.json';
 
 export class BootScene extends Scene {
     constructor() {
@@ -82,6 +83,16 @@ export class BootScene extends Scene {
                     endFrame: (def.frameCount || 1) - 1,
                 });
             }
+        }
+
+        // ---- 仓鼠矿工（世界-122 自动采矿友方单位；独立配置，不入招募池）----
+        for (const [animKey, def] of Object.entries(hamsterMinerConfig.animations || {})) {
+            if (!def || !def.src) continue;
+            this.load.spritesheet(`companion_${hamsterMinerConfig.id}_${animKey}`, def.src, {
+                frameWidth: def.frameWidth || 512,
+                frameHeight: def.frameHeight || 512,
+                endFrame: (def.frameCount || 1) - 1,
+            });
         }
 
         // ---- 武器资源 ----
@@ -496,6 +507,37 @@ export class BootScene extends Scene {
                         });
                     }
                 }
+            }
+        }
+
+        // 仓鼠矿工动画注册：mining 走「完整 19 帧起步 + 5~19 帧循环」两段式
+        for (const [animKey, def] of Object.entries(hamsterMinerConfig.animations || {})) {
+            if (!def || !def.src) continue;
+            const texKey = `companion_${hamsterMinerConfig.id}_${animKey}`;
+            if (this.anims.exists(texKey)) continue;
+            if (def.startFrames && def.loopFrames) {
+                const [ss, se] = def.startFrames;
+                const [ls, le] = def.loopFrames;
+                this.anims.create({
+                    key: `${texKey}_start`,
+                    frames: this.anims.generateFrameNumbers(texKey, { start: ss, end: se }),
+                    frameRate: def.startFrameRate || def.frameRate || 12,
+                    repeat: def.startRepeat !== undefined ? def.startRepeat : 0,
+                });
+                this.anims.create({
+                    key: texKey,
+                    frames: this.anims.generateFrameNumbers(texKey, { start: ls, end: le }),
+                    frameRate: def.frameRate || 12,
+                    repeat: def.repeat !== undefined ? def.repeat : -1,
+                });
+            } else {
+                const [start, end] = def.frames || [0, (def.frameCount || 1) - 1];
+                this.anims.create({
+                    key: texKey,
+                    frames: this.anims.generateFrameNumbers(texKey, { start, end }),
+                    frameRate: def.frameRate || 12,
+                    repeat: def.repeat !== undefined ? def.repeat : -1,
+                });
             }
         }
 

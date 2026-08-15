@@ -448,7 +448,11 @@ export class GameScene extends Scene {
             }
             return;
         }
-        const members = PartySystem.members;
+        // 渲染对象 = 队伍侍从 + 世界-122 友方单位（仓鼠矿工等，2026-08-15）
+        const members = [
+            ...(PartySystem.members || []),
+            ...(Array.isArray(_game.friendlyUnits) ? _game.friendlyUnits : []),
+        ];
         const activeIds = new Set();
         const isMoving = !!player.isMoving;
         const isSprinting = !!player._isSprinting;
@@ -474,8 +478,8 @@ export class GameScene extends Scene {
                 sprite = this.add.sprite(player.x, player.y, idleKey, idleFrame);
                 sprite.setOrigin(0.5, 0.5);
                 const longest = Math.max(fw, fh);
-                // 显示尺寸与玩家单位一致（PLAYER_DEFAULTS.physics.spriteSize，当前 144）
-                const size = PLAYER_DEFAULTS.physics.spriteSize;
+                // 显示尺寸：单位可配置 displaySize（仓鼠矿工略小于玩家），缺省与玩家一致
+                const size = member.displaySize || PLAYER_DEFAULTS.physics.spriteSize;
                 sprite.setDisplaySize(fw * size / longest, fh * size / longest);
                 sprite.setData('companionIdleKey', idleKey);
                 sprite.setData('companionIdleFrame', idleFrame);
@@ -497,8 +501,10 @@ export class GameScene extends Scene {
                 if (member._lastAction === 'flee' && Math.abs(member.vx) > 5) {
                     faceRight = member.vx > 0;
                 } else {
+                    // 仓鼠矿工只面朝矿点/移动方向，不回头面朝敌人
                     const tgt = (member.target && member.target.active)
-                        ? member.target : this._nearestCompanionEnemy(member);
+                        ? member.target
+                        : (member._isHamsterMiner ? null : this._nearestCompanionEnemy(member));
                     if (tgt) {
                         faceRight = tgt.x >= member.x;
                     } else if (Math.abs(member.vx) > 5) {
@@ -511,12 +517,47 @@ export class GameScene extends Scene {
             }
             sprite.setFlipX(!faceRight);
             sprite.setDepth(this.playerSprite.depth + 0.5);
+            // 受击白闪（仓鼠矿工）
+            if (member._isHamsterMiner) {
+                if (member.hitFlash > 0) sprite.setTint(0xffffff);
+                else sprite.clearTint();
+            }
             // 动画：施法 > 冲刺 > 移动 > 站立停帧
             const spellKey = `companion_${member.id}_spell`;
             if (aiMode) {
-                // AI 状态驱动：spell > run > walk > idle（站立帧 = 奔跑首帧）
+                // AI 状态驱动：dying > mining > spell > run > walk > idle（站立帧 = 待机首帧）
                 const st = member._animState || 'idle';
-                if (st === 'spell' && anims.spell && this.textures.exists(spellKey)) {
+                const miningKey = `companion_${member.id}_mining`;
+                const dyingKey = `companion_${member.id}_dying`;
+                if (st === 'dying' && anims.dying && this.textures.exists(dyingKey)) {
+                    // 死亡动画只播一次（repeat 0），播完停在最后一帧；防每帧重播
+                    if (!sprite.getData('hamsterDying')) {
+                        sprite.setData('hamsterDying', true);
+                        sprite.play(dyingKey, true);
+                    }
+                } else if (st === 'mining' && anims.mining && this.textures.exists(miningKey)) {
+                    // 采矿两段式：进入采矿先播完整 19 帧（mining_start），
+                    // 之后持续循环 5~19 帧（mining）——2026-08-15 用户口径
+                    const miningStartKey = `${miningKey}_start`;
+                    if (!sprite.getData('hamsterMining')) {
+                        sprite.setData('hamsterMining', true);
+                        if (anims.mining.startFrames && this.anims.exists(miningStartKey)) {
+                            sprite.play(miningStartKey, true);
+                            sprite.once('animationcomplete', () => {
+                                if (sprite.getData('hamsterMining')
+                                    && sprite.anims.currentAnim?.key === miningStartKey) {
+                                    sprite.play(miningKey, true);
+                                }
+                            });
+                        } else {
+                            sprite.play(miningKey, true);
+                        }
+                    } else if (!sprite.anims.isPlaying
+                        || (sprite.anims.currentAnim?.key !== miningKey
+                            && sprite.anims.currentAnim?.key !== miningStartKey)) {
+                        sprite.play(miningKey, true);
+                    }
+                } else if (st === 'spell' && anims.spell && this.textures.exists(spellKey)) {
                     // 重播条件 = 动画已停止（被 idle 停帧 setTexture 打断）或键变化。
                     // spell 已 repeat -1（循环播放中不会自然停），isPlaying 恒 true → 不重播；
                     // 只有被停帧打断时 isPlaying=false → 才重新播放。
@@ -532,6 +573,8 @@ export class GameScene extends Scene {
                         sprite.play(walkKey, true);
                     }
                 } else {
+                    sprite.setData('hamsterDying', false);
+                    sprite.setData('hamsterMining', false);
                     sprite.setData('lunaRunning', false);
                     if (sprite.anims.isPlaying) sprite.anims.stop();
                     const idleKey = sprite.getData('companionIdleKey');
@@ -782,12 +825,14 @@ export class GameScene extends Scene {
         if (this._companionSprites) {
             for (const [cid, sprite] of Object.entries(this._companionSprites)) {
                 if (!sprite || !sprite.active || !sprite.visible) continue;
-                const member = PartySystem.members.find(m => m.id === cid);
-                if (!member || !member.aiConfig) continue;
-                const footOffsetY = this._getFootOffsetY(member, sprite);
+                const unit = PartySystem.members.find(m => m.id === cid)
+                    || (window.Game && Array.isArray(window.Game.friendlyUnits)
+                        ? window.Game.friendlyUnits.find(u => u.id === cid) : null);
+                if (!unit || !unit.aiConfig) continue;
+                const footOffsetY = this._getFootOffsetY(unit, sprite);
                 const frontRange = Math.min(280, Math.max(60, footOffsetY + sprite.displayHeight / 2));
                 const d = WallSystem.junctionCorrectedDepth(
-                    member.x, member.y, sprite.y + footOffsetY + 10, frontRange);
+                    unit.x, unit.y, sprite.y + footOffsetY + 10, frontRange);
                 sprite.setDepth(d);
             }
         }

@@ -525,7 +525,10 @@ class PerceptionSystemImpl {
         if (!entity || !entity.active) return false;
         if (entity === enemy) return false;
         // 只针对玩家阵营
-        if (entity._faction !== 'player') return false;
+        // 2026-08-15 扩展：玩家友方单位（仓鼠矿工等）带 _enemyTargetable 标记后才可被怪物锁定；
+        // 露娜（companion 无标记）保持不拉仇恨。
+        if (entity._faction !== 'player'
+            && !(entity._faction === 'companion' && entity._enemyTargetable)) return false;
         // 需要可受击
         if (entity.hittable === false) return false;
         // 需要位置信息

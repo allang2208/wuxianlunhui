@@ -1,4 +1,34 @@
 # 变更日志
+### 对话：仓鼠矿工——世界-122 自动采矿友方单位（2026-08-15）
+- **新增单位**：仓鼠矿工（`data/hamster-miner-config.json` 独立配置，不入招募池），
+  复用 Companion 数据模型 + CompanionAI 渲染链路，`_faction='companion'` 友方阵营；
+  生命 200（base100 + con10×10）、移速 80 px/s、每 2s 对能源矿点造成 100 物理伤害。
+- **AI（`src/ai/hamster-miner-ai.js`）**：每 120ms 决策，`pickNearestNode` 选最近
+  未枯竭能源矿点（只认 `_isEnergyNode`，绝不攻击单位/建筑）；赶路走 MovementSystem
+  寻路（walk），到位站定采矿（mining），无矿点待机（idle）。
+- **采矿动画两段式（用户口径）**：进入采矿先播完整 19 帧（`mining_start`），
+  之后持续循环第 5~19 帧（`mining`）；BootScene 按 startFrames/loopFrames 注册。
+- **渲染（GameScene）**：`_syncCompanionSprites` 新增 `Game.friendlyUnits` 渲染对象
+  + mining/dying 动画状态 + 受击白闪 + displaySize 独立尺寸（132）；
+  `_updateDynamicDepths` 友方单位按世界 Y 排序（墙后可被遮挡）。
+- **生成/拆除（`src/world/hamster-miner-system.js`）**：scene8 加载时在玩家附近
+  合法落点生成并注册 `Game.entities['hamster_miner']` + `Game.friendlyUnits`；
+  离场拆除；死亡播 dying（11 帧）后自动移除，再入场重新生成。
+- **仇恨**：PerceptionSystem `_isValidTarget` 放行带 `_enemyTargetable` 标记的
+  companion 单位（仅仓鼠矿工带标记，露娜仍不拉仇恨），防守怪可锁定/攻击它。
+- **验证**：`scripts/test-hamster-miner.mjs` 28 项契约+接线全过；CDP 实机探针
+  `tools/cdp-hamster-miner.mjs` 14 项全过（生成/属性/最近节点/采矿动画两段式/
+  每 2s-100/不打假敌人/dying 后移除）；eslint 0 error；vite build 通过。
+### 对话：世界-122 怪物卡树/卡障碍修复（散布树 footprint 锚点错位 + 直冲怪无救援）（2026-08-15）
+- **根因排查（5 个假设）**：H1 直冲怪 >800px 卡死无救援（卡死检测豁免 chargeStraight 的接力/侧移，_tryUnstuck 只许缩短距离，V 形树兜永久卡死）；H2 散布树排除带锚点错位 ~150px（排除判定用贴图锚点，真实碰撞 footprint 中心在下方约 150px，刷怪点/玩家/能源点/基地房可被实际压盖，出生即嵌入 → resolve/blocked 恒失败永久冻结）；H3 矩形障碍无切向滑动（resolve 只搜 iso 段）；H4 大半径桶 vs 树间隙失配；H5 接力中继点零宽度射线穿树缝。
+- **修复①（scene-manager.js + wall-system.js）**：新增 `WallSystem.getObstacleFootprintRect()` 共享推导（碰撞注册与散布排除带同一口径，禁止各自实现）；`_scatterTreesScene8` 排除带/canMoveTo 全部改用 footprint 矩形/中心判定；基地房改为 rect-rect 重叠排除；树木间距 minDist 仍按锚点（视觉疏密）。`game-config.json` spawnPoint 排除半径 130→180（覆盖最大怪半径 116 + footprint 余量）。
+- **修复②（defense-system.js）**：`_spawnMonster` 出生点加 `WallSystem.canMoveTo` 校验 + `findSafeSpawn` 螺旋外推，杜绝出生嵌入。
+- **修复③（movement-system.js）**：卡死检测移除 chargeStraight 豁免——直冲怪卡死（500ms 无位移）时同样允许接力重算 + 侧向 reposition（正常冲锋行为不变）。
+- **修复⑤（wall-system.js）**：`resolve` 新增矩形障碍切向滑动（`_nearestBlockingRect` + 贴面投影，与 iso 段同口径），L/V 形树兜可沿矩形边滑出；每步仍过 canMoveTo/blocked 校验。
+- **修复④（_tryUnstuck 距离限制放宽）**：按方案评审暂缓实施，观望 ①②③⑤ 效果。
+- **验证**：散布模拟脚本（scripts/archive/_verify-scatter.mjs，复用真实 WallSystem + 配置）100 棵树 0 违规（房间/玩家/能源点/刷怪点）；eslint 0 error（13 warning 为 defense-trap-system 既有）；vite build 通过。备份：backup/v2026-08-15_09-50-42。
+- **实机待验证**：一波怪全程推进是否流畅（重点观察胖子僵尸在树阵中的行为）；若 H4/H5/H6 仍有残留卡死，再议 ④ 与中继点带半径采样。
+
 ### 对话：世界122 防守模式波次预算制重构 + 防守怪 25% 经验（2026-08-15）
 - **波次预算制配波（用户确认方案）**：`defense-system.js` 废弃"只数公式 + 单一加权随机池"，
   改为威胁预算制——每波预算 = `waveBudgetBase 26 × 1.15^(n-1)` TP，怪物按角色池 TP 成本
