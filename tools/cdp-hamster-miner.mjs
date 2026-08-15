@@ -182,7 +182,7 @@ const a = await rawEval(`(async () => {
         const hut = new HamsterHut(p.x + 220, p.y - 80);
         window.Game.entities.set(hut.id, hut);
         HamsterHutSystem.huts.push(hut);
-        miner = hut.spawnMiner();
+        miner = hut.miners[0] || hut.spawnMiner(); // 只用自动生成的一只，避免双矿工交错攻击
     }
     if (!miner) return { err: 'no miner' };
     miner.x = p.x + 100; miner.y = p.y + 40;

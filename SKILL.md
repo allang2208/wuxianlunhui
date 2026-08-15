@@ -5221,6 +5221,12 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
   避开 A* 实体障碍），回屋用小屋边缘接近点（64px，触发 70px）。AI 层再加卡死看门狗
   （500ms 位移<3px 累计 2 次 → 挖矿重选目标 / 返回 `WallSystem.findSafeSpawn` 传送）；
   满载用 `_returnTriggered` 防 work/return 振荡。
+- **顶墙死循环修复（2026-08-15 实锤）**：`_followPath` 的移动被 `WallSystem.resolve`
+  判“完全阻挡”会每帧 `_clearPath()`（movement-system.js:1071），矿工路径留不住 →
+  直线顶墙 → 看门狗清目标重选 → 原地打转。修复：接近点外扩到
+  `max(miningRange, 节点半径+自身半径+40)`（≈111px 远离障碍/死区）；卡死看门狗升级
+  两段——第一次原地 `findSafeSpawn` 脱困，连续卡死直接传送到矿点旁 95px 合法点
+  （`canMoveTo` 校验，CompanionAI 同款瞬移兜底）。
 - **背包物流三阶段**：`work`（采矿+自动拾取能量掉落进背包，150ms 节流）→
   背包满 `_startReturn` → 走回小屋 `_startUnload`（idle 2s，不移动不交战；
   小屋 `unloadMiner` 经 EnergyManager 进玩家背包，满则暂存小屋）→ 2s 后

@@ -1,4 +1,29 @@
 # 变更日志
+### 对话：仓鼠矿工原地打转修复——寻路路径被持续清除的顶墙死循环（2026-08-15）
+- **现象**：矿工在原地左右打转、不懂去哪挖矿——复现为出生在基地房内时，目标矿点在房外，
+  寻路正确绕门洞，但 `_followPath` 的移动被 `WallSystem.resolve` 判“完全阻挡”后
+  每帧 `_clearPath()`（movement-system.js:1071），路径永远留不住 → 直线顶墙 → 看门狗
+  清目标重选 → 死循环。
+- **修复（AI 层，不动怪物共享的 MovementSystem）**：
+  ① 矿点接近点再外扩 40px（`max(miningRange, 节点半径+自身半径+40)`≈111px），路径终点
+  远离矿点 A* 实体障碍与墙体死区，降低 `_checkValidity` 反复修复概率；
+  ② 卡死看门狗升级两段：第一次原地 `findSafeSpawn` 脱困+重选矿点；连续卡死（升级）→
+  直接传送到矿点旁 95px 合法点（`canMoveTo` 校验，与 CompanionAI 卡死瞬移同款兜底），
+  终结「顶墙 → 清路径 → 直线顶墙」循环；返回卸货阶段保持传送小屋附近。
+- **实机验证**：CDP 观察探针——修复前矿工卡基地北墙 10s 不动（pmValid 全程 false、
+  vx/vy 恒定顶墙）；修复后卡墙约 5s 触发升级传送，抵达矿点并进入采矿。
+- **验证**：契约测试 48/48；CDP 主探针 24/24（采矿/挥锄/背包物流/回屋卸货/交战/死亡全绿）；
+  eslint 0 error；vite build 通过。
+
+### 对话：世界-122 基地核心建模重建——立方体 + 扁平底座 + 大理石（2026-08-16）
+- 基地核心贴图不再复用主神空间祭坛（`npc_altar`），改用 Blender 建模渲染
+  `assets/terrain/defense_base.png`（规格 `_blockout_specs/defense_base.json`）：
+  主体立方体 + 顶部压顶 + 下方扁平底座，全部贴大理石纹理
+  （`scratch/world122/raw/tex_altar.png`，白底大理石 + 灰纹 + 暖色点缀）。
+- 视角与世界-122 一致（俯仰 30° 正面）；显示 220×203，footOffsetY 102；
+  BootScene 新增 `defense_base` 加载。祭坛 NPC 仍用原 `npc_altar` 贴图不受影响。
+- 改动：`src/world/defense-system.js`、`src/phaser/scenes/BootScene.js`。
+
 ### 对话：开关门推人机制修正——开门不推、关门/关闭持续推（2026-08-16）
 - **症状**：玩家在门口（尤其两门衔接处）仍易"卡在门上"。
 - **根因①（开门推人反效果）**：原实现在 `opening` 也调用 `unstickUnitsFromGate`——

@@ -37,6 +37,7 @@ export class HamsterMinerAI {
         this._lastPosX = 0;
         this._lastPosY = 0;
         this._stuckStreak = 0;
+        this._stuckEscalation = 0; // 连续卡死升级：先原地脱困，再直接传送到目标附近
     }
 
     /** 仓鼠小屋升级后刷新战斗参数（间隔/伤害/移速/采矿效率） */
@@ -271,15 +272,44 @@ export class HamsterMinerAI {
         this._lastPosY = m.y;
         if (moved > 3) {
             this._stuckStreak = 0;
+            this._stuckEscalation = 0;
             return;
         }
         this._stuckStreak++;
         if (this._stuckStreak < 2) return;
         this._stuckStreak = 0;
         if (this._phase === 'work') {
-            // 重新选最近矿点（原目标可能不可达）
+            // 卡死脱困：可能卡进墙体死区（MovementSystem resolve 反复 clear 路径）。
+            // 第一次先原地脱离 + 重选矿点；连续卡死（升级）→ 直接传送到矿点附近合法点，
+            // 终结「顶墙 → 清路径 → 直线顶墙」死循环（与 CompanionAI 卡死瞬移同款兜底）
+            this._stuckEscalation++;
+            const near = this._stuckEscalation >= 2 ? (m.target || null) : null;
+            const anchor = near && near.active ? near : m;
+            if (WallSystem && typeof WallSystem.findSafeSpawn === 'function') {
+                let sp = null;
+                if (near && near.active) {
+                    // 传送到矿点旁 95px 合法点（避免落在矿点中心/障碍上）
+                    for (let i = 0; i < 8; i++) {
+                        const a = (i / 8) * Math.PI * 2 + Math.random() * 0.5;
+                        const px = near.x + Math.cos(a) * 95;
+                        const py = near.y + Math.sin(a) * 95;
+                        if (!WallSystem.canMoveTo || WallSystem.canMoveTo(px, py, m.groundRadius || 24)) {
+                            sp = { x: px, y: py };
+                            break;
+                        }
+                    }
+                }
+                if (!sp) sp = WallSystem.findSafeSpawn(anchor.x, anchor.y, m.groundRadius || 24);
+                if (sp && Number.isFinite(sp.x) && Number.isFinite(sp.y)
+                    && Math.hypot(sp.x - m.x, sp.y - m.y) > 5) {
+                    m.x = sp.x;
+                    m.y = sp.y;
+                }
+            }
+            if (near) this._stuckEscalation = 0;
             m.target = null;
             m._tacticalTarget = null;
+            if (m._pathManager) m._pathManager._clearPath();
         } else if (this._phase === 'return' && m._hut && m._hut.active) {
             // 传送到小屋附近合法点
             if (WallSystem && typeof WallSystem.findSafeSpawn === 'function') {

@@ -71,7 +71,7 @@ check('AI 采矿目标只认 _isEnergyNode 且跳过枯竭', /_isEnergyNode/.tes
 check('AI 敌人交战：engageRange 内 _nearestEnemy → 近战 takeDamage（小屋防御）',
     /_nearestEnemy\(entities, this\._engageRange\)/.test(aiSrc)
     && /_tryAttackEnemy\(\)/.test(aiSrc) && /enemy\.takeDamage\(this\._attackDamage/.test(aiSrc));
-check('AI 攻击只对节点 takeDamage，伤害 = attackDamage',
+check('AI 采矿攻击只对节点 takeDamage（伤害 = attackDamage；效率加成装包）',
     /node\.takeDamage\(this\._attackDamage/.test(aiSrc));
 check('AI 攻击间隔读取 attackInterval', /this\._attackInterval = this\.cfg\.attackInterval \?\? 2000/.test(aiSrc));
 check('AI 移速读取 walkSpeed', /this\.cfg\.walkSpeed \?\? 80/.test(aiSrc));
@@ -92,6 +92,11 @@ check('AI 寻路可达接近点：矿点边缘点（避开 A* 障碍中心）+ �
 check('AI 卡死看门狗 + 满载防抖（_checkStuck/_returnTriggered）',
     /_checkStuck\(dt\)/.test(aiSrc) && /_returnTriggered/.test(aiSrc)
     && /WallSystem\.findSafeSpawn/.test(aiSrc));
+check('AI 卡死升级：连续卡死直接传送到矿点旁合法点（终结顶墙死循环）',
+    /_stuckEscalation/.test(aiSrc) && /near\.x \+ Math\.cos\(a\) \* 95/.test(aiSrc)
+    && /WallSystem\.canMoveTo\(px, py/.test(aiSrc));
+check('AI 矿点接近点外扩 +40（远离障碍/死区）',
+    /\(node\.groundRadius \|\| 45\) \+ \(m\.groundRadius \|\| 26\) \+ 40/.test(aiSrc));
 
 // ---- 4. 源码接线：实体受击/死亡/仇恨 ----
 const entSrc = fs.readFileSync(path.join(ROOT, 'src/entities/hamster-miner.js'), 'utf-8');
