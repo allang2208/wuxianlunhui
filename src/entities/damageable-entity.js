@@ -25,6 +25,10 @@ const FRIENDLY_FACTIONS = new Set(['player', 'companion']);
 
 /** 友方免伤判定：source 与 target 同属友方阵营组则禁止伤害 */
 export function isFriendlyFire(source, target) {
+    // 开发工具「友军伤害」开关（2026-08-16）：开启后允许对友方单位造成伤害
+    if (typeof window !== 'undefined' && window.Game && window.Game._devFriendlyFire) {
+        return false;
+    }
     return !!(source && target && FRIENDLY_FACTIONS.has(source._faction) && FRIENDLY_FACTIONS.has(target._faction));
 }
 
