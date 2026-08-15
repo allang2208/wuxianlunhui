@@ -1,4 +1,65 @@
 # 变更日志
+### 对话：伊莉丝 idle 漂移五轮修复——取消移动门槛 + walking 素材删前两帧（2026-08-17）
+- **用户口径**：任何小范围移动都强制播 walking 动画；walking.png 前两帧直接删除。
+- **素材**：walking.png 从 14 帧（4×4）裁为 **12 帧（4×3，2560×1920）**——直接搬格
+  原 2~13 帧（已对齐成品，不重缩放），后验质心跨度 1.5px、脚底 595~599、零贴边。
+- **配置**：walk 改单段 12 帧循环（frames [0,11] @10fps repeat -1，去掉 startFrames/
+  loopFrames 两段式）。
+- **渲染**：GameScene walk 分支取消 isMoving/停顿宽限门槛——状态是 walk 就无条件播
+  行走动画（静止时 AI 会切 idle）；仓鼠矿工仍走 startFrames 两段式路径不受影响。
+- **验证**：GLM 帧条目检（帧0=迈步姿态、循环接缝自然、大小一致）；test-party-system
+  断言同步更新 234/234、test-elise-sheets 全过、npm test 全绿、eslint 0 error、
+  vite build ✓。预览 `tools/verify-shots/elise/v2/walk_trimmed.gif`。实机待用户复测。
+### 对话：伊莉丝攻击距离减半（2026-08-17）
+- `data/companion-config.json` warrior_bruno `meleeRange 165 → 82.5`（正好一半）。
+- 该值驱动三处（触发判定 ×2 + 命中帧空挥判定），改配置一处全部生效；
+  交战半径 engageRange 460 不受影响。测试 234/234 + 契约测试全绿。
+### 对话：伊莉丝 idle 换源——素材库抠图版本.png 统一大小入库（2026-08-17）
+- **用户口径**：`素材库/人物/Elise/抠图版本.png` 作为 idle 待机图，统一大小。
+- **素材分析**：1536² 透明底全身站立（GLM 确认：持剑+盾、脚底完整、姿态适合 idle），
+  内容 bbox 838×1365、半透明仅 3192px（抠图干净），顶部为头部非剑尖。
+- **重建（六动作统一尺度口径）**：全身内容高 461（与其余五动作同 S）、脚底 480、
+  质心对齐 256、512 格——成品 283×461 @(79,19)，后验质心 255.2/脚底 479/零贴边。
+- **验证**：GLM 六动作首帧并排——新 idle 身体大小与其他动作基本一致；契约测试
+  test-elise-sheets 全过、npm test 全绿、vite build ✓。实机待用户复测。
+### 对话：伊莉丝动画四轮修复——攻击/风车动画不播放（主循环崩溃根因）（2026-08-17）
+- **用户实机反馈**：攻击动画和风车动画不播放。
+- **排查**：静态审查 AI/渲染链路全完好；跑 `tools/cdp-elise-ai.mjs` 实机探针——攻击/风车/
+  防御/走跑动画在无崩溃环境下**全部正常**，但发现游戏主循环持续报
+  `TypeError: e.collider.syncPosition is not a function`（每帧一次）。
+- **根因**：游戏主循环"预同步所有 Collider"循环（`src/game.js`）对 entities 里**任何带
+  collider 字段的对象**无条件调用 `syncPosition()`——非标准 collider 对象（探针假实体/
+  占位体/并行会话新实体）会每帧抛 TypeError 中断整个 update；该循环位于
+  `PartySystem.updateCombat`（侍从 AI 决策）**之前**，AI 永远跑不到 → `_animState`
+  永远进不了 attack/windmill → **动画不播放**。
+- **修复**：三处 collider 同步加 `typeof e.collider.syncPosition === 'function'` 守卫
+  （对真 Collider 实例行为零变化）；另在 CompanionAI 场景切换重置块中断残留战斗状态
+  （防御/攻击/风车中途切场景会让 `_tickWarrior` 永久 return，同类"攻击不再触发"隐患）。
+- **验证**：迷你探针（伪 collider 实体在场 3s）——修复前数百次主循环 TypeError、修复后
+  **0 崩溃**且攻击动画正常触发；test-party-system 234/234、npm test 全绿、eslint 0 error、
+  vite build ✓。实机待用户复测。
+### 对话：世界-122 射击台四版——连续抬升衔接 + 亮踏面台阶 + 条件深度（2026-08-16）
+- **背景**：三版仍被打回：① 走上台阶是"瞬移"（进站台区瞬间抬满 291px，衔接突兀）；
+  ② 台阶没有坡度（满高 box 堆叠，立面全是墙材质、踏面不可见）；③ 透视图层问题
+  （depth 无条件抬升覆盖地面单位）。
+- **修复① 登台平滑衔接（getLift 连续插值）**：新增"登台走廊"——以顶面中心为近墙端、
+  沿「墙内侧法线反方向（房内）」延伸 corridorLen=300、半宽 100 的矩形带；
+  `FiringPlatform.getLift(ux,uy)` 把单位投影到走廊轴得纵深进度 t →
+  抬升 = (1-t)×platformHeight（0~291 连续插值，走廊外归 0）；
+  `_updatePlatformStates` 改存 `u._platformLift` 连续值（不再布尔 true/false），
+  GameScene 玩家/侍从 sprite 上移量读它。CDP 实测 WALK lifts
+  [291,255,218,182,145,109,73,36,0] 平滑递增，**无瞬移**。
+- **修复② 台阶坡度（light 踏面材质）**：spec 每级台阶改为 wall 立面 26 高 +
+  **light 材质踏面** 8 高（render-cover-real.py 新增 light 浅色素面 0.72,0.66,0.58
+  带高光），5 级 252×88→272×108 逐级加宽（pos.y -262→-30），立面+踏面交替可见 =
+  真实阶梯感。
+- **修复③ 条件深度**：GameScene 只在 `_platformLift > 0` 时才把台上单位 depth 抬到
+  `平台._faceDepth+1`（玩家 + 侍从两处），地面单位不再被覆盖。
+- **资产（四版）**：firing_platform_spec.json 更新（内容 567×677 → 显示 260×310，
+  footOffsetY 155，platformHeight≈291，_topOffsetX≈+54/_topOffsetY≈-136）→
+  firing_platform.png + firing_platform_h.png（flipX 镜像，白残留 0%）。
+- **验证**：CDP 探针——getLift 连续抬升/登台/贴图 260×310 渲染；eslint 0 error +
+  vite build ✓ + npm test 51/51。headless 相机不驱动 rAF，**视觉实机待用户复测**。
 ### 对话：世界-122 射击台三版定稿——掩体同管线（拓宽立方体 + 台阶衔接）+ AI 墙材质（2026-08-16）
 - **背景**：二版仍被打回（自研 box 堆叠 + 直接贴墙砖），用户明确方向：**参考掩体复制
   拓宽立方体作平台 + 设计台阶衔接 + 贴图走生图管线**。
@@ -134,6 +195,11 @@
 - v3（用户再打回：仍向下移动，要求原地消失）——改 **setCrop 裁剪**：精灵下移的同时裁掉
   地面线以下的底部，可见部分底边始终钉在原地面线，顶部一路降到地面接缝处消失；
   全程无缩放/无整图下滑，呈现“被地面吞掉”的原地坍塌。
+- v4 推广到其他建筑物（用户验收掩体符合预期）：BuildingSinkEffect 泛化为多精灵支持
+  （各自记录初始位置只平移 y、逐精灵独立内容测量/裁剪）；
+  接入 防御塔（三层基座/臂/武器下沉，**无废墟**——按用户口径被摧毁即清除）、
+  基地核心、仓鼠小屋（矿工随拆）、铁栅栏门（左右柱+栅栏）、陷阱；
+  全部沿用「特效接管精灵后实体立即失效」防推开怪物。
 - 验证：eslint 0 error（既有 3 warning）、vite build ✅；下沉数学单测通过。
 
 ### 对话：伊莉丝全套精灵图重建——SKILL 对齐三铁律重做（2026-08-16）

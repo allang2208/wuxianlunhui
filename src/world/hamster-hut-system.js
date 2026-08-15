@@ -12,6 +12,7 @@ import { GoldManager } from '../systems/gold-manager.js';
 import { EnergyManager } from '../systems/energy-manager.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
+import { BuildingSinkEffect } from '../effects/building-sink.js';
 import { SoundManager } from '../ui/sound-manager.js';
 import { BasePanel } from '../ui/panels/base-panel.js';
 import { WallSystem } from './wall-system.js';
@@ -416,19 +417,25 @@ export class HamsterHut extends DamageableEntity {
 
     /** 小屋被摧毁：矿工随小屋消失 */
     takeDamage(damage, source, damageType = 'physical', isMelee = true) {
-        const before = this.hp;
-        const dealt = super.takeDamage(damage, source, damageType, isMelee);
-        if (before > 0 && this.hp <= 0) {
-            this._destroyHut();
-        }
-        return dealt;
+        // 沉陷死亡由 onDeath 接管
+        return super.takeDamage(damage, source, damageType, isMelee);
     }
 
-    _destroyHut() {
+    /** 小屋沉陷死亡（2026-08-16 推广）：矿工随拆 + 小屋清理 + 沉陷清除 */
+    onDeath(_source) {
+        this.active = true;
+        this.hittable = false;
+        this._sinking = true;
+        this._destroyHutCleanup();
+        if (EffectManager) {
+            EffectManager.add(new BuildingSinkEffect(this));
+        }
+    }
+
+    /** 小屋专属清理（矿工/列表/面板）；实体失效与移除由 BuildingSinkEffect 负责 */
+    _destroyHutCleanup() {
         const lost = this._storedEnergy || 0;
-        this.active = false;
         this._despawnMiners();
-        if (Game && Game.entities && this.id) Game.entities.delete(this.id);
         if (HamsterHutSystem && HamsterHutSystem.huts) {
             const i = HamsterHutSystem.huts.indexOf(this);
             if (i >= 0) HamsterHutSystem.huts.splice(i, 1);

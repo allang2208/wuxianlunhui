@@ -9,7 +9,12 @@
 // ============================================================
 
 class BuildingSinkEffect {
-    constructor(entity) {
+    /**
+     * @param {object} entity 被摧毁的建筑实体（特效首次 update 即令其失效并接管精灵）
+     * @param {Function|Array|null} sprites null=从中性精灵表取单精灵；
+     *   函数=调用返回精灵数组（塔/门等专属渲染）；数组=直接给精灵列表
+     */
+    constructor(entity, sprites = null) {
         this.entity = entity;
         this.x = entity.x;
         this.y = entity.y;
@@ -21,24 +26,35 @@ class BuildingSinkEffect {
         this._dustTimer = 0;
         this._dust = [];              // { g, x, y, t, life, size }
         this._finished = false;
-        this._sprite = null;          // 接管的中性精灵（实体已失效，由特效独立驱动）
+        this._sprites = [];           // 接管的精灵列表（实体已失效，由特效独立驱动）
         this._label = null;
         this._footOffsetY = 0;
         this._faceDepth = 0;
-        this._content = null;         // 贴图内容测量：{ frameW, frameH, bottomTexel, padding, contentH }
+        this._sources = sprites;
+        this._contentMap = new Map(); // sprite → 贴图内容测量 { frameW, frameH, displayH, padding, contentH }
     }
 
     /** 接管精灵并立即让实体失效（怪物/碰撞/寻路全部跳过，杜绝坍塌推开怪物） */
     _detach(e) {
-        if (this._sprite) return;
+        if (this._sprites.length) return;
         const scene = (typeof window !== 'undefined') ? window.__phaserScene : null;
-        const data = scene && scene._neutralSprites ? scene._neutralSprites.get(e) : null;
-        if (!data || !data.sprite) return;
-        this._sprite = data.sprite;
-        this._label = data.label || null;
+        if (this._sources) {
+            const list = typeof this._sources === 'function' ? (this._sources(e) || []) : this._sources;
+            this._sprites = list.filter((s) => s && s.active);
+        } else {
+            const data = scene && scene._neutralSprites ? scene._neutralSprites.get(e) : null;
+            if (!data || !data.sprite) return;
+            this._sprites = [data.sprite];
+            this._label = data.label || null;
+            scene._neutralSprites.delete(e); // 交特效接管，GameScene 不再管理/销毁
+        }
+        // 记录每个精灵初始位置：只整体平移 y，保留各自 x（塔/门多精灵布局不变形）
+        for (const s of this._sprites) {
+            s._sinkBaseX = s.x;
+            s._sinkBaseY = s.y;
+        }
         this._footOffsetY = e.footOffsetY || 0;
         this._faceDepth = (typeof e._faceDepth === 'number') ? e._faceDepth : (e.y + 12);
-        scene._neutralSprites.delete(e); // 交特效接管，GameScene 不再管理/销毁
         if (this._label) this._label.setVisible(false);
         // 实体立即失效并从实体表移除：所有系统（目标/分离/寻路/空间网格）跳过它
         e.active = false;
@@ -48,7 +64,8 @@ class BuildingSinkEffect {
 
     /** 测量贴图内容底端（最低不透明像素=与地面衔接线），缓存在首次 update */
     _measureContent(sprite) {
-        if (this._content || !sprite || !sprite.texture) return this._content;
+        if (this._contentMap.has(sprite)) return this._contentMap.get(sprite);
+        if (!sprite || !sprite.texture) return null;
         const frame = sprite.frame;
         const src = sprite.texture.getSourceImage();
         if (!src || !src.width || !src.height) return null;
@@ -77,7 +94,7 @@ class BuildingSinkEffect {
         const dispH = sprite.displayHeight || frameH;
         // 显示框底边到内容底端的透明留白（显示像素）
         const padding = Math.max(0, (frameH - bottomTexel) / frameH * dispH);
-        this._content = {
+        const content = {
             frameW: frameW,
             frameH: frameH,
             displayH: dispH,
@@ -85,16 +102,16 @@ class BuildingSinkEffect {
             padding: padding,
             contentH: Math.max(1, dispH - padding),
         };
-        return this._content;
+        this._contentMap.set(sprite, content);
+        return content;
     }
 
     update(dt = 16.67) {
         const e = this.entity;
         this._detach(e);
-        const sprite = this._sprite;
-        if (!sprite) { this._finish(); return; }
-        const c = this._measureContent(sprite);
-        if (!c) {
+        if (!this._sprites.length) { this._finish(); return; }
+        const c0 = this._measureContent(this._sprites[0]);
+        if (!c0) {
             this._finish();
             return;
         }
@@ -102,16 +119,18 @@ class BuildingSinkEffect {
         this.timer += dt;
         const p = Math.min(1, this.timer / this.duration);
         // 下沉：总深 = 贴图内容高（顶部最终消失在与地面衔接处，透明留白不算）
-        const totalSink = c.contentH * 1.02;
+        const totalSink = c0.contentH * 1.02;
         const target = totalSink * (p * (2 - p)); // easeOutQuad
         const step = Math.max(0, target - this.sinkPx);
         this.sinkPx += step;
         // 原地消失：不做任何缩放/压扁；精灵同步下移的同时，把「地面线以下」的底部
         // 裁掉——可见部分底边始终钉在原地面线，顶部一路降到地面接缝处消失（不整图下滑）
-        if (sprite.active) {
-            sprite.setPosition(e.x, this.baseY + this.sinkPx - this._footOffsetY);
+        for (const sprite of this._sprites) {
+            if (!sprite || !sprite.active) continue;
+            sprite.setPosition(sprite._sinkBaseX, sprite._sinkBaseY + this.sinkPx);
             sprite.setDepth(this._faceDepth + this.sinkPx);
-            if (c.frameH > 0 && c.displayH > 0) {
+            const c = this._measureContent(sprite); // 各精灵独立测量（塔臂/武器纹理不同）
+            if (c && c.frameH > 0 && c.displayH > 0) {
                 // 可见底边钉在贴图内容底端（地面接缝 G0 = baseY - padding）
                 const visibleH = Math.max(0, c.contentH - this.sinkPx);
                 const cropH = Math.min(c.frameH, visibleH / c.displayH * c.frameH);
@@ -138,7 +157,8 @@ class BuildingSinkEffect {
         const g = scene.add.graphics();
         if (scene.worldEffectsGroup) scene.worldEffectsGroup.add(g);
         const x = e.x + (Math.random() - 0.5) * (e.spriteCfg && e.spriteCfg.size ? e.spriteCfg.size * 0.8 : 120);
-        const pad = this._content ? this._content.padding : 0;
+        const c = this._contentMap.size ? this._contentMap.values().next().value : null;
+        const pad = c ? c.padding : 0;
         const y = (this.baseY - pad) - 6 + Math.random() * 10; // 固定在贴图内容底端（地面接缝）
         let d = y + 30;
         const WS = (typeof window !== 'undefined') ? window.WallSystem : null;
@@ -187,9 +207,9 @@ class BuildingSinkEffect {
         this.active = false;
         for (const d of this._dust) if (d.g) d.g.destroy();
         this._dust = [];
-        if (this._sprite && this._sprite.active) this._sprite.destroy();
+        for (const s of this._sprites) if (s && s.active) s.destroy();
+        this._sprites = [];
         if (this._label && this._label.active) this._label.destroy();
-        this._sprite = null;
         this._label = null;
     }
 }
