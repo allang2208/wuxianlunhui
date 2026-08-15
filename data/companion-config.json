@@ -13,7 +13,7 @@
       "baseLevel": 1,
       "baseExp": 0,
       "baseData": { "str": 13, "dex": 8, "int": 4, "con": 13, "wis": 6, "luck": 4 },
-      "skills": ["swordMastery", "shieldDefense"],
+      "skills": ["swordMastery", "shieldDefense", "whirlwind"],
       "equipRules": {
         "weaponTypes": ["sword", "shield"],
         "oneHandedWeaponsOnly": true,
@@ -35,6 +35,7 @@
         "defendRange": 400,
         "defendEnemyCount": 3,
         "defendRangedRange": 350,
+        "whirlwindMinTargets": 2,
         "defendEnterMs": 500,
         "defendHoldMs": 2000,
         "defendExitMs": 500,
@@ -68,6 +69,11 @@
           "src": "assets/companions/elise/attacking.png",
           "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 4,
           "frameCount": 28, "frames": [0, 27], "frameRate": 18.6666667, "repeat": 0
+        },
+        "windmill": {
+          "src": "assets/companions/elise/windmill.png",
+          "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 4,
+          "frameCount": 23, "frames": [0, 22], "frameRate": 28.75, "repeat": 0
         },
         "defend": {
           "src": "assets/companions/elise/defending.png",

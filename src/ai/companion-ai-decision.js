@@ -134,6 +134,27 @@ export function shouldWarriorDefend(input) {
 }
 
 /**
+ * 剑盾护卫风车（whirlwind）触发判定（2026-08-15 伊莉丝）：
+ * 半径 range（技能 radius + swordRadiusBonus）内敌方单位 ≥ minTargets 即释放。
+ * @param {object} input
+ * @returns {boolean} true=需要放风车
+ */
+export function shouldWarriorWhirlwind(input) {
+    const {
+        enemies = [],       // 敌方实体数组 {x,y}
+        cx = 0, cy = 0,     // 队友位置
+        range = 200,        // 判定半径
+        minTargets = 2,     // 范围内至少目标数
+    } = input;
+    let near = 0;
+    for (const e of enemies) {
+        if (!e) continue;
+        if (Math.hypot(e.x - cx, e.y - cy) <= range) near++;
+    }
+    return near >= minTargets;
+}
+
+/**
  * 掉队瞬移理智判定（2026-08-14 用户需求）：
  * 区分 被卡住/卡门外导致的距离过远（瞬移） 与 正常 AI 运作导致的距离过远（不瞬移）。
  * 正常远离（合法，不瞬移）：①flee 逃离近战威胁（retreat 点含朝玩家分量，会自动收敛）

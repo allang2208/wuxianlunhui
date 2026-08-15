@@ -678,3 +678,21 @@ this.ai = config.ai || {};
 - **正解**：感应扫描追加 `Game.PartySystem.members`（faction='companion' 已在
   scan 白名单内），玩家/侍从任一靠近 OPEN_RADIUS 即开门；排除塔/掩体/基地照旧。
 - **验证**：逻辑仿真——玩家远（300px）+ 侍从近（80px）→ 门开；无侍从且玩家远 → 门关。
+
+## 43. 侍从爆发技（伊莉丝 whirlwind 风车）实现口径（2026-08-16）
+- **技能数据驱动**：`data/companion-config.json` 内联 skill effectFormula（damageMul/
+  radius/swordRadiusBonus/cooldown/staminaCost/knockback/stunDuration/duration），
+  等级成长走 `buildSkillMap`/`getEffect` 同一管线——与露娜魔法同一套技能框架，
+  不另造系统。
+- **判定函数独立可测**：`shouldWarriorWhirlwind({enemies, cx, cy, range, minTargets})`
+  放 `companion-ai-decision.js`（纯函数，契约测试直接断言），AI 层只消费结果。
+- **爆发优先于防御兜底**：近战分支里 whirlwind（范围达标+冷却就绪）优先于
+  defend 判定释放——爆发技与防御不能互相打断，进行中（`_whirlwindHitSet` 非空）
+  直接 return 挡住其它动作。
+- **命中去重**：`_whirlwindHitSet`（本次已命中集合）+ 按帧命中检测，结算
+  `_whirlwindHits/_whirlwindKills` 走技能经验（hit/multiHit/kill）。
+- **动画一次播完**：GameScene 用 `wmPlayed` data 标记保证 23 帧 windmill 只播一次
+  （repeat 0），播完由 AI 回 idle——与 attack 的 `atkPlayed` 同款防重播。
+- **新增贴图/动画记得四件套**：资产入库（`assets/companions/elise/windmill.png`）、
+  config animations 注册（frameCount/frames/frameRate）、GameScene 动画分支、
+  契约测试断言（帧数/帧区间/effect 数值）。

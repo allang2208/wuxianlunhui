@@ -241,6 +241,40 @@ check('小屋名字不重复（HUD 名字 0 条，仅保留中立标签 1 条）
     hutLabel.hudNames === 0 && hutLabel.neutralLabels === 1,
     JSON.stringify(hutLabel));
 
+// ---------- A2. 出生在基地房内 → 自动寻路绕门洞出基地（root-fix 长期回归） ----------
+console.log('A2. 出生房内自动出基地');
+const a2 = await rawEval(`(async () => {
+    const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+    const miner = [...window.Game.entities.values()].find(e => e && e._isHamsterMiner && e.active);
+    const hut = miner._hut;
+    // 重置到小屋门口（房内），清目标让它自然寻路出基地
+    miner.x = hut.x + 40; miner.y = hut.y + 20;
+    miner.target = null; miner._tacticalTarget = null; miner._animState = 'idle';
+    if (miner._pathManager) miner._pathManager._clearPath();
+    let pmValidSeen = false, miningSeen = false, maxJump = 0, maxDistFromHut = 0;
+    let prevX = miner.x, prevY = miner.y;
+    for (let i = 0; i < 44; i++) {
+        await sleep(250);
+        const jump = Math.hypot(miner.x - prevX, miner.y - prevY);
+        if (jump > maxJump) maxJump = jump;
+        prevX = miner.x; prevY = miner.y;
+        const pm = miner._pathManager;
+        if (pm && pm.hasValidPath()) pmValidSeen = true;
+        if (miner._animState === 'mining') miningSeen = true;
+        const d = Math.hypot(miner.x - hut.x, miner.y - hut.y);
+        if (d > maxDistFromHut) maxDistFromHut = d;
+        if (miningSeen) break;
+    }
+    return {
+        pmValidSeen, miningSeen,
+        maxJump: Math.round(maxJump), maxDistFromHut: Math.round(maxDistFromHut),
+        pos: [Math.round(miner.x), Math.round(miner.y)],
+    };
+})()`);
+check('出生在基地房内：自动寻路出基地（pmValid 生效、无传送跳变、离开小屋>150px）',
+    a2.pmValidSeen === true && a2.maxJump < 60 && a2.maxDistFromHut > 150,
+    JSON.stringify(a2));
+
 // ---------- B. 采矿：定格第 6 帧 + 每 2s 100 伤害 ----------
 console.log('B. 采矿挥锄 + 间隔定格 + 伤害');
 const b0 = await rawEval(`(async () => {
@@ -548,6 +582,43 @@ const j = await rawEval(`(async () => {
 check('矿工从矿点自己走回小屋卸货（无传送，maxJump < 60）',
     j.arrived === true && j.maxJump < 60 && j.carriedNow === 0,
     JSON.stringify(j));
+
+// ---------- K. 多矿工（数量模块）并发卸货 ----------
+console.log('K. 多矿工并发');
+const k = await rawEval(`(async () => {
+    const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+    const { HamsterHutSystem } = await window.__imp('hamster-hut-system');
+    const hut = HamsterHutSystem.huts.find(h => h && h.active);
+    if (!hut) return { err: 'no hut' };
+    const before = hut.aliveMinerCount();
+    window.Game._devInfiniteResources = true;
+    const up = hut.upgradeModule('count');
+    window.Game._devInfiniteResources = false;
+    await sleep(3000); // 开门动画生成第二只
+    const miners = hut.miners.filter(m => m && m.active && !m._dying && m.data.hp > 0);
+    const playerEnergyBefore = (window.Game.EquipManager.backpackItems || [])
+        .filter(i => i && i.category === 'energy').reduce((s, i) => s + (i.stack || 0), 0);
+    for (let idx = 0; idx < miners.length; idx++) {
+        const m = miners[idx];
+        m._energyCarried = 400;
+        m.x = hut.x + (idx === 0 ? 20 : -20);
+        m.y = hut.y + 60;
+        m._tacticalTarget = null; m._animState = 'idle';
+    }
+    if (miners[0]) hut.unloadMiner(miners[0]);
+    if (miners[1]) hut.unloadMiner(miners[1]);
+    await sleep(500);
+    const carriedNow = miners.map(m => m._energyCarried);
+    const stored = hut._storedEnergy;
+    const playerEnergyAfter = (window.Game.EquipManager.backpackItems || [])
+        .filter(i => i && i.category === 'energy').reduce((s, i) => s + (i.stack || 0), 0);
+    return { up: up.ok, before, after: hut.aliveMinerCount(), carriedNow, stored,
+        gain: playerEnergyAfter - playerEnergyBefore };
+})()`);
+check('数量模块升级生成第二只矿工', k.up === true && k.after === 2, JSON.stringify(k));
+check('两只矿工并发卸货（各自清零、能量不丢：入玩家或暂存）',
+    k.carriedNow.length === 2 && k.carriedNow.every(v => v === 0) && (k.gain + k.stored) >= 800,
+    JSON.stringify(k));
 
 // ---------- D. 死亡：dying 动画 + 移除 ----------
 console.log('D. 死亡流程');

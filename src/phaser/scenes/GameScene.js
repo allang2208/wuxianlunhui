@@ -616,6 +616,13 @@ export class GameScene extends Scene {
                         sprite.setData('atkPlayed', true);
                         sprite.play(attackKey, true);
                     }
+                } else if (st === 'windmill' && anims.windmill && this.textures.exists(`companion_${animId}_windmill`)) {
+                    // 风车（伊莉丝）：23 帧 repeat 0 播一次，动画结束停在末帧（AI 届时切回 idle）
+                    const wmKey = `companion_${animId}_windmill`;
+                    if (!sprite.getData('wmPlayed')) {
+                        sprite.setData('wmPlayed', true);
+                        sprite.play(wmKey, true);
+                    }
                 } else if (st === 'run' && anims.run && this.textures.exists(runKey)) {
                     // idle→running：先播一次完整动画（run_start），仍在奔跑则循环 11~23 帧（run）
                     const runStartKey = `${runKey}_start`;
@@ -668,6 +675,7 @@ export class GameScene extends Scene {
                     sprite.setData('hamsterWalk', false);
                     sprite.setData('lunaRunning', false);
                     sprite.setData('atkPlayed', false);
+                    sprite.setData('wmPlayed', false);
                     sprite.setData('defPhase', null);
                     if (member._miningSwing) member._miningSwing = false;
                     if (sprite.anims.isPlaying) sprite.anims.stop();

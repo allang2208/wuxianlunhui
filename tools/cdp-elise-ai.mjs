@@ -272,4 +272,98 @@ console.log('奔跑状态机（idle→run 起步完整→循环 11~23 帧）:', 
   return out.filter((_, i) => i % 4 === 0);
 })()`));
 
+console.log('风车（whirlwind）实机:', await ev(`(async () => {
+  const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+  const { PartySystem, entities } = window.Game;
+  const ps = window.__phaserScene;
+  const elise = PartySystem.getMember('warrior_bruno');
+  const ai = PartySystem._aiInstances['warrior_bruno'];
+  const p = window.Game.player;
+  for (const [k, e] of Array.from(entities.entries())) {
+    if (e && e !== elise && e._faction === 'enemy') entities.delete(k);
+  }
+  // 重置状态：清掉防御/攻击/风车，技能 CD 归零
+  elise.target = null;
+  elise._tacticalTarget = null;
+  elise._frozenForCast = false; elise._animState = 'idle';
+  ai._meleeAtkTimer = 0; ai._defendPhase = null; ai._defendCd = 0;
+  ai._whirlwindCd = 0; ai._whirlwindHitSet = null; ai._whirlwindTimer = 0;
+  elise.x = 700; elise.y = 620;
+  const mkFake = (id, x, y) => ({
+    id, active: true, hittable: true, x, y, vx: 0, vy: 0,
+    hp: 500, maxHp: 500, groundRadius: 20, bodyHeight: 130,
+    attackRange: 70, attacks: { melee: {} }, _faction: 'enemy',
+    collider: {
+      isGroundTarget: true, radius: 20, x, y,
+      intersectsGroundCircle(cx, cy, r) {
+        const dx = this.x - cx, dy = this.y - cy;
+        const rr = this.radius + r;
+        return dx * dx + dy * dy <= rr * rr;
+      },
+    },
+    takeDamage(dmg) { this.hp -= dmg; },
+    applyKnockback() {}, applyStun() {}, update() {},
+  });
+  const fake1 = mkFake('ww1', elise.x + 110, elise.y);
+  const fake2 = mkFake('ww2', elise.x - 110, elise.y);
+  const fake3 = mkFake('ww3', elise.x, elise.y + 90);
+  entities.set('ww1', fake1); entities.set('ww2', fake2);
+  entities.set('ww3', fake3);
+  const en = Array.from(entities.values()).filter(e => e && e._faction === 'enemy');
+  const diag = {
+    enemyCount: en.length,
+    defend: ai._shouldDefend(en),
+    whirlwind: ai._shouldWhirlwind(en),
+    lastAction: elise._lastAction,
+    castState: elise._castState,
+    frozen: elise._frozenForCast,
+    command: elise._command ? elise._command.mode : null,
+    wwCd: ai._whirlwindCd,
+    defCd: ai._defendCd,
+    defPhase: ai._defendPhase,
+  };
+  // 手动驱动一次决策，确认 _tickWarrior 是否可达、防御/风车是否会被发起
+  let manual = null;
+  try {
+    ai._tickWarrior(Array.from(entities.values()), p);
+    manual = {
+      animState: elise._animState,
+      defPhase: ai._defendPhase,
+      wmSet: !!ai._whirlwindHitSet,
+      lastAction: elise._lastAction,
+    };
+  } catch (err) {
+    manual = { error: String(err && err.message || err) };
+  }
+  const hp0 = [fake1.hp, fake2.hp, fake3.hp];
+  const samples = [];
+  await sleep(200); // 等 AI 决策 tick
+  // 手动驱动 PartySystem.updateCombat 逐帧推进（16ms/帧 × 70 帧 ≈ 1.1s，覆盖 0.8s 风车）
+  for (let i = 0; i < 70; i++) {
+    PartySystem.updateCombat(16, window.Game.entities, window.Game.player);
+    const spr = ps._companionSprites['warrior_bruno'];
+    samples.push({
+      anim: elise._animState,
+      sprAnim: spr && spr.anims.currentAnim ? spr.anims.currentAnim.key : null,
+      wmTimer: Math.round(ai._whirlwindTimer || 0),
+      wmCd: Math.round(ai._whirlwindCd || 0),
+      hits: ai._whirlwindHits || 0,
+    });
+    await sleep(10);
+  }
+  entities.delete('ww1'); entities.delete('ww2'); entities.delete('ww3');
+  const hpDeltas = [fake1.hp, fake2.hp, fake3.hp].map((h, i) => hp0[i] - h);
+  return {
+    diag,
+    manual,
+    sawWindmill: samples.some(s => s.anim === 'windmill'),
+    windmillFrames: samples.filter(s => s.anim === 'windmill').length,
+    playedAnim: samples.find(s => s.sprAnim && s.sprAnim.includes('windmill'))?.sprAnim || null,
+    hpDeltas,
+    totalDamage: hpDeltas.reduce((a, b) => a + b, 0),
+    whirlwindCdAfter: Math.round(ai._whirlwindCd || 0),
+    samples: samples.filter((_, i) => i % 6 === 0),
+  };
+})()`));
+
 await cleanup(0);
