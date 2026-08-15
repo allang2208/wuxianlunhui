@@ -518,6 +518,36 @@ export function createDevToolPanel() {
     resourceRow.append(btnResource, resourceHint);
     skillRow.appendChild(resourceRow);
 
+    // ===== 测试开关：友军伤害（开启后玩家可对友方单位造成伤害） =====
+    const ffRow = document.createElement('div');
+    ffRow.style.cssText = 'display:flex;gap:8px;align-items:center;padding:6px 0;border-top:1px solid #3a3a3a;margin-top:6px;';
+    const btnFF = document.createElement('button');
+    btnFF.id = 'devToolFriendlyFire';
+    btnFF.className = 'dev-tool-menu-btn';
+    const syncFFBtn = () => {
+        const on = !!(window.Game && window.Game._devFriendlyFire);
+        btnFF.textContent = on ? '💥 友军伤害：开' : '💥 友军伤害：关';
+        btnFF.style.background = on ? '#7a3a2a' : '';
+    };
+    btnFF.addEventListener('click', () => {
+        if (!window.Game) {
+            if (DevTool && typeof DevTool._showToast === 'function') DevTool._showToast('❌ 请先进入游戏');
+            return;
+        }
+        const next = !window.Game._devFriendlyFire;
+        window.Game._devFriendlyFire = next;
+        syncFFBtn();
+        if (DevTool && typeof DevTool._showToast === 'function') {
+            DevTool._showToast(next ? '✅ 友军伤害 已开启（可攻击友方单位）' : '友军伤害 已关闭');
+        }
+    });
+    syncFFBtn();
+    const ffHint = document.createElement('span');
+    ffHint.textContent = '测试用：玩家可对友方单位（队友/建筑）造成伤害';
+    ffHint.style.cssText = 'color:#9aa5b1;font-size:11px;';
+    ffRow.append(btnFF, ffHint);
+    skillRow.appendChild(ffRow);
+
     skillWrap.appendChild(skillRow);
     contentSkill.appendChild(skillWrap);
     root.appendChild(contentSkill);
