@@ -241,7 +241,7 @@ export const CompanionPanel = {
         return `
             <div class="gear-layout">
                 <div class="gear-equip-col">
-                    <div class="gear-col-title">装备栏</div>
+                    <div class="gear-col-title">装备栏${m.equipNote ? `<span class="companion-equip-note">${m.equipNote}</span>` : ''}</div>
                     <div class="companion-equip-grid">${slotsHtml}</div>
                 </div>
                 <div class="gear-inventory-col">

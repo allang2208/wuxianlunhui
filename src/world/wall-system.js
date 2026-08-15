@@ -897,9 +897,19 @@ const WallSystem = {
         if (G && G.entities) {
             for (const e of G.entities.values()) {
                 if (!e || !e.active || !e._faceLine || e._faceLine.length !== 2) continue;
+                if (e._isCoverGate) continue; // 门的遮挡面线按三段注册在 GateFaceSegs（见下）
                 const [A, B] = e._faceLine;
                 if (!A || !B || typeof A.x !== 'number' || typeof B.x !== 'number') continue;
                 applySeg(A, B, typeof e._faceDepth === 'number' ? e._faceDepth : e.y + 12);
+            }
+        }
+        // 铁栅栏门三段面线（左柱/栅栏/右柱，各自深度，2026-08-15）：
+        // 右柱=浅端单独浅深度 → 其前实体不再被整门深深度误盖；栅栏随开关注册/移除。
+        const segs = (typeof window !== 'undefined') ? (window.GateFaceSegs || null) : null;
+        if (segs) {
+            for (const s of segs) {
+                if (!s || !s.A || !s.B) continue;
+                applySeg(s.A, s.B, s.depth);
             }
         }
         // 遮挡源只在比所有前墙都深时才压制：浅遮挡源的贴图本身画在深前墙之下，
@@ -1021,6 +1031,30 @@ const WallSystem = {
         return removed;
     },
 
+    /** 障碍物 footprint 矩形（世界坐标）：碰撞注册与场景散布排除带共用同一推导口径，禁止各自实现 */
+    getObstacleFootprintRect(p) {
+        const geo = this._geoForTex(p.tex);
+        if (!geo || geo.tex === ISO_WALL_GEO.torch.tex) return null;
+        if (geo.category !== 'obstacle' || !geo.foot) return null;
+        const sx = Math.abs(p.scaleX ?? 1), sy = Math.abs(p.scaleY ?? p.scaleX ?? 1);
+        const fw = geo.foot.w * sx, fd = geo.foot.d * sy;
+        // 数据兜底：负/零缩放或异常 foot 返回 null（0 厚墙/反向墙）
+        if (!(fw > 0) || !(fd > 0)) return null;
+        const offX = (geo.foot.offsetX || 0) * sx, offY = (geo.foot.offsetY || 0) * sy;
+        const bottomY = p.y + (geo.h * sy) / 2 + offY;
+        // 旋转：footprint 矩形随 p.rotation 旋转，碰撞盒取旋转后 AABB
+        // （半宽/深按 |cos|/|sin| 展开；未旋转退化为原矩形）
+        const rot = p.rotation || 0;
+        let hw = fw / 2, hd = fd / 2;
+        if (rot) {
+            const c = Math.abs(Math.cos(rot)), s = Math.abs(Math.sin(rot));
+            const nw = hw * c + hd * s;
+            hd = hw * s + hd * c;
+            hw = nw;
+        }
+        const cx = p.x + offX, cy = bottomY - fd / 2;
+        return { x: cx - hw, y: cy - hd, w: hw * 2, h: hd * 2 };
+    },
     /** 单件碰撞：底边线段 → 线段模型（精确滑动）+ 每 30px 一块 36×20 阶梯矩形（寻路/小地图） */
     _addPieceCollision(p) {
         // 障碍物：碰撞 = 贴图底部矩形 footprint 墙（geo.foot 宽高 × 缩放，锚底边中心）
@@ -1028,27 +1062,10 @@ const WallSystem = {
         // 火把硬性无碰撞（用户规则）：即使摆墙编辑器/碰撞编辑器重新保存了 foot 覆盖也不生成
         if (geo && geo.tex === ISO_WALL_GEO.torch.tex) return;
         if (geo && geo.category === 'obstacle' && geo.foot) {
-            const sx = Math.abs(p.scaleX ?? 1), sy = Math.abs(p.scaleY ?? p.scaleX ?? 1);
-            const fw = geo.foot.w * sx, fd = geo.foot.d * sy;
-            // 数据兜底：负/零缩放或异常 foot 不生成退化碰撞（0 厚墙/反向墙）
-            if (!(fw > 0) || !(fd > 0)) return;
-            const offX = (geo.foot.offsetX || 0) * sx, offY = (geo.foot.offsetY || 0) * sy;
-            const bottomY = p.y + (geo.h * sy) / 2 + offY;
-            // 旋转：footprint 矩形随 p.rotation 旋转，碰撞盒取旋转后 AABB
-            // （半宽/深按 |cos|/|sin| 展开；未旋转退化为原矩形）
-            const rot = p.rotation || 0;
-            let hw = fw / 2, hd = fd / 2;
-            if (rot) {
-                const c = Math.abs(Math.cos(rot)), s = Math.abs(Math.sin(rot));
-                const nw = hw * c + hd * s;
-                hd = hw * s + hd * c;
-                hw = nw;
-            }
-            const cx = p.x + offX, cy = bottomY - fd / 2;
+            const rect = this.getObstacleFootprintRect(p);
+            if (!rect) return;
             this.walls.push({
-                x: cx - hw,
-                y: cy - hd,
-                w: hw * 2, h: hd * 2,
+                ...rect,
                 height: 60, noVisual: true, _iso: true, _obstacle: true,
             });
             return;
@@ -1220,6 +1237,29 @@ const WallSystem = {
         }
         if (this.canMoveTo(nx, y, r) && !this.blocked(x, y, nx, y)) return { x: nx, y };
         if (this.canMoveTo(x, ny, r) && !this.blocked(x, y, x, ny)) return { x, y: ny };
+        // 矩形障碍（散布树 footprint 等）切向滑动：对最近阻挡矩形取贴面方向投影，
+        // 与 iso 段同口径；两轴分解都堵死（L/V 形树兜）时沿矩形边滑出
+        const bRect = this._nearestBlockingRect(nx, ny, r);
+        if (bRect) {
+            const rdx = nx - x, rdy = ny - y;
+            // 实体相对矩形最近点的法线方向
+            const px = Math.max(bRect.x, Math.min(x, bRect.x + bRect.w));
+            const py = Math.max(bRect.y, Math.min(y, bRect.y + bRect.h));
+            let fnx = x - px, fny = y - py;
+            const fnl = Math.hypot(fnx, fny);
+            let tx, ty;
+            if (fnl > 1e-6) { tx = -fny / fnl; ty = fnx / fnl; }
+            else { tx = -rdy; ty = rdx; const tl = Math.hypot(tx, ty) || 1; tx /= tl; ty /= tl; }
+            // 取与移动方向同向的切向（不反向调头），速度不超意图
+            if (rdx * tx + rdy * ty < 0) { tx = -tx; ty = -ty; }
+            const tMag = Math.abs(rdx * tx + rdy * ty);
+            for (const ratio of [1, 0.5, 0.25]) {
+                const sx = x + tx * tMag * ratio, sy = y + ty * tMag * ratio;
+                if (this.canMoveTo(sx, sy, r) && !this.blocked(x, y, sx, sy)) {
+                    return { x: sx, y: sy };
+                }
+            }
+        }
         // [OPTIMIZE] 标准滑动失败后，尝试沿移动方向逐步缩减步长
         const dx = nx - x, dy = ny - y;
         const dist = Math.sqrt(dx * dx + dy * dy);
@@ -1264,6 +1304,18 @@ const WallSystem = {
             }
         }
         return this._linearNearestBlockingSeg(nx, ny, r);
+    },
+    /** 找离目标点最近的阻挡矩形墙（散布树 footprint 等；圆心到矩形距离 < r + 容差） */
+    _nearestBlockingRect(nx, ny, r) {
+        let best = null, bestD = Infinity;
+        for (const w of this.walls) {
+            if (!w) continue;
+            const cx = Math.max(w.x, Math.min(nx, w.x + w.w));
+            const cy = Math.max(w.y, Math.min(ny, w.y + w.h));
+            const d = Math.hypot(nx - cx, ny - cy);
+            if (d < r + 4 && d < bestD) { bestD = d; best = w; }
+        }
+        return best;
     },
     lineCircle(x1, y1, x2, y2, cx, cy, r) {
         const dx = x2 - x1, dy = y2 - y1;

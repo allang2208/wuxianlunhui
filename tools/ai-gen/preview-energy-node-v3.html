@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>世界-122 能源水晶 v3 · 程序化版预览</title>
+<style>
+  :root { color-scheme: dark; }
+  body {
+    margin: 0; padding: 24px; background: #111613;
+    color: #d4c5a9; font-family: "Microsoft YaHei", "SimHei", sans-serif;
+  }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  .meta { color: #7f8b82; font-size: 12px; margin-bottom: 18px; }
+  .grid {
+    display: grid; gap: 14px;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  }
+  .card {
+    background: #171f1a; border: 1px solid #263229; border-radius: 10px;
+    padding: 10px; display: flex; flex-direction: column; align-items: center;
+  }
+  .card h3 { margin: 8px 0 4px; font-size: 13px; font-weight: 600; }
+  .card .key { color: #6f8b80; font-size: 11px; margin-bottom: 8px; }
+  .stage {
+    width: 100%; min-height: 260px; display: flex; align-items: center; justify-content: center;
+    background:
+      repeating-linear-gradient(45deg, #0f1512 0 8px, #0b100d 8px 16px);
+    border-radius: 8px; overflow: hidden;
+  }
+  canvas { image-rendering: auto; }
+  .note { max-width: 1000px; font-size: 12px; color: #8f9b92; line-height: 1.7; }
+  code { color: #8be0c8; }
+</style>
+</head>
+<body>
+  <h1>世界-122 能源水晶 v3 · 程序化版预览</h1>
+  <div class="meta">正常态 12 形态 + 对应枯竭态；AI v3 成品入库后游戏会优先使用 AI 贴图。</div>
+  <div class="grid" id="grid"></div>
+  <p class="note">
+    启动方式：<code>cd game-dev &amp;&amp; npx vite</code>，然后访问
+    <code>http://localhost:5173/tools/ai-gen/preview-energy-node-v3.html</code>。
+    该页直接使用 <code>src/world/energy-node-textures.js</code> 的同一套绘制函数，
+    所见即游戏内程序化兜底效果。
+  </p>
+  <script type="module">
+    import {
+      ENERGY_NODE_V3_COUNT,
+      energyNodePreviewCanvas,
+      energyNodeFormMeta,
+    } from '/src/world/energy-node-textures.js';
+
+    const grid = document.getElementById('grid');
+    for (let i = 1; i <= ENERGY_NODE_V3_COUNT; i++) {
+      const meta = energyNodeFormMeta(i);
+      const card = document.createElement('section');
+      card.className = 'card';
+      card.innerHTML = `<h3>${i}. ${meta.label}</h3><div class="key">${meta.key}</div>`;
+      const stage = document.createElement('div');
+      stage.className = 'stage';
+      const normal = energyNodePreviewCanvas(i, false);
+      const depleted = energyNodePreviewCanvas(i, true);
+      normal.style.marginRight = '6px';
+      depleted.style.opacity = '0.92';
+      stage.append(normal, depleted);
+      card.appendChild(stage);
+      grid.appendChild(card);
+    }
+  </script>
+</body>
+</html>

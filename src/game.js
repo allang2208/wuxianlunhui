@@ -83,10 +83,11 @@ import { ExpeditionSystem } from './ui/expedition-system.js';
 import { FusionSystem } from './ui/fusion-system.js';
 import { DefenseSystem } from './world/defense-system.js';
 import { DefenseTrapSystem } from './world/defense-trap-system.js';
+import { HamsterHutSystem } from './world/hamster-hut-system.js';
 
 export const Game = {
     VERSION: GAME_CONFIG.meta?.version || '0.198', // 游戏版本号（每次更新必须递增）
-    isRunning: false, _paused: false, lastTime: 0, fps: 0, frameCount: 0, fpsTimer: 0, player: null, entities: new Map(), _pickupNearbyFlag: false,
+    isRunning: false, _paused: false, lastTime: 0, fps: 0, frameCount: 0, fpsTimer: 0, player: null, entities: new Map(), friendlyUnits: [], _pickupNearbyFlag: false,
     _synergySystem: null,
     _battleCommander: null, // 指挥AI实例
     _tacticalSquadAI: null, // 战术小队AI实例
@@ -1226,6 +1227,11 @@ if (Input.mouse.leftPressed) {
                 Input.mouse.leftPressed = false;
                 return;
             }
+            // 仓鼠小屋：点击小屋打开升级面板（2026-08-15）
+            if (HamsterHutSystem && HamsterHutSystem.active && HamsterHutSystem.tryInteract(mx, my, this.player)) {
+                Input.mouse.leftPressed = false;
+                return;
+            }
             for (const [key, entity] of this.entities) {
                 if (clickedPickup) break;
                 if (!clickedPickup && entity instanceof DropItem && entity.active) {
@@ -1319,6 +1325,10 @@ CombatSystem.update(e, dt, this.entities);
         // 世界-122 防守地图：波次生成（实体自身的更新已在上方主循环完成）
         if (SceneManager.currentScene === 'scene8' && DefenseSystem && DefenseSystem.active) {
             DefenseSystem.update(dt);
+        }
+        // 仓鼠小屋：矿工补员计时（矿工自身 update 由实体主循环驱动）
+        if (HamsterHutSystem && HamsterHutSystem.active) {
+            HamsterHutSystem.update(dt);
         }
 
         // ===== 阵型系统更新（必须在实体 update 之后，为下一帧设置 _tacticalTarget）=====

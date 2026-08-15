@@ -27,6 +27,13 @@ export class Companion {
         this.avatar = archive.avatar || '👤';
         this.modelPlaceholder = archive.modelPlaceholder || '';
         this.weaponType = archive.weaponType || 'sword';
+        // 装备限制（companion-config.json equipRules 配置驱动）：
+        //   weaponTypes - 允许的武器类型（如露娜只许 staff 法杖）；
+        //   armorSets   - 允许的法袍类套装（如 robe/eclipse/lunar/oracle_robe，+魔法攻击力套装）。
+        // 未配置（null）表示无限制，走玩家同款 equip-rules。
+        this.equipRules = archive.equipRules || null;
+        // 装备栏顶部注释文案（如露娜“只能装备法杖和法袍类装备”）。
+        this.equipNote = archive.equipNote || '';
         // AI 配置（2026-08-14）：有 ai 字段的队员由 CompanionAI 驱动战斗/跟随；无则纯跟随渲染
         this.aiConfig = archive.ai || null;
         // 初始魔法覆盖（2026-08-15）：露娜 baseMaxMp=600（1 级基准，升级仍 +10/级 + 装备加成）
@@ -178,8 +185,28 @@ export class Companion {
         else d.mp = d.maxMp;
     }
 
-    /** 装备槽位判定（与玩家同一套规则：equip-rules.canEquipSlot） */
+    /**
+     * 装备槽位判定：先按队友 equipRules 做职业限制，再走玩家同款规则（equip-rules.canEquipSlot）。
+     * 限制逻辑（数据驱动，未配置 equipRules 的队友无限制）：
+     *   - 武器类物品（weaponType/rangedType/category 含 weapon）只能装 weaponTypes 允许的类型；
+     *   - 法袍类防具（category === 'armor'）只能装 armorSets 允许的套装（+魔法攻击力套装）；
+     *   - 首饰/消耗品不受限（非武器也非法袍防具）。
+     */
     canEquip(item, slot) {
+        if (item && slot && this.equipRules) {
+            const isWeaponItem = item.weaponType || (item.category && item.category.includes('weapon')) || item.rangedType;
+            if (isWeaponItem) {
+                const allowedWeapons = this.equipRules.weaponTypes || [];
+                if (allowedWeapons.length && !allowedWeapons.includes(item.weaponType)) {
+                    return false;
+                }
+            } else if (item.category === 'armor') {
+                const allowedSets = this.equipRules.armorSets || [];
+                if (allowedSets.length && !allowedSets.includes(item.armorSet)) {
+                    return false;
+                }
+            }
+        }
         return canEquipSlot(item, slot);
     }
 
@@ -341,6 +368,8 @@ export class Companion {
             maxBackpackSlots: this.maxBackpackSlots,
             baseMaxMp: this._maxMpOverride || undefined,
             consumableSettings: JSON.parse(JSON.stringify(this.consumableSettings || {})),
+            equipRules: this.equipRules ? JSON.parse(JSON.stringify(this.equipRules)) : null,
+            equipNote: this.equipNote,
         };
     }
 
@@ -348,6 +377,9 @@ export class Companion {
         const c = new Companion({ id: s.id, name: s.name, title: s.title, role: s.role,
             growthRule: s.growthRule, avatar: s.avatar, weaponType: s.weaponType,
             baseLevel: 1 });
+        // 装备限制随档案恢复：解散再招募（roster 继承）或读档后限制依然生效
+        c.equipRules = s.equipRules || null;
+        c.equipNote = s.equipNote || '';
         c.data = { ...s.data };
         c.equipments = s.equipments || {};
         c.backpack = s.backpack || [];

@@ -78,6 +78,17 @@ assert(weaponCfg.sword.attack.frames.length === 12, 'sword.attack 轨迹 = 12 �
 assert(weaponCfg.sword.attack2.frames.length === 12, 'sword.attack2 轨迹 = 12 点（与 attack_sword_2 12 帧对应）');
 assert(weaponCfg.sword.attack3.frames.length === 16, 'sword.attack3 轨迹 = 16 点（与 attack_sword_3 16 帧对应）');
 assert(typeof weaponCfg.sword.gripOffset === 'number', 'sword.gripOffset 已配置（握把距中心，生成脚本读取）');
+assert(weaponCfg.sword.dashHand && weaponCfg.sword.dashHand.type === 'gripArc', 'sword.dashHand gripArc 模式已配置（剑柄锚手）');
+assert(weaponCfg.sword.dashHand && weaponCfg.sword.dashHand.fromRotation === -90
+    && weaponCfg.sword.dashHand.toRotation === 90,
+    '冲刺攻击剑身 -90°→+90° 扫击（后→前 180° 扇形）');
+assert(weaponCfg.sword.dashLerp && weaponCfg.sword.dashLerp.from.rotation === -90
+    && weaponCfg.sword.dashLerp.to.rotation === 90,
+    'dashLerp 回退块同步为 -90°→+90° 扫击');
+assert(weaponCfg.sword.aura && weaponCfg.sword.aura.enabled === false,
+    'sword.aura 已停用（旧剑气，代码保留可回滚）');
+assert(weaponCfg.sword.arc && weaponCfg.sword.arc.enabled === false,
+    'sword.arc 已停用（用户暂停平滑弧形刀光，代码保留可回滚）');
 
 // ---------- 4. hitCheck 帧号在帧数范围内（帧号 1 基，阈值换算 (frame-1)/(n-1)） ----------
 {

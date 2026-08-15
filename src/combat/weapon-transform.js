@@ -405,8 +405,8 @@ class WeaponTransform {
         const ly = (from.y || 0) + ((to.y || 0) - (from.y || 0)) * t;
         const offsetX = (facingRight ? 1 : -1) * lx;
 
-        // 角度：字面线性插值（端点角度由作者指定扫向，如 -100°→115° 大扫 215°；
-        // 不做短弧解卷绕，否则会反向扫，违背 perFrame 数据的设计意图）。
+        // 角度：字面线性插值（端点角度由作者指定扫向，如 -90°→+90° 后→前 180°；
+        // 不做短弧解卷绕，否则会反向扫，违背 dash 数据的设计意图）。
         // 朝左镜像同 perFrame 口径：Math.PI - rotation
         let a0 = (from.rotation || 0) * Math.PI / 180;
         let a1 = (to.rotation || 0) * Math.PI / 180;
@@ -438,6 +438,68 @@ class WeaponTransform {
             blurX,
             blurY,
             grip: cfg.grip || { x: 0.5, y: 0.5 },
+        };
+    }
+
+    /**
+     * 冲刺攻击剑柄锚手（dashHand 模式）：
+     * 以 sword.dash 30 点中心轨迹反推「握把点」——dash 旧轨迹是 DevTool 按武器贴图中心调定的
+     * （用户实机验收"大体正确"），中心轨迹与握把点相差 R(rot)·(0, -gripOffset)。
+     * 因此握把点 = 中心 − R(rot)·(0, -gripOffset)，即：
+     *   hand.x = center.x - gripOffset * sin(center.rotation)
+     *   hand.y = center.y + gripOffset * cos(center.rotation)
+     * 角度不再沿用旧轨迹角度，而是按 dashHand.fromRotation → toRotation 线性扫过
+     * 180°（默认 -90° → +90°，即"后 → 前"）。返回结构与 perFrame 一致，
+     * 额外带 gripX/gripY（归一化剑柄 origin），GameScene 直接用 origin 钉住剑柄。
+     */
+    static getDashHandPosition(player, weaponType, progress) {
+        const center = this.getInterpolatedPerFramePosition(player, weaponType, progress, true, 'dash');
+        if (!center) return null;
+
+        const wac = WeaponAnimConfig[weaponType] || {};
+        if (!wac.dashHand) return null;
+        const gripOffset = typeof wac.gripOffset === 'number' ? wac.gripOffset : 40;
+        const handCfg = wac.dashHand || {};
+        const fromDeg = handCfg.fromRotation !== undefined ? handCfg.fromRotation : -90;
+        const toDeg = handCfg.toRotation !== undefined ? handCfg.toRotation : 90;
+        const t = Math.max(0, Math.min(1, progress));
+        const fromRot = fromDeg * Math.PI / 180;
+        const toRot = toDeg * Math.PI / 180;
+        const rotation = fromRot + (toRot - fromRot) * t;
+
+        const handX = center.x - gripOffset * Math.sin(center.rotation);
+        const handY = center.y + gripOffset * Math.cos(center.rotation);
+        const size = this.getWeaponSize(weaponType, center.scale, 'attack');
+
+        return {
+            ...center,
+            x: handX,
+            y: handY,
+            rotation,
+            gripX: handCfg.gripX !== undefined ? handCfg.gripX : 0.5,
+            gripY: 0.5 + gripOffset / Math.max(1, size.height || 1),
+        };
+    }
+
+    /**
+     * 冲刺收势起点（与 dashHand 末帧同姿态）：
+     * 收势分支仍以武器中心为 origin，因此把 dashHand 末帧的握把点 + 180° 扫击末角
+     * 反推回中心点：中心 = 握把 + R(rotation)·(0, -gripOffset)。
+     * 这样 freeze 末帧（origin=剑柄）→ recover 首帧（origin=中心）剑柄位置连续，
+     * 只从 dashHand.toRotation 滑向 idle，不会跳回旧 dash 轨迹的 115°。
+     */
+    static getDashRecoverStartPosition(player, weaponType) {
+        const wac = WeaponAnimConfig[weaponType] || {};
+        if (!wac.dashHand) return null; // 无 dashHand 配置时保持旧 dash 轨迹收势口径
+        const hand = this.getDashHandPosition(player, weaponType, 1);
+        if (!hand) return null;
+        const gripOffset = typeof wac.gripOffset === 'number' ? wac.gripOffset : 40;
+        const centerX = hand.x + gripOffset * Math.sin(hand.rotation);
+        const centerY = hand.y - gripOffset * Math.cos(hand.rotation);
+        return {
+            ...hand,
+            x: centerX,
+            y: centerY,
         };
     }
 

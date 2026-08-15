@@ -1,6 +1,6 @@
 {
   "name": "wuxian-lunhui",
-  "version": "0.198.9",
+  "version": "0.198.13",
   "description": "无限轮回 - 像素风动作Roguelike游戏",
   "main": "electron/main.js",
   "author": "开发者",
@@ -8,6 +8,7 @@
   "private": true,
   "scripts": {
     "dev": "concurrently \"cross-env NODE_ENV=development npx vite\" \"wait-on http://localhost:5173 && npx electron electron/main.js\"",
+    "dev:web": "cross-env NODE_ENV=development npx vite",
     "electron": "wait-on http://localhost:5173 && electron electron/main.js",
     "build": "node scripts/bump-version.js && node scripts/backup.js && vite build && node scripts/copy-assets.js && electron-builder",
     "build:win": "node scripts/bump-version.js && node scripts/backup.js && vite build && node scripts/copy-assets.js && electron-builder --win",

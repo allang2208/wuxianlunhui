@@ -1,4 +1,126 @@
 # 变更日志
+### 对话：铁栅栏滑动门全套 + 三段深度图层（2026-08-15）
+- **建模/贴图（F→A 六档）**：Blender 几何（左右细柱 + 圆柱铁栅栏，无上下横梁）+ 掩体同款
+  砖墙/铸铁材质；`render-cover-gate.py --slide` 渲染 16 帧 → `compose-cover-gate.py` 合成
+  4×4 spritesheet → `split-cover-gate-layers.py` 像素拆分左柱/右柱/栅栏三部分
+  （帧15=纯柱子作掩码，重组零误差）。六档共用几何 `GATE_GEOM`，仅柱子材质换
+  `tex_<grade>_v1.png`。
+- **状态机**：默认关闭；友军（player/companion，150px）靠近自动开门、离开 1.2s 延时关门；
+  `BuildableGate` 支持 auto/locked/open 三模式（建筑面板详情按钮切换，见下一条目）。
+- **建筑面板**：B 面板六档铁栅栏门（能源建造，费用=对应掩体 HP×0.25），参与墙段吸附
+  （`GATE_SNAP` 端点表，与掩体互相吸附）、可被攻击/修理、幽灵预览 + F 镜像。
+- **图层（关键，SKILL 第 34 节墙体图层经验的延伸）**：门按**三段深度精灵**渲染——
+  左柱=深端 / 栅栏=中点 / 右柱=浅端，各自按自身底边线锚定深度；三段遮挡面线注册进
+  `window.GateFaceSegs` 供 `junctionCorrectedDepth` 逐帧仲裁——右柱（浅端）前实体
+  不再被整门深深度误盖；开门时移除栅栏段面线（空门洞不遮挡）；镜像 h 时左右柱深度互换。
+- **验证**：eslint 0 error / vite build ✓；CDP 实测六档贴图加载、放置/吸附/开门/摧毁、
+  图层仲裁样例（右柱前浮起/柱后压下）全过，无控制台错误。
+### 对话：门面板（常锁/常开）+ 怪物过门追击 + 防御塔维修按钮（2026-08-15）
+- **门建筑面板（building-system.js）**：建筑面板命中检测覆盖 `_isCoverGate`，点击铁栅栏门
+  进详情视图——贴图位（🚪 图标，门贴图为 16 帧 spritesheet 不直接可用）/耐久条/建造消耗/
+  修理按钮（与掩体同口径 coverHpPerEnergy），新增「常锁门」「常开门」按钮
+  （当前模式金框高亮，详情行显示模式与开关状态，500ms 刷新）。
+- **门模式（defense-system.js BuildableGate）**：新增 `gateMode`（auto/locked/open）+
+  `setMode()`；`update()` 顶部模式闸门——常锁强制关门跳过感应（任何单位经过都不开）、
+  常开强制开门；auto 走原"友军靠近开/离开 1.2s 关"逻辑。
+- **怪物过门追击（movement-system.js + perception-system.js）**：防守怪每 500ms 检查——
+  附近 900px 内有敞开门、高价值目标（基地 > 玩家 > 玩家单位，基地新加 `_isDefenseBase` 标记）
+  在门内侧（face 线法向侧判定）、路径畅通（怪物→门口、门口→目标双向 WallSystem.blocked
+  射线，探测点沿法向让 40px 防压线误判）→ 切换目标穿门追击，置 `_gatePursuit` 标记；
+  感知系统两处豁免：追击态不受交战半径脱离（leash）清除、屏蔽评分换目标
+  （免滞回交战切换仍允许，追怪途中可打贴近单位）；目标失效/被换/进交战圈自动退出追击态。
+- **防御塔维修按钮（defense-system.js DefenseTowerPanel）**：塔原升级面板底部新增维修区
+  （🔧 标题 + 耐久条 + 一次修满按钮，费率 towerHpPerEnergy 3 耐久/1 能源，满耐久置灰），
+  位置与建筑面板掩体/门详情的修理按钮一致（底部）；废墟模式隐藏。
+- **验证**：node --check 四文件通过；eslint 0 error / 13 warning（全为既有）；
+  test-regressions 179/0、test-monster-speed 9/0；vite build ✅。
+  备份 backup/v2026-08-15_11-03-22。
+### 对话：开发工具「无限资源」开关（2026-08-15）
+- T 键开发工具 →「技能」页签新增「∞ 无限资源」按钮（沿用技能无CD无消耗的开关样式）；
+- 开启后建造建筑（掩体/防御塔/仓鼠小屋/陷阱）不消耗能源与金币，仓鼠小屋升级也不扣
+  1000 金币 + 500 能源；放置提示显示「已放置（无限资源）」。
+- 改动：`src/ui/panels/dev-tools.js`、`src/world/building-system.js`、
+  `src/world/hamster-hut-system.js`（标志 `Game._devInfiniteResources`）。
+
+### 对话：世界122 修理入口迁移——取消 E 键长按，建筑面板详情「修理」按钮（2026-08-15）
+- **取消长按 E 修理（用户要求，快捷键冲突）**：`defense-system.js` 尾部 E 键
+  keydown/keyup/blur 监听器整体移除；`_setRepairHeld`/`_repairTick` 方法体保留备用；
+  孤儿导入 SceneManager 移除；repair 配置注释追加变更说明。
+- **修理按钮（建筑面板唯一入口）**：`building-system.js` 掩体详情视图底部新增
+  [修理（-N 能源）] 按钮（与返回列表并排）——点击一次修满，能源不足则修到能负担的上限，
+  费率仍取 `DEFENSE_CONFIG.repair.coverHpPerEnergy`（2 耐久/1 能源）；满耐久置灰"耐久已满"；
+  修理后飘字 +N 修理、播放音效、即时刷新详情与货币行。详情文案"靠近按住 E 修理"改为
+  "点击下方按钮修理"。
+- **注意**：防御塔暂无修理入口（塔详情走原升级面板，本次未加按钮；塔被摧毁后可重建）；
+  面板修理无距离限制（点哪面墙修哪面墙），如需加玩家距离校验可后续调整。
+- **验证**：node --check 两文件通过；eslint 0 error / 13 warning（全为既有）；
+  test-energy 18/18。备份 backup/v2026-08-15_10-50-13。
+### 对话：仓鼠小屋（世界-122 建筑，2026-08-15）
+- **建筑**：B 面板新增「仓鼠小屋」，价格 1000 能源（能源货币）；建造后生成一只仓鼠矿工；
+  贴图用 Blender 工厂模型（`factory_closed.png` 裁剪替换 `assets/terrain/hamster_hut.png`）。
+- **开关门动画**：`render-factory-real.py --slide n/15` 渲染 16 帧 → 合成
+  `assets/terrain/hamster_hut_door.png`（512×502 单元 4×4）；矿工补员/增援时
+  先播开门动画 → 门口生成仓鼠矿工 → 自动关门（`hamster_hut_door_open/close`，24fps）。
+- **仓鼠矿工**：复用现有 HamsterMiner（动画 idle/walk/mining/dying）；AI 扩展——
+  附近 340px 有敌人时近战自卫（复用攻击间隔/攻击力），无敌人时自动找最近能源矿点采矿；
+  采矿效率模块额外把加成能源直接注入背包（+⚡ 提示）。
+- **升级面板**（点击小屋打开，参考防御塔）5 个模块，每级统一消耗 **1000 金币 + 500 能源**：
+  采矿效率 +15%/级、攻击间隔 -6%/级、攻击力 +12%/级、
+  移动速度 +5%/级、仓鼠数量 +1/级（满级 5，升级立即多生成一只）。
+- **生命周期**：矿工死亡后小屋 60s 补员；小屋被摧毁/出售（返还 50% 建造能源）时矿工一并拆除；
+  场景离场随小屋系统拆除。
+- **改动文件**：`src/world/hamster-hut-system.js`（新增）、`src/ai/hamster-miner-ai.js`、
+  `src/entities/hamster-miner.js`（animId 多实例渲染）、`src/world/building-system.js`、
+  `src/world/scene-manager.js`、`src/world/hamster-miner-system.js`（矿工改由小屋生成）、
+  `src/game.js`、`BootScene.js`、`GameScene.js`。
+- **验证**：eslint 0 error（既有 6 warning）；vite build ✅；config-integrity 仅剩既有
+  game-config 双份 treeScatter.exclude.spawnPoint（180/130）不一致（非本批引入）。
+
+### 对话：世界122 建筑面板改造——三列拉伸/隐藏陷阱/ESC分层/掩体详情视图（2026-08-15）
+- **面板拉伸三列**：`building-system.js` 面板加专属类 `build-panel`（不动摆墙编辑器共享样式），
+  `game-style.css` 新增 `.build-panel` 规则——宽 340→420px，网格 flex 改
+  `grid-template-columns: repeat(3, 1fr)`，缩略图自适应列宽，永远一行三列。
+- **隐藏陷阱（用户确认，后续重做）**：面板渲染过滤 `kind === 'trap'`，`BUILD_ITEMS`
+  陷阱数据保留不删；提示文案中"陷阱扣金币"字样按用户确认删除，新增"点击已建掩体查看详情"提示。
+- **ESC 分层（用户要求）**：放置中 → 取消放置（原行为）；详情视图 → 返回列表；列表 → 关闭面板。
+  B 键开关为既有功能未改。
+- **掩体建筑详情（新功能，面板内切换视图）**：面板打开且非放置状态时，左键点击已建掩体 →
+  命中检测（face 线段距离 − 墙厚 ≤ 24px 余量，或脚底 90px 圆，取最近者）→ 面板切换详情视图：
+  贴图/级别/耐久条（60%/30% 变色，500ms 实时刷新）/朝向/建造消耗能源/修理费率/回满预估能源，
+  [← 返回列表] 回网格；建筑被摧毁自动退回并提示。防御塔/陷阱维持原有各自面板
+  （game.js 点击分发，不在建筑面板拦截）。
+- **验证**：node --check 通过；eslint 0 error（13 warning 均为既有）；vite build ✅；
+  备份 backup/v2026-08-15_10-08-59。
+### 对话：仓鼠矿工——世界-122 自动采矿友方单位（2026-08-15）
+- **新增单位**：仓鼠矿工（`data/hamster-miner-config.json` 独立配置，不入招募池），
+  复用 Companion 数据模型 + CompanionAI 渲染链路，`_faction='companion'` 友方阵营；
+  生命 200（base100 + con10×10）、移速 80 px/s、每 2s 对能源矿点造成 100 物理伤害。
+- **AI（`src/ai/hamster-miner-ai.js`）**：每 120ms 决策，`pickNearestNode` 选最近
+  未枯竭能源矿点（只认 `_isEnergyNode`，绝不攻击单位/建筑）；赶路走 MovementSystem
+  寻路（walk），到位站定采矿（mining），无矿点待机（idle）。
+- **采矿动画两段式（用户口径）**：进入采矿先播完整 19 帧（`mining_start`），
+  之后持续循环第 5~19 帧（`mining`）；BootScene 按 startFrames/loopFrames 注册。
+- **渲染（GameScene）**：`_syncCompanionSprites` 新增 `Game.friendlyUnits` 渲染对象
+  + mining/dying 动画状态 + 受击白闪 + displaySize 独立尺寸（132）；
+  `_updateDynamicDepths` 友方单位按世界 Y 排序（墙后可被遮挡）。
+- **生成/拆除（`src/world/hamster-miner-system.js`）**：scene8 加载时在玩家附近
+  合法落点生成并注册 `Game.entities['hamster_miner']` + `Game.friendlyUnits`；
+  离场拆除；死亡播 dying（11 帧）后自动移除，再入场重新生成。
+- **仇恨**：PerceptionSystem `_isValidTarget` 放行带 `_enemyTargetable` 标记的
+  companion 单位（仅仓鼠矿工带标记，露娜仍不拉仇恨），防守怪可锁定/攻击它。
+- **验证**：`scripts/test-hamster-miner.mjs` 28 项契约+接线全过；CDP 实机探针
+  `tools/cdp-hamster-miner.mjs` 14 项全过（生成/属性/最近节点/采矿动画两段式/
+  每 2s-100/不打假敌人/dying 后移除）；eslint 0 error；vite build 通过。
+### 对话：世界-122 怪物卡树/卡障碍修复（散布树 footprint 锚点错位 + 直冲怪无救援）（2026-08-15）
+- **根因排查（5 个假设）**：H1 直冲怪 >800px 卡死无救援（卡死检测豁免 chargeStraight 的接力/侧移，_tryUnstuck 只许缩短距离，V 形树兜永久卡死）；H2 散布树排除带锚点错位 ~150px（排除判定用贴图锚点，真实碰撞 footprint 中心在下方约 150px，刷怪点/玩家/能源点/基地房可被实际压盖，出生即嵌入 → resolve/blocked 恒失败永久冻结）；H3 矩形障碍无切向滑动（resolve 只搜 iso 段）；H4 大半径桶 vs 树间隙失配；H5 接力中继点零宽度射线穿树缝。
+- **修复①（scene-manager.js + wall-system.js）**：新增 `WallSystem.getObstacleFootprintRect()` 共享推导（碰撞注册与散布排除带同一口径，禁止各自实现）；`_scatterTreesScene8` 排除带/canMoveTo 全部改用 footprint 矩形/中心判定；基地房改为 rect-rect 重叠排除；树木间距 minDist 仍按锚点（视觉疏密）。`game-config.json` spawnPoint 排除半径 130→180（覆盖最大怪半径 116 + footprint 余量）。
+- **修复②（defense-system.js）**：`_spawnMonster` 出生点加 `WallSystem.canMoveTo` 校验 + `findSafeSpawn` 螺旋外推，杜绝出生嵌入。
+- **修复③（movement-system.js）**：卡死检测移除 chargeStraight 豁免——直冲怪卡死（500ms 无位移）时同样允许接力重算 + 侧向 reposition（正常冲锋行为不变）。
+- **修复⑤（wall-system.js）**：`resolve` 新增矩形障碍切向滑动（`_nearestBlockingRect` + 贴面投影，与 iso 段同口径），L/V 形树兜可沿矩形边滑出；每步仍过 canMoveTo/blocked 校验。
+- **修复④（_tryUnstuck 距离限制放宽）**：按方案评审暂缓实施，观望 ①②③⑤ 效果。
+- **验证**：散布模拟脚本（scripts/archive/_verify-scatter.mjs，复用真实 WallSystem + 配置）100 棵树 0 违规（房间/玩家/能源点/刷怪点）；eslint 0 error（13 warning 为 defense-trap-system 既有）；vite build 通过。备份：backup/v2026-08-15_09-50-42。
+- **实机待验证**：一波怪全程推进是否流畅（重点观察胖子僵尸在树阵中的行为）；若 H4/H5/H6 仍有残留卡死，再议 ④ 与中继点带半径采样。
+
 ### 对话：世界122 防守模式波次预算制重构 + 防守怪 25% 经验（2026-08-15）
 - **波次预算制配波（用户确认方案）**：`defense-system.js` 废弃"只数公式 + 单一加权随机池"，
   改为威胁预算制——每波预算 = `waveBudgetBase 26 × 1.15^(n-1)` TP，怪物按角色池 TP 成本

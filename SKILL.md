@@ -101,6 +101,7 @@
 - 怪物 HUD（名字/血条）定位规则
 - ⭐ 怪物渲染图层与构造铁律（2026-08-15：阴影时序 / 贴图键≠动画键 / 构造必并配置）
 - NPC 添加标准工作流（2026-07-22 新增，新 NPC 一律按此开展）
+- 玩家友方单位添加工作流（2026-08-15 仓鼠矿工首航：世界-122 自动采矿）
 
 **10. UI、面板与组队系统**
 - 面板生命周期框架（2026-07-21 新增，新面板优先复用）
@@ -4509,6 +4510,30 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
   不再套"建筑/塔=正面平视"——用户明确要求参考地面/墙壁视角；其他建筑（祭坛/仓库等）
   维持 billboard。新素材先按用户当前口径，勿照搬旧表一刀切。
 
+### 铁栅栏滑动门（F→A 六档，2026-08-15）
+
+世界-122 基地入口/可建造墙段式门：左右细柱 + 圆柱铁栅栏（无上下横梁），
+开门时两扇叶沿墙轴向两侧滑出并隐藏，关门时从两侧向中间合拢。
+
+- **资产管线**（Blender 几何 + 掩体同款材质，与掩体墙同一相机比例）：
+  `_blockout_specs/cover_gate_<g>.json`（仅 `tex` 指向 `tex_<g>_v1.png` 不同）→
+  `render-cover-gate.py spec out.png --slide 0..1`（2048 渲染，ortho 302.76）→
+  `compose-cover-gate.py <g>`（裁剪统一内容框，640×634 单元 4×4 打包）→
+  `split-cover-gate-layers.py`（帧15=纯柱子掩码，拆左柱/右柱静态图 + 栅栏 16 帧表，重组零误差）。
+- **游戏侧**：`GATE_GEOM`（六档共用几何：face 线 worldFaceLen 270.4、cell 640×634、
+  displayScale 0.41）；`gateConfigFor(grade)`；基地固定门用 `GATE_CONFIG`（D 级）。
+- **状态机**：默认关闭（门洞碰撞注册）；友军（player/companion，150px）靠近自动开门，
+  离开 1.2s 延时关门；`BuildableGate.gateMode`：auto/locked/open（建筑面板详情按钮切换）。
+- **建筑面板**：B 面板六档 `gate_<g>_v` 条目（能源，费用=掩体HP×0.25），
+  吸附端点 `GATE_SNAP`（与掩体互相吸附，SNAP_OVERLAP 回退），幽灵预览 + F 镜像，
+  可被攻击/修理（修理走建筑面板详情按钮，费率同掩体）。
+- **图层铁律（重要）**：门是**长跨度墙体**（face 线两端深度差 ~136px），
+  绝不能整门单深度——按三段拆：左柱=深端 / 栅栏=中点 / 右柱=浅端，各自 `底边线 y + 12`；
+  三段面线注册 `window.GateFaceSegs` 进 `junctionCorrectedDepth` 仲裁
+  （实体脚线在段前 → 抬到段上；段后 → 压到段下）；开门移除栅栏段；镜像 h 左右柱深度互换。
+- 已知取舍：实体站在门洞中同时跨左右柱时，整门三段的抬升/压制按各段面线独立判定，
+  跨两段的重叠区以最近段为准，极端位置可能有 ±1 段误差，可接受。
+
 ---
 
 ### 后续打磨方向（未做）
@@ -5145,6 +5170,59 @@ this._tacticalTarget = null;
 
 #### 5. 验证
 lint / vite build / test-collider / test-config-integrity；实机验证 idle/walk 切换、朝向翻转、游走范围与停留节奏、名字标签位置。
+
+### 玩家友方单位添加工作流（2026-08-15 仓鼠矿工首航，世界-122 自动采矿）
+
+> 新增「玩家阵营、可被怪锁定、自动执行任务（如采矿）」的非队员工时，一律走这套。
+> 首航范例：仓鼠矿工（`data/hamster-miner-config.json` + `src/entities/hamster-miner.js` +
+> `src/ai/hamster-miner-ai.js` + `src/world/hamster-miner-system.js`）。
+
+#### 1. 素材与帧布局
+- 精灵图入 `assets/companions/<id>/`（idle/walking/mining/dying 各一张），
+  512×512 帧、8 列 × 4 行网格（先目检行列与有效帧数，再配 frameCount）。
+- 动画帧配置放**独立** `data/<id>-config.json`，**不要**塞进 companion-config.json——
+  那会让它出现在招募池/队员面板；世界-122 工人类单位用独立配置 + BootScene 显式注册。
+
+#### 2. 数据（data/hamster-miner-config.json）
+- `baseData.con` 控 HP（公式 base100 + con×10 + 每级10；con=10 → 200）。
+- `ai`：`walkSpeed/runSpeed`（80）、`miningRange`（80）、`attackInterval`（2000）、
+  `attackDamage`（100）、`decisionMs`（120）。
+- `animations`：mining 用 **两段式** `startFrames:[0,18]`（完整 19 帧起步，播一次）
+  + `loopFrames:[4,18]`（第 5~19 帧循环）——用户口径「进采矿先播完整循环，
+  下一轮从第 5 帧开始循环」；dying `repeat:0` 只播一次。
+
+#### 3. 实体（src/entities/hamster-miner.js）
+- `extends Companion`（复用 data/六维/动画配置/运行时字段），`super(合成 archive)`。
+- `_faction='companion'`（友方）；**`_enemyTargetable=true`** 让防守怪可锁定
+  （露娜无此标记，保持不拉仇恨）；补 `hp/maxHp` getter + `takeDamage` +
+  死亡流程（`_animState='dying'` → 计时 → 从 entities/friendlyUnits 移除）。
+- `update(dt, entities)` 交给 `HamsterMinerAI` 驱动（注册进 Game.entities 由主循环调）。
+
+#### 4. AI（src/ai/hamster-miner-ai.js）
+- 每 120ms tick：`pickNearestNode`（只扫 `_isEnergyNode && active && !_depleted`）选最近矿点；
+  目标失效（枯竭）自动换下一个。**绝不**枚举 enemy 目标——只打矿点。
+- 赶路：`_tacticalTarget = 矿点` + MovementSystem.update（移速 80）；
+  到位（≤ miningRange + 节点半径）：站定 `_animState='mining'`，
+  每 attackInterval 调 `node.takeDamage(attackDamage, 自身, 'physical', true)`。
+
+#### 5. BootScene / GameScene
+- BootScene：加载 `companion_<id>_<动画>` 四张 sheet；动画注册沿用两段式
+  startFrames/loopFrames 逻辑（mining_start 播一次 → mining 循环）。
+- GameScene `_syncCompanionSprites`：渲染对象 = `PartySystem.members` +
+  `Game.friendlyUnits`；新增 `mining`（两段式：data 标记 hamsterMining 起步 →
+  once('animationcomplete') 切循环）与 `dying`（防重播 data 标记）动画分支；
+  受击白闪 `hitFlash`；尺寸 `member.displaySize ?? PLAYER_DEFAULTS`。
+- `_updateDynamicDepths` 的侍从深度查找也要带 friendlyUnits（墙后正常被遮挡）。
+
+#### 6. 生成/仇恨/验证
+- `src/world/hamster-miner-system.js`：scene8 `_loadScene8` 末尾 `setup(player)`
+  （合法落点：玩家偏移 → 8 方向螺旋 → findSafeSpawn → 玩家脚下）；
+  switchScene 离场 `teardown()`；`Game.friendlyUnits` 在 game.js 初始化。
+- PerceptionSystem `_isValidTarget`：放行 `_faction==='companion' && _enemyTargetable`，
+  防守怪 `_preferDefenseTargets` 按交战半径锁定（与玩家同链，免 LOS 口径不变）。
+- 验证：`scripts/test-hamster-miner.mjs`（数据+接线契约）+ `tools/cdp-hamster-miner.mjs`
+  （实机：生成/属性/最近节点/采矿两段式/每2s-100/不打单位/dying 移除）；
+  eslint 0 error + vite build。
 
 ---
 
@@ -6140,6 +6218,15 @@ if (this._facing === 'left') {
   - **暴击排查结论**：公式饿死（crit=2+luck vs critRes=con），非代码 bug，数值待拍板
   - **复盘修复**：仓库克隆保留 weaponAsset、蟠桃复活比例读配置、ESC 关仓库、仓库来源卷轴取出后刷新
   - 验证：lint / build / test-collider / test-craft-sync 全部通过
+
+- v3.5 (2026-08-15) — 世界-122 怪物卡树修复：散布树 footprint 锚点错位 + 直冲怪卡死救援
+  - **根因**：散布树排除带按贴图锚点判定，真实碰撞 footprint 中心在下方 ~150px（H2）；直冲怪卡死检测豁免接力/侧移且 _tryUnstuck 只许缩短距离（H1）；resolve 矩形障碍无切向滑动（H3）
+  - **共享口径铁律**：新增 `WallSystem.getObstacleFootprintRect()`——碰撞注册（_addPieceCollision）与散布排除带（_scatterTreesScene8）同一推导，禁止各自实现；基地房改 rect-rect 重叠排除；`game-config.json` spawnPoint 排除半径 130→180（最大怪半径 116 + 余量）
+  - **刷怪安全网**：`defense-system._spawnMonster` 出生点 canMoveTo 校验 + findSafeSpawn 螺旋外推，杜绝出生嵌入
+  - **直冲怪卡死降级**：卡死（500ms 无位移）时解除 chargeStraight 的接力寻路/侧向 reposition 豁免（正常冲锋行为不变）
+  - **矩形切向滑动**：resolve 新增 `_nearestBlockingRect` + 贴面投影（与 iso 段同口径），L/V 形树兜可沿矩形边滑出；每步仍过 canMoveTo/blocked 校验
+  - **暂缓**：_tryUnstuck"必须缩短距离"放宽（④），观望 ①②③⑤ 效果
+  - 验证：scripts/archive/_verify-scatter.mjs 散布模拟 100 棵 0 违规；eslint 0 error；vite build 通过
 
 ---
 

@@ -31,6 +31,11 @@
       "baseData": { "str": 4, "dex": 6, "int": 13, "con": 6, "wis": 12, "luck": 6 },
       "skills": ["fireball", "iceSpike", "lightningStrike"],
       "unlockSkills": { "holyLight": 10 },
+      "equipRules": {
+        "weaponTypes": ["staff"],
+        "armorSets": ["robe", "eclipse", "lunar", "oracle_robe"]
+      },
+      "equipNote": "只能装备法杖和法袍类装备",
       "ai": {
         "role": "ranged_mage",
         "followOffset": 150,

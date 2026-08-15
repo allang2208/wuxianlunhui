@@ -1,4 +1,4 @@
-import { getElement } from '../utils/dom-utils.js';
+import { getElement, getElementIfExists } from '../utils/dom-utils.js';
 // 状态栏管理器 - 管理玩家身上的状态效果（眩晕、中毒等）
 export const StatusBar = {
     // 状态效果列表：{ id, icon, name, duration, remaining, color }
@@ -37,7 +37,7 @@ export const StatusBar = {
 
     init() {
         if (this.initialized) return;
-        this.container = getElement('statusBarContainer');
+        this.container = getElementIfExists('statusBarContainer');
         if (!this.container) {
             // 2026-08-15：左上角状态栏已按用户要求删除（hud-core 不再创建容器）；
             // 效果逻辑照常追踪，仅不渲染图标行——静默降级，不再告警。
@@ -269,7 +269,7 @@ export const StatusBar = {
      */
     render() {
         if (!this.container) {
-            this.container = getElement('statusBarContainer');
+            this.container = getElementIfExists('statusBarContainer');
             if (!this.container) return;
         }
         // 容器后于 init 就绪时补绑定悬停浮窗（内部有 _tooltipBound 守卫）

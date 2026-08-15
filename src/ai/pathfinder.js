@@ -285,6 +285,10 @@ class PathFinder {
         // 出口路径短时缓存（A* 失败后卡住重算每 500ms 都会走到这里，原来每次都全量重建 RegionIndex）
         this._exitCache = new Map(); // key -> { result, timestamp }
         this._lastWarnAt = 0;        // console.warn 节流（卡住重算循环曾刷屏）
+          // 世界-122 能源矿等“非墙体实体圆障碍”：只给寻路用，不写进 WallSystem，
+          // 避免影响塔弹道/墙体碰撞语义。EnergyNodeSystem.setup/teardown 负责登记。
+          this._entityCircleObstacles = [];
+          this._hasEntityObstacles = false;
     }
 
     // 确保空间哈希已构建
@@ -314,6 +318,36 @@ class PathFinder {
         // [NEW] 标记 RegionIndex 需要重算
         regionIndex.markDirty();
     }
+
+      /**
+       * 登记“寻路专用”圆形实体障碍（当前为世界-122 能源矿）。
+       * - 只影响 A*连通性/射线平滑，不写进 WallSystem，玩家/塔弹道等墙体语义不变；
+       * - 登记/清空时清路径缓存与格子 memo，保证后续寻路立即绕行。
+       * @param {Array<{x:number,y:number,radius:number}>} obstacles
+       */
+      setEntityCircleObstacles(obstacles) {
+          this._entityCircleObstacles = Array.isArray(obstacles)
+              ? obstacles.map(o => ({ x: o.x, y: o.y, radius: o.radius || o.groundRadius || 20 }))
+              : [];
+          this._hasEntityObstacles = this._entityCircleObstacles.length > 0;
+          this._pathCache.clear();
+          this._exitCache.clear();
+          this._cellMemo.clear();
+          this._geometryVersion++;
+          regionIndex.markDirty();
+      }
+
+      /** 点是否落在任一寻路专用实体圆障碍内 */
+      _isEntityObstacleBlocked(x, y, radius) {
+          if (!this._hasEntityObstacles) return false;
+          for (const o of this._entityCircleObstacles) {
+              const rr = o.radius + radius;
+              const dx = x - o.x, dy = y - o.y;
+              if (dx * dx + dy * dy < rr * rr) return true;
+          }
+          return false;
+      }
+
 
     /**
      * [PERF-2026-08-08] 半径档归并：返回该半径所属桶的代表半径（桶上界，保守不缩水）；
@@ -417,7 +451,8 @@ class PathFinder {
 
     _isBlocked(x, y, radius) {
         this._ensureHash();
-        return this.spatialHash.isBlocked(x, y, radius);
+        if (this.spatialHash.isBlocked(x, y, radius)) return true;
+          return this._isEntityObstacleBlocked(x, y, radius);
     }
 
     /**
@@ -429,7 +464,26 @@ class PathFinder {
      * key 改整数 (gx + gy*CELL_STRIDE) * 4096 + 桶半径，消除热路径字符串拼接。
      * 注意：只缓存静态几何（墙/树）；动态障碍成本仍由 _buildGrid 每格实时叠加。
      */
-    _getCellData(x, y, entityRadius) {
+    /** 把寻路专用实体圆障碍叠加到静态格子结果上（不污染静态 memo） */
+      _withEntityObstacles(x, y, r, base) {
+          if (!this._hasEntityObstacles) return base;
+          let { blocked, cost } = base;
+          for (const o of this._entityCircleObstacles) {
+              const dx = x - o.x, dy = y - o.y;
+              const d2 = dx * dx + dy * dy;
+              const hardR = o.radius + r;
+              if (d2 < hardR * hardR) {
+                  blocked = true;
+                  break;
+              }
+              // 硬障碍外圈给软成本，让 A* 提前切线绕行而不是贴边刮擦
+              const softR = o.radius + r * 2.0;
+              if (d2 < softR * softR && cost < 3.0) cost = 3.0;
+          }
+          return { blocked, cost };
+      }
+
+      _getCellData(x, y, entityRadius) {
         this._ensureHash();
         // 契约：仅允许格子中心坐标调用（k×40+20）——memo 按格子复用，
         // 同格子内的不同采样点共享同一结果，只有中心采样才保证一致性
@@ -438,7 +492,7 @@ class PathFinder {
         const gy = Math.floor(y / this.gridSize);
         const memoKey = (gx + gy * CELL_STRIDE) * 4096 + r;
         const cached = this._cellMemo.get(memoKey);
-        if (cached) return cached;
+        if (cached) return this._withEntityObstacles(x, y, r, cached);
 
         const cellSize = this.spatialHash.cellSize;
         const [baseCX, baseCY] = this.spatialHash._getCell(x, y);
@@ -658,7 +712,10 @@ class PathFinder {
                 const x = minX + c * this.gridSize + this.gridSize / 2;
                 const y = minY + r * this.gridSize + this.gridSize / 2;
                 // [PERF-2026-08-03] 合并单趟查询 + 跨寻路记忆化（原为每次 _isBlocked + _getMoveCost 两次空间查询）
-                const cellData = this._getCellData(x, y, entityRadius);
+                const cellData = this._withEntityObstacles(
+                      x, y, this._bucketRadius(entityRadius),
+                      this._getCellData(x, y, entityRadius)
+                  );
                 const blocked = cellData.blocked;
                 // 动态障碍成本每格实时叠加（250ms 更新，不进静态 memo）
                 const dynamicCost = blocked ? 1.0 : dynamicObstacleMap.getCost(x, y);
