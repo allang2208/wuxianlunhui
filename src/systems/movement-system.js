@@ -1066,8 +1066,13 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
                     enemy.x = clamped.x;
                     enemy.y = clamped.y;
                 } else {
-                    // 被墙完全挡住：路径失效，让 PathManager 重新规划
-                    if (enemy._pathManager) {
+                    // [ROOT-FIX 2026-08-15] 只有「有效步长」被完全阻挡才判路径失效：
+                    // 起步/转向瞬间 vx≈0（或残留旧朝向速度）会产生亚像素步长，
+                    // WallSystem.resolve 返回原地被误判为「完全阻挡」→ 每帧清路径 →
+                    // 直线顶墙死循环（仓鼠矿工「原地打转」根因）。亚像素抖动直接跳过，
+                    // 速度沿航点方向累积后自然走通；真正卡死仍由 _tryUnstuck/看门狗兜底。
+                    const stepLen = Math.hypot(nx - enemy.x, ny - enemy.y);
+                    if (stepLen >= 1 && enemy._pathManager) {
                         enemy._pathManager._clearPath();
                     }
                     return;
