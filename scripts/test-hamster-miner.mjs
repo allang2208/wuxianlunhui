@@ -73,8 +73,9 @@ check('AI 采矿目标只认 _isEnergyNode 且跳过枯竭', /_isEnergyNode/.tes
 check('AI 敌人交战：engageRange 内 _nearestEnemy → 近战 takeDamage（小屋防御）',
     /_nearestEnemy\(entities, this\._engageRange\)/.test(aiSrc)
     && /_tryAttackEnemy\(\)/.test(aiSrc) && /enemy\.takeDamage\(this\._attackDamage/.test(aiSrc));
-check('AI 采矿攻击只对节点 takeDamage（伤害 = attackDamage；效率加成装包）',
-    /node\.takeDamage\(this\._attackDamage/.test(aiSrc));
+check('AI 采矿攻击只对节点 takeDamage（伤害 = attackDamage × miningMult）',
+    /miningDamage = Math\.max\(1, Math\.round\(this\._attackDamage \* this\.miningMult\)\)/.test(aiSrc)
+    && /node\.takeDamage\(miningDamage/.test(aiSrc));
 check('AI 攻击间隔读取 attackInterval', /this\._attackInterval = this\.cfg\.attackInterval \?\? 2000/.test(aiSrc));
 check('AI 移速读取 walkSpeed', /this\.cfg\.walkSpeed \?\? 80/.test(aiSrc));
 check('AI 采矿/交战共用 mining 态、移动 walk、无节点 idle',
