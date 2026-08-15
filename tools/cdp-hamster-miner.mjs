@@ -449,6 +449,106 @@ console.log('e3 raw:', JSON.stringify(e3));
 check('小屋面板显示「暂存能量」+ 500ms 实时刷新定时器', e3 && e3.hasLabel === true && e3.timerActive === true
     && e3.timerCleared === true, JSON.stringify(e3));
 
+// ---------- F. 玩家背包满 → 小屋暂存 → 腾出后自动补入 ----------
+console.log('F. 玩家背包满 → 小屋暂存');
+const f = await rawEval(`(async () => {
+    const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+    const miner = [...window.Game.entities.values()].find(e => e && e._isHamsterMiner && e.active);
+    const hut = miner._hut;
+    const eq = window.Game.EquipManager;
+    const orig = JSON.parse(JSON.stringify(eq.backpackItems));
+    // 满背包非能源物品（无能量堆叠、无空槽）→ EnergyManager.addEnergy 必失败
+    eq.backpackItems.length = 0;
+    for (let i = 0; i < 10; i++) {
+        eq.backpackItems.push({ slot: i, name: '杂物' + i, category: 'material', stack: 999, maxStack: 999 });
+    }
+    miner._energyCarried = 500;
+    miner.x = hut.x + 20; miner.y = hut.y + 60;
+    miner._tacticalTarget = null; miner._animState = 'idle';
+    hut.unloadMiner(miner);
+    const storedAfterUnload = hut._storedEnergy;
+    const carriedAfter = miner._energyCarried;
+    // 原地还原玩家背包（有空间）→ 小屋 update 自动补入
+    eq.backpackItems.length = 0;
+    eq.backpackItems.push(...orig);
+    await sleep(1200);
+    const storedAfterPush = hut._storedEnergy;
+    const energyGain = eq.backpackItems.filter(i => i && i.category === 'energy')
+        .reduce((s, i) => s + (i.stack || 0), 0);
+    return { storedAfterUnload, carriedAfter, storedAfterPush, energyGain };
+})()`);
+check('玩家背包满：卸货能量暂存小屋、矿工清零', f.storedAfterUnload >= 500 && f.carriedAfter === 0,
+    JSON.stringify(f));
+check('背包腾出后小屋自动补入玩家（暂存清零）', f.storedAfterPush === 0 && f.energyGain >= 500,
+    JSON.stringify(f));
+
+// ---------- G. 死亡丢能量 ----------
+console.log('G. 死亡丢能量');
+const g = await rawEval(`(async () => {
+    const miner = [...window.Game.entities.values()].find(e => e && e._isHamsterMiner && e.active);
+    miner._energyCarried = 250;
+    miner.takeDamage(9999, { _faction: 'enemy' }, 'physical', true);
+    return { lostNow: miner._energyCarried, dying: miner._dying };
+})()`);
+check('死亡时携带能量清零（丢失不返还）', g.lostNow === 0 && g.dying === true, JSON.stringify(g));
+
+// ---------- H. 死亡补员重生（加速计时，真实流程：开门→门口生成→关门） ----------
+console.log('H. 死亡补员');
+const h = await rawEval(`(async () => {
+    const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+    const miner = [...window.Game.entities.values()].find(e => e && e._isHamsterMiner && e.active);
+    const hut = miner._hut;
+    await sleep(1500); // 等死亡移除
+    const before = hut.aliveMinerCount();
+    // 诊断：手动触发一次补员，捕获任何抛错
+    let spawnErr = null;
+    try {
+        hut._doorState = 'closed';
+        hut._spawnWithDoor();
+    } catch (e) { spawnErr = String(e && e.stack || e).slice(0, 200); }
+    await sleep(3000);
+    const newMiner = [...window.Game.entities.values()].find(e => e && e._isHamsterMiner && e.active);
+    return { before, after: hut.aliveMinerCount(), newMiner: !!newMiner, door: hut._doorState, spawnErr,
+        minerSeq: hut._minerSeq, miners: hut.miners.length };
+})()`);
+check('矿工死亡后小屋补员（开门生成新矿工）', h.before === 0 && h.after === 1 && h.newMiner === true && !h.spawnErr,
+    JSON.stringify(h));
+
+// ---------- J. 真实回屋寻路（矿工自己走回小屋卸货，无传送跳变） ----------
+console.log('J. 真实回屋寻路');
+const j = await rawEval(`(async () => {
+    const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+    const miner = [...window.Game.entities.values()].find(e => e && e._isHamsterMiner && e.active);
+    const hut = miner._hut;
+    // 传送到基地外（门洞附近开阔处），背包塞满 → 应自己走回小屋卸货
+    miner._energyCarried = miner._energyCapacity;
+    miner.x = 1350; miner.y = 2150;
+    miner._tacticalTarget = null; miner._animState = 'idle';
+    let prevX = miner.x, prevY = miner.y, maxJump = 0;
+    let arrived = false, carriedAtArrival = null;
+    for (let i = 0; i < 56; i++) {
+        await sleep(250);
+        const jump = Math.hypot(miner.x - prevX, miner.y - prevY);
+        if (jump > maxJump) maxJump = jump;
+        prevX = miner.x; prevY = miner.y;
+        if (!arrived && Math.hypot(miner.x - hut.x, miner.y - hut.y) <= 90) {
+            arrived = true;
+            carriedAtArrival = miner._energyCarried;
+        }
+        if (arrived && miner._energyCarried === 0) break;
+    }
+    return {
+        maxJump: Math.round(maxJump),
+        arrived,
+        carriedAtArrival,
+        carriedNow: miner._energyCarried,
+        dist: Math.round(Math.hypot(miner.x - hut.x, miner.y - hut.y)),
+    };
+})()`);
+check('矿工从矿点自己走回小屋卸货（无传送，maxJump < 60）',
+    j.arrived === true && j.maxJump < 60 && j.carriedNow === 0,
+    JSON.stringify(j));
+
 // ---------- D. 死亡：dying 动画 + 移除 ----------
 console.log('D. 死亡流程');
 const d = await rawEval(`(async () => {
@@ -473,6 +573,25 @@ check('受击致死 → dying 状态', d.hp === 0 && d.dying === true && d.anim 
 check('播 dying 动画', d.dyingKey === 'companion_hamster_miner_dying', `key=${d.dyingKey}`);
 check('动画播完自动移除（entities/friendlyUnits/精灵）',
     d.stillInEntities === false && d.stillInFriendly === false && d.spriteGone === true);
+
+// ---------- I. 小屋被毁：暂存丢失、矿工随拆、从系统移除 ----------
+console.log('I. 小屋被毁');
+const i = await rawEval(`(async () => {
+    const { HamsterHutSystem } = await window.__imp('hamster-hut-system');
+    const hut = HamsterHutSystem.huts.find(h => h && h.active);
+    if (!hut) return { err: 'no hut' };
+    hut._storedEnergy = 300;
+    hut.takeDamage(99999, { _faction: 'enemy' }, 'physical', true);
+    return {
+        hutGone: !window.Game.entities.has(hut.id),
+        inSystem: !HamsterHutSystem.huts.includes(hut),
+        minersGone: hut.miners.every(m => !m || !m.active),
+        active: hut.active,
+    };
+})()`);
+check('小屋被毁：暂存丢失、矿工随拆、从系统移除',
+    i.hutGone === true && i.inSystem === true && i.minersGone === true && i.active === false,
+    JSON.stringify(i));
 
 console.log(`\n结果: ${pass} 通过, ${fail} 失败`);
 await cleanup(fail ? 1 : 0);
