@@ -5274,13 +5274,18 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
   回屋用小屋边缘接近点（64px，触发 70px）。AI 层再加卡死看门狗
   （500ms 位移<3px 累计 2 次 → 挖矿重选目标 / 返回 `WallSystem.findSafeSpawn` 传送）；
   满载用 `_returnTriggered` 防 work/return 振荡。
-- **顶墙死循环根因（2026-08-15 实锤 + 根修）**：`_followPath` 的移动被
+- **顶墙死循环根因（2026-08-15 实锤 + v2 根修）**：`_followPath` 的移动被
   `WallSystem.resolve` 判“完全阻挡”会每帧 `_clearPath()`（movement-system.js:1071）。
   实锤根因：起步/转向瞬间 vx≈0 产生**亚像素步长**，resolve 返回原地被误判为完全阻挡 →
-  路径留不住 → 直线顶墙。根修：**只有有效步长（≥1px）被阻挡才清路径**，亚像素抖动
-  直接跳过、速度沿航点累积自然走通；真正卡死由 `_tryUnstuck`/看门狗兜底。接近点
-  外扩到 `max(miningRange, 节点半径+自身半径+40)`（钳制在采矿范围内）；矿工卡死
-  看门狗两段（原地脱困 → 传送矿点旁 95px）降级为罕见安全网。
+  路径留不住 → 直线顶墙。v1 根修：**只有有效步长（≥1px）被阻挡才清路径**，亚像素抖动
+  直接跳过、速度沿航点累积自然走通。
+  **v2 根修（清路径 → 沿墙滑动）**：≥1px 真阻挡时不再清路径，改走
+  `_applyNormalMovement` 同款 [SLIDE] x/y 轴向滑动（墙角才减速保留路径），
+  交 `PathManager._checkValidity`（1.5~2.5s）定期修复/重算——否则清路径后怪物退回
+  直线顶墙（顶到关门门闸/掩体），500ms×2 位移<3px 触发卡死看门狗 → 回屋偶发
+  **300px 瞬移**（CDP J 阶段 maxJump 302 实锤）。v2 后 J 连跑 3 次 maxJump<60 全绿。
+  接近点外扩到 `max(miningRange, 节点半径+自身半径+40)`（钳制在采矿范围内）；矿工
+  卡死看门狗两段（原地脱困 → 传送矿点旁 95px）降级为罕见安全网。
 - **背包物流三阶段**：`work`（采矿+自动拾取能量掉落进背包，150ms 节流）→
   背包满 `_startReturn` → 走回小屋 `_startUnload`（idle 2s，不移动不交战；
   小屋 `unloadMiner` 经 EnergyManager 进玩家背包，满则暂存小屋）→ 2s 后
@@ -5322,8 +5327,11 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
 - PerceptionSystem `_isValidTarget`：放行 `_faction==='companion' && _enemyTargetable`，
   防守怪 `_preferDefenseTargets` 按交战半径锁定（与玩家同链，免 LOS 口径不变）。
 - 验证：`scripts/test-hamster-miner.mjs`（数据+接线契约）+ `tools/cdp-hamster-miner.mjs`
-  （实机：小屋生成/属性/最近节点/采矿挥锄+间隔定格第6帧/每2s-100/行走两段式/
-  双向移动朝向/交战自卫生效/dying 移除）；
+  （实机 36 项：小屋生成/属性/最近节点/**A2 出生房内自动寻路出基地（pmValid 生效、
+  无传送跳变、离开小屋>150px）**/采矿挥锄+间隔定格第6帧/每2s-100/行走两段式/
+  双向移动朝向（**探针按不变量采样：vx>0 必朝右、vx<0 必朝左，固定时刻采样会撞上
+  寻路绕障转向瞬间**）/交战自卫生效/**J 真实回屋寻路（无传送，maxJump<60）**/
+  **K 多矿工数量模块并发卸货（能量不丢）**/背包物流/小屋暂存面板/dying 移除）；
   eslint 0 error + vite build。
 
 ---

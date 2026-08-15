@@ -329,37 +329,62 @@ const bw = await rawEval(`(async () => {
     const sleep = (ms) => new Promise(r => setTimeout(r, ms));
     const miner = [...window.Game.entities.values()].find(e => e && e._isHamsterMiner && e.active);
     const node = miner.target;
+    const sc = window.__phaserScene;
+    const sprite = sc._companionSprites[miner.id];
+    // 朝右走：起点在节点左侧，清路径强制重算（与 A2 同口径）
     miner.x = node.x - 260; miner.y = node.y + 40;
     miner._tacticalTarget = { x: node.x, y: node.y };
     miner._animState = 'idle';
-    const sc = window.__phaserScene;
-    const sprite = sc._companionSprites[miner.id];
+    if (miner._pathManager) miner._pathManager._clearPath();
     if (sprite.anims.isPlaying) sprite.anims.stop();
     sprite.setData('hamsterWalk', false); // 强制复位起步标记，消除 idle 帧竞态
     await sleep(350);
     const k1 = sprite.anims.isPlaying ? sprite.anims.currentAnim.key : null;
+    const anim1 = miner._animState; // 起步时刻状态（行走两段式判定用，末尾可能已到矿点采矿）
     await sleep(1300);
     const k2 = sprite.anims.isPlaying ? sprite.anims.currentAnim.key : null;
-    // 向右走向矿点：贴图应朝右（不倒退）
-    const rightMoving = miner.vx > 0;
-    const rightFace = !sprite.flipX;
-    // 反向：移到矿点右侧朝左走
+    // 连续采样 2s：断言「移动时始终朝向移动方向」——vx>0 必朝右、vx<0 必朝左，不倒退。
+    // 固定时刻采样会撞上寻路绕障转向瞬间，改按不变量校验（2026-08-15 探针加固）。
+    const rightSamples = [];
+    for (let i = 0; i < 10; i++) {
+        await sleep(200);
+        rightSamples.push({ vx: Math.round(miner.vx), flipX: !!sprite.flipX, anim: miner._animState });
+        if (miner._animState === 'mining') break;
+    }
+    const rightMoved = rightSamples.some(s => s.vx > 5);
+    const rightFacingOk = rightSamples.filter(s => s.vx > 5).every(s => !s.flipX);
+    const rightNoBackward = rightSamples.filter(s => s.vx < -5).every(s => s.flipX);
+    // 反向：起点在节点右侧朝左走
     miner.x = node.x + 260; miner.y = node.y - 40;
     miner._tacticalTarget = { x: node.x, y: node.y };
     miner._animState = 'idle';
+    if (miner._pathManager) miner._pathManager._clearPath();
     sprite.setData('hamsterWalk', false);
     if (sprite.anims.isPlaying) sprite.anims.stop();
     await sleep(500);
-    const leftMoving = miner.vx < 0;
-    const leftFace = sprite.flipX;
-    return { anim: miner._animState, k1, k2, rightMoving, rightFace, leftMoving, leftFace };
+    const leftSamples = [];
+    for (let i = 0; i < 10; i++) {
+        await sleep(200);
+        leftSamples.push({ vx: Math.round(miner.vx), flipX: !!sprite.flipX, anim: miner._animState });
+        if (miner._animState === 'mining') break;
+    }
+    const leftMoved = leftSamples.some(s => s.vx < -5);
+    const leftFacingOk = leftSamples.filter(s => s.vx < -5).every(s => s.flipX);
+    const leftNoBackward = leftSamples.filter(s => s.vx > 5).every(s => !s.flipX);
+    return {
+        anim: anim1, k1, k2,
+        rightMoved, rightFacingOk, rightNoBackward,
+        leftMoved, leftFacingOk, leftNoBackward,
+        rightSamples, leftSamples,
+    };
 })()`);
 check('静止→移动先播完整 walking（walk_start）', bw.anim === 'walk' && bw.k1 === 'companion_hamster_miner_walk_start',
     `anim=${bw.anim} k1=${bw.k1}`);
 check('起步后循环第 3~12 帧（walk）', bw.k2 === 'companion_hamster_miner_walk', `k2=${bw.k2}`);
-check('移动始终朝向移动方向（向右朝右、向左朝左，不倒退）',
-    bw.rightMoving === true && bw.rightFace === true && bw.leftMoving === true && bw.leftFace === true,
-    `right=${bw.rightMoving}/${bw.rightFace} left=${bw.leftMoving}/${bw.leftFace}`);
+check('移动始终朝向移动方向（vx>0 朝右、vx<0 朝左，不倒退）',
+    bw.rightMoved === true && bw.rightFacingOk === true && bw.rightNoBackward === true
+    && bw.leftMoved === true && bw.leftFacingOk === true && bw.leftNoBackward === true,
+    `rightMoved=${bw.rightMoved} rightFacing=${bw.rightFacingOk}/${bw.rightNoBackward} leftMoved=${bw.leftMoved} leftFacing=${bw.leftFacingOk}/${bw.leftNoBackward}`);
 
 // ---------- C. 敌人交战（小屋防御）与回采矿 ----------
 console.log('C. 交战自卫生效 + 回采矿');

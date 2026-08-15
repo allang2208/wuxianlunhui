@@ -1,4 +1,20 @@
 # 变更日志
+### 对话：仓鼠矿工寻路根修 v2——路径跟随完全阻挡改沿墙滑动（2026-08-16）
+- **症状**：J 阶段（真实回屋寻路）偶发 maxJump=302，矿工中途瞬移到小屋附近。
+- **根因**：`_followPath` 里移动被 `WallSystem.resolve` 判完全阻挡（≥1px 步长）时
+  每帧 `_clearPath()` → 怪物退回 `_applyNormalMovement` 直线朝目标顶墙（顶到关门
+  门闸/掩体/小屋碰撞）→ 500ms×2 位移<3px 触发矿工卡死看门狗 → 传送小屋旁。
+- **修复**（movement-system.js）：完全阻挡分支不再清路径，改走 `_applyNormalMovement`
+  同款 [SLIDE] x/y 轴向滑动；墙角才减速保留路径，交 `PathManager._checkValidity`
+  （1.5~2.5s）定期修复/重算。亚像素步长（<1px）仍直接跳过保留路径（继承 v1 对
+  「原地打转」的修复）。v2 后 J 阶段连跑 3 次 maxJump<60 全绿，A2（出生房内自动
+  出基地）回归稳定。
+- **探针加固**：CDP 新增 A2（房内出生自动寻路出基地）与 K（数量模块升级第二只矿工
+  并发卸货，能量不丢）两个边界阶段；B2 移动朝向改为按不变量采样（vx>0 必朝右、
+  vx<0 必朝左、不倒退），固定时刻采样会撞上寻路绕障转向瞬间造成假阳性；
+  teleport 场景先 `_pathManager._clearPath()` 强制重算（与 A2 同口径）。
+- **验证**：CDP 仓鼠矿工 36/36 ×3 连跑、契约 234/234（party）+ 全量 npm test 全绿。
+
 ### 对话：伊莉丝新增 whirlwind 风车爆发技——技能数据驱动 + 纯函数判定 + 动画一次播完（2026-08-16）
 - `data/companion-config.json`：伊莉丝技能表加 `whirlwind`（damageMul 1.5+0.1/级、
   radius 120+5/级、swordRadiusBonus 80、cooldown 10−0.2/级、knockback 250、

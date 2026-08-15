@@ -1066,15 +1066,42 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
                     enemy.x = clamped.x;
                     enemy.y = clamped.y;
                 } else {
-                    // [ROOT-FIX 2026-08-15] 只有「有效步长」被完全阻挡才判路径失效：
-                    // 起步/转向瞬间 vx≈0（或残留旧朝向速度）会产生亚像素步长，
-                    // WallSystem.resolve 返回原地被误判为「完全阻挡」→ 每帧清路径 →
-                    // 直线顶墙死循环（仓鼠矿工「原地打转」根因）。亚像素抖动直接跳过，
-                    // 速度沿航点方向累积后自然走通；真正卡死仍由 _tryUnstuck/看门狗兜底。
+                    // [ROOT-FIX 2026-08-15 v2] 完全阻挡时沿墙滑动，不再每帧清路径：
+                    // 清路径会让怪物退回直线移动顶墙（_applyNormalMovement 直线朝目标），
+                    // 触发卡死看门狗/升级传送兜底（仓鼠矿工回屋偶发 300px 瞬移根因）。
+                    // 起步/转向瞬间亚像素步长（vx≈0）仍直接跳过、保留路径，速度沿航点
+                    // 方向累积走通（继承 v1 对「原地打转」的修复）；≥1px 真阻挡才做
+                    // x/y 轴向滑动（与 _applyNormalMovement [SLIDE] 同口径），墙角完全
+                    // 卡住时减速保留路径，交 PathManager._checkValidity 定期修复/重算。
                     const stepLen = Math.hypot(nx - enemy.x, ny - enemy.y);
-                    if (stepLen >= 1 && enemy._pathManager) {
-                        enemy._pathManager._clearPath();
+                    if (stepLen < 1) return; // 亚像素抖动：跳过，速度沿航点累积
+                    const xSlide = WallSystem.resolve(enemy.x, enemy.y, enemy.x + enemy.vx * sc, enemy.y, enemy.groundRadius);
+                    const ySlide = WallSystem.resolve(enemy.x, enemy.y, enemy.x, enemy.y + enemy.vy * sc, enemy.groundRadius);
+                    const xCanMove = xSlide.x !== enemy.x;
+                    const yCanMove = ySlide.y !== enemy.y;
+                    const maxStep = maxSpd * sc;
+                    if (xCanMove && yCanMove) {
+                        if (Math.abs(enemy.vx) >= Math.abs(enemy.vy)) {
+                            enemy.x = this._clampMoveDistance(enemy.x, enemy.y, xSlide.x, enemy.y, maxStep).x;
+                        } else {
+                            enemy.y = this._clampMoveDistance(enemy.x, enemy.y, enemy.x, ySlide.y, maxStep).y;
+                        }
+                    } else if (xCanMove) {
+                        enemy.x = this._clampMoveDistance(enemy.x, enemy.y, xSlide.x, enemy.y, maxStep).x;
+                        enemy.vy *= 0.5; // 消除垂直于墙的分量
+                    } else if (yCanMove) {
+                        enemy.y = this._clampMoveDistance(enemy.x, enemy.y, enemy.x, ySlide.y, maxStep).y;
+                        enemy.vx *= 0.5; // 消除垂直于墙的分量
+                    } else {
+                        // 墙角完全卡住：减速但保留路径，给 PathManager 定期修复时间
+                        enemy.vx *= 0.5;
+                        enemy.vy *= 0.5;
+                        if (Math.abs(enemy.vx) < 1 && Math.abs(enemy.vy) < 1) {
+                            enemy.vx = 0;
+                            enemy.vy = 0;
+                        }
                     }
+                    enemy.isMoving = Math.abs(enemy.vx) > 0.1 || Math.abs(enemy.vy) > 0.1;
                     return;
                 }
             } else {
