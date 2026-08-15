@@ -529,10 +529,10 @@ class DefenseBase extends Combatant {
         this.mdef = mdef;
         this.data.def = def;
         this.data.mdef = mdef;
-        // 贴图直接用现有素材（大理石祭坛）
-        // （2026-08-15 曾试 Blender 重建+AI 大理石贴图 defense_base_altar，用户验收不如旧版已退回）
-        this.spriteCfg = { idleKey: 'npc_altar', size: 220, sizeH: 214, footOffsetY: 107 };
-        this.footOffsetY = 107;
+        // 贴图：Blender 建模重建（立方体 + 扁平底座 + 大理石贴图，2026-08-16，
+        // 规格 _blockout_specs/defense_base.json，渲染 assets/terrain/defense_base.png）
+        this.spriteCfg = { idleKey: 'defense_base', size: 220, sizeH: 183, footOffsetY: 92 };
+        this.footOffsetY = 92;
         this._onDestroyed = config.onDestroyed || null;
         this.rebuildCollider();
     }
@@ -2486,12 +2486,12 @@ function nearbyFriendlyUnit(cx, cy) {
     return best;
 }
 
-/** 开关门时把压在门线上的单位沿面线法线推开（2026-08-16）：
- *  关门瞬间门洞碰撞注册，站线玩家/怪物会被"卡"住（怪物 GATE-WAIT 原地等待 =
- *  波次卡死/单位卡墙）；开门动画期间栅栏滑动也会蹭到单位。
- *  统一在开关瞬间 + 动画期间把脚点距面线 < halfThick+margin 的单位推出安全距离。
- *  @returns {string[]} 被推开单位的 id 列表（调试用）
- */
+/** 关门瞬间把"嵌进门段内"的单位沿面线法线推开（2026-08-16 三修）。
+ *  - 只在 close() 瞬间调用一次（不每帧推——每帧直接改坐标会与移动系统 resolve 打架：
+ *    开门时玩家被弹开/瞬移，双门接缝处卡柱子，实测更严重）；
+ *  - 只推真正重叠门段（距离 < halfThick + 单位半径 + 2）的单位，不推只是靠近的；
+ *  - 目标位置经 WallSystem.resolve 校验/滑动（不推进别的墙/柱子/接缝）。
+ *  @returns {string[]} 被推开单位的 id 列表（调试用） */
 function unstickUnitsFromGate(A, B, halfThick) {
     const dx = B.x - A.x;
     const dy = B.y - A.y;
@@ -2500,12 +2500,12 @@ function unstickUnitsFromGate(A, B, halfThick) {
     const uy = dy / len;
     const nx = -uy;
     const ny = ux;
-    const margin = 16;
-    const thresh = halfThick + margin; // 26+16=42：脚点距面线不足 42px 视为贴门
     const pushed = [];
     const push = (u) => {
         if (!u || !u.active) return;
         if (u._isDefenseStructure || u._isDefenseTower || u._isDefenseCover) return;
+        const r = u.groundRadius || u.collisionRadius || 20;
+        const thresh = halfThick + r + 2; // 只推真正嵌进门段的单位
         const t = Math.max(0, Math.min(1, ((u.x - A.x) * ux + (u.y - A.y) * uy) / len));
         const cx = A.x + ux * t * len;
         const cy = A.y + uy * t * len;
@@ -2513,9 +2513,17 @@ function unstickUnitsFromGate(A, B, halfThick) {
         const dist = Math.abs(off);
         if (dist >= thresh) return;
         const side = off >= 0 ? 1 : -1;
-        const outDist = thresh + 8;
-        u.x = cx + nx * outDist * side;
-        u.y = cy + ny * outDist * side;
+        const tx = cx + nx * (thresh + 1) * side;
+        const ty = cy + ny * (thresh + 1) * side;
+        // 经移动系统同一 resolve 校验/切向滑动，避免推进别的墙/柱子/双门接缝
+        let ex = tx;
+        let ey = ty;
+        if (WallSystem && typeof WallSystem.resolve === 'function') {
+            const er = WallSystem.resolve(u.x, u.y, tx, ty, r);
+            if (er) { ex = er.x; ey = er.y; }
+        }
+        u.x = ex;
+        u.y = ey;
         pushed.push(u.id || u.name || 'unit');
     };
     if (Game && Game.player) push(Game.player);
@@ -2659,16 +2667,6 @@ const CoverGate = {
     /** 状态机默认关闭 → 友军靠近打开 → 友军离开延时关闭（2026-08-15）。 */
     update(dt) {
         if (!this._gateSeg) return;
-        // 只挡人不推"开门人"（2026-08-16 二修）：开门时门洞已放行、栅栏在收拢，
-        // 此时推人会把靠近/正通过门口的玩家反复弹开 = "卡在门上"（两门衔接处尤甚）。
-        // 只在 closing（碰撞段刚注册）与 closed（双门接缝重叠区可能残留单位）时推人。
-        if (this.state === 'closing' || this.state === 'closed') {
-            unstickUnitsFromGate(
-                { x: this._gateSeg.x1, y: this._gateSeg.y1 },
-                { x: this._gateSeg.x2, y: this._gateSeg.y2 },
-                this._cfg.halfThick
-            );
-        }
         const OPEN_RADIUS = 150;
         const CLOSE_LINGER_S = 1.2; // dt 单位为秒
         const f = nearbyFriendlyUnit(this._cx, this._cy);
@@ -2913,15 +2911,6 @@ class BuildableGate extends Combatant {
     /** 状态机默认关闭 → 友军靠近打开 → 友军离开延时关闭（与基地门同口径）。 */
     update(dt) {
         if (!this._gateSeg || !this.active) return;
-        // 只挡人不推"开门人"（2026-08-16 二修）：开门已放行，推人会把门口玩家弹开；
-        // 只在 closing（碰撞段刚注册）与 closed（双门接缝重叠区残留单位）时推人。
-        if (this.state === 'closing' || this.state === 'closed') {
-            unstickUnitsFromGate(
-                { x: this._gateSeg.x1, y: this._gateSeg.y1 },
-                { x: this._gateSeg.x2, y: this._gateSeg.y2 },
-                this._cfg.halfThick
-            );
-        }
         // 常锁/常开模式闸门（2026-08-15）：锁定态强制关、常开态强制开，均跳过自动感应
         if (this.gateMode === 'locked') {
             if (this.state !== 'closed' && this.state !== 'closing') this.close();

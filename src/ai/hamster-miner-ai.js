@@ -3,16 +3,14 @@
 // 玩家友方单位：在世界-122 自动采矿，并在附近有敌人时近战自卫。
 // - 优先交战：发现 engageRange 内敌人 → 走近近战（复用攻击间隔/攻击力）；
 // - 无敌人：自动找最近能源矿点采矿（_isEnergyNode），间隔攻击产出能源；
-// - 采矿效率：miningMult > 1 时每次采矿按效率加成额外注入背包能源；
+// - 采矿效率：miningMult 直接乘到采矿攻击伤害（矿点掉落的能源随之提升）；
 // - 移动复用 MovementSystem（寻路/墙碰撞），移速 walkSpeed（小屋升级 +5%/级）；
 // - 动画状态：walk（移动）/ mining（采矿或近战）/ idle（待机）。
 // ============================================================
 import { MovementSystem } from '../systems/movement-system.js';
 import { WallSystem } from '../world/wall-system.js';
-import { EnergyManager } from '../systems/energy-manager.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
-import { ENERGY_CONFIG } from '../config/energy-config.js';
 import { pickNearestNode } from './companion-ai-decision.js';
 
 export class HamsterMinerAI {
@@ -344,7 +342,7 @@ export class HamsterMinerAI {
         }
     }
 
-    /** 采矿攻击：间隔到点即对矿点造成固定伤害（只打矿点） */
+    /** 采矿攻击：间隔到点对矿点造成伤害；采矿效率（miningMult）直接乘在攻击力上 */
     _tryAttack() {
         const m = this.m;
         const node = m.target;
@@ -352,20 +350,9 @@ export class HamsterMinerAI {
         if (this._attackTimer > 0) return;
         this._attackTimer = this._attackInterval;
         if (typeof node.takeDamage === 'function') {
-            const dealt = node.takeDamage(this._attackDamage, m, 'physical', true) || 0;
+            const miningDamage = Math.max(1, Math.round(this._attackDamage * this.miningMult));
+            node.takeDamage(miningDamage, m, 'physical', true);
             m._miningSwing = true; // 攻击命中 → 渲染层播一次挥锄动画（2026-08-15）
-            // 采矿效率：矿点按 gatherRatio 掉能源之外，效率加成装入隐藏背包
-            if (this.miningMult > 1.001 && EnergyManager) {
-                const bonus = Math.round(dealt * (ENERGY_CONFIG.gatherRatio || 0.5) * (this.miningMult - 1));
-                if (bonus > 0) {
-                    const capacity = m._energyCapacity || 500;
-                    const take = Math.min(bonus, Math.max(0, capacity - m._energyCarried));
-                    m._energyCarried += take;
-                    if (take > 0 && EffectManager) {
-                        EffectManager.add(new FloatingTextEffect(m.x, m.y - 28, `+${take}⚡`, '#7fd4ff'));
-                    }
-                }
-            }
         }
     }
 

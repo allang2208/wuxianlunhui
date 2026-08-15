@@ -33,9 +33,13 @@
   `assets/terrain/defense_base.png`（规格 `_blockout_specs/defense_base.json`）：
   主体立方体 + 顶部压顶 + 下方扁平底座，全部贴大理石纹理
   （`scratch/world122/raw/tex_altar.png`，白底大理石 + 灰纹 + 暖色点缀）。
-- 视角与世界-122 一致（俯仰 30° 正面）；显示 220×203，footOffsetY 102；
+- 视角与世界-122 一致（俯仰 30° + rot.z 44.8°，与工厂/掩体同一套接地视角，
+  底部呈菱形接地线）；显示 220×183，footOffsetY 92；
   BootScene 新增 `defense_base` 加载。祭坛 NPC 仍用原 `npc_altar` 贴图不受影响。
 - 改动：`src/world/defense-system.js`、`src/phaser/scenes/BootScene.js`。
+- 加亮：`render-factory-real.py` 支持 spec.lighting（环境/主光/补光/曝光）覆盖，
+  基地规格调亮（ambient 0.66 / sun 1.45 / fill 110 / exposure 0.32），
+  大理石平均亮度 ≈183，白底纹理清晰。
 
 ### 对话：开关门推人机制修正——开门不推、关门/关闭持续推（2026-08-16）
 - **症状**：玩家在门口（尤其两门衔接处）仍易"卡在门上"。

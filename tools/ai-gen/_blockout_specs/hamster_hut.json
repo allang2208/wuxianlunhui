@@ -1,0 +1,20 @@
+{
+  "elevation": 30,
+  "azimuth": 0,
+  "resolution": 1024,
+  "bottom_y": 880,
+  "max_width_frac": 0.8,
+  "top_margin_px": 70,
+  "tex": "Y:/工作/无尽轮回/scratch/world122/raw/factory_wall_tex.png",
+  "tex2": "Y:/工作/无尽轮回/scratch/demon_iron_tex.png",
+  "interior_glow": "Y:/工作/无尽轮回/scratch/world122/raw/factory_interior_glow.png",
+  "primitives": [
+    { "type": "box", "size": [150, 110, 70], "pos": [0, 0, 35], "rot": [0, 0, 0], "bevel": 6, "material": "wall" },
+    { "type": "prism", "size": [172, 122, 52], "pos": [0, 0, 96], "rot": [0, 0, 0], "material": "wall" },
+    { "type": "box", "size": [34, 4, 44], "pos": [0, -58, 22], "rot": [0, 0, 0], "material": "interior" },
+    { "type": "box", "size": [26, 4, 24], "pos": [-38, -57, 52], "rot": [0, 0, 0], "material": "window" },
+    { "type": "box", "size": [26, 4, 24], "pos": [38, -57, 52], "rot": [0, 0, 0], "material": "window" }
+  ],
+  "plates": [],
+  "slide": {}
+}
