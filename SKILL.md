@@ -5198,6 +5198,9 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
 - `_faction='companion'`（友方）；**`_enemyTargetable=true`** 让防守怪可锁定
   （露娜无此标记，保持不拉仇恨）；补 `hp/maxHp` getter + `takeDamage` +
   死亡流程（`_animState='dying'` → 计时 → 从 entities/friendlyUnits 移除）。
+- **隐藏背包**：`_energyCarried`（已携带能量）/ `_energyCapacity`（默认 500，
+  读 `ai.backpackCapacity`）；`applyHutUpgrades` 同步背包扩容；死亡时携带能量全部
+  丢失（飘字提示，不返还不掉落）。
 - `update(dt, entities)` 交给 `HamsterMinerAI` 驱动（注册进 Game.entities 由主循环调）。
 
 #### 4. AI（src/ai/hamster-miner-ai.js）
@@ -5208,6 +5211,10 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
   到位（≤ miningRange + 节点半径）：站定 `_animState='mining'`（采矿与近战共用），
   每 attackInterval 调 `node.takeDamage(attackDamage, 自身, 'physical', true)`；
   **每次命中置 `m._miningSwing=true`** 通知渲染层播挥锄动画。
+- **背包物流三阶段**：`work`（采矿+自动拾取能量掉落进背包，150ms 节流）→
+  背包满 `_startReturn` → 走回小屋 `_startUnload`（idle 2s，不移动不交战；
+  小屋 `unloadMiner` 经 EnergyManager 进玩家背包，满则暂存小屋）→ 2s 后
+  `closeDoor` + 重新出发。
 - 小屋升级：`applyUpgrades(u)` 同步攻击间隔/伤害/移速/采矿效率；实体
   `applyHutUpgrades` 委托给 AI。
 
@@ -5229,6 +5236,9 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
   `HamsterHut.spawnMiner()` 挂 `_hut` 并注册 entities/friendlyUnits，小屋升级模块
   同步矿工参数、矿工死亡 respawnMs 补员、小屋被毁矿工随拆。坑：`DamageableEntity`
   没有 `this.data`，别写 `this.data.def`（构造即崩）。
+- 小屋职责（2026-08-15 扩展）：`unloadMiner` 卸货（玩家背包满 → `_storedEnergy`
+  暂存，小屋被毁即丢失）；`openDoor/closeDoor` 门动画（卸货 2s 开门/关门）；
+  update 自动把暂存能量补入玩家背包；升级模块新增「背包扩容」（每级 +100，满级 10）。
 - PerceptionSystem `_isValidTarget`：放行 `_faction==='companion' && _enemyTargetable`，
   防守怪 `_preferDefenseTargets` 按交战半径锁定（与玩家同链，免 LOS 口径不变）。
 - 验证：`scripts/test-hamster-miner.mjs`（数据+接线契约）+ `tools/cdp-hamster-miner.mjs`

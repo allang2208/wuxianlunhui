@@ -273,6 +273,7 @@ const bw = await rawEval(`(async () => {
     const sc = window.__phaserScene;
     const sprite = sc._companionSprites[miner.id];
     if (sprite.anims.isPlaying) sprite.anims.stop();
+    sprite.setData('hamsterWalk', false); // 强制复位起步标记，消除 idle 帧竞态
     await sleep(350);
     const k1 = sprite.anims.isPlaying ? sprite.anims.currentAnim.key : null;
     await sleep(1300);
@@ -313,6 +314,91 @@ const c = await rawEval(`(async () => {
 check('engageRange 内敌人被锁定并近战攻击（-100/2s）', c.engageTarget === true && c.dummyHp <= 400,
     `dummy hp=${c.dummyHp} anim=${c.anim}`);
 check('敌人消失后回到矿点采矿', c.backToMining === true);
+
+// ---------- E. 隐藏背包物流：采矿拾取 → 满后回屋卸货（idle 2s + 门开关） → 背包扩容 ----------
+console.log('E. 背包物流与扩容');
+const e0 = await rawEval(`(async () => {
+    const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+    const miner = [...window.Game.entities.values()].find(e => e && e._isHamsterMiner && e.active);
+    // 采矿一小段时间，应自动拾取地面能源进隐藏背包
+    const carried0 = miner._energyCarried;
+    miner.x = miner.target.x + 30; miner.y = miner.target.y;
+    miner._tacticalTarget = null;
+    await sleep(4500);
+    return { carried0, carried1: miner._energyCarried, capacity: miner._energyCapacity };
+})()`);
+check('采矿自动拾取能量进隐藏背包', e0.carried1 > e0.carried0,
+    `carried ${e0.carried0}→${e0.carried1}`);
+
+const e1 = await rawEval(`(async () => {
+    const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+    const miner = [...window.Game.entities.values()].find(e => e && e._isHamsterMiner && e.active);
+    const hut = miner._hut;
+    const energyGet = () => {
+        const bp = window.Game && window.Game.EquipManager ? window.Game.EquipManager.backpackItems : [];
+        return (bp || []).filter(i => i && i.category === 'energy').reduce((s, i) => s + (i.stack || 0), 0);
+    };
+    const energyBefore = energyGet();
+    // 模拟背包满：塞满后传送回小屋门口
+    miner._energyCarried = miner._energyCapacity;
+    miner.x = hut.x + 40; miner.y = hut.y + 20;
+    miner.target = null; miner._tacticalTarget = null; miner._animState = 'idle';
+    await sleep(1000); // 应进入 return → 到门口 → unload
+    const phase1 = miner._ai ? miner._ai._phase : null;
+    const anim1 = miner._animState;
+    const carried1 = miner._energyCarried;
+    const door1 = hut._doorState;
+    const energyGain = energyGet() - energyBefore;
+    await sleep(2600); // 2s idle 结束后关门、重新出发
+    const phase2 = miner._ai ? miner._ai._phase : null;
+    const door2 = hut._doorState;
+    return { phase1, anim1, carried1, door1, energyGain, phase2, door2 };
+})()`);
+check('背包满 → 回屋卸货（能量移交玩家、自身清零）',
+    e1.carried1 === 0 && e1.energyGain >= 500,
+    `carried=${e1.carried1} energyGain=${e1.energyGain}`);
+check('卸货期间 idle + 门打开', e1.anim1 === 'idle' && (e1.door1 === 'open' || e1.door1 === 'opening'),
+    `anim=${e1.anim1} door=${e1.door1}`);
+check('2s 后门关闭并重新出发', e1.door2 === 'closed' && e1.phase2 === 'work',
+    `door=${e1.door2} phase=${e1.phase2}`);
+
+const e2 = await rawEval(`(async () => {
+    const miner = [...window.Game.entities.values()].find(e => e && e._isHamsterMiner && e.active);
+    const hut = miner._hut;
+    const before = hut.mults().backpackCapacity;
+    window.Game._devInfiniteResources = true;
+    const res = hut.upgradeModule('backpack');
+    const after = hut.mults().backpackCapacity;
+    const minerCap = miner._energyCapacity;
+    window.Game._devInfiniteResources = false;
+    return { ok: res.ok, before, after, minerCap };
+})()`);
+check('背包扩容升级：每级 +100（500 → 600）', e2.ok === true && e2.before === 500 && e2.after === 600 && e2.minerCap === 600,
+    JSON.stringify(e2));
+
+const e3 = await rawEval(`(async () => {
+    try {
+        const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+        const miner = [...window.Game.entities.values()].find(e => e && e._isHamsterMiner && e.active);
+        const hut = miner._hut;
+        const { HamsterHutSystem } = await window.__imp('hamster-hut-system');
+        const panel = HamsterHutSystem._ensurePanel();
+        if (!panel.isOpen) panel.openFor(hut, window.Game.player);
+        await sleep(600); // 等一次 500ms 实时刷新
+        const statusEl = document.querySelector('#hhStatus');
+        const statusText = statusEl ? statusEl.textContent : '';
+        const hasLabel = statusText.includes('暂存能量');
+        const timerActive = !!panel._refreshTimer;
+        panel.close();
+        const timerCleared = !panel._refreshTimer;
+        return { hasLabel, timerActive, timerCleared, tail: statusText.slice(-220) };
+    } catch (err) {
+        return { hasLabel: false, err: String(err && err.stack || err).slice(0, 300) };
+    }
+})()`);
+console.log('e3 raw:', JSON.stringify(e3));
+check('小屋面板显示「暂存能量」+ 500ms 实时刷新定时器', e3 && e3.hasLabel === true && e3.timerActive === true
+    && e3.timerCleared === true, JSON.stringify(e3));
 
 // ---------- D. 死亡：dying 动画 + 移除 ----------
 console.log('D. 死亡流程');

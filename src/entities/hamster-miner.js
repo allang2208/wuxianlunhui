@@ -10,6 +10,8 @@
 // ============================================================
 import { Companion } from './companion.js';
 import { HamsterMinerAI } from '../ai/hamster-miner-ai.js';
+import { EffectManager } from '../effects/effect-manager.js';
+import { FloatingTextEffect } from '../effects/floating-text.js';
 import hamsterMinerConfig from '../../data/hamster-miner-config.json';
 
 const DYING_DURATION_MS = 1000; // dying 11 帧 @12fps ≈ 917ms，留余量
@@ -26,6 +28,7 @@ export class HamsterMiner extends Companion {
 
         this._isHamsterMiner = true;
         this.animId = 'hamster_miner'; // 多实例共用素材动画键（渲染按 animId 取键）
+        this._skipNeutralSprite = true; // 由侍从渲染管线接管，禁止 _syncNeutralEntities 画兜底棕圆
         this._enemyTargetable = true; // 防守怪可锁定（露娜无此标记，保持不拉仇恨）
         this.x = x;
         this.y = y;
@@ -33,6 +36,9 @@ export class HamsterMiner extends Companion {
         this.size = 84; // distanceToEntityShape 兜底
         this.hittable = true;
         this.hitFlash = 0;
+        // 隐藏背包（2026-08-15）：采矿自动装填能量，默认 500，仓鼠小屋「背包扩容」每级 +100
+        this._energyCarried = 0;
+        this._energyCapacity = this.aiConfig?.backpackCapacity || 500;
         this._dying = false;
         this._deathTimer = 0;
         this._ai = new HamsterMinerAI(this);
@@ -67,10 +73,21 @@ export class HamsterMiner extends Companion {
         this.isMoving = false;
         this.maxSpeed = 0;
         this._deathTimer = DYING_DURATION_MS;
+        // 被击杀：携带能量全部丢失（不返还、不掉落）
+        if (this._energyCarried > 0 && EffectManager) {
+            EffectManager.add(new FloatingTextEffect(this.x, this.y - 46, `丢失 ${this._energyCarried} 能量`, '#ff8855'));
+            this._energyCarried = 0;
+        }
     }
 
-    /** 仓鼠小屋升级后刷新本矿工参数（间隔/伤害/移速/采矿效率） */
+    /** 仓鼠小屋升级后刷新本矿工参数（间隔/伤害/移速/采矿效率/背包容量） */
     applyHutUpgrades(u) {
+        if (typeof u.backpackCapacity === 'number' && u.backpackCapacity > 0) {
+            this._energyCapacity = u.backpackCapacity;
+            if (this._energyCarried > this._energyCapacity) {
+                this._energyCarried = this._energyCapacity;
+            }
+        }
         if (this._ai) this._ai.applyUpgrades(u);
     }
 
