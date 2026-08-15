@@ -55,12 +55,17 @@ const GATE_SNAP = (() => {
 /** 吸附触发距离（世界像素）：鼠标预览的墙端锚点与既有墙端锚点在此距离内即吸附 */
 const SNAP_RADIUS = 60;
 /**
- * 门拼接重叠（世界像素，2026-08-16）：门的端帽是独立柱子，若按掩体的 40px
- * 重叠贴拼，两根柱子在接缝处错位成"双柱"（图层覆盖错误）。
- * 门的端柱应当**叠在同一位置**（门面线端点重合 → 两根柱子像素叠合 = 一根柱），
- * 故门与门/掩体拼接时重叠取小值 4px（防取整发丝缝，叠合后仍近不可见）。
+ * 门拼接重叠（世界像素，2026-08-16 二修）：门的端帽是独立柱子，端柱视觉中心
+ * 不在面线端点上（柱体含纵深投影，左右柱中心分别距各自 face 端 ~37 world px）。
+ * 实测（cell 数据 + 精灵锚点模拟）：
+ *   face 重叠 4px  → 两柱间隙 4.8px（用户可见"门柱之间有缝"）；
+ *   face 重叠 51px → 两柱视觉区完全叠合 = 一根柱（无缝，同墙的"端帽互盖"效果）。
+ * 故门与门/掩体拼接时 face 重叠取 51px（约门柱中心对齐点 50.5 + 余量）。
  */
-const GATE_SNAP_OVERLAP = 4;
+const GATE_SNAP_OVERLAP = 51;
+/** 门拼接允许的端部叠合余量（minGap 用，世界像素）：门端柱叠合最多 ~24px
+ * 视为合法端部接触，更深的端叠/中段重叠仍拒绝。 */
+const GATE_JOIN_ALLOW = 24;
 /**
  * 接缝叠合量（世界像素）：吸附后新件沿走向回退，保证接缝只叠不缺。
  * 2026-08-05 从 8 加大到 40：完整 box 端帽（端面宽 ≈52）在 8px 重叠下未被
@@ -462,7 +467,11 @@ export const BuildingSystem = {
         const al = Math.hypot(ax, ay) || 1;
         const dot = (best.e.x - best.x) * ax + (best.e.y - best.y) * ay;
         const dir = dot >= 0 ? -1 : 1;
-        const overlap = item.kind === 'gate' ? GATE_SNAP_OVERLAP : SNAP_OVERLAP;
+        // 门对门：端柱需叠在同一位置（51px，见 GATE_SNAP_OVERLAP 注释）；
+        // 门对掩体：门的端柱应贴合在墙端（face 端点重合，重叠 0）。
+        const overlap = item.kind === 'gate'
+            ? (best.e._isCoverGate ? GATE_SNAP_OVERLAP : 0)
+            : SNAP_OVERLAP;
         best.x -= (ax / al) * overlap * dir;
         best.y -= (ay / al) * overlap * dir;
         return best;
@@ -548,12 +557,20 @@ export const BuildingSystem = {
                     // 已有掩体：线段 + 墙厚
                     const eThick = e._coverHalfThick ?? 26;
                     const minGap = (thick + eThick) / 2
-                        - (this._placing.item.kind === 'gate' ? GATE_SNAP_OVERLAP : SNAP_OVERLAP);
+                        - (this._placing.item.kind === 'gate' ? GATE_JOIN_ALLOW : SNAP_OVERLAP);
                     const cp = this._segSegClosest(seg[0], seg[1], e._faceLine[0], e._faceLine[1]);
                     // 端点-端点接触（吸附拼接的 8px 叠合）允许；只有“端部插入
                     // 对方墙段中部/侧向侵入”才拒绝——平铺摆放判定只认底部碰撞体积
-                    const endEnd = (cp.s <= 1e-4 || cp.s >= 1 - 1e-4)
-                        && (cp.t <= 1e-4 || cp.t >= 1 - 1e-4);
+                    // 端帽叠合容差（2026-08-16 实锤修复）：吸附回退让新件端点在既有件
+                    // 端帽内 4px（门 GATE_SNAP_OVERLAP）~40px（掩体），最近点参数落在
+                    // 端部 1%~20%；旧 1e-4 会把"门 4px 回退 → s≈0.013"的合法端到端
+                    // 拼接误判为重叠拒绝（吸附成功但 canPlace=false，用户看不到吸附）。
+                    // 8% ≈ 门 24px / 掩体 16px 的端部接触；更深的中段重叠仍被 minGap 拒绝。
+                    // 端帽容差（2026-08-16 二修）：门对门端柱叠合 51px → s≈0.169，
+                    // 门对掩体 face 重合 → s≈0；容差取 0.18 接受这两类合法端部接触；
+                    // 更深的端叠/中段重叠仍被 minGap 拒绝。
+                    const endEnd = (cp.s <= 0.18 || cp.s >= 1 - 0.18)
+                        && (cp.t <= 0.18 || cp.t >= 1 - 0.18);
                     if (!endEnd && cp.dist < minGap) return false;
                 } else {
                     // 塔/基地：圆心距离粗判

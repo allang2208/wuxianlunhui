@@ -1823,6 +1823,7 @@ export const DefenseSystem = {
 
     update(dt) {
         if (!this.active || this.defeated) return;
+        syncGateSeamDepths(); // 拼接缝图层偏置（左门右柱盖右门左柱）随放置/拆除每帧同步
         this._elapsed += dt;
         this._repairTick(dt);
         if (this.gate) this.gate.update(dt); // 友军靠近自动开门 / 离开延时关门
@@ -2524,6 +2525,51 @@ function unstickUnitsFromGate(A, B, halfThick) {
     return pushed;
 }
 
+/** 门拼接缝图层规则（2026-08-16，用户指定）：左右两门拼接时，**左门的右柱**盖在
+ *  **右门的左柱**之上（对齐墙的 depthBias 转角规则）。自然深度下右门左柱因面线
+ *  叠 51px 深 ~22.8px 会盖左门右柱，需按缝成对加偏置：左门右柱 +diff、右门左柱 −diff
+ *  （diff = 邻柱自然深度差 + 0.5）。同步精灵深度与遮挡面线段，保证仲裁一致。 */
+function syncGateSeamDepths() {
+    const D = (typeof DefenseSystem !== 'undefined') ? DefenseSystem : null;
+    const list = [];
+    if (D) {
+        if (D.gate) list.push(D.gate);
+        if (Array.isArray(D.gates)) {
+            for (const g of D.gates) if (g && g.active) list.push(g);
+        }
+    }
+    if (!list.length) return;
+    for (const g of list) { g._seamBiasR = 0; g._seamBiasL = 0; }
+    const faceEnd = (g) => {
+        if (g._faceLine && g._faceLine.length === 2) return g._faceLine;
+        if (g._gateSeg) return [{ x: g._gateSeg.x1, y: g._gateSeg.y1 }, { x: g._gateSeg.x2, y: g._gateSeg.y2 }];
+        return null;
+    };
+    const SEAM_TOUCH = 70; // 51px face 叠合 + 端柱余量
+    for (let i = 0; i < list.length; i++) {
+        for (let j = i + 1; j < list.length; j++) {
+            const g = list[i];
+            const h = list[j];
+            const gf = faceEnd(g);
+            const hf = faceEnd(h);
+            if (!gf || !hf) continue;
+            const dAB = Math.hypot(gf[1].x - hf[0].x, gf[1].y - hf[0].y);
+            const dBA = Math.hypot(gf[0].x - hf[1].x, gf[0].y - hf[1].y);
+            if (dAB <= SEAM_TOUCH) {
+                // g 右端 ≈ h 左端 → g 是左门：g 右柱盖 h 左柱
+                const diff = (h._depthL - g._depthR) + 0.5;
+                if (diff > 0) { g._seamBiasR += diff; h._seamBiasL -= diff; }
+            }
+            if (dBA <= SEAM_TOUCH) {
+                // g 左端 ≈ h 右端 → h 是左门：h 右柱盖 g 左柱
+                const diff = (g._depthL - h._depthR) + 0.5;
+                if (diff > 0) { h._seamBiasR += diff; g._seamBiasL -= diff; }
+            }
+        }
+    }
+    for (const g of list) { if (typeof g._applySeamBias === 'function') g._applySeamBias(); }
+}
+
 const CoverGate = {
     place(center, A, B, cfg) {
         const scene = (typeof window !== 'undefined') ? window.__phaserScene : null;
@@ -2543,6 +2589,9 @@ const CoverGate = {
         this._depthL = A.y + 12;
         this._depthR = B.y + 12;
         this._depthBars = (A.y + B.y) / 2 + 12;
+        this._faceLine = [A, B];
+        this._seamBiasL = 0;
+        this._seamBiasR = 0;
         this._destroySprites();
         const sprites = createGateSprites(cfg0, this._cx, this._cy, k, this._depthL, this._depthR, this._depthBars, !!cfg0.flipX);
         this.spriteL = sprites ? sprites.spriteL : null;
@@ -2593,6 +2642,18 @@ const CoverGate = {
             if (s && s.destroy) s.destroy();
         }
         this.spriteL = this.spriteR = this.sprite = null;
+    },
+
+    /** 应用拼接缝偏置（左门右柱盖右门左柱，2026-08-16）；同步精灵与遮挡面线段。 */
+    _applySeamBias() {
+        const bL = this._seamBiasL || 0;
+        const bR = this._seamBiasR || 0;
+        if (this.spriteL) this.spriteL.setDepth(this._depthL + bL);
+        if (this.spriteR) this.spriteR.setDepth(this._depthR + bR);
+        if (this._depthSegs) {
+            if (this._depthSegs[0]) this._depthSegs[0].depth = this._depthL + bL;
+            if (this._depthSegs[2]) this._depthSegs[2].depth = this._depthR + bR;
+        }
     },
 
     /** 状态机默认关闭 → 友军靠近打开 → 友军离开延时关闭（2026-08-15）。 */
@@ -2794,6 +2855,8 @@ class BuildableGate extends Combatant {
         this._depthR = B.y + 12;
         this._depthBars = (A.y + B.y) / 2 + 12;
         this._faceDepth = Math.max(A.y, B.y) + 12; // 与掩体同口径的通用锚点
+        this._seamBiasL = 0;
+        this._seamBiasR = 0;
         const sprites = createGateSprites(cfg, this._spriteCx, this._spriteCy, k, this._depthL, this._depthR, this._depthBars, this._facingLeft);
         this.spriteL = sprites ? sprites.spriteL : null;
         this.spriteR = sprites ? sprites.spriteR : null;
@@ -2826,6 +2889,18 @@ class BuildableGate extends Combatant {
         const i = reg.indexOf(s);
         if (enabled && i < 0) reg.push(s);
         else if (!enabled && i >= 0) reg.splice(i, 1);
+    }
+
+    /** 应用拼接缝偏置（左门右柱盖右门左柱，2026-08-16）；同步精灵与遮挡面线段。 */
+    _applySeamBias() {
+        const bL = this._seamBiasL || 0;
+        const bR = this._seamBiasR || 0;
+        if (this.spriteL) this.spriteL.setDepth(this._depthL + bL);
+        if (this.spriteR) this.spriteR.setDepth(this._depthR + bR);
+        if (this._depthSegs) {
+            if (this._depthSegs[0]) this._depthSegs[0].depth = this._depthL + bL;
+            if (this._depthSegs[2]) this._depthSegs[2].depth = this._depthR + bR;
+        }
     }
 
     /**
@@ -2977,4 +3052,7 @@ class BuildableGate extends Combatant {
 // 详情视图的「修理」按钮（BuildingSystem._repairCover，仅掩体）。
 // _setRepairHeld / _repairTick 方法体保留备用，此处不再注册任何监听器。
 
-export { DefenseBase, DefenseCover, DefenseTower, BuildableGate, GATE_GEOM, GATE_GRADES, gateConfigFor, GATE_CONFIG };
+export {
+    DefenseBase, DefenseCover, DefenseTower, BuildableGate,
+    GATE_GEOM, GATE_GRADES, gateConfigFor, GATE_CONFIG, syncGateSeamDepths,
+};
