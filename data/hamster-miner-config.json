@@ -18,6 +18,7 @@
     "miningRange": 80,
     "attackInterval": 2000,
     "attackDamage": 100,
+    "backpackCapacity": 500,
     "decisionMs": 120,
     "followOffset": 150,
     "teleportDist": 999999,

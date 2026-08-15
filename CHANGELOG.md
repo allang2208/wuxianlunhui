@@ -1,4 +1,31 @@
 # 变更日志
+### 对话：仓鼠矿工隐藏背包物流 + 小屋卸货/门动画 + 背包扩容升级（2026-08-15）
+- **隐藏背包**：矿工 `_energyCarried` 默认上限 500（`ai.backpackCapacity`），采矿时
+  自动拾取地面能源掉落进背包（100px 半径、150ms 节流）；采矿效率加成也装入背包。
+- **满载回屋卸货**：背包满 → `_phase='return'` 走回小屋门口 → `_startUnload` 卸货
+  （idle 2s，不移动不交战）；能量经 `EnergyManager.addEnergy` 自动进玩家背包，
+  **玩家背包满则剩余暂存小屋 `_storedEnergy`**（小屋 update 每帧尝试补入玩家背包）；
+  卸货期间小屋 `openDoor()` 开门动画，2s 后 AI 调 `closeDoor()` 关门并重新出发采矿。
+- **丢失规则**：小屋被摧毁 → 暂存能量全部丢失（飘字提示）；矿工被击杀 → 携带能量
+  全部丢失（飘字提示，不返还不掉落）。
+- **背包扩容升级**：小屋升级栏新增「背包扩容」模块（icon 🎒，每级 +100，满级 10，
+  费用与其它模块一致 1000 金 + 500 能）；`getHutMults` 增加 `backpackCapacity`
+  （默认 500 + 等级×100），升级即时同步到存活矿工。
+- **面板**：小屋状态栏新增「矿工背包 carried/cap · 小屋暂存 X」。
+- **验证**：契约测试 40/40；CDP 实机探针 22/22（拾取/满载回屋/卸货+500/门开关/
+  扩容 500→600/原有采矿挥锄、行走两段式、交战、死亡全绿）；eslint 0 error；build 通过。
+### 对话：仓鼠矿工「贴图背后棕色圆圈」根因修复（2026-08-15）
+- **根因**：仓鼠矿工在 Game.entities 中，但贴图由侍从渲染管线 `_syncCompanionSprites`
+  单独管理（不写 `_phaserSprite`），穿透 `_syncNeutralEntities` 的全部过滤条件
+  （非玩家/非敌人/无 _phaserSprite/无 _skipNeutralSprite），被额外生成中立兜底圆
+  `neutral_circle`（白色 32px 纹理）并按缺省色 `#d4c5a9` 染色成棕褐色圆
+  （size 84 → 直径 168px），深度低于侍从精灵 → 表现为「贴图背后棕色圆圈」，
+  并附带重复的「仓鼠矿工 HP/HP」标签。贴图素材本身全帧排查无圆圈（四张表 32 帧全检）。
+- **修复**：`GameScene._syncNeutralEntities` 增加过滤——实体 id 已在 `_companionSprites`
+  中（侍从管线已接管）则跳过中立占位圆。仓鼠矿工 id 由小屋分配唯一键
+  （`hutId_miner_seq`），与 `_companionSprites` 键一致，多实例安全。
+- **验证**：node --check 通过；eslint 0 error / 13 warning（全为既有）。
+  备份 backup/v2026-08-15_11-36-48。
 ### 对话：双门拼接图层修复 + 开关门推开单位（2026-08-16）
 - **双门拼接（图层覆盖错误根因）**：门的端帽是独立柱子，按掩体 40px 重叠贴拼时
   两根柱子在接缝处错位成"双柱"（图层覆盖错误）。修复：门拼接重叠改 `GATE_SNAP_OVERLAP=4px`

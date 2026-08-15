@@ -26,6 +26,10 @@ export class HamsterMinerAI {
         this._engageRange = this.cfg.engageRange ?? 340;   // 发现敌人半径（仓鼠小屋防御）
         this._attackRange = this.cfg.attackRange ?? 48;    // 近战贴脸距离
         this.miningMult = this.cfg.miningMult ?? 1;        // 采矿效率倍率（小屋升级）
+        // 隐藏背包物流（2026-08-15）：work 采矿 → return 回小屋 → unload 卸货（idle 2s + 门开关）
+        this._phase = 'work';          // 'work' | 'return' | 'unload'
+        this._unloadTimer = 0;
+        this._pickupTimer = 0;
     }
 
     /** 仓鼠小屋升级后刷新战斗参数（间隔/伤害/移速/采矿效率） */
@@ -45,6 +49,12 @@ export class HamsterMinerAI {
             this.miningMult = u.miningMult;
             this.cfg.miningMult = u.miningMult;
         }
+        if (typeof u.backpackCapacity === 'number' && u.backpackCapacity > 0) {
+            this.m._energyCapacity = u.backpackCapacity;
+            if (this.m._energyCarried > this.m._energyCapacity) {
+                this.m._energyCarried = this.m._energyCapacity;
+            }
+        }
     }
 
     /**
@@ -58,9 +68,35 @@ export class HamsterMinerAI {
 
         this._attackTimer = Math.max(0, this._attackTimer - dt);
         this._decisionTimer -= dt;
+
+        // 卸货阶段：小屋门口 idle 2s（不移动不交战），结束后关门并重新出发
+        if (this._phase === 'unload') {
+            this._unloadTimer -= dt;
+            m._animState = 'idle';
+            m._tacticalTarget = null;
+            m.target = null;
+            m._enemyTarget = null;
+            m.vx = 0;
+            m.vy = 0;
+            m.isMoving = false;
+            m.maxSpeed = 0;
+            if (this._unloadTimer <= 0) {
+                this._phase = 'work';
+                if (m._hut && typeof m._hut.closeDoor === 'function') m._hut.closeDoor();
+            }
+            return;
+        }
+
         if (this._decisionTimer <= 0) {
             this._decisionTimer = this.cfg.decisionMs ?? 120;
             this._tick(entities);
+        }
+
+        // 工作阶段：自动拾取地面能量进隐藏背包（150ms 节流）
+        this._pickupTimer -= dt;
+        if (this._phase === 'work' && this._pickupTimer <= 0) {
+            this._pickupTimer = 150;
+            this._pickupEnergyDrops(entities);
         }
 
         // 敌人交战/采矿中：站定（不调用 MovementSystem 移动），持续攻击
@@ -87,6 +123,16 @@ export class HamsterMinerAI {
      */
     _tick(entities) {
         const m = this.m;
+        // 卸货阶段：保持 idle（不进入战斗）
+        if (this._phase === 'unload') {
+            m._animState = 'idle';
+            m._tacticalTarget = null;
+            m.target = null;
+            m._enemyTarget = null;
+            m.maxSpeed = 0;
+            return;
+        }
+
         // 敌人优先（仓鼠小屋防御）：发现敌人 → 追击近战
         const enemy = this._nearestEnemy(entities, this._engageRange);
         if (enemy) {
@@ -108,6 +154,32 @@ export class HamsterMinerAI {
             return;
         }
         m._enemyTarget = null;
+
+        // 返回小屋卸货：背包满后直奔小屋门口
+        if (this._phase === 'return') {
+            const hut = m._hut;
+            if (!hut || !hut.active) {
+                this._phase = 'work'; // 小屋没了（防御性兜底，正常随小屋销毁）
+            } else {
+                const dist = Math.hypot(hut.x - m.x, hut.y - m.y);
+                if (dist <= 70) {
+                    this._startUnload();
+                } else {
+                    m.target = null;
+                    m._tacticalTarget = { x: hut.x, y: hut.y };
+                    m._animState = 'walk';
+                    m.maxSpeed = this.cfg.walkSpeed ?? 80;
+                }
+            }
+            return;
+        }
+
+        // 工作阶段：隐藏背包满 → 返回小屋卸货
+        const capacity = m._energyCapacity || 500;
+        if (m._energyCarried >= capacity) {
+            this._startReturn();
+            return;
+        }
 
         // 当前矿点目标失效（枯竭/被清）→ 放弃，重新寻找
         const t = m.target;
@@ -181,15 +253,77 @@ export class HamsterMinerAI {
         if (typeof node.takeDamage === 'function') {
             const dealt = node.takeDamage(this._attackDamage, m, 'physical', true) || 0;
             m._miningSwing = true; // 攻击命中 → 渲染层播一次挥锄动画（2026-08-15）
-            // 采矿效率：矿点按 gatherRatio 掉能源之外，效率加成直接注入背包
+            // 采矿效率：矿点按 gatherRatio 掉能源之外，效率加成装入隐藏背包
             if (this.miningMult > 1.001 && EnergyManager) {
                 const bonus = Math.round(dealt * (ENERGY_CONFIG.gatherRatio || 0.5) * (this.miningMult - 1));
-                if (bonus > 0 && EnergyManager.addEnergy(bonus)) {
-                    if (EffectManager) {
-                        EffectManager.add(new FloatingTextEffect(m.x, m.y - 28, `+${bonus}⚡`, '#7fd4ff'));
+                if (bonus > 0) {
+                    const capacity = m._energyCapacity || 500;
+                    const take = Math.min(bonus, Math.max(0, capacity - m._energyCarried));
+                    m._energyCarried += take;
+                    if (take > 0 && EffectManager) {
+                        EffectManager.add(new FloatingTextEffect(m.x, m.y - 28, `+${take}⚡`, '#7fd4ff'));
                     }
                 }
             }
+        }
+    }
+
+    /** 自动拾取地面能源掉落进隐藏背包（上限=背包容量；已满不再拾取，留给玩家） */
+    _pickupEnergyDrops(entities) {
+        const m = this.m;
+        const capacity = m._energyCapacity || 500;
+        if (m._energyCarried >= capacity) return;
+        const radius = 100;
+        const pick = (key, e) => {
+            if (!e || !e.active) return false;
+            if (!e.itemData || e.itemData.category !== 'energy') return false;
+            if (Math.hypot(e.x - m.x, e.y - m.y) > radius) return false;
+            const amount = e.itemData.stack || 1;
+            const take = Math.min(amount, capacity - m._energyCarried);
+            if (take <= 0) return true; // 已满，不处理
+            m._energyCarried += take;
+            e.active = false;
+            if (typeof e._destroyPhaserSprite === 'function') e._destroyPhaserSprite();
+            if (key !== null && entities && typeof entities.delete === 'function') entities.delete(key);
+            return m._energyCarried >= capacity;
+        };
+        if (entities && typeof entities.entries === 'function') {
+            for (const [key, e] of entities.entries()) {
+                if (pick(key, e)) break;
+            }
+        } else {
+            for (const e of (entities || [])) {
+                if (pick(null, e)) break;
+            }
+        }
+    }
+
+    /** 背包满 → 进入返回小屋阶段 */
+    _startReturn() {
+        const m = this.m;
+        this._phase = 'return';
+        m.target = null;
+        m._enemyTarget = null;
+        if (EffectManager) {
+            EffectManager.add(new FloatingTextEffect(m.x, m.y - 32, '背包已满，返回小屋', '#ffaa55'));
+        }
+    }
+
+    /** 到达小屋 → 卸货：能量移交玩家背包（满则暂存小屋），门开 + idle 2s */
+    _startUnload() {
+        const m = this.m;
+        this._phase = 'unload';
+        this._unloadTimer = 2000;
+        m._animState = 'idle';
+        m._tacticalTarget = null;
+        m.target = null;
+        m._enemyTarget = null;
+        m.vx = 0;
+        m.vy = 0;
+        m.isMoving = false;
+        m.maxSpeed = 0;
+        if (m._hut && typeof m._hut.unloadMiner === 'function') {
+            m._hut.unloadMiner(m);
         }
     }
 

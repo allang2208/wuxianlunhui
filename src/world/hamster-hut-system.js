@@ -46,6 +46,7 @@ export const HAMSTER_CONFIG = {
         engageRange: 340,
         attackRange: 48,
         miningMult: 1,            // 采矿效率倍率（升级 +15%/级）
+        backpackCapacity: 500,    // 矿工隐藏背包默认容量（升级 +100/级，满级 10）
     },
     // 升级统一费用：每升一级消耗 1000 金币 + 500 能源（2026-08-15 用户口径）
     upgradeCost: { gold: 1000, energy: 500 },
@@ -56,6 +57,7 @@ export const HAMSTER_CONFIG = {
         damage:    { name: '攻击强化',   icon: '⚔️', per: 0.12, maxLevel: 10, desc: '每次攻击伤害 +{pct}%' },
         moveSpd:   { name: '机动强化',   icon: '👟', per: 0.05, maxLevel: 10, desc: '移动速度 +{pct}%（每级 +5%）' },
         count:     { name: '仓鼠增援',   icon: '🐹', per: 1,    maxLevel: 5,  desc: '仓鼠矿工数量 +1' },
+        backpack:  { name: '背包扩容',   icon: '🎒', per: 1,    maxLevel: 10, desc: '矿工背包容量 +{pct}' },
     },
 };
 
@@ -86,12 +88,14 @@ export function getHutMults(modules) {
         attackDamage: HAMSTER_CONFIG.miner.baseDamage,
         walkSpeed: HAMSTER_CONFIG.miner.walkSpeed,
         count: 1,
+        backpackCapacity: HAMSTER_CONFIG.miner.backpackCapacity,
     };
     if (cfg.mining && m.mining) out.miningMult = 1 + cfg.mining.per * m.mining;
     if (cfg.attackSpd && m.attackSpd) out.attackInterval = Math.max(300, Math.round(out.attackInterval * (1 + cfg.attackSpd.per * m.attackSpd)));
     if (cfg.damage && m.damage) out.attackDamage = Math.round(out.attackDamage * (1 + cfg.damage.per * m.damage));
     if (cfg.moveSpd && m.moveSpd) out.walkSpeed = Math.round(out.walkSpeed * (1 + cfg.moveSpd.per * m.moveSpd));
     if (cfg.count && m.count) out.count = 1 + m.count;
+    if (cfg.backpack && m.backpack) out.backpackCapacity = HAMSTER_CONFIG.miner.backpackCapacity + m.backpack * 100;
     return out;
 }
 
@@ -139,6 +143,7 @@ export class HamsterHut extends DamageableEntity {
         this._respawnTimer = 0;
         this._doorState = 'closed';   // 'closed' | 'opening' | 'open' | 'closing'
         this._pendingSpawn = false;   // 门动画结束后是否要生成矿工
+        this._storedEnergy = 0;       // 玩家背包满时暂存的能量（小屋被毁即丢失）
         this._spawnInitialMiners();
         this.rebuildCollider();
     }
@@ -179,6 +184,7 @@ export class HamsterHut extends DamageableEntity {
                 miningRange: HAMSTER_CONFIG.miner.miningRange,
                 engageRange: HAMSTER_CONFIG.miner.engageRange,
                 attackRange: HAMSTER_CONFIG.miner.attackRange,
+                backpackCapacity: mults.backpackCapacity,
                 decisionMs: 120,
             },
         });
@@ -236,6 +242,71 @@ export class HamsterHut extends DamageableEntity {
             sprite.setTexture('hamster_hut');
             sprite.setDisplaySize(this.spriteCfg.size, this.spriteCfg.sizeH);
         }
+    }
+
+    /** 矿工回屋卸货：开门动画（卸货期间保持开，由 AI 2s 后调 closeDoor） */
+    openDoor() {
+        const scene = typeof window !== 'undefined' ? window.__phaserScene : null;
+        const data = scene && scene._neutralSprites ? scene._neutralSprites.get(this) : null;
+        const sprite = data && data.sprite;
+        const anims = scene && scene.anims;
+        if (!sprite || !anims || !anims.exists('hamster_hut_door_open')) return;
+        if (this._doorState === 'opening' || this._doorState === 'open') return;
+        this._doorState = 'opening';
+        sprite.setTexture('hamster_hut_door');
+        sprite.setDisplaySize(this.spriteCfg.size, this.spriteCfg.sizeH);
+        sprite.play('hamster_hut_door_open', true);
+        sprite.once('animationcomplete', () => {
+            if (this._doorState !== 'opening') return;
+            this._doorState = 'open';
+            // 顺带处理门开后待生成矿工（与 _spawnWithDoor 同口径）
+            if (this._pendingSpawn) {
+                this._pendingSpawn = false;
+                this.spawnMiner(true);
+            }
+        });
+    }
+
+    /** 卸货结束：关门动画，门关闭后恢复小屋贴图 */
+    closeDoor() {
+        const scene = typeof window !== 'undefined' ? window.__phaserScene : null;
+        const data = scene && scene._neutralSprites ? scene._neutralSprites.get(this) : null;
+        const sprite = data && data.sprite;
+        if (this._doorState !== 'open' && this._doorState !== 'opening') return;
+        this._doorState = 'closing';
+        if (sprite && sprite.scene && sprite.scene.anims && sprite.scene.anims.exists('hamster_hut_door_close')) {
+            sprite.play('hamster_hut_door_close', true);
+            sprite.once('animationcomplete', () => this._onDoorClosed(sprite));
+        } else {
+            this._doorState = 'closed';
+        }
+    }
+
+    /**
+     * 矿工卸货：携带能量 → 玩家背包（EnergyManager = 玩家背包物品）；
+     * 玩家背包满则剩余暂存小屋（_storedEnergy），小屋被毁即丢失。
+     */
+    unloadMiner(miner) {
+        const total = (miner && miner._energyCarried) || 0;
+        miner._energyCarried = 0;
+        let added = 0;
+        let stored = 0;
+        if (total > 0 && EnergyManager) {
+            const before = EnergyManager.getEnergy();
+            EnergyManager.addEnergy(total);
+            added = EnergyManager.getEnergy() - before;
+            stored = Math.max(0, total - added);
+            if (stored > 0) this._storedEnergy += stored;
+        }
+        if (EffectManager) {
+            if (added > 0) {
+                EffectManager.add(new FloatingTextEffect(this.x, this.y - 56, `+${added} 能源`, '#7fd4ff'));
+            }
+            if (stored > 0) {
+                EffectManager.add(new FloatingTextEffect(this.x, this.y - 76, `背包满：${stored} 暂存小屋`, '#ffaa55'));
+            }
+        }
+        this.openDoor();
     }
 
     /** 小屋附近合法落点（优先随机偏移，WallSystem 校验，兜底小屋脚下） */
@@ -300,6 +371,7 @@ export class HamsterHut extends DamageableEntity {
             attackDamage: mults.attackDamage,
             walkSpeed: mults.walkSpeed,
             miningMult: mults.miningMult,
+            backpackCapacity: mults.backpackCapacity,
         };
         for (const m of this.miners) {
             if (m && m.active && !m._dying && typeof m.applyHutUpgrades === 'function') {
@@ -319,6 +391,18 @@ export class HamsterHut extends DamageableEntity {
         } else {
             this._respawnTimer = HAMSTER_CONFIG.hut.respawnMs;
         }
+        // 暂存能量自动补入玩家背包（背包腾出空间即转交；"暂存"语义）
+        if (this._storedEnergy > 0 && EnergyManager) {
+            const before = EnergyManager.getEnergy();
+            EnergyManager.addEnergy(this._storedEnergy);
+            const added = EnergyManager.getEnergy() - before;
+            if (added > 0) {
+                this._storedEnergy = Math.max(0, this._storedEnergy - added);
+                if (EffectManager) {
+                    EffectManager.add(new FloatingTextEffect(this.x, this.y - 56, `暂存移交 +${added} 能源`, '#7fd4ff'));
+                }
+            }
+        }
     }
 
     /** 小屋被摧毁：矿工随小屋消失 */
@@ -332,6 +416,7 @@ export class HamsterHut extends DamageableEntity {
     }
 
     _destroyHut() {
+        const lost = this._storedEnergy || 0;
         this.active = false;
         this._despawnMiners();
         if (Game && Game.entities && this.id) Game.entities.delete(this.id);
@@ -344,7 +429,8 @@ export class HamsterHut extends DamageableEntity {
             HamsterHutSystem._panel.close();
         }
         if (EffectManager) {
-            EffectManager.add(new FloatingTextEffect(this.x, this.y - 40, '仓鼠小屋被摧毁', '#ff8855'));
+            EffectManager.add(new FloatingTextEffect(this.x, this.y - 40,
+                lost > 0 ? `仓鼠小屋被摧毁（暂存 ${lost} 能源丢失）` : '仓鼠小屋被摧毁', '#ff8855'));
         }
     }
 
@@ -446,6 +532,8 @@ class HamsterHutPanel extends BasePanel {
         const st = el.querySelector('#hhStatus');
         const mults = h.mults();
         const gold = GoldManager ? GoldManager.getGold() : 0;
+        const carriedTotal = h.miners.reduce((s, mn) => s + ((mn && mn._energyCarried) || 0), 0);
+        const capTotal = h.miners.reduce((s, mn) => s + ((mn && mn._energyCapacity) || 0), 0);
         st.innerHTML = `
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
                 <div><span style="color:#ffd700;font-weight:700;">等级 ${h.level}</span></div>
@@ -456,7 +544,9 @@ class HamsterHutPanel extends BasePanel {
                 每次攻击伤害 <b style="color:#ff9d7a;">${mults.attackDamage}</b> ·
                 攻击间隔 <b style="color:#ff9d7a;">${mults.attackInterval}ms</b><br>
                 移动速度 <b style="color:#ff9d7a;">${mults.walkSpeed}</b> ·
-                采矿效率 <b style="color:#7fd4ff;">+${Math.round((mults.miningMult - 1) * 100)}%</b>
+                采矿效率 <b style="color:#7fd4ff;">+${Math.round((mults.miningMult - 1) * 100)}%</b><br>
+                矿工背包 <b style="color:#8ad0ff;">${carriedTotal}/${capTotal}</b> ·
+                小屋暂存 <b style="color:#ffaa55;">${h._storedEnergy || 0}</b>
             </div>`;
 
         const modBox = el.querySelector('#hhModules');

@@ -31,6 +31,8 @@ check('生命值 = 200（base 100 + con10×10）', miner.data.maxHp === 200 && m
 check('移动速度 = 80', hamsterCfg.ai.walkSpeed === 80 && hamsterCfg.ai.runSpeed === 80,
     `walkSpeed=${hamsterCfg.ai.walkSpeed}`);
 check('攻击间隔 = 2000ms / 伤害 = 100', hamsterCfg.ai.attackInterval === 2000 && hamsterCfg.ai.attackDamage === 100);
+check('隐藏背包默认容量 = 500', hamsterCfg.ai.backpackCapacity === 500,
+    `capacity=${hamsterCfg.ai.backpackCapacity}`);
 check('idle 动画 = 1 帧', hamsterCfg.animations.idle.frameCount === 1 && hamsterCfg.animations.idle.frames[0] === 0);
 check('walking 两段式 = 起步完整 [0,11] + 循环第3~12帧 [2,11]',
     hamsterCfg.animations.walk.frameCount === 12
@@ -76,13 +78,36 @@ check('AI 采矿/交战共用 mining 态、移动 walk、无节点 idle',
     /_animState = 'mining'/.test(aiSrc) && /_animState = 'walk'/.test(aiSrc) && /_animState = 'idle'/.test(aiSrc));
 check('AI 每次攻击命中置 _miningSwing（渲染层播挥锄）',
     (aiSrc.match(/_miningSwing = true/g) || []).length >= 2);
+check('AI 背包物流：work/return/unload 三阶段 + 自动拾取 + 回屋卸货',
+    /_phase = 'work'/.test(aiSrc) && /'return'/.test(aiSrc) && /'unload'/.test(aiSrc)
+    && /_pickupEnergyDrops\(/.test(aiSrc) && /_startReturn\(\)/.test(aiSrc)
+    && /_startUnload\(\)/.test(aiSrc) && /_energyCarried/.test(aiSrc));
+check('AI 采矿效率加成装入隐藏背包（不再直注玩家）',
+    /m\._energyCarried \+= take/.test(aiSrc));
 
 // ---- 4. 源码接线：实体受击/死亡/仇恨 ----
 const entSrc = fs.readFileSync(path.join(ROOT, 'src/entities/hamster-miner.js'), 'utf-8');
 check('实体 _faction=companion（复用 Companion）', /super\(archive\)/.test(entSrc));
 check('实体带 _enemyTargetable 标记（防守怪可锁定）', /_enemyTargetable = true/.test(entSrc));
+check('实体跳过中立兜底圆（_skipNeutralSprite，防棕色大圆）', /_skipNeutralSprite = true/.test(entSrc));
 check('实体提供 takeDamage 并触发死亡', /takeDamage\(damage, source/.test(entSrc) && /_startDying\(\)/.test(entSrc));
 check('死亡态 = dying', /_animState = 'dying'/.test(entSrc));
+check('实体隐藏背包字段 + 死亡丢失携带能量', /_energyCarried = 0/.test(entSrc)
+    && /_energyCapacity = this\.aiConfig\?\.backpackCapacity \|\| 500/.test(entSrc)
+    && /丢失 \$\{this\._energyCarried\} 能量/.test(entSrc));
+
+const hutSrc = fs.readFileSync(path.join(ROOT, 'src/world/hamster-hut-system.js'), 'utf-8');
+check('小屋新增背包扩容模块（每级 +100，满级 10）',
+    /backpack:\s*\{ name: '背包扩容'/.test(hutSrc)
+    && /per: 1,\s*maxLevel: 10/.test(hutSrc)
+    && /backpackCapacity = HAMSTER_CONFIG\.miner\.backpackCapacity \+ m\.backpack \* 100/.test(hutSrc));
+check('小屋卸货：unloadMiner 移交玩家背包 + 满则暂存 _storedEnergy',
+    /unloadMiner\(miner\)/.test(hutSrc) && /EnergyManager\.addEnergy\(total\)/.test(hutSrc)
+    && /this\._storedEnergy \+= stored/.test(hutSrc));
+check('小屋门开关（卸货开门 / 2s 后关门）', /openDoor\(\)/.test(hutSrc) && /closeDoor\(\)/.test(hutSrc)
+    && /hamster_hut_door_open/.test(hutSrc) && /hamster_hut_door_close/.test(hutSrc));
+check('小屋被毁丢失暂存能量', /lost > 0 \? `仓鼠小屋被摧毁（暂存 \$\{lost\} 能源丢失）`/.test(hutSrc));
+check('小屋暂存自动补入玩家背包', /_storedEnergy = Math\.max\(0, this\._storedEnergy - added\)/.test(hutSrc));
 
 // ---- 5. 源码接线：渲染 / 生成 / 仇恨 ----
 const gsSrc = fs.readFileSync(path.join(ROOT, 'src/phaser/scenes/GameScene.js'), 'utf-8');
