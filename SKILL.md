@@ -1265,11 +1265,12 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
 教训：上一版「AI 直出大理石 + 祭坛式建模」用户验收不过，这版「采样祭坛贴图 + 立方体底座」
 一次通过——核心视觉有现成素材时，先采样再考虑出图。
 
-**仓库（主神空间 NPC 建筑，2026-08-16）**：主神空间建筑走**正面平视**（elevation 5 + rot 0，
-平底），不是世界-122 的 44.8° 接地视角；结构 = 主厅 + prism 坡屋顶 + 中央滑门（铁板+门洞灯光）
-+ 两侧黄色灯窗 + 烟囱；`roof_tex` 单独指定屋顶贴图（新增 roof 材质），墙体采样
-`factory_wall_tex.png`（tex_warehouse 去灰带版）；入库紧身裁剪 688×514，NPC sprite
-`size:180 / sizeH:134 / footOffsetY:67`，clickArea 同步内容框。
+**宝箱（主神空间仓库 NPC，2026-08-16）**：主神空间「仓库」NPC 贴图实为**打开状态宝箱**
+（`warehouse.png` == `chest_opened.png`），建模走正面偏俯视（elevation 15，开口可见）；
+结构 = 木纹箱体（程序化 chest_wood_tex：暖棕底+竖直木纹+节疤）+ 后仰开盖 + 发光开口
+（interior 材质=宝藏光）+ 铁箍/锁（demon_iron_tex）+ 箱脚；入库紧身裁剪 688×493，
+NPC sprite `size:180 / sizeH:129 / footOffsetY:65`，clickArea 180×129。
+教训：用户说「仓库」实际指宝箱——先看 NPC 现有贴图内容（config 注释/贴图比对）再建模。
 
 ---
 
@@ -5266,12 +5267,13 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
   避开 A* 实体障碍），回屋用小屋边缘接近点（64px，触发 70px）。AI 层再加卡死看门狗
   （500ms 位移<3px 累计 2 次 → 挖矿重选目标 / 返回 `WallSystem.findSafeSpawn` 传送）；
   满载用 `_returnTriggered` 防 work/return 振荡。
-- **顶墙死循环修复（2026-08-15 实锤）**：`_followPath` 的移动被 `WallSystem.resolve`
-  判“完全阻挡”会每帧 `_clearPath()`（movement-system.js:1071），矿工路径留不住 →
-  直线顶墙 → 看门狗清目标重选 → 原地打转。修复：接近点外扩到
-  `max(miningRange, 节点半径+自身半径+40)`（≈111px 远离障碍/死区）；卡死看门狗升级
-  两段——第一次原地 `findSafeSpawn` 脱困，连续卡死直接传送到矿点旁 95px 合法点
-  （`canMoveTo` 校验，CompanionAI 同款瞬移兜底）。
+- **顶墙死循环根因（2026-08-15 实锤 + 根修）**：`_followPath` 的移动被
+  `WallSystem.resolve` 判“完全阻挡”会每帧 `_clearPath()`（movement-system.js:1071）。
+  实锤根因：起步/转向瞬间 vx≈0 产生**亚像素步长**，resolve 返回原地被误判为完全阻挡 →
+  路径留不住 → 直线顶墙。根修：**只有有效步长（≥1px）被阻挡才清路径**，亚像素抖动
+  直接跳过、速度沿航点累积自然走通；真正卡死由 `_tryUnstuck`/看门狗兜底。接近点
+  外扩到 `max(miningRange, 节点半径+自身半径+40)`（钳制在采矿范围内）；矿工卡死
+  看门狗两段（原地脱困 → 传送矿点旁 95px）降级为罕见安全网。
 - **背包物流三阶段**：`work`（采矿+自动拾取能量掉落进背包，150ms 节流）→
   背包满 `_startReturn` → 走回小屋 `_startUnload`（idle 2s，不移动不交战；
   小屋 `unloadMiner` 经 EnergyManager 进玩家背包，满则暂存小屋）→ 2s 后
