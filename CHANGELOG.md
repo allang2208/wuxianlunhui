@@ -1,4 +1,19 @@
 # 变更日志
+### 对话：仓鼠矿工动画口径修正——采矿挥锄触发式 + 行走两段式（2026-08-15）
+- **采矿动画（用户二轮口径）**：不再“全程定格”也不再“全程循环”——
+  攻击间隔（2s）内定格 mining 第 4 帧（索引 3）；**攻击命中瞬间播一次挥锄动画**：
+  首次播完整 1~19 帧（mining_start），之后每次播第 5~19 帧（mining，repeat 0 单次），
+  播完回到第 4 帧定格。AI 每次 `_tryAttack`/`_tryAttackEnemy` 命中置
+  `_miningSwing=true` 通知渲染层；GameScene 采矿分支按此播动画，动画完成回调
+  定格第 4 帧；挥锄播放期间不被 interval 分支打断（修复“只播一帧”bug）。
+- **行走动画两段式（用户口径）**：静止→移动先播一次完整 walking（1~12 帧，
+  walk_start，repeat 0），之后循环第 3~12 帧（walk，repeat -1）；
+  GameScene walk 分支按 `hamsterWalk` 标记起步→循环，回到 idle 复位。
+- **配置**：`data/hamster-miner-config.json` walk 改 startFrames [0,11] +
+  loopFrames [2,11]；mining repeat -1 → 0（单次挥锄）。
+- **验证**：契约测试 31/31；CDP 实机探针 17/17——采矿先 mining_start 后 mining、
+  间隔定格 frame3、每 2s -100；行走先 walk_start 后 walk 循环；eslint 0 error；
+  vite build 通过。
 ### 对话：仓鼠矿工迭代——采矿动画定格第4帧 + 小屋构造崩溃修复 + 棕色圆圈排查（2026-08-15）
 - **采矿动画改版（用户口径）**：采矿/攻击间隔期间不再播放攻击动画，
   GameScene 采矿分支改为定格 mining 贴图第 4 帧（索引 3，`setTexture(miningKey, 3)` +

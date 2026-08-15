@@ -5188,10 +5188,10 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
 - `ai`：`walkSpeed/runSpeed`（80）、`miningRange`（80）、`attackInterval`（2000）、
   `attackDamage`（100）、`decisionMs`（120）、`engageRange`（340，小屋防御交战半径）、
   `attackRange`（48，近战贴脸距离）。
-- `animations`：mining 素材 19 帧（`startFrames:[0,18]`/`loopFrames:[4,18]` 保留在
-  配置里供 BootScene 注册，但**渲染层不再播放**——2026-08-15 用户改口径：采矿/攻击
-  间隔不播攻击动画，GameScene 直接 `setTexture(miningKey, 3)` 定格第 4 帧；
-  dying `repeat:0` 只播一次。
+- `animations`：walk 两段式 `startFrames:[0,11]`（起步完整 12 帧，repeat 0）+
+  `loopFrames:[2,11]`（循环第 3~12 帧，repeat -1）；mining 素材 19 帧
+  `startFrames:[0,18]`（首次完整挥锄）+ `loopFrames:[4,18]`（后续第 5~19 帧，
+  **repeat 0 单次**）——攻击触发才播，间隔定格第 4 帧；dying `repeat:0` 只播一次。
 
 #### 3. 实体（src/entities/hamster-miner.js）
 - `extends Companion`（复用 data/六维/动画配置/运行时字段），`super(合成 archive)`。
@@ -5206,7 +5206,8 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
   `pickNearestNode`（只扫 `_isEnergyNode && active && !_depleted`）选最近矿点采矿。
 - 赶路：`_tacticalTarget = 矿点/敌人` + MovementSystem.update（移速 80）；
   到位（≤ miningRange + 节点半径）：站定 `_animState='mining'`（采矿与近战共用），
-  每 attackInterval 调 `node.takeDamage(attackDamage, 自身, 'physical', true)`。
+  每 attackInterval 调 `node.takeDamage(attackDamage, 自身, 'physical', true)`；
+  **每次命中置 `m._miningSwing=true`** 通知渲染层播挥锄动画。
 - 小屋升级：`applyUpgrades(u)` 同步攻击间隔/伤害/移速/采矿效率；实体
   `applyHutUpgrades` 委托给 AI。
 
@@ -5214,10 +5215,12 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
 - BootScene：加载 `companion_<id>_<动画>` 四张 sheet；动画注册沿用两段式
   startFrames/loopFrames 逻辑（mining_start 播一次 → mining 循环）。
 - GameScene `_syncCompanionSprites`：渲染对象 = `PartySystem.members` +
-  `Game.friendlyUnits`；动画分支：`dying`（防重播 data 标记）> `mining`（**定格
-  第 4 帧**：`setTexture(miningKey, 3)` + stop，不播动画）> spell/run/walk > idle
-  停帧；受击白闪 `hitFlash`；尺寸 `member.displaySize ?? PLAYER_DEFAULTS`；
-  多实例共用素材键 `animId`（`companion_${animId}_<动画>`）。
+  `Game.friendlyUnits`；动画分支：`dying`（防重播 data 标记）> `mining`（**攻击触发
+  播一次挥锄**：`_miningSwing` + data 标记，首次 mining_start、后续 mining，
+  animationcomplete 后定格第 4 帧 `setTexture(miningKey, 3)`；间隔不干预挥锄播放）>
+  spell/run > `walk`（**两段式**：`hamsterWalk` 标记，起步 walk_start 完整帧 →
+  animationcomplete 切 walk 循环）> idle 停帧；受击白闪 `hitFlash`；
+  尺寸 `member.displaySize ?? PLAYER_DEFAULTS`；多实例共用素材键 `animId`。
 - `_updateDynamicDepths` 的侍从深度查找也要带 friendlyUnits（墙后正常被遮挡）。
 
 #### 6. 生成/仇恨/验证
@@ -5229,7 +5232,8 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
 - PerceptionSystem `_isValidTarget`：放行 `_faction==='companion' && _enemyTargetable`，
   防守怪 `_preferDefenseTargets` 按交战半径锁定（与玩家同链，免 LOS 口径不变）。
 - 验证：`scripts/test-hamster-miner.mjs`（数据+接线契约）+ `tools/cdp-hamster-miner.mjs`
-  （实机：小屋生成/属性/最近节点/采矿定格第4帧/每2s-100/交战自卫生效/dying 移除）；
+  （实机：小屋生成/属性/最近节点/采矿挥锄+间隔定格第4帧/每2s-100/行走两段式/
+  交战自卫生效/dying 移除）；
   eslint 0 error + vite build。
 
 ---

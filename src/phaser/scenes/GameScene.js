@@ -538,12 +538,36 @@ export class GameScene extends Scene {
                         sprite.play(dyingKey, true);
                     }
                 } else if (st === 'mining' && anims.mining && this.textures.exists(miningKey)) {
-                    // 采矿（攻击间隔）不播攻击动画：定格 mining 贴图第 4 帧（索引 3）——
-                    // 2026-08-15 用户口径，替代原「完整 19 帧起步 + 5~19 帧循环」两段式
-                    sprite.setData('hamsterMining', false);
-                    if (sprite.anims.isPlaying) sprite.anims.stop();
-                    if (sprite.texture.key !== miningKey || sprite.frame.name !== 3) {
-                        sprite.setTexture(miningKey, 3);
+                    // 采矿动画 = 攻击触发时播一次挥锄，其余攻击间隔定格第 4 帧（索引 3）。
+                    // AI 每次命中置 _miningSwing；首次完整 1~19 帧，之后第 5~19 帧单次。
+                    const miningStartKey = `${miningKey}_start`;
+                    if (member._miningSwing && !sprite.getData('miningSwing')) {
+                        sprite.setData('miningSwing', true);
+                        const firstSwing = !sprite.getData('hamsterMining');
+                        sprite.setData('hamsterMining', true);
+                        if (firstSwing && anims.mining.startFrames && this.anims.exists(miningStartKey)) {
+                            sprite.play(miningStartKey, true);
+                        } else {
+                            sprite.play(miningKey, true);
+                        }
+                        sprite.removeAllListeners('animationcomplete');
+                        sprite.once('animationcomplete', (anim) => {
+                            if (anim && anim.key !== miningStartKey && anim.key !== miningKey) return;
+                            sprite.setData('miningSwing', false);
+                            member._miningSwing = false;
+                            // 挥完定格第 4 帧，直到下一次攻击
+                            if (sprite.anims.isPlaying) sprite.anims.stop();
+                            if (sprite.texture.key !== miningKey || sprite.frame.name !== 3) {
+                                sprite.setTexture(miningKey, 3);
+                            }
+                        });
+                    } else if (!sprite.getData('miningSwing')) {
+                        // 攻击间隔：定格第 4 帧
+                        sprite.setData('miningSwing', false);
+                        if (sprite.anims.isPlaying) sprite.anims.stop();
+                        if (sprite.texture.key !== miningKey || sprite.frame.name !== 3) {
+                            sprite.setTexture(miningKey, 3);
+                        }
                     }
                 } else if (st === 'spell' && anims.spell && this.textures.exists(spellKey)) {
                     // 重播条件 = 动画已停止（被 idle 停帧 setTexture 打断）或键变化。
@@ -557,13 +581,34 @@ export class GameScene extends Scene {
                         sprite.play(runKey, true);
                     }
                 } else if (st === 'walk') {
-                    if (!sprite.anims.isPlaying || sprite.anims.currentAnim?.key !== walkKey) {
+                    // 静止→移动：先播一次完整 walking（walk_start），再循环第 3~12 帧（walk）
+                    const walkStartKey = `${walkKey}_start`;
+                    if (anims.walk.startFrames && this.anims.exists(walkStartKey)) {
+                        if (!sprite.getData('hamsterWalk')) {
+                            sprite.setData('hamsterWalk', true);
+                            sprite.play(walkStartKey, true);
+                            sprite.removeAllListeners('animationcomplete');
+                            sprite.once('animationcomplete', () => {
+                                if (sprite.getData('hamsterWalk')
+                                    && sprite.anims.currentAnim?.key === walkStartKey) {
+                                    sprite.play(walkKey, true);
+                                }
+                            });
+                        } else if (!sprite.anims.isPlaying
+                            || (sprite.anims.currentAnim?.key !== walkKey
+                                && sprite.anims.currentAnim?.key !== walkStartKey)) {
+                            sprite.play(walkKey, true);
+                        }
+                    } else if (!sprite.anims.isPlaying || sprite.anims.currentAnim?.key !== walkKey) {
                         sprite.play(walkKey, true);
                     }
                 } else {
                     sprite.setData('hamsterDying', false);
                     sprite.setData('hamsterMining', false);
+                    sprite.setData('miningSwing', false);
+                    sprite.setData('hamsterWalk', false);
                     sprite.setData('lunaRunning', false);
+                    if (member._miningSwing) member._miningSwing = false;
                     if (sprite.anims.isPlaying) sprite.anims.stop();
                     const idleKey = sprite.getData('companionIdleKey');
                     const idleFrame = sprite.getData('companionIdleFrame');
