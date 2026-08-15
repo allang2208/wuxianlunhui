@@ -156,7 +156,7 @@ def make_half_cylinder(L, R, segments=32):
     for s in range(segments):
         a0, a1 = rings[s]
         b0, b1 = rings[s + 1]
-        bm.faces.new([a0, a1, b1, b0])
+        bm.faces.new([a0, b0, b1, a1])
     # 两端实心半圆端盖
     for end in (0, 1):
         arc = [rings[s][end] for s in range(segments + 1)]
@@ -165,6 +165,9 @@ def make_half_cylinder(L, R, segments=32):
             bm.faces.new([center, arc[s], arc[s + 1]])
     # 底面（z=0 矩形）
     bm.faces.new([rings[0][0], rings[0][1], rings[-1][1], rings[-1][0]])
+    # 法线一致化（显式建面时拱面绕序易反 → 背面剔除/背光发黑）
+    bpy.ops.mesh.select_all(action="SELECT")
+    bpy.ops.mesh.normals_make_consistent(inside=False)
     bmesh.update_edit_mesh(o.data)
     bpy.ops.object.mode_set(mode="OBJECT")
     # UV：拱面沿长度 u / 沿弧 v；端盖极坐标；底面平面
@@ -184,6 +187,11 @@ def make_half_cylinder(L, R, segments=32):
                 u = (co.x + half) / L
                 v = math.atan2(co.z, co.y) / math.pi
             uvl.data[li].uv = (u, v)
+    if os.environ.get("FACTORY_DEBUG"):
+        for pi, poly in enumerate(o.data.polygons[:6]):
+            uv = [uvl.data[li].uv[:] for li in poly.loop_indices]
+            n = [tuple(round(x, 3) for x in o.data.vertices[v].co[:]) for v in poly.vertices]
+            print(f"[factory-debug] arch face {pi}: uv={uv} verts={n}")
     return o
 
 
