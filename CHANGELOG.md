@@ -1,5 +1,146 @@
 # 变更日志
 
+
+### 对话：弧形刀光通用性修复（2026-08-16）
+- 排查确认 `SwordArcTrail` 没有 `scene8/main` 场景分支，也不是隐藏代码问题。
+- 世界-122 不可见主因是亮色地面让半透明白色弧光对比度不足。
+- 修复：新增 `outlineEnabled` 黑色轮廓底层；二轮继续加强对比度——
+  outlineAlpha 0.16→0.3、outlineHalfWidth 0.58→0.68、alphaCore 0.52→0.8、
+  alphaMid 0.24→0.4、alphaOuter 0.14→0.22、lifeMs 180→220、maxCount 20→28；
+  刀光深度从剑下一层改为剑上一层（只要剑可见，刀光必然可见）；
+  不写场景判断，所有地图通用。
+- 版本：0.377。
+
+
+### 对话：剑气重做为平滑弧形刀光（2026-08-16）
+- 旧剑气 `SwordAuraTrail` 停用；新增 `src/effects/sword-arc-trail.js`。
+- 采样历史剑位 → 运动法线展开 Ribbon → Catmull-Rom 平滑 → 外层/中层/内层三层多边形叠加。
+- 新增 `sword.arc` 配置；GameScene 四个攻击渲染分支改用 `_swordArcTrail` 采样。
+- 版本：0.377。
+
+
+### 对话：剑气效果暂时停用（2026-08-16）
+- 用户反馈当前剑气仍显生硬，暂时删除游戏内表现。
+- 处理：`sword.aura.enabled = false`；`SwordAuraTrail` 代码与配置保留，后续重做直接改回 `true`。
+- 版本：0.377。
+
+
+### 对话：剑气覆盖整剑 + 垂直不超宽（2026-08-16）
+- **覆盖整剑**：`_ensureTexture()` 改为 128×64 多竖线纹理，沿剑身方向等距排布
+  `perpendicularStripeCount` 条竖直线；一次采样即可覆盖整个剑身，不再单薄稀疏。
+- **垂直不超宽**：垂直剑身模式尺寸改为
+  `coreW = 剑长 × perpendicularCoverageLength`、`coreH = 剑宽 × perpendicularCoverageWidth`；
+  `perpendicularCoverageWidth=0.9`，保证垂直部分不超出武器范围。
+- **加密**：`intervalMs 18→12`、`maxCount 18→24`、`alpha 0.55→0.6`，轨迹更连续饱满。
+- **版本**：0.377。
+
+
+### 对话：剑气改为垂直剑身的书法拖尾（2026-08-16）
+- **理解修正**：剑气不是一条固定垂直屏幕的直线，而是许多**垂直于剑身的短直线**；
+  沿剑的弧形轨迹连续采样后，这些垂直线条自然排列成弧线，像毛笔划过留下的墨迹。
+- **实现**：新增 `perpendicularToWeapon: true`，残影渲染旋转 = 剑身 rotation + 90°。
+  `_ensureTexture()` 保持 64×256 纯直线纹理（无曲线/无波纹）。
+- **尺寸**：`widthMul 0.28`、`heightMul 0.7`、`trailBackOffset 8`——短促的横向笔触
+  贴住剑身扫过的路径，保留轻微后移避免跑到剑前。
+- **版本**：0.377。
+
+
+### 对话：剑气改为直线 + 垂直跟随（2026-08-16）
+- **直线化**：`_ensureTexture()` 由曲线水墨笔触改为 64×256 竖向直线纹理（对称软光边 + 中心亮线），
+  移除波纹和飞溅墨点。
+- **垂直跟随**：新增 `rotateWithWeapon: false`。残影 Sprite 不再随剑身旋转，始终保持垂直屏幕；
+  只跟随剑的采样位置和显示尺寸。
+- **尺寸**：`widthMul 0.45`、`heightMul 1.0`，细长垂直直线，继续保留 trailBackOffset 后移约束。
+- **版本**：0.377。
+
+
+### 对话：剑气固定白色 + 轨迹不越界优化（2026-08-16）
+- **回退取色**：`sword.aura.colorSource` 改回 `fixed`，`tint` 固定 `0xffffff`；暂时不再调用剑身取色。
+- **不越剑前**：新增 `trailBackOffset` / `minMoveDistance`。残影采样时按“当前剑位 − 运动方向 ×
+  trailBackOffset”后移，首个采样只记录不渲染；静止或位移过小不生成新残影。
+- **收紧尺寸**：`widthMul 1.55→1.1`、`heightMul 1.18→0.9`、`scaleStart/End 0.9/1.14→0.85/1.05`、
+  `glowScale 1.28→1.0`，让笔触更贴近剑身，不超出已扫过的轨迹。
+- **版本**：0.377。
+
+
+### 对话：剑气通用化——世界-122 可见 + 剑身取色（2026-08-16）
+- **世界-122 不可见修复**：旧剑气只有 ADD 发光层，世界-122 亮色地面/0.7 zoom 下被洗掉。
+  改为“NORMAL 核心笔触 + ADD 发光层”双通道：核心笔触用剑身颜色并保持较高 alpha，
+  任何场景亮度都可见；发光层只负责暗场景光感。
+- **剑身取色**：`SwordAuraTrail.getWeaponColor()` 从当前剑贴图缩略采样，排除近白/近黑像素，
+  以饱和度加权提取剑身主色，再经 HSL 约束明度/饱和度生成剑气色；按纹理 key 缓存。
+  配置 `sword.aura.colorSource: "weapon"`，提取失败自动回退 `tint`。
+- **配置新增**：`glowEnabled / glowAlpha / glowScale / glowTint / glowBlendMode`；
+  默认核心 `blendMode: "normal"`、`alpha: 0.5`。
+- **版本**：0.377。
+
+
+### 对话：挥砍剑气轨迹参考实现（水墨笔触残影，2026-08-16）
+- **思路验证**：用户提出的“墨笔贴图 → 按剑贴图尺寸拉伸覆盖 → 追剑运动轨迹 → 残留淡出”
+  在 Phaser 中成立，已作为参考实现接入当前近战攻击与冲刺攻击。
+- **实现**：新增 `src/effects/sword-aura-trail.js`——程序化生成 128×256 水墨/墨笔竖向笔触
+  Canvas 纹理（不规则软边 + 亮脊 + 飞溅墨点），`GameScene` 在攻击/冲刺渲染分支按时间间隔
+  采样剑的位置/旋转/显示尺寸，残影 Sprite 用“NORMAL 核心 + ADD 发光”按 `sword.aura` 配置淡入淡出。
+- **接入点**：普通攻击 perFrame 分支、dashHand 分支、dashLerp/perFrame 回退分支均会采样；
+  轨迹深度恒在剑贴图下一层，地图模式随 worldEffectsGroup 统一隐藏。
+- **配置**：`public/data/weapon-anim-config.json` 新增 `sword.aura`
+  （enabled/intervalMs/lifeMs/maxCount/alpha/tint/blendMode/widthMul/heightMul/scaleStart/scaleEnd）。
+  正式素材到位后只需替换 Canvas 笔触为 AI 生成的 PNG，接口不变。
+- **版本**：0.377。
+
+### 对话：树木五变体重做——30° 等距视角（与防御塔/掩体统一），替换旧正面平视版（2026-08-15 五轮）
+- **需求**：5 棵新树替换现有 5 棵阔叶树（obstacle_tree_{tall,bushy,twin,wind,tiered}），
+  视角与防御塔一致（30° 俯视等距），风格统一。
+- **管线（沿用既有深度锁定路线，spec elevation 12→30）**：
+  - 白模：`tools/ai-gen/_blockout_specs/tree_iso_<name>.json`（trunk 圆柱 + 树冠球/层叠圆柱，
+    elevation 30）→ `blender-depth-render.py` 出深度图（输出到 %TEMP% ASCII 路径）。
+  - 生图：`tools/ai-gen/gen-tree-iso-assets.py`（flux2-dev-depth @5080，24 步 cfg 3.5，
+    每棵树独立提示词：高瘦/矮胖/双干/风斜/双层）。
+  - 抠图入库：`tools/ai-gen/process-tree-iso-assets.py`（BiRefNet 进程内合成 → 紧身裁剪 →
+    旧图备份 `assets/terrain/.bak-tree-20260815/` → 覆盖同名键 → 打印注册值）。
+  - **坑**：`ai-asset.py cutout` 子命令经 `rmbg_cutout.py` CLI 只输出灰度掩膜（会把掩膜当成品
+    入库）；抠图入库必须进程内 `predict_alpha` 合成 RGBA（rebuild-h3-birefnet 同款），
+    且整个进程要跑在 ComfyUI venv python 下。
+  - **摆放缩放**：isoVisuals 件显示缩放 = `obstacleH / geo.h`（摆墙编辑器口径），
+    裸推 piece 不给 scaleX 会按贴图原尺寸放大数倍（验证探针踩过）。
+- **注册**：ISO_WALL_GEO 五棵更新（w/h/foot/obstacleH = 内容高×0.317 沿用旧比例）；
+  贴图键/编辑器名不变，零代码引用改动。
+- **验证**：`tools/cdp-tree-iso-check.mjs` 实机摆放截图（scene8 一字排开 + 真实
+  isoVisuals 渲染路径），接地/尺寸/视角通过；eslint 0 error；npm test 全绿；vite build ✅。
+
+### 对话：玩家冲刺攻击剑柄锚手 + 180° 扇形扫击（2026-08-16）
+- **手部识别技能复核**：GLM-4.6V 只适合"剑是否在手"的粗验收；`prep-sword-attack-hand.py`
+  旧 `DASH_HAND_PX` 误检远侧手/非持剑手（末帧仍停在身体左侧），已标为 legacy 并停用。
+- **dashHand 模式**：保留用户验收的 `sword.dash` 30 点中心轨迹，`WeaponTransform.getDashHandPosition`
+  反推握把点（中心 − R(rot)·(0, -gripOffset)）；`GameScene` 把 weaponSprite.origin 设为剑柄，
+  剑柄逐帧钉在手上。
+- **180° 扫击**：`sword.dashHand { type:'gripArc', fromRotation:-90, toRotation:90, gripX:0.5 }`
+  按 dash progress 从后到前线性扫 180°；末帧定格/收势沿用旧链路。
+- **修改文件**：`src/combat/weapon-transform.js`、`src/phaser/scenes/GameScene.js`、
+  `public/data/weapon-anim-config.json`、`tools/prep-sword-attack-hand.py`、
+  `scripts/test-melee-sync.mjs`、`SKILL.md`、deepseek-vision-skill SKILL（补手部定位边界）。
+- **版本**：0.376。
+- **验收**：实机成功（用户确认），剑柄全程贴手，-90°→+90° 后→前 180° 扇形扫击，定格→收势无跳变。
+
+### 对话：世界-122 能源水晶 v3——12 随机形态 + 30° 接地线（2026-08-16）
+- **视觉**：弃用 v1/v2 统一簇形水晶渲染；新增 `src/world/energy-node-textures.js`
+  （12 形态：单柱/双生/三冠/团簇/扇簇/尖塔/碎晶/环晶/晶脊/斜晶/对裂/野晶），
+  节点按洗牌袋随机抽取并随机镜像，另加 90%~108% 尺寸抖动，地图 11 个资源点不重复同形。
+- **尺寸**：能源矿贴图基准与碰撞体同步放大 50%（nodeSize 56→84，nodeRadius 30→45）；
+  血条、名字/HP 标签改为锚定实际贴图顶部，不再用逻辑 size 估算。
+- **怪物寻路**：能源矿注册为寻路专用圆障碍（不写 WallSystem，不影响玩家/塔弹道）；
+  路径有效性检查、A* 网格、射线平滑、接力点选择、卡住侧向点全部避让矿体；
+  MovementSystem 增加矿体局部切线绕行 + 脱离推力，已重叠的怪物也能摆脱。
+- **接地**：程序化底座按掩体/墙地板同一套 30° 底边斜率（tan30°≈0.5774）画等距菱形土堆，
+  并烘焙接触阴影；AI v3 成品加载后优先于程序化版。
+- **生图管线**：新增 `tools/ai-gen/gen-energy-node-v3.py` 与
+  `tools/ai-gen/prompts/energy-crystal-v3.md`——12 张深度控制图 →
+  `flux2-dev-depth --transparent` 出图 → `--install` 入库
+  `assets/terrain/energy_node_v3_<n>.png` / `energy_node_depleted_v3_<n>.png`。
+- **兼容**：BootScene 改为加载 v3 命名；v3 文件缺失时仅告警并自动回退程序化纹理。
+- **预览**：`tools/ai-gen/preview-energy-node-v3.html` 可直接查看 12 形态程序化兜底效果。
+- 验证：待 eslint / vite build / 实机世界-122 截图验收。
+
 ### 对话：防御塔整塔命中 + 悬停金色轮廓 + 神经芯片六维面板（2026-08-15 四轮）
 - **整塔命中盒（点击塔任意部位开面板）**：
   - 旧版命中 = 塔脚 70px 圆（探针实测：塔身中部/塔顶机械臂点击全部脱靶，与 08-06 SKILL 记载的
@@ -7769,3 +7910,122 @@
   采集统一攻击 dmg=25（真实无装备 matk×1.0，不再是 1）；法术伤害随 matk 提升
   （施法 enemyHpDelta 46→81，更合理）；移动预判/flee 停用/卡死瞬移回归全绿；
   lint 0 error、vite build ✅。
+
+### 对话：spell 动画 50% 释放点（2026-08-15 六修）
+- **需求**：spell 动画播放到 50% 时才攻击/施法（法术与普通攻击统一延迟释放）。
+- **实现**（`src/ai/companion-ai.js`）：
+  - `_tryCast` 只做凝聚（fireball/iceSpike 第一次 trigger、lightning 不触发），记录
+    `_pendingRelease{type:'spell', key, mpCost, cooldownMs}` + `_castDuration`。
+  - `_tryBasicAttack` 不再立即生成光球，记录 `_pendingRelease{type:'basic', target}`。
+  - `_updateCast` 每帧计算 elapsed = total − castTimer，elapsed ≥ total×0.5 时
+    `_releasePending()`：法术第二次 trigger 发射（lightning 一次触发）+ 扣 MP +
+    设施法 CD；普通攻击 `_spawnBasic`（提前量瞄准）生成光球。
+  - flee 打断施法清 `_pendingRelease/_castDuration`（凝聚被打断不消耗 MP）。
+- **关键 bug**：法术 CD 原先在凝聚时设置 → 50% 处第二次 trigger 被
+  BoltSkillSystem 冷却检查拦截，火球凝聚后永不发射（施法扣蓝但零伤害）。改为
+  CD 在 50% 释放成功后才设置。
+- **验证**：spell-diag 50% 释放时序——法术 700ms 发射（1300×~54%）、普通攻击 300ms
+  生成光球（500×60%）；cdp-luna-ai 施法命中恢复（enemyHpDelta=81）；cdp-luna-basic
+  普通攻击 dmg=100、采集 dmg=25；单测 144/144、lint 0 error、vite build ✅。
+
+### 对话：露娜普通攻击光球穿怪排查（2026-08-15 七修）
+- **现象**：普通攻击的蓝色光球直接穿过所有怪物，没有任何碰撞。
+- **根因**：`_updateBasic` 命中检测只检查发射时的单个 `b.target`（30px 距离）——
+  光球沿直线飞行时路径上经过的其他敌人完全不判定；若目标死亡/移动，光球就一路
+  穿过去直到射程消失。
+- **修复**：命中检测改为「优先发射目标 → 其次遍历 `Game.entities` 中所有
+  active/hp>0 的 enemy，光球位置 30px 半径内即命中」，与法术投射物（BoltSkillSystem
+  GroundCircle）同思路。
+- **验证**：新探针 `tools/cdp-luna-basic-hit.mjs`——两个怪物同一直线（300px/500px）、
+  露娜锁定远怪：修复前近怪被穿过（nearHit=false）、修复后**近怪先被命中**（25
+  伤害）；普通攻击/采集/施法/卡死瞬移回归全绿；单测 144/144、lint 0 error、
+  vite build ✅。
+
+### 对话：卡死瞬移排除"输出中"（2026-08-15 八修）
+- **需求**：卡死脱离瞬移再添加判断——判定窗口内对敌方造成过伤害的不属于卡死，
+  不触发瞬移。
+- **实现**（`src/ai/companion-ai.js`）：
+  - 新增 `_lastAttackAt`：攻击释放（`_releasePending`：法术发射/普通攻击生成光球）
+    与普通攻击命中（`_updateBasic` 结算伤害）都会刷新时间戳。
+  - `_checkStuck` 判定卡死前检查：`Date.now() - _lastAttackAt < 2500`（窗口内有过
+    攻击）→ 重置 streak 直接返回——正在正常输出不算卡死、不瞬移。
+- **验证**：cdp-luna-ai 新增「输出中不瞬移」场景——露娜站桩攻击（造成伤害、位置
+  几乎不动）→ `dealtDamage=true`、`notTeleported=true`（只移动 4px）、攻击窗口刷新；
+  原有「卡死瞬移脱离」（墙里无攻击）仍 `teleported=true`；普通攻击/采集/50% 释放/
+  移动预判回归全绿；单测 144/144、lint 0 error、vite build ✅。
+
+### 对话：施法/攻击位移形变重调（2026-08-15 九修）
+- **现象**：施法、攻击时仍有一定的位移形变。
+- **排查**：CDP 采样施法期间 sprite——AI 决策驱动时 x/y 位移 11~12px（施法结束后
+  立即恢复移动造成滑动）；spell 帧内容宽度跨度 162~393（施法展臂帧比 walk 宽 40%，
+  收手帧又比 walk 窄）——"人物忽宽忽窄"的形变。
+- **修复**：
+  - 位移：施法/攻击结束后新增 200ms 硬直（`_castRecoverTimer`，期间保持
+    `_frozenForCast` 不移动），动画播完不立即滑动；flee 打断清硬直。
+  - 形变：`luna-spell-realign.py` 增加水平限幅 `MAX_WIDTH=300`——展臂帧仅 X 轴
+    压缩（保持高度 471），spell 宽度跨度 162~393 → 162~300，视觉大小更接近 walk。
+- **验证**：手动施法全程采样 xSpan=0/ySpan=0（位置完全稳定）、spell 动画帧递增；
+  50% 释放时序、施法命中 81、卡死瞬移/输出中不瞬移、普通攻击/采集/移动预判回归
+  全绿；单测 144/144、lint 0 error、vite build ✅。
+
+### 对话：spell 动画用 spelling.mp4 重做（2026-08-15 十修）
+- **需求**：用 `E:\无尽轮回\游戏\素材库\人物\luna\spelling.mp4` 作为 spell/攻击动画；
+  视频前半施法、后半后仰倒地——截取前半部分导入游戏。
+- **视频分析**（24fps/121 帧/720p）：f0-70 站立施法（起手→咏唱→收手）、f77 起
+  人物下移后仰倒地。
+- **实现**：新脚本 `tools/ai-gen/luna-spell-video-rebuild.py`（ComfyUI venv
+  python）——抽 f0,2,...,70（每 2 帧取 1 = 36 帧）→ BiRefNet 抠图 → 对齐
+  （TARGET_H=470/FEET_Y=478/CENTER_X=256 + MAX_WIDTH=300 水平限幅）→ 8×5 sheet；
+  配置 spell frameCount 36 / frames [0,35] / 20fps / repeat -1。
+- **验证**：spell-diag——新动画注册 36 帧、手动施法 currentAnim=spell 帧递增、
+  50% 释放 spellLaunchMs=600、施法全程 x/y 位移 0；施法命中 81、卡死瞬移（探针
+  重置攻击窗口后 teleported=true）、输出中不瞬移全绿；单测 144/144（spell 36 帧
+  断言）、lint 0 error、vite build ✅。
+
+### 对话：spell 人物被压扁修复（2026-08-15 十一修）
+- **现象**：spell 动画人物被压缩得很扁平。
+- **原因**：重建脚本 `luna-spell-video-rebuild.py` 沿用了旧 `MAX_WIDTH=300` 水平
+  限幅——展臂帧仅压缩 X 轴（保持高度），人物被横向压扁。
+- **修复**：移除水平限幅，改为**等比缩放**（只统一高度 470，宽度按原始比例自然
+  变化）；重新生成 spelling.png（36 帧、宽 163~394、高 471、质心 1.3px）。
+- **验证**：50% 释放 spellLaunchMs=700、施法全程 x/y 位移 0、施法命中 81；单测
+  144/144、lint 0 error、vite build ✅。
+
+### 对话：spell 动画改为前16正放+后16倒放（2026-08-15 十二修）
+- **需求**：spelling.png 只截取前 16 帧作为施法动画；施法/攻击完后倒放这 16 帧
+  （收手回位）；完整流程 = 前 16 正放 + 后 16 倒放 = 32 帧动画。
+- **实现**：`tools/ai-gen/luna-spell-loop.py` 从前 16 帧合成 32 帧 sheet
+  （cell0-15 正放 帧0→15、cell16-31 倒放 帧15→0），首尾（帧31≈帧0）差异 0 循环
+  无缝；配置 spell frameCount 32 / frames [0,31] / 24fps（完整流程 1.33s 覆盖
+  施法锁定 1300ms），普通攻击/法术共用该动画。
+- **验证**：spell 注册 32 帧、施法播放帧递增、50% 释放 700ms、施法全程位置 0 位移；
+  施法命中 81、卡死瞬移/输出中不瞬移回归全绿；单测 144/144（spell 32 帧/24fps
+  断言）、lint 0 error、vite build ✅。
+
+### 对话：spell 脚部对齐修复（2026-08-15 十三修）
+- **现象**：施法动画仍有位移。
+- **根因**：水平对齐基准是**全内容质心**——施法时手臂大幅伸展（宽 163→394）会把
+  质心"平衡"住，但**脚底区域质心在帧间漂移 28px**（223~251），身体/脚部实际在
+  左右滑动（视觉滑步位移）。
+- **修复**：按 SKILL 对齐三铁律（水平中心固定防滑步）——`luna-spell-video-rebuild.py`
+  的水平对齐基准改为**脚底区域（底部 15% 高度）质心**居中；重新重建 + 合成
+  正放/倒放。修复后脚底区质心跨度 28px → **1.0px**，人物脚部完全固定，手臂伸展
+  围绕固定脚部展开。
+- **验证**：CDP 施法全程 x/y 位移 0、50% 释放 700ms、动画帧递增（跨正放+倒放）、
+  施法命中 81；单测 144/144、lint 0 error、vite build ✅。
+
+### 对话：施法/攻击状态机防插播（2026-08-15 十四修）
+- **需求**：动画抽动不流畅、攻击状态被插队——状态机在施法/攻击未完成时不得插播
+  别的动画，除非受到眩晕等控制技能才强行停止。
+- **实现**（`src/ai/companion-ai.js` + config）：
+  - `castFrozenMs` 1300 → 1200（匹配 spell 32 帧 1.2s 完整流程，动画播完正好结束）。
+  - `_applyAction` 施法锁定分支区分"施法中"（castState=casting → 保持 spell 动画）
+    与"硬直中"（castState=idle 但 frozen → **停帧 idle**）——此前硬直期动画继续
+    循环重播造成"抽动"。
+  - `_tick` 尾部同步区分：施法中 spell、硬直期 idle（此前无条件保持 spell）。
+  - 控制技能打断：队员有 `hasStatusEffect` 且处于 stun/frozen/bind 时，强制清
+    castState/frozen/pendingRelease（动画强行停止）。
+- **验证**：spell-diag「施法不插播/结束后停帧」——animSeq =
+  spell×11 → idle×4（施法 1.1s 全 spell 动画、无 walk/run 插播、结束后停帧）；
+  50% 释放 600ms（1200×0.5）、施法位置 0 位移、命中 81；cdp-luna-ai / cdp-luna-basic
+  回归全绿；单测 144/144、lint 0 error、vite build ✅。

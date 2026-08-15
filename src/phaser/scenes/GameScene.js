@@ -14,6 +14,7 @@ import { ChestRoomSystem } from '../../world/chest-room-system.js';
 import { Renderer } from '../../world/renderer.js';
 import { MapGenerator } from '../../world/map-generator.js';
 import { WeaponTransform } from '../../combat/weapon-transform.js';
+import { SwordArcTrail } from '../../effects/sword-arc-trail.js';
 import { getWeaponTextureKey } from '../../config/weapon-texture-map.js';
 import { WeaponAnimConfig } from '../../items/weapon-anim-config.js';
 import { Easing, WEAPON_ANIM } from '../../config/math-utils.js';
@@ -115,6 +116,8 @@ export class GameScene extends Scene {
 
         // 世界空间特效组（攻击范围、枪口火焰等）
         this.worldEffectsGroup = this.add.group();
+          // 平滑弧形刀光：挂在 worldEffectsGroup，地图模式统一隐藏
+          this._swordArcTrail = new SwordArcTrail(this, (WeaponAnimConfig.sword && WeaponAnimConfig.sword.arc) || {});
 
         // HUD：世界空间（血条/名字）与屏幕空间（准星/小地图）
         this.worldHudGraphics = this.add.graphics();
@@ -387,6 +390,10 @@ export class GameScene extends Scene {
         this._syncCollisionRadii(_game);
         // Phase 4: 根据世界 Y 坐标统一动态实体深度
         this._updateDynamicDepths();
+          // 弧形刀光放在剑贴图上一层，保证世界-122 等遮挡/亮色场景也可见
+          if (this._swordArcTrail) {
+              this._swordArcTrail.update(_delta, this.weaponSprite ? this.weaponSprite.depth + 1 : 0);
+          }
         // 同步可移动实体脚底阴影（必须在 _updateDynamicDepths 之后：阴影深度 =
         // 贴图当前帧仲裁后深度 − 0.1，保证贴图永远在阴影之上、任何情况下阴影
         // 都不能盖住贴图。2026-08-15 修复：旧顺序阴影先跑、读上一帧贴图深度，
@@ -2478,6 +2485,7 @@ export class GameScene extends Scene {
                         // 双手横向挥砍时剑在身体前方，压到人物下方会被身体遮挡（涂层遮盖）。
                         // 武器恒在人物前方（+2）；若个别帧剑身盖脸，应调位置/角度而非改深度。
                         this.weaponSprite.setDepth(this.playerSprite.depth + 2);
+                          if (weaponAnim.isAttacking) this._pushSwordAuraPose(wSize);
                     }
                     return;
                 }
@@ -2509,11 +2517,17 @@ export class GameScene extends Scene {
                 const recDur = recMs > 0 ? recMs : (getPlayerAnimDurationMs('recover') || 800);
                 const t = Math.max(0, Math.min(1, (nowMs() - player._attackRecoverStart) / recDur));
                 // 起点：上一段轨迹末帧（progress=1，与攻击分支同口径：恒按朝右取帧后手动镜像）
-                // _recoverCfgKey='dash' 时从冲刺轨迹末帧滑回（冲刺恢复），朝向同身体 flipX 冻结不随鼠标
+                // _recoverCfgKey='dash' 时优先取 dashHand 末帧反推中心（与剑柄锚手末帧连续），否则回退旧 dash 轨迹末帧；朝向同身体 flipX 冻结不随鼠标
                 const wacR = WeaponAnimConfig[wt];
                 const atkKeyR = player._recoverCfgKey
                     || meleeStageCfgKey(wacR, player._meleeComboStage || 1);
-                const start = WeaponTransform.getInterpolatedPerFramePosition(player, wt, 1, true, atkKeyR);
+                let start = null;
+                  if (player._recoverCfgKey === 'dash') {
+                      start = WeaponTransform.getDashRecoverStartPosition(player, wt);
+                  }
+                  if (!start) {
+                      start = WeaponTransform.getInterpolatedPerFramePosition(player, wt, 1, true, atkKeyR);
+                  }
                 if (start && !facingR) {
                     start.x = 2 * player.x - start.x;
                     start.rotation = -start.rotation;
@@ -3420,6 +3434,45 @@ export class GameScene extends Scene {
         if (this._weaponBlurFilter) this._weaponBlurFilter.strength = 0;
     }
 
+      /**
+       * 弧形刀光采样：把当前剑贴图的视觉中心/显示尺寸交给 SwordArcTrail。
+       * 由其按时间间隔生成平滑弧形刀光。只应在攻击挥砍/冲刺位移期间调用。
+       */
+      _pushSwordAuraPose(size) {
+          if (!this._swordArcTrail || !this.weaponSprite || !this.weaponSprite.visible) return;
+          let centerX = this.weaponSprite.x;
+          let centerY = this.weaponSprite.y;
+          if (typeof this.weaponSprite.getCenter === 'function') {
+              const center = this.weaponSprite.getCenter();
+              if (center) {
+                  centerX = center.x;
+                  centerY = center.y;
+              }
+          }
+            // 普通攻击 origin=中心；dashHand origin=剑柄。统一按 origin 反推视觉中心，
+            // 不用 getCenter 的结果覆盖（不同 origin/旋转下口径可能有差异）。
+            {
+                const _w = this.weaponSprite.displayWidth || (size && size.width) || 1;
+                const _h = this.weaponSprite.displayHeight || (size && size.height) || 1;
+                const _ox = this.weaponSprite.originX !== undefined ? this.weaponSprite.originX : 0.5;
+                const _oy = this.weaponSprite.originY !== undefined ? this.weaponSprite.originY : 0.5;
+                const _lx = (0.5 - _ox) * _w;
+                const _ly = (0.5 - _oy) * _h;
+                const _cos = Math.cos(this.weaponSprite.rotation);
+                const _sin = Math.sin(this.weaponSprite.rotation);
+                centerX = this.weaponSprite.x + _lx * _cos - _ly * _sin;
+                centerY = this.weaponSprite.y + _lx * _sin + _ly * _cos;
+            }
+          this._swordArcTrail.pushPose({
+              x: centerX,
+              y: centerY,
+              rotation: this.weaponSprite.rotation,
+              width: this.weaponSprite.displayWidth || (size && size.width) || 1,
+              height: this.weaponSprite.displayHeight || (size && size.height) || 1,
+                
+          });
+      }
+
     // ==================== 武器运动模糊（废弃的高斯滤镜路线，已停用） ====================
     // 2026-08-12：`filters.internal.addBlur`（Phaser 旧版高斯滤镜）在部分 GPU/浏览器下创建
     // WebGL framebuffer 失败（Framebuffer Unsupported）→ 整个渲染上下文崩溃黑屏。
@@ -3444,17 +3497,56 @@ export class GameScene extends Scene {
         // 冲刺攻击：sword.dash perFrame 轨迹（面板"冲刺攻击"页可调，与一/二段同插值管线）
         // 末帧定格期（_dashRecoverAt）同轨迹停在 progress=1——定格姿态=冲刺末帧，与人物贴图一致
         const dashCfg = (wt === 'sword' || wt === 'bow') && WeaponAnimConfig[wt] && WeaponAnimConfig[wt].dash;
+          // 冲刺攻击·剑柄锚手（dashHand 模式）：
+          // 旧 dash 30 点轨迹是"贴图中心"路径；由 WeaponTransform.getDashHandPosition
+          // 反推握把点并让 weaponSprite.origin=剑柄——剑柄钉在手上，剑身按
+          // dashHand.fromRotation→toRotation 线性扫出 180°（默认 -90° → +90°，后→前）。
+          const dashHandCfg = (wt === 'sword' || wt === 'bow') && WeaponAnimConfig[wt] && WeaponAnimConfig[wt].dashHand;
+          const dashHandActive = dashHandCfg && dashCfg && dashCfg.type === 'perFrame' && dashCfg.frames
+              && (player._isDashing || player._dashRecoverAt);
         // 冲刺攻击 Lerp 模式（2026-08-12）：剑柄锚手 + 起始/结束双端点线性插值。
-        // 剑柄（grip）钉在插值位置，剑身绕剑柄旋转；优先于 perFrame，旧数据保留可回退。
+        // 剑柄（grip）钉在插值位置，剑身绕剑柄旋转；dashHand 优先，本路径仅作无 dashHand 配置时回退。
         const dashLerpCfg = (wt === 'sword' || wt === 'bow') && WeaponAnimConfig[wt] && WeaponAnimConfig[wt].dashLerp;
         const dashLerpActive = dashLerpCfg && dashLerpCfg.type === 'lerp'
             && (player._isDashing || player._dashRecoverAt);
-        if (this.weaponSprite && !dashLerpActive
+        if (this.weaponSprite && !dashLerpActive && !dashHandActive
             && (this.weaponSprite.originX !== 0.5 || this.weaponSprite.originY !== 0.5)) {
-            // 非 Lerp 冲刺状态：复位剑柄 origin（武器绕中心旋转的既有语义）
+            // 非冲刺锚手状态：复位剑柄 origin（武器绕中心旋转的既有语义）
             this.weaponSprite.setOrigin(0.5, 0.5);
         }
-        if (dashLerpActive) {
+                  if (dashHandActive) {
+              const totalMs = player._dashTotalMs || 800;
+              const progress = player._isDashing
+                  ? Math.max(0, Math.min(1, (player._dashTimer || 0) / totalMs))
+                  : 1;
+              // 朝向=冲刺方向（dashDirection.x 符号；与人物 flipX 绑定同口径）
+              const facingRight = player._dashDirection ? player._dashDirection.x >= 0 : !this.playerSprite.flipX;
+              const hp = WeaponTransform.getDashHandPosition(player, wt, progress);
+              if (hp) {
+                  // origin=剑柄点（翻转时 X 镜像），旋转绕剑柄 → 剑柄钉在反推手位、剑身绕手转
+                  this.weaponSprite.setOrigin(facingRight ? hp.gripX : 1 - hp.gripX, hp.gripY);
+                  const wx = facingRight ? hp.x : 2 * player.x - hp.x;
+                  const wrot = facingRight ? hp.rotation : -hp.rotation;
+                  this.weaponSprite.setPosition(wx, hp.y);
+                  this.weaponSprite.setRotation(wrot);
+                  this.weaponSprite.setFlipX(!facingRight);
+                  const wSize = WeaponTransform.getWeaponSize(wt, hp.scale, 'attack');
+                  this.weaponSprite.setDisplaySize(
+                      wSize.width * (hp.stretchX || 1),
+                      wSize.height * (hp.stretchY || 1)
+                  );
+                  if (player._isDashing) {
+                      this._applyWeaponBlur(hp.blurX, hp.blurY);
+                  } else if (this._weaponBlurFilter) {
+                      this._weaponBlurFilter.strength = 0;
+                  }
+                  this.weaponSprite.setDepth(this.playerSprite.depth + 2);
+                  this.weaponSprite.setVisible(!this._useCanvasWeapon);
+                    if (player._isDashing) this._pushSwordAuraPose(wSize);
+                  return;
+              }
+          }
+          if (dashLerpActive) {
             const totalMs = player._dashTotalMs || 800;
             const progress = player._isDashing
                 ? Math.max(0, Math.min(1, (player._dashTimer || 0) / totalMs))
@@ -3480,6 +3572,7 @@ export class GameScene extends Scene {
                     this._weaponBlurFilter.strength = 0;
                 }
                 this.weaponSprite.setVisible(!this._useCanvasWeapon);
+                  if (player._isDashing) this._pushSwordAuraPose(wSize);
                 return;
             }
         }
@@ -3510,6 +3603,7 @@ export class GameScene extends Scene {
                     if (this._weaponBlurFilter) this._weaponBlurFilter.strength = 0;
                 }
                 this.weaponSprite.setVisible(!this._useCanvasWeapon);
+                  if (player._isDashing) this._pushSwordAuraPose(wSize);
                 return;
             }
         }
@@ -4841,9 +4935,14 @@ export class GameScene extends Scene {
         const size = entity.size || 14;
         const sprite = (entity._phaserSprite && entity._phaserSprite.active) ? entity._phaserSprite : null;
         const x = sprite ? sprite.x : entity.x;
+        // 能源矿/掩体/基地等走 _neutralSprites 渲染，没有 _phaserSprite；
+        // 其贴图顶部 = 逻辑脚底 − spriteCfg.sizeH，血条/名字据此锚定。
+        const neutralVisualH = (!sprite && (entity._isDefenseStructure || entity._isEnergyNode) && entity.spriteCfg?.sizeH)
+            ? entity.spriteCfg.sizeH
+            : 0;
         const topY = sprite
             ? sprite.y - sprite.displayHeight * 0.5
-            : entity.y - size * 1.5;
+            : (neutralVisualH > 0 ? entity.y - neutralVisualH : entity.y - size * 1.5);
 
         if (isBoss) {
             const barW = 80, barH = 8, border = 2;
@@ -4899,7 +4998,10 @@ export class GameScene extends Scene {
             anchorTop = (entity.collider ? entity.collider.y : entity.y) - capH;
         }
         if (hp < maxHp) {
-            const cfg = renderCfg.healthBar || { width: 28, height: 4, offsetY: -30 };
+            const structureBarCfg = entity._isEnergyNode
+                ? { width: 42, height: 6, offsetY: -34 }
+                : (entity._isDefenseCover ? { width: 44, height: 5, offsetY: -36 } : null);
+            const cfg = structureBarCfg || renderCfg.healthBar || { width: 28, height: 4, offsetY: -30 };
             const barW = cfg.width || 28;
             const barH = cfg.height || 4;
             const barY = anchorTop + hudDy + (cfg.offsetY || -8);
@@ -4925,6 +5027,11 @@ export class GameScene extends Scene {
             return;
         }
         const nameText = this._getEntityHudText(entity, 'name');
+          // 世界-122 相机 0.7：防御建筑名称放大 30%（12px → 16px）
+          const nameFontSize = (SceneManager && SceneManager.currentScene === 'scene8' && entity._isDefenseStructure) ? '16px' : '12px';
+          if (nameText.style && nameText.style.fontSize !== nameFontSize) {
+              nameText.setFontSize(nameFontSize);
+          }
         nameText.setText(entity.name || '');
         // 名字颜色按怪物等级：精英紫 / 领主橙 / 首领红（boss 走 bossName 样式，已是红色）
         const RANK_NAME_COLORS = { elite: '#c67affcc', lord: '#ffa500cc' };
@@ -5453,6 +5560,7 @@ export class GameScene extends Scene {
                     sprite.setOrigin(0.5, 0.5);
                     sprite.setDisplaySize(size * 2, size * 2);
                 }
+                  const labelFontSize = (SceneManager && SceneManager.currentScene === 'scene8') ? '14px' : '11px';
                 const label = this.add.text(e.x, e.y - (e.size || 16) - 8, '', {
                     fontFamily: 'SimHei, "Microsoft YaHei", "黑体", sans-serif',
                     fontSize: '11px',
@@ -5461,11 +5569,16 @@ export class GameScene extends Scene {
                     stroke: '#000000', strokeThickness: 3,
                 });
                 label.setOrigin(0.5, 1);
+                  label.setFontSize(labelFontSize);
                 label.setDepth(e.y + 1);
                 data = { sprite, label, sprCfg };
                 this._neutralSprites.set(e, data);
             }
             const { sprite, label, sprCfg } = data;
+              const labelFontSize = (SceneManager && SceneManager.currentScene === 'scene8') ? '14px' : '11px';
+              if (label.style && label.style.fontSize !== labelFontSize) {
+                  label.setFontSize(labelFontSize);
+              }
             const size = e.size || 16;
             const shift = this._getFootOffsetY(e, sprite);
             sprite.setPosition(e.x, e.y - shift);
@@ -5513,7 +5626,8 @@ export class GameScene extends Scene {
             }
             // 名字标签：贴图 NPC 放在贴图顶部，圆形占位保持按 size 偏移
             const labelTop = sprCfg ? sprite.displayHeight / 2 : size;
-            label.setPosition(e.x, sprite.y - labelTop - 8);
+            const labelGap = e._isEnergyNode ? 12 : 8; // 能源矿放大 50% 后标签同步上移
+            label.setPosition(e.x, sprite.y - labelTop - labelGap);
             // 防御建筑（基地核心/防御塔/掩体）：按地面锚线 Y 参与墙体深度排序。
             // 掩体带 _faceDepth（=墙段底边线 max 端点 y + 12，见 DefenseCover），
             // 不能用 e.y+12——e.y 是贴图显示框底边，比接地线深 22~137px，会把墙前
@@ -5531,6 +5645,11 @@ export class GameScene extends Scene {
             }
             sprite.setVisible(true);
             label.setVisible(true);
+              if (e._isDefenseCover) {
+                  // 掩体：隐藏名字/血量文字，残血时只显示 _syncEntityHud 的小血条
+                  if (label.text !== '') label.setText('');
+                  label.setVisible(false);
+              }
         }
         for (const [e, data] of this._neutralSprites.entries()) {
             if (!active.has(e)) {

@@ -311,6 +311,7 @@ console.log('移动目标预判瞄准:', await ev(`(async () => {
   ai._basicAtkCd = 0;
   luna._basic = null;
   ai._tryBasicAttack(fake);
+  await new Promise(r => setTimeout(r, 300)); // 50% 释放点后光球才生成
   const b = luna._basic;
   const directAng = Math.atan2(fake.y - luna.y, fake.x - luna.x);
   const leadAng = b ? b.angle : null;

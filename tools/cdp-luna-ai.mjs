@@ -202,6 +202,10 @@ console.log('卡死瞬移脱离:', await ev(`(async () => {
   }
   luna.target = null;
   luna.data.hp = luna.data.maxHp;
+  const ai = luna._aiInstance || PartySystem._aiInstances['mage_luna'];
+  // 重置攻击窗口/施法状态：模拟"无攻击的真卡死"（避免前序测试的攻击在 2.5s 窗口内误判输出中）
+  if (ai) { ai._lastAttackAt = 0; ai._castRecoverTimer = 0; }
+  luna._castState = 'idle'; luna._frozenForCast = false; luna._castTimer = 0;
   // 动态加一段测试墙，把露娜放在墙段中央模拟卡死（想动但被墙挡住）
   const testSeg = { x1: p.x + 80, y1: p.y - 120, x2: p.x + 80, y2: p.y + 120, halfThick: 8, _aiTest: true };
   WS.isoSegments.push(testSeg);
@@ -225,6 +229,43 @@ console.log('卡死瞬移脱离:', await ev(`(async () => {
     movedPx: Math.round(moved),
     legalAfter,
     distToPlayerAfter: distToPlayer,
+  };
+})()`));
+
+console.log('输出中不瞬移:', await ev(`(async () => {
+  const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+  const { PartySystem, entities } = window.Game;
+  const luna = PartySystem.getMember('mage_luna');
+  for (const [k, e] of Array.from(entities.entries())) {
+    if (e && e !== luna && e._faction === 'enemy') entities.delete(k);
+  }
+  luna.target = null;
+  luna.x = 640; luna.y = 620;
+  luna.data.matk = 25;
+  luna._castState = 'idle'; luna._frozenForCast = false; luna._castTimer = 0;
+  luna._basic = null; luna._basicAtkCd = 0;
+  luna._castCooldown = 0; luna._fireballCooldown = 0;
+  const fake = {
+    id: 'stuck_out_enemy', active: true, hittable: true,
+    x: luna.x + 250, y: luna.y, vx: 0, vy: 0,
+    hp: 1000, maxHp: 1000, groundRadius: 20, bodyHeight: 130,
+    attackRange: 70, attacks: { melee: {} }, _faction: 'enemy',
+    takeDamage(dmg) { this.hp -= dmg; }, update() {},
+  };
+  entities.set('stuck_out_enemy', fake);
+  const ai = luna._aiInstance || PartySystem._aiInstances['mage_luna'];
+  ai._lastAttackAt = Date.now(); // 模拟持续输出中
+  const p0 = { x: luna.x, y: luna.y };
+  const fakeHp0 = fake.hp;
+  await sleep(3500);
+  const moved = Math.hypot(luna.x - p0.x, luna.y - p0.y);
+  const dealt = fakeHp0 - fake.hp;
+  entities.delete('stuck_out_enemy');
+  return {
+    dealtDamage: dealt > 0,
+    notTeleported: moved < 80,
+    movedPx: Math.round(moved),
+    lastAttackRecent: Date.now() - ai._lastAttackAt < 2500,
   };
 })()`));
 

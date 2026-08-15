@@ -214,4 +214,103 @@ console.log('50%释放时序:', await ev(`(async () => {
   };
 })()`));
 
+console.log('施法形变/位移采样:', await ev(`(async () => {
+  const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+  const { PartySystem, entities } = window.Game;
+  const luna = PartySystem.getMember('mage_luna');
+  const s = window.__phaserScene;
+  for (const [k, e] of Array.from(entities.entries())) {
+    if (e && e !== luna && e._faction === 'enemy') entities.delete(k);
+  }
+  luna.target = null;
+  luna.x = 640; luna.y = 620;
+  luna.data.matk = 25;
+  luna._castState = 'idle'; luna._frozenForCast = false; luna._castTimer = 0;
+  const fake = {
+    id: 'shape_enemy', active: true, hittable: true,
+    x: luna.x + 250, y: luna.y, vx: 0, vy: 0,
+    hp: 1000, maxHp: 1000, groundRadius: 20, bodyHeight: 130,
+    attackRange: 70, attacks: { melee: {} }, _faction: 'enemy',
+    takeDamage(dmg) { this.hp -= dmg; }, update() {},
+  };
+  entities.set('shape_enemy', fake);
+  if (!s._companionSprites['mage_luna']) s._syncCompanionSprites(window.Game);
+  const spr = s._companionSprites['mage_luna'];
+  const ai = luna._aiInstance || PartySystem._aiInstances['mage_luna'];
+  // 手动施法（排除 AI 决策移动干扰）：frozen 全程 + 施法结束 200ms 硬直
+  luna._castState = 'idle'; luna._frozenForCast = false; luna._castTimer = 0;
+  ai._castRecoverTimer = 0;
+  ai._tryCast('fireball', fake);
+  const pos0 = { x: spr.x, y: spr.y };
+  const samples = [];
+  for (let i = 0; i < 10; i++) {
+    await new Promise(r => setTimeout(r, 100));
+    samples.push({
+      x: Math.round(spr.x), y: Math.round(spr.y),
+      dw: Math.round(spr.displayWidth), dh: Math.round(spr.displayHeight),
+      sx: +spr.scaleX.toFixed(3), sy: +spr.scaleY.toFixed(3),
+      flipX: spr.flipX,
+      anim: spr.anims.isPlaying ? spr.anims.currentAnim.key : null,
+      frame: spr.frame.name,
+      lunaX: Math.round(luna.x), lunaY: Math.round(luna.y),
+    });
+  }
+  entities.delete('shape_enemy');
+  const xs = samples.map(x => x.x), ys = samples.map(y => y.y);
+  const flips = new Set(samples.map(x => x.flipX));
+  const dws = new Set(samples.map(x => x.dw));
+  return {
+    xSpan: Math.max(...xs) - Math.min(...xs),
+    ySpan: Math.max(...ys) - Math.min(...ys),
+    posStableDuringCast: Math.max(...xs) - Math.min(...xs) <= 2 && Math.max(...ys) - Math.min(...ys) <= 2,
+    flipChanges: flips.size > 1,
+    displayStable: dws.size === 1,
+    frames: samples.map(x => x.frame),
+  };
+})()`));
+
+console.log('施法不插播/结束后停帧:', await ev(`(async () => {
+  const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+  const { PartySystem, entities } = window.Game;
+  const luna = PartySystem.getMember('mage_luna');
+  const s = window.__phaserScene;
+  for (const [k, e] of Array.from(entities.entries())) {
+    if (e && e !== luna && e._faction === 'enemy') entities.delete(k);
+  }
+  luna.target = null;
+  luna.x = 640; luna.y = 620;
+  luna.data.matk = 25;
+  luna._castState = 'idle'; luna._frozenForCast = false; luna._castTimer = 0;
+  const fake = {
+    id: 'lock_enemy', active: true, hittable: true,
+    x: luna.x + 250, y: luna.y, vx: 0, vy: 0,
+    hp: 1000, maxHp: 1000, groundRadius: 20, bodyHeight: 130,
+    attackRange: 70, attacks: { melee: {} }, _faction: 'enemy',
+    takeDamage(dmg) { this.hp -= dmg; }, update() {},
+  };
+  entities.set('lock_enemy', fake);
+  if (!s._companionSprites['mage_luna']) s._syncCompanionSprites(window.Game);
+  const spr = s._companionSprites['mage_luna'];
+  const ai = luna._aiInstance || PartySystem._aiInstances['mage_luna'];
+  ai._castRecoverTimer = 0;
+  ai._tryCast('fireball', fake);
+  const anims = [];
+  for (let i = 0; i < 15; i++) {
+    await new Promise(r => setTimeout(r, 100));
+    anims.push({ a: luna._animState, anim: spr.anims.isPlaying ? spr.anims.currentAnim.key : null, frame: spr.frame.name });
+  }
+  entities.delete('lock_enemy');
+  // 施法期（0-1.2s，12 个采样）应全 spell；硬直期（1.2-1.4s）停帧 idle
+  // 施法期（0-1.1s，前 11 采样）全 spell；结束后停帧 idle；全程无 walk/run 插播
+  const castPhase = anims.slice(0, 11).every(x => x.a === 'spell');
+  const noInterrupt = anims.every(x => x.a === 'spell' || x.a === 'idle');
+  const afterIdle = anims.slice(13).some(x => x.a === 'idle' && !x.anim);
+  return {
+    castPhaseAllSpell: castPhase,
+    noInterrupt: noInterrupt,
+    afterStopIdle: afterIdle,
+    animSeq: anims.map(x => x.a).join(','),
+  };
+})()`));
+
 await cleanup(0);

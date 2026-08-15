@@ -95,8 +95,12 @@ const MovementSystem = {
                 const d = Math.hypot(dx, dy) || 1;
                 const mul = typeof enemy.getFearSpeedMul === 'function' ? enemy.getFearSpeedMul() : 1;
                 const spd = this._getEnemyBaseSpeed(enemy) * mul;
-                enemy.vx = (dx / d) * spd;
-                enemy.vy = (dy / d) * spd;
+                let fx = dx / d, fy = dy / d;
+                const fearAvoid = this._avoidEnergyNodes(enemy, fx, fy, entities);
+                fx = fearAvoid.moveX;
+                fy = fearAvoid.moveY;
+                enemy.vx = fx * spd;
+                enemy.vy = fy * spd;
                 enemy.isMoving = true;
                 // 墙壁解析与正常移动同口径（逃跑不可穿墙）
                 const sc = dt / 1000;
@@ -474,7 +478,10 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
                 // 无墙系统时直接用主方向
                 if (!WallSystem || !WallSystem.blocked) return mainPoint;
             }
-            if (!WallSystem.blocked(enemy.x, enemy.y, px, py)) {
+              const wallBlocked = WallSystem.blocked(enemy.x, enemy.y, px, py);
+              const entityBlocked = !!(pathFinder && pathFinder._isBlocked
+                  && pathFinder._isBlocked(px, py, enemy.groundRadius));
+            if (!wallBlocked && !entityBlocked) {
                 return { x: px, y: py };
             }
         }
@@ -701,6 +708,20 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
             y: enemy.y + Math.sin(repositionAngle) * distance,
             _isReposition: true
         };
+          // 若侧向点落在能源矿寻路障碍上，换角度重试；路径/逃逸目标不能继续指向矿心
+          if (pathFinder && pathFinder._isBlocked
+              && enemy._tacticalTarget
+              && pathFinder._isBlocked(enemy._tacticalTarget.x, enemy._tacticalTarget.y, enemy.groundRadius)) {
+              for (let attempt = 1; attempt <= 6; attempt++) {
+                  const altAngle = angleToTarget + side * (Math.PI / 2 - attempt * Math.PI / 7);
+                  const altX = enemy.x + Math.cos(altAngle) * distance;
+                  const altY = enemy.y + Math.sin(altAngle) * distance;
+                  if (!pathFinder._isBlocked(altX, altY, enemy.groundRadius)) {
+                      enemy._tacticalTarget = { x: altX, y: altY, _isReposition: true };
+                      break;
+                  }
+              }
+          }
         enemy._repositionTimer = 600; // ms
         enemy._repositionSide = side;
         enemy._repositionSideSwitches = (enemy._repositionSideSwitches || 0) + 1;
@@ -808,6 +829,54 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
         };
     },
 
+      /**
+       * 能源矿局部避让：寻路已经绕开矿点，但已重叠/被实体分离推进矿体时，
+       * 仍可能短距离朝矿心走。这里对最近能源矿做切线绕行 + 脱离推力，
+       * 保证怪物不会持续顶在矿上无法摆脱。
+       */
+      _avoidEnergyNodes(enemy, moveX, moveY, entities) {
+          if (!entities) return { moveX, moveY };
+          const enemyR = enemy.groundRadius || 20;
+          let best = null, bestScore = Infinity;
+          const iter = entities.values ? entities.values() : entities;
+          for (const e of iter) {
+              if (!e || !e._isEnergyNode || !e.active) continue;
+              const nodeR = e.groundRadius || 30;
+              const dx = enemy.x - e.x, dy = enemy.y - e.y;
+              const d = Math.sqrt(dx * dx + dy * dy);
+              const minD = nodeR + enemyR;
+              // 只处理重叠 + 外圈 30px 内的矿
+              if (d >= minD + 30) continue;
+              const score = Math.max(0, d - minD);
+              if (score < bestScore) { bestScore = score; best = { dx, dy, d, minD, nodeR }; }
+          }
+          if (!best) return { moveX, moveY };
+
+          const { dx, dy, d, minD } = best;
+          const overlap = Math.max(0, minD - d);
+          // 从矿心指向怪物的方向；重叠/同点时用怪物 id 做确定性散开
+          let awayX, awayY;
+          if (d > 0.01) {
+              awayX = dx / d; awayY = dy / d;
+          } else {
+              const seed = (enemy.id || enemy.name || 'e').split('').reduce((a, c) => a + c.charCodeAt(0), 0);
+              const a = seed * 0.618;
+              awayX = Math.cos(a); awayY = Math.sin(a);
+          }
+          // 切线方向：优先选与当前移动方向夹角更小的一侧
+          let tanX = -awayY, tanY = awayX;
+          if (tanX * moveX + tanY * moveY < 0) { tanX = -tanX; tanY = -tanY; }
+
+          const push = Math.min(2.4, 0.7 + overlap * 0.06);
+          const turn = Math.min(1.5, 0.55 + overlap * 0.10);
+          let mx = moveX + tanX * turn + awayX * push;
+          let my = moveY + tanY * turn + awayY * push;
+          const len = Math.sqrt(mx * mx + my * my);
+          if (len > 0.001) { mx /= len; my /= len; }
+          return { moveX: mx, moveY: my };
+      },
+
+
     /**
      * 沿路径移动（支持 PathManager 和旧路径兼容）
      */
@@ -863,6 +932,10 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
                     moveY = circleMove.moveY;
                 }
             }
+              // 能源矿局部避让：已重叠/贴边时切线绕行，不再持续顶矿
+              const oreAvoid = this._avoidEnergyNodes(enemy, moveX, moveY, entities);
+              moveX = oreAvoid.moveX;
+              moveY = oreAvoid.moveY;
 
             // [ENHANCE] 路径跟随期间也应用单位分离，避免多只怪物沿同一路径堆叠
             const chargeStraight = enemy.ai && enemy.ai.chargeStraight;
@@ -1048,6 +1121,10 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
                 moveY = circleMove.moveY;
             }
         }
+          // 能源矿局部避让：与路径跟随同口径，避免无路径/直冲怪持续顶矿
+          const oreAvoid = this._avoidEnergyNodes(enemy, moveX, moveY, entities);
+          moveX = oreAvoid.moveX;
+          moveY = oreAvoid.moveY;
 
         // [ENHANCE] 单位间排斥：使用动态半径与衰减权重
         let repel = this._computeSeparation(enemy, 0, entities);

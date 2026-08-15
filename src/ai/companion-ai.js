@@ -58,6 +58,8 @@ export class CompanionAI {
         this._basicAtkCd = 0;   // 普通攻击间隔 CD（ms）
         this._pendingRelease = null; // 50% 释放点：{type:'spell'|'basic', ...}
         this._castDuration = 0;      // 施法/攻击动作总时长（算 50% 释放点）
+        this._castRecoverTimer = 0;  // 施法/攻击结束硬直（防动画刚完就滑动）
+        this._lastAttackAt = 0;      // 最近一次攻击释放/命中时间戳（判定窗口内输出中不算卡死）
         this._lastPlayerDist = null; // 掉队判定：记录上一帧与玩家距离，检测是否在有效追赶
         // 指挥轮盘指令状态（2026-08-14）
         this._patrolTarget = null;  // 巡逻随机目标点
@@ -195,6 +197,28 @@ export class CompanionAI {
 
         // 施法锁定计时
         this._updateCast(dt);
+        // 控制技能（眩晕/冻结/束缚）强制打断施法动画（2026-08-15）：
+        // 无状态效果系统的队员此检查自然跳过；有则受控时强行停止
+        const ctrlBreak = (typeof c.hasStatusEffect === 'function')
+            && (c.hasStatusEffect('stun') || c.hasStatusEffect('frozen') || c.hasStatusEffect('bind'));
+        if (ctrlBreak && (c._castState !== 'idle' || c._frozenForCast)) {
+            c._castState = 'idle';
+            c._frozenForCast = false;
+            c._castTimer = 0;
+            this._pendingRelease = null;
+            this._castDuration = 0;
+            this._castRecoverTimer = 0;
+        }
+        // 施法/攻击结束硬直推进：期间保持冻结不移动，结束后恢复
+        if (this._castRecoverTimer > 0) {
+            this._castRecoverTimer -= dt;
+            if (this._castRecoverTimer <= 0) {
+                this._castRecoverTimer = 0;
+                c._frozenForCast = false;
+            } else {
+                c._frozenForCast = true;
+            }
+        }
 
         // 技能推进（飞行/命中/冷却）
         const sys = this._ensureSystems();
@@ -292,6 +316,11 @@ export class CompanionAI {
             this._stuckStreak = 0;
             return;
         }
+        // 判定窗口内（2.5s）有过攻击释放/命中 → 正在正常输出，不算卡死，不触发瞬移
+        if (this._lastAttackAt && Date.now() - this._lastAttackAt < 2500) {
+            this._stuckStreak = 0;
+            return;
+        }
         this._stuckSampleTimer -= dt;
         if (this._stuckSampleTimer > 0) return;
         this._stuckSampleTimer = 400;
@@ -370,10 +399,11 @@ export class CompanionAI {
         }
         if (c._castTimer <= 0) {
             c._castState = 'idle';
-            c._frozenForCast = false;
             c._animState = 'idle';
             this._pendingRelease = null;
             this._castDuration = 0;
+            // 施法/攻击结束硬直：短暂保持冻结，避免动画刚播完就滑动产生"位移"
+            this._castRecoverTimer = this.cfg.castRecoverMs || 200;
         }
     }
 
@@ -382,6 +412,7 @@ export class CompanionAI {
         const p = this._pendingRelease;
         if (!p) return;
         this._pendingRelease = null;
+        this._lastAttackAt = Date.now(); // 攻击释放 → 输出中，卡死判定窗口重置
         const c = this.c;
         if (p.type === 'spell') {
             const sys = this._systems;
@@ -450,8 +481,10 @@ export class CompanionAI {
         this._lastAction = action;
         c._lastAction = action; // 同步到 companion，供渲染层朝向/深度等消费
         this._applyAction(action, { player, enemies, threat, targetDist, spell, basic });
-        // 施法站定期间动画保持 spell（后续决策 tick 不应覆盖）
-        if (c._castState !== 'idle' || c._frozenForCast) c._animState = 'spell';
+        // 施法站定期间动画保持 spell；硬直期（castState=idle 但 frozen）停帧 idle
+        // （2026-08-15：不区分会让动画播完后循环重播造成"抽动"）
+        if (c._castState !== 'idle') c._animState = 'spell';
+        else if (c._frozenForCast) c._animState = 'idle';
     }
 
     _applyAction(action, ctx) {
@@ -463,7 +496,9 @@ export class CompanionAI {
         // 不能走下方默认 idle 重置（会把施法动画砍掉）。
         // 例外：action === 'flee'（近战贴脸保命优先）→ 打断施法走 flee 分支。
         if (action !== 'flee' && (c._castState !== 'idle' || c._frozenForCast)) {
-            c._animState = 'spell';
+            // 施法中（castState=casting）保持 spell 动画；硬直中（castState=idle
+            // 但 frozen）停帧 idle——避免动画播完后循环重播造成"抽动"（2026-08-15）
+            c._animState = c._castState !== 'idle' ? 'spell' : 'idle';
             c.vx = 0; c.vy = 0; c.isMoving = false;
             return;
         }
@@ -486,6 +521,7 @@ export class CompanionAI {
                     c._castTimer = 0;
                     this._pendingRelease = null;
                     this._castDuration = 0;
+                    this._castRecoverTimer = 0;
                     c.target = null;
                     c._tacticalTarget = this._retreatPoint(threat, player);
                     // 逃避敌人：永远 run
@@ -891,12 +927,23 @@ export class CompanionAI {
         b.x += Math.cos(b.angle) * step;
         b.y += Math.sin(b.angle) * step;
         b.dist += step;
+        // 命中检测：优先发射目标，其次光球路径上经过的所有敌人——
+        // 此前只查 b.target，路径上的其他怪物会被光球直接穿过（2026-08-15）
+        let hit = null;
         const t = b.target;
-        const hit = t && t.active && t.hp > 0 && Math.hypot(t.x - b.x, t.y - b.y) < 30;
+        if (t && t.active && t.hp > 0 && Math.hypot(t.x - b.x, t.y - b.y) < 30) {
+            hit = t;
+        } else if (Game && Game.entities) {
+            for (const e of Game.entities.values()) {
+                if (!e || !e.active || e.hp <= 0 || e._faction !== 'enemy') continue;
+                if (Math.hypot(e.x - b.x, e.y - b.y) < 30) { hit = e; break; }
+            }
+        }
         if (hit) {
-            const dmg = Math.max(1, Math.floor((c.data.matk || 0) * (this.cfg.basicAttackDamageMul || 0.2)));
-            if (typeof t.takeDamage === 'function') t.takeDamage(dmg, c, 'magic');
-            EffectManager.add(new FloatingTextEffect(t.x, t.y - 30, `-${dmg}`, '#6ab0ff'));
+            const dmg = Math.max(1, Math.floor((c.data.matk || 0) * (this.cfg.basicAttackDamageMul || 1.0)));
+            if (typeof hit.takeDamage === 'function') hit.takeDamage(dmg, c, 'magic');
+            EffectManager.add(new FloatingTextEffect(hit.x, hit.y - 30, `-${dmg}`, '#6ab0ff'));
+            this._lastAttackAt = Date.now(); // 命中 → 明确造成伤害
             c._basic = null;
         } else if (b.dist >= b.maxDist) {
             c._basic = null; // 到射程静默消失

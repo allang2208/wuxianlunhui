@@ -16,6 +16,7 @@ CELL = 512
 TARGET_H = 470
 FEET_Y = 478
 CENTER_X = 256
+MAX_WIDTH = 300  # 水平限幅：施法展臂帧宽度超过该值则仅水平压缩，减少"人物忽宽忽窄"形变
 
 
 def align_cell(rgba):
@@ -30,7 +31,12 @@ def align_cell(rgba):
     nh = max(1, int(round((y1 - y0 + 1) * scale)))
     crop = rgba[y0:y1 + 1, x0:x1 + 1]
     im = Image.fromarray(crop, 'RGBA').resize((nw, nh), Image.LANCZOS)
+    # 水平限幅：仅压缩 X 轴（保持高度 471），避免施法展臂帧过宽导致的视觉形变
+    if nw > MAX_WIDTH:
+        im = im.resize((MAX_WIDTH, nh), Image.LANCZOS)
+        nw = MAX_WIDTH
     content_cx = (float(xs.mean()) - x0) * scale
+    content_cx *= (nw / max(1, int(round((x1 - x0 + 1) * scale))))  # 缩放后质心随宽度变化
     px = int(round(CENTER_X - content_cx))
     if px < 2 or px + nw > CELL - 2:
         px = int(round(CENTER_X - nw / 2))
