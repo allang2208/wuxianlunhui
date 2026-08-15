@@ -13,6 +13,7 @@ class BuildingSinkEffect {
         this.entity = entity;
         this.x = entity.x;
         this.y = entity.y;
+        this.baseY = entity.y;        // 原始地面接缝线（烟尘固定在这条线上，不随下沉下移）
         this.active = true;
         this.duration = 520;          // 沉陷总时长 ms
         this.timer = 0;
@@ -34,9 +35,9 @@ class BuildingSinkEffect {
 
         this.timer += dt;
         const p = Math.min(1, this.timer / this.duration);
-        // 下沉：先快后慢，总深 ≈ 显示高 95%（整座没入地下）
+        // 下沉：先快后慢，总深 ≈ 显示高 102%（顶部最终消失在地面接缝处）
         const dispH = e.spriteCfg && e.spriteCfg.sizeH ? e.spriteCfg.sizeH : 120;
-        const totalSink = dispH * 0.95;
+        const totalSink = dispH * 1.02;
         const target = totalSink * (p * (2 - p)); // easeOutQuad
         const step = Math.max(0, target - this.sinkPx);
         if (step > 0) {
@@ -45,9 +46,9 @@ class BuildingSinkEffect {
             // 深度跟随下沉（掩体 _faceDepth 固定，沉陷时逐步后移避免浮在墙前实体之上）
             if (typeof e._faceDepth === 'number') e._faceDepth += step;
         }
-        // 原大小原样式：不做任何缩放/压扁；仅尾段（85% 后）轻微淡出
+        // 原大小原样式：不做任何缩放/压扁；仅顶部到达地面后的最后阶段淡出
         if (sprite.active) {
-            sprite.setAlpha(p > 0.85 ? Math.max(0, 1 - (p - 0.85) / 0.15) : 1);
+            sprite.setAlpha(p > 0.93 ? Math.max(0, 1 - (p - 0.93) / 0.07) : 1);
         }
 
         // 接缝灰烟（每 110ms 一撮，小尺寸低透明度）
@@ -69,7 +70,7 @@ class BuildingSinkEffect {
         const g = scene.add.graphics();
         if (scene.worldEffectsGroup) scene.worldEffectsGroup.add(g);
         const x = e.x + (Math.random() - 0.5) * (e.spriteCfg && e.spriteCfg.size ? e.spriteCfg.size * 0.8 : 120);
-        const y = e.y - 6 + Math.random() * 10;
+        const y = this.baseY - 6 + Math.random() * 10; // 固定在地面接缝
         let d = y + 30;
         const WS = (typeof window !== 'undefined') ? window.WallSystem : null;
         if (WS && typeof WS.junctionCorrectedDepth === 'function') d = WS.junctionCorrectedDepth(x, y, y + 30);
