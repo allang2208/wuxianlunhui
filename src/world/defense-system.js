@@ -2680,6 +2680,11 @@ const CoverGate = {
             halfThick: cfg0.halfThick,
             _gate: true, _gateHole: true,
         };
+        // [GATE-DETECT-FIX 2026-08-16] 感应中心 = 门洞物理中心（面线中点），
+        // 不能用精灵中心 _cx/_cy——贴图等距偏移让检测球偏入门内 ~74px，
+        // 门外单位被关门段挡在 150px 检测半径之外，永远触发不了开门（卡门根因）。
+        this._detectX = (A.x + B.x) / 2;
+        this._detectY = (A.y + B.y) / 2;
         // 三段面线注册进遮挡仲裁（pillar 恒注册；bars 随开关注册/移除）
         this._unregisterSegs();
         this._depthSegs = gateDepthSegs(A, B, this._depthL, this._depthR, this._depthBars);
@@ -2741,8 +2746,10 @@ const CoverGate = {
         if (!this._gateSeg) return;
         const OPEN_RADIUS = 150;
         const CLOSE_LINGER_S = 1.2; // dt 单位为秒
-        const f = nearbyFriendlyUnit(this._cx, this._cy);
-        const near = !!f && Math.hypot(f.x - this._cx, f.y - this._cy) <= OPEN_RADIUS;
+        const dxx = this._detectX ?? this._cx;
+        const dyy = this._detectY ?? this._cy;
+        const f = nearbyFriendlyUnit(dxx, dyy);
+        const near = !!f && Math.hypot(f.x - dxx, f.y - dyy) <= OPEN_RADIUS;
         if (near) {
             this._closeTimer = 0;
             if (this.state === 'closed' || this.state === 'closing') this.open();
@@ -2775,6 +2782,7 @@ const CoverGate = {
         if (this.state === 'open' || this.state === 'opening') return;
         this.state = 'opening';
         this.setPassable(true);
+        this._playSound('open');
         this._play(0, (this._cfg || GATE_CONFIG).frames - 1);
     },
 
@@ -2787,7 +2795,18 @@ const CoverGate = {
         );
         this.state = 'closing';
         this.setPassable(false);
+        this._playSound('close');
         this._play((this._cfg || GATE_CONFIG).frames - 1, 0);
+    },
+
+    /** 铁栅栏门开关音效（世界音效距离衰减，2026-08-16；用户素材 1.mp3，开关共用） */
+    _playSound(which) {
+        if (!SoundManager || typeof SoundManager.playWorld !== 'function') return;
+        void which; // 开/关共用同一音效（用户指定）
+        const path = 'assets/sounds/environment/gate_iron.mp3';
+        const sx = this._detectX ?? this._cx ?? 0;
+        const sy = this._detectY ?? this._cy ?? 0;
+        SoundManager.playWorld(path, sx, sy);
     },
 
     toggle() {
@@ -2902,6 +2921,10 @@ class BuildableGate extends Combatant {
             halfThick: cfg.halfThick,
             _gate: true, _gateHole: true,
         };
+        // [GATE-DETECT-FIX 2026-08-16] 与基地门同口径：感应中心 = 门洞物理中心，
+        // 非精灵中心 _spriteCx/_spriteCy（等距偏移使门外单位够不到检测半径）
+        this._detectX = (this._gateSeg.x1 + this._gateSeg.x2) / 2;
+        this._detectY = (this._gateSeg.y1 + this._gateSeg.y2) / 2;
         if (WallSystem && WallSystem.isoSegments) WallSystem.isoSegments.push(this._gateSeg);
         // 裁剪与门共线/重叠的掩体碰撞段（贴柱走位不被掩体段截停）
         trimCoverSegsForGate(this, this._faceLine[0], this._faceLine[1]);
@@ -3003,8 +3026,10 @@ class BuildableGate extends Combatant {
         }
         const OPEN_RADIUS = 150;
         const CLOSE_LINGER_S = 1.2;
-        const f = nearbyFriendlyUnit(this._spriteCx, this._spriteCy);
-        const near = !!f && Math.hypot(f.x - this._spriteCx, f.y - this._spriteCy) <= OPEN_RADIUS;
+        const dxx = this._detectX ?? this._spriteCx;
+        const dyy = this._detectY ?? this._spriteCy;
+        const f = nearbyFriendlyUnit(dxx, dyy);
+        const near = !!f && Math.hypot(f.x - dxx, f.y - dyy) <= OPEN_RADIUS;
         if (near) {
             this._closeTimer = 0;
             if (this.state === 'closed' || this.state === 'closing') this.open();
@@ -3037,6 +3062,7 @@ class BuildableGate extends Combatant {
         if (this.state === 'open' || this.state === 'opening') return;
         this.state = 'opening';
         this.setPassable(true);
+        this._playSound('open');
         this._play(0, this._cfg.frames - 1);
     }
 
@@ -3049,7 +3075,18 @@ class BuildableGate extends Combatant {
         );
         this.state = 'closing';
         this.setPassable(false);
+        this._playSound('close');
         this._play(this._cfg.frames - 1, 0);
+    }
+
+    /** 铁栅栏门开关音效（世界音效距离衰减，2026-08-16；用户素材 1.mp3，开关共用） */
+    _playSound(which) {
+        if (!SoundManager || typeof SoundManager.playWorld !== 'function') return;
+        void which; // 开/关共用同一音效（用户指定）
+        const path = 'assets/sounds/environment/gate_iron.mp3';
+        const sx = this._detectX ?? this._spriteCx ?? this.x;
+        const sy = this._detectY ?? this._spriteCy ?? this.y;
+        SoundManager.playWorld(path, sx, sy);
     }
 
     _play(from, to) {

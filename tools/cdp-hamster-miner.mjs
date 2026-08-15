@@ -171,6 +171,15 @@ for (let i = 0; i < 60 && !sceneReady; i++) {
 check('世界-122 已就绪', sceneReady);
 if (!sceneReady) { console.error('scene8 not ready, abort'); await cleanup(1); }
 
+// 冻结波次生成：探针专注物流/寻路边界链路，避免 30s 后随机怪干扰
+// （敌人优先是矿工设计行为——被怪贴脸会先交战，会打乱 J 等阶段的确定性）
+await rawEval(`(async () => {
+    const { DefenseSystem } = await window.__imp('defense-system');
+    DefenseSystem._phase = 'prep';
+    DefenseSystem._phaseTimer = 1e9;
+    return true;
+})()`).catch(() => false);
+
 // ---------- A. 建小屋生成矿工：属性 / 阵营 / 寻最近矿点 ----------
 console.log('A. 小屋生成与属性');
 const a = await rawEval(`(async () => {
@@ -274,6 +283,60 @@ const a2 = await rawEval(`(async () => {
 check('出生在基地房内：自动寻路出基地（pmValid 生效、无传送跳变、离开小屋>150px）',
     a2.pmValidSeen === true && a2.maxJump < 60 && a2.maxDistFromHut > 150,
     JSON.stringify(a2));
+
+// ---------- A3. 基地门对矿工双向感应：门外也能触发开门（门卡死回归） ----------
+// 2026-08-16 用户实测：仓鼠小屋建在基地附近，矿工过基地门卡死左右摆动。
+// 根因：门感应中心用了精灵中心 _cx/_cy（等距贴图偏移 ~74px 偏入门内），
+// 门外单位被关门段挡在 150px 检测半径外，永远触发不了开门 → 顶门 + 卡死看门狗摆动。
+// 修复：感应中心改为门洞物理中心（_gateSeg 中点），门内外两侧 150px 均生效。
+console.log('A3. 基地门双向感应（门外开门回归）');
+const a3 = await rawEval(`(async () => {
+    const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+    const { DefenseSystem } = await window.__imp('defense-system');
+    const gate = DefenseSystem && DefenseSystem.gate;
+    if (!gate || !gate._gateSeg) return { err: 'no base gate' };
+    const seg = gate._gateSeg;
+    const mx = (seg.x1 + seg.x2) / 2, my = (seg.y1 + seg.y2) / 2;
+    const ux = (seg.x2 - seg.x1) / (Math.hypot(seg.x2 - seg.x1, seg.y2 - seg.y1) || 1);
+    const uy = (seg.y2 - seg.y1) / (Math.hypot(seg.x2 - seg.x1, seg.y2 - seg.y1) || 1);
+    const nx = -uy, ny = ux; // 门外法线
+    const detectOk = Math.abs((gate._detectX ?? 0) - mx) < 1 && Math.abs((gate._detectY ?? 0) - my) < 1;
+    // 强制关门，确保从「门外侧触发开门」是本次修复的真实效果（不搭 A2 已开门状态）
+    if (gate.state !== 'closed' && typeof gate.setPassable === 'function') {
+        gate.setPassable(false);
+        gate.state = 'closed';
+        gate._closeTimer = 0;
+    }
+    // 用矿工本尊测门外感应：放到门外侧 100px（贴关门面），不动它，观察门是否自动开
+    const miner = [...window.Game.entities.values()].find(e => e && e._isHamsterMiner && e.active);
+    const minerX0 = miner.x, minerY0 = miner.y;
+    miner.x = mx + nx * 100; miner.y = my + ny * 100;
+    miner.target = null; miner._tacticalTarget = null; miner._animState = 'idle';
+    if (miner._pathManager) miner._pathManager._clearPath();
+    const blocking = () => !!(window.WallSystem && window.WallSystem.isoSegments
+        && window.WallSystem.isoSegments.includes(seg));
+    const before = { state: gate.state, blocking: blocking() };
+    let opened = false;
+    for (let i = 0; i < 8; i++) {
+        await sleep(200);
+        if (gate.state === 'open' || gate.state === 'opening') { opened = true; break; }
+    }
+    const after = { state: gate.state, blocking: blocking() };
+    // 还原矿工（避免影响后续阶段）
+    miner.x = minerX0; miner.y = minerY0;
+    miner.target = null; miner._tacticalTarget = null;
+    if (miner._pathManager) miner._pathManager._clearPath();
+    await sleep(700); // 等 AI tick 重新锁定最近矿点，避免后续阶段 target 为空
+    return { detectOk, before, after, opened,
+        detectCenter: [Math.round(gate._detectX), Math.round(gate._detectY)],
+        segMid: [Math.round(mx), Math.round(my)],
+        spriteCenter: [Math.round(gate._cx), Math.round(gate._cy)] };
+})()`);
+check('基地门感应中心 = 门洞物理中心（非精灵中心，修复回归锚点）',
+    a3.detectOk === true, JSON.stringify(a3 && a3.detectCenter));
+check('矿工站门外侧 100px（关门面）→ 门自动打开',
+    a3.opened === true && a3.after && a3.after.blocking === false,
+    JSON.stringify(a3 && { before: a3.before, after: a3.after, opened: a3.opened }));
 
 // ---------- B. 采矿：定格第 6 帧 + 每 2s 100 伤害 ----------
 console.log('B. 采矿挥锄 + 间隔定格 + 伤害');
