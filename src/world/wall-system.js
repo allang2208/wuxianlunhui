@@ -897,9 +897,19 @@ const WallSystem = {
         if (G && G.entities) {
             for (const e of G.entities.values()) {
                 if (!e || !e.active || !e._faceLine || e._faceLine.length !== 2) continue;
+                if (e._isCoverGate) continue; // 门的遮挡面线按三段注册在 GateFaceSegs（见下）
                 const [A, B] = e._faceLine;
                 if (!A || !B || typeof A.x !== 'number' || typeof B.x !== 'number') continue;
                 applySeg(A, B, typeof e._faceDepth === 'number' ? e._faceDepth : e.y + 12);
+            }
+        }
+        // 铁栅栏门三段面线（左柱/栅栏/右柱，各自深度，2026-08-15）：
+        // 右柱=浅端单独浅深度 → 其前实体不再被整门深深度误盖；栅栏随开关注册/移除。
+        const segs = (typeof window !== 'undefined') ? (window.GateFaceSegs || null) : null;
+        if (segs) {
+            for (const s of segs) {
+                if (!s || !s.A || !s.B) continue;
+                applySeg(s.A, s.B, s.depth);
             }
         }
         // 遮挡源只在比所有前墙都深时才压制：浅遮挡源的贴图本身画在深前墙之下，

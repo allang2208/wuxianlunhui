@@ -144,10 +144,6 @@ export class BootScene extends Scene {
         this.load.image('swampbrick_3', 'assets/terrain/swampbrick-3.png');
         // 世界-122 能源资源点（2026-08-16 v3：AI 成品优先；缺图时 EnergyNodeSystem 自动生成
         // 12 形态程序化水晶，底座带 30° 接地线，与掩体/墙地板衔接同规则。旧 v1~v6 不再参与渲染）
-        // 旧 v1/v2 成品贴图已作废清理（energy_node.png / energy_node_depleted.png 等已移至
-        // _trash_energy_v1v2/），不再加载；缺失时 EnergyNodeSystem 会生成 64×64 占位兜底。
-        // this.load.image('energy_node', 'assets/terrain/energy_node.png');
-        // this.load.image('energy_node_depleted', 'assets/terrain/energy_node_depleted.png');
         // AI v3 成品（12 形态 × 正常/枯竭）：只加载 assets/terrain 下实际存在的文件。
         // 未生成的文件不会发起请求，避免 Phaser 报 Failed to process file 刷屏。
         // 注意：新放入 assets 的 v3 图片需重启 Vite 后才会被 glob 收录。
@@ -207,12 +203,20 @@ export class BootScene extends Scene {
                 }
             }
         }
-        // 世界-122 基地铁栅栏滑动门（D 级，Blender 建模 16 帧滑出/滑入开合，2026-08-15）
-        this.load.spritesheet('cover_gate_D', 'assets/terrain/cover_gate_D.png', { frameWidth: 640, frameHeight: 634 });
+        // 世界-122 铁栅栏滑动门（F→A 六档，Blender 建模 16 帧滑出/滑入开合，2026-08-15）
+        for (const grade of ['F', 'E', 'D', 'C', 'B', 'A']) {
+            this.load.spritesheet(`cover_gate_${grade}`, `assets/terrain/cover_gate_${grade}.png`, { frameWidth: 640, frameHeight: 634 });
+            // 图层拆分（2026-08-15）：左右柱静态图 + 栅栏 16 帧，各按自身底边线深度锚定
+            this.load.image(`cover_gate_${grade}_pillarL`, `assets/terrain/cover_gate_${grade}_pillarL.png`);
+            this.load.image(`cover_gate_${grade}_pillarR`, `assets/terrain/cover_gate_${grade}_pillarR.png`);
+            this.load.spritesheet(`cover_gate_${grade}_bars`, `assets/terrain/cover_gate_${grade}_bars.png`, { frameWidth: 640, frameHeight: 634 });
+        }
         // 世界-122 防御塔（基座+上方机械臂武器挂载点）
         this.load.image('obstacle_defense_tower', 'assets/terrain/obstacle_defense_tower.png');
         // 世界-122 仓鼠小屋（建筑面板可建造，生成仓鼠矿工；贴图 Blender 建模渲染）
         this.load.image('hamster_hut', 'assets/terrain/hamster_hut.png');
+        // 仓鼠小屋开关门动画帧（工厂关门版 16 帧滑门，4×4 精灵表；矿工补员时先开门）
+        this.load.spritesheet('hamster_hut_door', 'assets/terrain/hamster_hut_door.png', { frameWidth: 512, frameHeight: 502 });
         // 世界-122 防御塔机械臂（预渲染 3D 旋转帧，48 帧等距透视，按 aimAngle 选帧）
         this.load.spritesheet('obstacle_defense_tower_arm_frames', 'assets/terrain/obstacle_defense_tower_arm_frames.png', { frameWidth: 261, frameHeight: 164 });
         // 防御塔武器枪管（预裁剪独立贴图："枪插进机械臂"假象；2026-08-14）
@@ -545,6 +549,22 @@ export class BootScene extends Scene {
                     repeat: def.repeat !== undefined ? def.repeat : -1,
                 });
             }
+        }
+
+        // 仓鼠小屋开关门动画（2026-08-15）：开门 0→15、关门 15→0，矿工补员时先开门再出仓鼠
+        if (!this.anims.exists('hamster_hut_door_open')) {
+            this.anims.create({
+                key: 'hamster_hut_door_open',
+                frames: this.anims.generateFrameNumbers('hamster_hut_door', { start: 0, end: 15 }),
+                frameRate: 24,
+                repeat: 0,
+            });
+            this.anims.create({
+                key: 'hamster_hut_door_close',
+                frames: this.anims.generateFrameNumbers('hamster_hut_door', { start: 15, end: 0 }),
+                frameRate: 24,
+                repeat: 0,
+            });
         }
 
         // 武器枪口点自动烘焙：扫描每把武器贴图，取【最大连通体】（枪身本体，8 邻域）的

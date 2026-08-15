@@ -16,7 +16,10 @@ import { SoundManager } from '../ui/sound-manager.js';
 import { UIState } from '../ui/ui-state.js';
 import { CONFIG } from '../config/config.js';
 import { SceneManager } from './scene-manager.js';
-import { DefenseSystem, DefenseTower, DefenseCover, DEFENSE_CONFIG, COVER_FACE, COVER_FOOT } from './defense-system.js';
+import {
+    DefenseSystem, DefenseTower, DefenseCover, BuildableGate,
+    DEFENSE_CONFIG, COVER_FACE, COVER_FOOT, GATE_GEOM,
+} from './defense-system.js';
 import { DefenseTrap, TRAP_CONFIG, TRAP_GRADES, TRAP_SPACING, getTrapDef, DefenseTrapSystem } from './defense-trap-system.js';
 import { HamsterHut, HamsterHutSystem, HAMSTER_CONFIG } from './hamster-hut-system.js';
 
@@ -38,6 +41,16 @@ for (const g of Object.keys(COVER_FACE)) {
 COVER_SNAP.v = COVER_SNAP.D.v;
 COVER_SNAP.h = COVER_SNAP.D.h;
 export { COVER_SNAP };
+
+/** 铁栅栏门两端锚点（相对门脚底 x/y，世界像素，与 GATE_GEOM.worldFaceLen 同源）：
+ *  门作为墙段参与掩体吸附——左右端点贴相邻墙段端点（SNAP_RADIUS 内自动吸附）。 */
+const GATE_SNAP = (() => {
+    const half = GATE_GEOM.worldFaceLen / 2;
+    return {
+        v: { L: { x: -half, y: -65 + half * 0.5 }, R: { x: half, y: -65 - half * 0.5 } },
+        h: { L: { x: -half, y: -65 - half * 0.5 }, R: { x: half, y: -65 + half * 0.5 } },
+    };
+})();
 
 /** 吸附触发距离（世界像素）：鼠标预览的墙端锚点与既有墙端锚点在此距离内即吸附 */
 const SNAP_RADIUS = 60;
@@ -76,6 +89,21 @@ for (const grade of ['F', 'E', 'D', 'C', 'B', 'A']) {
         currency: 'energy', // 掩体/防御塔用世界-122 能源修建（2026-08-14）
     });
 }
+// 铁栅栏门（F→A 六档，2026-08-15）：与掩体同口径可被攻击/修理；
+// 建筑面板内点击放置，参与墙段吸附；默认关闭，友军靠近自动开门。
+for (const grade of ['F', 'E', 'D', 'C', 'B', 'A']) {
+    BUILD_ITEMS.push({
+        id: `gate_${grade}_v`,
+        name: `铁栅栏门·${grade}级`,
+        grade,
+        orient: 'v',
+        kind: 'gate',
+        cost: DEFENSE_CONFIG.covers.hp[grade] * 0.25,
+        tex: `cover_gate_${grade}`,
+        icon: `cover_gate_${grade}_icon`,
+        currency: 'energy',
+    });
+}
 // 陷阱：4 类 × F~A 六档（数据源 TRAP_CONFIG，唯一真源）——陷阱维持金币购买
 for (const type of Object.keys(TRAP_CONFIG)) {
     const t = TRAP_CONFIG[type];
@@ -102,6 +130,7 @@ for (const type of Object.keys(TRAP_CONFIG)) {
 export const BuildingSystem = {
     active: false,
     _placing: null,       // { item, mirror }
+    _detail: null,        // 建筑详情视图：当前查看的掩体实体（2026-08-15）
     _ghost: null,
     _snapped: null,        // 当前吸附到的放置坐标 { x, y, e }（无吸附为 null）
     _panel: null,
@@ -137,7 +166,7 @@ export const BuildingSystem = {
         window.addEventListener('keydown', this._keyFn, true);
         // 面板顶行货币实时刷新（采集能源/击杀金币时数字即时跳动，2026-08-14）
         clearInterval(this._refreshTimer);
-        this._refreshTimer = setInterval(() => this._refreshCurrencies(), 500);
+        this._refreshTimer = setInterval(() => { this._refreshCurrencies(); this._refreshDetail(); }, 500);
         if (Game.player) {
             EffectManager.add(new FloatingTextEffect(Game.player.x, Game.player.y - 50, '建筑面板（B 关闭）', '#9acd9a'));
         }
@@ -150,6 +179,7 @@ export const BuildingSystem = {
         clearInterval(this._refreshTimer);
         this._refreshTimer = null;
         this._cancelPlacement();
+        this._detail = null;
         if (this._downFn) window.removeEventListener('mousedown', this._downFn);
         if (this._moveFn) window.removeEventListener('mousemove', this._moveFn);
         if (this._keyFn) window.removeEventListener('keydown', this._keyFn, true);
@@ -165,7 +195,8 @@ export const BuildingSystem = {
     _buildPanel() {
         if (this._panel) this._panel.remove();
         const el = document.createElement('div');
-        el.className = 'wall-editor-panel';
+        // build-panel 专属类（2026-08-15）：拉伸宽度 + 固定三列网格，不影响摆墙编辑器共享样式
+        el.className = 'wall-editor-panel build-panel';
         const gold = GoldManager ? GoldManager.getGold() : 0;
         const energy = EnergyManager ? EnergyManager.getEnergy() : 0;
         el.innerHTML = `
@@ -174,23 +205,26 @@ export const BuildingSystem = {
                 金币：<b style="color:#ffd700;">${gold}</b>&nbsp;&nbsp;能源：<b style="color:#7fd4ff;">${energy}</b>（点击建筑后到场景里放置）
             </div>
             <div class="we-grid we-std-scroll" id="bpGrid" style="max-height:62vh;overflow-y:auto;">
-                ${BUILD_ITEMS.map((it) => {
+                ${BUILD_ITEMS.filter((it) => it.kind !== 'trap').map((it) => {
                     const cur = it.currency === 'energy' ? '能' : '金';
+                    const thumb = it.icon || it.tex;
                     return `
                     <div class="we-thumb" data-id="${it.id}" title="${it.name} — ${it.cost} ${cur}">
-                        <img src="assets/terrain/${it.tex}.png" draggable="false" alt="${it.name}">
+                        <img src="assets/terrain/${thumb}.png" draggable="false" alt="${it.name}">
                         <span>${it.name}<br><em style="color:${it.currency === 'energy' ? '#7fd4ff' : '#ffd700'};font-style:normal;">${it.cost}${cur}</em></span>
                     </div>`;
                 }).join('')}
             </div>
-            <div class="we-row">
+            <div id="bpDetail" style="display:none;"></div>
+            <div class="we-row" id="bpRow">
                 <button id="bpMirror" title="镜像翻转摆放方向（F）">镜像 F</button>
                 <button id="bpCancel" title="取消放置（右键/Esc）">取消</button>
                 <span class="we-selinfo" id="bpSel">未选择建筑</span>
             </div>
-            <div class="we-hints">
+            <div class="we-hints" id="bpHints">
                 B=开/关面板 | 点击建筑后移动鼠标预览<br>
-                左键放置（掩体/塔扣能源，陷阱扣金币）| F=镜像（垂直↔水平）| 右键/Esc=取消<br>
+                左键放置（掩体/塔扣能源）| F=镜像（垂直↔水平）| 右键/Esc=取消<br>
+                点击已建掩体查看详情（耐久/消耗）| Esc=返回/关闭<br>
                 掩体靠近已有掩体端点自动吸附（变绿=已吸附）<br>
                 墙段只能端点拼接，不能重叠摆放
             </div>`;
@@ -241,6 +275,8 @@ export const BuildingSystem = {
                 this._ghost.setDisplaySize(HAMSTER_CONFIG.hut.displayW, HAMSTER_CONFIG.hut.displayH);
             } else if (item.kind === 'trap') {
                 this._ghost.setDisplaySize(item.trapW || 72, item.trapH || 52);
+            } else if (item.kind === 'gate') {
+                this._ghost.setDisplaySize(GATE_GEOM.cellW * GATE_GEOM.displayScale, GATE_GEOM.cellH * GATE_GEOM.displayScale);
             } else {
                 this._ghost.setDisplaySize(260, Math.round(260 / (this._coverAspect(item) || 1)));
             }
@@ -322,7 +358,18 @@ export const BuildingSystem = {
             this._cancelPlacement();
             return;
         }
-        if (e.button !== 0 || !this._placing) return;
+        if (e.button !== 0) return;
+        // 点击落在面板自身 DOM 上不穿透到场景
+        if (this._panel && e.target && this._panel.contains(e.target)) return;
+        // 非放置状态：点击已建掩体 → 详情视图（2026-08-15；
+        // 防御塔/陷阱维持原有各自面板，由 game.js 点击分发处理，不在此拦截）
+        if (!this._placing) {
+            const p = this._clientToWorld(e);
+            if (!p || !p.overCanvas) return;
+            const cover = this._hitTestCover(p.x, p.y);
+            if (cover) this._showDetail(cover);
+            return;
+        }
         const p = this._clientToWorld(e);
         if (!p || !p.overCanvas) return;
         // 落点 = 幽灵已确认可放的吸附位（_onMouseMove 已过滤 canPlace）；
@@ -333,13 +380,19 @@ export const BuildingSystem = {
     },
 
     _onKey(e) {
+        // Esc 分层（2026-08-15 用户要求）：放置中 → 取消放置；详情视图 → 返回列表；列表 → 关闭面板
+        if (e.code === 'Escape') {
+            e.preventDefault();
+            e.stopPropagation();
+            if (this._placing) { this._cancelPlacement(); return; }
+            if (this._detail) { this._closeDetail(); return; }
+            this.close();
+            return;
+        }
         if (!this._placing) return;
         if (e.code === 'KeyF') {
             e.preventDefault();
             this._toggleMirror();
-        } else if (e.code === 'Escape') {
-            e.preventDefault();
-            this._cancelPlacement();
         }
     },
 
@@ -347,15 +400,17 @@ export const BuildingSystem = {
 
     /**
      * 掩体端点吸附：找最近的一个既有掩体墙端锚点，把新件对应端贴上去。
-     * 仅掩体参与吸附（防御塔不拼接）；同向（v-v / h-h）优先，跨向（v-h 转角）次之。
+     * 掩体/铁栅栏门参与吸附（防御塔不拼接）；同向（v-v / h-h）优先，跨向（v-h 转角）次之。
      * @returns {null|{x:number,y:number,e:object}}
      */
     _snapPosition(x, y) {
         const item = this._placing && this._placing.item;
-        if (!item || item.kind !== 'cover') return null;
+        if (!item || (item.kind !== 'cover' && item.kind !== 'gate')) return null;
         const eff = effOrient(item, this._placing.mirror);
-        const off = (COVER_SNAP[item.grade] && COVER_SNAP[item.grade][eff])
-            || COVER_SNAP.D[eff] || COVER_SNAP.D.v;
+        const off = item.kind === 'gate'
+            ? GATE_SNAP[eff]
+            : ((COVER_SNAP[item.grade] && COVER_SNAP[item.grade][eff])
+                || COVER_SNAP.D[eff] || COVER_SNAP.D.v);
         if (!off) return null;
         const newEnds = [
             { key: 'L', x: x + off.L.x, y: y + off.L.y },
@@ -366,8 +421,10 @@ export const BuildingSystem = {
             if (!e || !e._isDefenseStructure || !e.active) continue;
             if (e.orient !== 'h' && e.orient !== 'v') continue;
             const eEff = effOrient(e, e._facingLeft);
-            const eo = (COVER_SNAP[e.grade] && COVER_SNAP[e.grade][eEff])
-                || COVER_SNAP.D[eEff] || COVER_SNAP.D.v;
+            const eo = e._isCoverGate
+                ? GATE_SNAP[eEff]
+                : ((COVER_SNAP[e.grade] && COVER_SNAP[e.grade][eEff])
+                    || COVER_SNAP.D[eEff] || COVER_SNAP.D.v);
             if (!eo) continue;
             const existingEnds = [
                 { x: e.x + eo.L.x, y: e.y + eo.L.y },
@@ -404,6 +461,20 @@ export const BuildingSystem = {
 
     /** 新掩体的墙段底边线段（face line，世界坐标）——按级别 + 有效朝向 */
     _coverSeg(x, y, grade, eff) {
+        if (this._placing && this._placing.item.kind === 'gate') {
+            const half = GATE_GEOM.worldFaceLen / 2;
+            const midY = y - 65;
+            if (eff === 'v') {
+                return [
+                    { x: x - half, y: midY + half * 0.5 },
+                    { x: x + half, y: midY - half * 0.5 },
+                ];
+            }
+            return [
+                { x: x - half, y: midY - half * 0.5 },
+                { x: x + half, y: midY + half * 0.5 },
+            ];
+        }
         const g = (COVER_FACE[grade] && COVER_FACE[grade][eff]) || COVER_FACE.D[eff] || COVER_FACE.D.v;
         return [
             { x: x + g.A.x, y: y + g.A.y },
@@ -456,10 +527,11 @@ export const BuildingSystem = {
         // 不与已建建筑重叠：掩体按「墙段真实 footprint（底边线段 + 墙厚）」判定——
         // 只检查底部碰撞体积，斜墙不再用轴对齐保守矩形（避免“该能放却红”）；
         // 两墙不能穿越/叠放，仅允许端点相接或吸附后 8px 接缝叠合
-        if (this._placing.item.kind === 'cover') {
+        if (this._placing.item.kind === 'cover' || this._placing.item.kind === 'gate') {
             const eff = effOrient(this._placing.item, this._placing.mirror);
-            const foot = COVER_FOOT[eff] || COVER_FOOT[this._placing.item.orient] || COVER_FOOT.v;
-            const thick = foot.thick ?? 26; // 墙厚一半，不是碰撞 rect 的 min（140 会成空气墙）
+            const thick = this._placing.item.kind === 'gate'
+                ? GATE_GEOM.halfThick
+                : ((COVER_FOOT[eff] || COVER_FOOT[this._placing.item.orient] || COVER_FOOT.v).thick ?? 26);
             const seg = this._coverSeg(x, y, this._placing.item.grade, eff);
             for (const e of Game.entities.values()) {
                 if (!e || !e._isDefenseStructure || !e.active) continue;
@@ -501,6 +573,183 @@ export const BuildingSystem = {
         return true;
     },
 
+    // ==================== 建筑详情视图（2026-08-15：面板内切换，仅掩体） ====================
+
+    /** 掩体/门命中检测：face 线段距离（墙厚 + 24px 余量）或脚底 90px 圆，取最近者 */
+    _hitTestCover(wx, wy) {
+        let best = null;
+        for (const e of Game.entities.values()) {
+            if (!e || !(e._isDefenseCover || e._isCoverGate) || !e.active) continue;
+            let d = Infinity;
+            if (e._faceLine && e._faceLine.length === 2) {
+                d = this._pointSegDist(wx, wy, e._faceLine[0], e._faceLine[1]) - (e._coverHalfThick ?? 26);
+            }
+            d = Math.min(d, Math.hypot(wx - e.x, wy - e.y) - 90);
+            if (d <= 24 && (!best || d < best.d)) best = { e, d };
+        }
+        return best ? best.e : null;
+    },
+
+    /** 点到线段的最短距离 */
+    _pointSegDist(px, py, a, b) {
+        const dx = b.x - a.x, dy = b.y - a.y;
+        const len2 = dx * dx + dy * dy;
+        let t = len2 ? ((px - a.x) * dx + (py - a.y) * dy) / len2 : 0;
+        t = Math.max(0, Math.min(1, t));
+        return Math.hypot(px - (a.x + dx * t), py - (a.y + dy * t));
+    },
+
+    _showDetail(entity) {
+        this._detail = entity;
+        this._renderDetail();
+    },
+
+    _closeDetail() {
+        this._detail = null;
+        this._renderDetail();
+    },
+
+    /** 详情视图渲染：_detail 为空回到网格列表；建筑被摧毁自动退回 */
+    _renderDetail() {
+        if (!this._panel) return;
+        const grid = this._panel.querySelector('#bpGrid');
+        const row = this._panel.querySelector('#bpRow');
+        const hints = this._panel.querySelector('#bpHints');
+        const det = this._panel.querySelector('#bpDetail');
+        if (!grid || !det) return;
+        let e = this._detail;
+        let show = !!(e && e.active && e.hp > 0);
+        if (e && !show) {
+            e = this._detail = null;
+            show = false;
+            this._notify('建筑已被摧毁', '#ff8855');
+        }
+        grid.style.display = show ? 'none' : '';
+        if (row) row.style.display = show ? 'none' : '';
+        if (hints) hints.style.display = show ? 'none' : '';
+        det.style.display = show ? '' : 'none';
+        if (!show) return;
+        // 门走专属详情（含常锁/常开模式按钮，2026-08-15）
+        if (e._isCoverGate) { this._renderGateDetail(det, e); return; }
+        // 掩体详情：贴图 / 耐久条 / 朝向 / 建造消耗 / 修理费率 / 回满预估
+        const g = e.grade || 'F';
+        const maxHp = e.maxHp || 1;
+        const hp = Math.max(0, Math.ceil(e.hp));
+        const pct = Math.round((hp / maxHp) * 100);
+        const barColor = pct > 60 ? '#7fd47f' : (pct > 30 ? '#ffd700' : '#ff6666');
+        const buildCost = Math.round((DEFENSE_CONFIG.covers.hp[g] ?? 400) * 0.25);
+        const repairRate = (DEFENSE_CONFIG.repair && DEFENSE_CONFIG.repair.coverHpPerEnergy) || 2;
+        const repairNeed = Math.ceil((maxHp - hp) / repairRate);
+        const eff = effOrient(e, e._facingLeft);
+        const orientTxt = eff === 'v' ? '垂直（/）' : '水平（\\）';
+        det.innerHTML = `
+            <div class="bp-detail-head">
+                <img src="assets/terrain/obstacle_cover_${g}_v.png" draggable="false" alt="掩体·${g}级">
+                <div style="flex:1;min-width:0;">
+                    <div class="bp-detail-name">掩体·${g}级</div>
+                    <div class="bp-hpbar"><div style="width:${pct}%;background:${barColor};"></div></div>
+                    <div style="font-size:11px;color:#b0a892;">耐久 ${hp} / ${maxHp}（${pct}%）</div>
+                </div>
+            </div>
+            <div class="bp-detail-rows">
+                朝向：<b>${orientTxt}</b><br>
+                建造消耗：<b style="color:#7fd4ff;">${buildCost} 能源</b><br>
+                修理费率：<b>${repairRate} 耐久 / 1 能源</b>（点击下方按钮修理）<br>
+                回满预估：<b style="color:#7fd4ff;">≈ ${repairNeed} 能源</b>
+            </div>
+            <div style="display:flex;gap:8px;">
+                <button id="bpBack" class="bp-back" style="flex:1;">← 返回列表</button>
+                <button id="bpRepair" class="bp-repair" style="flex:1;" ${hp >= maxHp ? 'disabled' : ''}>${hp >= maxHp ? '耐久已满' : `修 理（-${repairNeed} 能源）`}</button>
+            </div>`;
+        det.querySelector('#bpBack').addEventListener('click', () => this._closeDetail());
+        det.querySelector('#bpRepair').addEventListener('click', () => this._repairCover());
+    },
+
+    /** 门详情（2026-08-15）：耐久/消耗/修理 + 常锁门/常开门模式按钮（当前模式金框高亮） */
+    _renderGateDetail(det, e) {
+        const g = e.grade || 'D';
+        const maxHp = e.maxHp || 1;
+        const hp = Math.max(0, Math.ceil(e.hp));
+        const pct = Math.round((hp / maxHp) * 100);
+        const barColor = pct > 60 ? '#7fd47f' : (pct > 30 ? '#ffd700' : '#ff6666');
+        const buildCost = Math.round((DEFENSE_CONFIG.covers.hp[g] ?? 400) * 0.25);
+        const repairRate = (DEFENSE_CONFIG.repair && DEFENSE_CONFIG.repair.coverHpPerEnergy) || 2;
+        const repairNeed = Math.ceil((maxHp - hp) / repairRate);
+        const mode = e.gateMode || 'auto';
+        const modeTxt = mode === 'locked' ? '常锁（任何单位经过都不开）'
+            : (mode === 'open' ? '常开（门口保持敞开）' : '自动（友军靠近开门）');
+        const stateTxt = (e.state === 'open' || e.state === 'opening') ? '开启' : '关闭';
+        det.innerHTML = `
+            <div class="bp-detail-head">
+                <div class="bp-gate-icon">🚪</div>
+                <div style="flex:1;min-width:0;">
+                    <div class="bp-detail-name">${e.name || `铁栅栏门·${g}级`}</div>
+                    <div class="bp-hpbar"><div style="width:${pct}%;background:${barColor};"></div></div>
+                    <div style="font-size:11px;color:#b0a892;">耐久 ${hp} / ${maxHp}（${pct}%）· 当前${stateTxt}</div>
+                </div>
+            </div>
+            <div class="bp-detail-rows">
+                建造消耗：<b style="color:#7fd4ff;">${buildCost} 能源</b><br>
+                修理费率：<b>${repairRate} 耐久 / 1 能源</b>（点击下方按钮修理）<br>
+                回满预估：<b style="color:#7fd4ff;">≈ ${repairNeed} 能源</b><br>
+                门模式：<b style="color:#ffd700;">${modeTxt}</b>
+            </div>
+            <div style="display:flex;gap:8px;margin-bottom:8px;">
+                <button id="bpGateLock" class="bp-mode-lock" style="flex:1;${mode === 'locked' ? 'outline:2px solid #ffd700;' : ''}">常锁门</button>
+                <button id="bpGateOpen" class="bp-mode-open" style="flex:1;${mode === 'open' ? 'outline:2px solid #ffd700;' : ''}">常开门</button>
+            </div>
+            <div style="display:flex;gap:8px;">
+                <button id="bpBack" class="bp-back" style="flex:1;">← 返回列表</button>
+                <button id="bpRepair" class="bp-repair" style="flex:1;" ${hp >= maxHp ? 'disabled' : ''}>${hp >= maxHp ? '耐久已满' : `修 理（-${repairNeed} 能源）`}</button>
+            </div>`;
+        det.querySelector('#bpBack').addEventListener('click', () => this._closeDetail());
+        det.querySelector('#bpRepair').addEventListener('click', () => this._repairCover());
+        det.querySelector('#bpGateLock').addEventListener('click', () => {
+            if (this._detail && typeof this._detail.setMode === 'function') this._detail.setMode('locked');
+            this._renderDetail();
+        });
+        det.querySelector('#bpGateOpen').addEventListener('click', () => {
+            if (this._detail && typeof this._detail.setMode === 'function') this._detail.setMode('open');
+            this._renderDetail();
+        });
+    },
+
+    /** 详情实时刷新（500ms 跟随 _refreshTimer）：耐久条战斗中跳动；被摧毁自动退回 */
+    _refreshDetail() {
+        if (this._detail) this._renderDetail();
+    },
+
+    /**
+     * 按钮修理（2026-08-15 用户要求，替代原 E 键长按——快捷键冲突）：
+     * 点击一次修满；能源不足时修到能负担的上限。费率 = DEFENSE_CONFIG.repair.coverHpPerEnergy。
+     * 修理入口仅此一处：建筑面板（B）掩体详情视图。
+     */
+    _repairCover() {
+        const e = this._detail;
+        if (!e || !e.active || e.hp >= e.maxHp) return;
+        const rate = (DEFENSE_CONFIG.repair && DEFENSE_CONFIG.repair.coverHpPerEnergy) || 2;
+        const energy = EnergyManager ? EnergyManager.getEnergy() : 0;
+        const want = Math.min(e.maxHp - e.hp, energy * rate);
+        if (want <= 0) {
+            this._notify('能源不足，无法修理', '#ff5555');
+            return;
+        }
+        const cost = Math.max(1, Math.ceil(want / rate));
+        if (!EnergyManager || !EnergyManager.deductEnergy(cost)) {
+            this._notify('能源不足，无法修理', '#ff5555');
+            return;
+        }
+        e.hp = Math.min(e.maxHp, e.hp + want);
+        if (EffectManager) {
+            EffectManager.add(new FloatingTextEffect(e.x, e.y - 40, `+${Math.round(want)} 修理`, '#7fd4ff'));
+        }
+        if (SoundManager && typeof SoundManager.playFile === 'function') {
+            SoundManager.playFile('assets/sounds/ui/sell.wav');
+        }
+        this._renderDetail();
+        this._refreshCurrencies();
+    },
+
     _notify(text, color) {
         if (Game.player) {
             EffectManager.add(new FloatingTextEffect(Game.player.x, Game.player.y - 40, text, color || '#d4c5a9'));
@@ -513,11 +762,13 @@ export const BuildingSystem = {
             this._notify('该位置无法放置', '#ff5555');
             return;
         }
-        // 货币扣费：掩体/防御塔扣能源（世界-122 采集所得），陷阱扣金币
+        // 货币扣费：掩体/防御塔扣能源（世界-122 采集所得），陷阱扣金币。
+        // 开发工具「无限资源」开启时建造不消耗能源/金币（2026-08-15）
+        const free = !!(Game && Game._devInfiniteResources);
         const currency = item.currency === 'energy' ? 'energy' : 'gold';
-        const payOk = currency === 'energy'
+        const payOk = free || (currency === 'energy'
             ? (EnergyManager && EnergyManager.deductEnergy(item.cost))
-            : (GoldManager && GoldManager.deductGold(item.cost));
+            : (GoldManager && GoldManager.deductGold(item.cost)));
         if (!payOk) {
             this._notify(currency === 'energy' ? '能源不足（攻击资源点采集）' : '金币不足', '#ff5555');
             return;
@@ -539,6 +790,15 @@ export const BuildingSystem = {
                 id,
             });
             Game.entities.set(id, trap);
+        } else if (item.kind === 'gate') {
+            const gate = new BuildableGate(x, y, {
+                grade: item.grade,
+                orient: item.orient,
+                mirror,
+                id,
+            });
+            Game.entities.set(id, gate);
+            if (DefenseSystem && DefenseSystem.gates) DefenseSystem.gates.push(gate);
         } else {
             const cover = new DefenseCover(x, y, {
                 grade: item.grade,
@@ -552,7 +812,10 @@ export const BuildingSystem = {
             SoundManager.playFile('assets/sounds/ui/sell.wav');
         }
         const cur = item.currency === 'energy' ? '能' : '金';
-        this._notify(`${item.name} 已放置（-${item.cost} ${cur}）`, item.currency === 'energy' ? '#7fd4ff' : '#ffd700');
+        this._notify(
+            free ? `${item.name} 已放置（无限资源）` : `${item.name} 已放置（-${item.cost} ${cur}）`,
+            item.currency === 'energy' ? '#7fd4ff' : '#ffd700'
+        );
         this._snapped = null;
         this._refreshCurrencies();
     },

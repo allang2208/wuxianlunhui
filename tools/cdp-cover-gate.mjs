@@ -87,9 +87,9 @@ console.log('boot phaser:', await evalJs(`(async () => {
     if (!g || !g.scene) return 'no-game';
     const sm = g.scene;
     if (!window.__phaserScene) {
-        try { sm.start('BootScene'); } catch (e) { return 'ERR:' + e.message; }
+        try { sm.start('BootScene'); } catch (e) { /* 已启动则忽略 */ }
     }
-    for (let i = 0; i < 50; i++) {
+    for (let i = 0; i < 80; i++) {
         if (window.__phaserScene && window.__phaserScene.textures &&
             window.__phaserScene.textures.exists('cover_gate_D')) {
             return 'ready:' + window.__phaserScene.scene.key;

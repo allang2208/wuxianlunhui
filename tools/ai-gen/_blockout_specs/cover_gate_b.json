@@ -1,0 +1,156 @@
+{
+ "elevation": 30,
+ "azimuth": 0,
+ "bottom_y": 880,
+ "max_width_frac": 0.8,
+ "resolution": 2048,
+ "ortho_scale": 302.76,
+ "soil_margin": 0,
+ "tex": "Y:/工作/无尽轮回/scratch/world122/raw/tex_B_v1.png",
+ "tex2": "Y:/工作/无尽轮回/scratch/demon_iron_tex.png",
+ "leaf_slide": {
+  "distance": 200,
+  "leftLeaf": -1,
+  "rightLeaf": 1
+ },
+ "primitives": [
+  {
+   "type": "box",
+   "size": [
+    26,
+    52,
+    150
+   ],
+   "pos": [
+    -145,
+    0,
+    75
+   ],
+   "rot": [
+    0,
+    0,
+    44.8
+   ],
+   "bevel": 6,
+   "bevelTopOnly": true
+  },
+  {
+   "type": "box",
+   "size": [
+    26,
+    52,
+    150
+   ],
+   "pos": [
+    145,
+    0,
+    75
+   ],
+   "rot": [
+    0,
+    0,
+    44.8
+   ],
+   "bevel": 6,
+   "bevelTopOnly": true
+  }
+ ],
+ "bars": [
+  {
+   "type": "cylinder",
+   "radius": 4.5,
+   "height": 136,
+   "x": -115,
+   "z": 72,
+   "leaf": -1
+  },
+  {
+   "type": "cylinder",
+   "radius": 4.5,
+   "height": 136,
+   "x": -93,
+   "z": 72,
+   "leaf": -1
+  },
+  {
+   "type": "cylinder",
+   "radius": 4.5,
+   "height": 136,
+   "x": -71,
+   "z": 72,
+   "leaf": -1
+  },
+  {
+   "type": "cylinder",
+   "radius": 4.5,
+   "height": 136,
+   "x": -49,
+   "z": 72,
+   "leaf": -1
+  },
+  {
+   "type": "cylinder",
+   "radius": 4.5,
+   "height": 136,
+   "x": -27,
+   "z": 72,
+   "leaf": -1
+  },
+  {
+   "type": "cylinder",
+   "radius": 4.5,
+   "height": 136,
+   "x": -5,
+   "z": 72,
+   "leaf": -1
+  },
+  {
+   "type": "cylinder",
+   "radius": 4.5,
+   "height": 136,
+   "x": 5,
+   "z": 72,
+   "leaf": 1
+  },
+  {
+   "type": "cylinder",
+   "radius": 4.5,
+   "height": 136,
+   "x": 27,
+   "z": 72,
+   "leaf": 1
+  },
+  {
+   "type": "cylinder",
+   "radius": 4.5,
+   "height": 136,
+   "x": 49,
+   "z": 72,
+   "leaf": 1
+  },
+  {
+   "type": "cylinder",
+   "radius": 4.5,
+   "height": 136,
+   "x": 71,
+   "z": 72,
+   "leaf": 1
+  },
+  {
+   "type": "cylinder",
+   "radius": 4.5,
+   "height": 136,
+   "x": 93,
+   "z": 72,
+   "leaf": 1
+  },
+  {
+   "type": "cylinder",
+   "radius": 4.5,
+   "height": 136,
+   "x": 115,
+   "z": 72,
+   "leaf": 1
+  }
+ ]
+}

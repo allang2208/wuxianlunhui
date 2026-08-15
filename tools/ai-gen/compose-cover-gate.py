@@ -10,23 +10,34 @@
 import json
 import math
 import os
+import sys
 
 from PIL import Image
 import numpy as np
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-FRAMES_DIR = r"Y:\工作\无尽轮回\scratch\world122\gate_d"
-DST = os.path.join(ROOT, "assets", "terrain", "cover_gate_D.png")
 CELL_W = 640
 FRAMES = 16
 
 
-def load_frame(n):
-    return np.array(Image.open(os.path.join(FRAMES_DIR, f"frame_{n:02d}.png")).convert("RGBA"))
+def load_frame(frames_dir, n):
+    return np.array(Image.open(os.path.join(frames_dir, f"frame_{n:02d}.png")).convert("RGBA"))
 
 
 def main():
-    frames = [load_frame(n) for n in range(FRAMES)]
+    args = [a for a in sys.argv[1:]]
+    grade = "D"
+    frames_dir = None
+    dst = None
+    if len(args) >= 1:
+        grade = args[0]
+    if len(args) >= 2:
+        frames_dir = args[1]
+    if len(args) >= 3:
+        dst = args[2]
+    frames_dir = frames_dir or rf"Y:\工作\无尽轮回\scratch\world122\gate_{grade.lower()}"
+    dst = dst or os.path.join(ROOT, "assets", "terrain", f"cover_gate_{grade}.png")
+    frames = [load_frame(frames_dir, n) for n in range(FRAMES)]
     # 稳定内容框：以关闭帧（frame 0）为准，全部帧用同一裁剪框
     a0 = frames[0]
     ys, xs = np.nonzero(a0[..., 3] > 8)
@@ -45,9 +56,9 @@ def main():
     sheet = Image.new("RGBA", (CELL_W * 4, cell_h * 4), (0, 0, 0, 0))
     for n, c in enumerate(cells):
         sheet.paste(Image.fromarray(c), ((n % 4) * CELL_W, (n // 4) * cell_h))
-    os.makedirs(os.path.dirname(DST), exist_ok=True)
-    sheet.save(DST)
-    print(f"saved {DST} ({sheet.size[0]}x{sheet.size[1]})")
+    os.makedirs(os.path.dirname(dst), exist_ok=True)
+    sheet.save(dst)
+    print(f"saved {dst} ({sheet.size[0]}x{sheet.size[1]})")
 
     # ---- 几何标定（关闭帧）----
     f0 = cells[0]

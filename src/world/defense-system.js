@@ -29,7 +29,7 @@ import { SoundManager } from '../ui/sound-manager.js';
 import { EnergyManager } from '../systems/energy-manager.js';
 import { BasePanel } from '../ui/panels/base-panel.js';
 import { Renderer } from './renderer.js';
-import { SceneManager } from './scene-manager.js';
+// SceneManager 导入已于 2026-08-15 移除：E 键修理监听器停用后不再引用
 import { loadImage } from '../utils/image-loader.js';
 import equipmentJson from '../../data/equipment.json';
 
@@ -98,6 +98,8 @@ export const DEFENSE_CONFIG = {
     },
     // 修理（2026-08-14）：掩体/防御塔受伤后，靠近按住 E 消耗背包能源持续修理。
     // hpPerEnergy = 每点能源可修复的 HP（掩体 2HP/能、塔 3HP/能）；tickHp = 每 tick 修复量上限。
+    // （2026-08-15 变更：E 键长按修理已停用——与用户快捷键冲突；掩体修理改由建筑面板
+    //  详情视图「修理」按钮进行，费率仍取本配置 coverHpPerEnergy）
     repair: {
         range: 150,
         coverHpPerEnergy: 2,
@@ -331,15 +333,14 @@ const COVER_ASPECT = {
 };
 const COVER_DISPLAY_W = 260;
 
-/** 世界-122 基地铁栅栏滑动门 v2（2026-08-15，Blender 建模 + 掩体同款砖墙/铸铁贴图）。
+/** 世界-122 铁栅栏滑动门几何（2026-08-15，Blender 建模 + 掩体同款砖墙/铸铁贴图，F→A 六档共用）。
  * 门体：仅左右两根细立柱 + 纤细铁栅栏（无上下横梁），两扇叶整体沿墙轴向滑出/滑入。
  * 几何标定（compose-cover-gate.py 输出，纹理 cell 640×634，y 向下）：
  * - face 线 = 门底边线（与 COVER_FACE v 同斜率 -0.5、同接地偏移），关闭时覆盖门洞；
  * - 16 帧滑动动画：frame 0 = 关闭（两扇叶在中间合拢），frame 15 = 打开（扇叶滑出画面外隐藏）。
  */
-const GATE_CONFIG = {
-    grade: 'D',
-    tex: 'cover_gate_D',
+const GATE_GRADES = ['F', 'E', 'D', 'C', 'B', 'A'];
+const GATE_GEOM = {
     cellW: 640,
     cellH: 634,
     frames: 16,
@@ -353,6 +354,64 @@ const GATE_CONFIG = {
     // 碰撞 face 仍按 worldFaceLen=270.4（门洞跨度），视觉上两侧由相邻墙端帽叠盖。
     displayScale: 0.410,
 };
+const gateConfigFor = (grade) => ({ ...GATE_GEOM, grade, tex: `cover_gate_${grade}` });
+const GATE_CONFIG = gateConfigFor('D'); // 基地固定门（D 级）
+
+/** 门的三段深度面线全局注册表（供 WallSystem 遮挡仲裁逐帧并入，2026-08-15）。 */
+function gateSegRegistry() {
+    if (typeof window === 'undefined') return null;
+    if (!window.GateFaceSegs) window.GateFaceSegs = [];
+    return window.GateFaceSegs;
+}
+
+/**
+ * 门的三段遮挡面线（沿 face 线切分）：
+ * 左柱段（深端）/ 栅栏段（中点）/ 右柱段（浅端）——各自独立深度，
+ * 让右柱（浅端）前实体自然浮到右柱之上、左柱（深端）仍能遮挡其后实体。
+ */
+function gateDepthSegs(A, B, depthL, depthR, depthBars) {
+    const dx = B.x - A.x;
+    const dy = B.y - A.y;
+    const len = Math.hypot(dx, dy) || 1;
+    const ux = dx / len;
+    const uy = dy / len;
+    const half = 26; // 柱宽在 face 线上的投影（世界 px）
+    return [
+        { A: { x: A.x, y: A.y }, B: { x: A.x + ux * half, y: A.y + uy * half }, depth: depthL },
+        { A: { x: A.x + ux * half, y: A.y + uy * half }, B: { x: B.x - ux * half, y: B.y - uy * half }, depth: depthBars },
+        { A: { x: B.x - ux * half, y: B.y - uy * half }, B: { x: B.x, y: B.y }, depth: depthR },
+    ];
+}
+
+/** 创建门的三段精灵（左柱/右柱静态图 + 栅栏 16 帧），各按自身底边线深度锚定。
+ *  flip=镜像（h）：整门翻转换了视觉左右，左右柱深度随之互换（面线端点不变）。 */
+function createGateSprites(cfg, cx, cy, k, depthL, depthR, depthBars, flip) {
+    const scene = (typeof window !== 'undefined') ? window.__phaserScene : null;
+    if (!scene) return null;
+    const out = { spriteL: null, spriteR: null, bars: null };
+    if (scene.textures.exists(`${cfg.tex}_pillarL`)) {
+        out.spriteL = scene.add.image(cx, cy, `${cfg.tex}_pillarL`);
+        out.spriteL.setOrigin(0.5, 0.5);
+        out.spriteL.setScale(k, k);
+        out.spriteL.setDepth(flip ? depthR : depthL);
+        out.spriteL.setFlipX(flip);
+    }
+    if (scene.textures.exists(`${cfg.tex}_pillarR`)) {
+        out.spriteR = scene.add.image(cx, cy, `${cfg.tex}_pillarR`);
+        out.spriteR.setOrigin(0.5, 0.5);
+        out.spriteR.setScale(k, k);
+        out.spriteR.setDepth(flip ? depthL : depthR);
+        out.spriteR.setFlipX(flip);
+    }
+    if (scene.textures.exists(`${cfg.tex}_bars`)) {
+        out.bars = scene.add.sprite(cx, cy, `${cfg.tex}_bars`, 0);
+        out.bars.setOrigin(0.5, 0.5);
+        out.bars.setScale(k, k);
+        out.bars.setDepth(depthBars);
+        out.bars.setFlipX(flip);
+    }
+    return out;
+}
 
 /**
  * 掩体墙段底边线（face line）端点偏移（相对掩体脚底 x/y，世界像素），按级别标定。
@@ -459,6 +518,7 @@ class DefenseBase extends Combatant {
         });
         this.id = config.id || 'defense_base';
         this._isDefenseStructure = true;
+        this._isDefenseBase = true; // 2026-08-15：过门追击逻辑的最高优先级目标标记
         this.noSeparation = true;
         this.immovable = true; // 基地核心同掩体口径：不可被击退/移动（2026-08-14 补齐）
         this.noNameLabel = true; // 名字/HP 走 _syncNeutralEntities 的贴图标签（避免与 HUD 重复）
@@ -1189,6 +1249,7 @@ class DefenseTowerPanel extends BasePanel {
             <div id="dtUpgrade" style="border:1px solid #4a4a2a;border-radius:8px;padding:10px;background:rgba(60,50,20,0.18);"></div>
             <div id="dtModules" style="margin-top:10px;border:1px solid #3a4a5a;border-radius:8px;padding:10px;background:rgba(20,40,60,0.18);"></div>
             <div id="dtChip" style="margin-top:10px;border:1px solid #2a6a5f;border-radius:8px;padding:12px;background:rgba(12,30,28,0.28);"></div>
+            <div id="dtRepair" style="margin-top:10px;border:1px solid #4a6a6a;border-radius:8px;padding:10px;background:rgba(20,50,50,0.18);"></div>
         `;
         el.querySelector('#dtClose').addEventListener('click', () => this.close());
     }
@@ -1220,6 +1281,35 @@ class DefenseTowerPanel extends BasePanel {
         this.tower = null;
         this.ruin = null;
         this.player = null;
+    }
+
+    /**
+     * 按钮维修（2026-08-15 用户要求）：点击一次修满，能源不足修到能负担的上限；
+     * 与掩体建筑面板修理同口径，费率 DEFENSE_CONFIG.repair.towerHpPerEnergy。
+     */
+    _repairTower() {
+        const t = this.tower;
+        if (!t || !t.active || t.hp >= t.maxHp) return;
+        const rate = (DEFENSE_CONFIG.repair && DEFENSE_CONFIG.repair.towerHpPerEnergy) || 3;
+        const energy = EnergyManager ? EnergyManager.getEnergy() : 0;
+        const want = Math.min(t.maxHp - t.hp, energy * rate);
+        if (want <= 0) {
+            this._notify('能源不足，无法修理', '#ff5555');
+            return;
+        }
+        const cost = Math.max(1, Math.ceil(want / rate));
+        if (!EnergyManager || !EnergyManager.deductEnergy(cost)) {
+            this._notify('能源不足，无法修理', '#ff5555');
+            return;
+        }
+        t.hp = Math.min(t.maxHp, t.hp + want);
+        if (EffectManager) {
+            EffectManager.add(new FloatingTextEffect(t.x, t.y - 40, `+${Math.round(want)} 修理`, '#7fd4ff'));
+        }
+        if (SoundManager && typeof SoundManager.playFile === 'function') {
+            SoundManager.playFile('assets/sounds/ui/sell.wav');
+        }
+        this.refresh();
     }
 
     _notify(text, color) {
@@ -1279,6 +1369,9 @@ class DefenseTowerPanel extends BasePanel {
     refresh() {
         const el = this.el;
         if (!el) return;
+        // 修理区仅塔模式显示（废墟模式隐藏，2026-08-15）
+        const rp0 = el.querySelector('#dtRepair');
+        if (rp0) rp0.style.display = this.ruin ? 'none' : '';
         if (this.ruin) {
             this._refreshRuin();
             return;
@@ -1343,6 +1436,28 @@ class DefenseTowerPanel extends BasePanel {
                   <button id="dtUpgradeBtn" style="width:100%;background:#4a3a1a;color:#ffe9a0;border:1px solid #8a7a3a;border-radius:6px;padding:7px 0;cursor:pointer;">升级防御塔</button>`}`;
         if (!maxed) {
             up.querySelector('#dtUpgradeBtn').addEventListener('click', () => this._upgrade(t, player));
+        }
+
+        // 维修区（2026-08-15 用户要求）：与建筑面板掩体详情修理同口径——
+        // 底部信息 + 一次修满按钮，费率 towerHpPerEnergy（3 耐久/1 能源）
+        const rp = el.querySelector('#dtRepair');
+        if (rp) {
+            const rate = (DEFENSE_CONFIG.repair && DEFENSE_CONFIG.repair.towerHpPerEnergy) || 3;
+            const rhp = Math.max(0, Math.ceil(t.hp));
+            const rmax = t.maxHp || 1;
+            const rpct = Math.round((rhp / rmax) * 100);
+            const rbar = rpct > 60 ? '#7fd47f' : (rpct > 30 ? '#ffd700' : '#ff6666');
+            const rneed = Math.ceil((rmax - rhp) / rate);
+            rp.innerHTML = `
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                    <div style="font-size:13px;color:#a8e0e0;font-weight:700;">🔧 维修</div>
+                    <div style="font-size:12px;color:#9a9a9a;">费率 ${rate} 耐久 / 1 能源</div>
+                </div>
+                <div style="height:8px;background:#26261e;border:1px solid #4a6a6a;border-radius:4px;overflow:hidden;margin-bottom:8px;">
+                    <div style="width:${rpct}%;height:100%;background:${rbar};"></div>
+                </div>
+                <button id="dtRepairBtn" ${rhp >= rmax ? 'disabled' : ''} style="width:100%;background:#263a3a;color:#7fd4ff;border:1px solid #4a6a6a;border-radius:6px;padding:7px 0;${rhp >= rmax ? 'opacity:0.45;cursor:default;' : 'cursor:pointer;'}">${rhp >= rmax ? '耐久已满' : `修 理（-${rneed} 能源）`}</button>`;
+            rp.querySelector('#dtRepairBtn').addEventListener('click', () => this._repairTower());
         }
 
         // 升级模块（等级解锁模块位，模块独立升级）
@@ -1514,6 +1629,7 @@ export const DefenseSystem = {
         this.base = core;
 
         this.towers = [];
+        this.gates = []; // 建筑面板放置的铁栅栏门
         DEFENSE_CONFIG.towers.forEach((p, i) => {
             const tower = new DefenseTower(p.x, p.y, { id: `defense_tower_${i}` });
             Game.entities.set(`defense_tower_${i}`, tower);
@@ -1666,6 +1782,10 @@ export const DefenseSystem = {
         this.victory = false;
         this._victoryGranted = false;
         if (this.gate) { this.gate.destroy(); this.gate = null; }
+        if (this.gates) {
+            for (const g of this.gates) { if (g && typeof g.destroy === 'function') g.destroy(); }
+            this.gates = [];
+        }
         this.base = null;
         this.towers = [];
         this.ruins = [];
@@ -1706,6 +1826,7 @@ export const DefenseSystem = {
         this._elapsed += dt;
         this._repairTick(dt);
         if (this.gate) this.gate.update(dt); // 友军靠近自动开门 / 离开延时关门
+        for (const g of this.gates) { if (g && g.active) g.update(dt); } // 已放置的铁栅栏门
         this._grantMonsterGold(dt);
         this._updateHud(dt);
         if (this.victory) return;
@@ -2346,29 +2467,60 @@ export const DefenseSystem = {
 
 // ==================== 基地铁栅栏滑动门（2026-08-15）====================
 // Blender 建模 + 掩体同款砖墙/铸铁贴图 + 16 帧横向缩进动画；关闭=阻挡门洞，打开=放行。
+/** 最近友军单位（玩家/侍从；排除同为 player 阵营的防御塔/掩体/基地）。 */
+function nearbyFriendlyUnit(cx, cy) {
+    let best = null;
+    let bestD = Infinity;
+    const scan = (e) => {
+        if (!e || !e.active) return;
+        if (e._isDefenseStructure || e._isDefenseTower || e._isDefenseCover) return;
+        if (e._faction !== 'player' && e._faction !== 'companion') return;
+        const d = Math.hypot(e.x - cx, e.y - cy);
+        if (d < bestD) { bestD = d; best = e; }
+    };
+    if (Game && Game.player) scan(Game.player);
+    if (Game && Game.entities) {
+        for (const e of Game.entities.values()) scan(e);
+    }
+    return best;
+}
+
 const CoverGate = {
-    place(center, A, B) {
+    place(center, A, B, cfg) {
         const scene = (typeof window !== 'undefined') ? window.__phaserScene : null;
-        if (!scene || !scene.textures.exists(GATE_CONFIG.tex)) return false;
-        const k = GATE_CONFIG.displayScale;
+        const cfg0 = cfg || GATE_CONFIG;
+        this._cfg = cfg0;
+        if (!scene || !scene.textures.exists(cfg0.tex)) return false;
+        const k = cfg0.displayScale;
         this._scale = k;
         // 面线中点对齐：门的 face 线与掩体墙 face 线共线（同斜率、中点落在线中点）。
         // face 纹理线比世界 face 略短（显示比例一致），端点余量由相邻墙端帽叠盖。
-        const midTexX = (GATE_CONFIG.faceA.x + GATE_CONFIG.faceB.x) / 2;
-        const midTexY = (GATE_CONFIG.faceA.y + GATE_CONFIG.faceB.y) / 2;
-        this._cx = (A.x + B.x) / 2 - (midTexX - GATE_CONFIG.cellW / 2) * k;
-        this._cy = (A.y + B.y) / 2 - (midTexY - GATE_CONFIG.cellH / 2) * k;
-        this._depth = Math.max(A.y, B.y) + 12;
-        if (this.sprite) this.sprite.destroy();
-        this.sprite = scene.add.sprite(this._cx, this._cy, GATE_CONFIG.tex, 0); // 默认关闭帧
-        this.sprite.setOrigin(0.5, 0.5);
-        this.sprite.setScale(k, k);
-        this.sprite.setDepth(this._depth);
+        const midTexX = (cfg0.faceA.x + cfg0.faceB.x) / 2;
+        const midTexY = (cfg0.faceA.y + cfg0.faceB.y) / 2;
+        this._cx = (A.x + B.x) / 2 - (midTexX - cfg0.cellW / 2) * k;
+        this._cy = (A.y + B.y) / 2 - (midTexY - cfg0.cellH / 2) * k;
+        // 三段深度精灵（2026-08-15 图层重做）：左柱=深端、右柱=浅端、栅栏=中点，
+        // 各自按底边线锚定，前实体不再被右柱整体遮挡
+        this._depthL = A.y + 12;
+        this._depthR = B.y + 12;
+        this._depthBars = (A.y + B.y) / 2 + 12;
+        this._destroySprites();
+        const sprites = createGateSprites(cfg0, this._cx, this._cy, k, this._depthL, this._depthR, this._depthBars, !!cfg0.flipX);
+        this.spriteL = sprites ? sprites.spriteL : null;
+        this.spriteR = sprites ? sprites.spriteR : null;
+        this.sprite = sprites ? sprites.bars : null; // 栅栏精灵驱动 16 帧动画
         this._gateSeg = {
             x1: A.x, y1: A.y, x2: B.x, y2: B.y,
-            halfThick: GATE_CONFIG.halfThick,
+            halfThick: cfg0.halfThick,
             _gate: true, _gateHole: true,
         };
+        // 三段面线注册进遮挡仲裁（pillar 恒注册；bars 随开关注册/移除）
+        this._unregisterSegs();
+        this._depthSegs = gateDepthSegs(A, B, this._depthL, this._depthR, this._depthBars);
+        const reg = gateSegRegistry();
+        if (reg) {
+            for (const s of this._depthSegs) reg.push(s);
+        }
         // 状态机默认关闭：门洞碰撞注册（阻挡）；友军靠近时 _update 自动打开
         this.state = 'closed';
         this._frame = 0;
@@ -2377,12 +2529,39 @@ const CoverGate = {
         return true;
     },
 
+    _unregisterSegs() {
+        const reg = gateSegRegistry();
+        if (!reg || !this._depthSegs) return;
+        for (const s of this._depthSegs) {
+            const i = reg.indexOf(s);
+            if (i >= 0) reg.splice(i, 1);
+        }
+        this._depthSegs = null;
+    },
+
+    /** 栅栏段面线随开关切换：开门（放行）时移除，关门时注册（栅栏消失后不再遮挡）。 */
+    _setBarsSeg(enabled) {
+        const reg = gateSegRegistry();
+        if (!reg || !this._depthSegs || !this._depthSegs[1]) return;
+        const s = this._depthSegs[1];
+        const i = reg.indexOf(s);
+        if (enabled && i < 0) reg.push(s);
+        else if (!enabled && i >= 0) reg.splice(i, 1);
+    },
+
+    _destroySprites() {
+        for (const s of [this.spriteL, this.spriteR, this.sprite]) {
+            if (s && s.destroy) s.destroy();
+        }
+        this.spriteL = this.spriteR = this.sprite = null;
+    },
+
     /** 状态机默认关闭 → 友军靠近打开 → 友军离开延时关闭（2026-08-15）。 */
     update(dt) {
         if (!this._gateSeg) return;
         const OPEN_RADIUS = 150;
         const CLOSE_LINGER_S = 1.2; // dt 单位为秒
-        const f = this._nearbyFriendly();
+        const f = nearbyFriendlyUnit(this._cx, this._cy);
         const near = !!f && Math.hypot(f.x - this._cx, f.y - this._cy) <= OPEN_RADIUS;
         if (near) {
             this._closeTimer = 0;
@@ -2395,25 +2574,8 @@ const CoverGate = {
         }
     },
 
-    /** 最近友军单位（玩家/侍从；排除同为 player 阵营的防御塔/掩体/基地）。 */
-    _nearbyFriendly() {
-        let best = null;
-        let bestD = Infinity;
-        const scan = (e) => {
-            if (!e || !e.active) return;
-            if (e._isDefenseStructure || e._isDefenseTower || e._isDefenseCover) return;
-            if (e._faction !== 'player' && e._faction !== 'companion') return;
-            const d = Math.hypot(e.x - this._cx, e.y - this._cy);
-            if (d < bestD) { bestD = d; best = e; }
-        };
-        if (Game && Game.player) scan(Game.player);
-        if (Game && Game.entities) {
-            for (const e of Game.entities.values()) scan(e);
-        }
-        return best;
-    },
-
     setPassable(passable) {
+        this._setBarsSeg(!passable); // 关门=栅栏面线注册；开门=移除
         if (!WallSystem || !WallSystem.isoSegments || !this._gateSeg) return;
         const i = WallSystem.isoSegments.indexOf(this._gateSeg);
         if (!passable && i < 0) {
@@ -2433,14 +2595,14 @@ const CoverGate = {
         if (this.state === 'open' || this.state === 'opening') return;
         this.state = 'opening';
         this.setPassable(true);
-        this._play(0, GATE_CONFIG.frames - 1);
+        this._play(0, (this._cfg || GATE_CONFIG).frames - 1);
     },
 
     close() {
         if (this.state === 'closed' || this.state === 'closing') return;
         this.state = 'closing';
         this.setPassable(false);
-        this._play(GATE_CONFIG.frames - 1, 0);
+        this._play((this._cfg || GATE_CONFIG).frames - 1, 0);
     },
 
     toggle() {
@@ -2460,7 +2622,7 @@ const CoverGate = {
         this._animCounter = scene.tweens.addCounter({
             from,
             to,
-            duration: GATE_CONFIG.animMs,
+            duration: (this._cfg || GATE_CONFIG).animMs,
             ease: 'Linear',
             onUpdate: (tw) => {
                 const f = Math.round(tw.getValue());
@@ -2476,29 +2638,268 @@ const CoverGate = {
     destroy() {
         if (this._animCounter) { this._animCounter.stop(); this._animCounter = null; }
         this.setPassable(true);
-        if (this.sprite) { this.sprite.destroy(); this.sprite = null; }
+        this._unregisterSegs();
+        this._destroySprites();
         this._gateSeg = null;
         this.state = 'open';
     },
 };
 
+/**
+ * 可建造铁栅栏门（建筑面板 B 放置，2026-08-15）：
+ * 与掩体墙同口径（可被攻击/修理、footprint/face 线/深度锚点），
+ * 参与建筑吸附（GATE_SNAP），默认关闭，友军靠近自动开门、离开延时关门。
+ */
+class BuildableGate extends Combatant {
+    constructor(x, y, config = {}) {
+        const grade = config.grade || 'D';
+        const orient = config.orient || 'v';
+        const mirror = !!config.mirror;
+        const eff = mirror ? (orient === 'v' ? 'h' : 'v') : orient;
+        const hp = config.hp ?? (DEFENSE_CONFIG.covers.hp[grade] ?? 400);
+        super(x, y, {
+            faction: 'player',
+            hp,
+            maxHp: hp,
+            size: config.size ?? 60,
+            collisionRadius: 26,
+            name: config.name || `铁栅栏门·${grade}级`,
+        });
+        this.id = config.id || `defense_gate_${grade}_${Math.random().toString(36).slice(2, 7)}`;
+        this._isDefenseStructure = true;
+        this._isCoverGate = true;
+        this.noSeparation = true;
+        this.noNameLabel = true;
+        this._noShadow = true;   // 障碍物取消脚底阴影
+        this.immovable = true;   // 不可被击退/位移
+        this.def = 0;
+        this.mdef = 0;
+        this.data.def = 0;
+        this.data.mdef = 0;
+        this.grade = grade;
+        this.orient = orient;
+        this._facingLeft = mirror;
+        const cfg = gateConfigFor(grade);
+        this._cfg = cfg;
+        // face 线（与掩体墙同斜率/同接地偏移，跨度 = 门洞宽）
+        const half = cfg.worldFaceLen / 2;
+        const midY = y - 65;
+        if (eff === 'v') {
+            this._faceLine = [
+                { x: x - half, y: midY + half * 0.5 },
+                { x: x + half, y: midY - half * 0.5 },
+            ];
+        } else {
+            this._faceLine = [
+                { x: x - half, y: midY - half * 0.5 },
+                { x: x + half, y: midY + half * 0.5 },
+            ];
+        }
+        this._faceDepth = Math.max(this._faceLine[0].y, this._faceLine[1].y) + 12;
+        this._coverHalfThick = cfg.halfThick;
+        // footprint（与掩体同口径：198×133、厚 26）
+        const foot = (COVER_FOOT[eff] || COVER_FOOT[orient] || COVER_FOOT.v);
+        this.collisionShape = 'rect';
+        this.collisionWidth = foot.w;
+        this.collisionHeight = foot.d;
+        this.colliderOffsetY = foot.offY ?? 0;
+        // 门洞碰撞段：默认关闭 → 注册阻挡；开门放行
+        this._gateSeg = {
+            x1: this._faceLine[0].x, y1: this._faceLine[0].y,
+            x2: this._faceLine[1].x, y2: this._faceLine[1].y,
+            halfThick: cfg.halfThick,
+            _gate: true, _gateHole: true,
+        };
+        if (WallSystem && WallSystem.isoSegments) WallSystem.isoSegments.push(this._gateSeg);
+        this.state = 'closed';
+        this._frame = 0;
+        this._closeTimer = 0;
+        // 门模式（2026-08-15 建筑面板按钮）：'auto' 友军靠近自动开关（默认）；
+        // 'locked' 常锁——任何单位经过都不开；'open' 常开——门口保持敞开
+        this.gateMode = 'auto';
+        this._initGateSprite(cfg);
+        this.rebuildCollider();
+    }
+
+    _initGateSprite(cfg) {
+        const scene = (typeof window !== 'undefined') ? window.__phaserScene : null;
+        if (!scene || !scene.textures.exists(cfg.tex)) return;
+        const k = cfg.displayScale;
+        const midTexX = (cfg.faceA.x + cfg.faceB.x) / 2;
+        const midTexY = (cfg.faceA.y + cfg.faceB.y) / 2;
+        this._spriteCx = (this._faceLine[0].x + this._faceLine[1].x) / 2 - (midTexX - cfg.cellW / 2) * k;
+        this._spriteCy = (this._faceLine[0].y + this._faceLine[1].y) / 2 - (midTexY - cfg.cellH / 2) * k;
+        // 三段深度精灵（与基地门同图层设计，2026-08-15）：
+        // 左柱=深端、右柱=浅端、栅栏=中点，各自按底边线锚定，前实体不再被右柱整体遮挡
+        const A = this._faceLine[0];
+        const B = this._faceLine[1];
+        this._depthL = A.y + 12;
+        this._depthR = B.y + 12;
+        this._depthBars = (A.y + B.y) / 2 + 12;
+        this._faceDepth = Math.max(A.y, B.y) + 12; // 与掩体同口径的通用锚点
+        const sprites = createGateSprites(cfg, this._spriteCx, this._spriteCy, k, this._depthL, this._depthR, this._depthBars, this._facingLeft);
+        this.spriteL = sprites ? sprites.spriteL : null;
+        this.spriteR = sprites ? sprites.spriteR : null;
+        this.sprite = sprites ? sprites.bars : null;
+        if (this.sprite) {
+            this._phaserSprite = this.sprite; // GameScene 识别为已托管精灵，不再自建
+        }
+        this._unregisterSegs();
+        this._depthSegs = gateDepthSegs(A, B, this._depthL, this._depthR, this._depthBars);
+        const reg = gateSegRegistry();
+        if (reg) {
+            for (const s of this._depthSegs) reg.push(s);
+        }
+    }
+
+    _unregisterSegs() {
+        const reg = gateSegRegistry();
+        if (!reg || !this._depthSegs) return;
+        for (const s of this._depthSegs) {
+            const i = reg.indexOf(s);
+            if (i >= 0) reg.splice(i, 1);
+        }
+        this._depthSegs = null;
+    }
+
+    _setBarsSeg(enabled) {
+        const reg = gateSegRegistry();
+        if (!reg || !this._depthSegs || !this._depthSegs[1]) return;
+        const s = this._depthSegs[1];
+        const i = reg.indexOf(s);
+        if (enabled && i < 0) reg.push(s);
+        else if (!enabled && i >= 0) reg.splice(i, 1);
+    }
+
+    /**
+     * 门模式切换（2026-08-15 建筑面板详情按钮）：
+     * locked = 常锁（无论谁经过都不打开）；open = 常开（保持门口敞开）；auto = 原自动逻辑
+     */
+    setMode(mode) {
+        this.gateMode = mode;
+        if (mode === 'locked') this.close();
+        else if (mode === 'open') this.open();
+    }
+
+    /** 状态机默认关闭 → 友军靠近打开 → 友军离开延时关闭（与基地门同口径）。 */
+    update(dt) {
+        if (!this._gateSeg || !this.active) return;
+        // 常锁/常开模式闸门（2026-08-15）：锁定态强制关、常开态强制开，均跳过自动感应
+        if (this.gateMode === 'locked') {
+            if (this.state !== 'closed' && this.state !== 'closing') this.close();
+            return;
+        }
+        if (this.gateMode === 'open') {
+            if (this.state !== 'open' && this.state !== 'opening') this.open();
+            return;
+        }
+        const OPEN_RADIUS = 150;
+        const CLOSE_LINGER_S = 1.2;
+        const f = nearbyFriendlyUnit(this._spriteCx, this._spriteCy);
+        const near = !!f && Math.hypot(f.x - this._spriteCx, f.y - this._spriteCy) <= OPEN_RADIUS;
+        if (near) {
+            this._closeTimer = 0;
+            if (this.state === 'closed' || this.state === 'closing') this.open();
+        } else {
+            this._closeTimer = (this._closeTimer || 0) + dt;
+            if ((this.state === 'open' || this.state === 'opening') && this._closeTimer >= CLOSE_LINGER_S) {
+                this.close();
+            }
+        }
+    }
+
+    setPassable(passable) {
+        this._setBarsSeg(!passable); // 关门=栅栏面线注册；开门=移除（栅栏消失后不再遮挡）
+        if (!WallSystem || !WallSystem.isoSegments || !this._gateSeg) return;
+        const i = WallSystem.isoSegments.indexOf(this._gateSeg);
+        if (!passable && i < 0) {
+            WallSystem.isoSegments.push(this._gateSeg);
+        } else if (passable && i >= 0) {
+            WallSystem.isoSegments.splice(i, 1);
+        }
+        if (pathFinder && typeof pathFinder.invalidateRegion === 'function') {
+            const s = this._gateSeg;
+            pathFinder.invalidateRegion(
+                Math.min(s.x1, s.x2), Math.min(s.y1, s.y2),
+                Math.max(s.x1, s.x2), Math.max(s.y1, s.y2));
+        }
+    }
+
+    open() {
+        if (this.state === 'open' || this.state === 'opening') return;
+        this.state = 'opening';
+        this.setPassable(true);
+        this._play(0, this._cfg.frames - 1);
+    }
+
+    close() {
+        if (this.state === 'closed' || this.state === 'closing') return;
+        this.state = 'closing';
+        this.setPassable(false);
+        this._play(this._cfg.frames - 1, 0);
+    }
+
+    _play(from, to) {
+        const scene = (typeof window !== 'undefined') ? window.__phaserScene : null;
+        if (this.sprite) this.sprite.setFrame(from);
+        if (!scene) {
+            this._frame = to;
+            this.state = to === 0 ? 'closed' : 'open';
+            return;
+        }
+        if (this._animCounter) this._animCounter.stop();
+        this._animCounter = scene.tweens.addCounter({
+            from,
+            to,
+            duration: this._cfg.animMs,
+            ease: 'Linear',
+            onUpdate: (tw) => {
+                const f = Math.round(tw.getValue());
+                if (this.sprite) this.sprite.setFrame(f);
+            },
+            onComplete: () => {
+                this._frame = to;
+                this.state = to === 0 ? 'closed' : 'open';
+            },
+        });
+    }
+
+    takeDamage(damage, source, damageType, isMelee) {
+        const wasAlive = this.hp > 0;
+        super.takeDamage(damage, source, damageType, isMelee);
+        if (wasAlive && this.hp <= 0) {
+            this.active = false;
+            this._teardownVisual();
+        }
+    }
+
+    _teardownVisual() {
+        if (this._animCounter) { this._animCounter.stop(); this._animCounter = null; }
+        this._unregisterSegs();
+        if (WallSystem && WallSystem.isoSegments && this._gateSeg) {
+            const i = WallSystem.isoSegments.indexOf(this._gateSeg);
+            if (i >= 0) WallSystem.isoSegments.splice(i, 1);
+        }
+        this._gateSeg = null;
+        for (const s of [this.spriteL, this.spriteR, this.sprite]) {
+            if (s && s.destroy) s.destroy();
+        }
+        this.spriteL = this.spriteR = this.sprite = null;
+        this._phaserSprite = null;
+    }
+
+    destroy() {
+        this._teardownVisual();
+        this.active = false;
+    }
+}
+
 // ==================== E 键修理（仅世界-122，2026-08-14）====================
 // 按住 E 持续修理附近受伤的掩体/防御塔（消耗背包能源）；松开停止。
 // 用捕获监听保证先于 input.js 的 handleKey（其不拦截 KeyE，但避免面板/编辑器状态误触发）。
+//
+// 2026-08-15 用户要求停用：E 键与游戏快捷键冲突。修理入口改为建筑面板（B）
+// 详情视图的「修理」按钮（BuildingSystem._repairCover，仅掩体）。
+// _setRepairHeld / _repairTick 方法体保留备用，此处不再注册任何监听器。
 
-if (typeof window !== 'undefined') {
-    window.addEventListener('keydown', (e) => {
-        if (e.code !== 'KeyE' || e.repeat) return;
-        if (Game && (Game._wallEditMode || Game._buildMode)) return; // 编辑/建筑模式不修理
-        if (SceneManager && SceneManager.currentScene !== 'scene8') return;
-        DefenseSystem._setRepairHeld(true);
-    }, true);
-    window.addEventListener('keyup', (e) => {
-        if (e.code === 'KeyE') DefenseSystem._setRepairHeld(false);
-    }, true);
-    window.addEventListener('blur', () => {
-        if (DefenseSystem._repairHeld) DefenseSystem._setRepairHeld(false);
-    });
-}
-
-export { DefenseBase, DefenseCover, DefenseTower };
+export { DefenseBase, DefenseCover, DefenseTower, BuildableGate, GATE_GEOM, GATE_GRADES, gateConfigFor, GATE_CONFIG };

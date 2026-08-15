@@ -4510,6 +4510,30 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
   不再套"建筑/塔=正面平视"——用户明确要求参考地面/墙壁视角；其他建筑（祭坛/仓库等）
   维持 billboard。新素材先按用户当前口径，勿照搬旧表一刀切。
 
+### 铁栅栏滑动门（F→A 六档，2026-08-15）
+
+世界-122 基地入口/可建造墙段式门：左右细柱 + 圆柱铁栅栏（无上下横梁），
+开门时两扇叶沿墙轴向两侧滑出并隐藏，关门时从两侧向中间合拢。
+
+- **资产管线**（Blender 几何 + 掩体同款材质，与掩体墙同一相机比例）：
+  `_blockout_specs/cover_gate_<g>.json`（仅 `tex` 指向 `tex_<g>_v1.png` 不同）→
+  `render-cover-gate.py spec out.png --slide 0..1`（2048 渲染，ortho 302.76）→
+  `compose-cover-gate.py <g>`（裁剪统一内容框，640×634 单元 4×4 打包）→
+  `split-cover-gate-layers.py`（帧15=纯柱子掩码，拆左柱/右柱静态图 + 栅栏 16 帧表，重组零误差）。
+- **游戏侧**：`GATE_GEOM`（六档共用几何：face 线 worldFaceLen 270.4、cell 640×634、
+  displayScale 0.41）；`gateConfigFor(grade)`；基地固定门用 `GATE_CONFIG`（D 级）。
+- **状态机**：默认关闭（门洞碰撞注册）；友军（player/companion，150px）靠近自动开门，
+  离开 1.2s 延时关门；`BuildableGate.gateMode`：auto/locked/open（建筑面板详情按钮切换）。
+- **建筑面板**：B 面板六档 `gate_<g>_v` 条目（能源，费用=掩体HP×0.25），
+  吸附端点 `GATE_SNAP`（与掩体互相吸附，SNAP_OVERLAP 回退），幽灵预览 + F 镜像，
+  可被攻击/修理（修理走建筑面板详情按钮，费率同掩体）。
+- **图层铁律（重要）**：门是**长跨度墙体**（face 线两端深度差 ~136px），
+  绝不能整门单深度——按三段拆：左柱=深端 / 栅栏=中点 / 右柱=浅端，各自 `底边线 y + 12`；
+  三段面线注册 `window.GateFaceSegs` 进 `junctionCorrectedDepth` 仲裁
+  （实体脚线在段前 → 抬到段上；段后 → 压到段下）；开门移除栅栏段；镜像 h 左右柱深度互换。
+- 已知取舍：实体站在门洞中同时跨左右柱时，整门三段的抬升/压制按各段面线独立判定，
+  跨两段的重叠区以最近段为准，极端位置可能有 ±1 段误差，可接受。
+
 ---
 
 ### 后续打磨方向（未做）
