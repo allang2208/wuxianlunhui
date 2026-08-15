@@ -552,8 +552,13 @@ export const BuildingSystem = {
                     const cp = this._segSegClosest(seg[0], seg[1], e._faceLine[0], e._faceLine[1]);
                     // 端点-端点接触（吸附拼接的 8px 叠合）允许；只有“端部插入
                     // 对方墙段中部/侧向侵入”才拒绝——平铺摆放判定只认底部碰撞体积
-                    const endEnd = (cp.s <= 1e-4 || cp.s >= 1 - 1e-4)
-                        && (cp.t <= 1e-4 || cp.t >= 1 - 1e-4);
+                    // 端帽叠合容差（2026-08-16 实锤修复）：吸附回退让新件端点在既有件
+                    // 端帽内 4px（门 GATE_SNAP_OVERLAP）~40px（掩体），最近点参数落在
+                    // 端部 1%~20%；旧 1e-4 会把"门 4px 回退 → s≈0.013"的合法端到端
+                    // 拼接误判为重叠拒绝（吸附成功但 canPlace=false，用户看不到吸附）。
+                    // 8% ≈ 门 24px / 掩体 16px 的端部接触；更深的中段重叠仍被 minGap 拒绝。
+                    const endEnd = (cp.s <= 0.08 || cp.s >= 1 - 0.08)
+                        && (cp.t <= 0.08 || cp.t >= 1 - 0.08);
                     if (!endEnd && cp.dist < minGap) return false;
                 } else {
                     // 塔/基地：圆心距离粗判
