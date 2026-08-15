@@ -204,14 +204,42 @@ const a = await rawEval(`(async () => {
         targetIsNode: !!(node && node._isEnergyNode),
         targetIsNearest: !!(node && node.id === nearestId),
         hutCount: HamsterHutSystem.huts.length,
+        minerSize: (window.__phaserScene._companionSprites[miner.id]
+            ? [Math.round(window.__phaserScene._companionSprites[miner.id].displayWidth),
+                Math.round(window.__phaserScene._companionSprites[miner.id].displayHeight)] : null),
+        groundRadius: miner.groundRadius,
     };
 })()`);
 check('经仓鼠小屋生成矿工', !a.err && a.minerId, a.minerId || a.err);
 check('生命值 = 200', a.maxHp === 200 && a.hp === 200, `hp=${a.hp}/${a.maxHp}`);
 check('阵营 companion + 可被怪锁定', a.faction === 'companion' && a.targetable === true && a.hittable === true);
 check('移速 = 80', a.walkSpeed === 80);
+check('贴图缩小 25%（显示 99）', a.minerSize && a.minerSize[0] === 99 && a.minerSize[1] === 99,
+    JSON.stringify(a.minerSize));
+check('碰撞体积缩小 25%（groundRadius 19.5）', a.groundRadius === 19.5, `r=${a.groundRadius}`);
 check('AI 锁定最近能源节点（非单位）', a.targetIsNode === true && a.targetIsNearest === true,
     `anim=${a.anim}`);
+
+// 小屋名字去重：HUD 名字文本里不应再出现「仓鼠小屋」（只保留中立标签一条）
+const hutLabel = await rawEval(`(() => {
+    const sc = window.__phaserScene;
+    let hudNames = 0;
+    if (sc && sc._entityHudTexts) {
+        for (const [key, text] of sc._entityHudTexts.entries()) {
+            if (key.role === 'name' && text.visible && (text.text || '').includes('仓鼠小屋')) hudNames++;
+        }
+    }
+    let neutralLabels = 0;
+    if (sc && sc._neutralSprites) {
+        for (const [, data] of sc._neutralSprites.entries()) {
+            if (data.label && data.label.visible && (data.label.text || '').includes('仓鼠小屋')) neutralLabels++;
+        }
+    }
+    return { hudNames, neutralLabels };
+})()`).catch(e => ({ err: String(e).slice(0, 120) }));
+check('小屋名字不重复（HUD 名字 0 条，仅保留中立标签 1 条）',
+    hutLabel.hudNames === 0 && hutLabel.neutralLabels === 1,
+    JSON.stringify(hutLabel));
 
 // ---------- B. 采矿：定格第 6 帧 + 每 2s 100 伤害 ----------
 console.log('B. 采矿挥锄 + 间隔定格 + 伤害');

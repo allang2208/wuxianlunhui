@@ -1,4 +1,18 @@
 # 变更日志
+### 对话：仓鼠矿工贴图/碰撞缩小 25% + 小屋名字去重（2026-08-15）
+- **贴图缩小 25%**：`displaySize` 132 → 99（Companion 配置驱动，实机显示 [99,99]）。
+- **碰撞体积缩小 25%**：`groundRadius` 26→19.5、`collisionRadius` 19.5、
+  `bodyHeight` 130→97.5、`size` 84→63（寻路/分离/命中判定同步变小）。
+- **名称/血条位置同步**：`_syncEntityHud` 对仓鼠矿工改用 `_companionSprites[entity.id]`
+  精灵锚定（`sprite.displayHeight×0.5`），贴图缩放后名字/血条自动跟随不再悬空。
+- **小屋名字去重**：`_syncEntityHud` 的 `hasOwnLabel` 增加
+  `_neutralSprites.has(entity)`——已被 `_syncNeutralEntities` 挂标签的实体
+  （仓鼠小屋/能源矿/掩体/静态 NPC）跳过 HUD 名字，只保留一条；以后加建筑自动生效，
+  不用再手动去重。
+- **验证**：CDP 主探针 27/27（新增：显示 [99,99]、groundRadius 19.5、
+  小屋 HUD 名字 0 条/中立标签 1 条）；契约测试 52/53（仅剩用户未提交的采矿效率
+  重构口径差异）；eslint 0 error；vite build 通过。
+
 ### 对话：开关门推人再修——去掉每帧推人，仅关门瞬间一次性 resolve 校验推出（2026-08-16）
 - **症状（上版副作用）**：每帧 unstickUnitsFromGate 直接改坐标，与移动系统 WallSystem.resolve 打架：开门时玩家被弹开/瞬移过门（双门接缝更严重）、卡柱子。
 - **根因**：关门/关闭态每帧把 42px 带内的单位强推到 50px，方向在段端点/接缝处可能翻转 -> 来回弹/瞬移；直接赋坐标也不校验目标是否撞墙/柱子。

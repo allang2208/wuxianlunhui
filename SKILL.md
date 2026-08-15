@@ -1265,6 +1265,12 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
 教训：上一版「AI 直出大理石 + 祭坛式建模」用户验收不过，这版「采样祭坛贴图 + 立方体底座」
 一次通过——核心视觉有现成素材时，先采样再考虑出图。
 
+**仓库（主神空间 NPC 建筑，2026-08-16）**：主神空间建筑走**正面平视**（elevation 5 + rot 0，
+平底），不是世界-122 的 44.8° 接地视角；结构 = 主厅 + prism 坡屋顶 + 中央滑门（铁板+门洞灯光）
++ 两侧黄色灯窗 + 烟囱；`roof_tex` 单独指定屋顶贴图（新增 roof 材质），墙体采样
+`factory_wall_tex.png`（tex_warehouse 去灰带版）；入库紧身裁剪 688×514，NPC sprite
+`size:180 / sizeH:134 / footOffsetY:67`，clickArea 同步内容框。
+
 ---
 
 ## 3. 玩家角色与武器动画

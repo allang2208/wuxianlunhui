@@ -867,12 +867,14 @@ export class CompanionAI {
         const cfg = this.cfg;
         const enemies = this._activeEnemies(entities);
 
-        // 防御最高优先级：条件满足即举盾（可打断攻击/追击）
-        if (this._shouldDefend(enemies)) {
-            if (!this._defendPhase && this._defendCd <= 0) this._startDefend();
+        // 防御中：站定播完整个防御流程（enter → hold → exit），不打断
+        if (this._defendPhase) return;
+        // 防御触发：条件满足且冷却就绪 → 举盾；冷却中（_defendCd>0）继续正常攻击/追击，
+        // 避免"远程敌在场 → 15s 冷却内站桩发呆不攻击"（2026-08-15 排查修复）
+        if (this._shouldDefend(enemies) && this._defendCd <= 0) {
+            this._startDefend();
             return;
         }
-        if (this._defendPhase) return; // 防御中：站定不动
         if (this._meleeAtkTimer > 0) return; // 攻击动画中：站定
 
         // 目标维护
@@ -948,8 +950,10 @@ export class CompanionAI {
             else this._cmdFollowOnly(player);
             return;
         }
-        if (this._shouldDefend(enemies)) {
-            if (!this._defendPhase && this._defendCd <= 0) this._startDefend();
+        // 与默认状态机同口径：防御中站定；冷却中就绪才举盾，冷却中正常近战
+        if (this._defendPhase) return;
+        if (this._shouldDefend(enemies) && this._defendCd <= 0) {
+            this._startDefend();
             return;
         }
         if (this._meleeAtkTimer > 0) return;

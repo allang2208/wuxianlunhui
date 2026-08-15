@@ -194,7 +194,10 @@ def make_window_mat(name="m_window"):
 def build_scene(spec, slide):
     img = bpy.data.images.load(spec["tex"])
     img2 = bpy.data.images.load(spec["tex2"]) if spec.get("tex2") else None
+    img_roof = bpy.data.images.load(spec["roof_tex"]) if spec.get("roof_tex") else None
     wall_mat = make_textured_mat("m_wall", img, roughness=0.85, metallic=0.0)
+    roof_mat = make_textured_mat("m_roof", img_roof if img_roof else img,
+                                 roughness=0.9, metallic=0.0, bump_strength=0.2)
     iron_mat = make_textured_mat("m_iron", img2 if img2 else img,
                                  roughness=0.6, metallic=0.75, bump_strength=0.35)
     dark_mat = make_dark_mat()
@@ -210,6 +213,7 @@ def build_scene(spec, slide):
             bsdf.inputs["Roughness"].default_value = 0.6
             return m
         wall_mat = dbg_mat("dbg_wall", (0.75, 0.45, 0.2, 1.0))
+        roof_mat = dbg_mat("dbg_roof", (0.45, 0.3, 0.2, 1.0))
         iron_mat = dbg_mat("dbg_iron", (0.9, 0.1, 0.1, 1.0))
         dark_mat = dbg_mat("dbg_dark", (0.05, 0.05, 0.9, 1.0))
         interior_mat = dbg_mat("dbg_interior", (0.1, 0.9, 0.1, 1.0))
@@ -240,7 +244,9 @@ def build_scene(spec, slide):
                           segments=int(p.get("bevelSegments", 3)),
                           top_only=bool(p.get("bevelTopOnly", False)))
         box_full_uv(o)
-        if p.get("material") == "window":
+        if p.get("material") == "roof":
+            o.data.materials.append(roof_mat)
+        elif p.get("material") == "window":
             o.data.materials.append(window_mat)
         elif p.get("material") == "interior":
             o.data.materials.append(interior_mat)

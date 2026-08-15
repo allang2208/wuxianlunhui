@@ -5072,7 +5072,12 @@ export class GameScene extends Scene {
         if (maxHp <= 0) return;
         const hpPercent = Math.max(0, Math.min(1, hp / maxHp));
         const size = entity.size || 14;
-        const sprite = (entity._phaserSprite && entity._phaserSprite.active) ? entity._phaserSprite : null;
+        // 仓鼠矿工等友方单位由侍从渲染管线持有精灵（_companionSprites）——
+        // 名称/血条按该精灵顶部锚定，贴图缩放后自动跟随（2026-08-15）
+        const sprite = (entity._phaserSprite && entity._phaserSprite.active)
+            ? entity._phaserSprite
+            : (this._companionSprites && this._companionSprites[entity.id]
+                && this._companionSprites[entity.id].active ? this._companionSprites[entity.id] : null);
         const x = sprite ? sprite.x : entity.x;
         // 能源矿/掩体/基地等走 _neutralSprites 渲染，没有 _phaserSprite；
         // 其贴图顶部 = 逻辑脚底 − spriteCfg.sizeH，血条/名字据此锚定。
@@ -5155,7 +5160,10 @@ export class GameScene extends Scene {
         }
 
         // 名字标签：掉落物、NPC、训练靶等自带标签，跳过避免重叠
-        const hasOwnLabel = entity.noNameLabel || entity.npcType || entity._dpsTracking !== undefined || (entity.itemData !== undefined);
+        // 已由 _syncNeutralEntities 挂了名字/血条标签的实体（仓鼠小屋/能源矿/掩体等建筑、
+        // 静态 NPC）跳过 HUD 名字，避免重复显示——以后加建筑不用重复加名字（2026-08-15）
+        const hasOwnLabel = entity.noNameLabel || entity.npcType || entity._dpsTracking !== undefined
+            || (entity.itemData !== undefined) || (this._neutralSprites && this._neutralSprites.has(entity));
         if (hasOwnLabel) {
             // 隐藏之前可能已创建的名字文本
             for (const [key, text] of this._entityHudTexts.entries()) {

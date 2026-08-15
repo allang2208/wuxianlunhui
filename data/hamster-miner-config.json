@@ -24,7 +24,7 @@
     "teleportDist": 999999,
     "teleportHardDist": 9999999
   },
-  "displaySize": 132,
+  "displaySize": 99,
   "animations": {
     "idle": {
       "src": "assets/companions/hamster_miner/idle.png",
