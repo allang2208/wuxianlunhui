@@ -1265,12 +1265,15 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
 教训：上一版「AI 直出大理石 + 祭坛式建模」用户验收不过，这版「采样祭坛贴图 + 立方体底座」
 一次通过——核心视觉有现成素材时，先采样再考虑出图。
 
-**宝箱（主神空间仓库 NPC，2026-08-16）**：主神空间「仓库」NPC 贴图实为**打开状态宝箱**
-（`warehouse.png` == `chest_opened.png`），建模走正面偏俯视（elevation 15，开口可见）；
-结构 = 木纹箱体（程序化 chest_wood_tex：暖棕底+竖直木纹+节疤）+ 后仰开盖 + 发光开口
-（interior 材质=宝藏光）+ 铁箍/锁（demon_iron_tex）+ 箱脚；入库紧身裁剪 688×493，
-NPC sprite `size:180 / sizeH:129 / footOffsetY:65`，clickArea 180×129。
-教训：用户说「仓库」实际指宝箱——先看 NPC 现有贴图内容（config 注释/贴图比对）再建模。
+**宝箱（主神空间仓库 NPC，2026-08-16）**：主神空间「仓库」NPC 贴图实为宝箱
+（`warehouse.png` == `chest_opened.png`）。**视角铁律：原版 chest_closed/opened 是
+2:1 等距菱形（尖顶-宽中-尖底，轮廓分析确认），建模必须 elevation 30 + azimuth 45**，
+不能用正面平视（曾用 5°/15° 正面均被用户退回）。**造型铁律：下方立方体箱身 +
+上方放倒半圆柱拱盖**（render-factory-real.py 新增 cylinder 图元 = 半圆柱，
+保留 z≥0 上拱、底平贴箱顶）；**材质从原图提取**：chest_body_tex（内容 55~85% 横带，
+米白浅木 182,170,156），不程序化生成；铁箍/锁用 demon_iron_tex。
+入库紧身裁剪 674×626，NPC sprite `size:180 / sizeH:167 / footOffsetY:84`，
+clickArea 180×167。教训：先做原图轮廓/材质分析再建模（角度与造型双对齐）。
 
 ---
 
@@ -5231,9 +5234,12 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
 
 #### 2. 数据（data/hamster-miner-config.json）
 - `baseData.con` 控 HP（公式 base100 + con×10 + 每级10；con=10 → 200）。
-- `ai`：`walkSpeed/runSpeed`（80）、`miningRange`（80）、`attackInterval`（2000）、
+- `ai`：`walkSpeed/runSpeed`（80）、`miningRange`（**50**，采矿触发 = 50 + 节点半径45 =
+  95px，矿工更贴近矿点）、`attackInterval`（2000）、
   `attackDamage`（100）、`decisionMs`（120）、`engageRange`（340，小屋防御交战半径）、
   `attackRange`（48，近战贴脸距离）。
+- 显示/碰撞（2026-08-15 缩小 25%）：`displaySize` 99（132×75%）、`groundRadius`
+  19.5 / `collisionRadius` 19.5 / `bodyHeight` 97.5 / `size` 63。
 - `animations`：walk 两段式 `startFrames:[0,11]`（起步完整 12 帧，repeat 0）+
   `loopFrames:[2,11]`（循环第 3~12 帧，repeat -1）；mining 素材 19 帧
   `startFrames:[0,18]`（首次完整挥锄）+ `loopFrames:[4,18]`（后续第 5~19 帧，
@@ -5263,8 +5269,9 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
   **每次命中置 `m._miningSwing=true`** 通知渲染层播挥锄动画。
 - **寻路/避障铁律（2026-08-15 审计）**：矿工与怪物共用 `MovementSystem`
   （A*/PathManager/墙碰撞/避障/卡住滑移）；**寻路目标禁止用障碍物中心**——
-  采矿目标用矿点边缘可达点（`approachDist = max(miningRange, 节点半径+自身半径+20)`，
-  避开 A* 实体障碍），回屋用小屋边缘接近点（64px，触发 70px）。AI 层再加卡死看门狗
+  采矿目标用矿点边缘可达点（`approachDist = max(miningRange, 节点半径+自身半径+40)`，
+  并**钳制在采矿范围−15 内**——采矿距离 50 时 ≈80px，障碍外可到达且到位即采矿），
+  回屋用小屋边缘接近点（64px，触发 70px）。AI 层再加卡死看门狗
   （500ms 位移<3px 累计 2 次 → 挖矿重选目标 / 返回 `WallSystem.findSafeSpawn` 传送）；
   满载用 `_returnTriggered` 防 work/return 振荡。
 - **顶墙死循环根因（2026-08-15 实锤 + 根修）**：`_followPath` 的移动被
@@ -5297,6 +5304,10 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
   vx 实际移动方向（`member._isHamsterMiner && moving` → `faceRight = vx > 0`），
   不面朝目标（否则寻路绕行/回小屋会倒退走路）；受击白闪 `hitFlash`；
   尺寸 `member.displaySize ?? PLAYER_DEFAULTS`；多实例共用素材键 `animId`。
+- **名称/血条（2026-08-15）**：`_syncEntityHud` 对友方单位取
+  `_companionSprites[entity.id]` 精灵锚定（贴图缩放后名字/血条自动跟随）；
+  `hasOwnLabel` 含 `_neutralSprites.has(entity)`——已挂中立标签的建筑
+  （仓鼠小屋/能源矿/掩体/静态 NPC）跳过 HUD 名字，防重复；以后加建筑自动生效。
 - `_updateDynamicDepths` 的侍从深度查找也要带 friendlyUnits（墙后正常被遮挡）。
 
 #### 6. 生成/仇恨/验证

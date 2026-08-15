@@ -2578,6 +2578,69 @@ function syncGateSeamDepths() {
     for (const g of list) { if (typeof g._applySeamBias === 'function') g._applySeamBias(); }
 }
 
+/** 门放置时裁剪与门共线且伸入门跨度的掩体墙段碰撞线（2026-08-16）：
+ *  - 基地菱形房的门洞带（openRadius 90）比门面线窄，门端柱骑在相邻掩体 face 线上，
+ *    掩体段端点深入门跨（实测 i=0 深 61px / i=3 深 3px）。开门后栅栏放行，但掩体
+ *    段的阻挡带（halfThick + 单位半径 ≈ 48px）仍探入门洞，玩家贴柱走位被截停 =
+ *    "卡在柱子上"。
+ *  - 正解：把深入掩体段的"内侧端点"沿门向回退 halfThick + 余量（只改 _coverSeg
+ *    碰撞线，不动 _faceLine/贴图/深度锚点），让阻挡带恰好止于门 face 端点；
+ *    门拆除时还原。 */
+function trimCoverSegsForGate(gate, A, B) {
+    if (!WallSystem || !WallSystem.isoSegments) return;
+    if (!gate._trimmedCovers) gate._trimmedCovers = [];
+    const gdx = B.x - A.x;
+    const gdy = B.y - A.y;
+    const glen = Math.hypot(gdx, gdy) || 1;
+    const gux = gdx / glen;
+    const guy = gdy / glen;
+    const proj = (p) => (p.x - A.x) * gux + (p.y - A.y) * guy; // 沿门方向投影（A=0, B=glen）
+    const distToLine = (p) => Math.abs((p.x - A.x) * guy - (p.y - A.y) * gux);
+    for (const s of WallSystem.isoSegments) {
+        if (!s || !s._cover || !s._owner || gate._trimmedCovers.includes(s)) continue;
+        if (distToLine({ x: s.x1, y: s.y1 }) > 6 || distToLine({ x: s.x2, y: s.y2 }) > 6) continue; // 共线
+        const a = proj({ x: s.x1, y: s.y1 });
+        const b = proj({ x: s.x2, y: s.y2 });
+        const lo = Math.min(a, b);
+        const hi = Math.max(a, b);
+        if (hi <= 0 || lo >= glen) continue; // 与门跨度无重叠
+        const backoff = (s.halfThick ?? 26) + 30; // 阻挡带 halfThick+单位半径，回退到门端点之外
+        gate._trimmedCovers.push(s);
+        if (!s._orig) s._orig = { x1: s.x1, y1: s.y1, x2: s.x2, y2: s.y2 };
+        // 深入门跨（投影 ∈ [0, glen]）的端点 → 沿门向回退到对应门端点之外：
+        // 靠 A 端回退到 A−backoff，靠 B 端回退到 B+backoff，使阻挡带止于门 face 端点。
+        const moveOut = (e, side) => {
+            if (side === 'A') { e.x = A.x - gux * backoff; e.y = A.y - guy * backoff; }
+            else { e.x = B.x + gux * backoff; e.y = B.y + guy * backoff; }
+        };
+        const ends = [
+            { x: s.x1, y: s.y1, p: a },
+            { x: s.x2, y: s.y2, p: b },
+        ];
+        for (const e of ends) {
+            if (e.p < 0 || e.p > glen) continue;
+            moveOut(e, e.p < glen / 2 ? 'A' : 'B');
+        }
+        // 写回（ends 中的对象是新建的，需回填）
+        s.x1 = ends[0].x; s.y1 = ends[0].y; s.x2 = ends[1].x; s.y2 = ends[1].y;
+    }
+    if (pathFinder && typeof pathFinder.invalidateRegion === 'function') {
+        pathFinder.invalidateRegion(
+            Math.min(A.x, B.x) - 30, Math.min(A.y, B.y) - 30,
+            Math.max(A.x, B.x) + 30, Math.max(A.y, B.y) + 30);
+    }
+}
+
+/** 还原被门裁剪的掩体段（门销毁时调用）。 */
+function restoreTrimmedCovers(gate) {
+    if (!gate || !gate._trimmedCovers || !WallSystem || !WallSystem.isoSegments) return;
+    for (const s of gate._trimmedCovers) {
+        if (!s || !s._orig) continue;
+        s.x1 = s._orig.x1; s.y1 = s._orig.y1; s.x2 = s._orig.x2; s.y2 = s._orig.y2;
+    }
+    gate._trimmedCovers = [];
+}
+
 const CoverGate = {
     place(center, A, B, cfg) {
         const scene = (typeof window !== 'undefined') ? window.__phaserScene : null;
@@ -2622,6 +2685,8 @@ const CoverGate = {
         this._frame = 0;
         this._closeTimer = 0;
         this.setPassable(false);
+        // 裁剪与门共线/重叠的掩体碰撞段（避免开门后贴柱走位被掩体段截停）
+        trimCoverSegsForGate(this, A, B);
         return true;
     },
 
@@ -2751,6 +2816,7 @@ const CoverGate = {
     destroy() {
         if (this._animCounter) { this._animCounter.stop(); this._animCounter = null; }
         this.setPassable(true);
+        restoreTrimmedCovers(this);
         this._unregisterSegs();
         this._destroySprites();
         this._gateSeg = null;
@@ -2782,6 +2848,12 @@ class BuildableGate extends Combatant {
         this._isDefenseStructure = true;
         this._isCoverGate = true;
         this.noSeparation = true;
+        // 门不参与实体分离（resolveCollisions 的 rect 分支）：门的阻挡/放行完全由
+        // _gateSeg 面线段承担（关门注册/开门移除）。若保留 198×133 的实体矩形碰撞，
+        // 开门时玩家站在门洞内会被该矩形沿长轴持续横向推出（≈21.5px/帧）——被推到
+        // 门柱/墙边卡住，门一开又被"释放"穿过门洞 = 用户反馈的"卡柱 + 开门瞬移"。
+        // noCollision 只跳过实体间分离，墙段碰撞（WallSystem.isoSegments）不受影响。
+        this.noCollision = true;
         this.noNameLabel = true;
         this._noShadow = true;   // 障碍物取消脚底阴影
         this.immovable = true;   // 不可被击退/位移
@@ -2824,6 +2896,8 @@ class BuildableGate extends Combatant {
             _gate: true, _gateHole: true,
         };
         if (WallSystem && WallSystem.isoSegments) WallSystem.isoSegments.push(this._gateSeg);
+        // 裁剪与门共线/重叠的掩体碰撞段（贴柱走位不被掩体段截停）
+        trimCoverSegsForGate(this, this._faceLine[0], this._faceLine[1]);
         this.state = 'closed';
         this._frame = 0;
         this._closeTimer = 0;
@@ -3007,6 +3081,7 @@ class BuildableGate extends Combatant {
 
     _teardownVisual() {
         if (this._animCounter) { this._animCounter.stop(); this._animCounter = null; }
+        restoreTrimmedCovers(this);
         this._unregisterSegs();
         if (WallSystem && WallSystem.isoSegments && this._gateSeg) {
             const i = WallSystem.isoSegments.indexOf(this._gateSeg);

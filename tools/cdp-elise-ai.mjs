@@ -225,4 +225,37 @@ console.log('远程敌/移动敌场景:', await ev(`(async () => {
   };
 })()`));
 
+console.log('奔跑状态机（idle→run 起步完整→循环 11~23 帧）:', await ev(`(async () => {
+  const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+  const { PartySystem, entities } = window.Game;
+  const ps = window.__phaserScene;
+  const elise = PartySystem.getMember('warrior_bruno');
+  const ai = PartySystem._aiInstances['warrior_bruno'];
+  const p = window.Game.player;
+  for (const [k, e] of Array.from(entities.entries())) {
+    if (e && e !== elise && e._faction === 'enemy') entities.delete(k);
+  }
+  elise.target = null;
+  elise._tacticalTarget = null;
+  ai._meleeAtkTimer = 0; ai._defendPhase = null; ai._defendCd = 0;
+  elise._frozenForCast = false; elise._animState = 'idle';
+  // 让伊莉丝远离玩家并给一个远处的战术目标 → 应进入 run
+  p.x = 400; p.y = 600;
+  elise.x = 900; elise.y = 600; // 距玩家 ~500px → follow 用 run 归队
+  const out = [];
+  for (let i = 0; i < 80; i++) {
+    await sleep(100);
+    const spr = ps._companionSprites['warrior_bruno'];
+    out.push({
+      anim: elise._animState,
+      sprAnim: spr && spr.anims.currentAnim ? spr.anims.currentAnim.key : null,
+      sprFrame: spr ? spr.frame.name : null,
+      playing: spr ? spr.anims.isPlaying : null,
+      speed: Math.round(Math.hypot(elise.vx, elise.vy)),
+    });
+  }
+  elise._tacticalTarget = null;
+  return out.filter((_, i) => i % 4 === 0);
+})()`));
+
 await cleanup(0);

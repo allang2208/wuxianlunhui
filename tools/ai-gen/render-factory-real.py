@@ -132,6 +132,24 @@ def make_prism(L, W, H):
     return o
 
 
+def make_half_cylinder(L, R, segments=32):
+    """放倒的半圆柱（拱形盖）：轴沿 X，保留 z>=0 的上拱，底面平切在 z=0（贴箱体顶面）。"""
+    bpy.ops.mesh.primitive_cylinder_add(radius=R, depth=L, vertices=segments)
+    o = bpy.context.active_object
+    o.rotation_euler = (0, math.radians(90), 0)  # 轴 Z -> X
+    bpy.context.view_layer.update()
+    bpy.ops.object.transform_apply(rotation=True, scale=True)
+    import bmesh
+    bpy.ops.object.mode_set(mode="EDIT")
+    bm = bmesh.from_edit_mesh(o.data)
+    for v in list(bm.verts):
+        if v.co.z < -0.001:
+            bm.verts.remove(v)
+    bmesh.update_edit_mesh(o.data)
+    bpy.ops.object.mode_set(mode="OBJECT")
+    return o
+
+
 def make_textured_mat(name, img, roughness=0.85, metallic=0.0, bump_strength=0.25):
     mat = bpy.data.materials.new(name)
     mat.use_nodes = True
@@ -195,9 +213,12 @@ def build_scene(spec, slide):
     img = bpy.data.images.load(spec["tex"])
     img2 = bpy.data.images.load(spec["tex2"]) if spec.get("tex2") else None
     img_roof = bpy.data.images.load(spec["roof_tex"]) if spec.get("roof_tex") else None
+    img_lid = bpy.data.images.load(spec["lid_tex"]) if spec.get("lid_tex") else None
     wall_mat = make_textured_mat("m_wall", img, roughness=0.85, metallic=0.0)
     roof_mat = make_textured_mat("m_roof", img_roof if img_roof else img,
                                  roughness=0.9, metallic=0.0, bump_strength=0.2)
+    lid_mat = make_textured_mat("m_lid", img_lid if img_lid else img,
+                                roughness=0.8, metallic=0.0, bump_strength=0.15)
     iron_mat = make_textured_mat("m_iron", img2 if img2 else img,
                                  roughness=0.6, metallic=0.75, bump_strength=0.35)
     dark_mat = make_dark_mat()
@@ -214,6 +235,7 @@ def build_scene(spec, slide):
             return m
         wall_mat = dbg_mat("dbg_wall", (0.75, 0.45, 0.2, 1.0))
         roof_mat = dbg_mat("dbg_roof", (0.45, 0.3, 0.2, 1.0))
+        lid_mat = dbg_mat("dbg_lid", (0.95, 0.9, 0.85, 1.0))
         iron_mat = dbg_mat("dbg_iron", (0.9, 0.1, 0.1, 1.0))
         dark_mat = dbg_mat("dbg_dark", (0.05, 0.05, 0.9, 1.0))
         interior_mat = dbg_mat("dbg_interior", (0.1, 0.9, 0.1, 1.0))
@@ -226,7 +248,12 @@ def build_scene(spec, slide):
         rot_z = rot[2]
     for i, p in enumerate(spec["primitives"]):
         t = p.get("type", "box")
-        if t == "prism":
+        if t == "cylinder":
+            w, d, h = p["size"]
+            o = make_half_cylinder(w, d)
+            o.scale = (1, 1, h / d if d else 1)
+            o.location = (0, 0, 0)
+        elif t == "prism":
             w, d, h = p["size"]
             o = make_prism(w, d, h)
         else:
@@ -243,8 +270,12 @@ def build_scene(spec, slide):
             bevel_corners(o, amount=float(p["bevel"]),
                           segments=int(p.get("bevelSegments", 3)),
                           top_only=bool(p.get("bevelTopOnly", False)))
-        box_full_uv(o)
-        if p.get("material") == "roof":
+        # 圆柱/半圆柱保持默认柱面 UV（box_full_uv 只适合轴对齐盒面）
+        if t != "cylinder":
+            box_full_uv(o)
+        if p.get("material") == "lid":
+            o.data.materials.append(lid_mat)
+        elif p.get("material") == "roof":
             o.data.materials.append(roof_mat)
         elif p.get("material") == "window":
             o.data.materials.append(window_mat)
