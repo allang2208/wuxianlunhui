@@ -11,9 +11,9 @@ import { isTwoHanded } from '../../config/gun-ammo.js';
 import { WeaponAnimConfig } from '../../items/weapon-anim-config.js';
 import { Easing } from '../../config/math-utils.js';
 import { CONFIG } from '../../config/config.js';
-import { COMBAT_CONFIG } from '../../config/combat-config.js';
 import { playerTextureKey, getPlayerAnimDurationMs } from '../../config/player-anim.js';
-import { enterAttackHold, clearPose, nowMs } from './anim-state.js';
+import { enterAttackHold, clearPose, nowMs,
+    MELEE_COMBO_STAGES, MELEE_STAGE_ANIM_KEYS, meleeStageCfgKey, meleeStageHoldMs } from './anim-state.js';
 
 const weaponAnimMixin = {
     // 初始化武器动画状态
@@ -291,26 +291,24 @@ const weaponAnimMixin = {
         const wacCfg = WeaponAnimConfig[weaponType];
         const perFrameCfg = wacCfg?.attack;
         if (perFrameCfg && perFrameCfg.type === 'perFrame' && perFrameCfg.frames) {
-            // 连段：上一段攻击结束后 500ms 内再次攻击 → 派生下一段（一段挥砍→二段挥砍→回一段）。
-            // 二段素材未加载（纹理缺失）时自动回退一段；后续三段突刺加入只需扩展此数组
-            const COMBO_WINDOW_MS = COMBAT_CONFIG.meleeCombo?.stage1HoldMs ?? 500;
-            // 2026-08-03：二段攻击的末帧定格（连段窗口）固定 0.2s，一段保持 0.5s
-            const STAGE2_HOLD_MS = COMBAT_CONFIG.meleeCombo?.stage2HoldMs ?? 200;
+            // 三段连段（2026-08-13）：一段过顶下劈 → 二段肩高快劈 → 三段弓步突刺（终结段）→ 回一段。
+            // 段素材未加载（纹理缺失）时逐级回退（stage3→2→1）；窗口/定格/收势梯度见 anim-state.js 登记
             const now = nowMs();
-            // 连段窗口按上一段判定：二段结束后只剩 0.2s 可再连（回一段），一段后仍 0.5s
-            const prevChainWindow = this._meleeComboStage === 2 ? STAGE2_HOLD_MS : COMBO_WINDOW_MS;
+            // 连段窗口按上一段判定：一段后 0.5s、二段后 0.2s、三段（终结）后 0.3s 重开窗口
+            const prevChainWindow = meleeStageHoldMs(this._meleeComboStage || 1);
             const chained = hand === 'main' && this._lastMeleeAttackEnd && (now - this._lastMeleeAttackEnd) <= prevChainWindow;
-            let stage = chained ? ((this._meleeComboStage || 1) % 2) + 1 : 1;
-            let animKey = stage === 2 ? 'attack_sword_2' : 'attack_sword';
-            if (stage === 2 && !scene.textures.exists(playerTextureKey(animKey))) {
-                stage = 1;
-                animKey = 'attack_sword';
+            let stage = chained ? ((this._meleeComboStage || 1) % MELEE_COMBO_STAGES) + 1 : 1;
+            let animKey = MELEE_STAGE_ANIM_KEYS[stage - 1];
+            // 纹理缺失逐级回退（stage3→2→1）
+            while (stage > 1 && !scene.textures.exists(playerTextureKey(animKey))) {
+                stage--;
+                animKey = MELEE_STAGE_ANIM_KEYS[stage - 1];
             }
             if (hand === 'main') this._meleeComboStage = stage;
-            // 命中判定配置：一段读 attack 块，二段读 attack2 块（缺失回退 attack）。
+            // 命中判定配置：按段选 attack/attack2/attack3 块（缺失逐级回退 attack）。
             // 帧号换算 progress 阈值 = (frame-1)/(frames.length-1)，不写死帧数；
             // 无 hitCheck 配置时回退旧的 500ms 连续判定窗口
-            const stageCfg = (stage === 2 && wacCfg.attack2) ? wacCfg.attack2 : perFrameCfg;
+            const stageCfg = wacCfg[meleeStageCfgKey(wacCfg, stage)] || perFrameCfg;
             const hitCheckCfg = stageCfg.hitCheck || null;
             let hitCheckThreshold = null;
             if (hitCheckCfg && typeof hitCheckCfg.frame === 'number' && stageCfg.frames && stageCfg.frames.length > 1) {
@@ -333,8 +331,8 @@ const weaponAnimMixin = {
                 this._lastMeleeAttackEnd = now + totalDuration; // onComplete 会按实际结束时间复写
                 enterAttackHold(this, {
                     animKey,
-                    // 定格时长按当前段：二段末帧停 0.2s，一段末帧停 0.5s
-                    untilMs: now + totalDuration + (stage === 2 ? STAGE2_HOLD_MS : COMBO_WINDOW_MS),
+                    // 定格时长按当前段：一段 0.5s / 二段 0.2s / 三段 0.3s（meleeCombo.stageNHoldMs）
+                    untilMs: now + totalDuration + meleeStageHoldMs(stage),
                 });
             }
 
@@ -395,8 +393,7 @@ const weaponAnimMixin = {
                         // 红线：与上方预写构成"预写 → onComplete 复写"两次写序列，次序/位置不得改动
                         enterAttackHold(self, {
                             animKey,
-                            untilMs: self._lastMeleeAttackEnd
-                                + (self._meleeComboStage === 2 ? STAGE2_HOLD_MS : COMBO_WINDOW_MS),
+                            untilMs: self._lastMeleeAttackEnd + meleeStageHoldMs(self._meleeComboStage || 1),
                         });
                     }
                     if (self._pendingThrust) {

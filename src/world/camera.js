@@ -1,4 +1,3 @@
-import { Renderer } from '../world/renderer.js';
 import { CONFIG } from '../config/config.js';
 const Camera = {
             x: 0, y: 0, shakeX: 0, shakeY: 0, shakeIntensity: 0, shakeDecay: 0.85,
@@ -25,17 +24,11 @@ const Camera = {
                 }
                 if (this.shakeIntensity > 0.5) { this.shakeX = (Math.random() - 0.5) * this.shakeIntensity; this.shakeY = (Math.random() - 0.5) * this.shakeIntensity; this.shakeIntensity *= this.shakeDecay; }
                 else { this.shakeX = 0; this.shakeY = 0; this.shakeIntensity = 0; }
-                // 边界限制：Camera 不能超出世界范围，确保屏幕始终显示世界内的内容
-                // 使用实际 canvas 尺寸（如果可用）
-                const canvasW = (Renderer && Renderer.canvas) ? Renderer.canvas.width : CONFIG.VIEW_WIDTH;
-                const canvasH = (Renderer && Renderer.canvas) ? Renderer.canvas.height : CONFIG.VIEW_HEIGHT;
-                const halfW = canvasW / 2, halfH = canvasH / 2;
-                const minX = Math.min(halfW, CONFIG.WORLD_WIDTH / 2);
-                const minY = Math.min(halfH, CONFIG.WORLD_HEIGHT / 2);
-                const maxX = Math.max(CONFIG.WORLD_WIDTH - halfW, CONFIG.WORLD_WIDTH / 2);
-                const maxY = Math.max(CONFIG.WORLD_HEIGHT - halfH, CONFIG.WORLD_HEIGHT / 2);
-                this.x = Math.max(minX, Math.min(maxX, this.x));
-                this.y = Math.max(minY, Math.min(maxY, this.y));
+                // 边界钳制已迁至 GameScene._updateCamera（2026-08-14）：
+                // 旧实现用 DOM canvas 半宽当可视半宽，完全无视相机 zoom——世界-122 zoom 0.7 时
+                // 把相机错误钉在离玩家 188px 处（玩家出生 x=760 被钳到 948），人物永远不在屏幕中央。
+                // 新位置按 Phaser 相机 viewport/zoom 实时换算（任意缩放通用），且 scene8 不钳制
+                // （自然边界 + 人物恒居中，用户要求）。
             },
             triggerShake(intensity) { this.shakeIntensity = intensity; }
         };

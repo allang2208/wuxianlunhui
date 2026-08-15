@@ -539,13 +539,11 @@ export class ArmoredKnight extends Enemy {
         switch (this._animState) {
             case 'walk': return 'enemy_armored_knight_walk';
             case 'combo': return 'enemy_armored_knight_combo';
-            case 'charge': {
-                // 两段式：首段完整一轮后切换 9~19 帧循环段（animIntroMs 配置驱动）
-                const introMs = this._getSkillConfigs().charge.animIntroMs ?? 2000;
-                return (this._chargeElapsed ?? 0) >= introMs
-                    ? 'enemy_armored_knight_charge_loop'
-                    : 'enemy_armored_knight_charge';
-            }
+            // 冲锋首段与循环段共用同一张 spritesheet：charge_loop 只是动画键不是贴图键。
+            // 旧版这里在循环段返回 'enemy_armored_knight_charge_loop'，GameScene._syncEnemyAnimation
+            // 按贴图键做 textures.exists 判定失败 → 回退 enemy_circle 白胶囊占位——
+            // 冲锋动画播完后（2s 首段结束）直到冲锋停止的 ~1s 骑士贴图"丢失"的根因（2026-08-15）
+            case 'charge': return 'enemy_armored_knight_charge';
             case 'defend': return 'enemy_armored_knight_defend';
             default: return 'enemy_armored_knight_idle';
         }
@@ -562,11 +560,19 @@ export class ArmoredKnight extends Enemy {
         } else if (this.rotation !== undefined) {
             flipX = Math.cos(this.rotation) < 0;
         }
+        // 动画键独立于贴图键：冲锋循环段用 charge_loop 动画（同一张贴图切帧循环）
+        let animKey = this._getTextureKey();
+        if (this._animState === 'charge') {
+            const introMs = this._getSkillConfigs().charge.animIntroMs ?? 2000;
+            animKey = (this._chargeElapsed ?? 0) >= introMs
+                ? 'enemy_armored_knight_charge_loop'
+                : 'enemy_armored_knight_charge';
+        }
         return {
             spriteSize: renderCfg.spriteSize || 150,
             flipX,
             animState: this._animState,
-            animKey: this._getTextureKey(),
+            animKey,
         };
     }
 }

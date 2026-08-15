@@ -19,6 +19,8 @@ import { RiftSystem } from '../quest/rift-system.js';
 import { QuickBar } from '../ui/quick-bar.js';
 import { SystemUI } from '../ui/system-ui.js';
 import { DefenseSystem, DEFENSE_CONFIG } from './defense-system.js';
+import { EnergyNodeSystem } from './energy-node-system.js';
+import { ENERGY_CONFIG } from '../config/energy-config.js';
 import { BuildingSystem } from './building-system.js';
 import { DefenseTrapSystem } from './defense-trap-system.js';
 
@@ -135,6 +137,10 @@ export const SceneManager = {
             }
             if (DefenseTrapSystem && typeof DefenseTrapSystem.teardown === 'function') {
                 DefenseTrapSystem.teardown();
+            }
+            // 世界-122 能源资源点随场景离场拆除（实体由下方 Game.entities.clear 统一清理）
+            if (EnergyNodeSystem && EnergyNodeSystem.active) {
+                EnergyNodeSystem.teardown();
             }
             if (EffectManager && EffectManager.clearFloatingTexts) {
                 EffectManager.clearFloatingTexts();
@@ -946,13 +952,14 @@ export const SceneManager = {
         });
         applyDungeonFloor(size);
 
-        // 边界墙，防止走出地图
+        // 边界：不再画围墙（2026-08-14 用户要求）——保留隐形物理体阻挡走出地图，
+        // 边界自然显示为地板的黑色渐变边缘（bakeDungeonFloor 自带四周 FLOOR_EDGE_FADE）
         WallSystem.init(size, size);
         WallSystem.walls = [
-            { x: 0, y: 0, w: size, h: 20 },
-            { x: 0, y: size - 20, w: size, h: 20 },
-            { x: 0, y: 0, w: 20, h: size },
-            { x: size - 20, y: 0, w: 20, h: size },
+            { x: 0, y: 0, w: size, h: 20, noVisual: true },
+            { x: 0, y: size - 20, w: size, h: 20, noVisual: true },
+            { x: 0, y: 0, w: 20, h: size, noVisual: true },
+            { x: size - 20, y: 0, w: 20, h: size, noVisual: true },
         ];
         if (WallSystem._syncWallsToPhaser) {
             WallSystem._syncWallsToPhaser();
@@ -974,8 +981,70 @@ export const SceneManager = {
             QuickBar.refreshSpecialAttack(player);
         }
 
+        // 树木随机散布（2026-08-15）：必须在 DefenseSystem.setup 之前——rebuildIsoCollision
+        // 只保留门闸 isoSegments，掩体墙段在 setup 时才注册（两不相扰）；
+        // 基地房矩形/玩家出生点/能源点/刷怪点按排除带规避。配置：scenes.scene8.treeScatter
+        this._scatterTreesScene8(player);
+
         // 世界-122 防守战：基地核心 + 防御塔 + 边界刷怪波次
         DefenseSystem.setup(player);
+
+        // 世界-122 能源资源点：散落地图，供玩家/队员攻击采集能源（修建/修理用）
+        EnergyNodeSystem.setup();
+    },
+
+    /**
+     * 世界-122 树木随机散布（2026-08-15）：加载时把等距树五变体撒满全图。
+     * - 走 isoVisuals + rebuildIsoCollision（footprint 碰撞生效）+ _syncWallsToPhaser 渲染；
+     * - 缩放 = obstacleH/geo.h（摆墙编辑器口径）× (1±scaleJitter)，随机 flipX；
+     * - 排除带：基地房矩形外扩 / 玩家 / 能源点 / 刷怪点；树间 minDist（允许适度成林）；
+     * - 调用顺序约束：必须在 DefenseSystem.setup 之前（见 _loadScene8 注释）。
+     * 配置：data/game-config.json scenes.scene8.treeScatter（enabled=false 关闭）。
+     */
+    _scatterTreesScene8(player) {
+        const scene = this.scenes.scene8;
+        const cfg = (scene && scene.treeScatter) || {};
+        if (cfg.enabled === false) return;
+        const count = cfg.count ?? 100;
+        const minDist = cfg.minDist ?? 95;
+        const jitter = cfg.scaleJitter ?? 0.1;
+        const b = cfg.bounds || {};
+        const x0 = b.x0 ?? 150;
+        const y0 = b.y0 ?? 250;
+        const x1 = b.x1 ?? ((scene && scene.width) ? scene.width - 150 : 3946);
+        const y1 = b.y1 ?? ((scene && scene.height) ? scene.height - 196 : 3900);
+        const ex = cfg.exclude || {};
+        const room = ex.baseRoom || [308, 1712, 1492, 2384];
+        const rPlayer = ex.player ?? 160;
+        const rNode = ex.energyNode ?? 140;
+        const rSpawn = ex.spawnPoint ?? 130;
+        const variants = ['tall', 'bushy', 'twin', 'wind', 'tiered'];
+        const nodePos = (ENERGY_CONFIG && ENERGY_CONFIG.positions) || [];
+        const spawnPts = DEFENSE_CONFIG.spawnPoints || [];
+        const pieces = [];
+        let guard = 0;
+        while (pieces.length < count && guard++ < count * 30) {
+            const x = x0 + Math.random() * (x1 - x0);
+            const y = y0 + Math.random() * (y1 - y0);
+            if (x > room[0] && x < room[2] && y > room[1] && y < room[3]) continue;
+            if (player && Math.hypot(x - player.x, y - player.y) < rPlayer) continue;
+            if (nodePos.some((n) => Math.hypot(x - n.x, y - n.y) < rNode)) continue;
+            if (spawnPts.some((n) => Math.hypot(x - n.x, y - n.y) < rSpawn)) continue;
+            if (pieces.some((q) => Math.hypot(x - q.x, y - q.y) < minDist)) continue;
+            const tex = 'obstacle_tree_' + variants[(Math.random() * variants.length) | 0];
+            const geo = (typeof WallSystem._geoForTex === 'function') ? WallSystem._geoForTex(tex) : null;
+            if (!geo) continue;
+            const s = ((geo.obstacleH ?? 240) / geo.h) * (1 - jitter + Math.random() * jitter * 2);
+            const fr = Math.max(24, (geo.foot ? geo.foot.w / 2 : 40) * s);
+            if (typeof WallSystem.canMoveTo === 'function' && !WallSystem.canMoveTo(x, y, fr)) continue;
+            pieces.push({ tex, x, y, scaleX: s, scaleY: s, flipX: Math.random() < 0.5, _scatter: true });
+        }
+        for (const p of pieces) WallSystem.isoVisuals.push(p);
+        if (pieces.length && typeof WallSystem.rebuildIsoCollision === 'function') {
+            WallSystem.rebuildIsoCollision();
+        }
+        if (typeof WallSystem._syncWallsToPhaser === 'function') WallSystem._syncWallsToPhaser();
+        console.log(`[scene8] 树木散布 ${pieces.length} 棵（候选拒绝 ${guard - pieces.length} 次）`);
     },
 
     _loadScene7(player, _dungeonType = 'zombie') {

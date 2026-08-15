@@ -1,4 +1,4 @@
-﻿import { CONFIG } from '../config/config.js';
+import { CONFIG } from '../config/config.js';
 import { getWallPrefabLibrary, loadWallGeoOverrides } from './wall-prefabs.js';
 
 // ===== 等距斜墙贴图几何（贴图像素空间，wall-asset-prep.py 产出 + 拼装模拟器实测校准）=====
@@ -61,11 +61,11 @@ const ISO_WALL_GEO = {
     defense_tower: { tex: 'obstacle_defense_tower', w: 539, h: 832, category: 'obstacle', foot: { w: 468, d: 164 }, obstacleH: 262, editor: '防御塔' },
     // 阔叶树五变体（2026-08-05 Blender 白模深度+flux2-dev-depth 生图，prompts/obstacle.md 树木节；
     // foot=底部 15% 带实测树干占地，obstacleH 按防御塔同世界比例 0.315 折算）
-    tree_tall: { tex: 'obstacle_tree_tall', w: 404, h: 947, category: 'obstacle', foot: { w: 42, d: 15 }, obstacleH: 300, editor: '阔叶树·高瘦' },
-    tree_bushy: { tex: 'obstacle_tree_bushy', w: 903, h: 662, category: 'obstacle', foot: { w: 90, d: 31 }, obstacleH: 210, editor: '阔叶树·矮胖' },
-    tree_twin: { tex: 'obstacle_tree_twin', w: 722, h: 818, category: 'obstacle', foot: { w: 208, d: 73 }, obstacleH: 259, editor: '阔叶树·双干' },
-    tree_wind: { tex: 'obstacle_tree_wind', w: 752, h: 884, category: 'obstacle', foot: { w: 85, d: 30 }, obstacleH: 280, editor: '阔叶树·风斜' },
-    tree_tiered: { tex: 'obstacle_tree_tiered', w: 598, h: 743, category: 'obstacle', foot: { w: 111, d: 39 }, obstacleH: 235, editor: '阔叶树·双层' },
+    tree_tall: { tex: 'obstacle_tree_tall', w: 208, h: 987, category: 'obstacle', foot: { w: 29, d: 10 }, obstacleH: 313, editor: '白杨·高瘦' },
+    tree_bushy: { tex: 'obstacle_tree_bushy', w: 598, h: 958, category: 'obstacle', foot: { w: 105, d: 37 }, obstacleH: 304, editor: '橡树·高冠' },
+    tree_twin: { tex: 'obstacle_tree_twin', w: 560, h: 1024, category: 'obstacle', foot: { w: 64, d: 22 }, obstacleH: 325, editor: '白桦·轻盈' },
+    tree_wind: { tex: 'obstacle_tree_wind', w: 865, h: 994, category: 'obstacle', foot: { w: 184, d: 64 }, obstacleH: 315, editor: '枯树·枝干' },
+    tree_tiered: { tex: 'obstacle_tree_tiered', w: 416, h: 767, category: 'obstacle', foot: { w: 64, d: 22 }, obstacleH: 243, editor: '松树·层叠' },
 };
 
 // 地牢墙样式表（key = dungeonType；新地牢在此登记。值 = ISO_WALL_GEO 键 + 配套资源）

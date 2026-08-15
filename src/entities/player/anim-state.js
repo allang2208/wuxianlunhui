@@ -8,6 +8,7 @@
 
 import { isGunWeapon } from '../../config/gun-ammo.js';
 import { getPlayerAnimDef } from '../../config/player-anim.js';
+import { COMBAT_CONFIG } from '../../config/combat-config.js';
 
 // 动画通道枚举：resolveAnimChannel 按下列声明顺序（优先级高 → 低）返回第一个 owns 为真的通道
 export const AnimChannel = Object.freeze({
@@ -52,6 +53,43 @@ export function resolveGunPose(player) {
     }
     const def = getPlayerAnimDef('gun_idle');
     return def ? { poseKey: 'gun_idle', def } : null;
+}
+
+// ============================================================
+// 三段连段（挥击×2 + 突刺×1，2026-08-13）段数映射与时长梯度
+// 段序：1 大幅过顶下劈 → 2 肩高快劈 → 3 弓步突刺（终结段）→ 窗口内再攻击回 1。
+// 时长梯度收口 data/combat-config.json meleeCombo（JSON 无注释，语义在此登记）：
+// - stageNHoldMs：N 段末帧定格 = 连段窗口（窗口内再攻击派生下一段，超时播收势）。
+//   stage3HoldMs=300：终结段后的"重开窗口"——比一段 500 短（防无限连手感），比二段 200 长（终结段喘息）。
+// - stageNRecoverMs：收势动画固定时长（0 = recover sheet 配置自然时长）。
+//   stage3RecoverMs=400：终结段收势稍长，突出收招顿挫。
+// ============================================================
+export const MELEE_COMBO_STAGES = 3;
+export const MELEE_STAGE_ANIM_KEYS = Object.freeze(['attack_sword', 'attack_sword_2', 'attack_sword_3']);
+
+// 段数 → 武器轨迹块键（配置缺失逐级回退：stage3 → attack2 → attack）
+export function meleeStageCfgKey(wacCfg, stage) {
+    const keys = ['attack', 'attack2', 'attack3'];
+    for (let s = Math.min(Math.max(stage || 1, 1), MELEE_COMBO_STAGES); s >= 1; s--) {
+        if (wacCfg && wacCfg[keys[s - 1]]) return keys[s - 1];
+    }
+    return 'attack';
+}
+
+// 段数 → 末帧定格/连段窗口时长（combat-config.meleeCombo.stageNHoldMs，缺省梯度 500/200/300）
+export function meleeStageHoldMs(stage) {
+    const mc = COMBAT_CONFIG.meleeCombo || {};
+    const fallbacks = [500, 200, 300];
+    const s = Math.min(Math.max(stage || 1, 1), MELEE_COMBO_STAGES);
+    return mc[`stage${s}HoldMs`] ?? fallbacks[s - 1];
+}
+
+// 段数 → 收势动画固定时长（0 = 用 recover sheet 配置自然时长；stage2 300 / stage3 400）
+export function meleeStageRecoverMs(stage) {
+    const mc = COMBAT_CONFIG.meleeCombo || {};
+    const fallbacks = [0, 300, 400];
+    const s = Math.min(Math.max(stage || 1, 1), MELEE_COMBO_STAGES);
+    return mc[`stage${s}RecoverMs`] ?? fallbacks[s - 1];
 }
 
 /**

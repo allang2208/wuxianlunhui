@@ -96,6 +96,16 @@ class PerceptionSystemImpl {
         const isTargetValid = currentTarget && currentTarget.active;
 
         if (isTargetValid) {
+            // A 移动脱离（2026-08-15，世界-122）：防守怪的当前目标是交战单位（非建筑）时，
+            // 脱离交战半径 ×1.3 滞回即放弃——下个 tick 重选回落到建筑推进。
+            // （原逻辑有视线即永久锁定目标，单位跑出交战圈会被无限追出，违背 A 移动语义）
+            if (enemy._preferDefenseTargets && !currentTarget._isDefenseStructure) {
+                const leash = (enemy._engageHostileRange ?? 0) * 1.3;
+                if (leash && MathUtils.distance(enemy.x, enemy.y, currentTarget.x, currentTarget.y) > leash) {
+                    this._clearTarget(enemy);
+                    return;
+                }
+            }
             // 检测视线
             const hasLOS = this._checkLineOfSight(enemy, currentTarget);
 
@@ -139,7 +149,12 @@ class PerceptionSystemImpl {
                 // 只有当新目标明显更优时才切换（避免目标跳来跳去）
                 const currentScore = this._evaluateTarget(enemy, enemy.target);
                 const newScore = this._evaluateTarget(enemy, betterTarget);
-                if (newScore > currentScore * 1.3) {
+                // 防守模式 A 移动（2026-08-15）：当前目标是建筑、新目标是交战单位 →
+                // 免滞回直接切换（_findBetterTarget 已被 _isValidTarget 交战半径闸住），
+                // 否则怪物拆墙时对贴近的玩家/侍从无动于衷
+                const engageSwitch = !!(enemy._preferDefenseTargets
+                    && enemy.target._isDefenseStructure && !betterTarget._isDefenseStructure);
+                if (engageSwitch || newScore > currentScore * 1.3) {
                     enemy.target = betterTarget;
                     enemy._lastKnownTargetPos = { x: betterTarget.x, y: betterTarget.y };
                     enemy._lostSightTimer = 0;
@@ -515,8 +530,13 @@ class PerceptionSystemImpl {
         if (entity.hittable === false) return false;
         // 需要位置信息
         if (typeof entity.x !== 'number' || typeof entity.y !== 'number') return false;
-        // 防守模式（世界-122 进攻波次）：只锁定基地/防御塔，不追玩家
-        if (enemy._preferDefenseTargets && !entity._isDefenseStructure) return false;
+        // 防守模式（世界-122 进攻波次）：A 移动——建筑任意距离有效；
+        // 玩家/侍从等非结构单位仅在沿途交战半径内有效（2026-08-15）
+        if (enemy._preferDefenseTargets && !entity._isDefenseStructure) {
+            const engageRange = enemy._engageHostileRange ?? 0;
+            if (!engageRange) return false;
+            if (MathUtils.distance(enemy.x, enemy.y, entity.x, entity.y) > engageRange) return false;
+        }
         return true;
     }
 

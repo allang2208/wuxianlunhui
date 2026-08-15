@@ -37,7 +37,7 @@ import { CombatSystem } from './systems/combat-system.js';
 import { CONFIG } from './config/config.js';
 import { TargetDummy } from './entities/target-dummy.js';
 import { Player } from './entities/player.js';
-import { BlackWolf, ZombieDogEnemy } from './entities/enemy-types.js';
+import { BlackWolf, createZombieDog } from './entities/enemy-types.js';
 import { ZombieWizard } from './entities/enemy-types/zombie-wizard.js';
 import { Mutant3 } from './entities/enemy-types/mutant-3.js';
 import { SpitterZombie } from './entities/enemy-types/spitter-zombie.js';
@@ -75,6 +75,7 @@ import { CompanionAI } from './ai/companion-ai.js';
 import { PartyUI } from './ui/party-ui.js';
 import { RecruitUI } from './ui/recruit-ui.js';
 import { CompanionPanel } from './ui/companion-panel.js';
+import { CompanionCommandWheel } from './ui/companion-command-wheel.js';
 import { CodexManager } from './ui/codex-manager.js';
 import { SystemUI } from './ui/system-ui.js';
 import { UIState } from './ui/ui-state.js';
@@ -107,6 +108,8 @@ export const Game = {
         // 注册侍从 AI 工厂（浏览器运行时；companion-config.ai 驱动远程法师等）
         PartySystem.registerAI('mage_luna', (companion) => new CompanionAI(companion));
         PartyUI.init();
+        // 队员指挥轮盘（长按中键五指令：跟随/主动攻击/巡逻/采集/待命）
+        CompanionCommandWheel.init();
         this.EquipManager = EquipManager; // 供侍从面板背包拖动交换访问
         this.PartySystem = PartySystem;   // 供调试/其他模块访问队伍
         this.RecruitUI = RecruitUI;       // 招募界面（单一模块实例，调试/外部调用用 window.Game.RecruitUI）
@@ -751,16 +754,13 @@ export const Game = {
         const origin = (Renderer && Renderer._getSceneOrigin) ? Renderer._getSceneOrigin() : (
             GAME_CONFIG.scenes?.mainHub?.origin || { x: 3825, y: 1886 }
         );
-        const zombieDogCfg = enemyConfigData.zombieDog || {};
-        // [FIX] 主城测试犬不再硬编码攻击/速度/碰撞等属性，直接复用 zombieDog 配置，
-        // 仅保留较高的 80 HP 作为测试目标。
-        const dog = new ZombieDogEnemy(origin.x + 250, origin.y + 120, {
-            ...zombieDogCfg,
+        // 主城测试犬：统一走 createZombieDog 共享工厂（2026-08-15），
+        // 仅保留较高的 80 HP 作为测试目标 + 永久警戒 AI 覆盖。
+        const dog = createZombieDog(origin.x + 250, origin.y + 120, {
             name: '僵尸犬',
             hp: 80, maxHp: 80,
-            showWeapon: false,
             _alertRange: Infinity,
-            ai: { ...(zombieDogCfg.ai || {}), aggroRange: 9999, pacingRange: 0, loseTimeout: 999999 }
+            ai: { aggroRange: 9999, pacingRange: 0, loseTimeout: 999999 }
         });
         this.entities.set('enemy_main_zombie_dog', dog);
     },
@@ -782,11 +782,9 @@ export const Game = {
                 loseTimeout: 999999
             }
         });
-        wizard._createZombieDog = (x, y) => new ZombieDogEnemy(x, y, {
-            ...enemyConfigData.zombieDog,
+        wizard._createZombieDog = (x, y) => createZombieDog(x, y, {
             name: '僵尸犬',
             hp: 80, maxHp: 80,
-            showWeapon: false,
             ai: { aggroRange: 9999, pacingRange: 0, loseTimeout: 999999 }
         });
         this.entities.set('enemy_main_zombie_wizard', wizard);
@@ -809,11 +807,9 @@ export const Game = {
                 loseTimeout: 999999
             }
         });
-        mutant._createZombieDog = (x, y) => new ZombieDogEnemy(x, y, {
-            ...enemyConfigData.zombieDog,
+        mutant._createZombieDog = (x, y) => createZombieDog(x, y, {
             name: '僵尸犬',
             hp: 80, maxHp: 80,
-            showWeapon: false,
             ai: { aggroRange: 9999, pacingRange: 0, loseTimeout: 999999 }
         });
         this.entities.set('enemy_main_mutant3', mutant);
@@ -1260,6 +1256,11 @@ if (Input.mouse.leftPressed) {
             }
         }
 
+        // 世界-122：防御塔悬停金色轮廓追踪（每帧；命中盒=整塔矩形，2026-08-15）
+        if (DefenseSystem && DefenseSystem.active && typeof DefenseSystem.updateHover === 'function') {
+            DefenseSystem.updateHover(Input.mouse.x, Input.mouse.y);
+        }
+
         // ===== 空间分区重建：必须在实体/战斗/AI/投射物更新前完成 =====
         if (SpatialPartitionSystem) {
             SpatialPartitionSystem.update(dt, this.entities);
@@ -1452,6 +1453,42 @@ const pickupCfg = GAME_CONFIG.pickup || {};
                         if (entity._destroyPhaserSprite) entity._destroyPhaserSprite();
                         this.entities.delete(key);
                         EffectManager.add(new FloatingTextEffect(entity.x, entity.y - 20, `+${entity.itemData.stack} 金币`, '#ffd700'));
+                        if (SoundManager) {
+                            SoundManager.playFile('assets/sounds/ui/coins_wood_sharp.mp3');
+                        }
+                    } else {
+                        BackpackDialogManager._showBackpackFullNotice();
+                    }
+                }
+                // 能源自动拾取（世界-122 资源点产出；同金币自动吸附口径）
+            } else if (entity instanceof DropItem && entity.itemData && entity.itemData.category === 'energy') {
+                const dx = entity.x - this.player.x;
+                const dy = entity.y - this.player.y;
+                const distSq = dx * dx + dy * dy;
+                if (distSq <= goldAutoRangeSq) {
+                    const maxStack = entity.itemData.maxStack || 999;
+                    let stacked = false;
+                    for (const bpItem of EquipManager.backpackItems) {
+                        if (bpItem.category === 'energy' && bpItem.stack < (bpItem.maxStack || maxStack)) {
+                            bpItem.stack += entity.itemData.stack;
+                            stacked = true;
+                            break;
+                        }
+                    }
+                    if (stacked) {
+                        entity.active = false;
+                        if (entity._destroyPhaserSprite) entity._destroyPhaserSprite();
+                        this.entities.delete(key);
+                        EffectManager.add(new FloatingTextEffect(entity.x, entity.y - 20, `+${entity.itemData.stack} 能源`, '#7fd4ff'));
+                        if (SoundManager) {
+                            SoundManager.playFile('assets/sounds/ui/coins_wood_sharp.mp3');
+                        }
+                    } else if (EquipManager.backpackItems.length < EquipManager.maxBackpackSlots) {
+                        EquipManager.addToBackpack(entity.itemData);
+                        entity.active = false;
+                        if (entity._destroyPhaserSprite) entity._destroyPhaserSprite();
+                        this.entities.delete(key);
+                        EffectManager.add(new FloatingTextEffect(entity.x, entity.y - 20, `+${entity.itemData.stack} 能源`, '#7fd4ff'));
                         if (SoundManager) {
                             SoundManager.playFile('assets/sounds/ui/coins_wood_sharp.mp3');
                         }

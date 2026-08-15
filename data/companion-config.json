@@ -27,6 +27,7 @@
       "modelPlaceholder": "assets/companions/mage.png",
       "baseLevel": 1,
       "baseExp": 0,
+      "baseMaxMp": 600,
       "baseData": { "str": 4, "dex": 6, "int": 13, "con": 6, "wis": 12, "luck": 6 },
       "skills": ["fireball", "iceSpike", "lightningStrike"],
       "unlockSkills": { "holyLight": 10 },
@@ -36,8 +37,13 @@
         "followArriveDist": 55,
         "combatRange": 640,
         "safeDistance": 230,
-        "castFrozenMs": 1300,
-        "castCooldown": 350,
+        "fleeEnabled": false,
+        "castFrozenMs": 1200,
+        "castCooldown": 2000,
+        "basicAttackRange": 600,
+        "basicAttackSpeed": 600,
+        "basicAttackInterval": 2000,
+        "basicAttackDamageMul": 1.0,
         "walkSpeed": 115,
         "runSpeed": 185,
         "decisionMs": 120,
@@ -54,18 +60,19 @@
         "walk": {
           "src": "assets/companions/luna/walking.png",
           "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 4,
-          "frameCount": 32, "frames": [7, 31], "frameRate": 24, "repeat": -1
+          "frameCount": 26, "frames": [0, 25], "frameRate": 24, "repeat": -1
         },
         "run": {
           "src": "assets/companions/luna/running.png",
-          "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 3,
-          "frameCount": 24,
-          "loopFrames": [0, 23], "frameRate": 18, "repeat": -1
+          "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 5,
+          "frameCount": 40,
+          "startFrames": [0, 16], "startFrameRate": 24, "startRepeat": 0,
+          "loopFrames": [17, 39], "frameRate": 24, "repeat": -1
         },
         "spell": {
           "src": "assets/companions/luna/spelling.png",
           "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 4,
-          "frameCount": 32, "frames": [0, 31], "frameRate": 20, "repeat": -1
+          "frameCount": 32, "frames": [0, 31], "frameRate": 26.67, "repeat": -1
         }
       },
       "weaponType": "staff"

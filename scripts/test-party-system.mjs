@@ -195,6 +195,11 @@ check('卸下后旧剑仍在', c6.equipments.weapon && c6.equipments.weapon.name
 const companionConfigData = await import('../data/companion-config.json');
 const lunaArchive = companionConfigData.default.companions.find(a => a.id === 'mage_luna');
 const lunaC = new Companion(lunaArchive);
+check('露娜初始魔法 600', lunaC.data.maxMp === 600, `maxMp ${lunaC.data.maxMp}`);
+check('露娜初始魔法值满', lunaC.data.mp === lunaC.data.maxMp);
+check('露娜无装备基础魔攻 25（int×1.5+wis×0.5，与玩家对齐）', lunaC.data.matk === 25, `matk ${lunaC.data.matk}`);
+check('消耗品设置默认启用+阈值', lunaC.consumableSettings.enabled === true
+    && lunaC.consumableSettings.hpThreshold === 0.3 && lunaC.consumableSettings.mpThreshold === 0.25);
 check('露娜初始火球', !!lunaC.skills.fireball);
 check('露娜初始冰锥', !!lunaC.skills.iceSpike);
 check('露娜初始闪电', !!lunaC.skills.lightningStrike);
@@ -213,17 +218,26 @@ check('露娜每级 +1 精神', lunaC.data.wis === lunaWis0 + lunaGain, `wis ${l
 check('露娜每级 +10 生命', lunaC.data.maxHp === lunaHp0 + lunaGain * 10, `hp ${lunaC.data.maxHp} vs ${lunaHp0 + lunaGain * 10}`);
 check('露娜每级 +10 魔法（另含 int/wis 加成）', lunaC.data.maxMp >= lunaMp0 + lunaGain * 10, `mp ${lunaC.data.maxMp} vs ${lunaMp0 + lunaGain * 10}`);
 check('解锁后圣光可修炼', grantSkillExp(lunaC, 'holyLight', 10) !== undefined || lunaC.skills.holyLight.exp > 0);
-// 露娜动画配置
-check('露娜 walk 动画配置（循环首尾平滑 [7,31]）', lunaC.animations.walk && lunaC.animations.walk.src.includes('walking.png')
-    && lunaC.animations.walk.frames[0] === 7 && lunaC.animations.walk.frames[1] === 31);
-    check('露娜 run 动画配置（24帧完整周期循环）', lunaC.animations.run && lunaC.animations.run.src.includes('running.png')
-        && lunaC.animations.run.frameCount === 24 && lunaC.animations.run.rows === 3);
-    check('露娜 run 循环覆盖全帧', lunaC.animations.run.loopFrames[0] === 0 && lunaC.animations.run.loopFrames[1] === 23);
-    check('露娜 spell 动画配置', lunaC.animations.spell && lunaC.animations.spell.src.includes('spelling.png'));
+// 露娜动画配置（2026-08-15 用 walking and running.mp4 重建：walk 26 帧 / run 起步17+循环23）
+check('露娜 walk 动画配置（26帧无缝循环 [0,25]）', lunaC.animations.walk && lunaC.animations.walk.src.includes('walking.png')
+    && lunaC.animations.walk.frameCount === 26 && lunaC.animations.walk.frames[0] === 0 && lunaC.animations.walk.frames[1] === 25);
+    check('露娜 run 动画配置（起步+循环两段 40帧）', lunaC.animations.run && lunaC.animations.run.src.includes('running.png')
+        && lunaC.animations.run.frameCount === 40 && lunaC.animations.run.rows === 5);
+    check('露娜 run 起步+循环段', lunaC.animations.run.startFrames[0] === 0 && lunaC.animations.run.startFrames[1] === 16
+        && lunaC.animations.run.loopFrames[0] === 17 && lunaC.animations.run.loopFrames[1] === 39);
+check('露娜 spell 动画配置（前16正放+后16倒放 32 帧）', lunaC.animations.spell && lunaC.animations.spell.src.includes('spelling.png')
+    && lunaC.animations.spell.frameCount === 32 && lunaC.animations.spell.frames[0] === 0 && lunaC.animations.spell.frames[1] === 31
+    && Math.abs(lunaC.animations.spell.frameRate - 26.67) < 0.01);
     check('露娜 idle 动画配置', lunaC.animations.idle && lunaC.animations.idle.src.includes('idle.png'));
     check('露娜 spell 施法循环', lunaC.animations.spell.repeat === -1);
 const lunaSer = lunaC.serialize();
 check('动画配置序列化保留', lunaSer.animations && lunaSer.animations.walk && lunaSer.animations.walk.src.includes('walking.png'));
+check('初始魔法覆盖序列化保留', lunaSer.baseMaxMp === 600);
+check('消耗品设置序列化保留', lunaSer.consumableSettings && lunaSer.consumableSettings.hpThreshold === 0.3);
+const lunaRestored = Companion.fromSerialized(lunaSer);
+check('恢复后魔法与序列化一致（600 基准 + 每级10）', lunaRestored.data.maxMp === lunaC.data.maxMp
+    && lunaRestored.data.maxMp === 600 + (lunaC.data.level - 1) * 10, `maxMp ${lunaRestored.data.maxMp}`);
+check('恢复后消耗品设置保留', lunaRestored.consumableSettings && lunaRestored.consumableSettings.enabled === true);
 
 // --- 装备通用规则（与玩家共用 equip-rules） ---
 const sword = { name: '剑', category: 'weapon_melee', weaponType: 'sword', equipSlot: 'weapon' };
@@ -298,6 +312,9 @@ check('未知技能构建忽略', Object.keys(buildSkillMap(['no_such'], fakeSki
 
 // --- CompanionAI 决策纯函数（2026-08-14）---
 check('AI: 施法中→cast', decideCompanionAction({ casting: true, hasEnemy: true }) === 'cast');
+check('AI: 施法中威胁贴脸→flee（保命打断施法）', decideCompanionAction({
+    casting: true, hasEnemy: true, threatDist: 80, safeDistance: 230,
+}) === 'flee');
 check('AI: 无敌人远跟随→follow', decideCompanionAction({ hasEnemy: false, followDist: 200, followArriveDist: 55 }) === 'follow');
 check('AI: 无敌人已到位→idle', decideCompanionAction({ hasEnemy: false, followDist: 30, followArriveDist: 55 }) === 'idle');
 check('AI: 近战威胁贴脸→flee', decideCompanionAction({

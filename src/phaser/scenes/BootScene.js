@@ -131,6 +131,27 @@ export class BootScene extends Scene {
         this.load.image('swampbrick_1', 'assets/terrain/swampbrick-1.png');
         this.load.image('swampbrick_2', 'assets/terrain/swampbrick-2.png');
         this.load.image('swampbrick_3', 'assets/terrain/swampbrick-3.png');
+        // 世界-122 能源资源点（2026-08-16 v3：AI 成品优先；缺图时 EnergyNodeSystem 自动生成
+        // 12 形态程序化水晶，底座带 30° 接地线，与掩体/墙地板衔接同规则。旧 v1~v6 不再参与渲染）
+        this.load.image('energy_node', 'assets/terrain/energy_node.png');
+        this.load.image('energy_node_depleted', 'assets/terrain/energy_node_depleted.png');
+        // AI v3 成品（12 形态 × 正常/枯竭）：只加载 assets/terrain 下实际存在的文件。
+        // 未生成的文件不会发起请求，避免 Phaser 报 Failed to process file 刷屏。
+        // 注意：新放入 assets 的 v3 图片需重启 Vite 后才会被 glob 收录。
+        const v3AssetModules = import.meta.glob(
+            '../../../assets/terrain/energy_node_v3_*.png',
+            { eager: true, query: '?url', import: 'default' }
+        );
+        const v3DepletedModules = import.meta.glob(
+            '../../../assets/terrain/energy_node_depleted_v3_*.png',
+            { eager: true, query: '?url', import: 'default' }
+        );
+        for (const [file, url] of Object.entries(v3AssetModules)) {
+            this.load.image(file.split('/').pop().replace('.png', ''), url);
+        }
+        for (const [file, url] of Object.entries(v3DepletedModules)) {
+            this.load.image(file.split('/').pop().replace('.png', ''), url);
+        }
         // 沼泽地墙（柴墙直墙 + 藤蔓门闸 16 帧）
         this.load.image('swamp_wall_straight', 'assets/terrain/swamp_wall_straight.png');
         this.load.spritesheet('swamp_gate', 'assets/terrain/swamp_gate.png', { frameWidth: 640, frameHeight: 612, endFrame: 15 });

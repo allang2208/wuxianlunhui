@@ -1,4 +1,5 @@
 import { GoldManager } from '../systems/gold-manager.js';
+import { EnergyManager } from '../systems/energy-manager.js';
 import { SoundManager } from '../ui/sound-manager.js';
 import { applyConsumableEffect } from '../config/consumable.js';
         // Item Tooltip System v2 - Cache Bust
@@ -156,6 +157,15 @@ import { updateEquipSlots as renderEquipSlots, updateInventorySlots as renderInv
                     GoldManager.setBackpackRef(this.backpackItems);
                     GoldManager.setMaxBackpackSlots(this.maxBackpackSlots);
                     GoldManager.setCallbacks({
+                        onUpdate: () => this.updateInventorySlots(),
+                        onFull: () => BackpackDialogManager._showBackpackFullNotice()
+                    });
+                }
+                // 初始化 EnergyManager 引用和回调（世界-122 能源，同背包）
+                if (EnergyManager) {
+                    EnergyManager.setBackpackRef(this.backpackItems);
+                    EnergyManager.setMaxBackpackSlots(this.maxBackpackSlots);
+                    EnergyManager.setCallbacks({
                         onUpdate: () => this.updateInventorySlots(),
                         onFull: () => BackpackDialogManager._showBackpackFullNotice()
                     });

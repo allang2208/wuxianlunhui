@@ -81,6 +81,7 @@ description: >
 
 - **工作前先复制素材**：把外部 `素材库/怪物/xxx/*.png` 复制到项目 `assets/enemies/xxx/` 再开始改代码，避免路径错乱和版本不一致。
 - **`_getTextureKey()` 必须与动画源 spritesheet 一致**：`_syncEnemyAnimation` 每帧先 `setTexture(textureKey)` 再 `play(animKey)`。如果 `textureKey` 和动画实际引用的 spritesheet 不是同一张图，动画会卡在第一帧。
+- **`_getTextureKey()` 只能返回贴图键，绝不能返回纯动画键（2026-08-15 铠甲骑士教训）**：`_syncEnemyAnimation` 对 `textures.exists(返回值)` 判失败就回退 `enemy_circle` 白胶囊占位——骑士冲锋循环段曾返回动画键 `enemy_armored_knight_charge_loop`（只有 anims 没有同名贴图），首段 19 帧播完后直到冲锋停止的 ~1s 贴图"丢失"。同 sheet 多段动画（intro/loop）的贴图键必须返回 sheet 本身，段切换放 `_getPhaserOptions` 的 `animKey`（贴图键/动画键职责分离，参照 mutant-3）。GameScene 已加防御：贴图键缺失但同名动画存在时回退该动画首帧贴图而非 enemy_circle。
 - **用 `_attackAnimTimer` 锁住 `MovementSystem` 的朝向覆盖**：特殊冲刺/飞扑阶段把 `_attackAnimTimer` 设为非 0，`MovementSystem` 会提前返回，不会把 `enemy.rotation` 重新指向当前目标。
 - **Phaser 残影**：在特殊移动中每隔几十 ms 用当前 `textureKey`/`frame`/`displayWidth`/`displayHeight`/`flipX` 克隆一个 `scene.add.sprite()`，alpha 0.5，再用 tween 淡出销毁即可。对于侧视角精灵图，通常只需 flipX 表示左右，不需要设置 `rotation`，否则会倾斜。
 - **新精灵图先扫空白帧再注册动画**：4×8 切割的 sheet 尾部/多余格可能是全空帧，按满格注册循环动画会周期性播空白帧 = 贴图"时常消失"（毒液僵尸 idle 24 格仅帧 0 有内容的实证）。用 PIL 按格扫 alpha>10 像素数核对注册帧区间；静态待机就注册单帧（0..0）。
@@ -323,7 +324,7 @@ this.ai = config.ai || {};
 实体本体被 `junctionCorrectedDepth` 压到墙下后，所有"跟着本体深度走"的贴图/特效如果不跟着压，就会浮在遮挡墙之上：
 
 - **武器/盾牌（跟随 playerDepth +N）**：本体压到 `wall-0.5` 后 `+2/+1` 的常规偏移 = `wall+1.5`，必然穿墙。正解（GameScene `_updateDynamicDepths` 第 3 步）：先记录仲裁前 natural depth，`corrected < natural` 判定被压下，跟随件改用 **<0.5 的紧凑偏移**（武器 0.4 / 副手 0.3 / 盾 0.2），保持相对层级又不越过墙；未被压下时用原偏移。仲裁抬高（前墙分支）不算 occluded。
-- **地面阴影（`_syncEntityShadows`）**：别再自己算 `e.y + 9`——直接 `实体 sprite.depth - 0.1`，遮挡/抬升全自动继承（`_syncEntityShadows` 比 `_updateDynamicDepths` 先跑，读到上一帧 depth，差一帧无感）。
+- **地面阴影（`_syncEntityShadows`）**：别再自己算 `e.y + 9`——直接 `实体 sprite.depth - 0.1`，遮挡/抬升全自动继承。**时序铁律（2026-08-15 修正）：`_syncEntityShadows` 必须排在 `_updateDynamicDepths` 之后**——阴影读当前帧仲裁后 depth，才能保证任意帧 `阴影.depth < 贴图.depth`（贴图永远在阴影之上）。旧版阴影先跑、读上一帧 depth，怪物跨过掩体/墙面线深度骤降时，阴影会以旧深度盖在贴图上 1 帧（世界-122 毒蛆 232×116 大椭圆在基地掩体线反复压住虫身）。
 - **定点特效（奔跑烟尘 DustEffect 等 graphics）**：生成位置固定，depth 用 `junctionCorrectedDepth(fx.x, fx.y, 自然 depth)` 过一遍仲裁（`window.WallSystem` 已挂载，效果类文件直接用全局引用即可），实体在墙后时烟尘同步压到墙下。
 - 通则：**任何以"实体深度 ± 偏移"或"自身 y + 偏移"赋 depth 的附属视觉，在墙体遮挡场景都要么跟随本体仲裁后 depth，要么自己过一遍仲裁**；新增此类视觉时把这条当 checklist。
 

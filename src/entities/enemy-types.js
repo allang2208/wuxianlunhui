@@ -1106,7 +1106,15 @@ class CircleEnemy extends Enemy {
 
 class ZombieDogEnemy extends CircleEnemy {
     constructor(x, y, config = {}) {
-        super(x, y, config);
+        // 与其他怪类同口径：无配置构造时合并僵尸犬自身配置，杜绝名字/属性兜底
+        // （此前 `new ZombieDogEnemy(x, y)` 会落到 Enemy 的「测试敌人」兜底名 +
+        // 默认属性，世界-122 防守「测试怪物」残留根因，2026-08-15）
+        // 犬科不显示武器：showWeapon 默认 false（调用方可显式覆盖），2026-08-15 补充
+        super(x, y, {
+            showWeapon: false,
+            ...enemyConfigData.zombieDog,
+            ...config
+        });
         this._animState = 'idle';
         this._lastHorizontalFacing = 'right';
         // [FIX] 僵尸犬攻击动画时长，与 BootScene 中 zombie_dog_attack 动画匹配
@@ -1197,4 +1205,20 @@ class ZombieDogEnemy extends CircleEnemy {
     }
 }
 
-export { BlackWolf, RedWolfKing, CircleEnemy, ZombieDogEnemy, ZombieWizard, Mutant3, SpitterZombie, FatZombie, Zombie, AmalgamZombie, ArmoredKnight, Shounao, FlySwarm, FlyHand, TimeAgentAssault, TimeAgentShield, PoisonMaggot, MinerZombie, LanternMinerZombie, ForemanZombie, MineCave, Tombstone, OreSpider, Witch, Cauldron };
+/**
+ * 僵尸犬唯一创建工厂（2026-08-15 统一）：此前配置拼接分散在 4 处——
+ * enemy-types 类自身 / zombie-dungeon.js createZombieDog / game.js spawnMainZombieDog /
+ * 巫师·集合体召唤钩子。类构造器负责合并 enemyConfigData.zombieDog 与 showWeapon 默认，
+ * 本工厂只叠加场景差异（ai 深合并：配置 ai 与调用方覆盖合并，而非整体替换）。
+ * @param {number} x @param {number} y
+ * @param {object} [overrides] - 场景差异项（hp/name/ai 等；ai 与配置深合并）
+ */
+function createZombieDog(x, y, overrides = {}) {
+    const cfgAi = (enemyConfigData.zombieDog && enemyConfigData.zombieDog.ai) || {};
+    return new ZombieDogEnemy(x, y, {
+        ...overrides,
+        ai: { ...cfgAi, ...(overrides.ai || {}) },
+    });
+}
+
+export { BlackWolf, RedWolfKing, CircleEnemy, ZombieDogEnemy, createZombieDog, ZombieWizard, Mutant3, SpitterZombie, FatZombie, Zombie, AmalgamZombie, ArmoredKnight, Shounao, FlySwarm, FlyHand, TimeAgentAssault, TimeAgentShield, PoisonMaggot, MinerZombie, LanternMinerZombie, ForemanZombie, MineCave, Tombstone, OreSpider, Witch, Cauldron };
