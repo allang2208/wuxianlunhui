@@ -2659,8 +2659,10 @@ const CoverGate = {
     /** 状态机默认关闭 → 友军靠近打开 → 友军离开延时关闭（2026-08-15）。 */
     update(dt) {
         if (!this._gateSeg) return;
-        // 动画期间持续把贴上来的单位推出（防止开门/关门中途被栅栏/碰撞段卡住）
-        if (this.state === 'opening' || this.state === 'closing') {
+        // 只挡人不推"开门人"（2026-08-16 二修）：开门时门洞已放行、栅栏在收拢，
+        // 此时推人会把靠近/正通过门口的玩家反复弹开 = "卡在门上"（两门衔接处尤甚）。
+        // 只在 closing（碰撞段刚注册）与 closed（双门接缝重叠区可能残留单位）时推人。
+        if (this.state === 'closing' || this.state === 'closed') {
             unstickUnitsFromGate(
                 { x: this._gateSeg.x1, y: this._gateSeg.y1 },
                 { x: this._gateSeg.x2, y: this._gateSeg.y2 },
@@ -2701,11 +2703,6 @@ const CoverGate = {
 
     open() {
         if (this.state === 'open' || this.state === 'opening') return;
-        unstickUnitsFromGate(
-            { x: this._gateSeg.x1, y: this._gateSeg.y1 },
-            { x: this._gateSeg.x2, y: this._gateSeg.y2 },
-            this._cfg.halfThick
-        );
         this.state = 'opening';
         this.setPassable(true);
         this._play(0, (this._cfg || GATE_CONFIG).frames - 1);
@@ -2916,8 +2913,9 @@ class BuildableGate extends Combatant {
     /** 状态机默认关闭 → 友军靠近打开 → 友军离开延时关闭（与基地门同口径）。 */
     update(dt) {
         if (!this._gateSeg || !this.active) return;
-        // 动画期间持续把贴上来的单位推出（防止开门/关门中途被栅栏/碰撞段卡住）
-        if (this.state === 'opening' || this.state === 'closing') {
+        // 只挡人不推"开门人"（2026-08-16 二修）：开门已放行，推人会把门口玩家弹开；
+        // 只在 closing（碰撞段刚注册）与 closed（双门接缝重叠区残留单位）时推人。
+        if (this.state === 'closing' || this.state === 'closed') {
             unstickUnitsFromGate(
                 { x: this._gateSeg.x1, y: this._gateSeg.y1 },
                 { x: this._gateSeg.x2, y: this._gateSeg.y2 },
@@ -2967,11 +2965,6 @@ class BuildableGate extends Combatant {
 
     open() {
         if (this.state === 'open' || this.state === 'opening') return;
-        unstickUnitsFromGate(
-            { x: this._gateSeg.x1, y: this._gateSeg.y1 },
-            { x: this._gateSeg.x2, y: this._gateSeg.y2 },
-            this._cfg.halfThick
-        );
         this.state = 'opening';
         this.setPassable(true);
         this._play(0, this._cfg.frames - 1);
