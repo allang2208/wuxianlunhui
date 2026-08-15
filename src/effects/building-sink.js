@@ -46,9 +46,17 @@ class BuildingSinkEffect {
             // 深度跟随下沉（掩体 _faceDepth 固定，沉陷时逐步后移避免浮在墙前实体之上）
             if (typeof e._faceDepth === 'number') e._faceDepth += step;
         }
-        // 原大小原样式：不做任何缩放/压扁；仅顶部到达地面后的最后阶段淡出
+        // 原地消失：不做任何缩放/压扁；精灵同步下移的同时，把「地面线以下」的底部
+        // 裁掉——可见部分底边始终钉在原地面线，顶部一路降到地面接缝处消失（不整图下滑）
         if (sprite.active) {
-            sprite.setAlpha(p > 0.93 ? Math.max(0, 1 - (p - 0.93) / 0.07) : 1);
+            const frameW = sprite.width || sprite.texture?.width || 0;
+            const frameH = sprite.height || sprite.texture?.height || 0;
+            const dispW = sprite.displayWidth || frameW;
+            const dispH2 = sprite.displayHeight || frameH;
+            if (frameH > 0 && dispH2 > 0) {
+                const sunkTexel = Math.min(frameH, this.sinkPx * (frameH / dispH2));
+                sprite.setCrop(0, 0, frameW, Math.max(0, frameH - sunkTexel));
+            }
         }
 
         // 接缝灰烟（每 110ms 一撮，小尺寸低透明度）
