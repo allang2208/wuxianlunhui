@@ -135,6 +135,15 @@ export class HamsterHut extends DamageableEntity {
             footOffsetY: HAMSTER_CONFIG.hut.footOffsetY,
         };
         this.footOffsetY = HAMSTER_CONFIG.hut.footOffsetY;
+        // 图层深度锚点（2026-08-16，门/墙同套仲裁）：小屋是紧凑建筑，底边线 =
+        // footprint 底线（水平短线段）。注册进 junctionCorrectedDepth 后，
+        // 前实体（脚线在底线前）被抬到屋上、后实体被压到屋下——
+        // 否则被墙/门仲裁抬高的单位会错误盖在小屋上（与门的图层问题同类）。
+        this._faceLine = [
+            { x: x - HAMSTER_CONFIG.hut.radius, y },
+            { x: x + HAMSTER_CONFIG.hut.radius, y },
+        ];
+        this._faceDepth = y + 12;
         this.level = 1;
         this.maxLevel = HAMSTER_CONFIG.hut.maxLevel;
         this.modules = {};            // { moduleId: level }
