@@ -105,7 +105,8 @@ export function shouldUseRun(mode, dist, cfg) {
 /**
  * 剑盾护卫防御触发判定（2026-08-15 伊莉丝）：
  * 半径 range 内敌方单位超过 enemyCount（>3）或存在远程敌方 → 释放防御。
- * 远程判定：attacks.ranged / rangedType / attackRange > rangedRange（兜底）。
+ * 远程判定：attacks.ranged / rangedType / attack.projectileSpeed /
+ * attackRange ≥ rangedRange（兜底，350 以上才是真远程——僵尸工头 320 鞭击近战、手脑/飞手 300 不算）。
  * @param {object} input
  * @returns {boolean} true=需要举盾防御
  */
@@ -115,7 +116,7 @@ export function shouldWarriorDefend(input) {
         cx = 0, cy = 0,         // 队友位置
         range = 400,            // 判定半径
         enemyCount = 3,         // 超过该数量（>n）即触发
-        rangedRange = 300,      // attackRange 超过该值视为远程（兜底）
+        rangedRange = 350,      // attackRange ≥ 该值视为远程（兜底）
     } = input;
     let near = 0;
     let hasRanged = false;
@@ -125,7 +126,8 @@ export function shouldWarriorDefend(input) {
         near++;
         const ranged = !!(e.attacks && e.attacks.ranged)
             || !!e.rangedType
-            || (e.attackRange && e.attackRange > rangedRange);
+            || !!(e.attack && e.attack.projectileSpeed)
+            || (e.attackRange && e.attackRange >= rangedRange);
         if (ranged) hasRanged = true;
     }
     return near > enemyCount || hasRanged;

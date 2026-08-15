@@ -995,6 +995,7 @@ export class CompanionAI {
             cx: c.x, cy: c.y,
             range: cfg.defendRange || 400,
             enemyCount: cfg.defendEnemyCount || 3,
+            rangedRange: cfg.defendRangedRange || 350,
         });
     }
 

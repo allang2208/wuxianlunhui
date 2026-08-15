@@ -362,6 +362,8 @@ check('伊莉丝攻击参数（间隔 2s / 1.5s 动画 / 命中第 10 帧 / 物�
 check('伊莉丝防御参数（400px / >3 敌 / 0.5+2+0.5s）', elise.aiConfig.defendRange === 400
     && elise.aiConfig.defendEnemyCount === 3 && elise.aiConfig.defendEnterMs === 500
     && elise.aiConfig.defendHoldMs === 2000 && elise.aiConfig.defendExitMs === 500);
+check('伊莉丝防御冷却 15s', elise.aiConfig.defendCooldownMs === 15000,
+    `got ${elise.aiConfig.defendCooldownMs}`);
 // 序列化保留：限制 + 渲染尺寸
 const eliseSer = elise.serialize();
 check('伊莉丝序列化保留 equipRules', eliseSer.equipRules && eliseSer.equipRules.weaponTypes.includes('shield')
@@ -393,6 +395,22 @@ check('防御触发：远程在范围外不触发', shouldWarriorDefend({
 }) === false);
 check('防御触发：attackRange>300 兜底判远程', shouldWarriorDefend({
     enemies: [mkEnemy(100, 0), mkEnemy(-100, 0), mkEnemy(200, 0, { attackRange: 650 })],
+    cx: 0, cy: 0, range: 400, enemyCount: 3,
+}) === true);
+check('防御触发：attackRange≥350 判远程（弓手 350）', shouldWarriorDefend({
+    enemies: [mkEnemy(100, 0), mkEnemy(-100, 0), mkEnemy(200, 0, { attackRange: 350 })],
+    cx: 0, cy: 0, range: 400, enemyCount: 3,
+}) === true);
+check('防御触发：僵尸工头（320 鞭击近战）不算远程', shouldWarriorDefend({
+    enemies: [mkEnemy(100, 0), mkEnemy(-100, 0), mkEnemy(200, 0, { attackRange: 320, attack: { type: 'thrust' } })],
+    cx: 0, cy: 0, range: 400, enemyCount: 3,
+}) === false);
+check('防御触发：手脑/飞手（300 近战）不算远程', shouldWarriorDefend({
+    enemies: [mkEnemy(100, 0), mkEnemy(-100, 0), mkEnemy(200, 0, { attackRange: 300 })],
+    cx: 0, cy: 0, range: 400, enemyCount: 3,
+}) === false);
+check('防御触发：attack.projectileSpeed 判远程', shouldWarriorDefend({
+    enemies: [mkEnemy(100, 0), mkEnemy(-100, 0), mkEnemy(200, 0, { attackRange: 100, attack: { projectileSpeed: 1248 } })],
     cx: 0, cy: 0, range: 400, enemyCount: 3,
 }) === true);
 check('防御触发：rangedType 判远程', shouldWarriorDefend({
