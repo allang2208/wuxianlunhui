@@ -1250,8 +1250,10 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
   已固定 `view_transform = Standard`，窗户/门洞灯光才保得住黄色。
 - **坑② 前突组件投影右移**：墙面 44.8° 旋转下，门/窗等 `ly≠0` 前突件世界 X 会整体偏移，
   投影偏出画面中央——按 `lx' = lx + ly·tan(44.8°)` 补偿（或直接量投影位置摆）。
-- **入库显示尺寸**：成品紧身裁剪后按内容宽高比定显示（`displayW` 固定、`displayH = W/宽高比`、
-  `footOffsetY ≈ displayH/2`，内容占满画布时脚底即贴图底边）。
+- **入库显示尺寸铁律**：成品**必须先紧身裁剪到内容框**再入库——方形画布带透明边时，
+  按内容宽高比设非方形显示（如 220×183）会把方形画布拉伸变形（实机实踩）。
+  裁剪后内容占满画布，再按 `displayW` 固定、`displayH = W/宽高比`、
+  `footOffsetY ≈ displayH/2`（内容占满画布时脚底即贴图底边）。
 - **滑门动画**：16 帧 `--slide n/15` → `compose-hamster-hut-door.py` 合成 4×4 精灵表 →
   BootScene 注册 open（0→15）/close（15→0）→ 实体门状态机（opening→spawn→closing）。
 
