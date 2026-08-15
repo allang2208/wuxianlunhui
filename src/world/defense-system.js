@@ -2485,6 +2485,45 @@ function nearbyFriendlyUnit(cx, cy) {
     return best;
 }
 
+/** 开关门时把压在门线上的单位沿面线法线推开（2026-08-16）：
+ *  关门瞬间门洞碰撞注册，站线玩家/怪物会被"卡"住（怪物 GATE-WAIT 原地等待 =
+ *  波次卡死/单位卡墙）；开门动画期间栅栏滑动也会蹭到单位。
+ *  统一在开关瞬间 + 动画期间把脚点距面线 < halfThick+margin 的单位推出安全距离。
+ *  @returns {string[]} 被推开单位的 id 列表（调试用）
+ */
+function unstickUnitsFromGate(A, B, halfThick) {
+    const dx = B.x - A.x;
+    const dy = B.y - A.y;
+    const len = Math.hypot(dx, dy) || 1;
+    const ux = dx / len;
+    const uy = dy / len;
+    const nx = -uy;
+    const ny = ux;
+    const margin = 16;
+    const thresh = halfThick + margin; // 26+16=42：脚点距面线不足 42px 视为贴门
+    const pushed = [];
+    const push = (u) => {
+        if (!u || !u.active) return;
+        if (u._isDefenseStructure || u._isDefenseTower || u._isDefenseCover) return;
+        const t = Math.max(0, Math.min(1, ((u.x - A.x) * ux + (u.y - A.y) * uy) / len));
+        const cx = A.x + ux * t * len;
+        const cy = A.y + uy * t * len;
+        const off = (u.x - cx) * nx + (u.y - cy) * ny; // 有符号法向偏移
+        const dist = Math.abs(off);
+        if (dist >= thresh) return;
+        const side = off >= 0 ? 1 : -1;
+        const outDist = thresh + 8;
+        u.x = cx + nx * outDist * side;
+        u.y = cy + ny * outDist * side;
+        pushed.push(u.id || u.name || 'unit');
+    };
+    if (Game && Game.player) push(Game.player);
+    if (Game && Game.entities) {
+        for (const e of Game.entities.values()) push(e);
+    }
+    return pushed;
+}
+
 const CoverGate = {
     place(center, A, B, cfg) {
         const scene = (typeof window !== 'undefined') ? window.__phaserScene : null;
@@ -2559,6 +2598,14 @@ const CoverGate = {
     /** 状态机默认关闭 → 友军靠近打开 → 友军离开延时关闭（2026-08-15）。 */
     update(dt) {
         if (!this._gateSeg) return;
+        // 动画期间持续把贴上来的单位推出（防止开门/关门中途被栅栏/碰撞段卡住）
+        if (this.state === 'opening' || this.state === 'closing') {
+            unstickUnitsFromGate(
+                { x: this._gateSeg.x1, y: this._gateSeg.y1 },
+                { x: this._gateSeg.x2, y: this._gateSeg.y2 },
+                this._cfg.halfThick
+            );
+        }
         const OPEN_RADIUS = 150;
         const CLOSE_LINGER_S = 1.2; // dt 单位为秒
         const f = nearbyFriendlyUnit(this._cx, this._cy);
@@ -2593,6 +2640,11 @@ const CoverGate = {
 
     open() {
         if (this.state === 'open' || this.state === 'opening') return;
+        unstickUnitsFromGate(
+            { x: this._gateSeg.x1, y: this._gateSeg.y1 },
+            { x: this._gateSeg.x2, y: this._gateSeg.y2 },
+            this._cfg.halfThick
+        );
         this.state = 'opening';
         this.setPassable(true);
         this._play(0, (this._cfg || GATE_CONFIG).frames - 1);
@@ -2600,6 +2652,11 @@ const CoverGate = {
 
     close() {
         if (this.state === 'closed' || this.state === 'closing') return;
+        unstickUnitsFromGate(
+            { x: this._gateSeg.x1, y: this._gateSeg.y1 },
+            { x: this._gateSeg.x2, y: this._gateSeg.y2 },
+            this._cfg.halfThick
+        );
         this.state = 'closing';
         this.setPassable(false);
         this._play((this._cfg || GATE_CONFIG).frames - 1, 0);
@@ -2784,6 +2841,14 @@ class BuildableGate extends Combatant {
     /** 状态机默认关闭 → 友军靠近打开 → 友军离开延时关闭（与基地门同口径）。 */
     update(dt) {
         if (!this._gateSeg || !this.active) return;
+        // 动画期间持续把贴上来的单位推出（防止开门/关门中途被栅栏/碰撞段卡住）
+        if (this.state === 'opening' || this.state === 'closing') {
+            unstickUnitsFromGate(
+                { x: this._gateSeg.x1, y: this._gateSeg.y1 },
+                { x: this._gateSeg.x2, y: this._gateSeg.y2 },
+                this._cfg.halfThick
+            );
+        }
         // 常锁/常开模式闸门（2026-08-15）：锁定态强制关、常开态强制开，均跳过自动感应
         if (this.gateMode === 'locked') {
             if (this.state !== 'closed' && this.state !== 'closing') this.close();
@@ -2827,6 +2892,11 @@ class BuildableGate extends Combatant {
 
     open() {
         if (this.state === 'open' || this.state === 'opening') return;
+        unstickUnitsFromGate(
+            { x: this._gateSeg.x1, y: this._gateSeg.y1 },
+            { x: this._gateSeg.x2, y: this._gateSeg.y2 },
+            this._cfg.halfThick
+        );
         this.state = 'opening';
         this.setPassable(true);
         this._play(0, this._cfg.frames - 1);
@@ -2834,6 +2904,11 @@ class BuildableGate extends Combatant {
 
     close() {
         if (this.state === 'closed' || this.state === 'closing') return;
+        unstickUnitsFromGate(
+            { x: this._gateSeg.x1, y: this._gateSeg.y1 },
+            { x: this._gateSeg.x2, y: this._gateSeg.y2 },
+            this._cfg.halfThick
+        );
         this.state = 'closing';
         this.setPassable(false);
         this._play(this._cfg.frames - 1, 0);

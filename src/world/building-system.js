@@ -55,6 +55,13 @@ const GATE_SNAP = (() => {
 /** 吸附触发距离（世界像素）：鼠标预览的墙端锚点与既有墙端锚点在此距离内即吸附 */
 const SNAP_RADIUS = 60;
 /**
+ * 门拼接重叠（世界像素，2026-08-16）：门的端帽是独立柱子，若按掩体的 40px
+ * 重叠贴拼，两根柱子在接缝处错位成"双柱"（图层覆盖错误）。
+ * 门的端柱应当**叠在同一位置**（门面线端点重合 → 两根柱子像素叠合 = 一根柱），
+ * 故门与门/掩体拼接时重叠取小值 4px（防取整发丝缝，叠合后仍近不可见）。
+ */
+const GATE_SNAP_OVERLAP = 4;
+/**
  * 接缝叠合量（世界像素）：吸附后新件沿走向回退，保证接缝只叠不缺。
  * 2026-08-05 从 8 加大到 40：完整 box 端帽（端面宽 ≈52）在 8px 重叠下未被
  * 完全覆盖，实机拼接处端帽 V 形开口透空（用户反馈"非常明显间隙"）。
@@ -446,7 +453,8 @@ export const BuildingSystem = {
             }
         }
         if (!best) return null;
-        // 沿新件轴线向「既有件方向」回退 SNAP_OVERLAP：接缝只叠不缺。
+        // 沿新件轴线向「既有件方向」回退重叠量：接缝只叠不缺。
+        // 门用 GATE_SNAP_OVERLAP（端柱叠合防双柱），掩体用 SNAP_OVERLAP（端帽贴图统一）。
         // 方向判定：既有件在新件轴线上的投影方向（dot>0 = 既有在 +axis 侧）。
         // 旧实现 dir 取反了——左外接时新件被推离 40px 产生大间隙（2026-08-05 用户反馈）
         const ax = off.R.x - off.L.x;
@@ -454,8 +462,9 @@ export const BuildingSystem = {
         const al = Math.hypot(ax, ay) || 1;
         const dot = (best.e.x - best.x) * ax + (best.e.y - best.y) * ay;
         const dir = dot >= 0 ? -1 : 1;
-        best.x -= (ax / al) * SNAP_OVERLAP * dir;
-        best.y -= (ay / al) * SNAP_OVERLAP * dir;
+        const overlap = item.kind === 'gate' ? GATE_SNAP_OVERLAP : SNAP_OVERLAP;
+        best.x -= (ax / al) * overlap * dir;
+        best.y -= (ay / al) * overlap * dir;
         return best;
     },
 
@@ -538,7 +547,8 @@ export const BuildingSystem = {
                 if (e._faceLine && e._faceLine.length === 2) {
                     // 已有掩体：线段 + 墙厚
                     const eThick = e._coverHalfThick ?? 26;
-                    const minGap = (thick + eThick) / 2 - SNAP_OVERLAP;
+                    const minGap = (thick + eThick) / 2
+                        - (this._placing.item.kind === 'gate' ? GATE_SNAP_OVERLAP : SNAP_OVERLAP);
                     const cp = this._segSegClosest(seg[0], seg[1], e._faceLine[0], e._faceLine[1]);
                     // 端点-端点接触（吸附拼接的 8px 叠合）允许；只有“端部插入
                     // 对方墙段中部/侧向侵入”才拒绝——平铺摆放判定只认底部碰撞体积
