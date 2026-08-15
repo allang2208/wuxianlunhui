@@ -1,4 +1,21 @@
 # 变更日志
+### 对话：仓鼠矿工迭代——采矿动画定格第4帧 + 小屋构造崩溃修复 + 棕色圆圈排查（2026-08-15）
+- **采矿动画改版（用户口径）**：采矿/攻击间隔期间不再播放攻击动画，
+  GameScene 采矿分支改为定格 mining 贴图第 4 帧（索引 3，`setTexture(miningKey, 3)` +
+  停动画）；原「完整 19 帧起步 + 5~19 帧循环」两段式渲染代码移除（BootScene 两段式
+  注册保留，素材帧配置不变，方便日后改回）。
+- **仓鼠小屋构造崩溃修复（hamster-hut-system.js）**：`HamsterHut` 构造里
+  `this.data.def/mdef` 报 TypeError——DamageableEntity 不创建 `this.data`
+  （只有 Combatant 子类有），已删除这两行，小屋可正常建造生成矿工。
+- **棕色大圆排查结论**：逐帧像素级核验四张精灵图（idle/walking/mining/dying）均无
+  圆形色块（连通域+色板分析），GLM-4.6V 复核一致；代码侧矿工只渲染自身精灵，
+  无任何圆形叠加层。最可能来源：vite dev server 文件监听崩溃（EBUSY，见
+  vite-dev-dashlerp.log）导致部分大贴图加载失败，回退到 `neutral_circle` 白/米色
+  占位圆（小屋等 spriteCfg 缺图时 300×300）。重启 dev server 后如仍复现，请截图确认。
+- **验证**：契约测试 29 项全过（含「采矿定格第4帧」接线）；eslint 0 error；
+  vite build 通过。CDP 实机探针 `tools/cdp-hamster-miner.mjs` 已适配小屋生成 +
+  交战自卫生效 + 定格帧断言（headless Edge 大资源并发加载偶发 ERR_FAILED 时
+  会自动预取重试）。
 ### 对话：铁栅栏滑动门全套 + 三段深度图层（2026-08-15）
 - **建模/贴图（F→A 六档）**：Blender 几何（左右细柱 + 圆柱铁栅栏，无上下横梁）+ 掩体同款
   砖墙/铸铁材质；`render-cover-gate.py --slide` 渲染 16 帧 → `compose-cover-gate.py` 合成

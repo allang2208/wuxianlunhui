@@ -28,7 +28,7 @@ process.on('exit', () => { try { if (edge) edge.kill(); } catch {} rmProfile(); 
 
 edge = spawn(EDGE, [
     '--headless=new', `--remote-debugging-port=${CDP_PORT}`,
-    '--window-size=1920,1080', '--no-first-run', '--no-default-browser-check',
+    '--window-size=1280,720', '--no-first-run', '--no-default-browser-check',
     `--user-data-dir=${profile}`, APP_URL,
 ], { stdio: 'ignore' });
 await new Promise((r) => setTimeout(r, 7000));
@@ -64,7 +64,7 @@ function check(name, cond, detail = '') {
 
 // headless Edge 并发加载大 PNG 会 ERR_FAILED（Phaser loader 卡住）——
 // 先预取这些大资源进 HTTP 缓存，再启动游戏让 Phaser 走缓存命中。
-const PREWARM = [
+const PREWARM = process.env.CDP_NO_PREWARM === '1' ? [] : [
     '/assets/enemies/amalgam/attacking.png',
     '/assets/enemies/amalgam/attacking-2.png',
     '/assets/enemies/flyswarm/idle.png',
