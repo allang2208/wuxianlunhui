@@ -1230,29 +1230,6 @@ class DefenseTower extends Combatant {
     }
 }
 
-// ==================== 防御塔废墟（摧毁后可重建）====================
-
-class DefenseTowerRuin extends DamageableEntity {
-    constructor(x, y, tower) {
-        super(x, y, {
-            faction: 'neutral', // 中立：怪物不锁定（_isValidTarget 只看 player 阵营）
-            hp: 1, maxHp: 1,
-            size: 44,
-            collisionRadius: 30,
-            name: '防御塔废墟',
-        });
-        this._isTowerRuin = true;
-        this.ruinFor = tower;
-        this.hittable = false;       // 不可被攻击
-        this.immovable = true;
-        this.noSeparation = true;
-        this._noShadow = true;
-        this.noNameLabel = true;
-        this.spriteCfg = { idleKey: 'tower_ruin', size: 96, sizeH: 60, footOffsetY: 30 };
-        this.footOffsetY = 30;
-    }
-}
-
 // ==================== 防御塔面板 ====================
 
 class DefenseTowerPanel extends BasePanel {
@@ -1290,17 +1267,7 @@ class DefenseTowerPanel extends BasePanel {
     }
 
     openFor(tower, player) {
-        this.ruin = null;
         this.tower = tower;
-        this.player = player;
-        this.open();
-        this.refresh();
-    }
-
-    /** 废墟模式：展示重建入口（2026-08-14） */
-    openForRuin(ruin, player) {
-        this.tower = null;
-        this.ruin = ruin;
         this.player = player;
         this.open();
         this.refresh();
@@ -1314,7 +1281,6 @@ class DefenseTowerPanel extends BasePanel {
     onClose() {
         if (this.el) this.el.style.display = 'none';
         this.tower = null;
-        this.ruin = null;
         this.player = null;
     }
 
@@ -1404,13 +1370,6 @@ class DefenseTowerPanel extends BasePanel {
     refresh() {
         const el = this.el;
         if (!el) return;
-        // 修理区仅塔模式显示（废墟模式隐藏，2026-08-15）
-        const rp0 = el.querySelector('#dtRepair');
-        if (rp0) rp0.style.display = this.ruin ? 'none' : '';
-        if (this.ruin) {
-            this._refreshRuin();
-            return;
-        }
         if (!this.tower) return;
         const t = this.tower;
         const player = this.player || (typeof window !== 'undefined' && window.Game ? window.Game.player : null);
@@ -1576,34 +1535,6 @@ class DefenseTowerPanel extends BasePanel {
         }
     }
 
-    /** 废墟模式面板：展示重建入口（2026-08-14） */
-    _refreshRuin() {
-        const el = this.el;
-        const ruin = this.ruin;
-        if (!el || !ruin) return;
-        const t = ruin.ruinFor;
-        el.querySelector('#dtTitle').textContent = '防御塔废墟';
-        el.querySelector('#dtWeaponSlot').innerHTML = `<div style="color:#c8b98a;font-size:13px;">防御塔已被摧毁。</div>`;
-        el.querySelector('#dtWeaponList').innerHTML = '';
-        const cost = DEFENSE_CONFIG.tower.rebuildCost ?? 300;
-        const energy = EnergyManager ? EnergyManager.getEnergy() : 0;
-        const up = el.querySelector('#dtUpgrade');
-        up.innerHTML = `
-            <div style="font-size:13px;color:#c8b98a;margin-bottom:8px;">
-                重建后等级/模块/武器（${t && t.weaponItem ? `${t.weaponItem.icon || '🔫'} ${t.weaponItem.name}` : '未装载'}）全部保留<br>
-                重建费用 <span style="color:#7fd4ff;">${cost} 能源</span>（持有 ${energy}）
-            </div>
-            <button id="dtRebuildBtn" style="width:100%;background:#2a4a3a;color:#d0ffd0;border:1px solid #4a8a5a;border-radius:6px;padding:7px 0;cursor:pointer;">重建防御塔</button>`;
-        up.querySelector('#dtRebuildBtn').addEventListener('click', () => {
-            const res = DefenseSystem.rebuildTower(ruin, this.player);
-            this._notify(res.ok ? `重建完成（-${res.cost} 能源）` : res.reason, res.ok ? '#9dff9d' : '#ff5555');
-            this.refresh();
-        });
-        el.querySelector('#dtModules').innerHTML = '';
-        el.querySelector('#dtChip').innerHTML = '';
-        const sellBtn = el.querySelector('#dtSell');
-        if (sellBtn) sellBtn.style.display = 'none';
-    }
 }
 
 // ==================== 防守系统 ====================
@@ -1615,7 +1546,6 @@ export const DefenseSystem = {
     _victoryGranted: false,
     base: null,
     towers: [],
-    ruins: [],          // 被摧毁的防御塔（废墟实体，供重建）
     // 离散波次状态机（2026-08-14）：'prep' 准备期 → 'wave' 战斗中 → 'break' 波间休息
     _phase: 'prep',
     _wave: 0,
@@ -1646,7 +1576,6 @@ export const DefenseSystem = {
         this.defeated = false;
         this.victory = false;
         this._victoryGranted = false;
-        this._ensureTowerRuinTexture();
         this._elapsed = 0;
         // 离散波次：准备期 30s（怪物不进攻），波号从 1 起
         this._phase = 'prep';
@@ -1829,7 +1758,6 @@ export const DefenseSystem = {
         }
         this.base = null;
         this.towers = [];
-        this.ruins = [];
         this._phase = 'prep';
         this._wave = 0;
         this._phaseTimer = 0;
@@ -2368,52 +2296,11 @@ export const DefenseSystem = {
         if (this._panel && this._panel.isOpen) this._panel.close();
     },
 
-    // ==================== 塔摧毁/重建/出售（2026-08-14）====================
-
-    /** 塔被摧毁：登记废墟实体（可点击重建）；武器保留在塔上（重建后复原） */
-    _onTowerDestroyed(tower) {
-        const i = this.towers.indexOf(tower);
-        if (i >= 0) this.towers.splice(i, 1);
-        const ruin = new DefenseTowerRuin(tower.x, tower.y, tower);
-        ruin.id = `tower_ruin_${tower.id || Math.random().toString(36).slice(2, 6)}`;
-        Game.entities.set(ruin.id, ruin);
-        this.ruins.push(ruin);
-        if (EffectManager) {
-            EffectManager.add(new FloatingTextEffect(tower.x, tower.y - 40, '防御塔被摧毁（点击废墟重建）', '#ff8855'));
-        }
-    },
-
-    /** 重建被摧毁的塔：扣能源，塔满血复活并归还废墟处（武器/等级/模块保留） */
-    rebuildTower(ruin, player) {
-        const tower = ruin.ruinFor;
-        if (!tower || tower.active) return { ok: false, reason: '该塔不需要重建' };
-        const cost = DEFENSE_CONFIG.tower.rebuildCost ?? 300;
-        if (!EnergyManager || !EnergyManager.deductEnergy(cost)) return { ok: false, reason: '能源不足（攻击资源点采集）' };
-        tower.active = true;
-        tower.hittable = true;
-        tower.hp = tower.maxHp;
-        tower.x = ruin.x;
-        tower.y = ruin.y;
-        tower.id = tower.id || `defense_tower_rebuilt_${Math.random().toString(36).slice(2, 6)}`;
-        Game.entities.set(tower.id, tower);
-        this.towers.push(tower);
-        // 移除废墟
-        ruin.active = false;
-        const ri = this.ruins.indexOf(ruin);
-        if (ri >= 0) this.ruins.splice(ri, 1);
-        Game.entities.delete(ruin.id);
-        if (SoundManager && typeof SoundManager.playFile === 'function') {
-            SoundManager.playFile('assets/sounds/ui/sell.wav');
-        }
-        if (EffectManager) {
-            EffectManager.add(new FloatingTextEffect(tower.x, tower.y - 40, `防御塔重建完成（-${cost} 能源）`, '#9dff9d'));
-        }
-        return { ok: true, cost };
-    },
+    // ==================== 塔出售（2026-08-14；被摧毁即清除，无废墟/重建）====================
 
     /** 出售塔：返还 50% 建造能源；武器归还背包（满则原地掉落）；移除实体 */
     sellTower(tower, player) {
-        if (!tower || tower.active === false) return { ok: false, reason: '已摧毁的塔请直接重建' };
+        if (!tower || tower.active === false) return { ok: false, reason: '防御塔已被摧毁' };
         const refund = Math.floor((DEFENSE_CONFIG.tower.rebuildCost ?? 300) * (DEFENSE_CONFIG.tower.sellRefundRatio ?? 0.5));
         // 武器归还
         const item = tower.weaponItem;
@@ -2455,23 +2342,6 @@ export const DefenseSystem = {
         if (SoundManager && typeof SoundManager.playFile === 'function') {
             SoundManager.playFile('assets/sounds/ui/levelup.wav');
         }
-    },
-
-    /** 废墟贴图（运行时生成：灰色残骸底座 + 冒烟标记） */
-    _ensureTowerRuinTexture() {
-        const scene = window.__phaserScene;
-        if (!scene || scene.textures.exists('tower_ruin')) return;
-        const g = scene.add.graphics();
-        g.fillStyle(0x2e2a24, 1);
-        g.fillEllipse(64, 88, 96, 26);
-        g.fillStyle(0x4a443c, 1);
-        g.fillTriangle(30, 78, 98, 78, 64, 44);
-        g.fillStyle(0x6a6258, 1);
-        g.fillTriangle(40, 78, 88, 78, 64, 58);
-        g.lineStyle(4, 0x8a8a8a, 0.8);
-        g.strokeCircle(64, 44, 10);
-        g.generateTexture('tower_ruin', 128, 104);
-        g.destroy();
     },
 
     /**
@@ -2558,17 +2428,6 @@ export const DefenseSystem = {
                 panel.close();
             } else {
                 panel.openFor(t, player);
-            }
-            return true;
-        }
-        // 废墟：点击打开重建面板
-        for (const r of this.ruins) {
-            if (!r || !r.active) continue;
-            if (!inReach(r, 60)) continue;
-            if (panel.isOpen && panel.ruin === r) {
-                panel.close();
-            } else {
-                panel.openForRuin(r, player);
             }
             return true;
         }

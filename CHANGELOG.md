@@ -1,4 +1,16 @@
 # 变更日志
+### 对话：伊莉丝 idle 漂移根治——探针实锤"到达不停步"滑行（2026-08-17）
+- **用户反馈**：五轮修复后 idle 漂移仍在，怀疑深层代码问题。
+- **探针实锤**：玩家静止时逐帧采样实体坐标/精灵坐标/动画状态——AI 判定"到达跟随点"
+  （fd≤arriveDist 55）切 idle 姿态后，`_tacticalTarget` 未清、速度未归零，
+  **MovementSystem 继续朝旧目标点以 105px/s 推进剩余 ~55px（≈0.6s）**，角色以待机
+  姿态滑行 = idle 漂移。剑盾状态机不走通用 `_applyAction`（其开头每次清目标/归零速度），
+  故只有伊莉丝中招。
+- **修复**（companion-ai.js）：`_tickWarrior` 与 `_cmdFollowOnly` 的"到达"分支——
+  清 `_tacticalTarget` + 清路径 + vx/vy/isMoving 归零后再切 idle。
+- **探针复验**：修复前 idle 后坐标 736→790 滑行 54px；修复后到达瞬间 vx=0、坐标冻结
+  在距跟随点 55.1px 处，零滑行。test-party-system 234/234、npm test 全绿、
+  eslint 0 error、vite build ✓。实机待用户复测。
 ### 对话：伊莉丝 idle 漂移五轮修复——取消移动门槛 + walking 素材删前两帧（2026-08-17）
 - **用户口径**：任何小范围移动都强制播 walking 动画；walking.png 前两帧直接删除。
 - **素材**：walking.png 从 14 帧（4×4）裁为 **12 帧（4×3，2560×1920）**——直接搬格
@@ -200,6 +212,9 @@
   接入 防御塔（三层基座/臂/武器下沉，**无废墟**——按用户口径被摧毁即清除）、
   基地核心、仓鼠小屋（矿工随拆）、铁栅栏门（左右柱+栅栏）、陷阱；
   全部沿用「特效接管精灵后实体立即失效」防推开怪物。
+- v5 彻底移除废墟/重建：删除 DefenseTowerRuin 类、_onTowerDestroyed、rebuildTower、
+  _ensureTowerRuinTexture、ruins 数组、面板废墟模式（openForRuin/_refreshRuin）、
+  tryInteract 废墟分支——所有建筑被摧毁即清除，全游戏无重建入口。
 - 验证：eslint 0 error（既有 3 warning）、vite build ✅；下沉数学单测通过。
 
 ### 对话：伊莉丝全套精灵图重建——SKILL 对齐三铁律重做（2026-08-16）
