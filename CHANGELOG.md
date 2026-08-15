@@ -1,4 +1,16 @@
 # 变更日志
+### 对话：伊莉丝新增 whirlwind 风车爆发技——技能数据驱动 + 纯函数判定 + 动画一次播完（2026-08-16）
+- `data/companion-config.json`：伊莉丝技能表加 `whirlwind`（damageMul 1.5+0.1/级、
+  radius 120+5/级、swordRadiusBonus 80、cooldown 10−0.2/级、knockback 250、
+  stunDuration 2500、duration 800、经验 hit/multiHit/kill），新增 23 帧
+  windmill 动画注册（`assets/companions/elise/windmill.png`）。
+- `companion-ai-decision.js`：新增纯函数 `shouldWarriorWhirlwind`（范围内敌人 ≥
+  minTargets 才释放）；`companion-ai.js` 近战分支爆发优先于防御兜底，进行中用
+  `_whirlwindHitSet` 去重命中并结算技能经验，冷却走 `_whirlwindCd`。
+- GameScene：windmill 状态播 23 帧 repeat 0，`wmPlayed` data 标记防重播（与
+  `atkPlayed` 同款），播完由 AI 回 idle。
+- 契约测试 `test-party-system.mjs` 补 whirlwind 断言（234/234 全过）；eslint 0 error。
+
 ### 测试：仓鼠矿工边界链路实机验证补全（2026-08-15）
 - CDP 主探针新增 5 个阶段，把此前「未实测」的边界全部跑绿（共 33 项）：
   F 玩家背包满 → 卸货能量暂存小屋 → 腾出背包后自动补入玩家（暂存清零）；

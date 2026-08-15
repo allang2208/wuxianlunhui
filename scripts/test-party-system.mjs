@@ -9,7 +9,7 @@ const { buildSkillMap, grantSkillExp, getSkillEffect, grantCompanionSkillExp } =
 const {
     decideCompanionAction, pickCompanionSpell,
     shouldRelocateCompanion, shouldUseRun, DEFAULT_MAGE_AI,
-    shouldWarriorDefend,
+    shouldWarriorDefend, shouldWarriorWhirlwind,
 } = await import('../src/ai/companion-ai-decision.js');
 
 const fakeSkillData2 = () => ({
@@ -28,6 +28,18 @@ const fakeSkillData2 = () => ({
         expFormula: '100 + (level - 1) * 100',
         effectFormula: { defBonusPercent: 'level * 0.02', damageReductionBonus: 'level * 0.02', parryStunBonus: 'Math.floor(level / 5) * 0.25' },
         expRewards: { parry: 10, meleeBlock: 2, rangedBlock: 5 },
+    },
+    whirlwind: {
+        id: 'whirlwind', name: '风车', icon: '🌀', iconImage: '',
+        description: '以自身为中心高速旋转武器，对周围敌人造成毁灭性打击',
+        maxLevel: 20, tags: [{ name: '近战', type: 'melee' }, { name: '主动', type: 'active' }],
+        expFormula: '100 + (level - 1) * 100',
+        effectFormula: {
+            damageMul: '1.5 + level * 0.10', strBonus: 'level', cooldown: '10 - level * 0.2',
+            staminaCost: '20 + level * 1', radius: '120 + level * 5', swordRadiusBonus: 80,
+            knockback: 250, stunDuration: 2500, duration: 800,
+        },
+        expRewards: { hit: 1, multiHit: 3, kill: 15 },
     },
     holyLight: {
         id: 'holyLight', name: '圣光', icon: '✨', iconImage: '', description: '魔法治疗/伤害',
@@ -417,6 +429,38 @@ check('防御触发：rangedType 判远程', shouldWarriorDefend({
     enemies: [mkEnemy(100, 0), mkEnemy(-100, 0), mkEnemy(200, 0, { rangedType: 'wizard' })],
     cx: 0, cy: 0, range: 400, enemyCount: 3,
 }) === true);
+
+// --- 伊莉丝风车（whirlwind）：配置/数值/动画/修炼/触发判定 ---
+check('伊莉丝已配置风车', !!elise.skills.whirlwind && elise.skills.whirlwind.name === '风车');
+check('伊莉丝 windmill 动画 23 帧（repeat 0）', elise.animations.windmill
+    && elise.animations.windmill.frameCount === 23
+    && elise.animations.windmill.frames[0] === 0 && elise.animations.windmill.frames[1] === 22
+    && elise.animations.windmill.repeat === 0);
+check('风车 Lv1 数值（damageMul 1.6 / radius 125+80 / 冷却 9.8s / 时长 0.8s）', (() => {
+    const e = elise.skills.whirlwind.getEffect(1);
+    return Math.abs(e.damageMul - 1.6) < 1e-9
+        && Math.abs(e.radius - 125) < 1e-9 && e.swordRadiusBonus === 80
+        && Math.abs(e.cooldown - 9.8) < 1e-9 && Math.abs(e.duration - 800) < 1e-9;
+})());
+let wwGuard = 0;
+while (elise.skills.whirlwind.level < 3 && wwGuard++ < 30) {
+    grantSkillExp(elise, 'whirlwind', elise.skills.whirlwind.maxExp);
+}
+check('风车修炼升级（可到 Lv3）', elise.skills.whirlwind.level >= 3,
+    `lv=${elise.skills.whirlwind.level}`);
+check('风车升级回调应用力量（strBonus）', elise.data.str >= 13 + elise.skills.whirlwind.level,
+    `str=${elise.data.str} lv=${elise.skills.whirlwind.level}`);
+check('风车触发：范围内 3 敌 → true', shouldWarriorWhirlwind({
+    enemies: [mkEnemy(100, 0), mkEnemy(-100, 0), mkEnemy(0, 80)],
+    cx: 0, cy: 0, range: 205, minTargets: 2,
+}) === true);
+check('风车触发：范围内 1 敌 → false', shouldWarriorWhirlwind({
+    enemies: [mkEnemy(100, 0)], cx: 0, cy: 0, range: 205, minTargets: 2,
+}) === false);
+check('风车触发：范围外不算', shouldWarriorWhirlwind({
+    enemies: [mkEnemy(100, 0), mkEnemy(300, 0)], cx: 0, cy: 0, range: 205, minTargets: 2,
+}) === false);
+check('伊莉丝 AI 配置风车目标数', elise.aiConfig && elise.aiConfig.whirlwindMinTargets === 2);
 
 // --- 剑盾防御受击：hold 期持盾减伤 + 常态弹反（镜像玩家 ShieldSystem） ---
 const eliseDef = new Companion(eliseArchive);

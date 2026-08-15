@@ -9,6 +9,7 @@
 
 import { MovementSystem } from '../systems/movement-system.js';
 import { WallSystem } from '../world/wall-system.js';
+import { GroundCircle } from '../physics/skill-shapes.js';
 import { SceneManager } from '../world/scene-manager.js';
 import { DungeonMapSystem } from '../world/dungeon-map-system.js';
 import { FireballSystem } from '../entities/components/fireball-system.js';
@@ -25,7 +26,7 @@ import { AimHelper } from '../utils/aim-helper.js';
 import {
     DEFAULT_MAGE_AI, decideCompanionAction, pickCompanionSpell,
     shouldRelocateCompanion, shouldUseRun,
-    shouldWarriorDefend, pickPatrolPoint, pickNearestNode,
+    shouldWarriorDefend, shouldWarriorWhirlwind, pickPatrolPoint, pickNearestNode,
 } from './companion-ai-decision.js';
 
 const MELEE_THREAT_RANGE = 220; // 攻击距离低于此值视为近战威胁
@@ -63,6 +64,11 @@ export class CompanionAI {
         this._defendPhase = null;  // 防御阶段：'enter' | 'hold' | 'exit' | null
         this._defendTimer = 0;     // 当前防御阶段剩余 ms
         this._defendCd = 0;        // 防御结束冷却（defendCooldownMs）
+        this._whirlwindTimer = 0;  // 风车进行中已耗时 ms
+        this._whirlwindHitSet = null; // 风车已命中集合（进行中非 null）
+        this._whirlwindHits = 0;   // 本次风车命中数（结算经验）
+        this._whirlwindKills = 0;  // 本次风车击杀数
+        this._whirlwindCd = 0;     // 风车冷却 ms（skill effect.cooldown 秒 ×1000）
         this._pendingRelease = null; // 50% 释放点：{type:'spell'|'basic', ...}
         this._castDuration = 0;      // 施法/攻击动作总时长（算 50% 释放点）
         this._castRecoverTimer = 0;  // 施法/攻击结束硬直（防动画刚完就滑动）
@@ -221,6 +227,10 @@ export class CompanionAI {
             this._defendPhase = null;
             this._defendTimer = 0;
             c._defending = false;
+            this._whirlwindHitSet = null;
+            this._whirlwindTimer = 0;
+            this._whirlwindHits = 0;
+            this._whirlwindKills = 0;
         }
         // 施法/攻击结束硬直推进：期间保持冻结不移动，结束后恢复
         if (this._castRecoverTimer > 0) {
@@ -249,7 +259,7 @@ export class CompanionAI {
 
         // 剑盾近战：攻击/防御状态机逐帧推进（决策只负责发起，进度由这里驱动）
         if ((this.cfg.role || '').startsWith('melee')) {
-            this._updateWarriorCombat(dt);
+            this._updateWarriorCombat(dt, entities);
         }
 
         // 移动（MovementSystem：寻路跟随/撤退/站位，施法锁定自动停步）
@@ -869,6 +879,13 @@ export class CompanionAI {
 
         // 防御中：站定播完整个防御流程（enter → hold → exit），不打断
         if (this._defendPhase) return;
+        // 风车（whirlwind）：范围内目标达标且冷却就绪 → 优先释放（爆发技优先于防御兜底）；
+        // 风车进行中站定
+        if (this._whirlwindHitSet) return;
+        if (c.skills && c.skills.whirlwind && this._whirlwindCd <= 0 && this._shouldWhirlwind(enemies)) {
+            this._tryWhirlwind();
+            return;
+        }
         // 防御触发：条件满足且冷却就绪 → 举盾；冷却中（_defendCd>0）继续正常攻击/追击，
         // 避免"远程敌在场 → 15s 冷却内站桩发呆不攻击"（2026-08-15 排查修复）
         if (this._shouldDefend(enemies) && this._defendCd <= 0) {
@@ -950,8 +967,13 @@ export class CompanionAI {
             else this._cmdFollowOnly(player);
             return;
         }
-        // 与默认状态机同口径：防御中站定；冷却中就绪才举盾，冷却中正常近战
+        // 与默认状态机同口径：风车/防御优先级一致（风车优先），冷却中正常近战
         if (this._defendPhase) return;
+        if (this._whirlwindHitSet) return;
+        if (c.skills && c.skills.whirlwind && this._whirlwindCd <= 0 && this._shouldWhirlwind(enemies)) {
+            this._tryWhirlwind();
+            return;
+        }
         if (this._shouldDefend(enemies) && this._defendCd <= 0) {
             this._startDefend();
             return;
@@ -1021,10 +1043,26 @@ export class CompanionAI {
     }
 
     /** 防御状态机逐帧推进：enter → hold（持盾）→ exit → 结束；并推进防御冷却 */
-    _updateWarriorCombat(dt) {
+    _updateWarriorCombat(dt, entities) {
         const c = this.c;
         const cfg = this.cfg;
         if (this._defendCd > 0) this._defendCd = Math.max(0, this._defendCd - dt);
+        if (this._whirlwindCd > 0) this._whirlwindCd = Math.max(0, this._whirlwindCd - dt);
+
+        // 风车推进：50ms 起每帧判定（GroundCircle 地面 footprint），持续到 duration 结束
+        if (this._whirlwindHitSet) {
+            this._whirlwindTimer += dt;
+            const skill = c.skills && c.skills.whirlwind;
+            const effect = skill ? skill.getEffect(skill.level) : {};
+            const duration = effect.duration || 800;
+            if (this._whirlwindTimer >= 50 && this._whirlwindTimer <= duration) {
+                this._dealWhirlwindHits(entities, effect);
+            }
+            if (this._whirlwindTimer >= duration) {
+                this._endWhirlwind();
+            }
+            return;
+        }
 
         // 近战攻击推进：命中帧结算 + 动画结束解除冻结
         if (this._meleeAtkTimer > 0) {
@@ -1068,6 +1106,98 @@ export class CompanionAI {
             c._animState = 'idle';
             this._defendCd = cfg.defendCooldownMs || 3000;
         }
+    }
+
+    /** 风车触发判定：技能范围内（radius + swordRadiusBonus）目标 ≥ whirlwindMinTargets */
+    _shouldWhirlwind(enemies) {
+        const c = this.c;
+        const cfg = this.cfg;
+        const skill = c.skills && c.skills.whirlwind;
+        if (!skill) return false;
+        const effect = skill.getEffect(skill.level);
+        const radius = (effect.radius || 120) + (effect.swordRadiusBonus || 80);
+        return shouldWarriorWhirlwind({
+            enemies,
+            cx: c.x, cy: c.y,
+            range: radius,
+            minTargets: cfg.whirlwindMinTargets || 2,
+        });
+    }
+
+    /** 释放风车：以自身为中心旋转武器，skill 数值驱动（damageMul/半径/击退/眩晕/时长/冷却） */
+    _tryWhirlwind() {
+        const c = this.c;
+        const skill = c.skills && c.skills.whirlwind;
+        if (!skill || this._whirlwindHitSet || c._castState !== 'idle' || c._frozenForCast) return;
+        const effect = skill.getEffect(skill.level);
+        this._whirlwindTimer = 0;
+        this._whirlwindHitSet = new Set();
+        this._whirlwindHits = 0;
+        this._whirlwindKills = 0;
+        this._whirlwindCd = (effect.cooldown || 8) * 1000;
+        c._frozenForCast = true;
+        c._animState = 'windmill';
+        c._castState = 'idle';
+        c.vx = 0; c.vy = 0; c.isMoving = false;
+        c.target = null;
+        c._tacticalTarget = null;
+        this._lastAction = 'whirlwind';
+        c._lastAction = 'whirlwind';
+    }
+
+    /** 风车命中结算：GroundCircle（地面 footprint 判定，与玩家风车同口径） */
+    _dealWhirlwindHits(entities, effect) {
+        const c = this.c;
+        const radius = (effect.radius || 120) + (effect.swordRadiusBonus || 80);
+        const damageMul = effect.damageMul || 1.5;
+        const knockback = effect.knockback || 250;
+        const stunDuration = effect.stunDuration || 2500;
+        const finalDamage = Math.max(1, Math.round((c.data.atk || 0) * damageMul));
+        const shape = new GroundCircle(c.x, c.y, radius);
+        let hitCount = 0, killCount = 0;
+        for (const e of this._activeEnemies(entities)) {
+            if (!e || this._whirlwindHitSet.has(e)) continue;
+            if (!shape.intersectsEntity(e)) continue;
+            this._whirlwindHitSet.add(e);
+            const wasAlive = e.hp > 0;
+            if (typeof e.takeDamage === 'function') e.takeDamage(finalDamage, c, 'physical');
+            if (wasAlive && e.hp <= 0) killCount++;
+            hitCount++;
+            if (typeof e.applyKnockback === 'function') {
+                const ang = Math.atan2(e.y - c.y, e.x - c.x);
+                e.applyKnockback(ang, knockback);
+            }
+            if (typeof e.applyStun === 'function') e.applyStun(stunDuration);
+        }
+        this._whirlwindHits += hitCount;
+        this._whirlwindKills += killCount;
+        this._lastAttackAt = Date.now();
+        // 剑精通修炼（与玩家风车同步：风车命中也算剑类攻击）
+        const sm = c.skills && c.skills.swordMastery;
+        if (sm) {
+            const rw = sm.expRewards || {};
+            const gained = hitCount * (rw.hit || 0) + killCount * (rw.kill || 0);
+            if (gained > 0) grantCompanionSkillExp(c, 'swordMastery', gained);
+        }
+    }
+
+    /** 风车结束：解除冻结 + 结算风车经验（hit/multiHit/kill） */
+    _endWhirlwind() {
+        const c = this.c;
+        const skill = c.skills && c.skills.whirlwind;
+        if (skill) {
+            const rw = skill.expRewards || {};
+            let gained = this._whirlwindHits * (rw.hit || 0);
+            if (this._whirlwindHits >= 2) gained += rw.multiHit || 0;
+            gained += this._whirlwindKills * (rw.kill || 0);
+            if (gained > 0) grantCompanionSkillExp(c, 'whirlwind', gained);
+        }
+        this._whirlwindHitSet = null;
+        this._whirlwindTimer = 0;
+        this._whirlwindHits = 0;
+        this._whirlwindKills = 0;
+        c._frozenForCast = false;
+        c._animState = 'idle';
     }
 
     /** 发起近战攻击：1.5s 动画（28 帧），命中帧由 _updateWarriorCombat 结算；攻击间隔 2s */
