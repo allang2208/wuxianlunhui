@@ -145,6 +145,11 @@ def make_half_cylinder(L, R, segments=32):
     for v in list(bm.verts):
         if v.co.z < -0.001:
             bm.verts.remove(v)
+    # 两端封口：切掉下半后，两端半圆开口用边界环填充成实心端盖
+    bm.normal_update()
+    boundary = [e for e in bm.edges if not e.is_manifold]
+    if boundary:
+        bmesh.ops.holes_fill(bm, edges=boundary, sides=0)
     bmesh.update_edit_mesh(o.data)
     bpy.ops.object.mode_set(mode="OBJECT")
     return o
