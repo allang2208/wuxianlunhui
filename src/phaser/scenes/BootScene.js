@@ -144,8 +144,10 @@ export class BootScene extends Scene {
         this.load.image('swampbrick_3', 'assets/terrain/swampbrick-3.png');
         // 世界-122 能源资源点（2026-08-16 v3：AI 成品优先；缺图时 EnergyNodeSystem 自动生成
         // 12 形态程序化水晶，底座带 30° 接地线，与掩体/墙地板衔接同规则。旧 v1~v6 不再参与渲染）
-        this.load.image('energy_node', 'assets/terrain/energy_node.png');
-        this.load.image('energy_node_depleted', 'assets/terrain/energy_node_depleted.png');
+        // 旧 v1/v2 成品贴图已作废清理（energy_node.png / energy_node_depleted.png 等已移至
+        // _trash_energy_v1v2/），不再加载；缺失时 EnergyNodeSystem 会生成 64×64 占位兜底。
+        // this.load.image('energy_node', 'assets/terrain/energy_node.png');
+        // this.load.image('energy_node_depleted', 'assets/terrain/energy_node_depleted.png');
         // AI v3 成品（12 形态 × 正常/枯竭）：只加载 assets/terrain 下实际存在的文件。
         // 未生成的文件不会发起请求，避免 Phaser 报 Failed to process file 刷屏。
         // 注意：新放入 assets 的 v3 图片需重启 Vite 后才会被 glob 收录。
@@ -205,8 +207,12 @@ export class BootScene extends Scene {
                 }
             }
         }
+        // 世界-122 基地铁栅栏滑动门（D 级，Blender 建模 16 帧滑出/滑入开合，2026-08-15）
+        this.load.spritesheet('cover_gate_D', 'assets/terrain/cover_gate_D.png', { frameWidth: 640, frameHeight: 634 });
         // 世界-122 防御塔（基座+上方机械臂武器挂载点）
         this.load.image('obstacle_defense_tower', 'assets/terrain/obstacle_defense_tower.png');
+        // 世界-122 仓鼠小屋（建筑面板可建造，生成仓鼠矿工；贴图 Blender 建模渲染）
+        this.load.image('hamster_hut', 'assets/terrain/hamster_hut.png');
         // 世界-122 防御塔机械臂（预渲染 3D 旋转帧，48 帧等距透视，按 aimAngle 选帧）
         this.load.spritesheet('obstacle_defense_tower_arm_frames', 'assets/terrain/obstacle_defense_tower_arm_frames.png', { frameWidth: 261, frameHeight: 164 });
         // 防御塔武器枪管（预裁剪独立贴图："枪插进机械臂"假象；2026-08-14）

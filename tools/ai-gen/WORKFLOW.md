@@ -230,6 +230,26 @@ SDXL 的 style_prefix + 单件强制语法）→ BiRefNet 抠图 → 1536² 归�
 上方探出的机械臂（空置武器挂载点，供武器贴图挂载）；写实风格、六档共用同一视觉语言。
 抠图入库后 DefenseTower.spriteCfg 指向，footOffsetY 按内容底边校准。
 
+### 3.3.3 能源水晶 v3（世界-122，12 形态随机 + 30° 接地线）
+
+提示词模板：`prompts/energy-crystal-v3.md`；生成调度：`tools/ai-gen/gen-energy-node-v3.py`。
+流程：脚本程序化绘制 12 张深度控制图（每张一种独立形态，底座统一 30° 菱形土堆接地）
+→ `flux2-dev-depth --transparent` 逐张出图（normal + depleted 各 12）→ `--install` 入库
+`assets/terrain/energy_node_v3_<n>.png` / `energy_node_depleted_v3_<n>.png`。
+
+快速验证：`python tools/ai-gen/gen-energy-node-v3.py --limit 1 --depth-only`（只看深度图），
+或 `--limit 1 --no-refine`（跳过抠图精修，先验证 5080 出图链路）。
+程序化兜底预览：`tools/ai-gen/preview-energy-node-v3.html`（Vite 启动后浏览器打开，
+直接复用运行时绘制函数）。
+
+- 视觉基准：材质参考 `assets/icons/craft/frozen_crystal.png` 与
+  `jade_spirit_crystal.png`；接地线参考 `assets/terrain/obstacle_cover_*_h/v.png`
+  底边 30° 规则（禁止平底直切）。
+- 随机性：12 形态在 `src/world/energy-node-textures.js` 与生成器脚本中一一对应；
+  运行时另有洗牌袋 + 随机镜像，避免地图 11 个节点同形。
+- AI 成品缺失时游戏自动回退运行时程序化 v3（同名 `energy_node_gen_*` 纹理），
+  不阻塞场景运行。
+
 ### 3.4 怪物/角色贴图
 
 提示词模板：`prompts/monster-sprite.md`；统一基准图 + 同首帧 img2video 保证跨动作一致；

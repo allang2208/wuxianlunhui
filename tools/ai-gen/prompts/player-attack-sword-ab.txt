@@ -1,0 +1,11 @@
+The exact same character as the first frame, full body side view facing right.
+
+Phase 1: the torso leans forward from the waist; the trailing foot steps forward once and plants on the ground; the body weight shifts forward with the step.
+
+Phase 2: only the sword arm moves, swinging a short compact one-handed backhand strike from the wind-up pose to the exact contact pose shown in the last frame; the motion comes from the sword shoulder and elbow only; the sword follows a tight arc and stops at the last-frame pose.
+
+The other arm stays frozen the entire time, glued to the side of the body, shoulder still, elbow still, hand still, exactly the same position in every frame.
+
+Phase 3: the body arrives exactly in the last-frame pose at the end.
+
+static camera locked in place, no camera movement, no pan, no zoom, no push-in, no pull-out, no tilt, no rotation, the body stays perfectly centered in the frame and never drifts left or right, the entire character and the sword are always fully visible inside the frame with generous empty margin on all sides, nothing is cropped or touches the frame edges, the background stays perfectly uniform and identical to the first frame, flat solid color, no gradient, no ground, no shadow, no reflection, no other objects, no text.

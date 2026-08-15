@@ -1,0 +1,85 @@
+{
+  "elevation": 30,
+  "azimuth": 0,
+  "resolution": 2048,
+  "bottom_y": 880,
+  "max_width_frac": 0.85,
+  "top_margin_px": 70,
+  "soil_margin": 0.18,
+  "tex": "Y:/工作/无尽轮回/scratch/world122/raw/factory_wall_tex.png",
+  "tex2": "Y:/工作/无尽轮回/scratch/demon_iron_tex.png",
+  "interior_glow": "Y:/工作/无尽轮回/scratch/world122/raw/factory_interior_glow.png",
+  "primitives": [
+    {
+      "type": "box",
+      "size": [400, 260, 230],
+      "pos": [0, 0, 115],
+      "rot": [0, 0, 44.8],
+      "bevel": 8,
+      "material": "wall"
+    },
+    {
+      "type": "box",
+      "size": [60, 60, 230],
+      "pos": [-213, -136, 115],
+      "rot": [0, 0, 44.8],
+      "bevel": 5,
+      "bevelTopOnly": true,
+      "material": "wall"
+    },
+    {
+      "type": "box",
+      "size": [60, 60, 230],
+      "pos": [-57, -136, 115],
+      "rot": [0, 0, 44.8],
+      "bevel": 5,
+      "bevelTopOnly": true,
+      "material": "wall"
+    },
+    {
+      "type": "box",
+      "size": [96, 8, 164],
+      "pos": [-137, -138, 82],
+      "rot": [0, 0, 44.8],
+      "material": "interior"
+    },
+    {
+      "type": "box",
+      "size": [34, 4, 30],
+      "pos": [2, -140, 182],
+      "rot": [0, 0, 44.8],
+      "material": "window"
+    },
+    {
+      "type": "box",
+      "size": [34, 4, 30],
+      "pos": [86, -140, 182],
+      "rot": [0, 0, 44.8],
+      "material": "window"
+    },
+    {
+      "type": "box",
+      "size": [4, 30, 30],
+      "pos": [-204, -45, 182],
+      "rot": [0, 0, 44.8],
+      "material": "window"
+    },
+    {
+      "type": "box",
+      "size": [4, 30, 30],
+      "pos": [-204, 50, 182],
+      "rot": [0, 0, 44.8],
+      "material": "window"
+    }
+  ],
+  "plates": [
+    { "size": [48, 10, 162], "x": -159, "y": -142, "z": 82, "side": -1 },
+    { "size": [48, 10, 162], "x": -111, "y": -142, "z": 82, "side": 1 }
+  ],
+  "slide": {
+    "leftWindow": { "center": -213, "half": 23 },
+    "rightWindow": { "center": -57, "half": 23 },
+    "barSpacing": 0.0,
+    "railScale": 1.0
+  }
+}

@@ -4,6 +4,13 @@
 
 ## 项目信息
 - **路径**: `C:\Users\allan\Documents\kimi\workspace\game-dev`
+
+> **世界-122 能源水晶（2026-08-16）**：v3 = 12 随机形态 + 随机镜像/尺寸抖动 + 30° 接地线；
+> 贴图/碰撞基准已放大 50%（nodeSize 56→84，nodeRadius 30→45），血条与名字 HP 标签锚定实际贴图顶部；
+> 能源矿已注册为 A* 寻路专用圆障碍（非 WallSystem），并加移动局部切线避让，修复怪物顶矿卡死。
+> 运行时程序化版在 `src/world/energy-node-textures.js`；AI 生图入口
+> `tools/ai-gen/gen-energy-node-v3.py`（提示词 `prompts/energy-crystal-v3.md`）；
+> 预览页 `tools/ai-gen/preview-energy-node-v3.html`。BootScene 只加载 v3 命名；缺图时程序化兜底。
 - **架构**: Vite + ES6 模块化（32 个模块），版本 V0.140
 - **启动**: `cd game-dev && npx vite`，访问 `http://localhost:5173`
 - **刷新**: 每次修改后 **Ctrl + F5** 强制刷新（Vite 模块缓存问题）

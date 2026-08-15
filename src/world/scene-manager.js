@@ -21,6 +21,7 @@ import { SystemUI } from '../ui/system-ui.js';
 import { DefenseSystem, DEFENSE_CONFIG } from './defense-system.js';
 import { EnergyNodeSystem } from './energy-node-system.js';
 import { HamsterMinerSystem } from './hamster-miner-system.js';
+import { HamsterHutSystem } from './hamster-hut-system.js';
 import { ENERGY_CONFIG } from '../config/energy-config.js';
 import { BuildingSystem } from './building-system.js';
 import { DefenseTrapSystem } from './defense-trap-system.js';
@@ -142,6 +143,10 @@ export const SceneManager = {
             // 世界-122 能源资源点随场景离场拆除（实体由下方 Game.entities.clear 统一清理）
             if (EnergyNodeSystem && EnergyNodeSystem.active) {
                 EnergyNodeSystem.teardown();
+            }
+            // 世界-122 仓鼠小屋随场景离场拆除（矿工由小屋一并清理）
+            if (HamsterHutSystem && HamsterHutSystem.active) {
+                HamsterHutSystem.teardown();
             }
             // 世界-122 仓鼠矿工（玩家友方单位）随场景离场拆除
             if (HamsterMinerSystem && HamsterMinerSystem.active) {
@@ -997,6 +1002,9 @@ export const SceneManager = {
         // 世界-122 能源资源点：散落地图，供玩家/队员攻击采集能源（修建/修理用）
         EnergyNodeSystem.setup();
 
+        // 世界-122 仓鼠小屋：建筑面板建造生成仓鼠矿工（矿工随小屋）
+        HamsterHutSystem.setup();
+
         // 世界-122 仓鼠矿工：玩家友方单位，自动找最近能源矿点采矿
         HamsterMinerSystem.setup(player);
     },
@@ -1034,17 +1042,28 @@ export const SceneManager = {
         while (pieces.length < count && guard++ < count * 30) {
             const x = x0 + Math.random() * (x1 - x0);
             const y = y0 + Math.random() * (y1 - y0);
-            if (x > room[0] && x < room[2] && y > room[1] && y < room[3]) continue;
-            if (player && Math.hypot(x - player.x, y - player.y) < rPlayer) continue;
-            if (nodePos.some((n) => Math.hypot(x - n.x, y - n.y) < rNode)) continue;
-            if (spawnPts.some((n) => Math.hypot(x - n.x, y - n.y) < rSpawn)) continue;
-            if (pieces.some((q) => Math.hypot(x - q.x, y - q.y) < minDist)) continue;
             const tex = 'obstacle_tree_' + variants[(Math.random() * variants.length) | 0];
             const geo = (typeof WallSystem._geoForTex === 'function') ? WallSystem._geoForTex(tex) : null;
             if (!geo) continue;
             const s = ((geo.obstacleH ?? 240) / geo.h) * (1 - jitter + Math.random() * jitter * 2);
+            // [FIX] 排除带与碰撞同一口径：树木真实碰撞 footprint 中心在贴图锚点下方约 150px，
+            // 所有排除带/合法性检查改用 footprint 矩形/中心判定（原按锚点判定会整体错位）
+            const fp = (typeof WallSystem.getObstacleFootprintRect === 'function')
+                ? WallSystem.getObstacleFootprintRect({ tex, x, y, scaleX: s, scaleY: s })
+                : null;
+            const fx = fp ? fp.x + fp.w / 2 : x;
+            const fy = fp ? fp.y + fp.h / 2 : y;
+            // 基地房：footprint 矩形与房间矩形重叠即排除（边缘压线也不行）
+            if (fp) {
+                if (fp.x < room[2] && fp.x + fp.w > room[0] && fp.y < room[3] && fp.y + fp.h > room[1]) continue;
+            } else if (x > room[0] && x < room[2] && y > room[1] && y < room[3]) continue;
+            if (player && Math.hypot(fx - player.x, fy - player.y) < rPlayer) continue;
+            if (nodePos.some((n) => Math.hypot(fx - n.x, fy - n.y) < rNode)) continue;
+            if (spawnPts.some((n) => Math.hypot(fx - n.x, fy - n.y) < rSpawn)) continue;
+            // 树木间距仍按贴图锚点判定（视觉疏密），不影响碰撞排除
+            if (pieces.some((q) => Math.hypot(x - q.x, y - q.y) < minDist)) continue;
             const fr = Math.max(24, (geo.foot ? geo.foot.w / 2 : 40) * s);
-            if (typeof WallSystem.canMoveTo === 'function' && !WallSystem.canMoveTo(x, y, fr)) continue;
+            if (typeof WallSystem.canMoveTo === 'function' && !WallSystem.canMoveTo(fx, fy, fr)) continue;
             pieces.push({ tex, x, y, scaleX: s, scaleY: s, flipX: Math.random() < 0.5, _scatter: true });
         }
         for (const p of pieces) WallSystem.isoVisuals.push(p);

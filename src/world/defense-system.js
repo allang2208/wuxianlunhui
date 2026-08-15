@@ -126,6 +126,7 @@ export const DEFENSE_CONFIG = {
         goldRandomMin: 1,
         goldRandomMax: 8,
         // 精英/领主定时刷（仅在波次战斗阶段，在普通波次之上额外生成）
+        // （2026-08-15 起停用计时器：精英/领主改由 wavePlan 随波次脚本化生成，字段保留兼容）
         eliteEveryMs: 30000,
         lordEveryMs: 90000,
         eliteHpMul: 1.4,
@@ -133,6 +134,30 @@ export const DEFENSE_CONFIG = {
         // 胜利结算（2026-08-14）：第 victoryWave 波清空即防守胜利，发放奖励
         victoryWave: 10,
         victoryReward: { gold: 500, energy: 500 },
+        // ==================== 波次预算制配波（2026-08-15，用户确认方案）====================
+        // 每波按威胁预算（TP）配怪：预算 ÷ 怪物 TP = 只数，角色配比 + 硬约束替代旧"只数公式+单一随机池"。
+        // 预算曲线 26 × 1.15^(n-1)：W1≈8只 / W10≈24只，与旧 countCap 曲线对齐；
+        // HP/攻击仍走 hpPerWave/atkPerWave 成长（预算只管数量与构成，不重复放大血量）。
+        waveBudgetBase: 26,
+        waveBudgetGrowth: 1.15,
+        // 角色解锁时间表（教学式节奏）；ratios = 占本波预算比例；elites/lords = 脚本化生成数量，
+        // eliteMul/lordMul 可覆盖默认血量倍率（如 W5 迷你领主 0.6 × lordHpMul）
+        wavePlan: {
+            1:  { theme: '尸潮',     ratios: { fodder: 1.0 },                                              elites: 0, lords: 0 },
+            2:  { theme: '尸潮+',    ratios: { fodder: 0.8, tank: 0.2 },                                   elites: 0, lords: 0 },
+            3:  { theme: '犬袭',     ratios: { fodder: 0.6, fast: 0.4 },                                   elites: 1, lords: 0 },
+            4:  { theme: '酸液',     ratios: { fodder: 0.6, ranged: 0.25, tank: 0.15 },                    elites: 0, lords: 0 },
+            5:  { theme: '空袭',     ratios: { fast: 0.4, air: 0.3, fodder: 0.3 },                         elites: 0, lords: 1, lordMul: 0.6 },
+            6:  { theme: '重压',     ratios: { tank: 0.4, fodder: 0.4, ranged: 0.2 },                      elites: 2, lords: 0 },
+            7:  { theme: '混合突击', ratios: { fodder: 0.35, tank: 0.25, fast: 0.2, ranged: 0.1, air: 0.1 }, elites: 0, lords: 0 },
+            8:  { theme: '精英卫队', ratios: { fodder: 0.5, tank: 0.3, ranged: 0.2 },                      elites: 2, lords: 1 },
+            9:  { theme: '总攻预演', ratios: { fodder: 0.3, tank: 0.3, fast: 0.15, ranged: 0.15, air: 0.1 }, elites: 2, lords: 0 },
+            10: { theme: '决战',     ratios: { fodder: 0.4, tank: 0.3, fast: 0.15, ranged: 0.15 },         elites: 2, lords: 2 },
+        },
+        // 配波硬约束（防脸黑）：单一类型 ≤ 单波只数 40%；远程+空中 ≤ 预算 30%；快速 ≤ 预算 35%
+        waveMaxSameTypeRatio: 0.4,
+        waveMaxRangedAirBudgetRatio: 0.3,
+        waveMaxFastBudgetRatio: 0.35,
     },
     // 刷怪点：右端尽头（基地在左端 x=900 菱形房内，怪物从右往左攻）
     spawnPoints: [
@@ -261,6 +286,19 @@ const LORD_POOL = [
     { type: 'witch', weight: 3 },
 ];
 
+/**
+ * 角色池（2026-08-15 预算制配波）：tp = 威胁值（Threat Point），配波货币；weight = 角色内抽取权重。
+ * TP 依据 HP/速度/射程/攻击频率综合评定：炮灰 僵尸3/矿工4；坦克 胖5/矿工4；快速 狗3/狼5；
+ * 远程 喷吐6（射程930 > 塔基准800，白嫖风险高 → 高TP）；空中 蝇群2
+ */
+const ROLE_POOLS = {
+    fodder: [ { type: 'zombie', tp: 3, weight: 3 }, { type: 'minerZombie', tp: 4, weight: 2 } ],
+    tank:   [ { type: 'fatZombie', tp: 5, weight: 3 }, { type: 'minerZombie', tp: 4, weight: 1 } ],
+    fast:   [ { type: 'zombieDog', tp: 3, weight: 3 }, { type: 'blackWolf', tp: 5, weight: 2 } ],
+    ranged: [ { type: 'spitterZombie', tp: 6, weight: 1 } ],
+    air:    [ { type: 'flySwarm', tp: 2, weight: 1 } ],
+};
+
 const MONSTER_FACTORY = {
     zombie: Zombie,
     minerZombie: MinerZombie,
@@ -292,6 +330,29 @@ const COVER_ASPECT = {
     A: { h: 1.004, v: 1.004 },
 };
 const COVER_DISPLAY_W = 260;
+
+/** 世界-122 基地铁栅栏滑动门 v2（2026-08-15，Blender 建模 + 掩体同款砖墙/铸铁贴图）。
+ * 门体：仅左右两根细立柱 + 纤细铁栅栏（无上下横梁），两扇叶整体沿墙轴向滑出/滑入。
+ * 几何标定（compose-cover-gate.py 输出，纹理 cell 640×634，y 向下）：
+ * - face 线 = 门底边线（与 COVER_FACE v 同斜率 -0.5、同接地偏移），关闭时覆盖门洞；
+ * - 16 帧滑动动画：frame 0 = 关闭（两扇叶在中间合拢），frame 15 = 打开（扇叶滑出画面外隐藏）。
+ */
+const GATE_CONFIG = {
+    grade: 'D',
+    tex: 'cover_gate_D',
+    cellW: 640,
+    cellH: 634,
+    frames: 16,
+    animMs: 650,
+    halfThick: 26,
+    faceA: { x: 90.2, y: 633.4 },
+    faceB: { x: 639.6, y: 360.6 },
+    faceLen: 613.6,
+    worldFaceLen: 270.4,
+    // 显示比例：与掩体墙同尺度（掩体 1024tex→260px；门 cell 640→262px）。
+    // 碰撞 face 仍按 worldFaceLen=270.4（门洞跨度），视觉上两侧由相邻墙端帽叠盖。
+    displayScale: 0.410,
+};
 
 /**
  * 掩体墙段底边线（face line）端点偏移（相对掩体脚底 x/y，世界像素），按级别标定。
@@ -453,6 +514,7 @@ class DefenseCover extends Combatant {
             name: config.name ?? `掩体·${grade}级`,
         });
         this.id = config.id || `defense_cover_${grade}_${orient}_${Math.random().toString(36).slice(2, 7)}`;
+          this._isDefenseCover = true; // HUD 专用：满血不显示名字/血量文字，残血只显示血条
         this._isDefenseStructure = true;
         this.noSeparation = true;
         this.noNameLabel = true;
@@ -1472,6 +1534,13 @@ export const DefenseSystem = {
               });
               Game.entities.set(`defense_cover_${i}`, cover);
           });
+          // 基地铁栅栏滑动门（D 级，2026-08-15）：状态机默认关闭；
+          // 友军（玩家/侍从）靠近自动打开，离开 1.2s 后自动关闭（阻挡门洞）。
+          const gs = DEFENSE_CONFIG.covers.gate;
+          if (gs) {
+              this.gate = { ...CoverGate };
+              if (!this.gate.place({ x: gs.x, y: gs.y }, gs.A, gs.B)) this.gate = null;
+          }
           // 掩体墙段已注册进 WallSystem.isoSegments：让寻路器把静态掩体墙纳入
           // 阻挡网格（怪物绕墙走/从门洞进，不再直线穿墙后在夹角被卡），2026-08-08
           if (pathFinder && typeof pathFinder.invalidateCache === 'function') {
@@ -1564,6 +1633,30 @@ export const DefenseSystem = {
                 });
             }
         }
+        // 基地门洞（openEdge 边中点）→ 铁栅栏滑动门放置点：
+        // face 线 = 该边掩体 face 线（同斜率/同接地偏移）延伸跨过门洞，长度 = worldFaceLen
+        const ge = edges.find((e) => e.key === openEdge);
+        if (ge) {
+            const gdx = ge.to.x - ge.from.x;
+            const gdy = ge.to.y - ge.from.y;
+            const gx = ge.from.x + gdx * 0.5;
+            const gy = ge.from.y + gdy * 0.5;
+            const half = GATE_CONFIG.worldFaceLen / 2;
+            const midY = gy - 65; // COVER_FACE v 中点偏移（接地线过 (x, y-65)）
+            if (ge.orient === 'v') {
+                DEFENSE_CONFIG.covers.gate = {
+                    x: gx, y: gy,
+                    A: { x: Math.round(gx - half), y: Math.round(midY + half * 0.5) },
+                    B: { x: Math.round(gx + half), y: Math.round(midY - half * 0.5) },
+                };
+            } else {
+                DEFENSE_CONFIG.covers.gate = {
+                    x: gx, y: gy,
+                    A: { x: Math.round(gx - half), y: Math.round(midY - half * 0.5) },
+                    B: { x: Math.round(gx + half), y: Math.round(midY + half * 0.5) },
+                };
+            }
+        }
         DEFENSE_CONFIG.covers.layout = layout;
     },
 
@@ -1572,6 +1665,7 @@ export const DefenseSystem = {
         this.defeated = false;
         this.victory = false;
         this._victoryGranted = false;
+        if (this.gate) { this.gate.destroy(); this.gate = null; }
         this.base = null;
         this.towers = [];
         this.ruins = [];
@@ -1611,6 +1705,7 @@ export const DefenseSystem = {
         if (!this.active || this.defeated) return;
         this._elapsed += dt;
         this._repairTick(dt);
+        if (this.gate) this.gate.update(dt); // 友军靠近自动开门 / 离开延时关门
         this._grantMonsterGold(dt);
         this._updateHud(dt);
         if (this.victory) return;
@@ -1644,36 +1739,141 @@ export const DefenseSystem = {
                 }
                 break;
         }
-        // 精英/领主只在波次战斗阶段定时刷（普通波次之上额外生成）
-        if (this._phase === 'wave') {
-            this._eliteTimer += dt;
-            this._lordTimer += dt;
-            if (this._eliteTimer >= DEFENSE_CONFIG.spawn.eliteEveryMs) {
-                this._eliteTimer = 0;
-                this._spawnElite();
-            }
-            if (this._lordTimer >= DEFENSE_CONFIG.spawn.lordEveryMs) {
-                this._lordTimer = 0;
-                this._spawnLord();
-            }
-        }
+        // 精英/领主旧计时器已停用（2026-08-15 用户确认方案）：改由 _startWave 按 wavePlan
+        // 脚本化生成，与波次节奏挂钩；旧配置字段 eliteEveryMs/lordEveryMs 保留兼容，不再驱动生成
     },
 
-    /** 开一波：一次性刷 batch（= baseCount + wave×countPerWave，封顶 countCap，受 maxAlive 约束） */
+    /**
+     * 开一波（2026-08-15 预算制重构）：
+     * 有 wavePlan 配置 → _composeWave 按威胁预算+角色配比+硬约束配怪，精英/领主脚本化生成；
+     * 无配置 → 旧逻辑回退（一次性刷 batch = baseCount + wave×countPerWave，封顶 countCap，受 maxAlive 约束）
+     */
     _startWave() {
         this._phase = 'wave';
         this._phaseTimer = 0;
-        const count = Math.min(
-            DEFENSE_CONFIG.spawn.countCap,
-            Math.floor(DEFENSE_CONFIG.spawn.baseCount + this._wave * DEFENSE_CONFIG.spawn.countPerWave)
-        );
+        const cfg = DEFENSE_CONFIG.spawn;
+        const plan = cfg.wavePlan ? cfg.wavePlan[this._wave] : null;
         let alive = this._aliveCount();
+        const composed = plan ? this._composeWave(this._wave, plan) : null;
+        if (composed) {
+            for (const type of composed) {
+                if (alive >= cfg.maxAlive) break;
+                this._spawnMonster(this._wave, null, 1, type);
+                alive++;
+            }
+            // 脚本化精英/领主（eliteMul/lordMul 可覆盖默认血量倍率，如 W5 迷你领主）
+            for (let i = 0; i < (plan.elites || 0); i++) {
+                if (alive >= cfg.maxAlive) break;
+                this._spawnElite(plan.eliteMul);
+                alive++;
+            }
+            for (let i = 0; i < (plan.lords || 0); i++) {
+                if (alive >= cfg.maxAlive) break;
+                this._spawnLord(plan.lordMul);
+                alive++;
+            }
+            this._announce(`第 ${this._wave} 波 · ${plan.theme || '来袭'}！`, '#ffd700');
+            return;
+        }
+        const count = Math.min(
+            cfg.countCap,
+            Math.floor(cfg.baseCount + this._wave * cfg.countPerWave)
+        );
         for (let i = 0; i < count; i++) {
-            if (alive >= DEFENSE_CONFIG.spawn.maxAlive) break;
+            if (alive >= cfg.maxAlive) break;
             this._spawnMonster(this._wave, NORMAL_POOL);
             alive++;
         }
         this._announce(`第 ${this._wave} 波来袭！`, '#ffd700');
+    },
+
+    /**
+     * 预算制配波（2026-08-15）：返回本波怪物类型数组
+     * 1) 预算 = waveBudgetBase × waveBudgetGrowth^(wave-1)；各角色目标 = 预算 × 配比
+     * 2) 硬约束钳制：远程+空中合计 ≤ 预算 30%；快速 ≤ 预算 35%
+     * 3) 角色内按权重随机抽怪填满目标预算；单一类型 ≤ 单波只数 40%
+     * 4) 多样性兜底：类型数 ≥ min(3, 本波解锁类型数)
+     */
+    _composeWave(wave, plan) {
+        const cfg = DEFENSE_CONFIG.spawn;
+        const budget = Math.max(1, Math.round((cfg.waveBudgetBase || 26) * Math.pow(cfg.waveBudgetGrowth || 1.15, wave - 1)));
+        const ratios = plan.ratios || { fodder: 1 };
+        const target = {};
+        for (const r in ratios) target[r] = budget * ratios[r];
+        // 硬约束钳制：远程+空中合计、快速
+        const raCap = budget * (cfg.waveMaxRangedAirBudgetRatio ?? 0.3);
+        const raSum = (target.ranged || 0) + (target.air || 0);
+        if (raSum > raCap && raSum > 0) {
+            const k = raCap / raSum;
+            if (target.ranged) target.ranged *= k;
+            if (target.air) target.air *= k;
+        }
+        const fastCap = budget * (cfg.waveMaxFastBudgetRatio ?? 0.35);
+        if ((target.fast || 0) > fastCap) target.fast = fastCap;
+        // 逐角色按预算抽样（角色内权重随机；只选 TP 不超剩余预算且不违反单一类型上限的类型）
+        const list = [];
+        const typeCount = {};
+        // 本波解锁类型表（扁平化，含 TP，供上限计算与兜底填充共用）
+        const unlockedTypes = [];
+        for (const role in target) {
+            for (const m of (ROLE_POOLS[role] || [])) {
+                if (!unlockedTypes.some(u => u.type === m.type)) unlockedTypes.push(m);
+            }
+        }
+        // 单一类型上限：解锁类型 ≥3 时按配置 40%；类型不足时放宽到 1/类型数（否则约束数学上不可满足）
+        const sameRatio = Math.max(cfg.waveMaxSameTypeRatio ?? 0.4, 1 / Math.max(1, unlockedTypes.length));
+        for (const role in target) {
+            let remaining = target[role];
+            let guard = 200;
+            while (guard-- > 0 && remaining > 0) {
+                const capNow = Math.max(2, Math.ceil((list.length + 1) * sameRatio));
+                const cand = (ROLE_POOLS[role] || []).filter(
+                    m => m.tp <= remaining + 0.001 && (typeCount[m.type] || 0) < capNow
+                );
+                if (!cand.length) break;
+                const total = cand.reduce((s, m) => s + (m.weight || 1), 0);
+                let roll = Math.random() * total, pick = cand[0];
+                for (const m of cand) { roll -= (m.weight || 1); if (roll <= 0) { pick = m; break; } }
+                remaining -= pick.tp;
+                list.push(pick.type);
+                typeCount[pick.type] = (typeCount[pick.type] || 0) + 1;
+            }
+        }
+        // 剩余预算兜底填充：各角色取整浪费的 TP 汇总后按低 TP 优先填缝，保证只数贴齐预算曲线
+        {
+            let remaining = Math.max(0, budget - list.reduce((s, t) => {
+                const m = unlockedTypes.find(u => u.type === t);
+                return s + (m ? m.tp : 0);
+            }, 0));
+            let guard = 200;
+            while (guard-- > 0 && remaining > 0) {
+                const capNow = Math.max(2, Math.ceil((list.length + 1) * sameRatio));
+                // 兜底只从炮灰角色取（避免低TP的空中/快速类型被填充放大、冲垮角色占比）；
+                // 本波无炮灰时退化为全解锁类型（不会发生：当前 wavePlan 每波均含 fodder）
+                const fillPool = (ROLE_POOLS.fodder && target.fodder) ? ROLE_POOLS.fodder : unlockedTypes;
+                const cand = fillPool.filter(m => m.tp <= remaining + 0.001 && (typeCount[m.type] || 0) < capNow);
+                if (!cand.length) break;
+                cand.sort((a, b) => a.tp - b.tp);
+                const pick = cand[Math.floor(Math.random() * Math.min(2, cand.length))];
+                remaining -= pick.tp;
+                list.push(pick.type);
+                typeCount[pick.type] = (typeCount[pick.type] || 0) + 1;
+            }
+        }
+        if (!list.length) return null;
+        // 多样性兜底：不足 min(3, 解锁类型数) 时，把数量最多的类型替换一只为未出场类型
+        const unlocked = unlockedTypes.map(m => m.type);
+        const wantDistinct = Math.min(3, unlocked.length, list.length);
+        let guard2 = 50;
+        while (new Set(list).size < wantDistinct && guard2-- > 0) {
+            const counts = {};
+            for (const t of list) counts[t] = (counts[t] || 0) + 1;
+            const most = Object.keys(counts).sort((a, b) => counts[b] - counts[a])[0];
+            const missing = unlocked.filter(t => !counts[t]);
+            if (!missing.length || !most) break;
+            list[list.indexOf(most)] = missing[Math.floor(Math.random() * missing.length)];
+        }
+        return list;
     },
 
     // ==================== 顶部 HUD（波次 + 货币实时）====================
@@ -1844,12 +2044,19 @@ export const DefenseSystem = {
         }
     },
 
-    _spawnMonster(wave, pool, hpMulExtra = 1) {
-        const type = this._pickMonsterType(pool);
+    _spawnMonster(wave, pool, hpMulExtra = 1, forceType = null) {
+        const type = forceType || this._pickMonsterType(pool);
         const Factory = MONSTER_FACTORY[type];
         if (!Factory) return;
         const pt = DEFENSE_CONFIG.spawnPoints[Math.floor(Math.random() * DEFENSE_CONFIG.spawnPoints.length)];
         const monster = new Factory(pt.x, pt.y);
+        // [FIX] 刷怪点可能被散布树 footprint 压住：先校验，必要时沿螺旋外推到合法位置，
+        // 避免怪物出生即嵌入障碍（起点在矩形内 resolve/blocked 恒失败 → 永久冻结）
+        if (WallSystem && WallSystem.canMoveTo && !WallSystem.canMoveTo(monster.x, monster.y, monster.groundRadius)) {
+            const safe = WallSystem.findSafeSpawn(monster.x, monster.y, monster.groundRadius);
+            monster.x = safe.x;
+            monster.y = safe.y;
+        }
         monster._defenseMonster = true;
         // 防守击杀金币：不走地面掉落物，由 DefenseSystem 结算直接进背包
         monster._noGoldDrop = true;
@@ -1878,13 +2085,13 @@ export const DefenseSystem = {
         Game.entities.set(`defense_monster_${++this._seq}`, monster);
     },
 
-    _spawnElite() {
-        this._spawnMonster(this._wave || 1, ELITE_POOL, DEFENSE_CONFIG.spawn.eliteHpMul);
+    _spawnElite(hpMul) {
+        this._spawnMonster(this._wave || 1, ELITE_POOL, hpMul ?? DEFENSE_CONFIG.spawn.eliteHpMul);
         this._announce('精英来袭！', '#ff8800', 'assets/sounds/enemies/armored_knight/attacking.mp3');
     },
 
-    _spawnLord() {
-        this._spawnMonster(this._wave || 1, LORD_POOL, DEFENSE_CONFIG.spawn.lordHpMul);
+    _spawnLord(hpMul) {
+        this._spawnMonster(this._wave || 1, LORD_POOL, hpMul ?? DEFENSE_CONFIG.spawn.lordHpMul);
         this._announce('领主降临！', '#ff4444', 'assets/sounds/enemies/foreman_zombie/howling.mp3');
     },
 
@@ -2134,6 +2341,144 @@ export const DefenseSystem = {
             return true;
         }
         return false;
+    },
+};
+
+// ==================== 基地铁栅栏滑动门（2026-08-15）====================
+// Blender 建模 + 掩体同款砖墙/铸铁贴图 + 16 帧横向缩进动画；关闭=阻挡门洞，打开=放行。
+const CoverGate = {
+    place(center, A, B) {
+        const scene = (typeof window !== 'undefined') ? window.__phaserScene : null;
+        if (!scene || !scene.textures.exists(GATE_CONFIG.tex)) return false;
+        const k = GATE_CONFIG.displayScale;
+        this._scale = k;
+        // 面线中点对齐：门的 face 线与掩体墙 face 线共线（同斜率、中点落在线中点）。
+        // face 纹理线比世界 face 略短（显示比例一致），端点余量由相邻墙端帽叠盖。
+        const midTexX = (GATE_CONFIG.faceA.x + GATE_CONFIG.faceB.x) / 2;
+        const midTexY = (GATE_CONFIG.faceA.y + GATE_CONFIG.faceB.y) / 2;
+        this._cx = (A.x + B.x) / 2 - (midTexX - GATE_CONFIG.cellW / 2) * k;
+        this._cy = (A.y + B.y) / 2 - (midTexY - GATE_CONFIG.cellH / 2) * k;
+        this._depth = Math.max(A.y, B.y) + 12;
+        if (this.sprite) this.sprite.destroy();
+        this.sprite = scene.add.sprite(this._cx, this._cy, GATE_CONFIG.tex, 0); // 默认关闭帧
+        this.sprite.setOrigin(0.5, 0.5);
+        this.sprite.setScale(k, k);
+        this.sprite.setDepth(this._depth);
+        this._gateSeg = {
+            x1: A.x, y1: A.y, x2: B.x, y2: B.y,
+            halfThick: GATE_CONFIG.halfThick,
+            _gate: true, _gateHole: true,
+        };
+        // 状态机默认关闭：门洞碰撞注册（阻挡）；友军靠近时 _update 自动打开
+        this.state = 'closed';
+        this._frame = 0;
+        this._closeTimer = 0;
+        this.setPassable(false);
+        return true;
+    },
+
+    /** 状态机默认关闭 → 友军靠近打开 → 友军离开延时关闭（2026-08-15）。 */
+    update(dt) {
+        if (!this._gateSeg) return;
+        const OPEN_RADIUS = 150;
+        const CLOSE_LINGER_S = 1.2; // dt 单位为秒
+        const f = this._nearbyFriendly();
+        const near = !!f && Math.hypot(f.x - this._cx, f.y - this._cy) <= OPEN_RADIUS;
+        if (near) {
+            this._closeTimer = 0;
+            if (this.state === 'closed' || this.state === 'closing') this.open();
+        } else {
+            this._closeTimer = (this._closeTimer || 0) + dt;
+            if ((this.state === 'open' || this.state === 'opening') && this._closeTimer >= CLOSE_LINGER_S) {
+                this.close();
+            }
+        }
+    },
+
+    /** 最近友军单位（玩家/侍从；排除同为 player 阵营的防御塔/掩体/基地）。 */
+    _nearbyFriendly() {
+        let best = null;
+        let bestD = Infinity;
+        const scan = (e) => {
+            if (!e || !e.active) return;
+            if (e._isDefenseStructure || e._isDefenseTower || e._isDefenseCover) return;
+            if (e._faction !== 'player' && e._faction !== 'companion') return;
+            const d = Math.hypot(e.x - this._cx, e.y - this._cy);
+            if (d < bestD) { bestD = d; best = e; }
+        };
+        if (Game && Game.player) scan(Game.player);
+        if (Game && Game.entities) {
+            for (const e of Game.entities.values()) scan(e);
+        }
+        return best;
+    },
+
+    setPassable(passable) {
+        if (!WallSystem || !WallSystem.isoSegments || !this._gateSeg) return;
+        const i = WallSystem.isoSegments.indexOf(this._gateSeg);
+        if (!passable && i < 0) {
+            WallSystem.isoSegments.push(this._gateSeg);
+        } else if (passable && i >= 0) {
+            WallSystem.isoSegments.splice(i, 1);
+        }
+        if (pathFinder && typeof pathFinder.invalidateRegion === 'function') {
+            const s = this._gateSeg;
+            pathFinder.invalidateRegion(
+                Math.min(s.x1, s.x2), Math.min(s.y1, s.y2),
+                Math.max(s.x1, s.x2), Math.max(s.y1, s.y2));
+        }
+    },
+
+    open() {
+        if (this.state === 'open' || this.state === 'opening') return;
+        this.state = 'opening';
+        this.setPassable(true);
+        this._play(0, GATE_CONFIG.frames - 1);
+    },
+
+    close() {
+        if (this.state === 'closed' || this.state === 'closing') return;
+        this.state = 'closing';
+        this.setPassable(false);
+        this._play(GATE_CONFIG.frames - 1, 0);
+    },
+
+    toggle() {
+        if (this.state === 'open' || this.state === 'opening') this.close();
+        else this.open();
+    },
+
+    _play(from, to) {
+        const scene = (typeof window !== 'undefined') ? window.__phaserScene : null;
+        if (this.sprite) this.sprite.setFrame(from);
+        if (!scene) {
+            this._frame = to;
+            this.state = to === 0 ? 'closed' : 'open';
+            return;
+        }
+        if (this._animCounter) this._animCounter.stop();
+        this._animCounter = scene.tweens.addCounter({
+            from,
+            to,
+            duration: GATE_CONFIG.animMs,
+            ease: 'Linear',
+            onUpdate: (tw) => {
+                const f = Math.round(tw.getValue());
+                if (this.sprite) this.sprite.setFrame(f);
+            },
+            onComplete: () => {
+                this._frame = to;
+                this.state = to === 0 ? 'closed' : 'open';
+            },
+        });
+    },
+
+    destroy() {
+        if (this._animCounter) { this._animCounter.stop(); this._animCounter = null; }
+        this.setPassable(true);
+        if (this.sprite) { this.sprite.destroy(); this.sprite = null; }
+        this._gateSeg = null;
+        this.state = 'open';
     },
 };
 

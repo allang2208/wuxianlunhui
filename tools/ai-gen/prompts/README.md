@@ -19,6 +19,7 @@
 | [transparent-subject.md](transparent-subject.md) | 透明主体（需透明 PNG 的图标/装备/怪物/道具） | 新增（2026-08-04 方案一固化） |
 | [cover.md](cover.md) | 掩体（世界-122 防守地图 F→A 六档 × 水平/垂直摆） | 新增（2026-08-04） |
 | [defense-tower.md](defense-tower.md) | 防御塔建筑（基座+机械臂挂载点） | 新增（2026-08-04） |
+| [energy-crystal-v3.md](energy-crystal-v3.md) | 世界-122 能源水晶 v3（12 形态 + 30° 接地线） | 新增（2026-08-16） |
 
 ## 拼接规则（顺序固定）
 

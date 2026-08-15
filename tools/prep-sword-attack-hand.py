@@ -16,11 +16,12 @@ attack_sword 的 frameWeights 决定精灵帧边界，30 点阶梯映射按真�
 
 用法：python tools/prep-sword-attack-hand.py
 
-2026-08-03 追加：dash（冲刺攻击）跟手——dash_attack 17 帧远侧手轨迹，
-30 点配置按 帧=progress×16 映射后线性插值手位（rotation/blur 保留）。
-**注意：dash 轨迹当前是手调/已回退版本（用户实机验收"大体正确"），与脚本生成结果
-（含无 G 的原始手位）最大相差 130+px——main_dash 默认拒绝运行，必须显式
-`python tools/prep-sword-attack-hand.py dash --force` 才会覆盖，且不套用 G（--grip 可选）。**
+2026-08-03 追加：dash（冲刺攻击）跟手；2026-08-16 修正——
+旧 DASH_HAND_PX 是"远侧手/非持剑手"误检（末帧仍停在身体左侧，与实机前伸手不符），
+不可用于像素级绑手。dash 采用 **dashHand 模式**：保留用户实机验收的 dash 30 点中心轨迹，
+由运行时 WeaponTransform.getDashHandPosition 反推握把点（中心 − R(rot)·(0, -gripOffset)），
+剑柄 origin 钉在手上；角度按 dashHand.fromRotation→toRotation 扫 180°（-90→+90，后→前）。
+main_dash 会生成/校验 dashHand 与同口径 dashLerp 回退块，不再用旧 DASH_HAND_PX 覆盖轨迹。
 """
 
 import json
@@ -111,6 +112,10 @@ def main():
     cfg_path = os.path.join(root, "public", "data", "weapon-anim-config.json")
     cfg = json.load(open(cfg_path, encoding="utf-8"))
     attack = cfg["sword"]["attack"]["frames"]
+    if len(attack) == 12:
+        print("attack_sword 已升级为 v2 12 帧；HAND_PX 仍是旧 8 帧素材，本次不自动覆盖。")
+        print("请用 DevTool 精调 attack 轨迹，或重新标定 HAND_PX 后再运行本脚本。")
+        return
     if len(attack) != 30:
         raise SystemExit(f"attack frames 应为 30，实际 {len(attack)}")
     grip = cfg["sword"].get("gripOffset", DEFAULT_GRIP_OFFSET_Y)
@@ -129,55 +134,82 @@ def main():
         print(f"  f{i}: ({f['offsetX']}, {f['offsetY']}, rot {f['rotation']}, blur {f.get('blurX')},{f.get('blurY')})")
 
 
-DASH_HAND_PX = [
+# 旧误检数据（2026-08-03 初版，仅留档/反面教材）：
+# 把 dash_attack 的"远侧手/非持剑手"当持剑手——末帧 (185,180) 仍在身体左侧，
+# 与实机末帧前伸手不符；生成结果与用户验收轨迹最大差 130+px，禁止再用于覆盖 dash。
+DASH_HAND_PX_LEGACY = [
     (160, 97), (120, 93), (120, 92), (110, 112), (118, 117), (125, 117),
     (180, 103), (198, 100), (210, 106), (220, 119), (230, 160), (215, 186),
     (225, 220), (170, 165), (185, 175), (180, 180), (185, 180),
 ]
 
 
-def main_dash(apply_grip=False, force=False):
-    """dash（冲刺攻击）跟手：17 帧远侧手 → 30 点配置。
-    当前 dash 配置是手调/已回退版本（与脚本生成结果最大差 130+px），
-    默认拒绝运行；--force 才覆盖（仍不套 G，--grip 才套用 sword.gripOffset）。"""
+def dash_hand_anchors(cfg):
+    """从用户验收的 dash 中心轨迹反推握把点。
+
+    dash 旧 30 点是 DevTool 按武器贴图中心调定的（用户实机验收"大体正确"）。
+    中心 C 与握把点 H 的关系：C = H + R(rot)·(0, -gripOffset)。
+    所以 H = (Cx - G·sin(rot), Cy + G·cos(rot))，与本文件普通攻击公式互逆。
+    """
+    frames = cfg["sword"]["dash"]["frames"]
+    grip = cfg["sword"].get("gripOffset", DEFAULT_GRIP_OFFSET_Y)
+    anchors = []
+    for f in frames:
+        th = math.radians(f.get("rotation") or 0)
+        hx = (f.get("offsetX") or 0) - grip * math.sin(th)
+        hy = (f.get("offsetY") or 0) + grip * math.cos(th)
+        anchors.append((hx, hy))
+    return anchors
+
+
+def main_dash():
+    """冲刺攻击 dashHand 配置生成/校验。
+
+    不覆盖 dash 30 点中心轨迹；只写 sword.dashHand：
+    - type = gripArc（GameScene 识别为剑柄锚手模式）
+    - fromRotation/toRotation = -90/90（后→前 180° 扇形扫击）
+    - gripX = 0.5（剑柄横向居中；gripY 由运行时按 gripOffset/实际显示高计算）
+    """
     here = os.path.dirname(os.path.abspath(__file__))
     root = os.environ.get("STAFF_CAST_ROOT") or os.path.dirname(here)
     cfg_path = os.path.join(root, "public", "data", "weapon-anim-config.json")
     cfg = json.load(open(cfg_path, encoding="utf-8"))
-    frames = cfg["sword"]["dash"]["frames"]
-    if len(frames) != 30:
-        raise SystemExit(f"dash frames 应为 30，实际 {len(frames)}")
-    if not force:
-        raise SystemExit(
-            "拒绝覆盖：dash 轨迹是手调/已回退版本（用户实机验收），脚本生成结果与其不一致。"
-            "确要重新生成请加 --force（仍默认不套 G，需要 G 再加 --grip）。"
-        )
-    anchors = [local(px, py) for (px, py) in DASH_HAND_PX]
-    grip = cfg["sword"].get("gripOffset", DEFAULT_GRIP_OFFSET_Y) if apply_grip else 0
-    n = len(frames)
-    for i, f in enumerate(frames):
-        p = i / (n - 1)
-        af = p * 16  # 17 帧动画 → progress 0~1
-        fi = int(af)
-        t = af - fi
-        nxt = min(fi + 1, 16)
-        hx = anchors[fi][0] + (anchors[nxt][0] - anchors[fi][0]) * t
-        hy = anchors[fi][1] + (anchors[nxt][1] - anchors[fi][1]) * t
-        th = math.radians(f["rotation"])
-        f["offsetX"] = round(hx + grip * math.sin(th), 1)
-        f["offsetY"] = round(hy - grip * math.cos(th), 1)
+    sword = cfg["sword"]
+    frames = sword.get("dash", {}).get("frames")
+    if not frames or len(frames) != 30:
+        raise SystemExit(f"dash frames 应为 30，实际 {len(frames) if frames else 0}")
+
+    hand = sword.setdefault("dashHand", {})
+    hand["type"] = "gripArc"
+    hand["fromRotation"] = -90
+    hand["toRotation"] = 90
+    hand["gripX"] = 0.5
+
+    anchors = dash_hand_anchors(cfg)
+    lerp = sword.setdefault("dashLerp", {})
+    lerp["type"] = "lerp"
+    lerp["grip"] = {"x": 0.5, "y": 0.782}
+    lerp["from"] = {"x": round(anchors[0][0], 1), "y": round(anchors[0][1], 1), "rotation": -90}
+    lerp["to"] = {"x": round(anchors[-1][0], 1), "y": round(anchors[-1][1], 1), "rotation": 90}
+    lerp.setdefault("scale", 1.5)
+    lerp.setdefault("stretchX", 1.048)
+    lerp.setdefault("stretchY", 1)
+    lerp.setdefault("blurPeak", 12)
+
     open(cfg_path, "w", encoding="utf-8", newline="\n").write(
         json.dumps(cfg, ensure_ascii=False, indent=2) + "\n"
     )
-    print(f"已写入 sword.dash 30 点跟手轨迹（握把=远侧手，G={'套用(' + str(grip) + ')' if apply_grip else '未套用（已回退）'}）：")
-    for i, f in enumerate(frames):
-        print(f"  f{i}: 中心=({f['offsetX']},{f['offsetY']}) rot={f['rotation']}")
+
+    print("已写入 sword.dashHand / sword.dashLerp（剑柄锚手，180° 后→前扇形扫击）。")
+    print(f"反推握把点：首帧=({anchors[0][0]:.1f},{anchors[0][1]:.1f}) "
+          f"末帧=({anchors[-1][0]:.1f},{anchors[-1][1]:.1f})")
+    print("运行时不覆盖 dash 中心轨迹；GameScene 使用 origin=剑柄并反推握把点贴手。")
 
 
 if __name__ == "__main__":
     import sys
 
     if len(sys.argv) > 1 and sys.argv[1] == "dash":
-        main_dash(apply_grip="--grip" in sys.argv[2:], force="--force" in sys.argv[2:])
+        main_dash()
     else:
         main()

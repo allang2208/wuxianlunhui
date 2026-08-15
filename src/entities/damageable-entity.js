@@ -333,6 +333,19 @@ export function isFriendlyFire(source, target) {
                         PartySystem.grantCombatExp(amount);
                     }
                 }
+                // 防守模式（世界122）：地面金币掉落关闭（金币由 DefenseSystem 结算直接进背包），
+                // 击杀经验按 25% 发放（2026-08-15 用户要求）；侍从队同额
+                else if (this instanceof Enemy && !this._summoned && this._defenseMonster) {
+                    const _expSrc = (source && source.gainExp) ? source
+                        : ((source && source.source && source.source.gainExp) ? source.source : null);
+                    if (_expSrc) {
+                        const detail = this.getExpDetail ? this.getExpDetail(_expSrc.data?.level ?? 1) : null;
+                        const base = detail ? detail.exp : (this.getExpValue ? this.getExpValue(_expSrc.data?.level ?? 1) : 2);
+                        const amount = Math.max(1, Math.floor(base * 0.25));
+                        _expSrc.gainExp(amount, detail ? detail.tag : null);
+                        PartySystem.grantCombatExp(amount);
+                    }
+                }
                 // 延迟删除尸体（3秒后从 entities 中移除）
                 this._deathTime = Date.now();
                 if (!this._deathRemoveDelay) this._deathRemoveDelay = 3000; // 默认 3 秒，子类可覆盖

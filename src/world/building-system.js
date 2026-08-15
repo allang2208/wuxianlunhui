@@ -18,6 +18,7 @@ import { CONFIG } from '../config/config.js';
 import { SceneManager } from './scene-manager.js';
 import { DefenseSystem, DefenseTower, DefenseCover, DEFENSE_CONFIG, COVER_FACE, COVER_FOOT } from './defense-system.js';
 import { DefenseTrap, TRAP_CONFIG, TRAP_GRADES, TRAP_SPACING, getTrapDef, DefenseTrapSystem } from './defense-trap-system.js';
+import { HamsterHut, HamsterHutSystem, HAMSTER_CONFIG } from './hamster-hut-system.js';
 
 // ==================== 可建造项 ====================
 
@@ -59,6 +60,7 @@ function effOrient(itemOrOrient, mirror) {
 
 export const BUILD_ITEMS = [
     { id: 'tower', name: '防御塔', cost: 300, tex: 'obstacle_defense_tower', kind: 'tower', currency: 'energy' },
+    { id: 'hamster_hut', name: '仓鼠小屋', cost: 1000, tex: 'hamster_hut', kind: 'hamster_hut', currency: 'energy' },
 ];
 for (const grade of ['F', 'E', 'D', 'C', 'B', 'A']) {
     // 只保留一种掩体条目（垂直 "/" 向）；F 键镜像即得水平 "\" 向（mirror → eff 交换），
@@ -235,6 +237,8 @@ export const BuildingSystem = {
             // 显示尺寸 = 实体显示尺寸（塔 170×262；掩体 260 宽等比）
             if (item.kind === 'tower') {
                 this._ghost.setDisplaySize(170, 262);
+            } else if (item.kind === 'hamster_hut') {
+                this._ghost.setDisplaySize(HAMSTER_CONFIG.hut.displayW, HAMSTER_CONFIG.hut.displayH);
             } else if (item.kind === 'trap') {
                 this._ghost.setDisplaySize(item.trapW || 72, item.trapH || 52);
             } else {
@@ -307,7 +311,9 @@ export const BuildingSystem = {
 
     _ghostFootOffset() {
         if (!this._placing) return 0;
-        return this._placing.item.kind === 'tower' ? 131 : (this._ghost.displayHeight / 2);
+        if (this._placing.item.kind === 'tower') return 131;
+        if (this._placing.item.kind === 'hamster_hut') return HAMSTER_CONFIG.hut.footOffsetY;
+        return this._ghost.displayHeight / 2;
     },
 
     _onMouseDown(e) {
@@ -443,7 +449,9 @@ export const BuildingSystem = {
 
     _canPlace(x, y) {
         if (x < 20 || y < 20 || x > CONFIG.WORLD_WIDTH - 20 || y > CONFIG.WORLD_HEIGHT - 20) return false;
-        const radius = this._placing.item.kind === 'tower' ? 40 : (this._placing.item.kind === 'trap' ? TRAP_SPACING : 28);
+        const radius = this._placing.item.kind === 'tower' || this._placing.item.kind === 'hamster_hut'
+            ? 40
+            : (this._placing.item.kind === 'trap' ? TRAP_SPACING : 28);
         if (WallSystem && typeof WallSystem.canMoveTo === 'function' && !WallSystem.canMoveTo(x, y, radius)) return false;
         // 不与已建建筑重叠：掩体按「墙段真实 footprint（底边线段 + 墙厚）」判定——
         // 只检查底部碰撞体积，斜墙不再用轴对齐保守矩形（避免“该能放却红”）；
@@ -520,6 +528,10 @@ export const BuildingSystem = {
             tower._mirrored = mirror;
             Game.entities.set(id, tower);
             DefenseSystem.towers.push(tower);
+        } else if (item.kind === 'hamster_hut') {
+            const hut = new HamsterHut(x, y, { id });
+            Game.entities.set(id, hut);
+            HamsterHutSystem.huts.push(hut);
         } else if (item.kind === 'trap') {
             const trap = new DefenseTrap(x, y, {
                 type: item.trapType,

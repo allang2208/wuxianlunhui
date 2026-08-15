@@ -118,7 +118,19 @@ export default {
   },
   server: {
     watch: {
-      ignored: ['**/node_modules/**', '**/.git/**', '**/AppData/**', '**/Cookies-journal', '**/*.log', '**/.cdp-profile/**', '**/tools/.cdp-profile/**']
+      ignored: [
+          '**/node_modules/**',
+          '**/.git/**',
+          '**/AppData/**',
+          '**/Cookies-journal',
+          '**/*.log',
+          '**/.cdp-profile/**',
+          '**/tools/.cdp-profile/**',
+          '**/.*/**',
+          '**/*.tmp',
+          '**/Thumbs.db',
+          '**/desktop.ini'
+        ]
     }
   }
 }

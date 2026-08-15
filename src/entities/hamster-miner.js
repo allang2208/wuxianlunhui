@@ -68,6 +68,11 @@ export class HamsterMiner extends Companion {
         this._deathTimer = DYING_DURATION_MS;
     }
 
+    /** 仓鼠小屋升级后刷新本矿工参数（间隔/伤害/移速/采矿效率） */
+    applyHutUpgrades(u) {
+        if (this._ai) this._ai.applyUpgrades(u);
+    }
+
     /** 主循环入口（Game.entities 每帧调用） */
     update(dt, entities) {
         if (this.hitFlash > 0) this.hitFlash = Math.max(0, this.hitFlash - dt);
@@ -91,7 +96,7 @@ export class HamsterMiner extends Companion {
         this.active = false;
         const game = (typeof window !== 'undefined' && window.Game) || null;
         if (game) {
-            if (game.entities) game.entities.delete('hamster_miner');
+            if (game.entities && this.id) game.entities.delete(this.id);
             if (Array.isArray(game.friendlyUnits)) {
                 const i = game.friendlyUnits.indexOf(this);
                 if (i >= 0) game.friendlyUnits.splice(i, 1);

@@ -580,8 +580,9 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
                 const stuckDist = Math.sqrt((targetX - enemy.x) ** 2 + (targetY - enemy.y) ** 2);
                 if (!waitAtGate && enemy._pathManager && pathFinder && stuckDist <= MAX_PATHFIND_RANGE) {
                     enemy._pathManager.forceRecalc(pathFinder, targetX, targetY, true);
-                } else if (!waitAtGate && enemy._pathManager && pathFinder && !(enemy.ai && enemy.ai.chargeStraight)) {
+                } else if (!waitAtGate && enemy._pathManager && pathFinder) {
                     // [RELAY] 超距卡住：对中继点重算而非放弃（沿用同一中继目标，避免抖动）
+                    // 直冲型怪物卡死（500ms 无位移）时同样允许接力重算——正常冲锋不受影响
                     if (!enemy._relayTarget) {
                         enemy._relayTarget = this._pickRelayPoint(enemy, targetX, targetY);
                     }
@@ -589,8 +590,8 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
                 }
 
                 // [ENHANCE] 寻路失败时向目标切线方向设置临时战术目标，尝试绕过障碍/同伴
-                // 直冲型怪物不做侧向 reposition，避免瞬间反向调头
-                if (!waitAtGate && !enemy._pathManager?.hasValidPath() && !(enemy.ai && enemy.ai.chargeStraight)) {
+                // 直冲型怪物仅在卡死（500ms 无位移）时才侧向 reposition——正常冲锋不受影响
+                if (!waitAtGate && !enemy._pathManager?.hasValidPath()) {
                     this._setStuckRepositionTarget(enemy, targetX, targetY);
                 } else {
                     // 寻路成功时清除旧的临时 reposition 目标

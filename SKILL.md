@@ -6195,6 +6195,15 @@ if (this._facing === 'left') {
   - **复盘修复**：仓库克隆保留 weaponAsset、蟠桃复活比例读配置、ESC 关仓库、仓库来源卷轴取出后刷新
   - 验证：lint / build / test-collider / test-craft-sync 全部通过
 
+- v3.5 (2026-08-15) — 世界-122 怪物卡树修复：散布树 footprint 锚点错位 + 直冲怪卡死救援
+  - **根因**：散布树排除带按贴图锚点判定，真实碰撞 footprint 中心在下方 ~150px（H2）；直冲怪卡死检测豁免接力/侧移且 _tryUnstuck 只许缩短距离（H1）；resolve 矩形障碍无切向滑动（H3）
+  - **共享口径铁律**：新增 `WallSystem.getObstacleFootprintRect()`——碰撞注册（_addPieceCollision）与散布排除带（_scatterTreesScene8）同一推导，禁止各自实现；基地房改 rect-rect 重叠排除；`game-config.json` spawnPoint 排除半径 130→180（最大怪半径 116 + 余量）
+  - **刷怪安全网**：`defense-system._spawnMonster` 出生点 canMoveTo 校验 + findSafeSpawn 螺旋外推，杜绝出生嵌入
+  - **直冲怪卡死降级**：卡死（500ms 无位移）时解除 chargeStraight 的接力寻路/侧向 reposition 豁免（正常冲锋行为不变）
+  - **矩形切向滑动**：resolve 新增 `_nearestBlockingRect` + 贴面投影（与 iso 段同口径），L/V 形树兜可沿矩形边滑出；每步仍过 canMoveTo/blocked 校验
+  - **暂缓**：_tryUnstuck"必须缩短距离"放宽（④），观望 ①②③⑤ 效果
+  - 验证：scripts/archive/_verify-scatter.mjs 散布模拟 100 棵 0 违规；eslint 0 error；vite build 通过
+
 ---
 
 ### 技术回顾与清理（2026-07-13）
