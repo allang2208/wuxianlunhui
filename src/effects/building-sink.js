@@ -21,6 +21,49 @@ class BuildingSinkEffect {
         this._dustTimer = 0;
         this._dust = [];              // { g, x, y, t, life, size }
         this._finished = false;
+        this._content = null;         // 贴图内容测量：{ frameW, frameH, bottomTexel, padding, contentH }
+    }
+
+    /** 测量贴图内容底端（最低不透明像素=与地面衔接线），缓存在首次 update */
+    _measureContent(sprite) {
+        if (this._content || !sprite || !sprite.texture) return this._content;
+        const frame = sprite.frame;
+        const src = sprite.texture.getSourceImage();
+        if (!src || !src.width || !src.height) return null;
+        const frameW = frame.width || src.width;
+        const frameH = frame.height || src.height;
+        let bottomTexel = 0;
+        try {
+            const canvas = document.createElement('canvas');
+            canvas.width = src.width;
+            canvas.height = src.height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(src, 0, 0);
+            const data = ctx.getImageData(0, 0, src.width, src.height).data;
+            for (let y = src.height - 1; y >= 0; y--) {
+                for (let x = 0; x < src.width; x++) {
+                    if (data[(y * src.width + x) * 4 + 3] > 20) {
+                        bottomTexel = y + 1;
+                        break;
+                    }
+                }
+                if (bottomTexel) break;
+            }
+        } catch (_e) {
+            bottomTexel = frameH;
+        }
+        const dispH = sprite.displayHeight || frameH;
+        // 显示框底边到内容底端的透明留白（显示像素）
+        const padding = Math.max(0, (frameH - bottomTexel) / frameH * dispH);
+        this._content = {
+            frameW: frameW,
+            frameH: frameH,
+            displayH: dispH,
+            bottomTexel: bottomTexel,
+            padding: padding,
+            contentH: Math.max(1, dispH - padding),
+        };
+        return this._content;
     }
 
     update(dt = 16.67) {
@@ -32,12 +75,16 @@ class BuildingSinkEffect {
             this._finish();
             return;
         }
+        const c = this._measureContent(sprite);
+        if (!c) {
+            this._finish();
+            return;
+        }
 
         this.timer += dt;
         const p = Math.min(1, this.timer / this.duration);
-        // 下沉：先快后慢，总深 ≈ 显示高 102%（顶部最终消失在地面接缝处）
-        const dispH = e.spriteCfg && e.spriteCfg.sizeH ? e.spriteCfg.sizeH : 120;
-        const totalSink = dispH * 1.02;
+        // 下沉：总深 = 贴图内容高（顶部最终消失在与地面衔接处，透明留白不算）
+        const totalSink = c.contentH * 1.02;
         const target = totalSink * (p * (2 - p)); // easeOutQuad
         const step = Math.max(0, target - this.sinkPx);
         if (step > 0) {
@@ -49,13 +96,11 @@ class BuildingSinkEffect {
         // 原地消失：不做任何缩放/压扁；精灵同步下移的同时，把「地面线以下」的底部
         // 裁掉——可见部分底边始终钉在原地面线，顶部一路降到地面接缝处消失（不整图下滑）
         if (sprite.active) {
-            const frameW = sprite.width || sprite.texture?.width || 0;
-            const frameH = sprite.height || sprite.texture?.height || 0;
-            const dispW = sprite.displayWidth || frameW;
-            const dispH2 = sprite.displayHeight || frameH;
-            if (frameH > 0 && dispH2 > 0) {
-                const sunkTexel = Math.min(frameH, this.sinkPx * (frameH / dispH2));
-                sprite.setCrop(0, 0, frameW, Math.max(0, frameH - sunkTexel));
+            if (c.frameH > 0 && c.displayH > 0) {
+                // 可见底边钉在贴图内容底端（地面接缝 G0 = baseY - padding）
+                const visibleH = Math.max(0, c.contentH - this.sinkPx);
+                const cropH = Math.min(c.frameH, visibleH / c.displayH * c.frameH);
+                sprite.setCrop(0, 0, c.frameW, cropH);
             }
         }
 
@@ -78,7 +123,8 @@ class BuildingSinkEffect {
         const g = scene.add.graphics();
         if (scene.worldEffectsGroup) scene.worldEffectsGroup.add(g);
         const x = e.x + (Math.random() - 0.5) * (e.spriteCfg && e.spriteCfg.size ? e.spriteCfg.size * 0.8 : 120);
-        const y = this.baseY - 6 + Math.random() * 10; // 固定在地面接缝
+        const pad = this._content ? this._content.padding : 0;
+        const y = (this.baseY - pad) - 6 + Math.random() * 10; // 固定在贴图内容底端（地面接缝）
         let d = y + 30;
         const WS = (typeof window !== 'undefined') ? window.WallSystem : null;
         if (WS && typeof WS.junctionCorrectedDepth === 'function') d = WS.junctionCorrectedDepth(x, y, y + 30);
