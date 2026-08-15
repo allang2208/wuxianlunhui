@@ -669,3 +669,12 @@ this.ai = config.ai || {};
      贴图/深度锚点）。
 - **验证**：逻辑仿真——门开、掩体段裁剪后，玩家贴左柱/贴右柱/走中三条路径
   全部 PASS（裁剪前贴柱 60px 处被截停）；门实体不再推玩家（0 次分离）。
+
+### 42.6 门对友军感应：侍从不在 Game.entities，需扫 PartySystem._members（2026-08-16）
+- **症状**：门只对玩家有反应——友方侍从靠近门不开、被挡在门外。
+- **根因**：`nearbyFriendlyUnit` 只扫 `Game.player` + `Game.entities`，而侍从
+  （Companion）挂在 `PartySystem._members`（game.js 挂载为 `Game.PartySystem`），
+  不在 entities 里，感应永远扫不到。
+- **正解**：感应扫描追加 `Game.PartySystem.members`（faction='companion' 已在
+  scan 白名单内），玩家/侍从任一靠近 OPEN_RADIUS 即开门；排除塔/掩体/基地照旧。
+- **验证**：逻辑仿真——玩家远（300px）+ 侍从近（80px）→ 门开；无侍从且玩家远 → 门关。

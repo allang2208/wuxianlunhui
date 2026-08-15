@@ -1,4 +1,14 @@
 # 变更日志
+### 对话：门对友军感应修复——侍从也能自由进出（2026-08-16）
+- **症状**：门只对玩家有反应，友方侍从靠近不开门、被挡在门外。
+- **根因**：`nearbyFriendlyUnit` 只扫 `Game.player` + `Game.entities`，而侍从
+  （Companion）挂在 `PartySystem._members`（game.js 挂载为 `Game.PartySystem`），
+  不在 entities 里，感应永远扫不到。
+- **修复**：感应扫描追加 `Game.PartySystem.members`（faction='companion' 已在
+  scan 白名单内），玩家/侍从任一靠近 150px 即开门；排除塔/掩体/基地照旧。
+- **验证**：逻辑仿真——玩家远（300px）+ 侍从近（80px）→ 门开；无侍从且玩家远 → 门关；
+  eslint 0 error（3 条既有 warning 未新增）；vite build ✓。
+
 ### 对话：门"卡柱/开门瞬移"四修——门实体不进分离 + 掩体段回退（2026-08-16）
 - **症状（三修后仍复现）**：玩家还是卡在门柱上，开门瞬间"直接瞬移过去"。
 - **根因一**：`BuildableGate` 的 198×133 矩形实体碰撞照常参与

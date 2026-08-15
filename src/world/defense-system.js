@@ -2468,7 +2468,9 @@ export const DefenseSystem = {
 
 // ==================== 基地铁栅栏滑动门（2026-08-15）====================
 // Blender 建模 + 掩体同款砖墙/铸铁贴图 + 16 帧横向缩进动画；关闭=阻挡门洞，打开=放行。
-/** 最近友军单位（玩家/侍从；排除同为 player 阵营的防御塔/掩体/基地）。 */
+/** 最近友军单位（玩家/侍从；排除同为 player 阵营的防御塔/掩体/基地）。
+ *  侍从不在 Game.entities 里（存于 PartySystem._members），必须单独扫描，
+ *  否则门只对玩家有反应。 */
 function nearbyFriendlyUnit(cx, cy) {
     let best = null;
     let bestD = Infinity;
@@ -2482,6 +2484,11 @@ function nearbyFriendlyUnit(cx, cy) {
     if (Game && Game.player) scan(Game.player);
     if (Game && Game.entities) {
         for (const e of Game.entities.values()) scan(e);
+    }
+    // 侍从挂在 Game.PartySystem（party-system.js 单例，game.js 挂载），不在 entities
+    const party = (Game && Game.PartySystem) || null;
+    if (party && Array.isArray(party.members)) {
+        for (const e of party.members) scan(e);
     }
     return best;
 }
