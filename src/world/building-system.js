@@ -9,6 +9,7 @@
 import { Game } from '../game.js';
 import { WallSystem } from './wall-system.js';
 import { GoldManager } from '../systems/gold-manager.js';
+import { EnergyManager } from '../systems/energy-manager.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
 import { SoundManager } from '../ui/sound-manager.js';
@@ -57,7 +58,7 @@ function effOrient(itemOrOrient, mirror) {
 }
 
 export const BUILD_ITEMS = [
-    { id: 'tower', name: '防御塔', cost: 300, tex: 'obstacle_defense_tower', kind: 'tower' },
+    { id: 'tower', name: '防御塔', cost: 300, tex: 'obstacle_defense_tower', kind: 'tower', currency: 'energy' },
 ];
 for (const grade of ['F', 'E', 'D', 'C', 'B', 'A']) {
     // 只保留一种掩体条目（垂直 "/" 向）；F 键镜像即得水平 "\" 向（mirror → eff 交换），
@@ -70,9 +71,10 @@ for (const grade of ['F', 'E', 'D', 'C', 'B', 'A']) {
         kind: 'cover',
         cost: DEFENSE_CONFIG.covers.hp[grade] * 0.25,
         tex: `obstacle_cover_${grade}_v`,
+        currency: 'energy', // 掩体/防御塔用世界-122 能源修建（2026-08-14）
     });
 }
-// 陷阱：4 类 × F~A 六档（数据源 TRAP_CONFIG，唯一真源）
+// 陷阱：4 类 × F~A 六档（数据源 TRAP_CONFIG，唯一真源）——陷阱维持金币购买
 for (const type of Object.keys(TRAP_CONFIG)) {
     const t = TRAP_CONFIG[type];
     for (const grade of TRAP_GRADES) {
@@ -88,6 +90,7 @@ for (const type of Object.keys(TRAP_CONFIG)) {
             tex: t.tex,
             trapW: t.w,
             trapH: t.h,
+            currency: 'gold',
         });
     }
 }
@@ -104,6 +107,7 @@ export const BuildingSystem = {
     _moveFn: null,
     _keyFn: null,
     _seq: 0,
+    _refreshTimer: null,
 
     toggle() {
         if (this.active) this.close();
@@ -129,6 +133,9 @@ export const BuildingSystem = {
         window.addEventListener('mousedown', this._downFn);
         window.addEventListener('mousemove', this._moveFn);
         window.addEventListener('keydown', this._keyFn, true);
+        // 面板顶行货币实时刷新（采集能源/击杀金币时数字即时跳动，2026-08-14）
+        clearInterval(this._refreshTimer);
+        this._refreshTimer = setInterval(() => this._refreshCurrencies(), 500);
         if (Game.player) {
             EffectManager.add(new FloatingTextEffect(Game.player.x, Game.player.y - 50, '建筑面板（B 关闭）', '#9acd9a'));
         }
@@ -138,6 +145,8 @@ export const BuildingSystem = {
         if (!this.active) return;
         this.active = false;
         Game._buildMode = false;
+        clearInterval(this._refreshTimer);
+        this._refreshTimer = null;
         this._cancelPlacement();
         if (this._downFn) window.removeEventListener('mousedown', this._downFn);
         if (this._moveFn) window.removeEventListener('mousemove', this._moveFn);
@@ -156,15 +165,21 @@ export const BuildingSystem = {
         const el = document.createElement('div');
         el.className = 'wall-editor-panel';
         const gold = GoldManager ? GoldManager.getGold() : 0;
+        const energy = EnergyManager ? EnergyManager.getEnergy() : 0;
         el.innerHTML = `
             <div class="we-title">建筑面板（世界-122） <span class="we-close" id="bpClose">×</span></div>
-            <div class="we-info" id="bpGold">金币：<b style="color:#ffd700;">${gold}</b>（点击建筑后到场景里放置）</div>
-            <div class="we-grid we-std-scroll" id="bpGrid" style="max-height:52vh;overflow-y:auto;">
-                ${BUILD_ITEMS.map((it) => `
-                    <div class="we-thumb" data-id="${it.id}" title="${it.name} — ${it.cost} 金币">
+            <div class="we-info" id="bpCur">
+                金币：<b style="color:#ffd700;">${gold}</b>&nbsp;&nbsp;能源：<b style="color:#7fd4ff;">${energy}</b>（点击建筑后到场景里放置）
+            </div>
+            <div class="we-grid we-std-scroll" id="bpGrid" style="max-height:62vh;overflow-y:auto;">
+                ${BUILD_ITEMS.map((it) => {
+                    const cur = it.currency === 'energy' ? '能' : '金';
+                    return `
+                    <div class="we-thumb" data-id="${it.id}" title="${it.name} — ${it.cost} ${cur}">
                         <img src="assets/terrain/${it.tex}.png" draggable="false" alt="${it.name}">
-                        <span>${it.name}<br><em style="color:#ffd700;font-style:normal;">${it.cost}金</em></span>
-                    </div>`).join('')}
+                        <span>${it.name}<br><em style="color:${it.currency === 'energy' ? '#7fd4ff' : '#ffd700'};font-style:normal;">${it.cost}${cur}</em></span>
+                    </div>`;
+                }).join('')}
             </div>
             <div class="we-row">
                 <button id="bpMirror" title="镜像翻转摆放方向（F）">镜像 F</button>
@@ -173,7 +188,7 @@ export const BuildingSystem = {
             </div>
             <div class="we-hints">
                 B=开/关面板 | 点击建筑后移动鼠标预览<br>
-                左键放置（扣金币）| F=镜像（垂直↔水平）| 右键/Esc=取消<br>
+                左键放置（掩体/塔扣能源，陷阱扣金币）| F=镜像（垂直↔水平）| 右键/Esc=取消<br>
                 掩体靠近已有掩体端点自动吸附（变绿=已吸附）<br>
                 墙段只能端点拼接，不能重叠摆放
             </div>`;
@@ -190,12 +205,17 @@ export const BuildingSystem = {
         });
     },
 
-    _refreshGold() {
+    _refreshCurrencies() {
         if (!this._panel) return;
-        const el = this._panel.querySelector('#bpGold');
+        const el = this._panel.querySelector('#bpCur');
         if (el) {
-            el.innerHTML = `金币：<b style="color:#ffd700;">${GoldManager ? GoldManager.getGold() : 0}</b>（点击建筑后到场景里放置）`;
+            el.innerHTML = `金币：<b style="color:#ffd700;">${GoldManager ? GoldManager.getGold() : 0}</b>&nbsp;&nbsp;能源：<b style="color:#7fd4ff;">${EnergyManager ? EnergyManager.getEnergy() : 0}</b>（点击建筑后到场景里放置）`;
         }
+    },
+
+    // 兼容旧调用名（面板货币显示统一走 _refreshCurrencies）
+    _refreshGold() {
+        this._refreshCurrencies();
     },
 
     _selectItem(item) {
@@ -222,7 +242,7 @@ export const BuildingSystem = {
             }
         }
         const sel = this._panel && this._panel.querySelector('#bpSel');
-        if (sel) sel.textContent = `${item.name}（${item.cost}金）— 左键放置 / F 镜像`;
+        if (sel) sel.textContent = `${item.name}（${item.cost}${item.currency === 'energy' ? '能' : '金'}）— 左键放置 / F 镜像`;
     },
 
     _coverAspect(item) {
@@ -485,8 +505,13 @@ export const BuildingSystem = {
             this._notify('该位置无法放置', '#ff5555');
             return;
         }
-        if (!GoldManager || !GoldManager.deductGold(item.cost)) {
-            this._notify('金币不足', '#ff5555');
+        // 货币扣费：掩体/防御塔扣能源（世界-122 采集所得），陷阱扣金币
+        const currency = item.currency === 'energy' ? 'energy' : 'gold';
+        const payOk = currency === 'energy'
+            ? (EnergyManager && EnergyManager.deductEnergy(item.cost))
+            : (GoldManager && GoldManager.deductGold(item.cost));
+        if (!payOk) {
+            this._notify(currency === 'energy' ? '能源不足（攻击资源点采集）' : '金币不足', '#ff5555');
             return;
         }
         const id = `built_${item.id}_${++this._seq}`;
@@ -514,9 +539,10 @@ export const BuildingSystem = {
         if (SoundManager && typeof SoundManager.playFile === 'function') {
             SoundManager.playFile('assets/sounds/ui/sell.wav');
         }
-        this._notify(`${item.name} 已放置（-${item.cost} 金币）`, '#ffd700');
+        const cur = item.currency === 'energy' ? '能' : '金';
+        this._notify(`${item.name} 已放置（-${item.cost} ${cur}）`, item.currency === 'energy' ? '#7fd4ff' : '#ffd700');
         this._snapped = null;
-        this._refreshGold();
+        this._refreshCurrencies();
     },
 };
 

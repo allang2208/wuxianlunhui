@@ -75,6 +75,7 @@ import { CompanionAI } from './ai/companion-ai.js';
 import { PartyUI } from './ui/party-ui.js';
 import { RecruitUI } from './ui/recruit-ui.js';
 import { CompanionPanel } from './ui/companion-panel.js';
+import { CompanionCommandWheel } from './ui/companion-command-wheel.js';
 import { CodexManager } from './ui/codex-manager.js';
 import { SystemUI } from './ui/system-ui.js';
 import { UIState } from './ui/ui-state.js';
@@ -107,6 +108,8 @@ export const Game = {
         // 注册侍从 AI 工厂（浏览器运行时；companion-config.ai 驱动远程法师等）
         PartySystem.registerAI('mage_luna', (companion) => new CompanionAI(companion));
         PartyUI.init();
+        // 队员指挥轮盘（长按中键五指令：跟随/主动攻击/巡逻/采集/待命）
+        CompanionCommandWheel.init();
         this.EquipManager = EquipManager; // 供侍从面板背包拖动交换访问
         this.PartySystem = PartySystem;   // 供调试/其他模块访问队伍
         this.RecruitUI = RecruitUI;       // 招募界面（单一模块实例，调试/外部调用用 window.Game.RecruitUI）
@@ -1452,6 +1455,42 @@ const pickupCfg = GAME_CONFIG.pickup || {};
                         if (entity._destroyPhaserSprite) entity._destroyPhaserSprite();
                         this.entities.delete(key);
                         EffectManager.add(new FloatingTextEffect(entity.x, entity.y - 20, `+${entity.itemData.stack} 金币`, '#ffd700'));
+                        if (SoundManager) {
+                            SoundManager.playFile('assets/sounds/ui/coins_wood_sharp.mp3');
+                        }
+                    } else {
+                        BackpackDialogManager._showBackpackFullNotice();
+                    }
+                }
+                // 能源自动拾取（世界-122 资源点产出；同金币自动吸附口径）
+            } else if (entity instanceof DropItem && entity.itemData && entity.itemData.category === 'energy') {
+                const dx = entity.x - this.player.x;
+                const dy = entity.y - this.player.y;
+                const distSq = dx * dx + dy * dy;
+                if (distSq <= goldAutoRangeSq) {
+                    const maxStack = entity.itemData.maxStack || 999;
+                    let stacked = false;
+                    for (const bpItem of EquipManager.backpackItems) {
+                        if (bpItem.category === 'energy' && bpItem.stack < (bpItem.maxStack || maxStack)) {
+                            bpItem.stack += entity.itemData.stack;
+                            stacked = true;
+                            break;
+                        }
+                    }
+                    if (stacked) {
+                        entity.active = false;
+                        if (entity._destroyPhaserSprite) entity._destroyPhaserSprite();
+                        this.entities.delete(key);
+                        EffectManager.add(new FloatingTextEffect(entity.x, entity.y - 20, `+${entity.itemData.stack} 能源`, '#7fd4ff'));
+                        if (SoundManager) {
+                            SoundManager.playFile('assets/sounds/ui/coins_wood_sharp.mp3');
+                        }
+                    } else if (EquipManager.backpackItems.length < EquipManager.maxBackpackSlots) {
+                        EquipManager.addToBackpack(entity.itemData);
+                        entity.active = false;
+                        if (entity._destroyPhaserSprite) entity._destroyPhaserSprite();
+                        this.entities.delete(key);
+                        EffectManager.add(new FloatingTextEffect(entity.x, entity.y - 20, `+${entity.itemData.stack} 能源`, '#7fd4ff'));
                         if (SoundManager) {
                             SoundManager.playFile('assets/sounds/ui/coins_wood_sharp.mp3');
                         }

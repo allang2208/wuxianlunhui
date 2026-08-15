@@ -2,6 +2,7 @@ import { Input } from '../ui/input.js';
 import { Entity } from './entity.js';
 import { loadImage } from '../utils/image-loader.js';
 import { RARITY_COLORS } from '../config/rarity.js';
+import { Renderer } from '../world/renderer.js';
 
         /**
          * 烘培带稀有度轮廓光晕的纹理（离屏 canvas，一次性生成缓存，渲染零开销）。
@@ -94,10 +95,9 @@ import { RARITY_COLORS } from '../config/rarity.js';
                 }
 
                 const bobY = Math.sin(this.bobOffset) * 5; // 轻微上下抖动（±5px）
-                const camera = phaserScene.cameras.main;
-                const mx = Input.mouse.x + camera.scrollX;
-                const my = Input.mouse.y + camera.scrollY;
-                const hover = Math.sqrt((mx - this.x) ** 2 + (my - (this.y + bobY)) ** 2) < 52;
+                // 2026-08-14：悬停判定走统一相机矩阵换算（Renderer.screenToWorld），任意 zoom 正确
+                const mw = Renderer.screenToWorld(Input.mouse.x, Input.mouse.y);
+                const hover = Math.sqrt((mw.x - this.x) ** 2 + (mw.y - (this.y + bobY)) ** 2) < 52;
                 // 贴图放大 40%：48→67，悬停 60→84；贴图保持上下浮动
                 const size = hover ? 84 : 67;
 

@@ -15,14 +15,28 @@ import { FireballSystem } from '../entities/components/fireball-system.js';
 import { IceSpikeSystem } from '../entities/components/ice-spike-system.js';
 import { LightningStrikeSystem } from '../entities/components/lightning-strike-system.js';
 import { HolyLightSystem } from '../entities/components/holy-light-system.js';
+import { Game } from '../game.js';
+import { EnergyManager, ENERGY_ITEM } from '../systems/energy-manager.js';
+import { EffectManager } from '../effects/effect-manager.js';
+import { FloatingTextEffect } from '../effects/floating-text.js';
+import { getConsumableEffect, applyConsumableEffect } from '../config/consumable.js';
 import {
     DEFAULT_MAGE_AI, decideCompanionAction, pickCompanionSpell,
     shouldRelocateCompanion, shouldUseRun,
+    pickPatrolPoint, pickNearestNode,
 } from './companion-ai-decision.js';
 
 const MELEE_THREAT_RANGE = 220; // 攻击距离低于此值视为近战威胁
 // 技能射程兜底（与技能系统默认一致；skills.json effectFormula 通常不含 maxRange）
 const SKILL_RANGE_FALLBACK = { fireball: 1200, iceSpike: 800, lightningStrike: 600 };
+// 指令模式常量（指挥轮盘，2026-08-14）
+const CMD_PATROL_RADIUS = 1200;   // 巡逻半径（用户口径）
+const CMD_PATROL_SENSE = 520;     // 巡逻遇敌感知距离
+const CMD_GATHER_ATTACK_RANGE = 280; // 采集攻击距离
+const CMD_GATHER_ATTACK_MS = 800;    // 采集攻击间隔（普通攻击）
+const CMD_GATHER_PICKUP_RANGE = 80;  // 采集掉落自动拾取半径
+const CMD_GATHER_BAG_FULL = 999;     // 采集袋容量（1 堆叠满）
+const CMD_GATHER_TRANSFER_RANGE = 160; // 移交玩家距离
 
 export class CompanionAI {
     constructor(companion) {
@@ -41,7 +55,15 @@ export class CompanionAI {
         this._stuckSamples = [];
         this._stuckStreak = 0;
         this._teleportCd = 0;
+        this._consumableTimer = 0;
+        this._basicAtkCd = 0;   // 普通攻击间隔 CD（ms）
         this._lastPlayerDist = null; // 掉队判定：记录上一帧与玩家距离，检测是否在有效追赶
+        // 指挥轮盘指令状态（2026-08-14）
+        this._bolts = [];           // 采集普通攻击弹体
+        this._patrolTarget = null;  // 巡逻随机目标点
+        this._patrolTimer = 0;      // 巡逻换点计时
+        this._gatherAtkTimer = 0;   // 采集攻击间隔
+        this._gatherPhase = 'work'; // 'work' 采集 | 'return' 满载回玩家
     }
 
     /** 懒构造技能系统（仅在运行时；避免 node 单测加载 Phaser 依赖链） */
@@ -55,6 +77,58 @@ export class CompanionAI {
             holyLight: new HolyLightSystem(c),
         };
         return this._systems;
+    }
+
+    /**
+     * 消耗品自动使用（2026-08-15）：生命/魔法低于设置阈值时，
+     * 从背包选对应恢复药水（低级→高级，level 升序）使用。
+     * 设置存 companion.consumableSettings（背包界面"消耗品使用设置"可改）。
+     */
+    _useAutoConsumable() {
+        const c = this.c;
+        const st = c.consumableSettings || {};
+        if (!st.enabled) return false;
+        const d = c.data;
+        let used = false;
+        const pick = (need) => {
+            const items = (c.backpack || []).filter(b => {
+                if (!b || b.category !== 'consumable') return false;
+                const eff = getConsumableEffect(b);
+                return eff && (eff[need] || 0) > 0;
+            });
+            // 低级→高级：level 升序，同级按恢复量升序（后续新增更高级消耗品自动排后）
+            items.sort((a, b) => (a.level || 1) - (b.level || 1)
+                || ((getConsumableEffect(a)[need] || 0) - (getConsumableEffect(b)[need] || 0)));
+            return items[0] || null;
+        };
+        if (d.maxHp > 0 && d.hp / d.maxHp < (st.hpThreshold ?? 0.3)) {
+            const item = pick('hp');
+            if (item) {
+                if (applyConsumableEffect(c, item)) {
+                    this._consumeStack(item);
+                    used = true;
+                }
+            }
+        }
+        // HP/MP 各自独立判定（互不阻塞：生命和魔法可能同时低于阈值）
+        if (d.maxMp > 0 && d.mp / d.maxMp < (st.mpThreshold ?? 0.25)) {
+            const item = pick('mp');
+            if (item) {
+                if (applyConsumableEffect(c, item)) {
+                    this._consumeStack(item);
+                    used = true;
+                }
+            }
+        }
+        return used;
+    }
+
+    _consumeStack(item) {
+        const c = this.c;
+        const idx = (c.backpack || []).findIndex(b => b && b.slot === item.slot && b.name === item.name);
+        if (idx === -1) return;
+        if (item.stack > 1) item.stack--;
+        else c.backpack.splice(idx, 1);
     }
 
     /** 每帧入口（由 PartySystem.updateCombat 调用） */
@@ -99,8 +173,10 @@ export class CompanionAI {
         // 掉队瞬移（理智版，2026-08-14）：区分"被卡住/卡门外导致的距离过远"（瞬移）
         // 与"正常 AI 运作（躲避敌人/战斗站位/追赶中）导致的距离过远"（不瞬移）。
         // 卡住证据 = 距离超阈值 + PathManager stuckCount / 撞墙；正常远离 = flee/站位/施法/距离在缩小。
+        // 指挥指令（巡逻/采集/主动攻击）允许远离玩家：这些模式跳过掉队瞬移（指令自带寻路重试）。
+        const cmdMode = c._command && c._command.mode;
         this._relocateTimer -= dt;
-        if (this._relocateTimer <= 0) {
+        if (this._relocateTimer <= 0 && (!cmdMode || cmdMode === 'follow')) {
             this._relocateTimer = 1500;
             if (this._evaluateRelocate(player)) {
                 const sp = this._findValidSpawn(player);
@@ -140,8 +216,30 @@ export class CompanionAI {
 
         // 队友防卡死：位移型卡死检测 + 瞬移脱离（只作用于队员，不影响玩家/敌人；
         // 门闸等动态障碍 MovementSystem 的 GATE-WAIT 面向怪物选择等待，队友直接瞬移跟上）
+        // 指挥指令（巡逻/采集/主动攻击）跳过：瞬移回玩家会打断采集/巡逻，指令层自带重新寻路
         this._teleportCd = Math.max(0, this._teleportCd - dt);
-        this._checkStuck(dt, player);
+        if (!cmdMode || cmdMode === 'follow') {
+            this._checkStuck(dt, player);
+        }
+
+        // 采集普通攻击弹体推进 + 掉落拾取（指挥指令·采集）
+        // 消耗品自动使用（1s 节流）：HP/MP 低于阈值时按低级→高级用对应恢复药水
+        this._consumableTimer -= dt;
+        if (this._consumableTimer <= 0) {
+            this._consumableTimer = 1000;
+            if (this._useAutoConsumable() && window.Game && window.Game.PartySystem) {
+                window.Game.PartySystem._notify();
+            }
+        }
+
+        // 普通攻击：CD 推进 + 光球飞行/命中结算
+        if (this._basicAtkCd > 0) this._basicAtkCd = Math.max(0, this._basicAtkCd - dt);
+        this._updateBasic(dt);
+
+        this._updateGatherBolt(dt);
+        if (cmdMode === 'gather') {
+            this._pickupEnergyDrops();
+        }
 
         // 动画兜底（决策外的每帧：施法结束但没来得及决策时按速度回退）
         if (c._castState === 'idle' && !c._frozenForCast && c._animState === 'spell') {
@@ -261,8 +359,10 @@ export class CompanionAI {
     _updateCast(dt) {
         const c = this.c;
         if (c._castState === 'idle') return;
-        this._castTimer -= dt;
-        if (this._castTimer <= 0) {
+        // 计时器存 companion 字段（_tryCast 写 c._castTimer）——此前误读实例字段
+        // this._castTimer（恒 0）导致施法首帧即结束，spell 动画被跳过（2026-08-15）
+        c._castTimer = (c._castTimer || 0) - dt;
+        if (c._castTimer <= 0) {
             c._castState = 'idle';
             c._frozenForCast = false;
             c._animState = 'idle';
@@ -273,6 +373,13 @@ export class CompanionAI {
 
     _tick(entities, player) {
         const c = this.c;
+        // 指挥指令层（2026-08-14）：非 follow 指令直接走指令行为，不再进入默认状态机
+        const cmd = c._command || null;
+        if (cmd && cmd.mode && cmd.mode !== 'follow') {
+            this._applyCommand(entities, player, cmd);
+            if (c._castState !== 'idle' || c._frozenForCast) c._animState = 'spell';
+            return;
+        }
         const enemies = this._activeEnemies(entities);
         const threat = this._nearestMeleeThreat(enemies, c);
         const threatDist = threat ? Math.hypot(threat.x - c.x, threat.y - c.y) : null;
@@ -287,8 +394,9 @@ export class CompanionAI {
         }
         const targetDist = c.target ? Math.hypot(c.target.x - c.x, c.target.y - c.y) : null;
 
-        // 技能就绪判断（含射程/MP/冷却）
+        // 技能就绪判断（含射程/MP/冷却）；无法术时普通攻击兜底（蓝色光球）
         const spell = hasEnemy && c.target ? this._pickReadySpell(enemies, c.target, targetDist) : null;
+        const basic = hasEnemy && c.target ? this._basicReady(targetDist) : false;
 
         // 状态机：follow 距离以"到跟随点"为准（到玩家距离恒为偏移量，会导致永远走不到而停不下来）
         const followPoint = hasEnemy ? null : this._followPoint(player);
@@ -300,24 +408,26 @@ export class CompanionAI {
             safeDistance: this.cfg.safeDistance || 230,
             targetDist,
             combatRange: this.cfg.combatRange || 640,
-            spellReady: !!spell,
+            spellReady: !!spell || !!basic,
             followDist,
             followArriveDist: this.cfg.followArriveDist || 55,
         });
         this._lastAction = action;
-        this._applyAction(action, { player, enemies, threat, targetDist, spell });
+        c._lastAction = action; // 同步到 companion，供渲染层朝向/深度等消费
+        this._applyAction(action, { player, enemies, threat, targetDist, spell, basic });
         // 施法站定期间动画保持 spell（后续决策 tick 不应覆盖）
         if (c._castState !== 'idle' || c._frozenForCast) c._animState = 'spell';
     }
 
     _applyAction(action, ctx) {
         const c = this.c;
-        const { player, threat, targetDist, spell } = ctx;
+        const { player, threat, targetDist, spell, basic } = ctx;
         c._tacticalTarget = null;
         // 施法锁定中：保持 spell 动画并停止移动，直接返回——
         // 决策仍返回 'cast'（casting 优先），但 spell 可能已进 CD 为 null，
         // 不能走下方默认 idle 重置（会把施法动画砍掉）。
-        if (c._castState !== 'idle' || c._frozenForCast) {
+        // 例外：action === 'flee'（近战贴脸保命优先）→ 打断施法走 flee 分支。
+        if (action !== 'flee' && (c._castState !== 'idle' || c._frozenForCast)) {
             c._animState = 'spell';
             c.vx = 0; c.vy = 0; c.isMoving = false;
             return;
@@ -331,9 +441,14 @@ export class CompanionAI {
         switch (action) {
             case 'cast':
                 if (spell && c.target) this._tryCast(spell, c.target);
+                else if (basic && c.target) this._tryBasicAttack(c.target);
                 break;
             case 'flee':
                 if (threat) {
+                    // 打断施法（贴脸保命优先，2026-08-15）
+                    c._castState = 'idle';
+                    c._frozenForCast = false;
+                    c._castTimer = 0;
                     c.target = null;
                     c._tacticalTarget = this._retreatPoint(threat, player);
                     // 逃避敌人：永远 run
@@ -397,10 +512,308 @@ export class CompanionAI {
         return shouldUseRun(mode, dist, this.cfg);
     }
 
+    // ==================== 指挥指令（轮盘五指令，2026-08-14）====================
+
+    /** 非 follow 指令主入口（决策 tick 调用）：aggressive / patrol / gather / hold */
+    _applyCommand(entities, player, cmd) {
+        const c = this.c;
+        // 施法锁定中不打断
+        if (c._castState !== 'idle' || c._frozenForCast) {
+            c._animState = 'spell';
+            c.vx = 0; c.vy = 0; c.isMoving = false;
+            return;
+        }
+        // 默认回 idle 并停止（与 _applyAction 同口径，防止指令切换残留动画状态）
+        this._setMoveState('idle');
+        c.vx = 0; c.vy = 0; c.isMoving = false;
+        c._tacticalTarget = null;
+
+        switch (cmd.mode) {
+            case 'hold': {
+                // 待命：不移动、不攻击，保持 idle
+                c.target = null;
+                break;
+            }
+            case 'aggressive': this._cmdAggressive(entities, player); break;
+            case 'patrol': this._cmdPatrol(entities, player, cmd); break;
+            case 'gather': this._cmdGather(entities, player, cmd); break;
+        }
+        // 朝向：施法/攻击面朝目标
+        if (c.target) c.rotation = Math.atan2(c.target.y - c.y, c.target.x - c.x);
+    }
+
+    /** 主动攻击：全图搜索最近敌人主动追击/施法；近战威胁贴脸仍保留 flee 保命 */
+    _cmdAggressive(entities, player) {
+        const c = this.c;
+        const enemies = this._activeEnemies(entities);
+        if (!enemies.length) {
+            this._cmdFollowOnly(player);
+            return;
+        }
+        const threat = this._nearestMeleeThreat(enemies, c);
+        const threatDist = threat ? Math.hypot(threat.x - c.x, threat.y - c.y) : null;
+        if (threatDist !== null && threatDist < (this.cfg.safeDistance || 230)) {
+            c.target = null;
+            c._tacticalTarget = this._retreatPoint(threat, player);
+            this._setMoveState('run');
+            return;
+        }
+        // 全图最近敌人（不受 combatRange 1.3 倍锁定限制——主动攻击允许跨图追击）
+        let best = null; let bestD = Infinity;
+        for (const e of enemies) {
+            const d = Math.hypot(e.x - c.x, e.y - c.y);
+            if (d < bestD) { best = e; bestD = d; }
+        }
+        c.target = best;
+        const spell = this._pickReadySpell(enemies, c.target, bestD);
+        if (spell && bestD <= (this.cfg.combatRange || 640)) {
+            this._tryCast(spell, c.target);
+            return;
+        }
+        // 追击：站位点朝目标推进（无玩家距离上限）
+        const standRange = (this.cfg.combatRange || 640) * 0.72;
+        if (bestD > standRange * 0.9) {
+            c._tacticalTarget = this._standPoint(c.target, standRange);
+            this._setMoveState(this._shouldRun(bestD, 'advance') ? 'run' : 'walk');
+        }
+    }
+
+    /** 巡逻：以指令点（缺省当前位置）为圆心 1200px 随机游走；遇敌反击；无目标圈内随机移动 */
+    _cmdPatrol(entities, player, cmd) {
+        const c = this.c;
+        const center = cmd.point || { x: c.x, y: c.y };
+        const enemies = this._activeEnemies(entities);
+        const near = enemies.filter((e) => Math.hypot(e.x - c.x, e.y - c.y) <= CMD_PATROL_SENSE);
+        if (near.length) {
+            // 遇敌：贴脸 flee（撤退点钳制在巡逻圈内），否则锁定最近者施法/追击
+            const threat = this._nearestMeleeThreat(near, c);
+            const threatDist = threat ? Math.hypot(threat.x - c.x, threat.y - c.y) : null;
+            if (threatDist !== null && threatDist < (this.cfg.safeDistance || 230)) {
+                c.target = null;
+                c._tacticalTarget = this._clampToCircle(this._retreatPoint(threat, player), center, CMD_PATROL_RADIUS);
+                this._setMoveState('run');
+                return;
+            }
+            let best = null; let bestD = Infinity;
+            for (const e of near) {
+                const d = Math.hypot(e.x - c.x, e.y - c.y);
+                if (d < bestD) { best = e; bestD = d; }
+            }
+            c.target = best;
+            const spell = this._pickReadySpell(near, c.target, bestD);
+            if (spell && bestD <= (this.cfg.combatRange || 640)) {
+                this._tryCast(spell, c.target);
+                return;
+            }
+            if (bestD > (this.cfg.combatRange || 640) * 0.9) {
+                const sp = this._standPoint(c.target, (this.cfg.combatRange || 640) * 0.72);
+                c._tacticalTarget = this._clampToCircle(sp, center, CMD_PATROL_RADIUS);
+                this._setMoveState(this._shouldRun(bestD, 'advance') ? 'run' : 'walk');
+            }
+            return;
+        }
+        // 无目标：圈内随机游走（2~4s 换点；到位即 idle）
+        this._patrolTimer -= this.cfg.decisionMs || 120;
+        const arrived = this._patrolTarget
+            && Math.hypot(this._patrolTarget.x - c.x, this._patrolTarget.y - c.y) < 60;
+        if (!this._patrolTarget || arrived || this._patrolTimer <= 0) {
+            this._patrolTimer = 2000 + Math.random() * 2000;
+            this._patrolTarget = pickPatrolPoint({ center, radius: CMD_PATROL_RADIUS });
+        }
+        c._tacticalTarget = this._patrolTarget;
+        const d = Math.hypot(this._patrolTarget.x - c.x, this._patrolTarget.y - c.y);
+        if (d > 60) this._setMoveState(this._shouldRun(d, 'follow') ? 'run' : 'walk');
+    }
+
+    /** 点钳制到巡逻圆内 */
+    _clampToCircle(p, center, radius) {
+        const dx = p.x - center.x;
+        const dy = p.y - center.y;
+        const d = Math.hypot(dx, dy) || 1;
+        if (d <= radius) return { x: p.x, y: p.y };
+        return { x: center.x + (dx / d) * radius, y: center.y + (dy / d) * radius };
+    }
+
+    /** 采集：前往距指令点最近的资源点用普通攻击采集；袋满（999）回玩家移交；节点枯竭自动换下一个 */
+    _cmdGather(entities, player, cmd) {
+        const c = this.c;
+        // 近战威胁贴脸：先保命（撤退含朝玩家分量）
+        const enemies = this._activeEnemies(entities);
+        const threat = this._nearestMeleeThreat(enemies, c);
+        const threatDist = threat ? Math.hypot(threat.x - c.x, threat.y - c.y) : null;
+        if (threatDist !== null && threatDist < (this.cfg.safeDistance || 230)) {
+            c.target = null;
+            c._tacticalTarget = this._retreatPoint(threat, player);
+            this._setMoveState('run');
+            return;
+        }
+        // 袋满 → 回玩家移交
+        if (this._gatherPhase === 'return') {
+            const d = Math.hypot(player.x - c.x, player.y - c.y);
+            if (d <= CMD_GATHER_TRANSFER_RANGE) {
+                this._transferEnergyToPlayer(player);
+                return;
+            }
+            c._tacticalTarget = this._followPoint(player);
+            this._setMoveState('run');
+            return;
+        }
+        // 找资源点：优先距指令点最近，否则距玩家最近；无节点回落跟随
+        const nodes = [];
+        for (const e of (entities && entities.values ? entities.values() : (entities || []))) {
+            if (e && e._isEnergyNode && e.active && !e._depleted) nodes.push(e);
+        }
+        const ref = cmd.point || player;
+        const node = pickNearestNode(nodes, ref) || pickNearestNode(nodes, player);
+        if (!node) {
+            this._cmdFollowOnly(player);
+            return;
+        }
+        c.target = node;
+        const d = Math.hypot(node.x - c.x, node.y - c.y);
+        if (d > CMD_GATHER_ATTACK_RANGE) {
+            c._tacticalTarget = { x: node.x, y: node.y };
+            this._setMoveState(this._shouldRun(d, 'follow') ? 'run' : 'walk');
+            return;
+        }
+        // 攻击：普通攻击弹体（800ms 间隔；伤害 = 自身攻击力）
+        this._gatherAtkTimer -= this.cfg.decisionMs || 120;
+        if (this._gatherAtkTimer <= 0) {
+            this._gatherAtkTimer = CMD_GATHER_ATTACK_MS;
+            this._fireGatherBolt(node);
+        }
+        c.rotation = Math.atan2(node.y - c.y, node.x - c.x);
+    }
+
+    /** 无任务回落：跟随玩家（aggressive 无敌人 / gather 无节点） */
+    _cmdFollowOnly(player) {
+        const c = this.c;
+        const fp = this._followPoint(player);
+        const d = Math.hypot(fp.x - c.x, fp.y - c.y);
+        if (d > (this.cfg.followArriveDist || 55)) {
+            c._tacticalTarget = fp;
+            this._setMoveState(this._shouldRun(d, 'follow') ? 'run' : 'walk');
+        }
+    }
+
+    /** 采集普通攻击弹体：青色能量弹直飞资源点；命中由资源点按 50% 伤害转能源掉落 */
+    _fireGatherBolt(node) {
+        const c = this.c;
+        const scene = window.__phaserScene;
+        if (!scene) return;
+        if (!scene.textures.exists('companion_bolt')) {
+            const g = scene.add.graphics();
+            g.fillStyle(0x7fd4ff, 1);
+            g.fillCircle(8, 8, 7);
+            g.fillStyle(0xffffff, 0.9);
+            g.fillCircle(6, 6, 3);
+            g.generateTexture('companion_bolt', 16, 16);
+            g.destroy();
+        }
+        const bolt = scene.add.sprite(c.x, c.y - 40, 'companion_bolt');
+        bolt.setDepth((c.y || 0) + 1000);
+        const dmg = Math.max(1, Math.round((c.data && (c.data.atk || c.data.matk)) || 30));
+        this._bolts.push({ sprite: bolt, tx: node.x, ty: node.y - 40, target: node, dmg, speed: 520 });
+    }
+
+    /** 采集弹体推进：到达目标后结算伤害并销毁（节点枯竭/离场则落空） */
+    _updateGatherBolt(dt) {
+        if (!this._bolts.length) return;
+        for (let i = this._bolts.length - 1; i >= 0; i--) {
+            const b = this._bolts[i];
+            if (!b.sprite || !b.sprite.active) {
+                this._bolts.splice(i, 1);
+                continue;
+            }
+            const dx = b.tx - b.sprite.x;
+            const dy = b.ty - b.sprite.y;
+            const d = Math.hypot(dx, dy);
+            if (d < 18) {
+                if (b.target && b.target.active && !b.target._depleted) {
+                    b.target.takeDamage(b.dmg, this.c, 'physical', false);
+                }
+                b.sprite.destroy();
+                this._bolts.splice(i, 1);
+                continue;
+            }
+            const step = Math.min(d, (b.speed * dt) / 1000);
+            b.sprite.x += (dx / d) * step;
+            b.sprite.y += (dy / d) * step;
+        }
+    }
+
+    /** 拾取采集掉落的能源进队员背包；袋满（≥999）切 return 阶段回玩家移交 */
+    _pickupEnergyDrops() {
+        const c = this.c;
+        if (!Game || !Game.entities) return;
+        for (const [key, e] of Game.entities.entries()) {
+            if (!e || !e.active) continue;
+            if (!e.itemData || e.itemData.category !== 'energy') continue;
+            if (Math.hypot(e.x - c.x, e.y - c.y) > CMD_GATHER_PICKUP_RANGE) continue;
+            let merged = false;
+            for (const it of c.backpack) {
+                if (it && it.category === 'energy' && (it.stack || 0) < (ENERGY_ITEM.maxStack || 999)) {
+                    it.stack += e.itemData.stack || 1;
+                    merged = true;
+                    break;
+                }
+            }
+            if (!merged && c.backpack.length < (c.maxBackpackSlots || 10)) {
+                const slot = (typeof c._findFreeBackpackSlot === 'function')
+                    ? c._findFreeBackpackSlot()
+                    : c.backpack.length;
+                if (slot >= 0) {
+                    c.backpack.push({ ...ENERGY_ITEM, slot, stack: e.itemData.stack || 1 });
+                    merged = true;
+                }
+            }
+            if (merged) {
+                e.active = false;
+                if (e._destroyPhaserSprite) e._destroyPhaserSprite();
+                Game.entities.delete(key);
+            }
+        }
+        let total = 0;
+        for (const it of c.backpack) if (it && it.category === 'energy') total += it.stack || 0;
+        if (total >= CMD_GATHER_BAG_FULL) this._gatherPhase = 'return';
+    }
+
+    /** 队员背包能源移交玩家背包（玩家背包满则移交能装下的部分，剩余下次再交） */
+    _transferEnergyToPlayer(player) {
+        const c = this.c;
+        let total = 0;
+        for (const it of c.backpack) if (it && it.category === 'energy') total += it.stack || 0;
+        if (total <= 0) {
+            this._gatherPhase = 'work';
+            return;
+        }
+        const before = EnergyManager ? EnergyManager.getEnergy() : 0;
+        EnergyManager.addEnergy(total);
+        const added = (EnergyManager ? EnergyManager.getEnergy() : 0) - before;
+        let remain = added;
+        for (let i = c.backpack.length - 1; i >= 0 && remain > 0; i--) {
+            const it = c.backpack[i];
+            if (!it || it.category !== 'energy') continue;
+            const take = Math.min(it.stack || 0, remain);
+            it.stack -= take;
+            remain -= take;
+            if (it.stack <= 0) c.backpack.splice(i, 1);
+        }
+        if (added > 0 && EffectManager) {
+            EffectManager.add(new FloatingTextEffect(player.x, player.y - 50, `+${added} 能源（${c.name || '队员'}移交）`, '#7fd4ff'));
+        }
+        // 玩家背包满（没交完）→ 保持 return 阶段继续等待；交完 → 回去继续采集
+        let left = 0;
+        for (const it of c.backpack) if (it && it.category === 'energy') left += it.stack || 0;
+        this._gatherPhase = left > 0 ? 'return' : 'work';
+    }
+
     // ==================== 技能 ====================
 
     _pickReadySpell(enemies, target, targetDist) {
         const c = this.c;
+        // 内置施法 CD（2026-08-15）：所有法术共享 2s 最小释放间隔
+        if (c._castCooldown > 0) return null;
         const cds = { fireball: c._fireballCooldown, iceSpike: c._iceSpikeCooldown, lightningStrike: c._lightningStrikeCooldown };
         const mpCosts = {}; const ranges = {};
         for (const key of ['fireball', 'iceSpike', 'lightningStrike']) {
@@ -449,6 +862,50 @@ export class CompanionAI {
         c._castCooldown = this.cfg.castCooldown || 350;
         c._animState = 'spell';
         c.rotation = Math.atan2(target.y - c.y, target.x - c.x);
+    }
+
+    /** 普通攻击就绪：间隔 CD 到、无飞行中光球、目标在射程内 */
+    _basicReady(targetDist) {
+        return this._basicAtkCd <= 0 && !this._basic && targetDist <= (this.cfg.basicAttackRange || 600);
+    }
+
+    /** 普通攻击：发射蓝色光球（600px/s），攻击动作播 spell 动画（500ms） */
+    _tryBasicAttack(target) {
+        const c = this.c;
+        this._basicAtkCd = this.cfg.basicAttackInterval || 2000;
+        const ang = Math.atan2(target.y - c.y, target.x - c.x);
+        this._basic = {
+            active: true, x: c.x, y: c.y, angle: ang,
+            dist: 0, maxDist: this.cfg.basicAttackRange || 600,
+            target,
+        };
+        c._castState = 'casting';
+        c._frozenForCast = true;
+        c._castTimer = 500; // 普通攻击动作时长（播 spell 动画）
+        c._animState = 'spell';
+        c.rotation = ang;
+    }
+
+    /** 普通攻击光球飞行推进 + 命中结算（伤害 = 魔法攻击 × 0.2） */
+    _updateBasic(dt) {
+        const b = this._basic;
+        const c = this.c;
+        if (!b || !b.active) return;
+        const dtSec = dt / 1000;
+        const step = (this.cfg.basicAttackSpeed || 600) * dtSec;
+        b.x += Math.cos(b.angle) * step;
+        b.y += Math.sin(b.angle) * step;
+        b.dist += step;
+        const t = b.target;
+        const hit = t && t.active && t.hp > 0 && Math.hypot(t.x - b.x, t.y - b.y) < 30;
+        if (hit) {
+            const dmg = Math.max(1, Math.floor((c.data.matk || 0) * (this.cfg.basicAttackDamageMul || 0.2)));
+            if (typeof t.takeDamage === 'function') t.takeDamage(dmg, c, 'magic');
+            EffectManager.add(new FloatingTextEffect(t.x, t.y - 30, `-${dmg}`, '#6ab0ff'));
+            this._basic = null;
+        } else if (b.dist >= b.maxDist) {
+            this._basic = null; // 到射程静默消失
+        }
     }
 
     // ==================== 目标/威胁 ====================

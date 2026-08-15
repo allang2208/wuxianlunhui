@@ -11,6 +11,7 @@ import { renderSkillList } from '../systems/skill-system.js';
 import { RecruitUI } from './recruit-ui.js';
 import { EquipTooltipManager } from './equip-tooltip-manager.js';
 import { RARITY_LABELS } from '../config/rarity.js';
+import { getConsumableEffect } from '../config/consumable.js';
 
 // 玩家系统面板同款装备槽（15 槽，与 hud-panels-system-tabs.js equipSlots 完全一致）
 const EQUIP_SLOTS = [
@@ -225,6 +226,18 @@ export const CompanionPanel = {
             const item = m.backpack.find(b => b.slot === i);
             packCells += `<div class="companion-cell" data-slot="${i}" ${item ? 'draggable="true"' : ''} title="${item ? '双击装备 · 拖到玩家背包交换' : ''}">${item ? item.name : ''}</div>`;
         }
+        // 消耗品使用设置（2026-08-15）：低 HP/MP 比例自动用药，默认低级→高级
+        const cs = m.consumableSettings || {};
+        const csItems = (m.backpack || [])
+            .filter(b => b && b.category === 'consumable')
+            .map(b => {
+                const eff = getConsumableEffect(b);
+                const parts = [];
+                if (eff && eff.hp) parts.push(`HP+${eff.hp}`);
+                if (eff && eff.mp) parts.push(`MP+${eff.mp}`);
+                return `${b.icon || '🧪'} ${b.name}${parts.length ? `（${parts.join(' ')}）` : ''} ×${b.stack || 1}`;
+            })
+            .join('<br>');
         return `
             <div class="gear-layout">
                 <div class="gear-equip-col">
@@ -232,8 +245,18 @@ export const CompanionPanel = {
                     <div class="companion-equip-grid">${slotsHtml}</div>
                 </div>
                 <div class="gear-inventory-col">
-                    <div class="inventory-header"><span>背包</span><span id="companionInvCount">${m.backpack.length}/${m.maxBackpackSlots}</span></div>
+                    <div class="inventory-header"><span>背包</span><span id="companionInvCount">${m.backpack.length}/${m.maxBackpackSlots}</span>
+                        <button class="consumable-settings-btn" type="button" data-action="toggle-consumable-settings">⚙️ 消耗品设置</button>
+                    </div>
                     <div class="companion-pack-grid" id="companionPackGrid">${packCells}</div>
+                    <div class="consumable-settings" id="companionConsumableSettings" style="display:none">
+                        <div class="cs-title">消耗品使用设置</div>
+                        <label class="cs-row"><input type="checkbox" id="csEnabled" ${cs.enabled !== false ? 'checked' : ''}> 自动使用恢复药水</label>
+                        <label class="cs-row">生命低于 <input type="number" id="csHp" min="1" max="99" value="${Math.round((cs.hpThreshold ?? 0.3) * 100)}"> % 时使用生命药水</label>
+                        <label class="cs-row">魔法低于 <input type="number" id="csMp" min="1" max="99" value="${Math.round((cs.mpThreshold ?? 0.25) * 100)}"> % 时使用魔力药水</label>
+                        <div class="cs-row cs-items">背包消耗品（按低级→高级使用）：<br>${csItems || '（无）'}</div>
+                        <button class="cs-save" type="button" id="csSave">保存</button>
+                    </div>
                 </div>
             </div>`;
     },
@@ -559,6 +582,32 @@ export const CompanionPanel = {
                 this._equipFromPlayerToSlot(m, slotKey);
             };
         });
+        // 消耗品使用设置：展开/收起 + 保存（2026-08-15）
+        const csBtn = this._overlay.querySelector('[data-action="toggle-consumable-settings"]');
+        if (csBtn) {
+            csBtn.onclick = () => {
+                const panel = this._overlay.querySelector('#companionConsumableSettings');
+                if (panel) panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+            };
+        }
+        const csSave = this._overlay.querySelector('#csSave');
+        if (csSave) {
+            csSave.onclick = () => {
+                const st = m.consumableSettings || (m.consumableSettings = {
+                    enabled: true, hpThreshold: 0.3, mpThreshold: 0.25, useLowToHigh: true,
+                });
+                const enabledEl = this._overlay.querySelector('#csEnabled');
+                const hpEl = this._overlay.querySelector('#csHp');
+                const mpEl = this._overlay.querySelector('#csMp');
+                if (enabledEl) st.enabled = enabledEl.checked;
+                if (hpEl) st.hpThreshold = Math.max(0.01, Math.min(0.99, (parseFloat(hpEl.value) || 30) / 100));
+                if (mpEl) st.mpThreshold = Math.max(0.01, Math.min(0.99, (parseFloat(mpEl.value) || 25) / 100));
+                st.useLowToHigh = true;
+                if (window.Game && window.Game.PartySystem) window.Game.PartySystem._notify();
+                csSave.textContent = '已保存 ✓';
+                setTimeout(() => { csSave.textContent = '保存'; }, 1200);
+            };
+        }
     },
 
     /**

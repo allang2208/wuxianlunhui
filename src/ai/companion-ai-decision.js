@@ -43,17 +43,19 @@ export function decideCompanionAction(input) {
         followArriveDist, // number
     } = input;
 
-    // 1. 施法站定优先（不可被打断）
+    // 1. 近战威胁贴脸 → 撤退（最高优先级，可打断施法：法师保命优先，2026-08-15）
+    if (threatDist !== null && threatDist < safeDistance) return 'flee';
+
+    // 2. 施法站定
     if (casting) return 'cast';
 
-    // 2. 战斗：近战威胁贴脸 → 撤退；射程内且技能就绪 → 施法；否则推进到施法站位
+    // 3. 战斗：射程内且技能就绪 → 施法；否则推进到施法站位
     if (hasEnemy) {
-        if (threatDist !== null && threatDist < safeDistance) return 'flee';
         if (spellReady && targetDist !== null && targetDist <= combatRange) return 'cast';
         return 'advance';
     }
 
-    // 3. 无战斗：跟随玩家（到位即 idle）
+    // 4. 无战斗：跟随玩家（到位即 idle）
     if (followDist !== null && followDist > followArriveDist) return 'follow';
     return 'idle';
 }
@@ -143,4 +145,49 @@ export function shouldRelocateCompanion(input) {
 
     // 距离过远且不在合法远离/追赶状态 → 掉队/卡门外
     return true;
+}
+
+// ============================================================
+// 队员指挥指令层纯函数（2026-08-14 轮盘五指令）
+// 指令模式：'follow' | 'aggressive' | 'patrol' | 'gather' | 'hold'
+// ============================================================
+
+/** 指令是否脱离默认跟随状态（脱离时禁用掉队瞬移，允许远离玩家执行任务） */
+export function isCommandActive(command) {
+    return !!(command && command.mode && command.mode !== 'follow');
+}
+
+/**
+ * 巡逻点选择（纯函数）：在指令中心 radius 半径圆内随机取点，并钳制在世界边界内。
+ * @param {object} input { center:{x,y}, radius, bounds:{w,h}, rand }
+ * @returns {{x:number,y:number}}
+ */
+export function pickPatrolPoint(input) {
+    const { center, radius = 1200, bounds = { w: 4096, h: 4096 }, rand = Math.random } = input;
+    const r = radius * Math.sqrt(rand());
+    const a = rand() * Math.PI * 2;
+    const x = center.x + Math.cos(a) * r;
+    const y = center.y + Math.sin(a) * r;
+    const margin = 40;
+    return {
+        x: Math.max(margin, Math.min(bounds.w - margin, x)),
+        y: Math.max(margin, Math.min(bounds.h - margin, y)),
+    };
+}
+
+/**
+ * 采集目标选择（纯函数）：返回距参考点最近的有效资源点。
+ * @param {Array<{x,y,active,_depleted}>} nodes 资源点列表
+ * @param {{x,y}} ref 参考点（指令点，缺省玩家位置）
+ * @returns {object|null}
+ */
+export function pickNearestNode(nodes, ref) {
+    let best = null;
+    let bestD = Infinity;
+    for (const n of nodes) {
+        if (!n || !n.active || n._depleted) continue;
+        const d = Math.hypot(n.x - ref.x, n.y - ref.y);
+        if (d < bestD) { best = n; bestD = d; }
+    }
+    return best;
 }

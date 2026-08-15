@@ -118,7 +118,10 @@ console.log('AI follow→walk 循环:', await ev(`(async () => {
   const s = window.__phaserScene;
   const p = window.Game.player;
   const luna = window.Game.PartySystem.getMember('mage_luna');
-  p.x += 320; // 玩家移动 → 露娜跟随 → walk
+  luna._tacticalTarget = null;
+  luna.target = null;
+  luna.x = p.x - 100; luna.y = p.y; // 靠近跟随点，小幅移动触发 walk
+  p.x += 80; // 玩家小幅移动 → 露娜跟随（距离 < runDist 260 → walk 而非 run）
   const spr = s._companionSprites['mage_luna'];
   const frames = [];
   for (let i = 0; i < 8; i++) {
@@ -128,7 +131,7 @@ console.log('AI follow→walk 循环:', await ev(`(async () => {
   const anim = spr.anims.isPlaying ? spr.anims.currentAnim.key : null;
   let wrapped = false;
   for (let i = 1; i < frames.length; i++) {
-    if (frames[i - 1] >= 28 && frames[i] <= 12) { wrapped = true; break; }
+    if (frames[i - 1] - frames[i] > 20) { wrapped = true; break; }
   }
   return { anim, frames, wrapped, animState: luna._animState };
 })()`));

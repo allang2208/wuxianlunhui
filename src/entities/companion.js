@@ -29,6 +29,16 @@ export class Companion {
         this.weaponType = archive.weaponType || 'sword';
         // AI 配置（2026-08-14）：有 ai 字段的队员由 CompanionAI 驱动战斗/跟随；无则纯跟随渲染
         this.aiConfig = archive.ai || null;
+        // 初始魔法覆盖（2026-08-15）：露娜 baseMaxMp=600（1 级基准，升级仍 +10/级 + 装备加成）
+        this._maxMpOverride = archive.baseMaxMp || 0;
+        // 消耗品自动使用设置（背包界面可改；低 HP/MP 比例时自动用对应恢复药水，低级→高级）
+        this.consumableSettings = {
+            enabled: true,
+            hpThreshold: 0.3,
+            mpThreshold: 0.25,
+            useLowToHigh: true,
+            ...(archive.consumableSettings || {}),
+        };
 
         const base = archive.baseData || {};
         const level = archive.baseLevel || 1;
@@ -155,7 +165,12 @@ export class Companion {
         const lvlHp = (d.level - 1) * 10;
         const lvlMp = (d.level - 1) * 10;
         d.maxHp = (hpF.base || 100) + d.con * (hpF.conMultiplier || 10) + (eq.maxHp || 0) + lvlHp;
-        d.maxMp = (mpF.base || 100) + d.wis * (mpF.wisMultiplier || 10) + d.int * (mpF.intMultiplier || 5) + (eq.maxMp || 0) + lvlMp;
+        if (this._maxMpOverride > 0) {
+            // 初始魔法覆盖：1 级基准 = baseMaxMp，升级 +10/级，装备 maxMp 加成保留
+            d.maxMp = this._maxMpOverride + (eq.maxMp || 0) + lvlMp;
+        } else {
+            d.maxMp = (mpF.base || 100) + d.wis * (mpF.wisMultiplier || 10) + d.int * (mpF.intMultiplier || 5) + (eq.maxMp || 0) + lvlMp;
+        }
         if (oldMaxHp > 0) d.hp = Math.min(d.maxHp, d.hp + (d.maxHp - oldMaxHp));
         else d.hp = d.maxHp;
         if (oldMaxMp > 0) d.mp = Math.min(d.maxMp, d.mp + (d.maxMp - oldMaxMp));
@@ -319,6 +334,8 @@ export class Companion {
             skills: JSON.parse(JSON.stringify(this.skills || {})),
             animations: JSON.parse(JSON.stringify(this.animations || {})),
             maxBackpackSlots: this.maxBackpackSlots,
+            baseMaxMp: this._maxMpOverride || undefined,
+            consumableSettings: JSON.parse(JSON.stringify(this.consumableSettings || {})),
         };
     }
 
@@ -333,6 +350,9 @@ export class Companion {
         c.skills = restoreSkills(s.skills || {});
         c.animations = s.animations || {};
         if (s.maxBackpackSlots) c.maxBackpackSlots = s.maxBackpackSlots;
+        if (s.baseMaxMp) c._maxMpOverride = s.baseMaxMp;
+        if (s.consumableSettings) c.consumableSettings = { enabled: true, hpThreshold: 0.3, mpThreshold: 0.25, useLowToHigh: true, ...s.consumableSettings };
+        c.updateMaxStats();
         return c;
     }
 }

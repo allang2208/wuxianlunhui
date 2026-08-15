@@ -170,6 +170,9 @@ def main():
                     help="背景色 #RRGGBB（强制用主体没有的颜色做底，默认白；阈值兜底/去污染按此色自适应）")
     ap.add_argument("--bg-dist", type=float, default=20.0,
                     help="与背景色的距离阈值（> 此值判为主体，默认 20）")
+    ap.add_argument("--keep-dx", action="store_true",
+                    help="保留相对首帧的水平位移（腿部区域中心锚定，dx×scale 平移；"
+                         "center-x 为首帧锚点，攻击跨步前移用）")
     args = ap.parse_args()
 
     frames = load_frames(args.video)
@@ -208,6 +211,7 @@ def main():
             print(f"[rebuild] fixed bbox={bb}", flush=True)
 
     out_cells = []
+    ref_leg_cx = None  # --keep-dx 首帧腿部中心锚点
     bg_rgb = parse_hex_color(args.bg_color)
     bg_is_white = float(bg_rgb.mean()) > 250
     for k in idxs:
@@ -279,6 +283,18 @@ def main():
             x0, x1, y0, y1 = xs.min(), xs.max(), ys.min(), ys.max()
         ch = y1 - y0 + 1
         cw = x1 - x0 + 1
+        # --keep-dx：保留相对首帧的水平位移（狼系 pounce dx×scale 口径）。
+        # 锚 = 腿部区域（bbox 底部 35%）中心 x——手臂挥动不改变腿部中心，
+        # 只有真实跨步/前移才产生 dx；首帧即锚，dx=0。
+        dx_px = 0.0
+        if args.keep_dx:
+            band = alpha[y0 + int(ch * 0.65):y1 + 1, :] > 30
+            bxs = np.where(band.any(axis=0))[0]
+            leg_cx = (bxs.min() + bxs.max()) / 2.0 if len(bxs) else (x0 + x1) / 2.0
+            if ref_leg_cx is None:
+                ref_leg_cx = leg_cx
+            dx_px = (leg_cx - ref_leg_cx) * fixed_scale
+            print(f"[rebuild] keep-dx k={k} dx={dx_px:.1f}px", flush=True)
         if args.uniform_h:
             fscale = args.target_h / max(1, ch)
             nh = args.target_h
@@ -291,7 +307,7 @@ def main():
         crop = cv2.resize(rgb[y0:y1+1, x0:x1+1], (nw, nh), interpolation=cv2.INTER_AREA)
         a = cv2.resize(alpha[y0:y1+1, x0:x1+1], (nw, nh), interpolation=cv2.INTER_AREA)
         cell = np.zeros((args.cell, args.cell, 4), np.uint8)
-        ox = args.center_x - nw // 2
+        ox = args.center_x + int(round(dx_px)) - nw // 2
         oy = args.feet_y - nh + 1
         if oy >= 0 and oy + nh <= args.cell and ox >= 0 and ox + nw <= args.cell:
             cell[oy:oy+nh, ox:ox+nw] = np.dstack([crop, a])

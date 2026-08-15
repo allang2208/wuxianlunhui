@@ -163,7 +163,7 @@ const DevTool = {
     // 动画状态映射
     ANIM_NAME: {
         idle: '待机', walk: '移动', running: '奔跑', attack: '攻击',
-        attack2: '二段攻击', dash: '冲刺攻击', recover: '收势',
+        attack2: '二段攻击', attack3: '三段攻击', dash: '冲刺攻击', recover: '收势',
         dash_recover: '冲刺收势', dodge_roll: '翻滚', dodge_jump: '跳跃闪避',
         cast: '空手施法', staff_cast: '法杖施法',
         bow_draw: '拉弓', bow_release: '射箭',
@@ -175,7 +175,7 @@ const DevTool = {
     // （面板历史命名 running/attack 与配置键 run/attack_sword 不同，在此统一映射）
     PANEL_ANIM_TO_CONFIG: {
         idle: 'idle', walk: 'walk', running: 'run', attack: 'attack_sword',
-        attack2: 'attack_sword_2', dash: 'dash_attack', recover: 'recover',
+        attack2: 'attack_sword_2', attack3: 'attack_sword_3', dash: 'dash_attack', recover: 'recover',
         dash_recover: 'dash_recover', dodge_roll: 'dodge_roll', dodge_jump: 'dodge_jump',
         cast: 'cast', staff_cast: 'staff_cast',
         bow_draw: 'bow_draw', bow_release: 'bow_release',
@@ -843,11 +843,11 @@ const DevTool = {
         if ((anim === 'staff_cast' || anim === 'cast') && this.state.weaponType === 'staff') {
             return 'staffCastFrames';
         }
-        return anim === 'attack2' ? 'attack2' : (anim === 'dash' ? 'dash' : 'attack');
+        return (anim === 'attack2' || anim === 'attack3') ? anim : (anim === 'dash' ? 'dash' : 'attack');
     },
     // walk 仅当配置存在 walkFrames 时才算逐帧（否则回退传统 holdOffset 模式）
     _isPerFrameAnim(anim) {
-        if (anim === 'attack' || anim === 'attack2' || anim === 'dash') return true;
+        if (anim === 'attack' || anim === 'attack2' || anim === 'attack3' || anim === 'dash') return true;
         if (anim === 'walk') {
             const wt = this._configKeyOf(this.state.weaponType);
             const key = this.state.weaponType === 'staff' ? 'staffWalkFrames' : 'walkFrames';

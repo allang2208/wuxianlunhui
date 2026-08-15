@@ -1,0 +1,15 @@
+{
+  "elevation": 5,
+  "bottom_y": 870,
+  "max_width_frac": 0.75,
+  "top_margin_px": 90,
+  "primitives": [
+    { "type": "box", "size": [96, 70, 22], "pos": [0, 0, 11], "bevel": 9, "tex": "tex_dirt.png" },
+    { "type": "prism", "size": [20, 16, 88], "pos": [0, 0, 0], "rot": [0, 0, 4], "tex": "tex_crystal.png" },
+    { "type": "prism", "size": [16, 13, 64], "pos": [-27, 0, 0], "rot": [0, 0, 9], "tex": "tex_crystal.png" },
+    { "type": "prism", "size": [18, 14, 72], "pos": [25, 0, 0], "rot": [0, 0, -8], "tex": "tex_crystal.png" },
+    { "type": "prism", "size": [11, 9, 36], "pos": [-15, -7, 0], "rot": [0, 0, 15], "tex": "tex_crystal.png" },
+    { "type": "prism", "size": [12, 9, 40], "pos": [13, -9, 0], "rot": [0, 0, -13], "tex": "tex_crystal.png" },
+    { "type": "prism", "size": [9, 7, 28], "pos": [3, 11, 0], "rot": [0, 0, 2], "tex": "tex_crystal.png" }
+  ]
+}

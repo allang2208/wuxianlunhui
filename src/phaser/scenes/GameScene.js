@@ -7,7 +7,7 @@ import { PartySystem } from '../../systems/party-system.js';
 // ============================================================
 // GameScene - 主游戏场景：替代原有的 renderer.js + game.js 渲染部分
 // ============================================================
-import { Scene } from 'phaser';
+import { Scene, BlendModes } from 'phaser';
 import { WallSystem } from '../../world/wall-system.js';
 import { WallGate } from '../../world/wall-gate.js';
 import { ChestRoomSystem } from '../../world/chest-room-system.js';
@@ -23,9 +23,9 @@ import { SoundManager } from '../../ui/sound-manager.js';
 import { getSpriteFrameOffset } from '../../utils/sprite-offsets.js';
 import { PLAYER_DEFAULTS } from '../../config/player-defaults.js';
 import { playerTextureKey, getPlayerAnimDef, getPlayerAnimDurationMs } from '../../config/player-anim.js';
-import { AnimChannel, resolveAnimChannel, enterRecover, clearPose, nowMs } from '../../entities/player/anim-state.js';
+import { AnimChannel, resolveAnimChannel, enterRecover, clearPose, nowMs,
+    MELEE_STAGE_ANIM_KEYS, meleeStageCfgKey, meleeStageRecoverMs } from '../../entities/player/anim-state.js';
 import { PERSPECTIVE_SCALE_Y } from '../../config/perspective-config.js';
-import { COMBAT_CONFIG } from '../../config/combat-config.js';
 import { getTorsoRect } from '../../physics/torso-hitbox.js';
 
 import { DungeonMapSystem } from '../../world/dungeon-map-system.js';
@@ -374,8 +374,9 @@ export class GameScene extends Scene {
         this._syncBodiesToPhysics();
         // 侍从跟随渲染（露娜等有动作素材的队员：跟随玩家播 walk/run/spell）
         this._syncCompanionSprites(_game);
-        // 同步可移动实体脚底阴影
-        this._syncEntityShadows(_game);
+        // 侍从普通攻击光球渲染（蓝色光球，CompanionAI 推进）
+        this._syncCompanionBasics(_game);
+        // 同步可移动实体脚底阴影（原在此处，2026-08-15 移到 _updateDynamicDepths 之后）
         // 同步眩晕双星特效（眩晕持续时间内播放，结束消失）
         this._syncStunEffects(_game);
         // 同步冻结冰块特效（冻结持续时间内覆盖目标，结束消失）
@@ -386,6 +387,12 @@ export class GameScene extends Scene {
         this._syncCollisionRadii(_game);
         // Phase 4: 根据世界 Y 坐标统一动态实体深度
         this._updateDynamicDepths();
+        // 同步可移动实体脚底阴影（必须在 _updateDynamicDepths 之后：阴影深度 =
+        // 贴图当前帧仲裁后深度 − 0.1，保证贴图永远在阴影之上、任何情况下阴影
+        // 都不能盖住贴图。2026-08-15 修复：旧顺序阴影先跑、读上一帧贴图深度，
+        // 怪物跨过掩体/墙面线深度骤降时阴影会以旧深度盖在贴图上 1 帧——
+        // 世界-122 毒蛆大椭圆阴影在基地掩体线反复压住虫身的根因；所有怪物适用）
+        this._syncEntityShadows(_game);
         // X 光圆圈：被墙壁遮挡的实体以黑渐变圆圈透视显示
         this._syncXRayCircles(_game);
         this._updateCamera();
@@ -476,16 +483,22 @@ export class GameScene extends Scene {
                 const offX = facingRight ? -150 : 150;
                 sprite.setPosition(player.x + offX, player.y + 34);
             }
-            // 朝向：AI 队员按自身移动方向（往哪边走面朝哪边）；施法面朝目标；
-            // idle 保持最后朝向。纯渲染队员仍跟随玩家镜像。
+            // 朝向：AI 队员——逃跑面朝移动方向；其余（idle/施法/走位）始终面朝目标
+            // （最近敌人）；无目标按移动方向。纯渲染队员仍跟随玩家镜像。
             let faceRight = facingRight;
             if (aiMode) {
-                if (member._castState !== 'idle' && member.target && member.target.active) {
-                    faceRight = member.target.x >= member.x;
-                } else if (Math.abs(member.vx) > 5) {
+                if (member._lastAction === 'flee' && Math.abs(member.vx) > 5) {
                     faceRight = member.vx > 0;
-                } else if (member._lastFaceRight !== undefined) {
-                    faceRight = member._lastFaceRight;
+                } else {
+                    const tgt = (member.target && member.target.active)
+                        ? member.target : this._nearestCompanionEnemy(member);
+                    if (tgt) {
+                        faceRight = tgt.x >= member.x;
+                    } else if (Math.abs(member.vx) > 5) {
+                        faceRight = member.vx > 0;
+                    } else if (member._lastFaceRight !== undefined) {
+                        faceRight = member._lastFaceRight;
+                    }
                 }
                 member._lastFaceRight = faceRight;
             }
@@ -563,6 +576,46 @@ export class GameScene extends Scene {
             if (!activeIds.has(id)) {
                 this._companionSprites[id].destroy();
                 delete this._companionSprites[id];
+            }
+        }
+    }
+
+    /** 侍从 idl 朝向用：找离该队员最近的敌人（member.target 失效时的兜底） */
+    _nearestCompanionEnemy(member) {
+        const Game = window.Game;
+        if (!Game || !Game.entities || !member) return null;
+        let best = null; let bestD = Infinity;
+        for (const e of Game.entities.values()) {
+            if (!e || !e.active || e.hp <= 0 || e._faction !== 'enemy') continue;
+            const d = Math.hypot(e.x - member.x, e.y - member.y);
+            if (d < bestD) { bestD = d; best = e; }
+        }
+        return best;
+    }
+
+    /** 侍从普通攻击光球渲染（蓝色 impact_dot；_basic 由 CompanionAI 推进） */
+    _syncCompanionBasics(_game) {
+        if (!this._companionBasicSprites) this._companionBasicSprites = {};
+        const members = PartySystem.members;
+        for (const m of members) {
+            const b = m._basic;
+            let spr = this._companionBasicSprites[m.id];
+            if (b && b.active) {
+                if (!spr) {
+                    if (!this.textures.exists('impact_dot') && typeof this._ensureImpactDotTexture === 'function') {
+                        this._ensureImpactDotTexture();
+                    }
+                    spr = this.add.sprite(b.x, b.y, 'impact_dot');
+                    spr.setTint(0x4db8ff);
+                    spr.setBlendMode(BlendModes.ADD);
+                    spr.setDisplaySize(24, 24);
+                    this._companionBasicSprites[m.id] = spr;
+                }
+                spr.setPosition(b.x, b.y);
+                spr.setDepth(b.y + 15);
+                spr.setVisible(true);
+            } else if (spr) {
+                spr.setVisible(false);
             }
         }
     }
@@ -1181,11 +1234,33 @@ export class GameScene extends Scene {
         // 震屏：旧随机震（Camera.shakeX/Y，此前 Phaser 路径未消费）+ GunFeel trauma² 平滑震叠加
         const shakeX = (Camera.shakeX || 0) + GunFeel.shakeX;
         const shakeY = (Camera.shakeY || 0) + GunFeel.shakeY;
+        // 场景基础缩放（2026-08-14）：世界-122 缩小到 70%（≈视野多 43%，用户校准：0.5 过小）；
+        // 其余场景 1:1。zoom punch 按基础缩放等比叠加，切换场景下一帧自动生效/还原。
+        const sceneBaseZoom = (SceneManager && SceneManager.currentScene === 'scene8') ? 0.7 : 1;
         // zoom punch：开火瞬间视角轻微推近（2D 等价 FOV punch），GunFeel 内指数回落
-        const zoom = 1 + GunFeel.zoomPunch;
+        const zoom = sceneBaseZoom * (1 + GunFeel.zoomPunch);
         if (Math.abs(this.cameras.main.zoom - zoom) > 0.0004) this.cameras.main.setZoom(zoom);
-        this.cameras.main.scrollX = Camera.x + shakeX - viewW / (2 * zoom);
-        this.cameras.main.scrollY = Camera.y + shakeY - viewH / (2 * zoom);
+        // 相机 origin 固定 (0,0)：缩放枢轴锚定屏幕左上角——scrollFactor-0 的固定 UI（小地图等）
+        // 在任意 zoom 下按"屏幕位置 = 绘制坐标 × zoom"一致换算（origin 0.5 会按视图中心枢轴
+        // 平移缩放固定 UI，世界-122 zoom 0.7 时小地图被推到屏幕中部——2026-08-15 修复）
+        if (this.cameras.main.originX !== 0 || this.cameras.main.originY !== 0) {
+            this.cameras.main.setOrigin(0, 0);
+        }
+        // 边界钳制（2026-08-14 自 camera.js 迁入）：按 Phaser 相机 viewport/zoom 实时换算可视半宽，
+        // 任意缩放比例通用（世界小于视野时取世界中心）；世界-122 不钳制——自然边界 + 人物恒居中
+        if (SceneManager && SceneManager.currentScene !== 'scene8') {
+            const halfW = viewW / (2 * zoom);
+            const halfH = viewH / (2 * zoom);
+            const minX = Math.min(halfW, CONFIG.WORLD_WIDTH / 2);
+            const minY = Math.min(halfH, CONFIG.WORLD_HEIGHT / 2);
+            const maxX = Math.max(CONFIG.WORLD_WIDTH - halfW, CONFIG.WORLD_WIDTH / 2);
+            const maxY = Math.max(CONFIG.WORLD_HEIGHT - halfH, CONFIG.WORLD_HEIGHT / 2);
+            Camera.x = Math.max(minX, Math.min(maxX, Camera.x));
+            Camera.y = Math.max(minY, Math.min(maxY, Camera.y));
+        }
+        // 居中：走相机原生 centerOn（对任意 zoom/origin 自动换算，绝不手写 scroll 公式），
+        // 玩家（Camera 跟随点）在任何缩放比例下都保持在屏幕中央
+        this.cameras.main.centerOn(Camera.x + shakeX, Camera.y + shakeY);
     }
 
     // ---- 实体管理 ----
@@ -1422,6 +1497,12 @@ export class GameScene extends Scene {
         const currentAnim = this.playerSprite.anims.currentAnim?.key;
         // 手部分层（如 walk）：身体层动画键 = player_<key>_body；手 sprite 帧每帧跟随身体帧
         const def = getPlayerAnimDef(key);
+        // 显示缩放（配置驱动，2026-08-13）：三段攻击 sheet 站立内容高 432/512，比 idle 的 477/516 小 ~8.4%——
+        // displayScale 追平屏显身高（素材侧几何上无法追平：过顶帧 490px 顶着 512 格，见 CHANGELOG 2026-08-13）；
+        // 无该字段的动画（idle/walk/recover/施法/闪避/冲刺等）恢复基准尺寸
+        const dispScale = (def && def.displayScale) || 1;
+        const baseSize = PLAYER_DEFAULTS.physics.spriteSize;
+        this.playerSprite.setDisplaySize(baseSize * dispScale, baseSize * dispScale);
         const handLayer = (def && def.handLayer) || null;
         const bodyTexKey = handLayer ? `${playerTextureKey(key)}_body` : null;
 
@@ -1522,7 +1603,7 @@ export class GameScene extends Scene {
                 // 否则定格窗口里贴图被换回 idle（"最后一帧用的是 idle 贴图"的根因）
                 if (p && (p._isDashing || p._dashRecoverAt)) return;
                 if (p && p._attackHoldUntil && nowMs() < p._attackHoldUntil
-                    && (key === 'attack_sword' || key === 'attack_sword_2')) {
+                    && MELEE_STAGE_ANIM_KEYS.includes(key)) {
                     return;
                 }
                 this.setPlayerAnimation('idle');
@@ -2061,7 +2142,7 @@ export class GameScene extends Scene {
             const isMeleeWeapon = currentItem && (currentItem.category === 'weapon_melee' || currentItem.weaponType === 'sword');
             const currentAnimKey = this.playerSprite.anims.currentAnim?.key;
             // 仅对近战武器做安全防护：逻辑层标记为攻击中，但剑攻击动画已停止，说明状态卡住，强制恢复
-            const isPlayingAttackAnim = isMeleeWeapon && (currentAnimKey === playerTextureKey('attack_sword') || currentAnimKey === playerTextureKey('attack_sword_2')) && this.playerSprite.anims.isPlaying;
+            const isPlayingAttackAnim = isMeleeWeapon && MELEE_STAGE_ANIM_KEYS.some(k => currentAnimKey === playerTextureKey(k)) && this.playerSprite.anims.isPlaying;
             if (isMeleeWeapon && weaponAnim.isAttacking && !isPlayingAttackAnim) {
                 weaponAnim.isAttacking = false;
                 weaponAnim.state = 'idle';
@@ -2121,9 +2202,8 @@ export class GameScene extends Scene {
                     // startMs = 收势起点（武器线性滑回 idle 位的时间基准）
                     enterRecover(player, { cfgKey: null, startMs: now });
                     // recover 播完回 idle、解除收势标记均由 setPlayerAnimation 的完成回调统一处理
-                    // 2026-08-03：二段攻击的收势动画固定 0.3s（一段保持配置自然时长 0.33s）
-                    this.setPlayerAnimation('recover', player._meleeComboStage === 2
-                        ? (COMBAT_CONFIG.meleeCombo?.stage2RecoverMs ?? 300) : 0);
+                    // 收势时长按段：一段=配置自然时长 / 二段 0.3s / 三段（终结）0.4s（meleeCombo.stageNRecoverMs）
+                    this.setPlayerAnimation('recover', meleeStageRecoverMs(player._meleeComboStage || 1));
                     return;
                 }
                 // recover 动画缺失：清定格（pose session 全清）后原 if 链落到下方 idle/locomotion → 按新状态重新仲裁（递归即等价落闸）
@@ -2356,9 +2436,9 @@ export class GameScene extends Scene {
             const isGun = GUN_FAMILY.includes(wt);
             if (!isGun) {
                 // 近战武器：优先使用逐帧配置，按玩家攻击动画当前帧同步武器
-                // 连段二段读 attack2 轨迹块（缺失回退 attack）
+                // 连段按段读 attack/attack2/attack3 轨迹块（缺失逐级回退 attack）
                 const wacWt = WeaponAnimConfig[wt];
-                const atkCfgKey = (player._meleeComboStage === 2 && wacWt && wacWt.attack2) ? 'attack2' : 'attack';
+                const atkCfgKey = meleeStageCfgKey(wacWt, player._meleeComboStage || 1);
                 const perFrameCfg = wacWt && wacWt[atkCfgKey];
                 if (perFrameCfg && perFrameCfg.type === 'perFrame' && perFrameCfg.frames) {
                     this.weaponSprite.setVisible(!this._useCanvasWeapon);
@@ -2369,7 +2449,7 @@ export class GameScene extends Scene {
                             progress = Math.min(1, (nowMs() - this._playerAttackStartTime) / this._playerAttackDuration);
                         } else {
                             const currentAnim = this.playerSprite.anims.currentAnim;
-                            if (currentAnim && (currentAnim.key === playerTextureKey('attack_sword') || currentAnim.key === playerTextureKey('attack_sword_2')) && this.playerSprite.anims.getProgress) {
+                            if (currentAnim && MELEE_STAGE_ANIM_KEYS.some(k => currentAnim.key === playerTextureKey(k)) && this.playerSprite.anims.getProgress) {
                                 progress = this.playerSprite.anims.getProgress();
                             }
                         }
@@ -2424,16 +2504,15 @@ export class GameScene extends Scene {
             const isGunR = GUN_FAMILY.includes(wt); // 2026-08-13 收口：原内联数组漏 beretta93r，R93 收势错误走进近战末帧滑回分支
             if (!isGunR) {
                 const facingR = !this.playerSprite.flipX; // 朝向硬绑定：收势滑行同身体 flipX（收势期身体冻结）
-                // 2026-08-03：二段收势 0.3s（与恢复动画同步）；一段用配置自然时长
-                const recDur = player._meleeComboStage === 2
-                    ? (COMBAT_CONFIG.meleeCombo?.stage2RecoverMs ?? 300)
-                    : (getPlayerAnimDurationMs('recover') || 800);
+                // 收势时长按段：一段=配置自然时长 / 二段 0.3s / 三段 0.4s（与恢复动画同步）
+                const recMs = meleeStageRecoverMs(player._meleeComboStage || 1);
+                const recDur = recMs > 0 ? recMs : (getPlayerAnimDurationMs('recover') || 800);
                 const t = Math.max(0, Math.min(1, (nowMs() - player._attackRecoverStart) / recDur));
                 // 起点：上一段轨迹末帧（progress=1，与攻击分支同口径：恒按朝右取帧后手动镜像）
                 // _recoverCfgKey='dash' 时从冲刺轨迹末帧滑回（冲刺恢复），朝向同身体 flipX 冻结不随鼠标
                 const wacR = WeaponAnimConfig[wt];
                 const atkKeyR = player._recoverCfgKey
-                    || ((player._meleeComboStage === 2 && wacR && wacR.attack2) ? 'attack2' : 'attack');
+                    || meleeStageCfgKey(wacR, player._meleeComboStage || 1);
                 const start = WeaponTransform.getInterpolatedPerFramePosition(player, wt, 1, true, atkKeyR);
                 if (start && !facingR) {
                     start.x = 2 * player.x - start.x;
@@ -5149,10 +5228,18 @@ export class GameScene extends Scene {
         g.strokePath();
     }
 
+    /** 固定 UI（scrollFactor-0，如小地图）在相机 zoom 下的坐标补偿系数：
+     *  相机 origin 已固定 (0,0)，屏幕位置 = 绘制坐标 × zoom → 绘制坐标 = 屏幕目标 ÷ zoom。
+     *  任意 zoom（0.3/0.7/1…）通用，小地图永远锚定屏幕固定位置（2026-08-15） */
+    _minimapInvZoom() {
+        return 1 / ((this.cameras.main && this.cameras.main.zoom) || 1);
+    }
+
     _redrawMinimapStatic() {
         const g = this._minimapStaticGraphics;
         if (!g) return;
         g.clear();
+        const invZ = this._minimapInvZoom();
         const minimapCfg = GAME_CONFIG.minimap || {};
         const minimapW = minimapCfg.width || 150;
         const minimapH = minimapCfg.height || 150;
@@ -5168,13 +5255,13 @@ export class GameScene extends Scene {
         const styles = minimapCfg.styles || {};
         const bg = minimapCfg.background || {};
 
-        // 背景
+        // 背景（所有绘制坐标 × 1/zoom，抵消相机缩放对 scrollFactor-0 图形的作用）
         const bgColor = this._parseColor(bg.fill || 'rgba(0,0,0,0.6)', 0x000000, 0.6);
         g.fillStyle(bgColor.color, bgColor.alpha);
-        g.fillRect(mx, my, minimapW, minimapH);
+        g.fillRect(mx * invZ, my * invZ, minimapW * invZ, minimapH * invZ);
         const borderColor = this._parseColor(bg.border || 'rgba(255,255,255,0.4)', 0xffffff, 0.4);
-        g.lineStyle(bg.lineWidth || 1, borderColor.color, borderColor.alpha);
-        g.strokeRect(mx, my, minimapW, minimapH);
+        g.lineStyle((bg.lineWidth || 1) * invZ, borderColor.color, borderColor.alpha);
+        g.strokeRect(mx * invZ, my * invZ, minimapW * invZ, minimapH * invZ);
 
         // 墙壁
         if (WallSystem && WallSystem.walls) {
@@ -5185,7 +5272,7 @@ export class GameScene extends Scene {
                 const wy = my + w.y * scale;
                 const ww = Math.max(0.5, w.w * scale);
                 const wh = Math.max(0.5, w.h * scale);
-                g.fillRect(wx, wy, ww, wh);
+                g.fillRect(wx * invZ, wy * invZ, ww * invZ, wh * invZ);
             }
         }
     }
@@ -5197,6 +5284,7 @@ export class GameScene extends Scene {
         const g = this._minimapDynamicGraphics;
         if (!g) return;
         g.clear();
+        const invZ = this._minimapInvZoom();
         const minimapCfg = GAME_CONFIG.minimap || {};
         const minimapW = minimapCfg.width || 150;
         const minimapH = minimapCfg.height || 150;
@@ -5225,16 +5313,20 @@ export class GameScene extends Scene {
         }
 
         // 相机视野框（与框求交集，超框部分不画）
-        const camX = mx + (Camera.x - CONFIG.VIEW_WIDTH / 2) * scale;
-        const camY = my + (Camera.y - CONFIG.VIEW_HEIGHT / 2) * scale;
-        const viewW = Math.max(1, CONFIG.VIEW_WIDTH * scale);
-        const viewH = Math.max(1, CONFIG.VIEW_HEIGHT * scale);
+        // 相机视野框（与帧求交集，超框部分不画）。
+        // 2026-08-14：可视世界范围 = VIEW / 相机 zoom——之前无视缩放，世界-122（zoom 0.7）
+        // 的黄色视野框比实际视野小一圈，改按实时 zoom 换算（任意缩放通用）。
+        const camZoom = (this.cameras.main && this.cameras.main.zoom) || 1;
+        const camX = mx + (Camera.x - CONFIG.VIEW_WIDTH / (2 * camZoom)) * scale;
+        const camY = my + (Camera.y - CONFIG.VIEW_HEIGHT / (2 * camZoom)) * scale;
+        const viewW = Math.max(1, (CONFIG.VIEW_WIDTH / camZoom) * scale);
+        const viewH = Math.max(1, (CONFIG.VIEW_HEIGHT / camZoom) * scale);
         const viewColor = this._parseColor(styles.viewFrame || 'rgba(255,200,0,0.6)', 0xffc800, 0.6);
         const fx1 = Math.max(camX, mx), fy1 = Math.max(camY, my);
         const fx2 = Math.min(camX + viewW, mx + minimapW), fy2 = Math.min(camY + viewH, my + minimapH);
         if (fx2 > fx1 && fy2 > fy1) {
-            g.lineStyle(1, viewColor.color, viewColor.alpha);
-            g.strokeRect(fx1, fy1, fx2 - fx1, fy2 - fy1);
+            g.lineStyle(1 * invZ, viewColor.color, viewColor.alpha);
+            g.strokeRect(fx1 * invZ, fy1 * invZ, (fx2 - fx1) * invZ, (fy2 - fy1) * invZ);
         }
 
         // 裂隙
@@ -5245,7 +5337,7 @@ export class GameScene extends Scene {
                 if (rift.completed) continue;
                 const rx = mx + rift.x * scale;
                 const ry = my + rift.y * scale;
-                if (inBox(rx, ry)) g.fillCircle(rx, ry, sizes.rift || 2);
+                if (inBox(rx, ry)) g.fillCircle(rx * invZ, ry * invZ, (sizes.rift || 2) * invZ);
             }
         }
 
@@ -5260,19 +5352,19 @@ export class GameScene extends Scene {
                 if (e.targetScene) {
                     const portalColor = this._parseColor(styles.portal || '#00aaff', 0x00aaff, 1);
                     g.fillStyle(portalColor.color, portalColor.alpha);
-                    g.fillCircle(ex, ey, sizes.portal || 2.5);
+                    g.fillCircle(ex * invZ, ey * invZ, (sizes.portal || 2.5) * invZ);
                 } else if (e.name === '大块头') {
                     const bossColor = this._parseColor(styles.boss || '#ff0000', 0xff0000, 1);
                     g.fillStyle(bossColor.color, bossColor.alpha);
-                    g.fillCircle(ex, ey, (sizes.enemy || 1.5) * 2);
+                    g.fillCircle(ex * invZ, ey * invZ, ((sizes.enemy || 1.5) * 2) * invZ);
                 } else if (e._faction === 'enemy' || e._faction === 'agent') { // 入侵特工同敌人红点
                     const enemyColor = this._parseColor(styles.enemy || '#ff4444', 0xff4444, 1);
                     g.fillStyle(enemyColor.color, enemyColor.alpha);
-                    g.fillCircle(ex, ey, sizes.enemy || 1.5);
+                    g.fillCircle(ex * invZ, ey * invZ, (sizes.enemy || 1.5) * invZ);
                 } else if (e.itemData) {
                     const itemColor = this._parseColor(styles.item || '#ffd700', 0xffd700, 1);
                     g.fillStyle(itemColor.color, itemColor.alpha);
-                    g.fillCircle(ex, ey, sizes.item || 1);
+                    g.fillCircle(ex * invZ, ey * invZ, (sizes.item || 1) * invZ);
                 }
             });
         }
@@ -5283,18 +5375,19 @@ export class GameScene extends Scene {
         const playerColor = this._parseColor(styles.player || '#00ff00', 0x00ff00, 1);
         if (inBox(px, py)) {
             g.fillStyle(playerColor.color, playerColor.alpha);
-            g.fillCircle(px, py, sizes.player || 3);
+            g.fillCircle(px * invZ, py * invZ, (sizes.player || 3) * invZ);
             const dir = game.player.rotation || 0;
-            g.lineStyle(sizes.arrowLineWidth || 1.5, playerColor.color, playerColor.alpha);
+            g.lineStyle((sizes.arrowLineWidth || 1.5) * invZ, playerColor.color, playerColor.alpha);
             g.beginPath();
-            g.moveTo(px, py);
-            g.lineTo(clampX(px + Math.cos(dir) * (sizes.arrowLen || 6)), clampY(py + Math.sin(dir) * (sizes.arrowLen || 6)));
+            g.moveTo(px * invZ, py * invZ);
+            g.lineTo(clampX(px + Math.cos(dir) * (sizes.arrowLen || 6)) * invZ, clampY(py + Math.sin(dir) * (sizes.arrowLen || 6)) * invZ);
             g.strokePath();
         }
 
         // 标题
         const title = minimapCfg.title || {};
-        this.minimapTitle.setPosition(mx + (title.offsetX || 4), my + (title.offsetY || -2));
+        this.minimapTitle.setPosition((mx + (title.offsetX || 4)) * invZ, (my + (title.offsetY || -2)) * invZ);
+        this.minimapTitle.setScale(invZ, invZ);
         this.minimapTitle.setStyle({ fontSize: '10px', color: title.color || '#d4c5a9cc', fontFamily: 'SimHei, "Microsoft YaHei", sans-serif' });
         this.minimapTitle.setText(title.text || '地图');
         this.minimapTitle.setVisible(true);
@@ -5510,7 +5603,6 @@ export class GameScene extends Scene {
             if (item) {
                 let tex = getWeaponTextureKey(item);
                 if (!this.textures.exists(tex)) tex = 'weapon_rusty_sword';
-                if (sp.weapon.texture.key !== tex) sp.weapon.setTexture(tex);
                 const gs = V.arm.gameScale;
                 const tipOX = gs * V.arm.k * V.arm.reach * Math.cos(e.aimAngle) * m;
                 const tipOY = gs * V.arm.k * (0.5 * V.arm.reach * Math.sin(e.aimAngle) - 0.866 * V.arm.dz);
@@ -5632,8 +5724,8 @@ export class GameScene extends Scene {
             }
             g.strokePath();
         }
-        // 边界
-        if (currentScene !== 'scene7') {
+        // 边界：地牢与世界-122 不画描边（122 边界自然显示为地板渐变边缘，2026-08-14）
+        if (currentScene !== 'scene7' && currentScene !== 'scene8') {
             const borderCfg = GAME_CONFIG.worldBorder || {};
             g.lineStyle(borderCfg.lineWidth || 4, 0x8a4a4a, 1);
             g.strokeRect(0, 0, w, h);

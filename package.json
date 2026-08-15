@@ -15,7 +15,7 @@
     "prebuild": "node scripts/backup.js",
     "preview": "vite preview",
     "analyze:sprites": "node scripts/sprite-analyzer.js",
-    "test": "node scripts/test-collider.mjs && node scripts/test-craft-sync.mjs && node scripts/test-config-integrity.mjs && node --import ./scripts/register-json-loader.mjs scripts/test-melee-sync.mjs && node --import ./scripts/register-json-loader.mjs scripts/test-anim-state.mjs && node --import ./scripts/register-json-loader.mjs scripts/test-regressions.mjs && node --import ./scripts/register-json-loader.mjs scripts/test-wall-embed.mjs && node scripts/test-gate-corner.mjs && node scripts/test-arena-layout.mjs && node scripts/test-wall-depth.mjs && node scripts/test-collision-grid.mjs && node tools/pathfinding-bench.mjs",
+    "test": "node scripts/test-collider.mjs && node scripts/test-craft-sync.mjs && node scripts/test-config-integrity.mjs && node --import ./scripts/register-json-loader.mjs scripts/test-melee-sync.mjs && node --import ./scripts/register-json-loader.mjs scripts/test-anim-state.mjs && node --import ./scripts/register-json-loader.mjs scripts/test-regressions.mjs && node --import ./scripts/register-json-loader.mjs scripts/test-wall-embed.mjs && node scripts/test-gate-corner.mjs && node scripts/test-arena-layout.mjs && node scripts/test-wall-depth.mjs && node scripts/test-collision-grid.mjs && node --import ./scripts/register-json-loader.mjs scripts/test-energy.mjs && node --import ./scripts/register-json-loader.mjs scripts/test-command.mjs && node tools/pathfinding-bench.mjs",
     "lint": "eslint src",
     "lint:fix": "eslint src --fix"
   },

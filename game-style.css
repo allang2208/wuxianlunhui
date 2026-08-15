@@ -2716,6 +2716,31 @@
         .companion-cell img { width: 32px; height: 32px; pointer-events: none; border-radius: 4px; }
         .companion-cell.drag-over { border-color: #d4c5a9 !important; box-shadow: 0 0 16px rgba(212, 197, 169, 0.4); background: linear-gradient(180deg, rgba(70, 130, 200, 0.7), rgba(50, 100, 170, 0.8)); transform: scale(1.03); }
 
+        /* ===== 队员背包：消耗品使用设置（2026-08-15） ===== */
+        .consumable-settings-btn {
+            margin-left: auto; font-size: 12px; padding: 2px 6px; cursor: pointer;
+            background: rgba(70, 60, 45, 0.9); color: #f0e6d2; border: 1px solid #6a5a45;
+            border-radius: 6px; white-space: nowrap;
+        }
+        .consumable-settings-btn:hover { background: rgba(100, 85, 60, 0.95); }
+        .consumable-settings {
+            margin-top: 6px; padding: 8px 10px; font-size: 12px; color: #e8ddc8;
+            background: rgba(35, 30, 24, 0.96); border: 1px solid #6a5a45; border-radius: 8px;
+            line-height: 1.6;
+        }
+        .consumable-settings .cs-title { font-weight: 700; color: #f5d08a; margin-bottom: 4px; }
+        .consumable-settings .cs-row { display: block; margin: 3px 0; }
+        .consumable-settings .cs-row input[type="number"] {
+            width: 56px; padding: 1px 4px; background: #1d1813; color: #fff;
+            border: 1px solid #6a5a45; border-radius: 4px; text-align: center;
+        }
+        .consumable-settings .cs-row.cs-items { color: #b9ac93; max-height: 84px; overflow-y: auto; }
+        .consumable-settings .cs-save {
+            margin-top: 6px; padding: 3px 14px; cursor: pointer;
+            background: #8a6a35; color: #fff; border: 1px solid #b08a4f; border-radius: 6px;
+        }
+        .consumable-settings .cs-save:hover { background: #9d7a3e; }
+
         /* ===== 玩家背包栏：贴合在队员 system-panel 左侧 ===== */
         .companion-player-pack {
             display: none; flex-direction: column; position: absolute; top: 0; right: calc(45vw + 4px); bottom: 0;
@@ -2967,13 +2992,13 @@ body.map-mode #weaponInfo {
   position: fixed;
   right: 8px;
   top: 80px;
-  width: 280px;
+  width: 340px;
   background: rgba(18, 18, 24, 0.94);
   border: 1px solid #5a5346;
   border-radius: 4px;
   color: #d4c5a9;
   font-size: 12px;
-  padding: 8px 10px;
+  padding: 10px 12px;
   z-index: 9999;
   pointer-events: auto;
   user-select: none;
@@ -3086,12 +3111,12 @@ body.map-mode #weaponInfo {
 .wall-editor-panel .we-family { color: #8a8272; margin: 4px 0; font-size: 11px; }
 .wall-editor-panel .we-grid { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
 .wall-editor-panel .we-thumb {
-  width: 80px; background: rgba(255,255,255,0.05); border: 1px solid #5a5346;
+  width: 96px; background: rgba(255,255,255,0.05); border: 1px solid #5a5346;
   border-radius: 3px; padding: 4px; cursor: grab; text-align: center;
 }
 .wall-editor-panel .we-thumb:hover { border-color: #8a7d6b; background: rgba(255,255,255,0.1); }
 .wall-editor-panel .we-thumb img {
-  width: 100%; height: 48px; object-fit: contain; pointer-events: none;
+  width: 100%; height: 58px; object-fit: contain; pointer-events: none;
   image-rendering: auto;
 }
 .wall-editor-panel .we-thumb span { display: block; font-size: 11px; color: #b0a892; margin-top: 2px; }
@@ -3259,3 +3284,43 @@ body.map-mode #weaponInfo {
 .collision-tab-desc { font-size: 14px; line-height: 2; color: #b0a48e; text-align: left; }
 .collision-tab-desc p { margin: 0; }
 .collision-open-btn { font-size: 15px; padding: 10px 28px; }
+
+/* 队员指挥轮盘（长按中键弹出，2026-08-14） */
+.companion-wheel {
+  position: fixed; z-index: 9500; transform: translate(-50%, -50%);
+  width: 0; height: 0; pointer-events: none;
+}
+.companion-wheel .cw-center {
+  position: absolute; left: 0; top: 0; transform: translate(-50%, -50%);
+  width: 118px; padding: 8px 6px; text-align: center;
+  background: rgba(20, 16, 12, 0.85); border: 1px solid rgba(212, 197, 169, 0.35);
+  border-radius: 50%; color: #d4c5a9; font-size: 12px; line-height: 1.5;
+  pointer-events: none; user-select: none;
+}
+.companion-wheel .cw-center em { color: #8a7d68; font-size: 10px; font-style: normal; display: block; }
+.companion-wheel .cw-item {
+  position: absolute; transform: translate(-50%, -50%);
+  width: 64px; height: 64px; border-radius: 50%;
+  background: rgba(20, 16, 12, 0.9); border: 2px solid #9dff9d;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  cursor: pointer; pointer-events: auto; user-select: none;
+  transition: transform 0.08s ease, background 0.08s ease;
+}
+.companion-wheel .cw-item:hover, .companion-wheel .cw-item.cw-hover {
+  background: rgba(58, 46, 32, 0.95); transform: translate(-50%, -50%) scale(1.12);
+}
+.companion-wheel .cw-icon { font-size: 20px; line-height: 1; }
+.companion-wheel .cw-name { font-size: 11px; margin-top: 2px; }
+
+/* 世界-122 防守 HUD（波次状态 + 金币/能源实时显示，2026-08-14）
+   位置：屏幕中央正上方、顶部状态栏之下（top 56px，水平居中），不遮挡左上小地图与状态栏 */
+.defense-hud {
+  position: fixed; top: 56px; left: 50%; transform: translateX(-50%);
+  display: flex; gap: 14px; align-items: center;
+  background: rgba(12, 14, 12, 0.78); border: 1px solid rgba(122, 160, 130, 0.35);
+  border-radius: 14px; padding: 5px 16px;
+  color: #d4c5a9; font-size: 13px; z-index: 9500;
+  pointer-events: none; user-select: none;
+  font-family: SimHei, "Microsoft YaHei", sans-serif;
+}
+.defense-hud span:first-child { color: #cde8c0; font-weight: 700; }

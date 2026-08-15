@@ -13,7 +13,9 @@
   "meleeCombo": {
     "stage1HoldMs": 500,
     "stage2HoldMs": 200,
-    "stage2RecoverMs": 300
+    "stage2RecoverMs": 300,
+    "stage3HoldMs": 300,
+    "stage3RecoverMs": 400
   },
   "slashAttack": {
     "cooldown": 500,

@@ -323,7 +323,7 @@ this.ai = config.ai || {};
 实体本体被 `junctionCorrectedDepth` 压到墙下后，所有"跟着本体深度走"的贴图/特效如果不跟着压，就会浮在遮挡墙之上：
 
 - **武器/盾牌（跟随 playerDepth +N）**：本体压到 `wall-0.5` 后 `+2/+1` 的常规偏移 = `wall+1.5`，必然穿墙。正解（GameScene `_updateDynamicDepths` 第 3 步）：先记录仲裁前 natural depth，`corrected < natural` 判定被压下，跟随件改用 **<0.5 的紧凑偏移**（武器 0.4 / 副手 0.3 / 盾 0.2），保持相对层级又不越过墙；未被压下时用原偏移。仲裁抬高（前墙分支）不算 occluded。
-- **地面阴影（`_syncEntityShadows`）**：别再自己算 `e.y + 9`——直接 `实体 sprite.depth - 0.1`，遮挡/抬升全自动继承（`_syncEntityShadows` 比 `_updateDynamicDepths` 先跑，读到上一帧 depth，差一帧无感）。
+- **地面阴影（`_syncEntityShadows`）**：别再自己算 `e.y + 9`——直接 `实体 sprite.depth - 0.1`，遮挡/抬升全自动继承。**时序铁律（2026-08-15 修正）：`_syncEntityShadows` 必须排在 `_updateDynamicDepths` 之后**——阴影读当前帧仲裁后 depth，才能保证任意帧 `阴影.depth < 贴图.depth`（贴图永远在阴影之上）。旧版阴影先跑、读上一帧 depth，怪物跨过掩体/墙面线深度骤降时，阴影会以旧深度盖在贴图上 1 帧（世界-122 毒蛆 232×116 大椭圆在基地掩体线反复压住虫身）。
 - **定点特效（奔跑烟尘 DustEffect 等 graphics）**：生成位置固定，depth 用 `junctionCorrectedDepth(fx.x, fx.y, 自然 depth)` 过一遍仲裁（`window.WallSystem` 已挂载，效果类文件直接用全局引用即可），实体在墙后时烟尘同步压到墙下。
 - 通则：**任何以"实体深度 ± 偏移"或"自身 y + 偏移"赋 depth 的附属视觉，在墙体遮挡场景都要么跟随本体仲裁后 depth，要么自己过一遍仲裁**；新增此类视觉时把这条当 checklist。
 

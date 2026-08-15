@@ -39,7 +39,8 @@ export const StatusBar = {
         if (this.initialized) return;
         this.container = getElement('statusBarContainer');
         if (!this.container) {
-            console.warn('[StatusBar] 状态栏容器未找到，请检查 HTML 中是否有 id="statusBarContainer" 的元素');
+            // 2026-08-15：左上角状态栏已按用户要求删除（hud-core 不再创建容器）；
+            // 效果逻辑照常追踪，仅不渲染图标行——静默降级，不再告警。
         }
         this._initTooltip();
         this.initialized = true;

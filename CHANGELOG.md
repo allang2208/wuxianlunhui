@@ -1,5 +1,112 @@
 # 变更日志
 
+### 对话：删除世界-122「测试怪物」残留 + 怪物贴图恒在脚下阴影之上（2026-08-15）
+- **删除防守模式「测试怪物」（僵尸犬贴图）**：
+  - 根因：世界-122 `DefenseSystem._spawnMonster` 以 `new Factory(pt.x, pt.y)` 无配置构造，
+    `ZombieDogEnemy` 是全项目唯一不在构造器合并 `enemyConfigData` 的怪类 → 名字落到
+    `Enemy` 的「测试敌人」兜底（游戏内显示为测试怪）+ 僵尸犬贴图 + 默认属性（hp150/speed45，
+    非配置 100/250）。
+  - 修复：① `NORMAL_POOL` 移除 `zombieDog`（用户要求删除，不再刷僵尸犬）；
+    ② `ZombieDogEnemy` 构造器改为合并 `enemyConfigData.zombieDog`（与其他怪类同口径，
+    根治无配置构造的名字/属性兜底，召唤/地牢等路径不受影响）。
+- **怪物贴图始终在脚下椭圆阴影之上（全怪物适用）**：
+  - `GameScene.update` 中 `_syncEntityShadows` 从 `_updateDynamicDepths` **之前移到之后**：
+    阴影深度改为读取**当前帧**仲裁后的贴图深度 − 0.1。旧顺序读上一帧深度，怪物跨过
+    掩体/墙面线（世界-122 基地掩体、地牢墙）深度骤降时，阴影会以旧深度盖在贴图上 1 帧——
+    毒蛆 232×116 大椭圆阴影在掩体线反复压住虫身的根因。
+  - 效果：任何帧内恒有 `阴影.depth < 贴图.depth`，贴图不可能被椭圆阴影遮盖（玩家/敌人同口径）。
+- **验证**：待 eslint / vite build / npm test；实机待用户复测（世界-122 防守不再出现僵尸犬
+  「测试怪」；怪物过掩体线时阴影不再压住贴图）。
+
+### 对话：世界-122 能源资源系统 + 队员指挥轮盘（2026-08-14）
+- **能源资源系统（修建/修理经济）**：
+  - 物品：`id 'energy'`「能源」材料类、稀有度普通、最大堆叠 999；`src/systems/energy-manager.js`
+    （EnergyManager 单例，与 GoldManager 同构：add/deduct/merge/跨堆叠，背包引用由 EquipManager 注入）。
+  - 资源点：`src/world/energy-node-system.js`（EnergyNode 中立实体 + EnergyNodeSystem）——
+    世界-122 散落 11 个资源点（储量 2000~4000），玩家/队员普通攻击采集，**每次攻击按实际造成伤害
+    ×50%（向下取整）产能源掉落**；储量=hp，耗尽变枯竭贴图、90s 原地刷新；只对玩家/队员开放
+    （怪物攻击无效），不做墙体碰撞（不挡自家塔弹道）。
+  - 掉落/拾取：能源掉落物复用 DropItem（图标暂用 magic_dust 占位，待 ai-asset icon 管线替换）；
+    自动吸附拾取（与金币同口径 80px 半径，game.js 单次遍历扩展 energy 分支），入背包合并堆叠。
+  - 建造：B 建筑面板**掩体/防御塔改扣能源**（塔 300 能、掩体=等级HP×0.25），陷阱维持金币；
+    面板同时显示金币+能源，不足置灰提示。
+  - 修理：**按住 E** 修理附近受伤掩体/塔（范围 150px；掩体 2HP/能、塔 3HP/能，每 100ms tick），
+    修满自动切目标；离场/建筑模式不触发。
+  - 配置：`src/config/energy-config.js`（gatherRatio/respawnMs/positions 等，纯数据可单测）。
+- **队员指挥轮盘（五指令）**：
+  - 交互：**长按鼠标中键 ≥300ms** 弹出轮盘（鼠标为中心），松开选中悬停指令执行、移出=取消；
+    Shift+松开 = 全队，否则作用于当前选中队员（CompanionPanel 当前队员，无则第一名）；
+    指令点 = 打开瞬间鼠标世界坐标。`src/ui/companion-command-wheel.js`（DOM overlay +
+    game-style.css .companion-wheel 样式，game.js init 挂载）。
+  - 指令层：`party-system.js` setCommand/getCommand（写队员 `_command`）；
+    `companion-ai.js` `_applyCommand` 仲裁层（非 follow 指令绕过默认状态机；指令期间跳过
+    掉队瞬移/卡死瞬移）：
+    - **跟随**（默认）：原状态机不变；
+    - **主动攻击**：全图搜索最近敌人主动追击+施法，近战贴脸保留 flee 保命，无敌人回落跟随；
+    - **巡逻**：以指令点为圆心 1200px 随机游走（2~4s 换点，边界钳制），520px 感知遇敌反击
+      （flee/施法/追击均钳制在圈内）；
+    - **采集**：前往距指令点最近资源点，280px 内 800ms 间隔普通攻击弹体（companion_bolt 纹理，
+      伤害=自身 atk）；掉落能源自动拾取进**队员背包**，满 999 返回玩家移交（EnergyManager 入
+      玩家背包，玩家背包满则交能装下的部分并等待）；节点枯竭自动换下一个，无节点回落跟随；
+    - **待命**：不动不攻击保持 idle。
+  - 决策纯函数：`companion-ai-decision.js` 新增 isCommandActive/pickPatrolPoint/pickNearestNode
+    （零依赖可单测）。
+- **验证**：单测 test-energy 18/18 + test-command 11/11（已挂入 npm test 链）；
+  lint 0 error；vite build ✅；test-melee-sync 12 项失败为并行会话近战三段动画在途改动所致，
+  与本次无关；实机待用户复测。
+- **待办**：能源图标正式图（ai-asset icon 管线）；塔/掩体建造数值平衡；队员采集袋满移交的
+  飘字/音效打磨；主动攻击/巡逻与怪物仇恨系统的联动（露娜目前不被怪物仇恨）。
+
+### 对话：世界-122 塔重建/出售 + 防守胜利结算（2026-08-14 二轮）
+- **塔重建**：塔被摧毁 → 登记废墟实体 `DefenseTowerRuin`（运行时生成 `tower_ruin` 贴图：
+  灰色残骸底座，中立不可攻击、怪物不锁定）→ 点击废墟开面板 → 「重建防御塔」扣 300 能源，
+  塔满血复活（等级/模块/武器全保留），废墟移除。
+- **塔出售**：塔面板新增「出售」按钮 → 返还 50% 建造能源（150），武器归还背包（背包满则
+  原地掉落），塔移除。
+- **胜利结算**：撑过 10 波（`DEFENSE_CONFIG.spawn.victoryWave`，波次=已进行时长/25s+1）
+  → 停止刷怪 + 一次性奖励 500 金币 + 500 能源 + 飘字/音效；残余怪仍可清理；
+  与失败（基地被摧毁）互斥。
+- **验证**：eslint 0 error / vite build ✅；实机待用户复测（摧毁塔→点废墟重建→出售→撑过
+  10 波看胜利飘字）。
+
+### 对话：三段攻击动画 v2 重做（单手持剑/爆发节奏/前移位移保留，2026-08-13 二轮）
+- **素材**：`tools/prep-melee3-sheets.py` 指向 v2 三张 sheet（slash1/slash2/thrust _v2.png，
+  用户反馈 v1 双手握剑+僵硬+无前移后重做）：同样近中性色偏校正（R-B +5~12 归零、零 spill、
+  无裁切），覆盖输出 attack_sword{,_2,_3}.png；v1 定稿留档
+  `backup/2026-08-13-player-anim-opt/assets-player-v1/`（手绘原版留档在 assets-player/，未动）。
+- **规格核对**：帧数 12/12/16、格 512×512、网格 4×3/4×3/4×4 与 v1 完全一致——
+  player-anim-config.json 双份未动（test-melee-sync 的 PNG IHDR 断言核实物尺寸通过）。
+- **位移锚定核查**：v2 帧内容格内不居中（keep-dx：首帧偏左、后帧 +25/+128/+66px 右移）——
+  GameScene 攻击 sprite 是 origin 中心 + setDisplaySize(144) 归一，格内位移即屏显前移，
+  flipX 镜像后朝左同样前移，无需代码改动；武器轨迹 perFrame offsetX/Y 是相对玩家实体位置
+  （非 sprite 帧内容），身体前移后 v1 轨迹 seed 会与手臂脱节——DevTool 精调时以 v2 身体为准重对。
+- **验证**：lint 0 error；npm test 全绿（test-melee-sync 49 项全过）。
+- **待办**：三段轨迹（尤其 attack3 突刺）按 v2 身体 DevTool 重对；实机手感复测。
+
+### 对话：近战三段连段动画落地（挥击×2 + 突刺×1，2026-08-13）
+- **素材**：绿幕视频管线三段 sheet 定稿（`tools/prep-melee3-sheets.py`，可重复运行）——
+  色偏中性化（近中性像素 RGB→亮度均值，消除骨白暖偏 R-B≈+6~10，黑描边不动）、
+  格 512×512 原样输出不重采样；旧 attack_sword/attack_sword_2 留档
+  `backup/2026-08-13-player-anim-opt/assets-player/`。格规格决策：屏显恒 144×144
+  （`setDisplaySize` 归一），追平手绘比率 477/516 会裁 slash1 过顶帧（内容高 490 > 比率上限
+  432/490=0.88），故接受站立身高 ~8.4% 差（0.6s 攻击爆发段无感，脚底基线偏移差仅 1.7px）。
+- **连段三段化**：一段过顶下劈 12帧/600ms → 二段肩高快劈 12帧/600ms → 三段弓步突刺
+  16帧/800ms（终结段）→ 回一段；段数映射/定格/收势梯度收口 `anim-state.js`
+  （`MELEE_STAGE_ANIM_KEYS`/`meleeStageCfgKey`/`meleeStageHoldMs`/`meleeStageRecoverMs`），
+  纹理/轨迹块缺失逐级回退 stage3→2→1；`meleeCombo` 新增 stage3HoldMs=300（终结后重开窗口）
+  /stage3RecoverMs=400（终结收势）；攻击动画键检查（完成回调/卡死守卫/进度回退）泛化为
+  `MELEE_STAGE_ANIM_KEYS` 查表。frameWeights 口径退役，三段统一 frameDurations 50ms/帧。
+- **武器轨迹**：`sword.attack/attack2` 30 点按进度重采样到 12 点（旋转先解卷绕，形状保持），
+  hitCheck.frame 等比换算（22→9、15→6）；新增 `sword.attack3` 16 点突刺轨迹（与二段末帧
+  相接起手、末帧=一段起手闭环；rect 长矩形判定，damageMul 2.0 / knockback 100 / stunMs 1400
+  梯度，soundFrame 5）——**初始种子值，待 DevTool 逐帧精调**（💾直写该 JSON；perFrame 缓存
+  按 frames 数组身份自动失效，无需额外处理）。
+- **验证**：`test-melee-sync.mjs` 三段化重写（帧边界/时长/sheet IHDR 实物尺寸/轨迹点数/
+  hitCheck 帧范围/闭环断言，49 项全过）；npm test 全绿；lint 0 error。
+- **待办**：攻击动画实机手感复测（三段节奏 600/600/800ms + 连段窗口梯度）；
+  attack3 突刺轨迹 DevTool 精调（伸展幅度/旋转角度为种子值）；三段 hitCheck 矩形宽度
+  实机校核（读 sword.hitBox.width=35）。
+
 ### 对话：侍从系统框架（2026-08-12，占位符建模/贴图，待用户验收）
 - **数据层**：`data/companion-config.json` 4 名候选侍从（重剑/占星/巡林/祭司，占位头像 emoji +
   `modelPlaceholder` 路径，初始六维/成长规则引用）；`src/config/companion-growth.js` 成长规则
@@ -7433,3 +7540,85 @@
   cdp-luna-dungeon-spawn（生成 189px 合法、清怪后主动跟随）、cdp-luna-anim
   （idle 奔跑首帧/follow walk 循环/flee run 质心 0px）通过；单测 116/116、
   lint 0 error、vite build ✅。
+
+## 2026-08-15（露娜初始魔法 600 + 队友消耗品自动使用）
+
+### 对话：初始魔法值 + 消耗品使用设置
+- **需求**：露娜初始魔法值 600；队员面板背包界面加「消耗品使用设置」按钮——生命/
+  魔法低于一定比例时自动使用对应恢复药水，默认低级→高级（后续新增更多消耗品）。
+- **实现**：
+  - `data/companion-config.json` mage_luna 加 `baseMaxMp: 600`；
+    `src/entities/companion.js` `_maxMpOverride` 覆盖 maxMp 公式（600 基准 + 每级
+    +10 + 装备 maxMp），serialize/fromSerialized 保留；`consumableSettings` 默认
+    `{enabled:true, hpThreshold:0.3, mpThreshold:0.25, useLowToHigh:true}`。
+  - `src/ai/companion-ai.js` `_useAutoConsumable`（1s 节流）：HP/MP 各自独立判定，
+    背包选对应恢复药水按 level→恢复量升序（低级→高级）使用，扣堆叠并通知 UI 刷新。
+  - `src/ui/companion-panel.js` 装备页背包栏加「⚙️ 消耗品设置」按钮 → 展开面板：
+    启用开关、HP/MP 阈值（1-99%）、背包消耗品列表、保存；`game-style.css` 新增样式。
+- **验证**：单测 142/142（初始魔法 600/消耗品设置默认+序列化往返）；CDP
+  `tools/cdp-luna-consumable.mjs`——招募露娜 maxMp=600、面板按钮存在且展开、HP 低于
+  50% 自动用低级治疗药水（+30、堆叠 3→2、高级药水不动）、MP 低于 50% 自动用魔力药水
+  （+25、堆叠 2→1）、设置保存生效（关闭/20%/15%）；AI 行为回归（cdp-luna-ai）
+  全绿；lint 0 error、vite build ✅。
+- **教训**：HP/MP 自动用药必须独立判定——`!used` 串联会让先满足条件的类型阻塞另一
+  类（实测 HP 用药后 MP 检查被跳过）。
+
+### 对话：用 walking and running.mp4 重做 walk/run 精灵图（2026-08-15）
+- **需求**：用 `E:\无尽轮回\游戏\素材库\人物\luna\walking and running.mp4` 重做
+  walking/running 精灵图动画（重做截取和抠图）。
+- **视频分析**（24fps/121 帧/720p）：f0-44 正面横向走；f48-80 站定（帧间差异
+  <0.004 确认为静止）；f81-120 侧面跑。对齐剪影周期分析：walk 最佳循环 f12-37
+  （26 帧，回跳 0.017 无缝）；run 起步 f81-97（17 帧，衔接 16→17 在 sheet 内
+  0.056）+ 循环 f98-120（23 帧，回跳 0.098 = 素材最优）。
+- **实现**：新管线 `tools/ai-gen/luna-wr-rebuild.py`（ComfyUI venv python）——PyAV
+  抽帧 → BiRefNet-general 抠图（unpremultiply 防白边）→ 对齐（脚底固定 + 内容质心
+  精确居中，质心跨度 1.0-1.4px）→ 拼 sheet：walking.png 8×4（26 帧）、running.png
+  8×5（起步 17 + 循环 23 = 40 帧）。`companion-config.json` 更新 walk frames
+  [0,25]@24fps、run startFrames [0,16]+loopFrames [17,39]@24fps；idle 独立素材保留。
+- **验证**：单测 142/142（walk 26 帧/run 40 帧断言更新）；CDP `cdp-luna-anim.mjs`——
+  注册 walk 26/run_start 17/run_loop 23，idle 用独立素材，follow walk 循环 wrap、
+  cast spell、flee run 循环质心 0px；AI/消耗品回归（cdp-luna-ai、cdp-luna-consumable）
+  全绿；lint 0 error、vite build ✅。
+- **坑**：sheet 未填满的行尾是空白 cell——循环回跳校验按实际 frameCount 最后一帧
+  （walk 是 cell25 不是 cell31），按 cols×rows 全表算会把空白帧当回跳帧（误报
+  0.272 vs 实际 0.018）。
+
+### 对话：spell 动画被跳过/占据排查（2026-08-15）
+- **现象**：施法时 spell 动画被跳过或被 run/idle 占据（castState 短暂 casting 后立即
+  idle；或站桩 spell 不逃跑）。
+- **根因①（spell 被跳过）**：`_tryCast` 写计时器 `c._castTimer`（companion 字段），
+  但 `_updateCast` 误读 `this._castTimer`（AI 实例字段，恒 0）→ `0 - dt <= 0` 首帧
+  即清施法状态，spell 动画只闪一瞬。修复：统一读 `c._castTimer`。
+- **根因②（spell 占据/不逃跑）**：`_applyAction` 开头"施法锁定中保持 spell 并返回"
+  的检查在 flee 之前执行——近战贴脸时 decide 已输出 'flee'，但被施法锁定提前
+  return 拦下，flee 分支（打断施法）从未执行，露娜站桩 spell 挨打。修复：施法锁定
+  排除 `action === 'flee'`（贴脸保命优先，打断施法逃跑）；决策纯函数同步调整
+  （威胁贴脸优先级高于施法站定）。
+- **验证**：诊断探针 `tools/cdp-luna-spell-diag.mjs`——spell 注册 32 帧/repeat -1；
+  施法期间逐帧采样 castState=casting、currentAnim=spell、frame 递增、纹理 spell；
+  手动 `_tryCast` 后 200ms 仍 casting（施法持续 1300ms 不提前结束）。cdp-luna-ai：
+  撤退 distBefore 60 → distAfter 212（打断施法逃跑）；cdp-luna-anim：cast→spell
+  animSeen ['spell'] 全程施法动画；单测 143/143（新增"施法中威胁贴脸→flee"）；
+  lint 0 error、vite build ✅。
+
+### 对话：idle 朝向目标 + 法术内置 CD 2s + 普通攻击（2026-08-15）
+- **需求**：① idle 方向始终面对目标（逃跑除外）；② 法术内置 CD 默认 2s（每个法术
+  最小释放间隔）；③ 普通攻击：600px 射程、600px/s 投射物、2s 间隔、播 spell 动画、
+  蓝色光球、伤害 = 魔法攻击 × 0.2；注意动画状态机不互相挤占。
+- **实现**：
+  - 朝向（GameScene aiMode）：逃跑（lastAction==='flee' 且移动中）面朝移动方向；
+    其余始终面朝目标（member.target 优先 → 兜底扫最近敌人）。`_lastAction` 同步到
+    companion（此前渲染层读 member._lastAction 恒 undefined → flee 也面朝敌人）。
+  - 内置 CD：`_castCooldown` 默认 2000ms（companion-config castCooldown 350→2000），
+    `_pickReadySpell` 前置检查；普通攻击用独立 `_basicAtkCd`（互不占用）。
+  - 普通攻击：`_tryBasicAttack` 发射蓝色光球（_basic：600px/s、600px、命中
+    matk×0.2 伤害 + 飘字），攻击动作 castState=casting + _castTimer=500ms 播 spell
+    动画；GameScene `_syncCompanionBasics` 用 impact_dot + 蓝 tint + ADD 渲染光球；
+    决策 cast 分支 fallback：无法术（CD/MP/射程）→ 普通攻击。
+- **验证**：新探针 `tools/cdp-luna-basic.mjs`——法术内置 CD 设 2000 并递减；普通攻击
+  自动链路 matk=100 → 伤害 20（=100×0.2）；idle 目标在右侧面右、移到左侧面左；
+  cdp-luna-ai 逃跑 facesMoveDir=true（面朝移动方向）、深度按 Y；spell 持续 1300ms
+  不提前结束；单测 143/143、lint 0 error、vite build ✅。
+- **坑**：探针场景间状态耦合（施法残留/决策时序）会导致单次采样偶发不稳定——核心
+  机制用手动 `_tryBasicAttack`/逐帧采样做确定性验证；`_lastAction` 必须写回
+  companion 供渲染层消费（AI 实例字段渲染层拿不到）。

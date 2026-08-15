@@ -19,6 +19,7 @@ import { RiftSystem } from '../quest/rift-system.js';
 import { QuickBar } from '../ui/quick-bar.js';
 import { SystemUI } from '../ui/system-ui.js';
 import { DefenseSystem, DEFENSE_CONFIG } from './defense-system.js';
+import { EnergyNodeSystem } from './energy-node-system.js';
 import { BuildingSystem } from './building-system.js';
 import { DefenseTrapSystem } from './defense-trap-system.js';
 
@@ -135,6 +136,10 @@ export const SceneManager = {
             }
             if (DefenseTrapSystem && typeof DefenseTrapSystem.teardown === 'function') {
                 DefenseTrapSystem.teardown();
+            }
+            // 世界-122 能源资源点随场景离场拆除（实体由下方 Game.entities.clear 统一清理）
+            if (EnergyNodeSystem && EnergyNodeSystem.active) {
+                EnergyNodeSystem.teardown();
             }
             if (EffectManager && EffectManager.clearFloatingTexts) {
                 EffectManager.clearFloatingTexts();
@@ -946,13 +951,14 @@ export const SceneManager = {
         });
         applyDungeonFloor(size);
 
-        // 边界墙，防止走出地图
+        // 边界：不再画围墙（2026-08-14 用户要求）——保留隐形物理体阻挡走出地图，
+        // 边界自然显示为地板的黑色渐变边缘（bakeDungeonFloor 自带四周 FLOOR_EDGE_FADE）
         WallSystem.init(size, size);
         WallSystem.walls = [
-            { x: 0, y: 0, w: size, h: 20 },
-            { x: 0, y: size - 20, w: size, h: 20 },
-            { x: 0, y: 0, w: 20, h: size },
-            { x: size - 20, y: 0, w: 20, h: size },
+            { x: 0, y: 0, w: size, h: 20, noVisual: true },
+            { x: 0, y: size - 20, w: size, h: 20, noVisual: true },
+            { x: 0, y: 0, w: 20, h: size, noVisual: true },
+            { x: size - 20, y: 0, w: 20, h: size, noVisual: true },
         ];
         if (WallSystem._syncWallsToPhaser) {
             WallSystem._syncWallsToPhaser();
@@ -976,6 +982,9 @@ export const SceneManager = {
 
         // 世界-122 防守战：基地核心 + 防御塔 + 边界刷怪波次
         DefenseSystem.setup(player);
+
+        // 世界-122 能源资源点：散落地图，供玩家/队员攻击采集能源（修建/修理用）
+        EnergyNodeSystem.setup();
     },
 
     _loadScene7(player, _dungeonType = 'zombie') {

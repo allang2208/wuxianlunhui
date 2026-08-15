@@ -26,8 +26,10 @@ import { EffectManager } from '../effects/effect-manager.js';
 import { EffectFactory } from '../utils/effect-factory.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
 import { SoundManager } from '../ui/sound-manager.js';
+import { EnergyManager } from '../systems/energy-manager.js';
 import { BasePanel } from '../ui/panels/base-panel.js';
 import { Renderer } from './renderer.js';
+import { SceneManager } from './scene-manager.js';
 import { loadImage } from '../utils/image-loader.js';
 import equipmentJson from '../../data/equipment.json';
 
@@ -77,6 +79,9 @@ export const DEFENSE_CONFIG = {
         hp: 1400, radius: 44, def: 70, mdef: 70,
         maxLevel: 10,
         baseCost: 120, costGrowth: 1.55,
+        // 摧毁后重建 / 出售（2026-08-14）：重建 = 原建造能源价；出售返还 50% 建造能源
+        rebuildCost: 300,
+        sellRefundRatio: 0.5,
         // 塔等级伤害成长：等级仅作为"解锁门槛 + 小幅增益"，主要成长走模块（2026-08-07）
         levelDamageMul: 0.06,
         // 模块位：Lv1 开 3 个，之后每 2 级 +1，Lv9 满 7 个（模块总数 6 + 预留 1）
@@ -91,14 +96,24 @@ export const DEFENSE_CONFIG = {
             cooling:   { name: '快速散热', icon: '❄️', per: -0.12, maxLevel: 4, baseCost: 120, costGrowth: 1.45, desc: '过热冷却 -{pct}%' },
         },
     },
+    // 修理（2026-08-14）：掩体/防御塔受伤后，靠近按住 E 消耗背包能源持续修理。
+    // hpPerEnergy = 每点能源可修复的 HP（掩体 2HP/能、塔 3HP/能）；tickHp = 每 tick 修复量上限。
+    repair: {
+        range: 150,
+        coverHpPerEnergy: 2,
+        towerHpPerEnergy: 3,
+        tickMs: 100,
+        tickHp: 25,
+    },
     spawn: {
-        firstDelay: 6000,
-        interval: 5000,
+        // 2026-08-14 离散波次重构（用户要求）：
+        // 进入世界-122 后 30s 准备期（怪物不进攻）→ 第 1 波一次性刷 batch → 清空 → 10s 休息 → 下一波…
+        prepMs: 30000,          // 准备期：30s 后怪物才开始进攻
+        waveBreakMs: 10000,     // 波间休息（修塔/建掩体窗口）
         maxAlive: 40,
-        waveSeconds: 25,
-        baseCount: 2,
-        countPerWave: 1.2,
-        countCap: 12,
+        baseCount: 6,           // 离散波批量 = baseCount + wave × countPerWave（第1波 8 只，封顶 24）
+        countPerWave: 2,
+        countCap: 24,
         hpPerWave: 0.16,
         atkPerWave: 0.08,
         alertRange: 3800,
@@ -107,11 +122,14 @@ export const DEFENSE_CONFIG = {
         goldDropMul: 6,
         goldRandomMin: 1,
         goldRandomMax: 8,
-        // 精英/领主定时刷（在普通怪流之上额外生成）
+        // 精英/领主定时刷（仅在波次战斗阶段，在普通波次之上额外生成）
         eliteEveryMs: 30000,
         lordEveryMs: 90000,
         eliteHpMul: 1.4,
         lordHpMul: 2.8,
+        // 胜利结算（2026-08-14）：第 victoryWave 波清空即防守胜利，发放奖励
+        victoryWave: 10,
+        victoryReward: { gold: 500, energy: 500 },
     },
     // 刷怪点：右端尽头（基地在左端 x=900 菱形房内，怪物从右往左攻）
     spawnPoints: [
@@ -205,7 +223,9 @@ const NORMAL_POOL = [
     { type: 'zombie', weight: 16 },
     { type: 'minerZombie', weight: 12 },
     { type: 'fatZombie', weight: 11 },
-    { type: 'zombieDog', weight: 10 },
+    // 僵尸犬已移除（2026-08-15）：该类是唯一不合并 enemyConfigData 的怪，
+    // 无配置构造时名字兜底成「测试敌人」+ 贴图却是僵尸犬——世界-122 防守刷出的
+    // 「测试怪物」残留根因。用户要求删除，不再进防守刷怪池。
     { type: 'blackWolf', weight: 9 },
     { type: 'spitterZombie', weight: 7 },
     { type: 'flySwarm', weight: 7 },
@@ -995,14 +1015,15 @@ class DefenseTower extends Combatant {
         this.aimAngle += Math.max(-maxStep, Math.min(maxStep, diff));
     }
 
-    /** 塔被摧毁：停火、停止渲染、从实体分离中移除（怪物可穿过废墟） */
+    /** 塔被摧毁：停火、停止渲染、从实体分离中移除（怪物可穿过废墟）；登记废墟供重建 */
     takeDamage(damage, source, damageType, isMelee) {
         const wasAlive = this.hp > 0;
         super.takeDamage(damage, source, damageType, isMelee);
         if (wasAlive && this.hp <= 0) {
             this.active = false;
-            if (EffectManager) {
-                EffectManager.add(new FloatingTextEffect(this.x, this.y - 30, '防御塔被摧毁', '#ff8855'));
+            this.hittable = false;
+            if (DefenseSystem && typeof DefenseSystem._onTowerDestroyed === 'function') {
+                DefenseSystem._onTowerDestroyed(this);
             }
         }
     }
@@ -1035,6 +1056,29 @@ class DefenseTower extends Combatant {
     }
 }
 
+// ==================== 防御塔废墟（摧毁后可重建）====================
+
+class DefenseTowerRuin extends DamageableEntity {
+    constructor(x, y, tower) {
+        super(x, y, {
+            faction: 'neutral', // 中立：怪物不锁定（_isValidTarget 只看 player 阵营）
+            hp: 1, maxHp: 1,
+            size: 44,
+            collisionRadius: 30,
+            name: '防御塔废墟',
+        });
+        this._isTowerRuin = true;
+        this.ruinFor = tower;
+        this.hittable = false;       // 不可被攻击
+        this.immovable = true;
+        this.noSeparation = true;
+        this._noShadow = true;
+        this.noNameLabel = true;
+        this.spriteCfg = { idleKey: 'tower_ruin', size: 96, sizeH: 60, footOffsetY: 30 };
+        this.footOffsetY = 30;
+    }
+}
+
 // ==================== 防御塔面板 ====================
 
 class DefenseTowerPanel extends BasePanel {
@@ -1054,7 +1098,10 @@ class DefenseTowerPanel extends BasePanel {
         el.innerHTML = `
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
                 <div id="dtTitle" style="font-size:18px;font-weight:700;color:#ffd700;"></div>
-                <button id="dtClose" style="background:#3a3228;color:#d4c5a9;border:1px solid #6a5a3a;border-radius:6px;padding:4px 12px;cursor:pointer;">关闭</button>
+                <div style="display:flex;gap:8px;">
+                    <button id="dtSell" style="background:#3a2820;color:#ffc9a0;border:1px solid #6a4a2a;border-radius:6px;padding:4px 10px;cursor:pointer;">出售</button>
+                    <button id="dtClose" style="background:#3a3228;color:#d4c5a9;border:1px solid #6a5a3a;border-radius:6px;padding:4px 12px;cursor:pointer;">关闭</button>
+                </div>
             </div>
             <div id="dtWeaponSlot" style="border:1px dashed #6a5a3a;border-radius:8px;padding:10px;margin-bottom:10px;background:rgba(0,0,0,0.25);"></div>
             <div style="font-size:13px;color:#9a8a6a;margin-bottom:6px;">可装载武器（背包 · 远程 · 手枪除外）</div>
@@ -1067,7 +1114,17 @@ class DefenseTowerPanel extends BasePanel {
     }
 
     openFor(tower, player) {
+        this.ruin = null;
         this.tower = tower;
+        this.player = player;
+        this.open();
+        this.refresh();
+    }
+
+    /** 废墟模式：展示重建入口（2026-08-14） */
+    openForRuin(ruin, player) {
+        this.tower = null;
+        this.ruin = ruin;
         this.player = player;
         this.open();
         this.refresh();
@@ -1081,6 +1138,7 @@ class DefenseTowerPanel extends BasePanel {
     onClose() {
         if (this.el) this.el.style.display = 'none';
         this.tower = null;
+        this.ruin = null;
         this.player = null;
     }
 
@@ -1140,7 +1198,12 @@ class DefenseTowerPanel extends BasePanel {
 
     refresh() {
         const el = this.el;
-        if (!el || !this.tower) return;
+        if (!el) return;
+        if (this.ruin) {
+            this._refreshRuin();
+            return;
+        }
+        if (!this.tower) return;
         const t = this.tower;
         const player = this.player || (typeof window !== 'undefined' && window.Game ? window.Game.player : null);
         el.querySelector('#dtTitle').textContent = t.name;
@@ -1241,6 +1304,47 @@ class DefenseTowerPanel extends BasePanel {
         const d = player && player.data ? player.data : {};
         el.querySelector('#dtStatHint').textContent =
             `六维加成参考：力量 ${d.str ?? 10} / 敏捷 ${d.dex ?? 10} / 体质 ${d.con ?? 10} / 智力 ${d.int ?? 10} / 精神 ${d.wis ?? 10} / 幸运 ${d.luck ?? 10}`;
+        // 出售（2026-08-14）：返还 50% 建造能源，武器归还背包
+        const sellBtn = el.querySelector('#dtSell');
+        if (sellBtn) {
+            sellBtn.style.display = '';
+            const refund = Math.floor((DEFENSE_CONFIG.tower.rebuildCost ?? 300) * (DEFENSE_CONFIG.tower.sellRefundRatio ?? 0.5));
+            sellBtn.title = `出售返还 ${refund} 能源（武器归还背包）`;
+            sellBtn.onclick = () => {
+                const res = DefenseSystem.sellTower(t, player);
+                this._notify(res.ok ? `已出售（+${res.refund} 能源）` : res.reason, res.ok ? '#ffd700' : '#ff5555');
+                this.refresh();
+            };
+        }
+    }
+
+    /** 废墟模式面板：展示重建入口（2026-08-14） */
+    _refreshRuin() {
+        const el = this.el;
+        const ruin = this.ruin;
+        if (!el || !ruin) return;
+        const t = ruin.ruinFor;
+        el.querySelector('#dtTitle').textContent = '防御塔废墟';
+        el.querySelector('#dtWeaponSlot').innerHTML = `<div style="color:#c8b98a;font-size:13px;">防御塔已被摧毁。</div>`;
+        el.querySelector('#dtWeaponList').innerHTML = '';
+        const cost = DEFENSE_CONFIG.tower.rebuildCost ?? 300;
+        const energy = EnergyManager ? EnergyManager.getEnergy() : 0;
+        const up = el.querySelector('#dtUpgrade');
+        up.innerHTML = `
+            <div style="font-size:13px;color:#c8b98a;margin-bottom:8px;">
+                重建后等级/模块/武器（${t && t.weaponItem ? `${t.weaponItem.icon || '🔫'} ${t.weaponItem.name}` : '未装载'}）全部保留<br>
+                重建费用 <span style="color:#7fd4ff;">${cost} 能源</span>（持有 ${energy}）
+            </div>
+            <button id="dtRebuildBtn" style="width:100%;background:#2a4a3a;color:#d0ffd0;border:1px solid #4a8a5a;border-radius:6px;padding:7px 0;cursor:pointer;">重建防御塔</button>`;
+        up.querySelector('#dtRebuildBtn').addEventListener('click', () => {
+            const res = DefenseSystem.rebuildTower(ruin, this.player);
+            this._notify(res.ok ? `重建完成（-${res.cost} 能源）` : res.reason, res.ok ? '#9dff9d' : '#ff5555');
+            this.refresh();
+        });
+        el.querySelector('#dtModules').innerHTML = '';
+        el.querySelector('#dtStatHint').textContent = '';
+        const sellBtn = el.querySelector('#dtSell');
+        if (sellBtn) sellBtn.style.display = 'none';
     }
 }
 
@@ -1249,8 +1353,17 @@ class DefenseTowerPanel extends BasePanel {
 export const DefenseSystem = {
     active: false,
     defeated: false,
+    victory: false,     // 防守胜利（清完 victoryWave 波，2026-08-14）
+    _victoryGranted: false,
     base: null,
     towers: [],
+    ruins: [],          // 被摧毁的防御塔（废墟实体，供重建）
+    // 离散波次状态机（2026-08-14）：'prep' 准备期 → 'wave' 战斗中 → 'break' 波间休息
+    _phase: 'prep',
+    _wave: 0,
+    _phaseTimer: 0,
+    _hudEl: null,
+    _hudTimer: 0,
     _spawnTimer: 0,
     _eliteTimer: 0,
     _lordTimer: 0,
@@ -1258,6 +1371,11 @@ export const DefenseSystem = {
     _seq: 0,
     _goldGranted: null,
     _panel: null,
+    // 修理状态（E 键长按，2026-08-14）
+    _repairHeld: false,
+    _repairTimer: 0,
+    _repairTarget: null,
+    _repairFlash: 0,
 
     _ensurePanel() {
         if (!this._panel) this._panel = new DefenseTowerPanel();
@@ -1268,8 +1386,14 @@ export const DefenseSystem = {
         this.teardown();
         this.active = true;
         this.defeated = false;
+        this.victory = false;
+        this._victoryGranted = false;
+        this._ensureTowerRuinTexture();
         this._elapsed = 0;
-        this._spawnTimer = DEFENSE_CONFIG.spawn.firstDelay;
+        // 离散波次：准备期 30s（怪物不进攻），波号从 1 起
+        this._phase = 'prep';
+        this._wave = 0;
+        this._phaseTimer = DEFENSE_CONFIG.spawn.prepMs;
         this._eliteTimer = 0;
         this._lordTimer = 0;
         this._seq = 0;
@@ -1308,9 +1432,11 @@ export const DefenseSystem = {
               pathFinder.invalidateCache();
           }
 
+          // 顶部 HUD（波次状态 + 金币/能源实时显示）+ 开战提示（30s 准备期）
+          this._createHud();
           if (player) {
-              EffectManager.add(new FloatingTextEffect(player.x, player.y - 60, '世界-122 防守战开始！守住基地核心', '#ffd700'));
-        }
+              EffectManager.add(new FloatingTextEffect(player.x, player.y - 60, `世界-122 防守战开始！${Math.round(DEFENSE_CONFIG.spawn.prepMs / 1000)} 秒后怪物来袭`, '#ffd700'));
+          }
     },
 
     /**
@@ -1398,8 +1524,15 @@ export const DefenseSystem = {
     teardown() {
         this.active = false;
         this.defeated = false;
+        this.victory = false;
+        this._victoryGranted = false;
         this.base = null;
         this.towers = [];
+        this.ruins = [];
+        this._phase = 'prep';
+        this._wave = 0;
+        this._phaseTimer = 0;
+        this._destroyHud();
         this._spawnTimer = 0;
           this._eliteTimer = 0;
           this._lordTimer = 0;
@@ -1431,39 +1564,187 @@ export const DefenseSystem = {
     update(dt) {
         if (!this.active || this.defeated) return;
         this._elapsed += dt;
+        this._repairTick(dt);
         this._grantMonsterGold(dt);
-        this._spawnTimer += dt;
-        this._eliteTimer += dt;
-        this._lordTimer += dt;
-        // 随时间推进，刷怪间隔逐渐缩短（有下限）
-        const interval = Math.max(1500, DEFENSE_CONFIG.spawn.interval - Math.floor(this._elapsed / 60000) * 300);
-        if (this._spawnTimer >= interval) {
-            this._spawnTimer = 0;
-            this._spawnWave();
+        this._updateHud(dt);
+        if (this.victory) return;
+
+        // ==================== 离散波次状态机（2026-08-14）====================
+        // prep（30s 准备，怪物不进攻）→ wave（一批刷出，清空才结束）→ break（10s 修整）→ 下一波
+        this._phaseTimer -= dt;
+        switch (this._phase) {
+            case 'prep':
+                if (this._phaseTimer <= 0) {
+                    this._wave = 1;
+                    this._startWave();
+                }
+                break;
+            case 'wave':
+                // 波内怪物全部死亡 → 波次结束：最后一波胜利，否则进入波间休息
+                if (this._aliveCount() === 0) {
+                    if (this._wave >= (DEFENSE_CONFIG.spawn.victoryWave || 10)) {
+                        this._onVictory();
+                    } else {
+                        this._phase = 'break';
+                        this._phaseTimer = DEFENSE_CONFIG.spawn.waveBreakMs || 10000;
+                        this._announce(`第 ${this._wave} 波已清除！${Math.round(this._phaseTimer / 1000)} 秒后下一波`, '#9dff9d');
+                    }
+                }
+                break;
+            case 'break':
+                if (this._phaseTimer <= 0) {
+                    this._wave++;
+                    this._startWave();
+                }
+                break;
         }
-        // 精英每 30s 一刷、领主每 90s 一刷（在普通流之上额外生成）
-        if (this._eliteTimer >= DEFENSE_CONFIG.spawn.eliteEveryMs) {
-            this._eliteTimer = 0;
-            this._spawnElite();
-        }
-        if (this._lordTimer >= DEFENSE_CONFIG.spawn.lordEveryMs) {
-            this._lordTimer = 0;
-            this._spawnLord();
+        // 精英/领主只在波次战斗阶段定时刷（普通波次之上额外生成）
+        if (this._phase === 'wave') {
+            this._eliteTimer += dt;
+            this._lordTimer += dt;
+            if (this._eliteTimer >= DEFENSE_CONFIG.spawn.eliteEveryMs) {
+                this._eliteTimer = 0;
+                this._spawnElite();
+            }
+            if (this._lordTimer >= DEFENSE_CONFIG.spawn.lordEveryMs) {
+                this._lordTimer = 0;
+                this._spawnLord();
+            }
         }
     },
 
-    _spawnWave() {
-        const wave = Math.floor(this._elapsed / (DEFENSE_CONFIG.spawn.waveSeconds * 1000)) + 1;
+    /** 开一波：一次性刷 batch（= baseCount + wave×countPerWave，封顶 countCap，受 maxAlive 约束） */
+    _startWave() {
+        this._phase = 'wave';
+        this._phaseTimer = 0;
         const count = Math.min(
             DEFENSE_CONFIG.spawn.countCap,
-            Math.floor(DEFENSE_CONFIG.spawn.baseCount + wave * DEFENSE_CONFIG.spawn.countPerWave)
+            Math.floor(DEFENSE_CONFIG.spawn.baseCount + this._wave * DEFENSE_CONFIG.spawn.countPerWave)
         );
-        // [PERF] 循环内用本地计数累加，配合 _aliveCount 节流缓存避免重复全表扫描
         let alive = this._aliveCount();
         for (let i = 0; i < count; i++) {
             if (alive >= DEFENSE_CONFIG.spawn.maxAlive) break;
-            this._spawnMonster(wave, NORMAL_POOL);
+            this._spawnMonster(this._wave, NORMAL_POOL);
             alive++;
+        }
+        this._announce(`第 ${this._wave} 波来袭！`, '#ffd700');
+    },
+
+    // ==================== 顶部 HUD（波次 + 货币实时）====================
+
+    _createHud() {
+        if (typeof document === 'undefined') return;
+        this._destroyHud();
+        const el = document.createElement('div');
+        el.className = 'defense-hud';
+        el.innerHTML = '<span id="dhPhase">准备中…</span><span id="dhMoney">💰 0　⚡ 0</span>';
+        document.body.appendChild(el);
+        this._hudEl = el;
+        this._hudTimer = 0;
+    },
+
+    _destroyHud() {
+        if (this._hudEl) {
+            this._hudEl.remove();
+            this._hudEl = null;
+        }
+    },
+
+    /** 每 250ms 刷新一次 HUD：波次阶段/倒计时/剩余数 + 金币与能源实时值 */
+    _updateHud(dt) {
+        if (!this._hudEl) return;
+        this._hudTimer -= dt;
+        if (this._hudTimer > 0) return;
+        this._hudTimer = 250;
+        const spawn = DEFENSE_CONFIG.spawn;
+        let phaseText;
+        if (this.victory) {
+            phaseText = `防守胜利！撑过 ${spawn.victoryWave || 10} 波`;
+        } else if (this._phase === 'prep') {
+            phaseText = `准备中 · ${Math.ceil(Math.max(0, this._phaseTimer) / 1000)} 秒后怪物进攻`;
+        } else if (this._phase === 'wave') {
+            phaseText = `第 ${this._wave}/${spawn.victoryWave || 10} 波 · 剩余 ${this._aliveCount()} 只`;
+        } else {
+            phaseText = `第 ${this._wave} 波已清除 · ${Math.ceil(Math.max(0, this._phaseTimer) / 1000)} 秒后下一波`;
+        }
+        const gold = GoldManager ? GoldManager.getGold() : 0;
+        const energy = EnergyManager ? EnergyManager.getEnergy() : 0;
+        this._hudEl.innerHTML = `<span>${phaseText}</span><span>💰 ${gold}&nbsp;&nbsp;⚡ ${energy}</span>`;
+    },
+
+    /** E 键按下/松开（全局监听写入；仅世界-122 且系统激活时生效） */
+    _setRepairHeld(held) {
+        if (!this.active || !Game || !Game.isRunning) {
+            this._repairHeld = false;
+            return;
+        }
+        this._repairHeld = !!held;
+        if (!this._repairHeld) {
+            this._repairTarget = null;
+            this._repairTimer = 0;
+        }
+    },
+
+    /**
+     * 修理 tick：按住 E 时对玩家附近最近的受伤掩体/防御塔持续修理，
+     * 消耗背包能源（费率见 DEFENSE_CONFIG.repair），修满自动切目标。
+     */
+    _repairTick(dt) {
+        this._repairFlash = Math.max(0, this._repairFlash - dt);
+        if (!this._repairHeld) return;
+        const player = Game.player;
+        if (!player || Game._buildMode || Game._wallEditMode) return;
+        const cfg = DEFENSE_CONFIG.repair;
+        // 找目标：优先沿用当前目标（未满血且在范围内），否则扫最近的受伤建筑
+        const targetOk = this._repairTarget && this._repairTarget.active
+            && this._repairTarget.hp < this._repairTarget.maxHp
+            && Math.hypot(this._repairTarget.x - player.x, this._repairTarget.y - player.y) <= cfg.range;
+        if (!targetOk) {
+            this._repairTarget = null;
+            let best = null;
+            let bestD = Infinity;
+            for (const e of Game.entities.values()) {
+                if (!e || !e.active) continue;
+                if (e._isDefenseTower) {
+                    const d = Math.hypot(e.x - player.x, e.y - player.y);
+                    if (d <= cfg.range && e.hp < e.maxHp && d < bestD) { best = e; bestD = d; }
+                } else if (e.orient && (e.orient === 'h' || e.orient === 'v')) {
+                    // 掩体（DefenseCover：orient h/v 标识）
+                    const d = Math.hypot(e.x - player.x, e.y - player.y);
+                    if (d <= cfg.range && e.hp < e.maxHp && d < bestD) { best = e; bestD = d; }
+                }
+            }
+            this._repairTarget = best;
+        }
+        const target = this._repairTarget;
+        if (!target) {
+            // 范围内没有受伤建筑：不耗能，不提示（避免刷屏）
+            return;
+        }
+        this._repairTimer += dt;
+        if (this._repairTimer < cfg.tickMs) return;
+        this._repairTimer = 0;
+        const hpPerEnergy = target._isDefenseTower ? cfg.towerHpPerEnergy : cfg.coverHpPerEnergy;
+        const missing = target.maxHp - target.hp;
+        const want = Math.min(missing, cfg.tickHp);
+        const cost = Math.max(1, Math.ceil(want / hpPerEnergy));
+        if (!EnergyManager || !EnergyManager.deductEnergy(cost)) {
+            if (EffectManager && this._repairFlash <= 0) {
+                EffectManager.add(new FloatingTextEffect(player.x, player.y - 50, '能源不足，无法修理', '#ff5555'));
+                this._repairFlash = 1200;
+            }
+            return;
+        }
+        target.hp = Math.min(target.maxHp, target.hp + want);
+        if (EffectManager && this._repairFlash <= 0) {
+            EffectManager.add(new FloatingTextEffect(target.x, target.y - 40, `+${want} 修理`, '#7fd4ff'));
+            this._repairFlash = 600;
+        }
+        if (target.hp >= target.maxHp) {
+            if (EffectManager) {
+                EffectManager.add(new FloatingTextEffect(target.x, target.y - 40, '修理完成', '#9dff9d'));
+            }
+            this._repairTarget = null;
         }
     },
 
@@ -1490,7 +1771,7 @@ export const DefenseSystem = {
         if (this._goldScanTimer < 250) return;
         this._goldScanTimer = 0;
         if (!this._goldGranted) this._goldGranted = new Set();
-        const wave = Math.floor(this._elapsed / (DEFENSE_CONFIG.spawn.waveSeconds * 1000)) + 1;
+        const wave = this._wave || 1;
         let grantedThisFrame = 0;
         for (const e of Game.entities.values()) {
             if (!e || !e._defenseMonster || !e._noGoldDrop) continue;
@@ -1551,14 +1832,12 @@ export const DefenseSystem = {
     },
 
     _spawnElite() {
-        const wave = Math.floor(this._elapsed / (DEFENSE_CONFIG.spawn.waveSeconds * 1000)) + 1;
-        this._spawnMonster(wave, ELITE_POOL, DEFENSE_CONFIG.spawn.eliteHpMul);
+        this._spawnMonster(this._wave || 1, ELITE_POOL, DEFENSE_CONFIG.spawn.eliteHpMul);
         this._announce('精英来袭！', '#ff8800', 'assets/sounds/enemies/armored_knight/attacking.mp3');
     },
 
     _spawnLord() {
-        const wave = Math.floor(this._elapsed / (DEFENSE_CONFIG.spawn.waveSeconds * 1000)) + 1;
-        this._spawnMonster(wave, LORD_POOL, DEFENSE_CONFIG.spawn.lordHpMul);
+        this._spawnMonster(this._wave || 1, LORD_POOL, DEFENSE_CONFIG.spawn.lordHpMul);
         this._announce('领主降临！', '#ff4444', 'assets/sounds/enemies/foreman_zombie/howling.mp3');
     },
 
@@ -1592,6 +1871,112 @@ export const DefenseSystem = {
             SoundManager.playFile('assets/sounds/enemies/amalgam/dying.mp3');
         }
         if (this._panel && this._panel.isOpen) this._panel.close();
+    },
+
+    // ==================== 塔摧毁/重建/出售（2026-08-14）====================
+
+    /** 塔被摧毁：登记废墟实体（可点击重建）；武器保留在塔上（重建后复原） */
+    _onTowerDestroyed(tower) {
+        const i = this.towers.indexOf(tower);
+        if (i >= 0) this.towers.splice(i, 1);
+        const ruin = new DefenseTowerRuin(tower.x, tower.y, tower);
+        ruin.id = `tower_ruin_${tower.id || Math.random().toString(36).slice(2, 6)}`;
+        Game.entities.set(ruin.id, ruin);
+        this.ruins.push(ruin);
+        if (EffectManager) {
+            EffectManager.add(new FloatingTextEffect(tower.x, tower.y - 40, '防御塔被摧毁（点击废墟重建）', '#ff8855'));
+        }
+    },
+
+    /** 重建被摧毁的塔：扣能源，塔满血复活并归还废墟处（武器/等级/模块保留） */
+    rebuildTower(ruin, player) {
+        const tower = ruin.ruinFor;
+        if (!tower || tower.active) return { ok: false, reason: '该塔不需要重建' };
+        const cost = DEFENSE_CONFIG.tower.rebuildCost ?? 300;
+        if (!EnergyManager || !EnergyManager.deductEnergy(cost)) return { ok: false, reason: '能源不足（攻击资源点采集）' };
+        tower.active = true;
+        tower.hittable = true;
+        tower.hp = tower.maxHp;
+        tower.x = ruin.x;
+        tower.y = ruin.y;
+        tower.id = tower.id || `defense_tower_rebuilt_${Math.random().toString(36).slice(2, 6)}`;
+        Game.entities.set(tower.id, tower);
+        this.towers.push(tower);
+        // 移除废墟
+        ruin.active = false;
+        const ri = this.ruins.indexOf(ruin);
+        if (ri >= 0) this.ruins.splice(ri, 1);
+        Game.entities.delete(ruin.id);
+        if (SoundManager && typeof SoundManager.playFile === 'function') {
+            SoundManager.playFile('assets/sounds/ui/sell.wav');
+        }
+        if (EffectManager) {
+            EffectManager.add(new FloatingTextEffect(tower.x, tower.y - 40, `防御塔重建完成（-${cost} 能源）`, '#9dff9d'));
+        }
+        return { ok: true, cost };
+    },
+
+    /** 出售塔：返还 50% 建造能源；武器归还背包（满则原地掉落）；移除实体 */
+    sellTower(tower, player) {
+        if (!tower || tower.active === false) return { ok: false, reason: '已摧毁的塔请直接重建' };
+        const refund = Math.floor((DEFENSE_CONFIG.tower.rebuildCost ?? 300) * (DEFENSE_CONFIG.tower.sellRefundRatio ?? 0.5));
+        // 武器归还
+        const item = tower.weaponItem;
+        if (item) {
+            tower.unequipWeapon && tower.unequipWeapon();
+            if (!EquipManager.addToBackpack(item) && Game && typeof Game.dropItem === 'function') {
+                Game.dropItem(tower.x, tower.y, item);
+            }
+        }
+        const i = this.towers.indexOf(tower);
+        if (i >= 0) this.towers.splice(i, 1);
+        tower.active = false;
+        Game.entities.delete(tower.id);
+        if (EnergyManager) EnergyManager.addEnergy(refund);
+        if (this._panel && this._panel.isOpen && this._panel.tower === tower) this._panel.close();
+        if (EffectManager) {
+            EffectManager.add(new FloatingTextEffect(tower.x, tower.y - 40, `已出售（+${refund} 能源）`, '#ffd700'));
+        }
+        return { ok: true, refund };
+    },
+
+    /** 防守胜利：撑过 victoryWave 波 → 停止刷怪 + 一次性奖励 */
+    _onVictory() {
+        if (this.victory) return;
+        this.victory = true;
+        const reward = DEFENSE_CONFIG.spawn.victoryReward || { gold: 500, energy: 500 };
+        if (!this._victoryGranted) {
+            this._victoryGranted = true;
+            if (GoldManager) GoldManager.addGold(reward.gold || 0);
+            if (EnergyManager) EnergyManager.addEnergy(reward.energy || 0);
+        }
+        if (Game.player) {
+            EffectManager.add(new FloatingTextEffect(
+                Game.player.x, Game.player.y - 60,
+                `防守胜利！撑过 ${DEFENSE_CONFIG.spawn.victoryWave || 10} 波（+${reward.gold} 金币 +${reward.energy} 能源）`,
+                '#ffd700'
+            ));
+        }
+        if (SoundManager && typeof SoundManager.playFile === 'function') {
+            SoundManager.playFile('assets/sounds/ui/levelup.wav');
+        }
+    },
+
+    /** 废墟贴图（运行时生成：灰色残骸底座 + 冒烟标记） */
+    _ensureTowerRuinTexture() {
+        const scene = window.__phaserScene;
+        if (!scene || scene.textures.exists('tower_ruin')) return;
+        const g = scene.add.graphics();
+        g.fillStyle(0x2e2a24, 1);
+        g.fillEllipse(64, 88, 96, 26);
+        g.fillStyle(0x4a443c, 1);
+        g.fillTriangle(30, 78, 98, 78, 64, 44);
+        g.fillStyle(0x6a6258, 1);
+        g.fillTriangle(40, 78, 88, 78, 64, 58);
+        g.lineStyle(4, 0x8a8a8a, 0.8);
+        g.strokeCircle(64, 44, 10);
+        g.generateTexture('tower_ruin', 128, 104);
+        g.destroy();
     },
 
     /**
@@ -1635,6 +2020,17 @@ export const DefenseSystem = {
             }
             return true;
         }
+        // 废墟：点击打开重建面板
+        for (const r of this.ruins) {
+            if (!r || !r.active) continue;
+            if (!inReach(r, 60)) continue;
+            if (panel.isOpen && panel.ruin === r) {
+                panel.close();
+            } else {
+                panel.openForRuin(r, player);
+            }
+            return true;
+        }
         if (this.base && this.base.active && inReach(this.base, 90)) {
             EffectManager.add(new FloatingTextEffect(
                 this.base.x,
@@ -1647,5 +2043,24 @@ export const DefenseSystem = {
         return false;
     },
 };
+
+// ==================== E 键修理（仅世界-122，2026-08-14）====================
+// 按住 E 持续修理附近受伤的掩体/防御塔（消耗背包能源）；松开停止。
+// 用捕获监听保证先于 input.js 的 handleKey（其不拦截 KeyE，但避免面板/编辑器状态误触发）。
+
+if (typeof window !== 'undefined') {
+    window.addEventListener('keydown', (e) => {
+        if (e.code !== 'KeyE' || e.repeat) return;
+        if (Game && (Game._wallEditMode || Game._buildMode)) return; // 编辑/建筑模式不修理
+        if (SceneManager && SceneManager.currentScene !== 'scene8') return;
+        DefenseSystem._setRepairHeld(true);
+    }, true);
+    window.addEventListener('keyup', (e) => {
+        if (e.code === 'KeyE') DefenseSystem._setRepairHeld(false);
+    }, true);
+    window.addEventListener('blur', () => {
+        if (DefenseSystem._repairHeld) DefenseSystem._setRepairHeld(false);
+    });
+}
 
 export { DefenseBase, DefenseCover, DefenseTower };

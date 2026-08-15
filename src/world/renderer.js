@@ -35,17 +35,58 @@ const Renderer = {
         this.terrainTexture = null;
     },
 
-    // 渲染坐标转换：与 Phaser 实际渲染尺寸保持一致，避免 viewport 缩放错位
-    worldToScreen(wx, wy) {
+    // ==================== 屏幕⇄世界坐标换算（2026-08-14 重写）====================
+    // 唯一真源 = Phaser 主相机自身的变换矩阵（matrixCombined / getWorldPoint）：
+    // 相机 zoom / scroll / origin 任意（0.3、0.7、1…任何地图缩放）都自动正确，不写死任何数值。
+    // 入参/出参均为 CSS 客户区坐标（clientX/Y，含 canvas 在窗口中的拉伸缩放补偿）。
+    /** 取主相机 + canvas 客户区映射；无 Phaser 返回 null */
+    _camInfo() {
         const phaserScene = (typeof window !== 'undefined') ? window.__phaserScene : null;
-        const cw = phaserScene ? phaserScene.scale.width : (this.canvas ? this.canvas.width : CONFIG.VIEW_WIDTH);
-        const ch = phaserScene ? phaserScene.scale.height : (this.canvas ? this.canvas.height : CONFIG.VIEW_HEIGHT);
-        return { x: wx - Camera.x + cw / 2 + Camera.shakeX, y: wy - Camera.y + ch / 2 + Camera.shakeY };
+        const cam = phaserScene && phaserScene.cameras ? phaserScene.cameras.main : null;
+        if (!cam || !phaserScene.game || !phaserScene.game.canvas) return null;
+        const canvas = phaserScene.game.canvas;
+        const rect = canvas.getBoundingClientRect();
+        if (!rect.width || !rect.height) return null;
+        return {
+            cam,
+            rect,
+            scaleX: canvas.width / rect.width,   // 相机空间 → 客户区坐标换算
+            scaleY: canvas.height / rect.height,
+        };
+    },
+    worldToScreen(wx, wy) {
+        const info = this._camInfo();
+        if (info) {
+            // 世界 → 相机空间（矩阵已含 zoom/scroll/origin）
+            const out = { x: 0, y: 0 };
+            if (info.cam.matrixCombined && typeof info.cam.matrixCombined.transformPoint === 'function') {
+                info.cam.matrixCombined.transformPoint(wx, wy, out);
+            } else {
+                out.x = (wx - info.cam.scrollX) * (info.cam.zoom || 1);
+                out.y = (wy - info.cam.scrollY) * (info.cam.zoom || 1);
+            }
+            return {
+                x: info.rect.left + out.x / info.scaleX,
+                y: info.rect.top + out.y / info.scaleY,
+            };
+        }
+        // 回退（无 Phaser 场景）：旧恒等换算
+        const cw = this.canvas ? this.canvas.width : CONFIG.VIEW_WIDTH;
+        const ch = this.canvas ? this.canvas.height : CONFIG.VIEW_HEIGHT;
+        return { x: wx - Camera.x + cw / 2, y: wy - Camera.y + ch / 2 };
     },
     screenToWorld(sx, sy) {
-        const phaserScene = (typeof window !== 'undefined') ? window.__phaserScene : null;
-        const cw = phaserScene ? phaserScene.scale.width : (this.canvas ? this.canvas.width : CONFIG.VIEW_WIDTH);
-        const ch = phaserScene ? phaserScene.scale.height : (this.canvas ? this.canvas.height : CONFIG.VIEW_HEIGHT);
+        const info = this._camInfo();
+        if (info) {
+            // 客户区 → 相机空间 → 世界（getWorldPoint 内部按矩阵求逆，任何 zoom 均正确）
+            const cxp = (sx - info.rect.left) * info.scaleX;
+            const cyp = (sy - info.rect.top) * info.scaleY;
+            const out = info.cam.getWorldPoint(cxp, cyp, { x: 0, y: 0 });
+            return { x: out.x, y: out.y };
+        }
+        // 回退（无 Phaser 场景）：旧恒等换算
+        const cw = this.canvas ? this.canvas.width : CONFIG.VIEW_WIDTH;
+        const ch = this.canvas ? this.canvas.height : CONFIG.VIEW_HEIGHT;
         return { x: sx + Camera.x - cw / 2, y: sy + Camera.y - ch / 2 };
     },
     // 坐标显示转换：根据当前场景动态获取原点，向右为+X，向上为+Y

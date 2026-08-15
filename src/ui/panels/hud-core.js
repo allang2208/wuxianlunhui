@@ -15,11 +15,9 @@ export function createHudCore() {
     backMenuBtn.title = '游戏菜单';
     root.appendChild(backMenuBtn);
 
-    // ===== 玩家状态栏（显示眩晕、中毒等状态效果） =====
-    const statusBarContainer = document.createElement('div');
-    statusBarContainer.className = 'status-bar-container';
-    statusBarContainer.id = 'statusBarContainer';
-    root.appendChild(statusBarContainer);
+    // ===== 玩家状态栏（Buff 图标行）——2026-08-15 用户要求删除左上角状态栏：不再创建容器；
+    // StatusBar 仍追踪效果逻辑（中毒/眩晕结算），仅不再渲染顶部图标行 =====
+    // （原 statusBarContainer 创建已移除）
 
     // ===== 顶部状态栏 =====
     const topBar = document.createElement('div');

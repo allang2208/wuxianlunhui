@@ -131,6 +131,10 @@ export class BootScene extends Scene {
         this.load.image('swampbrick_1', 'assets/terrain/swampbrick-1.png');
         this.load.image('swampbrick_2', 'assets/terrain/swampbrick-2.png');
         this.load.image('swampbrick_3', 'assets/terrain/swampbrick-3.png');
+        // 世界-122 能源资源点（2026-08-15：Blender 白模 + AI 材质渲染，蓝色水晶簇 + 土堆底座；
+        // billboard 平视/平底/无阴影/透明底，与防御塔同视角体系；EnergyNodeSystem 运行时生成仅作兜底）
+        this.load.image('energy_node', 'assets/terrain/energy_node.png');
+        this.load.image('energy_node_depleted', 'assets/terrain/energy_node_depleted.png');
         // 沼泽地墙（柴墙直墙 + 藤蔓门闸 16 帧）
         this.load.image('swamp_wall_straight', 'assets/terrain/swamp_wall_straight.png');
         this.load.spritesheet('swamp_gate', 'assets/terrain/swamp_gate.png', { frameWidth: 640, frameHeight: 612, endFrame: 15 });

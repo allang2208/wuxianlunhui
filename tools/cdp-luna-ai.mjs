@@ -251,6 +251,7 @@ console.log('逃跑朝向+图层深度:', await ev(`(async () => {
   const spr = ps._companionSprites['mage_luna'];
   const movingLeft = luna.vx < -5;
   const faceLeft = !!spr.flipX;
+  const diag = { lastAction: luna._lastAction, vx: Math.round(luna.vx), castState: luna._castState };
   // 深度：AI 队员按世界 Y 排序（脚底+10），不再固定 playerSprite.depth+0.5
   const footOffset = ps._getFootOffsetY(luna, spr);
   const expectedDepth = spr.y + footOffset + 10;
@@ -259,6 +260,7 @@ console.log('逃跑朝向+图层深度:', await ev(`(async () => {
     movingLeft,
     faceLeft,
     facesMoveDir: movingLeft === faceLeft,
+    diag,
     depth: spr.depth,
     expectedDepth: Math.round(expectedDepth),
     depthByY: Math.abs(spr.depth - expectedDepth) < 5,

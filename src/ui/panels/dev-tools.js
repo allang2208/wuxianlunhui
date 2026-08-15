@@ -78,6 +78,7 @@ export function createDevToolPanel() {
         ['running', '奔跑'],
         ['attack', '攻击'],
         ['attack2', '二段攻击'],
+        ['attack3', '三段攻击'],
         ['dash', '冲刺攻击'],
         ['recover', '收势'],
         ['dash_recover', '冲刺收势'],

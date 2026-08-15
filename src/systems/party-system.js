@@ -98,6 +98,35 @@ export const PartySystem = {
     },
 
     /**
+     * 队员指令（2026-08-14 指挥轮盘）：写在队员对象上，CompanionAI 每 tick 读取。
+     * @param {string|string[]|'all'} target 队员 id / id 数组 / 'all'
+     * @param {'follow'|'aggressive'|'patrol'|'gather'|'hold'} mode
+     * @param {{x:number,y:number}|null} point 指令点（巡逻圆心/采集目标附近，世界坐标）
+     * @returns {number} 生效的队员数
+     */
+    setCommand(target, mode, point = null) {
+        const ids = target === 'all'
+            ? this._members.map(m => m.id)
+            : (Array.isArray(target) ? target : [target]);
+        let n = 0;
+        for (const m of this._members) {
+            if (!ids.includes(m.id)) continue;
+            m._command = {
+                mode,
+                point: point ? { x: point.x, y: point.y } : null,
+            };
+            n++;
+        }
+        return n;
+    },
+
+    /** 查询某队员当前指令（默认 follow） */
+    getCommand(companionId) {
+        const m = this.getMember(companionId);
+        return (m && m._command) || { mode: 'follow', point: null };
+    },
+
+    /**
      * 战斗经验分发：与玩家同额、不设平分机制，每位在队队员全量获得。
      * 由击杀结算（damageable-entity）在给玩家经验的同时调用。
      */

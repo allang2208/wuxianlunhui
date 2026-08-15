@@ -1106,7 +1106,13 @@ class CircleEnemy extends Enemy {
 
 class ZombieDogEnemy extends CircleEnemy {
     constructor(x, y, config = {}) {
-        super(x, y, config);
+        // 与其他怪类同口径：无配置构造时合并僵尸犬自身配置，杜绝名字/属性兜底
+        // （此前 `new ZombieDogEnemy(x, y)` 会落到 Enemy 的「测试敌人」兜底名 +
+        // 默认属性，世界-122 防守「测试怪物」残留根因，2026-08-15）
+        super(x, y, {
+            ...enemyConfigData.zombieDog,
+            ...config
+        });
         this._animState = 'idle';
         this._lastHorizontalFacing = 'right';
         // [FIX] 僵尸犬攻击动画时长，与 BootScene 中 zombie_dog_attack 动画匹配
