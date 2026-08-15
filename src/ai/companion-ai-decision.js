@@ -103,6 +103,35 @@ export function shouldUseRun(mode, dist, cfg) {
 }
 
 /**
+ * 剑盾护卫防御触发判定（2026-08-15 伊莉丝）：
+ * 半径 range 内敌方单位超过 enemyCount（>3）或存在远程敌方 → 释放防御。
+ * 远程判定：attacks.ranged / rangedType / attackRange > rangedRange（兜底）。
+ * @param {object} input
+ * @returns {boolean} true=需要举盾防御
+ */
+export function shouldWarriorDefend(input) {
+    const {
+        enemies = [],           // 敌方实体数组 {x,y,attacks?,rangedType?,attackRange?}
+        cx = 0, cy = 0,         // 队友位置
+        range = 400,            // 判定半径
+        enemyCount = 3,         // 超过该数量（>n）即触发
+        rangedRange = 300,      // attackRange 超过该值视为远程（兜底）
+    } = input;
+    let near = 0;
+    let hasRanged = false;
+    for (const e of enemies) {
+        if (!e) continue;
+        if (Math.hypot(e.x - cx, e.y - cy) > range) continue;
+        near++;
+        const ranged = !!(e.attacks && e.attacks.ranged)
+            || !!e.rangedType
+            || (e.attackRange && e.attackRange > rangedRange);
+        if (ranged) hasRanged = true;
+    }
+    return near > enemyCount || hasRanged;
+}
+
+/**
  * 掉队瞬移理智判定（2026-08-14 用户需求）：
  * 区分 被卡住/卡门外导致的距离过远（瞬移） 与 正常 AI 运作导致的距离过远（不瞬移）。
  * 正常远离（合法，不瞬移）：①flee 逃离近战威胁（retreat 点含朝玩家分量，会自动收敛）

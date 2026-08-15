@@ -491,7 +491,25 @@ export class BootScene extends Scene {
                 if (!def || !def.src) continue;
                 const texKey = `companion_${companion.id}_${animKey}`;
                 if (!this.anims.exists(texKey)) {
-                    if (def.startFrames && def.loopFrames) {
+                    if (def.enterFrames && def.exitFrames) {
+                        // 防御三段式（伊莉丝 defending）：enter 1~8 帧一次 → hold 停帧 → exit 剩余一次
+                        if (!this.anims.exists(`${texKey}_start`)) {
+                            const [es, ee] = def.enterFrames;
+                            const [xs, xe] = def.exitFrames;
+                            this.anims.create({
+                                key: `${texKey}_start`,
+                                frames: this.anims.generateFrameNumbers(texKey, { start: es, end: ee }),
+                                frameRate: def.enterFrameRate || def.frameRate || 16,
+                                repeat: 0,
+                            });
+                            this.anims.create({
+                                key: `${texKey}_end`,
+                                frames: this.anims.generateFrameNumbers(texKey, { start: xs, end: xe }),
+                                frameRate: def.exitFrameRate || def.frameRate || 22,
+                                repeat: 0,
+                            });
+                        }
+                    } else if (def.startFrames && def.loopFrames) {
                         // 起步 + 循环两段（如 running）：start 播一次 → loop 循环
                         const [ss, se] = def.startFrames;
                         const [ls, le] = def.loopFrames;

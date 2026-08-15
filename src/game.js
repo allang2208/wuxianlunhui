@@ -108,6 +108,7 @@ export const Game = {
         PartySystem.init();
         // 注册侍从 AI 工厂（浏览器运行时；companion-config.ai 驱动远程法师等）
         PartySystem.registerAI('mage_luna', (companion) => new CompanionAI(companion));
+        PartySystem.registerAI('warrior_bruno', (companion) => new CompanionAI(companion));
         PartyUI.init();
         // 队员指挥轮盘（长按中键五指令：跟随/主动攻击/巡逻/采集/待命）
         CompanionCommandWheel.init();

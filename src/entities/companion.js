@@ -27,6 +27,10 @@ export class Companion {
         this.avatar = archive.avatar || '👤';
         this.modelPlaceholder = archive.modelPlaceholder || '';
         this.weaponType = archive.weaponType || 'sword';
+        // 渲染尺寸/脚底偏移（companion-config.json 配置驱动）：displaySize 覆盖默认帧显示边长；
+        // spriteOffsetY 让精灵图脚底贴合逻辑落地点（素材帧内脚底不在帧中心时使用）。
+        this.displaySize = archive.displaySize || 0;
+        this.spriteOffsetY = archive.spriteOffsetY || 0;
         // 装备限制（companion-config.json equipRules 配置驱动）：
         //   weaponTypes - 允许的武器类型（如露娜只许 staff 法杖）；
         //   armorSets   - 允许的法袍类套装（如 robe/eclipse/lunar/oracle_robe，+魔法攻击力套装）。
@@ -104,6 +108,7 @@ export class Companion {
         this._iceSpikeCooldown = 0;
         this._lightningStrikeCooldown = 0;
         this._holyLightCooldown = 0;
+        this._defending = false; // 剑盾防御（持盾减伤 + 常态弹反）生效标志，防御 hold 期由 CompanionAI 置位
         this.calculateCombatStats(); // 初始化战斗属性（matk 等，含无装备基础魔攻）
         this.updateMaxStats();
         this.data.hp = this.data.maxHp;
@@ -200,6 +205,10 @@ export class Companion {
                 if (allowedWeapons.length && !allowedWeapons.includes(item.weaponType)) {
                     return false;
                 }
+                // 单手剑限制：伊莉丝只许单手剑/盾，双手武器（如双手剑）直接拒绝
+                if (this.equipRules.oneHandedWeaponsOnly && item.isTwoHanded) {
+                    return false;
+                }
             } else if (item.category === 'armor') {
                 const allowedSets = this.equipRules.armorSets || [];
                 if (allowedSets.length && !allowedSets.includes(item.armorSet)) {
@@ -208,6 +217,48 @@ export class Companion {
             }
         }
         return canEquipSlot(item, slot);
+    }
+
+    /**
+     * 受击入口（镜像玩家 ShieldSystem.onDamageTaken，2026-08-15 剑盾护卫）：
+     * 防御 hold 期（_defending=true）→ 持盾减伤 + 常态触发弹反（无窗口/朝向限制）；
+     * 否则照常掉血。敌人当前不主动攻击队友，此方法供未来仇恨/范围伤害链路复用。
+     * @returns {{damage:number, parried:boolean}}
+     */
+    takeDamage(damage, attacker, _damageType = 'physical', isMelee = true) {
+        const d = this.data;
+        const raw = Math.max(0, damage || 0);
+        if (this._defending) {
+            const shieldData = this._getShieldData();
+            const defense = (shieldData && shieldData.defense) || {};
+            // 与玩家一致：remainingRatio = max(0.05, damageReduction)（small_shield 0.5 → 承伤 50%）
+            const remainingRatio = Math.max(0.05, defense.damageReduction ?? 0.5);
+            // 常态弹反：任何来源伤害都可弹（近战眩晕/击退/打断；远程抵消伤害）
+            if (attacker && attacker._faction === 'enemy') {
+                if (isMelee && typeof attacker.applyStun === 'function') {
+                    attacker.applyStun(defense.parryStun || 2000);
+                }
+                if (attacker._attackTimer) attacker._attackTimer = 0;
+                if (typeof attacker.applyKnockback === 'function') {
+                    const angle = Math.atan2(attacker.y - this.y, attacker.x - this.x);
+                    attacker.applyKnockback(angle, defense.parryKnockback || 100);
+                }
+            }
+            const dealt = raw * remainingRatio;
+            d.hp = Math.max(0, d.hp - dealt);
+            return { damage: dealt, parried: true };
+        }
+        d.hp = Math.max(0, d.hp - raw);
+        return { damage: raw, parried: false };
+    }
+
+    /** 当前装备的盾（副手优先，ring2 兜底；无盾返回 null） */
+    _getShieldData() {
+        for (const slot of ['offhand', 'ring2']) {
+            const it = this.equipments && this.equipments[slot];
+            if (it && it.weaponType === 'shield') return it;
+        }
+        return null;
     }
 
     /** 装备加成汇总（bonusStats/bonusPerEnhance/defense；与玩家同一套口径） */
@@ -370,6 +421,8 @@ export class Companion {
             consumableSettings: JSON.parse(JSON.stringify(this.consumableSettings || {})),
             equipRules: this.equipRules ? JSON.parse(JSON.stringify(this.equipRules)) : null,
             equipNote: this.equipNote,
+            displaySize: this.displaySize || undefined,
+            spriteOffsetY: this.spriteOffsetY || undefined,
         };
     }
 
@@ -380,6 +433,8 @@ export class Companion {
         // 装备限制随档案恢复：解散再招募（roster 继承）或读档后限制依然生效
         c.equipRules = s.equipRules || null;
         c.equipNote = s.equipNote || '';
+        if (s.displaySize) c.displaySize = s.displaySize;
+        if (s.spriteOffsetY) c.spriteOffsetY = s.spriteOffsetY;
         c.data = { ...s.data };
         c.equipments = s.equipments || {};
         c.backpack = s.backpack || [];

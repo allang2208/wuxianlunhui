@@ -3,17 +3,81 @@
   "companions": [
     {
       "id": "warrior_bruno",
-      "name": "布鲁诺",
-      "title": "重剑护卫",
-      "desc": "边境退役重装步兵，擅长正面格挡与破甲斩击。",
+      "name": "伊莉丝",
+      "title": "剑盾护卫",
+      "desc": "重装剑盾卫士，持单手剑与重盾冲锋陷阵，遇险时举盾格挡并弹反近战。",
       "role": "warrior",
       "growthRule": "warrior",
-      "avatar": "⚔️",
-      "modelPlaceholder": "assets/companions/warrior.png",
+      "avatar": "🛡️",
+      "modelPlaceholder": "assets/companions/elise/idle.png",
       "baseLevel": 1,
       "baseExp": 0,
-      "baseData": { "str": 12, "dex": 8, "int": 4, "con": 12, "wis": 6, "luck": 4 },
+      "baseData": { "str": 13, "dex": 8, "int": 4, "con": 13, "wis": 6, "luck": 4 },
       "skills": [],
+      "displaySize": 200,
+      "spriteOffsetY": -38,
+      "equipRules": {
+        "weaponTypes": ["sword", "shield"],
+        "oneHandedWeaponsOnly": true,
+        "armorSets": ["heavy", "zhenyue", "tiangang", "oracle"]
+      },
+      "equipNote": "只能装备单手剑、盾牌和重甲",
+      "ai": {
+        "role": "melee_swordshield",
+        "followOffset": 90,
+        "followArriveDist": 60,
+        "meleeRange": 165,
+        "engageRange": 460,
+        "fleeEnabled": false,
+        "attackInterval": 2000,
+        "attackAnimMs": 1500,
+        "attackFrames": 28,
+        "attackHitFrame": 10,
+        "attackDamageMul": 1.25,
+        "defendRange": 400,
+        "defendEnemyCount": 3,
+        "defendEnterMs": 500,
+        "defendHoldMs": 2000,
+        "defendExitMs": 500,
+        "defendCooldownMs": 3000,
+        "walkSpeed": 105,
+        "runSpeed": 180,
+        "decisionMs": 120,
+        "runDist": 260,
+        "teleportDist": 700,
+        "teleportHardDist": 1100
+      },
+      "animations": {
+        "idle": {
+          "src": "assets/companions/elise/idle.png",
+          "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 4,
+          "frameCount": 1, "frames": [0, 0], "frameRate": 1, "repeat": -1
+        },
+        "walk": {
+          "src": "assets/companions/elise/walking.png",
+          "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 4,
+          "frameCount": 14, "frames": [0, 13], "frameRate": 20, "repeat": -1
+        },
+        "run": {
+          "src": "assets/companions/elise/running.png",
+          "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 4,
+          "frameCount": 23, "frames": [0, 22],
+          "startFrames": [0, 22], "startFrameRate": 24, "startRepeat": 0,
+          "loopFrames": [10, 22], "frameRate": 24, "repeat": -1
+        },
+        "attack": {
+          "src": "assets/companions/elise/attacking.png",
+          "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 4,
+          "frameCount": 28, "frames": [0, 27], "frameRate": 18.6666667, "repeat": 0
+        },
+        "defend": {
+          "src": "assets/companions/elise/defending.png",
+          "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 4,
+          "frameCount": 19, "frames": [0, 18],
+          "enterFrames": [0, 7], "enterFrameRate": 16, "holdFrame": 7,
+          "exitFrames": [8, 18], "exitFrameRate": 22, "frameRate": 22, "repeat": 0
+        }
+      },
       "weaponType": "sword"
     },
     {

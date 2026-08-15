@@ -490,20 +490,26 @@ export class GameScene extends Scene {
             }
             // 位置：AI 队员用自身逻辑坐标（跟随/站位/撤退由 AI 移动）；纯渲染队员跟随玩家左后偏移
             const aiMode = !!member.aiConfig;
+            // 脚底偏移（companion-config spriteOffsetY）：精灵帧内脚底不在帧中心时下移贴地
+            const spriteOffY = member.spriteOffsetY || 0;
             if (aiMode) {
-                sprite.setPosition(member.x, member.y);
+                sprite.setPosition(member.x, member.y + spriteOffY);
             } else {
                 const offX = facingRight ? -150 : 150;
-                sprite.setPosition(player.x + offX, player.y + 34);
+                sprite.setPosition(player.x + offX, player.y + 34 + spriteOffY);
             }
             // 朝向：AI 队员——逃跑面朝移动方向；其余（idle/施法/走位）始终面朝目标
             // （最近敌人）；无目标按移动方向。纯渲染队员仍跟随玩家镜像。
             let faceRight = facingRight;
             if (aiMode) {
-                if (member._lastAction === 'flee' && Math.abs(member.vx) > 5) {
+                // 仓鼠矿工移动（walk）始终朝向实际移动方向（vx），不倒退走路——
+                // 否则寻路绕行/回小屋时贴图朝向目标、实际反向移动（2026-08-15 用户口径）
+                const moving = member._animState === 'walk' || Math.abs(member.vx) > 5;
+                if (member._isHamsterMiner && moving) {
+                    faceRight = member.vx > 0;
+                } else if (member._lastAction === 'flee' && Math.abs(member.vx) > 5) {
                     faceRight = member.vx > 0;
                 } else {
-                    // 仓鼠矿工只面朝矿点/移动方向，不回头面朝敌人
                     const tgt = (member.target && member.target.active)
                         ? member.target
                         : (member._isHamsterMiner ? null : this._nearestCompanionEnemy(member));
@@ -577,12 +583,64 @@ export class GameScene extends Scene {
                     if (!sprite.anims.isPlaying || sprite.anims.currentAnim?.key !== spellKey) {
                         sprite.play(spellKey, true);
                     }
+                } else if (st === 'defend' && anims.defend && this.textures.exists(`companion_${animId}_defend`)) {
+                    // 剑盾防御（伊莉丝）：enter 播 1~8 帧一次 → hold 停帧第 8 帧 → exit 播剩余一次
+                    const defendKey = `companion_${animId}_defend`;
+                    const phase = member._defendPhase || 'enter';
+                    if (phase === 'enter') {
+                        const startKey = `${defendKey}_start`;
+                        if (sprite.getData('defPhase') !== 'enter'
+                            || !sprite.anims.isPlaying || sprite.anims.currentAnim?.key !== startKey) {
+                            sprite.setData('defPhase', 'enter');
+                            sprite.play(startKey, true);
+                        }
+                    } else if (phase === 'hold') {
+                        sprite.setData('defPhase', 'hold');
+                        if (sprite.anims.isPlaying) sprite.anims.stop();
+                        const holdFrame = anims.defend.holdFrame ?? 7;
+                        if (sprite.texture.key !== defendKey || sprite.frame.name !== holdFrame) {
+                            sprite.setTexture(defendKey, holdFrame);
+                        }
+                    } else {
+                        const endKey = `${defendKey}_end`;
+                        if (sprite.getData('defPhase') !== 'exit'
+                            || !sprite.anims.isPlaying || sprite.anims.currentAnim?.key !== endKey) {
+                            sprite.setData('defPhase', 'exit');
+                            sprite.play(endKey, true);
+                        }
+                    }
+                } else if (st === 'attack' && anims.attack && this.textures.exists(`companion_${animId}_attack`)) {
+                    // 普通攻击（伊莉丝）：28 帧 repeat 0 播一次，动画结束停在末帧（AI 届时切回 idle）
+                    const attackKey = `companion_${animId}_attack`;
+                    if (!sprite.getData('atkPlayed')) {
+                        sprite.setData('atkPlayed', true);
+                        sprite.play(attackKey, true);
+                    }
                 } else if (st === 'run' && anims.run && this.textures.exists(runKey)) {
-                    if (!sprite.anims.isPlaying || sprite.anims.currentAnim?.key !== runKey) {
+                    // idle→running：先播一次完整动画（run_start），仍在奔跑则循环 11~23 帧（run）
+                    const runStartKey = `${runKey}_start`;
+                    if (!sprite.getData('lunaRunning')) {
+                        sprite.setData('lunaRunning', true);
+                        if (anims.run.startFrames && this.anims.exists(runStartKey)) {
+                            sprite.play(runStartKey, true);
+                            sprite.removeAllListeners('animationcomplete');
+                            sprite.once('animationcomplete', () => {
+                                if (sprite.getData('lunaRunning')
+                                    && sprite.anims.currentAnim?.key === runStartKey) {
+                                    sprite.play(runKey, true);
+                                }
+                            });
+                        } else {
+                            sprite.play(runKey, true);
+                        }
+                    } else if (!sprite.anims.isPlaying
+                        || (sprite.anims.currentAnim?.key !== runKey
+                            && sprite.anims.currentAnim?.key !== runStartKey)) {
                         sprite.play(runKey, true);
                     }
                 } else if (st === 'walk') {
                     // 静止→移动：先播一次完整 walking（walk_start），再循环第 3~12 帧（walk）
+                    sprite.setData('lunaRunning', false);
                     const walkStartKey = `${walkKey}_start`;
                     if (anims.walk.startFrames && this.anims.exists(walkStartKey)) {
                         if (!sprite.getData('hamsterWalk')) {
@@ -609,6 +667,8 @@ export class GameScene extends Scene {
                     sprite.setData('miningSwing', false);
                     sprite.setData('hamsterWalk', false);
                     sprite.setData('lunaRunning', false);
+                    sprite.setData('atkPlayed', false);
+                    sprite.setData('defPhase', null);
                     if (member._miningSwing) member._miningSwing = false;
                     if (sprite.anims.isPlaying) sprite.anims.stop();
                     const idleKey = sprite.getData('companionIdleKey');
@@ -5594,6 +5654,11 @@ export class GameScene extends Scene {
             if (e._skipNeutralSprite) continue;
             // 敌人由 _syncEntityHud 统一绘制名字/血条，避免重复标签
             if (e._faction === 'enemy') continue;
+            // 已由侍从渲染管线（_syncCompanionSprites，键 = 实体 id）接管的友方单位
+            // （露娜/仓鼠矿工等）跳过中立占位圆——2026-08-15 仓鼠矿工「贴图背后棕色圆圈」
+            // 根因：兜底 neutral_circle（白色）被缺省色 #d4c5a9 染色成棕圆叠在精灵下层，
+            // 并重复生成名字/血条标签
+            if (this._companionSprites && this._companionSprites[e.id]) continue;
             active.add(e);
 
             let data = this._neutralSprites.get(e);
