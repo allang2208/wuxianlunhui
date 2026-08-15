@@ -213,6 +213,8 @@ export class BootScene extends Scene {
         }
         // 世界-122 防御塔（基座+上方机械臂武器挂载点）
         this.load.image('obstacle_defense_tower', 'assets/terrain/obstacle_defense_tower.png');
+        // 世界-122 基地核心（Blender 建模：立方体 + 扁平底座 + 大理石贴图，2026-08-16）
+        this.load.image('defense_base', 'assets/terrain/defense_base.png');
         // 世界-122 仓鼠小屋（建筑面板可建造，生成仓鼠矿工；贴图 Blender 建模渲染）
         this.load.image('hamster_hut', 'assets/terrain/hamster_hut.png');
         // 仓鼠小屋开关门动画帧（工厂关门版 16 帧滑门，4×4 精灵表；矿工补员时先开门）

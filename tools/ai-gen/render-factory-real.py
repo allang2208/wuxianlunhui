@@ -324,26 +324,30 @@ def setup_camera(spec, objs):
     return cam
 
 
-def setup_lighting(scene):
+def setup_lighting(scene, spec):
+    """无投影写实光照；spec.lighting 可覆盖 环境/主光/补光/曝光（默认与原一致）。"""
+    L = spec.get("lighting") or {}
+    ambient = float(L.get("ambient", 0.42))
     world = bpy.data.worlds.new("env")
     world.use_nodes = True
     bg = world.node_tree.nodes["Background"]
-    bg.inputs[0].default_value = (0.42, 0.42, 0.46, 1.0)
+    bg.inputs[0].default_value = (ambient, ambient, ambient + 0.04, 1.0)
     bg.inputs[1].default_value = 1.0
     scene.world = world
     sun_data = bpy.data.lights.new("key", "SUN")
-    sun_data.energy = 0.9
+    sun_data.energy = float(L.get("sun", 0.9))
     sun_data.use_shadow = False
     sun = bpy.data.objects.new("key", sun_data)
     scene.collection.objects.link(sun)
     sun.rotation_euler = (math.radians(48), 0, math.radians(38))
     fill_data = bpy.data.lights.new("fill", "AREA")
-    fill_data.energy = 60.0
+    fill_data.energy = float(L.get("fill", 60.0))
     fill_data.size = 6.0
     fill_data.use_shadow = False
     fill = bpy.data.objects.new("fill", fill_data)
     scene.collection.objects.link(fill)
     fill.location = (-8, -6, 4)
+    scene.view_settings.exposure = float(L.get("exposure", 0))
 
 
 def main():
@@ -367,7 +371,7 @@ def main():
     # 改用 Standard 视图变换保留灯光黄色。
     scene.view_settings.view_transform = "Standard"
     objs = build_scene(spec, slide)
-    setup_lighting(scene)
+    setup_lighting(scene, spec)
     cam = setup_camera(spec, objs)
     scene.camera = cam
     scene.render.filepath = os.path.abspath(out_path)

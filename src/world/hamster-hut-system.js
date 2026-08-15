@@ -52,7 +52,7 @@ export const HAMSTER_CONFIG = {
     upgradeCost: { gold: 1000, energy: 500 },
     // 升级模块（per = 每级效果量；旧 baseCost/costGrowth 已弃用，费用统一走 upgradeCost）
     modules: {
-        mining:    { name: '采矿效率',   icon: '⛏️', per: 0.15, maxLevel: 10, desc: '采矿产出 +{pct}%' },
+        mining:    { name: '采矿效率',   icon: '⛏️', per: 0.15, maxLevel: 10, desc: '采矿攻击力 +{pct}%' },
         attackSpd: { name: '攻击加速',   icon: '⚡', per: -0.06, maxLevel: 10, desc: '攻击间隔 -{pct}%' },
         damage:    { name: '攻击强化',   icon: '⚔️', per: 0.12, maxLevel: 10, desc: '每次攻击伤害 +{pct}%' },
         moveSpd:   { name: '机动强化',   icon: '👟', per: 0.05, maxLevel: 10, desc: '移动速度 +{pct}%（每级 +5%）' },
@@ -564,11 +564,11 @@ class HamsterHutPanel extends BasePanel {
             </div>
             <div style="font-size:12px;color:#c8b98a;line-height:1.7;">
                 仓鼠矿工 <span style="color:#8ad0ff;">${h.aliveMinerCount()}/${h.minerCount()}</span> ·
-                每次攻击伤害 <b style="color:#ff9d7a;">${mults.attackDamage}</b> ·
-                攻击间隔 <b style="color:#ff9d7a;">${mults.attackInterval}ms</b><br>
+                对敌伤害 <b style="color:#ff9d7a;">${mults.attackDamage}</b> ·
+                采矿攻击力 <b style="color:#ff9d7a;">${Math.round(mults.attackDamage * mults.miningMult)}</b>（含效率 +${Math.round((mults.miningMult - 1) * 100)}%）<br>
+                攻击间隔 <b style="color:#ff9d7a;">${mults.attackInterval}ms</b> ·
                 移动速度 <b style="color:#ff9d7a;">${mults.walkSpeed}</b> ·
-                采矿效率 <b style="color:#7fd4ff;">+${Math.round((mults.miningMult - 1) * 100)}%</b><br>
-                矿工背包 <b style="color:#8ad0ff;">${carriedTotal}/${capTotal}</b>
+                矿工背包 <b style="color:#8ad0ff;">${carriedTotal}/${capTotal}</b><br>
             </div>
             <div style="margin-top:8px;padding:7px 10px;border:1px solid #8a6a2a;border-radius:8px;background:rgba(110,80,30,0.22);display:flex;justify-content:space-between;align-items:center;">
                 <span style="font-size:13px;color:#ffd7a0;">📦 暂存能量</span>

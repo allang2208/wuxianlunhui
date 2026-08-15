@@ -25,6 +25,8 @@
 - 阶段性进度总结（2026-08-04：生图标准工作流 + 提示词固化定稿）
 - 阶段性进度总结（2026-08-04 二轮：生图入口优先级调整 + FLUX.2 dev Depth ControlNet 视角锁定）
 - 树木等距素材管线（2026-08-15 两轮定稿：白模 30° 深度锁 → flux2-dev-depth → BiRefNet 进程内合成，新树/植被一律按此开展）
+- Blender 建模渲染管线（2026-08-16 定稿：blockout 规格 → render-factory-real.py 直接渲成品，
+  支持 prism 屋顶 / wall·interior·window 材质 / spec.lighting 加亮 / 滑门 16 帧动画；采样既有贴图优先）
 
 **3. 玩家角色与武器动画**
 - 玩家角色动画标准工作流（射击/近战新动作一律按此开展，2026-07-26 定稿）
@@ -1228,6 +1230,38 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
   不给 scaleX 会按贴图原尺寸放大数倍（实机探针实踩）。
 - 工具链：`gen-tree-iso2-assets.py` / `process-tree-iso2-assets.py` /
   `_blockout_specs/tree_iso2_*.json`；v1 等距卡通风版备份 `.bak-tree-iso1-20260815/`。
+
+### Blender 建模渲染管线（render-factory-real.py，2026-08-16 定稿）
+
+直接渲染成品贴图（不再走「白模深度 → AI 生图」两步），适合几何明确的建筑/道具：
+
+```bat
+"E:/Program Files/Blender Foundation/Blender 5.1/blender.exe" --background --factory-startup ^
+  --python tools/ai-gen/render-factory-real.py -- _blockout_specs/<name>.json assets/terrain/<name>.png [--slide 0..1]
+```
+
+- **Spec**（`_blockout_specs/<name>.json`）：`primitives` 支持 box / **prism**（三角坡屋顶），
+  每件 `material`：`wall`（主贴图 tex）/ `interior`（黄→白渐变自发光，门洞灯光）/
+  `window`（暖黄自发光）/ `dark`；`plates + slide` 做横向滑门（`--slide 0` 关 / `1` 开，
+  滑入两侧立柱窗口）；`lighting` 覆盖环境/主光/补光/曝光（暗了调这里，别后处理）。
+- **视角**：elevation 30 + `rot.z 44.8`（与掩体/工厂同口径接地，底部菱形接地线）；
+  正面平视建筑（仓库/祭坛类）才用 elevation 5 + rot 0。
+- **坑① AgX 洗黄**：EEVEE 默认 AgX 视图变换会把亮黄（255,200,80）压成米白——渲染器
+  已固定 `view_transform = Standard`，窗户/门洞灯光才保得住黄色。
+- **坑② 前突组件投影右移**：墙面 44.8° 旋转下，门/窗等 `ly≠0` 前突件世界 X 会整体偏移，
+  投影偏出画面中央——按 `lx' = lx + ly·tan(44.8°)` 补偿（或直接量投影位置摆）。
+- **入库显示尺寸**：成品紧身裁剪后按内容宽高比定显示（`displayW` 固定、`displayH = W/宽高比`、
+  `footOffsetY ≈ displayH/2`，内容占满画布时脚底即贴图底边）。
+- **滑门动画**：16 帧 `--slide n/15` → `compose-hamster-hut-door.py` 合成 4×4 精灵表 →
+  BootScene 注册 open（0→15）/close（15→0）→ 实体门状态机（opening→spawn→closing）。
+
+**采样既有贴图（基地核心成功案例，非常精准）**：重构基地时**优先采样仓库里已有的高质量
+贴图**而不是重新出图——基地核心 = 立方体 + 顶部压顶 + 扁平底座，直接贴
+`scratch/world122/raw/tex_altar.png`（白底大理石 + 灰纹 + 暖色点缀，祭坛同源），
+`spec.lighting` 加亮（ambient 0.66 / sun 1.45 / fill 110 / exposure 0.32）后大理石亮度 ≈183；
+入库 `assets/terrain/defense_base.png`，`DefenseBase.spriteCfg = { size:220, sizeH:183, footOffsetY:92 }`。
+教训：上一版「AI 直出大理石 + 祭坛式建模」用户验收不过，这版「采样祭坛贴图 + 立方体底座」
+一次通过——核心视觉有现成素材时，先采样再考虑出图。
 
 ---
 
@@ -4346,12 +4380,15 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
   结果：全距离全方向命中——贴身怪被碰撞半径推到 ~67-79px 仍正常命中。
 - 若再报「死角」：先跑探针复现再改代码；历史真凶是 08-14 前的掩体挡弹道（已修）。
 
-**基地核心重建尝试（2026-08-15 用户验收不合格，已退回）**
-- 尝试路径：Blender 祭坛式建模（30° 等距与塔/掩体同口径）+ 本地 ComfyUI 大理石贴图
-  （5080 掉线兜底：flux2-klein-4b-nolora）；结构/视角实机正确，但用户认为不如旧祭坛贴图。
-- 已整体退回 `npc_altar`；资产/脚本未入库。
-- 教训：基地这类「已有贴图玩家已习惯」的核心视觉，重做前先出小样确认方向再投入管线。
-- Blender 的 images.load 路径必须 ASCII（中文路径静默坑），渲染输出写中文路径没问题。
+**基地核心重建（2026-08-16 定稿入库）**
+- 成品：立方体 + 顶部压顶 + 扁平底座，**采样祭坛大理石贴图**
+  `scratch/world122/raw/tex_altar.png`（白底大理石 + 灰纹），`spec.lighting` 加亮；
+  入库 `assets/terrain/defense_base.png`，`DefenseBase.spriteCfg =
+  { idleKey:'defense_base', size:220, sizeH:183, footOffsetY:92 }`（44.8° 接地视角）。
+- 历史：08-15 首版「AI 直出大理石 + 祭坛式建模」用户验收不过已退回 `npc_altar`；
+  08-16 这版「采样既有祭坛贴图 + 立方体底座」一次通过——**核心视觉有现成素材先采样**。
+- 详细流程见第 2 区「Blender 建模渲染管线」。
+- 坑：Blender 的 images.load 路径必须 ASCII（中文路径静默坑），渲染输出写中文路径没问题。
 
 **防御塔整塔命中 + 悬停轮廓 + 神经芯片面板（2026-08-15）**
 - 命中盒 = `TOWER_HIT` 矩形（塔脚锚 `{cx:0, cy:-135, hw:115, hh:175}`，世界坐标覆盖基座+
