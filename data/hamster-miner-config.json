@@ -43,7 +43,8 @@
       "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 4,
       "frameCount": 19,
       "startFrames": [0, 18], "startFrameRate": 20, "startRepeat": 0,
-      "loopFrames": [4, 18], "frameRate": 20, "repeat": 0
+      "loopFrames": [4, 18], "frameRate": 20, "repeat": 0,
+      "waitFrame": 5
     },
     "dying": {
       "src": "assets/companions/hamster_miner/dying.png",

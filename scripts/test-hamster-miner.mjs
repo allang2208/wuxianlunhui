@@ -44,7 +44,8 @@ check('mining 动画 = 19 帧，起步 [0,18] 完整循环 → 单次 [4,18]（�
     hamsterCfg.animations.mining.frameCount === 19
     && hamsterCfg.animations.mining.startFrames[0] === 0 && hamsterCfg.animations.mining.startFrames[1] === 18
     && hamsterCfg.animations.mining.loopFrames[0] === 4 && hamsterCfg.animations.mining.loopFrames[1] === 18
-    && hamsterCfg.animations.mining.startRepeat === 0 && hamsterCfg.animations.mining.repeat === 0);
+    && hamsterCfg.animations.mining.startRepeat === 0 && hamsterCfg.animations.mining.repeat === 0
+    && hamsterCfg.animations.mining.waitFrame === 5);
 check('dying 动画 = 11 帧 [0,10]，只播一次', hamsterCfg.animations.dying.frameCount === 11
     && hamsterCfg.animations.dying.frames[0] === 0 && hamsterCfg.animations.dying.frames[1] === 10
     && hamsterCfg.animations.dying.repeat === 0);
@@ -113,11 +114,14 @@ check('小屋暂存自动补入玩家背包', /_storedEnergy = Math\.max\(0, thi
 const gsSrc = fs.readFileSync(path.join(ROOT, 'src/phaser/scenes/GameScene.js'), 'utf-8');
 check('GameScene 渲染友方单位（friendlyUnits）', /_game\.friendlyUnits/.test(gsSrc));
 check('GameScene 支持 mining/dying 动画状态', /st === 'mining'/.test(gsSrc) && /st === 'dying'/.test(gsSrc));
-check('GameScene 采矿 = 攻击触发播挥锄、间隔定格第 4 帧（索引 3）',
+check('GameScene 采矿 = 攻击触发播挥锄、间隔定格 waitFrame（第 6 帧）',
     /member\._miningSwing/.test(gsSrc) && /miningStartKey/.test(gsSrc)
-    && /setTexture\(miningKey, 3\)/.test(gsSrc));
+    && /anims\.mining\.waitFrame \?\? 5/.test(gsSrc) && /setTexture\(miningKey, miningWaitFrame\)/.test(gsSrc));
 check('GameScene 行走两段式 = 起步完整 walking → 循环第 3~12 帧',
     /hamsterWalk/.test(gsSrc) && /walkStartKey/.test(gsSrc));
+check('GameScene 移动始终朝向移动方向（walk 按 vx，不倒退）',
+    /member\._isHamsterMiner && moving/.test(gsSrc) && /faceRight = member\.vx > 0/.test(gsSrc)
+    && /_animState === 'walk' \|\| Math\.abs\(member\.vx\) > 5/.test(gsSrc));
 check('GameScene 动态深度含友方单位', /window\.Game\.friendlyUnits/.test(gsSrc));
 
 const bootSrc = fs.readFileSync(path.join(ROOT, 'src/phaser/scenes/BootScene.js'), 'utf-8');
