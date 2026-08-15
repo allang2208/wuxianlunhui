@@ -1,4 +1,14 @@
 # 变更日志
+### 对话：建筑沉陷死亡特效（掩体试点，2026-08-16）
+- 新特效 `src/effects/building-sink.js`：被摧毁建筑向下沉陷（easeOutQuad，总深≈显示高 58%）
+  + 纵向压扁 + 尾段淡出；底部每 70ms 喷一撮多层灰烟（近实心核心+半透明边缘，
+  深度走 WallSystem.junctionCorrectedDepth 墙遮挡正确）掩盖接缝；结束清除实体（无废墟）。
+- 接入：掩体 `DefenseCover.takeDamage` 摧毁分支改为——先摘碰撞/停止受击（hittable=false +
+  removeFromCollision），精灵随特效下沉，结束后 active=false 并从实体表移除。
+- 关键实现点：直接推动实体 y 下沉（GameScene 中性精灵同步会跟随 e.y），并同步 `_faceDepth`
+  跟随下沉，避免浮在墙前实体之上；烟尘并发上限 14 撮防波次同时爆多座失控。
+- 验证：eslint 0 error（既有 3 warning）、vite build ✅；下沉数学单测通过。
+
 ### 对话：伊莉丝全套精灵图重建——SKILL 对齐三铁律重做（2026-08-16）
 - **问题**：上一版重建把六张精灵图整体缩到几十像素并贴左缘（idle 高仅 13px），
   攻击动画截取不全、风车动画错乱、走/跑水平不统一。

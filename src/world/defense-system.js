@@ -31,6 +31,7 @@ import { BasePanel } from '../ui/panels/base-panel.js';
 import { Renderer } from './renderer.js';
 // SceneManager 导入已于 2026-08-15 移除：E 键修理监听器停用后不再引用
 import { loadImage } from '../utils/image-loader.js';
+import { BuildingSinkEffect } from '../effects/building-sink.js';
 import equipmentJson from '../../data/equipment.json';
 
 // ==================== 配置 ====================
@@ -657,10 +658,14 @@ class DefenseCover extends Combatant {
         const wasAlive = this.hp > 0;
         super.takeDamage(damage, source, damageType, isMelee);
         if (wasAlive && this.hp <= 0) {
-            this.active = false;
+            // 2026-08-16：沉陷死亡（掩体试点）——先摘碰撞/停止受击，
+            // 精灵随 BuildingSinkEffect 下沉 + 底部灰烟掩盖，结束后清除实体（无废墟）
             this.removeFromCollision();
+            this.hittable = false;
+            this._sinking = true;
             if (EffectManager) {
                 EffectManager.add(new FloatingTextEffect(this.x, this.y - 30, '掩体被摧毁', '#ff8855'));
+                EffectManager.add(new BuildingSinkEffect(this));
             }
         }
     }
