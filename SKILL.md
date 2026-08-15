@@ -5233,9 +5233,12 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
 
 #### 2. 数据（data/hamster-miner-config.json）
 - `baseData.con` 控 HP（公式 base100 + con×10 + 每级10；con=10 → 200）。
-- `ai`：`walkSpeed/runSpeed`（80）、`miningRange`（80）、`attackInterval`（2000）、
+- `ai`：`walkSpeed/runSpeed`（80）、`miningRange`（**50**，采矿触发 = 50 + 节点半径45 =
+  95px，矿工更贴近矿点）、`attackInterval`（2000）、
   `attackDamage`（100）、`decisionMs`（120）、`engageRange`（340，小屋防御交战半径）、
   `attackRange`（48，近战贴脸距离）。
+- 显示/碰撞（2026-08-15 缩小 25%）：`displaySize` 99（132×75%）、`groundRadius`
+  19.5 / `collisionRadius` 19.5 / `bodyHeight` 97.5 / `size` 63。
 - `animations`：walk 两段式 `startFrames:[0,11]`（起步完整 12 帧，repeat 0）+
   `loopFrames:[2,11]`（循环第 3~12 帧，repeat -1）；mining 素材 19 帧
   `startFrames:[0,18]`（首次完整挥锄）+ `loopFrames:[4,18]`（后续第 5~19 帧，
@@ -5265,8 +5268,9 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
   **每次命中置 `m._miningSwing=true`** 通知渲染层播挥锄动画。
 - **寻路/避障铁律（2026-08-15 审计）**：矿工与怪物共用 `MovementSystem`
   （A*/PathManager/墙碰撞/避障/卡住滑移）；**寻路目标禁止用障碍物中心**——
-  采矿目标用矿点边缘可达点（`approachDist = max(miningRange, 节点半径+自身半径+20)`，
-  避开 A* 实体障碍），回屋用小屋边缘接近点（64px，触发 70px）。AI 层再加卡死看门狗
+  采矿目标用矿点边缘可达点（`approachDist = max(miningRange, 节点半径+自身半径+40)`，
+  并**钳制在采矿范围−15 内**——采矿距离 50 时 ≈80px，障碍外可到达且到位即采矿），
+  回屋用小屋边缘接近点（64px，触发 70px）。AI 层再加卡死看门狗
   （500ms 位移<3px 累计 2 次 → 挖矿重选目标 / 返回 `WallSystem.findSafeSpawn` 传送）；
   满载用 `_returnTriggered` 防 work/return 振荡。
 - **顶墙死循环根因（2026-08-15 实锤 + 根修）**：`_followPath` 的移动被
@@ -5299,6 +5303,10 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
   vx 实际移动方向（`member._isHamsterMiner && moving` → `faceRight = vx > 0`），
   不面朝目标（否则寻路绕行/回小屋会倒退走路）；受击白闪 `hitFlash`；
   尺寸 `member.displaySize ?? PLAYER_DEFAULTS`；多实例共用素材键 `animId`。
+- **名称/血条（2026-08-15）**：`_syncEntityHud` 对友方单位取
+  `_companionSprites[entity.id]` 精灵锚定（贴图缩放后名字/血条自动跟随）；
+  `hasOwnLabel` 含 `_neutralSprites.has(entity)`——已挂中立标签的建筑
+  （仓鼠小屋/能源矿/掩体/静态 NPC）跳过 HUD 名字，防重复；以后加建筑自动生效。
 - `_updateDynamicDepths` 的侍从深度查找也要带 friendlyUnits（墙后正常被遮挡）。
 
 #### 6. 生成/仇恨/验证
