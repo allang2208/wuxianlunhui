@@ -352,13 +352,19 @@ check('伊莉丝禁装备轻甲（light）→armor', elise.canEquip(eliseLightAr
 check('伊莉丝禁装备法袍（robe）→armor', elise.canEquip(eliseRobeArmor, 'armor') === false);
 check('伊莉丝首饰不受限（accessory）', elise.canEquip(eliseRing, 'ring1') === true);
 check('露娜首饰同样不受限（accessory）', lunaC.canEquip(eliseRing, 'ring1') === true);
-// 动画配置：walk 14 / run 23（起步全播+循环 11~23 帧）/ attack 28 / defend 19（enter/hold/exit 三段）
-check('伊莉丝 walk 动画 14 帧', elise.animations.walk && elise.animations.walk.frameCount === 14
-    && elise.animations.walk.frames[0] === 0 && elise.animations.walk.frames[1] === 13);
-check('伊莉丝 run 动画 23 帧（起步全播 → 循环 11~23）', elise.animations.run
+// 动画配置：walk 14（起步全播→循环 3~14 帧，半速 10fps）/ run 23（起步全播→循环 11~23 帧，半速 12fps）
+// attack 28 / defend 19（enter/hold/exit 三段）
+check('伊莉丝 walk 动画 14 帧（起步全播 1~14 → 循环 3~14，半速 10fps）', elise.animations.walk
+    && elise.animations.walk.frameCount === 14
+    && elise.animations.walk.frames[0] === 0 && elise.animations.walk.frames[1] === 13
+    && elise.animations.walk.startFrames[0] === 0 && elise.animations.walk.startFrames[1] === 13
+    && elise.animations.walk.loopFrames[0] === 2 && elise.animations.walk.loopFrames[1] === 13
+    && elise.animations.walk.startFrameRate === 10 && elise.animations.walk.frameRate === 10);
+check('伊莉丝 run 动画 23 帧（起步全播 → 循环 11~23，半速 12fps）', elise.animations.run
     && elise.animations.run.frameCount === 23
     && elise.animations.run.startFrames[0] === 0 && elise.animations.run.startFrames[1] === 22
-    && elise.animations.run.loopFrames[0] === 10 && elise.animations.run.loopFrames[1] === 22);
+    && elise.animations.run.loopFrames[0] === 10 && elise.animations.run.loopFrames[1] === 22
+    && elise.animations.run.startFrameRate === 12 && elise.animations.run.frameRate === 12);
 check('伊莉丝 attack 动画 28 帧（1.5s 播完）', elise.animations.attack
     && elise.animations.attack.frameCount === 28 && elise.animations.attack.repeat === 0
     && Math.abs(elise.animations.attack.frameRate - 28 / 1.5) < 0.01);
