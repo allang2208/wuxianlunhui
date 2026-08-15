@@ -1,4 +1,78 @@
 # 变更日志
+### 对话：伊莉丝全套精灵图重建——SKILL 对齐三铁律重做（2026-08-16）
+- **问题**：上一版重建把六张精灵图整体缩到几十像素并贴左缘（idle 高仅 13px），
+  攻击动画截取不全、风车动画错乱、走/跑水平不统一。
+- **根因**：重建脚本脚底定位写错（`FEET_Y - bottom*scale` 用了缩放前坐标，
+  正确为 `FEET_Y - nh`）+ 平移 clamp 边界写反（右缘可溢出 511）+ alpha 阈值
+  40 把 attacking f5 剑尖（alpha 仅 16~40）当噪点剔掉。
+- **重做口径**（`tools/ai-gen/elise-sprite-align.py`，与 luna-run-align 同款）：
+  - 高度固定：idle/walking/running/defending 站姿 461 高（露娜同款）；attacking
+    1.75（262 宽挥剑帧完整入格）、windmill 1.52（319 宽剑弧完整入格）；
+    attacking f5 剑举过头帧单独 1.441 保整把剑（含剑尖 y0）。
+  - 脚底固定 FEET_Y=480；水平按内容质心对齐 256，clamp 到 [2,510] 不裁剪。
+  - defending f12/f13 右下角噪点用主连通域+邻近部件合并剔除（alpha>16 时
+    噪点仍是独立小域，与剑尖不同，不会误删）。
+- **验证**：成品 512 格扫描——walk 质心跨度 0.9px/0 贴边、run 0.9px/0 贴边、
+  defend 0.9px/0 贴边、windmill 0.9px/0 贴边、attack 46px（宽帧挥剑姿态
+  剑尖右伸，内容完整不裁切）；CDP 实机：普通攻击 28 帧+命中、防御三段式、
+  idle→run 起步完整 23 帧→循环 11~23、风车 23 帧动画播放+3 敌全员命中+
+  CD 递减。
+### 对话：世界-122 配置 BGM——旷野慢风（2026-08-16）
+- 用户提供 `C:\Users\allan\Downloads\旷野慢风.wav`（48kHz 立体声 164.6s）→ ffmpeg 转
+  192kbps MP3 入库 `assets/sounds/music/旷野慢风.mp3`（3.9MB，格式与 dungeon_echo 一致）。
+- `data/audio-config.json` 的 `bgm` 新增 `scene8: assets/sounds/music/旷野慢风.mp3`——
+  scene-manager 切场景自动 `playBgmForScene('scene8')`（既有链路，零代码改动）。
+- 验证：mp3 可解码（2:44.69s / 48kHz 立体声 / 192kbps）、vite dev 200、vite build ✓。
+  实机待用户复测（headless 无法创建 AudioContext，听感/音量由用户确认；music 声道 0.6）。
+### 对话：世界-122 铁栅栏门开关音效——用户素材替换（2026-08-16 二轮）
+- **需求**：世界-122 大门（基地门 CoverGate + 可建造铁栅栏门 BuildableGate）开/关静音，
+  生成专属铁闸门音效。
+- **一轮（程序化合成）**：`tools/ai-gen/gen-gate-sounds.py` numpy 合成 `gate_iron_open.wav`
+  /`gate_iron_close.wav`（零素材依赖）。
+- **二轮（用户素材定稿）**：用户提供 `D:\即时重放\1.mp3`（2.72s / 48kHz 立体声 /
+  128kbps）→ 入库 `assets/sounds/environment/gate_iron.mp3`，开/关共用；一轮合成的两个
+  wav 与合成脚本**已删除**。
+- **接入（defense-system.js）**：`CoverGate.open/close` + `BuildableGate.open/close` 各加
+  `_playSound()`，走 `SoundManager.playWorld(path, 感应中心)`（距离衰减，与 WallGate 同
+  口径；坐标取门洞物理中心 `_detectX/_detectY` 而非精灵中心）。
+- **验证**：CDP 探针拦截模块单例 playWorld（performance 真实 URL import）——open/close
+  均播 gate_iron.mp3，坐标 (250,200) ✓；旧引用零残留；eslint 0 error（3 条既有 warning
+  未新增）+ vite build ✓。
+- **沉淀**：根 SKILL.md 音效系统「步骤5: 程序化合成音效（numpy 管线）」保留为通用
+  能力记录（无素材时兜底），实际素材优先级 = 用户提供 > 合成。
+### 对话：基地门对友方双向感应修复——感应中心改门洞物理中心（2026-08-16）
+- **症状（用户实测）**：仓鼠小屋建在基地附近后，矿工过基地门口卡死、左右来回移动，
+  不去采矿。
+- **根因**：门开门检测用了精灵中心 `_cx/_cy`（BuildableGate 用 `_spriteCx/_spriteCy`），
+  等距贴图偏移让检测球偏入门内 ~74px（基地门实测 (1138,2037) vs 门洞物理中心
+  (1156,2111)）。门外单位被关门面线段挡在 150px 检测半径之外，永远触发不了开门 →
+  顶门 + 卡死看门狗左右摆动。
+- **修复**（defense-system.js）：`CoverGate.place` 与 `BuildableGate` 构造新增
+  `_detectX/_detectY` = 门洞面线中点（物理中心），`update` 的 `nearbyFriendlyUnit`
+  检测改用该中心；精灵中心仅保留渲染用途。
+- **验证**：CDP 新增 A3 阶段（感应中心锚点 = seg 中点；矿工站门外侧 100px 关门面，
+  强制关门后 1s 内自动开门）；矿工从门外走回小屋穿门卸货无卡死（maxJump<60、
+  0 次摆动）；仓鼠矿工 CDP 38/38 ×3、npm test 全绿（含门闸软成本/寻路 51）、
+  契约 234/234、eslint 0 error。
+
+### 对话：世界-122 左上角小地图错位修复——静态层缓存键缺 zoom（2026-08-16）
+- **症状**：世界-122 小地图背景被压缩到 105×105 且偏移（≈(7,42)），黄色视野框画出
+  背景框外（"显示框超出小地图范围"），背景顶部与左上「☰ 菜单」按钮重叠；主神空间
+  （zoom 1）正常。
+- **根因**：小地图静态层（背景/墙）按 `wallCount:worldWxworldH` 缓存，键里没有
+  zoom。切场景时 `_syncHud` 先于 `_updateCamera` 运行，静态层按上一场景 zoom=1 的
+  invZ 重绘；随后 zoom 变 0.7（世界-122）但缓存键不变 → 永不重绘 → 显示时被相机
+  缩放错位。动态层（视野框/实体点）每帧用当前 invZ 重绘，因此与静态层错位。
+- **修复（GameScene.js）**：① 静态层缓存键加 zoom 维度（`wallCount:WxH@zoom`）；
+  ② `_updateCamera` 里 zoom 变化时显式置 `_minimapStaticKey = null`（双保险）；
+  ③ 视野框视口尺寸改用 `this.scale.width/height`（与相机同源，窗口非 1920×1080
+  时不再偏小/偏大）；④ 静态层墙壁绘制加框内裁剪（与动态层 inBox 同口径）。
+- **验证**：CDP 探针解析两 graphics 的 commandBuffer 换算屏幕坐标——修复后静态层
+  背景 == 配置位置尺寸 (10,60,150,150)（修复前 105×105 @ (7,42)）、视野框完全在框内、
+  与菜单按钮无重叠；eslint 0 error（4 条既有 warning 未新增）+ vite build ✓ +
+  npm test 全绿。
+- **沉淀**：根 SKILL.md 第 10 区「小地图」小节 + game-dev-lessons SKILL #44
+  （scrollFactor(0) 固定 UI 缓存键必须含 zoom）。
 ### 对话：仓鼠矿工寻路根修 v2——路径跟随完全阻挡改沿墙滑动（2026-08-16）
 - **症状**：J 阶段（真实回屋寻路）偶发 maxJump=302，矿工中途瞬移到小屋附近。
 - **根因**：`_followPath` 里移动被 `WallSystem.resolve` 判完全阻挡（≥1px 步长）时
