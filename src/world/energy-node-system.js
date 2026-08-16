@@ -10,6 +10,7 @@
 import { Game } from '../game.js';
 import { DamageableEntity } from '../entities/damageable-entity.js';
 import { WallSystem } from './wall-system.js';
+import { setupStructureDepth } from './structure-depth.js';
 import { ENERGY_ITEM } from '../systems/energy-manager.js';
 import { ENERGY_CONFIG } from '../config/energy-config.js';
 import { pathFinder } from '../ai/pathfinder.js';
@@ -71,6 +72,8 @@ class EnergyNode extends DamageableEntity {
             footOffsetY: displayH / 2,
         };
         this.footOffsetY = displayH / 2;
+        // 统一遮挡锚线（能源矿也参与遮挡仲裁：单位在其后被盖、在前/同线盖过矿点）
+        setupStructureDepth(this, displayW / 2);
         this._depleted = false;
         this._respawnTimer = 0;
     }

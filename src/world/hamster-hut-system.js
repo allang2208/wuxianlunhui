@@ -16,6 +16,7 @@ import { BuildingSinkEffect } from '../effects/building-sink.js';
 import { SoundManager } from '../ui/sound-manager.js';
 import { BasePanel } from '../ui/panels/base-panel.js';
 import { WallSystem } from './wall-system.js';
+import { setupStructureDepth } from './structure-depth.js';
 import { Renderer } from './renderer.js';
 
 // ==================== 配置 ====================
@@ -136,15 +137,10 @@ export class HamsterHut extends DamageableEntity {
             footOffsetY: HAMSTER_CONFIG.hut.footOffsetY,
         };
         this.footOffsetY = HAMSTER_CONFIG.hut.footOffsetY;
-        // 图层深度锚点（2026-08-16，门/墙同套仲裁）：小屋是紧凑建筑，底边线 =
-        // footprint 底线（水平短线段）。注册进 junctionCorrectedDepth 后，
-        // 前实体（脚线在底线前）被抬到屋上、后实体被压到屋下——
-        // 否则被墙/门仲裁抬高的单位会错误盖在小屋上（与门的图层问题同类）。
-        this._faceLine = [
-            { x: x - HAMSTER_CONFIG.hut.radius, y },
-            { x: x + HAMSTER_CONFIG.hut.radius, y },
-        ];
-        this._faceDepth = y + 12;
+        // 统一遮挡锚线（2026-08-16 全建筑同口径）：底边线按贴图显示半宽，
+        // 注册进 junctionCorrectedDepth 后，前/同线实体被抬到屋上、后实体被压到屋下
+        // （此前用 footprint 半径 40，比贴图半宽 75 窄，屋角后方单位不被遮挡）。
+        setupStructureDepth(this, HAMSTER_CONFIG.hut.displayW / 2);
         this.level = 1;
         this.maxLevel = HAMSTER_CONFIG.hut.maxLevel;
         this.modules = {};            // { moduleId: level }

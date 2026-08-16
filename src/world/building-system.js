@@ -652,7 +652,11 @@ export const BuildingSystem = {
             const seg = this._coverSeg(x, y, this._placing.item.grade, eff);
             for (const e of Game.entities.values()) {
                 if (!e || !e._isDefenseStructure || !e.active) continue;
-                if (e._faceLine && e._faceLine.length === 2) {
+                // 2026-08-16 全建筑统一遮挡锚线后：_faceLine 不再是掩体/门专属——
+                // 只有墙段类（掩体/门）走线段+墙厚重叠判定；塔/基地/小屋/能源矿等
+                // 紧凑建筑仍走圆心距离粗判（否则其面线会被当成 26px 厚墙段误判）
+                const wallLike = e._isDefenseCover || e._isCoverGate;
+                if (wallLike && e._faceLine && e._faceLine.length === 2) {
                     // 已有掩体：线段 + 墙厚
                     const eThick = e._coverHalfThick ?? 26;
                     const minGap = (thick + eThick) / 2
