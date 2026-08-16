@@ -1,4 +1,58 @@
 # 变更日志
+### 对话：世界-122 相机恒居中 v2——快照改用 window.Game.player（2026-08-16 用户复测）
+- **用户复测**：玩家在屏幕左上角（= 移动拖尾仍存在，v1 快照未生效）。
+- **根因**：`GameScene` 从不持有 `this.player`（全程用 `_game.player` / `window.Game.player`），
+  v1 快照条件 `&& this.player` 永远为假 → 修复未生效，玩家继续被平滑拖尾拉向左上。
+- **修复**（`GameScene._updateCamera`）：快照改用 `window.Game.player`
+  （与 game.js `Camera.update` 的跟随目标同一引用）。
+- **验证**：CDP 探针——`scene.player` 恒 undefined、快照精确命中玩家坐标（4321,3456）、
+  瞄准不快照且按 1/6 平滑偏移（+300 → 单帧 +6）；eslint 0 error + vite build ✓。
+
+### 对话：世界-122 相机默认恒居玩家中央——非瞄准钉玩家、瞄准才偏移（2026-08-16）
+- **需求**：世界-122 默认（非瞄准）玩家始终位于镜头中央；瞄准时允许镜头偏移。
+- **根因**：相机平滑跟随（`CAMERA_SMOOTH 0.12`）导致移动时相机拖尾，玩家偏出屏幕中心
+  （实机探针：移动后 3 帧偏 +95px、10 帧仍偏 +64px，静止后才回中）。
+- **修复**（`GameScene._updateCamera`）：世界-122 且非瞄准且非无人机操控时，每帧把
+  `Camera.x/y` 直接钉到玩家坐标再 `centerOn`；瞄准（`aimOffset≠0`）保留原平滑偏移，
+  松开立即回中。其他场景不受影响（仍走原平滑 + 边界钳制）。
+- **验证**：CDP 探针（应用真实模块实例，注意 `?t=` 缓存戳避免双实例）——scene8 默认
+  快照精确命中玩家坐标、瞄准不快照、非 scene8 不快照、场景类原型含修复；eslint 0 error
+  + vite build ✓。
+
+### 对话：仓鼠矿工过门卡死/不采矿三修——只采矿口径回归 + 掩体矩形不推友方 + 路径振荡守卫（2026-08-16）
+- **症状（用户实测）**：采矿动画不播、不优先去采矿、卡基地门左右摆动寻路找不到。
+- **根因一（门卡死）**：基地门洞两侧掩体的墙段已按门跨度裁剪放行，但 198×133
+  实体矩形仍伸入门洞——`Game.resolveCollisions` 把过门洞的友方单位推回（矿工贴门
+  来回摆动）。**修复**（game.js）：掩体矩形对 companion 阵营跳过实体分离（友方
+  移动本就由 WallSystem.resolve 墙段管，矩形对友方冗余；怪物/玩家不变）。
+- **根因二（幽灵路径振荡）**：寻路空间哈希下矿工在门洞附近有「穿基地内部」幽灵
+  路线与正确绕行路线两条近似等代价路线，路径被反复重算翻转 → 原地左右摆。
+  **修复**（hamster-miner-ai.js）：新增路径振荡守卫——2.5s 窗口内当前航点跳变
+  >150px（路径被重算成另一条路线）且矿工没沿任何一条走远 → 清路径强制用当前
+  A* 重算（正确绕行路线），不做传送。
+- **根因三（不优先采矿）**：AI 有 engageRange 敌人交战分支（小屋防御），怪贴脸
+  会放弃采矿去交战——违背最初口径「只能对能源矿点攻击，不攻击其他单位」。
+  **修复**：移除敌人交战/`_nearestEnemy`/`_tryAttackEnemy`，矿工只采矿（被怪可
+  击杀但不还手）；CDP C 阶段改为断言「敌人贴脸不还手、继续采矿」。
+- **验证**：仓鼠矿工 CDP 39/39 全绿（B 采矿挥锄 mining_start→第5~19帧、C 只采矿
+  无视敌人、A2/A3 门双向感应、J 回屋无传送、I 小屋沉陷移除）；npm test 全绿
+  （寻路 51/门闸软成本/怪物移速）；契约 256+53；eslint 0 error。
+
+### 对话：队友动作全量审计——5 指令 × 双队友 × 新招募/档案恢复（2026-08-16）
+- **需求**：审计其他动作是否都能正常执行。
+- **探针**：`tools/cdp-party-audit.mjs`——真实轮盘路径（resolveTargets+execute），
+  场景 = {露娜, 伊莉丝} × {新招募, 档案恢复} × 5 指令 {hold, follow, patrol,
+  aggressive, gather}，逐项注入假敌人/假能源点 + 敌人屏蔽器（防主城野怪干扰）。
+- **结果 20/20 通过，0 页面异常**：
+  - 露娜：hold 站定 / follow 归队 250→191px / patrol 圈内游走 536px /
+    aggressive 施法接敌（敌 -25hp）/ gather 远程采集（节点 -25hp @~322px）；
+  - 伊莉丝：hold 站定 / follow 归队 250→138px / patrol 游走 373px /
+    aggressive 近战接敌（敌 -13hp @~91px，attack 动画）/ gather 近战采集
+    （节点 -13hp @~101px，attack 动画）；
+  - 档案恢复后两者 aiRole 均正确（ranged_mage / melee_swordshield），命令照常执行。
+- **战斗动作复核**（项目自带探针）：cdp-elise-ai（普攻 26 伤/34 帧 attack 动画/
+  精灵同步/防御/风车）、cdp-luna-ai（跟随/施法火球 -81hp 不误伤/输出中不瞬移/
+  逃跑朝向）通过。
 ### 对话：防御塔改造模块重新引入——6 张抠图图标卡 + 与六维芯片并存（2026-08-16 二轮）
 - **需求**：对 `E:\无尽轮回\游戏\素材库\UI\改造\防御塔改造.png`（2 行×3 列深灰圆角卡片）
   抠图，去除右下角水印，按 左→右、上→下 = 伤害强化/射程增强/速射模块/快速换弹/过热抑制/
@@ -15,6 +69,42 @@
   射程 1200→1344（×1.12）、间隔 92→85（×0.92）、换弹 3500→3150（×0.9）、过热/散热 ok、
   费用 150/218/315/457/663 递增、满级拦截、面板 6 张图标卡（damage 满级时按钮位显示「已满级」）。
 
+### 对话：伊莉丝采集指令不执行——剑盾 gather 被写死成跟随（2026-08-16）
+- **用户反馈**：给伊莉丝下采集指令，她不去指令点附近的能源点攻击矿物。
+- **根因**：`CompanionAI._applyWarriorCommand` 的 switch 里
+  `case 'gather': default: this._cmdFollowOnly(player)`——采集只给远程法师
+  写了弹体采集（`_cmdGather`），剑盾近战直接回落跟随玩家，**根本不去节点**。
+- **修复**（companion-ai.js）：新增 `_cmdWarriorGather`——走到距指令点最近能源点
+  （`_isEnergyNode` 且未枯竭），进入近战范围（meleeRange+节点半径）后复用
+  `_tryMeleeAttack` 挥砍采集（atk×1.25 走 `_dealMeleeHit` 同口径，节点 takeDamage
+  产能源）；袋满回玩家移交、无节点回落跟随，与远程采集同口径。
+- **验证**：`tools/cdp-elise-gather.mjs` 实机——伊莉丝从 334px 外 run→walk 接近，
+  103px 近战范围 30 帧 attack 动画、节点掉血 26（atk×1.25），指令点=能源点附近；
+  0 页面异常。test-party-system 256/256、eslint 0 error、vite build ✓；
+  patrol/hold/档案恢复回归探针通过。
+### 对话：伊莉丝指令“不执行”根因——档案恢复丢 aiConfig（2026-08-16）
+- **用户反馈**：给露娜下命令正常执行，给伊莉丝下命令却不执行。
+- **排查**：CDP 实机探针（tools/cdp-elise-command.mjs）对比新招募 vs 档案恢复
+  （解散再招募/读档）：
+  - 新招募伊莉丝命令正常（遇敌反击/推进/走位都动）；
+  - **档案恢复伊莉丝 `aiConfig=null`** → GameScene `aiMode=!!aiConfig` 为 false，
+    渲染层把它当“纯跟随单位”贴在玩家身上（精灵坐标与逻辑坐标脱节 ~300px）；
+    CompanionAI 虽仍按 id 建实例，但 cfg 回退 `DEFAULT_MAGE_AI`（role=
+    ranged_mage，错用露娜法师默认参数）——**命令逻辑上执行了，画面不动 = “没执行”**。
+- **根因**：`Companion.serialize()` 没存 `aiConfig` / `_unlockSkills`，
+  `fromSerialized` 也不恢复（构造只传最小 archive）。
+- **修复**（src/entities/companion.js）：
+  1. serialize 新增 `aiConfig` / `unlockSkills` 字段；
+  2. fromSerialized 恢复两者，**老档（无字段）回退 companion-config.json 同 id
+     档案的 `ai` / `unlockSkills`**，并按恢复后的真实等级重跑 `_checkUnlocks()`
+     （露娜 ≥10 级读档后圣光正确解锁）。
+- **顺手修复渲染 bug**（companion-ai.js `_tick`）：命令态战斗中冻结的动画统一覆盖
+  成 `'spell'`，把伊莉丝攻击/防御/风车动画顶掉（实机采样 `anim:'spell'`+atkTimer
+  实锤）→ 近战不再被覆盖，命令态战斗保持 attack/defend/windmill。
+- **验证**：test-party-system 256/256（新增档案恢复 aiConfig/老档回退/解锁表 6 项）；
+  eslint 0 error；vite build ✓；CDP 实机——档案恢复后 aiRole=melee_swordshield、
+  精灵坐标与逻辑坐标同步、patrol 遇敌正常反击走位、命令态战斗动画为 attack、
+  战斗中 hold 立即打断站定；0 页面异常。
 ### 对话：防御塔升级重构——六维芯片取代等级/模块 + 武器挂钩主属性（2026-08-16）
 - **需求**：删除防御塔等级/升级模块及其按钮；升级收敛到六维芯片；升级属性不直接加攻，
   只强化「与当前武器挂钩」的主属性；面板逐属性注释实时反显；强化武器公式不硬编码；
@@ -37,6 +127,36 @@
   敏捷 0 无影响）、升级伤害 15→16、费用曲线 60/87/126/183/265、强化后每点边际 0.5→0.7、
   上限拦截、面板 DOM（无等级/模块区块、武器贴图 pkm_side_clean.png、六维卡 6 张）全绿。
 
+### 对话：组队栏点击选中/多选 + 指令轮盘目标修复（2026-08-16）
+- **需求**：点击组队栏左边队友名字不再弹状态面板，而是**选中该单位**（高亮模型贴图）；
+  **Shift+点击名字 = 多选**（如选中露娜+伊莉丝后中键轮盘 = 对两人同时下达指令）。
+- **实现**：
+  - `party-system.js`：新增选中数据 `_selectedIds` + `selectedIds` / `setSelected` /
+    `toggleSelected` / `clearSelection` / `isSelected`；移出队员自动退出选中并 notify。
+  - `party-ui.js`：点击名字 = `setSelected([id])`（单选），Shift+点击 = `toggleSelected`
+    （多选）；**不再调用 `CompanionPanel.open`**；槽位选中态 `.party-slot--selected`
+    （金框发光，game-style.css）；点玩家槽清空选中；选中时同步 `CompanionPanel._memberId`。
+  - `companion-command-wheel.js`：`_resolveTargets` **优先取 `PartySystem.selectedIds`**
+    （单选/多选都只命令被选中者），无选中兜底队员面板当前队员/第一名；**移除“松开时
+    Shift=全队”**（多选已由 Shift+点击组队栏承担，避免冲突）；轮盘不再全局拦
+    `UIState._state`（面板状态残留曾导致轮盘永久打不开），改为按按下时悬停目标拦截，
+    并补拦 `.companion-overlay`（打开队员面板时不弹轮盘）。
+  - `GameScene._syncCompanionSprites`：按 `isSelected` 高亮——精灵金色 tint
+    （0xffd98a）+ 脚下金色光圈（`_selectionRings` / `_showSelectionRing`，仓鼠矿工
+    因 tint 已被受击白闪占用只画光圈）。
+  - `companion-ai.js`：**待命指令立即打断**攻击/防御/风车/施法硬直并站定（此前要等
+    1.5~3s 动画播完才生效，观感“命令没执行”）。
+  - `game.js`：挂载 `this.PartyUI` / `this.CompanionCommandWheel`（调试/探针权威入口）。
+- **指令不执行排查结论**：CDP 实机探针（双队友 + 有/无敌人）验证 setCommand → AI →
+  行为链路本身是通的（hold/patrol/aggressive/follow 单人与双人、含战斗场景均执行）；
+  “无人执行”的实际根因是**目标不明确**（点击名字开面板不建立选中、无选中时轮盘只命令
+  第一名、UIState 状态残留卡死轮盘触发）——本轮选择/多选/触发条件修复即针对此。
+- **验证**：test-party-system 250/250（新增选中/接线契约 13 项）；test-command 11/11、
+  test-energy 18/18、test-regressions 179/179、elise-sheets、defense-targeting 全绿；
+  eslint 0 error；vite build ✓；`tools/cdp-party-select.mjs` 实机全流程通过
+  （点击选中不弹面板/金色高亮+光圈/Shift 多选/轮盘只命令选中者/点玩家槽清空，0 页面异常）。
+  npm test 唯一失败 = 并行会话 weapon-anim-config 未提交改动弄挂的近战守卫（既有例外，
+  与本次无关）。
 ### 对话：显卡占用高排查（2026-08-16，只诊断未改码）
 - **现象**：任务管理器显卡占用高。
 - **结论**：全屏 WebGL + 透明合成 + 默认 MSAA 为最大固定成本；世界-122 对象多 + 每帧
@@ -94,6 +214,33 @@
 - **验证**：迷你探针（伪 collider 实体在场 3s）——修复前数百次主循环 TypeError、修复后
   **0 崩溃**且攻击动画正常触发；test-party-system 234/234、npm test 全绿、eslint 0 error、
   vite build ✓。实机待用户复测。
+### 对话：世界-122 射击台五版——连接式台阶建模 + 贴墙锚定 + 裁墙洞密封段（2026-08-16）
+- **背景**：四版仍被打回：① 建模根本不像射击台；② 无法走上去。逐项排查出三个独立根因
+  （+ 两个隐藏根因）。
+- **修复① 建模（像射击台了）**：ASCII 投影脚本把四版模型画成轮廓——台阶放在台体侧面、
+  与台面同高，投影是"台体 + 散块"没有阶梯。重做 spec：3 级台阶从台面前缘逐级连到地面
+  （每级 = wall 立面 26 + light 踏面 8，嵌套贴台体前脸）+ 340×84×102 平台主体（rot 44.8），
+  Blender 重渲染 → 紧身裁剪入库（内容 695×647 → 显示 260×242，footOffsetY 121）。
+- **修复② 走不上去（走廊方向）**：四版登台走廊沿 `-wallNormal` = 指向墙外，判定区整个
+  在房间外面——房内玩家永远触发不了抬升。五版走廊 = 台面前缘沿屏幕向下（台阶实际延伸
+  方向）165px、半宽 130；getLift 前缘后方 40px 内视为台上满值（台面深 26px，原 -20 阈值
+  会让台面后半瞬断）。
+- **修复③ 贴墙朝向**：TR 墙平台用了 v 贴图（长轴斜率 -0.64 ⊥ 墙 +0.5）。贴图改由
+  orient 决定（'h' → firing_platform_h），mirror 只翻放置侧不翻贴图。
+- **修复④ 墙线锚定**：掩体 face 线相对房间几何边有 ~64px 垂直偏移——平台必须锚定实际
+  face 线：`_placeInitialPlatform` 找距几何边中点最近的掩体段，几何中点投影到 face 线上
+  当墙线锚点。
+- **修复⑤ 裁墙洞 + 密封段（走上去的通行保障）**：台阶跨墙线，墙段会挡停玩家。新增
+  `trimCoverSegsForPlatform` **分裂**与平台跨度重叠的掩体段（洞区移除、两侧保留为新段，
+  `_splitOf` 回链；只移端点无效——跨全宽段段身仍横穿）；平台自注册 `_platSeg`（_cover 段）
+  密封洞区（怪物挡停转火平台）；玩家移动 5 处 resolve 传 `{ segs: WallSystem.platformSegs }`
+  ignore；平台 `noCollision=true`（门同款，实体碰撞圈在台阶入口会挡玩家）。
+- **修复⑥ init 时序**：`_buildBaseRoom()` 只算 layout 不建实体——预置平台必须在掩体
+  墙段创建之后调用，加 `_placeInitialPlatformSafe` 防御包装（init 异常不再静默中断）。
+- **验证**：CDP 探针全绿——init 生成 count=1 / 贴图 260×242 渲染 / getLift 0→178 平滑
+  / 裁墙分裂（洞区无掩体段残留）/ _platSeg 密封（怪物挡停、玩家带 ignore 直达、无
+  ignore 被挡）/ eslint 0 error + vite build ✓ + npm test 全绿（唯一 FAIL 为并行会话
+  weapon-anim-config 未提交改动弄挂的近战闭环守卫，与本次无关）。**视觉/朝向实机复测**。
 ### 对话：世界-122 射击台四版——连续抬升衔接 + 亮踏面台阶 + 条件深度（2026-08-16）
 - **背景**：三版仍被打回：① 走上台阶是"瞬移"（进站台区瞬间抬满 291px，衔接突兀）；
   ② 台阶没有坡度（满高 box 堆叠，立面全是墙材质、踏面不可见）；③ 透视图层问题

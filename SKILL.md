@@ -83,6 +83,7 @@
 - 世界-122 防守地图（雏形，2026-08-04）
 - 世界-122 迭代沉淀（2026-08-15：塔死角排查/塔整塔命中+悬停轮廓+神经芯片面板/基地退回/树木散布）
 - 防御塔升级重构——六维芯片取代等级（2026-08-16：武器↔主属性挂钩、伤害实时公式、费用逐级递增、面板武器贴图；二轮重新引入改造模块图标卡）
+- 世界-122 相机默认恒居玩家中央（2026-08-16：非瞄准钉玩家/瞄准才偏移；相机平滑拖尾修复）
 - 后续打磨方向（未做）
 
 **8. AI 寻路、碰撞与移动**
@@ -645,7 +646,7 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
 
 ---
 
-### 主角一段攻击（attack_sword）关键帧→H3 两段式挥砍重生（2026-08-15 定稿入库）
+### 主角一段攻击（attack_sword）关键帧→H3 两段式挥砍重生（2026-08-15 试作，已被下方 v4 取代）
 
 手绘关键帧 A起手/B命中/C收势 → H3 首尾帧插值 AB、BC 两段视频 → 拼 12 帧 sheet。
 针对旧 v2 三连反馈（双手→单手、僵硬、要前移）：新动作=上步单手反手挥砍+弓步前倾。
@@ -675,6 +676,59 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
 - **坑**：cv2.imwrite 写中文路径静默失败（返回 False 不报错）→ `cv2.imencode` +
   `Path.write_bytes` 或 PIL 保存；analyze 脚本 `np.max(axis=2)` 对 (N,3) 边界样本炸
   AxisError → 用 `axis=-1` 兼容。
+
+#### v4 绿幕单段直剪定稿（2026-08-16 入库，用户评审淘汰两段式后重做）
+
+两段式失败原因：124 帧慢速源把 0.6s 攻击拉成慢动作、A 帧正面站立白烧 3 帧转身、
+反手挥砍幅度小——"还不如三段突刺"。v4 回到三段同管线（绿幕 H3 单段 56 帧快节奏），
+**关键教训：短平快攻击用 56 帧单段直出，不要首尾帧两段插值**。
+
+- **首帧复用** `scratch/player_melee3/firstframe_onehand.png`（1344×768 绿幕侧视备战，
+  右手胯部握姿）；提示词 `prompts/player-attack-slash-h3.txt`。
+- **剑影轮盘**：挥砍提示词极易诱模型画剑——v3 实体剑+扇形残迹、s03 大斧头、s04 扇形
+  拖尾、s05 大镰刀、s06 橙色弧；**s02 全程干净**、s01 仅 2 帧细残迹。对策=强化"EMPTY
+  fist / no stick / nothing in or near hands" + **6 seed 轮盘挑干净的** + 细残迹可用
+  `--erase 帧:x0:y0:x1:y1`（绿底矩形抹除，builder 已内置）。
+- **逐帧色偏**：v4 挥砍帧骨骼泛品红（视频 VAE 色偏，montage 小图看不出，必须抽帧原图查）
+  → builder 对全部不透明像素**强制亮度化**（主体纯灰度，色度即伪影；比 prep-melee3
+  中性化更彻底，绿/品红边一并消）。
+- **剪片**：`build-player-attack-sheet.py --video slash1_v4_s02.mp4 --bg-hex 00FF00
+  --n 12 --end 24`（builder 已支持单段+绿幕模式）；窗口终点停在**顺势低位**（v24），
+  不要收进恢复段——连段定格=满弓后低位，接续二段更顺。命中帧（最大伸展）落 f9 与
+  hitCheck 精确对齐；前移 dx 峰值 +88（v2 才 +25）。
+- **武器轨迹重对 v1（中心 origin，已被下方 v2 剑柄锚手取代）**：网格标定每帧拳头 cell 像素 +
+  前臂延长线定刃向 → `offsetX/Y = 拳 + R(rot)·(0,-gripOffset40)`（同 prep-sword-attack-hand
+  公式）；**display px 换算必须含 displayScale**：`(px-256)×(144×displayScale)/512`
+  （attack_sword displayScale=1.0956，漏乘全弧 magnitude 小 8.7%）；**rotation 相邻帧
+  差值必须 ≤180°**——`_getPerFramePrecomputed` 对原值再做最短程解卷绕（delta>π 会
+  被拉回反向绕远，首发版 f0=135→f1=317 差 182° 被改走 -178°，起手 100ms 剑甩穿躯干
+  =用户目击"脱手"根因；把 f0 改 140 让设计路径=最短程路径即可）；**标定验收用
+  alpha 掩码逐帧贴附率**（拳头显示坐标 7×7 邻域 alpha>100 占比 >20% 判贴手，小拳头
+  ±5px 目读误差即浮空——f2/f3/f11 首发全错：f2 把肘当拳、f3 点在空气、f11 拳在 (312,295)
+  不在 (255,292)）；离线合成预览 = `getWeaponSize`（sword=78.75×0.63×s × 78.75×s
+  display px）×(512/144) 贴 cell 验证后再写 `public/data/weapon-anim-config.json`
+  （只此一份，无镜像）。
+- **武器轨迹重对 v2 = 剑柄锚手定稿（anchor='grip'，dashHand 同款移植，2026-08-16）**：
+  v1 数据全部验证通过用户仍报"后几帧剑柄不在手腕"——**中心 origin 是结构性缺陷**：
+  旋转大步长的帧间中点握把甩离手 ~20~40 display px，改数据无解，必须换锚定模型。
+  - 配置：`sword.attack.anchor = "grip"`，frames 的 `offsetX/offsetY` 直接写**拳头本地
+    偏移**（`(px-256)×(144×displayScale)/512`），rotation=刃向连续链（相邻差 ≤180°，
+    `_getPerFramePrecomputed` 对原值再做最短程解卷绕，delta>π 会被拉回反向绕远）；
+    attack2/attack3 无 anchor 字段保持中心 origin 不动。
+  - 运行时两处新代码：`WeaponTransform.getInterpolatedGripPerFramePosition`（位置同口径
+    插值 + 追加 `gripX=0.5 / gripY=0.5+gripOffset/显示高`）与 `getAttackRecoverStartPosition`
+    （收势起点=末帧握把+R(rot)·(0,-grip) 反推中心，同 getDashRecoverStartPosition 公式）；
+    GameScene 攻击 perFrame 分支 `anchor==='grip'` 时 `setOrigin(0.5或镜像, gripY)`——
+    **origin 复位链现成**：syncWeapon 普通路径每帧开头已 reset origin(0.5,0.5)，无泄漏。
+  - **连段闭环测试跨锚点**：attack3 末帧（中心 origin）= attack 首帧握把反推中心；
+    `scripts/test-melee-sync.mjs` 已改锚点感知比较（位置按公式换算、角度取最短弧差）。
+  - **拳头标定法升级**：质心/掩码粗定 → **细网格 4× 放大逐帧目视复核**（质心在拳头与
+    骨盆/腿粘连时被连通域合并拖走：f0/f11 被骨盆拖偏、f10 曾误标到大腿骨——"末端过滤"
+    判据识别不了合并）；**验收 = alpha 掩码贴附率 12/12 >20%**（拳头显示坐标 7×7 邻域，
+    BILINEAR 缩放到显示尺寸）。
+  - DevTool 语义提示：attack 块 offset 现在是**握把点**（拳头），不再是贴图中心。
+- 入库：旧 v2 留档 `backup/2026-08-15-player-attack-h3/attack_sword.png`，两段式留档
+  同目录 `attack_sword_keyframe2seg.png`；blur 峰移 f8~f10 贴挥砍段。
 
 ---
 
@@ -4518,6 +4572,8 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
 - 验证工具：`tools/cdp-tower-panel.mjs`（命中矩阵 + CDP 真实鼠标悬停 + 面板截图）。
 
 **防御塔升级重构——六维芯片取代等级/模块（2026-08-16）**
+> 2026-08-16 二轮：改造模块已按用户要求重新引入并与芯片并存（见下节），本节标题中的
+> 「/模块」仅指当时删除、二轮恢复前的中间状态。
 - **删除**：塔等级（Lv 升级/耐久成长）、升级模块（6 模块 + 模块位）及其面板区块/按钮；
   塔名固定「防御塔」，耐久固定 `tower.hp`。
 - **升级收敛到六维芯片**：`tower.chip = {str/dex/con/int/wis/luck}` 初始 `chip.base=10`；
@@ -4722,6 +4778,17 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
   半径外永远触发不了开门** → 矿工过门卡死左右摆动（2026-08-16 用户实测复现 +
   CDP A3 阶段回归锚点：`gate._detectX/_detectY === seg 中点`、矿工站门外侧 100px
   关门面 1s 内自动开门）。
+- **掩体矩形对友方冗余（2026-08-16 门洞卡死补刀）**：门洞两侧掩体的墙段已按门跨度
+  裁剪放行，但 198×133 实体矩形仍伸入门洞——`Game.resolveCollisions` 会把过门洞的
+  companion 推回（矿工贴门来回摆）。友方移动本就由 WallSystem.resolve（墙段）管，
+  矩形对友方冗余：`rectEnt._isDefenseCover && other._faction === 'companion'` 跳过
+  实体分离（怪物/玩家不变，怪物仍靠矩形贴墙被挡）。
+- **路径振荡守卫（2026-08-16 幽灵路径）**：寻路空间哈希下矿工在门洞附近可能出现
+  「穿基地内部」幽灵路线与正确绕行路线两条近似等代价路线，路径被反复重算翻转 →
+  原地左右摆（矿工位移大、卡死看门狗测位移不触发）。`HamsterMinerAI._checkOscillation`：
+  2.5s 窗口内当前航点跳变 >150px 且没沿任何一条走远（<120px）→ 清路径强制用当前
+  A* 重算，不做传送。这是「卡死看门狗」之外的第二层兜底（看门狗测位移、守卫测
+  航点翻转）。
 - **建筑面板**：B 面板六档 `gate_<g>_v` 条目（能源，费用=掩体HP×0.25），
   吸附端点 `GATE_SNAP`（与掩体互相吸附，SNAP_OVERLAP 回退），幽灵预览 + F 镜像，
   可被攻击/修理（修理走建筑面板详情按钮，费率同掩体）。
@@ -4732,7 +4799,7 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
 - 已知取舍：实体站在门洞中同时跨左右柱时，整门三段的抬升/压制按各段面线独立判定，
   跨两段的重叠区以最近段为准，极端位置可能有 ±1 段误差，可接受。
 
-### 射击台（FiringPlatform，2026-08-16 四版定稿：连续抬升 + 亮踏面台阶 + 条件深度）
+### 射击台（FiringPlatform，2026-08-16 五版定稿：连接式台阶 + 贴墙锚定 + 裁墙洞）
 
 - **需求来源**：围墙内玩家/友方远程弹道被己方掩体墙段（`_cover`）挡，站上射击台后可
   越过围墙向外攻击。
@@ -4741,33 +4808,41 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
   掩体：复制拓宽立方体 + 台阶衔接，rot.z 与掩体一致（44.8）**，平台主体平行墙（同掩体
   沿墙放置），台阶向房内延伸；③ 贴图走**生图管线**（flux2-klein-4b-walltex LoRA 生成
   材质纹理 → render-cover-real.py Blender 渲染），不用渲染器直接贴墙砖。
-- **⚠ 三版教训（用户打回第三次）**：① 布尔登台 = 进站台区瞬间抬满 platformHeight =
-  **瞬移**；② 满高 box 堆叠的台阶立面全是墙材质、踏面不可见 = **没有坡度感**；③ depth
-  无条件抬到 _faceDepth+1 = **透视图层错乱**。四版三项修复：
-  - **连续抬升**：新增 `getLift(ux,uy)`——"登台走廊" = 以顶面中心为近墙端、沿
-    -wallNormal（房内）延伸 `corridorLen=300`、半宽 100 的矩形带；单位投影到走廊轴得
-    纵深进度 t → 抬升 = (1-t)×platformHeight（0~291 连续插值，走廊外归 0）。
-    `_updatePlatformStates` 改存 `u._platformLift` 连续值（非布尔），GameScene 玩家/侍从
-    sprite 上移量读它——CDP 实测 WALK lifts 291→255→218→182→145→109→73→36→0 平滑
-    递减，**无瞬移**。
-  - **台阶坡度**：spec 每级台阶 = wall 立面 26 高 + **light 材质踏面** 8 高
-    （render-cover-real.py 新增 light 浅色素面 0.72,0.66,0.58 带高光），5 级
-    252×88→272×108 逐级加宽，立面+踏面交替可见 = 真实阶梯感。
-  - **条件深度**：GameScene 只在 `_platformLift > 0` 时才把台上单位 depth 抬到
-    `平台._faceDepth+1`（玩家 + 侍从两处），地面单位不受影响。
-- **资产**：`_depth_templates/firing_platform_spec.json`（5 级台阶 252×88 起逐级加宽
-  272×108，wall 26 高 + light 8 高踏面，pos.y -262→-30；平台主体 300×150×40 +
-  288×150×76 + 270×130×30，rot 44.8，soil 土底座）→ 材质 `comfyui-gen.py --model
-  flux2-klein-4b-walltex`（1024×668 横向砖墙，16 步 4 秒）→ render-cover-real.py 渲染 →
-  紧身裁剪 → `firing_platform.png` + `firing_platform_h.png`（flipX 镜像贴 h 向墙；
-  内容 567×677 → 显示 260×310，footOffsetY 155，脚底=接地线）。
-- **站台顶面标定**（贴图几何）：平台顶面中心 ≈ 内容 (400, 40)、接地线 y=676 →
-  显示偏移 `_topOffsetX≈+54/_topOffsetY≈-136`、`platformHeight≈291`（玩家在台上
-  sprite 上移量 = (676-40)×310/677）、`_topCx/_topCy`（顶面中心）、
-  `_zoneHalfW/H=90/70`（兼容旧判定区）。
-- **贴墙几何（用户口径三版起）**：平台主体**沿墙放置**（拓宽掩体，与掩体同向/同 rot），
-  实体 = 墙段中点 + 内侧法线 × (墙半厚 26 + 余量 30)；台阶（贴图底部）朝房内延伸；
-  玩家建造走 `_snapPlatformToWall` 同口径；F 镜像贴墙另一侧，orient 随墙段 face 方向。
+- **⚠ 三版教训（用户打回第三次）**：① 布尔登台 = 进站台区瞬间抬满 = **瞬移**；② 满高
+  box 堆叠踏面不可见 = **没坡度**；③ depth 无条件抬升 = **图层错乱**。
+- **⚠ 四版教训（用户打回第四次："建模不像射击台 + 无法走上去"）**——三个独立根因：
+  - **建模投影错误**：四版台阶放在台体侧面、与台面同高（pos.y -262→-30 全在平台主体
+    前方上方），投影成"台体 + 一堆散块"，根本看不出阶梯。五版重做：台阶**从台面前缘
+    逐级连到地面**（3 级，每级 = wall 立面 26 + light 踏面 8，嵌套贴台体前脸），
+    ASCII 投影（tools 里 proj 脚本）确认轮廓 = 宽台体 + 左下清晰阶梯；
+  - **登台走廊方向反了**：四版走廊沿 `-wallNormal`（指向**墙外**），判定区整个在房间
+    外面 → 房内玩家永远触发不了抬升 = "无法走上去"。五版：走廊 = 台面前缘沿
+    **屏幕向下**（台阶实际延伸方向）165px、半宽 130；前缘之后 40px 内视为台上满值
+    （getLift `along < -40` 才归 0——台面深 26px，`-20` 会让台面后半瞬断）；
+  - **贴墙朝向错误**：TR 墙平台用了 v 贴图（长轴斜率 -0.64 ⊥ 墙 +0.5）。五版：
+    **贴图由 orient 决定**（'h' → firing_platform_h），mirror 只翻放置侧不翻贴图，
+    长轴始终平行墙线；且**平台必须锚定实际掩体 face 线**（掩体 face 线相对房间几何边
+    有 ~64px 垂直偏移——`_placeInitialPlatform` 先找距几何边中点最近的掩体段，把几何
+    中点投影到 face 线上作为墙线锚点）。
+- **资产（五版 v7）**：`_depth_templates/firing_platform_spec.json`（3 级台阶
+  340×30 嵌套：riser 26 + light 踏面 8，pos.y -84/-54/-24；平台主体 340×84×102，
+  rot 44.8，soil 土底座）→ 材质（沿用 tex_platform.png walltex）→ render-cover-real.py
+  渲染 → 紧身裁剪 → `firing_platform.png` + `firing_platform_h.png`（flipX 镜像；
+  内容 695×647 → 显示 260×242，footOffsetY 121，脚底=台阶入口）。
+- **站台标定**：台面中心在入口正上方 `platformHeight=178`；后缘（贴墙端）191px；
+  台面前缘 165px（登台走廊起点）——贴图 x 方向对称，偏移均为 0。
+- **贴墙几何（五版）**：实体 = 台阶入口，位置由「台面高出墙顶 25px」反推：
+  `k = (178 - 墙高108 - 25) / (wn.y - 墙斜率·wn.x)`（TR 边 ≈50）；
+  台面 25px 高于墙顶 → 玩家站台上可越墙射击 ✓。
+- **裁墙洞 + 密封段（五版新增，走上去的关键）**：台阶要跨过墙线（入口在房内、台面在
+  墙顶上方），墙段不处理会挡停玩家。做法：
+  ① `trimCoverSegsForPlatform` **分裂**与平台跨度（±130px 沿墙）重叠的掩体段——洞区
+     内的部分移除、两侧剩余保留为新段（`_splitOf` 回链）——只移端点不行（跨全宽段
+     段身仍横穿洞区，四版门闸的 moveOut 逻辑对"两端都在洞外/一端在洞内"的段无效）；
+  ② 平台自注册 `_platSeg`（_cover 段，跨度 = 洞区）**密封**（怪物挡停转火平台，
+     `_owner` 链）；玩家移动在 player/update.js + subsystems.js 五处 resolve 统一传
+     `{ segs: WallSystem.platformSegs }` ignore；台上弹道走既有 _cover ignore（三件套）。
+  ③ 平台 `noCollision=true`（门同款）——实体碰撞圈在台阶入口，不关会挡玩家走近。
 - **登台判定**（DefenseSystem._updatePlatformStates）：玩家 + **PartySystem.members** +
   Game.friendlyUnits（Companion 不在 Game.entities——门感应同款坑）脚线 → getLift 连续
   值；`isOnPlatform = lift>0` 兼容旧调用；走出走廊自动归 0。
@@ -4775,14 +4850,18 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
   `_isDefenseTower || _onPlatform`；② `BoltSkillSystem._updateFlying` 台上施法者传
   ignore；③ `WallSystem.resolve/canMoveTo/_nearestBlockingSeg` 加 ignore 透传
   （网格 + 线性双路径都要，`_linearNearestBlockingSeg` 易漏）。
-- **深度铁律**：平台顶面线离地面 291px > junctionCorrectedDepth 窗口（60/280），
-  **仲裁不生效**——平台贴图深度锚定接地线 `_faceDepth = y+12`（与掩体同规则），
+- **深度铁律**：平台顶面线离地面 178px > junctionCorrectedDepth 窗口（60/280），
+  **仲裁不生效**——平台贴图深度锚定入口接地线 `_faceDepth = y+12`（与掩体同规则），
   台上单位在 GameScene 显式 `max(仲裁深度, 平台._faceDepth+1)`，**且仅当
   _platformLift>0**（玩家 + 侍从两处）。
-- **验证**：CDP 探针（tools/cdp-platform-probe.mjs）——平台生成/贴图渲染（260×310@
-  正确位置）/getLift 连续抬升（实测 291→0 平滑递减无瞬移）/登台 true↔false；
-  resolve ignore 透传（无 ignore 被掩体挡→滑动，有 ignore 直达 passedThrough）；
-  eslint/build/npm test 全绿。headless 相机不驱动 rAF，**视觉/朝向实机复测**。
+- **init 时序坑**：`_buildBaseRoom()` 只算 layout 不建实体——`_placeInitialPlatform`
+  必须在掩体墙段创建**之后**调用（预置平台要锚定 face 线 + 裁墙洞），且用
+  `_placeInitialPlatformSafe` 防御包装（init 异常不得静默中断后续塔/门搭建）。
+- **验证**：CDP 探针（tools/cdp-platform-probe.mjs）——init 生成 count=1/贴图 260×242
+  渲染/getLift 0→178 平滑/裁墙分裂（洞区无掩体段残留）+ _platSeg 密封（怪物挡停，
+  玩家带 ignore 直达）/resolve 无 ignore 被挡；eslint 0 error + vite build ✓ +
+  npm test 全绿（除并行会话 weapon-anim-config 未提交改动弄挂的 1 条近战守卫）。
+  headless 相机不驱动 rAF，**视觉/朝向实机复测**。
 
 ---
 
@@ -5461,9 +5540,10 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
 - `update(dt, entities)` 交给 `HamsterMinerAI` 驱动（注册进 Game.entities 由主循环调）。
 
 #### 4. AI（src/ai/hamster-miner-ai.js）
-- 每 120ms tick：**敌人优先**（小屋防御）——`_nearestEnemy(entities, engageRange)`
-  发现敌人 → 走位近战 `_tryAttackEnemy`（与采矿共用攻击间隔/伤害）；无敌人 →
-  `pickNearestNode`（只扫 `_isEnergyNode && active && !_depleted`）选最近矿点采矿。
+- 每 120ms tick：**只采矿**（2026-08-16 用户口径回归：只能对能源矿点攻击、不攻击
+  其他单位）——`pickNearestNode`（只扫 `_isEnergyNode && active && !_depleted`）
+  选最近矿点采矿；无交战分支（`_nearestEnemy`/`_tryAttackEnemy` 已移除），怪贴脸
+  不还手、可被击杀。另有**路径振荡守卫**（航点跳变 >150px 且无进展 → 清路径重算）。
 - 赶路：`_tacticalTarget = 矿点/敌人` + MovementSystem.update（移速 80）；
   到位（≤ miningRange + 节点半径）：站定 `_animState='mining'`（采矿与近战共用），
   每 attackInterval 调 `node.takeDamage(attackDamage, 自身, 'physical', true)`；
@@ -5596,8 +5676,35 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
 - UI：`party-ui.js`（组队栏，替换 questTracker 位置）、`recruit-ui.js`（卡片招募）、
   `companion-panel.js`（右侧队员面板三 tab + 背包拖入）、expedition 四圆圈（hud-panels-
   expedition-quest-reward.js 的 `expeditionMemberBar` + expedition-system.js `_renderMemberBar`）。
+- **组队栏选中/多选（2026-08-16）**：点击名字=单选选中该单位（**不再点击即弹队员面板**，
+  面板仍走右侧边菜单「管理队员」），Shift+点击=多选；选中数据存 `PartySystem`
+  （`selectedIds` / `setSelected` / `toggleSelected` / `clearSelection` / `isSelected`，
+  移出队员自动退出选中并 notify）；组队栏槽位选中态 = `.party-slot--selected`（金框发光）；
+  GameScene `_syncCompanionSprites` 按 `isSelected` 给精灵金色 tint（0xffd98a）+
+  脚下光圈（`_selectionRings` / `_showSelectionRing`）；指令轮盘目标 =
+  `PartySystem.selectedIds`（无选中兜底队员面板当前队员/第一名），轮盘不再全局拦 UIState
+  （改为按按下时悬停目标拦截）+ 拦截 `.companion-overlay`；**待命指令立即打断**
+  攻击/防御/风车/施法（不再等动画播完才生效）。实机探针：`tools/cdp-party-select.mjs`。
 
 #### 铁律/坑
+- **档案恢复必须带 AI 配置（2026-08-16 实机根因）**：`Companion.serialize()` 存
+  `aiConfig`/`unlockSkills`，`fromSerialized` 恢复（老档回退 companion-config.json
+  同 id 档案）并按真实等级重跑 `_checkUnlocks()`——否则解散再招募/读档后
+  `aiConfig=null`：GameScene `aiMode` 为 false 把队员当“纯跟随单位”贴玩家（精灵
+  与逻辑坐标脱节），AI 错用 DEFAULT_MAGE_AI，**命令执行了但画面不动**（伊莉丝
+  “不执行”根因）。另：`_tick` 命令态覆盖动画只对法师做 `spell`，近战不能覆盖
+  （否则命令态战斗伊莉丝攻击动画被顶掉）。探针：`tools/cdp-elise-command.mjs`。
+- **剑盾近战采集（2026-08-16）**：`_applyWarriorCommand` 的 gather 不能回落跟随
+  （旧代码 `case 'gather': default: follow` 是伊莉丝“采集不执行”根因）——
+  `_cmdWarriorGather`：走到指令点最近能源点（`_isEnergyNode` 未枯竭）→ 近战范围
+  `_tryMeleeAttack` 挥砍（atk×1.25，节点 takeDamage 产能源），袋满回玩家移交；
+  探针 `tools/cdp-elise-gather.mjs`（334px 外 run→walk→attack，节点掉血）。
+- **队友动作全量审计（2026-08-16）**：`tools/cdp-party-audit.mjs`——5 指令
+  （hold/follow/patrol/aggressive/gather）× {露娜,伊莉丝} × {新招募,档案恢复}
+  20/20 通过：露娜远程（施法/弹体采集），伊莉丝近战（挥砍采集/贴身追击），
+  档案恢复后 aiRole 正确、命令照常执行；战斗动作（攻击/防御/风车/施法/跟随/撤退）
+  由 cdp-elise-ai / cdp-luna-ai 复核通过。审计用例记得开敌人屏蔽器
+  （主城野怪会随时间刷出干扰）。
 - 升级经验唯一入口：击杀结算（damageable-entity）→ `PartySystem.grantCombatExp`；无野外经验。
 - 物品转移 `slot` 必须最后写（`{...item, slot: targetSlot}`——源 item 自带 slot 字段，
   spread 会覆盖目标槽位，实机抓出）。

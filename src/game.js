@@ -12,6 +12,7 @@ import { FloatingTextEffect } from './effects/floating-text.js';
 import { LevelUpEffectQueue } from './effects/level-up-queue.js';
 import { SweepEffect } from './effects/sweep-effect.js';
 import { WallSystem } from './world/wall-system.js';
+import { BuildingSystem } from './world/building-system.js';
 import { PERSPECTIVE_SCALE_Y } from './config/perspective-config.js';
 import { NPCDialogue } from './ui/npc-dialogue.js';
 import { BackpackDialogManager } from './ui/backpack-dialog-manager.js';
@@ -116,6 +117,8 @@ export const Game = {
         this.PartySystem = PartySystem;   // 供调试/其他模块访问队伍
         this.RecruitUI = RecruitUI;       // 招募界面（单一模块实例，调试/外部调用用 window.Game.RecruitUI）
         this.CompanionPanel = CompanionPanel;
+        this.PartyUI = PartyUI;           // 组队栏（选中状态调试/探针）
+        this.CompanionCommandWheel = CompanionCommandWheel; // 指令轮盘（探针可直接驱动 _execute）
         this.ExpeditionSystem = ExpeditionSystem;
     },
     async start() {
@@ -1233,6 +1236,11 @@ if (Input.mouse.leftPressed) {
                 Input.mouse.leftPressed = false;
                 return;
             }
+            // 掩体/铁栅栏门：点击打开建筑面板详情（2026-08-16 补：面板未开时也直接弹出）
+            if (BuildingSystem && BuildingSystem.tryInteract && BuildingSystem.tryInteract(mx, my, this.player)) {
+                Input.mouse.leftPressed = false;
+                return;
+            }
             for (const [key, entity] of this.entities) {
                 if (clickedPickup) break;
                 if (!clickedPickup && entity instanceof DropItem && entity.active) {
@@ -1716,6 +1724,11 @@ if (SceneManager.currentScene === 'scene3') {
                 const rectEnt = (a.collisionShape === 'rect' && a.collisionWidth > 0) ? a : ((b.collisionShape === 'rect' && b.collisionWidth > 0) ? b : null);
                 if (rectEnt) {
                     const other = rectEnt === a ? b : a;
+                    // 掩体矩形只挡怪物/玩家，不推友方单位（2026-08-16 仓鼠矿工卡门根修）：
+                    // 基地门洞两侧掩体的墙段已按门跨度裁剪放行，但 198×133 实体矩形仍
+                    // 伸入门洞——友方单位过门洞被矩形推出卡死（矿工贴门来回摆动+寻路
+                    // 重算）。友方移动本由 WallSystem.resolve（墙段）管，矩形对友方冗余。
+                    if (rectEnt._isDefenseCover && other._faction === 'companion') continue;
                     const otherR = other.groundRadius;
                     const rcx = rectEnt.collider ? rectEnt.collider.x : rectEnt.x;
                     const rcy = rectEnt.collider ? rectEnt.collider.y : rectEnt.y;

@@ -70,9 +70,11 @@ check('无有效节点返回 null', pickNearestNode([], { x: 0, y: 0 }) === null
 const aiSrc = fs.readFileSync(path.join(ROOT, 'src/ai/hamster-miner-ai.js'), 'utf-8');
 check('AI 使用 pickNearestNode 寻最近矿点', /pickNearestNode/.test(aiSrc));
 check('AI 采矿目标只认 _isEnergyNode 且跳过枯竭', /_isEnergyNode/.test(aiSrc) && /_depleted/.test(aiSrc));
-check('AI 敌人交战：engageRange 内 _nearestEnemy → 近战 takeDamage（小屋防御）',
-    /_nearestEnemy\(entities, this\._engageRange\)/.test(aiSrc)
-    && /_tryAttackEnemy\(\)/.test(aiSrc) && /enemy\.takeDamage\(this\._attackDamage/.test(aiSrc));
+check('AI 只采矿不交战：源码无敌人交战分支（用户口径 2026-08-16：只能攻击能源矿点）',
+    !/_nearestEnemy\(/.test(aiSrc)
+    && !/_tryAttackEnemy\(\)/.test(aiSrc)
+    && !/enemy\.takeDamage/.test(aiSrc)
+    && /_tryAttack\(\)/.test(aiSrc));
 check('AI 采矿攻击只对节点 takeDamage（伤害 = attackDamage × miningMult）',
     /miningDamage = Math\.max\(1, Math\.round\(this\._attackDamage \* this\.miningMult\)\)/.test(aiSrc)
     && /node\.takeDamage\(miningDamage/.test(aiSrc));
@@ -80,8 +82,8 @@ check('AI 攻击间隔读取 attackInterval', /this\._attackInterval = this\.cfg
 check('AI 移速读取 walkSpeed', /this\.cfg\.walkSpeed \?\? 80/.test(aiSrc));
 check('AI 采矿/交战共用 mining 态、移动 walk、无节点 idle',
     /_animState = 'mining'/.test(aiSrc) && /_animState = 'walk'/.test(aiSrc) && /_animState = 'idle'/.test(aiSrc));
-check('AI 每次攻击命中置 _miningSwing（渲染层播挥锄）',
-    (aiSrc.match(/_miningSwing = true/g) || []).length >= 2);
+check('AI 采矿命中置 _miningSwing（渲染层播挥锄，仅采矿路径）',
+    (aiSrc.match(/_miningSwing = true/g) || []).length >= 1);
 check('AI 背包物流：work/return/unload 三阶段 + 自动拾取 + 回屋卸货',
     /_phase = 'work'/.test(aiSrc) && /'return'/.test(aiSrc) && /'unload'/.test(aiSrc)
     && /_pickupEnergyDrops\(/.test(aiSrc) && /_startReturn\(\)/.test(aiSrc)

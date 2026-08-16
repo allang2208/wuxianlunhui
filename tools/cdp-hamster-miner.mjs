@@ -348,6 +348,13 @@ const b0 = await rawEval(`(async () => {
     await sleep(400);
     const sc = window.__phaserScene;
     const sprite = sc && sc._companionSprites ? sc._companionSprites[miner.id] : null;
+    // 复位挥锄状态：确保采样窗口内下一次命中播 mining_start（首挥完整段），
+    // 避免矿工此前已在挖矿导致首挥落在采样窗口外（2026-08-16 探针加固）
+    if (sprite) {
+        sprite.setData('miningSwing', false);
+        sprite.setData('hamsterMining', false); // 首挥标记也复位：确保采样窗口内播 mining_start
+    }
+    miner._miningSwing = false;
     const node = miner.target;
     const events = [];
     let prev = node.hp, prevT = Date.now();
@@ -449,8 +456,10 @@ check('移动始终朝向移动方向（vx>0 朝右、vx<0 朝左，不倒退）
     && bw.leftMoved === true && bw.leftFacingOk === true && bw.leftNoBackward === true,
     `rightMoved=${bw.rightMoved} rightFacing=${bw.rightFacingOk}/${bw.rightNoBackward} leftMoved=${bw.leftMoved} leftFacing=${bw.leftFacingOk}/${bw.leftNoBackward}`);
 
-// ---------- C. 敌人交战（小屋防御）与回采矿 ----------
-console.log('C. 交战自卫生效 + 回采矿');
+// ---------- C. 只采矿（不攻击其他单位）回归：敌人贴脸也不还手 ----------
+// 2026-08-16 用户口径回归：矿工只能对能源矿点攻击，不参与基地防御；
+// 被怪贴脸仍继续采矿（怪可击杀它，但它不还手）。
+console.log('C. 只采矿（无视敌人）+ 回采矿');
 const c = await rawEval(`(async () => {
     const sleep = (ms) => new Promise(r => setTimeout(r, ms));
     const miner = [...window.Game.entities.values()].find(e => e && e._isHamsterMiner && e.active);
@@ -468,7 +477,9 @@ const c = await rawEval(`(async () => {
     const res = {
         dummyHp: dummy.hp,
         engageTarget: !!(miner._enemyTarget && miner._enemyTarget.id === dummyKey),
+        targetStillNode: !!(miner.target && miner.target._isEnergyNode),
         anim: miner._animState,
+        nodeDamaged: nodeBefore !== null && miner.target && miner.target.hp < nodeBefore,
     };
     window.Game.entities.delete(dummyKey);
     // 敌人消失后应回到矿点采矿
@@ -476,8 +487,12 @@ const c = await rawEval(`(async () => {
     res.backToMining = !!(miner.target && miner.target._isEnergyNode);
     return res;
 })()`);
-check('engageRange 内敌人被锁定并近战攻击（-100/2s）', c.engageTarget === true && c.dummyHp <= 400,
+check('敌人贴脸不还手（dummy hp 不变、不锁定敌人目标）',
+    c.engageTarget === false && c.dummyHp === 500,
     `dummy hp=${c.dummyHp} anim=${c.anim}`);
+check('敌人贴脸期间继续采矿（目标仍是矿点、矿点持续掉血）',
+    c.targetStillNode === true && c.nodeDamaged === true,
+    `target=${c.targetStillNode} nodeDamaged=${c.nodeDamaged}`);
 check('敌人消失后回到矿点采矿', c.backToMining === true);
 
 // ---------- E. 隐藏背包物流：采矿拾取 → 满后回屋卸货（idle 2s + 门开关） → 背包扩容 ----------
@@ -741,8 +756,16 @@ const i = await rawEval(`(async () => {
     if (!hut) return { err: 'no hut' };
     hut._storedEnergy = 300;
     hut.takeDamage(99999, { _faction: 'enemy' }, 'physical', true);
+    // 小屋沉陷死亡（2026-08-16 推广）：BuildingSinkEffect 播完才置 active=false +
+    // 从 entities 移除，这里轮询等待沉陷完成（与 D 阶段等待 dying 同口径）
+    const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+    let hutGone = false;
+    for (let k = 0; k < 25; k++) {
+        await sleep(200);
+        if (!window.Game.entities.has(hut.id)) { hutGone = true; break; }
+    }
     return {
-        hutGone: !window.Game.entities.has(hut.id),
+        hutGone,
         inSystem: !HamsterHutSystem.huts.includes(hut),
         minersGone: hut.miners.every(m => !m || !m.active),
         active: hut.active,

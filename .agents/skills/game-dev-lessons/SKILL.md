@@ -856,3 +856,19 @@ this.ai = config.ai || {};
   面板 `<img src>` 直接消费配置，不散落硬编码路径。
 - **伤害公式扩展保持零硬编码**：`_computeDamageFor = computeWeaponAttack(...) ×
   moduleMults().damage`；芯片「每点+X」边际差分同步乘模块伤害倍率，真实公式反显仍成立。
+## 50. 相机"恒居中"需求：非瞄准钉玩家、瞄准才偏移（2026-08-16）
+
+- **症状**：世界-122 移动时玩家不在屏幕中央——根因是 `Camera.update` 的指数平滑
+  （`CAMERA_SMOOTH 0.12`）拖尾，静止后才回中（移动后 3 帧偏 +95px、10 帧仍偏 +64px）。
+- **修法**：在 `GameScene._updateCamera` 按 场景+状态 分支——`scene8 && 非瞄准 &&
+  非无人机` 时直接把 `Camera.x/y` 钉到 `this.player` 再 `centerOn`；瞄准（`aimOffset≠0`）
+  走原平滑偏移，松开立即回中。**不要动 `Camera.update` 的全局平滑**（其他场景需要）。
+- **探针坑**：CDP 动态 `import('/src/...')` 与页面应用模块可能是**两份实例**
+  （应用模块带 `?t=` 缓存戳，裸 import 不带）——切场景/改状态对应用无效，表现为
+  zoom 不变、改动"不生效"。取应用真实实例要从
+  `performance.getEntriesByType('resource')` 里挑带 `?t=` 的 URL 再 import。
+- **引用坑（用户复测抓出）**：`GameScene` **没有 `this.player` 字段**，全程用
+  `_game.player` / `window.Game.player`。相机快照/任何按玩家坐标的修正，条件里
+  写 `this.player` 会永远为假（修复静默失效）。统一用 `window.Game.player`
+  （与 game.js `Camera.update` 跟随目标同一引用）。探针里手动 `scene.player = ...`
+  会把"未生效"误判成"已生效"——验证时必须保持与真实流程一致。
