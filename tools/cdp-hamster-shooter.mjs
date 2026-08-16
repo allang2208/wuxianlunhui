@@ -141,6 +141,19 @@ if (!bootedOnce) {
 }
 if (!sceneReady) { console.error('scene8 not ready, abort'); await cleanup(1); }
 
+// 2026-08-16 起默认战士/射手改由「仓鼠兵营」生成（不再进图自动刷）——
+// 探针手动构造一只测试射手（与兵营 spawnUnit 同注册方式）
+await rawEval(`(async () => {
+    if ([...window.Game.entities.values()].some(e => e && e._isHamsterShooter && e.active)) return 'exists';
+    const { HamsterShooter } = await import('/src/entities/hamster-shooter.js');
+    const p = window.Game.player;
+    const s = new HamsterShooter(p.x + 90, p.y - 30, { id: 'probe_shooter' });
+    window.Game.entities.set(s.id, s);
+    if (!Array.isArray(window.Game.friendlyUnits)) window.Game.friendlyUnits = [];
+    window.Game.friendlyUnits.push(s);
+    return 'spawned';
+})()`).catch(() => null);
+
 async function evalRobust(expr) {
     try {
         return await rawEval(expr);
@@ -247,11 +260,13 @@ const b1 = await evalRobust(`(async () => {
     }
     if (t0 === null) return { err: 'no shot started', anim: s._animState, ai: !!s._ai };
     // 等投射物出膛，记录时机/瞄准点/角度
-    let spawnDelay = null, aimY = null, angle = null, projTex = null, projW = null, projVisible = null, animDuringShot = null;
+    let spawnDelay = null, spawnY = null, shooterY = null, aimY = null, angle = null, projTex = null, projW = null, projVisible = null, animDuringShot = null;
     for (let i = 0; i < 40; i++) {
         await sleep2(50);
         if (s._basic && s._basic.active) {
             spawnDelay = Date.now() - t0;
+            spawnY = s._basic.y;
+            shooterY = s.y;
             aimY = s._basic.aimY;
             angle = s._basic.angle;
             animDuringShot = s._animState;
@@ -275,7 +290,7 @@ const b1 = await evalRobust(`(async () => {
     const hpAfterSecond = dummy.hp;
     window.Game.entities.delete(key);
     return {
-        spawnDelay, aimY, angle, projTex, projW, projVisible, hitHp, hpAfterSecond,
+        spawnDelay, spawnY, shooterY, aimY, angle, projTex, projW, projVisible, hitHp, hpAfterSecond,
         sprY, spriteExists: !!dummy._phaserSprite,
         animDuringShot,
     };
@@ -285,6 +300,9 @@ check('进入射程站定攻击（attack，出膛时）', !b1.err && b1.animDuri
 check('第 10 帧出膛 ≈750ms（实测 500~1100ms）',
     b1.spawnDelay !== null && b1.spawnDelay >= 500 && b1.spawnDelay <= 1100,
     `spawnDelay=${b1.spawnDelay}ms`);
+check('发射位置上移 20px（射手脚底 y − 45）',
+    b1.spawnY !== null && Math.abs(b1.spawnY - (b1.shooterY - 45)) < 6,
+    `spawnY=${Math.round(b1.spawnY)} shooterY=${Math.round(b1.shooterY)}`);
 check('瞄准目标贴图中心（aimY ≈ 敌人贴图中心 Y）',
     b1.spriteExists === true && b1.aimY !== null && Math.abs(b1.aimY - b1.sprY) < 8,
     `aimY=${Math.round(b1.aimY)} sprY=${Math.round(b1.sprY)}`);
@@ -328,8 +346,10 @@ const b2 = await evalRobust(`(async () => {
         if (s._basic && s._basic.active) {
             const b = s._basic;
             // 用页面内同一 AimHelper 从相同输入重算提前量，比对弹道角（直接验证“参考露娜算提前量”）
-            const lead = AimHelper.lead(s.x, s.y, dummy.x, b.aimY, dummy.vx, dummy.vy, 600);
-            const expectedAngle = Math.atan2(lead.y - s.y, lead.x - s.x);
+            // 弹道从发射点（脚底 y − 45）出膛，期望角必须用同一发射点重算
+            const spawnY = s.y - 45;
+            const lead = AimHelper.lead(s.x, spawnY, dummy.x, b.aimY, dummy.vx, dummy.vy, 600);
+            const expectedAngle = Math.atan2(lead.y - spawnY, lead.x - s.x);
             res = { angle: b.angle, expectedAngle, aimY: b.aimY, leadX: lead.x, targetX: dummy.x };
             break;
         }

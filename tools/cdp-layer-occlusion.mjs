@@ -125,6 +125,18 @@ await rawEval(`(async () => {
     DefenseSystem._phase = 'prep'; DefenseSystem._phaseTimer = 1e9;
 })()`).catch(() => false);
 
+// 2026-08-16 起默认战士/射手改由「仓鼠兵营」生成——探针手动构造一只测试射手
+await rawEval(`(async () => {
+    if ([...window.Game.entities.values()].some(e => e && e._isHamsterShooter && e.active)) return 'exists';
+    const { HamsterShooter } = await import('/src/entities/hamster-shooter.js');
+    const p = window.Game.player;
+    const s = new HamsterShooter(p.x + 90, p.y - 30, { id: 'probe_shooter' });
+    window.Game.entities.set(s.id, s);
+    if (!Array.isArray(window.Game.friendlyUnits)) window.Game.friendlyUnits = [];
+    window.Game.friendlyUnits.push(s);
+    return 'spawned';
+})()`).catch(() => null);
+
 // ---------- A. 合成场景：塔/基地核心/能源矿/小屋 × 墙位 × 前/同/后 ----------
 console.log('A. 合成场景全组合（建筑盖单位 iff 建筑脚线在单位之后）');
 const a = await evalRobust(`(async () => {

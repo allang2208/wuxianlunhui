@@ -204,18 +204,22 @@ export class HamsterShooterAI {
         const target = m.target;
         if (!target || !target.active || target.hp <= 0) return;
         const aimY = this._targetAimY(target);
+        // 发射点 = 弓手高度（2026-08-16 用户口径：脚底 y 上移 45px = 原 25 + 20）。
+        // 弹道角必须从发射点计算（不能从脚底算——否则箭从高处出膛却按脚底线飞，
+        // 到目标处整体偏高 ~45px，超出命中半径脱靶；旧 -25 恰好 < 28 勉强命中）
+        const spawnY = m.y - 45;
         const lead = AimHelper.lead(
-            m.x, m.y,
+            m.x, spawnY,
             target.x, aimY,
             target.vx || 0, target.vy || 0,
             this._projectileSpeed
         );
-        const ang = Math.atan2(lead.y - m.y, lead.x - m.x);
+        const ang = Math.atan2(lead.y - spawnY, lead.x - m.x);
         // 存 companion 字段（GameScene._syncCompanionBasics 读 m._basic 渲染箭矢）
         m._basic = {
             active: true,
             x: m.x,
-            y: m.y - 25, // 弓手高度出膛
+            y: spawnY,
             aimY,
             angle: ang,
             dist: 0,
