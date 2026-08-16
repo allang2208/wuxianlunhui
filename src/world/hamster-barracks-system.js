@@ -351,6 +351,7 @@ class HamsterBarracksPanel extends BasePanel {
         super({ id: 'hamsterBarracksPanel', className: 'hamster-barracks-panel', stateKey: 'hamsterBarracks' });
         this.barracks = null;
         this.player = null;
+        this._tickTimer = null;   // 出发进度实时刷新定时器（100ms）
     }
 
     buildContent(el) {
@@ -381,17 +382,56 @@ class HamsterBarracksPanel extends BasePanel {
         this.player = player;
         this.open();
         this.refresh();
+        this._startTicking();
     }
 
     onOpen() {
         this.refresh();
+        this._startTicking();
         if (this.el) this.el.style.display = 'block';
     }
 
     onClose() {
+        this._stopTicking();
         if (this.el) this.el.style.display = 'none';
         this.barracks = null;
         this.player = null;
+    }
+
+    /** 打开期间每 100ms 实时刷新出发进度（只更新进度条，不重建 DOM） */
+    _startTicking() {
+        this._stopTicking();
+        this._tickTimer = setInterval(() => this._tickProgress(), 100);
+    }
+
+    _stopTicking() {
+        if (this._tickTimer) {
+            clearInterval(this._tickTimer);
+            this._tickTimer = null;
+        }
+    }
+
+    /** 只更新进度条宽度/百分比/剩余秒数——配合 CSS transition 形成平滑增长效果 */
+    _tickProgress() {
+        const el = this.el;
+        if (!el || !this.barracks) return;
+        const b = this.barracks;
+        const spawnMs = BARRACKS_CONFIG.barracks.spawnIntervalMs;
+        const spawnProgress = Math.max(0, Math.min(1, 1 - b._spawnTimer / spawnMs));
+        const spawnPct = Math.round(spawnProgress * 100);
+        const spawnBarColor = spawnProgress < 0.5 ? '#ffd700' : (spawnProgress < 0.8 ? '#ff9d45' : '#7fe0c8');
+        const bar = el.querySelector('#hbSpawnBar');
+        const pct = el.querySelector('#hbSpawnPct');
+        const next = el.querySelector('#hbSpawnNext');
+        if (bar) {
+            bar.style.width = `${spawnPct}%`;
+            bar.style.background = `linear-gradient(90deg, ${spawnBarColor}, #7fe0c8)`;
+        }
+        if (pct) {
+            pct.textContent = `${spawnPct}%`;
+            pct.style.color = spawnBarColor;
+        }
+        if (next) next.textContent = `${Math.max(0, Math.ceil(b._spawnTimer / 1000))}s`;
     }
 
     _notify(text, color) {
@@ -426,16 +466,16 @@ class HamsterBarracksPanel extends BasePanel {
             <div style="font-size:12px;color:#c8b98a;line-height:1.7;">
                 军事单位 <span style="color:#8ad0ff;">${b.aliveUnitCount()}/${b.unitCount()}</span> ·
                 当前生成 <b style="color:#7fe0c8;">${curType.name || '—'}</b><br>
-                下次生成 <b style="color:#7fd4ff;">${nextIn}s</b>（每 ${spawnMs / 1000}s 一单位）·
+                下次生成 <b id="hbSpawnNext" style="color:#7fd4ff;">${nextIn}s</b>（每 ${spawnMs / 1000}s 一单位）·
                 攻击间隔/伤害/移速/生命随模块升级
             </div>
             <div style="margin-top:8px;">
                 <div style="display:flex;justify-content:space-between;align-items:center;font-size:11px;color:#9a9a9a;margin-bottom:3px;">
                     <span>🚀 出发进度</span>
-                    <span style="color:${spawnBarColor};font-weight:700;">${spawnPct}%</span>
+                    <span id="hbSpawnPct" style="color:${spawnBarColor};font-weight:700;">${spawnPct}%</span>
                 </div>
                 <div style="position:relative;height:10px;background:rgba(255,255,255,0.10);border-radius:5px;overflow:hidden;">
-                    <div style="position:absolute;left:0;top:0;bottom:0;width:${spawnPct}%;background:linear-gradient(90deg, ${spawnBarColor}, #7fe0c8);border-radius:5px;transition:width 0.25s linear;"></div>
+                    <div id="hbSpawnBar" style="position:absolute;left:0;top:0;bottom:0;width:${spawnPct}%;background:linear-gradient(90deg, ${spawnBarColor}, #7fe0c8);border-radius:5px;transition:width 0.2s linear;"></div>
                 </div>
                 <div style="font-size:10px;color:#6a7a6a;margin-top:2px;">切换单位类型不影响出发进度</div>
             </div>`;
