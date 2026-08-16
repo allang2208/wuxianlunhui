@@ -146,6 +146,19 @@ if (!bootedOnce) {
 }
 if (!sceneReady) { console.error('scene8 not ready, abort'); await cleanup(1); }
 
+// 2026-08-16 起默认战士/射手改由「仓鼠兵营」生成（不再进图自动刷）——
+// 探针手动构造一只测试战士（与兵营 spawnUnit 同注册方式）
+await rawEval(`(async () => {
+    if ([...window.Game.entities.values()].some(e => e && e._isHamsterWarrior && e.active)) return 'exists';
+    const { HamsterWarrior } = await import('/src/entities/hamster-warrior.js');
+    const p = window.Game.player;
+    const w = new HamsterWarrior(p.x + 90, p.y - 30, { id: 'probe_warrior' });
+    window.Game.entities.set(w.id, w);
+    if (!Array.isArray(window.Game.friendlyUnits)) window.Game.friendlyUnits = [];
+    window.Game.friendlyUnits.push(w);
+    return 'spawned';
+})()`).catch(() => null);
+
 // 每段前确保页面/场景仍健康（崩溃自愈）
 async function findWarrior() {
     return rawEval(`(async () => {
