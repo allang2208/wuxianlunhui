@@ -892,3 +892,11 @@ this.ai = config.ai || {};
   写 `this.player` 会永远为假（修复静默失效）。统一用 `window.Game.player`
   （与 game.js `Camera.update` 跟随目标同一引用）。探针里手动 `scene.player = ...`
   会把"未生效"误判成"已生效"——验证时必须保持与真实流程一致。
+## 51. 2.5D 建筑"塔台高于屋脊"的投影陷阱（2026-08-16 仓鼠兵营）
+
+- 等距 30° 投影下物体屏幕高度 ≈ `-(y·cos30 + z·sin30)`：**z 更高不代表屏幕上更高**——
+  y 越靠前（负）投影越低。前塔尖顶 z 比屋脊高 80+ 仍被屋顶前坡遮挡（仓鼠兵营实测）。
+- 结论：塔台/装饰件**做平顶最稳**；要尖顶就放在 y≥0（屋脊后方）才能露出。
+- 建模复用：仓鼠小屋同视角 spec 模板（elevation 30 / azimuth 0 / resolution 1024 /
+  bottom_y 880 / max_width_frac 0.8）；黑砖走 klein-walltex LoRA
+  （`--host 192.168.3.142 --model flux2-klein-4b-walltex`），验收看暗色/白边 0%/砖格 FFT 峰。

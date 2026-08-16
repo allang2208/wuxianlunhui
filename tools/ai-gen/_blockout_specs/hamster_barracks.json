@@ -27,7 +27,7 @@
     {
       "type": "box",
       "size": [36, 36, 175],
-      "pos": [-122, -68, 87.5],
+      "pos": [-138, -68, 87.5],
       "rot": [0, 0, 0],
       "bevel": 4,
       "material": "wall"
@@ -35,7 +35,7 @@
     {
       "type": "box",
       "size": [36, 36, 175],
-      "pos": [122, -68, 87.5],
+      "pos": [138, -68, 87.5],
       "rot": [0, 0, 0],
       "bevel": 4,
       "material": "wall"
@@ -54,34 +54,6 @@
       "pos": [86, 68, 95],
       "rot": [0, 0, 0],
       "bevel": 4,
-      "material": "wall"
-    },
-    {
-      "type": "prism",
-      "size": [46, 46, 26],
-      "pos": [-122, -68, 188],
-      "rot": [0, 0, 0],
-      "material": "wall"
-    },
-    {
-      "type": "prism",
-      "size": [46, 46, 26],
-      "pos": [122, -68, 188],
-      "rot": [0, 0, 0],
-      "material": "wall"
-    },
-    {
-      "type": "prism",
-      "size": [46, 46, 26],
-      "pos": [-86, 68, 203],
-      "rot": [0, 0, 0],
-      "material": "wall"
-    },
-    {
-      "type": "prism",
-      "size": [46, 46, 26],
-      "pos": [86, 68, 203],
-      "rot": [0, 0, 0],
       "material": "wall"
     },
     {

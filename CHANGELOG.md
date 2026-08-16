@@ -1,4 +1,15 @@
 # 变更日志
+### 对话：仓鼠兵营建模——黑砖方块主体 + 四角细长塔台（2026-08-16）
+- **需求**：参照仓鼠小屋建模经验，建「仓鼠兵营」（方块主体 + 周围圆柱/方块细长塔台，同角度），
+  先建模再走生图管线出黑砖贴图渲染。
+- **建模**：`_blockout_specs/hamster_barracks.json`（elevation 30 / azimuth 0，与仓鼠小屋同视角）——
+  主体 box 260×150×90 + 坡屋顶 prism 280×170×68 + 前塔 36×36×175@±138 +
+  后塔 36×36×190@±86（后塔从屋脊后方露出）+ 门洞 interior + 双窗 window。
+- **贴图**：`comfyui-gen.py --host 192.168.3.142 --model flux2-klein-4b-walltex` 黑砖
+  （seed 12201，1024×656，暗色 36.5 / 白边 0% / 砖格 FFT 峰强）。
+- **渲染**：render-factory-real.py → 紧身裁剪 → `assets/terrain/hamster_barracks.png`（692×558）。
+- **坑**：前塔尖顶被屋顶前坡遮挡（2.5D 投影前低后高），塔台平顶最稳。
+
 ### 对话：世界-122 相机恒居中 v2——快照改用 window.Game.player（2026-08-16 用户复测）
 - **用户复测**：玩家在屏幕左上角（= 移动拖尾仍存在，v1 快照未生效）。
 - **根因**：`GameScene` 从不持有 `this.player`（全程用 `_game.player` / `window.Game.player`），

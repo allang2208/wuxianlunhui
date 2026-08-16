@@ -1436,6 +1436,15 @@ render-factory-real.py 的 cylinder 图元（放倒半圆柱，显式实心端�
 spec.lighting / roof / lid 材质。教训：核心视觉反复不满时，及时退回原版，管线能力保留
 供后续其他道具复用，不为单个资产无限内耗。
 
+**仓鼠兵营（2026-08-16，黑砖兵营案例）**：与仓鼠小屋同角度（elevation 30 / azimuth 0 /
+resolution 1024 / bottom_y 880 / max_width_frac 0.8），方块主体 260×150×90 + 坡屋顶 prism
+280×170×68 + 四角细长塔台（前 36×36×175 @±138、后 36×36×190 @±86 从屋脊后方露出）；
+黑砖贴图走 `comfyui-gen.py --host 192.168.3.142 --model flux2-klein-4b-walltex`
+（1024×656，seed 固定，暗色 36.5 / 白边 0% / 砖格 FFT 峰强），入库
+`assets/terrain/hamster_barracks.png`（692×558，footOffsetY≈279）。
+投影坑：前塔尖顶（z 高于屋脊但 y 更靠前）会被屋顶前坡遮挡——2.5D 前低后高投影下，
+「塔顶高于屋脊」≠「屏幕上高于屋脊」，塔台做平顶最稳。
+
 ---
 
 ## 3. 玩家角色与武器动画
