@@ -4,6 +4,8 @@
  * - 武器 ↔ 主属性挂钩：PKM→力量；未挂钩属性（如敏捷）对伤害零影响
  * - 升级扣金币、伤害实时提升；费用公式 round(baseCost × growth^(值-base)) 逐级递增
  * - 强化武器实时计入（perEnhance 使每点边际变大）；上限拦截
+ * - 改造模块（2026-08-16 重新引入，与芯片并存）：伤害/射程/射速/换弹/过热/散热
+ *   直接改武器参数；6 张抠图图标卡；费用逐级递增；面板 DOM 校验
  * 前置：vite dev 已启动。用法：node tools/cdp-tower-modules.mjs
  */
 import { spawn } from 'node:child_process';
@@ -100,10 +102,10 @@ const r = await evalJs(`(async () => {
     const pkm = JSON.parse(JSON.stringify(EqData.findWeaponConfig('weapon6', 'PKM')));
     const p = window.Game.player;
     const out = {};
-    // 1) 建塔：初始芯片 = base 10，无等级/模块字段
+    // 1) 建塔：初始芯片 = base 10，无等级字段；modules 状态存在（初始空）
     const t = new DefenseTower(p.x + 120, p.y, { id: 'chip_e2e' });
     window.Game.entities.set('chip_e2e', t);
-    out.init = { chip: { ...t.chip }, hasLevel: t.level !== undefined, hasModules: !!t.modules };
+    out.init = { chip: { ...t.chip }, hasLevel: t.level !== undefined, modules: { ...t.modules } };
 
     // 2) 装 PKM：主属性=力量（配置表 pkm→str）；力量有边际、敏捷无影响
     t.equipWeapon(pkm);
@@ -151,12 +153,42 @@ const r = await evalJs(`(async () => {
     const t2 = new DefenseTower(p.x + 260, p.y, { id: 'chip_empty' });
     out.empty = { dmg: t2._computeDamage(), marg: t2._statMarginalPerPoint('str') };
 
-    // 8) 面板 DOM：武器贴图 + 六维升级卡，且无等级/模块区块
+    // 7.5) 改造模块：伤害/射程/射速/换弹/过热/散热 逐项生效 + 费用逐级递增 + 满级拦截
+    Gold.addGold(50000);
+    const dmgM0 = t._computeDamage();
+    const rngM0 = t.range;
+    const m1 = t.upgradeModule('damage', p);
+    const dmgM1 = t._computeDamage();
+    const m2 = t.upgradeModule('range', p);
+    const rngM2 = t.range;
+    const m3 = t.upgradeModule('attackSpd', p);
+    const intervalM3 = t.attacks[t._attackKey].maxCooldown;
+    const m4 = t.upgradeModule('reload', p);
+    const reloadM4 = t._ammoState.weapon ? t._ammoState.weapon.reloadTime : null;
+    const m5 = t.upgradeModule('overheat', p);
+    const m6 = t.upgradeModule('cooling', p);
+    for (let i = 0; i < 4; i++) t.upgradeModule('damage', p); // 顶到 maxLevel 5
+    const damageMaxed = t.upgradeModule('damage', p);
+    out.modules = {
+        damage: { ok: m1.ok, cost: m1.cost, lv: m1.level, dmg0: dmgM0, dmg1: dmgM1 },
+        range: { ok: m2.ok, rng0: rngM0, rng2: rngM2 },
+        attackSpd: { ok: m3.ok, interval: intervalM3 },
+        reload: { ok: m4.ok, reload: reloadM4 },
+        overheat: { ok: m5.ok },
+        cooling: { ok: m6.ok },
+        costs: ['damage', 'range', 'attackSpd'].map((k) => t.getModuleCost(k)),
+        mults: t.moduleMults(),
+        damageMaxed: { ok: damageMaxed.ok, reason: damageMaxed.reason },
+    };
+
+    // 8) 面板 DOM：武器贴图 + 六维升级卡 + 6 张改造模块卡（抠图图标），无等级区块
     const panel = DefMod.DefenseSystem._ensurePanel();
     panel.openFor(t, p);
     out.panel = {
         hasUpgradeBlock: !!document.querySelector('#dtUpgrade'),
-        hasModulesBlock: !!document.querySelector('#dtModules'),
+        moduleCards: document.querySelectorAll('[data-mod]').length,
+        moduleImgCount: document.querySelectorAll('#dtModules img').length,
+        moduleImgSample: document.querySelector('#dtModules img') ? document.querySelector('#dtModules img').src.split('/').pop() : null,
         chipCards: document.querySelectorAll('[data-chip]').length,
         weaponImgSrc: document.querySelector('#dtWeaponSlot img') ? document.querySelector('#dtWeaponSlot img').src.split('/').pop() : null,
         chipHeader: document.querySelector('#dtChip') ? document.querySelector('#dtChip').innerText.split('\\n')[0].slice(0, 30) : '',

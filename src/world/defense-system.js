@@ -82,7 +82,7 @@ export const DEFENSE_CONFIG = {
         // 摧毁后重建 / 出售（2026-08-14）：重建 = 原建造能源价；出售返还 50% 建造能源
         rebuildCost: 300,
         sellRefundRatio: 0.5,
-        // 六维芯片（2026-08-16 重构：取代原「塔等级 + 升级模块」）：
+        // 六维芯片（2026-08-16 重构：取代原塔等级，与改造模块并存）：
         // - 芯片属性初始 base、单项上限 max；升级属性本身不加攻击，
         //   只强化「与该属性挂钩的已装载武器」的攻击力；
         // - 金币费用逐级递增：round(baseCost × growth^(当前值 - base))
@@ -111,6 +111,18 @@ export const DEFENSE_CONFIG = {
             qbz191: 'int',
             shotgun: 'con',
             bow: 'dex',
+        },
+        // 改造模块（2026-08-16 重新引入，与六维芯片并存）：
+        // - 芯片管「伤害挂钩主属性」；改造模块直接强化武器参数
+        //   （伤害%/射程/射速/换弹/过热/散热），图标 = assets/ui/tower 抠图成品卡；
+        // - 费用 round(baseCost × growth^(等级-1)) 逐级递增，独立升级无槽位限制。
+        modules: {
+            damage:    { name: '伤害强化', icon: 'assets/ui/tower/tower-module-damage.png',    per: 0.10, maxLevel: 5, baseCost: 150, costGrowth: 1.45, desc: '每发伤害 +{pct}%' },
+            range:     { name: '射程增强', icon: 'assets/ui/tower/tower-module-range.png',     per: 0.12, maxLevel: 4, baseCost: 130, costGrowth: 1.45, desc: '射程 +{pct}%' },
+            attackSpd: { name: '速射模块', icon: 'assets/ui/tower/tower-module-attspd.png',    per: -0.08, maxLevel: 5, baseCost: 140, costGrowth: 1.45, desc: '攻击间隔 -{pct}%' },
+            reload:    { name: '快速换弹', icon: 'assets/ui/tower/tower-module-reload.png',    per: -0.10, maxLevel: 4, baseCost: 100, costGrowth: 1.45, desc: '换弹时间 -{pct}%' },
+            overheat:  { name: '过热抑制', icon: 'assets/ui/tower/tower-module-overheat.png',  per: 0.12, maxLevel: 4, baseCost: 120, costGrowth: 1.45, desc: '过热时间 +{pct}%' },
+            cooling:   { name: '快速散热', icon: 'assets/ui/tower/tower-module-cooling.png',   per: -0.12, maxLevel: 4, baseCost: 120, costGrowth: 1.45, desc: '过热冷却 -{pct}%' },
         },
     },
     // 修理（2026-08-14）：掩体/防御塔受伤后，靠近按住 E 消耗背包能源持续修理。
@@ -719,10 +731,12 @@ class DefenseTower extends Combatant {
         this.weaponItem = null;
         this._attackKey = null;
         this.range = 800;
-        // 六维芯片（2026-08-16 重构：取代原「塔等级 + 升级模块」）：
+        // 六维芯片（2026-08-16 重构：取代原塔等级，与改造模块并存）：
         // 属性初始 base，升级本身不加攻击，只强化「与该属性挂钩的已装载武器」
         const chipBase = DEFENSE_CONFIG.tower.chip?.base ?? 10;
         this.chip = { str: chipBase, dex: chipBase, con: chipBase, int: chipBase, wis: chipBase, luck: chipBase };
+        // 改造模块状态：{ moduleId: level }（2026-08-16 重新引入，与芯片独立升级）
+        this.modules = {};
         this._currentSpreadFactor = 0.08;
         this._currentSpreadMaxAngle = 7;
         // 机械臂朝向（世界角，y 向下；自然姿态=臂贴图原始朝向）
@@ -826,6 +840,8 @@ class DefenseTower extends Combatant {
         this.range = atkCfg.range || this.attacks[attackKey].config.projectileRange || 900;
         // 弹药初始化（Combatant 默认无限弹药；枪械弹匣状态仅供换弹动画/节奏使用）
         this._initAmmoForSlot('weapon');
+        // 改造模块倍率应用到武器参数（射程/射速/换弹）
+        this._applyModuleWeaponParams();
         // 弹丸贴图直接复用现有武器贴图（无则默认曳光弹）
         const path = WEAPON_IMAGE_PATHS[item.weaponId] || WEAPON_IMAGE_PATHS[item.weaponType];
         if (path) this.weaponImages[item.weaponType] = loadImage(path);
@@ -868,11 +884,12 @@ class DefenseTower extends Combatant {
     /**
      * 指定武器装载到本塔后的每发伤害（零硬编码，实时公式）：
      * 复用 computeWeaponAttack —— 强化等级/改造(独头弹·伤害%)/附魔自动计入；
-     * skills 传 null（塔不吃玩家熟练度）。
+     * skills 传 null（塔不吃玩家熟练度）；再乘改造模块「伤害强化」倍率。
      */
     _computeDamageFor(item) {
         if (!item) return 0;
-        return computeWeaponAttack(item, this._chipDataFor(item), null);
+        const base = computeWeaponAttack(item, this._chipDataFor(item), null);
+        return Math.max(1, Math.round(base * this.moduleMults().damage));
     }
 
     /** 当前已装载武器的每发伤害 */
@@ -885,7 +902,7 @@ class DefenseTower extends Combatant {
         if (!this.weaponItem) return this._computeDamage();
         const data = this._chipDataFor(this.weaponItem);
         data[statKey] = value;
-        return computeWeaponAttack(this.weaponItem, data, null);
+        return Math.max(1, Math.round(computeWeaponAttack(this.weaponItem, data, null) * this.moduleMults().damage));
     }
 
     /** 属性每点对当前武器的边际攻击力（+10 区间均值，平滑取整抖动；真实公式差分） */
@@ -893,7 +910,8 @@ class DefenseTower extends Combatant {
         if (!this.weaponItem) return 0;
         const data = this._chipDataFor(this.weaponItem);
         const cur = data[statKey] || 0;
-        const d0 = computeWeaponAttack(this.weaponItem, data, null);
+        const mm = this.moduleMults().damage;
+        const d0 = Math.max(1, Math.round(computeWeaponAttack(this.weaponItem, data, null) * mm));
         const d10 = this._computeDamageWithStat(statKey, cur + 10);
         return (d10 - d0) / 10;
     }
@@ -924,6 +942,101 @@ class DefenseTower extends Combatant {
             SoundManager.playFile('assets/sounds/ui/sell.wav');
         }
         return { ok: true, cost, statKey, value: this.chip[statKey], name: s.name };
+    }
+
+    // ==================== 改造模块（2026-08-16 重新引入，与六维芯片并存） ====================
+
+    /** 当前模块倍率表（damage/range/overheatTime 为增倍率，interval/reload/overheatCooldown 为减倍率） */
+    moduleMults() {
+        const m = this.modules || {};
+        const cfg = DEFENSE_CONFIG.tower.modules || {};
+        const out = {
+            damage: 1, range: 1, attackInterval: 1, reload: 1, overheatTime: 1, overheatCooldown: 1,
+        };
+        const d = cfg.damage;    if (d && m.damage)    out.damage = 1 + d.per * m.damage;
+        const r = cfg.range;     if (r && m.range)     out.range = 1 + r.per * m.range;
+        const a = cfg.attackSpd; if (a && m.attackSpd) out.attackInterval = 1 + a.per * m.attackSpd;
+        const rel = cfg.reload;  if (rel && m.reload)  out.reload = Math.max(0.2, 1 + rel.per * m.reload);
+        const oh = cfg.overheat; if (oh && m.overheat) out.overheatTime = 1 + oh.per * m.overheat;
+        const co = cfg.cooling;  if (co && m.cooling)  out.overheatCooldown = Math.max(0.2, 1 + co.per * m.cooling);
+        return out;
+    }
+
+    /** 模块升级费用：round(baseCost × growth^(当前等级-1))，逐级递增 */
+    getModuleCost(moduleId) {
+        const mod = DEFENSE_CONFIG.tower.modules?.[moduleId];
+        if (!mod) return 0;
+        const cur = this.modules[moduleId] || 0;
+        return Math.round(mod.baseCost * Math.pow(mod.costGrowth, Math.max(0, cur - 1)));
+    }
+
+    /** 玩家支付金币升级改造模块；成功则立即重算武器参数与伤害 */
+    upgradeModule(moduleId, _player) {
+        const mod = DEFENSE_CONFIG.tower.modules?.[moduleId];
+        if (!mod) return { ok: false, reason: '未知模块' };
+        const cur = this.modules[moduleId] || 0;
+        if (cur >= mod.maxLevel) return { ok: false, reason: `${mod.name}已满级` };
+        const cost = this.getModuleCost(moduleId);
+        if (!GoldManager || !GoldManager.deductGold(cost)) return { ok: false, reason: '金币不足' };
+        this.modules[moduleId] = cur + 1;
+        this._applyModuleWeaponParams();
+        this._recalcDamage();
+        if (SoundManager && typeof SoundManager.playFile === 'function') {
+            SoundManager.playFile('assets/sounds/ui/sell.wav');
+        }
+        return { ok: true, cost, moduleId, level: this.modules[moduleId], name: mod.name };
+    }
+
+    /** 将模块倍率应用到武器参数（射程/射速/换弹），在升级模块或装载武器后调用 */
+    _applyModuleWeaponParams() {
+        if (!this.weaponItem || !this._attackKey) return;
+        const mults = this.moduleMults();
+        const atk = this.attacks[this._attackKey];
+        const atkCfg = this.weaponItem.attack || {};
+        // 射程：基础配置 × 模块倍率
+        const baseRange = atkCfg.range || atk.config?.projectileRange || 900;
+        this.range = Math.round(baseRange * mults.range);
+        // 射速：基础间隔 × 模块倍率（保留原冷却语义，baseMaxCooldown 同步）
+        if (atkCfg.attackInterval) {
+            const interval = Math.max(80, Math.round(atkCfg.attackInterval * mults.attackInterval));
+            atk.config.cooldown = interval;
+            atk.maxCooldown = interval;
+            atk.baseMaxCooldown = interval;
+        }
+        // 换弹：由 _initAmmoForSlot 覆盖统一处理（读模块倍率）
+        if (this._ammoState && this._ammoState.weapon) {
+            const st = this._ammoState.weapon;
+            st.reloadTime = Math.max(120, Math.round(st.reloadTime * mults.reload));
+            if (!st.reloading) st.reloadTimer = 0;
+        }
+    }
+
+    /** 换弹时间覆盖：基础弹药配置 × 模块倍率（与玩家口径一致：读 _craftEffects 后乘模块） */
+    _initAmmoForSlot(slot) {
+        super._initAmmoForSlot(slot);
+        if (slot !== 'weapon' || !this._ammoState || !this._ammoState.weapon) return;
+        const st = this._ammoState.weapon;
+        st.reloadTime = Math.max(120, Math.round(st.reloadTime * this.moduleMults().reload));
+    }
+
+    /** 过热/散热模块倍率：Combatant._updateOverheat 读 weapon.heatParams，此处按模块倍率改写后委托 */
+    _updateOverheat(dt, isFiring) {
+        const weapon = this.getCurrentWeapon ? this.getCurrentWeapon() : (this.weaponItem || null);
+        if (!weapon) return;
+        const mults = this.moduleMults();
+        const hp = weapon.heatParams || {};
+        const ohTime = Math.max(500, hp.overheatTime || 5000);
+        const cooldownTime = Math.max(500, hp.overheatCooldownTime || hp.overheatRecoverTime || 1500);
+        const recoverTime = Math.max(500, hp.overheatRecoverTime || hp.overheatCooldownTime || 1500);
+        weapon.heatParams = {
+            ...hp,
+            overheatTime: ohTime * mults.overheatTime,
+            overheatCooldownTime: cooldownTime * mults.overheatCooldown,
+            overheatRecoverTime: recoverTime * mults.overheatCooldown,
+        };
+        super._updateOverheat(dt, isFiring);
+        // 还原，避免污染武器配置
+        weapon.heatParams = hp;
     }
 
     _recalcDamage() {
@@ -1179,6 +1292,7 @@ class DefenseTowerPanel extends BasePanel {
             <div style="font-size:13px;color:#9a8a6a;margin-bottom:6px;">可装载武器（背包 · 远程 · 手枪除外）</div>
             <div id="dtWeaponList" style="max-height:150px;overflow-y:auto;border:1px solid #3a3528;border-radius:8px;padding:4px 8px;margin-bottom:12px;"></div>
             <div id="dtChip" style="border:1px solid #2a6a5f;border-radius:8px;padding:12px;background:rgba(12,30,28,0.28);"></div>
+            <div id="dtModules" style="margin-top:10px;border:1px solid #6a5a3a;border-radius:8px;padding:12px;background:rgba(40,32,18,0.22);"></div>
             <div id="dtRepair" style="margin-top:10px;border:1px solid #4a6a6a;border-radius:8px;padding:10px;background:rgba(20,50,50,0.18);"></div>
         `;
         el.querySelector('#dtClose').addEventListener('click', () => this.close());
@@ -1273,6 +1387,16 @@ class DefenseTowerPanel extends BasePanel {
         this.refresh();
     }
 
+    _upgradeModule(tower, moduleId, _player) {
+        const res = tower.upgradeModule(moduleId, _player);
+        if (res.ok) {
+            this._notify(`${res.name} 升至 Lv.${res.level}（-${res.cost} 金币）`, '#ffd700');
+        } else {
+            this._notify(res.reason, '#ff5555');
+        }
+        this.refresh();
+    }
+
     refresh() {
         const el = this.el;
         if (!el) return;
@@ -1297,7 +1421,7 @@ class DefenseTowerPanel extends BasePanel {
                             : `<span style="font-size:26px;">${it.icon || '🔫'}</span>`}
                         <div style="min-width:0;">
                             <div style="font-weight:700;">${it.name}${elv > 0 ? ` <span style="color:#ffd700;font-size:12px;">强化 +${elv}</span>` : ''}</div>
-                            <div style="font-size:12px;color:#9a9a9a;">每发伤害 ≈ ${dmg}（已含芯片属性/强化/改造加成）</div>
+                            <div style="font-size:12px;color:#9a9a9a;">每发伤害 ≈ ${dmg}（已含芯片/改造模块/强化加成）</div>
                         </div>
                     </div>
                     <button id="dtUnequip" style="flex-shrink:0;background:#5a3028;color:#ffd7d0;border:1px solid #8a4a3a;border-radius:6px;padding:4px 10px;cursor:pointer;">卸下</button>
@@ -1353,7 +1477,7 @@ class DefenseTowerPanel extends BasePanel {
             rp.querySelector('#dtRepairBtn').addEventListener('click', () => this._repairTower());
         }
 
-        // 神经芯片 · 六维强化（2026-08-16 重构：取代原「塔等级 + 升级模块」）：
+        // 神经芯片 · 六维强化（2026-08-16 重构：取代原塔等级，与改造模块并存）：
         // 每张属性卡 = 当前值 + 对当前武器的实时边际注释（真实公式差分，未挂钩=无影响）+ 逐级递增金币升级
         const chip = el.querySelector('#dtChip');
         const gold = GoldManager ? GoldManager.getGold() : 0;
@@ -1403,6 +1527,46 @@ class DefenseTowerPanel extends BasePanel {
         chip.querySelectorAll('[data-chip]').forEach((btn) => {
             btn.addEventListener('click', () => this._upgradeChipStat(t, btn.dataset.chip, player));
         });
+
+        // 改造模块（2026-08-16 重新引入，与六维芯片并存）：
+        // 6 张抠图卡片（伤害强化/射程增强/速射模块/快速换弹/过热抑制/快速散热），
+        // 图标 = assets/ui/tower/*.png；升级直接改武器参数，金币逐级递增。
+        const modBox = el.querySelector('#dtModules');
+        if (modBox) {
+            const modCfg = DEFENSE_CONFIG.tower.modules || {};
+            const modCards = Object.entries(modCfg).map(([mid, mod]) => {
+                const lv = t.modules[mid] || 0;
+                const maxedMod = lv >= mod.maxLevel;
+                const cost = maxedMod ? 0 : t.getModuleCost(mid);
+                const pct = Math.round(Math.abs(mod.per) * 100);
+                const descCur = mod.desc.replace('{pct}', `${pct * lv}`);
+                const descNext = mod.desc.replace('{pct}', `${pct * Math.min(mod.maxLevel, lv + 1)}`);
+                const btn = maxedMod
+                    ? '<span style="color:#8a8a8a;font-size:11px;">已满级</span>'
+                    : `<button data-mod="${mid}" style="width:100%;background:#4a3a1a;color:#ffe9a0;border:1px solid #8a7a3a;border-radius:6px;padding:4px 0;cursor:pointer;font-size:12px;">+1（-${cost} 金）</button>`;
+                return `
+                    <div style="border:1px solid #4a4a2a;border-radius:8px;background:rgba(60,50,20,0.18);padding:8px 6px;text-align:center;display:flex;flex-direction:column;gap:4px;">
+                        <img src="${mod.icon}" alt="" style="height:44px;object-fit:contain;align-self:center;">
+                        <div style="font-size:12px;color:#ffd700;">${mod.name} <span style="color:#c8b98a;">Lv.${lv}/${mod.maxLevel}</span></div>
+                        <div style="font-size:11px;line-height:1.4;color:#c8b98a;min-height:26px;">${lv > 0 ? descCur : '未升级'}</div>
+                        ${!maxedMod ? `<div style="font-size:10px;color:#8a9a6a;">${descNext}</div>` : ''}
+                        ${btn}
+                    </div>`;
+            }).join('');
+            modBox.innerHTML = `
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                    <span style="font-size:13px;font-weight:700;color:#ffd700;">🛠 改造模块</span>
+                    <span style="font-size:12px;color:#9a9a9a;">伤害/射程/射速/换弹/过热/散热</span>
+                </div>
+                <div style="font-size:11px;color:#8a7a5a;margin-bottom:8px;line-height:1.6;">
+                    芯片管伤害挂钩主属性；改造模块直接强化武器参数，金币逐级递增，与芯片独立升级。
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;">${modCards}</div>`;
+            modBox.querySelectorAll('[data-mod]').forEach((btn) => {
+                btn.addEventListener('click', () => this._upgradeModule(t, btn.dataset.mod, player));
+            });
+        }
+
         // 出售（2026-08-14）：返还 50% 建造能源，武器归还背包
         const sellBtn = el.querySelector('#dtSell');
         if (sellBtn) {

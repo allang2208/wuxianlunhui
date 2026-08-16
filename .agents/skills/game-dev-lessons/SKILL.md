@@ -844,3 +844,15 @@ this.ai = config.ai || {};
 - **面板武器贴图数据驱动**：`towerWeaponImagePath` 优先级
   item.iconImage/equipImage/slotImage → `findWeaponConfig` 全量源 → 弹丸贴图兜底，
   别用 emoji 占位。
+## 49. 重新引入被删功能：图标资产管线 + 数据驱动模块（2026-08-16 二轮）
+
+- **用户提供 UI 组件图**（2×3 深灰圆角卡片，每卡=图标+文字一体）时，先做像素级分析再抠图：
+  `make-transparent-icon.py`（白底泛洪→最大连通域→羽化→去白边）适合「深色卡片在白色画布」，
+  直接保留整卡；水印文字带在卡片下方（y≥1180）不重叠，裁卡片时裁到 y<1180 天然避开。
+- **重新引入时与既有系统并存，不要二选一回退**：六维芯片管「伤害挂钩主属性」，
+  改造模块管武器参数（伤害%/射程/射速/换弹/过热/散热），两套独立金币升级
+  （无槽位限制——塔等级已删，模块费用 `round(baseCost×growth^(等级-1))` 逐级递增）。
+- **图标路径数据驱动**：`DEFENSE_CONFIG.tower.modules.icon = assets/ui/tower/*.png`，
+  面板 `<img src>` 直接消费配置，不散落硬编码路径。
+- **伤害公式扩展保持零硬编码**：`_computeDamageFor = computeWeaponAttack(...) ×
+  moduleMults().damage`；芯片「每点+X」边际差分同步乘模块伤害倍率，真实公式反显仍成立。
