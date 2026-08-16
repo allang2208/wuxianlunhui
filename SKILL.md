@@ -82,6 +82,7 @@
 **7. 世界-122 防守地图**
 - 世界-122 防守地图（雏形，2026-08-04）
 - 世界-122 迭代沉淀（2026-08-15：塔死角排查/塔整塔命中+悬停轮廓+神经芯片面板/基地退回/树木散布）
+- 防御塔升级重构——六维芯片取代等级/模块（2026-08-16：武器↔主属性挂钩、伤害实时公式、费用逐级递增、面板武器贴图）
 - 后续打磨方向（未做）
 
 **8. AI 寻路、碰撞与移动**
@@ -4513,9 +4514,27 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
 - 悬停金色轮廓：`DefenseSystem.updateHover`（game.js 每帧驱动）→ `_hoverTower` →
   `GameScene._syncDefenseTowers` 每帧对三层贴图 `filters.internal.addGlow(0xffd700)`
   （敌人攻击预警同链路；建筑/编辑模式与指针在右侧面板上时跳过悬停）。
-- 面板「神经芯片 · 射手演算」区：与 `_statMul` 系数同源的六维 3×2 格 + 合计加成；
-  面板容器 `max-height:88vh + overflow-y:auto` 防小窗溢出。
+- 面板「神经芯片」区（2026-08-16 起为六维强化卡，旧「射手演算·合计加成」已被取代，见下）。
 - 验证工具：`tools/cdp-tower-panel.mjs`（命中矩阵 + CDP 真实鼠标悬停 + 面板截图）。
+
+**防御塔升级重构——六维芯片取代等级/模块（2026-08-16）**
+- **删除**：塔等级（Lv 升级/耐久成长）、升级模块（6 模块 + 模块位）及其面板区块/按钮；
+  塔名固定「防御塔」，耐久固定 `tower.hp`。
+- **升级收敛到六维芯片**：`tower.chip = {str/dex/con/int/wis/luck}` 初始 `chip.base=10`；
+  升级属性本身不加攻，只强化「与该属性挂钩的已装载武器」。
+- **武器 ↔ 主属性挂钩**：`DEFENSE_CONFIG.tower.chipWeaponStat`（PKM/QJB-201/能量机枪→力量、
+  AKM/M416/QBZ-191→智力、散弹→体质、弓→敏捷）；未配置时默认取该武器 `attackFormula.attrs[0]`。
+- **伤害真源零硬编码**：`_computeDamage = computeWeaponAttack(item, 芯片合成属性, null)`——
+  芯片只喂挂钩主属性、其余为 0（未挂钩属性对伤害零影响）；强化等级/改造(独头弹·伤害%)/附魔
+  全部实时计入；skills=null（塔不吃玩家熟练度）。
+- **面板逐属性注释实时反显**：`_statMarginalPerPoint` 用真实公式 +10 区间差分算「每点+X 攻击力」，
+  未挂钩属性显示「无影响」；强化后 perEnhance 使每点边际自动变大；升级按钮「+1（-X 金）」
+  带升级后伤害预览。
+- **金币逐级递增**：`round(baseCost × growth^(当前值-base))`，默认 60×1.45^n →
+  值 10→60 金、11→87、12→126、13→183、14→265…
+- **武器槽/列表贴图**：`towerWeaponImagePath`（item.iconImage → EquipDataManager 全量源 →
+  弹丸贴图兜底），面板不再用 emoji 占位。
+- 验证：`tools/cdp-tower-modules.mjs`（初始化/挂钩边际/费用曲线/强化实时计入/上限拦截/面板 DOM）。
 
 **场景树木随机散布特性（2026-08-15 定稿）**
 - `_loadScene8` 里 `_scatterTreesScene8`（配置 `scenes.scene8.treeScatter`：enabled/count/

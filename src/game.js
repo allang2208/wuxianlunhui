@@ -1218,7 +1218,7 @@ if (Input.mouse.leftPressed) {
                 Input.mouse.leftPressed = false;
                 return;
             }
-            // 世界-122 防守地图：点击防御塔打开升级/装载面板，点击基地核心查看耐久
+            // 世界-122 防守地图：点击防御塔打开芯片强化/装载面板，点击基地核心查看耐久
             // 陷阱优先于防御塔（陷阱是地面小体积，命中盒更贴近点击处）
             if (DefenseTrapSystem && DefenseTrapSystem.tryInteract(mx, my, this.player)) {
                 Input.mouse.leftPressed = false;
