@@ -2683,6 +2683,36 @@ function syncGateSeamDepths() {
             }
         }
     }
+    // 门对掩体（2026-08-16 用户口径：门与墙相连同样"左在右之前"）：
+    // 门 B 端 ≈ 墙 A 端 → 门在墙左 → 门右柱抬到墙之上（盖墙左端）；
+    // 门 A 端 ≈ 墙 B 端 → 墙在门左 → 门左柱压到墙之下（墙右端盖门左柱）。
+    // 只调门柱深度、不动墙的单一 _faceDepth（墙两端可能同时接门）。
+    const covers = [];
+    if (typeof window !== 'undefined' && window.Game && window.Game.entities) {
+        for (const e of window.Game.entities.values()) {
+            if (!e || !e.active || !e._isDefenseCover || e._isCoverGate) continue;
+            covers.push(e);
+        }
+    }
+    for (const g of list) {
+        const gf = faceEnd(g);
+        if (!gf || typeof g._depthL !== 'number' || typeof g._depthR !== 'number') continue;
+        for (const c of covers) {
+            const cf = faceEnd(c);
+            if (!cf) continue;
+            const wallDepth = (typeof c._faceDepth === 'number')
+                ? c._faceDepth
+                : Math.max(cf[0].y, cf[1].y) + 12;
+            if (Math.hypot(gf[1].x - cf[0].x, gf[1].y - cf[0].y) <= SEAM_TOUCH) {
+                const needR = wallDepth + 0.5 - g._depthR;
+                if (needR > g._seamBiasR) g._seamBiasR = needR;
+            }
+            if (Math.hypot(gf[0].x - cf[1].x, gf[0].y - cf[1].y) <= SEAM_TOUCH) {
+                const needL = wallDepth - 0.5 - g._depthL;
+                if (needL < g._seamBiasL) g._seamBiasL = needL;
+            }
+        }
+    }
     for (const g of list) { if (typeof g._applySeamBias === 'function') g._applySeamBias(); }
 }
 
