@@ -149,6 +149,7 @@ const a = await evalRobust(`(async () => {
     shooter.vx = 0; shooter.vy = 0; shooter.isMoving = false; shooter.maxSpeed = 0;
     const { DefenseTower, DefenseBase, DefenseCover } = await window.__imp('defense-system');
     const { HamsterHut, HamsterHutSystem } = await window.__imp('hamster-hut-system');
+    const { HamsterBarracks, HamsterBarracksSystem } = await window.__imp('hamster-barracks-system');
     const structures = [];
     const mk = (id, s) => { window.Game.entities.set(id, s); return s; };
     structures.push(mk('probe_tower', new DefenseTower(2600, 2600)));
@@ -163,6 +164,11 @@ const a = await evalRobust(`(async () => {
     const hut = new HamsterHut(3200, 3200);
     structures.push(mk('probe_hut', hut));
     HamsterHutSystem.huts.push(hut);
+    const barracks = new HamsterBarracks(3400, 3400);
+    structures.push(mk('probe_barracks', barracks));
+    if (HamsterBarracksSystem && Array.isArray(HamsterBarracksSystem.barracks)) {
+        HamsterBarracksSystem.barracks.push(barracks);
+    }
     const cover = mk('probe_cover', new DefenseCover(2400, 2400, { orient: 'h', w: 260, d: 52, grade: 'F' }));
     const scene = window.__phaserScene;
     const structDepth = (s) => {
@@ -197,9 +203,9 @@ const a = await evalRobust(`(async () => {
     }
     return results;
 })()`);
-if (a && a.err) check('合成场景可运行', false, a.err);
+if (!a || a.err) check('合成场景可运行', false, JSON.stringify((a && a.err) || 'eval undefined'));
 else {
-    const bad = (a || []).filter(x => !x.ok);
+    const bad = a.filter(x => !x.ok);
     check('合成场景全组合正确（36/36）', bad.length === 0,
         `${a.length} 组合，失败 ${bad.length}：${JSON.stringify(bad.slice(0, 3))}`);
 }
@@ -219,7 +225,16 @@ const b = await evalRobust(`(async () => {
     const tower = [...window.Game.entities.values()].find(e => e && e._isDefenseTower && e.active);
     const hut = [...window.Game.entities.values()].find(e => e && e._isHamsterHut && e.active);
     const node = [...window.Game.entities.values()].find(e => e && e._isEnergyNode && e.active);
-    const targets = [base, tower, hut, node].filter(Boolean);
+    // 现场建造小屋/兵营（走真实构造器，验证统一锚线对这两类建筑同样生效）
+    const { HamsterHut, HamsterHutSystem } = await window.__imp('hamster-hut-system');
+    const { HamsterBarracks, HamsterBarracksSystem } = await window.__imp('hamster-barracks-system');
+    const builtHut = new HamsterHut(3600, 2800, { id: 'probe_real_hut' });
+    window.Game.entities.set(builtHut.id, builtHut);
+    HamsterHutSystem.huts.push(builtHut);
+    const builtBarracks = new HamsterBarracks(3800, 2800, { id: 'probe_real_barracks' });
+    window.Game.entities.set(builtBarracks.id, builtBarracks);
+    HamsterBarracksSystem.barracks.push(builtBarracks);
+    const targets = [base, tower, hut, node, builtHut, builtBarracks].filter(Boolean);
     const structDepth = (s) => {
         if (s._isDefenseTower) {
             const sp = scene._defenseSprites.get(s);
@@ -246,11 +261,11 @@ const b = await evalRobust(`(async () => {
     }
     return rows;
 })()`);
-if (b && b.err) check('真实场景可运行', false, b.err);
+if (!b || b.err) check('真实场景可运行', false, JSON.stringify((b && b.err) || 'eval undefined'));
 else {
-    const names = (b || []).map(r => `${r.name}:anchor=${r.hasAnchor},sameLine=${r.sameLineOk}`).join(' | ');
+    const names = b.map(r => `${r.name}:anchor=${r.hasAnchor},sameLine=${r.sameLineOk}`).join(' | ');
     check('真实建筑全部带统一锚线 + 同线单位盖过建筑（无 z-fight）',
-        (b || []).length >= 3 && (b || []).every(r => r.hasAnchor && r.sameLineOk), names);
+        b.length >= 3 && b.every(r => r.hasAnchor && r.sameLineOk), names);
 }
 
 async function evalRobust(expr) {
