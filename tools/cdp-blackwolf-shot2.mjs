@@ -72,7 +72,7 @@ await rawEval(`(async () => {
 })()`).then(r => console.log('wolf source:', r));
 await sleep(5000);
 
-// 连拍 6 张（walk/bite/pounce 姿态），每张记录实时屏幕坐标供精确裁剪
+// 连拍 6 张（walk/bite 姿态；2026-08-16 起黑狼无飞扑），每张记录实时屏幕坐标供精确裁剪
 for (let i = 0; i < 6; i++) {
     const pos = await rawEval(`(async () => {
         const camUrls = performance.getEntriesByType('resource').map(e => e.name).filter(n => n.includes('/src/world/camera.js'));

@@ -30,6 +30,8 @@
 
 ### 3. 黑狼动画（enemy-types.js）
 - `BlackWolf` 构造函数接受 `config` 参数，`speed` 等配置正确传递到父类
+- 2026-08-16：黑狼攻击只保留撕咬，移除飞扑（`_usesPounce=false`）；红狼王仍保留
+  飞扑，复用 BlackWolf 基类共享状态机（红狼王构造器 `_usesPounce=true` 补齐字段）
 
 ### 4. G18 攻击力（player.js）
 - `_fireRanged` 中手枪/弓伤害优先调用 `getCurrentWeaponAtk()`，包含强化加成

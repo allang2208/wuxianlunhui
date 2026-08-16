@@ -23,12 +23,6 @@
     "biteRange": 150,
     "biteCooldown": 1200,
     "biteHitDistance": 165,
-    "pounceCooldown": 12000,
-    "pounceRange": 500,
-    "pounceHitDistance": 100,
-    "pounceCrippleMs": 3000,
-    "pounceMaxDist": 1000,
-    "pounceOvershoot": 200,
     "ai": {
       "aggroRange": 2500,
       "pacingRange": 200,
@@ -46,7 +40,7 @@
     "family": null,
     "description": "",
     "skills": [],
-    "attackType": "飞扑",
+    "attackType": "撕咬",
     "render": {
       "spriteSize": 151,
       "collisionWidth": 120,

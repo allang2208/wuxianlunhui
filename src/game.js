@@ -464,7 +464,7 @@ export const Game = {
      */
     spawnMainHubTestEntities() {
         this.clearMainMonstersAndSpawnDog();
-        // 黑狼（2026-08-11 绿幕管线全套重生成：idle/walk/run/bite/pounce 五张入库）
+        // 黑狼（2026-08-11 绿幕管线全套重生成：idle/walk/run/bite 入库；2026-08-16 移除飞扑）
         this.spawnMainBlackWolf();
     },
 
