@@ -18,10 +18,13 @@ no text, no watermark
 ```text
 (exactly one diamond-shaped ground tile:1.5), single large 45-degree diamond
 rhombus slab in the center of the canvas, dry yellow mud ground slab, packed
-ochre and tan earth texture, scattered patchy green grass, several small vivid
-green grass tufts and blades growing on the mud, grass covers about one tenth
-of the surface, sparse grass, (green grass blades:1.3), a few tiny dirt clods
-and small pebbles, natural rough slab edges
+ochre and tan earth texture, sparse grass viewed directly from above, top-down
+radial grass clumps and small moss patches lying flat on the mud, grass has no
+up direction, mirror-invariant symmetric pattern, every grass clump is
+symmetric and radially arranged, grass covers about one tenth of the surface,
+sparse grass, a few tiny dirt clods and small pebbles, flat pure texture, no
+bevel, no raised slab, no edge thickness, no rim, no border ring, texture
+continues evenly to the diamond edge
 ```
 
 ## 负面词（ComfyUI --negative）

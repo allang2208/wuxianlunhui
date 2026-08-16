@@ -325,9 +325,9 @@
     "type": "sheet",
     "src": "assets/player/recover_sheet.png",
     "frameWidth": 512,
-    "frameHeight": 516,
-    "cols": 8,
-    "rows": 2,
+    "frameHeight": 512,
+    "cols": 5,
+    "rows": 3,
     "frameCount": 13,
     "frames": [
       0,
@@ -349,7 +349,8 @@
       25.4,
       25.4,
       25.4
-    ]
+    ],
+    "displayScale": 1.0956
   },
   "dash_attack": {
     "type": "sheet",

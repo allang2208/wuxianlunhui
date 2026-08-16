@@ -979,15 +979,26 @@ export const SceneManager = {
             rx: diamondCfg.rx ?? w / 2,
             ry: diamondCfg.ry ?? h / 2,
         };
-        // 沼泽地砖池（swampbrick_new1 + yellowmud_new1，510×294 同规格可混铺）：
-        // 与 data/dungeon-config.json swampDungeon.floor 同款参数；随机选图 + 随机镜像 8 向循环；
-        // glow:false + overlapX:6/overlapY:3（自然材质平铺内缩，盖住锯齿缝隙），菱形内全场景平铺
+        // 平材质地面（泥/沙）不用"独立菱形石板"拼接（草苔盖缝失效后会露黑边/硬接缝）：
+        // 改走连续无缝纹理——floor_mud_seamless 按世界坐标对齐相位全图铺贴（任意方向无接缝），
+        // 沙地以软边补丁混入（sandPatches 径向渐隐），草由 deco 层固定朝向点缀。
         setDungeonFloorProfile({
-            tiles: ['swampbrick_new1', 'yellowmud_new1'],
+            tiles: ['floor_mud_seamless'],
+            continuous: true,
             glow: false,
-            overlapX: 6,
-            overlapY: 3,
             backgroundColor: '#0d1b0a',
+            sandPatches: {
+                texture: 'floor_sand_seamless',
+                perChunk: 6,
+                size: 760,
+                minDist: 1000,
+            },
+            deco: {
+                textures: ['deco_grass_1', 'deco_grass_2'],
+                perChunk: 28,
+                size: 110,
+                minDist: 120,
+            },
         });
         // 分块惰性地板（2048² 按相机视口烘焙/卸载）：大地图不一次性占满显存；
         // 传 diamond 后每块按菱形裁剪烘焙（区外全黑）

@@ -147,10 +147,14 @@ def resolve_video(root, name_or_path):
 
 
 def build(seq, bg, out_sheet, out_gif, out_contact,
-          cols, cell, target_h, feet_y, anchor_cx, scale_override=None):
+          cols, cell, target_h, feet_y, anchor_cx, scale_override=None,
+          anchor_end_cx=None):
     """seq = [(frame_rgb, alpha, tag), ...]；首项必须是站立参考帧（帧0）。
     scale_override：连段第二段起复用前一段的缩放（角色/相机同族视频，高度基准帧不是站姿，
-    不能用 ref 帧反推）。"""
+    不能用 ref 帧反推）。
+    anchor_end_cx：末帧格内中心目标（连段收势回中/落脚点对齐用）；基底从 anchor_cx
+    线性滑到 (anchor_end_cx - 末帧自然dx)，再叠加各帧自然 dx——f0 精确落在 anchor_cx、
+    末帧精确落在 anchor_end_cx，中间帧平滑过渡且不丢段内位移。"""
     # 固定缩放：帧0 身高 → target_h（黑狼教训：逐帧缩放会放大蹲姿/裁切宽帧）
     b0 = bbox_of(seq[0][1] > 30)
     ref_h = b0[3] - b0[1] + 1
@@ -161,7 +165,13 @@ def build(seq, bg, out_sheet, out_gif, out_contact,
     cells = []
     stats = []
     spill_total = 0
-    for frame, alpha, tag in seq:
+    nseq = len(seq)
+    # 末帧自然 dx（keep-dx 口径）预先算出，供 anchor_end_cx 基底反推
+    dx_last = 0
+    if anchor_end_cx is not None and nseq > 1:
+        bx = bbox_of(seq[-1][1] > 30)
+        dx_last = round((((bx[0] + bx[2]) / 2) - ref_cx) * scale)
+    for k, (frame, alpha, tag) in enumerate(seq):
         desp, n_spill = despill_bg(frame, alpha, bg)
         # 主体=纯灰度骨骼：所有不透明像素强制亮度化，消除视频逐帧色偏
         # （v4 s02 实测挥砍帧骨骼泛品红；同 prep-melee3 中性化思路，但更彻底）
@@ -178,8 +188,13 @@ def build(seq, bg, out_sheet, out_gif, out_contact,
         a = cv2.resize(a, (nw, nh), interpolation=cv2.INTER_AREA)
         cx = (x0 + x1) / 2
         dx = round((cx - ref_cx) * scale)  # keep-dx：保留前移
+        if anchor_end_cx is not None and nseq > 1:
+            t = k / (nseq - 1)
+            base_cx = anchor_cx + (anchor_end_cx - dx_last - anchor_cx) * t
+        else:
+            base_cx = anchor_cx
         canvas = np.zeros((cell, cell, 4), np.uint8)
-        ox = int(round(anchor_cx - nw / 2 + dx))
+        ox = int(round(base_cx - nw / 2 + dx))
         oy = int(feet_y - nh + 1)
         ox_c = max(0, min(ox, cell - nw))
         oy_c = max(0, min(oy, cell - nh))
@@ -263,6 +278,8 @@ def main():
     ap.add_argument("--scale", type=float, default=None,
                     help="外部指定缩放（连段第二段起复用前段 scale，如一段的 0.7742）；"
                          "缺省=帧0 身高反推 target_h")
+    ap.add_argument("--anchor-end-cx", type=float, default=None,
+                    help="末帧格内中心目标（缺省=同 anchor-cx 不滑移）；连段回中/落脚点统一用")
     ap.add_argument("--bg-hex", default=None,
                     help="底色 #RRGGBB（缺省读 keyframes/bg.txt；绿幕视频传 00FF00）")
     ap.add_argument("--bg-thr", type=float, default=45)
@@ -335,7 +352,7 @@ def main():
           str(out_p.with_suffix(".gif")),
           str(out_p.with_name(out_p.stem + "_contact.png")),
           args.cols, args.cell, args.target_h, args.feet_y, args.anchor_cx,
-          scale_override=args.scale)
+          scale_override=args.scale, anchor_end_cx=args.anchor_end_cx)
 
 
 if __name__ == "__main__":

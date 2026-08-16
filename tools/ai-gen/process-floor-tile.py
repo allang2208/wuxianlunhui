@@ -4,9 +4,12 @@
 配方（CHANGELOG 2026-07-26「AI 生成地砖处理入库试用」）：
   白底 45° 菱形单砖 → 泛洪抠图（去白底）→ 腐蚀 2px 去污染 →
   纵向压缩 0.5774（45°→30° 等距）→ 包围盒裁剪 → 定宽缩放。
+  深度锁形路线（flux2-dev-depth + 参考砖剪影）输出已是 30° 菱形，
+  传 --iso 跳过纵向压缩（只做抠图/腐蚀/裁剪/定宽）。
 
 用法：
   python tools/ai-gen/process-floor-tile.py <输入.png> <输出.png> [目标宽]
+  python tools/ai-gen/process-floor-tile.py <输入.png> <输出.png> [目标宽] --iso
   （目标宽默认 510 = swampbrick-new1 菱形宽，同池混铺必须一致）
 """
 from PIL import Image, ImageFilter
@@ -40,6 +43,7 @@ def flood_fill_background(rgb, tol=36):
 def main():
     src, dst = sys.argv[1], sys.argv[2]
     target_w = int(sys.argv[3]) if len(sys.argv) > 3 else 510
+    iso_input = '--iso' in sys.argv
     erode_px = 2
     vscale = 0.5774  # tan30°
 
@@ -57,11 +61,12 @@ def main():
     a_img = a_img.filter(ImageFilter.MinFilter(1 + erode_px * 2))
     alpha = np.array(a_img)
 
-    # 3. 纵向压缩 45° → 30°
-    h, w = alpha.shape
-    new_h = max(1, round(h * vscale))
-    alpha = np.array(Image.fromarray(alpha).resize((w, new_h), Image.LANCZOS))
-    rgb = np.array(Image.fromarray(rgb).resize((w, new_h), Image.LANCZOS))
+    # 3. 纵向压缩 45° → 30°（--iso 输入已为 30°，跳过）
+    if not iso_input:
+        h, w = alpha.shape
+        new_h = max(1, round(h * vscale))
+        alpha = np.array(Image.fromarray(alpha).resize((w, new_h), Image.LANCZOS))
+        rgb = np.array(Image.fromarray(rgb).resize((w, new_h), Image.LANCZOS))
 
     # 4. 包围盒裁剪
     ys, xs = np.nonzero(alpha > 8)

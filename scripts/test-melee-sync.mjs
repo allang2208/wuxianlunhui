@@ -68,9 +68,11 @@ for (const { key, frames, cols, rows, w, h } of STAGES) {
     assert(def.displayScale === 1.0956, `${key} displayScale=1.0956（屏显身高追平 idle：432/512 × 1.0956 ≈ 477/516）`);
     assert(def.displayScale >= 1.05 && def.displayScale <= 1.15, `${key} displayScale 在合理区间 [1.05,1.15]`);
 }
-// 旧手绘素材（512×516 格，比率与 idle 一致）不得加缩放
-assert(!PLAYER_ANIMS.recover.displayScale && !PLAYER_ANIMS.walk.displayScale,
-    'recover/walk 无 displayScale（手绘 512×516 素材比率已与 idle 一致）');
+// walk 旧手绘素材（512×516 格，比率与 idle 一致）不得加缩放；
+// recover 2026-08-16 起为 H3 绿幕 512×512 sheet（比率同三段攻击 432/512），必须带 displayScale 追平屏显身高
+assert(!PLAYER_ANIMS.walk.displayScale, 'walk 无 displayScale（手绘 512×516 素材比率已与 idle 一致）');
+assert(PLAYER_ANIMS.recover.displayScale >= 1.05 && PLAYER_ANIMS.recover.displayScale <= 1.15,
+    'recover 有 displayScale（H3 512×512 sheet，432/512 × 1.0956 ≈ 追平 idle 屏显身高）');
 
 // ---------- 3. 武器轨迹与动画帧数耦合（三段） ----------
 const weaponCfg = JSON.parse(readFileSync(path.join(ROOT, 'public/data/weapon-anim-config.json'), 'utf-8'));

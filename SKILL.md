@@ -26,6 +26,7 @@
 - 阶段性进度总结（2026-08-04 二轮：生图入口优先级调整 + FLUX.2 dev Depth ControlNet 视角锁定）
 - 树木等距素材管线（2026-08-15 两轮定稿：白模 30° 深度锁 → flux2-dev-depth → BiRefNet 进程内合成，新树/植被一律按此开展）
 - Blender 建模渲染管线（2026-08-16 定稿：blockout 规格 → render-factory-real.py 直接渲成品，
+- ⭐ 地面无缝纹理统一入口：floor-asset.py（2026-08-16 定稿，泥/沙等平材质地面一律先走这里）
   支持 prism 屋顶 / wall·interior·window 材质 / spec.lighting 加亮 / 滑门 16 帧动画；采样既有贴图优先）
 
 **3. 玩家角色与武器动画**
@@ -732,6 +733,17 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
     判据识别不了合并）；**验收 = alpha 掩码贴附率 12/12 >20%**（拳头显示坐标 7×7 邻域，
     BILINEAR 缩放到显示尺寸）。
   - DevTool 语义提示：attack 块 offset 现在是**握把点**（拳头），不再是贴图中心。
+  - **刃向是「看起来脱手」的常见真凶**：一段末帧定格时剑 209° 向后下穿过腿（前臂方向推的刃向）
+    被用户读成「武器没绑在手上」——垂持姿势刃向要前下 ~150°（手在髋前、剑尖朝前下方）。
+    突刺伸展帧用户要「绝对水平」：attack3 f8~f11 刃向精确 90°（链差 0，无角度偏移）。
+  - **实机定格复核管线（12/16 帧适配版）**：`tools/cdp-sword-hold-v4.mjs`（旧
+    cdp-sword-hold-frames.mjs 的帧映射是 8 帧时代硬编码，勿直接用）——**probe 里必须走
+    `setPlayerAnimation(animKey, 40000)` 再 timeScale=0 冻结**（直接 setTexture+play 会跳过
+    displayScale，人物框 142.9≠真实 156.5，截图口径全错）；环境：`start-vite-dev.ps1`(5173)
+    + 无头 Edge(9224) + `cdp-run.ps1` 安全入口；meta JSON 直接采样武器世界坐标/旋转/origin
+    逐帧核对（握把 = player + 配置偏移 − footOffset，实测逐位一致）。
+  - **尺寸口径勘误**：武器屏显高 = WEAPON_ANIM.size 126 × MELEE_SCALE **0.75** × scale
+    =141.75（旧注释里的 78.75 是 0.625 时代残留）；剑柄 originY = 0.5+40/141.75 = 0.782。
 
 #### 二段攻击（attack_sword_2）v4 上撩回斩（2026-08-16 入库，连段连贯首帧方案）
 
@@ -788,6 +800,33 @@ v4 上撩回斩被否原因：向上挥向空气无目标承接、缺冲击力�
 **三段连段 v4/v5 总览（2026-08-16 全切）**：一段斜劈（v4 s02）→ 二段沉身快劈闪切
 （v5 s31）→ 三段后退爆发突刺（v4 s44）；三段的 H3 首帧链路 = 前段视频末帧原生抽帧，
 轨迹全部 anchor='grip' 剑柄锚手，hitCheck 帧 9/9/10，blur 峰值贴各自挥砍瞬间。
+
+#### 收势动画（recover）v4 重做（2026-08-16 入库，首尾帧双锁）
+
+- **首帧 = 三段视频 thrust_v4_s44 第 52 帧**（三段 sheet f15 源帧），**尾帧 = idle.png
+  绿幕合成**（内容高按视频角色 556px 缩放 ×1.166、脚底/中心对齐三段末帧）——H3 首尾帧
+  双锁，收势=战备姿势松回 idle 姿势，两端分别与三段末帧/idle 无缝。提示词
+  `prompts/player-recover-h3.txt`（平缓、无武器、无特效）；4 连发低伪影风险，s51 干净平顺。
+- 剪片：`--n 13 --cols 5 --anchor-cx 293.5 --scale 0.7742`（anchor-cx=三段末帧 cx）；
+  视觉均匀采样在动作完成后会取"动作完成点"而非视频末帧（cum 平台期 searchsorted 取首个），
+  收势类动作这正好合适。
+- **体格口径统一**：recover 改 512×512 格并加 `displayScale 1.0956`（与三段攻击同屏显身高，
+  三段→收势无大小跳变）；旧手绘 512×516 退役。`test-melee-sync.mjs` 的"recover 无
+  displayScale"守卫已按素材变迁更新（walk 仍保持无缩放）；recover 时长 13×25.4ms≈330ms
+  不动，各段收势时长仍由 `meleeCombo.stageNRecoverMs` 驱动。
+- 入库：`recover_sheet.png` 覆盖，旧手绘版留档 `backup/2026-08-16-player-recover-h3/`。
+
+#### 线宽代际漂移与细线化（2026-08-16 用户反馈「线条加粗」实测定稿）
+
+- **H3 每代际系统性加粗描边**：首帧链路（前段视频末帧→下段首帧）每过一代线宽
+  +0.4px——实测躯干笔画宽 idle 2.7px / 一段 3.2px / 二段 4.0px / 三段 4.3px
+  （距离变换半径均值×2 量化，工具即 `thin-strokes.py` 的统计输出）。
+- **细线化工具 `tools/ai-gen/thin-strokes.py`**：距离变换层级收缩 T=1.2 + 软边带混白
+  55% 抗锯齿；**只动 RGB 不动 alpha**（轮廓不变 → 剑柄锚定标定不受影响，可后处理随时
+  重跑）。本次统一处理 attack_sword_2/attack_sword_3/recover_sheet 三张（一段 3.2px
+  用户认可未动）。处理后肋骨/关节环/指骨细节保留，与 idle 细线风一致。
+- 教训：montage 小图看不出线宽差异，**线宽要用距离变换量化**；后处理在剪片入库后做即可
+  （sheet 级，不用回视频返工）。
 - 入库：旧 v2 留档 `backup/2026-08-15-player-attack-h3/attack_sword.png`，两段式留档
   同目录 `attack_sword_keyframe2seg.png`；blur 峰移 f8~f10 贴挥砍段。
 
@@ -1197,10 +1236,23 @@ defend 持盾帧右偏 13px。**结论：武器弧远超身体宽的动作，格
   GLM 确认"大小一致无突然放大、前扑头爪完整"。
 - 撕咬 v3：帧高 224~261、宽 405~482 全完整；飞扑 v3：宽 431~504 完整。
 
-#### 3. 黑狼攻击 = 突变体-3 式飞扑状态机（2026-08-06 定稿，移除撕咬）
-- **用户反馈**：双攻击(撕咬/飞扑)导致移动/攻击衔接错位、意外频发；
-  要求**完全参照 mutant-3、只保留飞扑一种攻击**。
-- **机制（与 mutant-3 同构）**：
+#### 3. 黑狼攻击 = 只保留撕咬（2026-08-16 定稿；历史沿革见下）
+- **当前定稿（2026-08-16）**：用户要求删除飞扑攻击及其动画，只保留撕咬一种攻击方式。
+  已删：`black_wolf_pounce.png` 的 BootScene spritesheet 加载、animation-config.blackWolf
+  的 sprites.pounce / attackTypes.pounce / frameLayouts.pounce、enemy-config.blackWolf
+  的 pounceRange/pounceCooldown/pounceHitDistance/pounceCrippleMs/pounceMaxDist/
+  pounceOvershoot（attackType "飞扑"→"撕咬"）；`BlackWolf._usesPounce=false`，
+  攻击决策/贴图/网格/帧数一律走 bite（`_getTextureKey/_getFrameLayout/
+  _getStateFrameCount/_drawBody` 的 pounce 分支已删）。
+- **红狼王不受影响**：`RedWolfKing extends BlackWolf` 复用基类飞扑状态机
+  （`_startPounce/_startCharge/_endPounce/_updatePounceCharge/_spawnSpeedLine` +
+  `_pounceState` 系列字段），红狼王构造器 `_usesPounce=true` 并补齐字段声明，
+  双攻击（近咬 pounceBite / 中距飞扑 pounceClaw）照旧；黑狼删掉的 pounce
+  渲染分支红狼王均各自 override，互不影响。
+- **历史沿革**：2026-08-06 曾按"只保留飞扑、移除撕咬"定稿（mutant-3 同构）；
+  2026-08-07 加回普通撕咬做近距攻击（biteRange 150，飞扑留中距技能）；
+  2026-08-16 最终定稿只保留撕咬。
+- **飞扑机制（红狼王在用，黑狼已停用；与 mutant-3 同构）**：
   - `_pounceState`：idle → prepare（蓄力 1s，`_frozenForCast=true` 锁定移动、面向目标）
     → charge（锁方向 1s 直线冲刺：穿过目标 + overshoot 或最远 maxDist，
     固定速度 = 距离/1s，逐帧 `WallSystem.resolve` 撞墙）；
@@ -1215,9 +1267,10 @@ defend 持盾帧右偏 13px。**结论：武器弧远超身体宽的动作，格
     线条感强于纯粒子、柔于纯线条（折中方案），每 80ms 一条、170ms 淡出。
 - **动画阶段帧区间**：pounce sheet 11 帧按阶段分区——prepare 帧 0~3（蓄力蹲）、
   charge 帧 4~10（跃起扑击）；命中即中断（只播 4~6 后回 idle，与 mutant-3 一致）。
-- **配置**：`animation-config.attackTypes.pounce`（prepareMs/chargeMs/prepareFrames）、
-  `enemy-config` pounceRange/pounceCooldown/pounceHitDistance/pounceCrippleMs/
-  pounceMaxDist/pounceOvershoot；移除 bite 资产/配置/加载（废案已删）。
+- **配置（红狼王在用）**：`animation-config.redWolfKing.attackTypes.pounce`
+  （prepareMs/chargeMs/prepareFrames）+ `enemy-config.redWolfKing` 的
+  pounceRange/pounceCooldown/pounceHitDistance/pounceCrippleMs/pounceMaxDist/
+  pounceOvershoot；黑狼侧 pounce 配置已全部移除。
 - **飞扑动画重制（2026-08-06 v3 定稿）**：提示词强化爪子细节
   （"swing forward in a wide visible arc like a cat swiping, claws spread wide
   apart and clearly visible with sharp distinct claw tips"）后重生成，
@@ -1246,9 +1299,9 @@ defend 持盾帧右偏 13px。**结论：武器弧远超身体宽的动作，格
     6 帧 3×2 小幅前探张嘴咬（无回转、无位移），中段 200~450ms 命中一次，
     无致残/眩晕；命中距离 biteHitDistance 165 须 ≥ 触发范围（否则空挥）。
     攻击决策：近距撕咬优先，中距（150~500）飞扑技能。
-- 资产：`black_wolf_walk/run/pounce.png` + `black_wolf_idle.png` 全部
+- 资产：`black_wolf_idle/walk/run/bite_regular.png` 四张
   512×512、内容高 262 / 脚底 410 / 居中；显示仍 151×151（内容 ~77px，与旧图一致），
-  碰撞体积（120×65 / footOffsetY 41）不用动。
+  碰撞体积（120×65 / footOffsetY 41）不用动（`black_wolf_pounce.png` 已废弃停用）。
 
 #### 4. H3 视频抽帧必须走 BiRefNet 抠图（2026-08-06 白边教训，已重做）
 - **阈值 235 + 羽化 σ0.8 必留白边**：H3 视频背景实测纯白 254~255，但狼体边缘有
@@ -1453,6 +1506,36 @@ defend 持盾帧右偏 13px。**结论：武器弧远超身体宽的动作，格
   不给 scaleX 会按贴图原尺寸放大数倍（实机探针实踩）。
 - 工具链：`gen-tree-iso2-assets.py` / `process-tree-iso2-assets.py` /
   `_blockout_specs/tree_iso2_*.json`；v1 等距卡通风版备份 `.bak-tree-iso1-20260815/`。
+
+### ⭐ 地面无缝纹理统一入口：floor-asset.py（2026-08-16 定稿，泥/沙等平材质地面一律先走这里）
+
+平材质地面（泥/沙/干土等）**禁止用「独立菱形石板 + 随机镜像」拼接**——草地砖靠草苔
+盖住接缝，平材质无细节可遮，会露黑边/硬接缝/无法 8 向循环。改走**无缝连续纹理**：
+
+```bat
+python tools/ai-gen/floor-asset.py mud  --out assets/terrain/floor_mud_seamless.png  --seed 9001
+python tools/ai-gen/floor-asset.py sand --out assets/terrain/floor_sand_seamless.png --seed 9101 --desat 0.5
+```
+
+一条命令 = `comfyui-gen`（prompts/floor-seamless-*.txt，低饱和提示词）→ `make-seamless.py`
+（偏移叠融四边环绕）→ `desaturate-texture.py`（默认 mud 0.55 / sand 0.5）。
+
+渲染侧（dungeon-floor-texture.js `bakeDungeonFloorChunk`，`profile.continuous=true`）：
+
+1. **连续铺贴**：整张无缝纹理按**世界坐标对齐相位**重复（跨分块/跨方向天然无接缝），
+   不做单砖镜像——8 向循环自动满足；
+2. **30° 等距压缩**：纵向按 `textureScaleY ?? 0.5774` 压缩（SKILL 地板标准），
+   否则像垂直俯视；沙地补丁内纹理同压缩；
+3. **侵入式分块拼接**：`applyDungeonFloorChunked(..., pad=3)` 烘焙四周扩 3px、
+   精灵原位重叠，盖住分块并排的亚像素缝隙（细线/黑边）；
+4. **沙地软边补丁**：`sandPatches` 双八度值噪声不规则边界 + 宽淡入淡出
+   （⚠ 补丁画布内必须**循环平铺**纹理——单张画不满会露直角直切边，2026-08-16 真机踩过）；
+5. **草/植被点缀**：独立贴图（prompts/grass-tuft.txt，俯视径向对称）固定朝向 `deco`
+   烘焙，不做 X/Y 翻转——草不画进砖里，8 向循环永不会把草转反。
+
+场景配置参考（scene-manager `_loadScene8`）：`{ tiles:['floor_mud_seamless'],
+continuous:true, textureScaleY:0.5774, sandPatches:{texture:'floor_sand_seamless',
+perChunk:6, size:760}, deco:{textures:['deco_grass_1','deco_grass_2'], perChunk:28, size:110} }`。
 
 ### Blender 建模渲染管线（render-factory-real.py，2026-08-16 定稿）
 
@@ -5057,6 +5140,16 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
 - **门面板点击入口**：game.js 点击分发接 `BuildingSystem.tryInteract`（掩体/门自动开面板进详情，
   260px 交互距离；B 面板已打开时仍走 BuildingSystem._onMouseDown）。
 
+### 世界-122 地面连续铺贴定稿（2026-08-16：泥/沙无缝地面 + 草点缀）
+
+场景八地面从"菱形石板地砖"改为**无缝连续纹理**（详细管线见第 2 区
+「地面无缝纹理统一入口：floor-asset.py」）：
+- 泥地 `floor_mud_seamless` + 沙地软边补丁 `floor_sand_seamless`（噪声不规则边界）；
+- 30° 等距纵向压缩 0.5774、侵入式分块 pad=3（细线/黑边收尾）；
+- 草簇 `deco_grass_1/2` 固定朝向点缀，不参与砖的 X/Y 翻转；
+- 降饱和：泥 S 68.8→39%、沙 59.1→37%（desaturate-texture.py）。
+- 已验证：跨界亮度扫描无黑缝（最暗 103）、沙泥无直角边、8 向循环无方向问题。
+
 ### 后续打磨方向（未做）
 - 波次/Boss 波/经济平衡数值；塔血量被摧毁后重建/出售；怪物分路（多入口）与减速/范围塔；
   塔面板换弹/弹药显示；防守胜利结算（撑过 N 波）；**防御塔机械臂上的武器贴图挂载渲染**
@@ -5317,7 +5410,53 @@ if (enemy._pathManager) {
 
 ---
 
+### 怪物近战打建筑零伤害排查（2026-08-16 三根因，僵尸啃掩体实测）
+
+用户反馈：世界-122 怪物攻击掩体/墙壁，攻击距离足够、动画照播但零伤害。
+CDP 探针 `tools/cdp-defense-hit.mjs`（真实场景注入僵尸/黑狼 + checkTriangleHit 打点）定位三层根因：
+
+1. **CombatSystem swing 命中窗口时钟错配（总根因，全局影响）**：
+   `attack.js` 2026-08-14 起 `_pendingThrust.startTime = nowMs()`（performance.now 单调时钟），
+   读者 `enemy.js updateWeaponAnim` 同步改过，但 **`combat-system.js` 的 swing 分支漏改，仍用
+   `Date.now()`** —— 墙钟减单调时钟恒为巨数 → 200ms 判定窗口永远过期 → `checkTriangleHit`
+   永不执行。表现：攻击动画（windup→swing→recover）完整播放、`_pendingThrust` 存在但被置
+   inactive，命中零伤害。**该坑 8-14 起影响所有敌人近战（不止建筑）**。修复：同源 nowMs()。
+2. **distanceToEntityShape 对矩形建筑高估距离**：掩体/门 Collider 是半径 26 的小圆（圆心在
+   墙段中点），长墙 198×133 被当成小圆 → 贴墙 24px 被算成 101.7px → dynamicRange 命中判定
+   差 1.7px 落空。修复：`collision-helpers.js` 对 `collisionShape==='rect'` 的实体改算点到
+   AABB 的最短距离（与 COVER_FOOT 中心偏移一致）。
+3. **移动系统对结构目标不停车**：`_applyAttackRangeFriction` 用"目标中心距离"刹车，掩体中心
+   在墙体后方永远到不了 → 怪沿墙滑行、路过判定窗口即挥空。修复：结构目标改用形状距离
+   （distanceToEntityShape）刹车，怪贴在墙边停车持续输出。
+
+修复后探针实测：僵尸贴墙真实挥砍命中（1100→1087→1076）、停在墙边；黑狼撕咬照常。
+教训：时钟统一（nowMs）后所有读者必须同源；建筑类长条目标的"距离"一律按 footprint 形状算，
+不能用中心点小圆近似。
+
 ### 常见陷阱：isReachable 步数限制导致路径计算失败
+
+### 伊莉丝圣光 AI（2026-08-17：5 级解锁 + 治疗目标优先级）
+
+- **解锁**：`data/companion-config.json` `warrior_bruno.unlockSkills = { holyLight: 5 }`（原 10 级在露娜档位，伊莉丝原本无圣光）。
+  老档兜底：`Companion.fromSerialized` 存档无 unlockSkills 时回退配置档案（`s.unlockSkills || archive.unlockSkills`），读档/解散再招募即生效。
+- **目标优先级**（`CompanionAI._pickHolyLightTarget`）：玩家（生命不满）→ 自己 → 其他队友（缺血最多者）→ 敌方（最近）。
+  `_tryHolyLight` 挂在伊莉丝默认状态机与 aggressive/patrol 指令的顶部（防御/风车/攻击动画进行中不打断），冷却就绪且命中目标即出手，施法后 200ms 短硬直。
+- **定向施法入口**：`HolyLightSystem.triggerOn(target)`——跳过鼠标瞄准/距离/视线三重判定，冷却/链式/结算口径与 `trigger()` 一致；非玩家源直接结算（伊莉丝无 spell 动画，不出玩家施法动作）。
+- **友军判定坑**：圣光结算原用 `best._faction === src._faction`，而玩家 `player` / 队友 `companion` 阵营不同——伊莉丝奶玩家会被误判成"打敌人"。
+  已统一为友方阵营组 `FRIENDLY_FACTIONS = {player, companion}`（与 damageable-entity.isFriendlyFire 同口径），`trigger()` 与 `triggerOn()` 同步修正。
+- **验证**：`tools/cdp-elise-holylight.mjs` 实机四连用例（打点记录目标）：玩家 100→131、自己 115→144、队友 80→109、敌人 120→58（僵尸 ×2）；eslint / vite build / party 268 项全过。
+
+### 伊莉丝动作显示尺寸统一（2026-08-17：attack/windmill 偏小）
+
+- **实测**（逐帧内容 bbox + CDP 读 Phaser 精灵显示尺寸）：idle 内容高 461px 渲染 129.7px；
+  attack 平均 433px（站立帧 458~469 与 idle 一致，但挥剑帧自然倾斜 367~430 占多数）渲染 121.8px
+  （-6%）；windmill 平均 399px 渲染 112px（-13.5%）。用户反馈"施法/攻击缩小"属实。
+- **修复（配置驱动，不改 PNG）**：`companion-config animations.attack.displayScale=1.065`、
+  `windmill.displayScale=1.155`；GameScene 归一化 `setDisplaySize(格宽×normS×k, 格高×normS×k)`，
+  脚底修正同步为 `0.4375×(512−格高×k)×normS`——放大后脚底仍贴同一世界线（实测三动作脚底 y 一致）。
+  其他动作无 displayScale → k=1，行为不变。
+- **坑**：直接量帧格尺寸没用，要看"内容占比×显示映射"；渲染侧归一化已按帧格线性映射，
+  内容占比不同的动作需要逐动作 displayScale；CDP 探针直接读 `sprite.displayWidth/Height` + `frame` 最准。
 
 #### 问题
 `PathFinder.isReachable()` 使用 Flood Fill 检查区域连通性，但步数限制太死：

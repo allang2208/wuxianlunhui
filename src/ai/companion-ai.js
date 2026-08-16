@@ -958,6 +958,54 @@ export class CompanionAI {
     // ==================== 剑盾近战（伊莉丝，2026-08-15）====================
 
     /**
+     * 圣光目标选择（2026-08-17 用户口径）：
+     * 玩家（生命不满）→ 自己（生命不满）→ 其他队友（生命不满，缺血最多优先）→ 敌方（最近）。
+     */
+    _pickHolyLightTarget(entities, player) {
+        const c = this.c;
+        const missing = (e) => {
+            if (!e || !e.active) return 0;
+            const cur = (e.data && typeof e.data.hp === 'number') ? e.data.hp : e.hp;
+            const max = (e.data && e.data.maxHp) || e.maxHp || 0;
+            if (!(cur > 0) || !(max > 0)) return 0;
+            return Math.max(0, max - cur);
+        };
+        // 1) 玩家
+        if (missing(player) > 0) return player;
+        // 2) 自己
+        if (missing(c) > 0) return c;
+        // 3) 其他队友：缺血量最多者优先
+        let bestTeammate = null;
+        let bestMissing = 0;
+        const members = (Game && Game.PartySystem && Game.PartySystem.members) || [];
+        for (const m of members) {
+            if (!m || m === c || !m.active) continue;
+            const miss = missing(m);
+            if (miss > bestMissing) { bestMissing = miss; bestTeammate = m; }
+        }
+        if (bestTeammate) return bestTeammate;
+        // 4) 敌方：无友方缺血时打最近敌人
+        return this._pickMeleeTarget(this._activeEnemies(entities), c);
+    }
+
+    /** 圣光施法（解锁/冷却就绪时按目标优先级出手；成功返回 true） */
+    _tryHolyLight(entities, player) {
+        const c = this.c;
+        const sys = this._systems;
+        if (!sys || !sys.holyLight) return false;
+        if (!c.skills || !c.skills.holyLight) return false; // 未解锁（伊莉丝 5 级）
+        if (c._holyLightCooldown > 0) return false;
+        const target = this._pickHolyLightTarget(entities, player);
+        if (!target) return false;
+        if (!sys.holyLight.triggerOn(target)) return false;
+        // 施法后短暂站定（伊莉丝无 spell 动画，直接出效果 + 小硬直防漂移）
+        this._castRecoverTimer = Math.max(this._castRecoverTimer || 0, this.cfg.castRecoverMs || 200);
+        this._lastAttackAt = Date.now();
+        c._lastAction = 'cast';
+        return true;
+    }
+
+    /**
      * 默认状态机：防御（范围内 >3 敌 或 有远程敌）> 近战攻击 > 追击 > 跟随玩家。
      * 防御/攻击期间冻结移动（_frozenForCast），由 _updateWarriorCombat 逐帧推进。
      */
@@ -971,6 +1019,8 @@ export class CompanionAI {
         // 风车（whirlwind）：范围内目标达标且冷却就绪 → 优先释放（爆发技优先于防御兜底）；
         // 风车进行中站定
         if (this._whirlwindHitSet) return;
+        // 圣光（2026-08-17）：玩家→自己→队友缺血优先治疗，敌方兜底伤害（伊莉丝 5 级解锁）
+        if (this._tryHolyLight(entities, player)) return;
         if (c.skills && c.skills.whirlwind && this._whirlwindCd <= 0 && this._shouldWhirlwind(enemies)) {
             this._tryWhirlwind();
             return;
@@ -1134,6 +1184,7 @@ export class CompanionAI {
         // 与默认状态机同口径：风车/防御优先级一致（风车优先），冷却中正常近战
         if (this._defendPhase) return;
         if (this._whirlwindHitSet) return;
+        if (this._tryHolyLight(entities, player)) return;
         if (c.skills && c.skills.whirlwind && this._whirlwindCd <= 0 && this._shouldWhirlwind(enemies)) {
             this._tryWhirlwind();
             return;

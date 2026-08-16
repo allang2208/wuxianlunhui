@@ -1,16 +1,14 @@
 #!/usr/bin/env node
-/* 世界-122 地砖池实机抽查（2026-08-16）：
- * - 进 scene8 → 确认 yellowmud_new1 贴图已注册；
- * - 在菱形内网格采样已烘焙分块画布像素，统计绿砖/黄砖/黑区占比；
- * 用法：node tools/cdp-scene8-tilecheck.mjs（需 vite dev server 在 5173）
- */
+/* 世界-122 连续铺贴接缝抽查（2026-08-16）：
+ * - 沿 y=2048 横穿 x=2048 分块边界逐点采样亮度，确认无黑缝/暗带；
+ * - 另在菱形内随机扫线统计最暗亮度，确保无背景色裸露。 */
 import { spawn } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
 const EDGE = 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe';
-const CDP_PORT = 9396;
+const CDP_PORT = 9398;
 const CDP = `http://127.0.0.1:${CDP_PORT}`;
 const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'edge-cdp-'));
 let edge = null;
@@ -82,52 +80,26 @@ for (let i = 0; i < 20; i++) {
 }
 await sleep(1500);
 
-const tex = await ev(`(() => ({
-  yellow: window.__phaserScene.textures.exists('yellowmud_new1'),
-  swamp: window.__phaserScene.textures.exists('swampbrick_new1'),
-  mudSeamless: window.__phaserScene.textures.exists('floor_mud_seamless'),
-  sandSeamless: window.__phaserScene.textures.exists('floor_sand_seamless'),
-  grass1: window.__phaserScene.textures.exists('deco_grass_1'),
-  grass2: window.__phaserScene.textures.exists('deco_grass_2'),
-}))()`);
-console.log('贴图注册:', tex);
-
-// 在菱形内（cx=3072,cy=2048,rx=3072,ry=2048）网格采样 7x5 点
-const stats = await ev(`(async () => {
+// 横穿 x=2048 分块边界的亮度扫描（y=2048, x∈[2000,2096] step 4）
+const scan = await ev(`(async () => {
   const cs = 2048;
   const pts = [];
-  for (let iy = 0; iy < 5; iy++) {
-    for (let ix = 0; ix < 7; ix++) {
-      const x = 400 + ix * 780, y = 500 + iy * 760;
-      if (Math.abs(x - 3072) / 3072 + Math.abs(y - 2048) / 2048 > 1) continue;
-      pts.push([x, y]);
-    }
-  }
+  for (let x = 2000; x <= 2096; x += 4) pts.push(x);
   const out = [];
-  for (const [x, y] of pts) {
+  for (const x of pts) {
+    const y = 2048;
+    const cx = Math.floor(x / cs), cy = Math.floor(y / cs);
     try {
-      const cx = Math.floor(x / cs), cy = Math.floor(y / cs);
       const tex = window.__phaserScene.textures.get('terrain_chunk_' + cx + '_' + cy);
-      if (!tex || !tex.getSourceImage()) { out.push([x, y, 'nb']); continue; }
-      const c = tex.getSourceImage();
-      const d = c.getContext('2d').getImageData(x - cx * cs, y - cy * cs, 1, 1).data;
-      out.push([x, y, d[0], d[1], d[2]]);
-    } catch { out.push([x, y, 'err']); }
+      if (!tex || !tex.getSourceImage()) { out.push([x, -1]); continue; }
+      const d = tex.getSourceImage().getContext('2d').getImageData(x - cx * cs, y - cy * cs, 1, 1).data;
+      out.push([x, (d[0] + d[1] + d[2]) / 3]);
+    } catch { out.push([x, -2]); }
   }
   return out;
 })()`);
-let green = 0, yellow = 0, black = 0, other = 0;
-for (const p of stats) {
-    if (p.length === 3) { other++; continue; }
-    const [x, y, r, g, b] = p;
-    if (r < 12 && g < 12 && b < 12) black++;
-    else if (g > r + 20 && g > b + 20) green++;
-    else if (r > 110 && g > 70 && b < 90) yellow++;
-    else other++;
-}
-console.log(`采样 ${stats.length} 点：绿砖 ${green} / 黄砖 ${yellow} / 黑区 ${black} / 其他 ${other}`);
-const shot = await send('Page.captureScreenshot', { format: 'png' });
-fs.mkdirSync(path.join('tools', 'verify-shots'), { recursive: true });
-fs.writeFileSync(path.join('tools', 'verify-shots', 'scene8_yellowmud_v1.png'), Buffer.from(shot.result.data, 'base64'));
-console.log('saved tools/verify-shots/scene8_yellowmud_v1.png');
+const lums = scan.filter(p => p[1] >= 0).map(p => p[1]);
+console.log('跨界扫描点:', scan.length, '最暗亮度:', lums.length ? Math.round(Math.min(...lums)) : 'N/A',
+            '平均:', lums.length ? Math.round(lums.reduce((a, b) => a + b, 0) / lums.length) : 'N/A');
+console.log('跨界亮度序列:', lums.map(v => Math.round(v)).join(','));
 await cleanup(0);

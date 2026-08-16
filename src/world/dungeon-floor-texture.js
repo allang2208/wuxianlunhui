@@ -36,7 +36,7 @@ let _floorProfile = null;
  */
 export function setDungeonFloorProfile(profile) {
     _floorProfile = (profile && Array.isArray(profile.tiles) && profile.tiles.length > 0)
-        ? { tiles: [...profile.tiles], glow: profile.glow !== false, overlapX: profile.overlapX ?? 0, overlapY: profile.overlapY ?? 0, backgroundColor: profile.backgroundColor || null, deco: profile.deco || null }
+        ? { tiles: [...profile.tiles], glow: profile.glow !== false, overlapX: profile.overlapX ?? 0, overlapY: profile.overlapY ?? 0, backgroundColor: profile.backgroundColor || null, deco: profile.deco || null, continuous: profile.continuous === true, textureScaleY: profile.textureScaleY ?? 0.5774, sandPatches: profile.sandPatches || null }
         : null;
 }
 
@@ -159,6 +159,163 @@ function _drawIsoLayerChunk(ctx, tiles, ox, oy, w, h, overlapX = 0, overlapY = 0
     }
 }
 
+/** 地板点缀（草簇等，2026-08-16）：
+ * - 独立于地砖层的装饰贴图，固定朝向绘制（仅随机水平镜像，草簇本身径向对称安全），
+ *   不做 X/Y 翻转——避免 8 向循环把有方向性的素材翻转；
+ * - 位置按块坐标种子确定性随机，块重烘焙时点缀位置不变；
+ * - 菱形地块模式下只在菱形内（距边留 margin）点缀，草不压黑边。
+ */
+function _drawFloorDecoChunk(ctx, profile, ox, oy, cw, ch, diamond) {
+    const deco = profile.deco;
+    if (!deco || !Array.isArray(deco.textures) || deco.textures.length === 0) return;
+    const imgs = [];
+    for (const key of deco.textures) {
+        const img = _getSourceImage(key);
+        if (img) imgs.push(img);
+    }
+    if (imgs.length === 0) return;
+    const perChunk = deco.perChunk ?? 30;
+    const size = deco.size ?? 100;
+    const minDist = deco.minDist ?? 120;
+    const rand = _seededRand(((ox * 73856093) ^ (oy * 19349663) ^ 0x5f356495) >>> 0);
+    const inDiamond = (gx, gy) => {
+        if (!diamond) return true;
+        return (Math.abs(gx - diamond.cx) / diamond.rx + Math.abs(gy - diamond.cy) / diamond.ry) <= 0.94;
+    };
+    const placed = [];
+    let guard = 0;
+    const attempts = perChunk * 40;
+    const pad = size; // 中心离块边留半个贴图高，避免跨块接缝裁断草簇
+    while (placed.length < perChunk && guard++ < attempts) {
+        const px = pad + rand() * (cw - pad * 2);
+        const py = pad + rand() * (ch - pad * 2);
+        if (px < pad || px > cw - pad || py < pad || py > ch - pad) continue;
+        if (!inDiamond(ox + px, oy + py)) continue;
+        if (placed.some((q) => Math.hypot(q[0] - px, q[1] - py) < minDist)) continue;
+        placed.push([px, py]);
+        const img = imgs[(rand() * imgs.length) | 0];
+        const jitter = 0.85 + rand() * 0.3;
+        const h = size * jitter;
+        const w = img.width * (h / img.height);
+        ctx.save();
+        ctx.translate(px, py);
+        if (rand() < 0.5) ctx.scale(-1, 1);
+        ctx.drawImage(img, -w / 2, -h / 2, w, h);
+        ctx.restore();
+    }
+}
+
+/** 沙地软边补丁（2026-08-16）：在泥地连续铺贴之上，按种子位置撒圆形沙地补丁，
+ * 边缘径向渐隐（destination-in 渐变遮罩），与泥地无硬接缝、无黑边。 */
+function _drawSandPatches(ctx, profile, ox, oy, cw, ch, diamond) {
+    const sp = profile.sandPatches;
+    if (!sp || !sp.texture) return;
+    const img = _getSourceImage(sp.texture);
+    if (!img) return;
+    const perChunk = sp.perChunk ?? 6;
+    const size = sp.size ?? 700;
+    const minDist = sp.minDist ?? 900;
+    const pad = size; // 中心离块边留半径，避免跨块裁断
+    const rand = _seededRand(((ox * 2654435761) ^ (oy * 40503) ^ 0x9e3779b9) >>> 0);
+    const radius = size / 2;
+    const placed = [];
+    let guard = 0;
+    const attempts = perChunk * 30;
+    while (placed.length < perChunk && guard++ < attempts) {
+        const px = pad + rand() * (cw - pad * 2);
+        const py = pad + rand() * (ch - pad * 2);
+        if (px < pad || px > cw - pad || py < pad || py > ch - pad) continue;
+        if (diamond) {
+            const gx = ox + px;
+            const gy = oy + py;
+            // 距菱形边界至少留 补丁半径+余量，避免沙地铺到黑区
+            const margin = (radius + 60) / diamond.ry;
+            if (Math.abs(gx - diamond.cx) / diamond.rx + Math.abs(gy - diamond.cy) / diamond.ry > 1 - margin) continue;
+        }
+        if (placed.some((q) => Math.hypot(q[0] - px, q[1] - py) < minDist)) continue;
+        placed.push([px, py]);
+        // 临时画布：沙地纹理按补丁世界相位绘制 + 径向渐隐遮罩
+        const ps = Math.ceil(size);
+        const tc = document.createElement('canvas');
+        tc.width = ps;
+        tc.height = ps;
+        const tctx = tc.getContext('2d');
+        const tw = img.width;
+        // 沙地纹理同样按 30° 等距纵向压缩，与泥地连续铺贴视角一致
+        const th = Math.round(img.height * (profile.textureScaleY ?? 0.5774));
+        const phaseX = ((ox + px - ps / 2) % tw + tw) % tw;
+        const phaseY = ((oy + py - ps / 2) % th + th) % th;
+        // 循环平铺覆盖整张补丁画布（世界相位一致）——单张纹理画不满会露直切边
+        for (let gx = -phaseX - tw; gx < ps + tw; gx += tw) {
+            for (let gy = -phaseY - th; gy < ps + th; gy += th) {
+                tctx.drawImage(img, gx, gy, tw, th);
+            }
+        }
+        // 噪声扰动的不规则边界 + 宽淡入淡出（替代规整圆形/直边）
+        const noise = _makeNoiseMask(ps, rand);
+        const maskCanvas = document.createElement('canvas');
+        maskCanvas.width = ps;
+        maskCanvas.height = ps;
+        const mctx = maskCanvas.getContext('2d');
+        const imgData = mctx.createImageData(ps, ps);
+        const md = imgData.data;
+        for (let y = 0; y < ps; y++) {
+            for (let x = 0; x < ps; x++) {
+                const d = Math.hypot(x - ps / 2, y - ps / 2) / (ps / 2);
+                const n = noise[y * ps + x];
+                const b = 0.52 + 0.22 * n;
+                const fw = 0.18;
+                let t = (b - d) / fw + 0.5;
+                t = Math.max(0, Math.min(1, t));
+                const a = t * t * (3 - 2 * t);
+                const idx = (y * ps + x) * 4;
+                md[idx] = md[idx + 1] = md[idx + 2] = 255;
+                md[idx + 3] = Math.round(a * 255);
+            }
+        }
+        mctx.putImageData(imgData, 0, 0);
+        tctx.globalCompositeOperation = 'destination-in';
+        tctx.drawImage(maskCanvas, 0, 0);
+        ctx.drawImage(tc, px - ps / 2, py - ps / 2);
+    }
+}
+
+/** 双八度值噪声（-1~1），用于沙地补丁不规则边界（种子确定性） */
+function _makeNoiseMask(ps, rand) {
+    const octaves = [[14, 0.6], [40, 0.4]];
+    const mask = new Float32Array(ps * ps);
+    let total = 0;
+    for (const [cell, amp] of octaves) {
+        const cols = Math.ceil(ps / cell) + 2;
+        const rows = Math.ceil(ps / cell) + 2;
+        const vals = new Float32Array(rows * cols);
+        for (let r = 0; r < rows; r++) {
+            for (let c = 0; c < cols; c++) vals[r * cols + c] = rand() * 2 - 1;
+        }
+        for (let y = 0; y < ps; y++) {
+            const fy = y / cell;
+            const y0 = Math.floor(fy);
+            const ty = fy - y0;
+            for (let x = 0; x < ps; x++) {
+                const fx = x / cell;
+                const x0 = Math.floor(fx);
+                const tx = fx - x0;
+                const v00 = vals[y0 * cols + x0];
+                const v10 = vals[y0 * cols + x0 + 1];
+                const v01 = vals[(y0 + 1) * cols + x0];
+                const v11 = vals[(y0 + 1) * cols + x0 + 1];
+                const v0 = v00 + (v10 - v00) * tx;
+                const v1 = v01 + (v11 - v01) * tx;
+                mask[y * ps + x] += (v0 + (v1 - v0) * ty) * amp;
+            }
+        }
+        total += amp;
+    }
+    const inv = total > 0 ? 1 / total : 1;
+    for (let i = 0; i < mask.length; i++) mask[i] *= inv;
+    return mask;
+}
+
 /**
  * 烘焙单块地板（2048² 分块惰性加载用）。
  * 只在地图边界上的块，其对应外侧边叠加黑色渐隐（FLOOR_EDGE_FADE）。
@@ -197,7 +354,22 @@ export function bakeDungeonFloorChunk(ox, oy, cw, ch, mapW, mapH, fallbackTerrai
             ctx.closePath();
             ctx.clip();
         }
-        _drawIsoLayerChunk(ctx, tiles, ox, oy, cw, ch, profile.overlapX ?? 0, profile.overlapY ?? 0);
+        if (profile.continuous) {
+            // 连续铺贴：世界坐标对齐相位重复整张无缝纹理（跨块/跨方向无接缝）；
+            // 纵向按 30° 等距投影压缩（0.5774），避免"垂直俯视"观感
+            const img = tiles[0].img;
+            const tw = img.width;
+            const th = Math.round(img.height * (profile.textureScaleY ?? 0.5774));
+            const startX = ox - (((ox % tw) + tw) % tw);
+            const startY = oy - (((oy % th) + th) % th);
+            for (let gx = startX - tw; gx < ox + cw + tw; gx += tw) {
+                for (let gy = startY - th; gy < oy + ch + th; gy += th) {
+                    ctx.drawImage(img, gx - ox, gy - oy, tw, th);
+                }
+            }
+        } else {
+            _drawIsoLayerChunk(ctx, tiles, ox, oy, cw, ch, profile.overlapX ?? 0, profile.overlapY ?? 0);
+        }
         if (profile.glow !== false) {
             const glowTiles = [];
             for (const t of tiles) {
@@ -261,6 +433,9 @@ export function bakeDungeonFloorChunk(ox, oy, cw, ch, mapW, mapH, fallbackTerrai
                 ctx.fillRect(cw - fade, 0, fade, ch);
             }
         }
+        // 沙地软边补丁（连续模式用）→ 地板点缀（草簇固定朝向）
+        _drawSandPatches(ctx, profile, ox, oy, cw, ch, diamond);
+        _drawFloorDecoChunk(ctx, profile, ox, oy, cw, ch, diamond);
     } else {
         const tc = fallbackTerrain || DEFAULT_FALLBACK_TERRAIN;
         ctx.fillStyle = tc.floorColor;
@@ -287,14 +462,14 @@ export function bakeDungeonFloorChunk(ox, oy, cw, ch, mapW, mapH, fallbackTerrai
  * @param {number} height 世界高
  * @param {number} [chunkSize=2048] 块边长
  */
-export function applyDungeonFloorChunked(width, height, chunkSize = 2048, diamond = null) {
+export function applyDungeonFloorChunked(width, height, chunkSize = 2048, diamond = null, pad = 3) {
     if (CONFIG) {
         CONFIG.WORLD_WIDTH = width;
         CONFIG.WORLD_HEIGHT = height;
     }
     if (Renderer) {
         Renderer.terrainTexture = null;
-        Renderer.terrainChunks = { chunkSize, mapW: width, mapH: height, diamond: diamond || null };
+        Renderer.terrainChunks = { chunkSize, mapW: width, mapH: height, diamond: diamond || null, pad };
     }
     if (typeof window !== 'undefined' && window.__phaserScene && typeof window.__phaserScene.syncTerrain === 'function') {
         window.__phaserScene.syncTerrain();
