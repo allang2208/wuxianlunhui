@@ -12,6 +12,7 @@ import { TRAP_CONFIG, TRAP_GRADES } from '../../world/trap-config.js';
 import companionConfigData from '../../../data/companion-config.json';
 import hamsterMinerConfig from '../../../data/hamster-miner-config.json';
 import hamsterWarriorConfig from '../../../data/hamster-warrior-config.json';
+import hamsterShooterConfig from '../../../data/hamster-shooter-config.json';
 
 export class BootScene extends Scene {
     constructor() {
@@ -86,8 +87,8 @@ export class BootScene extends Scene {
             }
         }
 
-        // ---- 世界-122 友方单位（仓鼠矿工/仓鼠战士；独立配置，不入招募池）----
-        for (const unitConfig of [hamsterMinerConfig, hamsterWarriorConfig]) {
+        // ---- 世界-122 友方单位（仓鼠矿工/战士/射手；独立配置，不入招募池）----
+        for (const unitConfig of [hamsterMinerConfig, hamsterWarriorConfig, hamsterShooterConfig]) {
             for (const [animKey, def] of Object.entries(unitConfig.animations || {})) {
                 if (!def || !def.src) continue;
                 this.load.spritesheet(`companion_${unitConfig.id}_${animKey}`, def.src, {
@@ -548,8 +549,8 @@ export class BootScene extends Scene {
 
         // 世界-122 友方单位动画注册：两段式（startFrames 起步播一次 → loopFrames 循环）
         // 仓鼠矿工 mining = 完整 19 帧起步 + 5~19 帧单次；仓鼠战士 attack = 完整 1~24 帧
-        // 起步 + 第 6~24 帧循环（2026-08-16 用户口径：持续攻击从第 6 帧循环）
-        for (const unitConfig of [hamsterMinerConfig, hamsterWarriorConfig]) {
+        // 起步 + 第 6~24 帧循环；仓鼠射手 attack = 13 帧单次 + projectile 单帧贴图
+        for (const unitConfig of [hamsterMinerConfig, hamsterWarriorConfig, hamsterShooterConfig]) {
             for (const [animKey, def] of Object.entries(unitConfig.animations || {})) {
                 if (!def || !def.src) continue;
                 const texKey = `companion_${unitConfig.id}_${animKey}`;

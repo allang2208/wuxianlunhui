@@ -22,6 +22,7 @@ import { DefenseSystem, DEFENSE_CONFIG } from './defense-system.js';
 import { EnergyNodeSystem } from './energy-node-system.js';
 import { HamsterMinerSystem } from './hamster-miner-system.js';
 import { HamsterWarriorSystem } from './hamster-warrior-system.js';
+import { HamsterShooterSystem } from './hamster-shooter-system.js';
 import { HamsterHutSystem } from './hamster-hut-system.js';
 import { ENERGY_CONFIG } from '../config/energy-config.js';
 import { BuildingSystem } from './building-system.js';
@@ -156,6 +157,10 @@ export const SceneManager = {
             // 世界-122 仓鼠战士（玩家友方单位）随场景离场拆除
             if (HamsterWarriorSystem && HamsterWarriorSystem.active) {
                 HamsterWarriorSystem.teardown();
+            }
+            // 世界-122 仓鼠射手（玩家友方单位）随场景离场拆除
+            if (HamsterShooterSystem && HamsterShooterSystem.active) {
+                HamsterShooterSystem.teardown();
             }
             if (EffectManager && EffectManager.clearFloatingTexts) {
                 EffectManager.clearFloatingTexts();
@@ -1020,6 +1025,9 @@ export const SceneManager = {
 
         // 世界-122 仓鼠战士：玩家友方单位，自动找最近敌人近战输出（帮助玩家攻击）
         HamsterWarriorSystem.setup(player);
+
+        // 世界-122 仓鼠射手：玩家友方单位，自动找最近敌人远程输出（帮助玩家攻击）
+        HamsterShooterSystem.setup(player);
     },
 
     /**
