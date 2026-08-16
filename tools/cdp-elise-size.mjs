@@ -81,16 +81,18 @@ const out = await evalJs(`(async () => {
     const PS = Game.PartySystem;
     const player = Game.player;
     for (const m of [...(PS.members || [])]) PS.removeCompanion(m.id);
+    // 同时招募伊莉丝与露娜测量（露娜 2026-08-17 追加排查）
     PS.addCompanion('warrior_bruno');
+    PS.addCompanion('mage_luna');
     const elise = PS.members.find((m) => m.id === 'warrior_bruno');
-    elise.data.level = 5;
-    elise._checkUnlocks();
+    const luna = PS.members.find((m) => m.id === 'mage_luna');
     elise.x = player.x + 120; elise.y = player.y + 40;
+    luna.x = player.x + 220; luna.y = player.y + 40;
     // 禁用 AI 工厂，避免每 120ms 决策把 _animState 覆盖回 idle
     PS._aiFactories['warrior_bruno'] = null;
+    PS._aiFactories['mage_luna'] = null;
     const wait = (ms) => new Promise((r) => setTimeout(r, ms));
     await wait(800);
-    const scene = window.__phaserScene;
     // 轮询等精灵创建（_syncCompanionSprites 每帧执行）
     let sprite = null;
     for (let i = 0; i < 20 && !sprite; i++) {
@@ -98,6 +100,7 @@ const out = await evalJs(`(async () => {
         if (s && s._companionSprites) sprite = s._companionSprites['warrior_bruno'] || null;
         if (!sprite) await wait(250);
     }
+    const scene = window.__phaserScene;
     if (!sprite) {
         return {
             diag: {
@@ -110,23 +113,27 @@ const out = await evalJs(`(async () => {
             },
         };
     }
-    const read = () => ({
-        tex: sprite.texture.key,
-        frame: [sprite.frame.width, sprite.frame.height],
-        display: [Math.round(sprite.displayWidth), Math.round(sprite.displayHeight)],
-        frameName: sprite.frame.name,
-        pos: [Math.round(sprite.x), Math.round(sprite.y)],
-    });
-    const res = {};
-    const states = ['idle', 'walk', 'run', 'attack', 'windmill', 'defend'];
-    for (const st of states) {
-        sprite.setData('atkPlayed', false);
-        sprite.setData('wmPlayed', false);
-        sprite.setData('defPhase', null);
-        elise._animState = st;
-        await wait(250);
-        res[st] = read();
-    }
+    const res = { elise: {}, luna: {} };
+    const measureOne = async (member, spriteObj, states, out) => {
+        const readOne = () => ({
+            tex: spriteObj.texture.key,
+            frame: [spriteObj.frame.width, spriteObj.frame.height],
+            display: [Math.round(spriteObj.displayWidth), Math.round(spriteObj.displayHeight)],
+            frameName: spriteObj.frame.name,
+            pos: [Math.round(spriteObj.x), Math.round(spriteObj.y)],
+        });
+        for (const st of states) {
+            spriteObj.setData('atkPlayed', false);
+            spriteObj.setData('wmPlayed', false);
+            spriteObj.setData('defPhase', null);
+            member._animState = st;
+            await wait(250);
+            out[st] = readOne();
+        }
+    };
+    const lunaSprite = scene._companionSprites['mage_luna'];
+    await measureOne(elise, sprite, ['idle', 'walk', 'run', 'attack', 'windmill', 'defend'], res.elise);
+    await measureOne(luna, lunaSprite, ['idle', 'walk', 'run', 'spell'], res.luna);
     for (const m of [...(PS.members || [])]) PS.removeCompanion(m.id);
     return res;
     } catch (e) { return { error: String(e && e.stack || e) }; }

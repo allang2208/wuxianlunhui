@@ -39,6 +39,8 @@
   玩家→自己→队友→敌方；友军判定按阵营组 {player,companion}（不能用 _faction 直比）
 - 2026-08-17：伊莉丝 attack/windmill 显示偏小（内容 -6%/-13%），用配置 displayScale
   （1.065/1.155）放大，GameScene 脚底修正随 k 同步，其余动作不变
+- 2026-08-17：露娜 walk/run/spell 显示偏小（全 512 帧格但内容比 idle 小 6%），
+  配置 displayScale=1.062 放大，脚底同步贴地
 
 ### 4. G18 攻击力（player.js）
 - `_fireRanged` 中手枪/弓伤害优先调用 `getCurrentWeaponAtk()`，包含强化加成
