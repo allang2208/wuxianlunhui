@@ -11,6 +11,17 @@ export function distanceToEntityShape(entity, px, py) {
     if (!entity) return Infinity;
     const c = entity.collider;
     if (c) {
+        // 矩形 footprint（掩体/门闸等长条建筑）：点到 AABB 的最短距离，比"圆心距 − 半径"
+        // 精确——否则 198×133 的长墙被当成半径 26 的小圆，贴墙怪的真实距离被高估
+        // （实测贴墙 24px 被算成 101.7px），触发攻击动画但 dynamicRange 命中判定落空
+        // （2026-08-16 世界-122 实机复现：僵尸啃掩体零伤害）。
+        if (entity.collisionShape === 'rect' && entity.collisionWidth > 0 && entity.collisionHeight > 0) {
+            const halfW = entity.collisionWidth / 2;
+            const halfH = entity.collisionHeight / 2;
+            const closestX = Math.max(c.x - halfW, Math.min(px, c.x + halfW));
+            const closestY = Math.max(c.y - halfH, Math.min(py, c.y + halfH));
+            return Math.hypot(px - closestX, py - closestY);
+        }
         return Math.hypot(px - c.x, py - c.y) - c.radius;
     }
     // 兜底：兼容尚未生成 Collider 的实体
