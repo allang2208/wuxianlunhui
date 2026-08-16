@@ -1448,6 +1448,10 @@ spec.lighting / roof / lid 材质。教训：核心视觉反复不满时，及�
 `assets/terrain/hamster_barracks.png`（656×623，footOffsetY≈312）。
 屋顶红瓦：`roof_tex = hamster_barracks_roof_tex.png`（同管线红瓦 prompt，seed 12202，
 RGB 151/87/70 红主色）+ 屋顶 prism 材质 `roof`（墙身仍是黑砖 wall）。
+**屋顶只坡面红瓦、山墙黑砖 + 瓦行平行檐口**：render-factory-real.py 的 make_prism 现在
+按面分材质槽（端三角/底面=槽0 墙，坡面=槽1 屋顶）+ 新增 prism_uv（坡面 u 沿 X 瓦行
+平行斜边、v=z/H 沿坡度；山墙平面映射）——`material:"roof"` 的棱柱自动走双槽+坡面 UV，
+其它材质棱柱兜底复位单槽。
 投影坑：前塔尖顶（z 高于屋脊但 y 更靠前）会被屋顶前坡遮挡——2.5D 前低后高投影下，
 「塔顶高于屋脊」≠「屏幕上高于屋脊」，塔台做平顶最稳。
 

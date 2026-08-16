@@ -905,6 +905,9 @@ this.ai = config.ai || {};
 - **44.8° 布局的"多余柱子"陷阱**：后右角塔（local 153.5,68 → world x≈+56）在屏幕上
   会独立矗立在建筑右上（从顶贯穿到中段，与主体分离），视觉像多出来的柱子——仓鼠兵营
   已删该塔。角塔数量按剪影验收，别默认四角全上。
+- **棱柱分面材质**：三角棱柱（prism）有坡面+山墙端面两类面，需要"坡面红瓦/端面黑砖"
+  时按面设 material_index（坡面=1 屋顶槽、端面/底面=0 墙槽），再给坡面做专用 UV
+  （u 沿棱柱 X = 瓦行平行檐口斜边、v=z/H 沿坡度）——别把整根棱柱贴同一张图。
 - 建模复用：仓鼠小屋同视角 spec 模板（elevation 30 / azimuth 0 / resolution 1024 /
   bottom_y 880 / max_width_frac 0.8）；黑砖走 klein-walltex LoRA
   （`--host 192.168.3.142 --model flux2-klein-4b-walltex`），验收看暗色/白边 0%/砖格 FFT 峰。
