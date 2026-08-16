@@ -34,7 +34,7 @@ const FACE_H = { A: { x: -88, y: -108 }, B: { x: 88, y: -21 } };
 const FACE_LEN = Math.hypot(FACE_V.B.x - FACE_V.A.x, FACE_V.B.y - FACE_V.A.y); // 196.33
 const STEP = FACE_LEN - 40; // 端帽叠合 40px
 const SIZE = 4096;
-const GATE_HALF = 135.2; // worldFaceLen 270.4 / 2
+const GATE_HALF = 88;    // worldFaceLen 176 / 2（一格 = 一堵墙，2026-08-16）
 
 const T = { x: BASE.x, y: BASE.y - RY };
 const R = { x: BASE.x + RX, y: BASE.y };
@@ -75,8 +75,12 @@ function buildBaseRoom() {
             }
             const x = Math.round(e.from.x + ux * t);
             const y = Math.round(e.from.y + uy * t);
+            const tVal = t;
+            const edgeKey = e.key;
+            const oUx = ux, oUy = uy, oLen = len;
             const cover = {
-                id: `cover_${e.key}_${i}`, x, y,
+                id: `cover_${e.key}_${i}`, x, y, _t: tVal, _edge: edgeKey,
+                _ux: oUx, _uy: oUy, _len: oLen, _halfToV: halfToV, _halfAway: halfAway,
                 active: true, hp: 1100, maxHp: 1100,
                 _isDefenseStructure: true, _faction: 'player',
                 name: '掩体·D级',
@@ -87,6 +91,35 @@ function buildBaseRoom() {
             const bb = { x: x + g.B.x, y: y + g.B.y };
             segs.push({ x1: a.x, y1: a.y, x2: bb.x, y2: bb.y, halfThick: 26, _cover: true, _owner: cover });
             cover._coverSeg = segs[segs.length - 1];
+        }
+    }
+    // —— 门洞两侧墙段向门 face 收拢并重叠（与 defense-system._buildBaseRoom 同口径）——
+    const ge = EDGES.find((e) => e.key === OPEN_EDGE);
+    if (ge) {
+        const len = Math.hypot(ge.to.x - ge.from.x, ge.to.y - ge.from.y);
+        const ux = (ge.to.x - ge.from.x) / len, uy = (ge.to.y - ge.from.y) / len;
+        const openMid = len / 2;
+        const gHalf = Math.hypot(GATE_HALF * 2, GATE_HALF) / 2;
+        const g0 = openMid - gHalf;
+        const g1 = openMid + gHalf;
+        const JOIN_OVERLAP = 12;
+        const g = ge.orient === 'v' ? FACE_V : FACE_H;
+        const projA = g.A.x * ux + g.A.y * uy;
+        const projB = g.B.x * ux + g.B.y * uy;
+        const towardV = projA < projB ? 'A' : 'B';
+        const hToV = Math.abs(towardV === 'A' ? projA : projB);
+        const hAway = Math.abs(towardV === 'A' ? projB : projA);
+        for (const c of covers) {
+            if (c._edge !== OPEN_EDGE) continue;
+            const f0 = c._t - hToV;
+            const f1 = c._t + hAway;
+            if (f1 > g0 - 60 && f1 < g0 - 1) c._t = (g0 + JOIN_OVERLAP) - hAway;
+            else if (f0 > g1 + 1 && f0 < g1 + 60) c._t = (g1 - JOIN_OVERLAP) + hToV;
+            else continue;
+            c.x = Math.round(ge.from.x + ux * c._t);
+            c.y = Math.round(ge.from.y + uy * c._t);
+            c._coverSeg.x1 = c.x + g.A.x; c._coverSeg.y1 = c.y + g.A.y;
+            c._coverSeg.x2 = c.x + g.B.x; c._coverSeg.y2 = c.y + g.B.y;
         }
     }
     return { covers, segs };

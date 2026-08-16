@@ -1,7 +1,7 @@
 // ============================================================
 // 仓鼠兵营（世界-122 建筑，2026-08-16）
 // - B 建筑面板放置，价格 1500 能源；每 30 秒自动生成一个仓鼠军事单位；
-// - 单位类型可在面板切换：仓鼠战士（近战）/ 仓鼠射手（远程）；
+// - 单位类型可在面板切换：仓鼠战士（近战）/ 仓鼠射手（远程）/ 仓鼠盾卫（近战·第 10 帧判定）；
 // - 升级参考仓鼠小屋（1000 金币 + 500 能源/级）：攻击加速 / 攻击强化 /
 //   机动强化 / 生命强化（采矿/背包/数量模块不复制——兵营数量上限固定 5，
 //   2026-08-16 用户口径：初始上限就有 5 个）；
@@ -11,6 +11,7 @@ import { Game } from '../game.js';
 import { DamageableEntity } from '../entities/damageable-entity.js';
 import { HamsterWarrior } from '../entities/hamster-warrior.js';
 import { HamsterShooter } from '../entities/hamster-shooter.js';
+import { HamsterGuard } from '../entities/hamster-guard.js';
 import { GoldManager } from '../systems/gold-manager.js';
 import { EnergyManager } from '../systems/energy-manager.js';
 import { EffectManager } from '../effects/effect-manager.js';
@@ -23,6 +24,7 @@ import { setupStructureDepth } from './structure-depth.js';
 import { Renderer } from './renderer.js';
 import warriorCfg from '../../data/hamster-warrior-config.json';
 import shooterCfg from '../../data/hamster-shooter-config.json';
+import guardCfg from '../../data/hamster-guard-config.json';
 
 // ==================== 配置 ====================
 
@@ -50,6 +52,7 @@ export const BARRACKS_CONFIG = {
     unit: {
         warrior: { key: 'warrior', name: '仓鼠战士', cfg: warriorCfg },
         shooter: { key: 'shooter', name: '仓鼠射手', cfg: shooterCfg },
+        guard: { key: 'guard', name: '仓鼠盾卫', cfg: guardCfg },
     },
     // 升级统一费用：每升一级 1000 金币 + 500 能源（同仓鼠小屋口径）
     upgradeCost: { gold: 1000, energy: 500 },
@@ -140,7 +143,7 @@ export class HamsterBarracks extends DamageableEntity {
         this.level = 1;
         this.maxLevel = 10;
         this.modules = {};            // { moduleId: level }
-        this.unitType = 'warrior';    // 'warrior' | 'shooter'（面板可切换）
+        this.unitType = 'warrior';    // 'warrior' | 'shooter' | 'guard'（面板可切换）
         this.units = [];              // 本兵营拥有的军事单位
         this._unitSeq = 0;
         this._spawnTimer = 0;
@@ -203,7 +206,9 @@ export class HamsterBarracks extends DamageableEntity {
         const baseMaxHp = Math.max(1, Math.round((base.baseMaxHp ?? 300) * mults.hpMult));
         const unit = this.unitType === 'warrior'
             ? new HamsterWarrior(spot.x, spot.y, { id, ai, baseMaxHp })
-            : new HamsterShooter(spot.x, spot.y, { id, ai, baseMaxHp });
+            : (this.unitType === 'guard'
+                ? new HamsterGuard(spot.x, spot.y, { id, ai, baseMaxHp })
+                : new HamsterShooter(spot.x, spot.y, { id, ai, baseMaxHp }));
         unit._barracks = this;
         this.units.push(unit);
         Game.entities.set(id, unit);
@@ -216,7 +221,8 @@ export class HamsterBarracks extends DamageableEntity {
         const mults = this.mults();
         for (const unit of this.units) {
             if (!unit || !unit.active || unit._dying) continue;
-            const base = (BARRACKS_CONFIG.unit[unit._isHamsterWarrior ? 'warrior' : 'shooter'] || {}).cfg || {};
+            const unitKey = unit._isHamsterWarrior ? 'warrior' : (unit._isHamsterGuard ? 'guard' : 'shooter');
+            const base = (BARRACKS_CONFIG.unit[unitKey] || {}).cfg || {};
             const baseAi = base.ai || {};
             const u = {
                 attackInterval: Math.max(300, Math.round((baseAi.attackInterval ?? 2000) * mults.attackIntervalMult)),
@@ -493,7 +499,7 @@ class HamsterBarracksPanel extends BasePanel {
                 <span style="font-size:13px;font-weight:700;color:#7fe0c8;">🎖 生成单位类型</span>
                 <span style="font-size:11px;color:#6a9a92;">切换后下一次生成生效</span>
             </div>
-            <div style="display:flex;gap:8px;">${btn('warrior')}${btn('shooter')}</div>`;
+            <div style="display:flex;gap:8px;">${btn('warrior')}${btn('shooter')}${btn('guard')}</div>`;
         ut.querySelectorAll('[data-unit-type]').forEach((btnEl) => {
             btnEl.addEventListener('click', () => this._setUnitType(btnEl.dataset.unitType));
         });

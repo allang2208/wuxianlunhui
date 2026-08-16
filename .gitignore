@@ -50,6 +50,9 @@ tools/ai-gen/rw-rmbg-compare-out/
 tools/ai-gen/_platform_align/
 tools/_tmp_*
 _tmp_*.diff
+/_tmp_*
+/.edge-cdp-profile/
+/tools/ai-gen/_thatch_scratch/
 assets/terrain/_fpref*
 assets/terrain/_fpv*
 tools/verify-shots/

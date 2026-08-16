@@ -286,6 +286,9 @@ def main():
     ap.add_argument("--win-ratio", type=float, default=0.05,
                     help="活动窗口检测阈值=峰值帧差×此值；调大可切掉收尾静止段")
     ap.add_argument("--end", type=int, default=-1, help="单段模式窗口终点（-1=自动）")
+    ap.add_argument("--picks", default=None,
+                    help="单段模式手动指定取帧列表（逗号分隔），跳过自动采样——"
+                         "用于战略性跳过剑影帧（挥砍瞬间的月牙伪影帧直接不取，闪切增冲击）")
     ap.add_argument("--erase", default=None,
                     help="单段模式剑影/残迹抹除：帧号:x0:y0:x1:y1（视频像素坐标），多个逗号分隔；"
                          "用该帧边框中位底色填充矩形（绿幕均匀底专用）")
@@ -317,12 +320,17 @@ def main():
                 fr[ey0:ey1, ex0:ex1] = fill
                 print(f"[build] erase f{fi} [{ex0},{ey0},{ex1},{ey1}] fill={fill.tolist()}")
         alphas = [key_alpha(f, bg, thr=args.bg_thr) for f in frames]
-        lo, hi, peak, thr = motion_window(frames, alphas, ratio=args.win_ratio)
-        if args.end >= 0:
-            hi = min(args.end, len(frames) - 1)
-        print(f"[build] window [{lo},{hi}] peak {peak:.2f} thr {thr:.2f} / {len(frames)}f")
-        picks = visual_uniform_sample(frames, alphas, lo, hi, args.n)
-        print(f"[build] picks {picks}")
+        if args.picks:
+            picks = [int(x) for x in args.picks.split(",") if x.strip()]
+            assert len(picks) == args.n, f"--picks {len(picks)} 帧 ≠ --n {args.n}"
+            print(f"[build] manual picks {picks}")
+        else:
+            lo, hi, peak, thr = motion_window(frames, alphas, ratio=args.win_ratio)
+            if args.end >= 0:
+                hi = min(args.end, len(frames) - 1)
+            print(f"[build] window [{lo},{hi}] peak {peak:.2f} thr {thr:.2f} / {len(frames)}f")
+            picks = visual_uniform_sample(frames, alphas, lo, hi, args.n)
+            print(f"[build] picks {picks}")
         seq = [(frames[i], alphas[i], f"f{i}") for i in picks]
     else:
         ab_frames = load_frames_rgb(resolve_video(root, args.ab))

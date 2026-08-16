@@ -24,7 +24,6 @@ COMFY_VENV_PY = os.path.join(os.path.dirname(ROOT), "ComfyUI", ".venv", "Scripts
 
 NAMES = [
     "farmland", "scarecrow", "haystack", "stump", "boulder", "fence",
-    "tree_green", "tree_sakura", "tree_pine", "tree_dead",
     "woodpile", "barrel", "well", "tent", "campfire", "banner", "cart", "cottage",
 ]
 

@@ -20,10 +20,10 @@ import { QuickBar } from '../ui/quick-bar.js';
 import { SystemUI } from '../ui/system-ui.js';
 import { DefenseSystem, DEFENSE_CONFIG } from './defense-system.js';
 import { EnergyNodeSystem } from './energy-node-system.js';
+import { ENERGY_CONFIG } from '../config/energy-config.js';
 import { HamsterMinerSystem } from './hamster-miner-system.js';
 import { HamsterHutSystem } from './hamster-hut-system.js';
 import { HamsterBarracksSystem } from './hamster-barracks-system.js';
-import { ENERGY_CONFIG } from '../config/energy-config.js';
 import { BuildingSystem } from './building-system.js';
 import { DefenseTrapSystem } from './defense-trap-system.js';
 
@@ -45,7 +45,7 @@ export const SceneManager = {
             scene4: cfg.scene4 || { name: '古堡', type: 'instance', label: '场景四', width: 9000, height: 9000, background: '#000000', origin: { x: 4500, y: 4500 } },
             scene5: cfg.scene5 || { name: 'AI测试场', type: 'instance', label: '场景五', width: 6120, height: 3040, background: '#3a3a3a', origin: { x: 3060, y: 1520 } },
             scene7: cfg.scene7 || { name: '僵尸地牢高级', type: 'dungeon', label: '场景七', width: 1024, height: 1024, background: '#000000', origin: { x: 512, y: 512 }, dungeonType: 'zombie' },
-            scene8: cfg.scene8 || { name: '世界-122', type: 'instance', label: '场景八', width: 4096, height: 4096, background: '#0d1b0a', origin: { x: 2048, y: 2048 } }
+            scene8: cfg.scene8 || { name: '世界-122', type: 'instance', label: '场景八', width: 12288, height: 8192, background: '#0d1b0a', origin: { x: 6144, y: 4096 } }
         };
     },
 
@@ -952,7 +952,7 @@ export const SceneManager = {
         if (player) QuickBar.refreshSpecialAttack(player);
     },
 
-    /** 沼泽地（场景八）：4096×4096 全图铺满沼泽地砖（与沼泽地-高级地牢同一贴图/铺设参数） */
+    /** 世界-122（场景八）：12288×8192 全图泥地无缝纹理 + 菱形地块 + 可移动边界 */
     _loadScene8(player) {
         // 重置相机状态，避免从其他场景带入偏移
         Camera.aimOffsetX = 0;
@@ -964,24 +964,25 @@ export const SceneManager = {
         Camera.yLockedValue = 0;
 
         const scene = this.scenes.scene8;
-        // 直接用 scene8 自身尺寸（6144×4096，2026-08-16 扩展），不走 _resolveWorldSize 覆盖
+        // 直接用 scene8 自身尺寸（12288×8192，2026-08-16 翻倍），不走 _resolveWorldSize 覆盖
         const w = scene.width;
         const h = scene.height;
         CONFIG.WORLD_WIDTH = w;
         CONFIG.WORLD_HEIGHT = h;
 
-        // 菱形地块（地牢房间口径，2026-08-16 v1）：区外全黑，菱形内继续沼泽地砖循环铺贴；
-        // 默认内接全图（rx=w/2, ry=h/2），可在 game-config.json scenes.scene8.diamondFloor 覆盖
-        const diamondCfg = (scene && scene.diamondFloor) || {};
-        const diamond = diamondCfg.enabled === false ? null : {
-            cx: diamondCfg.cx ?? w / 2,
-            cy: diamondCfg.cy ?? h / 2,
-            rx: diamondCfg.rx ?? w / 2,
-            ry: diamondCfg.ry ?? h / 2,
-        };
+        // 菱形地块（2026-08-16 v2）：区外全黑，菱形内继续泥地无缝纹理铺贴；
+        // 边斜率 0.5（26.57°），与掩体墙/基地房/建筑视角平行（见 _scene8Diamond）
+        const diamond = this._scene8Diamond(scene);
         // 平材质地面（泥/沙）不用"独立菱形石板"拼接（草苔盖缝失效后会露黑边/硬接缝）：
         // 改走连续无缝纹理——floor_mud_seamless 按世界坐标对齐相位全图铺贴（任意方向无接缝），
-        // 沙地以软边补丁混入（sandPatches 径向渐隐），草由 deco 层固定朝向点缀。
+        // 沙地以软边补丁混入（sandPatches 径向渐隐），荒漠植物由 deco 层固定朝向点缀。
+        // 基地固定沙地（2026-08-16）：scene.baseSand（缺省=基地中心）铺一块 ~1700px
+        // 软边大沙地，保证基地菱形房及其围墙整体落在"沙漠贴图"上（随机沙地不可控）。
+        const baseSand = scene.baseSand || {
+            x: DEFENSE_CONFIG.base.x,
+            y: DEFENSE_CONFIG.base.y,
+            size: 1700,
+        };
         setDungeonFloorProfile({
             tiles: ['floor_mud_seamless'],
             continuous: true,
@@ -992,9 +993,10 @@ export const SceneManager = {
                 perChunk: 6,
                 size: 760,
                 minDist: 1000,
+                fixed: [baseSand],
             },
             deco: {
-                textures: ['deco_grass_1', 'deco_grass_2'],
+                textures: ['deco_desert_1', 'deco_desert_2', 'deco_desert_3', 'deco_desert_4'],
                 perChunk: 28,
                 size: 110,
                 minDist: 120,
@@ -1013,6 +1015,10 @@ export const SceneManager = {
             { x: 0, y: 0, w: 20, h, noVisual: true },
             { x: w - 20, y: 0, w: 20, h, noVisual: true },
         ];
+        // 可移动边界（2026-08-16）：菱形地块四边注册不可见阻挡段——区外黑地不可通行，
+        // 玩家/怪物/寻路/建筑放置/能源矿全部受 WallSystem.canMoveTo 约束（_boundary 段
+        // 在 rebuildIsoCollision 中保留，见 wall-system.js）。
+        this._registerScene8Boundary(diamond);
         if (WallSystem._syncWallsToPhaser) {
             WallSystem._syncWallsToPhaser();
         }
@@ -1021,12 +1027,11 @@ export const SceneManager = {
         // 四边新掩体墙（h="\"/v="/"），face 线 40px 端帽叠合拼接，
         // 转角端帽互相叠盖；RB 边中点留居中门洞（配置见 DEFENSE_CONFIG.room）
 
-        // 玩家出生在基地房内（基地 x=900；2026-08-16 修正：原 (450,2150) 是按旧基地
-        // x=532 调的位置，基地挪到 900 后它落在左下墙外/墙里——walkable 实测 false，
-        // 改回房间内合法点 (760,2048)，实测 walkable true 且不贴墙/不占门洞）
+        // 玩家出生在基地房内（2026-08-16：随基地右移，取 (base.x+228, base.y)，
+        // 房间内合法点、不贴墙/不占 RB 边门洞，与旧 (760,2048) 同相对位置）
         if (player) {
-            player.x = 760;
-            player.y = 2048;
+            player.x = DEFENSE_CONFIG.base.x + 228;
+            player.y = DEFENSE_CONFIG.base.y;
             Game.entities.set('player', player);
             Camera.follow(player);
         }
@@ -1035,10 +1040,10 @@ export const SceneManager = {
             QuickBar.refreshSpecialAttack(player);
         }
 
-        // 树木随机散布（2026-08-15）：必须在 DefenseSystem.setup 之前——rebuildIsoCollision
-        // 只保留门闸 isoSegments，掩体墙段在 setup 时才注册（两不相扰）；
-        // 基地房矩形/玩家出生点/能源点/刷怪点按排除带规避。配置：scenes.scene8.treeScatter
-        this._scatterTreesScene8(player);
+        // 仙人掌随机散布（2026-08-16，替代已删除的树木散布）：必须在 DefenseSystem.setup
+        // 之前——rebuildIsoCollision 只保留门闸 isoSegments，掩体墙段在 setup 时才注册（两不相扰）；
+        // 基地房矩形/玩家出生点/能源点/刷怪点按排除带规避。配置：scenes.scene8.cactusScatter
+        this._scatterCactiScene8(player);
 
         // 世界-122 防守战：基地核心 + 防御塔 + 边界刷怪波次
         DefenseSystem.setup(player);
@@ -1058,42 +1063,62 @@ export const SceneManager = {
     },
 
     /**
-     * 世界-122 树木随机散布（2026-08-15）：加载时把等距树五变体撒满全图。
-     * - 走 isoVisuals + rebuildIsoCollision（footprint 碰撞生效）+ _syncWallsToPhaser 渲染；
-     * - 缩放 = obstacleH/geo.h（摆墙编辑器口径）× (1±scaleJitter)，随机 flipX；
-     * - 排除带：基地房矩形外扩 / 玩家 / 能源点 / 刷怪点；树间 minDist（允许适度成林）；
-     * - 调用顺序约束：必须在 DefenseSystem.setup 之前（见 _loadScene8 注释）。
-     * 配置：data/game-config.json scenes.scene8.treeScatter（enabled=false 关闭）。
+     * 世界-122 菱形地块口径（2026-08-16 v2，_loadScene8 与 _scatterCactiScene8 共用）：
+     * - 边斜率 ry/rx = 0.5（26.57°）——与掩体墙 face 步长 (176,±87)、基地菱形房
+     *   (rx=512, ry=256) 同一视角，四边与玩家墙体/掩体/建筑平行；
+     *   v1 内接全图（rx=w/2, ry=h/2，斜率 0.667）边界与墙体视角不平行，观感别扭。
+     * - 默认 rx=w/2（右顶点仍抵地图右缘，刷怪/进攻动线不变），ry=rx*0.5；
+     *   可在 game-config.json scenes.scene8.diamondFloor 覆盖 cx/cy/rx/ry。
      */
-    _scatterTreesScene8(player) {
+    _scene8Diamond(scene) {
+        const cfg = (scene && scene.diamondFloor) || {};
+        if (cfg.enabled === false) return null;
+        const rx = cfg.rx ?? scene.width / 2;
+        return {
+            cx: cfg.cx ?? scene.width / 2,
+            cy: cfg.cy ?? scene.height / 2,
+            rx,
+            ry: cfg.ry ?? rx * 0.5,
+        };
+    },
+
+    /**
+     * 世界-122 仙人掌随机散布（2026-08-16，替代 2026-08-15 树木散布，树木已全删）：
+     * 加载时把 4 姿态仙人掌（同风格低对比）撒满全图，走 isoVisuals + rebuildIsoCollision
+     * （footprint 碰撞生效）+ _syncWallsToPhaser 渲染；
+     * - 缩放 = obstacleH/geo.h（摆墙编辑器口径）× (1±scaleJitter)，随机 flipX；
+     * - 排除带：基地房矩形外扩 / 玩家 / 能源点 / 刷怪点；间距 minDist（允许适度成林）；
+     * - 调用顺序约束：必须在 DefenseSystem.setup 之前（见 _loadScene8 注释）。
+     * 配置：data/game-config.json scenes.scene8.cactusScatter（enabled=false 关闭）。
+     */
+    _scatterCactiScene8(player) {
         const scene = this.scenes.scene8;
-        const cfg = (scene && scene.treeScatter) || {};
+        const cfg = (scene && scene.cactusScatter) || {};
         if (cfg.enabled === false) return;
-        const count = cfg.count ?? 100;
-        const minDist = cfg.minDist ?? 95;
+        const count = cfg.count ?? 80;
+        const minDist = cfg.minDist ?? 150;
         const jitter = cfg.scaleJitter ?? 0.1;
         const b = cfg.bounds || {};
         const x0 = b.x0 ?? 150;
         const y0 = b.y0 ?? 250;
-        const x1 = b.x1 ?? ((scene && scene.width) ? scene.width - 150 : 3946);
+        const x1 = b.x1 ?? ((scene && scene.width) ? scene.width - 150 : 5994);
         const y1 = b.y1 ?? ((scene && scene.height) ? scene.height - 196 : 3900);
         const ex = cfg.exclude || {};
-        const room = ex.baseRoom || [0, 1712, 1124, 2384];
+        // 基地房排除矩形（2026-08-16 从 DEFENSE_CONFIG 派生，随基地位置自动跟随）
+        const room = ex.baseRoom || [
+            DEFENSE_CONFIG.base.x - DEFENSE_CONFIG.room.rx,
+            DEFENSE_CONFIG.base.y - DEFENSE_CONFIG.room.ry,
+            DEFENSE_CONFIG.base.x + DEFENSE_CONFIG.room.rx,
+            DEFENSE_CONFIG.base.y + DEFENSE_CONFIG.room.ry,
+        ];
         const rPlayer = ex.player ?? 160;
         const rNode = ex.energyNode ?? 140;
-        const rSpawn = ex.spawnPoint ?? 130;
-        const variants = ['tall', 'bushy', 'twin', 'wind', 'tiered'];
-        // 菱形地块（与 _loadScene8 同口径）：树只撒在菱形内，避免树长在区外黑地里
-        const diamondCfg = (scene && scene.diamondFloor) || {};
-        const dFloor = diamondCfg.enabled === false ? null : {
-            cx: diamondCfg.cx ?? scene.width / 2,
-            cy: diamondCfg.cy ?? scene.height / 2,
-            rx: diamondCfg.rx ?? scene.width / 2,
-            ry: diamondCfg.ry ?? scene.height / 2,
-        };
+        const rSpawn = ex.spawnPoint ?? 180;
+        const variants = ['saguaro2arm', 'saguaro1arm', 'barrel', 'cholla'];
+        // 菱形地块（与 _loadScene8 同口径，_scene8Diamond v2 边斜率 0.5 与视角平行）：
+        // 仙人掌只撒在菱形内，避免长在区外黑地里
+        const dFloor = this._scene8Diamond(scene);
         const inDiamond = (x, y) => !dFloor || (Math.abs(x - dFloor.cx) / dFloor.rx + Math.abs(y - dFloor.cy) / dFloor.ry <= 1);
-        // 大能源点（2026-08-16）：按簇心整圈排除（spread + 节点半径 + 余量），
-        // 树不会压进矿簇，避免玩家/矿工在树里采矿
         const nodeClusters = (ENERGY_CONFIG && ENERGY_CONFIG.clusters) || [];
         const spawnPts = DEFENSE_CONFIG.spawnPoints || [];
         const pieces = [];
@@ -1102,27 +1127,25 @@ export const SceneManager = {
             const x = x0 + Math.random() * (x1 - x0);
             const y = y0 + Math.random() * (y1 - y0);
             if (!inDiamond(x, y)) continue;
-            const tex = 'obstacle_tree_' + variants[(Math.random() * variants.length) | 0];
+            const tex = 'obstacle_cactus_' + variants[(Math.random() * variants.length) | 0];
             const geo = (typeof WallSystem._geoForTex === 'function') ? WallSystem._geoForTex(tex) : null;
             if (!geo) continue;
-            const s = ((geo.obstacleH ?? 240) / geo.h) * (1 - jitter + Math.random() * jitter * 2);
-            // [FIX] 排除带与碰撞同一口径：树木真实碰撞 footprint 中心在贴图锚点下方约 150px，
+            const s = ((geo.obstacleH ?? 200) / geo.h) * (1 - jitter + Math.random() * jitter * 2);
+            // [FIX] 排除带与碰撞同一口径：真实碰撞 footprint 中心在贴图锚点下方，
             // 所有排除带/合法性检查改用 footprint 矩形/中心判定（原按锚点判定会整体错位）
             const fp = (typeof WallSystem.getObstacleFootprintRect === 'function')
                 ? WallSystem.getObstacleFootprintRect({ tex, x, y, scaleX: s, scaleY: s })
                 : null;
             const fx = fp ? fp.x + fp.w / 2 : x;
             const fy = fp ? fp.y + fp.h / 2 : y;
-            // 基地房：footprint 矩形与房间矩形重叠即排除（边缘压线也不行）
             if (fp) {
                 if (fp.x < room[2] && fp.x + fp.w > room[0] && fp.y < room[3] && fp.y + fp.h > room[1]) continue;
             } else if (x > room[0] && x < room[2] && y > room[1] && y < room[3]) continue;
             if (player && Math.hypot(fx - player.x, fy - player.y) < rPlayer) continue;
             if (nodeClusters.some((c) => Math.hypot(fx - c.x, fy - c.y) < (c.spread ?? 150) + rNode)) continue;
             if (spawnPts.some((n) => Math.hypot(fx - n.x, fy - n.y) < rSpawn)) continue;
-            // 树木间距仍按贴图锚点判定（视觉疏密），不影响碰撞排除
             if (pieces.some((q) => Math.hypot(x - q.x, y - q.y) < minDist)) continue;
-            const fr = Math.max(24, (geo.foot ? geo.foot.w / 2 : 40) * s);
+            const fr = Math.max(20, (geo.foot ? geo.foot.w / 2 : 40) * s);
             if (typeof WallSystem.canMoveTo === 'function' && !WallSystem.canMoveTo(fx, fy, fr)) continue;
             pieces.push({ tex, x, y, scaleX: s, scaleY: s, flipX: Math.random() < 0.5, _scatter: true });
         }
@@ -1131,7 +1154,32 @@ export const SceneManager = {
             WallSystem.rebuildIsoCollision();
         }
         if (typeof WallSystem._syncWallsToPhaser === 'function') WallSystem._syncWallsToPhaser();
-        console.log(`[scene8] 树木散布 ${pieces.length} 棵（候选拒绝 ${guard - pieces.length} 次）`);
+        console.log(`[scene8] 仙人掌散布 ${pieces.length} 棵（候选拒绝 ${guard - pieces.length} 次）`);
+    },
+
+    /**
+     * 世界-122 可移动边界（2026-08-16）：沿菱形地块四条边注册不可见阻挡段。
+     * - 段心落在菱形边线上，halfThick=12 → 单位（半径+半厚）越界即被 canMoveTo 拒绝，
+     *   区外黑地玩家/怪物/寻路/建筑/能源矿一律不可进入/放置；
+     * - _boundary 标记让 rebuildIsoCollision 的"仅保留门闸段"过滤不误删（wall-system.js）；
+     * - 菱形边与掩体墙同斜率 0.5，阻挡线与视觉边界一致。
+     */
+    _registerScene8Boundary(diamond) {
+        if (!diamond || !WallSystem || !WallSystem.isoSegments) return;
+        const { cx, cy, rx, ry } = diamond;
+        const pts = [
+            [cx, cy - ry], [cx + rx, cy], [cx, cy + ry], [cx - rx, cy],
+        ];
+        for (let i = 0; i < 4; i++) {
+            const [x1, y1] = pts[i];
+            const [x2, y2] = pts[(i + 1) % 4];
+            WallSystem.isoSegments.push({
+                x1, y1, x2, y2,
+                halfThick: 12,
+                noVisual: true,
+                _boundary: true,
+            });
+        }
     },
 
     _loadScene7(player, _dungeonType = 'zombie') {

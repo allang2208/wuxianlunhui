@@ -373,6 +373,25 @@ class WeaponTransform {
         const pre = this._getPerFramePrecomputed(perFrame);
 
         // 位置：线性插值，保证武器严格经过每个配置点并与玩家手部贴合
+        // 剑柄锚手块（anchor='grip'）：阶梯映射（SKILL 2026-08-03 一段跟手教训的落地）——
+        // 位置钉在当前精灵帧锚点：旧平滑 lerp 的进度映射是 progress×(n-1)，而精灵帧 k
+        // 覆盖 [k/n,(k+1)/n)——武器在帧窗中段就提前跑向下一点，帧窗末尾已偏离 92%
+        //（实机用户目击「帧结束武器脱手」的根因）。旋转保留帧窗内向下一帧的 lerp
+        //（绕钉住的剑柄扫刃，不甩手）；缩放/模糊/拉伸随帧走。非 grip 块（dash 等）不动。
+        if (block.anchor === 'grip') {
+            const raw = progress * n;                 // 帧窗对齐：精灵帧 k 覆盖 [k/n,(k+1)/n)
+            const k = Math.min(n - 1, Math.floor(raw));
+            const frac = raw - k;
+            const k2 = Math.min(n - 1, k + 1);
+            const rot = pre.rotUnwrapped[k] + (pre.rotUnwrapped[k2] - pre.rotUnwrapped[k]) * frac;
+            return this._applyPerFrameToWorld(player, {
+                offsetX: pre.ox[k], offsetY: pre.oy[k], rotation: rot * 180 / Math.PI,
+                scale: pre.scale[k],
+                blurX: pre.blurX[k], blurY: pre.blurY[k],
+                stretchX: pre.stretchX[k], stretchY: pre.stretchY[k],
+            }, facingRight);
+        }
+
         const pos = this._lerpPerFrame2DArr(pre.ox, pre.oy, progress);
 
         // 旋转：解卷绕已在缓存内完成，此处线性插值

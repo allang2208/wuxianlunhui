@@ -59,13 +59,13 @@ const ISO_WALL_GEO = {
     cover_A_v: { tex: 'obstacle_cover_A_v', w: 1024, h: 1024, category: 'obstacle', foot: { w: 176, d: 58 }, obstacleH: 259, editor: '掩体·A级·垂直' },
     // 防御塔（基座去臂版；机械臂是独立视觉层 obstacle_defense_tower_arm，无碰撞不注册）
     defense_tower: { tex: 'obstacle_defense_tower', w: 539, h: 832, category: 'obstacle', foot: { w: 468, d: 164 }, obstacleH: 262, editor: '防御塔' },
-    // 阔叶树五变体（2026-08-05 Blender 白模深度+flux2-dev-depth 生图，prompts/obstacle.md 树木节；
-    // foot=底部 15% 带实测树干占地，obstacleH 按防御塔同世界比例 0.315 折算）
-    tree_tall: { tex: 'obstacle_tree_tall', w: 208, h: 987, category: 'obstacle', foot: { w: 29, d: 10 }, obstacleH: 313, editor: '白杨·高瘦' },
-    tree_bushy: { tex: 'obstacle_tree_bushy', w: 598, h: 958, category: 'obstacle', foot: { w: 105, d: 37 }, obstacleH: 304, editor: '橡树·高冠' },
-    tree_twin: { tex: 'obstacle_tree_twin', w: 560, h: 1024, category: 'obstacle', foot: { w: 64, d: 22 }, obstacleH: 325, editor: '白桦·轻盈' },
-    tree_wind: { tex: 'obstacle_tree_wind', w: 865, h: 994, category: 'obstacle', foot: { w: 184, d: 64 }, obstacleH: 315, editor: '枯树·枝干' },
-    tree_tiered: { tex: 'obstacle_tree_tiered', w: 416, h: 767, category: 'obstacle', foot: { w: 64, d: 22 }, obstacleH: 243, editor: '松树·层叠' },
+    // 仙人掌障碍物（2026-08-16，世界-122 荒漠化：树木全部移除后由 cactusScatter 散布。
+    // 4 姿态同风格低对比：process-desert-plant.py 白底生图→BiRefNet 抠图→降饱和降对比。
+    // foot=底部 15% 带实测占地，obstacleH=期望世界显示高度（贴图等比裁剪 h=256））
+    cactus_saguaro2arm: { tex: 'obstacle_cactus_saguaro2arm', w: 109, h: 256, category: 'obstacle', foot: { w: 31, d: 11 }, obstacleH: 240, editor: '仙人掌·双臂' },
+    cactus_saguaro1arm: { tex: 'obstacle_cactus_saguaro1arm', w: 80, h: 256, category: 'obstacle', foot: { w: 36, d: 13 }, obstacleH: 230, editor: '仙人掌·单臂' },
+    cactus_barrel: { tex: 'obstacle_cactus_barrel', w: 245, h: 256, category: 'obstacle', foot: { w: 110, d: 38 }, obstacleH: 105, editor: '仙人掌·桶状' },
+    cactus_cholla: { tex: 'obstacle_cactus_cholla', w: 124, h: 256, category: 'obstacle', foot: { w: 33, d: 12 }, obstacleH: 150, editor: '仙人掌·多节' },
 };
 
 // 地牢墙样式表（key = dungeonType；新地牢在此登记。值 = ISO_WALL_GEO 键 + 配套资源）
@@ -995,8 +995,9 @@ const WallSystem = {
     rebuildIsoCollision() {
         this.walls = this.walls.filter(w => !w._iso);
         // 门闸线段（_gate 房间门 / _chestGate 宝箱房门 / _arenaGate 竞技场通道门）由门实体自管生命周期，
-        // 重建必须保留——此前全量清空会把入场门/宝箱房门的碰撞一并抹掉（门洞可穿的根因）
-        this.isoSegments = (this.isoSegments || []).filter(s => s._gate || s._chestGate || s._arenaGate);
+        // 重建必须保留——此前全量清空会把入场门/宝箱房门的碰撞一并抹掉（门洞可穿的根因）；
+        // 世界-122 菱形地块边界段（_boundary，scene-manager._registerScene8Boundary）同样保留
+        this.isoSegments = (this.isoSegments || []).filter(s => s._gate || s._chestGate || s._arenaGate || s._boundary);
         this._faceSegCache = null; // 衔接仲裁缓存随几何变更失效
         for (const p of this.isoVisuals) this._addPieceCollision(p);
     },

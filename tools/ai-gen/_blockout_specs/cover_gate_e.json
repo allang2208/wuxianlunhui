@@ -9,7 +9,7 @@
  "tex": "Y:/工作/无尽轮回/scratch/world122/raw/tex_E_v1.png",
  "tex2": "Y:/工作/无尽轮回/scratch/demon_iron_tex.png",
  "leaf_slide": {
-  "distance": 200,
+  "distance": 160.17,
   "leftLeaf": -1,
   "rightLeaf": 1
  },
@@ -17,188 +17,192 @@
   {
    "type": "box",
    "size": [
-    26,
-    52,
-    150
+    20.82,
+    41.65,
+    120.13
    ],
    "pos": [
-    -145,
-    0,
-    75
+    -116.13,
+    0.0,
+    60.07
    ],
    "rot": [
     0,
     0,
     44.8
    ],
-   "bevel": 6,
+   "bevel": 4.81,
    "bevelTopOnly": true
   },
   {
    "type": "box",
    "size": [
-    26,
-    52,
-    150
+    20.82,
+    41.65,
+    120.13
    ],
    "pos": [
-    145,
-    0,
-    75
+    116.13,
+    0.0,
+    60.07
    ],
    "rot": [
     0,
     0,
     44.8
    ],
-   "bevel": 6,
+   "bevel": 4.81,
    "bevelTopOnly": true
   }
  ],
  "bars": [
   {
    "type": "cylinder",
-   "radius": 4.5,
-   "height": 136,
-   "x": -95,
-   "z": 72,
+   "radius": 3.6,
+   "height": 108.92,
+   "x": -76.08,
+   "z": 57.66,
    "leaf": -1
   },
   {
    "type": "cylinder",
-   "radius": 4.5,
-   "height": 136,
-   "x": -77,
-   "z": 72,
+   "radius": 3.6,
+   "height": 108.92,
+   "x": -61.67,
+   "z": 57.66,
    "leaf": -1
   },
   {
    "type": "cylinder",
-   "radius": 4.5,
-   "height": 136,
-   "x": -59,
-   "z": 72,
+   "radius": 3.6,
+   "height": 108.92,
+   "x": -47.25,
+   "z": 57.66,
    "leaf": -1
   },
   {
    "type": "cylinder",
-   "radius": 4.5,
-   "height": 136,
-   "x": -41,
-   "z": 72,
+   "radius": 3.6,
+   "height": 108.92,
+   "x": -32.84,
+   "z": 57.66,
    "leaf": -1
   },
   {
    "type": "cylinder",
-   "radius": 4.5,
-   "height": 136,
-   "x": -23,
-   "z": 72,
+   "radius": 3.6,
+   "height": 108.92,
+   "x": -18.42,
+   "z": 57.66,
    "leaf": -1
   },
   {
    "type": "cylinder",
-   "radius": 4.5,
-   "height": 136,
-   "x": -5,
-   "z": 72,
+   "radius": 3.6,
+   "height": 108.92,
+   "x": -4.0,
+   "z": 57.66,
    "leaf": -1
   },
   {
    "type": "cylinder",
-   "radius": 4.5,
-   "height": 136,
-   "x": 5,
-   "z": 72,
+   "radius": 3.6,
+   "height": 108.92,
+   "x": 4.0,
+   "z": 57.66,
    "leaf": 1
   },
   {
    "type": "cylinder",
-   "radius": 4.5,
-   "height": 136,
-   "x": 23,
-   "z": 72,
+   "radius": 3.6,
+   "height": 108.92,
+   "x": 18.42,
+   "z": 57.66,
    "leaf": 1
   },
   {
    "type": "cylinder",
-   "radius": 4.5,
-   "height": 136,
-   "x": 41,
-   "z": 72,
+   "radius": 3.6,
+   "height": 108.92,
+   "x": 32.84,
+   "z": 57.66,
    "leaf": 1
   },
   {
    "type": "cylinder",
-   "radius": 4.5,
-   "height": 136,
-   "x": 59,
-   "z": 72,
+   "radius": 3.6,
+   "height": 108.92,
+   "x": 47.25,
+   "z": 57.66,
    "leaf": 1
   },
   {
    "type": "cylinder",
-   "radius": 4.5,
-   "height": 136,
-   "x": 77,
-   "z": 72,
+   "radius": 3.6,
+   "height": 108.92,
+   "x": 61.67,
+   "z": 57.66,
    "leaf": 1
   },
   {
    "type": "cylinder",
-   "radius": 4.5,
-   "height": 136,
-   "x": 95,
-   "z": 72,
+   "radius": 3.6,
+   "height": 108.92,
+   "x": 76.08,
+   "z": 57.66,
    "leaf": 1
   },
   {
    "type": "rail",
    "size": [
-    126,
-    14,
-    10
+    100.91,
+    11.21,
+    8.01
    ],
-   "x": -60,
-   "z": 135,
+   "x": -48.05,
+   "z": 108.12,
    "leaf": -1,
-   "bevel": 2
+   "bevel": 1.6
   },
   {
    "type": "rail",
    "size": [
-    126,
-    14,
-    10
+    100.91,
+    11.21,
+    8.01
    ],
-   "x": 60,
-   "z": 135,
+   "x": 48.05,
+   "z": 108.12,
    "leaf": 1,
-   "bevel": 2
+   "bevel": 1.6
   },
   {
    "type": "rail",
    "size": [
-    126,
-    14,
-    10
+    100.91,
+    11.21,
+    8.01
    ],
-   "x": -60,
-   "z": 9,
+   "x": -48.05,
+   "z": 7.21,
    "leaf": -1,
-   "bevel": 2
+   "bevel": 1.6
   },
   {
    "type": "rail",
    "size": [
-    126,
-    14,
-    10
+    100.91,
+    11.21,
+    8.01
    ],
-   "x": 60,
-   "z": 9,
+   "x": 48.05,
+   "z": 7.21,
    "leaf": 1,
-   "bevel": 2
+   "bevel": 1.6
   }
- ]
+ ],
+ "_scale": {
+  "s": 0.80087,
+  "note": "2026-08-16 ??=?????????? 0.80087?face ????=176?? COVER_FACE?"
+ }
 }

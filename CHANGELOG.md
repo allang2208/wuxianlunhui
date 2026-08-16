@@ -1,4 +1,81 @@
 # 变更日志
+### 对话：友军 HUD——一律不显示名称，只显示血条（2026-08-16）
+- 用户口径：友军（仓鼠矿工/战士/射手/盾卫、伊莉丝、露娜等 `_faction==='companion'`）
+  不再显示头顶名字，只保留血条。
+- `GameScene._syncEntityHud`：新增 `isFriendly = entity._faction === 'companion'`；
+  血条条件 `isFriendly || hp < maxHp`（友军血条常显），名字并入 `hasOwnLabel`
+  跳过（复用既有隐藏逻辑）。敌人/Boss/NPC/建筑显示逻辑不变。
+- 验证：node --check + vite build 通过。实机 Ctrl+F5 复查世界-122 友军头顶
+  只有血条没有名字。
+
+### 对话：铁栅栏门「一格 = 一堵墙」重建 + 左柱-栅栏衔接 + 基地门洞收拢（2026-08-17）
+- **需求**：用户反馈「左边石柱跟铁门没衔接」；前提是门与墙大小一致，未来统一建筑大小
+  （一堵墙 = 一格），先修改门。
+- **根因**：① `GATE_GEOM` 标定在 08-17 横杆重渲后未同步——代码 faceA/B 中点 (364.9,497)
+  与实测资产 face 中点 (320,477.6) 偏移 44.9 cell px，精灵整体左移 ~18.4 world px，
+  门与相邻墙的接缝错位；② 门 face 245 display px vs 墙 face 196.33，门整体比墙宽 ~40%，
+  石柱外缘超墙端帽 37px，接墙处观感「门比墙大、柱不贴墙」；③ 栅栏叶最外竖杆距柱 2~5px。
+- **改动**：
+  - 六档贴图以实测 face 中点 (320,477.6) 为基准整体缩放 0.80087 重建
+    （`tools/ai-gen/rebuild-gate-onewall.py`）→ face 水平跨度 176 display = 墙
+    COVER_FACE 同跨；重新 split 柱/栅栏层；图标从新 frame 0 重生成；
+    `_blockout_specs/cover_gate_*.json` 同步缩放（Y: 盘源纹理暂不可用，未来可重渲复现）。
+  - `GATE_GEOM` 重标定：worldFaceLen 270.4→176、faceA(105.4,584.0)/faceB(534.6,371.0)、
+    midTex(320,477.6)、barCrop {174,0,292,634}、gateDepthSegs 柱投影 half 26→22。
+  - 基地门洞两侧墙段收拢（`_buildBaseRoom` post-pass）：原洞 237.8 → 门 face 196.77，
+    左右邻墙段沿边平移至 face 端点 flush 对齐，杜绝门缝绕行；转角覆盖由邻边端帽补足。
+  - `GATE_SNAP_OVERLAP` 51→40（门端帽 = 墙端帽口径）；cdp-gate-seam 门对门偏移 +176/+88；
+    sim-defense-crowd 同步一格门 + 收拢逻辑。
+- **验证**：node --check 通过；vite 模块编译 200；基地布局数值核验墙/门 face flush
+  （门 face t [187.8,384.6]，左墙 [−8.5,187.8]、右墙 [384.6,580.9]）；sim-defense-crowd
+  无卡墙（0 只）/无瞬移（0 次）；「门口转火门」检查为既有失败项，非本批引入。
+- **待实机**：Ctrl+F5 检查基地门开关、B 面板建门贴墙；窄门（~197px 通行）下大体积领主
+  无法进门会转攻墙体（与既有 180 半径领主一致，属防守设计容忍范围）。
+### 对话：新增玩家友方单位·仓鼠盾卫（2026-08-16）
+- **需求**：仓鼠盾卫（素材 E:\无尽轮回\游戏\素材库\人物\仓鼠盾卫）——idle 待机 /
+  running 17 帧移动 / attacking 12 帧攻击 / dying 15 帧死亡；近战、攻击动画第 10 帧
+  伤害判定、间隔 2s、移速 100；六维 力量13/敏捷10/智力3/体质25/精神3/幸运3、生命 350；
+  世界-122 帮助玩家攻击：AI 找最近敌人、每次 30 物理伤害、不攻击矿点。
+- **素材**：实测 4 张均为 8 列×4 行 512²（4096×2048），帧数 1/17/12/15（用户口述
+  "4×8"与实测不符，按目检铁律以实测为准）；复制入 `assets/companions/hamster_guard/`。
+- **实现**：
+  - `data/hamster-guard-config.json`（HP 350 覆盖 + 六维 + ai 参数 + 动画帧配置）；
+  - `src/entities/hamster-guard.js`（复用 Companion，_enemyTargetable 可被锁定、
+    dying 15 帧 @12fps = 1250ms 后移除）；
+  - `src/ai/hamster-guard-ai.js`（最近敌人索敌、跳过矿点、挥击状态机：攻击动画
+    12 帧单次，第 10 帧延迟 (10-1)/12=750ms 出伤 30 物理，2s 间隔，无敌跟随玩家）；
+  - `src/world/hamster-guard-system.js`（停用兜底，测试引用）；
+  - 兵营接入：`BARRACKS_CONFIG.unit.guard` + 生成分发 + 升级映射 + 面板第三按钮；
+  - BootScene 加载/动画注册（hamsterGuardConfig 并入循环）；
+  - GameScene：受击白闪、移动朝向 vx、攻击单次播放分支并入射手（guard||shooter）。
+- **验证**：`scripts/test-hamster-guard.mjs` 37 项全绿（含物防口径修正：
+  combat-formulas defense 字段 floor:true 但代码判 defF.round==='floor' 恒 false →
+  实际 Math.round，def=34）；eslint/node --check/vite build 通过。实机：
+  世界-122 造兵营 → 面板切「仓鼠盾卫」→ 30s 生成，Ctrl+F5 复查。
+
+### 对话：世界-122 荒漠化——树木全删 + 仙人掌 4 姿态障碍物（2026-08-16）
+- **需求**：世界-122 全部树木及树木生成代码删除；用生成管线产出 3~4 个不同姿态、
+  相同风格、低对比度的仙人掌替代（沙漠主题）。
+- **删除（世界-122 树木全链路）**：
+  - 资产：`assets/terrain/obstacle_tree_{tall,bushy,twin,wind,tiered}.png` + 备份目录；
+  - 代码：`_scatterTreesScene8` + `_loadScene8` 调用、`treeScatter` 配置（data 与
+    public/data 双份）、BootScene 加载、`ISO_WALL_GEO` 树注册、cdp-gate-panel 探针
+    的 treeScatter 置位；
+  - 生成管线：gen/process-tree-iso(-iso2)-assets.py、`_blockout_specs/tree_*` 白模
+    19 个、cdp-tree-scatter/cdp-tree-iso-check 探针、prompts/obstacle.md 树木节。
+  - 保留：通用 `WallSystem.addTree` 程序化圆树（主神空间/雪原 demo 用，非世界-122）。
+- **新增（仙人掌障碍物）**：
+  - 资产：`obstacle_cactus_{saguaro2arm,saguaro1arm,barrel,cholla}.png`（4 姿态）；
+  - 管线：`process-desert-plant.py` 扩展 `--contrast`（低对比）与 `--no-square`
+    （等比裁剪，障碍物几何用）——白底生图 → BiRefNet 抠图 → 降饱和 0.7 → 降对比
+    0.7~0.85 → 入库；`ISO_WALL_GEO` obstacle 注册（foot 实测 31×11/36×13/110×38/
+    33×12，obstacleH 240/230/105/150）；
+  - 散布：`_scatterCactiScene8` + `cactusScatter` 配置（count 80/minDist 150，
+    排除带/碰撞/调用顺序铁律与旧树木同款）。
+- **验证**：像素验收白边 <0.5%、无品红、meanSat 19~25、lumStd≈38（cholla 金刺
+  初版 55 单独 `--contrast 0.7` 拉回 45）；GLM 逐张确认姿态/低饱和；合成预览
+  （泥地 + 4 仙人掌 + 荒漠植物）判"沙漠生态和谐、低对比不跳"。Ctrl+F5 实机复查。
+
 ### 对话：铁栅栏门加水平横杆 + 清理柱外残留（2026-08-17）
 - **需求**：① 钢管门列左右两扇叶各加上/下水平钢管横杆（穿过该叶竖杆列），
   开/关门与竖杆 16 帧同步滑动；② 开门时钢管向左右石柱退出，但石柱外仍残留
