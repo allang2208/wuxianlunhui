@@ -52,6 +52,15 @@ check('attack 动画 = 24 帧，两段式：起步完整 [0,23] 播一次 → �
     && warriorCfg.animations.attack.startRepeat === 0
     && warriorCfg.animations.attack.loopFrames[0] === 5 && warriorCfg.animations.attack.loopFrames[1] === 23
     && warriorCfg.animations.attack.repeat === -1);
+check('attack 动画与 2s 攻击间隔对齐：完整 24 帧 @12fps = 2.0s、循环 19 帧 @9.5fps = 2.0s',
+    warriorCfg.animations.attack.startFrameRate === 12
+    && warriorCfg.animations.attack.frameRate === 9.5
+    && Math.abs(24 / warriorCfg.animations.attack.startFrameRate
+        - warriorCfg.ai.attackInterval / 1000) < 1e-6
+    && Math.abs((warriorCfg.animations.attack.loopFrames[1] - warriorCfg.animations.attack.loopFrames[0] + 1)
+        / warriorCfg.animations.attack.frameRate
+        - warriorCfg.ai.attackInterval / 1000) < 1e-6,
+    `start=${24 / warriorCfg.animations.attack.startFrameRate}s loop=${(warriorCfg.animations.attack.loopFrames[1] - warriorCfg.animations.attack.loopFrames[0] + 1) / warriorCfg.animations.attack.frameRate}s interval=${warriorCfg.ai.attackInterval / 1000}s`);
 check('dying 动画 = 12 帧 [0,11]，只播一次', warriorCfg.animations.dying.frameCount === 12
     && warriorCfg.animations.dying.frames[0] === 0 && warriorCfg.animations.dying.frames[1] === 11
     && warriorCfg.animations.dying.repeat === 0);

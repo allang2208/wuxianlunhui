@@ -690,6 +690,9 @@ export class GameScene extends Scene {
                     // 12 帧循环（无 startFrames 走简单路径）；仓鼠矿工保留起步全播+循环
                     // 两段式（配置带 startFrames 时走两段）。
                     sprite.setData('lunaRunning', false);
+                    // 离开攻击状态必须重置战士攻击标记：attack→walk→attack 再次进入攻击时
+                    // 仍播完整 1~24 帧起步（2026-08-16 用户口径：从其他状态进攻击播完整循环）
+                    sprite.setData('hamsterAtk', false);
                     const walkStartKey = `${walkKey}_start`;
                     if (anims.walk.startFrames && this.anims.exists(walkStartKey)) {
                         if (!sprite.getData('hamsterWalk')) {

@@ -6,6 +6,7 @@
   "max_width_frac": 0.8,
   "top_margin_px": 70,
   "tex": "Y:/工作/无尽轮回/scratch/world122/raw/hamster_barracks_wall_tex.png",
+  "roof_tex": "Y:/工作/无尽轮回/scratch/world122/raw/hamster_barracks_roof_tex.png",
   "tex2": "Y:/工作/无尽轮回/scratch/demon_iron_tex.png",
   "interior_glow": "Y:/工作/无尽轮回/scratch/world122/raw/factory_interior_glow.png",
   "primitives": [
@@ -22,7 +23,7 @@
       "size": [280, 170, 68],
       "pos": [0, 0, 98],
       "rot": [0, 0, 44.8],
-      "material": "wall"
+      "material": "roof"
     },
     {
       "type": "box",
@@ -44,14 +45,6 @@
       "type": "box",
       "size": [36, 36, 190],
       "pos": [-18.5, 68, 95],
-      "rot": [0, 0, 44.8],
-      "bevel": 4,
-      "material": "wall"
-    },
-    {
-      "type": "box",
-      "size": [36, 36, 190],
-      "pos": [153.5, 68, 95],
       "rot": [0, 0, 44.8],
       "bevel": 4,
       "material": "wall"

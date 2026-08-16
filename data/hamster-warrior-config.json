@@ -43,8 +43,8 @@
       "src": "assets/companions/hamster_warrior/attacking.png",
       "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 4,
       "frameCount": 24,
-      "startFrames": [0, 23], "startFrameRate": 16, "startRepeat": 0,
-      "loopFrames": [5, 23], "frameRate": 16, "repeat": -1
+      "startFrames": [0, 23], "startFrameRate": 12, "startRepeat": 0,
+      "loopFrames": [5, 23], "frameRate": 9.5, "repeat": -1
     },
     "dying": {
       "src": "assets/companions/hamster_warrior/dying.png",
