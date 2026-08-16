@@ -143,6 +143,7 @@ export class BootScene extends Scene {
         this.load.image('swamp_deco_6', 'assets/terrain/swamp_deco_6.png');
         // 沼泽地地砖（沼泽地-高级地牢；当前试用 AI 新砖 swampbrick-new1 单款，旧 3 张备份于 swampbrick_old/）
         this.load.image('swampbrick_new1', 'assets/terrain/swampbrick-new1.png');
+        this.load.image('yellowmud_new1', 'assets/terrain/yellowmud-new1.png');
         this.load.image('swampbrick_1', 'assets/terrain/swampbrick-1.png');
         this.load.image('swampbrick_2', 'assets/terrain/swampbrick-2.png');
         this.load.image('swampbrick_3', 'assets/terrain/swampbrick-3.png');

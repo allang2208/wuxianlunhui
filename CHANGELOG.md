@@ -1,4 +1,31 @@
 # 变更日志
+### 对话：世界-122 新增黄色泥地砖（稀疏草地，可 8 向循环混铺）（2026-08-16）
+- **需求**：按现有 swampbrick-new1 同规格生成一块"黄色泥地 + 稀疏草"地砖，加入
+  世界-122 地块生成池循环拼接，必须满足无缝循环。
+- **生图**：走固定管线（SKILL §2 / WORKFLOW.md / prompts 模板）——远程 5080
+  ComfyUI `flux2-dev-fp8` 白底 45° 菱形单砖，出 4 张候选（scratch/yellowmud_1001/2001/3001/4001），
+  像素打分选 4001（黄主导 62%、绿草 6.8%、菱形比例 0.99）。
+- **处理**：新增 `tools/ai-gen/process-floor-tile.py`（固化 swampbrick-new1 配方：
+  泛洪抠图 → 腐蚀 2px → 纵向压缩 0.5774 → 定宽 + 强制 30° 标准高度）→
+  `assets/terrain/yellowmud-new1.png`（510×294、斜率 0.5765、覆盖 51.8%，
+  与 swampbrick-new1 菱形宽 510 完全一致可同池混铺）。
+- **入库**：BootScene 注册 `yellowmud_new1`；scene-manager `_loadScene8`
+  地砖池 `['swampbrick_new1','yellowmud_new1']`（随机选图 + 随机 X/Y 镜像 8 向循环）。
+- **验证**：eslint 0 error + vite build ✅；CDP 实机——贴图注册 ✅、菱形内采样
+  20 点含黄砖/绿砖、区外仍全黑；截图 `tools/verify-shots/scene8_yellowmud_v1.png`。
+- **修改文件**：`assets/terrain/yellowmud-new1.png`（新增）、
+  `tools/ai-gen/process-floor-tile.py`（新增）、`prompts/floor-yellow-mud.md/.txt`（新增）、
+  `tools/cdp-scene8-tilecheck.mjs`（新增）、`src/phaser/scenes/BootScene.js`、
+  `src/world/scene-manager.js`、CHANGELOG.md。
+### 对话：世界-122 玩家出生点卡墙——改回房间内合法点（2026-08-16）
+- **用户反馈**：调整地图后玩家出生点卡在墙里。
+- **根因**：出生点被改成 (450,2150)，是按旧基地 x=532 调的位置；基地早已移到
+  x=900（基地菱形房中心 (900,2048)，rx512/ry256），在 y=2150 处左下墙 x≈592——
+  (450,2150) 落在墙外/墙里。实机 WallSystem.canMoveTo 校验 **false**（卡墙实锤）。
+- **修复**：改回 (760,2048)（原出生点，房间内、不贴墙、不占门洞、无平台冲突），
+  实机校验 walkable **true**；注释同步修正（原注释残留“基地 x=532”）。
+- **验证**：`tools/cdp-spawn-check.mjs`——当前出生点 (760,2048) walkable true、
+  (450,2150) false；test-party-system 268/268、eslint 0 error、vite build ✓、dist 重建。
 ### 对话：删除基地预置射击台（2026-08-16）
 - **需求**：基地里的射击台先删除，不是很理想。
 - **实现**：移除 `_placeInitialPlatform` / `_placeInitialPlatformSafe` 及 init 调用——

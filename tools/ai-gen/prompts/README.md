@@ -20,6 +20,7 @@
 | [cover.md](cover.md) | 掩体（世界-122 防守地图 F→A 六档 × 水平/垂直摆） | 新增（2026-08-04） |
 | [defense-tower.md](defense-tower.md) | 防御塔建筑（基座+机械臂挂载点） | 新增（2026-08-04） |
 | [energy-crystal-v3.md](energy-crystal-v3.md) | 世界-122 能源水晶 v3（12 形态 + 30° 接地线） | 新增（2026-08-16） |
+| [floor-yellow-mud.md](floor-yellow-mud.md) | 地砖·黄色泥地稀疏草（swampbrick-new1 同规格，45° 菱形单砖 + 脚本切 30°） | 新增（2026-08-16） |
 
 ## 拼接规则（顺序固定）
 

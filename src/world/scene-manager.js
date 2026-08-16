@@ -979,10 +979,11 @@ export const SceneManager = {
             rx: diamondCfg.rx ?? w / 2,
             ry: diamondCfg.ry ?? h / 2,
         };
-        // 沼泽地砖（swampbrick_new1）：与 data/dungeon-config.json swampDungeon.floor 同款
+        // 沼泽地砖池（swampbrick_new1 + yellowmud_new1，510×294 同规格可混铺）：
+        // 与 data/dungeon-config.json swampDungeon.floor 同款参数；随机选图 + 随机镜像 8 向循环；
         // glow:false + overlapX:6/overlapY:3（自然材质平铺内缩，盖住锯齿缝隙），菱形内全场景平铺
         setDungeonFloorProfile({
-            tiles: ['swampbrick_new1'],
+            tiles: ['swampbrick_new1', 'yellowmud_new1'],
             glow: false,
             overlapX: 6,
             overlapY: 3,
@@ -1009,10 +1010,12 @@ export const SceneManager = {
         // 四边新掩体墙（h="\"/v="/"），face 线 40px 端帽叠合拼接，
         // 转角端帽互相叠盖；RB 边中点留居中门洞（配置见 DEFENSE_CONFIG.room）
 
-        // 玩家出生在基地房内左下（基地 x=532；平台贴 TR 墙，出生点避开其通行区）
+        // 玩家出生在基地房内（基地 x=900；2026-08-16 修正：原 (450,2150) 是按旧基地
+        // x=532 调的位置，基地挪到 900 后它落在左下墙外/墙里——walkable 实测 false，
+        // 改回房间内合法点 (760,2048)，实测 walkable true 且不贴墙/不占门洞）
         if (player) {
-            player.x = 450;
-            player.y = 2150;
+            player.x = 760;
+            player.y = 2048;
             Game.entities.set('player', player);
             Camera.follow(player);
         }
