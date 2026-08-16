@@ -348,10 +348,11 @@ export const DefenseTrapSystem = {
     tryInteract(mx, my, player) {
         if (!Game || !Game.entities || !player) return false;
         const panel = this._ensurePanel();
+        const buildMode = !!(Game && Game._buildMode);   // 建设模式无视距离（2026-08-16）
         for (const e of Game.entities.values()) {
             if (!e || !e._isDefenseTrap || !e.active || e.hp <= 0) continue;
             const d = Math.hypot(e.x - player.x, e.y - player.y);
-            if (d > 260) continue;
+            if (!buildMode && d > 260) continue;
             const pos = Renderer.worldToScreen(e.x, e.y);
             const hw = 34, hh = 28;
             if (Math.abs(mx - pos.x) <= hw && Math.abs(my - (pos.y - 20)) <= hh) {

@@ -2159,7 +2159,17 @@ export const DefenseSystem = {
         this._destroyHud();
         const el = document.createElement('div');
         el.className = 'defense-hud';
-        el.innerHTML = '<span id="dhPhase">准备中…</span><span id="dhMoney">💰 0　⚡ 0</span>';
+        el.innerHTML = `
+            <div style="display:flex;justify-content:space-between;gap:14px;width:100%;">
+                <span id="dhPhase">准备中…</span>
+                <span id="dhMoney">💰 0&nbsp;&nbsp;⚡ 0</span>
+            </div>
+            <div id="dhWaveRow" style="display:none;align-items:center;gap:8px;">
+                <div style="position:relative;flex:1;height:10px;background:rgba(255,255,255,0.10);border-radius:5px;overflow:hidden;">
+                    <div id="dhWaveBar" style="position:absolute;left:0;top:0;bottom:0;width:0%;background:linear-gradient(90deg,#ffd700,#7fe0c8);border-radius:5px;transition:width 0.2s linear;"></div>
+                </div>
+                <span id="dhWavePct" style="font-size:11px;color:#9a9a9a;font-weight:700;min-width:34px;text-align:right;">0%</span>
+            </div>`;
         document.body.appendChild(el);
         this._hudEl = el;
         this._hudTimer = 0;
@@ -2172,12 +2182,12 @@ export const DefenseSystem = {
         }
     },
 
-    /** 每 250ms 刷新一次 HUD：波次阶段/倒计时/剩余数 + 金币与能源实时值 */
+    /** 每 100ms 刷新一次 HUD：波次阶段/倒计时/剩余数 + 金币能源 + 来袭进度条（同仓鼠兵营节奏） */
     _updateHud(dt) {
         if (!this._hudEl) return;
         this._hudTimer -= dt;
         if (this._hudTimer > 0) return;
-        this._hudTimer = 250;
+        this._hudTimer = 100;
         const spawn = DEFENSE_CONFIG.spawn;
         let phaseText;
         if (this.victory) {
@@ -2191,7 +2201,32 @@ export const DefenseSystem = {
         }
         const gold = GoldManager ? GoldManager.getGold() : 0;
         const energy = EnergyManager ? EnergyManager.getEnergy() : 0;
-        this._hudEl.innerHTML = `<span>${phaseText}</span><span>💰 ${gold}&nbsp;&nbsp;⚡ ${energy}</span>`;
+        const ph = this._hudEl.querySelector('#dhPhase');
+        const mo = this._hudEl.querySelector('#dhMoney');
+        if (ph) ph.textContent = phaseText;
+        if (mo) mo.innerHTML = `💰 ${gold}&nbsp;&nbsp;⚡ ${energy}`;
+        // 怪物来袭倒计时进度条（2026-08-16，与仓鼠兵营同款：0.2s transition + 颜色渐变）
+        const waveRow = this._hudEl.querySelector('#dhWaveRow');
+        const bar = this._hudEl.querySelector('#dhWaveBar');
+        const pct = this._hudEl.querySelector('#dhWavePct');
+        if (waveRow && bar && pct) {
+            let total = 0;
+            if (this._phase === 'prep') total = spawn.prepMs || 30000;
+            else if (this._phase === 'break') total = spawn.waveBreakMs || 10000;
+            if (total > 0) {
+                const progress = Math.max(0, Math.min(1, 1 - Math.max(0, this._phaseTimer) / total));
+                const p = Math.round(progress * 100);
+                // 颜色反向（2026-08-16 用户口径）：<50% 青绿（安全准备）、<80% 橙、≥80% 红（即将来袭）
+                const color = progress < 0.5 ? '#7fe0c8' : (progress < 0.8 ? '#ff9d45' : '#ff5555');
+                bar.style.width = `${p}%`;
+                bar.style.background = `linear-gradient(90deg, ${color}, #7fe0c8)`;
+                pct.textContent = `${p}%`;
+                pct.style.color = color;
+                waveRow.style.display = 'flex';
+            } else {
+                waveRow.style.display = 'none';
+            }
+        }
     },
 
     /** E 键按下/松开（全局监听写入；仅世界-122 且系统激活时生效） */
@@ -2527,10 +2562,12 @@ export const DefenseSystem = {
     tryInteract(mx, my, player) {
         if (!this.active || !player) return false;
         const panel = this._ensurePanel();
+        // 建设模式（B 打开建筑面板）无视距离，2026-08-16 用户口径
+        const buildMode = !!(Game && Game._buildMode);
         const inReach = (t, r) => {
             const pdx = t.x - player.x;
             const pdy = t.y - player.y;
-            if (Math.sqrt(pdx * pdx + pdy * pdy) > 260) return false;
+            if (!buildMode && Math.sqrt(pdx * pdx + pdy * pdy) > 260) return false;
             const pos = Renderer.worldToScreen(t.x, t.y);
             return Math.hypot(mx - pos.x, my - pos.y) < r;
         };
@@ -2539,10 +2576,10 @@ export const DefenseSystem = {
         const candidates = this._iterActiveTowers();
         for (const t of candidates) {
             if (!t.active) continue;
-            // 玩家交互距离 260px 保留；命中判定 = 整塔矩形（基座/机械臂/挂载武器全视觉范围）
+            // 命中判定 = 整塔矩形（基座/机械臂/挂载武器全视觉范围）；非建设模式限 260px
             const pdx = t.x - player.x;
             const pdy = t.y - player.y;
-            if (Math.sqrt(pdx * pdx + pdy * pdy) > 260) continue;
+            if (!buildMode && Math.sqrt(pdx * pdx + pdy * pdy) > 260) continue;
             const mw = Renderer.screenToWorld(mx, my);
             if (!pointHitsTower(mw.x, mw.y, t)) continue;
             if (panel.isOpen && panel.tower === t) {
@@ -2678,6 +2715,36 @@ function syncGateSeamDepths() {
                 // g 左端 ≈ h 右端 → h 是左门：h 右柱盖 g 左柱
                 const diff = (g._depthL - h._depthR) + 0.5;
                 if (diff > 0) { h._seamBiasR += diff; g._seamBiasL -= diff; }
+            }
+        }
+    }
+    // 门对掩体（2026-08-16 用户口径：门与墙相连同样"左在右之前"）：
+    // 门 B 端 ≈ 墙 A 端 → 门在墙左 → 门右柱抬到墙之上（盖墙左端）；
+    // 门 A 端 ≈ 墙 B 端 → 墙在门左 → 门左柱压到墙之下（墙右端盖门左柱）。
+    // 只调门柱深度、不动墙的单一 _faceDepth（墙两端可能同时接门）。
+    const covers = [];
+    if (typeof window !== 'undefined' && window.Game && window.Game.entities) {
+        for (const e of window.Game.entities.values()) {
+            if (!e || !e.active || !e._isDefenseCover || e._isCoverGate) continue;
+            covers.push(e);
+        }
+    }
+    for (const g of list) {
+        const gf = faceEnd(g);
+        if (!gf || typeof g._depthL !== 'number' || typeof g._depthR !== 'number') continue;
+        for (const c of covers) {
+            const cf = faceEnd(c);
+            if (!cf) continue;
+            const wallDepth = (typeof c._faceDepth === 'number')
+                ? c._faceDepth
+                : Math.max(cf[0].y, cf[1].y) + 12;
+            if (Math.hypot(gf[1].x - cf[0].x, gf[1].y - cf[0].y) <= SEAM_TOUCH) {
+                const needR = wallDepth + 0.5 - g._depthR;
+                if (needR > g._seamBiasR) g._seamBiasR = needR;
+            }
+            if (Math.hypot(gf[0].x - cf[1].x, gf[0].y - cf[1].y) <= SEAM_TOUCH) {
+                const needL = wallDepth - 0.5 - g._depthL;
+                if (needL < g._seamBiasL) g._seamBiasL = needL;
             }
         }
     }

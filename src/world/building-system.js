@@ -206,19 +206,17 @@ export const BuildingSystem = {
         }
     },
 
-    /** 点击掩体/铁栅栏门 → 打开建筑面板并直达详情（2026-08-16 补：面板未开时也直接弹出）。
-     *  由 game.js 点击分发调用；屏幕坐标 → 世界坐标（与防御塔 tryInteract 同口径），
-     *  交互距离 260px 与塔面板一致。 */
-    tryInteract(mx, my, player) {
+    /** 点击掩体/铁栅栏门 → 打开建筑详情（2026-08-16 用户口径调整）：
+     *  - 只有按 B 打开建设页面（this.active）时才响应，其他时候不弹出；
+     *  - 建设模式下无视距离，无论多远都能点击对应建筑打开详情。
+     *  由 game.js 点击分发调用；屏幕坐标 → 世界坐标（与防御塔 tryInteract 同口径）。 */
+    tryInteract(mx, my, _player) {
+        if (!this.active) return false;
         if (!Game || !Game.isRunning || !Game.entities) return false;
         const mw = (Renderer && Renderer.screenToWorld) ? Renderer.screenToWorld(mx, my) : null;
         if (!mw) return false;
         const hit = this._hitTestCover(mw.x, mw.y);
         if (!hit) return false;
-        const dx = hit.x - (player ? player.x : 0);
-        const dy = hit.y - (player ? player.y : 0);
-        if (Math.sqrt(dx * dx + dy * dy) > 260) return false;
-        if (!this.active) this.open();
         this._showDetail(hit);
         return true;
     },
@@ -690,8 +688,6 @@ export const BuildingSystem = {
     _renderDetail() {
         if (!this._panel) return;
         const grid = this._panel.querySelector('#bpGrid');
-        const row = this._panel.querySelector('#bpRow');
-        const hints = this._panel.querySelector('#bpHints');
         const det = this._panel.querySelector('#bpDetail');
         if (!grid || !det) return;
         let e = this._detail;
@@ -701,9 +697,7 @@ export const BuildingSystem = {
             show = false;
             this._notify('建筑已被摧毁', '#ff8855');
         }
-        grid.style.display = show ? 'none' : '';
-        if (row) row.style.display = show ? 'none' : '';
-        if (hints) hints.style.display = show ? 'none' : '';
+        // 详情与建筑列表并排显示（2026-08-16）：不再隐藏网格/操作行/提示
         det.style.display = show ? '' : 'none';
         if (!show) return;
         // 门走专属详情（含常锁/常开模式按钮，2026-08-15）
