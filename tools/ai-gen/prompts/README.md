@@ -21,6 +21,8 @@
 | [defense-tower.md](defense-tower.md) | 防御塔建筑（基座+机械臂挂载点） | 新增（2026-08-04） |
 | [energy-crystal-v3.md](energy-crystal-v3.md) | 世界-122 能源水晶 v3（12 形态 + 30° 接地线） | 新增（2026-08-16） |
 | [floor-yellow-mud.md](floor-yellow-mud.md) | 地砖·黄色泥地稀疏草（swampbrick-new1 同规格，45° 菱形单砖 + 脚本切 30°） | 新增（2026-08-16） |
+| [floor-yellow-mud-pure.md](floor-yellow-mud-pure.md) | 地砖·纯黄泥（无草，镜像安全；草走 grass-tuft 点缀） | 新增（2026-08-16） |
+| [grass-tuft.txt](grass-tuft.txt) | 地板点缀·俯视径向对称草簇（固定朝向烘焙） | 新增（2026-08-16） |
 
 ## 拼接规则（顺序固定）
 

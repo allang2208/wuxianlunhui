@@ -6358,7 +6358,10 @@ export class GameScene extends Scene {
     _bakeTerrainChunk({ key, ox, oy }) {
         const chunks = Renderer.terrainChunks;
         if (!chunks) return;
-        const canvas = bakeDungeonFloorChunk(ox, oy, chunks.chunkSize, chunks.chunkSize, chunks.mapW, chunks.mapH, null, chunks.diamond);
+        // 侵入式拼接：烘焙尺寸四周扩 pad px（世界相位连续，重叠区纹理一致），
+        // 精灵中心不变 → 相邻块互相压 pad px，盖住接缝细线/黑边
+        const pad = chunks.pad || 0;
+        const canvas = bakeDungeonFloorChunk(ox - pad, oy - pad, chunks.chunkSize + pad * 2, chunks.chunkSize + pad * 2, chunks.mapW, chunks.mapH, null, chunks.diamond, pad);
         if (!canvas) return;
         if (this.textures.exists(key)) this.textures.remove(key);
         this.textures.addCanvas(key, canvas);

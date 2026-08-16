@@ -25,6 +25,7 @@
 | 远程·固定视角/方向 | 远程 5080 + Depth ControlNet | `python tools/ai-gen/comfyui-gen.py --host 192.168.3.142 --model flux2-dev-depth --control-image depth.png --prompt "..." --out out.png` |
 | 跨机双卡·最高质量提速（Daedalus 在线） | 5080 Icarus + 本机 3080 Ti Daedalus | `python tools/ai-gen/comfyui-gen.py --host 192.168.3.142 --model flux2-dev-mesh --prompt "..." --out out.png`（8 步 turbo；Daedalus 需先启动，见 §1.6） |
 | 本地兜底 | 本机 3080 Ti | `python tools/ai-gen/comfyui-gen.py --host 127.0.0.1 --model sdxl --prompt "..." --out out.png`（已装 sdxl；FLUX.2 dev 建议 5080） |
+| **地面无缝纹理（泥/沙）** | floor-asset.py（comfyui-gen → make-seamless → desaturate） | `python tools/ai-gen/floor-asset.py mud --out assets/terrain/floor_mud_seamless.png --seed 9001` |
 | 透明主体素材 | 远程 5080（SDXL 兜底） | `python tools/ai-gen/comfyui-gen.py --host 192.168.3.142 --model flux2-dev-depth --control-image depth.png --transparent --prompt "..." --out out.png`（AI 选纯色底 + 自动抠图，见 §3.7） |
 | 兜底·智谱 API | 智谱 | `python tools/ai-gen/zhipu-gen.py --prompt-file prompt.txt --model glm-image --size 1280x1280 --out ...`（双机不可用/免费额度场景） |
 | 同系列模板锁定重抽 | img2img | `python tools/ai-gen/gen-meteor-icon-template.py`（换参考图 + 提示词即可复用） |

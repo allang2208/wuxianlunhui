@@ -1,22 +1,173 @@
 # 变更日志
+### 对话：伊莉丝攻击/风车动作显示偏小——displayScale 放大统一（2026-08-17）
+- **排查**：逐帧内容测量 + CDP 实机读 Phaser 精灵显示尺寸——idle 内容 461px 渲染 129.7px；
+  attack 平均 433px（挥剑帧自然倾斜 367~430 占多数）渲染 121.8px（-6%）；windmill 399px 渲染 112px（-13.5%）。
+- **修复**：`companion-config` 伊莉丝 attack `displayScale=1.065`、windmill `displayScale=1.155`；
+  GameScene 归一化按动作 scale 显示 + 脚底修正同步（`0.4375×(512−格高×k)×normS`），脚底贴地不变。
+  仅这两个动作受影响，其余动作（idle/walk/run/defend/其他队员）k=1 行为不变，PNG 素材未改动。
+- **验证**：`tools/cdp-elise-size.mjs` 实机确认 attack 270×288→288×307、windmill 252×180→291×208，
+  三动作脚底 y 一致（≈2001）；eslint / vite build 通过。
+### 对话：沙地补丁直角边根因修复（2026-08-16 八轮）
+- **用户反馈**：沙泥衔接仍有非常明显的直角边。
+- **根因**：补丁临时画布（760²）只画了一张压缩后的沙地纹理（1024×591），
+  当世界相位偏移大时，画布右侧/底部露出"没贴纹理"的直切带 → 直角缺口。
+- **修复**：补丁画布内改为**循环平铺**沙地纹理（世界相位一致，与泥地连续铺贴
+  同法），任何相位都全覆盖；同时噪声边界更不规则（b=0.52±0.22·noise，
+  fade 0.18），过渡更宽。
+- **验证**：eslint 0 error + vite build ✅；实机截图 scene8_yellowmud_v1.png。
+- **修改文件**：`src/world/dungeon-floor-texture.js`（沙地补丁平铺 + 噪声参数）、CHANGELOG.md。
+### 对话：地面贴图贴合 30° 视角 + 沙泥不规则衔接（2026-08-16 七轮）
+- **用户反馈**：① 地面贴图像垂直俯视，与游戏 30° 等距视角不搭（SKILL §7 视角基准）；
+  ② 沙地与泥地衔接是一条垂直/规整边，太突兀，要随机或不规则淡入淡出。
+- **视角**：SKILL 地板标准 = 30° 等距（菱形斜率 0.5774）。连续铺贴按
+  `profile.textureScaleY ?? 0.5774` **纵向压缩**（世界相位不变），沙地补丁内纹理同压缩，
+  消除"垂直视角"观感。
+- **衔接**：沙地补丁从规整圆形径向渐隐改为**双八度值噪声扰动的不规则边界 +
+  宽淡入淡出**（`_makeNoiseMask` 种子确定性，边界 b=0.55±0.18·noise，fade 0.16），
+  沙/泥交界自然过渡，无直边。
+- **验证**：eslint 0 error + vite build ✅；实机截图 scene8_yellowmud_v1.png。
+- **修改文件**：`src/world/dungeon-floor-texture.js`（textureScaleY 压缩 + 噪声沙地掩码）、
+  `prompts/floor-seamless.md`（视角备注）、CHANGELOG.md。
+### 对话：地面贴图降饱和（淡/灰，2026-08-16 六轮）
+- **用户反馈**：地面贴图饱和度太高，要淡一点、灰一点。
+- **量化**：泥地平均饱和度 68.8%、沙地 59.1%（偏高）。
+- **处理**：新增 `tools/ai-gen/desaturate-texture.py`（向灰度混合 + 微提亮，
+  逐像素操作不破坏无缝性）→ 泥地 (209,151,59)→(190,163,119) S 68.8%→**39.1%**；
+  沙地 (211,155,97)→(197,168,138) S 59.1%→**36.6%**。
+- **提示词同步**：`prompts/floor-seamless-mud.txt` / `-sand.txt` / `floor-seamless.md`
+  加入 muted desaturated / low saturation / dull earthy tones，后续出图直接低饱和。
+- **验证**：实机截图 scene8_yellowmud_v1.png，无黑区、混铺正常。
+- **修改文件**：`assets/terrain/floor_mud_seamless.png` / `floor_sand_seamless.png`（降饱和）、
+  `tools/ai-gen/desaturate-texture.py`（新增）、`prompts/floor-seamless*`、CHANGELOG.md。
+### 对话：伊莉丝圣光 AI——5 级解锁 + 治疗目标优先级（2026-08-17）
+- **解锁**：`companion-config` 伊莉丝（warrior_bruno）新增 `unlockSkills: { holyLight: 5 }`
+  （原 10 级在露娜档位，伊莉丝原本无圣光）；老档读档/解散再招募自动回退配置生效。
+- **目标优先级**：圣光施法按 玩家（生命不满）→ 自己 → 其他队友（缺血最多）→ 敌方（最近），
+  挂在伊莉丝默认状态机与 aggressive/patrol 指令顶部（不打断进行中的防御/风车/攻击）。
+- **实现**：`HolyLightSystem.triggerOn(target)` 定向施法（跳过鼠标瞄准，口径与 trigger 一致）；
+  友军判定由 `_faction===` 改为友方阵营组 `{player, companion}`（原判定会把"奶玩家"误判成"打敌人"）。
+- **验证**：`tools/cdp-elise-holylight.mjs` 实机四连用例（玩家+31 / 自愈+29 / 队友+29 / 敌人僵尸 ×2 伤害），
+  eslint / vite build / party 268 项全过。
+### 对话：连续铺贴分块侵入式拼接（2026-08-16 五轮，细线/黑边收尾）
+- **用户反馈**：连续纹理改善明显，但拼接处仍有细线和黑边，问是否可用微小侵入式拼接。
+- **根因**：2048² 分块是独立精灵并排，相机缩放/亚像素对齐时边缘露出缝隙或
+  纹理边缘滤波暗线（纹理本身边缘无暗线：泥 -0.2 / 沙 -1.3 亮度差）。
+- **实现（侵入式拼接）**：`applyDungeonFloorChunked` 增 `pad=3`；GameScene
+  `_bakeTerrainChunk` 烘焙尺寸四周扩 pad px（世界相位连续 → 重叠区纹理完全一致），
+  精灵中心不变 → 相邻分块互相压 3px，缝隙被盖住；deco/沙地补丁自带尺寸内缩，
+  不会在重叠带重复。
+- **验证**：eslint 0 error + vite build ✅；跨界（x=2048）亮度扫描最暗 64 → **103**、
+  无接近 0 的暗带；截图 scene8_yellowmud_v1.png。
+- **修改文件**：`src/world/dungeon-floor-texture.js`（applyDungeonFloorChunked pad）、
+  `src/phaser/scenes/GameScene.js`（_bakeTerrainChunk 扩边烘焙 + 原位重叠）、CHANGELOG.md。
+### 对话：平材质地面改连续无缝铺贴（泥/沙，2026-08-16 四轮）
+- **用户反馈**：泥地接缝僵硬、有黑边、无法 8 向循环；原草地靠草苔复杂度盖住
+  菱形石板接缝，泥地平整后无细节可遮，需重新思考拼接。
+- **根因**：平材质不该用"独立菱形石板 + 随机镜像"拼（每个菱形是独立裁片，
+  边缘硬切 + 透明角露背景 = 黑边/硬接缝）。改**无缝连续纹理**路线。
+- **生图**：`prompts/floor-seamless-mud.txt` / `floor-seamless-sand.txt`
+  （seamless tileable + 四边匹配 + 无暗边）出 1024² 泥/沙 → 新增
+  `make-seamless.py`（偏移叠融法）保证四边完美环绕：实测接缝差 ≈ 纹理内部
+  相邻列差（比值 ~1.05），即"接缝处与纹理任意处一样连续"。
+- **代码**：`dungeon-floor-texture.js` 新增连续铺贴模式（`profile.continuous`）——
+  整张无缝纹理按**世界坐标对齐相位**重复铺满分块（跨块/跨方向天然无接缝），
+  菱形房间仍按房间轮廓裁剪；新增 `_drawSandPatches` 沙地软边补丁
+  （径向渐隐 destination-in 遮罩，与泥地无硬接缝）；草簇 deco 保留固定朝向。
+- **scene8 配置**：`tiles:['floor_mud_seamless'] + continuous + sandPatches
+  {floor_sand_seamless, perChunk 6, size 760} + deco 草簇`；BootScene 注册两张无缝纹理。
+- **验证**：eslint 0 error + vite build ✅；CDP 实机——纹理全部注册 ✅、
+  菱形内 16/20 泥地采样无黑区 ✅、横穿 x=2048 分块边界亮度扫描无黑缝
+  （最暗 64/平均 137，无接近 0 的暗带）✅；截图 scene8_yellowmud_v1.png。
+- **修改文件**：`assets/terrain/floor_mud_seamless.png` / `floor_sand_seamless.png`（新增）、
+  `tools/ai-gen/make-seamless.py`（新增）、`prompts/floor-seamless*.md/.txt`（新增）、
+  `src/world/dungeon-floor-texture.js`（连续模式 + 沙地补丁）、
+  `src/world/scene-manager.js`、`src/phaser/scenes/BootScene.js`、
+  `tools/cdp-scene8-seam-check.mjs`（新增）、CHANGELOG.md。
+### 对话：黄泥砖纯化 + 草簇独立点缀（2026-08-16 三轮，用户思路）
+- **用户思路**：只生成纯黄土地砖（无草），草另用生图管线出贴图，再在土地上
+  "点缀"——从根上避免 8 向循环把草翻转。
+- **纯泥砖**：新提示词 `prompts/floor-yellow-mud-pure.*`（bare soil、no grass、
+  纯平纹理）→ 深度锁形出图 → 处理为 `yellowmud-new1.png`（510×294、黄 98%、
+  草 0%、镜像安全）。
+- **草簇贴图**：`prompts/grass-tuft.txt`（俯视径向对称单簇）出 3 张选 2 张
+  （8001/8002）→ `transparent_cutout` 白底抠图 → 256² 透明画布入库
+  `assets/terrain/deco_grass_1.png` / `deco_grass_2.png`。
+- **点缀机制**：`dungeon-floor-texture.js` 新增 `_drawFloorDecoChunk`——
+  按块坐标种子确定性随机摆放（重烘焙位置不变）、**固定朝向只随机水平镜像**
+  （草簇径向对称安全）、菱形内留边距、距块边留 pad 防跨块裁断；
+  scene8 地板 profile 挂 `deco: { textures, perChunk:34, size:120, minDist:130 }`。
+- **验证**：eslint 0 error + vite build ✅；CDP 实机——yellow/swamp/deco_grass_1/2
+  全部注册 ✅、黄/绿砖混铺 ✅、区外全黑 ✅、无页面异常；
+  截图 `tools/verify-shots/scene8_yellowmud_v1.png`。
+- **修改文件**：`assets/terrain/yellowmud-new1.png`（替换为纯泥）、
+  `assets/terrain/deco_grass_1/2.png`（新增）、`prompts/floor-yellow-mud-pure.md/.txt`（新增）、
+  `prompts/grass-tuft.txt`（新增）、`src/world/dungeon-floor-texture.js`（deco 烘焙）、
+  `src/world/scene-manager.js`（deco 配置）、`src/phaser/scenes/BootScene.js`（注册）、
+  CHANGELOG.md。
+### 对话：世界-122 怪物攻击建筑零伤害排查（2026-08-16，三根因已修）
+- **现象**：怪物贴墙/贴掩体，攻击距离足够、动画照播但建筑不掉血。
+- **根因1（全局）**：CombatSystem swing 命中窗口 `Date.now() - startTime(nowMs)` 时钟错配，
+  checkTriangleHit 永不执行（2026-08-14 起影响所有敌人近战，不止建筑）。
+- **根因2**：distanceToEntityShape 把矩形掩体当半径 26 小圆，贴墙距离高估（24→101.7px）。
+- **根因3**：移动刹车用目标中心距离，结构中心在墙后到不了，怪沿墙滑行挥空。
+- **修复**：`combat-system.js` 命中窗口同源 nowMs；`collision-helpers.js` 矩形 AABB 距离；
+  `movement-system.js` 结构目标按形状距离刹车。
+- **验证**：`tools/cdp-defense-hit.mjs` 实机复现并回归（僵尸 1100→1087→1076，停在墙边）；
+  eslint / vite build / 防守目标分摊 19 项全过。
+### 对话：主神空间删除黑狼测试怪（2026-08-16）
+- `Game.spawnMainHubTestEntities` 不再生成黑狼（保留清场逻辑）；黑狼仍留在世界-122 防守怪池。
+### 对话：黑狼移除飞扑攻击，只保留撕咬（2026-08-16）
+- **需求**：删除黑狼飞扑攻击及其动画，只保留撕咬一种攻击方式。
+- **代码**：`BlackWolf` 类移除黑狼专属飞扑触发/渲染分支（`_usesPounce=false`，
+  攻击决策/贴图/网格/帧数一律走 bite）；`RedWolfKing extends BlackWolf` 保留飞扑
+  ——基类共享 `_startPounce/_startCharge/_endPounce/_updatePounceCharge/
+  _spawnSpeedLine`，红狼王构造器 `_usesPounce=true` 并补齐 `_pounceState` 系列字段。
+- **资产/配置**：删除 `black_wolf_pounce.png` 的 BootScene spritesheet 加载与
+  animation-config.blackWolf 的 sprites.pounce / attackTypes.pounce /
+  frameLayouts.pounce；enemy-config.blackWolf 删除 6 个 pounce 字段，
+  `attackType` "飞扑"→"撕咬"。
+- **修改文件**：`src/entities/enemy-types.js`、`src/phaser/scenes/BootScene.js`、
+  `src/game.js`（注释）、`tools/cdp-blackwolf-shot2.mjs`（注释）、
+  `data/`+`public/data/` 的 animation-config / enemy-config、SKILL.md、
+  memory.md、CHANGELOG.md。
 ### 对话：世界-122 新增黄色泥地砖（稀疏草地，可 8 向循环混铺）（2026-08-16）
 - **需求**：按现有 swampbrick-new1 同规格生成一块"黄色泥地 + 稀疏草"地砖，加入
   世界-122 地块生成池循环拼接，必须满足无缝循环。
-- **生图**：走固定管线（SKILL §2 / WORKFLOW.md / prompts 模板）——远程 5080
-  ComfyUI `flux2-dev-fp8` 白底 45° 菱形单砖，出 4 张候选（scratch/yellowmud_1001/2001/3001/4001），
-  像素打分选 4001（黄主导 62%、绿草 6.8%、菱形比例 0.99）。
+- **生图（第一轮，用户不满意）**：`flux2-dev-fp8` 白底 45° 菱形单砖纯文字出图，
+  草基本消失（纯绿 <1%）。改走**参考图锁形路线**：`make-tile-depth.py` 从现有草地砖
+  `swampbrick-new1` 提取菱形剪影 → 黑底白形深度图（1024²，菱形 1004×579）→
+  `flux2-dev-depth --strength 0.8` 锁构图重绘材质，出 3 张候选
+  （scratch/yellowmud_depth_5001/5002/5003，均严格跟随 30° 菱形）。
 - **处理**：新增 `tools/ai-gen/process-floor-tile.py`（固化 swampbrick-new1 配方：
-  泛洪抠图 → 腐蚀 2px → 纵向压缩 0.5774 → 定宽 + 强制 30° 标准高度）→
-  `assets/terrain/yellowmud-new1.png`（510×294、斜率 0.5765、覆盖 51.8%，
-  与 swampbrick-new1 菱形宽 510 完全一致可同池混铺）。
+  泛洪抠图 → 腐蚀 2px → 纵向压缩 0.5774 → 定宽 + 强制 30° 标准高度；
+  深度锁形输入已为 30° 菱形，走 `--iso` 跳过压缩）→
+  `assets/terrain/yellowmud-new1.png`（选 5002：510×294、斜率 0.5765、覆盖 51.9%、
+  主色 rgb(169,142,21) 黄、绿草 6.5%，与 swampbrick-new1 同宽可同池混铺；
+  旧 v1 备份 scratch/yellowmud_old_v1.png，备选 scratch/yellowmud_alt_5001/5003.png）。
 - **入库**：BootScene 注册 `yellowmud_new1`；scene-manager `_loadScene8`
   地砖池 `['swampbrick_new1','yellowmud_new1']`（随机选图 + 随机 X/Y 镜像 8 向循环）。
 - **验证**：eslint 0 error + vite build ✅；CDP 实机——贴图注册 ✅、菱形内采样
   20 点含黄砖/绿砖、区外仍全黑；截图 `tools/verify-shots/scene8_yellowmud_v1.png`。
-- **修改文件**：`assets/terrain/yellowmud-new1.png`（新增）、
-  `tools/ai-gen/process-floor-tile.py`（新增）、`prompts/floor-yellow-mud.md/.txt`（新增）、
+- **修改文件**：`assets/terrain/yellowmud-new1.png`（新增/替换）、
+  `tools/ai-gen/process-floor-tile.py`（新增）、`tools/ai-gen/make-tile-depth.py`（新增）、
+  `prompts/floor-yellow-mud.md/.txt`（新增）、
   `tools/cdp-scene8-tilecheck.mjs`（新增）、`src/phaser/scenes/BootScene.js`、
   `src/world/scene-manager.js`、CHANGELOG.md。
+### 对话：黄泥砖镜像安全 + 边缘压平（2026-08-16 二轮修复）
+- **用户反馈**：① 黄泥砖只能按原样展示——游戏随机 X/Y 镜像后草"倒过来"；
+  ② 两块黄泥砖互拼 OK，但与原草地砖拼接违和——怀疑是边缘"厚度/方块感"，
+  原草地砖边缘是纯粹贴图（无描边）。
+- **量化根因**：草严重偏上偏左（T/B=5.31、L/R=3.59，原草地砖 0.91/1.11）；
+  边缘 1~7px 带整体暗 4~7 亮度（原草地砖 ≈0.1）。
+- **修复**：新增 `tools/ai-gen/make-tile-mirrorsafe.py`——
+  ① 草层四向对称化：草掩码取 4 镜像并集、草色取镜像源中最绿者（泥地细节不动），
+  可选 `--target-frac` 按 4 镜像整组抽稀控制密度；
+  ② `--flatten-edge`：按索引级对称距离分带，把边缘带亮度归一化到内部水平
+  （必须先于草识别执行，否则压平会改变草/泥判定破坏对称）。
+- **终稿**：`yellowmud-new1.png` 草占比 12.3%、T/B=L/R=1.0、
+  镜像不变 X/Y ✅、边缘带差 -2~-3.7（原砖 -0.1，1~3px 视觉已平）。
+- **验证**：eslint 0 error + vite build ✅；CDP 实机贴图注册 ✅、黄/绿砖混铺 ✅、
+  区外全黑 ✅；截图 `tools/verify-shots/scene8_yellowmud_v1.png`。
 ### 对话：世界-122 玩家出生点卡墙——改回房间内合法点（2026-08-16）
 - **用户反馈**：调整地图后玩家出生点卡在墙里。
 - **根因**：出生点被改成 (450,2150)，是按旧基地 x=532 调的位置；基地早已移到
