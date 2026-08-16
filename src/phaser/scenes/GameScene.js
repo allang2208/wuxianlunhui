@@ -504,10 +504,10 @@ export class GameScene extends Scene {
             const aiMode = !!member.aiConfig;
             let faceRight = facingRight;
             if (aiMode) {
-                // 仓鼠矿工/战士移动（walk）始终朝向实际移动方向（vx），不倒退走路——
+                // 仓鼠矿工/战士/射手移动（walk）始终朝向实际移动方向（vx），不倒退走路——
                 // 否则寻路绕行/回屋时贴图朝向目标、实际反向移动（2026-08-15 用户口径）
                 const moving = member._animState === 'walk' || Math.abs(member.vx) > 5;
-                if ((member._isHamsterMiner || member._isHamsterWarrior) && moving) {
+                if ((member._isHamsterMiner || member._isHamsterWarrior || member._isHamsterShooter) && moving) {
                     faceRight = member.vx > 0;
                 } else if (member._lastAction === 'flee' && Math.abs(member.vx) > 5) {
                     faceRight = member.vx > 0;
@@ -527,8 +527,8 @@ export class GameScene extends Scene {
             }
             sprite.setFlipX(!faceRight);
             sprite.setDepth(this.playerSprite.depth + 0.5);
-            // 受击白闪（仓鼠矿工/仓鼠战士）
-            if (member._isHamsterMiner || member._isHamsterWarrior) {
+            // 受击白闪（仓鼠矿工/战士/射手）
+            if (member._isHamsterMiner || member._isHamsterWarrior || member._isHamsterShooter) {
                 if (member.hitFlash > 0) sprite.setTint(0xffffff);
                 else sprite.clearTint();
             }
@@ -621,6 +621,32 @@ export class GameScene extends Scene {
                             if (sprite.texture.key !== defendKey || sprite.frame.name !== exitLast) {
                                 sprite.setTexture(defendKey, exitLast);
                             }
+                        }
+                    }
+                } else if (st === 'attack' && member._isHamsterShooter
+                    && anims.attack && this.textures.exists(`companion_${animId}_attack`)) {
+                    // 仓鼠射手攻击：13 帧 repeat 0 播一次（每 2s 一发，第 10 帧出膛由 AI 计时）。
+                    // AI 每次开火置 _attackSwing → 重播动画；播完定格末帧等下一次开火。
+                    const atkKey = `companion_${animId}_attack`;
+                    const atkLast = anims.attack.frameCount ? anims.attack.frameCount - 1 : 12;
+                    if (member._attackSwing && !sprite.getData('shooterSwing')) {
+                        sprite.setData('shooterSwing', true);
+                        sprite.play(atkKey, true);
+                        sprite.removeAllListeners('animationcomplete');
+                        sprite.once('animationcomplete', (anim) => {
+                            if (anim && anim.key !== atkKey) return;
+                            sprite.setData('shooterSwing', false);
+                            member._attackSwing = false;
+                            if (sprite.anims.isPlaying) sprite.anims.stop();
+                            if (sprite.texture.key !== atkKey || sprite.frame.name !== atkLast) {
+                                sprite.setTexture(atkKey, atkLast);
+                            }
+                        });
+                    } else if (!sprite.getData('shooterSwing')) {
+                        // 开火间隔：定格攻击末帧
+                        if (sprite.anims.isPlaying) sprite.anims.stop();
+                        if (sprite.texture.key !== atkKey || sprite.frame.name !== atkLast) {
+                            sprite.setTexture(atkKey, atkLast);
                         }
                     }
                 } else if (st === 'attack' && member._isHamsterWarrior
@@ -719,6 +745,7 @@ export class GameScene extends Scene {
                     sprite.setData('miningSwing', false);
                     sprite.setData('hamsterWalk', false);
                     sprite.setData('hamsterAtk', false);
+                    sprite.setData('shooterSwing', false);
                     sprite.setData('lunaRunning', false);
                     sprite.setData('atkPlayed', false);
                     sprite.setData('wmPlayed', false);
@@ -856,25 +883,43 @@ export class GameScene extends Scene {
         return best;
     }
 
-    /** 侍从普通攻击光球渲染（蓝色 impact_dot；_basic 由 CompanionAI 推进） */
+    /** 侍从投射物渲染：露娜光球（蓝色 impact_dot）/ 仓鼠射手箭矢（projective 贴图旋转） */
     _syncCompanionBasics(_game) {
         if (!this._companionBasicSprites) this._companionBasicSprites = {};
-        const members = PartySystem.members;
+        const members = [
+            ...(PartySystem.members || []),
+            ...(Array.isArray(_game && _game.friendlyUnits) ? _game.friendlyUnits : []),
+        ];
         for (const m of members) {
             const b = m._basic;
             let spr = this._companionBasicSprites[m.id];
             if (b && b.active) {
+                const shooter = m._isHamsterShooter;
+                const arrowKey = shooter ? `companion_${m.animId || m.id}_projectile` : null;
                 if (!spr) {
-                    if (!this.textures.exists('impact_dot') && typeof this._ensureImpactDotTexture === 'function') {
-                        this._ensureImpactDotTexture();
+                    if (shooter && arrowKey && this.textures.exists(arrowKey)) {
+                        // 箭矢：素材内容 146×40（尖头朝左），显示 50px 长、按飞行方向旋转
+                        spr = this.add.sprite(b.x, b.y, arrowKey);
+                        spr.setDisplaySize(50, 50 * 40 / 146);
+                    } else {
+                        if (!this.textures.exists('impact_dot') && typeof this._ensureImpactDotTexture === 'function') {
+                            this._ensureImpactDotTexture();
+                        }
+                        spr = this.add.sprite(b.x, b.y, 'impact_dot');
+                        spr.setTint(0x4db8ff);
+                        spr.setBlendMode(BlendModes.ADD);
+                        spr.setDisplaySize(24, 24);
                     }
-                    spr = this.add.sprite(b.x, b.y, 'impact_dot');
-                    spr.setTint(0x4db8ff);
-                    spr.setBlendMode(BlendModes.ADD);
-                    spr.setDisplaySize(24, 24);
                     this._companionBasicSprites[m.id] = spr;
                 }
                 spr.setPosition(b.x, b.y);
+                if (shooter && arrowKey && this.textures.exists(arrowKey)) {
+                    // 贴图尖头朝左：旋转 = 飞行角 + 180°
+                    spr.setRotation(b.angle + Math.PI);
+                    spr.setBlendMode(BlendModes.NORMAL);
+                } else {
+                    spr.setRotation(0);
+                }
                 spr.setDepth(b.y + 15);
                 spr.setVisible(true);
             } else if (spr) {
