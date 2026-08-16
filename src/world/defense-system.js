@@ -191,18 +191,20 @@ export const DEFENSE_CONFIG = {
         waveMaxRangedAirBudgetRatio: 0.3,
         waveMaxFastBudgetRatio: 0.35,
     },
-    // 刷怪点：右端尽头 + 两条中距路线（基地在左端 x=900 菱形房内，怪物从右往左攻；
-    // 2026-08-16 地图扩展后重排，多路进攻让防线有纵深）
+    // 刷怪点（2026-08-16 v2：适配 0.5 斜率菱形地块，scene-manager._scene8Diamond）：
+    // 右顶点主路 + 沿右上/右下两条边（边线内侧 ~120px，法向入菱形）各 3 点 + 两点中距，
+    // 全部落点在菱形内（|dx|/3072+|dy|/1536 ∈ 0.92~0.95），怪物从右往左攻、多路有纵深。
+    // v1 竖排 5 路是按旧 0.667 斜率菱形排的，菱形改与视角平行后右端变尖，竖排出界。
     spawnPoints: [
-        { x: 5936, y: 600 },
-        { x: 5936, y: 1350 },
         { x: 5936, y: 2048 },
-        { x: 5936, y: 2746 },
-        { x: 5936, y: 3496 },
-        { x: 5736, y: 900 },
-        { x: 5736, y: 3196 },
-        { x: 4700, y: 1100 },
-        { x: 4700, y: 3000 },
+        { x: 5800, y: 1996 },
+        { x: 5400, y: 1796 },
+        { x: 5000, y: 1596 },
+        { x: 5800, y: 2100 },
+        { x: 5400, y: 2300 },
+        { x: 5000, y: 2500 },
+        { x: 4700, y: 1400 },
+        { x: 4700, y: 2700 },
     ],
 };
 
@@ -335,7 +337,8 @@ const COVER_ASPECT = {
 const COVER_DISPLAY_W = 260;
 
 /** 世界-122 铁栅栏滑动门几何（2026-08-15，Blender 建模 + 掩体同款砖墙/铸铁贴图，F→A 六档共用）。
- * 门体：仅左右两根细立柱 + 纤细铁栅栏（无上下横梁），两扇叶整体沿墙轴向滑出/滑入。
+ * 门体：左右两根细立柱 + 纤细铁栅栏 + 每扇叶上下两条水平横杆（rail，穿过该叶竖杆）。
+ * 横杆与竖杆同烘焙在 `_bars` 16 帧表内，`_play()` 切帧即同步开合。
  * 几何标定（compose-cover-gate.py 输出，纹理 cell 640×634，y 向下）：
  * - face 线 = 门底边线（与 COVER_FACE v 同斜率 -0.5、同接地偏移），关闭时覆盖门洞；
  * - 16 帧滑动动画：frame 0 = 关闭（两扇叶在中间合拢），frame 15 = 打开（扇叶滑出画面外隐藏）。
@@ -354,6 +357,9 @@ const GATE_GEOM = {
     // 显示比例：与掩体墙同尺度（掩体 1024tex→260px；门 cell 640→262px）。
     // 碰撞 face 仍按 worldFaceLen=270.4（门洞跨度），视觉上两侧由相邻墙端帽叠盖。
     displayScale: 0.410,
+    // bars 层贴图裁剪窗（cell 像素）：只显示左右石柱之间的门洞区。
+    // 开门时钢管滑出该窗即被裁剪，不再在石柱外残留；柱体贴图由 pillarL/R 单独渲染。
+    barCrop: { x: 135, y: 0, w: 370, h: 634 },
 };
 const gateConfigFor = (grade) => ({ ...GATE_GEOM, grade, tex: `cover_gate_${grade}` });
 const GATE_CONFIG = gateConfigFor('D'); // 基地固定门（D 级）
@@ -384,7 +390,7 @@ function gateDepthSegs(A, B, depthL, depthR, depthBars) {
     ];
 }
 
-/** 创建门的三段精灵（左柱/右柱静态图 + 栅栏 16 帧），各按自身底边线深度锚定。
+/** 创建门的三段精灵（左柱/右柱静态图 + 栅栏/水平横杆 16 帧），各按自身底边线深度锚定。
  *  flip=镜像（h）：整门翻转换了视觉左右，左右柱深度随之互换（面线端点不变）。 */
 function createGateSprites(cfg, cx, cy, k, depthL, depthR, depthBars, flip) {
     const scene = (typeof window !== 'undefined') ? window.__phaserScene : null;
@@ -410,6 +416,20 @@ function createGateSprites(cfg, cx, cy, k, depthL, depthR, depthBars, flip) {
         out.bars.setScale(k, k);
         out.bars.setDepth(depthBars);
         out.bars.setFlipX(flip);
+          const crop = cfg.barCrop;
+          if (crop && typeof out.bars.setCrop === 'function') {
+              // Phaser 4 的 setCrop 写入 GameObject._crop（按当前帧算 UV），
+              // _play() 每次 setFrame 切帧后 _crop 仍是旧帧 UV —— 动画会冻结/裁剪失效。
+              // 包一层 setFrame：切帧后按新帧重算裁剪窗（六档门共用同一张表，窗口恒定）。
+              const applyCrop = () => out.bars.setCrop(crop.x, crop.y, crop.w, crop.h);
+              const origSetFrame = out.bars.setFrame.bind(out.bars);
+              out.bars.setFrame = (frame, updateSize, updateOrigin) => {
+                  const ret = origSetFrame(frame, updateSize, updateOrigin);
+                  applyCrop();
+                  return ret;
+              };
+              applyCrop();
+          }
     }
     return out;
 }

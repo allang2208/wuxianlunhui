@@ -60,7 +60,7 @@
    "type": "cylinder",
    "radius": 4.5,
    "height": 136,
-   "x": -115,
+   "x": -95,
    "z": 72,
    "leaf": -1
   },
@@ -68,7 +68,7 @@
    "type": "cylinder",
    "radius": 4.5,
    "height": 136,
-   "x": -93,
+   "x": -77,
    "z": 72,
    "leaf": -1
   },
@@ -76,7 +76,7 @@
    "type": "cylinder",
    "radius": 4.5,
    "height": 136,
-   "x": -71,
+   "x": -59,
    "z": 72,
    "leaf": -1
   },
@@ -84,7 +84,7 @@
    "type": "cylinder",
    "radius": 4.5,
    "height": 136,
-   "x": -49,
+   "x": -41,
    "z": 72,
    "leaf": -1
   },
@@ -92,7 +92,7 @@
    "type": "cylinder",
    "radius": 4.5,
    "height": 136,
-   "x": -27,
+   "x": -23,
    "z": 72,
    "leaf": -1
   },
@@ -116,7 +116,7 @@
    "type": "cylinder",
    "radius": 4.5,
    "height": 136,
-   "x": 27,
+   "x": 23,
    "z": 72,
    "leaf": 1
   },
@@ -124,7 +124,7 @@
    "type": "cylinder",
    "radius": 4.5,
    "height": 136,
-   "x": 49,
+   "x": 41,
    "z": 72,
    "leaf": 1
   },
@@ -132,7 +132,7 @@
    "type": "cylinder",
    "radius": 4.5,
    "height": 136,
-   "x": 71,
+   "x": 59,
    "z": 72,
    "leaf": 1
   },
@@ -140,7 +140,7 @@
    "type": "cylinder",
    "radius": 4.5,
    "height": 136,
-   "x": 93,
+   "x": 77,
    "z": 72,
    "leaf": 1
   },
@@ -148,9 +148,57 @@
    "type": "cylinder",
    "radius": 4.5,
    "height": 136,
-   "x": 115,
+   "x": 95,
    "z": 72,
    "leaf": 1
+  },
+  {
+   "type": "rail",
+   "size": [
+    126,
+    14,
+    10
+   ],
+   "x": -60,
+   "z": 135,
+   "leaf": -1,
+   "bevel": 2
+  },
+  {
+   "type": "rail",
+   "size": [
+    126,
+    14,
+    10
+   ],
+   "x": 60,
+   "z": 135,
+   "leaf": 1,
+   "bevel": 2
+  },
+  {
+   "type": "rail",
+   "size": [
+    126,
+    14,
+    10
+   ],
+   "x": -60,
+   "z": 9,
+   "leaf": -1,
+   "bevel": 2
+  },
+  {
+   "type": "rail",
+   "size": [
+    126,
+    14,
+    10
+   ],
+   "x": 60,
+   "z": 9,
+   "leaf": 1,
+   "bevel": 2
   }
  ]
 }

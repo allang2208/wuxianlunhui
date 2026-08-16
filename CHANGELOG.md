@@ -1,4 +1,42 @@
 # 变更日志
+### 对话：铁栅栏门加水平横杆 + 清理柱外残留（2026-08-17）
+- **需求**：① 钢管门列左右两扇叶各加上/下水平钢管横杆（穿过该叶竖杆列），
+  开/关门与竖杆 16 帧同步滑动；② 开门时钢管向左右石柱退出，但石柱外仍残留
+  动画贴图造成穿模。
+- **实现**：
+  - `render-cover-gate.py` 支持 `leaf/side` 两种扇叶标记与 `rail` 型水平横杆；
+  - 六档 `_blockout_specs/cover_gate_*.json` 每叶新增上/下两条 rail
+    （126×14×10，x=±60，z=135/9，随 leaf_slide 滑动）；
+  - `split-cover-gate-layers.py` 拆分时把柱子掩码膨胀 2px，并逐帧清除
+    左右柱外边界之外的 bars 像素，横杆与竖杆同表切帧，无需改运行时加载；
+  - 新增 `tools/ai-gen/rebuild-cover-gates.py`（一键重渲六档 + 合成 + 拆层）；
+  - 新增 `tools/clean-gate-bars-outside-pillars.py` 对当前已生成 bars 做幂等清理。
+  - `defense-system.js` 的 `GATE_GEOM.barCrop` + `createGateSprites` 运行时裁剪 bars
+    到左右石柱之间（135..505 cell px），即使旧 bars 未重渲染也不会在柱外残留；
+  - 新增 `rebuild-gate-assets.bat`（双击即可执行清理 + 重渲染）。
+- **二轮修正（2026-08-17 实渲后排查）**：
+  - 柱框裁剪会删掉关门帧最外侧两根竖杆（world x=±115 投影落柱剪影内）——
+    竖杆重排 ±(5,23,41,59,77,95)，12 杆全部保住且零柱区残留；
+  - 修复 barCrop 在 Phaser 4 下随 `setFrame` 失效的问题（裁剪 UV 绑在旧帧上，
+    切帧后动画冻结）——`createGateSprites` 包装 setFrame 逐帧重算裁剪；
+  - 三个旧资产一次性残柱剔除脚本移出重渲流程（固定区域删像素，会误伤新渲染
+    滑出半途的栅栏叶），柱区清理由 split 内置 + clean-gate-bars-outside-pillars 兜底。
+- **验证**：`python tools/ai-gen/rebuild-cover-gates.py` 全量重渲六档；
+  数值验收：16 帧柱区残留 0、帧 15 纯柱子、关门 12 竖杆、cell 640×634 与
+  face 线几何不变；GLM 复核关门帧（横杆穿竖杆、两端插入石柱、柱面干净）与
+  开门中途帧（无柱外残留、无截断）。刷新 `http://localhost:5173`（Ctrl+F5）
+  检查基地门开合；`eslint` / `vite build` 通过。
+
+### 对话：伊莉丝/露娜 displayScale 显示放大撤回（2026-08-17）
+- 用户实机反馈"放大后很奇怪"，撤回 af2fb15 / 95e6f6b 的显示放大：
+  伊莉丝 attack/windmill 与露娜 walk/run/spell 的 displayScale 配置全部删除，
+  GameScene 归一化恢复原公式（无逐动作缩放），还原此前渲染效果。
+### 对话：露娜 walk/run/spell 动作显示偏小——displayScale 放大统一（2026-08-17）
+- **排查**：露娜全 512×512 帧格，但 idle 内容 498~500px、walk/run/spell 467~471px
+  （小约 6%，多阈值复核非阴影伪影）；CDP 实机 idle 渲染 140.1px vs 其他 132.5px。
+- **修复**：`companion-config` 露娜 walk/run/spell `displayScale=1.062`（复用伊莉丝同款
+  渲染机制，GameScene 零改动）；实测显示 144→153、内容与 idle 对齐，脚底仍贴同一世界线。
+- **验证**：`tools/cdp-elise-size.mjs`（已扩为双角色）实机确认；eslint / vite build 通过。
 ### 对话：伊莉丝攻击/风车动作显示偏小——displayScale 放大统一（2026-08-17）
 - **排查**：逐帧内容测量 + CDP 实机读 Phaser 精灵显示尺寸——idle 内容 461px 渲染 129.7px；
   attack 平均 433px（挥剑帧自然倾斜 367~430 占多数）渲染 121.8px（-6%）；windmill 399px 渲染 112px（-13.5%）。

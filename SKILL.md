@@ -827,6 +827,27 @@ v4 上撩回斩被否原因：向上挥向空气无目标承接、缺冲击力�
   用户认可未动）。处理后肋骨/关节环/指骨细节保留，与 idle 细线风一致。
 - 教训：montage 小图看不出线宽差异，**线宽要用距离变换量化**；后处理在剪片入库后做即可
   （sheet 级，不用回视频返工）。
+
+#### 全链路落脚点对齐（2026-08-16 用户反馈「三段/idle 错位、大小不整齐」定稿）
+
+- **屏显口径审计法**：逐帧算 屏显身高=内容高/512×(144×displayScale)、脚底偏移=(feet_y-256)
+  ×K、中心偏移=(cx-256)×K（display px 相对 player 中心）——审计发现：攻击链脚底 +72.7 vs
+  idle +65.0（收势→idle 脚跳 7.7px）；水平中心 idle +3.6 → attack1 f0 −14.5（idle→一段跳
+  18px!）→ 1→2 跳 20.7px → recover→idle 跳 −7.3px。
+- **统一口径**：四张 sheet 全部 `feet_y=467`（= idle 屏显脚底 +65.0）+ 首帧锚 cx=268
+  （= idle 屏显中心 +3.6）；链式锚点：一段末=268 → 二段首=268 → 二段末保留自然前冲
+  (+13.2) → 三段首=16.6 → **三段末钉回 268** → 收势 268→268 → idle 3.6，全链接缝 ≤1px。
+- builder 新增 `--anchor-end-cx`（基底 lerp 到 目标−末帧自然dx，末帧精确落点、段内位移
+  保留）与 `--picks`（手动取帧，战略跳过伪影帧）——注意：`--picks` 曾在并行工作中被外部
+  回滚弄丢过一次，重建前 `grep picks build-player-attack-sheet.py` 先自检。
+- **武器握点不平移重标**：sheet 内容放置原点变了，按新旧 sheet 每帧 bbox 原点差 Δ 平移
+  补偿即可（`offset新 = ((旧偏移/K+256)+Δ−256)×K`），rotation/blur/stretch/hitCheck 不动；
+  平移后贴附率复验 0 失败。
+- 细线化是 RGB-only 后处理（alpha 不变），重建 sheet 后需对二/三/收势重跑
+  `thin-strokes.py`。
+- 已知限制：三段突刺顶点内容宽 406px + 前冲 dx，512 格放不下会 clamp（clamp=完整保留、
+  顶点略左移，旧版同此行为）；要彻底解决得 640 格 + hitCheck/轨迹重建，暂不需要。
+- 备份：对齐前版本在各自 backup 目录的 `*_prealign.png`。
 - 入库：旧 v2 留档 `backup/2026-08-15-player-attack-h3/attack_sword.png`，两段式留档
   同目录 `attack_sword_keyframe2seg.png`；blur 峰移 f8~f10 贴挥砍段。
 
@@ -1532,6 +1553,16 @@ python tools/ai-gen/floor-asset.py sand --out assets/terrain/floor_sand_seamless
    （⚠ 补丁画布内必须**循环平铺**纹理——单张画不满会露直角直切边，2026-08-16 真机踩过）；
 5. **草/植被点缀**：独立贴图（prompts/grass-tuft.txt，俯视径向对称）固定朝向 `deco`
    烘焙，不做 X/Y 翻转——草不画进砖里，8 向循环永不会把草转反。
+   - 2026-08-16 v3 荒漠植物定稿（v1 糊团假绿、v2 圆团正俯视高饱和，两轮均被退回）：
+     **视角铁律——点缀植物不是正俯视圆团，是"微俯 30° 侧看 + 直立株型"**
+     （对齐「等距投影素材规范」：立着的垂直站、顶面走 30°；billboard 资产 ≤12°~30°，
+     正俯视径向提示词必出圆团，勿用）；**画风锚 = 树木管线同款** `photograph of a real
+     desert plant` + muted/desaturated（卡通/高饱和首轮必退）；世界-122 沙漠主题用
+     束草/蒿灌木/龙舌兰/风滚草四物种，白底出图（避开品红底——v2 实测品红底抠图
+     7~15% 像素带 R/B 溢色粉边，检测 `(r>g+25)&(b>g+10)`）→ `process-desert-plant.py`
+     （BiRefNet 进程内抠图 + `--desat 0.7` 对齐低饱和 + 紧身裁剪 + 256²，ComfyUI venv
+     python 运行）→ `deco_desert_1~4.png`（BootScene 注册，scene-manager deco.textures）。
+     中间件在 scratch `desert_*`；v2 品红 despill 修复件留 scratch `grass_v2_*` 备用。
 
 场景配置参考（scene-manager `_loadScene8`）：`{ tiles:['floor_mud_seamless'],
 continuous:true, textureScaleY:0.5774, sandPatches:{texture:'floor_sand_seamless',
@@ -4935,8 +4966,31 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
 
 ### 铁栅栏滑动门（F→A 六档，2026-08-15）
 
-世界-122 基地入口/可建造墙段式门：左右细柱 + 圆柱铁栅栏（无上下横梁），
+世界-122 基地入口/可建造墙段式门：左右细柱 + 圆柱铁栅栏 + 每叶上下水平横杆，
 开门时两扇叶沿墙轴向两侧滑出并隐藏，关门时从两侧向中间合拢。
+- **2026-08-17 横杆 + 柱外残留清理**：每扇叶上下各加一条水平 rail
+  （box 126×14×10，x=±60，z=135/9，leaf/side 标记随叶滑动），与竖杆同烘焙进
+  `_bars` 16 帧表，运行时 `_play()` 切帧天然同步，无需新增贴图键。拆分时柱子掩码
+  膨胀 2px，并逐帧清除左右柱外边界之外的 bars 像素——修复开门时钢管退出石柱后
+  残影穿模。一键重渲：`python tools/ai-gen/rebuild-cover-gates.py`；
+  仅清理当前 bars：`python tools/clean-gate-bars-outside-pillars.py`。
+    Windows 一键入口：双击项目根目录 `rebuild-gate-assets.bat`。
+    运行时兜底：`GATE_GEOM.barCrop` 把 bars 层裁剪到左右柱之间（cell x 135..505），
+    旧贴图未重渲时也不会在石柱外残留。
+  - **2026-08-17 二轮定稿（已实渲验证）**：① 柱框裁剪会连关门帧最外侧竖杆
+    （world x=±115，2D 投影落在柱剪影内）一并删掉——12 杆变 10 杆；竖杆重排为
+    ±(5,23,41,59,77,95)（间距 22→18），12 杆全部落在门洞区（柱剪影 cell x 137/502
+    之内），横杆保持 ±60×126，两端探入柱区被裁成"插入石柱"效果。
+    ② Phaser 4 `setCrop` 写入的是 GameObject._crop（按当前帧算 UV），`_play()`
+    每次 `setFrame` 后裁剪即失效（动画冻结在帧 0 裁剪区）——`createGateSprites`
+    包一层 setFrame，切帧后按新帧重算 barCrop。③ 旧资产时代的一次性残柱剔除脚本
+    （remove-gate-stray-cylinder / remove-gate-wall-steel-column /
+    remove-gate-pillar-steel-column）**不纳入重渲流程**：它们按旧贴图固定区域/连通域
+    大小删像素，对新渲染可能误删滑出门洞半途的栅栏叶碎片；重渲后柱区残留由 split
+    内置清理 + clean-gate-bars-outside-pillars（柱框裁剪，幂等）兜底。
+    验收：六档 16 帧柱区残留全 0、帧 15 纯柱子、关门 12 竖杆；GLM 复核关门/开门
+    中途帧无穿模无截断。
+
 
 - **资产管线**（Blender 几何 + 掩体同款材质，与掩体墙同一相机比例）：
   `_blockout_specs/cover_gate_<g>.json`（仅 `tex` 指向 `tex_<g>_v1.png` 不同）→
@@ -5448,6 +5502,9 @@ CDP 探针 `tools/cdp-defense-hit.mjs`（真实场景注入僵尸/黑狼 + check
 
 ### 伊莉丝动作显示尺寸统一（2026-08-17：attack/windmill 偏小）
 
+- **2026-08-17 撤回**：用户实机反馈"放大后很奇怪"，displayScale 配置与 GameScene 改动
+  已全部还原，恢复原渲染公式（本节保留排查数据，供将来参考）。
+
 - **实测**（逐帧内容 bbox + CDP 读 Phaser 精灵显示尺寸）：idle 内容高 461px 渲染 129.7px；
   attack 平均 433px（站立帧 458~469 与 idle 一致，但挥剑帧自然倾斜 367~430 占多数）渲染 121.8px
   （-6%）；windmill 平均 399px 渲染 112px（-13.5%）。用户反馈"施法/攻击缩小"属实。
@@ -5457,6 +5514,19 @@ CDP 探针 `tools/cdp-defense-hit.mjs`（真实场景注入僵尸/黑狼 + check
   其他动作无 displayScale → k=1，行为不变。
 - **坑**：直接量帧格尺寸没用，要看"内容占比×显示映射"；渲染侧归一化已按帧格线性映射，
   内容占比不同的动作需要逐动作 displayScale；CDP 探针直接读 `sprite.displayWidth/Height` + `frame` 最准。
+
+### 露娜动作显示尺寸统一（2026-08-17：walk/run/spell 偏小）
+
+- **2026-08-17 撤回**：与伊莉丝同批撤回，displayScale 配置已删除，恢复原渲染。
+
+- **实测**：露娜全 512×512 帧格，idle 内容 498~500px；walk/run/spell 都是 467~471px
+  （约小 6%），多阈值（40/128/200）复核非阴影伪影。CDP 实机：idle 渲染 140.1px、
+  walk/run/spell 渲染 132.5px。
+- **修复**：`companion-config animations.walk/run/spell.displayScale = 1.062`（复用伊莉丝同款
+  渲染机制，GameScene 无需再改）；实测显示 144→153、内容 132.5→140.1px 与 idle 对齐，
+  脚底修正同步后与 idle/伊莉丝同线（y≈2001）。
+- **教训**：全 512 帧格也会内容占比不同——只要内容高度不一致就要 displayScale，
+  不能因为帧格相同就默认等大。
 
 #### 问题
 `PathFinder.isReachable()` 使用 Flood Fill 检查区域连通性，但步数限制太死：

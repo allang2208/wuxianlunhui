@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""世界-122 掩体同款铁栅栏滑动门渲染 v2（2026-08-15）。
+"""世界-122 掩体同款铁栅栏滑动门渲染 v2（2026-08-15 / 2026-08-17 加水平横杆）。
 
-门体：仅左右两根细立柱 + 纤细铁栅栏（无上下横梁）。
-开合：整扇叶（立柱+栅栏）沿墙轴向左右滑出（开门→隐藏），关闭时从两侧向中间靠拢。
+门体：左右两根细立柱 + 纤细铁栅栏 + 每扇叶上下两条水平横杆
+（rail，穿过该叶所有竖杆）。开合：整扇叶（立柱+栅栏+横杆）沿墙轴向左右滑出
+（开门→隐藏），关闭时从两侧向中间靠拢。
 
 用法：
     "E:/Program Files/Blender Foundation/Blender 5.1/blender.exe" \
@@ -12,7 +13,7 @@
 
 spec：
   - primitives：立柱（leaf: -1/+1 标记所属扇叶）；
-  - bars：栅栏竖杆（leaf 标记）；无上下横梁；
+  - bars：栅栏竖杆与水平 rail（leaf/side 标记）；rail 为 box 型水平横杆，穿过竖杆列；
   - leaf_slide：{ distance, leftLeaf, rightLeaf } —— 开门时扇叶整体滑出的世界距离。
 相机取景以关闭位（slide=0）为准（先取景后滑出），保证 16 帧同比例。
 """
@@ -147,7 +148,7 @@ def build_scene(spec, tex_path, tex2_path):
             leaf_tags[o.name] = int(p["leaf"])
         objs.append(o)
 
-    # ---- 栅栏竖杆（纤细铁栅栏，铸铁材质）----
+    # ---- 栅栏竖杆 + 水平横杆（纤细铁栅栏/横杆，铸铁材质）----
     iron_mat = None
     for i, b in enumerate(spec.get("bars", [])):
         if b.get("type") == "cylinder":
@@ -187,8 +188,8 @@ def build_scene(spec, tex_path, tex2_path):
             links.new(tex.outputs["Color"], bump.inputs["Height"])
             links.new(bump.outputs["Normal"], bsdf.inputs["Normal"])
         o.data.materials.append(iron_mat)
-        if "leaf" in b:
-            leaf_tags[o.name] = int(b["leaf"])
+        if b.get("leaf") is not None or b.get("side") is not None:
+            leaf_tags[o.name] = int(b.get("leaf") if b.get("leaf") is not None else b.get("side"))
         objs.append(o)
     return objs, leaf_tags, rot_z
 
