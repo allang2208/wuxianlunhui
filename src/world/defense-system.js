@@ -10,6 +10,7 @@
  */
 import { Game } from '../game.js';
 import { WallSystem } from './wall-system.js';
+import { setupStructureDepth } from './structure-depth.js';
 import { pathFinder } from '../ai/pathfinder.js';
 import { Combatant } from '../entities/combatant.js';
 import { getAmmoConfig } from '../config/gun-ammo.js';
@@ -534,6 +535,8 @@ class DefenseBase extends Combatant {
         // 规格 _blockout_specs/defense_base.json，渲染 assets/terrain/defense_base.png）
         this.spriteCfg = { idleKey: 'defense_base', size: 220, sizeH: 183, footOffsetY: 92 };
         this.footOffsetY = 92;
+        // 统一遮挡锚线（接地线 = 贴图显示半宽；单位在其后 → 被建筑遮挡，在前/同线 → 盖过建筑）
+        setupStructureDepth(this, this.spriteCfg.size / 2);
         this._onDestroyed = config.onDestroyed || null;
         this.rebuildCollider();
     }
@@ -732,6 +735,8 @@ class DefenseTower extends Combatant {
         // 内容框 324×498，显示 170×262）
         this.spriteCfg = { idleKey: 'obstacle_defense_tower', size: 170, sizeH: 262, footOffsetY: 131 };
         this.footOffsetY = 131;
+        // 统一遮挡锚线（塔三层贴图深度一律从 _faceDepth 取，见 GameScene._syncDefenseTowers）
+        setupStructureDepth(this, DEFENSE_TOWER_VISUAL.base.w / 2);
         this.weaponItem = null;
         this._attackKey = null;
         this.range = 800;

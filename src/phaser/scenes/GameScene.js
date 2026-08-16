@@ -6069,9 +6069,11 @@ export class GameScene extends Scene {
             sp.base.setPosition(e.x, e.y - V.base.footOffsetY);
             sp.base.setDisplaySize(V.base.w, V.base.h);
             sp.base.setFlipX(!!e._mirrored);
-            // 深度锚点=塔脚底 e.y（实体同口径）；+2 仅保证同锚点确定排序。
-            // 前/后遮挡：怪物脚底 y < e.y → 塔盖怪物；y > e.y → 怪物盖塔（2026-08-14）
-            sp.base.setDepth(e.y + 2);
+            // 统一遮挡锚线（2026-08-16 全建筑同口径）：塔深度 = _faceDepth（接地线 y + 12），
+            // 与小屋/基地/能源矿一致；单位在其后被压到塔下、在前/同线被抬到塔上（+0.5）。
+            // 旧实现用 e.y + 2：与中立建筑深度不一致，同线单位 z-fight（建筑遮挡仓鼠）。
+            const towerDepth = (typeof e._faceDepth === 'number') ? e._faceDepth : e.y + 2;
+            sp.base.setDepth(towerDepth);
             sp.base.setVisible(true);
             // 机械臂：预渲染 3D 旋转帧（48 帧），按 aimAngle 选最近帧；
             // 枢轴=帧内固定像素（相机固定 + 模型绕塔顶轴旋转），origin 设枢轴。
@@ -6094,7 +6096,7 @@ export class GameScene extends Scene {
             sp.arm.setDisplaySize(V.arm.w, V.arm.h);
             sp.arm.setRotation(0);
             sp.arm.setFlipX(!!e._mirrored);
-            sp.arm.setDepth(e.y + 2.5);
+            sp.arm.setDepth(towerDepth + 0.5);
             sp.arm.setVisible(true);
             // 挂载武器：臂尖 = 椭圆路径（等距投影 x 全量、y 0.5 缩短），
             // 朝向 = 臂尖方向角；朝左 flipY 防倒置。
@@ -6133,7 +6135,7 @@ export class GameScene extends Scene {
                     sp.weapon.setFlipY(flipY);
                     sp.weapon.setScale(wH / Math.max(1, sp.weapon.height));
                 }
-                sp.weapon.setDepth(e.y + 3);
+                sp.weapon.setDepth(towerDepth + 1);
                 sp.weapon.setVisible(true);
             } else {
                 sp.weapon.setVisible(false);

@@ -923,3 +923,20 @@ this.ai = config.ai || {};
 - 建模复用：仓鼠小屋同视角 spec 模板（elevation 30 / azimuth 0 / resolution 1024 /
   bottom_y 880 / max_width_frac 0.8）；黑砖走 klein-walltex LoRA
   （`--host 192.168.3.142 --model flux2-klein-4b-walltex`），验收看暗色/白边 0%/砖格 FFT 峰。
+
+## 52. 建筑遮挡统一锚线：加建筑/加单位不再各写一遍图层（2026-08-16 世界-122）
+
+- **症状**：掩体/铁闸门图层正确，但塔/基地核心/能源矿会"盖住仓鼠"（友方单位）——
+  根因是只有掩体/门/小屋注册了 `_faceLine/_faceDepth`，塔用 `e.y+2`、基地/矿点无锚线
+  走 `sprite.y+footOffsetY+10`，与单位自然深度（脚 y+10）**同线时相等** → z-fight，
+  谁盖谁看创建顺序（多数时候建筑盖单位）。
+- **唯一口径**：`src/world/structure-depth.js` 的
+  `setupStructureDepth(entity, 贴图显示半宽)`——构造时生成 `_faceLine`（脚底 y 水平线，
+  跨度=贴图半宽）与 `_faceDepth`（max y + 12）。单位每帧 `junctionCorrectedDepth`：
+  脚线在接地线后 → 压到建筑下；前/同线 → 抬到建筑上（+0.5）。**新建筑调一次即可，
+  新单位自动生效**。
+- **同线判定**：`y >= yLine` 一律视为"在前"抬 +0.5，杜绝相等深度。
+- **两个连带坑**：① `_faceLine` 从此是通用字段——`building-system.canPlace` 里只有
+  `_isDefenseCover/_isCoverGate` 走线段+墙厚判定，其余紧凑建筑保持圆心距离，否则面线
+  被当 26px 厚墙段误判；② 锚线构造时按 x/y 生成，测试探针传送实体后要重算锚线。
+- **验证**：`tools/cdp-layer-occlusion.mjs` 合成 36 组合 + 真实基地 4 类建筑同线抽查。
