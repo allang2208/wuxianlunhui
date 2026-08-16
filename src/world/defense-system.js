@@ -2216,7 +2216,8 @@ export const DefenseSystem = {
             if (total > 0) {
                 const progress = Math.max(0, Math.min(1, 1 - Math.max(0, this._phaseTimer) / total));
                 const p = Math.round(progress * 100);
-                const color = progress < 0.5 ? '#ffd700' : (progress < 0.8 ? '#ff9d45' : '#7fe0c8');
+                // 颜色反向（2026-08-16 用户口径）：<50% 青绿（安全准备）、<80% 橙、≥80% 红（即将来袭）
+                const color = progress < 0.5 ? '#7fe0c8' : (progress < 0.8 ? '#ff9d45' : '#ff5555');
                 bar.style.width = `${p}%`;
                 bar.style.background = `linear-gradient(90deg, ${color}, #7fe0c8)`;
                 pct.textContent = `${p}%`;
