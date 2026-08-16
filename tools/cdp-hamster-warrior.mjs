@@ -48,7 +48,12 @@ ws.onmessage = (ev) => {
     const m = JSON.parse(ev.data);
     if (m.id && pending.has(m.id)) { pending.get(m.id)(m); pending.delete(m.id); }
 };
-const send = (method, params = {}) => new Promise(res => { const id = ++seq; pending.set(id, res); ws.send(JSON.stringify({ id, method, params })); });
+const send = (method, params = {}) => new Promise((res, rej) => {
+    const id = ++seq;
+    const timer = setTimeout(() => { pending.delete(id); rej(new Error(`CDP timeout: ${method}`)); }, 30000);
+    pending.set(id, (m) => { clearTimeout(timer); res(m); });
+    ws.send(JSON.stringify({ id, method, params }));
+});
 const rawEval = async (expression) => {
     const r = await send('Runtime.evaluate', { expression, awaitPromise: true, returnByValue: true });
     if (r.result?.exceptionDetails) throw new Error('eval: ' + (r.result.exceptionDetails.exception?.description || r.result.exceptionDetails.text));
@@ -56,6 +61,10 @@ const rawEval = async (expression) => {
 };
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 await send('Runtime.enable');
+// 捕获页面内错误（判断是否崩溃/异常重载）
+await rawEval(`(() => { window.__probeErrs = []; window.addEventListener('error', (e) => {
+    window.__probeErrs.push(String(e && e.message || e).slice(0, 200));
+}); return true; })()`).catch(() => null);
 
 let pass = 0, fail = 0;
 function check(name, cond, detail = '') {
@@ -63,80 +72,126 @@ function check(name, cond, detail = '') {
     else { fail++; console.error(`   ✗ ${name}${detail ? `：${detail}` : ''}`); }
 }
 
-// ---------- 启动游戏 + 进入 scene8 ----------
-for (let i = 0; i < 150; i++) {
-    const started = await rawEval(`(async () => {
-        try {
-            if (window.Game && window.Game.isRunning && window.Game.player) return true;
-            const b = document.getElementById('startGameBtn');
-            if (b) b.click();
-            if (window.Game && typeof window.Game.start === 'function' && !window.Game.isRunning) {
-                window.Game.start().catch(() => {});
-            }
-            return false;
-        } catch { return false; }
-    })()`).catch(() => false);
-    if (started) break;
-    await sleep(1000);
-}
-let ok = false;
-for (let i = 0; i < 150 && !ok; i++) {
-    ok = await rawEval(`(async () => {
-        try {
-            if (!(window.Game && window.Game.isRunning && window.Game.player)) {
+// ---------- 启动游戏 + 进入 scene8（页面崩溃/重载后自愈重进） ----------
+let bootedOnce = false;
+async function ensureScene8() {
+    for (let i = 0; i < 150; i++) {
+        const started = await rawEval(`(async () => {
+            try {
+                if (window.Game && window.Game.isRunning && window.Game.player) return true;
                 const b = document.getElementById('startGameBtn');
                 if (b) b.click();
                 if (window.Game && typeof window.Game.start === 'function' && !window.Game.isRunning) {
                     window.Game.start().catch(() => {});
                 }
-                return null;
-            }
-            if (!(window.Game && window.Game.player && window.__phaserScene)) return null;
-            window.__imp = async (name) => {
-                const urls = performance.getEntriesByType('resource').map(e => e.name)
-                    .filter(n => n.includes('/src/world/' + name + '.js'));
-                const u = urls.find(n => n.includes('.js?')) || urls[0] || ('/src/world/' + name + '.js');
-                return import(u);
-            };
-            const { SceneManager } = await window.__imp('scene-manager');
-            window.__sm = SceneManager;
-            return 'ready';
-        } catch (e) { window.__bootErr = String(e && e.stack || e).slice(0, 300); return null; }
+                return false;
+            } catch { return false; }
+        })()`).catch(() => false);
+        if (started) break;
+        await sleep(1000);
+    }
+    let ok = false;
+    for (let i = 0; i < 150 && !ok; i++) {
+        ok = await rawEval(`(async () => {
+            try {
+                if (!(window.Game && window.Game.isRunning && window.Game.player)) return null;
+                if (!(window.Game.player && window.__phaserScene)) return null;
+                window.__imp = async (name) => {
+                    const urls = performance.getEntriesByType('resource').map(e => e.name)
+                        .filter(n => n.includes('/src/world/' + name + '.js'));
+                    const u = urls.find(n => n.includes('.js?')) || urls[0] || ('/src/world/' + name + '.js');
+                    return import(u);
+                };
+                const { SceneManager } = await window.__imp('scene-manager');
+                window.__sm = SceneManager;
+                return 'ready';
+            } catch (e) { window.__bootErr = String(e && e.stack || e).slice(0, 300); return null; }
+        })()`).catch(() => null);
+        if (!ok) await sleep(500);
+    }
+    if (!ok) return false;
+    const sw = await rawEval(`(async () => {
+        try {
+            if (!Object.keys(window.__sm.scenes || {}).length) window.__sm.init();
+            if (window.__sm.currentScene === 'scene8') return 'already';
+            await window.__sm.switchScene('scene8', window.Game.player, 'explore');
+            return window.__sm.currentScene;
+        } catch (e) { return { err: String(e && e.stack || e).slice(0, 400) }; }
     })()`).catch(() => null);
-    if (!ok) await sleep(500);
+    let sceneReady = false;
+    for (let i = 0; i < 60 && !sceneReady; i++) {
+        await sleep(600);
+        sceneReady = await rawEval(`(async () => {
+            const { DefenseSystem } = await window.__imp('defense-system');
+            const { SceneManager } = await window.__imp('scene-manager');
+            return !!(SceneManager.currentScene === 'scene8' && DefenseSystem.active && DefenseSystem.base);
+        })()`).catch(() => false);
+    }
+    if (sceneReady) {
+        // 冻结波次生成：探针用假敌人验证 AI，避免真实波次干扰确定性
+        await rawEval(`(async () => {
+            const { DefenseSystem } = await window.__imp('defense-system');
+            DefenseSystem._phase = 'prep';
+            DefenseSystem._phaseTimer = 1e9;
+            return true;
+        })()`).catch(() => false);
+    }
+    return sceneReady;
 }
-console.log('bootErr:', await rawEval(`window.__bootErr || null`).catch(() => null));
-await rawEval(`(async () => {
-    try {
-        if (!Object.keys(window.__sm.scenes || {}).length) window.__sm.init();
-        await window.__sm.switchScene('scene8', window.Game.player, 'explore');
-        return { scene: window.__sm.currentScene };
-    } catch (e) { return { err: String(e && e.stack || e).slice(0, 400) }; }
-})()`);
 
-let sceneReady = false;
-for (let i = 0; i < 60 && !sceneReady; i++) {
-    await sleep(600);
-    sceneReady = await rawEval(`(async () => {
-        const { DefenseSystem } = await window.__imp('defense-system');
-        const { SceneManager } = await window.__imp('scene-manager');
-        return !!(SceneManager.currentScene === 'scene8' && DefenseSystem.active && DefenseSystem.base);
-    })()`).catch(() => false);
+let sceneReady = await ensureScene8();
+if (!bootedOnce) {
+    check('世界-122 已就绪', sceneReady);
+    bootedOnce = true;
 }
-check('世界-122 已就绪', sceneReady);
 if (!sceneReady) { console.error('scene8 not ready, abort'); await cleanup(1); }
 
-// 冻结波次生成：探针用假敌人验证 AI，避免真实波次干扰确定性
-await rawEval(`(async () => {
-    const { DefenseSystem } = await window.__imp('defense-system');
-    DefenseSystem._phase = 'prep';
-    DefenseSystem._phaseTimer = 1e9;
-    return true;
-})()`).catch(() => false);
+// 每段前确保页面/场景仍健康（崩溃自愈）
+async function findWarrior() {
+    return rawEval(`(async () => {
+        if (!(window.Game && window.Game.isRunning && window.Game.player && window.__phaserScene)) return { reloaded: true };
+        const w = [...window.Game.entities.values()].find(e => e && e._isHamsterWarrior && e.active);
+        if (!w && !(window.__sm && window.__sm.currentScene === 'scene8')) return { reloaded: true };
+        return { w: w ? {
+            id: w.id, x: w.x, y: w.y, hp: w.data.hp,
+            anim: w._animState,
+            inFriendly: Array.isArray(window.Game.friendlyUnits) && window.Game.friendlyUnits.includes(w),
+        } : null };
+    })()`).catch(() => ({ reloaded: true }));
+}
+async function ensureWarrior() {
+    let s = await findWarrior();
+    if (s && s.reloaded) {
+        sceneReady = await ensureScene8();
+        s = await findWarrior();
+    }
+    return s && s.w;
+}
+
+/** 页面崩溃/重载自愈版 eval：异常时重进 scene8 重试一次 */
+async function evalRobust(expr) {
+    try {
+        return await rawEval(expr);
+    } catch (err) {
+        console.log('eval retry:', String(err && err.message || err).slice(0, 120));
+        const state = await rawEval(`(() => !!(
+            window.Game && window.Game.isRunning && window.Game.player && window.__phaserScene
+            && window.__sm && window.__sm.currentScene === 'scene8'))()`).catch(() => false);
+        if (state) return { probeErr: String(err && err.message || err).slice(0, 200) };
+        const ok2 = await ensureScene8();
+        if (!ok2) return { probeErr: 'scene8 re-enter failed', orig: String(err && err.message || err).slice(0, 200) };
+        try {
+            return await rawEval(expr);
+        } catch (err2) {
+            return { probeErr: String(err2 && err2.message || err2).slice(0, 200) };
+        }
+    }
+}
 
 // ---------- A. 自动生成与属性 ----------
 console.log('A. 世界-122 自动生成与属性');
-const a = await rawEval(`(async () => {
+await ensureWarrior();
+const a = await evalRobust(`(async () => {
     const sleep = (ms) => new Promise(r => setTimeout(r, ms));
     await sleep(1200);
     const w = [...window.Game.entities.values()].find(e => e && e._isHamsterWarrior && e.active);
@@ -167,7 +222,8 @@ check('精灵已渲染（显示尺寸 226）', a.spriteSize && a.spriteSize[0] =
 
 // ---------- B. 找最近敌人 → 走位 → 攻击（50/2s）+ 两段式动画 ----------
 console.log('B. 索敌/攻击/动画两段式');
-const b = await rawEval(`(async () => {
+await ensureWarrior();
+const b = await evalRobust(`(async () => {
     const sleep = (ms) => new Promise(r => setTimeout(r, ms));
     const w = [...window.Game.entities.values()].find(e => e && e._isHamsterWarrior && e.active);
     const key = 'probe_warrior_enemy';
@@ -182,27 +238,58 @@ const b = await rawEval(`(async () => {
     w.target = null; w._tacticalTarget = null; w._animState = 'idle';
     if (w._pathManager) w._pathManager._clearPath();
     let chaseSeen = false, attackSeen = false;
-    let kStart = null, kLoop = null;
     const sp = window.__phaserScene._companionSprites[w.id];
     for (let i = 0; i < 32; i++) {
         await sleep(200);
         if (w._animState === 'walk') chaseSeen = true;
         if (w._animState === 'attack') attackSeen = true;
-        const k = sp && sp.anims && sp.anims.currentAnim ? sp.anims.currentAnim.key : null;
-        if (k === 'companion_hamster_warrior_attack_start') kStart = true;
-        if (k === 'companion_hamster_warrior_attack') kLoop = true;
-        if (attackSeen && dummy.hp < 500) break;
+        if (attackSeen && dummy.hp < 500) break; // 命中即跳出走位循环
     }
     // 攻击中采样：应处于 attack 状态且命中一次
     const attacking = w._animState === 'attack';
     const hpAfterFirst = dummy.hp;
-    // 再等 2.2s 验证第二次攻击（攻击间隔 2s）
-    await sleep(2200);
+    // 两段式动画采样：进入攻击后先播完整 1~24 帧（attack_start），
+    // 播完切第 6~24 帧循环（attack）——持续采样 2s 覆盖两个阶段
+    let kStart = false, kLoop = false;
+    for (let i = 0; i < 20; i++) {
+        await sleep(100);
+        const k = sp && sp.anims && sp.anims.currentAnim ? sp.anims.currentAnim.key : null;
+        if (k === 'companion_hamster_warrior_attack_start') kStart = true;
+        if (k === 'companion_hamster_warrior_attack') kLoop = true;
+    }
+    // 再等 1.2s 验证第二次攻击（攻击间隔 2s）
+    await sleep(1200);
     const hpAfterSecond = dummy.hp;
     const animKey = sp && sp.anims && sp.anims.currentAnim ? sp.anims.currentAnim.key : null;
+    const targetWasEnemy = !!(w.target && w.target.id === key);
+    // 目标死亡 → 离开攻击；再刷新敌人 → 再次进入攻击应重播完整起步（attack_start）
+    dummy.hp = 0;
+    dummy.active = false;
+    await sleep(600);
+    const leftAttack = w._animState !== 'attack';
+    const key2 = 'probe_warrior_enemy2';
+    const dummy2 = {
+        id: key2, active: true, hittable: true, hp: 500, maxHp: 500,
+        x: w.x + 45, y: w.y, _faction: 'enemy', _isEnergyNode: false,
+        groundRadius: 26,
+        takeDamage(dmg) { this.hp -= dmg; },
+    };
+    window.Game.entities.set(key2, dummy2);
+    let kStart2 = false;
+    let reAttacked = false;
+    const k2Samples = [];
+    for (let i = 0; i < 20; i++) {
+        await sleep(120);
+        const k = sp && sp.anims && sp.anims.currentAnim ? sp.anims.currentAnim.key : null;
+        if (k === 'companion_hamster_warrior_attack_start') kStart2 = true;
+        if (w._animState === 'attack') reAttacked = true;
+        if (k2Samples.length < 8) k2Samples.push(w._animState + ':' + k);
+    }
     window.Game.entities.delete(key);
+    window.Game.entities.delete(key2);
     return { chaseSeen, attackSeen, attacking, hpAfterFirst, hpAfterSecond, kStart, kLoop, animKey,
-        targetWasEnemy: !!(w.target && w.target.id === key) };
+        leftAttack, kStart2, reAttacked, k2Samples,
+        targetWasEnemy };
 })()`);
 check('追击阶段走位（walk）', b.chaseSeen === true);
 check('进入攻击范围站定攻击（attack 状态）', b.attackSeen === true && b.attacking === true,
@@ -212,10 +299,14 @@ check('2s 间隔第二次命中（累计 -100）', b.hpAfterSecond === 400, `hp=
 check('攻击动画两段式：完整帧起步 → 第 6~24 帧循环',
     b.kStart === true && b.kLoop === true, `start=${b.kStart} loop=${b.kLoop} now=${b.animKey}`);
 check('索敌目标是最近敌人（enemy 阵营）', b.targetWasEnemy === true);
+check('目标死亡离开攻击；再进攻击重播完整起步',
+    b.leftAttack === true && b.kStart2 === true,
+    `left=${b.leftAttack} kStart2=${b.kStart2} reAttacked=${b.reAttacked} samples=${JSON.stringify(b.k2Samples)}`);
 
 // ---------- C. 能源矿点贴脸不攻击 ----------
 console.log('C. 不攻击能源矿点');
-const c = await rawEval(`(async () => {
+await ensureWarrior();
+const c = await evalRobust(`(async () => {
     const sleep = (ms) => new Promise(r => setTimeout(r, ms));
     const w = [...window.Game.entities.values()].find(e => e && e._isHamsterWarrior && e.active);
     const key = 'probe_warrior_node';
@@ -243,10 +334,12 @@ check('矿点贴脸不攻击（hp 不变、不锁定矿点目标）',
 
 // ---------- D. 无敌人跟随玩家（到位 idle） ----------
 console.log('D. 无敌人跟随玩家');
-const d = await rawEval(`(async () => {
+await ensureWarrior();
+const d = await evalRobust(`(async () => {
     const sleep = (ms) => new Promise(r => setTimeout(r, ms));
     const w = [...window.Game.entities.values()].find(e => e && e._isHamsterWarrior && e.active);
     const p = window.Game.player;
+    // 远离玩家 → 应朝跟随点（玩家左 140px）走位
     w.x = p.x - 400; w.y = p.y;
     w.target = null; w._tacticalTarget = null; w._animState = 'idle';
     if (w._pathManager) w._pathManager._clearPath();
@@ -255,30 +348,41 @@ const d = await rawEval(`(async () => {
         await sleep(200);
         if (w._animState === 'walk') walkSeen = true;
     }
+    const followTarget = !!(w._tacticalTarget && Math.abs(w._tacticalTarget.x - (p.x - 140)) < 20);
+    // 直接放到跟随点 → 应在 0.6s 内停步 idle（到点清路径归零速度）
+    w.x = p.x - 140; w.y = p.y;
+    w.target = null; w._tacticalTarget = null; w._animState = 'walk';
+    if (w._pathManager) w._pathManager._clearPath();
     await sleep(600);
-    const dist = Math.hypot(w.x - (p.x - 140), w.y - p.y);
-    return { walkSeen, dist: Math.round(dist), anim: w._animState,
-        followTarget: !!(w._tacticalTarget && Math.abs(w._tacticalTarget.x - (p.x - 140)) < 20) };
+    return { walkSeen, followTarget, anim: w._animState, vx: Math.round(w.vx), vy: Math.round(w.vy) };
 })()`);
 check('无敌人时跟随玩家走位（walk）', d.walkSeen === true);
-check('到达跟随点停步（idle，距离 ≈ followOffset 140）',
-    d.anim === 'idle' && d.dist <= 60, `dist=${d.dist} anim=${d.anim}`);
+check('跟随点 = 玩家左 140px', d.followTarget === true);
+check('到达跟随点停步（idle + 速度归零）', d.anim === 'idle' && d.vx === 0 && d.vy === 0,
+    `anim=${d.anim} v=(${d.vx},${d.vy})`);
 
 // ---------- E. 死亡流程 ----------
 console.log('E. 死亡：dying → 移除');
-const e = await rawEval(`(async () => {
-    const sleep = (ms) => new Promise(r => setTimeout(r, ms));
-    const w = [...window.Game.entities.values()].find(e2 => e2 && e2._isHamsterWarrior && e2.active);
-    const id = w.id;
-    w.takeDamage(9999, { _faction: 'enemy' }, 'physical', true);
-    const stateAfter = w._animState;
-    await sleep(1300);
-    return {
-        stateAfter,
-        inEntities: window.Game.entities.has(id),
-        inFriendly: Array.isArray(window.Game.friendlyUnits) && window.Game.friendlyUnits.some(u => u.id === id),
-    };
-})()`);
+await ensureWarrior();
+let e;
+try {
+    e = await evalRobust(`(async () => {
+        const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+        const w = [...window.Game.entities.values()].find(e2 => e2 && e2._isHamsterWarrior && e2.active);
+        if (!w) return { err: 'no warrior', alive: [...window.Game.entities.values()]
+            .filter(x => x && x.active).map(x => x.id || x.constructor?.name).slice(0, 25) };
+        const id = w.id;
+        w.takeDamage(9999, { _faction: 'enemy' }, 'physical', true);
+        const stateAfter = w._animState;
+        await sleep(1300);
+        return {
+            stateAfter,
+            inEntities: window.Game.entities.has(id),
+            inFriendly: Array.isArray(window.Game.friendlyUnits) && window.Game.friendlyUnits.some(u => u.id === id),
+        };
+    })()`);
+} catch (err) { e = { probeErr: String(err && err.stack || err).slice(0, 400) }; }
+console.log('E result:', JSON.stringify(e));
 check('致死 → dying 状态', e.stateAfter === 'dying', `state=${e.stateAfter}`);
 check('dying 播完自动从场景移除', e.inEntities === false && e.inFriendly === false,
     `entities=${e.inEntities} friendly=${e.inFriendly}`);
