@@ -1,0 +1,59 @@
+{
+  "_comment": "茅草屋 thatch_hut（世界-122 建筑口径：elevation 30 + rot.z 44.8，与仓鼠兵营/掩体同口径）。v1：泥墙（采样 floor_mud_seamless）+ 程序化茅草坡顶 + 门/窗/烟囱；正式贴图后续可走 comfyui-gen walltex 重出。",
+  "elevation": 30,
+  "azimuth": 0,
+  "resolution": 1024,
+  "bottom_y": 880,
+  "max_width_frac": 0.8,
+  "top_margin_px": 70,
+  "tex": "E:/无尽轮回/长期备份/2026-7-13-1/game-dev/assets/terrain/floor_mud_seamless.png",
+  "roof_tex": "E:/无尽轮回/长期备份/2026-7-13-1/game-dev/tools/ai-gen/_thatch_scratch/thatch_roof_tex.png",
+  "primitives": [
+    {
+      "type": "box",
+      "size": [190, 130, 85],
+      "pos": [0, 0, 42.5],
+      "rot": [0, 0, 44.8],
+      "bevel": 6,
+      "material": "wall"
+    },
+    {
+      "type": "prism",
+      "size": [225, 170, 76],
+      "pos": [0, 0, 100],
+      "rot": [0, 0, 44.8],
+      "material": "roof"
+    },
+    {
+      "type": "box",
+      "size": [44, 4, 58],
+      "pos": [-55, -68, 29],
+      "rot": [0, 0, 44.8],
+      "material": "interior"
+    },
+    {
+      "type": "box",
+      "size": [24, 4, 22],
+      "pos": [-108, -67, 58],
+      "rot": [0, 0, 44.8],
+      "material": "window"
+    },
+    {
+      "type": "box",
+      "size": [24, 4, 22],
+      "pos": [0, -67, 58],
+      "rot": [0, 0, 44.8],
+      "material": "window"
+    },
+    {
+      "type": "box",
+      "size": [24, 24, 48],
+      "pos": [52, -10, 153],
+      "rot": [0, 0, 44.8],
+      "bevel": 2,
+      "material": "wall"
+    }
+  ],
+  "plates": [],
+  "slide": {}
+}

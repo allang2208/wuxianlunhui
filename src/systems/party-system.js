@@ -150,7 +150,9 @@ export const PartySystem = {
      * @param {{x:number,y:number}|null} point 指令点（巡逻圆心/采集目标附近，世界坐标）
      * @returns {number} 生效的队员数
      */
-    setCommand(target, mode, point = null) {
+    /** 下发指挥指令：move/hold/aggressive/patrol/gather/attack。
+     *  attack 模式带 targetEntity（右键点敌方目标 → 指定攻击目标，2026-08-16 RTS 指挥模式）。 */
+    setCommand(target, mode, point = null, targetEntity = null) {
         const ids = target === 'all'
             ? this._members.map(m => m.id)
             : (Array.isArray(target) ? target : [target]);
@@ -160,6 +162,7 @@ export const PartySystem = {
             m._command = {
                 mode,
                 point: point ? { x: point.x, y: point.y } : null,
+                target: (mode === 'attack' && targetEntity) ? targetEntity : null,
             };
             n++;
         }

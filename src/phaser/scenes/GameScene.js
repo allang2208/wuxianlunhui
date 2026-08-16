@@ -518,7 +518,7 @@ export class GameScene extends Scene {
                 // 仓鼠矿工/战士/射手移动（walk）始终朝向实际移动方向（vx），不倒退走路——
                 // 否则寻路绕行/回屋时贴图朝向目标、实际反向移动（2026-08-15 用户口径）
                 const moving = member._animState === 'walk' || Math.abs(member.vx) > 5;
-                if ((member._isHamsterMiner || member._isHamsterWarrior || member._isHamsterShooter) && moving) {
+                if ((member._isHamsterMiner || member._isHamsterWarrior || member._isHamsterShooter || member._isHamsterGuard) && moving) {
                     faceRight = member.vx > 0;
                 } else if (member._lastAction === 'flee' && Math.abs(member.vx) > 5) {
                     faceRight = member.vx > 0;
@@ -539,7 +539,7 @@ export class GameScene extends Scene {
             sprite.setFlipX(!faceRight);
             sprite.setDepth(this.playerSprite.depth + 0.5);
             // 受击白闪（仓鼠矿工/战士/射手）
-            if (member._isHamsterMiner || member._isHamsterWarrior || member._isHamsterShooter) {
+            if (member._isHamsterMiner || member._isHamsterWarrior || member._isHamsterShooter || member._isHamsterGuard) {
                 if (member.hitFlash > 0) sprite.setTint(0xffffff);
                 else sprite.clearTint();
             }
@@ -634,10 +634,11 @@ export class GameScene extends Scene {
                             }
                         }
                     }
-                } else if (st === 'attack' && member._isHamsterShooter
+                } else if (st === 'attack' && (member._isHamsterShooter || member._isHamsterGuard)
                     && anims.attack && this.textures.exists(`companion_${animId}_attack`)) {
-                    // 仓鼠射手攻击：13 帧 repeat 0 播一次（每 2s 一发，第 10 帧出膛由 AI 计时）。
-                    // AI 每次开火置 _attackSwing → 重播动画；播完定格末帧等下一次开火。
+                    // 仓鼠射手/盾卫攻击：单次播放（射手 13 帧 / 盾卫 12 帧，repeat 0），
+                    // 射手第 10 帧出膛、盾卫第 10 帧伤害判定均由 AI 计时；AI 每次挥击置
+                    // _attackSwing → 重播动画；播完定格末帧等下一次挥击。
                     const atkKey = `companion_${animId}_attack`;
                     const atkLast = anims.attack.frameCount ? anims.attack.frameCount - 1 : 12;
                     if (member._attackSwing && !sprite.getData('shooterSwing')) {
@@ -1639,13 +1640,17 @@ export class GameScene extends Scene {
         // 瞄准时仍走 Camera.x（含 aimOffset 平滑偏移），无人机操控不抢镜头。
         // 注意：GameScene 不持有 this.player，必须用 window.Game.player（与 game.js
         // Camera.update 的跟随目标同一引用），否则快照永远不生效。
+        // 2026-08-16 修正：纵向以玩家精灵（贴图中心，已含 footOffsetY/platformLift）
+        // 为镜头中心——此前钉逻辑脚底，人物身体恒在屏幕中心上方 ~50px（zoom 0.7 ×
+        // 72px 脚底偏移），观感"没居中"。
         const camGame = (typeof window !== 'undefined') ? window.Game : null;
         const camPlayer = camGame ? camGame.player : null;
         const camIsAiming = (Camera.aimOffsetX !== 0 || Camera.aimOffsetY !== 0);
         const camIsDrone = !!(camPlayer && camPlayer.droneSystem && camPlayer.droneSystem.controlling);
         if (SceneManager && SceneManager.currentScene === 'scene8' && !camIsAiming && !camIsDrone && camPlayer) {
             Camera.x = camPlayer.x;
-            Camera.y = camPlayer.y;
+            const playerSprite = this.playerSprite;
+            Camera.y = (playerSprite && playerSprite.active) ? playerSprite.y : camPlayer.y;
         }
         // 居中：走相机原生 centerOn（对任意 zoom/origin 自动换算，绝不手写 scroll 公式），
         // 玩家（Camera 跟随点）在任何缩放比例下都保持在屏幕中央
@@ -5325,6 +5330,9 @@ export class GameScene extends Scene {
 
     _syncEntityHud(entity) {
         const isBoss = entity.rank === 'boss';
+        // 友军（仓鼠单位/伊莉丝/露娜等 _faction==='companion'）：2026-08-16 用户口径
+        // 一律不显示名称，只显示血条（血条常显，名字走 hasOwnLabel 跳过）
+        const isFriendly = entity._faction === 'companion';
         const maxHp = entity.maxHp || entity.data?.maxHp || 1;
         const hp = entity.hp ?? entity.data?.hp ?? maxHp;
         if (maxHp <= 0) return;
@@ -5399,7 +5407,7 @@ export class GameScene extends Scene {
             const capH = (entity.collider && entity.collider.height) || renderCfg.spriteSize || size * 2;
             anchorTop = (entity.collider ? entity.collider.y : entity.y) - capH;
         }
-        if (hp < maxHp) {
+        if (isFriendly || hp < maxHp) {
             const structureBarCfg = entity._isEnergyNode
                 ? { width: 42, height: 6, offsetY: -34 }
                 : (entity._isDefenseCover ? { width: 44, height: 5, offsetY: -36 } : null);
@@ -5420,7 +5428,7 @@ export class GameScene extends Scene {
         // 名字标签：掉落物、NPC、训练靶等自带标签，跳过避免重叠
         // 已由 _syncNeutralEntities 挂了名字/血条标签的实体（仓鼠小屋/能源矿/掩体等建筑、
         // 静态 NPC）跳过 HUD 名字，避免重复显示——以后加建筑不用重复加名字（2026-08-15）
-        const hasOwnLabel = entity.noNameLabel || entity.npcType || entity._dpsTracking !== undefined
+        const hasOwnLabel = isFriendly || entity.noNameLabel || entity.npcType || entity._dpsTracking !== undefined
             || (entity.itemData !== undefined) || (this._neutralSprites && this._neutralSprites.has(entity));
         if (hasOwnLabel) {
             // 隐藏之前可能已创建的名字文本
@@ -5764,6 +5772,10 @@ export class GameScene extends Scene {
         const scaleX = minimapW / worldW;
         const scaleY = minimapH / worldH;
         const scale = Math.min(scaleX, scaleY);
+        // 世界映射居中（2026-08-16）：世界宽高比与小地图框不一致时，
+        // 等比缩放后居中放置，不留单侧空白、不超框（220×150 下宽世界满宽、高世界满高）
+        const offX = (minimapW - worldW * scale) / 2;
+        const offY = (minimapH - worldH * scale) / 2;
         const styles = minimapCfg.styles || {};
         const bg = minimapCfg.background || {};
 
@@ -5781,14 +5793,29 @@ export class GameScene extends Scene {
             g.fillStyle(wallColor.color, wallColor.alpha);
             const boxX0 = mx, boxY0 = my, boxX1 = mx + minimapW, boxY1 = my + minimapH;
             for (const w of WallSystem.walls) {
-                const wx = mx + w.x * scale;
-                const wy = my + w.y * scale;
+                const wx = mx + offX + w.x * scale;
+                const wy = my + offY + w.y * scale;
                 const ww = Math.max(0.5, w.w * scale);
                 const wh = Math.max(0.5, w.h * scale);
                 const x0 = Math.max(wx, boxX0), y0 = Math.max(wy, boxY0);
                 const x1 = Math.min(wx + ww, boxX1), y1 = Math.min(wy + wh, boxY1);
                 if (x1 <= x0 || y1 <= y0) continue;
                 g.fillRect(x0 * invZ, y0 * invZ, (x1 - x0) * invZ, (y1 - y0) * invZ);
+            }
+        }
+
+        // 可移动区域边界（2026-08-16）：世界-122 菱形地块四边（WallSystem 里 _boundary
+        // 不可见阻挡段）在小地图上画轮廓——区外黑地不可通行，轮廓即可移动范围。
+        if (WallSystem && WallSystem.isoSegments) {
+            const boundarySegs = WallSystem.isoSegments.filter((s) => s._boundary);
+            if (boundarySegs.length > 0) {
+                const bColor = this._parseColor(styles.playableBoundary || 'rgba(120,255,170,0.85)', 0x78ffaa, 0.85);
+                g.lineStyle((styles.playableBoundaryWidth || 1) * invZ, bColor.color, bColor.alpha);
+                for (const s of boundarySegs) {
+                    const x1 = mx + offX + s.x1 * scale, y1 = my + offY + s.y1 * scale;
+                    const x2 = mx + offX + s.x2 * scale, y2 = my + offY + s.y2 * scale;
+                    g.lineBetween(x1 * invZ, y1 * invZ, x2 * invZ, y2 * invZ);
+                }
             }
         }
     }
@@ -5813,6 +5840,9 @@ export class GameScene extends Scene {
         const scaleX = minimapW / worldW;
         const scaleY = minimapH / worldH;
         const scale = Math.min(scaleX, scaleY);
+        // 与 _redrawMinimapStatic 同口径的世界居中偏移
+        const offX = (minimapW - worldW * scale) / 2;
+        const offY = (minimapH - worldH * scale) / 2;
         const styles = minimapCfg.styles || {};
         const sizes = minimapCfg.sizes || {};
         // 边界检查：只画小地图框内的内容（替代 WebGL 不支持的 geometry mask）
@@ -5826,8 +5856,10 @@ export class GameScene extends Scene {
         // 静态层按旧 zoom 的 invZ 绘制、之后 zoom 变化却不重绘 → 背景被相机缩放错位，
         // 动态视野框画到背景框外 + 与左上菜单按钮重叠）
         const wallCount = WallSystem && WallSystem.walls ? WallSystem.walls.length : 0;
+        const boundaryCount = WallSystem && WallSystem.isoSegments
+            ? WallSystem.isoSegments.filter((s) => s._boundary).length : 0;
         const camZoomForKey = Math.round(((this.cameras.main && this.cameras.main.zoom) || 1) * 1000) / 1000;
-        const staticKey = wallCount + ':' + worldW + 'x' + worldH + '@' + camZoomForKey;
+        const staticKey = wallCount + ':' + boundaryCount + ':' + worldW + 'x' + worldH + '@' + camZoomForKey;
         if (staticKey !== this._minimapStaticKey) {
             this._redrawMinimapStatic();
             this._minimapStaticKey = staticKey;
@@ -5841,8 +5873,8 @@ export class GameScene extends Scene {
         const camZoom = (this.cameras.main && this.cameras.main.zoom) || 1;
         const viewportW = (this.scale && this.scale.width) || CONFIG.VIEW_WIDTH || 1920;
         const viewportH = (this.scale && this.scale.height) || CONFIG.VIEW_HEIGHT || 1080;
-        const camX = mx + (Camera.x - viewportW / (2 * camZoom)) * scale;
-        const camY = my + (Camera.y - viewportH / (2 * camZoom)) * scale;
+        const camX = mx + offX + (Camera.x - viewportW / (2 * camZoom)) * scale;
+        const camY = my + offY + (Camera.y - viewportH / (2 * camZoom)) * scale;
         const viewW = Math.max(1, (viewportW / camZoom) * scale);
         const viewH = Math.max(1, (viewportH / camZoom) * scale);
         const viewColor = this._parseColor(styles.viewFrame || 'rgba(255,200,0,0.6)', 0xffc800, 0.6);
@@ -5859,8 +5891,8 @@ export class GameScene extends Scene {
             g.fillStyle(riftColor.color, riftColor.alpha);
             for (const rift of RiftSystem.rifts) {
                 if (rift.completed) continue;
-                const rx = mx + rift.x * scale;
-                const ry = my + rift.y * scale;
+                const rx = mx + offX + rift.x * scale;
+                const ry = my + offY + rift.y * scale;
                 if (inBox(rx, ry)) g.fillCircle(rx * invZ, ry * invZ, (sizes.rift || 2) * invZ);
             }
         }
@@ -5870,8 +5902,8 @@ export class GameScene extends Scene {
             game.entities.forEach(e => {
                 if (!e || e === game.player || !e.active) return;
                 if (typeof e.x !== 'number' || typeof e.y !== 'number' || isNaN(e.x) || isNaN(e.y)) return;
-                const ex = mx + e.x * scale;
-                const ey = my + e.y * scale;
+                const ex = mx + offX + e.x * scale;
+                const ey = my + offY + e.y * scale;
                 if (!inBox(ex, ey)) return; // 框外实体不画
                 if (e.targetScene) {
                     const portalColor = this._parseColor(styles.portal || '#00aaff', 0x00aaff, 1);
@@ -5894,8 +5926,8 @@ export class GameScene extends Scene {
         }
 
         // 玩家（箭头端点钳制到框内）
-        const px = mx + game.player.x * scale;
-        const py = my + game.player.y * scale;
+        const px = mx + offX + game.player.x * scale;
+        const py = my + offY + game.player.y * scale;
         const playerColor = this._parseColor(styles.player || '#00ff00', 0x00ff00, 1);
         if (inBox(px, py)) {
             g.fillStyle(playerColor.color, playerColor.alpha);

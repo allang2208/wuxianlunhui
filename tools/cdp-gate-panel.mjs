@@ -72,10 +72,9 @@ for (let i = 0; i < 60; i++) {
 }
 if (!ready) { console.error('not ready'); edge.kill(); process.exit(2); }
 
-console.log('switch scene8 (trees off):', await evalJs(`(async () => {
+console.log('switch scene8:', await evalJs(`(async () => {
     const sm = (window.SceneManager || (await import('/src/world/scene-manager.js')).SceneManager);
     if (typeof sm.init === 'function' && (!sm.scenes || !sm.scenes.scene8)) sm.init();
-    if (sm.scenes && sm.scenes.scene8) sm.scenes.scene8.treeScatter = { enabled: false };
     await Promise.race([
         sm.switchScene('scene8', window.Game.player),
         new Promise((r) => setTimeout(() => r('SWITCH_TIMEOUT'), 60000)),

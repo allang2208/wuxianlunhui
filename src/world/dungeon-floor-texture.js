@@ -225,59 +225,96 @@ function _drawSandPatches(ctx, profile, ox, oy, cw, ch, diamond) {
         const px = pad + rand() * (cw - pad * 2);
         const py = pad + rand() * (ch - pad * 2);
         if (px < pad || px > cw - pad || py < pad || py > ch - pad) continue;
-        if (diamond) {
-            const gx = ox + px;
-            const gy = oy + py;
-            // 距菱形边界至少留 补丁半径+余量，避免沙地铺到黑区
-            const margin = (radius + 60) / diamond.ry;
-            if (Math.abs(gx - diamond.cx) / diamond.rx + Math.abs(gy - diamond.cy) / diamond.ry > 1 - margin) continue;
-        }
+        if (diamond && _outsideDiamondMargin(ox + px, oy + py, diamond, radius)) continue;
         if (placed.some((q) => Math.hypot(q[0] - px, q[1] - py) < minDist)) continue;
         placed.push([px, py]);
-        // 临时画布：沙地纹理按补丁世界相位绘制 + 径向渐隐遮罩
-        const ps = Math.ceil(size);
-        const tc = document.createElement('canvas');
-        tc.width = ps;
-        tc.height = ps;
-        const tctx = tc.getContext('2d');
-        const tw = img.width;
-        // 沙地纹理同样按 30° 等距纵向压缩，与泥地连续铺贴视角一致
-        const th = Math.round(img.height * (profile.textureScaleY ?? 0.5774));
-        const phaseX = ((ox + px - ps / 2) % tw + tw) % tw;
-        const phaseY = ((oy + py - ps / 2) % th + th) % th;
-        // 循环平铺覆盖整张补丁画布（世界相位一致）——单张纹理画不满会露直切边
-        for (let gx = -phaseX - tw; gx < ps + tw; gx += tw) {
-            for (let gy = -phaseY - th; gy < ps + th; gy += th) {
-                tctx.drawImage(img, gx, gy, tw, th);
-            }
-        }
-        // 噪声扰动的不规则边界 + 宽淡入淡出（替代规整圆形/直边）
-        const noise = _makeNoiseMask(ps, rand);
-        const maskCanvas = document.createElement('canvas');
-        maskCanvas.width = ps;
-        maskCanvas.height = ps;
-        const mctx = maskCanvas.getContext('2d');
-        const imgData = mctx.createImageData(ps, ps);
-        const md = imgData.data;
-        for (let y = 0; y < ps; y++) {
-            for (let x = 0; x < ps; x++) {
-                const d = Math.hypot(x - ps / 2, y - ps / 2) / (ps / 2);
-                const n = noise[y * ps + x];
-                const b = 0.52 + 0.22 * n;
-                const fw = 0.18;
-                let t = (b - d) / fw + 0.5;
-                t = Math.max(0, Math.min(1, t));
-                const a = t * t * (3 - 2 * t);
-                const idx = (y * ps + x) * 4;
-                md[idx] = md[idx + 1] = md[idx + 2] = 255;
-                md[idx + 3] = Math.round(a * 255);
-            }
-        }
-        mctx.putImageData(imgData, 0, 0);
-        tctx.globalCompositeOperation = 'destination-in';
-        tctx.drawImage(maskCanvas, 0, 0);
-        ctx.drawImage(tc, px - ps / 2, py - ps / 2);
+        _drawSandPatchAt(ctx, profile, img, ox + px, oy + py, size, rand, ox, oy);
     }
+    // 固定沙地补丁（2026-08-16）：scene-manager 给基地铺的大沙地。
+    // 每个补丁有独立确定性种子（噪声边界跨块一致），只画与本块相交的补丁。
+    for (const fp of sp.fixed || []) {
+        const fSize = fp.size ?? size;
+        const fRadius = fSize / 2;
+        // 真实垂距校验：大补丁必须整体落在菱形内（随机小补丁沿用归一化口径即可，
+        // 大补丁用归一化会误判——左缘垂距 < 归一化余量）
+        if (diamond && _minDistToDiamond(fp.x, fp.y, diamond) < fRadius + 60) continue;
+        // 补丁方形范围与本块不相交则跳过（含遮罩外扩余量）
+        if (fp.x + fRadius < ox || fp.x - fRadius > ox + cw || fp.y + fRadius < oy || fp.y - fRadius > oy + ch) continue;
+        const fRand = _seededRand(((Math.round(fp.x) * 2654435761) ^ (Math.round(fp.y) * 40503) ^ 0xa5a5a5a5) >>> 0);
+        _drawSandPatchAt(ctx, profile, img, fp.x, fp.y, fSize, fRand, ox, oy);
+    }
+}
+
+/** 点到菱形四边的最短距离（点在线段外时取到端点的距离） */
+function _minDistToDiamond(gx, gy, diamond) {
+    const { cx, cy, rx, ry } = diamond;
+    const pts = [
+        [cx, cy - ry], [cx + rx, cy], [cx, cy + ry], [cx - rx, cy],
+    ];
+    let best = Infinity;
+    for (let i = 0; i < 4; i++) {
+        const [x1, y1] = pts[i];
+        const [x2, y2] = pts[(i + 1) % 4];
+        const dx = x2 - x1, dy = y2 - y1;
+        const len2 = dx * dx + dy * dy;
+        let t = len2 > 0 ? ((gx - x1) * dx + (gy - y1) * dy) / len2 : 0;
+        t = Math.max(0, Math.min(1, t));
+        const px = x1 + dx * t, py = y1 + dy * t;
+        best = Math.min(best, Math.hypot(gx - px, gy - py));
+    }
+    return best;
+}
+
+/** 沙地补丁中心是否太靠近（或超出）菱形边界（余量 = 半径 + 60px） */
+function _outsideDiamondMargin(gx, gy, diamond, radius) {
+    const margin = (radius + 60) / diamond.ry;
+    return Math.abs(gx - diamond.cx) / diamond.rx + Math.abs(gy - diamond.cy) / diamond.ry > 1 - margin;
+}
+
+/** 画单个沙地补丁（世界坐标 gx/gy 中心，size 边长；纹理按世界相位铺贴 + 噪声软边遮罩） */
+function _drawSandPatchAt(ctx, profile, img, gx, gy, size, rand, ox, oy) {
+    const ps = Math.ceil(size);
+    const tc = document.createElement('canvas');
+    tc.width = ps;
+    tc.height = ps;
+    const tctx = tc.getContext('2d');
+    const tw = img.width;
+    // 沙地纹理同样按 30° 等距纵向压缩，与泥地连续铺贴视角一致
+    const th = Math.round(img.height * (profile.textureScaleY ?? 0.5774));
+    const phaseX = ((gx - ps / 2) % tw + tw) % tw;
+    const phaseY = ((gy - ps / 2) % th + th) % th;
+    // 循环平铺覆盖整张补丁画布（世界相位一致）——单张纹理画不满会露直切边
+    for (let tx = -phaseX - tw; tx < ps + tw; tx += tw) {
+        for (let ty = -phaseY - th; ty < ps + th; ty += th) {
+            tctx.drawImage(img, tx, ty, tw, th);
+        }
+    }
+    // 噪声扰动的不规则边界 + 宽淡入淡出（替代规整圆形/直边）
+    const noise = _makeNoiseMask(ps, rand);
+    const maskCanvas = document.createElement('canvas');
+    maskCanvas.width = ps;
+    maskCanvas.height = ps;
+    const mctx = maskCanvas.getContext('2d');
+    const imgData = mctx.createImageData(ps, ps);
+    const md = imgData.data;
+    for (let y = 0; y < ps; y++) {
+        for (let x = 0; x < ps; x++) {
+            const d = Math.hypot(x - ps / 2, y - ps / 2) / (ps / 2);
+            const n = noise[y * ps + x];
+            const b = 0.52 + 0.22 * n;
+            const fw = 0.18;
+            let t = (b - d) / fw + 0.5;
+            t = Math.max(0, Math.min(1, t));
+            const a = t * t * (3 - 2 * t);
+            const idx = (y * ps + x) * 4;
+            md[idx] = md[idx + 1] = md[idx + 2] = 255;
+            md[idx + 3] = Math.round(a * 255);
+        }
+    }
+    mctx.putImageData(imgData, 0, 0);
+    tctx.globalCompositeOperation = 'destination-in';
+    tctx.drawImage(maskCanvas, 0, 0);
+    ctx.drawImage(tc, gx - ox - ps / 2, gy - oy - ps / 2);
 }
 
 /** 双八度值噪声（-1~1），用于沙地补丁不规则边界（种子确定性） */

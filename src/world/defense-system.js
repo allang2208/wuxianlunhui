@@ -41,7 +41,12 @@ import equipmentJson from '../../data/equipment.json';
 export const DEFENSE_CONFIG = {
     mapName: '世界-122',
     base: {
-        x: 532, y: 2048, // 九版：基地左移，TL 墙左角贴左边界（L=x 20，齐贴左墙）
+        // 2026-08-16：基地右移到沙漠贴图区（固定沙地补丁中心、1700px，见
+        // scene-manager._loadScene8 sandPatches.fixed）；场地 6144×4096 → 12288×8192
+        // 翻倍后按原相对位置等比右移（0.342×12288 ≈ 4200），菱形房跨 x 3688..4712，
+        // 距菱形左边界真实垂距 ~1878px ≥ 补丁半径+余量（850+60），沙地不越界；
+        // 门洞开在 RB 边中点。
+        x: 4200, y: 4096,
         hp: 5000, radius: 72, def: 90, mdef: 90,
     },
     // 掩体（可被攻击的防御墙段，def/mdef 均为 0）：F→A 六档生命值，
@@ -73,7 +78,8 @@ export const DEFENSE_CONFIG = {
           // 'leftOnTop' = 旧行为（上角 TL 盖 TR、下角 LB 盖 RB）
           cornerLayer: 'rightOnTop',
           openEdge: 'RB',
-          openRadius: 90,     // 开放带半宽：face 命中该带的边链件跳过 → 居中门洞 ≈270（沿边）
+          openRadius: 90,     // 开放带半宽：face 命中该带的边链件跳过 → 居中门洞（一格门 196.77，
+                              // 两侧邻墙段由下方 post-pass 收拢对齐门 face 端点）
           doorAlignY: 0,      // 新拼接规则下门柱底边与墙线天然共线，无需旧版下移精调
       },
     // 无预置防御塔（玩家用 B 建筑面板自行摆放）
@@ -148,7 +154,7 @@ export const DEFENSE_CONFIG = {
         countCap: 24,
         hpPerWave: 0.16,
         atkPerWave: 0.08,
-        alertRange: 6200, // 2026-08-16 地图扩 6144×4096：最远刷怪点距基地 ~5050，索敌需覆盖
+        alertRange: 9000, // 2026-08-16 地图翻倍 12288×8192：最远刷怪点距基地 ~7976，索敌需覆盖
         // A 移动（2026-08-15）：怪物最终目标仍是基地/建筑，但沿途交战半径内的
         // 玩家/侍从也会被锁定攻击（类似 RTS 的 A 键攻击移动）；脱离后自动回归推进
         engageHostileRange: 320,
@@ -191,18 +197,20 @@ export const DEFENSE_CONFIG = {
         waveMaxRangedAirBudgetRatio: 0.3,
         waveMaxFastBudgetRatio: 0.35,
     },
-    // 刷怪点：右端尽头 + 两条中距路线（基地在左端 x=900 菱形房内，怪物从右往左攻；
-    // 2026-08-16 地图扩展后重排，多路进攻让防线有纵深）
+    // 刷怪点（2026-08-16 v3：场地翻倍 12288×8192 后按原相对位置 ×2 等比平移，
+    // 中心 (6144,4096)、菱形 rx=6144/ry=3072）：
+    // 右顶点主路 + 沿右上/右下两条边（边线内侧 ~120px，法向入菱形）各 3 点 + 两点中距，
+    // 全部落点在菱形内（|dx|/6144+|dy|/3072 ∈ 0.92~0.95），怪物从右往左攻、多路有纵深。
     spawnPoints: [
-        { x: 5936, y: 600 },
-        { x: 5936, y: 1350 },
-        { x: 5936, y: 2048 },
-        { x: 5936, y: 2746 },
-        { x: 5936, y: 3496 },
-        { x: 5736, y: 900 },
-        { x: 5736, y: 3196 },
-        { x: 4700, y: 1100 },
-        { x: 4700, y: 3000 },
+        { x: 12176, y: 4096 },
+        { x: 11600, y: 3992 },
+        { x: 10800, y: 3592 },
+        { x: 10000, y: 3192 },
+        { x: 11600, y: 4200 },
+        { x: 10800, y: 4600 },
+        { x: 10000, y: 5000 },
+        { x: 9400, y: 2800 },
+        { x: 9400, y: 5400 },
     ],
 };
 
@@ -335,9 +343,11 @@ const COVER_ASPECT = {
 const COVER_DISPLAY_W = 260;
 
 /** 世界-122 铁栅栏滑动门几何（2026-08-15，Blender 建模 + 掩体同款砖墙/铸铁贴图，F→A 六档共用）。
- * 门体：仅左右两根细立柱 + 纤细铁栅栏（无上下横梁），两扇叶整体沿墙轴向滑出/滑入。
- * 几何标定（compose-cover-gate.py 输出，纹理 cell 640×634，y 向下）：
- * - face 线 = 门底边线（与 COVER_FACE v 同斜率 -0.5、同接地偏移），关闭时覆盖门洞；
+ * 门体：左右两根细立柱 + 纤细铁栅栏 + 每扇叶上下两条水平横杆（rail，穿过该叶竖杆）。
+ * 横杆与竖杆同烘焙在 `_bars` 16 帧表内，`_play()` 切帧即同步开合。
+ * 几何标定（compose-cover-gate.py 输出 + 2026-08-16「一格 = 一堵墙」重建，纹理 cell 640×634，y 向下）：
+ * - face 线 = 门底边线（与 COVER_FACE v 同斜率 -0.497、同接地偏移），关闭时覆盖门洞；
+ * - worldFaceLen = 176（水平跨度）= 墙 face 水平跨度（COVER_FACE ±88）——门占一格 = 一堵墙；
  * - 16 帧滑动动画：frame 0 = 关闭（两扇叶在中间合拢），frame 15 = 打开（扇叶滑出画面外隐藏）。
  */
 const GATE_GRADES = ['F', 'E', 'D', 'C', 'B', 'A'];
@@ -347,13 +357,17 @@ const GATE_GEOM = {
     frames: 16,
     animMs: 650,
     halfThick: 26,
-    faceA: { x: 90.2, y: 633.4 },
-    faceB: { x: 639.6, y: 360.6 },
-    faceLen: 613.6,
-    worldFaceLen: 270.4,
-    // 显示比例：与掩体墙同尺度（掩体 1024tex→260px；门 cell 640→262px）。
-    // 碰撞 face 仍按 worldFaceLen=270.4（门洞跨度），视觉上两侧由相邻墙端帽叠盖。
+    // 2026-08-16 重标定：门整体缩放到「一格 = 墙」，face 水平半跨 = 88 display px。
+    // faceA/B 由重建后贴图实测（bars 中段斜率 -0.4962，延伸至内容边缘 x 105.4/534.6）。
+    faceA: { x: 105.4, y: 584.0 },
+    faceB: { x: 534.6, y: 371.0 },
+    faceLen: 479.2,
+    worldFaceLen: 176,
+    // 显示比例：与掩体墙同尺度（掩体 1024tex→260px；门 cell 640→262px，内容已内缩至墙宽）。
     displayScale: 0.410,
+    // bars 层贴图裁剪窗（cell 像素）：只显示左右石柱之间的门洞区（重建后柱内缘 x 174/466）。
+    // 开门时钢管滑出该窗即被裁剪，不再在石柱外残留；柱体贴图由 pillarL/R 单独渲染。
+    barCrop: { x: 174, y: 0, w: 292, h: 634 },
 };
 const gateConfigFor = (grade) => ({ ...GATE_GEOM, grade, tex: `cover_gate_${grade}` });
 const GATE_CONFIG = gateConfigFor('D'); // 基地固定门（D 级）
@@ -376,7 +390,7 @@ function gateDepthSegs(A, B, depthL, depthR, depthBars) {
     const len = Math.hypot(dx, dy) || 1;
     const ux = dx / len;
     const uy = dy / len;
-    const half = 26; // 柱宽在 face 线上的投影（世界 px）
+    const half = 22; // 柱宽在 face 线上的投影（世界 px，一格门重建后柱显示宽 ~45）
     return [
         { A: { x: A.x, y: A.y }, B: { x: A.x + ux * half, y: A.y + uy * half }, depth: depthL },
         { A: { x: A.x + ux * half, y: A.y + uy * half }, B: { x: B.x - ux * half, y: B.y - uy * half }, depth: depthBars },
@@ -384,7 +398,7 @@ function gateDepthSegs(A, B, depthL, depthR, depthBars) {
     ];
 }
 
-/** 创建门的三段精灵（左柱/右柱静态图 + 栅栏 16 帧），各按自身底边线深度锚定。
+/** 创建门的三段精灵（左柱/右柱静态图 + 栅栏/水平横杆 16 帧），各按自身底边线深度锚定。
  *  flip=镜像（h）：整门翻转换了视觉左右，左右柱深度随之互换（面线端点不变）。 */
 function createGateSprites(cfg, cx, cy, k, depthL, depthR, depthBars, flip) {
     const scene = (typeof window !== 'undefined') ? window.__phaserScene : null;
@@ -410,6 +424,20 @@ function createGateSprites(cfg, cx, cy, k, depthL, depthR, depthBars, flip) {
         out.bars.setScale(k, k);
         out.bars.setDepth(depthBars);
         out.bars.setFlipX(flip);
+          const crop = cfg.barCrop;
+          if (crop && typeof out.bars.setCrop === 'function') {
+              // Phaser 4 的 setCrop 写入 GameObject._crop（按当前帧算 UV），
+              // _play() 每次 setFrame 切帧后 _crop 仍是旧帧 UV —— 动画会冻结/裁剪失效。
+              // 包一层 setFrame：切帧后按新帧重算裁剪窗（六档门共用同一张表，窗口恒定）。
+              const applyCrop = () => out.bars.setCrop(crop.x, crop.y, crop.w, crop.h);
+              const origSetFrame = out.bars.setFrame.bind(out.bars);
+              out.bars.setFrame = (frame, updateSize, updateOrigin) => {
+                  const ret = origSetFrame(frame, updateSize, updateOrigin);
+                  applyCrop();
+                  return ret;
+              };
+              applyCrop();
+          }
     }
     return out;
 }
@@ -1771,6 +1799,8 @@ export const DefenseSystem = {
                     y: Math.round(e.from.y + uy * t) + alignY,
                     grade: room.coverGrade,
                     orient: e.orient,
+                    edge: e.key,
+                    t,
                     // 图层覆盖顺序（2026-08-08 A/B 实测定稿）：
                     // - 上角 TR(h) 盖 TL(v)：TR 边 +0.5
                     // - 下角 RB(v) 盖 LB(h)：RB 边 +0.5
@@ -1779,9 +1809,49 @@ export const DefenseSystem = {
                 });
             }
         }
+        // —— 门洞两侧墙段向门 face 收拢并重叠（2026-08-17 一格门 + 接缝优化）——
+        // 门 face 沿边半跨 = 196.77/2 ≈ 98.4（worldFaceLen=176 水平 + 斜率 0.5）；
+        // 原洞宽 237.8，门 face 196.77 → 左右邻墙段沿边平移，使墙 face 端点与门 face
+        // 端点**重叠 JOIN_OVERLAP**（墙端帽圆角比 face 线短 ~26px，flush 会露出 2~4px
+        // 地板缝；重叠 12px 后墙端帽盖住门柱外缘，关门无透缝）。碰撞段重叠 12px 可接受，
+        // 开门通行口 ~173px（门 face 196.77 − 2×12）。
+        const JOIN_OVERLAP = 12;
+        const ge = edges.find((e) => e.key === openEdge);
+        if (ge && layout.length) {
+            const gdx = ge.to.x - ge.from.x;
+            const gdy = ge.to.y - ge.from.y;
+            const glen = Math.hypot(gdx, gdy);
+            const ux = gdx / glen;
+            const uy = gdy / glen;
+            const openMid = glen / 2;
+            const gHalf = Math.hypot(GATE_CONFIG.worldFaceLen, GATE_CONFIG.worldFaceLen * 0.5) / 2;
+            const g0 = openMid - gHalf;
+            const g1 = openMid + gHalf;
+            const gg = (COVER_FACE[room.coverGrade] && COVER_FACE[room.coverGrade][ge.orient])
+                || COVER_FACE.D[ge.orient] || COVER_FACE.D.v;
+            const projA = gg.A.x * ux + gg.A.y * uy;
+            const projB = gg.B.x * ux + gg.B.y * uy;
+            const towardV = projA < projB ? 'A' : 'B';
+            const hToV = Math.abs(towardV === 'A' ? projA : projB);
+            const hAway = Math.abs(towardV === 'A' ? projB : projA);
+            const alignY = room.doorAlignY || 0;
+            for (const c of layout) {
+                if (c.edge !== openEdge) continue;
+                const f0 = c.t - hToV;
+                const f1 = c.t + hAway;
+                if (f1 > g0 - 60 && f1 < g0 - 1) {
+                    c.t = (g0 + JOIN_OVERLAP) - hAway;  // 左邻墙段：face 端压入门 face 12px
+                } else if (f0 > g1 + 1 && f0 < g1 + 60) {
+                    c.t = (g1 - JOIN_OVERLAP) + hToV;   // 右邻墙段：face 端压入门 face 12px
+                } else {
+                    continue;
+                }
+                c.x = Math.round(ge.from.x + ux * c.t);
+                c.y = Math.round(ge.from.y + uy * c.t) + alignY;
+            }
+        }
         // 基地门洞（openEdge 边中点）→ 铁栅栏滑动门放置点：
         // face 线 = 该边掩体 face 线（同斜率/同接地偏移）延伸跨过门洞，长度 = worldFaceLen
-        const ge = edges.find((e) => e.key === openEdge);
         if (ge) {
             const gdx = ge.to.x - ge.from.x;
             const gdy = ge.to.y - ge.from.y;

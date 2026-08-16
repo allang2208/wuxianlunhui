@@ -81,22 +81,8 @@ upper right, <视角块>, <风格基准>
 ```
 
 > 产物：`scratch\test_tree_round_01.png` / `test_tree_dead_01.png`；strength 0.75。
-
-### 阔叶树五变体（2026-08-05 已入库）
-
-同一白模配方衍生 5 个形态，全部一次通过、已抠图入库 `assets/terrain/`：
-
-| 资产 | spec | 形态 | footprint w×d / 高 |
-|---|---|---|---|
-| `obstacle_tree_tall.png` | `tree_round_tall.json` | 高瘦长干高冠 | 42×15 / 170 |
-| `obstacle_tree_bushy.png` | `tree_round_bushy.json` | 矮胖宽冠短干 | 90×31 / 119 |
-| `obstacle_tree_twin.png` | `tree_round_twin.json` | 双干外张双冠 | 208×73 / 147 |
-| `obstacle_tree_wind.png` | `tree_round_wind.json` | 风斜偏冠 | 85×30 / 159 |
-| `obstacle_tree_tiered.png` | `tree_round_tiered.json` | 双层老树冠 | 111×39 / 134 |
-
-> 原图在 `scratch\test_tree_{tall,bushy,twin,wind,tiered}_01.png`；footprint/高为
-> `prep-obstacle.py` 输出的注册参考值。注意：白模比例与成品比例一致（twin 白模干距
-> 偏宽，成品 footprint 208 远超其他——建白模时 footprint 即决定入库碰撞占地）。
+> （2026-08-16：世界-122 树木已全部移除，阔叶树五变体条目删除；沙漠障碍物改走
+> 仙人掌管线——process-desert-plant.py 直出 + 实测 footprint，见 SKILL.md 世界-122 章节）
 
 ## 验收标准
 

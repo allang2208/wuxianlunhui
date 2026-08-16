@@ -127,7 +127,7 @@ const mc = COMBAT_CONFIG.meleeCombo || {};
 assert(mc.stage1HoldMs === 500, 'meleeCombo.stage1HoldMs = 500（一段定格/连段窗口）');
 assert(mc.stage2HoldMs === 200, 'meleeCombo.stage2HoldMs = 200（二段定格/连段窗口）');
 assert(mc.stage2RecoverMs === 300, 'meleeCombo.stage2RecoverMs = 300（二段收势）');
-assert(mc.stage3HoldMs === 300, 'meleeCombo.stage3HoldMs = 300（三段终结后重开窗口，回一段）');
+assert(mc.stage3HoldMs === 0, 'meleeCombo.stage3HoldMs = 0（三段终结后不留定格，直接收势回 idle；2026-08-16 用户指定）');
 assert(mc.stage3RecoverMs === 400, 'meleeCombo.stage3RecoverMs = 400（三段终结收势）');
 
 // ---------- 6. player-anim-config 双份同步 ----------

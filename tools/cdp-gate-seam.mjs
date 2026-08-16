@@ -162,7 +162,8 @@ const b = await evalRobust(`(async () => {
     const { DefenseSystem, BuildableGate, syncGateSeamDepths } = await window.__imp('defense-system');
     // 'h' 朝向 face 线 A(高)→B(低) 斜度 -0.5：右门需沿坡线下移 2×half×0.5 = 135px 才共线
     const g1 = new BuildableGate(2600, 2600, { orient: 'h', grade: 'D', id: 'probe_gate1' });
-    const g2 = new BuildableGate(2600 + 270, 2600 + 135, { orient: 'h', grade: 'D', id: 'probe_gate2' });
+    // 一格门（2026-08-16）：h 向 face 沿 (+176,+88)，与掩体墙同跨
+    const g2 = new BuildableGate(2600 + 176, 2600 + 88, { orient: 'h', grade: 'D', id: 'probe_gate2' });
     window.Game.entities.set(g1.id, g1);
     window.Game.entities.set(g2.id, g2);
     DefenseSystem.gates.push(g1, g2);

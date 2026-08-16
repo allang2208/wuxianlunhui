@@ -1,9 +1,0 @@
-{
-  "elevation": 12,
-  "primitives": [
-    { "type": "cylinder", "radius": 0.3, "depth": 1.6, "pos": [0, 0, 0.8] },
-    { "type": "cone", "radius1": 1.9, "radius2": 0.05, "depth": 2.2, "pos": [0, 0, 2.6] },
-    { "type": "cone", "radius1": 1.5, "radius2": 0.05, "depth": 2.0, "pos": [0, 0, 4.1] },
-    { "type": "cone", "radius1": 1.05, "radius2": 0.05, "depth": 1.8, "pos": [0, 0, 5.4] }
-  ]
-}

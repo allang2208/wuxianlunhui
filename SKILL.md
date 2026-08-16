@@ -83,6 +83,7 @@
 **7. 世界-122 防守地图**
 - 世界-122 防守地图（雏形，2026-08-04）
 - 世界-122 迭代沉淀（2026-08-15：塔死角排查/塔整塔命中+悬停轮廓+神经芯片面板/基地退回/树木散布）
+- 世界-122 荒漠化（2026-08-16：树木全部移除 → 仙人掌 4 姿态障碍物 cactusScatter + deco 荒漠植物点缀）
 - 防御塔升级重构——六维芯片取代等级（2026-08-16：武器↔主属性挂钩、伤害实时公式、费用逐级递增、面板武器贴图；二轮重新引入改造模块图标卡）
 - 世界-122 相机默认恒居玩家中央（2026-08-16：非瞄准钉玩家/瞄准才偏移；相机平滑拖尾修复）
 - 世界-122 扩展：6144×4096 / 分块惰性地板 / 大能源点簇 / 基地门可攻击（2026-08-16）
@@ -744,6 +745,15 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
     逐帧核对（握把 = player + 配置偏移 − footOffset，实测逐位一致）。
   - **尺寸口径勘误**：武器屏显高 = WEAPON_ANIM.size 126 × MELEE_SCALE **0.75** × scale
     =141.75（旧注释里的 78.75 是 0.625 时代残留）；剑柄 originY = 0.5+40/141.75 = 0.782。
+  - **「帧末武器脱手」的根因 = 进度映射错配（2026-08-16 实机定位）**：旧平滑 lerp 把
+    progress×(n-1) 映射到轨迹点，而精灵帧 k 覆盖 [k/n,(k+1)/n)——武器在帧窗中段就跑向
+    下一点、帧窗末尾已偏 92%，攻击一段 f0 窗末实测旋转 140°→302°（身体还在备战、剑已甩
+    头后）。修法=**阶梯映射**（anchor='grip' 块专属）：位置钉当前帧锚点整帧不动，旋转在
+    帧窗内向下一帧 lerp（绕钉住的剑柄扫刃）——`getInterpolatedPerFramePosition` 内
+    `block.anchor==='grip'` 分支；dash/旧中心块口径不动。这正是 2026-08-03「手部只有离散
+    帧时武器必须阶梯映射」教训的运行时落地（当年只在生成脚本侧做）。
+  - 实机验证复用 `tools/cdp-sword-hold-v4.mjs`（每帧 meta 采样武器世界坐标/旋转/origin +
+    截图）；帧末时刻要单独采（探针 progress 时钟推进约 +0.004/150ms 采样延迟）。
 
 #### 二段攻击（attack_sword_2）v4 上撩回斩（2026-08-16 入库，连段连贯首帧方案）
 
@@ -827,6 +837,27 @@ v4 上撩回斩被否原因：向上挥向空气无目标承接、缺冲击力�
   用户认可未动）。处理后肋骨/关节环/指骨细节保留，与 idle 细线风一致。
 - 教训：montage 小图看不出线宽差异，**线宽要用距离变换量化**；后处理在剪片入库后做即可
   （sheet 级，不用回视频返工）。
+
+#### 全链路落脚点对齐（2026-08-16 用户反馈「三段/idle 错位、大小不整齐」定稿）
+
+- **屏显口径审计法**：逐帧算 屏显身高=内容高/512×(144×displayScale)、脚底偏移=(feet_y-256)
+  ×K、中心偏移=(cx-256)×K（display px 相对 player 中心）——审计发现：攻击链脚底 +72.7 vs
+  idle +65.0（收势→idle 脚跳 7.7px）；水平中心 idle +3.6 → attack1 f0 −14.5（idle→一段跳
+  18px!）→ 1→2 跳 20.7px → recover→idle 跳 −7.3px。
+- **统一口径**：四张 sheet 全部 `feet_y=467`（= idle 屏显脚底 +65.0）+ 首帧锚 cx=268
+  （= idle 屏显中心 +3.6）；链式锚点：一段末=268 → 二段首=268 → 二段末保留自然前冲
+  (+13.2) → 三段首=16.6 → **三段末钉回 268** → 收势 268→268 → idle 3.6，全链接缝 ≤1px。
+- builder 新增 `--anchor-end-cx`（基底 lerp 到 目标−末帧自然dx，末帧精确落点、段内位移
+  保留）与 `--picks`（手动取帧，战略跳过伪影帧）——注意：`--picks` 曾在并行工作中被外部
+  回滚弄丢过一次，重建前 `grep picks build-player-attack-sheet.py` 先自检。
+- **武器握点不平移重标**：sheet 内容放置原点变了，按新旧 sheet 每帧 bbox 原点差 Δ 平移
+  补偿即可（`offset新 = ((旧偏移/K+256)+Δ−256)×K`），rotation/blur/stretch/hitCheck 不动；
+  平移后贴附率复验 0 失败。
+- 细线化是 RGB-only 后处理（alpha 不变），重建 sheet 后需对二/三/收势重跑
+  `thin-strokes.py`。
+- 已知限制：三段突刺顶点内容宽 406px + 前冲 dx，512 格放不下会 clamp（clamp=完整保留、
+  顶点略左移，旧版同此行为）；要彻底解决得 640 格 + hitCheck/轨迹重建，暂不需要。
+- 备份：对齐前版本在各自 backup 目录的 `*_prealign.png`。
 - 入库：旧 v2 留档 `backup/2026-08-15-player-attack-h3/attack_sword.png`，两段式留档
   同目录 `attack_sword_keyframe2seg.png`；blur 峰移 f8~f10 贴挥砍段。
 
@@ -1487,6 +1518,8 @@ defend 持盾帧右偏 13px。**结论：武器弧远超身体宽的动作，格
 ---
 
 ### 树木等距素材管线（2026-08-15 两轮定稿，新树/植被素材按此开展）
+> 2026-08-16：世界-122 树木资产/脚本已全删（荒漠化改仙人掌，见第 7 区）；本条目
+> 保留为通用「白模深度锁视角 → 生图 → 抠图」管线参考（树不再入库，别按它补树）。
 
 **管线（白模深度锁视角 → 生图 → 抠图入库）**
 - 白模：`_blockout_specs/tree_iso2_<species>.json`（trunk 圆柱 + 树冠球/层叠圆柱，
@@ -1532,6 +1565,16 @@ python tools/ai-gen/floor-asset.py sand --out assets/terrain/floor_sand_seamless
    （⚠ 补丁画布内必须**循环平铺**纹理——单张画不满会露直角直切边，2026-08-16 真机踩过）；
 5. **草/植被点缀**：独立贴图（prompts/grass-tuft.txt，俯视径向对称）固定朝向 `deco`
    烘焙，不做 X/Y 翻转——草不画进砖里，8 向循环永不会把草转反。
+   - 2026-08-16 v3 荒漠植物定稿（v1 糊团假绿、v2 圆团正俯视高饱和，两轮均被退回）：
+     **视角铁律——点缀植物不是正俯视圆团，是"微俯 30° 侧看 + 直立株型"**
+     （对齐「等距投影素材规范」：立着的垂直站、顶面走 30°；billboard 资产 ≤12°~30°，
+     正俯视径向提示词必出圆团，勿用）；**画风锚 = 树木管线同款** `photograph of a real
+     desert plant` + muted/desaturated（卡通/高饱和首轮必退）；世界-122 沙漠主题用
+     束草/蒿灌木/龙舌兰/风滚草四物种，白底出图（避开品红底——v2 实测品红底抠图
+     7~15% 像素带 R/B 溢色粉边，检测 `(r>g+25)&(b>g+10)`）→ `process-desert-plant.py`
+     （BiRefNet 进程内抠图 + `--desat 0.7` 对齐低饱和 + 紧身裁剪 + 256²，ComfyUI venv
+     python 运行）→ `deco_desert_1~4.png`（BootScene 注册，scene-manager deco.textures）。
+     中间件在 scratch `desert_*`；v2 品红 despill 修复件留 scratch `grass_v2_*` 备用。
 
 场景配置参考（scene-manager `_loadScene8`）：`{ tiles:['floor_mud_seamless'],
 continuous:true, textureScaleY:0.5774, sandPatches:{texture:'floor_sand_seamless',
@@ -1676,7 +1719,7 @@ RGB 151/87/70 红主色）+ 屋顶 prism 材质 `roof`（墙身仍是黑砖 wall
 
 - **挥砍特效 A+B（2026-07-27 落地，2026-07-29 改残影实现）**：perFrame 帧数据可加 `blurX/blurY` 与 `stretchX/stretchY`（乘 displaySize）——插值/面板输入/保存直写全链路支持；播种用帧间位移推导（峰值帧最强，端点为零）。**游戏内运动模糊 = 残影（afterimage）**：`GameScene._syncWeaponGhosts` 沿 perFrame 轨迹回放 3 道历史姿态武器副本（透明度 0.34/0.23/0.11 递减，步长 0.035~0.085 进度随强度伸缩，强度=max(blurX,blurY) 归一到峰值 12，<1.5 不出残影）——攻击/冲刺两分支共用，攻击结束/弓分支/Tween 分支/地图模式各兜底隐藏。**旧高斯滤镜方案已废弃**：`filters.internal.addBlur` 链路实测"激活但观感失败"——高斯模糊对 3px 宽细剑是能量摊薄，峰值帧剑身近乎消失（CDP 像素级对比取证），且面板大尺寸慢放预览放大了"生效"的错觉。面板预览模糊仍是 canvas filter 近似。
 - **📍固定点工具（2026-07-27）**：武器参数区下方按钮——点击进入放置模式后点画布武器即标记（存武器局部坐标，逆变换：平移→反向旋转→÷缩放），红点刚性跟随武器跨帧显示（校准握把/刃尖用）；有标记时点按钮=清除。**面板 DOM 改动注意**：真实面板 DOM 由 `src/ui/panels/dev-tools.js` 程序化构建，`ui/components/dev-tool-panel.html` 是无引用的死文件，勿改。**攻击输入全锁**：`weaponAnim.isAttacking` 期间移动/闪避/新攻击/切武器/冲刺/右键特殊攻击/风车/推击全部无效（注意：闪避不再能取消攻击）。
-- **近战连段与收势（2026-07-27；三段已落地 2026-08-13）**：perFrame 攻击 Tween 结束时记 `_lastMeleeAttackEnd` 并设 `_attackHoldUntil`（=连段窗口）——窗口内定格末帧等待连段；窗口内再攻击派生下一段；无输入则播 `recover` 收势动画回 idle；移动立即取消定格/收势。攻击期输入全锁（见 📍固定点工具条目）。**三段连段（挥击×2+突刺×1，2026-08-13）**：stage 1 过顶下劈 `attack_sword`（12帧/600ms）→ 2 肩高快劈 `attack_sword_2`（12帧/600ms）→ 3 弓步突刺 `attack_sword_3`（16帧/800ms，终结段）→ 回 1；段数映射/定格/收势梯度收口 `src/entities/player/anim-state.js`（`MELEE_STAGE_ANIM_KEYS`/`meleeStageCfgKey`/`meleeStageHoldMs`/`meleeStageRecoverMs`，纹理/轨迹块缺失逐级回退 stage3→2→1），时长配置 `data/combat-config.json` `meleeCombo.stageN{HoldMs,RecoverMs}`（500/200/300 + -/300/400）；武器轨迹块 `sword.attack/attack2/attack3`（12/12/16 点，attack3=rect 判定 damageMul 2.0，初始种子值待 DevTool 逐帧精调）。新 sheet 格 512×512（管线 `tools/prep-melee3-sheets.py`，色偏中性化+留档），frameWeights 口径已退役统一 frameDurations。
+- **近战连段与收势（2026-07-27；三段已落地 2026-08-13）**：perFrame 攻击 Tween 结束时记 `_lastMeleeAttackEnd` 并设 `_attackHoldUntil`（=连段窗口）——窗口内定格末帧等待连段；窗口内再攻击派生下一段；无输入则播 `recover` 收势动画回 idle；移动立即取消定格/收势。攻击期输入全锁（见 📍固定点工具条目）。**三段连段（挥击×2+突刺×1，2026-08-13）**：stage 1 过顶下劈 `attack_sword`（12帧/600ms）→ 2 肩高快劈 `attack_sword_2`（12帧/600ms）→ 3 弓步突刺 `attack_sword_3`（16帧/800ms，终结段）→ 回 1；段数映射/定格/收势梯度收口 `src/entities/player/anim-state.js`（`MELEE_STAGE_ANIM_KEYS`/`meleeStageCfgKey`/`meleeStageHoldMs`/`meleeStageRecoverMs`，纹理/轨迹块缺失逐级回退 stage3→2→1），时长配置 `data/combat-config.json` `meleeCombo.stageN{HoldMs,RecoverMs}`（500/200/**0** + -/300/400；2026-08-16 用户指定：终结段播完直接收势回 idle，不留定格窗口——三连击严格 1→2→3→收势，无 3→1 回环，想恢复回环改回 300）；武器轨迹块 `sword.attack/attack2/attack3`（12/12/16 点，attack3=rect 判定 damageMul 2.0，初始种子值待 DevTool 逐帧精调）。新 sheet 格 512×512（管线 `tools/prep-melee3-sheets.py`，色偏中性化+留档），frameWeights 口径已退役统一 frameDurations。
 
 - **逐帧导出交接（2026-07-27 改为直写）**：💾保存 = 内存生效 + **直接合并进 `public/data/weapon-anim-config.json`**（保留 attack 下 trail 等字段，写前滚动备份 `weapon-frames/weapon-anim-config.backup.json`）+ 覆盖写 `weapon-frames/latest.js`（仅记录/回滚参考）+ 剪贴板。**保存即永久生效，无需通知助手合并**；Vite 走 `/__save-weapon-frames` 中间件（改中间件需重启 dev server），Electron 走 `save-weapon-frames` IPC。需回滚时用 backup.json 还原或叫助手处理。**多段轨迹（2026-07-27）**：`attack`/`attack2` 块各存一段轨迹，面板切对应动画页调整即按块保存；运行时连段按 `_meleeComboStage` 选块；`WeaponTransform.getInterpolatedPerFramePosition(..., cfgKey)` 支持选块。
 - **静态姿态**（gun_idle 等）：面板拖武器到手上 → 💾保存（每状态 `holdOffsetX/Y + idleRotation/idleScale`）。
@@ -4787,7 +4830,10 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
   间隔 92→85、换弹 3500→3150、过热/散热 ok）、费用 150/218/315/457/663 递增、
   满级拦截、面板 6 张图标卡。
 
-**场景树木随机散布特性（2026-08-15 定稿）**
+**场景树木随机散布特性（2026-08-15 定稿；2026-08-16 已移除）**
+> 世界-122 树木已全部删除（贴图/ISO_WALL_GEO/散布逻辑/生成脚本/探针），
+> 由仙人掌散布替代：`_scatterCactiScene8` + `scenes.scene8.cactusScatter`
+> （同款排除带/碰撞/调用顺序铁律），资产 `obstacle_cactus_*`，见「世界-122 荒漠化」。
 - `_loadScene8` 里 `_scatterTreesScene8`（配置 `scenes.scene8.treeScatter`：enabled/count/
   minDist/scaleJitter/bounds/exclude 可调）；排除基地房/玩家出生点/能源点/刷怪点；
   走 isoVisuals + rebuildIsoCollision 真实碰撞；缩放 = obstacleH/geo.h × (1±0.1)。
@@ -4935,8 +4981,71 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
 
 ### 铁栅栏滑动门（F→A 六档，2026-08-15）
 
-世界-122 基地入口/可建造墙段式门：左右细柱 + 圆柱铁栅栏（无上下横梁），
+世界-122 基地入口/可建造墙段式门：左右细柱 + 圆柱铁栅栏 + 每叶上下水平横杆，
 开门时两扇叶沿墙轴向两侧滑出并隐藏，关门时从两侧向中间合拢。
+- **右石柱贴图自身烘焙的深色钢柱（2026-08-16 终案·pillarR）**：用户多轮反馈
+  "贴在墙上、不随门开关移动"的钢柱刷新后仍在、没删对——根因是
+  `cover_gate_{F,E,D,C}_pillarR.png` 石柱左缘 **x509-530 × y36-350** 一条约 22px 宽、
+  近黑色（rgb≈28-59）竖带（镜像 pillarL 对应位置是均匀石色 → 非对称柱影），它属于
+  **静态 pillar 层**，因此不随 bars 动画移动；而此前所有修复只改 bars 16 帧、从未碰
+  pillarR，所以用户怎么刷新都看得到。修复：`tools/remove-gate-pillar-steel-column.py`
+  用钢柱右侧同行石料条（x535-556）回填，暗色占比 87% → 参照水平 0-7%；B/A 档整柱
+  即深色主题，不误伤。**排查教训**：用户说"没删对"时先确认动的是不是用户看到的那个
+  图层；静态贴图残块用「局部暗色占比 vs 邻列参照」扫，别只扫动画帧。
+- **2026-08-17 一格门改版（用户要求：门 = 墙大小，一堵墙 = 一格）**：
+  - 门整体缩放到「一格 = 一堵墙」：`GATE_GEOM.worldFaceLen` 270.4 → **176**（水平跨度 =
+    COVER_FACE ±88），face 端点与墙 face 同跨（A(-88,-21)/B(88,-109)，v/h 镜像同墙）。
+  - 六档贴图以 face 中点 (320,477.6) 为基准整体缩放 **0.80087** 重建（旧 face 219.8 display →
+    新 176 display；石柱外缘 ±105 display，与墙端帽 ±94 同级；栅栏叶随帧等比缩放，rail
+    探入柱内被 split 裁成「插入石柱」，最外竖杆距柱 ~2-5px 由 rail 桥接）→ 重新
+    split 柱/栅栏层 → 图标从新 frame 0 重生成。
+  - **重标定 GATE_GEOM**：faceA(105.4,584.0)/faceB(534.6,371.0)、midTex(320,477.6)、
+    barCrop {174,0,292,634}（旧 135..505 已失效）；`gateDepthSegs` 柱投影 half 26 → 22。
+  - **基地门洞两侧墙段收拢**（`_buildBaseRoom` post-pass）：原洞 237.8 > 门 face 196.77，
+    左右邻墙段沿边平移使墙 face 端点**压入门 face 12px**（JOIN_OVERLAP=12）——墙端帽圆角
+    比 face 线短 ~26px，flush 会露 2~4px 地板缝，12px 重叠后墙端帽盖住门柱外缘、无透缝；
+    转角仍由邻边端帽覆盖（face 越顶点量 29→3.5，端帽本体补足）。碰撞段重叠 12px 可接受，
+    开门通行口 ≈173px（门 face 196.77 − 24）。
+  - **关门帧栅栏叶贴柱（二轮，消"动画妥协"缝）**：`rebuild-gate-onewall.py` 在 split 之后
+    把 frame 0 左叶 [179,320)→[174,320)、右叶 [320,460)→[320,466) 逐行拉伸——最外竖杆/
+    横杆正好贴柱内缘（174/466），动画帧 1..15 不动（开门滑动天然覆盖）。
+    ⚠ 图层仍按 `syncGateSeamDepths` 的"左在右前"：B 端门右柱抬到墙前（盖墙左端）、
+    A 端门左柱压到墙后（墙右端盖门左柱）——接缝观感以实机为准。
+  - **B 面板拼接**：`GATE_SNAP_OVERLAP` 51 → 40（与掩体墙端帽同口径）。
+  - 一键重建：`python tools/ai-gen/rebuild-gate-onewall.py`（源纹理在不可用的 Y: 盘，
+    故走程序化缩放；`_blockout_specs/cover_gate_<g>.json` 已按 0.80087 同步缩放，
+    未来 Y: 恢复后可 Blender 重渲复现）。
+  - 验证：node --check 通过；vite 编译 200；基地布局数值核验墙/门 face flush；
+    sim-defense-crowd 无卡墙/无瞬移（「门口转火门」检查为既有失败项，非本批引入）；
+    cdp-gate-seam 门对门偏移同步 +176/+88。
+  - ⚠ 通行取舍：一格门通行口 ~173px，防御怪半径 ≤77.5 全通过；poisonMaggot 精英
+    （半径 116，需 232）与超大领主被挡在门外 → 转攻墙体（旧 237.8 门也仅勉强容纳
+    poisonMaggot，属"门=一格"方案的固有取舍）。
+  - ⚠ 旧的 `bake-gate-missing-pillar.py`（贴左墙柱补竖杆）对一格门资产**已过时**：
+    新贴图栅栏叶经缩放后 rail 直插柱内、最外竖杆距柱 ~2-5px，不再需要烘焙补柱。
+- **2026-08-17 横杆 + 柱外残留清理**：每扇叶上下各加一条水平 rail
+  （box 126×14×10，x=±60，z=135/9，leaf/side 标记随叶滑动），与竖杆同烘焙进
+  `_bars` 16 帧表，运行时 `_play()` 切帧天然同步，无需新增贴图键。拆分时柱子掩码
+  膨胀 2px，并逐帧清除左右柱外边界之外的 bars 像素——修复开门时钢管退出石柱后
+  残影穿模。一键重渲：`python tools/ai-gen/rebuild-cover-gates.py`；
+  仅清理当前 bars：`python tools/clean-gate-bars-outside-pillars.py`。
+    Windows 一键入口：双击项目根目录 `rebuild-gate-assets.bat`。
+    运行时兜底：`GATE_GEOM.barCrop` 把 bars 层裁剪到左右柱之间（cell x 174..466），
+    旧贴图未重渲时也不会在石柱外残留。
+  - **2026-08-17 二轮定稿（已实渲验证）**：① 柱框裁剪会连关门帧最外侧竖杆
+    （world x=±115，2D 投影落在柱剪影内）一并删掉——12 杆变 10 杆；竖杆重排为
+    ±(5,23,41,59,77,95)（间距 22→18），12 杆全部落在门洞区（柱剪影 cell x 137/502
+    之内），横杆保持 ±60×126，两端探入柱区被裁成"插入石柱"效果。
+    ② Phaser 4 `setCrop` 写入的是 GameObject._crop（按当前帧算 UV），`_play()`
+    每次 `setFrame` 后裁剪即失效（动画冻结在帧 0 裁剪区）——`createGateSprites`
+    包一层 setFrame，切帧后按新帧重算 barCrop。③ 旧资产时代的一次性残柱剔除脚本
+    （remove-gate-stray-cylinder / remove-gate-wall-steel-column /
+    remove-gate-pillar-steel-column）**不纳入重渲流程**：它们按旧贴图固定区域/连通域
+    大小删像素，对新渲染可能误删滑出门洞半途的栅栏叶碎片；重渲后柱区残留由 split
+    内置清理 + clean-gate-bars-outside-pillars（柱框裁剪，幂等）兜底。
+    验收：六档 16 帧柱区残留全 0、帧 15 纯柱子、关门 12 竖杆；GLM 复核关门/开门
+    中途帧无穿模无截断。
+
 
 - **资产管线**（Blender 几何 + 掩体同款材质，与掩体墙同一相机比例）：
   `_blockout_specs/cover_gate_<g>.json`（仅 `tex` 指向 `tex_<g>_v1.png` 不同）→
@@ -5133,7 +5242,8 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
 - **大能源点（簇状）**：`ENERGY_CONFIG.clusters` 4 簇 × 12~14 块（簇心/数量/spread 配置），
   `EnergyNodeSystem.setup` 均匀圆盘 + 最小间距 85 生成；`baseExclusion {900,2048,800}`
   基地 800px 禁矿带；树散布按「簇心 ±(spread+140)」整圈排除（勿改回逐点 positions）。
-- **树木间距**：treeScatter.minDist 95→150（6144 地图 100 棵，候选拒绝 40~50 次属正常）。
+- **树木间距**：treeScatter.minDist 95→150（6144 地图 100 棵，候选拒绝 40~50 次属正常；
+  2026-08-16 树木已移除，同口径改 cactusScatter.count 80 / minDist 150）。
 - **基地门可攻击**：基地门由 `{...CoverGate}` 换成 `BuildableGate`（Combatant）——有 hp /
   沉陷死亡 / 建筑面板详情（常锁/常开/修理），与玩家建造门完全同构；face 线几何公式一致；
   摧毁后门段移除、通道永久打开（`_teardownCollision` + BuildingSinkEffect 接管三段精灵）。
@@ -5149,6 +5259,26 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
 - 草簇 `deco_grass_1/2` 固定朝向点缀，不参与砖的 X/Y 翻转；
 - 降饱和：泥 S 68.8→39%、沙 59.1→37%（desaturate-texture.py）。
 - 已验证：跨界亮度扫描无黑缝（最暗 103）、沙泥无直角边、8 向循环无方向问题。
+
+### 世界-122 荒漠化（2026-08-16：树木移除 → 仙人掌障碍物）
+
+树木（`obstacle_tree_*` 五变体 + 散布/生成管线）已**全部移除**：贴图、`ISO_WALL_GEO`
+注册、`_scatterTreesScene8` + `treeScatter` 配置、BootScene 加载、gen/process-tree-* 脚本、
+`_blockout_specs/tree_*` 白模、cdp-tree-* 探针、prompts/obstacle.md 树木节、SKILL 散布条目。
+（通用 `WallSystem.addTree` 程序化圆树仍保留——主神空间/雪原 demo 用，非世界-122。）
+
+**替代 = 仙人掌 4 姿态障碍物（`_scatterCactiScene8` + `scenes.scene8.cactusScatter`）**
+- 资产：`assets/terrain/obstacle_cactus_{saguaro2arm,saguaro1arm,barrel,cholla}.png`
+  （`ISO_WALL_GEO` obstacle 类，foot 底部 15% 带实测：31×11 / 36×13 / 110×38 / 33×12；
+  obstacleH 240 / 230 / 105 / 150，贴图等比裁剪 h=256，缩放口径 obstacleH/geo.h）。
+- 管线：`process-desert-plant.py`（白底生图 → BiRefNet 进程内抠图 → `--desat 0.7`
+  `--contrast 0.7~0.85` 低对比 → 等比裁剪 `--no-square`；ComfyUI venv python 跑）。
+  **低对比铁律**：同一 STYLE 块（photograph of a real desert cactus + muted + low contrast +
+  ~30° 微俯 + 白底无影）+ 后处理降饱和降对比；数值验收白边 <0.5%、无品红、meanSat 19~25、
+  lumStd ≈38（cholla 金刺初版 55 偏高，单独 `--contrast 0.7` 拉回 45）。
+- 散布：逻辑与旧树木同款（菱形内、排除基地房/玩家/能源点/刷怪点、footprint 口径、
+  minDist 150、count 80、随机 flipX），调用顺序铁律不变（DefenseSystem.setup 之前）。
+- 低矮荒漠植物点缀仍走 `deco_desert_1~4`（束草/蒿灌木/龙舌兰/风滚草，第 2 区地面节）。
 
 ### 后续打磨方向（未做）
 - 波次/Boss 波/经济平衡数值；塔血量被摧毁后重建/出售；怪物分路（多入口）与减速/范围塔；
@@ -5448,6 +5578,9 @@ CDP 探针 `tools/cdp-defense-hit.mjs`（真实场景注入僵尸/黑狼 + check
 
 ### 伊莉丝动作显示尺寸统一（2026-08-17：attack/windmill 偏小）
 
+- **2026-08-17 撤回**：用户实机反馈"放大后很奇怪"，displayScale 配置与 GameScene 改动
+  已全部还原，恢复原渲染公式（本节保留排查数据，供将来参考）。
+
 - **实测**（逐帧内容 bbox + CDP 读 Phaser 精灵显示尺寸）：idle 内容高 461px 渲染 129.7px；
   attack 平均 433px（站立帧 458~469 与 idle 一致，但挥剑帧自然倾斜 367~430 占多数）渲染 121.8px
   （-6%）；windmill 平均 399px 渲染 112px（-13.5%）。用户反馈"施法/攻击缩小"属实。
@@ -5457,6 +5590,19 @@ CDP 探针 `tools/cdp-defense-hit.mjs`（真实场景注入僵尸/黑狼 + check
   其他动作无 displayScale → k=1，行为不变。
 - **坑**：直接量帧格尺寸没用，要看"内容占比×显示映射"；渲染侧归一化已按帧格线性映射，
   内容占比不同的动作需要逐动作 displayScale；CDP 探针直接读 `sprite.displayWidth/Height` + `frame` 最准。
+
+### 露娜动作显示尺寸统一（2026-08-17：walk/run/spell 偏小）
+
+- **2026-08-17 撤回**：与伊莉丝同批撤回，displayScale 配置已删除，恢复原渲染。
+
+- **实测**：露娜全 512×512 帧格，idle 内容 498~500px；walk/run/spell 都是 467~471px
+  （约小 6%），多阈值（40/128/200）复核非阴影伪影。CDP 实机：idle 渲染 140.1px、
+  walk/run/spell 渲染 132.5px。
+- **修复**：`companion-config animations.walk/run/spell.displayScale = 1.062`（复用伊莉丝同款
+  渲染机制，GameScene 无需再改）；实测显示 144→153、内容 132.5→140.1px 与 idle 对齐，
+  脚底修正同步后与 idle/伊莉丝同线（y≈2001）。
+- **教训**：全 512 帧格也会内容占比不同——只要内容高度不一致就要 displayScale，
+  不能因为帧格相同就默认等大。
 
 #### 问题
 `PathFinder.isReachable()` 使用 Flood Fill 检查区域连通性，但步数限制太死：
@@ -5963,6 +6109,9 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
   `_companionSprites[entity.id]` 精灵锚定（贴图缩放后名字/血条自动跟随）；
   `hasOwnLabel` 含 `_neutralSprites.has(entity)`——已挂中立标签的建筑
   （仓鼠小屋/能源矿/掩体/静态 NPC）跳过 HUD 名字，防重复；以后加建筑自动生效。
+  **2026-08-16 用户口径：友军一律不显示名称、只显示血条**——`_syncEntityHud`
+  判 `_faction==='companion'` 进 `isFriendly`：血条常显（不再只在残血时画）、
+  名字并入 hasOwnLabel 跳过。仓鼠单位与伊莉丝/露娜同规则。
 - `_updateDynamicDepths` 的侍从深度查找也要带 friendlyUnits（墙后正常被遮挡）。
 
 #### 6. 生成/仇恨/验证
@@ -6050,8 +6199,8 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
 
 > 小屋之后第二个「建筑生成单位」：不新增独立"系统生成 1 只"链路，而是由**建筑本体**
 > 持有单位（`HamsterBarracks.units`），建筑面板切换类型/升级，兵营按 30s 节奏补员到
-> 数量上限——单位生命周期（生成/死亡补员/出售/被毁拆除）全部挂建筑，复用战士/射手
-> 既有实体与 AI，零新增渲染分支。
+> 数量上限——单位生命周期（生成/死亡补员/出售/被毁拆除）全部挂建筑，复用战士/射手/
+> 盾卫既有实体与 AI，零新增渲染分支。
 
 - **数据/配置（`src/world/hamster-barracks-system.js`）**：`BARRACKS_CONFIG`——
   cost 1500 能源 / hp 2000 / displayW×H 170×147（贴图 682×589 等比，高度对齐小屋）/
@@ -6059,9 +6208,30 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
   即 5 个，2026-08-16 用户口径）**；单位基准值**实时读**
   `data/hamster-warrior-config.json` + `hamster-shooter-config.json`
   （`unit.<key>.cfg`，不硬编码 50/60 伤害）。
-- **单位类型切换**：`setUnitType('warrior'|'shooter')`，面板两个按钮
-  （战士近战 / 射手远程），切换后下一次生成生效；`_findUnitSpawn` 兵营周围
+- **单位类型切换**：`setUnitType('warrior'|'shooter'|'guard')`，面板三个按钮
+  （战士近战 / 射手远程 / 盾卫近战·第 10 帧判定），切换后下一次生成生效；`_findUnitSpawn` 兵营周围
   90px 内 WallSystem 校验合法落点（兜底兵营脚下）。
+
+#### 10. 仓鼠盾卫（2026-08-16 战斗型第三例，兵营单位）
+
+> 战斗型第三例：近战 + **攻击动画第 10 帧判定伤害**（区别于战士的"间隔出伤"、射手的
+> "第 10 帧出膛"）。用户口述"4×8 裁剪"与实测不符——**素材实测 8 列 × 4 行、512² 格
+> （4096×2048）**：idle 1 / running 17 / attacking 12 / dying 15 帧（目检铁律再次验证）。
+
+- **数据（`data/hamster-guard-config.json`）**：`baseMaxHp: 350`（con=25 公式
+  100+250=350，与覆盖值一致）；六维 力量13/敏捷10/智力3/体质25/精神3/幸运3；移速 100、
+  攻击 30/2s、attackRange 55、engageRange 900、attackAnimFps 12、**attackDamageFrame 10**。
+- **第 10 帧判定机制**：攻击动画 12 帧 @12fps 单次播放（repeat 0，1.0s）；AI 挥击
+  （`_swingActive`，同射手 `_shotActive` 状态机）起手后 `_damageDelayMs =
+  (attackDamageFrame-1)/fps = 750ms` 出伤一次，动画播完回 idle 等 2s 间隔；
+  GameScene 攻击分支并入射手"单次播放 + 定格末帧"（`member._isHamsterShooter ||
+  member._isHamsterGuard`），零新渲染分支。
+- **AI（`src/ai/hamster-guard-ai.js`）**：最近 enemy 索敌（跳过 `_isEnergyNode` 矿点）
+  → 走位 walk（MovementSystem）→ 攻击范围挥击站定；无敌人跟随玩家；卡死看门狗同款。
+- **生成**：兵营 `unit.guard` + 面板第三按钮；升级同步映射
+  `_isHamsterGuard → 'guard'`；`scripts/test-hamster-guard.mjs` 37 项全绿
+  （含**物防口径修正：combat-formulas.player.defense 字段是 `floor:true` 但代码判
+  `defF.round==='floor'` 恒 false → 实际 Math.round**，盾卫 def=round(33.9)=34）。
 - **升级模块（复制仓鼠小屋口径）**：每级统一 1000 金币 + 500 能源——攻击加速
   （间隔 -6%/级）、攻击强化（伤害 +12%/级）、机动强化（移速 +5%/级）、
   生命强化（生命 +10%/级）；矿工专属的采矿效率/背包扩容不复制，数量模块也不设
@@ -6209,6 +6379,10 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
   再清 gather/patrol 残余；game.js 右键块在 `if(leftPressed)` 之外独立执行并消费
   `rightPressed`（防玩家右键特殊攻击同帧触发）。目标点画绿色下指箭头
   （GameScene.showMoveMarker：0x3dff6a 三角+箭杆，depth=y+15，1.2s 淡出）。
+- **指定攻击指令（2026-08-16 RTS 右键点敌）**：`PartySystem.setCommand` 签名扩为
+  `(target, mode, point=null, targetEntity=null)`——`mode==='attack'` 时把目标实体存入
+  `_command.target`；companion-ai 的 `case 'attack'` 转 `_cmdAggressive(entities, player,
+  cmd.target)` / 法师 `_cmdWarriorAggressive(..., cmd.target)`，队友优先打指定目标。
   探针 `tools/cdp-party-rightmove.mjs` + 截图 `tools/verify-shots/rightmove_marker.png`。
 - **能源簇位（2026-08-16）**：`ENERGY_CONFIG.clusters`——(2000,1300) 曾落在常见
   建屋区（小屋门口见既有矿点的观感来源），已东移至 **(3000,1500)**；新位置距基地

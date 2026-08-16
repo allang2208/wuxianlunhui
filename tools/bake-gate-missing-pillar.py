@@ -4,6 +4,9 @@
 把该帧自己的首柱复制一份、左移一个柱距粘贴到 16 帧动画里——补柱随开关门同步滑动。
 用法：python tools/bake-gate-missing-pillar.py
 """
+
+# 2026-08-17：粘贴时以 `_pillarL.png` 实际石柱像素为掩码，落在石柱上的像素不写入，
+# 避免补柱叠在石柱上形成穿模（柱外可见部分保留）。
 from PIL import Image
 
 ROOT = r"E:\无尽轮回\长期备份\2026-7-13-1\game-dev\assets\terrain"
@@ -35,10 +38,23 @@ def left_first_bar(frame_img, run_min=200):
     return best
 
 
+def _pillar_mask(grade):
+    """左石柱贴图 alpha 掩码（膨胀 2px）。补柱不写入该区域，避免叠柱穿模。"""
+    try:
+        from PIL import ImageFilter
+        mask = Image.open(f"{ROOT}\\cover_gate_{grade}_pillarL.png").convert("RGBA").split()[3]
+        mask = mask.filter(ImageFilter.MaxFilter(5))
+        return mask.load()
+    except FileNotFoundError:
+        return None
+
+
+
 for grade in GRADES:
     path = f"{ROOT}\\cover_gate_{grade}_bars.png"
     img = Image.open(path).convert("RGBA")
     px = img.load()
+    pillar = _pillar_mask(grade)
     COLS = img.width // W
     pasted = 0
     for f in range(16):
@@ -56,7 +72,10 @@ for grade in GRADES:
             for i in range(BAR_W):
                 s = frame.getpixel((p1 + i, y))
                 if s[3] > 16:
-                    px[fx + dst + i, fy + y + SLOPE_DY] = s
+                    dx = dst + i
+                    dy = y + SLOPE_DY
+                    if pillar is None or pillar[dx, dy] <= 16:
+                        px[fx + dx, fy + dy] = s
         pasted += 1
     img.save(path)
     print(f"{grade}: pasted {pasted} frames")

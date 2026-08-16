@@ -1,4 +1,137 @@
 # 变更日志
+### 对话：RTS 右键指定攻击——选中队友攻击指定敌方目标（2026-08-16）
+- `PartySystem.setCommand(target, mode, point=null, targetEntity=null)`：`attack` 模式
+  携带目标实体，存入 `_command.target`；companion-ai 法师/剑盾 `case 'attack'` 分支转
+  `_cmdAggressive` / `_cmdWarriorAggressive` 的 target 参数，队友优先攻击指定目标。
+- 验证：node --check 通过；实机右键点敌后队友转火目标。
+
+### 对话：友军 HUD——一律不显示名称，只显示血条（2026-08-16）
+- 用户口径：友军（仓鼠矿工/战士/射手/盾卫、伊莉丝、露娜等 `_faction==='companion'`）
+  不再显示头顶名字，只保留血条。
+- `GameScene._syncEntityHud`：新增 `isFriendly = entity._faction === 'companion'`；
+  血条条件 `isFriendly || hp < maxHp`（友军血条常显），名字并入 `hasOwnLabel`
+  跳过（复用既有隐藏逻辑）。敌人/Boss/NPC/建筑显示逻辑不变。
+- 验证：node --check + vite build 通过。实机 Ctrl+F5 复查世界-122 友军头顶
+  只有血条没有名字。
+
+### 对话：铁栅栏门「一格 = 一堵墙」重建 + 左柱-栅栏衔接 + 基地门洞收拢（2026-08-17）
+- **需求**：用户反馈「左边石柱跟铁门没衔接」；前提是门与墙大小一致，未来统一建筑大小
+  （一堵墙 = 一格），先修改门。
+- **根因**：① `GATE_GEOM` 标定在 08-17 横杆重渲后未同步——代码 faceA/B 中点 (364.9,497)
+  与实测资产 face 中点 (320,477.6) 偏移 44.9 cell px，精灵整体左移 ~18.4 world px，
+  门与相邻墙的接缝错位；② 门 face 245 display px vs 墙 face 196.33，门整体比墙宽 ~40%，
+  石柱外缘超墙端帽 37px，接墙处观感「门比墙大、柱不贴墙」；③ 栅栏叶最外竖杆距柱 2~5px。
+- **改动**：
+  - 六档贴图以实测 face 中点 (320,477.6) 为基准整体缩放 0.80087 重建
+    （`tools/ai-gen/rebuild-gate-onewall.py`）→ face 水平跨度 176 display = 墙
+    COVER_FACE 同跨；重新 split 柱/栅栏层；图标从新 frame 0 重生成；
+    `_blockout_specs/cover_gate_*.json` 同步缩放（Y: 盘源纹理暂不可用，未来可重渲复现）。
+  - `GATE_GEOM` 重标定：worldFaceLen 270.4→176、faceA(105.4,584.0)/faceB(534.6,371.0)、
+    midTex(320,477.6)、barCrop {174,0,292,634}、gateDepthSegs 柱投影 half 26→22。
+  - 基地门洞两侧墙段收拢（`_buildBaseRoom` post-pass）：原洞 237.8 → 门 face 196.77，
+    左右邻墙段沿边平移至 face 端点 flush 对齐，杜绝门缝绕行；转角覆盖由邻边端帽补足。
+  - `GATE_SNAP_OVERLAP` 51→40（门端帽 = 墙端帽口径）；cdp-gate-seam 门对门偏移 +176/+88；
+    sim-defense-crowd 同步一格门 + 收拢逻辑。
+- **验证**：node --check 通过；vite 模块编译 200；基地布局数值核验墙/门 face flush
+  （门 face t [187.8,384.6]，左墙 [−8.5,187.8]、右墙 [384.6,580.9]）；sim-defense-crowd
+  无卡墙（0 只）/无瞬移（0 次）；「门口转火门」检查为既有失败项，非本批引入。
+- **待实机**：Ctrl+F5 检查基地门开关、B 面板建门贴墙；窄门（~197px 通行）下大体积领主
+  无法进门会转攻墙体（与既有 180 半径领主一致，属防守设计容忍范围）。
+- **二轮接缝修复（用户实机反馈"右边下方/左边上方没连接"）**：
+  - 根因：① 墙端帽圆角使墙贴图视觉端比 face 线短 ~26px，门与墙 flush 时露 2~4px 地板缝；
+    ② 关门帧栅栏叶最外竖杆离柱 2~5px（滑动动画妥协）。
+  - 修复：① 基地墙段与门 face 从 flush 改为 **12px 重叠**（JOIN_OVERLAP=12），墙端帽盖住
+    门柱外缘，无透缝；② `rebuild-gate-onewall.py` 新增 split 后处理——关门帧左叶
+    [179,320)→[174,320)、右叶 [320,460)→[320,466) 逐行拉伸，栅栏叶贴柱内缘。
+  - 图层：`syncGateSeamDepths` 既有"左在右前"规则保持（B 端门右柱盖墙左端、A 端门左柱
+    压墙下），接缝观感以实机为准。
+  - 验证：合成接缝图（按游戏锚定数学 + 正确深度顺序）数值扫描两接缝无 ≥3px 地板透缝；
+    sim-defense-crowd 0 卡墙/0 瞬移；node --check 通过。
+  - 注意：一格门通行口 ~173px，poisonMaggot 精英（半径 116）无法进门会转攻墙体（旧门
+    237.8 也仅勉强容纳），属"门=一格"固有取舍。
+### 对话：新增玩家友方单位·仓鼠盾卫（2026-08-16）
+- **需求**：仓鼠盾卫（素材 E:\无尽轮回\游戏\素材库\人物\仓鼠盾卫）——idle 待机 /
+  running 17 帧移动 / attacking 12 帧攻击 / dying 15 帧死亡；近战、攻击动画第 10 帧
+  伤害判定、间隔 2s、移速 100；六维 力量13/敏捷10/智力3/体质25/精神3/幸运3、生命 350；
+  世界-122 帮助玩家攻击：AI 找最近敌人、每次 30 物理伤害、不攻击矿点。
+- **素材**：实测 4 张均为 8 列×4 行 512²（4096×2048），帧数 1/17/12/15（用户口述
+  "4×8"与实测不符，按目检铁律以实测为准）；复制入 `assets/companions/hamster_guard/`。
+- **实现**：
+  - `data/hamster-guard-config.json`（HP 350 覆盖 + 六维 + ai 参数 + 动画帧配置）；
+  - `src/entities/hamster-guard.js`（复用 Companion，_enemyTargetable 可被锁定、
+    dying 15 帧 @12fps = 1250ms 后移除）；
+  - `src/ai/hamster-guard-ai.js`（最近敌人索敌、跳过矿点、挥击状态机：攻击动画
+    12 帧单次，第 10 帧延迟 (10-1)/12=750ms 出伤 30 物理，2s 间隔，无敌跟随玩家）；
+  - `src/world/hamster-guard-system.js`（停用兜底，测试引用）；
+  - 兵营接入：`BARRACKS_CONFIG.unit.guard` + 生成分发 + 升级映射 + 面板第三按钮；
+  - BootScene 加载/动画注册（hamsterGuardConfig 并入循环）；
+  - GameScene：受击白闪、移动朝向 vx、攻击单次播放分支并入射手（guard||shooter）。
+- **验证**：`scripts/test-hamster-guard.mjs` 37 项全绿（含物防口径修正：
+  combat-formulas defense 字段 floor:true 但代码判 defF.round==='floor' 恒 false →
+  实际 Math.round，def=34）；eslint/node --check/vite build 通过。实机：
+  世界-122 造兵营 → 面板切「仓鼠盾卫」→ 30s 生成，Ctrl+F5 复查。
+
+### 对话：世界-122 荒漠化——树木全删 + 仙人掌 4 姿态障碍物（2026-08-16）
+- **需求**：世界-122 全部树木及树木生成代码删除；用生成管线产出 3~4 个不同姿态、
+  相同风格、低对比度的仙人掌替代（沙漠主题）。
+- **删除（世界-122 树木全链路）**：
+  - 资产：`assets/terrain/obstacle_tree_{tall,bushy,twin,wind,tiered}.png` + 备份目录；
+  - 代码：`_scatterTreesScene8` + `_loadScene8` 调用、`treeScatter` 配置（data 与
+    public/data 双份）、BootScene 加载、`ISO_WALL_GEO` 树注册、cdp-gate-panel 探针
+    的 treeScatter 置位；
+  - 生成管线：gen/process-tree-iso(-iso2)-assets.py、`_blockout_specs/tree_*` 白模
+    19 个、cdp-tree-scatter/cdp-tree-iso-check 探针、prompts/obstacle.md 树木节。
+  - 保留：通用 `WallSystem.addTree` 程序化圆树（主神空间/雪原 demo 用，非世界-122）。
+- **新增（仙人掌障碍物）**：
+  - 资产：`obstacle_cactus_{saguaro2arm,saguaro1arm,barrel,cholla}.png`（4 姿态）；
+  - 管线：`process-desert-plant.py` 扩展 `--contrast`（低对比）与 `--no-square`
+    （等比裁剪，障碍物几何用）——白底生图 → BiRefNet 抠图 → 降饱和 0.7 → 降对比
+    0.7~0.85 → 入库；`ISO_WALL_GEO` obstacle 注册（foot 实测 31×11/36×13/110×38/
+    33×12，obstacleH 240/230/105/150）；
+  - 散布：`_scatterCactiScene8` + `cactusScatter` 配置（count 80/minDist 150，
+    排除带/碰撞/调用顺序铁律与旧树木同款）。
+- **验证**：像素验收白边 <0.5%、无品红、meanSat 19~25、lumStd≈38（cholla 金刺
+  初版 55 单独 `--contrast 0.7` 拉回 45）；GLM 逐张确认姿态/低饱和；合成预览
+  （泥地 + 4 仙人掌 + 荒漠植物）判"沙漠生态和谐、低对比不跳"。Ctrl+F5 实机复查。
+
+### 对话：铁栅栏门加水平横杆 + 清理柱外残留（2026-08-17）
+- **需求**：① 钢管门列左右两扇叶各加上/下水平钢管横杆（穿过该叶竖杆列），
+  开/关门与竖杆 16 帧同步滑动；② 开门时钢管向左右石柱退出，但石柱外仍残留
+  动画贴图造成穿模。
+- **实现**：
+  - `render-cover-gate.py` 支持 `leaf/side` 两种扇叶标记与 `rail` 型水平横杆；
+  - 六档 `_blockout_specs/cover_gate_*.json` 每叶新增上/下两条 rail
+    （126×14×10，x=±60，z=135/9，随 leaf_slide 滑动）；
+  - `split-cover-gate-layers.py` 拆分时把柱子掩码膨胀 2px，并逐帧清除
+    左右柱外边界之外的 bars 像素，横杆与竖杆同表切帧，无需改运行时加载；
+  - 新增 `tools/ai-gen/rebuild-cover-gates.py`（一键重渲六档 + 合成 + 拆层）；
+  - 新增 `tools/clean-gate-bars-outside-pillars.py` 对当前已生成 bars 做幂等清理。
+  - `defense-system.js` 的 `GATE_GEOM.barCrop` + `createGateSprites` 运行时裁剪 bars
+    到左右石柱之间（135..505 cell px），即使旧 bars 未重渲染也不会在柱外残留；
+  - 新增 `rebuild-gate-assets.bat`（双击即可执行清理 + 重渲染）。
+- **二轮修正（2026-08-17 实渲后排查）**：
+  - 柱框裁剪会删掉关门帧最外侧两根竖杆（world x=±115 投影落柱剪影内）——
+    竖杆重排 ±(5,23,41,59,77,95)，12 杆全部保住且零柱区残留；
+  - 修复 barCrop 在 Phaser 4 下随 `setFrame` 失效的问题（裁剪 UV 绑在旧帧上，
+    切帧后动画冻结）——`createGateSprites` 包装 setFrame 逐帧重算裁剪；
+  - 三个旧资产一次性残柱剔除脚本移出重渲流程（固定区域删像素，会误伤新渲染
+    滑出半途的栅栏叶），柱区清理由 split 内置 + clean-gate-bars-outside-pillars 兜底。
+- **验证**：`python tools/ai-gen/rebuild-cover-gates.py` 全量重渲六档；
+  数值验收：16 帧柱区残留 0、帧 15 纯柱子、关门 12 竖杆、cell 640×634 与
+  face 线几何不变；GLM 复核关门帧（横杆穿竖杆、两端插入石柱、柱面干净）与
+  开门中途帧（无柱外残留、无截断）。刷新 `http://localhost:5173`（Ctrl+F5）
+  检查基地门开合；`eslint` / `vite build` 通过。
+
+### 对话：伊莉丝/露娜 displayScale 显示放大撤回（2026-08-17）
+- 用户实机反馈"放大后很奇怪"，撤回 af2fb15 / 95e6f6b 的显示放大：
+  伊莉丝 attack/windmill 与露娜 walk/run/spell 的 displayScale 配置全部删除，
+  GameScene 归一化恢复原公式（无逐动作缩放），还原此前渲染效果。
+### 对话：露娜 walk/run/spell 动作显示偏小——displayScale 放大统一（2026-08-17）
+- **排查**：露娜全 512×512 帧格，但 idle 内容 498~500px、walk/run/spell 467~471px
+  （小约 6%，多阈值复核非阴影伪影）；CDP 实机 idle 渲染 140.1px vs 其他 132.5px。
+- **修复**：`companion-config` 露娜 walk/run/spell `displayScale=1.062`（复用伊莉丝同款
+  渲染机制，GameScene 零改动）；实测显示 144→153、内容与 idle 对齐，脚底仍贴同一世界线。
+- **验证**：`tools/cdp-elise-size.mjs`（已扩为双角色）实机确认；eslint / vite build 通过。
 ### 对话：伊莉丝攻击/风车动作显示偏小——displayScale 放大统一（2026-08-17）
 - **排查**：逐帧内容测量 + CDP 实机读 Phaser 精灵显示尺寸——idle 内容 461px 渲染 129.7px；
   attack 平均 433px（挥剑帧自然倾斜 367~430 占多数）渲染 121.8px（-6%）；windmill 399px 渲染 112px（-13.5%）。

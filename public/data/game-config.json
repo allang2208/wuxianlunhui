@@ -1,7 +1,7 @@
 {
   "$schema": "./game-config.schema.json",
   "meta": {
-    "version": "0.377"
+    "version": "0.380"
   },
   "display": {
     "defaultResolution": {
@@ -127,19 +127,19 @@
       "name": "世界-122",
       "type": "instance",
       "label": "场景八",
-      "width": 6144,
-      "height": 4096,
+      "width": 12288,
+      "height": 8192,
       "background": "#0d1b0a",
       "diamondFloor": {
         "enabled": true
       },
       "origin": {
-        "x": 3072,
-        "y": 2048
+        "x": 6144,
+        "y": 4096
       },
-      "treeScatter": {
+      "cactusScatter": {
         "enabled": true,
-        "count": 100,
+        "count": 80,
         "minDist": 150,
         "scaleJitter": 0.1,
         "bounds": {
@@ -501,7 +501,7 @@
     }
   },
   "minimap": {
-    "width": 150,
+    "width": 220,
     "height": 150,
     "padding": 10,
     "offsetY": 50,
@@ -511,6 +511,7 @@
     "styles": {
       "wall": "rgba(80, 80, 80, 0.5)",
       "viewFrame": "rgba(255, 200, 0, 0.6)",
+      "playableBoundary": "rgba(120, 255, 170, 0.85)",
       "rift": "#00008B",
       "portal": "#00aaff",
       "boss": "#ff0000",
