@@ -37,10 +37,9 @@
   移动对结构目标按形状距离刹车
 - 2026-08-17：伊莉丝 5 级解锁圣光（unlockSkills holyLight:5）；圣光 AI 目标优先级
   玩家→自己→队友→敌方；友军判定按阵营组 {player,companion}（不能用 _faction 直比）
-- 2026-08-17：伊莉丝 attack/windmill 显示偏小（内容 -6%/-13%），用配置 displayScale
-  （1.065/1.155）放大，GameScene 脚底修正随 k 同步，其余动作不变
-- 2026-08-17：露娜 walk/run/spell 显示偏小（全 512 帧格但内容比 idle 小 6%），
-  配置 displayScale=1.062 放大，脚底同步贴地
+- 2026-08-17：伊莉丝/露娜 displayScale 放大曾试过（attack 1.065、windmill 1.155、
+  露娜 walk/run/spell 1.062），用户反馈"放大后很奇怪"，已全部撤回并恢复原渲染公式；
+  cdp-elise-size.mjs 探针保留可复用
 
 ### 4. G18 攻击力（player.js）
 - `_fireRanged` 中手枪/弓伤害优先调用 `getCurrentWeaponAtk()`，包含强化加成
