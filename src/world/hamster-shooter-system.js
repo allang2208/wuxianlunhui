@@ -1,9 +1,11 @@
 // ============================================================
-// HamsterShooterSystem — 仓鼠射手在世界-122 的生成/拆除（2026-08-16）
-// - setup(player)：进入世界-122 时在玩家附近找合法落点生成仓鼠射手，
+// HamsterShooterSystem — 仓鼠射手的生成/拆除（2026-08-16；2026-08-16 停用）
+// - 用户口径：删除默认在基地旁生成的射手，单位改由「仓鼠兵营」30s 生成；
+//   本文件保留（测试脚本引用），主流程 scene-manager 不再 setup。
+// - setup(player)（已停用）：在玩家附近找合法落点生成仓鼠射手，
 //   注册进 Game.entities（主循环驱动 update）与 Game.friendlyUnits（渲染）；
 // - teardown()：场景离场时移除（Phaser 精灵由 GameScene._syncCompanionSprites 清理）；
-// - 死亡后不再自动复活；再次进入世界-122 时重新生成（与矿工/战士同口径）。
+// - 死亡后不再自动复活。
 // ============================================================
 import { Game } from '../game.js';
 import { HamsterShooter } from '../entities/hamster-shooter.js';

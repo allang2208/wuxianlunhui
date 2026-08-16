@@ -33,9 +33,12 @@ export const BARRACKS_CONFIG = {
         def: 60,
         mdef: 60,
         tex: 'hamster_barracks',
-        displayW: 150,       // 大小同仓鼠小屋
-        displayH: 147,
-        footOffsetY: 74,
+        // 显示比例必须按贴图内容等比（682×589）——宽度同仓鼠小屋 150，
+        // 高度 = 150×589/682 ≈ 130；若沿用小屋的 147 会把 44.8° 菱形垂直拉长 13%，
+        // 接地线斜率 0.50 → 0.57，视觉角度与防御塔/掩体错位（2026-08-16 用户反馈）。
+        displayW: 150,
+        displayH: 130,
+        footOffsetY: 65,     // 贴图中心到脚底：294×150/682 ≈ 65
         sellRefundRatio: 0.5,
         spawnIntervalMs: 30000,   // 30 秒生成一个军事单位
         spawnRadius: 90,
@@ -407,6 +410,10 @@ class HamsterBarracksPanel extends BasePanel {
         const curType = cfg.unit[b.unitType] || {};
         const spawnMs = cfg.barracks.spawnIntervalMs;
         const nextIn = Math.max(0, Math.ceil(b._spawnTimer / 1000));
+        // 出发进度 = 已等待时间 / 30s 生成周期（切换单位类型不重置 _spawnTimer，进度不受影响）
+        const spawnProgress = Math.max(0, Math.min(1, 1 - b._spawnTimer / spawnMs));
+        const spawnPct = Math.round(spawnProgress * 100);
+        const spawnBarColor = spawnProgress < 0.5 ? '#ffd700' : (spawnProgress < 0.8 ? '#ff9d45' : '#7fe0c8');
         st.innerHTML = `
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
                 <div><span style="color:#ffd700;font-weight:700;">等级 ${b.level}</span></div>
@@ -417,6 +424,16 @@ class HamsterBarracksPanel extends BasePanel {
                 当前生成 <b style="color:#7fe0c8;">${curType.name || '—'}</b><br>
                 下次生成 <b style="color:#7fd4ff;">${nextIn}s</b>（每 ${spawnMs / 1000}s 一单位）·
                 攻击间隔/伤害/移速/生命随模块升级
+            </div>
+            <div style="margin-top:8px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;font-size:11px;color:#9a9a9a;margin-bottom:3px;">
+                    <span>🚀 出发进度</span>
+                    <span style="color:${spawnBarColor};font-weight:700;">${spawnPct}%</span>
+                </div>
+                <div style="position:relative;height:10px;background:rgba(255,255,255,0.10);border-radius:5px;overflow:hidden;">
+                    <div style="position:absolute;left:0;top:0;bottom:0;width:${spawnPct}%;background:linear-gradient(90deg, ${spawnBarColor}, #7fe0c8);border-radius:5px;transition:width 0.25s linear;"></div>
+                </div>
+                <div style="font-size:10px;color:#6a7a6a;margin-top:2px;">切换单位类型不影响出发进度</div>
             </div>`;
 
         const ut = el.querySelector('#hbUnitType');

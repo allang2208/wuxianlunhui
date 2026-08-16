@@ -4870,36 +4870,37 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
 - 已知取舍：实体站在门洞中同时跨左右柱时，整门三段的抬升/压制按各段面线独立判定，
   跨两段的重叠区以最近段为准，极端位置可能有 ±1 段误差，可接受。
 
-### 射击台（FiringPlatform，2026-08-16 六版定稿：自由放置高台，替代贴墙越墙）
+### 射击台（FiringPlatform，2026-08-16 七版定稿：自由放置高台 + 表面可走一对一标定）
 
-- **六版（2026-08-16 重构，替代五版贴墙设计）**：设计方向从"贴墙越墙"改为**自由
-  放置高台**——不再依赖墙体几何，删除 k 公式/裁墙洞/密封段/移动 ignore 全链路；
-  核心收益（站台上远程弹道/魔法忽略己方掩体 `_cover`，与防御塔同机制）保留。
-  - F1 武器跟随：`WeaponTransform` 三处 y 计算补减 `player._platformLift`
-    （localToWorld / getInterpolatedPerFramePosition / _applyPerFrameToWorld），
-    GameScene 施法逐帧分支与 `_getMuzzlePosition` 兜底同补——修复"台上武器与人物
-    贴图分离"（分离量=平台高度 178px）；子弹/火光/蛋壳经武器精灵自动跟随。
-  - F2 抬升速率限幅：`_updatePlatformStates` 对目标抬升做每帧限幅
-    （满高 178px/450ms），任意进入方向（含横向踩进走廊）平滑升降——
-    修复"走上去直接瞬移"（登台走廊是硬矩形判定区，侧入会瞬间跳满）。
-  - B1 实体去贴墙：`FiringPlatform` 删除 wallNormal/wallLine/_registerWallSeg/
-    _platSeg/trimCoverSegsForPlatform；F 镜像仅视觉 flipX；新增 onDeath 沉陷死亡
-    （BuildingSinkEffect 接管，修复"被摧毁后墙洞/密封段不还原"）。
-  - B2 建造：删除 `_snapPlatformToWall` 与平台吸附分支（自由放置，间距 ≥240/
-    ≥90）；详情面板新增 `_renderPlatformDetail`（不再误显示"掩体·F级"）。
-  - B3 预置：固定房间内坐标（base + (0.2·rx, -0.05·ry)），`Game.entities` 键 =
-    platform.id；移除 WallSystem.platformSegs 与 player/update.js、subsystems.js
-    五处 ignore 透传。
-  - 保留：登台走廊 getLift 连续插值（轴向 CDP 实测平滑）、深度铁律
-    （`_faceDepth=y+12` + 台上单位 max(仲裁, _faceDepth+1)）、越墙三件套
-    （projectile/bolt 台上忽略 _cover + resolve/canMoveTo/_nearestBlockingSeg
-    ignore 透传）。
+- **七版（2026-08-16 重构，替代六版抬升模型）**：设计方向 = 自由放置高台；登台机制
+  从"抬升（lift）"改为**表面可走模型**——单位逻辑坐标 = 台面/台阶的表面屏幕位置，
+  无抬升高度（`_platformLift` 只作"在台上"标记，深度覆盖 + 弹道忽略用）。
+  - **一对一标定（实机打回根因："走上去再往前走=空气墙/悬浮"）**：逐像素审计贴图 +
+    建模投影确认五版/六版几何与贴图完全错位：① 贴图不对称——台面菱形在右上、台阶
+    在左下，入口=贴图 (211,581) 而非底部中央；② 台面是水平面（世界 z=102 → 屏幕
+    恒定 97.6 display px），不是 178px；③ 台阶轴沿左下↔右上对角线（dir
+    (-0.401,+0.916)），不是竖直 (0,1)。旧实现锚在贴图中心 + 恒定 178 抬升 +
+    40px 满抬区 → 脚浮在台面上方、再往前走抬升截断 = 空气墙/悬浮。
+  - 精灵渲染：`spriteCfg.offsetX=51.1` / `footOffsetY=96.3` 把贴图入口锚定到实体；
+    GameScene 中性精灵按 `spriteCfg.offsetX` 平移。
+  - 台面菱形（相对实体，屏幕 +y 向下）：L(-78.9,-84.9) F(-27.6,-52.0)
+    R(181.1,-184.4) B(129.8,-217.3)；`isOnPlatform` = 点-in-菱形 ||
+    点-in-台阶走廊（E(0,0)→D(42.3,-96.5)，长 105.4、半宽 104）。
+  - 越墙三件套保留：台上弹道/魔法忽略己方掩体 `_cover`；深度覆盖
+    `_faceDepth=y+12` + 台上单位 `_faceDepth+1`。
+  - **单向登台（七版+）**：台面菱形左/右/后三边注册 `_platformEdge` 阻挡段
+    （WallSystem.isoSegments，halfThick 6），只留台阶所在前边（F→R 整条在台阶
+    走廊内）进出——台上不能从其它边走下去，地面单位也不能从其它边走上台；
+    `onDeath`/`destroy` 清理阻挡段（防幽灵段残留）。
+  - 自由放置（无贴墙）：删除 k 公式/裁墙洞/密封段/移动 ignore 全链路、
+    `_snapPlatformToWall`、`WallSystem.platformSegs`；F 镜像仅视觉 flipX。
+  - 武器跟随保留（`WeaponTransform` 补减 `_platformLift`，表面模型下恒为 0/1，
+    无分离问题）；死亡 `onDeath` 沉陷（BuildingSinkEffect 接管）。
   - 验证：eslint 0 error + vite build ✓ + npm test 全绿；CDP 探针
-    （tools/cdp-platform-probe.mjs）——自由放置无墙线/无密封段、轴向/横向登台
-    平滑（相邻帧 ≤6.6px）、武器跟随（台上台下 weaponSprite−playerSprite 偏移一致）、
-    沉陷死亡清理（移出 platforms + _sinking）、贴图渲染。
-  - 建模维持五版 v7（台阶+平台+土底座），自由放置台阶固定朝屏幕下方；
-    后续若要"哨塔/护栏"语义再另行重渲染。
+    （tools/cdp-platform-probe.mjs）——无墙线/无密封段、台阶走廊+台面菱形全覆盖
+    （前角→后角 21 点无断崖）、精灵锚点 = (e.x+51.1, e.y-96.3)、玩家脚线=台面表面、
+    沉陷死亡清理、贴图渲染。
+  - 建模维持五版 v7 资产（自由高台不依赖墙，台阶固定左下↔右上对角；暂不重建模）。
 
 - **需求来源**：围墙内玩家/友方远程弹道被己方掩体墙段（`_cover`）挡，站上射击台后可
   越过围墙向外攻击。
@@ -5800,8 +5801,10 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
   `_isEnergyNode`，**不攻击矿点**）→ 走位 walk（MovementSystem）→ 攻击范围站定 attack，
   每 2s `takeDamage(50)`；无敌人跟随玩家（到达必须清 `_tacticalTarget` + `_clearPath` +
   速度归零，见 lessons #46）；卡死看门狗复用矿工兜底。
-- **生成（`src/world/hamster-warrior-system.js`）**：世界-122 进入自动生成 1 只
-  （玩家附近 WallSystem 校验合法落点），离场拆除；死亡不复活、再进入重新生成。
+- **生成（2026-08-16 改口径）**：~~世界-122 进入自动生成 1 只~~——用户要求删除
+  默认在基地旁生成的战士/射手，单位改由**仓鼠兵营**（`hamster-barracks-system.js`，
+  每 30s 一个、面板切战士/射手）生成；`hamster-warrior-system.js` 保留但主流程不再
+  setup（文件供测试脚本引用）。
 - **验证**：`scripts/test-hamster-warrior.mjs`（数据+接线契约 34 项）+
   `tools/cdp-hamster-warrior.mjs`（实机 22 项：自动生成/300HP/六维/移速 120/索敌
   最近敌人/50伤×2s/两段式动画/矿点贴脸不攻击/跟随玩家到位 idle/死亡 dying 移除）；
@@ -5994,6 +5997,11 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
   自动更新；簇位是唯一数据源（energy-node-system.setup / scene-manager 树排除均
   读取它），无测试硬编码。验证探针 `tools/cdp-cluster-move-check.mjs`
   （旧位 0 节点 / 新位 14 / 旧建屋点门口 0 矿）。
+- **能源节点间距铁律（2026-08-16）**：节点贴图最大 91px（nodeSize 84 × displayScale
+  1.08），簇内最小间距必须 **≥115px**（旧 85px 导致全图 27 对贴图重叠——“门口
+  叠矿/贴图叠一起”实锤根因）；改间距时同步看 spread 是否够放满 count。
+  探针 `tools/cdp-node-overlap.mjs`（<110px 重叠对应为 0）。另：`EnergyNodeSystem.setup`
+  生成前强制清空场上残留 `_isEnergyNode`（防 HMR/重复 setup 堆积）。
 - 升级经验唯一入口：击杀结算（damageable-entity）→ `PartySystem.grantCombatExp`；无野外经验。
 - 物品转移 `slot` 必须最后写（`{...item, slot: targetSlot}`——源 item 自带 slot 字段，
   spread 会覆盖目标槽位，实机抓出）。
