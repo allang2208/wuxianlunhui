@@ -11,8 +11,8 @@ from PIL import Image
 ROOT = r"E:\无尽轮回\长期备份\2026-7-13-1\game-dev\assets\terrain"
 GRADES = ["F", "E", "D", "C", "B", "A"]
 W, H = 640, 634
-X0, X1, Y0, Y1 = 495, 535, 70, 390
-MAX_SIZE = 2000
+X0, X1, Y0, Y1 = 80, 125, 250, 600  # 左侧镜像细钢柱区域（帧3/6/8，x98-106）
+MAX_SIZE = 4000
 
 
 def remove_strays(img):
