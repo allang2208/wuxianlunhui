@@ -1,4 +1,48 @@
 # 变更日志
+### 对话：防御塔改造模块重新引入——6 张抠图图标卡 + 与六维芯片并存（2026-08-16 二轮）
+- **需求**：对 `E:\无尽轮回\游戏\素材库\UI\改造\防御塔改造.png`（2 行×3 列深灰圆角卡片）
+  抠图，去除右下角水印，按 左→右、上→下 = 伤害强化/射程增强/速射模块/快速换弹/过热抑制/
+  快速散热 导入并接回塔面板。
+- **抠图**：走 `make-transparent-icon.py`（白底泛洪→最大连通域→羽化→去白边）；像素分析确认
+  卡片底边 y=1180、水印带 y≥1180 不重叠，行 2 裁到 1179 天然避开；成品 6 张 RGBA
+  `assets/ui/tower/tower-module-*.png`（~505×492），去水印整图存 `素材库\UI\改造\out\full_clean.png`。
+- **接法**：`DEFENSE_CONFIG.tower.modules` 重新引入 6 模块（icon=抠图卡），**与六维芯片并存**——
+  芯片管伤害挂钩主属性，改造模块直接强化武器参数；无槽位限制（塔等级已删），费用
+  `round(baseCost×growth^(等级-1))` 逐级递增；`_computeDamageFor` 乘 `moduleMults().damage`，
+  芯片边际注释同步乘模块伤害倍率；面板新增 `#dtModules` 3×2 图标卡
+  （img+名称+Lv+当前/下一级效果+升级按钮）。
+- **验证**：eslint 0 error、vite build ✓、CDP `tools/cdp-tower-modules.mjs`——伤害 75→83（×1.10）、
+  射程 1200→1344（×1.12）、间隔 92→85（×0.92）、换弹 3500→3150（×0.9）、过热/散热 ok、
+  费用 150/218/315/457/663 递增、满级拦截、面板 6 张图标卡（damage 满级时按钮位显示「已满级」）。
+
+### 对话：防御塔升级重构——六维芯片取代等级/模块 + 武器挂钩主属性（2026-08-16）
+- **需求**：删除防御塔等级/升级模块及其按钮；升级收敛到六维芯片；升级属性不直接加攻，
+  只强化「与当前武器挂钩」的主属性；面板逐属性注释实时反显；强化武器公式不硬编码；
+  升级金币逐级递增；武器槽贴图替换为真实武器图。
+- **实现**（`src/world/defense-system.js`）：
+  - 删除 `tower.maxLevel/baseCost/costGrowth/levelDamageMul/modules` 与全部模块函数
+    （getTowerModuleSlots/Mults/Cost/Desc、upgradeModule、_applyModuleWeaponParams 等），
+    塔名固定「防御塔」，耐久固定 `tower.hp`；
+  - 新增 `tower.chip`（base=10 / max=99 / 费用 60×1.45^n 逐级递增）与
+    `tower.chipWeaponStat`（PKM/QJB/能量机枪→力量，AKM/M416/QBZ→智力，散弹→体质，弓→敏捷；
+    缺省取武器 `attackFormula.attrs[0]`）；
+  - 伤害真源 = `computeWeaponAttack(item, 芯片合成属性, null)`：芯片只喂挂钩主属性（其余 0），
+    强化等级/改造(独头弹·伤害%)/附魔实时计入，skills=null（不吃熟练度）；
+  - 面板：删等级/模块区块，六维属性卡（值 + 实时边际注释「每点+X攻击力/无影响」+ 升级按钮
+    + 伤害预览）；边际用真实公式 +10 区间差分（`_statMarginalPerPoint`），未挂钩显示「无影响」；
+  - 武器槽/列表贴图走 `towerWeaponImagePath`（iconImage → EquipDataManager → 弹丸贴图兜底）。
+- **验证**：eslint 0 error（2 个既有 warning 与本轮无关）；vite build ✓；npm test 全绿
+  （唯一 FAIL 为并行会话 weapon-anim-config 未提交改动弄挂的近战闭环守卫，与本轮无关）；
+  CDP 实测 `tools/cdp-tower-modules.mjs`——初始化六维=10/无 level·modules、PKM→力量（边际 0.5、
+  敏捷 0 无影响）、升级伤害 15→16、费用曲线 60/87/126/183/265、强化后每点边际 0.5→0.7、
+  上限拦截、面板 DOM（无等级/模块区块、武器贴图 pkm_side_clean.png、六维卡 6 张）全绿。
+
+### 对话：显卡占用高排查（2026-08-16，只诊断未改码）
+- **现象**：任务管理器显卡占用高。
+- **结论**：全屏 WebGL + 透明合成 + 默认 MSAA 为最大固定成本；世界-122 对象多 + 每帧
+  HUD/小地图重绘 + ADD 粒子叠加；验证 = 缩小窗口对比 / DevTools Performance / 临时关
+  小地图与粒子。用户确认暂不优化。
+- **沉淀**：SKILL.md「12. 常见陷阱与调试手册」。
 ### 对话：伊莉丝 idle 漂移根治——探针实锤"到达不停步"滑行（2026-08-17）
 - **用户反馈**：五轮修复后 idle 漂移仍在，怀疑深层代码问题。
 - **探针实锤**：玩家静止时逐帧采样实体坐标/精灵坐标/动画状态——AI 判定"到达跟随点"

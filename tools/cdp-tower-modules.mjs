@@ -1,8 +1,11 @@
 #!/usr/bin/env node
-/* 防御塔模块化升级验证（2026-08-07）：
- * - 等级解锁模块位：Lv1=3 / Lv3=4 / Lv5=5
- * - 模块升级：伤害/射程/速射/换弹/过热/散热 逐项改武器参数
- * - 费用扣除、满级/模块位不足拦截
+/* 防御塔六维芯片升级验证（2026-08-16 重构：取代原等级/模块）：
+ * - 初始芯片六维 = base 10，无 level/modules 字段
+ * - 武器 ↔ 主属性挂钩：PKM→力量；未挂钩属性（如敏捷）对伤害零影响
+ * - 升级扣金币、伤害实时提升；费用公式 round(baseCost × growth^(值-base)) 逐级递增
+ * - 强化武器实时计入（perEnhance 使每点边际变大）；上限拦截
+ * - 改造模块（2026-08-16 重新引入，与芯片并存）：伤害/射程/射速/换弹/过热/散热
+ *   直接改武器参数；6 张抠图图标卡；费用逐级递增；面板 DOM 校验
  * 前置：vite dev 已启动。用法：node tools/cdp-tower-modules.mjs
  */
 import { spawn } from 'node:child_process';
@@ -91,76 +94,106 @@ const url = (name) => JSON.stringify(mods[name]);
 
 const r = await evalJs(`(async () => {
     const DefMod = await import(${url('defense')});
-    const { DefenseTower, DEFENSE_CONFIG, getTowerModuleSlots, getTowerModuleMults, getTowerModuleCost } = DefMod;
+    const { DefenseTower, DEFENSE_CONFIG } = DefMod;
     const Gold = (await import('/src/systems/gold-manager.js')).GoldManager;
-    // 从游戏运行数据拿 PKM 武器模板（避免 JSON 模块路径问题）
-    const equipmentJson = window.__equipmentJson || null;
-    let pkm = equipmentJson && equipmentJson.equipment && equipmentJson.equipment.pkm
-        ? JSON.parse(JSON.stringify(equipmentJson.equipment.pkm)) : null;
-    if (!pkm) {
-        // 兜底：直接构造一份 PKM 配置（与 data/equipment.json 同口径）
-        pkm = {
-            id: 'pkm', name: 'PKM', category: 'weapon_ranged', weaponType: 'pkm',
-            attack: { attackInterval: 500, range: 900 },
-            ammoConfig: { max: 40, reloadTime: 1450 },
-        };
-    }
+    const EqData = await import('/src/ui/equip-data-manager.js');
+    const Atk = await import('/src/config/attack-formula.js');
+    // PKM 完整配置（EquipDataManager 全量源，含 attackFormula）
+    const pkm = JSON.parse(JSON.stringify(EqData.findWeaponConfig('weapon6', 'PKM')));
     const p = window.Game.player;
     const out = {};
-    // 1) 模块位随等级增长
-    out.slots = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((lv) => getTowerModuleSlots(lv));
+    // 1) 建塔：初始芯片 = base 10，无等级字段；modules 状态存在（初始空）
+    const t = new DefenseTower(p.x + 120, p.y, { id: 'chip_e2e' });
+    window.Game.entities.set('chip_e2e', t);
+    out.init = { chip: { ...t.chip }, hasLevel: t.level !== undefined, modules: { ...t.modules } };
 
-    // 2) 建塔装武器
-    const t = new DefenseTower(p.x + 120, p.y, { id: 'mod_e2e' });
-    window.Game.entities.set('mod_e2e', t);
+    // 2) 装 PKM：主属性=力量（配置表 pkm→str）；力量有边际、敏捷无影响
     t.equipWeapon(pkm);
-    out.base = {
-        dmg: t._computeDamage(p, t.level),
-        range: t.range,
-        interval: t.attacks[t._attackKey].maxCooldown,
-        reload: t._ammoState.weapon ? t._ammoState.weapon.reloadTime : null,
+    out.stat = {
+        key: t.getChipWeaponStat(pkm),
+        margStr: t._statMarginalPerPoint('str'),
+        margDex: t._statMarginalPerPoint('dex'),
     };
+    const dmg0 = t._computeDamage();
+
+    // 3) 升力量：扣金币、伤害提升；升敏捷：扣金币但伤害不变（未挂钩）
     const gold0 = Gold.getGold();
+    const r1 = t.upgradeStat('str', p);
+    const dmg1 = t._computeDamage();
+    const gold1 = Gold.getGold();
+    const r2 = t.upgradeStat('dex', p);
+    const dmg2 = t._computeDamage();
+    out.upgrades = { r1, r2, dmg0, dmg1, dmg2, strCost: gold0 - gold1, dexCost: gold1 - Gold.getGold() };
 
-    // 3) Lv1 有 3 个模块位：升 damage + range + attackSpd
-    const r1 = t.upgradeModule('damage', p);
-    const r2 = t.upgradeModule('range', p);
-    const r3 = t.upgradeModule('attackSpd', p);
-    // 第 4 个应被模块位拦截
-    const r4 = t.upgradeModule('reload', p);
-    out.lv1 = { r1: r1.ok, r2: r2.ok, r3: r3.ok, r4: r4, goldCost: gold0 - Gold.getGold() };
-    out.after3 = {
-        dmg: t._computeDamage(p, t.level),
-        range: t.range,
-        interval: t.attacks[t._attackKey].maxCooldown,
-        mults: getTowerModuleMults(t.modules),
+    // 4) 费用逐级递增：值 10..14 → 60 / 87 / 126 / 183 / 265（round(60×1.45^n)）
+    out.costCurve = [10, 11, 12, 13, 14].map((v) => {
+        t.chip.str = v;
+        return t.getChipUpgradeCost('str');
+    });
+
+    // 5) 强化武器实时计入：PKM 强化 +1 后 perEnhance 0.15 → 每点力量边际变大
+    t.chip.str = 14;
+    const margBase = t._statMarginalPerPoint('str');
+    pkm.enhanceLevel = 1;
+    const margEnh = t._statMarginalPerPoint('str');
+    const dmgEnh = t._computeDamageFor(pkm);
+    out.enhanced = {
+        margBase,
+        margEnh,
+        dmgEnh,
+        formula: Atk.buildFormulaDisplay(pkm.attackFormula, 1, pkm._craftEffects),
     };
 
-    // 4) 升到 Lv3 → 模块位 4，可升 reload
-    Gold.addGold(100000);
-    t.upgrade(p);
-    t.upgrade(p);
-    out.slotsAfterLv3 = { slots: t.getModuleSlots(), purchased: t.getPurchasedModuleCount() };
-    const r5 = t.upgradeModule('reload', p);
-    out.lv3Reload = { ok: r5.ok, reload: t._ammoState.weapon ? t._ammoState.weapon.reloadTime : null, cost: r5.cost };
+    // 6) 上限拦截
+    t.chip.str = 99;
+    const blocked = t.upgradeStat('str', p);
+    out.maxBlock = { ok: blocked.ok, reason: blocked.reason };
 
-    // 5) 过热/散热模块（无过热武器时仅验证倍率计算）
-    // 升到 Lv7 → 模块位 6，补齐 overheat + cooling
-    for (let i = 0; i < 4; i++) t.upgrade(p);
-    out.slotsLv7 = { slots: t.getModuleSlots(), purchased: t.getPurchasedModuleCount() };
-    const ro = t.upgradeModule('overheat', p);
-    const rc = t.upgradeModule('cooling', p);
-    out.overheatPurchased = { overheat: ro.ok, cooling: rc.ok, moduleLvs: { ...t.modules } };
-    out.overheatMults = { time: getTowerModuleMults(t.modules).overheatTime, cooldown: getTowerModuleMults(t.modules).overheatCooldown };
+    // 7) 未装武器：伤害 0、边际 0
+    const t2 = new DefenseTower(p.x + 260, p.y, { id: 'chip_empty' });
+    out.empty = { dmg: t2._computeDamage(), marg: t2._statMarginalPerPoint('str') };
 
-    // 6) 满级拦截
-    // 当前 6 槽已满：再升 damage 应被槽位拦截
-    const blockedBySlot = t.upgradeModule('damage', p);
-    out.slotBlock = { ok: blockedBySlot.ok, reason: blockedBySlot.reason };
-    // 升到 Lv9（7 槽）后把 damage 升满验证满级拦截
-    for (let i = 0; i < 4; i++) t.upgrade(p);
-    for (let i = 0; i < 10; i++) t.upgradeModule('damage', p);
-    out.damageMaxed = { lv: t.modules.damage, blocked: !t.canUpgradeModule('damage') };
+    // 7.5) 改造模块：伤害/射程/射速/换弹/过热/散热 逐项生效 + 费用逐级递增 + 满级拦截
+    Gold.addGold(50000);
+    const dmgM0 = t._computeDamage();
+    const rngM0 = t.range;
+    const m1 = t.upgradeModule('damage', p);
+    const dmgM1 = t._computeDamage();
+    const m2 = t.upgradeModule('range', p);
+    const rngM2 = t.range;
+    const m3 = t.upgradeModule('attackSpd', p);
+    const intervalM3 = t.attacks[t._attackKey].maxCooldown;
+    const m4 = t.upgradeModule('reload', p);
+    const reloadM4 = t._ammoState.weapon ? t._ammoState.weapon.reloadTime : null;
+    const m5 = t.upgradeModule('overheat', p);
+    const m6 = t.upgradeModule('cooling', p);
+    for (let i = 0; i < 4; i++) t.upgradeModule('damage', p); // 顶到 maxLevel 5
+    const damageMaxed = t.upgradeModule('damage', p);
+    out.modules = {
+        damage: { ok: m1.ok, cost: m1.cost, lv: m1.level, dmg0: dmgM0, dmg1: dmgM1 },
+        range: { ok: m2.ok, rng0: rngM0, rng2: rngM2 },
+        attackSpd: { ok: m3.ok, interval: intervalM3 },
+        reload: { ok: m4.ok, reload: reloadM4 },
+        overheat: { ok: m5.ok },
+        cooling: { ok: m6.ok },
+        costs: ['damage', 'range', 'attackSpd'].map((k) => t.getModuleCost(k)),
+        mults: t.moduleMults(),
+        damageMaxed: { ok: damageMaxed.ok, reason: damageMaxed.reason },
+    };
+
+    // 8) 面板 DOM：武器贴图 + 六维升级卡 + 6 张改造模块卡（抠图图标），无等级区块
+    const panel = DefMod.DefenseSystem._ensurePanel();
+    panel.openFor(t, p);
+    out.panel = {
+        hasUpgradeBlock: !!document.querySelector('#dtUpgrade'),
+        moduleCards: document.querySelectorAll('[data-mod]').length,
+        moduleImgCount: document.querySelectorAll('#dtModules img').length,
+        moduleImgSample: document.querySelector('#dtModules img') ? document.querySelector('#dtModules img').src.split('/').pop() : null,
+        chipCards: document.querySelectorAll('[data-chip]').length,
+        weaponImgSrc: document.querySelector('#dtWeaponSlot img') ? document.querySelector('#dtWeaponSlot img').src.split('/').pop() : null,
+        chipHeader: document.querySelector('#dtChip') ? document.querySelector('#dtChip').innerText.split('\\n')[0].slice(0, 30) : '',
+    };
+    panel.close();
     return out;
 })()`);
 console.log(JSON.stringify(r, null, 2));

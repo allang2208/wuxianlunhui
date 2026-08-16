@@ -824,3 +824,35 @@ this.ai = config.ai || {};
 - **验证**：CDP 探针——getLift 连续抬升（实测 WALK lifts 291→255→218→182→145→109→
   73→36→0 平滑递减，无瞬移）、登台 true↔false、resolve ignore 透传（无 ignore 被挡→
   滑动 / 有 ignore 直达）、贴图渲染尺寸正确；headless 相机不驱动 rAF，视觉实机复测。
+## 48. 防御塔升级收敛到六维芯片：伤害复用武器真源公式 + 差分注释（2026-08-16）
+
+- **需求模式**：把「塔等级 + 模块位升级」这类叠加系统收敛成单一数据模型时，
+  先删干净旧字段/函数再迁移，避免两套升级并存。防御塔重构 = `tower.chip` 六维
+  （base 10）取代 level/maxLevel/modules；面板同步删等级/模块区块。
+- **伤害真源零硬编码**：塔伤害 = `computeWeaponAttack(item, 芯片合成属性, null)`
+  （config/attack-formula.js 统一公式）——强化等级、改造(独头弹/伤害%)、附魔全部自动
+  计入，技能传 null（塔不吃玩家熟练度）。**不要再为塔另建伤害表**（旧 BASE_WEAPON_DAMAGE
+  已删，玩家改公式后塔自动跟随）。
+- **「武器↔属性」挂钩用配置表 + 公式兜底**：`chipWeaponStat` 显式映射（PKM→力量等），
+  缺省取该武器 `attackFormula.attrs[0]`；芯片喂合成属性时**只喂挂钩主属性、其余 0**，
+  未挂钩属性对伤害自然零影响。
+- **面板注释实时反显用真实公式差分**：`每点+X攻击力` = +10 区间均值
+  `(dmg(stat+10) - dmg(stat)) / 10`，避免单点 ±1 的取整抖动显示 0/2；未挂钩显示「无影响」。
+  强化 perEnhance 会直接体现在边际上，无需改面板。
+- **费用公式逐级递增**：`round(baseCost × growth^(当前值-base))` 放配置
+  （默认 60×1.45^n），面板/按钮只消费，不写死数值。
+- **面板武器贴图数据驱动**：`towerWeaponImagePath` 优先级
+  item.iconImage/equipImage/slotImage → `findWeaponConfig` 全量源 → 弹丸贴图兜底，
+  别用 emoji 占位。
+## 49. 重新引入被删功能：图标资产管线 + 数据驱动模块（2026-08-16 二轮）
+
+- **用户提供 UI 组件图**（2×3 深灰圆角卡片，每卡=图标+文字一体）时，先做像素级分析再抠图：
+  `make-transparent-icon.py`（白底泛洪→最大连通域→羽化→去白边）适合「深色卡片在白色画布」，
+  直接保留整卡；水印文字带在卡片下方（y≥1180）不重叠，裁卡片时裁到 y<1180 天然避开。
+- **重新引入时与既有系统并存，不要二选一回退**：六维芯片管「伤害挂钩主属性」，
+  改造模块管武器参数（伤害%/射程/射速/换弹/过热/散热），两套独立金币升级
+  （无槽位限制——塔等级已删，模块费用 `round(baseCost×growth^(等级-1))` 逐级递增）。
+- **图标路径数据驱动**：`DEFENSE_CONFIG.tower.modules.icon = assets/ui/tower/*.png`，
+  面板 `<img src>` 直接消费配置，不散落硬编码路径。
+- **伤害公式扩展保持零硬编码**：`_computeDamageFor = computeWeaponAttack(...) ×
+  moduleMults().damage`；芯片「每点+X」边际差分同步乘模块伤害倍率，真实公式反显仍成立。
