@@ -33,12 +33,13 @@ export const BARRACKS_CONFIG = {
         def: 60,
         mdef: 60,
         tex: 'hamster_barracks',
-        // 显示比例必须按贴图内容等比（682×589）——宽度同仓鼠小屋 150，
-        // 高度 = 150×589/682 ≈ 130；若沿用小屋的 147 会把 44.8° 菱形垂直拉长 13%，
-        // 接地线斜率 0.50 → 0.57，视觉角度与防御塔/掩体错位（2026-08-16 用户反馈）。
-        displayW: 150,
-        displayH: 130,
-        footOffsetY: 65,     // 贴图中心到脚底：294×150/682 ≈ 65
+        // 显示尺寸必须按贴图内容等比（682×589，比例 1.159）——2026-08-16 角度修正：
+        // 高度对齐仓鼠小屋 147（占地匹配），宽度 = 147×682/589 ≈ 170；
+        // 若直接沿用 150×147 会把 44.8° 菱形垂直拉长 13%，接地线斜率 0.50→0.57，
+        // 视觉角度与防御塔/掩体错位。
+        displayW: 170,
+        displayH: 147,
+        footOffsetY: 73,     // 贴图中心到脚底：294×170/682 ≈ 73
         sellRefundRatio: 0.5,
         spawnIntervalMs: 30000,   // 30 秒生成一个军事单位
         spawnRadius: 90,
@@ -97,8 +98,8 @@ export function getBarracksMults(modules) {
     return out;
 }
 
-/** 兵营命中盒（世界坐标，相对脚底）：贴图 150×130，覆盖整屋（同小屋口径） */
-const BARRACKS_HIT = { cx: 0, cy: -60, hw: 75, hh: 65 };
+/** 兵营命中盒（世界坐标，相对脚底）：贴图 170×147，覆盖整屋（同小屋口径） */
+const BARRACKS_HIT = { cx: 0, cy: -60, hw: 85, hh: 65 };
 
 function pointHitsBarracks(wx, wy, b) {
     return wx >= b.x + BARRACKS_HIT.cx - BARRACKS_HIT.hw && wx <= b.x + BARRACKS_HIT.cx + BARRACKS_HIT.hw
@@ -169,16 +170,17 @@ export class HamsterBarracks extends DamageableEntity {
     /** 兵营附近合法落点（WallSystem 校验，兜底兵营脚下） */
     _findUnitSpawn() {
         const r = BARRACKS_CONFIG.barracks.spawnRadius;
+        const halfW = BARRACKS_CONFIG.barracks.displayW / 2;
         for (let i = 0; i < 10; i++) {
             const a = Math.random() * Math.PI * 2;
-            const d = 30 + Math.random() * r;
+            const d = (halfW + 20) + Math.random() * r;   // 建筑外沿起算，防生成点落在屋内
             const x = this.x + Math.cos(a) * d;
             const y = this.y + Math.sin(a) * d;
             if (!WallSystem || !WallSystem.canMoveTo || WallSystem.canMoveTo(x, y, 24)) {
                 return { x, y };
             }
         }
-        return { x: this.x + 40, y: this.y + 20 };
+        return { x: this.x + halfW + 20, y: this.y + 20 };
     }
 
     /** 生成一个军事单位（当前 unitType），应用兵营模块倍率 */
