@@ -224,6 +224,15 @@ class WeaponTransform {
         return 0;
     }
 
+    /**
+     * 射击台平台抬升（2026-08-16）：站上射击台时人物精灵随 _platformLift 上移，
+     * 武器必须同步上移，否则武器/人物贴图分离。统一在此折算，全路径共用。
+     */
+    static _getPlatformLift(player) {
+        if (!player) return 0;
+        return player._platformLift || 0;
+    }
+
     static localToWorld(player, localOffset, fixedRotation = null, facingRight = true, _animState = null, weaponType = null) {
         const rot = fixedRotation !== null ? fixedRotation : player.rotation;
         const cos = Math.cos(rot);
@@ -236,8 +245,9 @@ class WeaponTransform {
         }
         return {
             x: x,
-            // 玩家贴图中心已上移到 y - footOffsetY，武器也要同步上移
-            y: player.y + sin * localOffset.x + cos * localOffset.y - this._getFootOffsetY(player),
+            // 玩家贴图中心已上移到 y - footOffsetY - platformLift，武器也要同步上移
+            y: player.y + sin * localOffset.x + cos * localOffset.y
+                - this._getFootOffsetY(player) - this._getPlatformLift(player),
         };
     }
 
@@ -430,7 +440,7 @@ class WeaponTransform {
 
         return {
             x: player.x + offsetX,
-            y: player.y + ly - this._getFootOffsetY(player),
+            y: player.y + ly - this._getFootOffsetY(player) - this._getPlatformLift(player),
             rotation,
             scale: cfg.scale !== undefined ? cfg.scale : 1,
             stretchX: cfg.stretchX !== undefined ? cfg.stretchX : 1,
@@ -641,7 +651,7 @@ class WeaponTransform {
         }
         return {
             x: player.x + offsetX,
-            y: player.y + offsetY - this._getFootOffsetY(player),
+            y: player.y + offsetY - this._getFootOffsetY(player) - this._getPlatformLift(player),
             rotation,
             scale: frame.scale !== undefined ? frame.scale : 1,
             blurX: frame.blurX || 0,

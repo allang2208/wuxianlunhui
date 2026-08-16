@@ -100,20 +100,24 @@ assert(weaponCfg.sword.arc && weaponCfg.sword.arc.enabled === false,
     assert(hc3.frame >= 1 && hc3.frame <= 16, `attack3 hitCheck.frame=${hc3.frame} ∈ [1,16]（伸展到位帧）`);
     assert(hc3.shape === 'rect' && hc3.damageMul === 2.0,
         'attack3 终结段：rect 长矩形判定 + damageMul 2.0（梯度 1.0/1.5/2.0）');
-    // 三段轨迹闭环：attack3 末帧 = attack 首帧（连段回一段姿态相接）
-    // 2026-08-16：attack 切 anchor='grip'（offset=握把点，origin=剑柄），attack3 仍为中心 origin——
-    // 跨锚点比较先换算到中心：中心 = 握把 + R(rot)·(0, -gripOffset)
+    // 三段轨迹闭环：attack3 末帧 ≈ attack 首帧（连段回一段姿态相接）
+    // 2026-08-16 二版：attack/attack3 均切 anchor='grip'（offset=握把点）——统一换算到握把点
+    // 语义直比（非 grip 块按 握把 = 中心 − R(rot)·(0,-gripOffset) 反推）；两段 sheet 体格锚点
+    // 不同（三段末帧收势 cx≈293 vs 一段首帧 cx≈209），连段瞬间身体本身有位移，故用容差断言
     const a0 = weaponCfg.sword.attack.frames[0];
     const a3end = weaponCfg.sword.attack3.frames[15];
-    const a0IsGrip = weaponCfg.sword.attack.anchor === 'grip';
     const gripOff = typeof weaponCfg.sword.gripOffset === 'number' ? weaponCfg.sword.gripOffset : 40;
-    const a0rot = a0.rotation * Math.PI / 180;
-    const a0cx = a0.offsetX + (a0IsGrip ? gripOff * Math.sin(a0rot) : 0);
-    const a0cy = a0.offsetY - (a0IsGrip ? gripOff * Math.cos(a0rot) : 0);
-    const rotDiff = ((a3end.rotation - a0.rotation) % 360 + 540) % 360 - 180; // 最短弧差 ∈ [-180,180)
-    assert(close(a3end.offsetX, a0cx, 0.15) && close(a3end.offsetY, a0cy, 0.15)
-        && Math.abs(rotDiff) < 0.15,
-        'attack3 末帧 = attack 首帧（连段闭环回一段；attack 为 grip 锚点时按中心口径换算）');
+    const toGrip = (blk, f) => {
+        if ((blk.anchor || '') === 'grip') return { x: f.offsetX, y: f.offsetY };
+        const th = f.rotation * Math.PI / 180;
+        return { x: f.offsetX - gripOff * Math.sin(th), y: f.offsetY + gripOff * Math.cos(th) };
+    };
+    const g0 = toGrip(weaponCfg.sword.attack, a0);
+    const g3 = toGrip(weaponCfg.sword.attack3, a3end);
+    const dPos = Math.hypot(g3.x - g0.x, g3.y - g0.y);
+    const dRot = Math.abs(((a3end.rotation - a0.rotation) % 360 + 540) % 360 - 180);
+    assert(dPos <= 45 && dRot <= 35,
+        `attack3 末帧 ≈ attack 首帧（握把点口径，容差 45px/35°；实测 Δpos=${dPos.toFixed(1)}px Δrot=${dRot.toFixed(1)}°）`);
 }
 
 // ---------- 5. 连段/定格/收势时长收口到 combat-config（stageN 梯度） ----------

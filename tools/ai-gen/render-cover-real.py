@@ -207,10 +207,11 @@ def build_soil_particles(prim, o, soil_mat):
         s.matrix_parent_inverse = o.matrix_world.inverted()
 
 
-def build_wall(prims, tex_path, tex2_path=None):
+def build_wall(prims, tex_path, tex2_path=None, stair_tex_path=None):
     """建 box 棱柱（8 角可圆滑）+ 写实材质（bump；无 AO 阴影）。"""
     img = bpy.data.images.load(tex_path)
     img2 = bpy.data.images.load(tex2_path) if tex2_path else None
+    img3 = bpy.data.images.load(stair_tex_path) if stair_tex_path else None
     objs = []
     gate_bars = []  # (object, barHeight) — 程序化升起帧用（2026-08-11）
     soil_img = None
@@ -266,7 +267,13 @@ def build_wall(prims, tex_path, tex2_path=None):
             continue
         tex = nodes.new("ShaderNodeTexImage")
         # 双材质：spec prim 带 material:'iron' 用第二张纹理（铁闸门铁栅），其余用主纹理
-        tex.image = img2 if (p.get("material") == "iron" and img2) else img
+        # 台阶踏面（material:'stair'）用 spec.stair_tex 专属阶梯纹理（辨识度强）
+        if p.get("material") == "stair" and img3:
+            tex.image = img3
+        elif p.get("material") == "iron" and img2:
+            tex.image = img2
+        else:
+            tex.image = img
         tex.interpolation = "Closest" if img.size[0] < 512 else "Linear"
         # 纹理直连 Base Color（可靠；AO/Mix 在 EEVEE 输出不稳定会把墙刷成纯色）
         links.new(tex.outputs["Color"], bsdf.inputs["Base Color"])
@@ -414,7 +421,10 @@ def main():
     scene.render.image_settings.color_depth = "8"
     scene.render.dither_intensity = 0.0
 
-    objs, gate_bars = build_wall(spec["primitives"], tex_path, spec.get("tex2"))
+    stair_tex = spec.get("stair_tex")
+    if stair_tex and not os.path.isabs(stair_tex):
+        stair_tex = os.path.join(os.path.dirname(os.path.abspath(spec_path)), stair_tex)
+    objs, gate_bars = build_wall(spec["primitives"], tex_path, spec.get("tex2"), stair_tex)
     # 闸门铁栅程序化升起（2026-08-11）：gate_bars_rise 0~1，铁栅按原高度上移，确定性动画帧
     rise = float(spec.get("gate_bars_rise", 0) or 0)
     if rise > 0:

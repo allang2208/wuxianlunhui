@@ -111,9 +111,6 @@ export function isoHalfThick(g) {
 const ISO_CORNER_DEPTH_BIAS = { top: 0, right: 1, left: 2, bottom: 3 };
 
 const WallSystem = {
-    // 射击台密封段集合（2026-08-16 五版）：玩家移动统一传 { segs: platformSegs } 忽略，
-    // 怪物/弹道照常被挡（怪物挡停转火平台，见 movement-system 卡住检测 _owner 链）
-    platformSegs: new Set(),
     // [PERF-2026-08-03] 碰撞空间加速：walls/isoSegments/trees 以"原始数组 + 访问器"暴露。
     // 读侧返回惰性代理，任何 push/splice/下标赋值自动标记脏；_getCollisionGrid 惰性重建
     // 空间网格，canMoveTo/blocked/_nearestBlockingSeg 改为网格近邻查询（谓词与线性版完全一致，

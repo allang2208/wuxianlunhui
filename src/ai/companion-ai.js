@@ -23,6 +23,7 @@ import { FloatingTextEffect } from '../effects/floating-text.js';
 import { getConsumableEffect, applyConsumableEffect } from '../config/consumable.js';
 import { grantCompanionSkillExp } from '../systems/skill-system.js';
 import { AimHelper } from '../utils/aim-helper.js';
+import { SoundManager } from '../ui/sound-manager.js';
 import {
     DEFAULT_MAGE_AI, decideCompanionAction, pickCompanionSpell,
     shouldRelocateCompanion, shouldUseRun,
@@ -38,6 +39,11 @@ const CMD_PATROL_SENSE = 520;     // 巡逻遇敌感知距离
 const CMD_GATHER_PICKUP_RANGE = 80;  // 采集掉落自动拾取半径
 const CMD_GATHER_BAG_FULL = 999;     // 采集袋容量（1 堆叠满）
 const CMD_GATHER_TRANSFER_RANGE = 160; // 移交玩家距离
+// 伊莉丝动作音效（2026-08-16 用户口径：复制铠甲骑士 attacking/defending 为新文件）
+const ELISE_SOUNDS = {
+    attacking: 'assets/sounds/companions/elise/attacking.mp3',
+    defending: 'assets/sounds/companions/elise/defending.mp3',
+};
 
 export class CompanionAI {
     constructor(companion) {
@@ -648,14 +654,19 @@ export class CompanionAI {
             this._applyWarriorCommand(entities, player, cmd);
             return;
         }
-        // 待命：立即打断施法/硬直并站定（否则要等当前动画播完才生效，观感“命令没执行”）
-        if (cmd.mode === 'hold') {
+        // 待命/移动：立即打断施法/硬直（否则要等当前动画播完才生效；移动=玩家右键
+        // 最高优先级指令，必须先清掉一切进行中的指令状态再执行）
+        if (cmd.mode === 'hold' || cmd.mode === 'move') {
             c._castState = 'idle'; c._frozenForCast = false; c._castTimer = 0;
             this._pendingRelease = null; this._castDuration = 0; this._castRecoverTimer = 0;
-            c.target = null; c._tacticalTarget = null;
-            if (c._pathManager) c._pathManager._clearPath();
-            this._setMoveState('idle');
-            c.vx = 0; c.vy = 0; c.isMoving = false;
+            if (cmd.mode === 'move') {
+                this._cmdMove(player, cmd);
+            } else {
+                c.target = null; c._tacticalTarget = null;
+                if (c._pathManager) c._pathManager._clearPath();
+                this._setMoveState('idle');
+                c.vx = 0; c.vy = 0; c.isMoving = false;
+            }
             return;
         }
         // 施法锁定中不打断
@@ -678,6 +689,7 @@ export class CompanionAI {
             case 'aggressive': this._cmdAggressive(entities, player); break;
             case 'patrol': this._cmdPatrol(entities, player, cmd); break;
             case 'gather': this._cmdGather(entities, player, cmd); break;
+            case 'move': this._cmdMove(player, cmd); break; // 左键/右键纯移动（2026-08-16）
         }
         // 朝向：施法/攻击面朝目标
         if (c.target) c.rotation = Math.atan2(c.target.y - c.y, c.target.x - c.x);
@@ -836,6 +848,47 @@ export class CompanionAI {
         }
     }
 
+    /**
+     * 纯移动指令（2026-08-16 左键/右键点击下达）：只走到目标点，不接敌/不采集/不跟随；
+     * 目标不可达（canMoveTo 失败）→ 螺旋找最近可达点；到达后停步站定。
+     */
+    _cmdMove(player, cmd) {
+        const c = this.c;
+        c.target = null; // 移动指令不接敌
+        // 最高优先级：清掉采集/巡逻残余状态（右键移动覆盖一切当前指令）
+        c._gatherPhase = 'work';
+        this._patrolTarget = null;
+        const dest = this._nearestWalkable(cmd.point || { x: c.x, y: c.y });
+        const d = Math.hypot(dest.x - c.x, dest.y - c.y);
+        if (d > 40) {
+            c._tacticalTarget = dest;
+            this._setMoveState(this._shouldRun(d, 'follow') ? 'run' : 'walk');
+        } else {
+            // 到达：停步站定（不攻击、不跟随）
+            c._tacticalTarget = null;
+            if (c._pathManager) c._pathManager._clearPath();
+            c.vx = 0; c.vy = 0; c.isMoving = false;
+            this._setMoveState('idle');
+        }
+    }
+
+    /** 目标不可达 → 螺旋外扩找最近可达点（与 _findValidSpawn 同口径）；无 WallSystem 时原样返回 */
+    _nearestWalkable(point) {
+        const c = this.c;
+        const radius = (c.groundRadius || 26) * 0.8;
+        if (!WallSystem || typeof WallSystem.canMoveTo !== 'function') return point;
+        if (WallSystem.canMoveTo(point.x, point.y, radius)) return point;
+        for (const dist of [16, 32, 48, 64, 80, 100, 120, 150, 180, 220, 260, 320, 400]) {
+            for (let i = 0; i < 12; i++) {
+                const angle = (i / 12) * Math.PI * 2;
+                const px = point.x + Math.cos(angle) * dist;
+                const py = point.y + Math.sin(angle) * dist;
+                if (WallSystem.canMoveTo(px, py, radius)) return { x: px, y: py };
+            }
+        }
+        return point;
+    }
+
     /** 拾取采集掉落的能源进队员背包；袋满（≥999）切 return 阶段回玩家移交 */
     _pickupEnergyDrops() {
         const c = this.c;
@@ -983,19 +1036,24 @@ export class CompanionAI {
     /** 剑盾近战指令：aggressive 全图追击；patrol 圈内反击/游走；hold 待命；gather 近战采集 */
     _applyWarriorCommand(entities, player, cmd) {
         const c = this.c;
-        // 待命：立即打断攻击/防御/风车并站定（否则要等 1.5~3s 动画播完才生效）
-        if (cmd.mode === 'hold') {
+        // 待命/移动：立即打断攻击/防御/风车（否则要等 1.5~3s 动画播完才生效；
+        // 移动=玩家右键最高优先级指令，先清掉一切进行中的指令状态再执行）
+        if (cmd.mode === 'hold' || cmd.mode === 'move') {
             this._meleeAtkTimer = 0; this._meleeHitDone = false;
             this._defendPhase = null; this._defendTimer = 0;
             c._defendPhase = null; c._defending = false;
             this._whirlwindHitSet = null; this._whirlwindTimer = 0;
             c._castState = 'idle'; c._frozenForCast = false; c._castTimer = 0;
             this._pendingRelease = null; this._castDuration = 0; this._castRecoverTimer = 0;
-            c.target = null; c._tacticalTarget = null;
-            if (c._pathManager) c._pathManager._clearPath();
-            this._setMoveState('idle');
-            c.vx = 0; c.vy = 0; c.isMoving = false;
-            c._animState = 'idle';
+            if (cmd.mode === 'move') {
+                this._cmdMove(player, cmd);
+            } else {
+                c.target = null; c._tacticalTarget = null;
+                if (c._pathManager) c._pathManager._clearPath();
+                this._setMoveState('idle');
+                c.vx = 0; c.vy = 0; c.isMoving = false;
+                c._animState = 'idle';
+            }
             return;
         }
         if (c._castState !== 'idle' || c._frozenForCast) return; // 攻击/防御锁定中
@@ -1007,6 +1065,7 @@ export class CompanionAI {
             case 'aggressive': this._cmdWarriorAggressive(entities, player, null); break;
             case 'patrol': this._cmdWarriorAggressive(entities, player, cmd); break;
             case 'gather': this._cmdWarriorGather(entities, player, cmd); break;
+            case 'move': this._cmdMove(player, cmd); break; // 左键/右键纯移动（2026-08-16）
             default: this._cmdFollowOnly(player); break;
         }
         if (c.target) c.rotation = Math.atan2(c.target.y - c.y, c.target.x - c.x);
@@ -1135,6 +1194,7 @@ export class CompanionAI {
         const c = this.c;
         if (this._defendPhase || this._defendCd > 0 || c._castState !== 'idle' || c._frozenForCast) return;
         const cfg = this.cfg;
+        this._playSound('defending'); // 铠甲骑士防御音效（伊莉丝专属副本）
         this._defendPhase = 'enter';
         c._defendPhase = 'enter'; // 渲染层阶段镜像（GameScene 读 member._defendPhase，2026-08-17 修复"重复动画"）
         this._defendTimer = cfg.defendEnterMs || 500;
@@ -1323,6 +1383,18 @@ export class CompanionAI {
         c.rotation = Math.atan2(target.y - c.y, target.x - c.x);
         this._lastAction = 'attack';
         c._lastAction = 'attack';
+        this._playSound('attacking'); // 铠甲骑士攻击音效（伊莉丝专属副本）
+    }
+
+    /** 播放伊莉丝动作音效（世界空间音源；无 SoundManager/路径缺失时静默跳过） */
+    _playSound(key) {
+        const path = ELISE_SOUNDS[key];
+        if (!path || !SoundManager) return;
+        if (typeof SoundManager.playWorld === 'function') {
+            SoundManager.playWorld(path, this.c.x, this.c.y);
+        } else if (typeof SoundManager.playFile === 'function') {
+            SoundManager.playFile(path);
+        }
     }
 
     /** 命中帧结算：物理攻击 ×1.25，目标已出范围则空挥 */

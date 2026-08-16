@@ -171,13 +171,13 @@ function _drawIsoLayerChunk(ctx, tiles, ox, oy, w, h, overlapX = 0, overlapY = 0
  * @param {object} [fallbackTerrain] 贴图缺失时的网格回退样式
  * @returns {HTMLCanvasElement}
  */
-export function bakeDungeonFloorChunk(ox, oy, cw, ch, mapW, mapH, fallbackTerrain) {
+export function bakeDungeonFloorChunk(ox, oy, cw, ch, mapW, mapH, fallbackTerrain, diamond) {
     const canvas = document.createElement('canvas');
     canvas.width = cw;
     canvas.height = ch;
     const ctx = canvas.getContext('2d');
     const profile = _getProfile();
-    ctx.fillStyle = profile.backgroundColor || '#000000';
+    ctx.fillStyle = diamond ? '#000000' : (profile.backgroundColor || '#000000');
     ctx.fillRect(0, 0, cw, ch);
     const tiles = _collectTiles(profile);
     if (tiles.length > 0) {
@@ -185,6 +185,18 @@ export function bakeDungeonFloorChunk(ox, oy, cw, ch, mapW, mapH, fallbackTerrai
         ctx.beginPath();
         ctx.rect(0, 0, cw, ch);
         ctx.clip();
+        if (diamond) {
+            // 菱形裁剪（块局部坐标）：与矩形裁剪叠加 = 菱形 ∩ 本块
+            const ddx = diamond.cx - ox;
+            const ddy = diamond.cy - oy;
+            ctx.beginPath();
+            ctx.moveTo(ddx, ddy - diamond.ry);
+            ctx.lineTo(ddx + diamond.rx, ddy);
+            ctx.lineTo(ddx, ddy + diamond.ry);
+            ctx.lineTo(ddx - diamond.rx, ddy);
+            ctx.closePath();
+            ctx.clip();
+        }
         _drawIsoLayerChunk(ctx, tiles, ox, oy, cw, ch, profile.overlapX ?? 0, profile.overlapY ?? 0);
         if (profile.glow !== false) {
             const glowTiles = [];
@@ -201,33 +213,53 @@ export function bakeDungeonFloorChunk(ox, oy, cw, ch, mapW, mapH, fallbackTerrai
         ctx.restore();
         // 边缘渐隐：仅贴地图边界的外侧边（内部块无渐变，跨块衔接干净）
         const fade = FLOOR_EDGE_FADE;
-        if (oy <= 0) {
-            const g = ctx.createLinearGradient(0, 0, 0, fade);
-            g.addColorStop(0, 'rgba(0,0,0,1)');
-            g.addColorStop(1, 'rgba(0,0,0,0)');
-            ctx.fillStyle = g;
-            ctx.fillRect(0, 0, cw, fade);
-        }
-        if (oy + ch >= mapH) {
-            const g = ctx.createLinearGradient(0, ch - fade, 0, ch);
-            g.addColorStop(0, 'rgba(0,0,0,0)');
-            g.addColorStop(1, 'rgba(0,0,0,1)');
-            ctx.fillStyle = g;
-            ctx.fillRect(0, ch - fade, cw, fade);
-        }
-        if (ox <= 0) {
-            const g = ctx.createLinearGradient(0, 0, fade, 0);
-            g.addColorStop(0, 'rgba(0,0,0,1)');
-            g.addColorStop(1, 'rgba(0,0,0,0)');
-            ctx.fillStyle = g;
-            ctx.fillRect(0, 0, fade, ch);
-        }
-        if (ox + cw >= mapW) {
-            const g = ctx.createLinearGradient(cw - fade, 0, cw, 0);
-            g.addColorStop(0, 'rgba(0,0,0,0)');
-            g.addColorStop(1, 'rgba(0,0,0,1)');
-            ctx.fillStyle = g;
-            ctx.fillRect(cw - fade, 0, fade, ch);
+        if (diamond) {
+            // 菱形边缘墙脚接触阴影（与 applyDiamondFloor 同口径）：沿菱形边界向内的真渐变带。
+            // 块外部分自动被画布裁掉，只有菱形边界穿过本块时才可见。
+            const ddx = diamond.cx - ox;
+            const ddy = diamond.cy - oy;
+            for (let i = 0; i < fade; i += 2) {
+                const irx = diamond.rx - i;
+                const iry = diamond.ry - i * (diamond.ry / diamond.rx);
+                ctx.beginPath();
+                ctx.moveTo(ddx, ddy - iry);
+                ctx.lineTo(ddx + irx, ddy);
+                ctx.lineTo(ddx, ddy + iry);
+                ctx.lineTo(ddx - irx, ddy);
+                ctx.closePath();
+                ctx.strokeStyle = `rgba(0,0,0,${(0.40 * (1 - i / fade)).toFixed(3)})`;
+                ctx.lineWidth = 2.5;
+                ctx.stroke();
+            }
+        } else {
+            if (oy <= 0) {
+                const g = ctx.createLinearGradient(0, 0, 0, fade);
+                g.addColorStop(0, 'rgba(0,0,0,1)');
+                g.addColorStop(1, 'rgba(0,0,0,0)');
+                ctx.fillStyle = g;
+                ctx.fillRect(0, 0, cw, fade);
+            }
+            if (oy + ch >= mapH) {
+                const g = ctx.createLinearGradient(0, ch - fade, 0, ch);
+                g.addColorStop(0, 'rgba(0,0,0,0)');
+                g.addColorStop(1, 'rgba(0,0,0,1)');
+                ctx.fillStyle = g;
+                ctx.fillRect(0, ch - fade, cw, fade);
+            }
+            if (ox <= 0) {
+                const g = ctx.createLinearGradient(0, 0, fade, 0);
+                g.addColorStop(0, 'rgba(0,0,0,1)');
+                g.addColorStop(1, 'rgba(0,0,0,0)');
+                ctx.fillStyle = g;
+                ctx.fillRect(0, 0, fade, ch);
+            }
+            if (ox + cw >= mapW) {
+                const g = ctx.createLinearGradient(cw - fade, 0, cw, 0);
+                g.addColorStop(0, 'rgba(0,0,0,0)');
+                g.addColorStop(1, 'rgba(0,0,0,1)');
+                ctx.fillStyle = g;
+                ctx.fillRect(cw - fade, 0, fade, ch);
+            }
         }
     } else {
         const tc = fallbackTerrain || DEFAULT_FALLBACK_TERRAIN;
@@ -255,14 +287,14 @@ export function bakeDungeonFloorChunk(ox, oy, cw, ch, mapW, mapH, fallbackTerrai
  * @param {number} height 世界高
  * @param {number} [chunkSize=2048] 块边长
  */
-export function applyDungeonFloorChunked(width, height, chunkSize = 2048) {
+export function applyDungeonFloorChunked(width, height, chunkSize = 2048, diamond = null) {
     if (CONFIG) {
         CONFIG.WORLD_WIDTH = width;
         CONFIG.WORLD_HEIGHT = height;
     }
     if (Renderer) {
         Renderer.terrainTexture = null;
-        Renderer.terrainChunks = { chunkSize, mapW: width, mapH: height };
+        Renderer.terrainChunks = { chunkSize, mapW: width, mapH: height, diamond: diamond || null };
     }
     if (typeof window !== 'undefined' && window.__phaserScene && typeof window.__phaserScene.syncTerrain === 'function') {
         window.__phaserScene.syncTerrain();

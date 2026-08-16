@@ -2,6 +2,7 @@
 import { Game } from '../../game.js';
 import { SceneManager } from '../../world/scene-manager.js';
 import { PartySystem } from '../../systems/party-system.js';
+import { EnergyNodeSystem } from '../../world/energy-node-system.js';
 
 
 // ============================================================
@@ -65,6 +66,7 @@ export class GameScene extends Scene {
         this._weaponBlurDisabled = false; // 运动模糊禁用标记（超大贴图 / WebGL context lost 后置位，防 Framebuffer 崩溃）
         this._companionSprites = {}; // 侍从跟随渲染：memberId → Phaser Sprite
         this._selectionRings = {};   // 组队栏选中光圈：memberId → Phaser Ellipse（金色脚下光圈）
+        this._moveMarkerGfx = null;  // 右键移动目标标记（绿色下指箭头）
         // WebGL context lost 后禁用模糊：Phaser 会自动恢复渲染器，但失效帧缓冲可能反复触发 Framebuffer Unsupported
         if (this.game && this.game.canvas && typeof window !== 'undefined') {
             this.game.canvas.addEventListener('webglcontextlost', () => {
@@ -202,6 +204,15 @@ export class GameScene extends Scene {
     update(_time, _delta) {
         // Phaser 自动调用，每帧更新
         // 现有 Game 循环仍然运行，这里只做 Phaser 相关的更新
+
+        // 能源节点防叠图自愈（2026-08-16）：世界-122 每 ~1s 清一次同位置堆积节点
+        // （旧会话/HMR/历史配置残留会叠出“门边一堆矿”，setup 清理覆盖不到已加载场景）
+        if (SceneManager && SceneManager.currentScene === 'scene8' && EnergyNodeSystem) {
+            this._nodeSweepTick = (this._nodeSweepTick || 0) + 1;
+            if (this._nodeSweepTick % 60 === 0 && typeof EnergyNodeSystem.sweepStacked === 'function') {
+                EnergyNodeSystem.sweepStacked();
+            }
+        }
 
         // 分块地板惰性烘焙/卸载（无 chunks 时立即返回，开销可忽略）
         this._updateTerrainChunks();
@@ -870,6 +881,28 @@ export class GameScene extends Scene {
         ring.setVisible(true);
     }
 
+    /** 右键移动目标标记（2026-08-16）：竖直向下的绿色箭头，尖端落在目标点，1.2s 后淡出销毁 */
+    showMoveMarker(x, y) {
+        if (this._moveMarkerGfx) {
+            this._moveMarkerGfx.destroy();
+            this._moveMarkerGfx = null;
+        }
+        const g = this.add.graphics();
+        g.fillStyle(0x3dff6a, 0.85);
+        g.fillTriangle(0, 0, -9, -20, 9, -20); // 箭头尖朝下（尖端 = 目标点）
+        g.fillRect(-3, -38, 6, 20);            // 箭杆
+        g.setPosition(x, y);
+        g.setDepth(y + 15);                    // 地面层（与 ground fx 同口径）
+        this._moveMarkerGfx = g;
+        this.tweens.add({
+            targets: g, alpha: 0, duration: 400, delay: 800,
+            onComplete: () => {
+                g.destroy();
+                if (this._moveMarkerGfx === g) this._moveMarkerGfx = null;
+            },
+        });
+    }
+
     /** 侍从 idl 朝向用：找离该队员最近的敌人（member.target 失效时的兜底） */
     _nearestCompanionEnemy(member) {
         const Game = window.Game;
@@ -1265,7 +1298,8 @@ export class GameScene extends Scene {
             active.add(e);
             const depth = this.playerSprite.depth - 0.1; // 跟随本体仲裁后 depth（含墙体遮挡压下），始终略低于本体
             const cx = e.collider ? e.collider.x : e.x;
-            const cy = e.collider ? e.collider.y : e.y;
+            // 射击台（2026-08-16）：人物精灵随 _platformLift 上移，阴影同步上移
+            const cy = (e.collider ? e.collider.y : e.y) - (e._platformLift || 0);
             ensureShadow(e, cx, cy, e.groundRadius || 10, depth, !isMapMode);
         }
 
@@ -2696,7 +2730,11 @@ export class GameScene extends Scene {
                 const offY = cf.offsetY;
                 let rot = cf.rotation * Math.PI / 180;
                 if (!facingRight) rot = Math.PI - rot;
-                this.weaponSprite.setPosition(player.x + offX, player.y + offY - this._getFootOffsetY(player, this.playerSprite));
+                // 射击台（2026-08-16）：武器同步平台抬升，避免与人物贴图分离
+                this.weaponSprite.setPosition(
+                    player.x + offX,
+                    player.y + offY - this._getFootOffsetY(player, this.playerSprite) - (player._platformLift || 0)
+                );
                 this.weaponSprite.setRotation(rot);
                 this.weaponSprite.setFlipX(!facingRight);
                 const wSize = WeaponTransform.getWeaponSize(wt, cf.scale, 'idle');
@@ -5965,7 +6003,9 @@ export class GameScene extends Scene {
               }
             const size = e.size || 16;
             const shift = this._getFootOffsetY(e, sprite);
-            sprite.setPosition(e.x, e.y - shift);
+            // 射击台（2026-08-16 七版标定）：贴图入口（台阶底）不在贴图中心，
+            // 精灵 x 按 spriteCfg.offsetX 平移，让入口精确锚定到实体
+            sprite.setPosition(e.x + ((sprCfg && sprCfg.offsetX) || 0), e.y - shift);
             if (sprCfg) {
                 // 贴图 NPC：行走/待机动画切换 + 朝向翻转，不做染色（静态贴图无动画则跳过）；
                 // 倒退行走（移动方向与朝向相反）时循环动画倒放
@@ -6312,7 +6352,7 @@ export class GameScene extends Scene {
     _bakeTerrainChunk({ key, ox, oy }) {
         const chunks = Renderer.terrainChunks;
         if (!chunks) return;
-        const canvas = bakeDungeonFloorChunk(ox, oy, chunks.chunkSize, chunks.chunkSize, chunks.mapW, chunks.mapH);
+        const canvas = bakeDungeonFloorChunk(ox, oy, chunks.chunkSize, chunks.chunkSize, chunks.mapW, chunks.mapH, null, chunks.diamond);
         if (!canvas) return;
         if (this.textures.exists(key)) this.textures.remove(key);
         this.textures.addCanvas(key, canvas);

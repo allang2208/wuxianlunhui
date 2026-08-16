@@ -699,6 +699,18 @@ check('组队栏点击走 setSelected/toggleSelected 不再 open', /el\.onclick 
     && !/onclick = \(\) => CompanionPanel\.open/.test(partyUiSrc));
 check('待命指令含打断动画接线', /cmd\.mode === 'hold'[\s\S]{0,300}_meleeAtkTimer = 0/.test(aiSrc)
     && /cmd\.mode === 'hold'[\s\S]{0,220}_castState = 'idle'/.test(aiSrc));
+check('纯移动指令 mage/warrior switch 接线', /case 'move': this\._cmdMove\(player, cmd\); break;/.test(aiSrc));
+check('_nearestWalkable 螺旋找可达点（canMoveTo）', /_nearestWalkable\(point\) \{[\s\S]{0,220}WallSystem\.canMoveTo/.test(aiSrc));
+const gameSrc = fs.readFileSync(path.join(ROOT, 'src/game.js'), 'utf-8');
+check('左键点击=移动+取消选中（game.js）',
+    /PartySystem\.selectedIds\.length[\s\S]{0,260}setCommand\(PartySystem\.selectedIds, 'move'/.test(gameSrc)
+    && /setCommand\(PartySystem\.selectedIds, 'move'[\s\S]{0,100}clearSelection\(\)/.test(gameSrc));
+check('右键移动=最高优先级（guard 前打断）', /cmd\.mode === 'hold' \|\| cmd\.mode === 'move'/.test(aiSrc));
+check('右键移动+绿色箭头（game.js）',
+    /Input\.mouse\.rightPressed[\s\S]{0,340}setCommand\(PartySystem\.selectedIds, 'move'[\s\S]{0,220}showMoveMarker/.test(gameSrc)
+    && /showMoveMarker\(rw\.x, rw\.y\)[\s\S]{0,120}rightPressed = false/.test(gameSrc));
+const sceneSrc = fs.readFileSync(path.join(ROOT, 'src/phaser/scenes/GameScene.js'), 'utf-8');
+check('GameScene 竖直向下绿色箭头', /showMoveMarker\(x, y\) \{[\s\S]{0,260}0x3dff6a/.test(sceneSrc));
 
 // --- 档案恢复保留 AI 配置（2026-08-16：伊莉丝指令“执行了但画面不动”根因回归） ---
 {

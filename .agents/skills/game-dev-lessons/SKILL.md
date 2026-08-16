@@ -679,6 +679,23 @@ this.ai = config.ai || {};
   scan 白名单内），玩家/侍从任一靠近 OPEN_RADIUS 即开门；排除塔/掩体/基地照旧。
 - **验证**：逻辑仿真——玩家远（300px）+ 侍从近（80px）→ 门开；无侍从且玩家远 → 门关。
 
+### 42.7 门-墙拼接缝图层 + 门栅栏补柱（2026-08-16 用户口径）
+
+- **门对掩体也走"左在右之前"**：`syncGateSeamDepths` 除门对门外，追加扫描
+  `_isDefenseCover && !_isCoverGate` 的墙段——门 B 端 ≈ 墙 A 端 → 门在墙左，门右柱抬到
+  墙 `_faceDepth + 0.5` 之上（盖墙左端）；门 A 端 ≈ 墙 B 端 → 墙在门左，门左柱压到
+  `_faceDepth - 0.5` 之下（墙右端盖门左柱）。**只调门柱深度，不碰墙的单一 `_faceDepth`**
+  （墙两端可能同时接门）。
+- **门栅栏补柱（六档 bars 16 帧烘焙）**：帧 0 左叶首柱 x≈158、柱距 38，靠近左墙柱
+  （pillarL x≈67）的位置缺一根柱（应 x≈120）——`tools/bake-gate-missing-pillar.py`
+  把每帧自己的左叶首柱复制一份、左移 38px 粘贴（帧 0-8，帧 9+ 叶已滑出），补柱随
+  开关门动画同步滑动；六档（F→A）帧 0 布局一致，脚本一把梭。
+  **坑（2026-08-16 二修）**：栅栏柱沿墙坡线每 38px 下移 19px（斜率 -0.5），补柱不能
+  只平移 x——必须同时下移 19px（`SLOPE_DY`），否则底边悬高一格、不落在同一坡线上
+  （用户实测"底部没形成水平线"）；改后底边 570/551/532/513/494/475 成直线。
+- **验证**：`tools/cdp-gate-seam.mjs`——基地门两侧接墙（左在右之前）+ 合成门对门
+  （左门右柱 > 右门左柱）3/3；改动资产前先 `git checkout-index` 备份原始 bars。
+
 ## 43. 侍从爆发技（伊莉丝 whirlwind 风车）实现口径（2026-08-16）
 - **技能数据驱动**：`data/companion-config.json` 内联 skill effectFormula（damageMul/
   radius/swordRadiusBonus/cooldown/staminaCost/knockback/stunDuration/duration），
@@ -970,3 +987,38 @@ this.ai = config.ai || {};
   `displayH = displayW × bh/bw`；`footOffsetY = 贴图中心到脚底像素 × 显示缩放`。
   44.8° 建筑底边斜率应 ≈0.4976（±0.05 可接受），偏差大先查显示比例再怀疑建模。
 - **验证**：PIL 分析贴图内容 bbox/脚底 + CDP 读 `BARRACKS_CONFIG` 实际值。
+
+## 55. 进度条实时刷新 + 平滑增长模式（2026-08-16 仓鼠兵营 / 怪物来袭倒计时）
+
+- **需求**：进度条要实时刷新、有增长效果，不能只在交互（点击/升级）时重绘。
+- **模式（两处同款实现）**：
+  - 兵营面板：打开期间 `setInterval(100ms)` 调 `_tickProgress()`——只 querySelector
+    更新进度条宽度/百分比/剩余秒数，**不重建 innerHTML**（重建会让按钮/悬停态丢失）；
+    关闭时 `clearInterval`（onClose 里清，防泄漏）。
+  - 顶部 HUD（怪物来袭）：`_updateHud` 节流 250ms→100ms，倒计时阶段
+    （prep/break）显示进度 = `1 - _phaseTimer/周期`，战斗波次（无倒计时）隐藏。
+- **平滑增长**：进度条 `transition: width 0.2s linear` 配合 100ms tick——每 tick
+  只动几个百分点，过渡补间肉眼即"连续填充"；没有 transition 会一卡一卡。
+- **颜色分档（用户可要求反向）**：兵营 出发进度 金→橙→青绿；怪物来袭倒计时
+  按用户口径反转为 **青绿→橙→红**（越接近来袭越危险）。分档表达式
+  `progress < 0.5 ? A : (progress < 0.8 ? B : C)` 集中一处，方便整体翻转。
+- **进度公式注意**：计时器是"剩余时间"（`_spawnTimer/_phaseTimer` 递减），
+  进度 = `1 - 剩余/周期`；满员/无倒计时时进度归 0 或隐藏，别把"剩余时间"当进度。
+
+## 56. 建筑详情面板交互：仅建设模式响应 + 建设模式无视距离 + 左侧并排（2026-08-16）
+
+- **需求**：① 建筑详情面板只有按 B 打开建设页面时才弹出，平时点击建筑不弹；
+  ② 建设页面打开时无视距离，多远都能点对应建筑打开各自面板；
+  ③ 详情面板放在建筑面板左侧并排。
+- **实现**：
+  - `BuildingSystem.tryInteract` 开头 `if (!this.active) return false`（非建设模式
+    不响应），并删除 260px 距离检查。
+  - 塔/陷阱/小屋/兵营四个系统各自有 260px 交互距离——建设模式无视距离用
+    **`Game._buildMode` 全局标记**判断（BuildingSystem.open/close 已设置），
+    跳过距离检查；不要 import BuildingSystem 判断 active（避免循环依赖）。
+  - 详情并排：`.build-panel #bpDetail` 改 `position:fixed; right:436px`
+    （= 面板右缘 8px + 宽 420px + 间距 8px），`_renderDetail` 不再隐藏
+    grid/row/hints（详情与建筑列表同屏）。
+- **坑**：建设模式下点击掩体走 BuildingSystem，点塔/小屋/兵营走各自系统——
+  每个系统都要单独加 buildMode 跳过距离；漏一个就会出现"建设模式点这个建筑
+  还是够不到"的不一致。

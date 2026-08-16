@@ -47,3 +47,9 @@ tools/ai-gen/rw-v3-pipeline/
 start-vite.bat
 tools/ai-gen/rw-rmbg-*-out/
 tools/ai-gen/rw-rmbg-compare-out/
+tools/ai-gen/_platform_align/
+tools/_tmp_*
+_tmp_*.diff
+assets/terrain/_fpref*
+assets/terrain/_fpv*
+tools/verify-shots/

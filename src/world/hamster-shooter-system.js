@@ -31,7 +31,7 @@ export const HamsterShooterSystem = {
     },
 
     _spawn(player, idx) {
-        const anchor = player || { x: 760, y: 2048 };
+        const anchor = player || { x: 450, y: 2150 };
         const spot = this._findSpawn(anchor.x, anchor.y);
         const id = idx === 0 ? ENTITY_ID : `${ENTITY_ID}_${idx + 1}`;
         const shooter = new HamsterShooter(spot.x, spot.y, { id });

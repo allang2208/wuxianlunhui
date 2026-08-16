@@ -1251,7 +1251,7 @@ _initAmmoForSlot(slot) {
                 const t = Math.min(1, (now - (this._castStartTime || now)) / (this._castForwardMs || 500));
                 const targetX = (this._castOriginX ?? this.x) + (this._castStepDirX || 0) * (this._castStepMax || 30) * t;
                 const targetY = (this._castOriginY ?? this.y) + (this._castStepDirY || 0) * (this._castStepMax || 30) * t;
-                const resolved = WallSystem.resolve(this.x, this.y, targetX, targetY, this.groundRadius, { segs: WallSystem.platformSegs });
+                const resolved = WallSystem.resolve(this.x, this.y, targetX, targetY, this.groundRadius);
                 this.x = resolved.x;
                 this.y = resolved.y;
             } else if (this._castState === 'recover') {
@@ -1262,7 +1262,7 @@ _initAmmoForSlot(slot) {
                 const ry = this._castRecoverOriginY ?? this.y;
                 const targetX = ox + (rx - ox) * (1 - t);
                 const targetY = oy + (ry - oy) * (1 - t);
-                const resolved = WallSystem.resolve(this.x, this.y, targetX, targetY, this.groundRadius, { segs: WallSystem.platformSegs });
+                const resolved = WallSystem.resolve(this.x, this.y, targetX, targetY, this.groundRadius);
                 this.x = resolved.x;
                 this.y = resolved.y;
             }
@@ -1528,7 +1528,8 @@ _getMuzzlePosition(gunLX, gunLY, forwardOffset = 0) {
                 const c = Math.cos(this.rotation), sin = Math.sin(this.rotation);
                 return {
                     x: this.x + c * (gunLX + forwardOffset) - sin * gunLY,
-                    y: this.y + sin * (gunLX + forwardOffset) + c * gunLY
+                    // 射击台（2026-08-16）：兜底枪口同样跟随平台抬升
+                    y: this.y + sin * (gunLX + forwardOffset) + c * gunLY - (this._platformLift || 0)
                 };
             },
 
