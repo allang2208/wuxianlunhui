@@ -5935,7 +5935,11 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
   + 移出 entities/friendlyUnits），面板自动关闭；teardown 离场同样拆干净。
 - **面板（BasePanel 复用）**：状态区（等级/耐久/存活数/下次生成秒数）、
   类型切换按钮、4 个升级按钮、出售（返还 50% 能源）；点击兵营开/关，
-  玩家距离 >260px 不可交互。
+  玩家距离 >260px 不可交互。**出发进度条实时刷新（2026-08-16）**：面板打开期间
+  `setInterval(100ms)` 只更新 `#hbSpawnBar` 宽度/百分比/剩余秒数（querySelector
+  直改，不重建 innerHTML），CSS `transition: width 0.2s linear` 平滑增长；
+  关闭面板 clearInterval 防泄漏；切换单位类型不重置 `_spawnTimer`，进度不受影响
+  （见 lessons #55）。
 - **验证**：CDP 实机探针——贴图加载、默认战士生成（dmg 50/hp 300）、切射手
   （dmg 60/hp 150）、升 damage 模块后现有战士伤害 50→56 实时生效、
   面板标题/按钮/状态正常、单位死亡后 update 立即补员；eslint 0 error + vite build。
@@ -5976,6 +5980,11 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
 - 对象字面量系统同样适用（参考 `warehouse-system.js` 的 `_getPanel()` 懒创建模式 + `get _isOpen()` 代理）。
 
 已迁移范例：`warehouse-system.js`（仓库面板）。
+
+- **面板并排（2026-08-16 建筑详情）**：详情与主面板并排 = 详情容器
+  `position:fixed; right:<主面板右缘+宽+间距>`（建筑面板右缘 8 + 420 + 8 = 436px），
+  并排时**不隐藏主面板内容**；建设模式全局标记 `Game._buildMode` 供塔/陷阱/小屋/
+  兵营各自跳过 260px 交互距离（免循环依赖 import），详见 lessons #56。
 
 #### 步骤4: 声道与 BGM（2026-07-21 新增）
 - **声道**：`playFile(path, volume, channel)` 第三参为声道（`sfx` 战斗音效默认 / `ui` 界面 / `music` 音乐），声道音量配置在 `data/audio-config.json` 的 `channels`（独立于 masterVolume 的二级调节）；运行时可 `SoundManager.setChannelVolume(channel, v)`。
