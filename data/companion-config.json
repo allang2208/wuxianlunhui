@@ -71,14 +71,12 @@
         "attack": {
           "src": "assets/companions/elise/attacking.png",
           "frameWidth": 960, "frameHeight": 1024, "cols": 5, "rows": 6,
-          "frameCount": 28, "frames": [0, 27], "frameRate": 18.6666667, "repeat": 0,
-          "displayScale": 1.065
+          "frameCount": 28, "frames": [0, 27], "frameRate": 18.6666667, "repeat": 0
         },
         "windmill": {
           "src": "assets/companions/elise/windmill.png",
           "frameWidth": 896, "frameHeight": 640, "cols": 5, "rows": 5,
-          "frameCount": 23, "frames": [0, 22], "frameRate": 28.75, "repeat": 0,
-          "displayScale": 1.155
+          "frameCount": 23, "frames": [0, 22], "frameRate": 28.75, "repeat": 0
         },
         "defend": {
           "src": "assets/companions/elise/defending.png",
@@ -139,22 +137,19 @@
         "walk": {
           "src": "assets/companions/luna/walking.png",
           "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 4,
-          "frameCount": 26, "frames": [0, 25], "frameRate": 24, "repeat": -1,
-          "displayScale": 1.062
+          "frameCount": 26, "frames": [0, 25], "frameRate": 24, "repeat": -1
         },
         "run": {
           "src": "assets/companions/luna/running.png",
           "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 5,
           "frameCount": 40,
           "startFrames": [0, 16], "startFrameRate": 24, "startRepeat": 0,
-          "loopFrames": [17, 39], "frameRate": 24, "repeat": -1,
-          "displayScale": 1.062
+          "loopFrames": [17, 39], "frameRate": 24, "repeat": -1
         },
         "spell": {
           "src": "assets/companions/luna/spelling.png",
           "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 4,
-          "frameCount": 32, "frames": [0, 31], "frameRate": 26.67, "repeat": -1,
-          "displayScale": 1.062
+          "frameCount": 32, "frames": [0, 31], "frameRate": 26.67, "repeat": -1
         }
       },
       "weaponType": "staff"
