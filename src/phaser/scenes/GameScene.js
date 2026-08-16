@@ -817,11 +817,17 @@ export class GameScene extends Scene {
             // 竖直补 -(格高-512)×0.4375×normS 让脚底在所有动作下贴同一世界线。
             // 旧实现只在创建时按 walk 帧格设置一次，帧格规格不同的动作会整体缩放/漂移
             // （上一次重建"大小无法统一"的渲染侧根因）。
+            // 2026-08-17 补充：逐动作 displayScale（companion-config animations.<action>）
+            // ——伊莉丝 attack 内容比 idle 矮 6%（挥剑帧自然倾斜）、windmill 矮 13%，
+            // 用显示放大统一到同一尺度；脚底修正随缩放系数 k 同步（0.4375×(512−格高×k)），
+            // 放大后脚底仍贴同一世界线。
             const normS = size / 512;
             const frameW = (sprite.frame && sprite.frame.width) || 512;
             const frameH = (sprite.frame && sprite.frame.height) || 512;
-            sprite.setDisplaySize(frameW * normS, frameH * normS);
-            const feetCorr = -(frameH - 512) * 0.4375 * normS;
+            const curAnimKey = member._animState || 'idle';
+            const animScale = (anims[curAnimKey] && anims[curAnimKey].displayScale) || 1;
+            sprite.setDisplaySize(frameW * normS * animScale, frameH * normS * animScale);
+            const feetCorr = 0.4375 * (512 - frameH * animScale) * normS;
             if (aiMode) {
                 sprite.setPosition(member.x, member.y + spriteOffY - platformLift + feetCorr);
             } else {

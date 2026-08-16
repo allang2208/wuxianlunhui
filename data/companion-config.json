@@ -71,12 +71,14 @@
         "attack": {
           "src": "assets/companions/elise/attacking.png",
           "frameWidth": 960, "frameHeight": 1024, "cols": 5, "rows": 6,
-          "frameCount": 28, "frames": [0, 27], "frameRate": 18.6666667, "repeat": 0
+          "frameCount": 28, "frames": [0, 27], "frameRate": 18.6666667, "repeat": 0,
+          "displayScale": 1.065
         },
         "windmill": {
           "src": "assets/companions/elise/windmill.png",
           "frameWidth": 896, "frameHeight": 640, "cols": 5, "rows": 5,
-          "frameCount": 23, "frames": [0, 22], "frameRate": 28.75, "repeat": 0
+          "frameCount": 23, "frames": [0, 22], "frameRate": 28.75, "repeat": 0,
+          "displayScale": 1.155
         },
         "defend": {
           "src": "assets/companions/elise/defending.png",
