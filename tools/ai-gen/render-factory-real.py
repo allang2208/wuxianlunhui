@@ -139,21 +139,23 @@ def make_prism(L, W, H):
 
 def prism_uv(o, L, W, H):
     """坡屋顶 UV：坡面 u 沿 X（瓦行平行檐口/斜边）、v 沿斜面坡度（z/H，脊=1）；
-    山墙端面平面映射（u 沿 X、v 沿 Z）。"""
+    山墙端面平面映射（u 沿 Y 水平、v 沿 Z——端面在 Y-Z 平面，u 绝不能沿 X 否则
+    纹理坍缩成单列竖带被拉满全三角）。"""
     me = o.data
     uvl = me.uv_layers[0] if me.uv_layers else me.uv_layers.new(name="UVMap")
     for poly in me.polygons:
         coords = [me.vertices[me.loops[li].vertex_index].co for li in poly.loop_indices]
         xs = [c.x for c in coords]
+        ys = [c.y for c in coords]
         zs = [c.z for c in coords]
-        dx = max((max(xs) - min(xs)) or 1.0, 1e-6)
-        dz = max((max(zs) - min(zs)) or 1.0, 1e-6)
         for li, c in zip(poly.loop_indices, coords):
             if len(poly.vertices) == 3:
-                u = (c.x - min(xs)) / dx
-                v = (c.z - min(zs)) / dz
+                # 山墙端面（Y-Z 平面）：u 沿 Y 水平、v 沿 Z
+                u = (c.y - min(ys)) / max((max(ys) - min(ys)) or 1.0, 1e-6)
+                v = (c.z - min(zs)) / max((max(zs) - min(zs)) or 1.0, 1e-6)
             else:
-                u = (c.x - min(xs)) / dx
+                # 坡面：u 沿 X（瓦行平行檐口）、v = z/H（沿坡度，脊=1）
+                u = (c.x - min(xs)) / max((max(xs) - min(xs)) or 1.0, 1e-6)
                 v = max(0.0, min(1.0, c.z / max(H, 1e-6)))
             uvl.data[li].uv = (u, v)
     me.update()
