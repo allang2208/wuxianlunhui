@@ -1,8 +1,9 @@
 // ============================================================
 // HamsterMinerAI — 仓鼠矿工 AI（2026-08-15，2026-08-15 仓鼠小屋扩展）
 // 玩家友方单位：在世界-122 自动采矿，并在附近有敌人时近战自卫。
-// - 优先交战：发现 engageRange 内敌人 → 走近近战（复用攻击间隔/攻击力）；
-// - 无敌人：自动找最近能源矿点采矿（_isEnergyNode），间隔攻击产出能源；
+// - 只采矿：自动找最近能源矿点（_isEnergyNode）采矿，间隔攻击产出能源；
+//   （2026-08-16 用户口径回归：只能对能源矿点攻击、不攻击其他单位——矿工不参与
+//   基地防御，被怪打也不还手，仅靠 _enemyTargetable 拉仇恨 + 可被击杀）
 // - 采矿效率：miningMult 直接乘到采矿攻击伤害（矿点掉落的能源随之提升）；
 // - 移动复用 MovementSystem（寻路/墙碰撞），移速 walkSpeed（小屋升级 +5%/级）；
 // - 动画状态：walk（移动）/ mining（采矿或近战）/ idle（待机）。
@@ -22,8 +23,6 @@ export class HamsterMinerAI {
         this._attackInterval = this.cfg.attackInterval ?? 2000;
         this._attackDamage = this.cfg.attackDamage ?? 100;
         this._miningRange = this.cfg.miningRange ?? 80;
-        this._engageRange = this.cfg.engageRange ?? 340;   // 发现敌人半径（仓鼠小屋防御）
-        this._attackRange = this.cfg.attackRange ?? 48;    // 近战贴脸距离
         this.miningMult = this.cfg.miningMult ?? 1;        // 采矿效率倍率（小屋升级）
         // 隐藏背包物流（2026-08-15）：work 采矿 → return 回小屋 → unload 卸货（idle 2s + 门开关）
         this._phase = 'work';          // 'work' | 'return' | 'unload'
@@ -36,6 +35,13 @@ export class HamsterMinerAI {
         this._lastPosY = 0;
         this._stuckStreak = 0;
         this._stuckEscalation = 0; // 连续卡死升级：先原地脱困，再直接传送到目标附近
+        // 路径振荡守卫（2026-08-16）：走路但航点被反复重算成另一条路线（幽灵路径/
+        // 双路线翻转）→ 2.5s 窗口内当前航点跳变 >150px 且矿工没沿任何一条走远 →
+        // 清路径强制用当前 A* 重算（正确绕行路线），不做传送。
+        this._oscTimer = 0;
+        this._oscPrevWp = null;
+        this._oscPrevX = 0;
+        this._oscPrevY = 0;
     }
 
     /** 仓鼠小屋升级后刷新战斗参数（间隔/伤害/移速/采矿效率） */
@@ -105,24 +111,53 @@ export class HamsterMinerAI {
             this._pickupEnergyDrops(entities);
         }
 
-        // 敌人交战/采矿中：站定（不调用 MovementSystem 移动），持续攻击
+        // 采矿中：站定（不调用 MovementSystem 移动），间隔对矿点攻击
         if (m._animState === 'mining') {
             m.vx = 0;
             m.vy = 0;
             m.isMoving = false;
             m.maxSpeed = 0;
-            if (m._enemyTarget && m._enemyTarget.active && m._enemyTarget.hp > 0) {
-                this._tryAttackEnemy();
-            } else {
-                this._tryAttack();
-            }
+            this._tryAttack();
             return;
         }
 
         // 移动中：交给 MovementSystem 寻路推进
         MovementSystem.update(m, dt, entities);
+        this._checkOscillation(dt);
         // 卡死看门狗：复用怪物避障机制外的兜底（重新规划/传送），避免被障碍卡死找不到目标
         this._checkStuck(dt);
+    }
+
+    /** 路径振荡守卫：检测寻路双路线翻转（原地左右摆动/幽灵路径），清路径强制重算 */
+    _checkOscillation(dt) {
+        const m = this.m;
+        if (m._animState !== 'walk') {
+            this._oscTimer = 0;
+            this._oscPrevWp = null;
+            this._oscPrevX = m.x;
+            this._oscPrevY = m.y;
+            return;
+        }
+        this._oscTimer += dt;
+        if (this._oscTimer < 2500) return;
+        this._oscTimer = 0;
+        const pm = m._pathManager;
+        const wp = pm && pm.path && pm.path[pm.pathIdx] ? pm.path[pm.pathIdx] : null;
+        const moved = Math.hypot(m.x - this._oscPrevX, m.y - this._oscPrevY);
+        this._oscPrevX = m.x;
+        this._oscPrevY = m.y;
+        let flipped = false;
+        if (this._oscPrevWp && wp) {
+            // 当前航点相对上次检查跳变 >150px = 路径被重算成另一条路线（东/西两条）
+            flipped = Math.hypot(wp.x - this._oscPrevWp.x, wp.y - this._oscPrevWp.y) > 150;
+        }
+        this._oscPrevWp = wp ? { x: wp.x, y: wp.y } : null;
+        // 航点翻转 + 矿工没沿任何一条路线走远（<120px）→ 原地振荡，清路径重算
+        if (flipped && moved < 120) {
+            if (pm) pm._clearPath();
+            m._tacticalTarget = null;
+            this._oscPrevWp = null;
+        }
     }
 
     /**
@@ -140,28 +175,6 @@ export class HamsterMinerAI {
             m.maxSpeed = 0;
             return;
         }
-
-        // 敌人优先（仓鼠小屋防御）：发现敌人 → 追击近战
-        const enemy = this._nearestEnemy(entities, this._engageRange);
-        if (enemy) {
-            m._enemyTarget = enemy;
-            m.target = null;
-            const dist = Math.hypot(enemy.x - m.x, enemy.y - m.y);
-            const range = this._attackRange + (enemy.groundRadius || 26);
-            if (dist <= range) {
-                m._tacticalTarget = null;
-                m._animState = 'mining';
-                m.maxSpeed = 0;
-                m.rotation = Math.atan2(enemy.y - m.y, enemy.x - m.x);
-                m._lastFaceRight = enemy.x >= m.x;
-            } else {
-                m._tacticalTarget = { x: enemy.x, y: enemy.y };
-                m._animState = 'walk';
-                m.maxSpeed = this.cfg.walkSpeed ?? 80;
-            }
-            return;
-        }
-        m._enemyTarget = null;
 
         // 返回小屋卸货：背包满后直奔小屋门口
         if (this._phase === 'return') {
@@ -329,19 +342,6 @@ export class HamsterMinerAI {
         }
     }
 
-    /** 近战攻击敌人（间隔复用采矿攻击间隔；伤害 = 攻击力 × 伤害倍率） */
-    _tryAttackEnemy() {
-        const m = this.m;
-        const enemy = m._enemyTarget;
-        if (!enemy || !enemy.active || enemy.hp <= 0 || enemy._dying) return;
-        if (this._attackTimer > 0) return;
-        this._attackTimer = this._attackInterval;
-        if (typeof enemy.takeDamage === 'function') {
-            enemy.takeDamage(this._attackDamage, m, 'physical', true);
-            m._miningSwing = true; // 攻击命中 → 渲染层播一次挥锄动画（2026-08-15）
-        }
-    }
-
     /** 采矿攻击：间隔到点对矿点造成伤害；采矿效率（miningMult）直接乘在攻击力上 */
     _tryAttack() {
         const m = this.m;
@@ -427,21 +427,4 @@ export class HamsterMinerAI {
         return out;
     }
 
-    /** 收集交战半径内的敌人（_faction==='enemy'，存活） */
-    _nearestEnemy(entities, range) {
-        let best = null;
-        let bestD = range;
-        const iter = entities && entities.values ? entities.values() : entities || [];
-        for (const e of iter) {
-            if (!e || !e.active) continue;
-            if (e._faction !== 'enemy') continue;
-            if (e.hp <= 0 || e._dying) continue;
-            const d = Math.hypot(e.x - this.m.x, e.y - this.m.y);
-            if (d <= bestD) {
-                bestD = d;
-                best = e;
-            }
-        }
-        return best;
-    }
 }
