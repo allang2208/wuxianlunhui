@@ -161,6 +161,14 @@ export const EnergyNodeSystem = {
         this.active = true;
         this._ensureTextures();
         this._refillVariantBag();
+        // 防御性清理（2026-08-16）：无论场景切换是否已清空实体表，先把场上残留的
+        // 能源节点全部移除再重新生成——防止多次 setup / HMR 模块重载 / 旧布局残留
+        // 导致节点堆积、贴图叠在一起（实机反馈“极地门右柱叠了一堆矿点”）。
+        if (Game && Game.entities) {
+            for (const [k, e] of Array.from(Game.entities.entries())) {
+                if (e && e._isEnergyNode) Game.entities.delete(k);
+            }
+        }
         // 大能源点（2026-08-16）：每簇 10~20 块集中在簇心小范围内（均匀圆盘 + 最小间距），
         // 玩家/仓鼠矿工可集中采集；落点被墙/树占住则重试，簇内节点互不重叠
         for (const cl of ENERGY_CONFIG.clusters) {
@@ -176,8 +184,10 @@ export const EnergyNodeSystem = {
                 // 基地核心周边禁矿带（ENERGY_CONFIG.baseExclusion）：800px 内不生成
                 const be = ENERGY_CONFIG.baseExclusion;
                 if (be && Math.hypot(px - be.x, py - be.y) < (be.radius || 800)) continue;
-                // 与同簇已放节点最小间距（节点直径 ~90px，取 85 防贴图重叠）
-                if (this.nodes.some((n) => Math.hypot(n.x - px, n.y - py) < 85)) continue;
+                // 与已放节点最小间距（2026-08-16 实测：nodeSize 84 × 显示缩放最高 1.08
+                // ≈ 91px，旧阈值 85 会让贴图重叠——“门口叠一堆矿/贴图叠在一起”实机反馈；
+                // 提到 115 保证任意两个节点贴图之间有明确空隙）
+                if (this.nodes.some((n) => Math.hypot(n.x - px, n.y - py) < 115)) continue;
                 if (WallSystem && typeof WallSystem.canMoveTo === 'function'
                     && !WallSystem.canMoveTo(px, py, ENERGY_CONFIG.nodeRadius)) {
                     continue; // 落点被墙/建筑占住则跳过
@@ -198,8 +208,40 @@ export const EnergyNodeSystem = {
           if (pathFinder && typeof pathFinder.setEntityCircleObstacles === 'function') {
               pathFinder.setEntityCircleObstacles(
                   this.nodes.map(n => ({ x: n.x, y: n.y, radius: n.groundRadius || ENERGY_CONFIG.nodeRadius }))
-              );
+          );
           }
+    },
+
+    /** 运行时矿点强制审计（2026-08-16）：场上只允许存在当前 4 簇范围内的矿点——
+     *  ① 不在任何簇（spread+50 内）→ 残留节点，删除；
+     *  ② 同位置（<60px）多节点只保留第一个 → 防“贴图叠在一起”。
+     *  实机：基地门右柱叠 3 个矿点 + 北边/门边散点均来自旧配置/HMR 残留，一律清除。 */
+    sweepStacked() {
+        if (!Game || !Game.entities) return;
+        const clusters = (ENERGY_CONFIG && ENERGY_CONFIG.clusters) || [];
+        const seen = new Set();
+        let removed = 0;
+        for (const [k, e] of Array.from(Game.entities.entries())) {
+            if (!e || !e._isEnergyNode || !e.active) continue;
+            // ① 残留节点：不在任何当前簇半径内（spread + 50 余量）
+            const nearCluster = clusters.some((c) => Math.hypot(e.x - c.x, e.y - c.y) <= (c.spread || 320) + 50);
+            if (!nearCluster) {
+                e.active = false;
+                Game.entities.delete(k);
+                removed++;
+                continue;
+            }
+            // ② 同位置堆叠：只保留第一个
+            const key = `${Math.round(e.x / 60)}_${Math.round(e.y / 60)}`;
+            if (seen.has(key)) {
+                e.active = false;
+                Game.entities.delete(k);
+                removed++;
+            } else {
+                seen.add(key);
+            }
+        }
+        return removed;
     },
 
     /** 12 形态洗牌袋：一袋内尽量不重复，抽空再洗 */

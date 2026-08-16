@@ -311,8 +311,8 @@ export const BuildingSystem = {
             } else if (item.kind === 'gate') {
                 this._ghost.setDisplaySize(GATE_GEOM.cellW * GATE_GEOM.displayScale, GATE_GEOM.cellH * GATE_GEOM.displayScale);
             } else if (item.kind === 'platform') {
-                // 射击台：显示 260×242（五版贴图内容 695×647，aspect 1.075）
-                this._ghost.setDisplaySize(260, 242);
+                // 射击台：显示 297×225（八版贴图内容 684×519）——与实体渲染一致
+                this._ghost.setDisplaySize(297, 225);
             } else {
                 this._ghost.setDisplaySize(260, Math.round(260 / (this._coverAspect(item) || 1)));
             }
@@ -369,16 +369,31 @@ export const BuildingSystem = {
         const snap = this._snapPosition(p.x, p.y);
         if (snap && this._canPlace(snap.x, snap.y)) {
             this._snapped = snap;
-            this._ghost.setPosition(snap.x, snap.y - this._ghostFootOffset());
+            const sp = this._ghostAnchor(snap.x, snap.y);
+            this._ghost.setPosition(sp.x, sp.y);
             this._ghost.setTint(0x9dff9d); // 吸附成功：绿色提示
         } else {
             this._snapped = null;
-            this._ghost.setPosition(p.x, p.y - this._ghostFootOffset());
+            const sp = this._ghostAnchor(p.x, p.y);
+            this._ghost.setPosition(sp.x, sp.y);
             // 吸附落点被占用（如门洞另一侧门柱）时不显示吸附；
             // 当前位置本身不可放置则红色提示
-            if (this._canPlace(p.x, p.y)) this._ghost.clearTint();
+            if (this._canPlace(p.x, p.y)) {
+                // 自由放置建筑（射击台）可放置时给绿色反馈（无吸附目标，位置合法即绿）
+                if (this._placing.item.kind === 'platform') this._ghost.setTint(0x9dff9d);
+                else this._ghost.clearTint();
+            }
             else this._ghost.setTint(0xff7777);
         }
+    },
+
+    /** 幽灵锚点：与实体渲染完全一致（精灵中心 = 锚点 + offsetX/footOffsetY） */
+    _ghostAnchor(x, y) {
+        if (this._placing && this._placing.item.kind === 'platform') {
+            // 射击台八版标定：offsetX=-25.6 / footOffsetY=49
+            return { x: x - 25.6, y: y - 49 };
+        }
+        return { x, y: y - this._ghostFootOffset() };
     },
 
     _ghostFootOffset() {
@@ -386,7 +401,7 @@ export const BuildingSystem = {
         if (this._placing.item.kind === 'tower') return 131;
         if (this._placing.item.kind === 'hamster_hut') return HAMSTER_CONFIG.hut.footOffsetY;
         if (this._placing.item.kind === 'hamster_barracks') return BARRACKS_CONFIG.barracks.footOffsetY;
-        if (this._placing.item.kind === 'platform') return 121; // 射击台脚底=台阶入口（242/2）
+        if (this._placing.item.kind === 'platform') return 49; // 射击台 footOffsetY（八版标定）
         return this._ghost.displayHeight / 2;
     },
 
@@ -439,13 +454,14 @@ export const BuildingSystem = {
     /**
      * 掩体端点吸附：找最近的一个既有掩体墙端锚点，把新件对应端贴上去。
      * 掩体/铁栅栏门参与吸附（防御塔不拼接）；同向（v-v / h-h）优先，跨向（v-h 转角）次之。
-     * 射击台（2026-08-16 七版）：自由放置高台，不参与任何吸附（无墙线依赖）。
+     * 射击台（2026-08-16 九版）：贴墙拼接吸附——台面边与墙 face 线对齐（见
+     * _snapPlatformToWall）；无墙时回退自由放置。
      * @returns {null|{x:number,y:number,e:object}}
      */
     _snapPosition(x, y) {
         const item = this._placing && this._placing.item;
         if (!item) return null;
-        if (item.kind === 'platform') return null; // 自由放置：不走端点/贴墙吸附
+        if (item.kind === 'platform') return this._snapPlatformToWall(x, y);
         if (item.kind !== 'cover' && item.kind !== 'gate') return null;
         const eff = effOrient(item, this._placing.mirror);
         const off = item.kind === 'gate'
@@ -504,6 +520,54 @@ export const BuildingSystem = {
         best.x -= (ax / al) * overlap * dir;
         best.y -= (ay / al) * overlap * dir;
         return best;
+    },
+
+    /**
+     * 射击台贴墙拼接吸附（九版）：平台台面边与掩体/门墙 face 线对齐。
+     * - v 墙（"/"，slope -0.5）→ 平台后边 B→L（slope -0.49）贴墙；
+     *   实体 = 墙中点 + 墙法线 × 130.7（后边中点到实体的垂距）。
+     * - h 墙（"\"，slope +0.5）→ 平台右边 R→B（slope +0.50）贴墙；
+     *   实体 = 墙中点 + 墙法线 × 161.1（右边中点到实体的垂距）。
+     * - 法线朝鼠标侧；F 镜像翻到墙另一侧。吸附点 = 实体（台阶入口），
+     *   平台主体沿墙外展、台阶朝房内。
+     * 几何常量来自 FiringPlatform 八版标定（display px，相对实体）。
+     * @returns {null|{x:number,y:number,e:object,orient:string}}
+     */
+    _snapPlatformToWall(x, y) {
+        const item = this._placing && this._placing.item;
+        if (!item || item.kind !== 'platform') return null;
+        const mirror = !!(this._placing && this._placing.mirror);
+        // 台面边描述：{ 方向, 边中点 rel, 边中点→实体垂距, 朝实体法线 }
+        const edgeCfg = {
+            v: { perp: 130.7 }, // 后边 B→L
+            h: { perp: 161.1 }, // 右边 R→B
+        };
+        let best = null;
+        for (const e of Game.entities.values()) {
+            if (!e || !e.active) continue;
+            if (!(e._isDefenseCover || e._isCoverGate)) continue; // 只贴掩体/门墙段
+            const [A, B] = e._faceLine || [];
+            if (!A || !B || typeof A.x !== 'number') continue;
+            const d = this._pointSegDist(x, y, A, B);
+            if (d > SNAP_RADIUS + 80) continue; // 吸附触发距离（宽松）
+            const wx = B.x - A.x, wy = B.y - A.y;
+            const wl = Math.hypot(wx, wy) || 1;
+            // 墙朝向按斜率符号：slope>0 = "\"(h)、slope<0 = "/"(v)
+            // （不能按 B.x-A.x 符号——掩体 v 墙 B.x>A.x 但斜率是负的）
+            const orient = (wx * wy) >= 0 ? 'h' : 'v';
+            const eg = edgeCfg[orient];
+            if (!eg) continue;
+            const mx0 = (A.x + B.x) / 2, my0 = (A.y + B.y) / 2;
+            // 墙法线：朝鼠标侧
+            let nx = -wy / wl, ny = wx / wl;
+            if ((x - mx0) * nx + (y - my0) * ny < 0) { nx = -nx; ny = -ny; }
+            if (mirror) { nx = -nx; ny = -ny; } // F 镜像：贴墙另一侧
+            const sx = mx0 + nx * eg.perp;
+            const sy = my0 + ny * eg.perp;
+            if (!best || d < best.d) best = { x: Math.round(sx), y: Math.round(sy), d, e, orient };
+        }
+        if (!best) return null;
+        return { x: best.x, y: best.y, e: best.e, wall: best.e, orient: best.orient };
     },
 
     /** 新掩体的墙段底边线段（face line，世界坐标）——按级别 + 有效朝向 */
@@ -702,6 +766,8 @@ export const BuildingSystem = {
         if (!show) return;
         // 门走专属详情（含常锁/常开模式按钮，2026-08-15）
         if (e._isCoverGate) { this._renderGateDetail(det, e); return; }
+        // 射击台专属详情（2026-08-16）：不再误显示"掩体·F级"（grade 为 undefined）
+        if (e._isFiringPlatform) { this._renderPlatformDetail(det, e); return; }
         // 掩体详情：贴图 / 耐久条 / 朝向 / 建造消耗 / 修理费率 / 回满预估
         const g = e.grade || 'F';
         const maxHp = e.maxHp || 1;
@@ -725,6 +791,36 @@ export const BuildingSystem = {
             <div class="bp-detail-rows">
                 朝向：<b>${orientTxt}</b><br>
                 建造消耗：<b style="color:#7fd4ff;">${buildCost} 能源</b><br>
+                修理费率：<b>${repairRate} 耐久 / 1 能源</b>（点击下方按钮修理）<br>
+                回满预估：<b style="color:#7fd4ff;">≈ ${repairNeed} 能源</b>
+            </div>
+            <div style="display:flex;gap:8px;">
+                <button id="bpBack" class="bp-back" style="flex:1;">← 返回列表</button>
+                <button id="bpRepair" class="bp-repair" style="flex:1;" ${hp >= maxHp ? 'disabled' : ''}>${hp >= maxHp ? '耐久已满' : `修 理（-${repairNeed} 能源）`}</button>
+            </div>`;
+        det.querySelector('#bpBack').addEventListener('click', () => this._closeDetail());
+        det.querySelector('#bpRepair').addEventListener('click', () => this._repairCover());
+    },
+
+    /** 射击台详情（2026-08-16）：名称/贴图/耐久/用途 + 修理（复用 _repairCover） */
+    _renderPlatformDetail(det, e) {
+        const maxHp = e.maxHp || 800;
+        const hp = Math.max(0, Math.ceil(e.hp));
+        const pct = Math.round((hp / maxHp) * 100);
+        const barColor = pct > 60 ? '#7fd47f' : (pct > 30 ? '#ffd700' : '#ff6666');
+        const repairRate = (DEFENSE_CONFIG.repair && DEFENSE_CONFIG.repair.coverHpPerEnergy) || 2;
+        const repairNeed = Math.ceil((maxHp - hp) / repairRate);
+        det.innerHTML = `
+            <div class="bp-detail-head">
+                <img src="assets/terrain/firing_platform.png" draggable="false" alt="射击台" style="width:96px;height:89px;object-fit:contain;">
+                <div style="flex:1;min-width:0;">
+                    <div class="bp-detail-name">射击台</div>
+                    <div class="bp-hpbar"><div style="width:${pct}%;background:${barColor};"></div></div>
+                    <div style="font-size:11px;color:#b0a892;">耐久 ${hp} / ${maxHp}（${pct}%）</div>
+                </div>
+            </div>
+            <div class="bp-detail-rows">
+                用途：站上高台可越过己方掩体向外射击<br>
                 修理费率：<b>${repairRate} 耐久 / 1 能源</b>（点击下方按钮修理）<br>
                 回满预估：<b style="color:#7fd4ff;">≈ ${repairNeed} 能源</b>
             </div>

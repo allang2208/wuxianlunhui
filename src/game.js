@@ -120,6 +120,8 @@ export const Game = {
         this.CompanionPanel = CompanionPanel;
         this.PartyUI = PartyUI;           // 组队栏（选中状态调试/探针）
         this.CompanionCommandWheel = CompanionCommandWheel; // 指令轮盘（探针可直接驱动 _execute）
+        this.Renderer = Renderer;         // 屏幕↔世界坐标（探针/调试）
+        this.WallSystem = WallSystem;     // 墙体可达性（探针/调试）
         this.ExpeditionSystem = ExpeditionSystem;
     },
     async start() {
@@ -1180,6 +1182,19 @@ if (this.player && this.player.droneSystem && this.player.droneSystem.controllin
         const npcHoverDist = interactCfg.npcHover || 40;
         const pickupClickDist = interactCfg.pickupClick || 150;
         const pickupHoverDist = interactCfg.pickupHover || 35;
+        // 右键移动（最高优先级，2026-08-16）：有选中时右键 = 清空当前指令后执行移动，
+        // 消费 rightPressed 防止玩家自身右键特殊攻击同帧触发；目标点画绿色下指箭头。
+        // 选中保留（可连续右键改道）；组队栏/系统面板右键不会走到这里（input.js 拦截）。
+        if (Input.mouse.rightPressed && PartySystem && PartySystem.selectedIds.length) {
+            const rw = (Renderer && Renderer.screenToWorld) ? Renderer.screenToWorld(Input.mouse.x, Input.mouse.y) : null;
+            if (rw) {
+                PartySystem.setCommand(PartySystem.selectedIds, 'move', { x: rw.x, y: rw.y });
+                if (window.__phaserScene && typeof window.__phaserScene.showMoveMarker === 'function') {
+                    window.__phaserScene.showMoveMarker(rw.x, rw.y);
+                }
+            }
+            Input.mouse.rightPressed = false;
+        }
 if (Input.mouse.leftPressed) {
             // NPC 对话检测（优先于拾取）
             if (NPCDialogue.active) {
@@ -1190,6 +1205,14 @@ if (Input.mouse.leftPressed) {
             let clickedPickup = false;
             const dropKeysToDelete = [];
             const mx = Input.mouse.x, my = Input.mouse.y;
+            // 队友选中时：左键点击组队栏外任意位置 = 纯移动指令 + 取消选中（2026-08-16）。
+            // 移动指令只让选中队员走到点击的世界坐标（AI 侧目标不可达自动找最近可达点），
+            // 不接敌/不采集/不跟随；点击组队栏/系统面板不会走到这里（input.js 已拦截）。
+            const moveWorld = (Renderer && Renderer.screenToWorld) ? Renderer.screenToWorld(mx, my) : null;
+            if (moveWorld && PartySystem && PartySystem.selectedIds.length) {
+                PartySystem.setCommand(PartySystem.selectedIds, 'move', { x: moveWorld.x, y: moveWorld.y });
+                PartySystem.clearSelection();
+            }
             // NPC 对话检测（优先于拾取）：贴图 NPC 按点击区域判定，多点命中取点击点最近者
             let npcCandidate = null;
             let npcBestDist = Infinity;

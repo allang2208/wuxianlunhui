@@ -107,7 +107,7 @@ update(dt, entities) {
                     {
                         const mScale = dt / 1000;
                         const nx = this.x + this.vx * mScale, ny = this.y + this.vy * mScale;
-                        const resolved = WallSystem.resolve(this.x, this.y, nx, ny, this.groundRadius, { segs: WallSystem.platformSegs });
+                        const resolved = WallSystem.resolve(this.x, this.y, nx, ny, this.groundRadius);
                         this.x = resolved.x;
                         this.y = resolved.y;
                     }
@@ -229,7 +229,7 @@ update(dt, entities) {
                         // 生效速度走 calculateCombatStats 面板（可被装备/道具修饰），缺省回退配置基准
                         const dodgeSpeed = (this.data && this.data.dodgeSpeed) || CONFIG.DODGE_SPEED;
                         const dnx = this.x + this.dodgeDirection.x * dodgeSpeed * 0.33 * dScale, dny = this.y + this.dodgeDirection.y * dodgeSpeed * 0.33 * dScale;
-                        const dr = WallSystem.resolve(this.x, this.y, dnx, dny, this.groundRadius, { segs: WallSystem.platformSegs });
+                        const dr = WallSystem.resolve(this.x, this.y, dnx, dny, this.groundRadius);
                         this.x = dr.x; this.y = dr.y;
                         // 主神空间：限制在场景范围内(0,0)-(WORLD_WIDTH,WORLD_HEIGHT)，其他场景保持大范围
                         if (SceneManager && SceneManager.currentScene === 'main') {
@@ -345,7 +345,7 @@ update(dt, entities) {
                         // 原有模式：直接位置设置 + WallSystem 碰撞解析
                         const mScale = dt / 1000;
                         const nx = this.x + this.vx * mScale, ny = this.y + this.vy * mScale;
-                        const resolved = WallSystem.resolve(this.x, this.y, nx, ny, this.groundRadius, { segs: WallSystem.platformSegs });
+                        const resolved = WallSystem.resolve(this.x, this.y, nx, ny, this.groundRadius);
                         // 墙壁碰撞音效：速度较大且位置被阻挡时
                         if ((Math.abs(this.vx) > 1.5 || Math.abs(this.vy) > 1.5) && (Math.abs(resolved.x - nx) > 1 || Math.abs(resolved.y - ny) > 1)) {
                             // SoundManager.play('wall_hit');

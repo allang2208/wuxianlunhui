@@ -11,6 +11,8 @@ GRADES = ["F", "E", "D", "C", "B", "A"]
 W, H = 640, 634
 SPACING = 38  # 柱距
 BAR_W = 24    # 复制宽度（略大于柱宽，含柱侧斜撑局部）
+SLOPE_DY = 19  # 栅栏柱沿墙坡线每 38px 左移下移 19px（斜率 -0.5，实测帧 0/1 恒定）：
+# 补柱必须同步下移，否则底部不落在同一坡线上（用户反馈"底部没形成水平线"，2026-08-16 二修）
 
 
 def left_first_bar(frame_img, run_min=200):
@@ -50,11 +52,11 @@ for grade in GRADES:
         if dst + BAR_W > W:
             continue
         # 复制 [p1, p1+BAR_W) 到 [dst, dst+BAR_W)
-        for y in range(H):
+        for y in range(H - SLOPE_DY):
             for i in range(BAR_W):
                 s = frame.getpixel((p1 + i, y))
                 if s[3] > 16:
-                    px[fx + dst + i, fy + y] = s
+                    px[fx + dst + i, fy + y + SLOPE_DY] = s
         pasted += 1
     img.save(path)
     print(f"{grade}: pasted {pasted} frames")

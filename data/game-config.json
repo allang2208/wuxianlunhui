@@ -130,6 +130,9 @@
       "width": 6144,
       "height": 4096,
       "background": "#0d1b0a",
+      "diamondFloor": {
+        "enabled": true
+      },
       "origin": {
         "x": 3072,
         "y": 2048
@@ -147,9 +150,9 @@
         },
         "exclude": {
           "baseRoom": [
-            308,
+            0,
             1712,
-            1492,
+            1124,
             2384
           ],
           "player": 160,

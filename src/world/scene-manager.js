@@ -293,7 +293,13 @@ export const SceneManager = {
     },
 
     _saveMainSceneState() {
-        this._mainEntities = new Map(Game.entities);
+        // 只保存主城实体；能源矿点等世界-122 专属实体绝不进入主城快照
+        // （2026-08-16：防止旧污染/错误时机把矿点带回主城，出现“家门口一堆矿”）
+        this._mainEntities = new Map();
+        for (const [k, e] of Game.entities) {
+            if (e && e._isEnergyNode) continue;
+            this._mainEntities.set(k, e);
+        }
         this._mainPlayerPos = Game.player ? { x: Game.player.x, y: Game.player.y } : null;
         // 注：树木/特效/相机不保存——树木按设计不恢复（主神空间障碍物已清除）；
         // 特效由各系统重建、相机在 _loadMainScene 重新 follow 玩家，保存是误导性死状态（2026-07-30 清理）
@@ -540,6 +546,11 @@ export const SceneManager = {
             // 主神空间使用固定大小，不随分辨率变化
             Renderer.generateWorld();
             Game.entities = this._mainEntities;
+            // 防御：主城快照若含矿点（旧版本污染），恢复时剔除——
+            // 能源矿点只能由世界-122 的 EnergyNodeSystem.setup 生成
+            for (const [k, e] of Array.from(Game.entities.entries())) {
+                if (e && e._isEnergyNode) Game.entities.delete(k);
+            }
             // 主神空间障碍物已全部移除（贴图删除后碰撞体积同步清除，不再恢复旧树木）
             if (WallSystem.trees && WallSystem.trees.length > 0) {
                 WallSystem.trees = [];
@@ -959,8 +970,17 @@ export const SceneManager = {
         CONFIG.WORLD_WIDTH = w;
         CONFIG.WORLD_HEIGHT = h;
 
+        // 菱形地块（地牢房间口径，2026-08-16 v1）：区外全黑，菱形内继续沼泽地砖循环铺贴；
+        // 默认内接全图（rx=w/2, ry=h/2），可在 game-config.json scenes.scene8.diamondFloor 覆盖
+        const diamondCfg = (scene && scene.diamondFloor) || {};
+        const diamond = diamondCfg.enabled === false ? null : {
+            cx: diamondCfg.cx ?? w / 2,
+            cy: diamondCfg.cy ?? h / 2,
+            rx: diamondCfg.rx ?? w / 2,
+            ry: diamondCfg.ry ?? h / 2,
+        };
         // 沼泽地砖（swampbrick_new1）：与 data/dungeon-config.json swampDungeon.floor 同款
-        // glow:false + overlapX:6/overlapY:3（自然材质平铺内缩，盖住锯齿缝隙），全场景平铺
+        // glow:false + overlapX:6/overlapY:3（自然材质平铺内缩，盖住锯齿缝隙），菱形内全场景平铺
         setDungeonFloorProfile({
             tiles: ['swampbrick_new1'],
             glow: false,
@@ -968,8 +988,9 @@ export const SceneManager = {
             overlapY: 3,
             backgroundColor: '#0d1b0a',
         });
-        // 分块惰性地板（2048² 按相机视口烘焙/卸载）：大地图不一次性占满显存
-        applyDungeonFloorChunked(w, h, 2048);
+        // 分块惰性地板（2048² 按相机视口烘焙/卸载）：大地图不一次性占满显存；
+        // 传 diamond 后每块按菱形裁剪烘焙（区外全黑）
+        applyDungeonFloorChunked(w, h, 2048, diamond);
 
         // 边界：不再画围墙（2026-08-14 用户要求）——保留隐形物理体阻挡走出地图，
         // 边界自然显示为地板分块的黑色渐变边缘（bakeDungeonFloorChunk 只在贴边块画渐变）
@@ -988,10 +1009,10 @@ export const SceneManager = {
         // 四边新掩体墙（h="\"/v="/"），face 线 40px 端帽叠合拼接，
         // 转角端帽互相叠盖；RB 边中点留居中门洞（配置见 DEFENSE_CONFIG.room）
 
-        // 玩家出生在基地房内左侧（基地 x=900；刷怪点全在右端尽头）
+        // 玩家出生在基地房内左下（基地 x=532；平台贴 TR 墙，出生点避开其通行区）
         if (player) {
-            player.x = 760;
-            player.y = 2048;
+            player.x = 450;
+            player.y = 2150;
             Game.entities.set('player', player);
             Camera.follow(player);
         }
@@ -1043,11 +1064,20 @@ export const SceneManager = {
         const x1 = b.x1 ?? ((scene && scene.width) ? scene.width - 150 : 3946);
         const y1 = b.y1 ?? ((scene && scene.height) ? scene.height - 196 : 3900);
         const ex = cfg.exclude || {};
-        const room = ex.baseRoom || [308, 1712, 1492, 2384];
+        const room = ex.baseRoom || [0, 1712, 1124, 2384];
         const rPlayer = ex.player ?? 160;
         const rNode = ex.energyNode ?? 140;
         const rSpawn = ex.spawnPoint ?? 130;
         const variants = ['tall', 'bushy', 'twin', 'wind', 'tiered'];
+        // 菱形地块（与 _loadScene8 同口径）：树只撒在菱形内，避免树长在区外黑地里
+        const diamondCfg = (scene && scene.diamondFloor) || {};
+        const dFloor = diamondCfg.enabled === false ? null : {
+            cx: diamondCfg.cx ?? scene.width / 2,
+            cy: diamondCfg.cy ?? scene.height / 2,
+            rx: diamondCfg.rx ?? scene.width / 2,
+            ry: diamondCfg.ry ?? scene.height / 2,
+        };
+        const inDiamond = (x, y) => !dFloor || (Math.abs(x - dFloor.cx) / dFloor.rx + Math.abs(y - dFloor.cy) / dFloor.ry <= 1);
         // 大能源点（2026-08-16）：按簇心整圈排除（spread + 节点半径 + 余量），
         // 树不会压进矿簇，避免玩家/矿工在树里采矿
         const nodeClusters = (ENERGY_CONFIG && ENERGY_CONFIG.clusters) || [];
@@ -1057,6 +1087,7 @@ export const SceneManager = {
         while (pieces.length < count && guard++ < count * 30) {
             const x = x0 + Math.random() * (x1 - x0);
             const y = y0 + Math.random() * (y1 - y0);
+            if (!inDiamond(x, y)) continue;
             const tex = 'obstacle_tree_' + variants[(Math.random() * variants.length) | 0];
             const geo = (typeof WallSystem._geoForTex === 'function') ? WallSystem._geoForTex(tex) : null;
             if (!geo) continue;

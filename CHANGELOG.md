@@ -1,4 +1,24 @@
 # 变更日志
+### 对话：删除基地预置射击台（2026-08-16）
+- **需求**：基地里的射击台先删除，不是很理想。
+- **实现**：移除 `_placeInitialPlatform` / `_placeInitialPlatformSafe` 及 init 调用——
+  基地不再自带平台，玩家可在 B 建筑面板自行放置（建造/贴墙吸附/单通道等逻辑保留）。
+- **验证**：CDP STATE count=0（无预置平台）、探针改为创建临时测试平台供几何用例，
+  全部通过；eslint 0 error + vite build ✓ + npm test 全绿。
+
+### 对话：射击台贴 TR 墙 + 基地左移贴左边界（2026-08-16）
+- **需求**：基地里的射击台紧贴右上墙；基地位置齐贴左上墙壁。
+- **基地**：`DEFENSE_CONFIG.base` x 900→532——菱形房左角（L）落在 x=20，TL 墙齐贴
+  左边界；同步：出生点 (760,2048)→(450,2150)（避开平台通行区）、树散布排除区
+  [308,1712,1492,2384]→[0,1712,1124,2384]（scene-manager 兜底 + data/public 双份
+  game-config.json）、能源禁矿带 baseExclusion x 900→532、仓鼠兵/射手兜底锚点同步。
+- **射击台预置**：`_placeInitialPlatform` 改为贴 TR 墙——平台右边 R→B（slope +0.50）
+  与 TR 墙 face 线平行对齐，实体（台阶入口）= 墙 face 中点 + 内侧法线 × 161.1
+  （与 building-system._snapPlatformToWall h 墙口径一致）；预置实体实测 (742,2014)。
+- **验证**：CDP LAYOUT——baseFlushLeft=true（L 角 x=20）、平台入口距 TR 墙几何中点
+  105px（face 线偏移内）、spawnClearOfPlatform=true；全套探针 + eslint + vite build +
+  npm test 全绿。
+
 ### 对话：上方怪物来袭倒计时加进度条——与仓鼠兵营同款（2026-08-16）
 - 需求：上方“怪物来袭倒计时”加进度条，实时刷新，采用与仓鼠兵营一模一样的设置。
 - 实现（`defense-system.js` 的顶部 HUD）：
@@ -49,9 +69,13 @@
   3600,900 / 3600,3200 / 4900,2048）内；git 历史无任何含这些坐标的配置。这些节点
   只能来自长会话的历史配置/HMR/并行 reset 造成的残留堆积（当前源码无法产生）。
 - **修复（双保险）**：
-  1. `EnergyNodeSystem.sweepStacked()`：运行时防叠图自愈——同位置（<60px）多节点
-     只保留第一个；GameScene.update 在世界-122 每 ~2s 调用一次（已加载场景也能自愈）；
-  2. setup 防御性清理保留：重进场景强制清空全部节点再铺 54 个（残留一并清除）。
+  1. `EnergyNodeSystem.sweepStacked()` 升级为**强制矿点审计**：① 不在任何当前簇
+     （spread+50 内）→ 残留节点一律删除；② 同位置（<60px）多节点只留第一个。
+     GameScene.update 在世界-122 每 ~1s 调用一次；实机验证注入用户实锤的全部残留
+     （(1324,2110)×3 + (2183,107)/(2137,199)/(3031,354)）→ 1s 内全清、总数回到 54；
+  2. setup 防御性清理保留：重进场景强制清空全部节点再铺 54 个；
+  3. `SceneManager._saveMainSceneState`/`_loadMainScene`：主城快照剔除 `_isEnergyNode`
+     （防矿点经保存/恢复被带回主城）。
 - **验证**：注入 (1324,2110)×3 → sweep 移除 2 留 1；残留清理 5→54；新场景 54 无叠图；
   test-party-system 268/268、eslint 0 error、vite build ✓。
 ### 对话：建筑详情面板交互调整——仅建设模式弹出 + 无视距离 + 左侧并排（2026-08-16）
