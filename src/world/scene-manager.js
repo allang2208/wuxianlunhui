@@ -11,7 +11,7 @@ import { EffectManager } from '../effects/effect-manager.js';
 import { SoundManager } from '../ui/sound-manager.js';
 import { getElement, getElementIfExists } from '../utils/dom-utils.js';
 import { TimerManager } from '../utils/timer-manager.js';
-import { setDungeonFloorProfile, applyDungeonFloor } from './dungeon-floor-texture.js';
+import { setDungeonFloorProfile, applyDungeonFloor, applyDungeonFloorChunked } from './dungeon-floor-texture.js';
 import { getWallPrefabLibrary, loadWallPrefabs, isWallPrefabsLoaded, loadObstacleLayout, getObstacleLayout, getWallGeoOverrides, isWallGeoOverridesLoaded } from './wall-prefabs.js';
 import { CONFIG } from '../config/config.js';
 import { TargetDummy } from '../entities/target-dummy.js';
@@ -21,6 +21,7 @@ import { SystemUI } from '../ui/system-ui.js';
 import { DefenseSystem, DEFENSE_CONFIG } from './defense-system.js';
 import { EnergyNodeSystem } from './energy-node-system.js';
 import { HamsterMinerSystem } from './hamster-miner-system.js';
+import { HamsterWarriorSystem } from './hamster-warrior-system.js';
 import { HamsterHutSystem } from './hamster-hut-system.js';
 import { ENERGY_CONFIG } from '../config/energy-config.js';
 import { BuildingSystem } from './building-system.js';
@@ -152,6 +153,10 @@ export const SceneManager = {
             if (HamsterMinerSystem && HamsterMinerSystem.active) {
                 HamsterMinerSystem.teardown();
             }
+            // 世界-122 仓鼠战士（玩家友方单位）随场景离场拆除
+            if (HamsterWarriorSystem && HamsterWarriorSystem.active) {
+                HamsterWarriorSystem.teardown();
+            }
             if (EffectManager && EffectManager.clearFloatingTexts) {
                 EffectManager.clearFloatingTexts();
             }
@@ -178,6 +183,9 @@ export const SceneManager = {
             if (Game._tacticalSquadAI) Game._tacticalSquadAI.clear();
             // 清除裂隙系统
             if (RiftSystem) RiftSystem.clear();
+
+            // 分块惰性地板只属于世界-122：离场统一清空，避免残留块覆盖其他场景
+            Renderer.terrainChunks = null;
 
             // 销毁无人机并触发CD
             if (player && player.droneSystem && player.droneSystem.active) {
@@ -946,10 +954,11 @@ export const SceneManager = {
         Camera.yLockedValue = 0;
 
         const scene = this.scenes.scene8;
-        // 直接用 scene8 自身尺寸（4096×4096），不走 _resolveWorldSize 的 world.default 覆盖
-        CONFIG.WORLD_WIDTH = scene.width;
-        CONFIG.WORLD_HEIGHT = scene.height;
-        const size = CONFIG.WORLD_WIDTH;
+        // 直接用 scene8 自身尺寸（6144×4096，2026-08-16 扩展），不走 _resolveWorldSize 覆盖
+        const w = scene.width;
+        const h = scene.height;
+        CONFIG.WORLD_WIDTH = w;
+        CONFIG.WORLD_HEIGHT = h;
 
         // 沼泽地砖（swampbrick_new1）：与 data/dungeon-config.json swampDungeon.floor 同款
         // glow:false + overlapX:6/overlapY:3（自然材质平铺内缩，盖住锯齿缝隙），全场景平铺
@@ -960,16 +969,17 @@ export const SceneManager = {
             overlapY: 3,
             backgroundColor: '#0d1b0a',
         });
-        applyDungeonFloor(size);
+        // 分块惰性地板（2048² 按相机视口烘焙/卸载）：大地图不一次性占满显存
+        applyDungeonFloorChunked(w, h, 2048);
 
         // 边界：不再画围墙（2026-08-14 用户要求）——保留隐形物理体阻挡走出地图，
-        // 边界自然显示为地板的黑色渐变边缘（bakeDungeonFloor 自带四周 FLOOR_EDGE_FADE）
-        WallSystem.init(size, size);
+        // 边界自然显示为地板分块的黑色渐变边缘（bakeDungeonFloorChunk 只在贴边块画渐变）
+        WallSystem.init(w, h);
         WallSystem.walls = [
-            { x: 0, y: 0, w: size, h: 20, noVisual: true },
-            { x: 0, y: size - 20, w: size, h: 20, noVisual: true },
-            { x: 0, y: 0, w: 20, h: size, noVisual: true },
-            { x: size - 20, y: 0, w: 20, h: size, noVisual: true },
+            { x: 0, y: 0, w, h: 20, noVisual: true },
+            { x: 0, y: h - 20, w, h: 20, noVisual: true },
+            { x: 0, y: 0, w: 20, h, noVisual: true },
+            { x: w - 20, y: 0, w: 20, h, noVisual: true },
         ];
         if (WallSystem._syncWallsToPhaser) {
             WallSystem._syncWallsToPhaser();
@@ -1007,6 +1017,9 @@ export const SceneManager = {
 
         // 世界-122 仓鼠矿工：玩家友方单位，自动找最近能源矿点采矿
         HamsterMinerSystem.setup(player);
+
+        // 世界-122 仓鼠战士：玩家友方单位，自动找最近敌人近战输出（帮助玩家攻击）
+        HamsterWarriorSystem.setup(player);
     },
 
     /**
@@ -1035,7 +1048,9 @@ export const SceneManager = {
         const rNode = ex.energyNode ?? 140;
         const rSpawn = ex.spawnPoint ?? 130;
         const variants = ['tall', 'bushy', 'twin', 'wind', 'tiered'];
-        const nodePos = (ENERGY_CONFIG && ENERGY_CONFIG.positions) || [];
+        // 大能源点（2026-08-16）：按簇心整圈排除（spread + 节点半径 + 余量），
+        // 树不会压进矿簇，避免玩家/矿工在树里采矿
+        const nodeClusters = (ENERGY_CONFIG && ENERGY_CONFIG.clusters) || [];
         const spawnPts = DEFENSE_CONFIG.spawnPoints || [];
         const pieces = [];
         let guard = 0;
@@ -1058,7 +1073,7 @@ export const SceneManager = {
                 if (fp.x < room[2] && fp.x + fp.w > room[0] && fp.y < room[3] && fp.y + fp.h > room[1]) continue;
             } else if (x > room[0] && x < room[2] && y > room[1] && y < room[3]) continue;
             if (player && Math.hypot(fx - player.x, fy - player.y) < rPlayer) continue;
-            if (nodePos.some((n) => Math.hypot(fx - n.x, fy - n.y) < rNode)) continue;
+            if (nodeClusters.some((c) => Math.hypot(fx - c.x, fy - c.y) < (c.spread ?? 150) + rNode)) continue;
             if (spawnPts.some((n) => Math.hypot(fx - n.x, fy - n.y) < rSpawn)) continue;
             // 树木间距仍按贴图锚点判定（视觉疏密），不影响碰撞排除
             if (pieces.some((q) => Math.hypot(x - q.x, y - q.y) < minDist)) continue;

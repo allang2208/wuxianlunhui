@@ -14,6 +14,7 @@ export const PartySystem = {
     _members: [],       // Companion[]
     _listeners: [],     // fn() 状态变化通知
     _maxSize: 4,
+    _selectedIds: [],   // 组队栏选中队员 id（点击选中 / Shift+点击多选；指令轮盘以此为目标）
     _roster: {},        // 已解锁队员档案库：archiveId → Companion.serialize()（移出后保留，再招募恢复）
     _aiFactories: {},   // archiveId → (companion) => CompanionAI（浏览器运行时由 Game 注册）
     _aiInstances: {},   // archiveId → CompanionAI 实例缓存
@@ -22,6 +23,7 @@ export const PartySystem = {
         this._maxSize = companionConfigData.maxPartySize || 4;
         this._members = [];
         this._listeners = [];
+        this._selectedIds = [];
         this._roster = {};
         this._aiFactories = {};
         this._aiInstances = {};
@@ -77,11 +79,55 @@ export const PartySystem = {
         if (i < 0) return false;
         const member = this._members[i];
         this._members.splice(i, 1);
+        // 移出队伍的队员同时退出选中（避免轮盘目标指向已离队单位）
+        const si = this._selectedIds.indexOf(companionId);
+        if (si >= 0) this._selectedIds.splice(si, 1);
         // 档案化：保留完整状态（等级/属性/装备/背包/技能），下次招募从档案恢复
         this._roster[companionId] = member.serialize();
         delete this._aiInstances[companionId];
         this._notify();
         return true;
+    },
+
+    /**
+     * 组队栏选中（2026-08-16）：点击名字=单选、Shift+点击=多选切换。
+     * 数据与 UI 解耦：PartyUI 渲染槽位高亮、CompanionCommandWheel 以此为目标、
+     * GameScene 按此高亮模型精灵。选中只作用于当前在队队员。
+     */
+    get selectedIds() {
+        // 惰性过滤：离队/失效的 id 不进入结果（removeCompanion 也会主动清理）
+        return this._selectedIds.filter(id => this._members.some(m => m.id === id));
+    },
+
+    isSelected(companionId) {
+        return this._selectedIds.includes(companionId)
+            && this._members.some(m => m.id === companionId);
+    },
+
+    /** 单选（或整体替换为给定集合） */
+    setSelected(ids) {
+        const list = (Array.isArray(ids) ? ids : [ids])
+            .filter(id => this._members.some(m => m.id === id));
+        const changed = list.length !== this._selectedIds.length
+            || list.some((id, idx) => this._selectedIds[idx] !== id);
+        this._selectedIds = list;
+        if (changed) this._notify();
+    },
+
+    /** Shift+点击：切换单个队员的选中状态 */
+    toggleSelected(companionId) {
+        if (!this._members.some(m => m.id === companionId)) return;
+        const idx = this._selectedIds.indexOf(companionId);
+        if (idx >= 0) this._selectedIds.splice(idx, 1);
+        else this._selectedIds.push(companionId);
+        this._notify();
+    },
+
+    /** 清空选中（点组队栏玩家槽位等） */
+    clearSelection() {
+        if (!this._selectedIds.length) return;
+        this._selectedIds = [];
+        this._notify();
     },
 
     /** 档案库（供存档系统持久化；serialize 与恢复接口预留） */

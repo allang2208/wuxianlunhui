@@ -485,7 +485,14 @@ export class CompanionAI {
         const cmd = c._command || null;
         if (cmd && cmd.mode && cmd.mode !== 'follow') {
             this._applyCommand(entities, player, cmd);
-            if (c._castState !== 'idle' || c._frozenForCast) c._animState = 'spell';
+            // 冻结中的动画保持：法师统一 spell；近战（伊莉丝）攻击/防御/风车由
+            // 各自状态机驱动（_tryMeleeAttack/_startDefend/_tryWhirlwind），不能
+            // 覆盖成 spell——否则命令态战斗中攻击动画被顶掉、渲染回落 idle
+            // （2026-08-16 实机采样 anim:'spell'+atkTimer 实锤）。
+            if (!(this.cfg.role || '').startsWith('melee')
+                && (c._castState !== 'idle' || c._frozenForCast)) {
+                c._animState = 'spell';
+            }
             return;
         }
         // 剑盾近战（伊莉丝）：独立状态机——防御 > 攻击 > 追击 > 跟随
@@ -639,6 +646,16 @@ export class CompanionAI {
         // 剑盾近战（伊莉丝）：指令走近战分支（aggressive/patrol 追击近战，gather 无远程回落跟随）
         if ((this.cfg.role || '').startsWith('melee')) {
             this._applyWarriorCommand(entities, player, cmd);
+            return;
+        }
+        // 待命：立即打断施法/硬直并站定（否则要等当前动画播完才生效，观感“命令没执行”）
+        if (cmd.mode === 'hold') {
+            c._castState = 'idle'; c._frozenForCast = false; c._castTimer = 0;
+            this._pendingRelease = null; this._castDuration = 0; this._castRecoverTimer = 0;
+            c.target = null; c._tacticalTarget = null;
+            if (c._pathManager) c._pathManager._clearPath();
+            this._setMoveState('idle');
+            c.vx = 0; c.vy = 0; c.isMoving = false;
             return;
         }
         // 施法锁定中不打断
@@ -963,9 +980,24 @@ export class CompanionAI {
         }
     }
 
-    /** 剑盾近战指令：aggressive 全图追击；patrol 圈内反击/游走；hold 待命；gather 回落跟随 */
+    /** 剑盾近战指令：aggressive 全图追击；patrol 圈内反击/游走；hold 待命；gather 近战采集 */
     _applyWarriorCommand(entities, player, cmd) {
         const c = this.c;
+        // 待命：立即打断攻击/防御/风车并站定（否则要等 1.5~3s 动画播完才生效）
+        if (cmd.mode === 'hold') {
+            this._meleeAtkTimer = 0; this._meleeHitDone = false;
+            this._defendPhase = null; this._defendTimer = 0;
+            c._defendPhase = null; c._defending = false;
+            this._whirlwindHitSet = null; this._whirlwindTimer = 0;
+            c._castState = 'idle'; c._frozenForCast = false; c._castTimer = 0;
+            this._pendingRelease = null; this._castDuration = 0; this._castRecoverTimer = 0;
+            c.target = null; c._tacticalTarget = null;
+            if (c._pathManager) c._pathManager._clearPath();
+            this._setMoveState('idle');
+            c.vx = 0; c.vy = 0; c.isMoving = false;
+            c._animState = 'idle';
+            return;
+        }
         if (c._castState !== 'idle' || c._frozenForCast) return; // 攻击/防御锁定中
         this._setMoveState('idle');
         c.vx = 0; c.vy = 0; c.isMoving = false;
@@ -974,10 +1006,57 @@ export class CompanionAI {
             case 'hold': c.target = null; break;
             case 'aggressive': this._cmdWarriorAggressive(entities, player, null); break;
             case 'patrol': this._cmdWarriorAggressive(entities, player, cmd); break;
-            case 'gather':
+            case 'gather': this._cmdWarriorGather(entities, player, cmd); break;
             default: this._cmdFollowOnly(player); break;
         }
         if (c.target) c.rotation = Math.atan2(c.target.y - c.y, c.target.x - c.x);
+    }
+
+    /**
+     * 剑盾近战采集（2026-08-16）：走到距指令点最近的能源点，进近战范围后普通攻击
+     * 挥砍采集（伤害 = atk×1.25，走 _dealMeleeHit 同口径）；袋满回玩家移交。
+     * 此前 gather 对近战直接回落跟随（只写了远程弹体采集），伊莉丝“采集不执行”根因。
+     */
+    _cmdWarriorGather(entities, player, cmd) {
+        const c = this.c;
+        // 袋满 → 回玩家移交（与远程采集同口径）
+        if (this._gatherPhase === 'return') {
+            const d = Math.hypot(player.x - c.x, player.y - c.y);
+            if (d <= CMD_GATHER_TRANSFER_RANGE) {
+                this._transferEnergyToPlayer(player);
+                return;
+            }
+            c._tacticalTarget = this._followPoint(player);
+            this._setMoveState('run');
+            return;
+        }
+        // 找资源点：优先距指令点最近，否则距玩家最近；无节点回落跟随
+        const nodes = [];
+        for (const e of (entities && entities.values ? entities.values() : (entities || []))) {
+            if (e && e._isEnergyNode && e.active && !e._depleted) nodes.push(e);
+        }
+        const ref = cmd.point || player;
+        const node = pickNearestNode(nodes, ref) || pickNearestNode(nodes, player);
+        if (!node) {
+            this._cmdFollowOnly(player);
+            return;
+        }
+        c.target = node;
+        const d = Math.hypot(node.x - c.x, node.y - c.y);
+        const meleeRange = (this.cfg.meleeRange || 165) + (node.groundRadius || 20);
+        if (d > meleeRange) {
+            c._tacticalTarget = { x: node.x, y: node.y };
+            this._setMoveState(this._shouldRun(d, 'follow') ? 'run' : 'walk');
+            return;
+        }
+        // 近战范围内：攻击冷却好就挥砍；冷却中贴脸站定
+        if (this._basicAtkCd <= 0) {
+            this._tryMeleeAttack(node);
+            return;
+        }
+        c._tacticalTarget = null;
+        c.vx = 0; c.vy = 0; c.isMoving = false;
+        c._animState = 'idle';
     }
 
     /** 主动攻击/巡逻：追击最近敌人近战；防御条件满足仍优先举盾 */
@@ -1256,6 +1335,19 @@ export class CompanionAI {
         if (d > range + 20) return; // 目标走出范围：空挥
         const dmg = Math.max(1, Math.floor((c.data.atk || 0) * (this.cfg.attackDamageMul || 1.25)));
         if (typeof t.takeDamage === 'function') t.takeDamage(dmg, c, 'physical');
+        // 普通攻击眩晕：与玩家近战一段同口径（attackStunMs，默认 1000ms，
+        // 对应 public/data/weapon-anim-config.json sword.attack.hitCheck.stunMs），
+        // 仅普通类型怪物有效（rank 缺省视为 normal，精英/领主/minor 不受影响）
+        if (typeof t.applyStun === 'function' && (this.cfg.attackStunMs || 0) > 0
+            && (t.rank || 'normal') === 'normal') {
+            t.applyStun(this.cfg.attackStunMs);
+        }
+        // 击退：与玩家近战一段同口径（attackKnockback，默认 50px），径向击退
+        // （玩家近战击退不区分怪类型，与眩晕仅普通怪的守卫分开）
+        const kb = this.cfg.attackKnockback || 0;
+        if (kb > 0 && typeof t.applyKnockback === 'function') {
+            t.applyKnockback(Math.atan2(t.y - c.y, t.x - c.x), kb);
+        }
         // 剑精通修炼：命中 +hit，击杀 +kill（与玩家 addMeleeExp 同 expRewards）
         const sm = c.skills && c.skills.swordMastery;
         if (sm) {

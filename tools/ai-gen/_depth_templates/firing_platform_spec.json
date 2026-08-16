@@ -1,0 +1,13 @@
+{
+  "elevation": 30,
+  "azimuth": 0,
+  "primitives": [
+    {"type": "box", "size": [340, 30, 26], "pos": [0, -84, 13], "rot": [0, 0, 44.8], "bevel": 4, "material": "wall", "soil": {"count": 10, "seed": 11}},
+    {"type": "box", "size": [340, 30, 8],  "pos": [0, -84, 30], "rot": [0, 0, 44.8], "bevel": 2, "material": "light"},
+    {"type": "box", "size": [340, 30, 26], "pos": [0, -54, 43], "rot": [0, 0, 44.8], "bevel": 4, "material": "wall"},
+    {"type": "box", "size": [340, 30, 8],  "pos": [0, -54, 60], "rot": [0, 0, 44.8], "bevel": 2, "material": "light"},
+    {"type": "box", "size": [340, 30, 26], "pos": [0, -24, 73], "rot": [0, 0, 44.8], "bevel": 4, "material": "wall"},
+    {"type": "box", "size": [340, 30, 8],  "pos": [0, -24, 90], "rot": [0, 0, 44.8], "bevel": 2, "material": "light"},
+    {"type": "box", "size": [340, 84, 102], "pos": [0, 28, 51], "rot": [0, 0, 44.8], "bevel": 10, "bevelSegments": 3, "soil": {"count": 14, "seed": 23}, "material": "wall"}
+  ]
+}

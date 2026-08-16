@@ -84,6 +84,7 @@
 - 世界-122 迭代沉淀（2026-08-15：塔死角排查/塔整塔命中+悬停轮廓+神经芯片面板/基地退回/树木散布）
 - 防御塔升级重构——六维芯片取代等级（2026-08-16：武器↔主属性挂钩、伤害实时公式、费用逐级递增、面板武器贴图；二轮重新引入改造模块图标卡）
 - 世界-122 相机默认恒居玩家中央（2026-08-16：非瞄准钉玩家/瞄准才偏移；相机平滑拖尾修复）
+- 世界-122 扩展：6144×4096 / 分块惰性地板 / 大能源点簇 / 基地门可攻击（2026-08-16）
 - 后续打磨方向（未做）
 
 **8. AI 寻路、碰撞与移动**
@@ -91,6 +92,7 @@
 - 寻路性能优化（2026-08-03 落地，改寻路代码前必读）
 - 大场景 AI 索敌 + 寻路（2026-08-08 定稿，世界-122 驱动、机制全局生效）
 - 防守怪物 A 移动 + 全局移速倍率（2026-08-15：交战半径沿途攻击/脱离滞回/免滞回转火；enemyDefaults.globalSpeedMultiplier）
+- 防守怪目标分摊（拥挤感知，2026-08-16：真射程保持/可达过滤/防 ping-pong）
 - 常见陷阱：isReachable 步数限制导致路径计算失败
 - 伪 3D 碰撞重构记录（进行中）
 - 树木碰撞体优化（大怪物卡树问题）
@@ -1433,6 +1435,17 @@ defend 持盾帧右偏 13px。**结论：武器弧远超身体宽的动作，格
 render-factory-real.py 的 cylinder 图元（放倒半圆柱，显式实心端盖 + UV + 法线一致化）、
 spec.lighting / roof / lid 材质。教训：核心视觉反复不满时，及时退回原版，管线能力保留
 供后续其他道具复用，不为单个资产无限内耗。
+
+**仓鼠兵营（2026-08-16，黑砖兵营案例）**：**世界-122 建筑一律 elevation 30 + rot.z 44.8**
+（与掩体/工厂/防御塔同口径菱形接地线，勿用仓鼠小屋的 rot 0 正面版——用户验收口径）。
+主体 box 260×150×90 + 坡屋顶 prism 280×170×68 + 四角细长塔台（前 36×36×175、后 36×36×190），
+所有图元 rot [0,0,44.8]；前突件（门/窗/塔）按坑②补偿 `lx' = lx + ly·tan(44.8°)`
+（前塔 -205.5/70.5、后塔 -18.5/153.5、门 -77.4、窗 -128.4/-24.4），保证屏幕投影对称。
+黑砖贴图走 `comfyui-gen.py --host 192.168.3.142 --model flux2-klein-4b-walltex`
+（1024×656，seed 固定，暗色 36.5 / 白边 0% / 砖格 FFT 峰强），入库
+`assets/terrain/hamster_barracks.png`（598×681，footOffsetY≈340）。
+投影坑：前塔尖顶（z 高于屋脊但 y 更靠前）会被屋顶前坡遮挡——2.5D 前低后高投影下，
+「塔顶高于屋脊」≠「屏幕上高于屋脊」，塔台做平顶最稳。
 
 ---
 
@@ -4865,6 +4878,27 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
 
 ---
 
+### 世界-122 扩展 + 分块地板 + 大能源点 + 基地门可攻击（2026-08-16 定稿）
+- **地图 4096² → 6144×4096**：scene8 width/height + origin(3072,2048)，data 与 public/data 双份同步；
+  刷怪点重排 9 点多路线（右端 7 + 中距 2），`spawn.alertRange 3800→6200`（最远刷怪点距基地 5240）；
+  `_loadScene8` 边界墙按宽高分开（勿退回正方形假设）。
+- **地板分块惰性加载（方案 B）**：`applyDungeonFloorChunked(w,h,2048)` 注册 `Renderer.terrainChunks`；
+  `bakeDungeonFloorChunk` 用**确定性种子按全局行列网格**烘焙（同一 (row,col) 永远同砖，跨块无缝），
+  边缘渐隐只在贴地图边界的块上画；GameScene `_updateTerrainChunks` 按相机视口+320px
+  每帧最多烘焙 1 块、远离 900px 连同纹理卸载（常驻显存 2~4×16MB）。
+  ⚠ 坑：切分块模式必须**先销毁旧 terrain 精灵再删纹理**——否则精灵引用已删纹理，
+  Phaser TexturerImage 崩 `frame.source null / reading 'resolution'`（2026-08-16 真机踩过）；
+  switchScene 离场统一 `Renderer.terrainChunks = null`，其他场景 floor applier 也清。
+- **大能源点（簇状）**：`ENERGY_CONFIG.clusters` 4 簇 × 12~14 块（簇心/数量/spread 配置），
+  `EnergyNodeSystem.setup` 均匀圆盘 + 最小间距 85 生成；`baseExclusion {900,2048,800}`
+  基地 800px 禁矿带；树散布按「簇心 ±(spread+140)」整圈排除（勿改回逐点 positions）。
+- **树木间距**：treeScatter.minDist 95→150（6144 地图 100 棵，候选拒绝 40~50 次属正常）。
+- **基地门可攻击**：基地门由 `{...CoverGate}` 换成 `BuildableGate`（Combatant）——有 hp /
+  沉陷死亡 / 建筑面板详情（常锁/常开/修理），与玩家建造门完全同构；face 线几何公式一致；
+  摧毁后门段移除、通道永久打开（`_teardownCollision` + BuildingSinkEffect 接管三段精灵）。
+- **门面板点击入口**：game.js 点击分发接 `BuildingSystem.tryInteract`（掩体/门自动开面板进详情，
+  260px 交互距离；B 面板已打开时仍走 BuildingSystem._onMouseDown）。
+
 ### 后续打磨方向（未做）
 - 波次/Boss 波/经济平衡数值；塔血量被摧毁后重建/出售；怪物分路（多入口）与减速/范围塔；
   塔面板换弹/弹药显示；防守胜利结算（撑过 N 波）；**防御塔机械臂上的武器贴图挂载渲染**
@@ -5106,6 +5140,22 @@ if (enemy._pathManager) {
   浅拷贝 config 同步 config.speed（time-agent 运行时回读路径，不污染 enemyConfigData 单例）；
   冲锋/扑击/lunge 攻击位移与击退不在本链路，祭品减速（getTributeMonsterMoveSlowMul）独立叠加。
 - 契约测试：`scripts/test-monster-speed.mjs`（数据契约 + 源码接线，防接线被改没）。
+
+### 防守怪目标分摊（拥挤感知，2026-08-16 定稿）
+- 问题：大量怪锁同一结构，攻击距离内站不下，其余在墙前**原地踏步发呆**（只有 2~3 只能打）。
+  方案：`src/ai/defense-targeting.js` 纯函数——按「结构同时攻击上限」（基地 6 / 塔 2 /
+  掩体门默认 3，`_attackSlots` 覆盖）统计占用，候选仅 420px 内且**视线可达**（忽略候选自身
+  面线/门段，与 CombatSystem/感知 LOS 同口径），选「未超上限且最近」。
+- ⚠ 关键判定：**保持目标必须用 `distanceToEntityShape ≤ 攻击距离`**（与 CombatSystem 同口径）——
+  中心距离+120 会把墙后 120~220px 的怪误判「够得着」导致不换目标（真实 bug，2026-08-16 修）。
+- 感知层 `_findBetterTarget`：只有分摊**真返回了不同的可达目标**（`pickedDifferent`）才免
+  1.3× 滞回（`structOver`/`structUnreachable`）——否则远处赶路每 500ms 在基地/掩体间
+  ping-pong（已修；仿真 30s 每只换目标 1~7 次）。
+- **过门追击（_gatePursuit）**：卡住转火掩体/门与感知 bypass 全部 `!enemy._gatePursuit` 守卫——
+  被关在门内保持原追击目标，目标丢失/失效才由感知正常重选。
+- 性能：占用表 1.2µs、分摊 0.7µs/次（含 LOS），40 怪全量 ≈ 0.06% 帧预算；`_cellMemo` 上限 100000。
+- 回归：`scripts/test-defense-targeting.mjs`（19 项）+ `tools/sim-defense-crowd.mjs`（真模块仿真）
+  + `tools/perf-defense-targeting.mjs`（性能基准）。
 
 ---
 
@@ -5705,6 +5755,16 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
   档案恢复后 aiRole 正确、命令照常执行；战斗动作（攻击/防御/风车/施法/跟随/撤退）
   由 cdp-elise-ai / cdp-luna-ai 复核通过。审计用例记得开敌人屏蔽器
   （主城野怪会随时间刷出干扰）。
+- **选中光圈（2026-08-16）**：填充 alpha 0.15 / 边缘 strokeAlpha 1.0；深度 =
+  **该成员精灵 − 0.1**（与阴影同口径）——AI 队员贴图深度由 `_updateDynamicDepths`
+  按世界 Y 每帧仲裁，光圈必须在仲裁段精灵 setDepth 后同帧覆盖（`_showSelectionRing`
+  里读上一帧深度只是兜底），否则玩家/队友纵向移动后光圈会盖到贴图上。
+  探针：`tools/cdp-ring-check.mjs`（参数 + 深度跟随 + Y 移动同步）。
+- **队友采集直接入包（2026-08-16）**：`Companion.addMinedEnergy(amount)`（并入
+  背包能源堆 ≤999 / 开新堆 / 满包拒绝）；`EnergyNode.takeDamage` 只要
+  `source.addMinedEnergy` 存在就**直接装包不落地**（队友与仓鼠矿工同口径，玩家仍
+  地面掉落）；满 999 走既有 return→移交链路。探针 `tools/cdp-party-gather-backpack.mjs`
+  （露娜 +24 / 伊莉丝 +12 直接入包、0 地面掉落）。
 - 升级经验唯一入口：击杀结算（damageable-entity）→ `PartySystem.grantCombatExp`；无野外经验。
 - 物品转移 `slot` 必须最后写（`{...item, slot: targetSlot}`——源 item 自带 slot 字段，
   spread 会覆盖目标槽位，实机抓出）。
@@ -5837,6 +5897,10 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
 
 ## 侍从战斗 AI（CompanionAI，2026-08-14，远程法师露娜）
 
+- **伊莉丝普攻命中（2026-08-16）**：`_dealMeleeHit` 追加眩晕 + 击退——`attackStunMs`
+  （默认 1000，与玩家近战一段同口径，仅普通怪 rank 缺省 normal）+ `attackKnockback`
+  （默认 50，径向，全类型）；配置在 `data/companion-config.json` warrior_bruno ai 块，
+  契约断言在 `scripts/test-party-system.mjs`。
 - **架构**：`src/ai/companion-ai-decision.js`（零依赖纯函数：`decideCompanionAction`
   状态机 + `pickCompanionSpell` 技能选择，可单测）→ `src/ai/companion-ai.js`
   （CompanionAI 运行时：决策 tick 120ms + 每帧移动/施法推进）。

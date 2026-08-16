@@ -109,6 +109,166 @@ function _drawIsoLayer(ctx, tiles, w, h, overlapX = 0, overlapY = 0) {
     }
 }
 
+/** 确定性伪随机（mulberry32）：同一 (row, col) 永远得到同一块砖选择/镜像，
+ *  保证分块烘焙的各块在相同全局网格坐标下图案一致、跨块无缝。 */
+function _seededRand(seed) {
+    let s = seed >>> 0;
+    return function () {
+        s = (s + 0x6D2B79F5) >>> 0;
+        let t = s;
+        t = Math.imul(t ^ (t >>> 15), t | 1);
+        t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+}
+
+function _collectTiles(profile) {
+    const tiles = [];
+    for (const key of profile.tiles) {
+        const img = _getSourceImage(key);
+        if (img) tiles.push({ key, img, geo: _getTileGeometry(key, img) });
+        else console.warn('[DungeonFloor] 地砖纹理缺失（已从池中剔除）:', key);
+    }
+    return tiles;
+}
+
+/** 分块等距平铺：按「全局行/列网格」绘制，块偏移 (ox,oy) 只做平移——
+ *  相邻块在同一全局网格上取同一种子，砖纹/镜像完全一致，跨块无缝。 */
+function _drawIsoLayerChunk(ctx, tiles, ox, oy, w, h, overlapX = 0, overlapY = 0) {
+    const ref = tiles[0];
+    const stepX = ref.geo.w - overlapX;
+    const stepY = ref.geo.h / 2 - overlapY;
+    const startRow = Math.floor((oy - stepY) / stepY) - 1;
+    const endRow = Math.ceil((oy + h + stepY) / stepY) + 1;
+    for (let r = startRow; r < endRow; r++) {
+        const offsetX = (r % 2 !== 0) ? stepX / 2 : 0;
+        const gy = r * stepY;
+        const kStart = Math.floor((ox - offsetX - stepX) / stepX) - 1;
+        const kEnd = Math.ceil((ox + w - offsetX + stepX) / stepX) + 1;
+        for (let k = kStart; k < kEnd; k++) {
+            const rand = _seededRand(((r * 73856093) ^ (k * 19349663) ^ 0x5f356495) >>> 0);
+            const tile = tiles[Math.floor(rand() * tiles.length)];
+            const fx = rand() < 0.5 ? -1 : 1;
+            const fy = rand() < 0.5 ? -1 : 1;
+            ctx.save();
+            ctx.translate(k * stepX + offsetX - ox, gy - oy);
+            ctx.scale(fx, fy);
+            ctx.drawImage(tile.img, -tile.geo.cx, -tile.geo.cy);
+            ctx.restore();
+        }
+    }
+}
+
+/**
+ * 烘焙单块地板（2048² 分块惰性加载用）。
+ * 只在地图边界上的块，其对应外侧边叠加黑色渐隐（FLOOR_EDGE_FADE）。
+ * @param {number} ox 块世界坐标 X（左上角）
+ * @param {number} oy 块世界坐标 Y（左上角）
+ * @param {number} cw 块宽
+ * @param {number} ch 块高
+ * @param {number} mapW 地图宽
+ * @param {number} mapH 地图高
+ * @param {object} [fallbackTerrain] 贴图缺失时的网格回退样式
+ * @returns {HTMLCanvasElement}
+ */
+export function bakeDungeonFloorChunk(ox, oy, cw, ch, mapW, mapH, fallbackTerrain) {
+    const canvas = document.createElement('canvas');
+    canvas.width = cw;
+    canvas.height = ch;
+    const ctx = canvas.getContext('2d');
+    const profile = _getProfile();
+    ctx.fillStyle = profile.backgroundColor || '#000000';
+    ctx.fillRect(0, 0, cw, ch);
+    const tiles = _collectTiles(profile);
+    if (tiles.length > 0) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(0, 0, cw, ch);
+        ctx.clip();
+        _drawIsoLayerChunk(ctx, tiles, ox, oy, cw, ch, profile.overlapX ?? 0, profile.overlapY ?? 0);
+        if (profile.glow !== false) {
+            const glowTiles = [];
+            for (const t of tiles) {
+                const img = _getSourceImage(t.key + '_glow');
+                if (img) glowTiles.push({ key: t.key, img, geo: _getTileGeometry(t.key + '_glow', img) });
+            }
+            if (glowTiles.length > 0) {
+                ctx.globalCompositeOperation = 'lighter';
+                _drawIsoLayerChunk(ctx, glowTiles, ox, oy, cw, ch, profile.overlapX ?? 0, profile.overlapY ?? 0);
+                ctx.globalCompositeOperation = 'source-over';
+            }
+        }
+        ctx.restore();
+        // 边缘渐隐：仅贴地图边界的外侧边（内部块无渐变，跨块衔接干净）
+        const fade = FLOOR_EDGE_FADE;
+        if (oy <= 0) {
+            const g = ctx.createLinearGradient(0, 0, 0, fade);
+            g.addColorStop(0, 'rgba(0,0,0,1)');
+            g.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.fillStyle = g;
+            ctx.fillRect(0, 0, cw, fade);
+        }
+        if (oy + ch >= mapH) {
+            const g = ctx.createLinearGradient(0, ch - fade, 0, ch);
+            g.addColorStop(0, 'rgba(0,0,0,0)');
+            g.addColorStop(1, 'rgba(0,0,0,1)');
+            ctx.fillStyle = g;
+            ctx.fillRect(0, ch - fade, cw, fade);
+        }
+        if (ox <= 0) {
+            const g = ctx.createLinearGradient(0, 0, fade, 0);
+            g.addColorStop(0, 'rgba(0,0,0,1)');
+            g.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.fillStyle = g;
+            ctx.fillRect(0, 0, fade, ch);
+        }
+        if (ox + cw >= mapW) {
+            const g = ctx.createLinearGradient(cw - fade, 0, cw, 0);
+            g.addColorStop(0, 'rgba(0,0,0,0)');
+            g.addColorStop(1, 'rgba(0,0,0,1)');
+            ctx.fillStyle = g;
+            ctx.fillRect(cw - fade, 0, fade, ch);
+        }
+    } else {
+        const tc = fallbackTerrain || DEFAULT_FALLBACK_TERRAIN;
+        ctx.fillStyle = tc.floorColor;
+        ctx.fillRect(0, 0, cw, ch);
+        ctx.strokeStyle = tc.gridColor;
+        ctx.lineWidth = 1;
+        for (let bx = ox % tc.gridSize; bx < cw; bx += tc.gridSize) {
+            ctx.beginPath(); ctx.moveTo(bx, 0); ctx.lineTo(bx, ch); ctx.stroke();
+        }
+        for (let by = oy % tc.gridSize; by < ch; by += tc.gridSize) {
+            ctx.beginPath(); ctx.moveTo(0, by); ctx.lineTo(cw, by); ctx.stroke();
+        }
+        ctx.strokeStyle = tc.edgeHighlight;
+        ctx.lineWidth = 2;
+        ctx.strokeRect(0, 0, cw, ch);
+    }
+    return canvas;
+}
+
+/**
+ * 分块惰性地板：注册地形为「2048² 块集合」，由 GameScene 按相机视口按需烘焙/卸载。
+ * 单张全图纹理（terrainTexture）置空，避免大地图一次性 96MB+ 显存。
+ * @param {number} width 世界宽
+ * @param {number} height 世界高
+ * @param {number} [chunkSize=2048] 块边长
+ */
+export function applyDungeonFloorChunked(width, height, chunkSize = 2048) {
+    if (CONFIG) {
+        CONFIG.WORLD_WIDTH = width;
+        CONFIG.WORLD_HEIGHT = height;
+    }
+    if (Renderer) {
+        Renderer.terrainTexture = null;
+        Renderer.terrainChunks = { chunkSize, mapW: width, mapH: height };
+    }
+    if (typeof window !== 'undefined' && window.__phaserScene && typeof window.__phaserScene.syncTerrain === 'function') {
+        window.__phaserScene.syncTerrain();
+    }
+}
+
 /** 取当前地板配置（外部只读：门外白区等需要跟随当前地牢地砖的场景用） */
 export function getDungeonFloorProfile() {
     return _getProfile();
@@ -300,6 +460,7 @@ export function applyDiamondFloor(width, height, cx, cy, rx, ry, fallbackTerrain
     }
     if (Renderer) {
         Renderer.terrainTexture = canvas;
+        Renderer.terrainChunks = null; // 离开分块模式
     }
     if (typeof window !== 'undefined' && window.__phaserScene && typeof window.__phaserScene.syncTerrain === 'function') {
         window.__phaserScene.syncTerrain();
@@ -429,6 +590,7 @@ export function applyArenaFloor(width, height, diamonds, corridors = [], patches
     }
     if (Renderer) {
         Renderer.terrainTexture = canvas;
+        Renderer.terrainChunks = null; // 离开分块模式
     }
     if (typeof window !== 'undefined' && window.__phaserScene && typeof window.__phaserScene.syncTerrain === 'function') {
         window.__phaserScene.syncTerrain();
@@ -451,6 +613,7 @@ export function applyDungeonFloor(size, fallbackTerrain) {
     // 应用到渲染器
     if (Renderer) {
         Renderer.terrainTexture = canvas;
+        Renderer.terrainChunks = null; // 离开分块模式
     }
     if (typeof window !== 'undefined' && window.__phaserScene && typeof window.__phaserScene.syncTerrain === 'function') {
         window.__phaserScene.syncTerrain();

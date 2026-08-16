@@ -605,8 +605,13 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
 
                 // [DEFENSE] 被掩体墙挡住且当前目标够不着时，主动转火挡路的掩体
                 // （不等感知 500ms 重扫 + 1.3× 滞回；掩体摧毁后走正常重选）
-                if (enemy._defenseMonster) {
+                // [GATE-PURSUIT] 过门追击中（_gatePursuit）不转火——被关在门内也要
+                // 保持原追击目标，只有目标丢失/失效才由感知层正常重选（2026-08-16）
+                if (enemy._defenseMonster && !enemy._gatePursuit) {
                     this._retargetBlockingCover(enemy);
+                    // [DEFENSE-GATE] 关着的铁栅栏门前等待（waitAtGate）且门可攻击 →
+                    // 直接转火门实体（BuildableGate 有 hp；普通门闸 WallGate 无 hp 不受影响）
+                    if (waitAtGate) this._retargetBlockingGate(enemy);
                 }
             }
 
@@ -744,6 +749,35 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
             if (d <= touch && d < bestD) {
                 bestD = d;
                 best = owner;
+            }
+        }
+        if (best) {
+            enemy.target = best;
+            enemy._lastKnownTargetPos = { x: best.x, y: best.y };
+            enemy._lostSightTimer = 0;
+        }
+    },
+
+    /**
+     * [DEFENSE-GATE] 门口等待时若挡路的是可攻击铁栅栏门（_isCoverGate），
+     * 主动转火门实体——BuildableGate 继承 Combatant（有 hp/伤害接口，可被怪物
+     * 攻击、玩家修理），否则怪会在关着的门口无限站桩不打（2026-08-16）。
+     * 与 _retargetBlockingCover 同口径：扫贴身门洞段 → 回链门实体。
+     * @param {Enemy} enemy
+     */
+    _retargetBlockingGate(enemy) {
+        if (!Game || !Game.entities) return;
+        // 当前目标已在攻击距离内（正在打/马上能打）时不抢目标
+        if (enemy.target && enemy.target.active && enemy.target._isCoverGate) return;
+        const touch = (enemy.groundRadius || 20) + 26 + 12; // 半径 + 墙半厚 + 余量
+        let best = null, bestD = Infinity;
+        for (const e of Game.entities.values()) {
+            if (!e || !e._isCoverGate || !e.active || e.hp <= 0 || !e._gateSeg) continue;
+            const s = e._gateSeg;
+            const d = this._pointSegDistance(enemy.x, enemy.y, s.x1, s.y1, s.x2, s.y2);
+            if (d <= touch && d < bestD) {
+                bestD = d;
+                best = e;
             }
         }
         if (best) {

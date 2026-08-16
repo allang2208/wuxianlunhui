@@ -7,6 +7,7 @@ import { Player } from './player.js';
 import { nowMs } from './player/anim-state.js';
 import { PoisonEffect } from '../effects/poison-effect.js';
 import { EnemyFSM } from '../ai/enemy-fsm.js';
+import { pickStructureTarget } from '../ai/defense-targeting.js';
 import aiConfigData from '../../data/ai-config.json';
 import { getTributeMonsterMoveSlowMul } from '../config/tribute-effects.js';
 import { COMBAT_CONFIG } from '../config/combat-config.js';
@@ -372,6 +373,11 @@ import { loadImage } from '../utils/image-loader.js';
                     }
                 }
                 if (defenseMode && !nearestPlayer && nearestStructure) {
+                    // 拥挤感知（2026-08-16）：大量怪挤同一结构时，把溢出怪分摊到
+                    // 附近低占用的第二结构（基地/掩体/塔），避免射程外聚集发呆；
+                    // 无候选时回退最近结构（保持旧行为）。
+                    const pick = pickStructureTarget(this, arr);
+                    if (pick) return { entity: pick.target, distance: pick.dist };
                     return { entity: nearestStructure, distance: structureDist };
                 }
                 return { entity: nearestPlayer, distance: nearestDist };

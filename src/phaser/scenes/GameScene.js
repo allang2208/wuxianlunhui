@@ -13,6 +13,7 @@ import { WallGate } from '../../world/wall-gate.js';
 import { ChestRoomSystem } from '../../world/chest-room-system.js';
 import { Renderer } from '../../world/renderer.js';
 import { MapGenerator } from '../../world/map-generator.js';
+import { bakeDungeonFloorChunk } from '../../world/dungeon-floor-texture.js';
 import { WeaponTransform } from '../../combat/weapon-transform.js';
 import { SwordArcTrail } from '../../effects/sword-arc-trail.js';
 import { getWeaponTextureKey } from '../../config/weapon-texture-map.js';
@@ -63,6 +64,7 @@ export class GameScene extends Scene {
         this._weaponBlurFilter = null; // 武器真实模糊（Phaser 4 Blur 滤镜控制器，逐帧更新 strength）
         this._weaponBlurDisabled = false; // 运动模糊禁用标记（超大贴图 / WebGL context lost 后置位，防 Framebuffer 崩溃）
         this._companionSprites = {}; // 侍从跟随渲染：memberId → Phaser Sprite
+        this._selectionRings = {};   // 组队栏选中光圈：memberId → Phaser Ellipse（金色脚下光圈）
         // WebGL context lost 后禁用模糊：Phaser 会自动恢复渲染器，但失效帧缓冲可能反复触发 Framebuffer Unsupported
         if (this.game && this.game.canvas && typeof window !== 'undefined') {
             this.game.canvas.addEventListener('webglcontextlost', () => {
@@ -160,6 +162,9 @@ export class GameScene extends Scene {
         this._terrainSource = null;
         this._terrainWorldWidth = 0;
         this._terrainWorldHeight = 0;
+        // 2048² 分块地板（世界-122 惰性加载）：key -> Phaser image；待烘焙队列
+        this._terrainChunkSprites = new Map();
+        this._terrainChunkQueue = [];
 
         // 地图模式状态缓存，避免每帧切换相机背景色
         this._mapModeActive = false;
@@ -197,6 +202,9 @@ export class GameScene extends Scene {
     update(_time, _delta) {
         // Phaser 自动调用，每帧更新
         // 现有 Game 循环仍然运行，这里只做 Phaser 相关的更新
+
+        // 分块地板惰性烘焙/卸载（无 chunks 时立即返回，开销可忽略）
+        this._updateTerrainChunks();
 
         // 地牢模式：隐藏角色及武器贴图
         const _game = window.Game;
@@ -446,6 +454,9 @@ export class GameScene extends Scene {
             for (const k of Object.keys(this._companionSprites)) {
                 this._companionSprites[k].setVisible(false);
             }
+            for (const k of Object.keys(this._selectionRings)) {
+                this._selectionRings[k].setVisible(false);
+            }
             return;
         }
         // 渲染对象 = 队伍侍从 + 世界-122 友方单位（仓鼠矿工等，2026-08-15）
@@ -493,10 +504,10 @@ export class GameScene extends Scene {
             const aiMode = !!member.aiConfig;
             let faceRight = facingRight;
             if (aiMode) {
-                // 仓鼠矿工移动（walk）始终朝向实际移动方向（vx），不倒退走路——
-                // 否则寻路绕行/回小屋时贴图朝向目标、实际反向移动（2026-08-15 用户口径）
+                // 仓鼠矿工/战士移动（walk）始终朝向实际移动方向（vx），不倒退走路——
+                // 否则寻路绕行/回屋时贴图朝向目标、实际反向移动（2026-08-15 用户口径）
                 const moving = member._animState === 'walk' || Math.abs(member.vx) > 5;
-                if (member._isHamsterMiner && moving) {
+                if ((member._isHamsterMiner || member._isHamsterWarrior) && moving) {
                     faceRight = member.vx > 0;
                 } else if (member._lastAction === 'flee' && Math.abs(member.vx) > 5) {
                     faceRight = member.vx > 0;
@@ -516,8 +527,8 @@ export class GameScene extends Scene {
             }
             sprite.setFlipX(!faceRight);
             sprite.setDepth(this.playerSprite.depth + 0.5);
-            // 受击白闪（仓鼠矿工）
-            if (member._isHamsterMiner) {
+            // 受击白闪（仓鼠矿工/仓鼠战士）
+            if (member._isHamsterMiner || member._isHamsterWarrior) {
                 if (member.hitFlash > 0) sprite.setTint(0xffffff);
                 else sprite.clearTint();
             }
@@ -612,6 +623,31 @@ export class GameScene extends Scene {
                             }
                         }
                     }
+                } else if (st === 'attack' && member._isHamsterWarrior
+                    && anims.attack && this.textures.exists(`companion_${animId}_attack`)) {
+                    // 仓鼠战士攻击两段式（2026-08-16 用户口径）：从待机/移动进入攻击 → 先播
+                    // 完整 1~24 帧一次；持续攻击中 → 第 6~24 帧循环（attack_start 播完自动切 attack）
+                    const atkKey = `companion_${animId}_attack`;
+                    const atkStartKey = `${atkKey}_start`;
+                    if (!sprite.getData('hamsterAtk')) {
+                        sprite.setData('hamsterAtk', true);
+                        if (anims.attack.startFrames && this.anims.exists(atkStartKey)) {
+                            sprite.play(atkStartKey, true);
+                            sprite.removeAllListeners('animationcomplete');
+                            sprite.once('animationcomplete', () => {
+                                if (sprite.getData('hamsterAtk')
+                                    && sprite.anims.currentAnim?.key === atkStartKey) {
+                                    sprite.play(atkKey, true);
+                                }
+                            });
+                        } else {
+                            sprite.play(atkKey, true);
+                        }
+                    } else if (!sprite.anims.isPlaying
+                        || (sprite.anims.currentAnim?.key !== atkKey
+                            && sprite.anims.currentAnim?.key !== atkStartKey)) {
+                        sprite.play(atkKey, true);
+                    }
                 } else if (st === 'attack' && anims.attack && this.textures.exists(`companion_${animId}_attack`)) {
                     // 普通攻击（伊莉丝）：28 帧 repeat 0 播一次，动画结束停在末帧（AI 届时切回 idle）
                     const attackKey = `companion_${animId}_attack`;
@@ -679,6 +715,7 @@ export class GameScene extends Scene {
                     sprite.setData('hamsterMining', false);
                     sprite.setData('miningSwing', false);
                     sprite.setData('hamsterWalk', false);
+                    sprite.setData('hamsterAtk', false);
                     sprite.setData('lunaRunning', false);
                     sprite.setData('atkPlayed', false);
                     sprite.setData('wmPlayed', false);
@@ -751,6 +788,21 @@ export class GameScene extends Scene {
                 sprite.setPosition(player.x + offX, player.y + 34 + spriteOffY - platformLift + feetCorr);
             }
             sprite.setVisible(true);
+            // 选中高亮（2026-08-16）：组队栏点击选中 → 金色 tint + 脚下光圈；
+            // 仓鼠矿工用 tint 做受击白闪，高亮只画光圈不染色
+            const selected = PartySystem.isSelected(member.id);
+            if (member._isHamsterMiner) {
+                if (selected) this._showSelectionRing(member.id, member.x, member.y, size);
+                else if (this._selectionRings[member.id]) this._selectionRings[member.id].setVisible(false);
+            } else {
+                if (selected) {
+                    sprite.setTint(0xffd98a);
+                    this._showSelectionRing(member.id, member.x, member.y, size);
+                } else {
+                    sprite.clearTint();
+                    if (this._selectionRings[member.id]) this._selectionRings[member.id].setVisible(false);
+                }
+            }
         }
         // 清理已移出队伍的精灵
         for (const id of Object.keys(this._companionSprites)) {
@@ -759,6 +811,33 @@ export class GameScene extends Scene {
                 delete this._companionSprites[id];
             }
         }
+        // 清理已移出队伍的光圈
+        for (const id of Object.keys(this._selectionRings)) {
+            if (!activeIds.has(id)) {
+                this._selectionRings[id].destroy();
+                delete this._selectionRings[id];
+            }
+        }
+    }
+
+    /** 选中光圈：金色椭圆贴脚（RTS 式选中标记，视角压扁）——填充 15% 透明、边缘 100% */
+    _showSelectionRing(id, x, y, size) {
+        let ring = this._selectionRings[id];
+        if (!ring) {
+            ring = this.add.ellipse(x, y, size * 1.05, size * 0.42, 0xd4af37, 0.15);
+            ring.setStrokeStyle(2, 0xd4af37, 1.0);
+            this._selectionRings[id] = ring;
+        }
+        // 深度跟随该成员精灵本身（精灵 - 0.1，与阴影同口径）：AI 队员的贴图深度由
+        // _updateDynamicDepths 按世界 Y 每帧仲裁，这里读到的可能是上一帧仲裁值，
+        // 仅作兜底——同帧精确值在 _updateDynamicDepths 2.5 段精灵 setDepth 后覆盖。
+        // 此前光圈深度固定 playerSprite.depth + 0.42 只在创建时设一次：玩家/队友
+        // 纵向移动后深度仲裁变化，光圈会盖到队友贴图上面（“图层应在贴图之下”实机反馈）。
+        const unitSprite = this._companionSprites[id];
+        if (unitSprite && unitSprite.active) ring.setDepth(unitSprite.depth - 0.1);
+        ring.setPosition(x, y + size * 0.42);
+        ring.setSize(size * 1.05, size * 0.42);
+        ring.setVisible(true);
     }
 
     /** 侍从 idl 朝向用：找离该队员最近的敌人（member.target 失效时的兜底） */
@@ -983,6 +1062,11 @@ export class GameScene extends Scene {
                     d = Math.max(d, platRef._faceDepth + 1);
                 }
                 sprite.setDepth(d);
+                // 选中光圈同帧跟随该队员最终深度（贴图之下 0.1）：
+                // 光圈必须低于该单位所有贴图，且随 Y 排序仲裁一起变化
+                if (this._selectionRings && this._selectionRings[cid]) {
+                    this._selectionRings[cid].setDepth(d - 0.1);
+                }
             }
         }
 
@@ -2677,8 +2761,15 @@ export class GameScene extends Scene {
                     // 攻击/定格/收势期间身体 flipX 冻结，武器自然冻结，无需独立朝向捕获
                     const facingRight = !this.playerSprite.flipX;
                     // 以右攻击为参考，朝左时翻转贴图并镜像位置/旋转
-                    const pfPos = WeaponTransform.getInterpolatedPerFramePosition(player, wt, progress, true, atkCfgKey);
+                    const gripAnchor = perFrameCfg.anchor === 'grip';
+                    const pfPos = gripAnchor
+                        ? WeaponTransform.getInterpolatedGripPerFramePosition(player, wt, progress, true, atkCfgKey)
+                        : WeaponTransform.getInterpolatedPerFramePosition(player, wt, progress, true, atkCfgKey);
                     if (pfPos) {
+                        // anchor='grip'：origin 钉到剑柄（朝左 X 镜像），旋转绕剑柄不甩手
+                        if (gripAnchor) {
+                            this.weaponSprite.setOrigin(facingRight ? pfPos.gripX : 1 - pfPos.gripX, pfPos.gripY);
+                        }
                         const wx = facingRight ? pfPos.x : 2 * player.x - pfPos.x;
                         const wrot = facingRight ? pfPos.rotation : -pfPos.rotation;
                         this.weaponSprite.setPosition(wx, pfPos.y);
@@ -2736,6 +2827,10 @@ export class GameScene extends Scene {
                 let start = null;
                   if (player._recoverCfgKey === 'dash') {
                       start = WeaponTransform.getDashRecoverStartPosition(player, wt);
+                  }
+                  if (!start) {
+                      // anchor='grip'（剑柄锚手）：末帧握把点+刃向反推中心，与定格末帧连续（dashHand 同款）
+                      start = WeaponTransform.getAttackRecoverStartPosition(player, wt, atkKeyR);
                   }
                   if (!start) {
                       start = WeaponTransform.getInterpolatedPerFramePosition(player, wt, 1, true, atkKeyR);
@@ -6053,6 +6148,33 @@ export class GameScene extends Scene {
         const h = CONFIG.WORLD_HEIGHT;
         if (!w || !h) return;
 
+        // 世界-122 分块惰性地板（applyDungeonFloorChunked 注册，switchScene 离场时清空）：
+        // 按相机视口按需烘焙；非分块场景 Renderer.terrainChunks 恒为 null
+        const chunks = Renderer.terrainChunks || null;
+        if (chunks) {
+            if (this._terrainSource !== chunks || this._terrainWorldWidth !== w || this._terrainWorldHeight !== h) {
+                this._destroyTerrainChunks();
+                this._terrainSource = chunks;
+                this._terrainWorldWidth = w;
+                this._terrainWorldHeight = h;
+                // 先销毁旧的单张地形精灵再移除纹理——否则精灵仍引用已删除纹理，
+                // 渲染时 frame.source 为 null（Phaser TexturerImage 'resolution' 崩溃）
+                if (this._terrainSprite) {
+                    this._terrainSprite.destroy();
+                    this._terrainSprite = null;
+                }
+                if (this.textures.exists('terrain')) this.textures.remove('terrain');
+            }
+            this._updateTerrainChunks();
+            return;
+        }
+
+        // 离开分块模式（切回主神空间/地牢等）：清掉分块精灵与纹理，回单张地形
+        if (this._terrainChunkSprites && this._terrainChunkSprites.size > 0) {
+            this._destroyTerrainChunks();
+        }
+        this._terrainSource = null;
+
         const override = Renderer.terrainTexture;
         if (this._terrainSource === override &&
             this._terrainWorldWidth === w &&
@@ -6086,6 +6208,75 @@ export class GameScene extends Scene {
             this._terrainSprite.setTexture('terrain');
             this._terrainSprite.setPosition(w / 2, h / 2);
         }
+    }
+
+    /**
+     * 分块地板惰性烘焙/卸载：确保相机视口（+320px 余量）内的块已烘焙，
+     * 每帧最多烘焙 1 块（分摊加载卡顿）；远离视口（+900px）的块连同纹理一起卸载，
+     * 常驻显存 ≈ 视口块数（世界-122 由 96MB+ 降到 2~4 块 × 16MB）。
+     */
+    _updateTerrainChunks() {
+        const chunks = Renderer.terrainChunks;
+        if (!chunks) return;
+        const cs = chunks.chunkSize;
+        const cam = this.cameras.main;
+        if (!cam || !cam.worldView) return;
+        const vw = cam.worldView;
+        const margin = 320;
+        const x0 = Math.max(0, Math.floor((vw.x - margin) / cs));
+        const y0 = Math.max(0, Math.floor((vw.y - margin) / cs));
+        const x1 = Math.min(Math.floor((chunks.mapW - 1) / cs), Math.floor((vw.x + vw.width + margin) / cs));
+        const y1 = Math.min(Math.floor((chunks.mapH - 1) / cs), Math.floor((vw.y + vw.height + margin) / cs));
+        if (x1 < x0 || y1 < y0) return;
+
+        for (let cy = y0; cy <= y1; cy++) {
+            for (let cx = x0; cx <= x1; cx++) {
+                const key = `terrain_chunk_${cx}_${cy}`;
+                if (this._terrainChunkSprites.has(key)) continue;
+                if (!this._terrainChunkQueue.some((q) => q.key === key)) {
+                    this._terrainChunkQueue.push({ key, cx, cy, ox: cx * cs, oy: cy * cs });
+                }
+            }
+        }
+        if (this._terrainChunkQueue.length > 0) {
+            const next = this._terrainChunkQueue.shift();
+            if (next) this._bakeTerrainChunk(next);
+        }
+        const unloadCell = Math.ceil(900 / cs);
+        for (const [key, sprite] of this._terrainChunkSprites) {
+            const parts = key.split('_');
+            const cx = Number(parts[2]);
+            const cy = Number(parts[3]);
+            if (cx < x0 - unloadCell || cx > x1 + unloadCell || cy < y0 - unloadCell || cy > y1 + unloadCell) {
+                sprite.destroy();
+                this._terrainChunkSprites.delete(key);
+                if (this.textures.exists(key)) this.textures.remove(key);
+            }
+        }
+    }
+
+    _bakeTerrainChunk({ key, ox, oy }) {
+        const chunks = Renderer.terrainChunks;
+        if (!chunks) return;
+        const canvas = bakeDungeonFloorChunk(ox, oy, chunks.chunkSize, chunks.chunkSize, chunks.mapW, chunks.mapH);
+        if (!canvas) return;
+        if (this.textures.exists(key)) this.textures.remove(key);
+        this.textures.addCanvas(key, canvas);
+        const img = this.add.image(ox + chunks.chunkSize / 2, oy + chunks.chunkSize / 2, key);
+        img.setOrigin(0.5, 0.5);
+        img.setDepth(-1000);
+        this._terrainChunkSprites.set(key, img);
+    }
+
+    _destroyTerrainChunks() {
+        if (this._terrainChunkSprites) {
+            for (const [key, sprite] of this._terrainChunkSprites) {
+                sprite.destroy();
+                if (this.textures.exists(key)) this.textures.remove(key);
+            }
+            this._terrainChunkSprites.clear();
+        }
+        this._terrainChunkQueue = [];
     }
 
     /**

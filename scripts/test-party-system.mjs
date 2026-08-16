@@ -1,6 +1,9 @@
 // 侍从系统框架单测：成长规则 / Companion 升级 / PartySystem 增删与经验分发
 // 运行：node scripts/test-party-system.mjs
 await import('./register-json-loader.mjs');
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 const { allocateOnLevelUp, registerGrowthRule } = await import('../src/config/companion-growth.js');
 const { Companion } = await import('../src/entities/companion.js');
 const { PartySystem } = await import('../src/systems/party-system.js');
@@ -376,6 +379,10 @@ check('伊莉丝 AI role=melee_swordshield', elise.aiConfig && elise.aiConfig.ro
 check('伊莉丝攻击参数（间隔 2s / 1.5s 动画 / 命中第 10 帧 / 物攻×1.25）', elise.aiConfig.attackInterval === 2000
     && elise.aiConfig.attackAnimMs === 1500 && elise.aiConfig.attackHitFrame === 10
     && Math.abs(elise.aiConfig.attackDamageMul - 1.25) < 1e-9);
+check('伊莉丝普攻眩晕 1000ms（与玩家近战一段同口径，仅普通怪）', elise.aiConfig.attackStunMs === 1000,
+    `got ${elise.aiConfig.attackStunMs}`);
+check('伊莉丝普攻击退 50px（与玩家近战一段同口径）', elise.aiConfig.attackKnockback === 50,
+    `got ${elise.aiConfig.attackKnockback}`);
 check('伊莉丝防御参数（400px / >3 敌 / 0.5+2+0.5s）', elise.aiConfig.defendRange === 400
     && elise.aiConfig.defendEnemyCount === 3 && elise.aiConfig.defendEnterMs === 500
     && elise.aiConfig.defendHoldMs === 2000 && elise.aiConfig.defendExitMs === 500);
@@ -657,6 +664,92 @@ check('掉队: PathManager 卡住瞬移', shouldRelocateCompanion({ dist: 800, p
 check('掉队: 撞墙瞬移', shouldRelocateCompanion({ dist: 800, inWall: true, player: P }) === true);
 check('掉队: 超 hardDist 无条件瞬移', shouldRelocateCompanion({ dist: 1200, lastAction: 'flee', player: P }) === true);
 check('掉队: 自定义 teleportDist', shouldRelocateCompanion({ dist: 500, teleportDist: 400, player: P }) === true);
+
+// 源码接线契约：伊莉丝普攻命中链路必须带眩晕守卫（防被后续重构改没）
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const aiSrc = fs.readFileSync(path.join(ROOT, 'src/ai/companion-ai.js'), 'utf-8');
+check('companion-ai.js 普攻命中含眩晕接线', /attackStunMs[\s\S]{0,220}\.applyStun\(/.test(aiSrc));
+check('companion-ai.js 眩晕仅普通怪（rank 守卫）', /\(t\.rank \|\| 'normal'\) === 'normal'/.test(aiSrc));
+check('companion-ai.js 普攻命中含击退接线', /attackKnockback[\s\S]{0,220}\.applyKnockback\(/.test(aiSrc));
+
+// --- 组队栏选中状态（点击=单选 / Shift+点击=多选 / 指令轮盘目标） ---
+PartySystem.setSelected(['mage_luna', 'warrior_bruno']);
+check('setSelected 多选', PartySystem.selectedIds.length === 2
+    && PartySystem.selectedIds.includes('mage_luna') && PartySystem.selectedIds.includes('warrior_bruno'));
+check('isSelected 命中', PartySystem.isSelected('mage_luna') === true && PartySystem.isSelected('ranger_keith') === false);
+PartySystem.toggleSelected('mage_luna');
+check('toggleSelected 切换移除', PartySystem.selectedIds.length === 1 && PartySystem.selectedIds[0] === 'warrior_bruno');
+PartySystem.toggleSelected('mage_luna');
+check('toggleSelected 切换加入', PartySystem.selectedIds.length === 2);
+PartySystem.setSelected(['mage_luna']);
+check('setSelected 单选替换', PartySystem.selectedIds.length === 1 && PartySystem.selectedIds[0] === 'mage_luna');
+check('setSelected 忽略离队/未知 id', (PartySystem.setSelected(['mage_luna', 'nobody']), PartySystem.selectedIds.length === 1));
+// 移出队员自动退出选中（轮盘不会指向已离队单位）
+PartySystem.setSelected(['mage_luna', 'warrior_bruno']);
+PartySystem.removeCompanion('mage_luna');
+check('移出队员自动退出选中', !PartySystem.isSelected('mage_luna') && PartySystem.selectedIds.length === 1);
+PartySystem.addCompanion('mage_luna');
+PartySystem.clearSelection();
+check('clearSelection 清空', PartySystem.selectedIds.length === 0 && PartySystem.isSelected('warrior_bruno') === false);
+// 源码接线契约：轮盘目标 = 选中优先；组队栏点击不再弹队员面板
+const wheelSrc = fs.readFileSync(path.join(ROOT, 'src/ui/companion-command-wheel.js'), 'utf-8');
+const partyUiSrc = fs.readFileSync(path.join(ROOT, 'src/ui/party-ui.js'), 'utf-8');
+check('轮盘目标优先取 selectedIds', /const selected = PartySystem\.selectedIds[\s\S]{0,120}this\._targetIds = selected\.slice\(\)/.test(wheelSrc));
+check('组队栏点击走 setSelected/toggleSelected 不再 open', /el\.onclick = \(e\) => \{[\s\S]{0,80}setSelected|toggleSelected/.test(partyUiSrc)
+    && !/onclick = \(\) => CompanionPanel\.open/.test(partyUiSrc));
+check('待命指令含打断动画接线', /cmd\.mode === 'hold'[\s\S]{0,300}_meleeAtkTimer = 0/.test(aiSrc)
+    && /cmd\.mode === 'hold'[\s\S]{0,220}_castState = 'idle'/.test(aiSrc));
+
+// --- 档案恢复保留 AI 配置（2026-08-16：伊莉丝指令“执行了但画面不动”根因回归） ---
+{
+    const eliseCfg = companionConfigData.default.companions.find(a => a.id === 'warrior_bruno');
+    const eliseFreshC = new Companion(eliseCfg);
+    check('伊莉丝新招募 aiConfig', eliseFreshC.aiConfig && eliseFreshC.aiConfig.role === 'melee_swordshield');
+    const eliseSer2 = eliseFreshC.serialize();
+    const eliseRestoredC = Companion.fromSerialized(eliseSer2);
+    check('伊莉丝往返恢复 aiConfig', eliseRestoredC.aiConfig && eliseRestoredC.aiConfig.role === 'melee_swordshield',
+        `got ${eliseRestoredC.aiConfig && eliseRestoredC.aiConfig.role}`);
+    // 老档（serialize 未存 aiConfig）回退配置档案——读旧存档也能正确恢复
+    const eliseOldSave = Companion.fromSerialized({ ...eliseSer2, aiConfig: undefined });
+    check('老档回退 aiConfig（配置档案兜底）', eliseOldSave.aiConfig && eliseOldSave.aiConfig.role === 'melee_swordshield',
+        `got ${eliseOldSave.aiConfig && eliseOldSave.aiConfig.role}`);
+    // 露娜解锁表往返 + 恢复后按真实等级重查解锁
+    const lunaCfg = companionConfigData.default.companions.find(a => a.id === 'mage_luna');
+    const lunaFreshC = new Companion(lunaCfg);
+    lunaFreshC.data.level = 12;
+    lunaFreshC._checkUnlocks();
+    check('露娜 12 级解锁圣光（前置）', !!lunaFreshC.skills.holyLight);
+    const lunaSer2 = lunaFreshC.serialize();
+    const lunaRestoredC = Companion.fromSerialized(lunaSer2);
+    check('露娜往返恢复 unlockSkills', !!lunaRestoredC._unlockSkills.holyLight);
+    check('露娜恢复后按等级解锁圣光', !!lunaRestoredC.skills.holyLight,
+        lunaRestoredC.skills ? Object.keys(lunaRestoredC.skills).join(',') : 'no skills');
+}
+
+// --- 队友采集直接入包（2026-08-16：与仓鼠矿工同口径，不落地） ---
+{
+    const miner = new Companion({ id: 't_energy', name: '采集测试', baseLevel: 1,
+        baseData: { str: 5, dex: 5, int: 5, con: 5, wis: 5, luck: 5 }, growthRule: 'balanced' });
+    check('addMinedEnergy 新堆', miner.addMinedEnergy(30) === 30
+        && miner.backpack.some(b => b.category === 'energy' && b.stack === 30));
+    check('addMinedEnergy 并入已有堆', miner.addMinedEnergy(20) === 20
+        && miner.backpack.some(b => b.category === 'energy' && b.stack === 50));
+    check('addMinedEnergy 999 上限拆新堆', miner.addMinedEnergy(998) === 998);
+    const energyStacks = miner.backpack.filter(b => b.category === 'energy');
+    check('能源堆拆堆正确（999 + 49）', energyStacks.length === 2
+        && energyStacks.some(b => b.stack === 999) && energyStacks.some(b => b.stack === 49));
+    const serMiner = miner.serialize();
+    const resMiner = Companion.fromSerialized(serMiner);
+    check('能源堆序列化往返', resMiner.backpack.filter(b => b.category === 'energy').length === 2
+        && resMiner.backpack.some(b => b.category === 'energy' && b.stack === 999));
+    // 满包（无能源堆、10 格全占位）→ 拒绝入包
+    const fullMiner = new Companion({ id: 't_energy_full', name: '采集满包', baseLevel: 1,
+        baseData: { str: 5, dex: 5, int: 5, con: 5, wis: 5, luck: 5 }, growthRule: 'balanced' });
+    while (fullMiner.backpack.length < fullMiner.maxBackpackSlots) {
+        fullMiner.backpack.push({ slot: fullMiner._findFreeBackpackSlot(), name: '占位' });
+    }
+    check('addMinedEnergy 背包满拒绝', fullMiner.addMinedEnergy(100) === 0);
+}
 
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail > 0 ? 1 : 0);

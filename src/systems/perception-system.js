@@ -18,6 +18,12 @@ import { distanceToEntityShape } from '../utils/collision-helpers.js';
 import { MathUtils } from '../config/math-utils.js';
 import aiConfigData from '../../data/ai-config.json';
 import SpatialPartitionSystem from './spatial-partition-system.js';
+import {
+    computeStructureOccupancy,
+    pickStructureTarget,
+    attackSlotsOf,
+    isStructureAttackable,
+} from '../ai/defense-targeting.js';
 
 /** 感知优先级权重配置 */
 const PERCEPTION_WEIGHTS = {
@@ -91,6 +97,8 @@ class PerceptionSystemImpl {
     _updateTargetState(enemy, dt, entities) {
         const p = enemy._perception;
         const currentTarget = enemy.target;
+        // 拥挤感知（2026-08-16）：防守怪按结构占用表分摊第二目标，仅防守模式计算
+        const structOcc = enemy._preferDefenseTargets ? computeStructureOccupancy(entities) : null;
 
         // 当前目标是否仍然有效
         const isTargetValid = currentTarget && currentTarget.active;
@@ -132,7 +140,7 @@ class PerceptionSystemImpl {
         } else {
             // 目标无效，尝试寻找新目标
             this._clearTarget(enemy);
-            const newTarget = this._findBestTarget(enemy, entities);
+            const newTarget = this._findBestTarget(enemy, entities, structOcc);
             if (newTarget) {
                 enemy.target = newTarget;
                 enemy._lastKnownTargetPos = { x: newTarget.x, y: newTarget.y };
@@ -144,7 +152,9 @@ class PerceptionSystemImpl {
         p.scanTimer -= dt;
         if (p.scanTimer <= 0 && enemy.target) {
             p.scanTimer = p.scanInterval;
-            const betterTarget = this._findBetterTarget(enemy, entities);
+            const better = this._findBetterTarget(enemy, entities, structOcc);
+            const betterTarget = better ? better.target : null;
+            const picked = better ? better.picked : null;
             if (betterTarget && betterTarget !== enemy.target) {
                 // 只有当新目标明显更优时才切换（避免目标跳来跳去）
                 const currentScore = this._evaluateTarget(enemy, enemy.target);
@@ -154,7 +164,24 @@ class PerceptionSystemImpl {
                 // 否则怪物拆墙时对贴近的玩家/侍从无动于衷
                 const engageSwitch = !!(enemy._preferDefenseTargets
                     && enemy.target._isDefenseStructure && !betterTarget._isDefenseStructure);
-                if (engageSwitch || (!enemy._gatePursuit && newScore > currentScore * 1.3)) {
+                // 拥挤/够不着换目标（2026-08-16）：仅当分摊算法真返回了「不同的可达候选」
+                // 才免 1.3× 滞回——否则远处赶路（候选范围内无结构，pick 返回 null）会被
+                // 分数最高的其他结构带跑，每 500ms 在基地/掩体间来回换目标（ping-pong）
+                const pickedDifferent = !!(picked && picked.target !== enemy.target);
+                const structOver = !!(enemy._preferDefenseTargets
+                    && !enemy._gatePursuit
+                    && enemy.target._isDefenseStructure
+                    && pickedDifferent
+                    && (structOcc.get(enemy.target) || 0) >= attackSlotsOf(enemy.target));
+                // 够不着必换（2026-08-16）：当前结构目标在攻击距离外（被墙/同伴挡住）
+                // 时免 1.3× 滞回直接换可达目标——否则少量怪贴墙锁基地会一直发呆
+                const structUnreachable = !!(enemy._preferDefenseTargets
+                    && !enemy._gatePursuit
+                    && enemy.target._isDefenseStructure
+                    && pickedDifferent
+                    && !isStructureAttackable(enemy, enemy.target));
+                if (engageSwitch || structOver || structUnreachable
+                    || (!enemy._gatePursuit && newScore > currentScore * 1.3)) {
                     enemy.target = betterTarget;
                     enemy._lastKnownTargetPos = { x: betterTarget.x, y: betterTarget.y };
                     enemy._lostSightTimer = 0;
@@ -185,7 +212,7 @@ class PerceptionSystemImpl {
      * 寻找最佳目标
      * @private
      */
-    _findBestTarget(enemy, entities) {
+    _findBestTarget(enemy, entities, structOcc = null) {
         const alertRange = enemy._alertRange || DEFAULT_PERCEPTION.alertRange;
         const candidates = this._collectCandidates(enemy, entities, alertRange);
 
@@ -216,14 +243,21 @@ class PerceptionSystemImpl {
             }
         }
 
+        // 防守模式结构候选：拥挤感知替换（把溢出怪分摊到附近低占用第二结构）
+        if (enemy._preferDefenseTargets && bestTarget && bestTarget._isDefenseStructure) {
+            const pick = pickStructureTarget(enemy, entities, structOcc);
+            if (pick) bestTarget = pick.target;
+        }
         return bestTarget;
     }
 
     /**
      * 寻找比当前目标更优的目标
      * @private
+     * @returns {{target: object, picked: object|null}|null} picked = 拥挤分摊算法选出的
+     *   可达候选（null 表示远处无候选，上层不得据此绕过 1.3× 滞回，防目标 ping-pong）
      */
-    _findBetterTarget(enemy, entities) {
+    _findBetterTarget(enemy, entities, structOcc = null) {
         const alertRange = enemy._alertRange || DEFAULT_PERCEPTION.alertRange;
         const candidates = this._collectCandidates(enemy, entities, alertRange);
 
@@ -254,7 +288,13 @@ class PerceptionSystemImpl {
             }
         }
 
-        return bestTarget;
+        // 防守模式结构候选：拥挤感知替换（可能返回当前目标 → 上层保持不换）
+        let picked = null;
+        if (enemy._preferDefenseTargets && bestTarget && bestTarget._isDefenseStructure) {
+            picked = pickStructureTarget(enemy, entities, structOcc);
+            if (picked) bestTarget = picked.target;
+        }
+        return { target: bestTarget, picked };
     }
 
     /**

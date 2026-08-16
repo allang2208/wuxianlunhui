@@ -504,6 +504,47 @@ class WeaponTransform {
     }
 
     /**
+     * 普通攻击·剑柄锚手（anchor='grip' 模式，2026-08-16，dashHand 同款思路移植）：
+     * perFrame 块 anchor==='grip' 时，frames 的 offsetX/offsetY 直接是**握把点（拳头）**
+     * 本地偏移（不再贴图中心），GameScene 把 weaponSprite.origin 设为剑柄——
+     * 剑柄钉在手上，旋转绕剑柄（消除"中心 origin + 旋转大步长时帧间握把甩离手"的系统性偏差：
+     * 中心 origin 模型下 f0→f1/f9→f10 帧间中点握把偏离实测可达 ~21~39 display px）。
+     * 位置插值与世界换算与 getInterpolatedPerFramePosition 同口径，仅追加 gripX/gripY。
+     */
+    static getInterpolatedGripPerFramePosition(player, weaponType, progress, facingRight = true, cfgKey = 'attack') {
+        const pos = this.getInterpolatedPerFramePosition(player, weaponType, progress, facingRight, cfgKey);
+        if (!pos) return null;
+        const wac = WeaponAnimConfig[weaponType] || {};
+        const gripOffset = typeof wac.gripOffset === 'number' ? wac.gripOffset : 40;
+        const size = this.getWeaponSize(weaponType, pos.scale, 'attack');
+        return {
+            ...pos,
+            gripX: 0.5,
+            gripY: 0.5 + gripOffset / Math.max(1, size.height || 1),
+        };
+    }
+
+    /**
+     * 普通攻击收势起点（与 anchor='grip' 末帧同姿态）：
+     * 收势分支仍以武器中心为 origin，把末帧握把点 + 末帧刃向反推回中心：
+     * 中心 = 握把 + R(rotation)·(0, -gripOffset)（同 getDashRecoverStartPosition 公式）。
+     * 无 anchor='grip' 配置时返回 null，调用方回退旧中心轨迹末帧。
+     */
+    static getAttackRecoverStartPosition(player, weaponType, cfgKey = 'attack') {
+        const wac = WeaponAnimConfig[weaponType] || {};
+        const block = wac[cfgKey] || wac.attack;
+        if (!block || block.anchor !== 'grip') return null;
+        const hand = this.getInterpolatedGripPerFramePosition(player, weaponType, 1, true, cfgKey);
+        if (!hand) return null;
+        const gripOffset = typeof wac.gripOffset === 'number' ? wac.gripOffset : 40;
+        return {
+            ...hand,
+            x: hand.x + gripOffset * Math.sin(hand.rotation),
+            y: hand.y - gripOffset * Math.cos(hand.rotation),
+        };
+    }
+
+    /**
      * 一维线性插值
      */
     static _lerpPerFrame1D(values, progress) {

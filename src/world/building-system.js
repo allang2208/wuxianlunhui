@@ -16,8 +16,9 @@ import { SoundManager } from '../ui/sound-manager.js';
 import { UIState } from '../ui/ui-state.js';
 import { CONFIG } from '../config/config.js';
 import { SceneManager } from './scene-manager.js';
+import { Renderer } from './renderer.js';
 import {
-    DefenseSystem, DefenseTower, DefenseCover, BuildableGate,
+    DefenseSystem, DefenseTower, DefenseCover, BuildableGate, FiringPlatform,
     DEFENSE_CONFIG, COVER_FACE, COVER_FOOT, GATE_GEOM,
 } from './defense-system.js';
 import { DefenseTrap, TRAP_CONFIG, TRAP_GRADES, TRAP_SPACING, getTrapDef, DefenseTrapSystem } from './defense-trap-system.js';
@@ -86,6 +87,7 @@ function effOrient(itemOrOrient, mirror) {
 export const BUILD_ITEMS = [
     { id: 'tower', name: '防御塔', cost: 300, tex: 'obstacle_defense_tower', kind: 'tower', currency: 'energy' },
     { id: 'hamster_hut', name: '仓鼠小屋', cost: 1000, tex: 'hamster_hut', kind: 'hamster_hut', currency: 'energy' },
+    { id: 'firing_platform', name: '射击台', cost: 400, tex: 'firing_platform', kind: 'platform', currency: 'energy' },
 ];
 for (const grade of ['F', 'E', 'D', 'C', 'B', 'A']) {
     // 只保留一种掩体条目（垂直 "/" 向）；F 键镜像即得水平 "\" 向（mirror → eff 交换），
@@ -202,6 +204,23 @@ export const BuildingSystem = {
         }
     },
 
+    /** 点击掩体/铁栅栏门 → 打开建筑面板并直达详情（2026-08-16 补：面板未开时也直接弹出）。
+     *  由 game.js 点击分发调用；屏幕坐标 → 世界坐标（与防御塔 tryInteract 同口径），
+     *  交互距离 260px 与塔面板一致。 */
+    tryInteract(mx, my, player) {
+        if (!Game || !Game.isRunning || !Game.entities) return false;
+        const mw = (Renderer && Renderer.screenToWorld) ? Renderer.screenToWorld(mx, my) : null;
+        if (!mw) return false;
+        const hit = this._hitTestCover(mw.x, mw.y);
+        if (!hit) return false;
+        const dx = hit.x - (player ? player.x : 0);
+        const dy = hit.y - (player ? player.y : 0);
+        if (Math.sqrt(dx * dx + dy * dy) > 260) return false;
+        if (!this.active) this.open();
+        this._showDetail(hit);
+        return true;
+    },
+
     // ==================== 面板 ====================
 
     _buildPanel() {
@@ -289,6 +308,9 @@ export const BuildingSystem = {
                 this._ghost.setDisplaySize(item.trapW || 72, item.trapH || 52);
             } else if (item.kind === 'gate') {
                 this._ghost.setDisplaySize(GATE_GEOM.cellW * GATE_GEOM.displayScale, GATE_GEOM.cellH * GATE_GEOM.displayScale);
+            } else if (item.kind === 'platform') {
+                // 射击台：显示 260×242（五版贴图内容 695×647，aspect 1.075）
+                this._ghost.setDisplaySize(260, 242);
             } else {
                 this._ghost.setDisplaySize(260, Math.round(260 / (this._coverAspect(item) || 1)));
             }
@@ -361,6 +383,7 @@ export const BuildingSystem = {
         if (!this._placing) return 0;
         if (this._placing.item.kind === 'tower') return 131;
         if (this._placing.item.kind === 'hamster_hut') return HAMSTER_CONFIG.hut.footOffsetY;
+        if (this._placing.item.kind === 'platform') return 121; // 射击台脚底=台阶入口（242/2）
         return this._ghost.displayHeight / 2;
     },
 
@@ -413,11 +436,15 @@ export const BuildingSystem = {
     /**
      * 掩体端点吸附：找最近的一个既有掩体墙端锚点，把新件对应端贴上去。
      * 掩体/铁栅栏门参与吸附（防御塔不拼接）；同向（v-v / h-h）优先，跨向（v-h 转角）次之。
+     * 射击台（2026-08-16）：不走端点吸附——平台与墙**垂直贴合**（平台长轴 ⊥ 墙 face 线，
+     * 贴墙内侧突出），吸附 = 找最近掩体墙段，把平台贴到墙段中点 + 法线偏移。
      * @returns {null|{x:number,y:number,e:object}}
      */
     _snapPosition(x, y) {
         const item = this._placing && this._placing.item;
-        if (!item || (item.kind !== 'cover' && item.kind !== 'gate')) return null;
+        if (!item) return null;
+        if (item.kind === 'platform') return this._snapPlatformToWall(x, y);
+        if (item.kind !== 'cover' && item.kind !== 'gate') return null;
         const eff = effOrient(item, this._placing.mirror);
         const off = item.kind === 'gate'
             ? GATE_SNAP[eff]
@@ -475,6 +502,63 @@ export const BuildingSystem = {
         best.x -= (ax / al) * overlap * dir;
         best.y -= (ay / al) * overlap * dir;
         return best;
+    },
+
+    /**
+     * 射击台吸附：垂直贴合掩体墙段（2026-08-16 用户口径——掩体/门是"纵向吸附"
+     * （端点相接沿墙延续），平台是"垂直贴合"：平台长轴 ⊥ 墙 face 线，贴墙内侧突出）。
+     * - 遍历掩体墙段（_faceLine），找鼠标位置最近者（SNAP_RADIUS 内）；
+     * - 吸附点 = 墙段中点 + 墙内侧法线 × (平台半长 + 墙半厚 + 贴墙余量)；
+     * - 平台朝向 = 沿法线（垂直于墙面）；镜像（F）翻转法线方向（墙另一侧）。
+     * 预置平台用同款几何（_placeInitialPlatform，2026-08-16）。
+     * @returns {null|{x:number,y:number,e:object,orient:string,normal:object}}
+     */
+    _snapPlatformToWall(x, y) {
+        const item = this._placing && this._placing.item;
+        if (!item) return null;
+        const mirror = !!(this._placing && this._placing.mirror);
+        // 平台沿墙放置（五版：实体 = 台阶入口，位置由「台面高出墙顶 25px」反推——
+        // k = (platformHeight 178 - 墙高 108 - 25) / (wn.y - 墙斜率·wn.x)）
+        let best = null;
+        for (const e of Game.entities.values()) {
+            if (!e || !e.active || !e._faceLine || e._faceLine.length !== 2) continue;
+            if (!(e._isDefenseCover || e._isCoverGate)) continue; // 只贴掩体/门墙段
+            const [A, B] = e._faceLine;
+            if (!A || !B || typeof A.x !== 'number') continue;
+            // 点到墙段距离
+            const d = this._pointSegDist(x, y, A, B);
+            if (d > SNAP_RADIUS + 60) continue; // 吸附触发距离（宽松）
+            if (!best || d < best.d) {
+                // 墙段中点
+                const mx = (A.x + B.x) / 2, my = (A.y + B.y) / 2;
+                // 墙段方向单位向量
+                const wx = B.x - A.x, wy = B.y - A.y;
+                const wl = Math.hypot(wx, wy) || 1;
+                const ux = wx / wl, uy = wy / wl;
+                // 墙内侧法线（指向房内 = 与鼠标位置同侧）：法线 = 墙方向旋转 ±90°
+                // 选与鼠标位置点积为正的一侧（鼠标在墙哪侧，平台就贴哪侧）
+                let nx = -uy, ny = ux;
+                if ((x - mx) * nx + (y - my) * ny < 0) { nx = -nx; ny = -ny; }
+                if (mirror) { nx = -nx; ny = -ny; } // F 镜像：贴墙另一侧
+                // 墙段朝向（face 线 x 差符号）：h = "\"（斜率 +0.5）、v = "/"（斜率 -0.5）
+                const orient = (B.x - A.x) >= 0 ? 'h' : 'v';
+                // 台面高出墙顶：k 由墙斜率 + 法线解出（同 _placeInitialPlatform 口径）
+                const slope = wl ? wy / wx : 0;
+                const k = (178 - 108 - 25) / ((ny - slope * nx) || 0.9);
+                best = {
+                    x: Math.round(mx + nx * k),
+                    y: Math.round(my + ny * k),
+                    d,
+                    e,
+                    wall: e,
+                    normal: { x: nx, y: ny },
+                    wallLine: { A: { x: A.x, y: A.y }, B: { x: B.x, y: B.y } },
+                    orient,
+                };
+            }
+        }
+        if (!best) return null;
+        return { x: best.x, y: best.y, e: best.e, wall: best.wall, normal: best.normal, wallLine: best.wallLine, orient: best.orient };
     },
 
     /** 新掩体的墙段底边线段（face line，世界坐标）——按级别 + 有效朝向 */
@@ -542,6 +626,21 @@ export const BuildingSystem = {
             ? 40
             : (this._placing.item.kind === 'trap' ? TRAP_SPACING : 28);
         if (WallSystem && typeof WallSystem.canMoveTo === 'function' && !WallSystem.canMoveTo(x, y, radius)) return false;
+        // 射击台（2026-08-16）：贴墙垂直突出，footprint 大（260 显示宽 → 半长 130）——
+        // 与其它平台保持间距（中心距 < 240 拒绝，防两平台叠放/贴太近）
+        if (this._placing.item.kind === 'platform') {
+            for (const e of Game.entities.values()) {
+                if (!e || !e.active) continue;
+                if (e._isFiringPlatform) {
+                    if (Math.hypot(e.x - x, e.y - y) < 240) return false;
+                    continue;
+                }
+                if (!e._isDefenseStructure) continue;
+                const dx = e.x - x, dy = e.y - y;
+                if (dx * dx + dy * dy < 90 * 90) return false;
+            }
+            return true;
+        }
         // 不与已建建筑重叠：掩体按「墙段真实 footprint（底边线段 + 墙厚）」判定——
         // 只检查底部碰撞体积，斜墙不再用轴对齐保守矩形（避免“该能放却红”）；
         // 两墙不能穿越/叠放，仅允许端点相接或吸附后 8px 接缝叠合
@@ -826,6 +925,18 @@ export const BuildingSystem = {
             });
             Game.entities.set(id, gate);
             if (DefenseSystem && DefenseSystem.gates) DefenseSystem.gates.push(gate);
+        } else if (item.kind === 'platform') {
+            // 射击台：贴墙放置（_snapPlatformToWall 已算好吸附位；传递墙段法线/朝向/墙线）
+            const snap = this._snapped;
+            const platform = new FiringPlatform(x, y, {
+                mirror,
+                id,
+                orient: (snap && snap.orient) || 'v',
+                wallNormal: (snap && snap.normal) || null,
+                wallLine: (snap && snap.wallLine) || null, // 裁墙洞 + 密封段
+            });
+            Game.entities.set(id, platform);
+            if (DefenseSystem && DefenseSystem.platforms) DefenseSystem.platforms.push(platform);
         } else {
             const cover = new DefenseCover(x, y, {
                 grade: item.grade,

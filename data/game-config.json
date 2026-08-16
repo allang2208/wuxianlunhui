@@ -127,22 +127,22 @@
       "name": "世界-122",
       "type": "instance",
       "label": "场景八",
-      "width": 4096,
+      "width": 6144,
       "height": 4096,
       "background": "#0d1b0a",
       "origin": {
-        "x": 2048,
+        "x": 3072,
         "y": 2048
       },
       "treeScatter": {
         "enabled": true,
         "count": 100,
-        "minDist": 95,
+        "minDist": 150,
         "scaleJitter": 0.1,
         "bounds": {
           "x0": 150,
           "y0": 250,
-          "x1": 3946,
+          "x1": 5994,
           "y1": 3900
         },
         "exclude": {

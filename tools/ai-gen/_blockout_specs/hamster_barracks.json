@@ -1,0 +1,83 @@
+{
+  "elevation": 30,
+  "azimuth": 0,
+  "resolution": 1024,
+  "bottom_y": 880,
+  "max_width_frac": 0.8,
+  "top_margin_px": 70,
+  "tex": "Y:/工作/无尽轮回/scratch/world122/raw/hamster_barracks_wall_tex.png",
+  "tex2": "Y:/工作/无尽轮回/scratch/demon_iron_tex.png",
+  "interior_glow": "Y:/工作/无尽轮回/scratch/world122/raw/factory_interior_glow.png",
+  "primitives": [
+    {
+      "type": "box",
+      "size": [260, 150, 90],
+      "pos": [0, 0, 45],
+      "rot": [0, 0, 44.8],
+      "bevel": 6,
+      "material": "wall"
+    },
+    {
+      "type": "prism",
+      "size": [280, 170, 68],
+      "pos": [0, 0, 98],
+      "rot": [0, 0, 44.8],
+      "material": "wall"
+    },
+    {
+      "type": "box",
+      "size": [36, 36, 175],
+      "pos": [-205.5, -68, 87.5],
+      "rot": [0, 0, 44.8],
+      "bevel": 4,
+      "material": "wall"
+    },
+    {
+      "type": "box",
+      "size": [36, 36, 175],
+      "pos": [70.5, -68, 87.5],
+      "rot": [0, 0, 44.8],
+      "bevel": 4,
+      "material": "wall"
+    },
+    {
+      "type": "box",
+      "size": [36, 36, 190],
+      "pos": [-18.5, 68, 95],
+      "rot": [0, 0, 44.8],
+      "bevel": 4,
+      "material": "wall"
+    },
+    {
+      "type": "box",
+      "size": [36, 36, 190],
+      "pos": [153.5, 68, 95],
+      "rot": [0, 0, 44.8],
+      "bevel": 4,
+      "material": "wall"
+    },
+    {
+      "type": "box",
+      "size": [44, 4, 54],
+      "pos": [-77.4, -78, 27],
+      "rot": [0, 0, 44.8],
+      "material": "interior"
+    },
+    {
+      "type": "box",
+      "size": [26, 4, 24],
+      "pos": [-128.4, -77, 62],
+      "rot": [0, 0, 44.8],
+      "material": "window"
+    },
+    {
+      "type": "box",
+      "size": [26, 4, 24],
+      "pos": [-24.4, -77, 62],
+      "rot": [0, 0, 44.8],
+      "material": "window"
+    }
+  ],
+  "plates": [],
+  "slide": {}
+}

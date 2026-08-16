@@ -256,6 +256,14 @@ def build_wall(prims, tex_path, tex2_path=None):
         nodes, links = nt.nodes, nt.links
         bsdf = nodes.get("Principled BSDF")
         bsdf.inputs["Roughness"].default_value = 0.85
+        # light 材质（2026-08-16 射击台台阶踏面）：浅色素面，模拟每级台阶受光踏面，
+        # 与深色立面形成边界对比（否则同材质台阶逐级不可辨 = "没有坡度"）
+        if p.get("material") == "light":
+            bsdf.inputs["Base Color"].default_value = (0.72, 0.66, 0.58, 1.0)
+            bsdf.inputs["Roughness"].default_value = 0.9
+            o.data.materials.append(mat)
+            objs.append(o)
+            continue
         tex = nodes.new("ShaderNodeTexImage")
         # 双材质：spec prim 带 material:'iron' 用第二张纹理（铁闸门铁栅），其余用主纹理
         tex.image = img2 if (p.get("material") == "iron" and img2) else img

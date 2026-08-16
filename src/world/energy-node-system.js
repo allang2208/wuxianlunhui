@@ -87,8 +87,9 @@ class EnergyNode extends DamageableEntity {
         if (dealt <= 0) return dealt;
         const energy = Math.floor(dealt * ENERGY_CONFIG.gatherRatio);
         if (energy > 0) {
-            if (source && source._isHamsterMiner && typeof source.addMinedEnergy === 'function') {
-                // 仓鼠矿工挖矿直接装填隐藏背包，不产生地面掉落（2026-08-15 用户口径）
+            if (source && typeof source.addMinedEnergy === 'function') {
+                // 仓鼠矿工挖矿装填隐藏背包 / 队友（露娜、伊莉丝）采集直接入队员背包，
+                // 均不产生地面掉落（2026-08-15 矿工口径，2026-08-16 队友同口径）
                 source.addMinedEnergy(energy);
             } else if (Game && typeof Game.dropItem === 'function') {
                 const ang = Math.random() * Math.PI * 2;
@@ -157,19 +158,37 @@ export const EnergyNodeSystem = {
         this.active = true;
         this._ensureTextures();
         this._refillVariantBag();
-        for (const p of ENERGY_CONFIG.positions) {
-            if (WallSystem && typeof WallSystem.canMoveTo === 'function'
-                && !WallSystem.canMoveTo(p.x, p.y, ENERGY_CONFIG.nodeRadius)) {
-                continue; // 落点被墙/建筑占住则跳过
+        // 大能源点（2026-08-16）：每簇 10~20 块集中在簇心小范围内（均匀圆盘 + 最小间距），
+        // 玩家/仓鼠矿工可集中采集；落点被墙/树占住则重试，簇内节点互不重叠
+        for (const cl of ENERGY_CONFIG.clusters) {
+            const count = cl.count ?? 12;
+            const spread = cl.spread ?? 150;
+            let placed = 0;
+            let guard = 0;
+            while (placed < count && guard++ < count * 40) {
+                const ang = Math.random() * Math.PI * 2;
+                const dist = Math.sqrt(Math.random()) * spread; // 均匀圆盘分布
+                const px = Math.round(cl.x + Math.cos(ang) * dist);
+                const py = Math.round(cl.y + Math.sin(ang) * dist);
+                // 基地核心周边禁矿带（ENERGY_CONFIG.baseExclusion）：800px 内不生成
+                const be = ENERGY_CONFIG.baseExclusion;
+                if (be && Math.hypot(px - be.x, py - be.y) < (be.radius || 800)) continue;
+                // 与同簇已放节点最小间距（节点直径 ~90px，取 85 防贴图重叠）
+                if (this.nodes.some((n) => Math.hypot(n.x - px, n.y - py) < 85)) continue;
+                if (WallSystem && typeof WallSystem.canMoveTo === 'function'
+                    && !WallSystem.canMoveTo(px, py, ENERGY_CONFIG.nodeRadius)) {
+                    continue; // 落点被墙/建筑占住则跳过
+                }
+                const storage = ENERGY_CONFIG.storage.min
+                    + Math.floor(Math.random() * (ENERGY_CONFIG.storage.max - ENERGY_CONFIG.storage.min + 1));
+                const variant = this._takeVariant();
+                const node = new EnergyNode(px, py, { hp: storage, maxHp: storage, variant });
+                node._formMeta = energyNodeFormMeta(variant);
+                const id = `energy_node_${Math.random().toString(36).slice(2, 8)}`;
+                Game.entities.set(id, node);
+                this.nodes.push(node);
+                placed++;
             }
-            const storage = ENERGY_CONFIG.storage.min
-                + Math.floor(Math.random() * (ENERGY_CONFIG.storage.max - ENERGY_CONFIG.storage.min + 1));
-            const variant = this._takeVariant();
-            const node = new EnergyNode(p.x, p.y, { hp: storage, maxHp: storage, variant });
-            node._formMeta = energyNodeFormMeta(variant);
-            const id = `energy_node_${Math.random().toString(36).slice(2, 8)}`;
-            Game.entities.set(id, node);
-            this.nodes.push(node);
         }
           // 寻路可见性：能源矿作为“非墙体圆障碍”注册给 A*，怪物会绕行而不是直线穿矿。
           // 只影响寻路，不写 WallSystem，玩家移动/塔弹道等原有墙体语义不变。

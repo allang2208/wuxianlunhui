@@ -11,6 +11,7 @@ import { PLAYER_ANIMS, playerTextureKey } from '../../config/player-anim.js';
 import { TRAP_CONFIG, TRAP_GRADES } from '../../world/trap-config.js';
 import companionConfigData from '../../../data/companion-config.json';
 import hamsterMinerConfig from '../../../data/hamster-miner-config.json';
+import hamsterWarriorConfig from '../../../data/hamster-warrior-config.json';
 
 export class BootScene extends Scene {
     constructor() {
@@ -85,14 +86,16 @@ export class BootScene extends Scene {
             }
         }
 
-        // ---- 仓鼠矿工（世界-122 自动采矿友方单位；独立配置，不入招募池）----
-        for (const [animKey, def] of Object.entries(hamsterMinerConfig.animations || {})) {
-            if (!def || !def.src) continue;
-            this.load.spritesheet(`companion_${hamsterMinerConfig.id}_${animKey}`, def.src, {
-                frameWidth: def.frameWidth || 512,
-                frameHeight: def.frameHeight || 512,
-                endFrame: (def.frameCount || 1) - 1,
-            });
+        // ---- 世界-122 友方单位（仓鼠矿工/仓鼠战士；独立配置，不入招募池）----
+        for (const unitConfig of [hamsterMinerConfig, hamsterWarriorConfig]) {
+            for (const [animKey, def] of Object.entries(unitConfig.animations || {})) {
+                if (!def || !def.src) continue;
+                this.load.spritesheet(`companion_${unitConfig.id}_${animKey}`, def.src, {
+                    frameWidth: def.frameWidth || 512,
+                    frameHeight: def.frameHeight || 512,
+                    endFrame: (def.frameCount || 1) - 1,
+                });
+            }
         }
 
         // ---- 武器资源 ----
@@ -215,6 +218,9 @@ export class BootScene extends Scene {
         this.load.image('obstacle_defense_tower', 'assets/terrain/obstacle_defense_tower.png');
         // 世界-122 基地核心（Blender 建模：立方体 + 扁平底座 + 大理石贴图，2026-08-16）
         this.load.image('defense_base', 'assets/terrain/defense_base.png');
+        // 世界-122 射击台（Blender 建模：三级台阶 + 站台，30° 等距视角，2026-08-16）
+        this.load.image('firing_platform', 'assets/terrain/firing_platform.png');
+        this.load.image('firing_platform_h', 'assets/terrain/firing_platform_h.png');
         // 世界-122 仓鼠小屋（建筑面板可建造，生成仓鼠矿工；贴图 Blender 建模渲染）
         this.load.image('hamster_hut', 'assets/terrain/hamster_hut.png');
         // 仓鼠小屋开关门动画帧（工厂关门版 16 帧滑门，4×4 精灵表；矿工补员时先开门）
@@ -540,34 +546,38 @@ export class BootScene extends Scene {
             }
         }
 
-        // 仓鼠矿工动画注册：mining 走「完整 19 帧起步 + 5~19 帧循环」两段式
-        for (const [animKey, def] of Object.entries(hamsterMinerConfig.animations || {})) {
-            if (!def || !def.src) continue;
-            const texKey = `companion_${hamsterMinerConfig.id}_${animKey}`;
-            if (this.anims.exists(texKey)) continue;
-            if (def.startFrames && def.loopFrames) {
-                const [ss, se] = def.startFrames;
-                const [ls, le] = def.loopFrames;
-                this.anims.create({
-                    key: `${texKey}_start`,
-                    frames: this.anims.generateFrameNumbers(texKey, { start: ss, end: se }),
-                    frameRate: def.startFrameRate || def.frameRate || 12,
-                    repeat: def.startRepeat !== undefined ? def.startRepeat : 0,
-                });
-                this.anims.create({
-                    key: texKey,
-                    frames: this.anims.generateFrameNumbers(texKey, { start: ls, end: le }),
-                    frameRate: def.frameRate || 12,
-                    repeat: def.repeat !== undefined ? def.repeat : -1,
-                });
-            } else {
-                const [start, end] = def.frames || [0, (def.frameCount || 1) - 1];
-                this.anims.create({
-                    key: texKey,
-                    frames: this.anims.generateFrameNumbers(texKey, { start, end }),
-                    frameRate: def.frameRate || 12,
-                    repeat: def.repeat !== undefined ? def.repeat : -1,
-                });
+        // 世界-122 友方单位动画注册：两段式（startFrames 起步播一次 → loopFrames 循环）
+        // 仓鼠矿工 mining = 完整 19 帧起步 + 5~19 帧单次；仓鼠战士 attack = 完整 1~24 帧
+        // 起步 + 第 6~24 帧循环（2026-08-16 用户口径：持续攻击从第 6 帧循环）
+        for (const unitConfig of [hamsterMinerConfig, hamsterWarriorConfig]) {
+            for (const [animKey, def] of Object.entries(unitConfig.animations || {})) {
+                if (!def || !def.src) continue;
+                const texKey = `companion_${unitConfig.id}_${animKey}`;
+                if (this.anims.exists(texKey)) continue;
+                if (def.startFrames && def.loopFrames) {
+                    const [ss, se] = def.startFrames;
+                    const [ls, le] = def.loopFrames;
+                    this.anims.create({
+                        key: `${texKey}_start`,
+                        frames: this.anims.generateFrameNumbers(texKey, { start: ss, end: se }),
+                        frameRate: def.startFrameRate || def.frameRate || 12,
+                        repeat: def.startRepeat !== undefined ? def.startRepeat : 0,
+                    });
+                    this.anims.create({
+                        key: texKey,
+                        frames: this.anims.generateFrameNumbers(texKey, { start: ls, end: le }),
+                        frameRate: def.frameRate || 12,
+                        repeat: def.repeat !== undefined ? def.repeat : -1,
+                    });
+                } else {
+                    const [start, end] = def.frames || [0, (def.frameCount || 1) - 1];
+                    this.anims.create({
+                        key: texKey,
+                        frames: this.anims.generateFrameNumbers(texKey, { start, end }),
+                        frameRate: def.frameRate || 12,
+                        repeat: def.repeat !== undefined ? def.repeat : -1,
+                    });
+                }
             }
         }
 
