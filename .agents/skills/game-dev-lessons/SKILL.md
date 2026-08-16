@@ -918,6 +918,8 @@ this.ai = config.ai || {};
   别盲目改 UV。
 - **屋顶加厚**：棱柱下垫红色檐口厚板（box，material `roof`，渲染器对 box 型屋顶件
   整块红瓦），避免纸片薄；檐口板与墙同色会被吞掉，要用对比色（红）。
+- **加厚别用"檐口圈"（v4 用户纠错）**：斜面下垫一圈厚板 = 屋檐圈，用户要的是斜面本身加厚；
+  厚斜板（roof_slab 顶/边红瓦）几何可行但易与塔台重叠，暂回归棱柱实心楔。
 - 建模复用：仓鼠小屋同视角 spec 模板（elevation 30 / azimuth 0 / resolution 1024 /
   bottom_y 880 / max_width_frac 0.8）；黑砖走 klein-walltex LoRA
   （`--host 192.168.3.142 --model flux2-klein-4b-walltex`），验收看暗色/白边 0%/砖格 FFT 峰。
