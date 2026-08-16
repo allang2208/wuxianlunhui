@@ -111,6 +111,9 @@ export function isoHalfThick(g) {
 const ISO_CORNER_DEPTH_BIAS = { top: 0, right: 1, left: 2, bottom: 3 };
 
 const WallSystem = {
+    // 射击台密封段集合（2026-08-16 五版）：玩家移动统一传 { segs: platformSegs } 忽略，
+    // 怪物/弹道照常被挡（怪物挡停转火平台，见 movement-system 卡住检测 _owner 链）
+    platformSegs: new Set(),
     // [PERF-2026-08-03] 碰撞空间加速：walls/isoSegments/trees 以"原始数组 + 访问器"暴露。
     // 读侧返回惰性代理，任何 push/splice/下标赋值自动标记脏；_getCollisionGrid 惰性重建
     // 空间网格，canMoveTo/blocked/_nearestBlockingSeg 改为网格近邻查询（谓词与线性版完全一致，
@@ -247,11 +250,15 @@ const WallSystem = {
     },
 
     /** 线性版 canMoveTo（_collisionAccel=false 时使用，与历史实现逐行一致） */
-    _linearCanMoveTo(x, y, radius) {
-        for (const w of this.walls) if (this.circleRect(x, y, radius, w)) return false;
+    _linearCanMoveTo(x, y, radius, ignore = null) {
+        for (const w of this.walls) {
+            if (ignore && ignore.rects && ignore.rects.has(w)) continue;
+            if (this.circleRect(x, y, radius, w)) return false;
+        }
         // iso 墙线段模型：点到线段距离 < 半径 + 半厚
         if (this.isoSegments) {
             for (const s of this.isoSegments) {
+                if (ignore && ignore.segs && ignore.segs.has(s)) continue;
                 if (this._pointSegDist(x, y, s.x1, s.y1, s.x2, s.y2) < radius + s.halfThick) return false;
             }
         }
@@ -283,10 +290,11 @@ const WallSystem = {
     },
 
     /** 线性版最近阻挡墙段 */
-    _linearNearestBlockingSeg(nx, ny, r) {
+    _linearNearestBlockingSeg(nx, ny, r, ignore = null) {
         if (!this.isoSegments) return null;
         let best = null, bestD = Infinity;
         for (const s of this.isoSegments) {
+            if (ignore && ignore.segs && ignore.segs.has(s)) continue;
             const d = this._pointSegDist(nx, ny, s.x1, s.y1, s.x2, s.y2);
             if (d < r + s.halfThick + 4 && d < bestD) {
                 bestD = d;
@@ -1170,10 +1178,10 @@ const WallSystem = {
         const clY = Math.max(rect.y, Math.min(cy, rect.y + rect.h));
         return (cx - clX) ** 2 + (cy - clY) ** 2 < r * r;
     },
-    canMoveTo(x, y, radius) {
+    canMoveTo(x, y, radius, ignore = null) {
         if (this._collisionAccel) {
             const g = this._getCollisionGrid();
-            if (!g) return this._linearCanMoveTo(x, y, radius);
+            if (!g) return this._linearCanMoveTo(x, y, radius, ignore);
             const { cell, cells, key, maxSegThick, maxTreeR } = g;
             const range = Math.ceil((radius + Math.max(maxSegThick, maxTreeR)) / cell) + 1;
             const cx = Math.floor(x / cell), cy = Math.floor(y / cell);
@@ -1183,9 +1191,11 @@ const WallSystem = {
                     if (!arr) continue;
                     for (const item of arr) {
                         if (item.type === 'wall') {
+                            if (ignore && ignore.rects && ignore.rects.has(item.obj)) continue;
                             if (this.circleRect(x, y, radius, item.obj)) return false;
                         } else if (item.type === 'seg') {
                             const s = item.obj;
+                            if (ignore && ignore.segs && ignore.segs.has(s)) continue;
                             if (this._pointSegDist(x, y, s.x1, s.y1, s.x2, s.y2) < radius + s.halfThick) return false;
                         } else {
                             const t = item.obj;
@@ -1198,7 +1208,7 @@ const WallSystem = {
             }
             return true;
         }
-        return this._linearCanMoveTo(x, y, radius);
+        return this._linearCanMoveTo(x, y, radius, ignore);
     },
     /** 点 (px,py) 到线段 (x1,y1)-(x2,y2) 的距离 */
     _pointSegDist(px, py, x1, y1, x2, y2) {
@@ -1217,10 +1227,10 @@ const WallSystem = {
         const u = ((cx - ax) * (by - ay) - (cy - ay) * (bx - ax)) / d;
         return t >= 0 && t <= 1 && u >= 0 && u <= 1;
     },
-    resolve(x, y, nx, ny, r) {
-        if (this.canMoveTo(nx, ny, r) && !this.blocked(x, y, nx, ny)) return { x: nx, y: ny };
+    resolve(x, y, nx, ny, r, ignore = null) {
+        if (this.canMoveTo(nx, ny, r, ignore) && !this.blocked(x, y, nx, ny, ignore)) return { x: nx, y: ny };
         // iso 墙切向滑动：找最近阻挡墙段，取移动在墙方向上的分量（速度不超意图，杜绝加速滑行）
-        const seg = this._nearestBlockingSeg(nx, ny, r);
+        const seg = this._nearestBlockingSeg(nx, ny, r, ignore);
         if (seg) {
             const dx = nx - x, dy = ny - y;
             const wx = seg.x2 - seg.x1, wy = seg.y2 - seg.y1;
@@ -1229,14 +1239,14 @@ const WallSystem = {
                 const t = (dx * wx + dy * wy) / wl2;
                 for (const ratio of [1, 0.5, 0.25]) {
                     const sx = x + wx * t * ratio, sy = y + wy * t * ratio;
-                    if (this.canMoveTo(sx, sy, r) && !this.blocked(x, y, sx, sy)) {
+                    if (this.canMoveTo(sx, sy, r, ignore) && !this.blocked(x, y, sx, sy, ignore)) {
                         return { x: sx, y: sy };
                     }
                 }
             }
         }
-        if (this.canMoveTo(nx, y, r) && !this.blocked(x, y, nx, y)) return { x: nx, y };
-        if (this.canMoveTo(x, ny, r) && !this.blocked(x, y, x, ny)) return { x, y: ny };
+        if (this.canMoveTo(nx, y, r, ignore) && !this.blocked(x, y, nx, y, ignore)) return { x: nx, y };
+        if (this.canMoveTo(x, ny, r, ignore) && !this.blocked(x, y, x, ny, ignore)) return { x, y: ny };
         // 矩形障碍（散布树 footprint 等）切向滑动：对最近阻挡矩形取贴面方向投影，
         // 与 iso 段同口径；两轴分解都堵死（L/V 形树兜）时沿矩形边滑出
         const bRect = this._nearestBlockingRect(nx, ny, r);
@@ -1255,7 +1265,7 @@ const WallSystem = {
             const tMag = Math.abs(rdx * tx + rdy * ty);
             for (const ratio of [1, 0.5, 0.25]) {
                 const sx = x + tx * tMag * ratio, sy = y + ty * tMag * ratio;
-                if (this.canMoveTo(sx, sy, r) && !this.blocked(x, y, sx, sy)) {
+                if (this.canMoveTo(sx, sy, r, ignore) && !this.blocked(x, y, sx, sy, ignore)) {
                     return { x: sx, y: sy };
                 }
             }
@@ -1267,7 +1277,7 @@ const WallSystem = {
             for (let ratio = 0.75; ratio >= 0.25; ratio -= 0.25) {
                 const stepX = x + dx * ratio;
                 const stepY = y + dy * ratio;
-                if (this.canMoveTo(stepX, stepY, r) && !this.blocked(x, y, stepX, stepY)) {
+                if (this.canMoveTo(stepX, stepY, r, ignore) && !this.blocked(x, y, stepX, stepY, ignore)) {
                     return { x: stepX, y: stepY };
                 }
             }
@@ -1275,7 +1285,7 @@ const WallSystem = {
         return { x, y };
     },
     /** 找离目标点最近的阻挡 iso 墙段（距离 < r + 半厚 + 容差） */
-    _nearestBlockingSeg(nx, ny, r) {
+    _nearestBlockingSeg(nx, ny, r, ignore = null) {
         if (this._collisionAccel) {
             const g = this._getCollisionGrid();
             if (g) {
@@ -1290,6 +1300,7 @@ const WallSystem = {
                         for (const item of arr) {
                             if (item.type !== 'seg') continue;
                             const s = item.obj;
+                            if (ignore && ignore.segs && ignore.segs.has(s)) continue;
                             const d = this._pointSegDist(nx, ny, s.x1, s.y1, s.x2, s.y2);
                             // 平局按数组下标决胜（与线性版"先到先得"严格一致）
                             if (d < r + s.halfThick + 4 && (d < bestD || (d === bestD && item.idx < bestIdx))) {
@@ -1303,7 +1314,7 @@ const WallSystem = {
                 return best;
             }
         }
-        return this._linearNearestBlockingSeg(nx, ny, r);
+        return this._linearNearestBlockingSeg(nx, ny, r, ignore);
     },
     /** 找离目标点最近的阻挡矩形墙（散布树 footprint 等；圆心到矩形距离 < r + 容差） */
     _nearestBlockingRect(nx, ny, r) {

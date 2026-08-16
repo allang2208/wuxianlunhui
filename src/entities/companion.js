@@ -10,6 +10,8 @@ import { allocateOnLevelUp } from '../config/companion-growth.js';
 import { canEquipSlot, getEquipmentBonuses, isOneHandedItem } from '../ui/equip/equip-rules.js';
 import { buildSkillMap, restoreSkills, grantCompanionSkillExp } from '../systems/skill-system.js';
 import COMBAT_FORMULAS from '../../data/combat-formulas.json';
+import companionConfigData from '../../data/companion-config.json';
+import { ENERGY_ITEM } from '../systems/energy-manager.js';
 
 const ATTR_KEYS = ['str', 'dex', 'int', 'con', 'wis', 'luck'];
 
@@ -42,6 +44,9 @@ export class Companion {
         this.aiConfig = archive.ai || null;
         // 初始魔法覆盖（2026-08-15）：露娜 baseMaxMp=600（1 级基准，升级仍 +10/级 + 装备加成）
         this._maxMpOverride = archive.baseMaxMp || 0;
+        // 初始生命覆盖（2026-08-16）：仓鼠战士 baseMaxHp=300（con=15 → 公式 250，覆盖为 300）；
+        // 与 baseMaxMp 同口径：1 级基准，升级 +10/级 + 装备 maxHp 加成保留
+        this._maxHpOverride = archive.baseMaxHp || 0;
         // 消耗品自动使用设置（背包界面可改；低 HP/MP 比例时自动用对应恢复药水，低级→高级）
         this.consumableSettings = {
             enabled: true,
@@ -177,7 +182,12 @@ export class Companion {
         // 每级成长 +10 生命 / +10 魔法（1 级为 0，2 级 +10，依此类推；玩家/队员同口径）
         const lvlHp = (d.level - 1) * 10;
         const lvlMp = (d.level - 1) * 10;
-        d.maxHp = (hpF.base || 100) + d.con * (hpF.conMultiplier || 10) + (eq.maxHp || 0) + lvlHp;
+        if (this._maxHpOverride > 0) {
+            // 初始生命覆盖：1 级基准 = baseMaxHp，升级 +10/级，装备 maxHp 加成保留
+            d.maxHp = this._maxHpOverride + (eq.maxHp || 0) + lvlHp;
+        } else {
+            d.maxHp = (hpF.base || 100) + d.con * (hpF.conMultiplier || 10) + (eq.maxHp || 0) + lvlHp;
+        }
         if (this._maxMpOverride > 0) {
             // 初始魔法覆盖：1 级基准 = baseMaxMp，升级 +10/级，装备 maxMp 加成保留
             d.maxMp = this._maxMpOverride + (eq.maxMp || 0) + lvlMp;
@@ -411,6 +421,37 @@ export class Companion {
         this.backpack.push({ ...JSON.parse(JSON.stringify(item)), slot: freeSlot });
     }
 
+    /**
+     * 采集能源直接入包（2026-08-16 用户口径：队友采矿同仓鼠矿工，不落地）。
+     * 并入背包已有能源堆（≤999 上限），满则开新堆；背包无空位拒绝。
+     * 返回实际入包量（0 = 背包满，未装下）。仓鼠矿工子类覆写为隐藏背包。
+     */
+    addMinedEnergy(amount) {
+        if (!(amount > 0)) return 0;
+        const items = this.backpack || [];
+        const maxStack = ENERGY_ITEM.maxStack || 999;
+        let added = 0;
+        // 先并入已有能源堆
+        for (const it of items) {
+            if (!it || it.category !== 'energy') continue;
+            const space = maxStack - (it.stack || 0);
+            if (space <= 0) continue;
+            const take = Math.min(amount - added, space);
+            it.stack += take;
+            added += take;
+            if (added >= amount) return added;
+        }
+        // 再开新堆（找空位）
+        while (added < amount) {
+            const slot = this._findFreeBackpackSlot();
+            if (slot < 0) break;
+            const take = Math.min(amount - added, maxStack);
+            items.push({ ...ENERGY_ITEM, slot, stack: take });
+            added += take;
+        }
+        return added;
+    }
+
     /** 序列化（存档用）：纯数据 */
     serialize() {
         return {
@@ -424,15 +465,24 @@ export class Companion {
             animations: JSON.parse(JSON.stringify(this.animations || {})),
             maxBackpackSlots: this.maxBackpackSlots,
             baseMaxMp: this._maxMpOverride || undefined,
+            baseMaxHp: this._maxHpOverride || undefined,
             consumableSettings: JSON.parse(JSON.stringify(this.consumableSettings || {})),
             equipRules: this.equipRules ? JSON.parse(JSON.stringify(this.equipRules)) : null,
             equipNote: this.equipNote,
+            // AI 配置与技能解锁表必须随档保存（2026-08-16）：此前丢失导致解散再招募/
+            // 读档后 aiConfig=null → 渲染层当“纯跟随单位”贴玩家、AI 错用露娜法师默认
+            // 配置——伊莉丝命令“执行了但画面不动”（实机 CDP 复现）。
+            aiConfig: this.aiConfig || undefined,
+            unlockSkills: this._unlockSkills || undefined,
             displaySize: this.displaySize || undefined,
             spriteOffsetY: this.spriteOffsetY || undefined,
         };
     }
 
     static fromSerialized(s) {
+        // 档案兜底：老档（无 aiConfig/unlockSkills 字段）回退 companion-config.json 的
+        // 同 id 档案，保证解散再招募/读档后 AI 角色与技能解锁表不丢
+        const archive = (companionConfigData.companions || []).find(a => a.id === s.id) || {};
         const c = new Companion({ id: s.id, name: s.name, title: s.title, role: s.role,
             growthRule: s.growthRule, avatar: s.avatar, weaponType: s.weaponType,
             baseLevel: 1 });
@@ -449,7 +499,13 @@ export class Companion {
         c.animations = s.animations || {};
         if (s.maxBackpackSlots) c.maxBackpackSlots = s.maxBackpackSlots;
         if (s.baseMaxMp) c._maxMpOverride = s.baseMaxMp;
+        if (s.baseMaxHp) c._maxHpOverride = s.baseMaxHp;
         if (s.consumableSettings) c.consumableSettings = { enabled: true, hpThreshold: 0.3, mpThreshold: 0.25, useLowToHigh: true, ...s.consumableSettings };
+        // AI 配置/技能解锁表：优先存档值，老档回退配置档案（2026-08-16 修复）
+        c.aiConfig = s.aiConfig || archive.ai || null;
+        c._unlockSkills = s.unlockSkills || archive.unlockSkills || {};
+        // 恢复后按真实等级重查技能解锁（构造时等级=1 查不到）
+        c._checkUnlocks();
         // 预置装备六维差值：恢复的 data 已含装备加成，差值法不得重复叠加
         const eq = c.getEquipmentBonuses();
         c._equipAttrBonus = { str: eq.str || 0, dex: eq.dex || 0, int: eq.int || 0, con: eq.con || 0, wis: eq.wis || 0, luck: eq.luck || 0 };

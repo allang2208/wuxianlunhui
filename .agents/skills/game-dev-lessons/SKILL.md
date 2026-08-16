@@ -778,28 +778,43 @@ this.ai = config.ai || {};
   不清零会让 `_tickWarrior` 首行 return 永久短路。场景切换重置块必须一并中断
   meleeAtkTimer/defendPhase/whirlwindHitSet/frozenForCast 并把 _animState 复位 idle。
 
-## 47. 高台/射击台：2.5D 假高度 + 弹道忽略掩体段（2026-08-16 四版定稿）
+## 47. 高台/射击台：2.5D 假高度 + 弹道忽略掩体段（2026-08-16 五版定稿）
 
 - **需求**：围墙内远程攻击被己方掩体墙段（`WallSystem.isoSegments` 里 `_cover:true`）
   挡——需要"站上高台越过围墙攻击"。
-- **⚠ 打回三次的教训**：
+- **⚠ 打回四次的教训**：
   - ① 台阶/平台不能沿 local-x 横排（rot 44.8 投影成"台阶左平台右"方向反）——台阶沿
     local-y 纵深排列；
-  - ② **不要自研 box 堆叠**——直接参考掩体：复制拓宽立方体（300×150 起三级堆叠）作
-    平台主体 + 台阶衔接，**rot.z 与掩体一致（44.8）**，平台主体平行墙（同掩体沿墙放置），
-    台阶向房内延伸；
+  - ② **不要自研 box 堆叠**——直接参考掩体：复制拓宽立方体作平台主体 + 台阶衔接，
+    **rot.z 与掩体一致（44.8）**，平台主体平行墙（同掩体沿墙放置），台阶向房内延伸；
   - ③ 贴图走**生图管线**（`comfyui-gen.py --model flux2-klein-4b-walltex` 生成材质 →
     render-cover-real.py Blender 渲染），不用渲染器直接贴墙砖；
-  - ④（三版打回）**布尔登台 = 瞬移**：进站台区瞬间抬满 platformHeight 很突兀——必须
-    **连续插值**。做法：登台走廊 = 以顶面中心为近墙端、沿 -wallNormal（房内）延伸
-    300px、半宽 100px 的矩形带；`getLift(ux,uy)` 把单位投影到走廊轴得纵深进度 t →
-    抬升 = (1-t)×platformHeight（0~291 连续，走廊外归 0）；DefenseSystem 每帧存
-    `u._platformLift` 连续值（不是布尔），渲染层 sprite 上移量读它；
-  - ⑤（三版打回）**台阶要有坡度**：满高 box 堆叠的立面全是墙材质、踏面不可见 = 不像
-    台阶——每级 = wall 立面（26 高）+ **light 材质踏面**（8 高浅色素面带高光，
-    render-cover-real.py 新增 light 材质），立面+踏面交替可见；
-  - ⑥（三版打回）**depth 要条件化**：无条件把台上单位抬到 `平台._faceDepth+1` 会覆盖
-    地面单位图层——只在 `_platformLift > 0` 时才抬（玩家 + 侍从渲染两处都要）。
+  - ④（三版）**布尔登台 = 瞬移**——必须**连续插值**：登台走廊内 `getLift` 按进度插值
+    0~platformHeight，`_updatePlatformStates` 每帧存 `u._platformLift` 连续值，渲染层
+    sprite 上移量读它；
+  - ⑤（三版）**台阶要有坡度**：每级 = wall 立面 + **light 材质踏面**（render-cover-real.py
+    新增 light 浅色素面），立面+踏面交替可见；
+  - ⑥（三版）**depth 要条件化**：只在 `_platformLift > 0` 时抬到 `平台._faceDepth+1`；
+  - ⑦（四版，建模）**台阶必须从台面前缘逐级连到地面**——台阶放在台体侧面/与台面同高
+    投影出来是"台体 + 散块"，看不出阶梯。建模后先做 **ASCII 投影**（本地脚本按相机
+    elevation 30/azimuth 0 投影各 box 角点）验证轮廓，再进 Blender 渲染；
+  - ⑧（四版，走不上去根因）**登台走廊方向不能想当然**：四版走廊沿 `-wallNormal`
+    （指向墙外）→ 判定区整个在房间外，玩家永远触发不了抬升。走廊方向 = **台阶实际
+    延伸方向**（贴图底部→入口，屏幕向下），且 `getLift` 的"前缘后方归 0"阈值要覆盖
+    台面深度（台面深 26px → 阈值 -40，用 -20 台面后半会瞬断）；
+  - ⑨（四版，贴墙）**贴图朝向由 orient 决定**（'h' → h 贴图），mirror 只翻放置侧不翻
+    贴图（长轴必须始终平行墙线，flipX 会翻斜长轴）；**平台必须锚定实际掩体 face 线**
+    （掩体 face 线相对房间几何边有 ~64px 垂直偏移——先找距几何边中点最近的掩体段，
+    把几何中点投影到 face 线上当墙线锚点）。
+- **裁墙洞 + 密封段（五版新增，走上去的关键）**：台阶跨墙线（入口房内、台面墙顶上方），
+  墙段不处理会挡停玩家：
+  - `trimCoverSegsForPlatform` **分裂**与平台跨度重叠的掩体段——洞区内的部分移除、
+    两侧剩余保留为新段（`_splitOf` 回链）；**只移端点不行**（跨全宽段段身仍横穿洞区，
+    门闸的 moveOut 逻辑对"两端都在洞外/一端在洞内"的段无效）；
+  - 平台自注册 `_platSeg`（_cover 段，跨度=洞区）**密封**（怪物挡停转火平台，_owner 链）；
+  - 玩家移动（player/update.js + subsystems.js 五处 resolve）统一传
+    `{ segs: WallSystem.platformSegs }` ignore；台上弹道走既有 _cover ignore（三件套）；
+  - 平台 `noCollision=true`（门同款）——实体碰撞圈在台阶入口，不关会挡玩家走近。
 - **越墙三件套**：① 投射物 `Projectile._isBlockedByWall` 忽略掩体段条件扩展
   `_isDefenseTower || _onPlatform`（防御塔 2026-08-14 已有同机制，直接复用）；
   ② 魔法弹道 `BoltSkillSystem._updateFlying` 台上施法者传 ignore；
@@ -809,21 +824,24 @@ this.ai = config.ai || {};
 - **登台判定**：DefenseSystem 每帧扫玩家 + PartySystem.members + friendlyUnits
   （**Companion 不在 Game.entities**——门感应同款坑），脚线位置算 getLift 连续值 →
   `_onPlatform/_platformLift/_platformRef`，走出走廊归 0。
-- **2.5D 假高度**：平台贴图是"竖塔"（接地线→顶面 291px），玩家在台上 sprite 上移
+- **2.5D 假高度**：平台贴图是"竖塔"（入口→台面 178px），玩家在台上 sprite 上移
   platformHeight 即"站在顶面"；深度**不能靠 junctionCorrectedDepth**（顶面线离地面
-  291px > 仲裁窗口 60/280，不生效）——贴图深度锚定接地线 `_faceDepth=y+12`，台上单位
-  显式 `max(仲裁, 平台._faceDepth+1)`（**仅当 _platformLift>0**）。
-- **建造吸附两种口径**：掩体/门 = 纵向端点吸附（`_snapPosition` 端点贴合沿墙延续）；
-  平台 = **沿墙放置**（拓宽掩体，实体 = 墙段中点 + 墙内侧法线 × (墙半厚 26+30)，
-  台阶向房内延伸；F 镜像贴墙另一侧；`orient` 随墙段 face 方向，h 向墙用 flipX 镜像贴图）。
+  178px > 仲裁窗口 60/280，不生效）——贴图深度锚定入口接地线 `_faceDepth=y+12`，台上
+  单位显式 `max(仲裁, 平台._faceDepth+1)`（**仅当 _platformLift>0**）。
+- **放置公式**：实体 = 台阶入口，`k = (platformHeight 178 - 墙高 108 - 25) /
+  (wn.y - 墙斜率·wn.x)`（TR 边 ≈50）——台面恰好高出墙顶 25px，玩家站台上可越墙射击。
+- **init 时序坑**：`_buildBaseRoom()` 只算 layout 不建实体——预置平台必须在掩体墙段
+  创建**之后**调用（要锚定 face 线 + 裁墙洞），且用防御包装（init 异常不得静默中断
+  后续塔/门搭建）。
 - **Blender 建模**：render-cover-real.py 管线（与掩体完全同款：box 组合 + rot.z 44.8 +
   elevation 30 + soil 土底座），**材质走生图管线** `comfyui-gen.py --model
   flux2-klein-4b-walltex`（1024×668 横向砖墙 16 步），渲染后**紧身裁剪**再按内容
-  宽高比设显示尺寸/footOffsetY（四版：内容 567×677 → 显示 260×310，footOffsetY 155）；
-  h 版 = flipX 镜像派生。
-- **验证**：CDP 探针——getLift 连续抬升（实测 WALK lifts 291→255→218→182→145→109→
-  73→36→0 平滑递减，无瞬移）、登台 true↔false、resolve ignore 透传（无 ignore 被挡→
-  滑动 / 有 ignore 直达）、贴图渲染尺寸正确；headless 相机不驱动 rAF，视觉实机复测。
+  宽高比设显示尺寸/footOffsetY（五版：内容 695×647 → 显示 260×242，footOffsetY 121，
+  脚底=台阶入口）；h 版 = flipX 镜像派生。
+- **验证**：CDP 探针——init 生成 count=1/贴图 260×242 渲染/getLift 0→178 平滑/
+  裁墙分裂（洞区无掩体段残留）+ _platSeg 密封（怪物挡停、玩家带 ignore 直达）/
+  resolve 无 ignore 被挡；headless 相机不驱动 rAF，视觉实机复测。
+
 ## 48. 防御塔升级收敛到六维芯片：伤害复用武器真源公式 + 差分注释（2026-08-16）
 
 - **需求模式**：把「塔等级 + 模块位升级」这类叠加系统收敛成单一数据模型时，
@@ -844,6 +862,7 @@ this.ai = config.ai || {};
 - **面板武器贴图数据驱动**：`towerWeaponImagePath` 优先级
   item.iconImage/equipImage/slotImage → `findWeaponConfig` 全量源 → 弹丸贴图兜底，
   别用 emoji 占位。
+
 ## 49. 重新引入被删功能：图标资产管线 + 数据驱动模块（2026-08-16 二轮）
 
 - **用户提供 UI 组件图**（2×3 深灰圆角卡片，每卡=图标+文字一体）时，先做像素级分析再抠图：
@@ -856,6 +875,7 @@ this.ai = config.ai || {};
   面板 `<img src>` 直接消费配置，不散落硬编码路径。
 - **伤害公式扩展保持零硬编码**：`_computeDamageFor = computeWeaponAttack(...) ×
   moduleMults().damage`；芯片「每点+X」边际差分同步乘模块伤害倍率，真实公式反显仍成立。
+
 ## 50. 相机"恒居中"需求：非瞄准钉玩家、瞄准才偏移（2026-08-16）
 
 - **症状**：世界-122 移动时玩家不在屏幕中央——根因是 `Camera.update` 的指数平滑

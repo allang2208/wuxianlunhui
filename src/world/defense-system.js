@@ -147,7 +147,7 @@ export const DEFENSE_CONFIG = {
         countCap: 24,
         hpPerWave: 0.16,
         atkPerWave: 0.08,
-        alertRange: 3800,
+        alertRange: 6200, // 2026-08-16 地图扩 6144×4096：最远刷怪点距基地 ~5050，索敌需覆盖
         // A 移动（2026-08-15）：怪物最终目标仍是基地/建筑，但沿途交战半径内的
         // 玩家/侍从也会被锁定攻击（类似 RTS 的 A 键攻击移动）；脱离后自动回归推进
         engageHostileRange: 320,
@@ -190,15 +190,18 @@ export const DEFENSE_CONFIG = {
         waveMaxRangedAirBudgetRatio: 0.3,
         waveMaxFastBudgetRatio: 0.35,
     },
-    // 刷怪点：右端尽头（基地在左端 x=900 菱形房内，怪物从右往左攻）
+    // 刷怪点：右端尽头 + 两条中距路线（基地在左端 x=900 菱形房内，怪物从右往左攻；
+    // 2026-08-16 地图扩展后重排，多路进攻让防线有纵深）
     spawnPoints: [
-        { x: 3936, y: 600 },
-        { x: 3936, y: 1350 },
-        { x: 3936, y: 2048 },
-        { x: 3936, y: 2746 },
-        { x: 3936, y: 3496 },
-        { x: 3736, y: 900 },
-        { x: 3736, y: 3196 },
+        { x: 5936, y: 600 },
+        { x: 5936, y: 1350 },
+        { x: 5936, y: 2048 },
+        { x: 5936, y: 2746 },
+        { x: 5936, y: 3496 },
+        { x: 5736, y: 900 },
+        { x: 5736, y: 3196 },
+        { x: 4700, y: 1100 },
+        { x: 4700, y: 3000 },
     ],
 };
 
@@ -516,6 +519,7 @@ class DefenseBase extends Combatant {
         this.id = config.id || 'defense_base';
         this._isDefenseStructure = true;
         this._isDefenseBase = true; // 2026-08-15：过门追击逻辑的最高优先级目标标记
+        this._attackSlots = 6; // 基地 footprint 大，可同时容纳更多攻击者（拥挤分摊上限，2026-08-16）
         this.noSeparation = true;
         this.immovable = true; // 基地核心同掩体口径：不可被击退/移动（2026-08-14 补齐）
         this.noNameLabel = true; // 名字/HP 走 _syncNeutralEntities 的贴图标签（避免与 HUD 重复）
@@ -1641,7 +1645,6 @@ export const DefenseSystem = {
         this.towers = [];
         this.gates = []; // 建筑面板放置的铁栅栏门
         this.platforms = []; // 射击台（预置 + 建筑面板放置）
-        this._placeInitialPlatform(); // 基地菱形房右上墙边预置 1 个射击台
         DEFENSE_CONFIG.towers.forEach((p, i) => {
             const tower = new DefenseTower(p.x, p.y, { id: `defense_tower_${i}` });
             Game.entities.set(`defense_tower_${i}`, tower);
@@ -1662,12 +1665,23 @@ export const DefenseSystem = {
               });
               Game.entities.set(`defense_cover_${i}`, cover);
           });
+          // 预置射击台必须在掩体墙段创建之后（_buildBaseRoom 只算 layout，
+          // 平台要锚定实际墙段 face 线做裁墙洞/密封段——提前调用会找不到墙）
+          this._placeInitialPlatformSafe(); // 基地菱形房 TR 墙边预置 1 个射击台
           // 基地铁栅栏滑动门（D 级，2026-08-15）：状态机默认关闭；
           // 友军（玩家/侍从）靠近自动打开，离开 1.2s 后自动关闭（阻挡门洞）。
+          // 2026-08-16：基地门改用 BuildableGate（Combatant）——可被怪物攻击、
+          // 沉陷死亡动画、建筑面板详情（常锁/常开/修理）与玩家建造门完全同构；
+          // 几何 face 线公式与旧 CoverGate.place 一致（_buildBaseRoom 已核对）。
           const gs = DEFENSE_CONFIG.covers.gate;
           if (gs) {
-              this.gate = { ...CoverGate };
-              if (!this.gate.place({ x: gs.x, y: gs.y }, gs.A, gs.B)) this.gate = null;
+              const gate = new BuildableGate(gs.x, gs.y, {
+                  grade: 'D',
+                  orient: 'v', // RB 边（从 R 到 B）为 v 向，与 _buildBaseRoom 门洞一致
+                  id: 'defense_base_gate',
+              });
+              Game.entities.set(gate.id, gate);
+              this.gate = gate;
           }
           // 掩体墙段已注册进 WallSystem.isoSegments：让寻路器把静态掩体墙纳入
           // 阻挡网格（怪物绕墙走/从门洞进，不再直线穿墙后在夹角被卡），2026-08-08
@@ -1929,33 +1943,75 @@ export const DefenseSystem = {
         }
     },
 
-    /** 预置射击台（scene8 加载时调用）：基地菱形房右上墙边（TR 边内侧，贴墙放置） */
+    /** 预置射击台（scene8 加载时调用）：基地菱形房 TR 墙边，台阶朝房内 */
     _placeInitialPlatform() {
         const room = DEFENSE_CONFIG.room;
         if (!room || !room.enabled) return;
         const b = DEFENSE_CONFIG.base;
-        // 右上墙边 = TR 边（从顶 T 到右 R）中点内侧：平台沿墙放置（与掩体同向），
-        // 台阶向房内延伸（2026-08-16 三版：拓宽掩体立方体 = 平台主体平行墙）
+        // 右上墙边 = TR 边（从顶 T 到右 R）：先取几何边中点，再找最近的掩体墙段——
+        // 掩体 face 线相对几何边有垂直偏移（面线=墙底边，随墙体砌筑位置），
+        // 平台必须锚在**实际墙段 face 线**上（裁墙洞/密封段/台面标高都以它为准）
         const T = { x: b.x, y: b.y - room.ry };
         const R = { x: b.x + room.rx, y: b.y };
-        const mx = (T.x + R.x) / 2, my = (T.y + R.y) / 2;
-        // 墙内侧法线（指向房内 = 指向基地中心）：垂直于墙线
+        const gmx = (T.x + R.x) / 2, gmy = (T.y + R.y) / 2;
+        let wall = null; // { A, B, mid }
+        if (Game && Game.entities) {
+            let bestD = Infinity;
+            for (const e of Game.entities.values()) {
+                if (!e || !e.active || !e._isDefenseCover) continue;
+                const [A, B] = e._faceLine || [];
+                if (!A || !B) continue;
+                // 点到 face 线距离（TR 边候选：与几何边中点共线且距离小）
+                const wx = B.x - A.x, wy = B.y - A.y;
+                const wl = Math.hypot(wx, wy) || 1;
+                const ux = wx / wl, uy = wy / wl;
+                const d = Math.abs((gmx - A.x) * uy - (gmy - A.y) * ux);
+                if (d < bestD) { bestD = d; wall = { A, B }; }
+            }
+            if (typeof console !== 'undefined' && console.log && !wall) {
+                console.log(`[defense] 预置射击台：未找到掩体墙段（entities=${Game.entities.size}, gmid=${gmx.toFixed(0)},${gmy.toFixed(0)}）`);
+            }
+        }
+        if (!wall) return; // 墙未建（房间关闭等）不预置
+        // 墙段方向单位向量 + 几何边中点投影到 face 线 = 实际墙线中点（平台锚点）
+        const wax = wall.B.x - wall.A.x, way = wall.B.y - wall.A.y;
+        const wal = Math.hypot(wax, way) || 1;
+        const ux = wax / wal, uy = way / wal;
+        const t = (gmx - wall.A.x) * ux + (gmy - wall.A.y) * uy; // 投影参数
+        const mx = wall.A.x + ux * t, my = wall.A.y + uy * t;
+        // 房内侧法线（指向基地中心）
         const inx = b.x - mx, iny = b.y - my;
         const inLen = Math.hypot(inx, iny) || 1;
         const nx = inx / inLen, ny = iny / inLen;
-        // 平台中心 = 墙线中点 + 法线 × (墙半厚 + 贴墙余量)：平台主体贴墙（同掩体），
-        // 台阶（贴图底部）朝房内 = 法线方向延伸
-        const offset = 26 + 30; // 墙半厚(26) + 贴墙余量
-        const px = Math.round(mx + nx * offset);
-        const py = Math.round(my + ny * offset);
+        const slope = (wall.B.y - wall.A.y) / (wall.B.x - wall.A.x); // TR 边 = +0.5（"\" 墙）
+        // 五版：实体 = 台阶入口（贴图底边），位置由「台面高出墙顶 25px」反推：
+        // k = (platformHeight 178 - 墙高 108 - 25) / (wn.y - 墙斜率·wn.x) ≈ 50
+        const k = (178 - 108 - 25) / ((ny - slope * nx) || 0.9);
+        const px = Math.round(mx + nx * k);
+        const py = Math.round(my + ny * k);
+        // 墙线以平台锚点为中、沿墙延伸一段（裁墙洞/密封段跨度在其内部）
+        const WL = 176; // 掩体 face 线长
         const platform = new FiringPlatform(px, py, {
             id: 'initial_firing_platform',
             orient: 'h',
             wallNormal: { x: nx, y: ny },
+            wallLine: {
+                A: { x: mx - ux * WL, y: my - uy * WL },
+                B: { x: mx + ux * WL, y: my + uy * WL },
+            },
         });
         if (Game && Game.entities) Game.entities.set('firing_platform_initial', platform);
         this.platforms = this.platforms || [];
         this.platforms.push(platform);
+    },
+
+    /** 预置射击台的防御性包装：init 阶段异常不允许静默中断后续塔/防线搭建 */
+    _placeInitialPlatformSafe() {
+        try {
+            this._placeInitialPlatform();
+        } catch (err) {
+            console.error('[defense] 预置射击台失败：', err);
+        }
     },
 
     /**
@@ -2271,6 +2327,20 @@ export const DefenseSystem = {
             const safe = WallSystem.findSafeSpawn(monster.x, monster.y, monster.groundRadius);
             monster.x = safe.x;
             monster.y = safe.y;
+            // [FIX-2026-08-16] findSafeSpawn 螺旋 8 点全被堵时会原样返回起点（仍嵌障碍）：
+            // 换其他刷怪点再兜底一次，杜绝"出生即卡死/出生位置异常"（刷怪点全在右端，
+            // 互相距离远，几乎不可能同时全堵）
+            if (!WallSystem.canMoveTo(monster.x, monster.y, monster.groundRadius)) {
+                for (const op of DEFENSE_CONFIG.spawnPoints) {
+                    if (Math.hypot(op.x - pt.x, op.y - pt.y) < 1) continue;
+                    const s2 = WallSystem.findSafeSpawn(op.x, op.y, monster.groundRadius);
+                    if (WallSystem.canMoveTo(s2.x, s2.y, monster.groundRadius)) {
+                        monster.x = s2.x;
+                        monster.y = s2.y;
+                        break;
+                    }
+                }
+            }
         }
         monster._defenseMonster = true;
         // 防守击杀金币：不走地面掉落物，由 DefenseSystem 结算直接进背包
@@ -2667,12 +2737,83 @@ function restoreTrimmedCovers(gate) {
     if (!gate || !gate._trimmedCovers || !WallSystem || !WallSystem.isoSegments) return;
     for (const s of gate._trimmedCovers) {
         if (!s || !s._orig) continue;
+        // 分裂裁墙（射击台）：回收分裂件 + 把原段重新注册（原段已被移除）
+        if (s._splitParts) {
+            for (const ns of s._splitParts) {
+                const i = WallSystem.isoSegments.indexOf(ns);
+                if (i >= 0) WallSystem.isoSegments.splice(i, 1);
+            }
+            s._splitParts = null;
+            WallSystem.isoSegments.push(s);
+        }
         s.x1 = s._orig.x1; s.y1 = s._orig.y1; s.x2 = s._orig.x2; s.y2 = s._orig.y2;
     }
     gate._trimmedCovers = [];
 }
 
-const CoverGate = {
+/**
+ * 射击台裁墙（2026-08-16 五版）：与 trimCoverSegsForGate 同口径，但掩体段可能
+ * 从平台跨度两侧贯穿（一段跨过整个平台宽度）——只移端点会让段身仍横穿洞区。
+ * 这里把与 [A,B] 共线、投影落入跨度的掩体段**分裂**：洞区 [0, glen] 内的部分移除，
+ * 两侧剩余部分（若有）保留为新段（_cover/_owner 不变），随后由平台的 _platSeg
+ * 密封洞区（怪物挡停转火）。_platform 段不参与裁剪（避免自我裁剪）。
+ */
+function trimCoverSegsForPlatform(platform, A, B) {
+    if (!WallSystem || !WallSystem.isoSegments) return;
+    if (!platform._trimmedCovers) platform._trimmedCovers = [];
+    const gdx = B.x - A.x;
+    const gdy = B.y - A.y;
+    const glen = Math.hypot(gdx, gdy) || 1;
+    const gux = gdx / glen;
+    const guy = gdy / glen;
+    const proj = (p) => (p.x - A.x) * gux + (p.y - A.y) * guy;
+    const distToLine = (p) => Math.abs((p.x - A.x) * guy - (p.y - A.y) * gux);
+    const replacements = [];
+    for (const s of WallSystem.isoSegments) {
+        if (!s || !s._cover || !s._owner || s._platform || platform._trimmedCovers.includes(s)) continue;
+        if (distToLine({ x: s.x1, y: s.y1 }) > 6 || distToLine({ x: s.x2, y: s.y2 }) > 6) continue;
+        const a = proj({ x: s.x1, y: s.y1 });
+        const b = proj({ x: s.x2, y: s.y2 });
+        const lo = Math.min(a, b);
+        const hi = Math.max(a, b);
+        if (hi <= 0 || lo >= glen) continue;
+        platform._trimmedCovers.push(s);
+        if (!s._orig) s._orig = { x1: s.x1, y1: s.y1, x2: s.x2, y2: s.y2 };
+        // 沿段参数化：P(t) = P0 + t·(P1-P0)，t 对应 proj lo→hi
+        const P0 = { x: s.x1, y: s.y1 }, P1 = { x: s.x2, y: s.y2 };
+        const span = hi - lo || 1;
+        const tA = (0 - lo) / span;      // proj=0（洞区起点）
+        const tB = (glen - lo) / span;   // proj=glen（洞区终点）
+        const Q = (t) => ({ x: P0.x + (P1.x - P0.x) * t, y: P0.y + (P1.y - P0.y) * t });
+        const parts = [];
+        if (tA > 0.001) parts.push([P0, Q(tA)]);
+        if (tB < 0.999) parts.push([Q(tB), P1]);
+        if (parts.length) replacements.push([s, parts]);
+        else replacements.push([s, []]); // 整段在洞内 → 移除
+    }
+    for (const [s, parts] of replacements) {
+        const i = WallSystem.isoSegments.indexOf(s);
+        if (i >= 0) WallSystem.isoSegments.splice(i, 1);
+        const half = s.halfThick ?? 26;
+        s._splitParts = [];
+        for (const [p0, p1] of parts) {
+            const ns = {
+                x1: p0.x, y1: p0.y, x2: p1.x, y2: p1.y,
+                halfThick: half, _cover: true, _owner: s._owner,
+                _splitOf: s, // 回链：restoreTrimmedCovers 用它回收
+            };
+            WallSystem.isoSegments.push(ns);
+            s._splitParts.push(ns);
+        }
+    }
+    if (pathFinder && typeof pathFinder.invalidateRegion === 'function') {
+        pathFinder.invalidateRegion(
+            Math.min(A.x, B.x) - 30, Math.min(A.y, B.y) - 30,
+            Math.max(A.x, B.x) + 30, Math.max(A.y, B.y) + 30);
+    }
+}
+
+const _CoverGate = {
     place(center, A, B, cfg) {
         const scene = (typeof window !== 'undefined') ? window.__phaserScene : null;
         const cfg0 = cfg || GATE_CONFIG;
@@ -2880,27 +3021,27 @@ const CoverGate = {
  * 参与建筑吸附（GATE_SNAP），默认关闭，友军靠近自动开门、离开延时关门。
  */
 /**
- * 世界-122 射击台（FiringPlatform，2026-08-16 二版重做）：
- * 三级台阶 + 顶部站台的防御建筑。玩家/友方走上站台（顶面区域判定 _onPlatform）后，
+ * 世界-122 射击台（FiringPlatform，2026-08-16 五版重做）：
+ * 拓宽掩体立方体平台 + 连接式台阶（每级 = 墙色立面 + 亮踏面）的防御建筑。
+ * 玩家/友方走上站台（登台走廊 getLift 连续插值 _platformLift）后，
  * 远程弹道/魔法忽略己方掩体墙段（_cover），可越过围墙向外攻击（与防御塔同机制）。
  *
- * 贴墙几何（用户口径 2026-08-16 三版起：平台主体沿墙放置 = 拓宽掩体立方体）：
- * - 平台长轴平行墙 face 线（rot.z 44.8 与掩体完全一致），实体 = 墙段中点 + 内侧法线
- *   × (墙半厚 26 + 余量 30)；台阶（贴图底部）从墙边向房内延伸——玩家从房内（近端）
- *   走上台阶到站台（贴墙远端）。
- * - 站台顶面在贴图上部（远端靠墙），台阶在贴图下部（近端房内）——平台顶面 = 玩家站立区。
- * - 朝向：`orient`（'h'/'v'）= 所贴墙段的 face 朝向；`mirror` = flipX 镜像（贴墙
- *   另一侧）。sprite 不旋转（等距贴图旋转破坏视角），朝向仅影响贴图镜像。
+ * 贴墙几何（五版）：平台长轴平行墙 face 线（rot.z 44.8 与掩体完全一致），
+ * 实体（贴图底边=台阶入口）位置由「台面高出墙顶 gap」反推（k = (178-108-25)/
+ * (wn.y - slope·wn.x)）；台阶跨过墙线，墙段在平台跨度内被裁剪（trimCoverSegsForPlatform）
+ * 并用平台自身的 _cover 密封段（_platSeg）堵洞（怪物挡停转火，玩家移动走 ignore）。
+ * 朝向：`orient`（'h'/'v'）= 所贴墙段的 face 朝向（决定 h/v 贴图，长轴始终平行墙线）；
+ * `mirror` 只翻放置侧（不翻贴图）。
  *
- * 显示（四版）：内容 567×677（aspect 0.838）→ 显示 260×310，footOffsetY 155
- * （脚底=接地线）。站台顶面中心标定：贴图 (400, 40)、接地线 y=676 → 显示偏移
- * (+54, -136)；platformHeight≈291（玩家站台上 sprite 上移量 = 顶面到接地线显示距离）。
+ * 显示（五版 v7 资产）：内容 695×647 → 显示 260×242，footOffsetY 121（脚底=台阶入口）。
+ * 站台顶面（deck）在入口正上方 178px（platformHeight）；后缘（贴墙端）191px；
+ * 台面前缘 165px（登台走廊起点）——贴图 x 方向对称，偏移均为 0。
  *
- * 登台判定（四版）：单位投影到「登台走廊」（顶面中心沿 -wallNormal 向房内延伸
- * corridorLen=300、半宽 100）→ getLift 连续插值 0~platformHeight（走上台阶连续升高，
- * 不再布尔瞬移）；isOnPlatform = lift>0 兼容旧调用。
- * 深度：贴图锚定接地线 _faceDepth = y+12；站台上单位在 GameScene 仅当 _platformLift>0
- * 时显式抬到 _faceDepth+1。
+ * 登台判定（五版）：单位投影到「登台走廊」（台面前缘沿屏幕向下延伸 corridorLen=165、
+ * 半宽 130）→ getLift 连续插值 0~platformHeight（走上台阶连续升高，不再布尔瞬移）；
+ * isOnPlatform = lift>0 兼容旧调用。
+ * 深度：贴图锚定入口接地线 _faceDepth = y+12；站台上单位在 GameScene 仅当
+ * _platformLift>0 时显式抬到 _faceDepth+1。
  */
 class FiringPlatform extends Combatant {
     constructor(x, y, config = {}) {
@@ -2920,68 +3061,109 @@ class FiringPlatform extends Combatant {
         this.noNameLabel = true;
         this._noShadow = true;   // 贴图自带接地底座
         this.immovable = true;   // 不可击退/位移
-        // 朝向（2026-08-16 二版）：orient = 所贴墙 face 朝向（h/v），mirror = 贴墙另一侧
+        // 五版：实体碰撞圈恰好压在台阶入口（贴图底边=实体锚点），会挡玩家走近——
+        // 门同款 noCollision（阻挡/放行完全交给墙段；平台自身不参与实体分离）
+        this.noCollision = true;
+        // 朝向（2026-08-16）：orient = 所贴墙 face 朝向（h/v，决定贴图镜像向）；
+        // mirror = 贴墙另一侧（只翻放置侧，不翻贴图——长轴必须始终平行墙线）
         this.orient = config.orient || 'v';
-        this._facingLeft = !!config.mirror;
-        // 贴墙几何：贴墙法线方向（从墙指向房内）由 _placeInitialPlatform / 吸附代码
-        // 计算传入 config.wallNormal（单位向量）；顶面中心 = 实体 + 法线 × platformDepth
+        this._facingLeft = false;
         const wn = config.wallNormal || null;
         this._wallNormal = wn;
-        // 显示（内容 567×677 → 260×310，脚底=接地线；v 版 + h 镜像 flipX）
-        // 2026-08-16 四版：掩体同管线（rot 44.8）拓宽立方体平台 + 5 级亮踏面台阶衔接
+        this._wallLine = config.wallLine || null; // 裁墙洞 + 密封段用的墙 face 线端点
+        // 显示（五版 v7 资产）：内容 695×647 → 260×242，footOffsetY 121（脚底=台阶入口）
+        // v 版 = 渲染原图，h 版 = flipX 镜像（长轴斜率 +0.5 贴 "\" 墙）
         const dispW = 260;
-        const dispH = Math.round(dispW * 677 / 567); // ≈310
+        const dispH = Math.round(dispW * 647 / 695); // ≈242
         this.spriteCfg = {
-            idleKey: this._facingLeft ? 'firing_platform_h' : 'firing_platform',
+            idleKey: this.orient === 'h' ? 'firing_platform_h' : 'firing_platform',
             size: dispW,
             sizeH: dispH,
             footOffsetY: Math.round(dispH / 2),
         };
         this.footOffsetY = this.spriteCfg.footOffsetY;
-        // 站台几何（贴图标定，2026-08-16 四版）：
-        // 平台顶面（站台）中心 ≈ 内容 (400, 40)，接地线 y=676 → 显示偏移：
-        //   dx = (400-283) * 260/567 ≈ +54
-        //   dy = (40-338) * 310/677 ≈ -136 → 顶面在实体上方
-        // platformHeight = 顶面到接地线显示距离 = (676-40) * 310/677 ≈ 291
-        this.platformHeight = Math.round((676 - 40) * dispH / 677); // ≈291
-        this._topOffsetX = Math.round((400 - 283) * dispW / 567);   // ≈+54
-        this._topOffsetY = Math.round((40 - 338) * dispH / 677);    // ≈-136
-        // 顶面中心世界坐标：平台主体沿墙放置（三版），站台顶面在实体上方贴图偏移处；
-        // wallNormal 仅用于朝向记录（贴墙侧判定），顶面位置不变（平台就在墙边）
+        // 站台几何（五版 v7 资产标定，2026-08-16）：台阶在贴图底部（入口=贴图底边
+        // 中心=实体锚点），站台顶面（deck）在入口正上方 178px；后缘（贴墙端）191px；
+        // 台面前缘（台阶顶端）165px——长轴平行墙线，贴图 x 方向对称（偏移为 0）
+        this.platformHeight = 178;
+        this._topOffsetX = 0;
+        this._topOffsetY = -178;
+        this._backOffsetX = 0;
+        this._backOffsetY = -191;
+        this._frontOffsetX = 0;
+        this._frontOffsetY = -165;
         this._topCx = x + this._topOffsetX;
         this._topCy = y + this._topOffsetY;
-        if (wn) {
-            // 平台主体贴墙（同掩体沿墙放置）：台阶（贴图底部）朝房内 = 法线方向，
-            // 站台顶面在实体上方 + 沿墙方向微偏——顶面中心保持贴图偏移即可
-            this._topCx = x + this._topOffsetX;
-            this._topCy = y + this._topOffsetY;
-        }
+        this._frontCx = x + this._frontOffsetX;
+        this._frontCy = y + this._frontOffsetY;
         this._zoneHalfW = 90;
         this._zoneHalfH = 70;
-        // ⚠ 登台走廊（2026-08-16 四版：平滑衔接替代布尔瞬移）：
-        // 台阶从贴图底部（接地线，房内端）延伸到站台顶面（贴墙端）。走廊 =
-        // 以顶面中心为近墙端、沿「墙内侧法线反方向（房内）」延伸 corridorLen 的矩形带；
-        // 单位在走廊内按「法线方向进度 t」插值抬升高度（0→platformHeight），
-        // 走出走廊抬升归 0——走上台阶是连续升高，不再"进区瞬移"。
-        // 走廊纵深（世界 px）：5 级台阶 local-y 跨度 ≈232 + 平台纵深 ≈ 对应显示投影，
-        // 由 wallNormal 方向从顶面中心向房内延伸。
-        this._corridorLen = 300;
-        this._corridorHalfW = 100;
-        if (wn) {
-            // 房内方向 = -wallNormal（顶面贴墙，向房内 = 反法线）
-            this._corridorDirX = -wn.x;
-            this._corridorDirY = -wn.y;
-        } else {
-            this._corridorDirX = 0;
-            this._corridorDirY = 1; // 无墙信息时默认向屏幕下方（房内）
-        }
-        // 贴图本体深度锚定 = 接地线（实体 y + 12，与掩体同规则）——平台是竖塔，
+        // ⚠ 登台走廊（五版：v4 的 -wallNormal 方向反了——走廊跑到了墙外/房外，
+        // 房内玩家永远进不了判定区 = "无法走上去"）。台阶在贴图底部，从台面前缘
+        // 垂直向下延伸到入口（实体）：走廊 = 以前缘为中心、方向 (0,1)（屏幕向下=
+        // 台阶延伸方向）、长 165、半宽 130 的矩形带；单位投影到走廊轴得进度 t →
+        // lift = (1-t)×platformHeight，走上台阶连续升高、台面保持满值、走出归 0。
+        this._corridorLen = 165;
+        this._corridorHalfW = 130;
+        this._corridorDirX = 0;
+        this._corridorDirY = 1;
+        // 贴图本体深度锚定 = 入口接地线（实体 y + 12，与掩体同规则）——平台是竖塔，
         // 站台上的单位（sprite 已上移 platformHeight，自然深度 = 顶面+10）天然比平台浅，
         // 再在 GameScene 显式抬到 _faceDepth+1（顶面线离地面 >60px 仲裁窗口不生效，
         // 不能靠 junctionCorrectedDepth；2026-08-16 设计修正）
         this._faceLine = null; // 不参与 junctionCorrectedDepth（见上注释）
         this._faceDepth = y + 12;
+        // 五版：台阶要跨过墙线（入口在房内、台面高出墙顶）——墙段不裁会挡停玩家；
+        // 裁开墙洞后用本平台的 _cover 段密封（怪物挡停转火；玩家移动/台上弹道走 ignore）
+        this._registerWallSeg();
         this.rebuildCollider();
+    }
+
+    /**
+     * 密封墙洞 + 怪物转火：沿所贴墙线注册 _cover 段（跨度 = 平台显示半宽 130），
+     * 同时裁剪该跨度内的掩体碰撞段（门同款 trimCoverSegsForGate，台阶才能通过）。
+     * 玩家移动在 player/update.js + subsystems.js 统一传 WallSystem.platformSegs
+     * ignore；台上施法者/防御塔弹道走既有 _cover ignore（三件套）。
+     */
+    _registerWallSeg() {
+        const wl = this._wallLine;
+        if (!wl || !wl.A || !wl.B || !WallSystem || !WallSystem.isoSegments) return;
+        const ax = wl.B.x - wl.A.x, ay = wl.B.y - wl.A.y;
+        const al = Math.hypot(ax, ay) || 1;
+        const ux = ax / al, uy = ay / al;
+        const half = 130;
+        const mx = (wl.A.x + wl.B.x) / 2, my = (wl.A.y + wl.B.y) / 2;
+        const A = { x: mx - ux * half, y: my - uy * half };
+        const B = { x: mx + ux * half, y: my + uy * half };
+        // 1) 裁墙洞（掩体 face 段共线且投影落在跨度内的端点移出）
+        trimCoverSegsForPlatform(this, A, B);
+        // 2) 密封段（先裁后注册，避免本段被自己裁掉）
+        this._platSeg = {
+            x1: A.x, y1: A.y, x2: B.x, y2: B.y,
+            halfThick: 26,
+            _cover: true, _platform: true, _owner: this,
+        };
+        WallSystem.isoSegments.push(this._platSeg);
+        if (WallSystem.platformSegs) WallSystem.platformSegs.add(this._platSeg);
+        if (pathFinder && typeof pathFinder.invalidateRegion === 'function') {
+            pathFinder.invalidateRegion(
+                Math.min(A.x, B.x) - 30, Math.min(A.y, B.y) - 30,
+                Math.max(A.x, B.x) + 30, Math.max(A.y, B.y) + 30);
+        }
+    }
+
+    /** 销毁：还原被裁墙段 + 移除密封段 */
+    destroy() {
+        if (this._platSeg && WallSystem) {
+            if (WallSystem.isoSegments) {
+                const i = WallSystem.isoSegments.indexOf(this._platSeg);
+                if (i >= 0) WallSystem.isoSegments.splice(i, 1);
+            }
+            if (WallSystem.platformSegs) WallSystem.platformSegs.delete(this._platSeg);
+            this._platSeg = null;
+        }
+        if (typeof restoreTrimmedCovers === 'function') restoreTrimmedCovers(this);
+        this.active = false;
     }
 
     /**
@@ -2991,14 +3173,14 @@ class FiringPlatform extends Combatant {
      * 走廊外（横向超宽或纵深超出）→ 0（在地面）。
      */
     getLift(ux, uy) {
-        const dx = ux - this._topCx, dy = uy - this._topCy;
+        const dx = ux - this._frontCx, dy = uy - this._frontCy;
         const ax = this._corridorDirX, ay = this._corridorDirY;
         // 走廊横向（垂直走廊轴）距离
         const perp = dx * (-ay) + dy * ax;
         if (Math.abs(perp) > this._corridorHalfW) return 0;
-        // 走廊纵深投影（沿走廊轴，向房内为正）
+        // 走廊纵深投影（沿走廊轴：前缘→入口，向屏幕下方为正）
         const along = dx * ax + dy * ay;
-        if (along < -20) return 0; // 在顶面后方（墙内）→ 不算
+        if (along < -40) return 0; // 在前缘后方超过台面深度（26px）→ 视为台上满值
         const t = Math.min(1, Math.max(0, along / this._corridorLen));
         return Math.round((1 - t) * this.platformHeight);
     }
@@ -3011,10 +3193,6 @@ class FiringPlatform extends Combatant {
     /** 站台顶面世界坐标（供 GameScene 抬高玩家 sprite / 深度） */
     topCenter() {
         return { x: this._topCx, y: this._topCy };
-    }
-
-    destroy() {
-        this.active = false;
     }
 }
 
@@ -3288,6 +3466,12 @@ class BuildableGate extends Combatant {
         this.hittable = false;
         this._sinking = true;
         this._teardownCollision();
+        // 从防守系统移除：基地门（this.gate）与玩家建造门（gates 数组）统一清理
+        if (DefenseSystem && DefenseSystem.gates) {
+            const i = DefenseSystem.gates.indexOf(this);
+            if (i >= 0) DefenseSystem.gates.splice(i, 1);
+        }
+        if (DefenseSystem && DefenseSystem.gate === this) DefenseSystem.gate = null;
         if (EffectManager) {
             EffectManager.add(new FloatingTextEffect(this.x, this.y - 40, '铁栅栏门被摧毁', '#ff8855'));
             EffectManager.add(new BuildingSinkEffect(this, () => {

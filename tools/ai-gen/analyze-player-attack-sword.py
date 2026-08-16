@@ -43,7 +43,8 @@ def load_rgba(path):
 
 
 def bg_distance(frame, bg):
-    return np.max(np.abs(frame - bg), axis=2)
+    # 兼容 (H,W,3) 帧与 (N,3) 边界样本两种形状
+    return np.max(np.abs(frame - bg), axis=-1)
 
 
 def fg_mask(frame, bg, thr=45):

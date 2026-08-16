@@ -1,0 +1,55 @@
+{
+  "id": "hamster_warrior",
+  "name": "仓鼠战士",
+  "title": "基地近战卫士",
+  "desc": "头戴战盔、手持短刃的仓鼠战士，在世界-122 自动寻找最近的敌人近战输出，帮助玩家防守基地。",
+  "role": "warrior",
+  "growthRule": "warrior",
+  "avatar": "🐹⚔️",
+  "weaponType": "sword",
+  "baseLevel": 1,
+  "baseExp": 0,
+  "baseMaxHp": 300,
+  "baseData": { "str": 20, "dex": 12, "int": 3, "con": 15, "wis": 3, "luck": 5 },
+  "skills": [],
+  "ai": {
+    "role": "melee_guard",
+    "walkSpeed": 120,
+    "runSpeed": 120,
+    "attackInterval": 2000,
+    "attackDamage": 50,
+    "attackRange": 55,
+    "engageRange": 900,
+    "followOffset": 140,
+    "followArriveDist": 40,
+    "decisionMs": 120,
+    "teleportDist": 999999,
+    "teleportHardDist": 9999999
+  },
+  "displaySize": 226,
+  "spriteOffsetY": -44,
+  "animations": {
+    "idle": {
+      "src": "assets/companions/hamster_warrior/idle.png",
+      "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 4,
+      "frameCount": 1, "frames": [0, 0], "frameRate": 1, "repeat": -1
+    },
+    "walk": {
+      "src": "assets/companions/hamster_warrior/running.png",
+      "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 4,
+      "frameCount": 15, "frames": [0, 14], "frameRate": 12, "repeat": -1
+    },
+    "attack": {
+      "src": "assets/companions/hamster_warrior/attacking.png",
+      "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 4,
+      "frameCount": 24,
+      "startFrames": [0, 23], "startFrameRate": 16, "startRepeat": 0,
+      "loopFrames": [5, 23], "frameRate": 16, "repeat": -1
+    },
+    "dying": {
+      "src": "assets/companions/hamster_warrior/dying.png",
+      "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 4,
+      "frameCount": 12, "frames": [0, 11], "frameRate": 12, "repeat": 0
+    }
+  }
+}

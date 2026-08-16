@@ -264,6 +264,9 @@ SDXL 的 style_prefix + 单件强制语法）→ BiRefNet 抠图 → 1536² 归�
 
 提示词模板：`prompts/video.md`；客户端 `python tools/ai-gen/minimax-h3-gen.py`；
 输出 MP4 直入 `assets/videos/` 或 PyAV 抽帧转 sprite sheet（动作动画截帧路线）。
+主角攻击动画走关键帧→H3 两段式管线：`prep-player-attack-keyframes.py` →
+`run-player-attack-sword.py` → `analyze-player-attack-sword.py` →
+`build-player-attack-sheet.py`（详见 SKILL.md「主角一段攻击关键帧→H3 两段式挥砍重生」）。
 
 ### 3.7 透明主体（需要透明 PNG 的图标/装备/怪物/道具）
 

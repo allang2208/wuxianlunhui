@@ -101,11 +101,19 @@ assert(weaponCfg.sword.arc && weaponCfg.sword.arc.enabled === false,
     assert(hc3.shape === 'rect' && hc3.damageMul === 2.0,
         'attack3 终结段：rect 长矩形判定 + damageMul 2.0（梯度 1.0/1.5/2.0）');
     // 三段轨迹闭环：attack3 末帧 = attack 首帧（连段回一段姿态相接）
+    // 2026-08-16：attack 切 anchor='grip'（offset=握把点，origin=剑柄），attack3 仍为中心 origin——
+    // 跨锚点比较先换算到中心：中心 = 握把 + R(rot)·(0, -gripOffset)
     const a0 = weaponCfg.sword.attack.frames[0];
     const a3end = weaponCfg.sword.attack3.frames[15];
-    assert(close(a3end.offsetX, a0.offsetX, 0.01) && close(a3end.offsetY, a0.offsetY, 0.01)
-        && close(a3end.rotation, a0.rotation, 0.01),
-        'attack3 末帧 = attack 首帧（连段闭环回一段）');
+    const a0IsGrip = weaponCfg.sword.attack.anchor === 'grip';
+    const gripOff = typeof weaponCfg.sword.gripOffset === 'number' ? weaponCfg.sword.gripOffset : 40;
+    const a0rot = a0.rotation * Math.PI / 180;
+    const a0cx = a0.offsetX + (a0IsGrip ? gripOff * Math.sin(a0rot) : 0);
+    const a0cy = a0.offsetY - (a0IsGrip ? gripOff * Math.cos(a0rot) : 0);
+    const rotDiff = ((a3end.rotation - a0.rotation) % 360 + 540) % 360 - 180; // 最短弧差 ∈ [-180,180)
+    assert(close(a3end.offsetX, a0cx, 0.15) && close(a3end.offsetY, a0cy, 0.15)
+        && Math.abs(rotDiff) < 0.15,
+        'attack3 末帧 = attack 首帧（连段闭环回一段；attack 为 grip 锚点时按中心口径换算）');
 }
 
 // ---------- 5. 连段/定格/收势时长收口到 combat-config（stageN 梯度） ----------

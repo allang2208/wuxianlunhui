@@ -4,7 +4,7 @@
  * - 长按鼠标中键 ≥300ms 弹出轮盘（以鼠标为中心）；松开时选中悬停指令，移出轮盘松开 = 取消；
  * - 五指令：跟随（默认）/ 主动攻击 / 巡逻 / 采集 / 待命；
  * - 指令点 = 打开轮盘瞬间的鼠标世界坐标（巡逻圆心 / 采集就近资源点用）；
- * - 目标：当前选中队员（CompanionPanel._memberId，无则第一名）；松开时按住 Shift = 全队；
+ * - 目标：组队栏选中的队员（点击=单选、Shift+点击=多选）；无选中时兜底队员面板当前队员 / 第一名；
  * - 挂载：Game 启动时 init()（见 game.js）；DOM overlay，样式随 game-style.css。
  */
 import { Game } from '../game.js';
@@ -64,9 +64,11 @@ export const CompanionCommandWheel = {
         if (!Game || !Game.isRunning || Game._paused) return false;
         if (Game._wallEditMode || Game._collisionEditMode || Game._buildMode) return false;
         if (!PartySystem || !PartySystem.members.length) return false;
-        if (UIState && Object.values(UIState._state).some(Boolean)) return false;
+        // 不再做全局“任一系统面板打开即禁用”：面板状态残留会永久卡死轮盘。
+        // 改为按按下时鼠标悬停的目标拦截（下一条 closest 判断），面板开着但不
+        // 悬停在面板上时仍可下达指令。
         if (e.target && typeof e.target.closest === 'function'
-            && e.target.closest('.system-panel, .panel-overlay, .side-menu, .menu-btn, .back-menu-btn, .wall-editor-panel, .companion-panel-wrap')) return false;
+            && e.target.closest('.system-panel, .panel-overlay, .side-menu, .menu-btn, .back-menu-btn, .wall-editor-panel, .companion-panel-wrap, .companion-overlay')) return false;
         return true;
     },
 
@@ -91,8 +93,7 @@ export const CompanionCommandWheel = {
         clearTimeout(this._pressTimer);
         this._pressTimer = null;
         if (this._open) {
-            // Shift 松开时按下 = 全队
-            if (e.shiftKey) this._resolveTargets(true);
+            // 多选已由“Shift+点击组队栏名字”承担；松开时不再覆盖为全队
             if (this._hovered) this._execute(this._hovered);
         }
         this._close();
@@ -105,7 +106,7 @@ export const CompanionCommandWheel = {
         this._close();
     },
 
-    /** 指令目标：当前选中队员（无则第一名）；all=true 为全队 */
+    /** 指令目标：组队栏选中队员（多选）；无选中时兜底队员面板当前队员 / 第一名；all=true 为全队 */
     _resolveTargets(all) {
         const members = PartySystem.members;
         if (!members.length) { this._targetIds = []; this._targetLabel = ''; return; }
@@ -114,6 +115,19 @@ export const CompanionCommandWheel = {
             this._targetLabel = `全队（${members.length} 人）`;
             return;
         }
+        // 组队栏选中优先（单选/多选）：只命令被选中的单位
+        const selected = PartySystem.selectedIds;
+        if (selected.length) {
+            this._targetIds = selected.slice();
+            if (selected.length === 1) {
+                const m = PartySystem.getMember(selected[0]);
+                this._targetLabel = m ? m.name || m.id : selected[0];
+            } else {
+                this._targetLabel = `选中 ${selected.length} 人`;
+            }
+            return;
+        }
+        // 兜底：队员面板当前队员（老行为），无则第一名
         const panel = Game && Game.CompanionPanel;
         let member = null;
         if (panel && panel._memberId) member = PartySystem.getMember(panel._memberId);

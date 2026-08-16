@@ -285,8 +285,13 @@ export class BoltSkillSystem {
                 spike.active = false;
                 return;
             }
-            // 墙壁碰撞
-            const resolved = WallSystem.resolve(spike.flyX, spike.flyY, nextX, nextY, this.kind.wallRadius);
+            // 墙壁碰撞（射击台 2026-08-16：施法者在台上时忽略己方掩体段——越墙魔法攻击）
+            let ignore = null;
+            if (src._onPlatform && WallSystem && WallSystem.isoSegments) {
+                const coverSegs = new Set(WallSystem.isoSegments.filter((s) => s && s._cover));
+                if (coverSegs.size) ignore = { segs: coverSegs, rects: null };
+            }
+            const resolved = WallSystem.resolve(spike.flyX, spike.flyY, nextX, nextY, this.kind.wallRadius, ignore);
             const hitWall = Math.abs(resolved.x - nextX) > 1 || Math.abs(resolved.y - nextY) > 1;
             if (hitWall) {
                 this.kind.onImpact(this, spike, { x: resolved.x, y: resolved.y, entities: entityList, damage, effect, skill });

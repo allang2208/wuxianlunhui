@@ -2595,6 +2595,13 @@
         }
         .party-slot:hover { border-color: #c8a84e; background: rgba(40, 33, 24, 0.9); }
         .party-slot--empty { justify-content: center; border-style: dashed; }
+        /* 选中态（点击名字=选中该单位）：金色边框 + 发光，与模型高亮呼应 */
+        .party-slot--selected {
+            border-color: #ffd700; background: rgba(58, 46, 28, 0.95);
+            box-shadow: 0 0 8px rgba(255, 215, 0, 0.45), inset 0 0 6px rgba(255, 215, 0, 0.18);
+        }
+        .party-slot--selected .party-slot-name { color: #ffd700; }
+        .party-slot--selected .party-slot-level { color: #ffd700; }
         .party-slot-avatar { width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; font-size: 20px; background: #1d1814; border-radius: 50%; flex-shrink: 0; }
         .party-slot-plus { font-size: 20px; color: #8a7d5f; }
         .party-slot-name { font-size: 12px; color: #d4c5a9; flex: 1; }

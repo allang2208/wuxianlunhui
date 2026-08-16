@@ -551,6 +551,9 @@ class PathFinder {
         }
         const result = { blocked, cost };
         this._memoRadii.add(r);
+        // [PERF-2026-08-16] 地图扩展后格子记忆化可能无界增长：超上限整体清空
+        // （6144×4096 下 40 怪 × 每路径数百格 ≈ 数万条，上限取 10 万防频繁触顶清空）
+        if (this._cellMemo.size > 100000) this._cellMemo.clear();
         this._cellMemo.set(memoKey, result);
         return result;
     }

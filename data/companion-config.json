@@ -32,6 +32,8 @@
         "attackFrames": 28,
         "attackHitFrame": 10,
         "attackDamageMul": 1.25,
+        "attackStunMs": 1000,
+        "attackKnockback": 50,
         "defendRange": 400,
         "defendEnemyCount": 3,
         "defendRangedRange": 350,
