@@ -1467,11 +1467,15 @@ export class GameScene extends Scene {
         // 世界-122 默认（非瞄准）：玩家恒居镜头中央（2026-08-16 用户要求）——
         // 直接钉在玩家坐标，不做 Camera.x 平滑拖尾（移动时玩家不再偏出中心）；
         // 瞄准时仍走 Camera.x（含 aimOffset 平滑偏移），无人机操控不抢镜头。
+        // 注意：GameScene 不持有 this.player，必须用 window.Game.player（与 game.js
+        // Camera.update 的跟随目标同一引用），否则快照永远不生效。
+        const camGame = (typeof window !== 'undefined') ? window.Game : null;
+        const camPlayer = camGame ? camGame.player : null;
         const camIsAiming = (Camera.aimOffsetX !== 0 || Camera.aimOffsetY !== 0);
-        const camIsDrone = !!(this.player && this.player.droneSystem && this.player.droneSystem.controlling);
-        if (SceneManager && SceneManager.currentScene === 'scene8' && !camIsAiming && !camIsDrone && this.player) {
-            Camera.x = this.player.x;
-            Camera.y = this.player.y;
+        const camIsDrone = !!(camPlayer && camPlayer.droneSystem && camPlayer.droneSystem.controlling);
+        if (SceneManager && SceneManager.currentScene === 'scene8' && !camIsAiming && !camIsDrone && camPlayer) {
+            Camera.x = camPlayer.x;
+            Camera.y = camPlayer.y;
         }
         // 居中：走相机原生 centerOn（对任意 zoom/origin 自动换算，绝不手写 scroll 公式），
         // 玩家（Camera 跟随点）在任何缩放比例下都保持在屏幕中央

@@ -867,3 +867,8 @@ this.ai = config.ai || {};
   （应用模块带 `?t=` 缓存戳，裸 import 不带）——切场景/改状态对应用无效，表现为
   zoom 不变、改动"不生效"。取应用真实实例要从
   `performance.getEntriesByType('resource')` 里挑带 `?t=` 的 URL 再 import。
+- **引用坑（用户复测抓出）**：`GameScene` **没有 `this.player` 字段**，全程用
+  `_game.player` / `window.Game.player`。相机快照/任何按玩家坐标的修正，条件里
+  写 `this.player` 会永远为假（修复静默失效）。统一用 `window.Game.player`
+  （与 game.js `Camera.update` 跟随目标同一引用）。探针里手动 `scene.player = ...`
+  会把"未生效"误判成"已生效"——验证时必须保持与真实流程一致。

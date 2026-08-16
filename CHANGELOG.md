@@ -1,4 +1,13 @@
 # 变更日志
+### 对话：世界-122 相机恒居中 v2——快照改用 window.Game.player（2026-08-16 用户复测）
+- **用户复测**：玩家在屏幕左上角（= 移动拖尾仍存在，v1 快照未生效）。
+- **根因**：`GameScene` 从不持有 `this.player`（全程用 `_game.player` / `window.Game.player`），
+  v1 快照条件 `&& this.player` 永远为假 → 修复未生效，玩家继续被平滑拖尾拉向左上。
+- **修复**（`GameScene._updateCamera`）：快照改用 `window.Game.player`
+  （与 game.js `Camera.update` 的跟随目标同一引用）。
+- **验证**：CDP 探针——`scene.player` 恒 undefined、快照精确命中玩家坐标（4321,3456）、
+  瞄准不快照且按 1/6 平滑偏移（+300 → 单帧 +6）；eslint 0 error + vite build ✓。
+
 ### 对话：世界-122 相机默认恒居玩家中央——非瞄准钉玩家、瞄准才偏移（2026-08-16）
 - **需求**：世界-122 默认（非瞄准）玩家始终位于镜头中央；瞄准时允许镜头偏移。
 - **根因**：相机平滑跟随（`CAMERA_SMOOTH 0.12`）导致移动时相机拖尾，玩家偏出屏幕中心
