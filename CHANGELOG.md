@@ -1,4 +1,49 @@
 # 变更日志
+### 对话：仓鼠兵营接入游戏——30s 生成战士/射手可切换 + 升级复制小屋模块（2026-08-16）
+- **需求**：兵营大小同仓鼠小屋、命名"仓鼠兵营"、每 30s 自动生成一个仓鼠军事单位
+  （战士/射手），建筑面板按钮自行调节，升级项目参考仓鼠小屋复制。
+- **实现**：
+  - 新建 `src/world/hamster-barracks-system.js`：`BARRACKS_CONFIG`（1500 能源 /
+    hp 2000 / 显示 150×147 同小屋 / footOffsetY 74 / 30s 生成 / spawnRadius 90）；
+    `HamsterBarracks` 建筑实体（DamageableEntity + setupStructureDepth 遮挡锚线）、
+    面板（BasePanel 复用：等级/耐久/存活数/下次生成秒数 + 战士/射手切换按钮 +
+    5 个升级模块 + 出售返还 50%）、`HamsterBarracksSystem`（setup/teardown/update/
+    tryInteract）。
+  - 接入：building-system BUILD_ITEMS（B 面板可建）+ 幽灵尺寸/脚底偏移 + 放置分支；
+    scene-manager 世界-122 setup/teardown；game.js tryInteract + update(dt)；
+    BootScene 加载 `hamster_barracks` 贴图。
+  - 单位类型切换 `setUnitType`：战士（近战 50 伤/2s/300HP）/ 射手（远程 60 伤/2s/
+    150HP），基准值实时读 `data/hamster-warrior-config.json` /
+    `hamster-shooter-config.json`（不硬编码）；切换后下一次生成生效。
+  - 升级模块复制小屋口径（每级 1000 金币 + 500 能源）：攻击加速（间隔 -6%/级）/
+    攻击强化（伤害 +12%/级）/ 机动强化（移速 +5%/级）/ 仓鼠增援（上限 +1/级）/
+    生命强化（生命 +10%/级）；矿工专属采矿/背包模块不复制。
+  - 升级同步：战士/射手新增 `applyBarracksUpgrades(u)`（写 `_ai` + `aiConfig` +
+    `_maxHpOverride` + `updateMaxStats`），升级后现有单位实时生效。
+  - 生命周期：单位死亡按 30s 节拍补员；兵营出售/被毁同步拆除单位、关闭面板。
+- **验证**：CDP 实机探针——贴图加载、默认战士生成（dmg 50/hp 300）、切射手
+  （dmg 60/hp 150）、升 damage 模块后现有战士伤害 50→56 实时生效、面板标题/
+  类型按钮/升级按钮/状态显示、单位死亡后 update 立即补员；eslint 0 error +
+  vite build。
+
+### 对话：世界-122 建筑图层统一口径——全建筑遮挡锚线（2026-08-16）
+- **需求**：掩体/铁闸门图层顺序正确，但防御塔/基地核心/能源矿等会遮挡友方单位（仓鼠）；
+  统一图层设计与代码，做到一劳永逸（之后加建筑/加单位不再各自处理遮挡）。
+- **实现**：
+  - 新建 `src/world/structure-depth.js` 的 `setupStructureDepth(entity, 贴图显示半宽)`：
+    构造时注册 `_faceLine`（脚底 y 水平线段，跨度 = 贴图显示半宽）+ `_faceDepth`
+    （= 接地线 max y + 12），与掩体/铁闸门同一套口径；
+  - 接入：防御塔 / 基地核心 / 能源矿 / 仓鼠小屋（小屋由 footprint 半径 40 改为贴图
+    半宽 75，屋角后方单位也能正确遮挡）；防御塔三层贴图（基座/机械臂/武器）深度统一
+    从 `_faceDepth` 取；
+  - `building-system.canPlace`：`_faceLine` 只对 `_isDefenseCover/_isCoverGate` 走
+    "线段+墙厚"重叠判定，塔/基地/小屋/能源矿等紧凑建筑保持圆心距离（防面线被当
+    26px 厚墙段误判吸附）；
+  - 单位零改动：玩家/敌人/侍从/友方单位每帧经 `junctionCorrectedDepth` 仲裁——
+    脚线在接地线后 → 压到建筑下；在前/同线 → 抬到建筑上（+0.5，消除同线 z-fight）。
+- **验证**：`tools/cdp-layer-occlusion.mjs`——合成 36 组合（塔/基地/矿/小屋 × 无墙/
+  墙前/墙后 × 后/同/前）+ 真实基地 4 类建筑同线抽查，全部"单位盖建筑 iff 单位脚线在
+  建筑之前"；npm test 全绿 + eslint 0 error + vite build ✓。
 ### 对话：仓鼠兵营删塔纠错——删"脱离主体外"的前左塔，恢复屋后后左塔（2026-08-16）
 - 用户澄清：要删的是**脱离在房屋主体外面**的那根（前左塔，世界 (-97.9,-193.1) 悬在
   房前），不是屋后那根（后左塔）。
@@ -22,6 +67,54 @@
   几何正确（屋脊/檐口位置验证 OK）但与塔台重叠、黑底可见，暂缓；图元保留可复用。
 - 入库 `assets/terrain/hamster_barracks.png`（636×623，红 20.7%）。
 
+### 对话：能源簇调位——(2000,1300) 东移至 (3000,1500)（2026-08-16）
+- **需求**：用户选择「调簇位」方案，把离常见建屋区太近的能源簇挪走。
+- **改动**（src/config/energy-config.js）：`clusters[0]` 从
+  `{ x: 2000, y: 1300 }` → `{ x: 3000, y: 1500 }`（count/spread 不变）。
+  - 新位置距基地中心 (900,2048) ~2170px（原 ~1330px）、距出生点最近矿
+    2061px（原 ~1249px）、距最近簇 (3600,900) ~850px 不重叠、6144×4096
+    地图内、不在右端刷怪带（x>5600）；树木散布排除带随簇心自动更新。
+- **验证**（tools/cdp-cluster-move-check.mjs）：节点总数仍 54；
+  旧簇位 ±500px 内 0 节点、新簇位 ±500px 内 14 节点；常见建屋区 (2050,1400)
+  放小屋后**门口 170px 内 0 矿点**（调位前 4 个）；最近矿距旧建屋点 714px。
+  config-integrity / test-energy / test-party-system 269 / eslint 0 error /
+  vite build 全绿。
+### 对话：仓鼠小屋门口“两坨矿”——按用户口径重新核实（2026-08-16 终版）
+- **用户纠正**：不是进图视野问题，是**第一只仓鼠矿工出门后，门口位置出现两坨能源矿**。
+- **重新排查（door 专项探针 `tools/cdp-hut-door-ore.mjs`）**：
+  - 全仓库无任何“矿工出门→生成矿”逻辑：`spawnMiner`/开门动画/矿工 AI 采矿命中
+    （`addMinedEnergy` 隐藏背包不落地）/卸货（入玩家背包或暂存小屋）/节点重生
+    （原地恢复 hp）/全部 `Game.dropItem` 调用点，均与门口无关。
+  - 实机（基地旁 900,2148 放小屋）：门口 1.5s/4s 扫描 **0 矿点 0 掉落**（只有
+    小屋/矿工/基地墙）。
+  - 实机（簇区 2050,1400 放小屋）：**放小屋前**门口 170px 内就有 4 个能源节点
+    （距离 74/95/108/155px），放小屋+矿工出门后仍是同样 4 个，**0 新增**。
+- **结论**：用户看到的“出门后门口两坨矿”= 既有能源簇节点（小屋建在矿簇边上，
+  门口 2 个最近节点就在 74/95px 处），并非矿工/小屋生成。
+- **未改码**；如要让“小屋周边无矿”，建议做**小屋禁矿带**（放置时移走周边节点）
+  或调簇位，待用户拍板。
+### 对话：射击台六版重构——自由放置高台（替代贴墙越墙）+ 武器跟随 + 登台限幅（2026-08-16）
+- **背景**：五版贴墙设计暴露三个问题：① 走上去"直接瞬移"（登台走廊是 260×165 硬矩形
+  判定区，侧面/斜向进入瞬间跳满 178px，而贴墙台的自然走法恰是沿墙横向进入）；② 站上
+  平台后武器贴图与人物分离（WeaponTransform 只减 footOffsetY、未减 _platformLift，
+  分离量=平台高度 178px）；③ 设计前提存疑：越墙射击只有屏幕朝下两堵墙可用、贴门高度
+  标定错、平台被摧毁后墙洞/密封段永不还原。审计后改走**自由放置高台**方向。
+- **修复① 武器跟随（F1）**：`WeaponTransform` 三处 y 计算统一补减 `player._platformLift`
+  （localToWorld / getInterpolatedPerFramePosition / _applyPerFrameToWorld）；
+  GameScene 施法逐帧分支、`_getMuzzlePosition` 兜底同补。CDP 实测台上/台下
+  weaponSprite−playerSprite 相对偏移一致（18px，跟随 ✓）。
+- **修复② 登台瞬移（F2）**：`_updatePlatformStates` 对目标抬升做速率限幅
+  （满高 178px/450ms ≈ 6.6px/帧）。CDP 横向进入实测相邻帧差恒 6.59px、无跳变 ✓；
+  走出走廊平滑回落。
+- **逻辑重构（B1–B3）**：FiringPlatform 去贴墙（删 wallLine/_registerWallSeg/_platSeg/
+  trimCoverSegsForPlatform/移动 ignore 链路）；onDeath 沉陷死亡（BuildingSinkEffect
+  接管，修复"被摧毁后残留"）；建造删 `_snapPlatformToWall`（自由放置，间距 ≥240/≥90）；
+  详情面板新增射击台专属 UI（不再误显示"掩体·F级"）；预置改固定房间内坐标（1002,2035）
+  且 entity 键 = platform.id；WallSystem.platformSegs 移除。
+- **验证**：eslint 0 error、vite build ✓、npm test 全绿；CDP 探针改造（自由放置无墙线/
+  无密封段、轴向+横向登台平滑、武器跟随、沉陷死亡清理、贴图渲染）。建模沿用五版 v7
+  （自由高台不依赖墙，暂不重建模）。
+
 ### 对话：仓鼠兵营屋顶 v3——斜面加厚（红檐口板）+ 瓦行平行实证（2026-08-16）
 - 需求：屋顶斜面加厚；红瓦仍未平行于斜边。
 - **瓦行平行实证**：先做横条纹测试贴图（PIL 生成 12 条水平带）替换 roof_tex 渲染，
@@ -32,6 +125,31 @@
   渲染器新增 box 型屋顶件整块红瓦支持）→ 屋顶有可见厚檐口，不再纸片薄。
 - 重渲入库 `assets/terrain/hamster_barracks.png`（692×571，红 28.6%，瓦行角 -26°）。
 
+### 对话：为何进世界-122 看不到矿、放小屋后才出现（2026-08-16 补查）
+- **追问**：既然放置不生成矿，为何一进图看不到、放完小屋才出现？
+- **实测**（`tools/cdp-scene8-view.mjs`）：出生点 (760,2048)，相机 zoom 0.7，
+  初始 worldView ≈ x -594..2115 / y 1342..2753；54 个矿点里**只有 3 个在初始视野内**
+  （1838,1417 / 1964,1369 / 2028,1462——全部挤在屏幕右上角最边缘，最近矿距
+  出生点 1249px）。窗口再小一点（如 1366×768）视野更窄，右上角那 3 个也出屏，
+  即“一进图看不到”。
+- **结论**：矿点自进图就存在（放置前后 54→54、0 新增）；放小屋时玩家通常已走到
+  矿区附近（或小屋就建在矿边），矿点进入视野才“显得”是刚生成的。
+- **未改码**：如需“小屋周边看不到矿”，仍待用户拍板（调簇位 / 小屋禁矿带）。
+### 对话：仓鼠小屋放置是否生成矿——实机核实（2026-08-16，只诊断未改码）
+- **用户反馈**：仓鼠小屋放置后，附近会生成矿，这不是设计意图，要求核实并删除。
+- **核实（代码 + 实机）**：
+  - 代码链路：`building-system._place` 的 hamster_hut 分支只
+    `new HamsterHut` + 入 `HamsterHutSystem.huts`；`HamsterHut` 构造只生成矿工；
+    `new EnergyNode` 全仓库仅出现在 `EnergyNodeSystem.setup()`（场景进入时按
+    `ENERGY_CONFIG.clusters` 固定位置铺簇，与小屋无关）——**不存在“放置生成矿”逻辑**。
+  - 实机探针 `tools/cdp-hut-ore-check.mjs`：进 world-122（scene8）54 个能源节点，
+    按 `_place` 同路径放置 2 个小屋（基地旁 + 簇旁）后仍 54 个、**0 新增/0 位移**。
+- **现象解释**：并行会话「大能源点簇」特性（9bcfe10）把簇放在
+  (2000,1300)/(3600,900)/(3600,3200)/(4900,2048)；玩家在簇区建小屋时（如
+  (2050,1400)）最近矿点仅 31px，看起来像“小屋生成矿”，实为既有簇。
+  基地禁矿带（900,2048 ±800）正常生效（基地旁小屋最近矿点 1220px）。
+- **未改码**：无“生成矿”行为可删；能源簇属独立设计，是否调整簇位/加小屋禁矿带
+  待用户拍板。
 ### 对话：仓鼠兵营屋顶材质修正 v2——山墙 UV 修复 + 按斜面比例重生红瓦（2026-08-16）
 - 用户复测：黑砖部分（山墙端面）错误拉伸、斜面瓦行仍不平行。
 - **山墙拉伸根因**：`prism_uv` 把端面三角的 u 映射到 X（端面法线方向，x 恒等）→
@@ -58,13 +176,96 @@
   墙身/塔台保持黑砖 `wall`。重渲入库 `assets/terrain/hamster_barracks.png`（656×623，
   顶部/中部红瓦 30%+、底部黑砖 0%）。
 
-### 对话：仓鼠兵营删独立柱——44.8° 布局的后右塔投影成独立高柱（2026-08-16）
-- 用户复测：渲染里有一根"独立在外"的柱子。像素定位 = 后右塔（local 153.5,68，
-  world x≈+56）在屏幕右上从 y=5 贯穿到 y=537，与主体分离。
-- 修复：删除该塔台图元 → 三塔（前左/前右/后左）+ 主体；重新渲染入库
-  `assets/terrain/hamster_barracks.png`（656×623）。44.8° 布局注意：后右角塔
-  投影会独立矗立在建筑右上，视觉像多余柱子，可省。
-
+### 对话：右键移动=最高优先级 + 目标点绿色下指箭头（2026-08-16）
+- **需求**：有队友选中时，右键移动优先级最高——清空当前所有指令后先执行右键移动；
+  并在目标地点画一个竖直向下的绿色箭头。
+- **实现**：
+  - `companion-ai.js`：`move` 指令升级为最高优先级——法师/剑盾的
+    `cmd.mode === 'hold' || cmd.mode === 'move'` 在施法/攻击/防御/风车锁前统一打断
+    （清 castState/frozen/pendingRelease/meleeAtkTimer/defendPhase/whirlwindHitSet），
+    再执行 `_cmdMove`；`_cmdMove` 同时清 `_gatherPhase`/`_patrolTarget` 残余
+    （覆盖采集/巡逻中状态）。
+  - `game.js`：右键分发块移到 `if (leftPressed)` 之外独立执行——有选中时
+    `setCommand(selectedIds,'move',worldPoint)` + 消费 `rightPressed`（阻止玩家自身
+    右键特殊攻击同帧触发）+ `GameScene.showMoveMarker(world)`；**选中保留**
+    （可连续右键改道），左键仍=移动+取消选中（不变）。
+  - `GameScene.showMoveMarker(x,y)`：Phaser Graphics 画竖直向下绿色箭头
+    （0x3dff6a，尖端=目标点 + 箭杆），地面层 `depth=y+15`，1.2s 后淡出销毁，
+    连续右键自动替换旧标记。
+- **验证**：`tools/cdp-party-rightmove.mjs` 实机——先下 patrol → 真实右键点击：
+  两人 `_command` 变 `{mode:'move'}`（旧 patrol 被清掉）、选中保留、`_moveMarkerGfx`
+  出现（alpha 1 / 坐标≈目标点 / depth=y+15）、两人走向目标（最近 32~34px）；
+  截图 `tools/verify-shots/rightmove_marker.png`；0 页面异常。左键移动回归通过、
+  test-party-system 269/269、eslint 0 error、vite build ✓。
+### 对话：左键点击=队友纯移动指令 + 空白处取消选中（2026-08-16）
+- **需求**：有队友选中时，左键点击组队栏外任意位置 = 取消选中 + 命令选中单位移动到
+  目标位置（纯移动，不接敌/不采集/不跟随）；目标不可达则移动到最近可达点。
+- **实现**：
+  - `companion-ai.js`：新增 **`move` 指令**（法师/剑盾 switch 均接入 `_cmdMove`）——
+    只走向 `cmd.point`，`target` 恒置空不接敌，到达（≤40px）停步站定；
+    `_nearestWalkable(point)`：目标 `WallSystem.canMoveTo` 失败时螺旋外扩
+    （16~400px × 12 方向）找最近可达点；move 模式跳过掉队/卡死瞬移
+    （不会拉回玩家身边）。
+  - `game.js` 左键分发（NPC 对话跳过之后）：`Renderer.screenToWorld(mx,my)` 转世界
+    坐标 → `PartySystem.setCommand(selectedIds,'move',point)` + `clearSelection()`；
+    组队栏/系统面板点击已被 input.js 拦截不会走到这里。
+  - `game.js init` 挂载 `this.Renderer` / `this.WallSystem`（探针权威入口）。
+- **验证**：`tools/cdp-party-move.mjs` 实机——选中露娜+伊莉丝 → 真实左键点击
+  (2216,1918)：选中清空、两人 `_command={mode:'move'}`、均走向目标（最近 34px）；
+  墙点 (2516,1858) → `_nearestWalkable` 返回 (2502,1866) 可达（距墙 16px）并移动；
+  0 页面异常。test-party-system 266/266（新增 move 接线 4 项）、组队栏选中回归、
+  eslint 0 error、vite build ✓。
+### 对话：新增玩家友方单位仓鼠战士——世界-122 自动近战输出（2026-08-16）
+- **需求**：新增玩家友方单位「仓鼠战士」：在世界-122 帮助玩家攻击——自动寻找最近的敌人，
+  每 2s 造成 50 伤害，不能攻击能源矿点；移动速度 120；六维属性 力量20/敏捷12/智力3/
+  体质15/精神3/幸运5，生命 300；精灵图 4 张（idle 单帧 / running 15 帧 / attacking 24 帧 /
+  dying 12 帧，512 格 8 列×4 行）。
+- **实现**：
+  - 独立配置 `data/hamster-warrior-config.json`（不入招募池）；`Companion` 新增
+    `baseMaxHp` 覆盖（镜像 baseMaxMp：con=15 公式 250 → 300，升级仍 +10/级）；
+  - `src/entities/hamster-warrior.js`：复用 Companion，`_faction='companion'` +
+    `_enemyTargetable`（可被怪锁定/击杀），死亡播 dying 12 帧后移除；
+  - `src/ai/hamster-warrior-ai.js`：最近 enemy 索敌（跳过 `_isEnergyNode` 矿点）→ 走位
+    walk → 攻击范围内站定 attack，每 2s `takeDamage(50)`；无敌人跟随玩家（到位清路径归零
+    速度）；复用 MovementSystem 寻路 + 卡死看门狗；
+  - `src/world/hamster-warrior-system.js`：世界-122 进入自动生成（玩家附近合法落点）、
+    离场拆除、死亡不复活、再进入重新生成；
+  - 攻击动画两段式（用户口径）：从待机/移动进入攻击播**完整 1~24 帧**一次，持续攻击
+    **第 6~24 帧循环**（BootScene startFrames[0,23] + loopFrames[5,23]；GameScene
+    `hamsterAtk` 分支，attack_start 播完自动切 attack 循环）；**帧率与 2s 间隔对齐**
+    （起步 24 帧 @12fps = 2.0s、循环 19 帧 @9.5fps = 2.0s，两段周期均 = 攻击间隔，
+    伤害与挥砍周期同步）；移动始终朝向 vx；
+    受击白闪；名字/血条按侍从精灵锚定（spriteOffsetY/footOffsetY/hudOffsetY 四件套补偿
+    素材脚底不在 480 的问题）。
+- **验证**：契约测试 `scripts/test-hamster-warrior.mjs` 34/34；CDP 实机
+  `tools/cdp-hamster-warrior.mjs` 22/22（自动生成/300HP/六维/移速 120/索敌最近敌人/
+  50伤×2s/两段式攻击动画+间隔对齐（起步≈2.0s 切循环）/矿点贴脸不攻击/跟随玩家到位
+  idle/死亡 dying 移除）；
+  npm test 全绿 + eslint 0 error + vite build ✓。
+### 对话：新增玩家友方单位仓鼠射手——世界-122 自动远程输出（2026-08-16）
+- **需求**：新增玩家友方单位「仓鼠射手」：世界-122 帮助玩家攻击——寻找最近敌人远程射击，
+  参考露娜远程攻击模式（AimHelper 提前量、瞄准目标贴图中心），攻击动画第 10 帧发射投射物；
+  每 2s 造成 60 物理伤害，不能攻击能源矿点；移速 150；六维 力量12/敏捷20/智力3/体质10/
+  精神3/幸运10，生命 150；精灵图 5 张（idle 1 / running 11 / attacking 13 / dying 11 /
+  projective 1，512 格 8×4）。
+- **实现**：
+  - 独立配置 `data/hamster-shooter-config.json`（不入招募池）+ `baseMaxHp: 150` 覆盖；
+  - `src/entities/hamster-shooter.js`：复用 Companion，`_faction='companion'` +
+    `_enemyTargetable`，死亡播 dying 11 帧后移除；
+  - `src/ai/hamster-shooter-ai.js`：射程内站定射击，**第 10 帧出膛**
+    （`_launchDelayMs = (launchFrame-1)/fps = 750ms`），`AimHelper.lead` 提前量瞄准
+    `_targetAimY`（目标贴图中心），投射物 `m._basic` 600px/s 直线飞行、目标中心半径 28
+    命中、60 物理伤害；矿点（`_isEnergyNode`）不攻击；无敌跟随玩家（到位清路径归零速度）；
+  - `src/world/hamster-shooter-system.js`：世界-122 进入自动生成、离场拆除、死亡不复活；
+  - GameScene：射手攻击单次重播（`_attackSwing`/`shooterSwing`）、`_syncCompanionBasics`
+    迭代 friendlyUnits 并用 projective 贴图渲染箭矢（尖头朝左，`setRotation(angle+PI)`）；
+  - 素材清理：running 前两帧底部 1~4px 孤立噪点（撑 bbox 到 y482/490）按「距主体外扩
+    40px 之外 <12px 连通域」清除；attacking/dying 弓弦/箭身碎段贴近主体保留。
+- **验证**：契约测试 `scripts/test-hamster-shooter.mjs` 38/38（含**仓鼠战士伤害类型 =
+  physical 复核**）；CDP 实机 `tools/cdp-hamster-shooter.mjs` 21/21（自动生成/150HP/六维/
+  移速150/第10帧出膛 674ms/中心瞄准 aimY=贴图中心/箭矢贴图/60 物理×2s/弹道角=
+  AimHelper.lead 重算/矿点不攻击/跟随到位 idle/死亡 dying 移除）；npm test 全绿 +
+  eslint 0 error + vite build ✓。
 ### 对话：仓鼠兵营建模——黑砖方块主体 + 四角细长塔台（2026-08-16，角度 44.8° 修正）
 - **需求**：参照仓鼠小屋建模经验，建「仓鼠兵营」（方块主体 + 周围圆柱/方块细长塔台，同角度），
   先建模再走生图管线出黑砖贴图渲染。
@@ -78,17 +279,26 @@
 - **渲染**：render-factory-real.py → 紧身裁剪 → `assets/terrain/hamster_barracks.png`（598×681）。
 - **坑**：前塔尖顶被屋顶前坡遮挡（2.5D 投影前低后高），塔台平顶最稳。
 
-### 对话：仓鼠兵营建模——黑砖方块主体 + 四角细长塔台（2026-08-16）
-- **需求**：参照仓鼠小屋建模经验，建「仓鼠兵营」（方块主体 + 周围圆柱/方块细长塔台，同角度），
-  先建模再走生图管线出黑砖贴图渲染。
-- **建模**：`_blockout_specs/hamster_barracks.json`（elevation 30 / azimuth 0，与仓鼠小屋同视角）——
-  主体 box 260×150×90 + 坡屋顶 prism 280×170×68 + 前塔 36×36×175@±138 +
-  后塔 36×36×190@±86（后塔从屋脊后方露出）+ 门洞 interior + 双窗 window。
-- **贴图**：`comfyui-gen.py --host 192.168.3.142 --model flux2-klein-4b-walltex` 黑砖
-  （seed 12201，1024×656，暗色 36.5 / 白边 0% / 砖格 FFT 峰强）。
-- **渲染**：render-factory-real.py → 紧身裁剪 → `assets/terrain/hamster_barracks.png`（692×558）。
-- **坑**：前塔尖顶被屋顶前坡遮挡（2.5D 投影前低后高），塔台平顶最稳。
+### 对话：仓鼠兵营删独立柱——44.8° 布局的后右塔投影成独立高柱（2026-08-16）
+- 用户复测：渲染里有一根"独立在外"的柱子。像素定位 = 后右塔（local 153.5,68，
+  world x≈+56）在屏幕右上从 y=5 贯穿到 y=537，与主体分离。
+- 修复：删除该塔台图元 → 三塔（前左/前右/后左）+ 主体；重新渲染入库
+  `assets/terrain/hamster_barracks.png`（656×623）。44.8° 布局注意：后右角塔
+  投影会独立矗立在建筑右上，视觉像多余柱子，可省。
 
+### 对话：伊莉丝攻击/防御音效——复制铠甲骑士音效为新文件（2026-08-16）
+- **需求**：伊莉丝攻击时播放铠甲骑士攻击音效、防御时播放铠甲骑士防御音效，
+  复制生成新文件给她用。
+- **素材**：`assets/sounds/companions/elise/attacking.mp3`（= 铠甲骑士
+  `enemies/armored_knight/attacking.mp3` 副本）、`defending.mp3`（= defending 副本）。
+- **实现**（companion-ai.js）：新增 `ELISE_SOUNDS` 常量 + `_playSound(key)`（走
+  `SoundManager.playWorld(path, x, y)` 世界空间音源，缺失/无 SoundManager 静默跳过）；
+  `_tryMeleeAttack` 攻击挥出时触发 `attacking`、`_startDefend` 防御进入时触发
+  `defending`（风车/采集挥砍共用普攻音效，用户口径内）。
+- **验证**：`tools/cdp-elise-sound.mjs`——复制文件存在；页面内覆盖 AI 实例
+  `_playSound` 记录：注入贴脸敌 → attacking ×2，注入 4 敌（250~380px，风车范围外）
+  → defending ×1，0 页面异常；test-party-system 262/262、eslint 0 error、
+  vite build ✓。
 ### 对话：世界-122 相机恒居中 v2——快照改用 window.Game.player（2026-08-16 用户复测）
 - **用户复测**：玩家在屏幕左上角（= 移动拖尾仍存在，v1 快照未生效）。
 - **根因**：`GameScene` 从不持有 `this.player`（全程用 `_game.player` / `window.Game.player`），

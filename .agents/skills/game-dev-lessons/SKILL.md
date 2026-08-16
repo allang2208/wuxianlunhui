@@ -940,3 +940,21 @@ this.ai = config.ai || {};
   `_isDefenseCover/_isCoverGate` 走线段+墙厚判定，其余紧凑建筑保持圆心距离，否则面线
   被当 26px 厚墙段误判；② 锚线构造时按 x/y 生成，测试探针传送实体后要重算锚线。
 - **验证**：`tools/cdp-layer-occlusion.mjs` 合成 36 组合 + 真实基地 4 类建筑同线抽查。
+
+## 53. 建筑生成单位：兵营持有单位生命周期，升级实时同步现有单位（2026-08-16）
+
+- **架构**：`HamsterBarracks.units` 持有本单位生成的军事单位——生成/死亡补员/
+  出售/被毁拆除全部挂建筑（`_despawnUnits` 统一清理），离场 teardown 同链；
+  复用战士/射手既有实体与 AI，零新增渲染分支。单位基准值实时读各自
+  config JSON（`unit.<key>.cfg`），**不硬编码伤害/血量**。
+- **升级同步两坑**：① 单位 `applyBarracksUpgrades(u)` 必须同时写
+  `_ai._attackInterval/_attackDamage` 与 `aiConfig`——AI 每帧从 `_ai` 读间隔/伤害，
+  渲染/契约从 `aiConfig` 读，只写一处则"升了级但 AI 不生效"或"面板不同步"；
+  ② 生命强化走 `_maxHpOverride` + `updateMaxStats()`，Companion 构造后
+  hp 已按 con 公式算好，直接改 `maxHp` 不会重算当前血量比例。
+- **补员节奏**：`aliveUnitCount() < unitCount()` 时才走 `_spawnTimer` 倒计时，
+  达到上限归零计时器——单位死亡立即从下个 30s 节拍开始，不会积压多单位瞬间连发。
+- **面板切类型**：`setUnitType` 只改 `unitType`，下次生成生效（不强制换掉场上的
+  旧类型单位，避免"切射手瞬间战士消失"的突兀）。
+- **验证**：CDP 实机——贴图加载/默认战士生成/切射手/升 damage 后现有战士
+  50→56 实时生效/面板按钮与状态/死亡后立即补员；eslint 0 error + vite build。

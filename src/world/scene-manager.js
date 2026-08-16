@@ -24,6 +24,7 @@ import { HamsterMinerSystem } from './hamster-miner-system.js';
 import { HamsterWarriorSystem } from './hamster-warrior-system.js';
 import { HamsterShooterSystem } from './hamster-shooter-system.js';
 import { HamsterHutSystem } from './hamster-hut-system.js';
+import { HamsterBarracksSystem } from './hamster-barracks-system.js';
 import { ENERGY_CONFIG } from '../config/energy-config.js';
 import { BuildingSystem } from './building-system.js';
 import { DefenseTrapSystem } from './defense-trap-system.js';
@@ -149,6 +150,9 @@ export const SceneManager = {
             // 世界-122 仓鼠小屋随场景离场拆除（矿工由小屋一并清理）
             if (HamsterHutSystem && HamsterHutSystem.active) {
                 HamsterHutSystem.teardown();
+            }
+            if (HamsterBarracksSystem && HamsterBarracksSystem.active) {
+                HamsterBarracksSystem.teardown();
             }
             // 世界-122 仓鼠矿工（玩家友方单位）随场景离场拆除
             if (HamsterMinerSystem && HamsterMinerSystem.active) {
@@ -1019,6 +1023,9 @@ export const SceneManager = {
 
         // 世界-122 仓鼠小屋：建筑面板建造生成仓鼠矿工（矿工随小屋）
         HamsterHutSystem.setup();
+
+        // 世界-122 仓鼠兵营：建筑面板建造，每 30s 生成仓鼠战士/射手（单位随兵营）
+        HamsterBarracksSystem.setup();
 
         // 世界-122 仓鼠矿工：玩家友方单位，自动找最近能源矿点采矿
         HamsterMinerSystem.setup(player);

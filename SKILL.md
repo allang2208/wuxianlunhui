@@ -85,6 +85,7 @@
 - 防御塔升级重构——六维芯片取代等级（2026-08-16：武器↔主属性挂钩、伤害实时公式、费用逐级递增、面板武器贴图；二轮重新引入改造模块图标卡）
 - 世界-122 相机默认恒居玩家中央（2026-08-16：非瞄准钉玩家/瞄准才偏移；相机平滑拖尾修复）
 - 世界-122 扩展：6144×4096 / 分块惰性地板 / 大能源点簇 / 基地门可攻击（2026-08-16）
+- 世界-122 仓鼠兵营接入游戏（2026-08-16：B 面板 1500 能源建造，同小屋尺寸；每 30s 生成战士/射手可切换；升级复制小屋模块）
 - 后续打磨方向（未做）
 
 **8. AI 寻路、碰撞与移动**
@@ -729,6 +730,42 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
     判据识别不了合并）；**验收 = alpha 掩码贴附率 12/12 >20%**（拳头显示坐标 7×7 邻域，
     BILINEAR 缩放到显示尺寸）。
   - DevTool 语义提示：attack 块 offset 现在是**握把点**（拳头），不再是贴图中心。
+
+#### 二段攻击（attack_sword_2）v4 上撩回斩（2026-08-16 入库，连段连贯首帧方案）
+
+- **连段连贯 = 首帧用前段视频的末帧原生抽帧**：attack2 的 H3 首帧 = slash1_v4_s02.mp4
+  第 24 帧（=一段 sheet f11 的源帧，同相机/同底色/同体格），不是重画/重合成——
+  `extract f24 → firstframe_slash2_v4.png`，一段收势姿势像素级流入二段起手。
+- **提示词教训（两条方向性）**：水平横挥/反手横扫在严格侧视下系统性翻车——躯干必然
+  转向正面成 T-pose、且不收势（s11~s13 三连全废）；**上撩回斩（低→高对角线）天然侧视
+  兼容**，s22/s24/s26 三个干净（选定 s24：顶点 50°、底盘稳、无剑影）。提示词模板
+  `prompts/player-attack-slash2-h3.txt`（保留 EMPTY fist/no stick 全套防剑影条款）。
+- **剪片连段口径**：`build-player-attack-sheet.py --video slash2_v4_s24.mp4 --bg-hex 00FF00
+  --n 12 --end 20 --anchor-cx 276 --scale 0.7742`——`--anchor-cx` = 一段末帧格内 cx（276，
+  消 1→2 接缝跳变）、`--scale` 复用一段的 0.7742（参考帧是蹲姿收势不是站姿，不能反推）；
+  窗口终点停在顶点伸展后（v20），最大伸展落 sheet f10 → `attack2.hitCheck.frame=10`。
+- **attack2 同切 anchor='grip'**：拳头标定注意 f6 类薄拳（点指时拳心偏下，掩码贴附率
+  6% 报警→细网格复读修正 (497,150)）；刃向链 222→216→96→88→83→57→51→37→31 相邻差
+  全 ≤180°。一段末帧（grip 16.9,11.4/rot 572≡212）与二段首帧（grip 25.9,8.3/rot 222）
+  姿态同族，接缝自然。
+- 入库：`assets/player/attack_sword_2.png` 覆盖，旧 v2 留档 `backup/2026-08-16-player-attack2-h3/`。
+
+#### 二段 v5 沉身下劈定稿（2026-08-16；v4 上撩回斩被用户否掉）
+
+v4 上撩回斩被否原因：向上挥向空气无目标承接、缺冲击力、动作软。v5 改**正手快劈**：
+短促抬拳→爆发下劈穿躯干目标区→整个身体重量砸进（屈膝沉身），收在低位前伸全力姿势。
+- **"violent/slam"措辞几乎必出月牙伪影**：s31~s36 全系列在砸下瞬间带白色月牙大剑影
+  （小尺寸 montage 看不出来，必须抽原始帧放大查挥砍瞬间）。对策=**战略性跳帧**：
+  `--picks` 手动取帧直接不取月牙帧（v5 s31 用 `0,4,8,11,14,15,16,17,21,22,23,24`）——
+  蓄势末帧（臂高举）→ 闪切到命中帧（沉身臂前伸），**动画中割抽掉反而更有冲击**
+  （日式闪帧手法）；新增 `--picks` 参数即为此；builder 撞帧掉数已修（最大空档补中，
+  禁止空帧注册进动画）。
+- hitCheck 跟着闪切帧走：命中帧=sheet f8（(frame-1)/(n-1) 阈值 0.727 落在 f8 显示窗），
+  `attack2.hitCheck.frame=9`；blur 峰值 f8=10/6 贴闪切瞬间。
+- 轨迹同 anchor='grip'；薄拳帧（点指）掩码报警后必须 8px 细网格 4× 复读（f6/f7 拳头
+  真值 (195,82)/(213,80)，粗读全偏）。
+- 入库：v5 sheet 覆盖 `attack_sword_2.png`；v4 上撩版留档 `backup/2026-08-16-player-attack2-h3/
+  attack_sword_2_v4riser.png`（同目录还有 v2 旧版）。
 - 入库：旧 v2 留档 `backup/2026-08-15-player-attack-h3/attack_sword.png`，两段式留档
   同目录 `attack_sword_keyframe2seg.png`；blur 峰移 f8~f10 贴挥砍段。
 
@@ -4833,7 +4870,36 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
 - 已知取舍：实体站在门洞中同时跨左右柱时，整门三段的抬升/压制按各段面线独立判定，
   跨两段的重叠区以最近段为准，极端位置可能有 ±1 段误差，可接受。
 
-### 射击台（FiringPlatform，2026-08-16 五版定稿：连接式台阶 + 贴墙锚定 + 裁墙洞）
+### 射击台（FiringPlatform，2026-08-16 六版定稿：自由放置高台，替代贴墙越墙）
+
+- **六版（2026-08-16 重构，替代五版贴墙设计）**：设计方向从"贴墙越墙"改为**自由
+  放置高台**——不再依赖墙体几何，删除 k 公式/裁墙洞/密封段/移动 ignore 全链路；
+  核心收益（站台上远程弹道/魔法忽略己方掩体 `_cover`，与防御塔同机制）保留。
+  - F1 武器跟随：`WeaponTransform` 三处 y 计算补减 `player._platformLift`
+    （localToWorld / getInterpolatedPerFramePosition / _applyPerFrameToWorld），
+    GameScene 施法逐帧分支与 `_getMuzzlePosition` 兜底同补——修复"台上武器与人物
+    贴图分离"（分离量=平台高度 178px）；子弹/火光/蛋壳经武器精灵自动跟随。
+  - F2 抬升速率限幅：`_updatePlatformStates` 对目标抬升做每帧限幅
+    （满高 178px/450ms），任意进入方向（含横向踩进走廊）平滑升降——
+    修复"走上去直接瞬移"（登台走廊是硬矩形判定区，侧入会瞬间跳满）。
+  - B1 实体去贴墙：`FiringPlatform` 删除 wallNormal/wallLine/_registerWallSeg/
+    _platSeg/trimCoverSegsForPlatform；F 镜像仅视觉 flipX；新增 onDeath 沉陷死亡
+    （BuildingSinkEffect 接管，修复"被摧毁后墙洞/密封段不还原"）。
+  - B2 建造：删除 `_snapPlatformToWall` 与平台吸附分支（自由放置，间距 ≥240/
+    ≥90）；详情面板新增 `_renderPlatformDetail`（不再误显示"掩体·F级"）。
+  - B3 预置：固定房间内坐标（base + (0.2·rx, -0.05·ry)），`Game.entities` 键 =
+    platform.id；移除 WallSystem.platformSegs 与 player/update.js、subsystems.js
+    五处 ignore 透传。
+  - 保留：登台走廊 getLift 连续插值（轴向 CDP 实测平滑）、深度铁律
+    （`_faceDepth=y+12` + 台上单位 max(仲裁, _faceDepth+1)）、越墙三件套
+    （projectile/bolt 台上忽略 _cover + resolve/canMoveTo/_nearestBlockingSeg
+    ignore 透传）。
+  - 验证：eslint 0 error + vite build ✓ + npm test 全绿；CDP 探针
+    （tools/cdp-platform-probe.mjs）——自由放置无墙线/无密封段、轴向/横向登台
+    平滑（相邻帧 ≤6.6px）、武器跟随（台上台下 weaponSprite−playerSprite 偏移一致）、
+    沉陷死亡清理（移出 platforms + _sinking）、贴图渲染。
+  - 建模维持五版 v7（台阶+平台+土底座），自由放置台阶固定朝屏幕下方；
+    后续若要"哨塔/护栏"语义再另行重渲染。
 
 - **需求来源**：围墙内玩家/友方远程弹道被己方掩体墙段（`_cover`）挡，站上射击台后可
   越过围墙向外攻击。
@@ -5546,6 +5612,28 @@ this._tacticalTarget = null;
 - 新增怪类 checklist：① 构造器合并配置；② 无配置构造 = 完整可用（名字/属性/贴图）；③ 同怪多入口（防守池/地牢/召唤/主城）建议收敛到共享工厂（如 `createZombieDog(x, y, overrides)`，ai 深合并）。
 - 排查经验：**"世界某处冒出不属于这里的怪/名字"先查构造路径是否漏配置**，grep `new Xxx(` 全部调用点 + 核对 `enemy-config.json` 兜底链（`config.name ?? defaults.name ?? '测试敌人'`）。
 
+#### 4. 建筑图层统一口径（2026-08-16 定稿，世界-122 全建筑/新建筑必读）
+
+- **唯一规则**：每个建筑在构造时注册「接地线」——`setupStructureDepth(entity, halfWidth)`
+  （`src/world/structure-depth.js`）生成 `_faceLine`（脚底 y 处水平线段，跨度 = 贴图显示
+  半宽）与 `_faceDepth`（= 接地线 max y + 12）。单位（玩家/敌人/侍从/友方单位）每帧经
+  `WallSystem.junctionCorrectedDepth` 仲裁：脚线在接地线**之后** → 压到建筑之下；在
+  **前/同线** → 抬到建筑之上（+0.5，消除同线 z-fight）。
+- **现状**：掩体/铁闸门/仓鼠小屋/防御塔/基地核心/能源矿全部接入。**新增建筑只要构造里
+  调一次 `setupStructureDepth(this, 贴图显示半宽)` 即可**，不再需要各自处理遮挡；新增
+  单位自动走 junctionCorrectedDepth，无需改代码（"一劳永逸"）。
+- **坑①（z-fight）**：建筑深度必须统一为 `_faceDepth`（接地线 y + 12）。塔旧实现用
+  `e.y + 2`、基地/能源矿无锚线走 `sprite.y + footOffsetY + 10`——与单位自然深度
+  （脚 y + 10）**同线时完全相等** → 谁盖谁取决于创建顺序（建筑盖仓鼠/仓鼠盖建筑随机，
+  即"建筑遮挡友方单位"）。
+- **坑②（面线别当墙段）**：`_faceLine` 现在是全建筑通用，`building-system.canPlace` 只对
+  `_isDefenseCover || _isCoverGate` 走"线段+墙厚"重叠判定，其余紧凑建筑仍走圆心距离——
+  否则塔/基地的面线会被当成 26px 厚墙段误判吸附/重叠。
+- **坑③（面线过期）**：锚线在构造时按 x/y 生成；建筑不可移动（immovable），测试探针
+  传送实体后必须重算锚线（真实场景不会发生）。
+- **验证**：`tools/cdp-layer-occlusion.mjs`——合成 36 组合（塔/基地/矿/小屋 × 无墙/墙前/
+  墙后 × 后/同/前）+ 真实基地 4 类建筑同线抽查，全部"单位盖建筑 iff 单位脚线在建筑之前"。
+
 ---
 
 ### NPC 添加标准工作流（2026-07-22 新增，新 NPC 一律按此开展）
@@ -5687,6 +5775,100 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
   **K 多矿工数量模块并发卸货（能量不丢）**/背包物流/小屋暂存面板/dying 移除）；
   eslint 0 error + vite build。
 
+#### 7. 仓鼠战士（2026-08-16 战斗型友方单位，世界-122 自动近战）
+
+> 首航矿工是"采矿型"，本条目是**战斗型**第二例：独立配置 + 实体 + AI + 世界-122 生成系统，
+> 复用矿工整套接线（BootScene 加载/动画注册、GameScene 渲染分支、SceneManager 生成/拆除、
+> PerceptionSystem `_enemyTargetable` 放行），差异只在 AI 决策与攻击动画口径。
+
+- **数据（`data/hamster-warrior-config.json`）**：不入 companion-config.json（避免招募池）；
+  `baseMaxHp: 300` 生命覆盖（`Companion._maxHpOverride`，镜像 `baseMaxMp`——con=15 公式
+  250 → 300，升级仍 +10/级）；六维 力量20/敏捷12/智力3/体质15/精神3/幸运5；移速 120、
+  攻击 50/2s、attackRange 55、engageRange 900、followOffset 140。
+- **攻击动画两段式（用户口径）**：从待机/移动进入攻击 → 播放**完整 1~24 帧**一次；
+  持续攻击中 → **第 6~24 帧循环**（`startFrames:[0,23]` + `loopFrames:[5,23]`，
+  GameScene 新增 `hamsterAtk` data 标记分支，attack_start 播完自动切 attack 循环）；
+  **帧率与攻击间隔对齐（2026-08-16 二修）**：起步 24 帧 @12fps = 2.0s、
+  循环 19 帧 @9.5fps = 2.0s，两段周期均 = `attackInterval`（2000ms）——否则动画
+  周期（1.2~1.5s）与 2s 伤害节拍越走越偏，实机表现为"挥砍和掉血对不上"。
+  与矿工 mining 的"单次挥锄 + 定格 waitFrame"不同——战斗攻击是连续循环，直到 AI 切回
+  idle/walk。**素材帧脚底不在 480**（约 356/512，内容高 ~190）时：用
+  `displaySize`（放大到与矿工同屏体量）+ `spriteOffsetY`（脚底贴地）+
+  `entity.footOffsetY`（深度线=逻辑脚底）+ `config.render.hudOffsetY`（名字/血条下拉）
+  四件套补偿，不需要重排素材。
+- **AI（`src/ai/hamster-warrior-ai.js`）**：最近 enemy 索敌（`_faction==='enemy'` 且跳过
+  `_isEnergyNode`，**不攻击矿点**）→ 走位 walk（MovementSystem）→ 攻击范围站定 attack，
+  每 2s `takeDamage(50)`；无敌人跟随玩家（到达必须清 `_tacticalTarget` + `_clearPath` +
+  速度归零，见 lessons #46）；卡死看门狗复用矿工兜底。
+- **生成（`src/world/hamster-warrior-system.js`）**：世界-122 进入自动生成 1 只
+  （玩家附近 WallSystem 校验合法落点），离场拆除；死亡不复活、再进入重新生成。
+- **验证**：`scripts/test-hamster-warrior.mjs`（数据+接线契约 34 项）+
+  `tools/cdp-hamster-warrior.mjs`（实机 22 项：自动生成/300HP/六维/移速 120/索敌
+  最近敌人/50伤×2s/两段式动画/矿点贴脸不攻击/跟随玩家到位 idle/死亡 dying 移除）；
+  npm test 全绿 + eslint 0 error + vite build。
+
+#### 8. 仓鼠射手（2026-08-16 远程型友方单位，世界-122 自动射击）
+
+> 战斗型第二例的远程版：复用矿工/战士整套接线（BootScene 加载、GameScene 渲染分支、
+> SceneManager 生成/拆除、PerceptionSystem `_enemyTargetable` 放行），差异在
+> 「远程 AI + 投射物渲染 + 第 10 帧出膛」。
+> **素材**：5 张表（idle 1 / running 11 / attacking 13 / dying 11 / projective 1），512 格 8×4；
+> running 前两帧底部有 1~4px 孤立噪点（把 bbox 撑到 y482/490），导入前按「距主体 bbox
+> 外扩 40px 之外的 <12px 连通域」清理（attacking/dying 的弓弦/箭身碎段贴近主体，保留）。
+
+- **数据（`data/hamster-shooter-config.json`）**：`baseMaxHp: 150`（con=10 公式 200 → 150）；
+  六维 力量12/敏捷20/智力3/体质10/精神3/幸运10；移速 150、攻击 60/2s、attackRange 600、
+  engageRange 900、projectileSpeed 600、attackAnimFps 12、attackLaunchFrame 10。
+- **远程攻击（参考露娜）**：`AimHelper.lead` 提前量瞄准「目标贴图中心」（`_targetAimY` =
+  `target._phaserSprite.y`，无精灵退回 `y - bodyHeight/2`）；攻击动画 13 帧 @12fps 单次
+  （repeat 0，AI `_attackSwing` 触发重播），**第 10 帧出膛**：`_launchDelayMs =
+  (launchFrame-1)/fps = 750ms`，AI 计时到点生成 `m._basic` 投射物（600px/s 直线飞行）；
+  GameScene `_syncCompanionBasics` 迭代 `PartySystem.members + friendlyUnits`，射手用
+  projective 贴图渲染箭矢（内容 146×40 尖头朝左，`setRotation(b.angle + Math.PI)`），
+  露娜仍走 impact_dot。命中 60 物理伤害，按目标中心半径 28 判定。
+- **AI（`src/ai/hamster-shooter-ai.js`）**：射程内站定射击（`_shotActive` 期间 attack 动画，
+  动画播完回 idle 等下一发 2s）；敌人超出射程但 < 交战半径 → 走位拉近距离；矿点
+  （`_isEnergyNode`）不攻击；无敌跟随玩家（到位清路径归零速度）；卡死看门狗同款。
+- **验证**：`scripts/test-hamster-shooter.mjs`（38 项，含**仓鼠战士伤害类型=physical 复核**）
+  + `tools/cdp-hamster-shooter.mjs`（实机 21 项：生成/150HP/六维/移速 150/第 10 帧出膛
+  674ms/中心瞄准 aimY=贴图中心/箭矢贴图/60 物理×2s/弹道角=AimHelper.lead 重算/矿点不攻击/
+  跟随到位 idle/死亡 dying 移除）；npm test 全绿 + eslint 0 error + vite build。
+
+#### 9. 仓鼠兵营（2026-08-16 建筑生成单位，世界-122 每 30s 补员）
+
+> 小屋之后第二个「建筑生成单位」：不新增独立"系统生成 1 只"链路，而是由**建筑本体**
+> 持有单位（`HamsterBarracks.units`），建筑面板切换类型/升级，兵营按 30s 节奏补员到
+> 数量上限——单位生命周期（生成/死亡补员/出售/被毁拆除）全部挂建筑，复用战士/射手
+> 既有实体与 AI，零新增渲染分支。
+
+- **数据/配置（`src/world/hamster-barracks-system.js`）**：`BARRACKS_CONFIG`——
+  cost 1500 能源 / hp 2000 / displayW×H 150×147（同仓鼠小屋）/ footOffsetY 74 /
+  spawnIntervalMs 30000 / spawnRadius 90；单位基准值**实时读**
+  `data/hamster-warrior-config.json` + `hamster-shooter-config.json`
+  （`unit.<key>.cfg`，不硬编码 50/60 伤害）。
+- **单位类型切换**：`setUnitType('warrior'|'shooter')`，面板两个按钮
+  （战士近战 / 射手远程），切换后下一次生成生效；`_findUnitSpawn` 兵营周围
+  90px 内 WallSystem 校验合法落点（兜底兵营脚下）。
+- **升级模块（复制仓鼠小屋口径）**：每级统一 1000 金币 + 500 能源——攻击加速
+  （间隔 -6%/级）、攻击强化（伤害 +12%/级）、机动强化（移速 +5%/级）、
+  仓鼠增援（数量上限 +1/级）、生命强化（生命 +10%/级）；矿工专属的
+  采矿效率/背包扩容不复制。`upgradeModule` 先扣资源再升级，升级后
+  `applyUpgradesToUnits()` 让**现有单位实时生效**（不是只对新单位生效）。
+- **升级同步两坑**：① 战士/射手 `applyBarracksUpgrades(u)` 必须同时写
+  `_ai._attackInterval/_attackDamage/_attackRange` 与 `aiConfig`（AI 每帧从
+  `_ai` 读间隔/伤害、渲染/契约从 aiConfig 读）；② 生命强化走
+  `_maxHpOverride` + `updateMaxStats()`（Companion 构造后 hp 已按 con 公式算好，
+  直接改 maxHp 不会重算当前血量比例）。
+- **生命周期**：单位死亡 → `aliveUnitCount() < unitCount()` 计时补员（死亡立即
+  从下个 30s 节拍开始）；兵营出售/被毁 → `_despawnUnits()` 同步拆单位（active=false
+  + 移出 entities/friendlyUnits），面板自动关闭；teardown 离场同样拆干净。
+- **面板（BasePanel 复用）**：状态区（等级/耐久/存活数/下次生成秒数）、
+  类型切换按钮、5 个升级按钮、出售（返还 50% 能源）；点击兵营开/关，
+  玩家距离 >260px 不可交互。
+- **验证**：CDP 实机探针——贴图加载、默认战士生成（dmg 50/hp 300）、切射手
+  （dmg 60/hp 150）、升 damage 模块后现有战士伤害 50→56 实时生效、
+  面板标题/按钮/状态正常、单位死亡后 update 立即补员；eslint 0 error + vite build。
+
 ---
 
 ## 10. UI、面板与组队系统
@@ -5786,6 +5968,32 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
   `source.addMinedEnergy` 存在就**直接装包不落地**（队友与仓鼠矿工同口径，玩家仍
   地面掉落）；满 999 走既有 return→移交链路。探针 `tools/cdp-party-gather-backpack.mjs`
   （露娜 +24 / 伊莉丝 +12 直接入包、0 地面掉落）。
+- **伊莉丝动作音效（2026-08-16）**：`assets/sounds/companions/elise/attacking.mp3` /
+  `defending.mp3`（铠甲骑士 attacking/defending 副本）；companion-ai.js
+  `ELISE_SOUNDS` + `_playSound(key)`（`SoundManager.playWorld` 世界音源），
+  `_tryMeleeAttack` → attacking、`_startDefend` → defending。
+  探针 `tools/cdp-elise-sound.mjs`（攻击 ×2 / 防御 ×1 触发；防御触发注意风车优先：
+  4 敌放 250~380px 在风车范围外才会走防御）。
+- **左键纯移动指令（2026-08-16）**：有队友选中时左键点组队栏外任意位置 =
+  取消选中 + `setCommand(selectedIds,'move',worldPoint)`；AI `_cmdMove` 只移动不接敌，
+  到达（≤40px）站定，目标不可达走 `_nearestWalkable`（WallSystem.canMoveTo 失败 →
+  16~400px 螺旋找最近可达点）；move 模式跳过掉队/卡死瞬移。move 不在轮盘 5 指令表
+  （轮盘 `_execute` 只认 follow/aggressive/patrol/gather/hold），探针直接调 setCommand。
+  game.js 已挂 `Game.Renderer` / `Game.WallSystem`（探针用，勿依赖动态 import 平行实例）。
+  探针 `tools/cdp-party-move.mjs`。
+- **右键移动=最高优先级（2026-08-16）**：有选中时右键 = 清空当前指令后执行
+  `move`（不取消选中，可连续右键改道）；`move` 在法师/剑盾的
+  `cmd.mode==='hold'||'move'` 分支**先于施法/攻击/防御/风车锁打断**，`_cmdMove`
+  再清 gather/patrol 残余；game.js 右键块在 `if(leftPressed)` 之外独立执行并消费
+  `rightPressed`（防玩家右键特殊攻击同帧触发）。目标点画绿色下指箭头
+  （GameScene.showMoveMarker：0x3dff6a 三角+箭杆，depth=y+15，1.2s 淡出）。
+  探针 `tools/cdp-party-rightmove.mjs` + 截图 `tools/verify-shots/rightmove_marker.png`。
+- **能源簇位（2026-08-16）**：`ENERGY_CONFIG.clusters`——(2000,1300) 曾落在常见
+  建屋区（小屋门口见既有矿点的观感来源），已东移至 **(3000,1500)**；新位置距基地
+  ~2170px、距最近簇 ~850px，6144×4096 内且不在右端刷怪带。树木散布排除带随簇心
+  自动更新；簇位是唯一数据源（energy-node-system.setup / scene-manager 树排除均
+  读取它），无测试硬编码。验证探针 `tools/cdp-cluster-move-check.mjs`
+  （旧位 0 节点 / 新位 14 / 旧建屋点门口 0 矿）。
 - 升级经验唯一入口：击杀结算（damageable-entity）→ `PartySystem.grantCombatExp`；无野外经验。
 - 物品转移 `slot` 必须最后写（`{...item, slot: targetSlot}`——源 item 自带 slot 字段，
   spread 会覆盖目标槽位，实机抓出）。
