@@ -4904,12 +4904,15 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
     v 墙("/")用后边 B→L（实体=墙中点+法线×130.7）、h 墙("\")用右边 R→B
     （法线×161.1）；法线朝鼠标侧、F 镜像翻另一侧；无墙回退自由放置。
     尺寸审计：平台台面主体显示宽 260px 与掩体墙一致（世界尺寸不同，显示宽度对齐）。
-  - **基地布局（九版+）**：基地 x=900→532（TL 墙左角贴左边界 x=20）；预置射击台
-    贴 TR 墙（右边 R→B 对齐墙 face，实体 = face 中点 + 内侧法线×161.1，实测
-    (742,2014)）——**已于 2026-08-16 按用户口径删除**（基地不再自带平台，
-    B 面板可自行放置，贴墙吸附/单通道等逻辑保留）；出生点移至 (450,2150)；
+  - **基地布局（九版+）**：基地 x=900→532→**回到 900**（TL 墙左角贴左边界 x=20）；
+    预置射击台已于 2026-08-16 按用户口径删除（基地不再自带平台，B 面板可自行放置）；
     树排除区/能源禁矿带/仓鼠兜底锚点同步。CDP 探针在无预置平台时创建临时测试平台
     供几何用例。
+  - **出生点铁律（2026-08-16 修正）**：世界-122 玩家出生点必须
+    `WallSystem.canMoveTo` 校验。基地 x=900 时合法点是 **(760,2048)**（房间内、
+    不贴墙、不占门洞）；**切勿用按旧基地 x=532 调的 (450,2150)**——基地回到 900
+    后它在左下墙外/墙里（y=2150 处墙 x≈592，实测 walkable=false 卡墙）。
+    校验探针：`tools/cdp-spawn-check.mjs`。
 
 - **八版+ 审计（2026-08-16）**：
   - 空气墙：视觉台面边缘与游戏菱形像素核验吻合；单向登台阻挡段由"菱形原边（半厚 6）"
@@ -6079,6 +6082,12 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
   叠矿/贴图叠一起”实锤根因）；改间距时同步看 spread 是否够放满 count。
   探针 `tools/cdp-node-overlap.mjs`（<110px 重叠对应为 0）。另：`EnergyNodeSystem.setup`
   生成前强制清空场上残留 `_isEnergyNode`（防 HMR/重复 setup 堆积）。
+- **能源节点强制审计（2026-08-16）**：世界-122 只允许存在当前 4 簇内的矿点——
+  `EnergyNodeSystem.sweepStacked()` 每 ~1s（GameScene.update）① 删除不在任何簇
+  （spread+50 内）的残留节点 ② 同位置（<60px）多节点只留第一个（防“门边叠矿”）。
+  实机验证：注入 (1324,2110)×3 + 北边散点 → 1s 全清、总数回到 54。另外
+  `SceneManager._saveMainSceneState/_loadMainScene` 主城快照**剔除 `_isEnergyNode`**
+  （矿点绝不能经保存/恢复被带回主城——旧污染会凭空出现“家门口一堆矿”）。
 - 升级经验唯一入口：击杀结算（damageable-entity）→ `PartySystem.grantCombatExp`；无野外经验。
 - 物品转移 `slot` 必须最后写（`{...item, slot: targetSlot}`——源 item 自带 slot 字段，
   spread 会覆盖目标槽位，实机抓出）。

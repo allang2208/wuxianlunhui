@@ -676,7 +676,7 @@
     "attack2": {
       "type": "perFrame",
       "hitCheck": {
-        "frame": 6,
+        "frame": 9,
         "shape": "sector",
         "arcDeg": 120,
         "knockback": 75,
@@ -686,128 +686,129 @@
       },
       "frames": [
         {
-          "offsetX": 63.0,
-          "offsetY": 22.0,
-          "rotation": 125.0,
+          "offsetX": 25.3,
+          "offsetY": 8.3,
+          "rotation": 224,
           "scale": 1.5,
-          "blurX": 4.5,
+          "blurX": 0.0,
+          "blurY": 0.0,
+          "stretchX": 1.1,
+          "stretchY": 1.0
+        },
+        {
+          "offsetX": 36.1,
+          "offsetY": -15.4,
+          "rotation": 108,
+          "scale": 1.5,
+          "blurX": 1.0,
+          "blurY": 2.0,
+          "stretchX": 1.1,
+          "stretchY": 1.0
+        },
+        {
+          "offsetX": -8.6,
+          "offsetY": -62.9,
+          "rotation": -7,
+          "scale": 1.5,
+          "blurX": 2.0,
+          "blurY": 3.0,
+          "stretchX": 1.1,
+          "stretchY": 1.0
+        },
+        {
+          "offsetX": -26.5,
+          "offsetY": -51.2,
+          "rotation": -18,
+          "scale": 1.5,
+          "blurX": 3.0,
           "blurY": 4.0,
           "stretchX": 1.1,
           "stretchY": 1.0
         },
         {
-          "offsetX": 67.1,
-          "offsetY": 16.7,
-          "rotation": 112.7,
+          "offsetX": -27.1,
+          "offsetY": -50.5,
+          "rotation": -20,
           "scale": 1.5,
-          "blurX": 7.5,
-          "blurY": 3.5,
-          "stretchX": 1.1,
-          "stretchY": 1.0
-        },
-        {
-          "offsetX": 26.6,
-          "offsetY": 30.6,
-          "rotation": 170.5,
-          "scale": 1.5,
-          "blurX": 8.3,
-          "blurY": 2.9,
-          "stretchX": 1.1,
-          "stretchY": 1.0
-        },
-        {
-          "offsetX": -17.5,
-          "offsetY": 10.8,
-          "rotation": 243.2,
-          "scale": 1.5,
-          "blurX": 5.3,
-          "blurY": 4.5,
-          "stretchX": 1.1,
-          "stretchY": 1.0
-        },
-        {
-          "offsetX": -33.5,
-          "offsetY": -11.0,
-          "rotation": 275.0,
-          "scale": 1.5,
-          "blurX": 1.9,
-          "blurY": 1.9,
+          "blurX": 2.0,
+          "blurY": 3.0,
           "stretchX": 1.0,
           "stretchY": 1.0
         },
         {
-          "offsetX": 16.2,
-          "offsetY": 18.3,
-          "rotation": 201.8,
+          "offsetX": -26.5,
+          "offsetY": -49.6,
+          "rotation": -20,
           "scale": 1.5,
-          "blurX": 10.5,
-          "blurY": 2.1,
+          "blurX": 2.0,
+          "blurY": 3.0,
           "stretchX": 1.2,
           "stretchY": 1.0
         },
         {
-          "offsetX": 92.1,
-          "offsetY": -2.1,
-          "rotation": 95.9,
+          "offsetX": -18.8,
+          "offsetY": -53.6,
+          "rotation": 35,
           "scale": 1.5,
-          "blurX": 0.1,
-          "blurY": 0.9,
+          "blurX": 2.0,
+          "blurY": 3.0,
           "stretchX": 1.0,
           "stretchY": 1.0
         },
         {
-          "offsetX": 92.3,
-          "offsetY": -2.5,
-          "rotation": 95.0,
-          "scale": 1.5,
-          "blurX": 5.0,
-          "blurY": 4.3,
-          "stretchX": 1.1,
-          "stretchY": 1.0
-        },
-        {
-          "offsetX": 92.3,
-          "offsetY": 1.2,
-          "rotation": 100.5,
-          "scale": 1.5,
-          "blurX": 0.9,
-          "blurY": 2.8,
-          "stretchX": 1.0,
-          "stretchY": 1.0
-        },
-        {
-          "offsetX": 88.7,
-          "offsetY": 10.0,
-          "rotation": 113.6,
-          "scale": 1.5,
-          "blurX": 1.5,
-          "blurY": 4.7,
-          "stretchX": 1.1,
-          "stretchY": 1.0
-        },
-        {
-          "offsetX": 72.0,
-          "offsetY": 22.9,
-          "rotation": 130.5,
+          "offsetX": -13.2,
+          "offsetY": -54.2,
+          "rotation": 13,
           "scale": 1.5,
           "blurX": 4.0,
-          "blurY": 2.7,
+          "blurY": 3.0,
           "stretchX": 1.1,
           "stretchY": 1.0
         },
         {
-          "offsetX": 65.0,
-          "offsetY": 27.0,
-          "rotation": 135.0,
+          "offsetX": 59.8,
+          "offsetY": 12.3,
+          "rotation": 87,
           "scale": 1.5,
-          "blurX": 1.5,
+          "blurX": 10.0,
+          "blurY": 6.0,
+          "stretchX": 1.0,
+          "stretchY": 1.0
+        },
+        {
+          "offsetX": 59.8,
+          "offsetY": 12.6,
+          "rotation": 86,
+          "scale": 1.5,
+          "blurX": 6.0,
+          "blurY": 4.0,
+          "stretchX": 1.1,
+          "stretchY": 1.0
+        },
+        {
+          "offsetX": 59.8,
+          "offsetY": 12.6,
+          "rotation": 86,
+          "scale": 1.5,
+          "blurX": 2.0,
+          "blurY": 2.0,
+          "stretchX": 1.1,
+          "stretchY": 1.0
+        },
+        {
+          "offsetX": 59.8,
+          "offsetY": 12.6,
+          "rotation": 85,
+          "scale": 1.5,
+          "blurX": 1.0,
           "blurY": 1.0,
           "stretchX": 1.0,
           "stretchY": 1.0
         }
       ],
       "sound": "assets/sounds/weapons/sword_swing_1.mp3",
-      "soundFrame": 11
+      "soundFrame": 11,
+      "anchor": "grip"
     },
     "attack3": {
       "type": "perFrame",
