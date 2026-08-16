@@ -259,8 +259,6 @@ export class BootScene extends Scene {
         this.load.spritesheet('enemy_black_wolf_walk', 'assets/enemies/black_wolf_walk.png', { frameWidth: 512, frameHeight: 512, endFrame: 15 });
         this.load.spritesheet('enemy_black_wolf_run', 'assets/enemies/black_wolf_run.png', { frameWidth: 512, frameHeight: 512, endFrame: 27 });
         this.load.spritesheet('enemy_black_wolf_bite', 'assets/enemies/black_wolf_bite_regular.png', { frameWidth: 512, frameHeight: 512, endFrame: 11 });
-        // 2026-08-07 从原视频重建：扑跃帧宽超 512 会裁切 → 640² 网格（2026-08-11 加密至 24 帧 4×6）
-        this.load.spritesheet('enemy_black_wolf_pounce', 'assets/enemies/black_wolf_pounce.png', { frameWidth: 640, frameHeight: 640, endFrame: 23 });
         // 红狼王（2026-08-06 H3 全动作升级：狼形态 + 变身 + 红狼人形态，512 切帧 setFrame 路径）
         this.load.image('enemy_red_wolf_king_idle', 'assets/enemies/red_wolf_king_idle.png');
         this.load.spritesheet('enemy_red_wolf_king_pacing', 'assets/enemies/red_wolf_king_pacing.png', { frameWidth: 512, frameHeight: 512, endFrame: 13 });

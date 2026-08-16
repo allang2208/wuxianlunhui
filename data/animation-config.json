@@ -7,7 +7,6 @@
    "front": "assets/enemies/black_wolf_updown.png",
    "back": "assets/enemies/black_wolf_updown.png",
    "bite": "assets/enemies/black_wolf_bite_regular.png",
-   "pounce": "assets/enemies/black_wolf_pounce.png",
    "pacing": "assets/enemies/black_wolf_walk.png",
    "idle": "assets/enemies/black_wolf_idle.png"
   },
@@ -16,12 +15,6 @@
     "bite": {
      "frames": 12,
      "durationMs": 600
-    },
-    "pounce": {
-     "frames": 24,
-     "prepareMs": 1200,
-     "chargeMs": 1333,
-     "prepareFrames": 8
     }
    },
    "frameLayout": {
@@ -51,13 +44,6 @@
      "cols": 4,
      "rows": 3,
      "frames": 12
-    },
-    "pounce": {
-     "width": 640,
-     "height": 640,
-     "cols": 4,
-     "rows": 6,
-     "frames": 24
     },
     "pacing": {
      "cols": 4,

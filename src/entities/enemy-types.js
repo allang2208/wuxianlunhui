@@ -55,7 +55,6 @@ class BlackWolf extends Enemy {
             front: loadImage(spritePaths.front || 'assets/enemies/black_wolf_updown.png'),
             back: loadImage(spritePaths.back || 'assets/enemies/black_wolf_updown.png'),
             bite: loadImage(spritePaths.bite || 'assets/enemies/black_wolf_bite_regular.png'),
-            pounce: loadImage(spritePaths.pounce || 'assets/enemies/black_wolf_pounce.png'),
             pacing: loadImage(spritePaths.pacing || 'assets/enemies/black_wolf_walk.png'),
             idle: loadImage(spritePaths.idle || 'assets/enemies/black_wolf_idle.png')
         };
@@ -66,26 +65,17 @@ class BlackWolf extends Enemy {
         
         // 动画状态
         this._animState = 'idle'; // idle, walk, run, attack, pacing
-        this._attackTypes = anim.attackTypes || {}; // bite(普通撕咬) + pounce(飞扑技能)
+        this._attackTypes = anim.attackTypes || {}; // bite(普通撕咬)；红狼王另有 pounce(飞扑技能)
         this._attackType = 'bite';
+        // 黑狼只保留撕咬；飞扑状态机为红狼王共享实现（红狼王构造器里 _usesPounce=true 并补齐状态字段）
+        this._usesPounce = false;
         // 普通撕咬（近距离常态化攻击，无突进）
         this._biteState = 'idle'; // idle | attacking
         this._biteTimer = 0;
         this._biteCooldown = 0;
         this._biteTarget = null;
         this._biteDamaged = false;
-        // 飞扑状态机（参照 mutant-3：idle → prepare 蓄力 → charge 冲锋）
-        this._pounceState = 'idle'; // idle | prepare | charge
-        this._pounceAnimPhase = null; // null | prepare | charge
-        this._pounceTimer = 0;
-        this._pounceCooldown = 0;
-        this._pounceTarget = null;
-        this._pounceTargetPos = null;
-        this._pounceDir = { x: 0, y: 0 };
-        this._pounceSpeed = 0;
-        this._pounceDamaged = false;
-        this._pounceGhostTimer = 0;
-        // 只保留飞扑：关闭通用 CombatSystem 攻击决策，飞扑由本类状态机自主触发（参照 mutant-3）
+        // 只保留撕咬：关闭通用 CombatSystem 攻击决策，撕咬由本类状态机自主触发
         this.aiInterval = Number.MAX_SAFE_INTEGER;
         // 帧动画
         const frameLayout = anim.frameLayout || {};
@@ -117,14 +107,14 @@ class BlackWolf extends Enemy {
         if (this._isDead || !this.active) return;
         
         // === 根据主导速度方向确定 facing（攻击期间锁定）===
-        // 飞扑冷却计时
-        if (this._pounceCooldown > 0) this._pounceCooldown -= dt;
+        // 飞扑冷却计时（红狼王共享；黑狼不触发）
+        if (this._usesPounce && this._pounceCooldown > 0) this._pounceCooldown -= dt;
         // 普通撕咬冷却计时
         if (this._biteCooldown > 0) this._biteCooldown -= dt;
 
         // 眩晕/冰冻：中断攻击、禁止移动（参照 mutant-3）
         if (this.hasStatusEffect && (this.hasStatusEffect('stun') || this.hasStatusEffect('frozen'))) {
-            if (this._pounceState !== 'idle') this._endPounce();
+            if (this._usesPounce && this._pounceState !== 'idle') this._endPounce();
             if (this._biteState !== 'idle') this._endBite();
             this.vx = 0;
             this.vy = 0;
@@ -135,7 +125,7 @@ class BlackWolf extends Enemy {
         // 恐惧：中断攻击并停止攻击决策（移动由 MovementSystem 恐惧分支接管逃跑；
         // 参照 mutant-3 的 fear 中断，且补上逃跑动画跟随）
         if (this.hasStatusEffect && this.hasStatusEffect('fear')) {
-            if (this._pounceState !== 'idle') this._endPounce();
+            if (this._usesPounce && this._pounceState !== 'idle') this._endPounce();
             if (this._biteState !== 'idle') this._endBite();
             this._updateNormalState();
             this._updateAnimFrame(dt);
@@ -145,8 +135,8 @@ class BlackWolf extends Enemy {
         // ===== 普通撕咬状态（近距离常态化攻击，无突进）=====
         if (this._biteState === 'attacking') {
             this._updateBite(dt);
-        } else if (this._pounceState !== 'idle') {
-            // ===== 飞扑状态机（参照 mutant-3：idle → prepare 蓄力 → charge 冲锋）=====
+        } else if (this._usesPounce && this._pounceState !== 'idle') {
+            // ===== 飞扑状态机（红狼王共享，参照 mutant-3：idle → prepare 蓄力 → charge 冲锋）=====
             if (this._pounceState === 'prepare') {
                 this._pounceTimer -= dt;
                 this.vx = 0;
@@ -165,7 +155,7 @@ class BlackWolf extends Enemy {
                 this._updatePounceCharge(dt);
             }
         } else {
-            // 攻击决策：近距离普通撕咬优先，中距离飞扑（技能）
+            // 攻击决策：近距离撕咬优先；红狼王额外保留中距离飞扑（技能）
             if (this.target && this.target.active) {
                 const hasLOS = this._hasLOSTo(this.target);
                 const dist = Math.hypot(this.target.x - this.x, this.target.y - this.y);
@@ -175,7 +165,7 @@ class BlackWolf extends Enemy {
                     return;
                 }
                 // pounce 触发保持技能射程语义（中心距 ≤ pounceRange，与 mutant-3 一致）
-                if (this._pounceCooldown <= 0 && hasLOS && dist <= (this.config?.pounceRange ?? 500)) {
+                if (this._usesPounce && this._pounceCooldown <= 0 && hasLOS && dist <= (this.config?.pounceRange ?? 500)) {
                     this._startPounce();
                     return;
                 }
@@ -188,7 +178,7 @@ class BlackWolf extends Enemy {
     }
 
     triggerWeaponAnim() {
-        // 黑狼攻击由自定义状态机自主触发（普通撕咬 + 飞扑），不使用通用攻击动画触发
+        // 黑狼攻击由自定义状态机自主触发（普通撕咬），不使用通用攻击动画触发
     }
 
     // 正常移动态：facing + 动画状态
@@ -220,7 +210,7 @@ class BlackWolf extends Enemy {
         }
     }
 
-    // 飞扑冲锋阶段：锁方向位移 + 命中检测 + 残影（参照 mutant-3）
+    // 飞扑冲锋阶段：锁方向位移 + 命中检测 + 残影（红狼王共享，参照 mutant-3）
     _updatePounceCharge(dt) {
         const dtSec = dt / 1000;
         this._facing = this._pounceDir.x >= 0 ? 'right' : 'left';
@@ -288,6 +278,7 @@ class BlackWolf extends Enemy {
                     this._animFrame = Math.min(this._animFrame + 1, this._getStateFrameCount() - 1);
                 }
             } else {
+                // 飞扑帧推进（红狼王共享；黑狼只走 bite 分支）
                 const pounceCfg = this._attackTypes?.pounce || {};
                 const total = this._getStateFrameCount();
                 const prepareFrames = pounceCfg.prepareFrames ?? 4;
@@ -373,7 +364,7 @@ class BlackWolf extends Enemy {
         return this.data.atk || this.data.str || 20;
     }
 
-    // ===== 飞扑（参照 mutant-3）=====
+    // ===== 飞扑状态机（红狼王共享实现；黑狼只保留撕咬，不触发）=====
     _startPounce() {
         if (this._pounceState !== 'idle') return;
         this._pounceState = 'prepare';
@@ -519,7 +510,7 @@ class BlackWolf extends Enemy {
             return 'enemy_black_wolf_idle';
         }
         if (this._animState === 'attack') {
-            return this._biteState === 'attacking' ? 'enemy_black_wolf_bite' : 'enemy_black_wolf_pounce';
+            return 'enemy_black_wolf_bite';
         }
         if (this._animState === 'pacing') {
             return 'enemy_black_wolf_walk';
@@ -536,16 +527,14 @@ class BlackWolf extends Enemy {
     // 当前状态的精灵图网格与帧数
     _getFrameLayout(state) {
         const layouts = this._frameLayouts || {};
-        const key = state === 'attack' ? (this._biteState === 'attacking' ? 'bite' : 'pounce') : state;
+        const key = state === 'attack' ? 'bite' : state;
         return layouts[key] || layouts.walk || { cols: 4, rows: 4 };
     }
 
     _getStateFrameCount() {
         const layouts = this._frameLayouts || {};
         if (this._animState === 'attack') {
-            return this._biteState === 'attacking'
-                ? (layouts.bite?.frames || 6)
-                : (layouts.pounce?.frames || 11);
+            return layouts.bite?.frames || 6;
         }
         return layouts[this._animState]?.frames || (this._animState === 'run' ? 14 : (this._animState === 'walk' ? 16 : 8));
     }
@@ -590,9 +579,7 @@ class BlackWolf extends Enemy {
             currentSprite = this._sprites.idle;
             staticImage = true;
         } else if (this._animState === 'attack') {
-            currentSprite = this._biteState === 'attacking'
-                ? (this._sprites.bite || this._sprites.pounce)
-                : this._sprites.pounce;
+            currentSprite = this._sprites.bite;
         } else if (this._animState === 'pacing') {
             currentSprite = this._sprites.pacing;
         } else if (this._animState === 'run') {
@@ -772,6 +759,18 @@ class RedWolfKing extends BlackWolf {
             pounceBite: { range: 170, duration: 1000, dash: 60 },
         };
         this._attackType = 'pounceBite';
+        // 飞扑状态机由 BlackWolf 基类共享实现：红狼王启用，状态字段在基类已移除、这里补齐声明
+        this._usesPounce = true;
+        this._pounceState = 'idle'; // idle | prepare | charge
+        this._pounceAnimPhase = null; // null | prepare | charge
+        this._pounceTimer = 0;
+        this._pounceCooldown = 0;
+        this._pounceTarget = null;
+        this._pounceTargetPos = null;
+        this._pounceDir = { x: 0, y: 0 };
+        this._pounceSpeed = 0;
+        this._pounceDamaged = false;
+        this._pounceGhostTimer = 0;
         // 嚎叫技能（红狼人形态主动释放，给场上全体怪物激励 30s）
         this._howlCd = 0;
     }
