@@ -6099,6 +6099,39 @@ _playSound(key) {
 
 ---
 
+### 常见陷阱：显卡占用高（Phaser 全屏 WebGL 排查，2026-08-16 只诊断未改码）
+
+#### 现象
+游戏运行时任务管理器里浏览器（或 Electron）GPU 进程占用很高。
+
+#### 根因排序（按影响）
+1. **全屏 WebGL 每帧重绘 + 透明合成**（最大固定成本）：`PhaserGame.js` 用 `type: AUTO`
+   （Chrome 必选 WebGL）、画布取 `window.innerWidth/innerHeight` 全窗口尺寸、
+   `transparent: true`，且未设 `resolution`/`antialias`/`powerPreference` → 全屏 MSAA +
+   每帧与 DOM alpha 合成，分辨率越高越贵。
+2. **场景渲染对象多**：世界-122 约 100 棵散布树 + 边界墙/基地菱形房/掩体 + 每座防御塔
+   3 层贴图（基座/臂/武器）+ 能源矿点 + 仓鼠小屋 + 敌人波次 + 每实体 1 个阴影 Sprite；
+   HUD（worldHudGraphics/screenHudGraphics）与小地图动态层每帧 clear 重绘，小地图动态层
+   每帧遍历全部实体。
+3. **ADD 混合粒子**：受击/地面血迹（10s 寿命）/火球双发射器全用 `ADD` 混合，战斗激烈时
+   像素过度绘制大。
+4. **双 rAF 循环**：game.js 自建循环 + Phaser 循环同时 60fps 跑（CPU 侧为主，维持每帧
+   忙碌）。
+5. **4096×4096 地形整图纹理**（约 64MB 显存，一次性上传，每帧 1 次绘制，影响中等）。
+
+#### 验证方法
+- DevTools → Performance 录制 10 秒战斗，看 GPU 任务占比。
+- 窗口缩到 1280×720 对比：GPU 骤降 = 分辨率/填充率主导。
+- 临时关小地图/粒子对比。
+
+#### 可优化方向（按性价比，本次用户确认暂不实施）
+- `antialias: false`（关全屏 MSAA，观感损失最小）；
+- 小地图动态层降频（10Hz 或脏标记），静态层已有缓存；
+- 粒子降频/总量上限、ADD 改 NORMAL 或缩短血迹寿命；
+- 非战斗场景 Phaser fps target 降到 30。
+
+---
+
 ### 常见陷阱：功能失效优先查数据/配置完整性（弹药初始化同款两连）
 
 #### 模式
