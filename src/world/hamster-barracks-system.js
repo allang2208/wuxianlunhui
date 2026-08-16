@@ -610,11 +610,12 @@ export const HamsterBarracksSystem = {
         if (!this.active || !player) return false;
         const panel = this._ensurePanel();
         const mw = Renderer.screenToWorld(mx, my);
+        const buildMode = !!(Game && Game._buildMode);   // 建设模式无视距离（2026-08-16）
         for (const b of this.barracks) {
             if (!b || !b.active) continue;
             const pdx = b.x - player.x;
             const pdy = b.y - player.y;
-            if (Math.sqrt(pdx * pdx + pdy * pdy) > 260) continue;
+            if (!buildMode && Math.sqrt(pdx * pdx + pdy * pdy) > 260) continue;
             if (!pointHitsBarracks(mw.x, mw.y, b)) continue;
             if (panel.isOpen && panel.barracks === b) {
                 panel.close();

@@ -2527,10 +2527,12 @@ export const DefenseSystem = {
     tryInteract(mx, my, player) {
         if (!this.active || !player) return false;
         const panel = this._ensurePanel();
+        // 建设模式（B 打开建筑面板）无视距离，2026-08-16 用户口径
+        const buildMode = !!(Game && Game._buildMode);
         const inReach = (t, r) => {
             const pdx = t.x - player.x;
             const pdy = t.y - player.y;
-            if (Math.sqrt(pdx * pdx + pdy * pdy) > 260) return false;
+            if (!buildMode && Math.sqrt(pdx * pdx + pdy * pdy) > 260) return false;
             const pos = Renderer.worldToScreen(t.x, t.y);
             return Math.hypot(mx - pos.x, my - pos.y) < r;
         };
@@ -2539,10 +2541,10 @@ export const DefenseSystem = {
         const candidates = this._iterActiveTowers();
         for (const t of candidates) {
             if (!t.active) continue;
-            // 玩家交互距离 260px 保留；命中判定 = 整塔矩形（基座/机械臂/挂载武器全视觉范围）
+            // 命中判定 = 整塔矩形（基座/机械臂/挂载武器全视觉范围）；非建设模式限 260px
             const pdx = t.x - player.x;
             const pdy = t.y - player.y;
-            if (Math.sqrt(pdx * pdx + pdy * pdy) > 260) continue;
+            if (!buildMode && Math.sqrt(pdx * pdx + pdy * pdy) > 260) continue;
             const mw = Renderer.screenToWorld(mx, my);
             if (!pointHitsTower(mw.x, mw.y, t)) continue;
             if (panel.isOpen && panel.tower === t) {

@@ -3134,6 +3134,25 @@ body.map-mode #weaponInfo {
 .wall-editor-panel.build-panel { width: 420px; }
 .build-panel .we-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
 .build-panel .we-thumb { width: auto; cursor: pointer; }
+
+/* 建筑详情面板（2026-08-16）：与建筑面板并排，置于其左侧 */
+.build-panel #bpDetail {
+  position: fixed;
+  right: 436px;                 /* 面板右缘 8px + 宽 420px + 间距 8px */
+  top: 80px;
+  width: 300px;
+  max-height: 72vh;
+  overflow-y: auto;
+  background: rgba(18, 18, 24, 0.94);
+  border: 1px solid #5a5346;
+  border-radius: 4px;
+  padding: 10px 12px;
+  color: #d4c5a9;
+  font-size: 12px;
+  z-index: 9998;
+  pointer-events: auto;
+  user-select: none;
+}
 .bp-detail-head { display: flex; gap: 10px; align-items: center; margin-bottom: 8px; }
 .bp-detail-head img {
   width: 72px; height: 72px; object-fit: contain;

@@ -681,11 +681,12 @@ export const HamsterHutSystem = {
         if (!this.active || !player) return false;
         const panel = this._ensurePanel();
         const mw = Renderer.screenToWorld(mx, my);
+        const buildMode = !!(Game && Game._buildMode);   // 建设模式无视距离（2026-08-16）
         for (const h of this.huts) {
             if (!h || !h.active) continue;
             const pdx = h.x - player.x;
             const pdy = h.y - player.y;
-            if (Math.sqrt(pdx * pdx + pdy * pdy) > 260) continue;
+            if (!buildMode && Math.sqrt(pdx * pdx + pdy * pdy) > 260) continue;
             if (!pointHitsHut(mw.x, mw.y, h)) continue;
             if (panel.isOpen && panel.hut === h) {
                 panel.close();
