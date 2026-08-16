@@ -352,9 +352,13 @@ def build_scene(spec, slide):
         if p.get("material") == "lid":
             o.data.materials.append(lid_mat)
         elif p.get("material") == "roof":
-            # 双槽：槽0 = 山墙/底面黑砖，槽1 = 坡面红瓦（make_prism 已标 face index）
-            o.data.materials.append(wall_mat)
-            o.data.materials.append(roof_mat)
+            if t == "prism":
+                # 双槽：槽0 = 山墙/底面黑砖，槽1 = 坡面红瓦（make_prism 已标 face index）
+                o.data.materials.append(wall_mat)
+                o.data.materials.append(roof_mat)
+            else:
+                # box 型屋顶件（檐口厚板）：整块红瓦
+                o.data.materials.append(roof_mat)
         elif p.get("material") == "window":
             o.data.materials.append(window_mat)
         elif p.get("material") == "interior":
