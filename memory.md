@@ -35,6 +35,8 @@
 - 2026-08-16：敌人近战命中统一走单调时钟 `nowMs()`（attack.js startTime / enemy.js /
   combat-system.js swing 窗口三者同源）；矩形建筑（掩体/门）距离一律按 AABB 形状距离算，
   移动对结构目标按形状距离刹车
+- 2026-08-17：伊莉丝 5 级解锁圣光（unlockSkills holyLight:5）；圣光 AI 目标优先级
+  玩家→自己→队友→敌方；友军判定按阵营组 {player,companion}（不能用 _faction 直比）
 
 ### 4. G18 攻击力（player.js）
 - `_fireRanged` 中手枪/弓伤害优先调用 `getCurrentWeaponAtk()`，包含强化加成

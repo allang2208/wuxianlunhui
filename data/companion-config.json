@@ -14,6 +14,7 @@
       "baseExp": 0,
       "baseData": { "str": 13, "dex": 8, "int": 4, "con": 13, "wis": 6, "luck": 4 },
       "skills": ["swordMastery", "shieldDefense", "whirlwind"],
+      "unlockSkills": { "holyLight": 5 },
       "equipRules": {
         "weaponTypes": ["sword", "shield"],
         "oneHandedWeaponsOnly": true,

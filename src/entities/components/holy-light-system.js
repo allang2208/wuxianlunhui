@@ -35,6 +35,11 @@ const HOLY_LIGHT_DEFAULTS = {
     zombieDamageMul: 2,
 };
 
+/** 友方阵营组（与 damageable-entity.isFriendlyFire 同口径）：同组互疗，组外为伤害。
+ *  玩家 faction='player'、队友 faction='companion' 必须互认友军，不能按 `_faction===` 直比
+ *  （2026-08-17：伊莉丝 AI 给玩家施法被误判成"打敌人"的根因）。 */
+const FRIENDLY_FACTIONS = new Set(['player', 'companion']);
+
 /**
  * 圣光技能系统（2026-08-02 新增，锁定类——释放方式与闪电同口径）
  *
@@ -146,7 +151,7 @@ export class HolyLightSystem {
                 + (src.data.int ?? 0) * (effect.intMul ?? 0)
                 + (src.data.wis ?? 0) * (effect.wisMul ?? 0)) * healMul
             );
-            const isFriendly = best._faction === src._faction;
+            const isFriendly = !!best && FRIENDLY_FACTIONS.has(src._faction) && FRIENDLY_FACTIONS.has(best._faction);
             let killCount = 0;
             if (isFriendly) {
                 if (best.data) {
@@ -271,6 +276,102 @@ export class HolyLightSystem {
             applyCastHaste(src);
         };
         this._startPlayerCast(doRelease);
+    }
+
+    /**
+     * 对指定目标直接施放圣光（AI/队友入口，2026-08-17）：
+     * 跳过鼠标瞄准/距离/视线三重判定（目标由调用方选定），
+     * 冷却/技能/链式/耗蓝与结算口径与 trigger 完全一致；
+     * 目标为友方=治疗、敌方=伤害（僵尸 ×zombieDamageMul）。
+     * @param {object} target 施法目标实体
+     * @returns {boolean} 是否成功施放
+     */
+    triggerOn(target) {
+        const src = this.source;
+        if (!src || !target || !target.active) return false;
+        if (!isSkillCheatEnabled() && src._holyLightCooldown > 0) return false;
+        const skill = src.skills && src.skills.holyLight;
+        if (!skill) return false;
+        const baseEffect = skill.getEffect(skill.level);
+        const effect = { ...HOLY_LIGHT_DEFAULTS, ...baseEffect };
+
+        const ce = getCurrentWeaponCraftEffects(src);
+        const chainStacks = src._chainSpellStacks || 0;
+        const mpMul = getMagicMpCostMultiplier(src, ce, chainStacks);
+        const mpCost = effect.mpCost ? Math.max(0, Math.floor(effect.mpCost * mpMul)) : 0;
+        // 玩家源扣蓝（与 trigger 同口径）；队友施法由 AI 决策负责，不扣蓝
+        if (!isSkillCheatEnabled() && this._isPlayer() && mpCost > 0 && src.data.mp < mpCost) return false;
+        const chain = consumeChainSpellBonus(src);
+        if (!isSkillCheatEnabled() && this._isPlayer() && mpCost > 0) src.data.mp -= mpCost;
+        effect.mpCost = mpCost;
+        effect.cooldown = effect.cooldown * getMagicCooldownMultiplier(src, ce);
+        const healMul = getMagicHealMultiplierWithChain(src, 'holyLight', ce, chain.stacks);
+        if (!isSkillCheatEnabled()) src._holyLightCooldown = effect.cooldown * 1000;
+
+        const doRelease = () => {
+            const castSounds = skillsData.skills?.holyLight?.sounds?.cast;
+            if (Array.isArray(castSounds) && SoundManager && typeof SoundManager.playFile === 'function') {
+                for (const p of castSounds) SoundManager.playFile(p);
+            }
+            const amount = Math.floor(
+                ((effect.healBase ?? 0)
+                + (src.data.matk ?? 0) * (effect.magicMul ?? 0)
+                + (src.data.int ?? 0) * (effect.intMul ?? 0)
+                + (src.data.wis ?? 0) * (effect.wisMul ?? 0)) * healMul
+            );
+            const best = target;
+            const isFriendly = !!best && FRIENDLY_FACTIONS.has(src._faction) && FRIENDLY_FACTIONS.has(best._faction);
+            let killCount = 0;
+            if (isFriendly) {
+                if (best.data) {
+                    const maxHp = best.data.maxHp || best.maxHp || 0;
+                    best.data.hp = Math.min(maxHp > 0 ? maxHp : Infinity, best.data.hp + amount);
+                }
+                EffectManager.add(new FloatingTextEffect(best.x, best.y - 30, `+${amount}`, '#7aff9a'));
+                // 翠灵水晶：治疗后给目标添加圣光续疗
+                if (ce && ce.holyLightHoTStacks && typeof best.applyHolyRenewal === 'function') {
+                    best.applyHolyRenewal(ce.holyLightHoTStacks, (ce.holyLightHoTSeconds || 3) * 1000, 0.01);
+                }
+                // 净厄藤坠：对友方治疗时给目标加速
+                if (ce && ce.lightHasteStacks && typeof best.applyHaste === 'function') {
+                    for (let i = 0; i < ce.lightHasteStacks; i++) {
+                        best.applyHaste(ce.lightHasteDuration || 5000);
+                    }
+                }
+                if (best === src && window.GameUIManager && typeof window.GameUIManager.updateUI === 'function') {
+                    window.GameUIManager.updateUI();
+                }
+            } else {
+                let dmg = amount;
+                if (best.config && best.config.family === '僵尸') {
+                    dmg = Math.floor(dmg * effect.zombieDamageMul);
+                }
+                const wasAlive = best.hp > 0;
+                best.takeDamage(dmg, src, 'magic');
+                if (wasAlive && best.hp <= 0 && !best._summoned) killCount++;
+            }
+            if (this._isPlayer()) {
+                SkillManager.addHolyLightExp(src, 1, killCount);
+            }
+            EffectManager.add(new HolyLightEffect(src, best, {
+                durationMs: effect.duration * 1000,
+                fadeMs: effect.fadeMs,
+                beamTopWidth: effect.beamTopWidth,
+                beamBottomWidth: effect.beamBottomWidth,
+                beamHeight: effect.beamHeight,
+                dissolveRatio: effect.dissolveRatio,
+            }));
+            EffectManager.add(new FloatingTextEffect(src.x, src.y - 40, '✨ 圣光', '#ffd27a'));
+            // 松木握柄：施法后添加 1 层链式强化；檀木握柄：施法后给自身加速
+            addChainSpellStack(src);
+            applyCastHaste(src);
+        };
+        if (this._isPlayer()) {
+            this._startPlayerCast(doRelease);
+        } else {
+            doRelease();
+        }
+        return true;
     }
 
     /** 玩家施法动作包装：播空手施法动画，第 8 帧触发 onRelease（魔法实际结算） */
