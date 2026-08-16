@@ -898,9 +898,13 @@ export class GameScene extends Scene {
                 const arrowKey = shooter ? `companion_${m.animId || m.id}_projectile` : null;
                 if (!spr) {
                     if (shooter && arrowKey && this.textures.exists(arrowKey)) {
-                        // 箭矢：素材内容 146×40（尖头朝左），显示 50px 长、按飞行方向旋转
+                        // 箭矢：素材内容 146×40（尖头朝左），帧 512×512。
+                        // 帧必须等比放大（不能把帧压成 50×13.7——内容只有 14×1px 看不见）：
+                        // 让箭身（内容）≈ 72px 世界长，帧 = 72×512/146 ≈ 252 方形
                         spr = this.add.sprite(b.x, b.y, arrowKey);
-                        spr.setDisplaySize(50, 50 * 40 / 146);
+                        const arrowLen = 72;
+                        const frameDisplay = Math.round(arrowLen * 512 / 146);
+                        spr.setDisplaySize(frameDisplay, frameDisplay);
                     } else {
                         if (!this.textures.exists('impact_dot') && typeof this._ensureImpactDotTexture === 'function') {
                             this._ensureImpactDotTexture();

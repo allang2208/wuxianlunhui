@@ -23,6 +23,7 @@ import {
 } from './defense-system.js';
 import { DefenseTrap, TRAP_CONFIG, TRAP_GRADES, TRAP_SPACING, getTrapDef, DefenseTrapSystem } from './defense-trap-system.js';
 import { HamsterHut, HamsterHutSystem, HAMSTER_CONFIG } from './hamster-hut-system.js';
+import { HamsterBarracks, HamsterBarracksSystem, BARRACKS_CONFIG } from './hamster-barracks-system.js';
 
 // ==================== 可建造项 ====================
 
@@ -87,6 +88,7 @@ function effOrient(itemOrOrient, mirror) {
 export const BUILD_ITEMS = [
     { id: 'tower', name: '防御塔', cost: 300, tex: 'obstacle_defense_tower', kind: 'tower', currency: 'energy' },
     { id: 'hamster_hut', name: '仓鼠小屋', cost: 1000, tex: 'hamster_hut', kind: 'hamster_hut', currency: 'energy' },
+    { id: 'hamster_barracks', name: '仓鼠兵营', cost: 1500, tex: 'hamster_barracks', kind: 'hamster_barracks', currency: 'energy' },
     { id: 'firing_platform', name: '射击台', cost: 400, tex: 'firing_platform', kind: 'platform', currency: 'energy' },
 ];
 for (const grade of ['F', 'E', 'D', 'C', 'B', 'A']) {
@@ -304,6 +306,8 @@ export const BuildingSystem = {
                 this._ghost.setDisplaySize(170, 262);
             } else if (item.kind === 'hamster_hut') {
                 this._ghost.setDisplaySize(HAMSTER_CONFIG.hut.displayW, HAMSTER_CONFIG.hut.displayH);
+            } else if (item.kind === 'hamster_barracks') {
+                this._ghost.setDisplaySize(BARRACKS_CONFIG.barracks.displayW, BARRACKS_CONFIG.barracks.displayH);
             } else if (item.kind === 'trap') {
                 this._ghost.setDisplaySize(item.trapW || 72, item.trapH || 52);
             } else if (item.kind === 'gate') {
@@ -383,6 +387,7 @@ export const BuildingSystem = {
         if (!this._placing) return 0;
         if (this._placing.item.kind === 'tower') return 131;
         if (this._placing.item.kind === 'hamster_hut') return HAMSTER_CONFIG.hut.footOffsetY;
+        if (this._placing.item.kind === 'hamster_barracks') return BARRACKS_CONFIG.barracks.footOffsetY;
         if (this._placing.item.kind === 'platform') return 121; // 射击台脚底=台阶入口（242/2）
         return this._ghost.displayHeight / 2;
     },
@@ -436,14 +441,13 @@ export const BuildingSystem = {
     /**
      * 掩体端点吸附：找最近的一个既有掩体墙端锚点，把新件对应端贴上去。
      * 掩体/铁栅栏门参与吸附（防御塔不拼接）；同向（v-v / h-h）优先，跨向（v-h 转角）次之。
-     * 射击台（2026-08-16）：不走端点吸附——平台与墙**垂直贴合**（平台长轴 ⊥ 墙 face 线，
-     * 贴墙内侧突出），吸附 = 找最近掩体墙段，把平台贴到墙段中点 + 法线偏移。
+     * 射击台（2026-08-16 七版）：自由放置高台，不参与任何吸附（无墙线依赖）。
      * @returns {null|{x:number,y:number,e:object}}
      */
     _snapPosition(x, y) {
         const item = this._placing && this._placing.item;
         if (!item) return null;
-        if (item.kind === 'platform') return this._snapPlatformToWall(x, y);
+        if (item.kind === 'platform') return null; // 自由放置：不走端点/贴墙吸附
         if (item.kind !== 'cover' && item.kind !== 'gate') return null;
         const eff = effOrient(item, this._placing.mirror);
         const off = item.kind === 'gate'
@@ -502,63 +506,6 @@ export const BuildingSystem = {
         best.x -= (ax / al) * overlap * dir;
         best.y -= (ay / al) * overlap * dir;
         return best;
-    },
-
-    /**
-     * 射击台吸附：垂直贴合掩体墙段（2026-08-16 用户口径——掩体/门是"纵向吸附"
-     * （端点相接沿墙延续），平台是"垂直贴合"：平台长轴 ⊥ 墙 face 线，贴墙内侧突出）。
-     * - 遍历掩体墙段（_faceLine），找鼠标位置最近者（SNAP_RADIUS 内）；
-     * - 吸附点 = 墙段中点 + 墙内侧法线 × (平台半长 + 墙半厚 + 贴墙余量)；
-     * - 平台朝向 = 沿法线（垂直于墙面）；镜像（F）翻转法线方向（墙另一侧）。
-     * 预置平台用同款几何（_placeInitialPlatform，2026-08-16）。
-     * @returns {null|{x:number,y:number,e:object,orient:string,normal:object}}
-     */
-    _snapPlatformToWall(x, y) {
-        const item = this._placing && this._placing.item;
-        if (!item) return null;
-        const mirror = !!(this._placing && this._placing.mirror);
-        // 平台沿墙放置（五版：实体 = 台阶入口，位置由「台面高出墙顶 25px」反推——
-        // k = (platformHeight 178 - 墙高 108 - 25) / (wn.y - 墙斜率·wn.x)）
-        let best = null;
-        for (const e of Game.entities.values()) {
-            if (!e || !e.active || !e._faceLine || e._faceLine.length !== 2) continue;
-            if (!(e._isDefenseCover || e._isCoverGate)) continue; // 只贴掩体/门墙段
-            const [A, B] = e._faceLine;
-            if (!A || !B || typeof A.x !== 'number') continue;
-            // 点到墙段距离
-            const d = this._pointSegDist(x, y, A, B);
-            if (d > SNAP_RADIUS + 60) continue; // 吸附触发距离（宽松）
-            if (!best || d < best.d) {
-                // 墙段中点
-                const mx = (A.x + B.x) / 2, my = (A.y + B.y) / 2;
-                // 墙段方向单位向量
-                const wx = B.x - A.x, wy = B.y - A.y;
-                const wl = Math.hypot(wx, wy) || 1;
-                const ux = wx / wl, uy = wy / wl;
-                // 墙内侧法线（指向房内 = 与鼠标位置同侧）：法线 = 墙方向旋转 ±90°
-                // 选与鼠标位置点积为正的一侧（鼠标在墙哪侧，平台就贴哪侧）
-                let nx = -uy, ny = ux;
-                if ((x - mx) * nx + (y - my) * ny < 0) { nx = -nx; ny = -ny; }
-                if (mirror) { nx = -nx; ny = -ny; } // F 镜像：贴墙另一侧
-                // 墙段朝向（face 线 x 差符号）：h = "\"（斜率 +0.5）、v = "/"（斜率 -0.5）
-                const orient = (B.x - A.x) >= 0 ? 'h' : 'v';
-                // 台面高出墙顶：k 由墙斜率 + 法线解出（同 _placeInitialPlatform 口径）
-                const slope = wl ? wy / wx : 0;
-                const k = (178 - 108 - 25) / ((ny - slope * nx) || 0.9);
-                best = {
-                    x: Math.round(mx + nx * k),
-                    y: Math.round(my + ny * k),
-                    d,
-                    e,
-                    wall: e,
-                    normal: { x: nx, y: ny },
-                    wallLine: { A: { x: A.x, y: A.y }, B: { x: B.x, y: B.y } },
-                    orient,
-                };
-            }
-        }
-        if (!best) return null;
-        return { x: best.x, y: best.y, e: best.e, wall: best.wall, normal: best.normal, wallLine: best.wallLine, orient: best.orient };
     },
 
     /** 新掩体的墙段底边线段（face line，世界坐标）——按级别 + 有效朝向 */
@@ -626,8 +573,8 @@ export const BuildingSystem = {
             ? 40
             : (this._placing.item.kind === 'trap' ? TRAP_SPACING : 28);
         if (WallSystem && typeof WallSystem.canMoveTo === 'function' && !WallSystem.canMoveTo(x, y, radius)) return false;
-        // 射击台（2026-08-16）：贴墙垂直突出，footprint 大（260 显示宽 → 半长 130）——
-        // 与其它平台保持间距（中心距 < 240 拒绝，防两平台叠放/贴太近）
+        // 射击台（2026-08-16 七版）：自由放置高台，footprint 大（260 显示宽 → 半长 130）——
+        // 只要求边界/可通行/间距（平台间 ≥240、其他建筑 ≥90），不依赖任何墙体几何
         if (this._placing.item.kind === 'platform') {
             for (const e of Game.entities.values()) {
                 if (!e || !e.active) continue;
@@ -913,6 +860,10 @@ export const BuildingSystem = {
             const hut = new HamsterHut(x, y, { id });
             Game.entities.set(id, hut);
             HamsterHutSystem.huts.push(hut);
+        } else if (item.kind === 'hamster_barracks') {
+            const barracks = new HamsterBarracks(x, y, { id });
+            Game.entities.set(id, barracks);
+            HamsterBarracksSystem.barracks.push(barracks);
         } else if (item.kind === 'trap') {
             const trap = new DefenseTrap(x, y, {
                 type: item.trapType,
@@ -930,14 +881,11 @@ export const BuildingSystem = {
             Game.entities.set(id, gate);
             if (DefenseSystem && DefenseSystem.gates) DefenseSystem.gates.push(gate);
         } else if (item.kind === 'platform') {
-            // 射击台：贴墙放置（_snapPlatformToWall 已算好吸附位；传递墙段法线/朝向/墙线）
-            const snap = this._snapped;
+            // 射击台（2026-08-16 七版）：自由放置高台——无墙线/法线/裁墙；
+            // F 镜像只做视觉左右翻面（_facingLeft）
             const platform = new FiringPlatform(x, y, {
                 mirror,
                 id,
-                orient: (snap && snap.orient) || 'v',
-                wallNormal: (snap && snap.normal) || null,
-                wallLine: (snap && snap.wallLine) || null, // 裁墙洞 + 密封段
             });
             Game.entities.set(id, platform);
             if (DefenseSystem && DefenseSystem.platforms) DefenseSystem.platforms.push(platform);

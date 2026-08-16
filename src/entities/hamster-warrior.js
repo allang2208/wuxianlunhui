@@ -77,6 +77,23 @@ export class HamsterWarrior extends Companion {
         this._deathTimer = DYING_DURATION_MS;
     }
 
+    /** 仓鼠兵营升级同步（2026-08-16）：攻击间隔/伤害/移速/生命实时生效 */
+    applyBarracksUpgrades(u = {}) {
+        if (this._ai) {
+            if (u.attackInterval) this._ai._attackInterval = u.attackInterval;
+            if (u.attackDamage) this._ai._attackDamage = u.attackDamage;
+        }
+        if (this.aiConfig) {
+            if (u.attackInterval) this.aiConfig.attackInterval = u.attackInterval;
+            if (u.attackDamage) this.aiConfig.attackDamage = u.attackDamage;
+            if (u.walkSpeed) this.aiConfig.walkSpeed = u.walkSpeed;
+        }
+        if (u.baseMaxHp && this._maxHpOverride !== u.baseMaxHp) {
+            this._maxHpOverride = u.baseMaxHp;
+            if (typeof this.updateMaxStats === 'function') this.updateMaxStats();
+        }
+    }
+
     /** 主循环入口（Game.entities 每帧调用） */
     update(dt, entities) {
         if (this.hitFlash > 0) this.hitFlash = Math.max(0, this.hitFlash - dt);

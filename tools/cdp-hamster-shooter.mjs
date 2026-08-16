@@ -247,7 +247,7 @@ const b1 = await evalRobust(`(async () => {
     }
     if (t0 === null) return { err: 'no shot started', anim: s._animState, ai: !!s._ai };
     // 等投射物出膛，记录时机/瞄准点/角度
-    let spawnDelay = null, aimY = null, angle = null, projTex = null, animDuringShot = null;
+    let spawnDelay = null, aimY = null, angle = null, projTex = null, projW = null, projVisible = null, animDuringShot = null;
     for (let i = 0; i < 40; i++) {
         await sleep2(50);
         if (s._basic && s._basic.active) {
@@ -256,7 +256,11 @@ const b1 = await evalRobust(`(async () => {
             angle = s._basic.angle;
             animDuringShot = s._animState;
             const ps = window.__phaserScene._companionBasicSprites && window.__phaserScene._companionBasicSprites[s.id];
-            if (ps) projTex = ps.texture ? ps.texture.key : null;
+            if (ps) {
+                projTex = ps.texture ? ps.texture.key : null;
+                projW = Math.round(ps.displayWidth);
+                projVisible = ps.visible;
+            }
             break;
         }
     }
@@ -271,7 +275,7 @@ const b1 = await evalRobust(`(async () => {
     const hpAfterSecond = dummy.hp;
     window.Game.entities.delete(key);
     return {
-        spawnDelay, aimY, angle, projTex, hitHp, hpAfterSecond,
+        spawnDelay, aimY, angle, projTex, projW, projVisible, hitHp, hpAfterSecond,
         sprY, spriteExists: !!dummy._phaserSprite,
         animDuringShot,
     };
@@ -286,6 +290,9 @@ check('瞄准目标贴图中心（aimY ≈ 敌人贴图中心 Y）',
     `aimY=${Math.round(b1.aimY)} sprY=${Math.round(b1.sprY)}`);
 check('箭矢贴图渲染（companion_hamster_shooter_projectile）',
     b1.projTex === 'companion_hamster_shooter_projectile', b1.projTex);
+check('箭矢显示尺寸可见（帧 ≈252px，箭身 ≈72px，visible=true）',
+    b1.projW !== null && b1.projW >= 200 && b1.projVisible === true,
+    `displayW=${b1.projW} visible=${b1.projVisible}`);
 check('命中造成 60 物理伤害（500 → 440）', b1.hitHp === 440, `hp=${b1.hitHp}`);
 check('2s 间隔第二发（440 → 380）', b1.hpAfterSecond === 380, `hp=${b1.hpAfterSecond}`);
 
@@ -369,16 +376,19 @@ const d = await evalRobust(`(async () => {
     s.target = null; s._tacticalTarget = null; s._animState = 'idle';
     if (s._pathManager) s._pathManager._clearPath();
     let walkSeen = false;
+    let followTargetSeen = false;
     for (let i = 0; i < 30; i++) {
         await sleep2(200);
         if (s._animState === 'walk') walkSeen = true;
+        if (s._tacticalTarget && Math.abs(s._tacticalTarget.x - (p.x - 140)) < 20) {
+            followTargetSeen = true;
+        }
     }
-    const followTarget = !!(s._tacticalTarget && Math.abs(s._tacticalTarget.x - (p.x - 140)) < 20);
     s.x = p.x - 140; s.y = p.y;
     s.target = null; s._tacticalTarget = null; s._animState = 'walk';
     if (s._pathManager) s._pathManager._clearPath();
     await sleep2(600);
-    return { walkSeen, followTarget, anim: s._animState, vx: Math.round(s.vx), vy: Math.round(s.vy) };
+    return { walkSeen, followTarget: followTargetSeen, anim: s._animState, vx: Math.round(s.vx), vy: Math.round(s.vy) };
 })()`);
 check('无敌人时跟随玩家走位（walk）', d.walkSeen === true);
 check('跟随点 = 玩家左 140px', d.followTarget === true);

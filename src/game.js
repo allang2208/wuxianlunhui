@@ -85,6 +85,7 @@ import { FusionSystem } from './ui/fusion-system.js';
 import { DefenseSystem } from './world/defense-system.js';
 import { DefenseTrapSystem } from './world/defense-trap-system.js';
 import { HamsterHutSystem } from './world/hamster-hut-system.js';
+import { HamsterBarracksSystem } from './world/hamster-barracks-system.js';
 
 export const Game = {
     VERSION: GAME_CONFIG.meta?.version || '0.198', // 游戏版本号（每次更新必须递增）
@@ -1241,6 +1242,11 @@ if (Input.mouse.leftPressed) {
                 Input.mouse.leftPressed = false;
                 return;
             }
+            // 仓鼠兵营：点击兵营打开单位类型/升级面板（2026-08-16）
+            if (HamsterBarracksSystem && HamsterBarracksSystem.active && HamsterBarracksSystem.tryInteract(mx, my, this.player)) {
+                Input.mouse.leftPressed = false;
+                return;
+            }
             for (const [key, entity] of this.entities) {
                 if (clickedPickup) break;
                 if (!clickedPickup && entity instanceof DropItem && entity.active) {
@@ -1344,6 +1350,10 @@ CombatSystem.update(e, dt, this.entities);
         // 仓鼠小屋：矿工补员计时（矿工自身 update 由实体主循环驱动）
         if (HamsterHutSystem && HamsterHutSystem.active) {
             HamsterHutSystem.update(dt);
+        }
+        // 仓鼠兵营：30s 生成计时
+        if (HamsterBarracksSystem && HamsterBarracksSystem.active) {
+            HamsterBarracksSystem.update(dt);
         }
 
         // ===== 阵型系统更新（必须在实体 update 之后，为下一帧设置 _tacticalTarget）=====
