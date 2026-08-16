@@ -43,6 +43,7 @@ export const BARRACKS_CONFIG = {
         sellRefundRatio: 0.5,
         spawnIntervalMs: 30000,   // 30 秒生成一个军事单位
         spawnRadius: 90,
+        unitCap: 5,          // 每个兵营的仓鼠兵数量上限（2026-08-16 用户口径）
     },
     // 可生成的军事单位（基准值读 data/hamster-*-config.json，此处只做展示名）
     unit: {
@@ -57,7 +58,7 @@ export const BARRACKS_CONFIG = {
         attackSpd: { name: '攻击加速', icon: '⚡', per: -0.06, maxLevel: 10, desc: '攻击间隔 -{pct}%' },
         damage:    { name: '攻击强化', icon: '⚔️', per: 0.12, maxLevel: 10, desc: '每次攻击伤害 +{pct}%' },
         moveSpd:   { name: '机动强化', icon: '👟', per: 0.05, maxLevel: 10, desc: '移动速度 +{pct}%（每级 +5%）' },
-        count:     { name: '仓鼠增援', icon: '🐹', per: 1,    maxLevel: 5,  desc: '军事单位数量上限 +1' },
+        count:     { name: '仓鼠增援', icon: '🐹', per: 1,    maxLevel: 5,  desc: '军事单位数量上限 +1（兵营上限 5）' },
         hp:        { name: '生命强化', icon: '❤️', per: 0.10, maxLevel: 10, desc: '单位生命 +{pct}%' },
     },
 };
@@ -150,9 +151,9 @@ export class HamsterBarracks extends DamageableEntity {
         return getBarracksMults(this.modules);
     }
 
-    /** 目标军事单位数量 = 1 + 增援模块等级 */
+    /** 目标军事单位数量 = 1 + 增援模块等级（硬上限 unitCap=5） */
     unitCount() {
-        return this.mults().count;
+        return Math.min(BARRACKS_CONFIG.barracks.unitCap ?? 5, this.mults().count);
     }
 
     /** 当前存活单位数 */
