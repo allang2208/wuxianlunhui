@@ -4870,7 +4870,25 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
 - 已知取舍：实体站在门洞中同时跨左右柱时，整门三段的抬升/压制按各段面线独立判定，
   跨两段的重叠区以最近段为准，极端位置可能有 ±1 段误差，可接受。
 
-### 射击台（FiringPlatform，2026-08-16 七版定稿：自由放置高台 + 表面可走一对一标定）
+### 射击台（FiringPlatform，2026-08-16 八版定稿：重建模摆正台阶 + 表面可走一对一标定）
+
+- **八版（2026-08-16 重建模）**：用户实机反馈"台阶歪斜、没对齐主体"。Blender 无头
+  检查（tools/ai-gen/check-platform-align.py）确认根因：台阶 pos 沿**世界 -Y 轴**
+  排列（[0,-84/-54/-24]），而主体 rot 44.8 前脸法线 = (0.704,-0.710)——楼梯走向与前脸
+  夹角 45~55°，且顶阶背面悬空 33 单位、底阶 93 单位，整串浮在主体前方。
+  - **修正**：台阶改沿主体前脸法线（局部 -y）摆放：pos 改
+    (61.3,-33.8)/(40.1,-12.5)/(19.0,8.8)（z 不变 13/30/43/60/73/90），顶阶背面贴脸
+    （间隙 0）、中/底阶沿法线 30/60；Blender 复核 disp_xy_angle_to_normal≈0°。
+  - **重渲染**：render-cover-real.py（本机 Blender 5.1）→ 材质用 factory_wall_tex.png
+    提亮暖灰（旧 tex_platform.png 已丢失，均值匹配 (132,118,115)）→ 紧身裁剪
+    684×519 → 覆盖 assets/terrain/firing_platform.png（+ h flipX，旧图备份在
+    tools/ai-gen/_platform_align/）。
+  - **重标定**（tools/ai-gen/calibrate-platform.py 相机矩阵投影）：显示 297×225、
+    offsetX=-25.6 / footOffsetY=49；台面菱形 L(-173.6,-60.4) F(-122.5,-33.8)
+    R(86.0,-137.2) B(34.9,-162.9)；台阶走廊 E(0,0)→D(-27.4,-81.1)，长 85.6、
+    半宽 110、dir (0.320,0.947)；单向登台三边阻挡段沿用。
+  - 验证：eslint 0 error + vite build ✓ + npm test 全绿；CDP 探针全绿（表面全覆盖、
+    精灵锚点、脚线对齐、单向登台、死亡清理）。
 
 - **七版（2026-08-16 重构，替代六版抬升模型）**：设计方向 = 自由放置高台；登台机制
   从"抬升（lift）"改为**表面可走模型**——单位逻辑坐标 = 台面/台阶的表面屏幕位置，
@@ -5845,8 +5863,9 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
 > 既有实体与 AI，零新增渲染分支。
 
 - **数据/配置（`src/world/hamster-barracks-system.js`）**：`BARRACKS_CONFIG`——
-  cost 1500 能源 / hp 2000 / displayW×H 150×147（同仓鼠小屋）/ footOffsetY 74 /
-  spawnIntervalMs 30000 / spawnRadius 90；单位基准值**实时读**
+  cost 1500 能源 / hp 2000 / displayW×H 170×147（贴图 682×589 等比，高度对齐小屋）/
+  footOffsetY 73 / spawnIntervalMs 30000 / spawnRadius 90 / **unitCap 5（初始上限
+  即 5 个，2026-08-16 用户口径）**；单位基准值**实时读**
   `data/hamster-warrior-config.json` + `hamster-shooter-config.json`
   （`unit.<key>.cfg`，不硬编码 50/60 伤害）。
 - **单位类型切换**：`setUnitType('warrior'|'shooter')`，面板两个按钮
@@ -5854,8 +5873,8 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
   90px 内 WallSystem 校验合法落点（兜底兵营脚下）。
 - **升级模块（复制仓鼠小屋口径）**：每级统一 1000 金币 + 500 能源——攻击加速
   （间隔 -6%/级）、攻击强化（伤害 +12%/级）、机动强化（移速 +5%/级）、
-  仓鼠增援（数量上限 +1/级）、生命强化（生命 +10%/级）；矿工专属的
-  采矿效率/背包扩容不复制。`upgradeModule` 先扣资源再升级，升级后
+  生命强化（生命 +10%/级）；矿工专属的采矿效率/背包扩容不复制，数量模块也不设
+  （兵营上限固定 5，初始即有，无需"仓鼠增援"）。`upgradeModule` 先扣资源再升级，升级后
   `applyUpgradesToUnits()` 让**现有单位实时生效**（不是只对新单位生效）。
 - **升级同步两坑**：① 战士/射手 `applyBarracksUpgrades(u)` 必须同时写
   `_ai._attackInterval/_attackDamage/_attackRange` 与 `aiConfig`（AI 每帧从
@@ -5866,7 +5885,7 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
   从下个 30s 节拍开始）；兵营出售/被毁 → `_despawnUnits()` 同步拆单位（active=false
   + 移出 entities/friendlyUnits），面板自动关闭；teardown 离场同样拆干净。
 - **面板（BasePanel 复用）**：状态区（等级/耐久/存活数/下次生成秒数）、
-  类型切换按钮、5 个升级按钮、出售（返还 50% 能源）；点击兵营开/关，
+  类型切换按钮、4 个升级按钮、出售（返还 50% 能源）；点击兵营开/关，
   玩家距离 >260px 不可交互。
 - **验证**：CDP 实机探针——贴图加载、默认战士生成（dmg 50/hp 300）、切射手
   （dmg 60/hp 150）、升 damage 模块后现有战士伤害 50→56 实时生效、

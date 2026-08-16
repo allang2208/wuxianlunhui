@@ -3,7 +3,8 @@
 // - B 建筑面板放置，价格 1500 能源；每 30 秒自动生成一个仓鼠军事单位；
 // - 单位类型可在面板切换：仓鼠战士（近战）/ 仓鼠射手（远程）；
 // - 升级参考仓鼠小屋（1000 金币 + 500 能源/级）：攻击加速 / 攻击强化 /
-//   机动强化 / 仓鼠增援（数量上限）/ 生命强化（采矿/背包模块为矿工专属，不复制）；
+//   机动强化 / 生命强化（采矿/背包/数量模块不复制——兵营数量上限固定 5，
+//   2026-08-16 用户口径：初始上限就有 5 个）；
 // - 单位死亡后兵营按 30s 节奏补员，直到达到数量上限。
 // ============================================================
 import { Game } from '../game.js';
@@ -43,6 +44,7 @@ export const BARRACKS_CONFIG = {
         sellRefundRatio: 0.5,
         spawnIntervalMs: 30000,   // 30 秒生成一个军事单位
         spawnRadius: 90,
+        unitCap: 5,          // 每个兵营的仓鼠兵数量上限（2026-08-16 用户口径）
     },
     // 可生成的军事单位（基准值读 data/hamster-*-config.json，此处只做展示名）
     unit: {
@@ -51,15 +53,15 @@ export const BARRACKS_CONFIG = {
     },
     // 升级统一费用：每升一级 1000 金币 + 500 能源（同仓鼠小屋口径）
     upgradeCost: { gold: 1000, energy: 500 },
-    // 升级模块（per = 每级效果量；复制仓鼠小屋的战斗类模块 + 生命强化；
-    // 矿工专属的采矿效率/背包扩容不复制）
-    modules: {
-        attackSpd: { name: '攻击加速', icon: '⚡', per: -0.06, maxLevel: 10, desc: '攻击间隔 -{pct}%' },
-        damage:    { name: '攻击强化', icon: '⚔️', per: 0.12, maxLevel: 10, desc: '每次攻击伤害 +{pct}%' },
-        moveSpd:   { name: '机动强化', icon: '👟', per: 0.05, maxLevel: 10, desc: '移动速度 +{pct}%（每级 +5%）' },
-        count:     { name: '仓鼠增援', icon: '🐹', per: 1,    maxLevel: 5,  desc: '军事单位数量上限 +1' },
-        hp:        { name: '生命强化', icon: '❤️', per: 0.10, maxLevel: 10, desc: '单位生命 +{pct}%' },
-    },
+        // 升级模块（per = 每级效果量；复制仓鼠小屋的战斗类模块 + 生命强化；
+        // 矿工专属的采矿效率/背包扩容不复制；仓鼠增援（数量）也不需要——
+        // 兵营数量上限固定 5（unitCap），初始即有）
+        modules: {
+            attackSpd: { name: '攻击加速', icon: '⚡', per: -0.06, maxLevel: 10, desc: '攻击间隔 -{pct}%' },
+            damage:    { name: '攻击强化', icon: '⚔️', per: 0.12, maxLevel: 10, desc: '每次攻击伤害 +{pct}%' },
+            moveSpd:   { name: '机动强化', icon: '👟', per: 0.05, maxLevel: 10, desc: '移动速度 +{pct}%（每级 +5%）' },
+            hp:        { name: '生命强化', icon: '❤️', per: 0.10, maxLevel: 10, desc: '单位生命 +{pct}%' },
+        },
 };
 
 /** 模块升级费用（统一）：1000 金币 + 500 能源 */
@@ -150,9 +152,9 @@ export class HamsterBarracks extends DamageableEntity {
         return getBarracksMults(this.modules);
     }
 
-    /** 目标军事单位数量 = 1 + 增援模块等级 */
+    /** 目标军事单位数量：固定上限 unitCap=5（初始即有，无需升级） */
     unitCount() {
-        return this.mults().count;
+        return BARRACKS_CONFIG.barracks.unitCap ?? 5;
     }
 
     /** 当前存活单位数 */
@@ -349,6 +351,7 @@ class HamsterBarracksPanel extends BasePanel {
         super({ id: 'hamsterBarracksPanel', className: 'hamster-barracks-panel', stateKey: 'hamsterBarracks' });
         this.barracks = null;
         this.player = null;
+        this._tickTimer = null;   // 出发进度实时刷新定时器（100ms）
     }
 
     buildContent(el) {
@@ -379,17 +382,56 @@ class HamsterBarracksPanel extends BasePanel {
         this.player = player;
         this.open();
         this.refresh();
+        this._startTicking();
     }
 
     onOpen() {
         this.refresh();
+        this._startTicking();
         if (this.el) this.el.style.display = 'block';
     }
 
     onClose() {
+        this._stopTicking();
         if (this.el) this.el.style.display = 'none';
         this.barracks = null;
         this.player = null;
+    }
+
+    /** 打开期间每 100ms 实时刷新出发进度（只更新进度条，不重建 DOM） */
+    _startTicking() {
+        this._stopTicking();
+        this._tickTimer = setInterval(() => this._tickProgress(), 100);
+    }
+
+    _stopTicking() {
+        if (this._tickTimer) {
+            clearInterval(this._tickTimer);
+            this._tickTimer = null;
+        }
+    }
+
+    /** 只更新进度条宽度/百分比/剩余秒数——配合 CSS transition 形成平滑增长效果 */
+    _tickProgress() {
+        const el = this.el;
+        if (!el || !this.barracks) return;
+        const b = this.barracks;
+        const spawnMs = BARRACKS_CONFIG.barracks.spawnIntervalMs;
+        const spawnProgress = Math.max(0, Math.min(1, 1 - b._spawnTimer / spawnMs));
+        const spawnPct = Math.round(spawnProgress * 100);
+        const spawnBarColor = spawnProgress < 0.5 ? '#ffd700' : (spawnProgress < 0.8 ? '#ff9d45' : '#7fe0c8');
+        const bar = el.querySelector('#hbSpawnBar');
+        const pct = el.querySelector('#hbSpawnPct');
+        const next = el.querySelector('#hbSpawnNext');
+        if (bar) {
+            bar.style.width = `${spawnPct}%`;
+            bar.style.background = `linear-gradient(90deg, ${spawnBarColor}, #7fe0c8)`;
+        }
+        if (pct) {
+            pct.textContent = `${spawnPct}%`;
+            pct.style.color = spawnBarColor;
+        }
+        if (next) next.textContent = `${Math.max(0, Math.ceil(b._spawnTimer / 1000))}s`;
     }
 
     _notify(text, color) {
@@ -424,16 +466,16 @@ class HamsterBarracksPanel extends BasePanel {
             <div style="font-size:12px;color:#c8b98a;line-height:1.7;">
                 军事单位 <span style="color:#8ad0ff;">${b.aliveUnitCount()}/${b.unitCount()}</span> ·
                 当前生成 <b style="color:#7fe0c8;">${curType.name || '—'}</b><br>
-                下次生成 <b style="color:#7fd4ff;">${nextIn}s</b>（每 ${spawnMs / 1000}s 一单位）·
+                下次生成 <b id="hbSpawnNext" style="color:#7fd4ff;">${nextIn}s</b>（每 ${spawnMs / 1000}s 一单位）·
                 攻击间隔/伤害/移速/生命随模块升级
             </div>
             <div style="margin-top:8px;">
                 <div style="display:flex;justify-content:space-between;align-items:center;font-size:11px;color:#9a9a9a;margin-bottom:3px;">
                     <span>🚀 出发进度</span>
-                    <span style="color:${spawnBarColor};font-weight:700;">${spawnPct}%</span>
+                    <span id="hbSpawnPct" style="color:${spawnBarColor};font-weight:700;">${spawnPct}%</span>
                 </div>
                 <div style="position:relative;height:10px;background:rgba(255,255,255,0.10);border-radius:5px;overflow:hidden;">
-                    <div style="position:absolute;left:0;top:0;bottom:0;width:${spawnPct}%;background:linear-gradient(90deg, ${spawnBarColor}, #7fe0c8);border-radius:5px;transition:width 0.25s linear;"></div>
+                    <div id="hbSpawnBar" style="position:absolute;left:0;top:0;bottom:0;width:${spawnPct}%;background:linear-gradient(90deg, ${spawnBarColor}, #7fe0c8);border-radius:5px;transition:width 0.2s linear;"></div>
                 </div>
                 <div style="font-size:10px;color:#6a7a6a;margin-top:2px;">切换单位类型不影响出发进度</div>
             </div>`;
