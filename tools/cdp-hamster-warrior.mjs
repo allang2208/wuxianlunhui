@@ -249,13 +249,18 @@ const b = await evalRobust(`(async () => {
     const attacking = w._animState === 'attack';
     const hpAfterFirst = dummy.hp;
     // 两段式动画采样：进入攻击后先播完整 1~24 帧（attack_start），
-    // 播完切第 6~24 帧循环（attack）——持续采样 2s 覆盖两个阶段
-    let kStart = false, kLoop = false;
-    for (let i = 0; i < 20; i++) {
+    // 播完切第 6~24 帧循环（attack）——动画两段均对齐 2s 攻击间隔：
+    // 起步 24 帧 @12fps = 2.0s → 切循环；循环 19 帧 @9.5fps = 2.0s
+    let kStart = false, kLoop = false, loopT = null;
+    const animT0 = Date.now();
+    for (let i = 0; i < 26; i++) {
         await sleep(100);
         const k = sp && sp.anims && sp.anims.currentAnim ? sp.anims.currentAnim.key : null;
         if (k === 'companion_hamster_warrior_attack_start') kStart = true;
-        if (k === 'companion_hamster_warrior_attack') kLoop = true;
+        if (k === 'companion_hamster_warrior_attack' && kLoop === false) {
+            kLoop = true;
+            loopT = Date.now() - animT0;
+        }
     }
     // 再等 1.2s 验证第二次攻击（攻击间隔 2s）
     await sleep(1200);
@@ -288,7 +293,7 @@ const b = await evalRobust(`(async () => {
     window.Game.entities.delete(key);
     window.Game.entities.delete(key2);
     return { chaseSeen, attackSeen, attacking, hpAfterFirst, hpAfterSecond, kStart, kLoop, animKey,
-        leftAttack, kStart2, reAttacked, k2Samples,
+        loopT, leftAttack, kStart2, reAttacked, k2Samples,
         targetWasEnemy };
 })()`);
 check('追击阶段走位（walk）', b.chaseSeen === true);
@@ -298,6 +303,8 @@ check('首次命中造成 50 伤害', b.hpAfterFirst === 450, `hp=${b.hpAfterFir
 check('2s 间隔第二次命中（累计 -100）', b.hpAfterSecond === 400, `hp=${b.hpAfterSecond}`);
 check('攻击动画两段式：完整帧起步 → 第 6~24 帧循环',
     b.kStart === true && b.kLoop === true, `start=${b.kStart} loop=${b.kLoop} now=${b.animKey}`);
+check('攻击动画与 2s 间隔对齐（起步 ≈2000ms 后切循环）',
+    b.loopT !== null && b.loopT >= 1700 && b.loopT <= 2600, `loopT=${b.loopT}ms`);
 check('索敌目标是最近敌人（enemy 阵营）', b.targetWasEnemy === true);
 check('目标死亡离开攻击；再进攻击重播完整起步',
     b.leftAttack === true && b.kStart2 === true,
