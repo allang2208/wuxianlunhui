@@ -1446,6 +1446,8 @@ spec.lighting / roof / lid 材质。教训：核心视觉反复不满时，及�
 黑砖贴图走 `comfyui-gen.py --host 192.168.3.142 --model flux2-klein-4b-walltex`
 （1024×656，seed 固定，暗色 36.5 / 白边 0% / 砖格 FFT 峰强），入库
 `assets/terrain/hamster_barracks.png`（656×623，footOffsetY≈312）。
+屋顶红瓦：`roof_tex = hamster_barracks_roof_tex.png`（同管线红瓦 prompt，seed 12202，
+RGB 151/87/70 红主色）+ 屋顶 prism 材质 `roof`（墙身仍是黑砖 wall）。
 投影坑：前塔尖顶（z 高于屋脊但 y 更靠前）会被屋顶前坡遮挡——2.5D 前低后高投影下，
 「塔顶高于屋脊」≠「屏幕上高于屋脊」，塔台做平顶最稳。
 
