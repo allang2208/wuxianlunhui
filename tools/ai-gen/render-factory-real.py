@@ -122,13 +122,76 @@ def make_prism(L, W, H):
         bm.verts.new((-L / 2, 0, H)), bm.verts.new((L / 2, -W / 2, 0)),
         bm.verts.new((L / 2, W / 2, 0)), bm.verts.new((L / 2, 0, H)),
     ]
-    bm.faces.new([verts[0], verts[2], verts[1]])
-    bm.faces.new([verts[3], verts[4], verts[5]])
-    bm.faces.new([verts[0], verts[1], verts[4], verts[3]])
-    bm.faces.new([verts[1], verts[2], verts[5], verts[4]])
-    bm.faces.new([verts[0], verts[3], verts[5], verts[2]])
+    faces = [
+        bm.faces.new([verts[0], verts[2], verts[1]]),       # 左端三角（山墙）
+        bm.faces.new([verts[3], verts[4], verts[5]]),       # 右端三角（山墙）
+        bm.faces.new([verts[0], verts[1], verts[4], verts[3]]),  # 底面（隐藏）
+        bm.faces.new([verts[1], verts[2], verts[5], verts[4]]),  # 前坡面
+        bm.faces.new([verts[0], verts[3], verts[5], verts[2]]),  # 后坡面
+    ]
+    # 端面/底面 = 材质槽 0（山墙黑砖），坡面 = 材质槽 1（屋顶红瓦）
+    for fi, f in enumerate(faces):
+        f.material_index = 1 if fi >= 3 else 0
     bmesh.update_edit_mesh(o.data)
     bpy.ops.object.mode_set(mode="OBJECT")
+    return o
+
+
+def prism_uv(o, L, W, H):
+    """坡屋顶 UV：坡面 u 沿 X（瓦行平行檐口/斜边）、v 沿斜面坡度（z/H，脊=1）；
+    山墙端面平面映射（u 沿 Y 水平、v 沿 Z——端面在 Y-Z 平面，u 绝不能沿 X 否则
+    纹理坍缩成单列竖带被拉满全三角）。"""
+    me = o.data
+    uvl = me.uv_layers[0] if me.uv_layers else me.uv_layers.new(name="UVMap")
+    for poly in me.polygons:
+        coords = [me.vertices[me.loops[li].vertex_index].co for li in poly.loop_indices]
+        xs = [c.x for c in coords]
+        ys = [c.y for c in coords]
+        zs = [c.z for c in coords]
+        for li, c in zip(poly.loop_indices, coords):
+            if len(poly.vertices) == 3:
+                # 山墙端面（Y-Z 平面）：u 沿 Y 水平、v 沿 Z
+                u = (c.y - min(ys)) / max((max(ys) - min(ys)) or 1.0, 1e-6)
+                v = (c.z - min(zs)) / max((max(zs) - min(zs)) or 1.0, 1e-6)
+            else:
+                # 坡面：u 沿 X（瓦行平行檐口）、v = z/H（沿坡度，脊=1）
+                u = (c.x - min(xs)) / max((max(xs) - min(xs)) or 1.0, 1e-6)
+                v = max(0.0, min(1.0, c.z / max(H, 1e-6)))
+            uvl.data[li].uv = (u, v)
+    me.update()
+
+
+def make_roof_slab(L, SL, T):
+    """厚斜面（2026-08-16 v4：斜面自带厚度，替代"棱柱+檐口圈"）：
+    box [L 屋长, SL 斜面长, T 板厚]。除底面(-Z)外全部 = 屋顶槽1（红瓦，整块厚红楔），
+    底面 = 墙槽0（黑砖，藏于墙内）。摆放时经 rot 旋转成斜面。"""
+    bpy.ops.mesh.primitive_cube_add(size=2)
+    o = bpy.context.active_object
+    o.scale = (L / 2, SL / 2, T / 2)
+    me = o.data
+    uvl = me.uv_layers[0] if me.uv_layers else me.uv_layers.new(name="UVMap")
+    for poly in me.polygons:
+        n = poly.normal
+        if n.z > 0.9:
+            poly.material_index = 1
+            for li in poly.loop_indices:
+                c = me.vertices[me.loops[li].vertex_index].co
+                uvl.data[li].uv = ((c.x + L / 2) / max(L, 1e-6), (c.y + SL / 2) / max(SL, 1e-6))
+        elif n.z < -0.9:
+            poly.material_index = 0
+            coords = [me.vertices[me.loops[li].vertex_index].co for li in poly.loop_indices]
+            u0 = min(c.x for c in coords); u1 = max(c.x for c in coords)
+            v0 = min(c.y for c in coords); v1 = max(c.y for c in coords)
+            du = (u1 - u0) or 1.0; dv = (v1 - v0) or 1.0
+            for li, c in zip(poly.loop_indices, coords):
+                uvl.data[li].uv = ((c.x - u0) / du, (c.y - v0) / dv)
+        else:
+            # 其余面（山墙侧面/檐口厚度边）：红，u 沿 X、v 沿 Z（平面映射）
+            poly.material_index = 1
+            for li in poly.loop_indices:
+                c = me.vertices[me.loops[li].vertex_index].co
+                uvl.data[li].uv = ((c.x + L / 2) / max(L, 1e-6), (c.z + T / 2) / max(T, 1e-6))
+    me.update()
     return o
 
 
@@ -301,6 +364,9 @@ def build_scene(spec, slide):
         elif t == "prism":
             w, d, h = p["size"]
             o = make_prism(w, d, h)
+        elif t == "roof_slab":
+            w, d, h = p["size"]
+            o = make_roof_slab(w, d, h)
         else:
             bpy.ops.mesh.primitive_cube_add(size=2)
             o = bpy.context.active_object
@@ -315,13 +381,23 @@ def build_scene(spec, slide):
             bevel_corners(o, amount=float(p["bevel"]),
                           segments=int(p.get("bevelSegments", 3)),
                           top_only=bool(p.get("bevelTopOnly", False)))
-        # 圆柱/半圆柱保持默认柱面 UV（box_full_uv 只适合轴对齐盒面）
-        if t != "cylinder":
+        # 坡屋顶：自定义坡面 UV（瓦行平行檐口）；圆柱保持柱面 UV；其余 box_full_uv
+        if p.get("material") == "roof" and t == "prism":
+            prism_uv(o, w, d, h)
+        elif t == "roof_slab":
+            pass  # make_roof_slab 已设好 UV/材质槽
+        elif t != "cylinder":
             box_full_uv(o)
         if p.get("material") == "lid":
             o.data.materials.append(lid_mat)
         elif p.get("material") == "roof":
-            o.data.materials.append(roof_mat)
+            if t in ("prism", "roof_slab"):
+                # 双槽：槽0 = 山墙/侧边黑砖，槽1 = 坡面/顶面红瓦
+                o.data.materials.append(wall_mat)
+                o.data.materials.append(roof_mat)
+            else:
+                # box 型屋顶件（檐口厚板）：整块红瓦
+                o.data.materials.append(roof_mat)
         elif p.get("material") == "window":
             o.data.materials.append(window_mat)
         elif p.get("material") == "interior":
@@ -330,6 +406,10 @@ def build_scene(spec, slide):
             o.data.materials.append(dark_mat)
         else:
             o.data.materials.append(wall_mat)
+        # 非 roof 材质棱柱：所有面归槽 0（make_prism 默认坡面标 1，单槽时兜底复位）
+        if t == "prism" and len(o.data.materials) == 1:
+            for poly in o.data.polygons:
+                poly.material_index = 0
         if os.environ.get("FACTORY_DEBUG"):
             print(f"[factory-debug] prim {i} world=({o.location.x:.1f},{o.location.y:.1f},{o.location.z:.1f}) "
                   f"size={p['size']} mat={p.get('material','wall')}", flush=True)
