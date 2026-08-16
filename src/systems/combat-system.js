@@ -2,6 +2,7 @@ import { WEAPON_ANIM } from '../config/math-utils.js';
 import { WallSystem } from '../world/wall-system.js';
 import { Easing } from '../config/math-utils.js';
 import { distanceToEntityShape } from '../utils/collision-helpers.js';
+import { nowMs } from '../entities/player/anim-state.js';
 
 /**
  * CombatSystem — 敌人战斗AI子系统（精简版）
@@ -185,13 +186,17 @@ class CombatSystemImpl {
                     anim.angle = wa.idleAngle + (wa.windupAngle - wa.idleAngle) * Easing.easeInQuad(anim.timer / wa.windupMs);
                 }
                 break;
-            case 'swing':
-                anim.timer += dt;
-                if (enemy._pendingThrust && enemy._pendingThrust.active) {
-                    if (Date.now() - enemy._pendingThrust.startTime <= 200) {
-                        if (enemy.attacks.melee) enemy.attacks.melee.checkTriangleHit(enemy);
-                    } else {
-                        enemy._pendingThrust.active = false;
+                    case 'swing':
+                        anim.timer += dt;
+                        if (enemy._pendingThrust && enemy._pendingThrust.active) {
+                            // [FIX] startTime 已统一为单调时钟 nowMs()（2026-08-14 Phase 3），
+                            // 这里必须同源——用 Date.now() 减 performance.now() 恒为巨数，
+                            // 判定窗口永远过期 → checkTriangleHit 永不执行（动画照播、命中零伤害，
+                            // 2026-08-16 世界-122 实机复现：僵尸啃掩体/门不出伤害）
+                            if (nowMs() - enemy._pendingThrust.startTime <= 200) {
+                                if (enemy.attacks.melee) enemy.attacks.melee.checkTriangleHit(enemy);
+                            } else {
+                                enemy._pendingThrust.active = false;
                     }
                 }
                 if (anim.timer >= wa.swingMs) {

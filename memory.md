@@ -32,6 +32,9 @@
 - `BlackWolf` 构造函数接受 `config` 参数，`speed` 等配置正确传递到父类
 - 2026-08-16：黑狼攻击只保留撕咬，移除飞扑（`_usesPounce=false`）；红狼王仍保留
   飞扑，复用 BlackWolf 基类共享状态机（红狼王构造器 `_usesPounce=true` 补齐字段）
+- 2026-08-16：敌人近战命中统一走单调时钟 `nowMs()`（attack.js startTime / enemy.js /
+  combat-system.js swing 窗口三者同源）；矩形建筑（掩体/门）距离一律按 AABB 形状距离算，
+  移动对结构目标按形状距离刹车
 
 ### 4. G18 攻击力（player.js）
 - `_fireRanged` 中手枪/弓伤害优先调用 `getCurrentWeaponAtk()`，包含强化加成

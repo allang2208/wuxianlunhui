@@ -16,6 +16,7 @@ import { PathManager } from '../ai/path-manager.js';
 import { pathFinder } from '../ai/pathfinder.js';
 import { dynamicObstacleMap } from '../ai/dynamic-obstacle-map.js';
 import SpatialPartitionSystem from './spatial-partition-system.js';
+import { distanceToEntityShape } from '../utils/collision-helpers.js';
 
 /** 超出此距离不再进行 A* 寻路，直接朝目标移动 */
 const MAX_PATHFIND_RANGE = 800;
@@ -1170,6 +1171,12 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
      */
     _applyAttackRangeFriction(enemy, dist) {
         const range = enemy.attackRange || 70;
+        // 结构目标（掩体/门/基地/塔）：刹车距离改用真实 footprint 形状距离（AABB/圆边距），
+        // 中心距离落在墙体后方永远到不了 → 怪沿墙滑行不停车，攻击判定窗口滑过即挥空
+        // （2026-08-16 世界-122 实机复现：僵尸啃掩体动画照播但零伤害）
+        if (enemy.target && enemy.target.active && enemy.target._isDefenseStructure) {
+            dist = distanceToEntityShape(enemy.target, enemy.x, enemy.y);
+        }
         // 直冲型怪物：只在极近距离（10px）减速，避免提前刹车导致无法贴近攻击
         if (enemy.ai && enemy.ai.chargeStraight) {
             if (dist <= 10) {
