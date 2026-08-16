@@ -3,7 +3,8 @@
 // - B 建筑面板放置，价格 1500 能源；每 30 秒自动生成一个仓鼠军事单位；
 // - 单位类型可在面板切换：仓鼠战士（近战）/ 仓鼠射手（远程）；
 // - 升级参考仓鼠小屋（1000 金币 + 500 能源/级）：攻击加速 / 攻击强化 /
-//   机动强化 / 仓鼠增援（数量上限）/ 生命强化（采矿/背包模块为矿工专属，不复制）；
+//   机动强化 / 生命强化（采矿/背包/数量模块不复制——兵营数量上限固定 5，
+//   2026-08-16 用户口径：初始上限就有 5 个）；
 // - 单位死亡后兵营按 30s 节奏补员，直到达到数量上限。
 // ============================================================
 import { Game } from '../game.js';
@@ -52,15 +53,15 @@ export const BARRACKS_CONFIG = {
     },
     // 升级统一费用：每升一级 1000 金币 + 500 能源（同仓鼠小屋口径）
     upgradeCost: { gold: 1000, energy: 500 },
-    // 升级模块（per = 每级效果量；复制仓鼠小屋的战斗类模块 + 生命强化；
-    // 矿工专属的采矿效率/背包扩容不复制）
-    modules: {
-        attackSpd: { name: '攻击加速', icon: '⚡', per: -0.06, maxLevel: 10, desc: '攻击间隔 -{pct}%' },
-        damage:    { name: '攻击强化', icon: '⚔️', per: 0.12, maxLevel: 10, desc: '每次攻击伤害 +{pct}%' },
-        moveSpd:   { name: '机动强化', icon: '👟', per: 0.05, maxLevel: 10, desc: '移动速度 +{pct}%（每级 +5%）' },
-        count:     { name: '仓鼠增援', icon: '🐹', per: 1,    maxLevel: 5,  desc: '军事单位数量上限 +1（兵营上限 5）' },
-        hp:        { name: '生命强化', icon: '❤️', per: 0.10, maxLevel: 10, desc: '单位生命 +{pct}%' },
-    },
+        // 升级模块（per = 每级效果量；复制仓鼠小屋的战斗类模块 + 生命强化；
+        // 矿工专属的采矿效率/背包扩容不复制；仓鼠增援（数量）也不需要——
+        // 兵营数量上限固定 5（unitCap），初始即有）
+        modules: {
+            attackSpd: { name: '攻击加速', icon: '⚡', per: -0.06, maxLevel: 10, desc: '攻击间隔 -{pct}%' },
+            damage:    { name: '攻击强化', icon: '⚔️', per: 0.12, maxLevel: 10, desc: '每次攻击伤害 +{pct}%' },
+            moveSpd:   { name: '机动强化', icon: '👟', per: 0.05, maxLevel: 10, desc: '移动速度 +{pct}%（每级 +5%）' },
+            hp:        { name: '生命强化', icon: '❤️', per: 0.10, maxLevel: 10, desc: '单位生命 +{pct}%' },
+        },
 };
 
 /** 模块升级费用（统一）：1000 金币 + 500 能源 */
@@ -151,9 +152,9 @@ export class HamsterBarracks extends DamageableEntity {
         return getBarracksMults(this.modules);
     }
 
-    /** 目标军事单位数量 = 1 + 增援模块等级（硬上限 unitCap=5） */
+    /** 目标军事单位数量：固定上限 unitCap=5（初始即有，无需升级） */
     unitCount() {
-        return Math.min(BARRACKS_CONFIG.barracks.unitCap ?? 5, this.mults().count);
+        return BARRACKS_CONFIG.barracks.unitCap ?? 5;
     }
 
     /** 当前存活单位数 */
