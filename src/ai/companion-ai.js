@@ -689,16 +689,51 @@ export class CompanionAI {
             case 'aggressive': this._cmdAggressive(entities, player); break;
             case 'patrol': this._cmdPatrol(entities, player, cmd); break;
             case 'gather': this._cmdGather(entities, player, cmd); break;
+            case 'attack': this._cmdAggressive(entities, player, cmd.target); break; // RTS 右键指定攻击（2026-08-16）
             case 'move': this._cmdMove(player, cmd); break; // 左键/右键纯移动（2026-08-16）
         }
         // 朝向：施法/攻击面朝目标
         if (c.target) c.rotation = Math.atan2(c.target.y - c.y, c.target.x - c.x);
     }
 
-    /** 主动攻击：全图搜索最近敌人主动追击/施法；近战威胁贴脸仍保留 flee 保命 */
-    _cmdAggressive(entities, player) {
+    /** 主动攻击：全图搜索最近敌人主动追击/施法；近战威胁贴脸仍保留 flee 保命。
+     *  forcedTarget 非空 = RTS 右键指定攻击目标（2026-08-16）：只打该目标，
+     *  目标死亡/失活自动清除指令回落跟随。 */
+    _cmdAggressive(entities, player, forcedTarget = null) {
         const c = this.c;
         const enemies = this._activeEnemies(entities);
+        if (forcedTarget) {
+            if (!forcedTarget.active || forcedTarget.hp <= 0) {
+                c._command = { mode: 'follow' };
+                c.target = null;
+                this._cmdFollowOnly(player);
+                return;
+            }
+            const { threat, threatDist } = this._meleeThreat(enemies, c);
+            if (threatDist !== null && threatDist < (this.cfg.safeDistance || 230)) {
+                c.target = null;
+                c._tacticalTarget = this._retreatPoint(threat, player);
+                this._setMoveState('run');
+                return;
+            }
+            c.target = forcedTarget;
+            const forcedDist = Math.hypot(forcedTarget.x - c.x, forcedTarget.y - c.y);
+            const spell = this._pickReadySpell(enemies, forcedTarget, forcedDist);
+            if (spell && forcedDist <= (this.cfg.combatRange || 640)) {
+                this._tryCast(spell, forcedTarget);
+                return;
+            }
+            if (this._basicReady(forcedDist)) {
+                this._tryBasicAttack(forcedTarget);
+                return;
+            }
+            const standRange = (this.cfg.combatRange || 640) * 0.72;
+            if (forcedDist > standRange * 0.9) {
+                c._tacticalTarget = this._standPoint(forcedTarget, standRange);
+                this._setMoveState(this._shouldRun(forcedDist, 'advance') ? 'run' : 'walk');
+            }
+            return;
+        }
         if (!enemies.length) {
             this._cmdFollowOnly(player);
             return;
@@ -1115,6 +1150,7 @@ export class CompanionAI {
             case 'aggressive': this._cmdWarriorAggressive(entities, player, null); break;
             case 'patrol': this._cmdWarriorAggressive(entities, player, cmd); break;
             case 'gather': this._cmdWarriorGather(entities, player, cmd); break;
+            case 'attack': this._cmdWarriorAggressive(entities, player, null, cmd.target); break; // RTS 右键指定攻击
             case 'move': this._cmdMove(player, cmd); break; // 左键/右键纯移动（2026-08-16）
             default: this._cmdFollowOnly(player); break;
         }
@@ -1168,12 +1204,23 @@ export class CompanionAI {
         c._animState = 'idle';
     }
 
-    /** 主动攻击/巡逻：追击最近敌人近战；防御条件满足仍优先举盾 */
-    _cmdWarriorAggressive(entities, player, cmd) {
+    /** 主动攻击/巡逻：追击最近敌人近战；防御条件满足仍优先举盾。
+     *  forcedTarget 非空 = RTS 右键指定攻击目标（2026-08-16）：只打该目标，
+     *  目标死亡/失活自动清除指令回落跟随。 */
+    _cmdWarriorAggressive(entities, player, cmd, forcedTarget = null) {
         const c = this.c;
         const cfg = this.cfg;
         let enemies = this._activeEnemies(entities);
-        if (cmd) {
+        if (forcedTarget) {
+            if (!forcedTarget.active || forcedTarget.hp <= 0) {
+                c._command = { mode: 'follow' };
+                c.target = null;
+                this._cmdFollowOnly(player);
+                return;
+            }
+            if (!enemies.some((e) => e === forcedTarget)) enemies = [forcedTarget];
+            c.target = forcedTarget;
+        } else if (cmd) {
             enemies = enemies.filter(e => Math.hypot(e.x - c.x, e.y - c.y) <= CMD_PATROL_SENSE);
         }
         if (!enemies.length) {

@@ -6379,6 +6379,10 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
   再清 gather/patrol 残余；game.js 右键块在 `if(leftPressed)` 之外独立执行并消费
   `rightPressed`（防玩家右键特殊攻击同帧触发）。目标点画绿色下指箭头
   （GameScene.showMoveMarker：0x3dff6a 三角+箭杆，depth=y+15，1.2s 淡出）。
+- **指定攻击指令（2026-08-16 RTS 右键点敌）**：`PartySystem.setCommand` 签名扩为
+  `(target, mode, point=null, targetEntity=null)`——`mode==='attack'` 时把目标实体存入
+  `_command.target`；companion-ai 的 `case 'attack'` 转 `_cmdAggressive(entities, player,
+  cmd.target)` / 法师 `_cmdWarriorAggressive(..., cmd.target)`，队友优先打指定目标。
   探针 `tools/cdp-party-rightmove.mjs` + 截图 `tools/verify-shots/rightmove_marker.png`。
 - **能源簇位（2026-08-16）**：`ENERGY_CONFIG.clusters`——(2000,1300) 曾落在常见
   建屋区（小屋门口见既有矿点的观感来源），已东移至 **(3000,1500)**；新位置距基地
