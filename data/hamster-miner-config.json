@@ -9,8 +9,13 @@
   "weaponType": "pickaxe",
   "baseLevel": 1,
   "baseExp": 0,
+  "baseMaxHp": 100,
   "baseData": { "str": 6, "dex": 6, "int": 5, "con": 10, "wis": 5, "luck": 5 },
+  "statFormula": "enemy",
   "skills": [],
+  "sounds": {
+    "mining": "assets/sounds/friendly/hamster_miner_mining.mp3"
+  },
   "ai": {
     "role": "miner",
     "walkSpeed": 80,

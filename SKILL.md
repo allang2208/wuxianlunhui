@@ -5009,6 +5009,9 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
   - **关门帧栅栏叶贴柱（二轮，消"动画妥协"缝）**：`rebuild-gate-onewall.py` 在 split 之后
     把 frame 0 左叶 [179,320)→[174,320)、右叶 [320,460)→[320,466) 逐行拉伸——最外竖杆/
     横杆正好贴柱内缘（174/466），动画帧 1..15 不动（开门滑动天然覆盖）。
+    **三轮微修**：叶拉伸加深 2px（左叶→[172,320)、右叶→[320,468)）且 `barCrop` 右缘
+    466→467（w 293）——裁剪窗右边界不含端点，466 是贴柱像素，取 466 会留 1px 缝；
+    可见边缘现为 174..466 与柱内缘齐平。
     ⚠ 图层仍按 `syncGateSeamDepths` 的"左在右前"：B 端门右柱抬到墙前（盖墙左端）、
     A 端门左柱压到墙后（墙右端盖门左柱）——接缝观感以实机为准。
   - **B 面板拼接**：`GATE_SNAP_OVERLAP` 51 → 40（与掩体墙端帽同口径）。
@@ -6021,6 +6024,18 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
 > 首航范例：仓鼠矿工（`data/hamster-miner-config.json` + `src/entities/hamster-miner.js` +
 > `src/ai/hamster-miner-ai.js` + `src/world/hamster-miner-system.js`）。
 
+#### 0. 六维属性公式源（2026-08-16：仓鼠单位一律怪物公式）
+- 仓鼠友军单位 `statFormula: 'enemy'` → `Companion._enemyCombatStats` 分支：派生数值
+  （atk/def/matk/mdef/crit/critRes）逐项走怪物同款公式（combat-formulas
+  enemy.calculateCombatStats）：物攻 round(str×0.5+dex×0.5)、物防 floor(con×1.5+str×0.3)、
+  魔攻 floor(int×0.5+wis×0.5)、魔防 floor(wis×1.2+int×0.3)、暴击 floor(2+luck)、
+  暴抗 floor(con)。HP/等级不走此分支（HP 由 baseMaxHp/con 公式在 updateMaxStats 定，
+  等级仍 baseLevel+经验）。
+- 伙伴（伊莉丝/露娜，含凯斯/塞拉）无此标记，**按玩家公式**（2026-08-16 用户确认）：
+  物攻 round(10+str×0.05+dex×0.1)、物防 Math.round(con×1.2+str×0.3)、
+  魔攻 floor(int×1.5+wis×0.5)，且不产生怪物专属字段（mdef/crit/critRes）；
+  test-hamster-guard.mjs 1.6 节已锁定——勿给 companion-config 加 statFormula。
+
 #### 1. 素材与帧布局
 - 精灵图入 `assets/companions/<id>/`（idle/walking/mining/dying 各一张），
   512×512 帧、8 列 × 4 行网格（先目检行列与有效帧数，再配 frameCount）。
@@ -6029,6 +6044,7 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
 
 #### 2. 数据（data/hamster-miner-config.json）
 - `baseData.con` 控 HP（公式 base100 + con×10 + 每级10；con=10 → 200）。
+  **2026-08-16 用户口径：baseMaxHp:100 覆盖（con=10 公式 200 → 100）**。
 - `ai`：`walkSpeed/runSpeed`（80）、`miningRange`（**50**，采矿触发 = 50 + 节点半径45 =
   95px，矿工更贴近矿点）、`attackInterval`（2000）、
   `attackDamage`（100）、`decisionMs`（120）、`engageRange`（340，小屋防御交战半径）、
@@ -6141,8 +6157,8 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
 > PerceptionSystem `_enemyTargetable` 放行），差异只在 AI 决策与攻击动画口径。
 
 - **数据（`data/hamster-warrior-config.json`）**：不入 companion-config.json（避免招募池）；
-  `baseMaxHp: 300` 生命覆盖（`Companion._maxHpOverride`，镜像 `baseMaxMp`——con=15 公式
-  250 → 300，升级仍 +10/级）；六维 力量20/敏捷12/智力3/体质15/精神3/幸运5；移速 120、
+  `baseMaxHp: 225` 生命覆盖（`Companion._maxHpOverride`，镜像 `baseMaxMp`——con=15 公式
+  250 → 225，升级仍 +10/级）；六维 力量20/敏捷12/智力3/体质15/精神3/幸运5；移速 120、
   攻击 50/2s、attackRange 55、engageRange 900、followOffset 140。
 - **攻击动画两段式（用户口径）**：从待机/移动进入攻击 → 播放**完整 1~24 帧**一次；
   持续攻击中 → **第 6~24 帧循环**（`startFrames:[0,23]` + `loopFrames:[5,23]`，
@@ -6218,8 +6234,9 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
 > "第 10 帧出膛"）。用户口述"4×8 裁剪"与实测不符——**素材实测 8 列 × 4 行、512² 格
 > （4096×2048）**：idle 1 / running 17 / attacking 12 / dying 15 帧（目检铁律再次验证）。
 
-- **数据（`data/hamster-guard-config.json`）**：`baseMaxHp: 350`（con=25 公式
-  100+250=350，与覆盖值一致）；六维 力量13/敏捷10/智力3/体质25/精神3/幸运3；移速 100、
+- **数据（`data/hamster-guard-config.json`）**：`baseMaxHp: 300`（con=25 公式
+  100+250=350 → 300，2026-08-16 用户口径）；`statFormula:'enemy'`（六维派生走怪物公式，见工作流
+  第 0 条）；六维 力量13/敏捷10/智力3/体质25/精神3/幸运3；移速 100、
   攻击 30/2s、attackRange 55、engageRange 900、attackAnimFps 12、**attackDamageFrame 10**。
 - **第 10 帧判定机制**：攻击动画 12 帧 @12fps 单次播放（repeat 0，1.0s）；AI 挥击
   （`_swingActive`，同射手 `_shotActive` 状态机）起手后 `_damageDelayMs =
@@ -6229,9 +6246,9 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
 - **AI（`src/ai/hamster-guard-ai.js`）**：最近 enemy 索敌（跳过 `_isEnergyNode` 矿点）
   → 走位 walk（MovementSystem）→ 攻击范围挥击站定；无敌人跟随玩家；卡死看门狗同款。
 - **生成**：兵营 `unit.guard` + 面板第三按钮；升级同步映射
-  `_isHamsterGuard → 'guard'`；`scripts/test-hamster-guard.mjs` 37 项全绿
-  （含**物防口径修正：combat-formulas.player.defense 字段是 `floor:true` 但代码判
-  `defF.round==='floor'` 恒 false → 实际 Math.round**，盾卫 def=round(33.9)=34）。
+  `_isHamsterGuard → 'guard'`；`scripts/test-hamster-guard.mjs` 59 项全绿
+  （含**四仓鼠单位怪物公式派生逐项校验** atk/def/matk/mdef/crit/critRes——
+  盾卫 12/41/3/4/5/25，HP 350 不变）。
 - **升级模块（复制仓鼠小屋口径）**：每级统一 1000 金币 + 500 能源——攻击加速
   （间隔 -6%/级）、攻击强化（伤害 +12%/级）、机动强化（移速 +5%/级）、
   生命强化（生命 +10%/级）；矿工专属的采矿效率/背包扩容不复制，数量模块也不设
@@ -6823,12 +6840,24 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
 所有音效**按实体类别建子目录，禁止堆在 assets/sounds/ 根目录**：
 ```
 assets/sounds/enemies/<怪物英文名>/   # 怪物音效（如 amalgam/time_agent/time_agent_shield）
+assets/sounds/friendly/               # 友方单位音效（仓鼠矿工/战士/射手/盾卫，2026-08-16）
 assets/sounds/weapons/                # 枪械开火/换弹/过热等武器音效
 assets/sounds/bow/                    # 弓箭音效
 assets/sounds/shield/                 # 盾牌格挡/受击音效
 assets/sounds/ui/                     # 金币/升级/出售/击倒等系统音效
 ```
 2026-07-21 已完成存量迁移（根目录音效全部入子目录，引用同步更新）。新增音效一律入对应子目录，路径写进配置（enemy-config.json sounds / weapon-fx-config.js 等），不在代码里写死。
+
+#### 友方单位音效（2026-08-16 仓鼠系列，用户素材）
+- 素材复制改名入库 `assets/sounds/friendly/`：`hamster_shooter_attack.mp3`（射手出膛）、
+  `hamster_melee_attack.mp3`（战士/盾卫共用，源=鼠鼠战士 1.mp3）、
+  `hamster_miner_mining.mp3`（矿工挥锄）。
+- 配置：`data/hamster-*-config.json` 新增 `sounds` 块（attack/mining 键 → 路径）；
+  `Companion` 基类 `this.sounds = archive.sounds || {}`（一处生效，伙伴未配置默认为空）。
+- 触发：各 AI 攻击命中/发射点调 `_playSound(key)` 助手——世界内发声走
+  `SoundManager.playWorld(path, x, y)`（坐标衰减，音效铁律），无则 playFile 兜底；
+  射手在 `_fireProjectile`（第 10 帧出膛）、战士 `_tryAttack`、盾卫 `_applyDamage`
+  （第 10 帧判定）、矿工 `_tryAttack`（采矿命中）。
 
 #### 步骤1: 素材复制建档（规则 4）
 按类别在项目下建子文件夹，把用户提供的音频复制进去：

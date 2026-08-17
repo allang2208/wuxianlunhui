@@ -11,7 +11,11 @@
   "baseExp": 0,
   "baseMaxHp": 150,
   "baseData": { "str": 12, "dex": 20, "int": 3, "con": 10, "wis": 3, "luck": 10 },
+  "statFormula": "enemy",
   "skills": [],
+  "sounds": {
+    "attack": "assets/sounds/friendly/hamster_shooter_attack.mp3"
+  },
   "ai": {
     "role": "ranged_guard",
     "walkSpeed": 150,

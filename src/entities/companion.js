@@ -42,6 +42,10 @@ export class Companion {
         this.equipNote = archive.equipNote || '';
         // AI 配置（2026-08-14）：有 ai 字段的队员由 CompanionAI 驱动战斗/跟随；无则纯跟随渲染
         this.aiConfig = archive.ai || null;
+        // 六维战斗属性公式源（2026-08-16）：仓鼠友军单位 statFormula='enemy' →
+        // 派生数值（atk/def/matk/mdef/crit/critRes）走怪物同款公式（combat-formulas
+        // enemy.calculateCombatStats）；伙伴（伊莉丝/露娜）默认玩家公式不变。
+        this._enemyCombatStats = archive.statFormula === 'enemy';
         // 初始魔法覆盖（2026-08-15）：露娜 baseMaxMp=600（1 级基准，升级仍 +10/级 + 装备加成）
         this._maxMpOverride = archive.baseMaxMp || 0;
         // 初始生命覆盖（2026-08-16）：仓鼠战士 baseMaxHp=300（con=15 → 公式 250，覆盖为 300）；
@@ -89,6 +93,8 @@ export class Companion {
         this._checkUnlocks();
         // 动作动画配置（walk/run/spell 等；素材已入库 assets/companions/<id>/）
         this.animations = archive.animations || {};
+        // 音效配置（仓鼠单位等：attack/mining 键 → 文件路径；AI 按事件播放，路径不进代码）
+        this.sounds = archive.sounds || {};
         // ===== 战斗运行时字段（由 CompanionAI / PartySystem.updateCombat 驱动；不进存档）=====
         this.active = true;
         this.x = 0;
@@ -375,6 +381,29 @@ export class Companion {
         d.wis += eq.wis - prev.wis;
         d.luck += eq.luck - prev.luck;
         this._equipAttrBonus = { str: eq.str, dex: eq.dex, int: eq.int, con: eq.con, wis: eq.wis, luck: eq.luck };
+        // 仓鼠友军单位：六维派生数值走怪物同款公式（enemy.calculateCombatStats）。
+        // 与怪物实现逐项对齐——atk 用 round 标志，其余（def/matk/mdef/crit/critRes）
+        // 按 floor 口径；HP/等级不走这里（HP 由 baseMaxHp/con 公式在 updateMaxStats 定）。
+        if (this._enemyCombatStats) {
+            const ef = COMBAT_FORMULAS.enemy?.calculateCombatStats || {};
+            const atkF = ef.attack || { base: 0, strMultiplier: 0.5, dexMultiplier: 0.5, round: true };
+            const defF = ef.defense || { conMultiplier: 1.5, strMultiplier: 0.3, round: 'floor' };
+            const matkF = ef.magicAttack || { base: 0, intMultiplier: 0.5, wisMultiplier: 0.5, round: 'floor' };
+            const mdefF = ef.magicDefense || { wisMultiplier: 1.2, intMultiplier: 0.3, round: 'floor' };
+            const critF = ef.crit || { base: 2, luckMultiplier: 1.0, round: 'floor' };
+            const critResF = ef.critResist || { conMultiplier: 1.0, round: 'floor' };
+            const fl = (v) => Math.floor(v);
+            d.atk = atkF.round
+                ? Math.round((atkF.base ?? 0) + d.str * atkF.strMultiplier + d.dex * atkF.dexMultiplier)
+                : fl((atkF.base ?? 0) + d.str * atkF.strMultiplier + d.dex * atkF.dexMultiplier);
+            d.atk += Math.round(eq.atk || 0);
+            d.def = fl(d.con * defF.conMultiplier + d.str * defF.strMultiplier) + Math.round(eq.defense || 0);
+            d.matk = fl((matkF.base ?? 0) + d.int * matkF.intMultiplier + d.wis * matkF.wisMultiplier) + Math.round(eq.matk || 0);
+            d.mdef = fl(d.wis * mdefF.wisMultiplier + d.int * mdefF.intMultiplier);
+            d.crit = fl((critF.base ?? 2) + d.luck * critF.luckMultiplier);
+            d.critRes = fl(d.con * critResF.conMultiplier);
+            return;
+        }
         const formulas = COMBAT_FORMULAS.player || {};
         const atkF = formulas.attack || { base: 10, strMultiplier: 0.05, dexMultiplier: 0.1, round: true };
         d.atk = atkF.round

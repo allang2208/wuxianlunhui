@@ -24,18 +24,19 @@ function check(name, cond, detail = '') {
 
 // ---- 1. 数据契约（Companion 纯数据模型可 node 直测）----
 const w = new Companion(warriorCfg);
-check('生命值 = 300（baseMaxHp 覆盖，con=15 公式 250 → 300）',
-    w.data.maxHp === 300 && w.data.hp === 300, `maxHp=${w.data.maxHp}`);
+check('生命值 = 225（baseMaxHp 覆盖，2026-08-16 用户口径）',
+    w.data.maxHp === 225 && w.data.hp === 225, `maxHp=${w.data.maxHp}`);
 check('六维初始值 力量20/敏捷12/智力3/体质15/精神3/幸运5',
     w.data.str === 20 && w.data.dex === 12 && w.data.int === 3
     && w.data.con === 15 && w.data.wis === 3 && w.data.luck === 5,
     `str=${w.data.str} dex=${w.data.dex} int=${w.data.int} con=${w.data.con} wis=${w.data.wis} luck=${w.data.luck}`);
-check('派生数值挂钩：物攻 = round(10 + 20×0.05 + 12×0.1) = 12',
-    w.data.atk === 12, `atk=${w.data.atk}`);
-check('派生数值挂钩：物防 = floor(15×1.2 + 20×0.3) = 24',
-    w.data.def === 24, `def=${w.data.def}`);
-check('派生数值挂钩：魔攻 = floor(3×1.5 + 3×0.5) = 6',
-    w.data.matk === 6, `matk=${w.data.matk}`);
+check('statFormula = enemy（六维走怪物同款公式）', warriorCfg.statFormula === 'enemy');
+check('派生数值挂钩：物攻 = round(20×0.5 + 12×0.5) = 16（怪物公式）',
+    w.data.atk === 16, `atk=${w.data.atk}`);
+check('派生数值挂钩：物防 = floor(15×1.5 + 20×0.3) = 28（怪物公式）',
+    w.data.def === 28, `def=${w.data.def}`);
+check('派生数值挂钩：魔攻 = floor(3×0.5 + 3×0.5) = 3（怪物公式）',
+    w.data.matk === 3, `matk=${w.data.matk}`);
 check('移动速度 = 120', warriorCfg.ai.walkSpeed === 120 && warriorCfg.ai.runSpeed === 120,
     `walkSpeed=${warriorCfg.ai.walkSpeed}`);
 check('攻击间隔 = 2000ms / 伤害 = 50', warriorCfg.ai.attackInterval === 2000 && warriorCfg.ai.attackDamage === 50);
@@ -100,7 +101,7 @@ check('GameScene 仓鼠战士攻击两段式（hamsterAtk + atkStartKey）',
     /member\._isHamsterWarrior/.test(gsSrc) && /hamsterAtk/.test(gsSrc)
     && /atkStartKey/.test(gsSrc));
 check('GameScene 仓鼠战士移动朝向 vx（不倒退走路）',
-    /member\._isHamsterWarrior\) && moving/.test(gsSrc) && /faceRight = member\.vx > 0/.test(gsSrc));
+    /member\._isHamsterWarrior.*&& moving/.test(gsSrc) && /faceRight = member\.vx > 0/.test(gsSrc));
 check('GameScene 仓鼠战士受击白闪', /member\._isHamsterWarrior/.test(gsSrc)
     && /member\.hitFlash > 0/.test(gsSrc));
 
@@ -108,9 +109,12 @@ const bootSrc = fs.readFileSync(path.join(ROOT, 'src/phaser/scenes/BootScene.js'
 check('BootScene 加载仓鼠战士精灵图',
     /hamsterWarriorConfig/.test(bootSrc) && /companion_\$\{unitConfig\.id\}_/.test(bootSrc));
 
-const smSrc = fs.readFileSync(path.join(ROOT, 'src/world/scene-manager.js'), 'utf-8');
-check('世界-122 进入生成仓鼠战士', /HamsterWarriorSystem\.setup\(player\)/.test(smSrc));
-check('场景离场拆除仓鼠战士', /HamsterWarriorSystem\.teardown\(\)/.test(smSrc));
+const barSrc = fs.readFileSync(path.join(ROOT, 'src/world/hamster-barracks-system.js'), 'utf-8');
+check('兵营生成仓鼠战士（unit.warrior + new HamsterWarrior）',
+    /warrior: \{ key: 'warrior', name: '仓鼠战士'/.test(barSrc)
+    && /new HamsterWarrior/.test(barSrc));
+check('场景离场由兵营拆除单位（teardown → _despawnUnits）',
+    /teardown\(\)/.test(barSrc) && /_despawnUnits\(\)/.test(barSrc));
 
 const psSrc = fs.readFileSync(path.join(ROOT, 'src/systems/perception-system.js'), 'utf-8');
 check('PerceptionSystem 放行 _enemyTargetable 友方单位', /_enemyTargetable/.test(psSrc));

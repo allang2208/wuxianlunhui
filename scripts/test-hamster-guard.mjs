@@ -14,6 +14,9 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const { default: guardCfg } = await import('../data/hamster-guard-config.json');
+const { default: minerCfg } = await import('../data/hamster-miner-config.json');
+const { default: warriorCfg } = await import('../data/hamster-warrior-config.json');
+const { default: shooterCfg } = await import('../data/hamster-shooter-config.json');
 const { Companion } = await import('../src/entities/companion.js');
 
 let pass = 0, fail = 0;
@@ -24,18 +27,25 @@ function check(name, cond, detail = '') {
 
 // ---- 1. 数据契约（Companion 纯数据模型可 node 直测）----
 const g = new Companion(guardCfg);
-check('生命值 = 350（baseMaxHp 覆盖；con=25 公式 100+250=350 一致）',
-    g.data.maxHp === 350 && g.data.hp === 350, `maxHp=${g.data.maxHp}`);
+check('生命值 = 300（baseMaxHp 覆盖，2026-08-16 用户口径）',
+    g.data.maxHp === 300 && g.data.hp === 300, `maxHp=${g.data.maxHp}`);
 check('六维初始值 力量13/敏捷10/智力3/体质25/精神3/幸运3',
     g.data.str === 13 && g.data.dex === 10 && g.data.int === 3
     && g.data.con === 25 && g.data.wis === 3 && g.data.luck === 3,
     `str=${g.data.str} dex=${g.data.dex} int=${g.data.int} con=${g.data.con} wis=${g.data.wis} luck=${g.data.luck}`);
-check('派生数值挂钩：物攻 = round(10 + 13×0.05 + 10×0.1) = 12',
+check('statFormula = enemy（六维走怪物同款公式）', guardCfg.statFormula === 'enemy');
+check('派生数值挂钩：物攻 = round(13×0.5 + 10×0.5) = 12（怪物公式）',
     g.data.atk === 12, `atk=${g.data.atk}`);
-check('派生数值挂钩：物防 = round(25×1.2 + 13×0.3) = 34（公式实际走 Math.round）',
-    g.data.def === 34, `def=${g.data.def}`);
-check('派生数值挂钩：魔攻 = floor(3×1.5 + 3×0.5) = 6',
-    g.data.matk === 6, `matk=${g.data.matk}`);
+check('派生数值挂钩：物防 = floor(25×1.5 + 13×0.3) = 41（怪物公式）',
+    g.data.def === 41, `def=${g.data.def}`);
+check('派生数值挂钩：魔攻 = floor(3×0.5 + 3×0.5) = 3（怪物公式）',
+    g.data.matk === 3, `matk=${g.data.matk}`);
+check('派生数值挂钩：魔防 = floor(3×1.2 + 3×0.3) = 4（怪物公式）',
+    g.data.mdef === 4, `mdef=${g.data.mdef}`);
+check('派生数值挂钩：暴击 = floor(2 + 3×1) = 5（怪物公式）',
+    g.data.crit === 5, `crit=${g.data.crit}`);
+check('派生数值挂钩：暴抗 = floor(25×1) = 25（怪物公式）',
+    g.data.critRes === 25, `critRes=${g.data.critRes}`);
 check('移动速度 = 100', guardCfg.ai.walkSpeed === 100 && guardCfg.ai.runSpeed === 100,
     `walkSpeed=${guardCfg.ai.walkSpeed}`);
 check('攻击间隔 = 2000ms / 伤害 = 30', guardCfg.ai.attackInterval === 2000 && guardCfg.ai.attackDamage === 30);
@@ -60,6 +70,49 @@ check('帧布局 512×512 / 8列4行', Object.values(guardCfg.animations).every(
     a.frameWidth === 512 && a.frameHeight === 512 && a.cols === 8 && a.rows === 4));
 check('素材帧脚底非 480，带 spriteOffsetY 补偿',
     typeof guardCfg.spriteOffsetY === 'number' && guardCfg.spriteOffsetY < 0);
+
+// ---- 1.5 全部仓鼠单位：六维一律走怪物公式（2026-08-16 用户口径）----
+const enemyExpected = {
+    hamster_miner: { atk: 6, def: 16, matk: 5, mdef: 7, crit: 7, critRes: 10 },
+    hamster_warrior: { atk: 16, def: 28, matk: 3, mdef: 4, crit: 7, critRes: 15 },
+    hamster_shooter: { atk: 16, def: 18, matk: 3, mdef: 4, crit: 12, critRes: 10 },
+    hamster_guard: { atk: 12, def: 41, matk: 3, mdef: 4, crit: 5, critRes: 25 },
+};
+for (const [id, cfg, exp] of [
+    [minerCfg.id, minerCfg, enemyExpected.hamster_miner],
+    [warriorCfg.id, warriorCfg, enemyExpected.hamster_warrior],
+    [shooterCfg.id, shooterCfg, enemyExpected.hamster_shooter],
+    [guardCfg.id, guardCfg, enemyExpected.hamster_guard],
+]) {
+    const u = new Companion(cfg);
+    check(`${cfg.name} statFormula=enemy`, cfg.statFormula === 'enemy');
+    check(`${cfg.name} 怪物公式派生 atk/def/matk/mdef/crit/critRes`,
+        u.data.atk === exp.atk && u.data.def === exp.def && u.data.matk === exp.matk
+        && u.data.mdef === exp.mdef && u.data.crit === exp.crit && u.data.critRes === exp.critRes,
+        `atk=${u.data.atk} def=${u.data.def} matk=${u.data.matk} mdef=${u.data.mdef} crit=${u.data.crit} critRes=${u.data.critRes}`);
+}
+
+// ---- 1.6 伙伴（伊莉丝/露娜）：按玩家公式，不走怪物公式（2026-08-16 用户口径）----
+const { default: companionCfg } = await import('../data/companion-config.json');
+const playerFormulaChecks = {
+    伊莉丝: { str: 13, dex: 8, int: 4, con: 13, wis: 6, luck: 4 },
+    露娜: { str: 4, dex: 6, int: 13, con: 6, wis: 12, luck: 6 },
+};
+for (const member of companionCfg.companions || []) {
+    if (!playerFormulaChecks[member.name]) continue;
+    const u = new Companion(member);
+    const s = playerFormulaChecks[member.name];
+    check(`${member.name} 无 statFormula（保持玩家公式）`,
+        member.statFormula === undefined && u._enemyCombatStats === false);
+    check(`${member.name} 物攻 = round(10 + str×0.05 + dex×0.1)（玩家公式）`,
+        u.data.atk === Math.round(10 + s.str * 0.05 + s.dex * 0.1), `atk=${u.data.atk}`);
+    check(`${member.name} 物防 = Math.round(con×1.2 + str×0.3)（玩家公式，实际走 round）`,
+        u.data.def === Math.round(s.con * 1.2 + s.str * 0.3), `def=${u.data.def}`);
+    check(`${member.name} 魔攻 = floor(int×1.5 + wis×0.5)（玩家公式）`,
+        u.data.matk === Math.floor(s.int * 1.5 + s.wis * 0.5), `matk=${u.data.matk}`);
+    check(`${member.name} 不产生怪物专属字段（mdef/crit/critRes 未定义）`,
+        u.data.mdef === undefined && u.data.crit === undefined && u.data.critRes === undefined);
+}
 
 // ---- 2. 源码接线：AI 只打敌人、不攻击矿点、第 10 帧判定 ---- 
 const aiSrc = fs.readFileSync(path.join(ROOT, 'src/ai/hamster-guard-ai.js'), 'utf-8');
