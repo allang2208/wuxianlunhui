@@ -1102,7 +1102,7 @@ export const SceneManager = {
         const scene = this.scenes.scene8;
         const cfg = (scene && scene.cactusScatter) || {};
         if (cfg.enabled === false) return;
-        const count = cfg.count ?? 80;
+        const count = cfg.count ?? 40; // 2026-08-17：默认减半（配置可覆盖，见 game-config.json cactusScatter）
         const minDist = cfg.minDist ?? 150;
         const jitter = cfg.scaleJitter ?? 0.1;
         const b = cfg.bounds || {};

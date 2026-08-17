@@ -30,10 +30,11 @@ export const HAMSTER_CONFIG = {
         mdef: 60,
         maxLevel: 10,
         maxHp: 1500,
-        tex: 'hamster_hut',
-        displayW: 150,
+        tex: 'mine',
+        // 2026-08-17 回退：显示尺寸统一到草屋同款 144×147（不再放大）
+        displayW: 144,
         displayH: 147,
-        footOffsetY: 74,
+        footOffsetY: 21,   // bbox 底 2638/4096 → 147×(0.644-0.5) ≈ 21
         sellRefundRatio: 0.5,
         minerSpawnRadius: 70,
         respawnMs: 60000,        // 矿工死亡后 1 分钟才补员
@@ -244,8 +245,8 @@ export class HamsterHut extends DamageableEntity {
     _onDoorClosed(sprite) {
         if (!this.active) return;
         this._doorState = 'closed';
-        if (sprite && sprite.scene && sprite.scene.textures.exists('hamster_hut')) {
-            sprite.setTexture('hamster_hut');
+                if (sprite && sprite.scene && sprite.scene.textures.exists('mine')) {
+                    sprite.setTexture('mine');
             sprite.setDisplaySize(this.spriteCfg.size, this.spriteCfg.sizeH);
         }
     }

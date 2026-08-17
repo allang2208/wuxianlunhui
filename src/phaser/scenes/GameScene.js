@@ -14,7 +14,7 @@ import { WallGate } from '../../world/wall-gate.js';
 import { ChestRoomSystem } from '../../world/chest-room-system.js';
 import { Renderer } from '../../world/renderer.js';
 import { MapGenerator } from '../../world/map-generator.js';
-import { bakeDungeonFloorChunk } from '../../world/dungeon-floor-texture.js';
+import { bakeDungeonFloorChunk, registerDecoClearZone } from '../../world/dungeon-floor-texture.js';
 import { WeaponTransform } from '../../combat/weapon-transform.js';
 import { SwordArcTrail } from '../../effects/sword-arc-trail.js';
 import { getWeaponTextureKey } from '../../config/weapon-texture-map.js';
@@ -515,10 +515,10 @@ export class GameScene extends Scene {
             const aiMode = !!member.aiConfig;
             let faceRight = facingRight;
             if (aiMode) {
-                // 仓鼠矿工/战士/射手移动（walk）始终朝向实际移动方向（vx），不倒退走路——
+                // 仓鼠矿工/战士/射手/盾卫/民兵移动（walk）始终朝向实际移动方向（vx），不倒退走路——
                 // 否则寻路绕行/回屋时贴图朝向目标、实际反向移动（2026-08-15 用户口径）
                 const moving = member._animState === 'walk' || Math.abs(member.vx) > 5;
-                if ((member._isHamsterMiner || member._isHamsterWarrior || member._isHamsterShooter || member._isHamsterGuard) && moving) {
+                if ((member._isHamsterMiner || member._isHamsterWarrior || member._isHamsterShooter || member._isHamsterGuard || member._isHamsterMilitia) && moving) {
                     faceRight = member.vx > 0;
                 } else if (member._lastAction === 'flee' && Math.abs(member.vx) > 5) {
                     faceRight = member.vx > 0;
@@ -538,8 +538,8 @@ export class GameScene extends Scene {
             }
             sprite.setFlipX(!faceRight);
             sprite.setDepth(this.playerSprite.depth + 0.5);
-            // 受击白闪（仓鼠矿工/战士/射手）
-            if (member._isHamsterMiner || member._isHamsterWarrior || member._isHamsterShooter || member._isHamsterGuard) {
+            // 受击白闪（仓鼠矿工/战士/射手/盾卫/民兵）
+            if (member._isHamsterMiner || member._isHamsterWarrior || member._isHamsterShooter || member._isHamsterGuard || member._isHamsterMilitia) {
                 if (member.hitFlash > 0) sprite.setTint(0xffffff);
                 else sprite.clearTint();
             }
@@ -634,11 +634,12 @@ export class GameScene extends Scene {
                             }
                         }
                     }
-                } else if (st === 'attack' && (member._isHamsterShooter || member._isHamsterGuard)
+                } else if (st === 'attack' && (member._isHamsterShooter || member._isHamsterGuard || member._isHamsterMilitia)
                     && anims.attack && this.textures.exists(`companion_${animId}_attack`)) {
-                    // 仓鼠射手/盾卫攻击：单次播放（射手 13 帧 / 盾卫 12 帧，repeat 0），
-                    // 射手第 10 帧出膛、盾卫第 10 帧伤害判定均由 AI 计时；AI 每次挥击置
-                    // _attackSwing → 重播动画；播完定格末帧等下一次挥击。
+                    // 仓鼠射手/盾卫/民兵攻击：单次播放（射手 13 帧 / 盾卫 12 帧 /
+                    // 民兵 15 帧，repeat 0），射手第 10 帧出膛、盾卫第 10 帧、
+                    // 民兵第 8 帧伤害判定均由 AI 计时；AI 每次挥击置 _attackSwing →
+                    // 重播动画；播完定格末帧等下一次挥击。
                     const atkKey = `companion_${animId}_attack`;
                     const atkLast = anims.attack.frameCount ? anims.attack.frameCount - 1 : 12;
                     if (member._attackSwing && !sprite.getData('shooterSwing')) {
@@ -6395,6 +6396,42 @@ export class GameScene extends Scene {
         img.setOrigin(0.5, 0.5);
         img.setDepth(-1000);
         this._terrainChunkSprites.set(key, img);
+    }
+
+    /** 擦除世界坐标 (wx,wy) 半径内的地板装饰（草等，2026-08-17）：注册清除区 +
+     *  局部重烘焙所有与清除圆相交的已加载 chunk（未加载的块之后按需烘焙时自动跳过） */
+    eraseDecoAt(wx, wy, radius) {
+        if (!(radius > 0)) return;
+        registerDecoClearZone(wx, wy, radius);
+        const chunks = Renderer.terrainChunks;
+        if (!chunks || !this._terrainChunkSprites) return;
+        const cs = chunks.chunkSize || 2048;
+        const toRebake = [];
+        for (const [key] of this._terrainChunkSprites) {
+            const parts = key.split('_');
+            const dcx = Number(parts[2]);
+            const dcy = Number(parts[3]);
+            if (!Number.isFinite(dcx) || !Number.isFinite(dcy)) continue;
+            const ox = dcx * cs, oy = dcy * cs;
+            const nx = Math.max(ox, Math.min(wx, ox + cs));
+            const ny = Math.max(oy, Math.min(wy, oy + cs));
+            if (Math.hypot(wx - nx, wy - ny) > radius) continue;
+            toRebake.push({ dcx, dcy, key });
+        }
+        // 先收集再逐个重建（迭代中 delete+set 同一 key 会让 Map 迭代器重访 → 死循环）
+        for (const r of toRebake) this._rebakeTerrainChunk(r.dcx, r.dcy, r.key);
+    }
+
+    /** 重烘焙单个地形块（先销毁旧精灵/纹理，再按视口烘焙逻辑重建） */
+    _rebakeTerrainChunk(cx, cy, key) {
+        if (this._terrainChunkSprites.has(key)) {
+            const old = this._terrainChunkSprites.get(key);
+            old.destroy();
+            this._terrainChunkSprites.delete(key);
+            if (this.textures.exists(key)) this.textures.remove(key);
+        }
+        const chunks = Renderer.terrainChunks;
+        if (chunks) this._bakeTerrainChunk({ key, cx, cy, ox: cx * chunks.chunkSize, oy: cy * chunks.chunkSize });
     }
 
     _destroyTerrainChunks() {
