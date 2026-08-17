@@ -9,9 +9,13 @@
   "weaponType": "shield",
   "baseLevel": 1,
   "baseExp": 0,
-  "baseMaxHp": 350,
+  "baseMaxHp": 300,
   "baseData": { "str": 13, "dex": 10, "int": 3, "con": 25, "wis": 3, "luck": 3 },
+  "statFormula": "enemy",
   "skills": [],
+  "sounds": {
+    "attack": "assets/sounds/friendly/hamster_melee_attack.mp3"
+  },
   "ai": {
     "role": "melee_guard",
     "walkSpeed": 100,

@@ -1,4 +1,65 @@
 # 变更日志
+### 对话：新增玩家友方单位·仓鼠民兵（2026-08-17）
+- 玩家友方近战单位：`data/hamster-militia-config.json` + `hamster-militia.js` +
+  `hamster-militia-ai.js`。素材四张表（idle 1 / running 12 / attacking 15 / dying 14，
+  4096×2048 8列4行）；running 质心漂移 17.5px → hamster-walk-align --feet-y 350 归一化
+  （cx 跨度 0.9px）。
+- 数值（用户口径）：生命 125（baseMaxHp 覆盖）、六维 力量8/敏捷10/智力3/体质6/精神3/
+  幸运7（statFormula:'enemy' 怪物公式派生 atk9/def11/matk3/mdef4/crit9/critRes6）、
+  移速 150、攻击 20 物理/2s、**动画第 8 帧判定伤害**（15 帧 @12fps 单次播放，
+  延迟 583ms）、不能攻击矿点；攻击音效与战士/盾卫共用。
+- 生成双链路：仓鼠兵营面板新增「仓鼠民兵」按钮 + 通用产兵建筑草屋 unitTypes 增配；
+  BootScene 加载/动画注册、GameScene 单次播放渲染分支、移动朝向 vx、受击白闪、
+  兵营/草屋升级同步全部接线。
+- 修复：producer-building-system `applyUpgradesToUnits` 误从 ai 块读 baseMaxHp
+  （恒 300），改读配置根——民兵 125 等 HP 覆盖生效。
+- 验证：test-hamster-militia 44 项、test-hamster-guard 61 项（含民兵派生）、
+  eslint 0 error、vite build、npm test 全绿；CDP 实机探针
+  tools/cdp-hamster-militia.mjs 已备（待用户实机跑）。版本 0.385。
+
+### 对话：仓鼠单位生命值调整（2026-08-16 用户口径）
+- 战士 300 → **225**、盾卫 350 → **300**、矿工 200（con 公式）→ **100**（新增
+  baseMaxHp:100 覆盖）；射手保持 150 不变。
+- 改 `data/hamster-{warrior,guard,miner}-config.json` 的 `baseMaxHp`；测试同步：
+  test-hamster-guard 59 项全绿（盾卫 300）、test-hamster-warrior 数据契约
+  （战士 225）；矿工/射手实测 100/150。版本 0.384。
+
+### 对话：确认伊莉丝/露娜按玩家公式（2026-08-16）
+- 用户确认：伊莉丝/露娜（含凯斯/塞拉）六维派生按玩家公式，不走仓鼠单位的怪物公式。
+- 现状复核：companion-config.json 四名伙伴均无 `statFormula` → `_enemyCombatStats=false`
+  → 玩家公式路径；物攻 round(10+str×0.05+dex×0.1)、物防 Math.round(con×1.2+str×0.3)、
+  魔攻 floor(int×1.5+wis×0.5)，且无怪物专属字段（mdef/crit/critRes）。
+- 测试锁定：test-hamster-guard.mjs 1.6 节新增 10 项（伊莉丝/露娜玩家公式 + 无怪物字段），
+  59 项全绿。版本 0.383。
+
+### 对话：仓鼠友军单位六维属性改走怪物公式挂钩（2026-08-16）
+- 用户口径：所有仓鼠友军单位（矿工/战士/射手/盾卫）的六维属性像怪物一样影响对应数值。
+- `Companion` 新增 `statFormula:'enemy'` 模式（`_enemyCombatStats`）：`calculateCombatStats`
+  分支走怪物同款公式（combat-formulas enemy.calculateCombatStats）——物攻
+  round(str×0.5+dex×0.5)、物防 floor(con×1.5+str×0.3)、魔攻 floor(int×0.5+wis×0.5)、
+  魔防 floor(wis×1.2+int×0.3)、暴击 floor(2+luck)、暴抗 floor(con)；
+  HP/等级不走此分支（HP 仍 baseMaxHp/con 公式，等级仍 baseLevel+经验）。
+- 四个 `data/hamster-*-config.json` 全部加 `"statFormula": "enemy"`；伊莉丝/露娜
+  等伙伴无此标记保持玩家公式。
+- 派生结果（怪物公式）：矿工 6/16/5/7/7/10、战士 16/28/3/4/7/15、
+  射手 16/18/3/4/12/10、盾卫 12/41/3/4/5/25（atk/def/matk/mdef/crit/critRes）。
+- 验证：test-hamster-guard 49 项全绿（含四单位怪物公式派生逐项校验）、
+  test-hamster-warrior 派生预期同步（16/28/3）、node --check + vite build 通过。
+
+### 对话：仓鼠单位音效接入（2026-08-16，用户素材）
+- 素材复制改名入库 `assets/sounds/friendly/`：
+  - `hamster_shooter_attack.mp3` ← 仓鼠射手/1.mp3（出膛播放）；
+  - `hamster_melee_attack.mp3` ← 鼠鼠战士/1.mp3（仓鼠盾卫 + 仓鼠战士攻击共用）；
+  - `hamster_miner_mining.mp3` ← 仓鼠矿工/1.mp3（采矿挥锄播放）。
+- 配置：`data/hamster-{miner,warrior,shooter,guard}-config.json` 新增 `sounds` 块
+  （键 mining/attack → 路径，不写死代码）；`Companion` 基类透传 `this.sounds`。
+- 触发：四个 AI 攻击/采矿命中点调 `_playSound(key)`——世界内发声走
+  `SoundManager.playWorld(x,y)` 坐标衰减（音效铁律），playFile 兜底：
+  射手 `_fireProjectile`（第 10 帧出膛）、战士 `_tryAttack`、盾卫 `_applyDamage`、
+  矿工 `_tryAttack`（采矿命中）。
+- 验证：JSON 四份解析通过、node --check 全过、test-hamster-guard 37 项全绿、
+  vite build 通过。实机 Ctrl+F5 听世界-122 仓鼠单位攻击/采矿音效。
+
 ### 对话：RTS 右键指定攻击——选中队友攻击指定敌方目标（2026-08-16）
 - `PartySystem.setCommand(target, mode, point=null, targetEntity=null)`：`attack` 模式
   携带目标实体，存入 `_command.target`；companion-ai 法师/剑盾 `case 'attack'` 分支转
@@ -49,6 +110,24 @@
     sim-defense-crowd 0 卡墙/0 瞬移；node --check 通过。
   - 注意：一格门通行口 ~173px，poisonMaggot 精英（半径 116）无法进门会转攻墙体（旧门
     237.8 也仅勉强容纳），属"门=一格"固有取舍。
+- **三轮贴柱微修（用户实机反馈"门的右下跟右边的柱子还有贴图缺口"）**：
+  - 根因：`barCrop` 右缘取 466（裁剪窗右边界不含端点），关门帧栅栏叶最外竖杆贴柱像素
+    恰好被裁掉 → 柱↔栅栏留 1px 缝。
+  - 修复：栅栏叶关门帧拉伸加深 2px（左叶 [179,320)→[172,320)、右叶 [320,460)→[320,468)），
+    `barCrop` 右缘 466→467（`{x:174,y:0,w:293,h:634}`）——可见边缘 174..466 与柱内缘
+    完全齐平；开门滑动越界的 1px 由裁剪窗兜底。
+  - 验证：六档 frame 0 在新 crop 内可见 174..466（贴柱）；node --check 通过。
+  - 注：栅栏叶底部沿 face 线贴地（实测外杆底 548 vs face 550），叶下方地面带属正常透视，
+    非贴图缺口；若实机仍有观感问题，以实机截图为准继续定位。
+- **四轮图层修复（用户关键线索：建筑预览（整图）连通、摆出（三层精灵）有缝 → 图层问题）**：
+  - 根因：`_initGateSprite` 旧深度 左柱4215/栅栏4171/右柱4127——右柱在栅栏之下，栅栏层
+    barCrop 硬边与右柱层边界对不齐时露地板；预览是整图单精灵无此分层，故"预览连通、
+    摆出有缝"。
+  - 修复：`depthL/depthR = max(底边线+12, depthBars+1)` → 4215/4172，左右柱一律盖在
+    栅栏之上，柱体贴图盖住栅栏裁剪边，观感与整图预览一致；开门叶片从柱后滑入（更自然）。
+  - 兼容：syncGateSeamDepths 的"门右柱盖墙左端"（4172 > 墙4140）与"墙右端盖门左柱"
+    （墙4315 > 4215）均保持；门对门接缝偏置按新深度自动补偿。
+  - 验证：node --check 通过；深度数值核验双柱 > 栅栏；实机 Ctrl+F5 复核。
 ### 对话：新增玩家友方单位·仓鼠盾卫（2026-08-16）
 - **需求**：仓鼠盾卫（素材 E:\无尽轮回\游戏\素材库\人物\仓鼠盾卫）——idle 待机 /
   running 17 帧移动 / attacking 12 帧攻击 / dying 15 帧死亡；近战、攻击动画第 10 帧

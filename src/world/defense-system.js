@@ -365,9 +365,10 @@ const GATE_GEOM = {
     worldFaceLen: 176,
     // 显示比例：与掩体墙同尺度（掩体 1024tex→260px；门 cell 640→262px，内容已内缩至墙宽）。
     displayScale: 0.410,
-    // bars 层贴图裁剪窗（cell 像素）：只显示左右石柱之间的门洞区（重建后柱内缘 x 174/466）。
+    // bars 层贴图裁剪窗（cell 像素）：只显示左右石柱之间的门洞区（重建后柱内缘 x 174/466；
+    // 右缘取 467 而非 466——裁剪窗右边界不含端点，466 恰好是贴柱像素，取 466 会留 1px 缝）。
     // 开门时钢管滑出该窗即被裁剪，不再在石柱外残留；柱体贴图由 pillarL/R 单独渲染。
-    barCrop: { x: 174, y: 0, w: 292, h: 634 },
+    barCrop: { x: 174, y: 0, w: 293, h: 634 },
 };
 const gateConfigFor = (grade) => ({ ...GATE_GEOM, grade, tex: `cover_gate_${grade}` });
 const GATE_CONFIG = gateConfigFor('D'); // 基地固定门（D 级）

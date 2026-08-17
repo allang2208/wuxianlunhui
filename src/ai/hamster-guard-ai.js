@@ -9,6 +9,7 @@
 // ============================================================
 import { MovementSystem } from '../systems/movement-system.js';
 import { WallSystem } from '../world/wall-system.js';
+import { SoundManager } from '../ui/sound-manager.js';
 
 export class HamsterGuardAI {
     constructor(guard) {
@@ -99,6 +100,12 @@ export class HamsterGuardAI {
             m._animState = 'attack';
             return;
         }
+        // RTS 指挥命令优先（2026-08-16）：move 走到指令点，attack 锁定指定目标
+        const cmd = m._command;
+        if (cmd && cmd.mode && cmd.mode !== 'follow') {
+            this._applyCommand(cmd);
+            return;
+        }
         const enemy = this._nearestEnemy(entities, m);
         if (enemy) {
             m.target = enemy;
@@ -164,6 +171,69 @@ export class HamsterGuardAI {
         }
     }
 
+    /** RTS 命令：move（走到点，到位清指令）/ attack（锁定目标，进范围站定挥击）/ hold（待命） */
+    _applyCommand(cmd) {
+        const m = this.m;
+        if (cmd.mode === 'move') {
+            m.target = null;
+            const dest = cmd.point || { x: m.x, y: m.y };
+            const dist = Math.hypot(dest.x - m.x, dest.y - m.y);
+            if (dist > 40) {
+                m._tacticalTarget = dest;
+                m._animState = 'walk';
+                m.maxSpeed = this.cfg.walkSpeed ?? 100;
+            } else {
+                m._command = { mode: 'follow' }; // 到位清除命令，回到默认跟随
+                m._tacticalTarget = null;
+                m._animState = 'idle';
+                m.maxSpeed = 0;
+                m.vx = 0; m.vy = 0; m.isMoving = false;
+            }
+            return;
+        }
+        if (cmd.mode === 'attack') {
+            const t = cmd.target;
+            if (!t || !t.active || t.hp <= 0) {
+                m._command = { mode: 'follow' };
+                m.target = null;
+                m._animState = 'idle';
+                return;
+            }
+            m.target = t;
+            const dist = Math.hypot(t.x - m.x, t.y - m.y);
+            const range = this._attackRange + (t.groundRadius || 24);
+            if (dist <= range) {
+                // 进范围：站定 + 启动一次挥击（与索敌分支同口径）
+                m._tacticalTarget = null;
+                m.maxSpeed = 0;
+                m.rotation = Math.atan2(t.y - m.y, t.x - m.x);
+                m._lastFaceRight = t.x >= m.x;
+                if (this._attackTimer <= 0) {
+                    this._attackTimer = this._attackInterval;
+                    this._swingActive = true;
+                    this._swingTimer = this._damageDelayMs;
+                    this._swingAnimLeft = this._swingAnimMs;
+                    m._animState = 'attack';
+                    m._attackSwing = true;
+                } else {
+                    m._animState = 'idle';
+                    m.vx = 0; m.vy = 0; m.isMoving = false;
+                }
+            } else {
+                m._tacticalTarget = { x: t.x, y: t.y };
+                m._animState = 'walk';
+                m.maxSpeed = this.cfg.walkSpeed ?? 100;
+            }
+            return;
+        }
+        // hold / 其它：待命
+        m.target = null;
+        m._tacticalTarget = null;
+        m._animState = 'idle';
+        m.maxSpeed = 0;
+        m.vx = 0; m.vy = 0; m.isMoving = false;
+    }
+
     /** 收集最近有效敌人：只认 enemy 阵营且不是能源矿点（engageRange 内） */
     _nearestEnemy(entities, m) {
         let best = null;
@@ -193,6 +263,19 @@ export class HamsterGuardAI {
         if (dist > range) return;
         if (typeof e.takeDamage === 'function') {
             e.takeDamage(this._attackDamage, m, 'physical', true);
+            this._playSound('attack'); // 攻击音效（2026-08-16 用户素材，与战士共用）
+        }
+    }
+
+    /** 事件音效：世界内发声走 playWorld（坐标衰减），无则 playFile 兜底（路径来自配置 m.sounds） */
+    _playSound(key) {
+        const m = this.m;
+        const path = m && m.sounds && m.sounds[key];
+        if (!path || !SoundManager) return;
+        if (typeof SoundManager.playWorld === 'function') {
+            SoundManager.playWorld(path, m.x, m.y);
+        } else if (typeof SoundManager.playFile === 'function') {
+            SoundManager.playFile(path);
         }
     }
 

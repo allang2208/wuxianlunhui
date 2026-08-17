@@ -13,6 +13,7 @@ import { WallSystem } from '../world/wall-system.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
 import { pickNearestNode } from './companion-ai-decision.js';
+import { SoundManager } from '../ui/sound-manager.js';
 
 export class HamsterMinerAI {
     constructor(miner) {
@@ -353,6 +354,19 @@ export class HamsterMinerAI {
             const miningDamage = Math.max(1, Math.round(this._attackDamage * this.miningMult));
             node.takeDamage(miningDamage, m, 'physical', true);
             m._miningSwing = true; // 攻击命中 → 渲染层播一次挥锄动画（2026-08-15）
+            this._playSound('mining'); // 采矿音效（2026-08-16 用户素材）
+        }
+    }
+
+    /** 事件音效：世界内发声走 playWorld（坐标衰减），无则 playFile 兜底（路径来自配置 m.sounds） */
+    _playSound(key) {
+        const m = this.m;
+        const path = m && m.sounds && m.sounds[key];
+        if (!path || !SoundManager) return;
+        if (typeof SoundManager.playWorld === 'function') {
+            SoundManager.playWorld(path, m.x, m.y);
+        } else if (typeof SoundManager.playFile === 'function') {
+            SoundManager.playFile(path);
         }
     }
 

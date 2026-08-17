@@ -73,21 +73,22 @@ def measure(path: Path):
 
 
 def close_frame0_gaps(path: Path):
-    """关门帧（frame 0）栅栏叶拉伸到贴柱：左叶 [179,320)→[174,320)，右叶 [320,460)→[320,466)。
-    动画帧 1..15 不动（开门滑动天然覆盖）；柱内缘 174/466，拉伸后最外竖杆/横杆贴柱，
-    消除「动画妥协」留的 2~5px 柱-栅栏缝。"""
+    """关门帧（frame 0）栅栏叶拉伸到贴柱：左叶 [179,320)→[172,320)，右叶 [320,460)→[320,468)。
+    动画帧 1..15 不动（开门滑动天然覆盖）；柱内缘 174/466，拉伸后最外竖杆/横杆伸过柱内缘
+    2px（barCrop 裁到 174/466，多伸的部分被裁剪窗切掉，可见边缘恰好贴柱——直接拉伸到
+    174/466 时最外像素会被 crop 排除，仍留 1px 缝）。"""
     sheet = Image.open(path).convert("RGBA")
     arr = np.array(sheet)
     f0 = arr[0:CELL_H, 0:CELL_W].copy()
     for y in range(CELL_H):
         row = f0[y]
-        left = Image.fromarray(np.ascontiguousarray(row[179:320][np.newaxis]), "RGBA").resize((146, 1), Image.LANCZOS)
-        right = Image.fromarray(np.ascontiguousarray(row[320:460][np.newaxis]), "RGBA").resize((146, 1), Image.LANCZOS)
+        left = Image.fromarray(np.ascontiguousarray(row[179:320][np.newaxis]), "RGBA").resize((148, 1), Image.LANCZOS)
+        right = Image.fromarray(np.ascontiguousarray(row[320:460][np.newaxis]), "RGBA").resize((148, 1), Image.LANCZOS)
         newrow = np.concatenate([
-            row[0:174],
+            row[0:172],
             np.array(left)[0],
             np.array(right)[0],
-            row[466:640],
+            row[468:640],
         ])
         f0[y] = newrow
     arr[0:CELL_H, 0:CELL_W] = f0

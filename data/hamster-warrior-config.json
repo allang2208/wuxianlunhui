@@ -9,9 +9,13 @@
   "weaponType": "sword",
   "baseLevel": 1,
   "baseExp": 0,
-  "baseMaxHp": 300,
+  "baseMaxHp": 225,
   "baseData": { "str": 20, "dex": 12, "int": 3, "con": 15, "wis": 3, "luck": 5 },
+  "statFormula": "enemy",
   "skills": [],
+  "sounds": {
+    "attack": "assets/sounds/friendly/hamster_melee_attack.mp3"
+  },
   "ai": {
     "role": "melee_guard",
     "walkSpeed": 120,

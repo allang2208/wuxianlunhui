@@ -1,0 +1,33 @@
+{
+  "_comment": "产兵建筑配置表（唯一真源）：building-system.js 据此生成可建条目，producer-building-system.js 据此驱动出兵。以后新增/替换产兵建筑只需加一条配置 + 对应贴图（BootScene 加载），无需改代码。出兵时间=spawnIntervalMs，出品种类=unitTypes/defaultUnitType。",
+  "thatch_hut": {
+    "id": "thatch_hut",
+    "name": "草屋",
+    "cost": 250,
+    "hp": 2000,
+    "radius": 40,
+    "def": 60,
+    "mdef": 60,
+    "tex": "thatch_hut",
+    "displayW": 144,
+    "displayH": 147,
+    "footOffsetY": 58,
+    "sellRefundRatio": 0.5,
+    "spawnIntervalMs": 10000,
+    "spawnRadius": 90,
+    "unitCap": 5,
+    "defaultUnitType": "shooter",
+    "unitTypes": [
+      { "key": "shooter", "name": "仓鼠射手" },
+      { "key": "warrior", "name": "仓鼠战士" },
+      { "key": "guard", "name": "仓鼠盾卫" }
+    ],
+    "upgradeCost": { "gold": 1000, "energy": 500 },
+    "modules": {
+      "attackSpd": { "name": "攻击加速", "icon": "⚡", "per": -0.06, "maxLevel": 10, "desc": "攻击间隔 -{pct}%" },
+      "damage": { "name": "攻击强化", "icon": "⚔️", "per": 0.12, "maxLevel": 10, "desc": "每次攻击伤害 +{pct}%" },
+      "moveSpd": { "name": "机动强化", "icon": "👟", "per": 0.05, "maxLevel": 10, "desc": "移动速度 +{pct}%（每级 +5%）" },
+      "hp": { "name": "生命强化", "icon": "❤️", "per": 0.10, "maxLevel": 10, "desc": "单位生命 +{pct}%" }
+    }
+  }
+}
