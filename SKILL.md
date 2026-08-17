@@ -150,12 +150,14 @@
 
 ### 核心规则
 
-1. **Phaser `spritesheet` 加载时必须带 `endFrame`** — 防御性配置，防止图片高度差1像素导致帧数错误
-2. **所有精灵图在入代码前必须跑标准化脚本** — 统一内容大小和中心位置，避免代码手动调 spriteSize
-3. **精灵图尺寸必须严格是 `frameSize × cols × rows`** — 不足时脚本自动填充透明行
-4. **敌人动画同步必须限定 `_faction === 'enemy'`** — `_syncEnemyAnimation` 这类按实体刷新的逻辑只能作用于敌人，否则会把中立实体/掉落物/特效 Sprite 的纹理错误覆盖为 `enemy_circle`
-5. **外部素材导入前先检查实际帧布局** — 如僵尸犬 4096×4096 合并图是 8×8 的 512×512 网格，但有效帧可能只有一行；导入前用脚本/工具确认非空帧数，避免加载空白帧
-6. **敌人的 `colliderOffsetY/X` 必须写在 `render` 块内** — `enemy.js` 基类只读 `config.render.colliderOffsetY`，写在配置顶层是死配置不生效（工头/矿洞/手脑/骑士都踩过，2026-07-25 工头修复后实机验证生效）；NPC 类相反，读顶层（npc.js:48）
+1. **完成任务不测试、立即汇报** — 完成用户下达的指令后**不用进行测试**，用户自己会测试；完成后**立即汇报**即可
+2. **多会话并行、只做自己的事** — 会有多个会话同步开展工作：**不是自己做的改动一律不管、不排查、不提交**；工作中其他文件被修改（含本会话文件被他人改）属正常现象，不要进行排查或修复
+3. **Phaser `spritesheet` 加载时必须带 `endFrame`** — 防御性配置，防止图片高度差1像素导致帧数错误
+4. **所有精灵图在入代码前必须跑标准化脚本** — 统一内容大小和中心位置，避免代码手动调 spriteSize
+5. **精灵图尺寸必须严格是 `frameSize × cols × rows`** — 不足时脚本自动填充透明行
+6. **敌人动画同步必须限定 `_faction === 'enemy'`** — `_syncEnemyAnimation` 这类按实体刷新的逻辑只能作用于敌人，否则会把中立实体/掉落物/特效 Sprite 的纹理错误覆盖为 `enemy_circle`
+7. **外部素材导入前先检查实际帧布局** — 如僵尸犬 4096×4096 合并图是 8×8 的 512×512 网格，但有效帧可能只有一行；导入前用脚本/工具确认非空帧数，避免加载空白帧
+8. **敌人的 `colliderOffsetY/X` 必须写在 `render` 块内** — `enemy.js` 基类只读 `config.render.colliderOffsetY`，写在配置顶层是死配置不生效（工头/矿洞/手脑/骑士都踩过，2026-07-25 工头修复后实机验证生效）；NPC 类相反，读顶层（npc.js:48）
 
 ---
 
@@ -5287,6 +5289,49 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
 - 散布：逻辑与旧树木同款（菱形内、排除基地房/玩家/能源点/刷怪点、footprint 口径、
   minDist 150、count 80、随机 flipX），调用顺序铁律不变（DefenseSystem.setup 之前）。
 - 低矮荒漠植物点缀仍走 `deco_desert_1~4`（束草/蒿灌木/龙舌兰/风滚草，第 2 区地面节）。
+
+### 世界-122 建筑与建造（2026-08-17）
+
+**建筑贴图替换工作流（素材库 → 英文名 → alpha bbox 标定）**
+- 源素材：`E:\无尽轮回\游戏\素材库\场景\建筑\{军营,矿场,铁匠铺,草屋}.png`（4096² 等距斜视、
+  透明背景、建筑贴底边）；复制到 `assets/terrain/` 必须改英文名（barracks/mine/blacksmith），
+  禁止中文文件名。
+- 显示参数标定（勿拍脑袋，旧图验证公式）：
+  - `displayH = displayW × bboxH/bboxW`（bbox = alpha>16 包围盒；旧图反推吻合）。
+  - `footOffsetY = displayH × (bbox.maxY/4096 − 0.5)`（sprite 中心到脚底；旧贴图满幅贴底
+    → maxY/4096≈1 → footOffsetY≈displayH/2，与旧参数 147/2≈73 吻合即证）。
+  - bbox 水平居中（素材中心≈2048）则无需 X 偏移。
+  - 用 System.Drawing LockBits 扫描 alpha bbox（PowerShell，4096² 约 2~3s）。
+- 替换点：BootScene `load.image`（键名即英文）、各建筑 config `tex`（实体渲染 idleKey）、
+  building-system `BUILD_ITEMS.tex`（面板缩略图 img 路径自动跟随）。
+- **显示尺寸统一口径**：新建筑与草屋同尺寸（displayW 144 / displayH 147），
+  footOffsetY 各自按 bbox 重标——用户明确"不要放大"。
+- 新增产兵建筑：`data/producer-buildings.json` 加条目（唯一真源，含 tex/displayW/H/footOffsetY/
+  spawn/unitTypes/modules），BootScene 加载贴图即可，代码零改动。
+
+**建造清除障碍物与草（2026-08-17 用户口径：建造处有树/草类障碍物直接删除）**
+- 散布实体（仙人掌/树，`isoVisuals` 内 `_scatter` 件）：`WallSystem.removeScatterObstaclesAt(x,y,r)`
+  ——footprint 矩形圆-矩形相交判定，删除后 `rebuildIsoCollision()` + `_syncWallsToPhaser()`
+  （该函数会清空重建，不会重复建精灵）+ 失效 `_minimapStaticKey`。
+- 草/装饰贴图（烘焙进地板 chunk，非实体）：`registerDecoClearZone(x,y,r)` 注册世界圆 +
+  `GameScene.eraseDecoAt(x,y,r)` 局部重烘焙相交 chunk。草绘制跳过清除区时**不消耗随机种子**
+  （continue 放在消耗 rand 的取值之前），其余草位置跨块不变。
+- ⚠ 重烘焙遍历 `_terrainChunkSprites` 时**先收集 key 列表再逐个重建**——迭代中
+  delete+set 同一 key 会让 Map 迭代器重访新条目造成死循环。
+- 清除半径：平台 140 / 小屋·兵营·产兵 95 / 掩体·门 110 / 塔·陷阱等 60。
+- 仙人掌 `cactusScatter.count` 80→40（game-config.json 双份 + scene-manager 默认兜底）。
+
+### 基地菱形房无缝拼接（WIP，2026-08-17）
+
+**问题**：基地四边掩体墙拼接有缝（用户反馈），且贴图替换后易被错误放大。
+**思路（用户指定）**：先在 Blender 用原模型摆成菱形验证无缝，再按确认尺寸渲染进游戏。
+- 工具：`tools/ai-gen/blender-cover-diamond-test.py`（Blender 5.1 后台跑）：
+  复刻 `_buildBaseRoom` 拼接数学（COVER_FACE faceLen 196.33、joinOverlap 40、
+  cornerExtend 29、门洞 90），box 按显示比例 260/230 转游戏 px，顶视渲染 + 端面间距诊断。
+- 已确认：TL 边 box 沿边投影 ≈138.6px < 间距 144.7px → **约 6px 缝隙**（box 长轴与 TL 边
+  夹角大）；TR/LB 边投影充足。修复方向 = 拉伸 box 长度（或调整 rot/摆位）直到投影 ≥ 间距。
+- ⚠ 渲染黑屏坑：`--factory-startup` 后默认灯随全选删除一起没了，必须补 Sun 灯（energy 3）。
+- 待办：Blender 几何诊断精修（端面间距要含短轴贡献）、渲染贴图复刻、游戏内验证。
 
 ### 后续打磨方向（未做）
 - 波次/Boss 波/经济平衡数值；塔血量被摧毁后重建/出售；怪物分路（多入口）与减速/范围塔；
