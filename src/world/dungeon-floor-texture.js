@@ -30,6 +30,24 @@ const DEFAULT_FALLBACK_TERRAIN = {
 // 当前地板配置（由地牢初始化时按地牢类型设置）
 let _floorProfile = null;
 
+// 装饰清除区（2026-08-17）：建筑建造后注册的世界坐标圆，草/装饰绘制时跳过。
+// 覆盖块由 GameScene.eraseDecoAt 局部重烘焙（草从烘焙纹理中消失）。
+let _decoClearZones = [];
+
+/** 注册一个装饰清除圆（世界坐标）；配合 GameScene.eraseDecoAt 重烘焙生效 */
+export function registerDecoClearZone(x, y, radius) {
+    if (!(radius > 0)) return;
+    _decoClearZones.push({ x, y, radius });
+}
+
+/** 世界点是否落在任意装饰清除圆内 */
+function _inDecoClearZone(gx, gy) {
+    for (const z of _decoClearZones) {
+        if (Math.hypot(gx - z.x, gy - z.y) <= z.radius) return true;
+    }
+    return false;
+}
+
 /**
  * 设置当前地板配置
  * @param {{tiles:string[], glow?:boolean, overlapX?:number, overlapY?:number, backgroundColor?:string, deco?:object}|null} profile null 恢复默认
@@ -192,6 +210,9 @@ function _drawFloorDecoChunk(ctx, profile, ox, oy, cw, ch, diamond) {
         if (px < pad || px > cw - pad || py < pad || py > ch - pad) continue;
         if (!inDiamond(ox + px, oy + py)) continue;
         if (placed.some((q) => Math.hypot(q[0] - px, q[1] - py) < minDist)) continue;
+        // 建筑建造清除区：草/装饰不画在已建建筑上（2026-08-17；不消耗 rand，
+        // 其余草位置与清除前一致，重烘焙跨块无缝）
+        if (_decoClearZones.length && _inDecoClearZone(ox + px, oy + py)) continue;
         placed.push([px, py]);
         const img = imgs[(rand() * imgs.length) | 0];
         const jitter = 0.85 + rand() * 0.3;

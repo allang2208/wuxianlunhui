@@ -1,7 +1,8 @@
 // ============================================================
 // 仓鼠兵营（世界-122 建筑，2026-08-16）
 // - B 建筑面板放置，价格 1500 能源；每 30 秒自动生成一个仓鼠军事单位；
-// - 单位类型可在面板切换：仓鼠战士（近战）/ 仓鼠射手（远程）/ 仓鼠盾卫（近战·第 10 帧判定）；
+// - 单位类型可在面板切换：仓鼠战士（近战）/ 仓鼠射手（远程）/ 仓鼠盾卫（近战·第 10 帧判定）/
+//   仓鼠民兵（近战·第 8 帧判定）；
 // - 升级参考仓鼠小屋（1000 金币 + 500 能源/级）：攻击加速 / 攻击强化 /
 //   机动强化 / 生命强化（采矿/背包/数量模块不复制——兵营数量上限固定 5，
 //   2026-08-16 用户口径：初始上限就有 5 个）；
@@ -12,6 +13,7 @@ import { DamageableEntity } from '../entities/damageable-entity.js';
 import { HamsterWarrior } from '../entities/hamster-warrior.js';
 import { HamsterShooter } from '../entities/hamster-shooter.js';
 import { HamsterGuard } from '../entities/hamster-guard.js';
+import { HamsterMilitia } from '../entities/hamster-militia.js';
 import { GoldManager } from '../systems/gold-manager.js';
 import { EnergyManager } from '../systems/energy-manager.js';
 import { EffectManager } from '../effects/effect-manager.js';
@@ -25,6 +27,7 @@ import { Renderer } from './renderer.js';
 import warriorCfg from '../../data/hamster-warrior-config.json';
 import shooterCfg from '../../data/hamster-shooter-config.json';
 import guardCfg from '../../data/hamster-guard-config.json';
+import militiaCfg from '../../data/hamster-militia-config.json';
 
 // ==================== 配置 ====================
 
@@ -35,14 +38,11 @@ export const BARRACKS_CONFIG = {
         radius: 40,
         def: 60,
         mdef: 60,
-        tex: 'hamster_barracks',
-        // 显示尺寸必须按贴图内容等比（682×589，比例 1.159）——2026-08-16 角度修正：
-        // 高度对齐仓鼠小屋 147（占地匹配），宽度 = 147×682/589 ≈ 170；
-        // 若直接沿用 150×147 会把 44.8° 菱形垂直拉长 13%，接地线斜率 0.50→0.57，
-        // 视觉角度与防御塔/掩体错位。
-        displayW: 170,
+        tex: 'barracks',
+        // 2026-08-17 回退：显示尺寸统一到草屋同款 144×147（不再放大）
+        displayW: 144,
         displayH: 147,
-        footOffsetY: 73,     // 贴图中心到脚底：294×170/682 ≈ 73
+        footOffsetY: 13,     // bbox 底 2420/4096 → 147×(0.591-0.5) ≈ 13
         sellRefundRatio: 0.5,
         spawnIntervalMs: 30000,   // 30 秒生成一个军事单位
         spawnRadius: 90,
@@ -53,6 +53,7 @@ export const BARRACKS_CONFIG = {
         warrior: { key: 'warrior', name: '仓鼠战士', cfg: warriorCfg },
         shooter: { key: 'shooter', name: '仓鼠射手', cfg: shooterCfg },
         guard: { key: 'guard', name: '仓鼠盾卫', cfg: guardCfg },
+        militia: { key: 'militia', name: '仓鼠民兵', cfg: militiaCfg },
     },
     // 升级统一费用：每升一级 1000 金币 + 500 能源（同仓鼠小屋口径）
     upgradeCost: { gold: 1000, energy: 500 },
@@ -208,7 +209,9 @@ export class HamsterBarracks extends DamageableEntity {
             ? new HamsterWarrior(spot.x, spot.y, { id, ai, baseMaxHp })
             : (this.unitType === 'guard'
                 ? new HamsterGuard(spot.x, spot.y, { id, ai, baseMaxHp })
-                : new HamsterShooter(spot.x, spot.y, { id, ai, baseMaxHp }));
+                : (this.unitType === 'militia'
+                    ? new HamsterMilitia(spot.x, spot.y, { id, ai, baseMaxHp })
+                    : new HamsterShooter(spot.x, spot.y, { id, ai, baseMaxHp })));
         unit._barracks = this;
         this.units.push(unit);
         Game.entities.set(id, unit);
@@ -221,7 +224,9 @@ export class HamsterBarracks extends DamageableEntity {
         const mults = this.mults();
         for (const unit of this.units) {
             if (!unit || !unit.active || unit._dying) continue;
-            const unitKey = unit._isHamsterWarrior ? 'warrior' : (unit._isHamsterGuard ? 'guard' : 'shooter');
+            const unitKey = unit._isHamsterWarrior ? 'warrior'
+                : (unit._isHamsterGuard ? 'guard'
+                    : (unit._isHamsterMilitia ? 'militia' : 'shooter'));
             const base = (BARRACKS_CONFIG.unit[unitKey] || {}).cfg || {};
             const baseAi = base.ai || {};
             const u = {
@@ -499,7 +504,7 @@ class HamsterBarracksPanel extends BasePanel {
                 <span style="font-size:13px;font-weight:700;color:#7fe0c8;">🎖 生成单位类型</span>
                 <span style="font-size:11px;color:#6a9a92;">切换后下一次生成生效</span>
             </div>
-            <div style="display:flex;gap:8px;">${btn('warrior')}${btn('shooter')}${btn('guard')}</div>`;
+            <div style="display:flex;gap:8px;">${btn('warrior')}${btn('shooter')}${btn('guard')}${btn('militia')}</div>`;
         ut.querySelectorAll('[data-unit-type]').forEach((btnEl) => {
             btnEl.addEventListener('click', () => this._setUnitType(btnEl.dataset.unitType));
         });

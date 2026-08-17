@@ -84,8 +84,8 @@ function effOrient(itemOrOrient, mirror) {
 
 export const BUILD_ITEMS = [
     { id: 'tower', name: '防御塔', cost: 300, tex: 'obstacle_defense_tower', kind: 'tower', currency: 'energy' },
-    { id: 'hamster_hut', name: '仓鼠小屋', cost: 1000, tex: 'hamster_hut', kind: 'hamster_hut', currency: 'energy' },
-    { id: 'hamster_barracks', name: '仓鼠兵营', cost: 1500, tex: 'hamster_barracks', kind: 'hamster_barracks', currency: 'energy' },
+    { id: 'hamster_hut', name: '仓鼠矿场', cost: 1000, tex: 'mine', kind: 'hamster_hut', currency: 'energy' },
+    { id: 'hamster_barracks', name: '仓鼠军营', cost: 1500, tex: 'barracks', kind: 'hamster_barracks', currency: 'energy' },
     { id: 'firing_platform', name: '射击台', cost: 400, tex: 'firing_platform', kind: 'platform', currency: 'energy' },
 ];
 // 产兵建筑（配置驱动，data/producer-buildings.json 唯一真源——出兵时间/出品种类/造价
@@ -1016,6 +1016,18 @@ export const BuildingSystem = {
             free ? `${item.name} 已放置（无限资源）` : `${item.name} 已放置（-${item.cost} ${cur}）`,
             item.currency === 'energy' ? '#7fd4ff' : '#ffd700'
         );
+        // 清除建造位置重叠的散布障碍物（仙人掌/树等，2026-08-17 用户口径）：
+        // 下达指令建筑的地方有树木/草类障碍物，建造后直接删除
+        const clearRadius = item.kind === 'platform' ? 140
+            : (item.kind === 'hamster_hut' || item.kind === 'hamster_barracks' || item.kind === 'producer' ? 95
+                : (item.kind === 'cover' || item.kind === 'gate' ? 110 : 60));
+        if (WallSystem && typeof WallSystem.removeScatterObstaclesAt === 'function') {
+            WallSystem.removeScatterObstaclesAt(x, y, clearRadius);
+        }
+        // 擦除建造位置的地板装饰（草贴图等，2026-08-17 用户口径）
+        if (window.__phaserScene && typeof window.__phaserScene.eraseDecoAt === 'function') {
+            window.__phaserScene.eraseDecoAt(x, y, clearRadius);
+        }
         this._snapped = null;
         this._refreshCurrencies();
     },

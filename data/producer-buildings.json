@@ -20,7 +20,39 @@
     "unitTypes": [
       { "key": "shooter", "name": "仓鼠射手" },
       { "key": "warrior", "name": "仓鼠战士" },
-      { "key": "guard", "name": "仓鼠盾卫" }
+      { "key": "guard", "name": "仓鼠盾卫" },
+      { "key": "militia", "name": "仓鼠民兵" }
+    ],
+    "upgradeCost": { "gold": 1000, "energy": 500 },
+    "modules": {
+      "attackSpd": { "name": "攻击加速", "icon": "⚡", "per": -0.06, "maxLevel": 10, "desc": "攻击间隔 -{pct}%" },
+      "damage": { "name": "攻击强化", "icon": "⚔️", "per": 0.12, "maxLevel": 10, "desc": "每次攻击伤害 +{pct}%" },
+      "moveSpd": { "name": "机动强化", "icon": "👟", "per": 0.05, "maxLevel": 10, "desc": "移动速度 +{pct}%（每级 +5%）" },
+      "hp": { "name": "生命强化", "icon": "❤️", "per": 0.10, "maxLevel": 10, "desc": "单位生命 +{pct}%" }
+    }
+  },
+  "blacksmith": {
+    "id": "blacksmith",
+    "name": "仓鼠铁匠铺",
+    "cost": 250,
+    "hp": 2000,
+    "radius": 40,
+    "def": 60,
+    "mdef": 60,
+    "tex": "blacksmith",
+    "displayW": 144,
+    "displayH": 147,
+    "footOffsetY": 31,
+    "sellRefundRatio": 0.5,
+    "spawnIntervalMs": 10000,
+    "spawnRadius": 90,
+    "unitCap": 5,
+    "defaultUnitType": "warrior",
+    "unitTypes": [
+      { "key": "shooter", "name": "仓鼠射手" },
+      { "key": "warrior", "name": "仓鼠战士" },
+      { "key": "guard", "name": "仓鼠盾卫" },
+      { "key": "militia", "name": "仓鼠民兵" }
     ],
     "upgradeCost": { "gold": 1000, "energy": 500 },
     "modules": {

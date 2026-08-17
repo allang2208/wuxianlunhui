@@ -1061,6 +1061,43 @@ const WallSystem = {
         const cx = p.x + offX, cy = bottomY - fd / 2;
         return { x: cx - hw, y: cy - hd, w: hw * 2, h: hd * 2 };
     },
+
+    /** 清除以 (x,y) 为圆心、radius 半径内重叠的散布障碍物（仙人掌/树等 _scatter 件，
+     *  2026-08-17 用户口径：建筑建造处有树木/草类障碍物 → 直接删除）。
+     *  返回删除数量；删除后重建碰撞并同步 Phaser 视觉/物理。 */
+    removeScatterObstaclesAt(x, y, radius) {
+        const raw = this.isoVisuals;
+        if (!raw || !raw.length || !(radius > 0)) return 0;
+        const keep = [];
+        let removed = 0;
+        for (const p of raw) {
+            if (!p._scatter) { keep.push(p); continue; }
+            let hit;
+            const rect = this.getObstacleFootprintRect(p);
+            if (rect) {
+                // 圆-矩形相交：矩形内最近点到圆心距离 ≤ radius
+                const nx = Math.max(rect.x, Math.min(x, rect.x + rect.w));
+                const ny = Math.max(rect.y, Math.min(y, rect.y + rect.h));
+                hit = Math.hypot(x - nx, y - ny) <= radius;
+            } else {
+                hit = Math.hypot(p.x - x, p.y - y) <= radius;
+            }
+            if (hit) {
+                removed++;
+                if (p._sprite && typeof p._sprite.destroy === 'function') p._sprite.destroy();
+            } else {
+                keep.push(p);
+            }
+        }
+        if (removed) {
+            this.isoVisuals = keep;
+            this.rebuildIsoCollision();
+            if (this._syncWallsToPhaser) this._syncWallsToPhaser();
+            // 墙数变化 → 小地图静态层缓存失效重绘
+            if (typeof window !== 'undefined' && window.__phaserScene) window.__phaserScene._minimapStaticKey = null;
+        }
+        return removed;
+    },
     /** 单件碰撞：底边线段 → 线段模型（精确滑动）+ 每 30px 一块 36×20 阶梯矩形（寻路/小地图） */
     _addPieceCollision(p) {
         // 障碍物：碰撞 = 贴图底部矩形 footprint 墙（geo.foot 宽高 × 缩放，锚底边中心）
