@@ -2604,6 +2604,42 @@
         .party-slot--selected .party-slot-level { color: #ffd700; }
         .party-slot-avatar { width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; font-size: 20px; background: #1d1814; border-radius: 50%; flex-shrink: 0; }
         .party-slot-plus { font-size: 20px; color: #8a7d5f; }
+
+        /* ===== RTS 指挥模式（2026-08-16：组队栏下方按钮 + 单位属性面板） ===== */
+        .rts-command-btn {
+            position: absolute; height: 32px; left: 10px; width: 220px;
+            background: rgba(42, 37, 32, 0.85); color: #d4c5a9;
+            border: 2px solid #5a4d3f; border-radius: 6px;
+            font-family: SimHei, "Microsoft YaHei", "黑体", sans-serif;
+            font-size: 13px; font-weight: 700; cursor: pointer; z-index: 12;
+            transition: border-color .15s, background .15s, color .15s;
+        }
+        .rts-command-btn:hover { border-color: #c8a84e; background: rgba(40, 33, 24, 0.9); }
+        .rts-command-btn.active {
+            border-color: #ffd700; color: #ffd700; background: rgba(58, 46, 28, 0.95);
+            box-shadow: 0 0 8px rgba(255, 215, 0, 0.45), inset 0 0 6px rgba(255, 215, 0, 0.18);
+        }
+        .rts-unit-panel {
+            position: fixed; right: 8px; top: 80px; width: 230px;
+            background: rgba(20, 17, 14, 0.92); border: 2px solid #6a5a3a; border-radius: 8px;
+            padding: 10px 12px; z-index: 12; font-family: SimHei, "Microsoft YaHei", "黑体", sans-serif;
+            color: #d4c5a9; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+        }
+        .rts-up-head { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+        .rts-up-name { font-size: 14px; font-weight: 700; color: #ffd700; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .rts-up-lv { font-size: 12px; color: #7fd4ff; }
+        .rts-up-type { font-size: 11px; color: #8a9a8a; }
+        .rts-up-row { display: flex; align-items: center; gap: 6px; font-size: 11px; margin-bottom: 5px; }
+        .rts-up-row > span:first-child { width: 24px; color: #b8ab90; }
+        .rts-up-track { flex: 1; height: 10px; background: rgba(255, 255, 255, 0.1); border-radius: 5px; overflow: hidden; }
+        .rts-up-fill { height: 100%; border-radius: 5px; transition: width .15s; }
+        .rts-up-num { min-width: 56px; text-align: right; color: #e8dcc0; }
+        .rts-up-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 3px 10px; font-size: 11px;
+            margin: 8px 0; padding-top: 8px; border-top: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .rts-up-stats { font-size: 11px; color: #c8e6b8; padding-top: 8px; border-top: 1px solid rgba(255, 255, 255, 0.08); }
+        .rts-up-multi { font-size: 12px; color: #ffd700; }
         .party-slot-name { font-size: 12px; color: #d4c5a9; flex: 1; }
         .party-slot-level { font-size: 11px; color: #a89a7f; }
 

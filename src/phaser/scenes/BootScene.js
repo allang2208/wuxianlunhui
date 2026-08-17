@@ -241,6 +241,7 @@ export class BootScene extends Scene {
         // 世界-122 仓鼠小屋（建筑面板可建造，生成仓鼠矿工；贴图 Blender 建模渲染）
         this.load.image('hamster_hut', 'assets/terrain/hamster_hut.png');
         this.load.image('hamster_barracks', 'assets/terrain/hamster_barracks.png');
+        this.load.image('thatch_hut', 'assets/terrain/thatch_hut.png');
         // 仓鼠小屋开关门动画帧（工厂关门版 16 帧滑门，4×4 精灵表；矿工补员时先开门）
         this.load.spritesheet('hamster_hut_door', 'assets/terrain/hamster_hut_door.png', { frameWidth: 512, frameHeight: 502 });
         // 世界-122 防御塔机械臂（预渲染 3D 旋转帧，48 帧等距透视，按 aimAngle 选帧）

@@ -77,6 +77,7 @@ import { PartyUI } from './ui/party-ui.js';
 import { RecruitUI } from './ui/recruit-ui.js';
 import { CompanionPanel } from './ui/companion-panel.js';
 import { CompanionCommandWheel } from './ui/companion-command-wheel.js';
+import { RTSCommand } from './ui/rts-command.js';
 import { CodexManager } from './ui/codex-manager.js';
 import { SystemUI } from './ui/system-ui.js';
 import { UIState } from './ui/ui-state.js';
@@ -86,6 +87,7 @@ import { DefenseSystem } from './world/defense-system.js';
 import { DefenseTrapSystem } from './world/defense-trap-system.js';
 import { HamsterHutSystem } from './world/hamster-hut-system.js';
 import { HamsterBarracksSystem } from './world/hamster-barracks-system.js';
+import { ProducerBuildingSystem } from './world/producer-building-system.js';
 
 export const Game = {
     VERSION: GAME_CONFIG.meta?.version || '0.198', // 游戏版本号（每次更新必须递增）
@@ -114,12 +116,22 @@ export const Game = {
         PartyUI.init();
         // 队员指挥轮盘（长按中键五指令：跟随/主动攻击/巡逻/采集/待命）
         CompanionCommandWheel.init();
+        // RTS 指挥模式（世界-122 组队栏下方按钮；scene8 启用时接管左/右键）
+        RTSCommand.init();
         this.EquipManager = EquipManager; // 供侍从面板背包拖动交换访问
         this.PartySystem = PartySystem;   // 供调试/其他模块访问队伍
         this.RecruitUI = RecruitUI;       // 招募界面（单一模块实例，调试/外部调用用 window.Game.RecruitUI）
         this.CompanionPanel = CompanionPanel;
         this.PartyUI = PartyUI;           // 组队栏（选中状态调试/探针）
         this.CompanionCommandWheel = CompanionCommandWheel; // 指令轮盘（探针可直接驱动 _execute）
+        this.RTSCommand = RTSCommand;     // RTS 指挥模式（探针可直接驱动 enabled/setEnabled）
+        // RTS 建筑点击复用的系统句柄（避免模块循环 import，经 window.Game 惰性访问）
+        this.DefenseSystem = DefenseSystem;
+        this.DefenseTrapSystem = DefenseTrapSystem;
+        this.HamsterHutSystem = HamsterHutSystem;
+        this.HamsterBarracksSystem = HamsterBarracksSystem;
+        this.ProducerBuildingSystem = ProducerBuildingSystem;
+        this.BuildingSystem = BuildingSystem;
         this.Renderer = Renderer;         // 屏幕↔世界坐标（探针/调试）
         this.WallSystem = WallSystem;     // 墙体可达性（探针/调试）
         this.ExpeditionSystem = ExpeditionSystem;
@@ -1181,6 +1193,29 @@ if (this.player && this.player.droneSystem && this.player.droneSystem.controllin
         const npcHoverDist = interactCfg.npcHover || 40;
         const pickupClickDist = interactCfg.pickupClick || 150;
         const pickupHoverDist = interactCfg.pickupHover || 35;
+        // RTS 指挥模式（2026-08-16）：世界-122 启用时接管左/右键选择/框选/命令，
+        // 并禁用玩家攻击/瞄准（leftDown/rightDown 强制 false，避免与 RTS 操作冲突）。
+        // 每帧先同步场景（非 scene8 自动退出），再消费右键命令；左键在 DOM 事件侧
+        // （rts-command.js mousedown/mouseup）处理，这里清掉边沿标志短路下方既有逻辑。
+        if (RTSCommand) {
+            RTSCommand.tick(SceneManager.currentScene, Input);
+            if (RTSCommand.enabled && SceneManager.currentScene === 'scene8') {
+                Input.mouse.leftDown = false;
+                Input.mouse.rightDown = false;
+                Input.mouse.leftPressed = false;
+                Input.mouse.rightPressed = false;
+            }
+            // 互斥（2026-08-16）：建筑选择/详情界面打开时，单位/复数面板随之关闭
+            if (RTSCommand.hasPanel && RTSCommand.hasPanel()) {
+                const anyBuilding = (BuildingSystem && BuildingSystem.active)
+                    || (DefenseSystem && DefenseSystem._panel && DefenseSystem._panel.isOpen)
+                    || (DefenseTrapSystem && DefenseTrapSystem._panel && DefenseTrapSystem._panel.isOpen)
+                    || (HamsterHutSystem && HamsterHutSystem._panel && HamsterHutSystem._panel.isOpen)
+                    || (HamsterBarracksSystem && HamsterBarracksSystem._panel && HamsterBarracksSystem._panel.isOpen)
+                    || (ProducerBuildingSystem && ProducerBuildingSystem._panel && ProducerBuildingSystem._panel.isOpen);
+                if (anyBuilding) RTSCommand.closePanel();
+            }
+        }
         // 右键移动（最高优先级，2026-08-16）：有选中时右键 = 清空当前指令后执行移动，
         // 消费 rightPressed 防止玩家自身右键特殊攻击同帧触发；目标点画绿色下指箭头。
         // 选中保留（可连续右键改道）；组队栏/系统面板右键不会走到这里（input.js 拦截）。
@@ -1266,6 +1301,11 @@ if (Input.mouse.leftPressed) {
             }
             // 仓鼠兵营：点击兵营打开单位类型/升级面板（2026-08-16）
             if (HamsterBarracksSystem && HamsterBarracksSystem.active && HamsterBarracksSystem.tryInteract(mx, my, this.player)) {
+                Input.mouse.leftPressed = false;
+                return;
+            }
+            // 通用产兵建筑（草屋等，配置驱动）：点击打开单位类型/升级面板（2026-08-17）
+            if (ProducerBuildingSystem && ProducerBuildingSystem.active && ProducerBuildingSystem.tryInteract(mx, my, this.player)) {
                 Input.mouse.leftPressed = false;
                 return;
             }
@@ -1376,6 +1416,10 @@ CombatSystem.update(e, dt, this.entities);
         // 仓鼠兵营：30s 生成计时
         if (HamsterBarracksSystem && HamsterBarracksSystem.active) {
             HamsterBarracksSystem.update(dt);
+        }
+        // 通用产兵建筑：spawnIntervalMs 生成计时（配置驱动）
+        if (ProducerBuildingSystem && ProducerBuildingSystem.active) {
+            ProducerBuildingSystem.update(dt);
         }
 
         // ===== 阵型系统更新（必须在实体 update 之后，为下一帧设置 _tacticalTarget）=====

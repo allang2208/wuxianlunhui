@@ -58,7 +58,7 @@ import { TimerManager } from '../utils/timer-manager.js';
                     if (Game._wallEditMode || Game._collisionEditMode || Game._buildMode) return; // 墙壁/碰撞/建筑编辑模式：鼠标交给编辑器，不触发攻击
                     // DOM 覆盖层点击不进入世界点击（组队栏/队员面板/招募界面等）：
                     // 并行新增 BuildingSystem.tryInteract 后，漏拦截会误开建筑面板
-                    const isSystemUI = e.target.closest('.system-panel, .panel-overlay, .side-menu, .back-menu-btn, .menu-btn, .party-bar, .companion-overlay, .recruit-overlay');
+                    const isSystemUI = e.target.closest('.system-panel, .panel-overlay, .side-menu, .back-menu-btn, .menu-btn, .party-bar, .companion-overlay, .recruit-overlay, .rts-command-btn, .rts-unit-panel');
                     if (e.button === 0) { this.mouse.leftDown = true; if (!isSystemUI) this.mouse.leftPressed = true; }
                     if (e.button === 2) { this.mouse.rightDown = true; if (!isSystemUI) this.mouse.rightPressed = true; }
                 });

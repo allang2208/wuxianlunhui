@@ -24,6 +24,7 @@ import {
 import { DefenseTrap, TRAP_CONFIG, TRAP_GRADES, TRAP_SPACING, getTrapDef, DefenseTrapSystem } from './defense-trap-system.js';
 import { HamsterHut, HamsterHutSystem, HAMSTER_CONFIG } from './hamster-hut-system.js';
 import { HamsterBarracks, HamsterBarracksSystem, BARRACKS_CONFIG } from './hamster-barracks-system.js';
+import { ProducerBuilding, ProducerBuildingSystem, PRODUCER_BUILDINGS } from './producer-building-system.js';
 
 // ==================== 可建造项 ====================
 
@@ -87,6 +88,18 @@ export const BUILD_ITEMS = [
     { id: 'hamster_barracks', name: '仓鼠兵营', cost: 1500, tex: 'hamster_barracks', kind: 'hamster_barracks', currency: 'energy' },
     { id: 'firing_platform', name: '射击台', cost: 400, tex: 'firing_platform', kind: 'platform', currency: 'energy' },
 ];
+// 产兵建筑（配置驱动，data/producer-buildings.json 唯一真源——出兵时间/出品种类/造价
+// 全部在配置里，后续替换建筑只改配置+贴图，不用动代码）
+for (const pc of Object.values(PRODUCER_BUILDINGS || {})) {
+    BUILD_ITEMS.push({
+        id: pc.id,
+        name: pc.name,
+        cost: pc.cost,
+        tex: pc.tex,
+        kind: 'producer',
+        currency: 'energy',
+    });
+}
 for (const grade of ['F', 'E', 'D', 'C', 'B', 'A']) {
     // 只保留一种掩体条目（垂直 "/" 向）；F 键镜像即得水平 "\" 向（mirror → eff 交换），
     // 贴图/碰撞/face 线全部跟随镜像，无需水平/垂直两个条目（2026-08-05 简化）。
@@ -302,6 +315,9 @@ export const BuildingSystem = {
                 this._ghost.setDisplaySize(HAMSTER_CONFIG.hut.displayW, HAMSTER_CONFIG.hut.displayH);
             } else if (item.kind === 'hamster_barracks') {
                 this._ghost.setDisplaySize(BARRACKS_CONFIG.barracks.displayW, BARRACKS_CONFIG.barracks.displayH);
+            } else if (item.kind === 'producer') {
+                const pc = PRODUCER_BUILDINGS[item.id];
+                this._ghost.setDisplaySize(pc.displayW, pc.displayH);
             } else if (item.kind === 'trap') {
                 this._ghost.setDisplaySize(item.trapW || 72, item.trapH || 52);
             } else if (item.kind === 'gate') {
@@ -397,6 +413,10 @@ export const BuildingSystem = {
         if (this._placing.item.kind === 'tower') return 131;
         if (this._placing.item.kind === 'hamster_hut') return HAMSTER_CONFIG.hut.footOffsetY;
         if (this._placing.item.kind === 'hamster_barracks') return BARRACKS_CONFIG.barracks.footOffsetY;
+        if (this._placing.item.kind === 'producer') {
+            const pc = PRODUCER_BUILDINGS[this._placing.item.id];
+            return pc.footOffsetY;
+        }
         if (this._placing.item.kind === 'platform') return 49; // 射击台 footOffsetY（八版标定）
         return this._ghost.displayHeight / 2;
     },
@@ -950,6 +970,10 @@ export const BuildingSystem = {
             const barracks = new HamsterBarracks(x, y, { id });
             Game.entities.set(id, barracks);
             HamsterBarracksSystem.barracks.push(barracks);
+        } else if (item.kind === 'producer') {
+            const producer = new ProducerBuilding(x, y, { id, cfgKey: item.id });
+            Game.entities.set(id, producer);
+            ProducerBuildingSystem.buildings.push(producer);
         } else if (item.kind === 'trap') {
             const trap = new DefenseTrap(x, y, {
                 type: item.trapType,
