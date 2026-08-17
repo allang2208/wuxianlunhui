@@ -32,8 +32,8 @@
     "teleportDist": 999999,
     "teleportHardDist": 9999999
   },
-  "displaySize": 226,
-  "spriteOffsetY": -42,
+  "displaySize": 300,
+  "spriteOffsetY": -55,
   "animations": {
     "idle": {
       "src": "assets/companions/hamster_militia/idle.png",

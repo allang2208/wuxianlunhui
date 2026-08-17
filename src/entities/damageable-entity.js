@@ -218,6 +218,14 @@ export function isFriendlyFire(source, target) {
                         EffectManager.createDamageText(this.x, this.y - this.size - 15, '格挡!', '#9ab8c8');
                     }
                 }
+                // 铁匠铺能力：标记箭（2026-08-17）——被标记目标受所有伤害增加
+                // （标准 Buff 工作流：addStatusEffect('marked') 注册 + effect.value 携带数值，
+                //   同类型刷新取最大 value；updateStatusEffects 计时清除）
+                if (this.hasStatusEffect('marked')) {
+                    const marked = this.statusEffects.find(e => e.type === 'marked');
+                    const markedMul = 1 + (marked && marked.value ? marked.value : 0.15);
+                    baseDamage = Math.floor(baseDamage * markedMul);
+                }
                 // 扣血
                 this.hp -= baseDamage;
                 this.hitFlash = this.hitFlashDuration;
@@ -400,6 +408,7 @@ export function isFriendlyFire(source, target) {
                     frozen: { icon: '🧊', name: '冻结', color: '#a0d8ff' },
                     flameArmor: { icon: '🔥', name: '灼锋焰甲', color: '#ff7a3a' },
                     electrified: { icon: '⚡', name: '感电', color: '#b98cff' },
+                    marked: { icon: '🎯', name: '标记', color: '#ffd700' },
                 };
                 const config = STATUS_CONFIG[type] || { icon: '❓', name: type, color: '#8a7d6b' };
 
@@ -412,6 +421,10 @@ export function isFriendlyFire(source, target) {
                     existing.remaining = Math.max(existing.remaining, duration);
                     existing.duration = Math.max(existing.duration, duration);
                     if (options.stacks !== undefined) existing.stacks = options.stacks;
+                    // 同类型 buff 数值不一致时取最大值（较强效果生效，2026-08-17）
+                    if (options.value !== undefined) {
+                        existing.value = Math.max(existing.value ?? 0, options.value);
+                    }
                     return existing;
                 }
 
@@ -423,6 +436,7 @@ export function isFriendlyFire(source, target) {
                     icon: options.icon || config.icon,
                     name, color: options.color || config.color,
                     stacks: options.stacks || 1,
+                    ...(options.value !== undefined ? { value: options.value } : {}),
                 };
                 this.statusEffects.push(effect);
                 return effect;

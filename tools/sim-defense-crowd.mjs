@@ -28,7 +28,7 @@ const { distanceToEntityShape } = await import(pathToFileURL(path.join(ROOT, 'sr
 // ==================== 世界-122 场景搭建（复刻 _buildBaseRoom） ====================
 const BASE = { x: 900, y: 2048, hp: 5000, radius: 72 };
 const RX = 512, RY = 256;
-const CORNER_EXT = 29, OPEN_RADIUS = 90, OPEN_EDGE = 'RB';
+const CORNER_EXT = 29, OPEN_EDGE = 'RB';
 const FACE_V = { A: { x: -88, y: -21 }, B: { x: 88, y: -108 } };
 const FACE_H = { A: { x: -88, y: -108 }, B: { x: 88, y: -21 } };
 const FACE_LEN = Math.hypot(FACE_V.B.x - FACE_V.A.x, FACE_V.B.y - FACE_V.A.y); // 196.33
@@ -51,6 +51,7 @@ const EDGES = [
 function buildBaseRoom() {
     const covers = [];
     const segs = [];
+    let gatePos = null; // 2026-08-17：门占一个完整墙位（大小=墙，face 196.77）
     for (const e of EDGES) {
         const dx = e.to.x - e.from.x, dy = e.to.y - e.from.y;
         const len = Math.hypot(dx, dy);
@@ -66,12 +67,16 @@ function buildBaseRoom() {
         const span = tLast - t0;
         const n = Math.max(2, Math.ceil(span / STEP) + 1);
         const spacing = n > 1 ? span / (n - 1) : 0;
-        const openMid = e.key === OPEN_EDGE ? len / 2 : null;
+        // 单边 4 段（用户口径）：openEdge 第 2 段（i=2）替换为门，其余为墙
+        const gateSlot = e.key === OPEN_EDGE ? Math.min(n - 1, Math.max(1, Math.floor(n / 2))) : null;
         for (let i = 0; i < n; i++) {
             const t = t0 + i * spacing;
-            if (openMid !== null) {
-                const f0 = t - halfToV, f1 = t + halfAway;
-                if (f1 > openMid - OPEN_RADIUS && f0 < openMid + OPEN_RADIUS) continue;
+            if (i === gateSlot) {
+                gatePos = {
+                    x: Math.round(e.from.x + ux * t),
+                    y: Math.round(e.from.y + uy * t),
+                };
+                continue; // 该墙位由门占据
             }
             const x = Math.round(e.from.x + ux * t);
             const y = Math.round(e.from.y + uy * t);
@@ -93,43 +98,13 @@ function buildBaseRoom() {
             cover._coverSeg = segs[segs.length - 1];
         }
     }
-    // —— 门洞两侧墙段向门 face 收拢并重叠（与 defense-system._buildBaseRoom 同口径）——
-    const ge = EDGES.find((e) => e.key === OPEN_EDGE);
-    if (ge) {
-        const len = Math.hypot(ge.to.x - ge.from.x, ge.to.y - ge.from.y);
-        const ux = (ge.to.x - ge.from.x) / len, uy = (ge.to.y - ge.from.y) / len;
-        const openMid = len / 2;
-        const gHalf = Math.hypot(GATE_HALF * 2, GATE_HALF) / 2;
-        const g0 = openMid - gHalf;
-        const g1 = openMid + gHalf;
-        const JOIN_OVERLAP = 12;
-        const g = ge.orient === 'v' ? FACE_V : FACE_H;
-        const projA = g.A.x * ux + g.A.y * uy;
-        const projB = g.B.x * ux + g.B.y * uy;
-        const towardV = projA < projB ? 'A' : 'B';
-        const hToV = Math.abs(towardV === 'A' ? projA : projB);
-        const hAway = Math.abs(towardV === 'A' ? projB : projA);
-        for (const c of covers) {
-            if (c._edge !== OPEN_EDGE) continue;
-            const f0 = c._t - hToV;
-            const f1 = c._t + hAway;
-            if (f1 > g0 - 60 && f1 < g0 - 1) c._t = (g0 + JOIN_OVERLAP) - hAway;
-            else if (f0 > g1 + 1 && f0 < g1 + 60) c._t = (g1 - JOIN_OVERLAP) + hToV;
-            else continue;
-            c.x = Math.round(ge.from.x + ux * c._t);
-            c.y = Math.round(ge.from.y + uy * c._t);
-            c._coverSeg.x1 = c.x + g.A.x; c._coverSeg.y1 = c.y + g.A.y;
-            c._coverSeg.x2 = c.x + g.B.x; c._coverSeg.y2 = c.y + g.B.y;
-        }
-    }
-    return { covers, segs };
+    return { covers, segs, gatePos };
 }
 
-/** 基地门（RB 边中点，默认关闭）：可攻击实体 + 门洞段 */
-function buildGate() {
-    const ge = EDGES.find((e) => e.key === OPEN_EDGE);
-    const gx = ge.from.x + (ge.to.x - ge.from.x) * 0.5;
-    const gy = ge.from.y + (ge.to.y - ge.from.y) * 0.5;
+/** 基地门（占 RB 边一个墙位，默认关闭）：可攻击实体 + 门洞段 */
+function buildGate(gatePos) {
+    const gx = gatePos.x;
+    const gy = gatePos.y;
     const midY = gy - 65;
     const A = { x: Math.round(gx - GATE_HALF), y: Math.round(midY + GATE_HALF * 0.5) };
     const BB = { x: Math.round(gx + GATE_HALF), y: Math.round(midY - GATE_HALF * 0.5) };
@@ -141,7 +116,44 @@ function buildGate() {
         collisionRadius: 26,
     };
     const seg = { x1: A.x, y1: A.y, x2: BB.x, y2: BB.y, halfThick: 26, _gate: true, _gateHole: true };
+    gate._gateSeg = seg; // 与游戏 BuildableGate 一致：_retargetBlockingGate 靠它回链门实体
+    // 与游戏 BuildableGate 的 footprint 一致（COVER_FOOT.v: 198×133, offY -68）：
+    // distanceToEntityShape 走矩形分支，贴墙怪对门的真实距离才能算对
+    gate.collisionShape = 'rect';
+    gate.collisionWidth = 198;
+    gate.collisionHeight = 133;
+    gate.collider = { x: gx, y: gy - 68, radius: 0 };
     return { gate, seg, A, B: BB };
+}
+
+/** 复刻游戏 trimCoverSegsForGate：裁掉与门 face 重叠的共线墙碰撞段（2026-08-17 同步） */
+function trimCoversAtGate(segs, gateSeg) {
+    const A = { x: gateSeg.x1, y: gateSeg.y1 };
+    const B = { x: gateSeg.x2, y: gateSeg.y2 };
+    const gdx = B.x - A.x, gdy = B.y - A.y;
+    const glen = Math.hypot(gdx, gdy) || 1;
+    const gux = gdx / glen, guy = gdy / glen;
+    const proj = (p) => (p.x - A.x) * gux + (p.y - A.y) * guy;
+    const distToLine = (p) => Math.abs((p.x - A.x) * guy - (p.y - A.y) * gux);
+    const backoff = 26 + 30; // halfThick + 单位半径
+    for (const s of segs) {
+        if (!s || !s._cover) continue;
+        if (distToLine({ x: s.x1, y: s.y1 }) > 6 || distToLine({ x: s.x2, y: s.y2 }) > 6) continue;
+        const a = proj({ x: s.x1, y: s.y1 });
+        const b = proj({ x: s.x2, y: s.y2 });
+        const lo = Math.min(a, b), hi = Math.max(a, b);
+        if (hi <= 0 || lo >= glen) continue;
+        const ends = [
+            { x: s.x1, y: s.y1, p: a },
+            { x: s.x2, y: s.y2, p: b },
+        ];
+        for (const e of ends) {
+            if (e.p < 0 || e.p > glen) continue;
+            if (e.p < glen / 2) { e.x = A.x - gux * backoff; e.y = A.y - guy * backoff; }
+            else { e.x = B.x + gux * backoff; e.y = B.y + guy * backoff; }
+        }
+        s.x1 = ends[0].x; s.y1 = ends[0].y; s.x2 = ends[1].x; s.y2 = ends[1].y;
+    }
 }
 
 function setupWorld({ withTrees = false } = {}) {
@@ -153,8 +165,9 @@ function setupWorld({ withTrees = false } = {}) {
     ];
     WallSystem.isoSegments = [];
     WallSystem.trees = [];
-    const { covers, segs } = buildBaseRoom();
-    const { gate, seg: gateSeg } = buildGate();
+    const { covers, segs, gatePos } = buildBaseRoom();
+    const { gate, seg: gateSeg } = buildGate(gatePos);
+    trimCoversAtGate(segs, gateSeg); // 与 BuildableGate 构造时的 trimCoverSegsForGate 同口径
     WallSystem.isoSegments.push(...segs, gateSeg);
     const base = {
         id: 'defense_base', x: BASE.x, y: BASE.y,
@@ -380,6 +393,7 @@ console.log('\n=== 专项：墙前拥挤（12 只僵尸贴墙，目标=基地，
     });
     const fewHit = fewRows.filter((r) => r.canHit).length;
     const fewOnBase = fewRows.filter((r) => r.target === '基地核心').length;
+    for (const r of fewRows) console.log(`  ${JSON.stringify(r)}`);
     console.log(`  [低占用] 能攻击 ${fewHit}/3 · 仍锁基地 ${fewOnBase}/3`);
     console.log(fewHit === 3 && fewOnBase === 0 ? '  ✓ 低占用也换目标（够不着必换）' : '  ✗ 低占用仍发呆');
     for (const m of few) entities.delete(m.id);
@@ -389,7 +403,9 @@ console.log('\n=== 专项：墙前拥挤（12 只僵尸贴墙，目标=基地，
 console.log('\n=== 专项：关着的基地门前（目标=基地）是否转火门 ===');
 {
     const gate = entities.get(world.gate.id);
-    const gm = mkMonster(1500, 2100, { id: 'gate_probe', attackRange: 70, attackDistance: 70 });
+    // 2026-08-17：门已从 RB 边中点移到第 3 个墙位（i=2，中心 ~(1066,2221)），
+    // 探针沿 基地→门 连线向外 380px 出生，直线逼近时恰好切入门的纯洞区（t∈[312,405]）
+    const gm = mkMonster(1330, 2496, { id: 'gate_probe', attackRange: 70, attackDistance: 70 });
     gm.target = entities.get(world.base.id); // 强制目标=基地（路径必经关着的门洞）
     entities.set(gm.id, gm);
     for (let f = 0; f < 600; f++) {

@@ -30,7 +30,7 @@ export class HamsterGuardAI {
         const damageFrame = this.cfg.attackDamageFrame ?? 10;
         const frameCount = animCfg.frameCount || 12;
         this._damageDelayMs = Math.max(0, (damageFrame - 1) / fps * 1000);
-        this._swingAnimMs = frameCount / fps * 1000;
+        this._swingAnimMs = frameCount / fps * 1000 + 60; // +60ms 余量：动画播完再切 idle，防攻击动画被打断
         // 挥击状态：_swingActive=true 期间站定播攻击动画（单次），到伤害延迟出伤，动画播完回 idle
         this._swingActive = false;
         this._swingTimer = 0;
@@ -74,6 +74,7 @@ export class HamsterGuardAI {
             this._swingAnimLeft -= dt;
             if (this._swingAnimLeft <= 0) {
                 this._swingActive = false;
+                m._attackSwing = false; // 挥击结束主动清标记（防动画被打断时渲染层残留）
                 m._animState = 'idle';
             }
             return;

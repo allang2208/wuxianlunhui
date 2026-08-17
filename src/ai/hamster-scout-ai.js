@@ -1,40 +1,47 @@
 // ============================================================
-// HamsterMilitiaAI — 仓鼠民兵 AI（2026-08-17）
-// 玩家友方近战单位：在世界-122 自动寻找最近敌人攻击。
+// HamsterScoutAI — 仓鼠斥候 AI（2026-08-17）
+// 玩家友方远程单位：在世界-122 自动寻找最近敌人射击。
 // - 只认 _faction==='enemy' 的单位，能源矿点（_isEnergyNode）一律不攻击；
-// - 攻击动画 15 帧 @12fps 单次播（1.25s），**第 8 帧判定伤害**（用户口径）：
-//   伤害延迟 = (attackDamageFrame-1)/fps = 583ms，每挥一次 20 物理伤害，间隔 2s；
+// - 参考仓鼠射手远程模式：AimHelper.lead 提前量瞄准「目标贴图中心」，
+//   攻击动画第 11 帧（launchFrame）发射投射物，每 2.5s 一支，25 物理伤害；
 // - 无敌人时跟随玩家（保持 followOffset 站位，到位清路径/归零速度防滑步）；
-// - 移动复用 MovementSystem（寻路/墙碰撞/避障），挥击中站定（不移动）。
+// - 移动复用 MovementSystem（寻路/墙碰撞/避障），射击中站定。
 // ============================================================
 import { MovementSystem } from '../systems/movement-system.js';
 import { WallSystem } from '../world/wall-system.js';
+import { AimHelper } from '../utils/aim-helper.js';
+import { EffectManager } from '../effects/effect-manager.js';
+import { FloatingTextEffect } from '../effects/floating-text.js';
 import { SoundManager } from '../ui/sound-manager.js';
+import { getAbilityLevel } from '../world/ability-store.js';
 
-export class HamsterMilitiaAI {
-    constructor(militia) {
-        this.m = militia;
-        this.cfg = militia.aiConfig || {};
+const PROJECTILE_HIT_RADIUS = 28; // 命中半径（瞄准中心，与射手一致）
+
+export class HamsterScoutAI {
+    constructor(scout) {
+        this.m = scout;
+        this.cfg = scout.aiConfig || {};
         this._decisionTimer = 0;
         this._attackTimer = 0;
-        this._attackInterval = this.cfg.attackInterval ?? 2000;
-        this._attackDamage = this.cfg.attackDamage ?? 20;
-        this._attackRange = this.cfg.attackRange ?? 55;
+        this._attackInterval = this.cfg.attackInterval ?? 2500;
+        this._attackDamage = this.cfg.attackDamage ?? 25;
+        this._attackRange = this.cfg.attackRange ?? 600;
         this._engageRange = this.cfg.engageRange ?? 900;
+        this._projectileSpeed = this.cfg.projectileSpeed ?? 600;
         this._followOffset = this.cfg.followOffset ?? 140;
         this._followArriveDist = this.cfg.followArriveDist ?? 40;
-        // 攻击动画第 N 帧伤害判定（用户口径）：整段 15 帧 @12fps = 1.25s，
-        // 第 8 帧（索引 7）→ 伤害延迟 = (8-1)/12 × 1000 = 583ms
-        const animCfg = (militia.animations && militia.animations.attack) || {};
+        // 攻击动画帧率/第 11 帧出膛（用户口径）：
+        // 发射延迟 = (launchFrame-1) / fps；整段动画时长 = frameCount / fps
+        const animCfg = (scout.animations && scout.animations.attack) || {};
         const fps = this.cfg.attackAnimFps ?? animCfg.frameRate ?? 12;
-        const damageFrame = this.cfg.attackDamageFrame ?? 8;
-        const frameCount = animCfg.frameCount || 15;
-        this._damageDelayMs = Math.max(0, (damageFrame - 1) / fps * 1000);
-        this._swingAnimMs = frameCount / fps * 1000 + 60; // +60ms 余量：动画播完再切 idle，防攻击动画被打断
-        // 挥击状态：_swingActive=true 期间站定播攻击动画（单次），到伤害延迟出伤，动画播完回 idle
-        this._swingActive = false;
-        this._swingTimer = 0;
-        this._swingAnimLeft = 0;
+        const launchFrame = this.cfg.attackLaunchFrame ?? 11;
+        const frameCount = animCfg.frameCount || 18;
+        this._launchDelayMs = Math.max(0, (launchFrame - 1) / fps * 1000);
+        this._shotAnimMs = frameCount / fps * 1000 + 60; // +60ms 余量：动画播完再切 idle，防攻击动画被打断
+        // 射击状态：_shotActive=true 期间站定（站到动画播完回 idle）
+        this._shotActive = false;
+        this._shotTimer = 0;
+        this._shotAnimLeft = 0;
         // 卡死看门狗（矿工/战士/射手同款兜底）
         this._stuckTimer = 0;
         this._lastPosX = 0;
@@ -43,7 +50,7 @@ export class HamsterMilitiaAI {
     }
 
     /**
-     * 每帧入口（由 HamsterMilitia.update 调用）。
+     * 每帧入口（由 HamsterScout.update 调用）。
      * @param {number} dt 毫秒
      * @param {Map|Array} entities Game.entities
      * @param {object|null} player 玩家（无敌人时跟随目标）
@@ -53,34 +60,37 @@ export class HamsterMilitiaAI {
         if (m.data.hp <= 0 || m._dying) return;
 
         this._attackTimer = Math.max(0, this._attackTimer - dt);
+        // 飞行中投射物推进（优先于一切状态）
+        this._updateProjectile(dt);
+
         this._decisionTimer -= dt;
         if (this._decisionTimer <= 0) {
             this._decisionTimer = this.cfg.decisionMs ?? 120;
             this._tick(entities, player);
         }
 
-        // 挥击中：站定 → 到第 8 帧延迟出伤（一次）→ 动画播完回 idle
-        if (this._swingActive) {
+        // 射击中：站定 → 到发射延迟出膛 → 动画播完回 idle
+        if (this._shotActive) {
             m.vx = 0;
             m.vy = 0;
             m.isMoving = false;
             m.maxSpeed = 0;
             m._animState = 'attack';
-            this._swingTimer -= dt;
-            if (this._swingTimer <= 0) {
-                this._applyDamage();
-                this._swingTimer = Number.POSITIVE_INFINITY; // 每挥只出一次伤
+            this._shotTimer -= dt;
+            if (this._shotTimer <= 0) {
+                this._fireProjectile();
+                this._shotTimer = Number.POSITIVE_INFINITY; // 只发射一次
             }
-            this._swingAnimLeft -= dt;
-            if (this._swingAnimLeft <= 0) {
-                this._swingActive = false;
+            this._shotAnimLeft -= dt;
+            if (this._shotAnimLeft <= 0) {
+                this._shotActive = false;
                 m._attackSwing = false; // 挥击结束主动清标记（防动画被打断时渲染层残留）
                 m._animState = 'idle';
             }
             return;
         }
 
-        // 防御性复位：非挥击中不允许残留攻击状态
+        // 防御性复位：非射击中不允许残留攻击状态
         if (m._animState === 'attack') {
             m._animState = 'idle';
             m.vx = 0;
@@ -94,10 +104,10 @@ export class HamsterMilitiaAI {
         this._checkStuck(dt);
     }
 
-    /** 决策 tick：有敌追击/挥击，无敌跟随玩家 */
+    /** 决策 tick：有敌追击/射击，无敌跟随玩家 */
     _tick(entities, player) {
         const m = this.m;
-        if (this._swingActive) {
+        if (this._shotActive) {
             m._animState = 'attack';
             return;
         }
@@ -111,19 +121,18 @@ export class HamsterMilitiaAI {
         if (enemy) {
             m.target = enemy;
             const dist = Math.hypot(enemy.x - m.x, enemy.y - m.y);
-            const range = this._attackRange + (enemy.groundRadius || 24);
-            if (dist <= range) {
-                // 进入攻击范围：站定；挥击节奏由 attackTimer 控制
+            if (dist <= this._attackRange) {
+                // 进入射程：站定；开火节奏由 attackTimer 控制
                 m._tacticalTarget = null;
                 m.maxSpeed = 0;
                 m.rotation = Math.atan2(enemy.y - m.y, enemy.x - m.x);
                 m._lastFaceRight = enemy.x >= m.x;
                 if (this._attackTimer <= 0) {
-                    // 开始一次挥击（攻击动画播一遍，第 8 帧判定伤害）
+                    // 开始一次射击（动画播一遍，第 11 帧出膛）
                     this._attackTimer = this._attackInterval;
-                    this._swingActive = true;
-                    this._swingTimer = this._damageDelayMs;
-                    this._swingAnimLeft = this._swingAnimMs;
+                    this._shotActive = true;
+                    this._shotTimer = this._launchDelayMs;
+                    this._shotAnimLeft = this._shotAnimMs;
                     m._animState = 'attack';
                     m._attackSwing = true; // 渲染层播攻击动画
                 } else {
@@ -134,7 +143,7 @@ export class HamsterMilitiaAI {
                 }
                 return;
             }
-            // 目标在交战半径内但超出攻击范围：追击拉近距离
+            // 目标在交战半径内但超出射程：走位拉近距离
             m._tacticalTarget = { x: enemy.x, y: enemy.y };
             m._animState = 'walk';
             m.maxSpeed = this.cfg.walkSpeed ?? 150;
@@ -172,7 +181,7 @@ export class HamsterMilitiaAI {
         }
     }
 
-    /** RTS 命令：move（走到点，到位清指令）/ attack（锁定目标，进范围站定挥击）/ hold（待命） */
+    /** RTS 命令：move（走到点，到位清指令）/ attack（锁定目标，进射程站定射击）/ hold（待命） */
     _applyCommand(cmd) {
         const m = this.m;
         if (cmd.mode === 'move') {
@@ -202,18 +211,17 @@ export class HamsterMilitiaAI {
             }
             m.target = t;
             const dist = Math.hypot(t.x - m.x, t.y - m.y);
-            const range = this._attackRange + (t.groundRadius || 24);
-            if (dist <= range) {
-                // 进范围：站定 + 启动一次挥击（与索敌分支同口径）
+            if (dist <= this._attackRange) {
+                // 进射程：站定 + 启动一次射击（与索敌分支同口径）
                 m._tacticalTarget = null;
                 m.maxSpeed = 0;
                 m.rotation = Math.atan2(t.y - m.y, t.x - m.x);
                 m._lastFaceRight = t.x >= m.x;
                 if (this._attackTimer <= 0) {
                     this._attackTimer = this._attackInterval;
-                    this._swingActive = true;
-                    this._swingTimer = this._damageDelayMs;
-                    this._swingAnimLeft = this._swingAnimMs;
+                    this._shotActive = true;
+                    this._shotTimer = this._launchDelayMs;
+                    this._shotAnimLeft = this._shotAnimMs;
                     m._animState = 'attack';
                     m._attackSwing = true;
                 } else {
@@ -253,19 +261,41 @@ export class HamsterMilitiaAI {
         return best;
     }
 
-    /** 第 8 帧伤害判定：目标仍存活且在攻击范围内 → 造成 attackDamage 物理伤害 */
-    _applyDamage() {
-        const m = this.m;
-        const e = m.target;
-        if (!e || !e.active || e.hp <= 0) return;
-        if (e._isEnergyNode) return;
-        const dist = Math.hypot(e.x - m.x, e.y - m.y);
-        const range = this._attackRange + (e.groundRadius || 24);
-        if (dist > range) return;
-        if (typeof e.takeDamage === 'function') {
-            e.takeDamage(this._attackDamage, m, 'physical', true);
-            this._playSound('attack'); // 攻击音效（2026-08-16 用户素材，与战士/盾卫共用）
+    /** 目标贴图中心 Y（瞄准基准；无精灵时退回身体中心） */
+    _targetAimY(target) {
+        if (target && target._phaserSprite && target._phaserSprite.active) {
+            return target._phaserSprite.y;
         }
+        return target.y - ((target.bodyHeight || 80) * 0.5);
+    }
+
+    /** 发射投射物：AimHelper.lead 提前量瞄准目标贴图中心（参考露娜/射手） */
+    _fireProjectile() {
+        const m = this.m;
+        const target = m.target;
+        if (!target || !target.active || target.hp <= 0) return;
+        const aimY = this._targetAimY(target);
+        // 发射点 = 射手高度（与射手同口径：脚底 y 上移 45px）
+        const spawnY = m.y - 45;
+        const lead = AimHelper.lead(
+            m.x, spawnY,
+            target.x, aimY,
+            target.vx || 0, target.vy || 0,
+            this._projectileSpeed
+        );
+        const ang = Math.atan2(lead.y - spawnY, lead.x - m.x);
+        // 存 companion 字段（GameScene._syncCompanionBasics 读 m._basic 渲染投射物）
+        m._basic = {
+            active: true,
+            x: m.x,
+            y: spawnY,
+            aimY,
+            angle: ang,
+            dist: 0,
+            maxDist: this._attackRange + 150,
+            target,
+        };
+        this._playSound('attack'); // 出膛音效（2026-08-17 复用射手出膛素材）
     }
 
     /** 事件音效：世界内发声走 playWorld（坐标衰减），无则 playFile 兜底（路径来自配置 m.sounds） */
@@ -277,6 +307,60 @@ export class HamsterMilitiaAI {
             SoundManager.playWorld(path, m.x, m.y);
         } else if (typeof SoundManager.playFile === 'function') {
             SoundManager.playFile(path);
+        }
+    }
+
+    /** 投射物飞行推进 + 命中结算（25 物理伤害；目标中心命中判定） */
+    _updateProjectile(dt) {
+        const m = this.m;
+        const b = m._basic;
+        if (!b || !b.active) return;
+        const dtSec = dt / 1000;
+        const step = this._projectileSpeed * dtSec;
+        b.x += Math.cos(b.angle) * step;
+        b.y += Math.sin(b.angle) * step;
+        b.dist += step;
+
+        let hit = null;
+        const t = b.target;
+        if (t && t.active && t.hp > 0
+            && Math.hypot(t.x - b.x, (b.aimY ?? t.y) - b.y) < PROJECTILE_HIT_RADIUS) {
+            hit = t;
+        } else {
+            // 路径上经过的其他敌人也判定（与射手同思路）
+            const game = (typeof window !== 'undefined' && window.Game) || null;
+            for (const e of ((game && game.entities) ? game.entities.values() : [])) {
+                if (!e || !e.active || e.hp <= 0 || e._faction !== 'enemy') continue;
+                if (e._isEnergyNode) continue;
+                const ey = this._targetAimY(e);
+                if (Math.hypot(e.x - b.x, ey - b.y) < PROJECTILE_HIT_RADIUS) {
+                    hit = e;
+                    break;
+                }
+            }
+        }
+        if (hit) {
+            if (typeof hit.takeDamage === 'function') {
+                hit.takeDamage(this._attackDamage, m, 'physical');
+            }
+            // 铁匠铺能力：标记箭（2026-08-17）——命中 25%+5%/级 概率标记 3s，
+            // 走标准 Buff 工作流（addStatusEffect 统一入口，STATUS_CONFIG 已注册 'marked'）
+            const markLv = getAbilityLevel('mark_arrow');
+            if (markLv > 0 && Math.random() < 0.25 + 0.05 * markLv) {
+                if (typeof hit.addStatusEffect === 'function') {
+                    // value=0.15：同类型标记刷新时数值取最大（较强效果生效）
+                    hit.addStatusEffect('marked', 3000, { name: '标记', icon: '🎯', color: '#ffd700', value: 0.15 });
+                }
+                if (EffectManager) {
+                    EffectManager.add(new FloatingTextEffect(hit.x, hit.y - 44, '🎯 标记', '#ffd700'));
+                }
+            }
+            if (EffectManager) {
+                EffectManager.add(new FloatingTextEffect(hit.x, hit.y - 30, `-${this._attackDamage}`, '#ffd27a'));
+            }
+            m._basic = null;
+        } else if (b.dist >= b.maxDist) {
+            m._basic = null; // 超出射程静默消失
         }
     }
 

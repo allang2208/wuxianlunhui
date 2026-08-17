@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /* 仓鼠民兵实机验证（2026-08-17）：
-   - 世界-122 中构造测试民兵（125HP/150 移速/友方阵营可被怪锁定）；
+   - 世界-122 中构造测试民兵（125HP/150 移速/友方阵营可被怪锁定，
+     displaySize 300——2026-08-17 与战士/盾卫对比后放大）；
    - AI：找最近 enemy → 走位 walk → 到位挥击（攻击动画 15 帧单次播放，
      第 8 帧判定伤害：延迟 (8-1)/12 ≈ 583ms）；每 2s 造成 20 物理伤害；
      能源矿点贴脸不攻击；
@@ -226,7 +227,7 @@ check('六维 力量8/敏捷10/智力3/体质6/精神3/幸运7',
 check('阵营 companion + 可被怪锁定', a.faction === 'companion' && a.targetable === true && a.hittable === true);
 check('移速 = 150 / 间隔 2000ms / 伤害 20', a.walkSpeed === 150 && a.interval === 2000 && a.dmg === 20,
     `spd=${a.walkSpeed} int=${a.interval} dmg=${a.dmg}`);
-check('精灵已渲染（显示尺寸 226）', a.spriteSize && a.spriteSize[0] === 226 && a.spriteSize[1] === 226,
+check('精灵已渲染（显示尺寸 300）', a.spriteSize && a.spriteSize[0] === 300 && a.spriteSize[1] === 300,
     JSON.stringify(a.spriteSize));
 
 // ---------- B. 找最近敌人 → 走位 → 挥击（20/2s）+ 单次播放动画 + 第 8 帧出伤 ----------

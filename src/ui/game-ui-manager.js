@@ -9,6 +9,8 @@ import { EquipManager } from './equip-manager.js';
 import { UI_DATA_CONFIG } from './system-ui.js';
 import { getTributeHpRegenMultiplier, getTributeHpRegenFlat } from '../config/tribute-effects.js';
 import { completeWeaponFields } from './equip-data-manager.js';
+import { serializeUnitUpgrades, restoreUnitUpgrades } from '../world/unit-upgrade-store.js';
+import { serializeAbilityLevels, restoreAbilityLevels } from '../world/ability-store.js';
 
 // Game UI Manager - Extracted from Game.js
 // Handles UI updates, save/load, timers, and menu operations
@@ -241,6 +243,8 @@ export const GameUIManager = {
         }
         // 恢复装备与背包（附魔/强化/改造数据随物品一并恢复）
         if (data.equipments) this.player.equipments = data.equipments;
+        restoreUnitUpgrades(data.world122?.unitUpgrades);
+        restoreAbilityLevels(data.world122?.abilityLevels);
         if (Array.isArray(data.backpack) && typeof EquipManager !== 'undefined') {
             // 原地替换内容而非换数组：init 时旧数组引用已注入 EquipTooltipManager/
             // GoldManager/BackpackDialogManager/dragDropManager，换数组会让这些引用失效
@@ -275,7 +279,11 @@ export const GameUIManager = {
             position: { x: this.player.x, y: this.player.y },
             // 装备与背包一并持久化（附魔/强化/改造数据在物品字段上）
             equipments: this.player.equipments,
-            backpack: (typeof EquipManager !== 'undefined') ? EquipManager.backpackItems : []
+            backpack: (typeof EquipManager !== 'undefined') ? EquipManager.backpackItems : [],
+            world122: {
+                unitUpgrades: serializeUnitUpgrades(),
+                abilityLevels: serializeAbilityLevels(),
+            },
         };
         try { localStorage.setItem('infiniteLoop_save', JSON.stringify(saveData)); alert('已保存至主神空间'); } catch (e) { console.error('Save failed:', e); alert('存档失败: 存储空间不足'); }
     },

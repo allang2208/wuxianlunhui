@@ -12,6 +12,7 @@ import { HamsterWarrior } from '../entities/hamster-warrior.js';
 import { HamsterShooter } from '../entities/hamster-shooter.js';
 import { HamsterGuard } from '../entities/hamster-guard.js';
 import { HamsterMilitia } from '../entities/hamster-militia.js';
+import { HamsterScout } from '../entities/hamster-scout.js';
 import { GoldManager } from '../systems/gold-manager.js';
 import { EnergyManager } from '../systems/energy-manager.js';
 import { EffectManager } from '../effects/effect-manager.js';
@@ -27,6 +28,14 @@ import warriorCfg from '../../data/hamster-warrior-config.json';
 import shooterCfg from '../../data/hamster-shooter-config.json';
 import guardCfg from '../../data/hamster-guard-config.json';
 import militiaCfg from '../../data/hamster-militia-config.json';
+import scoutCfg from '../../data/hamster-scout-config.json';
+import {
+    applyGlobalUpgradesToKind,
+    getUnitUpgradeLevel,
+    getUnitUpgradeMults,
+    raiseUnitUpgradeLevel,
+} from './unit-upgrade-store.js';
+import { getAbilityLevel, raiseAbilityLevel } from './ability-store.js';
 
 /** 产兵建筑配置表（唯一真源，building-system.js 也据此生成可建条目） */
 export const PRODUCER_BUILDINGS = producerBuildings;
@@ -37,6 +46,7 @@ const PRODUCER_UNIT_CFG = {
     shooter: shooterCfg,
     guard: guardCfg,
     militia: militiaCfg,
+    scout: scoutCfg,
 };
 
 /** 单位 key → 实体类 */
@@ -45,15 +55,8 @@ const PRODUCER_UNIT_CLASS = {
     shooter: HamsterShooter,
     guard: HamsterGuard,
     militia: HamsterMilitia,
+    scout: HamsterScout,
 };
-
-/** 单位 key → 实体识别位（applyBarracksUpgrades 用，与兵营同约定） */
-function unitKindOf(unit) {
-    if (unit._isHamsterWarrior) return 'warrior';
-    if (unit._isHamsterGuard) return 'guard';
-    if (unit._isHamsterMilitia) return 'militia';
-    return 'shooter';
-}
 
 export function getProducerConfig(key) {
     return PRODUCER_BUILDINGS[key] || null;
@@ -135,12 +138,15 @@ export class ProducerBuilding extends DamageableEntity {
         this.units = [];              // 本建筑拥有的军事单位
         this._unitSeq = 0;
         this._spawnTimer = 0;
+        this.spawnEnabled = cfg.spawnEnabled !== false; // 铁匠铺等能力建筑不产兵
+        this._upgrade = null;         // 能力升级读条 { abilityId, totalMs, remainMs }
+        this._continuous = null;      // 持续升级的能力 id（资源足够自动续升）
         this.rebuildCollider();
     }
 
-    /** 当前模块倍率 */
+    /** 当前兵种全局倍率（2026-08-17 起按兵种全局共享，不再按建筑实例） */
     mults() {
-        return getProducerMults(this._cfg, this.modules);
+        return getUnitUpgradeMults(this.unitType, this._cfg.modules);
     }
 
     /** 目标军事单位数量：配置 unitCap（初始即有，无需升级） */
@@ -208,37 +214,106 @@ export class ProducerBuilding extends DamageableEntity {
         return unit;
     }
 
-    /** 把当前模块倍率同步给所有存活单位 */
+    /** 把该兵种全局升级同步给场景内所有该兵种单位（2026-08-17 起跨建筑全局生效） */
     applyUpgradesToUnits() {
-        const mults = this.mults();
-        for (const unit of this.units) {
-            if (!unit || !unit.active || unit._dying) continue;
-            const unitKey = unitKindOf(unit);
-            // 2026-08-17 修正：此前误从 ai 块读 baseMaxHp（恒 300），
-            // 导致产兵建筑生成的单位 HP 一律被 300 覆盖（民兵 125 等不生效）
-            const base = PRODUCER_UNIT_CFG[unitKey] || {};
-            const baseAi = base.ai || {};
-            const u = {
-                attackInterval: Math.max(300, Math.round((baseAi.attackInterval ?? 2000) * mults.attackIntervalMult)),
-                attackDamage: Math.max(1, Math.round((baseAi.attackDamage ?? 50) * mults.attackDamageMult)),
-                walkSpeed: Math.max(20, Math.round((baseAi.walkSpeed ?? 120) * mults.moveSpeedMult)),
-                baseMaxHp: Math.max(1, Math.round((base.baseMaxHp ?? 300) * mults.hpMult)),
-            };
-            if (typeof unit.applyBarracksUpgrades === 'function') {
-                unit.applyBarracksUpgrades(u);
-            }
-        }
+        applyGlobalUpgradesToKind(this.unitType, this._cfg.modules);
     }
 
     /** 模块是否可升级（未满级即可） */
     canUpgradeModule(moduleId) {
         const mod = this._cfg.modules?.[moduleId];
         if (!mod) return false;
-        return (this.modules[moduleId] || 0) < mod.maxLevel;
+        return getUnitUpgradeLevel(this.unitType, moduleId) < mod.maxLevel;
     }
 
     getModuleCost(moduleId) {
-        return getProducerModuleCost(this._cfg, moduleId, this.modules[moduleId] || 0);
+        return getProducerModuleCost(this._cfg, moduleId, getUnitUpgradeLevel(this.unitType, moduleId));
+    }
+
+    /** 能力配置（铁匠铺专属，2026-08-17） */
+    getAbility(abilityId) {
+        return (this._cfg.abilities || {})[abilityId] || null;
+    }
+
+    /** 能力当前全局等级 */
+    abilityLevel(abilityId) {
+        return getAbilityLevel(abilityId);
+    }
+
+    /** 能力是否可升级（存在且未满级） */
+    canUpgradeAbility(abilityId) {
+        const a = this.getAbility(abilityId);
+        if (!a) return false;
+        return this.abilityLevel(abilityId) < (a.maxLevel ?? 10);
+    }
+
+    /**
+     * 能力升级资源/读条公式（2026-08-17）：
+     * 金币 = goldBase × goldGrowth^lv；能源 = energyBase × energyGrowth^lv；
+     * 读条 = timeBaseMs + timeGrowthMs × lv（lv = 当前等级，下一级费用）。
+     */
+    getAbilityCost(abilityId) {
+        const a = this.getAbility(abilityId);
+        if (!a) return null;
+        const lv = this.abilityLevel(abilityId);
+        const c = this._cfg.abilityUpgrade || {};
+        return {
+            gold: Math.round((c.goldBase ?? 150) * Math.pow(c.goldGrowth ?? 1.3, lv)),
+            energy: Math.round((c.energyBase ?? 200) * Math.pow(c.energyGrowth ?? 1.35, lv)),
+            timeMs: (c.timeBaseMs ?? 3000) + (c.timeGrowthMs ?? 500) * lv,
+        };
+    }
+
+    /**
+     * 开始一次能力升级读条（读条开始时扣资源，完成时等级 +1）。
+     * continuous=true：本项目完成后自动续升下一级（资源足够且未满级）。
+     */
+    startAbilityUpgrade(abilityId, continuous = false) {
+        const a = this.getAbility(abilityId);
+        if (!a) return { ok: false, reason: '未知能力' };
+        if (!this.canUpgradeAbility(abilityId)) return { ok: false, reason: '能力已满级' };
+        if (this._upgrade) return { ok: false, reason: '已有升级在读条中' };
+        const cost = this.getAbilityCost(abilityId);
+        const free = !!(Game && Game._devInfiniteResources);
+        if (!free) {
+            if (!GoldManager || !EnergyManager) return { ok: false, reason: '货币系统不可用' };
+            if (GoldManager.getGold() < cost.gold) return { ok: false, reason: `金币不足（需 ${cost.gold} 金币）` };
+            if (EnergyManager.getEnergy() < cost.energy) return { ok: false, reason: `能源不足（需 ${cost.energy} 能源）` };
+            GoldManager.deductGold(cost.gold);
+            EnergyManager.deductEnergy(cost.energy);
+        }
+        this._upgrade = { abilityId, totalMs: cost.timeMs, remainMs: cost.timeMs };
+        if (continuous) this._continuous = abilityId;
+        if (SoundManager && typeof SoundManager.playFile === 'function') {
+            SoundManager.playFile('assets/sounds/ui/sell.wav');
+        }
+        return { ok: true, cost, abilityId };
+    }
+
+    /** 推进能力升级读条；完成时升级并（若持续）自动续下一级 */
+    _updateUpgrade(dt) {
+        if (!this._upgrade) return;
+        this._upgrade.remainMs -= dt;
+        if (this._upgrade.remainMs > 0) return;
+        const { abilityId } = this._upgrade;
+        this._upgrade = null;
+        const level = raiseAbilityLevel(abilityId);
+        const a = this.getAbility(abilityId);
+        if (a && EffectManager) {
+            EffectManager.add(new FloatingTextEffect(this.x, this.y - 56, `${a.name} Lv.${level}`, '#c9a0ff'));
+        }
+        // 完成后面板立即刷新（否则进度条停在最后一次 100ms tick 的 99%，2026-08-17 用户反馈）
+        if (ProducerBuildingSystem && ProducerBuildingSystem._panel && ProducerBuildingSystem._panel.isOpen
+            && ProducerBuildingSystem._panel.building === this) {
+            ProducerBuildingSystem._panel.refresh();
+        }
+        // 持续升级：资源足够且未满级 → 自动开始下一级
+        if (this._continuous === abilityId && this.canUpgradeAbility(abilityId)) {
+            const res = this.startAbilityUpgrade(abilityId, true);
+            if (!res.ok) this._continuous = null; // 资源不足/异常 → 停止持续
+        } else if (this._continuous === abilityId) {
+            this._continuous = null;
+        }
     }
 
     /** 玩家支付升级费用升级模块；升级后同步现有单位 */
@@ -255,17 +330,19 @@ export class ProducerBuilding extends DamageableEntity {
             GoldManager.deductGold(cost.gold);
             EnergyManager.deductEnergy(cost.energy);
         }
-        this.modules[moduleId] = (this.modules[moduleId] || 0) + 1;
+        const level = raiseUnitUpgradeLevel(this.unitType, moduleId);
         this.applyUpgradesToUnits();
         if (SoundManager && typeof SoundManager.playFile === 'function') {
             SoundManager.playFile('assets/sounds/ui/sell.wav');
         }
-        return { ok: true, cost, moduleId, level: this.modules[moduleId] };
+        return { ok: true, cost, moduleId, level };
     }
 
     /** 主循环：每 spawnIntervalMs 生成一个军事单位（存活数低于上限时） */
     update(dt) {
         if (!this.active) return;
+        this._updateUpgrade(dt);
+        if (!this.spawnEnabled) return;
         if (this.aliveUnitCount() < this.unitCount()) {
             this._spawnTimer -= dt;
             if (this._spawnTimer <= 0) {
@@ -293,6 +370,8 @@ export class ProducerBuilding extends DamageableEntity {
 
     /** 建筑专属清理（单位/列表/面板）；实体失效与移除由 BuildingSinkEffect 负责 */
     _destroyCleanup() {
+        this._upgrade = null;
+        this._continuous = null;
         this._despawnUnits();
         if (ProducerBuildingSystem && ProducerBuildingSystem.buildings) {
             const i = ProducerBuildingSystem.buildings.indexOf(this);
@@ -324,6 +403,8 @@ export class ProducerBuilding extends DamageableEntity {
     sell() {
         const refund = Math.floor(this._cfg.cost * (this._cfg.sellRefundRatio ?? 0.5));
         this.active = false;
+        this._upgrade = null;
+        this._continuous = null;
         this._despawnUnits();
         if (Game && Game.entities && this.id) Game.entities.delete(this.id);
         if (ProducerBuildingSystem && ProducerBuildingSystem.buildings) {
@@ -369,6 +450,16 @@ class ProducerBuildingPanel extends BasePanel {
             <div id="pbUnitType" style="border:1px solid #3a6a5a;border-radius:8px;padding:10px;margin-bottom:12px;background:rgba(20,50,40,0.18);"></div>
             <div id="pbModules" style="border:1px solid #3a4a5a;border-radius:8px;padding:10px;background:rgba(20,40,60,0.18);"></div>
         `;
+        // 能力说明浮窗：独立图层挂在 document.body（不放进面板，避免被面板
+        // overflow 容器裁剪/撑出滚动条），层级高于铁匠铺面板（2026-08-17 用户口径）
+        if (!document.getElementById('pbAbilityTip')) {
+            const tip = document.createElement('div');
+            tip.id = 'pbAbilityTip';
+            tip.style.cssText = 'display:none;position:fixed;z-index:10000;background:#fff;color:#222;'
+                + 'border:1px solid #d8d2c4;border-radius:6px;padding:8px 10px;font-size:12px;'
+                + 'line-height:1.6;box-shadow:0 4px 12px rgba(0,0,0,0.35);pointer-events:none;max-width:320px;';
+            document.body.appendChild(tip);
+        }
         el.querySelector('#pbClose').addEventListener('click', () => this.close());
     }
 
@@ -388,6 +479,7 @@ class ProducerBuildingPanel extends BasePanel {
 
     onClose() {
         this._stopTicking();
+        this._hideAbilityTip();
         if (this.el) this.el.style.display = 'none';
         this.building = null;
         this.player = null;
@@ -427,6 +519,15 @@ class ProducerBuildingPanel extends BasePanel {
             pct.style.color = spawnBarColor;
         }
         if (next) next.textContent = `${Math.max(0, Math.ceil(b._spawnTimer / 1000))}s`;
+        // 铁匠铺能力升级读条进度（2026-08-17）
+        if (b._upgrade) {
+            const up = b._upgrade;
+            const upPct = Math.max(0, Math.min(100, Math.round((1 - up.remainMs / up.totalMs) * 100)));
+            const bar = el.querySelector(`#pbUpgradeBar_${up.abilityId}`);
+            const txt = el.querySelector(`#pbUpgradeText_${up.abilityId}`);
+            if (bar) bar.style.width = `${upPct}%`;
+            if (txt) txt.textContent = `升级中 ${upPct}%（剩余 ${Math.max(0, Math.ceil(up.remainMs / 1000))}s）`;
+        }
     }
 
     _notify(text, color) {
@@ -443,7 +544,10 @@ class ProducerBuildingPanel extends BasePanel {
         const cfg = b._cfg;
         const energy = EnergyManager ? EnergyManager.getEnergy() : 0;
         const gold = GoldManager ? GoldManager.getGold() : 0;
+        const isAbilityShop = cfg.spawnEnabled === false; // 铁匠铺等能力建筑（2026-08-17）
         el.querySelector('#pbTitle').textContent = `🏠 ${cfg.name}`;
+        const unitTypeEl = el.querySelector('#pbUnitType');
+        if (unitTypeEl) unitTypeEl.style.display = isAbilityShop ? 'none' : '';
 
         const st = el.querySelector('#pbStatus');
         const curType = b.unitName(b.unitType);
@@ -494,7 +598,7 @@ class ProducerBuildingPanel extends BasePanel {
 
         const modBox = el.querySelector('#pbModules');
         const rows = Object.entries(cfg.modules || {}).map(([mid, mod]) => {
-            const lv = b.modules[mid] || 0;
+            const lv = getUnitUpgradeLevel(b.unitType, mid);
             const desc = getProducerModuleDesc(cfg, mid, lv);
             const maxedMod = lv >= mod.maxLevel;
             const canBuy = b.canUpgradeModule(mid);
@@ -527,12 +631,67 @@ class ProducerBuildingPanel extends BasePanel {
         const sellBtn = el.querySelector('#pbSell');
         if (sellBtn) {
             const refund = Math.floor(cfg.cost * (cfg.sellRefundRatio ?? 0.5));
-            sellBtn.title = `出售返还 ${refund} 能源（军事单位一并拆除）`;
+            sellBtn.title = `出售返还 ${refund} 能源${isAbilityShop ? '' : '（军事单位一并拆除）'}`;
             sellBtn.onclick = () => {
                 const res = b.sell();
                 this._notify(res.ok ? `已出售（+${res.refund} 能源）` : '出售失败', res.ok ? '#ffd700' : '#ff5555');
                 this.close();
             };
+        }
+        // ===== 铁匠铺：能力工坊版（覆盖上方出兵版渲染，2026-08-17）=====
+        if (isAbilityShop) {
+            st.innerHTML = `
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                    <div><span style="color:#ffd700;font-weight:700;">能力工坊</span></div>
+                    <div style="font-size:12px;color:#9a9a9a;">耐久 ${Math.ceil(b.hp)}/${b.maxHp} · 金币 <span style="color:#ffd700;">${gold}</span> · 能源 <span style="color:#7fd4ff;">${energy}</span></div>
+                </div>
+                <div style="font-size:12px;color:#c8b98a;line-height:1.7;">
+                    不生成兵种，为仓鼠单位解锁特殊能力<br>
+                    升级需要读条，完成后能力全局生效（所有对应兵种）
+                </div>`;
+            const modBoxEl = el.querySelector('#pbModules');
+            const rows = Object.entries(cfg.abilities || {}).map(([aid, a]) => {
+                const lv = b.abilityLevel(aid);
+                const maxed = lv >= (a.maxLevel ?? 10);
+                const inProgress = !!(b._upgrade && b._upgrade.abilityId === aid);
+                const progPct = inProgress ? Math.round((1 - b._upgrade.remainMs / b._upgrade.totalMs) * 100) : 0;
+                const cont = b._continuous === aid;
+                const btnHtml = maxed
+                    ? '<span style="color:#8a8a8a;font-size:12px;width:86px;display:inline-block;text-align:center;">已满级</span>'
+                    : `<div style="display:flex;gap:4px;flex-shrink:0;">
+                        <button data-ability-up="${aid}" style="width:86px;white-space:nowrap;background:#4a5a2a;color:#e8ffc8;border:1px solid #7a9a4a;border-radius:6px;padding:3px 0;cursor:pointer;font-size:12px;">升级</button>
+                        <button data-ability-cont="${aid}" style="width:86px;white-space:nowrap;background:${cont ? '#2a6a5a' : '#263a32'};color:${cont ? '#e8fff5' : '#9ab8ac'};border:1px solid ${cont ? '#4aa88a' : '#3a6a5a'};border-radius:6px;padding:3px 0;cursor:pointer;font-size:12px;">${cont ? '持续中' : '持续升级'}</button>
+                    </div>`;
+                return `
+                    <div data-ability-row="${aid}" style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #22303a;gap:8px;cursor:help;">
+                        <div style="flex:1;min-width:0;">
+                            <div style="font-size:13px;color:#d4e8ff;">${a.icon} ${a.name} <span style="color:#8ad0ff;">Lv.${lv}/${a.maxLevel ?? 10}</span> <span style="font-size:10px;color:#6a7a6a;">（悬停查看说明）</span></div>
+                            <div style="position:relative;height:8px;background:rgba(255,255,255,0.10);border-radius:4px;overflow:hidden;margin-top:4px;">
+                                <div id="pbUpgradeBar_${aid}" style="position:absolute;left:0;top:0;bottom:0;width:${progPct}%;background:linear-gradient(90deg,#ffd700,#c9a0ff);border-radius:4px;transition:width 0.2s linear;"></div>
+                            </div>
+                            <div id="pbUpgradeText_${aid}" style="font-size:10px;color:#c9a0ff;margin-top:2px;min-height:12px;">${inProgress ? `升级中 ${progPct}%（剩余 ${Math.ceil(b._upgrade.remainMs / 1000)}s）` : ''}</div>
+                        </div>
+                        <div style="flex-shrink:0;">${btnHtml}</div>
+                    </div>`;
+            }).join('');
+            modBoxEl.innerHTML = `
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                    <span style="font-size:13px;font-weight:700;color:#c9a0ff;">✨ 特殊能力（读条升级，全局生效）</span>
+                    <span style="font-size:12px;color:#9a9a9a;">持有 ${gold} 金 / ${energy} 能</span>
+                </div>
+                ${rows || '<div style="font-size:12px;color:#8a8a8a;">暂无能力</div>'}`;
+            modBoxEl.querySelectorAll('[data-ability-up]').forEach((btnEl) => {
+                btnEl.addEventListener('click', () => this._upgradeAbility(btnEl.dataset.abilityUp, false));
+            });
+            modBoxEl.querySelectorAll('[data-ability-cont]').forEach((btnEl) => {
+                btnEl.addEventListener('click', () => this._upgradeAbility(btnEl.dataset.abilityCont, true));
+            });
+            modBoxEl.querySelectorAll('[data-ability-row]').forEach((rowEl) => {
+                const aid = rowEl.dataset.abilityRow;
+                rowEl.addEventListener('mouseenter', (ev) => this._showAbilityTip(aid, ev));
+                rowEl.addEventListener('mousemove', (ev) => this._moveAbilityTip(ev));
+                rowEl.addEventListener('mouseleave', () => this._hideAbilityTip());
+            });
         }
     }
 
@@ -554,6 +713,87 @@ class ProducerBuildingPanel extends BasePanel {
             this._notify(res.reason, '#ff5555');
         }
         this.refresh();
+    }
+
+    /** 铁匠铺能力升级（读条）或持续升级切换（2026-08-17） */
+    _upgradeAbility(abilityId, continuous) {
+        if (!this.building) return;
+        const b = this.building;
+        if (continuous) {
+            // 持续升级：目标能力切换持续状态；已持续则取消
+            if (b._continuous === abilityId) {
+                b._continuous = null;
+                this._notify(`${b.getAbility(abilityId)?.name || abilityId} 停止持续升级`, '#ffd700');
+            } else {
+                // 读条中禁止改挂另一能力，避免旧读条完成后留下“持续中但未启动”的悬空状态
+                if (b._upgrade) {
+                    this._notify('当前能力正在升级，请完成后再切换持续升级', '#ffb86a');
+                    this.refresh();
+                    return;
+                }
+                const res = b.startAbilityUpgrade(abilityId, true);
+                if (res.ok) {
+                    this._notify(`${b.getAbility(abilityId)?.name || abilityId} 持续升级开启（资源足够自动续升）`, '#c9a0ff');
+                } else {
+                    b._continuous = null;
+                    this._notify(res.reason, '#ff5555');
+                }
+            }
+        } else {
+            const res = b.startAbilityUpgrade(abilityId, false);
+            if (res.ok) {
+                this._notify(`${b.getAbility(abilityId)?.name || abilityId} 开始升级（读条 ${Math.round(res.cost.timeMs / 1000)}s）`, '#c9a0ff');
+            } else {
+                this._notify(res.reason, '#ff5555');
+            }
+        }
+        this.refresh();
+    }
+
+    /** 能力说明浮窗（类似装备栏白色浮窗，2026-08-17）：悬停能力行时显示 */
+    _showAbilityTip(abilityId, ev) {
+        if (!this.building) return;
+        const tip = document.getElementById('pbAbilityTip');
+        if (!tip) return;
+        const b = this.building;
+        const a = b.getAbility(abilityId);
+        if (!a) return;
+        const lv = b.abilityLevel(abilityId);
+        const maxed = lv >= (a.maxLevel ?? 10);
+        const cost = b.getAbilityCost(abilityId);
+        const value = (a.base ?? 0) + (a.per ?? 0) * lv;
+        const nextValue = value + (a.per ?? 0);
+        const pct = Math.round(value * 100);
+        const nextPct = Math.round(nextValue * 100);
+        const fill = (s) => s.replace('{chance}', `${pct}%`).replace('{dmg}', `${pct}%`);
+        const fillNext = (s) => s.replace('{chance}', `${nextPct}%`).replace('{dmg}', `${nextPct}%`);
+        tip.innerHTML = `
+            <div style="font-weight:700;font-size:13px;margin-bottom:4px;">${a.icon} ${a.name} <span style="color:#8a5a00;">Lv.${lv}/${a.maxLevel ?? 10}</span></div>
+            <div>${maxed ? fill(a.desc || '') : `${fill(a.desc || '')} → ${fillNext(a.desc || '')}`}</div>
+            <div style="margin-top:4px;color:#5a4a2a;">目标兵种：${a.target}</div>
+            <div style="margin-top:2px;">升级费用：${cost.gold} 金币 + ${cost.energy} 能源</div>
+            <div>读条时间：${Math.round(cost.timeMs / 1000)} 秒</div>`;
+        tip.style.display = 'block';
+        this._moveAbilityTip(ev);
+    }
+
+    /** 浮窗跟随鼠标（右侧优先，越界翻转到左侧/上方） */
+    _moveAbilityTip(ev) {
+        const tip = document.getElementById('pbAbilityTip');
+        if (!tip || tip.style.display === 'none') return;
+        const w = tip.offsetWidth || 300;
+        const h = tip.offsetHeight || 100;
+        let left = ev.clientX + 14;
+        let top = ev.clientY + 14;
+        if (left + w > window.innerWidth - 10) left = ev.clientX - w - 14;
+        if (top + h > window.innerHeight - 10) top = ev.clientY - h - 14;
+        tip.style.left = `${left}px`;
+        tip.style.top = `${top}px`;
+    }
+
+    _hideAbilityTip() {
+        const tip = document.getElementById('pbAbilityTip');
+        if (tip) tip.style.display = 'none';
     }
 }
 

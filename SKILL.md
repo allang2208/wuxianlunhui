@@ -112,7 +112,7 @@
 - 怪物 HUD（名字/血条）定位规则
 - ⭐ 怪物渲染图层与构造铁律（2026-08-15：阴影时序 / 贴图键≠动画键 / 构造必并配置）
 - NPC 添加标准工作流（2026-07-22 新增，新 NPC 一律按此开展）
-- 玩家友方单位添加工作流（2026-08-15 仓鼠矿工首航：世界-122 自动采矿；2026-08-17 仓鼠民兵战斗型第四例）
+- 玩家友方单位添加工作流（2026-08-15 仓鼠矿工首航；2026-08-17 仓鼠民兵/斥候）
 
 **10. UI、面板与组队系统**
 - 面板生命周期框架（2026-07-21 新增，新面板优先复用）
@@ -756,6 +756,35 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
     帧时武器必须阶梯映射」教训的运行时落地（当年只在生成脚本侧做）。
   - 实机验证复用 `tools/cdp-sword-hold-v4.mjs`（每帧 meta 采样武器世界坐标/旋转/origin +
     截图）；帧末时刻要单独采（探针 progress 时钟推进约 +0.004/150ms 采样延迟）。
+  - **落脚点对齐重建后，握点必须按新 sheet 重新实标，禁止 bbox 原点差平移补偿**——
+    2026-08-16 踩坑：bbox 原点差法在 bbox 边沿换身体部位时失真（一段 f11 差 (+18,−8)、
+    用户实机目击「剑没贴在手上」）；正确做法 = 当前 sheet 上细网格重读 + 质心精修 +
+    十字校验网格逐帧目视 + 贴附率复验（三段 12/12/16 全过）+ 实机探针截图抽查关键帧
+    （`cdp-fist-fit-probe.mjs` 定格+带/不带武器双程截图 + 屏幕坐标换算核对）。
+    另：用户客户端吃不到改动时先查 5173 在线内容（curl /data/...），确认后硬性刷新。
+
+#### 跟手失败多次复盘（2026-08-16，对照 2026-08-03 老方法找差距）
+
+老沉淀（掩码贴附率 + GLM 只判 ON/OFF + 阶梯映射 + 实机冻结）本身没错，但它是**中心
+origin + 30 点轨迹 + 8 帧动画**时代的经验；换到 12/16 点 1:1 帧图 + H3 新素材时代，
+反复失败的真正原因按次序：
+1. **origin 模型是结构性误差源**：中心 origin + 旋转 lerp 在旋转大步长帧间把剑柄甩离手
+   20~40px——老方法默认这个模型没质疑过它；dashHand 剑柄锚手（origin=剑柄）才是结构解，
+   应第一时间移植而不是先在旧模型里调数据。
+2. **1:1 点帧时 progress 映射必须阶梯**：progress×(n-1) 与帧窗 [k/n,(k+1)/n) 错半帧相位，
+   帧末武器已偏 92%——老阶梯教训只在生成脚本侧（30 点手写映射），运行时 lerp 的错配
+   当时没暴露。**经验迁移要查公式前提，不是只看条目在不在。**
+3. **对齐/重建后禁止用几何推算握点**（bbox 原点差平移在 bbox 换边沿部位时失真，实测
+   差 18px）——必须在新 sheet 上重新实标。这是「用推算代替实测」的偷懒，直接违反老
+   沉淀的贴图真值原则。
+4. **掩码贴附率 20% 阈值只是底线不是合格线**：质心在拳头与骨盆/腿粘连时被连通域拖走
+  （f0/f11/f13 各踩一次）、把肘当拳、把腿当拳、视频缩放系数算错——每个都要**细网格
+   4× 放大逐帧目视复核**兜底，批量方法只配当粗筛。
+5. **离线合成预览 ≠ 实机**：displayScale/footOffset/运行时二次解卷绕这些口径问题只有
+   实机定格探针（cdp-sword-hold-v4 / cdp-fist-fit-probe）能抓到；交付前必须跑。
+6. **「改了没生效」沟通通道**：改 JSON/贴图只在页面加载时生效——交付时主动给用户
+   可验证手段（curl 线上 /data/ 配置逐字节核对 + 一个手感上不可能错过的行为标记，
+   如「三段终结技无定格」），别让用户对着旧缓存验收。
 
 #### 二段攻击（attack_sword_2）v4 上撩回斩（2026-08-16 入库，连段连贯首帧方案）
 
@@ -4985,6 +5014,23 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
 
 世界-122 基地入口/可建造墙段式门：左右细柱 + 圆柱铁栅栏 + 每叶上下水平横杆，
 开门时两扇叶沿墙轴向两侧滑出并隐藏，关门时从两侧向中间合拢。
+- **2026-08-17 门占一个墙位（用户口径：门口大小跟墙壁一样，单边 4 堵墙）**：
+  - 基地每边 4 段（faceLen 196.3、端帽重叠 40 → 有效 156.3/段，4 段覆盖 665 ≥ 边 572.4）。
+  - openEdge（RB）第 3 段（i=2）由铁栅栏门占据（不再挖宽门洞）：门 face 196.77 =
+    墙 face，与相邻墙按墙-墙 40px 端帽重叠拼接；删除旧 JOIN_OVERLAP 门洞收拢逻辑。
+  - 合成验证：门栅栏与两侧墙内容重叠（左 19px / 右 29px）无缝；sim 0 卡墙。
+- **2026-08-17 菱形闭合实测（用户：4 墙/边"围不拢"，先 Blender 验证再改）**：
+  - **结论：墙链本身闭合**——真实贴图沿边跨度 229.6px（v/h 一致、v1~v5 变体同几何），
+    相邻墙间距 144.7 → 重叠 85px；四边 + 四角（含门关闭）实机截图全部无缝。
+  - **真正的洞 = 门自动打开**：gateMode auto，玩家/侍从距门中点 150px 内即开门，
+    栅栏滑出 barCrop 裁剪窗后门洞通透，基地看起来"没围上"。
+  - **修复**：BuildableGate/_CoverGate.update 的感应从「圆心 150px」改为
+    「点到门线段 ≤65px」才开（只有真过门才触发），离开 0.8s 后自动关；平时菱形闭合。
+  - **验证工具**：`tools/ai-gen/blender-cover-diamond-real.py`（真实墙 box 230×52×150、
+    rot ±52° 顶视+游戏视角渲染+沿边间隙诊断）；`tools/cdp-base-detail-probe.mjs`
+    （无头 Edge 实机截图 + 门开/关/离开回归：closed→open→closed ✓）。
+  - ⚠ 旧 `blender-cover-diamond-test.py` 是 openRadius 宽洞旧逻辑且用简化 box（沿边
+    投影仅 ~83-109px 与贴图实际 229.6px 不符），结论不可信，勿再用来判定闭合。
 - **右石柱贴图自身烘焙的深色钢柱（2026-08-16 终案·pillarR）**：用户多轮反馈
   "贴在墙上、不随门开关移动"的钢柱刷新后仍在、没删对——根因是
   `cover_gate_{F,E,D,C}_pillarR.png` 石柱左缘 **x509-530 × y36-350** 一条约 22px 宽、
@@ -5310,16 +5356,50 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
   spawn/unitTypes/modules），BootScene 加载贴图即可，代码零改动。
 
 **建造清除障碍物与草（2026-08-17 用户口径：建造处有树/草类障碍物直接删除）**
+- **判定顺序铁律（2026-08-17 审计修复）**：不能先用普通 `canMoveTo` 拒绝落点、再在建造
+  成功后删树——那会让清除逻辑永远不可达。散布障碍生成的碰撞矩形必须回链
+  `_scatterSource`；建筑预览/放置用 `WallSystem.canBuildAt`，只忽略可清除的 `_scatter`
+  碰撞，普通墙、边界、门和建筑仍阻挡。扣费并成功创建实体后才真正删除，放置失败不破坏场景。
 - 散布实体（仙人掌/树，`isoVisuals` 内 `_scatter` 件）：`WallSystem.removeScatterObstaclesAt(x,y,r)`
   ——footprint 矩形圆-矩形相交判定，删除后 `rebuildIsoCollision()` + `_syncWallsToPhaser()`
   （该函数会清空重建，不会重复建精灵）+ 失效 `_minimapStaticKey`。
+- 拖墙/4格门是多落点建造，必须走 `removeScatterObstaclesInZones(zones)` 批量清理，只重建
+  一次碰撞与 Phaser 视觉；逐格调用会产生明显重复开销。
 - 草/装饰贴图（烘焙进地板 chunk，非实体）：`registerDecoClearZone(x,y,r)` 注册世界圆 +
   `GameScene.eraseDecoAt(x,y,r)` 局部重烘焙相交 chunk。草绘制跳过清除区时**不消耗随机种子**
   （continue 放在消耗 rand 的取值之前），其余草位置跨块不变。
+- 多落点清草用 `registerDecoClearZones` + `GameScene.eraseDecoBatch`：一次登记全部圆，每个
+  相交 chunk 最多重烘焙一次。清除区查询走 256px 空间桶，不再让每棵草遍历全部历史建筑。
+- **生命周期铁律**：`clearDecoClearZones()` 必须在进入和离开 scene8 时调用；否则旧建筑
+  拆除后草洞仍永久残留，并会污染其他场景相同世界坐标的地板装饰。
 - ⚠ 重烘焙遍历 `_terrainChunkSprites` 时**先收集 key 列表再逐个重建**——迭代中
   delete+set 同一 key 会让 Map 迭代器重访新条目造成死循环。
 - 清除半径：平台 140 / 小屋·兵营·产兵 95 / 掩体·门 110 / 塔·陷阱等 60。
 - 仙人掌 `cactusScatter.count` 80→40（game-config.json 双份 + scene-manager 默认兜底）。
+
+**1×1 方块墙 + 4格门（2026-08-17 定稿）**
+- 方块墙按 64×32 菱形格网吸附，可单击放一块或长按拖动沿 e1/e2 主轴铺一排；放置判定按
+  格心冲突处理，同格拒绝、四邻允许，方块自身 face 段不重复参与阻挡。
+- 4格门 = 两端各 1 格方块墙石柱 + 中间 2 格 `cover_gate_D_bars` 栅栏；可在空地新建，
+  也可把一条4连方块墙单向替换成门（保留两端、移除中间两块）。
+- e2 为默认方向，F 切 e1；实际实体必须使用 `orient:'v', mirror:(dir==='e1')`，不能只改
+  碰撞 orient 不翻栅栏贴图，否则预览与落地门方向相反。
+- **预览必须与实体同构**：场景幽灵禁止再用近似 `gate_4cell.png` 整图（该图只作面板图标）。
+  `_createGate4Preview` 直接创建两张真实 `obstacle_block` + `cover_gate_D_bars` 关闭帧，
+  缩放/裁剪/脚底统一读取 `GATE4_VISUAL` 与 `GATE_GEOM.barCrop`；组件深度按实际
+  `cellY+28 / anchorY+44` 排序。替换4连墙时临时隐藏中间两块真实精灵，取消/移走即恢复。
+- 回归：`scripts/test-world122-build-regressions.mjs` 锁定真实组件预览、共享参数、
+  e1 镜像、批量清障、清草生命周期和升级存档，并已纳入 `npm test`。
+
+**铁匠铺能力工坊 + 世界-122升级存档（2026-08-17）**
+- `producer-buildings.json.blacksmith.spawnEnabled=false`：铁匠铺不产兵，改为毒箭/自动防御/
+  横扫/标记箭四项能力读条升级；等级真源 `ability-store.js`，对对应兵种全局生效。
+- 持续升级只能在当前无读条时启动；启动失败不得先留下 `_continuous`。另一能力读条中禁止
+  改挂持续目标，资源不足/满级/建筑出售或被毁时清理状态，避免 UI 显示“持续中”但永不推进。
+- 产兵建筑面板实例会在草屋/铁匠铺间复用；每次 refresh 必须显式设置
+  `pbUnitType.style.display = isAbilityShop ? 'none' : ''`，不能只在铁匠铺分支隐藏。
+- 兵种模块等级与能力等级通过 `serialize/restore/reset` 接入主存档 `world122` 字段；
+  场景切换保留，页面读档恢复，新游戏 `Game.start` 重置，避免上一局泄漏。
 
 ### 基地菱形房无缝拼接（WIP，2026-08-17）
 
@@ -6151,7 +6231,7 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
 - **背包物流三阶段**：`work`（采矿+自动拾取能量掉落进背包，150ms 节流）→
   背包满 `_startReturn` → 走回小屋 `_startUnload`（idle 2s，不移动不交战；
   小屋 `unloadMiner` 经 EnergyManager 进玩家背包，满则暂存小屋）→ 2s 后
-  `closeDoor` + 重新出发。
+  重新出发（2026-08-17 已删小屋开关门动画，不再调 closeDoor）。
 - **挖矿直接入包**：`EnergyNode.takeDamage` 对 `source._isHamsterMiner` 攻击走
   `addMinedEnergy` 直接装隐藏背包（不产生地面掉落，其余来源仍掉落）；实体
   `addMinedEnergy` 按容量封顶，满载后下个决策 tick 即回屋。
@@ -6187,8 +6267,9 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
   同步矿工参数、矿工死亡 respawnMs 补员、小屋被毁矿工随拆。坑：`DamageableEntity`
   没有 `this.data`，别写 `this.data.def`（构造即崩）。
 - 小屋职责（2026-08-15 扩展）：`unloadMiner` 卸货（玩家背包满 → `_storedEnergy`
-  暂存，小屋被毁即丢失）；`openDoor/closeDoor` 门动画（卸货 2s 开门/关门）；
-  update 自动把暂存能量补入玩家背包；升级模块新增「背包扩容」（每级 +100，满级 10）。
+  暂存，小屋被毁即丢失）；update 自动把暂存能量补入玩家背包；升级模块新增「背包扩容」
+  （每级 +100，满级 10）。**2026-08-17 删除开关门动画**（原模型 16 帧滑门素材，
+  小屋换新模型后移除——补员直接生成、卸货不再开门，BootScene 不再加载/注册门动画）。
 - PerceptionSystem `_isValidTarget`：放行 `_faction==='companion' && _enemyTargetable`，
   防守怪 `_preferDefenseTargets` 按交战半径锁定（与玩家同链，免 LOS 口径不变）。
 - 验证：`scripts/test-hamster-miner.mjs`（数据+接线契约）+ `tools/cdp-hamster-miner.mjs`
@@ -6341,18 +6422,65 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
   （`_swingActive` 站定挥击状态机、`MovementSystem` 移动、卡死看门狗、无敌跟随玩家、
   RTS 命令、`_isEnergyNode` 矿点不攻击）；dying 14 帧 @12fps = 1167ms。
 - **渲染**：GameScene `_isHamsterMilitia` 并入射手/盾卫"单次播放 + 定格末帧"分支
-  （`_attackSwing` 触发），移动朝向 vx、受击白闪同款；spriteOffsetY -42 /
-  footOffsetY 42（脚底 ~350/512，displaySize 226）。
+  （`_attackSwing` 触发），移动朝向 vx、受击白闪同款；spriteOffsetY -55 /
+  footOffsetY 55（脚底 ~350/512，displaySize 300——2026-08-17 用户反馈民兵偏小，
+  与战士/盾卫对比后 226→300 放大 1.33×）。
 - **生成（双链路）**：仓鼠兵营（`BARRACKS_CONFIG.unit.militia` + 面板第四按钮）
   与通用产兵建筑草屋（`producer-buildings.json` unitTypes + PRODUCER_UNIT_CFG/CLASS/
   unitKindOf）均注册；升级同步走 `applyBarracksUpgrades`（复用战士/盾卫模块口径）。
   **顺手修产兵建筑既有 bug**：`applyUpgradesToUnits` 误从 `ai` 块读 `baseMaxHp`
   （恒 300）→ 改为从单位配置根读，民兵 125 等 HP 覆盖真正生效。
+- **升级全局化（2026-08-17 用户口径）**：`src/world/unit-upgrade-store.js` 全局兵种升级
+  登记表 `GLOBAL_UNIT_UPGRADES`——在任一产兵建筑/仓鼠兵营升级（作用于当前生成兵种）→
+  该兵种全局等级 +1，场景内**所有该兵种单位（跨建筑）实时同步**，新生成单位也读全局等级；
+  兵营/草屋/铁匠铺共用同一份等级（不叠加）；面板等级 = 当前兵种全局等级。
+  仓鼠小屋（矿工）暂保持建筑级（经济模块为主）。等级通过
+  `serializeUnitUpgrades/restoreUnitUpgrades/resetUnitUpgrades` 接入主存档：
+  场景切换保留、读档恢复、新游戏重置。
 - **验证**：`scripts/test-hamster-militia.mjs`（44 项：数据契约/怪物公式派生/
   AI 接线/兵营+草屋注册）+ test-hamster-guard 共享段补民兵派生校验（61 项全绿）；
   `tools/cdp-hamster-militia.mjs` 实机探针（生成/125HP/六维/移速 150/第 8 帧出伤
   583ms 窗口/单次播放无 _start/20 物理×2s/矿点不攻击/跟随到位 idle/死亡移除）；
   eslint 0 error + vite build + npm test 全绿。
+
+#### 12. 仓鼠斥候（2026-08-17 远程第二例，草屋专属单位）
+
+> 远程第二例（参考仓鼠射手）：**攻击动画第 11 帧出膛**、AimHelper.lead 提前量瞄目标
+> 贴图中心、投射物 600px/s；**只能在仓鼠草屋生成**（unitTypes=[militia,scout]，
+> 铁匠铺/兵营不生成斥候）。素材 4096×2048（8 列 × 4 行 512² 格）：idle 6（呼吸待机）/
+> running 13（用户口述 15，实盘仅 13 个有效帧，帧 13/14 为空——配置按 13 修正，
+> 否则奔跑循环每圈播 2 帧空白 → 贴图瞬间消失）/ attacking 18 / dying 11 /
+> projective 1 帧；running 质心漂移 29px →
+> `hamster-walk-align.py --feet-y 282` 归一化（cx 跨度 0.8px）。**2026-08-17 二修**：
+> 首版 displaySize 260 用户反馈过小，与战士/盾卫/民兵对比后 260→340（idle 92×74，
+> 接近战士 81×85/盾卫 91×89 体量）。
+
+- **数据（`data/hamster-scout-config.json`）**：`baseMaxHp: 100`（con=7 公式
+  100+70=170 → 100）；`statFormula:'enemy'`（力量8/敏捷13/智力3/体质7/精神3/幸运10 →
+  atk 11 / def 12 / matk 3 / mdef 4 / crit 12 / critRes 7）；移速 150、
+  攻击 25 物理/2.5s、射程 600、投射物 600px/s、**attackLaunchFrame 11**（18 帧 @12fps
+  单次播放，出膛延迟 (11-1)/12 = 833ms）；出膛音效复用射手素材。
+- **实体/AI**：`hamster-scout.js` + `hamster-scout-ai.js` 完全复用射手模式（`_shotActive`
+  站定状态机、`AimHelper.lead`、`_targetAimY` 贴图中心、命中半径 28、MovementSystem、
+  卡死看门狗、无敌跟随玩家、RTS 命令、`_isEnergyNode` 矿点不攻击）；dying 11 帧 ≈1000ms。
+  **2026-08-17 二修（攻击动画）**：斥候攻击动画偶发不播放——AI 挥击计时与动画时长完全相等，
+  最后一帧切 idle 时多帧待机分支会打断攻击动画，`animationcomplete` 不触发 → `shooterSwing`
+  标记残留 → 下次攻击不再播。修复三件套：① AI 挥击结束主动清 `_attackSwing`；② 动画计时
+  +60ms 余量（`_shotAnimMs`/`_swingAnimMs`，播完再切 idle）；③ 渲染层残留自愈分支
+  （`member._attackSwing` 置位但 `shooterSwing` 卡 true → 重置下一帧重播）。
+  射手/盾卫/民兵同步加 ①③ 修复。
+- **渲染**：GameScene `_isHamsterScout` 并入射手"单次播放 + 定格末帧"分支；**多帧待机**——
+  idle 6 帧（frameCount>1）循环播放（新增分支，伊莉丝/露娜 idle 1 帧不受影响）；
+  投射物渲染 `_syncCompanionBasics` 扩展：斥候尖头朝右（内容宽 172，旋转 = 飞行角，
+  与射手尖头朝左 +180° 区分），**帧随单位模型 displaySize 等比放大**（2026-08-17 用户口径：
+  基准 226→箭身 72px；斥候 340→箭身 ≈108px、帧 ≈322 方形）；移动朝向 vx、受击白闪、
+  移动烟尘同款；spriteOffsetY -17 / footOffsetY 17（脚底 ~282/512，displaySize 340）。
+- **生成**：仅仓鼠草屋 `producer-buildings.json` unitTypes=[militia, scout]（默认仍民兵），
+  铁匠铺/兵营不含斥候；PRODUCER_UNIT_CFG/CLASS + 兵种升级表（scout 独立全局等级）已注册。
+- **验证**：`scripts/test-hamster-scout.mjs`（数据契约/怪物公式派生/AI 接线/草屋专属断言）
+  + test-hamster-guard 共享段补斥候派生；`tools/cdp-hamster-scout.mjs` 实机探针
+  （生成/100HP/六维/移速 150/第 11 帧出膛 833ms 窗口/中心瞄准/箭矢贴图尖头朝右/
+  25 物理×2.5s/矿点不攻击/多帧待机/跟随到位 idle/死亡移除）。
 
 ---
 

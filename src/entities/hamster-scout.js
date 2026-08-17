@@ -1,50 +1,50 @@
 // ============================================================
-// HamsterMilitia — 仓鼠民兵（2026-08-17）
+// HamsterScout — 仓鼠斥候（2026-08-17）
 // 玩家友方单位：复用 Companion 数据模型（data.hp/六维/动画配置），
-// 由 HamsterMilitiaAI 驱动在世界-122 自动寻找最近敌人近战输出。
-// - 生命 125（baseMaxHp 覆盖：con=6 ×10 + base 100 = 160 → 125）；
+// 由 HamsterScoutAI 驱动在世界-122 自动寻找最近敌人远程输出。
+// - 生命 100（baseMaxHp 覆盖：con=7 ×10 + base 100 = 170 → 100）；
 // - _faction='companion'（友方阵营，与玩家互不误伤）；
 // - _enemyTargetable=true：防守怪可锁定/攻击它，因此提供 hp/maxHp/takeDamage；
-// - 攻击：每 2s 一次，攻击动画第 8 帧判定 20 物理伤害，绝不攻击能源矿点；
-// - 死亡：播 dying 动画（14 帧 @12fps = 1167ms）后自动从场景移除。
+// - 攻击：每 2.5s 发射一支投射物（攻击动画第 11 帧出膛），造成 25 物理伤害，
+//   瞄准目标贴图中心 + AimHelper 提前量，绝不攻击能源矿点；
+// - 死亡：播 dying 动画（11 帧）后自动从场景移除。
 // ============================================================
 import { Companion } from './companion.js';
-import { HamsterMilitiaAI } from '../ai/hamster-militia-ai.js';
-import hamsterMilitiaConfig from '../../data/hamster-militia-config.json';
+import { HamsterScoutAI } from '../ai/hamster-scout-ai.js';
+import hamsterScoutConfig from '../../data/hamster-scout-config.json';
 
-const DYING_DURATION_MS = 1167; // dying 14 帧 @12fps = 1167ms
+const DYING_DURATION_MS = 1000; // dying 11 帧 @12fps ≈ 917ms，留余量
 
-export class HamsterMilitia extends Companion {
+export class HamsterScout extends Companion {
     constructor(x, y, overrides = {}) {
         const archive = {
-            ...hamsterMilitiaConfig,
+            ...hamsterScoutConfig,
             ...overrides,
-            ai: { ...(hamsterMilitiaConfig.ai || {}), ...(overrides.ai || {}) },
-            animations: { ...(hamsterMilitiaConfig.animations || {}), ...(overrides.animations || {}) },
+            ai: { ...(hamsterScoutConfig.ai || {}), ...(overrides.ai || {}) },
+            animations: { ...(hamsterScoutConfig.animations || {}), ...(overrides.animations || {}) },
         };
         super(archive);
 
-        this._isHamsterMilitia = true;
-        this.animId = 'hamster_militia'; // 多实例共用素材动画键（渲染按 animId 取键）
+        this._isHamsterScout = true;
+        this.animId = 'hamster_scout'; // 多实例共用素材动画键（渲染按 animId 取键）
         this._skipNeutralSprite = true;   // 由侍从渲染管线接管，禁止 _syncNeutralEntities 画兜底圆
-        this._enemyTargetable = true;     // 防守怪可锁定（与仓鼠矿工/战士同口径）
+        this._enemyTargetable = true;     // 防守怪可锁定（与矿工/战士/射手同口径）
         this.x = x;
         this.y = y;
-        // 碰撞/体积：与仓鼠战士同量级（世界-122 门洞/掩体间通行顺畅）
         this.groundRadius = 20;
         this.collisionRadius = 20;
         this.bodyHeight = 100;
         this.size = 64;
         this.hittable = true;
         this.hitFlash = 0;
-        // 素材帧内脚底在 ~350/512（非 480），displaySize 300 时脚底距帧中心 55px
-        // （2026-08-17 用户反馈民兵偏小，与战士/盾卫对比后 226→300 放大 1.33×）：
-        // spriteOffsetY=-55 把脚底贴到逻辑落地点；footOffsetY=55 让深度线 = 逻辑脚底
-        this.footOffsetY = 55;
-        this.config = { render: { hudOffsetY: 127, footOffsetY: 55 } };
+        // 素材帧内脚底 ~282/512（非 480），displaySize 340 时脚底距帧中心 17px
+        // （2026-08-17 用户反馈 260 过小，与战士/盾卫/民兵对比后 260→340 放大）：
+        // spriteOffsetY=-17 贴地；footOffsetY=17 让深度线 = 逻辑脚底
+        this.footOffsetY = 17;
+        this.config = { render: { hudOffsetY: 145, footOffsetY: 17 } };
         this._dying = false;
         this._deathTimer = 0;
-        this._ai = new HamsterMilitiaAI(this);
+        this._ai = new HamsterScoutAI(this);
         this._animState = 'idle';
     }
 
@@ -71,6 +71,7 @@ export class HamsterMilitia extends Companion {
         this._animState = 'dying';
         this.target = null;
         this._tacticalTarget = null;
+        this._basic = null;
         this.vx = 0;
         this.vy = 0;
         this.isMoving = false;
@@ -78,15 +79,17 @@ export class HamsterMilitia extends Companion {
         this._deathTimer = DYING_DURATION_MS;
     }
 
-    /** 仓鼠兵营/产兵建筑升级同步（2026-08-16）：攻击间隔/伤害/移速/生命实时生效 */
+    /** 产兵建筑/兵营升级同步（2026-08-17）：攻击间隔/伤害/射程/移速/生命实时生效 */
     applyBarracksUpgrades(u = {}) {
         if (this._ai) {
             if (u.attackInterval) this._ai._attackInterval = u.attackInterval;
             if (u.attackDamage) this._ai._attackDamage = u.attackDamage;
+            if (u.attackRange) this._ai._attackRange = u.attackRange;
         }
         if (this.aiConfig) {
             if (u.attackInterval) this.aiConfig.attackInterval = u.attackInterval;
             if (u.attackDamage) this.aiConfig.attackDamage = u.attackDamage;
+            if (u.attackRange) this.aiConfig.attackRange = u.attackRange;
             if (u.walkSpeed) this.aiConfig.walkSpeed = u.walkSpeed;
         }
         if (u.baseMaxHp && this._maxHpOverride !== u.baseMaxHp) {

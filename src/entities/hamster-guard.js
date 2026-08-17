@@ -11,6 +11,9 @@
 import { Companion } from './companion.js';
 import { HamsterGuardAI } from '../ai/hamster-guard-ai.js';
 import hamsterGuardConfig from '../../data/hamster-guard-config.json';
+import { getAbilityLevel } from '../world/ability-store.js';
+import { EffectManager } from '../effects/effect-manager.js';
+import { FloatingTextEffect } from '../effects/floating-text.js';
 
 const DYING_DURATION_MS = 1250; // dying 15 帧 @12fps = 1250ms
 
@@ -56,6 +59,14 @@ export class HamsterGuard extends Companion {
      */
     takeDamage(damage, source, _damageType = 'physical', _isMelee = true) {
         if (this._dying || this.data.hp <= 0) return 0;
+        // 铁匠铺能力：自动防御（2026-08-17）——受击 25%+5%/级 概率触发，减免 50% 伤害
+        const guardLv = getAbilityLevel('auto_guard');
+        if (guardLv > 0 && Math.random() < 0.25 + 0.05 * guardLv) {
+            damage = Math.round(damage * 0.5);
+            if (EffectManager) {
+                EffectManager.add(new FloatingTextEffect(this.x, this.y - 34, '🛡️ 防御', '#7fd4ff'));
+            }
+        }
         const before = this.data.hp;
         this.data.hp = Math.max(0, this.data.hp - damage);
         this.hitFlash = 120;

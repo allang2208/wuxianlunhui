@@ -95,7 +95,7 @@ check('实体跳过中立兜底圆（_skipNeutralSprite）', /_skipNeutralSprite
 check('实体提供 takeDamage 并触发死亡流程', /takeDamage\(damage, source/.test(entSrc)
     && /_startDying\(\)/.test(entSrc));
 check('死亡状态 = dying', /_animState = 'dying'/.test(entSrc));
-check('实体脚底/深度补偿（spriteOffsetY ↔ footOffsetY）', /footOffsetY = 42/.test(entSrc)
+check('实体脚底/深度补偿（spriteOffsetY ↔ footOffsetY）', /footOffsetY = 55/.test(entSrc)
     && /spriteOffsetY/.test(entSrc));
 check('死亡动画时长 = 14 帧 @12fps = 1167ms', /DYING_DURATION_MS = 1167/.test(entSrc));
 
@@ -105,7 +105,8 @@ check('GameScene 渲染友方单位（friendlyUnits）', /_game\.friendlyUnits/.
 check('GameScene 民兵攻击单次播放（_isHamsterMilitia 并入射手/盾卫分支）',
     /member\._isHamsterMilitia/.test(gsSrc) && /_attackSwing/.test(gsSrc));
 check('GameScene 民兵移动朝向 vx（不倒退走路）',
-    /member\._isHamsterMilitia\) && moving/.test(gsSrc) && /faceRight = member\.vx > 0/.test(gsSrc));
+    /member\._isHamsterGuard \|\| member\._isHamsterMilitia \|\| member\._isHamsterScout\) && moving/.test(gsSrc)
+    && /faceRight = member\.vx > 0/.test(gsSrc));
 check('GameScene 民兵受击白闪', /member\._isHamsterMilitia/.test(gsSrc)
     && /member\.hitFlash > 0/.test(gsSrc));
 
@@ -116,14 +117,20 @@ check('BootScene 加载仓鼠民兵精灵图',
 const barSrc = fs.readFileSync(path.join(ROOT, 'src/world/hamster-barracks-system.js'), 'utf-8');
 check('兵营注册民兵单位（unit.militia + 导入）',
     /militia: \{ key: 'militia', name: '仓鼠民兵'/.test(barSrc) && /new HamsterMilitia/.test(barSrc));
-check('兵营升级同步按 _isHamsterMilitia 映射基准配置',
-    /unit\._isHamsterMilitia \? 'militia' : 'shooter'/.test(barSrc));
+check('兵营升级走全局兵种表（applyGlobalUpgradesToKind + 面板读全局等级）',
+    /applyGlobalUpgradesToKind\(this\.unitType, BARRACKS_CONFIG\.modules\)/.test(barSrc)
+    && /getUnitUpgradeLevel\(b\.unitType, mid\)/.test(barSrc));
 check('兵营面板生成单位类型按钮含民兵', /\$\{btn\('militia'\)\}/.test(barSrc));
 
 const prodSrc = fs.readFileSync(path.join(ROOT, 'src/world/producer-building-system.js'), 'utf-8');
-check('产兵建筑注册民兵（PRODUCER_UNIT_CFG/CLASS + unitKindOf）',
+check('产兵建筑注册民兵（PRODUCER_UNIT_CFG/CLASS + 全局升级）',
     /militia: militiaCfg/.test(prodSrc) && /militia: HamsterMilitia/.test(prodSrc)
-    && /unit\._isHamsterMilitia\) return 'militia'/.test(prodSrc));
+    && /applyGlobalUpgradesToKind\(this\.unitType, this\._cfg\.modules\)/.test(prodSrc));
+
+const storeSrc = fs.readFileSync(path.join(ROOT, 'src/world/unit-upgrade-store.js'), 'utf-8');
+check('全局兵种升级表（GLOBAL_UNIT_UPGRADES + militia 识别）',
+    /GLOBAL_UNIT_UPGRADES/.test(storeSrc) && /_isHamsterMilitia\) return 'militia'/.test(storeSrc)
+    && /applyGlobalUpgradesToKind/.test(storeSrc));
 const prodCfg = JSON.parse(fs.readFileSync(path.join(ROOT, 'data/producer-buildings.json'), 'utf-8'));
 check('草屋（thatch_hut）单位类型含民兵',
     (prodCfg.thatch_hut?.unitTypes || []).some((t) => t.key === 'militia' && t.name === '仓鼠民兵'));

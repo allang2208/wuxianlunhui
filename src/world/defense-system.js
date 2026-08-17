@@ -81,6 +81,9 @@ export const DEFENSE_CONFIG = {
           openRadius: 90,     // 开放带半宽：face 命中该带的边链件跳过 → 居中门洞（一格门 196.77，
                               // 两侧邻墙段由下方 post-pass 收拢对齐门 face 端点）
           doorAlignY: 0,      // 新拼接规则下门柱底边与墙线天然共线，无需旧版下移精调
+          // 2026-08-17：1×1 方格块模式（用户方向）——基地改为 8 格/边方块环，
+          // 块 footprint = 1 格（64×32），四边零缝隙；门（4 格）待后续接入。
+          blockMode: true,
       },
     // 无预置防御塔（玩家用 B 建筑面板自行摆放）
     towers: [],
@@ -370,6 +373,12 @@ const GATE_GEOM = {
     // 开门时钢管滑出该窗即被裁剪，不再在石柱外残留；柱体贴图由 pillarL/R 单独渲染。
     barCrop: { x: 174, y: 0, w: 293, h: 634 },
 };
+/** 4 格门栅栏视觉参数：预览与 BuildableGate 实体共用，禁止两处各写近似值。 */
+const GATE4_VISUAL = {
+    scaleX: 0.437,
+    scaleY: 0.5,
+    footOffsetY: 83,
+};
 const gateConfigFor = (grade) => ({ ...GATE_GEOM, grade, tex: `cover_gate_${grade}` });
 const GATE_CONFIG = gateConfigFor('D'); // 基地固定门（D 级）
 
@@ -401,28 +410,31 @@ function gateDepthSegs(A, B, depthL, depthR, depthBars) {
 
 /** 创建门的三段精灵（左柱/右柱静态图 + 栅栏/水平横杆 16 帧），各按自身底边线深度锚定。
  *  flip=镜像（h）：整门翻转换了视觉左右，左右柱深度随之互换（面线端点不变）。 */
-function createGateSprites(cfg, cx, cy, k, depthL, depthR, depthBars, flip) {
+function createGateSprites(cfg, cx, cy, k, depthL, depthR, depthBars, flip, barsOnly, k2) {
     const scene = (typeof window !== 'undefined') ? window.__phaserScene : null;
     if (!scene) return null;
     const out = { spriteL: null, spriteR: null, bars: null };
-    if (scene.textures.exists(`${cfg.tex}_pillarL`)) {
-        out.spriteL = scene.add.image(cx, cy, `${cfg.tex}_pillarL`);
-        out.spriteL.setOrigin(0.5, 0.5);
-        out.spriteL.setScale(k, k);
-        out.spriteL.setDepth(flip ? depthR : depthL);
-        out.spriteL.setFlipX(flip);
-    }
-    if (scene.textures.exists(`${cfg.tex}_pillarR`)) {
-        out.spriteR = scene.add.image(cx, cy, `${cfg.tex}_pillarR`);
-        out.spriteR.setOrigin(0.5, 0.5);
-        out.spriteR.setScale(k, k);
-        out.spriteR.setDepth(flip ? depthL : depthR);
-        out.spriteR.setFlipX(flip);
+    // 4 格门（barsOnly，2026-08-17）：石柱由方块墙实体承担，门只渲中间铁栅栏
+    if (!barsOnly) {
+        if (scene.textures.exists(`${cfg.tex}_pillarL`)) {
+            out.spriteL = scene.add.image(cx, cy, `${cfg.tex}_pillarL`);
+            out.spriteL.setOrigin(0.5, 0.5);
+            out.spriteL.setScale(k, k);
+            out.spriteL.setDepth(flip ? depthR : depthL);
+            out.spriteL.setFlipX(flip);
+        }
+        if (scene.textures.exists(`${cfg.tex}_pillarR`)) {
+            out.spriteR = scene.add.image(cx, cy, `${cfg.tex}_pillarR`);
+            out.spriteR.setOrigin(0.5, 0.5);
+            out.spriteR.setScale(k, k);
+            out.spriteR.setDepth(flip ? depthL : depthR);
+            out.spriteR.setFlipX(flip);
+        }
     }
     if (scene.textures.exists(`${cfg.tex}_bars`)) {
         out.bars = scene.add.sprite(cx, cy, `${cfg.tex}_bars`, 0);
         out.bars.setOrigin(0.5, 0.5);
-        out.bars.setScale(k, k);
+        out.bars.setScale(k, k2 || k);
         out.bars.setDepth(depthBars);
         out.bars.setFlipX(flip);
           const crop = cfg.barCrop;
@@ -480,6 +492,20 @@ export const COVER_FOOT = {
     v: { w: 198, d: 133, offY: -68, thick: 26 },
     h: { w: 198, d: 133, offY: -68, thick: 26 },
 };
+
+/** 1×1 方格块（2026-08-17）：footprint = 1 格（128×64），单一贴图，无 v/h 变体。
+ * face 线取格子底边（斜率 -0.5，跨度 1 格边 71.55），深度/碰撞沿用现有规则。 */
+export const BLOCK_FOOT = { w: 128, d: 64, offY: 0, thick: 26 };
+export const BLOCK_FACE = {
+    // 2026-08-17 二修：face 从格底移到格心（穿过格心，斜率 -0.5）——
+    // 否则朝下邻格心距 face 仅 36px < 半厚26+半径28=54，右下/左下永远放不下。
+    // 格心 face 使四邻格心距离 57.2px > 54，4 向都能吸附拼接。
+    v: { A: { x: -32, y: 16 }, B: { x: 32, y: -16 } },
+    h: { A: { x: -32, y: -16 }, B: { x: 32, y: 16 } },
+};
+const BLOCK_DISPLAY_W = 260;   // 贴图显示宽（内容约 122px ≈ 1 格）
+const BLOCK_DISPLAY_H = 259;
+export const BLOCK_FOOT_OFFSET = 61;  // 让方块可见底边落在格子底边（≈ cell +32）
 
 /**
  * 防御塔视觉几何（2026-08-04 从塔图分离标定，arm 贴图本地坐标）：
@@ -605,6 +631,7 @@ class DefenseCover extends Combatant {
         // 保证「镜像后拼接吸附 + 碰撞体积跟随视觉」一致（2026-08-05 优化）。
         const mirror = !!config.mirror;
         const eff = mirror ? (orient === 'v' ? 'h' : 'v') : orient;
+        const isBlock = !!config.block; // 2026-08-17：1×1 方格块（单一贴图）
         const hp = config.hp ?? (DEFENSE_CONFIG.covers.hp[grade] ?? 400);
         super(x, y, {
             faction: 'player',
@@ -617,6 +644,7 @@ class DefenseCover extends Combatant {
         this.id = config.id || `defense_cover_${grade}_${orient}_${Math.random().toString(36).slice(2, 7)}`;
           this._isDefenseCover = true; // HUD 专用：满血不显示名字/血量文字，残血只显示血条
         this._isDefenseStructure = true;
+        this._isBlockCover = !!isBlock; // 2026-08-17：方块墙（建筑面板网格吸附用）
         this.noSeparation = true;
         this.noNameLabel = true;
         this._noShadow = true;   // 障碍物取消脚底阴影
@@ -628,7 +656,9 @@ class DefenseCover extends Combatant {
         this.data.mdef = 0;
         // 矩形 footprint（长边=有效朝向的水平/垂直摆方向），供怪物碰撞与近战判定；
         // 镜像后 h/v 互换，避免“视觉横墙、碰撞竖矩形”错位
-        const foot = (config.w && config.d)
+        const foot = isBlock
+            ? BLOCK_FOOT
+            : (config.w && config.d)
             ? (mirror ? { w: config.d, d: config.w } : { w: config.w, d: config.d })
             : (COVER_FOOT[eff] || COVER_FOOT[orient] || COVER_FOOT.v);
         this.collisionShape = 'rect';
@@ -643,7 +673,9 @@ class DefenseCover extends Combatant {
         // 注意不能用 e.y+12：e.y 是贴图显示框底边，比接地线深 22~137px（贴图内容
         // 在框内偏上），会导致“墙前实体（脚线在接地线之下、但仍在 e.y 之上）被
         // 错误排到墙后被盖”——2026-08-05 实机复现（怪物 depth 2100 < 掩体 2121）。
-        const face = (COVER_FACE[grade] && COVER_FACE[grade][eff])
+        const face = isBlock
+            ? (BLOCK_FACE[eff] || BLOCK_FACE.v)
+            : (COVER_FACE[grade] && COVER_FACE[grade][eff])
             || COVER_FACE.D[eff] || COVER_FACE.D.v;
         if (face) {
             this._faceLine = [
@@ -683,14 +715,17 @@ class DefenseCover extends Combatant {
         // v1=定稿（无后缀）；v2~v5=细节微调变体（A 级符文形态随机替换）。
         // 变体 2~5 同时入库 _v/_h 两向；镜像仍由 flipX 派生（视觉方向跟随镜像）。
         // 变体 2~5 同时入库 _v/_h 两向；镜像仍由 flipX 派生（视觉方向跟随镜像）
-        const variant = 1 + Math.floor(Math.random() * 5);
-        const tex = variant === 1
+        const variant = isBlock ? 1 : 1 + Math.floor(Math.random() * 5);
+        const tex = isBlock
+            ? 'obstacle_block'
+            : variant === 1
             ? `obstacle_cover_${grade}_${orient}`
             : `obstacle_cover_${grade}_v${variant}_${orient}`;
-        const aspect = (COVER_ASPECT[grade] && COVER_ASPECT[grade][orient]) || 1;
-        const sizeH = Math.round(COVER_DISPLAY_W / aspect);
-        this.spriteCfg = { idleKey: tex, size: COVER_DISPLAY_W, sizeH, footOffsetY: sizeH / 2 };
-        this.footOffsetY = sizeH / 2;
+        const aspect = isBlock ? (BLOCK_DISPLAY_W / BLOCK_DISPLAY_H) : ((COVER_ASPECT[grade] && COVER_ASPECT[grade][orient]) || 1);
+        const sizeH = isBlock ? BLOCK_DISPLAY_H : Math.round(COVER_DISPLAY_W / aspect);
+        const footOff = isBlock ? BLOCK_FOOT_OFFSET : sizeH / 2;
+        this.spriteCfg = { idleKey: tex, size: isBlock ? BLOCK_DISPLAY_W : COVER_DISPLAY_W, sizeH, footOffsetY: footOff };
+        this.footOffsetY = footOff;
         this.rebuildCollider();
     }
 
@@ -1695,6 +1730,7 @@ export const DefenseSystem = {
                   w: c.w,
                   d: c.d,
                   depthBias: c.depthBias,
+                  block: c.block, // 2026-08-17：1×1 方格块
                   id: `defense_cover_${i}`,
               });
               Game.entities.set(`defense_cover_${i}`, cover);
@@ -1707,7 +1743,19 @@ export const DefenseSystem = {
           // 沉陷死亡动画、建筑面板详情（常锁/常开/修理）与玩家建造门完全同构；
           // 几何 face 线公式与旧 CoverGate.place 一致（_buildBaseRoom 已核对）。
           const gs = DEFENSE_CONFIG.covers.gate;
-          if (gs) {
+          if (this._baseGate4Pos) {
+              // 4 格门（2026-08-17）：石柱由上方方块墙实体承担，门实体 = 2 格铁栅栏
+              const g4 = this._baseGate4Pos;
+              const gate = new BuildableGate(g4.x, g4.y, {
+                  grade: 'D',
+                  orient: 'v',
+                  barCells: 2,
+                  barsOnly: true,
+                  id: 'defense_base_gate',
+              });
+              Game.entities.set(gate.id, gate);
+              this.gate = gate;
+          } else if (gs) {
               const gate = new BuildableGate(gs.x, gs.y, {
                   grade: 'D',
                   orient: 'v', // RB 边（从 R 到 B）为 v 向，与 _buildBaseRoom 门洞一致
@@ -1741,6 +1789,12 @@ export const DefenseSystem = {
         const b = DEFENSE_CONFIG.base;
         const T = { x: b.x, y: b.y - room.ry }, R = { x: b.x + room.rx, y: b.y },
               B = { x: b.x, y: b.y + room.ry }, L = { x: b.x - room.rx, y: b.y };
+        // 1×1 方格块模式（2026-08-17）：基地不预置墙——用户用建筑面板自行搭建。
+        // （此前预置 8 格/边方块环 + 4 格门被用户判为"构建错误"，改为空布局）
+        if (room.blockMode) {
+            DEFENSE_CONFIG.covers.layout = [];
+            return;
+        }
         const edges = [
             { key: 'TL', from: T, to: L, orient: 'v' },
             { key: 'TR', from: T, to: R, orient: 'h' },
@@ -1757,8 +1811,8 @@ export const DefenseSystem = {
         // 砖纹过渡更连贯（A/B 实机对比 + GLM）；旧行为左臂在上（TL/LB +0.5）
         const rightOnTop = room.cornerLayer !== 'leftOnTop';
         const openEdge = room.openEdge;
-        const openRadius = room.openRadius ?? 90;
         const layout = [];
+        let gatePos = null; // 2026-08-17：门占一个完整墙位（大小=墙，face 196.77）
         for (const e of edges) {
             const dx = e.to.x - e.from.x, dy = e.to.y - e.from.y;
             const len = Math.hypot(dx, dy);
@@ -1783,17 +1837,19 @@ export const DefenseSystem = {
             const span = tLast - t0;
             const n = Math.max(2, Math.ceil(span / step) + 1);
             const spacing = n > 1 ? span / (n - 1) : 0;
-            const openMid = e.key === openEdge ? len / 2 : null;
+            // 单边 4 段（用户口径）：openEdge 第 2 段（i=2）替换为门，其余为墙
+            const gateSlot = e.key === openEdge ? Math.min(n - 1, Math.max(1, Math.floor(n / 2))) : null;
             const alignY = e.key === openEdge ? (room.doorAlignY || 0) : 0;
             // 上夹角 TL/TR 边：整条边共享同一纹理变体（相邻件端帽互叠，
             // 独立随机会在接缝处出现"两层墙皮"式砖纹错位）；
             for (let i = 0; i < n; i++) {
                 const t = t0 + i * spacing;
-                // face 沿边区间 [t−halfToV, t+halfAway] 命中开放带则跳过（门洞）
-                if (openMid !== null) {
-                    const f0 = t - halfToV;
-                    const f1 = t + halfAway;
-                    if (f1 > openMid - openRadius && f0 < openMid + openRadius) continue;
+                if (i === gateSlot) {
+                    gatePos = {
+                        x: Math.round(e.from.x + ux * t),
+                        y: Math.round(e.from.y + uy * t) + alignY,
+                    };
+                    continue; // 该墙位由门占据
                 }
                 layout.push({
                     x: Math.round(e.from.x + ux * t),
@@ -1810,57 +1866,15 @@ export const DefenseSystem = {
                 });
             }
         }
-        // —— 门洞两侧墙段向门 face 收拢并重叠（2026-08-17 一格门 + 接缝优化）——
-        // 门 face 沿边半跨 = 196.77/2 ≈ 98.4（worldFaceLen=176 水平 + 斜率 0.5）；
-        // 原洞宽 237.8，门 face 196.77 → 左右邻墙段沿边平移，使墙 face 端点与门 face
-        // 端点**重叠 JOIN_OVERLAP**（墙端帽圆角比 face 线短 ~26px，flush 会露出 2~4px
-        // 地板缝；重叠 12px 后墙端帽盖住门柱外缘，关门无透缝）。碰撞段重叠 12px 可接受，
-        // 开门通行口 ~173px（门 face 196.77 − 2×12）。
-        const JOIN_OVERLAP = 12;
-        const ge = edges.find((e) => e.key === openEdge);
-        if (ge && layout.length) {
-            const gdx = ge.to.x - ge.from.x;
-            const gdy = ge.to.y - ge.from.y;
-            const glen = Math.hypot(gdx, gdy);
-            const ux = gdx / glen;
-            const uy = gdy / glen;
-            const openMid = glen / 2;
-            const gHalf = Math.hypot(GATE_CONFIG.worldFaceLen, GATE_CONFIG.worldFaceLen * 0.5) / 2;
-            const g0 = openMid - gHalf;
-            const g1 = openMid + gHalf;
-            const gg = (COVER_FACE[room.coverGrade] && COVER_FACE[room.coverGrade][ge.orient])
-                || COVER_FACE.D[ge.orient] || COVER_FACE.D.v;
-            const projA = gg.A.x * ux + gg.A.y * uy;
-            const projB = gg.B.x * ux + gg.B.y * uy;
-            const towardV = projA < projB ? 'A' : 'B';
-            const hToV = Math.abs(towardV === 'A' ? projA : projB);
-            const hAway = Math.abs(towardV === 'A' ? projB : projA);
-            const alignY = room.doorAlignY || 0;
-            for (const c of layout) {
-                if (c.edge !== openEdge) continue;
-                const f0 = c.t - hToV;
-                const f1 = c.t + hAway;
-                if (f1 > g0 - 60 && f1 < g0 - 1) {
-                    c.t = (g0 + JOIN_OVERLAP) - hAway;  // 左邻墙段：face 端压入门 face 12px
-                } else if (f0 > g1 + 1 && f0 < g1 + 60) {
-                    c.t = (g1 - JOIN_OVERLAP) + hToV;   // 右邻墙段：face 端压入门 face 12px
-                } else {
-                    continue;
-                }
-                c.x = Math.round(ge.from.x + ux * c.t);
-                c.y = Math.round(ge.from.y + uy * c.t) + alignY;
-            }
-        }
-        // 基地门洞（openEdge 边中点）→ 铁栅栏滑动门放置点：
-        // face 线 = 该边掩体 face 线（同斜率/同接地偏移）延伸跨过门洞，长度 = worldFaceLen
-        if (ge) {
-            const gdx = ge.to.x - ge.from.x;
-            const gdy = ge.to.y - ge.from.y;
-            const gx = ge.from.x + gdx * 0.5;
-            const gy = ge.from.y + gdy * 0.5;
+        // 基地门（占一个完整墙位）：face = 墙 face（worldFaceLen 176 水平 = 196.77 沿边），
+        // 与相邻墙段按墙-墙 40px 端帽重叠拼接。
+        if (gatePos) {
+            const gx = gatePos.x;
+            const gy = gatePos.y;
             const half = GATE_CONFIG.worldFaceLen / 2;
             const midY = gy - 65; // COVER_FACE v 中点偏移（接地线过 (x, y-65)）
-            if (ge.orient === 'v') {
+            const ge = edges.find((e) => e.key === openEdge);
+            if (ge && ge.orient === 'v') {
                 DEFENSE_CONFIG.covers.gate = {
                     x: gx, y: gy,
                     A: { x: Math.round(gx - half), y: Math.round(midY + half * 0.5) },
@@ -2914,12 +2928,22 @@ const _CoverGate = {
     /** 状态机默认关闭 → 友军靠近打开 → 友军离开延时关闭（2026-08-15）。 */
     update(dt) {
         if (!this._gateSeg) return;
-        const OPEN_RADIUS = 150;
-        const CLOSE_LINGER_S = 1.2; // dt 单位为秒
-        const dxx = this._detectX ?? this._cx;
-        const dyy = this._detectY ?? this._cy;
-        const f = nearbyFriendlyUnit(dxx, dyy);
-        const near = !!f && Math.hypot(f.x - dxx, f.y - dyy) <= OPEN_RADIUS;
+        // 2026-08-17：150px 圆心判定太敏感——玩家在基地附近走动/站桩就开门，
+        // 栅栏滑出后 RB 边出现大洞，基地"围不拢"。改为点到门线段的距离，
+        // 只有单位真正贴到门洞（≤65px）才开，离开后快速关，菱形平时保持闭合。
+        const OPEN_TOUCH = 65;
+        const CLOSE_LINGER_S = 0.8; // dt 单位为秒
+        const f = nearbyFriendlyUnit((this._detectX ?? this._cx), (this._detectY ?? this._cy));
+        let near = false;
+        if (f) {
+            const s = this._gateSeg;
+            const dx = s.x2 - s.x1, dy = s.y2 - s.y1;
+            const len = Math.hypot(dx, dy) || 1;
+            const t = Math.max(0, Math.min(1, ((f.x - s.x1) * dx + (f.y - s.y1) * dy) / (len * len)));
+            const px = s.x1 + t * dx;
+            const py = s.y1 + t * dy;
+            near = Math.hypot(f.x - px, f.y - py) <= OPEN_TOUCH;
+        }
         if (near) {
             this._closeTimer = 0;
             if (this.state === 'closed' || this.state === 'closing') this.open();
@@ -3306,9 +3330,17 @@ class BuildableGate extends Combatant {
         this._facingLeft = mirror;
         const cfg = gateConfigFor(grade);
         this._cfg = cfg;
+        // 4 格门（2026-08-17）：barCells=栅栏跨格数（2），barsOnly=石柱由方块墙承担
+        const barCells = config.barCells || 1;
+        const barsOnly = !!config.barsOnly;
+        this._barCells = barCells;
+        this._barsOnly = barsOnly;
         // face 线（与掩体墙同斜率/同接地偏移，跨度 = 门洞宽）
-        const half = cfg.worldFaceLen / 2;
-        const midY = y - 65;
+        // 1 格 = 64×32；栅栏跨 barCells 格 → 水平半跨 = 32×barCells（2 格 → 64）
+        const half = barCells === 1 ? cfg.worldFaceLen / 2 : 32 * barCells;
+        // 4 格门（barCells>1）锚点 = 栅栏中点（格网半格位）：接地线在 y+32
+        // （栅栏两格底边中点）；旧 1 格门沿用 y-65 标定。
+        const midY = barCells > 1 ? y + 32 : y - 65;
         if (eff === 'v') {
             this._faceLine = [
                 { x: x - half, y: midY + half * 0.5 },
@@ -3355,11 +3387,21 @@ class BuildableGate extends Combatant {
     _initGateSprite(cfg) {
         const scene = (typeof window !== 'undefined') ? window.__phaserScene : null;
         if (!scene || !scene.textures.exists(cfg.tex)) return;
-        const k = cfg.displayScale;
+        // 4 格门：栅栏跨 2 格（143px ≈ 293tex crop × 0.488），石柱由方块墙承担
+        // 2026-08-17 三修：宽 = 两柱间开口 128px（293tex×0.437），
+        // 高 = 匹配石柱（内容 389tex×0.5 ≈ 195px），非等比缩放
+        const kx = this._barsOnly ? GATE4_VISUAL.scaleX : cfg.displayScale;
+        const ky = this._barsOnly ? GATE4_VISUAL.scaleY : cfg.displayScale;
         const midTexX = (cfg.faceA.x + cfg.faceB.x) / 2;
         const midTexY = (cfg.faceA.y + cfg.faceB.y) / 2;
-        this._spriteCx = (this._faceLine[0].x + this._faceLine[1].x) / 2 - (midTexX - cfg.cellW / 2) * k;
-        this._spriteCy = (this._faceLine[0].y + this._faceLine[1].y) / 2 - (midTexY - cfg.cellH / 2) * k;
+        this._spriteCx = (this._faceLine[0].x + this._faceLine[1].x) / 2 - (midTexX - cfg.cellW / 2) * kx;
+        this._spriteCy = (this._faceLine[0].y + this._faceLine[1].y) / 2 - (midTexY - cfg.cellH / 2) * ky;
+        // 2026-08-17 二修：GameScene 每帧用 footOffsetY 重定位 _phaserSprite（栅栏），
+        // 旧 1 格门靠 displayHeight/2 兜底巧合对齐；宽门（k=0.488）兜底错位 →
+        // 显式设置 footOffsetY = y − _spriteCy，让栅栏精灵落在接地线（贴地）。
+        // 三修：非等比 ky 下，栅栏内容底边（tex y≈547）须落在接地线（face 中点 y+32）：
+        // footOffsetY = (547−317)×ky − 32 = 230×ky − 32
+        this.footOffsetY = this._barsOnly ? GATE4_VISUAL.footOffsetY : Math.round(this.y - this._spriteCy);
         // 三段深度精灵（与基地门同图层设计，2026-08-15）：
         // 左柱=深端、右柱=浅端、栅栏=中点，各自按底边线锚定，前实体不再被右柱整体遮挡
         const A = this._faceLine[0];
@@ -3370,7 +3412,7 @@ class BuildableGate extends Combatant {
         this._faceDepth = Math.max(A.y, B.y) + 12; // 与掩体同口径的通用锚点
         this._seamBiasL = 0;
         this._seamBiasR = 0;
-        const sprites = createGateSprites(cfg, this._spriteCx, this._spriteCy, k, this._depthL, this._depthR, this._depthBars, this._facingLeft);
+        const sprites = createGateSprites(cfg, this._spriteCx, this._spriteCy, kx, this._depthL, this._depthR, this._depthBars, this._facingLeft, this._barsOnly, ky);
         this.spriteL = sprites ? sprites.spriteL : null;
         this.spriteR = sprites ? sprites.spriteR : null;
         this.sprite = sprites ? sprites.bars : null;
@@ -3438,12 +3480,20 @@ class BuildableGate extends Combatant {
             if (this.state !== 'open' && this.state !== 'opening') this.open();
             return;
         }
-        const OPEN_RADIUS = 150;
-        const CLOSE_LINGER_S = 1.2;
-        const dxx = this._detectX ?? this._spriteCx;
-        const dyy = this._detectY ?? this._spriteCy;
-        const f = nearbyFriendlyUnit(dxx, dyy);
-        const near = !!f && Math.hypot(f.x - dxx, f.y - dyy) <= OPEN_RADIUS;
+        // 2026-08-17：同基地门——点到门线段 ≤65px 才开，离开 0.8s 后关（菱形平时闭合）
+        const OPEN_TOUCH = 65;
+        const CLOSE_LINGER_S = 0.8;
+        const f = nearbyFriendlyUnit((this._detectX ?? this._spriteCx), (this._detectY ?? this._spriteCy));
+        let near = false;
+        if (f) {
+            const s = this._gateSeg;
+            const dx = s.x2 - s.x1, dy = s.y2 - s.y1;
+            const len = Math.hypot(dx, dy) || 1;
+            const t = Math.max(0, Math.min(1, ((f.x - s.x1) * dx + (f.y - s.y1) * dy) / (len * len)));
+            const px = s.x1 + t * dx;
+            const py = s.y1 + t * dy;
+            near = Math.hypot(f.x - px, f.y - py) <= OPEN_TOUCH;
+        }
         if (near) {
             this._closeTimer = 0;
             if (this.state === 'closed' || this.state === 'closing') this.open();
@@ -3592,5 +3642,5 @@ class BuildableGate extends Combatant {
 
 export {
     DefenseBase, DefenseCover, DefenseTower, BuildableGate, FiringPlatform,
-    GATE_GEOM, GATE_GRADES, gateConfigFor, GATE_CONFIG, syncGateSeamDepths,
+    GATE_GEOM, GATE4_VISUAL, GATE_GRADES, gateConfigFor, GATE_CONFIG, syncGateSeamDepths,
 };

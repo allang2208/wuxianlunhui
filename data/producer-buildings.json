@@ -2,7 +2,7 @@
   "_comment": "产兵建筑配置表（唯一真源）：building-system.js 据此生成可建条目，producer-building-system.js 据此驱动出兵。以后新增/替换产兵建筑只需加一条配置 + 对应贴图（BootScene 加载），无需改代码。出兵时间=spawnIntervalMs，出品种类=unitTypes/defaultUnitType。",
   "thatch_hut": {
     "id": "thatch_hut",
-    "name": "草屋",
+    "name": "仓鼠草屋",
     "cost": 250,
     "hp": 2000,
     "radius": 40,
@@ -16,12 +16,10 @@
     "spawnIntervalMs": 10000,
     "spawnRadius": 90,
     "unitCap": 5,
-    "defaultUnitType": "shooter",
+    "defaultUnitType": "militia",
     "unitTypes": [
-      { "key": "shooter", "name": "仓鼠射手" },
-      { "key": "warrior", "name": "仓鼠战士" },
-      { "key": "guard", "name": "仓鼠盾卫" },
-      { "key": "militia", "name": "仓鼠民兵" }
+      { "key": "militia", "name": "仓鼠民兵" },
+      { "key": "scout", "name": "仓鼠斥候" }
     ],
     "upgradeCost": { "gold": 1000, "energy": 500 },
     "modules": {
@@ -42,18 +40,64 @@
     "tex": "blacksmith",
     "displayW": 144,
     "displayH": 147,
-    "footOffsetY": 31,
+    "footOffsetY": 73.5,
     "sellRefundRatio": 0.5,
+    "spawnEnabled": false,
     "spawnIntervalMs": 10000,
     "spawnRadius": 90,
-    "unitCap": 5,
-    "defaultUnitType": "warrior",
-    "unitTypes": [
-      { "key": "shooter", "name": "仓鼠射手" },
-      { "key": "warrior", "name": "仓鼠战士" },
-      { "key": "guard", "name": "仓鼠盾卫" },
-      { "key": "militia", "name": "仓鼠民兵" }
-    ],
+    "unitCap": 0,
+    "defaultUnitType": "",
+    "unitTypes": [],
+    "abilityUpgrade": {
+      "goldBase": 150,
+      "goldGrowth": 1.3,
+      "energyBase": 200,
+      "energyGrowth": 1.35,
+      "timeBaseMs": 60000,
+      "timeGrowthMs": 0
+    },
+    "abilities": {
+      "poison_arrow": {
+        "id": "poison_arrow",
+        "name": "毒箭",
+        "icon": "☠️",
+        "target": "shooter",
+        "base": 0.2,
+        "per": 0.05,
+        "maxLevel": 10,
+        "desc": "仓鼠射手命中 {chance}% 概率叠加一层中毒（每级 +5%）"
+      },
+      "auto_guard": {
+        "id": "auto_guard",
+        "name": "自动防御",
+        "icon": "🛡️",
+        "target": "guard",
+        "base": 0.25,
+        "per": 0.05,
+        "maxLevel": 10,
+        "desc": "仓鼠盾卫受击 {chance}% 概率触发，减免 50% 伤害（每级 +5%）"
+      },
+      "sweep_aoe": {
+        "id": "sweep_aoe",
+        "name": "横扫",
+        "icon": "💥",
+        "target": "warrior",
+        "base": 0.2,
+        "per": 0.05,
+        "maxLevel": 10,
+        "desc": "仓鼠战士普攻附带前方扇形 AOE，造成 {dmg}% 额外伤害（每级 +5%）"
+      },
+      "mark_arrow": {
+        "id": "mark_arrow",
+        "name": "标记箭",
+        "icon": "🎯",
+        "target": "scout",
+        "base": 0.25,
+        "per": 0.05,
+        "maxLevel": 10,
+        "desc": "仓鼠斥候命中 {chance}% 概率标记目标 3 秒，期间目标受所有伤害 +15%（每级 +5% 概率）"
+      }
+    },
     "upgradeCost": { "gold": 1000, "energy": 500 },
     "modules": {
       "attackSpd": { "name": "攻击加速", "icon": "⚡", "per": -0.06, "maxLevel": 10, "desc": "攻击间隔 -{pct}%" },

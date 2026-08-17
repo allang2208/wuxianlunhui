@@ -34,7 +34,7 @@ export const HAMSTER_CONFIG = {
         // 2026-08-17 回退：显示尺寸统一到草屋同款 144×147（不再放大）
         displayW: 144,
         displayH: 147,
-        footOffsetY: 21,   // bbox 底 2638/4096 → 147×(0.644-0.5) ≈ 21
+        footOffsetY: 73.5, // 贴图已裁剪到内容（2026-08-17）：内容底=画布底 → 147×0.5
         sellRefundRatio: 0.5,
         minerSpawnRadius: 70,
         respawnMs: 60000,        // 矿工死亡后 1 分钟才补员
@@ -148,8 +148,6 @@ export class HamsterHut extends DamageableEntity {
         this.miners = [];             // 本小屋拥有的仓鼠矿工
         this._minerSeq = 0;
         this._respawnTimer = 0;
-        this._doorState = 'closed';   // 'closed' | 'opening' | 'open' | 'closing'
-        this._pendingSpawn = false;   // 门动画结束后是否要生成矿工
         this._storedEnergy = 0;       // 玩家背包满时暂存的能量（小屋被毁即丢失）
         this._spawnInitialMiners();
         this.rebuildCollider();
@@ -175,11 +173,10 @@ export class HamsterHut extends DamageableEntity {
         for (let i = 0; i < this.minerCount(); i++) this.spawnMiner();
     }
 
-    /** 生成一只仓鼠矿工（挂到本小屋，注册实体表 + 友方单位表）
-     *  atDoor=true：出生在门前方（矿工从门口走出）；否则随机落在小屋附近 */
-    spawnMiner(atDoor = false) {
+    /** 生成一只仓鼠矿工（挂到本小屋，注册实体表 + 友方单位表），出生点在小屋附近 */
+    spawnMiner() {
         if (!Game || !Game.entities) return null;
-        const spot = atDoor ? { x: this.x, y: this.y + 42 } : this._findMinerSpawn();
+        const spot = this._findMinerSpawn();
         const mults = this.mults();
         const miner = new HamsterMiner(spot.x, spot.y, {
             id: `${this.id}_miner_${++this._minerSeq}`,
@@ -200,93 +197,6 @@ export class HamsterHut extends DamageableEntity {
         Game.entities.set(miner.id, miner);
         if (Array.isArray(Game.friendlyUnits)) Game.friendlyUnits.push(miner);
         return miner;
-    }
-
-    /** 补员/增援：先播开门动画，开门完成后在门口生成矿工，再关门 */
-    _spawnWithDoor() {
-        const scene = typeof window !== 'undefined' ? window.__phaserScene : null;
-        const data = scene && scene._neutralSprites ? scene._neutralSprites.get(this) : null;
-        const sprite = data && data.sprite;
-        const anims = scene && scene.anims;
-        // 无精灵/无动画素材：直接生成，不卡补员
-        if (!sprite || !anims || !anims.exists('hamster_hut_door_open')) {
-            this.spawnMiner();
-            return;
-        }
-        if (this._doorState === 'opening' || this._doorState === 'open') {
-            this._pendingSpawn = true; // 开门中，等开门完成再生成
-            return;
-        }
-        this._pendingSpawn = true;
-        this._doorState = 'opening';
-        sprite.setTexture('hamster_hut_door');
-        sprite.setDisplaySize(this.spriteCfg.size, this.spriteCfg.sizeH);
-        sprite.play('hamster_hut_door_open', true);
-        sprite.once('animationcomplete', () => this._onDoorOpened(sprite));
-    }
-
-    _onDoorOpened(sprite) {
-        if (!this.active) return;
-        this._doorState = 'open';
-        if (this._pendingSpawn) {
-            this._pendingSpawn = false;
-            this.spawnMiner(true); // 门口出生
-        }
-        // 关门
-        this._doorState = 'closing';
-        if (sprite && sprite.scene && sprite.scene.anims && sprite.scene.anims.exists('hamster_hut_door_close')) {
-            sprite.play('hamster_hut_door_close', true);
-            sprite.once('animationcomplete', () => this._onDoorClosed(sprite));
-        } else {
-            this._doorState = 'closed';
-        }
-    }
-
-    _onDoorClosed(sprite) {
-        if (!this.active) return;
-        this._doorState = 'closed';
-                if (sprite && sprite.scene && sprite.scene.textures.exists('mine')) {
-                    sprite.setTexture('mine');
-            sprite.setDisplaySize(this.spriteCfg.size, this.spriteCfg.sizeH);
-        }
-    }
-
-    /** 矿工回屋卸货：开门动画（卸货期间保持开，由 AI 2s 后调 closeDoor） */
-    openDoor() {
-        const scene = typeof window !== 'undefined' ? window.__phaserScene : null;
-        const data = scene && scene._neutralSprites ? scene._neutralSprites.get(this) : null;
-        const sprite = data && data.sprite;
-        const anims = scene && scene.anims;
-        if (!sprite || !anims || !anims.exists('hamster_hut_door_open')) return;
-        if (this._doorState === 'opening' || this._doorState === 'open') return;
-        this._doorState = 'opening';
-        sprite.setTexture('hamster_hut_door');
-        sprite.setDisplaySize(this.spriteCfg.size, this.spriteCfg.sizeH);
-        sprite.play('hamster_hut_door_open', true);
-        sprite.once('animationcomplete', () => {
-            if (this._doorState !== 'opening') return;
-            this._doorState = 'open';
-            // 顺带处理门开后待生成矿工（与 _spawnWithDoor 同口径）
-            if (this._pendingSpawn) {
-                this._pendingSpawn = false;
-                this.spawnMiner(true);
-            }
-        });
-    }
-
-    /** 卸货结束：关门动画，门关闭后恢复小屋贴图 */
-    closeDoor() {
-        const scene = typeof window !== 'undefined' ? window.__phaserScene : null;
-        const data = scene && scene._neutralSprites ? scene._neutralSprites.get(this) : null;
-        const sprite = data && data.sprite;
-        if (this._doorState !== 'open' && this._doorState !== 'opening') return;
-        this._doorState = 'closing';
-        if (sprite && sprite.scene && sprite.scene.anims && sprite.scene.anims.exists('hamster_hut_door_close')) {
-            sprite.play('hamster_hut_door_close', true);
-            sprite.once('animationcomplete', () => this._onDoorClosed(sprite));
-        } else {
-            this._doorState = 'closed';
-        }
     }
 
     /**
@@ -313,7 +223,6 @@ export class HamsterHut extends DamageableEntity {
                 EffectManager.add(new FloatingTextEffect(this.x, this.y - 76, `背包满：${stored} 暂存小屋`, '#ffaa55'));
             }
         }
-        this.openDoor();
     }
 
     /** 小屋附近合法落点（优先随机偏移，WallSystem 校验，兜底小屋脚下） */
@@ -360,7 +269,7 @@ export class HamsterHut extends DamageableEntity {
         this.modules[moduleId] = (this.modules[moduleId] || 0) + 1;
         // 数量模块：立即多生成一只
         if (moduleId === 'count') {
-            this._spawnWithDoor();
+            this.spawnMiner();
         }
         // 其余模块：同步到现有矿工（间隔/伤害/移速/采矿效率）
         this.applyUpgradesToMiners();
@@ -393,7 +302,7 @@ export class HamsterHut extends DamageableEntity {
             this._respawnTimer -= dt;
             if (this._respawnTimer <= 0) {
                 this._respawnTimer = HAMSTER_CONFIG.hut.respawnMs;
-                this._spawnWithDoor();
+                this.spawnMiner();
             }
         } else {
             this._respawnTimer = HAMSTER_CONFIG.hut.respawnMs;

@@ -15,6 +15,7 @@ import hamsterWarriorConfig from '../../../data/hamster-warrior-config.json';
 import hamsterShooterConfig from '../../../data/hamster-shooter-config.json';
 import hamsterGuardConfig from '../../../data/hamster-guard-config.json';
 import hamsterMilitiaConfig from '../../../data/hamster-militia-config.json';
+import hamsterScoutConfig from '../../../data/hamster-scout-config.json';
 
 export class BootScene extends Scene {
     constructor() {
@@ -89,8 +90,8 @@ export class BootScene extends Scene {
             }
         }
 
-        // ---- 世界-122 友方单位（仓鼠矿工/战士/射手/盾卫/民兵；独立配置，不入招募池）----
-        for (const unitConfig of [hamsterMinerConfig, hamsterWarriorConfig, hamsterShooterConfig, hamsterGuardConfig, hamsterMilitiaConfig]) {
+        // ---- 世界-122 友方单位（仓鼠矿工/战士/射手/盾卫/民兵/斥候；独立配置，不入招募池）----
+        for (const unitConfig of [hamsterMinerConfig, hamsterWarriorConfig, hamsterShooterConfig, hamsterGuardConfig, hamsterMilitiaConfig, hamsterScoutConfig]) {
             for (const [animKey, def] of Object.entries(unitConfig.animations || {})) {
                 if (!def || !def.src) continue;
                 this.load.spritesheet(`companion_${unitConfig.id}_${animKey}`, def.src, {
@@ -213,6 +214,10 @@ export class BootScene extends Scene {
         // 沙袋/木制拒马（等距版，2026-08-03 本地 ComfyUI 出图 + 抠图入库，摆墙编辑器障碍物类）
         this.load.image('obstacle_sandbag', 'assets/terrain/obstacle_sandbag.png');
         this.load.image('obstacle_barricade', 'assets/terrain/obstacle_barricade.png');
+        // 2026-08-17：1×1 方格块（基地方块环/方块墙，单一贴图无 v/h 变体）
+        this.load.image('obstacle_block', 'assets/terrain/obstacle_block.png');
+        // 2026-08-17：4 格门图标（面板缩略图 + 放置幽灵预览）
+        this.load.image('gate_4cell', 'assets/terrain/gate_4cell.png');
         // 世界-122 掩体（F→A 六档；v1=定稿 + v2~v5 随机变体库，2026-08-05 入库）
         for (const grade of ['F', 'E', 'D', 'C', 'B', 'A']) {
             for (const orient of ['h', 'v']) {
@@ -245,8 +250,6 @@ export class BootScene extends Scene {
         this.load.image('mine', 'assets/terrain/mine.png');
         this.load.image('blacksmith', 'assets/terrain/blacksmith.png');
         this.load.image('thatch_hut', 'assets/terrain/thatch_hut.png');
-        // 仓鼠小屋开关门动画帧（工厂关门版 16 帧滑门，4×4 精灵表；矿工补员时先开门）
-        this.load.spritesheet('hamster_hut_door', 'assets/terrain/hamster_hut_door.png', { frameWidth: 512, frameHeight: 502 });
         // 世界-122 防御塔机械臂（预渲染 3D 旋转帧，48 帧等距透视，按 aimAngle 选帧）
         this.load.spritesheet('obstacle_defense_tower_arm_frames', 'assets/terrain/obstacle_defense_tower_arm_frames.png', { frameWidth: 261, frameHeight: 164 });
         // 防御塔武器枪管（预裁剪独立贴图："枪插进机械臂"假象；2026-08-14）
@@ -566,8 +569,9 @@ export class BootScene extends Scene {
         // 仓鼠矿工 mining = 完整 19 帧起步 + 5~19 帧单次；仓鼠战士 attack = 完整 1~24 帧
         // 起步 + 第 6~24 帧循环；仓鼠射手 attack = 13 帧单次 + projectile 单帧贴图；
         // 仓鼠盾卫 attack = 12 帧单次（第 10 帧判定伤害由 AI 计时）；
-        // 仓鼠民兵 attack = 15 帧单次（第 8 帧判定伤害由 AI 计时）
-        for (const unitConfig of [hamsterMinerConfig, hamsterWarriorConfig, hamsterShooterConfig, hamsterGuardConfig, hamsterMilitiaConfig]) {
+        // 仓鼠民兵 attack = 15 帧单次（第 8 帧判定伤害由 AI 计时）；
+        // 仓鼠斥候 attack = 18 帧单次（第 11 帧出膛由 AI 计时）+ projectile 单帧贴图
+        for (const unitConfig of [hamsterMinerConfig, hamsterWarriorConfig, hamsterShooterConfig, hamsterGuardConfig, hamsterMilitiaConfig, hamsterScoutConfig]) {
             for (const [animKey, def] of Object.entries(unitConfig.animations || {})) {
                 if (!def || !def.src) continue;
                 const texKey = `companion_${unitConfig.id}_${animKey}`;
@@ -597,22 +601,6 @@ export class BootScene extends Scene {
                     });
                 }
             }
-        }
-
-        // 仓鼠小屋开关门动画（2026-08-15）：开门 0→15、关门 15→0，矿工补员时先开门再出仓鼠
-        if (!this.anims.exists('hamster_hut_door_open')) {
-            this.anims.create({
-                key: 'hamster_hut_door_open',
-                frames: this.anims.generateFrameNumbers('hamster_hut_door', { start: 0, end: 15 }),
-                frameRate: 24,
-                repeat: 0,
-            });
-            this.anims.create({
-                key: 'hamster_hut_door_close',
-                frames: this.anims.generateFrameNumbers('hamster_hut_door', { start: 15, end: 0 }),
-                frameRate: 24,
-                repeat: 0,
-            });
         }
 
         // 武器枪口点自动烘焙：扫描每把武器贴图，取【最大连通体】（枪身本体，8 邻域）的
