@@ -9,6 +9,10 @@
 import { MovementSystem } from '../systems/movement-system.js';
 import { WallSystem } from '../world/wall-system.js';
 import { SoundManager } from '../ui/sound-manager.js';
+import { getAbilityLevel } from '../world/ability-store.js';
+import { MathUtils } from '../config/math-utils.js';
+import { EffectManager } from '../effects/effect-manager.js';
+import { FloatingTextEffect } from '../effects/floating-text.js';
 
 export class HamsterWarriorAI {
     constructor(warrior) {
@@ -207,6 +211,27 @@ export class HamsterWarriorAI {
         if (typeof e.takeDamage === 'function') {
             e.takeDamage(this._attackDamage, m, 'physical', true);
             this._playSound('attack'); // 攻击音效（2026-08-16 用户素材，与盾卫共用）
+            // 铁匠铺能力：横扫（2026-08-17）——普攻附带前方扇形 AOE 额外伤害
+            // （参考玩家普攻扇形判定：pointInSector，中心方向 = 攻击朝向 rotation）
+            const aoeLv = getAbilityLevel('sweep_aoe');
+            if (aoeLv > 0) {
+                const aoeMul = 0.2 + 0.05 * aoeLv; // 初始 20% + 5%/级
+                const aoeDmg = Math.max(1, Math.round(this._attackDamage * aoeMul));
+                const aoeRange = range + 30;
+                const arc = Math.PI * 2 / 3; // 前方 120° 扇形
+                const game = (typeof window !== 'undefined' && window.Game) || null;
+                for (const ent of ((game && game.entities) ? game.entities.values() : [])) {
+                    if (!ent || ent === e || !ent.active || ent.hp <= 0 || ent._faction !== 'enemy') continue;
+                    if (ent._isEnergyNode) continue;
+                    if (!MathUtils.pointInSector(ent.x, ent.y, m.x, m.y, m.rotation, aoeRange, arc)) continue;
+                    if (typeof ent.takeDamage === 'function') {
+                        ent.takeDamage(aoeDmg, m, 'physical', true);
+                        if (EffectManager) {
+                            EffectManager.add(new FloatingTextEffect(ent.x, ent.y - 30, `-${aoeDmg}`, '#ffb27a'));
+                        }
+                    }
+                }
+            }
         }
     }
 

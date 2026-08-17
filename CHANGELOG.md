@@ -1,4 +1,191 @@
 # 变更日志
+### 对话：世界-122代码审计修复 + 4格门真实组件预览终案（2026-08-17）
+- **建造清障可达**：新增 `WallSystem.canBuildAt`，放置判定只忽略带 `_scatterSource`
+  的仙人掌/树碰撞，普通墙/边界仍阻挡；成功建造后再批量删除，失败不破坏场景。
+- **批量清障/清草**：拖墙与4格门按全部格心一次清理；`eraseDecoBatch` 保证每个 chunk
+  最多重烘焙一次，清除区走 256px 空间桶并在 scene8 进出时清空。
+- **铁匠铺修复**：持续升级不再产生悬空状态；读条中禁止切换持续能力；草屋/铁匠铺复用
+  面板时单位选择区显式恢复。
+- **升级存档**：兵种模块和铁匠铺能力等级写入主存档 `world122`，读档恢复、新游戏重置。
+- **4格门预览终案**：废弃场景内近似合成图幽灵，改用两块真实 `obstacle_block` +
+  实际 `cover_gate_D_bars` 关闭帧；预览与实体共用 `GATE4_VISUAL` 缩放/脚底、
+  `GATE_GEOM.barCrop` 裁剪和实际图层顺序。F 镜像与落地实体统一；替换4连墙时预览临时
+  隐藏中间两墙，所见即所得。用户实机确认“完全成功”。
+- **回归**：新增 `test-world122-build-regressions.mjs` 并将矿工/盾卫/民兵/斥候测试全部
+  接入 `npm test`；主测试、Vite production build、`git diff --check` 全过。
+
+### 对话：1×1 方格块基地（2026-08-17，用户方向定稿）
+- **方向**：废弃长墙掩体，改为 1×1 方格块（Blender 菱形柱建模，footprint = 1 格 64×32、
+  高 80、无土脚）；块与块按格子贴边拼接，四边/四角天然无缝。
+- **2026-08-17 二改（用户纠正）**：初版菱形柱视角不对、不是标准方形立柱——按 SKILL
+  「世界-122 建筑一律 elevation 30 + rot.z 44.8」重做：方块 = **标准方形立柱**
+  （box 64×64×120、rot 44.8、bevelTopOnly、砖墙材质），经 render-cover-real.py 出图，
+  与门柱/工厂同口径；实机/合成验证菱形闭合、块间无缝隙、风格与建筑一致。
+- **2026-08-17 三改（用户二轮纠正）**：① 吸附——方块墙吸附改为**始终吸附到 1×1 格网**
+  （附近有方块优先贴其相邻格，否则永远落在最近格心，不再有 80px 自由区）；
+  ② 贴图——初版用砖墙贴图（带墙根泥土）渲染粗糙且材质不对，改用素材库石头材质
+  `tex_stone_D.png` 重渲（elevation30+rot44.8 标准立柱），贴图清晰、风格与门柱一致。
+- **2026-08-17 四改（预览偏移）**：方块墙幽灵预览此前按 displayHeight/2（129.5）锚定，
+  实体 footOffsetY=61，预览比实际落点高 ~68px——`_ghostFootOffset` 增加 block 分支
+  （返回 61，`BLOCK_FOOT_OFFSET` 从 defense-system 导出），预览与实际位置一致。
+- **2026-08-17 五改（4 向吸附）**：方块墙此前只有右上/左上能放——根因是方块碰撞用
+  单条 face 线段（沿 v 向穿过格心，压住同向邻格心 36~58px < 半厚26+半径28）。
+  修复：`_canPlaceBlock` 改为**格心冲突判定**（同格不可放、四邻/更远可放），
+  地形检查保留树/仙人掌/世界边界但排除方块自身 face 段；BLOCK_FACE 改到格心。
+  实测 4 向（右下 e1/左下 e2/左上 -e1/右上 -e2）全部可吸附可放置。
+- **2026-08-17 六改（帝国时代式拖墙）**：建筑模式下选"方块墙"长按鼠标拖动，
+  沿鼠标主导方向（|Δi|≥|Δj| → e1 向，否则 e2 向）铺一排方块；预览 = 主幽灵在行尾
+  + 行内半透明副本（可放绿/不可放红），松开统一放置（跳过不可放格），单击只放起点
+  一块。新增 mouseup 监听、`_wallDrag/_rowPreview` 状态、`_updateWallPreview/
+  _placeBlockRow`，格网坐标抽取为 `_blockCellOf/_blockCellCenter` 复用。
+- **2026-08-17 七改（1×4 门）**：基地门改为占 4 格——左右石柱各 1 格（方块墙实体），
+  中间 2 格铁栅栏复用 cover_gate 素材缩放（k=0.488 跨 2 格）。BuildableGate 支持
+  `barCells`（栅栏跨格数，face 半跨 = 32×barCells）与 `barsOnly`（只渲栅栏、石柱由
+  方块墙承担）；`_buildBaseRoom` blockMode 的 RB 边 k=2..5 改为 4 格门。实机验证：
+  结构清晰、栅栏宽度匹配 2 格、与两侧方块墙无缝衔接、开合正常。
+- **2026-08-17 八改（基地不预置墙 + 面板 4 格门）**：用户判定预置方块环构建错误——
+  blockMode 改为**空布局**（基地只剩核心，墙/门全部由玩家自建）；建筑面板新增
+  **4格门**（cost 0）：`_snapGate4Grid` 锚点吸附到格网半格位（栅栏跨 2 格中点），
+  `_placeGate4` 生成 2 石柱（方块墙实体）+ 1 宽门实体（barCells 2 / barsOnly）。
+  实测：基地 0 墙 0 门；放置 4 格门生成 2+1 实体、结构比例正常。
+- **2026-08-17 九改（铁栅栏贴地）**：4 格门栅栏悬空——宽门 face 线仍用旧 1 格门
+  `midY = y-65`，而方块格系统门锚点 = 栅栏中点，接地线应在 `y+32`（栅栏两格底边
+  中点），差 97px。修复：`barCells>1` 时 `midY = y+32`；实测面线延伸与两侧石柱
+  底边完全齐平、栅栏贴地无悬空。
+- **2026-08-17 十改（栅栏仍悬空根因 + 方向随机 + 面板图标）**：
+  - **悬空真根因**：GameScene 每帧用 `footOffsetY` 重定位栅栏精灵（_phaserSprite），
+    旧 1 格门靠 `displayHeight/2` 兜底巧合对齐；宽门（k=0.488）兜底 154.7 ≠ 实际
+    46.3 → 精灵被同步顶高。修复：`_initGateSprite` 显式设 `footOffsetY = y − _spriteCy`。
+  - **方向随机**：吸附在 e1/e2 等距线附近翻转。修复：方向按鼠标相对锚点的主导投影，
+    死区（<12px）内保持上次方向（`_gate4Dir` 滞回）；实测连续取 5 次方向全稳定。
+  - **面板图标**：之前 `tex: cover_gate_D`（16 帧精灵图）直接当缩略图。修复：生成
+    单张图标 `assets/terrain/gate_4cell.png`（石柱+栅栏合成），条目加 `icon: gate_4cell`。
+- **2026-08-17 十一改（栅栏与石柱对齐 + 图标抠图）**：
+  - **对齐**：栅栏此前 143px 宽（crop×0.488），两柱间开口仅 128px → 两侧各超 ~7px，
+    且高度差几 px。修复：宽门栅栏**非等比缩放** kx=0.437（宽=开口 128）、
+    ky=0.5（内容高≈石柱 195），footOffsetY=230×ky−32=83（内容底边落接地线）。
+    实测：栅栏左右边缘与石柱内侧齐平、高度基本一致、无明显错位。
+  - **图标抠图**：初版图标存成 RGB（黑底）。修复：重新生成为 RGBA 透明底
+    （alpha 透明占比 76%），`assets/terrain/gate_4cell.png`。
+- **2026-08-17 十二改（预览尺寸 + 放置方向）**：
+  - **预览尺寸**：幽灵此前 524×520（≈2× 单格门），实际门视觉包围盒仅 314×295。
+    修复：幽灵改用 `gate_4cell` 图标纹理（BootScene 加载），显示尺寸 314×295，
+    与放置后一致。
+  - **方向随机**：吸附在 e1/e2 等距线附近翻转。修复：改为**拖动定方向**（按下→
+    拖动改 e1/e2→松开放置，与拖墙一致）；单击默认 e2（主导投影死区 20px 稳定）；
+    方向变化时锚点随方向重算（e1/e2 是不同半格位，否则错格）。
+  - 实测：5 次连续吸附全 e2；拖动到右侧生成 e1 门（orient h）；幽灵 gate_4cell
+    314×295。
+- **2026-08-17 十三改（固定方向 + 4 墙替换成门）**：
+  - **固定方向**：门方向固定默认 e2（v 向），仅 F 镜像反转（e1）；移除拖动改向。
+  - **替换功能**：选中 4 格门，点击已建的 4 连无缝方块墙（鼠标格处于 e2/e1 方向
+    的 4 连墙运行）→ 无缝替换成门：两端墙保留为石柱、中间 2 墙移除、中间加宽门。
+    单向：只能墙→门，门不可换回墙（无此操作）。
+  - 实测：4 墙 → 替换后 walls=2（两端石柱）+ gates=1（中间门），锚点/格完全对齐。
+- **实现**：
+  - `tools/ai-gen/blender-block-1x1.py`：1×1 方块渲染（标准相机 elevation30/bottom_y880），
+    8 格/边 32 块菱形闭合验证（顶视零缝隙、四角闭合）；
+  - `assets/terrain/obstacle_block.png` + BootScene 加载；
+  - `defense-system.js`：BLOCK_FOOT/BLOCK_FACE/BLOCK_DISPLAY 配置；DefenseCover 增加
+    `block` 分支（单一贴图、footOffsetY 61 使方块底边落格底）；room.blockMode=true →
+    `_buildBaseRoom` 生成 8 格/边方块环（32 块），旧长墙/门逻辑保留但被绕过。
+- **验证**：CDP 实机截图——方块环闭合、块间无缝隙、四角闭合；方块尺寸比例协调。
+- **建筑面板（2026-08-17）**：新增"方块墙"（cost 0 暂不收费），网格吸附
+  `_snapBlockGrid`（1 格 64×32，附近有方块→贴邻格，否则贴最近格心 80px 内）；
+  `_canPlace`/`_coverSeg`/`_place` 支持 block 分支（DefenseCover block:true）。
+- **待办**：4 格门（左右石柱 1 格 + 中间 2 格铁栅栏）接入方块环；
+  sim-defense-crowd 同步方块环布局。
+### 对话：斥候奔跑贴图瞬间消失修复（2026-08-17）
+- 用户反馈：斥候奔跑过程中有一瞬间贴图消失，怀疑图层覆盖。
+- 排查结论：**不是图层问题**——running.png 实盘只有 13 个有效帧（0~12），但配置
+  frameCount=15 / frames=[0,14]（按用户口述 15 帧写入），帧 13/14 是空白帧；
+  奔跑循环每圈播 2 帧空白（≈167ms）→ 贴图瞬间消失。
+- 修复：`hamster-scout-config.json` walk frameCount 15→13、frames [0,14]→[0,12]；
+  test-hamster-scout 断言同步；SKILL 素材说明补「实盘 13 帧」注记。
+
+### 对话：斥候攻击动画修复 + 投射物随模型放大（2026-08-17）
+- 用户反馈：斥候攻击动画不播放；放大模型后投射物也要等比放大。
+- 根因：AI 挥击计时与攻击动画时长完全相等，最后一帧切 idle 时多帧待机分支打断攻击动画，
+  `animationcomplete` 不触发 → `shooterSwing` 标记残留 → 下一次攻击不再播。
+- 修复三件套：① 四个仓鼠 AI（斥候/射手/盾卫/民兵）挥击结束主动清 `_attackSwing`；
+  ② 挥击/射击动画计时 +60ms 余量（播完再切 idle）；③ GameScene 渲染层自愈分支
+  （`_attackSwing` 置位但 `shooterSwing` 残留 → 重置下一帧重播）。
+- 投射物：`_syncCompanionBasics` 箭身长度改随 `displaySize` 等比放大（基准 226→72px；
+  斥候 340→≈108px，帧 ≈322）；CDP 探针显示尺寸断言同步。
+
+### 对话：仓鼠斥候显示放大（2026-08-17）
+- 用户反馈斥候过小（首版 displaySize 260）。与战士/盾卫/民兵对比（整帧按真实 displaySize
+  渲染、脚底对齐）：260 时 idle 70×57 明显小于基准（战士 81×85 / 盾卫 91×89 /
+  民兵 121 高），340 时 idle 92×74 最接近。
+- `data/hamster-scout-config.json` displaySize 260→340、spriteOffsetY -13→-17；
+  `hamster-scout.js` footOffsetY 13→17、hudOffsetY 119→145（血条保持在头顶下方）；
+  CDP 探针显示尺寸断言同步 340。
+
+### 对话：新增玩家友方单位·仓鼠斥候（2026-08-17）
+- 远程第二例（参考仓鼠射手）：`data/hamster-scout-config.json` + `hamster-scout.js` +
+  `hamster-scout-ai.js`。素材五张表（idle 6 / running 15 / attacking 18 / dying 11 /
+  projective 1，4096×2048 8列4行）；running 质心漂移 29px → walk-align --feet-y 282
+  归一化（cx 跨度 0.8px）。
+- 数值（用户口径）：生命 100（baseMaxHp 覆盖）、六维 力量8/敏捷13/智力3/体质7/精神3/
+  幸运10（statFormula:'enemy' 怪物公式派生 atk11/def12/matk3/mdef4/crit12/critRes7）、
+  移速 150、攻击 25 物理/2.5s、射程 600、投射物 600px/s、**攻击动画第 11 帧出膛**
+  （18 帧 @12fps 单次播放，延迟 833ms）、不能攻击矿点；出膛音效复用射手素材。
+- 显示：与射手/战士对比后 displaySize 260（spriteOffsetY -13 / footOffsetY 13 /
+  hudOffsetY 119）；新增多帧待机渲染分支（斥候 6 帧呼吸待机循环，伊莉丝/露娜 1 帧不受影响）。
+- 生成：**仅仓鼠草屋**（unitTypes=[militia, scout]），铁匠铺/兵营不生成斥候；
+  BootScene 加载/动画注册、GameScene 单次播放 + 投射物渲染（斥候尖头朝右，与射手
+  +180° 区分）、兵种升级表 scout 独立全局等级全部接线。
+- 验证：test-hamster-scout（契约）、test-hamster-guard 共享段补斥候派生、
+  eslint + vite build；CDP 实机探针 tools/cdp-hamster-scout.mjs 已备（待用户实机跑）。
+  版本 0.386。
+
+### 对话：基地菱形闭合验证 + 门自动开关收窄（2026-08-17）
+- **用户反馈**：单边 4 堵墙围菱形"还是无法闭合"（截图显示右侧有洞）。要求先在 Blender
+  用真实墙模型验证闭合再改。
+- **排查结论**：墙链本身是闭合的——真实贴图沿边跨度 229.6px、相邻墙 144.7px 间距重叠
+  85px，四边 + 四角均无缝；截图里的洞是**基地门自动打开**（gateMode auto，玩家/侍从
+  距门中点 150px 内即开，栅栏滑出裁剪窗后门洞通透）。
+- **Blender 验证**：`tools/ai-gen/blender-cover-diamond-real.py`（真实墙 box 230×52×150、
+  rot ±52°）复刻 4 段/边布局，顶视 + 游戏视角渲染；另用真实贴图整圈合成逐边采样，
+  确认墙边/角点无背景缝隙（旧 `blender-cover-diamond-test.py` 仍停留在 openRadius 宽洞
+  旧逻辑，已弃用）。
+- **修复**：BuildableGate / _CoverGate 的 update 由"圆心 150px"改为**点到门线段 ≤65px**
+  才开（只有真正过门才触发），离开 0.8s 后自动关；基地平时保持闭合。
+- **验证**：CDP 实机截图（门关时菱形无缝、四角闭合）；回归测试 玩家贴门→开、
+  离开→关 ✓；sim-defense-crowd 0 卡墙/0 ping-pong/转火门 ✓。
+### 对话：基地单边 4 堵墙 + 门占一个墙位（2026-08-17）
+- **用户口径**：墙保持原尺寸（260 显示/face 196.3），单边 4 堵墙围基地菱形；门口大小
+  跟墙壁一样（门 face = 墙 face）。
+- **实现**：_buildBaseRoom 每边 4 段不变；openEdge（RB）第 3 段由门占据（不再用 openRadius
+  挖宽洞），门 face 196.77（worldFaceLen 176 水平）与墙 face 196.3 一致，与相邻墙按
+  墙-墙 40px 端帽重叠拼接；删除 JOIN_OVERLAP 门洞收拢逻辑。
+- **验证**：RB 边 3 墙 + 1 门，合成检查门栅栏与两侧墙内容重叠（19/29px）无缝；
+  sim-defense-crowd 0 卡墙/0 瞬移；node --check 通过。
+### 对话：删除仓鼠小屋开关门动画（2026-08-17）
+- 用户反馈：小屋刷新矿工时播放原模型的开关门动画，需要删掉。
+- `hamster-hut-system.js`：删除 `_spawnWithDoor`/`openDoor`/`closeDoor` 及门状态字段，
+  补员与数量模块升级直接 `spawnMiner()`；卸货不再开门。
+- `hamster-miner-ai.js`：卸货 2s 结束后不再调 `closeDoor`。
+- `BootScene.js`：移除 `hamster_hut_door` 精灵表加载与开门/关门动画注册。
+- `scripts/test-hamster-miner.mjs`：门开关断言改为「已删除」负向断言。
+### 对话：建筑物升级改为按兵种全局生效（2026-08-17）
+- 审计结论：升级等级原存在每个建筑实例 `this.modules`，`spawnUnit`/`applyUpgradesToUnits`
+  只作用于本建筑单位——升级只对本建筑生效，与用户预期（一个草屋升级 → 所有民兵生效）不符。
+- 新增 `src/world/unit-upgrade-store.js`：全局兵种升级登记表 `GLOBAL_UNIT_UPGRADES`
+  （getUnitUpgradeLevel / raiseUnitUpgradeLevel / getUnitUpgradeMults /
+  getUnitUpgradePatch / applyGlobalUpgradesToKind）。
+- 产兵建筑（草屋/铁匠铺）与仓鼠兵营统一改读全局等级：升级作用于当前生成兵种，场景内所有
+  该兵种单位跨建筑实时同步，新生成单位读取全局等级；面板等级显示当前兵种全局等级。
+- 仓鼠小屋（矿工）暂保持建筑级（经济模块），如需全局再扩展。
+
+### 对话：仓鼠民兵显示放大（2026-08-17）
+- 用户反馈民兵贴图小于其他仓鼠兵种。逐帧 bbox 对比：民兵内容（512 帧内 idle 65×207 /
+  running 134×182）明显小于战士/盾卫/射手（idle 176~207 宽）；GLM 目检 226/260/300/340/360
+  五档，300 最接近战士/盾卫体量。
+- `data/hamster-militia-config.json` displaySize 226→300（约 1.33×）、spriteOffsetY -42→-55；
+  `hamster-militia.js` footOffsetY 42→55、hudOffsetY 106→127（血条保持在头顶下方）；
+  CDP 探针显示尺寸断言同步 300。
+
 ### 对话：新增玩家友方单位·仓鼠民兵（2026-08-17）
 - 玩家友方近战单位：`data/hamster-militia-config.json` + `hamster-militia.js` +
   `hamster-militia-ai.js`。素材四张表（idle 1 / running 12 / attacking 15 / dying 14，

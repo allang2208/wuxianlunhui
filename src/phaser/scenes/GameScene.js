@@ -14,7 +14,7 @@ import { WallGate } from '../../world/wall-gate.js';
 import { ChestRoomSystem } from '../../world/chest-room-system.js';
 import { Renderer } from '../../world/renderer.js';
 import { MapGenerator } from '../../world/map-generator.js';
-import { bakeDungeonFloorChunk, registerDecoClearZone } from '../../world/dungeon-floor-texture.js';
+import { bakeDungeonFloorChunk, registerDecoClearZones } from '../../world/dungeon-floor-texture.js';
 import { WeaponTransform } from '../../combat/weapon-transform.js';
 import { SwordArcTrail } from '../../effects/sword-arc-trail.js';
 import { getWeaponTextureKey } from '../../config/weapon-texture-map.js';
@@ -24,6 +24,7 @@ import { CONFIG } from '../../config/config.js';
 import { GAME_CONFIG } from '../../config/game-config.js';
 import { SoundManager } from '../../ui/sound-manager.js';
 import { getSpriteFrameOffset } from '../../utils/sprite-offsets.js';
+import { EffectFactory } from '../../utils/effect-factory.js';
 import { PLAYER_DEFAULTS } from '../../config/player-defaults.js';
 import { playerTextureKey, getPlayerAnimDef, getPlayerAnimDurationMs } from '../../config/player-anim.js';
 import { AnimChannel, resolveAnimChannel, enterRecover, clearPose, nowMs,
@@ -395,7 +396,7 @@ export class GameScene extends Scene {
         // 先同步 Sprite/物理体位置，再更新相机，避免贴图比相机慢一帧导致抖动
         this._syncBodiesToPhysics();
         // 侍从跟随渲染（露娜等有动作素材的队员：跟随玩家播 walk/run/spell）
-        this._syncCompanionSprites(_game);
+        this._syncCompanionSprites(_game, _delta);
         // 侍从普通攻击光球渲染（蓝色光球，CompanionAI 推进）
         this._syncCompanionBasics(_game);
         // 同步可移动实体脚底阴影（原在此处，2026-08-15 移到 _updateDynamicDepths 之后）
@@ -458,7 +459,7 @@ export class GameScene extends Scene {
     }
 
     /** 侍从跟随渲染：有动作素材的队员（露娜等）跟随玩家，按移动/冲刺/施法播 walk/run/spell */
-    _syncCompanionSprites(_game) {
+    _syncCompanionSprites(_game, dt) {
         const player = _game && _game.player;
         // 地图模式 / 无玩家：隐藏全部队员精灵
         if (!player || !this.playerSprite || this._mapModeActive || !this.playerSprite.visible) {
@@ -515,10 +516,10 @@ export class GameScene extends Scene {
             const aiMode = !!member.aiConfig;
             let faceRight = facingRight;
             if (aiMode) {
-                // 仓鼠矿工/战士/射手/盾卫/民兵移动（walk）始终朝向实际移动方向（vx），不倒退走路——
+                // 仓鼠矿工/战士/射手/盾卫/民兵/斥候移动（walk）始终朝向实际移动方向（vx），不倒退走路——
                 // 否则寻路绕行/回屋时贴图朝向目标、实际反向移动（2026-08-15 用户口径）
                 const moving = member._animState === 'walk' || Math.abs(member.vx) > 5;
-                if ((member._isHamsterMiner || member._isHamsterWarrior || member._isHamsterShooter || member._isHamsterGuard || member._isHamsterMilitia) && moving) {
+                if ((member._isHamsterMiner || member._isHamsterWarrior || member._isHamsterShooter || member._isHamsterGuard || member._isHamsterMilitia || member._isHamsterScout) && moving) {
                     faceRight = member.vx > 0;
                 } else if (member._lastAction === 'flee' && Math.abs(member.vx) > 5) {
                     faceRight = member.vx > 0;
@@ -538,10 +539,29 @@ export class GameScene extends Scene {
             }
             sprite.setFlipX(!faceRight);
             sprite.setDepth(this.playerSprite.depth + 0.5);
-            // 受击白闪（仓鼠矿工/战士/射手/盾卫/民兵）
-            if (member._isHamsterMiner || member._isHamsterWarrior || member._isHamsterShooter || member._isHamsterGuard || member._isHamsterMilitia) {
+            // 受击白闪（仓鼠矿工/战士/射手/盾卫/民兵/斥候）
+            if (member._isHamsterMiner || member._isHamsterWarrior || member._isHamsterShooter || member._isHamsterGuard || member._isHamsterMilitia || member._isHamsterScout) {
                 if (member.hitFlash > 0) sprite.setTint(0xffffff);
                 else sprite.clearTint();
+            }
+            // 士兵移动烟尘（2026-08-17）：玩家跑步同款 DustEffect，脚下生成——
+            // 军事单位（战士/射手/盾卫/民兵/斥候，不含矿工）移动（walk/run）时按 90ms 间隔出烟
+            if (member._isHamsterWarrior || member._isHamsterShooter || member._isHamsterGuard || member._isHamsterMilitia || member._isHamsterScout) {
+                const unitMoving = member._animState === 'walk'
+                    || Math.abs(member.vx || 0) > 5 || Math.abs(member.vy || 0) > 5;
+                if (unitMoving) {
+                    if (!member._dustTimer) member._dustTimer = 0;
+                    member._dustTimer += dt;
+                    const interval = 90;
+                    if (member._dustTimer >= interval) {
+                        member._dustTimer -= interval;
+                        const offsetX = (Math.random() - 0.5) * 8;
+                        const offsetY = (Math.random() - 0.5) * 4;
+                        EffectFactory.createDustEffect(member.x + offsetX, member.y + offsetY - 5, 0.8);
+                    }
+                } else {
+                    member._dustTimer = 0;
+                }
             }
             // 动画：施法 > 冲刺 > 移动 > 站立停帧
             const spellKey = `companion_${animId}_spell`;
@@ -634,12 +654,12 @@ export class GameScene extends Scene {
                             }
                         }
                     }
-                } else if (st === 'attack' && (member._isHamsterShooter || member._isHamsterGuard || member._isHamsterMilitia)
+                } else if (st === 'attack' && (member._isHamsterShooter || member._isHamsterGuard || member._isHamsterMilitia || member._isHamsterScout)
                     && anims.attack && this.textures.exists(`companion_${animId}_attack`)) {
-                    // 仓鼠射手/盾卫/民兵攻击：单次播放（射手 13 帧 / 盾卫 12 帧 /
-                    // 民兵 15 帧，repeat 0），射手第 10 帧出膛、盾卫第 10 帧、
-                    // 民兵第 8 帧伤害判定均由 AI 计时；AI 每次挥击置 _attackSwing →
-                    // 重播动画；播完定格末帧等下一次挥击。
+                    // 仓鼠射手/盾卫/民兵/斥候攻击：单次播放（射手 13 帧 / 盾卫 12 帧 /
+                    // 民兵 15 帧 / 斥候 18 帧，repeat 0），射手第 10 帧、斥候第 11 帧
+                    // 出膛、盾卫第 10 帧、民兵第 8 帧伤害判定均由 AI 计时；
+                    // AI 每次挥击置 _attackSwing → 重播动画；播完定格末帧等下一次挥击。
                     const atkKey = `companion_${animId}_attack`;
                     const atkLast = anims.attack.frameCount ? anims.attack.frameCount - 1 : 12;
                     if (member._attackSwing && !sprite.getData('shooterSwing')) {
@@ -655,6 +675,10 @@ export class GameScene extends Scene {
                                 sprite.setTexture(atkKey, atkLast);
                             }
                         });
+                    } else if (member._attackSwing) {
+                        // 上次挥击动画被打断（未触发 animationcomplete）→ shooterSwing 残留 true：
+                        // 重置标记，下一帧走播放分支重播（2026-08-17 斥候攻击动画修复）
+                        sprite.setData('shooterSwing', false);
                     } else if (!sprite.getData('shooterSwing')) {
                         // 开火间隔：定格攻击末帧
                         if (sprite.anims.isPlaying) sprite.anims.stop();
@@ -751,6 +775,13 @@ export class GameScene extends Scene {
                         }
                     } else if (!sprite.anims.isPlaying || sprite.anims.currentAnim?.key !== walkKey) {
                         sprite.play(walkKey, true);
+                    }
+                } else if (st === 'idle' && anims.idle && (anims.idle.frameCount || 1) > 1
+                    && this.textures.exists(`companion_${animId}_idle`)) {
+                    // 多帧待机（2026-08-17 仓鼠斥候 6 帧呼吸待机）：循环播放，不再停首帧
+                    const idleAnimKey = `companion_${animId}_idle`;
+                    if (!sprite.anims.isPlaying || sprite.anims.currentAnim?.key !== idleAnimKey) {
+                        sprite.play(idleAnimKey, true);
                     }
                 } else {
                     sprite.setData('hamsterDying', false);
@@ -929,16 +960,20 @@ export class GameScene extends Scene {
             const b = m._basic;
             let spr = this._companionBasicSprites[m.id];
             if (b && b.active) {
-                const shooter = m._isHamsterShooter;
-                const arrowKey = shooter ? `companion_${m.animId || m.id}_projectile` : null;
+                const ranged = m._isHamsterShooter || m._isHamsterScout;
+                const tipLeft = m._isHamsterShooter; // 射手贴图尖头朝左；斥候贴图尖头朝右
+                const projContentW = m._isHamsterShooter ? 146 : 172; // 投射物内容宽（帧内 px）
+                const arrowKey = ranged ? `companion_${m.animId || m.id}_projectile` : null;
                 if (!spr) {
-                    if (shooter && arrowKey && this.textures.exists(arrowKey)) {
-                        // 箭矢：素材内容 146×40（尖头朝左），帧 512×512。
-                        // 帧必须等比放大（不能把帧压成 50×13.7——内容只有 14×1px 看不见）：
-                        // 让箭身（内容）≈ 72px 世界长，帧 = 72×512/146 ≈ 252 方形
+                    if (ranged && arrowKey && this.textures.exists(arrowKey)) {
+                        // 投射物：射手内容 146×40（尖头朝左）、斥候内容 172×17（尖头朝右），
+                        // 帧 512×512。帧必须等比放大（内容很小，直接压帧会看不见）：
+                        // 箭身长度随单位模型 displaySize 等比放大（2026-08-17 用户口径）：
+                        // 基准 226（射手）→ 72px；斥候 340 → 72×340/226 ≈ 108px，
+                        // 帧 = 箭身长×512/内容宽 方形
                         spr = this.add.sprite(b.x, b.y, arrowKey);
-                        const arrowLen = 72;
-                        const frameDisplay = Math.round(arrowLen * 512 / 146);
+                        const arrowLen = 72 * ((m.displaySize || 226) / 226);
+                        const frameDisplay = Math.round(arrowLen * 512 / projContentW);
                         spr.setDisplaySize(frameDisplay, frameDisplay);
                     } else {
                         if (!this.textures.exists('impact_dot') && typeof this._ensureImpactDotTexture === 'function') {
@@ -952,9 +987,9 @@ export class GameScene extends Scene {
                     this._companionBasicSprites[m.id] = spr;
                 }
                 spr.setPosition(b.x, b.y);
-                if (shooter && arrowKey && this.textures.exists(arrowKey)) {
-                    // 贴图尖头朝左：旋转 = 飞行角 + 180°
-                    spr.setRotation(b.angle + Math.PI);
+                if (ranged && arrowKey && this.textures.exists(arrowKey)) {
+                    // 尖头方向：射手朝左旋转 +180°；斥候朝右直接旋转到飞行角
+                    spr.setRotation(b.angle + (tipLeft ? Math.PI : 0));
                     spr.setBlendMode(BlendModes.NORMAL);
                 } else {
                     spr.setRotation(0);
@@ -6401,8 +6436,16 @@ export class GameScene extends Scene {
     /** 擦除世界坐标 (wx,wy) 半径内的地板装饰（草等，2026-08-17）：注册清除区 +
      *  局部重烘焙所有与清除圆相交的已加载 chunk（未加载的块之后按需烘焙时自动跳过） */
     eraseDecoAt(wx, wy, radius) {
-        if (!(radius > 0)) return;
-        registerDecoClearZone(wx, wy, radius);
+        this.eraseDecoBatch([{ x: wx, y: wy, radius }]);
+    }
+
+    /** 批量擦除装饰：一次登记全部区域，每个受影响 chunk 最多重烘焙一次。 */
+    eraseDecoBatch(zones) {
+        const validZones = (zones || []).filter((z) =>
+            z && Number.isFinite(z.x) && Number.isFinite(z.y) && z.radius > 0
+        );
+        if (validZones.length === 0) return;
+        registerDecoClearZones(validZones);
         const chunks = Renderer.terrainChunks;
         if (!chunks || !this._terrainChunkSprites) return;
         const cs = chunks.chunkSize || 2048;
@@ -6413,9 +6456,12 @@ export class GameScene extends Scene {
             const dcy = Number(parts[3]);
             if (!Number.isFinite(dcx) || !Number.isFinite(dcy)) continue;
             const ox = dcx * cs, oy = dcy * cs;
-            const nx = Math.max(ox, Math.min(wx, ox + cs));
-            const ny = Math.max(oy, Math.min(wy, oy + cs));
-            if (Math.hypot(wx - nx, wy - ny) > radius) continue;
+            const touches = validZones.some((z) => {
+                const nx = Math.max(ox, Math.min(z.x, ox + cs));
+                const ny = Math.max(oy, Math.min(z.y, oy + cs));
+                return Math.hypot(z.x - nx, z.y - ny) <= z.radius;
+            });
+            if (!touches) continue;
             toRebake.push({ dcx, dcy, key });
         }
         // 先收集再逐个重建（迭代中 delete+set 同一 key 会让 Map 迭代器重访 → 死循环）

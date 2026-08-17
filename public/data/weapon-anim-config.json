@@ -550,8 +550,8 @@
       },
       "frames": [
         {
-          "offsetX": 0.3,
-          "offsetY": -9.5,
+          "offsetX": -9.2,
+          "offsetY": -4.9,
           "rotation": 140,
           "scale": 1.5,
           "blurX": 0.0,
@@ -560,8 +560,8 @@
           "stretchY": 1.0
         },
         {
-          "offsetX": -19.4,
-          "offsetY": -28.0,
+          "offsetX": -27.7,
+          "offsetY": -31.4,
           "rotation": 317,
           "scale": 1.5,
           "blurX": 2.0,
@@ -570,8 +570,8 @@
           "stretchY": 1.0
         },
         {
-          "offsetX": -26.8,
-          "offsetY": -43.1,
+          "offsetX": -26.5,
+          "offsetY": -43.4,
           "rotation": 308,
           "scale": 1.5,
           "blurX": 4.0,
@@ -580,8 +580,8 @@
           "stretchY": 1.0
         },
         {
-          "offsetX": -26.2,
-          "offsetY": -53.0,
+          "offsetX": -27.7,
+          "offsetY": -51.2,
           "rotation": 395,
           "scale": 1.5,
           "blurX": 3.0,
@@ -590,8 +590,8 @@
           "stretchY": 1.0
         },
         {
-          "offsetX": -23.7,
-          "offsetY": -55.8,
+          "offsetX": -25.6,
+          "offsetY": -53.9,
           "rotation": 409,
           "scale": 1.5,
           "blurX": 2.0,
@@ -600,8 +600,8 @@
           "stretchY": 1.0
         },
         {
-          "offsetX": -15.4,
-          "offsetY": -57.9,
+          "offsetX": -21.0,
+          "offsetY": -54.8,
           "rotation": 410,
           "scale": 1.5,
           "blurX": 2.0,
@@ -610,8 +610,8 @@
           "stretchY": 1.0
         },
         {
-          "offsetX": -9.5,
-          "offsetY": -58.9,
+          "offsetX": -10.5,
+          "offsetY": -58.5,
           "rotation": 406,
           "scale": 1.5,
           "blurX": 2.0,
@@ -620,8 +620,8 @@
           "stretchY": 1.0
         },
         {
-          "offsetX": 4.9,
-          "offsetY": -61.9,
+          "offsetX": 2.5,
+          "offsetY": -62.6,
           "rotation": 366,
           "scale": 1.5,
           "blurX": 4.0,
@@ -630,8 +630,8 @@
           "stretchY": 1.0
         },
         {
-          "offsetX": 31.4,
-          "offsetY": -63.8,
+          "offsetX": 32.0,
+          "offsetY": -61.9,
           "rotation": 375,
           "scale": 1.5,
           "blurX": 8.0,
@@ -640,8 +640,8 @@
           "stretchY": 1.0
         },
         {
-          "offsetX": 52.7,
-          "offsetY": -52.7,
+          "offsetX": 53.0,
+          "offsetY": -53.3,
           "rotation": 403,
           "scale": 1.5,
           "blurX": 9.0,
@@ -650,8 +650,8 @@
           "stretchY": 1.0
         },
         {
-          "offsetX": 40.1,
-          "offsetY": 13.9,
+          "offsetX": 38.5,
+          "offsetY": 9.2,
           "rotation": 526,
           "scale": 1.5,
           "blurX": 7.0,
@@ -660,8 +660,8 @@
           "stretchY": 1.0
         },
         {
-          "offsetX": 17.1,
-          "offsetY": 3.7,
+          "offsetX": 24.7,
+          "offsetY": 3.1,
           "rotation": 510,
           "scale": 1.5,
           "blurX": 1.0,
@@ -686,8 +686,8 @@
       },
       "frames": [
         {
-          "offsetX": 22.8,
-          "offsetY": 0.6,
+          "offsetX": 23.1,
+          "offsetY": 1.2,
           "rotation": 224,
           "scale": 1.5,
           "blurX": 0.0,
@@ -696,8 +696,8 @@
           "stretchY": 1.0
         },
         {
-          "offsetX": 33.6,
-          "offsetY": -23.1,
+          "offsetX": 40.7,
+          "offsetY": -25.9,
           "rotation": 108,
           "scale": 1.5,
           "blurX": 1.0,
@@ -706,8 +706,8 @@
           "stretchY": 1.0
         },
         {
-          "offsetX": -11.1,
-          "offsetY": -70.6,
+          "offsetX": -8.0,
+          "offsetY": -63.5,
           "rotation": -7,
           "scale": 1.5,
           "blurX": 2.0,
@@ -716,8 +716,8 @@
           "stretchY": 1.0
         },
         {
-          "offsetX": -29.0,
-          "offsetY": -58.9,
+          "offsetX": -23.7,
+          "offsetY": -64.1,
           "rotation": -18,
           "scale": 1.5,
           "blurX": 3.0,
@@ -726,7 +726,7 @@
           "stretchY": 1.0
         },
         {
-          "offsetX": -29.6,
+          "offsetX": -25.3,
           "offsetY": -58.2,
           "rotation": -20,
           "scale": 1.5,
@@ -736,8 +736,8 @@
           "stretchY": 1.0
         },
         {
-          "offsetX": -29.0,
-          "offsetY": -57.3,
+          "offsetX": -25.9,
+          "offsetY": -59.8,
           "rotation": -20,
           "scale": 1.5,
           "blurX": 2.0,
@@ -746,8 +746,8 @@
           "stretchY": 1.0
         },
         {
-          "offsetX": -21.3,
-          "offsetY": -61.3,
+          "offsetX": -18.8,
+          "offsetY": -61.0,
           "rotation": 35,
           "scale": 1.5,
           "blurX": 2.0,
@@ -757,7 +757,7 @@
         },
         {
           "offsetX": -15.7,
-          "offsetY": -61.9,
+          "offsetY": -63.5,
           "rotation": 13,
           "scale": 1.5,
           "blurX": 4.0,
@@ -766,8 +766,8 @@
           "stretchY": 1.0
         },
         {
-          "offsetX": 57.3,
-          "offsetY": 4.6,
+          "offsetX": 55.5,
+          "offsetY": 3.7,
           "rotation": 87,
           "scale": 1.5,
           "blurX": 10.0,
@@ -776,8 +776,8 @@
           "stretchY": 1.0
         },
         {
-          "offsetX": 57.3,
-          "offsetY": 4.9,
+          "offsetX": 55.5,
+          "offsetY": 3.7,
           "rotation": 86,
           "scale": 1.5,
           "blurX": 6.0,
@@ -786,8 +786,8 @@
           "stretchY": 1.0
         },
         {
-          "offsetX": 57.3,
-          "offsetY": 4.9,
+          "offsetX": 55.5,
+          "offsetY": 3.7,
           "rotation": 86,
           "scale": 1.5,
           "blurX": 2.0,
@@ -796,8 +796,8 @@
           "stretchY": 1.0
         },
         {
-          "offsetX": 57.3,
-          "offsetY": 4.9,
+          "offsetX": 55.5,
+          "offsetY": 3.7,
           "rotation": 85,
           "scale": 1.5,
           "blurX": 1.0,
@@ -822,8 +822,8 @@
       },
       "frames": [
         {
-          "offsetX": 51.7,
-          "offsetY": 4.6,
+          "offsetX": 57.3,
+          "offsetY": 5.2,
           "rotation": 117,
           "scale": 1.5,
           "blurX": 0.0,
@@ -832,8 +832,8 @@
           "stretchY": 1
         },
         {
-          "offsetX": 52.4,
-          "offsetY": 4.6,
+          "offsetX": 57.9,
+          "offsetY": 4.9,
           "rotation": 117,
           "scale": 1.5,
           "blurX": 0.5,
@@ -842,8 +842,8 @@
           "stretchY": 1
         },
         {
-          "offsetX": 39.1,
-          "offsetY": -3.4,
+          "offsetX": 35.1,
+          "offsetY": 3.7,
           "rotation": 121,
           "scale": 1.5,
           "blurX": 1.0,
@@ -852,8 +852,8 @@
           "stretchY": 1
         },
         {
-          "offsetX": 9.9,
-          "offsetY": -3.4,
+          "offsetX": 13.6,
+          "offsetY": 1.8,
           "rotation": 236,
           "scale": 1.5,
           "blurX": 1.5,
@@ -862,8 +862,8 @@
           "stretchY": 1
         },
         {
-          "offsetX": 19.4,
-          "offsetY": -12.6,
+          "offsetX": 21.3,
+          "offsetY": -11.7,
           "rotation": 125,
           "scale": 1.5,
           "blurX": 2.0,
@@ -872,8 +872,8 @@
           "stretchY": 1
         },
         {
-          "offsetX": 20.7,
-          "offsetY": -30.5,
+          "offsetX": 21.0,
+          "offsetY": -28.3,
           "rotation": 27,
           "scale": 1.5,
           "blurX": 2.0,
@@ -882,8 +882,8 @@
           "stretchY": 1
         },
         {
-          "offsetX": 35.1,
-          "offsetY": -32.7,
+          "offsetX": 39.7,
+          "offsetY": -27.1,
           "rotation": 68,
           "scale": 1.5,
           "blurX": 3.0,
@@ -892,8 +892,8 @@
           "stretchY": 1
         },
         {
-          "offsetX": 47.8,
-          "offsetY": -25.0,
+          "offsetX": 53.0,
+          "offsetY": -25.9,
           "rotation": 103,
           "scale": 1.5,
           "blurX": 5.0,
@@ -902,8 +902,8 @@
           "stretchY": 1
         },
         {
-          "offsetX": 53.6,
-          "offsetY": -18.2,
+          "offsetX": 51.2,
+          "offsetY": -14.8,
           "rotation": 100,
           "scale": 1.5,
           "blurX": 7.0,
@@ -912,8 +912,8 @@
           "stretchY": 1
         },
         {
-          "offsetX": 68.4,
-          "offsetY": -23.4,
+          "offsetX": 72.4,
+          "offsetY": -22.8,
           "rotation": 90,
           "scale": 1.5,
           "blurX": 10.0,
@@ -922,8 +922,8 @@
           "stretchY": 1
         },
         {
-          "offsetX": 73.6,
-          "offsetY": -25.0,
+          "offsetX": 72.4,
+          "offsetY": -22.8,
           "rotation": 90,
           "scale": 1.5,
           "blurX": 8.0,
@@ -932,8 +932,8 @@
           "stretchY": 1
         },
         {
-          "offsetX": 72.5,
-          "offsetY": -26.5,
+          "offsetX": 72.4,
+          "offsetY": -23.4,
           "rotation": 90,
           "scale": 1.5,
           "blurX": 5.0,
@@ -942,8 +942,8 @@
           "stretchY": 1
         },
         {
-          "offsetX": 48.4,
-          "offsetY": -18.2,
+          "offsetX": 48.1,
+          "offsetY": -17.3,
           "rotation": 85,
           "scale": 1.5,
           "blurX": 3.0,
@@ -952,8 +952,8 @@
           "stretchY": 1
         },
         {
-          "offsetX": 28.6,
-          "offsetY": -6.5,
+          "offsetX": 27.4,
+          "offsetY": -4.9,
           "rotation": 128,
           "scale": 1.5,
           "blurX": 2.0,
@@ -962,8 +962,8 @@
           "stretchY": 1
         },
         {
-          "offsetX": 11.7,
-          "offsetY": -6.5,
+          "offsetX": 23.1,
+          "offsetY": -3.7,
           "rotation": 158,
           "scale": 1.5,
           "blurX": 1.0,
@@ -972,8 +972,8 @@
           "stretchY": 1
         },
         {
-          "offsetX": 15.7,
-          "offsetY": -0.3,
+          "offsetX": 15.1,
+          "offsetY": 4.9,
           "rotation": 153,
           "scale": 1.5,
           "blurX": 0.5,

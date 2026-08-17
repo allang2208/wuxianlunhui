@@ -26,7 +26,7 @@ function check(name, cond, detail = '') {
 
 // ---- 1. 数据契约（Companion 纯数据模型可 node 直测） ----
 const miner = new Companion(hamsterCfg);
-check('生命值 = 200（base 100 + con10×10）', miner.data.maxHp === 200 && miner.data.hp === 200,
+check('生命值 = 100（baseMaxHp 覆盖）', miner.data.maxHp === 100 && miner.data.hp === 100,
     `maxHp=${miner.data.maxHp}`);
 check('移动速度 = 80', hamsterCfg.ai.walkSpeed === 80 && hamsterCfg.ai.runSpeed === 80,
     `walkSpeed=${hamsterCfg.ai.walkSpeed}`);
@@ -125,7 +125,7 @@ check('实体 addMinedEnergy 直接入包（上限=容量）', /addMinedEnergy\(
 
 const ensSrc = fs.readFileSync(path.join(ROOT, 'src/world/energy-node-system.js'), 'utf-8');
 check('能量节点：矿工攻击直接装包不落地（其余仍地面掉落）',
-    /source\._isHamsterMiner && typeof source\.addMinedEnergy === 'function'/.test(ensSrc)
+    /source && typeof source\.addMinedEnergy === 'function'/.test(ensSrc)
     && /Game\.dropItem/.test(ensSrc));
 
 const hutSrc = fs.readFileSync(path.join(ROOT, 'src/world/hamster-hut-system.js'), 'utf-8');
@@ -136,8 +136,9 @@ check('小屋新增背包扩容模块（每级 +100，满级 10）',
 check('小屋卸货：unloadMiner 移交玩家背包 + 满则暂存 _storedEnergy',
     /unloadMiner\(miner\)/.test(hutSrc) && /EnergyManager\.addEnergy\(total\)/.test(hutSrc)
     && /this\._storedEnergy \+= stored/.test(hutSrc));
-check('小屋门开关（卸货开门 / 2s 后关门）', /openDoor\(\)/.test(hutSrc) && /closeDoor\(\)/.test(hutSrc)
-    && /hamster_hut_door_open/.test(hutSrc) && /hamster_hut_door_close/.test(hutSrc));
+check('小屋开关门动画已删除（2026-08-17：原模型素材移除，补员/卸货直接生成）',
+    !/openDoor\(/.test(hutSrc) && !/closeDoor\(/.test(hutSrc)
+    && !/hamster_hut_door/.test(hutSrc));
 check('小屋被毁丢失暂存能量', /lost > 0 \? `仓鼠小屋被摧毁（暂存 \$\{lost\} 能源丢失）`/.test(hutSrc));
 check('小屋暂存自动补入玩家背包', /_storedEnergy = Math\.max\(0, this\._storedEnergy - added\)/.test(hutSrc));
 
@@ -151,7 +152,8 @@ check('GameScene 采矿 = 攻击触发播挥锄、间隔定格 waitFrame（第 6
 check('GameScene 行走两段式 = 起步完整 walking → 循环第 3~12 帧',
     /hamsterWalk/.test(gsSrc) && /walkStartKey/.test(gsSrc));
 check('GameScene 移动始终朝向移动方向（walk 按 vx，不倒退）',
-    /member\._isHamsterMiner && moving/.test(gsSrc) && /faceRight = member\.vx > 0/.test(gsSrc)
+    /member\._isHamsterMiner \|\| member\._isHamsterWarrior/.test(gsSrc)
+    && /\) && moving/.test(gsSrc) && /faceRight = member\.vx > 0/.test(gsSrc)
     && /_animState === 'walk' \|\| Math\.abs\(member\.vx\) > 5/.test(gsSrc));
 check('GameScene 名称/血条按侍从精灵锚定（贴图缩放自动跟随）',
     /this\._companionSprites\[entity\.id\]/.test(gsSrc)
@@ -161,7 +163,8 @@ check('GameScene 中立标签实体跳过 HUD 名字（防建筑重复名字）'
 check('GameScene 动态深度含友方单位', /window\.Game\.friendlyUnits/.test(gsSrc));
 
 const bootSrc = fs.readFileSync(path.join(ROOT, 'src/phaser/scenes/BootScene.js'), 'utf-8');
-check('BootScene 加载仓鼠矿工精灵图', /hamsterMinerConfig\.animations/.test(bootSrc) && /companion_\$\{hamsterMinerConfig\.id\}_/.test(bootSrc));
+check('BootScene 加载仓鼠矿工精灵图', /hamsterMinerConfig/.test(bootSrc)
+    && /companion_\$\{unitConfig\.id\}_/.test(bootSrc));
 
 const smSrc = fs.readFileSync(path.join(ROOT, 'src/world/scene-manager.js'), 'utf-8');
 check('世界-122 进入生成仓鼠矿工', /HamsterMinerSystem\.setup\(player\)/.test(smSrc));

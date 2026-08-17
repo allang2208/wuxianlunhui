@@ -56,3 +56,5 @@ _tmp_*.diff
 assets/terrain/_fpref*
 assets/terrain/_fpv*
 tools/verify-shots/
+assets/terrain/.bak_*/
+tools/ai-gen/_tmp_*

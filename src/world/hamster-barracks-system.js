@@ -28,6 +28,12 @@ import warriorCfg from '../../data/hamster-warrior-config.json';
 import shooterCfg from '../../data/hamster-shooter-config.json';
 import guardCfg from '../../data/hamster-guard-config.json';
 import militiaCfg from '../../data/hamster-militia-config.json';
+import {
+    applyGlobalUpgradesToKind,
+    getUnitUpgradeLevel,
+    getUnitUpgradeMults,
+    raiseUnitUpgradeLevel,
+} from './unit-upgrade-store.js';
 
 // ==================== 配置 ====================
 
@@ -42,7 +48,7 @@ export const BARRACKS_CONFIG = {
         // 2026-08-17 回退：显示尺寸统一到草屋同款 144×147（不再放大）
         displayW: 144,
         displayH: 147,
-        footOffsetY: 13,     // bbox 底 2420/4096 → 147×(0.591-0.5) ≈ 13
+        footOffsetY: 73.5,   // 贴图已裁剪到内容（2026-08-17）：内容底=画布底 → 147×0.5
         sellRefundRatio: 0.5,
         spawnIntervalMs: 30000,   // 30 秒生成一个军事单位
         spawnRadius: 90,
@@ -151,9 +157,9 @@ export class HamsterBarracks extends DamageableEntity {
         this.rebuildCollider();
     }
 
-    /** 当前模块倍率 */
+    /** 当前兵种全局倍率（2026-08-17 起按兵种全局共享，不再按建筑实例） */
     mults() {
-        return getBarracksMults(this.modules);
+        return getUnitUpgradeMults(this.unitType, BARRACKS_CONFIG.modules);
     }
 
     /** 目标军事单位数量：固定上限 unitCap=5（初始即有，无需升级） */
@@ -219,37 +225,20 @@ export class HamsterBarracks extends DamageableEntity {
         return unit;
     }
 
-    /** 把当前模块倍率同步给所有存活单位 */
+    /** 把该兵种全局升级同步给场景内所有该兵种单位（2026-08-17 起跨建筑全局生效） */
     applyUpgradesToUnits() {
-        const mults = this.mults();
-        for (const unit of this.units) {
-            if (!unit || !unit.active || unit._dying) continue;
-            const unitKey = unit._isHamsterWarrior ? 'warrior'
-                : (unit._isHamsterGuard ? 'guard'
-                    : (unit._isHamsterMilitia ? 'militia' : 'shooter'));
-            const base = (BARRACKS_CONFIG.unit[unitKey] || {}).cfg || {};
-            const baseAi = base.ai || {};
-            const u = {
-                attackInterval: Math.max(300, Math.round((baseAi.attackInterval ?? 2000) * mults.attackIntervalMult)),
-                attackDamage: Math.max(1, Math.round((baseAi.attackDamage ?? 50) * mults.attackDamageMult)),
-                walkSpeed: Math.max(20, Math.round((baseAi.walkSpeed ?? 120) * mults.moveSpeedMult)),
-                baseMaxHp: Math.max(1, Math.round((base.baseMaxHp ?? 300) * mults.hpMult)),
-            };
-            if (typeof unit.applyBarracksUpgrades === 'function') {
-                unit.applyBarracksUpgrades(u);
-            }
-        }
+        applyGlobalUpgradesToKind(this.unitType, BARRACKS_CONFIG.modules);
     }
 
     /** 模块是否可升级（未满级即可） */
     canUpgradeModule(moduleId) {
         const mod = BARRACKS_CONFIG.modules?.[moduleId];
         if (!mod) return false;
-        return (this.modules[moduleId] || 0) < mod.maxLevel;
+        return getUnitUpgradeLevel(this.unitType, moduleId) < mod.maxLevel;
     }
 
     getModuleCost(moduleId) {
-        return getBarracksModuleCost(moduleId, this.modules[moduleId] || 0);
+        return getBarracksModuleCost(moduleId, getUnitUpgradeLevel(this.unitType, moduleId));
     }
 
     /** 玩家支付 1000 金币 + 500 能源升级模块；升级后同步现有单位 */
@@ -266,12 +255,12 @@ export class HamsterBarracks extends DamageableEntity {
             GoldManager.deductGold(cost.gold);
             EnergyManager.deductEnergy(cost.energy);
         }
-        this.modules[moduleId] = (this.modules[moduleId] || 0) + 1;
+        const level = raiseUnitUpgradeLevel(this.unitType, moduleId);
         this.applyUpgradesToUnits();
         if (SoundManager && typeof SoundManager.playFile === 'function') {
             SoundManager.playFile('assets/sounds/ui/sell.wav');
         }
-        return { ok: true, cost, moduleId, level: this.modules[moduleId] };
+        return { ok: true, cost, moduleId, level };
     }
 
     /** 主循环：每 30s 生成一个军事单位（存活数低于上限时） */
@@ -511,7 +500,7 @@ class HamsterBarracksPanel extends BasePanel {
 
         const modBox = el.querySelector('#hbModules');
         const rows = Object.entries(cfg.modules || {}).map(([mid, mod]) => {
-            const lv = b.modules[mid] || 0;
+            const lv = getUnitUpgradeLevel(b.unitType, mid);
             const desc = getBarracksModuleDesc(mid, lv);
             const maxedMod = lv >= mod.maxLevel;
             const canBuy = b.canUpgradeModule(mid);

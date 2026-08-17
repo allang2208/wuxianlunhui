@@ -33,16 +33,48 @@ let _floorProfile = null;
 // 装饰清除区（2026-08-17）：建筑建造后注册的世界坐标圆，草/装饰绘制时跳过。
 // 覆盖块由 GameScene.eraseDecoAt 局部重烘焙（草从烘焙纹理中消失）。
 let _decoClearZones = [];
+const DECO_CLEAR_CELL = 256;
+let _decoClearZoneCells = new Map();
 
 /** 注册一个装饰清除圆（世界坐标）；配合 GameScene.eraseDecoAt 重烘焙生效 */
 export function registerDecoClearZone(x, y, radius) {
     if (!(radius > 0)) return;
-    _decoClearZones.push({ x, y, radius });
+    const zone = { x, y, radius };
+    _decoClearZones.push(zone);
+    const x0 = Math.floor((x - radius) / DECO_CLEAR_CELL);
+    const x1 = Math.floor((x + radius) / DECO_CLEAR_CELL);
+    const y0 = Math.floor((y - radius) / DECO_CLEAR_CELL);
+    const y1 = Math.floor((y + radius) / DECO_CLEAR_CELL);
+    for (let cy = y0; cy <= y1; cy++) {
+        for (let cx = x0; cx <= x1; cx++) {
+            const key = `${cx},${cy}`;
+            let cell = _decoClearZoneCells.get(key);
+            if (!cell) {
+                cell = [];
+                _decoClearZoneCells.set(key, cell);
+            }
+            cell.push(zone);
+        }
+    }
+}
+
+/** 批量注册装饰清除区。 */
+export function registerDecoClearZones(zones) {
+    for (const z of zones || []) {
+        if (z) registerDecoClearZone(z.x, z.y, z.radius);
+    }
+}
+
+/** 场景生命周期结束时清空，禁止世界-122 建造痕迹污染下一次入场/其它地板。 */
+export function clearDecoClearZones() {
+    _decoClearZones = [];
+    _decoClearZoneCells = new Map();
 }
 
 /** 世界点是否落在任意装饰清除圆内 */
 function _inDecoClearZone(gx, gy) {
-    for (const z of _decoClearZones) {
+    const key = `${Math.floor(gx / DECO_CLEAR_CELL)},${Math.floor(gy / DECO_CLEAR_CELL)}`;
+    for (const z of _decoClearZoneCells.get(key) || []) {
         if (Math.hypot(gx - z.x, gy - z.y) <= z.radius) return true;
     }
     return false;

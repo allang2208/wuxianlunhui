@@ -13,6 +13,7 @@ import { AimHelper } from '../utils/aim-helper.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
 import { SoundManager } from '../ui/sound-manager.js';
+import { getAbilityLevel } from '../world/ability-store.js';
 
 const PROJECTILE_HIT_RADIUS = 28; // 命中半径（瞄准中心，比露娜 30 略紧）
 
@@ -36,7 +37,7 @@ export class HamsterShooterAI {
         const launchFrame = this.cfg.attackLaunchFrame ?? 10;
         const frameCount = animCfg.frameCount || 13;
         this._launchDelayMs = Math.max(0, (launchFrame - 1) / fps * 1000);
-        this._shotAnimMs = frameCount / fps * 1000;
+        this._shotAnimMs = frameCount / fps * 1000 + 60; // +60ms 余量：动画播完再切 idle，防攻击动画被打断
         // 射击状态：_shotActive=true 期间站定（站到动画播完回 idle）
         this._shotActive = false;
         this._shotTimer = 0;
@@ -83,6 +84,7 @@ export class HamsterShooterAI {
             this._shotAnimLeft -= dt;
             if (this._shotAnimLeft <= 0) {
                 this._shotActive = false;
+                m._attackSwing = false; // 挥击结束主动清标记（防动画被打断时渲染层残留）
                 m._animState = 'idle';
             }
             return;
@@ -342,6 +344,15 @@ export class HamsterShooterAI {
         if (hit) {
             if (typeof hit.takeDamage === 'function') {
                 hit.takeDamage(this._attackDamage, m, 'physical');
+            }
+            // 铁匠铺能力：毒箭（2026-08-17）——命中按概率叠加一层中毒（20% + 5%/级）
+            const poisonLv = getAbilityLevel('poison_arrow');
+            if (poisonLv > 0 && Math.random() < 0.2 + 0.05 * poisonLv
+                && typeof hit.applyPoison === 'function') {
+                hit.applyPoison(1);
+                if (EffectManager) {
+                    EffectManager.add(new FloatingTextEffect(hit.x, hit.y - 44, '☠️ 中毒', '#7a9a5a'));
+                }
             }
             if (EffectManager) {
                 EffectManager.add(new FloatingTextEffect(hit.x, hit.y - 30, `-${this._attackDamage}`, '#ffd27a'));

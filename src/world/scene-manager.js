@@ -11,7 +11,7 @@ import { EffectManager } from '../effects/effect-manager.js';
 import { SoundManager } from '../ui/sound-manager.js';
 import { getElement, getElementIfExists } from '../utils/dom-utils.js';
 import { TimerManager } from '../utils/timer-manager.js';
-import { setDungeonFloorProfile, applyDungeonFloor, applyDungeonFloorChunked } from './dungeon-floor-texture.js';
+import { setDungeonFloorProfile, applyDungeonFloor, applyDungeonFloorChunked, clearDecoClearZones } from './dungeon-floor-texture.js';
 import { getWallPrefabLibrary, loadWallPrefabs, isWallPrefabsLoaded, loadObstacleLayout, getObstacleLayout, getWallGeoOverrides, isWallGeoOverridesLoaded } from './wall-prefabs.js';
 import { CONFIG } from '../config/config.js';
 import { TargetDummy } from '../entities/target-dummy.js';
@@ -135,6 +135,7 @@ export const SceneManager = {
             if (this.currentScene === 'scene8' && DefenseSystem && DefenseSystem.active) {
                 DefenseSystem.teardown();
             }
+            if (this.currentScene === 'scene8') clearDecoClearZones();
             // 世界-122 建筑面板随场景离场关闭
             if (BuildingSystem && BuildingSystem.active) {
                 BuildingSystem.close();
@@ -958,6 +959,7 @@ export const SceneManager = {
 
     /** 世界-122（场景八）：12288×8192 全图泥地无缝纹理 + 菱形地块 + 可移动边界 */
     _loadScene8(player) {
+        clearDecoClearZones();
         // 重置相机状态，避免从其他场景带入偏移
         Camera.aimOffsetX = 0;
         Camera.aimOffsetY = 0;

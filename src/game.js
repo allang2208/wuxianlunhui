@@ -88,6 +88,8 @@ import { DefenseTrapSystem } from './world/defense-trap-system.js';
 import { HamsterHutSystem } from './world/hamster-hut-system.js';
 import { HamsterBarracksSystem } from './world/hamster-barracks-system.js';
 import { ProducerBuildingSystem } from './world/producer-building-system.js';
+import { resetUnitUpgrades } from './world/unit-upgrade-store.js';
+import { resetAbilityLevels } from './world/ability-store.js';
 
 export const Game = {
     VERSION: GAME_CONFIG.meta?.version || '0.198', // 游戏版本号（每次更新必须递增）
@@ -142,6 +144,8 @@ export const Game = {
             if (this.isRunning) {
                 return;
             }
+            resetUnitUpgrades();
+            resetAbilityLevels();
             const menuLayer = getElement('menuLayer'); const uiLayer = getElement('uiLayer'); const gameLayer = getElement('gameLayer'); if (menuLayer) menuLayer.classList.add('hidden'); if (uiLayer) uiLayer.style.display = 'block'; if (gameLayer) gameLayer.style.display = 'block';
             // 先初始化场景管理器并标记主场景，保证 Renderer.generateWorld / spawnNPC 用 4096×4096 主神空间尺寸
             SceneManager.init();

@@ -82,7 +82,8 @@ export class HamsterMinerAI {
         this._attackTimer = Math.max(0, this._attackTimer - dt);
         this._decisionTimer -= dt;
 
-        // 卸货阶段：小屋门口 idle 2s（不移动不交战），结束后关门并重新出发
+        // 卸货阶段：小屋门口 idle 2s（不移动不交战），结束后重新出发
+        // （2026-08-17 已删除小屋开关门动画，不再调 closeDoor）
         if (this._phase === 'unload') {
             this._unloadTimer -= dt;
             m._animState = 'idle';
@@ -95,7 +96,6 @@ export class HamsterMinerAI {
             m.maxSpeed = 0;
             if (this._unloadTimer <= 0) {
                 this._phase = 'work';
-                if (m._hut && typeof m._hut.closeDoor === 'function') m._hut.closeDoor();
             }
             return;
         }

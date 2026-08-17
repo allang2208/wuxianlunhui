@@ -1066,22 +1066,30 @@ const WallSystem = {
      *  2026-08-17 用户口径：建筑建造处有树木/草类障碍物 → 直接删除）。
      *  返回删除数量；删除后重建碰撞并同步 Phaser 视觉/物理。 */
     removeScatterObstaclesAt(x, y, radius) {
+        return this.removeScatterObstaclesInZones([{ x, y, radius }]);
+    },
+
+    /** 批量清除多个建造区内的散布障碍；只重建一次碰撞/Phaser 视觉。 */
+    removeScatterObstaclesInZones(zones) {
+        const validZones = (zones || []).filter((z) =>
+            z && Number.isFinite(z.x) && Number.isFinite(z.y) && z.radius > 0
+        );
         const raw = this.isoVisuals;
-        if (!raw || !raw.length || !(radius > 0)) return 0;
+        if (!raw || !raw.length || validZones.length === 0) return 0;
         const keep = [];
         let removed = 0;
         for (const p of raw) {
             if (!p._scatter) { keep.push(p); continue; }
-            let hit;
             const rect = this.getObstacleFootprintRect(p);
-            if (rect) {
-                // 圆-矩形相交：矩形内最近点到圆心距离 ≤ radius
-                const nx = Math.max(rect.x, Math.min(x, rect.x + rect.w));
-                const ny = Math.max(rect.y, Math.min(y, rect.y + rect.h));
-                hit = Math.hypot(x - nx, y - ny) <= radius;
-            } else {
-                hit = Math.hypot(p.x - x, p.y - y) <= radius;
-            }
+            const hit = validZones.some((z) => {
+                if (rect) {
+                    // 圆-矩形相交：矩形内最近点到圆心距离 ≤ radius
+                    const nx = Math.max(rect.x, Math.min(z.x, rect.x + rect.w));
+                    const ny = Math.max(rect.y, Math.min(z.y, rect.y + rect.h));
+                    return Math.hypot(z.x - nx, z.y - ny) <= z.radius;
+                }
+                return Math.hypot(p.x - z.x, p.y - z.y) <= z.radius;
+            });
             if (hit) {
                 removed++;
                 if (p._sprite && typeof p._sprite.destroy === 'function') p._sprite.destroy();
@@ -1098,6 +1106,19 @@ const WallSystem = {
         }
         return removed;
     },
+
+    /**
+     * 建筑落点可达性：散布障碍（_scatter）视为可清除，普通墙/边界/门/建筑仍阻挡。
+     * 建造成功后调用 removeScatterObstaclesAt/InZones 真正删除；失败不会破坏场景。
+     */
+    canBuildAt(x, y, radius, ignore = null) {
+        const rects = new Set(ignore && ignore.rects ? ignore.rects : []);
+        for (const w of this.walls || []) {
+            if (w && w._scatterSource) rects.add(w);
+        }
+        const segs = new Set(ignore && ignore.segs ? ignore.segs : []);
+        return this.canMoveTo(x, y, radius, { rects, segs });
+    },
     /** 单件碰撞：底边线段 → 线段模型（精确滑动）+ 每 30px 一块 36×20 阶梯矩形（寻路/小地图） */
     _addPieceCollision(p) {
         // 障碍物：碰撞 = 贴图底部矩形 footprint 墙（geo.foot 宽高 × 缩放，锚底边中心）
@@ -1110,6 +1131,7 @@ const WallSystem = {
             this.walls.push({
                 ...rect,
                 height: 60, noVisual: true, _iso: true, _obstacle: true,
+                _scatterSource: p._scatter ? p : null,
             });
             return;
         }
