@@ -1,4 +1,22 @@
 # 变更日志
+### 对话：新增玩家友方单位·仓鼠民兵（2026-08-17）
+- 玩家友方近战单位：`data/hamster-militia-config.json` + `hamster-militia.js` +
+  `hamster-militia-ai.js`。素材四张表（idle 1 / running 12 / attacking 15 / dying 14，
+  4096×2048 8列4行）；running 质心漂移 17.5px → hamster-walk-align --feet-y 350 归一化
+  （cx 跨度 0.9px）。
+- 数值（用户口径）：生命 125（baseMaxHp 覆盖）、六维 力量8/敏捷10/智力3/体质6/精神3/
+  幸运7（statFormula:'enemy' 怪物公式派生 atk9/def11/matk3/mdef4/crit9/critRes6）、
+  移速 150、攻击 20 物理/2s、**动画第 8 帧判定伤害**（15 帧 @12fps 单次播放，
+  延迟 583ms）、不能攻击矿点；攻击音效与战士/盾卫共用。
+- 生成双链路：仓鼠兵营面板新增「仓鼠民兵」按钮 + 通用产兵建筑草屋 unitTypes 增配；
+  BootScene 加载/动画注册、GameScene 单次播放渲染分支、移动朝向 vx、受击白闪、
+  兵营/草屋升级同步全部接线。
+- 修复：producer-building-system `applyUpgradesToUnits` 误从 ai 块读 baseMaxHp
+  （恒 300），改读配置根——民兵 125 等 HP 覆盖生效。
+- 验证：test-hamster-militia 44 项、test-hamster-guard 61 项（含民兵派生）、
+  eslint 0 error、vite build、npm test 全绿；CDP 实机探针
+  tools/cdp-hamster-militia.mjs 已备（待用户实机跑）。版本 0.385。
+
 ### 对话：仓鼠单位生命值调整（2026-08-16 用户口径）
 - 战士 300 → **225**、盾卫 350 → **300**、矿工 200（con 公式）→ **100**（新增
   baseMaxHp:100 覆盖）；射手保持 150 不变。
@@ -101,6 +119,15 @@
   - 验证：六档 frame 0 在新 crop 内可见 174..466（贴柱）；node --check 通过。
   - 注：栅栏叶底部沿 face 线贴地（实测外杆底 548 vs face 550），叶下方地面带属正常透视，
     非贴图缺口；若实机仍有观感问题，以实机截图为准继续定位。
+- **四轮图层修复（用户关键线索：建筑预览（整图）连通、摆出（三层精灵）有缝 → 图层问题）**：
+  - 根因：`_initGateSprite` 旧深度 左柱4215/栅栏4171/右柱4127——右柱在栅栏之下，栅栏层
+    barCrop 硬边与右柱层边界对不齐时露地板；预览是整图单精灵无此分层，故"预览连通、
+    摆出有缝"。
+  - 修复：`depthL/depthR = max(底边线+12, depthBars+1)` → 4215/4172，左右柱一律盖在
+    栅栏之上，柱体贴图盖住栅栏裁剪边，观感与整图预览一致；开门叶片从柱后滑入（更自然）。
+  - 兼容：syncGateSeamDepths 的"门右柱盖墙左端"（4172 > 墙4140）与"墙右端盖门左柱"
+    （墙4315 > 4215）均保持；门对门接缝偏置按新深度自动补偿。
+  - 验证：node --check 通过；深度数值核验双柱 > 栅栏；实机 Ctrl+F5 复核。
 ### 对话：新增玩家友方单位·仓鼠盾卫（2026-08-16）
 - **需求**：仓鼠盾卫（素材 E:\无尽轮回\游戏\素材库\人物\仓鼠盾卫）——idle 待机 /
   running 17 帧移动 / attacking 12 帧攻击 / dying 15 帧死亡；近战、攻击动画第 10 帧

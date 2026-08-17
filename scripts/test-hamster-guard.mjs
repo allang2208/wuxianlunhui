@@ -17,6 +17,7 @@ const { default: guardCfg } = await import('../data/hamster-guard-config.json');
 const { default: minerCfg } = await import('../data/hamster-miner-config.json');
 const { default: warriorCfg } = await import('../data/hamster-warrior-config.json');
 const { default: shooterCfg } = await import('../data/hamster-shooter-config.json');
+const { default: militiaCfg } = await import('../data/hamster-militia-config.json');
 const { Companion } = await import('../src/entities/companion.js');
 
 let pass = 0, fail = 0;
@@ -77,12 +78,14 @@ const enemyExpected = {
     hamster_warrior: { atk: 16, def: 28, matk: 3, mdef: 4, crit: 7, critRes: 15 },
     hamster_shooter: { atk: 16, def: 18, matk: 3, mdef: 4, crit: 12, critRes: 10 },
     hamster_guard: { atk: 12, def: 41, matk: 3, mdef: 4, crit: 5, critRes: 25 },
+    hamster_militia: { atk: 9, def: 11, matk: 3, mdef: 4, crit: 9, critRes: 6 },
 };
 for (const [id, cfg, exp] of [
     [minerCfg.id, minerCfg, enemyExpected.hamster_miner],
     [warriorCfg.id, warriorCfg, enemyExpected.hamster_warrior],
     [shooterCfg.id, shooterCfg, enemyExpected.hamster_shooter],
     [guardCfg.id, guardCfg, enemyExpected.hamster_guard],
+    [militiaCfg.id, militiaCfg, enemyExpected.hamster_militia],
 ]) {
     const u = new Companion(cfg);
     check(`${cfg.name} statFormula=enemy`, cfg.statFormula === 'enemy');
@@ -147,7 +150,8 @@ check('GameScene 渲染友方单位（friendlyUnits）', /_game\.friendlyUnits/.
 check('GameScene 盾卫攻击单次播放（_isHamsterGuard 并入射手分支）',
     /member\._isHamsterGuard/.test(gsSrc) && /_attackSwing/.test(gsSrc));
 check('GameScene 盾卫移动朝向 vx（不倒退走路）',
-    /member\._isHamsterGuard\) && moving/.test(gsSrc) && /faceRight = member\.vx > 0/.test(gsSrc));
+    /member\._isHamsterGuard/.test(gsSrc) && /member\._isHamsterMilitia\) && moving/.test(gsSrc)
+    && /faceRight = member\.vx > 0/.test(gsSrc));
 check('GameScene 盾卫受击白闪', /member\._isHamsterGuard/.test(gsSrc)
     && /member\.hitFlash > 0/.test(gsSrc));
 
@@ -159,7 +163,8 @@ const barSrc = fs.readFileSync(path.join(ROOT, 'src/world/hamster-barracks-syste
 check('兵营注册盾卫单位（unit.guard + 导入）',
     /guard: \{ key: 'guard', name: '仓鼠盾卫'/.test(barSrc) && /new HamsterGuard/.test(barSrc));
 check('兵营升级同步按 _isHamsterGuard 映射基准配置',
-    /unit\._isHamsterGuard \? 'guard' : 'shooter'/.test(barSrc));
+    /unit\._isHamsterGuard \? 'guard'/.test(barSrc)
+    && /unit\._isHamsterMilitia \? 'militia' : 'shooter'/.test(barSrc));
 check('兵营面板生成单位类型按钮含盾卫', /\$\{btn\('guard'\)\}/.test(barSrc));
 
 const psSrc = fs.readFileSync(path.join(ROOT, 'src/systems/perception-system.js'), 'utf-8');

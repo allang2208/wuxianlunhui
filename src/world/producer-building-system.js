@@ -11,6 +11,7 @@ import { DamageableEntity } from '../entities/damageable-entity.js';
 import { HamsterWarrior } from '../entities/hamster-warrior.js';
 import { HamsterShooter } from '../entities/hamster-shooter.js';
 import { HamsterGuard } from '../entities/hamster-guard.js';
+import { HamsterMilitia } from '../entities/hamster-militia.js';
 import { GoldManager } from '../systems/gold-manager.js';
 import { EnergyManager } from '../systems/energy-manager.js';
 import { EffectManager } from '../effects/effect-manager.js';
@@ -25,6 +26,7 @@ import producerBuildings from '../../data/producer-buildings.json';
 import warriorCfg from '../../data/hamster-warrior-config.json';
 import shooterCfg from '../../data/hamster-shooter-config.json';
 import guardCfg from '../../data/hamster-guard-config.json';
+import militiaCfg from '../../data/hamster-militia-config.json';
 
 /** 产兵建筑配置表（唯一真源，building-system.js 也据此生成可建条目） */
 export const PRODUCER_BUILDINGS = producerBuildings;
@@ -34,6 +36,7 @@ const PRODUCER_UNIT_CFG = {
     warrior: warriorCfg,
     shooter: shooterCfg,
     guard: guardCfg,
+    militia: militiaCfg,
 };
 
 /** 单位 key → 实体类 */
@@ -41,12 +44,14 @@ const PRODUCER_UNIT_CLASS = {
     warrior: HamsterWarrior,
     shooter: HamsterShooter,
     guard: HamsterGuard,
+    militia: HamsterMilitia,
 };
 
 /** 单位 key → 实体识别位（applyBarracksUpgrades 用，与兵营同约定） */
 function unitKindOf(unit) {
     if (unit._isHamsterWarrior) return 'warrior';
     if (unit._isHamsterGuard) return 'guard';
+    if (unit._isHamsterMilitia) return 'militia';
     return 'shooter';
 }
 
@@ -209,11 +214,14 @@ export class ProducerBuilding extends DamageableEntity {
         for (const unit of this.units) {
             if (!unit || !unit.active || unit._dying) continue;
             const unitKey = unitKindOf(unit);
-            const base = (PRODUCER_UNIT_CFG[unitKey] || {}).ai || {};
+            // 2026-08-17 修正：此前误从 ai 块读 baseMaxHp（恒 300），
+            // 导致产兵建筑生成的单位 HP 一律被 300 覆盖（民兵 125 等不生效）
+            const base = PRODUCER_UNIT_CFG[unitKey] || {};
+            const baseAi = base.ai || {};
             const u = {
-                attackInterval: Math.max(300, Math.round((base.attackInterval ?? 2000) * mults.attackIntervalMult)),
-                attackDamage: Math.max(1, Math.round((base.attackDamage ?? 50) * mults.attackDamageMult)),
-                walkSpeed: Math.max(20, Math.round((base.walkSpeed ?? 120) * mults.moveSpeedMult)),
+                attackInterval: Math.max(300, Math.round((baseAi.attackInterval ?? 2000) * mults.attackIntervalMult)),
+                attackDamage: Math.max(1, Math.round((baseAi.attackDamage ?? 50) * mults.attackDamageMult)),
+                walkSpeed: Math.max(20, Math.round((baseAi.walkSpeed ?? 120) * mults.moveSpeedMult)),
                 baseMaxHp: Math.max(1, Math.round((base.baseMaxHp ?? 300) * mults.hpMult)),
             };
             if (typeof unit.applyBarracksUpgrades === 'function') {

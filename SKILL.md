@@ -112,7 +112,7 @@
 - 怪物 HUD（名字/血条）定位规则
 - ⭐ 怪物渲染图层与构造铁律（2026-08-15：阴影时序 / 贴图键≠动画键 / 构造必并配置）
 - NPC 添加标准工作流（2026-07-22 新增，新 NPC 一律按此开展）
-- 玩家友方单位添加工作流（2026-08-15 仓鼠矿工首航：世界-122 自动采矿）
+- 玩家友方单位添加工作流（2026-08-15 仓鼠矿工首航：世界-122 自动采矿；2026-08-17 仓鼠民兵战斗型第四例）
 
 **10. UI、面板与组队系统**
 - 面板生命周期框架（2026-07-21 新增，新面板优先复用）
@@ -5012,6 +5012,11 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
     **三轮微修**：叶拉伸加深 2px（左叶→[172,320)、右叶→[320,468)）且 `barCrop` 右缘
     466→467（w 293）——裁剪窗右边界不含端点，466 是贴柱像素，取 466 会留 1px 缝；
     可见边缘现为 174..466 与柱内缘齐平。
+  - **四轮图层修复（用户线索：建筑预览整图连通、摆出三层精灵有缝）**：`_initGateSprite`
+    旧深度 左柱4215 / 栅栏4171 / 右柱4127——右柱在栅栏之下，栅栏 barCrop 硬边与柱层
+    边界对不齐就露地板。改为 `depthL/depthR = max(底边线+12, depthBars+1)`（4215/4172），
+    左右柱一律盖在栅栏之上，用柱体贴图盖住栅栏裁剪边，观感与整图预览一致；开门时叶片
+    从柱后滑入（更自然）。syncGateSeamDepths 的"右柱盖墙左端/左柱压墙下"仍生效。
     ⚠ 图层仍按 `syncGateSeamDepths` 的"左在右前"：B 端门右柱抬到墙前（盖墙左端）、
     A 端门左柱压到墙后（墙右端盖门左柱）——接缝观感以实机为准。
   - **B 面板拼接**：`GATE_SNAP_OVERLAP` 51 → 40（与掩体墙端帽同口径）。
@@ -6272,6 +6277,37 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
 - **验证**：CDP 实机探针——贴图加载、默认战士生成（dmg 50/hp 300）、切射手
   （dmg 60/hp 150）、升 damage 模块后现有战士伤害 50→56 实时生效、
   面板标题/按钮/状态正常、单位死亡后 update 立即补员；eslint 0 error + vite build。
+
+#### 11. 仓鼠民兵（2026-08-17 战斗型第四例，兵营/草屋单位）
+
+> 战斗型第四例：近战 + **攻击动画第 8 帧判定伤害**（区别于战士"间隔出伤"、射手"第 10 帧
+> 出膛"、盾卫"第 10 帧判定"）。素材 4096×2048（8 列 × 4 行 512² 格）：idle 1 /
+> running 12 / attacking 15 / dying 14 帧（逐帧 bbox 目检 + GLM-4.6V 验收：同一角色、
+> 草叉从左往右挥、脚底 ~350 统一）。running 质心漂移 17.5px →
+> `hamster-walk-align.py --feet-y 350` 归一化（cx 跨度 0.9px）。
+
+- **数据（`data/hamster-militia-config.json`）**：`baseMaxHp: 125`（con=6 公式
+  100+60=160 → 125，2026-08-17 用户口径）；`statFormula:'enemy'`（六维派生走怪物公式：
+  力量8/敏捷10/智力3/体质6/精神3/幸运7 → atk 9 / def 11 / matk 3 / mdef 4 / crit 9 /
+  critRes 6）；移速 150、攻击 20/2s、attackRange 55、engageRange 900；
+  **attackDamageFrame 8**（攻击动画 15 帧 @12fps 单次播放，出伤延迟
+  (8-1)/12 = 583ms）；音效与战士/盾卫共用 `hamster_melee_attack.mp3`。
+- **实体/AI**：`hamster-militia.js` + `hamster-militia-ai.js` 完全复用盾卫模式
+  （`_swingActive` 站定挥击状态机、`MovementSystem` 移动、卡死看门狗、无敌跟随玩家、
+  RTS 命令、`_isEnergyNode` 矿点不攻击）；dying 14 帧 @12fps = 1167ms。
+- **渲染**：GameScene `_isHamsterMilitia` 并入射手/盾卫"单次播放 + 定格末帧"分支
+  （`_attackSwing` 触发），移动朝向 vx、受击白闪同款；spriteOffsetY -42 /
+  footOffsetY 42（脚底 ~350/512，displaySize 226）。
+- **生成（双链路）**：仓鼠兵营（`BARRACKS_CONFIG.unit.militia` + 面板第四按钮）
+  与通用产兵建筑草屋（`producer-buildings.json` unitTypes + PRODUCER_UNIT_CFG/CLASS/
+  unitKindOf）均注册；升级同步走 `applyBarracksUpgrades`（复用战士/盾卫模块口径）。
+  **顺手修产兵建筑既有 bug**：`applyUpgradesToUnits` 误从 `ai` 块读 `baseMaxHp`
+  （恒 300）→ 改为从单位配置根读，民兵 125 等 HP 覆盖真正生效。
+- **验证**：`scripts/test-hamster-militia.mjs`（44 项：数据契约/怪物公式派生/
+  AI 接线/兵营+草屋注册）+ test-hamster-guard 共享段补民兵派生校验（61 项全绿）；
+  `tools/cdp-hamster-militia.mjs` 实机探针（生成/125HP/六维/移速 150/第 8 帧出伤
+  583ms 窗口/单次播放无 _start/20 物理×2s/矿点不攻击/跟随到位 idle/死亡移除）；
+  eslint 0 error + vite build + npm test 全绿。
 
 ---
 
