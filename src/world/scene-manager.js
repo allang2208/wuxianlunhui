@@ -8,6 +8,8 @@ import { BlackWolf } from '../entities/enemy-types.js';
 import { ExpeditionSystem } from '../ui/expedition-system.js';
 import { GAME_CONFIG } from '../config/game-config.js';
 import { EffectManager } from '../effects/effect-manager.js';
+import { FloatingTextEffect } from '../effects/floating-text.js';
+import { GoldManager } from '../systems/gold-manager.js';
 import { SoundManager } from '../ui/sound-manager.js';
 import { getElement, getElementIfExists } from '../utils/dom-utils.js';
 import { TimerManager } from '../utils/timer-manager.js';
@@ -18,15 +20,23 @@ import { TargetDummy } from '../entities/target-dummy.js';
 import { RiftSystem } from '../quest/rift-system.js';
 import { QuickBar } from '../ui/quick-bar.js';
 import { SystemUI } from '../ui/system-ui.js';
-import { DefenseSystem, DEFENSE_CONFIG } from './defense-system.js';
+import {
+    DefenseSystem, DEFENSE_CONFIG, DefenseTower, DefenseCover, BuildableGate, FiringPlatform,
+} from './defense-system.js';
 import { EnergyNodeSystem } from './energy-node-system.js';
 import { ENERGY_CONFIG } from '../config/energy-config.js';
 import { HamsterMinerSystem } from './hamster-miner-system.js';
-import { HamsterHutSystem } from './hamster-hut-system.js';
-import { HamsterBarracksSystem } from './hamster-barracks-system.js';
-import { ProducerBuildingSystem } from './producer-building-system.js';
+import { HamsterHutSystem, HamsterHut } from './hamster-hut-system.js';
+import { HamsterBarracksSystem, HamsterBarracks } from './hamster-barracks-system.js';
+import { ProducerBuildingSystem, ProducerBuilding, getProducerConfig } from './producer-building-system.js';
 import { BuildingSystem } from './building-system.js';
 import { DefenseTrapSystem } from './defense-trap-system.js';
+import {
+    captureAndStoreWorld122, applyWorld122Snapshot, getWorld122Snapshot,
+    configureWorld122SnapshotRuntime,
+} from './world122-snapshot.js';
+import { EnergyManager } from '../systems/energy-manager.js';
+import { ResearchSystem } from './research-system.js';
 
 export const SceneManager = {
     currentScene: null,
@@ -38,6 +48,27 @@ export const SceneManager = {
     _mainHubInvincible: true, // 主神空间是否开启无敌（可通过 UI 切换）
 
     init() {
+        // 快照模块保持无启动期静态依赖；在 Game 已完成定义后才注入恢复所需的实体构造器。
+        configureWorld122SnapshotRuntime({
+            Game,
+            DefenseSystem,
+            DefenseTower,
+            DefenseCover,
+            BuildableGate,
+            FiringPlatform,
+            DEFENSE_CONFIG,
+            HamsterHutSystem,
+            HamsterHut,
+            HamsterBarracksSystem,
+            HamsterBarracks,
+            ProducerBuildingSystem,
+            ProducerBuilding,
+            getProducerConfig,
+            EnergyNodeSystem,
+            EnergyManager,
+            ResearchSystem,
+            GoldManager,
+        });
         const cfg = GAME_CONFIG.scenes || {};
         this.scenes = {
             main: cfg.main || { name: '主神空间', type: 'main', label: '场景一', width: 7650, height: 3800, background: '#2a3520', origin: { x: 3825, y: 1886 } },
@@ -46,7 +77,9 @@ export const SceneManager = {
             scene4: cfg.scene4 || { name: '古堡', type: 'instance', label: '场景四', width: 9000, height: 9000, background: '#000000', origin: { x: 4500, y: 4500 } },
             scene5: cfg.scene5 || { name: 'AI测试场', type: 'instance', label: '场景五', width: 6120, height: 3040, background: '#3a3a3a', origin: { x: 3060, y: 1520 } },
             scene7: cfg.scene7 || { name: '僵尸地牢高级', type: 'dungeon', label: '场景七', width: 1024, height: 1024, background: '#000000', origin: { x: 512, y: 512 }, dungeonType: 'zombie' },
-            scene8: cfg.scene8 || { name: '世界-122', type: 'instance', label: '场景八', width: 12288, height: 8192, background: '#0d1b0a', origin: { x: 6144, y: 4096 } }
+            scene8: cfg.scene8 || { name: '世界-122', type: 'instance', label: '场景八', width: 12288, height: 8192, background: '#0d1b0a', origin: { x: 6144, y: 4096 } },
+            scene9: cfg.scene9 || { name: '世界-123·雪原', type: 'instance', label: '场景九', width: 12288, height: 8192, background: '#101a2b', origin: { x: 6144, y: 4096 } },
+            scene10: cfg.scene10 || { name: '世界-124·林地', type: 'instance', label: '场景十', width: 12288, height: 8192, background: '#102015', origin: { x: 6144, y: 4096 } }
         };
     },
 
@@ -132,10 +165,12 @@ export const SceneManager = {
                 if (phaserScene.clearAllEntitySprites) phaserScene.clearAllEntitySprites();
             }
             // 世界-122 防守地图：离场统一拆除（关面板/停波次；实体由下方 clear 统一清理）
+            // 世界-122 快照：离场先捕获再拆除（M0：重进恢复建筑/波次/矿点，不归零）
             if (this.currentScene === 'scene8' && DefenseSystem && DefenseSystem.active) {
+                captureAndStoreWorld122();
                 DefenseSystem.teardown();
             }
-            if (this.currentScene === 'scene8') clearDecoClearZones();
+            if (this.currentScene === 'scene8' || this.currentScene === 'scene9' || this.currentScene === 'scene10') clearDecoClearZones();
             // 世界-122 建筑面板随场景离场关闭
             if (BuildingSystem && BuildingSystem.active) {
                 BuildingSystem.close();
@@ -219,6 +254,10 @@ export const SceneManager = {
                 this._loadScene7(player, 'zombie');
             } else if (sceneId === 'scene8') {
                 this._loadScene8(player);
+            } else if (sceneId === 'scene9') {
+                this._loadScene9(player);
+            } else if (sceneId === 'scene10') {
+                this._loadScene10(player);
             } else if (sceneId === 'main') {
                 this._loadMainScene(player);
             }
@@ -501,19 +540,19 @@ export const SceneManager = {
         // 首启时预制库/布局/覆盖层可能未加载完：到位后统一重建一次（仅主神空间）
         if (!isWallPrefabsLoaded()) {
             loadWallPrefabs().then(() => {
-                if (this.currentScene !== 'main') return;
+                if (this.currentScene !== 'main' || this.isLoading) return;
                 buildHubIso();
             });
         }
         if (getObstacleLayout().length === 0) {
             loadObstacleLayout().then(() => {
-                if (this.currentScene !== 'main') return;
+                if (this.currentScene !== 'main' || this.isLoading) return;
                 buildHubIso();
             });
         }
         if (!isWallGeoOverridesLoaded()) {
             WallSystem.loadGeoOverrides().then(() => {
-                if (this.currentScene !== 'main') return;
+                if (this.currentScene !== 'main' || this.isLoading) return;
                 buildHubIso();
             });
         }
@@ -1069,6 +1108,35 @@ export const SceneManager = {
         // 世界-122 仓鼠矿工：玩家友方单位，自动找最近能源矿点采矿
         HamsterMinerSystem.setup(player);
 
+        // 世界-122 场景快照恢复（M0）：有快照则重建玩家建筑/波次/矿点，不归零；
+        // M1：恢复前按离场时长后台结算（产兵/采矿/读条/波次战报），回场播报战报
+        if (getWorld122Snapshot()) {
+            const result = applyWorld122Snapshot();
+            this._announceWorld122Report(player, result);
+        }
+
+    },
+
+    /** 世界-122 回场战报（M1 后台结算结果浮字，2026-08-18） */
+    _announceWorld122Report(player, result) {
+        if (!result || !result.report || !player) return;
+        const r = result.report;
+        const lines = [];
+        if (result.defeated) {
+            lines.push(['世界-122 在你离开期间失守了！基地重建，防守重新开局', '#ff5555']);
+        } else {
+            if (r.wavesCleared.length > 0) lines.push([`离线战报：击退第 ${r.wavesCleared.join('、')} 波`, '#8ad0ff']);
+            if (r.victory) lines.push(['防守胜利！奖励已发放', '#ffd700']);
+            if (r.energyMined > 0) lines.push([`矿工离线采集 +${Math.round(r.energyMined)} 能源`, '#7fd4ff']);
+            if (r.passiveEnergy > 0) lines.push([`能源回收矩阵 +${r.passiveEnergy} 能源`, '#7fd4ff']);
+            if (r.unitsProduced > 0) lines.push([`新兵报到 +${r.unitsProduced}`, '#8ad0ff']);
+            if (r.abilitiesCompleted.length > 0) lines.push([`研究/能力完成 ${r.abilitiesCompleted.length} 项`, '#c9a0ff']);
+            if (r.structuresLost > 0) lines.push([`离线战斗损失建筑 ${r.structuresLost} 座`, '#ff8855']);
+            if (r.baseDamage > 0) lines.push([`基地离线受损 -${Math.round(r.baseDamage)} 耐久`, '#ff8855']);
+        }
+        lines.forEach(([text, color], i) => {
+            EffectManager.add(new FloatingTextEffect(player.x, player.y - 70 - i * 24, text, color));
+        });
     },
 
     /**
@@ -1189,6 +1257,201 @@ export const SceneManager = {
                 _boundary: true,
             });
         }
+    },
+
+    /** 世界-123（场景九）：复用世界-122的尺寸、菱形边界与地面视角，只承载雪地地块。 */
+    _loadScene9(player) {
+        clearDecoClearZones();
+        Camera.aimOffsetX = 0;
+        Camera.aimOffsetY = 0;
+        Camera.shakeX = 0;
+        Camera.shakeY = 0;
+        Camera.shakeIntensity = 0;
+        Camera.lockY = false;
+        Camera.yLockedValue = 0;
+
+        const scene = this.scenes.scene9;
+        const w = scene.width;
+        const h = scene.height;
+        CONFIG.WORLD_WIDTH = w;
+        CONFIG.WORLD_HEIGHT = h;
+
+        // 连续无缝主雪层 + 两层确定性软边补丁。渲染器统一按 0.5774 做30°等距纵向压缩。
+        const diamond = this._scene8Diamond(scene);
+        setDungeonFloorProfile({
+            tiles: ['floor_snow_fresh_seamless'],
+            continuous: true,
+            glow: false,
+            backgroundColor: scene.background || '#101a2b',
+            surfacePatches: [
+                { texture: 'floor_snow_packed_seamless', perChunk: 4, size: 920, minDist: 1150 },
+                { texture: 'floor_snow_wind_seamless', perChunk: 5, size: 620, minDist: 820 },
+            ],
+            // 雪地草/蕨已缩至荒漠点缀物的 50%：128² 成品、55px 显示；不参与碰撞。
+            deco: {
+                textures: ['deco_snow_1', 'deco_snow_2', 'deco_snow_3', 'deco_snow_4', 'deco_snow_5'],
+                // 每次进入雪原生成新 seed；同一轮分块重烘焙仍稳定，避免相机移动时草簇跳变。
+                seed: (Math.random() * 0x100000000) >>> 0,
+                perChunk: 14,
+                size: 55,
+                minDist: 120,
+            },
+        });
+        applyDungeonFloorChunked(w, h, 2048, diamond);
+
+        WallSystem.init(w, h);
+        WallSystem.walls = [
+            { x: 0, y: 0, w, h: 20, noVisual: true },
+            { x: 0, y: h - 20, w, h: 20, noVisual: true },
+            { x: 0, y: 0, w: 20, h, noVisual: true },
+            { x: w - 20, y: 0, w: 20, h, noVisual: true },
+        ];
+        this._registerScene8Boundary(diamond);
+        if (WallSystem._syncWallsToPhaser) WallSystem._syncWallsToPhaser();
+
+        if (player) {
+            player.x = diamond ? diamond.cx : w / 2;
+            player.y = diamond ? diamond.cy : h / 2;
+            Game.entities.set('player', player);
+            Camera.follow(player);
+            QuickBar.refreshSpecialAttack(player);
+        }
+        this._scatterSnowPinesScene9(player, diamond);
+        if (diamond) {
+            const portal = new Portal(diamond.cx, diamond.cy + diamond.ry - 160, 'main', '返回主神空间');
+            Game.entities.set('portal_return', portal);
+        }
+    },
+
+    /** 世界-123高瘦雪松散布：五个姿态等概率取样，只落在雪原菱形内。 */
+    _scatterSnowPinesScene9(player, diamond) {
+        const scene = this.scenes.scene9;
+        const cfg = scene.snowPineScatter || {};
+        if (cfg.enabled === false || !diamond) return;
+        const count = cfg.count ?? 38;
+        const minDist = cfg.minDist ?? 360;
+        const jitter = cfg.scaleJitter ?? 0.1;
+        const playerExclusion = cfg.playerExclusion ?? 440;
+        const portalExclusion = cfg.portalExclusion ?? 340;
+        const variants = ['01', '02', '03', '04', '05'];
+        const portalY = diamond.cy + diamond.ry - 160;
+        const pieces = [];
+        let guard = 0;
+        while (pieces.length < count && guard++ < count * 40) {
+            const x = 220 + Math.random() * (scene.width - 440);
+            const y = 220 + Math.random() * (scene.height - 440);
+            if (Math.abs(x - diamond.cx) / diamond.rx + Math.abs(y - diamond.cy) / diamond.ry > 0.96) continue;
+            const tex = `obstacle_snow_pine_${variants[(Math.random() * variants.length) | 0]}`;
+            const geo = WallSystem._geoForTex?.(tex);
+            if (!geo) continue;
+            const scale = (geo.obstacleH / geo.h) * (1 - jitter + Math.random() * jitter * 2);
+            const footprint = WallSystem.getObstacleFootprintRect?.({ tex, x, y, scaleX: scale, scaleY: scale });
+            const fx = footprint ? footprint.x + footprint.w / 2 : x;
+            const fy = footprint ? footprint.y + footprint.h / 2 : y;
+            if (player && Math.hypot(fx - player.x, fy - player.y) < playerExclusion) continue;
+            if (Math.hypot(fx - diamond.cx, fy - portalY) < portalExclusion) continue;
+            if (pieces.some((piece) => Math.hypot(piece.x - x, piece.y - y) < minDist)) continue;
+            const radius = Math.max(18, (geo.foot?.w ?? 80) * scale / 2);
+            if (!WallSystem.canMoveTo?.(fx, fy, radius)) continue;
+            pieces.push({ tex, x, y, scaleX: scale, scaleY: scale, flipX: Math.random() < 0.5, _scatter: true });
+        }
+        for (const piece of pieces) WallSystem.isoVisuals.push(piece);
+        if (pieces.length) WallSystem.rebuildIsoCollision?.();
+        WallSystem._syncWallsToPhaser?.();
+        console.log(`[scene9] 高瘦雪松散布 ${pieces.length} 棵（候选拒绝 ${guard - pieces.length} 次）`);
+    },
+
+    /** 世界-124（场景十）：草地无缝地板 + 林地树木的纯探索场。 */
+    _loadScene10(player) {
+        clearDecoClearZones();
+        Camera.aimOffsetX = 0;
+        Camera.aimOffsetY = 0;
+        Camera.shakeX = 0;
+        Camera.shakeY = 0;
+        Camera.shakeIntensity = 0;
+        Camera.lockY = false;
+        Camera.yLockedValue = 0;
+
+        const scene = this.scenes.scene10;
+        const w = scene.width;
+        const h = scene.height;
+        CONFIG.WORLD_WIDTH = w;
+        CONFIG.WORLD_HEIGHT = h;
+        const diamond = this._scene8Diamond(scene);
+        setDungeonFloorProfile({
+            tiles: ['floor_grass_forest_seamless'],
+            continuous: true,
+            glow: false,
+            backgroundColor: scene.background || '#102015',
+            deco: {
+                textures: ['deco_grass_1', 'deco_grass_2'],
+                seed: (Math.random() * 0x100000000) >>> 0,
+                perChunk: 24,
+                size: 110,
+                minDist: 130,
+            },
+        });
+        applyDungeonFloorChunked(w, h, 2048, diamond);
+
+        WallSystem.init(w, h);
+        WallSystem.walls = [
+            { x: 0, y: 0, w, h: 20, noVisual: true },
+            { x: 0, y: h - 20, w, h: 20, noVisual: true },
+            { x: 0, y: 0, w: 20, h, noVisual: true },
+            { x: w - 20, y: 0, w: 20, h, noVisual: true },
+        ];
+        this._registerScene8Boundary(diamond);
+        if (WallSystem._syncWallsToPhaser) WallSystem._syncWallsToPhaser();
+
+        if (player) {
+            player.x = diamond ? diamond.cx : w / 2;
+            player.y = diamond ? diamond.cy : h / 2;
+            Game.entities.set('player', player);
+            Camera.follow(player);
+            QuickBar.refreshSpecialAttack(player);
+        }
+        this._scatterForestPinesScene10(player, diamond);
+        if (diamond) {
+            Game.entities.set('portal_return', new Portal(diamond.cx, diamond.cy + diamond.ry - 160, 'main', '返回主神空间'));
+        }
+    },
+
+    /** 世界-124林地树木散布：五种正式针叶树随机取样，避开出生点与返回门。 */
+    _scatterForestPinesScene10(player, diamond) {
+        const scene = this.scenes.scene10;
+        const cfg = scene.forestTreeScatter || {};
+        if (cfg.enabled === false || !diamond) return;
+        const count = cfg.count ?? 55;
+        const minDist = cfg.minDist ?? 390;
+        const jitter = cfg.scaleJitter ?? 0.1;
+        const playerExclusion = cfg.playerExclusion ?? 440;
+        const portalExclusion = cfg.portalExclusion ?? 340;
+        const variants = ['01', '02', '03', '04', '05'];
+        const portalY = diamond.cy + diamond.ry - 160;
+        const pieces = [];
+        let guard = 0;
+        while (pieces.length < count && guard++ < count * 40) {
+            const x = 220 + Math.random() * (scene.width - 440);
+            const y = 220 + Math.random() * (scene.height - 440);
+            if (Math.abs(x - diamond.cx) / diamond.rx + Math.abs(y - diamond.cy) / diamond.ry > 0.96) continue;
+            const tex = `obstacle_forest_pine_${variants[(Math.random() * variants.length) | 0]}`;
+            const geo = WallSystem._geoForTex?.(tex);
+            if (!geo) continue;
+            const scale = (geo.obstacleH / geo.h) * (1 - jitter + Math.random() * jitter * 2);
+            const footprint = WallSystem.getObstacleFootprintRect?.({ tex, x, y, scaleX: scale, scaleY: scale });
+            const fx = footprint ? footprint.x + footprint.w / 2 : x;
+            const fy = footprint ? footprint.y + footprint.h / 2 : y;
+            if (player && Math.hypot(fx - player.x, fy - player.y) < playerExclusion) continue;
+            if (Math.hypot(fx - diamond.cx, fy - portalY) < portalExclusion) continue;
+            if (pieces.some((piece) => Math.hypot(piece.x - x, piece.y - y) < minDist)) continue;
+            const radius = Math.max(18, (geo.foot?.w ?? 80) * scale / 2);
+            if (!WallSystem.canMoveTo?.(fx, fy, radius)) continue;
+            pieces.push({ tex, x, y, scaleX: scale, scaleY: scale, flipX: Math.random() < 0.5, _scatter: true });
+        }
+        for (const piece of pieces) WallSystem.isoVisuals.push(piece);
+        if (pieces.length) WallSystem.rebuildIsoCollision?.();
+        WallSystem._syncWallsToPhaser?.();
+        console.log(`[scene10] 林地针叶树散布 ${pieces.length} 棵（候选拒绝 ${guard - pieces.length} 次）`);
     },
 
     _loadScene7(player, _dungeonType = 'zombie') {

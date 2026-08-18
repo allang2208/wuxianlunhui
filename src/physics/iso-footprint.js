@@ -32,9 +32,19 @@ export function isoFootprintHalfExtents(entity) {
 }
 
 export function isoFootprintCenter(entity) {
+    // 逻辑坐标 + colliderOffset 才是 footprint 真源。建筑构造时通常先由 super()
+    // 建出旧圆形 Collider，再切换为 iso_rect，最后才 rebuildCollider；若优先读旧
+    // collider，构造期间的 footprint/深度会按过期中心计算（2×2 错 64px、4×4 错 128px）。
+    const hasLogicalPosition = Number.isFinite(entity?.x) && Number.isFinite(entity?.y);
+    if (hasLogicalPosition) {
+        return {
+            x: entity.x + (Number(entity.colliderOffsetX) || 0),
+            y: entity.y + (Number(entity.colliderOffsetY) || 0),
+        };
+    }
     return {
-        x: entity?.collider ? entity.collider.x : (entity?.x || 0) + (entity?.colliderOffsetX || 0),
-        y: entity?.collider ? entity.collider.y : (entity?.y || 0) + (entity?.colliderOffsetY || 0),
+        x: entity?.collider?.x || 0,
+        y: entity?.collider?.y || 0,
     };
 }
 

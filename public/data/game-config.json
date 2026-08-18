@@ -160,6 +160,52 @@
           "spawnPoint": 180
         }
       }
+    },
+    "scene9": {
+      "name": "世界-123·雪原",
+      "type": "instance",
+      "label": "场景九",
+      "width": 12288,
+      "height": 8192,
+      "background": "#101a2b",
+      "diamondFloor": {
+        "enabled": true
+      },
+      "snowPineScatter": {
+        "enabled": true,
+        "count": 38,
+        "minDist": 360,
+        "scaleJitter": 0.1,
+        "playerExclusion": 440,
+        "portalExclusion": 340
+      },
+      "origin": {
+        "x": 6144,
+        "y": 4096
+      }
+    },
+    "scene10": {
+      "name": "世界-124·林地",
+      "type": "instance",
+      "label": "场景十",
+      "width": 12288,
+      "height": 8192,
+      "background": "#102015",
+      "diamondFloor": {
+        "enabled": true
+      },
+      "forestTreeScatter": {
+        "enabled": true,
+        "count": 55,
+        "minDist": 390,
+        "scaleJitter": 0.1,
+        "playerExclusion": 440,
+        "portalExclusion": 340
+      },
+      "origin": {
+        "x": 6144,
+        "y": 4096
+      }
     }
   },
   "loot": {
@@ -218,6 +264,14 @@
         {
           "targetScene": "scene8",
           "label": "世界-122"
+        },
+        {
+          "targetScene": "scene9",
+          "label": "世界-123·雪原"
+        },
+        {
+          "targetScene": "scene10",
+          "label": "世界-124·林地"
         }
       ]
     }

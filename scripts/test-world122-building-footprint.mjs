@@ -6,19 +6,28 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const {
+    FIRING_PLATFORM_FOOTPRINTS,
     ONE_CELL_BUILDING_FOOT,
     TWO_BY_TWO_BUILDING_FOOT,
     FOUR_BY_FOUR_BASE_FOOT,
     applyBuildingFootprint,
+    applyFiringPlatformFootprint,
 } = await import('../src/world/building-footprint.js');
 const { Entity } = await import('../src/entities/entity.js');
-const { setupStructureDepth } = await import('../src/world/structure-depth.js');
 const {
+    STRUCTURE_DEPTH_OFFSET,
+    setupStructureDepth,
+    structureDepthRelationAtPoint,
+    structureDepthSpan,
+} = await import('../src/world/structure-depth.js');
+const {
+    isoFootprintCenter,
     isoFootprintsOverlap,
     pointInIsoFootprint,
     resolveCircleFromIsoFootprint,
 } = await import('../src/physics/iso-footprint.js');
 const { default: producerCfg } = await import('../data/producer-buildings.json');
+const { WallSystem } = await import('../src/world/wall-system.js');
 
 let pass = 0;
 let fail = 0;
@@ -48,6 +57,71 @@ check('普通建筑统一写入2×2矩形碰撞',
     && sample.collisionRadius === 128
     && sample.colliderOffsetX === 0
     && sample.colliderOffsetY === -64);
+
+const platformFootprint = new Entity(100, 200);
+applyFiringPlatformFootprint(platformFootprint, 'e2');
+check('射击台占地为单格，默认e2只描述格内坡面方向',
+    platformFootprint._buildingFootprintCells === 1
+    && platformFootprint._firingPlatformDir === 'e2'
+    && platformFootprint.colliderOffsetX === 0
+    && platformFootprint.colliderOffsetY === 0
+    && platformFootprint.collisionIsoHalfU === FIRING_PLATFORM_FOOTPRINTS.e2.halfU
+    && platformFootprint.collisionIsoHalfV === FIRING_PLATFORM_FOOTPRINTS.e2.halfV);
+applyFiringPlatformFootprint(platformFootprint, 'e1');
+check('F镜像后的射击台保持单格并切换格内e1坡面',
+    platformFootprint._firingPlatformDir === 'e1'
+    && platformFootprint._buildingFootprintCells === 1
+    && platformFootprint.colliderOffsetX === 0
+    && platformFootprint.colliderOffsetY === 0
+    && platformFootprint.collisionIsoHalfU === FIRING_PLATFORM_FOOTPRINTS.e1.halfU
+    && platformFootprint.collisionIsoHalfV === FIRING_PLATFORM_FOOTPRINTS.e1.halfV);
+
+// 真实构造顺序：Entity 的旧圆 Collider 已存在，随后才切换 footprint、注册深度、重建 Collider。
+// 深度几何必须直接读取逻辑坐标 + 新 offset，不能被旧 collider 中心污染。
+const constructorOrderSample = new Entity(100, 200);
+applyBuildingFootprint(constructorOrderSample, 2);
+setupStructureDepth(constructorOrderSample);
+check('建筑构造阶段不读取尚未重建的旧Collider中心',
+    constructorOrderSample.collider.y === 200
+    && isoFootprintCenter(constructorOrderSample).y === 136
+    && constructorOrderSample._faceDepth === 200 + STRUCTURE_DEPTH_OFFSET
+    && constructorOrderSample._faceLine[0].y === 136
+    && constructorOrderSample._faceLine[1].y === 136);
+const localFront = structureDepthRelationAtPoint(constructorOrderSample, 40, 171);
+const localBehind = structureDepthRelationAtPoint(constructorOrderSample, 40, 169);
+check('建筑前后关系按当前X位置的footprint局部前缘判定',
+    localFront?.frontY === 170
+    && localFront.inFront === true
+    && localBehind?.frontY === 170
+    && localBehind.inFront === false);
+const previousWindow = globalThis.window;
+globalThis.window = {
+    ...(previousWindow || {}),
+    Game: { entities: new Map([['depth-building', constructorOrderSample]]) },
+    GateFaceSegs: [],
+};
+const previousFaceCache = WallSystem._faceSegCache;
+WallSystem._faceSegCache = [];
+const correctedFront = WallSystem.junctionCorrectedDepth(40, 171, 181, 60);
+const correctedBehind = WallSystem.junctionCorrectedDepth(40, 169, 500, 60);
+const constructorDepthSpan = structureDepthSpan(constructorOrderSample);
+check('最终图层仲裁保证局部前方在建筑上、局部后方在建筑下',
+    correctedFront === constructorDepthSpan.frontDepth + 0.5
+    && correctedBehind === constructorDepthSpan.frontDepth - 0.5);
+WallSystem._faceSegCache = previousFaceCache;
+if (previousWindow === undefined) delete globalThis.window;
+else globalThis.window = previousWindow;
+applyBuildingFootprint(constructorOrderSample, 4);
+check('后续调整建筑占地会自动刷新图层几何',
+    constructorOrderSample._structureDepthHalfWidth === 256
+    && constructorOrderSample._faceLine[0].x === -156
+    && constructorOrderSample._faceLine[1].x === 356
+    && constructorOrderSample._faceDepth === 200 + STRUCTURE_DEPTH_OFFSET);
+constructorOrderSample.rebuildCollider();
+check('重建Collider后碰撞中心与图层前缘保持同一真源',
+    constructorOrderSample.collider.y === 72
+    && constructorOrderSample._faceDepth === 200 + STRUCTURE_DEPTH_OFFSET);
+
 const runtimeSample = new Entity(100, 200);
 applyBuildingFootprint(runtimeSample, 2);
 runtimeSample.rebuildCollider();
@@ -89,9 +163,11 @@ const defenseSrc = fs.readFileSync(path.join(ROOT, 'src/world/defense-system.js'
 const hutSrc = fs.readFileSync(path.join(ROOT, 'src/world/hamster-hut-system.js'), 'utf8');
 const barracksSrc = fs.readFileSync(path.join(ROOT, 'src/world/hamster-barracks-system.js'), 'utf8');
 const producerSrc = fs.readFileSync(path.join(ROOT, 'src/world/producer-building-system.js'), 'utf8');
+const wallSrc = fs.readFileSync(path.join(ROOT, 'src/world/wall-system.js'), 'utf8');
 
-check('防御塔、射击台与基地应用2×2/4×4碰撞',
-    (defenseSrc.match(/applyBuildingFootprint\(this, 2\)/g) || []).length >= 2
+check('防御塔、射击台与基地应用2×2/单格/4×4碰撞',
+    /applyBuildingFootprint\(this, 2\)/.test(defenseSrc)
+    && /applyFiringPlatformFootprint\(this, this\.dir\)/.test(defenseSrc)
     && /applyBuildingFootprint\(this, 4\)/.test(defenseSrc));
 check('方块墙与门同样使用地面旋转矩形',
     /this\.collisionShape = 'iso_rect'/.test(defenseSrc)
@@ -106,6 +182,14 @@ check('放大建筑遮挡线改为读取footprint而非贴图宽度',
     && /setupStructureDepth\(this\)/.test(barracksSrc)
     && /setupStructureDepth\(this\)/.test(producerSrc)
     && /setupStructureDepth\(this\)/.test(defenseSrc));
+check('动态遮挡按完整建筑footprint判定，墙门线段端点禁止外推',
+    /structureDepthRelationAtPoint\(e, x, y\)/.test(wallSrc)
+    && /Math\.max\(0, Math\.min\(1, rawT\)\)/.test(wallSrc));
+check('墙、门与普通建筑共用唯一地面前缘深度公式',
+    /structureDepthAtY/.test(defenseSrc)
+    && /structureDepthAtY/.test(buildingSrc)
+    && !/this\._depthL = A\.y \+ 12/.test(defenseSrc)
+    && !/this\._depthBars = \(A\.y \+ B\.y\) \/ 2 \+ 12/.test(defenseSrc));
 check('所有非墙门陷阱建筑统一吸附2×2格网并走完整footprint判定',
     /function isTwoByTwoBuildItem\(item\)/.test(buildingSrc)
     && /return this\._snapBuildingGrid\(x, y, 2\)/.test(buildingSrc)
@@ -124,11 +208,11 @@ check('防御塔恢复放大前视觉尺寸但继续保留2×2 footprint',
     && /applyBuildingFootprint\(this, 2\)/.test(defenseSrc));
 
 const producerEntries = Object.values(producerCfg).filter((cfg) => cfg && typeof cfg === 'object' && cfg.id);
-check('配置建筑碰撞和贴图统一为2×2尺度',
+check('配置建筑碰撞统一为2×2，贴图保持同级显示尺度',
     producerEntries.length > 0 && producerEntries.every((cfg) =>
         cfg.radius === TWO_BY_TWO_BUILDING_FOOT.collisionRadius
-        && cfg.displayW >= 288
-        && cfg.displayH >= 294));
+        && cfg.displayW >= 256
+        && cfg.displayH >= 250));
 
 const research = producerCfg.research_institute;
 const pngPath = path.join(ROOT, 'assets/terrain/research_institute.png');
@@ -139,7 +223,7 @@ check('研究院正式贴图已裁边并接入',
     research.assetPending !== true
     && research.displayW === 288
     && research.displayH === 308
-    && research.footOffsetY === 154
+    && research.footOffsetY === 150
     && pngW === 1024
     && pngH === 1093,
     `${pngW}×${pngH}`);

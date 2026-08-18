@@ -14,7 +14,8 @@ import numpy as np
 from PIL import Image
 import cv2
 
-T = 1.2
+T = float(sys.argv[1]) if len(sys.argv) > 1 and sys.argv[1].replace('.', '').isdigit() else 1.2
+# T=1.2 = 用户验收口径（2026-08-16）；T=2.0 过细被退回（2026-08-18）。从加粗源 sheet 处理。
 
 def thin(arr):
     out = arr.copy().astype(np.float32)
@@ -45,7 +46,7 @@ def width_stat(arr):
     vals = dt[dark > 0]
     return n, vals.mean() * 2
 
-for path in sys.argv[1:]:
+for path in (sys.argv[2:] if len(sys.argv) > 1 and sys.argv[1].replace('.', '').isdigit() else sys.argv[1:]):
     im = Image.open(path).convert("RGBA")
     arr = np.array(im)
     n0, w0 = width_stat(arr)

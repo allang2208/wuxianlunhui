@@ -135,6 +135,14 @@
         .game-menu-setting-label { width: 72px; flex-shrink: 0; color: #d4c5a9; font-size: 14px; }
         .game-menu-setting-value { width: 44px; flex-shrink: 0; text-align: right; color: #ffd700; font-size: 14px; }
         .game-menu-setting-row input[type="range"] { flex: 1; min-width: 0; accent-color: #c9a227; cursor: pointer; }
+        .game-menu-unit-display { padding-top: 10px; border-top: 1px solid rgba(90, 77, 63, 0.5); display: grid; grid-template-columns: 1fr 1fr; gap: 8px 10px; }
+        .game-menu-unit-display-title { grid-column: 1 / -1; color: #e8dcc0; font-size: 14px; font-weight: 700; }
+        .game-menu-unit-display-hint { grid-column: 1 / -1; color: #a99b89; font-size: 11px; line-height: 1.35; }
+        .game-menu-unit-display-group { min-width: 0; margin: 0; padding: 7px 8px 8px; border: 1px solid rgba(106, 92, 76, 0.7); border-radius: 6px; }
+        .game-menu-unit-display-group legend { padding: 0 4px; color: #ffd700; font-size: 12px; }
+        .game-menu-unit-display-option { display: flex; align-items: center; gap: 5px; margin-top: 4px; color: #d4c5a9; font-size: 12px; cursor: pointer; white-space: nowrap; }
+        .game-menu-unit-display-option input { margin: 0; accent-color: #c9a227; cursor: pointer; }
+        .game-menu-unit-display-option select { margin-left: auto; background: #2a2520; border: 1px solid #6a5c4c; border-radius: 4px; color: #e8dcc0; font: inherit; font-size: 12px; padding: 2px 4px; cursor: pointer; }
 
         .attack-indicator-left { position: absolute; top: 50%; left: 12px; transform: translateY(-50%); display: flex; flex-direction: column; gap: 12px; pointer-events: none; }
         .attack-cd { width: 40px; height: 40px; border-radius: 50%; border: 2px solid #5a4d3f; background: rgba(42, 37, 32, 0.8); display: flex; align-items: center; justify-content: center; font-size: 18px; color: #8a7d6b; position: relative; overflow: hidden; }
@@ -1266,8 +1274,8 @@
             overflow-y: auto;
             padding: 16px;
         }
-        /* ===== 游戏秒表计时器 ===== */
-        .game-timer {
+        /* ===== 游戏内时间 ===== */
+        .game-time {
             position: fixed;
             top: 12px;
             right: 100px;
@@ -1283,12 +1291,12 @@
             pointer-events: none;
             box-shadow: 0 2px 12px rgba(0, 0, 0, 0.5);
         }
-        .game-timer .timer-icon {
+        .game-time .time-icon {
             font-size: 14px;
             color: #ffd700;
             filter: drop-shadow(0 0 3px rgba(255, 215, 0, 0.5));
         }
-        .game-timer .timer-text {
+        .game-time .time-text {
             font-size: 14px;
             font-weight: 700;
             color: #d4c5a9;
@@ -3035,8 +3043,8 @@ body.map-mode #weaponInfo {
 /* ===== 墙壁编辑器面板（摆墙模式） ===== */
 .wall-editor-panel {
   position: fixed;
-  right: 8px;
-  top: 80px;
+  right: 26px;
+  top: 26px;
   width: 340px;
   background: rgba(18, 18, 24, 0.94);
   border: 1px solid #5a5346;
@@ -3047,6 +3055,21 @@ body.map-mode #weaponInfo {
   z-index: 9999;
   pointer-events: auto;
   user-select: none;
+}
+
+/* ===== 世界-122建筑详情面板统一定位 =====
+ * 墙/门走 wall-editor-panel；其余可交互建筑均以 BasePanel 建立。
+ * 统一右上角、顶部基线 26px，避免各建筑详情在垂直居中位置来回跳动。
+ */
+.defense-tower-panel,
+.hamster-hut-panel,
+.hamster-barracks-panel,
+.producer-building-panel,
+.defense-trap-panel,
+.world122-base-panel {
+  right: 26px !important;
+  top: 26px !important;
+  transform: none !important;
 }
 .wall-editor-panel .we-title {
   font-size: 14px;
@@ -3432,3 +3455,32 @@ body.map-mode #weaponInfo {
   font-family: SimHei, "Microsoft YaHei", sans-serif;
 }
 .defense-hud span:first-child { color: #cde8c0; font-weight: 700; }
+
+/* 世界切换面板（2026-08-18，多世界并行 M1）：右侧抽屉，复用仓库面板视觉 */
+.world-switch-panel {
+  position: fixed; top: 50%; right: 96px; transform: translateY(-50%) translateX(24px);
+  width: 380px; max-height: 80vh; overflow-y: auto;
+  background: linear-gradient(135deg, rgba(45, 40, 35, 0.95), rgba(35, 30, 25, 0.98));
+  border: 2px solid #7a6a5a; border-radius: 12px; z-index: 4000;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  opacity: 0; visibility: hidden; pointer-events: none;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease, visibility 0.3s;
+  font-family: SimHei, "Microsoft YaHei", sans-serif;
+}
+.world-switch-panel.active { opacity: 1; visibility: visible; transform: translateY(-50%) translateX(0); pointer-events: auto; }
+.world-switch-panel .ws-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid rgba(122, 106, 90, 0.4); background: rgba(0, 0, 0, 0.2); }
+.world-switch-panel .ws-title { color: #d4c5a9; font-size: 16px; font-weight: 700; }
+.world-switch-panel .ws-close { background: none; border: none; color: #8a7d6b; font-size: 18px; cursor: pointer; padding: 2px 6px; }
+.world-switch-panel .ws-close:hover { color: #d4c5a9; }
+.world-switch-panel .ws-list { padding: 10px 12px; display: flex; flex-direction: column; gap: 10px; }
+.world-switch-panel .ws-row { border: 1px solid rgba(122, 106, 90, 0.4); border-radius: 10px; padding: 10px 12px; background: rgba(0, 0, 0, 0.18); }
+.world-switch-panel .ws-row.current { border-color: #7fe0c8; box-shadow: 0 0 8px rgba(127, 224, 200, 0.25); }
+.world-switch-panel .ws-row-head { display: flex; align-items: center; gap: 8px; }
+.world-switch-panel .ws-icon { font-size: 20px; }
+.world-switch-panel .ws-name { color: #e8dfc8; font-size: 14px; font-weight: 700; flex: 1; }
+.world-switch-panel .ws-go { background: #3a5a4a; color: #c8f0d8; border: 1px solid #5a8a6a; border-radius: 6px; padding: 3px 12px; cursor: pointer; font-size: 12px; }
+.world-switch-panel .ws-go:hover { background: #4a6a5a; }
+.world-switch-panel .ws-status { margin-top: 6px; font-size: 12px; color: #b0a892; line-height: 1.6; }
+.world-switch-panel .ws-status .ws-current { color: #7fe0c8; font-weight: 700; }
+.world-switch-panel .ws-status .ws-dim { color: #8a7d6b; }
+.world-switch-panel .ws-preview { margin-top: 4px; color: #9ad0ff; }

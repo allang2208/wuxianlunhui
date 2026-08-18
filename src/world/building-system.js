@@ -14,6 +14,7 @@ import { EffectManager } from '../effects/effect-manager.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
 import { SoundManager } from '../ui/sound-manager.js';
 import { UIState } from '../ui/ui-state.js';
+import { renderBuildingDetailHeader } from '../ui/panels/building-detail-header.js';
 import { CONFIG } from '../config/config.js';
 import { SceneManager } from './scene-manager.js';
 import { Renderer } from './renderer.js';
@@ -28,6 +29,7 @@ import { HamsterHut, HamsterHutSystem, HAMSTER_CONFIG } from './hamster-hut-syst
 import { HamsterBarracks, HamsterBarracksSystem, BARRACKS_CONFIG } from './hamster-barracks-system.js';
 import { ProducerBuilding, ProducerBuildingSystem, PRODUCER_BUILDINGS } from './producer-building-system.js';
 import {
+    FIRING_PLATFORM_FOOTPRINTS,
     ONE_CELL_BUILDING_FOOT,
     TWO_BY_TWO_BUILDING_FOOT,
 } from './building-footprint.js';
@@ -41,6 +43,8 @@ import {
     isoFootprintVertices,
     pointInIsoFootprint,
 } from '../physics/iso-footprint.js';
+import { structureDepthAtY } from './structure-depth.js';
+import { resolveStructureFootOffset } from './structure-visual-anchor.js';
 
 // ==================== 可建造项 ====================
 
@@ -110,7 +114,15 @@ function isProducerEntity(e) {
 
 /** 除墙、门、陷阱外的玩家可建造建筑统一占 2×2。 */
 function isTwoByTwoBuildItem(item) {
-    return !!item && ['tower', 'hamster_hut', 'hamster_barracks', 'producer', 'platform'].includes(item.kind);
+    return !!item && ['tower', 'hamster_hut', 'hamster_barracks', 'producer'].includes(item.kind);
+}
+
+function isFiringPlatformBuildItem(item) {
+    return !!item && item.kind === 'platform';
+}
+
+function firingPlatformDir(mirror) {
+    return mirror ? 'e1' : 'e2';
 }
 
 const C_GRADE_WALL_COST = Math.round((DEFENSE_CONFIG.covers.hp.C ?? 1600) * 0.25);
@@ -401,6 +413,11 @@ export const BuildingSystem = {
             }
         } else if (this._ghost) {
             this._ghost.setFlipX(this._placing.mirror);
+            if (isFiringPlatformBuildItem(this._placing.item) && this._snapped) {
+                const sp = this._ghostAnchor(this._snapped.x, this._snapped.y);
+                this._ghost.setPosition(sp.x, sp.y);
+                this._ghost.setTint(this._canPlace(this._snapped.x, this._snapped.y) ? 0x9dff9d : 0xff7777);
+            }
         }
     },
 
@@ -428,7 +445,7 @@ export const BuildingSystem = {
         let best = null;
         for (const e of Game.entities.values()) {
             if (!isProducerEntity(e)) continue;
-            const eFoot = e.footOffsetY || 0;
+            const eFoot = e._visualFootOffsetY ?? e.footOffsetY ?? 0;
             const eY = e.y - eFoot; // 已有建筑贴图中心 y
             const eh = eY - m * e.x;
             const ew = eY + m * e.x;
@@ -624,7 +641,7 @@ export const BuildingSystem = {
     _ghostAnchor(x, y) {
         if (this._placing && this._placing.item.kind === 'platform') {
             return {
-                x: x + FIRING_PLATFORM_VISUAL.offsetX,
+                x: x + (this._placing.mirror ? -FIRING_PLATFORM_VISUAL.offsetX : FIRING_PLATFORM_VISUAL.offsetX),
                 y: y - FIRING_PLATFORM_VISUAL.footOffsetY,
             };
         }
@@ -637,11 +654,22 @@ export const BuildingSystem = {
     _ghostFootOffset() {
         if (!this._placing) return 0;
         if (this._placing.item.kind === 'tower') return DEFENSE_TOWER_VISUAL.base.footOffsetY;
-        if (this._placing.item.kind === 'hamster_hut') return HAMSTER_CONFIG.hut.footOffsetY;
-        if (this._placing.item.kind === 'hamster_barracks') return BARRACKS_CONFIG.barracks.footOffsetY;
+        const autoFoot = (fallback) => {
+            const scene = typeof window !== 'undefined' ? window.__phaserScene : null;
+            if (!scene || !this._ghost?.texture?.key) return fallback;
+            return resolveStructureFootOffset(
+                scene,
+                this._ghost.texture.key,
+                this._ghost.frame?.name,
+                this._ghost.displayHeight,
+                fallback
+            );
+        };
+        if (this._placing.item.kind === 'hamster_hut') return autoFoot(HAMSTER_CONFIG.hut.footOffsetY);
+        if (this._placing.item.kind === 'hamster_barracks') return autoFoot(BARRACKS_CONFIG.barracks.footOffsetY);
         if (this._placing.item.kind === 'producer') {
             const pc = PRODUCER_BUILDINGS[this._placing.item.id];
-            return pc.footOffsetY;
+            return autoFoot(pc.footOffsetY);
         }
         if (this._placing.item.kind === 'platform') return FIRING_PLATFORM_VISUAL.footOffsetY;
         if (this._placing.item.kind === 'block') return BLOCK_FOOT_OFFSET; // 方块墙：61（与实体一致）
@@ -694,7 +722,7 @@ export const BuildingSystem = {
             const spr = entity.spriteCfg;
             if (spr) {
                 const cx = entity.x + (spr.offsetX || 0);
-                const cy = entity.y - (spr.footOffsetY || 0);
+                const cy = entity.y - (entity._visualFootOffsetY ?? spr.footOffsetY ?? 0);
                 const hw = (spr.size || entity.size || 32) / 2;
                 const hh = (spr.sizeH || spr.size || entity.size || 32) / 2;
                 if (Math.abs(p.x - cx) <= hw && Math.abs(p.y - cy) <= hh) return true;
@@ -744,7 +772,7 @@ export const BuildingSystem = {
             }
             return;
         }
-        if (isTwoByTwoBuildItem(this._placing.item)) {
+        if (isTwoByTwoBuildItem(this._placing.item) || isFiringPlatformBuildItem(this._placing.item)) {
             const snap = this._snapPosition(p.x, p.y);
             if (snap) this._place(snap.x, snap.y);
             return;
@@ -817,6 +845,7 @@ export const BuildingSystem = {
         // 方块墙：网格吸附（2026-08-17）——1 格 = 64×32 菱形格，贴格心/邻格拼接
         if (item.kind === 'block') return this._snapBlockGrid(x, y);
         if (isTwoByTwoBuildItem(item)) return this._snapBuildingGrid(x, y, 2);
+        if (isFiringPlatformBuildItem(item)) return this._snapFiringPlatformGrid(x, y);
         // 4 格门：锚点吸附到格网半格位（栅栏跨 2 格的中点），方向跟随主导轴
         if (item.kind === 'gate4') return this._snapGate4Grid(x, y);
         if (item.kind !== 'cover' && item.kind !== 'gate') return null;
@@ -930,6 +959,20 @@ export const BuildingSystem = {
             d: Math.hypot(gx - x, gy + frontOffsetY - y),
             grid: true,
             cells,
+        };
+    },
+
+    /** 射击台占一个格；F 只切换格内楼梯/台面的 e2/e1 朝向。 */
+    _snapFiringPlatformGrid(x, y) {
+        const [i, j] = this._blockCellOf(x, y);
+        const [gx, gy] = this._blockCellCenter(i, j);
+        return {
+            x: Math.round(gx),
+            y: Math.round(gy),
+            d: Math.hypot(gx - x, gy - y),
+            grid: true,
+            dir: firingPlatformDir(!!this._placing?.mirror),
+            stairCell: [i, j],
         };
     },
 
@@ -1448,6 +1491,13 @@ export const BuildingSystem = {
         if (item.kind === 'block') {
             minX = x - BLOCK_FOOT.w / 2; maxX = x + BLOCK_FOOT.w / 2;
             minY = y - BLOCK_FOOT.d / 2; maxY = y + BLOCK_FOOT.d / 2;
+        } else if (isFiringPlatformBuildItem(item)) {
+            const probe = this._firingPlatformProbe(x, y, firingPlatformDir(!!this._placing?.mirror));
+            const vertices = isoFootprintVertices(probe);
+            minX = Math.min(...vertices.map((p) => p.x));
+            maxX = Math.max(...vertices.map((p) => p.x));
+            minY = Math.min(...vertices.map((p) => p.y));
+            maxY = Math.max(...vertices.map((p) => p.y));
         } else if (isTwoByTwoBuildItem(item)) {
             const cy = y + TWO_BY_TWO_BUILDING_FOOT.offY;
             minX = x - TWO_BY_TWO_BUILDING_FOOT.w / 2;
@@ -1477,6 +1527,7 @@ export const BuildingSystem = {
             const dir = (this._snapped && this._snapped.dir) || 'e2';
             return this._canPlaceGate4(x, y, dir);
         }
+        if (isFiringPlatformBuildItem(item)) return this._canPlaceFiringPlatformFootprint(x, y);
         if (isTwoByTwoBuildItem(item)) return this._canPlaceBuildingFootprint(x, y);
         const radius = this._itemPlacementRadius(item);
         const canBuild = WallSystem && typeof WallSystem.canBuildAt === 'function'
@@ -1564,6 +1615,36 @@ export const BuildingSystem = {
             colliderOffsetY: TWO_BY_TWO_BUILDING_FOOT.offY,
         };
 
+        return this._canPlaceIsoBuildingFootprint(probe);
+    },
+
+    _firingPlatformProbe(x, y, dir) {
+        const foot = FIRING_PLATFORM_FOOTPRINTS[dir] || FIRING_PLATFORM_FOOTPRINTS.e2;
+        return {
+            active: true,
+            x,
+            y,
+            collisionShape: 'iso_rect',
+            collisionWidth: foot.collisionWidth,
+            collisionHeight: foot.collisionHeight,
+            collisionIsoHalfU: foot.halfU,
+            collisionIsoHalfV: foot.halfV,
+            colliderOffsetX: foot.offX,
+            colliderOffsetY: foot.offY,
+        };
+    },
+
+    /** 射击台专属单格 footprint：F 只改变格内楼梯方向。 */
+    _canPlaceFiringPlatformFootprint(x, y) {
+        const item = this._placing && this._placing.item;
+        if (!item || !this._fitsPlacementBounds(item, x, y)) return false;
+        return this._canPlaceIsoBuildingFootprint(
+            this._firingPlatformProbe(x, y, firingPlatformDir(!!this._placing?.mirror))
+        );
+    },
+
+    _canPlaceIsoBuildingFootprint(probe) {
+        if (!probe) return false;
         for (const e of Game.entities.values()) {
             if (!e || !e._isDefenseStructure || !e.active) continue;
             const ecx = e.collider ? e.collider.x : e.x + (e.colliderOffsetX || 0);
@@ -1592,7 +1673,11 @@ export const BuildingSystem = {
             : (WallSystem && typeof WallSystem.canMoveTo === 'function' ? WallSystem.canMoveTo.bind(WallSystem) : null);
         if (!canBuild) return true;
         const vertices = isoFootprintVertices(probe);
-        const samples = [{ x, y }, ...vertices];
+        const center = {
+            x: probe.x + (probe.colliderOffsetX || 0),
+            y: probe.y + (probe.colliderOffsetY || 0),
+        };
+        const samples = [center, ...vertices];
         for (let i = 0; i < vertices.length; i++) {
             const a = vertices[i], b = vertices[(i + 1) % vertices.length];
             samples.push({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 });
@@ -1718,22 +1803,14 @@ export const BuildingSystem = {
         const g = e.grade || 'F';
         const maxHp = e.maxHp || 1;
         const hp = Math.max(0, Math.ceil(e.hp));
-        const pct = Math.round((hp / maxHp) * 100);
-        const barColor = pct > 60 ? '#7fd47f' : (pct > 30 ? '#ffd700' : '#ff6666');
         const buildCost = e._buildCost ?? Math.round((DEFENSE_CONFIG.covers.hp[g] ?? 400) * 0.25);
         const repairRate = (DEFENSE_CONFIG.repair && DEFENSE_CONFIG.repair.coverHpPerEnergy) || 2;
         const repairNeed = Math.ceil((maxHp - hp) / repairRate);
         const eff = effOrient(e, e._facingLeft);
         const orientTxt = eff === 'v' ? '垂直（/）' : '水平（\\）';
         det.innerHTML = `
-            <div class="bp-detail-head">
-                <img src="assets/terrain/obstacle_cover_${g}_v.png" draggable="false" alt="掩体·${g}级">
-                <div style="flex:1;min-width:0;">
-                    <div class="bp-detail-name">掩体·${g}级</div>
-                    <div class="bp-hpbar"><div style="width:${pct}%;background:${barColor};"></div></div>
-                    <div style="font-size:11px;color:#b0a892;">耐久 ${hp} / ${maxHp}（${pct}%）</div>
-                </div>
-            </div>
+            ${renderBuildingDetailHeader({ texture: `obstacle_cover_${g}_v`, name: `掩体·${g}级`, hp, maxHp, status: orientTxt })}
+            <div style="font-size:13px;font-weight:700;color:#ffd700;margin:2px 0 6px;">特殊功能 · 阻挡与防线构建</div>
             <div class="bp-detail-rows">
                 朝向：<b>${orientTxt}</b><br>
                 建造消耗：<b style="color:#7fd4ff;">${buildCost} 能源</b><br>
@@ -1752,20 +1829,12 @@ export const BuildingSystem = {
     _renderBlockDetail(det, e) {
         const maxHp = e.maxHp || (DEFENSE_CONFIG.covers.hp.C ?? 1600);
         const hp = Math.max(0, Math.ceil(e.hp));
-        const pct = Math.round((hp / maxHp) * 100);
-        const barColor = pct > 60 ? '#7fd47f' : (pct > 30 ? '#ffd700' : '#ff6666');
         const buildCost = e._buildCost ?? C_GRADE_WALL_COST;
         const repairRate = (DEFENSE_CONFIG.repair && DEFENSE_CONFIG.repair.coverHpPerEnergy) || 2;
         const repairNeed = Math.ceil((maxHp - hp) / repairRate);
         det.innerHTML = `
-            <div class="bp-detail-head">
-                <img src="assets/terrain/obstacle_block.png" draggable="false" alt="方块墙">
-                <div style="flex:1;min-width:0;">
-                    <div class="bp-detail-name">方块墙（C级数值）</div>
-                    <div class="bp-hpbar"><div style="width:${pct}%;background:${barColor};"></div></div>
-                    <div style="font-size:11px;color:#b0a892;">耐久 ${hp} / ${maxHp}（${pct}%）</div>
-                </div>
-            </div>
+            ${renderBuildingDetailHeader({ texture: 'obstacle_block', name: '方块墙（C级数值）', hp, maxHp, status: '1×1 菱形格防线' })}
+            <div style="font-size:13px;font-weight:700;color:#ffd700;margin:2px 0 6px;">特殊功能 · 阻挡与防线构建</div>
             <div class="bp-detail-rows">
                 占地：<b>1×1 菱形格</b><br>
                 建造消耗：<b style="color:#7fd4ff;">${buildCost} 能源</b><br>
@@ -1784,20 +1853,12 @@ export const BuildingSystem = {
     _renderPlatformDetail(det, e) {
         const maxHp = e.maxHp || 800;
         const hp = Math.max(0, Math.ceil(e.hp));
-        const pct = Math.round((hp / maxHp) * 100);
-        const barColor = pct > 60 ? '#7fd47f' : (pct > 30 ? '#ffd700' : '#ff6666');
         const buildCost = e._buildCost ?? 400;
         const repairRate = (DEFENSE_CONFIG.repair && DEFENSE_CONFIG.repair.coverHpPerEnergy) || 2;
         const repairNeed = Math.ceil((maxHp - hp) / repairRate);
         det.innerHTML = `
-            <div class="bp-detail-head">
-                <img src="assets/terrain/firing_platform.png" draggable="false" alt="射击台" style="width:96px;height:89px;object-fit:contain;">
-                <div style="flex:1;min-width:0;">
-                    <div class="bp-detail-name">射击台</div>
-                    <div class="bp-hpbar"><div style="width:${pct}%;background:${barColor};"></div></div>
-                    <div style="font-size:11px;color:#b0a892;">耐久 ${hp} / ${maxHp}（${pct}%）</div>
-                </div>
-            </div>
+            ${renderBuildingDetailHeader({ texture: 'firing_platform', name: '射击台', hp, maxHp, status: '高台射击位' })}
+            <div style="font-size:13px;font-weight:700;color:#ffd700;margin:2px 0 6px;">特殊功能 · 越过掩体射击</div>
             <div class="bp-detail-rows">
                 用途：站上高台可越过己方掩体向外射击<br>
                 建造消耗：<b style="color:#7fd4ff;">${buildCost} 能源</b><br>
@@ -1817,8 +1878,6 @@ export const BuildingSystem = {
         const g = e.grade || 'D';
         const maxHp = e.maxHp || 1;
         const hp = Math.max(0, Math.ceil(e.hp));
-        const pct = Math.round((hp / maxHp) * 100);
-        const barColor = pct > 60 ? '#7fd47f' : (pct > 30 ? '#ffd700' : '#ff6666');
         const buildCost = e._buildCost ?? Math.round((DEFENSE_CONFIG.covers.hp[g] ?? 400) * 0.25);
         const repairRate = (DEFENSE_CONFIG.repair && DEFENSE_CONFIG.repair.coverHpPerEnergy) || 2;
         const repairNeed = Math.ceil((maxHp - hp) / repairRate);
@@ -1827,16 +1886,15 @@ export const BuildingSystem = {
             : (mode === 'open' ? '常开（门口保持敞开）' : '自动（友军靠近开门）');
         const stateTxt = (e.state === 'open' || e.state === 'opening') ? '开启' : '关闭';
         det.innerHTML = `
-            <div class="bp-detail-head">
-                ${e._isGate4
-                    ? '<img src="assets/terrain/gate_4cell.png" draggable="false" alt="4格门" style="width:96px;height:89px;object-fit:contain;">'
-                    : '<div class="bp-gate-icon">🚪</div>'}
-                <div style="flex:1;min-width:0;">
-                    <div class="bp-detail-name">${e._isGate4 ? '4格门（C级数值）' : (e.name || `铁栅栏门·${g}级`)}</div>
-                    <div class="bp-hpbar"><div style="width:${pct}%;background:${barColor};"></div></div>
-                    <div style="font-size:11px;color:#b0a892;">耐久 ${hp} / ${maxHp}（${pct}%）· 当前${stateTxt}</div>
-                </div>
-            </div>
+            ${renderBuildingDetailHeader({
+                texture: e._isGate4 ? 'gate_4cell' : null,
+                icon: '🚪',
+                name: e._isGate4 ? '4格门（C级数值）' : (e.name || `铁栅栏门·${g}级`),
+                hp,
+                maxHp,
+                status: `当前${stateTxt}`,
+            })}
+            <div style="font-size:13px;font-weight:700;color:#ffd700;margin:2px 0 6px;">特殊功能 · 门控与通行模式</div>
             <div class="bp-detail-rows">
                 建造消耗：<b style="color:#7fd4ff;">${buildCost} 能源</b><br>
                 ${e._isGate4 ? '结构：<b>两端方块墙 + 中间双格栅栏</b><br>' : ''}
@@ -2053,10 +2111,16 @@ export const BuildingSystem = {
                     const bias = 0.5;
                     if (coverV && !eV) {
                         // 新墙 = 左臂（v），已有 = 右臂（h）→ 左盖右
-                        cover._faceDepth = Math.max(cover._faceLine[0].y, cover._faceLine[1].y) + 12 + bias;
+                        cover._faceDepth = structureDepthAtY(
+                            Math.max(cover._faceLine[0].y, cover._faceLine[1].y),
+                            bias
+                        );
                     } else if (!coverV && eV) {
                         // 新墙 = 右臂（h），已有 = 左臂（v）→ 左盖右（已有左臂 +0.5）
-                        e._faceDepth = Math.max(e._faceLine[0].y, e._faceLine[1].y) + 12 + bias;
+                        e._faceDepth = structureDepthAtY(
+                            Math.max(e._faceLine[0].y, e._faceLine[1].y),
+                            bias
+                        );
                     }
                     return;
                 }
@@ -2118,6 +2182,7 @@ export const BuildingSystem = {
                 // 射击台（2026-08-16 七版）：自由放置高台——无墙线/法线/裁墙；
                 // F 镜像只做视觉左右翻面（_facingLeft）
                 const platform = this._markBuiltEntity(new FiringPlatform(x, y, {
+                    dir: firingPlatformDir(mirror),
                     mirror,
                     id,
                 }), item);

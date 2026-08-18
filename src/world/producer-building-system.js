@@ -14,6 +14,7 @@ import { HamsterGuard } from '../entities/hamster-guard.js';
 import { HamsterMilitia } from '../entities/hamster-militia.js';
 import { HamsterScout } from '../entities/hamster-scout.js';
 import { HamsterMusketeer } from '../entities/hamster-musketeer.js';
+import { HamsterPriest } from '../entities/hamster-priest.js';
 import { GoldManager } from '../systems/gold-manager.js';
 import { EnergyManager } from '../systems/energy-manager.js';
 import { EffectManager } from '../effects/effect-manager.js';
@@ -21,6 +22,8 @@ import { FloatingTextEffect } from '../effects/floating-text.js';
 import { BuildingSinkEffect } from '../effects/building-sink.js';
 import { SoundManager } from '../ui/sound-manager.js';
 import { BasePanel } from '../ui/panels/base-panel.js';
+import { renderBuildingDetailHeader } from '../ui/panels/building-detail-header.js';
+import { SceneManager } from './scene-manager.js';
 import { WallSystem } from './wall-system.js';
 import { setupStructureDepth } from './structure-depth.js';
 import { Renderer } from './renderer.js';
@@ -31,6 +34,7 @@ import guardCfg from '../../data/hamster-guard-config.json';
 import militiaCfg from '../../data/hamster-militia-config.json';
 import scoutCfg from '../../data/hamster-scout-config.json';
 import musketeerCfg from '../../data/hamster-musketeer-config.json';
+import priestCfg from '../../data/hamster-priest-config.json';
 import {
     applyGlobalUpgradesToKind,
     getUnitUpgradeLevel,
@@ -49,6 +53,7 @@ const ABILITY_TARGET_NAMES = Object.freeze({
     militia: '仓鼠民兵',
     scout: '仓鼠斥候',
     musketeer: '仓鼠火枪',
+    priest: '仓鼠牧师',
 });
 
 /** 产兵建筑配置表（唯一真源，building-system.js 也据此生成可建条目） */
@@ -62,6 +67,7 @@ const PRODUCER_UNIT_CFG = {
     militia: militiaCfg,
     scout: scoutCfg,
     musketeer: musketeerCfg,
+    priest: priestCfg,
 };
 
 /** 单位 key → 实体类 */
@@ -72,6 +78,7 @@ const PRODUCER_UNIT_CLASS = {
     militia: HamsterMilitia,
     scout: HamsterScout,
     musketeer: HamsterMusketeer,
+    priest: HamsterPriest,
 };
 
 export function getProducerConfig(key) {
@@ -89,9 +96,13 @@ export function getProducerModuleDesc(cfg, moduleId, level) {
     const mod = cfg?.modules?.[moduleId];
     if (!mod) return '';
     const pct = Math.round(Math.abs(mod.per) * 100);
+    const fill = (atLevel) => (mod.desc || '')
+        .replace('{pct}', `${pct * atLevel}`)
+        .replace('{value}', `${Math.round(mod.per * atLevel)}`)
+        .replace('{level}', `${(mod.base ?? 0) + Math.round(mod.per * atLevel)}`);
     return {
-        current: mod.desc.replace('{pct}', `${pct * level}`),
-        next: mod.desc.replace('{pct}', `${pct * (level + 1)}`),
+        current: fill(level),
+        next: fill(level + 1),
     };
 }
 
@@ -105,12 +116,16 @@ export function getProducerMults(cfg, modules) {
         moveSpeedMult: 1,
         count: 1,
         hpMult: 1,
+        holyLightCooldownMult: 1,
+        holyLightLevel: 1,
     };
     if (mods.attackSpd && m.attackSpd) out.attackIntervalMult = 1 + mods.attackSpd.per * m.attackSpd;
     if (mods.damage && m.damage) out.attackDamageMult = 1 + mods.damage.per * m.damage;
     if (mods.moveSpd && m.moveSpd) out.moveSpeedMult = 1 + mods.moveSpd.per * m.moveSpd;
     if (mods.count && m.count) out.count = 1 + m.count;
     if (mods.hp && m.hp) out.hpMult = 1 + mods.hp.per * m.hp;
+    if (mods.castSpd && m.castSpd) out.holyLightCooldownMult = 1 + mods.castSpd.per * m.castSpd;
+    if (mods.holyLight && m.holyLight) out.holyLightLevel = 1 + Math.round(mods.holyLight.per * m.holyLight);
     return out;
 }
 
@@ -189,10 +204,22 @@ export class ProducerBuilding extends DamageableEntity {
         return u ? u.name : key;
     }
 
-    /** 切换生成的单位类型；下一次生成生效（key 必须在配置 unitTypes 里） */
+    /** 当前兵种生产周期：unitTypes 条目可按兵种覆盖 spawnIntervalMs，缺省用建筑级配置（2026-08-18） */
+    _unitSpawnIntervalMs() {
+        const u = (this._cfg.unitTypes || []).find((t) => t.key === this.unitType);
+        return (u && Number.isFinite(u.spawnIntervalMs)) ? u.spawnIntervalMs : this._baseSpawnIntervalMs;
+    }
+
+    /** 切换生成的单位类型；下一次生成生效（key 必须在配置 unitTypes 里）。
+     *  2026-08-18：切换兵种重新计时——按新兵种周期从头读条（原来保留计时且同建筑各兵种同周期）；
+     *  切换为当前兵种视为无操作（返回 false，不打断计时、不发通知）。 */
     setUnitType(type) {
         if (!(this._cfg.unitTypes || []).some((t) => t.key === type)) return false;
+        if (type === this.unitType) return false;
         this.unitType = type;
+        this._spawnTimer = this.recruitIntervalMs();
+        this._spawnRetryTimer = 0;
+        this._spawnBlocked = false;
         return true;
     }
 
@@ -223,6 +250,8 @@ export class ProducerBuilding extends DamageableEntity {
             attackInterval: Math.max(300, Math.round((baseAi.attackInterval ?? 2000) * mults.attackIntervalMult)),
             attackDamage: Math.max(1, Math.round((baseAi.attackDamage ?? 50) * mults.attackDamageMult)),
             walkSpeed: Math.max(20, Math.round((baseAi.walkSpeed ?? 120) * mults.moveSpeedMult)),
+            holyLightCooldownMult: mults.holyLightCooldownMult,
+            holyLightLevel: mults.holyLightLevel,
         };
         const baseMaxHp = Math.max(1, Math.round((base.baseMaxHp ?? 300) * mults.hpMult));
         const unit = new UnitClass(spot.x, spot.y, { id, ai, baseMaxHp });
@@ -359,11 +388,13 @@ export class ProducerBuilding extends DamageableEntity {
         return { ok: true, cost, moduleId, level };
     }
 
-    /** 主循环：每 spawnIntervalMs 生成一个军事单位（存活数低于上限时） */
+    /** 主循环：按当前兵种生产周期生成一个军事单位（存活数低于上限时）；
+     *  周期 = 兵种配置 spawnIntervalMs（缺省建筑级）再经研究院快速募兵缩放（2026-08-18） */
     recruitIntervalMs() {
+        const base = this._unitSpawnIntervalMs();
         return ResearchSystem.getRecruitIntervalMs
-            ? ResearchSystem.getRecruitIntervalMs(this._baseSpawnIntervalMs)
-            : this._baseSpawnIntervalMs;
+            ? ResearchSystem.getRecruitIntervalMs(base)
+            : base;
     }
 
     update(dt) {
@@ -505,6 +536,8 @@ class ProducerBuildingPanel extends BasePanel {
                     <button id="pbClose" style="background:#3a3228;color:#d4c5a9;border:1px solid #6a5a3a;border-radius:6px;padding:4px 12px;cursor:pointer;">关闭</button>
                 </div>
             </div>
+            <div id="pbBuildingDetail"></div>
+            <div id="pbFunctionTitle" style="font-size:13px;font-weight:700;color:#7fe0c8;margin:2px 0 6px;"></div>
             <div id="pbStatus" style="border:1px solid #4a4a2a;border-radius:8px;padding:10px;margin-bottom:12px;background:rgba(60,50,20,0.18);"></div>
             <div id="pbUnitType" style="border:1px solid #3a6a5a;border-radius:8px;padding:10px;margin-bottom:12px;background:rgba(20,50,40,0.18);"></div>
             <div id="pbModules" style="border:1px solid #3a4a5a;border-radius:8px;padding:10px;background:rgba(20,40,60,0.18);"></div>
@@ -617,6 +650,10 @@ class ProducerBuildingPanel extends BasePanel {
 
     _abilityValueText(ability, level) {
         const value = getAbilityValue(ability, level);
+        if (ability.displayMode === 'seconds') {
+            const seconds = value / 1000;
+            return `${Number.isInteger(seconds) ? seconds : seconds.toFixed(1)}秒`;
+        }
         return ability.displayMode === 'flat'
             ? String(Math.round(value))
             : `${Math.round(value * 1000) / 10}%`;
@@ -628,7 +665,9 @@ class ProducerBuildingPanel extends BasePanel {
             .replace('{chance}', text)
             .replace('{dmg}', text)
             .replace('{pct}', text)
-            .replace('{value}', text);
+            .replace('{value}', text)
+            .replace('{radius}', String(ability.radius ?? 0))
+            .replace('{cooldown}', String(Math.round((ability.cooldownMs ?? 0) / 1000)));
     }
 
     _abilityTargetText(target) {
@@ -643,16 +682,38 @@ class ProducerBuildingPanel extends BasePanel {
         const energy = EnergyManager ? EnergyManager.getEnergy() : 0;
         const gold = GoldManager ? GoldManager.getGold() : 0;
         const isWarehouse = cfg.workshopType === 'warehouse';
-        const isAbilityShop = cfg.spawnEnabled === false && !isWarehouse;
-        el.querySelector('#pbTitle').textContent = `🏠 ${cfg.name}`;
+        const isPortal = cfg.panelMode === 'portal';
+        const isPassive = cfg.panelMode === 'detail';
+        const isAbilityShop = cfg.spawnEnabled === false && !isWarehouse && !isPassive;
+        const upgradeSummary = cfg.modules?.castSpd
+            ? '圣光冷却/圣光等级/移速/生命随模块升级'
+            : '攻击间隔/伤害/移速/生命随模块升级';
+        el.querySelector('#pbTitle').textContent = '建筑详情';
+        const detail = el.querySelector('#pbBuildingDetail');
+        const functionTitle = el.querySelector('#pbFunctionTitle');
+        const mode = isPortal ? '跨世界传送'
+            : (isPassive ? '基础建筑详情'
+                : (isWarehouse ? '仓储与能源汇总'
+                    : (isAbilityShop ? (cfg.workshopType === 'research' ? '研究与结构强化' : '能力工坊升级') : '募兵与单位生产')));
+        if (detail) {
+            detail.innerHTML = renderBuildingDetailHeader({
+                texture: cfg.tex,
+                name: cfg.name,
+                hp: b.hp,
+                maxHp: b.maxHp,
+                accent: isWarehouse ? '#7fd4ff' : (isAbilityShop ? '#c9a0ff' : '#7fe0c8'),
+                status: mode,
+            });
+        }
+        if (functionTitle) functionTitle.textContent = `特殊功能 · ${mode}`;
         const unitTypeEl = el.querySelector('#pbUnitType');
-        if (unitTypeEl) unitTypeEl.style.display = (isAbilityShop || isWarehouse) ? 'none' : '';
+        if (unitTypeEl) unitTypeEl.style.display = (isAbilityShop || isWarehouse || isPassive || isPortal) ? 'none' : '';
 
         const st = el.querySelector('#pbStatus');
         const curType = b.unitName(b.unitType);
         const spawnMs = b.recruitIntervalMs();
         const nextIn = Math.max(0, Math.ceil(b._spawnTimer / 1000));
-        // 出兵进度 = 已等待时间 / 生成周期（切换单位类型不重置 _spawnTimer，进度不受影响）
+        // 出兵进度 = 已等待时间 / 当前兵种生成周期（2026-08-18 起切换单位类型重置 _spawnTimer 重新计时）
         const spawnProgress = b._spawnBlocked ? 1 : Math.max(0, Math.min(1, 1 - b._spawnTimer / spawnMs));
         const spawnPct = Math.round(spawnProgress * 100);
         const spawnBarColor = b._spawnBlocked ? '#ff7755'
@@ -661,13 +722,13 @@ class ProducerBuildingPanel extends BasePanel {
         st.innerHTML = `
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
                 <div><span style="color:#ffd700;font-weight:700;">等级 ${b.level}</span></div>
-                <div style="font-size:12px;color:#9a9a9a;">耐久 ${Math.ceil(b.hp)}/${b.maxHp} · 金币 <span style="color:#ffd700;">${gold}</span> · 能源 <span style="color:#7fd4ff;">${energy}</span></div>
+                <div style="font-size:12px;color:#9a9a9a;">金币 <span style="color:#ffd700;">${gold}</span> · 能源 <span style="color:#7fd4ff;">${energy}</span></div>
             </div>
             <div style="font-size:12px;color:#c8b98a;line-height:1.7;">
                 军事单位 <span style="color:#8ad0ff;">${b.aliveUnitCount()}/${b.unitCount()}</span> ·
                 当前生成 <b style="color:#7fe0c8;">${curType}</b><br>
                 下次生成 <b id="pbSpawnNext" style="color:${b._spawnBlocked ? '#ff7755' : '#7fd4ff'};">${nextText}</b>（当前周期 ${(spawnMs / 1000).toFixed(1)}s）·
-                攻击间隔/伤害/移速/生命随模块升级
+                ${upgradeSummary}
             </div>
             <div style="margin-top:8px;">
                 <div style="display:flex;justify-content:space-between;align-items:center;font-size:11px;color:#9a9a9a;margin-bottom:3px;">
@@ -733,7 +794,7 @@ class ProducerBuildingPanel extends BasePanel {
         if (sellBtn) {
             const refund = Math.floor(cfg.cost * (cfg.sellRefundRatio ?? 0.5));
             const refundUnit = cfg.currency === 'gold' ? '金币' : '能源';
-            sellBtn.title = `出售返还 ${refund} ${refundUnit}${isAbilityShop || isWarehouse ? '' : '（军事单位一并拆除）'}`;
+            sellBtn.title = `出售返还 ${refund} ${refundUnit}${isAbilityShop || isWarehouse || isPassive || isPortal ? '' : '（军事单位一并拆除）'}`;
             sellBtn.onclick = () => {
                 const res = b.sell();
                 this._notify(res.ok ? `已出售（+${res.refund} ${refundUnit}）` : (res.reason || '出售失败'), res.ok ? '#ffd700' : '#ff5555');
@@ -750,7 +811,7 @@ class ProducerBuildingPanel extends BasePanel {
             st.innerHTML = `
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
                     <div><span style="color:#ffd700;font-weight:700;">📦 能源仓库</span></div>
-                    <div style="font-size:12px;color:#9a9a9a;">耐久 ${Math.ceil(b.hp)}/${b.maxHp}</div>
+                    <div style="font-size:12px;color:#9a9a9a;">仓库数 ${warehouseCount}</div>
                 </div>
                 <div style="font-size:12px;color:#c8b98a;line-height:1.7;">
                     本仓库：<b id="pbWarehouseOwn" style="color:#7fd4ff;">${own}/${ownCap}</b><br>
@@ -764,6 +825,36 @@ class ProducerBuildingPanel extends BasePanel {
                 <div style="font-size:11px;color:#8aa0aa;margin-top:6px;">采矿产出的能源会直接汇总到所有仓库。</div>`;
             return;
         }
+        if (isPortal) {
+            st.innerHTML = `
+                <div style="font-size:13px;font-weight:700;color:#b8a8ff;margin-bottom:6px;">跨世界传送</div>
+                <div style="font-size:12px;color:#c8b98a;line-height:1.8;">
+                    选择目的地后将按正常场景切换流程传送。世界-122建筑与波次状态会自动保存。
+                </div>`;
+            const destinations = (cfg.destinations || []).filter((entry) => entry && entry.sceneId);
+            modBox.innerHTML = destinations.length
+                ? `<div style="display:grid;grid-template-columns:1fr;gap:8px;">${destinations.map((entry) => `
+                    <button data-portal-destination="${entry.sceneId}" style="background:#302a58;color:#e8e0ff;border:1px solid #7566b0;border-radius:7px;padding:9px 10px;cursor:pointer;text-align:left;">
+                        <b style="font-size:14px;">${entry.icon || '🌀'} ${entry.label || entry.sceneId}</b>
+                        <span style="display:block;font-size:11px;color:#b8a8d8;margin-top:2px;">点击传送</span>
+                    </button>`).join('')}</div>`
+                : '<div style="font-size:12px;color:#8a8a8a;">尚未配置传送目的地。</div>';
+            modBox.querySelectorAll('[data-portal-destination]').forEach((button) => {
+                button.addEventListener('click', () => this._teleport(button.dataset.portalDestination));
+            });
+            return;
+        }
+        if (isPassive) {
+            st.innerHTML = `
+                <div style="font-size:13px;font-weight:700;color:#d4e8ff;margin-bottom:6px;">基础建筑属性</div>
+                <div style="font-size:12px;color:#c8b98a;line-height:1.8;">
+                    物理防御：<b style="color:#7ab8ff;">${b.def ?? cfg.def ?? 0}</b> ·
+                    魔法防御：<b style="color:#c9a0ff;">${b.mdef ?? cfg.mdef ?? 0}</b><br>
+                    ${cfg.panelDescription || '暂无额外功能。'}
+                </div>`;
+            modBox.innerHTML = '<div style="font-size:12px;color:#8a8a8a;">该建筑暂未配置额外功能。</div>';
+            return;
+        }
         // ===== 铁匠铺：能力工坊版（覆盖上方出兵版渲染，2026-08-17）=====
         if (isAbilityShop) {
             const workshopTitle = cfg.workshopTitle || '能力工坊';
@@ -774,7 +865,7 @@ class ProducerBuildingPanel extends BasePanel {
             st.innerHTML = `
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
                     <div><span style="color:#ffd700;font-weight:700;">${workshopTitle}</span></div>
-                    <div style="font-size:12px;color:#9a9a9a;">耐久 ${Math.ceil(b.hp)}/${b.maxHp} · 金币 <span style="color:#ffd700;">${gold}</span> · 能源 <span style="color:#7fd4ff;">${energy}</span></div>
+                    <div style="font-size:12px;color:#9a9a9a;">金币 <span style="color:#ffd700;">${gold}</span> · 能源 <span style="color:#7fd4ff;">${energy}</span></div>
                 </div>
                 <div style="font-size:12px;color:#c8b98a;line-height:1.7;">
                     ${workshopDesc}<br>
@@ -879,6 +970,20 @@ class ProducerBuildingPanel extends BasePanel {
             }
         }
         this.refresh();
+    }
+
+    _teleport(sceneId) {
+        const player = this.player || (typeof window !== 'undefined' && window.Game ? window.Game.player : null);
+        if (!player || !sceneId || SceneManager.isLoading) return;
+        if (SceneManager.currentScene === sceneId) {
+            this._notify('已经在该世界中', '#ffd700');
+            return;
+        }
+        this.close();
+        return SceneManager.switchScene(sceneId, player).catch((err) => {
+            console.error('[portal building] switchScene error:', err);
+            this._notify('传送失败，请稍后重试', '#ff5555');
+        });
     }
 
     /** 能力说明浮窗（类似装备栏白色浮窗，2026-08-17）：悬停能力行时显示 */

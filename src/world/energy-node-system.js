@@ -221,6 +221,43 @@ export const EnergyNodeSystem = {
           }
     },
 
+    /** 按快照重建矿点（世界-122 场景快照恢复，2026-08-18 M0）：
+     *  位置/余量/枯竭计时全部来自快照，不走 setup 的随机重铺。 */
+    restoreNodes(list) {
+        if (!Array.isArray(list)) return;
+        // 清掉 setup 随机铺的节点（实体 + 列表），再按快照重建
+        if (Game && Game.entities) {
+            for (const [k, e] of Array.from(Game.entities.entries())) {
+                if (e && e._isEnergyNode) Game.entities.delete(k);
+            }
+        }
+        this.nodes = [];
+        for (const s of list) {
+            if (!s || !Number.isFinite(s.x) || !Number.isFinite(s.y)) continue;
+            const maxHp = Math.max(1, Math.floor(s.maxHp || s.hp || 1));
+            const node = new EnergyNode(s.x, s.y, {
+                hp: Math.max(0, Math.min(maxHp, Math.floor(s.hp ?? maxHp))),
+                maxHp,
+                variant: s.variant || 1,
+            });
+            node._formMeta = energyNodeFormMeta(node._variant);
+            if (s.depleted) {
+                node._depleted = true;
+                node.hp = 0;
+                node._respawnTimer = Math.max(0, s.respawnTimer || 0);
+                node._swapTexture(node._depletedKey || 'energy_node_depleted');
+            }
+            const id = `energy_node_${Math.random().toString(36).slice(2, 8)}`;
+            Game.entities.set(id, node);
+            this.nodes.push(node);
+        }
+        if (pathFinder && typeof pathFinder.setEntityCircleObstacles === 'function') {
+            pathFinder.setEntityCircleObstacles(
+                this.nodes.map(n => ({ x: n.x, y: n.y, radius: n.groundRadius || ENERGY_CONFIG.nodeRadius }))
+            );
+        }
+    },
+
     /** 运行时矿点强制审计（2026-08-16）：场上只允许存在当前 4 簇范围内的矿点——
      *  ① 不在任何簇（spread+50 内）→ 残留节点，删除；
      *  ② 同位置（<60px）多节点只保留第一个 → 防“贴图叠在一起”。

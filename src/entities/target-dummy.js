@@ -46,7 +46,7 @@ import { EffectManager } from '../effects/effect-manager.js';
                 }
                 super.takeDamage(damage, source);
             }
-            update() {
+            update(dt = 16.67) {
                 // 更新中毒效果
                 this._updatePoison(16);
                 if (this._dpsTracking) {
@@ -78,7 +78,7 @@ import { EffectManager } from '../effects/effect-manager.js';
                         if (Math.abs(this.knockbackX) < 0.1) this.knockbackX = 0;
                         if (Math.abs(this.knockbackY) < 0.1) this.knockbackY = 0;
                     }
-                    if (this.hitFlash > 0) this.hitFlash -= 16;
+                    if (this.hitFlash > 0) this.hitFlash = Math.max(0, this.hitFlash - dt);
                     this.wobble += 0.05;
                     this.y = this.baseY + Math.sin(this.wobble) * 3;
                     // 每秒刷新DPS显示
@@ -120,7 +120,7 @@ import { EffectManager } from '../effects/effect-manager.js';
                     if (Math.abs(this.knockbackX) < 0.1) this.knockbackX = 0;
                     if (Math.abs(this.knockbackY) < 0.1) this.knockbackY = 0;
                 }
-                if (this.hitFlash > 0) this.hitFlash -= 16;
+                if (this.hitFlash > 0) this.hitFlash = Math.max(0, this.hitFlash - dt);
                 this.wobble += 0.05;
                 this.y = this.baseY + Math.sin(this.wobble) * 3;
             }            // 应用中毒（支持狼蛛附魔）

@@ -87,6 +87,7 @@ export class HamsterMusketeer extends Companion {
 
     update(dt, entities) {
         if (this.hitFlash > 0) this.hitFlash = Math.max(0, this.hitFlash - dt);
+        this.updateStatusEffects(dt);
         if (this._dying) {
             this._deathTimer -= dt;
             if (this._deathTimer <= 0) this._removeFromScene();

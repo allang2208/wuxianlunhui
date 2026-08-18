@@ -32,6 +32,31 @@ export const FOUR_BY_FOUR_BASE_FOOT = Object.freeze({
     cells: 4,
 });
 
+/** 射击台占一个等距格；F 只改变格内楼梯/台面的朝向。 */
+const ISO_CELL_HALF = ONE_CELL_BUILDING_FOOT.w / (2 * Math.SQRT2);
+
+function firingPlatformFootprint(dir = 'e2') {
+    const halfU = ISO_CELL_HALF;
+    const halfV = ISO_CELL_HALF;
+    const collisionWidth = (halfU + halfV) * Math.SQRT2;
+    return Object.freeze({
+        dir: dir === 'e1' ? 'e1' : 'e2',
+        halfU,
+        halfV,
+        collisionWidth,
+        collisionHeight: collisionWidth * 0.5,
+        collisionRadius: Math.hypot(halfU, halfV),
+        offX: 0,
+        offY: 0,
+        clearRadius: ONE_CELL_BUILDING_FOOT.clearRadius,
+    });
+}
+
+export const FIRING_PLATFORM_FOOTPRINTS = Object.freeze({
+    e1: firingPlatformFootprint('e1'),
+    e2: firingPlatformFootprint('e2'),
+});
+
 /** 按格数取得标准 footprint；当前只开放 1/2/4 三档。 */
 export function getBuildingFootprint(cells = 2) {
     if (cells === 1) return ONE_CELL_BUILDING_FOOT;
@@ -56,6 +81,29 @@ export function applyBuildingFootprint(entity, cells = 2) {
     entity.collisionRadius = foot.collisionRadius;
     entity.colliderOffsetX = foot.offX;
     entity.colliderOffsetY = foot.offY;
+    if (typeof entity._refreshStructureDepth === 'function') entity._refreshStructureDepth();
+    return entity;
+}
+
+/** 将射击台设为单格 footprint；dir 仅描述格内楼梯向。 */
+export function applyFiringPlatformFootprint(entity, dir = 'e2') {
+    if (!entity) return entity;
+    const foot = FIRING_PLATFORM_FOOTPRINTS[dir] || FIRING_PLATFORM_FOOTPRINTS.e2;
+    entity._isGridBuilding = true;
+    entity._buildingFootprintCells = 1;
+    entity._isOneCellBuilding = true;
+    entity._isTwoByTwoBuilding = false;
+    entity._isFourByFourBuilding = false;
+    entity._firingPlatformDir = foot.dir;
+    entity.collisionShape = 'iso_rect';
+    entity.collisionWidth = foot.collisionWidth;
+    entity.collisionHeight = foot.collisionHeight;
+    entity.collisionIsoHalfU = foot.halfU;
+    entity.collisionIsoHalfV = foot.halfV;
+    entity.collisionRadius = foot.collisionRadius;
+    entity.colliderOffsetX = foot.offX;
+    entity.colliderOffsetY = foot.offY;
+    if (typeof entity._refreshStructureDepth === 'function') entity._refreshStructureDepth();
     return entity;
 }
 

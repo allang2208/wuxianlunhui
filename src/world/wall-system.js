@@ -1,5 +1,7 @@
 import { CONFIG } from '../config/config.js';
+import { PERSPECTIVE_SCALE_Y } from '../config/perspective-config.js';
 import { getWallPrefabLibrary, loadWallGeoOverrides } from './wall-prefabs.js';
+import { structureDepthRelationAtPoint } from './structure-depth.js';
 
 // ===== 等距斜墙贴图几何（贴图像素空间，wall-asset-prep.py 产出 + 拼装模拟器实测校准）=====
 // base: 底边线全跨度（含端帽）；face: 正面墙底边跨度（不含端帽，拼接吸附/碰撞用）；
@@ -62,10 +64,23 @@ const ISO_WALL_GEO = {
     // 仙人掌障碍物（2026-08-16，世界-122 荒漠化：树木全部移除后由 cactusScatter 散布。
     // 4 姿态同风格低对比：process-desert-plant.py 白底生图→BiRefNet 抠图→降饱和降对比。
     // foot=底部 15% 带实测占地，obstacleH=期望世界显示高度（贴图等比裁剪 h=256））
-    cactus_saguaro2arm: { tex: 'obstacle_cactus_saguaro2arm', w: 109, h: 256, category: 'obstacle', foot: { w: 31, d: 11 }, obstacleH: 240, editor: '仙人掌·双臂' },
-    cactus_saguaro1arm: { tex: 'obstacle_cactus_saguaro1arm', w: 80, h: 256, category: 'obstacle', foot: { w: 36, d: 13 }, obstacleH: 230, editor: '仙人掌·单臂' },
-    cactus_barrel: { tex: 'obstacle_cactus_barrel', w: 245, h: 256, category: 'obstacle', foot: { w: 110, d: 38 }, obstacleH: 105, editor: '仙人掌·桶状' },
-    cactus_cholla: { tex: 'obstacle_cactus_cholla', w: 124, h: 256, category: 'obstacle', foot: { w: 33, d: 12 }, obstacleH: 150, editor: '仙人掌·多节' },
+    cactus_saguaro2arm: { tex: 'obstacle_cactus_saguaro2arm', w: 109, h: 256, category: 'obstacle', foot: { w: 31, d: 11 }, obstacleH: 240, shadow: { kind: 'projection', heightMul: 1.0, maxOffset: 72, crossSpread: 0.28, visualWidthMul: 1.20, visualDepthMul: 1.25 }, editor: '仙人掌·双臂' },
+    cactus_saguaro1arm: { tex: 'obstacle_cactus_saguaro1arm', w: 80, h: 256, category: 'obstacle', foot: { w: 36, d: 13 }, obstacleH: 230, shadow: { kind: 'projection', heightMul: 1.0, maxOffset: 68, crossSpread: 0.25, visualWidthMul: 1.20, visualDepthMul: 1.25 }, editor: '仙人掌·单臂' },
+    cactus_barrel: { tex: 'obstacle_cactus_barrel', w: 245, h: 256, category: 'obstacle', foot: { w: 110, d: 38 }, obstacleH: 105, shadow: { kind: 'contact', heightMul: 0.35, maxOffset: 22, visualWidthMul: 1.60, visualDepthMul: 1.45 }, editor: '仙人掌·桶状' },
+    cactus_cholla: { tex: 'obstacle_cactus_cholla', w: 124, h: 256, category: 'obstacle', foot: { w: 33, d: 12 }, obstacleH: 150, shadow: { kind: 'projection', heightMul: 0.65, maxOffset: 42, crossSpread: 0.20, visualWidthMul: 1.30, visualDepthMul: 1.35 }, editor: '仙人掌·多节' },
+    // 世界-123 雪原高瘦松树（Depth ControlNet 白模锁姿态 + BiRefNet 原图抠图，2026-08-18）。
+    // foot 是底部树干实测带，obstacleH 统一为 390，显示与碰撞均按裁剪后的真实像素尺寸等比缩放。
+    snow_pine_01: { tex: 'obstacle_snow_pine_01', w: 233, h: 909, category: 'obstacle', foot: { w: 95, d: 50 }, obstacleH: 390, editor: '雪松·直立' },
+    snow_pine_02: { tex: 'obstacle_snow_pine_02', w: 297, h: 937, category: 'obstacle', foot: { w: 112, d: 54 }, obstacleH: 390, editor: '雪松·左倾' },
+    snow_pine_03: { tex: 'obstacle_snow_pine_03', w: 385, h: 941, category: 'obstacle', foot: { w: 140, d: 58 }, obstacleH: 390, editor: '雪松·右倾' },
+    snow_pine_04: { tex: 'obstacle_snow_pine_04', w: 446, h: 954, category: 'obstacle', foot: { w: 155, d: 64 }, obstacleH: 390, editor: '雪松·偏风' },
+    snow_pine_05: { tex: 'obstacle_snow_pine_05', w: 400, h: 885, category: 'obstacle', foot: { w: 135, d: 56 }, obstacleH: 390, editor: '雪松·疏枝' },
+    // 世界-124 林地针叶树：白模深度锁姿态 → FLUX.2 Dev → BiRefNet 原图抠图。
+    forest_pine_01: { tex: 'obstacle_forest_pine_01', w: 330, h: 845, category: 'obstacle', foot: { w: 115, d: 60 }, obstacleH: 400, editor: '林地松·直立' },
+    forest_pine_02: { tex: 'obstacle_forest_pine_02', w: 376, h: 974, category: 'obstacle', foot: { w: 130, d: 64 }, obstacleH: 400, editor: '林地松·左倾' },
+    forest_pine_03: { tex: 'obstacle_forest_pine_03', w: 452, h: 939, category: 'obstacle', foot: { w: 145, d: 68 }, obstacleH: 400, editor: '林地松·右倾' },
+    forest_pine_04: { tex: 'obstacle_forest_pine_04', w: 435, h: 937, category: 'obstacle', foot: { w: 150, d: 68 }, obstacleH: 400, editor: '林地松·偏风' },
+    forest_pine_05: { tex: 'obstacle_forest_pine_05', w: 476, h: 915, category: 'obstacle', foot: { w: 160, d: 70 }, obstacleH: 400, editor: '林地松·疏枝' },
 };
 
 // 地牢墙样式表（key = dungeonType；新地牢在此登记。值 = ISO_WALL_GEO 键 + 配套资源）
@@ -422,8 +437,17 @@ const WallSystem = {
         }
         // 清除旧视觉墙壁
         if (phaserScene.visualWalls) {
+            // 散布障碍物（世界-122 仙人掌 / 世界-123 雪松）的太阳投影不属于 visualWalls，
+            // 视觉层重建前必须先注销，否则旧投影会脱离本体残留。
+            for (const oldSprite of phaserScene.visualWalls.getChildren()) {
+                const oldShadow = oldSprite.getData && oldSprite.getData('sunShadow');
+                if (oldShadow && typeof phaserScene.unregisterStaticSunShadow === 'function') {
+                    phaserScene.unregisterStaticSunShadow(oldShadow);
+                }
+            }
             phaserScene.visualWalls.clear(true, true);
         }
+        for (const piece of this.isoVisuals || []) piece._sunShadow = null;
         // 创建矩形墙壁物理体 + 视觉精灵（noVisual 墙只建物理体，如静态 NPC 底座障碍）
         for (const w of this.walls) {
             const wall = phaserScene.add.rectangle(w.x + w.w / 2, w.y + w.h / 2, w.w, w.h, 0x000000, 0);
@@ -842,6 +866,49 @@ const WallSystem = {
         sp.setDepth(depth);
         phaserScene.visualWalls.add(sp);
         p._sprite = sp;
+        // 世界散布障碍物（仙人掌/雪松）走真实 obstacle footprint 注册太阳投影。
+        // 只处理 _scatter：地牢内的摆放障碍仍保持原有接触阴影，不引入室外日照投影。
+        if (p._scatter && g && g.category === 'obstacle' && g.foot
+            && typeof phaserScene.registerStaticSunShadow === 'function') {
+            const foot = this.getObstacleFootprintRect(p);
+            if (foot) {
+                const sx = Math.abs(p.scaleX ?? 1);
+                const sy = Math.abs(p.scaleY ?? p.scaleX ?? 1);
+                const visualHeight = g.h * sy;
+                const shadowCfg = g.shadow || {};
+                const shadowHeight = visualHeight * (shadowCfg.heightMul ?? 1);
+                const shadowWidth = foot.w * (shadowCfg.visualWidthMul ?? 1);
+                const shadowDepth = foot.h * (shadowCfg.visualDepthMul ?? 1);
+                const maxOffset = shadowCfg.maxOffset
+                    ?? Math.min(72, Math.max(28, visualHeight * 0.30));
+                const projectionKey = `${p.tex}_projection`;
+                p._sunShadow = phaserScene.registerStaticSunShadow({
+                    x: foot.x + foot.w * 0.5,
+                    y: foot.y + foot.h * 0.5,
+                    // 阴影视觉底座可大于碰撞 footprint；只影响渲染，不影响寻路/建造/命中。
+                    footprintWidth: shadowWidth,
+                    // footprint 碰撞坐标的纵深尚未做渲染透视压缩；
+                    // 贴地投影必须按 2:1（0.5）压扁，才能与实际占地视觉一致。
+                    footprintHeight: shadowDepth * PERSPECTIVE_SCALE_Y,
+                    height: shadowHeight,
+                    maxOffset,
+                    depth: depth - 0.1,
+                    textureKey: shadowCfg.kind === 'projection' && phaserScene.textures.exists(projectionKey)
+                        ? projectionKey
+                        : null,
+                    flipX: !!p.flipX,
+                    flipY: !!p.flipY,
+                    projection: shadowCfg.kind === 'projection',
+                    // 预投影图经顺时针旋转后：源贴图的水平镜像映射到投影横向 flipY，
+                    // 投影根部固定在左中点（0, 0.5）并与 footprint 中心重合。
+                    projectionOriginX: 0,
+                    projectionOriginY: 0.5,
+                    projectionFlipY: !!p.flipX,
+                    crossSpread: shadowCfg.crossSpread,
+                });
+                sp.setData('sunShadow', p._sunShadow);
+            }
+        }
     },
 
     /** 贴图键 → 几何配置 */
@@ -872,10 +939,20 @@ const WallSystem = {
     junctionCorrectedDepth(x, y, depth, frontRange = 60) {
         const cache = this._getFaceSegCache();
         let occluderDepth = Infinity, frontDepth = -Infinity;
+        const collectRelation = (segDepth, inFront) => {
+            if (inFront) {
+                if (segDepth > frontDepth) frontDepth = segDepth;
+            } else if (segDepth < occluderDepth) {
+                occluderDepth = segDepth;
+            }
+        };
         const applySeg = (A, B, segDepth) => {
                 const minX = Math.min(A.x, B.x) - 8, maxX = Math.max(A.x, B.x) + 8;
                 if (x < minX || x > maxX) return;
-                const t = (x - A.x) / ((B.x - A.x) || 1e-6);
+                // 8px 是接缝横向容差，不代表面线可以无限外推；夹紧 t 后转角/门柱
+                // 外侧不会采到虚构的延长线 Y，避免前后关系在端点附近翻转。
+                const rawT = (x - A.x) / ((B.x - A.x) || 1e-6);
+                const t = Math.max(0, Math.min(1, rawT));
                 const yLine = A.y + (B.y - A.y) * t;
                 // 门墙面线 depth = 门洞中心底边 y，比深端浅（亏空 = 深端 y − depth，可达 ~119px）：
                 // 收集窗按亏空加宽，否则深端墙后 60~119px 的实体收不到任何面线、仲裁完全失效
@@ -883,14 +960,8 @@ const WallSystem = {
                 const deficit = Math.max(A.y, B.y) - segDepth;
                 const win = (y - yLine) < 0 ? (deficit > 0 ? 60 + deficit : 60) : frontRange; // 线后=60+亏空；线前=实体贴图高度
                 if (Math.abs(y - yLine) > win) return;
-                if (y < yLine) {
-                    // 遮挡源取最浅（min）：实体必须压到所有遮挡面线之下才真正"被任一遮挡"。
-                    // 旧版取最深（max），门洞深端的实体会被邻接深墙面线抬到门墙 depth 之上，
-                    // 门墙左段时挡时不挡（RB 边门，右侧浅端天然正常）
-                    if (segDepth < occluderDepth) occluderDepth = segDepth;
-                } else {
-                    if (segDepth > frontDepth) frontDepth = segDepth;
-                }
+                // 遮挡源取最浅（min）：实体必须压到所有遮挡面线之下才真正被遮挡。
+                collectRelation(segDepth, y >= yLine);
         };
         for (const it of cache) {
             for (const [A, B] of it.segs) applySeg(A, B, it.depth);
@@ -903,6 +974,14 @@ const WallSystem = {
             for (const e of G.entities.values()) {
                 if (!e || !e.active) continue;
                 if (e._isCoverGate) continue; // 门的遮挡面线按三段注册在 GateFaceSegs（见下）
+                // 普通建筑按完整 iso footprint 的“当前 X 局部前缘”只判定一次。
+                // 不能把两条菱形前边分别当墙线收集：前顶点附近会同时得到一前一后，
+                // 建筑放大后还会把错误窗口放大，导致单位已经在建筑前方仍被压住。
+                if (e._structureDepthMode === 'iso_footprint') {
+                    const relation = structureDepthRelationAtPoint(e, x, y);
+                    if (relation) collectRelation(relation.depth, relation.inFront);
+                    continue;
+                }
                 const lines = Array.isArray(e._faceLines) && e._faceLines.length
                     ? e._faceLines
                     : (e._faceLine && e._faceLine.length === 2 ? [e._faceLine] : []);
@@ -1097,6 +1176,11 @@ const WallSystem = {
             });
             if (hit) {
                 removed++;
+                if (p._sunShadow && typeof window !== 'undefined'
+                    && window.__phaserScene && typeof window.__phaserScene.unregisterStaticSunShadow === 'function') {
+                    window.__phaserScene.unregisterStaticSunShadow(p._sunShadow);
+                    p._sunShadow = null;
+                }
                 if (p._sprite && typeof p._sprite.destroy === 'function') p._sprite.destroy();
             } else {
                 keep.push(p);
@@ -1207,9 +1291,17 @@ const WallSystem = {
     _syncTreesToPhaser() {
         const phaserScene = window.__phaserScene;
         if (!phaserScene) return;
+        // 树木视觉层重建前，一并移除对应的太阳投影，防止切场景/重建时遗留。
         if (phaserScene.visualTrees) {
+            for (const oldSprite of phaserScene.visualTrees.getChildren()) {
+                const oldShadow = oldSprite.getData && oldSprite.getData('sunShadow');
+                if (oldShadow && typeof phaserScene.unregisterStaticSunShadow === 'function') {
+                    phaserScene.unregisterStaticSunShadow(oldShadow);
+                }
+            }
             phaserScene.visualTrees.clear(true, true);
         }
+        for (const oldTree of this.trees) oldTree._sunShadow = null;
         // 创建树木圆形碰撞体（用不可见圆形表示），使用独立的 collisionRadius
         for (const t of this.trees) {
             const tree = phaserScene.add.circle(t.x, t.y, t.collisionRadius || t.radius * 0.6, 0x000000, 0);
@@ -1230,6 +1322,17 @@ const WallSystem = {
                 sprite.setDepth(t.sortY || t.y + t.radius * 2);
                 phaserScene.visualTrees.add(sprite);
                 t.visualSprite = sprite;
+                if (typeof phaserScene.registerStaticSunShadow === 'function') {
+                    t._sunShadow = phaserScene.registerStaticSunShadow({
+                        x: t.x,
+                        y: t.y,
+                        radius: t.collisionRadius || t.radius * 0.6,
+                        height: t.height || t.radius * 3,
+                        maxOffset: 72,
+                        depth: sprite.depth - 0.1,
+                    });
+                    sprite.setData('sunShadow', t._sunShadow);
+                }
             }
         }
 
@@ -1543,6 +1646,17 @@ const WallSystem = {
                 sprite.setDepth(treeData.sortY);
                 phaserScene.visualTrees.add(sprite);
                 treeData.visualSprite = sprite;
+                if (typeof phaserScene.registerStaticSunShadow === 'function') {
+                    treeData._sunShadow = phaserScene.registerStaticSunShadow({
+                        x,
+                        y,
+                        radius: collisionRadius,
+                        height: treeData.height,
+                        maxOffset: 72,
+                        depth: sprite.depth - 0.1,
+                    });
+                    sprite.setData('sunShadow', treeData._sunShadow);
+                }
             }
             this._phaserVisualsEnabled = true;
         }

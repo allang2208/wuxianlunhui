@@ -15,6 +15,7 @@ import { FloatingTextEffect } from '../effects/floating-text.js';
 import { BuildingSinkEffect } from '../effects/building-sink.js';
 import { SoundManager } from '../ui/sound-manager.js';
 import { BasePanel } from '../ui/panels/base-panel.js';
+import { renderBuildingDetailHeader } from '../ui/panels/building-detail-header.js';
 import { WallSystem } from './wall-system.js';
 import { setupStructureDepth } from './structure-depth.js';
 import { Renderer } from './renderer.js';
@@ -42,7 +43,7 @@ export const HAMSTER_CONFIG = {
         respawnMs: 60000,        // 矿工死亡后 1 分钟才补员
     },
     miner: {
-        hp: 200,
+        // HP 不在此配置：唯一真源 data/hamster-miner-config.json baseMaxHp（2026-08-16 口径 100）
         radius: 26,
         baseDamage: 100,          // 每次攻击伤害基准（采矿与近战共用）
         attackIntervalMs: 2000,   // 攻击间隔基准
@@ -427,6 +428,8 @@ class HamsterHutPanel extends BasePanel {
                     <button id="hhClose" style="background:#3a3228;color:#d4c5a9;border:1px solid #6a5a3a;border-radius:6px;padding:4px 12px;cursor:pointer;">关闭</button>
                 </div>
             </div>
+            <div id="hhBuildingDetail"></div>
+            <div style="font-size:13px;font-weight:700;color:#8ad0ff;margin:2px 0 6px;">特殊功能 · 矿工生产与采矿</div>
             <div id="hhStatus" style="border:1px solid #4a4a2a;border-radius:8px;padding:10px;margin-bottom:12px;background:rgba(60,50,20,0.18);"></div>
             <div id="hhModules" style="border:1px solid #3a4a5a;border-radius:8px;padding:10px;background:rgba(20,40,60,0.18);"></div>
         `;
@@ -476,7 +479,18 @@ class HamsterHutPanel extends BasePanel {
         if (!el || !this.hut) return;
         const h = this.hut;
         const energy = EnergyManager ? EnergyManager.getEnergy() : 0;
-        el.querySelector('#hhTitle').textContent = `🐹 仓鼠小屋`;
+        el.querySelector('#hhTitle').textContent = '建筑详情';
+        const detail = el.querySelector('#hhBuildingDetail');
+        if (detail) {
+            detail.innerHTML = renderBuildingDetailHeader({
+                texture: h.spriteCfg?.idleKey || HAMSTER_CONFIG.hut.tex,
+                name: '仓鼠小屋',
+                hp: h.hp,
+                maxHp: h.maxHp,
+                accent: '#8ad0ff',
+                status: `Lv.${h.level} · 矿工 ${h.aliveMinerCount()}/${h.minerCount()}`,
+            });
+        }
 
         const st = el.querySelector('#hhStatus');
         const mults = h.mults();
@@ -485,7 +499,7 @@ class HamsterHutPanel extends BasePanel {
         st.innerHTML = `
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
                 <div><span style="color:#ffd700;font-weight:700;">等级 ${h.level}</span></div>
-                <div style="font-size:12px;color:#9a9a9a;">耐久 ${Math.ceil(h.hp)}/${h.maxHp} · 金币 <span style="color:#ffd700;">${gold}</span> · 能源 <span style="color:#7fd4ff;">${energy}</span></div>
+                <div style="font-size:12px;color:#9a9a9a;">金币 <span style="color:#ffd700;">${gold}</span> · 能源 <span style="color:#7fd4ff;">${energy}</span></div>
             </div>
             <div style="font-size:12px;color:#c8b98a;line-height:1.7;">
                 仓鼠矿工 <span style="color:#8ad0ff;">${h.aliveMinerCount()}/${h.minerCount()}</span> ·

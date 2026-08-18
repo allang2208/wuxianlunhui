@@ -1,4 +1,35 @@
 # 变更日志
+### 对话：世界-122场景快照（多世界并行 M0）（2026-08-18）
+- 新增 `src/world/world122-snapshot.js`：离场捕获/入场恢复/主存档持久化，
+  世界-122 离开再进入**不再归零**——基地HP、波次（wave 进行中离开回场 break 重开本波）、
+  玩家建筑七类（塔含武器/芯片/模块、方块墙、4格门整组、射击台、矿场含模块与暂存能量、
+  兵营兵种与读条、产兵建筑读条/持续升级/仓库单仓存量）、矿点位置与余量全部恢复。
+- 计时器按剩余毫秒冻结续跑（M0 冻结语义，后台时间推进留给 M1）；单位按兵种+存活数
+  回场重生成；败北不持久化；胜利恢复防重复发奖。
+- 场景钩子：switchScene 离场先捕获后 teardown；`_loadScene8` 系统 setup 后恢复；
+  存档写 `world122.scene`；`Game.start` 重置快照。
+- `EnergyNodeSystem.restoreNodes`：按快照重建矿点（位置不再随机重铺）。
+- 回归：`test-world122-snapshot.mjs` 21 项契约 + `cdp-world122-snapshot.mjs` 实机 15 项全绿。
+
+### 对话：世界-122传送门建筑（占位素材，仅面板与数值）（2026-08-18）
+- 新增传送门建筑：`producer-buildings.json.portal`，2000能源、HP3000、def80/mdef80、
+  回收50%；纯详情模式 `panelMode:"detail"`，不产兵不进工坊，传送功能待多世界并行系统接入。
+- 素材库无现成素材，占位图由 `tools/ai-gen/gen-portal-placeholder.py` 生成（石拱+能量涡，
+  紧身裁剪 615×921），标定 displayW=288/displayH=431/footOffsetY=216；
+  光照派生图经 `build-lighting-maps.py` 生成（projection/silhouette/height/normal）。
+- BootScene 注册贴图并加入建筑投影清单；新增 `test-world122-portal-building.mjs` 7 项全绿。
+
+### 对话：产兵节奏调整与兵营配置清理（2026-08-18）
+- 兵营产出周期 30s → 45s；靶场按兵种区分：仓鼠火枪 60s、仓鼠射手 45s
+  （unitTypes 条目新增 spawnIntervalMs 覆盖建筑级，`ProducerBuilding._unitSpawnIntervalMs` 查询）。
+- 切换兵种重新计时：兵营/产兵建筑 `setUnitType` 切换后按新兵种周期重置 `_spawnTimer`
+  （原“保留计时”口径作废）；切换为当前兵种视为无操作，不打断计时也不发通知。
+- 清理死配置：`HAMSTER_CONFIG.miner.hp=200`（实际 HP 走 hamster-miner-config.json
+  baseMaxHp=100）；清理兵营死注册：unit 表移除射手/民兵及关联导入与生成分支
+  （旧档兵营 unitType 由 spawnUnit 纠正为战士）。
+- 测试同步：test-hamster-guard/militia/musketeer 更新断言，锁定 45s 周期、
+  靶场分兵种周期与切换重计时；eslint 0 error。
+
 ### 对话：世界-122地面footprint、安全出兵与4格门中段终案（2026-08-18）
 - 新增等距地面 `iso_rect` 几何真源：建筑在u/v地面轴中做旋转矩形碰撞，替代屏幕AABB；
   放置、实体分离、结构距离、出生校验、范围显示和图层遮挡统一复用。

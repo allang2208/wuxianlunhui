@@ -13,6 +13,9 @@ import { serializeUnitUpgrades, restoreUnitUpgrades } from '../world/unit-upgrad
 import { serializeAbilityLevels, restoreAbilityLevels } from '../world/ability-store.js';
 import { ResearchSystem } from '../world/research-system.js';
 import { EnergyManager } from '../systems/energy-manager.js';
+import { World122TributeSystem } from '../world/world122-tribute-system.js';
+import { serializeWorld122Scene, restoreWorld122Scene } from '../world/world122-snapshot.js';
+import { EnvironmentLightingSystem } from '../world/environment-lighting-system.js';
 
 // Game UI Manager - Extracted from Game.js
 // Handles UI updates, save/load, timers, and menu operations
@@ -20,8 +23,6 @@ import { EnergyManager } from '../systems/energy-manager.js';
 export const GameUIManager = {
     player: null,
     showAttackRange: false,
-    _gameStartTime: null,
-    _timerInterval: null,
 
     init(player) {
         this.player = player;
@@ -46,6 +47,7 @@ export const GameUIManager = {
     },
     updateUI() {
         if (!this.player) return;
+        this.refreshGameTime();
         const d = this.player.data, p = this.player;
         // 简版 HUD 已迁移到 Phaser：若 DOM 简单 HUD 存在才更新，否则跳过
         if (this._domSimpleHudAvailable) {
@@ -243,12 +245,15 @@ export const GameUIManager = {
             this.player.x = data.position.x;
             this.player.y = data.position.y;
         }
+        EnvironmentLightingSystem.restoreTime(data.gameTime);
         // 恢复装备与背包（附魔/强化/改造数据随物品一并恢复）
         if (data.equipments) this.player.equipments = data.equipments;
         restoreUnitUpgrades(data.world122?.unitUpgrades);
         restoreAbilityLevels(data.world122?.abilityLevels);
         ResearchSystem.refreshWorld();
         EnergyManager.restoreStorage(data.world122?.energyStorage);
+        World122TributeSystem.restore(data.world122?.tributeBuffs);
+        restoreWorld122Scene(data.world122?.scene);
         if (Array.isArray(data.backpack) && typeof EquipManager !== 'undefined') {
             // 原地替换内容而非换数组：init 时旧数组引用已注入 EquipTooltipManager/
             // GoldManager/BackpackDialogManager/dragDropManager，换数组会让这些引用失效
@@ -282,6 +287,7 @@ export const GameUIManager = {
             timestamp: Date.now(),
             player: this.player.data,
             position: { x: this.player.x, y: this.player.y },
+            gameTime: EnvironmentLightingSystem.serializeTime(),
             // 装备与背包一并持久化（附魔/强化/改造数据在物品字段上）
             equipments: this.player.equipments,
             backpack: (typeof EquipManager !== 'undefined') ? EquipManager.backpackItems : [],
@@ -289,44 +295,22 @@ export const GameUIManager = {
                 unitUpgrades: serializeUnitUpgrades(),
                 abilityLevels: serializeAbilityLevels(),
                 energyStorage: EnergyManager.serializeStorage(),
+                tributeBuffs: World122TributeSystem.serialize(),
+                scene: serializeWorld122Scene(),
             },
         };
         try { localStorage.setItem('infiniteLoop_save', JSON.stringify(saveData)); alert('已保存至主神空间'); } catch (e) { console.error('Save failed:', e); alert('存档失败: 存储空间不足'); }
     },
     showHelp() { alert('WASD移动 | 鼠标瞄准 | 左键攻击 | F切换武器\nC打开装备栏 | 空格闪避 | Shift冲刺'); },
-    startTimer() {
-        // 防重入：重复开始先清旧间隔（toMenu 删除后 stopTimer 无调用方，此处自守卫）
-        if (this._timerInterval) {
-            TimerManager.clearInterval(this._timerInterval);
-            this._timerInterval = null;
+    refreshGameTime() {
+        const gameTime = EnvironmentLightingSystem.getGameTime();
+        const icon = getElementIfExists('gameTimeIcon');
+        const text = getElementIfExists('gameTimeText');
+        if (icon) icon.textContent = gameTime.icon;
+        if (text) {
+            const pad = (n) => String(n).padStart(2, '0');
+            text.textContent = `第${gameTime.day}日 · ${pad(gameTime.hour)}:${pad(gameTime.minute)} · ${gameTime.period}`;
         }
-        this._gameStartTime = Date.now();
-        const timerEl = getElementIfExists('gameTimer');
-        if (timerEl) timerEl.style.display = 'flex';
-        const textEl = getElementIfExists('timerText');
-        if (textEl) textEl.textContent = '00:00:00';
-        this._timerInterval = TimerManager.setInterval(() => {
-            if (!this._gameStartTime) return;
-            const elapsed = Date.now() - this._gameStartTime;
-            const tEl = getElementIfExists('timerText');
-            if (tEl) tEl.textContent = this._formatTime(elapsed);
-        }, 1000);
-    },
-    stopTimer() {
-        if (this._timerInterval) { TimerManager.clearInterval(this._timerInterval); this._timerInterval = null; }
-        this._gameStartTime = null;
-        const timerEl = getElementIfExists('gameTimer');
-        if (timerEl) timerEl.style.display = 'none';
-        const textEl = getElementIfExists('timerText');
-        if (textEl) textEl.textContent = '00:00:00';
-    },
-    _formatTime(ms) {
-        const totalSeconds = Math.floor(ms / 1000);
-        const hours = Math.floor(totalSeconds / 3600);
-        const minutes = Math.floor((totalSeconds % 3600) / 60);
-        const seconds = totalSeconds % 60;
-        const pad = n => n.toString().padStart(2, '0');
-        return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
     },
     setupWeaponSwitchButtons() {
         // quickMelee/quickRanged buttons are optional; weapon switching via F key always works

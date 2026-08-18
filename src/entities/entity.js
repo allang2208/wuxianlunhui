@@ -50,6 +50,9 @@ class Entity {
     rebuildCollider() {
         this.collider = Collider.fromEntity(this);
         this.collider.attach(this);
+        if (typeof this._refreshStructureDepth === 'function') {
+            this._refreshStructureDepth();
+        }
     }
 
     /**

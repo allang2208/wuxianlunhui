@@ -17,6 +17,7 @@ import hamsterGuardConfig from '../../../data/hamster-guard-config.json';
 import hamsterMilitiaConfig from '../../../data/hamster-militia-config.json';
 import hamsterScoutConfig from '../../../data/hamster-scout-config.json';
 import hamsterMusketeerConfig from '../../../data/hamster-musketeer-config.json';
+import hamsterPriestConfig from '../../../data/hamster-priest-config.json';
 
 export class BootScene extends Scene {
     constructor() {
@@ -91,8 +92,8 @@ export class BootScene extends Scene {
             }
         }
 
-        // ---- 世界-122 友方单位（仓鼠矿工/战士/射手/盾卫/民兵/斥候；独立配置，不入招募池）----
-        for (const unitConfig of [hamsterMinerConfig, hamsterWarriorConfig, hamsterShooterConfig, hamsterGuardConfig, hamsterMilitiaConfig, hamsterScoutConfig, hamsterMusketeerConfig]) {
+        // ---- 世界-122 友方单位（独立配置，不入招募池）----
+        for (const unitConfig of [hamsterMinerConfig, hamsterWarriorConfig, hamsterShooterConfig, hamsterGuardConfig, hamsterMilitiaConfig, hamsterScoutConfig, hamsterMusketeerConfig, hamsterPriestConfig]) {
             for (const [animKey, def] of Object.entries(unitConfig.animations || {})) {
                 if (!def || !def.src) continue;
                 this.load.spritesheet(`companion_${unitConfig.id}_${animKey}`, def.src, {
@@ -150,6 +151,20 @@ export class BootScene extends Scene {
         this.load.image('yellowmud_new1', 'assets/terrain/yellowmud-new1.png');
         this.load.image('floor_mud_seamless', 'assets/terrain/floor_mud_seamless.png');
         this.load.image('floor_sand_seamless', 'assets/terrain/floor_sand_seamless.png');
+        this.load.image('floor_snow_fresh_seamless', 'assets/terrain/floor_snow_fresh_seamless.png');
+        this.load.image('floor_snow_packed_seamless', 'assets/terrain/floor_snow_packed_seamless.png');
+        this.load.image('floor_snow_wind_seamless', 'assets/terrain/floor_snow_wind_seamless.png');
+        this.load.image('floor_grass_forest_seamless', 'assets/terrain/floor_grass_forest_seamless.png');
+        for (let i = 1; i <= 5; i++) {
+            const id = String(i).padStart(2, '0');
+            this.load.image(`obstacle_snow_pine_${id}`, `assets/terrain/obstacle_snow_pine_${id}.png`);
+            this.load.image(`obstacle_snow_pine_${id}_silhouette`, `assets/terrain/lighting/obstacle_snow_pine_${id}_silhouette.png`);
+            this.load.image(`obstacle_snow_pine_${id}_projection`, `assets/terrain/lighting/obstacle_snow_pine_${id}_projection.png`);
+            this.load.image(`obstacle_forest_pine_${id}`, `assets/terrain/obstacle_forest_pine_${id}.png`);
+        }
+        for (let i = 1; i <= 5; i++) {
+            this.load.image(`deco_snow_${i}`, `assets/terrain/deco_snow_${i}.png`);
+        }
         this.load.image('deco_grass_1', 'assets/terrain/deco_grass_1.png');
         this.load.image('deco_grass_2', 'assets/terrain/deco_grass_2.png');
         // 世界-122 荒漠植物点缀（2026-08-16：束草/蒿灌木/龙舌兰/风滚草，微俯 30° 直立 + 低饱和）
@@ -162,6 +177,14 @@ export class BootScene extends Scene {
         this.load.image('obstacle_cactus_saguaro1arm', 'assets/terrain/obstacle_cactus_saguaro1arm.png');
         this.load.image('obstacle_cactus_barrel', 'assets/terrain/obstacle_cactus_barrel.png');
         this.load.image('obstacle_cactus_cholla', 'assets/terrain/obstacle_cactus_cholla.png');
+        this.load.image('obstacle_cactus_saguaro2arm_silhouette', 'assets/terrain/lighting/obstacle_cactus_saguaro2arm_silhouette.png');
+        this.load.image('obstacle_cactus_saguaro1arm_silhouette', 'assets/terrain/lighting/obstacle_cactus_saguaro1arm_silhouette.png');
+        this.load.image('obstacle_cactus_barrel_silhouette', 'assets/terrain/lighting/obstacle_cactus_barrel_silhouette.png');
+        this.load.image('obstacle_cactus_cholla_silhouette', 'assets/terrain/lighting/obstacle_cactus_cholla_silhouette.png');
+        this.load.image('obstacle_cactus_saguaro2arm_projection', 'assets/terrain/lighting/obstacle_cactus_saguaro2arm_projection.png');
+        this.load.image('obstacle_cactus_saguaro1arm_projection', 'assets/terrain/lighting/obstacle_cactus_saguaro1arm_projection.png');
+        this.load.image('obstacle_cactus_barrel_projection', 'assets/terrain/lighting/obstacle_cactus_barrel_projection.png');
+        this.load.image('obstacle_cactus_cholla_projection', 'assets/terrain/lighting/obstacle_cactus_cholla_projection.png');
         this.load.image('swampbrick_1', 'assets/terrain/swampbrick-1.png');
         this.load.image('swampbrick_2', 'assets/terrain/swampbrick-2.png');
         this.load.image('swampbrick_3', 'assets/terrain/swampbrick-3.png');
@@ -242,19 +265,26 @@ export class BootScene extends Scene {
         this.load.image('obstacle_defense_tower', 'assets/terrain/obstacle_defense_tower.png');
         // 世界-122 基地核心（Blender 建模：立方体 + 扁平底座 + 大理石贴图，2026-08-16）
         this.load.image('defense_base', 'assets/terrain/defense_base.png');
-        // 世界-122 射击台（Blender 建模：三级台阶 + 站台，30° 等距视角，2026-08-16）
-        this.load.image('firing_platform', 'assets/terrain/firing_platform.png');
+        // 世界-122 射击台（单格 Blender 重构：格内三级台阶 + 半格台面）
+        this.load.image('firing_platform', 'assets/terrain/firing_platform_1x1.png');
         this.load.image('firing_platform_h', 'assets/terrain/firing_platform_h.png');
         // 世界-122 仓鼠小屋（建筑面板可建造，生成仓鼠矿工；贴图 Blender 建模渲染）
         // 世界-122 建筑（2026-08-17 换素材：军营/矿场/铁匠铺，英文文件名）
         this.load.image('barracks', 'assets/terrain/barracks.png');
         this.load.image('mine', 'assets/terrain/mine.png');
         this.load.image('blacksmith', 'assets/terrain/blacksmith.png');
+        this.load.image('church', 'assets/terrain/church.png');
         // 世界-122 研究院（素材库原图裁透明边并缩至 1024 宽）
         this.load.image('research_institute', 'assets/terrain/research_institute.png');
         this.load.image('warehouse', 'assets/terrain/warehouse.png');
         this.load.image('shooting_range', 'assets/terrain/shooting_range.png');
         this.load.image('thatch_hut', 'assets/terrain/thatch_hut.png');
+        // 世界-122 传送门（2026-08-18 占位贴图：tools/ai-gen/gen-portal-placeholder.py，正式图走 AI 素材管线）
+        this.load.image('portal', 'assets/terrain/portal.png');
+        // 建筑预投影轮廓：原图 alpha 直接采集，供世界-122 太阳投影使用。
+        for (const key of ['defense_base', 'obstacle_defense_tower', 'barracks', 'mine', 'blacksmith', 'church', 'research_institute', 'warehouse', 'shooting_range', 'thatch_hut', 'portal']) {
+            this.load.image(`${key}_projection`, `assets/terrain/lighting/${key}_projection.png`);
+        }
         // 世界-122 防御塔机械臂（预渲染 3D 旋转帧，48 帧等距透视，按 aimAngle 选帧）
         this.load.spritesheet('obstacle_defense_tower_arm_frames', 'assets/terrain/obstacle_defense_tower_arm_frames.png', { frameWidth: 261, frameHeight: 164 });
         // 防御塔武器枪管（预裁剪独立贴图："枪插进机械臂"假象；2026-08-14）
@@ -575,8 +605,9 @@ export class BootScene extends Scene {
         // 起步 + 第 6~24 帧循环；仓鼠射手 attack = 13 帧单次 + projectile 单帧贴图；
         // 仓鼠盾卫 attack = 12 帧单次（第 10 帧判定伤害由 AI 计时）；
         // 仓鼠民兵 attack = 15 帧单次（第 8 帧判定伤害由 AI 计时）；
-        // 仓鼠斥候 attack = 18 帧单次（第 11 帧出膛由 AI 计时）+ projectile 单帧贴图
-        for (const unitConfig of [hamsterMinerConfig, hamsterWarriorConfig, hamsterShooterConfig, hamsterGuardConfig, hamsterMilitiaConfig, hamsterScoutConfig, hamsterMusketeerConfig]) {
+        // 仓鼠斥候 attack = 18 帧单次（第 11 帧出膛由 AI 计时）+ projectile 单帧贴图；
+        // 仓鼠牧师 spell = 17 帧单次，第 8 帧由 AI 结算圣光。
+        for (const unitConfig of [hamsterMinerConfig, hamsterWarriorConfig, hamsterShooterConfig, hamsterGuardConfig, hamsterMilitiaConfig, hamsterScoutConfig, hamsterMusketeerConfig, hamsterPriestConfig]) {
             for (const [animKey, def] of Object.entries(unitConfig.animations || {})) {
                 if (!def || !def.src) continue;
                 const texKey = `companion_${unitConfig.id}_${animKey}`;

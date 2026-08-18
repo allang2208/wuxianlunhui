@@ -1218,7 +1218,7 @@ export function isFriendlyFire(source, target) {
                     if (Math.abs(this.knockbackX) < 0.1) this.knockbackX = 0;
                     if (Math.abs(this.knockbackY) < 0.1) this.knockbackY = 0;
                 }
-                if (this.hitFlash > 0) this.hitFlash -= 16;
+                if (this.hitFlash > 0) this.hitFlash = Math.max(0, this.hitFlash - dt);
             }
             renderHealthBar(ctx) {
                 if (this.hp >= this.maxHp) return;

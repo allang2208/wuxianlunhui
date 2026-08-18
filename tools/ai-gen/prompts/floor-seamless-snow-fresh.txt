@@ -1,0 +1,7 @@
+seamless tileable ground texture, untouched fresh snow field, pale blue-white powder snow,
+soft shallow natural snow ripples, tiny sparse ice crystals, subtle cool blue-gray variation,
+matte diffuse snow surface, no tracks, no footprints, no rocks, no grass, no objects,
+flat top-down view, the texture wraps around perfectly with no visible seams, left edge matches
+right edge, top edge matches bottom edge, pattern repeats seamlessly when tiled in every direction,
+uniform even lighting, no shadows, no vignette, no border, no frame, no dark edges,
+no shading at the border, high detail, photorealistic, no text, no watermark
