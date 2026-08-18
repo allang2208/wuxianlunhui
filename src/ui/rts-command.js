@@ -49,8 +49,10 @@ export const RTSCommand = {
     /** game.js 每帧调用（所有场景）：同步场景、非 scene8 自动退出、刷新渲染/面板。
      *  Input 由 game.js 传入（模块实例；window.Input 未挂载，勿依赖全局） */
     tick(sceneId, Input) {
+        const leavingScene8 = this._scene === 'scene8' && sceneId !== 'scene8';
         this._scene = sceneId;
         if (this._btn) this._btn.style.display = sceneId === 'scene8' ? '' : 'none';
+        if (leavingScene8) this._resetPartyCommandsForSceneExit();
         if (sceneId !== 'scene8' && this.enabled) this.setEnabled(false);
         if (!this.enabled) return;
         const input = Input || this._input();
@@ -69,6 +71,7 @@ export const RTSCommand = {
     },
 
     setEnabled(on) {
+        if (on) this._closeBuildingUI();
         this.enabled = !!on;
         if (this._btn) this._btn.classList.toggle('active', this.enabled);
         if (!this.enabled) {
@@ -77,6 +80,23 @@ export const RTSCommand = {
             this._clearDrag();
         }
         this._renderSelectionFx();
+    },
+
+    /** 跨场景时清除 scene8 世界坐标/实体引用，防止队员在新场景继续执行旧命令。 */
+    _resetPartyCommandsForSceneExit() {
+        if (!PartySystem) return;
+        PartySystem.setCommand('all', 'follow');
+        for (const m of PartySystem.members) {
+            if (!m) continue;
+            m.target = null;
+            m._tacticalTarget = null;
+            m.vx = 0;
+            m.vy = 0;
+            m.isMoving = false;
+            if (m._pathManager && typeof m._pathManager._clearPath === 'function') {
+                m._pathManager._clearPath();
+            }
+        }
     },
 
     // ==================== 按钮 / 面板 DOM ====================
@@ -212,26 +232,49 @@ export const RTSCommand = {
     },
 
     _hitUnitAt(sx, sy) {
-        const w = Renderer.screenToWorld(sx, sy);
-        if (!w) return null;
         let best = null;
         let bestD = Infinity;
         for (const m of this._collectAllies()) {
-            const d = Math.hypot(m.x - w.x, m.y - w.y);
-            const r = (m.collisionRadius || 26) + 6;
-            if (d <= r && d < bestD) { bestD = d; best = { kind: 'ally', ref: m }; }
+            const rect = this._unitScreenRect(m);
+            if (!rect || sx < rect.x0 || sx > rect.x1 || sy < rect.y0 || sy > rect.y1) continue;
+            const d = Math.hypot(sx - rect.cx, sy - rect.cy);
+            if (d < bestD) { bestD = d; best = { kind: 'ally', ref: m }; }
         }
         const g = _game();
         if (g && g.entities) {
             for (const e of g.entities.values()) {
                 if (!e || !e.active) continue;
                 if (e._faction !== 'enemy' && e._faction !== 'agent') continue;
-                const d = Math.hypot(e.x - w.x, e.y - w.y);
-                const r = (e.collisionRadius || 26) + 6;
-                if (d <= r && d < bestD) { bestD = d; best = { kind: 'enemy', ref: e }; }
+                const rect = this._unitScreenRect(e);
+                if (!rect || sx < rect.x0 || sx > rect.x1 || sy < rect.y0 || sy > rect.y1) continue;
+                const d = Math.hypot(sx - rect.cx, sy - rect.cy);
+                if (d < bestD) { bestD = d; best = { kind: 'enemy', ref: e }; }
             }
         }
         return best;
+    },
+
+    /** 可见单位点击/框选矩形：覆盖身体而不只认逻辑脚底小圆。 */
+    _unitScreenRect(e) {
+        if (!e) return null;
+        const halfW = Math.max(
+            (e.collisionRadius || e.groundRadius || 20) + 6,
+            (e.collisionWidth || 0) * 0.5,
+            (e.size || 0) * 0.5
+        );
+        const bodyH = Math.max(
+            e.bodyHeight || 0,
+            e.collisionHeight || 0,
+            (e.size || 20) * 1.5,
+            48
+        );
+        const bottomPad = Math.max(6, (e.groundRadius || e.collisionRadius || 20) * 0.35);
+        const a = Renderer.worldToScreen(e.x - halfW, e.y - bodyH);
+        const b = Renderer.worldToScreen(e.x + halfW, e.y + bottomPad);
+        if (!a || !b) return null;
+        const x0 = Math.min(a.x, b.x), x1 = Math.max(a.x, b.x);
+        const y0 = Math.min(a.y, b.y), y1 = Math.max(a.y, b.y);
+        return { x0, x1, y0, y1, cx: (x0 + x1) * 0.5, cy: (y0 + y1) * 0.5 };
     },
 
     _selectInRect(sx0, sy0, sx1, sy1) {
@@ -239,16 +282,20 @@ export const RTSCommand = {
         const x1 = Math.max(sx0, sx1), y1 = Math.max(sy0, sy1);
         const sel = [];
         for (const m of this._collectAllies()) {
-            const p = Renderer.worldToScreen(m.x, m.y);
-            if (p && p.x >= x0 && p.x <= x1 && p.y >= y0 && p.y <= y1) sel.push({ kind: 'ally', ref: m });
+            const r = this._unitScreenRect(m);
+            if (r && r.x1 >= x0 && r.x0 <= x1 && r.y1 >= y0 && r.y0 <= y1) {
+                sel.push({ kind: 'ally', ref: m });
+            }
         }
         const g = _game();
         if (g && g.entities) {
             for (const e of g.entities.values()) {
                 if (!e || !e.active) continue;
                 if (e._faction !== 'enemy' && e._faction !== 'agent') continue;
-                const p = Renderer.worldToScreen(e.x, e.y);
-                if (p && p.x >= x0 && p.x <= x1 && p.y >= y0 && p.y <= y1) sel.push({ kind: 'enemy', ref: e });
+                const r = this._unitScreenRect(e);
+                if (r && r.x1 >= x0 && r.x0 <= x1 && r.y1 >= y0 && r.y0 <= y1) {
+                    sel.push({ kind: 'enemy', ref: e });
+                }
             }
         }
         return sel;
@@ -264,11 +311,11 @@ export const RTSCommand = {
         const prevBuild = g._buildMode;
         g._buildMode = true; // 指挥模式无视距离（try/finally 恢复）
         try {
-            if (g.DefenseTrapSystem && g.DefenseTrapSystem.tryInteract && g.DefenseTrapSystem.tryInteract(sx, sy, p)) return true;
-            if (g.DefenseSystem && g.DefenseSystem.active && g.DefenseSystem.tryInteract && g.DefenseSystem.tryInteract(sx, sy, p)) return true;
-            if (g.HamsterHutSystem && g.HamsterHutSystem.active && g.HamsterHutSystem.tryInteract && g.HamsterHutSystem.tryInteract(sx, sy, p)) return true;
-            if (g.HamsterBarracksSystem && g.HamsterBarracksSystem.active && g.HamsterBarracksSystem.tryInteract && g.HamsterBarracksSystem.tryInteract(sx, sy, p)) return true;
-            if (g.ProducerBuildingSystem && g.ProducerBuildingSystem.active && g.ProducerBuildingSystem.tryInteract && g.ProducerBuildingSystem.tryInteract(sx, sy, p)) return true;
+            if (g.DefenseTrapSystem && g.DefenseTrapSystem.tryInteract && g.DefenseTrapSystem.tryInteract(sx, sy, p)) { this.setEnabled(false); return true; }
+            if (g.DefenseSystem && g.DefenseSystem.active && g.DefenseSystem.tryInteract && g.DefenseSystem.tryInteract(sx, sy, p)) { this.setEnabled(false); return true; }
+            if (g.HamsterHutSystem && g.HamsterHutSystem.active && g.HamsterHutSystem.tryInteract && g.HamsterHutSystem.tryInteract(sx, sy, p)) { this.setEnabled(false); return true; }
+            if (g.HamsterBarracksSystem && g.HamsterBarracksSystem.active && g.HamsterBarracksSystem.tryInteract && g.HamsterBarracksSystem.tryInteract(sx, sy, p)) { this.setEnabled(false); return true; }
+            if (g.ProducerBuildingSystem && g.ProducerBuildingSystem.active && g.ProducerBuildingSystem.tryInteract && g.ProducerBuildingSystem.tryInteract(sx, sy, p)) { this.setEnabled(false); return true; }
         } finally {
             g._buildMode = prevBuild;
         }
@@ -278,8 +325,8 @@ export const RTSCommand = {
         if (bs && mw && typeof bs._hitTestCover === 'function' && typeof bs._showDetail === 'function') {
             const hit = bs._hitTestCover(mw.x, mw.y);
             if (hit) {
-                if (!bs._panel && typeof bs._buildPanel === 'function') bs._buildPanel();
-                bs.active = true; // 保持打开，用户可查看/关闭
+                this.setEnabled(false);
+                if (!bs.active && typeof bs.open === 'function') bs.open();
                 bs._showDetail(hit);
                 return true;
             }
@@ -291,7 +338,7 @@ export const RTSCommand = {
 
     _onMouseDown(e) {
         if (!this.enabled || this._scene !== 'scene8') return;
-        if (e.target && e.target.closest && e.target.closest('.system-panel, .panel-overlay, .side-menu, .party-bar, .rts-unit-panel, .rts-command-btn, .companion-overlay, .recruit-overlay')) return;
+        if (e.target && e.target.closest && e.target.closest('.system-panel, .panel-overlay, .side-menu, .party-bar, .rts-unit-panel, .rts-command-btn, .companion-overlay, .recruit-overlay, .wall-editor-panel')) return;
         if (e.button !== 0) return;
         this._down = true;
         this._downX = e.clientX;
@@ -347,7 +394,8 @@ export const RTSCommand = {
         const phaser = _scene();
         if (hit && hit.kind === 'enemy') {
             if (this._selection.some((s) => s.kind === 'ally')) {
-                this._issueCommandToAllies('attack', null, hit.ref);
+                const attackers = this._issueCommandToAllies('attack', null, hit.ref);
+                if (attackers > 0) this._flashAttackTarget(hit.ref);
                 if (phaser && typeof phaser.showMoveMarker === 'function') phaser.showMoveMarker(hit.ref.x, hit.ref.y);
             } else {
                 // 无友军选中：右键敌人 = 选中并查看属性
@@ -370,13 +418,32 @@ export const RTSCommand = {
             else directUnits.push(s.ref);
         }
         if (memberIds.length) PartySystem.setCommand(memberIds, mode, point, target);
+        let commandedAttackers = mode === 'attack' ? memberIds.length : 0;
         for (const u of directUnits) {
+            if (mode === 'attack' && u._rtsCanAttack === false) {
+                if (u._ai && typeof u._ai.cancelForCommand === 'function') u._ai.cancelForCommand();
+                u._command = { mode: 'hold', point: null, target: null };
+                continue;
+            }
+            if ((mode === 'move' || mode === 'hold') && u._ai && typeof u._ai.cancelForCommand === 'function') {
+                u._ai.cancelForCommand();
+            }
             u._command = {
                 mode,
                 point: point ? { x: point.x, y: point.y } : null,
                 target: (mode === 'attack' && target) ? target : null,
             };
+            if (mode === 'attack') commandedAttackers++;
         }
+        return commandedAttackers;
+    },
+
+    /** 右键攻击指令反馈：目标贴图短暂红/白交替闪现。实际 tint 由 GameScene 每帧统一应用。 */
+    _flashAttackTarget(target) {
+        if (!target || !target.active) return;
+        const now = Date.now();
+        target._rtsAttackFlashStartedAt = now;
+        target._rtsAttackFlashUntil = now + 720;
     },
 
     // ==================== 渲染（拖框 + 敌人选中光圈） ====================
@@ -526,12 +593,18 @@ export const RTSCommand = {
         const maxMp = Math.round(e.maxMp ?? d.maxMp ?? mp);
         const num = (k) => (typeof d[k] === 'number' ? d[k] : '—');
         let atk;
-        if (e.ai && typeof e.ai.attackDamage === 'number') atk = String(Math.round(e.ai.attackDamage));
+        const actualAttack = e._ai && typeof e._ai._attackDamage === 'number'
+            ? e._ai._attackDamage
+            : (e.aiConfig && typeof e.aiConfig.attackDamage === 'number'
+                ? e.aiConfig.attackDamage
+                : (e.ai && typeof e.ai.attackDamage === 'number' ? e.ai.attackDamage : null));
+        if (actualAttack !== null) atk = String(Math.round(actualAttack));
         else if (typeof d.atk === 'number' && d.atk > 0) atk = String(Math.round(d.atk));
         else atk = this._enemyAttackText(e);
         const matk = typeof d.matk === 'number' ? Math.round(d.matk) : '—';
         const def = typeof d.def === 'number' ? Math.round(d.def) : (e.def ?? e.mdef ?? '—');
-        const speed = Math.round(e.maxSpeed ?? e.speed ?? 0) || '—';
+        const configuredSpeed = e.aiConfig?.walkSpeed ?? e.ai?.walkSpeed ?? e.aiConfig?.runSpeed;
+        const speed = Math.round(configuredSpeed ?? e.maxSpeed ?? e.speed ?? 0) || '—';
         return {
             name: e.name || d.name || (isEnemy ? '敌人' : '友军'),
             level: e.level ?? d.level ?? 1,

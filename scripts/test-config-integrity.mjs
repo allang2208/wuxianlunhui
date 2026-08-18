@@ -25,6 +25,11 @@ const warn = (msg) => warnings.push(msg);
 
 const readJson = (rel) => JSON.parse(fs.readFileSync(path.join(ROOT, rel), 'utf-8'));
 const fileExists = (rel) => fs.existsSync(path.join(ROOT, rel));
+const pendingProducerAssets = new Set(
+    Object.values(readJson('data/producer-buildings.json'))
+        .filter((cfg) => cfg && typeof cfg === 'object' && cfg.assetPending === true && cfg.tex)
+        .map((cfg) => `assets/terrain/${cfg.tex}.png`)
+);
 
 // ---------- 0. data/ 与 public/data/ 双份配置一致性 ----------
 // SKILL 反复记录"双份同步"是配置改坏重灾区（player-anim-config 等），机器强制 diff
@@ -45,7 +50,13 @@ const loadRe = /this\.load\.(?:image|spritesheet)\(\s*'([^']+)'\s*,\s*'([^']+)'/
 let m;
 while ((m = loadRe.exec(bootSrc)) !== null) {
     loadedKeys.add(m[1]);
-    if (!fileExists(m[2])) err(`BootScene 加载的贴图不存在：'${m[1]}' -> ${m[2]}`);
+    if (!fileExists(m[2])) {
+        if (pendingProducerAssets.has(m[2])) {
+            warn(`待补建筑资产：'${m[1]}' -> ${m[2]}（代码已接入，补图后自动转为正常校验）`);
+        } else {
+            err(`BootScene 加载的贴图不存在：'${m[1]}' -> ${m[2]}`);
+        }
+    }
 }
 
 // anims.create 引用的贴图键

@@ -49,6 +49,18 @@ export class HamsterScoutAI {
         this._stuckStreak = 0;
     }
 
+    /** RTS 移动/待命立即取消尚未出膛的射击动作；已飞出的投射物继续飞行。 */
+    cancelForCommand() {
+        this._shotActive = false;
+        this._shotTimer = 0;
+        this._shotAnimLeft = 0;
+        this.m._attackSwing = false;
+        this.m._animState = 'idle';
+        this.m.vx = 0;
+        this.m.vy = 0;
+        this.m.isMoving = false;
+    }
+
     /**
      * 每帧入口（由 HamsterScout.update 调用）。
      * @param {number} dt 毫秒

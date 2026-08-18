@@ -28,6 +28,9 @@ import warriorCfg from '../../data/hamster-warrior-config.json';
 import shooterCfg from '../../data/hamster-shooter-config.json';
 import guardCfg from '../../data/hamster-guard-config.json';
 import militiaCfg from '../../data/hamster-militia-config.json';
+import { TWO_BY_TWO_BUILDING_FOOT, applyBuildingFootprint } from './building-footprint.js';
+import { ResearchSystem } from './research-system.js';
+import { SpawnPlacement } from './spawn-placement.js';
 import {
     applyGlobalUpgradesToKind,
     getUnitUpgradeLevel,
@@ -41,14 +44,14 @@ export const BARRACKS_CONFIG = {
     barracks: {
         cost: 1500,
         hp: 2000,
-        radius: 40,
+        radius: TWO_BY_TWO_BUILDING_FOOT.collisionRadius,
         def: 60,
         mdef: 60,
         tex: 'barracks',
         // 2026-08-17 回退：显示尺寸统一到草屋同款 144×147（不再放大）
-        displayW: 144,
-        displayH: 147,
-        footOffsetY: 73.5,   // 贴图已裁剪到内容（2026-08-17）：内容底=画布底 → 147×0.5
+        displayW: 288,
+        displayH: 294,
+        footOffsetY: 147,
         sellRefundRatio: 0.5,
         spawnIntervalMs: 30000,   // 30 秒生成一个军事单位
         spawnRadius: 90,
@@ -146,7 +149,8 @@ export class HamsterBarracks extends DamageableEntity {
             footOffsetY: BARRACKS_CONFIG.barracks.footOffsetY,
         };
         this.footOffsetY = BARRACKS_CONFIG.barracks.footOffsetY;
-        setupStructureDepth(this, BARRACKS_CONFIG.barracks.displayW / 2);
+        applyBuildingFootprint(this, 2);
+        setupStructureDepth(this);
         this.level = 1;
         this.maxLevel = 10;
         this.modules = {};            // { moduleId: level }
@@ -154,6 +158,9 @@ export class HamsterBarracks extends DamageableEntity {
         this.units = [];              // 本兵营拥有的军事单位
         this._unitSeq = 0;
         this._spawnTimer = 0;
+        this._baseSpawnIntervalMs = BARRACKS_CONFIG.barracks.spawnIntervalMs;
+        this._spawnRetryTimer = 0;
+        this._spawnBlocked = false;
         this.rebuildCollider();
     }
 
@@ -174,35 +181,31 @@ export class HamsterBarracks extends DamageableEntity {
 
     /** 切换生成的单位类型（战士/射手）；下一次生成生效 */
     setUnitType(type) {
-        if (!BARRACKS_CONFIG.unit[type]) return false;
+        if (!['warrior', 'guard'].includes(type)) return false;
         this.unitType = type;
         return true;
     }
 
-    /** 兵营附近合法落点（WallSystem 校验，兜底兵营脚下） */
+    /** 固定出口槽位：墙体、建筑 footprint、动态单位与出口预约全部通过才返回。 */
     _findUnitSpawn() {
-        const r = BARRACKS_CONFIG.barracks.spawnRadius;
-        const halfW = BARRACKS_CONFIG.barracks.displayW / 2;
-        for (let i = 0; i < 10; i++) {
-            const a = Math.random() * Math.PI * 2;
-            const d = (halfW + 20) + Math.random() * r;   // 建筑外沿起算，防生成点落在屋内
-            const x = this.x + Math.cos(a) * d;
-            const y = this.y + Math.sin(a) * d;
-            if (!WallSystem || !WallSystem.canMoveTo || WallSystem.canMoveTo(x, y, 24)) {
-                return { x, y };
-            }
-        }
-        return { x: this.x + halfW + 20, y: this.y + 20 };
+        return SpawnPlacement.findAndReserve(this, {
+            unitRadius: 24,
+            entities: Game?.entities,
+            wallSystem: WallSystem,
+            preferredTarget: this._rallyPoint || Game?.player,
+        });
     }
 
     /** 生成一个军事单位（当前 unitType），应用兵营模块倍率 */
     spawnUnit() {
         if (!Game || !Game.entities) return null;
+        if (!['warrior', 'guard'].includes(this.unitType)) this.unitType = 'warrior';
         const unitCfg = BARRACKS_CONFIG.unit[this.unitType];
         const base = unitCfg.cfg || {};
         const baseAi = base.ai || {};
         const mults = this.mults();
         const spot = this._findUnitSpawn();
+        if (!spot) return null;
         const id = `${this.id}_unit_${++this._unitSeq}`;
         const ai = {
             ...baseAi,
@@ -219,6 +222,7 @@ export class HamsterBarracks extends DamageableEntity {
                     ? new HamsterMilitia(spot.x, spot.y, { id, ai, baseMaxHp })
                     : new HamsterShooter(spot.x, spot.y, { id, ai, baseMaxHp })));
         unit._barracks = this;
+        unit._spawnEgress = { x: spot.egressX, y: spot.egressY };
         this.units.push(unit);
         Game.entities.set(id, unit);
         if (Array.isArray(Game.friendlyUnits)) Game.friendlyUnits.push(unit);
@@ -264,20 +268,41 @@ export class HamsterBarracks extends DamageableEntity {
     }
 
     /** 主循环：每 30s 生成一个军事单位（存活数低于上限时） */
+    recruitIntervalMs() {
+        return ResearchSystem.getRecruitIntervalMs
+            ? ResearchSystem.getRecruitIntervalMs(this._baseSpawnIntervalMs)
+            : this._baseSpawnIntervalMs;
+    }
+
     update(dt) {
         if (!this.active) return;
         if (this.aliveUnitCount() < this.unitCount()) {
-            this._spawnTimer -= dt;
+            this._spawnTimer = Math.max(0, this._spawnTimer - dt);
             if (this._spawnTimer <= 0) {
-                this._spawnTimer = BARRACKS_CONFIG.barracks.spawnIntervalMs;
+                this._spawnRetryTimer -= dt;
+                if (this._spawnRetryTimer > 0) return;
                 const unit = this.spawnUnit();
+                if (unit) {
+                    this._spawnTimer = this.recruitIntervalMs();
+                    this._spawnRetryTimer = 0;
+                    this._spawnBlocked = false;
+                } else {
+                    this._spawnTimer = 0;
+                    this._spawnRetryTimer = SpawnPlacement.retryMs;
+                    if (!this._spawnBlocked && EffectManager) {
+                        EffectManager.add(new FloatingTextEffect(this.x, this.y - 66, '出口被阻挡，等待空位', '#ff8855'));
+                    }
+                    this._spawnBlocked = true;
+                }
                 if (unit && EffectManager) {
                     const name = (BARRACKS_CONFIG.unit[this.unitType] || {}).name || '仓鼠单位';
                     EffectManager.add(new FloatingTextEffect(this.x, this.y - 56, `${name} 报到！`, '#8ad0ff'));
                 }
             }
         } else {
-            this._spawnTimer = BARRACKS_CONFIG.barracks.spawnIntervalMs;
+            this._spawnTimer = this.recruitIntervalMs();
+            this._spawnRetryTimer = 0;
+            this._spawnBlocked = false;
         }
     }
 
@@ -328,6 +353,9 @@ export class HamsterBarracks extends DamageableEntity {
     /** 出售：返还 50% 建造能源，单位一并拆除 */
     sell() {
         const refund = Math.floor(BARRACKS_CONFIG.barracks.cost * (BARRACKS_CONFIG.barracks.sellRefundRatio ?? 0.5));
+        if (!EnergyManager || !EnergyManager.canStore(refund)) {
+            return { ok: false, reason: '仓库空间不足，无法接收出售返还能源' };
+        }
         this.active = false;
         this._despawnUnits();
         if (Game && Game.entities && this.id) Game.entities.delete(this.id);
@@ -416,10 +444,11 @@ class HamsterBarracksPanel extends BasePanel {
         const el = this.el;
         if (!el || !this.barracks) return;
         const b = this.barracks;
-        const spawnMs = BARRACKS_CONFIG.barracks.spawnIntervalMs;
-        const spawnProgress = Math.max(0, Math.min(1, 1 - b._spawnTimer / spawnMs));
+        const spawnMs = b.recruitIntervalMs();
+        const spawnProgress = b._spawnBlocked ? 1 : Math.max(0, Math.min(1, 1 - b._spawnTimer / spawnMs));
         const spawnPct = Math.round(spawnProgress * 100);
-        const spawnBarColor = spawnProgress < 0.5 ? '#ffd700' : (spawnProgress < 0.8 ? '#ff9d45' : '#7fe0c8');
+        const spawnBarColor = b._spawnBlocked ? '#ff7755'
+            : (spawnProgress < 0.5 ? '#ffd700' : (spawnProgress < 0.8 ? '#ff9d45' : '#7fe0c8'));
         const bar = el.querySelector('#hbSpawnBar');
         const pct = el.querySelector('#hbSpawnPct');
         const next = el.querySelector('#hbSpawnNext');
@@ -431,7 +460,9 @@ class HamsterBarracksPanel extends BasePanel {
             pct.textContent = `${spawnPct}%`;
             pct.style.color = spawnBarColor;
         }
-        if (next) next.textContent = `${Math.max(0, Math.ceil(b._spawnTimer / 1000))}s`;
+        if (next) next.textContent = b._spawnBlocked
+            ? '出口阻塞'
+            : `${Math.max(0, Math.ceil(b._spawnTimer / 1000))}s`;
     }
 
     _notify(text, color) {
@@ -452,12 +483,14 @@ class HamsterBarracksPanel extends BasePanel {
 
         const st = el.querySelector('#hbStatus');
         const curType = cfg.unit[b.unitType] || {};
-        const spawnMs = cfg.barracks.spawnIntervalMs;
+        const spawnMs = b.recruitIntervalMs();
         const nextIn = Math.max(0, Math.ceil(b._spawnTimer / 1000));
         // 出发进度 = 已等待时间 / 30s 生成周期（切换单位类型不重置 _spawnTimer，进度不受影响）
-        const spawnProgress = Math.max(0, Math.min(1, 1 - b._spawnTimer / spawnMs));
+        const spawnProgress = b._spawnBlocked ? 1 : Math.max(0, Math.min(1, 1 - b._spawnTimer / spawnMs));
         const spawnPct = Math.round(spawnProgress * 100);
-        const spawnBarColor = spawnProgress < 0.5 ? '#ffd700' : (spawnProgress < 0.8 ? '#ff9d45' : '#7fe0c8');
+        const spawnBarColor = b._spawnBlocked ? '#ff7755'
+            : (spawnProgress < 0.5 ? '#ffd700' : (spawnProgress < 0.8 ? '#ff9d45' : '#7fe0c8'));
+        const nextText = b._spawnBlocked ? '出口阻塞' : `${nextIn}s`;
         st.innerHTML = `
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
                 <div><span style="color:#ffd700;font-weight:700;">等级 ${b.level}</span></div>
@@ -466,7 +499,7 @@ class HamsterBarracksPanel extends BasePanel {
             <div style="font-size:12px;color:#c8b98a;line-height:1.7;">
                 军事单位 <span style="color:#8ad0ff;">${b.aliveUnitCount()}/${b.unitCount()}</span> ·
                 当前生成 <b style="color:#7fe0c8;">${curType.name || '—'}</b><br>
-                下次生成 <b id="hbSpawnNext" style="color:#7fd4ff;">${nextIn}s</b>（每 ${spawnMs / 1000}s 一单位）·
+                下次生成 <b id="hbSpawnNext" style="color:${b._spawnBlocked ? '#ff7755' : '#7fd4ff'};">${nextText}</b>（当前周期 ${(spawnMs / 1000).toFixed(1)}s）·
                 攻击间隔/伤害/移速/生命随模块升级
             </div>
             <div style="margin-top:8px;">
@@ -493,7 +526,7 @@ class HamsterBarracksPanel extends BasePanel {
                 <span style="font-size:13px;font-weight:700;color:#7fe0c8;">🎖 生成单位类型</span>
                 <span style="font-size:11px;color:#6a9a92;">切换后下一次生成生效</span>
             </div>
-            <div style="display:flex;gap:8px;">${btn('warrior')}${btn('shooter')}${btn('guard')}${btn('militia')}</div>`;
+            <div style="display:flex;gap:8px;">${btn('warrior')}${btn('guard')}</div>`;
         ut.querySelectorAll('[data-unit-type]').forEach((btnEl) => {
             btnEl.addEventListener('click', () => this._setUnitType(btnEl.dataset.unitType));
         });
@@ -535,8 +568,8 @@ class HamsterBarracksPanel extends BasePanel {
             sellBtn.title = `出售返还 ${refund} 能源（军事单位一并拆除）`;
             sellBtn.onclick = () => {
                 const res = b.sell();
-                this._notify(res.ok ? `已出售（+${res.refund} 能源）` : '出售失败', res.ok ? '#ffd700' : '#ff5555');
-                this.close();
+                this._notify(res.ok ? `已出售（+${res.refund} 能源）` : (res.reason || '出售失败'), res.ok ? '#ffd700' : '#ff5555');
+                if (res.ok) this.close();
             };
         }
     }

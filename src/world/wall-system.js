@@ -901,11 +901,16 @@ const WallSystem = {
         const G = (typeof window !== 'undefined') ? window.Game : null;
         if (G && G.entities) {
             for (const e of G.entities.values()) {
-                if (!e || !e.active || !e._faceLine || e._faceLine.length !== 2) continue;
+                if (!e || !e.active) continue;
                 if (e._isCoverGate) continue; // 门的遮挡面线按三段注册在 GateFaceSegs（见下）
-                const [A, B] = e._faceLine;
-                if (!A || !B || typeof A.x !== 'number' || typeof B.x !== 'number') continue;
-                applySeg(A, B, typeof e._faceDepth === 'number' ? e._faceDepth : e.y + 12);
+                const lines = Array.isArray(e._faceLines) && e._faceLines.length
+                    ? e._faceLines
+                    : (e._faceLine && e._faceLine.length === 2 ? [e._faceLine] : []);
+                for (const line of lines) {
+                    const [A, B] = line || [];
+                    if (!A || !B || typeof A.x !== 'number' || typeof B.x !== 'number') continue;
+                    applySeg(A, B, typeof e._faceDepth === 'number' ? e._faceDepth : e.y + 12);
+                }
             }
         }
         // 铁栅栏门三段面线（左柱/栅栏/右柱，各自深度，2026-08-15）：

@@ -7,7 +7,7 @@ import { Player } from './player.js';
 import { nowMs } from './player/anim-state.js';
 import { PoisonEffect } from '../effects/poison-effect.js';
 import { EnemyFSM } from '../ai/enemy-fsm.js';
-import { pickStructureTarget } from '../ai/defense-targeting.js';
+import { pickDefensePriorityTarget } from '../ai/defense-target-priority.js';
 import aiConfigData from '../../data/ai-config.json';
 import { getTributeMonsterMoveSlowMul } from '../config/tribute-effects.js';
 import { COMBAT_CONFIG } from '../config/combat-config.js';
@@ -343,42 +343,24 @@ import { loadImage } from '../utils/image-loader.js';
                 // 注意模式闸门是 _preferDefenseTargets 而非交战半径——半径未配置时
                 // 保持旧行为（只锁建筑），避免防守怪转追玩家。
                 const defenseMode = !!this._preferDefenseTargets;
-                const engageRange = defenseMode ? (this._engageHostileRange ?? 0) : 0;
-                let nearestStructure = null;
-                let structureDist = Infinity;
                 const arr = entities && entities.values ? Array.from(entities.values()) : entities;
                 if (!arr) return { entity: null, distance: Infinity };
+                if (defenseMode) {
+                    const pick = pickDefensePriorityTarget(this, arr);
+                    return pick
+                        ? { entity: pick.target, distance: pick.distance }
+                        : { entity: null, distance: Infinity };
+                }
                 for (const e of arr) {
                     if (e && e._faction === 'player' && e.active) {
                         const dx = e.x - this.x;
                         const dy = e.y - this.y;
                         const d = Math.sqrt(dx * dx + dy * dy);
-                        if (defenseMode && !e._isDefenseStructure) {
-                            // 沿途交战目标：仅交战半径内有效（未配置则保持旧行为跳过）
-                            if (engageRange && d <= engageRange && d < nearestDist) {
-                                nearestDist = d;
-                                nearestPlayer = e;
-                            }
-                            continue;
-                        }
-                        if (defenseMode) {
-                            // 防守结构（基地/防御塔/掩体）：任意距离兜底
-                            if (d < structureDist) { structureDist = d; nearestStructure = e; }
-                            continue;
-                        }
                         if (d < nearestDist) {
                             nearestDist = d;
                             nearestPlayer = e;
                         }
                     }
-                }
-                if (defenseMode && !nearestPlayer && nearestStructure) {
-                    // 拥挤感知（2026-08-16）：大量怪挤同一结构时，把溢出怪分摊到
-                    // 附近低占用的第二结构（基地/掩体/塔），避免射程外聚集发呆；
-                    // 无候选时回退最近结构（保持旧行为）。
-                    const pick = pickStructureTarget(this, arr);
-                    if (pick) return { entity: pick.target, distance: pick.dist };
-                    return { entity: nearestStructure, distance: structureDist };
                 }
                 return { entity: nearestPlayer, distance: nearestDist };
             }

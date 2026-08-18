@@ -5390,16 +5390,62 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
   `cellY+28 / anchorY+44` 排序。替换4连墙时临时隐藏中间两块真实精灵，取消/移走即恢复。
 - 回归：`scripts/test-world122-build-regressions.mjs` 锁定真实组件预览、共享参数、
   e1 镜像、批量清障、清草生命周期和升级存档，并已纳入 `npm test`。
+- **正式计价与建筑模式收口（2026-08-18）**：
+  - 新方块墙/4格门统一采用 **C级墙数值**：HP 1600，造价
+    `round(1600×0.25)=400 能源`；4格门保持已验收的 D 级视觉资产（`visualGrade:D`），
+    只把生命/详情等级/价格切到 C，禁止因数值升级破坏视觉终案。
+  - 旧 F→A 长掩体和旧滑动门从 `BUILD_ITEMS` 删除；底层实体/资产保留历史兼容。
+    陷阱条目保持当前隐藏状态，本轮不启用、不改逻辑。
+  - 玩家放置实体统一记录 `_builtByPlayer/_buildCost/_buildCurrency`。建筑详情操作区固定三列：
+    返回 / 修理 / 回收；回收返还实际建造成本 50%。4格门用 `_buildGroup` 整组回收，
+    点击任一石柱通过 `_buildGroupRoot` 跳转门详情；拆除顺序必须**门先、墙后**，
+    防 gate.destroy 恢复已删除墙段形成幽灵碰撞。
+  - 方块墙详情用 `obstacle_block` 与真实400能源；4格门详情用 `gate_4cell`、真实结构/价格；
+    射击台详情补建造成本。预置建筑无 `_builtByPlayer`，回收按钮禁用。
+  - **尺寸判定**：紧凑建筑按真实 collisionRadius，两建筑最小中心距 =
+    `新半径+旧半径+4`；方块墙按 128×64 footprint 半对角；射击台保留贴墙衔接，
+    对其它紧凑建筑按大 footprint 留距。边界用 `_fitsPlacementBounds` 检完整 footprint，
+    不再只看锚点离边缘20px。
+  - **拖墙事务**：window blur、画布外/面板上 mouseup 只取消本次拖墙；每个有效方块逐块
+    扣400能源，余额不足立即停止，已成功部分保留并显示实际总消耗；构造异常退还本块费用。
+  - 回归：`test-world122-build-regressions.mjs` 扩至22项，锁定C级价格、旧条目移除、
+    详情真值/回收、实际尺寸/边界、拖拽取消和批量扣费。
 
-**铁匠铺能力工坊 + 世界-122升级存档（2026-08-17）**
+**铁匠铺能力工坊 + 世界-122升级存档（2026-08-17/18）**
 - `producer-buildings.json.blacksmith.spawnEnabled=false`：铁匠铺不产兵，改为毒箭/自动防御/
-  横扫/标记箭四项能力读条升级；等级真源 `ability-store.js`，对对应兵种全局生效。
+  横扫/标记箭/穿甲弹五项能力读条升级；等级真源 `ability-store.js`，对对应兵种全局生效。
+- 穿甲弹目标为仓鼠火枪：Lv1护甲穿透25%，之后每级+2.5个百分点；复用
+  `DamageableEntity` 的 `weapon._craftEffects.armorPenetrationPercent` 结算入口。
 - 持续升级只能在当前无读条时启动；启动失败不得先留下 `_continuous`。另一能力读条中禁止
   改挂持续目标，资源不足/满级/建筑出售或被毁时清理状态，避免 UI 显示“持续中”但永不推进。
 - 产兵建筑面板实例会在草屋/铁匠铺间复用；每次 refresh 必须显式设置
   `pbUnitType.style.display = isAbilityShop ? 'none' : ''`，不能只在铁匠铺分支隐藏。
 - 兵种模块等级与能力等级通过 `serialize/restore/reset` 接入主存档 `world122` 字段；
   场景切换保留，页面读档恢复，新游戏 `Game.start` 重置，避免上一局泄漏。
+
+**研究院（2026-08-18，代码与正式贴图完成）**
+- 配置入口：`producer-buildings.json.research_institute`，复用 `ProducerBuilding` 和铁匠铺
+  能力工坊读条面板（`spawnEnabled=false / workshopType=research`），建筑造价500能源、
+  HP2200、def70/mdef90。正式贴图键/路径固定：
+  `research_institute` → `assets/terrain/research_institute.png`。
+- 研究项目（等级沿用 `ability-store`，进主存档）：
+  - `research_structure_hp`：方块墙与4格门共享同一等级，最大生命每级同时 +10%；
+  - `research_passive_energy`：每级每秒 +1 能源（Lv.N = N/秒）；
+  - `research_recruit_speed`：Lv1募兵速度+10%，之后每级+2个百分点；生产周期按
+    `baseInterval/(1+bonus)` 计算，升级时按新旧周期比例缩放进行中的剩余时间。
+- 旧测试存档兼容：`research_wall_hp/research_gate_hp` 恢复时取两者较高等级迁移到
+  `research_structure_hp`，随后删除旧键；面板只显示一项“防御结构强化”。
+- `research-system.js` 是唯一效果入口。墙/门构造时 `applyResearchHp` 自动读取当前等级；
+  研究完成时 `applyResearchToWorld` 即时更新场上结构。增加最大生命时当前生命同步增加差值，
+  保持“已损失生命量”不变，不无条件回满。读档恢复 ability level 后必须
+  `ResearchSystem.refreshWorld()`，否则现有墙门仍停在旧上限。
+- 被动能源由 `ProducerBuildingSystem.update(dt)` 唯一推进，只在世界-122系统 active 时运行；
+  1000ms 完整秒结算，多秒卡顿一次补齐；退出/进入场景重置余数计时，等级保留。
+- 能力面板描述支持 `displayMode=percent|flat`，统一替换 `{chance}/{dmg}/{pct}/{value}`；
+  研究院显示“作用于现有及后续新建结构”，铁匠铺仍显示兵种能力文案。
+- 正式资产 `assets/terrain/research_institute.png` 为1024×1093透明PNG；2×2视觉标定
+  `displayW=288/displayH=308/footOffsetY=154`，预览与实体共用配置。
+- 回归：`test-research-institute.mjs`。
 
 ### 基地菱形房无缝拼接（WIP，2026-08-17）
 
@@ -6123,6 +6169,29 @@ this._tacticalTarget = null;
 - **验证**：`tools/cdp-layer-occlusion.mjs`——合成 36 组合（塔/基地/矿/小屋 × 无墙/墙前/
   墙后 × 后/同/前）+ 真实基地 4 类建筑同线抽查，全部"单位盖建筑 iff 单位脚线在建筑之前"。
 
+#### 5. 建筑地面 footprint / 安全出兵 / 4格门（2026-08-18，世界-122）
+
+- 使用 `src/physics/iso-footprint.js` 作为地面旋转矩形唯一几何源。把屏幕 Y 按
+  `PERSPECTIVE_SCALE_Y` 还原后旋转45°进入 u/v 地面坐标；放置判重、圆-建筑分离、
+  出兵校验、攻击距离、范围显示和遮挡前缘必须复用该入口，禁止再写屏幕 AABB 近似。
+- 统一占格：普通非墙建筑2×2、基地4×4、方块墙1×1。`entity.y` 表示贴图/footprint
+  前缘，所以2×2中心固定 `offY=-64`、基地 `offY=-128`；方块墙以格心为中心、offset=0。
+- 建筑落点使用 `_snapBuildingGrid`：先求 N×N 格心平均位置，再把实体锚到菱形前顶点。
+  边界、清障区和点击检测必须读取 collider 中心，不能把贴图前缘重新当中心。
+- 长墙与门调用 `applyIsoFootprintFromSegment(faceA, faceB, halfThickness)`。4格门两柱占
+  端点格，中间铁栅栏必须精确占 **2×1** 地面格，中心就是门 anchor，禁止恢复旧
+  `anchor.y+32` 偏移；该偏移会导致转角门隔一柱、邻接墙无法放置。
+- 门端柱吸附同时生成正/负方向候选；共享既有门柱时只忽略所属旧门的 `_gateSeg`，
+  不要忽略旧门实体 footprint。几何正确后转角只贴边，真正门体重叠仍应拒绝。
+- 生产建筑统一调用 `SpawnPlacement.findAndReserve`：固定出口槽位检查墙、建筑 footprint、
+  动态单位和750ms预约。无出口时保持生产100%、每500ms重试，禁止使用未经校验的固定
+  右侧 fallback；生成后先走 `_spawnEgress` 再恢复正常AI。
+- 面板外点击使用捕获阶段 `mousedown`；空白处关闭主面板/详情，正在放置或点击建筑本体时
+  不关闭，避免“能关闭但无法落地/无法点详情”的事件冲突。
+- 回归运行 `test-world122-building-footprint.mjs`、`test-spawn-placement.mjs`、
+  `test-gate4-snap.mjs`、`test-world122-build-regressions.mjs`，再跑完整 `npm test`
+  与 Vite build。
+
 ---
 
 ### NPC 添加标准工作流（2026-07-22 新增，新 NPC 一律按此开展）
@@ -6193,7 +6262,7 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
 #### 3. 实体（src/entities/hamster-miner.js）
 - `extends Companion`（复用 data/六维/动画配置/运行时字段），`super(合成 archive)`。
 - `_faction='companion'`（友方）；**`_enemyTargetable=true`** 让防守怪可锁定
-  （露娜无此标记，保持不拉仇恨）；补 `hp/maxHp` getter + `takeDamage` +
+  （2026-08-18 起正式玩家队友也统一开启）；补 `hp/maxHp` getter + `takeDamage` +
   死亡流程（`_animState='dying'` → 计时 → 从 entities/friendlyUnits 移除）。
 - **隐藏背包**：`_energyCarried`（已携带能量）/ `_energyCapacity`（默认 500，
   读 `ai.backpackCapacity`）；`applyHutUpgrades` 同步背包扩容；死亡时携带能量全部
@@ -6272,6 +6341,15 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
   小屋换新模型后移除——补员直接生成、卸货不再开门，BootScene 不再加载/注册门动画）。
 - PerceptionSystem `_isValidTarget`：放行 `_faction==='companion' && _enemyTargetable`，
   防守怪 `_preferDefenseTargets` 按交战半径锁定（与玩家同链，免 LOS 口径不变）。
+- **世界-122目标优先级（2026-08-18）**：统一走
+  `src/ai/defense-target-priority.js`。先按128px距离档位，再按
+  仓鼠→正式玩家队友→玩家→普通建筑→基地；同类再比真实footprint距离/威胁/残血。
+  320px本地无目标时回退远处结构，结构全灭后才搜索远处单位。黑狼自管AI与开门追击
+  必须复用同一选择器，禁止再写独立的“基地>玩家>单位”或只认`faction=player`分支。
+- 正式玩家队友需同时具备 `_isPartyCompanion/_enemyTargetable/hittable` 与
+  `hp/maxHp` 入口；否则会出现“能锁定但攻击判定因 !hittable 跳过”的假攻击。
+- 回归运行 `scripts/test-defense-target-priority.mjs`：覆盖距离档位、类型顺序、结构容量、
+  近仓鼠胜远基地、战略结构与远单位兜底、黑狼/开门统一接线。
 - 验证：`scripts/test-hamster-miner.mjs`（数据+接线契约）+ `tools/cdp-hamster-miner.mjs`
   （实机 38 项：小屋生成/属性/最近节点/**A2 出生房内自动寻路出基地（pmValid 生效、
   无传送跳变、离开小屋>150px）**/**A3 基地门双向感应（感应中心=门洞物理中心、
@@ -6477,6 +6555,21 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
   移动烟尘同款；spriteOffsetY -17 / footOffsetY 17（脚底 ~282/512，displaySize 340）。
 - **生成**：仅仓鼠草屋 `producer-buildings.json` unitTypes=[militia, scout]（默认仍民兵），
   铁匠铺/兵营不含斥候；PRODUCER_UNIT_CFG/CLASS + 兵种升级表（scout 独立全局等级）已注册。
+
+#### 13. 仓鼠火枪与靶场（2026-08-18）
+- 素材统一为8列×4行、512×512帧：idle 9、running 11、attacking 21、dying 15；
+  配置唯一源 `data/hamster-musketeer-config.json`，实体/AI分别为
+  `hamster-musketeer.js` / `hamster-musketeer-ai.js`。
+- AI：最近enemy、跳过能源矿；120px/s、80物理、2.5s间隔、650射程；
+  AimHelper.lead瞄目标贴图中心，第10帧出膛并播放fire.mp3。
+- 投射物不依赖图片，GameScene以Phaser Rectangle绘制54×4黄色ADD曳光弹，
+  弹速1248（P4040同口径），AI负责飞行/墙阻挡/命中。
+- 靶场配置在producer-buildings `shooting_range`：30s出兵、上限5、生产
+  musketeer/shooter，复用通用升级和进度条。仓鼠兵营只允许warrior/guard，
+  旧shooter实例兼容但禁止继续选择/生成。
+- 新兵种必须同步BootScene加载/动画注册、GameScene仓鼠标记分支、
+  PRODUCER_UNIT_CFG/CLASS、unit-upgrade-store和defense-target-priority。
+- 回归：`scripts/test-hamster-musketeer.mjs`。
 - **验证**：`scripts/test-hamster-scout.mjs`（数据契约/怪物公式派生/AI 接线/草屋专属断言）
   + test-hamster-guard 共享段补斥候派生；`tools/cdp-hamster-scout.mjs` 实机探针
   （生成/100HP/六维/移速 150/第 11 帧出膛 833ms 窗口/中心瞄准/箭矢贴图尖头朝右/
@@ -6581,11 +6674,18 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
   按世界 Y 每帧仲裁，光圈必须在仲裁段精灵 setDepth 后同帧覆盖（`_showSelectionRing`
   里读上一帧深度只是兜底），否则玩家/队友纵向移动后光圈会盖到贴图上。
   探针：`tools/cdp-ring-check.mjs`（参数 + 深度跟随 + Y 移动同步）。
-- **队友采集直接入包（2026-08-16）**：`Companion.addMinedEnergy(amount)`（并入
-  背包能源堆 ≤999 / 开新堆 / 满包拒绝）；`EnergyNode.takeDamage` 只要
-  `source.addMinedEnergy` 存在就**直接装包不落地**（队友与仓鼠矿工同口径，玩家仍
-  地面掉落）；满 999 走既有 return→移交链路。探针 `tools/cdp-party-gather-backpack.mjs`
-  （露娜 +24 / 伊莉丝 +12 直接入包、0 地面掉落）。
+- **仓库能源唯一真源（2026-08-18）**：能源禁止再进入玩家/队友/矿工背包。
+  `EnergyManager` 注册所有 `workshopType:'warehouse'` 建筑，`getEnergy/getCapacity`
+  聚合每座仓库的 `storedEnergy/storageCapacity`；单仓默认5000，多仓容量与存量自动求和。
+  玩家、仓鼠矿工、玩家队友攻击能源点时由 `EnergyNode.takeDamage` 直接
+  `depositEnergy`，满仓时不扣矿点并提示“仓库已满，请修建更多的仓库”。
+- 满仓行为：仓鼠矿工进入 `storage_return→storage_wait`，回小屋待命，仓库腾出空间后
+  自动复工；被下达 gather 的正式队友改为 hold 并停止采矿，需重新下达采集指令。
+  小屋“背包扩容”模块与矿工背包展示已删除；旧背包能源/队友能源堆经
+  `importLegacyEnergy` 转为待入库，建仓后自动装入。
+- 能源退款必须先 `EnergyManager.canStore(refund)`，禁止先拆建筑再因满仓丢退款；
+  胜利奖励显示 `depositEnergy` 实际入库量。主存档写 `world122.energyStorage`。
+  回归：`test-energy.mjs` + `test-warehouse-energy.mjs`。
 - **伊莉丝动作音效（2026-08-16）**：`assets/sounds/companions/elise/attacking.mp3` /
   `defending.mp3`（铠甲骑士 attacking/defending 副本）；companion-ai.js
   `ELISE_SOUNDS` + `_playSound(key)`（`SoundManager.playWorld` 世界音源），
@@ -6610,6 +6710,23 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
   `_command.target`；companion-ai 的 `case 'attack'` 转 `_cmdAggressive(entities, player,
   cmd.target)` / 法师 `_cmdWarriorAggressive(..., cmd.target)`，队友优先打指定目标。
   探针 `tools/cdp-party-rightmove.mjs` + 截图 `tools/verify-shots/rightmove_marker.png`。
+- **指挥模式审计终案（2026-08-18）**：
+  1. **能力边界不能靠“写了 `_command`”假装支持**：RTS `_collectAllies` 会收集仓鼠矿工，
+     因此矿工 AI 必须显式消费 move/hold；矿工保持“只采矿不攻击”，实体标
+     `_rtsCanAttack=false`，右键敌人对矿工降级为 hold，不能让它继续上一条移动命令。
+  2. **指挥与建筑模式强制互斥**：启用 RTS 先 `_closeBuildingUI()`；`BuildingSystem.open`
+     反向关闭 RTS；RTS 鼠标过滤必须包含 `.wall-editor-panel`。指挥模式点建筑后退出 RTS，
+     掩体详情必须走 `BuildingSystem.open()+_showDetail`，禁止裸 `_buildPanel()+active=true`
+     （会缺监听器、幽灵无法放置且面板点击泄漏成世界点击）。
+  3. **跨场景命令清理**：离开 scene8 时全队命令重置 follow，并清 target/
+     `_tacticalTarget`/路径/速度；否则 scene8 世界坐标和敌人引用会带进下一场景。
+  4. **右键移动即时打断**：盾卫/民兵的 `_swingActive`、射手/斥候的 `_shotActive`
+     通过 `cancelForCommand()` 清理；已飞出的投射物继续，尚未出膛的动作取消。
+  5. **选中判定按身体矩形**：点击/框选统一用 `_unitScreenRect`（collision/size/bodyHeight
+     投影到客户区），不能只认脚底 `collisionRadius+6` 小圆；高大精灵点身体也能选中。
+  6. **属性面板读真实数据源**：仓鼠攻击优先 `_ai._attackDamage` / `aiConfig.attackDamage`，
+     移速优先 `aiConfig.walkSpeed`；运行时 `maxSpeed=0` 只表示当前站定，不是基础移速。
+  回归：`scripts/test-rts-command.mjs` + `scripts/test-party-system.mjs` 均已接入 `npm test`。
 - **能源簇位（2026-08-16）**：`ENERGY_CONFIG.clusters`——(2000,1300) 曾落在常见
   建屋区（小屋门口见既有矿点的观感来源），已东移至 **(3000,1500)**；新位置距基地
   ~2170px、距最近簇 ~850px，6144×4096 内且不在右端刷怪带。树木散布排除带随簇心

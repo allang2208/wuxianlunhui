@@ -116,7 +116,7 @@ check('GameScene 斥候投射物渲染（尖头朝右、内容宽 172）',
     && /tipLeft = m\._isHamsterShooter/.test(gsSrc)
     && /projContentW = m\._isHamsterShooter \? 146 : 172/.test(gsSrc));
 check('GameScene 斥候移动朝向 vx（不倒退走路）',
-    /member\._isHamsterScout\) && moving/.test(gsSrc) && /faceRight = member\.vx > 0/.test(gsSrc));
+    /member\._isHamsterMusketeer\) && moving/.test(gsSrc) && /faceRight = member\.vx > 0/.test(gsSrc));
 check('GameScene 斥候受击白闪', /member\._isHamsterScout/.test(gsSrc)
     && /member\.hitFlash > 0/.test(gsSrc));
 check('GameScene 多帧待机分支（斥候 6 帧呼吸待机）',

@@ -17,7 +17,7 @@ import { IceSpikeSystem } from '../entities/components/ice-spike-system.js';
 import { LightningStrikeSystem } from '../entities/components/lightning-strike-system.js';
 import { HolyLightSystem } from '../entities/components/holy-light-system.js';
 import { Game } from '../game.js';
-import { EnergyManager, ENERGY_ITEM } from '../systems/energy-manager.js';
+import { EnergyManager } from '../systems/energy-manager.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
 import { getConsumableEffect, applyConsumableEffect } from '../config/consumable.js';
@@ -37,8 +37,6 @@ const SKILL_RANGE_FALLBACK = { fireball: 1200, iceSpike: 800, lightningStrike: 6
 const CMD_PATROL_RADIUS = 1200;   // 巡逻半径（用户口径）
 const CMD_PATROL_SENSE = 520;     // 巡逻遇敌感知距离
 const CMD_GATHER_PICKUP_RANGE = 80;  // 采集掉落自动拾取半径
-const CMD_GATHER_BAG_FULL = 999;     // 采集袋容量（1 堆叠满）
-const CMD_GATHER_TRANSFER_RANGE = 160; // 移交玩家距离
 // 伊莉丝动作音效（2026-08-16 用户口径：复制铠甲骑士 attacking/defending 为新文件）
 const ELISE_SOUNDS = {
     attacking: 'assets/sounds/companions/elise/attacking.mp3',
@@ -832,15 +830,13 @@ export class CompanionAI {
     /** 采集：前往距指令点最近的资源点用普通攻击采集；袋满（999）回玩家移交；节点枯竭自动换下一个 */
     _cmdGather(entities, player, cmd) {
         const c = this.c;
-        // 袋满 → 回玩家移交
+        if (EnergyManager && EnergyManager.isFull()) {
+            this._stopGatherForFullStorage();
+            return;
+        }
+        // 旧运行状态兼容：把队员背包残留能源直接迁入仓库
         if (this._gatherPhase === 'return') {
-            const d = Math.hypot(player.x - c.x, player.y - c.y);
-            if (d <= CMD_GATHER_TRANSFER_RANGE) {
-                this._transferEnergyToPlayer(player);
-                return;
-            }
-            c._tacticalTarget = this._followPoint(player);
-            this._setMoveState('run');
+            this._transferEnergyToPlayer(player);
             return;
         }
         // 找资源点：优先距指令点最近，否则距玩家最近；无节点回落跟随
@@ -924,7 +920,7 @@ export class CompanionAI {
         return point;
     }
 
-    /** 拾取采集掉落的能源进队员背包；袋满（≥999）切 return 阶段回玩家移交 */
+    /** 兼容旧地面能源掉落：直接并入仓库，不再进入队员背包。 */
     _pickupEnergyDrops() {
         const c = this.c;
         if (!Game || !Game.entities) return;
@@ -932,35 +928,20 @@ export class CompanionAI {
             if (!e || !e.active) continue;
             if (!e.itemData || e.itemData.category !== 'energy') continue;
             if (Math.hypot(e.x - c.x, e.y - c.y) > CMD_GATHER_PICKUP_RANGE) continue;
-            let merged = false;
-            for (const it of c.backpack) {
-                if (it && it.category === 'energy' && (it.stack || 0) < (ENERGY_ITEM.maxStack || 999)) {
-                    it.stack += e.itemData.stack || 1;
-                    merged = true;
-                    break;
-                }
-            }
-            if (!merged && c.backpack.length < (c.maxBackpackSlots || 10)) {
-                const slot = (typeof c._findFreeBackpackSlot === 'function')
-                    ? c._findFreeBackpackSlot()
-                    : c.backpack.length;
-                if (slot >= 0) {
-                    c.backpack.push({ ...ENERGY_ITEM, slot, stack: e.itemData.stack || 1 });
-                    merged = true;
-                }
-            }
-            if (merged) {
+            const amount = e.itemData.stack || 1;
+            const added = EnergyManager ? EnergyManager.depositEnergy(amount) : 0;
+            if (added >= amount) {
                 e.active = false;
                 if (e._destroyPhaserSprite) e._destroyPhaserSprite();
                 Game.entities.delete(key);
+            } else if (added > 0) {
+                e.itemData.stack = amount - added;
             }
+            if (EnergyManager && EnergyManager.isFull()) break;
         }
-        let total = 0;
-        for (const it of c.backpack) if (it && it.category === 'energy') total += it.stack || 0;
-        if (total >= CMD_GATHER_BAG_FULL) this._gatherPhase = 'return';
     }
 
-    /** 队员背包能源移交玩家背包（玩家背包满则移交能装下的部分，剩余下次再交） */
+    /** 旧队员背包能源迁入仓库。 */
     _transferEnergyToPlayer(player) {
         const c = this.c;
         let total = 0;
@@ -969,9 +950,7 @@ export class CompanionAI {
             this._gatherPhase = 'work';
             return;
         }
-        const before = EnergyManager ? EnergyManager.getEnergy() : 0;
-        EnergyManager.addEnergy(total);
-        const added = (EnergyManager ? EnergyManager.getEnergy() : 0) - before;
+        const added = EnergyManager ? EnergyManager.depositEnergy(total) : 0;
         let remain = added;
         for (let i = c.backpack.length - 1; i >= 0 && remain > 0; i--) {
             const it = c.backpack[i];
@@ -982,12 +961,27 @@ export class CompanionAI {
             if (it.stack <= 0) c.backpack.splice(i, 1);
         }
         if (added > 0 && EffectManager) {
-            EffectManager.add(new FloatingTextEffect(player.x, player.y - 50, `+${added} 能源（${c.name || '队员'}移交）`, '#7fd4ff'));
+            EffectManager.add(new FloatingTextEffect(player.x, player.y - 50, `+${added} 能源（${c.name || '队员'}入库）`, '#7fd4ff'));
         }
-        // 玩家背包满（没交完）→ 保持 return 阶段继续等待；交完 → 回去继续采集
         let left = 0;
         for (const it of c.backpack) if (it && it.category === 'energy') left += it.stack || 0;
-        this._gatherPhase = left > 0 ? 'return' : 'work';
+        if (left > 0) this._stopGatherForFullStorage();
+        else this._gatherPhase = 'work';
+    }
+
+    /** 仓库满：停止玩家队友采矿并切待命。 */
+    _stopGatherForFullStorage() {
+        const c = this.c;
+        if (EnergyManager) EnergyManager.depositEnergy(1); // 触发节流满仓提示
+        c._command = { mode: 'hold', point: null, target: null };
+        c.target = null;
+        c._tacticalTarget = null;
+        if (c._pathManager) c._pathManager._clearPath();
+        c.vx = 0;
+        c.vy = 0;
+        c.isMoving = false;
+        c._animState = 'idle';
+        this._gatherPhase = 'work';
     }
 
     // ==================== 剑盾近战（伊莉丝，2026-08-15）====================
@@ -1164,15 +1158,13 @@ export class CompanionAI {
      */
     _cmdWarriorGather(entities, player, cmd) {
         const c = this.c;
-        // 袋满 → 回玩家移交（与远程采集同口径）
+        if (EnergyManager && EnergyManager.isFull()) {
+            this._stopGatherForFullStorage();
+            return;
+        }
+        // 旧运行状态兼容
         if (this._gatherPhase === 'return') {
-            const d = Math.hypot(player.x - c.x, player.y - c.y);
-            if (d <= CMD_GATHER_TRANSFER_RANGE) {
-                this._transferEnergyToPlayer(player);
-                return;
-            }
-            c._tacticalTarget = this._followPoint(player);
-            this._setMoveState('run');
+            this._transferEnergyToPlayer(player);
             return;
         }
         // 找资源点：优先距指令点最近，否则距玩家最近；无节点回落跟随

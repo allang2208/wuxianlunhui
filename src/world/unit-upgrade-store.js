@@ -10,6 +10,7 @@ import warriorCfg from '../../data/hamster-warrior-config.json';
 import shooterCfg from '../../data/hamster-shooter-config.json';
 import guardCfg from '../../data/hamster-guard-config.json';
 import scoutCfg from '../../data/hamster-scout-config.json';
+import musketeerCfg from '../../data/hamster-musketeer-config.json';
 
 /** 全局升级等级：{ [kind]: { [moduleId]: level } }（满级由建筑模块配置 maxLevel 控制） */
 export const GLOBAL_UNIT_UPGRADES = {};
@@ -47,6 +48,7 @@ export const UNIT_KIND_CFG = {
     shooter: shooterCfg,
     guard: guardCfg,
     scout: scoutCfg,
+    musketeer: musketeerCfg,
 };
 
 /** 实体识别兵种 key（非战斗兵种返回 null） */
@@ -57,6 +59,7 @@ export function getUnitKind(unit) {
     if (unit._isHamsterShooter) return 'shooter';
     if (unit._isHamsterGuard) return 'guard';
     if (unit._isHamsterScout) return 'scout';
+    if (unit._isHamsterMusketeer) return 'musketeer';
     return null;
 }
 

@@ -105,7 +105,7 @@ check('GameScene 渲染友方单位（friendlyUnits）', /_game\.friendlyUnits/.
 check('GameScene 民兵攻击单次播放（_isHamsterMilitia 并入射手/盾卫分支）',
     /member\._isHamsterMilitia/.test(gsSrc) && /_attackSwing/.test(gsSrc));
 check('GameScene 民兵移动朝向 vx（不倒退走路）',
-    /member\._isHamsterGuard \|\| member\._isHamsterMilitia \|\| member\._isHamsterScout\) && moving/.test(gsSrc)
+    /member\._isHamsterMusketeer\) && moving/.test(gsSrc)
     && /faceRight = member\.vx > 0/.test(gsSrc));
 check('GameScene 民兵受击白闪', /member\._isHamsterMilitia/.test(gsSrc)
     && /member\.hitFlash > 0/.test(gsSrc));
@@ -120,7 +120,9 @@ check('兵营注册民兵单位（unit.militia + 导入）',
 check('兵营升级走全局兵种表（applyGlobalUpgradesToKind + 面板读全局等级）',
     /applyGlobalUpgradesToKind\(this\.unitType, BARRACKS_CONFIG\.modules\)/.test(barSrc)
     && /getUnitUpgradeLevel\(b\.unitType, mid\)/.test(barSrc));
-check('兵营面板生成单位类型按钮含民兵', /\$\{btn\('militia'\)\}/.test(barSrc));
+check('兵营保留民兵旧实例兼容，但面板取消民兵选项',
+    /militia: \{ key: 'militia', name: '仓鼠民兵'/.test(barSrc)
+    && !/\$\{btn\('militia'\)\}/.test(barSrc));
 
 const prodSrc = fs.readFileSync(path.join(ROOT, 'src/world/producer-building-system.js'), 'utf-8');
 check('产兵建筑注册民兵（PRODUCER_UNIT_CFG/CLASS + 全局升级）',

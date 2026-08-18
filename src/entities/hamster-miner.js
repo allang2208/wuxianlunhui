@@ -13,6 +13,7 @@ import { HamsterMinerAI } from '../ai/hamster-miner-ai.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
 import hamsterMinerConfig from '../../data/hamster-miner-config.json';
+import { EnergyManager } from '../systems/energy-manager.js';
 
 const DYING_DURATION_MS = 1000; // dying 11 帧 @12fps ≈ 917ms，留余量
 
@@ -27,6 +28,7 @@ export class HamsterMiner extends Companion {
         super(archive);
 
         this._isHamsterMiner = true;
+        this._rtsCanAttack = false; // 矿工可移动/待命，但保持“只采矿不攻击敌人”口径
         this.animId = 'hamster_miner'; // 多实例共用素材动画键（渲染按 animId 取键）
         this._skipNeutralSprite = true; // 由侍从渲染管线接管，禁止 _syncNeutralEntities 画兜底棕圆
         this._enemyTargetable = true; // 防守怪可锁定（露娜无此标记，保持不拉仇恨）
@@ -52,13 +54,9 @@ export class HamsterMiner extends Companion {
     get hp() { return this.data.hp; }
     get maxHp() { return this.data.maxHp; }
 
-    /** 挖矿直接进隐藏背包（矿工自身攻击不产生地面掉落，2026-08-15）；返回实际入包量 */
+    /** 兼容调用：挖矿能源直接进入仓库。 */
     addMinedEnergy(amount) {
-        if (!(amount > 0)) return 0;
-        const space = Math.max(0, (this._energyCapacity || 500) - this._energyCarried);
-        const take = Math.min(amount, space);
-        this._energyCarried += take;
-        return take;
+        return EnergyManager ? EnergyManager.depositEnergy(amount) : 0;
     }
 
     /**
