@@ -21,6 +21,7 @@ import { GameUIManager } from './ui/game-ui-manager.js';
 import { EnchantSystem } from './ui/enchant-system.js';
 import { GameMenu } from './ui/game-menu.js';
 import DevTool from './ui/dev-tool.js';
+import { WorldSwitchPanel } from './ui/world-switch-panel.js';
 
 import { getElement } from './utils/dom-utils.js';
 
@@ -104,6 +105,9 @@ async function initModules() {
         initUIPanels(gameContainer);
     }
     GameMenu.init();
+    // 世界切换面板（多世界并行 M1）：侧边菜单注入「🌐 世界」按钮
+    WorldSwitchPanel.init();
+    window.WorldSwitchPanel = WorldSwitchPanel;
 
     // 游戏入口与 Phaser 迁移系统
     window.Game = Game;

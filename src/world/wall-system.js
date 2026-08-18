@@ -64,10 +64,10 @@ const ISO_WALL_GEO = {
     // 仙人掌障碍物（2026-08-16，世界-122 荒漠化：树木全部移除后由 cactusScatter 散布。
     // 4 姿态同风格低对比：process-desert-plant.py 白底生图→BiRefNet 抠图→降饱和降对比。
     // foot=底部 15% 带实测占地，obstacleH=期望世界显示高度（贴图等比裁剪 h=256））
-    cactus_saguaro2arm: { tex: 'obstacle_cactus_saguaro2arm', w: 109, h: 256, category: 'obstacle', foot: { w: 31, d: 11 }, obstacleH: 240, shadow: { kind: 'projection', heightMul: 1.0, maxOffset: 72, crossSpread: 0.28 }, editor: '仙人掌·双臂' },
-    cactus_saguaro1arm: { tex: 'obstacle_cactus_saguaro1arm', w: 80, h: 256, category: 'obstacle', foot: { w: 36, d: 13 }, obstacleH: 230, shadow: { kind: 'projection', heightMul: 1.0, maxOffset: 68, crossSpread: 0.25 }, editor: '仙人掌·单臂' },
-    cactus_barrel: { tex: 'obstacle_cactus_barrel', w: 245, h: 256, category: 'obstacle', foot: { w: 110, d: 38 }, obstacleH: 105, shadow: { kind: 'contact', heightMul: 0.35, maxOffset: 22 }, editor: '仙人掌·桶状' },
-    cactus_cholla: { tex: 'obstacle_cactus_cholla', w: 124, h: 256, category: 'obstacle', foot: { w: 33, d: 12 }, obstacleH: 150, shadow: { kind: 'projection', heightMul: 0.65, maxOffset: 42, crossSpread: 0.20 }, editor: '仙人掌·多节' },
+    cactus_saguaro2arm: { tex: 'obstacle_cactus_saguaro2arm', w: 109, h: 256, category: 'obstacle', foot: { w: 31, d: 11 }, obstacleH: 240, shadow: { kind: 'projection', heightMul: 1.0, maxOffset: 72, crossSpread: 0.28, visualWidthMul: 1.20, visualDepthMul: 1.25 }, editor: '仙人掌·双臂' },
+    cactus_saguaro1arm: { tex: 'obstacle_cactus_saguaro1arm', w: 80, h: 256, category: 'obstacle', foot: { w: 36, d: 13 }, obstacleH: 230, shadow: { kind: 'projection', heightMul: 1.0, maxOffset: 68, crossSpread: 0.25, visualWidthMul: 1.20, visualDepthMul: 1.25 }, editor: '仙人掌·单臂' },
+    cactus_barrel: { tex: 'obstacle_cactus_barrel', w: 245, h: 256, category: 'obstacle', foot: { w: 110, d: 38 }, obstacleH: 105, shadow: { kind: 'contact', heightMul: 0.35, maxOffset: 22, visualWidthMul: 1.60, visualDepthMul: 1.45 }, editor: '仙人掌·桶状' },
+    cactus_cholla: { tex: 'obstacle_cactus_cholla', w: 124, h: 256, category: 'obstacle', foot: { w: 33, d: 12 }, obstacleH: 150, shadow: { kind: 'projection', heightMul: 0.65, maxOffset: 42, crossSpread: 0.20, visualWidthMul: 1.30, visualDepthMul: 1.35 }, editor: '仙人掌·多节' },
     // 世界-123 雪原高瘦松树（Depth ControlNet 白模锁姿态 + BiRefNet 原图抠图，2026-08-18）。
     // foot 是底部树干实测带，obstacleH 统一为 390，显示与碰撞均按裁剪后的真实像素尺寸等比缩放。
     snow_pine_01: { tex: 'obstacle_snow_pine_01', w: 233, h: 909, category: 'obstacle', foot: { w: 95, d: 50 }, obstacleH: 390, editor: '雪松·直立' },
@@ -877,16 +877,19 @@ const WallSystem = {
                 const visualHeight = g.h * sy;
                 const shadowCfg = g.shadow || {};
                 const shadowHeight = visualHeight * (shadowCfg.heightMul ?? 1);
+                const shadowWidth = foot.w * (shadowCfg.visualWidthMul ?? 1);
+                const shadowDepth = foot.h * (shadowCfg.visualDepthMul ?? 1);
                 const maxOffset = shadowCfg.maxOffset
                     ?? Math.min(72, Math.max(28, visualHeight * 0.30));
                 const projectionKey = `${p.tex}_projection`;
                 p._sunShadow = phaserScene.registerStaticSunShadow({
                     x: foot.x + foot.w * 0.5,
                     y: foot.y + foot.h * 0.5,
-                    footprintWidth: foot.w,
+                    // 阴影视觉底座可大于碰撞 footprint；只影响渲染，不影响寻路/建造/命中。
+                    footprintWidth: shadowWidth,
                     // footprint 碰撞坐标的纵深尚未做渲染透视压缩；
                     // 贴地投影必须按 2:1（0.5）压扁，才能与实际占地视觉一致。
-                    footprintHeight: foot.h * PERSPECTIVE_SCALE_Y,
+                    footprintHeight: shadowDepth * PERSPECTIVE_SCALE_Y,
                     height: shadowHeight,
                     maxOffset,
                     depth: depth - 0.1,

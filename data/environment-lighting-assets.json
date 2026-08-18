@@ -19,9 +19,11 @@
         "y1": 256
       },
       "normalKind": "alpha-height-gradient",
+      "projectionSource": "full-alpha",
       "shadow": {
         "anchorMode": "footprint_center",
-        "anchorInsetY": -24
+        "anchorInsetX": 0,
+        "anchorInsetY": 0
       }
     },
     "obstacle_cactus_cholla": {
@@ -41,6 +43,7 @@
         "y1": 256
       },
       "normalKind": "alpha-height-gradient",
+      "projectionSource": "full-alpha",
       "shadow": {
         "anchorMode": "footprint_center"
       }
@@ -62,6 +65,7 @@
         "y1": 256
       },
       "normalKind": "alpha-height-gradient",
+      "projectionSource": "full-alpha",
       "shadow": {
         "anchorMode": "footprint_center"
       }
@@ -83,6 +87,7 @@
         "y1": 256
       },
       "normalKind": "alpha-height-gradient",
+      "projectionSource": "full-alpha",
       "shadow": {
         "anchorMode": "footprint_center"
       }
@@ -104,6 +109,7 @@
         "y1": 907
       },
       "normalKind": "alpha-height-gradient",
+      "projectionSource": "full-alpha",
       "shadow": {
         "anchorMode": "footprint_center"
       }
@@ -125,6 +131,7 @@
         "y1": 935
       },
       "normalKind": "alpha-height-gradient",
+      "projectionSource": "full-alpha",
       "shadow": {
         "anchorMode": "footprint_center"
       }
@@ -146,6 +153,7 @@
         "y1": 939
       },
       "normalKind": "alpha-height-gradient",
+      "projectionSource": "full-alpha",
       "shadow": {
         "anchorMode": "footprint_center"
       }
@@ -167,6 +175,7 @@
         "y1": 952
       },
       "normalKind": "alpha-height-gradient",
+      "projectionSource": "full-alpha",
       "shadow": {
         "anchorMode": "footprint_center"
       }
@@ -188,6 +197,7 @@
         "y1": 883
       },
       "normalKind": "alpha-height-gradient",
+      "projectionSource": "full-alpha",
       "shadow": {
         "anchorMode": "footprint_center"
       }
@@ -209,9 +219,11 @@
         "y1": 570
       },
       "normalKind": "alpha-height-gradient",
+      "projectionSource": "bottom-20%",
       "shadow": {
         "anchorMode": "footprint_center",
-        "anchorInsetY": -24
+        "anchorInsetY": -120,
+        "anchorInsetX": 120
       }
     },
     "obstacle_defense_tower": {
@@ -231,6 +243,7 @@
         "y1": 498
       },
       "normalKind": "alpha-height-gradient",
+      "projectionSource": "full-alpha",
       "shadow": {
         "anchorMode": "footprint_center"
       }
@@ -242,16 +255,17 @@
       "height": "assets/terrain/lighting/barracks_height.png",
       "normal": "assets/terrain/lighting/barracks_normal.png",
       "size": {
-        "width": 987,
-        "height": 967
+        "width": 1358,
+        "height": 1086
       },
       "alphaBBox": {
         "x0": 0,
         "y0": 0,
-        "x1": 987,
-        "y1": 967
+        "x1": 1358,
+        "y1": 1086
       },
       "normalKind": "alpha-height-gradient",
+      "projectionSource": "full-alpha",
       "shadow": {
         "anchorMode": "footprint_center"
       }
@@ -273,6 +287,7 @@
         "y1": 1024
       },
       "normalKind": "alpha-height-gradient",
+      "projectionSource": "full-alpha",
       "shadow": {
         "anchorMode": "footprint_center"
       }
@@ -284,16 +299,17 @@
       "height": "assets/terrain/lighting/blacksmith_height.png",
       "normal": "assets/terrain/lighting/blacksmith_normal.png",
       "size": {
-        "width": 1230,
-        "height": 1133
+        "width": 1243,
+        "height": 1193
       },
       "alphaBBox": {
         "x0": 0,
         "y0": 0,
-        "x1": 1230,
-        "y1": 1133
+        "x1": 1243,
+        "y1": 1193
       },
       "normalKind": "alpha-height-gradient",
+      "projectionSource": "full-alpha",
       "shadow": {
         "anchorMode": "footprint_center"
       }
@@ -305,16 +321,17 @@
       "height": "assets/terrain/lighting/church_height.png",
       "normal": "assets/terrain/lighting/church_normal.png",
       "size": {
-        "width": 1012,
-        "height": 1170
+        "width": 1209,
+        "height": 1182
       },
       "alphaBBox": {
         "x0": 0,
         "y0": 0,
-        "x1": 1012,
-        "y1": 1170
+        "x1": 1209,
+        "y1": 1182
       },
       "normalKind": "alpha-height-gradient",
+      "projectionSource": "full-alpha",
       "shadow": {
         "anchorMode": "footprint_center"
       }
@@ -326,16 +343,17 @@
       "height": "assets/terrain/lighting/research_institute_height.png",
       "normal": "assets/terrain/lighting/research_institute_normal.png",
       "size": {
-        "width": 1024,
-        "height": 1093
+        "width": 1238,
+        "height": 1190
       },
       "alphaBBox": {
-        "x0": 14,
-        "y0": 14,
-        "x1": 1010,
-        "y1": 1079
+        "x0": 0,
+        "y0": 0,
+        "x1": 1238,
+        "y1": 1190
       },
       "normalKind": "alpha-height-gradient",
+      "projectionSource": "full-alpha",
       "shadow": {
         "anchorMode": "footprint_center"
       }
@@ -357,6 +375,7 @@
         "y1": 1080
       },
       "normalKind": "alpha-height-gradient",
+      "projectionSource": "full-alpha",
       "shadow": {
         "anchorMode": "footprint_center"
       }
@@ -368,16 +387,17 @@
       "height": "assets/terrain/lighting/shooting_range_height.png",
       "normal": "assets/terrain/lighting/shooting_range_normal.png",
       "size": {
-        "width": 1197,
-        "height": 1198
+        "width": 1240,
+        "height": 1169
       },
       "alphaBBox": {
         "x0": 0,
         "y0": 0,
-        "x1": 1197,
-        "y1": 1198
+        "x1": 1240,
+        "y1": 1169
       },
       "normalKind": "alpha-height-gradient",
+      "projectionSource": "full-alpha",
       "shadow": {
         "anchorMode": "footprint_center"
       }
@@ -389,16 +409,17 @@
       "height": "assets/terrain/lighting/thatch_hut_height.png",
       "normal": "assets/terrain/lighting/thatch_hut_normal.png",
       "size": {
-        "width": 1024,
-        "height": 1046
+        "width": 1359,
+        "height": 1089
       },
       "alphaBBox": {
         "x0": 0,
         "y0": 0,
-        "x1": 1024,
-        "y1": 1046
+        "x1": 1359,
+        "y1": 1089
       },
       "normalKind": "alpha-height-gradient",
+      "projectionSource": "full-alpha",
       "shadow": {
         "anchorMode": "footprint_center"
       }
@@ -410,16 +431,17 @@
       "height": "assets/terrain/lighting/portal_height.png",
       "normal": "assets/terrain/lighting/portal_normal.png",
       "size": {
-        "width": 615,
-        "height": 921
+        "width": 1127,
+        "height": 1192
       },
       "alphaBBox": {
         "x0": 0,
         "y0": 0,
-        "x1": 615,
-        "y1": 921
+        "x1": 1127,
+        "y1": 1192
       },
       "normalKind": "alpha-height-gradient",
+      "projectionSource": "full-alpha",
       "shadow": {
         "anchorMode": "footprint_center"
       }

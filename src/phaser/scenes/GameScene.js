@@ -162,6 +162,7 @@ export class GameScene extends Scene {
         this.events.once('shutdown', () => this._clearDynamicProjectionTextureCache());
         // 世界 HUD：缓存每个贴图帧的可见 alpha 顶部，血条按真实模型而非透明画布定位。
         this._hudVisibleFrameTopCache = new Map();
+        this._installShadowConsoleTools();
 
         // HUD：世界空间（血条/名字）与屏幕空间（准星/小地图）
         this.worldHudGraphics = this.add.graphics();
@@ -6421,6 +6422,58 @@ export class GameScene extends Scene {
         if (!sprite) return;
         this._staticSunShadows.delete(sprite);
         if (destroy && sprite.active) sprite.destroy();
+    }
+
+    /** 浏览器控制台阴影校准入口：window.ShadowDebug.inspect / setInset。 */
+    _installShadowConsoleTools() {
+        if (typeof window === 'undefined') return;
+        window.ShadowDebug = {
+            listBuildings: () => Array.from(this._structureSunShadows?.keys() || []).map((entity) => ({
+                id: entity.id,
+                name: entity.name,
+                texture: this._neutralSprites?.get(entity)?.sprite?.texture?.key
+                    || this._defenseSprites?.get(entity)?.base?.texture?.key
+                    || null,
+            })),
+            inspect: (id = 'defense_base') => this._inspectShadowAlignment(id),
+            setInset: (textureKey, y = 0, x = 0) => {
+                const meta = lightingAssets.assets?.[textureKey];
+                if (!meta) return { ok: false, reason: `未找到光照资产: ${textureKey}` };
+                meta.shadow = meta.shadow || {};
+                meta.shadow.anchorInsetX = Number(x) || 0;
+                meta.shadow.anchorInsetY = Number(y) || 0;
+                return { ok: true, textureKey, shadow: { ...meta.shadow } };
+            },
+        };
+    }
+
+    _inspectShadowAlignment(id) {
+        const game = typeof window !== 'undefined' ? window.Game : null;
+        const entity = game?.entities?.get(id)
+            || Array.from(game?.entities?.values?.() || []).find((item) => item?.id === id || item?.name === id);
+        if (!entity) return { ok: false, reason: `未找到实体: ${id}` };
+        const neutral = this._neutralSprites?.get(entity);
+        const layered = this._defenseSprites?.get(entity);
+        const sprite = neutral?.sprite || layered?.base || entity._phaserSprite || null;
+        const shadowSprite = this._structureSunShadows?.get(entity) || this._shadowSprites?.get(entity) || null;
+        const shadowData = shadowSprite ? this._staticSunShadows?.get(shadowSprite) : null;
+        const footprint = this._getGroundShadowFootprint(entity, entity.collisionRadius || 10, sprite
+            ? { x: sprite.x, y: sprite.y + this._getFootOffsetY(entity, sprite) }
+            : null);
+        const visualFoot = sprite
+            ? { x: sprite.x, y: sprite.y + this._getFootOffsetY(entity, sprite) }
+            : null;
+        return {
+            ok: true,
+            entity: { id: entity.id, name: entity.name, texture: sprite?.texture?.key || null },
+            visualFoot,
+            footprintCenter: { x: footprint.x, y: footprint.y, width: footprint.width, height: footprint.height },
+            shadowRoot: shadowData ? { x: shadowData.x, y: shadowData.y, anchor: shadowData.shadowAnchorMode } : null,
+            shadowSprite: shadowSprite ? { x: shadowSprite.x, y: shadowSprite.y, rotation: shadowSprite.rotation } : null,
+            delta: visualFoot && shadowData
+                ? { x: shadowData.x - visualFoot.x, y: shadowData.y - visualFoot.y }
+                : null,
+        };
     }
 
     _syncStaticSunShadows() {

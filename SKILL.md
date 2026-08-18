@@ -3748,8 +3748,12 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
 - **建筑锚点不能一刀切**：碰撞 footprint 中心用于接触影尺寸；方向性轮廓影根部默认
   `footprint_center`。基地 4×4 的贴图与占地中心存在视觉差，但直接改到 `visual_foot`
   会让整段影子脱离模型；正确做法是在 manifest 对 `defense_base` 配
-  `shadow.anchorMode="footprint_center", shadow.anchorInsetY=-24`，把根部仅向贴图内部
-  校准。其余建筑先用 `footprint_center`，实机发现悬空/埋入后再单项调 inset。
+  `shadow.anchorMode="footprint_center", shadow.anchorInsetX=120, shadow.anchorInsetY=-120`，
+  把根部向贴图内部右上校准。其余建筑先用 `footprint_center`，实机发现悬空/埋入后再单项调 inset。
+- **基地投影只取底座**：`defense_base` 是立方体+顶盖+扁平底座；完整 alpha 旋转后会把主体
+  投成大块错误阴影。`build-lighting-maps.py` 的 `PROJECTION_BOTTOM_BANDS["defense_base"]=0.20`
+  只取贴图底部 20% alpha 生成 `defense_base_projection.png`。大型建筑出现“影子像整个模型/
+  脱离底座”时，优先增加该配置，不要先拉长或加深影子。
 
 #### 建筑贴图替换后的阴影工作流
 
@@ -3765,6 +3769,19 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
    影子盖住；换贴图后必须重启 Vite，确保新增静态资源被加载。
 5. 提交原贴图、`assets/terrain/lighting/` 派生图、manifest、BootScene 预加载与配置改动；
    不得只提交原图或只提交 projection。
+
+#### 游戏内时间系统（2026-08-18）
+
+- **唯一时间源**：`EnvironmentLightingSystem._elapsedMs / dayDurationMs / startPhase` 同时驱动
+  太阳方向、阴影、环境色和右上角时间 UI。禁止另起 `Date.now()` 秒表，否则画面时间与太阳脱节。
+- 时相映射：phase=0 为日出 06:00，0.25 为正午 12:00，0.5 为日落 18:00，0.75 为午夜 00:00；
+  UI 显示 `第N日 · HH:MM · 晨曦/白昼/黄昏/深夜`。
+- Phaser 暂停时环境系统不 update，因此游戏时间、太阳和阴影同时冻结；不要用独立
+  `setInterval` 更新游戏时钟。
+- 存档必须写 `gameTime: EnvironmentLightingSystem.serializeTime()`；读档调用
+  `restoreTime(data.gameTime)`，旧存档无该字段时保持当前默认时间。
+- 右上角旧 `.game-timer` 秒表已删除；DOM 与程序化 HUD 均使用 `#gameTime /
+  #gameTimeIcon / #gameTimeText`。
 
 #### 出图提示词要点
 - 写"**底边与水平线呈 30 度夹角**"（对齐地板线）；不要再写 26.5 度/2:1
@@ -5437,17 +5454,23 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
    右上定位和出售/修理等现有操作。
 
 **最近实例（2026-08-18）**
-- 铁匠铺：素材库 `铁匠铺.png` 已替代 `assets/terrain/blacksmith.png`；先裁
-  `4096² → 1230×1133`，再标定为 `displayW=288/displayH=265/footOffsetY=133`。
-- 教堂：素材库 `教堂.png` → `assets/terrain/church.png`（当前裁后 1012×1170），配置为
-  纯详情建筑：600能源、HP2500、def80/mdef120、`panelMode:"detail"`，暂不添加玩法；
-  原288宽地基大于2×2 footprint，现标定 `displayW=256/displayH=296/footOffsetY=148`。
-- 仓鼠兵营：素材库 `兵营.png` 已替代 `assets/terrain/barracks.png`；紧身裁为
-  987×967，`BARRACKS_CONFIG.barracks` 标定为
-  `displayW=288/displayH=282/footOffsetY=141`。
-- 靶场：素材库 `靶场.png` 已替代 `assets/terrain/shooting_range.png`；紧身裁为
-  1197×1198，`producer-buildings.json.shooting_range` 标定为
-  `displayW=288/displayH=288/footOffsetY=144`。
+- 批量替换（素材库 `场景\建筑\新建文件夹`）：兵营/教堂/研究院/草屋/铁匠铺/靶场已分别
+  替换 `barracks/church/research_institute/thatch_hut/blacksmith/shooting_range`；全部先紧身裁
+  再按已有 `displayW` 重标为：
+  `barracks 1358×1086 → 288×230/115`、`church 1209×1182 → 256×250/125`、
+  `research_institute 1238×1190 → 288×277/139`、`thatch_hut 1359×1089 → 288×231/116`、
+  `blacksmith 1243×1193 → 288×276/138`、`shooting_range 1240×1169 → 288×272/136`。
+  **贴图替换不改既有建筑玩法配置**；随后必须运行 `build-lighting-maps.py` 重建投影/轮廓/
+  高度/法线派生资产。该批裁后 alpha 全部水平居中、底边贴画布底部，因此图层标准结论为：
+  保持 `spriteCfg.offsetX=0`、`footOffsetY=displayH/2` 与 manifest
+  `shadow.anchorMode="footprint_center"`；禁止通过修改 collision footprint 或随意加 shadow inset
+  来补视觉误差。
+- 传送门：同一目录 `传送门.png` 已替代 `assets/terrain/portal.png`；紧身裁为
+  1127×1192，`producer-buildings.json.portal` 标定为
+  `displayW=288/displayH=305/footOffsetY=153`，并重建 `portal_projection/silhouette/height/normal`。
+  `panelMode:"portal"` 的详情面板提供 **主神空间 / 世界-123·雪原 / 世界-124·林地**
+  三个目的地，按钮必须调用 `SceneManager.switchScene`，禁止直接改 `currentScene` 绕过
+  世界-122快照、实体清理和传送冷却链路。
 
 ### 世界-124 林地（2026-08-18）
 
@@ -5559,6 +5582,25 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
   `displayW=288/displayH=308/footOffsetY=150`；底部14px透明留白由自动脚点扫描扣除，
   预览与实体共用结果。
 - 回归：`test-research-institute.mjs`。
+
+### 世界-122 场景快照（M0 多世界并行地基，2026-08-18 落地）
+
+- **唯一入口 `src/world/world122-snapshot.js`**：`captureWorld122` 捕获 → 内存驻留 →
+  `applyWorld122Snapshot` 恢复；scene-manager 离场时**先捕获后 teardown**（顺序铁律，
+  捕获在 `DefenseSystem.teardown()` 之前），`_loadScene8` 各系统 setup 完后恢复。
+- **覆盖对象**：基地 HP、波次（_wave/_phase/_phaseTimer；**wave 进行中离开 → 回场 break
+  阶段重开本波**，不逐怪存档）、玩家建筑七类（塔含武器/芯片/改造模块、方块墙、4格门整组
+  pillars+门、射击台、矿场含建筑级 modules+暂存能量+矿工数、兵营含兵种+产兵读条、
+  产兵建筑含 cfgKey/兵种/读条/持续升级/仓库单仓存量）、矿点（位置每局随机必须入快照，
+  含枯竭与重生计时，走 `EnergyNodeSystem.restoreNodes` 不随机重铺）。
+- **口径**：计时器按剩余毫秒冻结续跑（M0 不推进后台时间，M1 再加真实时间结算）；
+  单位只记兵种+存活数、回场建筑旁重生成；**败北不持久化**；胜利恢复时 `_victoryGranted=true`
+  防重复发奖；**矿场恢复先挂 modules 再 spawnMiner**（矿工才吃到升级）；
+  仓库存量按快照覆盖（构造时 EnergyManager pending 已灌入，覆盖避免重复计数）。
+- **存档/新游戏**：主存档 `world122.scene`（game-ui-manager save/load）；
+  `Game.start` 调 `resetWorld122Snapshot()`。
+- **验证**：`scripts/test-world122-snapshot.mjs`（21 项契约）+ `tools/cdp-world122-snapshot.mjs`
+  （实机 15 项：建造→捕获→回主城清空→重进全恢复）。
 
 ### 基地菱形房无缝拼接（WIP，2026-08-17）
 

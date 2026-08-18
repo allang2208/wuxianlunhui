@@ -265,8 +265,8 @@ export class BootScene extends Scene {
         this.load.image('obstacle_defense_tower', 'assets/terrain/obstacle_defense_tower.png');
         // 世界-122 基地核心（Blender 建模：立方体 + 扁平底座 + 大理石贴图，2026-08-16）
         this.load.image('defense_base', 'assets/terrain/defense_base.png');
-        // 世界-122 射击台（Blender 建模：三级台阶 + 站台，30° 等距视角，2026-08-16）
-        this.load.image('firing_platform', 'assets/terrain/firing_platform.png');
+        // 世界-122 射击台（单格 Blender 重构：格内三级台阶 + 半格台面）
+        this.load.image('firing_platform', 'assets/terrain/firing_platform_1x1.png');
         this.load.image('firing_platform_h', 'assets/terrain/firing_platform_h.png');
         // 世界-122 仓鼠小屋（建筑面板可建造，生成仓鼠矿工；贴图 Blender 建模渲染）
         // 世界-122 建筑（2026-08-17 换素材：军营/矿场/铁匠铺，英文文件名）

@@ -45,10 +45,10 @@ export const BARRACKS_CONFIG = {
         def: 60,
         mdef: 60,
         tex: 'barracks',
-        // 2026-08-18：素材库兵营.png 紧身裁剪为 987×967，按 displayW=288 等比标定。
+        // 2026-08-18：新建文件夹/兵营.png 紧身裁剪为 1358×1086，按 displayW=288 等比标定。
         displayW: 288,
-        displayH: 282,
-        footOffsetY: 141,
+        displayH: 230,
+        footOffsetY: 115,
         sellRefundRatio: 0.5,
         spawnIntervalMs: 45000,   // 45 秒生成一个军事单位（2026-08-18 由 30s 调整）
         spawnRadius: 90,

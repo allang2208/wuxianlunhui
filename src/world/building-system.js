@@ -962,7 +962,7 @@ export const BuildingSystem = {
         };
     },
 
-    /** 射击台锚点固定为楼梯格中心；F 只切换台面延展到 e2/e1。 */
+    /** 射击台占一个格；F 只切换格内楼梯/台面的 e2/e1 朝向。 */
     _snapFiringPlatformGrid(x, y) {
         const [i, j] = this._blockCellOf(x, y);
         const [gx, gy] = this._blockCellCenter(i, j);
@@ -1634,7 +1634,7 @@ export const BuildingSystem = {
         };
     },
 
-    /** 射击台专属 1×2 footprint：实体锚点是楼梯格，F 改变第二格的格轴方向。 */
+    /** 射击台专属单格 footprint：F 只改变格内楼梯方向。 */
     _canPlaceFiringPlatformFootprint(x, y) {
         const item = this._placing && this._placing.item;
         if (!item || !this._fitsPlacementBounds(item, x, y)) return false;

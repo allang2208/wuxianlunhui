@@ -3455,3 +3455,32 @@ body.map-mode #weaponInfo {
   font-family: SimHei, "Microsoft YaHei", sans-serif;
 }
 .defense-hud span:first-child { color: #cde8c0; font-weight: 700; }
+
+/* 世界切换面板（2026-08-18，多世界并行 M1）：右侧抽屉，复用仓库面板视觉 */
+.world-switch-panel {
+  position: fixed; top: 50%; right: 96px; transform: translateY(-50%) translateX(24px);
+  width: 380px; max-height: 80vh; overflow-y: auto;
+  background: linear-gradient(135deg, rgba(45, 40, 35, 0.95), rgba(35, 30, 25, 0.98));
+  border: 2px solid #7a6a5a; border-radius: 12px; z-index: 4000;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  opacity: 0; visibility: hidden; pointer-events: none;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease, visibility 0.3s;
+  font-family: SimHei, "Microsoft YaHei", sans-serif;
+}
+.world-switch-panel.active { opacity: 1; visibility: visible; transform: translateY(-50%) translateX(0); pointer-events: auto; }
+.world-switch-panel .ws-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid rgba(122, 106, 90, 0.4); background: rgba(0, 0, 0, 0.2); }
+.world-switch-panel .ws-title { color: #d4c5a9; font-size: 16px; font-weight: 700; }
+.world-switch-panel .ws-close { background: none; border: none; color: #8a7d6b; font-size: 18px; cursor: pointer; padding: 2px 6px; }
+.world-switch-panel .ws-close:hover { color: #d4c5a9; }
+.world-switch-panel .ws-list { padding: 10px 12px; display: flex; flex-direction: column; gap: 10px; }
+.world-switch-panel .ws-row { border: 1px solid rgba(122, 106, 90, 0.4); border-radius: 10px; padding: 10px 12px; background: rgba(0, 0, 0, 0.18); }
+.world-switch-panel .ws-row.current { border-color: #7fe0c8; box-shadow: 0 0 8px rgba(127, 224, 200, 0.25); }
+.world-switch-panel .ws-row-head { display: flex; align-items: center; gap: 8px; }
+.world-switch-panel .ws-icon { font-size: 20px; }
+.world-switch-panel .ws-name { color: #e8dfc8; font-size: 14px; font-weight: 700; flex: 1; }
+.world-switch-panel .ws-go { background: #3a5a4a; color: #c8f0d8; border: 1px solid #5a8a6a; border-radius: 6px; padding: 3px 12px; cursor: pointer; font-size: 12px; }
+.world-switch-panel .ws-go:hover { background: #4a6a5a; }
+.world-switch-panel .ws-status { margin-top: 6px; font-size: 12px; color: #b0a892; line-height: 1.6; }
+.world-switch-panel .ws-status .ws-current { color: #7fe0c8; font-weight: 700; }
+.world-switch-panel .ws-status .ws-dim { color: #8a7d6b; }
+.world-switch-panel .ws-preview { margin-top: 4px; color: #9ad0ff; }

@@ -52,8 +52,19 @@ ASSETS = [
 SHADOW_OVERRIDES = {
     "defense_base": {
         "anchorMode": "footprint_center",
-        "anchorInsetY": -24,
+        "anchorInsetX": 120,
+        "anchorInsetY": -120,
     },
+    "obstacle_cactus_barrel": {
+        "anchorMode": "footprint_center",
+        "anchorInsetX": 0,
+        "anchorInsetY": 0,
+    },
+}
+
+PROJECTION_BOTTOM_BANDS = {
+    # 基地投影只使用扁平大理石底座；投完整立方体/顶盖会产生不可信的大块阴影。
+    "defense_base": 0.20,
 }
 
 
@@ -108,13 +119,19 @@ def make_silhouette(alpha_img: Image.Image) -> Image.Image:
     return out
 
 
-def make_projection(alpha_img: Image.Image) -> Image.Image:
+def make_projection(alpha_img: Image.Image, bottom_band: float | None = None) -> Image.Image:
     """把竖直 billboard 轮廓转为沿本地 X 轴延展的影子遮罩。
 
     运行时只需按太阳方向旋转，不会再把原始竖向角色/植物轮廓压成极细横线。
     轻度羽化保留轮廓，又避免投影边缘像硬切纸片。
     """
-    rotated = alpha_img.transpose(Image.Transpose.ROTATE_270)
+    source = alpha_img
+    if bottom_band is not None:
+        arr = np.asarray(alpha_img).copy()
+        start_y = max(0, int(arr.shape[0] * (1.0 - bottom_band)))
+        arr[:start_y, :] = 0
+        source = Image.fromarray(arr, "L")
+    rotated = source.transpose(Image.Transpose.ROTATE_270)
     softened = rotated.filter(ImageFilter.GaussianBlur(radius=0.9))
     out = Image.new("RGBA", softened.size, (0, 0, 0, 0))
     out.putalpha(softened)
@@ -130,7 +147,7 @@ def build_asset(name: str, previous: dict | None = None) -> dict:
     height = make_height(alpha)
     normal = make_normal(height, alpha)
     silhouette = make_silhouette(alpha)
-    projection = make_projection(alpha)
+    projection = make_projection(alpha, PROJECTION_BOTTOM_BANDS.get(name))
 
     silhouette_path = OUT_DIR / f"{name}_silhouette.png"
     projection_path = OUT_DIR / f"{name}_projection.png"
@@ -153,6 +170,7 @@ def build_asset(name: str, previous: dict | None = None) -> dict:
         "size": {"width": rgba.width, "height": rgba.height},
         "alphaBBox": dict(zip(("x0", "y0", "x1", "y1"), alpha_bbox(np.asarray(alpha, dtype=np.float32) / 255.0))),
         "normalKind": "alpha-height-gradient",
+        "projectionSource": f"bottom-{int(PROJECTION_BOTTOM_BANDS[name] * 100)}%" if name in PROJECTION_BOTTOM_BANDS else "full-alpha",
         "shadow": shadow,
     }
 

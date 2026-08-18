@@ -8,6 +8,8 @@ import { BlackWolf } from '../entities/enemy-types.js';
 import { ExpeditionSystem } from '../ui/expedition-system.js';
 import { GAME_CONFIG } from '../config/game-config.js';
 import { EffectManager } from '../effects/effect-manager.js';
+import { FloatingTextEffect } from '../effects/floating-text.js';
+import { GoldManager } from '../systems/gold-manager.js';
 import { SoundManager } from '../ui/sound-manager.js';
 import { getElement, getElementIfExists } from '../utils/dom-utils.js';
 import { TimerManager } from '../utils/timer-manager.js';
@@ -18,16 +20,23 @@ import { TargetDummy } from '../entities/target-dummy.js';
 import { RiftSystem } from '../quest/rift-system.js';
 import { QuickBar } from '../ui/quick-bar.js';
 import { SystemUI } from '../ui/system-ui.js';
-import { DefenseSystem, DEFENSE_CONFIG } from './defense-system.js';
+import {
+    DefenseSystem, DEFENSE_CONFIG, DefenseTower, DefenseCover, BuildableGate, FiringPlatform,
+} from './defense-system.js';
 import { EnergyNodeSystem } from './energy-node-system.js';
 import { ENERGY_CONFIG } from '../config/energy-config.js';
 import { HamsterMinerSystem } from './hamster-miner-system.js';
-import { HamsterHutSystem } from './hamster-hut-system.js';
-import { HamsterBarracksSystem } from './hamster-barracks-system.js';
-import { ProducerBuildingSystem } from './producer-building-system.js';
+import { HamsterHutSystem, HamsterHut } from './hamster-hut-system.js';
+import { HamsterBarracksSystem, HamsterBarracks } from './hamster-barracks-system.js';
+import { ProducerBuildingSystem, ProducerBuilding, getProducerConfig } from './producer-building-system.js';
 import { BuildingSystem } from './building-system.js';
 import { DefenseTrapSystem } from './defense-trap-system.js';
-import { captureAndStoreWorld122, applyWorld122Snapshot, getWorld122Snapshot } from './world122-snapshot.js';
+import {
+    captureAndStoreWorld122, applyWorld122Snapshot, getWorld122Snapshot,
+    configureWorld122SnapshotRuntime,
+} from './world122-snapshot.js';
+import { EnergyManager } from '../systems/energy-manager.js';
+import { ResearchSystem } from './research-system.js';
 
 export const SceneManager = {
     currentScene: null,
@@ -39,6 +48,27 @@ export const SceneManager = {
     _mainHubInvincible: true, // 主神空间是否开启无敌（可通过 UI 切换）
 
     init() {
+        // 快照模块保持无启动期静态依赖；在 Game 已完成定义后才注入恢复所需的实体构造器。
+        configureWorld122SnapshotRuntime({
+            Game,
+            DefenseSystem,
+            DefenseTower,
+            DefenseCover,
+            BuildableGate,
+            FiringPlatform,
+            DEFENSE_CONFIG,
+            HamsterHutSystem,
+            HamsterHut,
+            HamsterBarracksSystem,
+            HamsterBarracks,
+            ProducerBuildingSystem,
+            ProducerBuilding,
+            getProducerConfig,
+            EnergyNodeSystem,
+            EnergyManager,
+            ResearchSystem,
+            GoldManager,
+        });
         const cfg = GAME_CONFIG.scenes || {};
         this.scenes = {
             main: cfg.main || { name: '主神空间', type: 'main', label: '场景一', width: 7650, height: 3800, background: '#2a3520', origin: { x: 3825, y: 1886 } },
@@ -1078,9 +1108,35 @@ export const SceneManager = {
         // 世界-122 仓鼠矿工：玩家友方单位，自动找最近能源矿点采矿
         HamsterMinerSystem.setup(player);
 
-        // 世界-122 场景快照恢复（M0）：有快照则重建玩家建筑/波次/矿点，不归零
-        if (getWorld122Snapshot()) applyWorld122Snapshot();
+        // 世界-122 场景快照恢复（M0）：有快照则重建玩家建筑/波次/矿点，不归零；
+        // M1：恢复前按离场时长后台结算（产兵/采矿/读条/波次战报），回场播报战报
+        if (getWorld122Snapshot()) {
+            const result = applyWorld122Snapshot();
+            this._announceWorld122Report(player, result);
+        }
 
+    },
+
+    /** 世界-122 回场战报（M1 后台结算结果浮字，2026-08-18） */
+    _announceWorld122Report(player, result) {
+        if (!result || !result.report || !player) return;
+        const r = result.report;
+        const lines = [];
+        if (result.defeated) {
+            lines.push(['世界-122 在你离开期间失守了！基地重建，防守重新开局', '#ff5555']);
+        } else {
+            if (r.wavesCleared.length > 0) lines.push([`离线战报：击退第 ${r.wavesCleared.join('、')} 波`, '#8ad0ff']);
+            if (r.victory) lines.push(['防守胜利！奖励已发放', '#ffd700']);
+            if (r.energyMined > 0) lines.push([`矿工离线采集 +${Math.round(r.energyMined)} 能源`, '#7fd4ff']);
+            if (r.passiveEnergy > 0) lines.push([`能源回收矩阵 +${r.passiveEnergy} 能源`, '#7fd4ff']);
+            if (r.unitsProduced > 0) lines.push([`新兵报到 +${r.unitsProduced}`, '#8ad0ff']);
+            if (r.abilitiesCompleted.length > 0) lines.push([`研究/能力完成 ${r.abilitiesCompleted.length} 项`, '#c9a0ff']);
+            if (r.structuresLost > 0) lines.push([`离线战斗损失建筑 ${r.structuresLost} 座`, '#ff8855']);
+            if (r.baseDamage > 0) lines.push([`基地离线受损 -${Math.round(r.baseDamage)} 耐久`, '#ff8855']);
+        }
+        lines.forEach(([text, color], i) => {
+            EffectManager.add(new FloatingTextEffect(player.x, player.y - 70 - i * 24, text, color));
+        });
     },
 
     /**

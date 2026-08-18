@@ -23,6 +23,7 @@ import { BuildingSinkEffect } from '../effects/building-sink.js';
 import { SoundManager } from '../ui/sound-manager.js';
 import { BasePanel } from '../ui/panels/base-panel.js';
 import { renderBuildingDetailHeader } from '../ui/panels/building-detail-header.js';
+import { SceneManager } from './scene-manager.js';
 import { WallSystem } from './wall-system.js';
 import { setupStructureDepth } from './structure-depth.js';
 import { Renderer } from './renderer.js';
@@ -681,6 +682,7 @@ class ProducerBuildingPanel extends BasePanel {
         const energy = EnergyManager ? EnergyManager.getEnergy() : 0;
         const gold = GoldManager ? GoldManager.getGold() : 0;
         const isWarehouse = cfg.workshopType === 'warehouse';
+        const isPortal = cfg.panelMode === 'portal';
         const isPassive = cfg.panelMode === 'detail';
         const isAbilityShop = cfg.spawnEnabled === false && !isWarehouse && !isPassive;
         const upgradeSummary = cfg.modules?.castSpd
@@ -689,9 +691,10 @@ class ProducerBuildingPanel extends BasePanel {
         el.querySelector('#pbTitle').textContent = '建筑详情';
         const detail = el.querySelector('#pbBuildingDetail');
         const functionTitle = el.querySelector('#pbFunctionTitle');
-        const mode = isPassive ? '基础建筑详情'
-            : (isWarehouse ? '仓储与能源汇总'
-                : (isAbilityShop ? (cfg.workshopType === 'research' ? '研究与结构强化' : '能力工坊升级') : '募兵与单位生产'));
+        const mode = isPortal ? '跨世界传送'
+            : (isPassive ? '基础建筑详情'
+                : (isWarehouse ? '仓储与能源汇总'
+                    : (isAbilityShop ? (cfg.workshopType === 'research' ? '研究与结构强化' : '能力工坊升级') : '募兵与单位生产')));
         if (detail) {
             detail.innerHTML = renderBuildingDetailHeader({
                 texture: cfg.tex,
@@ -704,7 +707,7 @@ class ProducerBuildingPanel extends BasePanel {
         }
         if (functionTitle) functionTitle.textContent = `特殊功能 · ${mode}`;
         const unitTypeEl = el.querySelector('#pbUnitType');
-        if (unitTypeEl) unitTypeEl.style.display = (isAbilityShop || isWarehouse || isPassive) ? 'none' : '';
+        if (unitTypeEl) unitTypeEl.style.display = (isAbilityShop || isWarehouse || isPassive || isPortal) ? 'none' : '';
 
         const st = el.querySelector('#pbStatus');
         const curType = b.unitName(b.unitType);
@@ -791,7 +794,7 @@ class ProducerBuildingPanel extends BasePanel {
         if (sellBtn) {
             const refund = Math.floor(cfg.cost * (cfg.sellRefundRatio ?? 0.5));
             const refundUnit = cfg.currency === 'gold' ? '金币' : '能源';
-            sellBtn.title = `出售返还 ${refund} ${refundUnit}${isAbilityShop || isWarehouse || isPassive ? '' : '（军事单位一并拆除）'}`;
+            sellBtn.title = `出售返还 ${refund} ${refundUnit}${isAbilityShop || isWarehouse || isPassive || isPortal ? '' : '（军事单位一并拆除）'}`;
             sellBtn.onclick = () => {
                 const res = b.sell();
                 this._notify(res.ok ? `已出售（+${res.refund} ${refundUnit}）` : (res.reason || '出售失败'), res.ok ? '#ffd700' : '#ff5555');
@@ -820,6 +823,25 @@ class ProducerBuildingPanel extends BasePanel {
                     <div id="pbWarehouseBar" style="height:100%;width:${pct}%;background:linear-gradient(90deg,#2a8ab8,#7fd4ff);"></div>
                 </div>
                 <div style="font-size:11px;color:#8aa0aa;margin-top:6px;">采矿产出的能源会直接汇总到所有仓库。</div>`;
+            return;
+        }
+        if (isPortal) {
+            st.innerHTML = `
+                <div style="font-size:13px;font-weight:700;color:#b8a8ff;margin-bottom:6px;">跨世界传送</div>
+                <div style="font-size:12px;color:#c8b98a;line-height:1.8;">
+                    选择目的地后将按正常场景切换流程传送。世界-122建筑与波次状态会自动保存。
+                </div>`;
+            const destinations = (cfg.destinations || []).filter((entry) => entry && entry.sceneId);
+            modBox.innerHTML = destinations.length
+                ? `<div style="display:grid;grid-template-columns:1fr;gap:8px;">${destinations.map((entry) => `
+                    <button data-portal-destination="${entry.sceneId}" style="background:#302a58;color:#e8e0ff;border:1px solid #7566b0;border-radius:7px;padding:9px 10px;cursor:pointer;text-align:left;">
+                        <b style="font-size:14px;">${entry.icon || '🌀'} ${entry.label || entry.sceneId}</b>
+                        <span style="display:block;font-size:11px;color:#b8a8d8;margin-top:2px;">点击传送</span>
+                    </button>`).join('')}</div>`
+                : '<div style="font-size:12px;color:#8a8a8a;">尚未配置传送目的地。</div>';
+            modBox.querySelectorAll('[data-portal-destination]').forEach((button) => {
+                button.addEventListener('click', () => this._teleport(button.dataset.portalDestination));
+            });
             return;
         }
         if (isPassive) {
@@ -948,6 +970,20 @@ class ProducerBuildingPanel extends BasePanel {
             }
         }
         this.refresh();
+    }
+
+    _teleport(sceneId) {
+        const player = this.player || (typeof window !== 'undefined' && window.Game ? window.Game.player : null);
+        if (!player || !sceneId || SceneManager.isLoading) return;
+        if (SceneManager.currentScene === sceneId) {
+            this._notify('已经在该世界中', '#ffd700');
+            return;
+        }
+        this.close();
+        return SceneManager.switchScene(sceneId, player).catch((err) => {
+            console.error('[portal building] switchScene error:', err);
+            this._notify('传送失败，请稍后重试', '#ff5555');
+        });
     }
 
     /** 能力说明浮窗（类似装备栏白色浮窗，2026-08-17）：悬停能力行时显示 */

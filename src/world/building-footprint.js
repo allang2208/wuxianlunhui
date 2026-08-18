@@ -32,29 +32,23 @@ export const FOUR_BY_FOUR_BASE_FOOT = Object.freeze({
     cells: 4,
 });
 
-/**
- * 射击台是唯一的定向 1×2 建筑：锚点始终是楼梯格中心，另一格为台面。
- * e1/e2 分别沿两条等距地板轴延展；F 只在这两个方向间切换。
- */
+/** 射击台占一个等距格；F 只改变格内楼梯/台面的朝向。 */
 const ISO_CELL_HALF = ONE_CELL_BUILDING_FOOT.w / (2 * Math.SQRT2);
-const ISO_CELL_STEP = ISO_CELL_HALF * 2;
 
 function firingPlatformFootprint(dir = 'e2') {
-    const alongU = dir === 'e1';
-    const halfU = alongU ? ISO_CELL_STEP : ISO_CELL_HALF;
-    const halfV = alongU ? ISO_CELL_HALF : ISO_CELL_STEP;
+    const halfU = ISO_CELL_HALF;
+    const halfV = ISO_CELL_HALF;
     const collisionWidth = (halfU + halfV) * Math.SQRT2;
     return Object.freeze({
-        dir: alongU ? 'e1' : 'e2',
+        dir: dir === 'e1' ? 'e1' : 'e2',
         halfU,
         halfV,
         collisionWidth,
         collisionHeight: collisionWidth * 0.5,
         collisionRadius: Math.hypot(halfU, halfV),
-        // 楼梯格 → 台面格的半步，即整个 1×2 footprint 的中心。
-        offX: alongU ? 32 : -32,
-        offY: 16,
-        clearRadius: 120,
+        offX: 0,
+        offY: 0,
+        clearRadius: ONE_CELL_BUILDING_FOOT.clearRadius,
     });
 }
 
@@ -91,13 +85,13 @@ export function applyBuildingFootprint(entity, cells = 2) {
     return entity;
 }
 
-/** 将射击台设为“楼梯格 + 台面格”的定向 1×2 footprint。 */
+/** 将射击台设为单格 footprint；dir 仅描述格内楼梯向。 */
 export function applyFiringPlatformFootprint(entity, dir = 'e2') {
     if (!entity) return entity;
     const foot = FIRING_PLATFORM_FOOTPRINTS[dir] || FIRING_PLATFORM_FOOTPRINTS.e2;
     entity._isGridBuilding = true;
-    entity._buildingFootprintCells = '1x2';
-    entity._isOneCellBuilding = false;
+    entity._buildingFootprintCells = 1;
+    entity._isOneCellBuilding = true;
     entity._isTwoByTwoBuilding = false;
     entity._isFourByFourBuilding = false;
     entity._firingPlatformDir = foot.dir;

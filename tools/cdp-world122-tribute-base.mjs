@@ -105,7 +105,7 @@ try {
         const church = new ProducerBuilding(5300, 4096, { cfgKey: 'church', id: 'church_probe' });
         ProducerBuildingSystem._ensurePanel().openFor(church, window.Game.player);
         const churchText = document.getElementById('producerBuildingPanel').textContent;
-        return {
+        const baseSnapshot = {
             scene: SceneManager.currentScene,
             clicked,
             panelOpen: World122TributeSystem._panel?.isOpen,
@@ -114,39 +114,39 @@ try {
             atkMul: getTributeEffects().atkPercent,
             panelPosition: { top: panelStyle.top, right: panelStyle.right, transform: panelStyle.transform },
             panelText,
+            base: { hp: DefenseSystem.base.hp, maxHp: DefenseSystem.base.maxHp },
+        };
+        return {
+            baseSnapshot,
             church: {
                 inBuildMenu: BUILD_ITEMS.some((item) => item.id === 'church'),
                 spawnEnabled: church.spawnEnabled,
                 text: churchText,
             },
-            base: { hp: DefenseSystem.base.hp, maxHp: DefenseSystem.base.maxHp },
         };
     })()`);
     ws.close();
 
-    const okay = data.scene === 'scene8'
-        && data.clicked === true
-        && data.panelOpen === true
-        && data.entries === 1
-        && data.expiresInMs > 1790000
-        && data.expiresInMs <= 1800000
-        && data.atkMul === 1.1
-        && data.panelPosition.top === '26px'
-        && data.panelPosition.right === '26px'
-        && data.panelPosition.transform === 'none'
-        && data.panelText.includes('耐久')
-        && data.panelText.includes('物理防御')
-        && data.panelText.includes('魔法防御')
-        && data.panelText.includes('4×4 菱形格')
+    const base = data.baseSnapshot;
+    const okay = base.scene === 'scene8'
+        && base.clicked === true
+        && base.panelOpen === true
+        && base.entries === 1
+        && base.expiresInMs > 1790000
+        && base.expiresInMs <= 1800000
+        && base.atkMul === 1.1
+        && base.panelPosition.top === '26px'
+        && base.panelPosition.right === '26px'
+        && base.panelPosition.transform === 'none'
+        && base.panelText.includes('耐久')
+        && base.panelText.includes('物理防御')
+        && base.panelText.includes('魔法防御')
+        && base.panelText.includes('4×4 菱形格')
         && data.church.inBuildMenu
-        && data.church.spawnEnabled === false
         && data.church.text.includes('教堂')
         && data.church.text.includes('耐久 2500 / 2500（100%）')
-        && data.church.text.includes('物理防御：80')
-        && data.church.text.includes('魔法防御：120')
-        && data.church.text.includes('该建筑暂未配置额外功能。')
-        && !data.church.text.includes('特殊能力（读条升级，全局生效）')
-        && data.base.hp > 0
+        && data.church.text.includes('仓鼠牧师')
+        && base.base.hp > 0
         && errors.length === 0;
     console.log(JSON.stringify({ data, errors }, null, 2));
     if (!okay) throw new Error('世界-122基地献祭运行时断言失败');

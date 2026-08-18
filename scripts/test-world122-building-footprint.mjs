@@ -60,18 +60,19 @@ check('普通建筑统一写入2×2矩形碰撞',
 
 const platformFootprint = new Entity(100, 200);
 applyFiringPlatformFootprint(platformFootprint, 'e2');
-check('射击台占地为楼梯格锚定的定向1×2（默认e2）',
-    platformFootprint._buildingFootprintCells === '1x2'
+check('射击台占地为单格，默认e2只描述格内坡面方向',
+    platformFootprint._buildingFootprintCells === 1
     && platformFootprint._firingPlatformDir === 'e2'
-    && platformFootprint.colliderOffsetX === -32
-    && platformFootprint.colliderOffsetY === 16
+    && platformFootprint.colliderOffsetX === 0
+    && platformFootprint.colliderOffsetY === 0
     && platformFootprint.collisionIsoHalfU === FIRING_PLATFORM_FOOTPRINTS.e2.halfU
     && platformFootprint.collisionIsoHalfV === FIRING_PLATFORM_FOOTPRINTS.e2.halfV);
 applyFiringPlatformFootprint(platformFootprint, 'e1');
-check('F镜像后的射击台沿e1延展且楼梯格锚点不变',
+check('F镜像后的射击台保持单格并切换格内e1坡面',
     platformFootprint._firingPlatformDir === 'e1'
-    && platformFootprint.colliderOffsetX === 32
-    && platformFootprint.colliderOffsetY === 16
+    && platformFootprint._buildingFootprintCells === 1
+    && platformFootprint.colliderOffsetX === 0
+    && platformFootprint.colliderOffsetY === 0
     && platformFootprint.collisionIsoHalfU === FIRING_PLATFORM_FOOTPRINTS.e1.halfU
     && platformFootprint.collisionIsoHalfV === FIRING_PLATFORM_FOOTPRINTS.e1.halfV);
 
@@ -164,7 +165,7 @@ const barracksSrc = fs.readFileSync(path.join(ROOT, 'src/world/hamster-barracks-
 const producerSrc = fs.readFileSync(path.join(ROOT, 'src/world/producer-building-system.js'), 'utf8');
 const wallSrc = fs.readFileSync(path.join(ROOT, 'src/world/wall-system.js'), 'utf8');
 
-check('防御塔、射击台与基地应用2×2/定向1×2/4×4碰撞',
+check('防御塔、射击台与基地应用2×2/单格/4×4碰撞',
     /applyBuildingFootprint\(this, 2\)/.test(defenseSrc)
     && /applyFiringPlatformFootprint\(this, this\.dir\)/.test(defenseSrc)
     && /applyBuildingFootprint\(this, 4\)/.test(defenseSrc));

@@ -14,7 +14,7 @@ import { serializeAbilityLevels, restoreAbilityLevels } from '../world/ability-s
 import { ResearchSystem } from '../world/research-system.js';
 import { EnergyManager } from '../systems/energy-manager.js';
 import { World122TributeSystem } from '../world/world122-tribute-system.js';
-import { serializeWorld122Scene, restoreWorld122Scene, resetWorld122Snapshot } from '../world/world122-snapshot.js';
+import { serializeWorld122Scene, restoreWorld122Scene } from '../world/world122-snapshot.js';
 import { EnvironmentLightingSystem } from '../world/environment-lighting-system.js';
 
 // Game UI Manager - Extracted from Game.js

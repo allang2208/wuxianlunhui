@@ -10,17 +10,52 @@
 //   单位位置与战斗状态不保留。
 // - 败北（defeated）不持久化：下次进入重新开局（与 roguelike 轮回口径一致）。
 // ============================================================
-import { Game } from '../game.js';
-import {
-    DefenseSystem, DefenseTower, DefenseCover, BuildableGate, FiringPlatform,
-    DEFENSE_CONFIG,
-} from './defense-system.js';
-import { HamsterHutSystem, HamsterHut } from './hamster-hut-system.js';
-import { HamsterBarracksSystem, HamsterBarracks, BARRACKS_CONFIG } from './hamster-barracks-system.js';
-import { ProducerBuildingSystem, ProducerBuilding, getProducerConfig } from './producer-building-system.js';
-import { EnergyNodeSystem } from './energy-node-system.js';
-import { EnergyManager } from '../systems/energy-manager.js';
-import { ResearchSystem } from './research-system.js';
+// 不能在这里静态导入 Game / 建筑类：该模块会被 GameUIManager 在游戏启动阶段加载，
+// 而建筑类继承 DamageableEntity，后者又依赖 Game，形成 TDZ 循环。
+// 由 SceneManager.init() 在 Game 初始化完成后注入运行时依赖。
+import { settleWorld122 } from './world122-sim.js'; // 纯数据结算（无 Game 依赖链），可静态导入
+
+let Game = null;
+let DefenseSystem = null;
+let DefenseTower = null;
+let DefenseCover = null;
+let BuildableGate = null;
+let FiringPlatform = null;
+let DEFENSE_CONFIG = null;
+let HamsterHutSystem = null;
+let HamsterHut = null;
+let HamsterBarracksSystem = null;
+let HamsterBarracks = null;
+let ProducerBuildingSystem = null;
+let ProducerBuilding = null;
+let getProducerConfig = null;
+let EnergyNodeSystem = null;
+let EnergyManager = null;
+let ResearchSystem = null;
+let GoldManager = null;
+
+export function configureWorld122SnapshotRuntime(deps = {}) {
+    ({
+        Game,
+        DefenseSystem,
+        DefenseTower,
+        DefenseCover,
+        BuildableGate,
+        FiringPlatform,
+        DEFENSE_CONFIG,
+        HamsterHutSystem,
+        HamsterHut,
+        HamsterBarracksSystem,
+        HamsterBarracks,
+        ProducerBuildingSystem,
+        ProducerBuilding,
+        getProducerConfig,
+        EnergyNodeSystem,
+        EnergyManager,
+        ResearchSystem,
+        GoldManager,
+    } = deps);
+}
 
 const SNAPSHOT_VERSION = 1;
 
@@ -28,6 +63,27 @@ const SNAPSHOT_VERSION = 1;
 let _stored = null;
 
 const _clone = (o) => JSON.parse(JSON.stringify(o));
+
+/** 塔 DPS（实机口径入快照：武器伤害×模块×芯片已由 _recalcDamage 写入 attacks.config.damage） */
+function _towerDps(t) {
+    const cfg = t._attackKey && t.attacks ? t.attacks[t._attackKey]?.config : null;
+    if (!cfg || !cfg.damage) return 0;
+    const dmg = ((cfg.damage.min ?? 0) + (cfg.damage.max ?? 0)) / 2;
+    const cd = cfg.cooldown > 0 ? cfg.cooldown : 0;
+    return dmg > 0 && cd > 0 ? Math.round(dmg * 1000 / cd) : 0;
+}
+
+/** 军事单位合计 DPS（读存活单位 AI 实参，含全局升级生效值） */
+function _unitsDps(units) {
+    let sum = 0;
+    for (const u of units || []) {
+        if (!u || u.active === false || u._dying) continue;
+        const dmg = u._ai?._attackDamage ?? 0;
+        const interval = Math.max(300, u._ai?._attackInterval ?? 2000);
+        sum += dmg * 1000 / interval;
+    }
+    return Math.round(sum);
+}
 
 /** 捕获当前世界-122 实况（要求 DefenseSystem.active，即玩家在 122 内） */
 export function captureWorld122() {
@@ -53,6 +109,7 @@ export function captureWorld122() {
                 chip: e.chip ? { ...e.chip } : null,
                 modules: e.modules ? { ...e.modules } : {},
                 weaponItem: e.weaponItem ? _clone(e.weaponItem) : null,
+                dps: _towerDps(e),
                 buildCost: e._buildCost ?? null, buildCurrency: e._buildCurrency ?? null,
             });
         } else if (e._isGate4 && e._buildGroupRoot === e) {
@@ -101,7 +158,7 @@ export function captureWorld122() {
         structures.push({
             kind: 'barracks', x: b.x, y: b.y, hp: Math.ceil(b.hp),
             unitType: b.unitType, spawnTimer: b._spawnTimer,
-            units: b.aliveUnitCount(),
+            units: b.aliveUnitCount(), unitDps: _unitsDps(b.units),
             rally: b._rallyPoint ? { x: b._rallyPoint.x, y: b._rallyPoint.y } : null,
             buildCost: b._buildCost ?? null, buildCurrency: b._buildCurrency ?? null,
         });
@@ -114,6 +171,7 @@ export function captureWorld122() {
             kind: 'producer', cfgKey: p.cfgKey, x: p.x, y: p.y, hp: Math.ceil(p.hp),
             unitType: p.unitType || '', spawnTimer: p._spawnTimer || 0,
             units: p.spawnEnabled ? p.aliveUnitCount() : 0,
+            unitDps: p.spawnEnabled ? _unitsDps(p.units) : 0,
             upgrade: p._upgrade ? { abilityId: p._upgrade.abilityId, totalMs: p._upgrade.totalMs, remainMs: p._upgrade.remainMs } : null,
             continuous: p._continuous || null,
             storedEnergy: p._isEnergyWarehouse ? (p.storedEnergy || 0) : undefined,
@@ -149,6 +207,17 @@ export function captureWorld122() {
     return {
         version: SNAPSHOT_VERSION,
         capturedAt: Date.now(),
+        // 波次/结算参数随快照封存（后台结算与配置同生命周期，防版本间口径漂移）
+        config: {
+            prepMs: spawnCfg.prepMs ?? 30000,
+            waveBreakMs: spawnCfg.waveBreakMs ?? 10000,
+            victoryWave: spawnCfg.victoryWave ?? 10,
+            victoryReward: spawnCfg.victoryReward || { gold: 500, energy: 500 },
+            waveBudgetBase: spawnCfg.waveBudgetBase ?? 26,
+            waveBudgetGrowth: spawnCfg.waveBudgetGrowth ?? 1.15,
+            hpPerWave: spawnCfg.hpPerWave ?? 0.16,
+            atkPerWave: spawnCfg.atkPerWave ?? 0.08,
+        },
         base, wave, structures, nodes,
     };
 }
@@ -182,6 +251,16 @@ export function serializeWorld122Scene() {
 /** 主存档恢复：写入驻留（进入 122 时才真正物化） */
 export function restoreWorld122Scene(data) {
     _stored = (data && data.version === SNAPSHOT_VERSION) ? data : null;
+}
+
+/** 世界切换面板预览：不回写快照、无全局副作用（commit=false）；
+ *  玩家在 122 内或无快照时返回 null。 */
+export function previewWorld122Report() {
+    if (!_stored) return null;
+    if (DefenseSystem && DefenseSystem.active) return null;
+    const elapsed = Date.now() - (_stored.capturedAt || Date.now());
+    if (elapsed < 1000) return null;
+    return settleWorld122(_stored, elapsed, { commit: false });
 }
 
 // ==================== 恢复（_loadScene8 尾部调用） ====================
@@ -307,10 +386,34 @@ function _restoreProducer(s) {
     }
 }
 
-/** 入场恢复（各系统 setup 完成后调用；无快照或版本不符则跳过） */
+/** 入场恢复（各系统 setup 完成后调用；无快照或版本不符则跳过）。
+ *  M1：先按离场时长做后台抽象结算（settleWorld122），再物化；
+ *  返回 false（未恢复）/ 结算报告对象（含 report；defeated 时快照作废）。 */
 export function applyWorld122Snapshot(snap = _stored) {
     if (!snap || snap.version !== SNAPSHOT_VERSION) return false;
     if (!DefenseSystem || !DefenseSystem.active) return false;
+
+    // ---- M1 后台结算（离场 >1s 才结算，避免同场秒切空跑）----
+    const elapsed = Date.now() - (snap.capturedAt || Date.now());
+    let report = null;
+    if (elapsed > 1000) {
+        report = settleWorld122(snap, elapsed, {
+            commit: true,
+            grant: (reward) => {
+                if (reward.energy && EnergyManager) EnergyManager.depositEnergy(reward.energy);
+                if (reward.gold && GoldManager && typeof GoldManager.addGold === 'function') GoldManager.addGold(reward.gold);
+            },
+        });
+        if (report.defeated) {
+            _stored = null; // 后台失守：快照作废，世界重新开局（与 M0 败北口径一致）
+            return { defeated: true, report };
+        }
+        // 结算后仍进行中的波次重开（实体不留档，M0 口径）
+        if (snap.wave && snap.wave.phase === 'wave') {
+            snap.wave.phase = 'break';
+            snap.wave.phaseTimer = (DEFENSE_CONFIG?.spawn?.waveBreakMs ?? 10000);
+        }
+    }
 
     // 基地核心血量
     if (snap.base && DefenseSystem.base) {
@@ -325,13 +428,14 @@ export function applyWorld122Snapshot(snap = _stored) {
         DefenseSystem._phaseTimer = Math.max(0, snap.wave.phaseTimer || 0);
         if (snap.wave.victory) {
             DefenseSystem.victory = true;
-            DefenseSystem._victoryGranted = true; // 奖励离场前已发放，回场不重复
+            DefenseSystem._victoryGranted = true; // 奖励已在结算时发放，回场不重复
         }
     }
 
     // 玩家建筑（顺序：墙/门/台/塔先行，产兵建筑随后——单位出生校验依赖墙体碰撞已注册）
     let restored = 0;
     for (const s of snap.structures || []) {
+        if (!(s.hp > 0)) continue; // 后台战斗被毁建筑不复活
         try {
             if (s.kind === 'tower') _restoreTower(s);
             else if (s.kind === 'block') _restoreBlock(s);
@@ -357,5 +461,5 @@ export function applyWorld122Snapshot(snap = _stored) {
     if (ResearchSystem && typeof ResearchSystem.refreshWorld === 'function') {
         ResearchSystem.refreshWorld();
     }
-    return restored > 0;
+    return { restored: restored > 0, report };
 }
