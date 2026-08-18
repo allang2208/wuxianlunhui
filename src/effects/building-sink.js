@@ -54,7 +54,9 @@ class BuildingSinkEffect {
             s._sinkBaseY = s.y;
         }
         this._footOffsetY = e.footOffsetY || 0;
-        this._faceDepth = (typeof e._faceDepth === 'number') ? e._faceDepth : (e.y + 12);
+        this._faceDepth = Number.isFinite(e._structureRenderDepth)
+            ? e._structureRenderDepth
+            : ((typeof e._faceDepth === 'number') ? e._faceDepth : (e.y + 12));
         if (this._label) this._label.setVisible(false);
         // 实体立即失效并从实体表移除：所有系统（目标/分离/寻路/空间网格）跳过它
         e.active = false;

@@ -10,7 +10,7 @@
  */
 import { Game } from '../game.js';
 import { WallSystem } from './wall-system.js';
-import { setupStructureDepth } from './structure-depth.js';
+import { setupStructureDepth, structureDepthAtY } from './structure-depth.js';
 import { pathFinder } from '../ai/pathfinder.js';
 import { Combatant } from '../entities/combatant.js';
 import { getAmmoConfig } from '../config/gun-ammo.js';
@@ -710,7 +710,10 @@ class DefenseCover extends Combatant {
             ];
             // depthBias：上夹角左臂（TL 边）加 0.5，让左臂盖住右臂（TR），
             // 否则两臂 faceDepth 相同 + TL 先建 → 右挡左（2026-08-06 用户反馈）
-            this._faceDepth = Math.max(this._faceLine[0].y, this._faceLine[1].y) + 12 + (config.depthBias || 0);
+            this._faceDepth = structureDepthAtY(
+                Math.max(this._faceLine[0].y, this._faceLine[1].y),
+                config.depthBias || 0
+            );
             if (isBlock) {
                 this.collisionShape = 'iso_rect';
                 this.collisionWidth = BLOCK_FOOT.w;
@@ -724,7 +727,7 @@ class DefenseCover extends Combatant {
                 applyIsoFootprintFromSegment(this, this._faceLine[0], this._faceLine[1], this._coverHalfThick);
             }
         } else {
-            this._faceDepth = y + 12;
+            this._faceDepth = structureDepthAtY(y);
         }
         // 墙段 face 线段注册进 WallSystem.isoSegments：怪物移动/投射物/寻路自动被
         // 墙段阻挡（与成功案例墙段/门闸同管线，skill #33 冰墙经验）。
@@ -2795,7 +2798,7 @@ function syncGateSeamDepths() {
             if (!cf) continue;
             const wallDepth = (typeof c._faceDepth === 'number')
                 ? c._faceDepth
-                : Math.max(cf[0].y, cf[1].y) + 12;
+                : structureDepthAtY(Math.max(cf[0].y, cf[1].y));
             if (Math.hypot(gf[1].x - cf[0].x, gf[1].y - cf[0].y) <= SEAM_TOUCH) {
                 const needR = wallDepth + 2 - g._depthR;
                 if (needR > g._seamBiasR) g._seamBiasR = needR;
@@ -2897,9 +2900,9 @@ const _CoverGate = {
         this._cy = (A.y + B.y) / 2 - (midTexY - cfg0.cellH / 2) * k;
         // 三段深度精灵（2026-08-15 图层重做）：左柱=深端、右柱=浅端、栅栏=中点，
         // 各自按底边线锚定，前实体不再被右柱整体遮挡
-        this._depthL = A.y + 12;
-        this._depthR = B.y + 12;
-        this._depthBars = (A.y + B.y) / 2 + 12;
+        this._depthL = structureDepthAtY(A.y);
+        this._depthR = structureDepthAtY(B.y);
+        this._depthBars = structureDepthAtY((A.y + B.y) / 2);
         this._faceLine = [A, B];
         this._seamBiasL = 0;
         this._seamBiasR = 0;
@@ -3405,7 +3408,7 @@ class BuildableGate extends Combatant {
                 { x: x + half, y: midY + half * 0.5 },
             ];
         }
-        this._faceDepth = Math.max(this._faceLine[0].y, this._faceLine[1].y) + 12;
+        this._faceDepth = structureDepthAtY(Math.max(this._faceLine[0].y, this._faceLine[1].y));
         this._coverHalfThick = cfg.halfThick;
         // 4格门中段精确占 2×1 地面格：沿门轴2格、垂直门轴1格。
         // 旧1格门仍保留按实际墙厚的窄长 footprint。
@@ -3463,10 +3466,10 @@ class BuildableGate extends Combatant {
         // 左柱=深端、右柱=浅端、栅栏=中点，各自按底边线锚定，前实体不再被右柱整体遮挡
         const A = this._faceLine[0];
         const B = this._faceLine[1];
-        this._depthL = A.y + 12;
-        this._depthR = B.y + 12;
-        this._depthBars = (A.y + B.y) / 2 + 12;
-        this._faceDepth = Math.max(A.y, B.y) + 12; // 与掩体同口径的通用锚点
+        this._depthL = structureDepthAtY(A.y);
+        this._depthR = structureDepthAtY(B.y);
+        this._depthBars = structureDepthAtY((A.y + B.y) / 2);
+        this._faceDepth = structureDepthAtY(Math.max(A.y, B.y)); // 与掩体同口径的通用锚点
         this._seamBiasL = 0;
         this._seamBiasR = 0;
         const sprites = createGateSprites(cfg, this._spriteCx, this._spriteCy, kx, this._depthL, this._depthR, this._depthBars, this._facingLeft, this._barsOnly, ky);

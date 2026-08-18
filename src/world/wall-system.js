@@ -1,5 +1,6 @@
 import { CONFIG } from '../config/config.js';
 import { getWallPrefabLibrary, loadWallGeoOverrides } from './wall-prefabs.js';
+import { structureDepthRelationAtPoint } from './structure-depth.js';
 
 // ===== 等距斜墙贴图几何（贴图像素空间，wall-asset-prep.py 产出 + 拼装模拟器实测校准）=====
 // base: 底边线全跨度（含端帽）；face: 正面墙底边跨度（不含端帽，拼接吸附/碰撞用）；
@@ -872,10 +873,20 @@ const WallSystem = {
     junctionCorrectedDepth(x, y, depth, frontRange = 60) {
         const cache = this._getFaceSegCache();
         let occluderDepth = Infinity, frontDepth = -Infinity;
+        const collectRelation = (segDepth, inFront) => {
+            if (inFront) {
+                if (segDepth > frontDepth) frontDepth = segDepth;
+            } else if (segDepth < occluderDepth) {
+                occluderDepth = segDepth;
+            }
+        };
         const applySeg = (A, B, segDepth) => {
                 const minX = Math.min(A.x, B.x) - 8, maxX = Math.max(A.x, B.x) + 8;
                 if (x < minX || x > maxX) return;
-                const t = (x - A.x) / ((B.x - A.x) || 1e-6);
+                // 8px 是接缝横向容差，不代表面线可以无限外推；夹紧 t 后转角/门柱
+                // 外侧不会采到虚构的延长线 Y，避免前后关系在端点附近翻转。
+                const rawT = (x - A.x) / ((B.x - A.x) || 1e-6);
+                const t = Math.max(0, Math.min(1, rawT));
                 const yLine = A.y + (B.y - A.y) * t;
                 // 门墙面线 depth = 门洞中心底边 y，比深端浅（亏空 = 深端 y − depth，可达 ~119px）：
                 // 收集窗按亏空加宽，否则深端墙后 60~119px 的实体收不到任何面线、仲裁完全失效
@@ -883,14 +894,8 @@ const WallSystem = {
                 const deficit = Math.max(A.y, B.y) - segDepth;
                 const win = (y - yLine) < 0 ? (deficit > 0 ? 60 + deficit : 60) : frontRange; // 线后=60+亏空；线前=实体贴图高度
                 if (Math.abs(y - yLine) > win) return;
-                if (y < yLine) {
-                    // 遮挡源取最浅（min）：实体必须压到所有遮挡面线之下才真正"被任一遮挡"。
-                    // 旧版取最深（max），门洞深端的实体会被邻接深墙面线抬到门墙 depth 之上，
-                    // 门墙左段时挡时不挡（RB 边门，右侧浅端天然正常）
-                    if (segDepth < occluderDepth) occluderDepth = segDepth;
-                } else {
-                    if (segDepth > frontDepth) frontDepth = segDepth;
-                }
+                // 遮挡源取最浅（min）：实体必须压到所有遮挡面线之下才真正被遮挡。
+                collectRelation(segDepth, y >= yLine);
         };
         for (const it of cache) {
             for (const [A, B] of it.segs) applySeg(A, B, it.depth);
@@ -903,6 +908,14 @@ const WallSystem = {
             for (const e of G.entities.values()) {
                 if (!e || !e.active) continue;
                 if (e._isCoverGate) continue; // 门的遮挡面线按三段注册在 GateFaceSegs（见下）
+                // 普通建筑按完整 iso footprint 的“当前 X 局部前缘”只判定一次。
+                // 不能把两条菱形前边分别当墙线收集：前顶点附近会同时得到一前一后，
+                // 建筑放大后还会把错误窗口放大，导致单位已经在建筑前方仍被压住。
+                if (e._structureDepthMode === 'iso_footprint') {
+                    const relation = structureDepthRelationAtPoint(e, x, y);
+                    if (relation) collectRelation(relation.depth, relation.inFront);
+                    continue;
+                }
                 const lines = Array.isArray(e._faceLines) && e._faceLines.length
                     ? e._faceLines
                     : (e._faceLine && e._faceLine.length === 2 ? [e._faceLine] : []);

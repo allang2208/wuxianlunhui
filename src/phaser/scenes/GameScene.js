@@ -17,6 +17,12 @@ import { MapGenerator } from '../../world/map-generator.js';
 import { bakeDungeonFloorChunk, registerDecoClearZones } from '../../world/dungeon-floor-texture.js';
 import { WeaponTransform } from '../../combat/weapon-transform.js';
 import { SwordArcTrail } from '../../effects/sword-arc-trail.js';
+import { EffectManager } from '../../effects/effect-manager.js';
+import {
+    BuildingDamageFx,
+    buildingDamageFlameCount,
+    isBuildingDamageFxTarget,
+} from '../../effects/building-damage-fx.js';
 import { getWeaponTextureKey } from '../../config/weapon-texture-map.js';
 import { WeaponAnimConfig } from '../../items/weapon-anim-config.js';
 import { Easing, WEAPON_ANIM } from '../../config/math-utils.js';
@@ -45,6 +51,16 @@ import { burstParticles } from '../../effects/combat-fx.js';
 import { GunFeel } from '../../effects/gunfeel.js';
 import { DEFENSE_TOWER_VISUAL, DefenseSystem } from '../../world/defense-system.js';
 import { isoFootprintVertices } from '../../physics/iso-footprint.js';
+import {
+    resolveStructureRenderOrder,
+    segmentIsoBounds,
+    structureDepthChannels,
+    structureIsoBounds,
+} from '../../world/structure-render-order.js';
+import {
+    resolveStructureFootOffset,
+    shouldAutoAnchorStructure,
+} from '../../world/structure-visual-anchor.js';
 
 export class GameScene extends Scene {
     constructor() {
@@ -357,6 +373,9 @@ export class GameScene extends Scene {
             this._syncNeutralEntities(_game);
             // 防御塔三层渲染（基座 + 旋转机械臂 + 挂载武器）
             this._syncDefenseTowers(_game);
+            // 完整建筑贴图按 footprint 拓扑排序；墙/门/建筑共享同一稳定顺序。
+            this._syncStructureRenderOrder(_game);
+            this._syncBuildingDamageFx(_game);
             // Phase 3: 同步特效 Sprite
             if (_game && _game.player) {
                 this._syncRuneSwords(_game.player);
@@ -1291,8 +1310,13 @@ export class GameScene extends Scene {
                 // 底边，比掩体接地线深 22~137px，会把墙前实体错误排到墙后被盖
                 // （2026-08-05 实机复现：怪物 depth 2100 < 掩体 2121）
                 const depth = (typeof e._faceDepth === 'number') ? e._faceDepth : data.sprite.y + footOffsetY + 10;
-                data.sprite.setDepth(depth);
-                if (data.label && data.label.active) data.label.setDepth(depth + 1);
+                const structureDepth = Number.isFinite(e._structureRenderDepth)
+                    ? e._structureRenderDepth
+                    : depth;
+                data.sprite.setDepth(structureDepth);
+                if (data.label && data.label.active) {
+                    data.label.setDepth((e._structureRenderChannels?.label ?? (structureDepth + 1)));
+                }
             }
         }
     }
@@ -1317,6 +1341,17 @@ export class GameScene extends Scene {
     _getFootOffsetY(entity, sprite) {
         if (!sprite) return 0;
         const configured = entity.footOffsetY ?? entity.config?.render?.footOffsetY;
+        if (shouldAutoAnchorStructure(entity) && sprite.texture?.key) {
+            const resolved = resolveStructureFootOffset(
+                this,
+                sprite.texture.key,
+                sprite.frame?.name,
+                sprite.displayHeight,
+                configured
+            );
+            entity._visualFootOffsetY = resolved;
+            return resolved;
+        }
         if (typeof configured === 'number') return configured;
         return sprite.displayHeight * 0.5;
     }
@@ -6173,9 +6208,11 @@ export class GameScene extends Scene {
             // 不能用 e.y+12——e.y 是贴图显示框底边，比接地线深 22~137px，会把墙前
             // 实体错误排到墙后被盖（2026-08-05 实机复现）
             if (e._isDefenseStructure) {
-                const dd = (typeof e._faceDepth === 'number') ? e._faceDepth : e.y + 12;
+                const dd = Number.isFinite(e._structureRenderDepth)
+                    ? e._structureRenderDepth
+                    : ((typeof e._faceDepth === 'number') ? e._faceDepth : e.y + 12);
                 sprite.setDepth(dd);
-                label.setDepth(dd + 1);
+                label.setDepth(e._structureRenderChannels?.label ?? (dd + 1));
             }
             if (label.text !== text) {
                 label.setText(text);
@@ -6232,7 +6269,9 @@ export class GameScene extends Scene {
             // 统一遮挡锚线（2026-08-16 全建筑同口径）：塔深度 = _faceDepth（接地线 y + 12），
             // 与小屋/基地/能源矿一致；单位在其后被压到塔下、在前/同线被抬到塔上（+0.5）。
             // 旧实现用 e.y + 2：与中立建筑深度不一致，同线单位 z-fight（建筑遮挡仓鼠）。
-            const towerDepth = (typeof e._faceDepth === 'number') ? e._faceDepth : e.y + 2;
+            const towerDepth = Number.isFinite(e._structureRenderDepth)
+                ? e._structureRenderDepth
+                : ((typeof e._faceDepth === 'number') ? e._faceDepth : e.y + 2);
             sp.base.setDepth(towerDepth);
             sp.base.setVisible(true);
             // 机械臂：预渲染 3D 旋转帧（48 帧），按 aimAngle 选最近帧；
@@ -6256,7 +6295,7 @@ export class GameScene extends Scene {
             sp.arm.setDisplaySize(V.arm.w, V.arm.h);
             sp.arm.setRotation(0);
             sp.arm.setFlipX(!!e._mirrored);
-            sp.arm.setDepth(towerDepth + 0.5);
+            sp.arm.setDepth(towerDepth + 0.05);
             sp.arm.setVisible(true);
             // 挂载武器：臂尖 = 椭圆路径（等距投影 x 全量、y 0.5 缩短），
             // 朝向 = 臂尖方向角；朝左 flipY 防倒置。
@@ -6295,7 +6334,7 @@ export class GameScene extends Scene {
                     sp.weapon.setFlipY(flipY);
                     sp.weapon.setScale(wH / Math.max(1, sp.weapon.height));
                 }
-                sp.weapon.setDepth(towerDepth + 1);
+                sp.weapon.setDepth(towerDepth + 0.08);
                 sp.weapon.setVisible(true);
             } else {
                 sp.weapon.setVisible(false);
@@ -6604,6 +6643,168 @@ export class GameScene extends Scene {
         sprite.x = sprite.x - current.x + desired.x;
         sprite.y = sprite.y - current.y + desired.y;
         sprite.setData('frameOffset', desired);
+    }
+
+    _syncStructureRenderOrder(_game) {
+        if (!_game?.entities) return;
+        const nodes = [];
+        const seenGates = new Set();
+        const addNode = (node) => {
+            if (!node?.bounds || !Number.isFinite(node.baseDepth) || !node.apply) return;
+            nodes.push(node);
+        };
+        const mergeBounds = (items) => {
+            const valid = items.filter(Boolean);
+            if (!valid.length) return null;
+            return valid.reduce((out, b) => ({
+                minU: Math.min(out.minU, b.minU),
+                maxU: Math.max(out.maxU, b.maxU),
+                minV: Math.min(out.minV, b.minV),
+                maxV: Math.max(out.maxV, b.maxV),
+            }), { ...valid[0] });
+        };
+
+        const addGate = (gate) => {
+            if (!gate || !gate.active || seenGates.has(gate) || !Array.isArray(gate._depthSegs)) return;
+            seenGates.add(gate);
+            const sprites = [gate.spriteL, gate.sprite, gate.spriteR];
+            const baseDepths = [
+                (gate._depthL ?? gate._depthSegs[0]?.depth ?? gate.y) + (gate._seamBiasL || 0),
+                gate._depthBars ?? gate._depthSegs[1]?.depth ?? gate.y,
+                (gate._depthR ?? gate._depthSegs[2]?.depth ?? gate.y) + (gate._seamBiasR || 0),
+            ];
+            for (let i = 0; i < gate._depthSegs.length; i++) {
+                const seg = gate._depthSegs[i];
+                const sprite = sprites[i];
+                if (!seg?.A || !seg?.B || !sprite?.active) continue;
+                addNode({
+                    stableKey: `gate:${gate.id || gate.name || gate.x + ',' + gate.y}:${i}`,
+                    bounds: segmentIsoBounds(seg.A, seg.B, gate._coverHalfThick || gate._cfg?.halfThick || 12),
+                    baseDepth: baseDepths[i],
+                    apply: (depth) => {
+                        seg.depth = depth;
+                        sprite.setDepth(depth);
+                        if (i === 1) {
+                            const channels = gate._structureRenderDepth === depth
+                                ? gate._structureRenderChannels
+                                : structureDepthChannels(depth);
+                            gate._structureRenderDepth = depth;
+                            gate._structureRenderChannels = channels;
+                        }
+                    },
+                });
+            }
+        };
+
+        for (const entity of _game.entities.values()) {
+            if (!entity || !entity.active || entity._isDefenseTrap || entity._isTrap) continue;
+            if (entity._isCoverGate) {
+                addGate(entity);
+                continue;
+            }
+            if (!entity._isDefenseStructure) continue;
+            const bounds = structureIsoBounds(entity);
+            if (!bounds) continue;
+            const neutral = this._neutralSprites?.get(entity);
+            const tower = this._defenseSprites?.get(entity);
+            const sprite = entity._isDefenseTower ? tower?.base : neutral?.sprite;
+            if (!sprite?.active) continue;
+            if (entity._isDefenseCover
+                && Number.isFinite(entity._structureTopologyAppliedDepth)
+                && Number.isFinite(entity._faceDepth)
+                && Math.abs(entity._faceDepth - entity._structureTopologyAppliedDepth) > 0.001) {
+                // 建造系统刚修正了墙角 bias：把外部新值吸收为新的几何基础深度。
+                entity._structureTopologyBaseDepth = entity._faceDepth;
+            }
+            if (!Number.isFinite(entity._structureTopologyBaseDepth)) {
+                entity._structureTopologyBaseDepth = Number.isFinite(entity._structureFrontDepth)
+                    ? entity._structureFrontDepth
+                    : (Number.isFinite(entity._faceDepth) ? entity._faceDepth : entity.y + 12);
+            }
+            addNode({
+                stableKey: `entity:${entity.id || entity.name || entity.x + ',' + entity.y}`,
+                bounds,
+                baseDepth: entity._structureTopologyBaseDepth,
+                apply: (depth) => {
+                    const channels = entity._structureRenderDepth === depth
+                        ? entity._structureRenderChannels
+                        : structureDepthChannels(depth);
+                    entity._structureRenderDepth = depth;
+                    entity._structureRenderChannels = channels;
+                    sprite.setDepth(channels.sprite);
+                    if (entity._isDefenseCover) {
+                        entity._faceDepth = depth;
+                        entity._structureTopologyAppliedDepth = depth;
+                    }
+                    if (neutral?.label?.active) neutral.label.setDepth(channels.label);
+                    if (tower) {
+                        tower.base.setDepth(channels.sprite);
+                        tower.arm?.setDepth(channels.frontFx);
+                        tower.weapon?.setDepth(channels.smoke);
+                    }
+                },
+            });
+        }
+
+        addGate(DefenseSystem.gate);
+        for (const gate of DefenseSystem.gates || []) addGate(gate);
+
+        for (let i = 0; i < (WallSystem.isoVisuals || []).length; i++) {
+            const piece = WallSystem.isoVisuals[i];
+            if (!piece?._sprite?.active) continue;
+            const geo = typeof WallSystem._geoForTex === 'function' ? WallSystem._geoForTex(piece.tex) : null;
+            if (geo?.category === 'obstacle') continue;
+            const segments = typeof WallSystem._pieceBaseSegments === 'function'
+                ? WallSystem._pieceBaseSegments(piece)
+                : [];
+            const bounds = mergeBounds(segments.map(([a, b]) => segmentIsoBounds(a, b, 8)));
+            if (!bounds) continue;
+            if (!Number.isFinite(piece._structureTopologyBaseDepth)) {
+                piece._structureTopologyBaseDepth = Number.isFinite(piece.depth) ? piece.depth : piece.y;
+            }
+            addNode({
+                stableKey: `wall:${piece._topologyId || (piece._topologyId = `${i}:${piece.tex}:${piece.x},${piece.y}`)}`,
+                bounds,
+                baseDepth: piece._structureTopologyBaseDepth,
+                apply: (depth) => {
+                    piece.depth = depth;
+                    piece._sprite.setDepth(depth);
+                },
+            });
+        }
+
+        const signature = nodes.map((node) => {
+            const b = node.bounds;
+            return `${node.stableKey}:${b.minU.toFixed(2)},${b.maxU.toFixed(2)},${b.minV.toFixed(2)},${b.maxV.toFixed(2)}:${node.baseDepth.toFixed(2)}`;
+        }).join('|');
+        if (!this._structureOrderCache || this._structureOrderCache.signature !== signature) {
+            this._structureOrderCache = {
+                signature,
+                depths: resolveStructureRenderOrder(nodes),
+            };
+            WallSystem._faceSegCache = null;
+        }
+        const depths = this._structureOrderCache.depths;
+        for (const node of nodes) {
+            const depth = depths.get(node.stableKey);
+            if (Number.isFinite(depth)) node.apply(depth);
+        }
+    }
+
+    _syncBuildingDamageFx(_game) {
+        if (!_game?.entities) return;
+        for (const entity of _game.entities.values()) {
+            if (!isBuildingDamageFxTarget(entity)) continue;
+            const count = buildingDamageFlameCount(entity);
+            if (count > 0) {
+                if (!entity._buildingDamageFx?.active) {
+                    entity._buildingDamageFx = new BuildingDamageFx(entity);
+                    EffectManager.add(entity._buildingDamageFx);
+                }
+            } else if (entity._buildingDamageFx?.active) {
+                entity._buildingDamageFx.destroy();
+            }
+        }
     }
 
     /**

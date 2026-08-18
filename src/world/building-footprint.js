@@ -56,6 +56,7 @@ export function applyBuildingFootprint(entity, cells = 2) {
     entity.collisionRadius = foot.collisionRadius;
     entity.colliderOffsetX = foot.offX;
     entity.colliderOffsetY = foot.offY;
+    if (typeof entity._refreshStructureDepth === 'function') entity._refreshStructureDepth();
     return entity;
 }
 

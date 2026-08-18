@@ -41,6 +41,8 @@ import {
     isoFootprintVertices,
     pointInIsoFootprint,
 } from '../physics/iso-footprint.js';
+import { structureDepthAtY } from './structure-depth.js';
+import { resolveStructureFootOffset } from './structure-visual-anchor.js';
 
 // ==================== 可建造项 ====================
 
@@ -428,7 +430,7 @@ export const BuildingSystem = {
         let best = null;
         for (const e of Game.entities.values()) {
             if (!isProducerEntity(e)) continue;
-            const eFoot = e.footOffsetY || 0;
+            const eFoot = e._visualFootOffsetY ?? e.footOffsetY ?? 0;
             const eY = e.y - eFoot; // 已有建筑贴图中心 y
             const eh = eY - m * e.x;
             const ew = eY + m * e.x;
@@ -637,11 +639,22 @@ export const BuildingSystem = {
     _ghostFootOffset() {
         if (!this._placing) return 0;
         if (this._placing.item.kind === 'tower') return DEFENSE_TOWER_VISUAL.base.footOffsetY;
-        if (this._placing.item.kind === 'hamster_hut') return HAMSTER_CONFIG.hut.footOffsetY;
-        if (this._placing.item.kind === 'hamster_barracks') return BARRACKS_CONFIG.barracks.footOffsetY;
+        const autoFoot = (fallback) => {
+            const scene = typeof window !== 'undefined' ? window.__phaserScene : null;
+            if (!scene || !this._ghost?.texture?.key) return fallback;
+            return resolveStructureFootOffset(
+                scene,
+                this._ghost.texture.key,
+                this._ghost.frame?.name,
+                this._ghost.displayHeight,
+                fallback
+            );
+        };
+        if (this._placing.item.kind === 'hamster_hut') return autoFoot(HAMSTER_CONFIG.hut.footOffsetY);
+        if (this._placing.item.kind === 'hamster_barracks') return autoFoot(BARRACKS_CONFIG.barracks.footOffsetY);
         if (this._placing.item.kind === 'producer') {
             const pc = PRODUCER_BUILDINGS[this._placing.item.id];
-            return pc.footOffsetY;
+            return autoFoot(pc.footOffsetY);
         }
         if (this._placing.item.kind === 'platform') return FIRING_PLATFORM_VISUAL.footOffsetY;
         if (this._placing.item.kind === 'block') return BLOCK_FOOT_OFFSET; // 方块墙：61（与实体一致）
@@ -694,7 +707,7 @@ export const BuildingSystem = {
             const spr = entity.spriteCfg;
             if (spr) {
                 const cx = entity.x + (spr.offsetX || 0);
-                const cy = entity.y - (spr.footOffsetY || 0);
+                const cy = entity.y - (entity._visualFootOffsetY ?? spr.footOffsetY ?? 0);
                 const hw = (spr.size || entity.size || 32) / 2;
                 const hh = (spr.sizeH || spr.size || entity.size || 32) / 2;
                 if (Math.abs(p.x - cx) <= hw && Math.abs(p.y - cy) <= hh) return true;
@@ -2053,10 +2066,16 @@ export const BuildingSystem = {
                     const bias = 0.5;
                     if (coverV && !eV) {
                         // 新墙 = 左臂（v），已有 = 右臂（h）→ 左盖右
-                        cover._faceDepth = Math.max(cover._faceLine[0].y, cover._faceLine[1].y) + 12 + bias;
+                        cover._faceDepth = structureDepthAtY(
+                            Math.max(cover._faceLine[0].y, cover._faceLine[1].y),
+                            bias
+                        );
                     } else if (!coverV && eV) {
                         // 新墙 = 右臂（h），已有 = 左臂（v）→ 左盖右（已有左臂 +0.5）
-                        e._faceDepth = Math.max(e._faceLine[0].y, e._faceLine[1].y) + 12 + bias;
+                        e._faceDepth = structureDepthAtY(
+                            Math.max(e._faceLine[0].y, e._faceLine[1].y),
+                            bias
+                        );
                     }
                     return;
                 }

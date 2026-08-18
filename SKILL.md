@@ -5344,16 +5344,26 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
   禁止中文文件名。
 - 显示参数标定（勿拍脑袋，旧图验证公式）：
   - `displayH = displayW × bboxH/bboxW`（bbox = alpha>16 包围盒；旧图反推吻合）。
-  - `footOffsetY = displayH × (bbox.maxY/4096 − 0.5)`（sprite 中心到脚底；旧贴图满幅贴底
-    → maxY/4096≈1 → footOffsetY≈displayH/2，与旧参数 147/2≈73 吻合即证）。
+  - 运行时脚点统一走 `structure-visual-anchor.js`：在贴图中央20%~80%宽度内从底向上扫描
+    `alpha>=96` 的真实最低接触像素，按显示高度换算并缓存；配置 `footOffsetY` 仅作纹理未就绪兜底。
   - bbox 水平居中（素材中心≈2048）则无需 X 偏移。
   - 用 System.Drawing LockBits 扫描 alpha bbox（PowerShell，4096² 约 2~3s）。
 - 替换点：BootScene `load.image`（键名即英文）、各建筑 config `tex`（实体渲染 idleKey）、
   building-system `BUILD_ITEMS.tex`（面板缩略图 img 路径自动跟随）。
-- **显示尺寸统一口径**：新建筑与草屋同尺寸（displayW 144 / displayH 147），
-  footOffsetY 各自按 bbox 重标——用户明确"不要放大"。
+- **显示尺寸统一口径**：普通2×2建筑基准 `displayW=288`；若贴图自带地基明显大于
+  256×128 footprint，允许等比缩小视觉，禁止为追求同宽让地基越界。
 - 新增产兵建筑：`data/producer-buildings.json` 加条目（唯一真源，含 tex/displayW/H/footOffsetY/
   spawn/unitTypes/modules），BootScene 加载贴图即可，代码零改动。
+
+**建筑完整贴图排序与受损特效（2026-08-18）**
+- 禁止把建筑 PNG 用 `setCrop` 拆成前后 Sprite；透明边会产生黑线/色差。建筑、墙段、门柱/栅栏走
+  `structure-render-order.js` 的等距 footprint 拓扑排序，仅几何变化时重算。
+- 每个结构组保留 shadow/rearFx/sprite/frontFx/smoke/label 深度通道；建筑特效只登记通道，
+  不写绝对 depth。斜向关系不明确时按基础深度+稳定 key 兜底，禁止逐帧跳层。
+- 非墙/门/陷阱建筑受损统一走 `building-damage-fx.js`：HP<=70%/50%/30% 对应2/5/8团火焰；
+  火点扫描贴图高 Alpha 像素，烟雾复用 `smoke_particle`，修理/销毁/离屏自动减量、清理或停发。
+- 回归：`test-structure-render-order.mjs`、`test-structure-visual-anchor.mjs`、
+  `test-building-damage-fx.mjs`。
 
 **建造清除障碍物与草（2026-08-17 用户口径：建造处有树/草类障碍物直接删除）**
 - **判定顺序铁律（2026-08-17 审计修复）**：不能先用普通 `canMoveTo` 拒绝落点、再在建造
@@ -5444,7 +5454,7 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
 - 能力面板描述支持 `displayMode=percent|flat`，统一替换 `{chance}/{dmg}/{pct}/{value}`；
   研究院显示“作用于现有及后续新建结构”，铁匠铺仍显示兵种能力文案。
 - 正式资产 `assets/terrain/research_institute.png` 为1024×1093透明PNG；2×2视觉标定
-  `displayW=288/displayH=308/footOffsetY=154`，预览与实体共用配置。
+  `displayW=288/displayH=308/footOffsetY=150`；底部透明留白由自动脚点扫描扣除，预览与实体共用结果。
 - 回归：`test-research-institute.mjs`。
 
 ### 基地菱形房无缝拼接（WIP，2026-08-17）
