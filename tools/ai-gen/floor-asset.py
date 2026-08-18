@@ -27,6 +27,7 @@ PROMPT = {
     "snow-fresh": os.path.join(DIR, "prompts", "floor-seamless-snow-fresh.txt"),
     "snow-packed": os.path.join(DIR, "prompts", "floor-seamless-snow-packed.txt"),
     "snow-wind": os.path.join(DIR, "prompts", "floor-seamless-snow-wind.txt"),
+    "grass-forest": os.path.join(DIR, "prompts", "floor-seamless-grass-forest.txt"),
 }
 DESAT_DEFAULT = {
     "mud": 0.55,
@@ -34,6 +35,7 @@ DESAT_DEFAULT = {
     "snow-fresh": 0.18,
     "snow-packed": 0.28,
     "snow-wind": 0.35,
+    "grass-forest": 0.42,
 }
 
 

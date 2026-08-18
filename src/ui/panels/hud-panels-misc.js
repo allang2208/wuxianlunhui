@@ -174,21 +174,20 @@ export function createHudPanelsMisc() {
     });
     root.appendChild(wallEditorToggle);
 
-    // ===== 游戏秒表计时器 =====
-    const gameTimer = document.createElement('div');
-    gameTimer.id = 'gameTimer';
-    gameTimer.className = 'game-timer';
-    gameTimer.style.display = 'none';
-    const timerIcon = document.createElement('span');
-    timerIcon.className = 'timer-icon';
-    timerIcon.textContent = '⏱';
-    const timerText = document.createElement('span');
-    timerText.id = 'timerText';
-    timerText.className = 'timer-text';
-    timerText.textContent = '00:00:00';
-    gameTimer.appendChild(timerIcon);
-    gameTimer.appendChild(timerText);
-    root.appendChild(gameTimer);
+    // ===== 游戏内时间（与 EnvironmentLightingSystem 昼夜相位同源） =====
+    const gameTime = document.createElement('div');
+    gameTime.id = 'gameTime';
+    gameTime.className = 'game-time';
+    const timeIcon = document.createElement('span');
+    timeIcon.id = 'gameTimeIcon';
+    timeIcon.className = 'time-icon';
+    timeIcon.textContent = '☀';
+    const timeText = document.createElement('span');
+    timeText.id = 'gameTimeText';
+    timeText.className = 'time-text';
+    timeText.textContent = '第1日 · 12:00 · 白昼';
+    gameTime.append(timeIcon, timeText);
+    root.appendChild(gameTime);
 
     // ===== 装备 Tooltip =====
     const equipTooltip = document.createElement('div');

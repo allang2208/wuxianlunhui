@@ -49,6 +49,13 @@ ASSETS = [
     "portal",
 ]
 
+SHADOW_OVERRIDES = {
+    "defense_base": {
+        "anchorMode": "footprint_center",
+        "anchorInsetY": -24,
+    },
+}
+
 
 def relative(path: Path) -> str:
     return path.relative_to(ROOT).as_posix()
@@ -114,7 +121,7 @@ def make_projection(alpha_img: Image.Image) -> Image.Image:
     return out
 
 
-def build_asset(name: str) -> dict:
+def build_asset(name: str, previous: dict | None = None) -> dict:
     source = TERRAIN / f"{name}.png"
     if not source.exists():
         raise FileNotFoundError(source)
@@ -134,6 +141,9 @@ def build_asset(name: str) -> dict:
     height.save(height_path)
     normal.save(normal_path)
 
+    shadow = dict((previous or {}).get("shadow") or {})
+    shadow.setdefault("anchorMode", "footprint_center")
+    shadow.update(SHADOW_OVERRIDES.get(name, {}))
     return {
         "source": relative(source),
         "silhouette": relative(silhouette_path),
@@ -143,12 +153,19 @@ def build_asset(name: str) -> dict:
         "size": {"width": rgba.width, "height": rgba.height},
         "alphaBBox": dict(zip(("x0", "y0", "x1", "y1"), alpha_bbox(np.asarray(alpha, dtype=np.float32) / 255.0))),
         "normalKind": "alpha-height-gradient",
+        "shadow": shadow,
     }
 
 
 def main() -> None:
     OUT_DIR.mkdir(parents=True, exist_ok=True)
-    generated = {name: build_asset(name) for name in ASSETS}
+    previous = {}
+    if MANIFEST.exists():
+        try:
+            previous = json.loads(MANIFEST.read_text(encoding="utf-8")).get("assets") or {}
+        except json.JSONDecodeError:
+            previous = {}
+    generated = {name: build_asset(name, previous.get(name)) for name in ASSETS}
     MANIFEST.write_text(json.dumps({
         "version": 1,
         "comment": "透明贴图 alpha 提取的轮廓/高度/伪法线；footprint 仍由 ISO_WALL_GEO.foot 定义。",

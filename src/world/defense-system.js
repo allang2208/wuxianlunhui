@@ -37,12 +37,13 @@ import { computeWeaponAttack, getAttackFormula } from '../config/attack-formula.
 import { findWeaponConfig } from '../ui/equip-data-manager.js';
 import { applyResearchHp } from './research-system.js';
 import { World122TributeSystem } from './world122-tribute-system.js';
-import { applyIsoFootprintFromSegment } from '../physics/iso-footprint.js';
+import { applyIsoFootprintFromSegment, isoLocalToWorldDelta, worldDeltaToIsoLocal } from '../physics/iso-footprint.js';
 import {
     ONE_CELL_BUILDING_FOOT,
     TWO_BY_TWO_BUILDING_FOOT,
     FOUR_BY_FOUR_BASE_FOOT,
     applyBuildingFootprint,
+    applyFiringPlatformFootprint,
 } from './building-footprint.js';
 import equipmentJson from '../../data/equipment.json';
 
@@ -2073,23 +2074,33 @@ export const DefenseSystem = {
             }
         }
         for (const u of units) {
-            let on = null;
+            let surface = null;
+            let platform = null;
             for (const p of platforms) {
                 if (!p || !p.active) continue;
-                if (typeof p.isOnPlatform === 'function' && p.isOnPlatform(u.x, u.y)) {
-                    on = p;
+                if (typeof p.surfaceAt === 'function') {
+                    surface = p.surfaceAt(u.x, u.y);
+                } else if (typeof p.isOnPlatform === 'function' && p.isOnPlatform(u.x, u.y)) {
+                    surface = { kind: 'deck', z: p.platformHeight || 0 };
+                }
+                if (surface) {
+                    platform = p;
                     break;
                 }
             }
-            // 七版表面模型（2026-08-16）：单位逻辑坐标 = 台面/台阶表面屏幕位置，
-            // 无抬升高度；_platformLift 只作“在台上”标记（深度覆盖 + 弹道忽略用）
-            u._onPlatform = !!on;
-            u._platformRef = on;
-            u._platformLift = on ? 1 : 0;
-            if (window && window.Game && window.Game._devMode && u._platformLiftPrev !== u._platformLift) {
+            // x/y 始终保持地面格坐标；台阶只连续改变 z。现有 Phaser 渲染把
+            // _platformLift 作为竖直投影像素，故它是 z 的兼容别名而不是独立状态。
+            const z = surface ? surface.z : 0;
+            u.z = z;
+            if (u.collider && typeof u.collider.syncPosition === 'function') u.collider.syncPosition();
+            u._onPlatform = surface?.kind === 'deck';
+            u._platformRef = platform;
+            u._platformLift = z;
+            if (window && window.Game && window.Game._devMode && u._onPlatformPrev !== u._onPlatform) {
                 console.log(`[platform] ${u.name || u.id || 'unit'} on=${u._onPlatform}`);
             }
             u._platformLiftPrev = u._platformLift;
+            u._onPlatformPrev = u._onPlatform;
         }
     },
 
@@ -3113,7 +3124,7 @@ const _CoverGate = {
  * 参与建筑吸附（GATE_SNAP），默认关闭，友军靠近自动开门、离开延时关门。
  */
 /**
- * 世界-122 射击台（FiringPlatform，2026-08-16 七版：自由放置高台 + 表面可走一对一标定）。
+ * 世界-122 射击台：楼梯格 + 台面格的定向 1×2 建筑。
  * 玩家/友方走上站台后远程弹道/魔法忽略己方掩体墙段（_cover），可越过围墙向外攻击
  * （与防御塔同机制）。
  *
@@ -3122,15 +3133,8 @@ const _CoverGate = {
  *  ① 贴图不对称：台面菱形在右上、台阶在左下（入口=贴图 (211,581)，不是底部中央）；
  *  ② 台面是**水平面**（世界 z=102 → 屏幕恒定抬升 97.6 display px），不是 178px；
  *  ③ 台阶轴沿左下↔右上对角线（方向 (-0.401,+0.916)），不是竖直 (0,1)。
- * 修正为**表面可走模型**：单位逻辑坐标 = 台面/台阶的表面屏幕位置（无抬升），
- * 精灵渲染把贴图入口锚定到实体（spriteCfg.offsetX=51.1 / footOffsetY=96.3），
- * 深度覆盖保留（_platformLift>0 → _faceDepth+1）。
- * - 台面菱形（相对实体，屏幕 +y 向下）：L(-78.9,-84.9) F(-27.6,-52.0)
- *   R(181.1,-184.4) B(129.8,-217.3)；高度恒定 97.6。
- * - 台阶走廊：入口 E(0,0) → 台面前右下缘 D(42.3,-96.5)，长 105.4、半宽 104
- *   （踏面 340 世界长投影 ≈209 display）。
- * - 深度：贴图锚定入口接地线 _faceDepth = y+12；站台上单位在 GameScene 仅当
- *   _platformLift>0 时显式抬到 _faceDepth+1。
+ * 楼梯格内高度沿行进轴连续从 0 变化到 platformHeight；台面格恒为最高点。
+ * x/y 不离开地面格，z 是唯一高度真源，_platformLift 只保留给旧渲染投影入口。
  */
 class FiringPlatform extends Combatant {
     constructor(x, y, config = {}) {
@@ -3153,9 +3157,10 @@ class FiringPlatform extends Combatant {
         // 五版：实体碰撞圈恰好压在台阶入口（贴图底边=实体锚点），会挡玩家走近——
         // 门同款 noCollision（阻挡/放行完全交给墙段；平台自身不参与实体分离）
         this.noCollision = true;
-        // 朝向（七版）：自由放置，不再贴墙——F 镜像只做视觉左右翻面
-        this.orient = config.orient || 'v';
-        this._facingLeft = !!config.mirror; // 中性精灵渲染按此 flipX（纯视觉）
+        // 默认 e2；F 镜像切到 e1。锚点永远是楼梯格，台面格沿 dir 延伸。
+        this.dir = config.dir || (config.mirror ? 'e1' : 'e2');
+        this.orient = this.dir === 'e1' ? 'h' : 'v';
+        this._facingLeft = this.dir === 'e1';
         // 显示（八版标定，2026-08-16 重建模后）：内容 684×519 → 297×225；
         // 台阶沿主体前脸法线摆正后，入口（台阶底，贴图 (401,372)）锚定到实体——
         // 精灵 x 左移 25.6、footOffsetY 49（重建模后台阶在右、台面在左）
@@ -3169,28 +3174,13 @@ class FiringPlatform extends Combatant {
             footOffsetY: FIRING_PLATFORM_VISUAL.footOffsetY,
         };
         this.footOffsetY = this.spriteCfg.footOffsetY;
-        applyBuildingFootprint(this, 2);
-        // 台面几何（七版一对一标定，单位：display px，相对实体/入口，屏幕 +y 向下）
-        const visualScale = FIRING_PLATFORM_VISUAL.scale;
-        this.platformHeight = 98 * visualScale;
-        this._deckCorners = [
-            { x: -173.6 * visualScale, y: -60.4 * visualScale },
-            { x: -122.5 * visualScale, y: -33.8 * visualScale },
-            { x: 86.0 * visualScale, y: -137.2 * visualScale },
-            { x: 34.9 * visualScale, y: -162.9 * visualScale },
-        ];
-        // 台阶走廊：入口 E(0,0) → 台面前缘接点 D(-27.4,-81.1)（顶阶踏面，贴图 337.7,185.4）
-        this._frontCx = -27.4 * visualScale;
-        this._frontCy = -81.1 * visualScale;
-        this._corridorLen = 85.6 * visualScale;
-        this._corridorHalfW = 110 * visualScale;
-        this._corridorDirX = 0.320; // 从 D 指向入口 E（屏幕向下为 +y）
-        this._corridorDirY = 0.947;
+        applyFiringPlatformFootprint(this, this.dir);
+        this.platformHeight = 98 * FIRING_PLATFORM_VISUAL.scale;
         // 图层（九版，按建筑统一口径）：注册接地线（setupStructureDepth → _faceLine +
         // _faceDepth = 接地线 y+12）。台面远高于接地线（仲裁窗口不生效），站台上单位
         // 在 GameScene 仅当 _platformLift>0 时显式 max(仲裁, _faceDepth+1)
         setupStructureDepth(this);
-        this._registerEdgeSegs(); // 单向登台：台面左/右/后三边封死，只留台阶侧进出
+        this._registerEdgeSegs(); // 楼梯格只留入口，台面格只向楼梯开放
         this.rebuildCollider();
     }
 
@@ -3236,38 +3226,26 @@ class FiringPlatform extends Combatant {
     _registerEdgeSegs() {
         if (!WallSystem || !WallSystem.isoSegments) return;
         this._edgeSegs = [];
-        const c = this._deckCorners;
-        const d = 26; // 外扩量（≈ 玩家半径 + 半厚，脚能踩到视觉边缘）
-        const center = {
-            x: this.x + (c[0].x + c[1].x + c[2].x + c[3].x) / 4,
-            y: this.y + (c[0].y + c[1].y + c[2].y + c[3].y) / 4,
+        const half = ONE_CELL_BUILDING_FOOT.w / (2 * Math.SQRT2);
+        const step = half * 2;
+        const point = (along, cross) => {
+            const local = this.dir === 'e1'
+                ? isoLocalToWorldDelta(along, cross)
+                : isoLocalToWorldDelta(cross, along);
+            return { x: this.x + local.x, y: this.y + local.y };
         };
-        // 四边（含开放前边 F→R，用于闭合角部）
-        const edgeIdx = [[0, 1], [1, 2], [2, 3], [3, 0]];
-        const inflateLine = (i) => {
-            const a = c[edgeIdx[i][0]], b = c[edgeIdx[i][1]];
-            const ax = this.x + a.x, ay = this.y + a.y;
-            const bx = this.x + b.x, by = this.y + b.y;
-            const dx = bx - ax, dy = by - ay;
-            const len = Math.hypot(dx, dy) || 1;
-            let nx = -dy / len, ny = dx / len;
-            const mx = (ax + bx) / 2, my = (ay + by) / 2;
-            if (nx * (center.x - mx) + ny * (center.y - my) > 0) { nx = -nx; ny = -ny; }
-            return { x: ax + nx * d, y: ay + ny * d, ux: dx / len, uy: dy / len };
-        };
-        const L = [0, 1, 2, 3].map(inflateLine);
-        const inter = (l1, l2) => {
-            const rx = l2.x - l1.x, ry = l2.y - l1.y;
-            const denom = l1.ux * l2.uy - l1.uy * l2.ux;
-            if (Math.abs(denom) < 1e-9) return { x: l1.x, y: l1.y };
-            const t = (rx * l2.uy - ry * l2.ux) / denom;
-            return { x: l1.x + l1.ux * t, y: l1.y + l1.uy * t };
-        };
-        // 阻挡段 = 外扩多边形的三条边（miter 角闭合）：L'→F'、R'→B'、B'→L'
+        const cell = (centerAlong) => [
+            point(centerAlong - half, -half),
+            point(centerAlong + half, -half),
+            point(centerAlong + half, half),
+            point(centerAlong - half, half),
+        ];
+        const stair = cell(0);
+        const deck = cell(step);
+        // 楼梯格两侧封闭、入口与台面连接处开放；台面格只向楼梯侧开放。
         const segs = [
-            [inter(L[0], L[3]), inter(L[0], L[1])],
-            [inter(L[2], L[1]), inter(L[2], L[3])],
-            [inter(L[3], L[2]), inter(L[3], L[0])],
+            [stair[0], stair[1]], [stair[3], stair[2]],
+            [deck[0], deck[1]], [deck[1], deck[2]], [deck[2], deck[3]],
         ];
         for (const [p1, p2] of segs) {
             const s = {
@@ -3278,29 +3256,9 @@ class FiringPlatform extends Combatant {
             WallSystem.isoSegments.push(s);
             this._edgeSegs.push(s);
         }
-        // 台阶侧墙（九版单通道）：沿台阶走廊两侧（半宽+26 外扩），从入口下方 30
-        // 延伸到台面前缘之后 30——爬台阶途中不能左右下台，只能从台阶底部进出
-        const upX = -this._corridorDirX, upY = -this._corridorDirY; // E→D 方向
-        const px0 = -this._corridorDirY, py0 = this._corridorDirX;  // 走廊垂线
-        const halfS = this._corridorHalfW + 26;
-        const ex = this.x, ey = this.y;                       // 入口 E
-        const dx0 = this.x + this._frontCx, dy0 = this.y + this._frontCy; // 台面前缘 D
-        const s1 = {
-            x1: ex + px0 * halfS - upX * 30, y1: ey + py0 * halfS - upY * 30,
-            x2: dx0 + px0 * halfS + upX * 30, y2: dy0 + py0 * halfS + upY * 30,
-            halfThick: 2,
-            _cover: true, _platformEdge: true, _owner: this,
-        };
-        const s2 = {
-            x1: ex - px0 * halfS - upX * 30, y1: ey - py0 * halfS - upY * 30,
-            x2: dx0 - px0 * halfS + upX * 30, y2: dy0 - py0 * halfS + upY * 30,
-            halfThick: 2,
-            _cover: true, _platformEdge: true, _owner: this,
-        };
-        WallSystem.isoSegments.push(s1, s2);
-        this._edgeSegs.push(s1, s2);
         if (pathFinder && typeof pathFinder.invalidateRegion === 'function') {
-            const xs = c.map(p => this.x + p.x), ys = c.map(p => this.y + p.y);
+            const footprint = [...stair, ...deck];
+            const xs = footprint.map((p) => p.x), ys = footprint.map((p) => p.y);
             pathFinder.invalidateRegion(
                 Math.min(...xs) - 40, Math.min(...ys) - 40,
                 Math.max(...xs) + 40, Math.max(...ys) + 40);
@@ -3317,45 +3275,37 @@ class FiringPlatform extends Combatant {
         this._edgeSegs = [];
     }
 
-    /** 台面菱形内判定（凸四边形，叉积同号） */
-    _pointInDeck(ux, uy) {
-        const c = this._deckCorners;
-        let sign = 0;
-        for (let i = 0; i < 4; i++) {
-            const a = c[i], b = c[(i + 1) % 4];
-            const ax = this.x + a.x, ay = this.y + a.y;
-            const bx = this.x + b.x, by = this.y + b.y;
-            const cr = (bx - ax) * (uy - ay) - (by - ay) * (ux - ax);
-            if (cr !== 0) {
-                const s = cr > 0 ? 1 : -1;
-                if (sign === 0) sign = s;
-                else if (s !== sign) return false;
-            }
+    /** 返回脚下表面。楼梯高度随格内位置线性变化，台面格恒为最高 z。 */
+    surfaceAt(ux, uy) {
+        const local = worldDeltaToIsoLocal(ux - this.x, uy - this.y);
+        const along = this.dir === 'e1' ? local.u : local.v;
+        const cross = this.dir === 'e1' ? local.v : local.u;
+        const half = ONE_CELL_BUILDING_FOOT.w / (2 * Math.SQRT2);
+        const step = half * 2;
+        if (Math.abs(cross) > half) return null;
+        if (along >= step - half && along <= step + half) {
+            return { kind: 'deck', z: this.platformHeight };
         }
-        return true;
+        if (along < -half || along > half) return null;
+        return {
+            kind: 'stairs',
+            z: this.platformHeight * Math.max(0, Math.min(1, (along + half) / step)),
+        };
     }
 
-    /**
-     * 登台判定（七版表面模型）：单位逻辑坐标 = 台面/台阶表面屏幕位置，
-     * 在台阶走廊（入口 E → 台面前缘 D）或台面菱形内即视为在平台上。
-     */
     isOnPlatform(ux, uy) {
-        if (this._pointInDeck(ux, uy)) return true;
-        const dx = ux - (this.x + this._frontCx), dy = uy - (this.y + this._frontCy);
-        const along = dx * this._corridorDirX + dy * this._corridorDirY;
-        const perp = dx * (-this._corridorDirY) + dy * this._corridorDirX;
-        return along >= 0 && along <= this._corridorLen && Math.abs(perp) <= this._corridorHalfW;
+        return !!this.surfaceAt(ux, uy);
     }
 
-    /** 兼容旧调用：七版表面模型无抬升高度（返回 0） */
-    getLift(_ux, _uy) {
-        return 0;
+    getLift(ux, uy) {
+        return this.surfaceAt(ux, uy)?.z || 0;
     }
 
     /** 台面中心世界坐标（调试/探针用） */
     topCenter() {
-        const s = FIRING_PLATFORM_VISUAL.scale;
-        return { x: this.x - 43.8 * s, y: this.y - 98.6 * s };
+        return this.dir === 'e1'
+            ? { x: this.x + 64, y: this.y + 32 }
+            : { x: this.x - 64, y: this.y + 32 };
     }
 }
 

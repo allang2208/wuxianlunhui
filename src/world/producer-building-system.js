@@ -14,6 +14,7 @@ import { HamsterGuard } from '../entities/hamster-guard.js';
 import { HamsterMilitia } from '../entities/hamster-militia.js';
 import { HamsterScout } from '../entities/hamster-scout.js';
 import { HamsterMusketeer } from '../entities/hamster-musketeer.js';
+import { HamsterPriest } from '../entities/hamster-priest.js';
 import { GoldManager } from '../systems/gold-manager.js';
 import { EnergyManager } from '../systems/energy-manager.js';
 import { EffectManager } from '../effects/effect-manager.js';
@@ -32,6 +33,7 @@ import guardCfg from '../../data/hamster-guard-config.json';
 import militiaCfg from '../../data/hamster-militia-config.json';
 import scoutCfg from '../../data/hamster-scout-config.json';
 import musketeerCfg from '../../data/hamster-musketeer-config.json';
+import priestCfg from '../../data/hamster-priest-config.json';
 import {
     applyGlobalUpgradesToKind,
     getUnitUpgradeLevel,
@@ -50,6 +52,7 @@ const ABILITY_TARGET_NAMES = Object.freeze({
     militia: '仓鼠民兵',
     scout: '仓鼠斥候',
     musketeer: '仓鼠火枪',
+    priest: '仓鼠牧师',
 });
 
 /** 产兵建筑配置表（唯一真源，building-system.js 也据此生成可建条目） */
@@ -63,6 +66,7 @@ const PRODUCER_UNIT_CFG = {
     militia: militiaCfg,
     scout: scoutCfg,
     musketeer: musketeerCfg,
+    priest: priestCfg,
 };
 
 /** 单位 key → 实体类 */
@@ -73,6 +77,7 @@ const PRODUCER_UNIT_CLASS = {
     militia: HamsterMilitia,
     scout: HamsterScout,
     musketeer: HamsterMusketeer,
+    priest: HamsterPriest,
 };
 
 export function getProducerConfig(key) {
@@ -90,9 +95,13 @@ export function getProducerModuleDesc(cfg, moduleId, level) {
     const mod = cfg?.modules?.[moduleId];
     if (!mod) return '';
     const pct = Math.round(Math.abs(mod.per) * 100);
+    const fill = (atLevel) => (mod.desc || '')
+        .replace('{pct}', `${pct * atLevel}`)
+        .replace('{value}', `${Math.round(mod.per * atLevel)}`)
+        .replace('{level}', `${(mod.base ?? 0) + Math.round(mod.per * atLevel)}`);
     return {
-        current: mod.desc.replace('{pct}', `${pct * level}`),
-        next: mod.desc.replace('{pct}', `${pct * (level + 1)}`),
+        current: fill(level),
+        next: fill(level + 1),
     };
 }
 
@@ -106,12 +115,16 @@ export function getProducerMults(cfg, modules) {
         moveSpeedMult: 1,
         count: 1,
         hpMult: 1,
+        holyLightCooldownMult: 1,
+        holyLightLevel: 1,
     };
     if (mods.attackSpd && m.attackSpd) out.attackIntervalMult = 1 + mods.attackSpd.per * m.attackSpd;
     if (mods.damage && m.damage) out.attackDamageMult = 1 + mods.damage.per * m.damage;
     if (mods.moveSpd && m.moveSpd) out.moveSpeedMult = 1 + mods.moveSpd.per * m.moveSpd;
     if (mods.count && m.count) out.count = 1 + m.count;
     if (mods.hp && m.hp) out.hpMult = 1 + mods.hp.per * m.hp;
+    if (mods.castSpd && m.castSpd) out.holyLightCooldownMult = 1 + mods.castSpd.per * m.castSpd;
+    if (mods.holyLight && m.holyLight) out.holyLightLevel = 1 + Math.round(mods.holyLight.per * m.holyLight);
     return out;
 }
 
@@ -236,6 +249,8 @@ export class ProducerBuilding extends DamageableEntity {
             attackInterval: Math.max(300, Math.round((baseAi.attackInterval ?? 2000) * mults.attackIntervalMult)),
             attackDamage: Math.max(1, Math.round((baseAi.attackDamage ?? 50) * mults.attackDamageMult)),
             walkSpeed: Math.max(20, Math.round((baseAi.walkSpeed ?? 120) * mults.moveSpeedMult)),
+            holyLightCooldownMult: mults.holyLightCooldownMult,
+            holyLightLevel: mults.holyLightLevel,
         };
         const baseMaxHp = Math.max(1, Math.round((base.baseMaxHp ?? 300) * mults.hpMult));
         const unit = new UnitClass(spot.x, spot.y, { id, ai, baseMaxHp });
@@ -634,6 +649,10 @@ class ProducerBuildingPanel extends BasePanel {
 
     _abilityValueText(ability, level) {
         const value = getAbilityValue(ability, level);
+        if (ability.displayMode === 'seconds') {
+            const seconds = value / 1000;
+            return `${Number.isInteger(seconds) ? seconds : seconds.toFixed(1)}秒`;
+        }
         return ability.displayMode === 'flat'
             ? String(Math.round(value))
             : `${Math.round(value * 1000) / 10}%`;
@@ -645,7 +664,9 @@ class ProducerBuildingPanel extends BasePanel {
             .replace('{chance}', text)
             .replace('{dmg}', text)
             .replace('{pct}', text)
-            .replace('{value}', text);
+            .replace('{value}', text)
+            .replace('{radius}', String(ability.radius ?? 0))
+            .replace('{cooldown}', String(Math.round((ability.cooldownMs ?? 0) / 1000)));
     }
 
     _abilityTargetText(target) {
@@ -662,6 +683,9 @@ class ProducerBuildingPanel extends BasePanel {
         const isWarehouse = cfg.workshopType === 'warehouse';
         const isPassive = cfg.panelMode === 'detail';
         const isAbilityShop = cfg.spawnEnabled === false && !isWarehouse && !isPassive;
+        const upgradeSummary = cfg.modules?.castSpd
+            ? '圣光冷却/圣光等级/移速/生命随模块升级'
+            : '攻击间隔/伤害/移速/生命随模块升级';
         el.querySelector('#pbTitle').textContent = '建筑详情';
         const detail = el.querySelector('#pbBuildingDetail');
         const functionTitle = el.querySelector('#pbFunctionTitle');
@@ -701,7 +725,7 @@ class ProducerBuildingPanel extends BasePanel {
                 军事单位 <span style="color:#8ad0ff;">${b.aliveUnitCount()}/${b.unitCount()}</span> ·
                 当前生成 <b style="color:#7fe0c8;">${curType}</b><br>
                 下次生成 <b id="pbSpawnNext" style="color:${b._spawnBlocked ? '#ff7755' : '#7fd4ff'};">${nextText}</b>（当前周期 ${(spawnMs / 1000).toFixed(1)}s）·
-                攻击间隔/伤害/移速/生命随模块升级
+                ${upgradeSummary}
             </div>
             <div style="margin-top:8px;">
                 <div style="display:flex;justify-content:space-between;align-items:center;font-size:11px;color:#9a9a9a;margin-bottom:3px;">

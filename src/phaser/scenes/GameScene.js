@@ -63,6 +63,7 @@ import {
     shouldAutoAnchorStructure,
 } from '../../world/structure-visual-anchor.js';
 import { EnvironmentLightingSystem } from '../../world/environment-lighting-system.js';
+import lightingAssets from '../../../data/environment-lighting-assets.json';
 
 export class GameScene extends Scene {
     constructor() {
@@ -579,7 +580,7 @@ export class GameScene extends Scene {
                 // 仓鼠矿工/战士/射手/盾卫/民兵/斥候移动（walk）始终朝向实际移动方向（vx），不倒退走路——
                 // 否则寻路绕行/回屋时贴图朝向目标、实际反向移动（2026-08-15 用户口径）
                 const moving = member._animState === 'walk' || Math.abs(member.vx) > 5;
-                if ((member._isHamsterMiner || member._isHamsterWarrior || member._isHamsterShooter || member._isHamsterGuard || member._isHamsterMilitia || member._isHamsterScout || member._isHamsterMusketeer) && moving) {
+                if ((member._isHamsterMiner || member._isHamsterWarrior || member._isHamsterShooter || member._isHamsterGuard || member._isHamsterMilitia || member._isHamsterScout || member._isHamsterMusketeer || member._isHamsterPriest) && moving) {
                     faceRight = member.vx > 0;
                 } else if (member._lastAction === 'flee' && Math.abs(member.vx) > 5) {
                     faceRight = member.vx > 0;
@@ -601,7 +602,7 @@ export class GameScene extends Scene {
             sprite.setDepth(this.playerSprite.depth + 0.5);
             // 士兵移动烟尘（2026-08-17）：玩家跑步同款 DustEffect，脚下生成——
             // 军事单位（战士/射手/盾卫/民兵/斥候，不含矿工）移动（walk/run）时按 90ms 间隔出烟
-            if (member._isHamsterWarrior || member._isHamsterShooter || member._isHamsterGuard || member._isHamsterMilitia || member._isHamsterScout || member._isHamsterMusketeer) {
+            if (member._isHamsterWarrior || member._isHamsterShooter || member._isHamsterGuard || member._isHamsterMilitia || member._isHamsterScout || member._isHamsterMusketeer || member._isHamsterPriest) {
                 const unitMoving = member._animState === 'walk'
                     || Math.abs(member.vx || 0) > 5 || Math.abs(member.vy || 0) > 5;
                 if (unitMoving) {
@@ -662,6 +663,29 @@ export class GameScene extends Scene {
                         if (sprite.anims.isPlaying) sprite.anims.stop();
                         if (sprite.texture.key !== miningKey || sprite.frame.name !== miningWaitFrame) {
                             sprite.setTexture(miningKey, miningWaitFrame);
+                        }
+                    }
+                } else if (st === 'spell' && member._isHamsterPriest && anims.spell && this.textures.exists(spellKey)) {
+                    // 仓鼠牧师：praying 17 帧单次，第 8 帧由 AI 结算圣光；播完定格末帧，
+                    // 等 AI 结束施法再切回 idle，避免 spell 状态下自动重播。
+                    const spellLast = anims.spell.frameCount ? anims.spell.frameCount - 1 : 16;
+                    if (member._prayerCast && !sprite.getData('priestPrayer')) {
+                        sprite.setData('priestPrayer', true);
+                        sprite.play(spellKey, true);
+                        sprite.removeAllListeners('animationcomplete');
+                        sprite.once('animationcomplete', (anim) => {
+                            if (anim && anim.key !== spellKey) return;
+                            sprite.setData('priestPrayer', false);
+                            member._prayerCast = false;
+                            if (sprite.anims.isPlaying) sprite.anims.stop();
+                            if (sprite.texture.key !== spellKey || sprite.frame.name !== spellLast) {
+                                sprite.setTexture(spellKey, spellLast);
+                            }
+                        });
+                    } else if (!member._prayerCast && !sprite.getData('priestPrayer')) {
+                        if (sprite.anims.isPlaying) sprite.anims.stop();
+                        if (sprite.texture.key !== spellKey || sprite.frame.name !== spellLast) {
+                            sprite.setTexture(spellKey, spellLast);
                         }
                     }
                 } else if (st === 'spell' && anims.spell && this.textures.exists(spellKey)) {
@@ -5128,6 +5152,9 @@ export class GameScene extends Scene {
         };
         _game.entities.forEach(e => process(e, e && e._phaserSprite));
         process(_game.player, this.playerSprite);
+        for (const member of PartySystem.members || []) {
+            process(member, this._companionSprites?.[member.id]);
+        }
         for (const [e, fx] of this._inspireFx.entries()) {
             if (!active.has(e)) {
                 this._destroyInspireFx(fx);
@@ -6456,10 +6483,15 @@ export class GameScene extends Scene {
             const height = Math.max(radius * 3, sprite.displayHeight * 0.55) * 0.75 * 0.75;
             const projectionKey = `${sprite.texture.key}_projection`;
             const projection = this.textures.exists(projectionKey);
+            const lightingShadow = lightingAssets.assets?.[sprite.texture.key]?.shadow || {};
+            const anchorMode = lightingShadow.anchorMode || 'footprint_center';
+            const useVisualFoot = anchorMode === 'visual_foot';
+            const anchorInsetX = Number(lightingShadow.anchorInsetX) || 0;
+            const anchorInsetY = Number(lightingShadow.anchorInsetY) || 0;
             let shadow = this._structureSunShadows.get(entity);
             const shadowData = {
-                x: footprint.x,
-                y: footprint.y,
+                x: (useVisualFoot ? sprite.x : footprint.x) + anchorInsetX,
+                y: (useVisualFoot ? sprite.y + this._getFootOffsetY(entity, sprite) : footprint.y) + anchorInsetY,
                 radius,
                 footprintWidth: footprint.width,
                 footprintHeight: footprint.height,
@@ -6473,9 +6505,7 @@ export class GameScene extends Scene {
                 projectionOriginY: 0.5,
                 projectionFlipY: !!sprite.flipX,
                 crossSpread: 0.28,
-                footprintVertices: entity.collisionShape === 'iso_rect'
-                    ? isoFootprintVertices(entity).map((point) => ({ x: point.x, y: point.y }))
-                    : null,
+                shadowAnchorMode: anchorMode,
             };
             if (!shadow || !shadow.active) {
                 shadow = this.registerStaticSunShadow(shadowData);
@@ -6890,7 +6920,11 @@ export class GameScene extends Scene {
             const shift = this._getFootOffsetY(e, sprite);
             // 射击台（2026-08-16 七版标定）：贴图入口（台阶底）不在贴图中心，
             // 精灵 x 按 spriteCfg.offsetX 平移，让入口精确锚定到实体
-            sprite.setPosition(e.x + ((sprCfg && sprCfg.offsetX) || 0), e.y - shift);
+            const visualOffsetX = (sprCfg && sprCfg.offsetX) || 0;
+            sprite.setPosition(
+                e.x + (e._isFiringPlatform && e._facingLeft ? -visualOffsetX : visualOffsetX),
+                e.y - shift
+            );
             if (sprCfg) {
                 // 贴图 NPC：行走/待机动画切换 + 朝向翻转，不做染色（静态贴图无动画则跳过）；
                 // 倒退行走（移动方向与朝向相反）时循环动画倒放

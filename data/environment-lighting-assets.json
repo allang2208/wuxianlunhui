@@ -18,7 +18,11 @@
         "x1": 245,
         "y1": 256
       },
-      "normalKind": "alpha-height-gradient"
+      "normalKind": "alpha-height-gradient",
+      "shadow": {
+        "anchorMode": "footprint_center",
+        "anchorInsetY": -24
+      }
     },
     "obstacle_cactus_cholla": {
       "source": "assets/terrain/obstacle_cactus_cholla.png",
@@ -36,7 +40,10 @@
         "x1": 123,
         "y1": 256
       },
-      "normalKind": "alpha-height-gradient"
+      "normalKind": "alpha-height-gradient",
+      "shadow": {
+        "anchorMode": "footprint_center"
+      }
     },
     "obstacle_cactus_saguaro1arm": {
       "source": "assets/terrain/obstacle_cactus_saguaro1arm.png",
@@ -54,7 +61,10 @@
         "x1": 80,
         "y1": 256
       },
-      "normalKind": "alpha-height-gradient"
+      "normalKind": "alpha-height-gradient",
+      "shadow": {
+        "anchorMode": "footprint_center"
+      }
     },
     "obstacle_cactus_saguaro2arm": {
       "source": "assets/terrain/obstacle_cactus_saguaro2arm.png",
@@ -72,7 +82,10 @@
         "x1": 109,
         "y1": 256
       },
-      "normalKind": "alpha-height-gradient"
+      "normalKind": "alpha-height-gradient",
+      "shadow": {
+        "anchorMode": "footprint_center"
+      }
     },
     "obstacle_snow_pine_01": {
       "source": "assets/terrain/obstacle_snow_pine_01.png",
@@ -90,7 +103,10 @@
         "x1": 231,
         "y1": 907
       },
-      "normalKind": "alpha-height-gradient"
+      "normalKind": "alpha-height-gradient",
+      "shadow": {
+        "anchorMode": "footprint_center"
+      }
     },
     "obstacle_snow_pine_02": {
       "source": "assets/terrain/obstacle_snow_pine_02.png",
@@ -108,7 +124,10 @@
         "x1": 295,
         "y1": 935
       },
-      "normalKind": "alpha-height-gradient"
+      "normalKind": "alpha-height-gradient",
+      "shadow": {
+        "anchorMode": "footprint_center"
+      }
     },
     "obstacle_snow_pine_03": {
       "source": "assets/terrain/obstacle_snow_pine_03.png",
@@ -126,7 +145,10 @@
         "x1": 383,
         "y1": 939
       },
-      "normalKind": "alpha-height-gradient"
+      "normalKind": "alpha-height-gradient",
+      "shadow": {
+        "anchorMode": "footprint_center"
+      }
     },
     "obstacle_snow_pine_04": {
       "source": "assets/terrain/obstacle_snow_pine_04.png",
@@ -144,7 +166,10 @@
         "x1": 444,
         "y1": 952
       },
-      "normalKind": "alpha-height-gradient"
+      "normalKind": "alpha-height-gradient",
+      "shadow": {
+        "anchorMode": "footprint_center"
+      }
     },
     "obstacle_snow_pine_05": {
       "source": "assets/terrain/obstacle_snow_pine_05.png",
@@ -162,7 +187,10 @@
         "x1": 398,
         "y1": 883
       },
-      "normalKind": "alpha-height-gradient"
+      "normalKind": "alpha-height-gradient",
+      "shadow": {
+        "anchorMode": "footprint_center"
+      }
     },
     "defense_base": {
       "source": "assets/terrain/defense_base.png",
@@ -180,7 +208,11 @@
         "x1": 686,
         "y1": 570
       },
-      "normalKind": "alpha-height-gradient"
+      "normalKind": "alpha-height-gradient",
+      "shadow": {
+        "anchorMode": "footprint_center",
+        "anchorInsetY": -24
+      }
     },
     "obstacle_defense_tower": {
       "source": "assets/terrain/obstacle_defense_tower.png",
@@ -198,7 +230,10 @@
         "x1": 324,
         "y1": 498
       },
-      "normalKind": "alpha-height-gradient"
+      "normalKind": "alpha-height-gradient",
+      "shadow": {
+        "anchorMode": "footprint_center"
+      }
     },
     "barracks": {
       "source": "assets/terrain/barracks.png",
@@ -216,7 +251,10 @@
         "x1": 987,
         "y1": 967
       },
-      "normalKind": "alpha-height-gradient"
+      "normalKind": "alpha-height-gradient",
+      "shadow": {
+        "anchorMode": "footprint_center"
+      }
     },
     "mine": {
       "source": "assets/terrain/mine.png",
@@ -234,7 +272,10 @@
         "x1": 1024,
         "y1": 1024
       },
-      "normalKind": "alpha-height-gradient"
+      "normalKind": "alpha-height-gradient",
+      "shadow": {
+        "anchorMode": "footprint_center"
+      }
     },
     "blacksmith": {
       "source": "assets/terrain/blacksmith.png",
@@ -252,7 +293,10 @@
         "x1": 1230,
         "y1": 1133
       },
-      "normalKind": "alpha-height-gradient"
+      "normalKind": "alpha-height-gradient",
+      "shadow": {
+        "anchorMode": "footprint_center"
+      }
     },
     "church": {
       "source": "assets/terrain/church.png",
@@ -270,7 +314,10 @@
         "x1": 1012,
         "y1": 1170
       },
-      "normalKind": "alpha-height-gradient"
+      "normalKind": "alpha-height-gradient",
+      "shadow": {
+        "anchorMode": "footprint_center"
+      }
     },
     "research_institute": {
       "source": "assets/terrain/research_institute.png",
@@ -288,7 +335,10 @@
         "x1": 1010,
         "y1": 1079
       },
-      "normalKind": "alpha-height-gradient"
+      "normalKind": "alpha-height-gradient",
+      "shadow": {
+        "anchorMode": "footprint_center"
+      }
     },
     "warehouse": {
       "source": "assets/terrain/warehouse.png",
@@ -306,7 +356,10 @@
         "x1": 1010,
         "y1": 1080
       },
-      "normalKind": "alpha-height-gradient"
+      "normalKind": "alpha-height-gradient",
+      "shadow": {
+        "anchorMode": "footprint_center"
+      }
     },
     "shooting_range": {
       "source": "assets/terrain/shooting_range.png",
@@ -324,7 +377,10 @@
         "x1": 1197,
         "y1": 1198
       },
-      "normalKind": "alpha-height-gradient"
+      "normalKind": "alpha-height-gradient",
+      "shadow": {
+        "anchorMode": "footprint_center"
+      }
     },
     "thatch_hut": {
       "source": "assets/terrain/thatch_hut.png",
@@ -342,7 +398,10 @@
         "x1": 1024,
         "y1": 1046
       },
-      "normalKind": "alpha-height-gradient"
+      "normalKind": "alpha-height-gradient",
+      "shadow": {
+        "anchorMode": "footprint_center"
+      }
     },
     "portal": {
       "source": "assets/terrain/portal.png",
@@ -360,7 +419,10 @@
         "x1": 615,
         "y1": 921
       },
-      "normalKind": "alpha-height-gradient"
+      "normalKind": "alpha-height-gradient",
+      "shadow": {
+        "anchorMode": "footprint_center"
+      }
     }
   }
 }

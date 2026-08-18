@@ -75,6 +75,12 @@ const ISO_WALL_GEO = {
     snow_pine_03: { tex: 'obstacle_snow_pine_03', w: 385, h: 941, category: 'obstacle', foot: { w: 140, d: 58 }, obstacleH: 390, editor: '雪松·右倾' },
     snow_pine_04: { tex: 'obstacle_snow_pine_04', w: 446, h: 954, category: 'obstacle', foot: { w: 155, d: 64 }, obstacleH: 390, editor: '雪松·偏风' },
     snow_pine_05: { tex: 'obstacle_snow_pine_05', w: 400, h: 885, category: 'obstacle', foot: { w: 135, d: 56 }, obstacleH: 390, editor: '雪松·疏枝' },
+    // 世界-124 林地针叶树：白模深度锁姿态 → FLUX.2 Dev → BiRefNet 原图抠图。
+    forest_pine_01: { tex: 'obstacle_forest_pine_01', w: 330, h: 845, category: 'obstacle', foot: { w: 115, d: 60 }, obstacleH: 400, editor: '林地松·直立' },
+    forest_pine_02: { tex: 'obstacle_forest_pine_02', w: 376, h: 974, category: 'obstacle', foot: { w: 130, d: 64 }, obstacleH: 400, editor: '林地松·左倾' },
+    forest_pine_03: { tex: 'obstacle_forest_pine_03', w: 452, h: 939, category: 'obstacle', foot: { w: 145, d: 68 }, obstacleH: 400, editor: '林地松·右倾' },
+    forest_pine_04: { tex: 'obstacle_forest_pine_04', w: 435, h: 937, category: 'obstacle', foot: { w: 150, d: 68 }, obstacleH: 400, editor: '林地松·偏风' },
+    forest_pine_05: { tex: 'obstacle_forest_pine_05', w: 476, h: 915, category: 'obstacle', foot: { w: 160, d: 70 }, obstacleH: 400, editor: '林地松·疏枝' },
 };
 
 // 地牢墙样式表（key = dungeonType；新地牢在此登记。值 = ISO_WALL_GEO 键 + 配套资源）

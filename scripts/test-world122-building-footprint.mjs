@@ -6,10 +6,12 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const {
+    FIRING_PLATFORM_FOOTPRINTS,
     ONE_CELL_BUILDING_FOOT,
     TWO_BY_TWO_BUILDING_FOOT,
     FOUR_BY_FOUR_BASE_FOOT,
     applyBuildingFootprint,
+    applyFiringPlatformFootprint,
 } = await import('../src/world/building-footprint.js');
 const { Entity } = await import('../src/entities/entity.js');
 const {
@@ -55,6 +57,23 @@ check('普通建筑统一写入2×2矩形碰撞',
     && sample.collisionRadius === 128
     && sample.colliderOffsetX === 0
     && sample.colliderOffsetY === -64);
+
+const platformFootprint = new Entity(100, 200);
+applyFiringPlatformFootprint(platformFootprint, 'e2');
+check('射击台占地为楼梯格锚定的定向1×2（默认e2）',
+    platformFootprint._buildingFootprintCells === '1x2'
+    && platformFootprint._firingPlatformDir === 'e2'
+    && platformFootprint.colliderOffsetX === -32
+    && platformFootprint.colliderOffsetY === 16
+    && platformFootprint.collisionIsoHalfU === FIRING_PLATFORM_FOOTPRINTS.e2.halfU
+    && platformFootprint.collisionIsoHalfV === FIRING_PLATFORM_FOOTPRINTS.e2.halfV);
+applyFiringPlatformFootprint(platformFootprint, 'e1');
+check('F镜像后的射击台沿e1延展且楼梯格锚点不变',
+    platformFootprint._firingPlatformDir === 'e1'
+    && platformFootprint.colliderOffsetX === 32
+    && platformFootprint.colliderOffsetY === 16
+    && platformFootprint.collisionIsoHalfU === FIRING_PLATFORM_FOOTPRINTS.e1.halfU
+    && platformFootprint.collisionIsoHalfV === FIRING_PLATFORM_FOOTPRINTS.e1.halfV);
 
 // 真实构造顺序：Entity 的旧圆 Collider 已存在，随后才切换 footprint、注册深度、重建 Collider。
 // 深度几何必须直接读取逻辑坐标 + 新 offset，不能被旧 collider 中心污染。
@@ -145,8 +164,9 @@ const barracksSrc = fs.readFileSync(path.join(ROOT, 'src/world/hamster-barracks-
 const producerSrc = fs.readFileSync(path.join(ROOT, 'src/world/producer-building-system.js'), 'utf8');
 const wallSrc = fs.readFileSync(path.join(ROOT, 'src/world/wall-system.js'), 'utf8');
 
-check('防御塔、射击台与基地应用2×2/4×4碰撞',
-    (defenseSrc.match(/applyBuildingFootprint\(this, 2\)/g) || []).length >= 2
+check('防御塔、射击台与基地应用2×2/定向1×2/4×4碰撞',
+    /applyBuildingFootprint\(this, 2\)/.test(defenseSrc)
+    && /applyFiringPlatformFootprint\(this, this\.dir\)/.test(defenseSrc)
     && /applyBuildingFootprint\(this, 4\)/.test(defenseSrc));
 check('方块墙与门同样使用地面旋转矩形',
     /this\.collisionShape = 'iso_rect'/.test(defenseSrc)

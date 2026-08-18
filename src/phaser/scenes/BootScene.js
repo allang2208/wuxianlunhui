@@ -17,6 +17,7 @@ import hamsterGuardConfig from '../../../data/hamster-guard-config.json';
 import hamsterMilitiaConfig from '../../../data/hamster-militia-config.json';
 import hamsterScoutConfig from '../../../data/hamster-scout-config.json';
 import hamsterMusketeerConfig from '../../../data/hamster-musketeer-config.json';
+import hamsterPriestConfig from '../../../data/hamster-priest-config.json';
 
 export class BootScene extends Scene {
     constructor() {
@@ -91,8 +92,8 @@ export class BootScene extends Scene {
             }
         }
 
-        // ---- 世界-122 友方单位（仓鼠矿工/战士/射手/盾卫/民兵/斥候；独立配置，不入招募池）----
-        for (const unitConfig of [hamsterMinerConfig, hamsterWarriorConfig, hamsterShooterConfig, hamsterGuardConfig, hamsterMilitiaConfig, hamsterScoutConfig, hamsterMusketeerConfig]) {
+        // ---- 世界-122 友方单位（独立配置，不入招募池）----
+        for (const unitConfig of [hamsterMinerConfig, hamsterWarriorConfig, hamsterShooterConfig, hamsterGuardConfig, hamsterMilitiaConfig, hamsterScoutConfig, hamsterMusketeerConfig, hamsterPriestConfig]) {
             for (const [animKey, def] of Object.entries(unitConfig.animations || {})) {
                 if (!def || !def.src) continue;
                 this.load.spritesheet(`companion_${unitConfig.id}_${animKey}`, def.src, {
@@ -153,11 +154,13 @@ export class BootScene extends Scene {
         this.load.image('floor_snow_fresh_seamless', 'assets/terrain/floor_snow_fresh_seamless.png');
         this.load.image('floor_snow_packed_seamless', 'assets/terrain/floor_snow_packed_seamless.png');
         this.load.image('floor_snow_wind_seamless', 'assets/terrain/floor_snow_wind_seamless.png');
+        this.load.image('floor_grass_forest_seamless', 'assets/terrain/floor_grass_forest_seamless.png');
         for (let i = 1; i <= 5; i++) {
             const id = String(i).padStart(2, '0');
             this.load.image(`obstacle_snow_pine_${id}`, `assets/terrain/obstacle_snow_pine_${id}.png`);
             this.load.image(`obstacle_snow_pine_${id}_silhouette`, `assets/terrain/lighting/obstacle_snow_pine_${id}_silhouette.png`);
             this.load.image(`obstacle_snow_pine_${id}_projection`, `assets/terrain/lighting/obstacle_snow_pine_${id}_projection.png`);
+            this.load.image(`obstacle_forest_pine_${id}`, `assets/terrain/obstacle_forest_pine_${id}.png`);
         }
         for (let i = 1; i <= 5; i++) {
             this.load.image(`deco_snow_${i}`, `assets/terrain/deco_snow_${i}.png`);
@@ -602,8 +605,9 @@ export class BootScene extends Scene {
         // 起步 + 第 6~24 帧循环；仓鼠射手 attack = 13 帧单次 + projectile 单帧贴图；
         // 仓鼠盾卫 attack = 12 帧单次（第 10 帧判定伤害由 AI 计时）；
         // 仓鼠民兵 attack = 15 帧单次（第 8 帧判定伤害由 AI 计时）；
-        // 仓鼠斥候 attack = 18 帧单次（第 11 帧出膛由 AI 计时）+ projectile 单帧贴图
-        for (const unitConfig of [hamsterMinerConfig, hamsterWarriorConfig, hamsterShooterConfig, hamsterGuardConfig, hamsterMilitiaConfig, hamsterScoutConfig, hamsterMusketeerConfig]) {
+        // 仓鼠斥候 attack = 18 帧单次（第 11 帧出膛由 AI 计时）+ projectile 单帧贴图；
+        // 仓鼠牧师 spell = 17 帧单次，第 8 帧由 AI 结算圣光。
+        for (const unitConfig of [hamsterMinerConfig, hamsterWarriorConfig, hamsterShooterConfig, hamsterGuardConfig, hamsterMilitiaConfig, hamsterScoutConfig, hamsterMusketeerConfig, hamsterPriestConfig]) {
             for (const [animKey, def] of Object.entries(unitConfig.animations || {})) {
                 if (!def || !def.src) continue;
                 const texKey = `companion_${unitConfig.id}_${animKey}`;

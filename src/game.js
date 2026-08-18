@@ -92,6 +92,7 @@ import { HamsterBarracksSystem } from './world/hamster-barracks-system.js';
 import { ProducerBuildingSystem } from './world/producer-building-system.js';
 import { resetUnitUpgrades } from './world/unit-upgrade-store.js';
 import { resetAbilityLevels } from './world/ability-store.js';
+import { resetWorld122Snapshot } from './world/world122-snapshot.js';
 
 export const Game = {
     VERSION: GAME_CONFIG.meta?.version || '0.198', // 游戏版本号（每次更新必须递增）
@@ -148,6 +149,7 @@ export const Game = {
             }
             resetUnitUpgrades();
             resetAbilityLevels();
+            resetWorld122Snapshot();
             const menuLayer = getElement('menuLayer'); const uiLayer = getElement('uiLayer'); const gameLayer = getElement('gameLayer'); if (menuLayer) menuLayer.classList.add('hidden'); if (uiLayer) uiLayer.style.display = 'block'; if (gameLayer) gameLayer.style.display = 'block';
             // 先初始化场景管理器并标记主场景，保证 Renderer.generateWorld / spawnNPC 用 4096×4096 主神空间尺寸
             SceneManager.init();
@@ -162,7 +164,7 @@ export const Game = {
             this.spawnTargets(); this.spawnEnemy(); this.spawnTestTargets(); this.spawnNPC();
             // 新局清理状态栏残留 buff 图标（上一局的增益/减益不带到新局）
             if (StatusBar && typeof StatusBar.clear === 'function') StatusBar.clear();
-            GameUIManager.startTimer();
+            GameUIManager.refreshGameTime();
             // 在主角右边地上生成G18和SAIGA-12K（额外保留）
             // 使用主神空间固定原点，不随分辨率变化
             const origin = (Renderer && Renderer._getSceneOrigin) ? Renderer._getSceneOrigin() : (

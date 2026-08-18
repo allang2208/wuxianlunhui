@@ -11,6 +11,7 @@ import shooterCfg from '../../data/hamster-shooter-config.json';
 import guardCfg from '../../data/hamster-guard-config.json';
 import scoutCfg from '../../data/hamster-scout-config.json';
 import musketeerCfg from '../../data/hamster-musketeer-config.json';
+import priestCfg from '../../data/hamster-priest-config.json';
 
 /** 全局升级等级：{ [kind]: { [moduleId]: level } }（满级由建筑模块配置 maxLevel 控制） */
 export const GLOBAL_UNIT_UPGRADES = {};
@@ -49,6 +50,7 @@ export const UNIT_KIND_CFG = {
     guard: guardCfg,
     scout: scoutCfg,
     musketeer: musketeerCfg,
+    priest: priestCfg,
 };
 
 /** 实体识别兵种 key（非战斗兵种返回 null） */
@@ -60,6 +62,7 @@ export function getUnitKind(unit) {
     if (unit._isHamsterGuard) return 'guard';
     if (unit._isHamsterScout) return 'scout';
     if (unit._isHamsterMusketeer) return 'musketeer';
+    if (unit._isHamsterPriest) return 'priest';
     return null;
 }
 
@@ -87,12 +90,16 @@ export function getUnitUpgradeMults(kind, modulesCfg) {
         moveSpeedMult: 1,
         count: 1,
         hpMult: 1,
+        holyLightCooldownMult: 1,
+        holyLightLevel: 1,
     };
     if (mods.attackSpd && m.attackSpd) out.attackIntervalMult = 1 + mods.attackSpd.per * m.attackSpd;
     if (mods.damage && m.damage) out.attackDamageMult = 1 + mods.damage.per * m.damage;
     if (mods.moveSpd && m.moveSpd) out.moveSpeedMult = 1 + mods.moveSpd.per * m.moveSpd;
     if (mods.count && m.count) out.count = 1 + m.count;
     if (mods.hp && m.hp) out.hpMult = 1 + mods.hp.per * m.hp;
+    if (mods.castSpd && m.castSpd) out.holyLightCooldownMult = 1 + mods.castSpd.per * m.castSpd;
+    if (mods.holyLight && m.holyLight) out.holyLightLevel = 1 + Math.round(mods.holyLight.per * m.holyLight);
     return out;
 }
 
@@ -106,6 +113,8 @@ export function getUnitUpgradePatch(kind, modulesCfg) {
         attackDamage: Math.max(1, Math.round((baseAi.attackDamage ?? 50) * mults.attackDamageMult)),
         walkSpeed: Math.max(20, Math.round((baseAi.walkSpeed ?? 120) * mults.moveSpeedMult)),
         baseMaxHp: Math.max(1, Math.round((base.baseMaxHp ?? 300) * mults.hpMult)),
+        holyLightCooldownMult: mults.holyLightCooldownMult,
+        holyLightLevel: mults.holyLightLevel,
     };
 }
 

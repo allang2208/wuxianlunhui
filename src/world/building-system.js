@@ -29,6 +29,7 @@ import { HamsterHut, HamsterHutSystem, HAMSTER_CONFIG } from './hamster-hut-syst
 import { HamsterBarracks, HamsterBarracksSystem, BARRACKS_CONFIG } from './hamster-barracks-system.js';
 import { ProducerBuilding, ProducerBuildingSystem, PRODUCER_BUILDINGS } from './producer-building-system.js';
 import {
+    FIRING_PLATFORM_FOOTPRINTS,
     ONE_CELL_BUILDING_FOOT,
     TWO_BY_TWO_BUILDING_FOOT,
 } from './building-footprint.js';
@@ -113,7 +114,15 @@ function isProducerEntity(e) {
 
 /** 除墙、门、陷阱外的玩家可建造建筑统一占 2×2。 */
 function isTwoByTwoBuildItem(item) {
-    return !!item && ['tower', 'hamster_hut', 'hamster_barracks', 'producer', 'platform'].includes(item.kind);
+    return !!item && ['tower', 'hamster_hut', 'hamster_barracks', 'producer'].includes(item.kind);
+}
+
+function isFiringPlatformBuildItem(item) {
+    return !!item && item.kind === 'platform';
+}
+
+function firingPlatformDir(mirror) {
+    return mirror ? 'e1' : 'e2';
 }
 
 const C_GRADE_WALL_COST = Math.round((DEFENSE_CONFIG.covers.hp.C ?? 1600) * 0.25);
@@ -404,6 +413,11 @@ export const BuildingSystem = {
             }
         } else if (this._ghost) {
             this._ghost.setFlipX(this._placing.mirror);
+            if (isFiringPlatformBuildItem(this._placing.item) && this._snapped) {
+                const sp = this._ghostAnchor(this._snapped.x, this._snapped.y);
+                this._ghost.setPosition(sp.x, sp.y);
+                this._ghost.setTint(this._canPlace(this._snapped.x, this._snapped.y) ? 0x9dff9d : 0xff7777);
+            }
         }
     },
 
@@ -627,7 +641,7 @@ export const BuildingSystem = {
     _ghostAnchor(x, y) {
         if (this._placing && this._placing.item.kind === 'platform') {
             return {
-                x: x + FIRING_PLATFORM_VISUAL.offsetX,
+                x: x + (this._placing.mirror ? -FIRING_PLATFORM_VISUAL.offsetX : FIRING_PLATFORM_VISUAL.offsetX),
                 y: y - FIRING_PLATFORM_VISUAL.footOffsetY,
             };
         }
@@ -758,7 +772,7 @@ export const BuildingSystem = {
             }
             return;
         }
-        if (isTwoByTwoBuildItem(this._placing.item)) {
+        if (isTwoByTwoBuildItem(this._placing.item) || isFiringPlatformBuildItem(this._placing.item)) {
             const snap = this._snapPosition(p.x, p.y);
             if (snap) this._place(snap.x, snap.y);
             return;
@@ -831,6 +845,7 @@ export const BuildingSystem = {
         // 方块墙：网格吸附（2026-08-17）——1 格 = 64×32 菱形格，贴格心/邻格拼接
         if (item.kind === 'block') return this._snapBlockGrid(x, y);
         if (isTwoByTwoBuildItem(item)) return this._snapBuildingGrid(x, y, 2);
+        if (isFiringPlatformBuildItem(item)) return this._snapFiringPlatformGrid(x, y);
         // 4 格门：锚点吸附到格网半格位（栅栏跨 2 格的中点），方向跟随主导轴
         if (item.kind === 'gate4') return this._snapGate4Grid(x, y);
         if (item.kind !== 'cover' && item.kind !== 'gate') return null;
@@ -944,6 +959,20 @@ export const BuildingSystem = {
             d: Math.hypot(gx - x, gy + frontOffsetY - y),
             grid: true,
             cells,
+        };
+    },
+
+    /** 射击台锚点固定为楼梯格中心；F 只切换台面延展到 e2/e1。 */
+    _snapFiringPlatformGrid(x, y) {
+        const [i, j] = this._blockCellOf(x, y);
+        const [gx, gy] = this._blockCellCenter(i, j);
+        return {
+            x: Math.round(gx),
+            y: Math.round(gy),
+            d: Math.hypot(gx - x, gy - y),
+            grid: true,
+            dir: firingPlatformDir(!!this._placing?.mirror),
+            stairCell: [i, j],
         };
     },
 
@@ -1462,6 +1491,13 @@ export const BuildingSystem = {
         if (item.kind === 'block') {
             minX = x - BLOCK_FOOT.w / 2; maxX = x + BLOCK_FOOT.w / 2;
             minY = y - BLOCK_FOOT.d / 2; maxY = y + BLOCK_FOOT.d / 2;
+        } else if (isFiringPlatformBuildItem(item)) {
+            const probe = this._firingPlatformProbe(x, y, firingPlatformDir(!!this._placing?.mirror));
+            const vertices = isoFootprintVertices(probe);
+            minX = Math.min(...vertices.map((p) => p.x));
+            maxX = Math.max(...vertices.map((p) => p.x));
+            minY = Math.min(...vertices.map((p) => p.y));
+            maxY = Math.max(...vertices.map((p) => p.y));
         } else if (isTwoByTwoBuildItem(item)) {
             const cy = y + TWO_BY_TWO_BUILDING_FOOT.offY;
             minX = x - TWO_BY_TWO_BUILDING_FOOT.w / 2;
@@ -1491,6 +1527,7 @@ export const BuildingSystem = {
             const dir = (this._snapped && this._snapped.dir) || 'e2';
             return this._canPlaceGate4(x, y, dir);
         }
+        if (isFiringPlatformBuildItem(item)) return this._canPlaceFiringPlatformFootprint(x, y);
         if (isTwoByTwoBuildItem(item)) return this._canPlaceBuildingFootprint(x, y);
         const radius = this._itemPlacementRadius(item);
         const canBuild = WallSystem && typeof WallSystem.canBuildAt === 'function'
@@ -1578,6 +1615,36 @@ export const BuildingSystem = {
             colliderOffsetY: TWO_BY_TWO_BUILDING_FOOT.offY,
         };
 
+        return this._canPlaceIsoBuildingFootprint(probe);
+    },
+
+    _firingPlatformProbe(x, y, dir) {
+        const foot = FIRING_PLATFORM_FOOTPRINTS[dir] || FIRING_PLATFORM_FOOTPRINTS.e2;
+        return {
+            active: true,
+            x,
+            y,
+            collisionShape: 'iso_rect',
+            collisionWidth: foot.collisionWidth,
+            collisionHeight: foot.collisionHeight,
+            collisionIsoHalfU: foot.halfU,
+            collisionIsoHalfV: foot.halfV,
+            colliderOffsetX: foot.offX,
+            colliderOffsetY: foot.offY,
+        };
+    },
+
+    /** 射击台专属 1×2 footprint：实体锚点是楼梯格，F 改变第二格的格轴方向。 */
+    _canPlaceFiringPlatformFootprint(x, y) {
+        const item = this._placing && this._placing.item;
+        if (!item || !this._fitsPlacementBounds(item, x, y)) return false;
+        return this._canPlaceIsoBuildingFootprint(
+            this._firingPlatformProbe(x, y, firingPlatformDir(!!this._placing?.mirror))
+        );
+    },
+
+    _canPlaceIsoBuildingFootprint(probe) {
+        if (!probe) return false;
         for (const e of Game.entities.values()) {
             if (!e || !e._isDefenseStructure || !e.active) continue;
             const ecx = e.collider ? e.collider.x : e.x + (e.colliderOffsetX || 0);
@@ -1606,7 +1673,11 @@ export const BuildingSystem = {
             : (WallSystem && typeof WallSystem.canMoveTo === 'function' ? WallSystem.canMoveTo.bind(WallSystem) : null);
         if (!canBuild) return true;
         const vertices = isoFootprintVertices(probe);
-        const samples = [{ x, y }, ...vertices];
+        const center = {
+            x: probe.x + (probe.colliderOffsetX || 0),
+            y: probe.y + (probe.colliderOffsetY || 0),
+        };
+        const samples = [center, ...vertices];
         for (let i = 0; i < vertices.length; i++) {
             const a = vertices[i], b = vertices[(i + 1) % vertices.length];
             samples.push({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 });
@@ -2111,6 +2182,7 @@ export const BuildingSystem = {
                 // 射击台（2026-08-16 七版）：自由放置高台——无墙线/法线/裁墙；
                 // F 镜像只做视觉左右翻面（_facingLeft）
                 const platform = this._markBuiltEntity(new FiringPlatform(x, y, {
+                    dir: firingPlatformDir(mirror),
                     mirror,
                     id,
                 }), item);

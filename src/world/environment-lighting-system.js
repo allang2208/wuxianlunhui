@@ -73,6 +73,34 @@ export const EnvironmentLightingSystem = {
         };
     },
 
+    getGameTime() {
+        const duration = Math.max(1, Number(this._config.dayDurationMs) || DEFAULTS.dayDurationMs);
+        const cycles = this._elapsedMs / duration + (this._config.startPhase || 0);
+        const day = Math.floor(cycles) + 1;
+        // phase=0 为日出（06:00），0.25 为正午（12:00）。
+        const clockMinutes = Math.floor((((this._sun.phase * 24 + 6) % 24) * 60));
+        const hour = Math.floor(clockMinutes / 60);
+        const minute = clockMinutes % 60;
+        let period = '深夜';
+        let icon = '🌙';
+        if (hour >= 5 && hour < 8) { period = '晨曦'; icon = '🌅'; }
+        else if (hour >= 8 && hour < 17) { period = '白昼'; icon = '☀'; }
+        else if (hour >= 17 && hour < 20) { period = '黄昏'; icon = '🌇'; }
+        return { day, hour, minute, period, icon };
+    },
+
+    serializeTime() {
+        return { elapsedMs: this._elapsedMs };
+    },
+
+    restoreTime(data) {
+        const elapsed = Number(data?.elapsedMs);
+        if (Number.isFinite(elapsed) && elapsed >= 0) {
+            this._elapsedMs = elapsed;
+            this._refreshSun();
+        }
+    },
+
     /**
      * 统一推导单位接触阴影。个体可用 entity.shadow 或 render.shadow 覆盖：
      * { enabled, height, maxOffset, opacity, widthMul, depthMul }。

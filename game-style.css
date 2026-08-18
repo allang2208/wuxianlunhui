@@ -1274,8 +1274,8 @@
             overflow-y: auto;
             padding: 16px;
         }
-        /* ===== 游戏秒表计时器 ===== */
-        .game-timer {
+        /* ===== 游戏内时间 ===== */
+        .game-time {
             position: fixed;
             top: 12px;
             right: 100px;
@@ -1291,12 +1291,12 @@
             pointer-events: none;
             box-shadow: 0 2px 12px rgba(0, 0, 0, 0.5);
         }
-        .game-timer .timer-icon {
+        .game-time .time-icon {
             font-size: 14px;
             color: #ffd700;
             filter: drop-shadow(0 0 3px rgba(255, 215, 0, 0.5));
         }
-        .game-timer .timer-text {
+        .game-time .time-text {
             font-size: 14px;
             font-weight: 700;
             color: #d4c5a9;

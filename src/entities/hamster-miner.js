@@ -105,6 +105,7 @@ export class HamsterMiner extends Companion {
     /** 主循环入口（Game.entities 每帧调用） */
     update(dt, entities) {
         if (this.hitFlash > 0) this.hitFlash = Math.max(0, this.hitFlash - dt);
+        this.updateStatusEffects(dt);
         if (this._dying) {
             this._deathTimer -= dt;
             if (this._deathTimer <= 0) this._removeFromScene();

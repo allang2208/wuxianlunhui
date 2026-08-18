@@ -3745,6 +3745,26 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
 - **动态单位投影**：玩家、敌人、友军从当前 Phaser 帧 alpha 懒生成 `unit_projection_*` Canvas
   纹理，同一帧只生成一次。低档=接触影，中档=静态投影，高档=动态帧投影；缓存上限 256，
   场景/质量切换及 Phaser shutdown 必须回收并从 TextureManager 移除。
+- **建筑锚点不能一刀切**：碰撞 footprint 中心用于接触影尺寸；方向性轮廓影根部默认
+  `footprint_center`。基地 4×4 的贴图与占地中心存在视觉差，但直接改到 `visual_foot`
+  会让整段影子脱离模型；正确做法是在 manifest 对 `defense_base` 配
+  `shadow.anchorMode="footprint_center", shadow.anchorInsetY=-24`，把根部仅向贴图内部
+  校准。其余建筑先用 `footprint_center`，实机发现悬空/埋入后再单项调 inset。
+
+#### 建筑贴图替换后的阴影工作流
+
+1. **保持贴图键不变时**：替换 `assets/terrain/<key>.png` 后运行
+   `python tools/ai-gen/build-lighting-maps.py`，重新生成 `<key>_projection/height/normal/silhouette`。
+2. **新贴图键/新建筑时**：把 key 加入 `build-lighting-maps.py` 的 `ASSETS`，运行脚本；再在
+   `BootScene` 预加载 `<key>_projection`，建筑运行时自动按
+   `sprite.texture.key + "_projection"` 取图。若没有投影贴图，系统回退柔边椭圆。
+3. 检查 `data/environment-lighting-assets.json`：默认 `shadow.anchorMode="footprint_center"`；
+   需要细调时加 `shadow.anchorInsetX/Y`（正值向右/下，负值向左/上）。不要通过修改
+   collision footprint 来补视觉影子位置；锚点问题只调 manifest。
+4. 进入世界-122，至少在正午与晨昏观察：影子根部贴建筑底座、长度不过门/墙、建筑本体不被
+   影子盖住；换贴图后必须重启 Vite，确保新增静态资源被加载。
+5. 提交原贴图、`assets/terrain/lighting/` 派生图、manifest、BootScene 预加载与配置改动；
+   不得只提交原图或只提交 projection。
 
 #### 出图提示词要点
 - 写"**底边与水平线呈 30 度夹角**"（对齐地板线）；不要再写 26.5 度/2:1
@@ -5428,6 +5448,20 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
 - 靶场：素材库 `靶场.png` 已替代 `assets/terrain/shooting_range.png`；紧身裁为
   1197×1198，`producer-buildings.json.shooting_range` 标定为
   `displayW=288/displayH=288/footOffsetY=144`。
+
+### 世界-124 林地（2026-08-18）
+
+- 场景：`scene10` / 世界-124·林地，沿用世界-122/123 的 `12288×8192` 菱形边界与
+  30° 等距连续地板；主神空间传送门进入，底部返回门离开；不接防守、建造或刷怪系统。
+- 草地：`floor_grass_forest_seamless.png` 走 `floor-asset.py grass-forest`（FLUX.2 Dev →
+  make-seamless → 降饱和）产出，游戏内连续铺贴 `textureScaleY=0.5774`；
+  `deco_grass_1/2` 作为低矮草簇点缀，入场 seed 随机、同一次分块重烘焙稳定。
+- 树木：5 棵 `obstacle_forest_pine_01~05.png` 复用不同白模深度图，以
+  `flux2-dev-depth` 锁定树形/30°视角，**普通阈值抠图不可信时必须从 `_raw.png` 用
+  `cutout-energy-node.py`（BiRefNet）重抠**；紧身裁后的尺寸/footprint/obstacleH 必须登记
+  `ISO_WALL_GEO`，再由 `_scatterForestPinesScene10` 随机散布、避开出生点和返回门。
+- 验收：`test-world124-forest.mjs`（场景/草地/树资产/几何/入口）+ 配置校验 + Vite build；
+  视觉调整时优先改 `forestTreeScatter` 的 count/minDist/scaleJitter，不要绕过 footprint 碰撞。
 - 传送门：素材库无现成素材，先用占位图（`tools/ai-gen/gen-portal-placeholder.py` 生成，
   裁后 615×921，正式图走素材库/AI 管线后重标）；纯详情建筑：2000能源、HP3000、
   def80/mdef80、`panelMode:"detail"`，标定 `displayW=288/displayH=431/footOffsetY=216`；
@@ -6319,6 +6353,13 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
   512×512 帧、8 列 × 4 行网格（先目检行列与有效帧数，再配 frameCount）。
 - 动画帧配置放**独立** `data/<id>-config.json`，**不要**塞进 companion-config.json——
   那会让它出现在招募池/队员面板；世界-122 工人类单位用独立配置 + BootScene 显式注册。
+- **视觉体量对齐（2026-08-18）**：不能只比较 512×512 画布，必须量首帧 alpha 内容
+  bbox，并按 `有效内容高 × displaySize / frameHeight` 对齐。普通仓鼠战斗单位的有效角色
+  高度基准为约 **78~90px**；细长/留白多的素材应增大 `displaySize`，例如仓鼠牧师内容高
+  173px，设 `displaySize:250` 后为约85px。同步按
+  `(bbox.bottom - frameHeight/2) × displaySize / frameHeight` 重算 `spriteOffsetY`
+  （取负）与实体 `footOffsetY`（取正），并调整 `config.render.hudOffsetY`；禁止只放大
+  `displaySize` 而不校准脚底/血条。
 
 #### 2. 数据（data/hamster-miner-config.json）
 - `baseData.con` 控 HP（公式 base100 + con×10 + 每级10；con=10 → 200）。
@@ -6656,6 +6697,26 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
   + test-hamster-guard 共享段补斥候派生；`tools/cdp-hamster-scout.mjs` 实机探针
   （生成/100HP/六维/移速 150/第 11 帧出膛 833ms 窗口/中心瞄准/箭矢贴图尖头朝右/
   25 物理×2.5s/矿点不攻击/多帧待机/跟随到位 idle/死亡移除）。
+
+#### 14. 仓鼠牧师、教堂与激励魔法（2026-08-18）
+
+- **素材/数据**：独立配置 `data/hamster-priest-config.json`，4 张 8列×4行表：
+  idle 10、running 13、dying 16、praying 17 帧。六维为 5/5/20/5/15/5，
+  `statFormula:'enemy'`、`baseMaxHp:100`、移速120；初始 `skills:['holyLight']` 即 1 级圣光。
+- **教堂生产**：`producer-buildings.json.church` 为唯一配置，90 秒补 1 名、上限 2 名，
+  仅生产 `priest`；必须同步 `PRODUCER_UNIT_CFG/CLASS`、`unit-upgrade-store`、
+  BootScene 贴图加载和 GameScene 友军动画分支。
+- **不可打断施法状态机**：圣光与激励都进入 `HamsterPriestAI._startPrayerCast`，锁移动、
+  锁决策、播放一次 `praying`，**第 8 帧**结算，完整 17 帧结束后才允许跟随/下一次施法；
+  指令不能取消进行中的 praying，死亡是唯一允许中断。
+- **圣光逻辑**：冷却就绪时优先选受伤比例最高的玩家/友军/自身；全员满血时才选择
+  600px 内最近 enemy 造成圣光伤害。教堂升级 `castSpd` 为 CD 每级 -5%，
+  `holyLight` 每级 +1 圣光等级；升级必须同时同步当前单位与后续生成单位。
+- **铁匠铺研究「激励魔法」**：全局能力 `inspire_magic`，Lv.1 解锁后每位牧师各有
+  30 秒 CD；在自身 300px 内对 player/companion 施加既有 `applyInspire`
+  （移速×1.33、物攻×1.5）。持续时间 Lv.1=10 秒、Lv.10=20 秒；重复施加只刷新时间。
+  `Companion` 需要具备 statusEffects 的计时、applyInspire 与到期还原，所有仓鼠 update
+  和 PartySystem.updateCombat 都必须推进该计时，GameScene 的 inspire 光环还须遍历正式队友。
 
 ---
 

@@ -1,0 +1,7 @@
+seamless tileable forest meadow ground texture, muted natural deep green grass with soft olive and
+earthy brown variation, short dense meadow grass, tiny scattered dry leaves and subtle soil flecks,
+no flowers, no large plants, no rocks, no paths, no objects, flat top-down view, the texture wraps
+around perfectly with no visible seams, left edge matches right edge, top edge matches bottom edge,
+pattern repeats seamlessly when tiled in every direction, uniform even lighting, no shadows,
+no vignette, no border, no frame, no dark edges, no shading at the border, high detail,
+photorealistic, no text, no watermark

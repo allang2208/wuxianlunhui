@@ -125,6 +125,9 @@ export class Companion {
         this._lightningStrikeCooldown = 0;
         this._holyLightCooldown = 0;
         this._defending = false; // 剑盾防御（持盾减伤 + 常态弹反）生效标志，防御 hold 期由 CompanionAI 置位
+        // 世界-122 友军同样可承接 DamageableEntity 的公共增益语义（如牧师的激励）。
+        this.statusEffects = [];
+        this._inspireMul = null;
         this.calculateCombatStats(); // 初始化战斗属性（matk 等，含无装备基础魔攻）
         this.updateMaxStats();
         this.data.hp = this.data.maxHp;
@@ -134,6 +137,72 @@ export class Companion {
     get level() { return this.data.level; }
     get hp() { return this.data.hp; }
     get maxHp() { return this.data.maxHp; }
+
+    hasStatusEffect(type) {
+        return this.statusEffects.some((effect) => effect.type === type && effect.remaining > 0);
+    }
+
+    addStatusEffect(type, duration, options = {}) {
+        const existing = this.statusEffects.find((effect) => effect.type === type);
+        if (existing) {
+            existing.remaining = Math.max(existing.remaining, duration);
+            existing.duration = Math.max(existing.duration, duration);
+            return existing;
+        }
+        const effect = {
+            type,
+            duration,
+            remaining: duration,
+            icon: options.icon || '✨',
+            name: options.name || type,
+            color: options.color || '#9a9a5a',
+        };
+        this.statusEffects.push(effect);
+        return effect;
+    }
+
+    updateStatusEffects(dt) {
+        for (let i = this.statusEffects.length - 1; i >= 0; i--) {
+            const effect = this.statusEffects[i];
+            effect.remaining -= dt;
+            if (effect.remaining > 0) continue;
+            if (effect.type === 'inspire') this._onInspireEnd();
+            this.statusEffects.splice(i, 1);
+        }
+    }
+
+    /** 与现有怪物激励完全同口径：移速 ×1.33、物理攻击 ×1.5，重复仅刷新时长。 */
+    applyInspire(duration, opts = {}) {
+        const speedMul = opts.speedMul ?? 1.33;
+        const atkMul = opts.atkMul ?? 1.5;
+        if (!this.hasStatusEffect('inspire')) {
+            this._inspireMul = { speedMul, atkMul };
+            if (typeof this.data?.atk === 'number') this.data.atk = Math.max(1, Math.round(this.data.atk * atkMul));
+            if (this.aiConfig?.walkSpeed) this.aiConfig.walkSpeed *= speedMul;
+            if (this.aiConfig?.runSpeed) this.aiConfig.runSpeed *= speedMul;
+            if (this._ai?._attackDamage) this._ai._attackDamage *= atkMul;
+            // 正式队友的 CompanionAI 复制 aiConfig 为 cfg；仓鼠 AI 则共用同一对象，避免重复乘算。
+            if (this._ai?.cfg && this._ai.cfg !== this.aiConfig) {
+                if (this._ai.cfg.walkSpeed) this._ai.cfg.walkSpeed *= speedMul;
+                if (this._ai.cfg.runSpeed) this._ai.cfg.runSpeed *= speedMul;
+            }
+        }
+        this.addStatusEffect('inspire', duration, { name: '激励', icon: '📣', color: '#ffb347' });
+    }
+
+    _onInspireEnd() {
+        const mul = this._inspireMul;
+        if (!mul) return;
+        this._inspireMul = null;
+        if (typeof this.data?.atk === 'number') this.data.atk = Math.max(1, Math.round(this.data.atk / mul.atkMul));
+        if (this.aiConfig?.walkSpeed) this.aiConfig.walkSpeed /= mul.speedMul;
+        if (this.aiConfig?.runSpeed) this.aiConfig.runSpeed /= mul.speedMul;
+        if (this._ai?._attackDamage) this._ai._attackDamage /= mul.atkMul;
+        if (this._ai?.cfg && this._ai.cfg !== this.aiConfig) {
+            if (this._ai.cfg.walkSpeed) this._ai.cfg.walkSpeed /= mul.speedMul;
+            if (this._ai.cfg.runSpeed) this._ai.cfg.runSpeed /= mul.speedMul;
+        }
+    }
 
     /** 升级曲线与玩家同口径（唯一来源 combat-formulas player.expPerLevel） */
     getExpForLevel(level) {
