@@ -20,6 +20,7 @@ import { BuildingSinkEffect } from '../effects/building-sink.js';
 import { SoundManager } from '../ui/sound-manager.js';
 import { burstParticles } from '../effects/combat-fx.js';
 import { BasePanel } from '../ui/panels/base-panel.js';
+import { renderBuildingDetailHeader } from '../ui/panels/building-detail-header.js';
 import { GoldManager } from '../systems/gold-manager.js';
 import { TRAP_CONFIG, TRAP_GRADES, TRAP_SPACING, TRAP_SELL_RATIO, getTrapDef, getTrapCost } from './trap-config.js';
 // 同步导入 Renderer（原懒加载 await import 使 tryInteract 变 async，game.js 的
@@ -273,6 +274,8 @@ class DefenseTrapPanel extends BasePanel {
                 <div id="tpTitle" style="font-size:17px;font-weight:700;color:#ffd700;"></div>
                 <button id="tpClose" style="background:#3a3228;color:#d4c5a9;border:1px solid #6a5a3a;border-radius:6px;padding:4px 12px;cursor:pointer;">关闭</button>
             </div>
+            <div id="tpBuildingDetail"></div>
+            <div style="font-size:13px;font-weight:700;color:#ffb86a;margin:2px 0 6px;">特殊功能 · 陷阱触发与区域控制</div>
             <div id="tpStats" style="font-size:13px;line-height:1.8;color:#c8b98a;"></div>
             <div style="margin-top:12px;display:flex;gap:8px;">
                 <button id="tpSell" style="flex:1;background:#5a3028;color:#ffd7d0;border:1px solid #8a4a3a;border-radius:6px;padding:7px 0;cursor:pointer;">卖出</button>
@@ -316,9 +319,20 @@ class DefenseTrapPanel extends BasePanel {
         const t = this.trap;
         const def = t.trapDef();
         const gc = def ? def.gradeCfg : null;
-        el.querySelector('#tpTitle').textContent = `${def ? def.displayName : '陷阱'}·${t.grade}级`;
-        const hpTxt = `${Math.ceil(t.hp)}/${t.maxHp}`;
-        let rows = `耐久 ${hpTxt}<br>卖出价 <span style="color:#ffd700;">${t.sellValue} 金币</span>`;
+        const name = `${def ? def.displayName : '陷阱'}·${t.grade}级`;
+        el.querySelector('#tpTitle').textContent = '建筑详情';
+        const detail = el.querySelector('#tpBuildingDetail');
+        if (detail) {
+            detail.innerHTML = renderBuildingDetailHeader({
+                texture: t.spriteCfg?.idleKey,
+                name,
+                hp: t.hp,
+                maxHp: t.maxHp,
+                accent: '#ffb86a',
+                status: `${t.type} · ${t.grade}级`,
+            });
+        }
+        let rows = `卖出价 <span style="color:#ffd700;">${t.sellValue} 金币</span>`;
         if (gc) {
             rows += `<br>触发半径 ${gc.triggerRadius}`;
             if (t.type === 'spike') rows += `<br>伤害 ${gc.damage} / 冷却 ${(gc.cooldownMs / 1000).toFixed(1)}s`;

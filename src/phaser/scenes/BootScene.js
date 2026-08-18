@@ -150,6 +150,18 @@ export class BootScene extends Scene {
         this.load.image('yellowmud_new1', 'assets/terrain/yellowmud-new1.png');
         this.load.image('floor_mud_seamless', 'assets/terrain/floor_mud_seamless.png');
         this.load.image('floor_sand_seamless', 'assets/terrain/floor_sand_seamless.png');
+        this.load.image('floor_snow_fresh_seamless', 'assets/terrain/floor_snow_fresh_seamless.png');
+        this.load.image('floor_snow_packed_seamless', 'assets/terrain/floor_snow_packed_seamless.png');
+        this.load.image('floor_snow_wind_seamless', 'assets/terrain/floor_snow_wind_seamless.png');
+        for (let i = 1; i <= 5; i++) {
+            const id = String(i).padStart(2, '0');
+            this.load.image(`obstacle_snow_pine_${id}`, `assets/terrain/obstacle_snow_pine_${id}.png`);
+            this.load.image(`obstacle_snow_pine_${id}_silhouette`, `assets/terrain/lighting/obstacle_snow_pine_${id}_silhouette.png`);
+            this.load.image(`obstacle_snow_pine_${id}_projection`, `assets/terrain/lighting/obstacle_snow_pine_${id}_projection.png`);
+        }
+        for (let i = 1; i <= 5; i++) {
+            this.load.image(`deco_snow_${i}`, `assets/terrain/deco_snow_${i}.png`);
+        }
         this.load.image('deco_grass_1', 'assets/terrain/deco_grass_1.png');
         this.load.image('deco_grass_2', 'assets/terrain/deco_grass_2.png');
         // 世界-122 荒漠植物点缀（2026-08-16：束草/蒿灌木/龙舌兰/风滚草，微俯 30° 直立 + 低饱和）
@@ -162,6 +174,14 @@ export class BootScene extends Scene {
         this.load.image('obstacle_cactus_saguaro1arm', 'assets/terrain/obstacle_cactus_saguaro1arm.png');
         this.load.image('obstacle_cactus_barrel', 'assets/terrain/obstacle_cactus_barrel.png');
         this.load.image('obstacle_cactus_cholla', 'assets/terrain/obstacle_cactus_cholla.png');
+        this.load.image('obstacle_cactus_saguaro2arm_silhouette', 'assets/terrain/lighting/obstacle_cactus_saguaro2arm_silhouette.png');
+        this.load.image('obstacle_cactus_saguaro1arm_silhouette', 'assets/terrain/lighting/obstacle_cactus_saguaro1arm_silhouette.png');
+        this.load.image('obstacle_cactus_barrel_silhouette', 'assets/terrain/lighting/obstacle_cactus_barrel_silhouette.png');
+        this.load.image('obstacle_cactus_cholla_silhouette', 'assets/terrain/lighting/obstacle_cactus_cholla_silhouette.png');
+        this.load.image('obstacle_cactus_saguaro2arm_projection', 'assets/terrain/lighting/obstacle_cactus_saguaro2arm_projection.png');
+        this.load.image('obstacle_cactus_saguaro1arm_projection', 'assets/terrain/lighting/obstacle_cactus_saguaro1arm_projection.png');
+        this.load.image('obstacle_cactus_barrel_projection', 'assets/terrain/lighting/obstacle_cactus_barrel_projection.png');
+        this.load.image('obstacle_cactus_cholla_projection', 'assets/terrain/lighting/obstacle_cactus_cholla_projection.png');
         this.load.image('swampbrick_1', 'assets/terrain/swampbrick-1.png');
         this.load.image('swampbrick_2', 'assets/terrain/swampbrick-2.png');
         this.load.image('swampbrick_3', 'assets/terrain/swampbrick-3.png');
@@ -250,11 +270,18 @@ export class BootScene extends Scene {
         this.load.image('barracks', 'assets/terrain/barracks.png');
         this.load.image('mine', 'assets/terrain/mine.png');
         this.load.image('blacksmith', 'assets/terrain/blacksmith.png');
+        this.load.image('church', 'assets/terrain/church.png');
         // 世界-122 研究院（素材库原图裁透明边并缩至 1024 宽）
         this.load.image('research_institute', 'assets/terrain/research_institute.png');
         this.load.image('warehouse', 'assets/terrain/warehouse.png');
         this.load.image('shooting_range', 'assets/terrain/shooting_range.png');
         this.load.image('thatch_hut', 'assets/terrain/thatch_hut.png');
+        // 世界-122 传送门（2026-08-18 占位贴图：tools/ai-gen/gen-portal-placeholder.py，正式图走 AI 素材管线）
+        this.load.image('portal', 'assets/terrain/portal.png');
+        // 建筑预投影轮廓：原图 alpha 直接采集，供世界-122 太阳投影使用。
+        for (const key of ['defense_base', 'obstacle_defense_tower', 'barracks', 'mine', 'blacksmith', 'church', 'research_institute', 'warehouse', 'shooting_range', 'thatch_hut', 'portal']) {
+            this.load.image(`${key}_projection`, `assets/terrain/lighting/${key}_projection.png`);
+        }
         // 世界-122 防御塔机械臂（预渲染 3D 旋转帧，48 帧等距透视，按 aimAngle 选帧）
         this.load.spritesheet('obstacle_defense_tower_arm_frames', 'assets/terrain/obstacle_defense_tower_arm_frames.png', { frameWidth: 261, frameHeight: 164 });
         // 防御塔武器枪管（预裁剪独立贴图："枪插进机械臂"假象；2026-08-14）

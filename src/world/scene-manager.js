@@ -46,7 +46,8 @@ export const SceneManager = {
             scene4: cfg.scene4 || { name: '古堡', type: 'instance', label: '场景四', width: 9000, height: 9000, background: '#000000', origin: { x: 4500, y: 4500 } },
             scene5: cfg.scene5 || { name: 'AI测试场', type: 'instance', label: '场景五', width: 6120, height: 3040, background: '#3a3a3a', origin: { x: 3060, y: 1520 } },
             scene7: cfg.scene7 || { name: '僵尸地牢高级', type: 'dungeon', label: '场景七', width: 1024, height: 1024, background: '#000000', origin: { x: 512, y: 512 }, dungeonType: 'zombie' },
-            scene8: cfg.scene8 || { name: '世界-122', type: 'instance', label: '场景八', width: 12288, height: 8192, background: '#0d1b0a', origin: { x: 6144, y: 4096 } }
+            scene8: cfg.scene8 || { name: '世界-122', type: 'instance', label: '场景八', width: 12288, height: 8192, background: '#0d1b0a', origin: { x: 6144, y: 4096 } },
+            scene9: cfg.scene9 || { name: '世界-123·雪原', type: 'instance', label: '场景九', width: 12288, height: 8192, background: '#101a2b', origin: { x: 6144, y: 4096 } }
         };
     },
 
@@ -135,7 +136,7 @@ export const SceneManager = {
             if (this.currentScene === 'scene8' && DefenseSystem && DefenseSystem.active) {
                 DefenseSystem.teardown();
             }
-            if (this.currentScene === 'scene8') clearDecoClearZones();
+            if (this.currentScene === 'scene8' || this.currentScene === 'scene9') clearDecoClearZones();
             // 世界-122 建筑面板随场景离场关闭
             if (BuildingSystem && BuildingSystem.active) {
                 BuildingSystem.close();
@@ -219,6 +220,8 @@ export const SceneManager = {
                 this._loadScene7(player, 'zombie');
             } else if (sceneId === 'scene8') {
                 this._loadScene8(player);
+            } else if (sceneId === 'scene9') {
+                this._loadScene9(player);
             } else if (sceneId === 'main') {
                 this._loadMainScene(player);
             }
@@ -501,19 +504,19 @@ export const SceneManager = {
         // 首启时预制库/布局/覆盖层可能未加载完：到位后统一重建一次（仅主神空间）
         if (!isWallPrefabsLoaded()) {
             loadWallPrefabs().then(() => {
-                if (this.currentScene !== 'main') return;
+                if (this.currentScene !== 'main' || this.isLoading) return;
                 buildHubIso();
             });
         }
         if (getObstacleLayout().length === 0) {
             loadObstacleLayout().then(() => {
-                if (this.currentScene !== 'main') return;
+                if (this.currentScene !== 'main' || this.isLoading) return;
                 buildHubIso();
             });
         }
         if (!isWallGeoOverridesLoaded()) {
             WallSystem.loadGeoOverrides().then(() => {
-                if (this.currentScene !== 'main') return;
+                if (this.currentScene !== 'main' || this.isLoading) return;
                 buildHubIso();
             });
         }
@@ -1189,6 +1192,108 @@ export const SceneManager = {
                 _boundary: true,
             });
         }
+    },
+
+    /** 世界-123（场景九）：复用世界-122的尺寸、菱形边界与地面视角，只承载雪地地块。 */
+    _loadScene9(player) {
+        clearDecoClearZones();
+        Camera.aimOffsetX = 0;
+        Camera.aimOffsetY = 0;
+        Camera.shakeX = 0;
+        Camera.shakeY = 0;
+        Camera.shakeIntensity = 0;
+        Camera.lockY = false;
+        Camera.yLockedValue = 0;
+
+        const scene = this.scenes.scene9;
+        const w = scene.width;
+        const h = scene.height;
+        CONFIG.WORLD_WIDTH = w;
+        CONFIG.WORLD_HEIGHT = h;
+
+        // 连续无缝主雪层 + 两层确定性软边补丁。渲染器统一按 0.5774 做30°等距纵向压缩。
+        const diamond = this._scene8Diamond(scene);
+        setDungeonFloorProfile({
+            tiles: ['floor_snow_fresh_seamless'],
+            continuous: true,
+            glow: false,
+            backgroundColor: scene.background || '#101a2b',
+            surfacePatches: [
+                { texture: 'floor_snow_packed_seamless', perChunk: 4, size: 920, minDist: 1150 },
+                { texture: 'floor_snow_wind_seamless', perChunk: 5, size: 620, minDist: 820 },
+            ],
+            // 雪地草/蕨已缩至荒漠点缀物的 50%：128² 成品、55px 显示；不参与碰撞。
+            deco: {
+                textures: ['deco_snow_1', 'deco_snow_2', 'deco_snow_3', 'deco_snow_4', 'deco_snow_5'],
+                // 每次进入雪原生成新 seed；同一轮分块重烘焙仍稳定，避免相机移动时草簇跳变。
+                seed: (Math.random() * 0x100000000) >>> 0,
+                perChunk: 14,
+                size: 55,
+                minDist: 120,
+            },
+        });
+        applyDungeonFloorChunked(w, h, 2048, diamond);
+
+        WallSystem.init(w, h);
+        WallSystem.walls = [
+            { x: 0, y: 0, w, h: 20, noVisual: true },
+            { x: 0, y: h - 20, w, h: 20, noVisual: true },
+            { x: 0, y: 0, w: 20, h, noVisual: true },
+            { x: w - 20, y: 0, w: 20, h, noVisual: true },
+        ];
+        this._registerScene8Boundary(diamond);
+        if (WallSystem._syncWallsToPhaser) WallSystem._syncWallsToPhaser();
+
+        if (player) {
+            player.x = diamond ? diamond.cx : w / 2;
+            player.y = diamond ? diamond.cy : h / 2;
+            Game.entities.set('player', player);
+            Camera.follow(player);
+            QuickBar.refreshSpecialAttack(player);
+        }
+        this._scatterSnowPinesScene9(player, diamond);
+        if (diamond) {
+            const portal = new Portal(diamond.cx, diamond.cy + diamond.ry - 160, 'main', '返回主神空间');
+            Game.entities.set('portal_return', portal);
+        }
+    },
+
+    /** 世界-123高瘦雪松散布：五个姿态等概率取样，只落在雪原菱形内。 */
+    _scatterSnowPinesScene9(player, diamond) {
+        const scene = this.scenes.scene9;
+        const cfg = scene.snowPineScatter || {};
+        if (cfg.enabled === false || !diamond) return;
+        const count = cfg.count ?? 38;
+        const minDist = cfg.minDist ?? 360;
+        const jitter = cfg.scaleJitter ?? 0.1;
+        const playerExclusion = cfg.playerExclusion ?? 440;
+        const portalExclusion = cfg.portalExclusion ?? 340;
+        const variants = ['01', '02', '03', '04', '05'];
+        const portalY = diamond.cy + diamond.ry - 160;
+        const pieces = [];
+        let guard = 0;
+        while (pieces.length < count && guard++ < count * 40) {
+            const x = 220 + Math.random() * (scene.width - 440);
+            const y = 220 + Math.random() * (scene.height - 440);
+            if (Math.abs(x - diamond.cx) / diamond.rx + Math.abs(y - diamond.cy) / diamond.ry > 0.96) continue;
+            const tex = `obstacle_snow_pine_${variants[(Math.random() * variants.length) | 0]}`;
+            const geo = WallSystem._geoForTex?.(tex);
+            if (!geo) continue;
+            const scale = (geo.obstacleH / geo.h) * (1 - jitter + Math.random() * jitter * 2);
+            const footprint = WallSystem.getObstacleFootprintRect?.({ tex, x, y, scaleX: scale, scaleY: scale });
+            const fx = footprint ? footprint.x + footprint.w / 2 : x;
+            const fy = footprint ? footprint.y + footprint.h / 2 : y;
+            if (player && Math.hypot(fx - player.x, fy - player.y) < playerExclusion) continue;
+            if (Math.hypot(fx - diamond.cx, fy - portalY) < portalExclusion) continue;
+            if (pieces.some((piece) => Math.hypot(piece.x - x, piece.y - y) < minDist)) continue;
+            const radius = Math.max(18, (geo.foot?.w ?? 80) * scale / 2);
+            if (!WallSystem.canMoveTo?.(fx, fy, radius)) continue;
+            pieces.push({ tex, x, y, scaleX: scale, scaleY: scale, flipX: Math.random() < 0.5, _scatter: true });
+        }
+        for (const piece of pieces) WallSystem.isoVisuals.push(piece);
+        if (pieces.length) WallSystem.rebuildIsoCollision?.();
+        WallSystem._syncWallsToPhaser?.();
+        console.log(`[scene9] 高瘦雪松散布 ${pieces.length} 棵（候选拒绝 ${guard - pieces.length} 次）`);
     },
 
     _loadScene7(player, _dungeonType = 'zombie') {

@@ -13,6 +13,7 @@ import { serializeUnitUpgrades, restoreUnitUpgrades } from '../world/unit-upgrad
 import { serializeAbilityLevels, restoreAbilityLevels } from '../world/ability-store.js';
 import { ResearchSystem } from '../world/research-system.js';
 import { EnergyManager } from '../systems/energy-manager.js';
+import { World122TributeSystem } from '../world/world122-tribute-system.js';
 
 // Game UI Manager - Extracted from Game.js
 // Handles UI updates, save/load, timers, and menu operations
@@ -249,6 +250,7 @@ export const GameUIManager = {
         restoreAbilityLevels(data.world122?.abilityLevels);
         ResearchSystem.refreshWorld();
         EnergyManager.restoreStorage(data.world122?.energyStorage);
+        World122TributeSystem.restore(data.world122?.tributeBuffs);
         if (Array.isArray(data.backpack) && typeof EquipManager !== 'undefined') {
             // 原地替换内容而非换数组：init 时旧数组引用已注入 EquipTooltipManager/
             // GoldManager/BackpackDialogManager/dragDropManager，换数组会让这些引用失效
@@ -289,6 +291,7 @@ export const GameUIManager = {
                 unitUpgrades: serializeUnitUpgrades(),
                 abilityLevels: serializeAbilityLevels(),
                 energyStorage: EnergyManager.serializeStorage(),
+                tributeBuffs: World122TributeSystem.serialize(),
             },
         };
         try { localStorage.setItem('infiniteLoop_save', JSON.stringify(saveData)); alert('已保存至主神空间'); } catch (e) { console.error('Save failed:', e); alert('存档失败: 存储空间不足'); }

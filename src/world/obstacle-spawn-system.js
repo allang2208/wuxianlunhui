@@ -27,7 +27,7 @@
  * 障碍物碰撞：piece 进 WallSystem.isoVisuals 后由调用方 rebuildIsoCollision()
  * 按 foot 自动推导；清理随战斗房恢复/重建自动消失。
  * 地面阴影：每个有 foot 碰撞的障碍物件（预制组合各件 + 中央石柱）放椭圆阴影
- * （entity_shadow，footprint 与 _addPieceCollision 同口径，alpha 0.35），
+ * （entity_shadow，footprint 与 _addPieceCollision 同口径，alpha 0.525），
  * 登记进 CombatRoomSystem._decoSprites 随 cleanupRoom → cleanupGate 销毁
  * （通道火把无碰撞不放阴影；火把火焰 emitter 与阴影同口径登记 _decoSprites——
  * 战斗内常驻、战斗结束才销毁，不再"永不销毁"逐场累积泄漏）。
@@ -275,7 +275,7 @@ export const ObstacleSpawnSystem = {
         const sp = scene.add.sprite(piece.x + offX, bottomY - fd / 2, 'entity_shadow');
         sp.setOrigin(0.5, 0.5);
         sp.setDisplaySize(hw * 2, hd * 2 * PERSPECTIVE_SCALE_Y);
-        sp.setAlpha(0.35);
+        sp.setAlpha(0.525); // 全局阴影加深 50%（0.35 × 1.5）
         sp.setDepth((piece.depth ?? WallSystem.obstacleDepthOf(piece)) - 0.05);
         sp.addToUpdateList();
         const CRS = (typeof window !== 'undefined') ? window.CombatRoomSystem : null;
@@ -397,6 +397,18 @@ export const ObstacleSpawnSystem = {
         });
         ctx.total++;
         const scene = ctx.scene;
+        const glowKey = `torch:${Math.round(pt.x)}:${Math.round(pt.y)}:${ctx.roomIndex}:${ctx.total}`;
+        const glow = typeof scene.registerEnvironmentGlow === 'function'
+            ? scene.registerEnvironmentGlow(glowKey, pt.x - 3, pt.y - (g.h * scale) * 0.88 + 2, {
+                radius: 78 * scale,
+                color: 0xff9d3d,
+                alpha: 0.16,
+                depth: torchDepth + 0.5,
+                flicker: 0.16,
+            })
+            : null;
+        const CRS = (typeof window !== 'undefined') ? window.CombatRoomSystem : null;
+        if (glow && CRS) (CRS._decoSprites = CRS._decoSprites || []).push(glow);
         if (!scene.textures.exists('impact_dot') && typeof scene._ensureImpactDotTexture === 'function') {
             scene._ensureImpactDotTexture();
         }
@@ -416,7 +428,6 @@ export const ObstacleSpawnSystem = {
             // 登记进战斗房清理链（window.CombatRoomSystem 晚绑定，防与 combat-room-system 循环导入；
             // cleanupRoom → cleanupGate 统一销毁。拿不到 CRS 时 emitter 会多活一会儿，
             // 场景切换仍随场景销毁，可接受）
-            const CRS = (typeof window !== 'undefined') ? window.CombatRoomSystem : null;
             if (CRS) (CRS._decoSprites = CRS._decoSprites || []).push(em);
         }
     },

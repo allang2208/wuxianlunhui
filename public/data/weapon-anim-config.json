@@ -824,7 +824,7 @@
         {
           "offsetX": 57.3,
           "offsetY": 5.2,
-          "rotation": 117,
+          "rotation": 88,
           "scale": 1.5,
           "blurX": 0.0,
           "blurY": 0.0,
@@ -834,7 +834,7 @@
         {
           "offsetX": 57.9,
           "offsetY": 4.9,
-          "rotation": 117,
+          "rotation": 90,
           "scale": 1.5,
           "blurX": 0.5,
           "blurY": 1.0,
@@ -844,7 +844,7 @@
         {
           "offsetX": 35.1,
           "offsetY": 3.7,
-          "rotation": 121,
+          "rotation": 239,
           "scale": 1.5,
           "blurX": 1.0,
           "blurY": 1.5,
@@ -854,7 +854,7 @@
         {
           "offsetX": 13.6,
           "offsetY": 1.8,
-          "rotation": 236,
+          "rotation": 240,
           "scale": 1.5,
           "blurX": 1.5,
           "blurY": 2.0,
@@ -864,7 +864,7 @@
         {
           "offsetX": 21.3,
           "offsetY": -11.7,
-          "rotation": 125,
+          "rotation": 65,
           "scale": 1.5,
           "blurX": 2.0,
           "blurY": 3.0,
@@ -874,7 +874,7 @@
         {
           "offsetX": 21.0,
           "offsetY": -28.3,
-          "rotation": 27,
+          "rotation": 24,
           "scale": 1.5,
           "blurX": 2.0,
           "blurY": 3.0,
@@ -884,7 +884,7 @@
         {
           "offsetX": 39.7,
           "offsetY": -27.1,
-          "rotation": 68,
+          "rotation": 64,
           "scale": 1.5,
           "blurX": 3.0,
           "blurY": 4.0,
@@ -894,7 +894,7 @@
         {
           "offsetX": 53.0,
           "offsetY": -25.9,
-          "rotation": 103,
+          "rotation": 75,
           "scale": 1.5,
           "blurX": 5.0,
           "blurY": 4.0,
@@ -904,7 +904,7 @@
         {
           "offsetX": 51.2,
           "offsetY": -14.8,
-          "rotation": 100,
+          "rotation": 95,
           "scale": 1.5,
           "blurX": 7.0,
           "blurY": 4.0,
@@ -944,7 +944,7 @@
         {
           "offsetX": 48.1,
           "offsetY": -17.3,
-          "rotation": 85,
+          "rotation": 99,
           "scale": 1.5,
           "blurX": 3.0,
           "blurY": 2.0,
@@ -954,7 +954,7 @@
         {
           "offsetX": 27.4,
           "offsetY": -4.9,
-          "rotation": 128,
+          "rotation": 108,
           "scale": 1.5,
           "blurX": 2.0,
           "blurY": 2.0,
@@ -964,7 +964,7 @@
         {
           "offsetX": 23.1,
           "offsetY": -3.7,
-          "rotation": 158,
+          "rotation": 129,
           "scale": 1.5,
           "blurX": 1.0,
           "blurY": 1.0,
@@ -974,7 +974,7 @@
         {
           "offsetX": 15.1,
           "offsetY": 4.9,
-          "rotation": 153,
+          "rotation": 164,
           "scale": 1.5,
           "blurX": 0.5,
           "blurY": 1.0,

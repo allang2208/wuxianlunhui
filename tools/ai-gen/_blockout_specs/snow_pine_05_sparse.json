@@ -1,0 +1,14 @@
+{
+  "elevation": 30,
+  "bottom_y": 880,
+  "max_width_frac": 0.48,
+  "top_margin_px": 68,
+  "primitives": [
+    {"type": "cylinder", "radius": 0.20, "depth": 8.1, "pos": [0, 0, 4.05]},
+    {"type": "cone", "radius1": 0.85, "radius2": 0.18, "depth": 2.05, "pos": [0, 0, 2.20]},
+    {"type": "cone", "radius1": 0.63, "radius2": 0.12, "depth": 1.95, "pos": [0.05, 0, 3.82]},
+    {"type": "cone", "radius1": 0.45, "radius2": 0.08, "depth": 1.90, "pos": [-0.04, 0, 5.45]},
+    {"type": "cone", "radius1": 0.29, "radius2": 0.03, "depth": 1.80, "pos": [0.04, 0, 6.92]},
+    {"type": "cone", "radius1": 0.17, "radius2": 0.02, "depth": 1.55, "pos": [-0.02, 0, 8.20]}
+  ]
+}

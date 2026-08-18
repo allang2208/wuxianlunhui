@@ -170,6 +170,10 @@ check('兵营升级走全局兵种表（applyGlobalUpgradesToKind + 面板读全
     /applyGlobalUpgradesToKind\(this\.unitType, BARRACKS_CONFIG\.modules\)/.test(barSrc)
     && /getUnitUpgradeLevel\(b\.unitType, mid\)/.test(barSrc));
 check('兵营面板生成单位类型按钮含盾卫', /\$\{btn\('guard'\)\}/.test(barSrc));
+check('兵营产出速度 45s（2026-08-18 由 30s 调整）', /spawnIntervalMs: 45000/.test(barSrc));
+check('兵营切换兵种重新计时（重置 _spawnTimer，2026-08-18）',
+    /if \(type === this\.unitType\) return false;/.test(barSrc)
+    && /this\._spawnTimer = this\.recruitIntervalMs\(\);/.test(barSrc));
 
 const psSrc = fs.readFileSync(path.join(ROOT, 'src/systems/perception-system.js'), 'utf-8');
 check('PerceptionSystem 放行 _enemyTargetable 友方单位', /_enemyTargetable/.test(psSrc));

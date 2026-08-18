@@ -115,14 +115,13 @@ check('BootScene 加载仓鼠民兵精灵图',
     /hamsterMilitiaConfig/.test(bootSrc) && /companion_\$\{unitConfig\.id\}_/.test(bootSrc));
 
 const barSrc = fs.readFileSync(path.join(ROOT, 'src/world/hamster-barracks-system.js'), 'utf-8');
-check('兵营注册民兵单位（unit.militia + 导入）',
-    /militia: \{ key: 'militia', name: '仓鼠民兵'/.test(barSrc) && /new HamsterMilitia/.test(barSrc));
+check('兵营不再注册民兵（民兵迁草屋专属，2026-08-18 清理死注册）',
+    !/militia: \{ key: 'militia'/.test(barSrc) && !/new HamsterMilitia/.test(barSrc)
+    && !/militiaCfg/.test(barSrc));
 check('兵营升级走全局兵种表（applyGlobalUpgradesToKind + 面板读全局等级）',
     /applyGlobalUpgradesToKind\(this\.unitType, BARRACKS_CONFIG\.modules\)/.test(barSrc)
     && /getUnitUpgradeLevel\(b\.unitType, mid\)/.test(barSrc));
-check('兵营保留民兵旧实例兼容，但面板取消民兵选项',
-    /militia: \{ key: 'militia', name: '仓鼠民兵'/.test(barSrc)
-    && !/\$\{btn\('militia'\)\}/.test(barSrc));
+check('兵营面板无民兵选项', !/\$\{btn\('militia'\)\}/.test(barSrc));
 
 const prodSrc = fs.readFileSync(path.join(ROOT, 'src/world/producer-building-system.js'), 'utf-8');
 check('产兵建筑注册民兵（PRODUCER_UNIT_CFG/CLASS + 全局升级）',

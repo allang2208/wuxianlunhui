@@ -28,6 +28,7 @@ import { FloatingTextEffect } from '../effects/floating-text.js';
 import { SoundManager } from '../ui/sound-manager.js';
 import { EnergyManager } from '../systems/energy-manager.js';
 import { BasePanel } from '../ui/panels/base-panel.js';
+import { renderBuildingDetailHeader } from '../ui/panels/building-detail-header.js';
 import { Renderer } from './renderer.js';
 // SceneManager 导入已于 2026-08-15 移除：E 键修理监听器停用后不再引用
 import { loadImage } from '../utils/image-loader.js';
@@ -35,6 +36,7 @@ import { BuildingSinkEffect } from '../effects/building-sink.js';
 import { computeWeaponAttack, getAttackFormula } from '../config/attack-formula.js';
 import { findWeaponConfig } from '../ui/equip-data-manager.js';
 import { applyResearchHp } from './research-system.js';
+import { World122TributeSystem } from './world122-tribute-system.js';
 import { applyIsoFootprintFromSegment } from '../physics/iso-footprint.js';
 import {
     ONE_CELL_BUILDING_FOOT,
@@ -1409,6 +1411,8 @@ class DefenseTowerPanel extends BasePanel {
                     <button id="dtClose" style="background:#3a3228;color:#d4c5a9;border:1px solid #6a5a3a;border-radius:6px;padding:4px 12px;cursor:pointer;">关闭</button>
                 </div>
             </div>
+            <div id="dtBuildingDetail"></div>
+            <div style="font-size:13px;font-weight:700;color:#ffd700;margin:2px 0 6px;">特殊功能 · 武器装载与塔防强化</div>
             <div id="dtWeaponSlot" style="border:1px dashed #6a5a3a;border-radius:8px;padding:10px;margin-bottom:10px;background:rgba(0,0,0,0.25);"></div>
             <div style="font-size:13px;color:#9a8a6a;margin-bottom:6px;">可装载武器（背包 · 远程 · 手枪除外）</div>
             <div id="dtWeaponList" style="max-height:150px;overflow-y:auto;border:1px solid #3a3528;border-radius:8px;padding:4px 8px;margin-bottom:12px;"></div>
@@ -1525,6 +1529,18 @@ class DefenseTowerPanel extends BasePanel {
         const t = this.tower;
         const player = this.player || (typeof window !== 'undefined' && window.Game ? window.Game.player : null);
         el.querySelector('#dtTitle').textContent = t.name;
+        const detail = el.querySelector('#dtBuildingDetail');
+        if (detail) {
+            detail.innerHTML = renderBuildingDetailHeader({
+                texture: t.spriteCfg?.idleKey || 'obstacle_defense_tower',
+                name: t.name,
+                hp: t.hp,
+                maxHp: t.maxHp,
+                accent: '#ffd700',
+                status: t.weaponItem ? '已装载武器 · 自动索敌中' : '未装载武器',
+                statusColor: t.weaponItem ? '#7fe0c8' : '#9a9a9a',
+            });
+        }
 
         // 武器槽
         const slot = el.querySelector('#dtWeaponSlot');
@@ -1758,6 +1774,7 @@ export const DefenseSystem = {
         const core = new DefenseBase(baseCfg.x, baseCfg.y, { onDestroyed: () => this._onBaseDestroyed() });
         Game.entities.set('defense_base', core);
         this.base = core;
+        World122TributeSystem.setup(player, core);
 
         this.towers = [];
         this.gates = []; // 建筑面板放置的铁栅栏门
@@ -1940,6 +1957,7 @@ export const DefenseSystem = {
     },
 
     teardown() {
+        World122TributeSystem.teardown();
         this.active = false;
         this.defeated = false;
         this.victory = false;
@@ -1989,6 +2007,7 @@ export const DefenseSystem = {
 
     update(dt) {
         if (!this.active || this.defeated) return;
+        World122TributeSystem.update();
         syncGateSeamDepths(); // 拼接缝图层偏置（左门右柱盖右门左柱）随放置/拆除每帧同步
         this._elapsed += dt;
         this._repairTick(dt);
@@ -2648,15 +2667,7 @@ export const DefenseSystem = {
             }
             return true;
         }
-        if (this.base && this.base.active && inReach(this.base, 90)) {
-            EffectManager.add(new FloatingTextEffect(
-                this.base.x,
-                this.base.y - 70,
-                `基地核心 ${Math.ceil(this.base.hp)}/${this.base.maxHp}`,
-                '#7a9aff'
-            ));
-            return true;
-        }
+        if (this.base && this.base.active && inReach(this.base, 220)) return World122TributeSystem.openFor(this.base, player);
         return false;
     },
 };

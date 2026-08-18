@@ -86,7 +86,18 @@ function _inDecoClearZone(gx, gy) {
  */
 export function setDungeonFloorProfile(profile) {
     _floorProfile = (profile && Array.isArray(profile.tiles) && profile.tiles.length > 0)
-        ? { tiles: [...profile.tiles], glow: profile.glow !== false, overlapX: profile.overlapX ?? 0, overlapY: profile.overlapY ?? 0, backgroundColor: profile.backgroundColor || null, deco: profile.deco || null, continuous: profile.continuous === true, textureScaleY: profile.textureScaleY ?? 0.5774, sandPatches: profile.sandPatches || null }
+        ? {
+            tiles: [...profile.tiles],
+            glow: profile.glow !== false,
+            overlapX: profile.overlapX ?? 0,
+            overlapY: profile.overlapY ?? 0,
+            backgroundColor: profile.backgroundColor || null,
+            deco: profile.deco || null,
+            continuous: profile.continuous === true,
+            textureScaleY: profile.textureScaleY ?? 0.5774,
+            sandPatches: profile.sandPatches || null,
+            surfacePatches: Array.isArray(profile.surfacePatches) ? profile.surfacePatches : null,
+        }
         : null;
 }
 
@@ -227,7 +238,9 @@ function _drawFloorDecoChunk(ctx, profile, ox, oy, cw, ch, diamond) {
     const perChunk = deco.perChunk ?? 30;
     const size = deco.size ?? 100;
     const minDist = deco.minDist ?? 120;
-    const rand = _seededRand(((ox * 73856093) ^ (oy * 19349663) ^ 0x5f356495) >>> 0);
+    // deco.seed 由场景入场时生成：同一次入场的分块重烘焙稳定复现，重新进入场景才换布局。
+    const entrySeed = deco.seed ?? 0x5f356495;
+    const rand = _seededRand(((ox * 73856093) ^ (oy * 19349663) ^ entrySeed) >>> 0);
     const inDiamond = (gx, gy) => {
         if (!diamond) return true;
         return (Math.abs(gx - diamond.cx) / diamond.rx + Math.abs(gy - diamond.cy) / diamond.ry) <= 0.94;
@@ -258,10 +271,18 @@ function _drawFloorDecoChunk(ctx, profile, ox, oy, cw, ch, diamond) {
     }
 }
 
-/** 沙地软边补丁（2026-08-16）：在泥地连续铺贴之上，按种子位置撒圆形沙地补丁，
- * 边缘径向渐隐（destination-in 渐变遮罩），与泥地无硬接缝、无黑边。 */
+/** 连续地面的软边补丁（沙地/雪地等）：旧 sandPatches 保持兼容，surfacePatches 支持多层。 */
 function _drawSandPatches(ctx, profile, ox, oy, cw, ch, diamond) {
-    const sp = profile.sandPatches;
+    const patches = [
+        ...(profile.sandPatches ? [profile.sandPatches] : []),
+        ...(profile.surfacePatches || []),
+    ];
+    for (let i = 0; i < patches.length; i++) {
+        _drawSurfacePatchLayer(ctx, profile, patches[i], ox, oy, cw, ch, diamond, i);
+    }
+}
+
+function _drawSurfacePatchLayer(ctx, profile, sp, ox, oy, cw, ch, diamond, layerIndex) {
     if (!sp || !sp.texture) return;
     const img = _getSourceImage(sp.texture);
     if (!img) return;
@@ -269,7 +290,7 @@ function _drawSandPatches(ctx, profile, ox, oy, cw, ch, diamond) {
     const size = sp.size ?? 700;
     const minDist = sp.minDist ?? 900;
     const pad = size; // 中心离块边留半径，避免跨块裁断
-    const rand = _seededRand(((ox * 2654435761) ^ (oy * 40503) ^ 0x9e3779b9) >>> 0);
+    const rand = _seededRand(((ox * 2654435761) ^ (oy * 40503) ^ 0x9e3779b9 ^ (layerIndex * 0x45d9f3b)) >>> 0);
     const radius = size / 2;
     const placed = [];
     let guard = 0;
@@ -293,7 +314,7 @@ function _drawSandPatches(ctx, profile, ox, oy, cw, ch, diamond) {
         if (diamond && _minDistToDiamond(fp.x, fp.y, diamond) < fRadius + 60) continue;
         // 补丁方形范围与本块不相交则跳过（含遮罩外扩余量）
         if (fp.x + fRadius < ox || fp.x - fRadius > ox + cw || fp.y + fRadius < oy || fp.y - fRadius > oy + ch) continue;
-        const fRand = _seededRand(((Math.round(fp.x) * 2654435761) ^ (Math.round(fp.y) * 40503) ^ 0xa5a5a5a5) >>> 0);
+        const fRand = _seededRand(((Math.round(fp.x) * 2654435761) ^ (Math.round(fp.y) * 40503) ^ 0xa5a5a5a5 ^ (layerIndex * 0x45d9f3b)) >>> 0);
         _drawSandPatchAt(ctx, profile, img, fp.x, fp.y, fSize, fRand, ox, oy);
     }
 }

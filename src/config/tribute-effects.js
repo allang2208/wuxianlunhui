@@ -21,14 +21,22 @@ import { FloatingTextEffect } from '../effects/floating-text.js';
 import { Game } from '../game.js';
 import { RARITY_ORDER } from './rarity.js';
 import { COMBAT_FORMULAS } from './combat-formulas.js';
+import { getActiveWorld122TributeItems } from '../world/world122-tribute-store.js';
+
+function _activeTributeItems() {
+    const carried = (DungeonMapSystem && DungeonMapSystem._carriedItems) || [];
+    return [
+        ...carried.map((entry) => entry && entry.item).filter(Boolean),
+        ...getActiveWorld122TributeItems(),
+    ];
+}
 
 /** 聚合当前携带祭品的效果：每个键为 Π(1 + p/100) 的乘算倍率（无该键效果时为 1）；
  * 以 Flat 结尾的键为固定值（非百分比），按加和聚合（如 hpRegenFlat 每秒+1） */
 export function getTributeEffects() {
-    const carried = (DungeonMapSystem && DungeonMapSystem._carriedItems) || [];
     const total = {};
-    for (const c of carried) {
-        const effects = c && c.item && c.item.effects;
+    for (const item of _activeTributeItems()) {
+        const effects = item && item.effects;
         if (!effects) continue;
         for (const [key, value] of Object.entries(effects)) {
             if (typeof value === 'number' && Number.isFinite(value)) {
@@ -123,10 +131,9 @@ export function getTributeStaminaRegenMul() {
 // ==================== 特效祭品（item.special 块） ====================
 
 function _carriedSpecials(key) {
-    const carried = (DungeonMapSystem && DungeonMapSystem._carriedItems) || [];
     const out = [];
-    for (const c of carried) {
-        const sp = c && c.item && c.item.special;
+    for (const item of _activeTributeItems()) {
+        const sp = item && item.special;
         if (sp && sp[key] !== undefined) out.push(sp[key]);
     }
     return out;
@@ -140,9 +147,8 @@ export function getSurviveCapRatio() {
 
 /** 月光石「月影」：{ duration, damagePercent }；未携带返回 null */
 export function getMoonshadowConfig() {
-    const carried = (DungeonMapSystem && DungeonMapSystem._carriedItems) || [];
-    for (const c of carried) {
-        const sp = c && c.item && c.item.special;
+    for (const item of _activeTributeItems()) {
+        const sp = item && item.special;
         if (sp && sp.moonshadowDuration !== undefined) {
             return { duration: sp.moonshadowDuration, damagePercent: sp.moonshadowDamagePercent || 0 };
         }

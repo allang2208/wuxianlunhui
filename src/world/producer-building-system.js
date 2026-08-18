@@ -21,6 +21,7 @@ import { FloatingTextEffect } from '../effects/floating-text.js';
 import { BuildingSinkEffect } from '../effects/building-sink.js';
 import { SoundManager } from '../ui/sound-manager.js';
 import { BasePanel } from '../ui/panels/base-panel.js';
+import { renderBuildingDetailHeader } from '../ui/panels/building-detail-header.js';
 import { WallSystem } from './wall-system.js';
 import { setupStructureDepth } from './structure-depth.js';
 import { Renderer } from './renderer.js';
@@ -189,10 +190,22 @@ export class ProducerBuilding extends DamageableEntity {
         return u ? u.name : key;
     }
 
-    /** 切换生成的单位类型；下一次生成生效（key 必须在配置 unitTypes 里） */
+    /** 当前兵种生产周期：unitTypes 条目可按兵种覆盖 spawnIntervalMs，缺省用建筑级配置（2026-08-18） */
+    _unitSpawnIntervalMs() {
+        const u = (this._cfg.unitTypes || []).find((t) => t.key === this.unitType);
+        return (u && Number.isFinite(u.spawnIntervalMs)) ? u.spawnIntervalMs : this._baseSpawnIntervalMs;
+    }
+
+    /** 切换生成的单位类型；下一次生成生效（key 必须在配置 unitTypes 里）。
+     *  2026-08-18：切换兵种重新计时——按新兵种周期从头读条（原来保留计时且同建筑各兵种同周期）；
+     *  切换为当前兵种视为无操作（返回 false，不打断计时、不发通知）。 */
     setUnitType(type) {
         if (!(this._cfg.unitTypes || []).some((t) => t.key === type)) return false;
+        if (type === this.unitType) return false;
         this.unitType = type;
+        this._spawnTimer = this.recruitIntervalMs();
+        this._spawnRetryTimer = 0;
+        this._spawnBlocked = false;
         return true;
     }
 
@@ -359,11 +372,13 @@ export class ProducerBuilding extends DamageableEntity {
         return { ok: true, cost, moduleId, level };
     }
 
-    /** 主循环：每 spawnIntervalMs 生成一个军事单位（存活数低于上限时） */
+    /** 主循环：按当前兵种生产周期生成一个军事单位（存活数低于上限时）；
+     *  周期 = 兵种配置 spawnIntervalMs（缺省建筑级）再经研究院快速募兵缩放（2026-08-18） */
     recruitIntervalMs() {
+        const base = this._unitSpawnIntervalMs();
         return ResearchSystem.getRecruitIntervalMs
-            ? ResearchSystem.getRecruitIntervalMs(this._baseSpawnIntervalMs)
-            : this._baseSpawnIntervalMs;
+            ? ResearchSystem.getRecruitIntervalMs(base)
+            : base;
     }
 
     update(dt) {
@@ -505,6 +520,8 @@ class ProducerBuildingPanel extends BasePanel {
                     <button id="pbClose" style="background:#3a3228;color:#d4c5a9;border:1px solid #6a5a3a;border-radius:6px;padding:4px 12px;cursor:pointer;">关闭</button>
                 </div>
             </div>
+            <div id="pbBuildingDetail"></div>
+            <div id="pbFunctionTitle" style="font-size:13px;font-weight:700;color:#7fe0c8;margin:2px 0 6px;"></div>
             <div id="pbStatus" style="border:1px solid #4a4a2a;border-radius:8px;padding:10px;margin-bottom:12px;background:rgba(60,50,20,0.18);"></div>
             <div id="pbUnitType" style="border:1px solid #3a6a5a;border-radius:8px;padding:10px;margin-bottom:12px;background:rgba(20,50,40,0.18);"></div>
             <div id="pbModules" style="border:1px solid #3a4a5a;border-radius:8px;padding:10px;background:rgba(20,40,60,0.18);"></div>
@@ -643,16 +660,33 @@ class ProducerBuildingPanel extends BasePanel {
         const energy = EnergyManager ? EnergyManager.getEnergy() : 0;
         const gold = GoldManager ? GoldManager.getGold() : 0;
         const isWarehouse = cfg.workshopType === 'warehouse';
-        const isAbilityShop = cfg.spawnEnabled === false && !isWarehouse;
-        el.querySelector('#pbTitle').textContent = `🏠 ${cfg.name}`;
+        const isPassive = cfg.panelMode === 'detail';
+        const isAbilityShop = cfg.spawnEnabled === false && !isWarehouse && !isPassive;
+        el.querySelector('#pbTitle').textContent = '建筑详情';
+        const detail = el.querySelector('#pbBuildingDetail');
+        const functionTitle = el.querySelector('#pbFunctionTitle');
+        const mode = isPassive ? '基础建筑详情'
+            : (isWarehouse ? '仓储与能源汇总'
+                : (isAbilityShop ? (cfg.workshopType === 'research' ? '研究与结构强化' : '能力工坊升级') : '募兵与单位生产'));
+        if (detail) {
+            detail.innerHTML = renderBuildingDetailHeader({
+                texture: cfg.tex,
+                name: cfg.name,
+                hp: b.hp,
+                maxHp: b.maxHp,
+                accent: isWarehouse ? '#7fd4ff' : (isAbilityShop ? '#c9a0ff' : '#7fe0c8'),
+                status: mode,
+            });
+        }
+        if (functionTitle) functionTitle.textContent = `特殊功能 · ${mode}`;
         const unitTypeEl = el.querySelector('#pbUnitType');
-        if (unitTypeEl) unitTypeEl.style.display = (isAbilityShop || isWarehouse) ? 'none' : '';
+        if (unitTypeEl) unitTypeEl.style.display = (isAbilityShop || isWarehouse || isPassive) ? 'none' : '';
 
         const st = el.querySelector('#pbStatus');
         const curType = b.unitName(b.unitType);
         const spawnMs = b.recruitIntervalMs();
         const nextIn = Math.max(0, Math.ceil(b._spawnTimer / 1000));
-        // 出兵进度 = 已等待时间 / 生成周期（切换单位类型不重置 _spawnTimer，进度不受影响）
+        // 出兵进度 = 已等待时间 / 当前兵种生成周期（2026-08-18 起切换单位类型重置 _spawnTimer 重新计时）
         const spawnProgress = b._spawnBlocked ? 1 : Math.max(0, Math.min(1, 1 - b._spawnTimer / spawnMs));
         const spawnPct = Math.round(spawnProgress * 100);
         const spawnBarColor = b._spawnBlocked ? '#ff7755'
@@ -661,7 +695,7 @@ class ProducerBuildingPanel extends BasePanel {
         st.innerHTML = `
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
                 <div><span style="color:#ffd700;font-weight:700;">等级 ${b.level}</span></div>
-                <div style="font-size:12px;color:#9a9a9a;">耐久 ${Math.ceil(b.hp)}/${b.maxHp} · 金币 <span style="color:#ffd700;">${gold}</span> · 能源 <span style="color:#7fd4ff;">${energy}</span></div>
+                <div style="font-size:12px;color:#9a9a9a;">金币 <span style="color:#ffd700;">${gold}</span> · 能源 <span style="color:#7fd4ff;">${energy}</span></div>
             </div>
             <div style="font-size:12px;color:#c8b98a;line-height:1.7;">
                 军事单位 <span style="color:#8ad0ff;">${b.aliveUnitCount()}/${b.unitCount()}</span> ·
@@ -733,7 +767,7 @@ class ProducerBuildingPanel extends BasePanel {
         if (sellBtn) {
             const refund = Math.floor(cfg.cost * (cfg.sellRefundRatio ?? 0.5));
             const refundUnit = cfg.currency === 'gold' ? '金币' : '能源';
-            sellBtn.title = `出售返还 ${refund} ${refundUnit}${isAbilityShop || isWarehouse ? '' : '（军事单位一并拆除）'}`;
+            sellBtn.title = `出售返还 ${refund} ${refundUnit}${isAbilityShop || isWarehouse || isPassive ? '' : '（军事单位一并拆除）'}`;
             sellBtn.onclick = () => {
                 const res = b.sell();
                 this._notify(res.ok ? `已出售（+${res.refund} ${refundUnit}）` : (res.reason || '出售失败'), res.ok ? '#ffd700' : '#ff5555');
@@ -750,7 +784,7 @@ class ProducerBuildingPanel extends BasePanel {
             st.innerHTML = `
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
                     <div><span style="color:#ffd700;font-weight:700;">📦 能源仓库</span></div>
-                    <div style="font-size:12px;color:#9a9a9a;">耐久 ${Math.ceil(b.hp)}/${b.maxHp}</div>
+                    <div style="font-size:12px;color:#9a9a9a;">仓库数 ${warehouseCount}</div>
                 </div>
                 <div style="font-size:12px;color:#c8b98a;line-height:1.7;">
                     本仓库：<b id="pbWarehouseOwn" style="color:#7fd4ff;">${own}/${ownCap}</b><br>
@@ -764,6 +798,17 @@ class ProducerBuildingPanel extends BasePanel {
                 <div style="font-size:11px;color:#8aa0aa;margin-top:6px;">采矿产出的能源会直接汇总到所有仓库。</div>`;
             return;
         }
+        if (isPassive) {
+            st.innerHTML = `
+                <div style="font-size:13px;font-weight:700;color:#d4e8ff;margin-bottom:6px;">基础建筑属性</div>
+                <div style="font-size:12px;color:#c8b98a;line-height:1.8;">
+                    物理防御：<b style="color:#7ab8ff;">${b.def ?? cfg.def ?? 0}</b> ·
+                    魔法防御：<b style="color:#c9a0ff;">${b.mdef ?? cfg.mdef ?? 0}</b><br>
+                    ${cfg.panelDescription || '暂无额外功能。'}
+                </div>`;
+            modBox.innerHTML = '<div style="font-size:12px;color:#8a8a8a;">该建筑暂未配置额外功能。</div>';
+            return;
+        }
         // ===== 铁匠铺：能力工坊版（覆盖上方出兵版渲染，2026-08-17）=====
         if (isAbilityShop) {
             const workshopTitle = cfg.workshopTitle || '能力工坊';
@@ -774,7 +819,7 @@ class ProducerBuildingPanel extends BasePanel {
             st.innerHTML = `
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
                     <div><span style="color:#ffd700;font-weight:700;">${workshopTitle}</span></div>
-                    <div style="font-size:12px;color:#9a9a9a;">耐久 ${Math.ceil(b.hp)}/${b.maxHp} · 金币 <span style="color:#ffd700;">${gold}</span> · 能源 <span style="color:#7fd4ff;">${energy}</span></div>
+                    <div style="font-size:12px;color:#9a9a9a;">金币 <span style="color:#ffd700;">${gold}</span> · 能源 <span style="color:#7fd4ff;">${energy}</span></div>
                 </div>
                 <div style="font-size:12px;color:#c8b98a;line-height:1.7;">
                     ${workshopDesc}<br>

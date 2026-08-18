@@ -1,0 +1,7 @@
+seamless tileable ground texture, wind-scoured snow field, low-saturation cold white and steel blue,
+fine snow grains swept into delicate long shallow wind streaks, sparse exposed frosty crust,
+subtle natural variation, matte diffuse surface, no tracks, no footprints, no rocks, no grass,
+no objects, flat top-down view, the texture wraps around perfectly with no visible seams, left edge
+matches right edge, top edge matches bottom edge, pattern repeats seamlessly when tiled in every direction,
+uniform even lighting, no shadows, no vignette, no border, no frame, no dark edges,
+no shading at the border, high detail, photorealistic, no text, no watermark

@@ -87,7 +87,7 @@
 - 防御塔升级重构——六维芯片取代等级（2026-08-16：武器↔主属性挂钩、伤害实时公式、费用逐级递增、面板武器贴图；二轮重新引入改造模块图标卡）
 - 世界-122 相机默认恒居玩家中央（2026-08-16：非瞄准钉玩家/瞄准才偏移；相机平滑拖尾修复）
 - 世界-122 扩展：6144×4096 / 分块惰性地板 / 大能源点簇 / 基地门可攻击（2026-08-16）
-- 世界-122 仓鼠兵营接入游戏（2026-08-16：B 面板 1500 能源建造，同小屋尺寸；每 30s 生成战士/射手可切换；升级复制小屋模块）
+- 世界-122 仓鼠兵营接入游戏（2026-08-16：B 面板 1500 能源建造，同小屋尺寸；每 45s 生成战士/盾卫可切换——2026-08-18 调整；升级复制小屋模块）
 - 世界-122 进度条实时刷新模式（2026-08-16：兵营出发进度 + 怪物来袭倒计时，100ms tick + 0.2s 过渡平滑增长）
 - 世界-122 建筑详情面板交互调整（2026-08-16：仅建设模式弹出、建设模式无视距离、详情与建筑面板左侧并排）
 - 后续打磨方向（未做）
@@ -762,6 +762,18 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
     十字校验网格逐帧目视 + 贴附率复验（三段 12/12/16 全过）+ 实机探针截图抽查关键帧
     （`cdp-fist-fit-probe.mjs` 定格+带/不带武器双程截图 + 屏幕坐标换算核对）。
     另：用户客户端吃不到改动时先查 5173 在线内容（curl /data/...），确认后硬性刷新。
+  - **刃向错误也会被读成「脱手」**（2026-08-17 三段案例）：握点全部贴附率过关、实机坐标
+    逐位一致，用户仍报「不跟手」——实机逐帧截图才看出蓄势帧剑浮在头上方：位置对、
+    **刃向没跟前臂走**（拳头回收刃向就得后指，顶点突刺刃向精确 90°）。点位重标定时
+    rotation 必须按当前 sheet 的前臂方向一并重推，不能只搬位置；验证要看全部中间帧
+    截图，不是只看顶点帧。
+  - 探针验证的缓存坑：无头 Edge 里的游戏配置是**启动时** fetch 的，改配置后必须重启
+    探针页面再采样，否则对着旧配置误判「改了没生效」（同人端刷新一个道理）。
+  - **探针会假朝左**：无头 Edge 无鼠标事件，指针默认 (0,0) → 玩家朝左、武器走镜像分支，
+    采样值全部带 180° 镜像（曾误判为旋转 bug 追了一小时）。探针里要么钉指针到玩家右侧，
+    要么 `s._getVisualFacingRight = () => true` 临时改写（liver 系列探针已带）。
+  - **细线化 T 值实测定稿 2.0**（T=1.2 用户仍嫌粗）：`thin-strokes.py` 默认已改 2.0，
+    从加粗源（scratch 的 *_aligned.png）重出 attack2/attack3/recover 三张后入库。
 
 #### 跟手失败多次复盘（2026-08-16，对照 2026-08-03 老方法找差距）
 
@@ -3713,6 +3725,27 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
 | 角色/怪物 | 侧视 billboard，与投影角度无关 | 玩家、现有敌人贴图 |
 | NPC（站桩对话/立绘系） | 正面平视 billboard、平底 | 小鼠铁匠/鼠王/侍从、npc_altar（2026-08-06 八版定论） |
 
+### 环境光照与太阳投影（2026-08-18）
+
+- **太阳方向先走世界-122 的 u/v 地面坐标**：`EnvironmentLightingSystem` 内以方位角得
+  `sunU/sunV`，再调用 `isoLocalToWorldDelta()` 投到屏幕；**禁止**在 GameScene 再对
+  `profile.offsetY` 乘一次 `PERSPECTIVE_SCALE_Y`，否则会二次压扁、方向偏离世界-122 菱形地面。
+  日出=屏幕左/影向右，正午=屏幕上/影向下，日落=屏幕右/影向左。
+- **尺寸与方向分离**：贴地 footprint 高度仍按 `PERSPECTIVE_SCALE_Y=0.5` 压扁；太阳位移已经
+  在 `isoLocalToWorldDelta` 内完成透视投影。散布障碍物的 `getObstacleFootprintRect().h`
+  是碰撞世界深度，注册静态影子时必须再乘 0.5。
+- **静态投影根部**：预投影遮罩（原 alpha 顺时针旋转，立体高度→本地 X 长轴）以 `(0,0.5)`
+  作为底部接地点。仙人掌/雪松随机 `flipX` 要映射到投影的 `flipY`，不得翻转长轴，否则影子
+  会反向穿回模型。建筑投影以贴图/footprint 中心锚定，勿取 footprint 外缘。
+- **造型分档**：高柱仙人掌用长的 `projection`，多节仙人掌用中等投影，桶状仙人掌用短
+  `contact` 阴影；不允许所有障碍物复用一种长影。
+- **派生资产入口**：`tools/ai-gen/build-lighting-maps.py` 从原 PNG alpha 确定性生成
+  `*_silhouette / *_projection / *_height / *_normal`，清单为
+  `data/environment-lighting-assets.json`。不重绘原图；建筑/仙人掌/雪松需要真实轮廓投影时先跑此脚本。
+- **动态单位投影**：玩家、敌人、友军从当前 Phaser 帧 alpha 懒生成 `unit_projection_*` Canvas
+  纹理，同一帧只生成一次。低档=接触影，中档=静态投影，高档=动态帧投影；缓存上限 256，
+  场景/质量切换及 Phaser shutdown 必须回收并从 TextureManager 移除。
+
 #### 出图提示词要点
 - 写"**底边与水平线呈 30 度夹角**"（对齐地板线）；不要再写 26.5 度/2:1
 - 垫图：把 wall-直墙.png 和一块地板砖存为固定参考图，每批素材垫图生成
@@ -5351,19 +5384,54 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
 - 替换点：BootScene `load.image`（键名即英文）、各建筑 config `tex`（实体渲染 idleKey）、
   building-system `BUILD_ITEMS.tex`（面板缩略图 img 路径自动跟随）。
 - **显示尺寸统一口径**：普通2×2建筑基准 `displayW=288`；若贴图自带地基明显大于
-  256×128 footprint，允许等比缩小视觉，禁止为追求同宽让地基越界。
+  256×128 footprint（如教堂），允许等比缩至 `displayW=256`，禁止为追求同宽让地基越界。
 - 新增产兵建筑：`data/producer-buildings.json` 加条目（唯一真源，含 tex/displayW/H/footOffsetY/
   spawn/unitTypes/modules），BootScene 加载贴图即可，代码零改动。
 
-**建筑完整贴图排序与受损特效（2026-08-18）**
-- 禁止把建筑 PNG 用 `setCrop` 拆成前后 Sprite；透明边会产生黑线/色差。建筑、墙段、门柱/栅栏走
-  `structure-render-order.js` 的等距 footprint 拓扑排序，仅几何变化时重算。
-- 每个结构组保留 shadow/rearFx/sprite/frontFx/smoke/label 深度通道；建筑特效只登记通道，
-  不写绝对 depth。斜向关系不明确时按基础深度+稳定 key 兜底，禁止逐帧跳层。
-- 非墙/门/陷阱建筑受损统一走 `building-damage-fx.js`：HP<=70%/50%/30% 对应2/5/8团火焰；
-  火点扫描贴图高 Alpha 像素，烟雾复用 `smoke_particle`，修理/销毁/离屏自动减量、清理或停发。
-- 回归：`test-structure-render-order.mjs`、`test-structure-visual-anchor.mjs`、
-  `test-building-damage-fx.mjs`。
+**建筑开发标准工作流（世界-122，2026-08-18 定稿；新建筑/替换建筑一律按此开展）**
+1. **素材先入库**：从 `E:\无尽轮回\游戏\素材库\场景\建筑\` 复制到
+   `assets/terrain/<english_key>.png`；只用英文 key，禁止在运行时引用素材库外路径。
+2. **紧身裁透明边，再标定显示**：源图若有大透明留白，先按 `alpha>16` 紧身裁剪；再用
+   `displayH = displayW × cropH/cropW`。脚点由 `structure-visual-anchor.js` 自动扫描高 Alpha
+   接触底边，预览/实体共用；配置 `footOffsetY` 写测量后的近似值作兜底。
+   **禁止**直接把带留白的 4096² 图塞进项目后沿用旧尺寸，否则会缩小/悬浮。
+3. **配置唯一真源**：普通2×2建筑统一登记 `data/producer-buildings.json`：
+   `cost/hp/def/mdef/tex/displayW/displayH/footOffsetY/sellRefundRatio` 为必填数值。
+   - 产兵：`spawnEnabled=true` + `unitTypes/modules`；
+   - 工坊：`spawnEnabled=false` + `workshopType/abilities`；
+   - **仅数值/详情、暂无玩法**：`spawnEnabled=false, panelMode:"detail", modules:{}`，
+     不要伪装成空能力工坊。
+4. **资源注册**：BootScene `load.image(<key>, assets/terrain/<key>.png)`；配置 `tex`、
+   `BUILD_ITEMS` 缩略图和实体 `spriteCfg.idleKey` 必须同 key。
+5. **遮挡/占地接入**：构造中走 `applyBuildingFootprint(this, 2)` +
+   `setupStructureDepth(this)`；新增建筑不手写另一套碰撞、脚底或深度规则。
+6. **建筑详情三段式（强制）**：所有可交互建筑（墙/门/射击台/基地/塔/小屋/兵营/
+   生产建筑/陷阱）统一复用 `renderBuildingDetailHeader`，顺序不可颠倒：
+   **① 缩略图与名称 → ② 生命条、当前/最大耐久、百分比 → ③ 特殊功能**。
+   特殊功能仅放在生命条之后（门控、修理、武器装载、采矿、募兵、研究、仓储、献祭等）；
+   无玩法建筑明确显示“暂无额外功能”。详情面板统一右上 `right:26px/top:26px`。
+7. **验收**：用实际 `displayW/displayH/footOffsetY` 叠加256×128红色 footprint，
+   检查可见地基不越界；再跑 `test-structure-visual-anchor.mjs`、
+   `test-config-integrity.mjs`（贴图/配置链）+ 建筑面板布局回归 +
+   Vite build；有交互的新建筑再跑 CDP 实机探针，检查缩略图、耐久、百分比、特殊功能顺序、
+   右上定位和出售/修理等现有操作。
+
+**最近实例（2026-08-18）**
+- 铁匠铺：素材库 `铁匠铺.png` 已替代 `assets/terrain/blacksmith.png`；先裁
+  `4096² → 1230×1133`，再标定为 `displayW=288/displayH=265/footOffsetY=133`。
+- 教堂：素材库 `教堂.png` → `assets/terrain/church.png`（当前裁后 1012×1170），配置为
+  纯详情建筑：600能源、HP2500、def80/mdef120、`panelMode:"detail"`，暂不添加玩法；
+  原288宽地基大于2×2 footprint，现标定 `displayW=256/displayH=296/footOffsetY=148`。
+- 仓鼠兵营：素材库 `兵营.png` 已替代 `assets/terrain/barracks.png`；紧身裁为
+  987×967，`BARRACKS_CONFIG.barracks` 标定为
+  `displayW=288/displayH=282/footOffsetY=141`。
+- 靶场：素材库 `靶场.png` 已替代 `assets/terrain/shooting_range.png`；紧身裁为
+  1197×1198，`producer-buildings.json.shooting_range` 标定为
+  `displayW=288/displayH=288/footOffsetY=144`。
+- 传送门：素材库无现成素材，先用占位图（`tools/ai-gen/gen-portal-placeholder.py` 生成，
+  裁后 615×921，正式图走素材库/AI 管线后重标）；纯详情建筑：2000能源、HP3000、
+  def80/mdef80、`panelMode:"detail"`，标定 `displayW=288/displayH=431/footOffsetY=216`；
+  传送功能待多世界并行系统接入。回归 `test-world122-portal-building.mjs`。
 
 **建造清除障碍物与草（2026-08-17 用户口径：建造处有树/草类障碍物直接删除）**
 - **判定顺序铁律（2026-08-17 审计修复）**：不能先用普通 `canMoveTo` 拒绝落点、再在建造
@@ -5454,7 +5522,8 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
 - 能力面板描述支持 `displayMode=percent|flat`，统一替换 `{chance}/{dmg}/{pct}/{value}`；
   研究院显示“作用于现有及后续新建结构”，铁匠铺仍显示兵种能力文案。
 - 正式资产 `assets/terrain/research_institute.png` 为1024×1093透明PNG；2×2视觉标定
-  `displayW=288/displayH=308/footOffsetY=150`；底部透明留白由自动脚点扫描扣除，预览与实体共用结果。
+  `displayW=288/displayH=308/footOffsetY=150`；底部14px透明留白由自动脚点扫描扣除，
+  预览与实体共用结果。
 - 回归：`test-research-institute.mjs`。
 
 ### 基地菱形房无缝拼接（WIP，2026-08-17）
@@ -6396,7 +6465,7 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
   速度归零，见 lessons #46）；卡死看门狗复用矿工兜底。
 - **生成（2026-08-16 改口径）**：~~世界-122 进入自动生成 1 只~~——用户要求删除
   默认在基地旁生成的战士/射手，单位改由**仓鼠兵营**（`hamster-barracks-system.js`，
-  每 30s 一个、面板切战士/射手）生成；`hamster-warrior-system.js` 保留但主流程不再
+  每 45s 一个、面板切战士/盾卫）生成；`hamster-warrior-system.js` 保留但主流程不再
   setup（文件供测试脚本引用）。
 - **验证**：`scripts/test-hamster-warrior.mjs`（数据+接线契约 34 项）+
   `tools/cdp-hamster-warrior.mjs`（实机 22 项：自动生成/300HP/六维/移速 120/索敌
@@ -6430,7 +6499,7 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
   674ms/中心瞄准 aimY=贴图中心/箭矢贴图/60 物理×2s/弹道角=AimHelper.lead 重算/矿点不攻击/
   跟随到位 idle/死亡 dying 移除）；npm test 全绿 + eslint 0 error + vite build。
 
-#### 9. 仓鼠兵营（2026-08-16 建筑生成单位，世界-122 每 30s 补员）
+#### 9. 仓鼠兵营（2026-08-16 建筑生成单位，世界-122 每 45s 补员）
 
 > 小屋之后第二个「建筑生成单位」：不新增独立"系统生成 1 只"链路，而是由**建筑本体**
 > 持有单位（`HamsterBarracks.units`），建筑面板切换类型/升级，兵营按 30s 节奏补员到
@@ -6439,12 +6508,13 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
 
 - **数据/配置（`src/world/hamster-barracks-system.js`）**：`BARRACKS_CONFIG`——
   cost 1500 能源 / hp 2000 / displayW×H 170×147（贴图 682×589 等比，高度对齐小屋）/
-  footOffsetY 73 / spawnIntervalMs 30000 / spawnRadius 90 / **unitCap 5（初始上限
+  footOffsetY 73 / spawnIntervalMs 45000（2026-08-18 由 30s 调整）/ spawnRadius 90 / **unitCap 5（初始上限
   即 5 个，2026-08-16 用户口径）**；单位基准值**实时读**
-  `data/hamster-warrior-config.json` + `hamster-shooter-config.json`
+  `data/hamster-warrior-config.json` + `hamster-guard-config.json`
   （`unit.<key>.cfg`，不硬编码 50/60 伤害）。
-- **单位类型切换**：`setUnitType('warrior'|'shooter'|'guard')`，面板三个按钮
-  （战士近战 / 射手远程 / 盾卫近战·第 10 帧判定），切换后下一次生成生效；`_findUnitSpawn` 兵营周围
+- **单位类型切换**：`setUnitType('warrior'|'guard')`，面板两个按钮
+  （战士近战 / 盾卫近战·第 10 帧判定；射手/民兵 2026-08-18 已迁靶场/草屋并清理死注册），
+  切换后下一次生成生效且**重置 `_spawnTimer` 重新计时**（2026-08-18 口径，原「保留计时」作废）；`_findUnitSpawn` 兵营周围
   90px 内 WallSystem 校验合法落点（兜底兵营脚下）。
 
 #### 10. 仓鼠盾卫（2026-08-16 战斗型第三例，兵营单位）
@@ -6486,8 +6556,8 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
   玩家距离 >260px 不可交互。**出发进度条实时刷新（2026-08-16）**：面板打开期间
   `setInterval(100ms)` 只更新 `#hbSpawnBar` 宽度/百分比/剩余秒数（querySelector
   直改，不重建 innerHTML），CSS `transition: width 0.2s linear` 平滑增长；
-  关闭面板 clearInterval 防泄漏；切换单位类型不重置 `_spawnTimer`，进度不受影响
-  （见 lessons #55）。
+  关闭面板 clearInterval 防泄漏；切换单位类型重置 `_spawnTimer` 重新计时
+  （2026-08-18 口径，旧「不重置」说法作废——lessons #55 只保留进度条刷新模式）。
 - **验证**：CDP 实机探针——贴图加载、默认战士生成（dmg 50/hp 300）、切射手
   （dmg 60/hp 150）、升 damage 模块后现有战士伤害 50→56 实时生效、
   面板标题/按钮/状态正常、单位死亡后 update 立即补员；eslint 0 error + vite build。
@@ -6513,9 +6583,9 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
   （`_attackSwing` 触发），移动朝向 vx、受击白闪同款；spriteOffsetY -55 /
   footOffsetY 55（脚底 ~350/512，displaySize 300——2026-08-17 用户反馈民兵偏小，
   与战士/盾卫对比后 226→300 放大 1.33×）。
-- **生成（双链路）**：仓鼠兵营（`BARRACKS_CONFIG.unit.militia` + 面板第四按钮）
-  与通用产兵建筑草屋（`producer-buildings.json` unitTypes + PRODUCER_UNIT_CFG/CLASS/
-  unitKindOf）均注册；升级同步走 `applyBarracksUpgrades`（复用战士/盾卫模块口径）。
+- **生成**：草屋专属（`producer-buildings.json` unitTypes + PRODUCER_UNIT_CFG/CLASS/
+  unitKindOf）；2026-08-18 兵营死注册已清理（unit.militia/导入/生成分支移除，
+  旧档兵营 unitType 由 spawnUnit 纠正为战士）；升级同步走 `applyBarracksUpgrades`（复用战士/盾卫模块口径）。
   **顺手修产兵建筑既有 bug**：`applyUpgradesToUnits` 误从 `ai` 块读 `baseMaxHp`
   （恒 300）→ 改为从单位配置根读，民兵 125 等 HP 覆盖真正生效。
 - **升级全局化（2026-08-17 用户口径）**：`src/world/unit-upgrade-store.js` 全局兵种升级
@@ -6574,9 +6644,11 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
   AimHelper.lead瞄目标贴图中心，第10帧出膛并播放fire.mp3。
 - 投射物不依赖图片，GameScene以Phaser Rectangle绘制54×4黄色ADD曳光弹，
   弹速1248（P4040同口径），AI负责飞行/墙阻挡/命中。
-- 靶场配置在producer-buildings `shooting_range`：30s出兵、上限5、生产
-  musketeer/shooter，复用通用升级和进度条。仓鼠兵营只允许warrior/guard，
-  旧shooter实例兼容但禁止继续选择/生成。
+- 靶场配置在producer-buildings `shooting_range`：按兵种区分产出速度——
+  musketeer 60s / shooter 45s（unitTypes 条目 spawnIntervalMs 覆盖建筑级，
+  `ProducerBuilding._unitSpawnIntervalMs` 查询）、上限5，复用通用升级和进度条；
+  切换兵种重置 `_spawnTimer` 重新计时（2026-08-18，兵营 45s/草屋同口径）。
+  仓鼠兵营只允许warrior/guard，旧shooter实例兼容但禁止继续选择/生成。
 - 新兵种必须同步BootScene加载/动画注册、GameScene仓鼠标记分支、
   PRODUCER_UNIT_CFG/CLASS、unit-upgrade-store和defense-target-priority。
 - 回归：`scripts/test-hamster-musketeer.mjs`。

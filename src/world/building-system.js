@@ -14,6 +14,7 @@ import { EffectManager } from '../effects/effect-manager.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
 import { SoundManager } from '../ui/sound-manager.js';
 import { UIState } from '../ui/ui-state.js';
+import { renderBuildingDetailHeader } from '../ui/panels/building-detail-header.js';
 import { CONFIG } from '../config/config.js';
 import { SceneManager } from './scene-manager.js';
 import { Renderer } from './renderer.js';
@@ -1731,22 +1732,14 @@ export const BuildingSystem = {
         const g = e.grade || 'F';
         const maxHp = e.maxHp || 1;
         const hp = Math.max(0, Math.ceil(e.hp));
-        const pct = Math.round((hp / maxHp) * 100);
-        const barColor = pct > 60 ? '#7fd47f' : (pct > 30 ? '#ffd700' : '#ff6666');
         const buildCost = e._buildCost ?? Math.round((DEFENSE_CONFIG.covers.hp[g] ?? 400) * 0.25);
         const repairRate = (DEFENSE_CONFIG.repair && DEFENSE_CONFIG.repair.coverHpPerEnergy) || 2;
         const repairNeed = Math.ceil((maxHp - hp) / repairRate);
         const eff = effOrient(e, e._facingLeft);
         const orientTxt = eff === 'v' ? '垂直（/）' : '水平（\\）';
         det.innerHTML = `
-            <div class="bp-detail-head">
-                <img src="assets/terrain/obstacle_cover_${g}_v.png" draggable="false" alt="掩体·${g}级">
-                <div style="flex:1;min-width:0;">
-                    <div class="bp-detail-name">掩体·${g}级</div>
-                    <div class="bp-hpbar"><div style="width:${pct}%;background:${barColor};"></div></div>
-                    <div style="font-size:11px;color:#b0a892;">耐久 ${hp} / ${maxHp}（${pct}%）</div>
-                </div>
-            </div>
+            ${renderBuildingDetailHeader({ texture: `obstacle_cover_${g}_v`, name: `掩体·${g}级`, hp, maxHp, status: orientTxt })}
+            <div style="font-size:13px;font-weight:700;color:#ffd700;margin:2px 0 6px;">特殊功能 · 阻挡与防线构建</div>
             <div class="bp-detail-rows">
                 朝向：<b>${orientTxt}</b><br>
                 建造消耗：<b style="color:#7fd4ff;">${buildCost} 能源</b><br>
@@ -1765,20 +1758,12 @@ export const BuildingSystem = {
     _renderBlockDetail(det, e) {
         const maxHp = e.maxHp || (DEFENSE_CONFIG.covers.hp.C ?? 1600);
         const hp = Math.max(0, Math.ceil(e.hp));
-        const pct = Math.round((hp / maxHp) * 100);
-        const barColor = pct > 60 ? '#7fd47f' : (pct > 30 ? '#ffd700' : '#ff6666');
         const buildCost = e._buildCost ?? C_GRADE_WALL_COST;
         const repairRate = (DEFENSE_CONFIG.repair && DEFENSE_CONFIG.repair.coverHpPerEnergy) || 2;
         const repairNeed = Math.ceil((maxHp - hp) / repairRate);
         det.innerHTML = `
-            <div class="bp-detail-head">
-                <img src="assets/terrain/obstacle_block.png" draggable="false" alt="方块墙">
-                <div style="flex:1;min-width:0;">
-                    <div class="bp-detail-name">方块墙（C级数值）</div>
-                    <div class="bp-hpbar"><div style="width:${pct}%;background:${barColor};"></div></div>
-                    <div style="font-size:11px;color:#b0a892;">耐久 ${hp} / ${maxHp}（${pct}%）</div>
-                </div>
-            </div>
+            ${renderBuildingDetailHeader({ texture: 'obstacle_block', name: '方块墙（C级数值）', hp, maxHp, status: '1×1 菱形格防线' })}
+            <div style="font-size:13px;font-weight:700;color:#ffd700;margin:2px 0 6px;">特殊功能 · 阻挡与防线构建</div>
             <div class="bp-detail-rows">
                 占地：<b>1×1 菱形格</b><br>
                 建造消耗：<b style="color:#7fd4ff;">${buildCost} 能源</b><br>
@@ -1797,20 +1782,12 @@ export const BuildingSystem = {
     _renderPlatformDetail(det, e) {
         const maxHp = e.maxHp || 800;
         const hp = Math.max(0, Math.ceil(e.hp));
-        const pct = Math.round((hp / maxHp) * 100);
-        const barColor = pct > 60 ? '#7fd47f' : (pct > 30 ? '#ffd700' : '#ff6666');
         const buildCost = e._buildCost ?? 400;
         const repairRate = (DEFENSE_CONFIG.repair && DEFENSE_CONFIG.repair.coverHpPerEnergy) || 2;
         const repairNeed = Math.ceil((maxHp - hp) / repairRate);
         det.innerHTML = `
-            <div class="bp-detail-head">
-                <img src="assets/terrain/firing_platform.png" draggable="false" alt="射击台" style="width:96px;height:89px;object-fit:contain;">
-                <div style="flex:1;min-width:0;">
-                    <div class="bp-detail-name">射击台</div>
-                    <div class="bp-hpbar"><div style="width:${pct}%;background:${barColor};"></div></div>
-                    <div style="font-size:11px;color:#b0a892;">耐久 ${hp} / ${maxHp}（${pct}%）</div>
-                </div>
-            </div>
+            ${renderBuildingDetailHeader({ texture: 'firing_platform', name: '射击台', hp, maxHp, status: '高台射击位' })}
+            <div style="font-size:13px;font-weight:700;color:#ffd700;margin:2px 0 6px;">特殊功能 · 越过掩体射击</div>
             <div class="bp-detail-rows">
                 用途：站上高台可越过己方掩体向外射击<br>
                 建造消耗：<b style="color:#7fd4ff;">${buildCost} 能源</b><br>
@@ -1830,8 +1807,6 @@ export const BuildingSystem = {
         const g = e.grade || 'D';
         const maxHp = e.maxHp || 1;
         const hp = Math.max(0, Math.ceil(e.hp));
-        const pct = Math.round((hp / maxHp) * 100);
-        const barColor = pct > 60 ? '#7fd47f' : (pct > 30 ? '#ffd700' : '#ff6666');
         const buildCost = e._buildCost ?? Math.round((DEFENSE_CONFIG.covers.hp[g] ?? 400) * 0.25);
         const repairRate = (DEFENSE_CONFIG.repair && DEFENSE_CONFIG.repair.coverHpPerEnergy) || 2;
         const repairNeed = Math.ceil((maxHp - hp) / repairRate);
@@ -1840,16 +1815,15 @@ export const BuildingSystem = {
             : (mode === 'open' ? '常开（门口保持敞开）' : '自动（友军靠近开门）');
         const stateTxt = (e.state === 'open' || e.state === 'opening') ? '开启' : '关闭';
         det.innerHTML = `
-            <div class="bp-detail-head">
-                ${e._isGate4
-                    ? '<img src="assets/terrain/gate_4cell.png" draggable="false" alt="4格门" style="width:96px;height:89px;object-fit:contain;">'
-                    : '<div class="bp-gate-icon">🚪</div>'}
-                <div style="flex:1;min-width:0;">
-                    <div class="bp-detail-name">${e._isGate4 ? '4格门（C级数值）' : (e.name || `铁栅栏门·${g}级`)}</div>
-                    <div class="bp-hpbar"><div style="width:${pct}%;background:${barColor};"></div></div>
-                    <div style="font-size:11px;color:#b0a892;">耐久 ${hp} / ${maxHp}（${pct}%）· 当前${stateTxt}</div>
-                </div>
-            </div>
+            ${renderBuildingDetailHeader({
+                texture: e._isGate4 ? 'gate_4cell' : null,
+                icon: '🚪',
+                name: e._isGate4 ? '4格门（C级数值）' : (e.name || `铁栅栏门·${g}级`),
+                hp,
+                maxHp,
+                status: `当前${stateTxt}`,
+            })}
+            <div style="font-size:13px;font-weight:700;color:#ffd700;margin:2px 0 6px;">特殊功能 · 门控与通行模式</div>
             <div class="bp-detail-rows">
                 建造消耗：<b style="color:#7fd4ff;">${buildCost} 能源</b><br>
                 ${e._isGate4 ? '结构：<b>两端方块墙 + 中间双格栅栏</b><br>' : ''}

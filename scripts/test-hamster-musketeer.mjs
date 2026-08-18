@@ -73,7 +73,14 @@ check('靶场生成火枪和射手并带升级进度',
     producerCfg.shooting_range?.defaultUnitType === 'musketeer'
     && producerCfg.shooting_range.unitTypes.some((u) => u.key === 'musketeer')
     && producerCfg.shooting_range.unitTypes.some((u) => u.key === 'shooter')
-    && producerCfg.shooting_range.spawnIntervalMs === 30000);
+    && producerCfg.shooting_range.spawnIntervalMs === 60000);
+check('靶场按兵种区分产出速度（火枪60s/射手45s，2026-08-18）',
+    producerCfg.shooting_range.unitTypes.find((u) => u.key === 'musketeer')?.spawnIntervalMs === 60000
+    && producerCfg.shooting_range.unitTypes.find((u) => u.key === 'shooter')?.spawnIntervalMs === 45000
+    && /_unitSpawnIntervalMs/.test(producerSrc));
+check('产兵建筑切换兵种重新计时（重置 _spawnTimer，2026-08-18）',
+    /if \(type === this\.unitType\) return false;/.test(producerSrc)
+    && /this\._spawnTimer = this\.recruitIntervalMs\(\);/.test(producerSrc));
 check('产兵系统注册火枪配置与实体', /musketeer: musketeerCfg/.test(producerSrc)
     && /musketeer: HamsterMusketeer/.test(producerSrc));
 check('全局升级识别火枪', /musketeer: musketeerCfg/.test(storeSrc)

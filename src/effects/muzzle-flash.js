@@ -8,12 +8,14 @@ class MuzzleFlashEffect {
         this.image = MuzzleFlashEffect._sharedImage;
         this._sprite = null;
         this._createPhaserSprite();
+        this._spawnEnvironmentGlow();
     }
 
     reset(x, y, angle, scale = 1.0) {
         this.x = x; this.y = y; this.angle = angle; this.scale = scale;
         this.life = this.maxLife; this.active = true;
         this._syncSprite();
+        this._spawnEnvironmentGlow();
     }
 
     _createPhaserSprite() {
@@ -36,6 +38,18 @@ class MuzzleFlashEffect {
         this._sprite.setAlpha(alpha * 0.5);
         this._sprite.setDepth(this.y + 55);
         this._sprite.setVisible(true);
+    }
+
+    _spawnEnvironmentGlow() {
+        const scene = window.__phaserScene;
+        if (!scene || typeof scene.spawnEnvironmentGlow !== 'function') return;
+        scene.spawnEnvironmentGlow(this.x, this.y, {
+            radius: 58 * this.scale,
+            color: 0xffc45a,
+            alpha: 0.26,
+            duration: this.maxLife,
+            depth: this.y + 54,
+        });
     }
 
     _destroyPhaserSprite() {

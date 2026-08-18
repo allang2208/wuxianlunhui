@@ -38,6 +38,7 @@ export const PartySystem = {
     updateCombat(dt, entities, player) {
         if (!this._members.length) return;
         for (const m of this._members) {
+            if (m.hitFlash > 0) m.hitFlash = Math.max(0, m.hitFlash - dt);
             if (!this._aiFactories[m.id]) continue;
             if (!this._aiInstances[m.id]) this._aiInstances[m.id] = this._aiFactories[m.id](m);
             const ai = this._aiInstances[m.id];

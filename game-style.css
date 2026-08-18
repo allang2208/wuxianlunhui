@@ -135,6 +135,14 @@
         .game-menu-setting-label { width: 72px; flex-shrink: 0; color: #d4c5a9; font-size: 14px; }
         .game-menu-setting-value { width: 44px; flex-shrink: 0; text-align: right; color: #ffd700; font-size: 14px; }
         .game-menu-setting-row input[type="range"] { flex: 1; min-width: 0; accent-color: #c9a227; cursor: pointer; }
+        .game-menu-unit-display { padding-top: 10px; border-top: 1px solid rgba(90, 77, 63, 0.5); display: grid; grid-template-columns: 1fr 1fr; gap: 8px 10px; }
+        .game-menu-unit-display-title { grid-column: 1 / -1; color: #e8dcc0; font-size: 14px; font-weight: 700; }
+        .game-menu-unit-display-hint { grid-column: 1 / -1; color: #a99b89; font-size: 11px; line-height: 1.35; }
+        .game-menu-unit-display-group { min-width: 0; margin: 0; padding: 7px 8px 8px; border: 1px solid rgba(106, 92, 76, 0.7); border-radius: 6px; }
+        .game-menu-unit-display-group legend { padding: 0 4px; color: #ffd700; font-size: 12px; }
+        .game-menu-unit-display-option { display: flex; align-items: center; gap: 5px; margin-top: 4px; color: #d4c5a9; font-size: 12px; cursor: pointer; white-space: nowrap; }
+        .game-menu-unit-display-option input { margin: 0; accent-color: #c9a227; cursor: pointer; }
+        .game-menu-unit-display-option select { margin-left: auto; background: #2a2520; border: 1px solid #6a5c4c; border-radius: 4px; color: #e8dcc0; font: inherit; font-size: 12px; padding: 2px 4px; cursor: pointer; }
 
         .attack-indicator-left { position: absolute; top: 50%; left: 12px; transform: translateY(-50%); display: flex; flex-direction: column; gap: 12px; pointer-events: none; }
         .attack-cd { width: 40px; height: 40px; border-radius: 50%; border: 2px solid #5a4d3f; background: rgba(42, 37, 32, 0.8); display: flex; align-items: center; justify-content: center; font-size: 18px; color: #8a7d6b; position: relative; overflow: hidden; }
@@ -3035,8 +3043,8 @@ body.map-mode #weaponInfo {
 /* ===== 墙壁编辑器面板（摆墙模式） ===== */
 .wall-editor-panel {
   position: fixed;
-  right: 8px;
-  top: 80px;
+  right: 26px;
+  top: 26px;
   width: 340px;
   background: rgba(18, 18, 24, 0.94);
   border: 1px solid #5a5346;
@@ -3047,6 +3055,21 @@ body.map-mode #weaponInfo {
   z-index: 9999;
   pointer-events: auto;
   user-select: none;
+}
+
+/* ===== 世界-122建筑详情面板统一定位 =====
+ * 墙/门走 wall-editor-panel；其余可交互建筑均以 BasePanel 建立。
+ * 统一右上角、顶部基线 26px，避免各建筑详情在垂直居中位置来回跳动。
+ */
+.defense-tower-panel,
+.hamster-hut-panel,
+.hamster-barracks-panel,
+.producer-building-panel,
+.defense-trap-panel,
+.world122-base-panel {
+  right: 26px !important;
+  top: 26px !important;
+  transform: none !important;
 }
 .wall-editor-panel .we-title {
   font-size: 14px;

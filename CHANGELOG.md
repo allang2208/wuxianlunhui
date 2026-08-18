@@ -1,9 +1,22 @@
 # 变更日志
-### 对话：世界-122建筑拓扑排序、自动脚点与受损特效（2026-08-18）
-- 建筑恢复完整单 Sprite，建筑/墙/门按等距 footprint 拓扑排序；仅结构变化时重算，并提供结构组内部特效深度通道。
-- 新增自动视觉脚点：扫描贴图中央高 Alpha 最低接触像素，预览与实体共用，修正草屋、研究院、仓库等脚点差异。
-- 非墙/门/陷阱建筑在 HP<=70%/50%/30% 时显示2/5/8团火焰及烟雾；火点贴合不透明像素，修理、销毁、离屏自动收口。
-- 新增三项专项回归并接入 npm test；完整测试与 Vite build 通过。
+### 对话：世界-122传送门建筑（占位素材，仅面板与数值）（2026-08-18）
+- 新增传送门建筑：`producer-buildings.json.portal`，2000能源、HP3000、def80/mdef80、
+  回收50%；纯详情模式 `panelMode:"detail"`，不产兵不进工坊，传送功能待多世界并行系统接入。
+- 素材库无现成素材，占位图由 `tools/ai-gen/gen-portal-placeholder.py` 生成（石拱+能量涡，
+  紧身裁剪 615×921），标定 displayW=288/displayH=431/footOffsetY=216；
+  光照派生图经 `build-lighting-maps.py` 生成（projection/silhouette/height/normal）。
+- BootScene 注册贴图并加入建筑投影清单；新增 `test-world122-portal-building.mjs` 7 项全绿。
+
+### 对话：产兵节奏调整与兵营配置清理（2026-08-18）
+- 兵营产出周期 30s → 45s；靶场按兵种区分：仓鼠火枪 60s、仓鼠射手 45s
+  （unitTypes 条目新增 spawnIntervalMs 覆盖建筑级，`ProducerBuilding._unitSpawnIntervalMs` 查询）。
+- 切换兵种重新计时：兵营/产兵建筑 `setUnitType` 切换后按新兵种周期重置 `_spawnTimer`
+  （原“保留计时”口径作废）；切换为当前兵种视为无操作，不打断计时也不发通知。
+- 清理死配置：`HAMSTER_CONFIG.miner.hp=200`（实际 HP 走 hamster-miner-config.json
+  baseMaxHp=100）；清理兵营死注册：unit 表移除射手/民兵及关联导入与生成分支
+  （旧档兵营 unitType 由 spawnUnit 纠正为战士）。
+- 测试同步：test-hamster-guard/militia/musketeer 更新断言，锁定 45s 周期、
+  靶场分兵种周期与切换重计时；eslint 0 error。
 
 ### 对话：世界-122地面footprint、安全出兵与4格门中段终案（2026-08-18）
 - 新增等距地面 `iso_rect` 几何真源：建筑在u/v地面轴中做旋转矩形碰撞，替代屏幕AABB；

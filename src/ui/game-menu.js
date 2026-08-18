@@ -20,6 +20,8 @@ import { FusionSystem } from './fusion-system.js';
 import { QuestSystem } from './quest-system.js';
 import { UIState } from './ui-state.js';
 import { TimerManager } from '../utils/timer-manager.js';
+import { UnitDisplaySettings } from './unit-display-settings.js';
+import { EnvironmentLightingSettings } from './environment-lighting-settings.js';
 
 export const GameMenu = {
     _overlay: null,
@@ -74,6 +76,8 @@ export const GameMenu = {
 
         settingsView.appendChild(this._buildSlider('master', '音量', '主音量，作用于所有声音'));
         settingsView.appendChild(this._buildSlider('music', '背景音量', '地牢模式中播放的 BGM'));
+        settingsView.appendChild(this._buildUnitDisplaySettings());
+        settingsView.appendChild(this._buildEnvironmentLightingSettings());
 
         // 全屏切换（Electron 打包版经 preload IPC；浏览器开发环境禁用）
         const fullscreenBtn = document.createElement('button');
@@ -142,6 +146,119 @@ export const GameMenu = {
         return row;
     },
 
+    _buildUnitDisplaySettings() {
+        const section = document.createElement('section');
+        section.className = 'game-menu-unit-display';
+
+        const title = document.createElement('div');
+        title.className = 'game-menu-unit-display-title';
+        title.textContent = '单位显示';
+        section.appendChild(title);
+
+        const hint = document.createElement('div');
+        hint.className = 'game-menu-unit-display-hint';
+        hint.textContent = '人物血条固定在模型顶部上方 10px';
+        section.appendChild(hint);
+
+        const options = [
+            ['enemy', '怪物'],
+            ['friendly', '友军'],
+        ];
+        const labels = [
+            ['showHealthBar', '显示血条'],
+            ['showName', '显示名称'],
+            ['showFullHealth', '满血显示'],
+        ];
+        for (const [faction, factionLabel] of options) {
+            const group = document.createElement('fieldset');
+            group.className = 'game-menu-unit-display-group';
+            const legend = document.createElement('legend');
+            legend.textContent = factionLabel;
+            group.appendChild(legend);
+
+            for (const [key, label] of labels) {
+                const row = document.createElement('label');
+                row.className = 'game-menu-unit-display-option';
+                const input = document.createElement('input');
+                input.type = 'checkbox';
+                input.dataset.unitDisplayFaction = faction;
+                input.dataset.unitDisplayKey = key;
+                input.addEventListener('change', () => {
+                    UnitDisplaySettings.set(faction, key, input.checked);
+                });
+                const text = document.createElement('span');
+                text.textContent = label;
+                row.append(input, text);
+                group.appendChild(row);
+            }
+            section.appendChild(group);
+        }
+        return section;
+    },
+
+    _buildEnvironmentLightingSettings() {
+        const section = document.createElement('section');
+        section.className = 'game-menu-unit-display';
+
+        const title = document.createElement('div');
+        title.className = 'game-menu-unit-display-title';
+        title.textContent = '环境光影';
+        section.appendChild(title);
+
+        const hint = document.createElement('div');
+        hint.className = 'game-menu-unit-display-hint';
+        hint.textContent = '接触阴影、树木与建筑投影共用同一太阳状态';
+        section.appendChild(hint);
+
+        const group = document.createElement('fieldset');
+        group.className = 'game-menu-unit-display-group';
+        group.style.gridColumn = '1 / -1';
+        const legend = document.createElement('legend');
+        legend.textContent = '阴影';
+        group.appendChild(legend);
+
+        const options = [
+            ['enabled', '启用阴影'],
+            ['animateSun', '太阳移动'],
+            ['staticEnabled', '树木/建筑投影'],
+            ['ambientEnabled', '昼夜环境色'],
+            ['localGlowEnabled', '火把/枪火亮光'],
+        ];
+        for (const [key, label] of options) {
+            const row = document.createElement('label');
+            row.className = 'game-menu-unit-display-option';
+            const input = document.createElement('input');
+            input.type = 'checkbox';
+            input.dataset.environmentLightingKey = key;
+            input.addEventListener('change', () => {
+                EnvironmentLightingSettings.set(key, input.checked);
+            });
+            const text = document.createElement('span');
+            text.textContent = label;
+            row.append(input, text);
+            group.appendChild(row);
+        }
+        const qualityRow = document.createElement('label');
+        qualityRow.className = 'game-menu-unit-display-option';
+        const qualityText = document.createElement('span');
+        qualityText.textContent = '阴影质量';
+        const quality = document.createElement('select');
+        quality.dataset.environmentLightingQuality = 'true';
+        for (const [value, label] of [['low', '低'], ['medium', '中'], ['high', '高']]) {
+            const option = document.createElement('option');
+            option.value = value;
+            option.textContent = label;
+            quality.appendChild(option);
+        }
+        quality.addEventListener('change', () => {
+            EnvironmentLightingSettings.set('quality', quality.value);
+        });
+        qualityRow.append(qualityText, quality);
+        group.appendChild(qualityRow);
+        section.appendChild(group);
+        return section;
+    },
+
     /** 打开菜单时同步滑块与当前音量（含持久化读回的数值） */
     _syncSliders() {
         if (!this._masterSlider) return;
@@ -151,6 +268,27 @@ export const GameMenu = {
         const mu = SoundManager.getChannelVolume('music');
         this._musicSlider.value = String(mu);
         this._musicVal.textContent = Math.round(mu * 100) + '%';
+        this._syncUnitDisplaySettings();
+        this._syncEnvironmentLightingSettings();
+    },
+
+    _syncUnitDisplaySettings() {
+        if (!this._overlay) return;
+        for (const input of this._overlay.querySelectorAll('input[data-unit-display-faction]')) {
+            const faction = input.dataset.unitDisplayFaction;
+            const key = input.dataset.unitDisplayKey;
+            input.checked = !!UnitDisplaySettings.get(faction)[key];
+        }
+    },
+
+    _syncEnvironmentLightingSettings() {
+        if (!this._overlay) return;
+        const settings = EnvironmentLightingSettings.get();
+        for (const input of this._overlay.querySelectorAll('input[data-environment-lighting-key]')) {
+            input.checked = !!settings[input.dataset.environmentLightingKey];
+        }
+        const quality = this._overlay.querySelector('select[data-environment-lighting-quality]');
+        if (quality) quality.value = settings.quality || 'high';
     },
 
     /** 同步"全屏切换"按钮：打包版显示当前状态，浏览器开发环境禁用 */
