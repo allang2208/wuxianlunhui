@@ -84,19 +84,18 @@ check('AI 采矿/交战共用 mining 态、移动 walk、无节点 idle',
     /_animState = 'mining'/.test(aiSrc) && /_animState = 'walk'/.test(aiSrc) && /_animState = 'idle'/.test(aiSrc));
 check('AI 采矿命中置 _miningSwing（渲染层播挥锄，仅采矿路径）',
     (aiSrc.match(/_miningSwing = true/g) || []).length >= 1);
-check('AI 背包物流：work/return/unload 三阶段 + 自动拾取 + 回屋卸货',
-    /_phase = 'work'/.test(aiSrc) && /'return'/.test(aiSrc) && /'unload'/.test(aiSrc)
-    && /_pickupEnergyDrops\(/.test(aiSrc) && /_startReturn\(\)/.test(aiSrc)
-    && /_startUnload\(\)/.test(aiSrc) && /_energyCarried/.test(aiSrc));
-check('AI 采矿效率加成装入隐藏背包（不再直注玩家）',
-    /m\._energyCarried \+= take/.test(aiSrc));
+check('AI 仓库物流：work/storage_return/storage_wait + 满仓回屋',
+    /_phase = 'work'/.test(aiSrc) && /'storage_return'/.test(aiSrc) && /'storage_wait'/.test(aiSrc)
+    && /_startStorageReturn\(\)/.test(aiSrc) && /EnergyManager\.isFull\(\)/.test(aiSrc));
+check('AI 采矿效率仍作用于矿点伤害，产出由矿点直接入仓',
+    /this\._attackDamage \* this\.miningMult/.test(aiSrc));
 check('AI 寻路可达接近点：矿点边缘点（避开 A* 障碍中心）+ 回屋边缘点',
     /const miningRange = this\._miningRange \+ nodeR/.test(aiSrc)
     && /Math\.min\(Math\.max\(this\._miningRange/.test(aiSrc)
     && /m\._tacticalTarget = \{ x: node\.x \+ \(dx \/ dd\) \* approachDist/.test(aiSrc)
     && /approach = 64/.test(aiSrc));
-check('AI 卡死看门狗 + 满载防抖（_checkStuck/_returnTriggered）',
-    /_checkStuck\(dt\)/.test(aiSrc) && /_returnTriggered/.test(aiSrc)
+check('AI 卡死看门狗 + 满仓返回阶段',
+    /_checkStuck\(dt\)/.test(aiSrc) && /storage_return/.test(aiSrc)
     && /WallSystem\.findSafeSpawn/.test(aiSrc));
 check('AI 卡死升级：连续卡死直接传送到矿点旁合法点（终结顶墙死循环）',
     /_stuckEscalation/.test(aiSrc) && /near\.x \+ Math\.cos\(a\) \* 95/.test(aiSrc)
@@ -120,27 +119,33 @@ check('实体碰撞体积缩小 25%（groundRadius 19.5 / bodyHeight 97.5 / size
     && /this\.collisionRadius = this\.groundRadius/.test(entSrc)
     && /this\.bodyHeight = Math\.round\(130 \* 0\.75 \* 10\) \/ 10/.test(entSrc)
     && /this\.size = Math\.round\(84 \* 0\.75\)/.test(entSrc));
-check('实体 addMinedEnergy 直接入包（上限=容量）', /addMinedEnergy\(amount\)/.test(entSrc)
-    && /this\._energyCarried \+= take/.test(entSrc));
+check('实体 addMinedEnergy 直接入仓库', /addMinedEnergy\(amount\)/.test(entSrc)
+    && /EnergyManager\.depositEnergy\(amount\)/.test(entSrc));
 
 const ensSrc = fs.readFileSync(path.join(ROOT, 'src/world/energy-node-system.js'), 'utf-8');
-check('能量节点：矿工攻击直接装包不落地（其余仍地面掉落）',
-    /source && typeof source\.addMinedEnergy === 'function'/.test(ensSrc)
-    && /Game\.dropItem/.test(ensSrc));
+check('能量节点：玩家/仓鼠/队友采矿直接入仓库，满仓不扣矿点',
+    /EnergyManager\.isFull\(\)/.test(ensSrc)
+    && /EnergyManager\.depositEnergy\(energy\)/.test(ensSrc)
+    && /appliedDamage = Math\.min/.test(ensSrc));
 
 const hutSrc = fs.readFileSync(path.join(ROOT, 'src/world/hamster-hut-system.js'), 'utf-8');
-check('小屋新增背包扩容模块（每级 +100，满级 10）',
-    /backpack:\s*\{ name: '背包扩容'/.test(hutSrc)
-    && /per: 1,\s*maxLevel: 10/.test(hutSrc)
-    && /backpackCapacity = HAMSTER_CONFIG\.miner\.backpackCapacity \+ m\.backpack \* 100/.test(hutSrc));
-check('小屋卸货：unloadMiner 移交玩家背包 + 满则暂存 _storedEnergy',
-    /unloadMiner\(miner\)/.test(hutSrc) && /EnergyManager\.addEnergy\(total\)/.test(hutSrc)
+check('小屋移除已失效的背包扩容模块，面板显示仓库总量',
+    !/backpack:\s*\{ name: '背包扩容'/.test(hutSrc)
+    && /EnergyManager\.getCapacity\(\)/.test(hutSrc)
+    && /仓库能源/.test(hutSrc));
+check('小屋旧携带量兼容：unloadMiner 直接转入仓库 + 满则暂存 _storedEnergy',
+    /unloadMiner\(miner\)/.test(hutSrc) && /EnergyManager\.depositEnergy\(total\)/.test(hutSrc)
     && /this\._storedEnergy \+= stored/.test(hutSrc));
 check('小屋开关门动画已删除（2026-08-17：原模型素材移除，补员/卸货直接生成）',
     !/openDoor\(/.test(hutSrc) && !/closeDoor\(/.test(hutSrc)
     && !/hamster_hut_door/.test(hutSrc));
 check('小屋被毁丢失暂存能量', /lost > 0 \? `仓鼠小屋被摧毁（暂存 \$\{lost\} 能源丢失）`/.test(hutSrc));
-check('小屋暂存自动补入玩家背包', /_storedEnergy = Math\.max\(0, this\._storedEnergy - added\)/.test(hutSrc));
+check('小屋旧暂存自动补入仓库', /_storedEnergy = Math\.max\(0, this\._storedEnergy - added\)/.test(hutSrc));
+check('满仓后矿工返回小屋待命，扩容后自动复工',
+    /_phase === 'storage_return'/.test(aiSrc)
+    && /_phase === 'storage_wait'/.test(aiSrc)
+    && /仓库已满，返回小屋待命/.test(aiSrc)
+    && /!EnergyManager\.isFull\(\)/.test(aiSrc));
 
 // ---- 5. 源码接线：渲染 / 生成 / 仇恨 ----
 const gsSrc = fs.readFileSync(path.join(ROOT, 'src/phaser/scenes/GameScene.js'), 'utf-8');

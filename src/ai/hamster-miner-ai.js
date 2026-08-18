@@ -1,6 +1,6 @@
 // ============================================================
 // HamsterMinerAI — 仓鼠矿工 AI（2026-08-15，2026-08-15 仓鼠小屋扩展）
-// 玩家友方单位：在世界-122 自动采矿，并在附近有敌人时近战自卫。
+// 玩家友方单位：在世界-122 自动采矿，可接受 RTS 移动/待命指令。
 // - 只采矿：自动找最近能源矿点（_isEnergyNode）采矿，间隔攻击产出能源；
 //   （2026-08-16 用户口径回归：只能对能源矿点攻击、不攻击其他单位——矿工不参与
 //   基地防御，被怪打也不还手，仅靠 _enemyTargetable 拉仇恨 + 可被击杀）
@@ -14,6 +14,7 @@ import { EffectManager } from '../effects/effect-manager.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
 import { pickNearestNode } from './companion-ai-decision.js';
 import { SoundManager } from '../ui/sound-manager.js';
+import { EnergyManager } from '../systems/energy-manager.js';
 
 export class HamsterMinerAI {
     constructor(miner) {
@@ -25,11 +26,8 @@ export class HamsterMinerAI {
         this._attackDamage = this.cfg.attackDamage ?? 100;
         this._miningRange = this.cfg.miningRange ?? 80;
         this.miningMult = this.cfg.miningMult ?? 1;        // 采矿效率倍率（小屋升级）
-        // 隐藏背包物流（2026-08-15）：work 采矿 → return 回小屋 → unload 卸货（idle 2s + 门开关）
-        this._phase = 'work';          // 'work' | 'return' | 'unload'
-        this._unloadTimer = 0;
-        this._pickupTimer = 0;
-        this._returnTriggered = false; // 满载只触发一次返回（防小屋消失后振荡）
+        // 仓库物流：能源直接入库；满仓后返回小屋待命，扩建仓库后自动复工。
+        this._phase = 'work';          // 'work' | 'storage_return' | 'storage_wait'
         // 卡死看门狗（2026-08-15）：走路长时间位移≈0 → 重新选点/传送到目标附近
         this._stuckTimer = 0;
         this._lastPosX = 0;
@@ -82,10 +80,19 @@ export class HamsterMinerAI {
         this._attackTimer = Math.max(0, this._attackTimer - dt);
         this._decisionTimer -= dt;
 
-        // 卸货阶段：小屋门口 idle 2s（不移动不交战），结束后重新出发
-        // （2026-08-17 已删除小屋开关门动画，不再调 closeDoor）
-        if (this._phase === 'unload') {
-            this._unloadTimer -= dt;
+        // RTS 指令优先于采矿/卸货物流：矿工支持移动与待命，但不攻击敌人。
+        const cmd = m._command;
+        if (cmd && cmd.mode && cmd.mode !== 'follow') {
+            this._applyCommand(cmd);
+            if (m._animState === 'walk') {
+                MovementSystem.update(m, dt, entities);
+                this._checkStuck(dt);
+            }
+            return;
+        }
+
+        // 满仓待命：停在小屋；扩建/消耗产生空间后自动恢复采矿。
+        if (this._phase === 'storage_wait') {
             m._animState = 'idle';
             m._tacticalTarget = null;
             m.target = null;
@@ -94,22 +101,13 @@ export class HamsterMinerAI {
             m.vy = 0;
             m.isMoving = false;
             m.maxSpeed = 0;
-            if (this._unloadTimer <= 0) {
-                this._phase = 'work';
-            }
+            if (EnergyManager && !EnergyManager.isFull()) this._phase = 'work';
             return;
         }
 
         if (this._decisionTimer <= 0) {
             this._decisionTimer = this.cfg.decisionMs ?? 120;
             this._tick(entities);
-        }
-
-        // 工作阶段：自动拾取地面能量进隐藏背包（150ms 节流）
-        this._pickupTimer -= dt;
-        if (this._phase === 'work' && this._pickupTimer <= 0) {
-            this._pickupTimer = 150;
-            this._pickupEnergyDrops(entities);
         }
 
         // 采矿中：站定（不调用 MovementSystem 移动），间隔对矿点攻击
@@ -127,6 +125,46 @@ export class HamsterMinerAI {
         this._checkOscillation(dt);
         // 卡死看门狗：复用怪物避障机制外的兜底（重新规划/传送），避免被障碍卡死找不到目标
         this._checkStuck(dt);
+    }
+
+    /** RTS 移动/待命；attack 对矿工降级为待命，保持“只采矿”规则。 */
+    _applyCommand(cmd) {
+        const m = this.m;
+        m.target = null;
+        m._enemyTarget = null;
+        if (cmd.mode === 'move') {
+            const dest = this._nearestCommandPoint(cmd.point || { x: m.x, y: m.y });
+            const dist = Math.hypot(dest.x - m.x, dest.y - m.y);
+            if (dist > 40) {
+                m._tacticalTarget = dest;
+                m._animState = 'walk';
+                m.maxSpeed = this.cfg.walkSpeed ?? 80;
+                return;
+            }
+            m._command = { mode: 'hold' };
+        }
+        m._tacticalTarget = null;
+        if (m._pathManager && typeof m._pathManager._clearPath === 'function') m._pathManager._clearPath();
+        m._animState = 'idle';
+        m.maxSpeed = 0;
+        m.vx = 0;
+        m.vy = 0;
+        m.isMoving = false;
+    }
+
+    _nearestCommandPoint(point) {
+        const radius = this.m.groundRadius || 20;
+        if (!WallSystem || typeof WallSystem.canMoveTo !== 'function') return point;
+        if (WallSystem.canMoveTo(point.x, point.y, radius)) return point;
+        for (const dist of [16, 32, 48, 64, 80, 100, 120, 160, 220]) {
+            for (let i = 0; i < 12; i++) {
+                const a = i / 12 * Math.PI * 2;
+                const x = point.x + Math.cos(a) * dist;
+                const y = point.y + Math.sin(a) * dist;
+                if (WallSystem.canMoveTo(x, y, radius)) return { x, y };
+            }
+        }
+        return point;
     }
 
     /** 路径振荡守卫：检测寻路双路线翻转（原地左右摆动/幽灵路径），清路径强制重算 */
@@ -167,26 +205,21 @@ export class HamsterMinerAI {
      */
     _tick(entities) {
         const m = this.m;
-        // 卸货阶段：保持 idle（不进入战斗）
-        if (this._phase === 'unload') {
-            m._animState = 'idle';
-            m._tacticalTarget = null;
-            m.target = null;
-            m._enemyTarget = null;
-            m.maxSpeed = 0;
-            return;
-        }
-
-        // 返回小屋卸货：背包满后直奔小屋门口
-        if (this._phase === 'return') {
+        // 仓库满后直奔小屋门口待命
+        if (this._phase === 'storage_return') {
             const hut = m._hut;
             if (!hut || !hut.active) {
-                this._phase = 'work'; // 小屋没了（防御性兜底，正常随小屋销毁）
-                this._returnTriggered = true; // 背包仍满：不再反复触发返回
+                this._phase = 'storage_wait';
+                m._animState = 'idle';
+                m._tacticalTarget = null;
+                m.maxSpeed = 0;
             } else {
                 const dist = Math.hypot(hut.x - m.x, hut.y - m.y);
                 if (dist <= 70) {
-                    this._startUnload();
+                    this._phase = 'storage_wait';
+                    m._tacticalTarget = null;
+                    m._animState = 'idle';
+                    m.maxSpeed = 0;
                 } else {
                     m.target = null;
                     // 走到小屋边缘可达点（小屋中心是碰撞体，直接寻路到中心可能失败）
@@ -202,16 +235,10 @@ export class HamsterMinerAI {
             return;
         }
 
-        // 工作阶段：隐藏背包满 → 返回小屋卸货
-        const capacity = m._energyCapacity || 500;
-        if (m._energyCarried >= capacity) {
-            if (!this._returnTriggered) {
-                this._returnTriggered = true;
-                this._startReturn();
-            }
+        if (EnergyManager && EnergyManager.isFull()) {
+            this._startStorageReturn();
             return;
         }
-        this._returnTriggered = false;
 
         // 当前矿点目标失效（枯竭/被清）→ 放弃，重新寻找
         const t = m.target;
@@ -331,7 +358,7 @@ export class HamsterMinerAI {
             m.target = null;
             m._tacticalTarget = null;
             if (m._pathManager) m._pathManager._clearPath();
-        } else if (this._phase === 'return' && m._hut && m._hut.active) {
+        } else if (this._phase === 'storage_return' && m._hut && m._hut.active) {
             // 传送到小屋附近合法点
             if (WallSystem && typeof WallSystem.findSafeSpawn === 'function') {
                 const sp = WallSystem.findSafeSpawn(m._hut.x, m._hut.y, m.groundRadius || 24);
@@ -400,33 +427,23 @@ export class HamsterMinerAI {
         }
     }
 
-    /** 背包满 → 进入返回小屋阶段 */
-    _startReturn() {
+    /** 仓库满 → 返回仓鼠小屋待命。 */
+    _startStorageReturn() {
         const m = this.m;
-        this._phase = 'return';
+        if (this._phase === 'storage_return' || this._phase === 'storage_wait') return;
+        this._phase = 'storage_return';
         m.target = null;
         m._enemyTarget = null;
+        if (m._pathManager) m._pathManager._clearPath();
+        if (EnergyManager) EnergyManager.depositEnergy(1); // 触发节流满仓提示
         if (EffectManager) {
-            EffectManager.add(new FloatingTextEffect(m.x, m.y - 32, '背包已满，返回小屋', '#ffaa55'));
+            EffectManager.add(new FloatingTextEffect(m.x, m.y - 32, '仓库已满，返回小屋待命', '#ffaa55'));
         }
     }
 
-    /** 到达小屋 → 卸货：能量移交玩家背包（满则暂存小屋），门开 + idle 2s */
+    /** 旧逻辑兼容：不再卸货，直接进入仓库等待。 */
     _startUnload() {
-        const m = this.m;
-        this._phase = 'unload';
-        this._unloadTimer = 2000;
-        m._animState = 'idle';
-        m._tacticalTarget = null;
-        m.target = null;
-        m._enemyTarget = null;
-        m.vx = 0;
-        m.vy = 0;
-        m.isMoving = false;
-        m.maxSpeed = 0;
-        if (m._hut && typeof m._hut.unloadMiner === 'function') {
-            m._hut.unloadMiner(m);
-        }
+        this._phase = 'storage_wait';
     }
 
     /** 收集有效能源矿点（只认 _isEnergyNode，不收集任何单位/建筑） */

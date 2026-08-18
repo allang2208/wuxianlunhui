@@ -11,6 +11,8 @@ import { getTributeHpRegenMultiplier, getTributeHpRegenFlat } from '../config/tr
 import { completeWeaponFields } from './equip-data-manager.js';
 import { serializeUnitUpgrades, restoreUnitUpgrades } from '../world/unit-upgrade-store.js';
 import { serializeAbilityLevels, restoreAbilityLevels } from '../world/ability-store.js';
+import { ResearchSystem } from '../world/research-system.js';
+import { EnergyManager } from '../systems/energy-manager.js';
 
 // Game UI Manager - Extracted from Game.js
 // Handles UI updates, save/load, timers, and menu operations
@@ -245,12 +247,15 @@ export const GameUIManager = {
         if (data.equipments) this.player.equipments = data.equipments;
         restoreUnitUpgrades(data.world122?.unitUpgrades);
         restoreAbilityLevels(data.world122?.abilityLevels);
+        ResearchSystem.refreshWorld();
+        EnergyManager.restoreStorage(data.world122?.energyStorage);
         if (Array.isArray(data.backpack) && typeof EquipManager !== 'undefined') {
             // 原地替换内容而非换数组：init 时旧数组引用已注入 EquipTooltipManager/
             // GoldManager/BackpackDialogManager/dragDropManager，换数组会让这些引用失效
             if (!EquipManager.backpackItems) EquipManager.backpackItems = [];
             EquipManager.backpackItems.length = 0;
             EquipManager.backpackItems.push(...data.backpack);
+            EnergyManager.setBackpackRef(EquipManager.backpackItems); // 迁移旧存档背包能源到待入库
             if (EquipManager.updateInventorySlots) EquipManager.updateInventorySlots();
             if (EquipManager.updateEquipSlots) EquipManager.updateEquipSlots();
         }
@@ -283,6 +288,7 @@ export const GameUIManager = {
             world122: {
                 unitUpgrades: serializeUnitUpgrades(),
                 abilityLevels: serializeAbilityLevels(),
+                energyStorage: EnergyManager.serializeStorage(),
             },
         };
         try { localStorage.setItem('infiniteLoop_save', JSON.stringify(saveData)); alert('已保存至主神空间'); } catch (e) { console.error('Save failed:', e); alert('存档失败: 存储空间不足'); }

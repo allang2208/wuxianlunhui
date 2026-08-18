@@ -34,6 +34,14 @@ import { loadImage } from '../utils/image-loader.js';
 import { BuildingSinkEffect } from '../effects/building-sink.js';
 import { computeWeaponAttack, getAttackFormula } from '../config/attack-formula.js';
 import { findWeaponConfig } from '../ui/equip-data-manager.js';
+import { applyResearchHp } from './research-system.js';
+import { applyIsoFootprintFromSegment } from '../physics/iso-footprint.js';
+import {
+    ONE_CELL_BUILDING_FOOT,
+    TWO_BY_TWO_BUILDING_FOOT,
+    FOUR_BY_FOUR_BASE_FOOT,
+    applyBuildingFootprint,
+} from './building-footprint.js';
 import equipmentJson from '../../data/equipment.json';
 
 // ==================== 配置 ====================
@@ -47,7 +55,7 @@ export const DEFENSE_CONFIG = {
         // 距菱形左边界真实垂距 ~1878px ≥ 补丁半径+余量（850+60），沙地不越界；
         // 门洞开在 RB 边中点。
         x: 4200, y: 4096,
-        hp: 5000, radius: 72, def: 90, mdef: 90,
+        hp: 5000, radius: FOUR_BY_FOUR_BASE_FOOT.collisionRadius, def: 90, mdef: 90,
     },
     // 掩体（可被攻击的防御墙段，def/mdef 均为 0）：F→A 六档生命值，
     // 每组含水平摆(_h)/垂直摆(_v)两张贴图（30° 底边斜向互为镜像）
@@ -88,7 +96,7 @@ export const DEFENSE_CONFIG = {
     // 无预置防御塔（玩家用 B 建筑面板自行摆放）
     towers: [],
     tower: {
-        hp: 1400, radius: 44, def: 70, mdef: 70,
+        hp: 1400, radius: TWO_BY_TWO_BUILDING_FOOT.collisionRadius, def: 70, mdef: 70,
         // 摧毁后重建 / 出售（2026-08-14）：重建 = 原建造能源价；出售返还 50% 建造能源
         rebuildCost: 300,
         sellRefundRatio: 0.5,
@@ -221,8 +229,7 @@ export const DEFENSE_CONFIG = {
 const TOWER_WEAPON_TYPES = ['bow', 'pkm', 'akm', 'm416', 'qbz191', 'qjb201', 'shotgun', 'energy_lmg'];
 
 /**
- * 防御塔命中盒（世界坐标，相对塔脚）：覆盖整塔视觉范围——基座（170×262，脚底下 y-262..y）、
- * 顶部机械臂（枢轴 y-235，臂展 ±112）与挂载武器。2026-08-15：点击塔任意部位开面板 +
+ * 防御塔命中盒（世界坐标，相对塔脚）：覆盖原始 170×262 塔身与挂载武器。
  * 悬停金色轮廓共用此矩形（旧版仅塔脚 70px 圆，点塔身/塔顶脱靶）。
  */
 const TOWER_HIT = { cx: 0, cy: -135, hw: 115, hh: 175 };
@@ -495,7 +502,12 @@ export const COVER_FOOT = {
 
 /** 1×1 方格块（2026-08-17）：footprint = 1 格（128×64），单一贴图，无 v/h 变体。
  * face 线取格子底边（斜率 -0.5，跨度 1 格边 71.55），深度/碰撞沿用现有规则。 */
-export const BLOCK_FOOT = { w: 128, d: 64, offY: 0, thick: 26 };
+export const BLOCK_FOOT = {
+    w: ONE_CELL_BUILDING_FOOT.w,
+    d: ONE_CELL_BUILDING_FOOT.d,
+    offY: ONE_CELL_BUILDING_FOOT.offY,
+    thick: 26,
+};
 export const BLOCK_FACE = {
     // 2026-08-17 二修：face 从格底移到格心（穿过格心，斜率 -0.5）——
     // 否则朝下邻格心距 face 仅 36px < 半厚26+半径28=54，右下/左下永远放不下。
@@ -503,9 +515,12 @@ export const BLOCK_FACE = {
     v: { A: { x: -32, y: 16 }, B: { x: 32, y: -16 } },
     h: { A: { x: -32, y: -16 }, B: { x: 32, y: 16 } },
 };
-const BLOCK_DISPLAY_W = 260;   // 贴图显示宽（内容约 122px ≈ 1 格）
-const BLOCK_DISPLAY_H = 259;
-export const BLOCK_FOOT_OFFSET = 61;  // 让方块可见底边落在格子底边（≈ cell +32）
+export const BLOCK_VISUAL = Object.freeze({
+    w: 260,     // 贴图内容约 122px ≈ 1 格
+    h: 259,
+    footOffsetY: 61,
+});
+export const BLOCK_FOOT_OFFSET = BLOCK_VISUAL.footOffsetY;
 
 /**
  * 防御塔视觉几何（2026-08-04 从塔图分离标定，arm 贴图本地坐标）：
@@ -515,6 +530,7 @@ export const BLOCK_FOOT_OFFSET = 61;  // 让方块可见底边落在格子底边
  * - pivotWorldY：枢轴世界 Y 相对塔脚底的偏移（≈塔可见顶面）。
  */
 export const DEFENSE_TOWER_VISUAL = {
+    scale: 1,
     base: { w: 170, h: 262, footOffsetY: 131 },
     arm: {
         // 2026-08-14 预渲染 3D 旋转帧：Blender 绕塔顶轴渲染 48 帧（7.5°×48），
@@ -560,6 +576,15 @@ export const DEFENSE_TOWER_VISUAL = {
     },
 };
 
+/** 射击台预览与实体共用的显示标定。 */
+export const FIRING_PLATFORM_VISUAL = Object.freeze({
+    scale: 2,
+    w: 594,
+    h: 450,
+    offsetX: -51.2,
+    footOffsetY: 98,
+});
+
 // ==================== 基地核心 ====================
 
 class DefenseBase extends Combatant {
@@ -588,10 +613,11 @@ class DefenseBase extends Combatant {
         this.data.mdef = mdef;
         // 贴图：Blender 建模重建（立方体 + 扁平底座 + 大理石贴图，2026-08-16，
         // 规格 _blockout_specs/defense_base.json，渲染 assets/terrain/defense_base.png）
-        this.spriteCfg = { idleKey: 'defense_base', size: 220, sizeH: 183, footOffsetY: 92 };
-        this.footOffsetY = 92;
+        this.spriteCfg = { idleKey: 'defense_base', size: 440, sizeH: 366, footOffsetY: 184 };
+        this.footOffsetY = 184;
+        applyBuildingFootprint(this, 4);
         // 统一遮挡锚线（接地线 = 贴图显示半宽；单位在其后 → 被建筑遮挡，在前/同线 → 盖过建筑）
-        setupStructureDepth(this, this.spriteCfg.size / 2);
+        setupStructureDepth(this);
         this._onDestroyed = config.onDestroyed || null;
         this.rebuildCollider();
     }
@@ -664,7 +690,7 @@ class DefenseCover extends Combatant {
         this.collisionShape = 'rect';
         this.collisionWidth = foot.w;
         this.collisionHeight = foot.d;
-        this.colliderOffsetY = foot.offY ?? 0; // 矩形中心对准墙段主体（匹配视觉）
+        this.colliderOffsetY = foot.offY ?? 0;
         this._coverHalfThick = foot.thick ?? 26; // 墙厚一半（线段碰撞/阻挡宽度用）
         this.grade = grade;
         this.orient = orient;
@@ -685,6 +711,18 @@ class DefenseCover extends Combatant {
             // depthBias：上夹角左臂（TL 边）加 0.5，让左臂盖住右臂（TR），
             // 否则两臂 faceDepth 相同 + TL 先建 → 右挡左（2026-08-06 用户反馈）
             this._faceDepth = Math.max(this._faceLine[0].y, this._faceLine[1].y) + 12 + (config.depthBias || 0);
+            if (isBlock) {
+                this.collisionShape = 'iso_rect';
+                this.collisionWidth = BLOCK_FOOT.w;
+                this.collisionHeight = BLOCK_FOOT.d;
+                this.collisionIsoHalfU = BLOCK_FOOT.w / (2 * Math.SQRT2);
+                this.collisionIsoHalfV = BLOCK_FOOT.w / (2 * Math.SQRT2);
+                this.collisionRadius = BLOCK_FOOT.w / 2;
+                this.colliderOffsetX = 0;
+                this.colliderOffsetY = 0;
+            } else {
+                applyIsoFootprintFromSegment(this, this._faceLine[0], this._faceLine[1], this._coverHalfThick);
+            }
         } else {
             this._faceDepth = y + 12;
         }
@@ -721,11 +759,12 @@ class DefenseCover extends Combatant {
             : variant === 1
             ? `obstacle_cover_${grade}_${orient}`
             : `obstacle_cover_${grade}_v${variant}_${orient}`;
-        const aspect = isBlock ? (BLOCK_DISPLAY_W / BLOCK_DISPLAY_H) : ((COVER_ASPECT[grade] && COVER_ASPECT[grade][orient]) || 1);
-        const sizeH = isBlock ? BLOCK_DISPLAY_H : Math.round(COVER_DISPLAY_W / aspect);
+        const aspect = isBlock ? (BLOCK_VISUAL.w / BLOCK_VISUAL.h) : ((COVER_ASPECT[grade] && COVER_ASPECT[grade][orient]) || 1);
+        const sizeH = isBlock ? BLOCK_VISUAL.h : Math.round(COVER_DISPLAY_W / aspect);
         const footOff = isBlock ? BLOCK_FOOT_OFFSET : sizeH / 2;
-        this.spriteCfg = { idleKey: tex, size: isBlock ? BLOCK_DISPLAY_W : COVER_DISPLAY_W, sizeH, footOffsetY: footOff };
+        this.spriteCfg = { idleKey: tex, size: isBlock ? BLOCK_VISUAL.w : COVER_DISPLAY_W, sizeH, footOffsetY: footOff };
         this.footOffsetY = footOff;
+        if (isBlock) applyResearchHp(this, hp);
         this.rebuildCollider();
     }
 
@@ -797,10 +836,16 @@ class DefenseTower extends Combatant {
         this.data.mdef = mdef;
         // 贴图：世界-122 防御塔（2026-08-12 Blender 圆柱塔基 + 机械臂，纯色参考版；
         // 内容框 324×498，显示 170×262）
-        this.spriteCfg = { idleKey: 'obstacle_defense_tower', size: 170, sizeH: 262, footOffsetY: 131 };
-        this.footOffsetY = 131;
+        this.spriteCfg = {
+            idleKey: 'obstacle_defense_tower',
+            size: DEFENSE_TOWER_VISUAL.base.w,
+            sizeH: DEFENSE_TOWER_VISUAL.base.h,
+            footOffsetY: DEFENSE_TOWER_VISUAL.base.footOffsetY,
+        };
+        this.footOffsetY = DEFENSE_TOWER_VISUAL.base.footOffsetY;
+        applyBuildingFootprint(this, 2);
         // 统一遮挡锚线（塔三层贴图深度一律从 _faceDepth 取，见 GameScene._syncDefenseTowers）
-        setupStructureDepth(this, DEFENSE_TOWER_VISUAL.base.w / 2);
+        setupStructureDepth(this);
         this.weaponItem = null;
         this._attackKey = null;
         this.range = 800;
@@ -2462,9 +2507,12 @@ export const DefenseSystem = {
     // ==================== 塔出售（2026-08-14；被摧毁即清除，无废墟/重建）====================
 
     /** 出售塔：返还 50% 建造能源；武器归还背包（满则原地掉落）；移除实体 */
-    sellTower(tower, player) {
+    sellTower(tower, _player) {
         if (!tower || tower.active === false) return { ok: false, reason: '防御塔已被摧毁' };
         const refund = Math.floor((DEFENSE_CONFIG.tower.rebuildCost ?? 300) * (DEFENSE_CONFIG.tower.sellRefundRatio ?? 0.5));
+        if (!EnergyManager || !EnergyManager.canStore(refund)) {
+            return { ok: false, reason: '仓库空间不足，无法接收出售返还能源' };
+        }
         // 武器归还
         const item = tower.weaponItem;
         if (item) {
@@ -2490,15 +2538,16 @@ export const DefenseSystem = {
         if (this.victory) return;
         this.victory = true;
         const reward = DEFENSE_CONFIG.spawn.victoryReward || { gold: 500, energy: 500 };
+        let energyAdded = 0;
         if (!this._victoryGranted) {
             this._victoryGranted = true;
             if (GoldManager) GoldManager.addGold(reward.gold || 0);
-            if (EnergyManager) EnergyManager.addEnergy(reward.energy || 0);
+            if (EnergyManager) energyAdded = EnergyManager.depositEnergy(reward.energy || 0);
         }
         if (Game.player) {
             EffectManager.add(new FloatingTextEffect(
                 Game.player.x, Game.player.y - 60,
-                `防守胜利！撑过 ${DEFENSE_CONFIG.spawn.victoryWave || 10} 波（+${reward.gold} 金币 +${reward.energy} 能源）`,
+                `防守胜利！撑过 ${DEFENSE_CONFIG.spawn.victoryWave || 10} 波（+${reward.gold} 金币 +${energyAdded} 能源入库）`,
                 '#ffd700'
             ));
         }
@@ -3096,35 +3145,37 @@ class FiringPlatform extends Combatant {
         // 显示（八版标定，2026-08-16 重建模后）：内容 684×519 → 297×225；
         // 台阶沿主体前脸法线摆正后，入口（台阶底，贴图 (401,372)）锚定到实体——
         // 精灵 x 左移 25.6、footOffsetY 49（重建模后台阶在右、台面在左）
-        const dispW = 297;
-        const dispH = Math.round(dispW * 519 / 684); // ≈225
+        const dispW = FIRING_PLATFORM_VISUAL.w;
+        const dispH = FIRING_PLATFORM_VISUAL.h;
         this.spriteCfg = {
             idleKey: 'firing_platform',
             size: dispW,
             sizeH: dispH,
-            offsetX: -25.6,
-            footOffsetY: 49.0,
+            offsetX: FIRING_PLATFORM_VISUAL.offsetX,
+            footOffsetY: FIRING_PLATFORM_VISUAL.footOffsetY,
         };
         this.footOffsetY = this.spriteCfg.footOffsetY;
+        applyBuildingFootprint(this, 2);
         // 台面几何（七版一对一标定，单位：display px，相对实体/入口，屏幕 +y 向下）
-        this.platformHeight = 98; // 台面水平面高度 ≈ 97.6（信息/调试用）
+        const visualScale = FIRING_PLATFORM_VISUAL.scale;
+        this.platformHeight = 98 * visualScale;
         this._deckCorners = [
-            { x: -173.6, y: -60.4 }, // 台面左角 C4（贴图 0.5,233.3）
-            { x: -122.5, y: -33.8 }, // 台面前角 C3（贴图 118.4,294.5）
-            { x: 86.0, y: -137.2 },  // 台面右角 C2（贴图 599.3,56.1）
-            { x: 34.9, y: -162.9 },  // 台面后角 C1（贴图 481.4,-3.3）
+            { x: -173.6 * visualScale, y: -60.4 * visualScale },
+            { x: -122.5 * visualScale, y: -33.8 * visualScale },
+            { x: 86.0 * visualScale, y: -137.2 * visualScale },
+            { x: 34.9 * visualScale, y: -162.9 * visualScale },
         ];
         // 台阶走廊：入口 E(0,0) → 台面前缘接点 D(-27.4,-81.1)（顶阶踏面，贴图 337.7,185.4）
-        this._frontCx = -27.4;
-        this._frontCy = -81.1;
-        this._corridorLen = 85.6;
-        this._corridorHalfW = 110;  // 台阶宽 ≈227 display（踏面 340 世界长投影）
+        this._frontCx = -27.4 * visualScale;
+        this._frontCy = -81.1 * visualScale;
+        this._corridorLen = 85.6 * visualScale;
+        this._corridorHalfW = 110 * visualScale;
         this._corridorDirX = 0.320; // 从 D 指向入口 E（屏幕向下为 +y）
         this._corridorDirY = 0.947;
         // 图层（九版，按建筑统一口径）：注册接地线（setupStructureDepth → _faceLine +
         // _faceDepth = 接地线 y+12）。台面远高于接地线（仲裁窗口不生效），站台上单位
         // 在 GameScene 仅当 _platformLift>0 时显式 max(仲裁, _faceDepth+1)
-        setupStructureDepth(this, this.spriteCfg.size / 2);
+        setupStructureDepth(this);
         this._registerEdgeSegs(); // 单向登台：台面左/右/后三边封死，只留台阶侧进出
         this.rebuildCollider();
     }
@@ -3289,7 +3340,8 @@ class FiringPlatform extends Combatant {
 
     /** 台面中心世界坐标（调试/探针用） */
     topCenter() {
-        return { x: this.x - 43.8, y: this.y - 98.6 };
+        const s = FIRING_PLATFORM_VISUAL.scale;
+        return { x: this.x - 43.8 * s, y: this.y - 98.6 * s };
     }
 }
 
@@ -3311,6 +3363,7 @@ class BuildableGate extends Combatant {
         this.id = config.id || `defense_gate_${grade}_${Math.random().toString(36).slice(2, 7)}`;
         this._isDefenseStructure = true;
         this._isCoverGate = true;
+        this._isGate4 = !!config.isGate4;
         this.noSeparation = true;
         // 门不参与实体分离（resolveCollisions 的 rect 分支）：门的阻挡/放行完全由
         // _gateSeg 面线段承担（关门注册/开门移除）。若保留 198×133 的实体矩形碰撞，
@@ -3338,9 +3391,9 @@ class BuildableGate extends Combatant {
         // face 线（与掩体墙同斜率/同接地偏移，跨度 = 门洞宽）
         // 1 格 = 64×32；栅栏跨 barCells 格 → 水平半跨 = 32×barCells（2 格 → 64）
         const half = barCells === 1 ? cfg.worldFaceLen / 2 : 32 * barCells;
-        // 4 格门（barCells>1）锚点 = 栅栏中点（格网半格位）：接地线在 y+32
-        // （栅栏两格底边中点）；旧 1 格门沿用 y-65 标定。
-        const midY = barCells > 1 ? y + 32 : y - 65;
+        // 4 格门（barCells>1）锚点就是中间两格栅栏 footprint 的中心；
+        // 旧实现额外 +32 把碰撞整体压到下一条地面线，导致转角门/邻接墙误判重叠。
+        const midY = barCells > 1 ? y : y - 65;
         if (eff === 'v') {
             this._faceLine = [
                 { x: x - half, y: midY + half * 0.5 },
@@ -3354,12 +3407,12 @@ class BuildableGate extends Combatant {
         }
         this._faceDepth = Math.max(this._faceLine[0].y, this._faceLine[1].y) + 12;
         this._coverHalfThick = cfg.halfThick;
-        // footprint（与掩体同口径：198×133、厚 26）
-        const foot = (COVER_FOOT[eff] || COVER_FOOT[orient] || COVER_FOOT.v);
-        this.collisionShape = 'rect';
-        this.collisionWidth = foot.w;
-        this.collisionHeight = foot.d;
-        this.colliderOffsetY = foot.offY ?? 0;
+        // 4格门中段精确占 2×1 地面格：沿门轴2格、垂直门轴1格。
+        // 旧1格门仍保留按实际墙厚的窄长 footprint。
+        const footprintHalfThick = barCells > 1
+            ? ONE_CELL_BUILDING_FOOT.w / (2 * Math.SQRT2)
+            : cfg.halfThick;
+        applyIsoFootprintFromSegment(this, this._faceLine[0], this._faceLine[1], footprintHalfThick);
         // 门洞碰撞段：默认关闭 → 注册阻挡；开门放行
         this._gateSeg = {
             x1: this._faceLine[0].x, y1: this._faceLine[0].y,
@@ -3381,6 +3434,7 @@ class BuildableGate extends Combatant {
         // 'locked' 常锁——任何单位经过都不开；'open' 常开——门口保持敞开
         this.gateMode = 'auto';
         this._initGateSprite(cfg);
+        if (this._isGate4) applyResearchHp(this, hp);
         this.rebuildCollider();
     }
 
@@ -3394,13 +3448,16 @@ class BuildableGate extends Combatant {
         const ky = this._barsOnly ? GATE4_VISUAL.scaleY : cfg.displayScale;
         const midTexX = (cfg.faceA.x + cfg.faceB.x) / 2;
         const midTexY = (cfg.faceA.y + cfg.faceB.y) / 2;
-        this._spriteCx = (this._faceLine[0].x + this._faceLine[1].x) / 2 - (midTexX - cfg.cellW / 2) * kx;
-        this._spriteCy = (this._faceLine[0].y + this._faceLine[1].y) / 2 - (midTexY - cfg.cellH / 2) * ky;
+        this._spriteCx = this._barsOnly
+            ? this.x
+            : (this._faceLine[0].x + this._faceLine[1].x) / 2 - (midTexX - cfg.cellW / 2) * kx;
+        this._spriteCy = this._barsOnly
+            ? this.y - GATE4_VISUAL.footOffsetY
+            : (this._faceLine[0].y + this._faceLine[1].y) / 2 - (midTexY - cfg.cellH / 2) * ky;
         // 2026-08-17 二修：GameScene 每帧用 footOffsetY 重定位 _phaserSprite（栅栏），
         // 旧 1 格门靠 displayHeight/2 兜底巧合对齐；宽门（k=0.488）兜底错位 →
         // 显式设置 footOffsetY = y − _spriteCy，让栅栏精灵落在接地线（贴地）。
-        // 三修：非等比 ky 下，栅栏内容底边（tex y≈547）须落在接地线（face 中点 y+32）：
-        // footOffsetY = (547−317)×ky − 32 = 230×ky − 32
+        // 4格门视觉仍复用已验收的柱/栅栏贴图标定；逻辑碰撞中心独立回归门锚点。
         this.footOffsetY = this._barsOnly ? GATE4_VISUAL.footOffsetY : Math.round(this.y - this._spriteCy);
         // 三段深度精灵（与基地门同图层设计，2026-08-15）：
         // 左柱=深端、右柱=浅端、栅栏=中点，各自按底边线锚定，前实体不再被右柱整体遮挡

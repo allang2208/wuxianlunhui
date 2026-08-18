@@ -20,10 +20,13 @@ import aiConfigData from '../../data/ai-config.json';
 import SpatialPartitionSystem from './spatial-partition-system.js';
 import {
     computeStructureOccupancy,
-    pickStructureTarget,
     attackSlotsOf,
     isStructureAttackable,
 } from '../ai/defense-targeting.js';
+import {
+    pickDefensePriorityTarget,
+    shouldSwitchDefenseTarget,
+} from '../ai/defense-target-priority.js';
 
 /** 感知优先级权重配置 */
 const PERCEPTION_WEIGHTS = {
@@ -156,6 +159,25 @@ class PerceptionSystemImpl {
             const betterTarget = better ? better.target : null;
             const picked = better ? better.picked : null;
             if (betterTarget && betterTarget !== enemy.target) {
+                if (enemy._preferDefenseTargets) {
+                    const pickedDifferent = !!(picked && picked.target !== enemy.target);
+                    const structOver = !!(!enemy._gatePursuit
+                        && enemy.target._isDefenseStructure
+                        && pickedDifferent
+                        && (structOcc.get(enemy.target) || 0) >= attackSlotsOf(enemy.target));
+                    const structUnreachable = !!(!enemy._gatePursuit
+                        && enemy.target._isDefenseStructure
+                        && pickedDifferent
+                        && !isStructureAttackable(enemy, enemy.target));
+                    const prioritySwitch = !enemy._gatePursuit
+                        && shouldSwitchDefenseTarget(enemy, enemy.target, better.priority);
+                    if (prioritySwitch || structOver || structUnreachable) {
+                        enemy.target = betterTarget;
+                        enemy._lastKnownTargetPos = { x: betterTarget.x, y: betterTarget.y };
+                        enemy._lostSightTimer = 0;
+                    }
+                    return;
+                }
                 // 只有当新目标明显更优时才切换（避免目标跳来跳去）
                 const currentScore = this._evaluateTarget(enemy, enemy.target);
                 const newScore = this._evaluateTarget(enemy, betterTarget);
@@ -215,6 +237,13 @@ class PerceptionSystemImpl {
     _findBestTarget(enemy, entities, structOcc = null) {
         const alertRange = enemy._alertRange || DEFAULT_PERCEPTION.alertRange;
         const candidates = this._collectCandidates(enemy, entities, alertRange);
+        if (enemy._preferDefenseTargets) {
+            const pick = pickDefensePriorityTarget(enemy, candidates, {
+                occupancy: structOcc,
+                isReachable: (target) => this._checkLineOfSight(enemy, target),
+            });
+            return pick ? pick.target : null;
+        }
 
         // [PERF] 第一级粗筛：只算不含 LOS 的基础分（距离/玩家/威胁/残血，权重不变）
         const scored = [];
@@ -243,11 +272,6 @@ class PerceptionSystemImpl {
             }
         }
 
-        // 防守模式结构候选：拥挤感知替换（把溢出怪分摊到附近低占用第二结构）
-        if (enemy._preferDefenseTargets && bestTarget && bestTarget._isDefenseStructure) {
-            const pick = pickStructureTarget(enemy, entities, structOcc);
-            if (pick) bestTarget = pick.target;
-        }
         return bestTarget;
     }
 
@@ -260,6 +284,17 @@ class PerceptionSystemImpl {
     _findBetterTarget(enemy, entities, structOcc = null) {
         const alertRange = enemy._alertRange || DEFAULT_PERCEPTION.alertRange;
         const candidates = this._collectCandidates(enemy, entities, alertRange);
+        if (enemy._preferDefenseTargets) {
+            const priority = pickDefensePriorityTarget(enemy, candidates, {
+                exclude: enemy.target,
+                occupancy: structOcc,
+                allowFarUnitFallback: !enemy.target?._isDefenseStructure,
+                isReachable: (target) => this._checkLineOfSight(enemy, target),
+            });
+            if (!priority) return null;
+            const picked = priority.target._isDefenseStructure ? priority : null;
+            return { target: priority.target, picked, priority };
+        }
 
         // [PERF] 第一级粗筛：只算不含 LOS 的基础分
         const scored = [];
@@ -288,13 +323,7 @@ class PerceptionSystemImpl {
             }
         }
 
-        // 防守模式结构候选：拥挤感知替换（可能返回当前目标 → 上层保持不换）
-        let picked = null;
-        if (enemy._preferDefenseTargets && bestTarget && bestTarget._isDefenseStructure) {
-            picked = pickStructureTarget(enemy, entities, structOcc);
-            if (picked) bestTarget = picked.target;
-        }
-        return { target: bestTarget, picked };
+        return { target: bestTarget, picked: null };
     }
 
     /**
@@ -565,8 +594,8 @@ class PerceptionSystemImpl {
         if (!entity || !entity.active) return false;
         if (entity === enemy) return false;
         // 只针对玩家阵营
-        // 2026-08-15 扩展：玩家友方单位（仓鼠矿工等）带 _enemyTargetable 标记后才可被怪物锁定；
-        // 露娜（companion 无标记）保持不拉仇恨。
+        // 玩家友方单位仅在显式 _enemyTargetable 时可被怪物锁定：
+        // 世界-122 仓鼠与正式玩家队友均开启，普通 companion 占位/NPC 不自动拉仇恨。
         if (entity._faction !== 'player'
             && !(entity._faction === 'companion' && entity._enemyTargetable)) return false;
         // 需要可受击

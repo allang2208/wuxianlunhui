@@ -11,7 +11,7 @@ import { canEquipSlot, getEquipmentBonuses, isOneHandedItem } from '../ui/equip/
 import { buildSkillMap, restoreSkills, grantCompanionSkillExp } from '../systems/skill-system.js';
 import COMBAT_FORMULAS from '../../data/combat-formulas.json';
 import companionConfigData from '../../data/companion-config.json';
-import { ENERGY_ITEM } from '../systems/energy-manager.js';
+import { EnergyManager } from '../systems/energy-manager.js';
 
 const ATTR_KEYS = ['str', 'dex', 'int', 'con', 'wis', 'luck'];
 
@@ -109,6 +109,11 @@ export class Companion {
         this.groundRadius = 26;
         this.bodyHeight = 130;
         this._faction = 'companion'; // 与 player 互为友军（技能敌我判定按阵营分组）
+        this._isPartyCompanion = true;
+        this._enemyTargetable = true; // 世界-122：正式玩家队友可被防守怪锁定；仓鼠有更高分类优先级
+        this.hittable = true;
+        this.hitFlash = 0;
+        this.hitFlashDuration = 120;
         this.target = null;
         this._animState = 'idle';    // idle | walk | run | spell（渲染层消费）
         this._castState = 'idle';    // idle | casting | recover
@@ -127,6 +132,8 @@ export class Companion {
     }
 
     get level() { return this.data.level; }
+    get hp() { return this.data.hp; }
+    get maxHp() { return this.data.maxHp; }
 
     /** 升级曲线与玩家同口径（唯一来源 combat-formulas player.expPerLevel） */
     getExpForLevel(level) {
@@ -268,9 +275,11 @@ export class Companion {
             }
             const dealt = raw * remainingRatio;
             d.hp = Math.max(0, d.hp - dealt);
+            if (dealt > 0) this.hitFlash = this.hitFlashDuration;
             return { damage: dealt, parried: true };
         }
         d.hp = Math.max(0, d.hp - raw);
+        if (raw > 0) this.hitFlash = this.hitFlashDuration;
         return { damage: raw, parried: false };
     }
 
@@ -450,35 +459,9 @@ export class Companion {
         this.backpack.push({ ...JSON.parse(JSON.stringify(item)), slot: freeSlot });
     }
 
-    /**
-     * 采集能源直接入包（2026-08-16 用户口径：队友采矿同仓鼠矿工，不落地）。
-     * 并入背包已有能源堆（≤999 上限），满则开新堆；背包无空位拒绝。
-     * 返回实际入包量（0 = 背包满，未装下）。仓鼠矿工子类覆写为隐藏背包。
-     */
+    /** 采集能源直接进入世界-122仓库；返回实际入库量。 */
     addMinedEnergy(amount) {
-        if (!(amount > 0)) return 0;
-        const items = this.backpack || [];
-        const maxStack = ENERGY_ITEM.maxStack || 999;
-        let added = 0;
-        // 先并入已有能源堆
-        for (const it of items) {
-            if (!it || it.category !== 'energy') continue;
-            const space = maxStack - (it.stack || 0);
-            if (space <= 0) continue;
-            const take = Math.min(amount - added, space);
-            it.stack += take;
-            added += take;
-            if (added >= amount) return added;
-        }
-        // 再开新堆（找空位）
-        while (added < amount) {
-            const slot = this._findFreeBackpackSlot();
-            if (slot < 0) break;
-            const take = Math.min(amount - added, maxStack);
-            items.push({ ...ENERGY_ITEM, slot, stack: take });
-            added += take;
-        }
-        return added;
+        return EnergyManager ? EnergyManager.depositEnergy(amount) : 0;
     }
 
     /** 序列化（存档用）：纯数据 */
@@ -523,6 +506,13 @@ export class Companion {
         c.data = { ...s.data };
         c.equipments = s.equipments || {};
         c.backpack = s.backpack || [];
+        let legacyEnergy = 0;
+        c.backpack = c.backpack.filter((item) => {
+            if (!item || item.category !== 'energy') return true;
+            legacyEnergy += Math.max(0, Number(item.stack) || 0);
+            return false;
+        });
+        if (legacyEnergy > 0 && EnergyManager) EnergyManager.importLegacyEnergy(legacyEnergy);
         // 技能重建：JSON 序列化丢 getEffect/getExpForNext 方法，按 id 从 SKILL_DATA 重建
         c.skills = restoreSkills(s.skills || {});
         c.animations = s.animations || {};

@@ -54,7 +54,8 @@ export class Collider {
         if (entity.collisionRadius > 0) {
             return entity.collisionRadius;
         }
-        if (entity.collisionShape === 'rect' && entity.collisionWidth > 0 && entity.collisionHeight > 0) {
+        if ((entity.collisionShape === 'rect' || entity.collisionShape === 'iso_rect')
+            && entity.collisionWidth > 0 && entity.collisionHeight > 0) {
             return Math.max(entity.collisionWidth, entity.collisionHeight) / 2;
         }
         if (entity.size > 0) {

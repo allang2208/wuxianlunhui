@@ -16,6 +16,7 @@ import hamsterShooterConfig from '../../../data/hamster-shooter-config.json';
 import hamsterGuardConfig from '../../../data/hamster-guard-config.json';
 import hamsterMilitiaConfig from '../../../data/hamster-militia-config.json';
 import hamsterScoutConfig from '../../../data/hamster-scout-config.json';
+import hamsterMusketeerConfig from '../../../data/hamster-musketeer-config.json';
 
 export class BootScene extends Scene {
     constructor() {
@@ -91,7 +92,7 @@ export class BootScene extends Scene {
         }
 
         // ---- 世界-122 友方单位（仓鼠矿工/战士/射手/盾卫/民兵/斥候；独立配置，不入招募池）----
-        for (const unitConfig of [hamsterMinerConfig, hamsterWarriorConfig, hamsterShooterConfig, hamsterGuardConfig, hamsterMilitiaConfig, hamsterScoutConfig]) {
+        for (const unitConfig of [hamsterMinerConfig, hamsterWarriorConfig, hamsterShooterConfig, hamsterGuardConfig, hamsterMilitiaConfig, hamsterScoutConfig, hamsterMusketeerConfig]) {
             for (const [animKey, def] of Object.entries(unitConfig.animations || {})) {
                 if (!def || !def.src) continue;
                 this.load.spritesheet(`companion_${unitConfig.id}_${animKey}`, def.src, {
@@ -249,6 +250,10 @@ export class BootScene extends Scene {
         this.load.image('barracks', 'assets/terrain/barracks.png');
         this.load.image('mine', 'assets/terrain/mine.png');
         this.load.image('blacksmith', 'assets/terrain/blacksmith.png');
+        // 世界-122 研究院（素材库原图裁透明边并缩至 1024 宽）
+        this.load.image('research_institute', 'assets/terrain/research_institute.png');
+        this.load.image('warehouse', 'assets/terrain/warehouse.png');
+        this.load.image('shooting_range', 'assets/terrain/shooting_range.png');
         this.load.image('thatch_hut', 'assets/terrain/thatch_hut.png');
         // 世界-122 防御塔机械臂（预渲染 3D 旋转帧，48 帧等距透视，按 aimAngle 选帧）
         this.load.spritesheet('obstacle_defense_tower_arm_frames', 'assets/terrain/obstacle_defense_tower_arm_frames.png', { frameWidth: 261, frameHeight: 164 });
@@ -571,7 +576,7 @@ export class BootScene extends Scene {
         // 仓鼠盾卫 attack = 12 帧单次（第 10 帧判定伤害由 AI 计时）；
         // 仓鼠民兵 attack = 15 帧单次（第 8 帧判定伤害由 AI 计时）；
         // 仓鼠斥候 attack = 18 帧单次（第 11 帧出膛由 AI 计时）+ projectile 单帧贴图
-        for (const unitConfig of [hamsterMinerConfig, hamsterWarriorConfig, hamsterShooterConfig, hamsterGuardConfig, hamsterMilitiaConfig, hamsterScoutConfig]) {
+        for (const unitConfig of [hamsterMinerConfig, hamsterWarriorConfig, hamsterShooterConfig, hamsterGuardConfig, hamsterMilitiaConfig, hamsterScoutConfig, hamsterMusketeerConfig]) {
             for (const [animKey, def] of Object.entries(unitConfig.animations || {})) {
                 if (!def || !def.src) continue;
                 const texKey = `companion_${unitConfig.id}_${animKey}`;

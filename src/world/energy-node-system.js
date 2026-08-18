@@ -11,7 +11,7 @@ import { Game } from '../game.js';
 import { DamageableEntity } from '../entities/damageable-entity.js';
 import { WallSystem } from './wall-system.js';
 import { setupStructureDepth } from './structure-depth.js';
-import { ENERGY_ITEM } from '../systems/energy-manager.js';
+import { EnergyManager, ENERGY_ITEM } from '../systems/energy-manager.js';
 import { ENERGY_CONFIG } from '../config/energy-config.js';
 import { pathFinder } from '../ai/pathfinder.js';
 import {
@@ -84,16 +84,25 @@ class EnergyNode extends DamageableEntity {
     takeDamage(damage, source, damageType = 'physical', isMelee = true) {
         if (this._depleted) return 0;
         if (source && source._faction === 'enemy') return 0; // 资源点对怪物免疫
+        const directToWarehouse = !!(source && (source._faction === 'player' || source._faction === 'companion'));
+        if (directToWarehouse && EnergyManager && EnergyManager.isFull()) {
+            EnergyManager.depositEnergy(1); // 触发节流后的满仓提示，不改变存量
+            return 0;
+        }
+        let appliedDamage = damage;
+        if (directToWarehouse && EnergyManager) {
+            const free = EnergyManager.getFreeCapacity();
+            const ratio = ENERGY_CONFIG.gatherRatio || 0.5;
+            if (ratio > 0) appliedDamage = Math.min(damage, Math.ceil(free / ratio));
+        }
         const before = this.hp;
-        super.takeDamage(damage, source, damageType, isMelee);
+        super.takeDamage(appliedDamage, source, damageType, isMelee);
         const dealt = Math.max(0, before - this.hp);
         if (dealt <= 0) return dealt;
         const energy = Math.floor(dealt * ENERGY_CONFIG.gatherRatio);
         if (energy > 0) {
-            if (source && typeof source.addMinedEnergy === 'function') {
-                // 仓鼠矿工挖矿装填隐藏背包 / 队友（露娜、伊莉丝）采集直接入队员背包，
-                // 均不产生地面掉落（2026-08-15 矿工口径，2026-08-16 队友同口径）
-                source.addMinedEnergy(energy);
+            if (directToWarehouse && EnergyManager) {
+                EnergyManager.depositEnergy(energy);
             } else if (Game && typeof Game.dropItem === 'function') {
                 const ang = Math.random() * Math.PI * 2;
                 const r = 20 + Math.random() * 34; // 节点周围散落，避免全部重叠

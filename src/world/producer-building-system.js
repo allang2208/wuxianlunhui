@@ -13,6 +13,7 @@ import { HamsterShooter } from '../entities/hamster-shooter.js';
 import { HamsterGuard } from '../entities/hamster-guard.js';
 import { HamsterMilitia } from '../entities/hamster-militia.js';
 import { HamsterScout } from '../entities/hamster-scout.js';
+import { HamsterMusketeer } from '../entities/hamster-musketeer.js';
 import { GoldManager } from '../systems/gold-manager.js';
 import { EnergyManager } from '../systems/energy-manager.js';
 import { EffectManager } from '../effects/effect-manager.js';
@@ -29,13 +30,26 @@ import shooterCfg from '../../data/hamster-shooter-config.json';
 import guardCfg from '../../data/hamster-guard-config.json';
 import militiaCfg from '../../data/hamster-militia-config.json';
 import scoutCfg from '../../data/hamster-scout-config.json';
+import musketeerCfg from '../../data/hamster-musketeer-config.json';
 import {
     applyGlobalUpgradesToKind,
     getUnitUpgradeLevel,
     getUnitUpgradeMults,
     raiseUnitUpgradeLevel,
 } from './unit-upgrade-store.js';
-import { getAbilityLevel, raiseAbilityLevel } from './ability-store.js';
+import { getAbilityLevel, getAbilityValue, raiseAbilityLevel } from './ability-store.js';
+import { ResearchSystem } from './research-system.js';
+import { applyBuildingFootprint } from './building-footprint.js';
+import { SpawnPlacement } from './spawn-placement.js';
+
+const ABILITY_TARGET_NAMES = Object.freeze({
+    warrior: '仓鼠战士',
+    shooter: '仓鼠射手',
+    guard: '仓鼠盾卫',
+    militia: '仓鼠民兵',
+    scout: '仓鼠斥候',
+    musketeer: '仓鼠火枪',
+});
 
 /** 产兵建筑配置表（唯一真源，building-system.js 也据此生成可建条目） */
 export const PRODUCER_BUILDINGS = producerBuildings;
@@ -47,6 +61,7 @@ const PRODUCER_UNIT_CFG = {
     guard: guardCfg,
     militia: militiaCfg,
     scout: scoutCfg,
+    musketeer: musketeerCfg,
 };
 
 /** 单位 key → 实体类 */
@@ -56,6 +71,7 @@ const PRODUCER_UNIT_CLASS = {
     guard: HamsterGuard,
     militia: HamsterMilitia,
     scout: HamsterScout,
+    musketeer: HamsterMusketeer,
 };
 
 export function getProducerConfig(key) {
@@ -130,7 +146,8 @@ export class ProducerBuilding extends DamageableEntity {
             footOffsetY: cfg.footOffsetY,
         };
         this.footOffsetY = cfg.footOffsetY;
-        setupStructureDepth(this, cfg.displayW / 2);
+        applyBuildingFootprint(this, 2);
+        setupStructureDepth(this);
         this.level = 1;
         this.maxLevel = 10;
         this.modules = {};            // { moduleId: level }
@@ -138,9 +155,16 @@ export class ProducerBuilding extends DamageableEntity {
         this.units = [];              // 本建筑拥有的军事单位
         this._unitSeq = 0;
         this._spawnTimer = 0;
+        this._baseSpawnIntervalMs = cfg.spawnIntervalMs;
+        this._spawnRetryTimer = 0;
+        this._spawnBlocked = false;
         this.spawnEnabled = cfg.spawnEnabled !== false; // 铁匠铺等能力建筑不产兵
         this._upgrade = null;         // 能力升级读条 { abilityId, totalMs, remainMs }
         this._continuous = null;      // 持续升级的能力 id（资源足够自动续升）
+        this._isEnergyWarehouse = cfg.workshopType === 'warehouse';
+        if (this._isEnergyWarehouse && EnergyManager) {
+            EnergyManager.registerWarehouse(this, cfg.storageCapacity ?? 5000);
+        }
         this.rebuildCollider();
     }
 
@@ -172,20 +196,14 @@ export class ProducerBuilding extends DamageableEntity {
         return true;
     }
 
-    /** 附近合法落点（WallSystem 校验，兜底建筑脚下） */
+    /** 固定出口槽位：墙体、建筑 footprint、动态单位与出口预约全部通过才返回。 */
     _findUnitSpawn() {
-        const r = this._cfg.spawnRadius;
-        const halfW = this._cfg.displayW / 2;
-        for (let i = 0; i < 10; i++) {
-            const a = Math.random() * Math.PI * 2;
-            const d = (halfW + 20) + Math.random() * r;   // 建筑外沿起算，防生成点落在屋内
-            const x = this.x + Math.cos(a) * d;
-            const y = this.y + Math.sin(a) * d;
-            if (!WallSystem || !WallSystem.canMoveTo || WallSystem.canMoveTo(x, y, 24)) {
-                return { x, y };
-            }
-        }
-        return { x: this.x + halfW + 20, y: this.y + 20 };
+        return SpawnPlacement.findAndReserve(this, {
+            unitRadius: 24,
+            entities: Game?.entities,
+            wallSystem: WallSystem,
+            preferredTarget: this._rallyPoint || Game?.player,
+        });
     }
 
     /** 生成一个军事单位（当前 unitType），应用模块倍率 */
@@ -198,6 +216,7 @@ export class ProducerBuilding extends DamageableEntity {
         const baseAi = base.ai || {};
         const mults = this.mults();
         const spot = this._findUnitSpawn();
+        if (!spot) return null;
         const id = `${this.id}_unit_${++this._unitSeq}`;
         const ai = {
             ...baseAi,
@@ -208,6 +227,7 @@ export class ProducerBuilding extends DamageableEntity {
         const baseMaxHp = Math.max(1, Math.round((base.baseMaxHp ?? 300) * mults.hpMult));
         const unit = new UnitClass(spot.x, spot.y, { id, ai, baseMaxHp });
         unit._barracks = this;
+        unit._spawnEgress = { x: spot.egressX, y: spot.egressY };
         this.units.push(unit);
         Game.entities.set(id, unit);
         if (Array.isArray(Game.friendlyUnits)) Game.friendlyUnits.push(unit);
@@ -298,6 +318,7 @@ export class ProducerBuilding extends DamageableEntity {
         const { abilityId } = this._upgrade;
         this._upgrade = null;
         const level = raiseAbilityLevel(abilityId);
+        ResearchSystem.onResearchLeveled(abilityId);
         const a = this.getAbility(abilityId);
         if (a && EffectManager) {
             EffectManager.add(new FloatingTextEffect(this.x, this.y - 56, `${a.name} Lv.${level}`, '#c9a0ff'));
@@ -339,22 +360,43 @@ export class ProducerBuilding extends DamageableEntity {
     }
 
     /** 主循环：每 spawnIntervalMs 生成一个军事单位（存活数低于上限时） */
+    recruitIntervalMs() {
+        return ResearchSystem.getRecruitIntervalMs
+            ? ResearchSystem.getRecruitIntervalMs(this._baseSpawnIntervalMs)
+            : this._baseSpawnIntervalMs;
+    }
+
     update(dt) {
         if (!this.active) return;
         this._updateUpgrade(dt);
         if (!this.spawnEnabled) return;
         if (this.aliveUnitCount() < this.unitCount()) {
-            this._spawnTimer -= dt;
+            this._spawnTimer = Math.max(0, this._spawnTimer - dt);
             if (this._spawnTimer <= 0) {
-                this._spawnTimer = this._cfg.spawnIntervalMs;
+                this._spawnRetryTimer -= dt;
+                if (this._spawnRetryTimer > 0) return;
                 const unit = this.spawnUnit();
+                if (unit) {
+                    this._spawnTimer = this.recruitIntervalMs();
+                    this._spawnRetryTimer = 0;
+                    this._spawnBlocked = false;
+                } else {
+                    this._spawnTimer = 0;
+                    this._spawnRetryTimer = SpawnPlacement.retryMs;
+                    if (!this._spawnBlocked && EffectManager) {
+                        EffectManager.add(new FloatingTextEffect(this.x, this.y - 66, '出口被阻挡，等待空位', '#ff8855'));
+                    }
+                    this._spawnBlocked = true;
+                }
                 if (unit && EffectManager) {
                     const name = this.unitName(this.unitType);
                     EffectManager.add(new FloatingTextEffect(this.x, this.y - 56, `${name} 报到！`, '#8ad0ff'));
                 }
             }
         } else {
-            this._spawnTimer = this._cfg.spawnIntervalMs;
+            this._spawnTimer = this.recruitIntervalMs();
+            this._spawnRetryTimer = 0;
+            this._spawnBlocked = false;
         }
     }
 
@@ -373,6 +415,12 @@ export class ProducerBuilding extends DamageableEntity {
         this._upgrade = null;
         this._continuous = null;
         this._despawnUnits();
+        if (this._isEnergyWarehouse && EnergyManager) {
+            const lost = EnergyManager.unregisterWarehouse(this);
+            if (lost > 0 && EffectManager) {
+                EffectManager.add(new FloatingTextEffect(this.x, this.y - 62, `仓库被毁，损失 ${lost} 能源`, '#ff5555'));
+            }
+        }
         if (ProducerBuildingSystem && ProducerBuildingSystem.buildings) {
             const i = ProducerBuildingSystem.buildings.indexOf(this);
             if (i >= 0) ProducerBuildingSystem.buildings.splice(i, 1);
@@ -401,17 +449,28 @@ export class ProducerBuilding extends DamageableEntity {
 
     /** 出售：返还 50% 建造能源，单位一并拆除 */
     sell() {
+        if (this._isEnergyWarehouse && (this.storedEnergy || 0) > 0) {
+            return { ok: false, reason: '仓库中仍有能源，无法出售' };
+        }
         const refund = Math.floor(this._cfg.cost * (this._cfg.sellRefundRatio ?? 0.5));
+        if (this._cfg.currency !== 'gold' && (!EnergyManager || !EnergyManager.canStore(refund))) {
+            return { ok: false, reason: '仓库空间不足，无法接收出售返还能源' };
+        }
         this.active = false;
         this._upgrade = null;
         this._continuous = null;
         this._despawnUnits();
+        if (this._isEnergyWarehouse && EnergyManager) EnergyManager.unregisterWarehouse(this);
         if (Game && Game.entities && this.id) Game.entities.delete(this.id);
         if (ProducerBuildingSystem && ProducerBuildingSystem.buildings) {
             const i = ProducerBuildingSystem.buildings.indexOf(this);
             if (i >= 0) ProducerBuildingSystem.buildings.splice(i, 1);
         }
-        if (EnergyManager) EnergyManager.addEnergy(refund);
+        if (this._cfg.currency === 'gold') {
+            if (GoldManager) GoldManager.addGold(refund);
+        } else if (EnergyManager) {
+            EnergyManager.addEnergy(refund);
+        }
         if (ProducerBuildingSystem && ProducerBuildingSystem._panel && ProducerBuildingSystem._panel.isOpen
             && ProducerBuildingSystem._panel.building === this) {
             ProducerBuildingSystem._panel.close();
@@ -503,10 +562,27 @@ class ProducerBuildingPanel extends BasePanel {
         const el = this.el;
         if (!el || !this.building) return;
         const b = this.building;
-        const spawnMs = b._cfg.spawnIntervalMs;
-        const spawnProgress = Math.max(0, Math.min(1, 1 - b._spawnTimer / spawnMs));
+        if (b._isEnergyWarehouse) {
+            const own = Math.floor(b.storedEnergy || 0);
+            const ownCap = Math.floor(b.storageCapacity || b._cfg.storageCapacity || 5000);
+            const total = EnergyManager ? EnergyManager.getEnergy() : 0;
+            const totalCap = EnergyManager ? EnergyManager.getCapacity() : 0;
+            const pct = ownCap > 0 ? Math.round(own / ownCap * 100) : 0;
+            const ownEl = el.querySelector('#pbWarehouseOwn');
+            const totalEl = el.querySelector('#pbWarehouseTotal');
+            const pctEl = el.querySelector('#pbWarehousePct');
+            const barEl = el.querySelector('#pbWarehouseBar');
+            if (ownEl) ownEl.textContent = `${own}/${ownCap}`;
+            if (totalEl) totalEl.textContent = `${total}/${totalCap}`;
+            if (pctEl) pctEl.textContent = `${pct}%`;
+            if (barEl) barEl.style.width = `${pct}%`;
+            return;
+        }
+        const spawnMs = b.recruitIntervalMs();
+        const spawnProgress = b._spawnBlocked ? 1 : Math.max(0, Math.min(1, 1 - b._spawnTimer / spawnMs));
         const spawnPct = Math.round(spawnProgress * 100);
-        const spawnBarColor = spawnProgress < 0.5 ? '#ffd700' : (spawnProgress < 0.8 ? '#ff9d45' : '#7fe0c8');
+        const spawnBarColor = b._spawnBlocked ? '#ff7755'
+            : (spawnProgress < 0.5 ? '#ffd700' : (spawnProgress < 0.8 ? '#ff9d45' : '#7fe0c8'));
         const bar = el.querySelector('#pbSpawnBar');
         const pct = el.querySelector('#pbSpawnPct');
         const next = el.querySelector('#pbSpawnNext');
@@ -518,7 +594,9 @@ class ProducerBuildingPanel extends BasePanel {
             pct.textContent = `${spawnPct}%`;
             pct.style.color = spawnBarColor;
         }
-        if (next) next.textContent = `${Math.max(0, Math.ceil(b._spawnTimer / 1000))}s`;
+        if (next) next.textContent = b._spawnBlocked
+            ? '出口阻塞'
+            : `${Math.max(0, Math.ceil(b._spawnTimer / 1000))}s`;
         // 铁匠铺能力升级读条进度（2026-08-17）
         if (b._upgrade) {
             const up = b._upgrade;
@@ -537,6 +615,26 @@ class ProducerBuildingPanel extends BasePanel {
         }
     }
 
+    _abilityValueText(ability, level) {
+        const value = getAbilityValue(ability, level);
+        return ability.displayMode === 'flat'
+            ? String(Math.round(value))
+            : `${Math.round(value * 1000) / 10}%`;
+    }
+
+    _fillAbilityDesc(ability, level) {
+        const text = this._abilityValueText(ability, level);
+        return (ability.desc || '')
+            .replace('{chance}', text)
+            .replace('{dmg}', text)
+            .replace('{pct}', text)
+            .replace('{value}', text);
+    }
+
+    _abilityTargetText(target) {
+        return ABILITY_TARGET_NAMES[target] || target || '—';
+    }
+
     refresh() {
         const el = this.el;
         if (!el || !this.building) return;
@@ -544,19 +642,22 @@ class ProducerBuildingPanel extends BasePanel {
         const cfg = b._cfg;
         const energy = EnergyManager ? EnergyManager.getEnergy() : 0;
         const gold = GoldManager ? GoldManager.getGold() : 0;
-        const isAbilityShop = cfg.spawnEnabled === false; // 铁匠铺等能力建筑（2026-08-17）
+        const isWarehouse = cfg.workshopType === 'warehouse';
+        const isAbilityShop = cfg.spawnEnabled === false && !isWarehouse;
         el.querySelector('#pbTitle').textContent = `🏠 ${cfg.name}`;
         const unitTypeEl = el.querySelector('#pbUnitType');
-        if (unitTypeEl) unitTypeEl.style.display = isAbilityShop ? 'none' : '';
+        if (unitTypeEl) unitTypeEl.style.display = (isAbilityShop || isWarehouse) ? 'none' : '';
 
         const st = el.querySelector('#pbStatus');
         const curType = b.unitName(b.unitType);
-        const spawnMs = cfg.spawnIntervalMs;
+        const spawnMs = b.recruitIntervalMs();
         const nextIn = Math.max(0, Math.ceil(b._spawnTimer / 1000));
         // 出兵进度 = 已等待时间 / 生成周期（切换单位类型不重置 _spawnTimer，进度不受影响）
-        const spawnProgress = Math.max(0, Math.min(1, 1 - b._spawnTimer / spawnMs));
+        const spawnProgress = b._spawnBlocked ? 1 : Math.max(0, Math.min(1, 1 - b._spawnTimer / spawnMs));
         const spawnPct = Math.round(spawnProgress * 100);
-        const spawnBarColor = spawnProgress < 0.5 ? '#ffd700' : (spawnProgress < 0.8 ? '#ff9d45' : '#7fe0c8');
+        const spawnBarColor = b._spawnBlocked ? '#ff7755'
+            : (spawnProgress < 0.5 ? '#ffd700' : (spawnProgress < 0.8 ? '#ff9d45' : '#7fe0c8'));
+        const nextText = b._spawnBlocked ? '出口阻塞' : `${nextIn}s`;
         st.innerHTML = `
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
                 <div><span style="color:#ffd700;font-weight:700;">等级 ${b.level}</span></div>
@@ -565,7 +666,7 @@ class ProducerBuildingPanel extends BasePanel {
             <div style="font-size:12px;color:#c8b98a;line-height:1.7;">
                 军事单位 <span style="color:#8ad0ff;">${b.aliveUnitCount()}/${b.unitCount()}</span> ·
                 当前生成 <b style="color:#7fe0c8;">${curType}</b><br>
-                下次生成 <b id="pbSpawnNext" style="color:#7fd4ff;">${nextIn}s</b>（每 ${spawnMs / 1000}s 一单位）·
+                下次生成 <b id="pbSpawnNext" style="color:${b._spawnBlocked ? '#ff7755' : '#7fd4ff'};">${nextText}</b>（当前周期 ${(spawnMs / 1000).toFixed(1)}s）·
                 攻击间隔/伤害/移速/生命随模块升级
             </div>
             <div style="margin-top:8px;">
@@ -631,23 +732,53 @@ class ProducerBuildingPanel extends BasePanel {
         const sellBtn = el.querySelector('#pbSell');
         if (sellBtn) {
             const refund = Math.floor(cfg.cost * (cfg.sellRefundRatio ?? 0.5));
-            sellBtn.title = `出售返还 ${refund} 能源${isAbilityShop ? '' : '（军事单位一并拆除）'}`;
+            const refundUnit = cfg.currency === 'gold' ? '金币' : '能源';
+            sellBtn.title = `出售返还 ${refund} ${refundUnit}${isAbilityShop || isWarehouse ? '' : '（军事单位一并拆除）'}`;
             sellBtn.onclick = () => {
                 const res = b.sell();
-                this._notify(res.ok ? `已出售（+${res.refund} 能源）` : '出售失败', res.ok ? '#ffd700' : '#ff5555');
-                this.close();
+                this._notify(res.ok ? `已出售（+${res.refund} ${refundUnit}）` : (res.reason || '出售失败'), res.ok ? '#ffd700' : '#ff5555');
+                if (res.ok) this.close();
             };
+        }
+        if (isWarehouse) {
+            const own = Math.floor(b.storedEnergy || 0);
+            const ownCap = Math.floor(b.storageCapacity || cfg.storageCapacity || 5000);
+            const total = EnergyManager ? EnergyManager.getEnergy() : 0;
+            const totalCap = EnergyManager ? EnergyManager.getCapacity() : 0;
+            const warehouseCount = EnergyManager ? EnergyManager.getWarehouseCount() : 0;
+            const pct = ownCap > 0 ? Math.round(own / ownCap * 100) : 0;
+            st.innerHTML = `
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                    <div><span style="color:#ffd700;font-weight:700;">📦 能源仓库</span></div>
+                    <div style="font-size:12px;color:#9a9a9a;">耐久 ${Math.ceil(b.hp)}/${b.maxHp}</div>
+                </div>
+                <div style="font-size:12px;color:#c8b98a;line-height:1.7;">
+                    本仓库：<b id="pbWarehouseOwn" style="color:#7fd4ff;">${own}/${ownCap}</b><br>
+                    全部仓库：<b id="pbWarehouseTotal" style="color:#7fd4ff;">${total}/${totalCap}</b> · 数量 ${warehouseCount}
+                </div>`;
+            modBox.innerHTML = `
+                <div style="font-size:13px;font-weight:700;color:#7fd4ff;margin-bottom:6px;">仓储容量 <span id="pbWarehousePct">${pct}%</span></div>
+                <div style="height:12px;background:#1b2830;border:1px solid #3a6475;border-radius:6px;overflow:hidden;">
+                    <div id="pbWarehouseBar" style="height:100%;width:${pct}%;background:linear-gradient(90deg,#2a8ab8,#7fd4ff);"></div>
+                </div>
+                <div style="font-size:11px;color:#8aa0aa;margin-top:6px;">采矿产出的能源会直接汇总到所有仓库。</div>`;
+            return;
         }
         // ===== 铁匠铺：能力工坊版（覆盖上方出兵版渲染，2026-08-17）=====
         if (isAbilityShop) {
+            const workshopTitle = cfg.workshopTitle || '能力工坊';
+            const workshopDesc = cfg.workshopDesc || '不生成兵种，为仓鼠单位解锁特殊能力';
+            const scopeText = cfg.workshopType === 'research'
+                ? '研究完成后立即作用于场上与后续新建结构'
+                : '升级完成后能力全局生效（所有对应兵种）';
             st.innerHTML = `
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-                    <div><span style="color:#ffd700;font-weight:700;">能力工坊</span></div>
+                    <div><span style="color:#ffd700;font-weight:700;">${workshopTitle}</span></div>
                     <div style="font-size:12px;color:#9a9a9a;">耐久 ${Math.ceil(b.hp)}/${b.maxHp} · 金币 <span style="color:#ffd700;">${gold}</span> · 能源 <span style="color:#7fd4ff;">${energy}</span></div>
                 </div>
                 <div style="font-size:12px;color:#c8b98a;line-height:1.7;">
-                    不生成兵种，为仓鼠单位解锁特殊能力<br>
-                    升级需要读条，完成后能力全局生效（所有对应兵种）
+                    ${workshopDesc}<br>
+                    升级需要读条，${scopeText}
                 </div>`;
             const modBoxEl = el.querySelector('#pbModules');
             const rows = Object.entries(cfg.abilities || {}).map(([aid, a]) => {
@@ -761,16 +892,13 @@ class ProducerBuildingPanel extends BasePanel {
         const lv = b.abilityLevel(abilityId);
         const maxed = lv >= (a.maxLevel ?? 10);
         const cost = b.getAbilityCost(abilityId);
-        const value = (a.base ?? 0) + (a.per ?? 0) * lv;
-        const nextValue = value + (a.per ?? 0);
-        const pct = Math.round(value * 100);
-        const nextPct = Math.round(nextValue * 100);
-        const fill = (s) => s.replace('{chance}', `${pct}%`).replace('{dmg}', `${pct}%`);
-        const fillNext = (s) => s.replace('{chance}', `${nextPct}%`).replace('{dmg}', `${nextPct}%`);
+        const isResearch = b._cfg.workshopType === 'research';
+        const targetLabel = isResearch ? '目标效果' : '目标兵种';
+        const targetText = isResearch ? (a.target || '—') : this._abilityTargetText(a.target);
         tip.innerHTML = `
             <div style="font-weight:700;font-size:13px;margin-bottom:4px;">${a.icon} ${a.name} <span style="color:#8a5a00;">Lv.${lv}/${a.maxLevel ?? 10}</span></div>
-            <div>${maxed ? fill(a.desc || '') : `${fill(a.desc || '')} → ${fillNext(a.desc || '')}`}</div>
-            <div style="margin-top:4px;color:#5a4a2a;">目标兵种：${a.target}</div>
+            <div>${maxed ? this._fillAbilityDesc(a, lv) : `${this._fillAbilityDesc(a, lv)} → ${this._fillAbilityDesc(a, lv + 1)}`}</div>
+            <div style="margin-top:4px;color:#5a4a2a;">${targetLabel}：${targetText}</div>
             <div style="margin-top:2px;">升级费用：${cost.gold} 金币 + ${cost.energy} 能源</div>
             <div>读条时间：${Math.round(cost.timeMs / 1000)} 秒</div>`;
         tip.style.display = 'block';
@@ -814,12 +942,26 @@ export const ProducerBuildingSystem = {
         this.teardown();
         this.active = true;
         this.buildings = [];
+        ResearchSystem.resetTimer();
+        if (EnergyManager) {
+            EnergyManager.setCallbacks({
+                onFull: (text) => {
+                    if (Game && Game.player && EffectManager) {
+                        EffectManager.add(new FloatingTextEffect(Game.player.x, Game.player.y - 64, text, '#ff8855'));
+                    }
+                },
+            });
+        }
     },
 
     teardown() {
         this.active = false;
+        ResearchSystem.resetTimer();
         for (const b of this.buildings) {
             if (b) {
+                if (b._isEnergyWarehouse && EnergyManager) {
+                    EnergyManager.unregisterWarehouse(b, { preserve: true });
+                }
                 b.active = false;
                 b._despawnUnits();
                 if (Game && Game.entities && b.id) Game.entities.delete(b.id);
@@ -835,6 +977,7 @@ export const ProducerBuildingSystem = {
 
     update(dt) {
         if (!this.active) return;
+        ResearchSystem.update(dt);
         for (const b of this.buildings) {
             if (b && b.active) b.update(dt);
         }

@@ -9,6 +9,7 @@ const { Companion } = await import('../src/entities/companion.js');
 const { PartySystem } = await import('../src/systems/party-system.js');
 const { canEquipSlot, getEquipmentBonuses } = await import('../src/ui/equip/equip-rules.js');
 const { buildSkillMap, grantSkillExp, getSkillEffect, grantCompanionSkillExp } = await import('../src/systems/skill-system.js');
+const { EnergyManager } = await import('../src/systems/energy-manager.js');
 const {
     decideCompanionAction, pickCompanionSpell,
     shouldRelocateCompanion, shouldUseRun, DEFAULT_MAGE_AI,
@@ -738,29 +739,23 @@ check('GameScene 竖直向下绿色箭头', /showMoveMarker\(x, y\) \{[\s\S]{0,2
         lunaRestoredC.skills ? Object.keys(lunaRestoredC.skills).join(',') : 'no skills');
 }
 
-// --- 队友采集直接入包（2026-08-16：与仓鼠矿工同口径，不落地） ---
+// --- 队友采集直接入仓库 ---
 {
+    EnergyManager.resetWarehouses();
+    EnergyManager.restoreStorage({ total: 0 });
+    const warehouse = { id: 'party_test_warehouse', active: true };
+    EnergyManager.registerWarehouse(warehouse, 5000);
     const miner = new Companion({ id: 't_energy', name: '采集测试', baseLevel: 1,
         baseData: { str: 5, dex: 5, int: 5, con: 5, wis: 5, luck: 5 }, growthRule: 'balanced' });
-    check('addMinedEnergy 新堆', miner.addMinedEnergy(30) === 30
-        && miner.backpack.some(b => b.category === 'energy' && b.stack === 30));
-    check('addMinedEnergy 并入已有堆', miner.addMinedEnergy(20) === 20
-        && miner.backpack.some(b => b.category === 'energy' && b.stack === 50));
-    check('addMinedEnergy 999 上限拆新堆', miner.addMinedEnergy(998) === 998);
-    const energyStacks = miner.backpack.filter(b => b.category === 'energy');
-    check('能源堆拆堆正确（999 + 49）', energyStacks.length === 2
-        && energyStacks.some(b => b.stack === 999) && energyStacks.some(b => b.stack === 49));
+    check('addMinedEnergy 直接入仓库', miner.addMinedEnergy(30) === 30
+        && EnergyManager.getEnergy() === 30 && miner.backpack.every(b => b.category !== 'energy'));
+    check('多次采矿聚合仓库总量', miner.addMinedEnergy(20) === 20
+        && EnergyManager.getEnergy() === 50);
     const serMiner = miner.serialize();
     const resMiner = Companion.fromSerialized(serMiner);
-    check('能源堆序列化往返', resMiner.backpack.filter(b => b.category === 'energy').length === 2
-        && resMiner.backpack.some(b => b.category === 'energy' && b.stack === 999));
-    // 满包（无能源堆、10 格全占位）→ 拒绝入包
-    const fullMiner = new Companion({ id: 't_energy_full', name: '采集满包', baseLevel: 1,
-        baseData: { str: 5, dex: 5, int: 5, con: 5, wis: 5, luck: 5 }, growthRule: 'balanced' });
-    while (fullMiner.backpack.length < fullMiner.maxBackpackSlots) {
-        fullMiner.backpack.push({ slot: fullMiner._findFreeBackpackSlot(), name: '占位' });
-    }
-    check('addMinedEnergy 背包满拒绝', fullMiner.addMinedEnergy(100) === 0);
+    check('队友存档不再携带能源堆', resMiner.backpack.every(b => b.category !== 'energy'));
+    EnergyManager.depositEnergy(4950);
+    check('仓库满后采矿入库返回0', miner.addMinedEnergy(100) === 0 && EnergyManager.isFull());
 }
 
 console.log(`\n${pass} passed, ${fail} failed`);

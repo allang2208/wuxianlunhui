@@ -385,6 +385,10 @@ import { updateEquipSlots as renderEquipSlots, updateInventorySlots as renderInv
                 if (item && item.category === 'gold' && GoldManager) {
                     return GoldManager.mergeGold(item);
                 }
+                // 世界-122 能源不再进入玩家背包，旧掉落/旧存档拾取统一直入仓库。
+                if (item && item.category === 'energy' && EnergyManager) {
+                    return EnergyManager.mergeEnergy(item);
+                }
                 // 可堆叠物品（强化石、改造券等）：合并到已有堆叠，堆叠未满时不占新格子
                 const maxStack = item.maxStack || 1;
                 if (maxStack > 1 && item.stack) {

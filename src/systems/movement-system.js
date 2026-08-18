@@ -17,6 +17,7 @@ import { pathFinder } from '../ai/pathfinder.js';
 import { dynamicObstacleMap } from '../ai/dynamic-obstacle-map.js';
 import SpatialPartitionSystem from './spatial-partition-system.js';
 import { distanceToEntityShape } from '../utils/collision-helpers.js';
+import { compareDefenseTargets, isDefenseTargetEligible } from '../ai/defense-target-priority.js';
 
 /** 超出此距离不再进行 A* 寻路，直接朝目标移动 */
 const MAX_PATHFIND_RANGE = 800;
@@ -259,20 +260,32 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
         let tx = 0, ty = 0, hasTarget = false;
         const chargeStraight = enemy.ai && enemy.ai.chargeStraight;
 
-        // 0. [FIX] 特殊战术目标（TacticalSquadAI 设置）优先级最高
-        if (enemy._specialTacticalTarget && !chargeStraight) {
+        // 0. 生产建筑离场点：先离开 footprint/出口拥堵区，再接管正常 AI。
+        if (enemy._spawnEgress && !chargeStraight) {
+            const ex = enemy._spawnEgress.x - enemy.x;
+            const ey = enemy._spawnEgress.y - enemy.y;
+            if (Math.hypot(ex, ey) <= Math.max(10, enemy.groundRadius * 0.6)) {
+                enemy._spawnEgress = null;
+            } else {
+                tx = enemy._spawnEgress.x;
+                ty = enemy._spawnEgress.y;
+                hasTarget = true;
+            }
+        }
+        // 1. [FIX] 特殊战术目标（TacticalSquadAI 设置）
+        if (!hasTarget && enemy._specialTacticalTarget && !chargeStraight) {
             tx = enemy._specialTacticalTarget.x;
             ty = enemy._specialTacticalTarget.y;
             hasTarget = true;
         }
-        // 1. 战术目标
-        else if (enemy._tacticalTarget && !chargeStraight) {
+        // 2. 战术目标
+        else if (!hasTarget && enemy._tacticalTarget && !chargeStraight) {
             tx = enemy._tacticalTarget.x;
             ty = enemy._tacticalTarget.y;
             hasTarget = true;
         }
-        // 2. 战斗指挥官目标（防守怪不走指挥官——战术点围绕玩家，与防守目标冲突）
-        else if (Game && Game._battleCommander && !chargeStraight && !enemy._defenseMonster) {
+        // 3. 战斗指挥官目标（防守怪不走指挥官——战术点围绕玩家，与防守目标冲突）
+        else if (!hasTarget && Game && Game._battleCommander && !chargeStraight && !enemy._defenseMonster) {
             const tp = Game._battleCommander.getTarget(enemy.id);
             if (tp) {
                 tx = tp.targetX;
@@ -280,22 +293,22 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
                 hasTarget = true;
             }
         }
-        // 3. 当前目标
-        else if (enemy.target && enemy.target.active) {
+        // 4. 当前目标
+        else if (!hasTarget && enemy.target && enemy.target.active) {
             tx = enemy.target.x;
             ty = enemy.target.y;
             hasTarget = true;
         }
-        // 4. 最后已知位置（失去目标后搜索）
-        else if (enemy._lastKnownTargetPos) {
+        // 5. 最后已知位置（失去目标后搜索）
+        else if (!hasTarget && enemy._lastKnownTargetPos) {
             tx = enemy._lastKnownTargetPos.x;
             ty = enemy._lastKnownTargetPos.y;
             hasTarget = true;
         }
-        // 5. [SEARCH] 搜索巡逻：到达最后已知位置后，在周边搜索点间移动一段时间再放弃
+        // 6. [SEARCH] 搜索巡逻：到达最后已知位置后，在周边搜索点间移动一段时间再放弃
         // （战术小队的 _searchTarget 无 phase 字段，不会命中此分支；重新锁定目标后
         // 优先级 3 的目标分支会立即接管，防守怪不会被巡逻拖住）
-        else if (enemy._searchTarget && enemy._searchTarget.phase === 'searchAround'
+        else if (!hasTarget && enemy._searchTarget && enemy._searchTarget.phase === 'searchAround'
             && enemy._searchTarget.searchPoints && enemy._searchTarget.searchPoints.length > 0) {
             tx = enemy._searchTarget.searchPoints[0].x;
             ty = enemy._searchTarget.searchPoints[0].y;
@@ -672,21 +685,19 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
         const inProbe = probe(-eSide);      // 门内侧
         if (WallSystem && WallSystem.blocked
             && WallSystem.blocked(enemy.x, enemy.y, sideOfProbe.x, sideOfProbe.y)) return; // 怪物→门口畅通
-        // 高价值候选：基地 > 玩家 > 玩家单位（companion 需 _enemyTargetable）
+        // 门内候选复用统一优先级：距离档位 → 仓鼠 → 玩家队友 → 玩家 → 建筑 → 基地。
         const cands = [];
         for (const e of Game.entities.values()) {
-            if (!e || !e.active) continue;
-            if (e._isDefenseBase) cands.push({ e, pri: 3 });
-            else if (e === Game.player) cands.push({ e, pri: 2 });
-            else if (e._faction === 'companion' && e._enemyTargetable) cands.push({ e, pri: 1 });
-        }
-        cands.sort((a, b) => b.pri - a.pri);
-        for (const { e: t } of cands) {
-            if (t.hp !== undefined && t.hp <= 0) continue;
-            if (sideOf(t.x, t.y) !== -eSide) continue;                    // 须在门内侧
-            if (Math.hypot(t.x - gx, t.y - gy) > 1500) continue;          // 门内有限范围
+            if (!isDefenseTargetEligible(e)) continue;
+            if (e.hp !== undefined && e.hp <= 0) continue;
+            if (sideOf(e.x, e.y) !== -eSide) continue;
+            if (Math.hypot(e.x - gx, e.y - gy) > 1500) continue;
             if (WallSystem && WallSystem.blocked
-                && WallSystem.blocked(inProbe.x, inProbe.y, t.x, t.y)) continue; // 门口→目标畅通
+                && WallSystem.blocked(inProbe.x, inProbe.y, e.x, e.y)) continue;
+            cands.push(e);
+        }
+        cands.sort((a, b) => compareDefenseTargets(enemy, a, b));
+        for (const t of cands) {
             if (enemy.target !== t) {
                 enemy.target = t;
                 enemy._lastKnownTargetPos = { x: t.x, y: t.y };

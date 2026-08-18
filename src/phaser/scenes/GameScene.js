@@ -44,6 +44,7 @@ import { getCastSpeedMultiplier } from '../../utils/magic-craft-helper.js';
 import { burstParticles } from '../../effects/combat-fx.js';
 import { GunFeel } from '../../effects/gunfeel.js';
 import { DEFENSE_TOWER_VISUAL, DefenseSystem } from '../../world/defense-system.js';
+import { isoFootprintVertices } from '../../physics/iso-footprint.js';
 
 export class GameScene extends Scene {
     constructor() {
@@ -434,24 +435,37 @@ export class GameScene extends Scene {
         if (!_game) return;
         const player = _game.player;
         if (player && this.playerSprite && this.playerSprite.active) {
-            if (player._chargeFlashActive) {
+            // 玩家受击白闪与蓄力白闪共用同一视觉通道。
+            if (player.hitFlash > 0 || player._chargeFlashActive) {
                 this.playerSprite.setTint(0xffffff);
                 if (this.weaponSprite && this.weaponSprite.active) this.weaponSprite.setTint(0xffffff);
+                if (this.offhandWeaponSprite && this.offhandWeaponSprite.active) this.offhandWeaponSprite.setTint(0xffffff);
             } else {
                 this.playerSprite.clearTint();
                 if (this.weaponSprite && this.weaponSprite.active) this.weaponSprite.clearTint();
+                if (this.offhandWeaponSprite && this.offhandWeaponSprite.active) this.offhandWeaponSprite.clearTint();
             }
         }
         if (_game.entities) {
+            const wallNow = Date.now();
             _game.entities.forEach(e => {
                 if (!e || !e.active || e === player) return;
                 // 掉落物：tint 由 DropItem 悬停高亮自管，不随受击闪白清空
                 if (e.itemData && e.noCollision) return;
                 const sprite = e._phaserSprite;
                 if (!sprite || !sprite.active) return;
+                const rtsFlashUntil = e._rtsAttackFlashUntil || 0;
+                // 受击白闪优先于 RTS 攻击指示，保证真正造成伤害时反馈不被覆盖。
                 if (e.hitFlash > 0) {
                     sprite.setTint(0xffffff);
+                } else if (rtsFlashUntil > wallNow) {
+                    const elapsed = wallNow - (e._rtsAttackFlashStartedAt || wallNow);
+                    sprite.setTint(Math.floor(elapsed / 90) % 2 === 0 ? 0xff3030 : 0xffffff);
                 } else {
+                    if (rtsFlashUntil) {
+                        delete e._rtsAttackFlashStartedAt;
+                        delete e._rtsAttackFlashUntil;
+                    }
                     sprite.clearTint();
                 }
             });
@@ -519,7 +533,7 @@ export class GameScene extends Scene {
                 // 仓鼠矿工/战士/射手/盾卫/民兵/斥候移动（walk）始终朝向实际移动方向（vx），不倒退走路——
                 // 否则寻路绕行/回屋时贴图朝向目标、实际反向移动（2026-08-15 用户口径）
                 const moving = member._animState === 'walk' || Math.abs(member.vx) > 5;
-                if ((member._isHamsterMiner || member._isHamsterWarrior || member._isHamsterShooter || member._isHamsterGuard || member._isHamsterMilitia || member._isHamsterScout) && moving) {
+                if ((member._isHamsterMiner || member._isHamsterWarrior || member._isHamsterShooter || member._isHamsterGuard || member._isHamsterMilitia || member._isHamsterScout || member._isHamsterMusketeer) && moving) {
                     faceRight = member.vx > 0;
                 } else if (member._lastAction === 'flee' && Math.abs(member.vx) > 5) {
                     faceRight = member.vx > 0;
@@ -539,14 +553,9 @@ export class GameScene extends Scene {
             }
             sprite.setFlipX(!faceRight);
             sprite.setDepth(this.playerSprite.depth + 0.5);
-            // 受击白闪（仓鼠矿工/战士/射手/盾卫/民兵/斥候）
-            if (member._isHamsterMiner || member._isHamsterWarrior || member._isHamsterShooter || member._isHamsterGuard || member._isHamsterMilitia || member._isHamsterScout) {
-                if (member.hitFlash > 0) sprite.setTint(0xffffff);
-                else sprite.clearTint();
-            }
             // 士兵移动烟尘（2026-08-17）：玩家跑步同款 DustEffect，脚下生成——
             // 军事单位（战士/射手/盾卫/民兵/斥候，不含矿工）移动（walk/run）时按 90ms 间隔出烟
-            if (member._isHamsterWarrior || member._isHamsterShooter || member._isHamsterGuard || member._isHamsterMilitia || member._isHamsterScout) {
+            if (member._isHamsterWarrior || member._isHamsterShooter || member._isHamsterGuard || member._isHamsterMilitia || member._isHamsterScout || member._isHamsterMusketeer) {
                 const unitMoving = member._animState === 'walk'
                     || Math.abs(member.vx || 0) > 5 || Math.abs(member.vy || 0) > 5;
                 if (unitMoving) {
@@ -654,7 +663,7 @@ export class GameScene extends Scene {
                             }
                         }
                     }
-                } else if (st === 'attack' && (member._isHamsterShooter || member._isHamsterGuard || member._isHamsterMilitia || member._isHamsterScout)
+                } else if (st === 'attack' && (member._isHamsterShooter || member._isHamsterGuard || member._isHamsterMilitia || member._isHamsterScout || member._isHamsterMusketeer)
                     && anims.attack && this.textures.exists(`companion_${animId}_attack`)) {
                     // 仓鼠射手/盾卫/民兵/斥候攻击：单次播放（射手 13 帧 / 盾卫 12 帧 /
                     // 民兵 15 帧 / 斥候 18 帧，repeat 0），射手第 10 帧、斥候第 11 帧
@@ -862,14 +871,21 @@ export class GameScene extends Scene {
                 sprite.setPosition(player.x + offX, player.y + 34 + spriteOffY - platformLift + feetCorr);
             }
             sprite.setVisible(true);
-            // 选中高亮（2026-08-16）：组队栏点击选中 → 金色 tint + 脚下光圈；
-            // 仓鼠矿工用 tint 做受击白闪，高亮只画光圈不染色
+            // Tint 优先级：受击白闪 > 选中金色 > 常态。这样任何友军类型都不会因选中状态
+            // 覆盖受击反馈；仓鼠矿工仍只用脚下光圈表达选中。
             const selected = PartySystem.isSelected(member.id);
+            const hitFlashing = member.hitFlash > 0;
             if (member._isHamsterMiner) {
                 if (selected) this._showSelectionRing(member.id, member.x, member.y, size);
                 else if (this._selectionRings[member.id]) this._selectionRings[member.id].setVisible(false);
+                if (hitFlashing) sprite.setTint(0xffffff);
+                else sprite.clearTint();
             } else {
-                if (selected) {
+                if (hitFlashing) {
+                    sprite.setTint(0xffffff);
+                    if (selected) this._showSelectionRing(member.id, member.x, member.y, size);
+                    else if (this._selectionRings[member.id]) this._selectionRings[member.id].setVisible(false);
+                } else if (selected) {
                     sprite.setTint(0xffd98a);
                     this._showSelectionRing(member.id, member.x, member.y, size);
                 } else {
@@ -960,12 +976,16 @@ export class GameScene extends Scene {
             const b = m._basic;
             let spr = this._companionBasicSprites[m.id];
             if (b && b.active) {
+                const musket = !!m._isHamsterMusketeer;
                 const ranged = m._isHamsterShooter || m._isHamsterScout;
                 const tipLeft = m._isHamsterShooter; // 射手贴图尖头朝左；斥候贴图尖头朝右
                 const projContentW = m._isHamsterShooter ? 146 : 172; // 投射物内容宽（帧内 px）
                 const arrowKey = ranged ? `companion_${m.animId || m.id}_projectile` : null;
                 if (!spr) {
-                    if (ranged && arrowKey && this.textures.exists(arrowKey)) {
+                    if (musket) {
+                        spr = this.add.rectangle(b.x, b.y, 54, 4, 0xffd34d, 1);
+                        spr.setBlendMode(BlendModes.ADD);
+                    } else if (ranged && arrowKey && this.textures.exists(arrowKey)) {
                         // 投射物：射手内容 146×40（尖头朝左）、斥候内容 172×17（尖头朝右），
                         // 帧 512×512。帧必须等比放大（内容很小，直接压帧会看不见）：
                         // 箭身长度随单位模型 displaySize 等比放大（2026-08-17 用户口径）：
@@ -987,7 +1007,11 @@ export class GameScene extends Scene {
                     this._companionBasicSprites[m.id] = spr;
                 }
                 spr.setPosition(b.x, b.y);
-                if (ranged && arrowKey && this.textures.exists(arrowKey)) {
+                if (musket) {
+                    spr.setRotation(b.angle);
+                    spr.setDisplaySize(54, 4);
+                    spr.setBlendMode(BlendModes.ADD);
+                } else if (ranged && arrowKey && this.textures.exists(arrowKey)) {
                     // 尖头方向：射手朝左旋转 +180°；斥候朝右直接旋转到飞行角
                     spr.setRotation(b.angle + (tipLeft ? Math.PI : 0));
                     spr.setBlendMode(BlendModes.NORMAL);
@@ -5336,18 +5360,42 @@ export class GameScene extends Scene {
             }
         }
 
-        // 矩形 footprint（祭坛/仓库等固定 NPC）：用人物圆柱体同款橙色标识——
+        // 矩形/等距地面旋转矩形 footprint：用人物圆柱体同款橙色标识——
         // 底面矩形 = footprint（collisionWidth/Height），顶面 = 底面沿 Z 上移 bodyHeight，
         // 侧壁竖线连四角（与圆柱体"footprint 沿 Z 拉伸"同语义，供左下角「范围」按钮查看）
         for (const entity of _game.entities.values()) {
             if (!entity || !entity.active) continue;
             if (entity._faction === 'enemy') continue; // 敌人走 drawEntity 椭圆口径（本段只服务祭坛/仓库类 NPC）
-            if (entity.collisionShape !== 'rect' || !(entity.collisionWidth > 0 && entity.collisionHeight > 0)) continue;
+            if (!['rect', 'iso_rect'].includes(entity.collisionShape)
+                || !(entity.collisionWidth > 0 && entity.collisionHeight > 0)) continue;
             const rcx = entity.collider ? entity.collider.x : entity.x;
             const rcy = entity.collider ? entity.collider.y : entity.y;
             const hw = entity.collisionWidth / 2, hh = entity.collisionHeight / 2;
             const topY = rcy - (entity.bodyHeight || 60);
             const g = this._collisionRadiusGraphics;
+            if (entity.collisionShape === 'iso_rect') {
+                const bottom = isoFootprintVertices(entity);
+                const top = bottom.map((p) => ({ x: p.x, y: p.y - (entity.bodyHeight || 60) }));
+                const drawPoly = (points, fill = false) => {
+                    g.beginPath();
+                    g.moveTo(points[0].x, points[0].y);
+                    for (let i = 1; i < points.length; i++) g.lineTo(points[i].x, points[i].y);
+                    g.closePath();
+                    if (fill) g.fillPath();
+                    g.strokePath();
+                };
+                g.fillStyle(0xff6600, 0.10);
+                g.lineStyle(1.5, 0xff8800, 0.75);
+                drawPoly(bottom, true);
+                drawPoly(top, false);
+                g.beginPath();
+                for (let i = 0; i < bottom.length; i++) {
+                    g.moveTo(bottom[i].x, bottom[i].y);
+                    g.lineTo(top[i].x, top[i].y);
+                }
+                g.strokePath();
+                continue;
+            }
             g.fillStyle(0xff6600, 0.10);
             g.fillRect(rcx - hw, topY, hw * 2, rcy - topY + hh);
             g.lineStyle(1.5, 0xff8800, 0.75);

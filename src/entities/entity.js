@@ -66,7 +66,8 @@ class Entity {
     get groundRadius() {
         if (this.collider) return this.collider.radius;
         if (this.collisionRadius > 0) return this.collisionRadius;
-        if (this.collisionShape === 'rect' && this.collisionWidth > 0 && this.collisionHeight > 0) {
+        if ((this.collisionShape === 'rect' || this.collisionShape === 'iso_rect')
+            && this.collisionWidth > 0 && this.collisionHeight > 0) {
             return Math.max(this.collisionWidth, this.collisionHeight) / 2;
         }
         if (this.size > 0) return this.size * 0.6;
@@ -90,6 +91,16 @@ class Entity {
      * @returns {{type:string, radius:number, width?:number, height?:number}}
      */
     getCollisionShape() {
+        if (this.collisionShape === 'iso_rect' && this.collisionWidth > 0 && this.collisionHeight > 0) {
+            return {
+                type: 'iso_rect',
+                width: this.collisionWidth,
+                height: this.collisionHeight,
+                halfU: this.collisionIsoHalfU,
+                halfV: this.collisionIsoHalfV,
+                radius: this.collisionRadius,
+            };
+        }
         if (this.collisionShape === 'rect' && this.collisionWidth > 0 && this.collisionHeight > 0) {
             return {
                 type: 'rect',

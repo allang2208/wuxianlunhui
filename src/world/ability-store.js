@@ -41,8 +41,16 @@ export function raiseAbilityLevel(abilityId) {
     return GLOBAL_ABILITY_LEVELS[abilityId];
 }
 
-/** 按配置计算当前等级下的能力数值（如概率/伤害比例 = base + per × level） */
+/**
+ * 按配置计算当前等级下的能力数值。
+ * - 普通能力：base + per × level
+ * - 带 firstLevel：Lv0=0，Lv1=firstLevel，之后每级 +per
+ */
 export function getAbilityValue(abilityCfg, level) {
     if (!abilityCfg) return 0;
-    return (abilityCfg.base ?? 0) + (abilityCfg.per ?? 0) * (level ?? getAbilityLevel(abilityCfg.id));
+    const lv = Math.max(0, level ?? getAbilityLevel(abilityCfg.id));
+    if (abilityCfg.firstLevel !== undefined) {
+        return lv <= 0 ? 0 : abilityCfg.firstLevel + (abilityCfg.per ?? 0) * (lv - 1);
+    }
+    return (abilityCfg.base ?? 0) + (abilityCfg.per ?? 0) * lv;
 }

@@ -13,7 +13,9 @@ import { LevelUpEffectQueue } from './effects/level-up-queue.js';
 import { SweepEffect } from './effects/sweep-effect.js';
 import { WallSystem } from './world/wall-system.js';
 import { BuildingSystem } from './world/building-system.js';
+import { EnergyManager } from './systems/energy-manager.js';
 import { PERSPECTIVE_SCALE_Y } from './config/perspective-config.js';
+import { resolveCircleFromIsoFootprint } from './physics/iso-footprint.js';
 import { NPCDialogue } from './ui/npc-dialogue.js';
 import { BackpackDialogManager } from './ui/backpack-dialog-manager.js';
 import { EquipDataManager } from './ui/equip-data-manager.js';
@@ -1571,34 +1573,18 @@ const pickupCfg = GAME_CONFIG.pickup || {};
                 const dy = entity.y - this.player.y;
                 const distSq = dx * dx + dy * dy;
                 if (distSq <= goldAutoRangeSq) {
-                    const maxStack = entity.itemData.maxStack || 999;
-                    let stacked = false;
-                    for (const bpItem of EquipManager.backpackItems) {
-                        if (bpItem.category === 'energy' && bpItem.stack < (bpItem.maxStack || maxStack)) {
-                            bpItem.stack += entity.itemData.stack;
-                            stacked = true;
-                            break;
-                        }
-                    }
-                    if (stacked) {
+                    const amount = entity.itemData.stack || 1;
+                    const added = EnergyManager ? EnergyManager.depositEnergy(amount) : 0;
+                    if (added >= amount) {
                         entity.active = false;
                         if (entity._destroyPhaserSprite) entity._destroyPhaserSprite();
                         this.entities.delete(key);
-                        EffectManager.add(new FloatingTextEffect(entity.x, entity.y - 20, `+${entity.itemData.stack} 能源`, '#7fd4ff'));
+                        EffectManager.add(new FloatingTextEffect(entity.x, entity.y - 20, `+${added} 能源入库`, '#7fd4ff'));
                         if (SoundManager) {
                             SoundManager.playFile('assets/sounds/ui/coins_wood_sharp.mp3');
                         }
-                    } else if (EquipManager.backpackItems.length < EquipManager.maxBackpackSlots) {
-                        EquipManager.addToBackpack(entity.itemData);
-                        entity.active = false;
-                        if (entity._destroyPhaserSprite) entity._destroyPhaserSprite();
-                        this.entities.delete(key);
-                        EffectManager.add(new FloatingTextEffect(entity.x, entity.y - 20, `+${entity.itemData.stack} 能源`, '#7fd4ff'));
-                        if (SoundManager) {
-                            SoundManager.playFile('assets/sounds/ui/coins_wood_sharp.mp3');
-                        }
-                    } else {
-                        BackpackDialogManager._showBackpackFullNotice();
+                    } else if (added > 0) {
+                        entity.itemData.stack = amount - added;
                     }
                 }
             }
@@ -1798,6 +1784,51 @@ if (SceneManager.currentScene === 'scene3') {
                 const dy = (by - ay) * invScale;
                 const dist = Math.sqrt(dx * dx + dy * dy);
                 const minDist = radiusA + radiusB;
+
+                // 等距地面旋转矩形（普通建筑/基地）：在地面 u/v 正交坐标中精确做圆-矩形分离。
+                const isoEnt = (a.collisionShape === 'iso_rect' && a.collisionWidth > 0)
+                    ? a
+                    : ((b.collisionShape === 'iso_rect' && b.collisionWidth > 0) ? b : null);
+                if (isoEnt) {
+                    const other = isoEnt === a ? b : a;
+                    if (isoEnt._isDefenseCover && other._faction === 'companion') continue;
+                    const immIso = !!isoEnt.noSeparation;
+                    const immOther = !!other.noSeparation;
+                    if (!(immIso && immOther)) {
+                        const oc = other.collider ? other.collider : other;
+                        const push = resolveCircleFromIsoFootprint(
+                            oc.x ?? other.x,
+                            oc.y ?? other.y,
+                            other.groundRadius,
+                            isoEnt
+                        );
+                        if (push) {
+                            const shareIso = immIso ? 0 : (immOther ? 1 : 0.5);
+                            const shareOther = immOther ? 0 : (immIso ? 1 : 0.5);
+                            if (shareIso > 0) {
+                                const movedIso = WallSystem.resolve(
+                                    isoEnt.x, isoEnt.y,
+                                    isoEnt.x - push.x * shareIso,
+                                    isoEnt.y - push.y * shareIso,
+                                    isoEnt.groundRadius
+                                );
+                                isoEnt.x = movedIso.x;
+                                isoEnt.y = movedIso.y;
+                            }
+                            if (shareOther > 0) {
+                                const movedOther = WallSystem.resolve(
+                                    other.x, other.y,
+                                    other.x + push.x * shareOther,
+                                    other.y + push.y * shareOther,
+                                    other.groundRadius
+                                );
+                                other.x = movedOther.x;
+                                other.y = movedOther.y;
+                            }
+                        }
+                    }
+                    continue;
+                }
 
                 // 矩形 footprint（祭坛/仓库等固定 NPC）：圆-矩形精确分离，不用外接圆近似
                 // （深度方向按逆透视压缩判定，位移变换回世界空间——与圆形分支同口径）

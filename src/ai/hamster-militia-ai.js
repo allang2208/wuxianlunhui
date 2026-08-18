@@ -42,6 +42,18 @@ export class HamsterMilitiaAI {
         this._stuckStreak = 0;
     }
 
+    /** RTS 移动/待命立即打断当前挥击，避免命令延迟到动画结束。 */
+    cancelForCommand() {
+        this._swingActive = false;
+        this._swingTimer = 0;
+        this._swingAnimLeft = 0;
+        this.m._attackSwing = false;
+        this.m._animState = 'idle';
+        this.m.vx = 0;
+        this.m.vy = 0;
+        this.m.isMoving = false;
+    }
+
     /**
      * 每帧入口（由 HamsterMilitia.update 调用）。
      * @param {number} dt 毫秒

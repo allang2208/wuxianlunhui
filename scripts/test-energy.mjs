@@ -1,5 +1,4 @@
-// 能源系统单测：EnergyManager 背包堆叠 + 采集换算（世界-122，2026-08-14）
-// 运行：node --import ./scripts/register-json-loader.mjs scripts/test-energy.mjs
+// 世界-122 仓库能源聚合测试
 await import('./register-json-loader.mjs');
 const { EnergyManager, ENERGY_ITEM } = await import('../src/systems/energy-manager.js');
 const { ENERGY_CONFIG } = await import('../src/config/energy-config.js');
@@ -11,66 +10,75 @@ function check(name, cond) {
     else { failed++; console.log(`FAIL  ${name}`); }
 }
 
-// 独立背包引用（每次用例重建，避免污染）
-function freshBackpack(maxSlots = 10) {
-    const bp = [];
+function freshStorage(count = 1, capacity = 5000) {
+    EnergyManager.resetWarehouses();
+    EnergyManager.restoreStorage({ total: 0 });
+    const warehouses = [];
+    for (let i = 0; i < count; i++) {
+        const w = { id: `warehouse_${i}`, active: true, storedEnergy: 0 };
+        EnergyManager.registerWarehouse(w, capacity);
+        warehouses.push(w);
+    }
+    return warehouses;
+}
+
+console.log('[test-energy] 单仓库容量');
+{
+    const [w] = freshStorage();
+    check('初始总量0/容量5000', EnergyManager.getEnergy() === 0 && EnergyManager.getCapacity() === 5000);
+    check('存入1200', EnergyManager.addEnergy(1200) && w.storedEnergy === 1200);
+    check('扣除300', EnergyManager.deductEnergy(300) && EnergyManager.getEnergy() === 900);
+    check('不足扣除不改变存量', !EnergyManager.deductEnergy(9999) && EnergyManager.getEnergy() === 900);
+}
+
+console.log('[test-energy] 多仓库聚合');
+{
+    const [a, b] = freshStorage(2);
+    check('两仓总容量10000', EnergyManager.getCapacity() === 10000 && EnergyManager.getWarehouseCount() === 2);
+    check('跨仓存入7000', EnergyManager.addEnergy(7000)
+        && a.storedEnergy === 5000 && b.storedEnergy === 2000 && EnergyManager.getEnergy() === 7000);
+    check('跨仓扣除2500', EnergyManager.deductEnergy(2500)
+        && EnergyManager.getEnergy() === 4500 && b.storedEnergy === 0);
+}
+
+console.log('[test-energy] 满仓与部分入库');
+{
+    const [w] = freshStorage();
+    check('实际入库量封顶5000', EnergyManager.depositEnergy(5200) === 5000 && w.storedEnergy === 5000);
+    check('满仓判定', EnergyManager.isFull() && EnergyManager.getFreeCapacity() === 0);
+    check('满仓继续入库为0', EnergyManager.depositEnergy(10) === 0);
+}
+
+console.log('[test-energy] 旧背包迁移与待入库');
+{
+    EnergyManager.resetWarehouses();
+    EnergyManager.restoreStorage({ total: 0 });
+    const bp = [
+        { slot: 0, category: 'energy', stack: 1200 },
+        { slot: 1, category: 'misc', stack: 1 },
+    ];
     EnergyManager.setBackpackRef(bp);
-    EnergyManager.setMaxBackpackSlots(maxSlots);
-    return bp;
+    check('旧能源从背包移除', bp.length === 1 && bp[0].category === 'misc');
+    const w = { id: 'migrate_wh', active: true };
+    EnergyManager.registerWarehouse(w, 5000);
+    check('建仓后待入库能源自动装入', w.storedEnergy === 1200 && EnergyManager.getEnergy() === 1200);
 }
 
-console.log('[test-energy] EnergyManager 背包堆叠');
+console.log('[test-energy] 存档恢复');
 {
-    const bp = freshBackpack();
-    check('空背包 getEnergy=0', EnergyManager.getEnergy() === 0);
-    check('addEnergy 100', EnergyManager.addEnergy(100) && EnergyManager.getEnergy() === 100);
-    check('再 add 50 合并同堆', EnergyManager.addEnergy(50) && bp.length === 1 && bp[0].stack === 150);
-    check('物品字段（普通/999 上限）', bp[0].category === 'energy' && bp[0].rarity === 'common' && bp[0].maxStack === 999);
+    freshStorage(2);
+    EnergyManager.addEnergy(6500);
+    const snapshot = EnergyManager.serializeStorage();
+    EnergyManager.deductEnergy(6500);
+    EnergyManager.restoreStorage(snapshot);
+    check('恢复总能源6500', EnergyManager.getEnergy() === 6500);
 }
 
-console.log('[test-energy] 999 堆叠分堆');
-{
-    const bp = freshBackpack();
-    EnergyManager.addEnergy(999);
-    check('第一堆满 999', EnergyManager.addEnergy(1) && bp.length === 2 && bp[0].stack === 999 && bp[1].stack === 1);
-    check('总数 1000', EnergyManager.getEnergy() === 1000);
-}
-
-console.log('[test-energy] 跨堆叠扣除');
-{
-    const bp = freshBackpack();
-    EnergyManager.addEnergy(1200); // 999 + 201 两堆
-    check('扣 300 成功', EnergyManager.deductEnergy(300) && EnergyManager.getEnergy() === 900);
-    check('不足拦截（扣 9999）', EnergyManager.deductEnergy(9999) === false && EnergyManager.getEnergy() === 900);
-    check('扣空移除堆', EnergyManager.deductEnergy(900) && EnergyManager.getEnergy() === 0 && bp.length === 0);
-}
-
-console.log('[test-energy] 背包满拦截');
-{
-    const bp = freshBackpack(2);
-    bp.push({ slot: 0, name: '占位A', category: 'misc', stack: 1 });
-    bp.push({ slot: 1, name: '占位B', category: 'misc', stack: 1 });
-    check('满背包新增被拒', EnergyManager.addEnergy(10) === false && EnergyManager.getEnergy() === 0);
-    bp.push({ slot: 2, name: '能源', category: 'energy', stack: 10, maxStack: 999 });
-    check('已有堆叠未满可继续合并', EnergyManager.addEnergy(5) && EnergyManager.getEnergy() === 15 && bp[2].stack === 15);
-}
-
-console.log('[test-energy] mergeEnergy');
-{
-    const bp = freshBackpack();
-    check('merge 普通物品', EnergyManager.mergeEnergy({ category: 'energy', stack: 42 }) && EnergyManager.getEnergy() === 42);
-    check('merge 非能源拒绝', EnergyManager.mergeEnergy({ category: 'gold', stack: 42 }) === false && EnergyManager.getEnergy() === 42);
-}
-
-console.log('[test-energy] 采集换算（造成伤害 × 50% 向下取整）');
+console.log('[test-energy] 采集换算与旧物品兼容');
 {
     const ratio = ENERGY_CONFIG.gatherRatio;
-    const calc = (dmg) => Math.floor(dmg * ratio);
-    check('ratio=0.5', ratio === 0.5);
-    check('100 伤害 → 50', calc(100) === 50);
-    check('奇数向下取整（101→50）', calc(101) === 50);
-    check('1 伤害 → 0', calc(1) === 0);
-    check('物品模板最大堆叠 999', ENERGY_ITEM.maxStack === 999 && ENERGY_ITEM.rarity === 'common');
+    check('100伤害→50能源', Math.floor(100 * ratio) === 50);
+    check('ENERGY_ITEM仅保留旧存档兼容', ENERGY_ITEM.category === 'energy' && ENERGY_ITEM.maxStack === 999);
 }
 
 console.log(`[test-energy] ${passed}/${passed + failed} passed`);
