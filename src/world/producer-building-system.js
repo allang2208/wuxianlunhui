@@ -489,6 +489,7 @@ export class ProducerBuilding extends DamageableEntity {
         if (this._cfg.currency !== 'gold' && (!EnergyManager || !EnergyManager.canStore(refund))) {
             return { ok: false, reason: '仓库空间不足，无法接收出售返还能源' };
         }
+        if (typeof this._removeBuildingRoads === 'function') this._removeBuildingRoads();
         this.active = false;
         this._upgrade = null;
         this._continuous = null;

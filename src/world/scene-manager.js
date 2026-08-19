@@ -30,6 +30,7 @@ import { HamsterHutSystem, HamsterHut } from './hamster-hut-system.js';
 import { HamsterBarracksSystem, HamsterBarracks } from './hamster-barracks-system.js';
 import { ProducerBuildingSystem, ProducerBuilding, getProducerConfig } from './producer-building-system.js';
 import { BuildingSystem } from './building-system.js';
+import { BuildingRoadSystem } from './building-road-system.js';
 import { DefenseTrapSystem } from './defense-trap-system.js';
 import {
     captureAndStoreWorld122, applyWorld122Snapshot, getWorld122Snapshot,
@@ -213,6 +214,7 @@ export const SceneManager = {
             if (ProducerBuildingSystem && ProducerBuildingSystem.active) {
                 ProducerBuildingSystem.teardown();
             }
+            BuildingRoadSystem.reset();
             // 世界-122 仓鼠矿工（玩家友方单位）随场景离场拆除
             if (HamsterMinerSystem && HamsterMinerSystem.active) {
                 HamsterMinerSystem.teardown();

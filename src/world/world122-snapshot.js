@@ -14,6 +14,7 @@
 // 而建筑类继承 DamageableEntity，后者又依赖 Game，形成 TDZ 循环。
 // 由 SceneManager.init() 在 Game 初始化完成后注入运行时依赖。
 import { settleWorld122 } from './world122-sim.js'; // 纯数据结算（无 Game 依赖链），可静态导入
+import { BuildingRoadSystem } from './building-road-system.js';
 
 let Game = null;
 let DefenseSystem = null;
@@ -289,6 +290,7 @@ function _restoreTower(s) {
     else if (typeof tower._applyModuleWeaponParams === 'function') tower._applyModuleWeaponParams();
     Game.entities.set(tower.id, tower);
     DefenseSystem.towers.push(tower);
+    BuildingRoadSystem.attach(tower, { allowOverlap: true });
 }
 
 function _restoreBlock(s) {
@@ -343,6 +345,7 @@ function _restoreHut(s) {
     if (s.rally) hut._rallyPoint = { x: s.rally.x, y: s.rally.y };
     Game.entities.set(hut.id, hut);
     HamsterHutSystem.huts.push(hut);
+    BuildingRoadSystem.attach(hut, { allowOverlap: true });
     const want = Math.max(0, Math.min(s.miners || 0, hut.minerCount()));
     let spawned = 0;
     for (let i = 0; i < want; i++) if (hut.spawnMiner()) spawned++;
@@ -361,6 +364,7 @@ function _restoreBarracks(s) {
     if (s.rally) barracks._rallyPoint = { x: s.rally.x, y: s.rally.y };
     Game.entities.set(barracks.id, barracks);
     HamsterBarracksSystem.barracks.push(barracks);
+    BuildingRoadSystem.attach(barracks, { allowOverlap: true });
     const want = Math.max(0, Math.min(s.units || 0, barracks.unitCount()));
     let spawned = 0;
     for (let i = 0; i < want; i++) if (barracks.spawnUnit()) spawned++;
@@ -387,6 +391,7 @@ function _restoreProducer(s) {
     }
     Game.entities.set(producer.id, producer);
     ProducerBuildingSystem.buildings.push(producer);
+    BuildingRoadSystem.attach(producer, { allowOverlap: true });
     // 仓库：构造时已向 EnergyManager 注册（pending 能源会先行灌入），此处按快照覆盖回本仓原量
     if (producer._isEnergyWarehouse && s.storedEnergy != null && EnergyManager) {
         producer.storedEnergy = Math.max(0, Math.min(producer.storageCapacity || 0, Math.floor(s.storedEnergy)));

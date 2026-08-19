@@ -1592,10 +1592,18 @@ defend 持盾帧右偏 13px。**结论：武器弧远超身体宽的动作，格
 ```bat
 python tools/ai-gen/floor-asset.py mud  --out assets/terrain/floor_mud_seamless.png  --seed 9001
 python tools/ai-gen/floor-asset.py sand --out assets/terrain/floor_sand_seamless.png --seed 9101 --desat 0.5
+python tools/ai-gen/floor-asset.py road-stone --out <scratch>/road_stone_seamless.png --seed 122824
 ```
 
 一条命令 = `comfyui-gen`（prompts/floor-seamless-*.txt，低饱和提示词）→ `make-seamless.py`
-（偏移叠融四边环绕）→ `desaturate-texture.py`（默认 mud 0.55 / sand 0.5）。
+（偏移叠融四边环绕）→ `desaturate-texture.py`（默认 mud 0.55 / sand 0.5 /
+road-stone 0.48）。建筑外围道路不能直接使用方形无缝图：继续调用
+`build-building-road-tiles.py <seamless.png> assets/terrain/building_road_tiles.png`，
+由脚本生成4帧128×64、严格2:1的透明菱形；AI只负责材质，不负责格网轮廓。
+- **白色石砖定稿（2026-08-19）**：正式道路使用5080
+  `flux2-klein-4b-walltex`浅色砖石LoRA，小型矩形白色石灰岩/象牙白方砖、冷灰凹陷砖缝、
+  轻微倒角与矿物颗粒；回收约6%曝光后平均RGB约`[202,200,197]`、亮度标准差18.2、
+  P99亮度231.3、过曝像素约0.1%。白色材质必须保留砖缝层次，禁止纯白糊面。
 
 渲染侧（dungeon-floor-texture.js `bakeDungeonFloorChunk`，`profile.continuous=true`）：
 
@@ -5546,6 +5554,13 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
    `BUILD_ITEMS` 缩略图和实体 `spriteCfg.idleKey` 必须同 key。
 5. **遮挡/占地接入**：构造中走 `applyBuildingFootprint(this, 2)` +
    `setupStructureDepth(this)`；新增建筑不手写另一套碰撞、脚底或深度规则。
+   - **非墙2×2建筑道路环（2026-08-19）**：实体物理仍是中央2×2，但建造预约统一为4×4；
+     `building-road-system.js` 从建筑前顶点锚点反算中央4格，外围12格铺
+     `building_road_tiles`。16格逐格检查边界、墙/建筑/障碍与既有预约，禁止用一个放大的
+     圆形半径近似；预览外围格必须按各格合法性分别染绿/红。
+   - 道路与4×4预约属于建筑派生状态：建造/快照恢复时重建，出售/回收/沉陷/离场时释放；
+     快照只存建筑，不存Phaser Sprite。旧快照恢复允许道路共享以兼容历史布局，新建时禁止
+     任意4×4预约重叠。
 6. **建筑详情三段式（强制）**：所有可交互建筑（墙/门/射击台/基地/塔/小屋/兵营/
    生产建筑/陷阱）统一复用 `renderBuildingDetailHeader`，顺序不可颠倒：
    **① 缩略图与名称 → ② 生命条、当前/最大耐久、百分比 → ③ 特殊功能**。

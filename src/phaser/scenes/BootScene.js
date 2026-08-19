@@ -151,6 +151,11 @@ export class BootScene extends Scene {
         this.load.image('yellowmud_new1', 'assets/terrain/yellowmud-new1.png');
         this.load.image('floor_mud_seamless', 'assets/terrain/floor_mud_seamless.png');
         this.load.image('floor_sand_seamless', 'assets/terrain/floor_sand_seamless.png');
+        this.load.spritesheet('building_road_tiles', 'assets/terrain/building_road_tiles.png', {
+            frameWidth: 128,
+            frameHeight: 64,
+            endFrame: 3,
+        });
         this.load.image('floor_snow_fresh_seamless', 'assets/terrain/floor_snow_fresh_seamless.png');
         this.load.image('floor_snow_packed_seamless', 'assets/terrain/floor_snow_packed_seamless.png');
         this.load.image('floor_snow_wind_seamless', 'assets/terrain/floor_snow_wind_seamless.png');
