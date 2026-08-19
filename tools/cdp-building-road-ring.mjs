@@ -164,8 +164,42 @@ const result = await evalJs(`(async () => {
     const roadSprites = Array.from(BuildingRoadSystem._roadTiles.values())
         .map((record) => record.sprite)
         .filter(Boolean);
+
+    const roadItem = BUILD_ITEMS.find((entry) => entry.kind === 'road');
+    if (!roadItem) throw new Error('road build item missing');
+    BuildingSystem._selectItem(roadItem);
+    let manualRow = null;
+    for (const [px, py] of [[7600, 5000], [8000, 4600], [7200, 5400], [8400, 5200]]) {
+        const start = BuildingSystem._snapBlockGrid(px, py);
+        const [si, sj] = BuildingSystem._blockCellOf(start.x, start.y);
+        const row = [0, 1, 2].map((offset) => BuildingSystem._blockCellCenter(si + offset, sj));
+        if (row.every(([x, y]) => BuildingSystem._canPlaceRoad(x, y))) {
+            manualRow = { si, sj, row };
+            break;
+        }
+    }
+    if (!manualRow) throw new Error('no valid manual road row');
+    BuildingSystem._wallDrag = { si: manualRow.si, sj: manualRow.sj };
+    const rowEnd = manualRow.row[manualRow.row.length - 1];
+    BuildingSystem._updateWallPreview(rowEnd[0], rowEnd[1]);
+    const manualPreviewCount = BuildingSystem._wallRow.length;
+    const manualPreviewAllGreen = [
+        BuildingSystem._ghost,
+        ...BuildingSystem._rowPreview,
+    ].every((sprite) => sprite?.visible && sprite.tintTopLeft === 0x9dff9d);
+    window.Game._devInfiniteResources = true;
+    BuildingSystem._placeRoadRow(BuildingSystem._wallRow);
+    window.Game._devInfiniteResources = oldFree;
+    const manualRoads = BuildingRoadSystem.captureManualRoads();
+    const firstManual = manualRoads[0];
+    const firstManualCenter = firstManual
+        ? BuildingSystem._blockCellCenter(firstManual.i, firstManual.j)
+        : null;
+    const snapshotMod = await findModule('/src/world/world122-snapshot.js');
+    const capturedRoads = snapshotMod.captureWorld122()?.roads || [];
     const output = {
         textureExists: window.__phaserScene.textures.exists('building_road_tiles'),
+        roadItemCost: roadItem.cost,
         validStatus: validStatus.ok,
         reservationCount: tower._buildingRoadLayout.reservationCells.length,
         roadCellCount: tower._buildingRoadLayout.roadCells.length,
@@ -177,8 +211,17 @@ const result = await evalJs(`(async () => {
         overlapOk: overlapStatus.ok,
         overlapInvalidCount: Array.from(overlapStatus.validByKey.values()).filter((ok) => !ok).length,
         redPreviewCount,
+        manualPreviewCount,
+        manualPreviewAllGreen,
+        manualRoadCount: manualRoads.length,
+        manualTotalTileCount: BuildingRoadSystem._roadTiles.size,
+        manualSpeedMultiplier: firstManualCenter
+            ? BuildingRoadSystem.movementMultiplierAt(firstManualCenter[0], firstManualCenter[1])
+            : 1,
+        capturedManualRoadCount: capturedRoads.length,
     };
 
+    for (const cell of manualRoads) BuildingRoadSystem.removeManualRoad(cell.i, cell.j);
     tower._removeBuildingRoads?.();
     tower.active = false;
     window.Game.entities.delete(tower.id);
@@ -188,6 +231,7 @@ const result = await evalJs(`(async () => {
 })()`);
 
 const pass = result?.textureExists
+    && result.roadItemCost === 10
     && result.validStatus
     && result.reservationCount === 16
     && result.roadCellCount === 12
@@ -199,7 +243,13 @@ const pass = result?.textureExists
     && result.previewBefore.every((sprite) => sprite.visible)
     && result.overlapOk === false
     && result.overlapInvalidCount > 0
-    && result.redPreviewCount > 0;
+    && result.redPreviewCount > 0
+    && result.manualPreviewCount === 3
+    && result.manualPreviewAllGreen
+    && result.manualRoadCount === 3
+    && result.manualTotalTileCount === 15
+    && result.manualSpeedMultiplier === 1.2
+    && result.capturedManualRoadCount === 3;
 
 console.log(pass ? 'PASS' : 'FAIL', JSON.stringify(result));
 if (errors.length) console.log('console errors:', errors.join('\n'));

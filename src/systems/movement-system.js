@@ -18,6 +18,7 @@ import { dynamicObstacleMap } from '../ai/dynamic-obstacle-map.js';
 import SpatialPartitionSystem from './spatial-partition-system.js';
 import { distanceToEntityShape } from '../utils/collision-helpers.js';
 import { compareDefenseTargets, isDefenseTargetEligible } from '../ai/defense-target-priority.js';
+import { BuildingRoadSystem } from '../world/building-road-system.js';
 
 /** 超出此距离不再进行 A* 寻路，直接朝目标移动 */
 const MAX_PATHFIND_RANGE = 800;
@@ -99,7 +100,7 @@ const MovementSystem = {
                 const dx = enemy.x - src.x, dy = enemy.y - src.y;
                 const d = Math.hypot(dx, dy) || 1;
                 const mul = typeof enemy.getFearSpeedMul === 'function' ? enemy.getFearSpeedMul() : 1;
-                const spd = this._getEnemyBaseSpeed(enemy) * mul;
+                const spd = this._getEnemyMoveSpeed(enemy) * mul;
                 let fx = dx / d, fy = dy / d;
                 const fearAvoid = this._avoidEnergyNodes(enemy, fx, fy, entities);
                 fx = fearAvoid.moveX;
@@ -517,6 +518,12 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
         const base = enemy.maxSpeed ?? enemy.speed ?? 100;
         const chillMul = (typeof enemy.getChillSpeedMul === 'function') ? enemy.getChillSpeedMul() : 1;
         return base * chillMul;
+    },
+
+    /** 道路加速只在最终移动计算链动态乘算，不修改 maxSpeed，离开道路立即恢复。 */
+    _getEnemyMoveSpeed(enemy) {
+        return this._getEnemyBaseSpeed(enemy)
+            * BuildingRoadSystem.movementMultiplierAt(enemy.x, enemy.y);
     },
 
     _applyKnockback(enemy, dt) {
@@ -1095,7 +1102,7 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
                 if (len > 0) { moveX /= len; moveY /= len; }
             }
 
-            let maxSpd = this._getEnemyBaseSpeed(enemy);
+            let maxSpd = this._getEnemyMoveSpeed(enemy);
             if (chargeStraight) {
                 maxSpd *= 1.3;
             }
@@ -1262,7 +1269,7 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
      */
     _applyNormalMovement(enemy, dt, dx, dy, dist, entities) {
         const chargeStraight = enemy.ai && enemy.ai.chargeStraight;
-        let maxSpd = this._getEnemyBaseSpeed(enemy);
+        let maxSpd = this._getEnemyMoveSpeed(enemy);
         // 直冲型怪物在攻击范围外小幅加速，确保能追上高速目标
         if (chargeStraight && dist > (enemy.attackRange || 70)) {
             maxSpd *= 1.3;
@@ -1613,7 +1620,7 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
         const dist = Math.sqrt(dx * dx + dy * dy);
         if (dist < 0.1) return;
 
-        const maxSpd = this._getEnemyBaseSpeed(enemy);
+        const maxSpd = this._getEnemyMoveSpeed(enemy);
         enemy.vx += (dx / dist * maxSpd - enemy.vx) * (enemy.accel || 0.7);
         enemy.vy += (dy / dist * maxSpd - enemy.vy) * (enemy.accel || 0.7);
 
@@ -1664,7 +1671,7 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
             return;
         }
 
-        const maxSpd = this._getEnemyBaseSpeed(enemy) * 0.3;
+        const maxSpd = this._getEnemyMoveSpeed(enemy) * 0.3;
         enemy.vx += (dx / dist * maxSpd - enemy.vx) * (enemy.accel || 0.7);
         enemy.vy += (dy / dist * maxSpd - enemy.vy) * (enemy.accel || 0.7);
 
@@ -1720,7 +1727,7 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
 
         if (moveDist < 0.1) return;
 
-        const maxSpd = this._getEnemyBaseSpeed(enemy);
+        const maxSpd = this._getEnemyMoveSpeed(enemy);
         enemy.vx += (moveDx / moveDist * maxSpd - enemy.vx) * (enemy.accel || 0.7);
         enemy.vy += (moveDy / moveDist * maxSpd - enemy.vy) * (enemy.accel || 0.7);
 
@@ -1777,7 +1784,7 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
             return;
         }
 
-        const maxSpd = this._getEnemyBaseSpeed(enemy);
+        const maxSpd = this._getEnemyMoveSpeed(enemy);
         enemy.vx += (moveDx * maxSpd - enemy.vx) * (enemy.accel || 0.7);
         enemy.vy += (moveDy * maxSpd - enemy.vy) * (enemy.accel || 0.7);
 

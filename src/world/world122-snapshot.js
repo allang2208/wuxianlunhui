@@ -219,7 +219,11 @@ export function captureWorld122() {
             hpPerWave: spawnCfg.hpPerWave ?? 0.16,
             atkPerWave: spawnCfg.atkPerWave ?? 0.08,
         },
-        base, wave, structures, nodes,
+        base,
+        wave,
+        structures,
+        nodes,
+        roads: BuildingRoadSystem.captureManualRoads(),
     };
 }
 
@@ -470,6 +474,9 @@ export function applyWorld122Snapshot(snap = _stored) {
             console.error('[World122Snapshot] 建筑恢复失败:', s.kind, err);
         }
     }
+
+    // 手动道路是无碰撞派生地块；建筑先恢复，随后道路与自动道路环共享对应格贴图。
+    BuildingRoadSystem.restoreManualRoads(snap.roads);
 
     // 能源矿点（快照含位置，不走随机重铺）
     if (Array.isArray(snap.nodes) && snap.nodes.length > 0

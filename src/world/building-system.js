@@ -54,6 +54,7 @@ import {
     BUILDING_ROAD_DISPLAY_HEIGHT,
     BUILDING_ROAD_DISPLAY_WIDTH,
     BUILDING_ROAD_TEXTURE,
+    buildingRoadFrame,
     buildingRoadLayout,
 } from './building-road-system.js';
 
@@ -142,6 +143,7 @@ export const BUILD_ITEMS = [
     { id: 'tower', name: '防御塔', cost: 300, tex: 'obstacle_defense_tower', kind: 'tower', currency: 'energy' },
     // 1×1 方块墙 / 4格门统一采用 C 级墙数值与造价（2026-08-18）
     { id: 'cover_block', name: '方块墙', cost: C_GRADE_WALL_COST, tex: 'obstacle_block', kind: 'block', grade: 'C', orient: 'v', currency: 'energy' },
+    { id: 'road', name: '道路', cost: 10, tex: BUILDING_ROAD_TEXTURE, kind: 'road', currency: 'energy' },
     { id: 'gate_4cell', name: '4格门', cost: C_GRADE_WALL_COST, tex: 'gate_4cell', icon: 'gate_4cell', kind: 'gate4', grade: 'C', visualGrade: 'D', orient: 'v', currency: 'energy' },
     { id: 'hamster_hut', name: '仓鼠矿场', cost: 1000, tex: 'mine', kind: 'hamster_hut', currency: 'energy' },
     { id: 'hamster_barracks', name: '仓鼠军营', cost: 1500, tex: 'barracks', kind: 'hamster_barracks', currency: 'energy' },
@@ -384,6 +386,8 @@ export const BuildingSystem = {
             } else if (item.kind === 'producer') {
                 const pc = PRODUCER_BUILDINGS[item.id];
                 this._ghost.setDisplaySize(pc.displayW, pc.displayH);
+            } else if (item.kind === 'road') {
+                this._ghost.setDisplaySize(BUILDING_ROAD_DISPLAY_WIDTH, BUILDING_ROAD_DISPLAY_HEIGHT);
             } else if (item.kind === 'trap') {
                 this._ghost.setDisplaySize(item.trapW || 72, item.trapH || 52);
             } else if (item.kind === 'gate') {
@@ -403,7 +407,10 @@ export const BuildingSystem = {
         if (isTwoByTwoBuildItem(item)) this._ensureRoadPreview(scene);
         else this._clearRoadPreview();
         const sel = this._panel && this._panel.querySelector('#bpSel');
-        if (sel) sel.textContent = `${item.name}（${item.cost}${item.currency === 'energy' ? '能' : '金'}）— 左键放置 / F 镜像`;
+        if (sel) {
+            const action = item.kind === 'road' ? '单击或拖动铺设' : '左键放置 / F 镜像';
+            sel.textContent = `${item.name}（${item.cost}${item.currency === 'energy' ? '能' : '金'}）— ${action}`;
+        }
     },
 
     _coverAspect(item) {
@@ -713,6 +720,7 @@ export const BuildingSystem = {
         }
         if (this._placing.item.kind === 'platform') return FIRING_PLATFORM_VISUAL.footOffsetY;
         if (this._placing.item.kind === 'block') return BLOCK_FOOT_OFFSET; // 方块墙：61（与实体一致）
+        if (this._placing.item.kind === 'road') return 0;
         return this._ghost.displayHeight / 2;
     },
 
@@ -836,9 +844,9 @@ export const BuildingSystem = {
         }
         const p = this._clientToWorld(e);
         if (!p || !p.overCanvas) return;
-        // 方块墙：按下开始拖墙（帝国时代式：长按拖动沿一条方向铺一排），
+        // 方块墙/道路：按下开始拖动（帝国时代式：长按拖动沿一条方向铺一排），
         // 松开时才统一放置（普通单击 = 只放起点一块）
-        if (this._placing.item.kind === 'block') {
+        if (this._placing.item.kind === 'block' || this._placing.item.kind === 'road') {
             const snap = this._snapPosition(p.x, p.y) || { x: p.x, y: p.y };
             const [si, sj] = this._blockCellOf(snap.x, snap.y);
             this._wallDrag = { si, sj };
@@ -878,9 +886,13 @@ export const BuildingSystem = {
             return;
         }
         const cells = this._wallRow || [];
+        const itemKind = this._placing?.item?.kind;
         this._wallDrag = null;
         this._clearWallPreview();
-        if (cells.length) this._placeBlockRow(cells);
+        if (cells.length) {
+            if (itemKind === 'road') this._placeRoadRow(cells);
+            else this._placeBlockRow(cells);
+        }
     },
 
     /** 失焦/画布外松开只取消本次拖墙，不退出当前建筑选择。 */
@@ -927,7 +939,7 @@ export const BuildingSystem = {
         const item = this._placing && this._placing.item;
         if (!item) return null;
         // 方块墙：网格吸附（2026-08-17）——1 格 = 64×32 菱形格，贴格心/邻格拼接
-        if (item.kind === 'block') return this._snapBlockGrid(x, y);
+        if (item.kind === 'block' || item.kind === 'road') return this._snapBlockGrid(x, y);
         if (isTwoByTwoBuildItem(item)) return this._snapBuildingGrid(x, y, 2);
         if (isFiringPlatformBuildItem(item)) return this._snapFiringPlatformGrid(x, y);
         // 4 格门：锚点吸附到格网半格位（栅栏跨 2 格的中点），方向跟随主导轴
@@ -1092,16 +1104,24 @@ export const BuildingSystem = {
         const scene = window.__phaserScene;
         if (!scene) return;
         const item = this._placing.item;
+        const isRoad = item.kind === 'road';
         for (let k = 0; k < this._wallRow.length; k++) {
             const [x, y] = this._wallRow[k];
+            const [i, j] = this._blockCellOf(x, y);
             const anchor = this._ghostAnchor(x, y);
-            const ok = this._canPlaceBlock(x, y);
+            const ok = isRoad ? this._canPlaceRoad(x, y) : this._canPlaceBlock(x, y);
             if (k === this._wallRow.length - 1) {
+                if (isRoad) this._ghost.setFrame(buildingRoadFrame(i, j));
                 this._ghost.setPosition(anchor.x, anchor.y);
                 this._ghost.setTint(ok ? 0x9dff9d : 0xff7777);
                 this._ghost.setVisible(true);
             } else {
-                const sp = scene.add.sprite(anchor.x, anchor.y, item.tex);
+                const sp = scene.add.sprite(
+                    anchor.x,
+                    anchor.y,
+                    item.tex,
+                    isRoad ? buildingRoadFrame(i, j) : undefined
+                );
                 sp.setOrigin(0.5, 0.5);
                 sp.setAlpha(0.55);
                 sp.setDepth(999998);
@@ -1264,6 +1284,42 @@ export const BuildingSystem = {
         const text = n > 0
             ? `${item.name} 已放置 ${n} 块${suffix}${insufficient ? '，资源不足已停止' : ''}`
             : (insufficient ? `${item.name}：能源不足` : `${item.name}：没有可放置的格子`);
+        this._notify(text, n > 0 ? '#7fd4ff' : '#ff5555');
+        this._refreshCurrencies();
+    },
+
+    /** 拖动铺路：只对新增且合法的格子逐块扣费，已有道路/建筑预约格自动跳过。 */
+    _placeRoadRow(cells) {
+        const item = this._placing && this._placing.item;
+        if (!item || item.kind !== 'road') return;
+        let n = 0;
+        let spent = 0;
+        let insufficient = false;
+        const clearZones = [];
+        const free = !!(Game && Game._devInfiniteResources);
+        for (const [x, y] of cells) {
+            if (!this._canPlaceRoad(x, y)) continue;
+            if (!free && !this._deductBuildCost(item.currency, item.cost)) {
+                insufficient = true;
+                break;
+            }
+            const [i, j] = this._blockCellOf(x, y);
+            if (!BuildingRoadSystem.addManualRoad(i, j)) {
+                if (!free) this._refundBuildCost(item.currency, item.cost);
+                continue;
+            }
+            clearZones.push({ x, y, radius: ONE_CELL_BUILDING_FOOT.clearRadius });
+            spent += item.cost;
+            n++;
+        }
+        this._clearBuildZones(clearZones);
+        if (n > 0 && SoundManager && typeof SoundManager.playFile === 'function') {
+            SoundManager.playFile('assets/sounds/ui/sell.wav');
+        }
+        const suffix = free ? '（无限资源）' : `（-${spent} 能）`;
+        const text = n > 0
+            ? `${item.name} 已铺设 ${n} 格${suffix}${insufficient ? '，资源不足已停止' : ''}`
+            : (insufficient ? `${item.name}：能源不足` : `${item.name}：没有可铺设的格子`);
         this._notify(text, n > 0 ? '#7fd4ff' : '#ff5555');
         this._refreshCurrencies();
     },
@@ -1575,6 +1631,13 @@ export const BuildingSystem = {
         if (item.kind === 'block') {
             minX = x - BLOCK_FOOT.w / 2; maxX = x + BLOCK_FOOT.w / 2;
             minY = y - BLOCK_FOOT.d / 2; maxY = y + BLOCK_FOOT.d / 2;
+        } else if (item.kind === 'road') {
+            const probe = this._roadCellProbe({ x, y });
+            const vertices = isoFootprintVertices(probe);
+            minX = Math.min(...vertices.map((p) => p.x));
+            maxX = Math.max(...vertices.map((p) => p.x));
+            minY = Math.min(...vertices.map((p) => p.y));
+            maxY = Math.max(...vertices.map((p) => p.y));
         } else if (isFiringPlatformBuildItem(item)) {
             const probe = this._firingPlatformProbe(x, y, firingPlatformDir(!!this._placing?.mirror));
             const vertices = isoFootprintVertices(probe);
@@ -1606,6 +1669,9 @@ export const BuildingSystem = {
         // 改为「同格不可放、邻格/更远可放」+ 地形检查（排除方块自身 face 段）
         if (this._placing && this._placing.item.kind === 'block') {
             return this._canPlaceBlock(x, y);
+        }
+        if (this._placing && this._placing.item.kind === 'road') {
+            return this._canPlaceRoad(x, y);
         }
         // 4 格门：4 个格全部可放
         if (this._placing && this._placing.item.kind === 'gate4') {
@@ -1744,6 +1810,7 @@ export const BuildingSystem = {
         const validByKey = new Map();
         for (const cell of layout.reservationCells) {
             const valid = !BuildingRoadSystem.isReservedCell(cell.i, cell.j)
+                && (cell.road || !BuildingRoadSystem.isManualRoadCell(cell.i, cell.j))
                 && this._roadCellFitsBounds(cell)
                 && this._canPlaceIsoBuildingFootprint(this._roadCellProbe(cell), {
                     centerSampleRadius: 4,
@@ -1823,6 +1890,15 @@ export const BuildingSystem = {
             samples.push({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 });
         }
         return samples.every((p) => canBuild(p.x, p.y, 18));
+    },
+
+    /** 手动道路：单格地面覆盖，不生成碰撞；已有道路和建筑4×4预约格不可重复铺设。 */
+    _canPlaceRoad(x, y) {
+        const item = this._placing && this._placing.item;
+        if (!item || item.kind !== 'road' || !this._fitsPlacementBounds(item, x, y)) return false;
+        const [i, j] = this._blockCellOf(x, y);
+        if (!BuildingRoadSystem.canPlaceManualRoadCell(i, j)) return false;
+        return this._canPlaceIsoBuildingFootprint(this._roadCellProbe({ x, y }));
     },
 
     /** 方块墙放置判定：1×1 格心冲突 + 地形（树/仙人掌/世界边界）。 */

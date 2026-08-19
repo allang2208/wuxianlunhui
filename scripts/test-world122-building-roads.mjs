@@ -63,6 +63,21 @@ check('拆除建筑同步释放预约', first._removeBuildingRoads() === true);
 check('拆除后另一建筑预约仍保留', BuildingRoadSystem._owners.size === 1);
 BuildingRoadSystem.reset();
 
+const manualI = 20;
+const manualJ = 30;
+const [manualX, manualY] = [4232 + manualI * 64 - manualJ * 64, 4080 + manualI * 32 + manualJ * 32];
+check('手动道路可登记空闲格', BuildingRoadSystem.addManualRoad(manualI, manualJ, { scene }) === true);
+check('同格道路不会重复铺设', BuildingRoadSystem.addManualRoad(manualI, manualJ, { scene }) === false);
+check('道路格移动倍率为1.2', BuildingRoadSystem.movementMultiplierAt(manualX, manualY) === 1.2);
+check('非道路格移动倍率为1', BuildingRoadSystem.movementMultiplierAt(manualX + 512, manualY) === 1);
+check('手动道路可捕获进快照', JSON.stringify(BuildingRoadSystem.captureManualRoads()) === JSON.stringify([{ i: manualI, j: manualJ }]));
+BuildingRoadSystem.reset();
+check('手动道路可从快照恢复', BuildingRoadSystem.restoreManualRoads([{ i: manualI, j: manualJ }], { scene }) === 1
+    && BuildingRoadSystem.isManualRoadCell(manualI, manualJ));
+check('手动道路可独立移除', BuildingRoadSystem.removeManualRoad(manualI, manualJ) === true
+    && !BuildingRoadSystem.hasRoadCell(manualI, manualJ));
+BuildingRoadSystem.reset();
+
 const asset = path.join(ROOT, 'assets', 'terrain', 'building_road_tiles.png');
 const size = pngSize(asset);
 check('道路精灵表已入库', fs.existsSync(asset));
@@ -72,6 +87,8 @@ const boot = fs.readFileSync(path.join(ROOT, 'src', 'phaser', 'scenes', 'BootSce
 const building = fs.readFileSync(path.join(ROOT, 'src', 'world', 'building-system.js'), 'utf8');
 const snapshot = fs.readFileSync(path.join(ROOT, 'src', 'world', 'world122-snapshot.js'), 'utf8');
 const sink = fs.readFileSync(path.join(ROOT, 'src', 'effects', 'building-sink.js'), 'utf8');
+const movement = fs.readFileSync(path.join(ROOT, 'src', 'systems', 'movement-system.js'), 'utf8');
+const playerUpdate = fs.readFileSync(path.join(ROOT, 'src', 'entities', 'player', 'update.js'), 'utf8');
 check('BootScene注册4帧道路精灵表',
     boot.includes("this.load.spritesheet('building_road_tiles'")
     && boot.includes('frameWidth: 128')
@@ -89,6 +106,20 @@ check('快照恢复重建道路环',
     && snapshot.includes('BuildingRoadSystem.attach(producer, { allowOverlap: true })'));
 check('建筑沉陷时释放道路环',
     sink.includes("typeof e._removeBuildingRoads === 'function'"));
+check('建筑面板提供10能源道路并复用拖墙手势',
+    building.includes("id: 'road', name: '道路', cost: 10")
+    && building.includes("itemKind === 'road'")
+    && building.includes('_placeRoadRow(cells)'));
+check('手动道路按新增格逐块扣费',
+    building.includes('_deductBuildCost(item.currency, item.cost)')
+    && building.includes('BuildingRoadSystem.addManualRoad(i, j)'));
+check('玩家与常规单位道路移速动态乘1.2',
+    movement.includes('_getEnemyMoveSpeed(enemy)')
+    && movement.includes('BuildingRoadSystem.movementMultiplierAt(enemy.x, enemy.y)')
+    && playerUpdate.includes('BuildingRoadSystem.movementMultiplierAt(this.x, this.y)'));
+check('手动道路写入并恢复世界122快照',
+    snapshot.includes('roads: BuildingRoadSystem.captureManualRoads()')
+    && snapshot.includes('BuildingRoadSystem.restoreManualRoads(snap.roads)'));
 
 console.log(`\nWorld-122 building roads: ${passed} passed, ${failed} failed`);
 if (failed > 0) process.exit(1);

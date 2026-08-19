@@ -15,6 +15,7 @@ import { CONFIG } from '../../config/config.js';
 import { getTributeHpRegenMultiplier, getTributeMpRegenMultiplier, getTributeStaminaRegenMul, getTributeHpRegenFlat } from '../../config/tribute-effects.js';
 import { GameUIManager } from '../../ui/game-ui-manager.js';
 import { SystemUI } from '../../ui/system-ui.js';
+import { BuildingRoadSystem } from '../../world/building-road-system.js';
 
 const updateMixin = {
 update(dt, entities) {
@@ -89,7 +90,9 @@ update(dt, entities) {
                         const dx = this.x - src.x, dy = this.y - src.y;
                         const d = Math.hypot(dx, dy) || 1;
                         // 与正常移动同口径：maxSpeed × 恐惧层数倍率
-                        const spd = (this.maxSpeed || this.data.speed || 100) * this.getFearSpeedMul();
+                        const spd = (this.maxSpeed || this.data.speed || 100)
+                            * this.getFearSpeedMul()
+                            * BuildingRoadSystem.movementMultiplierAt(this.x, this.y);
                         this.vx = (dx / d) * spd;
                         this.vy = (dy / d) * spd;
                         this.isMoving = true;
@@ -290,6 +293,8 @@ update(dt, entities) {
                     if (this.hasStatusEffect && this.hasStatusEffect('chill')) {
                         targetSpeed *= (typeof this.getChillSpeedMul === 'function' ? this.getChillSpeedMul() : 1);
                     }
+                    // 道路范围移速 +20%：动态读脚底格，不写回 maxSpeed，离开道路立即恢复。
+                    targetSpeed *= BuildingRoadSystem.movementMultiplierAt(this.x, this.y);
                     // 双手枪械开火/瞄准时禁止 Shift 奔跑（开火或右键瞄准即中断奔跑退回 walking，
                     // _isSprinting 解除后姿态回 walk，武器位置同步为 walking 配置）
                     const isTwoHandedGun = isGunWeapon(currentEquip) && isTwoHanded(currentEquip);

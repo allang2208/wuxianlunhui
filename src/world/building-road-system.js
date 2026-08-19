@@ -6,6 +6,7 @@ export const BUILDING_ROAD_FRAME_HEIGHT = 64;
 export const BUILDING_ROAD_DISPLAY_WIDTH = 130;
 export const BUILDING_ROAD_DISPLAY_HEIGHT = 65;
 export const BUILDING_ROAD_DEPTH = -995;
+export const BUILDING_ROAD_SPEED_MULTIPLIER = 1.2;
 
 const BUILDING_CELLS = 2;
 const ROAD_PADDING = 1;
@@ -67,6 +68,7 @@ export const BuildingRoadSystem = {
     _owners: new Map(),
     _cellOwners: new Map(),
     _roadTiles: new Map(),
+    _manualRoadCells: new Map(),
 
     reset(scene = null) {
         for (const record of this._roadTiles.values()) {
@@ -80,6 +82,7 @@ export const BuildingRoadSystem = {
         this._owners = new Map();
         this._cellOwners = new Map();
         this._roadTiles = new Map();
+        this._manualRoadCells = new Map();
     },
 
     _ensureScene(scene) {
@@ -94,6 +97,109 @@ export const BuildingRoadSystem = {
             if (owner !== ignoreEntity) return true;
         }
         return false;
+    },
+
+    isManualRoadCell(i, j) {
+        return this._manualRoadCells.has(cellKey(i, j));
+    },
+
+    hasRoadCell(i, j) {
+        return this._roadTiles.has(cellKey(i, j));
+    },
+
+    hasRoadAt(x, y) {
+        const [i, j] = blockCellOf(x, y);
+        return this.hasRoadCell(i, j);
+    },
+
+    movementMultiplierAt(x, y) {
+        return this.hasRoadAt(x, y) ? BUILDING_ROAD_SPEED_MULTIPLIER : 1;
+    },
+
+    canPlaceManualRoadCell(i, j) {
+        return !this.hasRoadCell(i, j) && !this.isReservedCell(i, j);
+    },
+
+    _ensureRoadTile(cell, targetScene) {
+        let tile = this._roadTiles.get(cell.key);
+        if (!tile) {
+            tile = { sprite: null, owners: new Set(), manual: false };
+            this._roadTiles.set(cell.key, tile);
+        }
+        if (!tile.sprite && targetScene?.add?.sprite) {
+            tile.sprite = targetScene.add.sprite(
+                cell.x,
+                cell.y,
+                BUILDING_ROAD_TEXTURE,
+                cell.frame
+            );
+            tile.sprite.setOrigin(0.5, 0.5);
+            tile.sprite.setDisplaySize(
+                BUILDING_ROAD_DISPLAY_WIDTH,
+                BUILDING_ROAD_DISPLAY_HEIGHT
+            );
+            tile.sprite.setDepth(BUILDING_ROAD_DEPTH);
+            tile.sprite.setAlpha(0.96);
+        }
+        return tile;
+    },
+
+    addManualRoad(i, j, { scene = null, force = false } = {}) {
+        const targetScene = scene || (
+            typeof window !== 'undefined' ? window.__phaserScene : null
+        );
+        this._ensureScene(targetScene);
+        const key = cellKey(i, j);
+        const existingTile = this._roadTiles.get(key);
+        if (!force && !this.canPlaceManualRoadCell(i, j)) return false;
+        // 旧快照兼容：自动道路环已占用该格时，手动道路可共享贴图并保留独立持久化标记；
+        // 建筑中央预约格没有道路贴图，禁止强制铺入建筑底下。
+        if (force && this.isReservedCell(i, j) && !existingTile) return false;
+        const [x, y] = blockCellCenter(i, j);
+        const cell = {
+            i,
+            j,
+            key,
+            x: Math.round(x),
+            y: Math.round(y),
+            frame: buildingRoadFrame(i, j),
+        };
+        this._manualRoadCells.set(key, cell);
+        const tile = this._ensureRoadTile(cell, targetScene);
+        tile.manual = true;
+        return true;
+    },
+
+    removeManualRoad(i, j) {
+        const key = cellKey(i, j);
+        if (!this._manualRoadCells.delete(key)) return false;
+        const tile = this._roadTiles.get(key);
+        if (tile) {
+            tile.manual = false;
+            if (tile.owners.size === 0) {
+                if (tile.sprite?.active) tile.sprite.destroy();
+                this._roadTiles.delete(key);
+            }
+        }
+        return true;
+    },
+
+    captureManualRoads() {
+        return Array.from(this._manualRoadCells.values()).map((cell) => ({
+            i: cell.i,
+            j: cell.j,
+        }));
+    },
+
+    restoreManualRoads(cells, { scene = null } = {}) {
+        let restored = 0;
+        for (const cell of cells || []) {
+            const i = Number(cell?.i);
+            const j = Number(cell?.j);
+            if (!Number.isInteger(i) || !Number.isInteger(j)) continue;
+            if (this.addManualRoad(i, j, { scene, force: true })) restored++;
+        }
+        return restored;
     },
 
     canAttach(entity) {
@@ -129,27 +235,7 @@ export const BuildingRoadSystem = {
         }
 
         for (const cell of layout.roadCells) {
-            let tile = this._roadTiles.get(cell.key);
-            if (!tile) {
-                let sprite = null;
-                if (targetScene?.add?.sprite) {
-                    sprite = targetScene.add.sprite(
-                        cell.x,
-                        cell.y,
-                        BUILDING_ROAD_TEXTURE,
-                        cell.frame
-                    );
-                    sprite.setOrigin(0.5, 0.5);
-                    sprite.setDisplaySize(
-                        BUILDING_ROAD_DISPLAY_WIDTH,
-                        BUILDING_ROAD_DISPLAY_HEIGHT
-                    );
-                    sprite.setDepth(BUILDING_ROAD_DEPTH);
-                    sprite.setAlpha(0.96);
-                }
-                tile = { sprite, owners: new Set() };
-                this._roadTiles.set(cell.key, tile);
-            }
+            const tile = this._ensureRoadTile(cell, targetScene);
             tile.owners.add(entity);
         }
 
@@ -172,7 +258,7 @@ export const BuildingRoadSystem = {
             const tile = this._roadTiles.get(cell.key);
             if (!tile) continue;
             tile.owners.delete(entity);
-            if (tile.owners.size === 0) {
+            if (tile.owners.size === 0 && !tile.manual) {
                 if (tile.sprite?.active) tile.sprite.destroy();
                 this._roadTiles.delete(cell.key);
             }
