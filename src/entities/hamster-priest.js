@@ -96,7 +96,7 @@ export class HamsterPriest extends Companion {
             return;
         }
         const game = typeof window !== 'undefined' ? window.Game : null;
-        this._ai.update(dt, entities, game && game.player);
+        this._ai.update(dt, entities, (game && game.player && !game._observerMode) ? game.player : null); // 观察模式：仓鼠部队不跟随不在场的玩家
     }
 
     _removeFromScene() {

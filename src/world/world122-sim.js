@@ -100,8 +100,9 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
     }
 
     // ---- 被动能源（研究等级，结算期常量口径；秒结算与实机一致）----
+    // commit 时读条循环已升全局等级；预览（commit=false）未升，按完成项临时+1
     const passiveLv = getAbilityLevel('research_passive_energy')
-        + report.abilitiesCompleted.filter((id) => id === 'research_passive_energy').length;
+        + (commit ? 0 : report.abilitiesCompleted.filter((id) => id === 'research_passive_energy').length);
     report.passiveEnergy = passiveLv > 0 ? Math.floor(t) * passiveLv : 0;
 
     // ---- 采矿与仓储 ----
@@ -132,10 +133,11 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
     }
     // 矿工采矿（速率 = 矿工数 × 单矿工伤害/间隔 × 50% 采集比 × 采矿模块）
     const minerAi = minerCfg.ai || {};
-    const minerPerSec = ((minerAi.attackDamage ?? 100) / Math.max(300, minerAi.attackInterval ?? 2000)) * 0.5;
+    const minerPerSec = ((minerAi.attackDamage ?? 100) / Math.max(300, minerAi.attackInterval ?? 2000)) * 1000 * 0.5;
     const nodes = target.nodes || [];
     for (const s of target.structures || []) {
-        if (s.kind !== 'hut' || warehouseFree <= 0) break;
+        if (s.kind !== 'hut') continue;
+        if (warehouseFree <= 0) break;
         const miners = s.miners || 0;
         const fullCount = Math.max(miners, 1 + ((s.modules && s.modules.count) || 0));
         const miningMult = 1 + 0.15 * ((s.modules && s.modules.mining) || 0);
@@ -176,7 +178,7 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
         let alive = s.units || 0;
         let timeLeft = elapsedMs;
         while (alive < cap) {
-            if (timeLeft < timer) { timer -= timeLeft; timeLeft = 0; break; }
+            if (timeLeft < timer) { timer -= timeLeft; break; }
             timeLeft -= timer;
             alive++;
             report.unitsProduced++;
@@ -199,7 +201,9 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
     if (commit) target.capturedAt = Date.now();
     if (commit && report.victory && !target.wave.victoryGrantedPaid) {
         const reward = cfg.victoryReward || { gold: 500, energy: 500 };
-        if (typeof opts.grant === 'function') opts.grant(reward);
+        // 能源入快照仓库（恢复时物化）；金币走全局（grant 回调由调用方注入）
+        if (reward.energy) _depositToWarehouses(warehouses, reward.energy);
+        if (reward.gold && typeof opts.grant === 'function') opts.grant({ gold: reward.gold });
         target.wave.victoryGrantedPaid = true;
     }
     return report;
@@ -252,12 +256,12 @@ function _unitCapOf(s) {
     return cfg?.unitCap ?? 5;
 }
 
-/** 波次时间轴推进 + 抽象战斗结算 */
+/** 波次时间轴推进 + 抽象战斗结算（支持 1Hz 增量 tick 与回场一次性结算两种口径：
+ *  波次进度 wave.progressSec 跨 tick 累计，怪物输出按实际交战时长逐段结算） */
 function _settleWaves(target, cfg, defenseDps, timeSec, report) {
     const wave = target.wave;
     if (wave.victory) return;
     let t = timeSec;
-    const structures = target.structures || [];
     let guard = 200;
     while (t > 0 && guard-- > 0) {
         if (wave.phase === 'prep' || wave.phase === 'break') {
@@ -267,30 +271,37 @@ function _settleWaves(target, cfg, defenseDps, timeSec, report) {
             wave.wave = (wave.wave || 0) + 1;
             wave.phase = 'wave';
             wave.phaseTimer = 0;
+            wave.progressSec = 0;
             continue;
         }
         if (wave.phase === 'wave') {
             const pool = _wavePool(wave.wave, cfg);
-            if (defenseDps <= 0) {
-                // 无防守输出：怪群直捣基地
-                const grind = pool.dps * WORLD122_SIM.contactFraction * t;
-                _applyStructureDamage(target, grind * 10, report); // 放大：无防守必然崩盘
+            // 防守 DPS 每波重算（结算过程中建筑可能被摧毁）
+            const dps = (target.structures || []).reduce((sum, s) => {
+                if (!(s.hp > 0)) return sum;
+                if (s.kind === 'tower') return sum + (s.dps || 0);
+                if (s.kind === 'barracks' || (s.kind === 'producer' && s.unitType)) return sum + (s.unitDps || 0);
+                return sum;
+            }, 0);
+            if (dps <= 0) {
+                // 无防守输出：怪群按实际时长推平防线与基地
+                _applyStructureDamage(target, pool.dps * WORLD122_SIM.contactFraction * t, report);
                 if ((target.base?.hp ?? 0) <= 0) { report.defeated = true; return; }
-                // 波次卡住（重开场重打）
-                return;
+                return; // 波次卡住（回场重打）
             }
             const clearTime = Math.min(WORLD122_SIM.waveTimeMax,
-                Math.max(WORLD122_SIM.waveTimeMin, pool.hp / defenseDps));
-            if (t < clearTime) {
-                // 波次进行中：回场重开本波（实体不留档，M0 口径）
-                return;
-            }
-            t -= clearTime;
-            // 怪物输出按接触系数结算到建筑（墙/门 → 建筑 → 基地）
-            const dmg = pool.dps * clearTime * WORLD122_SIM.contactFraction;
-            _applyStructureDamage(target, dmg, report);
+                Math.max(WORLD122_SIM.waveTimeMin, pool.hp / dps));
+            const need = clearTime - (wave.progressSec || 0);
+            const step = Math.min(t, need);
+            wave.progressSec = (wave.progressSec || 0) + step;
+            t -= step;
+            // 怪物输出按本段交战时长结算（墙/门 → 建筑 → 基地）
+            _applyStructureDamage(target, pool.dps * WORLD122_SIM.contactFraction * step, report);
+            if ((target.base?.hp ?? 0) <= 0) { report.defeated = true; return; }
+            if (wave.progressSec < clearTime) return; // 波次仍在进行（时间用尽）
+            // 清波
             report.wavesCleared.push(wave.wave);
-            if ((target.base?.hp ?? 1) <= 0) { report.defeated = true; return; }
+            wave.progressSec = 0;
             if (wave.wave >= (cfg.victoryWave ?? 10)) {
                 wave.victory = true;
                 report.victory = true;

@@ -253,6 +253,11 @@ export function restoreWorld122Scene(data) {
     _stored = (data && data.version === SNAPSHOT_VERSION) ? data : null;
 }
 
+/** 玩家是否在世界-122 内（前台全真时后台驱动停 tick） */
+export function isWorld122Live() {
+    return !!(DefenseSystem && DefenseSystem.active);
+}
+
 /** 世界切换面板预览：不回写快照、无全局副作用（commit=false）；
  *  玩家在 122 内或无快照时返回 null。 */
 export function previewWorld122Report() {
@@ -339,7 +344,10 @@ function _restoreHut(s) {
     Game.entities.set(hut.id, hut);
     HamsterHutSystem.huts.push(hut);
     const want = Math.max(0, Math.min(s.miners || 0, hut.minerCount()));
-    for (let i = 0; i < want; i++) hut.spawnMiner();
+    let spawned = 0;
+    for (let i = 0; i < want; i++) if (hut.spawnMiner()) spawned++;
+    // 出口槽位预约窗口 750ms，爆发生成会互撞——缺额走 _restoreTopUp 加速补齐（立即启动 800ms 节拍）
+    if (spawned < want) { hut._restoreTopUp = want - spawned; hut._respawnTimer = 800; }
     // 仍有缺员时按原剩余时间续跑补员计时
     if (hut.aliveMinerCount() < hut.minerCount()) hut._respawnTimer = Math.max(0, s.respawnTimer || 0);
 }
@@ -354,7 +362,10 @@ function _restoreBarracks(s) {
     Game.entities.set(barracks.id, barracks);
     HamsterBarracksSystem.barracks.push(barracks);
     const want = Math.max(0, Math.min(s.units || 0, barracks.unitCount()));
-    for (let i = 0; i < want; i++) barracks.spawnUnit();
+    let spawned = 0;
+    for (let i = 0; i < want; i++) if (barracks.spawnUnit()) spawned++;
+    // 出口槽位预约窗口 750ms，爆发生成会互撞——缺额走 _restoreTopUp 加速补齐（立即启动 800ms 节拍）
+    if (spawned < want) { barracks._restoreTopUp = want - spawned; barracks._spawnTimer = 800; }
 }
 
 function _restoreProducer(s) {
@@ -382,7 +393,10 @@ function _restoreProducer(s) {
     }
     if (producer.spawnEnabled) {
         const want = Math.max(0, Math.min(s.units || 0, producer.unitCount()));
-        for (let i = 0; i < want; i++) producer.spawnUnit();
+        let spawned = 0;
+        for (let i = 0; i < want; i++) if (producer.spawnUnit()) spawned++;
+        // 出口槽位预约窗口 750ms，爆发生成会互撞——缺额走 _restoreTopUp 加速补齐（立即启动 800ms 节拍）
+        if (spawned < want) { producer._restoreTopUp = want - spawned; producer._spawnTimer = 800; }
     }
 }
 
@@ -400,7 +414,7 @@ export function applyWorld122Snapshot(snap = _stored) {
         report = settleWorld122(snap, elapsed, {
             commit: true,
             grant: (reward) => {
-                if (reward.energy && EnergyManager) EnergyManager.depositEnergy(reward.energy);
+                // 金币入全局金库；能源已由结算直接写入快照仓库（建筑尚未物化，EnergyManager 无法承接）
                 if (reward.gold && GoldManager && typeof GoldManager.addGold === 'function') GoldManager.addGold(reward.gold);
             },
         });
@@ -408,10 +422,11 @@ export function applyWorld122Snapshot(snap = _stored) {
             _stored = null; // 后台失守：快照作废，世界重新开局（与 M0 败北口径一致）
             return { defeated: true, report };
         }
-        // 结算后仍进行中的波次重开（实体不留档，M0 口径）
+        // 结算后仍进行中的波次重开（实体不留档，M0 口径；后台进度清零）
         if (snap.wave && snap.wave.phase === 'wave') {
             snap.wave.phase = 'break';
             snap.wave.phaseTimer = (DEFENSE_CONFIG?.spawn?.waveBreakMs ?? 10000);
+            snap.wave.progressSec = 0;
         }
     }
 
@@ -455,6 +470,11 @@ export function applyWorld122Snapshot(snap = _stored) {
     if (Array.isArray(snap.nodes) && snap.nodes.length > 0
         && typeof EnergyNodeSystem.restoreNodes === 'function') {
         EnergyNodeSystem.restoreNodes(snap.nodes);
+        // 不等待 GameScene 的周期巡检：立即剔除旧存档/HMR 遗留的门口、
+        // 建筑重叠及重复矿点，避免它们在门打开的透明帧中短暂露出。
+        if (typeof EnergyNodeSystem.sweepStacked === 'function') {
+            EnergyNodeSystem.sweepStacked();
+        }
     }
 
     // 研究 HP 对新建结构兜底刷新（构造时已各自 applyResearchHp，这里防漏）

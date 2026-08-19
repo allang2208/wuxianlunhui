@@ -14,7 +14,7 @@ import { SoundManager } from '../ui/sound-manager.js';
 import { getElement, getElementIfExists } from '../utils/dom-utils.js';
 import { TimerManager } from '../utils/timer-manager.js';
 import { setDungeonFloorProfile, applyDungeonFloor, applyDungeonFloorChunked, clearDecoClearZones } from './dungeon-floor-texture.js';
-import { getWallPrefabLibrary, loadWallPrefabs, isWallPrefabsLoaded, loadObstacleLayout, getObstacleLayout, getWallGeoOverrides, isWallGeoOverridesLoaded } from './wall-prefabs.js';
+import { getWallPrefabLibrary, loadWallPrefabs, isWallPrefabsLoaded, loadObstacleLayout, loadObstacleDefaults, getObstacleLayout, getWallGeoOverrides, isWallGeoOverridesLoaded } from './wall-prefabs.js';
 import { CONFIG } from '../config/config.js';
 import { TargetDummy } from '../entities/target-dummy.js';
 import { RiftSystem } from '../quest/rift-system.js';
@@ -37,6 +37,7 @@ import {
 } from './world122-snapshot.js';
 import { EnergyManager } from '../systems/energy-manager.js';
 import { ResearchSystem } from './research-system.js';
+import { scatterWorld125Environment } from './world125-environment.js';
 
 export const SceneManager = {
     currentScene: null,
@@ -79,7 +80,8 @@ export const SceneManager = {
             scene7: cfg.scene7 || { name: '僵尸地牢高级', type: 'dungeon', label: '场景七', width: 1024, height: 1024, background: '#000000', origin: { x: 512, y: 512 }, dungeonType: 'zombie' },
             scene8: cfg.scene8 || { name: '世界-122', type: 'instance', label: '场景八', width: 12288, height: 8192, background: '#0d1b0a', origin: { x: 6144, y: 4096 } },
             scene9: cfg.scene9 || { name: '世界-123·雪原', type: 'instance', label: '场景九', width: 12288, height: 8192, background: '#101a2b', origin: { x: 6144, y: 4096 } },
-            scene10: cfg.scene10 || { name: '世界-124·林地', type: 'instance', label: '场景十', width: 12288, height: 8192, background: '#102015', origin: { x: 6144, y: 4096 } }
+            scene10: cfg.scene10 || { name: '世界-124·林地', type: 'instance', label: '场景十', width: 12288, height: 8192, background: '#102015', origin: { x: 6144, y: 4096 } },
+            scene11: cfg.scene11 || { name: '世界-125·地牢遗迹', type: 'instance', label: '场景十一', width: 12288, height: 8192, background: '#050505', origin: { x: 6144, y: 4096 } }
         };
     },
 
@@ -122,9 +124,27 @@ export const SceneManager = {
         if (text) text.textContent = Math.floor(this.loadProgress) + '%';
     },
 
-    async switchScene(sceneId, player, mode) {
+    async switchScene(sceneId, player, mode, opts = {})
+        {
         if (this.isLoading || this.currentScene === sceneId) {
             return;
+        }
+        // 观察模式状态机（2026-08-19）：世界切换面板切世界 = 仅相机跳转，玩家不瞬移——
+        // opts.observer=true 进入观察（本体留在 _observerHomeScene）；前往本体所在世界
+        // （observer=false）即返回本体。玩家坐标按世界记忆（离场时保存、回场原位恢复）。
+        const g = (typeof window !== 'undefined' ? window.Game : null) || Game;
+        if (g) {
+            if (!g._worldPlayerPos) g._worldPlayerPos = {};
+            if (player && g.entities && g.entities.get('player') === player && this.currentScene) {
+                g._worldPlayerPos[this.currentScene] = { x: player.x, y: player.y };
+            }
+            if (opts.observer) {
+                if (!g._observerMode) g._observerHomeScene = this.currentScene;
+                g._observerMode = true;
+            } else {
+                g._observerMode = false;
+                g._observerHomeScene = null;
+            }
         }
         // 保存回滚状态，部分失败时恢复
         this._saveRollbackState(player);
@@ -170,7 +190,8 @@ export const SceneManager = {
                 captureAndStoreWorld122();
                 DefenseSystem.teardown();
             }
-            if (this.currentScene === 'scene8' || this.currentScene === 'scene9' || this.currentScene === 'scene10') clearDecoClearZones();
+            if (this.currentScene === 'scene8' || this.currentScene === 'scene9'
+                || this.currentScene === 'scene10' || this.currentScene === 'scene11') clearDecoClearZones();
             // 世界-122 建筑面板随场景离场关闭
             if (BuildingSystem && BuildingSystem.active) {
                 BuildingSystem.close();
@@ -258,6 +279,8 @@ export const SceneManager = {
                 this._loadScene9(player);
             } else if (sceneId === 'scene10') {
                 this._loadScene10(player);
+            } else if (sceneId === 'scene11') {
+                await this._loadScene11(player);
             } else if (sceneId === 'main') {
                 this._loadMainScene(player);
             }
@@ -1074,11 +1097,17 @@ export const SceneManager = {
 
         // 玩家出生在基地房内（2026-08-16：随基地右移，取 (base.x+228, base.y)，
         // 房间内合法点、不贴墙/不占 RB 边门洞，与旧 (760,2048) 同相对位置）
-        if (player) {
-            player.x = DEFENSE_CONFIG.base.x + 228;
-            player.y = DEFENSE_CONFIG.base.y;
+        // 观察模式（2026-08-19）：观察世界不生成玩家（本体留在原世界），相机落基地中心自由平移；
+        // 正常进入时按世界坐标记忆原位恢复（无记忆用默认出生点）
+        if (player && !Game._observerMode) {
+            const savedPos = Game._worldPlayerPos && Game._worldPlayerPos.scene8;
+            player.x = (savedPos && Number.isFinite(savedPos.x)) ? savedPos.x : DEFENSE_CONFIG.base.x + 228;
+            player.y = (savedPos && Number.isFinite(savedPos.y)) ? savedPos.y : DEFENSE_CONFIG.base.y;
             Game.entities.set('player', player);
             Camera.follow(player);
+        } else if (Game._observerMode) {
+            Camera.x = DEFENSE_CONFIG.base.x;
+            Camera.y = DEFENSE_CONFIG.base.y;
         }
 
         if (player) {
@@ -1309,12 +1338,16 @@ export const SceneManager = {
         this._registerScene8Boundary(diamond);
         if (WallSystem._syncWallsToPhaser) WallSystem._syncWallsToPhaser();
 
-        if (player) {
+        if (player && !Game._observerMode) {
             player.x = diamond ? diamond.cx : w / 2;
             player.y = diamond ? diamond.cy : h / 2;
             Game.entities.set('player', player);
             Camera.follow(player);
             QuickBar.refreshSpecialAttack(player);
+        } else if (Game._observerMode) {
+            // 观察模式（2026-08-19）：不生成玩家，相机落世界中心自由平移
+            Camera.x = diamond ? diamond.cx : w / 2;
+            Camera.y = diamond ? diamond.cy : h / 2;
         }
         this._scatterSnowPinesScene9(player, diamond);
         if (diamond) {
@@ -1384,7 +1417,7 @@ export const SceneManager = {
             glow: false,
             backgroundColor: scene.background || '#102015',
             deco: {
-                textures: ['deco_grass_1', 'deco_grass_2'],
+                textures: ['deco_forest_grass_1', 'deco_forest_grass_2', 'deco_forest_grass_3', 'deco_forest_grass_4'],
                 seed: (Math.random() * 0x100000000) >>> 0,
                 perChunk: 24,
                 size: 110,
@@ -1403,12 +1436,16 @@ export const SceneManager = {
         this._registerScene8Boundary(diamond);
         if (WallSystem._syncWallsToPhaser) WallSystem._syncWallsToPhaser();
 
-        if (player) {
+        if (player && !Game._observerMode) {
             player.x = diamond ? diamond.cx : w / 2;
             player.y = diamond ? diamond.cy : h / 2;
             Game.entities.set('player', player);
             Camera.follow(player);
             QuickBar.refreshSpecialAttack(player);
+        } else if (Game._observerMode) {
+            // 观察模式（2026-08-19）：不生成玩家，相机落世界中心自由平移
+            Camera.x = diamond ? diamond.cx : w / 2;
+            Camera.y = diamond ? diamond.cy : h / 2;
         }
         this._scatterForestPinesScene10(player, diamond);
         if (diamond) {
@@ -1452,6 +1489,65 @@ export const SceneManager = {
         if (pieces.length) WallSystem.rebuildIsoCollision?.();
         WallSystem._syncWallsToPhaser?.();
         console.log(`[scene10] 林地针叶树散布 ${pieces.length} 棵（候选拒绝 ${guard - pieces.length} 次）`);
+    },
+
+    /** 世界-125（场景十一）：僵尸地牢石砖地面 + 地牢障碍预制组合的开放探索场。 */
+    async _loadScene11(player) {
+        clearDecoClearZones();
+        Camera.aimOffsetX = 0;
+        Camera.aimOffsetY = 0;
+        Camera.shakeX = 0;
+        Camera.shakeY = 0;
+        Camera.shakeIntensity = 0;
+        Camera.lockY = false;
+        Camera.yLockedValue = 0;
+
+        const scene = this.scenes.scene11;
+        const w = scene.width;
+        const h = scene.height;
+        CONFIG.WORLD_WIDTH = w;
+        CONFIG.WORLD_HEIGHT = h;
+        const diamond = this._scene8Diamond(scene);
+
+        // 与僵尸地牢高级完全相同的地砖池和随机等距拼铺方式，只改为大世界分块烘焙。
+        setDungeonFloorProfile({
+            tiles: ['blackbrick_7', 'blackbrick_8'],
+            glow: false,
+            backgroundColor: scene.background || '#050505',
+        });
+        applyDungeonFloorChunked(w, h, 2048, diamond);
+
+        WallSystem.init(w, h);
+        WallSystem.walls = [
+            { x: 0, y: 0, w, h: 20, noVisual: true },
+            { x: 0, y: h - 20, w, h: 20, noVisual: true },
+            { x: 0, y: 0, w: 20, h, noVisual: true },
+            { x: w - 20, y: 0, w: 20, h, noVisual: true },
+        ];
+        this._registerScene8Boundary(diamond);
+        WallSystem._syncWallsToPhaser?.();
+
+        if (player && !Game._observerMode) {
+            player.x = diamond ? diamond.cx : w / 2;
+            player.y = diamond ? diamond.cy : h / 2;
+            Game.entities.set('player', player);
+            Camera.follow(player);
+            QuickBar.refreshSpecialAttack(player);
+        } else if (Game._observerMode) {
+            Camera.x = diamond ? diamond.cx : w / 2;
+            Camera.y = diamond ? diamond.cy : h / 2;
+        }
+
+        // BootScene 是异步预载；这里显式等待预制库和障碍默认状态，保证首次进入也有组合。
+        await Promise.all([loadWallPrefabs(), loadObstacleDefaults()]);
+        scatterWorld125Environment(scene, diamond, Game._observerMode ? null : player);
+
+        if (diamond) {
+            Game.entities.set(
+                'portal_return',
+                new Portal(diamond.cx, diamond.cy + diamond.ry - 160, 'main', '返回主神空间')
+            );
+        }
     },
 
     _loadScene7(player, _dungeonType = 'zombie') {

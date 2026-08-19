@@ -94,7 +94,8 @@ try {
         && data.world.width === 12288 && data.world.height === 8192
         && data.chunks?.chunkSize === 2048 && data.chunks?.diamond
         && data.profile?.tiles?.includes('floor_grass_forest_seamless')
-        && data.profile?.deco?.textures?.includes('deco_grass_1')
+        && data.profile?.deco?.textures?.length === 4
+        && data.profile.deco.textures.every((texture, index) => texture === `deco_forest_grass_${index + 1}`)
         && data.treeCount === 55 && data.variants === 5
         && data.portal?.target === 'main'
         && errors.length === 0;

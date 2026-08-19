@@ -96,7 +96,7 @@ import { resetWorld122Snapshot } from './world/world122-snapshot.js';
 
 export const Game = {
     VERSION: GAME_CONFIG.meta?.version || '0.198', // 游戏版本号（每次更新必须递增）
-    isRunning: false, _paused: false, lastTime: 0, fps: 0, frameCount: 0, fpsTimer: 0, player: null, entities: new Map(), friendlyUnits: [], _pickupNearbyFlag: false,
+    isRunning: false, _paused: false, lastTime: 0, fps: 0, frameCount: 0, fpsTimer: 0, player: null, entities: new Map(), friendlyUnits: [], _pickupNearbyFlag: false, _observerMode: false, _observerHomeScene: null, _worldPlayerPos: {},
     _synergySystem: null,
     _battleCommander: null, // 指挥AI实例
     _tacticalSquadAI: null, // 战术小队AI实例
@@ -1191,6 +1191,8 @@ export const Game = {
 if (this.player && this.player.droneSystem && this.player.droneSystem.controlling) {
             const drone = this.player.droneSystem;
             Camera.update({ x: drone.x, y: drone.y });
+        } else if (this._observerMode || (RTSCommand && RTSCommand.enabled)) {
+            // 观察/指挥模式（2026-08-19）：相机自由——RTSCommand 边缘平移直接驱动 Camera.x/y
         } else {
             Camera.update(this.player);
         }
@@ -1206,8 +1208,8 @@ if (this.player && this.player.droneSystem && this.player.droneSystem.controllin
         // 每帧先同步场景（非 scene8 自动退出），再消费右键命令；左键在 DOM 事件侧
         // （rts-command.js mousedown/mouseup）处理，这里清掉边沿标志短路下方既有逻辑。
         if (RTSCommand) {
-            RTSCommand.tick(SceneManager.currentScene, Input);
-            if (RTSCommand.enabled && SceneManager.currentScene === 'scene8') {
+            RTSCommand.tick(SceneManager.currentScene, Input, dt);
+            if (RTSCommand.enabled && (SceneManager.currentScene === 'scene8' || this._observerMode)) {
                 Input.mouse.leftDown = false;
                 Input.mouse.rightDown = false;
                 Input.mouse.leftPressed = false;
@@ -1381,6 +1383,16 @@ this._battleCommanderEnemies = [];
             // 碰撞编辑器冻结预览体：整帧跳过 update/感知/移动/战斗——自管技能的怪
             // （蝇手/突变体等 update 内自决策）靠字段冻结防不住，必须从主循环跳过
             if (e._editorFrozen) continue;
+            // 休眠带（2026-08-19）：静态低耗实体（墙/门/台/矿点，构造时标 _dormantBand）
+            // 按 ~1/4 帧率聚合 dt 更新——计时类语义不变（dt 累加），主循环遍历成本大降。
+            if (e._dormantBand) {
+                e._dormantAcc = (e._dormantAcc || 0) + dt;
+                if (e._dormantAcc < 66) continue;
+                const _accDt = e._dormantAcc;
+                e._dormantAcc = 0;
+                e.update(_accDt, this.entities);
+                continue;
+            }
 e.update(dt, this.entities);
 // 玩家 update 会移动并触发攻击，同步其 Collider 供后续敌人 AI/战斗作为目标使用
             if (e === this.player && e.collider && typeof e.collider.syncPosition === 'function') {
@@ -1756,9 +1768,20 @@ if (SceneManager.currentScene === 'scene3') {
     resolveCollisions() {
         const entities = Array.from(this.entities.values()).filter(e => e.active && e.groundRadius > 0 && !e.noCollision && !e._editorFrozen);
         const player = this.player;
+        // 网格宽相（2026-08-19）：O(n²) 全对遍历 → SpatialPartitionSystem 近邻查询；
+        // 索引去重保持 i<j 成对口径；查询半径 = 自身半径 + 340（覆盖 4×4 基地半对角 ~286 + 对方半径余量）。
+        // 注意：分离判定的 Y 逆透视压缩只会让"世界空间距离 ≤ 缩放空间距离"，世界半径查询不会漏对。
+        const useGrid = !!(SpatialPartitionSystem && typeof SpatialPartitionSystem.queryRadius === 'function');
+        const indexOf = new Map(entities.map((e, i) => [e, i]));
         for (let i = 0; i < entities.length; i++) {
-            for (let j = i + 1; j < entities.length; j++) {
-                const a = entities[i], b = entities[j];
+            const a = entities[i];
+            const candidates = useGrid
+                ? SpatialPartitionSystem.queryRadius(a.x, a.y, a.groundRadius + 340, a)
+                : entities.slice(i + 1);
+            for (const bRaw of candidates) {
+                const j = indexOf.get(bRaw);
+                if (j === undefined || j <= i) continue;
+                const b = bRaw;
                 // 防御塔只挡怪物、不挡玩家/友军（友方可贴塔站位；2026-08-14）
                 const aTower = !!a._isDefenseTower, bTower = !!b._isDefenseTower;
                 if (aTower !== bTower) {

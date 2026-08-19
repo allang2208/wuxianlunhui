@@ -8,6 +8,79 @@ import { PERSPECTIVE_SCALE_Y } from '../config/perspective-config.js';
 
 const INV_SQRT2 = Math.SQRT1_2;
 
+function _hasPixelFootprint(entity) {
+    return Array.isArray(entity?._pixelFootprintLocal) && entity._pixelFootprintLocal.length >= 3;
+}
+
+function _flatPoint(point) {
+    return { x: point.x, y: point.y / PERSPECTIVE_SCALE_Y };
+}
+
+function _flatVertices(entity) {
+    return isoFootprintVertices(entity).map(_flatPoint);
+}
+
+function _pointInPolygon(point, vertices) {
+    let inside = false;
+    for (let i = 0, j = vertices.length - 1; i < vertices.length; j = i++) {
+        const a = vertices[i], b = vertices[j];
+        const crosses = ((a.y > point.y) !== (b.y > point.y))
+            && point.x < (b.x - a.x) * (point.y - a.y) / ((b.y - a.y) || 1e-9) + a.x;
+        if (crosses) inside = !inside;
+    }
+    return inside;
+}
+
+function _closestPointOnSegment(point, a, b) {
+    const dx = b.x - a.x;
+    const dy = b.y - a.y;
+    const lenSq = dx * dx + dy * dy;
+    const t = lenSq > 1e-9
+        ? Math.max(0, Math.min(1, ((point.x - a.x) * dx + (point.y - a.y) * dy) / lenSq))
+        : 0;
+    return { x: a.x + dx * t, y: a.y + dy * t };
+}
+
+function _closestPolygonBoundary(point, vertices) {
+    let best = null;
+    for (let i = 0; i < vertices.length; i++) {
+        const q = _closestPointOnSegment(point, vertices[i], vertices[(i + 1) % vertices.length]);
+        const dx = point.x - q.x;
+        const dy = point.y - q.y;
+        const distSq = dx * dx + dy * dy;
+        if (!best || distSq < best.distSq) best = { point: q, distSq, edge: i };
+    }
+    return best;
+}
+
+function _polygonDistance(point, vertices) {
+    if (_pointInPolygon(point, vertices)) return 0;
+    return Math.sqrt(_closestPolygonBoundary(point, vertices)?.distSq ?? Infinity);
+}
+
+function _polygonAxes(vertices) {
+    const axes = [];
+    for (let i = 0; i < vertices.length; i++) {
+        const a = vertices[i], b = vertices[(i + 1) % vertices.length];
+        const dx = b.x - a.x;
+        const dy = b.y - a.y;
+        const len = Math.hypot(dx, dy);
+        if (len > 1e-6) axes.push({ x: -dy / len, y: dx / len });
+    }
+    return axes;
+}
+
+function _projectPolygon(vertices, axis) {
+    let min = Infinity;
+    let max = -Infinity;
+    for (const p of vertices) {
+        const value = p.x * axis.x + p.y * axis.y;
+        min = Math.min(min, value);
+        max = Math.max(max, value);
+    }
+    return { min, max };
+}
+
 export function worldDeltaToIsoLocal(dx, dy) {
     const flatY = dy / PERSPECTIVE_SCALE_Y;
     return {
@@ -24,6 +97,17 @@ export function isoLocalToWorldDelta(u, v) {
 }
 
 export function isoFootprintHalfExtents(entity) {
+    if (_hasPixelFootprint(entity)) {
+        const c = isoFootprintCenter(entity);
+        let halfU = 1;
+        let halfV = 1;
+        for (const point of isoFootprintVertices(entity)) {
+            const local = worldDeltaToIsoLocal(point.x - c.x, point.y - c.y);
+            halfU = Math.max(halfU, Math.abs(local.u));
+            halfV = Math.max(halfV, Math.abs(local.v));
+        }
+        return { halfU, halfV };
+    }
     const fallback = Math.max(1, Number(entity?.collisionWidth) || 1) * 0.5 * INV_SQRT2;
     return {
         halfU: Math.max(1, Number(entity?.collisionIsoHalfU) || fallback),
@@ -49,6 +133,15 @@ export function isoFootprintCenter(entity) {
 }
 
 export function isoFootprintVertices(entity) {
+    if (_hasPixelFootprint(entity)) {
+        const ex = Number(entity?.x) || 0;
+        const ey = Number(entity?.y) || 0;
+        return entity._pixelFootprintLocal.map((point, index) => ({
+            x: ex + (Number(point.x) || 0),
+            y: ey + (Number(point.y) || 0),
+            key: point.key || ['back', 'right', 'front', 'left'][index] || String(index),
+        }));
+    }
     const c = isoFootprintCenter(entity);
     const { halfU, halfV } = isoFootprintHalfExtents(entity);
     return [
@@ -81,6 +174,12 @@ export function applyIsoFootprintFromSegment(entity, a, b, halfThickness) {
 }
 
 export function pointInIsoFootprint(x, y, entity, margin = 0) {
+    if (_hasPixelFootprint(entity)) {
+        const point = _flatPoint({ x, y });
+        const vertices = _flatVertices(entity);
+        return _pointInPolygon(point, vertices)
+            || (margin > 0 && _polygonDistance(point, vertices) <= margin);
+    }
     const c = isoFootprintCenter(entity);
     const p = worldDeltaToIsoLocal(x - c.x, y - c.y);
     const { halfU, halfV } = isoFootprintHalfExtents(entity);
@@ -88,6 +187,9 @@ export function pointInIsoFootprint(x, y, entity, margin = 0) {
 }
 
 export function distanceToIsoFootprint(x, y, entity) {
+    if (_hasPixelFootprint(entity)) {
+        return _polygonDistance(_flatPoint({ x, y }), _flatVertices(entity));
+    }
     const c = isoFootprintCenter(entity);
     const p = worldDeltaToIsoLocal(x - c.x, y - c.y);
     const { halfU, halfV } = isoFootprintHalfExtents(entity);
@@ -97,6 +199,9 @@ export function distanceToIsoFootprint(x, y, entity) {
 }
 
 export function circleIntersectsIsoFootprint(x, y, radius, entity) {
+    if (_hasPixelFootprint(entity)) {
+        return _polygonDistance(_flatPoint({ x, y }), _flatVertices(entity)) < radius;
+    }
     const c = isoFootprintCenter(entity);
     const p = worldDeltaToIsoLocal(x - c.x, y - c.y);
     const { halfU, halfV } = isoFootprintHalfExtents(entity);
@@ -107,6 +212,17 @@ export function circleIntersectsIsoFootprint(x, y, radius, entity) {
 
 /** 两个同地面轴旋转矩形是否重叠。 */
 export function isoFootprintsOverlap(a, b, gap = 0) {
+    if (_hasPixelFootprint(a) || _hasPixelFootprint(b)) {
+        const av = _flatVertices(a);
+        const bv = _flatVertices(b);
+        for (const axis of [..._polygonAxes(av), ..._polygonAxes(bv)]) {
+            const pa = _projectPolygon(av, axis);
+            const pb = _projectPolygon(bv, axis);
+            const overlap = Math.min(pa.max, pb.max) - Math.max(pa.min, pb.min);
+            if (overlap <= -gap) return false;
+        }
+        return true;
+    }
     const ca = isoFootprintCenter(a);
     const cb = isoFootprintCenter(b);
     const delta = worldDeltaToIsoLocal(cb.x - ca.x, cb.y - ca.y);
@@ -121,6 +237,37 @@ export function isoFootprintsOverlap(a, b, gap = 0) {
  * @returns {{x:number,y:number}|null}
  */
 export function resolveCircleFromIsoFootprint(x, y, radius, entity) {
+    if (_hasPixelFootprint(entity)) {
+        const point = _flatPoint({ x, y });
+        const vertices = _flatVertices(entity);
+        const inside = _pointInPolygon(point, vertices);
+        const closest = _closestPolygonBoundary(point, vertices);
+        if (!closest) return null;
+        const dist = Math.sqrt(closest.distSq);
+        if (!inside && dist >= radius) return null;
+        let dx;
+        let dy;
+        if (dist > 1e-6) {
+            if (inside) {
+                const amount = dist + radius;
+                dx = (closest.point.x - point.x) / dist * amount;
+                dy = (closest.point.y - point.y) / dist * amount;
+            } else {
+                const amount = radius - dist;
+                dx = (point.x - closest.point.x) / dist * amount;
+                dy = (point.y - closest.point.y) / dist * amount;
+            }
+        } else {
+            const a = vertices[closest.edge];
+            const b = vertices[(closest.edge + 1) % vertices.length];
+            const ex = b.x - a.x;
+            const ey = b.y - a.y;
+            const len = Math.hypot(ex, ey) || 1;
+            dx = -ey / len * radius;
+            dy = ex / len * radius;
+        }
+        return { x: dx, y: dy * PERSPECTIVE_SCALE_Y };
+    }
     const c = isoFootprintCenter(entity);
     const p = worldDeltaToIsoLocal(x - c.x, y - c.y);
     const { halfU, halfV } = isoFootprintHalfExtents(entity);

@@ -113,7 +113,8 @@ export function getBarracksMults(modules) {
 const BARRACKS_HIT = { cx: 0, cy: -60, hw: 85, hh: 65 };
 
 function pointHitsBarracks(wx, wy, b) {
-    return wx >= b.x + BARRACKS_HIT.cx - BARRACKS_HIT.hw && wx <= b.x + BARRACKS_HIT.cx + BARRACKS_HIT.hw
+    const visualX = b.x + (b._visualFootOffsetX || 0);
+    return wx >= visualX + BARRACKS_HIT.cx - BARRACKS_HIT.hw && wx <= visualX + BARRACKS_HIT.cx + BARRACKS_HIT.hw
         && wy >= b.y + BARRACKS_HIT.cy - BARRACKS_HIT.hh && wy <= b.y + BARRACKS_HIT.cy + BARRACKS_HIT.hh;
 }
 
@@ -194,7 +195,7 @@ export class HamsterBarracks extends DamageableEntity {
             unitRadius: 24,
             entities: Game?.entities,
             wallSystem: WallSystem,
-            preferredTarget: this._rallyPoint || Game?.player,
+            preferredTarget: this._rallyPoint || (Game && Game._observerMode ? { x: this.x, y: this.y } : Game?.player), // 观察模式：玩家不在场，集结兜底回建筑自身
         });
     }
 
@@ -282,7 +283,9 @@ export class HamsterBarracks extends DamageableEntity {
                 if (this._spawnRetryTimer > 0) return;
                 const unit = this.spawnUnit();
                 if (unit) {
-                    this._spawnTimer = this.recruitIntervalMs();
+                    // 快照恢复补员（_restoreTopUp>0）：绕过完整产兵周期快速补齐，800ms/个
+                    this._spawnTimer = this._restoreTopUp > 0 ? 800 : this.recruitIntervalMs();
+                    if (this._restoreTopUp > 0) this._restoreTopUp--;
                     this._spawnRetryTimer = 0;
                     this._spawnBlocked = false;
                 } else {

@@ -230,7 +230,7 @@ export class HamsterHut extends DamageableEntity {
             unitRadius: 24,
             entities: Game?.entities,
             wallSystem: WallSystem,
-            preferredTarget: this._rallyPoint || Game?.player,
+            preferredTarget: this._rallyPoint || (Game && Game._observerMode ? { x: this.x, y: this.y } : Game?.player), // 观察模式：玩家不在场，集结兜底回建筑自身
         });
     }
 
@@ -302,7 +302,9 @@ export class HamsterHut extends DamageableEntity {
                 if (this._spawnRetryTimer <= 0) {
                     const miner = this.spawnMiner();
                     if (miner) {
-                        this._respawnTimer = HAMSTER_CONFIG.hut.respawnMs;
+                        // 快照恢复补员（_restoreTopUp>0）：绕过 60s 补员周期快速补齐，800ms/个
+                        this._respawnTimer = this._restoreTopUp > 0 ? 800 : HAMSTER_CONFIG.hut.respawnMs;
+                        if (this._restoreTopUp > 0) this._restoreTopUp--;
                         this._spawnRetryTimer = 0;
                         this._spawnBlocked = false;
                     } else {

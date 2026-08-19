@@ -29,12 +29,18 @@ check('世界-124已注册主神空间入口与菱形地块',
 check('场景十加载草地地板、草簇与林地树散布',
     /_loadScene10\(player\)/.test(sceneSrc)
     && /floor_grass_forest_seamless/.test(sceneSrc)
-    && /textures: \['deco_grass_1', 'deco_grass_2'\]/.test(sceneSrc)
+    && /textures: \['deco_forest_grass_1', 'deco_forest_grass_2', 'deco_forest_grass_3', 'deco_forest_grass_4'\]/.test(sceneSrc)
     && /_scatterForestPinesScene10\(player, diamond\)/.test(sceneSrc));
 check('林地树碰撞几何已注册', (wallSrc.match(/forest_pine_0[1-5]/g) || []).length >= 5);
 
 const floor = PNG.sync.read(fs.readFileSync(path.join(ROOT, 'assets/terrain/floor_grass_forest_seamless.png')));
 check('草地无缝纹理为1024²', floor.width === 1024 && floor.height === 1024);
+check('林地使用四张同系列独立草贴图',
+    [1, 2, 3, 4].every((i) => fs.existsSync(path.join(ROOT, 'assets/terrain', `deco_forest_grass_${i}.png`)))
+    && /for \(let i = 1; i <= 4; i\+\+\)/.test(bootSrc)
+    && bootSrc.includes('deco_forest_grass_${i}')
+    && !bootSrc.includes('deco_grass_1')
+    && !bootSrc.includes('deco_grass_2'));
 for (let i = 1; i <= 5; i++) {
     const id = String(i).padStart(2, '0');
     const file = `obstacle_forest_pine_${id}.png`;
@@ -48,5 +54,5 @@ for (let i = 1; i <= 5; i++) {
     }
 }
 
-console.log(`\n结果: ${6 + 2 * 5 - fail} 通过, ${fail} 失败`);
+console.log(`\n结果: ${7 + 2 * 5 - fail} 通过, ${fail} 失败`);
 process.exit(fail ? 1 : 0);

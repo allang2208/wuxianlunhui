@@ -145,7 +145,9 @@ import { TimerManager } from '../utils/timer-manager.js';
                         QuickBar.useSlot(code, altKey);
                     }
                 }
-                if (code === CONFIG.KEYS.ITEM_1 || code === CONFIG.KEYS.ITEM_2 || code === CONFIG.KEYS.ITEM_3 || code === CONFIG.KEYS.ITEM_4) QuickBar.useSlot(code);
+                // 指挥模式下数字键归编队（Ctrl 编/Shift 加/直按选中），快捷栏让位（2026-08-19 RTS 化）
+                const _rtsDigits = Game.RTSCommand && Game.RTSCommand.enabled;
+                if (!_rtsDigits && (code === CONFIG.KEYS.ITEM_1 || code === CONFIG.KEYS.ITEM_2 || code === CONFIG.KEYS.ITEM_3 || code === CONFIG.KEYS.ITEM_4)) QuickBar.useSlot(code);
                 if (code === 'KeyF' && Game.player) {
                     Game.player.switchWeaponMode();
                 }

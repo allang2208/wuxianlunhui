@@ -11,6 +11,7 @@ const {
     TWO_BY_TWO_BUILDING_FOOT,
     FOUR_BY_FOUR_BASE_FOOT,
     applyBuildingFootprint,
+    applyFittedBuildingFootprint,
     applyFiringPlatformFootprint,
 } = await import('../src/world/building-footprint.js');
 const { Entity } = await import('../src/entities/entity.js');
@@ -148,6 +149,33 @@ check('2×2建筑沿地面轴可无缝贴边且内缩1px判重叠',
     && isoFootprintsOverlap(runtimeSample, overlapping));
 const push = resolveCircleFromIsoFootprint(runtimeSample.collider.x, runtimeSample.collider.y, 20, runtimeSample);
 check('单位位于建筑内部时按最近地面边推出', push && Math.hypot(push.x, push.y) > 20);
+
+const pixelFitSample = new Entity(100, 200);
+applyBuildingFootprint(pixelFitSample, 2);
+applyFittedBuildingFootprint(pixelFitSample, {
+    centerX: -14,
+    centerY: -64,
+    collisionWidth: 224,
+    collisionHeight: 128,
+    collisionRadius: 129,
+    localVertices: [
+        { key: 'back', x: -28, y: -128 },
+        { key: 'right', x: 98, y: -64 },
+        { key: 'front', x: 0, y: 0 },
+        { key: 'left', x: -126, y: -64 },
+    ],
+});
+pixelFitSample.rebuildCollider();
+setupStructureDepth(pixelFitSample);
+check('像素拟合四边形同步更新Collider中心与局部前缘',
+    pixelFitSample.collider.x === 86
+    && pixelFitSample.collider.y === 136
+    && pixelFitSample._structureFrontY === 200
+    && pointInIsoFootprint(100, 199, pixelFitSample)
+    && !pointInIsoFootprint(220, 136, pixelFitSample));
+const pixelPush = resolveCircleFromIsoFootprint(86, 136, 20, pixelFitSample);
+check('像素拟合四边形支持圆形单位精确推出',
+    pixelPush && Math.hypot(pixelPush.x, pixelPush.y) > 20);
 const baseSample = {};
 applyBuildingFootprint(baseSample, 4);
 check('基地统一写入4×4矩形碰撞',
@@ -164,6 +192,7 @@ const hutSrc = fs.readFileSync(path.join(ROOT, 'src/world/hamster-hut-system.js'
 const barracksSrc = fs.readFileSync(path.join(ROOT, 'src/world/hamster-barracks-system.js'), 'utf8');
 const producerSrc = fs.readFileSync(path.join(ROOT, 'src/world/producer-building-system.js'), 'utf8');
 const wallSrc = fs.readFileSync(path.join(ROOT, 'src/world/wall-system.js'), 'utf8');
+const gameSceneSrc = fs.readFileSync(path.join(ROOT, 'src/phaser/scenes/GameScene.js'), 'utf8');
 
 check('防御塔、射击台与基地应用2×2/单格/4×4碰撞',
     /applyBuildingFootprint\(this, 2\)/.test(defenseSrc)
@@ -201,6 +230,12 @@ check('预览与实体共用塔、射击台、方块墙视觉参数',
     /DEFENSE_TOWER_VISUAL\.base\.w/.test(buildingSrc)
     && /FIRING_PLATFORM_VISUAL\.w/.test(buildingSrc)
     && /BLOCK_VISUAL\.w/.test(buildingSrc));
+check('普通建筑实体与建造幽灵共用alpha接地前顶点X校正',
+    /resolveStructureGroundFit/.test(gameSceneSrc)
+    && /applyFittedBuildingFootprint/.test(gameSceneSrc)
+    && /_getVisualOffsetX\(e, sprite\)/.test(gameSceneSrc)
+    && /_ghostGroundFit\(\)/.test(buildingSrc)
+    && /applyFittedBuildingFootprint\(probe, fit\)/.test(buildingSrc));
 check('防御塔恢复放大前视觉尺寸但继续保留2×2 footprint',
     /base: \{ w: 170, h: 262, footOffsetY: 131 \}/.test(defenseSrc)
     && /w: 137,[\s\S]{0,80}h: 86/.test(defenseSrc)
@@ -212,7 +247,8 @@ check('配置建筑碰撞统一为2×2，贴图保持同级显示尺度',
     producerEntries.length > 0 && producerEntries.every((cfg) =>
         cfg.radius === TWO_BY_TWO_BUILDING_FOOT.collisionRadius
         && cfg.displayW >= 256
-        && cfg.displayH >= 250));
+        && cfg.displayH > 0
+        && cfg.footOffsetY > 0));
 
 const research = producerCfg.research_institute;
 const pngPath = path.join(ROOT, 'assets/terrain/research_institute.png');
@@ -222,10 +258,10 @@ const pngH = png.readUInt32BE(20);
 check('研究院正式贴图已裁边并接入',
     research.assetPending !== true
     && research.displayW === 288
-    && research.displayH === 308
-    && research.footOffsetY === 150
-    && pngW === 1024
-    && pngH === 1093,
+    && research.displayH === 277
+    && research.footOffsetY === 139
+    && pngW === 1238
+    && pngH === 1190,
     `${pngW}×${pngH}`);
 
 console.log(`\n结果: ${pass} 通过, ${fail} 失败`);

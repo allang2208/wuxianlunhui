@@ -10,6 +10,8 @@
 import { Game } from '../game.js';
 import { PartySystem } from '../systems/party-system.js';
 import { UIState } from './ui-state.js';
+import { RTSCommand } from './rts-command.js';
+import { Camera } from '../world/camera.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
 
@@ -63,7 +65,9 @@ export const CompanionCommandWheel = {
         if (e.button !== 1) return false;
         if (!Game || !Game.isRunning || Game._paused) return false;
         if (Game._wallEditMode || Game._collisionEditMode || Game._buildMode) return false;
-        if (!PartySystem || !PartySystem.members.length) return false;
+        // 指挥模式统一（2026-08-19）：指挥模式下选中单位（仓鼠部队/队友）即可下达，不再只限队友
+        const rtsActive = !!(RTSCommand && RTSCommand.enabled && RTSCommand.hasAllySelection && RTSCommand.hasAllySelection());
+        if (!rtsActive && (!PartySystem || !PartySystem.members.length)) return false;
         // 不再做全局“任一系统面板打开即禁用”：面板状态残留会永久卡死轮盘。
         // 改为按按下时鼠标悬停的目标拦截（下一条 closest 判断），面板开着但不
         // 悬停在面板上时仍可下达指令。
@@ -108,6 +112,13 @@ export const CompanionCommandWheel = {
 
     /** 指令目标：组队栏选中队员（多选）；无选中时兜底队员面板当前队员 / 第一名；all=true 为全队 */
     _resolveTargets(all) {
+        // 指挥模式：目标 = RTSCommand 当前选中单位（标签只用于轮盘中心显示）
+        if (RTSCommand && RTSCommand.enabled && RTSCommand.hasAllySelection && RTSCommand.hasAllySelection()) {
+            const n = RTSCommand._selection.filter((s) => s.kind === 'ally').length;
+            this._targetIds = [];
+            this._targetLabel = `选中 ${n} 个单位`;
+            return;
+        }
         const members = PartySystem.members;
         if (!members.length) { this._targetIds = []; this._targetLabel = ''; return; }
         if (all) {
@@ -177,6 +188,14 @@ export const CompanionCommandWheel = {
     _execute(cmdId) {
         const cmd = this.commands.find((c) => c.id === cmdId);
         if (!cmd) return;
+        // 指挥模式统一出口（2026-08-19）：所有选中单位执行（队友视同仓鼠友军）
+        if (RTSCommand && RTSCommand.enabled && RTSCommand.hasAllySelection && RTSCommand.hasAllySelection()) {
+            const n = RTSCommand.issueWheelCommand(cmd.id, this._worldPoint);
+            if (n > 0 && EffectManager) {
+                EffectManager.add(new FloatingTextEffect(Camera.x, Camera.y - 100, `指令：${cmd.icon} ${cmd.name}（${n} 单位）`, cmd.color));
+            }
+            return;
+        }
         const n = PartySystem.setCommand(this._targetIds, cmd.id, this._worldPoint);
         if (n > 0 && Game.player && EffectManager) {
             const label = n > 1 ? `（全队 ${n} 人）` : '';

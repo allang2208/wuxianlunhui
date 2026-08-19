@@ -11,6 +11,11 @@
 
 import { PartySystem } from '../systems/party-system.js';
 import { Renderer } from '../world/renderer.js';
+import { Camera } from '../world/camera.js';
+import { CONFIG } from '../config/config.js';
+import { getUnitKind } from '../world/unit-upgrade-store.js';
+import { EffectManager } from '../effects/effect-manager.js';
+import { FloatingTextEffect } from '../effects/floating-text.js';
 
 const DRAG_THRESHOLD = 6; // 屏幕 px：超过判定为拖框
 
@@ -34,6 +39,9 @@ export const RTSCommand = {
     _allyRings: null,      // Map<unit, Phaser.Ellipse> 非组队友军（仓鼠等）脚下金色光圈
     _domSig: null,         // 属性面板 DOM 签名（目标变化才重建；数值每帧原地更新）
     _dom: null,            // 属性面板 DOM 引用（hp/mp 条、六维、战斗属性 span）
+    _lastClick: null,      // 双击同类复选（{at, ref}）
+    _mouseSeen: false,       // 见过真实鼠标移动才允许边缘平移（无头/未动鼠标防漂）
+    _groups: null,         // 编队：digit -> [友军 ref]（Ctrl+数字编 / Shift+数字加 / 数字选中）
 
     init() {
         this._createButton();
@@ -43,18 +51,26 @@ export const RTSCommand = {
         window.addEventListener('mousedown', (e) => this._onMouseDown(e));
         window.addEventListener('mousemove', (e) => this._onMouseMove(e));
         window.addEventListener('mouseup', (e) => this._onMouseUp(e));
+        window.addEventListener('keydown', (e) => this._onKeyDown(e), true); // capture：先于快捷栏数字键
+        window.addEventListener('mousemove', () => { this._mouseSeen = true; }, { passive: true });
+        this._groups = new Map();
         this.setEnabled(false);
     },
 
     /** game.js 每帧调用（所有场景）：同步场景、非 scene8 自动退出、刷新渲染/面板。
      *  Input 由 game.js 传入（模块实例；window.Input 未挂载，勿依赖全局） */
-    tick(sceneId, Input) {
+    tick(sceneId, Input, dt) {
+        const g = _game();
+        const observer = !!(g && g._observerMode);
+        // 指挥模式可用域：世界-122 或观察模式下的任意世界（2026-08-19）
+        const commandable = sceneId === 'scene8' || observer;
         const leavingScene8 = this._scene === 'scene8' && sceneId !== 'scene8';
         this._scene = sceneId;
-        if (this._btn) this._btn.style.display = sceneId === 'scene8' ? '' : 'none';
-        if (leavingScene8) this._resetPartyCommandsForSceneExit();
-        if (sceneId !== 'scene8' && this.enabled) this.setEnabled(false);
+        if (this._btn) this._btn.style.display = commandable ? '' : 'none';
+        if (leavingScene8 && !observer) this._resetPartyCommandsForSceneExit();
+        if (!commandable && this.enabled) this.setEnabled(false);
         if (!this.enabled) return;
+        this._edgePan(dt, Input);
         const input = Input || this._input();
         if (input && input.mouse && input.mouse.rightPressed) {
             this._handleRightClick(input.mouse.x, input.mouse.y);
@@ -78,6 +94,11 @@ export const RTSCommand = {
             this._clearSelection();
             this._hidePanel();
             this._clearDrag();
+            // 退出指挥模式：镜头回归玩家（观察模式无玩家在场，不动镜头）
+            const g = _game();
+            if (g && g.player && !g._observerMode && g.entities && g.entities.get('player') === g.player) {
+                Camera.follow(g.player);
+            }
         }
         this._renderSelectionFx();
     },
@@ -365,10 +386,17 @@ export const RTSCommand = {
         if (this._dragging) {
             this._setSelection(this._selectInRect(this._downX, this._downY, e.clientX, e.clientY));
         } else {
-            // 单击：单位 → 建筑 → 空地取消
+            // 单击：单位（双击同类全选）→ 建筑 → 空地取消
             const hit = this._hitUnitAt(e.clientX, e.clientY);
             if (hit) {
-                this._setSelection([hit]);
+                const now = Date.now();
+                const dbl = this._lastClick && now - this._lastClick.at <= 350 && this._lastClick.ref === hit.ref;
+                this._lastClick = { at: now, ref: hit.ref };
+                if (dbl && hit.kind === 'ally') {
+                    this._selectSameTypeOnScreen(hit.ref);
+                } else {
+                    this._setSelection([hit]);
+                }
             } else if (this._tryBuildingClick(e.clientX, e.clientY)) {
                 // 互斥：打开建筑界面 → 关闭单位/复数面板（保留选择）
                 this._hidePanel();
@@ -384,6 +412,129 @@ export const RTSCommand = {
         this._down = false;
         this._dragging = false;
         if (this._boxG) this._boxG.clear();
+    },
+
+    // ==================== 边缘平移 / 双击复选 / 编队（2026-08-19 RTS 化） ====================
+
+    /** 边缘平移：鼠标贴屏幕四缘（24px）→ 相机平移（900 world px/s，dt 缩放）。 */
+    _edgePan(dt, Input) {
+        const input = Input || this._input();
+        const m = input && input.mouse;
+        if (!this._mouseSeen) return; // 无头环境/未动鼠标：默认 (0,0) 会被误判成贴左上缘
+        if (!m || typeof m.x !== 'number') return;
+        const g = _game();
+        if (!g) return;
+        const w = window.innerWidth, h = window.innerHeight;
+        const EDGE = 24;
+        let dx = 0, dy = 0;
+        if (m.x <= EDGE) dx -= 1;
+        if (m.x >= w - EDGE) dx += 1;
+        if (m.y <= EDGE) dy -= 1;
+        if (m.y >= h - EDGE) dy += 1;
+        if (!dx && !dy) return;
+        const step = 900 * (dt || 16.7) / 1000;
+        const W = CONFIG.WORLD_WIDTH || 4096;
+        const H = CONFIG.WORLD_HEIGHT || 4096;
+        Camera.x = Math.max(0, Math.min(W, Camera.x + dx * step));
+        Camera.y = Math.max(0, Math.min(H, Camera.y + dy * step));
+
+    },
+
+    /** 编队键（Ctrl+数字编 / Shift+数字加选 / 数字选中；capture 阶段先于快捷栏） */
+    _onKeyDown(e) {
+        if (!this.enabled) return;
+        const g = _game();
+        if (!g || !(g._observerMode || this._scene === 'scene8')) return;
+        const m = /^Digit([0-9])$/.exec(e.code);
+        if (!m) return;
+        if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
+        const d = m[1];
+        if (e.ctrlKey || e.metaKey) {
+            const refs = this._selection.filter((s) => s.kind === 'ally').map((s) => s.ref);
+            if (!refs.length) return;
+            this._groups.set(d, refs);
+            this._groupNotify(d, refs.length, '编入');
+            e.preventDefault(); e.stopImmediatePropagation();
+        } else if (e.shiftKey) {
+            const add = this._selection.filter((s) => s.kind === 'ally').map((s) => s.ref);
+            if (!add.length) return;
+            const cur = this._groups.get(d) || [];
+            const merged = [...new Set([...cur, ...add])];
+            this._groups.set(d, merged);
+            this._groupNotify(d, merged.length, '加编');
+            e.preventDefault(); e.stopImmediatePropagation();
+        } else {
+            const grp = (this._groups.get(d) || []).filter((u) => u && u.active);
+            if (!grp.length) return;
+            this._groups.set(d, grp); // 顺手清死
+            this._setSelection(grp.map((ref) => ({ kind: 'ally', ref })));
+            this._groupNotify(d, grp.length, '选中');
+            e.preventDefault(); e.stopImmediatePropagation();
+        }
+    },
+
+    _groupNotify(digit, n, verb) {
+        EffectManager.add(new FloatingTextEffect(Camera.x, Camera.y - 120, `${verb}编队 ${digit}（${n} 单位）`, '#8ad0ff'));
+    },
+
+    /** 双击同类复选（SC2 口径）：屏幕上所有同类型友军全选 */
+    _selectSameTypeOnScreen(ref) {
+        const key = this._unitTypeKey(ref);
+        if (!key) { this._setSelection([{ kind: 'ally', ref }]); return; }
+        const vw = window.innerWidth, vh = window.innerHeight;
+        const list = [];
+        for (const u of this._collectAllies()) {
+            if (this._unitTypeKey(u) !== key) continue;
+            const r = this._unitScreenRect(u);
+            if (!r) continue;
+            if (r.x1 < 0 || r.y1 < 0 || r.x0 > vw || r.y0 > vh) continue; // 屏幕外不选
+            list.push({ kind: 'ally', ref: u });
+        }
+        if (!list.some((s) => s.ref === ref)) list.push({ kind: 'ally', ref });
+        this._setSelection(list);
+    },
+
+    /** 单位类型键：仓鼠兵种用全局登记表，队员回退档案 id */
+    _unitTypeKey(u) {
+        return getUnitKind(u) || u.configId || u.id || u.name || null;
+    },
+
+    /** 指挥模式轮盘统一出口前置判定：有友军选中即可 */
+    hasAllySelection() {
+        return this._selection.some((s) => s.kind === 'ally');
+    },
+
+    /** 轮盘指令统一出口（指挥模式）：队友走 PartySystem，仓鼠等非成员按映射直写 _command。
+     *  返回生效单位数（供轮盘通知）。 */
+    issueWheelCommand(mode, point) {
+        const memberIds = [];
+        const direct = [];
+        for (const s of this._selection) {
+            if (s.kind !== 'ally') continue;
+            if (PartySystem.members.includes(s.ref)) memberIds.push(s.ref.id);
+            else direct.push(s.ref);
+        }
+        let n = 0;
+        if (memberIds.length) n += PartySystem.setCommand(memberIds, mode, point);
+        for (const u of direct) {
+            const mapped = this._mapWheelModeForUnit(u, mode, point);
+            if (!mapped) continue;
+            if (u._ai && typeof u._ai.cancelForCommand === 'function') u._ai.cancelForCommand();
+            u._command = mapped;
+            n++;
+        }
+        return n;
+    },
+
+    /** 轮盘五指令 → 仓鼠单位指令映射（仓鼠 AI 只消费 move/attack/hold/follow）：
+     *  aggressive（自由索敌）= 仓鼠默认行为 → follow；patrol ≈ move 到指令点驻守；
+     *  gather 仅矿工有意义（回默认自动采矿），战斗单位忽略。 */
+    _mapWheelModeForUnit(u, mode, point) {
+        if (mode === 'follow' || mode === 'aggressive') return { mode: 'follow' };
+        if (mode === 'hold') return { mode: 'hold', point: null, target: null };
+        if (mode === 'patrol') return { mode: 'move', point: point ? { x: point.x, y: point.y } : null, target: null };
+        if (mode === 'gather') return u._isHamsterMiner ? { mode: 'follow' } : null;
+        return null;
     },
 
     /** 右键：空地 = 选中友军移动；命中敌人 = 选中友军对其进攻 */

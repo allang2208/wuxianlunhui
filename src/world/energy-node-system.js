@@ -42,6 +42,7 @@ class EnergyNode extends DamageableEntity {
         this.immovable = true;      // 不可击退/位移
         this.noSeparation = true;   // 不参与实体分离
         this._noShadow = true;      // 自带接地底座的贴图取消脚底阴影
+        this._dormantBand = true;   // 2026-08-19：静态资源点进休眠带（重生计时聚合 dt 不变量）
         this.noNameLabel = true;    // 名字/HP 走 _syncNeutralEntities 统一标签
         // 贴图（2026-08-16 v3）：12 种随机形态 × 随机镜像；底座采用世界-122 掩体/墙地
         // 同一套 30° 接地线（见 energy-node-textures.js）。优先使用 AI v3 成品，
@@ -232,8 +233,26 @@ export const EnergyNodeSystem = {
             }
         }
         this.nodes = [];
+        const clusters = (ENERGY_CONFIG && ENERGY_CONFIG.clusters) || [];
+        const baseExclusion = ENERGY_CONFIG && ENERGY_CONFIG.baseExclusion;
         for (const s of list) {
             if (!s || !Number.isFinite(s.x) || !Number.isFinite(s.y)) continue;
+            // 旧存档/HMR 可能保存过基地门口或旧矿簇坐标。快照恢复必须沿用
+            // 当前版本的生成约束，不能把 setup() 已排除的非法矿点重新放回来。
+            const nearCluster = clusters.some((c) =>
+                Math.hypot(s.x - c.x, s.y - c.y) <= (c.spread || 320) + 50
+            );
+            if (!nearCluster) continue;
+            if (baseExclusion
+                && Math.hypot(s.x - baseExclusion.x, s.y - baseExclusion.y)
+                    < (baseExclusion.radius || 800)) {
+                continue;
+            }
+            if (this.nodes.some((n) => Math.hypot(n.x - s.x, n.y - s.y) < 115)) continue;
+            if (WallSystem && typeof WallSystem.canMoveTo === 'function'
+                && !WallSystem.canMoveTo(s.x, s.y, ENERGY_CONFIG.nodeRadius)) {
+                continue;
+            }
             const maxHp = Math.max(1, Math.floor(s.maxHp || s.hp || 1));
             const node = new EnergyNode(s.x, s.y, {
                 hp: Math.max(0, Math.min(maxHp, Math.floor(s.hp ?? maxHp))),
@@ -265,13 +284,20 @@ export const EnergyNodeSystem = {
     sweepStacked() {
         if (!Game || !Game.entities) return;
         const clusters = (ENERGY_CONFIG && ENERGY_CONFIG.clusters) || [];
+        const baseExclusion = ENERGY_CONFIG && ENERGY_CONFIG.baseExclusion;
         const seen = new Set();
+        const kept = [];
         let removed = 0;
         for (const [k, e] of Array.from(Game.entities.entries())) {
             if (!e || !e._isEnergyNode || !e.active) continue;
             // ① 残留节点：不在任何当前簇半径内（spread + 50 余量）
             const nearCluster = clusters.some((c) => Math.hypot(e.x - c.x, e.y - c.y) <= (c.spread || 320) + 50);
-            if (!nearCluster) {
+            const insideBaseExclusion = baseExclusion
+                && Math.hypot(e.x - baseExclusion.x, e.y - baseExclusion.y)
+                    < (baseExclusion.radius || 800);
+            const blockedByStructure = WallSystem && typeof WallSystem.canMoveTo === 'function'
+                && !WallSystem.canMoveTo(e.x, e.y, ENERGY_CONFIG.nodeRadius);
+            if (!nearCluster || insideBaseExclusion || blockedByStructure) {
                 e.active = false;
                 Game.entities.delete(k);
                 removed++;
@@ -285,7 +311,14 @@ export const EnergyNodeSystem = {
                 removed++;
             } else {
                 seen.add(key);
+                kept.push(e);
             }
+        }
+        this.nodes = kept;
+        if (pathFinder && typeof pathFinder.setEntityCircleObstacles === 'function') {
+            pathFinder.setEntityCircleObstacles(
+                kept.map((n) => ({ x: n.x, y: n.y, radius: n.groundRadius || ENERGY_CONFIG.nodeRadius }))
+            );
         }
         return removed;
     },

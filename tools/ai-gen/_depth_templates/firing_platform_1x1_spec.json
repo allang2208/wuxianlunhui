@@ -3,12 +3,12 @@
   "azimuth": 0,
   "stair_tex": "stair_tread.png",
   "primitives": [
-    {"type": "box", "size": [160, 30, 26], "pos": [61.3, -33.8, 13], "rot": [0, 0, 44.8], "bevel": 4, "material": "wall", "soil": {"count": 6, "seed": 11}},
+    {"type": "box", "size": [160, 30, 26], "pos": [61.3, -33.8, 13], "rot": [0, 0, 44.8], "bevel": 4, "material": "wall"},
     {"type": "box", "size": [160, 30, 8],  "pos": [61.3, -33.8, 30], "rot": [0, 0, 44.8], "bevel": 2, "material": "stair"},
     {"type": "box", "size": [160, 30, 26], "pos": [40.1, -12.5, 43], "rot": [0, 0, 44.8], "bevel": 4, "material": "wall"},
     {"type": "box", "size": [160, 30, 8],  "pos": [40.1, -12.5, 60], "rot": [0, 0, 44.8], "bevel": 2, "material": "stair"},
     {"type": "box", "size": [160, 30, 26], "pos": [19.0, 8.8, 73],  "rot": [0, 0, 44.8], "bevel": 4, "material": "wall"},
     {"type": "box", "size": [160, 30, 8],  "pos": [19.0, 8.8, 90],  "rot": [0, 0, 44.8], "bevel": 2, "material": "stair"},
-    {"type": "box", "size": [160, 84, 102], "pos": [0, 28, 51], "rot": [0, 0, 44.8], "bevel": 10, "bevelSegments": 3, "soil": {"count": 8, "seed": 23}, "material": "wall"}
+    {"type": "box", "size": [160, 84, 102], "pos": [0, 28, 51], "rot": [0, 0, 44.8], "bevel": 10, "bevelSegments": 3, "material": "wall"}
   ]
 }

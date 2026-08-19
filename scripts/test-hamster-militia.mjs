@@ -105,7 +105,7 @@ check('GameScene 渲染友方单位（friendlyUnits）', /_game\.friendlyUnits/.
 check('GameScene 民兵攻击单次播放（_isHamsterMilitia 并入射手/盾卫分支）',
     /member\._isHamsterMilitia/.test(gsSrc) && /_attackSwing/.test(gsSrc));
 check('GameScene 民兵移动朝向 vx（不倒退走路）',
-    /member\._isHamsterMusketeer\) && moving/.test(gsSrc)
+    /member\._isHamsterMusketeer \|\| member\._isHamsterPriest\) && moving/.test(gsSrc)
     && /faceRight = member\.vx > 0/.test(gsSrc));
 check('GameScene 民兵受击白闪', /member\._isHamsterMilitia/.test(gsSrc)
     && /member\.hitFlash > 0/.test(gsSrc));

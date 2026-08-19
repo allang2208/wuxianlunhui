@@ -165,8 +165,9 @@ export class BootScene extends Scene {
         for (let i = 1; i <= 5; i++) {
             this.load.image(`deco_snow_${i}`, `assets/terrain/deco_snow_${i}.png`);
         }
-        this.load.image('deco_grass_1', 'assets/terrain/deco_grass_1.png');
-        this.load.image('deco_grass_2', 'assets/terrain/deco_grass_2.png');
+        for (let i = 1; i <= 4; i++) {
+            this.load.image(`deco_forest_grass_${i}`, `assets/terrain/deco_forest_grass_${i}.png`);
+        }
         // 世界-122 荒漠植物点缀（2026-08-16：束草/蒿灌木/龙舌兰/风滚草，微俯 30° 直立 + 低饱和）
         this.load.image('deco_desert_1', 'assets/terrain/deco_desert_1.png');
         this.load.image('deco_desert_2', 'assets/terrain/deco_desert_2.png');

@@ -51,6 +51,10 @@ import { getCastSpeedMultiplier } from '../../utils/magic-craft-helper.js';
 import { burstParticles } from '../../effects/combat-fx.js';
 import { GunFeel } from '../../effects/gunfeel.js';
 import { DEFENSE_TOWER_VISUAL, DefenseSystem } from '../../world/defense-system.js';
+import {
+    applyFittedBuildingFootprint,
+    getBuildingFootprint,
+} from '../../world/building-footprint.js';
 import { isoFootprintVertices } from '../../physics/iso-footprint.js';
 import {
     resolveStructureRenderOrder,
@@ -60,6 +64,7 @@ import {
 } from '../../world/structure-render-order.js';
 import {
     resolveStructureFootOffset,
+    resolveStructureGroundFit,
     shouldAutoAnchorStructure,
 } from '../../world/structure-visual-anchor.js';
 import { EnvironmentLightingSystem } from '../../world/environment-lighting-system.js';
@@ -1537,6 +1542,44 @@ export class GameScene extends Scene {
     }
 
     /**
+     * 让贴图真实接地前顶点与逻辑 iso footprint 前顶点重合。
+     * 建筑占格保持严格落在网格上，只平移视觉贴图；避免把碰撞中心挪出 2×2/4×4 格。
+     */
+    _getVisualOffsetX(entity, sprite) {
+        if (!sprite) return 0;
+        const configured = entity.spriteCfg?.offsetX ?? entity.config?.render?.offsetX ?? 0;
+        if (shouldAutoAnchorStructure(entity) && sprite.texture?.key) {
+            const nominal = getBuildingFootprint(entity._buildingFootprintCells || 2);
+            const fit = resolveStructureGroundFit(
+                this,
+                sprite.texture.key,
+                sprite.frame?.name,
+                sprite.displayWidth,
+                sprite.displayHeight,
+                { nominalWidth: nominal.w, nominalHeight: nominal.d }
+            );
+            if (fit) {
+                const fitKey = [
+                    sprite.texture.key,
+                    String(sprite.frame?.name ?? ''),
+                    sprite.displayWidth,
+                    sprite.displayHeight,
+                    fit.leftX,
+                    fit.rightX,
+                ].join(':');
+                if (entity._visualGroundFitKey !== fitKey) {
+                    applyFittedBuildingFootprint(entity, fit);
+                    if (typeof entity.rebuildCollider === 'function') entity.rebuildCollider();
+                    entity._visualGroundFitKey = fitKey;
+                }
+                entity._visualFootOffsetX = fit.visualOffsetX;
+                return fit.visualOffsetX;
+            }
+        }
+        return Number(configured) || 0;
+    }
+
+    /**
      * 判断实体是否显式配置了 footOffsetY（用于决定是否上移 Sprite 使逻辑位置落在脚底）。
      */
     _hasConfiguredFootOffset(entity) {
@@ -2104,9 +2147,11 @@ export class GameScene extends Scene {
         // 震屏：旧随机震（Camera.shakeX/Y，此前 Phaser 路径未消费）+ GunFeel trauma² 平滑震叠加
         const shakeX = (Camera.shakeX || 0) + GunFeel.shakeX;
         const shakeY = (Camera.shakeY || 0) + GunFeel.shakeY;
-        // 场景基础缩放（2026-08-14）：世界-122 缩小到 70%（≈视野多 43%，用户校准：0.5 过小）；
+        // 场景基础缩放：世界-122/125 缩小到 70%（≈视野多 43%，用户校准：0.5 过小）；
         // 其余场景 1:1。zoom punch 按基础缩放等比叠加，切换场景下一帧自动生效/还原。
-        const sceneBaseZoom = (SceneManager && SceneManager.currentScene === 'scene8') ? 0.7 : 1;
+        const zoomedOutWorld = SceneManager
+            && (SceneManager.currentScene === 'scene8' || SceneManager.currentScene === 'scene11');
+        const sceneBaseZoom = zoomedOutWorld ? 0.7 : 1;
         // zoom punch：开火瞬间视角轻微推近（2D 等价 FOV punch），GunFeel 内指数回落
         const zoom = sceneBaseZoom * (1 + GunFeel.zoomPunch);
         if (Math.abs(this.cameras.main.zoom - zoom) > 0.0004) {
@@ -2145,7 +2190,7 @@ export class GameScene extends Scene {
         const camPlayer = camGame ? camGame.player : null;
         const camIsAiming = (Camera.aimOffsetX !== 0 || Camera.aimOffsetY !== 0);
         const camIsDrone = !!(camPlayer && camPlayer.droneSystem && camPlayer.droneSystem.controlling);
-        if (SceneManager && SceneManager.currentScene === 'scene8' && !camIsAiming && !camIsDrone && camPlayer) {
+        if (SceneManager && SceneManager.currentScene === 'scene8' && !camIsAiming && !camIsDrone && camPlayer && !(camGame && camGame._observerMode) && !(camGame && camGame.RTSCommand && camGame.RTSCommand.enabled)) {
             Camera.x = camPlayer.x;
             const playerSprite = this.playerSprite;
             Camera.y = (playerSprite && playerSprite.active) ? playerSprite.y : camPlayer.y;
@@ -6590,6 +6635,10 @@ export class GameScene extends Scene {
     _syncMinimap() {
         const game = window.Game;
         if (!game || !game.player || game._npcDialoguePaused) return;
+        // 动态层降频（2026-08-19）：每帧 clear+全表画点 → 100ms 节流，10Hz 对小地图足够流畅
+        const now = (this.time && this.time.now) || Date.now();
+        if (this._minimapNextAt && now < this._minimapNextAt) return;
+        this._minimapNextAt = now + 100;
         // 独立动态层 + 边界检查裁剪（WebGL 不支持 geometry mask，改用绘制前边界判断）
         const g = this._minimapDynamicGraphics;
         if (!g) return;
@@ -6971,9 +7020,8 @@ export class GameScene extends Scene {
               }
             const size = e.size || 16;
             const shift = this._getFootOffsetY(e, sprite);
-            // 射击台（2026-08-16 七版标定）：贴图入口（台阶底）不在贴图中心，
-            // 精灵 x 按 spriteCfg.offsetX 平移，让入口精确锚定到实体
-            const visualOffsetX = (sprCfg && sprCfg.offsetX) || 0;
+            // 普通 iso 建筑由 alpha 接地前顶点自动校正 X；射击台保留显式方向偏移。
+            const visualOffsetX = this._getVisualOffsetX(e, sprite);
             sprite.setPosition(
                 e.x + (e._isFiringPlatform && e._facingLeft ? -visualOffsetX : visualOffsetX),
                 e.y - shift
@@ -7023,7 +7071,7 @@ export class GameScene extends Scene {
             // 名字标签：贴图 NPC 放在贴图顶部，圆形占位保持按 size 偏移
             const labelTop = sprCfg ? sprite.displayHeight / 2 : size;
             const labelGap = e._isEnergyNode ? 12 : 8; // 能源矿放大 50% 后标签同步上移
-            label.setPosition(e.x, sprite.y - labelTop - labelGap);
+            label.setPosition(sprite.x, sprite.y - labelTop - labelGap);
             // 防御建筑（基地核心/防御塔/掩体）：按地面锚线 Y 参与墙体深度排序。
             // 掩体带 _faceDepth（=墙段底边线 max 端点 y + 12，见 DefenseCover），
             // 不能用 e.y+12——e.y 是贴图显示框底边，比接地线深 22~137px，会把墙前

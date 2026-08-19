@@ -106,7 +106,7 @@ check('建筑面板门图标来自实际关闭帧+真实两端方块墙',
     && /obstacle_block\.png/.test(gateIconToolSrc)
     && /后柱 → 关闭栅栏 → 前柱/.test(gateIconToolSrc));
 check('生产建筑面板按能力/仓库/被动模式显式切换单位选择区',
-    /unitTypeEl\.style\.display = \(isAbilityShop \|\| isWarehouse \|\| isPassive\) \? 'none' : ''/.test(producerSrc));
+    /unitTypeEl\.style\.display = \(isAbilityShop \|\| isWarehouse \|\| isPassive \|\| isPortal\) \? 'none' : ''/.test(producerSrc));
 check('持续升级不在启动前预置 _continuous',
     !/b\._continuous = abilityId;\s*this\._notify\([^]*if \(!b\._upgrade\)/.test(producerSrc)
     && /if \(b\._upgrade\)/.test(producerSrc)

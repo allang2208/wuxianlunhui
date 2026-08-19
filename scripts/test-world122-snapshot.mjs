@@ -73,6 +73,13 @@ check('矿点系统提供 restoreNodes（按快照重建，不随机重铺）',
     /restoreNodes\(list\)/.test(nodeSys) && /node\._respawnTimer = Math\.max\(0, s\.respawnTimer/.test(nodeSys));
 
 // ---- 4. 场景钩子顺序 ----
+check('矿点快照恢复沿用当前矿簇、基地禁区与建筑碰撞约束',
+    /const clusters = \(ENERGY_CONFIG && ENERGY_CONFIG\.clusters\)/.test(nodeSys)
+    && /const baseExclusion = ENERGY_CONFIG && ENERGY_CONFIG\.baseExclusion/.test(nodeSys)
+    && /WallSystem\.canMoveTo\(s\.x, s\.y, ENERGY_CONFIG\.nodeRadius\)/.test(nodeSys));
+check('矿点快照恢复后立即清理旧坐标，不等待周期巡检',
+    /EnergyNodeSystem\.restoreNodes\(snap\.nodes\);[\s\S]*?EnergyNodeSystem\.sweepStacked\(\)/.test(snap));
+
 const captureIdx = sceneMgr.indexOf('captureAndStoreWorld122();');
 const teardownIdx = sceneMgr.indexOf('DefenseSystem.teardown();');
 check('离场钩子：先捕获后 teardown', captureIdx > 0 && teardownIdx > captureIdx);
@@ -84,6 +91,50 @@ check('入场钩子：各系统 setup 之后恢复快照', minerSetupIdx > 0 && 
 check('主存档写入 world122.scene', /scene: serializeWorld122Scene\(\)/.test(uiMgr));
 check('读档恢复驻留快照', /restoreWorld122Scene\(data\.world122\?\.scene\)/.test(uiMgr));
 check('新游戏重置快照', /resetWorld122Snapshot\(\)/.test(gameSrc));
+
+// ---- 6. M1 后台结算接线 ----
+check('塔 DPS 实机口径入快照（后台结算唯一 DPS 真源）', /dps: _towerDps\(e\)/.test(snap));
+check('军事单位合计 DPS 入快照（兵营/产兵）', /unitDps: _unitsDps/.test(snap));
+check('波次/结算参数随快照封存（config 块）', /config: \{[\s\S]*?waveBudgetBase/.test(snap));
+check('回场先结算后物化（settleWorld122 commit 模式）',
+    /settleWorld122\(snap, elapsed, \{[\s\S]*?commit: true/.test(snap));
+check('后台失守快照作废重开', /report\.defeated/.test(snap) && /_stored = null/.test(snap));
+check('被毁建筑不复活（hp<=0 跳过恢复）', /if \(!\(s\.hp > 0\)\) continue/.test(snap));
+check('预览接口零副作用（commit: false）', /previewWorld122Report/.test(snap)
+    && /settleWorld122\(_stored, elapsed, \{ commit: false \}\)/.test(snap));
+
+// ---- 7. 世界切换面板 ----
+const switchPanel = read('src/ui/world-switch-panel.js');
+const mainSrc = read('src/main.js');
+check('世界切换面板挂侧边菜单按钮并注册全局', /worldSwitchBtn/.test(switchPanel)
+    && /window\.WorldSwitchPanel = WorldSwitchPanel/.test(mainSrc)
+    && /WorldSwitchPanel\.init\(\)/.test(mainSrc));
+check('传送走 SceneManager.switchScene（观察模式口径，2026-08-19）',
+    /SceneManager\.switchScene\(target, Game\.player, undefined, \{ observer \}\)/.test(switchPanel)
+    && /RTSCommand\.setEnabled\(observer\)/.test(switchPanel));
+check('面板打开期间自动刷新（后台 tick 实况）', /setInterval\(.*1200\)/.test(switchPanel)
+    && /onClose.*_clearRefresh|_clearRefresh\(\)/.test(switchPanel));
+
+// ---- 8. M2 阶段一：后台 1Hz 活 tick 驱动 ----
+const driver = read('src/world/world-sim-driver.js');
+check('后台驱动 1Hz tick 且前台全真时停 tick', /TICK_MS = 1000/.test(driver)
+    && /isWorld122Live\(\)/.test(driver));
+check('驱动以快照 capturedAt 为结算锚点（读档离线时长可完整结算）',
+    /elapsed = Date\.now\(\) - \(snap\.capturedAt/.test(driver));
+check('后台失守作废快照并通知', /report\.defeated/.test(driver)
+    && /resetWorld122Snapshot\(\)/.test(driver));
+check('驱动注册进启动流程', /WorldSimDriver\.init\(\)/.test(mainSrc));
+
+// ---- 9. 性能前置优化（2026-08-19） ----
+check('分离碰撞走空间网格宽相（O(n²) 移除）',
+    /SpatialPartitionSystem\.queryRadius\(a\.x, a\.y, a\.groundRadius \+ 340/.test(gameSrc)
+    && /indexOf\.get\(bRaw\)/.test(gameSrc));
+check('静态实体休眠带（聚合 dt 1/4 帧率）', /_dormantBand/.test(gameSrc)
+    && /_dormantAcc < 66/.test(gameSrc));
+check('休眠标记落到墙/门/台/矿点',
+    (read('src/world/defense-system.js').match(/_dormantBand = true/g) || []).length >= 3
+    && /_dormantBand = true/.test(read('src/world/energy-node-system.js')));
+check('小地图动态层 100ms 降频', /_minimapNextAt/.test(read('src/phaser/scenes/GameScene.js')));
 
 console.log(`\n结果: ${pass} 通过, ${fail} 失败`);
 process.exit(fail ? 1 : 0);
