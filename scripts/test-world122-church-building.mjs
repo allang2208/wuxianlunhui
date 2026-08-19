@@ -57,9 +57,9 @@ check('传送门贴图已按新素材紧身裁剪、重标并重建投影',
     portalPng.width === 1127 && portalPng.height === 1192
     && cfg.portal?.displayW === 288 && cfg.portal?.displayH === 305 && cfg.portal?.footOffsetY === 153
     && fs.existsSync(path.join(ROOT, 'assets/terrain/lighting/portal_projection.png')));
-check('传送门建筑配置三个目的地并接入正常场景切换',
+check('传送门建筑配置四个目的地并接入正常场景切换',
     cfg.portal?.panelMode === 'portal'
-    && cfg.portal.destinations?.map((entry) => entry.sceneId).join(',') === 'main,scene9,scene10'
+    && cfg.portal.destinations?.map((entry) => entry.sceneId).join(',') === 'main,scene9,scene10,scene11'
     && /const isPortal = cfg\.panelMode === 'portal'/.test(producer)
     && /SceneManager\.switchScene\(sceneId, player\)/.test(producer));
 check('SKILL 已登记建筑开发标准流程与批量替换实例',

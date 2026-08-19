@@ -69,6 +69,19 @@ try {
     };
     await send('Runtime.enable');
 
+    // 模块 URL 表必须在游戏启动前捕获：启动后贴图/精灵流会把早期模块条目逐出资源缓冲
+    const mapReady = await waitFor(() => evaluate(`(function(){
+        if (!window.Game) return false;
+        const m = {};
+        for (const e of performance.getEntriesByType('resource')) {
+            if (e.name.includes('/src/')) { try { m[new URL(e.name).pathname] = e.name; } catch {} }
+        }
+        if (Object.keys(m).length < 50) return false;
+        window.__probeUrlMap = m;
+        return true;
+    })()`), 30000);
+    if (!mapReady) throw new Error('模块 URL 表捕获失败');
+
     const started = await waitFor(() => evaluate(`(async () => {
         if (window.Game?.isRunning && window.Game.player) return true;
         const button = document.getElementById('startGameBtn');
@@ -80,8 +93,10 @@ try {
     // ---- A. 进 122，建造 + 改基地血量 + 捕获快照 ----
     const dataA = await evaluate(`(async () => {
         const loaded = (modulePath) => {
-            const url = performance.getEntriesByType('resource').map((entry) => entry.name)
-                .find((entry) => entry.includes(modulePath + '?'));
+            const m = window.__probeUrlMap || {};
+            const url = m[modulePath]
+                || performance.getEntriesByType('resource').map((entry) => entry.name)
+                    .find((entry) => entry.endsWith(modulePath) || entry.includes(modulePath + '?'));
             if (!url) throw new Error(modulePath + ' 未加载');
             return url;
         };
@@ -153,8 +168,9 @@ try {
 
     // ---- B. 回主神空间：实体清空 ----
     const dataB = await evaluate(`(async () => {
-        const loaded = (modulePath) => performance.getEntriesByType('resource').map((entry) => entry.name)
-            .find((entry) => entry.includes(modulePath + '?'));
+        const loaded = (modulePath) => (window.__probeUrlMap || {})[modulePath]
+            || performance.getEntriesByType('resource').map((entry) => entry.name)
+                .find((entry) => entry.endsWith(modulePath) || entry.includes(modulePath + '?'));
         const { SceneManager } = await import(loaded('/src/world/scene-manager.js'));
         await SceneManager.switchScene('main', window.Game.player);
         const { Game } = await import(loaded('/src/game.js'));
@@ -166,8 +182,9 @@ try {
 
     // ---- C. 重进 122：快照恢复 ----
     const dataC = await evaluate(`(async () => {
-        const loaded = (modulePath) => performance.getEntriesByType('resource').map((entry) => entry.name)
-            .find((entry) => entry.includes(modulePath + '?'));
+        const loaded = (modulePath) => (window.__probeUrlMap || {})[modulePath]
+            || performance.getEntriesByType('resource').map((entry) => entry.name)
+                .find((entry) => entry.endsWith(modulePath) || entry.includes(modulePath + '?'));
         const { SceneManager } = await import(loaded('/src/world/scene-manager.js'));
         await SceneManager.switchScene('scene8', window.Game.player);
         const { DefenseSystem } = await import(loaded('/src/world/defense-system.js'));

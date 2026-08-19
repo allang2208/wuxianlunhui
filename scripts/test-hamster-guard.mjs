@@ -154,7 +154,7 @@ check('GameScene 盾卫攻击单次播放（_isHamsterGuard 并入射手分支�
     /member\._isHamsterGuard/.test(gsSrc) && /_attackSwing/.test(gsSrc));
 check('GameScene 盾卫移动朝向 vx（不倒退走路）',
     /member\._isHamsterGuard/.test(gsSrc)
-    && /member\._isHamsterMusketeer\) && moving/.test(gsSrc)
+    && /member\._isHamsterMusketeer \|\| member\._isHamsterPriest\) && moving/.test(gsSrc)
     && /faceRight = member\.vx > 0/.test(gsSrc));
 check('GameScene 盾卫受击白闪', /member\._isHamsterGuard/.test(gsSrc)
     && /member\.hitFlash > 0/.test(gsSrc));

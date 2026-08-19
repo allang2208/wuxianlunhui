@@ -85,6 +85,30 @@ export function applyBuildingFootprint(entity, cells = 2) {
     return entity;
 }
 
+/** 把贴图 alpha 拟合出的地面四边形应用到实体；占格标记保持不变。 */
+export function applyFittedBuildingFootprint(entity, fit) {
+    if (!entity || !fit || !Array.isArray(fit.localVertices) || fit.localVertices.length !== 4) {
+        return entity;
+    }
+    entity.collisionShape = 'iso_rect';
+    entity._pixelFootprintLocal = fit.localVertices.map((point) => ({
+        key: point.key,
+        x: Number(point.x) || 0,
+        y: Number(point.y) || 0,
+    }));
+    entity.collisionWidth = Math.max(1, Number(fit.collisionWidth) || entity.collisionWidth || 1);
+    entity.collisionHeight = Math.max(1, Number(fit.collisionHeight) || entity.collisionHeight || 1);
+    entity.collisionRadius = Math.max(1, Number(fit.collisionRadius) || entity.collisionRadius || 1);
+    entity.colliderOffsetX = Number(fit.centerX) || 0;
+    entity.colliderOffsetY = Number(fit.centerY) || 0;
+    // spawn-placement 等仍需要 u/v 半径作为候选槽位的保守外框。
+    const half = entity.collisionRadius / Math.SQRT2;
+    entity.collisionIsoHalfU = half;
+    entity.collisionIsoHalfV = half;
+    if (typeof entity._refreshStructureDepth === 'function') entity._refreshStructureDepth();
+    return entity;
+}
+
 /** 将射击台设为单格 footprint；dir 仅描述格内楼梯向。 */
 export function applyFiringPlatformFootprint(entity, dir = 'e2') {
     if (!entity) return entity;

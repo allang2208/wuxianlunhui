@@ -229,7 +229,7 @@ export class ProducerBuilding extends DamageableEntity {
             unitRadius: 24,
             entities: Game?.entities,
             wallSystem: WallSystem,
-            preferredTarget: this._rallyPoint || Game?.player,
+            preferredTarget: this._rallyPoint || (Game && Game._observerMode ? { x: this.x, y: this.y } : Game?.player), // 观察模式：玩家不在场，集结兜底回建筑自身
         });
     }
 
@@ -408,7 +408,9 @@ export class ProducerBuilding extends DamageableEntity {
                 if (this._spawnRetryTimer > 0) return;
                 const unit = this.spawnUnit();
                 if (unit) {
-                    this._spawnTimer = this.recruitIntervalMs();
+                    // 快照恢复补员（_restoreTopUp>0）：绕过完整产兵周期快速补齐，800ms/个
+                    this._spawnTimer = this._restoreTopUp > 0 ? 800 : this.recruitIntervalMs();
+                    if (this._restoreTopUp > 0) this._restoreTopUp--;
                     this._spawnRetryTimer = 0;
                     this._spawnBlocked = false;
                 } else {
@@ -1101,7 +1103,8 @@ export const ProducerBuildingSystem = {
             if (!buildMode && Math.sqrt(pdx * pdx + pdy * pdy) > 260) continue;
             const cfg = b._cfg;
             const hit = { cx: 0, cy: -Math.round(cfg.displayH * 0.4), hw: Math.round(cfg.displayW / 2), hh: Math.round(cfg.displayH * 0.44) };
-            if (mw.x < b.x + hit.cx - hit.hw || mw.x > b.x + hit.cx + hit.hw
+            const visualX = b.x + (b._visualFootOffsetX || 0);
+            if (mw.x < visualX + hit.cx - hit.hw || mw.x > visualX + hit.cx + hit.hw
                 || mw.y < b.y + hit.cy - hit.hh || mw.y > b.y + hit.cy + hit.hh) continue;
             if (panel.isOpen && panel.building === b) {
                 panel.close();

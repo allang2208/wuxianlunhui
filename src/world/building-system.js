@@ -29,6 +29,7 @@ import { HamsterHut, HamsterHutSystem, HAMSTER_CONFIG } from './hamster-hut-syst
 import { HamsterBarracks, HamsterBarracksSystem, BARRACKS_CONFIG } from './hamster-barracks-system.js';
 import { ProducerBuilding, ProducerBuildingSystem, PRODUCER_BUILDINGS } from './producer-building-system.js';
 import {
+    applyFittedBuildingFootprint,
     FIRING_PLATFORM_FOOTPRINTS,
     ONE_CELL_BUILDING_FOOT,
     TWO_BY_TWO_BUILDING_FOOT,
@@ -44,7 +45,10 @@ import {
     pointInIsoFootprint,
 } from '../physics/iso-footprint.js';
 import { structureDepthAtY } from './structure-depth.js';
-import { resolveStructureFootOffset } from './structure-visual-anchor.js';
+import {
+    resolveStructureFootOffset,
+    resolveStructureGroundFit,
+} from './structure-visual-anchor.js';
 
 // ==================== 可建造项 ====================
 
@@ -648,7 +652,29 @@ export const BuildingSystem = {
         if (this._placing && this._placing.item.kind === 'gate4') {
             return { x, y }; // 4 格门锚点 = 栅栏中点，幽灵直接居中
         }
-        return { x, y: y - this._ghostFootOffset() };
+        return { x: x + this._ghostVisualOffsetX(), y: y - this._ghostFootOffset() };
+    },
+
+    _ghostVisualOffsetX() {
+        return this._ghostGroundFit()?.visualOffsetX || 0;
+    },
+
+    _ghostGroundFit() {
+        if (!this._placing) return null;
+        if (!['hamster_hut', 'hamster_barracks', 'producer'].includes(this._placing.item.kind)) return null;
+        const scene = typeof window !== 'undefined' ? window.__phaserScene : null;
+        if (!scene || !this._ghost?.texture?.key) return null;
+        return resolveStructureGroundFit(
+            scene,
+            this._ghost.texture.key,
+            this._ghost.frame?.name,
+            this._ghost.displayWidth,
+            this._ghost.displayHeight,
+            {
+                nominalWidth: TWO_BY_TWO_BUILDING_FOOT.w,
+                nominalHeight: TWO_BY_TWO_BUILDING_FOOT.d,
+            }
+        );
     },
 
     _ghostFootOffset() {
@@ -1499,11 +1525,11 @@ export const BuildingSystem = {
             minY = Math.min(...vertices.map((p) => p.y));
             maxY = Math.max(...vertices.map((p) => p.y));
         } else if (isTwoByTwoBuildItem(item)) {
-            const cy = y + TWO_BY_TWO_BUILDING_FOOT.offY;
-            minX = x - TWO_BY_TWO_BUILDING_FOOT.w / 2;
-            maxX = x + TWO_BY_TWO_BUILDING_FOOT.w / 2;
-            minY = cy - TWO_BY_TWO_BUILDING_FOOT.d / 2;
-            maxY = cy + TWO_BY_TWO_BUILDING_FOOT.d / 2;
+            const vertices = isoFootprintVertices(this._buildingFootprintProbe(x, y));
+            minX = Math.min(...vertices.map((p) => p.x));
+            maxX = Math.max(...vertices.map((p) => p.x));
+            minY = Math.min(...vertices.map((p) => p.y));
+            maxY = Math.max(...vertices.map((p) => p.y));
         } else {
             const r = this._itemPlacementRadius(item);
             minX = x - r; maxX = x + r;
@@ -1603,6 +1629,10 @@ export const BuildingSystem = {
     _canPlaceBuildingFootprint(x, y) {
         const item = this._placing && this._placing.item;
         if (!item || !this._fitsPlacementBounds(item, x, y)) return false;
+        return this._canPlaceIsoBuildingFootprint(this._buildingFootprintProbe(x, y));
+    },
+
+    _buildingFootprintProbe(x, y) {
         const probe = {
             active: true,
             x,
@@ -1614,8 +1644,9 @@ export const BuildingSystem = {
             collisionIsoHalfV: TWO_BY_TWO_BUILDING_FOOT.w / (2 * Math.SQRT2),
             colliderOffsetY: TWO_BY_TWO_BUILDING_FOOT.offY,
         };
-
-        return this._canPlaceIsoBuildingFootprint(probe);
+        const fit = this._ghostGroundFit();
+        if (fit) applyFittedBuildingFootprint(probe, fit);
+        return probe;
     },
 
     _firingPlatformProbe(x, y, dir) {

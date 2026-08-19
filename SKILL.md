@@ -70,6 +70,7 @@
 - 阶段性进度总结（2026-08-05：电系中高级技能 + 感电叠层机制落地）
 
 **6. 地牢与场景构建**
+- ⭐ 生成世界标准工作流（2026-08-19 定稿，新增世界一律按此开展）
 - ⭐ 地牢迷宫自动生成关键参考（2026-08-11 定稿，新增地牢/迷宫必读）
 - 地牢添加标准工作流（新增地牢一律按此开展）
 - 地牢场景构建标准工作流（2026-07-25 定稿，全套实战经验）
@@ -3311,6 +3312,104 @@ CombatSystem.update() → 不再调用状态效果更新（只负责战斗：眩
 
 ## 6. 地牢与场景构建
 
+### ⭐ 生成世界标准工作流（2026-08-19 定稿，新增世界一律按此开展）
+
+> 适用于世界-123/124/125这类大地图世界。顺序固定为：
+> **定义世界 → 选地板 → 注册场景 → 构建边界 → 生成环境 → 接入入口 → 镜头 → 验收**。
+> 禁止只加 `_loadSceneN` 而遗漏配置、传送入口、清理链或回归测试。
+
+#### 1. 定义世界规格
+
+1. 分配未使用的 `sceneN`，名称统一为 `世界-<编号>·<主题>`。
+2. 大世界默认复用世界-122规格：
+   `width=12288`、`height=8192`、`origin=(6144,4096)`、`diamondFloor.enabled=true`。
+3. 菱形几何统一调用 `SceneManager._scene8Diamond(scene)`，边界统一调用
+   `_registerScene8Boundary(diamond)`；禁止复制另一套斜率或手写矩形可移动区。
+4. 需要世界-122广角视野时，把场景加入 `GameScene._updateCamera` 的
+   `zoomedOutWorld`，基础缩放使用 `0.7`；未声明则保持 `1.0`。
+
+#### 2. 选择地板管线
+
+- **无缝连续纹理**（雪地/草地/沙地）：`setDungeonFloorProfile({continuous:true,
+  textureScaleY:0.5774,...})`，再调用
+  `applyDungeonFloorChunked(w,h,2048,diamond)`。
+- **复用地牢菱形砖池**（世界-125）：直接沿用地牢 `tiles` 和 `glow/overlap` 口径，
+  不开 `continuous`；分块系统会按全局格坐标确定性选择砖块/镜像，跨块不跳变。
+- 地板、点缀贴图必须先由 `BootScene` 注册；能复用现有正式资产时禁止重新生图。
+- `data/game-config.json` 与 `public/data/game-config.json` 必须字节一致；编辑器/运行时
+  读源不同，漏同步会出现“测试通过但实机旧配置”。
+
+#### 3. 注册与加载场景
+
+1. 在两份 `game-config.json.scenes` 写场景配置。
+2. 在 `SceneManager.init().scenes` 增加兜底配置。
+3. 在 `switchScene` 分发增加 `_loadSceneN`；加载器需要等待预制资源时声明为 `async`
+   并在分发处 `await`。
+4. 进入加载器先 `clearDecoClearZones()`，重置 Camera aim/shake/lock，再设置
+   `CONFIG.WORLD_WIDTH/HEIGHT`。
+5. 标准加载骨架：
+   - 设置 floor profile并注册2048分块；
+   - `WallSystem.init(w,h)`；
+   - 注册四条无视觉矩形外边和菱形四边 `_boundary` 线段；
+   - `_syncWallsToPhaser()`；
+   - 普通模式生成玩家并 `Camera.follow`，观察模式只把相机放世界中心；
+   - 生成环境；
+   - 在菱形底端 `cy+ry-160` 放 `Portal(...,'main','返回主神空间')`。
+6. 离场清理条件必须包含新场景；`Renderer.terrainChunks`、实体和墙视觉沿用
+   `switchScene` 统一清理，不另建生命周期。
+
+#### 4. 环境生成标准
+
+- **地板点缀**（草/蕨等无碰撞物）：放入 floor profile 的 `deco`；每次入场生成新 seed，
+  同一次分块重烘焙保持稳定。
+- **单体障碍**（树、石柱、烛台）：贴图与 footprint 登记在 `ISO_WALL_GEO`，尺寸优先读
+  `obstacle-defaults.json`，否则用 `obstacleH/geo.h`。
+- **摆墙预制组合**：先 `await loadWallPrefabs()`，保留组内相对坐标、scale/rotation/flip
+  与保存 depth 差值；只抽取全部件均为 `category:'obstacle'` 的组合。
+- 每个候选必须同时通过：菱形内缩、玩家排除、返回门排除、最小间距、
+  `getObstacleFootprintRect`、`WallSystem.canMoveTo` 和已放 footprint 相交校验。
+- 世界散布件标 `_scatter:true` 复用静态投影；组合件再标 `_prefabKey` 便于审计。
+- 全部候选确定后只调用一次 `rebuildIsoCollision()` 和一次 `_syncWallsToPhaser()`；
+  禁止每放一件就全量重建。
+
+#### 5. 接入所有传送入口
+
+新增世界必须同时登记：
+
+1. `src/ui/world-switch-panel.js` 的 `WORLDS`；
+2. `data/game-config.json.portals.mainHub.entries`（并同步 public）；
+3. `data/producer-buildings.json.portal.destinations`；
+4. `data/audio-config.json.bgm[sceneN]`（无音乐显式写 `null`）。
+
+按钮必须调用 `SceneManager.switchScene`；世界切换面板继续走观察模式 `_travel`，
+建筑传送门走正常人物传送，禁止直接改 `currentScene`。
+
+#### 6. 决定世界玩法与持久化
+
+- 纯探索世界不要接入 `DefenseSystem/EnergyNodeSystem/ProducerBuildingSystem`。
+- 有建筑、波次、资源或生产状态的世界，先定义快照和后台结算语义，再接入切换入口；
+  禁止依赖切场后仍存活的实体引用。
+- 所有随机环境默认“每次进入重新生成”；需要保持布局时，把 seed/坐标写入世界快照，
+  不要保存 Phaser Sprite。
+
+#### 7. 验收清单
+
+1. 新建 `scripts/test-world<编号>-<theme>.mjs`，至少锁定：双份配置一致、尺寸/菱形、
+   地板键、环境类型、无错误玩法系统、世界面板/主城门/建筑门三入口、镜头缩放。
+2. 随机散布函数必须用真实 `ISO_WALL_GEO` 和真实预制库重复运行，验证配置数量能放满。
+3. 更新受目的地数量影响的旧回归测试，并把新测试加入 `npm test`。
+4. 运行：新世界测试、相邻世界测试、传送门测试、ESLint（0 error）和 `npx vite build`。
+5. 需要视觉验收时优先使用项目安全入口
+   `powershell -ExecutionPolicy Bypass -File tools\cdp-run.ps1 <probe.mjs>`；
+   禁止按进程名全杀浏览器。
+
+#### 8. 已落地变体
+
+- 世界-123：连续雪地 + 表面补丁 + 雪松/雪草。
+- 世界-124：连续草地 + 林地草簇 + 五姿态针叶树。
+- 世界-125：僵尸地牢 `blackbrick_7/8` 砖池 + 石柱/烛台/纯障碍预制组合；
+  与世界-122同为 `0.7` 基础镜头缩放。
+
 ### ⭐ 地牢迷宫自动生成关键参考（2026-08-11 定稿，新增地牢/迷宫必读）
 
 > 本节沉淀 D+ 级地牢竞技场（5 房蛇形迷宫）的完整自动生成体系：布局纯函数 → 房间
@@ -5414,9 +5513,13 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
   禁止中文文件名。
 - 显示参数标定（勿拍脑袋，旧图验证公式）：
   - `displayH = displayW × bboxH/bboxW`（bbox = alpha>16 包围盒；旧图反推吻合）。
-  - 运行时脚点统一走 `structure-visual-anchor.js`：在贴图中央20%~80%宽度内从底向上扫描
-    `alpha>=96` 的真实最低接触像素，按显示高度换算并缓存；配置 `footOffsetY` 仅作纹理未就绪兜底。
-  - bbox 水平居中（素材中心≈2048）则无需 X 偏移。
+  - 运行时接地点统一走 `structure-visual-anchor.js`：在贴图中央20%~80%宽度内从底向上扫描
+    `alpha>=96` 的真实最低接触像素；Y 换算为 `footOffsetY`，X 取底部窄楔中心作为前顶点。
+    再从前顶点向上扫描 nominalHeight 20%~75%，取底座宽度达到局部最大值94%的第一行作为
+    左右侧顶点，推导后顶点并生成真实四边形 footprint；结果按纹理+显示尺寸缓存。
+  - **bbox 水平居中不等于接地点居中**：靶场 bbox 完全铺满但接地点仍在中心右侧约42显示像素，
+    军营约31像素。普通网格建筑的**逻辑锚点/占格**必须留在格网上，但拟合出的 Collider 中心
+    可以相对锚点偏移；贴图、幽灵、碰撞四边形、点击范围和遮挡前缘必须共用同一拟合结果。
   - 用 System.Drawing LockBits 扫描 alpha bbox（PowerShell，4096² 约 2~3s）。
 - 替换点：BootScene `load.image`（键名即英文）、各建筑 config `tex`（实体渲染 idleKey）、
   building-system `BUILD_ITEMS.tex`（面板缩略图 img 路径自动跟随）。
@@ -5430,7 +5533,8 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
    `assets/terrain/<english_key>.png`；只用英文 key，禁止在运行时引用素材库外路径。
 2. **紧身裁透明边，再标定显示**：源图若有大透明留白，先按 `alpha>16` 紧身裁剪；再用
    `displayH = displayW × cropH/cropW`。脚点由 `structure-visual-anchor.js` 自动扫描高 Alpha
-   接触底边，预览/实体共用；配置 `footOffsetY` 写测量后的近似值作兜底。
+   接触底边和底部展开轮廓，预览/实体共用四边形拟合；配置 `footOffsetY/offsetX` 只作
+   纹理未就绪兜底。
    **禁止**直接把带留白的 4096² 图塞进项目后沿用旧尺寸，否则会缩小/悬浮。
 3. **配置唯一真源**：普通2×2建筑统一登记 `data/producer-buildings.json`：
    `cost/hp/def/mdef/tex/displayW/displayH/footOffsetY/sellRefundRatio` 为必填数值。
@@ -5447,8 +5551,9 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
    **① 缩略图与名称 → ② 生命条、当前/最大耐久、百分比 → ③ 特殊功能**。
    特殊功能仅放在生命条之后（门控、修理、武器装载、采矿、募兵、研究、仓储、献祭等）；
    无玩法建筑明确显示“暂无额外功能”。详情面板统一右上 `right:26px/top:26px`。
-7. **验收**：用实际 `displayW/displayH/footOffsetY` 叠加256×128红色 footprint，
-   检查可见地基不越界；再跑 `test-structure-visual-anchor.mjs`、
+7. **验收**：打开左下「范围」，确认碰撞前顶点贴住可见地基最低点、左右侧顶点贴住底座
+   展开边界；仓库应保持接近256×128，靶场/军营允许按像素得到不同宽深。再跑
+   `test-structure-visual-anchor.mjs`、
    `test-config-integrity.mjs`（贴图/配置链）+ 建筑面板布局回归 +
    Vite build；有交互的新建筑再跑 CDP 实机探针，检查缩略图、耐久、百分比、特殊功能顺序、
    右上定位和出售/修理等现有操作。
@@ -5468,8 +5573,8 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
 - 传送门：同一目录 `传送门.png` 已替代 `assets/terrain/portal.png`；紧身裁为
   1127×1192，`producer-buildings.json.portal` 标定为
   `displayW=288/displayH=305/footOffsetY=153`，并重建 `portal_projection/silhouette/height/normal`。
-  `panelMode:"portal"` 的详情面板提供 **主神空间 / 世界-123·雪原 / 世界-124·林地**
-  三个目的地，按钮必须调用 `SceneManager.switchScene`，禁止直接改 `currentScene` 绕过
+  `panelMode:"portal"` 的详情面板提供 **主神空间 / 世界-123·雪原 / 世界-124·林地 /
+  世界-125·地牢遗迹** 四个目的地，按钮必须调用 `SceneManager.switchScene`，禁止直接改 `currentScene` 绕过
   世界-122快照、实体清理和传送冷却链路。
 
 ### 世界-124 林地（2026-08-18）
@@ -5478,7 +5583,10 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
   30° 等距连续地板；主神空间传送门进入，底部返回门离开；不接防守、建造或刷怪系统。
 - 草地：`floor_grass_forest_seamless.png` 走 `floor-asset.py grass-forest`（FLUX.2 Dev →
   make-seamless → 降饱和）产出，游戏内连续铺贴 `textureScaleY=0.5774`；
-  `deco_grass_1/2` 作为低矮草簇点缀，入场 seed 随机、同一次分块重烘焙稳定。
+  林地点缀使用 `deco_forest_grass_1~4.png`：FLUX.2 Dev 单株生成 → 非白纯色底 →
+  BiRefNet → `process-desert-plant.py --size 256`，视角必须与雪地/沙漠植物统一为
+  **微俯30°侧看 + 直立株型 + 低饱和 + 无阴影**；旧 `deco_grass_1/2` 已删除。
+  入场 seed 随机、同一次分块重烘焙稳定。
 - 树木：5 棵 `obstacle_forest_pine_01~05.png` 复用不同白模深度图，以
   `flux2-dev-depth` 锁定树形/30°视角，**普通阈值抠图不可信时必须从 `_raw.png` 用
   `cutout-energy-node.py`（BiRefNet）重抠**；紧身裁后的尺寸/footprint/obstacleH 必须登记
@@ -5489,6 +5597,21 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
   裁后 615×921，正式图走素材库/AI 管线后重标）；纯详情建筑：2000能源、HP3000、
   def80/mdef80、`panelMode:"detail"`，标定 `displayW=288/displayH=431/footOffsetY=216`；
   传送功能待多世界并行系统接入。回归 `test-world122-portal-building.mjs`。
+
+### 世界-125 地牢遗迹（2026-08-19）
+
+- 场景：`scene11`，复用世界-122/123的 `12288×8192` 菱形边界、2048分块地板与底部
+  返回门；纯探索，不接世界-122防守/采矿/生产系统。
+- 地板：直接使用僵尸地牢高级 `blackbrick_7/blackbrick_8` 贴图池与随机等距拼砖口径，
+  `glow=false`；不重新生成地砖、不启用连续平铺。
+- 环境：`world125-environment.js` 每次入场随机生成28根石柱、36座烛台和22组摆墙预制组合；
+  组合池取「火把墙」之后的纯障碍组合，保留组内变换/图层，统一走 footprint、碰撞、
+  菱形内缩、出生点/返回门排除和最小间距。
+- 入口：世界切换面板、主神空间传送门、世界-122建筑传送门均登记 scene11；
+  BGM复用 `dungeon_echo.mp3`。
+- 镜头：在 `GameScene.zoomedOutWorld` 中与 scene8 共用 `0.7` 基础缩放。
+- 验收：`scripts/test-world125-dungeon-world.mjs`（配置/地板/障碍/三入口/音乐/镜头 +
+  真实散布函数）+ 传送门旧回归 + ESLint + Vite build。
 
 **建造清除障碍物与草（2026-08-17 用户口径：建造处有树/草类障碍物直接删除）**
 - **判定顺序铁律（2026-08-17 审计修复）**：不能先用普通 `canMoveTo` 拒绝落点、再在建造
@@ -5601,6 +5724,92 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
   `Game.start` 调 `resetWorld122Snapshot()`。
 - **验证**：`scripts/test-world122-snapshot.mjs`（21 项契约）+ `tools/cdp-world122-snapshot.mjs`
   （实机 15 项：建造→捕获→回主城清空→重进全恢复）。
+
+### 世界-122 后台抽象结算 + 世界切换面板（M1，2026-08-18 落地）
+
+- **结算引擎 `src/world/world122-sim.js`（纯数据、无 Game 依赖链，可 Node 直测）**：
+  `settleWorld122(snap, elapsedMs, {commit, grant})`；`commit:false` 为预览（不改快照、
+  不升全局等级），世界切换面板预估即用它跑快照克隆。
+- **接入点**：`applyWorld122Snapshot` 物化前先结算（离场 >1s 才结算）；回场波次仍进行
+  → break 重开本波；被毁建筑（hp≤0）不复活；后台失守 → 快照作废重开局 + 浮字战报。
+- **结算口径**：产兵按兵种周期（unitTypes.spawnIntervalMs 覆盖 > 建筑级）×快速募兵倍率，
+  cap 封顶；采矿 = 矿工数 × 25 能源/s × 采矿模块，受仓库余量与矿点余量双封顶
+  （无仓库不采，与实机满仓口径一致）；读条完成即升全局等级（持续升级后台不自动续，
+  回场实机续）；波次 = TP 预算 ×35 HP/只 vs 塔 DPS（捕获时实机口径入快照 `dps`）+
+  单位 DPS（`_unitsDps` 读 AI 实参）；怪物输出按接触系数 0.5 依「墙/门→建筑→基地」承伤；
+  胜利奖励能源直接写入快照仓库（恢复时物化）、金币走 grant 回调（此时建筑未物化，
+  EnergyManager 无法承接）。
+- **恢复补员铁律**：出口槽位预约窗口 750ms，恢复时爆发生成会互撞——首只立即生成，
+  缺额挂 `_restoreTopUp`，各系统 update 里按 800ms/个 快速补齐（兵营/产兵/矿场同口径）。
+- **世界切换面板 `src/ui/world-switch-panel.js`**：BasePanel 复用；`init()` 往 `.side-menu`
+  注入「🌐 世界」按钮；世界-122 行显示快照概况 + 离线预估战报；前往 =
+  `SceneManager.switchScene`（离场捕获/入场结算恢复全自动）。
+- **模块挂载**：`window.World122Snapshot/World122Sim`（main.js）——探针勿走
+  performance 资源表找这俩：贴图流会把早期模块 URL 逐出缓冲（CDP 踩坑实录）。
+- **验证**：`scripts/test-world122-sim.mjs`（13 项功能）+ `test-world122-snapshot.mjs`
+  （30 项契约）+ `tools/cdp-world122-sim-switch.mjs`（实机 11 项：建造→回拨时间→
+  面板切 123→切回验证补员/采矿/波次战报）。
+
+### 性能前置优化（2026-08-19，多世界并行 M2 前置）
+
+- **分离碰撞网格宽相**：`Game.resolveCollisions` 由 O(n²) 全对遍历改为
+  `SpatialPartitionSystem.queryRadius(x, y, groundRadius + 340)` 近邻候选 + 索引去重
+  （保持 i<j 成对口径；+340 覆盖 4×4 基地半对角 ~286 + 对方半径余量；分离判定的
+  Y 逆透视压缩保证世界空间距离 ≤ 缩放空间距离，半径查询不漏对）。
+  SPS 缺失时回退 `entities.slice(i + 1)` 原口径。逻辑/渲染全绿行为测试不变。
+- **静态实体休眠带**：主循环对 `_dormantBand` 实体（方块墙/掩体、4格门/铁栅门、射击台、
+  能源矿——构造时打标）按 ~1/4 帧率聚合 dt 更新（`e._dormantAcc < 66` 跳过）；
+  计时类语义不变（dt 累加）。塔/单位/怪物不打标（战斗响应不能降）。
+- **小地图动态层 100ms 降频**：`_syncMinimap` 入口 `_minimapNextAt` 节流（10Hz 足够）；
+  静态层缓存键逻辑不变。
+
+### 世界-122 后台活 tick 驱动（M2 阶段一，2026-08-19 落地）
+
+- **`src/world/world-sim-driver.js`**：玩家不在 122 时每 1s 对驻留快照增量结算
+  （`settleWorld122(snap, now - snap.capturedAt, {commit:true})`）——世界在后台持续运转，
+  面板状态实时、失守/胜利/清波/建筑损失即时浮字通知（任意场景可见）。
+- **锚点铁律**：结算锚点用快照 `capturedAt` 而非驱动器自身时钟——读档离线数小时、
+  探针回拨都能完整结算；前台全真（`isWorld122Live`）时停 tick。
+- **波次进度跨 tick 累计**：`wave.progressSec` 累计交战时长，清波耗时 = HP池/防守DPS
+  （封顶 waveTimeMin/Max）；怪物输出按实际交战时长分段结算（不是只在清波时结算）；
+  **防守 DPS 每波重算**（塔毁则后续波次停摆待玩家）；无防守输出时按实际时长推平防线。
+- 回场时 apply 结算只补 tick 间隙（秒级）；失守快照作废重开局（与 M0/M1 同口径）。
+- 世界切换面板 122 行直读驻留快照（波次/建筑/损毁/仓库能源），打开期间 1.2s 自刷新。
+- **验证**：`test-world122-sim.mjs` 增量≈一次性等价/进度累计等 17 项 +
+  `cdp-world122-sim-switch.mjs` 实机 11 项（驱动 tick 下后台推 3 波/拆 3 墙/补员满编）。
+- **CDP 探针坑（新增）**：① 全新无头页里模块是**裸路径**（无 ?t=），?t= 只见于 HMR
+  历史页——探针 `loaded()` 必须裸路径优先；② 贴图流会把早期模块条目逐出
+  performance 资源缓冲——模块 URL 表要在**游戏启动前**捕获（`__probeUrlMap`），
+  或走 window 挂载（`World122Snapshot/World122Sim`）。
+
+### 观察模式 + 指挥模式 RTS 化（2026-08-19 落地）
+
+- **世界切换 = 仅相机跳转**：世界切换面板「前往」走 `SceneManager.switchScene(id, player, undefined, { observer })`——
+  目标世界**不生成玩家实体**（玩家对象/坐标原地保留），相机落世界中心自由平移，
+  切完自动 `RTSCommand.setEnabled(true)` 进入指挥模式；前往本体所在世界 = 返回本体
+  （玩家原位恢复：`_worldPlayerPos[sceneId]` 离场记忆，122/123/124 加载器恢复）。
+- **状态机**：`Game._observerMode/_observerHomeScene/_worldPlayerPos`（game.js 声明，
+  switchScene 维护）；观察模式三卡口——game.js 不 `Camera.update(player)`、
+  GameScene 跳过玩家钉屏（`_observerMode || RTSCommand.enabled` 双条件）、
+  仓鼠单位 `update` 传 null 玩家（不跟随不在场玩家；8 实体统一守卫 `!game._observerMode`）、
+  出兵集结点 `preferredTarget` 兜底回建筑自身（兵营/矿场/产兵）。
+- **指挥模式 RTS 化（rts-command.js）**：
+  - 可用域 = 世界-122 或观察模式任意世界（tick 门槛 `commandable`）；
+  - **边缘平移**：屏幕四缘 24px，900 world px/s（dt 缩放），世界边界钳制；
+    **必须见过真实 mousemove 才平移**（`_mouseSeen`——无头/未动鼠标默认 (0,0) 会被误判贴左上缘，
+    实机曾把相机从 4200 漂到 2767）；
+  - **双击同类复选**：350ms 同窗同单位 → 屏幕上所有同类型友军全选（类型键 =
+    `getUnitKind`（兵种登记表）→ 队员档案 id 兜底；屏幕矩形按 Renderer.worldToScreen 的
+    CSS px 口径与 window.innerWidth/Height 比较）；
+  - **编队**：Ctrl+数字编入 / Shift+数字加选 / 数字选中（0-9，`keydown` capture 阶段先于
+    快捷栏，指挥模式下快捷栏数字键让位——input.js `_rtsDigits` 守卫）；
+  - 退出指挥模式镜头 `Camera.follow(player)` 回归（观察模式不动）。
+- **中键轮盘统一（companion-command-wheel.js）**：指挥模式下轮盘目标 = RTSCommand 当前
+  选中单位（队友 + 仓鼠部队一视同仁），执行走 `RTSCommand.issueWheelCommand(mode, point)`——
+  队友 PartySystem.setCommand、仓鼠直写 `_command` 且按 `_mapWheelModeForUnit` 映射
+  （aggressive→follow 自由索敌、patrol→move 驻守、gather 仅矿工回默认采矿、战斗单位忽略）。
+- **验证**：`scripts/test-world-observer.mjs`（20 项契约）+ `tools/cdp-world-observer.mjs`
+  （实机 6 项：观察进出/双击/编队/轮盘统一下达/边缘平移）+ 既有 test-rts-command 17 项不回退。
 
 ### 基地菱形房无缝拼接（WIP，2026-08-17）
 

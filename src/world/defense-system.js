@@ -676,6 +676,7 @@ class DefenseCover extends Combatant {
           this._isDefenseCover = true; // HUD 专用：满血不显示名字/血量文字，残血只显示血条
         this._isDefenseStructure = true;
         this._isBlockCover = !!isBlock; // 2026-08-17：方块墙（建筑面板网格吸附用）
+        this._dormantBand = true; // 2026-08-19：静态结构进休眠带（主循环 1/4 帧率聚合 dt）
         this.noSeparation = true;
         this.noNameLabel = true;
         this._noShadow = true;   // 障碍物取消脚底阴影
@@ -3159,6 +3160,7 @@ class FiringPlatform extends Combatant {
         });
         this.id = config.id || `firing_platform_${Math.random().toString(36).slice(2, 7)}`;
         this._isFiringPlatform = true;
+        this._dormantBand = true; // 2026-08-19：静态结构进休眠带（1/4 帧率聚合 dt）
         this._isDefenseStructure = true; // 怪物可锁定攻击（防御建筑）
         this.noSeparation = true;
         this.noNameLabel = true;
@@ -3330,6 +3332,7 @@ class BuildableGate extends Combatant {
         this._isDefenseStructure = true;
         this._isCoverGate = true;
         this._isGate4 = !!config.isGate4;
+        this._dormantBand = true; // 2026-08-19：静态结构进休眠带（感应开门 15Hz 粒度足够）
         this.noSeparation = true;
         // 门不参与实体分离（resolveCollisions 的 rect 分支）：门的阻挡/放行完全由
         // _gateSeg 面线段承担（关门注册/开门移除）。若保留 198×133 的实体矩形碰撞，

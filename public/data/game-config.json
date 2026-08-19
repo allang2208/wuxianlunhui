@@ -206,6 +206,32 @@
         "x": 6144,
         "y": 4096
       }
+    },
+    "scene11": {
+      "name": "世界-125·地牢遗迹",
+      "type": "instance",
+      "label": "场景十一",
+      "width": 12288,
+      "height": 8192,
+      "background": "#050505",
+      "diamondFloor": {
+        "enabled": true
+      },
+      "dungeonObstacleScatter": {
+        "enabled": true,
+        "pillarCount": 28,
+        "candleCount": 36,
+        "prefabCount": 22,
+        "minDist": 220,
+        "edgeInset": 180,
+        "playerExclusion": 520,
+        "portalExclusion": 420,
+        "scaleJitter": 0.08
+      },
+      "origin": {
+        "x": 6144,
+        "y": 4096
+      }
     }
   },
   "loot": {
@@ -272,6 +298,10 @@
         {
           "targetScene": "scene10",
           "label": "世界-124·林地"
+        },
+        {
+          "targetScene": "scene11",
+          "label": "世界-125·地牢遗迹"
         }
       ]
     }

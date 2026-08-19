@@ -22,6 +22,9 @@ import { EnchantSystem } from './ui/enchant-system.js';
 import { GameMenu } from './ui/game-menu.js';
 import DevTool from './ui/dev-tool.js';
 import { WorldSwitchPanel } from './ui/world-switch-panel.js';
+import { WorldSimDriver } from './world/world-sim-driver.js';
+import * as World122SnapshotModule from './world/world122-snapshot.js';
+import * as World122Sim from './world/world122-sim.js';
 
 import { getElement } from './utils/dom-utils.js';
 
@@ -108,7 +111,11 @@ async function initModules() {
     // 世界切换面板（多世界并行 M1）：侧边菜单注入「🌐 世界」按钮
     WorldSwitchPanel.init();
     window.WorldSwitchPanel = WorldSwitchPanel;
-
+    // 后台世界模拟驱动（M2 阶段一）：玩家不在 122 时 1Hz 增量结算快照
+    WorldSimDriver.init();
+    // 快照/后台结算模块挂载（探针与控制台调试同口径，避免资源表 URL 逐出导致模块双实例）
+    window.World122Snapshot = World122SnapshotModule;
+    window.World122Sim = World122Sim;
     // 游戏入口与 Phaser 迁移系统
     window.Game = Game;
     window.PhaserGame = PhaserGame;

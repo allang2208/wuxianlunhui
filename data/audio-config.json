@@ -10,7 +10,8 @@
     "comment": "场景 → BGM 音轨（循环播放，切换场景自动切换；null = 该场景无 BGM）。scene7=僵尸地牢全部（初级/中级/高级共用场景）；scene8=世界-122（旷野慢风，2026-08-16）",
     "main": null,
     "scene7": "assets/sounds/music/dungeon_echo.mp3",
-    "scene8": "assets/sounds/music/旷野慢风.mp3"
+    "scene8": "assets/sounds/music/旷野慢风.mp3",
+    "scene11": "assets/sounds/music/dungeon_echo.mp3"
   },
     "bgmCrossfadeSec": 1.5,
     "distanceAttenuation": {
