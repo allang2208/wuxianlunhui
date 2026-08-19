@@ -2,6 +2,7 @@ import { MovementSystem } from '../systems/movement-system.js';
 import { WallSystem } from '../world/wall-system.js';
 import { AimHelper } from '../utils/aim-helper.js';
 import { SoundManager } from '../ui/sound-manager.js';
+import { clearRtsSurfaceRoute, resolveRtsMoveDestination } from './rts-command-utils.js';
 
 const HIT_RADIUS = 28;
 
@@ -68,19 +69,29 @@ export class HamsterMusketeerAI {
         if (this._shotActive) return;
         const cmd = m._command;
         if (cmd && cmd.mode && cmd.mode !== 'follow') {
-            if (cmd.mode === 'attack' && cmd.target?.active) {
+            if (cmd.mode !== 'move') clearRtsSurfaceRoute(m);
+            if (cmd.mode === 'attack') {
+                if (!cmd.target?.active || cmd.target.hp <= 0 || cmd.target._isEnergyNode) {
+                    m._command = { mode: 'follow' };
+                    m.target = null;
+                    m._tacticalTarget = null;
+                    m._animState = 'idle';
+                    m.maxSpeed = 0;
+                    return;
+                }
                 this._engage(cmd.target);
                 return;
             }
             if (cmd.mode === 'move' && cmd.point) {
-                const d = Math.hypot(cmd.point.x - m.x, cmd.point.y - m.y);
-                if (d > 40) {
+                const move = resolveRtsMoveDestination(m, cmd);
+                if (!move.arrived) {
                     m.target = null;
-                    m._tacticalTarget = { ...cmd.point };
+                    m._tacticalTarget = move.destination;
                     m._animState = 'walk';
                     m.maxSpeed = this.cfg.walkSpeed ?? 120;
                 } else {
                     m._command = { mode: 'follow' };
+                    clearRtsSurfaceRoute(m);
                 }
                 return;
             }

@@ -308,8 +308,9 @@ class DefenseTrapPanel extends BasePanel {
         if (SoundManager && typeof SoundManager.playFile === 'function') {
             SoundManager.playFile('assets/sounds/ui/sell.wav');
         }
-        Game.entities.delete(t.id);
-        t.active = false;
+        t.hittable = false;
+        t._sinking = true;
+        if (EffectManager) EffectManager.add(new BuildingSinkEffect(t).start());
         this.close();
     }
 

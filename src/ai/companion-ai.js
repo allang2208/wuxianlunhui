@@ -30,6 +30,7 @@ import {
     shouldWarriorDefend, shouldWarriorWhirlwind, pickPatrolPoint, pickNearestNode,
 } from './companion-ai-decision.js';
 
+const WALL_ROUTE_Z_TOLERANCE = 34;
 const MELEE_THREAT_RANGE = 220; // 攻击距离低于此值视为近战威胁
 // 技能射程兜底（与技能系统默认一致；skills.json effectFormula 通常不含 maxRange）
 const SKILL_RANGE_FALLBACK = { fireball: 1200, iceSpike: 800, lightningStrike: 600 };
@@ -329,8 +330,9 @@ export class CompanionAI {
         const c = this.c;
         const cfg = this.cfg;
         const dist = Math.hypot(c.x - player.x, c.y - player.y);
+        const wallIgnore = WallSystem?.ignoreForEntity ? WallSystem.ignoreForEntity(c) : null;
         const inWall = !!(WallSystem && typeof WallSystem.canMoveTo === 'function'
-            && !WallSystem.canMoveTo(c.x, c.y, (c.groundRadius || 26) * 0.8));
+            && !WallSystem.canMoveTo(c.x, c.y, (c.groundRadius || 26) * 0.8, wallIgnore));
         const relocate = shouldRelocateCompanion({
             dist,
             teleportDist: cfg.teleportDist ?? 700,
@@ -406,7 +408,7 @@ export class CompanionAI {
                     const angle = (i / 8) * Math.PI * 2;
                     const px = c.x + Math.cos(angle) * dist;
                     const py = c.y + Math.sin(angle) * dist;
-                    if (!WallSystem.canMoveTo(px, py, radius)) continue;
+                    if (!WallSystem.canMoveTo(px, py, radius, WallSystem.ignoreForEntity?.(c) || null)) continue;
                     if (Math.hypot(px - player.x, py - player.y) < curDist - 10) {
                         local = { x: px, y: py };
                         break outer;
@@ -647,6 +649,7 @@ export class CompanionAI {
     /** 非 follow 指令主入口（决策 tick 调用）：aggressive / patrol / gather / hold */
     _applyCommand(entities, player, cmd) {
         const c = this.c;
+        if (cmd.mode !== 'move') c._surfaceRouteActive = false;
         // 剑盾近战（伊莉丝）：指令走近战分支（aggressive/patrol 追击近战，gather 无远程回落跟随）
         if ((this.cfg.role || '').startsWith('melee')) {
             this._applyWarriorCommand(entities, player, cmd);
@@ -889,16 +892,29 @@ export class CompanionAI {
         // 最高优先级：清掉采集/巡逻残余状态（右键移动覆盖一切当前指令）
         c._gatherPhase = 'work';
         this._patrolTarget = null;
-        const dest = this._nearestWalkable(cmd.point || { x: c.x, y: c.y });
-        const d = Math.hypot(dest.x - c.x, dest.y - c.y);
+        const route = Array.isArray(cmd.point?.route) ? cmd.point.route : [];
+        c._surfaceRouteActive = route.length > 0;
+        let routeIndex = Math.max(0, Math.min(route.length - 1, Number(cmd.routeIndex) || 0));
+        let requested = route.length ? route[routeIndex] : (cmd.point || { x: c.x, y: c.y });
+        let d = Math.hypot(requested.x - c.x, requested.y - c.y);
+        let dz = Math.abs((Number(requested.z) || 0) - (Number(c.z) || 0));
+        if (route.length && d <= 42 && dz <= WALL_ROUTE_Z_TOLERANCE && routeIndex < route.length - 1) {
+            routeIndex++;
+            cmd.routeIndex = routeIndex;
+            requested = route[routeIndex];
+            d = Math.hypot(requested.x - c.x, requested.y - c.y);
+            dz = Math.abs((Number(requested.z) || 0) - (Number(c.z) || 0));
+        }
+        const dest = this._nearestWalkable(requested);
         if (d > 40) {
             c._tacticalTarget = dest;
             this._setMoveState(this._shouldRun(d, 'follow') ? 'run' : 'walk');
-        } else {
+        } else if (dz <= WALL_ROUTE_Z_TOLERANCE) {
             // 到达：停步站定（不攻击、不跟随）
             c._tacticalTarget = null;
             if (c._pathManager) c._pathManager._clearPath();
             c.vx = 0; c.vy = 0; c.isMoving = false;
+            c._surfaceRouteActive = false;
             this._setMoveState('idle');
         }
     }
@@ -908,13 +924,13 @@ export class CompanionAI {
         const c = this.c;
         const radius = (c.groundRadius || 26) * 0.8;
         if (!WallSystem || typeof WallSystem.canMoveTo !== 'function') return point;
-        if (WallSystem.canMoveTo(point.x, point.y, radius)) return point;
+        if (WallSystem.canMoveTo(point.x, point.y, radius, WallSystem.ignoreForEntity?.(c) || null)) return point;
         for (const dist of [16, 32, 48, 64, 80, 100, 120, 150, 180, 220, 260, 320, 400]) {
             for (let i = 0; i < 12; i++) {
                 const angle = (i / 12) * Math.PI * 2;
                 const px = point.x + Math.cos(angle) * dist;
                 const py = point.y + Math.sin(angle) * dist;
-                if (WallSystem.canMoveTo(px, py, radius)) return { x: px, y: py };
+                if (WallSystem.canMoveTo(px, py, radius, WallSystem.ignoreForEntity?.(c) || null)) return { x: px, y: py };
             }
         }
         return point;
@@ -1115,6 +1131,7 @@ export class CompanionAI {
     /** 剑盾近战指令：aggressive 全图追击；patrol 圈内反击/游走；hold 待命；gather 近战采集 */
     _applyWarriorCommand(entities, player, cmd) {
         const c = this.c;
+        if (cmd.mode !== 'move') c._surfaceRouteActive = false;
         // 待命/移动：立即打断攻击/防御/风车（否则要等 1.5~3s 动画播完才生效；
         // 移动=玩家右键最高优先级指令，先清掉一切进行中的指令状态再执行）
         if (cmd.mode === 'hold' || cmd.mode === 'move') {
@@ -1495,6 +1512,7 @@ export class CompanionAI {
         const d = Math.hypot(t.x - c.x, t.y - c.y);
         const range = (this.cfg.meleeRange || 165) + (t.groundRadius || 20);
         if (d > range + 20) return; // 目标走出范围：空挥
+        if (Math.abs((Number(c.z) || 0) - (Number(t.z) || 0)) > (Number(c.meleeVerticalReach) || 48)) return;
         const dmg = Math.max(1, Math.floor((c.data.atk || 0) * (this.cfg.attackDamageMul || 1.25)));
         if (typeof t.takeDamage === 'function') t.takeDamage(dmg, c, 'physical');
         // 普通攻击眩晕：与玩家近战一段同口径（attackStunMs，默认 1000ms，
@@ -1613,11 +1631,13 @@ export class CompanionAI {
         const c = this.c;
         if (!target || !target.active) return;
         const speed = this.cfg.basicAttackSpeed || 600;
-        const lead = AimHelper.lead(c.x, c.y, target.x, target.y, target.vx || 0, target.vy || 0, speed);
-        const ang = Math.atan2(lead.y - c.y, lead.x - c.x);
+        const startY = c.y - (Number(c.z) || 0);
+        const targetY = target.y - (Number(target.z) || 0);
+        const lead = AimHelper.lead(c.x, startY, target.x, targetY, target.vx || 0, target.vy || 0, speed);
+        const ang = Math.atan2(lead.y - startY, lead.x - c.x);
         // 存 companion 字段（GameScene._syncCompanionBasics 读 m._basic 渲染光球）
         c._basic = {
-            active: true, x: c.x, y: c.y, angle: ang,
+            active: true, x: c.x, y: startY, angle: ang,
             dist: 0, maxDist: this.cfg.basicAttackRange || 600,
             target,
         };
@@ -1726,8 +1746,13 @@ export class CompanionAI {
             }
         }
         if (WallSystem && typeof WallSystem.canMoveTo === 'function') {
-            for (const c of candidates) {
-                if (WallSystem.canMoveTo(c.x, c.y, radius)) return c;
+            for (const candidate of candidates) {
+                if (WallSystem.canMoveTo(
+                    candidate.x,
+                    candidate.y,
+                    radius,
+                    WallSystem.ignoreForEntity?.(this.c) || null
+                )) return candidate;
             }
             if (typeof WallSystem.findSafeSpawn === 'function') {
                 const r = WallSystem.findSafeSpawn(player.x, player.y, radius);

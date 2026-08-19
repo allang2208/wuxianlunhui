@@ -71,14 +71,15 @@ export const EffectFactory = {
      * @param {number} x
      * @param {number} y
      * @param {number} intensity
+     * @param {{scale?:number,lifeMul?:number,depth?:number}} [options]
      * @returns {DustEffect}
      */
-    createDustEffect(x, y, intensity) {
+    createDustEffect(x, y, intensity, options = {}) {
         let e = EffectManager._acquire('DustEffect');
         if (e) {
-            e.reset(x, y, intensity);
+            e.reset(x, y, intensity, options);
         } else {
-            e = new DustEffect(x, y, intensity);
+            e = new DustEffect(x, y, intensity, options);
         }
         EffectManager.add(e);
         return e;

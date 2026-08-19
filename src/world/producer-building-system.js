@@ -15,6 +15,7 @@ import { HamsterMilitia } from '../entities/hamster-militia.js';
 import { HamsterScout } from '../entities/hamster-scout.js';
 import { HamsterMusketeer } from '../entities/hamster-musketeer.js';
 import { HamsterPriest } from '../entities/hamster-priest.js';
+import { HamsterKnight } from '../entities/hamster-knight.js';
 import { GoldManager } from '../systems/gold-manager.js';
 import { EnergyManager } from '../systems/energy-manager.js';
 import { EffectManager } from '../effects/effect-manager.js';
@@ -35,13 +36,18 @@ import militiaCfg from '../../data/hamster-militia-config.json';
 import scoutCfg from '../../data/hamster-scout-config.json';
 import musketeerCfg from '../../data/hamster-musketeer-config.json';
 import priestCfg from '../../data/hamster-priest-config.json';
+import knightCfg from '../../data/hamster-knight-config.json';
 import {
     applyGlobalUpgradesToKind,
+    applyUnitUpgradePatch,
+    getUpgradeMultsFromLevels,
     getUnitUpgradeLevel,
     getUnitUpgradeMults,
+    getUnitUpgradePatch,
     raiseUnitUpgradeLevel,
 } from './unit-upgrade-store.js';
 import { getAbilityLevel, getAbilityValue, raiseAbilityLevel } from './ability-store.js';
+import { resolveBuildingUpgradeProject } from './building-upgrade-projects.js';
 import { ResearchSystem } from './research-system.js';
 import { applyBuildingFootprint } from './building-footprint.js';
 import { SpawnPlacement } from './spawn-placement.js';
@@ -54,10 +60,13 @@ const ABILITY_TARGET_NAMES = Object.freeze({
     scout: '仓鼠斥候',
     musketeer: '仓鼠火枪',
     priest: '仓鼠牧师',
+    knight: '仓鼠骑士',
 });
 
-/** 产兵建筑配置表（唯一真源，building-system.js 也据此生成可建条目） */
-export const PRODUCER_BUILDINGS = producerBuildings;
+/** 建筑结构数据与独立升级项目合并后的运行时配置。 */
+export const PRODUCER_BUILDINGS = Object.fromEntries(
+    Object.entries(producerBuildings).map(([key, cfg]) => [key, resolveBuildingUpgradeProject(cfg)])
+);
 
 /** 单位 key → 基准配置（data/hamster-*-config.json，与仓鼠兵营同源） */
 const PRODUCER_UNIT_CFG = {
@@ -68,6 +77,7 @@ const PRODUCER_UNIT_CFG = {
     scout: scoutCfg,
     musketeer: musketeerCfg,
     priest: priestCfg,
+    knight: knightCfg,
 };
 
 /** 单位 key → 实体类 */
@@ -79,6 +89,7 @@ const PRODUCER_UNIT_CLASS = {
     scout: HamsterScout,
     musketeer: HamsterMusketeer,
     priest: HamsterPriest,
+    knight: HamsterKnight,
 };
 
 export function getProducerConfig(key) {
@@ -88,7 +99,10 @@ export function getProducerConfig(key) {
 /** 模块升级费用（统一）：升级费用从配置读 */
 export function getProducerModuleCost(cfg, moduleId, _currentLevel) {
     if (!cfg || !cfg.modules?.[moduleId]) return null;
-    return { gold: cfg.upgradeCost.gold, energy: cfg.upgradeCost.energy };
+    return {
+        gold: cfg.upgradeCost?.gold ?? 0,
+        energy: cfg.upgradeCost?.energy ?? 0,
+    };
 }
 
 /** 面板用：模块当前/下一级描述文本 */
@@ -99,7 +113,8 @@ export function getProducerModuleDesc(cfg, moduleId, level) {
     const fill = (atLevel) => (mod.desc || '')
         .replace('{pct}', `${pct * atLevel}`)
         .replace('{value}', `${Math.round(mod.per * atLevel)}`)
-        .replace('{level}', `${(mod.base ?? 0) + Math.round(mod.per * atLevel)}`);
+        .replace('{level}', `${(mod.base ?? 0) + Math.round(mod.per * atLevel)}`)
+        .replace('{tickSeconds}', `${Math.round((mod.tickMs ?? 0) / 1000)}`);
     return {
         current: fill(level),
         next: fill(level + 1),
@@ -108,25 +123,7 @@ export function getProducerModuleDesc(cfg, moduleId, level) {
 
 /** 当前模块倍率表 */
 export function getProducerMults(cfg, modules) {
-    const m = modules || {};
-    const mods = cfg?.modules || {};
-    const out = {
-        attackIntervalMult: 1,
-        attackDamageMult: 1,
-        moveSpeedMult: 1,
-        count: 1,
-        hpMult: 1,
-        holyLightCooldownMult: 1,
-        holyLightLevel: 1,
-    };
-    if (mods.attackSpd && m.attackSpd) out.attackIntervalMult = 1 + mods.attackSpd.per * m.attackSpd;
-    if (mods.damage && m.damage) out.attackDamageMult = 1 + mods.damage.per * m.damage;
-    if (mods.moveSpd && m.moveSpd) out.moveSpeedMult = 1 + mods.moveSpd.per * m.moveSpd;
-    if (mods.count && m.count) out.count = 1 + m.count;
-    if (mods.hp && m.hp) out.hpMult = 1 + mods.hp.per * m.hp;
-    if (mods.castSpd && m.castSpd) out.holyLightCooldownMult = 1 + mods.castSpd.per * m.castSpd;
-    if (mods.holyLight && m.holyLight) out.holyLightLevel = 1 + Math.round(mods.holyLight.per * m.holyLight);
-    return out;
+    return getUpgradeMultsFromLevels(cfg?.modules, modules);
 }
 
 // ==================== 产兵建筑实体 ====================
@@ -159,6 +156,8 @@ export class ProducerBuilding extends DamageableEntity {
             size: cfg.displayW,
             sizeH: cfg.displayH,
             footOffsetY: cfg.footOffsetY,
+            // 统一贴图后默认固定标准2×2；仅未来明确声明 true 的异形建筑允许像素拟合物理体。
+            autoFootprint: cfg.autoFootprint === true,
         };
         this.footOffsetY = cfg.footOffsetY;
         applyBuildingFootprint(this, 2);
@@ -249,12 +248,21 @@ export class ProducerBuilding extends DamageableEntity {
             ...baseAi,
             attackInterval: Math.max(300, Math.round((baseAi.attackInterval ?? 2000) * mults.attackIntervalMult)),
             attackDamage: Math.max(1, Math.round((baseAi.attackDamage ?? 50) * mults.attackDamageMult)),
+            attackRange: Math.max(0, Math.round((baseAi.attackRange ?? 0) + mults.attackRangeBonus)),
+            castRange: Math.max(0, Math.round((baseAi.castRange ?? 0) + mults.holyLightRangeBonus)),
             walkSpeed: Math.max(20, Math.round((baseAi.walkSpeed ?? 120) * mults.moveSpeedMult)),
             holyLightCooldownMult: mults.holyLightCooldownMult,
             holyLightLevel: mults.holyLightLevel,
+            chargeDamageMult: mults.chargeDamageMult,
+            holyLightRangeBonus: mults.holyLightRangeBonus,
+            titheEnergyPerTick: mults.titheEnergyPerTick,
+            titheIntervalMs: Number(Object.values(this._cfg.modules || {}).find(
+                (module) => module?.effect === 'titheEnergyPerTick'
+            )?.tickMs) || 0,
         };
         const baseMaxHp = Math.max(1, Math.round((base.baseMaxHp ?? 300) * mults.hpMult));
         const unit = new UnitClass(spot.x, spot.y, { id, ai, baseMaxHp });
+        applyUnitUpgradePatch(unit, getUnitUpgradePatch(this.unitType, this._cfg.modules));
         unit._barracks = this;
         unit._spawnEgress = { x: spot.egressX, y: spot.egressY };
         this.units.push(unit);
@@ -489,13 +497,12 @@ export class ProducerBuilding extends DamageableEntity {
         if (this._cfg.currency !== 'gold' && (!EnergyManager || !EnergyManager.canStore(refund))) {
             return { ok: false, reason: '仓库空间不足，无法接收出售返还能源' };
         }
-        if (typeof this._removeBuildingRoads === 'function') this._removeBuildingRoads();
-        this.active = false;
+        this.hittable = false;
+        this._sinking = true;
         this._upgrade = null;
         this._continuous = null;
         this._despawnUnits();
         if (this._isEnergyWarehouse && EnergyManager) EnergyManager.unregisterWarehouse(this);
-        if (Game && Game.entities && this.id) Game.entities.delete(this.id);
         if (ProducerBuildingSystem && ProducerBuildingSystem.buildings) {
             const i = ProducerBuildingSystem.buildings.indexOf(this);
             if (i >= 0) ProducerBuildingSystem.buildings.splice(i, 1);
@@ -509,6 +516,7 @@ export class ProducerBuilding extends DamageableEntity {
             && ProducerBuildingSystem._panel.building === this) {
             ProducerBuildingSystem._panel.close();
         }
+        if (EffectManager) EffectManager.add(new BuildingSinkEffect(this).start());
         return { ok: true, refund };
     }
 }
@@ -688,9 +696,7 @@ class ProducerBuildingPanel extends BasePanel {
         const isPortal = cfg.panelMode === 'portal';
         const isPassive = cfg.panelMode === 'detail';
         const isAbilityShop = cfg.spawnEnabled === false && !isWarehouse && !isPassive;
-        const upgradeSummary = cfg.modules?.castSpd
-            ? '圣光冷却/圣光等级/移速/生命随模块升级'
-            : '攻击间隔/伤害/移速/生命随模块升级';
+        const upgradeSummary = Object.values(cfg.modules || {}).map((module) => module.name).join(' / ') || '无单位升级项目';
         el.querySelector('#pbTitle').textContent = '建筑详情';
         const detail = el.querySelector('#pbBuildingDetail');
         const functionTitle = el.querySelector('#pbFunctionTitle');

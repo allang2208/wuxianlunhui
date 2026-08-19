@@ -11,7 +11,8 @@
 import { Companion } from './companion.js';
 import { HamsterGuardAI } from '../ai/hamster-guard-ai.js';
 import hamsterGuardConfig from '../../data/hamster-guard-config.json';
-import { getAbilityLevel } from '../world/ability-store.js';
+import { getAbilityLevel, getAbilityValue } from '../world/ability-store.js';
+import { getBuildingUpgradeAbility } from '../world/building-upgrade-projects.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
 
@@ -61,8 +62,9 @@ export class HamsterGuard extends Companion {
         if (this._dying || this.data.hp <= 0) return 0;
         // 铁匠铺能力：自动防御（2026-08-17）——受击 25%+5%/级 概率触发，减免 50% 伤害
         const guardLv = getAbilityLevel('auto_guard');
-        if (guardLv > 0 && Math.random() < 0.25 + 0.05 * guardLv) {
-            damage = Math.round(damage * 0.5);
+        const guardAbility = getBuildingUpgradeAbility('auto_guard');
+        if (guardLv > 0 && guardAbility && Math.random() < getAbilityValue(guardAbility, guardLv)) {
+            damage = Math.round(damage * (1 - guardAbility.damageReduction));
             if (EffectManager) {
                 EffectManager.add(new FloatingTextEffect(this.x, this.y - 34, '🛡️ 防御', '#7fd4ff'));
             }

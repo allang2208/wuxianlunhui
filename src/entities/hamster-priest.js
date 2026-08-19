@@ -65,7 +65,7 @@ export class HamsterPriest extends Companion {
         this._deathTimer = DYING_DURATION_MS;
     }
 
-    /** 教堂升级实时同步：施法冷却与圣光等级均立即更新。 */
+    /** 教堂升级实时同步：施法冷却、施法距离、圣光等级与什一税均立即更新。 */
     applyBarracksUpgrades(u = {}) {
         if (this._ai && typeof this._ai.applyUpgrades === 'function') this._ai.applyUpgrades(u);
         if (this.aiConfig && Number.isFinite(u.holyLightCooldownMult)) {
@@ -73,6 +73,11 @@ export class HamsterPriest extends Companion {
         }
         if (this.aiConfig && Number.isFinite(u.holyLightLevel)) {
             this.aiConfig.holyLightLevel = Math.max(1, Math.floor(u.holyLightLevel));
+        }
+        if (this.aiConfig && Number.isFinite(u.castRange)) this.aiConfig.castRange = u.castRange;
+        if (this.aiConfig && Number.isFinite(u.titheEnergyPerTick)) {
+            this.aiConfig.titheEnergyPerTick = u.titheEnergyPerTick;
+            this.aiConfig.titheIntervalMs = u.titheIntervalMs;
         }
         if (Number.isFinite(u.holyLightLevel) && this.skills?.holyLight) {
             this.skills.holyLight.level = Math.max(1, Math.floor(u.holyLightLevel));

@@ -2056,6 +2056,29 @@ export const DefenseSystem = {
     },
 
     /**
+     * Add a unit-specific RTS route when leaving an elevated surface.
+     */
+    routeSurfaceMoveForUnit(unit, target) {
+        if (!unit || !target) return target;
+        const route = Array.isArray(target.route) ? target.route : [];
+        if (route.length || target.surfaceKind !== 'ground') return target;
+        if (unit._surfaceKind !== 'wall_walk' && unit._surfaceKind !== 'stairs') return target;
+
+        const wall = unit._surfaceWall || unit._platformRef?.wall || null;
+        const staircase = (this.platforms || []).find((candidate) =>
+            candidate?.active
+            && (candidate === unit._platformRef
+                || candidate.wall === wall
+                || candidate.walls?.includes(wall)));
+        if (!staircase || typeof staircase.routePoints !== 'function') {
+            return { ...target, unreachable: true, reason: '当前高架区域没有可用楼梯' };
+        }
+        const downRoute = staircase.routePoints().map((step) => ({ ...step })).reverse();
+        downRoute.push({ x: target.x, y: target.y, z: 0, surfaceKind: 'ground' });
+        return { ...target, staircaseId: staircase.id, route: downRoute };
+    },
+
+    /**
      * 射击台登台判定（2026-08-16）：玩家 + 玩家友方单位（PartySystem.members /
      * Game.friendlyUnits）脚线落在任一平台站台顶面投影区 → _onPlatform = true +
      * 记录 _platformRef（弹道/魔法据此忽略己方掩体段）；离开平台区域自动清除。
@@ -2567,12 +2590,13 @@ export const DefenseSystem = {
         }
         const i = this.towers.indexOf(tower);
         if (i >= 0) this.towers.splice(i, 1);
-        tower.active = false;
-        Game.entities.delete(tower.id);
+        tower.hittable = false;
+        tower._sinking = true;
         if (EnergyManager) EnergyManager.addEnergy(refund);
         if (this._panel && this._panel.isOpen && this._panel.tower === tower) this._panel.close();
         if (EffectManager) {
             EffectManager.add(new FloatingTextEffect(tower.x, tower.y - 40, `已出售（+${refund} 能源）`, '#ffd700'));
+            EffectManager.add(new BuildingSinkEffect(tower).start());
         }
         return { ok: true, refund };
     },

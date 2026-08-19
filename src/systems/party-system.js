@@ -163,7 +163,10 @@ export const PartySystem = {
             if (!ids.includes(m.id)) continue;
             m._command = {
                 mode,
-                point: point ? { x: point.x, y: point.y } : null,
+                point: point ? {
+                    ...point,
+                    route: Array.isArray(point.route) ? point.route.map((step) => ({ ...step })) : [],
+                } : null,
                 target: (mode === 'attack' && targetEntity) ? targetEntity : null,
             };
             n++;

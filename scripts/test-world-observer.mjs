@@ -71,6 +71,10 @@ check('快捷栏数字键在指挥模式让位', /_rtsDigits/.test(inputSrc)
 // ---- 4. 中键轮盘统一 ----
 check('轮盘在指挥模式有选中单位即可开（不再只限队友）',
     /hasAllySelection\(\)/.test(wheel) && /!rtsActive &&/.test(wheel));
+check('轮盘打开使用解析后的目标数量，不再把 RTS 的空 targetIds 误判为无目标',
+    /const targetCount = this\._resolveTargets\(false\)/.test(wheel)
+    && /if \(!targetCount\) return/.test(wheel)
+    && /return n;/.test(wheel));
 check('轮盘指挥模式走统一出口 issueWheelCommand',
     /RTSCommand\.issueWheelCommand\(cmd\.id, this\._worldPoint\)/.test(wheel));
 check('统一出口：队友 PartySystem + 非成员直写 _command + 模式映射',
