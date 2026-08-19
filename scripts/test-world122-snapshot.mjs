@@ -57,6 +57,9 @@ check('波次进行中离开 → 回场 break 阶段重开本波',
     /wave\.phase === 'wave'/.test(snap) && /phase: 'break'/.test(snap));
 check('矿点快照含位置/余量/枯竭计时（位置每局随机必须入快照）',
     /depleted: !!n\._depleted/.test(snap) && /respawnTimer: n\._respawnTimer/.test(snap));
+check('手动道路随世界122快照捕获与恢复',
+    /roads: BuildingRoadSystem\.captureManualRoads\(\)/.test(snap)
+    && /BuildingRoadSystem\.restoreManualRoads\(snap\.roads\)/.test(snap));
 
 // ---- 3. 恢复语义 ----
 check('矿场恢复先挂模块再补员（矿工吃到升级）',

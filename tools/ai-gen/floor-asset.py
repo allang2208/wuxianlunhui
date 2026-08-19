@@ -24,6 +24,7 @@ DIR = os.path.dirname(os.path.abspath(__file__))
 PROMPT = {
     "mud": os.path.join(DIR, "prompts", "floor-seamless-mud.txt"),
     "sand": os.path.join(DIR, "prompts", "floor-seamless-sand.txt"),
+    "road-stone": os.path.join(DIR, "prompts", "floor-seamless-road-stone.txt"),
     "snow-fresh": os.path.join(DIR, "prompts", "floor-seamless-snow-fresh.txt"),
     "snow-packed": os.path.join(DIR, "prompts", "floor-seamless-snow-packed.txt"),
     "snow-wind": os.path.join(DIR, "prompts", "floor-seamless-snow-wind.txt"),
@@ -32,6 +33,7 @@ PROMPT = {
 DESAT_DEFAULT = {
     "mud": 0.55,
     "sand": 0.5,
+    "road-stone": 0.48,
     "snow-fresh": 0.18,
     "snow-packed": 0.28,
     "snow-wind": 0.35,

@@ -58,6 +58,9 @@ class BuildingSinkEffect {
             ? e._structureRenderDepth
             : ((typeof e._faceDepth === 'number') ? e._faceDepth : (e.y + 12));
         if (this._label) this._label.setVisible(false);
+        if (typeof e._removeBuildingRoads === 'function') {
+            e._removeBuildingRoads();
+        }
         // 实体立即失效并从实体表移除：所有系统（目标/分离/寻路/空间网格）跳过它
         e.active = false;
         const game = (typeof window !== 'undefined') ? window.Game : null;

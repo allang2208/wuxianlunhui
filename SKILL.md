@@ -1592,10 +1592,18 @@ defend 持盾帧右偏 13px。**结论：武器弧远超身体宽的动作，格
 ```bat
 python tools/ai-gen/floor-asset.py mud  --out assets/terrain/floor_mud_seamless.png  --seed 9001
 python tools/ai-gen/floor-asset.py sand --out assets/terrain/floor_sand_seamless.png --seed 9101 --desat 0.5
+python tools/ai-gen/floor-asset.py road-stone --out <scratch>/road_stone_seamless.png --seed 122824
 ```
 
 一条命令 = `comfyui-gen`（prompts/floor-seamless-*.txt，低饱和提示词）→ `make-seamless.py`
-（偏移叠融四边环绕）→ `desaturate-texture.py`（默认 mud 0.55 / sand 0.5）。
+（偏移叠融四边环绕）→ `desaturate-texture.py`（默认 mud 0.55 / sand 0.5 /
+road-stone 0.48）。建筑外围道路不能直接使用方形无缝图：继续调用
+`build-building-road-tiles.py <seamless.png> assets/terrain/building_road_tiles.png`，
+由脚本生成4帧128×64、严格2:1的透明菱形；AI只负责材质，不负责格网轮廓。
+- **白色石砖定稿（2026-08-19）**：正式道路使用5080
+  `flux2-klein-4b-walltex`浅色砖石LoRA，小型矩形白色石灰岩/象牙白方砖、冷灰凹陷砖缝、
+  轻微倒角与矿物颗粒；回收约6%曝光后平均RGB约`[202,200,197]`、亮度标准差18.2、
+  P99亮度231.3、过曝像素约0.1%。白色材质必须保留砖缝层次，禁止纯白糊面。
 
 渲染侧（dungeon-floor-texture.js `bakeDungeonFloorChunk`，`profile.continuous=true`）：
 
@@ -5546,6 +5554,19 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
    `BUILD_ITEMS` 缩略图和实体 `spriteCfg.idleKey` 必须同 key。
 5. **遮挡/占地接入**：构造中走 `applyBuildingFootprint(this, 2)` +
    `setupStructureDepth(this)`；新增建筑不手写另一套碰撞、脚底或深度规则。
+   - **非墙2×2建筑道路环（2026-08-19）**：实体物理仍是中央2×2，但建造预约统一为4×4；
+     `building-road-system.js` 从建筑前顶点锚点反算中央4格，外围12格铺
+     `building_road_tiles`。16格逐格检查边界、墙/建筑/障碍与既有预约，禁止用一个放大的
+     圆形半径近似；预览外围格必须按各格合法性分别染绿/红。
+   - 道路与4×4预约属于建筑派生状态：建造/快照恢复时重建，出售/回收/沉陷/离场时释放；
+     快照只存建筑，不存Phaser Sprite。旧快照恢复允许道路共享以兼容历史布局，新建时禁止
+     任意4×4预约重叠。
+   - **手动铺路（2026-08-19）**：建筑面板增加`道路`，每格10能源；按方块墙同款手势
+     单击铺1格、长按沿e1/e2主轴拖动铺一排。只对新增且合法的格逐块扣费，已有道路、
+     建筑4×4预约格和实体占用格跳过，能源不足时保留已铺部分并停止。
+   - 手动道路不生成实体或碰撞，写入`world122.scene.roads=[{i,j}]`；自动道路环与手动道路
+     共用同一格贴图。建筑外围12格允许复用手动道路，中央2×2禁止压住手动道路；
+     自动建筑拆除后，共享格上的手动道路继续保留。
 6. **建筑详情三段式（强制）**：所有可交互建筑（墙/门/射击台/基地/塔/小屋/兵营/
    生产建筑/陷阱）统一复用 `renderBuildingDetailHeader`，顺序不可颠倒：
    **① 缩略图与名称 → ② 生命条、当前/最大耐久、百分比 → ③ 特殊功能**。
@@ -6064,6 +6085,15 @@ if (enemy._pathManager) {
   浅拷贝 config 同步 config.speed（time-agent 运行时回读路径，不污染 enemyConfigData 单例）；
   冲锋/扑击/lunge 攻击位移与击退不在本链路，祭品减速（getTributeMonsterMoveSlowMul）独立叠加。
 - 契约测试：`scripts/test-monster-speed.mjs`（数据契约 + 源码接线，防接线被改没）。
+
+**道路范围移速（世界-122，2026-08-19）**
+- `BuildingRoadSystem.movementMultiplierAt(x,y)`按脚底所在格返回`1.2/1.0`，自动建筑道路环与
+  手动道路共用判定；道路不是状态效果，不写回`maxSpeed/speed`，离开道路当帧自动恢复。
+- 常规怪物、仓鼠兵种和队友在`MovementSystem._getEnemyMoveSpeed`最终链乘算；玩家在
+  `player/update.js`完成装备、Buff、Debuff计算后乘算。击退、冲锋、Dash和卡死恢复继续读取
+  基础速度，不吃道路加速，防止攻击位移与纠错位移被地形意外放大。
+- 新增地形速度修正一律采用这种“查询位置→最终链乘算”模式，禁止进入/离开区域时直接
+  `maxSpeed *= / /=`，否则高频切格会产生倍率漂移。
 
 ### 防守怪目标分摊（拥挤感知，2026-08-16 定稿）
 - 问题：大量怪锁同一结构，攻击距离内站不下，其余在墙前**原地踏步发呆**（只有 2~3 只能打）。

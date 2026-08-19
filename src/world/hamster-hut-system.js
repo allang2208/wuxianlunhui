@@ -388,6 +388,7 @@ export class HamsterHut extends DamageableEntity {
         if (!EnergyManager || !EnergyManager.canStore(refund)) {
             return { ok: false, reason: '仓库空间不足，无法接收出售返还能源' };
         }
+        if (typeof this._removeBuildingRoads === 'function') this._removeBuildingRoads();
         this.active = false;
         this._despawnMiners();
         if (Game && Game.entities && this.id) Game.entities.delete(this.id);
