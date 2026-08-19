@@ -87,8 +87,7 @@ try {
         const loaded = (p) => {
             const u = (window.__probeUrlMap || {})[p]
                 || performance.getEntriesByType('resource').map((e) => e.name).find((e) => e.endsWith(p) || e.includes(p + '?'));
-            if (!u) throw new Error(p + ' 未加载');
-            return u;
+            return u || p;
         };
         const { Game } = await import(loaded('/src/game.js'));
         const playerPos = { x: Game.player.x, y: Game.player.y };
@@ -118,14 +117,19 @@ try {
         const loaded = (p) => {
             const u = (window.__probeUrlMap || {})[p]
                 || performance.getEntriesByType('resource').map((e) => e.name).find((e) => e.endsWith(p) || e.includes(p + '?'));
-            if (!u) throw new Error(p + ' 未加载');
-            return u;
+            return u || p;
         };
         const { Game } = await import(loaded('/src/game.js'));
         const { RTSCommand } = await import(loaded('/src/ui/rts-command.js'));
         const { Camera } = await import(loaded('/src/world/camera.js'));
         const { HamsterBarracks, HamsterBarracksSystem } = await import(loaded('/src/world/hamster-barracks-system.js'));
         const { HamsterWarrior } = await import(loaded('/src/entities/hamster-warrior.js'));
+        let phaserScene = window.__phaserScene;
+        for (let retry = 0; !phaserScene && retry < 60; retry++) {
+            await new Promise((resolve) => setTimeout(resolve, 50));
+            phaserScene = window.__phaserScene;
+        }
+        if (!phaserScene) throw new Error('Phaser 场景实例丢失');
 
         // 建两个战士（直构造，等价兵营产出实体面）
         const w1 = new HamsterWarrior(4600, 4050, { id: 'probe_w1' });
@@ -145,6 +149,56 @@ try {
         RTSCommand._onKeyDown({ code: 'Digit2', ctrlKey: false, shiftKey: false, target: document.body, preventDefault() {}, stopImmediatePropagation() {} });
         const grpRecalled = RTSCommand._selection.length;
 
+        // 真实长按中键 → 轮盘打开 → 悬停“巡逻” → 松开执行。
+        const commandWheel = Game.CompanionCommandWheel;
+        const wheelPoint = { x: 800, y: 450 };
+        phaserScene.game.canvas.dispatchEvent(new MouseEvent('mousedown', {
+            button: 1,
+            buttons: 4,
+            clientX: wheelPoint.x,
+            clientY: wheelPoint.y,
+            bubbles: true,
+            cancelable: true,
+            view: window,
+        }));
+        await new Promise((resolve) => setTimeout(resolve, commandWheel.LONG_PRESS_MS + 120));
+        const wheelOpened = commandWheel._open && !!document.querySelector('.companion-wheel');
+        const patrolItem = document.querySelector('.companion-wheel [data-cmd="patrol"]');
+        if (patrolItem) patrolItem.dispatchEvent(new MouseEvent('mouseenter', { bubbles: false, view: window }));
+        phaserScene.game.canvas.dispatchEvent(new MouseEvent('mouseup', {
+            button: 1,
+            buttons: 0,
+            clientX: wheelPoint.x,
+            clientY: wheelPoint.y,
+            bubbles: true,
+            cancelable: true,
+            view: window,
+        }));
+        await new Promise((resolve) => setTimeout(resolve, 80));
+        const wheelIssued = w1._command?.mode === 'move' && w2._command?.mode === 'move';
+
+        // 真实右键事件 → RTS 自有 pending 入口 → tick 下发 move，不依赖组队栏 selectedIds。
+        const rightTarget = { x: 5000, y: 4200 };
+        const rightScreen = Game.Renderer.worldToScreen(rightTarget.x, rightTarget.y);
+        const rightStart = { x: w1.x, y: w1.y };
+        document.body.dispatchEvent(new MouseEvent('mousedown', {
+            button: 2,
+            clientX: rightScreen.x,
+            clientY: rightScreen.y,
+            bubbles: true,
+            cancelable: true,
+            view: window,
+        }));
+        await new Promise((resolve) => setTimeout(resolve, 650));
+        const rightMove = w1._command?.mode === 'move'
+            && w2._command?.mode === 'move'
+            && Math.hypot(w1._command.point.x - rightTarget.x, w1._command.point.y - rightTarget.y) < 2;
+        const rightMoved = Math.hypot(w1.x - rightStart.x, w1.y - rightStart.y) > 1
+            || Math.hypot(
+                (w1._tacticalTarget?.x ?? w1.x) - rightTarget.x,
+                (w1._tacticalTarget?.y ?? w1.y) - rightTarget.y
+            ) < 2;
+
         // 轮盘统一出口：选中 2 战士下达待命
         const nCmd = RTSCommand.issueWheelCommand('hold', { x: 6000, y: 4000 });
         const cmdMode = w1._command?.mode;
@@ -156,25 +210,61 @@ try {
         const panned = Camera.x > camX0;
         RTSCommand.tick('scene8', { mouse: { x: 800, y: 450 } }, 16);
 
+        // 左键点击小地图实际内容：镜头跳到对应世界位置，选中单位保持且不穿透成世界选择。
+        const minimapRect = phaserScene.minimapClientRect();
+        const minimapClick = {
+            x: Math.round(minimapRect.left + minimapRect.width * 0.72),
+            y: Math.round(minimapRect.top + minimapRect.height * 0.36),
+        };
+        const minimapExpected = phaserScene.minimapWorldPointAt(minimapClick.x, minimapClick.y);
+        phaserScene.game.canvas.dispatchEvent(new MouseEvent('mousedown', {
+            button: 0,
+            clientX: minimapClick.x,
+            clientY: minimapClick.y,
+            bubbles: true,
+            cancelable: true,
+            view: window,
+        }));
+        phaserScene.game.canvas.dispatchEvent(new MouseEvent('mouseup', {
+            button: 0,
+            clientX: minimapClick.x,
+            clientY: minimapClick.y,
+            bubbles: true,
+            cancelable: true,
+            view: window,
+        }));
+        await new Promise((resolve) => setTimeout(resolve, 120));
+        const minimapJumped = Math.hypot(Camera.x - minimapExpected.x, Camera.y - minimapExpected.y) < 2;
+        const minimapSelectionKept = RTSCommand._selection.length === 2;
+
         // 轮盘可开判定（指挥模式有选中）
         const wheelOk = window.CompanionCommandWheel
             ? true : true; // 轮盘经 game.js 挂载不进 window；判定走契约测试
 
-        return { dblSel, grpSaved, grpRecalled, nCmd, cmdMode, panned };
+        return {
+            dblSel, grpSaved, grpRecalled, wheelOpened, wheelIssued,
+            rightMove, rightMoved, nCmd, cmdMode, panned,
+            minimapJumped, minimapSelectionKept,
+        };
     })()`);
     console.log('  [B 详情]', JSON.stringify(dataB));
     check('B 双击同类复选（选 1 → 全选 2）', dataB.dblSel === 2);
     check('B Ctrl+2 编队 → 清空 → 按 2 召回', dataB.grpSaved === 2 && dataB.grpRecalled === 2);
+    check('B 真实长按中键打开轮盘并松开执行巡逻指令',
+        dataB.wheelOpened === true && dataB.wheelIssued === true);
+    check('B 真实右键事件下发 move 到全部 RTS 选中单位', dataB.rightMove === true);
+    check('B 右键 move 被仓鼠 AI 实际消费并产生位移', dataB.rightMoved === true);
     check('B 轮盘统一指令下达仓鼠（hold 生效 2 单位）', dataB.nCmd === 2 && dataB.cmdMode === 'hold');
     check('B 边缘平移移动相机', dataB.panned === true);
+    check('B 指挥模式点击小地图跳转镜头且保留单位选择',
+        dataB.minimapJumped === true && dataB.minimapSelectionKept === true);
 
     // ---- C. 返回本体（主城） ----
     const dataC = await evaluate(`(async () => {
         const loaded = (p) => {
             const u = (window.__probeUrlMap || {})[p]
                 || performance.getEntriesByType('resource').map((e) => e.name).find((e) => e.endsWith(p) || e.includes(p + '?'));
-            if (!u) throw new Error(p + ' 未加载');
-            return u;
+            return u || p;
         };
         const { Game } = await import(loaded('/src/game.js'));
         const { WorldSwitchPanel } = await import(loaded('/src/ui/world-switch-panel.js'));

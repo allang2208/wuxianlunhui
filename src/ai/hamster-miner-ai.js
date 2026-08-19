@@ -15,6 +15,7 @@ import { FloatingTextEffect } from '../effects/floating-text.js';
 import { pickNearestNode } from './companion-ai-decision.js';
 import { SoundManager } from '../ui/sound-manager.js';
 import { EnergyManager } from '../systems/energy-manager.js';
+import { clearRtsSurfaceRoute, resolveRtsMoveDestination } from './rts-command-utils.js';
 
 export class HamsterMinerAI {
     constructor(miner) {
@@ -132,16 +133,20 @@ export class HamsterMinerAI {
         const m = this.m;
         m.target = null;
         m._enemyTarget = null;
+        if (cmd.mode !== 'move') clearRtsSurfaceRoute(m);
         if (cmd.mode === 'move') {
-            const dest = this._nearestCommandPoint(cmd.point || { x: m.x, y: m.y });
+            const move = resolveRtsMoveDestination(m, cmd);
+            const dest = move.hasRoute ? move.destination : this._nearestCommandPoint(move.destination);
             const dist = Math.hypot(dest.x - m.x, dest.y - m.y);
-            if (dist > 40) {
+            const dz = Math.abs((Number(dest.z) || 0) - (Number(m.z) || 0));
+            if (dist > 40 || dz > 34) {
                 m._tacticalTarget = dest;
                 m._animState = 'walk';
                 m.maxSpeed = this.cfg.walkSpeed ?? 80;
                 return;
             }
             m._command = { mode: 'hold' };
+            clearRtsSurfaceRoute(m);
         }
         m._tacticalTarget = null;
         if (m._pathManager && typeof m._pathManager._clearPath === 'function') m._pathManager._clearPath();

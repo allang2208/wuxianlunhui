@@ -18,6 +18,12 @@ import { EffectManager } from '../effects/effect-manager.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
 
 const DRAG_THRESHOLD = 6; // 屏幕 px：超过判定为拖框
+const POINTER_BLOCK_SELECTOR = [
+    '.system-panel', '.panel-overlay', '.side-menu', '.back-menu-btn', '.menu-btn',
+    '.party-bar', '.rts-unit-panel', '.rts-command-btn', '.companion-overlay',
+    '.recruit-overlay', '.wall-editor-panel', '.world-switch-panel',
+    '.hamster-hut-panel', '.hamster-barracks-panel', '.producer-building-panel',
+].join(', ');
 
 const _game = () => (typeof window !== 'undefined' ? window.Game : null);
 const _scene = () => (typeof window !== 'undefined' ? window.__phaserScene : null);
@@ -41,7 +47,9 @@ export const RTSCommand = {
     _dom: null,            // 属性面板 DOM 引用（hp/mp 条、六维、战斗属性 span）
     _lastClick: null,      // 双击同类复选（{at, ref}）
     _mouseSeen: false,       // 见过真实鼠标移动才允许边缘平移（无头/未动鼠标防漂）
+    _pointerOverUi: false,
     _groups: null,         // 编队：digit -> [友军 ref]（Ctrl+数字编 / Shift+数字加 / 数字选中）
+    _pendingRightClick: null, // RTS 自己捕获右键，避免依赖 Input 边沿标志而漏命令
 
     init() {
         this._createButton();
@@ -70,13 +78,18 @@ export const RTSCommand = {
         if (leavingScene8 && !observer) this._resetPartyCommandsForSceneExit();
         if (!commandable && this.enabled) this.setEnabled(false);
         if (!this.enabled) return;
+        this._pruneSelection();
         this._edgePan(dt, Input);
         const input = Input || this._input();
-        if (input && input.mouse && input.mouse.rightPressed) {
+        const pendingRightClick = this._pendingRightClick;
+        this._pendingRightClick = null;
+        if (pendingRightClick) {
+            this._handleRightClick(pendingRightClick.x, pendingRightClick.y);
+            if (input?.mouse) input.mouse.rightPressed = false;
+        } else if (input && input.mouse && input.mouse.rightPressed) {
             this._handleRightClick(input.mouse.x, input.mouse.y);
             input.mouse.rightPressed = false;
         }
-        this._pruneSelection();
         this._renderSelectionFx();
         this._refreshPanel();
     },
@@ -91,6 +104,7 @@ export const RTSCommand = {
         this.enabled = !!on;
         if (this._btn) this._btn.classList.toggle('active', this.enabled);
         if (!this.enabled) {
+            this._pendingRightClick = null;
             this._clearSelection();
             this._hidePanel();
             this._clearDrag();
@@ -193,7 +207,13 @@ export const RTSCommand = {
 
     _pruneSelection() {
         const before = this._selection.length;
-        this._selection = this._selection.filter((s) => s.ref && s.ref.active);
+        const allies = new Set(this._collectAllies());
+        const g = _game();
+        const worldEntities = new Set(g?.entities?.values ? g.entities.values() : []);
+        this._selection = this._selection.filter((s) => {
+            if (!s.ref || !s.ref.active) return false;
+            return s.kind === 'ally' ? allies.has(s.ref) : worldEntities.has(s.ref);
+        });
         if (before !== this._selection.length) {
             this._syncPartySelection();
             this._renderSelectionFx();
@@ -234,12 +254,15 @@ export const RTSCommand = {
     _collectAllies() {
         const allies = [];
         const seen = new Set();
-        for (const m of PartySystem.members) {
-            if (!m || !m.active) continue;
-            allies.push(m);
-            seen.add(m);
-        }
         const g = _game();
+        // 观察世界没有玩家本体及随行队员，不能把本体世界的 PartySystem 对象当作幽灵单位选中。
+        if (!g?._observerMode) {
+            for (const m of PartySystem.members) {
+                if (!m || !m.active) continue;
+                allies.push(m);
+                seen.add(m);
+            }
+        }
         if (!g || !g.entities) return allies;
         for (const e of g.entities.values()) {
             if (!e || !e.active || seen.has(e) || e === g.player) continue;
@@ -290,8 +313,9 @@ export const RTSCommand = {
             48
         );
         const bottomPad = Math.max(6, (e.groundRadius || e.collisionRadius || 20) * 0.35);
-        const a = Renderer.worldToScreen(e.x - halfW, e.y - bodyH);
-        const b = Renderer.worldToScreen(e.x + halfW, e.y + bottomPad);
+        const visualY = e.y - (Number(e.z) || 0);
+        const a = Renderer.worldToScreen(e.x - halfW, visualY - bodyH);
+        const b = Renderer.worldToScreen(e.x + halfW, visualY + bottomPad);
         if (!a || !b) return null;
         const x0 = Math.min(a.x, b.x), x1 = Math.max(a.x, b.x);
         const y0 = Math.min(a.y, b.y), y1 = Math.max(a.y, b.y);
@@ -357,9 +381,28 @@ export const RTSCommand = {
 
     // ==================== 鼠标事件 ====================
 
+    _isCommandable() {
+        const g = _game();
+        return this._scene === 'scene8' || !!g?._observerMode;
+    },
+
+    _isPointerBlocked(e) {
+        return !!(e?.target?.closest && e.target.closest(POINTER_BLOCK_SELECTOR));
+    },
+
     _onMouseDown(e) {
-        if (!this.enabled || this._scene !== 'scene8') return;
-        if (e.target && e.target.closest && e.target.closest('.system-panel, .panel-overlay, .side-menu, .party-bar, .rts-unit-panel, .rts-command-btn, .companion-overlay, .recruit-overlay, .wall-editor-panel')) return;
+        if (!this.enabled || !this._isCommandable()) return;
+        if (this._isPointerBlocked(e)) return;
+        if (e.button === 0 && this._tryMinimapCameraJump(e.clientX, e.clientY)) {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            this._clearDrag();
+            return;
+        }
+        if (e.button === 2) {
+            this._pendingRightClick = { x: e.clientX, y: e.clientY };
+            return;
+        }
         if (e.button !== 0) return;
         this._down = true;
         this._downX = e.clientX;
@@ -367,8 +410,20 @@ export const RTSCommand = {
         this._dragging = false;
     },
 
+    _tryMinimapCameraJump(clientX, clientY) {
+        const scene = _scene();
+        if (!scene || typeof scene.minimapWorldPointAt !== 'function') return false;
+        const point = scene.minimapWorldPointAt(clientX, clientY);
+        if (!point) return false;
+        Camera.x = point.x;
+        Camera.y = point.y;
+        scene._minimapNextAt = 0;
+        return true;
+    },
+
     _onMouseMove(e) {
-        if (!this.enabled || this._scene !== 'scene8' || !this._down) return;
+        this._pointerOverUi = this._isPointerBlocked(e);
+        if (!this.enabled || !this._isCommandable() || !this._down) return;
         if (!this._dragging && Math.hypot(e.clientX - this._downX, e.clientY - this._downY) > DRAG_THRESHOLD) {
             this._dragging = true;
         }
@@ -380,7 +435,7 @@ export const RTSCommand = {
     },
 
     _onMouseUp(e) {
-        if (!this.enabled || this._scene !== 'scene8' || !this._down) return;
+        if (!this.enabled || !this._isCommandable() || !this._down) return;
         this._down = false;
         if (e.button !== 0) return;
         if (this._dragging) {
@@ -421,6 +476,7 @@ export const RTSCommand = {
         const input = Input || this._input();
         const m = input && input.mouse;
         if (!this._mouseSeen) return; // 无头环境/未动鼠标：默认 (0,0) 会被误判成贴左上缘
+        if (this._pointerOverUi) return;
         if (!m || typeof m.x !== 'number') return;
         const g = _game();
         if (!g) return;
@@ -464,7 +520,8 @@ export const RTSCommand = {
             this._groupNotify(d, merged.length, '加编');
             e.preventDefault(); e.stopImmediatePropagation();
         } else {
-            const grp = (this._groups.get(d) || []).filter((u) => u && u.active);
+            const selectable = new Set(this._collectAllies());
+            const grp = (this._groups.get(d) || []).filter((u) => u && u.active && selectable.has(u));
             if (!grp.length) return;
             this._groups.set(d, grp); // 顺手清死
             this._setSelection(grp.map((ref) => ({ kind: 'ally', ref })));
@@ -546,15 +603,43 @@ export const RTSCommand = {
         if (hit && hit.kind === 'enemy') {
             if (this._selection.some((s) => s.kind === 'ally')) {
                 const attackers = this._issueCommandToAllies('attack', null, hit.ref);
-                if (attackers > 0) this._flashAttackTarget(hit.ref);
-                if (phaser && typeof phaser.showMoveMarker === 'function') phaser.showMoveMarker(hit.ref.x, hit.ref.y);
+                if (attackers > 0) {
+                    this._flashAttackTarget(hit.ref);
+                    if (phaser && typeof phaser.showMoveMarker === 'function') {
+                        phaser.showMoveMarker(hit.ref.x, hit.ref.y - (Number(hit.ref.z) || 0));
+                    }
+                } else {
+                    EffectManager.add(new FloatingTextEffect(hit.ref.x, hit.ref.y - (Number(hit.ref.z) || 0), '选中单位无法攻击', '#ff8855'));
+                }
             } else {
                 // 无友军选中：右键敌人 = 选中并查看属性
                 this._setSelection([hit]);
             }
         } else if (this._selection.some((s) => s.kind === 'ally')) {
-            this._issueCommandToAllies('move', { x: w.x, y: w.y }, null);
-            if (phaser && typeof phaser.showMoveMarker === 'function') phaser.showMoveMarker(w.x, w.y);
+            const defenseSystem = _game()?.DefenseSystem;
+            const point = defenseSystem?.resolveSurfaceTarget
+                ? defenseSystem.resolveSurfaceTarget(w.x, w.y)
+                : { x: w.x, y: w.y, z: 0, surfaceKind: 'ground', route: [] };
+            if (point.unreachable) {
+                EffectManager.add(new FloatingTextEffect(
+                    point.x,
+                    point.y - (point.z || 0),
+                    point.reason || '目标不可达',
+                    '#ff8855'
+                ));
+                return;
+            }
+            const commanded = this._issueCommandToAllies('move', point, null);
+            if (commanded > 0 && phaser && typeof phaser.showMoveMarker === 'function') {
+                phaser.showMoveMarker(point.x, point.y - (point.z || 0));
+            } else if (commanded === 0 && this._lastCommandRejectReason) {
+                EffectManager.add(new FloatingTextEffect(
+                    point.x,
+                    point.y - (point.z || 0),
+                    this._lastCommandRejectReason,
+                    '#ff8855'
+                ));
+            }
         }
     },
 
@@ -568,8 +653,17 @@ export const RTSCommand = {
             if (PartySystem.members.includes(s.ref)) memberIds.push(s.ref.id);
             else directUnits.push(s.ref);
         }
-        if (memberIds.length) PartySystem.setCommand(memberIds, mode, point, target);
-        let commandedAttackers = mode === 'attack' ? memberIds.length : 0;
+        let commanded = 0;
+        this._lastCommandRejectReason = null;
+        for (const memberId of memberIds) {
+            const member = PartySystem.getMember(memberId);
+            const commandPoint = mode === 'move' ? this._movePointForUnit(member, point) : point;
+            if (commandPoint?.unreachable) {
+                this._lastCommandRejectReason ||= commandPoint.reason || '目标不可达';
+                continue;
+            }
+            commanded += PartySystem.setCommand(memberId, mode, commandPoint, target);
+        }
         for (const u of directUnits) {
             if (mode === 'attack' && u._rtsCanAttack === false) {
                 if (u._ai && typeof u._ai.cancelForCommand === 'function') u._ai.cancelForCommand();
@@ -579,14 +673,28 @@ export const RTSCommand = {
             if ((mode === 'move' || mode === 'hold') && u._ai && typeof u._ai.cancelForCommand === 'function') {
                 u._ai.cancelForCommand();
             }
+            const commandPoint = mode === 'move' ? this._movePointForUnit(u, point) : point;
+            if (commandPoint?.unreachable) {
+                this._lastCommandRejectReason ||= commandPoint.reason || '目标不可达';
+                continue;
+            }
             u._command = {
                 mode,
-                point: point ? { x: point.x, y: point.y } : null,
+                point: commandPoint ? {
+                    ...commandPoint,
+                    route: Array.isArray(commandPoint.route) ? commandPoint.route.map((step) => ({ ...step })) : [],
+                } : null,
                 target: (mode === 'attack' && target) ? target : null,
             };
-            if (mode === 'attack') commandedAttackers++;
+            commanded++;
         }
-        return commandedAttackers;
+        return commanded;
+    },
+
+    _movePointForUnit(unit, point) {
+        const defenseSystem = _game()?.DefenseSystem;
+        if (!point || !defenseSystem?.routeSurfaceMoveForUnit) return point;
+        return defenseSystem.routeSurfaceMoveForUnit(unit, point);
     },
 
     /** 右键攻击指令反馈：目标贴图短暂红/白交替闪现。实际 tint 由 GameScene 每帧统一应用。 */
@@ -633,7 +741,7 @@ export const RTSCommand = {
                 ring.setStrokeStyle(2, 0xff5050, 1);
                 this._enemyRings.set(e, ring);
             }
-            ring.setPosition(e.x, e.y);
+            ring.setPosition(e.x, e.y - (Number(e.z) || 0));
             ring.setVisible(true);
             const sp = e._phaserSprite;
             // 深度：优先跟随精灵（精灵-0.1，与脚下光圈同口径）；无精灵引用兜底按世界 y
@@ -660,7 +768,7 @@ export const RTSCommand = {
                 ring.setStrokeStyle(2, 0xd4af37, 1);
                 this._allyRings.set(e, ring);
             }
-            ring.setPosition(e.x, e.y);
+            ring.setPosition(e.x, e.y - (Number(e.z) || 0));
             ring.setVisible(true);
             const sp = e._phaserSprite;
             ring.setDepth(sp && sp.active ? sp.depth - 0.1 : e.y);

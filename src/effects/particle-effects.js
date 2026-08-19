@@ -202,31 +202,42 @@ class BloodMistEffect {
     }}
 
 class DustEffect {
-    constructor(x, y, intensity) {
-        this.x = x; this.y = y; this.life = 450; this.maxLife = 450; this.active = true;
+    constructor(x, y, intensity, options = {}) {
+        this.x = x; this.y = y; this.active = true;
         this.particles = [];
         this._graphics = null;
+        this._applyOptions(options);
+        this.life = this.maxLife;
         this._initParticles(intensity);
         this._ensureGraphics();
+    }
+    _applyOptions(options = {}) {
+        this.visualScale = Math.max(0.1, Number(options.scale) || 1);
+        this.lifeMultiplier = Math.max(0.1, Number(options.lifeMul) || 1);
+        this.depthOverride = Number.isFinite(options.depth) ? options.depth : null;
+        this.maxLife = 450 * this.lifeMultiplier;
     }
     _initParticles(intensity) {
         this.particles = [];
         const count = Math.floor(5 + intensity * 6);
         for (let i = 0; i < count; i++) {
             const angle = Math.PI + (Math.random() - 0.5) * Math.PI;
-            const speed = 49.92 + Math.random() * 124.8 + intensity * 49.92;
+            const speed = (49.92 + Math.random() * 124.8 + intensity * 49.92)
+                * Math.sqrt(this.visualScale);
             this.particles.push({
-                x: (Math.random() - 0.5) * 6,
-                y: Math.random() * 3,
+                x: (Math.random() - 0.5) * 6 * this.visualScale,
+                y: Math.random() * 3 * this.visualScale,
                 vx: Math.cos(angle) * speed * 0.6,
                 vy: Math.sin(angle) * speed * 0.4 - 0.3 - Math.random() * 0.6,
-                size: 3 + Math.random() * (3 + intensity * 2.5),
+                size: (3 + Math.random() * (3 + intensity * 2.5)) * this.visualScale,
                 alpha: 0.4 + Math.random() * 0.35
             });
         }
     }
-    reset(x, y, intensity) {
-        this.x = x; this.y = y; this.life = this.maxLife; this.active = true;
+    reset(x, y, intensity, options = {}) {
+        this.x = x; this.y = y; this.active = true;
+        this._applyOptions(options);
+        this.life = this.maxLife;
         this._initParticles(intensity);
         this._ensureGraphics();
         if (this._graphics) {
@@ -236,6 +247,7 @@ class DustEffect {
         }
     }
     _depth() {
+        if (Number.isFinite(this.depthOverride)) return this.depthOverride;
         // 墙体遮挡仲裁与实体同口径（window.WallSystem 由 main.js 挂载）：
         // 实体在墙后时烟尘压到遮挡墙之下，避免"人被墙挡住、烟尘却浮在墙上"
         const d = this.y + 43;
@@ -264,7 +276,7 @@ class DustEffect {
             p.x += p.vx * (dt / 1000); p.y += p.vy * (dt / 1000);
             p.vy -= 0.015;
             p.vx *= 0.97; p.vy *= 0.97;
-            p.alpha -= 0.3744 * (dt / 1000);
+            p.alpha -= (0.3744 / this.lifeMultiplier) * (dt / 1000);
         });
         this._redraw();
     }

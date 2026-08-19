@@ -10,6 +10,7 @@
 import { MovementSystem } from '../systems/movement-system.js';
 import { WallSystem } from '../world/wall-system.js';
 import { SoundManager } from '../ui/sound-manager.js';
+import { clearRtsSurfaceRoute, resolveRtsMoveDestination } from './rts-command-utils.js';
 
 export class HamsterGuardAI {
     constructor(guard) {
@@ -187,17 +188,18 @@ export class HamsterGuardAI {
     /** RTS 命令：move（走到点，到位清指令）/ attack（锁定目标，进范围站定挥击）/ hold（待命） */
     _applyCommand(cmd) {
         const m = this.m;
+        if (cmd.mode !== 'move') clearRtsSurfaceRoute(m);
         if (cmd.mode === 'move') {
             m.target = null;
-            const dest = cmd.point || { x: m.x, y: m.y };
-            const dist = Math.hypot(dest.x - m.x, dest.y - m.y);
-            if (dist > 40) {
-                m._tacticalTarget = dest;
+            const move = resolveRtsMoveDestination(m, cmd);
+            if (!move.arrived) {
+                m._tacticalTarget = move.destination;
                 m._animState = 'walk';
                 m.maxSpeed = this.cfg.walkSpeed ?? 100;
             } else {
                 m._command = { mode: 'follow' }; // 到位清除命令，回到默认跟随
                 m._tacticalTarget = null;
+                clearRtsSurfaceRoute(m);
                 m._animState = 'idle';
                 m.maxSpeed = 0;
                 m.vx = 0; m.vy = 0; m.isMoving = false;

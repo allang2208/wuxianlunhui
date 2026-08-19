@@ -1882,6 +1882,46 @@
 - **验证**：`scripts/test-world-observer.mjs`（20 项契约）+ `tools/cdp-world-observer.mjs`
   （实机 6 项：观察进出/双击/编队/轮盘统一下达/边缘平移）+ 既有 test-rts-command 17 项不回退。
 
+### 指挥模式输入链与跨表面移动审计（2026-08-19）
+
+- **右键必须由 RTS 自己捕获**：`mousedown(button=2)` 写 `_pendingRightClick`，`tick` 消费并同步清
+  `Input.mouse.rightPressed`；禁止只依赖 Input 单帧边沿标志，否则其它输入分支/帧尾清理会造成无响应。
+- **观察模式鼠标入口不能写死 scene8**：选择、框选、编队和右键统一读
+  `_isCommandable() = scene8 || Game._observerMode`；跨世界选择/编队召回必须用当前
+  `_collectAllies()` 剪枝，禁止保留上一世界仍 active 的幽灵引用。
+- **高架坐标口径**：单位点击矩形、选中圈、攻击标记均使用视觉脚底 `y-z`。
+  `move.point` 保留 `{x,y,z,surfaceKind,route}`；`rts-command-utils.js` 统一消费路线航点。
+  地面→墙顶按楼梯正向路线，墙顶/楼梯→地面由 `routeSurfaceMoveForUnit` 反转楼梯路线；
+  队友与所有可选仓鼠兵种必须显式消费同一 move 契约。
+- **中键轮盘目标数与队员ID不可混用**：RTS 目标存在于 `RTSCommand._selection`，此时
+  `_targetIds=[]` 是正常状态；`_resolveTargets()` 必须返回实际目标数，`_openWheel()` 按
+  `targetCount` 判断，不能再用 `_targetIds.length` 阻止轮盘打开。
+- **小地图跳镜头**：`GameScene._minimapLayout()` 是绘制/点击反算唯一真源；只在指挥模式下
+  左键实际地图内容调用 `minimapWorldPointAt(clientX,clientY)`，设置 `Camera.x/y`，保留单位选择并
+  `stopImmediatePropagation` 防穿透。宽高比留白、隐藏小地图和系统UI不响应。
+- **回归**：`test-rts-command.mjs`、`test-world-observer.mjs`；
+  `cdp-world-observer.mjs` 必须走真实左右键/中键长按/小地图点击，禁止只直接调用 `_execute()`。
+
+### 建筑摧毁/主动回收统一沉陷（2026-08-19）
+
+- **生命周期统一**：摧毁、出售、回收都进入 `BuildingSinkEffect.start()`；先拆碰撞、生产单位、
+  系统数组与退款，再由特效立即接管精灵并移除实体。塔三层、门多片、楼梯 `segmentSprites`
+  均作为一组保留原相对位置/原 depth 下沉。
+- **贴图本体不能用水平 crop 作为主路径**：`building-sink-geometry.js` 从
+  `isoFootprintVertices` 取得 footprint 投影，取 `left→front→right` 前缘链并按原斜率延伸到
+  全部子精灵联合视觉宽度（左右各留6px），再向屏幕下方挤出地下多边形。
+  WebGL 用 `sprite.enableFilters(); sprite.filters.external.addMask(graphics,true,mainCamera,'world')`
+  反向裁除进入地下区域的像素；矩形 `setCrop` 仅是 Filter 不可用时的降级。
+- **原地下沉**：精灵只沿屏幕Y轴移动，接缝默认锁定主贴图当前帧的不透明内容底边；
+  精灵表 alpha 测量必须使用当前 frame 的 `cutX/cutY/cutWidth/cutHeight`，禁止扫描整张源图。
+- **烟尘复用玩家奔跑真源**：建筑只在 footprint 内采样生成点，调用同一个
+  `EffectFactory.createDustEffect` / 对象池 `DustEffect`；玩家默认参数保持1倍，建筑按投影面积
+  传 `scale 1.65~2.6`、`lifeMul 1.5` 和遮罩上方 depth。禁止再维护建筑专属烟团粒子实现。
+- **图层**：建筑精灵保持 `_sinkBaseDepth`；footprint 扬尘遮盖层位于全部子精灵之上，
+  DustEffect 再高一层；建筑完全消失后遮盖层继续700ms淡出。
+- **验证**：`test-building-damage-fx.mjs`（纯几何/接线）+
+  `cdp-building-sink-mask.mjs`（WebGL反向Mask、无水平crop、左右完整覆盖、同款DustEffect）。
+
 ### 图鉴栏整改（2026-08-19：收回修复 + 硬编码清除 + 友军栏目）
 
 - **收回修复（根因链）**：`SystemUI.init` 遮罩点击收回原本只在"子页面 UIState 键全关"时生效——

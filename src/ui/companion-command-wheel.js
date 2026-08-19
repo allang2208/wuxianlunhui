@@ -117,14 +117,14 @@ export const CompanionCommandWheel = {
             const n = RTSCommand._selection.filter((s) => s.kind === 'ally').length;
             this._targetIds = [];
             this._targetLabel = `选中 ${n} 个单位`;
-            return;
+            return n;
         }
         const members = PartySystem.members;
-        if (!members.length) { this._targetIds = []; this._targetLabel = ''; return; }
+        if (!members.length) { this._targetIds = []; this._targetLabel = ''; return 0; }
         if (all) {
             this._targetIds = members.map((m) => m.id);
             this._targetLabel = `全队（${members.length} 人）`;
-            return;
+            return this._targetIds.length;
         }
         // 组队栏选中优先（单选/多选）：只命令被选中的单位
         const selected = PartySystem.selectedIds;
@@ -136,7 +136,7 @@ export const CompanionCommandWheel = {
             } else {
                 this._targetLabel = `选中 ${selected.length} 人`;
             }
-            return;
+            return this._targetIds.length;
         }
         // 兜底：队员面板当前队员（老行为），无则第一名
         const panel = Game && Game.CompanionPanel;
@@ -145,18 +145,19 @@ export const CompanionCommandWheel = {
         if (!member) member = members[0];
         this._targetIds = [member.id];
         this._targetLabel = member.name || member.id;
+        return 1;
     },
 
     _openWheel() {
         if (this._open) return;
-        this._resolveTargets(false);
-        if (!this._targetIds.length) return;
+        const targetCount = this._resolveTargets(false);
+        if (!targetCount) return;
 
         const el = document.createElement('div');
         el.className = 'companion-wheel';
         el.style.left = `${this._openAt.x}px`;
         el.style.top = `${this._openAt.y}px`;
-        el.innerHTML = `<div class="cw-center">${this._targetLabel}<br><em>松开执行 · Shift=全队</em></div>`;
+        el.innerHTML = `<div class="cw-center">${this._targetLabel}<br><em>移动到指令上松开 · 移出取消</em></div>`;
         const R = 88;
         this.commands.forEach((cmd, i) => {
             const ang = (-90 + i * 72) * Math.PI / 180;
