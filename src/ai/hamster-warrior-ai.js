@@ -9,10 +9,12 @@
 import { MovementSystem } from '../systems/movement-system.js';
 import { WallSystem } from '../world/wall-system.js';
 import { SoundManager } from '../ui/sound-manager.js';
-import { getAbilityLevel } from '../world/ability-store.js';
+import { getAbilityLevel, getAbilityValue } from '../world/ability-store.js';
+import { getBuildingUpgradeAbility } from '../world/building-upgrade-projects.js';
 import { MathUtils } from '../config/math-utils.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
+import { clearRtsSurfaceRoute, resolveRtsMoveDestination } from './rts-command-utils.js';
 
 export class HamsterWarriorAI {
     constructor(warrior) {
@@ -130,17 +132,18 @@ export class HamsterWarriorAI {
     /** RTS 命令：move（走到点，到位清指令）/ attack（锁定目标，站定攻击）/ hold（待命） */
     _applyCommand(cmd) {
         const m = this.m;
+        if (cmd.mode !== 'move') clearRtsSurfaceRoute(m);
         if (cmd.mode === 'move') {
             m.target = null;
-            const dest = cmd.point || { x: m.x, y: m.y };
-            const dist = Math.hypot(dest.x - m.x, dest.y - m.y);
-            if (dist > 40) {
-                m._tacticalTarget = dest;
+            const move = resolveRtsMoveDestination(m, cmd);
+            if (!move.arrived) {
+                m._tacticalTarget = move.destination;
                 m._animState = 'walk';
                 m.maxSpeed = this.cfg.walkSpeed ?? 120;
             } else {
                 m._command = { mode: 'follow' }; // 到位清除命令，回到默认跟随
                 m._tacticalTarget = null;
+                clearRtsSurfaceRoute(m);
                 m._animState = 'idle';
                 m.maxSpeed = 0;
                 m.vx = 0; m.vy = 0; m.isMoving = false;
@@ -214,11 +217,12 @@ export class HamsterWarriorAI {
             // 铁匠铺能力：横扫（2026-08-17）——普攻附带前方扇形 AOE 额外伤害
             // （参考玩家普攻扇形判定：pointInSector，中心方向 = 攻击朝向 rotation）
             const aoeLv = getAbilityLevel('sweep_aoe');
-            if (aoeLv > 0) {
-                const aoeMul = 0.2 + 0.05 * aoeLv; // 初始 20% + 5%/级
+            const sweepAbility = getBuildingUpgradeAbility('sweep_aoe');
+            if (aoeLv > 0 && sweepAbility) {
+                const aoeMul = getAbilityValue(sweepAbility, aoeLv);
                 const aoeDmg = Math.max(1, Math.round(this._attackDamage * aoeMul));
-                const aoeRange = range + 30;
-                const arc = Math.PI * 2 / 3; // 前方 120° 扇形
+                const aoeRange = range + sweepAbility.rangeBonus;
+                const arc = Math.PI * sweepAbility.arcDegrees / 180;
                 const game = (typeof window !== 'undefined' && window.Game) || null;
                 for (const ent of ((game && game.entities) ? game.entities.values() : [])) {
                     if (!ent || ent === e || !ent.active || ent.hp <= 0 || ent._faction !== 'enemy') continue;

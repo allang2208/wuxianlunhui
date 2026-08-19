@@ -1,0 +1,644 @@
+> 本文件为 game-dev 技能库分卷，主索引与目录见 ../SKILL.md
+> 本节：9. 怪物与 NPC
+
+## 9. 怪物与 NPC
+
+### 流水线流程（以后每个新角色/怪物都走这套）
+
+#### 步骤1: 制作原始精灵图
+
+在 Aseprite / Photoshop 中制作，帧大小固定（如 250×215）。
+
+不要求内容精确对齐，因为步骤3会处理。
+
+#### 步骤2: 运行标准化脚本
+
+```bash
+cd tools
+python sprite-normalizer.py \
+  --input ../assets/enemies/raw/black_wolf.png ../assets/enemies/raw/black_wolf_attack.png \
+  --output ../assets/enemies/ \
+  --frame-width 250 --frame-height 215 \
+  --cols 4 --rows 2
+```
+
+脚本行为：
+- 分析每个精灵图的所有帧内容边界
+- 取所有输入中的**最大内容宽高**作为目标
+- 缩放每帧内容（保持比例，fit 模式）
+- 平移使内容中心对齐到帧中心
+- 输出到 `--output` 目录
+
+只输出报告不生成文件：
+```bash
+python sprite-normalizer.py --report ...
+```
+
+#### 步骤3: BootScene 加载
+
+```javascript
+this.load.spritesheet('enemy_black_wolf', 'assets/enemies/black_wolf.png', {
+    frameWidth: 250, frameHeight: 215, endFrame: 7
+});
+```
+
+**必须带 `endFrame`**，Phaserv4 即使图片高度差1像素也能正确加载。
+
+#### 步骤4: 怪物代码无需手动调 spriteSize
+
+标准化后所有精灵图内容大小一致，代码中统一 spriteSize，无需条件判断：
+
+```javascript
+_getPhaserOptions() {
+    return {
+        spriteSize: 216,  // 统一值，不再根据状态变化
+        frame: this._animFrame,
+        flipX: this._facing === 'left',
+        // ...
+    };
+}
+```
+
+---
+
+### 怪物共享基础件（2026-07-21 新增，新怪物优先复用）
+
+新增怪物时**优先复用** `src/entities/enemy-types/_shared/` 下的共享模块，不要在类内重复实现：
+- `enemy-utils.js`：`hostilesOf`（敌对目标枚举）、`isTargetMeleeStyle`（近战/远程风格判定）、`playSoundFrom`（按 sounds 配置播音）、`isFacingLeftFrom`（朝向判定）、`inMeleeRange`（近战命中统一口径：圆形边缘距离 ≤ range，与 CombatSystem 触发同语义；范围技能带地面椭圆圈视觉的仍用 GroundEllipse）；近战技能 range 读取约定 `skill.range ?? this.attackDistance ?? 默认值`（字段收敛，2026-07-25）；
+- `enemy-gun.js`：`setupGun`（枪械装配：装备实例/攻击绑定/伤害/击退/AI 散布/弹匣）、`tryEnemyFireGun`（开火一体化：枪口偏移/墙体回退/瞄准目标矩形上方区域/临时移位出膛/枪口火焰+开火火光+弹壳，支持防御姿态枪口下移）；
+- `monster-anim.js`：`twoStageWalkKey`（移动动画首段→循环段切换）、`frameHitElapsed`/`ratioHitElapsed`（命中帧→触发时间换算）。
+
+已迁移范例：`time-agent-assault.js`（双形态+枪械+投掷+斧砍）、`time-agent-shield.js`（远程+盾击+防御弹反）。
+
+---
+
+### 怪物 AI 状态机（BlackWolf 示例）
+
+#### 设计原则
+- **不硬编码**：AI 参数从 `enemy-config.json` 或构造函数 `config.ai` 读取
+- **外部系统驱动**：BlackWolf 的 `update()` 只设置目标属性（`target`、`_tacticalTarget`、`_lastKnownTargetPos`），`MovementSystem` 和 `CombatSystem` 在后续帧执行移动/攻击
+- **状态机模式**：`pacing` → `chasing` → `lost` → `pacing`
+
+#### 状态定义
+
+| 状态 | 速度 | 目标 | 行为 |
+|------|------|------|------|
+| `pacing` | `maxSpeed * 0.5` | `_tacticalTarget`（200px 内随机点） | 在踱步中心半径 200px 内慢速漫游 |
+| `chasing` | `maxSpeed` | `target`（最近玩家） | 向玩家奔跑，进入攻击范围时触发攻击 |
+| `lost` | 无（计时中） | 保留 `target` | 目标跑出 800px 后持续 2s 计时，超时回 pacing |
+
+#### 参数配置（enemy-config.json）
+
+```json
+{
+  "blackWolf": {
+    "speed": 93.6,
+    "dashDistance": 200,
+    "ai": {
+      "aggroRange": 800,
+      "pacingRange": 200,
+      "loseTimeout": 2000
+    }
+  }
+}
+```
+
+#### 代码实现要点
+
+```javascript
+// 1. update() 中扫描 + 执行 AI
+this._aiScanTimer += dt;
+if (this._aiScanTimer >= this._aiScanInterval) {
+    this._aiScanTimer = 0;
+    this._updateAIState(dt, entities);  // 状态切换
+}
+this._executeAI(dt, entities);  // 设置 target / _tacticalTarget / maxSpeed
+
+// 2. pacing 状态：设置 _tacticalTarget，让 MovementSystem 读取
+this._tacticalTarget = this._pacingTarget;
+this.maxSpeed = this._baseSpeed * 0.5;
+
+// 3. chasing 状态：设置 target，让 CombatSystem 读取
+this.target = nearestPlayer;
+this.maxSpeed = this._baseSpeed;
+this._tacticalTarget = null;
+```
+
+---
+
+### 怪物 HUD 锚点工作流（2026-07-21 新增；2026-07-23 起为**新怪物必做项**）
+
+**默认规则**：新增怪物的名字/血条锚定**圆柱体（胶囊）碰撞体积最上方**（胶囊顶 = footprint Y − `collider.height`），不再按贴图顶部定位。**自 2026-07-23 起，新增怪物必须设置 `"capsuleHudAnchor": true`（已补齐：poisonMaggot/minerZombie/lanternMinerZombie/foremanZombie）。**
+**三套碰撞体积注意区分**：footprint 椭圆（地面分离/范围判定）、绿色矩形（`collisionWidth×collisionHeight`，近战判定）、圆柱体胶囊（`collider.height`，来自 `config.height` 或 `render.spriteSize`，投射物判定）。HUD 锚点用的是**圆柱体胶囊**，不是绿色矩形。
+**启用方式**：`enemy-config.json` 该怪物 `render` 块加 `"capsuleHudAnchor": true`（GameScene 按此开关选择锚点；未配置的旧怪物保持贴图顶部锚点不动）。
+**配套校准**：`render.collisionHeight` 只影响绿色矩形（近战判定），不影响 HUD 锚点；`render.hudOffsetY` 语义不变（在锚点基础上的额外偏移，默认为 0 即可）。
+**常见陷阱：`colliderOffsetY/X` 必须写在 `render` 块内**——`enemy.js` 基类只读 `config.render.colliderOffsetY`；写在配置顶层是死配置不生效（2026-07-25 工头顶层 -75 一直未生效的根因；手脑/骑士也曾踩过，见 enemy.js:168 注释）。NPC 类相反，读顶层（npc.js:48）。
+
+---
+
+### 怪物 HUD（名字/血条）定位规则
+
+- **统一规则**：怪物名字与血条位于**贴图上方 30px 区域**（血条 `healthBar.offsetY` 默认 -30，名字在其上方紧贴）。不要再放更高。
+- **透明上沿校准**：AI 生成精灵图常有大片透明上沿，`topY` 按 displayHeight 算会远高于视觉头顶——在 enemy-config `render.hudOffsetY`（正数下移，如骑士 75）整体校准名字+血条，不要改通用代码。
+- **渲染来源**：新怪配置走 `entity.config.render`，老怪走 `_animCfg.render`（GameScene `_syncEntityHud` 已做双源回退）。
+- **非方形帧显示**：渲染层 `setDisplaySize` 按帧宽高比等比缩放（spriteSize=最长边），方形帧行为不变；素材帧尺寸不统一（如手脑 walk 512×1024 与其余 512×512）时无需特殊处理。
+
+- v4.1 (2026-07-20) — 手脑裁剪修复/骑士HUD下移/仓库整体修复/出征界面调整
+  - 手脑素材真实网格：idle/slam/howl 8×4（帧512×512）、walk 8×2（帧512×1024）——勿信口述"4×8"，**拿到精灵图先目检行列布局再配 frameWidth/Height**
+  - 仓库：金币/消耗品无法存入+满仓误报根因=金币无 maxStack 字段（_maxStackOf 回退 gold 99999）+不可堆叠物品空间语义修正（整件1格与 stack 数无关）；overlay 点击一并关闭（warehouse 自挂监听避免循环 import）；NPC走远链补关闭；格子改一行2格×56px 对齐背包
+  - 出征界面 open() 改自动关闭背包（原为主动打开）；说明弹窗重定位 left:4px bottom:2px 187×945 拉伸
+
+---
+
+### ⭐ 怪物渲染图层与构造铁律（2026-08-15 定稿，改怪物渲染/新建怪类必读）
+
+#### 1. 贴图恒在脚下椭圆阴影之上（图层时序铁律）
+
+- **`GameScene.update` 中 `_syncEntityShadows` 必须排在 `_updateDynamicDepths` 之后**——阴影深度 = 贴图**当前帧**仲裁后 depth − 0.1，任意帧恒有 `阴影.depth < 贴图.depth`。
+- 旧顺序（阴影先跑、读上一帧 depth）：怪物跨过掩体/墙面线（世界-122 基地掩体、地牢墙）深度骤降时，阴影以旧深度盖在贴图上 1 帧；毒蛆 232×116 大椭圆（碰撞半径 116×透视 0.5）在掩体线反复压住虫身即此根因。
+- 通配：新加任何"实体深度 ± 偏移"的附属视觉，都要么跟随本体**仲裁后** depth，要么自己过一遍 `junctionCorrectedDepth`（lessons #28）。
+
+#### 2. `_getTextureKey()` 只能返回贴图键，绝不能返回纯动画键（骑士冲锋贴图丢失教训）
+
+- `GameScene._syncEnemyAnimation` 每帧对 `_getTextureKey()` 的返回值做 `textures.exists` 判定，失败即回退 **`enemy_circle` 白胶囊占位**。
+- 铠甲骑士冲锋两段式（首段 19 帧 → 9~19 帧循环段）曾返回动画键 `enemy_armored_knight_charge_loop`（BootScene 只有该名 anims、无同名贴图，两段共用 attacking-2.png 一张 sheet）→ 首段播完（2s）后到冲锋停止 ~1s 贴图"丢失"（白胶囊）。
+- **同 sheet 多段动画**：贴图键返回 sheet 本身；段切换放在 `_getPhaserOptions()` 的 `animKey`（贴图键/动画键职责分离，参照 mutant-3 的 attack_pounce 写法）。
+- 防御：GameScene 已加"贴图键缺失但同名动画存在 → 回退该动画首帧贴图"，但**怪类侧仍必须遵守本铁律**。
+
+#### 3. 怪类构造器必须合并自身 enemyConfigData（「测试怪物」残留教训）
+
+- 全项目怪类构造器都 `super(x, y, { ...enemyConfigData.xxx, ...config })`，**唯独曾漏了 `ZombieDogEnemy`**——世界-122 防守 `new Factory(pt.x, pt.y)` 无配置构造时，名字落到 `Enemy` 兜底「测试敌人」、贴图是僵尸犬、属性是默认值（hp150/speed45 而非 100/250），游戏内表现为一只"测试怪"。
+- 新增怪类 checklist：① 构造器合并配置；② 无配置构造 = 完整可用（名字/属性/贴图）；③ 同怪多入口（防守池/地牢/召唤/主城）建议收敛到共享工厂（如 `createZombieDog(x, y, overrides)`，ai 深合并）。
+- 排查经验：**"世界某处冒出不属于这里的怪/名字"先查构造路径是否漏配置**，grep `new Xxx(` 全部调用点 + 核对 `enemy-config.json` 兜底链（`config.name ?? defaults.name ?? '测试敌人'`）。
+
+#### 4. 建筑图层统一口径（2026-08-16 定稿，世界-122 全建筑/新建筑必读）
+
+- **唯一规则**：每个建筑在构造时注册「接地线」——`setupStructureDepth(entity, halfWidth)`
+  （`src/world/structure-depth.js`）生成 `_faceLine`（脚底 y 处水平线段，跨度 = 贴图显示
+  半宽）与 `_faceDepth`（= 接地线 max y + 12）。单位（玩家/敌人/侍从/友方单位）每帧经
+  `WallSystem.junctionCorrectedDepth` 仲裁：脚线在接地线**之后** → 压到建筑之下；在
+  **前/同线** → 抬到建筑之上（+0.5，消除同线 z-fight）。
+- **现状**：掩体/铁闸门/仓鼠小屋/防御塔/基地核心/能源矿全部接入。**新增建筑只要构造里
+  调一次 `setupStructureDepth(this, 贴图显示半宽)` 即可**，不再需要各自处理遮挡；新增
+  单位自动走 junctionCorrectedDepth，无需改代码（"一劳永逸"）。
+- **坑①（z-fight）**：建筑深度必须统一为 `_faceDepth`（接地线 y + 12）。塔旧实现用
+  `e.y + 2`、基地/能源矿无锚线走 `sprite.y + footOffsetY + 10`——与单位自然深度
+  （脚 y + 10）**同线时完全相等** → 谁盖谁取决于创建顺序（建筑盖仓鼠/仓鼠盖建筑随机，
+  即"建筑遮挡友方单位"）。
+- **坑②（面线别当墙段）**：`_faceLine` 现在是全建筑通用，`building-system.canPlace` 只对
+  `_isDefenseCover || _isCoverGate` 走"线段+墙厚"重叠判定，其余紧凑建筑仍走圆心距离——
+  否则塔/基地的面线会被当成 26px 厚墙段误判吸附/重叠。
+- **坑③（面线过期）**：锚线在构造时按 x/y 生成；建筑不可移动（immovable），测试探针
+  传送实体后必须重算锚线（真实场景不会发生）。
+- **验证**：`tools/cdp-layer-occlusion.mjs`——合成 36 组合（塔/基地/矿/小屋 × 无墙/墙前/
+  墙后 × 后/同/前）+ 真实基地 4 类建筑同线抽查，全部"单位盖建筑 iff 单位脚线在建筑之前"。
+
+#### 5. 建筑地面 footprint / 安全出兵 / 4格门（2026-08-18，世界-122）
+
+- 使用 `src/physics/iso-footprint.js` 作为地面旋转矩形唯一几何源。把屏幕 Y 按
+  `PERSPECTIVE_SCALE_Y` 还原后旋转45°进入 u/v 地面坐标；放置判重、圆-建筑分离、
+  出兵校验、攻击距离、范围显示和遮挡前缘必须复用该入口，禁止再写屏幕 AABB 近似。
+- 统一占格：普通非墙建筑2×2、基地4×4、方块墙1×1。`entity.y` 表示贴图/footprint
+  前缘，所以2×2中心固定 `offY=-64`、基地 `offY=-128`；方块墙以格心为中心、offset=0。
+- **2026-08-19公式收口**：单格宽128，深度=`宽×PERSPECTIVE_SCALE_Y(0.5)`；
+  `collisionRadius=宽/2`，u/v半径=`宽/(2√2)`。普通建筑默认固定该公式，alpha扫描仅校正
+  视觉脚点/水平锚点；只有显式`autoFootprint:true`的异形建筑可调用像素四边形物理。
+  墙/门/楼梯继续保留线段或自定义多边形，不受本规则覆盖。
+- 建筑落点使用 `_snapBuildingGrid`：先求 N×N 格心平均位置，再把实体锚到菱形前顶点。
+  边界、清障区和点击检测必须读取 collider 中心，不能把贴图前缘重新当中心。
+- 长墙与门调用 `applyIsoFootprintFromSegment(faceA, faceB, halfThickness)`。4格门两柱占
+  端点格，中间铁栅栏必须精确占 **2×1** 地面格，中心就是门 anchor，禁止恢复旧
+  `anchor.y+32` 偏移；该偏移会导致转角门隔一柱、邻接墙无法放置。
+- 门端柱吸附同时生成正/负方向候选；共享既有门柱时只忽略所属旧门的 `_gateSeg`，
+  不要忽略旧门实体 footprint。几何正确后转角只贴边，真正门体重叠仍应拒绝。
+- 生产建筑统一调用 `SpawnPlacement.findAndReserve`：固定出口槽位检查墙、建筑 footprint、
+  动态单位和750ms预约。无出口时保持生产100%、每500ms重试，禁止使用未经校验的固定
+  右侧 fallback；生成后先走 `_spawnEgress` 再恢复正常AI。
+- 面板外点击使用捕获阶段 `mousedown`；空白处关闭主面板/详情，正在放置或点击建筑本体时
+  不关闭，避免“能关闭但无法落地/无法点详情”的事件冲突。
+- 回归运行 `test-world122-building-footprint.mjs`、`test-spawn-placement.mjs`、
+  `test-gate4-snap.mjs`、`test-world122-build-regressions.mjs`，再跑完整 `npm test`
+  与 Vite build。
+
+---
+
+#### 15. 仓鼠骑士、冲锋与动作贴图归一化（2026-08-19）
+
+- **配置/生产**：`hamster-knight-config.json` + `hamster-knight.js` + `hamster-knight-ai.js`；骑兵学校只生产 knight，升级项目为 `cavalry_charge`。冲锋触发顺序优先于普攻，须同时满足有效敌人、冷却完成、距离严格大于 `minTriggerRange:300` 且不超过 `triggerRange + 目标半径`。
+- **冲锋伤害**：`chargeDamage` 模块的 `effect:'chargeDamageMult'` 每级 +15%；`getUnitUpgradePatch`、新单位 spawn、`applyBarracksUpgrades` 和 `_dealChargeHit` 必须贯通。只改配置展示而漏接 `_dealChargeHit` 会造成“面板升级但伤害不变”。
+- **渲染状态机**：骑士不能落入伊莉丝通用 `atkPlayed` 分支——多帧 idle 会让该锁无法复位。GameScene 必须有独立 attack/charge 分支：动作首次播放，正常结束定格末帧；离开状态清锁；异常打断未触发 `animationcomplete` 时下帧自愈重播。
+- **精灵图量化**：所有动作保持 8×4、512 格；入场脚底统一，死亡动作额外按不透明面积（非仅 bbox 高度）缩到 running 基线，否则横向倒地姿势会视觉放大。使用 `tools/ai-gen/normalize-hamster-knight-sheets.py`；逐帧验证有效帧数、脚底线与 alpha 面积，再替换项目 asset。
+
+### NPC 添加标准工作流（2026-07-22 新增，新 NPC 一律按此开展）
+
+#### 1. 素材（原则 9）
+复制到 `assets/npc/<npc英文名>/`（如 `assets/npc/mouse_king/idle.png`、`walking.png`）；**先目检帧布局**（行列网格、有效帧数、内容边界），再配 `frameWidth/Height/endFrame`。
+
+#### 2. 配置（data/game-config.json `npcs.<key>`，唯一真相源）
+- `sprite`（可选，缺省保持纯色圆占位）：`{ idleKey, walkKey, size, footOffsetY, walkFps }`
+  - `idleKey/walkKey`：BootScene 注册的动画键；`size`：显示边长（方形帧）；`footOffsetY`：逻辑脚底到贴图中心偏移（内容底边贴地校准）；`walkFps`：行走帧率
+- `wander`（可选，缺省不动）：`{ radius, speed, idleMs, moveMinMs, moveMaxMs }`——以生成点为中心 radius 内随机选点移动，每次移动后停留 idleMs，移动时长 moveMinMs~moveMaxMs 随机
+- `noSeparation`（可选）：固定不动，实体分离由对方承担全部位移
+- `obstacle`（可选，**家具型静态 NPC 推荐**）：`{ width, height, offsetY, wallHeight? }`——底座矩形障碍。在 `_setupMainHubTerrain` 与边界墙同入口注册为 WallSystem 静态墙（`noVisual` 跳过墙面视觉），实体 `collisionRadius` 只留小半径（~20），阻挡交给矩形。**不要给家具型 NPC 套大圆 footprint**：圆 X/Y 对称，调大无法靠近、调小贴图错误遮挡；矩形底座宽=贴图底座、深=底座厚度，靠近/绕行/遮挡三者都自然
+
+#### 3. BootScene 加载与动画注册
+`spritesheet` 加载（**必须带 endFrame**），`anims.create` idle 单帧循环 + walk 循环（frameRate 读 sprite.walkFps）。
+
+#### 4. 实体与渲染（已通用，无需改代码）
+- `npc.js`：构造函数接收 `config.sprite`（→ `spriteCfg`）与 `config.wander`（→ `wanderCfg`）；游走由 `NPC._updateWander` 驱动（WallSystem.resolve 撞墙校验、`_pickWanderTarget` 可达性重试），`isMoving`/`_facingLeft` 供动画与翻转
+- `GameScene._syncNeutralEntities`：检测 `e.spriteCfg` 自动创建贴图 Sprite（idle/walk 切换、flipX、名字标签贴图顶部）；无配置回退 `neutral_circle` 纯色圆
+- 生成处（如 `game.js spawnNPC`）把 `shopCfg.sprite / shopCfg.wander` 透传进 NPC config
+
+#### 5. 验证
+lint / vite build / test-collider / test-config-integrity；实机验证 idle/walk 切换、朝向翻转、游走范围与停留节奏、名字标签位置。
+
+### 玩家友方单位添加工作流（2026-08-15 仓鼠矿工首航，世界-122 自动采矿）
+
+> 新增「玩家阵营、可被怪锁定、自动执行任务（如采矿）」的非队员工时，一律走这套。
+> 首航范例：仓鼠矿工（`data/hamster-miner-config.json` + `src/entities/hamster-miner.js` +
+> `src/ai/hamster-miner-ai.js` + `src/world/hamster-miner-system.js`）。
+
+#### 0. 六维属性公式源（2026-08-16：仓鼠单位一律怪物公式）
+- 仓鼠友军单位 `statFormula: 'enemy'` → `Companion._enemyCombatStats` 分支：派生数值
+  （atk/def/matk/mdef/crit/critRes）逐项走怪物同款公式（combat-formulas
+  enemy.calculateCombatStats）：物攻 round(str×0.5+dex×0.5)、物防 floor(con×1.5+str×0.3)、
+  魔攻 floor(int×0.5+wis×0.5)、魔防 floor(wis×1.2+int×0.3)、暴击 floor(2+luck)、
+  暴抗 floor(con)。HP/等级不走此分支（HP 由 baseMaxHp/con 公式在 updateMaxStats 定，
+  等级仍 baseLevel+经验）。
+- 伙伴（伊莉丝/露娜，含凯斯/塞拉）无此标记，**按玩家公式**（2026-08-16 用户确认）：
+  物攻 round(10+str×0.05+dex×0.1)、物防 Math.round(con×1.2+str×0.3)、
+  魔攻 floor(int×1.5+wis×0.5)，且不产生怪物专属字段（mdef/crit/critRes）；
+  test-hamster-guard.mjs 1.6 节已锁定——勿给 companion-config 加 statFormula。
+
+#### 1. 素材与帧布局
+- 精灵图入 `assets/companions/<id>/`（idle/walking/mining/dying 各一张），
+  512×512 帧、8 列 × 4 行网格（先目检行列与有效帧数，再配 frameCount）。
+- 动画帧配置放**独立** `data/<id>-config.json`，**不要**塞进 companion-config.json——
+  那会让它出现在招募池/队员面板；世界-122 工人类单位用独立配置 + BootScene 显式注册。
+- **视觉体量对齐（2026-08-18）**：不能只比较 512×512 画布，必须量首帧 alpha 内容
+  bbox，并按 `有效内容高 × displaySize / frameHeight` 对齐。普通仓鼠战斗单位的有效角色
+  高度基准为约 **78~90px**；细长/留白多的素材应增大 `displaySize`，例如仓鼠牧师内容高
+  173px，设 `displaySize:250` 后为约85px。同步按
+  `(bbox.bottom - frameHeight/2) × displaySize / frameHeight` 重算 `spriteOffsetY`
+  （取负）与实体 `footOffsetY`（取正），并调整 `config.render.hudOffsetY`；禁止只放大
+  `displaySize` 而不校准脚底/血条。
+
+#### 2. 数据（data/hamster-miner-config.json）
+- `baseData.con` 控 HP（公式 base100 + con×10 + 每级10；con=10 → 200）。
+  **2026-08-16 用户口径：baseMaxHp:100 覆盖（con=10 公式 200 → 100）**。
+- `ai`：`walkSpeed/runSpeed`（80）、`miningRange`（**50**，采矿触发 = 50 + 节点半径45 =
+  95px，矿工更贴近矿点）、`attackInterval`（2000）、
+  `attackDamage`（100）、`decisionMs`（120）、`engageRange`（340，小屋防御交战半径）、
+  `attackRange`（48，近战贴脸距离）。
+- 显示/碰撞（2026-08-15 缩小 25%）：`displaySize` 99（132×75%）、`groundRadius`
+  19.5 / `collisionRadius` 19.5 / `bodyHeight` 97.5 / `size` 63。
+- `animations`：walk 两段式 `startFrames:[0,11]`（起步完整 12 帧，repeat 0）+
+  `loopFrames:[2,11]`（循环第 3~12 帧，repeat -1）；mining 素材 19 帧
+  `startFrames:[0,18]`（首次完整挥锄）+ `loopFrames:[4,18]`（后续第 5~19 帧，
+  **repeat 0 单次**）——攻击触发才播，间隔定格 `waitFrame`（第 6 帧，索引 5，
+  2026-08-15 用户口径）；dying `repeat:0` 只播一次。
+  **walking 漂移归一化铁律**：AI 生成走路帧常水平漂移（质心跨度 >2px 即闪回）——
+  `tools/ai-gen/hamster-walk-align.py` 按内容质心对齐到 256 + 脚底 FEET_Y=480，
+  对齐后帧11→2 循环回跳剪影差异须与相邻帧同级。
+
+#### 3. 实体（src/entities/hamster-miner.js）
+- `extends Companion`（复用 data/六维/动画配置/运行时字段），`super(合成 archive)`。
+- `_faction='companion'`（友方）；**`_enemyTargetable=true`** 让防守怪可锁定
+  （2026-08-18 起正式玩家队友也统一开启）；补 `hp/maxHp` getter + `takeDamage` +
+  死亡流程（`_animState='dying'` → 计时 → 从 entities/friendlyUnits 移除）。
+- **隐藏背包**：`_energyCarried`（已携带能量）/ `_energyCapacity`（默认 500，
+  读 `ai.backpackCapacity`）；`applyHutUpgrades` 同步背包扩容；死亡时携带能量全部
+  丢失（飘字提示，不返还不掉落）。
+- `update(dt, entities)` 交给 `HamsterMinerAI` 驱动（注册进 Game.entities 由主循环调）。
+
+#### 4. AI（src/ai/hamster-miner-ai.js）
+- 每 120ms tick：**只采矿**（2026-08-16 用户口径回归：只能对能源矿点攻击、不攻击
+  其他单位）——`pickNearestNode`（只扫 `_isEnergyNode && active && !_depleted`）
+  选最近矿点采矿；无交战分支（`_nearestEnemy`/`_tryAttackEnemy` 已移除），怪贴脸
+  不还手、可被击杀。另有**路径振荡守卫**（航点跳变 >150px 且无进展 → 清路径重算）。
+- 赶路：`_tacticalTarget = 矿点/敌人` + MovementSystem.update（移速 80）；
+  到位（≤ miningRange + 节点半径）：站定 `_animState='mining'`（采矿与近战共用），
+  每 attackInterval 调 `node.takeDamage(attackDamage, 自身, 'physical', true)`；
+  **每次命中置 `m._miningSwing=true`** 通知渲染层播挥锄动画。
+- **寻路/避障铁律（2026-08-15 审计）**：矿工与怪物共用 `MovementSystem`
+  （A*/PathManager/墙碰撞/避障/卡住滑移）；**寻路目标禁止用障碍物中心**——
+  采矿目标用矿点边缘可达点（`approachDist = max(miningRange, 节点半径+自身半径+40)`，
+  并**钳制在采矿范围−15 内**——采矿距离 50 时 ≈80px，障碍外可到达且到位即采矿），
+  回屋用小屋边缘接近点（64px，触发 70px）。AI 层再加卡死看门狗
+  （500ms 位移<3px 累计 2 次 → 挖矿重选目标 / 返回 `WallSystem.findSafeSpawn` 传送）；
+  满载用 `_returnTriggered` 防 work/return 振荡。
+- **顶墙死循环根因（2026-08-15 实锤 + v2 根修）**：`_followPath` 的移动被
+  `WallSystem.resolve` 判“完全阻挡”会每帧 `_clearPath()`（movement-system.js:1071）。
+  实锤根因：起步/转向瞬间 vx≈0 产生**亚像素步长**，resolve 返回原地被误判为完全阻挡 →
+  路径留不住 → 直线顶墙。v1 根修：**只有有效步长（≥1px）被阻挡才清路径**，亚像素抖动
+  直接跳过、速度沿航点累积自然走通。
+  **v2 根修（清路径 → 沿墙滑动）**：≥1px 真阻挡时不再清路径，改走
+  `_applyNormalMovement` 同款 [SLIDE] x/y 轴向滑动（墙角才减速保留路径），
+  交 `PathManager._checkValidity`（1.5~2.5s）定期修复/重算——否则清路径后怪物退回
+  直线顶墙（顶到关门门闸/掩体），500ms×2 位移<3px 触发卡死看门狗 → 回屋偶发
+  **300px 瞬移**（CDP J 阶段 maxJump 302 实锤）。v2 后 J 连跑 3 次 maxJump<60 全绿。
+  接近点外扩到 `max(miningRange, 节点半径+自身半径+40)`（钳制在采矿范围内）；矿工
+  卡死看门狗两段（原地脱困 → 传送矿点旁 95px）降级为罕见安全网。
+- **背包物流三阶段**：`work`（采矿+自动拾取能量掉落进背包，150ms 节流）→
+  背包满 `_startReturn` → 走回小屋 `_startUnload`（idle 2s，不移动不交战；
+  小屋 `unloadMiner` 经 EnergyManager 进玩家背包，满则暂存小屋）→ 2s 后
+  重新出发（2026-08-17 已删小屋开关门动画，不再调 closeDoor）。
+- **挖矿直接入包**：`EnergyNode.takeDamage` 对 `source._isHamsterMiner` 攻击走
+  `addMinedEnergy` 直接装隐藏背包（不产生地面掉落，其余来源仍掉落）；实体
+  `addMinedEnergy` 按容量封顶，满载后下个决策 tick 即回屋。
+- 小屋升级：`applyUpgrades(u)` 同步攻击间隔/伤害/移速/采矿效率；实体
+  `applyHutUpgrades` 委托给 AI。
+
+#### 5. BootScene / GameScene
+- BootScene：加载 `companion_<id>_<动画>` 四张 sheet；动画注册沿用两段式
+  startFrames/loopFrames 逻辑（mining_start 播一次 → mining 循环）。
+- GameScene `_syncCompanionSprites`：渲染对象 = `PartySystem.members` +
+  `Game.friendlyUnits`；动画分支：`dying`（防重播 data 标记）> `mining`（**攻击触发
+  播一次挥锄**：`_miningSwing` + data 标记，首次 mining_start、后续 mining，
+  animationcomplete 后定格 `waitFrame` `setTexture(miningKey, miningWaitFrame)`；
+  间隔不干预挥锄播放）>
+  spell/run > `walk`（**两段式**：`hamsterWalk` 标记，起步 walk_start 完整帧 →
+  animationcomplete 切 walk 循环）> idle 停帧；**移动朝向铁律**：walk 时始终面朝
+  vx 实际移动方向（`member._isHamsterMiner && moving` → `faceRight = vx > 0`），
+  不面朝目标（否则寻路绕行/回小屋会倒退走路）；受击白闪 `hitFlash`；
+  尺寸 `member.displaySize ?? PLAYER_DEFAULTS`；多实例共用素材键 `animId`。
+- **名称/血条（2026-08-15）**：`_syncEntityHud` 对友方单位取
+  `_companionSprites[entity.id]` 精灵锚定（贴图缩放后名字/血条自动跟随）；
+  `hasOwnLabel` 含 `_neutralSprites.has(entity)`——已挂中立标签的建筑
+  （仓鼠小屋/能源矿/掩体/静态 NPC）跳过 HUD 名字，防重复；以后加建筑自动生效。
+  **2026-08-16 用户口径：友军一律不显示名称、只显示血条**——`_syncEntityHud`
+  判 `_faction==='companion'` 进 `isFriendly`：血条常显（不再只在残血时画）、
+  名字并入 hasOwnLabel 跳过。仓鼠单位与伊莉丝/露娜同规则。
+- `_updateDynamicDepths` 的侍从深度查找也要带 friendlyUnits（墙后正常被遮挡）。
+
+#### 6. 生成/仇恨/验证
+- `src/world/hamster-miner-system.js`：保留 setup/teardown 兼容；**2026-08-15 起
+  矿工由「仓鼠小屋」（`src/world/hamster-hut-system.js`，B 面板 1000 能源建造）生成**，
+  `HamsterHut.spawnMiner()` 挂 `_hut` 并注册 entities/friendlyUnits，小屋升级模块
+  同步矿工参数、矿工死亡 respawnMs 补员、小屋被毁矿工随拆。坑：`DamageableEntity`
+  没有 `this.data`，别写 `this.data.def`（构造即崩）。
+- 小屋职责（2026-08-15 扩展）：`unloadMiner` 卸货（玩家背包满 → `_storedEnergy`
+  暂存，小屋被毁即丢失）；update 自动把暂存能量补入玩家背包；升级模块新增「背包扩容」
+  （每级 +100，满级 10）。**2026-08-17 删除开关门动画**（原模型 16 帧滑门素材，
+  小屋换新模型后移除——补员直接生成、卸货不再开门，BootScene 不再加载/注册门动画）。
+- PerceptionSystem `_isValidTarget`：放行 `_faction==='companion' && _enemyTargetable`，
+  防守怪 `_preferDefenseTargets` 按交战半径锁定（与玩家同链，免 LOS 口径不变）。
+- **世界-122目标优先级（2026-08-18）**：统一走
+  `src/ai/defense-target-priority.js`。先按128px距离档位，再按
+  仓鼠→正式玩家队友→玩家→普通建筑→基地；同类再比真实footprint距离/威胁/残血。
+  320px本地无目标时回退远处结构，结构全灭后才搜索远处单位。黑狼自管AI与开门追击
+  必须复用同一选择器，禁止再写独立的“基地>玩家>单位”或只认`faction=player`分支。
+- 正式玩家队友需同时具备 `_isPartyCompanion/_enemyTargetable/hittable` 与
+  `hp/maxHp` 入口；否则会出现“能锁定但攻击判定因 !hittable 跳过”的假攻击。
+- 回归运行 `scripts/test-defense-target-priority.mjs`：覆盖距离档位、类型顺序、结构容量、
+  近仓鼠胜远基地、战略结构与远单位兜底、黑狼/开门统一接线。
+- 验证：`scripts/test-hamster-miner.mjs`（数据+接线契约）+ `tools/cdp-hamster-miner.mjs`
+  （实机 38 项：小屋生成/属性/最近节点/**A2 出生房内自动寻路出基地（pmValid 生效、
+  无传送跳变、离开小屋>150px）**/**A3 基地门双向感应（感应中心=门洞物理中心、
+  矿工站门外侧 100px 关门面自动开门，防门卡死回归）**/采矿挥锄+间隔定格第6帧/每2s-100/行走两段式/
+  双向移动朝向（**探针按不变量采样：vx>0 必朝右、vx<0 必朝左，固定时刻采样会撞上
+  寻路绕障转向瞬间**）/交战自卫生效/**J 真实回屋寻路（无传送，maxJump<60）**/
+  **K 多矿工数量模块并发卸货（能量不丢）**/背包物流/小屋暂存面板/dying 移除）；
+  eslint 0 error + vite build。
+
+#### 7. 仓鼠战士（2026-08-16 战斗型友方单位，世界-122 自动近战）
+
+> 首航矿工是"采矿型"，本条目是**战斗型**第二例：独立配置 + 实体 + AI + 世界-122 生成系统，
+> 复用矿工整套接线（BootScene 加载/动画注册、GameScene 渲染分支、SceneManager 生成/拆除、
+> PerceptionSystem `_enemyTargetable` 放行），差异只在 AI 决策与攻击动画口径。
+
+- **数据（`data/hamster-warrior-config.json`）**：不入 companion-config.json（避免招募池）；
+  `baseMaxHp: 225` 生命覆盖（`Companion._maxHpOverride`，镜像 `baseMaxMp`——con=15 公式
+  250 → 225，升级仍 +10/级）；六维 力量20/敏捷12/智力3/体质15/精神3/幸运5；移速 120、
+  攻击 50/2s、attackRange 55、engageRange 900、followOffset 140。
+- **攻击动画两段式（用户口径）**：从待机/移动进入攻击 → 播放**完整 1~24 帧**一次；
+  持续攻击中 → **第 6~24 帧循环**（`startFrames:[0,23]` + `loopFrames:[5,23]`，
+  GameScene 新增 `hamsterAtk` data 标记分支，attack_start 播完自动切 attack 循环）；
+  **帧率与攻击间隔对齐（2026-08-16 二修）**：起步 24 帧 @12fps = 2.0s、
+  循环 19 帧 @9.5fps = 2.0s，两段周期均 = `attackInterval`（2000ms）——否则动画
+  周期（1.2~1.5s）与 2s 伤害节拍越走越偏，实机表现为"挥砍和掉血对不上"。
+  与矿工 mining 的"单次挥锄 + 定格 waitFrame"不同——战斗攻击是连续循环，直到 AI 切回
+  idle/walk。**素材帧脚底不在 480**（约 356/512，内容高 ~190）时：用
+  `displaySize`（放大到与矿工同屏体量）+ `spriteOffsetY`（脚底贴地）+
+  `entity.footOffsetY`（深度线=逻辑脚底）+ `config.render.hudOffsetY`（名字/血条下拉）
+  四件套补偿，不需要重排素材。
+- **AI（`src/ai/hamster-warrior-ai.js`）**：最近 enemy 索敌（`_faction==='enemy'` 且跳过
+  `_isEnergyNode`，**不攻击矿点**）→ 走位 walk（MovementSystem）→ 攻击范围站定 attack，
+  每 2s `takeDamage(50)`；无敌人跟随玩家（到达必须清 `_tacticalTarget` + `_clearPath` +
+  速度归零，见 lessons #46）；卡死看门狗复用矿工兜底。
+- **生成（2026-08-16 改口径）**：~~世界-122 进入自动生成 1 只~~——用户要求删除
+  默认在基地旁生成的战士/射手，单位改由**仓鼠兵营**（`hamster-barracks-system.js`，
+  每 45s 一个、面板切战士/盾卫）生成；`hamster-warrior-system.js` 保留但主流程不再
+  setup（文件供测试脚本引用）。
+- **验证**：`scripts/test-hamster-warrior.mjs`（数据+接线契约 34 项）+
+  `tools/cdp-hamster-warrior.mjs`（实机 22 项：自动生成/300HP/六维/移速 120/索敌
+  最近敌人/50伤×2s/两段式动画/矿点贴脸不攻击/跟随玩家到位 idle/死亡 dying 移除）；
+  npm test 全绿 + eslint 0 error + vite build。
+
+#### 8. 仓鼠射手（2026-08-16 远程型友方单位，世界-122 自动射击）
+
+> 战斗型第二例的远程版：复用矿工/战士整套接线（BootScene 加载、GameScene 渲染分支、
+> SceneManager 生成/拆除、PerceptionSystem `_enemyTargetable` 放行），差异在
+> 「远程 AI + 投射物渲染 + 第 10 帧出膛」。
+> **素材**：5 张表（idle 1 / running 11 / attacking 13 / dying 11 / projective 1），512 格 8×4；
+> running 前两帧底部有 1~4px 孤立噪点（把 bbox 撑到 y482/490），导入前按「距主体 bbox
+> 外扩 40px 之外的 <12px 连通域」清理（attacking/dying 的弓弦/箭身碎段贴近主体，保留）。
+
+- **数据（`data/hamster-shooter-config.json`）**：`baseMaxHp: 150`（con=10 公式 200 → 150）；
+  六维 力量12/敏捷20/智力3/体质10/精神3/幸运10；移速 150、攻击 60/2s、attackRange 600、
+  engageRange 900、projectileSpeed 600、attackAnimFps 12、attackLaunchFrame 10。
+- **远程攻击（参考露娜）**：`AimHelper.lead` 提前量瞄准「目标贴图中心」（`_targetAimY` =
+  `target._phaserSprite.y`，无精灵退回 `y - bodyHeight/2`）；攻击动画 13 帧 @12fps 单次
+  （repeat 0，AI `_attackSwing` 触发重播），**第 10 帧出膛**：`_launchDelayMs =
+  (launchFrame-1)/fps = 750ms`，AI 计时到点生成 `m._basic` 投射物（600px/s 直线飞行）；
+  GameScene `_syncCompanionBasics` 迭代 `PartySystem.members + friendlyUnits`，射手用
+  projective 贴图渲染箭矢（内容 146×40 尖头朝左，`setRotation(b.angle + Math.PI)`），
+  露娜仍走 impact_dot。命中 60 物理伤害，按目标中心半径 28 判定。
+- **AI（`src/ai/hamster-shooter-ai.js`）**：射程内站定射击（`_shotActive` 期间 attack 动画，
+  动画播完回 idle 等下一发 2s）；敌人超出射程但 < 交战半径 → 走位拉近距离；矿点
+  （`_isEnergyNode`）不攻击；无敌跟随玩家（到位清路径归零速度）；卡死看门狗同款。
+- **验证**：`scripts/test-hamster-shooter.mjs`（38 项，含**仓鼠战士伤害类型=physical 复核**）
+  + `tools/cdp-hamster-shooter.mjs`（实机 21 项：生成/150HP/六维/移速 150/第 10 帧出膛
+  674ms/中心瞄准 aimY=贴图中心/箭矢贴图/60 物理×2s/弹道角=AimHelper.lead 重算/矿点不攻击/
+  跟随到位 idle/死亡 dying 移除）；npm test 全绿 + eslint 0 error + vite build。
+
+#### 9. 仓鼠兵营（2026-08-16 建筑生成单位，世界-122 每 45s 补员）
+
+> 小屋之后第二个「建筑生成单位」：不新增独立"系统生成 1 只"链路，而是由**建筑本体**
+> 持有单位（`HamsterBarracks.units`），建筑面板切换类型/升级，兵营按 30s 节奏补员到
+> 数量上限——单位生命周期（生成/死亡补员/出售/被毁拆除）全部挂建筑，复用战士/射手/
+> 盾卫既有实体与 AI，零新增渲染分支。
+
+- **数据/配置（`src/world/hamster-barracks-system.js`）**：`BARRACKS_CONFIG`——
+  cost 1500 能源 / hp 2000 / displayW×H 170×147（贴图 682×589 等比，高度对齐小屋）/
+  footOffsetY 73 / spawnIntervalMs 45000（2026-08-18 由 30s 调整）/ spawnRadius 90 / **unitCap 5（初始上限
+  即 5 个，2026-08-16 用户口径）**；单位基准值**实时读**
+  `data/hamster-warrior-config.json` + `hamster-guard-config.json`
+  （`unit.<key>.cfg`，不硬编码 50/60 伤害）。
+- **单位类型切换**：`setUnitType('warrior'|'guard')`，面板两个按钮
+  （战士近战 / 盾卫近战·第 10 帧判定；射手/民兵 2026-08-18 已迁靶场/草屋并清理死注册），
+  切换后下一次生成生效且**重置 `_spawnTimer` 重新计时**（2026-08-18 口径，原「保留计时」作废）；`_findUnitSpawn` 兵营周围
+  90px 内 WallSystem 校验合法落点（兜底兵营脚下）。
+
+#### 10. 仓鼠盾卫（2026-08-16 战斗型第三例，兵营单位）
+
+> 战斗型第三例：近战 + **攻击动画第 10 帧判定伤害**（区别于战士的"间隔出伤"、射手的
+> "第 10 帧出膛"）。用户口述"4×8 裁剪"与实测不符——**素材实测 8 列 × 4 行、512² 格
+> （4096×2048）**：idle 1 / running 17 / attacking 12 / dying 15 帧（目检铁律再次验证）。
+
+- **数据（`data/hamster-guard-config.json`）**：`baseMaxHp: 300`（con=25 公式
+  100+250=350 → 300，2026-08-16 用户口径）；`statFormula:'enemy'`（六维派生走怪物公式，见工作流
+  第 0 条）；六维 力量13/敏捷10/智力3/体质25/精神3/幸运3；移速 100、
+  攻击 30/2s、attackRange 55、engageRange 900、attackAnimFps 12、**attackDamageFrame 10**。
+- **第 10 帧判定机制**：攻击动画 12 帧 @12fps 单次播放（repeat 0，1.0s）；AI 挥击
+  （`_swingActive`，同射手 `_shotActive` 状态机）起手后 `_damageDelayMs =
+  (attackDamageFrame-1)/fps = 750ms` 出伤一次，动画播完回 idle 等 2s 间隔；
+  GameScene 攻击分支并入射手"单次播放 + 定格末帧"（`member._isHamsterShooter ||
+  member._isHamsterGuard`），零新渲染分支。
+- **AI（`src/ai/hamster-guard-ai.js`）**：最近 enemy 索敌（跳过 `_isEnergyNode` 矿点）
+  → 走位 walk（MovementSystem）→ 攻击范围挥击站定；无敌人跟随玩家；卡死看门狗同款。
+- **生成**：兵营 `unit.guard` + 面板第三按钮；升级同步映射
+  `_isHamsterGuard → 'guard'`；`scripts/test-hamster-guard.mjs` 59 项全绿
+  （含**四仓鼠单位怪物公式派生逐项校验** atk/def/matk/mdef/crit/critRes——
+  盾卫 12/41/3/4/5/25，HP 350 不变）。
+- **升级模块（复制仓鼠小屋口径）**：每级统一 1000 金币 + 500 能源——攻击加速
+  （间隔 -6%/级）、攻击强化（伤害 +12%/级）、机动强化（移速 +5%/级）、
+  生命强化（生命 +10%/级）；矿工专属的采矿效率/背包扩容不复制，数量模块也不设
+  （兵营上限固定 5，初始即有，无需"仓鼠增援"）。`upgradeModule` 先扣资源再升级，升级后
+  `applyUpgradesToUnits()` 让**现有单位实时生效**（不是只对新单位生效）。
+- **升级同步两坑**：① 战士/射手 `applyBarracksUpgrades(u)` 必须同时写
+  `_ai._attackInterval/_attackDamage/_attackRange` 与 `aiConfig`（AI 每帧从
+  `_ai` 读间隔/伤害、渲染/契约从 aiConfig 读）；② 生命强化走
+  `_maxHpOverride` + `updateMaxStats()`（Companion 构造后 hp 已按 con 公式算好，
+  直接改 maxHp 不会重算当前血量比例）。
+- **生命周期**：单位死亡 → `aliveUnitCount() < unitCount()` 计时补员（死亡立即
+  从下个 30s 节拍开始）；兵营出售/被毁 → `_despawnUnits()` 同步拆单位（active=false
+  + 移出 entities/friendlyUnits），面板自动关闭；teardown 离场同样拆干净。
+- **面板（BasePanel 复用）**：状态区（等级/耐久/存活数/下次生成秒数）、
+  类型切换按钮、4 个升级按钮、出售（返还 50% 能源）；点击兵营开/关，
+  玩家距离 >260px 不可交互。**出发进度条实时刷新（2026-08-16）**：面板打开期间
+  `setInterval(100ms)` 只更新 `#hbSpawnBar` 宽度/百分比/剩余秒数（querySelector
+  直改，不重建 innerHTML），CSS `transition: width 0.2s linear` 平滑增长；
+  关闭面板 clearInterval 防泄漏；切换单位类型重置 `_spawnTimer` 重新计时
+  （2026-08-18 口径，旧「不重置」说法作废——lessons #55 只保留进度条刷新模式）。
+- **验证**：CDP 实机探针——贴图加载、默认战士生成（dmg 50/hp 300）、切射手
+  （dmg 60/hp 150）、升 damage 模块后现有战士伤害 50→56 实时生效、
+  面板标题/按钮/状态正常、单位死亡后 update 立即补员；eslint 0 error + vite build。
+
+#### 11. 仓鼠民兵（2026-08-17 战斗型第四例，兵营/草屋单位）
+
+> 战斗型第四例：近战 + **攻击动画第 8 帧判定伤害**（区别于战士"间隔出伤"、射手"第 10 帧
+> 出膛"、盾卫"第 10 帧判定"）。素材 4096×2048（8 列 × 4 行 512² 格）：idle 1 /
+> running 12 / attacking 15 / dying 14 帧（逐帧 bbox 目检 + GLM-4.6V 验收：同一角色、
+> 草叉从左往右挥、脚底 ~350 统一）。running 质心漂移 17.5px →
+> `hamster-walk-align.py --feet-y 350` 归一化（cx 跨度 0.9px）。
+
+- **数据（`data/hamster-militia-config.json`）**：`baseMaxHp: 125`（con=6 公式
+  100+60=160 → 125，2026-08-17 用户口径）；`statFormula:'enemy'`（六维派生走怪物公式：
+  力量8/敏捷10/智力3/体质6/精神3/幸运7 → atk 9 / def 11 / matk 3 / mdef 4 / crit 9 /
+  critRes 6）；移速 150、攻击 20/2s、attackRange 55、engageRange 900；
+  **attackDamageFrame 8**（攻击动画 15 帧 @12fps 单次播放，出伤延迟
+  (8-1)/12 = 583ms）；音效与战士/盾卫共用 `hamster_melee_attack.mp3`。
+- **实体/AI**：`hamster-militia.js` + `hamster-militia-ai.js` 完全复用盾卫模式
+  （`_swingActive` 站定挥击状态机、`MovementSystem` 移动、卡死看门狗、无敌跟随玩家、
+  RTS 命令、`_isEnergyNode` 矿点不攻击）；dying 14 帧 @12fps = 1167ms。
+- **渲染**：GameScene `_isHamsterMilitia` 并入射手/盾卫"单次播放 + 定格末帧"分支
+  （`_attackSwing` 触发），移动朝向 vx、受击白闪同款；spriteOffsetY -55 /
+  footOffsetY 55（脚底 ~350/512，displaySize 300——2026-08-17 用户反馈民兵偏小，
+  与战士/盾卫对比后 226→300 放大 1.33×）。
+- **生成**：草屋专属（`producer-buildings.json` unitTypes + PRODUCER_UNIT_CFG/CLASS/
+  unitKindOf）；2026-08-18 兵营死注册已清理（unit.militia/导入/生成分支移除，
+  旧档兵营 unitType 由 spawnUnit 纠正为战士）；升级同步走 `applyBarracksUpgrades`（复用战士/盾卫模块口径）。
+  **顺手修产兵建筑既有 bug**：`applyUpgradesToUnits` 误从 `ai` 块读 `baseMaxHp`
+  （恒 300）→ 改为从单位配置根读，民兵 125 等 HP 覆盖真正生效。
+- **升级全局化（2026-08-17 用户口径）**：`src/world/unit-upgrade-store.js` 全局兵种升级
+  登记表 `GLOBAL_UNIT_UPGRADES`——在任一产兵建筑/仓鼠兵营升级（作用于当前生成兵种）→
+  该兵种全局等级 +1，场景内**所有该兵种单位（跨建筑）实时同步**，新生成单位也读全局等级；
+  兵营/草屋/铁匠铺共用同一份等级（不叠加）；面板等级 = 当前兵种全局等级。
+  仓鼠小屋（矿工）暂保持建筑级（经济模块为主）。等级通过
+  `serializeUnitUpgrades/restoreUnitUpgrades/resetUnitUpgrades` 接入主存档：
+  场景切换保留、读档恢复、新游戏重置。
+- **验证**：`scripts/test-hamster-militia.mjs`（44 项：数据契约/怪物公式派生/
+  AI 接线/兵营+草屋注册）+ test-hamster-guard 共享段补民兵派生校验（61 项全绿）；
+  `tools/cdp-hamster-militia.mjs` 实机探针（生成/125HP/六维/移速 150/第 8 帧出伤
+  583ms 窗口/单次播放无 _start/20 物理×2s/矿点不攻击/跟随到位 idle/死亡移除）；
+  eslint 0 error + vite build + npm test 全绿。
+
+#### 12. 仓鼠斥候（2026-08-17 远程第二例，草屋专属单位）
+
+> 远程第二例（参考仓鼠射手）：**攻击动画第 11 帧出膛**、AimHelper.lead 提前量瞄目标
+> 贴图中心、投射物 600px/s；**只能在仓鼠草屋生成**（unitTypes=[militia,scout]，
+> 铁匠铺/兵营不生成斥候）。素材 4096×2048（8 列 × 4 行 512² 格）：idle 6（呼吸待机）/
+> running 13（用户口述 15，实盘仅 13 个有效帧，帧 13/14 为空——配置按 13 修正，
+> 否则奔跑循环每圈播 2 帧空白 → 贴图瞬间消失）/ attacking 18 / dying 11 /
+> projective 1 帧；running 质心漂移 29px →
+> `hamster-walk-align.py --feet-y 282` 归一化（cx 跨度 0.8px）。**2026-08-17 二修**：
+> 首版 displaySize 260 用户反馈过小，与战士/盾卫/民兵对比后 260→340（idle 92×74，
+> 接近战士 81×85/盾卫 91×89 体量）。
+
+- **数据（`data/hamster-scout-config.json`）**：`baseMaxHp: 100`（con=7 公式
+  100+70=170 → 100）；`statFormula:'enemy'`（力量8/敏捷13/智力3/体质7/精神3/幸运10 →
+  atk 11 / def 12 / matk 3 / mdef 4 / crit 12 / critRes 7）；移速 150、
+  攻击 25 物理/2.5s、射程 600、投射物 600px/s、**attackLaunchFrame 11**（18 帧 @12fps
+  单次播放，出膛延迟 (11-1)/12 = 833ms）；出膛音效复用射手素材。
+- **实体/AI**：`hamster-scout.js` + `hamster-scout-ai.js` 完全复用射手模式（`_shotActive`
+  站定状态机、`AimHelper.lead`、`_targetAimY` 贴图中心、命中半径 28、MovementSystem、
+  卡死看门狗、无敌跟随玩家、RTS 命令、`_isEnergyNode` 矿点不攻击）；dying 11 帧 ≈1000ms。
+  **2026-08-17 二修（攻击动画）**：斥候攻击动画偶发不播放——AI 挥击计时与动画时长完全相等，
+  最后一帧切 idle 时多帧待机分支会打断攻击动画，`animationcomplete` 不触发 → `shooterSwing`
+  标记残留 → 下次攻击不再播。修复三件套：① AI 挥击结束主动清 `_attackSwing`；② 动画计时
+  +60ms 余量（`_shotAnimMs`/`_swingAnimMs`，播完再切 idle）；③ 渲染层残留自愈分支
+  （`member._attackSwing` 置位但 `shooterSwing` 卡 true → 重置下一帧重播）。
+  射手/盾卫/民兵同步加 ①③ 修复。
+- **渲染**：GameScene `_isHamsterScout` 并入射手"单次播放 + 定格末帧"分支；**多帧待机**——
+  idle 6 帧（frameCount>1）循环播放（新增分支，伊莉丝/露娜 idle 1 帧不受影响）；
+  投射物渲染 `_syncCompanionBasics` 扩展：斥候尖头朝右（内容宽 172，旋转 = 飞行角，
+  与射手尖头朝左 +180° 区分），**帧随单位模型 displaySize 等比放大**（2026-08-17 用户口径：
+  基准 226→箭身 72px；斥候 340→箭身 ≈108px、帧 ≈322 方形）；移动朝向 vx、受击白闪、
+  移动烟尘同款；spriteOffsetY -17 / footOffsetY 17（脚底 ~282/512，displaySize 340）。
+- **生成**：仅仓鼠草屋 `producer-buildings.json` unitTypes=[militia, scout]（默认仍民兵），
+  铁匠铺/兵营不含斥候；PRODUCER_UNIT_CFG/CLASS + 兵种升级表（scout 独立全局等级）已注册。
+
+#### 13. 仓鼠火枪与靶场（2026-08-18）
+- 素材统一为8列×4行、512×512帧：idle 9、running 11、attacking 21、dying 15；
+  配置唯一源 `data/hamster-musketeer-config.json`，实体/AI分别为
+  `hamster-musketeer.js` / `hamster-musketeer-ai.js`。
+- AI：最近enemy、跳过能源矿；120px/s、80物理、2.5s间隔、650射程；
+  AimHelper.lead瞄目标贴图中心，第10帧出膛并播放fire.mp3。
+- 投射物不依赖图片，GameScene以Phaser Rectangle绘制54×4黄色ADD曳光弹，
+  弹速1248（P4040同口径），AI负责飞行/墙阻挡/命中。
+- 靶场配置在producer-buildings `shooting_range`：按兵种区分产出速度——
+  musketeer 60s / shooter 45s（unitTypes 条目 spawnIntervalMs 覆盖建筑级，
+  `ProducerBuilding._unitSpawnIntervalMs` 查询）、上限5，复用通用升级和进度条；
+  切换兵种重置 `_spawnTimer` 重新计时（2026-08-18，兵营 45s/草屋同口径）。
+  仓鼠兵营只允许warrior/guard，旧shooter实例兼容但禁止继续选择/生成。
+- 新兵种必须同步BootScene加载/动画注册、GameScene仓鼠标记分支、
+  PRODUCER_UNIT_CFG/CLASS、unit-upgrade-store和defense-target-priority。
+- 回归：`scripts/test-hamster-musketeer.mjs`。
+- **验证**：`scripts/test-hamster-scout.mjs`（数据契约/怪物公式派生/AI 接线/草屋专属断言）
+  + test-hamster-guard 共享段补斥候派生；`tools/cdp-hamster-scout.mjs` 实机探针
+  （生成/100HP/六维/移速 150/第 11 帧出膛 833ms 窗口/中心瞄准/箭矢贴图尖头朝右/
+  25 物理×2.5s/矿点不攻击/多帧待机/跟随到位 idle/死亡移除）。
+
+#### 14. 仓鼠牧师、教堂与激励魔法（2026-08-18）
+
+- **素材/数据**：独立配置 `data/hamster-priest-config.json`，4 张 8列×4行表：
+  idle 10、running 13、dying 16、praying 17 帧。六维为 5/5/20/5/15/5，
+  `statFormula:'enemy'`、`baseMaxHp:100`、移速120；初始 `skills:['holyLight']` 即 1 级圣光。
+- **教堂生产**：`producer-buildings.json.church` 为唯一配置，90 秒补 1 名、上限 2 名，
+  仅生产 `priest`；必须同步 `PRODUCER_UNIT_CFG/CLASS`、`unit-upgrade-store`、
+  BootScene 贴图加载和 GameScene 友军动画分支。
+- **不可打断施法状态机**：圣光与激励都进入 `HamsterPriestAI._startPrayerCast`，锁移动、
+  锁决策、播放一次 `praying`，**第 8 帧**结算，完整 17 帧结束后才允许跟随/下一次施法；
+  指令不能取消进行中的 praying，死亡是唯一允许中断。
+- **圣光逻辑**：冷却就绪时优先选受伤比例最高的玩家/友军/自身；全员满血时才选择
+  600px 内最近 enemy 造成圣光伤害。教堂升级 `castSpd` 为 CD 每级 -5%，
+  `holyLight` 每级 +1 圣光等级；升级必须同时同步当前单位与后续生成单位。
+- **铁匠铺研究「激励魔法」**：全局能力 `inspire_magic`，Lv.1 解锁后每位牧师各有
+  30 秒 CD；在自身 300px 内对 player/companion 施加既有 `applyInspire`
+  （移速×1.33、物攻×1.5）。持续时间 Lv.1=10 秒、Lv.10=20 秒；重复施加只刷新时间。
+  `Companion` 需要具备 statusEffects 的计时、applyInspire 与到期还原，所有仓鼠 update
+  和 PartySystem.updateCombat 都必须推进该计时，GameScene 的 inspire 光环还须遍历正式队友。
+
+---
+

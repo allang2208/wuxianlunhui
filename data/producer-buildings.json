@@ -1,5 +1,5 @@
 {
-  "_comment": "产兵建筑配置表（唯一真源）：building-system.js 据此生成可建条目，producer-building-system.js 据此驱动出兵。以后新增/替换产兵建筑只需加一条配置 + 对应贴图（BootScene 加载），无需改代码。出兵时间=spawnIntervalMs，出品种类=unitTypes/defaultUnitType。",
+  "_comment": "产兵建筑配置表：building-system.js 据此生成可建条目，producer-building-system.js 据此驱动出兵。升级项目统一由 building-upgrades.json 维护，建筑通过 upgradeProject 关联；出兵时间=spawnIntervalMs，出品种类=unitTypes/defaultUnitType。",
   "thatch_hut": {
     "id": "thatch_hut",
     "name": "仓鼠草屋",
@@ -9,9 +9,9 @@
     "def": 60,
     "mdef": 60,
     "tex": "thatch_hut",
-    "displayW": 288,
-    "displayH": 231,
-    "footOffsetY": 116,
+    "displayW": 275,
+    "displayH": 225,
+    "footOffsetY": 113,
     "sellRefundRatio": 0.5,
     "spawnIntervalMs": 10000,
     "spawnRadius": 90,
@@ -21,13 +21,7 @@
       { "key": "militia", "name": "仓鼠民兵" },
       { "key": "scout", "name": "仓鼠斥候" }
     ],
-    "upgradeCost": { "gold": 1000, "energy": 500 },
-    "modules": {
-      "attackSpd": { "name": "攻击加速", "icon": "⚡", "per": -0.06, "maxLevel": 10, "desc": "攻击间隔 -{pct}%" },
-      "damage": { "name": "攻击强化", "icon": "⚔️", "per": 0.12, "maxLevel": 10, "desc": "每次攻击伤害 +{pct}%" },
-      "moveSpd": { "name": "机动强化", "icon": "👟", "per": 0.05, "maxLevel": 10, "desc": "移动速度 +{pct}%（每级 +5%）" },
-      "hp": { "name": "生命强化", "icon": "❤️", "per": 0.10, "maxLevel": 10, "desc": "单位生命 +{pct}%" }
-    }
+    "upgradeProject": "combat_standard"
   },
   "blacksmith": {
     "id": "blacksmith",
@@ -38,9 +32,9 @@
     "def": 60,
     "mdef": 60,
     "tex": "blacksmith",
-    "displayW": 288,
-    "displayH": 276,
-    "footOffsetY": 138,
+    "displayW": 279,
+    "displayH": 197,
+    "footOffsetY": 98,
     "sellRefundRatio": 0.5,
     "spawnEnabled": false,
     "spawnIntervalMs": 10000,
@@ -48,88 +42,7 @@
     "unitCap": 0,
     "defaultUnitType": "",
     "unitTypes": [],
-    "abilityUpgrade": {
-      "goldBase": 150,
-      "goldGrowth": 1.3,
-      "energyBase": 200,
-      "energyGrowth": 1.35,
-      "timeBaseMs": 60000,
-      "timeGrowthMs": 0
-    },
-    "abilities": {
-      "poison_arrow": {
-        "id": "poison_arrow",
-        "name": "毒箭",
-        "icon": "☠️",
-        "target": "shooter",
-        "base": 0.2,
-        "per": 0.05,
-        "maxLevel": 10,
-        "desc": "仓鼠射手命中 {chance}% 概率叠加一层中毒（每级 +5%）"
-      },
-      "auto_guard": {
-        "id": "auto_guard",
-        "name": "自动防御",
-        "icon": "🛡️",
-        "target": "guard",
-        "base": 0.25,
-        "per": 0.05,
-        "maxLevel": 10,
-        "desc": "仓鼠盾卫受击 {chance}% 概率触发，减免 50% 伤害（每级 +5%）"
-      },
-      "sweep_aoe": {
-        "id": "sweep_aoe",
-        "name": "横扫",
-        "icon": "💥",
-        "target": "warrior",
-        "base": 0.2,
-        "per": 0.05,
-        "maxLevel": 10,
-        "desc": "仓鼠战士普攻附带前方扇形 AOE，造成 {dmg}% 额外伤害（每级 +5%）"
-      },
-      "mark_arrow": {
-        "id": "mark_arrow",
-        "name": "标记箭",
-        "icon": "🎯",
-        "target": "scout",
-        "base": 0.25,
-        "per": 0.05,
-        "maxLevel": 10,
-        "desc": "仓鼠斥候命中 {chance}% 概率标记目标 3 秒，期间目标受所有伤害 +15%（每级 +5% 概率）"
-      },
-      "armor_piercing_round": {
-        "id": "armor_piercing_round",
-        "name": "穿甲弹",
-        "icon": "🔩",
-        "target": "musketeer",
-        "firstLevel": 0.25,
-        "per": 0.025,
-        "maxLevel": 10,
-        "desc": "仓鼠火枪获得 {pct} 护甲穿透（Lv.1 为 25%，之后每级 +2.5%）"
-      },
-      "inspire_magic": {
-        "id": "inspire_magic",
-        "name": "激励魔法",
-        "icon": "📣",
-        "target": "priest",
-        "firstLevel": 10000,
-        "per": 1111.111111111111,
-        "displayMode": "seconds",
-        "maxLevel": 10,
-        "radius": 300,
-        "cooldownMs": 30000,
-        "speedMul": 1.33,
-        "atkMul": 1.5,
-        "desc": "仓鼠牧师每 {cooldown}s 为 {radius}px 内友军施加激励：移速 +33%、物攻 +50%，持续 {value}"
-      }
-    },
-    "upgradeCost": { "gold": 1000, "energy": 500 },
-    "modules": {
-      "attackSpd": { "name": "攻击加速", "icon": "⚡", "per": -0.06, "maxLevel": 10, "desc": "攻击间隔 -{pct}%" },
-      "damage": { "name": "攻击强化", "icon": "⚔️", "per": 0.12, "maxLevel": 10, "desc": "每次攻击伤害 +{pct}%" },
-      "moveSpd": { "name": "机动强化", "icon": "👟", "per": 0.05, "maxLevel": 10, "desc": "移动速度 +{pct}%（每级 +5%）" },
-      "hp": { "name": "生命强化", "icon": "❤️", "per": 0.10, "maxLevel": 10, "desc": "单位生命 +{pct}%" }
-    }
+    "upgradeProject": "blacksmith_special"
   },
   "church": {
     "id": "church",
@@ -140,9 +53,9 @@
     "def": 80,
     "mdef": 120,
     "tex": "church",
-    "displayW": 256,
-    "displayH": 250,
-    "footOffsetY": 125,
+    "displayW": 275,
+    "displayH": 269,
+    "footOffsetY": 134,
     "sellRefundRatio": 0.5,
     "spawnIntervalMs": 90000,
     "spawnRadius": 90,
@@ -151,13 +64,7 @@
     "unitTypes": [
       { "key": "priest", "name": "仓鼠牧师" }
     ],
-    "upgradeCost": { "gold": 1000, "energy": 500 },
-    "modules": {
-      "castSpd": { "name": "施法加速", "icon": "⚡", "per": -0.05, "maxLevel": 10, "desc": "圣光冷却 -{pct}%" },
-      "holyLight": { "name": "圣光强化", "icon": "✨", "per": 1, "base": 1, "maxLevel": 10, "desc": "圣光等级 Lv.{level}" },
-      "moveSpd": { "name": "机动强化", "icon": "👟", "per": 0.05, "maxLevel": 10, "desc": "移动速度 +{pct}%" },
-      "hp": { "name": "生命强化", "icon": "❤️", "per": 0.10, "maxLevel": 10, "desc": "单位生命 +{pct}%" }
-    }
+    "upgradeProject": "priest_support"
   },
   "portal": {
     "id": "portal",
@@ -168,9 +75,10 @@
     "def": 80,
     "mdef": 80,
     "tex": "portal",
-    "displayW": 288,
-    "displayH": 305,
-    "footOffsetY": 153,
+    "displayW": 335,
+    "displayH": 354,
+    "footOffsetY": 177,
+    "autoFootprint": false,
     "sellRefundRatio": 0.5,
     "spawnEnabled": false,
     "spawnIntervalMs": 10000,
@@ -185,8 +93,7 @@
       { "sceneId": "scene9", "label": "世界-123·雪原", "icon": "❄️" },
       { "sceneId": "scene10", "label": "世界-124·林地", "icon": "🌲" },
       { "sceneId": "scene11", "label": "世界-125·地牢遗迹", "icon": "🕯️" }
-    ],
-    "modules": {}
+    ]
   },
   "research_institute": {
     "id": "research_institute",
@@ -197,9 +104,9 @@
     "def": 70,
     "mdef": 90,
     "tex": "research_institute",
-    "displayW": 288,
-    "displayH": 277,
-    "footOffsetY": 139,
+    "displayW": 275,
+    "displayH": 268,
+    "footOffsetY": 134,
     "sellRefundRatio": 0.5,
     "spawnEnabled": false,
     "spawnIntervalMs": 10000,
@@ -210,51 +117,7 @@
     "workshopType": "research",
     "workshopTitle": "🔬 研究院",
     "workshopDesc": "研究成果全局强化世界-122的防御结构、能源产出与募兵速度",
-    "abilityUpgrade": {
-      "goldBase": 200,
-      "goldGrowth": 1.35,
-      "energyBase": 300,
-      "energyGrowth": 1.4,
-      "timeBaseMs": 60000,
-      "timeGrowthMs": 0
-    },
-    "abilities": {
-      "research_structure_hp": {
-        "id": "research_structure_hp",
-        "name": "防御结构强化",
-        "icon": "🧱",
-        "target": "方块墙与4格门",
-        "base": 0,
-        "per": 0.1,
-        "displayMode": "percent",
-        "maxLevel": 10,
-        "desc": "方块墙与4格门最大生命 +{pct}%（每级 +10%）"
-      },
-      "research_passive_energy": {
-        "id": "research_passive_energy",
-        "name": "能源回收矩阵",
-        "icon": "⚡",
-        "target": "全局能源",
-        "base": 0,
-        "per": 1,
-        "displayMode": "flat",
-        "maxLevel": 10,
-        "desc": "每秒被动获得 {value} 能源（每级 +1）"
-      },
-      "research_recruit_speed": {
-        "id": "research_recruit_speed",
-        "name": "快速募兵",
-        "icon": "🚀",
-        "target": "所有军事产兵建筑",
-        "firstLevel": 0.1,
-        "per": 0.02,
-        "displayMode": "percent",
-        "maxLevel": 10,
-        "desc": "全局募兵速度 +{pct}（Lv.1 为 10%，之后每级 +2%）"
-      }
-    },
-    "upgradeCost": { "gold": 1000, "energy": 500 },
-    "modules": {}
+    "upgradeProject": "research_standard"
   },
   "warehouse": {
     "id": "warehouse",
@@ -266,9 +129,9 @@
     "def": 60,
     "mdef": 60,
     "tex": "warehouse",
-    "displayW": 288,
-    "displayH": 308,
-    "footOffsetY": 150,
+    "displayW": 278,
+    "displayH": 298,
+    "footOffsetY": 145,
     "sellRefundRatio": 0.5,
     "spawnEnabled": false,
     "spawnIntervalMs": 10000,
@@ -277,8 +140,7 @@
     "defaultUnitType": "",
     "unitTypes": [],
     "workshopType": "warehouse",
-    "storageCapacity": 5000,
-    "modules": {}
+    "storageCapacity": 5000
   },
   "shooting_range": {
     "id": "shooting_range",
@@ -289,9 +151,9 @@
     "def": 60,
     "mdef": 60,
     "tex": "shooting_range",
-    "displayW": 288,
-    "displayH": 272,
-    "footOffsetY": 136,
+    "displayW": 272,
+    "displayH": 217,
+    "footOffsetY": 109,
     "sellRefundRatio": 0.5,
     "spawnIntervalMs": 60000,
     "spawnRadius": 90,
@@ -301,12 +163,28 @@
       { "key": "musketeer", "name": "仓鼠火枪", "spawnIntervalMs": 60000 },
       { "key": "shooter", "name": "仓鼠射手", "spawnIntervalMs": 45000 }
     ],
-    "upgradeCost": { "gold": 1000, "energy": 500 },
-    "modules": {
-      "attackSpd": { "name": "攻击加速", "icon": "⚡", "per": -0.06, "maxLevel": 10, "desc": "攻击间隔 -{pct}%" },
-      "damage": { "name": "攻击强化", "icon": "⚔️", "per": 0.12, "maxLevel": 10, "desc": "每次攻击伤害 +{pct}%" },
-      "moveSpd": { "name": "机动强化", "icon": "👟", "per": 0.05, "maxLevel": 10, "desc": "移动速度 +{pct}%" },
-      "hp": { "name": "生命强化", "icon": "❤️", "per": 0.10, "maxLevel": 10, "desc": "单位生命 +{pct}%" }
-    }
+    "upgradeProject": "shooting_range_special"
+  },
+  "cavalry_school": {
+    "id": "cavalry_school",
+    "name": "骑兵学校",
+    "cost": 1500,
+    "hp": 2000,
+    "radius": 128,
+    "def": 60,
+    "mdef": 60,
+    "tex": "cavalry_school",
+    "displayW": 266,
+    "displayH": 202,
+    "footOffsetY": 101,
+    "sellRefundRatio": 0.5,
+    "spawnIntervalMs": 45000,
+    "spawnRadius": 90,
+    "unitCap": 5,
+    "defaultUnitType": "knight",
+    "unitTypes": [
+      { "key": "knight", "name": "仓鼠骑士", "spawnIntervalMs": 45000 }
+    ],
+    "upgradeProject": "cavalry_charge"
   }
 }

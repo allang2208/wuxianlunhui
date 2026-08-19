@@ -1,0 +1,81 @@
+{
+  "id": "hamster_knight",
+  "name": "仓鼠骑士",
+  "title": "基地冲锋骑士",
+  "desc": "手持重剑的仓鼠骑士，在世界-122 自动寻找最近的敌人近战输出。普攻第 16 帧造成 100 点物理伤害，并可发动持盾冲锋。",
+  "role": "knight",
+  "growthRule": "warrior",
+  "avatar": "🐹🛡️",
+  "weaponType": "sword",
+  "baseLevel": 1,
+  "baseExp": 0,
+  "baseMaxHp": 600,
+  "baseData": { "str": 30, "dex": 15, "int": 5, "con": 20, "wis": 3, "luck": 5 },
+  "statFormula": "enemy",
+  "skills": [],
+  "sounds": {
+    "attack": "assets/sounds/friendly/hamster_melee_attack.mp3"
+  },
+  "ai": {
+    "role": "melee_knight",
+    "walkSpeed": 210,
+    "runSpeed": 210,
+    "attackInterval": 2000,
+    "attackDamage": 100,
+    "attackRange": 55,
+    "engageRange": 900,
+    "attackAnimFps": 20.6666666667,
+    "attackDamageFrame": 16,
+    "followOffset": 155,
+    "followArriveDist": 40,
+    "decisionMs": 120,
+    "teleportDist": 999999,
+    "teleportHardDist": 9999999,
+    "charge": {
+      "cooldown": 15000,
+      "maxSpeed": 700,
+      "accelDuration": 1500,
+      "maxDuration": 4500,
+      "maxDistance": 1800,
+      "minTriggerRange": 300,
+      "triggerRange": 550,
+      "hitRange": 60,
+      "damageMul": 2,
+      "knockback": 200,
+      "stunMs": 2500,
+      "frames": 30,
+      "frameRate": 12,
+      "hitStartFrame": 15,
+      "hitEndFrame": 22
+    }
+  },
+  "displaySize": 390,
+  "spriteOffsetY": -74,
+  "animations": {
+    "idle": {
+      "src": "assets/companions/hamster_knight/idle.png",
+      "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 4,
+      "frameCount": 11, "frames": [0, 10], "frameRate": 6, "repeat": -1
+    },
+    "walk": {
+      "src": "assets/companions/hamster_knight/running.png",
+      "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 4,
+      "frameCount": 12, "frames": [0, 11], "frameRate": 12, "repeat": -1
+    },
+    "attack": {
+      "src": "assets/companions/hamster_knight/attacking.png",
+      "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 4,
+      "frameCount": 31, "frames": [0, 30], "frameRate": 20.6666666667, "repeat": 0
+    },
+    "charge": {
+      "src": "assets/companions/hamster_knight/charging.png",
+      "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 4,
+      "frameCount": 30, "frames": [0, 29], "frameRate": 12, "repeat": 0
+    },
+    "dying": {
+      "src": "assets/companions/hamster_knight/dying.png",
+      "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 4,
+      "frameCount": 14, "frames": [0, 13], "frameRate": 12, "repeat": 0
+    }
+  }
+}

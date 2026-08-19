@@ -1,5 +1,5 @@
 // ============================================================
-// 仓鼠小屋（世界-122 建筑，2026-08-15）
+// 矿工营地（世界-122 建筑，2026-08-15）
 // - B 建筑面板放置，价格 1000 能源；建造后生成一只仓鼠矿工；
 // - 升级参考防御塔面板（能源货币），5 个模块：
 //   采矿效率 / 攻击间隔 / 攻击力 / 移动速度(+5%/级) / 仓鼠数量(+1/级)；
@@ -21,8 +21,12 @@ import { setupStructureDepth } from './structure-depth.js';
 import { Renderer } from './renderer.js';
 import { TWO_BY_TWO_BUILDING_FOOT, applyBuildingFootprint } from './building-footprint.js';
 import { SpawnPlacement } from './spawn-placement.js';
+import { getBuildingUpgradeProject } from './building-upgrade-projects.js';
+import { getUpgradeMultsFromLevels } from './unit-upgrade-store.js';
 
 // ==================== 配置 ====================
+
+const HUT_UPGRADE_PROJECT = getBuildingUpgradeProject('miner_economy') || {};
 
 export const HAMSTER_CONFIG = {
     hut: {
@@ -34,10 +38,10 @@ export const HAMSTER_CONFIG = {
         maxLevel: 10,
         maxHp: 1500,
         tex: 'mine',
-        // 2026-08-17 回退：显示尺寸统一到草屋同款 144×147（不再放大）
-        displayW: 288,
-        displayH: 294,
-        footOffsetY: 147,
+        // 2026-08-19：48 步生图成品紧身裁剪847×761，按底座256×128标定。
+        displayW: 277,
+        displayH: 217,
+        footOffsetY: 109,
         sellRefundRatio: 0.5,
         minerSpawnRadius: 70,
         respawnMs: 60000,        // 矿工死亡后 1 分钟才补员
@@ -54,16 +58,9 @@ export const HAMSTER_CONFIG = {
         miningMult: 1,            // 采矿效率倍率（升级 +15%/级）
         backpackCapacity: 500,    // 旧存档兼容；新采矿不再经过矿工背包
     },
-    // 升级统一费用：每升一级消耗 1000 金币 + 500 能源（2026-08-15 用户口径）
-    upgradeCost: { gold: 1000, energy: 500 },
-    // 升级模块（per = 每级效果量；旧 baseCost/costGrowth 已弃用，费用统一走 upgradeCost）
-    modules: {
-        mining:    { name: '采矿效率',   icon: '⛏️', per: 0.15, maxLevel: 10, desc: '采矿攻击力 +{pct}%' },
-        attackSpd: { name: '攻击加速',   icon: '⚡', per: -0.06, maxLevel: 10, desc: '攻击间隔 -{pct}%' },
-        damage:    { name: '攻击强化',   icon: '⚔️', per: 0.12, maxLevel: 10, desc: '每次攻击伤害 +{pct}%' },
-        moveSpd:   { name: '机动强化',   icon: '👟', per: 0.05, maxLevel: 10, desc: '移动速度 +{pct}%（每级 +5%）' },
-        count:     { name: '仓鼠增援',   icon: '🐹', per: 1,    maxLevel: 5,  desc: '仓鼠矿工数量 +1' },
-    },
+    upgradeProject: 'miner_economy',
+    upgradeCost: HUT_UPGRADE_PROJECT.moduleUpgrade || {},
+    modules: HUT_UPGRADE_PROJECT.modules || {},
 };
 
 /** 模块升级费用（统一）：1000 金币 + 500 能源，每级固定 */
@@ -77,33 +74,30 @@ export function getHutModuleDesc(moduleId, level) {
     const mod = HAMSTER_CONFIG.modules?.[moduleId];
     if (!mod) return '';
     const pct = Math.round(Math.abs(mod.per) * 100);
+    const fill = (atLevel) => (mod.desc || '')
+        .replace('{pct}', `${pct * atLevel}`)
+        .replace('{value}', `${Math.round((mod.per || 0) * atLevel)}`);
     return {
-        current: mod.desc.replace('{pct}', `${pct * level}`),
-        next: mod.desc.replace('{pct}', `${pct * (level + 1)}`),
+        current: fill(level),
+        next: fill(level + 1),
     };
 }
 
 /** 小屋当前模块倍率表 */
 export function getHutMults(modules) {
-    const m = modules || {};
-    const cfg = HAMSTER_CONFIG.modules || {};
+    const mults = getUpgradeMultsFromLevels(HAMSTER_CONFIG.modules, modules);
     const out = {
-        miningMult: 1,
-        attackInterval: HAMSTER_CONFIG.miner.attackIntervalMs,
-        attackDamage: HAMSTER_CONFIG.miner.baseDamage,
-        walkSpeed: HAMSTER_CONFIG.miner.walkSpeed,
-        count: 1,
+        miningMult: mults.miningMult,
+        attackInterval: Math.max(300, Math.round(HAMSTER_CONFIG.miner.attackIntervalMs * mults.attackIntervalMult)),
+        attackDamage: Math.round(HAMSTER_CONFIG.miner.baseDamage * mults.attackDamageMult),
+        walkSpeed: Math.round(HAMSTER_CONFIG.miner.walkSpeed * mults.moveSpeedMult),
+        count: mults.count,
         backpackCapacity: HAMSTER_CONFIG.miner.backpackCapacity,
     };
-    if (cfg.mining && m.mining) out.miningMult = 1 + cfg.mining.per * m.mining;
-    if (cfg.attackSpd && m.attackSpd) out.attackInterval = Math.max(300, Math.round(out.attackInterval * (1 + cfg.attackSpd.per * m.attackSpd)));
-    if (cfg.damage && m.damage) out.attackDamage = Math.round(out.attackDamage * (1 + cfg.damage.per * m.damage));
-    if (cfg.moveSpd && m.moveSpd) out.walkSpeed = Math.round(out.walkSpeed * (1 + cfg.moveSpd.per * m.moveSpd));
-    if (cfg.count && m.count) out.count = 1 + m.count;
     return out;
 }
 
-/** 仓鼠小屋命中盒（世界坐标，相对脚底）：贴图 150×130，覆盖整屋 */
+/** 矿工营地命中盒（世界坐标，相对脚底） */
 const HUT_HIT = { cx: 0, cy: -60, hw: 75, hh: 65 };
 
 function pointHitsHut(wx, wy, h) {
@@ -111,7 +105,7 @@ function pointHitsHut(wx, wy, h) {
         && wy >= h.y + HUT_HIT.cy - HUT_HIT.hh && wy <= h.y + HUT_HIT.cy + HUT_HIT.hh;
 }
 
-// ==================== 仓鼠小屋建筑 ====================
+// ==================== 矿工营地建筑 ====================
 
 export class HamsterHut extends DamageableEntity {
     constructor(x, y, config = {}) {
@@ -122,7 +116,7 @@ export class HamsterHut extends DamageableEntity {
             maxHp: hp,
             size: HAMSTER_CONFIG.hut.displayW,
             collisionRadius: HAMSTER_CONFIG.hut.radius,
-            name: config.name ?? '仓鼠小屋',
+            name: config.name ?? '矿工营地',
         });
         this.id = config.id || `hamster_hut_${Math.random().toString(36).slice(2, 8)}`;
         this._isHamsterHut = true;
@@ -137,6 +131,7 @@ export class HamsterHut extends DamageableEntity {
             size: HAMSTER_CONFIG.hut.displayW,
             sizeH: HAMSTER_CONFIG.hut.displayH,
             footOffsetY: HAMSTER_CONFIG.hut.footOffsetY,
+            autoFootprint: false,
         };
         this.footOffsetY = HAMSTER_CONFIG.hut.footOffsetY;
         applyBuildingFootprint(this, 2);
@@ -262,7 +257,7 @@ export class HamsterHut extends DamageableEntity {
         }
         this.modules[moduleId] = (this.modules[moduleId] || 0) + 1;
         // 数量模块：立即多生成一只
-        if (moduleId === 'count') {
+        if (mod.onUpgrade === 'spawnMiner') {
             if (!this.spawnMiner()) {
                 this._respawnTimer = 0;
                 this._spawnRetryTimer = SpawnPlacement.retryMs;
@@ -334,13 +329,13 @@ export class HamsterHut extends DamageableEntity {
         }
     }
 
-    /** 小屋被摧毁：矿工随小屋消失 */
+    /** 矿工营地被摧毁：矿工随建筑消失 */
     takeDamage(damage, source, damageType = 'physical', isMelee = true) {
         // 沉陷死亡由 onDeath 接管
         return super.takeDamage(damage, source, damageType, isMelee);
     }
 
-    /** 小屋沉陷死亡（2026-08-16 推广）：矿工随拆 + 小屋清理 + 沉陷清除 */
+    /** 矿工营地沉陷死亡：矿工随拆 + 建筑清理 + 沉陷清除 */
     onDeath(_source) {
         this.active = true;
         this.hittable = false;
@@ -351,7 +346,7 @@ export class HamsterHut extends DamageableEntity {
         }
     }
 
-    /** 小屋专属清理（矿工/列表/面板）；实体失效与移除由 BuildingSinkEffect 负责 */
+    /** 矿工营地专属清理（矿工/列表/面板）；实体失效与移除由 BuildingSinkEffect 负责 */
     _destroyHutCleanup() {
         const lost = this._storedEnergy || 0;
         this._despawnMiners();
@@ -365,7 +360,7 @@ export class HamsterHut extends DamageableEntity {
         }
         if (EffectManager) {
             EffectManager.add(new FloatingTextEffect(this.x, this.y - 40,
-                lost > 0 ? `仓鼠小屋被摧毁（暂存 ${lost} 能源丢失）` : '仓鼠小屋被摧毁', '#ff8855'));
+                lost > 0 ? `矿工营地被摧毁（暂存 ${lost} 能源丢失）` : '矿工营地被摧毁', '#ff8855'));
         }
     }
 
@@ -388,10 +383,9 @@ export class HamsterHut extends DamageableEntity {
         if (!EnergyManager || !EnergyManager.canStore(refund)) {
             return { ok: false, reason: '仓库空间不足，无法接收出售返还能源' };
         }
-        if (typeof this._removeBuildingRoads === 'function') this._removeBuildingRoads();
-        this.active = false;
+        this.hittable = false;
+        this._sinking = true;
         this._despawnMiners();
-        if (Game && Game.entities && this.id) Game.entities.delete(this.id);
         if (HamsterHutSystem && HamsterHutSystem.huts) {
             const i = HamsterHutSystem.huts.indexOf(this);
             if (i >= 0) HamsterHutSystem.huts.splice(i, 1);
@@ -401,11 +395,12 @@ export class HamsterHut extends DamageableEntity {
             && HamsterHutSystem._panel.hut === this) {
             HamsterHutSystem._panel.close();
         }
+        if (EffectManager) EffectManager.add(new BuildingSinkEffect(this).start());
         return { ok: true, refund };
     }
 }
 
-// ==================== 仓鼠小屋升级面板 ====================
+// ==================== 矿工营地升级面板 ====================
 
 class HamsterHutPanel extends BasePanel {
     constructor() {
@@ -487,7 +482,7 @@ class HamsterHutPanel extends BasePanel {
         if (detail) {
             detail.innerHTML = renderBuildingDetailHeader({
                 texture: h.spriteCfg?.idleKey || HAMSTER_CONFIG.hut.tex,
-                name: '仓鼠小屋',
+                name: '矿工营地',
                 hp: h.hp,
                 maxHp: h.maxHp,
                 accent: '#8ad0ff',
@@ -613,7 +608,7 @@ export const HamsterHutSystem = {
         }
     },
 
-    /** 点击仓鼠小屋 → 打开升级面板（再次点击关闭） */
+    /** 点击矿工营地 → 打开升级面板（再次点击关闭） */
     tryInteract(mx, my, player) {
         if (!this.active || !player) return false;
         const panel = this._ensurePanel();

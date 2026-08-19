@@ -9,9 +9,11 @@ import { MovementSystem } from '../systems/movement-system.js';
 import { WallSystem } from '../world/wall-system.js';
 import { HolyLightSystem } from '../entities/components/holy-light-system.js';
 import { getAbilityLevel, getAbilityValue } from '../world/ability-store.js';
-import producerBuildings from '../../data/producer-buildings.json';
+import { getBuildingUpgradeAbility } from '../world/building-upgrade-projects.js';
+import { EnergyManager } from '../systems/energy-manager.js';
+import { clearRtsSurfaceRoute, resolveRtsMoveDestination } from './rts-command-utils.js';
 
-const INSPIRE_MAGIC = producerBuildings.blacksmith?.abilities?.inspire_magic || {};
+const INSPIRE_MAGIC = getBuildingUpgradeAbility('inspire_magic') || {};
 
 export class HamsterPriestAI {
     constructor(priest) {
@@ -28,6 +30,9 @@ export class HamsterPriestAI {
         this._releaseLeft = 0;
         this._castAnimLeft = 0;
         this._holyLightCooldownMult = this.cfg.holyLightCooldownMult ?? 1;
+        this._titheEnergyPerTick = this.cfg.titheEnergyPerTick ?? 0;
+        this._titheIntervalMs = this.cfg.titheIntervalMs ?? 0;
+        this._titheTimer = 0;
         this._inspireMagicCooldown = 0;
         this._stuckTimer = 0;
         this._lastPosX = priest.x;
@@ -36,12 +41,19 @@ export class HamsterPriestAI {
     }
 
     applyUpgrades(patch = {}) {
-        if (!Number.isFinite(patch.holyLightCooldownMult)) return;
-        const oldMult = this._holyLightCooldownMult || 1;
-        this._holyLightCooldownMult = patch.holyLightCooldownMult;
-        // 已进入冷却的牧师也立即得到升级后的剩余时间，不必等下一次施法。
-        if (this.m._holyLightCooldown > 0) {
-            this.m._holyLightCooldown *= this._holyLightCooldownMult / oldMult;
+        if (Number.isFinite(patch.holyLightCooldownMult)) {
+            const oldMult = this._holyLightCooldownMult || 1;
+            this._holyLightCooldownMult = patch.holyLightCooldownMult;
+            // 已进入冷却的牧师也立即得到升级后的剩余时间，不必等下一次施法。
+            if (this.m._holyLightCooldown > 0) {
+                this.m._holyLightCooldown *= this._holyLightCooldownMult / oldMult;
+            }
+        }
+        if (Number.isFinite(patch.castRange)) this.cfg.castRange = patch.castRange;
+        if (Number.isFinite(patch.titheEnergyPerTick)) {
+            this._titheEnergyPerTick = Math.max(0, Math.floor(patch.titheEnergyPerTick));
+            this._titheIntervalMs = Math.max(0, Math.floor(patch.titheIntervalMs || 0));
+            if (this._titheEnergyPerTick <= 0 || this._titheIntervalMs <= 0) this._titheTimer = 0;
         }
     }
 
@@ -67,6 +79,7 @@ export class HamsterPriestAI {
         if (m._dying || m.data.hp <= 0) return;
         this._holyLight.update(dt);
         this._inspireMagicCooldown = Math.max(0, this._inspireMagicCooldown - dt);
+        this._updateTithe(dt);
 
         if (this._castActive) {
             this._updateCast(dt);
@@ -86,6 +99,20 @@ export class HamsterPriestAI {
 
         MovementSystem.update(m, dt, entities);
         this._checkStuck(dt);
+    }
+
+    /** 教堂什一税：仅有仓库时，每名牧师按升级项目的周期独立提供能源。 */
+    _updateTithe(dt) {
+        if (!(this._titheEnergyPerTick > 0) || !(this._titheIntervalMs > 0)
+            || !EnergyManager?.hasWarehouse?.()) {
+            this._titheTimer = 0;
+            return;
+        }
+        this._titheTimer += Math.max(0, dt || 0);
+        const ticks = Math.floor(this._titheTimer / this._titheIntervalMs);
+        if (ticks <= 0) return;
+        this._titheTimer -= ticks * this._titheIntervalMs;
+        EnergyManager.depositEnergy(this._titheEnergyPerTick * ticks);
     }
 
     _updateCast(dt) {
@@ -127,6 +154,11 @@ export class HamsterPriestAI {
     _tick(entities, player) {
         const m = this.m;
         if (this._castActive) return;
+        const command = m._command;
+        if (command?.mode && command.mode !== 'follow') {
+            this._applyCommand(command);
+            return;
+        }
         const target = this._pickHolyLightTarget(entities, player);
         if (target && m._holyLightCooldown <= 0 && m.skills?.holyLight) {
             this._startPrayerCast('holyLight', { target });
@@ -134,6 +166,51 @@ export class HamsterPriestAI {
         }
         if (this._tryInspireMagic(entities, player)) return;
         this._followPlayer(player);
+    }
+
+    /** RTS 指令：移动/待命优先于自动施法；指定攻击用圣光锁定目标。 */
+    _applyCommand(command) {
+        const m = this.m;
+        if (command.mode !== 'move') clearRtsSurfaceRoute(m);
+        if (command.mode === 'move') {
+            m.target = null;
+            const move = resolveRtsMoveDestination(m, command);
+            if (!move.arrived) {
+                m._tacticalTarget = move.destination;
+                m._animState = 'walk';
+                m.maxSpeed = this.cfg.walkSpeed ?? 120;
+            } else {
+                m._command = { mode: 'follow' };
+                clearRtsSurfaceRoute(m);
+                this._stop();
+            }
+            return;
+        }
+        if (command.mode === 'attack') {
+            const target = command.target;
+            if (!target || !target.active || target.hp <= 0 || target._isEnergyNode) {
+                m._command = { mode: 'follow' };
+                m.target = null;
+                this._stop();
+                return;
+            }
+            const castRange = this.cfg.castRange ?? 600;
+            const distance = Math.hypot(target.x - m.x, target.y - m.y);
+            if (distance <= castRange && m._holyLightCooldown <= 0 && m.skills?.holyLight) {
+                this._startPrayerCast('holyLight', { target });
+            } else if (distance > castRange) {
+                m.target = target;
+                m._tacticalTarget = { x: target.x, y: target.y };
+                m._animState = 'walk';
+                m.maxSpeed = this.cfg.walkSpeed ?? 120;
+            } else {
+                m.target = target;
+                this._stop();
+            }
+            return;
+        }
+        m.target = null;
+        this._stop();
     }
 
     /** 圣光与激励共用同一条 praying 状态机：起手后锁定到动画结束，统一在第 8 帧结算。 */
@@ -224,9 +301,11 @@ export class HamsterPriestAI {
         let bestFriend = null;
         let bestRatio = 0;
         let bestMissing = 0;
+        const castRange = this.cfg.castRange ?? 600;
         for (const friend of friends) {
             if (!friend || friend.active === false) continue;
             if (friend._faction !== 'player' && friend._faction !== 'companion') continue;
+            if (Math.hypot(friend.x - m.x, friend.y - m.y) > castRange) continue;
             const hp = friend.data?.hp ?? friend.hp;
             const maxHp = friend.data?.maxHp ?? friend.maxHp;
             if (!(hp > 0) || !(maxHp > hp)) continue;

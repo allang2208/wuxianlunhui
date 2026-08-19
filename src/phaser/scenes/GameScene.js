@@ -63,12 +63,12 @@ import {
     structureIsoBounds,
 } from '../../world/structure-render-order.js';
 import {
-    resolveStructureFootOffset,
     resolveStructureGroundFit,
     shouldAutoAnchorStructure,
 } from '../../world/structure-visual-anchor.js';
 import { EnvironmentLightingSystem } from '../../world/environment-lighting-system.js';
 import lightingAssets from '../../../data/environment-lighting-assets.json';
+
 
 export class GameScene extends Scene {
     constructor() {
@@ -335,6 +335,9 @@ export class GameScene extends Scene {
             }
             if (this._neutralSprites) {
                 for (const data of this._neutralSprites.values()) {
+                    if (Array.isArray(data.segmentSprites)) {
+                        data.segmentSprites.forEach((sprite) => sprite?.setVisible(false));
+                    }
                     if (data.sprite) data.sprite.setVisible(false);
                     if (data.label) data.label.setVisible(false);
                 }
@@ -379,6 +382,9 @@ export class GameScene extends Scene {
             if (this.enemies) this.enemies.setVisible(true);
             if (this._neutralSprites) {
                 for (const data of this._neutralSprites.values()) {
+                    if (Array.isArray(data.segmentSprites)) {
+                        data.segmentSprites.forEach((sprite) => sprite?.setVisible(true));
+                    }
                     if (data.sprite) data.sprite.setVisible(true);
                     if (data.label) data.label.setVisible(true);
                 }
@@ -632,6 +638,18 @@ export class GameScene extends Scene {
                 const st = member._animState || 'idle';
                 const miningKey = `companion_${animId}_mining`;
                 const dyingKey = `companion_${animId}_dying`;
+                // 仓鼠骑士的待机是多帧循环。不能像伊莉丝那样只靠最终 idle 回退分支
+                // 清动作锁，否则 attack → 多帧 idle → attack 后会永久认为“已播过”。
+                if (member._isHamsterKnight) {
+                    if (st !== 'attack') {
+                        sprite.setData('knightAttackPlaying', false);
+                        sprite.setData('knightAttackFinished', false);
+                    }
+                    if (st !== 'charge') {
+                        sprite.setData('knightChargePlaying', false);
+                        sprite.setData('knightChargeFinished', false);
+                    }
+                }
                 if (st === 'dying' && anims.dying && this.textures.exists(dyingKey)) {
                     // 死亡动画只播一次（repeat 0），播完停在最后一帧；防每帧重播
                     if (!sprite.getData('hamsterDying')) {
@@ -738,6 +756,54 @@ export class GameScene extends Scene {
                                 sprite.setTexture(defendKey, exitLast);
                             }
                         }
+                    }
+                } else if (st === 'charge' && member._isHamsterKnight
+                    && anims.charge && this.textures.exists(`companion_${animId}_charge`)) {
+                    // 骑士冲锋：一次性完整播放，播完定在末帧；AI 的冲锋窗口可能比贴图
+                    // 多出一段时间，绝不能因 !isPlaying 自动从第 1 帧重播。
+                    const chargeKey = `companion_${animId}_charge`;
+                    const chargeLast = anims.charge.frameCount ? anims.charge.frameCount - 1 : 29;
+                    if (!sprite.getData('knightChargePlaying')) {
+                        sprite.setData('knightChargePlaying', true);
+                        sprite.setData('knightChargeFinished', false);
+                        sprite.play(chargeKey, true);
+                        sprite.removeAllListeners('animationcomplete');
+                        sprite.once('animationcomplete', (anim) => {
+                            if (anim && anim.key !== chargeKey) return;
+                            sprite.setData('knightChargeFinished', true);
+                            if (sprite.anims.isPlaying) sprite.anims.stop();
+                            if (sprite.texture.key !== chargeKey || sprite.frame.name !== chargeLast) {
+                                sprite.setTexture(chargeKey, chargeLast);
+                            }
+                        });
+                    } else if (!sprite.getData('knightChargeFinished')
+                        && (!sprite.anims.isPlaying || sprite.anims.currentAnim?.key !== chargeKey)) {
+                        // 非正常切走时 Phaser 不会发 animationcomplete；下帧从第 1 帧恢复。
+                        sprite.setData('knightChargePlaying', false);
+                    }
+                } else if (st === 'attack' && member._isHamsterKnight
+                    && anims.attack && this.textures.exists(`companion_${animId}_attack`)) {
+                    // 骑士普攻与 AI 的 60ms 收尾分离：贴图播完后停末帧，AI 仍负责
+                    // 命中、冷却和结束状态；离开 attack 的帧由上方统一清锁，下一次必重播。
+                    const atkKey = `companion_${animId}_attack`;
+                    const atkLast = anims.attack.frameCount ? anims.attack.frameCount - 1 : 30;
+                    if (!sprite.getData('knightAttackPlaying')) {
+                        sprite.setData('knightAttackPlaying', true);
+                        sprite.setData('knightAttackFinished', false);
+                        sprite.play(atkKey, true);
+                        sprite.removeAllListeners('animationcomplete');
+                        sprite.once('animationcomplete', (anim) => {
+                            if (anim && anim.key !== atkKey) return;
+                            sprite.setData('knightAttackFinished', true);
+                            if (sprite.anims.isPlaying) sprite.anims.stop();
+                            if (sprite.texture.key !== atkKey || sprite.frame.name !== atkLast) {
+                                sprite.setTexture(atkKey, atkLast);
+                            }
+                        });
+                    } else if (!sprite.getData('knightAttackFinished')
+                        && (!sprite.anims.isPlaying || sprite.anims.currentAnim?.key !== atkKey)) {
+                        // 被其他状态意外中断时清播放锁，保持下一帧自动自愈重播。
+                        sprite.setData('knightAttackPlaying', false);
                     }
                 } else if (st === 'attack' && (member._isHamsterShooter || member._isHamsterGuard || member._isHamsterMilitia || member._isHamsterScout || member._isHamsterMusketeer)
                     && anims.attack && this.textures.exists(`companion_${animId}_attack`)) {
@@ -877,6 +943,10 @@ export class GameScene extends Scene {
                     sprite.setData('shooterSwing', false);
                     sprite.setData('lunaRunning', false);
                     sprite.setData('atkPlayed', false);
+                    sprite.setData('knightAttackPlaying', false);
+                    sprite.setData('knightAttackFinished', false);
+                    sprite.setData('knightChargePlaying', false);
+                    sprite.setData('knightChargeFinished', false);
                     sprite.setData('wmPlayed', false);
                     sprite.setData('defPhase', null);
                     if (member._miningSwing) member._miningSwing = false;
@@ -1219,6 +1289,38 @@ export class GameScene extends Scene {
     _updateDynamicDepths() {
         const Game = window.Game;
         if (!Game) return;
+        const raiseElevatedAboveLowerUnits = (entity, sprite, depth) => {
+            if (!entity || !sprite || (Number(entity.z) || 0) <= 1 || !Game.entities) {
+                return depth;
+            }
+            const upperBottom = Number(entity.collider?.bottomZ);
+            const upperBottomZ = Number.isFinite(upperBottom)
+                ? upperBottom
+                : (Number(entity.z) || 0);
+            const invScale = 1 / PERSPECTIVE_SCALE_Y;
+            let resolvedDepth = depth;
+            for (const lower of Game.entities.values()) {
+                if (!lower || lower === entity || !lower.active || lower._isDefenseStructure) continue;
+                const lowerSprite = lower._phaserSprite;
+                if (!lowerSprite?.active) continue;
+                const lowerTop = Number(lower.collider?.topZ);
+                const lowerHeight = Number(lower.collider?.height)
+                    || Number(lower.collisionHeight)
+                    || Number(lower.size)
+                    || (Number(lower.groundRadius) || 20) * 2;
+                const lowerTopZ = Number.isFinite(lowerTop)
+                    ? lowerTop
+                    : (Number(lower.z) || 0) + lowerHeight;
+                if (lowerTopZ > upperBottomZ + 2) continue;
+                const dx = lower.x - entity.x;
+                const dy = (lower.y - entity.y) * invScale;
+                const nearRadius = (Number(entity.groundRadius) || 20)
+                    + (Number(lower.groundRadius) || 20) + 16;
+                if (dx * dx + dy * dy > nearRadius * nearRadius) continue;
+                resolvedDepth = Math.max(resolvedDepth, lowerSprite.depth + 0.1);
+            }
+            return resolvedDepth;
+        };
 
         // 1. 玩家：深度基于脚底 Y（Sprite.y + footOffsetY）
         let playerNatural = 0, playerCorrected = 0;
@@ -1241,6 +1343,13 @@ export class GameScene extends Scene {
             if (platRef && platRef._faceDepth != null && Game.player._platformLift > 0) {
                 playerCorrected = Math.max(playerCorrected, platRef._faceDepth + 1);
             }
+            const playerSurfaceDepth = Number(Game.player?._surfaceRenderDepth);
+            if ((Game.player?._surfaceKind === 'wall_walk'
+                || Game.player?._surfaceKind === 'stairs')
+                && Number.isFinite(playerSurfaceDepth)
+                && (Number(Game.player?._platformLift) || 0) > 0) {
+                playerCorrected = Math.max(playerCorrected, playerSurfaceDepth + 1);
+            }
             this.playerSprite.setDepth(playerCorrected);
         }
 
@@ -1259,9 +1368,28 @@ export class GameScene extends Scene {
                 // 衔接处遮挡仲裁（与玩家同口径；frontRange = 贴图脚底→头顶高度 = footOffsetY + displayHeight/2，
                 // 封顶 280——覆盖大型怪（如 fly-hand spriteSize 260）；旧封顶 160 给它们留理论死带）
                 const frontRange = Math.min(280, Math.max(60, footOffsetY + sprite.displayHeight / 2));
-                const d = WallSystem.junctionCorrectedDepth(e.x, e.y, sprite.y + footOffsetY + (isCorpse ? 2 : 10), frontRange);
+                let d = WallSystem.junctionCorrectedDepth(
+                    e.x,
+                    e.y,
+                    sprite.y + footOffsetY + (isCorpse ? 2 : 10),
+                    frontRange
+                );
+                const surfaceDepth = Number(e._surfaceRenderDepth);
+                if ((e._surfaceKind === 'wall_walk' || e._surfaceKind === 'stairs')
+                    && Number.isFinite(surfaceDepth)
+                    && (Number(e._platformLift) || 0) > 0) {
+                    d = Math.max(d, surfaceDepth + 1);
+                }
                 sprite.setDepth(d);
             });
+        }
+        if (this.playerSprite?.active && Game.player) {
+            playerCorrected = raiseElevatedAboveLowerUnits(
+                Game.player,
+                this.playerSprite,
+                playerCorrected
+            );
+            this.playerSprite.setDepth(playerCorrected);
         }
 
         // 2.5 侍从跟随精灵：AI 队员按自身世界 Y 排序（墙后时应被墙遮挡，
@@ -1283,6 +1411,13 @@ export class GameScene extends Scene {
                 if (platRef && platRef._faceDepth != null && unit._platformLift > 0) {
                     d = Math.max(d, platRef._faceDepth + 1);
                 }
+                const surfaceDepth = Number(unit._surfaceRenderDepth);
+                if ((unit._surfaceKind === 'wall_walk' || unit._surfaceKind === 'stairs')
+                    && Number.isFinite(surfaceDepth)
+                    && (Number(unit._platformLift) || 0) > 0) {
+                    d = Math.max(d, surfaceDepth + 1);
+                }
+                d = raiseElevatedAboveLowerUnits(unit, sprite, d);
                 sprite.setDepth(d);
                 // 选中光圈同帧跟随该队员最终深度（贴图之下 0.1）：
                 // 光圈必须低于该单位所有贴图，且随 Y 排序仲裁一起变化
@@ -1361,6 +1496,20 @@ export class GameScene extends Scene {
         if (this._neutralSprites) {
             for (const [e, data] of this._neutralSprites.entries()) {
                 if (!e || !e.active || !data.sprite || !data.sprite.active) continue;
+                if (e._isWallStaircase && Array.isArray(data.segmentSprites)) {
+                    let actualMax = -Infinity;
+                    data.segmentSprites.forEach((sprite, index) => {
+                        if (!sprite?.active) return;
+                        const depth = typeof e.renderDepthForSegment === 'function'
+                            ? e.renderDepthForSegment(index)
+                            : (Number(e._structureRenderDepth) || e.y + 12) + index * 0.01;
+                        sprite.setDepth(depth);
+                        actualMax = Math.max(actualMax, depth);
+                    });
+                    e._actualMaxRenderDepth = actualMax;
+                    if (data.label?.active) data.label.setVisible(false);
+                    continue;
+                }
                 const footOffsetY = this._getFootOffsetY(e, data.sprite);
                 // 掩体等带显式地面锚线深度（_faceDepth = 底边线 max y + 12）的实体
                 // 不能按“贴图中心 + footOffsetY + 10”（= e.y + 10）覆盖——e.y 是显示框
@@ -1527,23 +1676,27 @@ export class GameScene extends Scene {
         if (!sprite) return 0;
         const configured = entity.footOffsetY ?? entity.config?.render?.footOffsetY;
         if (shouldAutoAnchorStructure(entity) && sprite.texture?.key) {
-            const resolved = resolveStructureFootOffset(
+            const nominal = getBuildingFootprint(entity._buildingFootprintCells || 2);
+            const fit = resolveStructureGroundFit(
                 this,
                 sprite.texture.key,
                 sprite.frame?.name,
+                sprite.displayWidth,
                 sprite.displayHeight,
-                configured
+                { nominalWidth: nominal.w, nominalHeight: nominal.d }
             );
-            entity._visualFootOffsetY = resolved;
-            return resolved;
+            if (fit) {
+                entity._visualFootOffsetY = fit.footOffsetY;
+                return fit.footOffsetY;
+            }
         }
         if (typeof configured === 'number') return configured;
         return sprite.displayHeight * 0.5;
     }
 
     /**
-     * 让贴图真实接地前顶点与逻辑 iso footprint 前顶点重合。
-     * 建筑占格保持严格落在网格上，只平移视觉贴图；避免把碰撞中心挪出 2×2/4×4 格。
+     * 让贴图稳定底座横截面与逻辑 iso footprint 中央重合。
+     * 最低像素可能是台阶/门槛，不能让它把整栋建筑拖离 2×2/4×4 格心。
      */
     _getVisualOffsetX(entity, sprite) {
         if (!sprite) return 0;
@@ -1568,7 +1721,11 @@ export class GameScene extends Scene {
                     fit.rightX,
                 ].join(':');
                 if (entity._visualGroundFitKey !== fitKey) {
-                    applyFittedBuildingFootprint(entity, fit);
+                    // 像素拟合 footprint 仅对显式开启 autoFootprint 的建筑生效；
+                    // 其余建筑物理保持标准格网，只取视觉锚点偏移。
+                    if (entity.spriteCfg?.autoFootprint === true) {
+                        applyFittedBuildingFootprint(entity, fit);
+                    }
                     if (typeof entity.rebuildCollider === 'function') entity.rebuildCollider();
                     entity._visualGroundFitKey = fitKey;
                 }
@@ -6206,7 +6363,12 @@ export class GameScene extends Scene {
         // 清理中立 Sprite（传送门标签等）
         if (this._neutralSprites) {
             for (const data of this._neutralSprites.values()) {
-                if (data.sprite && data.sprite.active) data.sprite.destroy();
+                const sprites = Array.isArray(data.segmentSprites) && data.segmentSprites.length
+                    ? data.segmentSprites
+                    : [data.sprite];
+                for (const sprite of new Set(sprites)) {
+                    if (sprite?.active) sprite.destroy();
+                }
                 if (data.label && data.label.active) data.label.destroy();
             }
             this._neutralSprites.clear();
@@ -6348,11 +6510,8 @@ export class GameScene extends Scene {
         return 1 / ((this.cameras.main && this.cameras.main.zoom) || 1);
     }
 
-    _redrawMinimapStatic() {
-        const g = this._minimapStaticGraphics;
-        if (!g) return;
-        g.clear();
-        const invZ = this._minimapInvZoom();
+    /** 小地图绘制/点击共用布局真源（坐标均为 Phaser 视口像素，未乘 invZoom）。 */
+    _minimapLayout() {
         const minimapCfg = GAME_CONFIG.minimap || {};
         const minimapW = minimapCfg.width || 150;
         const minimapH = minimapCfg.height || 150;
@@ -6362,13 +6521,74 @@ export class GameScene extends Scene {
         const my = pad + offsetY;
         const worldW = CONFIG.WORLD_WIDTH;
         const worldH = CONFIG.WORLD_HEIGHT;
-        const scaleX = minimapW / worldW;
-        const scaleY = minimapH / worldH;
-        const scale = Math.min(scaleX, scaleY);
-        // 世界映射居中（2026-08-16）：世界宽高比与小地图框不一致时，
-        // 等比缩放后居中放置，不留单侧空白、不超框（220×150 下宽世界满宽、高世界满高）
-        const offX = (minimapW - worldW * scale) / 2;
-        const offY = (minimapH - worldH * scale) / 2;
+        const scale = Math.min(minimapW / worldW, minimapH / worldH);
+        const contentW = worldW * scale;
+        const contentH = worldH * scale;
+        const offX = (minimapW - contentW) / 2;
+        const offY = (minimapH - contentH) / 2;
+        return {
+            minimapCfg,
+            minimapW,
+            minimapH,
+            mx,
+            my,
+            worldW,
+            worldH,
+            scale,
+            offX,
+            offY,
+            contentX: mx + offX,
+            contentY: my + offY,
+            contentW,
+            contentH,
+        };
+    }
+
+    /** 小地图实际地图内容的浏览器客户区矩形（排除宽高比留白）。 */
+    minimapClientRect() {
+        const canvas = this.game?.canvas;
+        if (!canvas || !this.scale) return null;
+        const rect = canvas.getBoundingClientRect();
+        const viewW = this.scale.width || canvas.width;
+        const viewH = this.scale.height || canvas.height;
+        if (!rect.width || !rect.height || !viewW || !viewH) return null;
+        const layout = this._minimapLayout();
+        const toClientX = rect.width / viewW;
+        const toClientY = rect.height / viewH;
+        return {
+            left: rect.left + layout.contentX * toClientX,
+            top: rect.top + layout.contentY * toClientY,
+            width: layout.contentW * toClientX,
+            height: layout.contentH * toClientY,
+        };
+    }
+
+    /** 浏览器客户区点击 → 小地图对应世界坐标；框外/留白/NPC对话隐藏时返回 null。 */
+    minimapWorldPointAt(clientX, clientY) {
+        if (!this._minimapStaticGraphics?.visible
+            || !this._minimapDynamicGraphics?.visible
+            || window.Game?._npcDialoguePaused) return null;
+        const clientRect = this.minimapClientRect();
+        if (!clientRect) return null;
+        if (clientX < clientRect.left || clientX > clientRect.left + clientRect.width
+            || clientY < clientRect.top || clientY > clientRect.top + clientRect.height) return null;
+        const layout = this._minimapLayout();
+        const nx = clientRect.width > 0 ? (clientX - clientRect.left) / clientRect.width : 0;
+        const ny = clientRect.height > 0 ? (clientY - clientRect.top) / clientRect.height : 0;
+        return {
+            x: Math.max(0, Math.min(layout.worldW, nx * layout.worldW)),
+            y: Math.max(0, Math.min(layout.worldH, ny * layout.worldH)),
+        };
+    }
+
+    _redrawMinimapStatic() {
+        const g = this._minimapStaticGraphics;
+        if (!g) return;
+        g.clear();
+        const invZ = this._minimapInvZoom();
+        const {
+            minimapCfg, minimapW, minimapH, mx, my, worldW, worldH, scale, offX, offY,
+        } = this._minimapLayout();
         const styles = minimapCfg.styles || {};
         const bg = minimapCfg.background || {};
 
@@ -6419,35 +6639,45 @@ export class GameScene extends Scene {
      */
     registerStaticSunShadow(options = {}) {
         if (!this._staticSunShadows) this._staticSunShadows = new Map();
+        if (options.hull) {
+            // footprint 四边形凸包阴影（2026-08-19 七轮）：Graphics 逐帧直画，
+            // 无烘焙无分桶——太阳连续移动时阴影必然连续（跳动从构造上消除）。
+            const graphics = this.add.graphics();
+            this._staticSunShadows.set(graphics, {
+                hull: true,
+                x: options.x || 0,
+                y: options.y || 0,
+                radius: Math.max(1, options.radius || 10),
+                footprintVertices: Array.isArray(options.footprintVertices)
+                    ? options.footprintVertices.map((point) => ({ x: point.x, y: point.y }))
+                    : null,
+                height: Math.max(0, options.height || 0),
+                maxOffset: options.maxOffset,
+                opacity: options.opacity,
+                depth: options.depth ?? 0,
+                visible: options.visible !== false,
+                entity: options.entity || null,
+                sourceSprite: options.sourceSprite || null,
+                flipX: !!options.flipX,
+            });
+            return graphics;
+        }
         if (!this.textures.exists('entity_shadow')) this._ensureShadowTexture();
         if (!this.textures.exists('entity_shadow')) return null;
         const radius = Math.max(1, options.radius || 10);
         const footprintWidth = Math.max(1, options.footprintWidth || radius * 2);
         const footprintHeight = Math.max(1, options.footprintHeight || radius * 2 * PERSPECTIVE_SCALE_Y);
-        const textureKey = options.textureKey && this.textures.exists(options.textureKey)
-            ? options.textureKey
-            : 'entity_shadow';
-        const sprite = this.add.sprite(options.x || 0, options.y || 0, textureKey);
-        const projection = !!options.projection;
-        sprite.setOrigin(
-            projection ? (options.projectionOriginX ?? 0) : 0.5,
-            projection ? (options.projectionOriginY ?? 0.5) : 0.5
-        );
+        // 胶囊接触影（树木/桶状仙人掌/墙件/单位）：柔边椭圆，无方向轮廓。
+        const sprite = this.add.sprite(options.x || 0, options.y || 0, 'entity_shadow');
+        sprite.setOrigin(0.5, 0.5);
         this._staticSunShadows.set(sprite, {
             x: options.x || 0,
             y: options.y || 0,
             radius,
             footprintWidth,
             footprintHeight,
-            textureKey,
             flipX: !!options.flipX,
             flipY: !!options.flipY,
-            projection,
-            crossSpread: options.crossSpread ?? 0.22,
-            projectionFlipY: !!options.projectionFlipY,
-            footprintVertices: Array.isArray(options.footprintVertices)
-                ? options.footprintVertices.map((point) => ({ x: point.x, y: point.y }))
-                : null,
             height: Math.max(0, options.height || radius * 3),
             maxOffset: options.maxOffset,
             opacity: options.opacity,
@@ -6513,11 +6743,55 @@ export class GameScene extends Scene {
             entity: { id: entity.id, name: entity.name, texture: sprite?.texture?.key || null },
             visualFoot,
             footprintCenter: { x: footprint.x, y: footprint.y, width: footprint.width, height: footprint.height },
-            shadowRoot: shadowData ? { x: shadowData.x, y: shadowData.y, anchor: shadowData.shadowAnchorMode } : null,
-            shadowSprite: shadowSprite ? { x: shadowSprite.x, y: shadowSprite.y, rotation: shadowSprite.rotation } : null,
+            shadowRoot: shadowData ? {
+                x: shadowData.x,
+                y: shadowData.y,
+                hull: !!shadowData.hull,
+                vertices: Array.isArray(shadowData.footprintVertices)
+                    ? shadowData.footprintVertices.map((p) => ({ x: +p.x.toFixed(1), y: +p.y.toFixed(1) }))
+                    : null,
+            } : null,
+            shadowSprite: shadowSprite ? {
+                x: shadowSprite.x,
+                y: shadowSprite.y,
+                rotation: shadowSprite.rotation,
+                graphics: !!shadowData?.hull,
+            } : null,
             delta: visualFoot && shadowData
                 ? { x: shadowData.x - visualFoot.x, y: shadowData.y - visualFoot.y }
                 : null,
+        };
+    }
+
+    /**
+     * 解析实体的剪影多边形缓存（建筑/散布障碍物同口径）：
+     * manifest shadowSilhouette 逐列数据 + 世界锚点（视觉脚底/贴图底行）+
+     * 显示比例与最高列高（延长段归一基准）。静态实体只解析一次。
+     */
+    _resolveShadowSilhouette(data) {
+        const sp = data.sourceSprite;
+        if (!sp || !sp.active) return null;
+        const meta = lightingAssets.assets?.[sp.texture?.key]?.shadowSilhouette;
+        if (!meta || !Array.isArray(meta.columns) || meta.columns.length < 3) return null;
+        const texW = Math.max(1, sp.frame?.cutWidth || sp.width || 1);
+        const texH = Math.max(1, sp.frame?.cutHeight || sp.height || 1);
+        const scaleX = sp.displayWidth / texW;
+        const scaleY = sp.displayHeight / texH;
+        // 建筑脚底走配置/实测 footOffsetY；散布障碍物贴图底行 = 精灵半高
+        const footY = data.entity ? this._getFootOffsetY(data.entity, sp) : sp.displayHeight * 0.5;
+        let maxHeight = 1;
+        for (const col of meta.columns) {
+            maxHeight = Math.max(maxHeight, (col[2] - col[1]) * scaleY);
+        }
+        return {
+            columns: meta.columns,
+            scaleX,
+            scaleY,
+            anchorX: sp.x,
+            anchorY: sp.y + footY,
+            frontY: meta.frontY,
+            texCenterX: texW / 2,
+            maxHeight,
         };
     }
 
@@ -6535,31 +6809,81 @@ export class GameScene extends Scene {
                 sprite.setVisible(false);
                 continue;
             }
+            if (data.hull) {
+                // 阴影多边形真源（2026-08-19 八轮）：剪影多边形优先（近边=贴图实测
+                // 接地曲线、远边=真实屋顶轮廓），无剪影数据时回退 footprint 凸包——
+                // 两者同为逐帧纯几何，无烘焙无分桶，连续不跳。
+                if (data._silCache === undefined) {
+                    data._silCache = this._resolveShadowSilhouette(data);
+                }
+                const theta = Math.atan2(profile.offsetY, profile.offsetX);
+                // 凸包实体 ∪ 剪影轮廓（2026-08-19 九轮）：凸包保证主体、剪影贡献轮廓，
+                // 包络合并为单一多边形——纯凸包无轮廓、纯剪影在高差建筑上退化成细带。
+                const hullBody = data.footprintVertices
+                    ? EnvironmentLightingSystem.getStaticShadowHull(data.footprintVertices, profile)
+                    : [];
+                const silPoly = data._silCache
+                    ? EnvironmentLightingSystem.getSilhouetteShadowPolygon(data._silCache.columns, {
+                        theta,
+                        length: profile.length,
+                        scaleX: data._silCache.scaleX,
+                        scaleY: data._silCache.scaleY,
+                        anchorX: data._silCache.anchorX,
+                        anchorY: data._silCache.anchorY,
+                        frontY: data._silCache.frontY,
+                        texCenterX: data._silCache.texCenterX,
+                        flipX: !!data.flipX,
+                        maxHeight: data._silCache.maxHeight,
+                    })
+                    : [];
+                const hull = data._silCache
+                    ? EnvironmentLightingSystem.getUnionShadowPolygon(hullBody, silPoly, { theta })
+                    : hullBody;
+                sprite.clear();
+                if (hull.length >= 3 && profile.opacity > 0.001) {
+                    let cx = 0;
+                    let cy = 0;
+                    for (const p of hull) { cx += p.x; cy += p.y; }
+                    cx /= hull.length;
+                    cy /= hull.length;
+                    // 边缘淡出（2026-08-19 用户口径）：质心外扩五段、alpha 几何衰减，
+                    // 形成 ~10% 尺寸的柔和淡出带，替代硬边三段式。
+                    const feather = [[1.0, 1.0], [1.02, 0.42], [1.045, 0.26], [1.07, 0.15], [1.10, 0.08]];
+                    for (const [scale, alphaMul] of feather) {
+                        sprite.fillStyle(0x000000, profile.opacity * alphaMul);
+                        sprite.fillPoints(hull.map((p) => ({
+                            x: cx + (p.x - cx) * scale,
+                            y: cy + (p.y - cy) * scale,
+                        })), true);
+                    }
+                }
+                sprite.setDepth(data.depth);
+                sprite.setVisible(!isMapMode && data.visible !== false && hull.length >= 3 && profile.opacity > 0.001);
+                continue;
+            }
             const baseW = data.footprintWidth || data.radius * 2;
             const baseH = data.footprintHeight || data.radius * 2 * PERSPECTIVE_SCALE_Y;
-            const projectionH = data.projection
-                ? Math.max(baseH, baseW * 0.35, profile.length * data.crossSpread)
-                : baseH;
-            // 建筑投影以贴图/footprint 中心锚定：建筑体积较大，若取外缘会让影子
-            // 在太阳方向切换时明显脱离本体。投影长度本身已缩短，保持贴合即可。
+            // 胶囊接触影（树木/桶状仙人掌/墙件）：柔边椭圆随太阳偏移并拉长。
             sprite.setPosition(
-                (data.projection ? data.x : data.x + profile.offsetX),
-                (data.projection ? data.y : data.y + profile.offsetY)
+                data.x + profile.offsetX,
+                data.y + profile.offsetY
             );
-            // 用旋转的柔边胶囊近似投影：不必每帧重绘/提取树冠 alpha。
-            sprite.setDisplaySize(baseW + profile.length, projectionH);
+            sprite.setDisplaySize(baseW + profile.length, baseH);
             sprite.setRotation(Math.atan2(
                 profile.offsetY,
                 profile.offsetX
             ));
-            // 原始 billboard 的 flipX 在预投影图中对应横向（Y）翻转，
-            // 绝不能翻转投影长轴 X，否则随机镜像的仙人掌会把影子反向翻回本体。
-            sprite.setFlipX(data.projection ? false : !!data.flipX);
-            sprite.setFlipY(data.projection ? !!data.projectionFlipY : !!data.flipY);
+            sprite.setFlipX(!!data.flipX);
+            sprite.setFlipY(!!data.flipY);
             sprite.setAlpha(profile.opacity);
             sprite.setDepth(data.depth);
             sprite.setVisible(!isMapMode && data.visible !== false);
         }
+    }
+
+    _clearStructureShadowBakeCache() {
+        // 兼容保留：场景/质量切换与 shutdown 的统一回收钩子（七轮回退 footprint
+        // 凸包后已无烘焙缓存，此函数留作生命周期占位，防止旧调用断链）。
     }
 
     /**
@@ -6579,31 +6903,39 @@ export class GameScene extends Scene {
             const radius = Math.max(18, Math.max(footprint.width, footprint.height) * 0.5);
             // 建筑采用预投影轮廓；在此前缩短基础上再减少 25%。
             const height = Math.max(radius * 3, sprite.displayHeight * 0.55) * 0.75 * 0.75;
-            const projectionKey = `${sprite.texture.key}_projection`;
-            const projection = this.textures.exists(projectionKey);
-            const lightingShadow = lightingAssets.assets?.[sprite.texture.key]?.shadow || {};
-            const anchorMode = lightingShadow.anchorMode || 'footprint_center';
-            const useVisualFoot = anchorMode === 'visual_foot';
-            const anchorInsetX = Number(lightingShadow.anchorInsetX) || 0;
-            const anchorInsetY = Number(lightingShadow.anchorInsetY) || 0;
+            // footprint 四边形真源（2026-08-19 七轮，回到 footprint 思路）：
+            // 与放置/遮挡/范围显示同一组顶点（`_pixelFootprintLocal` 像素拟合优先，
+            // 否则逻辑 iso 菱形，AABB 兜底）——凸包逐帧挤出，不再吃烘焙/贴图尺。
+            let vertices = null;
+            if (entity.collisionShape === 'iso_rect') {
+                const v = isoFootprintVertices(entity);
+                if (v.length >= 3) vertices = v.map((p) => ({ x: p.x, y: p.y }));
+            }
+            if (!vertices) {
+                const hw = footprint.width * 0.5;
+                const hh = footprint.height * 0.5;
+                vertices = [
+                    { x: footprint.x, y: footprint.y - hh },
+                    { x: footprint.x + hw, y: footprint.y },
+                    { x: footprint.x, y: footprint.y + hh },
+                    { x: footprint.x - hw, y: footprint.y },
+                ];
+            }
             let shadow = this._structureSunShadows.get(entity);
             const shadowData = {
-                x: (useVisualFoot ? sprite.x : footprint.x) + anchorInsetX,
-                y: (useVisualFoot ? sprite.y + this._getFootOffsetY(entity, sprite) : footprint.y) + anchorInsetY,
+                hull: true,
+                entity,
+                sourceSprite: sprite,
+                x: footprint.x,
+                y: footprint.y,
                 radius,
-                footprintWidth: footprint.width,
-                footprintHeight: footprint.height,
+                footprintVertices: vertices,
                 height,
-                maxOffset: 43,
+                // 延长段上限随建筑体量走：旧版恒定 43 会让 4×4 基地的晨昏长影
+                // 整段被 footprint 吞掉（影长 408+43，大半埋在建筑底下看不见）。
+                maxOffset: Math.max(43, height * 0.5),
                 depth: sprite.depth - 0.1,
                 visible: sprite.visible,
-                textureKey: projection ? projectionKey : null,
-                projection,
-                projectionOriginX: 0,
-                projectionOriginY: 0.5,
-                projectionFlipY: !!sprite.flipX,
-                crossSpread: 0.28,
-                shadowAnchorMode: anchorMode,
             };
             if (!shadow || !shadow.active) {
                 shadow = this.registerStaticSunShadow(shadowData);
@@ -6644,21 +6976,9 @@ export class GameScene extends Scene {
         if (!g) return;
         g.clear();
         const invZ = this._minimapInvZoom();
-        const minimapCfg = GAME_CONFIG.minimap || {};
-        const minimapW = minimapCfg.width || 150;
-        const minimapH = minimapCfg.height || 150;
-        const pad = minimapCfg.padding || 10;
-        const offsetY = minimapCfg.offsetY || 50;
-        const mx = pad;
-        const my = pad + offsetY;
-        const worldW = CONFIG.WORLD_WIDTH;
-        const worldH = CONFIG.WORLD_HEIGHT;
-        const scaleX = minimapW / worldW;
-        const scaleY = minimapH / worldH;
-        const scale = Math.min(scaleX, scaleY);
-        // 与 _redrawMinimapStatic 同口径的世界居中偏移
-        const offX = (minimapW - worldW * scale) / 2;
-        const offY = (minimapH - worldH * scale) / 2;
+        const {
+            minimapCfg, minimapW, minimapH, mx, my, worldW, worldH, scale, offX, offY,
+        } = this._minimapLayout();
         const styles = minimapCfg.styles || {};
         const sizes = minimapCfg.sizes || {};
         // 边界检查：只画小地图框内的内容（替代 WebGL 不支持的 geometry mask）
@@ -6927,6 +7247,69 @@ export class GameScene extends Scene {
         }
     }
 
+    /** 恢复城墙楼梯专用的分段Sprite渲染；四方向贴图本身已定向，禁止再次flip。 */
+    _syncWallStaircaseEntity(e, data) {
+        if (!e?._isWallStaircase
+            || !Array.isArray(e.visualSegments)
+            || !e.visualSegments.length
+            || !data) return false;
+        const segmentSprites = Array.isArray(data.segmentSprites)
+            ? data.segmentSprites
+            : [];
+        for (let index = 0; index < e.visualSegments.length; index++) {
+            const visual = e.visualSegments[index];
+            if (!visual?.texture || !this.textures.exists(visual.texture)) continue;
+            let segmentSprite = segmentSprites[index];
+            if (!segmentSprite?.active) {
+                segmentSprite = index === 0 && data.sprite?.active
+                    ? data.sprite
+                    : this.add.sprite(visual.x, visual.y, visual.texture);
+                segmentSprites[index] = segmentSprite;
+            }
+            if (segmentSprite.texture.key !== visual.texture) {
+                segmentSprite.setTexture(visual.texture);
+            }
+            segmentSprite.setOrigin(0.5, 0.5);
+            segmentSprite.setPosition(visual.x, visual.y);
+            segmentSprite.setDisplaySize(visual.displayWidth, visual.displayHeight);
+            segmentSprite.setFlipX(false);
+            segmentSprite.setFlipY(false);
+            segmentSprite.setRotation(0);
+            segmentSprite.setDepth(
+                typeof e.renderDepthForSegment === 'function'
+                    ? e.renderDepthForSegment(index)
+                    : (Number(e._structureRenderDepth) || e.y + 12) + index * 0.01
+            );
+            segmentSprite.setVisible(true);
+        }
+        while (segmentSprites.length > e.visualSegments.length) {
+            const stale = segmentSprites.pop();
+            if (stale?.active) stale.destroy();
+        }
+        data.segmentSprites = segmentSprites;
+        data.sprite = segmentSprites[0] || data.sprite;
+        e._actualMaxRenderDepth = segmentSprites.reduce(
+            (maxDepth, segmentSprite) =>
+                segmentSprite?.active ? Math.max(maxDepth, segmentSprite.depth) : maxDepth,
+            -Infinity
+        );
+        if (data.label) {
+            if (data.label.text !== '') data.label.setText('');
+            data.label.setVisible(false);
+        }
+        return true;
+    }
+
+    /** 楼梯探针/热更新入口：刷新当前场景全部分段楼梯。 */
+    _syncWallStaircaseLayers(_game) {
+        if (!_game?.entities || !this._neutralSprites) return;
+        for (const e of _game.entities.values()) {
+            if (!e?._isWallStaircase || !e.active) continue;
+            const data = this._neutralSprites.get(e);
+            if (data) this._syncWallStaircaseEntity(e, data);
+        }
+    }
+
     /**
      * 同步无专属 Phaser Sprite 的实体（训练靶、NPC 等）
      */
@@ -7007,6 +7390,7 @@ export class GameScene extends Scene {
                 this._neutralSprites.set(e, data);
             }
             const { sprite, label, sprCfg } = data;
+            if (this._syncWallStaircaseEntity(e, data)) continue;
             // 从旧“双层裁剪”热更新迁移回完整单贴图，立即销毁遗留后层并解除 crop。
             if (data.backSprite) {
                 data.backSprite.destroy();
@@ -7099,8 +7483,13 @@ export class GameScene extends Scene {
         }
         for (const [e, data] of this._neutralSprites.entries()) {
             if (!active.has(e)) {
-                data.sprite.destroy();
-                data.label.destroy();
+                const sprites = Array.isArray(data.segmentSprites) && data.segmentSprites.length
+                    ? data.segmentSprites
+                    : [data.sprite];
+                for (const sprite of new Set(sprites)) {
+                    if (sprite?.active) sprite.destroy();
+                }
+                if (data.label?.active) data.label.destroy();
                 this._neutralSprites.delete(e);
             }
         }

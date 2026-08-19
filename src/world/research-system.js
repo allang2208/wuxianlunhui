@@ -6,12 +6,9 @@
 // - recruit_speed：Lv1 募兵速度 +10%，之后每级 +2%
 // 等级由 ability-store 持久化；研究完成立即刷新场上结构，新建结构构造时自动应用。
 // ============================================================
-import { GLOBAL_ABILITY_LEVELS, getAbilityLevel } from './ability-store.js';
+import { GLOBAL_ABILITY_LEVELS, getAbilityLevel, getAbilityValue } from './ability-store.js';
 import { EnergyManager } from '../systems/energy-manager.js';
-
-const STRUCTURE_HP_PER_LEVEL = 0.10;
-const RECRUIT_SPEED_FIRST_LEVEL = 0.10;
-const RECRUIT_SPEED_PER_LEVEL = 0.02;
+import { getBuildingUpgradeAbility } from './building-upgrade-projects.js';
 
 export const RESEARCH_IDS = {
     STRUCTURE_HP: 'research_structure_hp',
@@ -47,7 +44,8 @@ export function applyResearchHp(entity, explicitBaseHp = null) {
         entity._researchBaseMaxHp = explicitBaseHp > 0 ? explicitBaseHp : currentMax;
     }
     const level = _structureHpLevel();
-    const nextMax = Math.max(1, Math.round(entity._researchBaseMaxHp * (1 + STRUCTURE_HP_PER_LEVEL * level)));
+    const hpBonus = getAbilityValue(getBuildingUpgradeAbility(RESEARCH_IDS.STRUCTURE_HP), level);
+    const nextMax = Math.max(1, Math.round(entity._researchBaseMaxHp * (1 + hpBonus)));
     const delta = nextMax - currentMax;
     entity.maxHp = nextMax;
     entity.hp = Math.max(0, Math.min(nextMax, Number(entity.hp ?? nextMax) + delta));
@@ -77,8 +75,7 @@ export function applyResearchToWorld(abilityId) {
 
 /** 当前快速募兵的速度加成；Lv0=0，Lv1=10%，之后每级 +2 个百分点。 */
 export function getRecruitSpeedBonus(level = getAbilityLevel(RESEARCH_IDS.RECRUIT_SPEED)) {
-    const lv = Math.max(0, Math.floor(level || 0));
-    return lv <= 0 ? 0 : RECRUIT_SPEED_FIRST_LEVEL + RECRUIT_SPEED_PER_LEVEL * (lv - 1);
+    return getAbilityValue(getBuildingUpgradeAbility(RESEARCH_IDS.RECRUIT_SPEED), level);
 }
 
 /** 募兵速度提升按“生产率”计算：周期 = 基础周期 / (1 + 速度加成)。 */
@@ -143,7 +140,8 @@ export const ResearchSystem = {
         if (seconds <= 0) return;
         this._energyTimer -= seconds * 1000;
         if (EnergyManager && typeof EnergyManager.addEnergy === 'function') {
-            EnergyManager.addEnergy(level * seconds);
+            const perSecond = getAbilityValue(getBuildingUpgradeAbility(RESEARCH_IDS.PASSIVE_ENERGY), level);
+            EnergyManager.addEnergy(perSecond * seconds);
         }
     },
 };

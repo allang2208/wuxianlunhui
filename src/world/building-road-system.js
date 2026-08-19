@@ -240,11 +240,15 @@ export const BuildingRoadSystem = {
         }
 
         entity._buildingRoadLayout = layout;
-        entity._removeBuildingRoads = () => this.detach(entity);
+        entity._removeBuildingRoads = (options) => this.detach(entity, options);
         return true;
     },
 
-    detach(entity) {
+    /**
+     * 释放建筑的 4×4 预约。preserveRoads=true 时，外围自动道路转为独立道路：
+     * 建筑被毁/拆除后道路保留，中心四格预约释放，可直接原位重建。
+     */
+    detach(entity, { preserveRoads = false } = {}) {
         const record = this._owners.get(entity);
         if (!record) return false;
 
@@ -258,6 +262,18 @@ export const BuildingRoadSystem = {
             const tile = this._roadTiles.get(cell.key);
             if (!tile) continue;
             tile.owners.delete(entity);
+            if (preserveRoads && tile.owners.size === 0 && !tile.manual) {
+                // 独立道路沿用同一张贴图与持久化口径，避免建筑消失时道路一并消失。
+                this._manualRoadCells.set(cell.key, {
+                    i: cell.i,
+                    j: cell.j,
+                    key: cell.key,
+                    x: cell.x,
+                    y: cell.y,
+                    frame: cell.frame,
+                });
+                tile.manual = true;
+            }
             if (tile.owners.size === 0 && !tile.manual) {
                 if (tile.sprite?.active) tile.sprite.destroy();
                 this._roadTiles.delete(cell.key);

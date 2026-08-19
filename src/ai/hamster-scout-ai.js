@@ -13,7 +13,8 @@ import { AimHelper } from '../utils/aim-helper.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
 import { SoundManager } from '../ui/sound-manager.js';
-import { getAbilityLevel } from '../world/ability-store.js';
+import { getAbilityLevel, getAbilityValue } from '../world/ability-store.js';
+import { getBuildingUpgradeAbility } from '../world/building-upgrade-projects.js';
 
 const PROJECTILE_HIT_RADIUS = 28; // 命中半径（瞄准中心，与射手一致）
 
@@ -196,15 +197,28 @@ export class HamsterScoutAI {
     /** RTS 命令：move（走到点，到位清指令）/ attack（锁定目标，进射程站定射击）/ hold（待命） */
     _applyCommand(cmd) {
         const m = this.m;
+        if (cmd.mode !== 'move') m._surfaceRouteActive = false;
         if (cmd.mode === 'move') {
             m.target = null;
-            const dest = cmd.point || { x: m.x, y: m.y };
-            const dist = Math.hypot(dest.x - m.x, dest.y - m.y);
-            if (dist > 40) {
+            const route = Array.isArray(cmd.point?.route) ? cmd.point.route : [];
+            m._surfaceRouteActive = route.length > 0;
+            let routeIndex = Math.max(0, Math.min(route.length - 1, Number(cmd.routeIndex) || 0));
+            let dest = route.length ? route[routeIndex] : (cmd.point || { x: m.x, y: m.y });
+            let dist = Math.hypot(dest.x - m.x, dest.y - m.y);
+            let dz = Math.abs((Number(dest.z) || 0) - (Number(m.z) || 0));
+            if (route.length && dist <= 40 && dz <= 34 && routeIndex < route.length - 1) {
+                routeIndex++;
+                cmd.routeIndex = routeIndex;
+                dest = route[routeIndex];
+                dist = Math.hypot(dest.x - m.x, dest.y - m.y);
+                dz = Math.abs((Number(dest.z) || 0) - (Number(m.z) || 0));
+            }
+            if (dist > 40 || dz > 34) {
                 m._tacticalTarget = dest;
                 m._animState = 'walk';
                 m.maxSpeed = this.cfg.walkSpeed ?? 150;
             } else {
+                m._surfaceRouteActive = false;
                 m._command = { mode: 'follow' }; // 到位清除命令，回到默认跟随
                 m._tacticalTarget = null;
                 m._animState = 'idle';
@@ -286,23 +300,26 @@ export class HamsterScoutAI {
         const m = this.m;
         const target = m.target;
         if (!target || !target.active || target.hp <= 0) return;
-        const aimY = this._targetAimY(target);
-        // 发射点 = 射手高度（与射手同口径：脚底 y 上移 45px）
-        const spawnY = m.y - 45;
+        const startZ = (Number(m.z) || 0) + 45;
+        const targetZ = target.collider?.centerZ ?? ((Number(target.z) || 0) + 24);
         const lead = AimHelper.lead(
-            m.x, spawnY,
-            target.x, aimY,
+            m.x, m.y,
+            target.x, target.y,
             target.vx || 0, target.vy || 0,
             this._projectileSpeed
         );
-        const ang = Math.atan2(lead.y - spawnY, lead.x - m.x);
+        const ang = Math.atan2(lead.y - m.y, lead.x - m.x);
+        const targetDist = Math.max(1, Math.hypot(lead.x - m.x, lead.y - m.y));
+        const visualAngle = Math.atan2((lead.y - targetZ) - (m.y - startZ), lead.x - m.x);
         // 存 companion 字段（GameScene._syncCompanionBasics 读 m._basic 渲染投射物）
         m._basic = {
             active: true,
             x: m.x,
-            y: spawnY,
-            aimY,
+            y: m.y,
+            z: startZ,
+            vz: (targetZ - startZ) / Math.max(0.001, targetDist / this._projectileSpeed),
             angle: ang,
+            visualAngle,
             dist: 0,
             maxDist: this._attackRange + 150,
             target,
@@ -329,14 +346,27 @@ export class HamsterScoutAI {
         if (!b || !b.active) return;
         const dtSec = dt / 1000;
         const step = this._projectileSpeed * dtSec;
+        const prevX = b.x, prevY = b.y, prevZ = Number(b.z) || 0;
         b.x += Math.cos(b.angle) * step;
         b.y += Math.sin(b.angle) * step;
+        b.z = prevZ + (Number(b.vz) || 0) * dtSec;
         b.dist += step;
+        if (WallSystem.projectileBlocked?.(prevX, prevY, prevZ, b.x, b.y, b.z)) {
+            b.active = false;
+            return;
+        }
 
         let hit = null;
+        const hits = (entity) => {
+            const collider = entity?.collider;
+            const bottom = collider?.bottomZ ?? (Number(entity?.z) || 0);
+            const top = collider?.topZ ?? (bottom + (entity?.bodyHeight || 80));
+            return Math.hypot(entity.x - b.x, entity.y - b.y) < PROJECTILE_HIT_RADIUS
+                && b.z >= bottom - PROJECTILE_HIT_RADIUS
+                && b.z <= top + PROJECTILE_HIT_RADIUS;
+        };
         const t = b.target;
-        if (t && t.active && t.hp > 0
-            && Math.hypot(t.x - b.x, (b.aimY ?? t.y) - b.y) < PROJECTILE_HIT_RADIUS) {
+        if (t && t.active && t.hp > 0 && hits(t)) {
             hit = t;
         } else {
             // 路径上经过的其他敌人也判定（与射手同思路）
@@ -344,8 +374,7 @@ export class HamsterScoutAI {
             for (const e of ((game && game.entities) ? game.entities.values() : [])) {
                 if (!e || !e.active || e.hp <= 0 || e._faction !== 'enemy') continue;
                 if (e._isEnergyNode) continue;
-                const ey = this._targetAimY(e);
-                if (Math.hypot(e.x - b.x, ey - b.y) < PROJECTILE_HIT_RADIUS) {
+                if (hits(e)) {
                     hit = e;
                     break;
                 }
@@ -358,10 +387,16 @@ export class HamsterScoutAI {
             // 铁匠铺能力：标记箭（2026-08-17）——命中 25%+5%/级 概率标记 3s，
             // 走标准 Buff 工作流（addStatusEffect 统一入口，STATUS_CONFIG 已注册 'marked'）
             const markLv = getAbilityLevel('mark_arrow');
-            if (markLv > 0 && Math.random() < 0.25 + 0.05 * markLv) {
+            const markAbility = getBuildingUpgradeAbility('mark_arrow');
+            if (markLv > 0 && markAbility && Math.random() < getAbilityValue(markAbility, markLv)) {
                 if (typeof hit.addStatusEffect === 'function') {
                     // value=0.15：同类型标记刷新时数值取最大（较强效果生效）
-                    hit.addStatusEffect('marked', 3000, { name: '标记', icon: '🎯', color: '#ffd700', value: 0.15 });
+                    hit.addStatusEffect('marked', markAbility.durationMs, {
+                        name: '标记',
+                        icon: '🎯',
+                        color: '#ffd700',
+                        value: markAbility.damageAmplify,
+                    });
                 }
                 if (EffectManager) {
                     EffectManager.add(new FloatingTextEffect(hit.x, hit.y - 44, '🎯 标记', '#ffd700'));

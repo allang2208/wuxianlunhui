@@ -14,8 +14,9 @@
 //   当前读条（不自动续升，回场由实机循环续）。
 // - commit=false 时为预览（世界切换面板用）：不改快照、不触发全局副作用。
 // ============================================================
-import { getAbilityLevel, raiseAbilityLevel } from './ability-store.js';
+import { getAbilityLevel, getAbilityValue, raiseAbilityLevel } from './ability-store.js';
 import { getUnitUpgradeMults } from './unit-upgrade-store.js';
+import { getBuildingUpgradeAbility, getUpgradeModulesForUnitKind } from './building-upgrade-projects.js';
 import producerBuildingsJson from '../../data/producer-buildings.json';
 import minerCfg from '../../data/hamster-miner-config.json';
 import militiaCfg from '../../data/hamster-militia-config.json';
@@ -24,6 +25,7 @@ import shooterCfg from '../../data/hamster-shooter-config.json';
 import guardCfg from '../../data/hamster-guard-config.json';
 import scoutCfg from '../../data/hamster-scout-config.json';
 import musketeerCfg from '../../data/hamster-musketeer-config.json';
+import knightCfg from '../../data/hamster-knight-config.json';
 
 /** 抽象结算估算常量（调整平衡只改这里） */
 export const WORLD122_SIM = {
@@ -38,13 +40,14 @@ export const WORLD122_SIM = {
 const UNIT_CFGS = {
     militia: militiaCfg, warrior: warriorCfg, shooter: shooterCfg,
     guard: guardCfg, scout: scoutCfg, musketeer: musketeerCfg,
+    knight: knightCfg,
 };
 
 /** 兵种单兵 DPS（配置 × 全局升级倍率，与实机 spawnUnit 同公式） */
 function _unitDps(kind) {
     const cfg = UNIT_CFGS[kind];
     if (!cfg || !cfg.ai) return 0;
-    const mults = getUnitUpgradeMults(kind, { attackSpd: { per: -0.06 }, damage: { per: 0.12 } });
+    const mults = getUnitUpgradeMults(kind, getUpgradeModulesForUnitKind(kind));
     const dmg = (cfg.ai.attackDamage ?? 20) * mults.attackDamageMult;
     const interval = Math.max(300, (cfg.ai.attackInterval ?? 2000) * mults.attackIntervalMult);
     return dmg * 1000 / interval;
@@ -53,7 +56,7 @@ function _unitDps(kind) {
 /** 快速募兵倍率（与 research-system.getRecruitIntervalMs 同口径，读结算开始时的等级） */
 function _recruitMult() {
     const lv = getAbilityLevel('research_recruit_speed');
-    const bonus = lv <= 0 ? 0 : 0.1 + 0.02 * (lv - 1);
+    const bonus = getAbilityValue(getBuildingUpgradeAbility('research_recruit_speed'), lv);
     return 1 / (1 + bonus);
 }
 
@@ -103,7 +106,11 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
     // commit 时读条循环已升全局等级；预览（commit=false）未升，按完成项临时+1
     const passiveLv = getAbilityLevel('research_passive_energy')
         + (commit ? 0 : report.abilitiesCompleted.filter((id) => id === 'research_passive_energy').length);
-    report.passiveEnergy = passiveLv > 0 ? Math.floor(t) * passiveLv : 0;
+    const passivePerSecond = getAbilityValue(
+        getBuildingUpgradeAbility('research_passive_energy'),
+        passiveLv
+    );
+    report.passiveEnergy = passiveLv > 0 ? Math.floor(t) * passivePerSecond : 0;
 
     // ---- 采矿与仓储 ----
     const warehouses = (target.structures || []).filter((s) => s.kind === 'producer'

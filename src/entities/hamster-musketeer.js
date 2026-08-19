@@ -1,6 +1,7 @@
 import { Companion } from './companion.js';
 import { HamsterMusketeerAI } from '../ai/hamster-musketeer-ai.js';
-import { getAbilityLevel } from '../world/ability-store.js';
+import { getAbilityLevel, getAbilityValue } from '../world/ability-store.js';
+import { getBuildingUpgradeAbility } from '../world/building-upgrade-projects.js';
 import configData from '../../data/hamster-musketeer-config.json';
 
 const DYING_DURATION_MS = 1350;
@@ -40,7 +41,7 @@ export class HamsterMusketeer extends Companion {
         if (level <= 0) return null;
         return {
             _craftEffects: {
-                armorPenetrationPercent: 0.25 + 0.025 * (level - 1),
+                armorPenetrationPercent: getAbilityValue(getBuildingUpgradeAbility('armor_piercing_round'), level),
             },
         };
     }

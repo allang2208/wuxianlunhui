@@ -30,12 +30,16 @@ import { ResearchSystem } from './research-system.js';
 import { SpawnPlacement } from './spawn-placement.js';
 import {
     applyGlobalUpgradesToKind,
+    getUpgradeMultsFromLevels,
     getUnitUpgradeLevel,
     getUnitUpgradeMults,
     raiseUnitUpgradeLevel,
 } from './unit-upgrade-store.js';
+import { getBuildingUpgradeProject } from './building-upgrade-projects.js';
 
 // ==================== 配置 ====================
+
+const BARRACKS_UPGRADE_PROJECT = getBuildingUpgradeProject('barracks_defense') || {};
 
 export const BARRACKS_CONFIG = {
     barracks: {
@@ -45,10 +49,10 @@ export const BARRACKS_CONFIG = {
         def: 60,
         mdef: 60,
         tex: 'barracks',
-        // 2026-08-18：新建文件夹/兵营.png 紧身裁剪为 1358×1086，按 displayW=288 等比标定。
-        displayW: 288,
-        displayH: 230,
-        footOffsetY: 115,
+        // 2026-08-19：48 步生图成品紧身裁剪为743×717，按底座256×128标定。
+        displayW: 275,
+        displayH: 231,
+        footOffsetY: 116,
         sellRefundRatio: 0.5,
         spawnIntervalMs: 45000,   // 45 秒生成一个军事单位（2026-08-18 由 30s 调整）
         spawnRadius: 90,
@@ -60,17 +64,10 @@ export const BARRACKS_CONFIG = {
         warrior: { key: 'warrior', name: '仓鼠战士', cfg: warriorCfg },
         guard: { key: 'guard', name: '仓鼠盾卫', cfg: guardCfg },
     },
-    // 升级统一费用：每升一级 1000 金币 + 500 能源（同仓鼠小屋口径）
-    upgradeCost: { gold: 1000, energy: 500 },
-        // 升级模块（per = 每级效果量；复制仓鼠小屋的战斗类模块 + 生命强化；
-        // 矿工专属的采矿效率/背包扩容不复制；仓鼠增援（数量）也不需要——
-        // 兵营数量上限固定 5（unitCap），初始即有）
-        modules: {
-            attackSpd: { name: '攻击加速', icon: '⚡', per: -0.06, maxLevel: 10, desc: '攻击间隔 -{pct}%' },
-            damage:    { name: '攻击强化', icon: '⚔️', per: 0.12, maxLevel: 10, desc: '每次攻击伤害 +{pct}%' },
-            moveSpd:   { name: '机动强化', icon: '👟', per: 0.05, maxLevel: 10, desc: '移动速度 +{pct}%（每级 +5%）' },
-            hp:        { name: '生命强化', icon: '❤️', per: 0.10, maxLevel: 10, desc: '单位生命 +{pct}%' },
-        },
+    // 兵营与常规产兵建筑复用同一独立升级项目。
+    upgradeProject: 'barracks_defense',
+    upgradeCost: BARRACKS_UPGRADE_PROJECT.moduleUpgrade || {},
+    modules: BARRACKS_UPGRADE_PROJECT.modules || {},
 };
 
 /** 模块升级费用（统一）：1000 金币 + 500 能源 */
@@ -92,21 +89,7 @@ export function getBarracksModuleDesc(moduleId, level) {
 
 /** 兵营当前模块倍率表 */
 export function getBarracksMults(modules) {
-    const m = modules || {};
-    const cfg = BARRACKS_CONFIG.modules || {};
-    const out = {
-        attackIntervalMult: 1,
-        attackDamageMult: 1,
-        moveSpeedMult: 1,
-        count: 1,
-        hpMult: 1,
-    };
-    if (cfg.attackSpd && m.attackSpd) out.attackIntervalMult = 1 + cfg.attackSpd.per * m.attackSpd;
-    if (cfg.damage && m.damage) out.attackDamageMult = 1 + cfg.damage.per * m.damage;
-    if (cfg.moveSpd && m.moveSpd) out.moveSpeedMult = 1 + cfg.moveSpd.per * m.moveSpd;
-    if (cfg.count && m.count) out.count = 1 + m.count;
-    if (cfg.hp && m.hp) out.hpMult = 1 + cfg.hp.per * m.hp;
-    return out;
+    return getUpgradeMultsFromLevels(BARRACKS_CONFIG.modules, modules);
 }
 
 /** 兵营命中盒（世界坐标，相对脚底）：贴图 170×147，覆盖整屋（同小屋口径） */
@@ -144,6 +127,7 @@ export class HamsterBarracks extends DamageableEntity {
             size: BARRACKS_CONFIG.barracks.displayW,
             sizeH: BARRACKS_CONFIG.barracks.displayH,
             footOffsetY: BARRACKS_CONFIG.barracks.footOffsetY,
+            autoFootprint: false,
         };
         this.footOffsetY = BARRACKS_CONFIG.barracks.footOffsetY;
         applyBuildingFootprint(this, 2);
@@ -358,10 +342,9 @@ export class HamsterBarracks extends DamageableEntity {
         if (!EnergyManager || !EnergyManager.canStore(refund)) {
             return { ok: false, reason: '仓库空间不足，无法接收出售返还能源' };
         }
-        if (typeof this._removeBuildingRoads === 'function') this._removeBuildingRoads();
-        this.active = false;
+        this.hittable = false;
+        this._sinking = true;
         this._despawnUnits();
-        if (Game && Game.entities && this.id) Game.entities.delete(this.id);
         if (HamsterBarracksSystem && HamsterBarracksSystem.barracks) {
             const i = HamsterBarracksSystem.barracks.indexOf(this);
             if (i >= 0) HamsterBarracksSystem.barracks.splice(i, 1);
@@ -371,6 +354,7 @@ export class HamsterBarracks extends DamageableEntity {
             && HamsterBarracksSystem._panel.barracks === this) {
             HamsterBarracksSystem._panel.close();
         }
+        if (EffectManager) EffectManager.add(new BuildingSinkEffect(this).start());
         return { ok: true, refund };
     }
 }

@@ -12,6 +12,7 @@ import guardCfg from '../../data/hamster-guard-config.json';
 import scoutCfg from '../../data/hamster-scout-config.json';
 import musketeerCfg from '../../data/hamster-musketeer-config.json';
 import priestCfg from '../../data/hamster-priest-config.json';
+import knightCfg from '../../data/hamster-knight-config.json';
 
 /** 全局升级等级：{ [kind]: { [moduleId]: level } }（满级由建筑模块配置 maxLevel 控制） */
 export const GLOBAL_UNIT_UPGRADES = {};
@@ -51,6 +52,7 @@ export const UNIT_KIND_CFG = {
     scout: scoutCfg,
     musketeer: musketeerCfg,
     priest: priestCfg,
+    knight: knightCfg,
 };
 
 /** 实体识别兵种 key（非战斗兵种返回 null） */
@@ -63,6 +65,7 @@ export function getUnitKind(unit) {
     if (unit._isHamsterScout) return 'scout';
     if (unit._isHamsterMusketeer) return 'musketeer';
     if (unit._isHamsterPriest) return 'priest';
+    if (unit._isHamsterKnight) return 'knight';
     return null;
 }
 
@@ -80,10 +83,8 @@ export function raiseUnitUpgradeLevel(kind, moduleId) {
     return GLOBAL_UNIT_UPGRADES[kind][moduleId];
 }
 
-/** 按兵种全局等级 + 建筑模块配置计算倍率 */
-export function getUnitUpgradeMults(kind, modulesCfg) {
-    const m = (kind && GLOBAL_UNIT_UPGRADES[kind]) || {};
-    const mods = modulesCfg || {};
+/** 按模块 effect 字段与等级计算通用属性补丁；不依赖特定建筑或模块 ID。 */
+export function getUpgradeMultsFromLevels(modulesCfg, levels = {}) {
     const out = {
         attackIntervalMult: 1,
         attackDamageMult: 1,
@@ -92,15 +93,27 @@ export function getUnitUpgradeMults(kind, modulesCfg) {
         hpMult: 1,
         holyLightCooldownMult: 1,
         holyLightLevel: 1,
+        chargeDamageMult: 1,
+        miningMult: 1,
+        attackRangeBonus: 0,
+        defenseMult: 1,
+        holyLightRangeBonus: 0,
+        titheEnergyPerTick: 0,
     };
-    if (mods.attackSpd && m.attackSpd) out.attackIntervalMult = 1 + mods.attackSpd.per * m.attackSpd;
-    if (mods.damage && m.damage) out.attackDamageMult = 1 + mods.damage.per * m.damage;
-    if (mods.moveSpd && m.moveSpd) out.moveSpeedMult = 1 + mods.moveSpd.per * m.moveSpd;
-    if (mods.count && m.count) out.count = 1 + m.count;
-    if (mods.hp && m.hp) out.hpMult = 1 + mods.hp.per * m.hp;
-    if (mods.castSpd && m.castSpd) out.holyLightCooldownMult = 1 + mods.castSpd.per * m.castSpd;
-    if (mods.holyLight && m.holyLight) out.holyLightLevel = 1 + Math.round(mods.holyLight.per * m.holyLight);
+    for (const [moduleId, module] of Object.entries(modulesCfg || {})) {
+        const level = Math.max(0, Math.floor(Number(levels[moduleId]) || 0));
+        const effect = module?.effect;
+        const per = Number(module?.per);
+        if (!level || !effect || !Number.isFinite(per) || !(effect in out)) continue;
+        if (module.mode === 'add') out[effect] += per * level;
+        else out[effect] = 1 + per * level;
+    }
     return out;
+}
+
+/** 按兵种全局等级 + 建筑模块配置计算倍率。 */
+export function getUnitUpgradeMults(kind, modulesCfg) {
+    return getUpgradeMultsFromLevels(modulesCfg, (kind && GLOBAL_UNIT_UPGRADES[kind]) || {});
 }
 
 /** 该兵种在当前全局等级下的最终属性补丁（新生成单位直接用） */
@@ -108,14 +121,37 @@ export function getUnitUpgradePatch(kind, modulesCfg) {
     const base = UNIT_KIND_CFG[kind] || {};
     const baseAi = base.ai || {};
     const mults = getUnitUpgradeMults(kind, modulesCfg);
+    const titheModule = Object.values(modulesCfg || {}).find(
+        (module) => module?.effect === 'titheEnergyPerTick'
+    );
     return {
         attackInterval: Math.max(300, Math.round((baseAi.attackInterval ?? 2000) * mults.attackIntervalMult)),
         attackDamage: Math.max(1, Math.round((baseAi.attackDamage ?? 50) * mults.attackDamageMult)),
+        attackRange: Math.max(0, Math.round((baseAi.attackRange ?? 0) + mults.attackRangeBonus)),
         walkSpeed: Math.max(20, Math.round((baseAi.walkSpeed ?? 120) * mults.moveSpeedMult)),
         baseMaxHp: Math.max(1, Math.round((base.baseMaxHp ?? 300) * mults.hpMult)),
         holyLightCooldownMult: mults.holyLightCooldownMult,
         holyLightLevel: mults.holyLightLevel,
+        chargeDamageMult: mults.chargeDamageMult,
+        attackRangeBonus: mults.attackRangeBonus,
+        defenseMult: mults.defenseMult,
+        holyLightRangeBonus: mults.holyLightRangeBonus,
+        titheEnergyPerTick: mults.titheEnergyPerTick,
+        castRange: Math.max(0, Math.round((baseAi.castRange ?? 0) + mults.holyLightRangeBonus)),
+        titheIntervalMs: Number(titheModule?.tickMs) || 0,
     };
+}
+
+/** 将配置补丁同步到单位通用数据；专属 AI 字段由单位自身的 applyBarracksUpgrades 处理。 */
+export function applyUnitUpgradePatch(unit, patch) {
+    if (!unit || !patch) return;
+    if (typeof unit.applyBarracksUpgrades === 'function') unit.applyBarracksUpgrades(patch);
+    if (Number.isFinite(patch.defenseMult) && unit.data) {
+        if (!Number.isFinite(unit._upgradeBaseDefense)) unit._upgradeBaseDefense = unit.data.def ?? unit.def ?? 0;
+        const nextDefense = Math.max(0, Math.round(unit._upgradeBaseDefense * patch.defenseMult));
+        unit.data.def = nextDefense;
+        unit.def = nextDefense;
+    }
 }
 
 /** 把该兵种全局升级实时同步给场景内所有存活单位（跨建筑） */
@@ -127,8 +163,6 @@ export function applyGlobalUpgradesToKind(kind, modulesCfg) {
     for (const e of game.entities.values()) {
         if (!e || !e.active || e._dying) continue;
         if (getUnitKind(e) !== kind) continue;
-        if (typeof e.applyBarracksUpgrades === 'function') {
-            e.applyBarracksUpgrades(patch);
-        }
+        applyUnitUpgradePatch(e, patch);
     }
 }
