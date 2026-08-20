@@ -50,6 +50,12 @@ class GoldManagerImpl {
         return bp.find(i => i.category === 'gold' || i.name === '金币');
     }
 
+    _findGoldItems() {
+        return this._getBackpack().filter(
+            (item) => item && (item.category === 'gold' || item.name === '金币')
+        );
+    }
+
     /** @private 同步金币 stats 显示 */
     _syncGoldStats(goldItem) {
         if (goldItem.stats && goldItem.stats[0]) {
@@ -89,8 +95,10 @@ class GoldManagerImpl {
      * @returns {number}
      */
     getGold() {
-        const goldItem = this._findGoldItem();
-        return goldItem ? (goldItem.stack || 0) : 0;
+        return this._findGoldItems().reduce(
+            (sum, item) => sum + Math.max(0, Number(item.stack) || 0),
+            0
+        );
     }
 
     /**
@@ -156,23 +164,20 @@ class GoldManagerImpl {
         if (amount <= 0) return true;
 
         const bp = this._getBackpack();
-        const goldItem = this._findGoldItem();
-
-        if (!goldItem) return false;
-        if ((goldItem.stack || 0) < amount) return false;
-
-        goldItem.stack -= amount;
-        this._syncGoldStats(goldItem);
-
-        if (goldItem.stack <= 0) {
-            const idx = bp.indexOf(goldItem);
-            if (idx >= 0) {
-                bp.splice(idx, 1);
-            }
+        if (this.getGold() < amount) return false;
+        let remain = amount;
+        for (let index = bp.length - 1; index >= 0 && remain > 0; index--) {
+            const item = bp[index];
+            if (!item || (item.category !== 'gold' && item.name !== '金币')) continue;
+            const take = Math.min(Math.max(0, Number(item.stack) || 0), remain);
+            item.stack -= take;
+            remain -= take;
+            if (item.stack <= 0) bp.splice(index, 1);
+            else this._syncGoldStats(item);
         }
 
         this._notifyUpdate();
-        return true;
+        return remain <= 0;
     }
 
     /**

@@ -46,26 +46,26 @@ function _footCenter(rect) {
     return { x: rect.x + rect.w / 2, y: rect.y + rect.h / 2 };
 }
 
-function _randomPoint(scene, diamond, inset) {
+function _randomPoint(scene, diamond, inset, random) {
     for (let i = 0; i < 80; i++) {
-        const x = inset + Math.random() * Math.max(1, scene.width - inset * 2);
-        const y = inset + Math.random() * Math.max(1, scene.height - inset * 2);
+        const x = inset + random() * Math.max(1, scene.width - inset * 2);
+        const y = inset + random() * Math.max(1, scene.height - inset * 2);
         if (_insideDiamond(diamond, x, y, inset)) return { x, y };
     }
     return null;
 }
 
-function _scaleFor(geoKey, geo, jitter) {
+function _scaleFor(geoKey, geo, jitter, random) {
     const defaults = getObstacleDefaults();
     const saved = defaults && defaults[geoKey];
     const baseX = saved?.scaleX ?? saved?.scaleY ?? ((geo.obstacleH || 180) / geo.h);
     const baseY = saved?.scaleY ?? saved?.scaleX ?? ((geo.obstacleH || 180) / geo.h);
-    const mul = 1 - jitter + Math.random() * jitter * 2;
+    const mul = 1 - jitter + random() * jitter * 2;
     return {
         scaleX: baseX * mul,
         scaleY: baseY * mul,
         rotation: saved?.rotation || 0,
-        flipX: saved?.flipX ?? (Math.random() < 0.5),
+        flipX: saved?.flipX ?? (random() < 0.5),
         flipY: !!saved?.flipY,
     };
 }
@@ -120,15 +120,15 @@ function _commitPieces(pieces, placedRects, anchors) {
     anchors.push({ x: anchor.x / rects.length, y: anchor.y / rects.length });
 }
 
-function _placeSingles(scene, diamond, player, portalY, cfg, geoKey, wanted, placedRects, anchors) {
+function _placeSingles(scene, diamond, player, portalY, cfg, geoKey, wanted, placedRects, anchors, random) {
     const geo = WallSystem._geoForTex?.(`obstacle_${geoKey}`);
     if (!geo) return 0;
     let placed = 0;
     let tries = 0;
     while (placed < wanted && tries++ < wanted * 60) {
-        const point = _randomPoint(scene, diamond, cfg.edgeInset);
+        const point = _randomPoint(scene, diamond, cfg.edgeInset, random);
         if (!point) break;
-        const transform = _scaleFor(geoKey, geo, cfg.scaleJitter);
+        const transform = _scaleFor(geoKey, geo, cfg.scaleJitter, random);
         const piece = {
             tex: geo.tex,
             x: point.x,
@@ -184,7 +184,7 @@ function _stagePrefab(prefab, key, anchor) {
     }));
 }
 
-function _placePrefabs(scene, diamond, player, portalY, cfg, placedRects, anchors) {
+function _placePrefabs(scene, diamond, player, portalY, cfg, placedRects, anchors, random) {
     const library = getWallPrefabLibrary();
     const pool = _prefabPool();
     if (!pool.length) return 0;
@@ -192,10 +192,16 @@ function _placePrefabs(scene, diamond, player, portalY, cfg, placedRects, anchor
     let tries = 0;
     let available = [];
     while (placed < cfg.prefabCount && tries++ < cfg.prefabCount * 80) {
-        if (!available.length) available = [...pool].sort(() => Math.random() - 0.5);
+        if (!available.length) {
+            available = [...pool];
+            for (let i = available.length - 1; i > 0; i--) {
+                const j = Math.floor(random() * (i + 1));
+                [available[i], available[j]] = [available[j], available[i]];
+            }
+        }
         const key = available.pop();
         const prefab = library[key];
-        const point = _randomPoint(scene, diamond, cfg.edgeInset);
+        const point = _randomPoint(scene, diamond, cfg.edgeInset, random);
         if (!prefab || !point) continue;
         const staged = _stagePrefab(prefab, key, point);
         const rects = staged.map(_pieceRect);
@@ -209,7 +215,7 @@ function _placePrefabs(scene, diamond, player, portalY, cfg, placedRects, anchor
 /**
  * @returns {{pillars:number,candles:number,prefabs:number,pieces:number}}
  */
-export function scatterWorld125Environment(scene, diamond, player = null) {
+export function scatterWorld125Environment(scene, diamond, player = null, { random = Math.random } = {}) {
     if (!scene || !diamond || scene.dungeonObstacleScatter?.enabled === false) {
         return { pillars: 0, candles: 0, prefabs: 0, pieces: 0 };
     }
@@ -220,12 +226,12 @@ export function scatterWorld125Environment(scene, diamond, player = null) {
     const before = WallSystem.isoVisuals.length;
 
     const pillars = _placeSingles(
-        scene, diamond, player, portalY, cfg, 'pillar', cfg.pillarCount, placedRects, anchors
+        scene, diamond, player, portalY, cfg, 'pillar', cfg.pillarCount, placedRects, anchors, random
     );
     const candles = _placeSingles(
-        scene, diamond, player, portalY, cfg, 'candle', cfg.candleCount, placedRects, anchors
+        scene, diamond, player, portalY, cfg, 'candle', cfg.candleCount, placedRects, anchors, random
     );
-    const prefabs = _placePrefabs(scene, diamond, player, portalY, cfg, placedRects, anchors);
+    const prefabs = _placePrefabs(scene, diamond, player, portalY, cfg, placedRects, anchors, random);
 
     if (WallSystem.isoVisuals.length > before) WallSystem.rebuildIsoCollision?.();
     WallSystem._syncWallsToPhaser?.();

@@ -25,6 +25,7 @@ import { SoundManager } from '../ui/sound-manager.js';
 import { BasePanel } from '../ui/panels/base-panel.js';
 import { renderBuildingDetailHeader } from '../ui/panels/building-detail-header.js';
 import { SceneManager } from './scene-manager.js';
+import { WorldProgressionSystem } from './world-progression-system.js';
 import { WallSystem } from './wall-system.js';
 import { setupStructureDepth } from './structure-depth.js';
 import { Renderer } from './renderer.js';
@@ -835,21 +836,55 @@ class ProducerBuildingPanel extends BasePanel {
             return;
         }
         if (isPortal) {
+            if (sellBtn && b._isWorldPortalCore) sellBtn.style.display = 'none';
+            const currentScene = SceneManager.currentScene;
+            const sourceOperational = !b._portalDestroyed && b.hp > 0;
+            const travelWorlds = WorldProgressionSystem.getTravelWorlds()
+                .filter((entry) => entry.sceneId !== currentScene);
+            const destinations = sourceOperational
+                ? [{ sceneId: 'main', name: '主神空间', icon: '🏛️' }, ...travelWorlds]
+                : [];
+            const constructable = WorldProgressionSystem.getConstructableWorlds();
             st.innerHTML = `
-                <div style="font-size:13px;font-weight:700;color:#b8a8ff;margin-bottom:6px;">跨世界传送</div>
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px;">
+                    <div style="font-size:13px;font-weight:700;color:#b8a8ff;">跨世界传送</div>
+                    <button id="pbPortalConstructToggle" style="background:#47385f;color:#f2e8ff;border:1px solid #8870ae;border-radius:6px;padding:5px 9px;cursor:pointer;">构造传送门</button>
+                </div>
                 <div style="font-size:12px;color:#c8b98a;line-height:1.8;">
-                    选择目的地后将按正常场景切换流程传送。世界-122建筑与波次状态会自动保存。
+                    ${sourceOperational
+                        ? '选择已接入传送网络的世界。所有世界的建筑、时间与入侵状态会持续保存。'
+                        : '<span style="color:#ff7766;">该世界传送门已被摧毁，必须先重建才能传送。</span>'}
                 </div>`;
-            const destinations = (cfg.destinations || []).filter((entry) => entry && entry.sceneId);
-            modBox.innerHTML = destinations.length
+            const travelHtml = destinations.length
                 ? `<div style="display:grid;grid-template-columns:1fr;gap:8px;">${destinations.map((entry) => `
                     <button data-portal-destination="${entry.sceneId}" style="background:#302a58;color:#e8e0ff;border:1px solid #7566b0;border-radius:7px;padding:9px 10px;cursor:pointer;text-align:left;">
-                        <b style="font-size:14px;">${entry.icon || '🌀'} ${entry.label || entry.sceneId}</b>
+                        <b style="font-size:14px;">${entry.icon || '🌀'} ${entry.name || entry.label || entry.sceneId}</b>
                         <span style="display:block;font-size:11px;color:#b8a8d8;margin-top:2px;">点击传送</span>
                     </button>`).join('')}</div>`
-                : '<div style="font-size:12px;color:#8a8a8a;">尚未配置传送目的地。</div>';
+                : '<div style="font-size:12px;color:#8a8a8a;">暂无可用的传送目的地。</div>';
+            const constructHtml = !this._portalBuildOpen ? '' : `
+                <div style="margin-top:10px;padding-top:10px;border-top:1px solid #453b58;">
+                    <div style="font-size:12px;font-weight:700;color:#d8c8ff;margin-bottom:7px;">可构造世界</div>
+                    ${constructable.length ? constructable.map((entry) => {
+                        const costText = entry.firstConstruction
+                            ? '首次构造免费'
+                            : `重建：${entry.cost.gold || 0} 金币 + ${entry.cost.energy || 0} 能源`;
+                        return `<button data-portal-construct="${entry.sceneId}" style="display:block;width:100%;margin-top:6px;background:#3d3428;color:#ffe4ba;border:1px solid #8a704d;border-radius:7px;padding:9px 10px;cursor:pointer;text-align:left;">
+                            <b>${entry.icon || '🌀'} ${entry.name || entry.sceneId}</b>
+                            <span style="display:block;font-size:11px;color:#cdb58f;margin-top:2px;">${costText}</span>
+                        </button>`;
+                    }).join('') : '<div style="font-size:12px;color:#8a8a8a;">暂无可以构造传送门的世界</div>'}
+                </div>`;
+            modBox.innerHTML = travelHtml + constructHtml;
+            st.querySelector('#pbPortalConstructToggle')?.addEventListener('click', () => {
+                this._portalBuildOpen = !this._portalBuildOpen;
+                this.refresh();
+            });
             modBox.querySelectorAll('[data-portal-destination]').forEach((button) => {
                 button.addEventListener('click', () => this._teleport(button.dataset.portalDestination));
+            });
+            modBox.querySelectorAll('[data-portal-construct]').forEach((button) => {
+                button.addEventListener('click', () => this._constructPortal(button.dataset.portalConstruct));
             });
             return;
         }
@@ -984,6 +1019,14 @@ class ProducerBuildingPanel extends BasePanel {
     _teleport(sceneId) {
         const player = this.player || (typeof window !== 'undefined' && window.Game ? window.Game.player : null);
         if (!player || !sceneId || SceneManager.isLoading) return;
+        if (this.building?._portalDestroyed || !(this.building?.hp > 0)) {
+            this._notify('传送门已被摧毁，重建后才能传送', '#ff5555');
+            return;
+        }
+        if (sceneId !== 'main' && !WorldProgressionSystem.isPortalConstructed(sceneId)) {
+            this._notify('目标世界尚未接入传送网络', '#ff5555');
+            return;
+        }
         if (SceneManager.currentScene === sceneId) {
             this._notify('已经在该世界中', '#ffd700');
             return;
@@ -993,6 +1036,20 @@ class ProducerBuildingPanel extends BasePanel {
             console.error('[portal building] switchScene error:', err);
             this._notify('传送失败，请稍后重试', '#ff5555');
         });
+    }
+
+    _constructPortal(sceneId) {
+        const result = WorldProgressionSystem.constructPortal(sceneId);
+        if (!result.ok) {
+            this._notify(result.reason || '传送门构造失败', '#ff5555');
+            return;
+        }
+        if (sceneId === SceneManager.currentScene && this.building?._isWorldPortalCore) {
+            WorldProgressionSystem.revivePortalEntity(sceneId, this.building);
+        }
+        const world = WorldProgressionSystem.getWorldConfig(sceneId);
+        this._notify(`${world?.name || sceneId}传送门${result.firstConstruction ? '构造完成' : '重建完成'}`, '#b8a8ff');
+        this.refresh();
     }
 
     /** 能力说明浮窗（类似装备栏白色浮窗，2026-08-17）：悬停能力行时显示 */

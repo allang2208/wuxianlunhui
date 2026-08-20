@@ -155,6 +155,8 @@ export const Game = {
             resetUnitUpgrades();
             resetAbilityLevels();
             resetWorld122Snapshot();
+            window.WorldProgressionSystem?.reset?.();
+            window.WorldInvasionSystem?.reset?.();
             const menuLayer = getElement('menuLayer'); const uiLayer = getElement('uiLayer'); const gameLayer = getElement('gameLayer'); if (menuLayer) menuLayer.classList.add('hidden'); if (uiLayer) uiLayer.style.display = 'block'; if (gameLayer) gameLayer.style.display = 'block';
             // 先初始化场景管理器并标记主场景，保证 Renderer.generateWorld / spawnNPC 用 4096×4096 主神空间尺寸
             SceneManager.init();
@@ -227,20 +229,8 @@ export const Game = {
             this._battleCommander = new BattleCommander();
             // 初始化战术小队AI系统
             this._tacticalSquadAI = new TacticalSquadAI();
-            // 在当前地图测试区域左边生成传送门
-            const portalCfg = GAME_CONFIG.portals?.mainHub || { base: { x: 3478, y: 2363 }, spacing: 100, direction: 'left', entries: [] };
-            const portalBase = portalCfg.base || { x: 3478, y: 2363 };
-            const portalSpacing = portalCfg.spacing || 100;
-            const portalDir = portalCfg.direction === 'right' ? 1 : -1;
-            const portalEntries = portalCfg.entries || [];
-            for (let i = 0; i < portalEntries.length; i++) {
-                const entry = portalEntries[i];
-                const px = portalBase.x + (i + 1) * portalSpacing * portalDir;
-                const py = portalBase.y;
-                const portal = new Portal(px, py, entry.targetScene, entry.label);
-                this.entities.set(`portal_scene_${i + 2}`, portal);
-                EffectManager.add(new FloatingTextEffect(px, py - 30, entry.label, '#5a9a8a'));
-            }
+            // 主神空间只物化已接入网络的世界传送门；回城时会再次同步构造/摧毁状态。
+            this.syncMainHubWorldPortals();
             // 初始主神空间状态缓存：与 switchScene 离开时的保存同口径——
             // 出征 depart() 绕开 switchScene 清实体，任何返回路径（放弃/撤离/通关/死亡）
             // 都靠这份缓存恢复主神空间，而不是重新生成
@@ -251,6 +241,31 @@ export const Game = {
             el.style.cssText = 'position:fixed;top:10px;left:10px;right:10px;bottom:10px;z-index:99999;background:rgba(0,0,0,0.95);color:#ff4444;font-family:monospace;font-size:14px;padding:20px;overflow:auto;white-space:pre-wrap;';
             el.textContent = 'ERROR: ' + e.message + '\n\nStack:\n' + e.stack;
             document.body.appendChild(el);
+        }
+    },
+    syncMainHubWorldPortals() {
+        if (!this.entities) return;
+        const worldIds = new Set(['scene8', 'scene9', 'scene10', 'scene11']);
+        for (const [key, entity] of Array.from(this.entities.entries())) {
+            if (!worldIds.has(entity?.targetScene)) continue;
+            entity._destroyPhaserSprite?.();
+            this.entities.delete(key);
+        }
+        const portalCfg = GAME_CONFIG.portals?.mainHub
+            || { base: { x: 3478, y: 2363 }, spacing: 100, direction: 'left', entries: [] };
+        const portalBase = portalCfg.base || { x: 3478, y: 2363 };
+        const portalSpacing = portalCfg.spacing || 100;
+        const portalDir = portalCfg.direction === 'right' ? 1 : -1;
+        const available = (portalCfg.entries || []).filter((entry) =>
+            entry?.targetScene && window.WorldProgressionSystem?.isPortalConstructed?.(entry.targetScene));
+        for (let i = 0; i < available.length; i++) {
+            const entry = available[i];
+            const px = portalBase.x + (i + 1) * portalSpacing * portalDir;
+            const py = portalBase.y;
+            const portal = new Portal(px, py, entry.targetScene, entry.label);
+            portal._isWorldNetworkPortal = true;
+            this.entities.set(`portal_world_${entry.targetScene}`, portal);
+            EffectManager.add(new FloatingTextEffect(px, py - 30, entry.label, '#5a9a8a'));
         }
     },
     async spawnPlayer() {
@@ -1214,7 +1229,7 @@ if (this.player && this.player.droneSystem && this.player.droneSystem.controllin
         // （rts-command.js mousedown/mouseup）处理，这里清掉边沿标志短路下方既有逻辑。
         if (RTSCommand) {
             RTSCommand.tick(SceneManager.currentScene, Input, dt);
-            if (RTSCommand.enabled && (SceneManager.currentScene === 'scene8' || this._observerMode)) {
+            if (RTSCommand.enabled && (['scene8', 'scene9', 'scene10', 'scene11'].includes(SceneManager.currentScene) || this._observerMode)) {
                 Input.mouse.leftDown = false;
                 Input.mouse.rightDown = false;
                 Input.mouse.leftPressed = false;
@@ -1430,8 +1445,9 @@ CombatSystem.update(e, dt, this.entities);
             PartySystem.updateCombat(dt, this.entities, this.player);
         }
 
-        // 世界-122 防守地图：波次生成（实体自身的更新已在上方主循环完成）
-        if (SceneManager.currentScene === 'scene8' && DefenseSystem && DefenseSystem.active) {
+        // 多世界入侵：目标世界加载时由 DefenseSystem 物化波次。
+        if (['scene8', 'scene9', 'scene10', 'scene11'].includes(SceneManager.currentScene)
+            && DefenseSystem && DefenseSystem.active) {
             DefenseSystem.update(dt);
         }
         // 仓鼠小屋：矿工补员计时（矿工自身 update 由实体主循环驱动）
@@ -1610,6 +1626,10 @@ const pickupCfg = GAME_CONFIG.pickup || {};
 
             // 传送门检测
             if (portalReady && entity.targetScene) {
+                if (['scene8', 'scene9', 'scene10', 'scene11'].includes(entity.targetScene)
+                    && !window.WorldProgressionSystem?.isPortalConstructed?.(entity.targetScene)) {
+                    continue;
+                }
                 const dx = entity.x - this.player.x, dy = entity.y - this.player.y;
                 const dist = Math.sqrt(dx * dx + dy * dy);
                 if (dist < portalTriggerDist) {
@@ -1633,7 +1653,7 @@ const pickupCfg = GAME_CONFIG.pickup || {};
             }
         }
 this.resolveCollisions();
-        if (SceneManager.currentScene === 'scene8'
+        if (['scene8', 'scene9', 'scene10', 'scene11'].includes(SceneManager.currentScene)
             && DefenseSystem?.active
             && typeof DefenseSystem.reconcileElevatedSurfaces === 'function') {
             DefenseSystem.reconcileElevatedSurfaces();

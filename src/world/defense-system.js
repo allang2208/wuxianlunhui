@@ -2549,13 +2549,17 @@ export const DefenseSystem = {
     _repairTimer: 0,
     _repairTarget: null,
     _repairFlash: 0,
+    _managedExternally: false,
+    _managedConfig: null,
+    _managedResolved: null,
+    _worldId: null,
 
     _ensurePanel() {
         if (!this._panel) this._panel = new DefenseTowerPanel();
         return this._panel;
     },
 
-    setup(player) {
+    setup(player, options = {}) {
         this.teardown();
         this.active = true;
         this.defeated = false;
@@ -2570,6 +2574,15 @@ export const DefenseSystem = {
         this._lordTimer = 0;
         this._seq = 0;
         this._goldGranted = new Set();
+        this._managedExternally = options.managedExternally === true;
+        this._managedConfig = null;
+        this._managedResolved = null;
+        this._worldId = options.worldId || null;
+        this.base = options.targetEntity || null;
+        if (this._managedExternally) {
+            World122TributeSystem.setup(player, this.base);
+            return;
+        }
         this._buildBaseRoom();
 
         const baseCfg = DEFENSE_CONFIG.base;
@@ -2791,6 +2804,10 @@ export const DefenseSystem = {
           this._aliveCountCache = undefined;
           this._aliveCountTime = 0;
           this._seq = 0;
+          this._managedExternally = false;
+          this._managedConfig = null;
+          this._managedResolved = null;
+          this._worldId = null;
           if (this._goldGranted) this._goldGranted.clear();
           this._goldGranted = null;
           // 掩体墙段已移除：寻路网格随之重建（怪物不再绕不存在的墙）
@@ -2827,6 +2844,12 @@ export const DefenseSystem = {
         this._updatePlatformStates(dt); // 楼梯/墙顶表面判定与平滑Z抬升
         this._grantMonsterGold(dt);
         this._updateHud(dt);
+        if (this._managedExternally && !this._managedConfig) return;
+        if (this._managedExternally && this.base
+            && (this.base._portalDestroyed || this.base.hp <= 0 || this.base.active === false)) {
+            this._onBaseDestroyed();
+            return;
+        }
         if (this.victory) return;
 
         // ==================== 离散波次状态机（2026-08-14）====================
@@ -2842,11 +2865,14 @@ export const DefenseSystem = {
             case 'wave':
                 // 波内怪物全部死亡 → 波次结束：最后一波胜利，否则进入波间休息
                 if (this._aliveCount() === 0) {
-                    if (this._wave >= (DEFENSE_CONFIG.spawn.victoryWave || 10)) {
+                    const victoryWave = this._managedConfig?.waveCount
+                        || DEFENSE_CONFIG.spawn.victoryWave || 10;
+                    if (this._wave >= victoryWave) {
                         this._onVictory();
                     } else {
                         this._phase = 'break';
-                        this._phaseTimer = DEFENSE_CONFIG.spawn.waveBreakMs || 10000;
+                        this._phaseTimer = this._managedConfig?.waveBreakMs
+                            || DEFENSE_CONFIG.spawn.waveBreakMs || 10000;
                         this._announce(`第 ${this._wave} 波已清除！${Math.round(this._phaseTimer / 1000)} 秒后下一波`, '#9dff9d');
                     }
                 }
@@ -2863,6 +2889,54 @@ export const DefenseSystem = {
     },
 
     /** 实体分离后的高架最终提交，不重复推进卡死看门狗。 */
+    /** External global invasion scheduler API. */
+    beginManagedInvasion(config, targetEntity, onResolved) {
+        if (!this.active || !this._managedExternally || !targetEntity) return false;
+        this.base = targetEntity;
+        this.defeated = false;
+        this.victory = false;
+        this._managedConfig = {
+            ...config,
+            waves: (config?.waves || []).map((wave) => wave.slice()),
+            spawnPoints: (config?.spawnPoints || []).map((point) => ({ ...point })),
+        };
+        this._managedResolved = onResolved || null;
+        this._wave = Math.max(1, Number(config?.startWave) || 1);
+        this._phase = 'wave';
+        this._phaseTimer = 0;
+        this._startWave();
+        return true;
+    },
+
+    stopManagedInvasion({ clearMonsters = true } = {}) {
+        if (clearMonsters && Game?.entities) {
+            for (const [key, entity] of Array.from(Game.entities.entries())) {
+                if (!entity?._defenseMonster) continue;
+                entity.active = false;
+                entity._destroyPhaserSprite?.();
+                Game.entities.delete(key);
+            }
+        }
+        this._managedConfig = null;
+        this._managedResolved = null;
+        this._phase = 'prep';
+        this._phaseTimer = 0;
+        this._wave = 0;
+        this.defeated = false;
+        this.victory = false;
+    },
+
+    getManagedInvasionState() {
+        if (!this._managedConfig) return null;
+        return {
+            worldId: this._worldId,
+            wave: this._wave,
+            waveCount: this._managedConfig.waveCount,
+            phase: this._phase,
+            alive: this._aliveCount(),
+        };
+    },
+
     reconcileElevatedSurfaces() {
         this._updatePlatformStates(0, {
             elevatedOnly: true,
@@ -3926,6 +4000,17 @@ export const DefenseSystem = {
     _startWave() {
         this._phase = 'wave';
         this._phaseTimer = 0;
+        if (this._managedExternally && this._managedConfig) {
+            let alive = this._aliveCount();
+            const types = this._managedConfig.waves?.[this._wave - 1] || [];
+            for (const type of types) {
+                if (alive >= (this._managedConfig.maxAlive || DEFENSE_CONFIG.spawn.maxAlive)) break;
+                this._spawnMonster(this._wave, null, 1, type);
+                alive++;
+            }
+            this._announce(`第 ${this._wave}/${this._managedConfig.waveCount} 波入侵！`, '#ff7755');
+            return;
+        }
         const cfg = DEFENSE_CONFIG.spawn;
         const plan = cfg.wavePlan ? cfg.wavePlan[this._wave] : null;
         let alive = this._aliveCount();
@@ -4258,7 +4343,10 @@ export const DefenseSystem = {
         const type = forceType || this._pickMonsterType(pool);
         const Factory = MONSTER_FACTORY[type];
         if (!Factory) return;
-        const pt = DEFENSE_CONFIG.spawnPoints[Math.floor(Math.random() * DEFENSE_CONFIG.spawnPoints.length)];
+        const spawnPoints = this._managedConfig?.spawnPoints?.length
+            ? this._managedConfig.spawnPoints
+            : DEFENSE_CONFIG.spawnPoints;
+        const pt = spawnPoints[Math.floor(Math.random() * spawnPoints.length)];
         const monster = new Factory(pt.x, pt.y);
         // [FIX] 刷怪点可能被散布树 footprint 压住：先校验，必要时沿螺旋外推到合法位置，
         // 避免怪物出生即嵌入障碍（起点在矩形内 resolve/blocked 恒失败 → 永久冻结）
@@ -4270,7 +4358,7 @@ export const DefenseSystem = {
             // 换其他刷怪点再兜底一次，杜绝"出生即卡死/出生位置异常"（刷怪点全在右端，
             // 互相距离远，几乎不可能同时全堵）
             if (!WallSystem.canMoveTo(monster.x, monster.y, monster.groundRadius)) {
-                for (const op of DEFENSE_CONFIG.spawnPoints) {
+                for (const op of spawnPoints) {
                     if (Math.hypot(op.x - pt.x, op.y - pt.y) < 1) continue;
                     const s2 = WallSystem.findSafeSpawn(op.x, op.y, monster.groundRadius);
                     if (WallSystem.canMoveTo(s2.x, s2.y, monster.groundRadius)) {
@@ -4296,8 +4384,12 @@ export const DefenseSystem = {
             monster._aggroRange = defAggro;
         }
         // 波次成长：HP/攻击随波次提升
-        const hpMul = (1 + (wave - 1) * DEFENSE_CONFIG.spawn.hpPerWave) * hpMulExtra;
-        const atkMul = 1 + (wave - 1) * DEFENSE_CONFIG.spawn.atkPerWave;
+        const hpPerWave = this._managedConfig?.hpPerWave ?? DEFENSE_CONFIG.spawn.hpPerWave;
+        const atkPerWave = this._managedConfig?.atkPerWave ?? DEFENSE_CONFIG.spawn.atkPerWave;
+        const cycleHpMul = this._managedConfig?.cycleHpMul ?? 1;
+        const cycleAtkMul = this._managedConfig?.cycleAtkMul ?? 1;
+        const hpMul = (1 + (wave - 1) * hpPerWave) * hpMulExtra * cycleHpMul;
+        const atkMul = (1 + (wave - 1) * atkPerWave) * cycleAtkMul;
         monster.maxHp = Math.max(1, Math.round(monster.maxHp * hpMul));
         monster.hp = monster.maxHp;
         if (monster.data) {
@@ -4307,6 +4399,7 @@ export const DefenseSystem = {
             if (monster.data.matk) monster.data.matk = Math.max(1, Math.round(monster.data.matk * atkMul));
         }
         Game.entities.set(`defense_monster_${++this._seq}`, monster);
+        this._aliveCountCache = undefined;
     },
 
     _spawnElite(hpMul) {
@@ -4349,6 +4442,11 @@ export const DefenseSystem = {
             SoundManager.playFile('assets/sounds/enemies/amalgam/dying.mp3');
         }
         if (this._panel && this._panel.isOpen) this._panel.close();
+        if (this._managedExternally && typeof this._managedResolved === 'function') {
+            const callback = this._managedResolved;
+            this._managedResolved = null;
+            callback({ victory: false, worldId: this._worldId, wave: this._wave });
+        }
     },
 
     // ==================== 塔出售（2026-08-14；被摧毁即清除，无废墟/重建）====================
@@ -4385,6 +4483,14 @@ export const DefenseSystem = {
     _onVictory() {
         if (this.victory) return;
         this.victory = true;
+        if (this._managedExternally) {
+            if (typeof this._managedResolved === 'function') {
+                const callback = this._managedResolved;
+                this._managedResolved = null;
+                callback({ victory: true, worldId: this._worldId, wave: this._wave });
+            }
+            return;
+        }
         const reward = DEFENSE_CONFIG.spawn.victoryReward || { gold: 500, energy: 500 };
         let energyAdded = 0;
         if (!this._victoryGranted) {

@@ -166,8 +166,9 @@ export const EnergyNodeSystem = {
     active: false,
 
     /** 场景进入时铺资源点（scene8） */
-    setup() {
+    setup({ random = Math.random } = {}) {
         this.teardown();
+        this._generationRandom = typeof random === 'function' ? random : Math.random;
         this.active = true;
         this._ensureTextures();
         this._refillVariantBag();
@@ -187,8 +188,8 @@ export const EnergyNodeSystem = {
             let placed = 0;
             let guard = 0;
             while (placed < count && guard++ < count * 40) {
-                const ang = Math.random() * Math.PI * 2;
-                const dist = Math.sqrt(Math.random()) * spread; // 均匀圆盘分布
+                const ang = this._generationRandom() * Math.PI * 2;
+                const dist = Math.sqrt(this._generationRandom()) * spread; // 均匀圆盘分布
                 const px = Math.round(cl.x + Math.cos(ang) * dist);
                 const py = Math.round(cl.y + Math.sin(ang) * dist);
                 // 基地核心周边禁矿带（ENERGY_CONFIG.baseExclusion）：800px 内不生成
@@ -203,11 +204,11 @@ export const EnergyNodeSystem = {
                     continue; // 落点被墙/建筑占住则跳过
                 }
                 const storage = ENERGY_CONFIG.storage.min
-                    + Math.floor(Math.random() * (ENERGY_CONFIG.storage.max - ENERGY_CONFIG.storage.min + 1));
+                    + Math.floor(this._generationRandom() * (ENERGY_CONFIG.storage.max - ENERGY_CONFIG.storage.min + 1));
                 const variant = this._takeVariant();
                 const node = new EnergyNode(px, py, { hp: storage, maxHp: storage, variant });
                 node._formMeta = energyNodeFormMeta(variant);
-                const id = `energy_node_${Math.random().toString(36).slice(2, 8)}`;
+                const id = `energy_node_${this._generationRandom().toString(36).slice(2, 8)}`;
                 Game.entities.set(id, node);
                 this.nodes.push(node);
                 placed++;
@@ -327,7 +328,8 @@ export const EnergyNodeSystem = {
     _refillVariantBag() {
         this._variantBag = Array.from({ length: ENERGY_NODE_V3_COUNT }, (_, i) => i + 1);
         for (let i = this._variantBag.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
+            const random = this._generationRandom || Math.random;
+            const j = Math.floor(random() * (i + 1));
             [this._variantBag[i], this._variantBag[j]] = [this._variantBag[j], this._variantBag[i]];
         }
     },

@@ -253,8 +253,16 @@ export class GameScene extends Scene {
     update(_time, _delta) {
         // Phaser 自动调用，每帧更新
         // 现有 Game 循环仍然运行，这里只做 Phaser 相关的更新
-        EnvironmentLightingSystem.update(_delta);
-        this._refreshDynamicProjectionCachePolicy();
+        // 地牢探险期间统一冻结世界时间：太阳、所有世界后台生产与五日入侵倒计时同停同启。
+        const dungeonTimeFrozen = SceneManager.currentScene === 'scene7'
+            && DungeonMapSystem?.active;
+        const worldClockRunning = Game?.isRunning && !Game._paused && !dungeonTimeFrozen;
+        const worldDelta = worldClockRunning ? _delta : 0;
+        const worldTimeBefore = EnvironmentLightingSystem.serializeTime().elapsedMs || 0;
+        EnvironmentLightingSystem.update(worldDelta);
+        const worldTimeAfter = EnvironmentLightingSystem.serializeTime().elapsedMs || 0;
+        const invasionDelta = Math.max(0, worldTimeAfter - worldTimeBefore);
+        window.WorldInvasionSystem?.update?.(invasionDelta, SceneManager.currentScene);
 
         // 能源节点防叠图自愈（2026-08-16）：世界-122 每 ~1s 清一次同位置堆积节点
         // （旧会话/HMR/历史配置残留会叠出“门边一堆矿”，setup 清理覆盖不到已加载场景）

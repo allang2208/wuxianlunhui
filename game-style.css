@@ -1314,12 +1314,141 @@
             color: #ffd700;
             filter: drop-shadow(0 0 3px rgba(255, 215, 0, 0.5));
         }
+        /* 24h 太阳针表盘（2026-08-19）：针=太阳方位，上=正午/右=日落/下=午夜/左=日出 */
+        .game-time .time-dial {
+            display: inline-flex;
+            width: 60px;
+            height: 60px;
+            flex: 0 0 auto;
+        }
+        .time-dial .dial-face {
+            fill: rgba(18, 20, 32, 0.78);
+            stroke: rgba(212, 197, 169, 0.55);
+            stroke-width: 1.5;
+        }
+        .time-dial .dial-arc-day {
+            fill: none;
+            stroke: #f0b429;
+            stroke-width: 2.5;
+            stroke-linecap: round;
+        }
+        .time-dial .dial-arc-night {
+            fill: none;
+            stroke: #3d5a80;
+            stroke-width: 2.5;
+            stroke-linecap: round;
+        }
+        .time-dial .dial-horizon {
+            stroke: rgba(212, 197, 169, 0.35);
+            stroke-width: 0.8;
+        }
+        .time-dial .dial-tick-major {
+            stroke: #d4c5a9;
+            stroke-width: 1.6;
+            stroke-linecap: round;
+        }
+        .time-dial .dial-tick-minor {
+            stroke: rgba(212, 197, 169, 0.45);
+            stroke-width: 1;
+            stroke-linecap: round;
+        }
+        .time-dial .dial-hand {
+            stroke: #ffd700;
+            stroke-width: 2.2;
+            stroke-linecap: round;
+            filter: drop-shadow(0 0 2px rgba(255, 215, 0, 0.6));
+        }
+        .time-dial .dial-hand-tip {
+            fill: #ffd700;
+        }
+        .time-dial .dial-center {
+            fill: #d4c5a9;
+        }
         .game-time .time-text {
             font-size: 14px;
             font-weight: 700;
             color: #d4c5a9;
             letter-spacing: 1px;
             text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+        }
+
+        .world-invasion-hud {
+            position: fixed;
+            top: 76px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: min(360px, 42vw);
+            padding: 6px 10px 8px;
+            border: 1px solid rgba(196, 128, 72, 0.72);
+            border-radius: 8px;
+            background: rgba(22, 15, 18, 0.88);
+            color: #f1c59d;
+            z-index: 155;
+            pointer-events: none;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.45);
+        }
+        .world-invasion-hud.active {
+            border-color: #ff5b4f;
+            color: #ffd0ca;
+            box-shadow: 0 0 14px rgba(255, 70, 60, 0.35);
+        }
+        .world-invasion-hud.warning { border-color: #ffad55; }
+        .world-invasion-hud.critical {
+            border-color: #ff765c;
+            box-shadow: 0 0 18px rgba(255, 90, 70, 0.48);
+        }
+        .world-invasion-hud.evacuation {
+            border-color: #ff3d3d;
+            animation: world-invasion-pulse 0.8s ease-in-out infinite alternate;
+        }
+        .world-invasion-label {
+            display: flex;
+            justify-content: center;
+            gap: 7px;
+            font-size: 12px;
+            font-weight: 700;
+            line-height: 1.4;
+        }
+        .world-invasion-detail {
+            margin-top: 2px;
+            text-align: center;
+            font-size: 11px;
+            color: #f5b2a8;
+        }
+        .world-invasion-support {
+            display: none;
+            width: 100%;
+            margin-top: 5px;
+            padding: 4px 8px;
+            border: 1px solid #d85d50;
+            border-radius: 5px;
+            background: rgba(116, 36, 31, 0.88);
+            color: #ffe5df;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            pointer-events: auto;
+        }
+        .world-invasion-support:hover { background: rgba(154, 47, 38, 0.95); }
+        @keyframes world-invasion-pulse {
+            from { box-shadow: 0 0 12px rgba(255, 50, 45, 0.35); }
+            to { box-shadow: 0 0 24px rgba(255, 50, 45, 0.72); }
+        }
+        .world-invasion-track {
+            height: 7px;
+            margin-top: 5px;
+            overflow: hidden;
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.12);
+        }
+        .world-invasion-bar {
+            width: 0;
+            height: 100%;
+            border-radius: inherit;
+            background: linear-gradient(90deg,
+                var(--invasion-gradient-start, #3dc45b),
+                var(--invasion-gradient-end, #4ccf74));
+            transition: width 0.18s linear;
         }
         /* ===== 已强化标签样式 ===== */
         .equip-grid .diablo-slot .slot-crafted {

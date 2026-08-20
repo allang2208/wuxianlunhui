@@ -14,11 +14,35 @@ import { serializeAbilityLevels, restoreAbilityLevels } from '../world/ability-s
 import { ResearchSystem } from '../world/research-system.js';
 import { EnergyManager } from '../systems/energy-manager.js';
 import { World122TributeSystem } from '../world/world122-tribute-system.js';
-import { serializeWorld122Scene, restoreWorld122Scene } from '../world/world122-snapshot.js';
+import {
+    serializeWorld122Scene,
+    restoreWorld122Scene,
+    serializeWorldScenes,
+    restoreWorldScenes,
+} from '../world/world122-snapshot.js';
 import { EnvironmentLightingSystem } from '../world/environment-lighting-system.js';
 
 // Game UI Manager - Extracted from Game.js
 // Handles UI updates, save/load, timers, and menu operations
+
+const INVASION_DANGER_COLORS = [
+    { at: 0, rgb: [61, 196, 91] },
+    { at: 1 / 3, rgb: [65, 139, 231] },
+    { at: 2 / 3, rgb: [241, 193, 63] },
+    { at: 1, rgb: [229, 65, 62] },
+];
+
+function invasionDangerColor(value) {
+    const progress = Math.max(0, Math.min(1, Number(value) || 0));
+    const upperIndex = INVASION_DANGER_COLORS.findIndex((stop) => progress <= stop.at);
+    const upper = INVASION_DANGER_COLORS[Math.max(1, upperIndex)];
+    const lower = INVASION_DANGER_COLORS[Math.max(0, upperIndex - 1)];
+    const span = Math.max(Number.EPSILON, upper.at - lower.at);
+    const t = Math.max(0, Math.min(1, (progress - lower.at) / span));
+    const rgb = lower.rgb.map((channel, index) =>
+        Math.round(channel + (upper.rgb[index] - channel) * t));
+    return `rgb(${rgb.join(', ')})`;
+}
 
 export const GameUIManager = {
     player: null,
@@ -253,7 +277,10 @@ export const GameUIManager = {
         ResearchSystem.refreshWorld();
         EnergyManager.restoreStorage(data.world122?.energyStorage);
         World122TributeSystem.restore(data.world122?.tributeBuffs);
-        restoreWorld122Scene(data.world122?.scene);
+        if (data.worlds?.scenes) restoreWorldScenes(data.worlds.scenes);
+        else restoreWorld122Scene(data.world122?.scene);
+        window.WorldProgressionSystem?.restore?.(data.worlds?.progression);
+        window.WorldInvasionSystem?.restore?.(data.worlds?.invasion);
         if (Array.isArray(data.backpack) && typeof EquipManager !== 'undefined') {
             // 原地替换内容而非换数组：init 时旧数组引用已注入 EquipTooltipManager/
             // GoldManager/BackpackDialogManager/dragDropManager，换数组会让这些引用失效
@@ -282,6 +309,7 @@ export const GameUIManager = {
     },
     save() {
         if (!this.player) return;
+        window.WorldInvasionSystem?.syncLivePortal?.();
         const saveData = {
             version: '1.0',
             timestamp: Date.now(),
@@ -298,6 +326,11 @@ export const GameUIManager = {
                 tributeBuffs: World122TributeSystem.serialize(),
                 scene: serializeWorld122Scene(),
             },
+            worlds: {
+                progression: window.WorldProgressionSystem?.serialize?.() || null,
+                invasion: window.WorldInvasionSystem?.serialize?.() || null,
+                scenes: serializeWorldScenes(),
+            },
         };
         try { localStorage.setItem('infiniteLoop_save', JSON.stringify(saveData)); alert('已保存至主神空间'); } catch (e) { console.error('Save failed:', e); alert('存档失败: 存储空间不足'); }
     },
@@ -310,6 +343,40 @@ export const GameUIManager = {
         if (text) {
             const pad = (n) => String(n).padStart(2, '0');
             text.textContent = `第${gameTime.day}日 · ${pad(gameTime.hour)}:${pad(gameTime.minute)} · ${gameTime.period}`;
+        }
+        // 24h 太阳针：phase=0 日出指左(−90°)、0.25 正午指上(0°)、0.5 日落指右(+90°)。
+        const hand = getElementIfExists('gameTimeDialHand');
+        if (hand) {
+            const phase = EnvironmentLightingSystem.getSun()?.phase ?? 0.25;
+            hand.setAttribute('transform', `rotate(${(phase * 360 - 90).toFixed(2)} 24 24)`);
+        }
+        const invasion = window.WorldInvasionSystem?.getHudModel?.();
+        const invasionHud = getElementIfExists('worldInvasionHud');
+        const invasionText = getElementIfExists('worldInvasionText');
+        const invasionDetail = getElementIfExists('worldInvasionDetail');
+        const invasionSupport = getElementIfExists('worldInvasionSupport');
+        const invasionBar = getElementIfExists('worldInvasionBar');
+        if (invasionHud && invasion) {
+            invasionHud.classList.toggle('active', !!invasion.active);
+            for (const severity of ['warning', 'critical', 'evacuation']) {
+                invasionHud.classList.toggle(severity, invasion.severity === severity);
+            }
+        }
+        if (invasionText && invasion) invasionText.textContent = invasion.text;
+        if (invasionDetail && invasion) {
+            invasionDetail.textContent = invasion.detail || '';
+            invasionDetail.style.display = invasion.detail ? '' : 'none';
+        }
+        if (invasionSupport && invasion) {
+            invasionSupport.style.display = invasion.active && invasion.canSupport ? '' : 'none';
+        }
+        if (invasionBar && invasion) {
+            const progress = Math.max(0, Math.min(1, Number(invasion.progress) || 0));
+            // 倒计时越满越危险；入侵发生后 progress 改表示传送门剩余耐久，危险度方向相反。
+            const danger = invasion.active ? 1 - progress : progress;
+            invasionBar.style.width = `${Math.round(progress * 100)}%`;
+            invasionBar.style.setProperty('--invasion-gradient-start', invasionDangerColor(danger - 0.08));
+            invasionBar.style.setProperty('--invasion-gradient-end', invasionDangerColor(danger + 0.08));
         }
     },
     setupWeaponSwitchButtons() {

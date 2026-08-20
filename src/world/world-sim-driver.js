@@ -14,9 +14,10 @@ import { EffectManager } from '../effects/effect-manager.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
 import { GoldManager } from '../systems/gold-manager.js';
 import {
-    getWorld122Snapshot, resetWorld122Snapshot, isWorld122Live,
+    getWorldSnapshots, isWorldLive, isWorldSnapshotCurrent,
 } from './world122-snapshot.js';
 import { settleWorld122 } from './world122-sim.js';
+import { EnvironmentLightingSystem } from './environment-lighting-system.js';
 
 const TICK_MS = 1000;
 
@@ -31,48 +32,55 @@ export const WorldSimDriver = {
 
     _tick() {
         if (!Game || !Game.isRunning) return;
-        if (isWorld122Live()) return; // 前台全真，不重复结算（离场捕获会重置 capturedAt 锚点）
-        const snap = getWorld122Snapshot();
-        if (!snap || !snap.wave) return;
-        // 锚点 = 快照 capturedAt（settle 提交时推进到 now）：
-        // 读档离线数小时/探针回拨等场景都能完整结算，不依赖驱动器自身时钟
-        const elapsed = Date.now() - (snap.capturedAt || Date.now());
-        if (elapsed < 500) return; // 结算最小粒度
-        let report;
-        try {
-            report = settleWorld122(snap, elapsed, {
-                commit: true,
-                grant: (reward) => {
-                    if (reward.gold && GoldManager && typeof GoldManager.addGold === 'function') {
-                        GoldManager.addGold(reward.gold);
-                    }
-                },
-            });
-        } catch (err) {
-            console.error('[WorldSimDriver] 后台结算异常:', err);
-            return;
+        const nowGame = EnvironmentLightingSystem.serializeTime().elapsedMs || 0;
+        const entries = Object.entries(getWorldSnapshots())
+            .filter(([sceneId, snapshot]) => isWorldSnapshotCurrent(sceneId, snapshot));
+        const hasLiveWorld = entries.some(([sceneId]) => isWorldLive(sceneId));
+        const background = entries.filter(([sceneId, snap]) => snap?.wave && !isWorldLive(sceneId));
+        const passiveTarget = hasLiveWorld ? null : background.reduce((best, entry) => {
+            if (!best) return entry;
+            return (entry[1]?.capturedGameTimeMs || 0) > (best[1]?.capturedGameTimeMs || 0) ? entry : best;
+        }, null)?.[0];
+        for (const [sceneId, snap] of entries) {
+            if (!snap?.wave || isWorldLive(sceneId)) continue;
+            const elapsed = Math.max(0, nowGame - (snap.capturedGameTimeMs || nowGame));
+            if (elapsed < 500) continue;
+            let report;
+            try {
+                report = settleWorld122(snap, elapsed, {
+                    commit: true,
+                    skipWaves: true,
+                    // 全局被动能源只结算一次：前台世界优先，否则落到最近离开的后台世界。
+                    includePassiveEnergy: sceneId === passiveTarget,
+                    gameTimeMs: nowGame,
+                    grant: (reward) => {
+                        if (reward.gold && GoldManager && typeof GoldManager.addGold === 'function') {
+                            GoldManager.addGold(reward.gold);
+                        }
+                    },
+                });
+            } catch (err) {
+                console.error(`[WorldSimDriver] ${sceneId} 后台结算异常:`, err);
+                continue;
+            }
+            this._notify(sceneId, report);
         }
-        this._notify(report);
     },
 
     /** 后台事件通知（浮字，任意场景可见） */
-    _notify(report) {
+    _notify(sceneId, report) {
         if (!report) return;
         const player = Game.player;
         const lines = [];
         if (report.defeated) {
-            lines.push(['⚠ 世界-122 失守！基地被摧毁，防守将重新开局', '#ff5555']);
+            lines.push([`⚠ ${sceneId} 后台结算异常失守`, '#ff5555']);
         } else {
-            for (const w of report.wavesCleared || []) {
-                lines.push([`世界-122 击退第 ${w} 波`, '#8ad0ff']);
-            }
-            if (report.victory) lines.push(['🏆 世界-122 防守胜利！奖励已发放', '#ffd700']);
-            if (report.structuresLost > 0) lines.push([`世界-122 离线损失建筑 ${report.structuresLost} 座`, '#ff8855']);
+            if (report.unitsProduced > 0) lines.push([`${sceneId} 新兵 +${report.unitsProduced}`, '#8ad0ff']);
+            if (report.energyMined > 0) lines.push([`${sceneId} 采集 +${Math.round(report.energyMined)} 能源`, '#7fd4ff']);
         }
         if (!lines.length || !player) return;
         lines.forEach(([text, color], i) => {
             EffectManager.add(new FloatingTextEffect(player.x, player.y - 70 - i * 24, text, color));
         });
-        if (report.defeated) resetWorld122Snapshot(); // 失守快照作废（与回场结算同口径）
     },
 };
