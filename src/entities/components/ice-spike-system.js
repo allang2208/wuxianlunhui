@@ -1,6 +1,10 @@
 import { SkillManager } from '../../ui/skill-manager.js';
 import { BoltSkillSystem } from './bolt-skill-system.js';
-import { burstParticles, fireGroundShockwave } from '../../effects/combat-fx.js';
+import {
+    burstParticles,
+    fireGroundShockwave,
+    resolveSkillEffectDepth,
+} from '../../effects/combat-fx.js';
 import { SoundManager } from '../../ui/sound-manager.js';
 import { getCurrentWeaponCraftEffects } from '../../utils/magic-craft-helper.js';
 import skillsData from '../../../data/skills.json';
@@ -97,6 +101,13 @@ const ICE_SPIKE_KIND = {
     // 命中/撞墙：冰锥碎裂（特效两层：冰屑带重力 + 小冰环）；同帧多目标逐目标结算（准穿透）
     onImpact(sys, spike, { x, y, damage, skill, hitEntity, surfaceContext }) {
         const displayY = y - (Number(surfaceContext?.z) || 0);
+        const effectDepth = resolveSkillEffectDepth({
+            source: sys.source,
+            groundY: y,
+            context: spike.renderDepthContext,
+            groundOffset: 60,
+            preferSourceDepth: false,
+        });
         burstParticles({
             texture: 'impact_dot', x, y: displayY, count: 12, jitter: 8,
             config: {
@@ -108,12 +119,13 @@ const ICE_SPIKE_KIND = {
                 tint: [0xffffff, 0xaaddff, 0x66aaff],
                 blendMode: 'ADD',
             },
-            destroyAfterMs: 700, depth: displayY + 60,
+            destroyAfterMs: 700, depth: effectDepth,
         });
         fireGroundShockwave({
             x, y: displayY, maxRadius: 70,
             strokeColor: 0x9fd8ff, fillColor: 0xd8f0ff,
             lineWidth: 4, duration: 320, flicker: true,
+            depth: effectDepth,
         });
         // 命中音效：命中目标/撞墙都播放（V0.374 调整；skills.json iceSpike.sounds.hit 配置驱动；
         // 90ms 节流防同帧多颗刷音）；伤害/经验只在命中目标时结算
@@ -125,7 +137,7 @@ const ICE_SPIKE_KIND = {
         }
         if (hitEntity) {
             const wasAlive = hitEntity.hp > 0;
-            hitEntity.takeDamage(damage, sys.source, 'magic');
+            hitEntity.takeDamage(damage, sys.source, 'magic', false);
             // 冰魄吊坠：冰系魔法命中附加寒冷
             const ce = getCurrentWeaponCraftEffects(sys.source);
             if (ce && ce.iceChillSlowPercent && typeof hitEntity.applyChill === 'function') {

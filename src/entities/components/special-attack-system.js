@@ -152,7 +152,7 @@ class SpecialAttackSystem {
         entities.forEach(entity => {
             if (entity === this.player || !entity.active || !entity.hittable) return;
             if (!shape.intersectsEntity(entity)) return;
-            entity.takeDamage(damage, this.player, 'magic');
+            entity.takeDamage(damage, this.player, 'magic', false);
             // 毁灭符文：击中后附加魔力易伤
             if (ce.magicVulnerabilityOnHit && entity.applyMagicVulnerability) {
                 const stacks = ce.magicVulnerabilityStacks || effect.magicVulnStacks;

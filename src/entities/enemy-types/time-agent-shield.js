@@ -5,6 +5,7 @@ import { AgentLinkSystem } from '../../world/agent-link-system.js';
 import { setupGun, tryEnemyFireGun } from './_shared/enemy-gun.js';
 import { hostilesOf, nearestHostileOf, isTargetMeleeStyle, playSoundFrom, inMeleeRange } from './_shared/enemy-utils.js';
 import { twoStageWalkKey, ratioHitElapsed } from './_shared/monster-anim.js';
+import { canMeleeShareSurface } from '../../combat/melee-surface.js';
 
 /**
  * 用线段近似绘制二次贝塞尔曲线（Phaser Graphics 无内置 quadraticCurveTo）
@@ -364,6 +365,7 @@ export class TimeAgentShield extends Enemy {
     // ========== 格挡弹反（参考铠甲骑士：防御持续期间全部判定为弹反） ==========
 
     takeDamage(damage, source, damageType = 'physical', isMelee = true) {
+        if (isMelee && source && !canMeleeShareSurface(source, this)) return 0;
         // 防御持续阶段（defendHold）：玩家来源伤害判定为弹反——免伤，近战攻击者被眩晕击退
         if (this._formState === 'defendHold' && source && source._faction === 'player') {
             if (this.shieldSystem) this.shieldSystem._lastParried = true;
@@ -404,6 +406,7 @@ export class TimeAgentShield extends Enemy {
         // 统一口径：圆形边缘距离（与 CombatSystem 触发同语义，inMeleeRange）
         for (const e of hostilesOf(this, entities)) {
             if (!inMeleeRange(this, e, range)) continue;
+            if (!canMeleeShareSurface(this, e)) continue;
             e.takeDamage(Math.max(1, Math.round(atk * (B.damageMul ?? 1.5))), this, 'physical', true);
             if (B.stunMs && typeof e.applyStun === 'function') {
                 e.applyStun(B.stunMs);

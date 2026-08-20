@@ -2,34 +2,24 @@
  * 世界-122 能源水晶 v3 纹理生成器（运行时程序化版，2026-08-16）。
  *
  * 设计目标：
- * - 不再使用 v1/v2 那套“同一水晶簇换几根柱子”的刻板格式，改为 12 种可辨识的形态
- *   （单柱/双生/三冠/团簇/扇簇/尖塔/碎晶/环晶/晶脊/斜晶/对裂/野晶）；
- * - 每颗节点从形态池随机抽选，并随机水平镜像，地图上 11 个节点不会同形；
- * - 底座按世界-122 掩体与地板衔接同一套 30° 接地线处理：土堆画成等距菱形脚，
- *    前缘左右两条底边斜率 ≈ 0.577（30°），并烘焙接触阴影；
+ * - 使用四种 AI 生成的尖塔晶簇（双尖/冠状/分叉/密集）；
+ * - 每颗节点从四形态池随机抽选，并随机水平镜像；
+ * - 不再绘制土堆或方块底座，节点只显示自然矿石与晶体；
  * - 生成结果只作为兜底。若 BootScene 已加载 AI 生图管线产出的
  *    energy_node_v3_<n> / energy_node_depleted_v3_<n>，则优先使用 AI 贴图。
  */
 
-export const ENERGY_NODE_V3_COUNT = 12;
+export const ENERGY_NODE_V3_COUNT = 4;
 
 const FLOOR_SLOPE = 0.5774; // tan(30°)，与 wall-system FLOOR_SLOPE 对齐
 const BASE_INSET = 2;       // 土堆前顶点离画布底边的像素（贴图底部即实体脚底）
 const TAU = Math.PI * 2;
 
 const FORMS = [
-    { key: 'single_spire', label: '单柱', w: 168, seed: 1101, glow: 0.95 },
-    { key: 'twin_spires', label: '双生', w: 192, seed: 1202, glow: 0.9 },
-    { key: 'triple_crown', label: '三冠', w: 208, seed: 1303, glow: 1.0 },
-    { key: 'dense_cluster', label: '团簇', w: 224, seed: 1404, glow: 1.05 },
-    { key: 'fan_cluster', label: '扇簇', w: 232, seed: 1505, glow: 0.95 },
-    { key: 'needle_spire', label: '尖塔', w: 176, seed: 1606, glow: 1.1 },
-    { key: 'broken_shard', label: '碎晶', w: 200, seed: 1707, glow: 0.8 },
-    { key: 'ring_cluster', label: '环晶', w: 224, seed: 1808, glow: 0.9 },
-    { key: 'crystal_crest', label: '晶脊', w: 240, seed: 1909, glow: 1.0 },
-    { key: 'leaning_spire', label: '斜晶', w: 184, seed: 2010, glow: 1.0 },
-    { key: 'split_geode', label: '对裂', w: 208, seed: 2111, glow: 0.85 },
-    { key: 'wild_growth', label: '野晶', w: 232, seed: 2212, glow: 1.05 },
+    { key: 'twin_spires', label: '双尖主晶', w: 192, seed: 1202, glow: 0.9 },
+    { key: 'triple_crown', label: '冠状晶簇', w: 208, seed: 1303, glow: 1.0 },
+    { key: 'leaning_spire', label: '分叉主晶', w: 184, seed: 2010, glow: 1.0 },
+    { key: 'dense_cluster', label: '密集晶群', w: 224, seed: 1404, glow: 1.05 },
 ];
 
 // 正常态 3 套蓝青色系；枯竭态统一灰绿（只保留几何差异，避免“耗尽后仍像活矿”）
@@ -439,7 +429,7 @@ export function ensureEnergyNodeTextures(scene) {
     }
 }
 
-/** 取第 idx（1 基）个形态的纹理键：优先 AI v3 成品，缺图时用程序化版 */
+/** 取第 idx（1 基）个尖塔形态的纹理键：优先 AI 成品，缺图时用程序化版 */
 export function energyNodeVariantPair(scene, idx) {
     const n = Math.max(1, Math.min(ENERGY_NODE_V3_COUNT, idx));
     const aiKey = `energy_node_v3_${n}`;

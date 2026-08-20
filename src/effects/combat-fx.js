@@ -21,6 +21,96 @@ function getScene() {
     return typeof window !== 'undefined' ? window.__phaserScene : null;
 }
 
+function structureVisualDepth(structure) {
+    if (!structure?.active) return -Infinity;
+    return Math.max(
+        Number.isFinite(Number(structure._actualMaxRenderDepth))
+            ? Number(structure._actualMaxRenderDepth)
+            : -Infinity,
+        Number.isFinite(Number(structure._structureRenderChannels?.frontFx))
+            ? Number(structure._structureRenderChannels.frontFx)
+            : -Infinity,
+        Number.isFinite(Number(structure._structureRenderDepth))
+            ? Number(structure._structureRenderDepth)
+            : -Infinity,
+        Number.isFinite(Number(structure._faceDepth))
+            ? Number(structure._faceDepth)
+            : -Infinity
+    );
+}
+
+/**
+ * Wall-top projectiles keep the complete supporting wall component as a render
+ * snapshot. The physical shot already snapshots its wall collision context;
+ * this parallel visual snapshot prevents the caster walking off the platform
+ * from changing an in-flight effect's layer.
+ */
+export function snapshotSkillEffectDepthContext(source) {
+    if (source?._surfaceKind !== 'wall_walk') return null;
+    const walls = Array.from(new Set([
+        ...(Array.isArray(source._surfaceWalls) ? source._surfaceWalls : []),
+        source._surfaceWall,
+    ].filter(Boolean)));
+    const supportDepth = walls.reduce(
+        (depth, wall) => Math.max(depth, structureVisualDepth(wall)),
+        -Infinity
+    );
+    return Object.freeze({
+        surfaceKind: 'wall_walk',
+        walls: Object.freeze(walls),
+        supportDepth,
+    });
+}
+
+/**
+ * Resolve a skill effect in the world's depth space. Visual Y may subtract Z,
+ * but depth must continue to use physical ground Y. Wall-top effects also get
+ * a floor above every wall in their launch platform; stairs intentionally do
+ * not receive that platform-wide exemption.
+ */
+export function resolveSkillEffectDepth({
+    source = null,
+    groundY = 0,
+    context = null,
+    groundOffset = 15,
+    sourceOffset = 2,
+    preferSourceDepth = true,
+} = {}) {
+    const physicalY = Number(groundY) || 0;
+    const groundDepth = physicalY + groundOffset;
+    const scene = getScene();
+    const player = typeof window !== 'undefined' ? window.Game?.player : null;
+    const sourceSprite = source === player
+        ? scene?.playerSprite
+        : source?._phaserSprite;
+    const sourceDepth = preferSourceDepth && sourceSprite?.active
+        && Number.isFinite(Number(sourceSprite.depth))
+        ? Number(sourceSprite.depth) + sourceOffset
+        : -Infinity;
+    let resolved = Number.isFinite(sourceDepth) ? sourceDepth : groundDepth;
+
+    const renderContext = context
+        || (source?._surfaceKind === 'wall_walk'
+            ? snapshotSkillEffectDepthContext(source)
+            : null);
+    if (renderContext?.surfaceKind !== 'wall_walk') return resolved;
+    resolved = Math.max(resolved, groundDepth);
+
+    const liveSupportDepth = (renderContext.walls || []).reduce(
+        (depth, wall) => Math.max(depth, structureVisualDepth(wall)),
+        -Infinity
+    );
+    const snapshotDepth = Number(renderContext.supportDepth);
+    const supportDepth = Math.max(
+        liveSupportDepth,
+        Number.isFinite(snapshotDepth) ? snapshotDepth : -Infinity
+    );
+    if (Number.isFinite(supportDepth)) {
+        resolved = Math.max(resolved, supportDepth + sourceOffset);
+    }
+    return resolved;
+}
+
 /**
  * ① 抛物线投射物：Linear 插值 + 二次抛物线高度（arcHeight*4*p*(1-p)），可选匀角速度旋转。
  * 无 scene 时立即同步调 onImpact 回退（与原各调用方防御性回退一致），并返回 null。
@@ -124,11 +214,12 @@ export function destroyWarning(warn) {
  * 数组中已完成的是 inactive 引用，清理路径有 active 守卫，与原 splice 行为等价）
  */
 export function fireGroundShockwave({ x, y, maxRadius, strokeColor = 0xff3030, fillColor = 0xff4040,
-    lineWidth = 8, duration = 600, flicker = true, groundLayer = false, strokeAlpha = 0.9, fillAlpha = 0.12 }) {
+    lineWidth = 8, duration = 600, flicker = true, groundLayer = false, strokeAlpha = 0.9, fillAlpha = 0.12,
+    depth }) {
     const scene = getScene();
     if (!scene || !scene.add || !scene.tweens) return null;
     const g = scene.add.graphics();
-    g.setDepth(groundLayer ? y - 998 : y + 50);
+    g.setDepth(depth ?? (groundLayer ? y - 998 : y + 50));
     const wave = { t: 0 };
     scene.tweens.add({
         targets: wave,

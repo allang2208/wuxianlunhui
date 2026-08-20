@@ -561,3 +561,4 @@ JSON 双份一致；lint / vite build / test-collider / test-craft-sync；CHANGE
   - 修复 `getTributeHpRegenFlat` 缺失导出（引用先于实现，vite build 报 Missing export——引用配置函数前先确认导出存在）
 
 ---
+

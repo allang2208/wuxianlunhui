@@ -136,7 +136,7 @@ export function createHudCore() {
     const weaponInfo = document.createElement('div');
     weaponInfo.className = 'weapon-info';
     weaponInfo.id = 'weaponInfo';
-    weaponInfo.style.cssText = 'position: absolute; left: 13px; bottom: 249px; width: 250px; height: 107px; display: flex; flex-direction: column; justify-content: flex-end; align-items: flex-start; padding: 10px; box-sizing: border-box; background: transparent; border: none; border-radius: 8px;';
+    weaponInfo.style.cssText = 'position: absolute; left: 10px; bottom: 72px; width: 252px; height: 76px; display: flex; flex-direction: column; justify-content: flex-end; align-items: flex-start; padding: 8px 10px; box-sizing: border-box; background: transparent; border: none; border-radius: 8px;';
     const weaponMode = document.createElement('div');
     weaponMode.className = 'wi-mode';
     weaponMode.id = 'weaponMode';

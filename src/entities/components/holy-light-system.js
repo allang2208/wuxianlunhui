@@ -192,7 +192,7 @@ export class HolyLightSystem {
                     dmg = Math.floor(dmg * effect.zombieDamageMul);
                 }
                 const wasAlive = best.hp > 0;
-                best.takeDamage(dmg, src, 'magic');
+                best.takeDamage(dmg, src, 'magic', false);
                 if (wasAlive && best.hp <= 0 && !best._summoned) killCount++;
             }
             if (this._isPlayer()) {
@@ -368,7 +368,7 @@ export class HolyLightSystem {
                     dmg = Math.floor(dmg * effect.zombieDamageMul);
                 }
                 const wasAlive = best.hp > 0;
-                best.takeDamage(dmg, src, 'magic');
+                best.takeDamage(dmg, src, 'magic', false);
                 if (wasAlive && best.hp <= 0 && !best._summoned) killCount++;
             }
             if (this._isPlayer()) {

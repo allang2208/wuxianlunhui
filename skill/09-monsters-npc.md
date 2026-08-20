@@ -190,8 +190,15 @@ this._tacticalTarget = null;
   否则塔/基地的面线会被当成 26px 厚墙段误判吸附/重叠。
 - **坑③（面线过期）**：锚线在构造时按 x/y 生成；建筑不可移动（immovable），测试探针
   传送实体后必须重算锚线（真实场景不会发生）。
+- **坑④（友军脚线被贴图配置污染）**：移动单位参与建筑仲裁的自然深度应来自逻辑脚底
+  `entity.y - entity.z + 10`；`spriteOffsetY`、跨动作 `feetCorr` 和贴图中心只负责显示，
+  不应成为排序真源。旧路径若仍用 `sprite.y + footOffsetY + 10`，必须锁定
+  `sprite.y + footOffsetY === entity.y - entity.z`；新增仓鼠兵种同时校验
+  `spriteOffsetY + footOffsetY === 0`，避免火枪手这类配置不配对造成建筑边缘错层。
 - **验证**：`tools/cdp-layer-occlusion.mjs`——合成 36 组合（塔/基地/矿/小屋 × 无墙/墙前/
-  墙后 × 后/同/前）+ 真实基地 4 类建筑同线抽查，全部"单位盖建筑 iff 单位脚线在建筑之前"。
+  墙后 × 后/同/前）+ 真实基地 4 类建筑同线抽查。新增/修改友军时不能只测单一射手和建筑
+  中心线，还要覆盖全部显示规格、四个前缘/角点、前缘 ±1px、接地半径和各动画帧，规则始终为
+  "单位盖建筑 iff 单位逻辑脚线在建筑之前"。
 
 #### 5. 建筑地面 footprint / 安全出兵 / 4格门（2026-08-18，世界-122）
 
@@ -229,6 +236,23 @@ this._tacticalTarget = null;
 - **渲染状态机**：骑士不能落入伊莉丝通用 `atkPlayed` 分支——多帧 idle 会让该锁无法复位。GameScene 必须有独立 attack/charge 分支：动作首次播放，正常结束定格末帧；离开状态清锁；异常打断未触发 `animationcomplete` 时下帧自愈重播。
 - **精灵图量化**：所有动作保持 8×4、512 格；入场脚底统一，死亡动作额外按不透明面积（非仅 bbox 高度）缩到 running 基线，否则横向倒地姿势会视觉放大。使用 `tools/ai-gen/normalize-hamster-knight-sheets.py`；逐帧验证有效帧数、脚底线与 alpha 面积，再替换项目 asset。
 
+#### 16. 仓鼠轻骑（2026-08-19，高速近战友军）
+
+- **素材/显示**：`assets/companions/hamster_light_cavalry/` 四套 8×4、512 格透明表；
+  idle 8 帧、running 11 帧、attacking 12 帧、dying 11 帧。有效内容高约236px，
+  与仓鼠骑士同屏体量取 `displaySize:390`；脚底约 y=375，配
+  `spriteOffsetY:-91`、实体 `footOffsetY:91`、`hudOffsetY:190`。
+- **配置/六维**：`hamster-light-cavalry-config.json`，`statFormula:'enemy'`；
+  力20/敏15/智3/体20/精3/幸5，派生物攻18/物防36/魔攻3/魔防4/暴击7/暴抗20，
+  `baseMaxHp:250` 覆盖生命，移动速度230。
+- **AI/伤害**：复用配置驱动的单次近战状态机，只选择最近 `_faction==='enemy'`
+  且非能源矿点目标；12帧@12fps，第9帧（约667ms）结算60点物理近战伤害，
+  攻击间隔2秒，无敌人时跟随玩家。
+- **生产**：骑兵学校可切换 `knight` / `light_cavalry`；轻骑60秒生成，骑士改90秒。
+  轻骑接入 BootScene/GameScene、友军仇恨优先级、全局兵种升级和世界122后台DPS结算。
+- **升级适用性**：骑兵学校共用项目中的模块可声明 `unitKinds`；冲锋强化只对骑士显示/
+  生效，轻骑显示机动强化，通用攻击/伤害/生命模块两者共享，禁止出现无效果升级按钮。
+
 ### NPC 添加标准工作流（2026-07-22 新增，新 NPC 一律按此开展）
 
 #### 1. 素材（原则 9）
@@ -257,6 +281,19 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
 > 新增「玩家阵营、可被怪锁定、自动执行任务（如采矿）」的非队员工时，一律走这套。
 > 首航范例：仓鼠矿工（`data/hamster-miner-config.json` + `src/entities/hamster-miner.js` +
 > `src/ai/hamster-miner-ai.js` + `src/world/hamster-miner-system.js`）。
+
+#### 2026-08-20 友军战斗与生命周期统一
+- **六维必须真实生效**：配置 `attackDamage` 是初始六维下的基准伤害；运行时通过
+  `Companion.getPhysicalAttackDamage()` 按“当前物攻/初始物攻”缩放，并结算
+  `crit-目标critRes` 与1.5倍暴击。友军承伤统一走 `Companion.takeDamage()` 的
+  物防/魔防减伤，兵种实体禁止再直接 `hp -= damage`。
+- **激励只做临时修饰器**：`_inspireMul` 由移动系统和伤害入口动态消费，不直接乘除
+  `data.atk/aiConfig/_attackDamage`；否则激励期间升级或重算属性，到期会把新基础值除低。
+- **死亡必须解绑所属建筑**：单位移出 `Game.entities/friendlyUnits` 前调用
+  `detachFromOwner()`，同步从 `_barracks.units` 或 `_hut.miners` 删除，禁止历史死亡引用
+  持续堆积。
+- **手动兵种名单必须覆盖全登记表**：仇恨分类、移动朝向、烟尘等若仍使用显式
+  `_isHamsterXxx` 列表，新增兵种时必须同步；优先逐步收敛到 `getUnitKind()`。
 
 #### 0. 六维属性公式源（2026-08-16：仓鼠单位一律怪物公式）
 - 仓鼠友军单位 `statFormula: 'enemy'` → `Companion._enemyCombatStats` 分支：派生数值

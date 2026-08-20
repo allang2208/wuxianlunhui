@@ -18,6 +18,7 @@ import {
 } from './world122-snapshot.js';
 import { settleWorld122 } from './world122-sim.js';
 import { EnvironmentLightingSystem } from './environment-lighting-system.js';
+import { TroopLineSystem } from './troop-line-system.js';
 
 const TICK_MS = 1000;
 
@@ -46,6 +47,8 @@ export const WorldSimDriver = {
             const elapsed = Math.max(0, nowGame - (snap.capturedGameTimeMs || nowGame));
             if (elapsed < 500) continue;
             let report;
+            TroopLineSystem.syncSnapshotAssignments(sceneId, snap);
+            const productionBaseline = TroopLineSystem.captureProductionBaseline(snap);
             try {
                 report = settleWorld122(snap, elapsed, {
                     commit: true,
@@ -63,6 +66,7 @@ export const WorldSimDriver = {
                 console.error(`[WorldSimDriver] ${sceneId} 后台结算异常:`, err);
                 continue;
             }
+            TroopLineSystem.onBackgroundProduction(sceneId, snap, productionBaseline);
             this._notify(sceneId, report);
         }
     },

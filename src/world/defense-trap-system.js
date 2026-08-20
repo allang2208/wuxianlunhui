@@ -63,6 +63,9 @@ class DefenseTrap extends Entity {
         this.id = config.id || `defense_trap_${type}_${grade}_${Math.random().toString(36).slice(2, 8)}`;
         this._isDefenseStructure = true;
         this._isDefenseTrap = true;
+        // 陷阱是贴地装置，不是立体遮挡物：保留防御建筑身份供受击/出售/面板使用，
+        // 但渲染层必须始终低于移动单位，禁止沿用建筑 face-depth 管线盖住单位。
+        this._structureLayerMode = 'ground';
         this.noSeparation = true;
         this.noNameLabel = true;
         this._noShadow = true;
@@ -87,7 +90,6 @@ class DefenseTrap extends Entity {
             footOffsetY: def ? def.footOffsetY : 26,
         };
         this.footOffsetY = this.spriteCfg.footOffsetY;
-        this._faceDepth = y + 12;
         this.rebuildCollider();
     }
 
@@ -258,7 +260,14 @@ export { DefenseTrap };
 
 class DefenseTrapPanel extends BasePanel {
     constructor() {
-        super({ id: 'defenseTrapPanel', className: 'defense-trap-panel', stateKey: 'defenseTrap' });
+        super({
+            id: 'defenseTrapPanel',
+            className: 'defense-trap-panel',
+            stateKey: 'defenseTrap',
+            panelGroup: 'buildingDetail',
+            closeOnEscape: true,
+            closeOnOutsidePointer: true,
+        });
         this.trap = null;
     }
 

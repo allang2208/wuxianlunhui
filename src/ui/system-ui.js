@@ -4,7 +4,7 @@ import { FloatingTextEffect } from '../effects/floating-text.js';
 
 import { UIState } from './ui-state.js';
 import { EffectManager } from '../effects/effect-manager.js';
-import { queryAllElements, queryElement, getElement } from '../utils/dom-utils.js';
+import { queryAllElements, queryElement, getElement, getElementIfExists } from '../utils/dom-utils.js';
 import { SkillManager } from './skill-manager.js';
 import { GameUIManager } from './game-ui-manager.js';
 import { CodexManager } from './codex-manager.js';
@@ -75,8 +75,21 @@ export const SystemUI = {
     init() {
         // 绑定遮罩层点击事件：点击面板外部区域关闭（子页面打开时不关闭）
         const overlay = getElement('panelOverlay');
+        // 点击面板外区域收回（2026-08-19 修复：图鉴栏与其他栏同口径可收回）：
+        // 子页面面板 DOM 实际激活才拦截；UIState 键滞留（面板已不可见）自动自愈收回——
+        // 旧实现只看键，键一滞留（如子面板随场景切换消失）永久拦截主面板收回。
+        const SUB_PANELS = [
+            ['shop', 'shopPanel'], ['enhance', 'enhancePanel'], ['craft', 'craftPanel'],
+            ['enchant', 'enchantPanel'], ['expedition', 'expeditionPanel'],
+            ['fusion', 'fusionPanel'], ['warehouse', 'warehousePanel'],
+        ];
         if (overlay) overlay.addEventListener('click', () => {
-            if (UIState.isOpen('shop') || UIState.isOpen('enhance') || UIState.isOpen('craft') || UIState.isOpen('enchant') || UIState.isOpen('expedition') || UIState.isOpen('fusion') || UIState.isOpen('warehouse')) return;
+            for (const [key, elId] of SUB_PANELS) {
+                if (!UIState.isOpen(key)) continue;
+                const el = getElementIfExists(elId) || null;
+                if (el && el.classList.contains('active')) return; // 子页面真开着：不没收主面板
+                UIState.close(key); // 滞留键自愈
+            }
             this.close();
         });
         // 绑定属性加号按钮点击事件
@@ -123,7 +136,7 @@ export const SystemUI = {
         const panel = getElement('systemPanel'), overlay = getElement('panelOverlay');
         if (!panel || !overlay) return;
         const pt = getElement('panelTitle');
-        const titles = { status: '📊 角色状态', equip: '⚔ 装备与背包', skill: '✦ 技能系统', codex: '📖 武器图鉴' };
+        const titles = { status: '📊 角色状态', equip: '⚔ 装备与背包', skill: '✦ 技能系统', codex: '📖 图鉴' };
         if (pt) pt.textContent = titles[tab] || '角色系统';
         queryAllElements('.panel-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
         queryAllElements('.tab-page').forEach(p => p.classList.remove('active'));

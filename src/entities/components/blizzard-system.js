@@ -159,7 +159,7 @@ export class BlizzardSystem {
                     if (e._faction === src._faction) continue;
                     if (!shape.intersectsEntity(e)) continue;
                     const wasAlive = e.hp > 0;
-                    e.takeDamage(damage, src, 'magic');
+                    e.takeDamage(damage, src, 'magic', false);
                     if (effect.chillStacks && typeof e.applyChill === 'function') {
                         e.applyChill(effect.chillStacks, effect.chillDurationMs, effect.chillSlowPercent);
                     }

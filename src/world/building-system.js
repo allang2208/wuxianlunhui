@@ -1,7 +1,7 @@
 /**
- * 世界-122 建筑面板（B 键开关，参考摆墙面板）。
+ * 多世界建筑面板（B 键开关，参考摆墙面板）。
  *
- * - 仅世界-122（scene8）可用；
+ * - 世界-122/123/124/125 共用；
  * - 花钱摆放：防御塔 + 六档掩体（水平/垂直）；
  * - 不能调大小，只能镜像调整方向（F 切换预览镜像）；
  * - 摆放后即生成可被怪物攻击的实体（DefenseTower / DefenseCover）。
@@ -16,6 +16,7 @@ import { BuildingSinkEffect } from '../effects/building-sink.js';
 import { SoundManager } from '../ui/sound-manager.js';
 import { UIState } from '../ui/ui-state.js';
 import { renderBuildingDetailHeader } from '../ui/panels/building-detail-header.js';
+import { mountRightSidebarPanel } from '../ui/right-sidebar-panel-layer.js';
 import { CONFIG } from '../config/config.js';
 import { SceneManager } from './scene-manager.js';
 import { Renderer } from './renderer.js';
@@ -23,7 +24,7 @@ import {
     DefenseSystem, DefenseTower, DefenseCover, BuildableGate, WallStaircase,
     DEFENSE_CONFIG, COVER_FACE, COVER_FOOT, GATE_GEOM, GATE4_VISUAL,
     BLOCK_FACE, BLOCK_FOOT, BLOCK_FOOT_OFFSET, BLOCK_VISUAL,
-    DEFENSE_TOWER_VISUAL, FIRING_PLATFORM_VISUAL, WALL_STAIR_CONFIG,
+    DEFENSE_TOWER_VISUAL, WALL_STAIR_VISUAL, WALL_STAIR_CONFIG,
     getWallStairVariant, wallStairAnchorOffset, collectConnectedWalkableWalls,
 } from './defense-system.js';
 import { DefenseTrap, TRAP_CONFIG, TRAP_GRADES, TRAP_SPACING, getTrapDef, DefenseTrapSystem } from './defense-trap-system.js';
@@ -32,7 +33,7 @@ import { HamsterBarracks, HamsterBarracksSystem, BARRACKS_CONFIG } from './hamst
 import { ProducerBuilding, ProducerBuildingSystem, PRODUCER_BUILDINGS } from './producer-building-system.js';
 import {
     applyFittedBuildingFootprint,
-    FIRING_PLATFORM_FOOTPRINTS,
+    WALL_STAIR_FOOTPRINTS,
     ONE_CELL_BUILDING_FOOT,
     TWO_BY_TWO_BUILDING_FOOT,
 } from './building-footprint.js';
@@ -54,6 +55,7 @@ import {
     BuildingRoadSystem,
     BUILDING_ROAD_DISPLAY_HEIGHT,
     BUILDING_ROAD_DISPLAY_WIDTH,
+    BUILDING_ROAD_ICON,
     BUILDING_ROAD_TEXTURE,
     buildingRoadFrame,
     buildingRoadLayout,
@@ -130,31 +132,63 @@ function isTwoByTwoBuildItem(item) {
     return !!item && ['tower', 'hamster_hut', 'hamster_barracks', 'producer'].includes(item.kind);
 }
 
-function isFiringPlatformBuildItem(item) {
-    return !!item && item.kind === 'platform';
+/** 防御塔只占标准 2x2，不预留或生成外围道路。 */
+function usesBuildingRoads(item) {
+    return isTwoByTwoBuildItem(item) && item.kind !== 'tower';
 }
 
-function firingPlatformDir(mirror) {
+function isWallStairBuildItem(item) {
+    return !!item && item.kind === 'wall_staircase';
+}
+
+function wallStairDir(mirror) {
     return mirror ? 'e1' : 'e2';
 }
 
 const C_GRADE_WALL_COST = Math.round((DEFENSE_CONFIG.covers.hp.C ?? 1600) * 0.25);
+const DEFAULT_WALL_STAIR_TEXTURE =
+    WALL_STAIR_CONFIG.variants.e2_pos?.lower?.texture || 'wall_stair_lower_e2_pos';
+const WALL_STAIR_PANEL_ICON =
+    WALL_STAIR_CONFIG.variants.e1_pos?.lower?.texture || 'wall_stair_lower_e1_pos';
 
 export const BUILD_ITEMS = [
     { id: 'tower', name: '防御塔', cost: 300, tex: 'obstacle_defense_tower', kind: 'tower', currency: 'energy' },
     // 1×1 方块墙 / 4格门统一采用 C 级墙数值与造价（2026-08-18）
     { id: 'cover_block', name: '方块墙', cost: C_GRADE_WALL_COST, tex: 'obstacle_block', kind: 'block', grade: 'C', orient: 'v', currency: 'energy' },
-    { id: 'road', name: '道路', cost: 10, tex: BUILDING_ROAD_TEXTURE, kind: 'road', currency: 'energy' },
+    {
+        id: 'road',
+        name: '道路',
+        cost: 10,
+        tex: BUILDING_ROAD_TEXTURE,
+        icon: BUILDING_ROAD_ICON,
+        kind: 'road',
+        currency: 'energy',
+    },
     { id: 'gate_4cell', name: '4格门', cost: C_GRADE_WALL_COST, tex: 'gate_4cell', icon: 'gate_4cell', kind: 'gate4', grade: 'C', visualGrade: 'D', orient: 'v', currency: 'energy' },
-    { id: 'hamster_hut', name: '矿工营地', cost: 1000, tex: 'mine', kind: 'hamster_hut', currency: 'energy' },
-    { id: 'hamster_barracks', name: '仓鼠军营', cost: 1500, tex: 'barracks', kind: 'hamster_barracks', currency: 'energy' },
+    {
+        id: HAMSTER_CONFIG.hut.id,
+        name: HAMSTER_CONFIG.hut.name,
+        cost: HAMSTER_CONFIG.hut.cost,
+        tex: HAMSTER_CONFIG.hut.tex,
+        kind: 'hamster_hut',
+        currency: 'energy'
+    },
+    {
+        id: 'hamster_barracks',
+        name: BARRACKS_CONFIG.barracks.name,
+        cost: BARRACKS_CONFIG.barracks.cost,
+        tex: BARRACKS_CONFIG.barracks.tex,
+        kind: 'hamster_barracks',
+        currency: 'energy'
+    },
     {
         id: WALL_STAIR_CONFIG.id,
         name: WALL_STAIR_CONFIG.name,
         cost: WALL_STAIR_CONFIG.costPerSegment * 2,
         costPerSegment: WALL_STAIR_CONFIG.costPerSegment,
-        tex: WALL_STAIR_CONFIG.variants.e2_pos?.lower?.texture || 'wall_stair_lower_e2_pos',
-        kind: 'platform',
+        tex: DEFAULT_WALL_STAIR_TEXTURE,
+        icon: WALL_STAIR_PANEL_ICON,
+        kind: 'wall_staircase',
         currency: 'energy',
     },
 ];
@@ -216,6 +250,7 @@ export const BuildingSystem = {
     _gate4Dir: null,       // 当前4格门方向（e1/e2）
     _gate4Hover: null,     // 最后一次场景鼠标世界坐标；F切换必须从原始坐标重算，不能用半格锚点
     _panel: null,
+    _panelCloseTimer: null,
     _downFn: null,
     _moveFn: null,
     _keyFn: null,
@@ -276,9 +311,17 @@ export const BuildingSystem = {
         if (this._blurFn) window.removeEventListener('blur', this._blurFn);
         this._downFn = this._moveFn = this._upFn = this._keyFn = this._blurFn = null;
         if (this._panel) {
-            this._panel.remove();
-            this._panel = null;
+            const closingPanel = this._panel;
+            closingPanel.classList.remove('active');
+            clearTimeout(this._panelCloseTimer);
+            this._panelCloseTimer = setTimeout(() => {
+                if (this._panel !== closingPanel) return;
+                closingPanel.remove();
+                this._panel = null;
+                this._panelCloseTimer = null;
+            }, 260);
         }
+        document.querySelectorAll('.side-menu').forEach((menu) => menu.classList.remove('hidden'));
     },
 
     /** 点击掩体/铁栅栏门 → 打开建筑详情（2026-08-16 用户口径调整）：
@@ -298,17 +341,30 @@ export const BuildingSystem = {
 
     // ==================== 面板 ====================
 
+    _effectiveBuildCost(item) {
+        if (!item) return 0;
+        const cfg = item.kind === 'producer' ? PRODUCER_BUILDINGS[item.id] : null;
+        if (cfg?.workshopType === 'warehouse'
+            && EnergyManager?.getWarehouseCount?.() === 0
+            && Number.isFinite(Number(cfg.firstWhenNoneCost))) {
+            return Math.max(0, Math.floor(Number(cfg.firstWhenNoneCost)));
+        }
+        return Math.max(0, Math.floor(Number(item.cost) || 0));
+    },
+
     _buildPanel() {
+        clearTimeout(this._panelCloseTimer);
+        this._panelCloseTimer = null;
         if (this._panel) this._panel.remove();
         const el = document.createElement('div');
-        // build-panel 专属类（2026-08-15）：拉伸宽度 + 固定三列网格，不影响摆墙编辑器共享样式
+        // build-panel 专属类：右侧主栏目尺寸与响应式建筑网格，不影响摆墙编辑器共享样式。
         el.className = 'wall-editor-panel build-panel';
         const gold = GoldManager ? GoldManager.getGold() : 0;
         const energy = EnergyManager ? EnergyManager.getEnergy() : 0;
         el.innerHTML = `
-            <div class="we-title">建筑面板（世界-122） <span class="we-close" id="bpClose">×</span></div>
+            <div class="we-title"><span id="bpTitleText">建筑面板（${SceneManager.scenes?.[SceneManager.currentScene]?.name || '当前世界'}）</span> <span class="we-close" id="bpClose">×</span></div>
             <div class="we-hotkeys" id="bpHotkeys" style="font-size:12px;color:#ffd700;background:rgba(90,70,20,0.25);border:1px solid #6a5a2a;border-radius:4px;padding:4px 8px;margin-bottom:8px;">
-                镜像翻转 <b>F</b> ｜ 取消吸附 <b>G</b>（<span id="bpSnapState">开</span>）｜ 墙吸附 <b>H</b>（<span id="bpWallSnap">外部</span>）
+                镜像翻转 <b>F</b>（<span id="bpMirrorState">关</span>）｜ 辅助吸附 <b>G</b>（<span id="bpSnapState">开</span>）｜ 墙吸附 <b>H</b>（<span id="bpWallSnap">外部</span>）
             </div>
             <div class="we-info" id="bpCur">
                 金币：<b style="color:#ffd700;">${gold}</b>&nbsp;&nbsp;能源：<b style="color:#7fd4ff;">${energy}</b>（点击建筑后到场景里放置）
@@ -317,10 +373,11 @@ export const BuildingSystem = {
                 ${BUILD_ITEMS.filter((it) => it.kind !== 'trap').map((it) => {
                     const cur = it.currency === 'energy' ? '能' : '金';
                     const thumb = it.icon || it.tex;
+                    const cost = this._effectiveBuildCost(it);
                     return `
-                    <div class="we-thumb" data-id="${it.id}" title="${it.name} — ${it.cost} ${cur}">
+                    <div class="we-thumb" data-id="${it.id}" title="${it.name} — ${cost} ${cur}">
                         <img src="assets/terrain/${thumb}.png" draggable="false" alt="${it.name}">
-                        <span>${it.name}<br><em style="color:${it.currency === 'energy' ? '#7fd4ff' : '#ffd700'};font-style:normal;">${it.cost}${cur}</em></span>
+                        <span>${it.name}<br><em data-build-cost style="color:${it.currency === 'energy' ? '#7fd4ff' : '#ffd700'};font-style:normal;">${cost}${cur}</em></span>
                     </div>`;
                 }).join('')}
             </div>
@@ -330,7 +387,7 @@ export const BuildingSystem = {
                 <button id="bpCancel" title="取消放置（右键/Esc）">取消</button>
                 <span class="we-selinfo" id="bpSel">未选择建筑</span>
             </div>
-            <div class="we-row" style="margin-top:7px;">
+            <div class="we-row" id="bpRecycleRow" style="margin-top:7px;">
                 <button id="bpRecycleMode" title="进入回收模式后，左键点击建筑或道路进行回收" style="width:100%;background:#5a3028;color:#ffd7d0;border:1px solid #8a4a3a;">回收建筑</button>
             </div>
             <div class="we-hints" id="bpHints">
@@ -343,8 +400,12 @@ export const BuildingSystem = {
                 H=切换墙段吸附位置（外部=端到端 / 内部=端帽重叠）<br>
                 小屋/兵营/铁匠铺/草屋靠近已有同类建筑按地面 30° 地板线轴对齐（F=镜像，G=取消吸附）
             </div>`;
-        document.body.appendChild(el);
+        mountRightSidebarPanel(el, 'panel');
         this._panel = el;
+        document.querySelectorAll('.side-menu').forEach((menu) => menu.classList.add('hidden'));
+        // 先提交收起态，再切 active，复用右侧主栏目同款滑入动画。
+        void el.offsetWidth;
+        el.classList.add('active');
         el.querySelector('#bpClose').addEventListener('click', () => this.close());
         el.querySelector('#bpMirror').addEventListener('click', () => this._toggleMirror());
         el.querySelector('#bpCancel').addEventListener('click', () => {
@@ -356,6 +417,7 @@ export const BuildingSystem = {
         });
         el.querySelector('#bpMirror').addEventListener('click', () => this._updateSnapHint());
         this._updateSnapHint();
+        this._updateMirrorUi();
         el.querySelectorAll('.we-thumb').forEach((t) => {
             t.addEventListener('click', () => {
                 const item = BUILD_ITEMS.find((it) => it.id === t.dataset.id);
@@ -381,12 +443,24 @@ export const BuildingSystem = {
         this._setRecycleMode(false);
         this._cancelPlacement();
         this._placing = { item, mirror: false };
+        // 兼容修复前已经建成但未触发拓扑失效的方块墙：点选楼梯时只刷新一次，
+        // 随后的鼠标移动继续复用缓存，不产生逐帧重建开销。
+        if (isWallStairBuildItem(item)) DefenseSystem?.invalidateElevatedTopology?.();
         const scene = window.__phaserScene;
         if (scene && !this._ghost) {
             this._ghost = scene.add.sprite(0, 0, item.tex);
             this._ghost.setOrigin(0.5, 0.5);
             this._ghost.setAlpha(0.55);
             this._ghost.setDepth(999998);
+        }
+        for (const thumb of this._panel.querySelectorAll('.we-thumb[data-id]')) {
+            const item = BUILD_ITEMS.find((entry) => entry.id === thumb.dataset.id);
+            if (!item) continue;
+            const cost = this._effectiveBuildCost(item);
+            const cur = item.currency === 'energy' ? '能' : '金';
+            thumb.title = `${item.name} — ${cost} ${cur}`;
+            const price = thumb.querySelector('[data-build-cost]');
+            if (price) price.textContent = `${cost}${cur}`;
         }
         // 产兵建筑对齐线（2026-08-17）：吸附时画水平/垂直参考线
         if (scene && !this._guide) {
@@ -418,20 +492,21 @@ export const BuildingSystem = {
                 // 4 格门不用近似合成图：预览由两块真实方块墙 + 实际栅栏帧组成
                 this._ghost.setVisible(false);
                 this._createGate4Preview(scene, item.visualGrade || item.grade);
-            } else if (item.kind === 'platform') {
-                this._ghost.setDisplaySize(FIRING_PLATFORM_VISUAL.w, FIRING_PLATFORM_VISUAL.h);
+            } else if (item.kind === 'wall_staircase') {
+                this._ghost.setDisplaySize(WALL_STAIR_VISUAL.w, WALL_STAIR_VISUAL.h);
             } else if (item.kind === 'block') {
                 this._ghost.setDisplaySize(BLOCK_VISUAL.w, BLOCK_VISUAL.h);
             } else {
                 this._ghost.setDisplaySize(260, Math.round(260 / (this._coverAspect(item) || 1)));
             }
         }
-        if (isTwoByTwoBuildItem(item)) this._ensureRoadPreview(scene);
+        this._updateMirrorUi();
+        if (usesBuildingRoads(item)) this._ensureRoadPreview(scene);
         else this._clearRoadPreview();
         const sel = this._panel && this._panel.querySelector('#bpSel');
         if (sel) {
             const action = item.kind === 'road' ? '单击或拖动铺设' : '左键放置 / F 镜像';
-            sel.textContent = `${item.name}（${item.cost}${item.currency === 'energy' ? '能' : '金'}）— ${action}`;
+            sel.textContent = `${item.name}（${this._effectiveBuildCost(item)}${item.currency === 'energy' ? '能' : '金'}）— ${action}`;
         }
     },
 
@@ -443,6 +518,7 @@ export const BuildingSystem = {
 
     _toggleMirror() {
         if (!this._placing) return;
+        const previousVisualOffsetX = this._ghostVisualOffsetX();
         this._placing.mirror = !this._placing.mirror;
         if (this._placing.item.kind === 'gate4') {
             const hover = this._gate4Hover;
@@ -455,14 +531,37 @@ export const BuildingSystem = {
                 this._restoreGate4HiddenBlocks();
                 this._setGate4PreviewVisible(false);
             }
-        } else if (isFiringPlatformBuildItem(this._placing.item)) {
-            const hover = this._platformHover;
-            const next = hover ? this._snapFiringPlatformGrid(hover.x, hover.y) : null;
-            const ok = !!next && this._canPlaceFiringPlatformFootprint(next.x, next.y, next);
+        } else if (isWallStairBuildItem(this._placing.item)) {
+            const hover = this._wallStairHover;
+            const next = hover ? this._snapWallStairGrid(hover.x, hover.y) : null;
+            const ok = !!next && this._canPlaceWallStairFootprint(next.x, next.y, next);
             this._snapped = ok ? next : null;
             this._updateStairPreview(next, ok);
         } else if (this._ghost) {
             this._ghost.setFlipX(this._placing.mirror);
+            // alpha 底座中心可能不在贴图正中；镜像后视觉偏移也要反号，
+            // 保证幽灵底座仍对齐同一个逻辑 footprint。
+            const nextVisualOffsetX = this._ghostVisualOffsetX();
+            this._ghost.x += nextVisualOffsetX - previousVisualOffsetX;
+            this._updateGuide(this._snapped, this._placing.item, this._ghost.x, this._ghost.y);
+        }
+        this._updateMirrorUi();
+    },
+
+    _updateMirrorUi() {
+        if (!this._panel) return;
+        const enabled = !!this._placing?.mirror;
+        const available = !!this._placing;
+        const state = this._panel.querySelector('#bpMirrorState');
+        if (state) {
+            state.textContent = enabled ? '开' : '关';
+            state.style.color = enabled ? '#9dff9d' : '#ffd700';
+        }
+        const button = this._panel.querySelector('#bpMirror');
+        if (button) {
+            button.disabled = !available;
+            button.textContent = enabled ? '镜像 F：开' : '镜像 F：关';
+            button.style.color = enabled ? '#9dff9d' : '';
         }
     },
 
@@ -554,9 +653,17 @@ export const BuildingSystem = {
         if (Game.player) {
             EffectManager.add(new FloatingTextEffect(
                 Game.player.x, Game.player.y - 50,
-                `自动吸附：${this._snapEnabled ? '开' : '关'}`,
+                `辅助吸附：${this._snapEnabled ? '开' : '关'}`,
                 this._snapEnabled ? '#9dff9d' : '#ff8855'
             ));
+        }
+        // 城墙楼梯属于“必须贴墙”的结构，不受普通建筑辅助吸附开关影响。
+        // 切换 G 后立即从最后鼠标位置恢复合法候选，避免预览消失到下一次移动鼠标。
+        if (isWallStairBuildItem(this._placing?.item) && this._wallStairHover) {
+            const next = this._snapWallStairGrid(this._wallStairHover.x, this._wallStairHover.y);
+            const ok = !!next && this._canPlaceWallStairFootprint(next.x, next.y, next);
+            this._snapped = ok ? next : null;
+            this._updateStairPreview(next, ok);
         }
         this._updateSnapHint();
     },
@@ -596,7 +703,7 @@ export const BuildingSystem = {
         this._wallRow = [];
         this._gate4Dir = null;
         this._gate4Hover = null;
-        this._platformHover = null;
+        this._wallStairHover = null;
         this._clearWallPreview();
         this._clearStairPreview();
         this._destroyGate4Preview();
@@ -611,6 +718,7 @@ export const BuildingSystem = {
             this._guide = null;
         }
         this._placing = null;
+        this._updateMirrorUi();
         const sel = this._panel && this._panel.querySelector('#bpSel');
         if (sel) sel.textContent = '未选择建筑';
     },
@@ -666,7 +774,7 @@ export const BuildingSystem = {
         }
         const item = this._placing.item;
         if (item.kind === 'gate4') this._gate4Hover = { x: p.x, y: p.y };
-        if (item.kind === 'platform') this._platformHover = { x: p.x, y: p.y };
+        if (item.kind === 'wall_staircase') this._wallStairHover = { x: p.x, y: p.y };
         const snap = this._snapPosition(p.x, p.y);
         // 4 格门：幽灵用门图标，按方向翻转（F 镜像换 e1/e2）
         if (item.kind === 'gate4') {
@@ -680,8 +788,8 @@ export const BuildingSystem = {
             }
             return;
         }
-        if (isFiringPlatformBuildItem(item)) {
-            const ok = !!snap && this._canPlaceFiringPlatformFootprint(snap.x, snap.y, snap);
+        if (isWallStairBuildItem(item)) {
+            const ok = !!snap && this._canPlaceWallStairFootprint(snap.x, snap.y, snap);
             this._snapped = ok ? snap : null;
             this._updateStairPreview(snap, ok);
             return;
@@ -692,7 +800,9 @@ export const BuildingSystem = {
             const sp = this._ghostAnchor(snap.x, snap.y);
             this._ghost.setPosition(sp.x, sp.y);
             this._ghost.setTint(ok ? 0x9dff9d : 0xff7777);
-            this._updateRoadPreview(snap.x, snap.y, this._roadPlacementStatus, ok);
+            if (usesBuildingRoads(item)) {
+                this._updateRoadPreview(snap.x, snap.y, this._roadPlacementStatus, ok);
+            }
             this._updateGuide(snap, item, this._ghost.x, this._ghost.y);
             return;
         }
@@ -708,8 +818,8 @@ export const BuildingSystem = {
             // 吸附落点被占用（如门洞另一侧门柱）时不显示吸附；
             // 当前位置本身不可放置则红色提示
             if (this._canPlace(p.x, p.y)) {
-                // 自由放置建筑（射击台）可放置时给绿色反馈（无吸附目标，位置合法即绿）
-                if (item.kind === 'platform') this._ghost.setTint(0x9dff9d);
+                // 楼梯候选可建造时给绿色反馈。
+                if (item.kind === 'wall_staircase') this._ghost.setTint(0x9dff9d);
                 else this._ghost.clearTint();
             }
             else this._ghost.setTint(0xff7777);
@@ -719,10 +829,17 @@ export const BuildingSystem = {
 
     /** 幽灵锚点：与实体渲染完全一致（精灵中心 = 锚点 + offsetX/footOffsetY） */
     _ghostAnchor(x, y) {
-        if (this._placing && this._placing.item.kind === 'platform') {
+        if (this._placing && this._placing.item.kind === 'tower') {
             return {
-                x: x + (this._placing.mirror ? -FIRING_PLATFORM_VISUAL.offsetX : FIRING_PLATFORM_VISUAL.offsetX),
-                y: y - FIRING_PLATFORM_VISUAL.footOffsetY,
+                x,
+                y: y + DEFENSE_TOWER_VISUAL.base.footprintCenterOffsetY
+                    - DEFENSE_TOWER_VISUAL.base.footOffsetY,
+            };
+        }
+        if (this._placing && this._placing.item.kind === 'wall_staircase') {
+            return {
+                x: x + (this._placing.mirror ? -WALL_STAIR_VISUAL.offsetX : WALL_STAIR_VISUAL.offsetX),
+                y: y - WALL_STAIR_VISUAL.footOffsetY,
             };
         }
         if (this._placing && this._placing.item.kind === 'gate4') {
@@ -732,7 +849,8 @@ export const BuildingSystem = {
     },
 
     _ghostVisualOffsetX() {
-        return this._ghostGroundFit()?.visualOffsetX || 0;
+        const offsetX = this._ghostGroundFit()?.visualOffsetX || 0;
+        return this._placing?.mirror ? -offsetX : offsetX;
     },
 
     _ghostGroundFit() {
@@ -764,7 +882,7 @@ export const BuildingSystem = {
             const pc = PRODUCER_BUILDINGS[this._placing.item.id];
             return pc.footOffsetY;
         }
-        if (this._placing.item.kind === 'platform') return FIRING_PLATFORM_VISUAL.footOffsetY;
+        if (this._placing.item.kind === 'wall_staircase') return WALL_STAIR_VISUAL.footOffsetY;
         if (this._placing.item.kind === 'block') return BLOCK_FOOT_OFFSET; // 方块墙：61（与实体一致）
         if (this._placing.item.kind === 'road') return 0;
         return this._ghost.displayHeight / 2;
@@ -875,7 +993,10 @@ export const BuildingSystem = {
             }
             const spr = entity.spriteCfg;
             if (spr) {
-                const cx = entity.x + (spr.offsetX || 0);
+                const fallbackOffsetX = entity._facingLeft
+                    ? -(spr.offsetX || 0)
+                    : (spr.offsetX || 0);
+                const cx = entity.x + (entity._visualFootOffsetX ?? fallbackOffsetX);
                 const cy = entity.y - (entity._visualFootOffsetY ?? spr.footOffsetY ?? 0);
                 const hw = (spr.size || entity.size || 32) / 2;
                 const hh = (spr.sizeH || spr.size || entity.size || 32) / 2;
@@ -935,7 +1056,17 @@ export const BuildingSystem = {
             }
             return;
         }
-        if (isTwoByTwoBuildItem(this._placing.item) || isFiringPlatformBuildItem(this._placing.item)) {
+        if (isWallStairBuildItem(this._placing.item)) {
+            const snap = this._snapPosition(p.x, p.y);
+            if (snap) {
+                this._snapped = snap;
+                this._place(snap.x, snap.y);
+            } else {
+                this._notify('请靠近外露且占地可用的方块墙建造楼梯', '#ff5555');
+            }
+            return;
+        }
+        if (isTwoByTwoBuildItem(this._placing.item)) {
             const snap = this._snapPosition(p.x, p.y);
             if (snap) {
                 this._snapped = snap;
@@ -1017,7 +1148,7 @@ export const BuildingSystem = {
         // 方块墙：网格吸附（2026-08-17）——1 格 = 64×32 菱形格，贴格心/邻格拼接
         if (item.kind === 'block' || item.kind === 'road') return this._snapBlockGrid(x, y);
         if (isTwoByTwoBuildItem(item)) return this._snapBuildingGrid(x, y, 2);
-        if (isFiringPlatformBuildItem(item)) return this._snapFiringPlatformGrid(x, y);
+        if (isWallStairBuildItem(item)) return this._snapWallStairGrid(x, y);
         // 4 格门：锚点吸附到格网半格位（栅栏跨 2 格的中点），方向跟随主导轴
         if (item.kind === 'gate4') return this._snapGate4Grid(x, y);
         if (item.kind !== 'cover' && item.kind !== 'gate') return null;
@@ -1138,13 +1269,23 @@ export const BuildingSystem = {
      * 城墙楼梯吸附：以墙顶为锚，沿墙法向对应的格轴向鼠标侧自动延伸到地面。
      * F/mirror 只切换墙的另一侧；当前 wallTopZ=125、rise=62.5 → 两段。
      */
-    _snapFiringPlatformGrid(x, y) {
-        if (!this._snapEnabled) return null;
+    _snapWallStairGrid(x, y) {
+        // 楼梯没有自由放置路径，必须始终执行贴墙候选计算；G 只控制普通建筑辅助吸附。
         const candidates = [];
         const mirror = !!this._placing?.mirror;
-        for (const wall of Game.entities.values()) {
+        const entities = Array.from(Game.entities.values());
+        const walkableAnchorCounts = new Map();
+        for (const entity of entities) {
+            if (!entity?.active || !entity._isWalkableWall) continue;
+            const key = `${Math.round(entity.x)},${Math.round(entity.y)}`;
+            walkableAnchorCounts.set(key, (walkableAnchorCounts.get(key) || 0) + 1);
+        }
+        for (const wall of entities) {
             if (!wall || !wall.active || !wall._isDefenseCover || wall._isCoverGate
                 || !wall._isWalkableWall || !Array.isArray(wall._faceLine)) continue;
+            const anchorKey = `${Math.round(wall.x)},${Math.round(wall.y)}`;
+            const stackedAtSameAnchor = (walkableAnchorCounts.get(anchorKey) || 0) > 1;
+            if (stackedAtSameAnchor) continue;
             if (wall._isBlockCover) {
                 const directions = [
                     { dir: 'e1', ascendingSign: -1, vx: BLOCK_GRID.e1[0], vy: BLOCK_GRID.e1[1] },
@@ -1153,6 +1294,11 @@ export const BuildingSystem = {
                     { dir: 'e2', ascendingSign: 1, vx: -BLOCK_GRID.e2[0], vy: -BLOCK_GRID.e2[1] },
                 ];
                 for (const direction of directions) {
+                    if (!DefenseSystem.isWallStairAttachmentEligible?.(
+                        wall,
+                        direction.vx,
+                        direction.vy
+                    )) continue;
                     const targetTopZ = Number(wall._wallTopZ) || 125;
                     const segmentCount = Math.max(
                         WALL_STAIR_CONFIG.minSegments,
@@ -1200,7 +1346,6 @@ export const BuildingSystem = {
                         segments,
                         cost: WALL_STAIR_CONFIG.costPerSegment * segmentCount,
                     };
-                    candidate.visualSegments = this._buildStairVisualSegments(candidate);
                     if (candidate.d <= WALL_STAIR_CONFIG.attachRadius) candidates.push(candidate);
                 }
                 continue;
@@ -1269,21 +1414,21 @@ export const BuildingSystem = {
                 segments,
                 cost: WALL_STAIR_CONFIG.costPerSegment * segmentCount,
             };
-            candidate.visualSegments = this._buildStairVisualSegments(candidate);
             candidates.push(candidate);
         }
         if (!candidates.length) return null;
         candidates.sort((a, b) => a.d - b.d);
-        // 第一座楼梯可能让鼠标最近的墙块/方向变成非法候选。优先寻找最近的绿色合法候选；
-        // 只有附近所有候选都冲突时才返回最近红色候选供玩家观察原因。
+        // 最近墙块/方向可能属于内层叠墙或已有建筑占位；依次寻找最近的绿色合法候选。
         for (const candidate of candidates) {
-            if (this._canPlaceFiringPlatformFootprint(candidate.x, candidate.y, candidate)) {
+            if (this._canPlaceWallStairFootprint(candidate.x, candidate.y, candidate)) {
                 candidate.placementValid = true;
+                candidate.visualSegments = this._buildStairVisualSegments(candidate);
                 return candidate;
             }
         }
-        candidates[0].placementValid = false;
-        return candidates[0];
+        // 不可建造的内层墙/被覆盖墙不能继续抢占吸附。附近没有绿色候选时直接取消
+        // 楼梯预览；鼠标移近其它外露墙面后会重新选择最近合法候选。
+        return null;
     },
 
     _buildStairVisualSegments(stair) {
@@ -1330,6 +1475,10 @@ export const BuildingSystem = {
         if (!this._ghost) return;
         if (!snap || !Array.isArray(snap.visualSegments)) {
             this._ghost.setVisible(false);
+            const sel = this._panel && this._panel.querySelector('#bpSel');
+            if (sel && isWallStairBuildItem(this._placing?.item)) {
+                sel.textContent = `${WALL_STAIR_CONFIG.name} — 请靠近外露且占地可用的方块墙`;
+            }
             return;
         }
         const scene = window.__phaserScene;
@@ -1560,6 +1709,9 @@ export const BuildingSystem = {
             n++;
         }
         this._clearBuildZones(clearZones);
+        // 方块墙统一走拖墙/单击行放置入口，不会进入 _place() 的 block 分支。
+        // 整批完成后只失效一次高架拓扑，确保楼梯吸附能立即识别新墙，同时避免逐块重建。
+        if (n > 0) DefenseSystem?.invalidateElevatedTopology?.();
         if (n > 0 && SoundManager && typeof SoundManager.playFile === 'function') {
             SoundManager.playFile('assets/sounds/ui/sell.wav');
         }
@@ -1700,6 +1852,7 @@ export const BuildingSystem = {
         if (typeof e.destroy === 'function') {
             try { e.destroy(); } catch { /* 无 Phaser 环境 */ }
         }
+        DefenseSystem?.invalidateElevatedTopology?.();
     },
 
     /**
@@ -1770,6 +1923,8 @@ export const BuildingSystem = {
             part._buildGroupRoot = gate;
         }
         n++;
+        // 新建门柱或四墙替门都会改变方块墙集合；楼梯外墙资格必须在下一次查询前刷新。
+        DefenseSystem?.invalidateElevatedTopology?.();
         this._clearBuildZones(cells.map(([cx, cy]) => ({ x: cx, y: cy, radius: 70 })));
         if (n > 0 && SoundManager && typeof SoundManager.playFile === 'function') {
             SoundManager.playFile('assets/sounds/ui/sell.wav');
@@ -1877,8 +2032,8 @@ export const BuildingSystem = {
             maxX = Math.max(...vertices.map((p) => p.x));
             minY = Math.min(...vertices.map((p) => p.y));
             maxY = Math.max(...vertices.map((p) => p.y));
-        } else if (isFiringPlatformBuildItem(item)) {
-            const probe = this._firingPlatformProbe(x, y, firingPlatformDir(!!this._placing?.mirror));
+        } else if (isWallStairBuildItem(item)) {
+            const probe = this._wallStairProbe(x, y, wallStairDir(!!this._placing?.mirror));
             const vertices = isoFootprintVertices(probe);
             minX = Math.min(...vertices.map((p) => p.x));
             maxX = Math.max(...vertices.map((p) => p.x));
@@ -1917,7 +2072,7 @@ export const BuildingSystem = {
             const dir = (this._snapped && this._snapped.dir) || 'e2';
             return this._canPlaceGate4(x, y, dir);
         }
-        if (isFiringPlatformBuildItem(item)) return this._canPlaceFiringPlatformFootprint(x, y);
+        if (isWallStairBuildItem(item)) return this._canPlaceWallStairFootprint(x, y);
         if (isTwoByTwoBuildItem(item)) return this._canPlaceBuildingFootprint(x, y);
         const radius = this._itemPlacementRadius(item);
         const canBuild = WallSystem && typeof WallSystem.canBuildAt === 'function'
@@ -1997,7 +2152,9 @@ export const BuildingSystem = {
     _canPlaceBuildingFootprint(x, y) {
         const item = this._placing && this._placing.item;
         if (!item) return false;
-        const status = this._buildingRoadPlacementStatus(x, y);
+        const status = this._buildingRoadPlacementStatus(x, y, {
+            includeRoadRing: usesBuildingRoads(item),
+        });
         this._roadPlacementStatus = status;
         if (!this._fitsPlacementBounds(item, x, y)) return false;
         if (!this._canPlaceIsoBuildingFootprint(this._buildingFootprintProbe(x, y))) return false;
@@ -2051,10 +2208,11 @@ export const BuildingSystem = {
         );
     },
 
-    _buildingRoadPlacementStatus(x, y) {
+    _buildingRoadPlacementStatus(x, y, { includeRoadRing = true } = {}) {
         const layout = buildingRoadLayout(x, y);
         const validByKey = new Map();
-        for (const cell of layout.reservationCells) {
+        const checkedCells = includeRoadRing ? layout.reservationCells : layout.buildingCells;
+        for (const cell of checkedCells) {
             const valid = !BuildingRoadSystem.isReservedCell(cell.i, cell.j)
                 && (cell.road || !BuildingRoadSystem.isManualRoadCell(cell.i, cell.j))
                 && this._roadCellFitsBounds(cell)
@@ -2067,12 +2225,12 @@ export const BuildingSystem = {
         return {
             layout,
             validByKey,
-            ok: layout.reservationCells.every((cell) => validByKey.get(cell.key)),
+            ok: checkedCells.every((cell) => validByKey.get(cell.key)),
         };
     },
 
-    _firingPlatformProbe(x, y, dir) {
-        const foot = FIRING_PLATFORM_FOOTPRINTS[dir] || FIRING_PLATFORM_FOOTPRINTS.e2;
+    _wallStairProbe(x, y, dir) {
+        const foot = WALL_STAIR_FOOTPRINTS[dir] || WALL_STAIR_FOOTPRINTS.e2;
         return {
             active: true,
             x,
@@ -2088,15 +2246,25 @@ export const BuildingSystem = {
     },
 
     /** 城墙楼梯整组占地判定：所有1×1段必须同时合法，只忽略其连接的目标墙本体。 */
-    _canPlaceFiringPlatformFootprint(x, y, snap = this._snapped) {
+    _canPlaceWallStairFootprint(x, y, snap = this._snapped) {
         const item = this._placing && this._placing.item;
         if (!item || !snap || !snap.wall || !Array.isArray(snap.segments)) return false;
         const attachedWalls = snap.walls?.length ? snap.walls : [snap.wall];
-        const ignoreEntities = new Set(attachedWalls);
+        // 实体重叠只忽略楼梯真正连接的目标墙。若忽略整条连通墙链，内层叠墙或
+        // 楼梯段所占格里的其它墙也会被放行，导致不可到达墙仍能吸附并穿墙建造。
+        // 边线采样继续忽略墙链，避免合法外墙两侧的相邻墙线在2px采样中误伤。
+        const ignoreEntities = new Set([snap.wall]);
         const ignoreSegs = new Set(attachedWalls.map((wall) => wall?._coverSeg).filter(Boolean));
+        // 已有楼梯的红色侧轨属于移动导航边界，不是建筑占地。中间补建楼梯时若继续
+        // 参与2px地形采样，会被左右两座楼梯的侧轨同时误判为阻挡。楼梯之间的真实
+        // 冲突仍由下方逐段1×1 footprint重叠检查负责。
+        for (const staircase of DefenseSystem?.staircases || []) {
+            if (!staircase?.active) continue;
+            for (const edge of staircase._edgeSegs || []) ignoreSegs.add(edge);
+        }
         for (const segment of snap.segments) {
             if (!this._fitsPlacementBounds(item, segment.x, segment.y)) return false;
-            const probe = this._firingPlatformProbe(segment.x, segment.y, snap.dir);
+            const probe = this._wallStairProbe(segment.x, segment.y, snap.dir);
             if (!this._canPlaceIsoBuildingFootprint(probe, {
                 ignoreEntities,
                 ignoreSegs,
@@ -2117,7 +2285,7 @@ export const BuildingSystem = {
             if (!e || !e._isDefenseStructure || !e.active) continue;
             if (e._isWallStaircase && Array.isArray(e.segments)) {
                 for (const segment of e.segments) {
-                    const stairProbe = this._firingPlatformProbe(segment.x, segment.y, e.dir);
+                    const stairProbe = this._wallStairProbe(segment.x, segment.y, e.dir);
                     if (isoFootprintsOverlap(probe, stairProbe, -0.5)) return false;
                 }
                 continue;
@@ -2205,10 +2373,10 @@ export const BuildingSystem = {
         for (const e of Game.entities.values()) {
             if (!e || !e._isDefenseStructure || !e.active) continue;
             if (e._isWallStaircase && Array.isArray(e.segments)) {
-                const blockProbe = this._firingPlatformProbe(x, y, 'e2');
+                const blockProbe = this._wallStairProbe(x, y, 'e2');
                 if (e.segments.some((segment) => isoFootprintsOverlap(
                     blockProbe,
-                    this._firingPlatformProbe(segment.x, segment.y, e.dir),
+                    this._wallStairProbe(segment.x, segment.y, e.dir),
                     -0.5
                 ))) return false;
                 continue;
@@ -2314,7 +2482,10 @@ export const BuildingSystem = {
             }
             const spr = entity.spriteCfg;
             if (spr) {
-                const cx = entity.x + (spr.offsetX || 0);
+                const fallbackOffsetX = entity._facingLeft
+                    ? -(spr.offsetX || 0)
+                    : (spr.offsetX || 0);
+                const cx = entity.x + (entity._visualFootOffsetX ?? fallbackOffsetX);
                 const cy = entity.y - (entity._visualFootOffsetY ?? spr.footOffsetY ?? 0);
                 const hw = (spr.size || entity.size || 32) * 0.5;
                 const hh = (spr.sizeH || spr.size || entity.size || 32) * 0.5;
@@ -2350,6 +2521,17 @@ export const BuildingSystem = {
         this._renderDetail();
     },
 
+    _mainPanelTitle() {
+        return `建筑面板（${SceneManager.scenes?.[SceneManager.currentScene]?.name || '当前世界'}）`;
+    },
+
+    _detailPanelTitle(e) {
+        if (e?._isCoverGate) return `${e._isGate4 ? '4格门' : (e.name || `铁栅栏门·${e.grade || 'D'}级`)} · 建筑详情`;
+        if (e?._isWallStaircase) return `${WALL_STAIR_CONFIG.name} · 建筑详情`;
+        if (e?._isBlockCover) return '方块墙 · 建筑详情';
+        return `掩体·${e?.grade || 'F'}级 · 建筑详情`;
+    },
+
     /** 详情视图渲染：_detail 为空回到网格列表；建筑被摧毁自动退回 */
     _renderDetail() {
         if (!this._panel) return;
@@ -2363,13 +2545,19 @@ export const BuildingSystem = {
             show = false;
             this._notify('建筑已被摧毁', '#ff8855');
         }
-        // 详情与建筑列表并排显示（2026-08-16）：不再隐藏网格/操作行/提示
+        // 详情作为主建筑面板内的二级页面；返回时恢复建筑列表与原标题。
+        this._panel.classList.toggle('detail-active', show);
+        const title = this._panel.querySelector('#bpTitleText');
+        if (title) title.textContent = show ? this._detailPanelTitle(e) : this._mainPanelTitle();
         det.style.display = show ? '' : 'none';
-        if (!show) return;
+        if (!show) {
+            det.innerHTML = '';
+            return;
+        }
         // 门走专属详情（含常锁/常开模式按钮，2026-08-15）
         if (e._isCoverGate) { this._renderGateDetail(det, e); return; }
-        // 射击台专属详情（2026-08-16）：不再误显示"掩体·F级"（grade 为 undefined）
-        if (e._isFiringPlatform) { this._renderPlatformDetail(det, e); return; }
+        // 城墙楼梯专属详情。
+        if (e._isWallStaircase) { this._renderWallStairDetail(det, e); return; }
         if (e._isBlockCover) { this._renderBlockDetail(det, e); return; }
         // 掩体详情：贴图 / 耐久条 / 朝向 / 建造消耗 / 修理费率 / 回满预估
         const g = e.grade || 'F';
@@ -2422,7 +2610,7 @@ export const BuildingSystem = {
     },
 
     /** 城墙楼梯详情：整组段数、目标高度、建造成本与修理。 */
-    _renderPlatformDetail(det, e) {
+    _renderWallStairDetail(det, e) {
         const maxHp = e.maxHp || WALL_STAIR_CONFIG.hpPerSegment * (e.segmentCount || 2);
         const hp = Math.max(0, Math.ceil(e.hp));
         const buildCost = e._buildCost ?? WALL_STAIR_CONFIG.costPerSegment * (e.segmentCount || 2);
@@ -2574,13 +2762,19 @@ export const BuildingSystem = {
         const recyclable = targets.length > 0 && targets.every((e) => e._builtByPlayer);
         const currency = targets.find((e) => e._buildCurrency)?._buildCurrency || 'energy';
         const totalCost = targets.reduce((sum, e) => sum + (Number(e._buildCost) || 0), 0);
-        return { targets, recyclable, currency, totalCost, refund: Math.floor(totalCost * 0.5) };
+        const refund = targets.reduce((sum, e) => {
+            const durability = Math.max(0, Math.min(1,
+                Number(e.hp) / Math.max(1, Number(e.maxHp) || 1)));
+            return sum + Math.floor((Number(e._buildCost) || 0) * 0.5 * durability);
+        }, 0);
+        return { targets, recyclable, currency, totalCost, refund };
     },
 
     _removeBuiltEntity(entity) {
         if (!entity) return;
         if (entity._isDefenseCover && typeof entity.removeFromCollision === 'function') {
             entity.removeFromCollision();
+            DefenseSystem?.invalidateElevatedTopology?.();
         }
         if (entity._isCoverGate) {
             if (typeof entity._teardownCollision === 'function') entity._teardownCollision();
@@ -2590,12 +2784,13 @@ export const BuildingSystem = {
             }
             if (DefenseSystem && DefenseSystem.gate === entity) DefenseSystem.gate = null;
         }
-        if (entity._isFiringPlatform && DefenseSystem && Array.isArray(DefenseSystem.platforms)) {
-            const i = DefenseSystem.platforms.indexOf(entity);
-            if (i >= 0) DefenseSystem.platforms.splice(i, 1);
+        if (entity._isWallStaircase && DefenseSystem && Array.isArray(DefenseSystem.staircases)) {
+            const i = DefenseSystem.staircases.indexOf(entity);
+            if (i >= 0) DefenseSystem.staircases.splice(i, 1);
             if (typeof entity._unregisterEdgeSegs === 'function') entity._unregisterEdgeSegs();
             for (const segment of entity.segments || []) segment.active = false;
             DefenseSystem.rebuildWallStairGroups?.();
+            DefenseSystem.invalidateElevatedTopology?.();
         }
         if (entity._isDefenseTower && DefenseSystem && Array.isArray(DefenseSystem.towers)) {
             const i = DefenseSystem.towers.indexOf(entity);
@@ -2786,8 +2981,8 @@ export const BuildingSystem = {
         // 开发工具「无限资源」开启时建造不消耗能源/金币（2026-08-15）
         const free = !!(Game && Game._devInfiniteResources);
         const currency = item.currency === 'energy' ? 'energy' : 'gold';
-        const staircaseSnap = item.kind === 'platform' ? this._snapped : null;
-        const buildCost = staircaseSnap?.cost ?? item.cost;
+        const staircaseSnap = item.kind === 'wall_staircase' ? this._snapped : null;
+        const buildCost = staircaseSnap?.cost ?? this._effectiveBuildCost(item);
         const payOk = free || this._deductBuildCost(currency, buildCost);
         if (!payOk) {
             this._notify(currency === 'energy' ? '能源不足（攻击资源点采集）' : '金币不足', '#ff5555');
@@ -2804,16 +2999,19 @@ export const BuildingSystem = {
                 placedEntity = tower;
             } else if (item.kind === 'hamster_hut') {
                 const hut = this._markBuiltEntity(new HamsterHut(x, y, { id }), item);
+                hut._facingLeft = mirror;
                 Game.entities.set(id, hut);
                 HamsterHutSystem.huts.push(hut);
                 placedEntity = hut;
             } else if (item.kind === 'hamster_barracks') {
                 const barracks = this._markBuiltEntity(new HamsterBarracks(x, y, { id }), item);
+                barracks._facingLeft = mirror;
                 Game.entities.set(id, barracks);
                 HamsterBarracksSystem.barracks.push(barracks);
                 placedEntity = barracks;
             } else if (item.kind === 'producer') {
                 const producer = this._markBuiltEntity(new ProducerBuilding(x, y, { id, cfgKey: item.id }), item);
+                producer._facingLeft = mirror;
                 Game.entities.set(id, producer);
                 ProducerBuildingSystem.buildings.push(producer);
                 placedEntity = producer;
@@ -2833,12 +3031,12 @@ export const BuildingSystem = {
                 }), item);
                 Game.entities.set(id, gate);
                 if (DefenseSystem && DefenseSystem.gates) DefenseSystem.gates.push(gate);
-            } else if (item.kind === 'platform') {
+            } else if (item.kind === 'wall_staircase') {
                 const snap = staircaseSnap;
                 if (!snap || !snap.wall || !snap.segments?.length) {
                     throw new Error('城墙楼梯缺少有效墙体吸附');
                 }
-                const platform = this._markBuiltEntity(new WallStaircase(x, y, {
+                const staircase = this._markBuiltEntity(new WallStaircase(x, y, {
                     dir: snap.dir,
                     ascendingSign: snap.ascendingSign,
                     mirror,
@@ -2850,10 +3048,11 @@ export const BuildingSystem = {
                     segments: snap.segments,
                     id,
                 }), item, buildCost);
-                Game.entities.set(id, platform);
-                if (DefenseSystem && DefenseSystem.platforms) {
-                    DefenseSystem.platforms.push(platform);
+                Game.entities.set(id, staircase);
+                if (DefenseSystem && DefenseSystem.staircases) {
+                    DefenseSystem.staircases.push(staircase);
                     DefenseSystem.rebuildWallStairGroups?.();
+                    DefenseSystem.invalidateElevatedTopology?.();
                 }
             } else if (item.kind === 'gate4') {
                 // 4 格门（2026-08-17）：2 石柱 + 2 格铁栅栏宽门
@@ -2868,13 +3067,16 @@ export const BuildingSystem = {
                     id,
                 }), item);
                 Game.entities.set(id, cover);
+                // 方块墙与旧式掩体墙都属于可行走墙面；放置后立即刷新拓扑，避免下一次
+                // 楼梯吸附或路线规划仍读取建造前的外墙/连通分量。
+                DefenseSystem.invalidateElevatedTopology?.();
                 if (item.kind !== 'block') {
                     // 上夹角图层校正（2026-08-17）：手动摆放两堵墙在顶部交汇时，
                     // 左臂（v 向 "/"、TL 边）盖右臂（h 向 "\"、TR 边）——左墙在右墙之上
                     this._fixCoverCornerDepth(cover);
                 }
             }
-            if (placedEntity && isTwoByTwoBuildItem(item)) {
+            if (placedEntity && usesBuildingRoads(item)) {
                 BuildingRoadSystem.attach(placedEntity);
             }
         } catch (err) {
@@ -2899,7 +3101,7 @@ export const BuildingSystem = {
             ? TWO_BY_TWO_BUILDING_FOOT.clearRadius
             : (item.kind === 'cover' || item.kind === 'gate' ? 110 : 60);
         // 4 格门已按四个格心批量清除；其它建筑按自身中心清除。
-        if (item.kind === 'platform' && staircaseSnap?.segments) {
+        if (item.kind === 'wall_staircase' && staircaseSnap?.segments) {
             this._clearBuildZones(staircaseSnap.segments.map((segment) => ({
                 x: segment.x,
                 y: segment.y,
@@ -2907,7 +3109,8 @@ export const BuildingSystem = {
             })));
         } else if (isTwoByTwoBuildItem(item)) {
             const layout = placedEntity?._buildingRoadLayout || buildingRoadLayout(x, y);
-            this._clearBuildZones(layout.reservationCells.map((cell) => ({
+            const clearCells = usesBuildingRoads(item) ? layout.reservationCells : layout.buildingCells;
+            this._clearBuildZones(clearCells.map((cell) => ({
                 x: cell.x,
                 y: cell.y,
                 radius: ONE_CELL_BUILDING_FOOT.clearRadius,
@@ -2922,14 +3125,14 @@ export const BuildingSystem = {
     },
 };
 
-// ==================== B 键全局监听（仅世界-122）====================
+// ==================== B 键全局监听（全部已接入世界）====================
 
 if (typeof window !== 'undefined') {
     window.addEventListener('keydown', (e) => {
         if (e.code !== 'KeyB') return;
         if (!Game || !Game.isRunning || !Game.player) return;
         if (Game._wallEditMode || Game._collisionEditMode) return;
-        if (!SceneManager || SceneManager.currentScene !== 'scene8') return;
+        if (!SceneManager || !['scene8', 'scene9', 'scene10', 'scene11'].includes(SceneManager.currentScene)) return;
         if (UIState && Object.values(UIState._state).some(Boolean)) return; // 其他面板打开时不抢键
         e.preventDefault();
         BuildingSystem.toggle();

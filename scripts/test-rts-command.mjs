@@ -53,8 +53,8 @@ check('RTS 鼠标过滤建筑面板',
 check('掩体详情走 BuildingSystem.open，不再手动 active+裸建面板',
     /if \(!bs\.active && typeof bs\.open === 'function'\) bs\.open\(\)/.test(rtsSrc)
     && !/bs\.active = true/.test(rtsSrc));
-check('离开 scene8 重置全队命令/目标/路径',
-    /leavingScene8[\s\S]{0,180}_resetPartyCommandsForSceneExit/.test(rtsSrc)
+check('离开任一持久世界时重置全队命令/目标/路径',
+    /leavingWorld[\s\S]{0,180}_resetPartyCommandsForSceneExit/.test(rtsSrc)
     && /PartySystem\.setCommand\('all', 'follow'\)/.test(rtsSrc)
     && /m\._pathManager\._clearPath\(\)/.test(rtsSrc));
 check('矿工 AI 每帧优先消费非 follow 指令',
@@ -93,7 +93,7 @@ check('RTS 自己捕获右键并在 tick 中消费',
     && /this\._handleRightClick\(pendingRightClick\.x, pendingRightClick\.y\)/.test(rtsSrc));
 check('观察模式任意世界允许鼠标选择/框选',
     /_isCommandable\(\)/.test(rtsSrc)
-    && /this\._scene === 'scene8' \|\| !!g\?\._observerMode/.test(rtsSrc)
+    && /PERSISTENT_WORLDS\.has\(this\._scene\) \|\| !!g\?\._observerMode/.test(rtsSrc)
     && !/_onMouseDown\(e\) \{\s*if \(!this\.enabled \|\| this\._scene !== 'scene8'\)/.test(rtsSrc));
 check('右键表面解析通过 window.Game 惰性句柄且无未声明 g',
     /const defenseSystem = _game\(\)\?\.DefenseSystem/.test(rtsSrc)
@@ -134,7 +134,7 @@ check('RTS 中键轮盘按实际选中数量打开',
     && /if \(!targetCount\) return/.test(wheelSrc)
     && /this\._targetIds = \[\][\s\S]{0,100}return n/.test(wheelSrc));
 
-const routeEntity = { x: 0, y: 0, z: 0 };
+const routeEntity = { x: 0, y: 0, z: 0, _surfaceKind: 'ground' };
 const routeCommand = {
     mode: 'move',
     point: {
@@ -169,9 +169,89 @@ check('统一 route 解析跳过已抵达节点并保留高架路线状态',
     && routeEntity._surfaceRouteActive === true);
 routeEntity.x = 100;
 routeEntity.z = 20;
+routeEntity._surfaceKind = 'stairs';
 const finalWaypoint = resolveRtsMoveDestination(routeEntity, routeCommand);
 check('统一 route 解析抵达末节点后清理高架路线状态',
     finalWaypoint.arrived === true && routeEntity._surfaceRouteActive === false);
+
+const descendEntity = {
+    x: 0,
+    y: 0,
+    z: 20,
+    _surfaceKind: 'stairs',
+    _surfaceStaircase: { id: 'stair_down' },
+};
+const descendCommand = {
+    mode: 'move',
+    routeIndex: 0,
+    point: {
+        x: 20,
+        y: 0,
+        z: 0,
+        surfaceKind: 'ground',
+        staircaseId: 'stair_down',
+        route: [
+            { x: 0, y: 0, z: 20, surfaceKind: 'stairs', staircaseId: 'stair_down' },
+            { x: 20, y: 0, z: 0, surfaceKind: 'ground', staircaseId: 'stair_down',
+                transition: 'stairs_to_ground' },
+        ],
+    },
+};
+const pendingGroundHandoff = resolveRtsMoveDestination(descendEntity, descendCommand);
+check('下楼路线先取得down许可并等待真实ground身份后才完成',
+    pendingGroundHandoff.destination.surfaceKind === 'ground'
+    && pendingGroundHandoff.arrived === false
+    && pendingGroundHandoff.routeStage === 'stairs_to_ground');
+descendEntity.x = 20;
+descendEntity.z = 0;
+descendEntity._surfaceKind = 'ground';
+descendEntity._surfaceStaircase = null;
+const confirmedGroundHandoff = resolveRtsMoveDestination(descendEntity, descendCommand);
+check('原子提交ground身份后下楼节点正常完成且不残留routeActive',
+    confirmedGroundHandoff.arrived === true
+    && descendEntity._surfaceRouteActive === false);
+
+const wallHandoffEntity = {
+    x: 220,
+    y: 110,
+    z: 125,
+    _surfaceKind: 'stairs',
+    _surfaceStaircase: { id: 'stair_a' },
+};
+const wallHandoffCommand = {
+    mode: 'move',
+    point: {
+        x: 220,
+        y: 110,
+        z: 125,
+        surfaceKind: 'wall_walk',
+        wallId: 'wall_a',
+        route: [{
+            x: 220,
+            y: 110,
+            z: 125,
+            surfaceKind: 'wall_walk',
+            wallId: 'wall_a',
+        }],
+    },
+};
+const pendingWallHandoff = resolveRtsMoveDestination(
+    wallHandoffEntity,
+    wallHandoffCommand
+);
+check('楼梯顶部与墙顶同高时不会提前完成墙面节点',
+    pendingWallHandoff.arrived === false
+    && pendingWallHandoff.routeStage === 'handoff_to_wall'
+    && wallHandoffEntity._surfaceRouteActive === true);
+wallHandoffEntity._surfaceKind = 'wall_walk';
+wallHandoffEntity._surfaceWall = { id: 'wall_a' };
+const confirmedWallHandoff = resolveRtsMoveDestination(
+    wallHandoffEntity,
+    wallHandoffCommand
+);
+check('取得目标墙面身份后才完成并清理高架路线',
+    confirmedWallHandoff.arrived === true
+    && wallHandoffEntity._surfaceRouteActive === false);
 
 console.log(`\n结果: ${pass} 通过, ${fail} 失败`);
 process.exit(fail ? 1 : 0);

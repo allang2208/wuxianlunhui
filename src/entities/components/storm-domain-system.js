@@ -192,7 +192,7 @@ export class StormDomainSystem {
                 jitter: 0.10,
             }));
             this._spawnHitFx(target, decayMul);
-            target.takeDamage(finalDamage, src, 'electric');
+            target.takeDamage(finalDamage, src, 'electric', false);
             if (typeof target.applyElectrified === 'function') {
                 target.applyElectrified(effect.electrifyStacks, effect.electrifyDurationMs, src);
             }

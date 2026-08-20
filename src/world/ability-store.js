@@ -4,6 +4,7 @@
 // 任意铁匠铺升级后，场上所有对应兵种单位实时获得该能力（新生成单位同样生效）。
 // 独立文件避免 producer-building-system 与兵种 AI 的循环依赖。
 // ============================================================
+import { getBuildingUpgradeAbility } from './building-upgrade-projects.js';
 
 /** 全局能力等级：{ [abilityId]: level } */
 export const GLOBAL_ABILITY_LEVELS = {};
@@ -23,7 +24,8 @@ export function restoreAbilityLevels(data) {
     resetAbilityLevels();
     if (!data || typeof data !== 'object') return;
     for (const [abilityId, rawLevel] of Object.entries(data)) {
-        const level = Math.max(0, Math.floor(Number(rawLevel) || 0));
+        const maxLevel = getBuildingUpgradeAbility(abilityId)?.maxLevel ?? 10;
+        const level = Math.min(maxLevel, Math.max(0, Math.floor(Number(rawLevel) || 0)));
         if (level > 0) GLOBAL_ABILITY_LEVELS[abilityId] = level;
     }
 }
@@ -34,10 +36,14 @@ export function getAbilityLevel(abilityId) {
     return GLOBAL_ABILITY_LEVELS[abilityId] || 0;
 }
 
-/** 能力等级 +1，返回新等级 */
-export function raiseAbilityLevel(abilityId) {
+/** 能力等级 +1，按调用方提供的配置上限钳制，返回新等级。 */
+export function raiseAbilityLevel(abilityId, maxLevel = Number.POSITIVE_INFINITY) {
     if (!abilityId) return 0;
-    GLOBAL_ABILITY_LEVELS[abilityId] = (GLOBAL_ABILITY_LEVELS[abilityId] || 0) + 1;
+    const cap = Number.isFinite(maxLevel) ? Math.max(0, Math.floor(maxLevel)) : Number.POSITIVE_INFINITY;
+    GLOBAL_ABILITY_LEVELS[abilityId] = Math.min(
+        cap,
+        (GLOBAL_ABILITY_LEVELS[abilityId] || 0) + 1
+    );
     return GLOBAL_ABILITY_LEVELS[abilityId];
 }
 

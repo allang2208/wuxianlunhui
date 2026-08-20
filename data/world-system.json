@@ -33,6 +33,14 @@
       "initialPortal": true,
       "constructionEnabled": false,
       "portalSpawn": { "x": 4200, "y": 4096 },
+      "coreVisual": {
+        "texture": "defense_base",
+        "displayW": 440,
+        "displayH": 366,
+        "footOffsetY": 184,
+        "footprintCells": 4,
+        "foundation": false
+      },
       "resetPolicy": { "baseSeed": 122008 }
     },
     "scene9": {
@@ -94,6 +102,7 @@
     "backgroundWaveSeconds": 35,
     "backgroundWaveMaxSeconds": 180,
     "backgroundContactRatio": 0.45,
+    "backgroundGarrisonAbsorbRatio": 0.35,
     "portalWarnings": [
       {
         "stage": 1,

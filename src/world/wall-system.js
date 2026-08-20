@@ -2,6 +2,7 @@ import { CONFIG } from '../config/config.js';
 import { PERSPECTIVE_SCALE_Y } from '../config/perspective-config.js';
 import { getWallPrefabLibrary, loadWallGeoOverrides } from './wall-prefabs.js';
 import { structureDepthRelationAtPoint } from './structure-depth.js';
+import lightingAssets from '../../data/environment-lighting-assets.json';
 
 // ===== 等距斜墙贴图几何（贴图像素空间，wall-asset-prep.py 产出 + 拼装模拟器实测校准）=====
 // base: 底边线全跨度（含端帽）；face: 正面墙底边跨度（不含端帽，拼接吸附/碰撞用）；
@@ -64,17 +65,17 @@ const ISO_WALL_GEO = {
     // 仙人掌障碍物（2026-08-16，世界-122 荒漠化：树木全部移除后由 cactusScatter 散布。
     // 4 姿态同风格低对比：process-desert-plant.py 白底生图→BiRefNet 抠图→降饱和降对比。
     // foot=底部 15% 带实测占地，obstacleH=期望世界显示高度（贴图等比裁剪 h=256））
-    cactus_saguaro2arm: { tex: 'obstacle_cactus_saguaro2arm', w: 109, h: 256, category: 'obstacle', foot: { w: 31, d: 11 }, obstacleH: 240, shadow: { kind: 'projection', heightMul: 1.0, maxOffset: 72, crossSpread: 0.28, visualWidthMul: 1.20, visualDepthMul: 1.25 }, editor: '仙人掌·双臂' },
-    cactus_saguaro1arm: { tex: 'obstacle_cactus_saguaro1arm', w: 80, h: 256, category: 'obstacle', foot: { w: 36, d: 13 }, obstacleH: 230, shadow: { kind: 'projection', heightMul: 1.0, maxOffset: 68, crossSpread: 0.25, visualWidthMul: 1.20, visualDepthMul: 1.25 }, editor: '仙人掌·单臂' },
-    cactus_barrel: { tex: 'obstacle_cactus_barrel', w: 245, h: 256, category: 'obstacle', foot: { w: 110, d: 38 }, obstacleH: 105, shadow: { kind: 'contact', heightMul: 0.35, maxOffset: 22, visualWidthMul: 1.60, visualDepthMul: 1.45 }, editor: '仙人掌·桶状' },
-    cactus_cholla: { tex: 'obstacle_cactus_cholla', w: 124, h: 256, category: 'obstacle', foot: { w: 33, d: 12 }, obstacleH: 150, shadow: { kind: 'projection', heightMul: 0.65, maxOffset: 42, crossSpread: 0.20, visualWidthMul: 1.30, visualDepthMul: 1.35 }, editor: '仙人掌·多节' },
+    cactus_saguaro2arm: { tex: 'obstacle_cactus_saguaro2arm', w: 109, h: 256, category: 'obstacle', foot: { w: 31, d: 11 }, obstacleH: 240, shadow: { kind: 'projection', heightMul: 1.0, maxOffset: 72, visualWidthMul: 1.20, visualDepthMul: 1.25 }, editor: '仙人掌·双臂' },
+    cactus_saguaro1arm: { tex: 'obstacle_cactus_saguaro1arm', w: 80, h: 256, category: 'obstacle', foot: { w: 36, d: 13 }, obstacleH: 230, shadow: { kind: 'projection', heightMul: 1.0, maxOffset: 68, visualWidthMul: 1.20, visualDepthMul: 1.25 }, editor: '仙人掌·单臂' },
+    cactus_barrel: { tex: 'obstacle_cactus_barrel', w: 245, h: 256, category: 'obstacle', foot: { w: 110, d: 38 }, obstacleH: 105, shadow: { kind: 'projection', heightMul: 0.35, maxOffset: 22, visualWidthMul: 1.60, visualDepthMul: 1.45 }, editor: '仙人掌·桶状' },
+    cactus_cholla: { tex: 'obstacle_cactus_cholla', w: 124, h: 256, category: 'obstacle', foot: { w: 33, d: 12 }, obstacleH: 150, shadow: { kind: 'projection', heightMul: 0.65, maxOffset: 42, visualWidthMul: 1.30, visualDepthMul: 1.35 }, editor: '仙人掌·多节' },
     // 世界-123 雪原高瘦松树（Depth ControlNet 白模锁姿态 + BiRefNet 原图抠图，2026-08-18）。
     // foot 是底部树干实测带，obstacleH 统一为 390，显示与碰撞均按裁剪后的真实像素尺寸等比缩放。
-    snow_pine_01: { tex: 'obstacle_snow_pine_01', w: 233, h: 909, category: 'obstacle', foot: { w: 95, d: 50 }, obstacleH: 390, editor: '雪松·直立' },
-    snow_pine_02: { tex: 'obstacle_snow_pine_02', w: 297, h: 937, category: 'obstacle', foot: { w: 112, d: 54 }, obstacleH: 390, editor: '雪松·左倾' },
-    snow_pine_03: { tex: 'obstacle_snow_pine_03', w: 385, h: 941, category: 'obstacle', foot: { w: 140, d: 58 }, obstacleH: 390, editor: '雪松·右倾' },
-    snow_pine_04: { tex: 'obstacle_snow_pine_04', w: 446, h: 954, category: 'obstacle', foot: { w: 155, d: 64 }, obstacleH: 390, editor: '雪松·偏风' },
-    snow_pine_05: { tex: 'obstacle_snow_pine_05', w: 400, h: 885, category: 'obstacle', foot: { w: 135, d: 56 }, obstacleH: 390, editor: '雪松·疏枝' },
+    snow_pine_01: { tex: 'obstacle_snow_pine_01', w: 233, h: 909, category: 'obstacle', foot: { w: 95, d: 50 }, obstacleH: 390, shadow: { kind: 'projection', heightMul: 0.8, maxOffset: 72, visualWidthMul: 1.1, visualDepthMul: 1.1 }, editor: '雪松·直立' },
+    snow_pine_02: { tex: 'obstacle_snow_pine_02', w: 297, h: 937, category: 'obstacle', foot: { w: 112, d: 54 }, obstacleH: 390, shadow: { kind: 'projection', heightMul: 0.8, maxOffset: 72, visualWidthMul: 1.1, visualDepthMul: 1.1 }, editor: '雪松·左倾' },
+    snow_pine_03: { tex: 'obstacle_snow_pine_03', w: 385, h: 941, category: 'obstacle', foot: { w: 140, d: 58 }, obstacleH: 390, shadow: { kind: 'projection', heightMul: 0.8, maxOffset: 72, visualWidthMul: 1.1, visualDepthMul: 1.1 }, editor: '雪松·右倾' },
+    snow_pine_04: { tex: 'obstacle_snow_pine_04', w: 446, h: 954, category: 'obstacle', foot: { w: 155, d: 64 }, obstacleH: 390, shadow: { kind: 'projection', heightMul: 0.8, maxOffset: 72, visualWidthMul: 1.1, visualDepthMul: 1.1 }, editor: '雪松·偏风' },
+    snow_pine_05: { tex: 'obstacle_snow_pine_05', w: 400, h: 885, category: 'obstacle', foot: { w: 135, d: 56 }, obstacleH: 390, shadow: { kind: 'projection', heightMul: 0.8, maxOffset: 72, visualWidthMul: 1.1, visualDepthMul: 1.1 }, editor: '雪松·疏枝' },
     // 世界-124 林地针叶树：白模深度锁姿态 → FLUX.2 Dev → BiRefNet 原图抠图。
     forest_pine_01: { tex: 'obstacle_forest_pine_01', w: 330, h: 845, category: 'obstacle', foot: { w: 115, d: 60 }, obstacleH: 400, editor: '林地松·直立' },
     forest_pine_02: { tex: 'obstacle_forest_pine_02', w: 376, h: 974, category: 'obstacle', foot: { w: 130, d: 64 }, obstacleH: 400, editor: '林地松·左倾' },
@@ -271,6 +272,7 @@ const WallSystem = {
         if (this.isoSegments) {
             for (const s of this.isoSegments) {
                 if (ignore && ignore.segs && ignore.segs.has(s)) continue;
+                if (!this._segmentAppliesToMove(s, ignore)) continue;
                 if (this._groundPointSegDist(x, y, s) < radius + s.halfThick) return false;
             }
         }
@@ -293,6 +295,7 @@ const WallSystem = {
         if (this.isoSegments) {
             for (const s of this.isoSegments) {
                 if (ignore && ignore.segs && ignore.segs.has(s)) continue;
+                if (!this._segmentAppliesToMove(s, ignore)) continue;
                 if (this._segSegIntersect(x1, y1, x2, y2, s.x1, s.y1, s.x2, s.y2)) return true;
             }
         }
@@ -307,6 +310,7 @@ const WallSystem = {
         let best = null, bestD = Infinity;
         for (const s of this.isoSegments) {
             if (ignore && ignore.segs && ignore.segs.has(s)) continue;
+            if (!this._segmentAppliesToMove(s, ignore)) continue;
             const d = this._groundPointSegDist(nx, ny, s);
             if (d < r + s.halfThick + 4 && d < bestD) {
                 bestD = d;
@@ -881,31 +885,59 @@ const WallSystem = {
                 const shadowDepth = foot.h * (shadowCfg.visualDepthMul ?? 1);
                 const maxOffset = shadowCfg.maxOffset
                     ?? Math.min(72, Math.max(28, visualHeight * 0.30));
-                const projectionKey = `${p.tex}_projection`;
-                p._sunShadow = phaserScene.registerStaticSunShadow({
-                    x: foot.x + foot.w * 0.5,
-                    y: foot.y + foot.h * 0.5,
-                    // 阴影视觉底座可大于碰撞 footprint；只影响渲染，不影响寻路/建造/命中。
-                    footprintWidth: shadowWidth,
-                    // footprint 碰撞坐标的纵深尚未做渲染透视压缩；
-                    // 贴地投影必须按 2:1（0.5）压扁，才能与实际占地视觉一致。
-                    footprintHeight: shadowDepth * PERSPECTIVE_SCALE_Y,
-                    height: shadowHeight,
-                    maxOffset,
-                    depth: depth - 0.1,
-                    textureKey: shadowCfg.kind === 'projection' && phaserScene.textures.exists(projectionKey)
-                        ? projectionKey
-                        : null,
-                    flipX: !!p.flipX,
-                    flipY: !!p.flipY,
-                    projection: shadowCfg.kind === 'projection',
-                    // 预投影图经顺时针旋转后：源贴图的水平镜像映射到投影横向 flipY，
-                    // 投影根部固定在左中点（0, 0.5）并与 footprint 中心重合。
-                    projectionOriginX: 0,
-                    projectionOriginY: 0.5,
-                    projectionFlipY: !!p.flipX,
-                    crossSpread: shadowCfg.crossSpread,
-                });
+                // 贴图实测底座质心：轮廓形变横向对齐真源（与建筑同口径）。
+                const lightMeta = lightingAssets.assets?.[p.tex] || null;
+                const lightBBox = lightMeta?.alphaBBox || null;
+                const srcW = Math.max(1, lightMeta?.size?.width || g.w || 1);
+                const worldPerPx = (g.w * sx) / srcW;
+                const bboxCenterX = lightBBox ? (lightBBox.x0 + lightBBox.x1) * 0.5 : 0;
+                const baseCenterX = Number(lightMeta?.base?.centerX) || bboxCenterX;
+                const cx = foot.x + foot.w * 0.5;
+                const cy = foot.y + foot.h * 0.5;
+                // 2026-08-19 唯一性审计：投影贴图运行时已不加载，textures.exists 门永假
+                // 导致 projection 型障碍物（仙人掌/雪松）静默退化成胶囊椭圆——
+                // 改以 manifest 剪影为唯一真源门（有 shadowSilhouette 列即走 hull+剪影）。
+                const useProjection = shadowCfg.kind === 'projection'
+                    && !!(lightMeta?.shadowSilhouette?.columns?.length >= 3);
+                if (useProjection) {
+                    // 障碍物与建筑同一管线：geo foot 手调碰撞四边形作实体凸包接地
+                    // （球体/异形不适用平底截断法）+ manifest 剪影片贡献轮廓。
+                    // 阴影视觉底座可大于碰撞 footprint；纵深按 2:1（0.5）压扁，才能与实际占地视觉一致。
+                    const hw = shadowWidth * 0.5;
+                    const hh = (shadowDepth * PERSPECTIVE_SCALE_Y) * 0.5;
+                    p._sunShadow = phaserScene.registerStaticSunShadow({
+                        hull: true,
+                        x: cx,
+                        y: cy,
+                        footprintVertices: [
+                            { x: cx - hw, y: cy - hh },
+                            { x: cx + hw, y: cy - hh },
+                            { x: cx + hw, y: cy + hh },
+                            { x: cx - hw, y: cy + hh },
+                        ],
+                        height: shadowHeight,
+                        maxOffset,
+                        depth: depth - 0.1,
+                        sourceSprite: sp,
+                        flipX: !!p.flipX,
+                        projectionCrossOffset: lightBBox
+                            ? (baseCenterX - bboxCenterX) * worldPerPx * (p.flipX ? -1 : 1)
+                            : 0,
+                    });
+                } else {
+                    // contact 型（桶状仙人掌等）：柔边椭圆接触影。
+                    p._sunShadow = phaserScene.registerStaticSunShadow({
+                        x: cx,
+                        y: cy,
+                        footprintWidth: shadowWidth,
+                        footprintHeight: shadowDepth * PERSPECTIVE_SCALE_Y,
+                        height: shadowHeight,
+                        maxOffset,
+                        depth: depth - 0.1,
+                        flipX: !!p.flipX,
+                        flipY: !!p.flipY,
+                    });
+                }
                 sp.setData('sunShadow', p._sunShadow);
             }
         }
@@ -934,9 +966,11 @@ const WallSystem = {
      * 有遮挡源 → 压到最浅遮挡面线之下（min depth − 0.5，即压到所有遮挡线之下）；
      * 否则有前墙 → 抬到其之上（depth+0.5，修正长瓦浅端过遮挡；旧版窗口固定 60，实体在墙前 60~160px 贴图仍与墙重叠时不抬被盖——通道上墙/墓碑同根因）；
      * 多面线共存的门口/衔接处按"被任一墙遮挡则遮挡"判定——
-     * 旧版只取最近一条面线，门洞深端会被错误放行（线上反馈）
+     * 旧版只取最近一条面线，门洞深端会被错误放行（线上反馈）。
+     * sideRange 必须传移动实体的真实接地/碰撞半径；禁止传 sprite.displayWidth/2，
+     * 否则大尺寸建筑贴图会把前缘查询扩张到实体实际占地之外，产生假遮挡。
      */
-    junctionCorrectedDepth(x, y, depth, frontRange = 60) {
+    junctionCorrectedDepth(x, y, depth, frontRange = 60, sideRange = 0) {
         const cache = this._getFaceSegCache();
         let occluderDepth = Infinity, frontDepth = -Infinity;
         const collectRelation = (segDepth, inFront) => {
@@ -975,10 +1009,12 @@ const WallSystem = {
                 if (!e || !e.active) continue;
                 if (e._isCoverGate) continue; // 门的遮挡面线按三段注册在 GateFaceSegs（见下）
                 // 普通建筑按完整 iso footprint 的“当前 X 局部前缘”只判定一次。
+                // sideRange 是移动精灵自身半宽：覆盖“单位在前角、中心略出 footprint，
+                // 但身体仍压在建筑前缘上”的情况；采样仍钳在端点，绝不外推菱形边。
                 // 不能把两条菱形前边分别当墙线收集：前顶点附近会同时得到一前一后，
                 // 建筑放大后还会把错误窗口放大，导致单位已经在建筑前方仍被压住。
                 if (e._structureDepthMode === 'iso_footprint') {
-                    const relation = structureDepthRelationAtPoint(e, x, y);
+                    const relation = structureDepthRelationAtPoint(e, x, y, sideRange);
                     if (relation) collectRelation(relation.depth, relation.inFront);
                     continue;
                 }
@@ -1343,6 +1379,15 @@ const WallSystem = {
         const clY = Math.max(rect.y, Math.min(cy, rect.y + rect.h));
         return (cx - clX) ** 2 + (cy - clY) ** 2 < r * r;
     },
+    /** 墙顶外轮廓仅阻挡已经处于高架表面的单位，不参与地面、建造或弹道碰撞。 */
+    _segmentAppliesToMove(segment, ignore = null) {
+        if (!segment?._elevatedOnly) return true;
+        const entity = ignore?.surfaceEntity;
+        return !!entity && (Number(entity.z) || 0) > 1
+            && (entity._surfaceKind === 'wall_walk'
+                || entity._surfaceKind === 'stairs'
+                || entity._elevatedNavigationBridge);
+    },
     /** 高架表面单位只忽略其当前连接城墙；其它墙、门和楼梯侧边仍正常阻挡。 */
     ignoreForEntity(entity) {
         const walls = Array.isArray(entity?._surfaceWalls) && entity._surfaceWalls.length
@@ -1360,13 +1405,19 @@ const WallSystem = {
         if (entity?._surfaceKind === 'wall_walk' || entity?._elevatedNavigationBridge) {
             for (const segment of this.isoSegments || []) {
                 if (!segment?._stairEdge) continue;
+                // 墙顶外轮廓防坠线是真实边界；墙顶和桥接单位都不能忽略。
+                // 墙墙共享边与墙梯入口边根本不生成该线，因此无需靠忽略来放行。
+                if (segment._surfaceWallGuard) continue;
                 const staircase = segment._owner;
                 const staircaseWall = segment._owner?.wall;
-                const currentPlatform = entity?._platformRef;
+                const currentStaircase = entity?._surfaceStaircase;
                 const sameBridgeGroup = entity?._elevatedNavigationBridge
-                    && currentPlatform
-                    && (staircase === currentPlatform
-                        || (currentPlatform._sharedStairSurfaces || []).some((seam) =>
+                    && currentStaircase
+                    && (staircase === currentStaircase
+                        || (currentStaircase._wallStairGroupId
+                            && currentStaircase._wallStairGroupId
+                                === staircase?._wallStairGroupId)
+                        || (currentStaircase._sharedStairSurfaces || []).some((seam) =>
                             seam?.stairA === staircase || seam?.stairB === staircase));
                 if (sameBridgeGroup || (staircaseWall && walls.includes(staircaseWall))) {
                     segs.add(segment);
@@ -1395,6 +1446,7 @@ const WallSystem = {
                         } else if (item.type === 'seg') {
                             const s = item.obj;
                             if (ignore && ignore.segs && ignore.segs.has(s)) continue;
+                            if (!this._segmentAppliesToMove(s, ignore)) continue;
                             if (this._groundPointSegDist(x, y, s) < radius + s.halfThick) return false;
                         } else {
                             const t = item.obj;
@@ -1452,34 +1504,33 @@ const WallSystem = {
      * 带高度的投射物墙体判定。二维轨迹与墙相交后，再比较交点附近弹道 z 与墙顶高度；
      * 取代“站上高台后忽略全部掩体”的旧特例。
      */
-    projectileBlocked(x1, y1, z1, x2, y2, z2, ignore = null) {
+    projectileWallHit(x1, y1, z1, x2, y2, z2, ignore = null) {
         const startZ = Number(z1) || 0;
         const endZ = Number(z2) || 0;
-        const baseClearance = Math.max(0, Number(ignore?.wallClearance) || 0);
-        const clearanceWalls = ignore?.wallClearanceWalls;
-        const clearanceOrigin = ignore?.wallClearanceOrigin;
-        const clearanceRadius = Math.max(0, Number(ignore?.wallClearanceRadius) || 0);
-        const clearanceFor = (obstacle, owner = null) => {
-            if (!(baseClearance > 0) || !clearanceWalls?.size) return 0;
-            if (!clearanceWalls.has(obstacle) && !clearanceWalls.has(owner)) return 0;
-            if (!clearanceOrigin || !(clearanceRadius > 0)) return baseClearance;
-            const x = Number(owner?.x)
-                || (Number.isFinite(obstacle?.x) && Number.isFinite(obstacle?.w)
-                    ? obstacle.x + obstacle.w * 0.5
-                    : (Number(obstacle?.x1) + Number(obstacle?.x2)) * 0.5);
-            const y = Number(owner?.y)
-                || (Number.isFinite(obstacle?.y) && Number.isFinite(obstacle?.h)
-                    ? obstacle.y + obstacle.h * 0.5
-                    : (Number(obstacle?.y1) + Number(obstacle?.y2)) * 0.5);
-            return Number.isFinite(x) && Number.isFinite(y)
-                && Math.hypot(x - clearanceOrigin.x, y - clearanceOrigin.y) <= clearanceRadius
-                ? baseClearance
-                : 0;
+        const dz = endZ - startZ;
+        const ignoredWalls = ignore?.ignoredProjectileWalls;
+        const isIgnored = (obstacle, owner = null) => !!ignoredWalls?.size
+            && (ignoredWalls.has(obstacle)
+                || ignoredWalls.has(owner)
+                || ignoredWalls.has(obstacle?._owner));
+        let best = null;
+        const recordHit = (t, obstacle, owner, height) => {
+            if (!Number.isFinite(t) || t < 0 || t > 1 || (best && t >= best.t)) return;
+            best = {
+                blocked: true,
+                t,
+                obstacle,
+                owner: owner || obstacle?._owner || null,
+                wall: owner || obstacle?._owner || obstacle || null,
+                x: x1 + (x2 - x1) * t,
+                y: y1 + (y2 - y1) * t,
+                z: startZ + dz * t,
+                height,
+            };
         };
-        const blocksAtHeight = (crossingZ, height, clearance) =>
-            crossingZ <= height - clearance;
         for (const wall of this.walls || []) {
             if (ignore?.rects?.has(wall)) continue;
+            if (isIgnored(wall, wall._owner)) continue;
             const interval = this._lineRectInterval(x1, y1, x2, y2, wall);
             if (!interval || interval.enter >= interval.exit) continue;
             const height = Number(wall._owner?._wallTopZ)
@@ -1488,15 +1539,16 @@ const WallSystem = {
                 || this._wallHeight
                 || 60;
             const enterZ = startZ + (endZ - startZ) * interval.enter;
-            const exitZ = startZ + (endZ - startZ) * interval.exit;
-            if (blocksAtHeight(
-                Math.min(enterZ, exitZ),
-                height,
-                clearanceFor(wall, wall._owner)
-            )) return true;
+            let hitT = enterZ <= height ? interval.enter : null;
+            if (hitT === null && dz < 0) {
+                const topT = (height - startZ) / dz;
+                if (topT >= interval.enter && topT <= interval.exit) hitT = topT;
+            }
+            if (hitT !== null) recordHit(hitT, wall, wall._owner, height);
         }
         for (const segment of this.isoSegments || []) {
             if (ignore?.segs?.has(segment) || segment._stairEdge) continue;
+            if (isIgnored(segment, segment._owner)) continue;
             const ax = x2 - x1;
             const ay = y2 - y1;
             const bx = segment.x2 - segment.x1;
@@ -1513,13 +1565,12 @@ const WallSystem = {
                 ? ownerHeight
                 : (Number(segment.height) || this._wallHeight || 60);
             const crossingZ = startZ + (endZ - startZ) * t;
-            if (blocksAtHeight(
-                crossingZ,
-                height,
-                clearanceFor(segment, segment._owner)
-            )) return true;
+            if (crossingZ <= height) recordHit(t, segment, segment._owner, height);
         }
-        return false;
+        return best;
+    },
+    projectileBlocked(x1, y1, z1, x2, y2, z2, ignore = null) {
+        return !!this.projectileWallHit(x1, y1, z1, x2, y2, z2, ignore);
     },
     resolve(x, y, nx, ny, r, ignore = null) {
         if (ignore) {
@@ -1527,7 +1578,8 @@ const WallSystem = {
             ignore._surfaceProjectedTarget = null;
         }
         const surfaceEntity = ignore?.surfaceEntity;
-        const axes = surfaceEntity?._surfaceKind === 'wall_walk'
+        const axes = (surfaceEntity?._surfaceKind === 'wall_walk'
+            || surfaceEntity?._surfaceKind === 'stairs')
             && Array.isArray(surfaceEntity._surfaceMoveAxes)
             ? surfaceEntity._surfaceMoveAxes
             : null;
@@ -1576,9 +1628,11 @@ const WallSystem = {
                     kind: best.axis.kind || 'wall',
                     staircaseId: best.axis.staircaseId || null,
                 };
-                // 选择图边后旋转完整意图速度，保持速度大小不变，不再因墙轴角度降低移速。
-                const projectedX = x + best.axis.x * magnitude;
-                const projectedY = y + best.axis.y * magnitude;
+                // 只保留输入在合法轴上的分量。禁止把朝楼梯外侧的横向输入旋转成
+                // 完整速度的上/下楼位移，否则会在墙梯接口触发非预期跨层。
+                const projectedMagnitude = magnitude * Math.max(0, best.alignment);
+                const projectedX = x + best.axis.x * projectedMagnitude;
+                const projectedY = y + best.axis.y * projectedMagnitude;
                 if (Math.hypot(projectedX - nx, projectedY - ny) > 0.01) {
                     nx = projectedX;
                     ny = projectedY;
@@ -1660,6 +1714,7 @@ const WallSystem = {
                             if (item.type !== 'seg') continue;
                             const s = item.obj;
                             if (ignore && ignore.segs && ignore.segs.has(s)) continue;
+                            if (!this._segmentAppliesToMove(s, ignore)) continue;
                             const d = this._groundPointSegDist(nx, ny, s);
                             // 平局按数组下标决胜（与线性版"先到先得"严格一致）
                             if (d < r + s.halfThick + 4 && (d < bestD || (d === bestD && item.idx < bestIdx))) {
@@ -1737,6 +1792,7 @@ const WallSystem = {
                         } else if (item.type === 'seg') {
                             const s = item.obj;
                             if (ignore && ignore.segs && ignore.segs.has(s)) continue;
+                            if (!this._segmentAppliesToMove(s, ignore)) continue;
                             if (this._segSegIntersect(x1, y1, x2, y2, s.x1, s.y1, s.x2, s.y2)) return true;
                         } else {
                             const t = item.obj;
@@ -1785,6 +1841,7 @@ const WallSystem = {
         if (!source) return null;
         if (this.isoSegments) {
             for (const s of this.isoSegments) {
+                if (s?._elevatedOnly) continue;
                 if (this._segSegIntersect(source.x, source.y, x, y, s.x1, s.y1, s.x2, s.y2)) {
                     out.segs.push({ seg: s, shooterSign: Math.sign(this.segSide(s, source.x, source.y)) || 1 });
                 }

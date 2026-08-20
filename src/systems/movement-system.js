@@ -20,6 +20,8 @@ import { distanceToEntityShape } from '../utils/collision-helpers.js';
 import { compareDefenseTargets, isDefenseTargetEligible } from '../ai/defense-target-priority.js';
 import { BuildingRoadSystem } from '../world/building-road-system.js';
 import { verticalRangesOverlap } from '../physics/elevation.js';
+import { ElevatedNavigationController } from '../ai/elevated-navigation-controller.js';
+import { resolveRtsMoveDestination } from '../ai/rts-command-utils.js';
 
 /** 超出此距离不再进行 A* 寻路，直接朝目标移动 */
 const MAX_PATHFIND_RANGE = 800;
@@ -166,6 +168,23 @@ const MovementSystem = {
             }
         }
 
+        const semanticMoveGoal = this._resolveSemanticMoveGoal(enemy);
+        const surfaceCommand = enemy._spawnEgress
+            ? null
+            : ElevatedNavigationController.prepareAutonomousCommand(
+                enemy,
+                semanticMoveGoal,
+                dt
+            );
+        if (surfaceCommand) {
+            const surfaceMove = resolveRtsMoveDestination(enemy, surfaceCommand);
+            if (surfaceMove.arrived) {
+                ElevatedNavigationController.complete(enemy);
+            } else {
+                enemy._surfaceNavDestination = surfaceMove.destination;
+            }
+        }
+
 const moveData = this._computeMoveDirection(enemy, entities);
         if (!moveData) {
             enemy.vx *= enemy.friction || 0.82;
@@ -189,10 +208,15 @@ const moveData = this._computeMoveDirection(enemy, entities);
         // [ENHANCE] 主动预规划：有目标且路径缺失或路径终点严重偏离目标时，重新计算路径
         // [2026-08-14] 移动目标统一为"战术目标优先，其次攻击目标"——侍从（露娜）用
         // _tacticalTarget 驱动跟随点/施法站位/撤退点，路径必须朝战术点生成而不是敌人。
-        const moveGoal = (enemy._tacticalTarget && !(enemy.ai && enemy.ai.chargeStraight))
-            ? enemy._tacticalTarget
-            : (enemy.target && enemy.target.active ? enemy.target : null);
-        if (!enemy._surfaceRouteActive && enemy._pathManager && moveGoal) {
+        const moveGoal = enemy._surfaceNavDestination
+            || ((enemy._tacticalTarget && !(enemy.ai && enemy.ai.chargeStraight))
+                ? enemy._tacticalTarget
+                : (enemy.target && enemy.target.active ? enemy.target : null));
+        const groundPathAllowed = !enemy._surfaceRouteActive
+            && !enemy._surfaceNavWaiting
+            && enemy._surfaceKind !== 'stairs'
+            && enemy._surfaceKind !== 'wall_walk';
+        if (groundPathAllowed && enemy._pathManager && moveGoal) {
             const targetX = moveGoal.x;
             const targetY = moveGoal.y;
             const distToTarget = Math.sqrt((targetX - enemy.x) ** 2 + (targetY - enemy.y) ** 2);
@@ -231,7 +255,7 @@ enemy._pathManager.forceRecalc(pathFinder, targetX, targetY);
         }
 
         // [ENHANCE] 每帧更新 PathManager：检查路径有效性 + 局部修复
-        if (!enemy._surfaceRouteActive && enemy._pathManager && pathFinder) {
+        if (groundPathAllowed && enemy._pathManager && pathFinder) {
 enemy._pathManager.update(dt, pathFinder);
         }
 
@@ -239,7 +263,7 @@ enemy._pathManager.update(dt, pathFinder);
 this._updateStuckDetection(enemy, dt, dx, dy, dist);
 
         // 路径跟随（使用 PathManager）
-        if (!enemy._surfaceRouteActive && enemy._pathManager && enemy._pathManager.hasValidPath()) {
+        if (groundPathAllowed && enemy._pathManager && enemy._pathManager.hasValidPath()) {
             this._followPath(enemy, dt, entities);
         } else {
             // 正常移动
@@ -247,7 +271,9 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
         }
 
         // [ENHANCE] 攻击范围内渐进减速：冲到更近位置再停车，避免前排一进入范围就堵死
-        if (enemy.target && enemy.target.active) {
+        if (enemy.target && enemy.target.active
+            && !enemy._surfaceNavCommand
+            && !enemy._surfaceRouteActive) {
             this._applyAttackRangeFriction(enemy, dist);
         }
 
@@ -256,6 +282,27 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
 
         // 更新移动动画状态
         this._updateMovementAnim(enemy, dt);
+    },
+
+    /**
+     * 返回现有 AI 优先级选出的语义目标。高架规划只读取，不改写这些所有者的目标槽。
+     */
+    _resolveSemanticMoveGoal(enemy) {
+        const chargeStraight = enemy.ai && enemy.ai.chargeStraight;
+        if (enemy._spawnEgress && !chargeStraight) return enemy._spawnEgress;
+        if (enemy._specialTacticalTarget && !chargeStraight) return enemy._specialTacticalTarget;
+        if (enemy._tacticalTarget && !chargeStraight) return enemy._tacticalTarget;
+        if (Game && Game._battleCommander && !chargeStraight && !enemy._defenseMonster) {
+            const point = Game._battleCommander.getTarget(enemy.id);
+            if (point) return { x: point.targetX, y: point.targetY };
+        }
+        if (enemy.target && enemy.target.active) return enemy.target;
+        if (enemy._lastKnownTargetPos) return enemy._lastKnownTargetPos;
+        if (enemy._searchTarget?.phase === 'searchAround'
+            && enemy._searchTarget.searchPoints?.length) {
+            return enemy._searchTarget.searchPoints[0];
+        }
+        return null;
     },
 
     /**
@@ -277,6 +324,12 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
                 ty = enemy._spawnEgress.y;
                 hasTarget = true;
             }
+        }
+        // 0.5 高架路线航点：只覆盖本帧位移目的地，不改写语义目标。
+        if (!hasTarget && enemy._surfaceNavDestination && !chargeStraight) {
+            tx = enemy._surfaceNavDestination.x;
+            ty = enemy._surfaceNavDestination.y;
+            hasTarget = true;
         }
         // 1. [FIX] 特殊战术目标（TacticalSquadAI 设置）
         if (!hasTarget && enemy._specialTacticalTarget && !chargeStraight) {
@@ -329,7 +382,9 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
 
         // [ENHANCE] 近战包抄：当目标正面已被同伴占据时，向侧面偏移寻找攻击位
         // 仅对非远程/非绕圈敌人、且距离尚远时生效，避免攻击时抖动
-        if (enemy.target && enemy.target.active && dist > (enemy.attackRange || 70) * 0.6 && !enemy._circleRadius && !(enemy.ai && enemy.ai.chargeStraight)) {
+        if (!enemy._surfaceNavDestination && enemy.target && enemy.target.active
+            && dist > (enemy.attackRange || 70) * 0.6 && !enemy._circleRadius
+            && !(enemy.ai && enemy.ai.chargeStraight)) {
             const flank = this._computeFlankOffset(enemy, enemy.target, _entities);
             if (flank) {
                 tx += flank.dx;
@@ -522,7 +577,11 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
     _getEnemyBaseSpeed(enemy) {
         const base = enemy.maxSpeed ?? enemy.speed ?? 100;
         const chillMul = (typeof enemy.getChillSpeedMul === 'function') ? enemy.getChillSpeedMul() : 1;
-        return base * chillMul;
+        const inspireMul = enemy._usesModifierInspire
+            && typeof enemy.getMoveSpeedMultiplier === 'function'
+            ? enemy.getMoveSpeedMultiplier()
+            : 1;
+        return base * chillMul * inspireMul;
     },
 
     /** 道路加速只在最终移动计算链动态乘算，不修改 maxSpeed，离开道路立即恢复。 */
@@ -577,6 +636,7 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
      */
     _updateStuckDetection(enemy, dt, _dx, _dy, _dist) {
         if (enemy._surfaceRouteActive
+            || enemy._surfaceNavWaiting
             || enemy._surfaceKind === 'stairs'
             || enemy._surfaceKind === 'wall_walk') {
             enemy._stuckTimer = 0;
@@ -991,7 +1051,7 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
           let best = null, bestScore = Infinity;
           const iter = entities.values ? entities.values() : entities;
           for (const e of iter) {
-              if (!e || !e._isEnergyNode || !e.active) continue;
+              if (!e || !e._isEnergyNode || !e.active || e.noCollision) continue;
               const nodeR = e.groundRadius || 30;
               const dx = enemy.x - e.x, dy = enemy.y - e.y;
               const d = Math.sqrt(dx * dx + dy * dy);
@@ -1410,6 +1470,7 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
     _tryUnstuck(enemy) {
         if (!WallSystem || !WallSystem.canMoveTo) return;
         if (enemy._surfaceRouteActive
+            || enemy._surfaceNavWaiting
             || enemy._surfaceKind === 'stairs'
             || enemy._surfaceKind === 'wall_walk') {
             enemy._stuckFrames = 0;

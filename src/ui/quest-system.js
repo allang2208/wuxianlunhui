@@ -6,7 +6,7 @@ import { SceneManager } from '../world/scene-manager.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
 import { UIState } from './ui-state.js';
 import { EffectManager } from '../effects/effect-manager.js';
-import { queryAllElements, getElement, getElementIfExists } from '../utils/dom-utils.js';
+import { queryAllElements, getElement } from '../utils/dom-utils.js';
 import { TimerManager } from '../utils/timer-manager.js';
 import { DropItem } from '../entities/drop-item.js';
 import { NPCDialogue } from './npc-dialogue.js';
@@ -81,8 +81,7 @@ export const QuestSystem = {
         const quest = this.QUESTS[this._selectedQuest];
         if (quest) {
             quest.accepted = true;
-            // 任务栏版本：不传送，仅更新追踪栏
-            if (QuestTracker) QuestTracker.update();
+            // 任务栏版本：不传送，仅更新任务状态
         }
         this.close();
         if (NPCDialogue.active) NPCDialogue.close();
@@ -93,7 +92,6 @@ export const QuestSystem = {
         const quest = this.QUESTS[this._selectedQuest];
         if (quest) {
             quest.accepted = true;
-            if (QuestTracker) QuestTracker.update();
             if (QuestState) {
                 QuestState.startQuest(quest.scene, 'quest');
             }
@@ -216,8 +214,6 @@ export const QuestState = {
             if (QuestSystem.QUESTS['explore_rift_1']) {
                 QuestSystem.QUESTS['explore_rift_1'].objectives[0].current = this.riftCompleted.filter(Boolean).length;
             }
-            // 更新追踪栏
-            if (QuestTracker) QuestTracker.update();
         }
     },
 
@@ -227,7 +223,6 @@ export const QuestState = {
         if (QuestSystem.QUESTS['explore_rift_1']) {
             QuestSystem.QUESTS['explore_rift_1'].objectives[1].current = 1;
         }
-        if (QuestTracker) QuestTracker.update();
     },
 
     // 完成任务
@@ -244,7 +239,6 @@ export const QuestState = {
             // 后备：直接发放奖励
             this._grantRewards();
         }
-        if (QuestTracker) QuestTracker.update();
     },
 
     // 发放奖励
@@ -301,47 +295,6 @@ export const QuestState = {
             }
             EffectManager.add(new FloatingTextEffect(player.x, player.y - 30, '背包已满，武器已放在地上', '#ff6666'));
         }
-    }
-};
-
-// QuestTracker - 任务追踪栏（地图栏下方）
-export const QuestTracker = {
-    init() {
-        this._createElement();
-    },
-
-    _createElement() {
-        const existing = getElementIfExists('questTracker');
-        if (existing) return;
-        const tracker = document.createElement('div');
-        tracker.id = 'questTracker';
-        tracker.className = 'quest-tracker';
-        tracker.innerHTML = `
-            <div class="quest-tracker-title">📜 任务追踪</div>
-            <div class="quest-tracker-content" id="questTrackerContent"></div>
-        `;
-        getElement('gameContainer').appendChild(tracker);
-    },
-
-    update() {
-        const content = getElement('questTrackerContent');
-        if (!content) return;
-
-        const quest = QuestSystem.QUESTS['explore_rift_1'];
-        if (!quest || !quest.accepted) {
-            content.innerHTML = '<div class="quest-tracker-empty">暂无进行中的任务</div>';
-            return;
-        }
-
-        const objHtml = quest.objectives.map(obj => {
-            const done = obj.current >= obj.target;
-            return `<div class="quest-tracker-obj ${done ? 'completed' : ''}">${obj.text} (${obj.current}/${obj.target})</div>`;
-        }).join('');
-
-        content.innerHTML = `
-            <div class="quest-tracker-name">${quest.type}：${quest.name}</div>
-            ${objHtml}
-        `;
     }
 };
 

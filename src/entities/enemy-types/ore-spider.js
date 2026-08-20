@@ -5,6 +5,7 @@ import { surfaceEffectFromEntity } from '../../physics/elevation.js';
 import { PERSPECTIVE_SCALE_Y } from '../../config/perspective-config.js';
 import { hostilesOf, playSoundFrom, inMeleeRange } from './_shared/enemy-utils.js';
 import { launchArcProjectile, createGroundWarning, keepWarningAlive, destroyWarning, fireGroundShockwave, burstParticles } from '../../effects/combat-fx.js';
+import { canMeleeShareSurface } from '../../combat/melee-surface.js';
 
 /**
  * 矿石蜘蛛（精英，僵尸 family）
@@ -349,6 +350,7 @@ export class OreSpider extends Enemy {
                     surfaceEffectFromEntity(this)
                 );
                 if (!shape.intersectsEntity(e)) continue;
+                if (!canMeleeShareSurface(this, e)) continue;
                 e.takeDamage(Math.max(1, Math.round(atk * (z.damageMul ?? 1))), this, 'physical', true);
                 // 命中眩晕（配置 stunMs；状态免疫目标由 applyStun 内部拦截）
                 if (cfg.stunMs && typeof e.applyStun === 'function') e.applyStun(cfg.stunMs);

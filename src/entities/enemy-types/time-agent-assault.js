@@ -12,6 +12,7 @@ import { setupGun, tryEnemyFireGun } from './_shared/enemy-gun.js';
 import { hostilesOf, nearestHostileOf, isTargetMeleeStyle, playSoundFrom, inMeleeRange } from './_shared/enemy-utils.js';
 import { twoStageWalkKey, frameHitElapsed, ratioHitElapsed } from './_shared/monster-anim.js';
 import { launchArcProjectile, createGroundWarning, keepWarningAlive, destroyWarning, fireRadialLines } from '../../effects/combat-fx.js';
+import { canMeleeShareSurface } from '../../combat/melee-surface.js';
 
 /**
  * 时空特工(突击)-F（领主，特工 family）——首个双形态切换怪物
@@ -619,6 +620,7 @@ export class TimeAgentAssault extends Enemy {
         // 统一口径：圆形边缘距离（与 CombatSystem 触发同语义，inMeleeRange）
         for (const e of hostilesOf(this, entities)) {
             if (!inMeleeRange(this, e, range)) continue;
+            if (!canMeleeShareSurface(this, e)) continue;
             e.takeDamage(Math.max(1, Math.round(atk * (A.damageMul ?? 2))), this, 'physical', true);
             if (A.crippleMs && typeof e.applyCripple === 'function') {
                 e.applyCripple(A.crippleMs);

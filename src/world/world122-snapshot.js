@@ -26,7 +26,7 @@ let DefenseSystem = null;
 let DefenseTower = null;
 let DefenseCover = null;
 let BuildableGate = null;
-let FiringPlatform = null;
+let WallStaircase = null;
 let DEFENSE_CONFIG = null;
 let HamsterHutSystem = null;
 let HamsterHut = null;
@@ -50,7 +50,7 @@ export function configureWorld122SnapshotRuntime(deps = {}) {
         DefenseTower,
         DefenseCover,
         BuildableGate,
-        FiringPlatform,
+        WallStaircase,
         DEFENSE_CONFIG,
         HamsterHutSystem,
         HamsterHut,
@@ -258,17 +258,17 @@ export function captureWorld(sceneId = 'scene8') {
                 grade: e.grade || 'C',
                 buildCost: e._buildCost ?? null, buildCurrency: e._buildCurrency ?? null,
             });
-        } else if (e._isFiringPlatform) {
+        } else if (e._isWallStaircase) {
             const wallLine = e.wall?._faceLine;
             structures.push({
-                kind: e._isWallStaircase ? 'wall_staircase' : 'platform',
-                stairVersion: e._isWallStaircase ? 2 : 0,
+                kind: 'wall_staircase',
+                stairVersion: 2,
                 x: e.x, y: e.y, hp: Math.ceil(e.hp),
                 mirror: !!e._facingLeft,
                 dir: e.dir || null,
                 ascendingSign: e.ascendingSign || 1,
                 segmentCount: e.segmentCount || 2,
-                targetTopZ: e.targetTopZ || e.platformHeight || 125,
+                targetTopZ: e.targetTopZ || 125,
                 segments: Array.isArray(e.segments)
                     ? e.segments.map((segment) => ({ x: segment.x, y: segment.y }))
                     : null,
@@ -291,7 +291,7 @@ export function captureWorld(sceneId = 'scene8') {
     for (const h of HamsterHutSystem.huts || []) {
         if (!alive(h)) continue;
         structures.push({
-            kind: 'hut', x: h.x, y: h.y, hp: Math.ceil(h.hp),
+            kind: 'hut', x: h.x, y: h.y, hp: Math.ceil(h.hp), mirror: !!h._facingLeft,
             modules: { ...(h.modules || {}) },
             storedEnergy: h._storedEnergy || 0,
             miners: h.aliveMinerCount(),
@@ -304,10 +304,14 @@ export function captureWorld(sceneId = 'scene8') {
     // ---- 仓鼠军营 ----
     for (const b of HamsterBarracksSystem.barracks || []) {
         if (!alive(b)) continue;
+        const unitRoster = _unitRoster(b.units);
+        const localUnits = Object.values(unitRoster).reduce((sum, count) => sum + count, 0);
         structures.push({
-            kind: 'barracks', x: b.x, y: b.y, hp: Math.ceil(b.hp),
+            kind: 'barracks', id: b.id, x: b.x, y: b.y, hp: Math.ceil(b.hp), mirror: !!b._facingLeft,
+            troopProducer: true,
             unitType: b.unitType, spawnTimer: b._spawnTimer,
-            units: b.aliveUnitCount(), unitRoster: _unitRoster(b.units), unitDps: _unitsDps(b.units),
+            units: localUnits, unitRoster, unitDps: _unitsDps(b.units),
+            troopLineDeployed: Math.max(0, b.aliveUnitCount() - localUnits),
             rally: b._rallyPoint ? { x: b._rallyPoint.x, y: b._rallyPoint.y } : null,
             buildCost: b._buildCost ?? null, buildCurrency: b._buildCurrency ?? null,
         });
@@ -316,12 +320,16 @@ export function captureWorld(sceneId = 'scene8') {
     // ---- 配置产兵/功能建筑（草屋/靶场/铁匠铺/研究院/仓库/教堂/传送门…）----
     for (const p of ProducerBuildingSystem.buildings || []) {
         if (!alive(p)) continue;
+        const unitRoster = p.spawnEnabled ? _unitRoster(p.units) : {};
+        const localUnits = Object.values(unitRoster).reduce((sum, count) => sum + count, 0);
         structures.push({
-            kind: 'producer', cfgKey: p.cfgKey, x: p.x, y: p.y, hp: Math.ceil(p.hp),
+            kind: 'producer', id: p.id, cfgKey: p.cfgKey, x: p.x, y: p.y, hp: Math.ceil(p.hp), mirror: !!p._facingLeft,
+            troopProducer: !!p._isTroopProducer,
             unitType: p.unitType || '', spawnTimer: p._spawnTimer || 0,
-            units: p.spawnEnabled ? p.aliveUnitCount() : 0,
-            unitRoster: p.spawnEnabled ? _unitRoster(p.units) : {},
+            units: localUnits,
+            unitRoster,
             unitDps: p.spawnEnabled ? _unitsDps(p.units) : 0,
+            troopLineDeployed: p.spawnEnabled ? Math.max(0, p.aliveUnitCount() - localUnits) : 0,
             upgrade: p._upgrade ? { abilityId: p._upgrade.abilityId, totalMs: p._upgrade.totalMs, remainMs: p._upgrade.remainMs } : null,
             continuous: p._continuous || null,
             titheTimerMs: p.units?.find((unit) => unit?._isHamsterPriest && unit.active !== false)?._ai?._titheTimer || 0,
@@ -498,6 +506,8 @@ let _seq = 0;
 
 function _markRestored(entity, entry) {
     entity._builtByPlayer = true;
+    // 普通建筑统一由 _facingLeft 驱动 Phaser flipX；旧快照没有 mirror 时保持默认朝向。
+    if (entry.mirror !== undefined) entity._facingLeft = !!entry.mirror;
     if (entry.buildCost != null) entity._buildCost = entry.buildCost;
     if (entry.buildCurrency) entity._buildCurrency = entry.buildCurrency;
     if (entry.hp != null) {
@@ -521,7 +531,6 @@ function _restoreTower(s) {
     else if (typeof tower._applyModuleWeaponParams === 'function') tower._applyModuleWeaponParams();
     Game.entities.set(tower.id, tower);
     DefenseSystem.towers.push(tower);
-    BuildingRoadSystem.attach(tower, { allowOverlap: true });
 }
 
 function _restoreBlock(s) {
@@ -583,10 +592,10 @@ function _nearestWalkableWall(anchor, wallPosition = null) {
     return best && best.d <= 96 ? best.wall : null;
 }
 
-function _restorePlatform(s) {
+function _restoreWallStaircase(s) {
     const wall = _nearestWalkableWall(s.wallAnchor, s.wallPosition);
     if (!wall) throw new Error('楼梯恢复失败：找不到原墙体');
-    const platform = new FiringPlatform(s.x, s.y, {
+    const staircase = new WallStaircase(s.x, s.y, {
         mirror: !!s.mirror,
         dir: s.dir || (s.mirror ? 'e1' : 'e2'),
         ascendingSign: s.ascendingSign || 1,
@@ -597,16 +606,20 @@ function _restorePlatform(s) {
         wall,
         id: s.id || `built_wall_staircase_r${++_seq}`,
     });
-    _markRestored(platform, s);
-    Game.entities.set(platform.id, platform);
-    if (DefenseSystem.platforms) {
-        DefenseSystem.platforms.push(platform);
+    _markRestored(staircase, s);
+    Game.entities.set(staircase.id, staircase);
+    if (DefenseSystem.staircases) {
+        DefenseSystem.staircases.push(staircase);
         DefenseSystem.rebuildWallStairGroups?.();
+        DefenseSystem.invalidateElevatedTopology?.();
     }
 }
 
 function _restoreHut(s) {
-    const hut = new HamsterHut(s.x, s.y, { id: s.id || `built_hut_r${++_seq}` });
+    const hut = new HamsterHut(s.x, s.y, {
+        id: s.id || `built_hut_r${++_seq}`,
+        skipInitialSpawn: true,
+    });
     _markRestored(hut, s);
     hut.modules = { ...(s.modules || {}) };        // 先挂模块再补员，矿工吃到升级
     hut._storedEnergy = Math.max(0, s.storedEnergy || 0);
@@ -623,7 +636,7 @@ function _restoreHut(s) {
     if (hut.aliveMinerCount() < hut.minerCount()) hut._respawnTimer = Math.max(0, s.respawnTimer || 0);
 }
 
-function _restoreBarracks(s) {
+function _restoreBarracks(s, sceneId) {
     const barracks = new HamsterBarracks(s.x, s.y, { id: s.id || `built_barracks_r${++_seq}` });
     _markRestored(barracks, s);
     if (!(barracksBuildingCfg.unitTypes || []).includes(s.unitType)) {
@@ -647,7 +660,7 @@ function _restoreBarracks(s) {
         barracks.unitType = kind;
         const count = Math.max(0, Math.min(Math.floor(Number(rawCount) || 0), cap - spawned));
         for (let i = 0; i < count; i++) {
-            if (barracks.spawnUnit()) spawned++;
+            if (barracks.spawnUnit(false, { restoring: true, sourceSceneId: sceneId })) spawned++;
             else restoreQueue.push(kind);
         }
         if (spawned >= cap) break;
@@ -664,7 +677,7 @@ function _restoreBarracks(s) {
     }
 }
 
-function _restoreProducer(s) {
+function _restoreProducer(s, sceneId) {
     const cfg = getProducerConfig(s.cfgKey);
     if (!cfg) return; // 配置已移除的建筑跳过（版本兼容）
     const producer = new ProducerBuilding(s.x, s.y, { id: s.id || `built_${s.cfgKey}_r${++_seq}`, cfgKey: s.cfgKey });
@@ -702,7 +715,7 @@ function _restoreProducer(s) {
             producer.unitType = kind;
             const count = Math.max(0, Math.min(Math.floor(Number(rawCount) || 0), cap - spawned));
             for (let i = 0; i < count; i++) {
-                if (producer.spawnUnit()) spawned++;
+                if (producer.spawnUnit(false, { restoring: true, sourceSceneId: sceneId })) spawned++;
                 else restoreQueue.push(kind);
             }
             if (spawned >= cap) break;
@@ -783,10 +796,10 @@ export function applyWorldSnapshot(sceneId = 'scene8', snap = _storedByWorld[sce
             else if (s.kind === 'block') _restoreBlock(s);
             else if (s.kind === 'gate4') _restoreGate4(s);
             // 旧射击台/旧单块楼梯不再迁移，防止在城墙上自动恢复出孤立贴图。
-            else if (s.kind === 'wall_staircase' && (s.stairVersion || 0) >= 2) _restorePlatform(s);
+            else if (s.kind === 'wall_staircase' && (s.stairVersion || 0) >= 2) _restoreWallStaircase(s);
             else if (s.kind === 'hut') _restoreHut(s);
-            else if (s.kind === 'barracks') _restoreBarracks(s);
-            else if (s.kind === 'producer') _restoreProducer(s);
+            else if (s.kind === 'barracks') _restoreBarracks(s, sceneId);
+            else if (s.kind === 'producer') _restoreProducer(s, sceneId);
             else continue;
             restored++;
         } catch (err) {

@@ -69,9 +69,15 @@ def check_lora_dim(entry, model_name):
     hidden dim (klein=3072, dev=6144). Catches the previous runtime crash
     'shape [6144, 6144] is invalid for input of size ...' before it happens.
     """
-    lora_name = entry.get("lora")
+    lora_entries = entry.get("loras") or entry.get("lora")
+    if isinstance(lora_entries, str):
+        lora_entries = [lora_entries]
+    elif isinstance(lora_entries, dict):
+        lora_entries = [lora_entries]
+    elif not lora_entries:
+        lora_entries = []
     expected = MODEL_HIDDEN_DIM.get(model_name)
-    if not lora_name or not expected:
+    if not lora_entries or not expected:
         return
     backup_root = os.path.dirname(os.path.dirname(os.path.dirname(
         os.path.dirname(os.path.abspath(__file__)))))
@@ -79,34 +85,36 @@ def check_lora_dim(entry, model_name):
         os.path.join(backup_root, "ComfyUI", "models", "loras"),
         os.path.join(backup_root, "comfyui-mesh", "server"),
     ]
-    path = next((os.path.join(d, lora_name) for d in lora_dirs
-                 if os.path.exists(os.path.join(d, lora_name))), None)
-    if not path or not os.path.exists(path):
-        print(f"[lora] '{lora_name}' not found locally (may live on remote 5080); "
-              "dim pre-check skipped", file=sys.stderr)
-        return
-    header = _safetensors_header(path)
-    if not header:
-        print(f"[lora] cannot parse '{lora_name}' header; dim pre-check skipped",
+    for item in lora_entries:
+        lora_name = item.get("name") if isinstance(item, dict) else item
+        path = next((os.path.join(d, lora_name) for d in lora_dirs
+                     if os.path.exists(os.path.join(d, lora_name))), None)
+        if not path or not os.path.exists(path):
+            print(f"[lora] '{lora_name}' not found locally (may live on remote 5080); "
+                  "dim pre-check skipped", file=sys.stderr)
+            continue
+        header = _safetensors_header(path)
+        if not header:
+            print(f"[lora] cannot parse '{lora_name}' header; dim pre-check skipped",
+                  file=sys.stderr)
+            continue
+        dims = set()
+        for key, meta in header.items():
+            if "txt_attn.proj" in key:
+                shape = (meta or {}).get("shape") or []
+                if len(shape) == 2:
+                    dims.update(int(s) for s in shape)
+        if not dims:
+            print(f"[lora] '{lora_name}' has no txt_attn.proj key; dim pre-check skipped",
+                  file=sys.stderr)
+            continue
+        if expected not in dims:
+            print(f"ERROR: lora '{lora_name}' dims={sorted(dims)} do not include model "
+                  f"'{model_name}' hidden_dim={expected}. Do not attach the klein "
+                  "(3072) LoRA to dev (6144) models.", file=sys.stderr)
+            sys.exit(1)
+        print(f"[lora] '{lora_name}' hidden_dim={expected} matches {model_name} (ok)",
               file=sys.stderr)
-        return
-    dims = set()
-    for key, meta in header.items():
-        if "txt_attn.proj" in key:
-            shape = (meta or {}).get("shape") or []
-            if len(shape) == 2:
-                dims.update(int(s) for s in shape)
-    if not dims:
-        print(f"[lora] '{lora_name}' has no txt_attn.proj key; dim pre-check skipped",
-              file=sys.stderr)
-        return
-    if expected not in dims:
-        print(f"ERROR: lora '{lora_name}' dims={sorted(dims)} do not include model "
-              f"'{model_name}' hidden_dim={expected}. Do not attach the klein "
-              "(3072) LoRA to dev (6144) models.", file=sys.stderr)
-        sys.exit(1)
-    print(f"[lora] '{lora_name}' hidden_dim={expected} matches {model_name} (ok)",
-          file=sys.stderr)
 
 
 def build_checkpoint_workflow(prompt, negative, ckpt, seed, steps, cfg, width, height, sampler, scheduler, prefix):
@@ -164,9 +172,15 @@ def build_flux2_workflow(prompt, negative, unet, clip, vae, seed, steps, cfg, wi
         "14": {"class_type": "SaveImage", "inputs": {"filename_prefix": prefix, "images": ["13", 0]}},
     }
     if lora:
-        nodes["15"] = {"class_type": "LoraLoaderModelOnly", "inputs": {
-            "model": model_ref, "lora_name": lora, "strength_model": 1.0}}
-        nodes["10"]["inputs"]["model"] = ["15", 0]
+        lora_entries = lora if isinstance(lora, list) else [lora]
+        for idx, item in enumerate(lora_entries):
+            name = item.get("name") if isinstance(item, dict) else item
+            strength = item.get("strength", 1.0) if isinstance(item, dict) else 1.0
+            node_id = str(15 + idx)
+            nodes[node_id] = {"class_type": "LoraLoaderModelOnly", "inputs": {
+                "model": model_ref, "lora_name": name, "strength_model": strength}}
+            model_ref = [node_id, 0]
+        nodes["10"]["inputs"]["model"] = model_ref
 
     if controlnet and control_image:
         nodes["20"] = {"class_type": "LoadImage", "inputs": {"image": control_image}}
@@ -383,7 +397,8 @@ def main():
         strength = args.strength if args.strength is not None else entry.get("control_strength", 0.75)
         workflow, save_node = build_flux2_workflow(
             prompt, negative, entry.get("unet"), entry.get("clip"), entry.get("vae"),
-            seed, steps, cfg, width, height, sampler, args.prefix, lora=entry.get("lora"),
+            seed, steps, cfg, width, height, sampler, args.prefix,
+            lora=entry.get("loras", entry.get("lora")),
             controlnet=controlnet, control_image=control_image, strength=strength,
             guidance=entry.get("guidance"))
     elif mtype == "mesh":

@@ -1,10 +1,10 @@
 import { PhaserGame } from './phaser/PhaserGame.js';
-import { Portal } from './world/portal.js';
 import { EventBus } from './core/event-bus.js';
 import { SoundManager } from './ui/sound-manager.js';
 import { ItemFactory } from './items/item-factory.js';
 import { Renderer } from './world/renderer.js';
 import { SceneManager } from './world/scene-manager.js';
+import { TroopLineSystem } from './world/troop-line-system.js';
 import { Camera } from './world/camera.js';
 import { Input } from './ui/input.js';
 import { StatusBar } from './ui/status-bar.js';
@@ -71,7 +71,7 @@ import { DropItem } from './entities/drop-item.js';
 import { NPC } from './entities/npc.js';
 import { ShopSystem } from './ui/shop-system.js';
 import { EnhanceSystem } from './ui/enhance-system.js';
-import { QuestState, QuestTracker } from './ui/quest-system.js';
+import { QuestState } from './ui/quest-system.js';
 import { RiftSystem } from './quest/rift-system.js';
 import { QuickBar } from './ui/quick-bar.js';
 import { EquipManager } from './ui/equip-manager.js';
@@ -91,7 +91,7 @@ import { DefenseSystem } from './world/defense-system.js';
 import { DefenseTrapSystem } from './world/defense-trap-system.js';
 import { HamsterHutSystem } from './world/hamster-hut-system.js';
 import { HamsterBarracksSystem } from './world/hamster-barracks-system.js';
-import { ProducerBuildingSystem } from './world/producer-building-system.js';
+import { ProducerBuilding, ProducerBuildingSystem } from './world/producer-building-system.js';
 import { resetUnitUpgrades } from './world/unit-upgrade-store.js';
 import { resetAbilityLevels } from './world/ability-store.js';
 import { resetWorld122Snapshot } from './world/world122-snapshot.js';
@@ -107,6 +107,7 @@ export const Game = {
     _gameStartTime: null, // 游戏开始时间戳
     // _timerInterval 已弃用：由 GameUIManager 统一管理秒表定时器
     _portalCooldown: 0, // 传送门冷却时间戳
+    _portalArrivalLock: false, // 传送落地后须先离开门区，防止恢复坐标仍在门内时立即回跳
     init() {
         if (!SoundManager || !Input || !Renderer || !SystemUI || !QuickBar || !GameUIManager) {
             console.error('[Game.init] 核心模块未加载，无法初始化');
@@ -114,8 +115,7 @@ export const Game = {
         }
         SoundManager.init(); Input.init(); Renderer.init(); SystemUI.init(); QuickBar.init();
         GameUIManager.init(this.player); GameUIManager.initAttackRangeToggle();
-        if (QuestTracker) QuestTracker.init();
-        // 侍从队伍系统（组队栏替换左侧任务追踪栏位置）
+        // 侍从队伍系统（左侧固定组队栏）
         PartySystem.init();
         // 注册侍从 AI 工厂（浏览器运行时；companion-config.ai 驱动远程法师等）
         PartySystem.registerAI('mage_luna', (companion) => new CompanionAI(companion));
@@ -133,6 +133,7 @@ export const Game = {
         this.PartyUI = PartyUI;           // 组队栏（选中状态调试/探针）
         this.CompanionCommandWheel = CompanionCommandWheel; // 指令轮盘（探针可直接驱动 _execute）
         this.RTSCommand = RTSCommand;     // RTS 指挥模式（探针可直接驱动 enabled/setEnabled）
+        this.TroopLineSystem = TroopLineSystem;
         this.FlatViewSystem = FlatViewSystem; // 建造/RTS/观察者上下文的空格压平显示
         this.Input = Input;               // 模式级快捷键隔离只清理按键状态，不绕过 Input 处理流程
         // RTS 建筑点击复用的系统句柄（避免模块循环 import，经 window.Game 惰性访问）
@@ -155,8 +156,10 @@ export const Game = {
             resetUnitUpgrades();
             resetAbilityLevels();
             resetWorld122Snapshot();
+            FlatViewSystem.reset();
             window.WorldProgressionSystem?.reset?.();
             window.WorldInvasionSystem?.reset?.();
+            TroopLineSystem.reset();
             const menuLayer = getElement('menuLayer'); const uiLayer = getElement('uiLayer'); const gameLayer = getElement('gameLayer'); if (menuLayer) menuLayer.classList.add('hidden'); if (uiLayer) uiLayer.style.display = 'block'; if (gameLayer) gameLayer.style.display = 'block';
             // 先初始化场景管理器并标记主场景，保证 Renderer.generateWorld / spawnNPC 用 4096×4096 主神空间尺寸
             SceneManager.init();
@@ -245,28 +248,35 @@ export const Game = {
     },
     syncMainHubWorldPortals() {
         if (!this.entities) return;
+        // 清理旧版按世界分别生成的自动触发圆圈；旧主城快照也会在这里完成迁移。
         const worldIds = new Set(['scene8', 'scene9', 'scene10', 'scene11']);
         for (const [key, entity] of Array.from(this.entities.entries())) {
-            if (!worldIds.has(entity?.targetScene)) continue;
+            if (!entity?._isWorldNetworkPortal && !worldIds.has(entity?.targetScene)) continue;
             entity._destroyPhaserSprite?.();
             this.entities.delete(key);
         }
-        const portalCfg = GAME_CONFIG.portals?.mainHub
-            || { base: { x: 3478, y: 2363 }, spacing: 100, direction: 'left', entries: [] };
-        const portalBase = portalCfg.base || { x: 3478, y: 2363 };
-        const portalSpacing = portalCfg.spacing || 100;
-        const portalDir = portalCfg.direction === 'right' ? 1 : -1;
-        const available = (portalCfg.entries || []).filter((entry) =>
-            entry?.targetScene && window.WorldProgressionSystem?.isPortalConstructed?.(entry.targetScene));
-        for (let i = 0; i < available.length; i++) {
-            const entry = available[i];
-            const px = portalBase.x + (i + 1) * portalSpacing * portalDir;
-            const py = portalBase.y;
-            const portal = new Portal(px, py, entry.targetScene, entry.label);
-            portal._isWorldNetworkPortal = true;
-            this.entities.set(`portal_world_${entry.targetScene}`, portal);
-            EffectManager.add(new FloatingTextEffect(px, py - 30, entry.label, '#5a9a8a'));
+
+        const portalCfg = GAME_CONFIG.portals?.mainHub || {};
+        const placement = portalCfg.building;
+        if (!placement?.cfgKey || !Number.isFinite(placement.x) || !Number.isFinite(placement.y)) {
+            console.error('[main hub portal] portals.mainHub.building 配置缺失或坐标无效');
+            return;
         }
+        const portalId = 'main_hub_world_portal';
+        const existing = this.entities.get(portalId);
+        if (existing?._isMainHubPortalBuilding && existing.active) return;
+
+        if (!ProducerBuildingSystem.active) ProducerBuildingSystem.setup();
+        ProducerBuildingSystem.buildings = ProducerBuildingSystem.buildings
+            .filter((building) => building?.id !== portalId);
+        const portal = new ProducerBuilding(placement.x, placement.y, {
+            id: portalId,
+            cfgKey: placement.cfgKey,
+        });
+        portal._isMainHubPortalBuilding = true;
+        portal.hittable = false;
+        ProducerBuildingSystem.buildings.push(portal);
+        this.entities.set(portal.id, portal);
     },
     async spawnPlayer() {
         const startX = CONFIG.WORLD_WIDTH / 2 + 120 - 200;
@@ -1462,6 +1472,8 @@ CombatSystem.update(e, dt, this.entities);
         if (ProducerBuildingSystem && ProducerBuildingSystem.active) {
             ProducerBuildingSystem.update(dt);
         }
+        // 全局兵线：同位面到点待命、跨位面抵达传送门后转入增援队列。
+        TroopLineSystem.update(SceneManager.currentScene);
 
         // ===== 阵型系统更新（必须在实体 update 之后，为下一帧设置 _tacticalTarget）=====
         // 无编队时跳过全表遍历（阵型成员才有 _formationId，空 Map 时逐实体调用纯属空转）
@@ -1510,7 +1522,9 @@ const pickupCfg = GAME_CONFIG.pickup || {};
         const portalTriggerDist = portalCfg.triggerDistance || interactCfg.portalTrigger || 30;
         const portalCooldownMs = portalCfg.cooldownMs || 2000;
         const now = Date.now();
-        const portalReady = this.player && !SceneManager.isLoading && now > this._portalCooldown;
+        const portalReady = this.player && !SceneManager.isLoading
+            && !this._portalArrivalLock && now > this._portalCooldown;
+        let overlapsPortalWhileArrivalLocked = false;
 
         for (const [key, entity] of this.entities) {
             if (!entity.active) {
@@ -1624,6 +1638,15 @@ const pickupCfg = GAME_CONFIG.pickup || {};
                 }
             }
 
+            // 传送落地保护不能只靠固定冷却：玩家可能恢复在目标场景的门内，冷却结束后会立刻回跳。
+            if (this._portalArrivalLock && this.player && entity.targetScene) {
+                const lockDx = entity.x - this.player.x;
+                const lockDy = entity.y - this.player.y;
+                if (lockDx * lockDx + lockDy * lockDy < portalTriggerDist * portalTriggerDist) {
+                    overlapsPortalWhileArrivalLocked = true;
+                }
+            }
+
             // 传送门检测
             if (portalReady && entity.targetScene) {
                 if (['scene8', 'scene9', 'scene10', 'scene11'].includes(entity.targetScene)
@@ -1641,9 +1664,15 @@ const pickupCfg = GAME_CONFIG.pickup || {};
                             if (entity._isQuestReturn) {
                                 QuestState.completeEvacuation();
                                 QuestState.finishQuest();
-                                SceneManager.switchScene(entity.targetScene, this.player);
+                                SceneManager.switchScene(entity.targetScene, this.player, undefined, {
+                                    portalTravel: entity.targetScene === 'main'
+                                        || ['scene8', 'scene9', 'scene10', 'scene11'].includes(entity.targetScene),
+                                });
                             } else {
-                                SceneManager.switchScene(entity.targetScene, this.player);
+                                SceneManager.switchScene(entity.targetScene, this.player, undefined, {
+                                    portalTravel: entity.targetScene === 'main'
+                                        || ['scene8', 'scene9', 'scene10', 'scene11'].includes(entity.targetScene),
+                                });
                             }
                         }
                     } catch (err) {
@@ -1651,6 +1680,9 @@ const pickupCfg = GAME_CONFIG.pickup || {};
                     }
                 }
             }
+        }
+        if (this._portalArrivalLock && !overlapsPortalWhileArrivalLocked) {
+            this._portalArrivalLock = false;
         }
 this.resolveCollisions();
         if (['scene8', 'scene9', 'scene10', 'scene11'].includes(SceneManager.currentScene)

@@ -1,6 +1,6 @@
 /**
  * 仓鼠战士契约测试（2026-08-16）：
- * - 数据契约：HP 300、六维属性、移速 120、攻击 50/2s、动画帧配置
+ * - 数据契约：HP 225、六维属性、移速 120、攻击 50/2s、动画帧配置
  *   （attack 两段式：起步完整 1~24 帧 → 持续攻击第 6~24 帧循环）；
  * - 实体契约：友方阵营、_enemyTargetable、可受击/死亡播 dying；
  * - 源码接线：AI 只打 enemy 阵营且不攻击矿点、GameScene 渲染 attack 两段式、
@@ -77,7 +77,7 @@ check('AI 不攻击能源矿点（_isEnergyNode 跳过，用户口径）',
     /_isEnergyNode/.test(aiSrc) && /_nearestEnemy/.test(aiSrc));
 check('AI 每 attackInterval 对目标 takeDamage(attackDamage)',
     /this\._attackTimer = this\._attackInterval/.test(aiSrc)
-    && /e\.takeDamage\(this\._attackDamage/.test(aiSrc));
+    && /getPhysicalAttackDamage\(this\._attackDamage, e\)/.test(aiSrc));
 check('AI 移动复用 MovementSystem、攻击站定', /MovementSystem\.update\(m, dt, entities\)/.test(aiSrc)
     && /m\._animState === 'attack'/.test(aiSrc));
 check('AI 无敌跟随玩家 + 到达清路径归零速度', /_followOffset/.test(aiSrc)

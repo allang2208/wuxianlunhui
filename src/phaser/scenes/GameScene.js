@@ -39,7 +39,7 @@ import { AnimChannel, resolveAnimChannel, enterRecover, clearPose, nowMs,
     MELEE_STAGE_ANIM_KEYS, meleeStageCfgKey, meleeStageRecoverMs } from '../../entities/player/anim-state.js';
 import { PERSPECTIVE_SCALE_Y } from '../../config/perspective-config.js';
 import { getTorsoRect } from '../../physics/torso-hitbox.js';
-import { isEntityStrictlyBelow } from '../../physics/elevation.js';
+import { entitySurfaceZ, isEntityStrictlyBelow } from '../../physics/elevation.js';
 import SpatialPartitionSystem from '../../systems/spatial-partition-system.js';
 
 import { DungeonMapSystem } from '../../world/dungeon-map-system.js';
@@ -51,9 +51,15 @@ import { GUN_FAMILY } from '../../config/weapon-families.js';
 import { findWeaponConfig } from '../../ui/equip-data-manager.js';
 import { ExpeditionSystem } from '../../ui/expedition-system.js';
 import { getCastSpeedMultiplier } from '../../utils/magic-craft-helper.js';
-import { burstParticles } from '../../effects/combat-fx.js';
+import { burstParticles, resolveSkillEffectDepth } from '../../effects/combat-fx.js';
 import { GunFeel } from '../../effects/gunfeel.js';
-import { DEFENSE_TOWER_VISUAL, DefenseSystem } from '../../world/defense-system.js';
+import {
+    DEFENSE_TOWER_VISUAL,
+    DefenseSystem,
+    WALL_WALK_CONFIG,
+    blockWallTopWalkGeometry,
+} from '../../world/defense-system.js';
+import { stairGroupGroundPortal } from '../../world/unified-elevated-navigation.js';
 import {
     applyFittedBuildingFootprint,
     getBuildingFootprint,
@@ -71,6 +77,19 @@ import {
 } from '../../world/structure-visual-anchor.js';
 import { EnvironmentLightingSystem } from '../../world/environment-lighting-system.js';
 import lightingAssets from '../../../data/environment-lighting-assets.json';
+
+// 共享结构阴影层：所有建筑/障碍物阴影多边形在同一 Graphics 内 alpha 1 填充、
+// 整层统一透明度——相邻阴影交叠与单影同深（杜绝重叠加深）；
+// 层深 −994：地板块 −1000 与道路 −995 之上——道路即地面，阴影压暗路面如压裸地
+// （曾放 −998 被道路完全遮挡；当时的"道路残片"实为交叠加深，已由共享层根治）。
+const STRUCTURE_SHADOW_LAYER_DEPTH = -994;
+// 贴地装置（防御陷阱）位于道路之上、任何可移动单位之下；不用世界 Y 排序，
+// 防止单位走到同一格或其后侧时仍被小型地面贴图错误遮住。
+const GROUND_DEVICE_LAYER_DEPTH = -994;
+// 实体核心环（alpha 1 实心，整层统一透明度）；外圈淡出环（小 alpha 软边）。
+const STRUCTURE_SHADOW_CORE_SCALES = [1.0, 1.02];
+// 2026-08-19：淡出环（×1.045/1.07/1.10 三档 scaled fill）已废弃——相邻阴影的环
+// 互相叠乘变深（0.30+0.30→0.51）。软边改为沿轮廓单次 lineStyle 描边（见共享层）。
 
 
 export class GameScene extends Scene {
@@ -163,11 +182,12 @@ export class GameScene extends Scene {
         this._transientEnvironmentGlows = [];
         this._persistentEnvironmentGlows = new Map();
         // 动画单位按“贴图键+帧”懒生成预投影遮罩；限制数量避免长时战斗纹理无限增长。
-        this._dynamicProjectionTextureKeys = new Set();
-        this._dynamicProjectionTextureLimit = 256;
-        this._dynamicProjectionCacheSceneId = SceneManager.currentScene || null;
-        this._dynamicProjectionCacheQuality = EnvironmentLightingSystem.getShadowQuality();
-        this.events.once('shutdown', () => this._clearDynamicProjectionTextureCache());
+        this._structureShadowLayer = this.add.graphics();
+        this._structureShadowLayer.setDepth(STRUCTURE_SHADOW_LAYER_DEPTH);
+        this._structureShadowJobs = [];
+        // 场景重启后新层为空画布：复位脏检查状态，首帧强制重画（防阴影不可见）。
+        this._structureShadowJobCount = -1;
+        this._structureShadowLayerOpacity = -1;
         // 世界 HUD：缓存每个贴图帧的可见 alpha 顶部，血条按真实模型而非透明画布定位。
         this._hudVisibleFrameTopCache = new Map();
         this._installShadowConsoleTools();
@@ -180,6 +200,8 @@ export class GameScene extends Scene {
         this.screenHudGraphics.setScrollFactor(0);
         // 碰撞体积可视化（点击左下角“范围”按钮后显示半透明红圈）
         this._collisionRadiusGraphics = null;
+        this._elevatedNavigationRangeGraphics = null;
+        this._elevatedNavigationRangeLabel = null;
         // 无专属 Phaser Sprite 的实体（训练靶/NPC）通用渲染容器
         this._neutralSprites = new Map();
         // 防御塔三层渲染（基座/机械臂/挂载武器）
@@ -200,7 +222,7 @@ export class GameScene extends Scene {
         this._minimapDynamicGraphics.setScrollFactor(0);
         this.minimapTitle = this.add.text(0, 0, '地图', {
             fontFamily: 'SimHei, "Microsoft YaHei", sans-serif',
-            fontSize: '10px',
+            fontSize: '13px',
             color: '#d4c5a9cc'
         });
         this.minimapTitle.setDepth(100001);
@@ -349,6 +371,7 @@ export class GameScene extends Scene {
                     if (Array.isArray(data.segmentSprites)) {
                         data.segmentSprites.forEach((sprite) => sprite?.setVisible(false));
                     }
+                    if (data.foundationSprite) data.foundationSprite.setVisible(false);
                     if (data.sprite) data.sprite.setVisible(false);
                     if (data.label) data.label.setVisible(false);
                 }
@@ -396,6 +419,7 @@ export class GameScene extends Scene {
                     if (Array.isArray(data.segmentSprites)) {
                         data.segmentSprites.forEach((sprite) => sprite?.setVisible(true));
                     }
+                    if (data.foundationSprite) data.foundationSprite.setVisible(true);
                     if (data.sprite) data.sprite.setVisible(true);
                     if (data.label) data.label.setVisible(true);
                 }
@@ -499,6 +523,259 @@ export class GameScene extends Scene {
         this._updateCamera();
     }
 
+    /** 左下角“范围”开关：显示墙顶、楼梯、共享缝、Portal 和真实侧轨。 */
+    _syncElevatedNavigationRanges(_game, show) {
+        if (!show || !DefenseSystem?.active || !_game?.entities) {
+            if (this._elevatedNavigationRangeGraphics) {
+                this._elevatedNavigationRangeGraphics.clear();
+                this._elevatedNavigationRangeGraphics.setVisible(false);
+            }
+            if (this._elevatedNavigationRangeLabel) {
+                this._elevatedNavigationRangeLabel.setVisible(false);
+            }
+            return;
+        }
+        if (!this._elevatedNavigationRangeGraphics) {
+            this._elevatedNavigationRangeGraphics = this.add.graphics();
+            this._elevatedNavigationRangeGraphics.setDepth(99998);
+        }
+        const g = this._elevatedNavigationRangeGraphics;
+        g.clear();
+        g.setVisible(true);
+        const debug = DefenseSystem.debugElevatedNavigationGeometry?.(_game.entities);
+        if (!debug) return;
+
+        const drawPolygon = (
+            points,
+            fillColor = 0x20ff70,
+            fillAlpha = 0.12,
+            lineColor = 0x39ff7a,
+            lineAlpha = 0.9,
+            lineWidth = 1.5
+        ) => {
+            if (!Array.isArray(points) || points.length < 3) return;
+            g.fillStyle(fillColor, fillAlpha);
+            g.lineStyle(lineWidth, lineColor, lineAlpha);
+            g.beginPath();
+            g.moveTo(points[0].x, points[0].y);
+            for (let index = 1; index < points.length; index++) {
+                g.lineTo(points[index].x, points[index].y);
+            }
+            g.closePath();
+            if (fillAlpha > 0) g.fillPath();
+            g.strokePath();
+        };
+        const drawLine = (from, to, color, alpha = 1, width = 1.5) => {
+            if (!from || !to) return;
+            g.lineStyle(width, color, alpha);
+            g.beginPath();
+            g.moveTo(from.x, from.y);
+            g.lineTo(to.x, to.y);
+            g.strokePath();
+        };
+        const elevated = (point, z) => ({
+            x: point.x,
+            y: point.y - (Number(z) || 0),
+        });
+
+        // 墙顶主面、两墙连接面与四墙交汇面：绿色区域就是统一高架查询的几何真源。
+        for (const wall of debug.walls || []) {
+            const geometry = blockWallTopWalkGeometry(wall);
+            if (!geometry?.vertices?.length) continue;
+            const topZ = Number(wall._wallTopZ) || WALL_WALK_CONFIG.defaultTopZ;
+            drawPolygon(geometry.vertices.map((point) => elevated(point, topZ)));
+        }
+        for (const connector of debug.wallConnectors || []) {
+            drawPolygon(
+                (connector.vertices || []).map((point) => elevated(point, connector.topZ)),
+                0x43ff83,
+                0.18,
+                0x8dffb2,
+                1,
+                2
+            );
+        }
+        for (const junction of debug.wallJunctions || []) {
+            drawPolygon(
+                (junction.vertices || []).map((point) => elevated(point, junction.topZ)),
+                0x43ff83,
+                0.24,
+                0xb8ffd0,
+                1,
+                2
+            );
+        }
+        // 墙顶红线只画连续墙面的真实外轮廓；共享墙边和楼梯入口边不会生成。
+        for (const guard of debug.wallGuards || []) {
+            drawLine(
+                elevated({ x: guard.x1, y: guard.y1 }, guard._surfaceZ1),
+                elevated({ x: guard.x2, y: guard.y2 }, guard._surfaceZ2),
+                0xff3355,
+                0.95,
+                2
+            );
+        }
+
+        const seenSeams = new Set();
+        const seenGroups = new Set();
+        for (const staircase of debug.staircases || []) {
+            for (let index = 0; index < (staircase.segments || []).length; index++) {
+                const segment = staircase.segments[index];
+                const surface = staircase.visualSegments?.[index]?.walkSurface
+                    || segment?.walkSurface;
+                if (!segment || !surface) continue;
+                drawPolygon([
+                    elevated(surface.entryA, segment.baseZ),
+                    elevated(surface.entryB, segment.baseZ),
+                    elevated(surface.exitB, segment.topZ),
+                    elevated(surface.exitA, segment.topZ),
+                ]);
+            }
+
+            // 相邻楼梯之间真正补上的共享面；没有此绿色区域就仍然存在几何暗缝。
+            for (const seam of staircase._sharedStairSurfaces || []) {
+                if (!seam || seenSeams.has(seam)) continue;
+                seenSeams.add(seam);
+                const segment = staircase.segments?.[seam.segmentIndex];
+                const entryZ = seam.connector
+                    ? staircase.targetTopZ
+                    : (Number(segment?.baseZ) || 0);
+                const exitZ = seam.connector
+                    ? staircase.targetTopZ
+                    : (Number(segment?.topZ) || entryZ);
+                const seamFill = seam.connector ? 0x00ff55 : 0x55ff99;
+                const seamLine = seam.connector ? 0x00ff66 : 0xb0ffd0;
+                drawPolygon([
+                    elevated(seam.railA[0], entryZ),
+                    elevated(seam.railB[0], entryZ),
+                    elevated(seam.railB[1], exitZ),
+                    elevated(seam.railA[1], exitZ),
+                ], seamFill, seam.connector ? 0.16 : 0.22, seamLine, 1,
+                seam.connector ? 2.5 : 2);
+            }
+
+            const wallConnector = staircase.wallConnectorSurface?.();
+            if (wallConnector?.hull?.length) {
+                drawPolygon(
+                    wallConnector.hull.map((point) => elevated(point, staircase.targetTopZ)),
+                    0x00ff55,
+                    0.16,
+                    0x00ff66,
+                    1,
+                    2.5
+                );
+            }
+
+            // 楼梯红线仅保留真实外侧侧轨；组内侧轨已经被删除，因此不会显示。
+            for (const edge of staircase._edgeSegs || []) {
+                drawLine(
+                    elevated({ x: edge.x1, y: edge.y1 }, edge._surfaceZ1),
+                    elevated({ x: edge.x2, y: edge.y2 }, edge._surfaceZ2),
+                    0xff3355,
+                    0.95,
+                    2
+                );
+            }
+
+            const groupId = staircase._wallStairGroupId || staircase.id;
+            if (seenGroups.has(groupId)) continue;
+            seenGroups.add(groupId);
+            const portal = stairGroupGroundPortal(
+                staircase,
+                WALL_WALK_CONFIG.surfaceNavigation.portalEntryRadius
+            );
+            if (!portal) continue;
+            const margin = Math.max(
+                2,
+                Number(WALL_WALK_CONFIG.surfaceNavigation.portalCaptureMargin) || 18
+            );
+            const halfWidth = portal.halfWidth + margin;
+            const portalPoint = (along, across) => ({
+                x: portal.entry.x
+                    + portal.axisX * along
+                    + portal.acrossAxisX * across,
+                y: portal.entry.y
+                    + portal.axisY * along
+                    + portal.acrossAxisY * across,
+            });
+            drawPolygon([
+                portalPoint(-margin, -halfWidth),
+                portalPoint(margin, -halfWidth),
+                portalPoint(margin, halfWidth),
+                portalPoint(-margin, halfWidth),
+            ], 0x00ff55, 0.16, 0x00ff66, 1, 2.5);
+            drawLine(portal.groundPoint, portal.entry, 0x00ff66, 1, 2);
+        }
+
+        // 当前单位脚底状态：红=被夹回/排队，绿=已提交高架身份，黄=仍是地面身份。
+        const unit = _game.player;
+        if (unit?.active) {
+            const portalDebug = unit._surfacePortalDebug
+                && Date.now() - (Number(unit._surfacePortalDebug.at) || 0) <= 500
+                ? unit._surfacePortalDebug
+                : null;
+            const blocked = unit._surfaceSweepClamped
+                || unit._surfaceNavWaiting
+                || portalDebug?.status === 'rejected';
+            const elevatedUnit = unit._surfaceKind === 'stairs' || unit._surfaceKind === 'wall_walk';
+            const color = blocked ? 0xff2244 : (elevatedUnit ? 0x00ff66 : 0xffdd33);
+            g.lineStyle(3, color, 1);
+            g.strokeCircle(unit.x, unit.y - (Number(unit.z) || 0), 8);
+            if (portalDebug) {
+                const portalColor = portalDebug.status === 'accepted'
+                    ? 0x00ff66
+                    : 0xff2244;
+                g.fillStyle(portalColor, 0.9);
+                g.fillCircle(
+                    portalDebug.x,
+                    portalDebug.y,
+                    4
+                );
+            }
+            const lastValidated = unit._elevatedState?.lastValidated;
+            if (lastValidated) {
+                g.lineStyle(1.5, 0xaaffcc, 0.9);
+                g.strokeCircle(
+                    lastValidated.x,
+                    lastValidated.y - (Number(lastValidated.z) || 0),
+                    5
+                );
+            }
+            if (!this._elevatedNavigationRangeLabel) {
+                this._elevatedNavigationRangeLabel = this.add.text(0, 0, '', {
+                    fontFamily: 'SimHei, "Microsoft YaHei", sans-serif',
+                    fontSize: '12px',
+                    color: '#ffffff',
+                    backgroundColor: 'rgba(0, 0, 0, 0.78)',
+                    padding: { x: 5, y: 3 },
+                });
+                this._elevatedNavigationRangeLabel.setOrigin(0.5, 1);
+                this._elevatedNavigationRangeLabel.setDepth(100000);
+            }
+            const kindLabel = unit._surfaceKind === 'stairs'
+                ? '楼梯'
+                : (unit._surfaceKind === 'wall_walk' ? '墙顶' : '地面');
+            const reasonLabel = portalDebug?.status === 'rejected'
+                ? (portalDebug.reason === 'portal_geometry'
+                    ? ' | 拒绝:入口几何'
+                    : ' | 拒绝:通行许可')
+                : (portalDebug?.status === 'accepted' ? ' | 入口已接受' : '');
+            const groupSize = unit._surfaceStairGroupMembers?.length || 0;
+            this._elevatedNavigationRangeLabel
+                .setText(
+                    `${kindLabel} Z:${Math.round(Number(unit.z) || 0)}`
+                    + ` 候选:${Number(unit._surfaceCandidateCount) || 0}`
+                    + (groupSize > 1 ? ` 楼梯组:${groupSize}` : '')
+                    + reasonLabel
+                )
+                .setColor(blocked ? '#ff5570' : (elevatedUnit ? '#66ff99' : '#ffe066'))
+                .setPosition(unit.x, unit.y - (Number(unit.z) || 0) - 14)
+                .setVisible(true);
+        } else if (this._elevatedNavigationRangeLabel) {
+            this._elevatedNavigationRangeLabel.setVisible(false);
+        }
+    }
+
     /**
      * 将现有逻辑层的位置同步到 Phaser 物理体
      * 保持逻辑层权威，物理体仅用于检测
@@ -560,7 +837,7 @@ export class GameScene extends Scene {
         }
         // 渲染对象 = 队伍侍从 + 世界-122 友方单位（仓鼠矿工等，2026-08-15）
         const members = [
-            ...(PartySystem.members || []),
+            ...(PartySystem.members || []).filter((member) => member?.active !== false),
             ...(Array.isArray(_game.friendlyUnits) ? _game.friendlyUnits : []),
         ];
         const activeIds = new Set();
@@ -606,7 +883,7 @@ export class GameScene extends Scene {
                 // 仓鼠矿工/战士/射手/盾卫/民兵/斥候移动（walk）始终朝向实际移动方向（vx），不倒退走路——
                 // 否则寻路绕行/回屋时贴图朝向目标、实际反向移动（2026-08-15 用户口径）
                 const moving = member._animState === 'walk' || Math.abs(member.vx) > 5;
-                if ((member._isHamsterMiner || member._isHamsterWarrior || member._isHamsterShooter || member._isHamsterGuard || member._isHamsterMilitia || member._isHamsterScout || member._isHamsterMusketeer || member._isHamsterPriest) && moving) {
+                if ((member._isHamsterMiner || member._isHamsterWarrior || member._isHamsterShooter || member._isHamsterGuard || member._isHamsterMilitia || member._isHamsterScout || member._isHamsterMusketeer || member._isHamsterPriest || member._isHamsterKnight || member._isHamsterLightCavalry) && moving) {
                     faceRight = member.vx > 0;
                 } else if (member._lastAction === 'flee' && Math.abs(member.vx) > 5) {
                     faceRight = member.vx > 0;
@@ -628,7 +905,7 @@ export class GameScene extends Scene {
             sprite.setDepth(this.playerSprite.depth + 0.5);
             // 士兵移动烟尘（2026-08-17）：玩家跑步同款 DustEffect，脚下生成——
             // 军事单位（战士/射手/盾卫/民兵/斥候，不含矿工）移动（walk/run）时按 90ms 间隔出烟
-            if (member._isHamsterWarrior || member._isHamsterShooter || member._isHamsterGuard || member._isHamsterMilitia || member._isHamsterScout || member._isHamsterMusketeer || member._isHamsterPriest) {
+            if (member._isHamsterWarrior || member._isHamsterShooter || member._isHamsterGuard || member._isHamsterMilitia || member._isHamsterScout || member._isHamsterMusketeer || member._isHamsterPriest || member._isHamsterKnight || member._isHamsterLightCavalry) {
                 const unitMoving = member._animState === 'walk'
                     || Math.abs(member.vx || 0) > 5 || Math.abs(member.vy || 0) > 5;
                 if (unitMoving) {
@@ -819,7 +1096,7 @@ export class GameScene extends Scene {
                         // 被其他状态意外中断时清播放锁，保持下一帧自动自愈重播。
                         sprite.setData('knightAttackPlaying', false);
                     }
-                } else if (st === 'attack' && (member._isHamsterShooter || member._isHamsterGuard || member._isHamsterMilitia || member._isHamsterScout || member._isHamsterMusketeer)
+                } else if (st === 'attack' && (member._isHamsterShooter || member._isHamsterGuard || member._isHamsterMilitia || member._isHamsterScout || member._isHamsterMusketeer || member._isHamsterLightCavalry)
                     && anims.attack && this.textures.exists(`companion_${animId}_attack`)) {
                     // 仓鼠射手/盾卫/民兵/斥候攻击：单次播放（射手 13 帧 / 盾卫 12 帧 /
                     // 民兵 15 帧 / 斥候 18 帧，repeat 0），射手第 10 帧、斥候第 11 帧
@@ -1010,9 +1287,9 @@ export class GameScene extends Scene {
             // 位置：AI 队员用自身逻辑坐标（跟随/站位/撤退由 AI 移动）；纯渲染队员跟随玩家左后偏移
             // 脚底偏移（companion-config spriteOffsetY）：精灵帧内脚底不在帧中心时下移贴地
             const spriteOffY = member.spriteOffsetY || 0;
-            // 射击台（2026-08-16 四版）：连续抬升——_platformLift 由走廊内位置插值
+            // 高架单位按脚底 z 抬升渲染。
             // （0~platformHeight），走上台阶平滑升高，不再布尔瞬移
-            const platformLift = member._platformLift || 0;
+            const elevationZ = member.z || 0;
             // 跨动作统一显示归一化（2026-08-17 伊莉丝六动作统一尺度）：
             // 各动作帧格规格可不同（512×512~960×1024），内容统一按 S=461/171 摆放、
             // 脚底固定 0.9375×格高——显示尺寸按当前帧格线性映射（512 格 = size 基准），
@@ -1025,10 +1302,10 @@ export class GameScene extends Scene {
             sprite.setDisplaySize(frameW * normS, frameH * normS);
             const feetCorr = -(frameH - 512) * 0.4375 * normS;
             if (aiMode) {
-                sprite.setPosition(member.x, member.y + spriteOffY - platformLift + feetCorr);
+                sprite.setPosition(member.x, member.y + spriteOffY - elevationZ + feetCorr);
             } else {
                 const offX = facingRight ? -150 : 150;
-                sprite.setPosition(player.x + offX, player.y + 34 + spriteOffY - platformLift + feetCorr);
+                sprite.setPosition(player.x + offX, player.y + 34 + spriteOffY - elevationZ + feetCorr);
             }
             sprite.setVisible(true);
             // Tint 优先级：受击白闪 > 选中金色 > 常态。这样任何友军类型都不会因选中状态
@@ -1133,8 +1410,12 @@ export class GameScene extends Scene {
             ...(Array.isArray(_game && _game.friendlyUnits) ? _game.friendlyUnits : []),
         ];
         for (const m of members) {
-            const b = m._basic;
             let spr = this._companionBasicSprites[m.id];
+            if (m?.active === false) {
+                if (spr) spr.setVisible(false);
+                continue;
+            }
+            const b = m._basic;
             if (b && b.active) {
                 const musket = !!m._isHamsterMusketeer;
                 const ranged = m._isHamsterShooter || m._isHamsterScout;
@@ -1242,14 +1523,14 @@ export class GameScene extends Scene {
         // 原有模式：同步位置到物理体（用于碰撞检测）
         if (Game.player && this.playerSprite && this.playerSprite.body) {
             const playerShift = this._getFootOffsetY(Game.player, this.playerSprite);
-            // 射击台（2026-08-16 四版）：连续抬升——_platformLift 由走廊内位置插值，
-            // 走上台阶平滑升高；深度随之变浅（画在平台/地面单位之前）
-            const platformLift = Game.player._platformLift || 0;
+            // 高架单位按脚底 z 抬升渲染，
+            // 走上楼梯时深度随脚底高度变化。
+            const elevationZ = Game.player.z || 0;
             Game.player.footOffsetY = playerShift;
-            this.playerSprite.setPosition(Game.player.x, Game.player.y - playerShift - platformLift);
+            this.playerSprite.setPosition(Game.player.x, Game.player.y - playerShift - elevationZ);
             this._syncPlayerHandLayer();
             applyBodyFootOffset(this.playerSprite, playerShift);
-            this.playerSprite.body.reset(Game.player.x, Game.player.y - playerShift - platformLift);
+            this.playerSprite.body.reset(Game.player.x, Game.player.y - playerShift - elevationZ);
         }
 
         // 同步所有敌人（自动为缺失 Sprite 的敌人创建占位 Sprite）
@@ -1333,8 +1614,7 @@ export class GameScene extends Scene {
         let playerNatural = 0, playerCorrected = 0;
         if (this.playerSprite && this.playerSprite.active) {
             const footOffsetY = this._getFootOffsetY(Game.player, this.playerSprite);
-            // 射击台（2026-08-16）：sprite 已上移平台高度，自然深度 = 站台顶面 + 10；
-            // 平台顶面 face 线参与仲裁（顶面前实体抬到顶面之上）
+            // 高架单位的自然深度与脚底 z 同步，墙顶面线继续参与仲裁。
             playerNatural = this.playerSprite.y + footOffsetY + 10;
             // 衔接处遮挡仲裁（斜墙 flat 深度在衔接处的几何误差修正）；
             // frontRange = 贴图脚底→头顶高度（封顶 280）：墙前该范围内像素仍与墙重叠时也要抬升。
@@ -1342,19 +1622,25 @@ export class GameScene extends Scene {
             // 故脚底→头顶 = footOffsetY + displayHeight/2（旧公式 displayHeight − footOffsetY
             // 把它算成 72，只有真实高度 144 的一半——通道上侧墙"稍远离即被挡"的死带根因）
             const playerFrontRange = Math.min(280, Math.max(60, footOffsetY + this.playerSprite.displayHeight / 2));
-            playerCorrected = WallSystem.junctionCorrectedDepth(Game.player.x, Game.player.y, playerNatural, playerFrontRange);
-            // 射击台（2026-08-16 四版）：连续抬升下自然深度已随 sprite.y 上移变浅；
-            // 但平台贴图锚定接地线（_faceDepth=y+12），台上单位必须画在平台贴图之上——
-            // 抬升越高越浅，最低保证平台之上（台阶中途也正确，不再整张强制 +1 覆盖）
-            const platRef = Game.player._platformRef;
-            if (platRef && platRef._faceDepth != null && Game.player._platformLift > 0) {
-                playerCorrected = Math.max(playerCorrected, platRef._faceDepth + 1);
+            // sideRange 只代表单位的真实接地/碰撞横向半径；不能使用 displayWidth/2。
+            // 建筑主体可以是 390~480px 的大贴图，贴图宽度会把建筑前缘查询扩大到单位实际占地之外，
+            // 造成玩家站在建筑侧面或已越过前缘时仍被错误压到建筑后面。
+            const playerSideRange = Math.max(
+                Number(Game.player?.groundRadius) || 0,
+                Number(Game.player?.collisionRadius) || 0
+            );
+            playerCorrected = WallSystem.junctionCorrectedDepth(
+                Game.player.x, Game.player.y, playerNatural, playerFrontRange, playerSideRange);
+            // 楼梯单位最低保证绘制在当前楼梯分段之上。
+            const staircase = Game.player._surfaceStaircase;
+            if (staircase && staircase._faceDepth != null && Game.player.z > 0) {
+                playerCorrected = Math.max(playerCorrected, staircase._faceDepth + 1);
             }
             const playerSurfaceDepth = Number(Game.player?._surfaceRenderDepth);
             if ((Game.player?._surfaceKind === 'wall_walk'
                 || Game.player?._surfaceKind === 'stairs')
                 && Number.isFinite(playerSurfaceDepth)
-                && (Number(Game.player?._platformLift) || 0) > 0) {
+                && (Number(Game.player?.z) || 0) > 0) {
                 playerCorrected = Math.max(playerCorrected, playerSurfaceDepth + 1);
             }
             this.playerSprite.setDepth(playerCorrected);
@@ -1375,16 +1661,22 @@ export class GameScene extends Scene {
                 // 衔接处遮挡仲裁（与玩家同口径；frontRange = 贴图脚底→头顶高度 = footOffsetY + displayHeight/2，
                 // 封顶 280——覆盖大型怪（如 fly-hand spriteSize 260）；旧封顶 160 给它们留理论死带）
                 const frontRange = Math.min(280, Math.max(60, footOffsetY + sprite.displayHeight / 2));
+                // 横向查询使用物理接地半径，不使用大尺寸贴图的 displayWidth/2，避免建筑边缘误遮挡。
+                const sideRange = Math.max(
+                    Number(e.groundRadius) || 0,
+                    Number(e.collisionRadius) || 0
+                );
                 let d = WallSystem.junctionCorrectedDepth(
                     e.x,
                     e.y,
                     sprite.y + footOffsetY + (isCorpse ? 2 : 10),
-                    frontRange
+                    frontRange,
+                    sideRange
                 );
                 const surfaceDepth = Number(e._surfaceRenderDepth);
                 if ((e._surfaceKind === 'wall_walk' || e._surfaceKind === 'stairs')
                     && Number.isFinite(surfaceDepth)
-                    && (Number(e._platformLift) || 0) > 0) {
+                    && (Number(e.z) || 0) > 0) {
                     d = Math.max(d, surfaceDepth + 1);
                 }
                 sprite.setDepth(d);
@@ -1410,18 +1702,22 @@ export class GameScene extends Scene {
                 if (!unit || !unit.aiConfig) continue;
                 const footOffsetY = this._getFootOffsetY(unit, sprite);
                 const frontRange = Math.min(280, Math.max(60, footOffsetY + sprite.displayHeight / 2));
+                // 友军同样按真实碰撞半径查询建筑前缘；视觉帧尺寸不参与几何遮挡范围。
+                const sideRange = Math.max(
+                    Number(unit.groundRadius) || 0,
+                    Number(unit.collisionRadius) || 0
+                );
                 let d = WallSystem.junctionCorrectedDepth(
-                    unit.x, unit.y, sprite.y + footOffsetY + 10, frontRange);
-                // 射击台（2026-08-16 四版）：连续抬升下自然深度已变浅，
-                // 台上单位保证画在平台贴图之上（台阶中途也正确）
-                const platRef = unit._platformRef;
-                if (platRef && platRef._faceDepth != null && unit._platformLift > 0) {
-                    d = Math.max(d, platRef._faceDepth + 1);
+                    unit.x, unit.y, sprite.y + footOffsetY + 10, frontRange, sideRange);
+                // 楼梯单位保证绘制在当前楼梯分段之上。
+                const staircase = unit._surfaceStaircase;
+                if (staircase && staircase._faceDepth != null && unit.z > 0) {
+                    d = Math.max(d, staircase._faceDepth + 1);
                 }
                 const surfaceDepth = Number(unit._surfaceRenderDepth);
                 if ((unit._surfaceKind === 'wall_walk' || unit._surfaceKind === 'stairs')
                     && Number.isFinite(surfaceDepth)
-                    && (Number(unit._platformLift) || 0) > 0) {
+                    && (Number(unit.z) || 0) > 0) {
                     d = Math.max(d, surfaceDepth + 1);
                 }
                 d = raiseElevatedAboveLowerUnits(unit, sprite, d);
@@ -1477,15 +1773,38 @@ export class GameScene extends Scene {
         // 其他施法者（敌人巫师等）的特效
         if (this._magicSprites) {
             for (const [caster, sprites] of this._magicSprites) {
-                const pd = this._projectileDepth(caster, 0);
                 if (sprites.iceSpikes) {
-                    sprites.iceSpikes.forEach(s => { if (s && s.active) s.setDepth(pd); });
+                    sprites.iceSpikes.forEach(s => {
+                        if (s && s.active) s.setDepth(this._projectileDepth(
+                            caster,
+                            s._skillGroundY,
+                            s._skillDepthContext
+                        ));
+                    });
                 }
                 if (sprites.iceSpikeFly) {
-                    sprites.iceSpikeFly.forEach(s => { if (s && s.active) s.setDepth(pd); });
+                    sprites.iceSpikeFly.forEach(s => {
+                        if (s && s.active) s.setDepth(this._projectileDepth(
+                            caster,
+                            s._skillGroundY,
+                            s._skillDepthContext
+                        ));
+                    });
                 }
                 if (sprites.fireballEmitters) {
-                    sprites.fireballEmitters.forEach(em => { if (em && em.visible) em.setDepth(pd); });
+                    let fireballDepth = null;
+                    sprites.fireballEmitters.forEach(em => {
+                        if (!em || !em.visible) return;
+                        fireballDepth = this._projectileDepth(
+                            caster,
+                            em._skillGroundY,
+                            em._skillDepthContext
+                        );
+                        em.setDepth(fireballDepth);
+                    });
+                    const glowKey = `fireball:${caster.id || caster.name || 'unknown'}`;
+                    const glow = this._persistentEnvironmentGlows?.get(glowKey);
+                    if (glow && fireballDepth != null) glow.depth = fireballDepth + 0.1;
                 }
             }
         }
@@ -1522,10 +1841,13 @@ export class GameScene extends Scene {
                 // 不能按“贴图中心 + footOffsetY + 10”（= e.y + 10）覆盖——e.y 是显示框
                 // 底边，比掩体接地线深 22~137px，会把墙前实体错误排到墙后被盖
                 // （2026-08-05 实机复现：怪物 depth 2100 < 掩体 2121）
-                const depth = (typeof e._faceDepth === 'number') ? e._faceDepth : data.sprite.y + footOffsetY + 10;
-                const structureDepth = Number.isFinite(e._structureRenderDepth)
-                    ? e._structureRenderDepth
-                    : depth;
+                const isGroundDevice = e._structureLayerMode === 'ground';
+                const depth = isGroundDevice
+                    ? GROUND_DEVICE_LAYER_DEPTH
+                    : ((typeof e._faceDepth === 'number') ? e._faceDepth : data.sprite.y + footOffsetY + 10);
+                const structureDepth = isGroundDevice
+                    ? GROUND_DEVICE_LAYER_DEPTH
+                    : (Number.isFinite(e._structureRenderDepth) ? e._structureRenderDepth : depth);
                 data.sprite.setDepth(structureDepth);
                 if (data.label && data.label.active) {
                     data.label.setDepth((e._structureRenderChannels?.label ?? (structureDepth + 1)));
@@ -1708,7 +2030,9 @@ export class GameScene extends Scene {
     _getVisualOffsetX(entity, sprite) {
         if (!sprite) return 0;
         const configured = entity.spriteCfg?.offsetX ?? entity.config?.render?.offsetX ?? 0;
-        if (shouldAutoAnchorStructure(entity) && sprite.texture?.key) {
+        const autoAnchor = shouldAutoAnchorStructure(entity);
+        const mirrorSign = autoAnchor && entity._facingLeft ? -1 : 1;
+        if (autoAnchor && sprite.texture?.key) {
             const nominal = getBuildingFootprint(entity._buildingFootprintCells || 2);
             const fit = resolveStructureGroundFit(
                 this,
@@ -1736,11 +2060,12 @@ export class GameScene extends Scene {
                     if (typeof entity.rebuildCollider === 'function') entity.rebuildCollider();
                     entity._visualGroundFitKey = fitKey;
                 }
-                entity._visualFootOffsetX = fit.visualOffsetX;
-                return fit.visualOffsetX;
+                const visualOffsetX = fit.visualOffsetX * mirrorSign;
+                entity._visualFootOffsetX = visualOffsetX;
+                return visualOffsetX;
             }
         }
-        return Number(configured) || 0;
+        return (Number(configured) || 0) * mirrorSign;
     }
 
     /**
@@ -1839,72 +2164,6 @@ export class GameScene extends Scene {
     }
 
     /**
-     * 从当前 Phaser 动画帧的 alpha 生成本地 X 轴投影遮罩。
-     * 同一纹理帧只创建一次；达到缓存上限时返回 null，调用方回退柔边椭圆。
-     */
-    _getDynamicProjectionTexture(sourceSprite) {
-        const frame = sourceSprite && sourceSprite.frame;
-        const textureKey = sourceSprite?.texture?.key;
-        const source = frame?.source?.image || sourceSprite?.texture?.getSourceImage?.();
-        if (!frame || !textureKey || !source || !source.width || !source.height) return null;
-        const cutX = frame.cutX || 0;
-        const cutY = frame.cutY || 0;
-        const cutW = frame.cutWidth || frame.realWidth || frame.width || source.width;
-        const cutH = frame.cutHeight || frame.realHeight || frame.height || source.height;
-        if (!(cutW > 0 && cutH > 0)) return null;
-        const safeTexture = String(textureKey).replace(/[^a-zA-Z0-9_-]/g, '_');
-        const safeFrame = String(frame.name ?? 'base').replace(/[^a-zA-Z0-9_-]/g, '_');
-        const projectionKey = `unit_projection_${safeTexture}_${safeFrame}_${cutW}x${cutH}`;
-        if (this.textures.exists(projectionKey)) return projectionKey;
-        if (EnvironmentLightingSystem.getShadowQuality() !== 'high') return null;
-        if (this._dynamicProjectionTextureKeys.size >= this._dynamicProjectionTextureLimit) return null;
-        try {
-            const texture = this.textures.createCanvas(projectionKey, cutH, cutW);
-            if (!texture) return null;
-            const ctx = texture.context;
-            // 顺时针旋转：原图竖直高度 → 投影长轴 X；之后用太阳方向旋转整个遮罩。
-            ctx.save();
-            ctx.translate(cutH, 0);
-            ctx.rotate(Math.PI * 0.5);
-            ctx.drawImage(source, cutX, cutY, cutW, cutH, 0, 0, cutW, cutH);
-            ctx.restore();
-            ctx.globalCompositeOperation = 'source-in';
-            ctx.fillStyle = '#000000';
-            ctx.fillRect(0, 0, cutH, cutW);
-            ctx.globalCompositeOperation = 'source-over';
-            texture.refresh();
-            this._dynamicProjectionTextureKeys.add(projectionKey);
-            return projectionKey;
-        } catch (_e) {
-            if (this.textures.exists(projectionKey)) this.textures.remove(projectionKey);
-            return null;
-        }
-    }
-
-    _clearDynamicProjectionTextureCache() {
-        if (!this._dynamicProjectionTextureKeys) return;
-        for (const sprite of this._shadowSprites?.values() || []) {
-            if (sprite && sprite.active && sprite.texture?.key?.startsWith('unit_projection_')) {
-                sprite.setTexture('entity_shadow');
-                sprite.setOrigin(0.5, 0.5);
-            }
-        }
-        for (const key of this._dynamicProjectionTextureKeys) {
-            if (this.textures.exists(key)) this.textures.remove(key);
-        }
-        this._dynamicProjectionTextureKeys.clear();
-    }
-
-    _refreshDynamicProjectionCachePolicy() {
-        const sceneId = SceneManager.currentScene || null;
-        const quality = EnvironmentLightingSystem.getShadowQuality();
-        if (sceneId === this._dynamicProjectionCacheSceneId && quality === this._dynamicProjectionCacheQuality) return;
-        this._clearDynamicProjectionTextureCache();
-        this._dynamicProjectionCacheSceneId = sceneId;
-        this._dynamicProjectionCacheQuality = quality;
-    }
-
-    /**
      * 为可移动实体生成太阳驱动的接触阴影。
      * 阴影服务统一负责太阳方向/高度；本方法只绑定实体脚底、显示深度和对象池。
      */
@@ -1914,7 +2173,7 @@ export class GameScene extends Scene {
         const isMapMode = SceneManager.currentScene === 'scene7' && dms && dms.active && dms.state === 'map';
         const active = new Set();
 
-        const ensureShadow = (key, entity, footprint, depth, visible, sourceSprite = null) => {
+        const ensureShadow = (key, entity, footprint, depth, visible, _sourceSprite = null) => {
             const shadowRadius = Math.max(1, Math.max(footprint.width, footprint.height) * 0.5);
             const profile = EnvironmentLightingSystem.getDynamicShadow(entity, shadowRadius);
             if (!profile) {
@@ -1927,35 +2186,21 @@ export class GameScene extends Scene {
                 sprite = this.add.sprite(0, 0, 'entity_shadow');
                 this._shadowSprites.set(key, sprite);
             }
-            const projectionKey = this._getDynamicProjectionTexture(sourceSprite);
-            const projection = !!projectionKey;
-            const wantedTexture = projectionKey || 'entity_shadow';
-            if (sprite.texture.key !== wantedTexture) sprite.setTexture(wantedTexture);
-            sprite.setOrigin(projection ? 0 : 0.5, 0.5);
-            if (projection) {
-                const projectionH = Math.max(
-                    footprint.height,
-                    footprint.width * 0.20,
-                    profile.length * 0.18
-                );
-                sprite.setPosition(footprint.x, footprint.y);
-                sprite.setDisplaySize(footprint.width + profile.length, projectionH);
-                sprite.setRotation(Math.atan2(profile.offsetY, profile.offsetX));
-                sprite.setFlipX(false);
-                sprite.setFlipY(!!sourceSprite?.flipX);
-            } else {
-                sprite.setPosition(
-                    footprint.x + profile.offsetX,
-                    footprint.y + profile.offsetY
-                );
-                sprite.setDisplaySize(
-                    footprint.width * profile.widthMul,
-                    footprint.height * profile.depthMul
-                );
-                sprite.setRotation(0);
-                sprite.setFlipX(false);
-                sprite.setFlipY(false);
-            }
+            // 胶囊拉伸椭圆为唯一做法（2026-08-19 单位影简化，用户口径：
+            // 单位不需要精细轮廓）——逐帧 alpha 剪影链（unit_projection）已退役。
+            sprite.setTexture('entity_shadow');
+            sprite.setOrigin(0.5, 0.5);
+            sprite.setPosition(
+                footprint.x + profile.offsetX,
+                footprint.y + profile.offsetY
+            );
+            sprite.setDisplaySize(
+                footprint.width * profile.widthMul,
+                footprint.height * profile.depthMul
+            );
+            sprite.setRotation(0);
+            sprite.setFlipX(false);
+            sprite.setFlipY(false);
             sprite.setDepth(depth);
             sprite.setAlpha(profile.opacity);
             sprite.setVisible(visible);
@@ -1968,8 +2213,8 @@ export class GameScene extends Scene {
             active.add(e);
             const depth = this.playerSprite.depth - 0.1; // 跟随本体仲裁后 depth（含墙体遮挡压下），始终略低于本体
             const footprint = this._getGroundShadowFootprint(e, e.groundRadius || 10);
-            // 射击台（2026-08-16）：人物精灵随 _platformLift 上移，阴影同步上移。
-            footprint.y -= e._platformLift || 0;
+            // 高架单位的视觉脚底统一使用 z。
+            footprint.y -= e.z || 0;
             ensureShadow(e, e, footprint, depth, !isMapMode, this.playerSprite);
         }
 
@@ -2347,7 +2592,7 @@ export class GameScene extends Scene {
         // 瞄准时仍走 Camera.x（含 aimOffset 平滑偏移），无人机操控不抢镜头。
         // 注意：GameScene 不持有 this.player，必须用 window.Game.player（与 game.js
         // Camera.update 的跟随目标同一引用），否则快照永远不生效。
-        // 2026-08-16 修正：纵向以玩家精灵（贴图中心，已含 footOffsetY/platformLift）
+        // 纵向以玩家精灵（贴图中心，已含 footOffsetY/elevationZ）
         // 为镜头中心——此前钉逻辑脚底，人物身体恒在屏幕中心上方 ~50px（zoom 0.7 ×
         // 72px 脚底偏移），观感"没居中"。
         const camGame = (typeof window !== 'undefined') ? window.Game : null;
@@ -3442,10 +3687,10 @@ export class GameScene extends Scene {
                 const offY = cf.offsetY;
                 let rot = cf.rotation * Math.PI / 180;
                 if (!facingRight) rot = Math.PI - rot;
-                // 射击台（2026-08-16）：武器同步平台抬升，避免与人物贴图分离
+                // 武器同步脚底 z，避免与人物贴图分离。
                 this.weaponSprite.setPosition(
                     player.x + offX,
-                    player.y + offY - this._getFootOffsetY(player, this.playerSprite) - (player._platformLift || 0)
+                    player.y + offY - this._getFootOffsetY(player, this.playerSprite) - (player.z || 0)
                 );
                 this.weaponSprite.setRotation(rot);
                 this.weaponSprite.setFlipX(!facingRight);
@@ -4134,8 +4379,10 @@ export class GameScene extends Scene {
             
             if (sword.flyActive) {
                 // 飞行剑：使用世界坐标和 flyAngle
-                // 悬浮在各自 elev 高度（碰撞/落点仍在 flyX/flyY 地面坐标）
-                sprite.setPosition(sword.flyX, sword.flyY - (sword.elev ?? (player.bodyHeight || 0) * 0.5));
+                // 视觉投影直接消费飞剑真实 Z；flyX/flyY 继续保持物理平面坐标。
+                const flyZ = Number(sword.flyZ)
+                    || entitySurfaceZ(player) + (sword.elev ?? (player.bodyHeight || 0) * 0.5);
+                sprite.setPosition(sword.flyX, sword.flyY - flyZ);
                 sprite.setDepth(this._projectileDepth(player, sword.flyY));
                 sprite.setRotation(sword.flyAngle + Math.PI / 2);
                 sprite.setAlpha(1);
@@ -4153,7 +4400,10 @@ export class GameScene extends Scene {
             const cos = Math.cos(player.rotation);
             const sin = Math.sin(player.rotation);
             const worldX = player.x + cos * localX - sin * localY;
-            const worldY = player.y - (sword.elev ?? (player.bodyHeight || 0) * 0.5) + sin * localX + cos * localY;
+            const worldY = player.y
+                - entitySurfaceZ(player)
+                - (sword.elev ?? (player.bodyHeight || 0) * 0.5)
+                + sin * localX + cos * localY;
             
             // 计算朝向鼠标的角度（使用 Phaser 相机坐标，避免 window.Camera 偏移错误）
             const camera = this.cameras.main;
@@ -4252,11 +4502,13 @@ export class GameScene extends Scene {
         return sprites.fireballEmitters;
     }
 
-    _positionFireballEmitters(caster, x, y, scale) {
+    _positionFireballEmitters(caster, x, y, scale, groundY = y, depthContext = null) {
         const ems = this._ensureFireballEmitters(caster, scale || 1);
-        const depth = this._projectileDepth(caster, y);
+        const depth = this._projectileDepth(caster, groundY, depthContext);
         for (const em of ems) {
             em.setPosition(x, y);
+            em._skillGroundY = groundY;
+            em._skillDepthContext = depthContext;
             // 浮空件深度 = 施法者精灵深度 + 2（避免按抬升后 y 排序沉到施法者身后不可见）
             em.setDepth(depth);
             em.setVisible(true);
@@ -4270,11 +4522,17 @@ export class GameScene extends Scene {
         });
     }
 
-    /** 投射物/特效浮空深度：优先施法者精灵深度 + 2；无精灵时回退 y + 15 */
-    _projectileDepth(caster, fallbackY) {
-        if (caster === Game.player && this.playerSprite) return this.playerSprite.depth + 2;
-        if (caster && caster._phaserSprite) return caster._phaserSprite.depth + 2;
-        return (fallbackY || 0) + 15;
+    /** 浮空特效优先跟随施法者；墙顶特效额外高于整条承托墙链。 */
+    _projectileDepth(caster, fallbackY, depthContext = null) {
+        return resolveSkillEffectDepth({
+            source: caster,
+            groundY: fallbackY,
+            context: depthContext,
+            groundOffset: 15,
+            sourceOffset: 2,
+            // 已发射的墙顶弹体使用出手快照，不再跟随后来上下墙的施法者深度。
+            preferSourceDepth: depthContext == null,
+        });
     }
 
     _hideFireballEmitters(caster) {
@@ -4326,7 +4584,10 @@ export class GameScene extends Scene {
             const sin = Math.sin(caster.rotation || 0);
             // 生成位置：以施法者圆柱体碰撞体积为基准——立体环绕（每根冰锥按 elev 位于圆柱体不同高度）
             const worldX = caster.x + cos * localX - sin * localY;
-            const worldY = caster.y - (spike.elev ?? (caster.bodyHeight || 0) * 0.5) + sin * localX + cos * localY;
+            const casterDisplayY = caster.y - entitySurfaceZ(caster);
+            const worldY = casterDisplayY
+                - (spike.elev ?? (caster.bodyHeight || 0) * 0.5)
+                + sin * localX + cos * localY;
 
             // 玩家通过鼠标瞄准；敌人自动瞄准 caster.target。
             // 参考调整前代码：所有冰锥统一以施法者中心→鼠标准星的朝向（整圈冰锥同一指向，全部对准准星方向）
@@ -4335,17 +4596,22 @@ export class GameScene extends Scene {
                 const camera = this.cameras.main;
                 const mouseX = camera.scrollX + (Input.mouse?.x || 0);
                 const mouseY = camera.scrollY + (Input.mouse?.y || 0);
-                absoluteAngle = Math.atan2(mouseY - caster.y, mouseX - caster.x);
+                absoluteAngle = Math.atan2(mouseY - casterDisplayY, mouseX - caster.x);
             } else {
                 const target = caster.target;
                 if (target && target.active) {
-                    absoluteAngle = Math.atan2(target.y - caster.y, target.x - caster.x);
+                    absoluteAngle = Math.atan2(
+                        target.y - entitySurfaceZ(target) - casterDisplayY,
+                        target.x - caster.x
+                    );
                 } else {
                     absoluteAngle = caster.rotation || 0;
                 }
             }
 
             sprite.setPosition(worldX, worldY);
+            sprite._skillGroundY = caster.y;
+            sprite._skillDepthContext = null;
             sprite.setDepth(this._projectileDepth(caster, worldY)); // 浮空件：施法者精灵深度 + 2
             sprite.setRotation(absoluteAngle + Math.PI / 2);
             sprite.setAlpha(0.85);
@@ -4376,10 +4642,13 @@ export class GameScene extends Scene {
         const sin = Math.sin(caster.rotation || 0);
         // 生成位置：以施法者圆柱体碰撞体积为基准（火球位于垂直中心 elev）
         const worldX = caster.x + cos * localX - sin * localY;
-        const worldY = caster.y - (fb.elev ?? (caster.bodyHeight || 0) * 0.5) + sin * localX + cos * localY;
+        const worldY = caster.y
+            - entitySurfaceZ(caster)
+            - (fb.elev ?? (caster.bodyHeight || 0) * 0.5)
+            + sin * localX + cos * localY;
 
         // 火炬同款火焰粒子（放大版）替换固定贴图
-        this._positionFireballEmitters(caster, worldX, worldY, fb.scale || 1);
+        this._positionFireballEmitters(caster, worldX, worldY, fb.scale || 1, caster.y, null);
     }
 
     /**
@@ -4467,12 +4736,11 @@ export class GameScene extends Scene {
                 // 随机贴图：与悬浮期一致，每颗冰锥独立抽取
                 const tex = spike.tex || 'iceSpike';
                 if (sprite.texture.key !== tex) sprite.setTexture(tex);
-                // 飞行视觉悬浮在各自 elev 高度（碰撞/落点仍在 flyX/flyY 地面坐标）
-                // 高度随飞行进度收敛：到达瞄准点（targetDist）时降到地面，所有冰锥精确汇聚于鼠标准星
-                const flyProg = spike.targetDist ? Math.min(1, spike.flyDistance / spike.targetDist) : 0;
-                const raiseY = (spike.elev ?? (caster.bodyHeight || 0) * 0.5) * (1 - flyProg);
-                sprite.setPosition(spike.flyX, spike.flyY - raiseY);
-                sprite.setDepth(this._projectileDepth(caster, spike.flyY));
+                // 视觉与碰撞共用真实 flyZ，墙顶/楼梯飞行不再降到物理地面投影。
+                sprite.setPosition(spike.flyX, spike.flyY - (Number(spike.flyZ) || 0));
+                sprite._skillGroundY = spike.flyY;
+                sprite._skillDepthContext = spike.renderDepthContext;
+                sprite.setDepth(this._projectileDepth(caster, spike.flyY, spike.renderDepthContext));
                 sprite.setRotation(spike.flyAngle + Math.PI / 2);
                 sprite.setAlpha(0.9);
                 sprite.setVisible(true);
@@ -4494,10 +4762,15 @@ export class GameScene extends Scene {
         }
 
         const fb = caster._fireball;
-        // 飞行高度随进度收敛：到达瞄准点（targetDist）时降到地面，与冰锥同口径
-        const flyProg = fb.targetDist ? Math.min(1, fb.flyDistance / fb.targetDist) : 0;
-        const raiseY = (fb.elev ?? (caster.bodyHeight || 0) * 0.5) * (1 - flyProg);
-        this._positionFireballEmitters(caster, fb.flyX, fb.flyY - raiseY, fb.scale || 1);
+        // 视觉与碰撞共用真实 flyZ。
+        this._positionFireballEmitters(
+            caster,
+            fb.flyX,
+            fb.flyY - (Number(fb.flyZ) || 0),
+            fb.scale || 1,
+            fb.flyY,
+            fb.renderDepthContext
+        );
     }
 
     // ==================== 挥砍残影（A 方案运动模糊的实现） ====================
@@ -5916,6 +6189,7 @@ export class GameScene extends Scene {
     _syncCollisionRadii(_game) {
         if (!_game || !_game.entities) return;
         const show = _game.showAttackRange;
+        this._syncElevatedNavigationRanges(_game, show);
         if (!show) {
             if (this._collisionRadiusGraphics) {
                 this._collisionRadiusGraphics.clear();
@@ -6376,6 +6650,7 @@ export class GameScene extends Scene {
                 for (const sprite of new Set(sprites)) {
                     if (sprite?.active) sprite.destroy();
                 }
+                if (data.foundationSprite?.active) data.foundationSprite.destroy();
                 if (data.label && data.label.active) data.label.destroy();
             }
             this._neutralSprites.clear();
@@ -6718,14 +6993,6 @@ export class GameScene extends Scene {
                     || null,
             })),
             inspect: (id = 'defense_base') => this._inspectShadowAlignment(id),
-            setInset: (textureKey, y = 0, x = 0) => {
-                const meta = lightingAssets.assets?.[textureKey];
-                if (!meta) return { ok: false, reason: `未找到光照资产: ${textureKey}` };
-                meta.shadow = meta.shadow || {};
-                meta.shadow.anchorInsetX = Number(x) || 0;
-                meta.shadow.anchorInsetY = Number(y) || 0;
-                return { ok: true, textureKey, shadow: { ...meta.shadow } };
-            },
         };
     }
 
@@ -6737,7 +7004,8 @@ export class GameScene extends Scene {
         const neutral = this._neutralSprites?.get(entity);
         const layered = this._defenseSprites?.get(entity);
         const sprite = neutral?.sprite || layered?.base || entity._phaserSprite || null;
-        const shadowSprite = this._structureSunShadows?.get(entity) || this._shadowSprites?.get(entity) || null;
+        const shadowEntry = this._structureSunShadows?.get(entity) || this._shadowSprites?.get(entity) || null;
+        const shadowSprite = Array.isArray(shadowEntry) ? shadowEntry[0] || null : shadowEntry;
         const shadowData = shadowSprite ? this._staticSunShadows?.get(shadowSprite) : null;
         const footprint = this._getGroundShadowFootprint(entity, entity.collisionRadius || 10, sprite
             ? { x: sprite.x, y: sprite.y + this._getFootOffsetY(entity, sprite) }
@@ -6786,19 +7054,58 @@ export class GameScene extends Scene {
         const scaleY = sp.displayHeight / texH;
         // 建筑脚底走配置/实测 footOffsetY；散布障碍物贴图底行 = 精灵半高
         const footY = data.entity ? this._getFootOffsetY(data.entity, sp) : sp.displayHeight * 0.5;
-        let maxHeight = 1;
-        for (const col of meta.columns) {
-            maxHeight = Math.max(maxHeight, (col[2] - col[1]) * scaleY);
-        }
-        return {
-            columns: meta.columns,
+        // flipX 一次性镜像列（2026-08-19 部分仙人掌没对齐修复）：列/前顶点先按
+        // 贴图中心镜像，下游坡度截断/地面线/展开全部用镜像后几何，flipSign 归一——
+        // 否则非对称贴图（单臂仙人掌）的镜像实例接地线与前顶点全部错位。
+        const flip = !!data.flipX;
+        const mirrorX = (x) => (texW - x);
+        const columns = flip
+            ? meta.columns.map((c) => [mirrorX(c[0]), c[1], c[2]]).sort((a, b) => a[0] - b[0])
+            : meta.columns;
+        const frontX = flip ? mirrorX(meta.frontX) : meta.frontX;
+        // 实测代表高度（2026-08-19 墙/楼梯"太短"修复）：iso 地面线以上的内容高
+        // 75 分位（显示像素）——墙这类高薄件的 data.height 由 footprint 半径低估一半，
+        // 影长跟着短一半；剪影迷航归一与 profile.length 统一改用这个实测值。
+        const frontTX = columns.reduce((a, c) => (c[2] > a[2] ? c : a), columns[0])[0];
+        const contentHeights = columns
+            .map((c) => Math.max(0, Math.max(c[2], meta.frontY - 0.5 * Math.abs(c[0] - frontTX)) - c[1]) * scaleY)
+            .sort((a, b) => a - b);
+        const measuredHeight = Math.max(1, contentHeights[Math.min(contentHeights.length - 1, Math.floor(contentHeights.length * 0.75))]);
+        // 阴影实体四边形：与轮廓同一锚点真源（接地曲线生成，对齐由构造保证）。
+        // 列已按 flipX 一次性镜像，下游 flipSign 归一为 false。
+        const bodyVertices = EnvironmentLightingSystem.getSilhouetteFootprintVertices(columns, {
             scaleX,
             scaleY,
             anchorX: sp.x,
             anchorY: sp.y + footY,
+            frontX,
             frontY: meta.frontY,
             texCenterX: texW / 2,
-            maxHeight,
+            flipX: false,
+        });
+        // 城墙楼梯锚点落地：精灵屏幕位置含 z 抬升，
+        // 影子锚在那里会浮空——改用 footprint 四边形前顶点（地面真源）。
+        let anchorX = sp.x;
+        let anchorY = sp.y + footY;
+        const ent = data.entity;
+        if (ent && ent._isWallStaircase
+            && Array.isArray(data.footprintVertices) && data.footprintVertices.length >= 3) {
+            const quadFront = data.footprintVertices.reduce((a, b) => (b.y > a.y ? b : a));
+            anchorX = quadFront.x - (flip ? -1 : 1) * (frontX - texW / 2) * scaleX;
+            anchorY = quadFront.y;
+        }
+        return {
+            columns,
+            scaleX,
+            scaleY,
+            anchorX,
+            anchorY,
+            frontX,
+            frontY: meta.frontY,
+            texCenterX: texW / 2,
+            flipMirrored: flip,
+            measuredHeight,
+            bodyVertices: bodyVertices.length >= 3 ? bodyVertices : null,
         };
     }
 
@@ -6806,6 +7113,8 @@ export class GameScene extends Scene {
         if (!this._staticSunShadows) return;
         const dms = DungeonMapSystem;
         const isMapMode = SceneManager.currentScene === 'scene7' && dms && dms.active && dms.state === 'map';
+        const shadowJobs = this._structureShadowJobs || [];
+        shadowJobs.length = 0;
         for (const [sprite, data] of this._staticSunShadows.entries()) {
             if (!sprite || !sprite.active) {
                 this._staticSunShadows.delete(sprite);
@@ -6824,73 +7133,381 @@ export class GameScene extends Scene {
                     data._silCache = this._resolveShadowSilhouette(data);
                 }
                 const theta = Math.atan2(profile.offsetY, profile.offsetX);
-                // 凸包实体 ∪ 剪影轮廓（2026-08-19 九轮）：凸包保证主体、剪影贡献轮廓，
-                // 包络合并为单一多边形——纯凸包无轮廓、纯剪影在高差建筑上退化成细带。
-                const hullBody = data.footprintVertices
-                    ? EnvironmentLightingSystem.getStaticShadowHull(data.footprintVertices, profile)
-                    : [];
-                const silPoly = data._silCache
-                    ? EnvironmentLightingSystem.getSilhouetteShadowPolygon(data._silCache.columns, {
-                        theta,
-                        length: profile.length,
-                        scaleX: data._silCache.scaleX,
-                        scaleY: data._silCache.scaleY,
-                        anchorX: data._silCache.anchorX,
-                        anchorY: data._silCache.anchorY,
-                        frontY: data._silCache.frontY,
-                        texCenterX: data._silCache.texCenterX,
-                        flipX: !!data.flipX,
-                        maxHeight: data._silCache.maxHeight,
-                    })
-                    : [];
-                const hull = data._silCache
-                    ? EnvironmentLightingSystem.getUnionShadowPolygon(hullBody, silPoly, { theta })
-                    : hullBody;
-                sprite.clear();
-                if (hull.length >= 3 && profile.opacity > 0.001) {
-                    let cx = 0;
-                    let cy = 0;
-                    for (const p of hull) { cx += p.x; cy += p.y; }
-                    cx /= hull.length;
-                    cy /= hull.length;
-                    // 边缘淡出（2026-08-19 用户口径）：质心外扩五段、alpha 几何衰减，
-                    // 形成 ~10% 尺寸的柔和淡出带，替代硬边三段式。
-                    const feather = [[1.0, 1.0], [1.02, 0.42], [1.045, 0.26], [1.07, 0.15], [1.10, 0.08]];
-                    for (const [scale, alphaMul] of feather) {
-                        sprite.fillStyle(0x000000, profile.opacity * alphaMul);
-                        sprite.fillPoints(hull.map((p) => ({
-                            x: cx + (p.x - cx) * scale,
-                            y: cy + (p.y - cy) * scale,
-                        })), true);
-                    }
+                // 多边形 epsilon 脏检查（2026-08-19 审计性能修复）：太阳角变化 <0.11°
+                // 且延长段变化 <0.5px 且顶点签名不变时复用缓存多边形——子像素级步进
+                // 无可见跳变，把每帧重建几十上百列点列的 GC/CPU 压力降到脏帧一次。
+                const sig = data.footprintVertices
+                    ? data.footprintVertices.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join('|')
+                    : '';
+                const state = data._polyState;
+                const dirty = !state
+                    || Math.abs(state.theta - theta) > 0.002
+                    || Math.abs(state.length - profile.length) > 0.5
+                    || state.sig !== sig;
+                let hull;
+                let cx;
+                let cy;
+                if (!dirty) {
+                    hull = state.points;
+                    cx = state.cx;
+                    cy = state.cy;
+                } else {
+                    // 凸包实体 ∪ 剪影轮廓（2026-08-19 九轮）：凸包保证主体、剪影贡献轮廓，
+                    // 包络合并为单一多边形——纯凸包无轮廓、纯剪影在高差建筑上退化成细带。
+                    // 实体四边形真源分流（2026-08-19 十二轮）：
+                    // 建筑（有 entity）用剪影接地曲线实体（与轮廓同一锚点）；
+                    // 散布障碍物（无 entity）用 geo foot 手调碰撞四边形——球体/异形
+                    // （桶状仙人掌）不适用平底截断法，手调 foot 才是正确接地面。
+                    const bodyVerts = (data.entity ? data._silCache?.bodyVertices : null)
+                        || data.footprintVertices;
+                    const hullBody = bodyVerts
+                        ? EnvironmentLightingSystem.getStaticShadowHull(bodyVerts, profile)
+                        : [];
+                    const silPoly = data._silCache
+                        ? EnvironmentLightingSystem.getSilhouetteShadowPolygon(data._silCache.columns, {
+                            theta,
+                            length: profile.length,
+                            scaleX: data._silCache.scaleX,
+                            scaleY: data._silCache.scaleY,
+                            anchorX: data._silCache.anchorX,
+                            anchorY: data._silCache.anchorY,
+                            frontY: data._silCache.frontY,
+                            texCenterX: data._silCache.texCenterX,
+                            flipX: data.flipX && !data._silCache.flipMirrored,
+                        groundLine: data._silCache.groundLine || null,
+                            // 归一参考 = 实体自身阴影高度（与 profile.length 同源同单位）——
+                            // 列高统计会被矮件稀释（仓库主屋位移被压扁的根因）。
+                            maxHeight: Math.max(1, data.height || 1),
+                            maxOffset: data.maxOffset ?? profile.length,
+                        })
+                        : [];
+                    hull = data._silCache
+                        ? EnvironmentLightingSystem.getUnionShadowPolygon(hullBody, silPoly, { theta })
+                        : hullBody;
+                    cx = 0;
+                    cy = 0;
+                    for (const pt of hull) { cx += pt.x; cy += pt.y; }
+                    cx /= Math.max(1, hull.length);
+                    cy /= Math.max(1, hull.length);
+                    data._polyState = { theta, length: profile.length, sig, points: hull, cx, cy };
                 }
-                sprite.setDepth(data.depth);
-                sprite.setVisible(!isMapMode && data.visible !== false && hull.length >= 3 && profile.opacity > 0.001);
+                if (hull.length >= 3 && profile.opacity > 0.001 && data.visible !== false) {
+                    shadowJobs.push({ hull, cx, cy, opacity: profile.opacity, dirty });
+                }
                 continue;
             }
             const baseW = data.footprintWidth || data.radius * 2;
             const baseH = data.footprintHeight || data.radius * 2 * PERSPECTIVE_SCALE_Y;
-            // 胶囊接触影（树木/桶状仙人掌/墙件）：柔边椭圆随太阳偏移并拉长。
-            sprite.setPosition(
-                data.x + profile.offsetX,
-                data.y + profile.offsetY
-            );
-            sprite.setDisplaySize(baseW + profile.length, baseH);
-            sprite.setRotation(Math.atan2(
-                profile.offsetY,
-                profile.offsetX
-            ));
-            sprite.setFlipX(!!data.flipX);
-            sprite.setFlipY(!!data.flipY);
-            sprite.setAlpha(profile.opacity);
-            sprite.setDepth(data.depth);
-            sprite.setVisible(!isMapMode && data.visible !== false);
+            // 静态胶囊（树木/桶状仙人掌/墙件）并入共享层（2026-08-19 重叠加深修复）：
+            // 独立 Sprite 会与结构层跨系统叠加变深（0.19×0.19 合成≈0.35，肉眼可见）——
+            // 改为旋转椭圆 16 边形作为普通多边形 job，层内同色同场透明度不叠加。
+            // 这些注册体全静态（树/散布障碍），epsilon 脏检查与多边形同口径；
+            // 精灵仅保留为注册键（注销/回链用），不再直接渲染。
+            sprite.setVisible(false);
+            const capTheta = Math.atan2(profile.offsetY, profile.offsetX);
+            const capSig = `${data.x.toFixed(1)},${data.y.toFixed(1)},${baseW.toFixed(1)},${baseH.toFixed(1)}`;
+            const capState = data._polyState;
+            const capDirty = !capState
+                || Math.abs(capState.theta - capTheta) > 0.002
+                || Math.abs(capState.length - profile.length) > 0.5
+                || capState.sig !== capSig;
+            let capPts;
+            let capCx;
+            let capCy;
+            if (!capDirty) {
+                capPts = capState.points;
+                capCx = capState.cx;
+                capCy = capState.cy;
+            } else {
+                capCx = data.x + profile.offsetX;
+                capCy = data.y + profile.offsetY;
+                const rx = Math.max(2, (baseW + profile.length) / 2);
+                const ry = Math.max(1.5, baseH / 2);
+                const cosT = Math.cos(capTheta);
+                const sinT = Math.sin(capTheta);
+                capPts = [];
+                for (let i = 0; i < 16; i++) {
+                    const ang = (i / 16) * Math.PI * 2;
+                    const ex = Math.cos(ang) * rx;
+                    const ey = Math.sin(ang) * ry;
+                    capPts.push({ x: capCx + ex * cosT - ey * sinT, y: capCy + ex * sinT + ey * cosT });
+                }
+                data._polyState = { theta: capTheta, length: profile.length, sig: capSig, points: capPts, cx: capCx, cy: capCy };
+            }
+            if (profile.opacity > 0.001 && data.visible !== false) {
+                shadowJobs.push({ hull: capPts, cx: capCx, cy: capCy, opacity: profile.opacity, dirty: capDirty });
+            }
+        }
+        // 共享结构阴影层（2026-08-19 十三轮）：全部结构阴影多边形在同一 Graphics
+        // 内绘制——核心环 alpha 1 实心、沿并集外轮廓单次描边软边，整层再乘统一透明度。
+        // 层深 −994 = 地板块 −1000、道路 −995 之上——阴影压在道路/地板上（曾被道路遮挡打回）。
+        const frameSun = EnvironmentLightingSystem.getSun();
+        const frameTheta = Math.atan2(frameSun?.shadowY || 0, frameSun?.shadowX || 0);
+        const layer = this._structureShadowLayer;
+        if (layer) {
+            // 干净帧整体跳过重画（2026-08-19 审计性能修复）：Graphics 保留指令缓冲，
+            // 无阴影几何/数量/透明度变化时不清不重画，稳态开销≈0；
+            // 太阳连续移动时按 epsilon 脏检查驱动（0.11°/0.5px 子像素步进，无跳变）。
+            let layerOpacity = 0;
+            let layerDirty = false;
+            for (const job of shadowJobs) {
+                layerOpacity = Math.max(layerOpacity, job.opacity);
+                if (job.dirty) layerDirty = true;
+            }
+            if (shadowJobs.length !== (this._structureShadowJobCount ?? -1)) layerDirty = true;
+            if (Math.abs(layerOpacity - (this._structureShadowLayerOpacity ?? -1)) > 0.005) layerDirty = true;
+            if (layerDirty) {
+                layer.clear();
+                // 相交阴影先几何并集再一次填充（2026-08-19 用户口径"重叠调成一整个、
+                // 同一强度"）——不依赖任何混合幂等假设，从结构上杜绝重叠加深。
+                const drawJobs = this._mergeShadowJobsIntoClusters(shadowJobs, frameTheta);
+                for (const job of drawJobs) {
+                    for (const scale of STRUCTURE_SHADOW_CORE_SCALES) {
+                        layer.fillStyle(0x000000, 1);
+                        layer.fillPoints(job.hull.map((p) => ({
+                            x: job.cx + (p.x - job.cx) * scale,
+                            y: job.cy + (p.y - job.cy) * scale,
+                        })), true);
+                    }
+                    // 软边 = 沿并集外轮廓单次描边；簇内接缝完全消失（无内部描边）。
+                    layer.lineStyle(6, 0x000000, 0.32);
+                    layer.strokePoints(job.hull, true);
+                }
+                layer.setAlpha(layerOpacity);
+                this._structureShadowJobCount = shadowJobs.length;
+                this._structureShadowLayerOpacity = layerOpacity;
+            }
+            layer.setVisible(!isMapMode && layerOpacity > 0.001);
         }
     }
 
-    _clearStructureShadowBakeCache() {
-        // 兼容保留：场景/质量切换与 shutdown 的统一回收钩子（七轮回退 footprint
-        // 凸包后已无烘焙缓存，此函数留作生命周期占位，防止旧调用断链）。
+    /**
+     * 相交/相贴的阴影 job 聚簇 + 太阳帧包络合并（2026-08-19 重叠加深根治）。
+     * 判定：bbox 粗筛（外扩描边半宽）→ 顶点互含或边相交精判；互不相交的簇
+     * 保持独立（禁止桥接远处建筑）。合并后的多边形一次填充、统一强度。
+     */
+    _mergeShadowJobsIntoClusters(jobs, theta) {
+        const n = jobs.length;
+        if (n <= 1) return jobs;
+        const MARGIN = 8; // 描边半宽 + AA 余量
+        const boxes = jobs.map((job) => {
+            let x0 = Infinity;
+            let y0 = Infinity;
+            let x1 = -Infinity;
+            let y1 = -Infinity;
+            for (const p of job.hull) {
+                if (p.x < x0) x0 = p.x;
+                if (p.y < y0) y0 = p.y;
+                if (p.x > x1) x1 = p.x;
+                if (p.y > y1) y1 = p.y;
+            }
+            return { x0: x0 - MARGIN, y0: y0 - MARGIN, x1: x1 + MARGIN, y1: y1 + MARGIN };
+        });
+        const parent = jobs.map((_, i) => i);
+        const find = (i) => {
+            let r = i;
+            while (parent[r] !== r) r = parent[r];
+            while (parent[i] !== r) { const next = parent[i]; parent[i] = r; i = next; }
+            return r;
+        };
+        for (let i = 0; i < n; i++) {
+            for (let j = i + 1; j < n; j++) {
+                const a = boxes[i];
+                const b = boxes[j];
+                if (a.x1 < b.x0 || b.x1 < a.x0 || a.y1 < b.y0 || b.y1 < a.y0) continue;
+                if (this._shadowPolysTouch(jobs[i].hull, jobs[j].hull)) {
+                    const ri = find(i);
+                    const rj = find(j);
+                    if (ri !== rj) parent[rj] = ri;
+                }
+            }
+        }
+        const groups = new Map();
+        jobs.forEach((job, i) => {
+            const root = find(i);
+            if (!groups.has(root)) groups.set(root, []);
+            groups.get(root).push(job);
+        });
+        const out = [];
+        for (const group of groups.values()) {
+            if (group.length === 1) {
+                out.push(group[0]);
+                continue;
+            }
+            const merged = EnvironmentLightingSystem.getUnionOfPolygons(group.map((g) => g.hull), { theta });
+            if (merged.length >= 3) {
+                let cx = 0;
+                let cy = 0;
+                for (const p of merged) { cx += p.x; cy += p.y; }
+                out.push({
+                    hull: merged,
+                    cx: cx / merged.length,
+                    cy: cy / merged.length,
+                    opacity: Math.max(...group.map((g) => g.opacity)),
+                    dirty: true,
+                });
+            } else {
+                out.push(...group);
+            }
+        }
+        return out;
+    }
+
+    /** 两多边形是否相贴/相交：顶点互含 或 任两边相交。 */
+    _shadowPolysTouch(polyA, polyB) {
+        const pip = (pts, p) => {
+            let inside = false;
+            for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) {
+                const a = pts[i];
+                const b = pts[j];
+                if ((a.y > p.y) !== (b.y > p.y)
+                    && p.x < ((b.x - a.x) * (p.y - a.y)) / (b.y - a.y) + a.x) inside = !inside;
+            }
+            return inside;
+        };
+        for (const p of polyA) if (pip(polyB, p)) return true;
+        for (const p of polyB) if (pip(polyA, p)) return true;
+        const segCross = (a1, a2, b1, b2) => {
+            const d = (a2.x - a1.x) * (b2.y - b1.y) - (a2.y - a1.y) * (b2.x - b1.x);
+            if (Math.abs(d) < 1e-9) return false;
+            const t = ((b1.x - a1.x) * (b2.y - b1.y) - (b1.y - a1.y) * (b2.x - b1.x)) / d;
+            const u = ((b1.x - a1.x) * (a2.y - a1.y) - (b1.y - a1.y) * (a2.x - a1.x)) / d;
+            return t >= 0 && t <= 1 && u >= 0 && u <= 1;
+        };
+        for (let i = 0; i < polyA.length; i++) {
+            const a1 = polyA[i];
+            const a2 = polyA[(i + 1) % polyA.length];
+            for (let j = 0; j < polyB.length; j++) {
+                if (segCross(a1, a2, polyB[j], polyB[(j + 1) % polyB.length])) return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * 铁栅栏门专用太阳阴影（2026-08-19）：门无 spriteCfg（中立精灵是占位圆），
+     * 且地面接触是对角面线而非 V 形底座——body 用门自身 iso footprint 薄矩形，
+     * 剪影取 cover_gate_<grade> 帧 0 列、沿实体 `_faceLine`（世界面线真源）映射。
+     */
+    _ensureGateSunShadow(entity, active) {
+        const gateTex = entity._cfg?.tex;
+        const silMeta = lightingAssets.assets?.[gateTex]?.shadowSilhouette || null;
+        const verts = entity.collisionShape === 'iso_rect' ? isoFootprintVertices(entity) : null;
+        if (!silMeta || !Array.isArray(silMeta.columns) || silMeta.columns.length < 3
+            || !verts || verts.length < 3 || !Array.isArray(entity._faceLine)) return;
+        const flip = !!entity._facingLeft;
+        const mirrorX = (x) => 640 - x;
+        const columns = flip
+            ? silMeta.columns.map((c) => [mirrorX(c[0]), c[1], c[2]]).sort((a, b) => a[0] - b[0])
+            : silMeta.columns;
+        const frontX = flip ? mirrorX(silMeta.frontX) : silMeta.frontX;
+        const scale = Number(entity._cfg?.displayScale) || 1;
+        const frontTX = columns.reduce((a, c) => (c[2] > a[2] ? c : a), columns[0])[0];
+        const contentHeights = columns
+            .map((c) => Math.max(0, Math.max(c[2], silMeta.frontY - 0.5 * Math.abs(c[0] - frontTX)) - c[1]) * scale)
+            .sort((a, b) => a - b);
+        const measuredHeight = Math.max(1, contentHeights[Math.min(contentHeights.length - 1, Math.floor(contentHeights.length * 0.75))]);
+        const shadowData = {
+            hull: true,
+            entity,
+            sourceSprite: null,
+            x: entity.x,
+            y: entity.y,
+            footprintVertices: verts.map((p) => ({ x: p.x, y: p.y })),
+            height: measuredHeight,
+            maxOffset: Math.max(43, measuredHeight * 0.5),
+            depth: (Number(entity._faceDepth) || entity.y) - 0.1,
+            visible: true,
+        };
+        shadowData._silCache = {
+            columns,
+            scaleX: scale,
+            scaleY: scale,
+            frontX,
+            frontY: silMeta.frontY,
+            texCenterX: 320,
+            flipMirrored: true,
+            measuredHeight,
+            groundLine: {
+                ax: entity._faceLine[0].x,
+                ay: entity._faceLine[0].y,
+                bx: entity._faceLine[1].x,
+                by: entity._faceLine[1].y,
+            },
+            bodyVertices: null,
+        };
+        let shadow = this._structureSunShadows.get(entity);
+        if (!shadow || !shadow.active) {
+            shadow = this.registerStaticSunShadow(shadowData);
+            if (shadow) this._structureSunShadows.set(entity, shadow);
+        } else {
+            this.updateStaticSunShadow(shadow, shadowData);
+        }
+        if (shadow) active.add(entity);
+    }
+
+    /**
+     * 城墙楼梯太阳阴影（2026-08-19 "视作一块整体"定稿）：
+     * 楼梯由多块主体拼接（segmentSprites 逐段 z 抬升），逐段出影会有分块感；
+     * 贴图内容是对角斜墙，剪影展开会沿贴图对角线偏离全局影向 40°+（七扭八斜根因）。
+     * 故整条楼梯一个影：全部段 1×1 footprint 顶点合并成梯轴长带（凸包在
+     * getStaticShadowHull 内求），沿全局影向统一挤出；高度取各段剪影实测最大
+     * measuredHeight（墙/楼梯影长修复不回退），`_silCache` 置 null 走纯凸包。
+     */
+    _ensureStairSunShadows(entity, active) {
+        const neutral = this._neutralSprites && this._neutralSprites.get(entity);
+        const segSprites = neutral?.segmentSprites || [];
+        const segments = Array.isArray(entity.segments) ? entity.segments : [];
+        if (!segments.length || !segSprites.length) {
+            // 首帧/重建中：保留既有阴影，避免逐帧注销-重建抖动。
+            if (this._structureSunShadows.has(entity)) active.add(entity);
+            return;
+        }
+        const allVerts = [];
+        let maxHeight = 0;
+        for (let i = 0; i < segments.length; i++) {
+            const seg = segments[i];
+            if (seg?.collisionShape !== 'iso_rect') continue;
+            const verts = isoFootprintVertices(seg);
+            for (const p of verts) allVerts.push({ x: p.x, y: p.y });
+            const sp = segSprites[i];
+            if (!sp?.active) continue;
+            const probe = this._resolveShadowSilhouette({
+                entity, sourceSprite: sp, flipX: false, footprintVertices: verts,
+            });
+            if (probe?.measuredHeight > maxHeight) maxHeight = probe.measuredHeight;
+        }
+        if (allVerts.length < 3) return;
+        const effectiveHeight = maxHeight
+            || Math.max(64 * 3, (segSprites[0]?.displayHeight || 220) * 0.55) * 0.75 * 0.75;
+        const sp0 = segSprites.find((s) => s?.active) || null;
+        const shadowData = {
+            hull: true,
+            entity,
+            sourceSprite: sp0,
+            x: entity.x,
+            y: entity.y,
+            radius: 64,
+            footprintVertices: allVerts,
+            height: effectiveHeight,
+            maxOffset: Math.max(43, effectiveHeight * 0.5),
+            depth: (Number(sp0?.depth) || entity.y) - 0.1,
+            visible: sp0 ? sp0.visible : true,
+            _silCache: null,
+        };
+        let shadow = this._structureSunShadows.get(entity);
+        if (Array.isArray(shadow)) {
+            // 分段影残留（上一版方案）：清掉重建
+            shadow.forEach((s) => this.unregisterStaticSunShadow(s));
+            shadow = null;
+        }
+        if (!shadow || !shadow.active) {
+            shadow = this.registerStaticSunShadow(shadowData);
+            if (shadow) this._structureSunShadows.set(entity, shadow);
+        } else {
+            this.updateStaticSunShadow(shadow, shadowData);
+        }
+        if (shadow) active.add(entity);
     }
 
     /**
@@ -6905,7 +7522,8 @@ export class GameScene extends Scene {
         // _syncStaticSunShadows 绘制，不能直接隐藏整个共享 Graphics。
         if (FlatViewSystem.enabled) {
             for (const [entity, shadow] of this._structureSunShadows.entries()) {
-                this.unregisterStaticSunShadow(shadow);
+                if (Array.isArray(shadow)) shadow.forEach((s) => this.unregisterStaticSunShadow(s));
+                else this.unregisterStaticSunShadow(shadow);
                 this._structureSunShadows.delete(entity);
             }
             return;
@@ -6938,7 +7556,24 @@ export class GameScene extends Scene {
                     { x: footprint.x - hw, y: footprint.y },
                 ];
             }
+            // 提前解析剪影缓存：拿到实测高度后用它覆盖半径估算（墙/楼梯影长翻倍修复）
+            const silCache = this._resolveShadowSilhouette({
+                entity, sourceSprite: sprite, flipX: !!sprite.flipX,
+                footprintVertices: vertices,
+            });
+            const effectiveHeight = silCache?.measuredHeight || height;
+            const effectiveMaxOffset = Math.max(43, effectiveHeight * 0.5);
             let shadow = this._structureSunShadows.get(entity);
+            if (Array.isArray(shadow)) {
+                // 楼梯分段影残留防御（楼梯走 _ensureStairSunShadows，正常不会到这里）
+                shadow.forEach((s) => this.unregisterStaticSunShadow(s));
+                shadow = null;
+            }
+            // 掩体墙（方块墙/各档护墙）只用 footprint 凸包（2026-08-19 用户口径
+            // "墙壁阴影基于 footprint 生成"）：墙体贴图内容在画布内偏移大，
+            // 剪影实体四边形会比 footprint 宽出近一倍、且沿墙斜向歪轴——
+            // 剪影只取实测高度，多边形本体 `_silCache` 置 null 回退凸包。
+            const isCover = !!entity._isDefenseCover;
             const shadowData = {
                 hull: true,
                 entity,
@@ -6947,12 +7582,11 @@ export class GameScene extends Scene {
                 y: footprint.y,
                 radius,
                 footprintVertices: vertices,
-                height,
-                // 延长段上限随建筑体量走：旧版恒定 43 会让 4×4 基地的晨昏长影
-                // 整段被 footprint 吞掉（影长 408+43，大半埋在建筑底下看不见）。
-                maxOffset: Math.max(43, height * 0.5),
+                height: effectiveHeight,
+                maxOffset: effectiveMaxOffset,
                 depth: sprite.depth - 0.1,
                 visible: sprite.visible,
+                _silCache: isCover ? null : silCache,
             };
             if (!shadow || !shadow.active) {
                 shadow = this.registerStaticSunShadow(shadowData);
@@ -6964,7 +7598,17 @@ export class GameScene extends Scene {
         };
 
         for (const entity of _game.entities.values()) {
-            if (!entity || !entity.active || !entity._isDefenseStructure || entity._isDefenseCover || entity._isEnergyNode) continue;
+            // 2026-08-19：方块墙/铁栅栏门也接入太阳阴影（不再因"贴图自带底座"排除掩体）；
+            // 能源矿仍排除（矿点是发光体，贴图自带光效）。
+            if (!entity || !entity.active || !entity._isDefenseStructure || entity._isEnergyNode) continue;
+            if (entity._isCoverGate) {
+                this._ensureGateSunShadow(entity, active);
+                continue;
+            }
+            if (entity._isWallStaircase) {
+                this._ensureStairSunShadows(entity, active);
+                continue;
+            }
             if (entity._isDefenseTower) {
                 const layered = this._defenseSprites && this._defenseSprites.get(entity);
                 ensure(entity, layered && layered.base);
@@ -6976,7 +7620,8 @@ export class GameScene extends Scene {
 
         for (const [entity, shadow] of this._structureSunShadows.entries()) {
             if (active.has(entity)) continue;
-            this.unregisterStaticSunShadow(shadow);
+            if (Array.isArray(shadow)) shadow.forEach((s) => this.unregisterStaticSunShadow(s));
+            else this.unregisterStaticSunShadow(shadow);
             this._structureSunShadows.delete(entity);
         }
     }
@@ -7097,7 +7742,7 @@ export class GameScene extends Scene {
         const title = minimapCfg.title || {};
         this.minimapTitle.setPosition((mx + (title.offsetX || 4)) * invZ, (my + (title.offsetY || -2)) * invZ);
         this.minimapTitle.setScale(invZ, invZ);
-        this.minimapTitle.setStyle({ fontSize: '10px', color: title.color || '#d4c5a9cc', fontFamily: 'SimHei, "Microsoft YaHei", sans-serif' });
+        this.minimapTitle.setStyle({ fontSize: '13px', color: title.color || '#d4c5a9cc', fontFamily: 'SimHei, "Microsoft YaHei", sans-serif' });
         this.minimapTitle.setText(title.text || '地图');
         this.minimapTitle.setVisible(true);
     }
@@ -7410,10 +8055,20 @@ export class GameScene extends Scene {
                 label.setOrigin(0.5, 1);
                   label.setFontSize(labelFontSize);
                 label.setDepth(e.y + 1);
-                data = { sprite, label, sprCfg };
+                let foundationSprite = null;
+                const foundationCfg = sprCfg?.foundation;
+                if (foundationCfg?.key && this.textures.exists(foundationCfg.key)) {
+                    foundationSprite = this.add.sprite(e.x, e.y, foundationCfg.key);
+                    foundationSprite.setOrigin(0.5, 0.5);
+                    foundationSprite.setDisplaySize(
+                        Number(foundationCfg.displayW) || 256,
+                        Number(foundationCfg.displayH) || 128
+                    );
+                }
+                data = { sprite, label, sprCfg, foundationSprite };
                 this._neutralSprites.set(e, data);
             }
-            const { sprite, label, sprCfg } = data;
+            const { sprite, label, sprCfg, foundationSprite } = data;
             if (this._syncWallStaircaseEntity(e, data)) continue;
             // 从旧“双层裁剪”热更新迁移回完整单贴图，立即销毁遗留后层并解除 crop。
             if (data.backSprite) {
@@ -7428,12 +8083,19 @@ export class GameScene extends Scene {
               }
             const size = e.size || 16;
             const shift = this._getFootOffsetY(e, sprite);
-            // 普通 iso 建筑由 alpha 接地前顶点自动校正 X；射击台保留显式方向偏移。
+            // 普通 iso 建筑由 alpha 接地前顶点自动校正 X；楼梯保留显式方向偏移。
             const visualOffsetX = this._getVisualOffsetX(e, sprite);
             sprite.setPosition(
-                e.x + (e._isFiringPlatform && e._facingLeft ? -visualOffsetX : visualOffsetX),
+                e.x + (e._isWallStaircase && e._facingLeft ? -visualOffsetX : visualOffsetX),
                 e.y - shift
             );
+            if (foundationSprite?.active) {
+                const foundationCfg = sprCfg?.foundation || {};
+                const foundationW = Number(foundationCfg.displayW) || 256;
+                const foundationH = Number(foundationCfg.displayH) || 128;
+                foundationSprite.setDisplaySize(foundationW, foundationH);
+                foundationSprite.setPosition(e.x, e.y - foundationH * 0.5);
+            }
             if (sprCfg) {
                 // 贴图 NPC：行走/待机动画切换 + 朝向翻转，不做染色（静态贴图无动画则跳过）；
                 // 倒退行走（移动方向与朝向相反）时循环动画倒放
@@ -7485,10 +8147,13 @@ export class GameScene extends Scene {
             // 不能用 e.y+12——e.y 是贴图显示框底边，比接地线深 22~137px，会把墙前
             // 实体错误排到墙后被盖（2026-08-05 实机复现）
             if (e._isDefenseStructure) {
-                const dd = Number.isFinite(e._structureRenderDepth)
-                    ? e._structureRenderDepth
-                    : ((typeof e._faceDepth === 'number') ? e._faceDepth : e.y + 12);
+                const dd = e._structureLayerMode === 'ground'
+                    ? GROUND_DEVICE_LAYER_DEPTH
+                    : (Number.isFinite(e._structureRenderDepth)
+                        ? e._structureRenderDepth
+                        : ((typeof e._faceDepth === 'number') ? e._faceDepth : e.y + 12));
                 sprite.setDepth(dd);
+                if (foundationSprite?.active) foundationSprite.setDepth(dd - 0.2);
                 label.setDepth(e._structureRenderChannels?.label ?? (dd + 1));
             }
             if (label.text !== text) {
@@ -7513,6 +8178,7 @@ export class GameScene extends Scene {
                 for (const sprite of new Set(sprites)) {
                     if (sprite?.active) sprite.destroy();
                 }
+                if (data.foundationSprite?.active) data.foundationSprite.destroy();
                 if (data.label?.active) data.label.destroy();
                 this._neutralSprites.delete(e);
             }
@@ -7545,7 +8211,10 @@ export class GameScene extends Scene {
                 this._defenseSprites.set(e, sp);
             }
             // 基座
-            sp.base.setPosition(e.x, e.y - V.base.footOffsetY);
+            const towerGroundY = e.y + (Number(e._visualGroundOffsetY)
+                || V.base.footprintCenterOffsetY
+                || 0);
+            sp.base.setPosition(e.x, towerGroundY - V.base.footOffsetY);
             sp.base.setDisplaySize(V.base.w, V.base.h);
             sp.base.setFlipX(!!e._mirrored);
             sp.base.setVisible(true);
@@ -7565,7 +8234,7 @@ export class GameScene extends Scene {
             // 机械臂：预渲染 3D 旋转帧（48 帧），按 aimAngle 选最近帧；
             // 枢轴=帧内固定像素（相机固定 + 模型绕塔顶轴旋转），origin 设枢轴。
             const pivotX = e.x;
-            const pivotY = e.y - V.arm.pivotWorldY;
+            const pivotY = towerGroundY - V.arm.pivotWorldY;
             const m = e._mirrored ? -1 : 1;
             // 世界旋转 = -aimAngle（游戏 y 向下，屏幕顺时针=世界逆时针的镜像）；
             // 镜像塔再取反并 flipX 帧

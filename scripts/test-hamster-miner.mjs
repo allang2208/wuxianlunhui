@@ -89,8 +89,9 @@ check('AI 仓库物流：work/storage_return/storage_wait + 满仓回屋',
     && /_startStorageReturn\(\)/.test(aiSrc) && /EnergyManager\.isFull\(\)/.test(aiSrc));
 check('AI 采矿效率仍作用于矿点伤害，产出由矿点直接入仓',
     /this\._attackDamage \* this\.miningMult/.test(aiSrc));
-check('AI 寻路可达接近点：矿点边缘点（避开 A* 障碍中心）+ 回屋边缘点',
+check('AI 寻路可达接近点：无碰撞矿体使用独立采集半径 + 回屋边缘点',
     /const miningRange = this\._miningRange \+ nodeR/.test(aiSrc)
+    && /const physicalNodeR = node\.noCollision \? 0/.test(aiSrc)
     && /Math\.min\(Math\.max\(this\._miningRange/.test(aiSrc)
     && /m\._tacticalTarget = \{ x: node\.x \+ \(dx \/ dd\) \* approachDist/.test(aiSrc)
     && /approach = 64/.test(aiSrc));
@@ -100,8 +101,8 @@ check('AI 卡死看门狗 + 满仓返回阶段',
 check('AI 卡死升级：连续卡死直接传送到矿点旁合法点（终结顶墙死循环）',
     /_stuckEscalation/.test(aiSrc) && /near\.x \+ Math\.cos\(a\) \* 95/.test(aiSrc)
     && /WallSystem\.canMoveTo\(px, py/.test(aiSrc));
-check('AI 矿点接近点：障碍外扩 +40 且钳制在采矿范围内（-15）',
-    /nodeR \+ \(m\.groundRadius \|\| 26\) \+ 40/.test(aiSrc)
+check('AI 矿点接近点：物理半径与采集半径分离，仍钳制在采矿范围内（-15）',
+    /physicalNodeR \+ \(m\.groundRadius \|\| 26\) \+ 40/.test(aiSrc)
     && /miningRange - 15/.test(aiSrc));
 
 // ---- 4. 源码接线：实体受击/死亡/仇恨 ----
@@ -129,6 +130,20 @@ check('能量节点：玩家/仓鼠/队友采矿直接入仓库，满仓不扣�
     && /appliedDamage = Math\.min/.test(ensSrc));
 
 const hutSrc = fs.readFileSync(path.join(ROOT, 'src/world/hamster-hut-system.js'), 'utf-8');
+const buildingSrc = fs.readFileSync(path.join(ROOT, 'src/world/building-system.js'), 'utf-8');
+const minePng = fs.readFileSync(path.join(ROOT, 'assets/terrain/mine.png'));
+check('矿工营地替换仓鼠小屋且玩法配置保持原链路',
+    /name: config\.name \?\? '矿工营地'/.test(hutSrc)
+    && /name: '矿工营地'/.test(buildingSrc)
+    && /tex: 'mine'/.test(hutSrc)
+    && /cost: 1000/.test(hutSrc)
+    && /hp: 1500/.test(hutSrc));
+check('矿工营地贴图紧身裁剪并按比例显示',
+    minePng.readUInt32BE(16) === 847
+    && minePng.readUInt32BE(20) === 663
+    && /displayW: 277/.test(hutSrc)
+    && /displayH: 217/.test(hutSrc)
+    && /footOffsetY: 109/.test(hutSrc));
 check('小屋移除已失效的背包扩容模块，面板显示仓库总量',
     !/backpack:\s*\{ name: '背包扩容'/.test(hutSrc)
     && /EnergyManager\.getCapacity\(\)/.test(hutSrc)
@@ -139,12 +154,12 @@ check('小屋旧携带量兼容：unloadMiner 直接转入仓库 + 满则暂存 
 check('小屋开关门动画已删除（2026-08-17：原模型素材移除，补员/卸货直接生成）',
     !/openDoor\(/.test(hutSrc) && !/closeDoor\(/.test(hutSrc)
     && !/hamster_hut_door/.test(hutSrc));
-check('小屋被毁丢失暂存能量', /lost > 0 \? `仓鼠小屋被摧毁（暂存 \$\{lost\} 能源丢失）`/.test(hutSrc));
+check('矿工营地被毁丢失暂存能量', /lost > 0 \? `矿工营地被摧毁（暂存 \$\{lost\} 能源丢失）`/.test(hutSrc));
 check('小屋旧暂存自动补入仓库', /_storedEnergy = Math\.max\(0, this\._storedEnergy - added\)/.test(hutSrc));
 check('满仓后矿工返回小屋待命，扩容后自动复工',
     /_phase === 'storage_return'/.test(aiSrc)
     && /_phase === 'storage_wait'/.test(aiSrc)
-    && /仓库已满，返回小屋待命/.test(aiSrc)
+    && /仓库已满，返回矿工营地待命/.test(aiSrc)
     && /!EnergyManager\.isFull\(\)/.test(aiSrc));
 
 // ---- 5. 源码接线：渲染 / 生成 / 仇恨 ----

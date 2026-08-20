@@ -1,6 +1,7 @@
 import { Enemy } from '../enemy.js';
 import enemyConfigData from '../../../data/enemy-config.json';
 import { hostilesOf, playSoundFrom, inMeleeRange } from './_shared/enemy-utils.js';
+import { canMeleeShareSurface } from '../../combat/melee-surface.js';
 
 /**
  * 僵尸工头（领主，僵尸 family）
@@ -200,6 +201,7 @@ export class ForemanZombie extends Enemy {
         const bleedStacks = cfg.bleedStacks ?? 1;
         for (const e of hostilesOf(this, entities)) {
             if (!inMeleeRange(this, e, range)) continue;
+            if (!canMeleeShareSurface(this, e)) continue;
             e.takeDamage(Math.max(1, Math.round(atk * (cfg.damageMul ?? 2))), this, 'physical', true);
             if (typeof e.applyBleeding === 'function') {
                 e.applyBleeding(bleedStacks);
@@ -379,7 +381,8 @@ export class ForemanZombie extends Enemy {
             if (typeof e.onDeath === 'function') {
                 e.onDeath(source);
             } else if (typeof e.takeDamage === 'function') {
-                e.takeDamage(99999, source, 'physical', true);
+                // 这是首领死亡时的结构联动清理，不是空间近战命中，不能被承载面门禁拦截。
+                e.takeDamage(99999, source, 'physical', false);
             }
         }
     }

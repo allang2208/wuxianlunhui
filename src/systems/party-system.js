@@ -38,6 +38,7 @@ export const PartySystem = {
     updateCombat(dt, entities, player) {
         if (!this._members.length) return;
         for (const m of this._members) {
+            if (!m || m.active === false) continue;
             if (m.hitFlash > 0) m.hitFlash = Math.max(0, m.hitFlash - dt);
             if (typeof m.updateStatusEffects === 'function') m.updateStatusEffects(dt);
             if (!this._aiFactories[m.id]) continue;

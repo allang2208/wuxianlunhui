@@ -1,9 +1,30 @@
+export function wallStairGroupId(staircase) {
+    if (!staircase) return '';
+    return staircase._wallStairGroupId
+        || (staircase.id ? `wall-stair-group:${staircase.id}` : '');
+}
+
+export function wallStairGroupMembers(staircase) {
+    if (!staircase) return [];
+    const members = Array.isArray(staircase._wallStairGroupMembers)
+        ? staircase._wallStairGroupMembers
+        : [staircase];
+    return members.filter((member) => member?.active !== false && member?._isWallStaircase);
+}
+
+export function wallStairsShareGroup(left, right) {
+    if (!left || !right) return false;
+    if (left === right) return true;
+    const leftId = wallStairGroupId(left);
+    return !!leftId && leftId === wallStairGroupId(right);
+}
+
 /** 楼梯组注册器：识别并排同向楼梯、生成共享接缝、维护外轮廓边界。 */
 export function createWallStairGroupRegistry(deps) {
     const {
         config,
         state,
-        getPlatforms,
+        getStaircases,
         convexHull,
         isoLocalToWorldDelta,
         worldDeltaToIsoLocal,
@@ -103,7 +124,7 @@ export function createWallStairGroupRegistry(deps) {
         };
     };
 
-    const activeList = (staircases = null) => Array.from(staircases || getPlatforms() || [])
+    const activeList = (staircases = null) => Array.from(staircases || getStaircases() || [])
         .filter((staircase) => staircase?.active && staircase._isWallStaircase);
 
     const signature = (staircases = null) => activeList(staircases)
@@ -121,16 +142,20 @@ export function createWallStairGroupRegistry(deps) {
 
     const rebuild = (staircases = null) => {
         const list = activeList(staircases);
+        const adjacency = new Map(list.map((staircase) => [staircase, new Set()]));
         for (const staircase of list) {
             staircase._unregisterEdgeSegs?.();
             staircase._sharedStairSurfaces = [];
             staircase._sharedRailSegments = [];
+            staircase._wallStairGroupId = '';
+            staircase._wallStairGroupMembers = [staircase];
         }
         for (let leftIndex = 0; leftIndex < list.length; leftIndex++) {
             for (let rightIndex = leftIndex + 1; rightIndex < list.length; rightIndex++) {
                 const left = list[leftIndex];
                 const right = list[rightIndex];
                 if (!areSideBySide(left, right)) continue;
+                const segmentSeams = [];
                 for (let segmentIndex = 0; segmentIndex < left.segmentCount; segmentIndex++) {
                     const seam = makeSeam(
                         left,
@@ -140,6 +165,14 @@ export function createWallStairGroupRegistry(deps) {
                         { segmentIndex }
                     );
                     if (!seam) continue;
+                    segmentSeams.push(seam);
+                }
+                // 只有每一级踏步都能生成真实共享面，才把两座楼梯注册为同一组。
+                // 不能只凭中心距合组，否则入口虽变宽，中段仍可能保留不可跨越的暗缝。
+                if (segmentSeams.length !== left.segmentCount) continue;
+                adjacency.get(left)?.add(right);
+                adjacency.get(right)?.add(left);
+                for (const seam of segmentSeams) {
                     left._sharedStairSurfaces.push(seam);
                     right._sharedStairSurfaces.push(seam);
                     left._sharedRailSegments.push(seam.railA);
@@ -160,9 +193,46 @@ export function createWallStairGroupRegistry(deps) {
                 }
             }
         }
+        const nextVersion = (state.version || 0) + 1;
+        const groups = new Map();
+        const visited = new Set();
+        for (const staircase of list) {
+            if (visited.has(staircase)) continue;
+            const members = [];
+            const pending = [staircase];
+            visited.add(staircase);
+            while (pending.length) {
+                const current = pending.shift();
+                members.push(current);
+                for (const neighbor of adjacency.get(current) || []) {
+                    if (visited.has(neighbor)) continue;
+                    visited.add(neighbor);
+                    pending.push(neighbor);
+                }
+            }
+            members.sort((left, right) => String(left.id).localeCompare(String(right.id)));
+            const groupId = `wall-stair-group:${members.map((member) => member.id).join('|')}`;
+            const group = {
+                id: groupId,
+                members,
+                memberIds: new Set(members.map((member) => member.id)),
+                version: nextVersion,
+            };
+            groups.set(groupId, group);
+            for (const member of members) {
+                member._wallStairGroupId = groupId;
+                member._wallStairGroupMembers = members;
+                member._wallStairGroup = group;
+                for (const seam of member._sharedStairSurfaces || []) {
+                    seam.groupId = groupId;
+                    seam.group = group;
+                }
+            }
+        }
         for (const staircase of list) staircase._registerEdgeSegs?.();
         state.signature = signature(list);
-        state.version = (state.version || 0) + 1;
+        state.version = nextVersion;
+        state.groups = groups;
         for (const staircase of list) staircase._wallStairGroupVersion = state.version;
         return list;
     };

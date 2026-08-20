@@ -1,4 +1,5 @@
 import { Enemy } from '../enemy.js';
+import { canMeleeShareSurface } from '../../combat/melee-surface.js';
 import { EffectManager } from '../../effects/effect-manager.js';
 import { FloatingTextEffect } from '../../effects/floating-text.js';
 import { WallSystem } from '../../world/wall-system.js';
@@ -132,7 +133,8 @@ export class Mutant3 extends Enemy {
             // 命中并眩晕目标 → 中断飞扑动作、退出飞扑状态；未命中保持原样
             const hitTarget = this._pounceTarget && this._pounceTarget.active ? this._pounceTarget : this.target;
             if (!this._pounceDamaged && hitTarget && hitTarget.active && hitTarget.hittable) {
-                if (this._isTargetInRange(hitTarget, this._getPounceHitDistance())) {
+                if (this._isTargetInRange(hitTarget, this._getPounceHitDistance())
+                    && canMeleeShareSurface(this, hitTarget)) {
                     hitTarget.takeDamage(this._getPounceDamage(), this, 'physical', true);
                     this._pounceDamaged = true;
                     // 若被盾牌弹反，不再眩晕玩家；弹反本身已通过 ShieldSystem 眩晕/击退突变体
@@ -254,6 +256,7 @@ export class Mutant3 extends Enemy {
         if (!target || !target.active || !target.hittable) return;
 
         if (!this._isTargetInRange(target, this._getComboAttackDistance())) return;
+        if (!canMeleeShareSurface(this, target)) return;
 
         const attack = this.attacks && this.attacks.melee;
         const dmgCfg = attack && attack.config && attack.config.damage;

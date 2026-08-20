@@ -16,6 +16,8 @@ import { getMonsterExp, getMonsterExpDetail, getMonsterEffectiveLevel, getCurren
 import { Easing } from '../config/math-utils.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { loadImage } from '../utils/image-loader.js';
+import { canMeleeShareSurface } from '../combat/melee-surface.js';
+import { hasRangedLineOfSight } from '../combat/ranged-line-of-sight.js';
 
         class Enemy extends Combatant {
             constructor(x, y, config = {}) {
@@ -771,14 +773,11 @@ import { loadImage } from '../utils/image-loader.js';
                 // 视线检测：检查攻击是否被墙阻挡
                 const targetX = this.target.x, targetY = this.target.y;
                 const ranged = !!this.attacks.ranged;
-                const sourceZ = (Number(this.z) || 0) + (this.collider?.height || 40) * 0.58;
-                const targetZ = (Number(this.target.z) || 0) + (this.target.collider?.height || 40) * 0.5;
-                const isBlocked = WallSystem && (ranged && WallSystem.projectileBlocked
-                    ? WallSystem.projectileBlocked(this.x, this.y, sourceZ, targetX, targetY, targetZ)
+                const isBlocked = WallSystem && (ranged
+                    ? !hasRangedLineOfSight(this, this.target)
                     : WallSystem.blocked(this.x, this.y, targetX, targetY));
                 if (isBlocked) return; // 视线被墙完全挡住，无法攻击
-                if (!ranged && Math.abs((Number(this.z) || 0) - (Number(this.target.z) || 0))
-                    > (Number(this.meleeVerticalReach) || 48)) return;
+                if (!ranged && !canMeleeShareSurface(this, this.target)) return;
                 // 远程攻击需要目标在射程内
                 const dist = Math.hypot(targetX - this.x, targetY - this.y);
                 if (this.attacks.ranged && dist > this.attackRange) return;

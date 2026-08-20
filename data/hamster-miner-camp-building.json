@@ -1,0 +1,18 @@
+{
+  "id": "hamster_hut",
+  "name": "矿工营地",
+  "cost": 1000,
+  "hp": 1500,
+  "def": 60,
+  "mdef": 60,
+  "tex": "mine",
+  "displayW": 277,
+  "displayH": 217,
+  "footOffsetY": 109,
+  "sellRefundRatio": 0.5,
+  "minerSpawnRadius": 70,
+  "respawnMs": 60000,
+  "respawnEnergyCost": 100,
+  "freeMinimumCount": 1,
+  "upgradeProject": "miner_economy"
+}

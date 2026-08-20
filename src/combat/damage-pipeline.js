@@ -1,6 +1,7 @@
 import { applyEnchantOnHit } from './attack.js';
 import { SoundManager } from '../ui/sound-manager.js';
 import { GunFeel } from '../effects/gunfeel.js';
+import { canMeleeShareSurface } from './melee-surface.js';
 
 /**
  * 统一伤害处理管道
@@ -35,13 +36,8 @@ class DamagePipeline {
             killCountRef,
             isMelee = true
         } = options;
-        if (isMelee) {
-            const sourceZ = Number(source?.z) || 0;
-            const targetZ = Number(target?.z) || 0;
-            const verticalReach = Number(source?.meleeVerticalReach) || 48;
-            if (Math.abs(sourceZ - targetZ) > verticalReach) {
-                return { hit: false, killed: false };
-            }
+        if (isMelee && !canMeleeShareSurface(source, target)) {
+            return { hit: false, killed: false };
         }
 
         const weapon = currentWeapon !== undefined
@@ -109,7 +105,7 @@ class DamagePipeline {
             }
             if (ce.enchantedBlade) {
                 const weaponAtk = source.getCurrentWeaponAtk ? source.getCurrentWeaponAtk() : damage;
-                target.takeDamage(weaponAtk, source, 'magic');
+                target.takeDamage(weaponAtk, source, 'magic', false);
             }
             // 命中获得加速 buff（P4040 轻量化快速板机）：给攻击者自身上 haste
             if (ce.onHitSpeedBuff && source && typeof source.applyHaste === 'function') {

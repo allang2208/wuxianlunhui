@@ -1,9 +1,31 @@
 import { WallSystem } from '../world/wall-system.js';
 import {
+    canUseWallTopModelException,
     projectileSourceZ,
     projectileTargetZ,
     projectileWallContext,
+    wallHitSupportsTarget,
 } from './elevated-ranged.js';
+
+function surfaceIdentityToken(entity) {
+    if (!entity) return 'none';
+    const kind = entity._surfaceKind === 'stairs' || entity._surfaceKind === 'wall_walk'
+        ? entity._surfaceKind
+        : 'ground';
+    const carrier = kind === 'stairs'
+        ? (entity._surfaceStaircase?.id || entity._surfaceRef?.id || '')
+        : (kind === 'wall_walk'
+            ? (entity._surfaceComponentId || entity._surfaceWall?.id || '')
+            : '');
+    const revision = Number(entity._elevatedState?.lastValidated?.revision) || 0;
+    const heightBand = Math.round((Number(entity.z) || 0) / 12);
+    return `${kind}:${carrier}:${revision}:${heightBand}`;
+}
+
+/** LOS缓存身份必须随双方承载表面和高架拓扑一起失效。 */
+export function rangedLineOfSightCacheToken(source, target) {
+    return `${surfaceIdentityToken(source)}>${surfaceIdentityToken(target)}`;
+}
 
 /** 枪械、弹道魔法与锁定魔法共享的带高度视线判定。 */
 export function hasRangedLineOfSight(source, target, radius = 8, ignore = null) {
@@ -12,8 +34,24 @@ export function hasRangedLineOfSight(source, target, radius = 8, ignore = null) 
     const targetY = Number(target.y);
     if (!Number.isFinite(targetX) || !Number.isFinite(targetY)) return false;
 
-    const elevated = (Number(source.z) || 0) > 0 || (Number(target.z) || 0) > 0;
+    const elevated = source._surfaceKind === 'stairs' || source._surfaceKind === 'wall_walk'
+        || target._surfaceKind === 'stairs' || target._surfaceKind === 'wall_walk'
+        || (Number(source.z) || 0) > 0 || (Number(target.z) || 0) > 0;
     if (elevated && typeof WallSystem.projectileBlocked === 'function') {
+        const context = projectileWallContext(source, ignore);
+        if (typeof WallSystem.projectileWallHit === 'function') {
+            const wallHit = WallSystem.projectileWallHit(
+                source.x,
+                source.y,
+                projectileSourceZ(source),
+                targetX,
+                targetY,
+                projectileTargetZ(target),
+                context
+            );
+            return !wallHit || (canUseWallTopModelException(source)
+                && wallHitSupportsTarget(wallHit, target));
+        }
         return !WallSystem.projectileBlocked(
             source.x,
             source.y,
@@ -21,7 +59,7 @@ export function hasRangedLineOfSight(source, target, radius = 8, ignore = null) 
             targetX,
             targetY,
             projectileTargetZ(target),
-            projectileWallContext(source, ignore)
+            context
         );
     }
     if (typeof WallSystem.resolve === 'function') {
@@ -46,7 +84,8 @@ export function hasRangedLineOfSight(source, target, radius = 8, ignore = null) 
 export function resolveRangedLineEnd(source, endX, endY, radius = 8) {
     if (!source || !WallSystem) return { x: endX, y: endY };
     const sourceZ = projectileSourceZ(source);
-    const elevated = (Number(source.z) || 0) > 0;
+    const elevated = source._surfaceKind === 'stairs' || source._surfaceKind === 'wall_walk'
+        || (Number(source.z) || 0) > 0;
     if (!elevated || typeof WallSystem.projectileBlocked !== 'function') {
         return WallSystem.resolve
             ? WallSystem.resolve(source.x, source.y, endX, endY, radius)

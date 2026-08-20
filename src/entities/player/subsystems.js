@@ -20,6 +20,7 @@ import { WEAPON_FX_CONFIG } from '../../config/weapon-fx-config.js';
 import { Easing } from '../../config/math-utils.js';
 import { EffectManager } from '../../effects/effect-manager.js';
 import { GunFeel } from '../../effects/gunfeel.js';
+import { canMeleeShareSurface } from '../../combat/melee-surface.js';
 import { getElement } from '../../utils/dom-utils.js';
 import { TimerManager } from '../../utils/timer-manager.js';
 import { CONFIG } from '../../config/config.js';
@@ -96,6 +97,8 @@ onLevelUp(level) {
             },
 
 takeDamage(damage, source, _damageType = 'physical', isMelee = false) {
+                // 近战最终保险：跨 ground/stairs/wall_walk 平面的直伤、弹反和附带状态全部拒绝。
+                if (isMelee && source && !canMeleeShareSurface(source, this)) return 0;
                 // 闪避无敌期间不受伤害
                 if (this.dodgeInvincible) return;
                 // 月影庇护：无敌时间内不受伤害
@@ -1535,7 +1538,7 @@ _getMuzzlePosition(gunLX, gunLY, forwardOffset = 0) {
                 return {
                     x: this.x + c * (gunLX + forwardOffset) - sin * gunLY,
                     // 高架表面：兜底枪口同样跟随实体z抬升
-                    y: this.y + sin * (gunLX + forwardOffset) + c * gunLY - (this._platformLift || 0)
+                    y: this.y + sin * (gunLX + forwardOffset) + c * gunLY - (this.z || 0)
                 };
             },
 

@@ -8,8 +8,6 @@ const finiteOr = (value, fallback) => {
 
 export const ELEVATED_RANGED_CONFIG = Object.freeze({
     rangeMultiplier: Math.max(1, finiteOr(rangedCfg.rangeMultiplier, 1.2)),
-    wallClearance: Math.max(0, finiteOr(rangedCfg.wallClearance, 2)),
-    wallClearanceRadius: Math.max(0, finiteOr(rangedCfg.wallClearanceRadius, 220)),
 });
 
 /** 仅玩家与友军站在正式墙顶面时享受高架远程加成；楼梯途中与敌人不加成。 */
@@ -50,30 +48,74 @@ export function projectileTargetZ(target, fallback = 24) {
     return (Number(target.z) || 0) + height * 0.5;
 }
 
-/** 给墙体弹道检测附加发射者上下文，不改变既有 segs/rects ignore 集合。 */
-export function projectileWallContext(source, ignore = null) {
+export function projectileWallContext(source, ignore = null, origin = null) {
     const context = ignore ? { ...ignore } : {};
     context.projectileSource = source || null;
-    context.wallClearance = isFriendlyWallTopRangedSource(source)
-        ? ELEVATED_RANGED_CONFIG.wallClearance
-        : 0;
-    context.wallClearanceRadius = ELEVATED_RANGED_CONFIG.wallClearanceRadius;
-    context.wallClearanceOrigin = source
-        ? { x: Number(source.x) || 0, y: Number(source.y) || 0 }
+    const originZ = Number(origin?.z);
+    context.projectileOrigin = (origin || source)
+        ? {
+            x: Number(origin?.x ?? source?.x) || 0,
+            y: Number(origin?.y ?? source?.y) || 0,
+            z: Number.isFinite(originZ) ? originZ : projectileSourceZ(source),
+        }
         : null;
-    context.wallClearanceWalls = new Set();
+    context.ignoredProjectileWalls = new Set(ignore?.ignoredProjectileWalls || []);
     const sourceWalls = Array.isArray(source?._surfaceWalls)
         ? source._surfaceWalls
         : [];
-    for (const wall of [
-        ...sourceWalls,
-        source?._surfaceWall,
-    ]) {
-        if (!wall) continue;
-        context.wallClearanceWalls.add(wall);
-        if (wall._wallRect) context.wallClearanceWalls.add(wall._wallRect);
-        if (wall._coverSeg) context.wallClearanceWalls.add(wall._coverSeg);
-        if (wall._gateSeg) context.wallClearanceWalls.add(wall._gateSeg);
+    if (source?._surfaceKind === 'wall_walk') {
+        for (const wall of [
+            ...sourceWalls,
+            source?._surfaceWall,
+        ]) {
+            if (!wall) continue;
+            context.ignoredProjectileWalls.add(wall);
+            if (wall._wallRect) context.ignoredProjectileWalls.add(wall._wallRect);
+            if (wall._coverSeg) context.ignoredProjectileWalls.add(wall._coverSeg);
+            if (wall._gateSeg) context.ignoredProjectileWalls.add(wall._gateSeg);
+        }
     }
     return context;
+}
+
+export function wallHitSupportsTarget(wallHit, target) {
+    if (!wallHit || target?._surfaceKind !== 'wall_walk') return false;
+    const wall = wallHit.owner || wallHit.wall || wallHit.obstacle?._owner || null;
+    if (!wall) return false;
+    if (wall === target._surfaceWall) return true;
+    return Array.isArray(target._surfaceWalls) && target._surfaceWalls.includes(wall);
+}
+
+/** 墙顶模型优先只属于“墙下向墙上”射击；楼梯与墙顶来源都不能借此越墙。 */
+export function canUseWallTopModelException(source) {
+    return source?._surfaceKind !== 'stairs' && source?._surfaceKind !== 'wall_walk';
+}
+
+const FRIENDLY_WALL_FACTIONS = new Set(['player', 'companion']);
+const HOSTILE_WALL_FACTIONS = new Set(['enemy', 'agent']);
+
+export function projectileDamageValue(damage) {
+    if (typeof damage !== 'object' || !damage) return Math.max(0, Number(damage) || 0);
+    const min = Number(damage.min) || 0;
+    const max = Math.max(min, Number(damage.max) || min);
+    return Math.floor(min + Math.random() * (max - min + 1));
+}
+
+/** 友军弹体只被己方墙截停；敌对弹体命中墙后扣除墙体耐久。 */
+export function applyProjectileWallImpact(source, wallHit, damage, damageType = 'physical') {
+    const wall = wallHit?.owner || wallHit?.wall || wallHit?.obstacle?._owner || null;
+    if (!wall?.active || !wall.hittable || typeof wall.takeDamage !== 'function') return false;
+    const sourceFaction = source?._faction;
+    const wallFaction = wall._faction;
+    if (!sourceFaction || !wallFaction || sourceFaction === wallFaction) return false;
+    if (FRIENDLY_WALL_FACTIONS.has(sourceFaction) && FRIENDLY_WALL_FACTIONS.has(wallFaction)) {
+        return false;
+    }
+    const hostilePair = HOSTILE_WALL_FACTIONS.has(sourceFaction)
+        || HOSTILE_WALL_FACTIONS.has(wallFaction);
+    if (!hostilePair) return false;
+    const amount = projectileDamageValue(damage);
+    if (!(amount > 0)) return false;
+    wall.takeDamage(amount, source, damageType || 'ranged', false);
+    return true;
 }

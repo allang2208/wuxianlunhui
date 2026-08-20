@@ -1,6 +1,6 @@
 // ============================================================
 // HamsterPriestAI — 仓鼠牧师（世界-122）
-// - 默认跟随玩家，不进行普通攻击；
+// - 默认在统一索敌范围内支援作战，无目标时跟随玩家，不进行普通攻击；
 // - 圣光冷却就绪即施放：所有受伤友军优先，按缺血比例/缺血量选择；
 // - 无受伤友军时，以最近敌人为目标施放圣光协助战斗；
 // - praying 动画第 8 帧实际结算圣光，移动复用 MovementSystem。
@@ -11,7 +11,12 @@ import { HolyLightSystem } from '../entities/components/holy-light-system.js';
 import { getAbilityLevel, getAbilityValue } from '../world/ability-store.js';
 import { getBuildingUpgradeAbility } from '../world/building-upgrade-projects.js';
 import { EnergyManager } from '../systems/energy-manager.js';
-import { clearRtsSurfaceRoute, resolveRtsMoveDestination } from './rts-command-utils.js';
+import {
+    clearRtsSurfaceRoute,
+    finishRtsCommandAtHold,
+    resolveRtsMoveDestination,
+    RTS_DEFAULT_ACQUIRE_RANGE,
+} from './rts-command-utils.js';
 import { getMagicRangeMultiplier } from '../utils/magic-craft-helper.js';
 import { hasRangedLineOfSight } from '../combat/ranged-line-of-sight.js';
 
@@ -21,6 +26,7 @@ export class HamsterPriestAI {
     constructor(priest) {
         this.m = priest;
         this.cfg = priest.aiConfig || {};
+        this._engageRange = RTS_DEFAULT_ACQUIRE_RANGE;
         this._holyLight = new HolyLightSystem(priest);
         this._decisionTimer = 0;
         this._castActive = false;
@@ -173,6 +179,13 @@ export class HamsterPriestAI {
         }
         const target = this._pickHolyLightTarget(entities, player);
         if (target && m._holyLightCooldown <= 0 && m.skills?.holyLight) {
+            if (target._faction === 'enemy' && !this._canCastAt(target)) {
+                m.target = target;
+                m._tacticalTarget = { x: target.x, y: target.y };
+                m._animState = 'walk';
+                m.maxSpeed = this.cfg.walkSpeed ?? 120;
+                return;
+            }
             this._startPrayerCast('holyLight', { target });
             return;
         }
@@ -183,7 +196,7 @@ export class HamsterPriestAI {
     /** RTS 指令：移动/待命优先于自动施法；指定攻击用圣光锁定目标。 */
     _applyCommand(command) {
         const m = this.m;
-        if (command.mode !== 'move') clearRtsSurfaceRoute(m);
+        if (command.mode !== 'move' && !m._surfaceNavCommand) clearRtsSurfaceRoute(m);
         if (command.mode === 'move') {
             m.target = null;
             const move = resolveRtsMoveDestination(m, command);
@@ -192,7 +205,7 @@ export class HamsterPriestAI {
                 m._animState = 'walk';
                 m.maxSpeed = this.cfg.walkSpeed ?? 120;
             } else {
-                m._command = { mode: 'follow' };
+                finishRtsCommandAtHold(m);
                 clearRtsSurfaceRoute(m);
                 this._stop();
             }
@@ -201,7 +214,7 @@ export class HamsterPriestAI {
         if (command.mode === 'attack') {
             const target = command.target;
             if (!target || !target.active || target.hp <= 0 || target._isEnergyNode) {
-                m._command = { mode: 'follow' };
+                finishRtsCommandAtHold(m);
                 m.target = null;
                 this._stop();
                 return;
@@ -337,9 +350,7 @@ export class HamsterPriestAI {
             if (!entity || !entity.active || entity.hp <= 0) continue;
             if (entity._faction !== 'enemy' || entity._isEnergyNode) continue;
             const dist = Math.hypot(entity.x - m.x, entity.y - m.y);
-            if (dist <= castRange
-                && hasRangedLineOfSight(m, entity)
-                && dist < nearestDist) {
+            if (dist <= this._engageRange && dist < nearestDist) {
                 nearestEnemy = entity;
                 nearestDist = dist;
             }
@@ -354,7 +365,11 @@ export class HamsterPriestAI {
             this._stop();
             return;
         }
-        const target = { x: player.x - (this.cfg.followOffset ?? 150), y: player.y };
+        const target = {
+            x: player.x - (this.cfg.followOffset ?? 150),
+            y: player.y,
+            _surfaceTarget: player,
+        };
         if (Math.hypot(target.x - m.x, target.y - m.y) <= (this.cfg.followArriveDist ?? 40)) {
             this._stop();
             return;
@@ -379,6 +394,14 @@ export class HamsterPriestAI {
 
     _checkStuck(dt) {
         const m = this.m;
+        if (m._surfaceNavWaiting || m._surfaceRouteActive
+            || m._surfaceKind === 'stairs' || m._surfaceKind === 'wall_walk') {
+            this._stuckTimer = 0;
+            this._stuckStreak = 0;
+            this._lastPosX = m.x;
+            this._lastPosY = m.y;
+            return;
+        }
         if (m._animState !== 'walk') {
             this._stuckTimer = 0;
             this._lastPosX = m.x;

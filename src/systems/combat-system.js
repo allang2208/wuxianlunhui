@@ -3,6 +3,8 @@ import { WallSystem } from '../world/wall-system.js';
 import { Easing } from '../config/math-utils.js';
 import { distanceToEntityShape } from '../utils/collision-helpers.js';
 import { nowMs } from '../entities/player/anim-state.js';
+import { canMeleeShareSurface } from '../combat/melee-surface.js';
+import { hasRangedLineOfSight } from '../combat/ranged-line-of-sight.js';
 
 /**
  * CombatSystem — 敌人战斗AI子系统（精简版）
@@ -93,10 +95,7 @@ class CombatSystemImpl {
             return;
         }
         const wantsRanged = !!enemy._isHumanoid || !!enemy.attacks?.ranged;
-        if (!wantsRanged) {
-            const verticalReach = Number(enemy.meleeVerticalReach) || 48;
-            if (Math.abs((Number(enemy.z) || 0) - (Number(enemy.target.z) || 0)) > verticalReach) return;
-        }
+        if (!wantsRanged && !canMeleeShareSurface(enemy, enemy.target)) return;
         // === REFACTOR[combat-system]: 复用 PerceptionSystem LOS 缓存，减少 WallSystem.blocked 调用 ===
         // [FIX-LOS] 防守结构（掩体/基地）贴身免 LOS：footprint 距离在 effectiveRange 内即代表贴身，
         // 墙体静止不会躲；掩体中心位于自身 face 线后方，从墙背面接近时到中心的射线必穿自身/相邻
@@ -106,16 +105,14 @@ class CombatSystemImpl {
         let isBlocked = false;
         if (!_losExempt) {
             const elevatedShot = wantsRanged
-                && ((Number(enemy.z) || 0) > 0 || (Number(enemy.target.z) || 0) > 0);
+                && (enemy._surfaceKind === 'stairs' || enemy._surfaceKind === 'wall_walk'
+                    || enemy.target._surfaceKind === 'stairs'
+                    || enemy.target._surfaceKind === 'wall_walk'
+                    || (Number(enemy.z) || 0) > 0 || (Number(enemy.target.z) || 0) > 0);
             const losCache = !elevatedShot && enemy._perception && enemy._perception.losCache;
             const cachedLos = losCache ? losCache.get(enemy.target.id) : null;
-            if (elevatedShot && WallSystem?.projectileBlocked) {
-                const sourceZ = (Number(enemy.z) || 0) + (enemy.collider?.height || 40) * 0.58;
-                const targetZ = (Number(enemy.target.z) || 0) + (enemy.target.collider?.height || 40) * 0.5;
-                isBlocked = WallSystem.projectileBlocked(
-                    enemy.x, enemy.y, sourceZ,
-                    targetX, targetY, targetZ
-                );
+            if (elevatedShot) {
+                isBlocked = !hasRangedLineOfSight(enemy, enemy.target);
             } else if (cachedLos) {
                 // 缓存命中：直接复用 PerceptionSystem 的 LOS 结果
                 isBlocked = !cachedLos.result;

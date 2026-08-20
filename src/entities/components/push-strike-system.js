@@ -123,7 +123,7 @@ export class PushStrikeSystem {
             this.player._pushStrikeHitSet.add(entity);
             const wasAlive = entity.hp > 0;
             this._playMeleeHitSound(); // 推击命中
-            entity.takeDamage(damage, this.player);
+            entity.takeDamage(damage, this.player, 'physical', true);
             if (wasAlive && entity.hp <= 0 && !entity._summoned) killCount++;
             hitCount++;
             const kbAngle = Math.atan2(entity.y - this.player.y, entity.x - this.player.x);

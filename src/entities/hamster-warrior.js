@@ -2,7 +2,7 @@
 // HamsterWarrior — 仓鼠战士（2026-08-16）
 // 玩家友方单位：复用 Companion 数据模型（data.hp/六维/动画配置），
 // 由 HamsterWarriorAI 驱动在世界-122 自动寻找最近敌人近战输出。
-// - 生命 300（baseMaxHp 覆盖：con=15 ×10 + base 100 = 250 → 300）；
+// - 生命 225（baseMaxHp 覆盖：con=15 ×10 + base 100 = 250 → 225）；
 // - _faction='companion'（友方阵营，与玩家互不误伤）；
 // - _enemyTargetable=true：防守怪可锁定/攻击它，因此提供 hp/maxHp/takeDamage；
 // - 攻击：每 2s 对最近敌人造成 50 伤害，绝不攻击能源矿点；
@@ -57,8 +57,7 @@ export class HamsterWarrior extends Companion {
     takeDamage(damage, source, _damageType = 'physical', _isMelee = true) {
         if (this._dying || this.data.hp <= 0) return 0;
         const before = this.data.hp;
-        this.data.hp = Math.max(0, this.data.hp - damage);
-        this.hitFlash = 120;
+        super.takeDamage(damage, source, _damageType, _isMelee);
         if (this.data.hp <= 0) {
             this._startDying();
         }
@@ -116,6 +115,7 @@ export class HamsterWarrior extends Companion {
     /** 死亡结算：从实体表与友方单位表移除（Phaser 精灵由 GameScene 同步循环清理） */
     _removeFromScene() {
         this.active = false;
+        this.detachFromOwner();
         const game = (typeof window !== 'undefined' && window.Game) || null;
         if (game) {
             if (game.entities && this.id) game.entities.delete(this.id);

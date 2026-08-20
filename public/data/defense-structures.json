@@ -12,6 +12,9 @@
     "stepCountPerSegment": 9,
     "walkWidth": 80,
     "edgeHalfThick": 0.5,
+    "edgeRecoveryPadding": 2,
+    "edgeRecoverySteps": 8,
+    "entryRailInset": 36,
     "displayWidth": 220,
     "displayHeight": 220,
     "attachRadius": 420,
@@ -21,6 +24,8 @@
     "groupSeamMargin": 4,
     "handoffTopProgress": 0.65,
     "handoffCaptureMargin": 24,
+    "handoffStairOverlap": 16,
+    "connectorRailWallClearance": 0.5,
     "variants": {
       "e1_pos": {
         "displayWidth": 220, "displayHeight": 220,
@@ -45,25 +50,38 @@
     }
   },
   "wallWalk": {
-    "navigationMode": "graph",
-    "movementMode": "surface",
-    "graphEntryRadius": 48,
-    "graphMinAlignment": 0.2,
-    "graphNodeSwitchT": 0.995,
-    "graphLateralCorrectionMax": 3,
-    "graphPortalOverrideMargin": 0.2,
+    "routeMinAlignment": 0.2,
+    "routeNodeSwitchT": 0.995,
+    "portalPreferenceMargin": 0.2,
     "defaultTopZ": 125,
     "laneWidth": 48,
     "attachInset": 0,
     "maxUnitRadius": 30,
     "surfaceUnitRadius": 24,
     "commandPickTolerance": 16,
-    "stuckFrameThreshold": 2,
-    "emergencyRecoveryRadius": 3,
+    "surfaceNavigation": {
+      "replanIntervalMs": 450,
+      "failedPlanRetryMs": 900,
+      "progressTimeoutMs": 1800,
+      "maxRecoveryAttempts": 3,
+      "portalEntryRadius": 14,
+      "portalCaptureMargin": 18,
+      "portalReservationTtlMs": 1400,
+      "portalQueueWaitTimeoutMs": 6000,
+      "portalPruneIntervalMs": 250,
+      "portalQueueCost": 180,
+      "stairMoveMinAlignment": 0.2,
+      "portalDirectionMinAlignment": 0.15,
+      "portalMotionMinAlignment": 0.05,
+      "handoffStuckFrameThreshold": 3,
+      "handoffRecoveryStep": 3,
+      "enemyArchetypes": {
+        "zombie": "melee",
+        "blackWolf": "melee"
+      }
+    },
     "rangedCombat": {
-      "rangeMultiplier": 1.2,
-      "wallClearance": 2,
-      "wallClearanceRadius": 220
+      "rangeMultiplier": 1.2
     },
     "blockTopSurface": {
       "sourceSize": [1024, 1024],
@@ -76,6 +94,9 @@
       "edgeTolerance": 4,
       "stairAttachTolerance": 24,
       "wallConnectorTolerance": 2,
+      "wallConnectorOverlap": 10,
+      "wallConnectorSideMargin": 4,
+      "wallJunctionOverlap": 6,
       "neighborCenterTolerance": 2,
       "footprintSamples": 24,
       "footprintTolerance": 1.5

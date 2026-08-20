@@ -72,7 +72,7 @@ export const CompanionCommandWheel = {
         // 改为按按下时鼠标悬停的目标拦截（下一条 closest 判断），面板开着但不
         // 悬停在面板上时仍可下达指令。
         if (e.target && typeof e.target.closest === 'function'
-            && e.target.closest('.system-panel, .panel-overlay, .side-menu, .menu-btn, .back-menu-btn, .wall-editor-panel, .companion-panel-wrap, .companion-overlay')) return false;
+            && e.target.closest('.system-panel, .panel-overlay, .side-menu, .menu-btn, .back-menu-btn, .wall-editor-panel, .rts-command-bar, .companion-panel-wrap, .companion-overlay')) return false;
         return true;
     },
 

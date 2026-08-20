@@ -5,7 +5,7 @@
  * - 每次攻击按「实际造成伤害 × 50%」产出能源（地面掉落物，装入背包后可用于修建/修理）；
  * - 资源点储量 = hp；耗尽进入枯竭态，90s 后原地刷新；
  * - 资源点只对玩家/队员开放（怪物攻击无效），不做墙体碰撞（避免挡自家塔弹道）；
- * - 贴图 v3：12 形态随机池 + 随机镜像，底座 30° 接地线，AI 成品优先、程序化兜底。
+ * - 贴图 v3：4 种 AI 尖塔晶簇随机池 + 随机镜像，无底座，AI 成品优先、程序化兜底。
  */
 import { Game } from '../game.js';
 import { DamageableEntity } from '../entities/damageable-entity.js';
@@ -41,12 +41,17 @@ class EnergyNode extends DamageableEntity {
         //   否则构造即抛 TypeError（2026-08-14 复现：进世界-122 回滚到主神空间）。def/mdef 本就无需。
         this.immovable = true;      // 不可击退/位移
         this.noSeparation = true;   // 不参与实体分离
-        this._noShadow = true;      // 自带接地底座的贴图取消脚底阴影
+        this.noCollision = true;    // 不阻挡单位移动（节点仍可被攻击/采集）
+        this.collisionRadius = 0;
+        if (this.collider) {
+            this.collider.radius = 0;
+            this.collider.height = 0;
+        }
+        this.gatherRadius = cfg.gatherRadius ?? ENERGY_CONFIG.gatherRadius ?? 45;
+        this._noShadow = true;      // 尖塔矿石透明贴图不额外叠加脚底阴影
         this._dormantBand = true;   // 2026-08-19：静态资源点进休眠带（重生计时聚合 dt 不变量）
         this.noNameLabel = true;    // 名字/HP 走 _syncNeutralEntities 统一标签
-        // 贴图（2026-08-16 v3）：12 种随机形态 × 随机镜像；底座采用世界-122 掩体/墙地
-        // 同一套 30° 接地线（见 energy-node-textures.js）。优先使用 AI v3 成品，
-        // 缺失时使用运行时程序化版兜底（v1/v2 旧贴图不再参与节点渲染）。
+        // 贴图：4 种尖塔晶簇 × 随机镜像。优先使用 AI 成品，缺失时走程序化兜底。
         this._variant = Math.max(1, Math.min(ENERGY_NODE_V3_COUNT, cfg.variant || 1));
         const scene = window.__phaserScene;
         ensureEnergyNodeTextures(scene);
@@ -55,7 +60,7 @@ class EnergyNode extends DamageableEntity {
         this._depletedKey = pair.depletedKey;
         this._texSource = pair.source;
         this._facingLeft = Math.random() < 0.5; // 同形态再镜像一次，进一步去重复
-        this._displayScale = 0.9 + Math.random() * 0.18; // 90%~108% 视觉尺寸抖动
+        this._displayScale = 0.9 + Math.random() * 0.18; // 保留 90%~108% 视觉抖动
         let aspect = 1.05;
         if (scene && scene.textures && scene.textures.exists(texKey)) {
             const frame = scene.textures.getFrame(texKey);
@@ -90,17 +95,20 @@ class EnergyNode extends DamageableEntity {
             EnergyManager.depositEnergy(1); // 触发节流后的满仓提示，不改变存量
             return 0;
         }
+        const configuredRatio = Number(source?._energyGatherRatio);
+        const gatherRatio = Number.isFinite(configuredRatio) && configuredRatio >= 0
+            ? configuredRatio
+            : ENERGY_CONFIG.gatherRatio;
         let appliedDamage = damage;
         if (directToWarehouse && EnergyManager) {
             const free = EnergyManager.getFreeCapacity();
-            const ratio = ENERGY_CONFIG.gatherRatio || 0.5;
-            if (ratio > 0) appliedDamage = Math.min(damage, Math.ceil(free / ratio));
+            if (gatherRatio > 0) appliedDamage = Math.min(damage, Math.ceil(free / gatherRatio));
         }
         const before = this.hp;
         super.takeDamage(appliedDamage, source, damageType, isMelee);
         const dealt = Math.max(0, before - this.hp);
         if (dealt <= 0) return dealt;
-        const energy = Math.floor(dealt * ENERGY_CONFIG.gatherRatio);
+        const energy = Math.floor(dealt * gatherRatio);
         if (energy > 0) {
             if (directToWarehouse && EnergyManager) {
                 EnergyManager.depositEnergy(energy);
@@ -195,10 +203,8 @@ export const EnergyNodeSystem = {
                 // 基地核心周边禁矿带（ENERGY_CONFIG.baseExclusion）：800px 内不生成
                 const be = ENERGY_CONFIG.baseExclusion;
                 if (be && Math.hypot(px - be.x, py - be.y) < (be.radius || 800)) continue;
-                // 与已放节点最小间距（2026-08-16 实测：nodeSize 84 × 显示缩放最高 1.08
-                // ≈ 91px，旧阈值 85 会让贴图重叠——“门口叠一堆矿/贴图叠在一起”实机反馈；
-                // 提到 115 保证任意两个节点贴图之间有明确空隙）
-                if (this.nodes.some((n) => Math.hypot(n.x - px, n.y - py) < 115)) continue;
+                // 按当前显示尺寸保持同簇矿点的最小视觉间距。
+                if (this.nodes.some((n) => Math.hypot(n.x - px, n.y - py) < (ENERGY_CONFIG.nodeSpacing ?? 115))) continue;
                 if (WallSystem && typeof WallSystem.canMoveTo === 'function'
                     && !WallSystem.canMoveTo(px, py, ENERGY_CONFIG.nodeRadius)) {
                     continue; // 落点被墙/建筑占住则跳过
@@ -214,12 +220,9 @@ export const EnergyNodeSystem = {
                 placed++;
             }
         }
-          // 寻路可见性：能源矿作为“非墙体圆障碍”注册给 A*，怪物会绕行而不是直线穿矿。
-          // 只影响寻路，不写 WallSystem，玩家移动/塔弹道等原有墙体语义不变。
+          // 能源矿取消物理碰撞：不向 A*登记圆形障碍，单位可直接穿过矿体。
           if (pathFinder && typeof pathFinder.setEntityCircleObstacles === 'function') {
-              pathFinder.setEntityCircleObstacles(
-                  this.nodes.map(n => ({ x: n.x, y: n.y, radius: n.groundRadius || ENERGY_CONFIG.nodeRadius }))
-          );
+              pathFinder.setEntityCircleObstacles([]);
           }
     },
 
@@ -249,7 +252,7 @@ export const EnergyNodeSystem = {
                     < (baseExclusion.radius || 800)) {
                 continue;
             }
-            if (this.nodes.some((n) => Math.hypot(n.x - s.x, n.y - s.y) < 115)) continue;
+            if (this.nodes.some((n) => Math.hypot(n.x - s.x, n.y - s.y) < (ENERGY_CONFIG.nodeSpacing ?? 115))) continue;
             if (WallSystem && typeof WallSystem.canMoveTo === 'function'
                 && !WallSystem.canMoveTo(s.x, s.y, ENERGY_CONFIG.nodeRadius)) {
                 continue;
@@ -272,9 +275,7 @@ export const EnergyNodeSystem = {
             this.nodes.push(node);
         }
         if (pathFinder && typeof pathFinder.setEntityCircleObstacles === 'function') {
-            pathFinder.setEntityCircleObstacles(
-                this.nodes.map(n => ({ x: n.x, y: n.y, radius: n.groundRadius || ENERGY_CONFIG.nodeRadius }))
-            );
+            pathFinder.setEntityCircleObstacles([]);
         }
     },
 
@@ -317,14 +318,12 @@ export const EnergyNodeSystem = {
         }
         this.nodes = kept;
         if (pathFinder && typeof pathFinder.setEntityCircleObstacles === 'function') {
-            pathFinder.setEntityCircleObstacles(
-                kept.map((n) => ({ x: n.x, y: n.y, radius: n.groundRadius || ENERGY_CONFIG.nodeRadius }))
-            );
+            pathFinder.setEntityCircleObstacles([]);
         }
         return removed;
     },
 
-    /** 12 形态洗牌袋：一袋内尽量不重复，抽空再洗 */
+    /** 4 形态洗牌袋：一袋内尽量不重复，抽空再洗 */
     _refillVariantBag() {
         this._variantBag = Array.from({ length: ENERGY_NODE_V3_COUNT }, (_, i) => i + 1);
         for (let i = this._variantBag.length - 1; i > 0; i--) {
@@ -354,8 +353,8 @@ export const EnergyNodeSystem = {
     /** 资源点实体自带 update（主循环调用），系统层无需逐帧推进 */
 
     /** 资源点贴图：
-     *  1) 优先 BootScene 已加载的 AI v3 成品 energy_node_v3_<n> / energy_node_depleted_v3_<n>；
-     *  2) 未出图/部分缺图时，用 energy-node-textures.js 生成 12 形态程序化版兜底；
+     *  1) 优先 BootScene 已加载的 4 种 AI 尖塔成品 energy_node_v3_<n> / energy_node_depleted_v3_<n>；
+     *  2) 未出图/部分缺图时，用 energy-node-textures.js 生成 4 形态程序化版兜底；
      *  3) energy_node / energy_node_depleted 仍保留 64×64 占位，仅用于极端加载失败路径。 */
     _ensureTextures() {
         const scene = window.__phaserScene;

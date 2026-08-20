@@ -3,11 +3,15 @@ import { getRarityLabel } from '../config/rarity.js';
 /* ================================================================
  *  CodexManager — 图鉴系统（装备 + 怪物分类）
  * ================================================================ */
-import { isGunWeapon, getAmmoConfig, getFireMode } from '../config/gun-ammo.js';
+import { isGunWeapon, getAmmoConfig } from '../config/gun-ammo.js';
 import { EquipDataManager } from './equip-data-manager.js';
 import { ENEMY_DATA } from '../systems/data-loader.js';
 import { queryAllElements, getElement } from '../utils/dom-utils.js';
 import { CodexFormulaHelper } from './codex-formula-helper.js';
+import { WEAPON_FX_CONFIG } from '../config/weapon-fx-config.js';
+import { UNIT_KIND_CFG } from '../world/unit-upgrade-store.js';
+import hamsterMinerCfg from '../../data/hamster-miner-config.json';
+import producerBuildingsJson from '../../data/producer-buildings.json';
 import { buildFormulaDisplay, buildEnhancedFormulaDisplay } from '../config/attack-formula.js';
 
 const CodexManager = {
@@ -40,6 +44,7 @@ const CodexManager = {
         this.renderEquipGrid();
         this.renderMonsterCategoryTabs();
         this.renderMonsterGrid();
+        this.renderAllyGrid();
         const backBtn = getElement('codexBackBtn');
         if (backBtn) backBtn.addEventListener('click', () => this.closeDetail());
     },
@@ -52,6 +57,7 @@ const CodexManager = {
         this.renderEquipGrid();
         this.renderMonsterCategoryTabs();
         this.renderMonsterGrid();
+        this.renderAllyGrid();
     },
 
     syncEquipDatabase() {
@@ -95,6 +101,8 @@ const CodexManager = {
     showSection(section) {
         getElement('codexEquipLayout').classList.toggle('active', section === 'equipment');
         getElement('codexMonsterLayout').classList.toggle('active', section === 'monster');
+        const ally = getElement('codexAllyLayout');
+        if (ally) ally.classList.toggle('active', section === 'ally');
     },
 
     renderEquipCategoryTabs() {
@@ -188,6 +196,112 @@ const CodexManager = {
         return this.monsterDatabase[id] || null;
     },
 
+    // ==================== 友军栏目（2026-08-19：仓鼠部队独立成栏） ====================
+
+    /** 友军数据唯一真源：兵种全局登记表（unit-upgrade-store）+ 矿工配置；禁止另抄数值 */
+    _allyList() {
+        const list = Object.values(UNIT_KIND_CFG || {});
+        if (hamsterMinerCfg && hamsterMinerCfg.id) list.push(hamsterMinerCfg);
+        return list.filter((c) => c && c.id);
+    },
+
+    /** 产出建筑名（数据驱动：产兵配置 unitTypes 反查 + 军营/矿场两个独立系统固定项） */
+    _allyProducerNames(id) {
+        // 产兵配置 unitTypes 用短 key（militia），登记表值对象的 id 是全名（hamster_militia）——先反查短 key
+        const kind = Object.keys(UNIT_KIND_CFG || {}).find((k) => UNIT_KIND_CFG[k] && UNIT_KIND_CFG[k].id === id) || id;
+        const names = [];
+        for (const cfg of Object.values(producerBuildingsJson || {})) {
+            if (!cfg || typeof cfg !== 'object' || !cfg.id) continue;
+            if ((cfg.unitTypes || []).some((u) => u.key === kind)) names.push(cfg.name);
+        }
+        // 军营（战士/盾卫）与矿场（矿工）不走产兵配置表，属独立系统
+        const BARRACKS_UNITS = ['warrior', 'guard'];
+        if (BARRACKS_UNITS.includes(kind)) names.push('仓鼠军营');
+        if (id === 'hamster_miner') names.push('仓鼠矿场');
+        return names;
+    },
+
+    renderAllyGrid() {
+        const grid = getElement('codexAllyGrid');
+        if (!grid) return;
+        grid.innerHTML = this._allyList().map((c) => {
+            const anim = c.animations && c.animations.idle;
+            const iconHtml = anim
+                ? this._renderCodexIcon({ idleTexture: anim.src, idleFrameWidth: anim.frameWidth, idleSheetColumns: anim.cols, color: '#4a7a8a' }, 36)
+                : `<span>${c.avatar || '🐹'}</span>`;
+            return `<div class="codex-card codex-ally-card" data-id="${c.id}" onclick="CodexManager.openAllyDetail('${c.id}')">
+                <div class="cc-icon">${iconHtml}</div>
+                <div class="cc-name">${c.name}</div>
+                <div class="cc-type">${c.title || '友军'}</div>
+            </div>`;
+        }).join('');
+    },
+
+    openAllyDetail(id) {
+        const c = this._allyList().find((x) => x.id === id);
+        if (!c) return;
+        this.detailItem = c;
+        const title = getElement('codexDetailTitle');
+        if (title) title.textContent = c.name;
+        this.renderAllyDetail(c);
+    },
+
+    renderAllyDetail(c) {
+        const body = getElement('codexDetailBody');
+        if (!body) return;
+        body.style.overflowY = 'auto';
+        body.style.maxHeight = 'calc(100vh - 200px)';
+        const base = c.baseData || {};
+        const ai = c.ai || {};
+        const stats = CodexFormulaHelper.calculateCombatStats(base); // statFormula:'enemy' 同口径
+        const anim = c.animations && c.animations.idle;
+        const iconHtml = anim
+            ? this._renderCodexIcon({ idleTexture: anim.src, idleFrameWidth: anim.frameWidth, idleSheetColumns: anim.cols, color: '#4a7a8a' }, 64)
+            : `<span style="font-size:48px;">${c.avatar || '🐹'}</span>`;
+        let html = `<div class="cd-hero">
+            <div class="cd-hero-icon">${iconHtml}</div>
+            <div class="cd-hero-info">
+                <div class="cd-hero-name">${c.name}<span class="cd-family-tag ally">友军</span></div>
+                <div class="cd-hero-type">${c.title || ''} · ${c.role || c.id}</div>
+            </div>
+        </div>`;
+        html += `<div class="cd-section"><h4>基本信息</h4>`;
+        html += this.detailRow('名称', c.name);
+        html += this.detailRow('生命值', c.baseMaxHp ?? '-');
+        html += this.detailRow('移动速度', ai.walkSpeed ?? '-');
+        const producers = this._allyProducerNames(c.id);
+        if (producers.length) html += this.detailRow('产出建筑', producers.join('、'));
+        html += `</div>`;
+        html += `<div class="cd-section"><h4>六维属性</h4>`;
+        html += this.detailRow('力量', base.str ?? 0);
+        html += this.detailRow('敏捷', base.dex ?? 0);
+        html += this.detailRow('智力', base.int ?? 0);
+        html += this.detailRow('体质', base.con ?? 0);
+        html += this.detailRow('精神', base.wis ?? 0);
+        html += this.detailRow('幸运', base.luck ?? 0);
+        html += `</div>`;
+        html += `<div class="cd-section"><h4>战斗属性（怪物公式派生）</h4>`;
+        html += this.detailRow('物理攻击', stats.atk);
+        html += this.detailRow('物理防御', stats.def);
+        html += this.detailRow('魔法攻击', stats.matk);
+        html += this.detailRow('魔法防御', stats.mdef);
+        html += this.detailRow('暴击率', stats.crit + '%');
+        html += this.detailRow('暴击抵抗', stats.critRes + '%');
+        html += `</div>`;
+        if (ai.attackDamage !== undefined) {
+            html += `<div class="cd-section"><h4>攻击参数</h4>`;
+            html += this.detailRow(c.role === 'miner' ? '采矿伤害' : '攻击伤害', ai.attackDamage);
+            html += this.detailRow('攻击间隔', `${ai.attackInterval}ms`);
+            if (ai.attackRange) html += this.detailRow(ai.miningRange !== undefined && c.role === 'miner' ? '近战距离' : '射程', `${ai.attackRange}px`);
+            if (ai.attackDamageFrame) html += this.detailRow('伤害判定帧', `第 ${ai.attackDamageFrame} 帧`);
+            if (ai.attackLaunchFrame) html += this.detailRow('投射物出膛帧', `第 ${ai.attackLaunchFrame} 帧`);
+            if (ai.projectileSpeed) html += this.detailRow('弹道速度', `${ai.projectileSpeed}px/s`);
+            html += `</div>`;
+        }
+        if (c.desc) html += `<div class="cd-section"><h4>描述</h4><div class="cd-desc">${c.desc}</div></div>`;
+        body.innerHTML = html;
+    },
+
     openEquipDetail(itemName) {
         const item = this.getEquipByName(itemName);
         if (!item) return;
@@ -255,15 +369,17 @@ const CodexManager = {
             html += this.detailRow('攻击间隔', d.attack && d.attack.attackInterval ? `${d.attack.attackInterval}ms` : '');
             html += this.detailRow('伤害类型', d.attack && d.attack.damageType ? d.attack.damageType : '');
             html += this.detailRow('击退距离', d.attack && d.attack.knockback !== undefined ? `${d.attack.knockback}px` : '');
-            // 散布参数：根据武器开火模式显示不同格式
-            if (getFireMode(d) === 'semiAuto') {
-                // 半自动武器：显示每次射击散布增加和后坐力恢复时间
-                html += this.detailRow('每次射击散布增加', '+5°');
-                html += this.detailRow('后坐力恢复时间', '500ms');
-            } else {
+            // 散布参数（2026-08-19 硬编码清除）：spreadParams 为逐武器真源（半自动同样有
+            // 爬升参数，与全自动同口径展示）；独头弹逐层散布走 weapon-fx-config 真源。
+            // 原 '+5°' / '500ms' 两行无任何数据源支撑（纯展示硬编码），已移除。
+            if (d.spreadParams) {
                 html += this.detailRow('射击散布开始时间', this._getSpreadStart(d));
                 html += this.detailRow('达到最大散布时间', this._getSpreadMax(d));
                 html += this.detailRow('最大散布角度', this._getSpreadAngle(d));
+            }
+            if (d.weaponType === 'shotgun') {
+                const perLayer = WEAPON_FX_CONFIG.shotgun && WEAPON_FX_CONFIG.shotgun.slugRecoilAnglePerLayer;
+                if (perLayer !== undefined) html += this.detailRow('独头弹每层散布增加', `+${perLayer}°`);
             }
             // 机枪类：显示过热时间
             const overheatTime = this._getOverheatTime(d);

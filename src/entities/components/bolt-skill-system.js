@@ -15,7 +15,11 @@ import {
     volumeEffectContext,
 } from '../../physics/elevation.js';
 import { pointHitsTorso } from '../../physics/torso-hitbox.js';
-import { burstParticles } from '../../effects/combat-fx.js';
+import {
+    burstParticles,
+    resolveSkillEffectDepth,
+    snapshotSkillEffectDepthContext,
+} from '../../effects/combat-fx.js';
 import {
     getCurrentWeaponCraftEffects,
     getMagicRangeMultiplier,
@@ -29,9 +33,12 @@ import {
 import { getSkillMagicCategory } from '../../config/magic-categories.js';
 import { isSkillCheatEnabled } from '../../config/dev-cheats.js';
 import {
+    applyProjectileWallImpact,
+    canUseWallTopModelException,
     projectileSourceZ,
     projectileTargetZ,
     projectileWallContext,
+    wallHitSupportsTarget,
 } from '../../combat/elevated-ranged.js';
 
 /**
@@ -242,7 +249,12 @@ export class BoltSkillSystem {
             spike.flyVz = (spike.targetZ - spike.flyZ)
                 / Math.max(0.001, spike.targetDist / Math.max(1, spike.flySpeed));
             spike.maxRange = launchEffect.maxRange;
-            spike.wallContext = projectileWallContext(this.source);
+            spike.wallContext = projectileWallContext(this.source, null, {
+                x: spike.flyX,
+                y: spike.flyY,
+                z: spike.flyZ,
+            });
+            spike.renderDepthContext = snapshotSkillEffectDepthContext(this.source);
         });
         this.source[this.kind.fields.timer] = 0;
     }
@@ -319,13 +331,15 @@ export class BoltSkillSystem {
                 && targetDist <= maxRange;
             const terminalDistance = reachesTargetFirst ? targetDist : maxRange;
             const wallContext = spike.wallContext || projectileWallContext(this.source);
-            const segmentBlocked = (endX, endY, endZ) => WallSystem.projectileBlocked
-                ? WallSystem.projectileBlocked(
+            const segmentWallHit = (endX, endY, endZ) => WallSystem.projectileWallHit
+                ? WallSystem.projectileWallHit(
                     spike.flyX, spike.flyY, Number(spike.flyZ) || 0,
                     endX, endY, endZ,
                     wallContext
                 )
-                : WallSystem.blocked(spike.flyX, spike.flyY, endX, endY);
+                : (WallSystem.blocked(spike.flyX, spike.flyY, endX, endY)
+                    ? { wall: null, owner: null, x: spike.flyX, y: spike.flyY, z: spike.flyZ }
+                    : null);
 
             // 本帧会到达目标或射程终点时，先把线段夹到真实终点并做墙碰撞。
             // 终点结算必须排在墙检测之后，不能让最后一帧跨墙命中。
@@ -337,7 +351,20 @@ export class BoltSkillSystem {
                 const endZ = reachesTargetFirst
                     ? spike.targetZ
                     : (Number(spike.flyZ) || 0) + (Number(spike.flyVz) || 0) * dtSec * ratio;
-                if (segmentBlocked(endX, endY, endZ)) {
+                const terminalWallHit = segmentWallHit(endX, endY, endZ);
+                const terminalElevation = volumeEffectContext(endZ, this.kind.hitRadius);
+                const terminalModelTarget = terminalWallHit && canUseWallTopModelException(this.source)
+                    ? entityList.find(entity => this._isHostile(entity)
+                        && entity.active
+                        && entity.hittable
+                        && entity._surfaceKind === 'wall_walk'
+                        && wallHitSupportsTarget(terminalWallHit, entity)
+                        && effectElevationIntersectsEntity(terminalElevation, entity)
+                        && pointHitsTorso(entity, endX, endY, this.kind.hitRadius))
+                    : null;
+                const targetModelHitThroughSupport = !!terminalModelTarget;
+                if (terminalWallHit && !targetModelHitThroughSupport) {
+                    applyProjectileWallImpact(this.source, terminalWallHit, damage, 'magic');
                     const surfaceContext = surfaceEffectAtPoint(spike.flyX, spike.flyY, { impactZ: spike.flyZ });
                     this.kind.onImpact(this, spike, { x: spike.flyX, y: spike.flyY, entities: entityList, damage, effect, skill, surfaceContext });
                 } else {
@@ -359,8 +386,9 @@ export class BoltSkillSystem {
                 return;
             }
 
-            const hitWall = segmentBlocked(nextX, nextY, nextZ);
+            const hitWall = segmentWallHit(nextX, nextY, nextZ);
             if (hitWall) {
+                applyProjectileWallImpact(this.source, hitWall, damage, 'magic');
                 const surfaceContext = surfaceEffectAtPoint(spike.flyX, spike.flyY, { impactZ: spike.flyZ });
                 this.kind.onImpact(this, spike, { x: spike.flyX, y: spike.flyY, entities: entityList, damage, effect, skill, surfaceContext });
                 spike.flyActive = false;
@@ -378,13 +406,20 @@ export class BoltSkillSystem {
                 spike._trailTimer = (spike._trailTimer || 0) + dt;
                 if (spike._trailTimer >= trail.intervalMs) {
                     spike._trailTimer = 0;
+                    const trailDepth = resolveSkillEffectDepth({
+                        source: src,
+                        groundY: spike.flyY,
+                        context: spike.renderDepthContext,
+                        groundOffset: 14,
+                        preferSourceDepth: false,
+                    });
                     burstParticles({
                         texture: 'impact_dot',
                         x: spike.flyX - cos * trail.backOffset,
                         y: spike.flyY - (Number(spike.flyZ) || 0) - sin * trail.backOffset,
                         count: 1, config: trail.config,
                         destroyAfterMs: trail.destroyAfterMs,
-                        depth: spike.flyY - (Number(spike.flyZ) || 0) + 14,
+                        depth: trailDepth,
                     });
                 }
             }
@@ -426,7 +461,7 @@ export class BoltSkillSystem {
             const dist = Math.sqrt((entity.x - x) ** 2 + (entity.y - y) ** 2);
             const distRatio = 1 - Math.min(dist / radius, 1);
             const finalDamage = Math.floor(damage * (0.5 + 0.5 * distRatio));
-            entity.takeDamage(finalDamage, this.source, 'magic');
+            entity.takeDamage(finalDamage, this.source, 'magic', false);
             // 烈焰吊坠：火系魔法造成伤害附加灼伤
             if (burnMul && typeof entity.applyBurn === 'function') {
                 entity.applyBurn(this.source, 1, burnDuration, burnMul, burnTickMs);

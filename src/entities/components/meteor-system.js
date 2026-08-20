@@ -156,7 +156,7 @@ export class MeteorSystem {
                 const dist = Math.sqrt((e.x - ix) ** 2 + (e.y - iy) ** 2);
                 const distRatio = 1 - Math.min(dist / effect.explosionRadius, 1);
                 const finalDamage = Math.floor(damage * (0.5 + 0.5 * distRatio));
-                e.takeDamage(finalDamage, src, 'magic');
+                e.takeDamage(finalDamage, src, 'magic', false);
                 // 灼伤：爆炸固有 3 层（烈焰吊坠的增伤倍率走 applyBurn damageMul）
                 if (effect.burnStacks && typeof e.applyBurn === 'function') {
                     e.applyBurn(src, effect.burnStacks, effect.burnDurationMs, effect.burnDamageMul, 500);
@@ -194,7 +194,7 @@ export class MeteorSystem {
                 if (e._faction === src._faction) continue;
                 if (!shape.intersectsEntity(e)) continue;
                 const wasAlive = e.hp > 0;
-                e.takeDamage(tickDamage, src, 'magic');
+                e.takeDamage(tickDamage, src, 'magic', false);
                 if (effect.lavaBurnStacks && typeof e.applyBurn === 'function') {
                     e.applyBurn(src, effect.lavaBurnStacks, effect.lavaBurnDurationMs, effect.lavaBurnDamageMul, 500);
                 }

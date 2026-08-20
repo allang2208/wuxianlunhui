@@ -1,5 +1,29 @@
 import { UIState } from '../ui-state.js';
 
+const BASE_PANEL_INSTANCES = new Set();
+
+/** 关闭指定分组内所有已打开的 BasePanel；返回实际关闭数量。 */
+export function closeBasePanels(group = null) {
+    let closed = 0;
+    for (const panel of BASE_PANEL_INSTANCES) {
+        if (!panel || !panel.isOpen) continue;
+        if (group && panel.panelGroup !== group) continue;
+        panel.close();
+        closed++;
+    }
+    return closed;
+}
+
+function targetInsideOpenBasePanel(target, group = null) {
+    if (!target) return false;
+    for (const panel of BASE_PANEL_INSTANCES) {
+        if (!panel || !panel.isOpen || !panel.el) continue;
+        if (group && panel.panelGroup !== group) continue;
+        if (panel.el.contains(target)) return true;
+    }
+    return false;
+}
+
 /**
  * 面板生命周期基类（抽屉式面板统一框架，新面板优先复用）
  *
@@ -17,16 +41,34 @@ import { UIState } from '../ui-state.js';
  */
 export class BasePanel {
     /**
-     * @param {{id:string, className:string, stateKey?:string}} opts
+     * @param {{
+     *  id:string,
+     *  className:string,
+     *  stateKey?:string,
+     *  panelGroup?:string,
+     *  closeOnEscape?:boolean,
+     *  closeOnOutsidePointer?:boolean
+     * }} opts
      */
-    constructor({ id, className, stateKey }) {
+    constructor({
+        id,
+        className,
+        stateKey,
+        panelGroup = null,
+        closeOnEscape = false,
+        closeOnOutsidePointer = false,
+    }) {
         if (!id || !className) throw new Error('[BasePanel] id 与 className 必填');
         this.id = id;
         this.className = className;
         this.stateKey = stateKey || id;
+        this.panelGroup = panelGroup;
+        this.closeOnEscape = closeOnEscape;
+        this.closeOnOutsidePointer = closeOnOutsidePointer;
         this._built = false;
         /** @type {HTMLDivElement|null} */
         this.el = null;
+        BASE_PANEL_INSTANCES.add(this);
     }
 
     get isOpen() { return UIState.isOpen(this.stateKey); }
@@ -71,6 +113,28 @@ export class BasePanel {
                 if (Date.now() - (this._openedAt || 0) < 300) return;
                 this.close();
             });
+        }
+        if (this.closeOnOutsidePointer) {
+            window.addEventListener('mousedown', (event) => {
+                if (!this.isOpen || (event.button !== 0 && event.button !== 2)) return;
+                if (Date.now() - (this._openedAt || 0) < 300) return;
+                if (targetInsideOpenBasePanel(event.target, this.panelGroup)) return;
+                const closed = closeBasePanels(this.panelGroup);
+                if (closed > 0) {
+                    event.preventDefault();
+                    event.stopImmediatePropagation();
+                }
+            }, true);
+        }
+        if (this.closeOnEscape) {
+            window.addEventListener('keydown', (event) => {
+                if (event.code !== 'Escape' || !this.isOpen) return;
+                const closed = closeBasePanels(this.panelGroup);
+                if (closed > 0) {
+                    event.preventDefault();
+                    event.stopImmediatePropagation();
+                }
+            }, true);
         }
     }
 

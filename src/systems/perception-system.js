@@ -1,5 +1,10 @@
 import { WallSystem } from '../world/wall-system.js';
 import { distanceToEntityShape } from '../utils/collision-helpers.js';
+import {
+    hasRangedLineOfSight,
+    rangedLineOfSightCacheToken,
+} from '../combat/ranged-line-of-sight.js';
+import { canMeleeShareSurface } from '../combat/melee-surface.js';
 /**
  * PerceptionSystem — 敌人感知子系统
  *
@@ -391,8 +396,10 @@ class PerceptionSystemImpl {
         if (!p.losCache) p.losCache = new Map();
 
         const now = Date.now();
+        const surfaceToken = rangedLineOfSightCacheToken(enemy, target);
         const cached = p.losCache.get(target.id);
-        if (cached && (now - cached.time) < p.losCheckInterval) {
+        if (cached && cached.surfaceToken === surfaceToken
+            && (now - cached.time) < p.losCheckInterval) {
             return cached.result;
         }
 
@@ -402,9 +409,15 @@ class PerceptionSystemImpl {
         const _structReach = enemy.attackDistance !== undefined
             ? enemy.attackDistance
             : (enemy.attackRange ? enemy.attackRange * 1.15 : 0);
+        const usesRangedAttack = !!enemy?.attacks?.ranged
+            || enemy?.aiConfig?.role === 'ranged'
+            || enemy?.ai?.role === 'ranged'
+            || Number(enemy?.attackRange) > 220;
         if (target._isDefenseStructure && _structReach > 0
+            && !usesRangedAttack
+            && canMeleeShareSurface(enemy, target)
             && distanceToEntityShape(target, enemy.x, enemy.y) <= _structReach) {
-            p.losCache.set(target.id, { result: true, time: now });
+            p.losCache.set(target.id, { result: true, time: now, surfaceToken });
             return true;
         }
 
@@ -414,23 +427,12 @@ class PerceptionSystemImpl {
             // 掩体目标忽略自身 face 墙段：从墙背面接近时射线必穿自身线段，
             // 不忽略会永远判"无视线"导致 CombatSystem 拒绝对掩体出手
             const ignore = target._coverSeg ? { segs: new Set([target._coverSeg]) } : null;
-            const elevated = (Number(enemy.z) || 0) > 0 || (Number(target.z) || 0) > 0;
-            if (elevated && WallSystem.projectileBlocked) {
-                const sourceZ = (Number(enemy.z) || 0) + (enemy.collider?.height || 40) * 0.58;
-                const targetZ = (Number(target.z) || 0) + (target.collider?.height || 40) * 0.5;
-                result = !WallSystem.projectileBlocked(
-                    enemy.x, enemy.y, sourceZ,
-                    target.x, target.y, targetZ,
-                    ignore
-                );
-            } else {
-                result = !WallSystem.blocked(enemy.x, enemy.y, target.x, target.y, ignore);
-            }
+            result = hasRangedLineOfSight(enemy, target, 8, ignore);
         }
 
         // 缓存兜底：异常膨胀时整体清空重建（玩家阵营目标数量有限，正常不会触发）
         if (p.losCache.size > 64) p.losCache.clear();
-        p.losCache.set(target.id, { result, time: now });
+        p.losCache.set(target.id, { result, time: now, surfaceToken });
         return result;
     }
 

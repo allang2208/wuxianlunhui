@@ -16,6 +16,7 @@ import { HamsterScout } from '../entities/hamster-scout.js';
 import { HamsterMusketeer } from '../entities/hamster-musketeer.js';
 import { HamsterPriest } from '../entities/hamster-priest.js';
 import { HamsterKnight } from '../entities/hamster-knight.js';
+import { HamsterLightCavalry } from '../entities/hamster-light-cavalry.js';
 import { GoldManager } from '../systems/gold-manager.js';
 import { EnergyManager } from '../systems/energy-manager.js';
 import { EffectManager } from '../effects/effect-manager.js';
@@ -24,10 +25,17 @@ import { BuildingSinkEffect } from '../effects/building-sink.js';
 import { SoundManager } from '../ui/sound-manager.js';
 import { BasePanel } from '../ui/panels/base-panel.js';
 import { renderBuildingDetailHeader } from '../ui/panels/building-detail-header.js';
+import {
+    ensureBuildingUpgradeTooltip,
+    hideBuildingUpgradeTooltip,
+    moveBuildingUpgradeTooltip,
+    showBuildingUpgradeTooltip,
+} from '../ui/panels/building-upgrade-tooltip.js';
 import { SceneManager } from './scene-manager.js';
 import { WorldProgressionSystem } from './world-progression-system.js';
 import { WallSystem } from './wall-system.js';
 import { setupStructureDepth } from './structure-depth.js';
+import { BUILDING_FOUNDATION_CONFIG } from './building-footprint.js';
 import { Renderer } from './renderer.js';
 import producerBuildings from '../../data/producer-buildings.json';
 import warriorCfg from '../../data/hamster-warrior-config.json';
@@ -38,6 +46,7 @@ import scoutCfg from '../../data/hamster-scout-config.json';
 import musketeerCfg from '../../data/hamster-musketeer-config.json';
 import priestCfg from '../../data/hamster-priest-config.json';
 import knightCfg from '../../data/hamster-knight-config.json';
+import lightCavalryCfg from '../../data/hamster-light-cavalry-config.json';
 import {
     applyGlobalUpgradesToKind,
     applyUnitUpgradePatch,
@@ -48,10 +57,15 @@ import {
     raiseUnitUpgradeLevel,
 } from './unit-upgrade-store.js';
 import { getAbilityLevel, getAbilityValue, raiseAbilityLevel } from './ability-store.js';
-import { resolveBuildingUpgradeProject } from './building-upgrade-projects.js';
+import {
+    getBuildingModuleUpgradeCost, getUpgradeModulesForUnitKind, resolveBuildingUpgradeProject,
+} from './building-upgrade-projects.js';
 import { ResearchSystem } from './research-system.js';
 import { applyBuildingFootprint } from './building-footprint.js';
 import { SpawnPlacement } from './spawn-placement.js';
+import { payBuildingUpgradeCost } from './building-upgrade-payment.js';
+import { TroopLineSystem } from './troop-line-system.js';
+import { isInfiniteResourcesEnabled } from '../config/dev-cheats.js';
 
 const ABILITY_TARGET_NAMES = Object.freeze({
     warrior: '仓鼠战士',
@@ -62,7 +76,26 @@ const ABILITY_TARGET_NAMES = Object.freeze({
     musketeer: '仓鼠火枪',
     priest: '仓鼠牧师',
     knight: '仓鼠骑士',
+    light_cavalry: '仓鼠轻骑',
 });
+
+function moduleAppliesToUnit(module, unitType) {
+    return !Array.isArray(module?.unitKinds) || module.unitKinds.includes(unitType);
+}
+
+function cloneProducerRuntimeConfig(cfg) {
+    return {
+        ...cfg,
+        unitTypes: (cfg.unitTypes || []).map((unit) => ({ ...unit })),
+        modules: Object.fromEntries(
+            Object.entries(cfg.modules || {}).map(([key, module]) => [key, { ...module }])
+        ),
+        abilities: Object.fromEntries(
+            Object.entries(cfg.abilities || {}).map(([key, ability]) => [key, { ...ability }])
+        ),
+        destinations: (cfg.destinations || []).map((destination) => ({ ...destination })),
+    };
+}
 
 /** 建筑结构数据与独立升级项目合并后的运行时配置。 */
 export const PRODUCER_BUILDINGS = Object.fromEntries(
@@ -79,6 +112,7 @@ const PRODUCER_UNIT_CFG = {
     musketeer: musketeerCfg,
     priest: priestCfg,
     knight: knightCfg,
+    light_cavalry: lightCavalryCfg,
 };
 
 /** 单位 key → 实体类 */
@@ -91,7 +125,53 @@ const PRODUCER_UNIT_CLASS = {
     musketeer: HamsterMusketeer,
     priest: HamsterPriest,
     knight: HamsterKnight,
+    light_cavalry: HamsterLightCavalry,
 };
+
+/** 跨位面增援的统一军事单位工厂；不归属任何当地生产建筑。 */
+export function createMilitaryUnit(kind, x, y, options = {}) {
+    const UnitClass = PRODUCER_UNIT_CLASS[kind];
+    const base = PRODUCER_UNIT_CFG[kind];
+    if (!UnitClass || !base) return null;
+    const patch = getUnitUpgradePatch(kind, getUpgradeModulesForUnitKind(kind));
+    const baseAi = base.ai || {};
+    const ai = {
+        ...baseAi,
+        attackInterval: patch.attackInterval,
+        attackDamage: patch.attackDamage,
+        attackRange: patch.attackRange,
+        castRange: patch.castRange,
+        walkSpeed: patch.walkSpeed,
+        holyLightCooldownMult: patch.holyLightCooldownMult,
+        holyLightLevel: patch.holyLightLevel,
+        chargeDamageMult: patch.chargeDamageMult,
+        holyLightRangeBonus: patch.holyLightRangeBonus,
+        titheEnergyPerTick: patch.titheEnergyPerTick,
+        titheIntervalMs: patch.titheIntervalMs,
+    };
+    const unit = new UnitClass(x, y, {
+        id: options.id,
+        ai,
+        baseMaxHp: patch.baseMaxHp,
+    });
+    applyUnitUpgradePatch(unit, patch);
+    const hpRatio = Math.max(0.01, Math.min(1, Number(options.hpRatio) || 1));
+    if (unit.data) unit.data.hp = Math.max(1, Math.round((unit.data.maxHp || patch.baseMaxHp) * hpRatio));
+    return unit;
+}
+
+/** 后台驻军结算使用的配置化战斗档案；与前台实体读取同一兵种/升级真源。 */
+export function getMilitaryUnitProfile(kind) {
+    const base = PRODUCER_UNIT_CFG[kind];
+    if (!base) return null;
+    const patch = getUnitUpgradePatch(kind, getUpgradeModulesForUnitKind(kind));
+    const damage = Math.max(0, Number(patch.attackDamage ?? base.ai?.attackDamage) || 0);
+    const interval = Math.max(300, Number(patch.attackInterval ?? base.ai?.attackInterval) || 2000);
+    return {
+        maxHp: Math.max(1, Number(patch.baseMaxHp ?? base.baseMaxHp) || 1),
+        dps: damage * 1000 / interval,
+    };
+}
 
 export function getProducerConfig(key) {
     return PRODUCER_BUILDINGS[key] || null;
@@ -99,20 +179,17 @@ export function getProducerConfig(key) {
 
 /** 模块升级费用（统一）：升级费用从配置读 */
 export function getProducerModuleCost(cfg, moduleId, _currentLevel) {
-    if (!cfg || !cfg.modules?.[moduleId]) return null;
-    return {
-        gold: cfg.upgradeCost?.gold ?? 0,
-        energy: cfg.upgradeCost?.energy ?? 0,
-    };
+    return getBuildingModuleUpgradeCost(cfg, moduleId, _currentLevel);
 }
 
 /** 面板用：模块当前/下一级描述文本 */
 export function getProducerModuleDesc(cfg, moduleId, level) {
     const mod = cfg?.modules?.[moduleId];
     if (!mod) return '';
-    const pct = Math.round(Math.abs(mod.per) * 100);
+    const pct = Math.abs(mod.per) * 100;
+    const pctAt = (atLevel) => Number((pct * atLevel).toFixed(1)).toString();
     const fill = (atLevel) => (mod.desc || '')
-        .replace('{pct}', `${pct * atLevel}`)
+        .replace('{pct}', pctAt(atLevel))
         .replace('{value}', `${Math.round(mod.per * atLevel)}`)
         .replace('{level}', `${(mod.base ?? 0) + Math.round(mod.per * atLevel)}`)
         .replace('{tickSeconds}', `${Math.round((mod.tickMs ?? 0) / 1000)}`);
@@ -131,8 +208,10 @@ export function getProducerMults(cfg, modules) {
 
 export class ProducerBuilding extends DamageableEntity {
     constructor(x, y, config = {}) {
-        const cfg = getProducerConfig(config.cfgKey);
-        if (!cfg) throw new Error(`producer-building: 未知配置 ${config.cfgKey}`);
+        const sourceCfg = getProducerConfig(config.cfgKey);
+        if (!sourceCfg) throw new Error(`producer-building: 未知配置 ${config.cfgKey}`);
+        // 每栋建筑持有独立运行时配置副本，禁止面板选择或后续扩展误写共享模板后串联同类建筑。
+        const cfg = cloneProducerRuntimeConfig(sourceCfg);
         const hp = config.hp ?? cfg.hp;
         super(x, y, {
             faction: 'player',
@@ -157,6 +236,10 @@ export class ProducerBuilding extends DamageableEntity {
             size: cfg.displayW,
             sizeH: cfg.displayH,
             footOffsetY: cfg.footOffsetY,
+            foundation: cfg.foundation === false ? null : {
+                ...BUILDING_FOUNDATION_CONFIG,
+                ...(cfg.foundation || {}),
+            },
             // 统一贴图后默认固定标准2×2；仅未来明确声明 true 的异形建筑允许像素拟合物理体。
             autoFootprint: cfg.autoFootprint === true,
         };
@@ -173,7 +256,10 @@ export class ProducerBuilding extends DamageableEntity {
         this._baseSpawnIntervalMs = cfg.spawnIntervalMs;
         this._spawnRetryTimer = 0;
         this._spawnBlocked = false;
+        this._spawnEnergyBlocked = false;
         this.spawnEnabled = cfg.spawnEnabled !== false; // 铁匠铺等能力建筑不产兵
+        this._isTroopProducer = this.spawnEnabled && (cfg.unitTypes || []).some((unit) => !!unit?.key);
+        if (this.spawnEnabled) this._spawnTimer = this.recruitIntervalMs();
         this._upgrade = null;         // 能力升级读条 { abilityId, totalMs, remainMs }
         this._continuous = null;      // 持续升级的能力 id（资源足够自动续升）
         this._isEnergyWarehouse = cfg.workshopType === 'warehouse';
@@ -195,7 +281,7 @@ export class ProducerBuilding extends DamageableEntity {
 
     /** 当前存活单位数 */
     aliveUnitCount() {
-        return this.units.filter((u) => u && u.active && !u._dying && u.data && u.data.hp > 0).length;
+        return TroopLineSystem.countAssignedToProducer(this);
     }
 
     /** 配置里该单位 key 的展示名 */
@@ -208,6 +294,11 @@ export class ProducerBuilding extends DamageableEntity {
     _unitSpawnIntervalMs() {
         const u = (this._cfg.unitTypes || []).find((t) => t.key === this.unitType);
         return (u && Number.isFinite(u.spawnIntervalMs)) ? u.spawnIntervalMs : this._baseSpawnIntervalMs;
+    }
+
+    _unitSpawnEnergyCost() {
+        const unit = (this._cfg.unitTypes || []).find((entry) => entry.key === this.unitType);
+        return Math.max(0, Math.floor(Number(unit?.spawnEnergyCost) || 0));
     }
 
     /** 切换生成的单位类型；下一次生成生效（key 必须在配置 unitTypes 里）。
@@ -225,16 +316,17 @@ export class ProducerBuilding extends DamageableEntity {
 
     /** 固定出口槽位：墙体、建筑 footprint、动态单位与出口预约全部通过才返回。 */
     _findUnitSpawn() {
+        const sourceSceneId = SceneManager.currentScene;
         return SpawnPlacement.findAndReserve(this, {
             unitRadius: 24,
             entities: Game?.entities,
             wallSystem: WallSystem,
-            preferredTarget: this._rallyPoint || (Game && Game._observerMode ? { x: this.x, y: this.y } : Game?.player), // 观察模式：玩家不在场，集结兜底回建筑自身
+            preferredTarget: TroopLineSystem.getSpawnDirectionTarget(sourceSceneId, this),
         });
     }
 
     /** 生成一个军事单位（当前 unitType），应用模块倍率 */
-    spawnUnit() {
+    spawnUnit(payEnergy = false, options = {}) {
         if (!Game || !Game.entities) return null;
         const unitCfg = PRODUCER_UNIT_CFG[this.unitType];
         const UnitClass = PRODUCER_UNIT_CLASS[this.unitType];
@@ -244,6 +336,13 @@ export class ProducerBuilding extends DamageableEntity {
         const mults = this.mults();
         const spot = this._findUnitSpawn();
         if (!spot) return null;
+        const spawnCost = this._unitSpawnEnergyCost();
+        if (payEnergy && spawnCost > 0 && !isInfiniteResourcesEnabled()
+            && (!EnergyManager || !EnergyManager.deductEnergy(spawnCost))) {
+            this._spawnEnergyBlocked = true;
+            return null;
+        }
+        this._spawnEnergyBlocked = false;
         const id = `${this.id}_unit_${++this._unitSeq}`;
         const ai = {
             ...baseAi,
@@ -263,12 +362,22 @@ export class ProducerBuilding extends DamageableEntity {
         };
         const baseMaxHp = Math.max(1, Math.round((base.baseMaxHp ?? 300) * mults.hpMult));
         const unit = new UnitClass(spot.x, spot.y, { id, ai, baseMaxHp });
+        if (this.unitType === 'priest' && Number.isFinite(this._restoredTitheTimer)
+            && unit._ai && '_titheTimer' in unit._ai) {
+            unit._ai._titheTimer = Math.max(0, this._restoredTitheTimer);
+        }
         applyUnitUpgradePatch(unit, getUnitUpgradePatch(this.unitType, this._cfg.modules));
         unit._barracks = this;
         unit._spawnEgress = { x: spot.egressX, y: spot.egressY };
         this.units.push(unit);
         Game.entities.set(id, unit);
         if (Array.isArray(Game.friendlyUnits)) Game.friendlyUnits.push(unit);
+        TroopLineSystem.onUnitProduced(
+            unit,
+            this,
+            options.sourceSceneId || SceneManager.currentScene,
+            options
+        );
         return unit;
     }
 
@@ -280,7 +389,7 @@ export class ProducerBuilding extends DamageableEntity {
     /** 模块是否可升级（未满级即可） */
     canUpgradeModule(moduleId) {
         const mod = this._cfg.modules?.[moduleId];
-        if (!mod) return false;
+        if (!mod || !moduleAppliesToUnit(mod, this.unitType)) return false;
         return getUnitUpgradeLevel(this.unitType, moduleId) < mod.maxLevel;
     }
 
@@ -331,15 +440,15 @@ export class ProducerBuilding extends DamageableEntity {
         if (!a) return { ok: false, reason: '未知能力' };
         if (!this.canUpgradeAbility(abilityId)) return { ok: false, reason: '能力已满级' };
         if (this._upgrade) return { ok: false, reason: '已有升级在读条中' };
+        const occupied = ProducerBuildingSystem?.buildings?.some(
+            (building) => building !== this
+                && building?.active
+                && building._upgrade?.abilityId === abilityId
+        );
+        if (occupied) return { ok: false, reason: '该全局能力正在其他建筑中升级' };
         const cost = this.getAbilityCost(abilityId);
-        const free = !!(Game && Game._devInfiniteResources);
-        if (!free) {
-            if (!GoldManager || !EnergyManager) return { ok: false, reason: '货币系统不可用' };
-            if (GoldManager.getGold() < cost.gold) return { ok: false, reason: `金币不足（需 ${cost.gold} 金币）` };
-            if (EnergyManager.getEnergy() < cost.energy) return { ok: false, reason: `能源不足（需 ${cost.energy} 能源）` };
-            GoldManager.deductGold(cost.gold);
-            EnergyManager.deductEnergy(cost.energy);
-        }
+        const payment = payBuildingUpgradeCost(cost);
+        if (!payment.ok) return payment;
         this._upgrade = { abilityId, totalMs: cost.timeMs, remainMs: cost.timeMs };
         if (continuous) this._continuous = abilityId;
         if (SoundManager && typeof SoundManager.playFile === 'function') {
@@ -355,9 +464,10 @@ export class ProducerBuilding extends DamageableEntity {
         if (this._upgrade.remainMs > 0) return;
         const { abilityId } = this._upgrade;
         this._upgrade = null;
-        const level = raiseAbilityLevel(abilityId);
-        ResearchSystem.onResearchLeveled(abilityId);
         const a = this.getAbility(abilityId);
+        const previousLevel = getAbilityLevel(abilityId);
+        const level = raiseAbilityLevel(abilityId, a?.maxLevel ?? 10);
+        if (level > previousLevel) ResearchSystem.onResearchLeveled(abilityId);
         if (a && EffectManager) {
             EffectManager.add(new FloatingTextEffect(this.x, this.y - 56, `${a.name} Lv.${level}`, '#c9a0ff'));
         }
@@ -379,16 +489,12 @@ export class ProducerBuilding extends DamageableEntity {
     upgradeModule(moduleId, _player) {
         const mod = this._cfg.modules?.[moduleId];
         if (!mod) return { ok: false, reason: '未知模块' };
+        if (!moduleAppliesToUnit(mod, this.unitType)) return { ok: false, reason: '当前兵种不适用该模块' };
         if (!this.canUpgradeModule(moduleId)) return { ok: false, reason: '模块已满级' };
         const cost = this.getModuleCost(moduleId);
-        const free = !!(Game && Game._devInfiniteResources);
-        if (!free) {
-            if (!GoldManager || !EnergyManager) return { ok: false, reason: '货币系统不可用' };
-            if (!cost || GoldManager.getGold() < cost.gold) return { ok: false, reason: `金币不足（每级需 ${cost.gold} 金币）` };
-            if (EnergyManager.getEnergy() < cost.energy) return { ok: false, reason: `能源不足（每级需 ${cost.energy} 能源）` };
-            GoldManager.deductGold(cost.gold);
-            EnergyManager.deductEnergy(cost.energy);
-        }
+        if (!cost) return { ok: false, reason: '升级费用配置缺失' };
+        const payment = payBuildingUpgradeCost(cost);
+        if (!payment.ok) return payment;
         const level = raiseUnitUpgradeLevel(this.unitType, moduleId);
         this.applyUpgradesToUnits();
         if (SoundManager && typeof SoundManager.playFile === 'function') {
@@ -415,13 +521,32 @@ export class ProducerBuilding extends DamageableEntity {
             if (this._spawnTimer <= 0) {
                 this._spawnRetryTimer -= dt;
                 if (this._spawnRetryTimer > 0) return;
-                const unit = this.spawnUnit();
+                let unit;
+                const restoring = (this._restoreRosterQueue?.length || 0) > 0 || this._restoreTopUp > 0;
+                if (Array.isArray(this._restoreRosterQueue) && this._restoreRosterQueue.length > 0) {
+                    const selectedType = this.unitType;
+                    this.unitType = this._restoreRosterQueue[0];
+                    unit = this.spawnUnit(false, { restoring: true });
+                    this.unitType = selectedType;
+                    if (unit) this._restoreRosterQueue.shift();
+                } else {
+                    unit = this.spawnUnit(!restoring, { restoring });
+                }
                 if (unit) {
                     // 快照恢复补员（_restoreTopUp>0）：绕过完整产兵周期快速补齐，800ms/个
-                    this._spawnTimer = this._restoreTopUp > 0 ? 800 : this.recruitIntervalMs();
+                    this._spawnTimer = restoring ? 800 : this.recruitIntervalMs();
                     if (this._restoreTopUp > 0) this._restoreTopUp--;
                     this._spawnRetryTimer = 0;
                     this._spawnBlocked = false;
+                    this._spawnEnergyBlocked = false;
+                } else if (this._spawnEnergyBlocked) {
+                    this._spawnTimer = 0;
+                    this._spawnRetryTimer = 1000;
+                    this._spawnBlocked = false;
+                    if (EffectManager) {
+                        EffectManager.add(new FloatingTextEffect(this.x, this.y - 66,
+                            `能源不足，生产暂停（需 ${this._unitSpawnEnergyCost()}）`, '#ffcc55'));
+                    }
                 } else {
                     this._spawnTimer = 0;
                     this._spawnRetryTimer = SpawnPlacement.retryMs;
@@ -439,6 +564,7 @@ export class ProducerBuilding extends DamageableEntity {
             this._spawnTimer = this.recruitIntervalMs();
             this._spawnRetryTimer = 0;
             this._spawnBlocked = false;
+            this._spawnEnergyBlocked = false;
         }
     }
 
@@ -494,8 +620,11 @@ export class ProducerBuilding extends DamageableEntity {
         if (this._isEnergyWarehouse && (this.storedEnergy || 0) > 0) {
             return { ok: false, reason: '仓库中仍有能源，无法出售' };
         }
-        const refund = Math.floor(this._cfg.cost * (this._cfg.sellRefundRatio ?? 0.5));
-        if (this._cfg.currency !== 'gold' && (!EnergyManager || !EnergyManager.canStore(refund))) {
+        const buildCost = Math.max(0, Number(this._buildCost ?? this._cfg.cost) || 0);
+        const buildCurrency = this._buildCurrency || (this._cfg.currency === 'gold' ? 'gold' : 'energy');
+        const durability = Math.max(0, Math.min(1, Number(this.hp) / Math.max(1, Number(this.maxHp) || 1)));
+        const refund = Math.floor(buildCost * (this._cfg.sellRefundRatio ?? 0.5) * durability);
+        if (buildCurrency !== 'gold' && (!EnergyManager || !EnergyManager.canStore(refund))) {
             return { ok: false, reason: '仓库空间不足，无法接收出售返还能源' };
         }
         this.hittable = false;
@@ -508,7 +637,7 @@ export class ProducerBuilding extends DamageableEntity {
             const i = ProducerBuildingSystem.buildings.indexOf(this);
             if (i >= 0) ProducerBuildingSystem.buildings.splice(i, 1);
         }
-        if (this._cfg.currency === 'gold') {
+        if (buildCurrency === 'gold') {
             if (GoldManager) GoldManager.addGold(refund);
         } else if (EnergyManager) {
             EnergyManager.addEnergy(refund);
@@ -526,7 +655,14 @@ export class ProducerBuilding extends DamageableEntity {
 
 class ProducerBuildingPanel extends BasePanel {
     constructor() {
-        super({ id: 'producerBuildingPanel', className: 'producer-building-panel', stateKey: 'producerBuilding' });
+        super({
+            id: 'producerBuildingPanel',
+            className: 'producer-building-panel',
+            stateKey: 'producerBuilding',
+            panelGroup: 'buildingDetail',
+            closeOnEscape: true,
+            closeOnOutsidePointer: true,
+        });
         this.building = null;
         this.player = null;
         this._tickTimer = null;   // 出兵进度实时刷新定时器（100ms）
@@ -554,16 +690,9 @@ class ProducerBuildingPanel extends BasePanel {
             <div id="pbUnitType" style="border:1px solid #3a6a5a;border-radius:8px;padding:10px;margin-bottom:12px;background:rgba(20,50,40,0.18);"></div>
             <div id="pbModules" style="border:1px solid #3a4a5a;border-radius:8px;padding:10px;background:rgba(20,40,60,0.18);"></div>
         `;
-        // 能力说明浮窗：独立图层挂在 document.body（不放进面板，避免被面板
-        // overflow 容器裁剪/撑出滚动条），层级高于铁匠铺面板（2026-08-17 用户口径）
-        if (!document.getElementById('pbAbilityTip')) {
-            const tip = document.createElement('div');
-            tip.id = 'pbAbilityTip';
-            tip.style.cssText = 'display:none;position:fixed;z-index:10000;background:#fff;color:#222;'
-                + 'border:1px solid #d8d2c4;border-radius:6px;padding:8px 10px;font-size:12px;'
-                + 'line-height:1.6;box-shadow:0 4px 12px rgba(0,0,0,0.35);pointer-events:none;max-width:320px;';
-            document.body.appendChild(tip);
-        }
+        // 升级说明浮窗：研究/能力与出兵模块共用，独立挂在 document.body，
+        // 避免被面板 overflow 裁剪或撑出滚动条。
+        ensureBuildingUpgradeTooltip();
         el.querySelector('#pbClose').addEventListener('click', () => this.close());
     }
 
@@ -697,7 +826,9 @@ class ProducerBuildingPanel extends BasePanel {
         const isPortal = cfg.panelMode === 'portal';
         const isPassive = cfg.panelMode === 'detail';
         const isAbilityShop = cfg.spawnEnabled === false && !isWarehouse && !isPassive;
-        const upgradeSummary = Object.values(cfg.modules || {}).map((module) => module.name).join(' / ') || '无单位升级项目';
+        const applicableModules = Object.entries(cfg.modules || {})
+            .filter(([, module]) => moduleAppliesToUnit(module, b.unitType));
+        const upgradeSummary = applicableModules.map(([, module]) => module.name).join(' / ') || '无单位升级项目';
         el.querySelector('#pbTitle').textContent = '建筑详情';
         const detail = el.querySelector('#pbBuildingDetail');
         const functionTitle = el.querySelector('#pbFunctionTitle');
@@ -736,7 +867,7 @@ class ProducerBuildingPanel extends BasePanel {
             </div>
             <div style="font-size:12px;color:#c8b98a;line-height:1.7;">
                 军事单位 <span style="color:#8ad0ff;">${b.aliveUnitCount()}/${b.unitCount()}</span> ·
-                当前生成 <b style="color:#7fe0c8;">${curType}</b><br>
+                当前生成 <b style="color:#7fe0c8;">${curType}</b>（每名 ${b._unitSpawnEnergyCost()} 能源）<br>
                 下次生成 <b id="pbSpawnNext" style="color:${b._spawnBlocked ? '#ff7755' : '#7fd4ff'};">${nextText}</b>（当前周期 ${(spawnMs / 1000).toFixed(1)}s）·
                 ${upgradeSummary}
             </div>
@@ -748,7 +879,7 @@ class ProducerBuildingPanel extends BasePanel {
                 <div style="position:relative;height:10px;background:rgba(255,255,255,0.10);border-radius:5px;overflow:hidden;">
                     <div id="pbSpawnBar" style="position:absolute;left:0;top:0;bottom:0;width:${spawnPct}%;background:linear-gradient(90deg, ${spawnBarColor}, #7fe0c8);border-radius:5px;transition:width 0.2s linear;"></div>
                 </div>
-                <div style="font-size:10px;color:#6a7a6a;margin-top:2px;">切换单位类型不影响出兵进度</div>
+                <div style="font-size:10px;color:#6a7a6a;margin-top:2px;">切换单位类型后按新兵种周期重新计时</div>
             </div>`;
 
         const ut = el.querySelector('#pbUnitType');
@@ -756,7 +887,7 @@ class ProducerBuildingPanel extends BasePanel {
             const active = b.unitType === u.key;
             return `<button data-unit-type="${u.key}" style="flex:1;padding:7px 0;border-radius:6px;cursor:pointer;font-size:13px;font-weight:700;${active
                 ? 'background:#2a6a5a;color:#e8fff5;border:2px solid #4aa88a;'
-                : 'background:#263a32;color:#9ab8ac;border:1px solid #3a6a5a;'}">${u.name}</button>`;
+                : 'background:#263a32;color:#9ab8ac;border:1px solid #3a6a5a;'}">${u.name}<br><small>${u.spawnEnergyCost || 0} 能源</small></button>`;
         };
         ut.innerHTML = `
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
@@ -769,9 +900,8 @@ class ProducerBuildingPanel extends BasePanel {
         });
 
         const modBox = el.querySelector('#pbModules');
-        const rows = Object.entries(cfg.modules || {}).map(([mid, mod]) => {
+        const rows = applicableModules.map(([mid, mod]) => {
             const lv = getUnitUpgradeLevel(b.unitType, mid);
-            const desc = getProducerModuleDesc(cfg, mid, lv);
             const maxedMod = lv >= mod.maxLevel;
             const canBuy = b.canUpgradeModule(mid);
             const cost = b.getModuleCost(mid);
@@ -781,10 +911,10 @@ class ProducerBuildingPanel extends BasePanel {
                     ? `<button data-mod="${mid}" style="background:#4a5a2a;color:#e8ffc8;border:1px solid #7a9a4a;border-radius:6px;padding:3px 10px;cursor:pointer;">升级 ${cost.gold}金+${cost.energy}能</button>`
                     : '<span style="color:#7a6a5a;font-size:11px;">🔒 未知模块</span>';
             return `
-                <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #22303a;gap:8px;">
+                <div data-module-row="${mid}" style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #22303a;gap:8px;cursor:help;">
                     <div style="flex:1;min-width:0;">
                         <div style="font-size:13px;color:#d4e8ff;">${mod.icon} ${mod.name} <span style="color:#8ad0ff;">Lv.${lv}/${mod.maxLevel}</span></div>
-                        <div style="font-size:11px;color:#8a9a9a;">${maxedMod ? desc.current : `${desc.current} → ${desc.next}`}</div>
+                        <div style="font-size:10px;color:#6a7a6a;margin-top:2px;">（悬停查看说明）</div>
                     </div>
                     <div style="flex-shrink:0;">${btnHtml}</div>
                 </div>`;
@@ -799,11 +929,20 @@ class ProducerBuildingPanel extends BasePanel {
         modBox.querySelectorAll('[data-mod]').forEach((btnEl) => {
             btnEl.addEventListener('click', () => this._upgrade(btnEl.dataset.mod));
         });
+        modBox.querySelectorAll('[data-module-row]').forEach((rowEl) => {
+            const moduleId = rowEl.dataset.moduleRow;
+            rowEl.addEventListener('mouseenter', (ev) => this._showModuleTip(moduleId, ev));
+            rowEl.addEventListener('mousemove', (ev) => this._moveAbilityTip(ev));
+            rowEl.addEventListener('mouseleave', () => this._hideAbilityTip());
+        });
 
         const sellBtn = el.querySelector('#pbSell');
         if (sellBtn) {
-            const refund = Math.floor(cfg.cost * (cfg.sellRefundRatio ?? 0.5));
-            const refundUnit = cfg.currency === 'gold' ? '金币' : '能源';
+            const durability = Math.max(0, Math.min(1,
+                Number(b.hp) / Math.max(1, Number(b.maxHp) || 1)));
+            const refund = Math.floor((b._buildCost ?? cfg.cost)
+                * (cfg.sellRefundRatio ?? 0.5) * durability);
+            const refundUnit = (b._buildCurrency || cfg.currency) === 'gold' ? '金币' : '能源';
             sellBtn.title = `出售返还 ${refund} ${refundUnit}${isAbilityShop || isWarehouse || isPassive || isPortal ? '' : '（军事单位一并拆除）'}`;
             sellBtn.onclick = () => {
                 const res = b.sell();
@@ -836,13 +975,13 @@ class ProducerBuildingPanel extends BasePanel {
             return;
         }
         if (isPortal) {
-            if (sellBtn && b._isWorldPortalCore) sellBtn.style.display = 'none';
+            if (sellBtn && (b._isWorldPortalCore || b._isMainHubPortalBuilding)) sellBtn.style.display = 'none';
             const currentScene = SceneManager.currentScene;
             const sourceOperational = !b._portalDestroyed && b.hp > 0;
             const travelWorlds = WorldProgressionSystem.getTravelWorlds()
                 .filter((entry) => entry.sceneId !== currentScene);
             const destinations = sourceOperational
-                ? [{ sceneId: 'main', name: '主神空间', icon: '🏛️' }, ...travelWorlds]
+                ? [...(currentScene === 'main' ? [] : [{ sceneId: 'main', name: '主神空间', icon: '🏛️' }]), ...travelWorlds]
                 : [];
             const constructable = WorldProgressionSystem.getConstructableWorlds();
             st.innerHTML = `
@@ -931,7 +1070,8 @@ class ProducerBuildingPanel extends BasePanel {
                 return `
                     <div data-ability-row="${aid}" style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #22303a;gap:8px;cursor:help;">
                         <div style="flex:1;min-width:0;">
-                            <div style="font-size:13px;color:#d4e8ff;">${a.icon} ${a.name} <span style="color:#8ad0ff;">Lv.${lv}/${a.maxLevel ?? 10}</span> <span style="font-size:10px;color:#6a7a6a;">（悬停查看说明）</span></div>
+                            <div style="font-size:13px;color:#d4e8ff;">${a.icon} ${a.name} <span style="color:#8ad0ff;">Lv.${lv}/${a.maxLevel ?? 10}</span></div>
+                            <div style="font-size:10px;color:#6a7a6a;margin-top:2px;">（悬停查看说明）</div>
                             <div style="position:relative;height:8px;background:rgba(255,255,255,0.10);border-radius:4px;overflow:hidden;margin-top:4px;">
                                 <div id="pbUpgradeBar_${aid}" style="position:absolute;left:0;top:0;bottom:0;width:${progPct}%;background:linear-gradient(90deg,#ffd700,#c9a0ff);border-radius:4px;transition:width 0.2s linear;"></div>
                             </div>
@@ -1032,7 +1172,7 @@ class ProducerBuildingPanel extends BasePanel {
             return;
         }
         this.close();
-        return SceneManager.switchScene(sceneId, player).catch((err) => {
+        return SceneManager.switchScene(sceneId, player, undefined, { portalTravel: true }).catch((err) => {
             console.error('[portal building] switchScene error:', err);
             this._notify('传送失败，请稍后重试', '#ff5555');
         });
@@ -1052,11 +1192,26 @@ class ProducerBuildingPanel extends BasePanel {
         this.refresh();
     }
 
+    /** 出兵建筑模块说明：复用研究院/铁匠铺的白色悬停浮窗。 */
+    _showModuleTip(moduleId, ev) {
+        if (!this.building) return;
+        const b = this.building;
+        const mod = b._cfg.modules?.[moduleId];
+        if (!mod || !moduleAppliesToUnit(mod, b.unitType)) return;
+        const lv = getUnitUpgradeLevel(b.unitType, moduleId);
+        const maxed = lv >= mod.maxLevel;
+        const desc = getProducerModuleDesc(b._cfg, moduleId, lv);
+        const cost = b.getModuleCost(moduleId);
+        showBuildingUpgradeTooltip(`
+            <div style="font-weight:700;font-size:13px;margin-bottom:4px;">${mod.icon} ${mod.name} <span style="color:#8a5a00;">Lv.${lv}/${mod.maxLevel}</span></div>
+            <div>${maxed ? desc.current : `${desc.current} → ${desc.next}`}</div>
+            <div style="margin-top:4px;color:#5a4a2a;">适用兵种：${b.unitName(b.unitType)}</div>
+            <div style="margin-top:2px;">${maxed ? '已达到最高等级' : `升级费用：${cost.gold} 金币 + ${cost.energy} 能源`}</div>`, ev);
+    }
+
     /** 能力说明浮窗（类似装备栏白色浮窗，2026-08-17）：悬停能力行时显示 */
     _showAbilityTip(abilityId, ev) {
         if (!this.building) return;
-        const tip = document.getElementById('pbAbilityTip');
-        if (!tip) return;
         const b = this.building;
         const a = b.getAbility(abilityId);
         if (!a) return;
@@ -1066,33 +1221,21 @@ class ProducerBuildingPanel extends BasePanel {
         const isResearch = b._cfg.workshopType === 'research';
         const targetLabel = isResearch ? '目标效果' : '目标兵种';
         const targetText = isResearch ? (a.target || '—') : this._abilityTargetText(a.target);
-        tip.innerHTML = `
+        showBuildingUpgradeTooltip(`
             <div style="font-weight:700;font-size:13px;margin-bottom:4px;">${a.icon} ${a.name} <span style="color:#8a5a00;">Lv.${lv}/${a.maxLevel ?? 10}</span></div>
             <div>${maxed ? this._fillAbilityDesc(a, lv) : `${this._fillAbilityDesc(a, lv)} → ${this._fillAbilityDesc(a, lv + 1)}`}</div>
             <div style="margin-top:4px;color:#5a4a2a;">${targetLabel}：${targetText}</div>
             <div style="margin-top:2px;">升级费用：${cost.gold} 金币 + ${cost.energy} 能源</div>
-            <div>读条时间：${Math.round(cost.timeMs / 1000)} 秒</div>`;
-        tip.style.display = 'block';
-        this._moveAbilityTip(ev);
+            <div>读条时间：${Math.round(cost.timeMs / 1000)} 秒</div>`, ev);
     }
 
     /** 浮窗跟随鼠标（右侧优先，越界翻转到左侧/上方） */
     _moveAbilityTip(ev) {
-        const tip = document.getElementById('pbAbilityTip');
-        if (!tip || tip.style.display === 'none') return;
-        const w = tip.offsetWidth || 300;
-        const h = tip.offsetHeight || 100;
-        let left = ev.clientX + 14;
-        let top = ev.clientY + 14;
-        if (left + w > window.innerWidth - 10) left = ev.clientX - w - 14;
-        if (top + h > window.innerHeight - 10) top = ev.clientY - h - 14;
-        tip.style.left = `${left}px`;
-        tip.style.top = `${top}px`;
+        moveBuildingUpgradeTooltip(ev);
     }
 
     _hideAbilityTip() {
-        const tip = document.getElementById('pbAbilityTip');
-        if (tip) tip.style.display = 'none';
+        hideBuildingUpgradeTooltip();
     }
 }
 
@@ -1160,6 +1303,8 @@ export const ProducerBuildingSystem = {
         const panel = this._ensurePanel();
         const mw = Renderer.screenToWorld(mx, my);
         const buildMode = !!(Game && Game._buildMode);   // 建设模式无视距离
+        let picked = null;
+        let pickedScore = Infinity;
         for (const b of this.buildings) {
             if (!b || !b.active) continue;
             const pdx = b.x - player.x;
@@ -1170,14 +1315,20 @@ export const ProducerBuildingSystem = {
             const visualX = b.x + (b._visualFootOffsetX || 0);
             if (mw.x < visualX + hit.cx - hit.hw || mw.x > visualX + hit.cx + hit.hw
                 || mw.y < b.y + hit.cy - hit.hh || mw.y > b.y + hit.cy + hit.hh) continue;
-            if (panel.isOpen && panel.building === b) {
-                panel.close();
-            } else {
-                panel.openFor(b, player);
+            // 同类2×2建筑相邻时命中盒可能重叠；选择离点击点最近的实例，
+            // 禁止数组中的第一栋建筑抢走交互，造成“所有同类建筑同步切兵种”的错觉。
+            const dx = (mw.x - (visualX + hit.cx)) / Math.max(1, hit.hw);
+            const dy = (mw.y - (b.y + hit.cy)) / Math.max(1, hit.hh);
+            const score = dx * dx + dy * dy;
+            if (score < pickedScore) {
+                picked = b;
+                pickedScore = score;
             }
-            return true;
         }
-        return false;
+        if (!picked) return false;
+        if (panel.isOpen && panel.building === picked) panel.close();
+        else panel.openFor(picked, player);
+        return true;
     },
 
     closePanel() {

@@ -1,6 +1,6 @@
 /**
  * 仓鼠盾卫契约测试（2026-08-16）：
- * - 数据契约：HP 350、六维属性、移速 100、攻击 30/2s、攻击动画 12 帧
+ * - 数据契约：HP 300、六维属性、移速 100、攻击 30/2s、攻击动画 12 帧
  *   单次播放且第 10 帧判定伤害（延迟 = (10-1)/12 = 750ms）、walk 17 帧、dying 15 帧；
  * - 实体契约：友方阵营、_enemyTargetable、可受击/死亡播 dying；
  * - 源码接线：AI 只打 enemy 阵营且不攻击矿点、兵营 unit.guard 生成/升级、
@@ -129,7 +129,7 @@ check('AI 攻击动画第 10 帧判定伤害（damageDelayMs=(frame-1)/fps×1000
     /_damageDelayMs = Math\.max\(0, \(damageFrame - 1\) \/ fps \* 1000\)/.test(aiSrc)
     && /_applyDamage\(\)/.test(aiSrc));
 check('AI 挥击出伤走 takeDamage(attackDamage, m, physical)',
-    /e\.takeDamage\(this\._attackDamage, m, 'physical', true\)/.test(aiSrc));
+    /getPhysicalAttackDamage\(this\._attackDamage, e\)/.test(aiSrc));
 check('AI 移动复用 MovementSystem、挥击站定', /MovementSystem\.update\(m, dt, entities\)/.test(aiSrc)
     && /_swingActive/.test(aiSrc));
 check('AI 无敌跟随玩家 + 到达清路径归零速度', /_followOffset/.test(aiSrc)
@@ -164,13 +164,16 @@ check('BootScene 加载仓鼠盾卫精灵图',
     /hamsterGuardConfig/.test(bootSrc) && /companion_\$\{unitConfig\.id\}_/.test(bootSrc));
 
 const barSrc = fs.readFileSync(path.join(ROOT, 'src/world/hamster-barracks-system.js'), 'utf-8');
+const barracksBuildingCfg = JSON.parse(fs.readFileSync(
+    path.join(ROOT, 'data/hamster-barracks-building.json'), 'utf8'
+));
 check('兵营注册盾卫单位（unit.guard + 导入）',
     /guard: \{ key: 'guard', name: '仓鼠盾卫'/.test(barSrc) && /new HamsterGuard/.test(barSrc));
 check('兵营升级走全局兵种表（applyGlobalUpgradesToKind + 面板读全局等级）',
     /applyGlobalUpgradesToKind\(this\.unitType, BARRACKS_CONFIG\.modules\)/.test(barSrc)
     && /getUnitUpgradeLevel\(b\.unitType, mid\)/.test(barSrc));
 check('兵营面板生成单位类型按钮含盾卫', /\$\{btn\('guard'\)\}/.test(barSrc));
-check('兵营产出速度 45s（2026-08-18 由 30s 调整）', /spawnIntervalMs: 45000/.test(barSrc));
+check('兵营产出速度 45s（配置真源）', barracksBuildingCfg.spawnIntervalMs === 45000);
 check('兵营切换兵种重新计时（重置 _spawnTimer，2026-08-18）',
     /if \(type === this\.unitType\) return false;/.test(barSrc)
     && /this\._spawnTimer = this\.recruitIntervalMs\(\);/.test(barSrc));

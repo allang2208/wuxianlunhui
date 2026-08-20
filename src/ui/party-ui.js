@@ -1,6 +1,6 @@
 // ============================================================
 // 组队栏（PartyUI，2026-08-12 框架）
-// 需求：隐藏左侧「人物追踪提示栏」，替换为组队栏；4 个槽位
+// 需求：左侧显示 4 个组队槽位
 //       （玩家固定 + 最多 3 名侍从）；空槽=加号（打开寻找帮手界面），
 //       有成员=头像/名字/等级——点击名字=选中该单位（高亮模型贴图），
 //       Shift+点击=多选；不再点击即弹队员面板（面板仍可从侧边菜单进入）。
@@ -18,9 +18,6 @@ export const PartyUI = {
     init() {
         this._createElement();
         PartySystem.onChange(() => this.render());
-        // 隐藏左侧人物追踪提示栏（替换为组队栏）
-        const tracker = document.getElementById('questTracker');
-        if (tracker) tracker.style.display = 'none';
         this.render();
     },
 

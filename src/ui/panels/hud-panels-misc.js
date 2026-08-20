@@ -93,33 +93,11 @@ export function createHudPanelsMisc() {
     expBarContainer.appendChild(expBar);
     root.appendChild(expBarContainer);
 
-    // ===== 操作提示 =====
-    const controlsHintLeft = document.createElement('div');
-    controlsHintLeft.id = 'controlsHintLeft';
-    controlsHintLeft.className = 'controls-hint-left';
-    const controlsLines = [
-        'WASD - 移动 | 鼠标 - 瞄准',
-        '左键 - 攻击 | 右键 - 特殊攻击',
-        '空格 - 闪避 | Shift - 冲刺',
-        'F - 切换武器 | R - 换弹',
-        '1~4 - 快捷栏 | Q/E/X/C - 技能',
-        'Z - 范围拾取 | Tab - 背包',
-        'CapsLock - 状态栏 | K - 技能栏 | U - 图鉴',
-        'Tab - 背包 | L - 任务 | P - 队员 | O - 世界传送',
-        'Esc - 菜单（打开即暂停）'
-    ];
-    controlsLines.forEach(line => {
-        const div = document.createElement('div');
-        div.textContent = line;
-        controlsHintLeft.appendChild(div);
-    });
-    root.appendChild(controlsHintLeft);
-
     // ===== 显示攻击范围开关 =====
     const attackRangeToggle = document.createElement('div');
     attackRangeToggle.className = 'attack-range-toggle';
     attackRangeToggle.id = 'attackRangeToggle';
-    attackRangeToggle.title = '显示攻击范围';
+    attackRangeToggle.title = '绿色=可移动面；亮绿色=地面/墙顶接口；红线=楼梯不可穿越的外侧物理护栏';
     const attackRangeSpan = document.createElement('span');
     attackRangeSpan.textContent = '范围';
     attackRangeToggle.appendChild(attackRangeSpan);

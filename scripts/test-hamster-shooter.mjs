@@ -31,12 +31,12 @@ check('六维初始值 力量12/敏捷20/智力3/体质10/精神3/幸运10',
     s.data.str === 12 && s.data.dex === 20 && s.data.int === 3
     && s.data.con === 10 && s.data.wis === 3 && s.data.luck === 10,
     `str=${s.data.str} dex=${s.data.dex} int=${s.data.int} con=${s.data.con} wis=${s.data.wis} luck=${s.data.luck}`);
-check('派生数值挂钩：物攻 = round(10 + 12×0.05 + 20×0.1) = 13',
-    s.data.atk === 13, `atk=${s.data.atk}`);
-check('派生数值挂钩：物防 = round(10×1.2 + 12×0.3) = 16',
-    s.data.def === 16, `def=${s.data.def}`);
-check('派生数值挂钩：魔攻 = floor(3×1.5 + 3×0.5) = 6',
-    s.data.matk === 6, `matk=${s.data.matk}`);
+check('派生数值挂钩：物攻使用怪物公式 = 16',
+    s.data.atk === 16, `atk=${s.data.atk}`);
+check('派生数值挂钩：物防使用怪物公式 = 18',
+    s.data.def === 18, `def=${s.data.def}`);
+check('派生数值挂钩：魔攻使用怪物公式 = 3',
+    s.data.matk === 3, `matk=${s.data.matk}`);
 check('移动速度 = 150', shooterCfg.ai.walkSpeed === 150 && shooterCfg.ai.runSpeed === 150,
     `walkSpeed=${shooterCfg.ai.walkSpeed}`);
 check('攻击间隔 = 2000ms / 伤害 = 60 物理', shooterCfg.ai.attackInterval === 2000
@@ -57,8 +57,8 @@ check('attack 动画 = 13 帧 [0,12] 单次 @12fps',
     shooterCfg.animations.attack.frameCount === 13
     && shooterCfg.animations.attack.frames[0] === 0 && shooterCfg.animations.attack.frames[1] === 12
     && shooterCfg.animations.attack.frameRate === 12 && shooterCfg.animations.attack.repeat === 0);
-check('dying 动画 = 11 帧 [0,10]，只播一次', shooterCfg.animations.dying.frameCount === 11
-    && shooterCfg.animations.dying.frames[0] === 0 && shooterCfg.animations.dying.frames[1] === 10
+check('dying 动画 = 10 个有效帧 [0,9]，只播一次', shooterCfg.animations.dying.frameCount === 10
+    && shooterCfg.animations.dying.frames[0] === 0 && shooterCfg.animations.dying.frames[1] === 9
     && shooterCfg.animations.dying.repeat === 0);
 check('projectile 贴图 = 1 帧', shooterCfg.animations.projectile.frameCount === 1
     && shooterCfg.animations.projectile.frames[0] === 0);
@@ -74,7 +74,7 @@ check('AI 瞄准目标贴图中心（_targetAimY）',
 check('AI 索敌只认 _faction===\'enemy\' 且跳过能源矿点',
     /_faction !== 'enemy'/.test(aiSrc) && /_isEnergyNode/.test(aiSrc));
 check('AI 伤害 60 物理（takeDamage(…, m, \'physical\')）',
-    /hit\.takeDamage\(this\._attackDamage, m, 'physical'\)/.test(aiSrc)
+    /getPhysicalAttackDamage\(this\._attackDamage, hit\)/.test(aiSrc)
     && /_attackDamage = this\.cfg\.attackDamage \?\? 60/.test(aiSrc));
 check('AI 第 10 帧出膛计时（_launchDelayMs = (launchFrame-1)/fps）',
     /_launchDelayMs = Math\.max\(0, \(launchFrame - 1\) \/ fps \* 1000\)/.test(aiSrc)
@@ -105,7 +105,7 @@ check('GameScene 射手攻击单次重播（shooterSwing + _attackSwing）',
     && /member\._attackSwing/.test(gsSrc));
 check('GameScene 箭矢渲染（projective 贴图 + 旋转）',
     /_syncCompanionBasics/.test(gsSrc) && /companion_\$\{m\.animId \|\| m\.id\}_projectile/.test(gsSrc)
-    && /setRotation\(b\.angle \+ Math\.PI\)/.test(gsSrc));
+    && /setRotation\(\(b\.visualAngle \?\? b\.angle\) \+ \(tipLeft \? Math\.PI : 0\)\)/.test(gsSrc));
 check('GameScene 射手移动朝向 vx（不倒退走路）',
     /member\._isHamsterShooter\) && moving/.test(gsSrc) && /faceRight = member\.vx > 0/.test(gsSrc));
 check('GameScene 射手受击白闪', /member\._isHamsterShooter/.test(gsSrc)
@@ -116,8 +116,10 @@ check('BootScene 加载仓鼠射手精灵图',
     /hamsterShooterConfig/.test(bootSrc) && /companion_\$\{unitConfig\.id\}_/.test(bootSrc));
 
 const smSrc = fs.readFileSync(path.join(ROOT, 'src/world/scene-manager.js'), 'utf-8');
-check('世界-122 进入生成仓鼠射手', /HamsterShooterSystem\.setup\(player\)/.test(smSrc));
-check('场景离场拆除仓鼠射手', /HamsterShooterSystem\.teardown\(\)/.test(smSrc));
+const producerCfg = JSON.parse(fs.readFileSync(path.join(ROOT, 'data/producer-buildings.json'), 'utf8'));
+check('仓鼠射手由靶场生产', producerCfg.shooting_range?.unitTypes?.some((u) => u.key === 'shooter'));
+check('场景生命周期由通用产兵系统管理',
+    /ProducerBuildingSystem\.setup\(\)/.test(smSrc) && /ProducerBuildingSystem\.teardown\(\)/.test(smSrc));
 
 const psSrc = fs.readFileSync(path.join(ROOT, 'src/systems/perception-system.js'), 'utf-8');
 check('PerceptionSystem 放行 _enemyTargetable 友方单位', /_enemyTargetable/.test(psSrc));
@@ -125,7 +127,7 @@ check('PerceptionSystem 放行 _enemyTargetable 友方单位', /_enemyTargetable
 // ---- 5. 顺查：仓鼠战士伤害类型 = 物理（用户要求复核）----
 const warSrc = fs.readFileSync(path.join(ROOT, 'src/ai/hamster-warrior-ai.js'), 'utf-8');
 check('仓鼠战士伤害类型 = physical（50 物理伤害）',
-    /e\.takeDamage\(this\._attackDamage, m, 'physical', true\)/.test(warSrc));
+    /getPhysicalAttackDamage\(this\._attackDamage, e\)/.test(warSrc));
 
 console.log(`\n结果: ${pass} 通过, ${fail} 失败`);
 process.exit(fail ? 1 : 0);

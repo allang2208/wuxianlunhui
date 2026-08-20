@@ -137,6 +137,18 @@
 
 `src/entities/components/bolt-skill-system.js` 基类（凝聚悬浮→发射→直线飞行预判/撞墙/命中统一流程），差异全部 kind 配置驱动：fields（状态字段名，GameScene/快捷栏按现有字段读取不可改）/ makeProjectiles / anim / trail / onImpact / onMaxRange。`fireball-system.js`/`ice-spike-system.js` 降为 ~120 行 kind 封装（-516 行）。**注意：命中循环不 break——冰锥同帧多目标结算是原版行为（准穿透），新 kind 的 onImpact 自行处置投射物 active。**新法系技能 = 写一份 kind 配置即可。
 
+#### 高架法系特效深度（2026-08-20，火球/冰锥墙顶遮挡修复）
+
+- **物理坐标与显示坐标分离**：弹体、尾迹和命中特效的显示 Y 可以使用
+  `physicalY - z`，但 depth 必须继续使用物理地面 Y；禁止把抬升后的显示 Y 直接
+  `setDepth(displayY + 常量)`，否则墙顶火球/冰锥会被承托墙贴图盖住。
+- **统一入口**：飞行主体、粒子尾迹、爆炸/碎裂、冲击波、火球环境光统一调用
+  `resolveSkillEffectDepth()`；墙顶发射时保存 `renderDepthContext` 快照，使已发射弹体
+  不会因施法者后来上下楼而跳层，并保证深度高于发射瞬间的整条承托墙链。
+- **楼梯不继承墙顶豁免**：`stairs` 仍按普通墙体遮挡与地面深度处理；只有正式
+  `wall_walk` 来源应用承托墙链的最低显示层。持续环境光必须与主体共用最终 depth，
+  不能在后续逐帧同步中回退到旧的 `caster.depth + 2`。
+
 **适用场景**：地面燃烧区、油池+火焰、毒雾、酸液等地表区域特效。**范例**：`lantern-miner-zombie.js` 的提灯攻击（矿灯抛物线 → 落地油脂扩散 → 火焰成簇喷发 → 周期性魔法伤害）。
 
 #### 1. 核心构成（三层分离）

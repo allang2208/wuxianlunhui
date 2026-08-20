@@ -4,6 +4,7 @@ import { GroundEllipse } from '../../physics/skill-shapes.js';
 import { surfaceEffectFromEntity } from '../../physics/elevation.js';
 import { SoundManager } from '../../ui/sound-manager.js';
 import enemyConfigData from '../../../data/enemy-config.json';
+import { canMeleeShareSurface } from '../../combat/melee-surface.js';
 
 /**
  * 蝇群（普通）
@@ -99,6 +100,7 @@ export class FlySwarm extends Enemy {
         const atk = this.data?.atk || 0;
         for (const e of this._hostiles(entities)) {
             if (!this._touchingAnyCircle(e, circles)) continue;
+            if (!canMeleeShareSurface(this, e)) continue;
             e.takeDamage(Math.max(1, Math.round(atk * (cfg.damageMul ?? 1))), this, cfg.damageType || 'physical', true);
         }
     }

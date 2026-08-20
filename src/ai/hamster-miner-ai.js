@@ -133,7 +133,7 @@ export class HamsterMinerAI {
         const m = this.m;
         m.target = null;
         m._enemyTarget = null;
-        if (cmd.mode !== 'move') clearRtsSurfaceRoute(m);
+        if (cmd.mode !== 'move' && !m._surfaceNavCommand) clearRtsSurfaceRoute(m);
         if (cmd.mode === 'move') {
             const move = resolveRtsMoveDestination(m, cmd);
             const dest = move.hasRoute ? move.destination : this._nearestCommandPoint(move.destination);
@@ -278,7 +278,7 @@ export class HamsterMinerAI {
 
         const node = m.target;
         const dist = Math.hypot(node.x - m.x, node.y - m.y);
-        const range = this._miningRange + (node.groundRadius || 45);
+        const range = this._miningRange + (node.gatherRadius ?? node.groundRadius ?? 45);
         if (dist <= range) {
             // 到矿点：站定采矿
             m._tacticalTarget = null;
@@ -288,17 +288,14 @@ export class HamsterMinerAI {
             m._lastFaceRight = node.x >= m.x;
             return;
         }
-        // 赶路：朝矿点移动（移速 80）——目标用矿点边缘可达点（矿点本身是 A* 障碍，
-        // 直接寻路到中心会失败/卡住；接近点须在 障碍半径+自身半径 之外且进入采矿范围）
-        // 接近点再外扩 40px：路径终点避开矿点 A* 实体障碍（45+26=71），
-        // 并远离墙体死区——否则路径末段节点贴近障碍会被 _checkValidity 判阻挡反复修复
-        // 接近点必须：① 在矿点 A* 实体障碍之外（可到达）；② 在采矿范围之内（到位即触发采矿）。
-        // 采矿距离收到 50 后，采矿范围 = 50 + 节点半径(45) = 95，接近点夹到 ~80
-        const nodeR = node.groundRadius || 45;
+        // 赶路：矿体不再是 A* / 实体碰撞障碍，但仍保留独立采集半径。
+        // 接近点只需避开矿工自己的站位抖动，并保持在采矿范围内。
+        const nodeR = node.gatherRadius ?? node.groundRadius ?? 45;
+        const physicalNodeR = node.noCollision ? 0 : (node.groundRadius || 0);
         const miningRange = this._miningRange + nodeR;
         const approachDist = Math.max(
-            nodeR + (m.groundRadius || 26) + 5,
-            Math.min(Math.max(this._miningRange, nodeR + (m.groundRadius || 26) + 40), miningRange - 15)
+            physicalNodeR + (m.groundRadius || 26) + 5,
+            Math.min(Math.max(this._miningRange, physicalNodeR + (m.groundRadius || 26) + 40), miningRange - 15)
         );
         const dx = m.x - node.x;
         const dy = m.y - node.y;
@@ -311,6 +308,14 @@ export class HamsterMinerAI {
     /** 卡死看门狗（2026-08-15）：走路 500ms 位移 <3px 累计 2 次 → 重新规划/传送 */
     _checkStuck(dt) {
         const m = this.m;
+        if (m._surfaceNavWaiting || m._surfaceRouteActive
+            || m._surfaceKind === 'stairs' || m._surfaceKind === 'wall_walk') {
+            this._stuckTimer = 0;
+            this._stuckStreak = 0;
+            this._lastPosX = m.x;
+            this._lastPosY = m.y;
+            return;
+        }
         if (m._animState !== 'walk') {
             this._stuckTimer = 0;
             this._lastPosX = m.x;
@@ -384,7 +389,7 @@ export class HamsterMinerAI {
         this._attackTimer = this._attackInterval;
         if (typeof node.takeDamage === 'function') {
             const miningDamage = Math.max(1, Math.round(this._attackDamage * this.miningMult));
-            node.takeDamage(miningDamage, m, 'physical', true);
+            node.takeDamage(m.getPhysicalAttackDamage(miningDamage, node), m, 'physical', true);
             m._miningSwing = true; // 攻击命中 → 渲染层播一次挥锄动画（2026-08-15）
             this._playSound('mining'); // 采矿音效（2026-08-16 用户素材）
         }
@@ -432,7 +437,7 @@ export class HamsterMinerAI {
         }
     }
 
-    /** 仓库满 → 返回仓鼠小屋待命。 */
+    /** 仓库满 → 返回矿工营地待命。 */
     _startStorageReturn() {
         const m = this.m;
         if (this._phase === 'storage_return' || this._phase === 'storage_wait') return;
@@ -442,7 +447,7 @@ export class HamsterMinerAI {
         if (m._pathManager) m._pathManager._clearPath();
         if (EnergyManager) EnergyManager.depositEnergy(1); // 触发节流满仓提示
         if (EffectManager) {
-            EffectManager.add(new FloatingTextEffect(m.x, m.y - 32, '仓库已满，返回小屋待命', '#ffaa55'));
+            EffectManager.add(new FloatingTextEffect(m.x, m.y - 32, '仓库已满，返回矿工营地待命', '#ffaa55'));
         }
     }
 

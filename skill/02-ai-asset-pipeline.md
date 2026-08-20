@@ -50,7 +50,6 @@ python tools/ai-gen/ai-asset.py verify   --sheet <sheet.png> --cell 512|640
 - 详细参数/异常处理见「四足动物（狼系）动画精灵图全管线」章节。
 
 ---
-
 ### ⭐ 识图优先入口：GLM-4.6V 识图系统（2026-08-03 构建，读图一律先走这里）
 
 需要读取/理解任何图片（用户发图、游戏截图、贴图、UI 截图、OCR 等）时，
@@ -1481,6 +1480,18 @@ continuous:true, textureScaleY:0.5774, sandPatches:{texture:'floor_sand_seamless
 perChunk:6, size:760}, deco:{textures:['deco_grass_1','deco_grass_2'], perChunk:28, size:110} }`。
 
 ### Blender 建模渲染管线（render-factory-real.py，2026-08-16 定稿）
+
+#### World-122 固定地基 + AI 主体管线（2026-08-20）
+
+对必须锁定地基、接地线与二轴测轮廓、但主体细节适合生图的建筑：先用
+`blender-depth-render.py`（可用 `box`、`prism`、`cone` 等白模图元）输出深度约束，再以
+`comfyui-gen.py --model flux2-dev-depth --steps 48 --control-image <depth> --bg-color #00FF00`
+生成**仅建筑主体**。随后依次运行 `key-world122-building-body.py`（从画布边缘抠除绿色背景）、
+`mask-world122-building-body.py`（以白模轮廓裁掉模型擅自添加的地台/投影），最后用
+`compose-world122-building-preview.py` 将主体与既有固定大理石地基合成审批预览。
+
+地基永远是独立运行时图层，不能烘焙进主体 PNG；审批前拒绝含 AI 地台、地形、投影、地平线或
+超出白模轮廓的候选。通过预览确认后才将透明主体导入 `assets/terrain/`。
 
 直接渲染成品贴图（不再走「白模深度 → AI 生图」两步），适合几何明确的建筑/道具：
 

@@ -21,16 +21,19 @@ import { RiftSystem } from '../quest/rift-system.js';
 import { QuickBar } from '../ui/quick-bar.js';
 import { SystemUI } from '../ui/system-ui.js';
 import {
-    DefenseSystem, DEFENSE_CONFIG, DefenseTower, DefenseCover, BuildableGate, FiringPlatform,
+    DefenseSystem, DEFENSE_CONFIG, DefenseTower, DefenseCover, BuildableGate, WallStaircase,
 } from './defense-system.js';
 import { EnergyNodeSystem } from './energy-node-system.js';
 import { ENERGY_CONFIG } from '../config/energy-config.js';
 import { HamsterMinerSystem } from './hamster-miner-system.js';
 import { HamsterHutSystem, HamsterHut } from './hamster-hut-system.js';
 import { HamsterBarracksSystem, HamsterBarracks } from './hamster-barracks-system.js';
-import { ProducerBuildingSystem, ProducerBuilding, getProducerConfig } from './producer-building-system.js';
+import {
+    ProducerBuildingSystem, ProducerBuilding, getProducerConfig, createMilitaryUnit, getMilitaryUnitProfile,
+} from './producer-building-system.js';
 import { BuildingSystem } from './building-system.js';
 import { BuildingRoadSystem } from './building-road-system.js';
+import { applyBuildingFootprint } from './building-footprint.js';
 import { DefenseTrapSystem } from './defense-trap-system.js';
 import {
     captureAndStoreWorld, applyWorldSnapshot, getWorldSnapshot,
@@ -40,6 +43,7 @@ import { EnergyManager } from '../systems/energy-manager.js';
 import { ResearchSystem } from './research-system.js';
 import { scatterWorld125Environment } from './world125-environment.js';
 import { WorldProgressionSystem } from './world-progression-system.js';
+import { TroopLineSystem } from './troop-line-system.js';
 
 export const SceneManager = {
     currentScene: null,
@@ -53,6 +57,15 @@ export const SceneManager = {
 
     init() {
         this._worldDestructionTransactions.clear();
+        TroopLineSystem.configure({
+            createMilitaryUnit,
+            getMilitaryUnitProfile,
+            isSnapshotTroopProducer: (cfgKey) => {
+                const cfg = getProducerConfig(cfgKey);
+                return !!(cfg && cfg.spawnEnabled !== false
+                    && (cfg.unitTypes || []).some((unit) => !!unit?.key));
+            },
+        });
         // 快照模块保持无启动期静态依赖；在 Game 已完成定义后才注入恢复所需的实体构造器。
         configureWorld122SnapshotRuntime({
             Game,
@@ -60,7 +73,7 @@ export const SceneManager = {
             DefenseTower,
             DefenseCover,
             BuildableGate,
-            FiringPlatform,
+            WallStaircase,
             DEFENSE_CONFIG,
             HamsterHutSystem,
             HamsterHut,
@@ -146,6 +159,12 @@ export const SceneManager = {
             this.showTopNotification('目标世界不存在，无法切换', { color: '#ff7766' });
             return false;
         }
+        const departingSceneId = this.currentScene;
+        const physicalPortalTravel = opts.portalTravel && !Game._observerMode
+            && !!player && Game.entities?.get?.('player') === player;
+        const portalTravel = physicalPortalTravel
+            ? TroopLineSystem.preparePortalTravel(departingSceneId, sceneId)
+            : null;
         // 位面毁灭强制回城不能保留旧位面实体作为回滚候选；普通切换则必须在任何状态写入前存档。
         if (opts.worldDestructionTx) this._clearRollbackState();
         else this._saveRollbackState(player);
@@ -191,6 +210,9 @@ export const SceneManager = {
 
             this.setProgress(50);
             await this.delay(100);
+
+            // 不隶属当地建筑的跨位面增援由兵线系统独立收纳，避免被场景 teardown 丢失。
+            TroopLineSystem.onSceneLeaving(departingSceneId);
 
             // 清理当前场景
             // 先清理 Phaser 视觉对象，再清空实体数组，避免残留 Sprite/文字
@@ -313,6 +335,11 @@ export const SceneManager = {
 
             this.currentScene = sceneId;
             this._inMainHub = (sceneId === 'main');
+            TroopLineSystem.onSceneEntered(sceneId);
+            if (portalTravel) TroopLineSystem.completePortalTravel(portalTravel, sceneId, player);
+            // 实体传送门落地后，必须先走出目标场景的门区才能再次触发传送。
+            // 主神空间会恢复离城坐标，该坐标常与原入口重合，单靠秒数冷却会自动弹回原世界。
+            if (physicalPortalTravel) Game._portalArrivalLock = true;
             if (sceneId === 'main') this._finishWorldDestructionTransactions(opts.worldDestructionTx);
             // 双保险：世界尺寸可能刚变化，强制小地图静态层按新尺寸重绘（避免放大墙层残留）
             if (window.__phaserScene) window.__phaserScene._minimapStaticKey = null;
@@ -328,7 +355,11 @@ export const SceneManager = {
         } catch (err) {
             console.error('[switchScene] ERROR:', err);
             if (opts.worldDestructionTx) this._handleWorldDestructionSwitchFailure(opts.worldDestructionTx);
-            else this._rollback(player);
+            else {
+                this._rollback(player);
+                if (portalTravel) TroopLineSystem.rollbackPortalTravel(portalTravel);
+                TroopLineSystem.onSceneEntered(departingSceneId);
+            }
             throw err;
         }
     },
@@ -452,6 +483,9 @@ export const SceneManager = {
         this._mainEntities = new Map();
         for (const [k, e] of Game.entities) {
             if (e && e._isEnergyNode) continue;
+            if (e && e._troopLineDetached) continue;
+            // 主城传送门由进度状态实时重建，不能把随后 teardown 的同一对象引用存进主城快照。
+            if (e && e._isMainHubPortalBuilding) continue;
             this._mainEntities.set(k, e);
         }
         // 以实体是否真实在场判定本体：正常从主城进入观察模式时 observer 标志已提前写入，
@@ -1715,6 +1749,44 @@ export const SceneManager = {
             portal._portalDestroyed = true;
             portal.name = `${WorldProgressionSystem.getWorldConfig(sceneId)?.name || sceneId}传送门遗迹`;
         }
+        this._applyWorldCoreVisual(sceneId, portal);
+        return portal;
+    },
+
+    /**
+     * 位面核心继续使用传送门生命周期，只按世界配置覆盖场景视觉与占地。
+     * 太阳阴影按 sourceSprite.texture.key 查 manifest；idleKey 切到 defense_base 后，
+     * 会自动读取 defense_base 的 shadowSilhouette，不再沿用 portal 轮廓。
+     */
+    _applyWorldCoreVisual(sceneId, portal) {
+        const visual = WorldProgressionSystem.getWorldConfig(sceneId)?.coreVisual;
+        if (!portal || !visual?.texture) return portal;
+
+        const displayW = Math.max(1, Number(visual.displayW) || portal.spriteCfg?.size || 1);
+        const displayH = Math.max(1, Number(visual.displayH) || portal.spriteCfg?.sizeH || displayW);
+        const footOffsetY = Number.isFinite(Number(visual.footOffsetY))
+            ? Number(visual.footOffsetY)
+            : displayH / 2;
+        portal.spriteCfg = {
+            ...(portal.spriteCfg || {}),
+            idleKey: visual.texture,
+            size: displayW,
+            sizeH: displayH,
+            footOffsetY,
+            autoFootprint: false,
+            foundation: visual.foundation === false ? null : portal.spriteCfg?.foundation,
+        };
+        portal.footOffsetY = footOffsetY;
+        if (portal._cfg) {
+            portal._cfg.tex = visual.texture;
+            portal._cfg.displayW = displayW;
+            portal._cfg.displayH = displayH;
+            portal._cfg.footOffsetY = footOffsetY;
+            portal._cfg.autoFootprint = false;
+            if (visual.foundation === false) portal._cfg.foundation = false;
+        }
+        applyBuildingFootprint(portal, Number(visual.footprintCells) || 2);
+        if (typeof portal.rebuildCollider === 'function') portal.rebuildCollider();
         return portal;
     },
 
@@ -1766,6 +1838,7 @@ export const SceneManager = {
     /** 传送门被毁即判定位面毁灭：作废快照、旧坐标，并把仍在该位面的玩家/观察者送回主城。 */
     destroyWorld(sceneId, expectedEpoch = null) {
         if (!WorldProgressionSystem.markPortalDestroyed(sceneId, { expectedEpoch })) return false;
+        TroopLineSystem.invalidateWorld(sceneId);
         const worldEpoch = WorldProgressionSystem.getWorldEpoch(sceneId);
         const tx = this._beginWorldDestructionTransaction(sceneId, worldEpoch);
         if (WorldProgressionSystem.shouldClearWorldScope(sceneId, 'snapshot')) {

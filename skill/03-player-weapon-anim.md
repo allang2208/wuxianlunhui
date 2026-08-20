@@ -577,3 +577,4 @@ Phaser Sprite.x / y / rotation / scale
 4. 让 `ZombieDogEnemy.triggerWeaponAnim()` 不只是一个 timer，而是真正驱动一帧一帧的动画 progress。
 
 ---
+

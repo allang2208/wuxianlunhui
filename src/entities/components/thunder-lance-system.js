@@ -336,7 +336,7 @@ export class ThunderLanceSystem {
             const wasAlive = e.hp > 0;
             // 贯穿命中火花（直线光束已画，这里只做命中爆点）
             this._spawnHitFx(e.x, e.y, stacks);
-            e.takeDamage(damage, src, 'electric');
+            e.takeDamage(damage, src, 'electric', false);
             // 命中击退：沿光束方向，距离随等级（knockback 50→150px）
             if (effect.knockback && typeof e.applyKnockback === 'function') {
                 e.applyKnockback(knockAngle, effect.knockback);

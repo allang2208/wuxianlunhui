@@ -1,0 +1,7 @@
+Use case: stylized-concept
+Asset type: World-122 RTS building body, composited above a separate fixed marble foundation
+Primary request: exactly one isolated Gothic church building body with a nave, a restrained bell tower, a small crossing dome, pointed slate roofs, arched windows, muted blue stained glass, weathered pale limestone, and subtle aged bronze details
+Style/medium: polished semi-realistic strategy-game building sprite matching the existing World-122 buildings; sober low-saturation palette, crisp readable material separation, fine masonry and roof-tile detail
+Composition/framing: obey the supplied depth-control silhouette exactly; orthographic 2.5D isometric body; centered; the lowest architecture terminates at the supplied ground line
+Lighting/mood: soft neutral daylight; no cast shadow; no glow bloom
+Constraints: one building only; genuine transparent background; body only; no foundation; no floor; no paving; no terrain; no grass; no trees; no stairs; no fences; no flags; no people; no text; no watermark; no cropped tower

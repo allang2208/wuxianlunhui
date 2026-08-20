@@ -11,6 +11,7 @@ import { RTSCommand } from './rts-command.js';
 import { getWorldSnapshot, previewWorld122Report } from '../world/world122-snapshot.js';
 import { WorldProgressionSystem } from '../world/world-progression-system.js';
 import { mountRightSidebarPanel } from './right-sidebar-panel-layer.js';
+import { EventBus } from '../core/event-bus.js';
 
 const WORLDS = [
     { id: 'main', icon: '🏛️', desc: '轮回者营地' },
@@ -25,16 +26,50 @@ export const WorldSwitchPanel = {
 
     _getPanel() {
         if (!this._panel) {
-            this._panel = new BasePanel({ id: 'worldSwitchPanel', className: 'world-switch-panel', stateKey: 'worldSwitch' });
+            this._panel = new BasePanel({
+                id: 'worldSwitchPanel',
+                className: 'world-switch-panel',
+                stateKey: 'worldSwitch',
+                panelGroup: 'rightSidebar',
+                closeOnEscape: true,
+                closeOnOutsidePointer: true,
+            });
             this._panel.buildContent = (el) => this._buildContent(el);
             this._panel.onOpen = () => {
                 mountRightSidebarPanel(this._panel.el, 'panel');
+                EventBus.emit('ui:panel-open', { panel: 'worldSwitch' });
+                this._setPanelChrome(true);
                 this._render();
                 this._onOpenRefresh();
             };
-            this._panel.onClose = () => this._clearRefresh();
+            this._panel.onClose = () => {
+                this._clearRefresh();
+                this._setPanelChrome(false);
+            };
         }
         return this._panel;
+    },
+
+    _hasOtherActiveRightPanel() {
+        const layer = document.getElementById('rightSidebarPanelLayer');
+        if (!layer) return false;
+        return Array.from(layer.querySelectorAll('.right-sidebar-layer-item--panel')).some((item) => {
+            if (item === this._panel?.el) return false;
+            if (item.matches('.system-panel.active, .quest-panel.active, .world-switch-panel.active')) return true;
+            return !!item.querySelector('.system-panel.active, .quest-panel.active, .world-switch-panel.active');
+        });
+    },
+
+    _setPanelChrome(open) {
+        const overlay = document.getElementById('panelOverlay');
+        if (open) {
+            overlay?.classList.add('active');
+            document.querySelectorAll('.side-menu').forEach((menu) => menu.classList.add('hidden'));
+            return;
+        }
+        if (this._hasOtherActiveRightPanel()) return;
+        overlay?.classList.remove('active');
+        document.querySelectorAll('.side-menu').forEach((menu) => menu.classList.remove('hidden'));
     },
 
     /** 侧边菜单按钮已由 hud-panels-misc.js 静态构建（2026-08-19 侧栏改版，
