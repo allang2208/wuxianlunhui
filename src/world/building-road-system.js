@@ -144,7 +144,13 @@ export const BuildingRoadSystem = {
         return tile;
     },
 
-    addManualRoad(i, j, { scene = null, force = false } = {}) {
+    addManualRoad(i, j, {
+        scene = null,
+        force = false,
+        refundable = false,
+        buildCost = 0,
+        buildCurrency = 'energy',
+    } = {}) {
         const targetScene = scene || (
             typeof window !== 'undefined' ? window.__phaserScene : null
         );
@@ -163,6 +169,9 @@ export const BuildingRoadSystem = {
             x: Math.round(x),
             y: Math.round(y),
             frame: buildingRoadFrame(i, j),
+            refundable: !!refundable,
+            buildCost: Math.max(0, Number(buildCost) || 0),
+            buildCurrency: buildCurrency === 'gold' ? 'gold' : 'energy',
         };
         this._manualRoadCells.set(key, cell);
         const tile = this._ensureRoadTile(cell, targetScene);
@@ -184,10 +193,22 @@ export const BuildingRoadSystem = {
         return true;
     },
 
+    getManualRoadCell(i, j) {
+        return this._manualRoadCells.get(cellKey(i, j)) || null;
+    },
+
+    getManualRoadAt(x, y) {
+        const [i, j] = blockCellOf(x, y);
+        return this.getManualRoadCell(i, j);
+    },
+
     captureManualRoads() {
         return Array.from(this._manualRoadCells.values()).map((cell) => ({
             i: cell.i,
             j: cell.j,
+            refundable: cell.refundable !== false,
+            buildCost: Math.max(0, Number(cell.buildCost) || 0),
+            buildCurrency: cell.buildCurrency === 'gold' ? 'gold' : 'energy',
         }));
     },
 
@@ -197,7 +218,16 @@ export const BuildingRoadSystem = {
             const i = Number(cell?.i);
             const j = Number(cell?.j);
             if (!Number.isInteger(i) || !Number.isInteger(j)) continue;
-            if (this.addManualRoad(i, j, { scene, force: true })) restored++;
+            // 旧快照只有 i/j：这些道路来自玩家付费铺设，按可回收道路兼容恢复；
+            // 新快照会明确记录附属道路不可退款，防止拆建刷资源。
+            const refundable = cell?.refundable !== false;
+            if (this.addManualRoad(i, j, {
+                scene,
+                force: true,
+                refundable,
+                buildCost: cell?.buildCost,
+                buildCurrency: cell?.buildCurrency,
+            })) restored++;
         }
         return restored;
     },
@@ -271,6 +301,9 @@ export const BuildingRoadSystem = {
                     x: cell.x,
                     y: cell.y,
                     frame: cell.frame,
+                    refundable: false,
+                    buildCost: 0,
+                    buildCurrency: 'energy',
                 });
                 tile.manual = true;
             }
