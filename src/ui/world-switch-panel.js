@@ -9,6 +9,7 @@ import { SceneManager } from '../world/scene-manager.js';
 import { Game } from '../game.js';
 import { RTSCommand } from './rts-command.js';
 import { getWorld122Snapshot, previewWorld122Report } from '../world/world122-snapshot.js';
+import { mountRightSidebarPanel } from './right-sidebar-panel-layer.js';
 
 const WORLDS = [
     { id: 'main', icon: '🏛️', desc: '轮回者营地' },
@@ -25,7 +26,11 @@ export const WorldSwitchPanel = {
         if (!this._panel) {
             this._panel = new BasePanel({ id: 'worldSwitchPanel', className: 'world-switch-panel', stateKey: 'worldSwitch' });
             this._panel.buildContent = (el) => this._buildContent(el);
-            this._panel.onOpen = () => { this._render(); this._onOpenRefresh(); };
+            this._panel.onOpen = () => {
+                mountRightSidebarPanel(this._panel.el, 'panel');
+                this._render();
+                this._onOpenRefresh();
+            };
             this._panel.onClose = () => this._clearRefresh();
         }
         return this._panel;

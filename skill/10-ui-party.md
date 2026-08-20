@@ -33,6 +33,10 @@
 - `new BasePanel({ id, className, stateKey })`：懒构建单例 DOM（首次 open 创建），open/close/toggle 统一走 UIState + active 类（抽屉动画由 CSS className 自带）；
 - 只需实现 `buildContent(el)`（填充 HTML/绑事件，只调一次）与可选 `onOpen()/onClose()` 钩子；遮罩层点击关闭框架自带（各自判断 isOpen，多面板共存）；
 - 对象字面量系统同样适用（参考 `warehouse-system.js` 的 `_getPanel()` 懒创建模式 + `get _isOpen()` 代理）。
+- **右侧栏目层级（2026-08-20）**：状态/装备背包/技能/图鉴、任务、位面与队员管理统一用
+  `mountRightSidebarPanel` 挂到 `#rightSidebarPanelLayer`，禁止继续分别挂在 `#uiLayer`、
+  `#gameContainer` 或 `body` 后只调子元素 z-index。普通右栏面板 role=`panel`，遮罩=`backdrop`，
+  队员招募等从属模态=`modal`；统一层高于普通场景 UI，但暂停菜单等全局模态仍在其上。
 - **建筑详情统一关闭（2026-08-19）**：建筑类 BasePanel 传
   `panelGroup:'buildingDetail' / closeOnEscape:true / closeOnOutsidePointer:true`。
   `closeBasePanels('buildingDetail')` 同时覆盖浏览器键盘与 Electron ESC；面板外左/右

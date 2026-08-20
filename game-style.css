@@ -1,7 +1,25 @@
+        :root {
+            /* 右侧栏目抽屉统一层：高于普通 HUD/建筑/任务/开发面板，低于暂停菜单等全局模态。 */
+            --z-right-sidebar-panels: 20000;
+            --z-main-menu: 110000;
+        }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { overflow: hidden; background: #2a2520; font-family: SimHei, "Microsoft YaHei", "黑体", sans-serif; user-select: none; color: #4a3f35; }
 
-        #menuLayer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1000; background: linear-gradient(135deg, #3d342b 0%, #2a2520 50%, #1e1a16 100%); display: flex; flex-direction: column; justify-content: center; align-items: center; transition: opacity 1.2s ease, visibility 1.2s ease; }
+        .right-sidebar-panel-layer {
+            position: fixed;
+            inset: 0;
+            z-index: var(--z-right-sidebar-panels);
+            pointer-events: none;
+            isolation: isolate;
+        }
+        .right-sidebar-panel-layer > .right-sidebar-layer-item--backdrop { z-index: 1; }
+        .right-sidebar-panel-layer > .right-sidebar-layer-item--panel { z-index: 2; }
+        .right-sidebar-panel-layer > .right-sidebar-layer-item--modal { z-index: 3; }
+        .right-sidebar-panel-layer > .companion-overlay,
+        .right-sidebar-panel-layer > .recruit-overlay { pointer-events: auto; }
+
+        #menuLayer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: var(--z-main-menu); background: linear-gradient(135deg, #3d342b 0%, #2a2520 50%, #1e1a16 100%); display: flex; flex-direction: column; justify-content: center; align-items: center; transition: opacity 1.2s ease, visibility 1.2s ease; }
         #menuLayer.hidden { opacity: 0; pointer-events: none; visibility: hidden; }
         .menu-title { font-size: 56px; color: #d4c5a9; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); letter-spacing: 8px; margin-bottom: 8px; font-weight: 700; }
         .menu-sub { font-size: 14px; color: #8a7d6b; margin-bottom: 50px; letter-spacing: 3px; }

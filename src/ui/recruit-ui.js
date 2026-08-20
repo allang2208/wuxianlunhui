@@ -5,6 +5,7 @@
 // ============================================================
 
 import { PartySystem } from '../systems/party-system.js';
+import { mountRightSidebarPanel } from './right-sidebar-panel-layer.js';
 
 export const RecruitUI = {
     _overlay: null,
@@ -42,7 +43,8 @@ export const RecruitUI = {
             </div>
         `;
         overlay.querySelector('.recruit-close').onclick = () => this.close();
-        document.getElementById('gameContainer').appendChild(overlay);
+        // 队员面板的子模态，仍在统一层内但高于普通右栏面板。
+        mountRightSidebarPanel(overlay, 'modal');
         this._overlay = overlay;
     },
 
