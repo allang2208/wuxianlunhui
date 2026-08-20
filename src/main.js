@@ -30,6 +30,8 @@ import { EnvironmentLightingSystem } from './world/environment-lighting-system.j
 import { WorldProgressionSystem } from './world/world-progression-system.js';
 import { WorldInvasionSystem } from './world/world-invasion-system.js';
 import { TroopLineSystem } from './world/troop-line-system.js';
+import { TechnologySystem } from './world/technology-system.js';
+import { TechnologyTreePanel } from './ui/technology-tree-panel.js';
 
 import { getElement } from './utils/dom-utils.js';
 
@@ -112,6 +114,7 @@ async function initModules() {
     if (gameContainer) {
         initUIPanels(gameContainer);
     }
+    TechnologyTreePanel.init();
     GameMenu.init();
     // 世界切换面板（多世界并行 M1）：侧边菜单按钮由 hud-panels-misc 静态构建，这里仅挂全局
     window.WorldSwitchPanel = WorldSwitchPanel;
@@ -123,6 +126,8 @@ async function initModules() {
     window.WorldProgressionSystem = WorldProgressionSystem;
     window.WorldInvasionSystem = WorldInvasionSystem;
     window.TroopLineSystem = TroopLineSystem;
+    window.TechnologySystem = TechnologySystem;
+    window.TechnologyTreePanel = TechnologyTreePanel;
     window.SceneManager = SceneManager;
     // 环境光照唯一实例挂载（HMR 后裸路径 import 会拿到第二实例，探针必须走这里）
     window.EnvironmentLightingSystem = EnvironmentLightingSystem;

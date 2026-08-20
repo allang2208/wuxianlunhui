@@ -620,7 +620,8 @@
     .defense-trap-panel,
     .hamster-hut-panel,
     .hamster-barracks-panel,
-    .producer-building-panel
+    .producer-building-panel,
+    .world122-base-panel
 ) :is(#dtSell, #tpSell, #hhSell, #hbSell, #pbSell),
 .game-menu-btn.danger,
 .world-switch-panel .ws-support,
@@ -636,7 +637,8 @@
     .defense-trap-panel,
     .hamster-hut-panel,
     .hamster-barracks-panel,
-    .producer-building-panel
+    .producer-building-panel,
+    .world122-base-panel
 ) :is(#dtSell, #tpSell, #hhSell, #hbSell, #pbSell):hover,
 .game-menu-btn.danger:hover,
 .world-switch-panel .ws-support:hover,
@@ -1544,45 +1546,96 @@
     padding-right: 4px;
 }
 
-.build-panel #bpDetail {
-    position: static !important;
-    inset: auto !important;
-    width: 100% !important;
+/* ===== Building detail: standalone right sidebar column ===== */
+:is(
+    .build-structure-detail-panel,
+    .defense-tower-panel,
+    .defense-trap-panel,
+    .hamster-hut-panel,
+    .hamster-barracks-panel,
+    .producer-building-panel,
+    .world122-base-panel
+) {
+    position: fixed !important;
+    top: 0 !important;
+    right: 0 !important;
+    width: 45vw !important;
+    height: 100% !important;
     max-height: none !important;
-    flex: 1 1 auto;
-    min-height: 0;
-    margin: 0 !important;
-    padding: 16px 18px !important;
-    overflow-y: auto;
+    padding: 12px 16px !important;
+    display: flex !important;
+    flex-direction: column;
+    gap: 10px;
+    overflow-y: auto !important;
     box-sizing: border-box;
-    border: 1px solid var(--bp-ui-line-strong) !important;
-    border-radius: 8px;
-    box-shadow: none !important;
+    color: var(--bp-ui-text) !important;
+    background: var(--bp-ui-shell) !important;
+    border: 0 !important;
+    border-left: 3px solid var(--bp-ui-line-strong) !important;
+    border-radius: 0 !important;
+    box-shadow: var(--bp-ui-shadow) !important;
+    opacity: 1 !important;
+    visibility: hidden;
+    pointer-events: none !important;
+    transform: translateX(100%) !important;
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.25s !important;
     scrollbar-color: var(--bp-ui-gray) var(--bp-ui-black-soft);
 }
 
-.build-panel #bpDetail::-webkit-scrollbar {
-    width: 8px;
+:is(
+    .build-structure-detail-panel,
+    .defense-tower-panel,
+    .defense-trap-panel,
+    .hamster-hut-panel,
+    .hamster-barracks-panel,
+    .producer-building-panel,
+    .world122-base-panel
+).active {
+    visibility: visible;
+    pointer-events: auto !important;
+    transform: translateX(0) !important;
 }
 
-.build-panel #bpDetail::-webkit-scrollbar-track {
-    background: var(--bp-ui-black-soft);
+.building-detail-column-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex: 0 0 auto;
+    padding: 2px 4px 10px;
+    color: var(--bp-ui-white);
+    font-size: var(--bp-type-title);
+    font-weight: 700;
+    letter-spacing: var(--bp-tracking-title);
+    border-bottom: 1px solid var(--bp-ui-line-strong);
 }
 
-.build-panel #bpDetail::-webkit-scrollbar-thumb {
-    background: var(--bp-ui-gray);
+.building-detail-column-header button {
+    width: 32px;
+    height: 32px;
+    color: var(--bp-ui-text);
+    background: var(--bp-ui-control);
+    border: 1px solid var(--bp-ui-line-strong);
+    border-radius: 5px;
+    cursor: pointer;
 }
 
-.build-panel.detail-active :is(#bpHotkeys, #bpCur, #bpGrid, #bpRow, #bpRecycleRow, #bpHints) {
-    display: none !important;
+.building-detail-column-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    padding: 4px 2px 12px;
+    overflow-y: auto;
 }
 
-.build-panel.detail-active .we-title {
-    margin-bottom: 12px;
-}
-
-.build-panel #bpDetail .bp-detail-head {
-    min-height: 104px;
+:is(
+    .build-structure-detail-panel,
+    .defense-tower-panel,
+    .defense-trap-panel,
+    .hamster-hut-panel,
+    .hamster-barracks-panel,
+    .producer-building-panel,
+    .world122-base-panel
+) .bp-detail-head {
+    min-height: 116px;
     padding: 12px;
     box-sizing: border-box;
     background: linear-gradient(145deg, rgba(42, 48, 54, 0.78), rgba(16, 20, 24, 0.9));
@@ -1590,20 +1643,203 @@
     border-radius: 6px;
 }
 
-.build-panel #bpDetail .bp-detail-head img {
-    width: 92px;
-    height: 92px;
+:is(
+    .build-structure-detail-panel,
+    .defense-tower-panel,
+    .defense-trap-panel,
+    .hamster-hut-panel,
+    .hamster-barracks-panel,
+    .producer-building-panel,
+    .world122-base-panel
+) .bp-detail-head img {
+    width: 96px;
+    height: 96px;
     border-color: var(--bp-ui-line-strong);
     border-radius: 4px;
 }
 
-.build-panel #bpDetail .bp-detail-name {
-    font-size: var(--bp-type-subtitle);
+:is(.hamster-barracks-panel, .producer-building-panel) :is(#hbModules, #pbModules) {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
 }
 
-.build-panel #bpDetail .bp-detail-rows {
-    padding: 10px 2px;
-    margin: 12px 0;
+:is(.hamster-barracks-panel, .producer-building-panel) :is(#hbModules, #pbModules) > div:first-child {
+    grid-column: 1 / -1;
+}
+
+:is(.hamster-barracks-panel, .producer-building-panel) [data-module-row] {
+    padding: 9px !important;
+    border: 1px solid var(--bp-ui-line) !important;
+    border-radius: 5px;
+}
+
+.defense-tower-panel #dtWeaponList {
+    max-height: 240px !important;
+}
+
+.recruit-control-row {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px solid var(--bp-ui-line);
+}
+
+.recruit-mode-btn {
+    min-height: 38px;
+    padding: 8px 10px;
+    color: var(--bp-ui-text-muted);
+    background: linear-gradient(180deg, #323840, #1d2228);
+    border: 1px solid var(--bp-ui-line-strong);
+    border-radius: 5px;
+    font-family: var(--bp-font-ui);
+    font-size: var(--bp-type-body);
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+}
+
+.recruit-mode-btn:hover {
+    color: var(--bp-ui-white);
+    border-color: var(--bp-ui-accent-bright);
+}
+
+.recruit-mode-btn.is-active {
+    color: var(--bp-ui-white);
+    background: linear-gradient(180deg, #4a5962, #273138);
+    border-color: var(--bp-ui-accent-bright);
+    box-shadow: inset 3px 0 0 var(--bp-ui-accent-bright), 0 0 0 1px rgba(190, 214, 224, 0.08);
+}
+
+/* ===== 出兵建筑：冷钢档案字体与信息层级 ===== */
+:is(
+    .hamster-barracks-panel,
+    .producer-building-panel.is-troop-producer
+) {
+    color: var(--bp-ui-text) !important;
+    font-family: var(--bp-font-ui) !important;
+}
+
+:is(
+    .hamster-barracks-panel,
+    .producer-building-panel.is-troop-producer
+) :is(#hbStatus, #pbStatus, #hbUnitType, #pbUnitType, #hbModules, #pbModules) {
+    color: var(--bp-ui-text) !important;
+    background: linear-gradient(180deg, rgba(37, 42, 48, 0.9), rgba(21, 25, 30, 0.92)) !important;
+    border-color: var(--bp-ui-line) !important;
+    border-radius: 5px !important;
+}
+
+:is(
+    .hamster-barracks-panel,
+    .producer-building-panel.is-troop-producer
+) :is(.troop-panel-section-title, .world122-building-detail-name) {
+    color: var(--bp-ui-white) !important;
+    font-size: var(--bp-type-subtitle) !important;
+    font-weight: 700;
+    line-height: 1.35;
+    letter-spacing: 0.04em;
+}
+
+:is(
+    .hamster-barracks-panel,
+    .producer-building-panel.is-troop-producer
+) :is(.troop-panel-primary-label, .troop-panel-copy) {
+    color: var(--bp-ui-text) !important;
+    font-size: var(--bp-type-body) !important;
+    line-height: 1.65;
+}
+
+:is(
+    .hamster-barracks-panel,
+    .producer-building-panel.is-troop-producer
+) :is(
+    .troop-panel-resource-summary,
+    .troop-panel-section-meta,
+    .troop-panel-empty,
+    .world122-building-detail-durability,
+    .building-upgrade-card-level,
+    .building-upgrade-card-requirement,
+    .building-upgrade-card-actions > span
+) {
+    color: var(--bp-ui-text) !important;
+    font-size: var(--bp-type-meta) !important;
+    line-height: 1.45;
+}
+
+:is(
+    .hamster-barracks-panel,
+    .producer-building-panel.is-troop-producer
+) :is(
+    .troop-panel-progress-label,
+    .troop-panel-caption,
+    .world122-building-detail-status,
+    .building-upgrade-card-progress
+) {
+    font-size: var(--bp-type-meta) !important;
+    line-height: 1.45;
+}
+
+:is(
+    .hamster-barracks-panel,
+    .producer-building-panel.is-troop-producer
+) :is(.troop-panel-progress-label, .troop-panel-caption) {
+    color: var(--bp-ui-text-muted) !important;
+}
+
+:is(
+    .hamster-barracks-panel,
+    .producer-building-panel.is-troop-producer
+) .building-upgrade-card-name {
+    color: var(--bp-ui-white) !important;
+    font-size: var(--bp-type-subtitle) !important;
+    font-weight: 700;
+    line-height: 1.35;
+}
+
+:is(
+    .hamster-barracks-panel,
+    .producer-building-panel.is-troop-producer
+) :is(.troop-panel-unit-button, .troop-panel-upgrade-button) {
+    min-height: 38px;
+    color: var(--bp-ui-text-muted) !important;
+    background: linear-gradient(180deg, #323840, #1d2228) !important;
+    border: 1px solid var(--bp-ui-line-strong) !important;
+    border-radius: 4px !important;
+    font-family: var(--bp-font-ui) !important;
+    font-size: var(--bp-type-body) !important;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+}
+
+:is(
+    .hamster-barracks-panel,
+    .producer-building-panel.is-troop-producer
+) .troop-panel-unit-button small {
+    color: var(--bp-ui-text-muted) !important;
+    font-family: var(--bp-font-number) !important;
+    font-size: var(--bp-type-meta) !important;
+    font-weight: 600;
+}
+
+:is(
+    .hamster-barracks-panel,
+    .producer-building-panel.is-troop-producer
+) :is(.troop-panel-unit-button, .troop-panel-upgrade-button):hover {
+    color: var(--bp-ui-white) !important;
+    border-color: var(--bp-ui-accent-bright) !important;
+}
+
+:is(
+    .hamster-barracks-panel,
+    .producer-building-panel.is-troop-producer
+) .troop-panel-unit-button.is-active {
+    color: var(--bp-ui-white) !important;
+    background: linear-gradient(180deg, #4a5962, #273138) !important;
+    border-color: var(--bp-ui-accent-bright) !important;
+    box-shadow: inset 3px 0 0 var(--bp-ui-accent-bright);
 }
 
 .rts-unit-panel {
@@ -1910,6 +2146,163 @@
         .quest-panel,
         .world-switch-panel
     ) {
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* ===== Reusable cold-steel panel primitives ===== */
+.bp-right-column {
+    position: fixed !important;
+    top: 0 !important;
+    right: 0 !important;
+    width: 45vw !important;
+    height: 100% !important;
+    max-height: none !important;
+    display: flex !important;
+    flex-direction: column;
+    box-sizing: border-box;
+    overflow: hidden;
+    color: var(--bp-ui-text) !important;
+    background: var(--bp-ui-shell) !important;
+    border: 0 !important;
+    border-left: 3px solid var(--bp-ui-line-strong) !important;
+    border-radius: 0 !important;
+    box-shadow: var(--bp-ui-shadow) !important;
+    visibility: hidden;
+    pointer-events: none !important;
+    transform: translateX(100%) !important;
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.25s !important;
+}
+
+.bp-right-column.active {
+    visibility: visible;
+    pointer-events: auto !important;
+    transform: translateX(0) !important;
+}
+
+.bp-panel-header {
+    min-height: 68px;
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 12px 16px;
+    box-sizing: border-box;
+    background: rgba(35, 36, 41, 0.94);
+    border-bottom: 1px solid var(--bp-ui-line-strong);
+}
+
+.bp-panel-header-copy {
+    min-width: 0;
+}
+
+.bp-panel-header :is(h1, h2, p),
+.bp-panel-section :is(h2, h3, p) {
+    margin-top: 0;
+}
+
+.bp-panel-header :is(h1, h2) {
+    margin-bottom: 0;
+    color: var(--bp-ui-white);
+    letter-spacing: var(--bp-tracking-title);
+}
+
+.bp-panel-close {
+    width: 32px;
+    height: 32px;
+    flex: 0 0 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    color: var(--bp-ui-text-muted);
+    background: var(--bp-ui-control);
+    border: 1px solid var(--bp-ui-line-strong);
+    border-radius: 6px;
+    font: inherit;
+    cursor: pointer;
+    transition: color 0.16s ease, background 0.16s ease, border-color 0.16s ease;
+}
+
+.bp-panel-close:hover {
+    color: var(--bp-ui-black);
+    background: var(--bp-ui-white);
+    border-color: var(--bp-ui-white);
+}
+
+.bp-panel-body {
+    min-height: 0;
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 14px 16px 18px;
+    overflow-y: auto;
+    box-sizing: border-box;
+    scrollbar-color: var(--bp-ui-gray) var(--bp-ui-black-soft);
+}
+
+.bp-panel-section {
+    padding: 12px;
+    color: var(--bp-ui-text);
+    background: rgba(255, 255, 255, 0.035);
+    border: 1px solid var(--bp-ui-line);
+    border-radius: 6px;
+}
+
+.bp-panel-section-title {
+    margin-bottom: 10px;
+    color: var(--bp-ui-white);
+    letter-spacing: var(--bp-tracking-label);
+}
+
+.bp-panel-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: auto;
+    padding-top: 12px;
+    border-top: 1px solid var(--bp-ui-line);
+}
+
+.bp-button {
+    min-height: 38px;
+    padding: 8px 14px;
+    color: var(--bp-ui-white);
+    background: var(--bp-ui-control);
+    border: 1px solid var(--bp-ui-line-strong);
+    border-radius: 5px;
+    font-family: var(--bp-font-ui);
+    font-size: var(--bp-type-body);
+    font-weight: 700;
+    cursor: pointer;
+    transition: color 0.16s ease, background 0.16s ease, border-color 0.16s ease;
+}
+
+.bp-button:hover {
+    background: var(--bp-ui-surface-hover);
+    border-color: var(--bp-ui-accent-bright);
+}
+
+.bp-button--muted {
+    color: var(--bp-ui-text-muted);
+}
+
+:is(.bp-panel-close, .bp-button):focus-visible {
+    outline: 2px solid var(--bp-ui-accent-bright);
+    outline-offset: 2px;
+}
+
+:is(.bp-panel-close, .bp-button):disabled,
+:is(.bp-panel-close, .bp-button)[aria-disabled="true"] {
+    opacity: 0.42;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .bp-right-column {
         transition-duration: 0.01ms !important;
     }
 }

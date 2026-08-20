@@ -4,6 +4,7 @@ import { EffectManager } from '../effects/effect-manager.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
 import { BasePanel } from '../ui/panels/base-panel.js';
 import { renderBuildingDetailHeader } from '../ui/panels/building-detail-header.js';
+import { mountRightSidebarPanel } from '../ui/right-sidebar-panel-layer.js';
 import {
     activateWorld122Tributes,
     deactivateWorld122Tributes,
@@ -78,7 +79,15 @@ export const World122TributeSystem = {
 
     _ensurePanel() {
         if (this._panel) return this._panel;
-        const panel = new BasePanel({ id: 'world122BasePanel', className: 'world122-base-panel', stateKey: 'world122Base' });
+        const panel = new BasePanel({
+            id: 'world122BasePanel',
+            className: 'world122-base-panel',
+            stateKey: 'world122Base',
+            panelGroup: 'buildingDetail',
+            closeOnEscape: true,
+            closeOnOutsidePointer: true,
+            mountElement: (el) => mountRightSidebarPanel(el, 'panel', { bringToFront: true }),
+        });
         panel.buildContent = (el) => {
             el.style.cssText = [
                 'position:fixed;right:26px;top:50%;transform:translateY(-50%);width:420px;',
@@ -105,7 +114,6 @@ export const World122TributeSystem = {
             });
         };
         panel.onOpen = () => this._render();
-        panel.onClose = () => { if (panel.el) panel.el.style.display = 'none'; };
         this._panel = panel;
         return panel;
     },

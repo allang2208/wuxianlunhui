@@ -26,12 +26,12 @@ export function renderBuildingDetailHeader({
             <div style="display:flex;align-items:center;gap:10px;">
                 ${thumbnail}
                 <div style="flex:1;min-width:0;">
-                    <div style="font-size:16px;font-weight:700;color:${accent};">${name}</div>
-                    ${status ? `<div style="font-size:11px;color:${statusColor};margin-top:2px;">${status}</div>` : ''}
+                    <div class="world122-building-detail-name" style="font-size:16px;font-weight:700;color:${accent};">${name}</div>
+                    ${status ? `<div class="world122-building-detail-status" style="font-size:11px;color:${statusColor};margin-top:2px;">${status}</div>` : ''}
                     <div style="height:8px;background:#242424;border-radius:4px;overflow:hidden;margin:7px 0 5px;">
                         <div style="height:100%;width:${pct}%;background:${hpColor};"></div>
                     </div>
-                    <div style="font-size:12px;color:#c8c0b0;">耐久 ${current} / ${max}（${pct}%）</div>
+                    <div class="world122-building-detail-durability" style="font-size:12px;color:#c8c0b0;">耐久 ${current} / ${max}（${pct}%）</div>
                 </div>
             </div>
         </section>`;

@@ -199,6 +199,7 @@ export const WorldSwitchPanel = {
             if (preview.titheEnergy > 0) parts.push(`什一税 +${preview.titheEnergy}`);
             if (preview.unitsProduced > 0) parts.push(`新兵 +${preview.unitsProduced}`);
             if (preview.abilitiesCompleted.length) parts.push(`研究完成 ${preview.abilitiesCompleted.length} 项`);
+            if (preview.modulesCompleted?.length) parts.push(`兵种升级完成 ${preview.modulesCompleted.length} 项`);
             if (preview.structuresLost > 0) parts.push(`<span style="color:#ff8855">预估损失建筑 ${preview.structuresLost}</span>`);
             if (parts.length) html += `<div class="ws-preview">⏱ ${parts.join('；')}</div>`;
         }

@@ -1,0 +1,252 @@
+{
+  "version": 1,
+  "pointsPerInstitutePerSecond": 1,
+  "nodes": [
+    {
+      "id": "engineering_drafting",
+      "name": "工程制图",
+      "icon": "📐",
+      "branch": "工程",
+      "column": 0,
+      "lane": 0,
+      "researchCost": 60,
+      "prerequisites": [],
+      "description": "建立标准化施工图纸，为道路、回收和结构研究奠定基础。",
+      "unlocks": [
+        { "type": "building", "id": "road", "label": "道路" },
+        { "type": "mechanic", "id": "building_recycle", "label": "建筑回收" },
+        { "type": "upgrade", "id": "research_passive_energy", "label": "被动能源研究" }
+      ]
+    },
+    {
+      "id": "fortification_engineering",
+      "name": "城防工事",
+      "icon": "🏰",
+      "branch": "工程",
+      "column": 1,
+      "lane": 0,
+      "researchCost": 90,
+      "prerequisites": ["engineering_drafting"],
+      "description": "掌握大型城门与城墙通行结构，形成完整防线。",
+      "unlocks": [
+        { "type": "building", "id": "gate_4cell", "label": "四格城门" },
+        { "type": "building", "id": "wall_staircase", "label": "城墙楼梯" },
+        { "type": "upgrade", "id": "research_structure_hp", "label": "结构耐久研究" }
+      ]
+    },
+    {
+      "id": "mechanism_engineering",
+      "name": "机关学",
+      "icon": "⚙️",
+      "branch": "工程",
+      "column": 2,
+      "lane": 0,
+      "researchCost": 120,
+      "prerequisites": ["fortification_engineering"],
+      "description": "将机械原理应用于战场，开放陷阱类建筑。",
+      "unlocks": [
+        { "type": "buildingKind", "id": "trap", "label": "陷阱建筑" }
+      ]
+    },
+    {
+      "id": "dimensional_engineering",
+      "name": "位面工程",
+      "icon": "🌀",
+      "branch": "工程",
+      "column": 2,
+      "lane": 1,
+      "researchCost": 160,
+      "prerequisites": ["fortification_engineering"],
+      "description": "稳定跨位面通道，允许建造传送门。",
+      "unlocks": [
+        { "type": "building", "id": "portal", "label": "传送门" }
+      ]
+    },
+    {
+      "id": "military_organization",
+      "name": "军事组织",
+      "icon": "⚔️",
+      "branch": "军事",
+      "column": 0,
+      "lane": 0,
+      "researchCost": 60,
+      "prerequisites": [],
+      "description": "建立军械生产与训练制度，开启专业兵种研究。",
+      "unlocks": [
+        { "type": "building", "id": "blacksmith", "label": "铁匠铺" },
+        { "type": "upgrade", "id": "research_recruit_speed", "label": "征募效率研究" }
+      ]
+    },
+    {
+      "id": "recon_doctrine",
+      "name": "侦察编制",
+      "icon": "🧭",
+      "branch": "军事",
+      "column": 1,
+      "lane": 0,
+      "researchCost": 80,
+      "prerequisites": ["military_organization"],
+      "description": "训练快速侦察单位，为远征提供视野。",
+      "unlocks": [
+        { "type": "unit", "id": "scout", "label": "仓鼠侦察兵" }
+      ]
+    },
+    {
+      "id": "shield_formation",
+      "name": "盾阵学",
+      "icon": "🛡️",
+      "branch": "军事",
+      "column": 1,
+      "lane": 1,
+      "researchCost": 90,
+      "prerequisites": ["military_organization"],
+      "description": "训练持盾卫士，增强前线承伤能力。",
+      "unlocks": [
+        { "type": "unit", "id": "guard", "label": "仓鼠盾卫" }
+      ]
+    },
+    {
+      "id": "emplacement_shooting",
+      "name": "阵地射击",
+      "icon": "🏹",
+      "branch": "军事",
+      "column": 2,
+      "lane": 0,
+      "researchCost": 120,
+      "prerequisites": ["military_organization"],
+      "description": "建设射击训练设施，并训练远程射手。",
+      "unlocks": [
+        { "type": "building", "id": "shooting_range", "label": "射击场" },
+        { "type": "unit", "id": "shooter", "label": "仓鼠射手" }
+      ]
+    },
+    {
+      "id": "gunpowder",
+      "name": "火药学",
+      "icon": "💥",
+      "branch": "军事",
+      "column": 3,
+      "lane": 0,
+      "researchCost": 170,
+      "prerequisites": ["emplacement_shooting"],
+      "description": "将火药武器编入军队，训练火枪手。",
+      "unlocks": [
+        { "type": "unit", "id": "musketeer", "label": "仓鼠火枪手" }
+      ]
+    },
+    {
+      "id": "cavalry_training",
+      "name": "骑兵学",
+      "icon": "🐎",
+      "branch": "军事",
+      "column": 2,
+      "lane": 1,
+      "researchCost": 140,
+      "prerequisites": ["military_organization"],
+      "description": "建设骑兵学校并训练轻骑兵。",
+      "unlocks": [
+        { "type": "building", "id": "cavalry_school", "label": "骑兵学校" },
+        { "type": "unit", "id": "light_cavalry", "label": "仓鼠轻骑兵" }
+      ]
+    },
+    {
+      "id": "heavy_cavalry",
+      "name": "重骑兵",
+      "icon": "♞",
+      "branch": "军事",
+      "column": 3,
+      "lane": 1,
+      "researchCost": 190,
+      "prerequisites": ["cavalry_training"],
+      "description": "用重甲与冲锋训练打造骑士部队。",
+      "unlocks": [
+        { "type": "unit", "id": "knight", "label": "仓鼠骑士" }
+      ]
+    },
+    {
+      "id": "field_theology",
+      "name": "战地神学",
+      "icon": "⛪",
+      "branch": "军事",
+      "column": 2,
+      "lane": 2,
+      "researchCost": 140,
+      "prerequisites": ["military_organization"],
+      "description": "建设教堂，训练能够支援军队的牧师。",
+      "unlocks": [
+        { "type": "building", "id": "church", "label": "教堂" },
+        { "type": "unit", "id": "priest", "label": "仓鼠牧师" }
+      ]
+    },
+    {
+      "id": "tactical_command",
+      "name": "战术指挥",
+      "icon": "🎯",
+      "branch": "指挥",
+      "column": 0,
+      "lane": 0,
+      "researchCost": 70,
+      "prerequisites": [],
+      "description": "开放框选、编队与战场指令。",
+      "unlocks": [
+        { "type": "mechanic", "id": "rts_command", "label": "RTS 指挥模式" }
+      ]
+    },
+    {
+      "id": "standing_orders",
+      "name": "常备军令",
+      "icon": "🚩",
+      "branch": "指挥",
+      "column": 1,
+      "lane": 0,
+      "researchCost": 90,
+      "prerequisites": ["tactical_command"],
+      "description": "允许部队原地驻守，不再自动跟随玩家。",
+      "unlocks": [
+        { "type": "mechanic", "id": "troop_hold", "label": "部队驻守" }
+      ]
+    },
+    {
+      "id": "rally_network",
+      "name": "集结网络",
+      "icon": "📍",
+      "branch": "指挥",
+      "column": 2,
+      "lane": 0,
+      "researchCost": 130,
+      "prerequisites": ["standing_orders"],
+      "description": "允许为生产建筑和部队设置集结点。",
+      "unlocks": [
+        { "type": "mechanic", "id": "troop_rally", "label": "集结点" }
+      ]
+    },
+    {
+      "id": "fortress_projection",
+      "name": "要塞投影",
+      "icon": "🗺️",
+      "branch": "指挥",
+      "column": 2,
+      "lane": 1,
+      "researchCost": 140,
+      "prerequisites": ["engineering_drafting", "tactical_command"],
+      "description": "用战术投影查看建筑与防线的平面布局。",
+      "unlocks": [
+        { "type": "mechanic", "id": "flat_view", "label": "压平视图" }
+      ]
+    },
+    {
+      "id": "expedition_logistics",
+      "name": "远征后勤",
+      "icon": "🌐",
+      "branch": "指挥",
+      "column": 3,
+      "lane": 0,
+      "researchCost": 220,
+      "prerequisites": ["dimensional_engineering", "rally_network"],
+      "description": "建立跨位面补给体系，使部队能够跨世界增援。",
+      "unlocks": [
+        { "type": "mechanic", "id": "cross_world_reinforcement", "label": "跨世界增援" }
+      ]
+    }
+  ]
+}

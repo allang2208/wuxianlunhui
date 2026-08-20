@@ -485,12 +485,14 @@ class Combatant extends DamageableEntity {
         // 计算发射方向（敌人对移动目标使用预判瞄准；玩家仍按鼠标/输入瞄准）
         // 预判以传入的瞄准点 (targetX, targetY) 为基准——此前误用 this.target.x/y（脚底），
         // 调用方无法指定命中部位（如特工瞄准目标矩形上方 25% 区域）
+        const spawnX = Number.isFinite(config.spawnX) ? config.spawnX : this.x;
+        const spawnY = Number.isFinite(config.spawnY) ? config.spawnY : this.y;
         let aimX = targetX, aimY = targetY;
         if (this._faction === 'enemy' && this.target && this.target.active) {
-            const lead = AimHelper.lead(this.x, this.y, targetX, targetY, this.target.vx || 0, this.target.vy || 0, speed);
+            const lead = AimHelper.lead(spawnX, spawnY, targetX, targetY, this.target.vx || 0, this.target.vy || 0, speed);
             aimX = lead.x; aimY = lead.y;
         }
-        const angle = Math.atan2(aimY - this.y, aimX - this.x) + spreadAngle;
+        const angle = Math.atan2(aimY - spawnY, aimX - spawnX) + spreadAngle;
         const piercing = attack.config.piercing || false;
 
         // 获取弹丸贴图（默认绿色曳光弹）
@@ -502,15 +504,32 @@ class Combatant extends DamageableEntity {
         // 创建弹丸
         // 敌人使用曳光弹效果，确保弹道可见
         const isEnemy = this._faction === 'enemy';
-        const startZ = (Number(this.z) || 0) + (this.collider?.height || this.size || 40) * 0.58;
+        const startZ = Number.isFinite(config.startZ)
+            ? config.startZ
+            : (Number(this.z) || 0) + (this.collider?.height || this.size || 40) * 0.58;
         const targetZ = Number.isFinite(config.targetZ)
             ? config.targetZ
             : (this.target?.collider?.centerZ ?? ((Number(this.target?.z) || 0) + 24));
+        const groundY = Number.isFinite(config.groundY) ? config.groundY : null;
+        const groundTargetY = Number.isFinite(config.groundTargetY) ? config.groundTargetY : null;
+        const groundAngle = Number.isFinite(config.groundAngle)
+            ? config.groundAngle + spreadAngle
+            : (groundY !== null && groundTargetY !== null)
+                ? Math.atan2(groundTargetY - groundY, aimX - spawnX) + spreadAngle
+                : null;
+        const aimDistance = Number.isFinite(config.aimDistance)
+            ? config.aimDistance
+            : (groundY !== null && groundTargetY !== null)
+                ? Math.hypot(aimX - spawnX, groundTargetY - groundY)
+                : Math.hypot(aimX - spawnX, aimY - spawnY);
         ProjectileFactory.create({
-            x: this.x, y: this.y, angle,
+            x: spawnX, y: spawnY, angle,
             z: startZ,
             targetZ,
-            aimDistance: Math.max(1, Math.hypot(aimX - this.x, aimY - this.y)),
+            aimDistance: Math.max(1, aimDistance),
+            groundY,
+            groundAngle,
+            wallContext: config.wallContext || null,
             speed, maxRange: range, size,
             damage, piercing,
             source: this, entities,

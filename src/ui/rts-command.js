@@ -13,13 +13,17 @@ import { EffectManager } from '../effects/effect-manager.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
 import { TroopLineSystem } from '../world/troop-line-system.js';
 import { RTS_DEFAULT_ACQUIRE_RANGE } from '../ai/rts-command-utils.js';
+import { pathFinder } from '../ai/pathfinder.js';
+import { TechnologySystem } from '../world/technology-system.js';
+import { isoFootprintVertices } from '../physics/iso-footprint.js';
+import { TechnologyGate } from './technology-gate.js';
 
 const DRAG_THRESHOLD = 6; // 屏幕 px：超过判定为拖框
 const PERSISTENT_WORLDS = new Set(['scene8', 'scene9', 'scene10', 'scene11']);
 const POINTER_BLOCK_SELECTOR = [
     '.system-panel', '.panel-overlay', '.side-menu', '.back-menu-btn', '.menu-btn',
     '.party-bar', '.rts-unit-panel', '.rts-command-btn', '.companion-overlay',
-    '.recruit-overlay', '.wall-editor-panel', '.world-switch-panel',
+    '.recruit-overlay', '.wall-editor-panel', '.world-switch-panel', '.technology-tree-panel',
     '.hamster-hut-panel', '.hamster-barracks-panel', '.producer-building-panel',
     '.troop-line-panel', '.rts-command-bar',
 ].join(', ');
@@ -31,7 +35,7 @@ export const RTSCommand = {
     enabled: false,
     _btn: null,
     _panel: null,
-    _selection: [],        // [{ kind: 'ally' | 'enemy', ref }]
+    _selection: [],        // [{ kind: 'ally' | 'enemy' | 'producer', ref }]
     _scene: null,          // 当前逻辑场景 id（game.js tick 传入）
     _down: false,
     _downX: 0,
@@ -42,6 +46,9 @@ export const RTSCommand = {
     _boxG: null,           // 拖框 graphics（世界空间，盖在单位之上）
     _enemyRings: null,     // Map<enemy, Phaser.Ellipse> 选中敌人脚下红圈
     _allyRings: null,      // Map<unit, Phaser.Ellipse> 非组队友军（仓鼠等）脚下金色光圈
+    _producerRings: null,  // Map<building, Phaser.Graphics> 建筑真实 footprint 选中提示
+    _rallyGuideG: null,    // 从屏幕外天空沿视觉 Z 轴落到集结点的金色虚线
+    _rallyGuideScene: null,
     _domSig: null,         // 属性面板 DOM 签名（目标变化才重建；数值每帧原地更新）
     _dom: null,            // 属性面板 DOM 引用（HP/MP 条、六维、战斗属性 span）
     _lastClick: null,      // 双击同类复选（{at, ref}）
@@ -62,6 +69,7 @@ export const RTSCommand = {
         this._createCommandBar();
         this._enemyRings = new Map();
         this._allyRings = new Map();
+        this._producerRings = new Map();
         window.addEventListener('mousedown', (e) => this._onMouseDown(e));
         window.addEventListener('mousemove', (e) => this._onMouseMove(e));
         window.addEventListener('mouseup', (e) => this._onMouseUp(e));
@@ -76,10 +84,13 @@ export const RTSCommand = {
         const g = _game();
         const observer = !!(g && g._observerMode);
         // 指挥模式可用于所有持久世界，以及观察模式下的世界。
-        const commandable = PERSISTENT_WORLDS.has(sceneId) || observer;
+        const commandable = (PERSISTENT_WORLDS.has(sceneId) || observer)
+            && TechnologySystem.isUnlocked('mechanic', 'rts_command');
         const leavingWorld = PERSISTENT_WORLDS.has(this._scene) && this._scene !== sceneId;
         this._scene = sceneId;
-        if (this._btn) this._btn.style.display = commandable ? '' : 'none';
+        const commandButtonWasVisible = !!(this._btn && this._btn.style.display !== 'none');
+        if (this._btn) TechnologyGate.refresh(this._btn);
+        if (commandable && !commandButtonWasVisible) this._placeButton();
         if (this._troopLinePanel) this._troopLinePanel.style.display = (commandable && this.enabled) ? '' : 'none';
         if (leavingWorld && !observer) this._resetPartyCommandsForSceneExit();
         if (!commandable && this.enabled) this.setEnabled(false);
@@ -108,6 +119,11 @@ export const RTSCommand = {
     },
 
     setEnabled(on) {
+        if (on && !TechnologySystem.isUnlocked('mechanic', 'rts_command')) {
+            this.enabled = false;
+            if (this._btn) this._btn.classList.remove('active');
+            return false;
+        }
         if (on) this._closeBuildingUI();
         this.enabled = !!on;
         // 切换前清掉 Space，避免角色把同一次按键解释成翻滚。
@@ -131,6 +147,7 @@ export const RTSCommand = {
         }
         this._renderSelectionFx();
         this._refreshTroopLinePanel(true);
+        return this.enabled;
     },
 
     /** 跨场景时清除旧世界坐标与实体引用。 */
@@ -165,6 +182,12 @@ export const RTSCommand = {
         const container = document.getElementById('gameContainer');
         container.appendChild(btn);
         this._btn = btn;
+        TechnologyGate.bind(btn, {
+            type: 'mechanic',
+            id: 'rts_command',
+            preserveLayout: false,
+            when: () => PERSISTENT_WORLDS.has(this._scene) || !!(_game()?._observerMode),
+        });
         this._placeButton();
         // 组队栏或窗口尺寸变化时重新定位。
         window.addEventListener('resize', () => this._placeButton());
@@ -215,9 +238,15 @@ export const RTSCommand = {
         `;
         for (const button of el.querySelectorAll('[data-mode]')) {
             button.style.cssText = 'padding:6px 2px;border:1px solid #586474;border-radius:5px;background:#29313c;color:#d8dfeb;cursor:pointer;font-size:12px;';
+            if (button.dataset.mode === 'hold') {
+                TechnologyGate.bind(button, { type: 'mechanic', id: 'troop_hold' });
+            } else if (button.dataset.mode === 'rally') {
+                TechnologyGate.bind(button, { type: 'mechanic', id: 'troop_rally' });
+            }
             button.addEventListener('click', () => {
                 const mode = button.dataset.mode;
                 if (mode === 'rally') {
+                    if (!TechnologySystem.isUnlocked('mechanic', 'troop_rally')) return;
                     if (this._rallyPicking) {
                         this._cancelRallyPick();
                     } else {
@@ -226,6 +255,7 @@ export const RTSCommand = {
                     }
                     return;
                 } else {
+                    if (mode === 'hold' && !TechnologySystem.isUnlocked('mechanic', 'troop_hold')) return;
                     this._rallyPicking = false;
                     TroopLineSystem.setMode(mode);
                 }
@@ -240,7 +270,18 @@ export const RTSCommand = {
 
     _placeTroopLinePanel() {
         if (!this._troopLinePanel) return;
-        const buttonBottom = this._btn?.getBoundingClientRect?.().bottom || 270;
+        const buttonRect = this._btn?.getBoundingClientRect?.();
+        // 科技门禁可能让按钮处于 display:none，此时 DOMRect 全为 0。
+        // 位置仍必须按按钮原预设槽位计算，不能把兵线面板吸到画面顶部。
+        const presetTop = Number.parseFloat(this._btn?.style?.top);
+        const presetHeight = Number.parseFloat(
+            typeof window !== 'undefined' && this._btn
+                ? window.getComputedStyle(this._btn).height
+                : ''
+        ) || 32;
+        const buttonBottom = buttonRect?.height > 0
+            ? buttonRect.bottom
+            : (Number.isFinite(presetTop) ? presetTop + presetHeight : 270);
         this._troopLinePanel.style.top = `${buttonBottom + 6}px`;
         this._placeCommandBar();
     },
@@ -260,13 +301,18 @@ export const RTSCommand = {
 
     _placeCommandBar() {
         if (!this._commandBar) return;
-        const troopBottom = this._troopLinePanel?.getBoundingClientRect?.().bottom || 440;
+        const troopRect = this._troopLinePanel?.getBoundingClientRect?.();
+        const presetTop = Number.parseFloat(this._troopLinePanel?.style?.top);
+        const presetHeight = Number.parseFloat(this._troopLinePanel?.style?.height) || 164;
+        const troopBottom = troopRect?.height > 0
+            ? troopRect.bottom
+            : (Number.isFinite(presetTop) ? presetTop + presetHeight : 440);
         this._commandBar.style.top = `${troopBottom + 6}px`;
     },
 
     _syncCommandBarVisibility() {
         if (!this._commandBar) return;
-        const show = this.enabled && this._selection.length > 0;
+        const show = this.enabled && this._selection.some((entry) => entry.kind !== 'producer');
         this._commandBar.style.display = show ? '' : 'none';
         if (show) this._placeCommandBar();
     },
@@ -312,6 +358,9 @@ export const RTSCommand = {
             status.textContent = '新生产士兵跟随玩家；传送时跟随部队与队友一同通过。';
         }
         status.style.whiteSpace = 'pre-line';
+        if (state.independentRallyCount > 0) {
+            status.textContent += `\n独立集结 ${state.independentRallyCount} 座（优先）`;
+        }
         status.textContent += `\n驻军 ${state.garrisoned} · 途中 ${state.transit} · 编制 ${state.assigned}/${state.capacity}`;
     },
 
@@ -353,8 +402,10 @@ export const RTSCommand = {
         const allies = new Set(this._collectAllies());
         const g = _game();
         const worldEntities = new Set(g?.entities?.values ? g.entities.values() : []);
+        const liveProducers = new Set(TroopLineSystem.getLiveProducers());
         this._selection = this._selection.filter((s) => {
             if (!s.ref || !s.ref.active) return false;
+            if (s.kind === 'producer') return liveProducers.has(s.ref);
             return s.kind === 'ally' ? allies.has(s.ref) : worldEntities.has(s.ref);
         });
         if (before !== this._selection.length) {
@@ -484,6 +535,38 @@ export const RTSCommand = {
         return { kind: completeOrder[index].kind, ref: completeOrder[index].ref };
     },
 
+    /** 指挥模式只允许单选一个军事产兵建筑；命中范围与既有建筑详情面板一致。 */
+    _hitTroopProducerAt(sx, sy) {
+        const point = Renderer.screenToWorld(sx, sy);
+        if (!point) return null;
+        let picked = null;
+        let pickedScore = Infinity;
+        for (const producer of TroopLineSystem.getLiveProducers()) {
+            const visualX = producer.x + (producer._visualFootOffsetX || 0);
+            const cfg = producer._cfg || producer.spriteCfg || {};
+            const displayW = Number(cfg.displayW ?? cfg.size) || 170;
+            const displayH = Number(cfg.displayH ?? cfg.sizeH) || 147;
+            const hit = producer._isHamsterBarracks
+                ? { cx: 0, cy: -60, hw: 85, hh: 65 }
+                : {
+                    cx: 0,
+                    cy: -Math.round(displayH * 0.4),
+                    hw: Math.round(displayW / 2),
+                    hh: Math.round(displayH * 0.44),
+                };
+            if (point.x < visualX + hit.cx - hit.hw || point.x > visualX + hit.cx + hit.hw
+                || point.y < producer.y + hit.cy - hit.hh || point.y > producer.y + hit.cy + hit.hh) continue;
+            const dx = (point.x - (visualX + hit.cx)) / Math.max(1, hit.hw);
+            const dy = (point.y - (producer.y + hit.cy)) / Math.max(1, hit.hh);
+            const score = dx * dx + dy * dy;
+            if (score < pickedScore) {
+                picked = producer;
+                pickedScore = score;
+            }
+        }
+        return picked ? { kind: 'producer', ref: picked } : null;
+    },
+
     _surfaceLayerKey(entity) {
         if (!entity) return 'ground';
         const kind = entity._surfaceKind || ((Number(entity.z) || 0) > 1 ? 'elevated' : 'ground');
@@ -584,7 +667,8 @@ export const RTSCommand = {
 
     _isCommandable() {
         const g = _game();
-        return PERSISTENT_WORLDS.has(this._scene) || !!g?._observerMode;
+        return (PERSISTENT_WORLDS.has(this._scene) || !!g?._observerMode)
+            && TechnologySystem.isUnlocked('mechanic', 'rts_command');
     },
 
     _isPointerBlocked(e) {
@@ -653,12 +737,18 @@ export const RTSCommand = {
                 } else {
                     this._setSelection([hit]);
                 }
-            } else if (this._tryBuildingClick(e.clientX, e.clientY)) {
-                // 打开建筑界面时关闭单位/复数面板，保留选择。
-                this._hidePanel();
             } else {
-                this._clearSelection();
-                this._hidePanel();
+                const producer = this._hitTroopProducerAt(e.clientX, e.clientY);
+                if (producer) {
+                    this._lastClick = null;
+                    this._setSelection([producer]);
+                } else if (this._tryBuildingClick(e.clientX, e.clientY)) {
+                    // 打开非产兵建筑界面时关闭单位/复数面板，保留选择。
+                    this._hidePanel();
+                } else {
+                    this._clearSelection();
+                    this._hidePanel();
+                }
             }
         }
         this._clearDrag();
@@ -870,9 +960,47 @@ export const RTSCommand = {
             }
             this._rallyPicking = false;
             this._refreshTroopLinePanel(true);
-            const phaser = _scene();
-            phaser?.showMoveMarker?.(point.x, point.y - (point.z || 0));
             EffectManager.add(new FloatingTextEffect(point.x, point.y - (point.z || 0), '集结点已保存', '#8ad0ff'));
+            return;
+        }
+        const producer = this._selectedTroopProducer();
+        if (producer) {
+            if (!TechnologySystem.isUnlocked('mechanic', 'troop_rally')) {
+                EffectManager.add(new FloatingTextEffect(producer.x, producer.y - 64, '需要先研发集结战术', '#ffb35c'));
+                return;
+            }
+            const defenseSystem = _game()?.DefenseSystem;
+            const point = defenseSystem?.resolveSurfaceTarget
+                ? defenseSystem.resolveSurfaceTarget(w.x, w.y)
+                : { x: w.x, y: w.y, z: 0, surfaceKind: 'ground', route: [] };
+            const reachable = this._producerRallyPoint(producer, point);
+            if (reachable.unreachable) {
+                EffectManager.add(new FloatingTextEffect(
+                    reachable.x,
+                    reachable.y - (reachable.z || 0),
+                    reachable.reason || '该位置无法从建筑出口到达',
+                    '#ff8855'
+                ));
+                return;
+            }
+            if (!TroopLineSystem.setProducerRally(producer, this._scene, reachable)) {
+                EffectManager.add(new FloatingTextEffect(
+                    reachable.x,
+                    reachable.y - (reachable.z || 0),
+                    '独立集结点设置失败',
+                    '#ff8855'
+                ));
+                return;
+            }
+            EffectManager.add(new FloatingTextEffect(
+                reachable.x,
+                reachable.y - (reachable.z || 0),
+                '独立集结点已设置',
+                '#f0cf78'
+            ));
+            this._domSig = null;
+            this._refreshPanel();
+            this._refreshTroopLinePanel(true);
             return;
         }
         const hit = this._hitUnitAt(sx, sy);
@@ -991,6 +1119,26 @@ export const RTSCommand = {
         return defenseSystem.routeSurfaceMoveForUnit(unit, point);
     },
 
+    _selectedTroopProducer() {
+        if (this._selection.length !== 1 || this._selection[0].kind !== 'producer') return null;
+        const producer = this._selection[0].ref;
+        return TroopLineSystem.isTroopProducer(producer) && producer.active !== false ? producer : null;
+    },
+
+    /** 同时校验高架路线和建筑出口到路线入口的地面连通性。 */
+    _producerRallyPoint(producer, point) {
+        if (!point || point.unreachable) return point || { unreachable: true, reason: '目标不可达' };
+        const routed = this._movePointForUnit(producer, point);
+        if (!routed || routed.unreachable) return routed || { ...point, unreachable: true, reason: '目标不可达' };
+        const route = Array.isArray(routed.route) ? routed.route : [];
+        const groundGoal = route[0] || (routed.surfaceKind === 'ground' ? routed : null);
+        if (groundGoal && pathFinder?.isReachable
+            && !pathFinder.isReachable(producer.x, producer.y, groundGoal.x, groundGoal.y, 24)) {
+            return { ...point, unreachable: true, reason: '该位置无法从建筑出口到达' };
+        }
+        return point;
+    },
+
     /** 右键攻击指令反馈：目标贴图短暂红白交替闪现。 */
     _flashAttackTarget(target) {
         if (!target || !target.active) return;
@@ -1068,6 +1216,120 @@ export const RTSCommand = {
         for (const [e, ring] of this._allyRings) {
             if (!allyAlive.has(e)) { ring.destroy(); this._allyRings.delete(e); }
         }
+
+        const producerAlive = new Set();
+        for (const s of this._selection) {
+            if (s.kind !== 'producer' || !s.ref.active) continue;
+            const building = s.ref;
+            const points = building.collisionShape === 'iso_rect'
+                ? isoFootprintVertices(building)
+                : [];
+            if (points.length < 3) continue;
+            producerAlive.add(building);
+            let marker = this._producerRings.get(building);
+            if (!marker || typeof marker.clear !== 'function') {
+                marker?.destroy?.();
+                marker = scene.add.graphics();
+                this._producerRings.set(building, marker);
+            }
+            marker.clear();
+            const zoom = Math.max(0.01, Number(scene.cameras?.main?.zoom) || 1);
+            const pulse = 0.11 + (Math.sin(Date.now() / 260) + 1) * 0.025;
+            marker.fillStyle(0xf0cf78, pulse);
+            marker.fillPoints(points, true);
+            const strokeFootprint = (width, color, alpha) => {
+                marker.lineStyle(width / zoom, color, alpha);
+                marker.beginPath();
+                marker.moveTo(points[0].x, points[0].y);
+                for (let i = 1; i < points.length; i++) marker.lineTo(points[i].x, points[i].y);
+                marker.closePath();
+                marker.strokePath();
+            };
+            strokeFootprint(7, 0xf0cf78, 0.17);
+            strokeFootprint(2.4, 0xffe69a, 0.98);
+            marker.setVisible(true);
+            const sprite = building._phaserSprite;
+            marker.setDepth(sprite && sprite.active ? sprite.depth - 0.15 : building.y - 0.15);
+        }
+        for (const [building, marker] of this._producerRings) {
+            if (!producerAlive.has(building)) { marker.destroy(); this._producerRings.delete(building); }
+        }
+        this._renderRallyGuide(scene);
+    },
+
+    _activeRallyGuideTarget() {
+        const producer = this._selectedTroopProducer();
+        if (producer) {
+            const independent = TroopLineSystem.getProducerRally(producer, this._scene);
+            if (independent?.sceneId === this._scene) return independent;
+        }
+        const globalRally = TroopLineSystem.mode === 'rally' ? TroopLineSystem.rally : null;
+        return globalRally?.sceneId === this._scene ? globalRally : null;
+    },
+
+    /**
+     * 集结点天空指引：起点固定在画布上沿外，终点读取真实承载面显示高度。
+     * 虚线相位持续向下滚动，让视觉方向始终从天空指向集结点。
+     */
+    _renderRallyGuide(scene) {
+        if (!scene) return;
+        if (!this._rallyGuideG || this._rallyGuideScene !== scene) {
+            this._rallyGuideG?.destroy?.();
+            this._rallyGuideG = scene.add.graphics();
+            this._rallyGuideG.setDepth(99989);
+            this._rallyGuideScene = scene;
+        }
+        const graphics = this._rallyGuideG;
+        graphics.clear();
+        if (!this.enabled) return;
+        const target = this._activeRallyGuideTarget();
+        if (!target) return;
+
+        const endWorld = {
+            x: Number(target.x),
+            y: Number(target.y) - (Number(target.z) || 0),
+        };
+        const endScreen = Renderer.worldToScreen(endWorld.x, endWorld.y);
+        const canvasRect = scene.game?.canvas?.getBoundingClientRect?.();
+        if (!endScreen || !canvasRect) return;
+        const startWorld = Renderer.screenToWorld(endScreen.x, canvasRect.top - 72);
+        if (!startWorld || endWorld.y <= startWorld.y) return;
+
+        const zoom = Math.max(0.01, Number(scene.cameras?.main?.zoom) || 1);
+        const dash = 14 / zoom;
+        const gap = 9 / zoom;
+        const arrowHeight = 15 / zoom;
+        const lineEndY = endWorld.y - arrowHeight * 0.75;
+        const phase = (Date.now() / 55) % (dash + gap);
+        const segments = [];
+        for (let y = startWorld.y - phase; y < lineEndY; y += dash + gap) {
+            const fromY = Math.max(startWorld.y, y);
+            const toY = Math.min(lineEndY, y + dash);
+            if (toY > fromY) segments.push({ fromY, toY });
+        }
+        graphics.lineStyle(6 / zoom, 0xffd24a, 0.18);
+        for (const segment of segments) {
+            graphics.lineBetween(endWorld.x, segment.fromY, endWorld.x, segment.toY);
+        }
+        graphics.lineStyle(2.4 / zoom, 0xffd24a, 0.96);
+        for (const segment of segments) {
+            graphics.lineBetween(endWorld.x, segment.fromY, endWorld.x, segment.toY);
+        }
+
+        const halfArrow = 8 / zoom;
+        graphics.fillStyle(0xffd24a, 0.96);
+        graphics.fillTriangle(
+            endWorld.x,
+            endWorld.y,
+            endWorld.x - halfArrow,
+            endWorld.y - arrowHeight,
+            endWorld.x + halfArrow,
+            endWorld.y - arrowHeight
+        );
+        graphics.lineStyle(5 / zoom, 0xffd24a, 0.18);
+        graphics.strokeEllipse(endWorld.x, endWorld.y, 25 / zoom, 12 / zoom);
+        graphics.lineStyle(1.8 / zoom, 0xffe98a, 0.95);
+        graphics.strokeEllipse(endWorld.x, endWorld.y, 25 / zoom, 12 / zoom);
     },
 
     // ==================== 属性面板 ====================
@@ -1089,6 +1351,28 @@ export const RTSCommand = {
 
     _buildPanelDom() {
         if (!this._panel) return;
+        if (this._selection.length === 1 && this._selection[0].kind === 'producer') {
+            this._panel.innerHTML = `
+                <div class="rts-up-head">
+                    <span class="rts-up-name" data-ref="name"></span>
+                    <span class="rts-up-type">出兵建筑</span>
+                </div>
+                <div class="rts-up-row"><span>HP</span><div class="rts-up-track"><div class="rts-up-fill" data-ref="hpFill" style="background:#e04a3a;"></div></div><span class="rts-up-num" data-ref="hp"></span></div>
+                <div data-ref="unitType" style="margin-top:9px;color:#c7d0dc;font-size:12px;"></div>
+                <div data-ref="rally" style="margin-top:8px;color:#f0cf78;font-size:12px;line-height:1.5;"></div>
+                <div data-ref="hint" style="margin-top:7px;color:#8f9bad;font-size:11px;"></div>`;
+            const attr = (key) => this._panel.querySelector(`[data-ref="${key}"]`);
+            this._dom = {
+                producer: true,
+                name: attr('name'),
+                hpFill: attr('hpFill'),
+                hp: attr('hp'),
+                unitType: attr('unitType'),
+                rally: attr('rally'),
+                hint: attr('hint'),
+            };
+            return;
+        }
         if (this._selection.length > 1) {
             this._panel.innerHTML = `<div class="rts-up-head"><span class="rts-up-name" data-ref="count"></span></div>
                 <div class="rts-up-multi" data-ref="multi"></div>`;
@@ -1178,6 +1462,26 @@ export const RTSCommand = {
 
     _updatePanelValues() {
         if (!this._dom || !this._panel) return;
+        if (this._selection.length === 1 && this._selection[0].kind === 'producer') {
+            const producer = this._selection[0].ref;
+            const hp = Math.max(0, Math.round(producer.hp ?? producer.data?.hp ?? 0));
+            const maxHp = Math.max(1, Math.round(producer.maxHp ?? producer.data?.maxHp ?? hp));
+            const rally = TroopLineSystem.getProducerRally(producer, this._scene);
+            this._dom.name.textContent = producer.name || producer._cfg?.name || '出兵建筑';
+            this._dom.hpFill.style.width = `${Math.max(0, Math.min(100, Math.round(hp / maxHp * 100)))}%`;
+            this._dom.hp.textContent = `${hp}/${maxHp}`;
+            const unitName = typeof producer.unitName === 'function'
+                ? producer.unitName(producer.unitType)
+                : producer.unitType;
+            this._dom.unitType.textContent = `当前出兵：${unitName || '未配置'}`;
+            this._dom.rally.textContent = rally
+                ? `独立集结：(${Math.round(rally.x)}, ${Math.round(rally.y)}) · 优先于全局兵线`
+                : '独立集结：未设置（沿用左侧兵线控制）';
+            this._dom.hint.textContent = TechnologySystem.isUnlocked('mechanic', 'troop_rally')
+                ? '右键可达位置设置本建筑独立集结点'
+                : '需要先研发集结战术';
+            return;
+        }
         if (this._selection.length > 1) {
             this._dom.count.textContent = `已选择 ${this._selection.length} 个单位`;
             // 按单位类型分组统计。

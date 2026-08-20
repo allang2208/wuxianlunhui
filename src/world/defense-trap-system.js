@@ -21,6 +21,7 @@ import { SoundManager } from '../ui/sound-manager.js';
 import { burstParticles } from '../effects/combat-fx.js';
 import { BasePanel } from '../ui/panels/base-panel.js';
 import { renderBuildingDetailHeader } from '../ui/panels/building-detail-header.js';
+import { mountRightSidebarPanel } from '../ui/right-sidebar-panel-layer.js';
 import { GoldManager } from '../systems/gold-manager.js';
 import { TRAP_CONFIG, TRAP_GRADES, TRAP_SPACING, TRAP_SELL_RATIO, getTrapDef, getTrapCost } from './trap-config.js';
 // 同步导入 Renderer（原懒加载 await import 使 tryInteract 变 async，game.js 的
@@ -267,6 +268,7 @@ class DefenseTrapPanel extends BasePanel {
             panelGroup: 'buildingDetail',
             closeOnEscape: true,
             closeOnOutsidePointer: true,
+            mountElement: (el) => mountRightSidebarPanel(el, 'panel', { bringToFront: true }),
         });
         this.trap = null;
     }
@@ -301,7 +303,6 @@ class DefenseTrapPanel extends BasePanel {
     }
 
     onClose() {
-        if (this.el) this.el.style.display = 'none';
         this.trap = null;
     }
 

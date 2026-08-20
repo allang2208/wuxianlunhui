@@ -142,9 +142,18 @@ class Projectile {
                 ...emb.segs.flatMap(e => e.linked ? [...e.linked] : []),
             ]),
         } : null;
+        const baseIgnore = this._wallContext || projectileWallContext(this.source);
         const ignore = {
-            ...(this._wallContext || projectileWallContext(this.source)),
+            ...baseIgnore,
             ...(embeddedIgnore || {}),
+            segs: new Set([
+                ...(baseIgnore?.segs || []),
+                ...(embeddedIgnore?.segs || []),
+            ]),
+            rects: new Set([
+                ...(baseIgnore?.rects || []),
+                ...(embeddedIgnore?.rects || []),
+            ]),
         };
         const z1 = this.prevZ + this.size / 2;
         const z2 = this.z + this.size / 2;

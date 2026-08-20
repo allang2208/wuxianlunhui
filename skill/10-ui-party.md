@@ -3,6 +3,17 @@
 
 ## 10. UI、面板与组队系统
 
+### ⭐ 冷钢档案 UI 标准工作流（2026-08-21 定稿，新增或修改玩家 UI 一律先读）
+
+- **权威规范**：`docs/ui-cold-steel-design-system.md`。新增面板、修改面板、HUD 调整、字体调整和主题色调整开始前必须先读对应章节，并按文末检查表交付。
+- **视觉真源**：`ui/panel-theme-backpack.css`。灰、白、黑基础色、六档字体、边框、阴影、动画和通用 `.bp-*` 组件类只在此维护；禁止在业务文件复制“近似冷钢”色板。
+- **标准模板**：`docs/templates/cold-steel-panel-template.js`。新右侧栏目从模板复制，保留业务根类 + `.bp-right-column`，生命周期统一使用 `BasePanel`。
+- **执行顺序**：修改前备份 → 判定面板类型 → 选择同类参考 → 接 BasePanel/右侧挂载层 → 使用主题变量和字体档位 → 核对关闭与输入 → 查看本轮 diff → 交由用户运行验证。
+- **统一口径**：右侧主栏目和建筑详情默认 `45vw × 100%`，滑入/收回为 `0.25s cubic-bezier(0.4, 0, 0.2, 1)`；建筑详情是主栏目的同级独立栏目，不做父子嵌套页面。
+- **关闭口径**：建筑详情使用 `panelGroup:'buildingDetail' / closeOnEscape:true / closeOnOutsidePointer:true`，外部关闭不得穿透到攻击、移动或场景选择。
+- **字体口径**：display 只用于重大页面；title=一级标题，subtitle=分区标题，body=正文，meta=辅助信息，caption=微型提示，数字/计时使用 `--bp-font-number`。
+- **范围纪律**：单个 UI 需求只改目标面板及必要共享件，不借机全量迁移旧面板；若需要改变本规范，先更新规范和主题真源，再实现业务代码。
+
 ### 小地图（GameScene 静态层/动态层，2026-08-16 布局修复沉淀）
 
 - **结构**：静态层 `_minimapStaticGraphics`（背景/边框/墙壁，缓存重绘）+ 动态层
@@ -37,6 +48,11 @@
   `mountRightSidebarPanel` 挂到 `#rightSidebarPanelLayer`，禁止继续分别挂在 `#uiLayer`、
   `#gameContainer` 或 `body` 后只调子元素 z-index。普通右栏面板 role=`panel`，遮罩=`backdrop`，
   队员招募等从属模态=`modal`；统一层高于普通场景 UI，但暂停菜单等全局模态仍在其上。
+- **右栏浮窗必须进入同一堆叠上下文（2026-08-21）**：右侧栏目层本身是
+  `z-index: var(--z-right-sidebar-panels)` 的独立 stacking context。项目说明、装备提示等浮窗若仍直接
+  挂在 `body`，即使自身 `z-index` 很高也可能被整层右栏遮住；应挂到 `#rightSidebarPanelLayer`
+  内并高于 panel 子层。共用建筑升级浮窗以 `building-upgrade-tooltip.js` 为参考，同时负责把旧的
+  body 子节点迁回正确层级。
 - **建筑详情统一关闭（2026-08-19）**：建筑类 BasePanel 传
   `panelGroup:'buildingDetail' / closeOnEscape:true / closeOnOutsidePointer:true`。
   `closeBasePanels('buildingDetail')` 同时覆盖浏览器键盘与 Electron ESC；面板外左/右
@@ -45,10 +61,11 @@
 
 已迁移范例：`warehouse-system.js`（仓库面板）。
 
-- **面板并排（2026-08-16 建筑详情）**：详情与主面板并排 = 详情容器
-  `position:fixed; right:<主面板右缘+宽+间距>`（建筑面板右缘 8 + 420 + 8 = 436px），
-  并排时**不隐藏主面板内容**；建设模式全局标记 `Game._buildMode` 供塔/陷阱/小屋/
-  兵营各自跳过 260px 交互距离（免循环依赖 import），详见 lessons #56。
+- **建筑详情独立栏目（2026-08-21 新口径）**：墙/门/楼梯详情和塔、陷阱、小屋、兵营、
+  配置型生产建筑、基地核心详情都作为 `#rightSidebarPanelLayer` 下的同级独立栏目，统一
+  `45vw × 100%`、右侧滑入/收回和建筑详情关闭分组。禁止把详情 DOM 嵌入建筑主面板或通过
+  `.detail-active` 切成父子二级页；打开详情时用 `bringToFront:true` 置前，关闭后自然露出仍在下层的
+  建筑主栏目。建设模式全局标记 `Game._buildMode` 仍供塔/陷阱/小屋/兵营跳过 260px 交互距离。
 
 ### 模式级快捷键与角色输入隔离
 

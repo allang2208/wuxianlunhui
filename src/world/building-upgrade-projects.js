@@ -5,6 +5,7 @@
 import projectsData from '../../data/building-upgrades.json';
 
 export const BUILDING_UPGRADE_PROJECTS = projectsData;
+export const DEFAULT_BUILDING_UPGRADE_TIME_MS = 60000;
 
 export function getBuildingUpgradeProject(projectId) {
     if (!projectId) return null;
@@ -21,12 +22,13 @@ export function resolveBuildingUpgradeProject(buildingCfg) {
         ...buildingCfg,
         modules: project.modules || {},
         abilities: project.abilities || {},
+        moduleUpgrade: project.moduleUpgrade || buildingCfg.moduleUpgrade,
         upgradeCost: project.moduleUpgrade || buildingCfg.upgradeCost,
         abilityUpgrade: project.abilityUpgrade || buildingCfg.abilityUpgrade,
     };
 }
 
-/** 模块升级费用：模块可按等级覆盖金币/能源，否则回退到项目统一费用。 */
+/** 模块升级费用/时间：模块可按等级覆盖，否则回退到项目统一配置。 */
 export function getBuildingModuleUpgradeCost(buildingCfg, moduleId, currentLevel = 0) {
     const module = buildingCfg?.modules?.[moduleId];
     if (!module) return null;
@@ -38,7 +40,33 @@ export function getBuildingModuleUpgradeCost(buildingCfg, moduleId, currentLevel
     return {
         gold: Math.max(0, Math.floor(Number(byLevel(module.goldByLevel, defaults.gold)) || 0)),
         energy: Math.max(0, Math.floor(Number(byLevel(module.energyByLevel, defaults.energy)) || 0)),
+        timeMs: Math.max(1, Math.floor(Number(byLevel(
+            module.timeByLevel,
+            (defaults.timeBaseMs ?? DEFAULT_BUILDING_UPGRADE_TIME_MS)
+                + (defaults.timeGrowthMs ?? 0) * level
+        )) || DEFAULT_BUILDING_UPGRADE_TIME_MS)),
     };
+}
+
+/** 读条占用键：能力按能力 ID，全局兵种模块按兵种 + 模块 ID。 */
+export function getBuildingUpgradeProgressKey(upgrade) {
+    if (!upgrade) return null;
+    if (upgrade.abilityId) return `ability:${upgrade.abilityId}`;
+    if (upgrade.moduleId && upgrade.unitType) return `module:${upgrade.unitType}:${upgrade.moduleId}`;
+    return null;
+}
+
+/** 当前场景是否已有另一栋建筑在推进同一个全局升级项目。 */
+export function isBuildingUpgradeProgressOccupied(owner, upgrade, entities = null) {
+    const key = getBuildingUpgradeProgressKey(upgrade);
+    if (!key) return false;
+    const activeEntities = entities || ((typeof window !== 'undefined' && window.Game?.entities) || null);
+    if (!activeEntities || typeof activeEntities.values !== 'function') return false;
+    for (const entity of activeEntities.values()) {
+        if (!entity || entity === owner || entity.active === false) continue;
+        if (getBuildingUpgradeProgressKey(entity._upgrade) === key) return true;
+    }
+    return false;
 }
 
 /** 兵种按项目声明取模块，不依赖某个具体建筑名称。 */

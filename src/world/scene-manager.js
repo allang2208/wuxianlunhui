@@ -13,7 +13,7 @@ import { GoldManager } from '../systems/gold-manager.js';
 import { SoundManager } from '../ui/sound-manager.js';
 import { getElement, getElementIfExists } from '../utils/dom-utils.js';
 import { TimerManager } from '../utils/timer-manager.js';
-import { setDungeonFloorProfile, applyDungeonFloor, applyDungeonFloorChunked, clearDecoClearZones } from './dungeon-floor-texture.js';
+import { setDungeonFloorProfile, applyDungeonFloorChunked, clearDecoClearZones } from './dungeon-floor-texture.js';
 import { getWallPrefabLibrary, loadWallPrefabs, isWallPrefabsLoaded, loadObstacleLayout, loadObstacleDefaults, getObstacleLayout, getWallGeoOverrides, isWallGeoOverridesLoaded } from './wall-prefabs.js';
 import { CONFIG } from '../config/config.js';
 import { TargetDummy } from '../entities/target-dummy.js';
@@ -44,6 +44,7 @@ import { ResearchSystem } from './research-system.js';
 import { scatterWorld125Environment } from './world125-environment.js';
 import { WorldProgressionSystem } from './world-progression-system.js';
 import { TroopLineSystem } from './troop-line-system.js';
+import loadingScreenConfig from '../../data/loading-screen-config.json';
 
 export const SceneManager = {
     currentScene: null,
@@ -54,6 +55,10 @@ export const SceneManager = {
     _inMainHub: false, // 主神空间无敌保护开关，避免依赖 currentScene 产生泄漏
     _mainHubInvincible: true, // 主神空间是否开启无敌（可通过 UI 切换）
     _worldDestructionTransactions: new Map(),
+    _loadingStartedAt: 0,
+    _loadingMinimumDurationMs: 0,
+    _loadingBackground: null,
+    _loadingImageCache: [],
 
     init() {
         this._worldDestructionTransactions.clear();
@@ -94,7 +99,7 @@ export const SceneManager = {
         WorldProgressionSystem.ensureConstructedWorldSnapshots();
         const cfg = GAME_CONFIG.scenes || {};
         this.scenes = {
-            main: cfg.main || { name: '主神空间', type: 'main', label: '场景一', width: 7650, height: 3800, background: '#2a3520', origin: { x: 3825, y: 1886 } },
+            main: cfg.main || { name: '主神空间', type: 'main', label: '场景一', width: 12288, height: 8192, background: '#2a3520', diamondFloor: { enabled: true }, origin: { x: 6144, y: 4096 } },
             scene2: cfg.scene2 || { name: '雪地', type: 'instance', label: '场景二', width: 9000, height: 9000, background: '#b8c0c8', origin: { x: 4500, y: 4500 } },
             scene3: cfg.scene3 || { name: '列车上', type: 'instance', label: '场景三', width: 3000, height: 1200, background: '#4a4538', origin: { x: 1500, y: 600 } },
             scene4: cfg.scene4 || { name: '古堡', type: 'instance', label: '场景四', width: 9000, height: 9000, background: '#000000', origin: { x: 4500, y: 4500 } },
@@ -105,28 +110,69 @@ export const SceneManager = {
             scene10: cfg.scene10 || { name: '世界-124·林地', type: 'instance', label: '场景十', width: 12288, height: 8192, background: '#102015', origin: { x: 6144, y: 4096 } },
             scene11: cfg.scene11 || { name: '世界-125·地牢遗迹', type: 'instance', label: '场景十一', width: 12288, height: 8192, background: '#050505', origin: { x: 6144, y: 4096 } }
         };
+        // loading 背景走浏览器图片缓存，不进入 Phaser 世界纹理生命周期。
+        if (typeof Image !== 'undefined') {
+            const paths = Object.values(loadingScreenConfig || {})
+                .flatMap((screen) => Array.isArray(screen?.backgrounds) ? screen.backgrounds : [])
+                .filter(Boolean);
+            this._loadingImageCache = paths.map((src) => {
+                const image = new Image();
+                image.src = src;
+                return image;
+            });
+        }
     },
 
-    showLoadingScreen() {
+    _resolveLoadingScreen(sceneId, dungeonType) {
+        for (const screen of Object.values(loadingScreenConfig || {})) {
+            const sceneMatches = Array.isArray(screen?.sceneIds) && screen.sceneIds.includes(sceneId);
+            if (!sceneMatches) continue;
+            const dungeonTypes = Array.isArray(screen.dungeonTypes) ? screen.dungeonTypes : [];
+            if (dungeonType && dungeonTypes.length > 0 && !dungeonTypes.includes(dungeonType)) continue;
+            return screen;
+        }
+        return null;
+    },
+
+    showLoadingScreen({ sceneId = null, dungeonType = null } = {}) {
         this.isLoading = true;
         this.loadProgress = 0;
+        this._loadingStartedAt = Date.now();
+        const screen = this._resolveLoadingScreen(sceneId, dungeonType);
+        this._loadingMinimumDurationMs = Math.max(0, Number(screen?.minimumDurationMs) || 0);
+        const backgrounds = Array.isArray(screen?.backgrounds) ? screen.backgrounds.filter(Boolean) : [];
+        this._loadingBackground = backgrounds.length > 0
+            ? backgrounds[Math.floor(Math.random() * backgrounds.length)]
+            : null;
         let overlay = getElementIfExists('loadingOverlay');
         if (!overlay) {
             overlay = document.createElement('div');
             overlay.id = 'loadingOverlay';
-            overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:#1a1a1a;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity 0.3s;font-family:SimHei, "Microsoft YaHei", sans-serif;';
+            overlay.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;background-color:#1a1a1a;background-size:cover;background-position:center;background-repeat:no-repeat;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity 0.3s;font-family:SimHei, "Microsoft YaHei", sans-serif;';
             overlay.innerHTML = `
-                <div style="color:#d4c5a9;font-size:28px;margin-bottom:30px;">场景加载中...</div>
-                <div style="width:400px;height:20px;background:#3a3a3a;border-radius:10px;overflow:hidden;border:2px solid #5a4a3a;">
+                <div id="loadingTitle" style="color:#f1e6d1;font-size:28px;font-weight:700;margin-bottom:30px;text-shadow:0 2px 8px #000,0 0 18px #000;">场景加载中...</div>
+                <div style="width:min(400px,70vw);height:20px;background:rgba(25,25,25,0.88);border-radius:10px;overflow:hidden;border:2px solid #8a7352;box-shadow:0 2px 14px rgba(0,0,0,0.8);">
                     <div id="loadingProgressBar" style="width:0%;height:100%;background:linear-gradient(90deg, #6a8a5a, #8aaa7a);transition:width 0.2s;"></div>
                 </div>
-                <div id="loadingProgressText" style="color:#8a8a8a;font-size:14px;margin-top:10px;">0%</div>
+                <div id="loadingProgressText" style="color:#ddd1bc;font-size:14px;margin-top:10px;text-shadow:0 1px 5px #000;">0%</div>
             `;
             document.body.appendChild(overlay);
         } else {
             overlay.style.display = 'flex';
             overlay.style.opacity = '1';
         }
+        overlay.style.backgroundImage = this._loadingBackground
+            ? `linear-gradient(rgba(8,8,8,0.42), rgba(8,8,8,0.58)), url("${this._loadingBackground}")`
+            : 'none';
+        const title = getElementIfExists('loadingTitle');
+        if (title) title.textContent = screen?.title || '场景加载中...';
+        this.setProgress(0);
+    },
+
+    async waitForMinimumLoadingDuration() {
+        const elapsed = Date.now() - this._loadingStartedAt;
+        const remaining = this._loadingMinimumDurationMs - elapsed;
+        if (remaining > 0) await this.delay(remaining);
     },
 
     hideLoadingScreen() {
@@ -136,6 +182,8 @@ export const SceneManager = {
             TimerManager.setTimeout(() => { overlay.style.display = 'none'; }, 300);
         }
         this.isLoading = false;
+        this._loadingStartedAt = 0;
+        this._loadingMinimumDurationMs = 0;
     },
 
     setProgress(pct) {
@@ -190,7 +238,7 @@ export const SceneManager = {
             }
         }
         try {
-            this.showLoadingScreen();
+            this.showLoadingScreen({ sceneId, dungeonType: scene.dungeonType || null });
             this._enterMode = mode || 'explore'; // 'quest' | 'explore'
 
             this.setProgress(10);
@@ -330,6 +378,7 @@ export const SceneManager = {
                 this._loadMainScene(player);
             }
 
+            await this.waitForMinimumLoadingDuration();
             this.setProgress(100);
             await this.delay(200);
 
@@ -652,16 +701,21 @@ export const SceneManager = {
     _setupMainHubTerrain() {
         const hubCfg = (GAME_CONFIG.scenes && GAME_CONFIG.scenes.mainHub) || {};
         setDungeonFloorProfile(hubCfg.floor || null);
-        applyDungeonFloor(CONFIG.WORLD_WIDTH);
-        // 场地边界墙（厚度走 mainHub.wallThickness 配置）
+        // 菱形地块（2026-08-21 对齐世界-122 口径）：分块惰性地板按菱形裁剪烘焙，区外全黑
+        const diamond = this._scene8Diamond(this.scenes.main);
+        applyDungeonFloorChunked(CONFIG.WORLD_WIDTH, CONFIG.WORLD_HEIGHT, 2048, diamond);
+        // 场地边界墙（厚度走 mainHub.wallThickness 配置）：同世界-122 改隐形兜底，不再硬拉伸视觉
         const wt = hubCfg.wallThickness ?? 20;
-        const size = CONFIG.WORLD_WIDTH;
+        const w = CONFIG.WORLD_WIDTH;
+        const h = CONFIG.WORLD_HEIGHT;
         WallSystem.walls = [
-            { x: 0, y: 0, w: size, h: wt, height: 60 },
-            { x: 0, y: size - wt, w: size, h: wt, height: 60 },
-            { x: 0, y: 0, w: wt, h: size, height: 60 },
-            { x: size - wt, y: 0, w: wt, h: size, height: 60 },
+            { x: 0, y: 0, w, h: wt, height: 60, noVisual: true },
+            { x: 0, y: h - wt, w, h: wt, height: 60, noVisual: true },
+            { x: 0, y: 0, w: wt, h, height: 60, noVisual: true },
+            { x: w - wt, y: 0, w: wt, h, height: 60, noVisual: true },
         ];
+        // 菱形四边注册不可见 _boundary 阻挡段（区外黑地不可通行，与世界-122 同一真源）
+        this._registerScene8Boundary(diamond);
 
         // 测试房间：已移除代码默认菱形房间——用户用墙壁编辑器（HUD 摆墙）自行摆放
         // 仅当预制库存在 hub_diamond 时按预制渲染；否则无房间（isoVisuals 为空）
@@ -772,6 +826,17 @@ export const SceneManager = {
             } else if (this._mainPlayerPos) {
                 player.x = this._mainPlayerPos.x;
                 player.y = this._mainPlayerPos.y;
+            }
+            // 菱形落点守卫（2026-08-21 主神空间菱形化）：旧档/旧缓存坐标可能落在新菱形外，回退主城原点
+            const hubDiamond = this._scene8Diamond(this.scenes.main);
+            if (hubDiamond) {
+                const ratio = Math.abs(player.x - hubDiamond.cx) / hubDiamond.rx
+                    + Math.abs(player.y - hubDiamond.cy) / hubDiamond.ry;
+                if (ratio > 0.95) {
+                    const o = (this.scenes.main && this.scenes.main.origin) || { x: hubDiamond.cx, y: hubDiamond.cy };
+                    player.x = o.x;
+                    player.y = o.y;
+                }
             }
             Camera.follow(player);
             QuickBar.refreshSpecialAttack(player);
@@ -1275,6 +1340,7 @@ export const SceneManager = {
             if (r.titheEnergy > 0) lines.push([`牧师什一税 +${r.titheEnergy} 能源`, '#c9a0ff']);
             if (r.unitsProduced > 0) lines.push([`新兵报到 +${r.unitsProduced}`, '#8ad0ff']);
             if (r.abilitiesCompleted.length > 0) lines.push([`研究/能力完成 ${r.abilitiesCompleted.length} 项`, '#c9a0ff']);
+            if (r.modulesCompleted?.length > 0) lines.push([`兵种升级完成 ${r.modulesCompleted.length} 项`, '#8ad0ff']);
             if (r.structuresLost > 0) lines.push([`离线战斗损失建筑 ${r.structuresLost} 座`, '#ff8855']);
             if (r.baseDamage > 0) lines.push([`基地离线受损 -${Math.round(r.baseDamage)} 耐久`, '#ff8855']);
         }

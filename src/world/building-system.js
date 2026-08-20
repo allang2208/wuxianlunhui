@@ -17,9 +17,11 @@ import { SoundManager } from '../ui/sound-manager.js';
 import { UIState } from '../ui/ui-state.js';
 import { renderBuildingDetailHeader } from '../ui/panels/building-detail-header.js';
 import { mountRightSidebarPanel } from '../ui/right-sidebar-panel-layer.js';
+import { TechnologyGate } from '../ui/technology-gate.js';
 import { CONFIG } from '../config/config.js';
 import { SceneManager } from './scene-manager.js';
 import { Renderer } from './renderer.js';
+import { World122TributeSystem } from './world122-tribute-system.js';
 import {
     DefenseSystem, DefenseTower, DefenseCover, BuildableGate, WallStaircase,
     DEFENSE_CONFIG, COVER_FACE, COVER_FOOT, GATE_GEOM, GATE4_VISUAL,
@@ -48,6 +50,7 @@ import {
     pointInIsoFootprint,
 } from '../physics/iso-footprint.js';
 import { structureDepthAtY } from './structure-depth.js';
+import { TechnologySystem } from './technology-system.js';
 import {
     resolveStructureGroundFit,
 } from './structure-visual-anchor.js';
@@ -229,6 +232,12 @@ for (const type of Object.keys(TRAP_CONFIG)) {
     }
 }
 
+function isBuildItemTechnologyUnlocked(item) {
+    if (!item) return false;
+    if (item.kind === 'trap') return TechnologySystem.isUnlocked('buildingKind', 'trap');
+    return TechnologySystem.isUnlocked('building', item.id);
+}
+
 // ==================== 建筑系统 ====================
 
 export const BuildingSystem = {
@@ -250,6 +259,7 @@ export const BuildingSystem = {
     _gate4Dir: null,       // 当前4格门方向（e1/e2）
     _gate4Hover: null,     // 最后一次场景鼠标世界坐标；F切换必须从原始坐标重算，不能用半格锚点
     _panel: null,
+    _detailPanel: null,
     _panelCloseTimer: null,
     _downFn: null,
     _moveFn: null,
@@ -268,13 +278,9 @@ export const BuildingSystem = {
         if (Game.RTSCommand && Game.RTSCommand.enabled) Game.RTSCommand.setEnabled(false);
         this.active = true;
         Game._buildMode = true;
-        // 塔升级面板与建筑面板互斥
-        if (DefenseSystem && DefenseSystem._panel && DefenseSystem._panel.isOpen) {
-            DefenseSystem._panel.close();
-        }
-        // 陷阱面板与建筑面板互斥
-        if (DefenseTrapSystem && DefenseTrapSystem._panel && DefenseTrapSystem._panel.isOpen) {
-            DefenseTrapSystem._panel.close();
+        // 建筑主面板打开前清理所有独立建筑详情，避免旧面板残留在二级页之外。
+        for (const panel of this._buildingDetailPanels()) {
+            if (panel.isOpen && typeof panel.close === 'function') panel.close();
         }
         this._buildPanel();
         this._downFn = (e) => this._onMouseDown(e);
@@ -303,7 +309,10 @@ export const BuildingSystem = {
         this._refreshTimer = null;
         this._cancelPlacement();
         this._recycleMode = false;
-        this._detail = null;
+        this._closeDetail();
+        for (const panel of this._buildingDetailPanels()) {
+            if (panel.isOpen && typeof panel.close === 'function') panel.close();
+        }
         if (this._downFn) window.removeEventListener('mousedown', this._downFn, true);
         if (this._moveFn) window.removeEventListener('mousemove', this._moveFn);
         if (this._upFn) window.removeEventListener('mouseup', this._upFn);
@@ -312,12 +321,16 @@ export const BuildingSystem = {
         this._downFn = this._moveFn = this._upFn = this._keyFn = this._blurFn = null;
         if (this._panel) {
             const closingPanel = this._panel;
+            const closingDetailPanel = this._detailPanel;
             closingPanel.classList.remove('active');
+            if (closingDetailPanel) closingDetailPanel.classList.remove('active');
             clearTimeout(this._panelCloseTimer);
             this._panelCloseTimer = setTimeout(() => {
                 if (this._panel !== closingPanel) return;
                 closingPanel.remove();
+                if (closingDetailPanel) closingDetailPanel.remove();
                 this._panel = null;
+                if (this._detailPanel === closingDetailPanel) this._detailPanel = null;
                 this._panelCloseTimer = null;
             }, 260);
         }
@@ -356,6 +369,7 @@ export const BuildingSystem = {
         clearTimeout(this._panelCloseTimer);
         this._panelCloseTimer = null;
         if (this._panel) this._panel.remove();
+        if (this._detailPanel) this._detailPanel.remove();
         const el = document.createElement('div');
         // build-panel 专属类：右侧主栏目尺寸与响应式建筑网格，不影响摆墙编辑器共享样式。
         el.className = 'wall-editor-panel build-panel';
@@ -370,24 +384,31 @@ export const BuildingSystem = {
                 金币：<b style="color:#ffd700;">${gold}</b>&nbsp;&nbsp;能源：<b style="color:#7fd4ff;">${energy}</b>（点击建筑后到场景里放置）
             </div>
             <div class="we-grid we-std-scroll" id="bpGrid" style="max-height:62vh;overflow-y:auto;">
-                ${BUILD_ITEMS.filter((it) => it.kind !== 'trap').map((it) => {
+                ${BUILD_ITEMS
+                    // 陷阱原本不在建筑栏，解锁后只追加到末尾；未解锁时不制造大段空白滚动区。
+                    .filter((it) => it.kind !== 'trap' || isBuildItemTechnologyUnlocked(it))
+                    .map((it) => {
                     const cur = it.currency === 'energy' ? '能' : '金';
                     const thumb = it.icon || it.tex;
                     const cost = this._effectiveBuildCost(it);
                     return `
-                    <div class="we-thumb" data-id="${it.id}" title="${it.name} — ${cost} ${cur}">
+                    <div class="we-thumb" data-id="${it.id}" title="${it.name} — ${cost} ${cur}"
+                         data-technology-gate-type="${it.kind === 'trap' ? 'buildingKind' : 'building'}"
+                         data-technology-gate-id="${it.kind === 'trap' ? 'trap' : it.id}">
                         <img src="assets/terrain/${thumb}.png" draggable="false" alt="${it.name}">
                         <span>${it.name}<br><em data-build-cost style="color:${it.currency === 'energy' ? '#7fd4ff' : '#ffd700'};font-style:normal;">${cost}${cur}</em></span>
                     </div>`;
                 }).join('')}
             </div>
-            <div id="bpDetail" style="display:none;"></div>
             <div class="we-row" id="bpRow">
                 <button id="bpMirror" title="镜像翻转摆放方向（F）">镜像 F</button>
                 <button id="bpCancel" title="取消放置（右键/Esc）">取消</button>
                 <span class="we-selinfo" id="bpSel">未选择建筑</span>
             </div>
-            <div class="we-row" id="bpRecycleRow" style="margin-top:7px;">
+            <div class="we-row" id="bpRecycleRow"
+                 data-technology-gate-type="mechanic"
+                 data-technology-gate-id="building_recycle"
+                 style="margin-top:7px;">
                 <button id="bpRecycleMode" title="进入回收模式后，左键点击建筑或道路进行回收" style="width:100%;background:#5a3028;color:#ffd7d0;border:1px solid #8a4a3a;">回收建筑</button>
             </div>
             <div class="we-hints" id="bpHints">
@@ -400,8 +421,20 @@ export const BuildingSystem = {
                 H=切换墙段吸附位置（外部=端到端 / 内部=端帽重叠）<br>
                 小屋/兵营/铁匠铺/草屋靠近已有同类建筑按地面 30° 地板线轴对齐（F=镜像，G=取消吸附）
             </div>`;
+        TechnologyGate.bindTree(el);
         mountRightSidebarPanel(el, 'panel');
         this._panel = el;
+        const detailPanel = document.createElement('div');
+        detailPanel.className = 'build-structure-detail-panel';
+        detailPanel.innerHTML = `
+            <div class="building-detail-column-header">
+                <span id="bpDetailTitle">建筑详情</span>
+                <button id="bpDetailClose" type="button" aria-label="关闭建筑详情">×</button>
+            </div>
+            <div id="bpDetail" class="building-detail-column-body"></div>`;
+        mountRightSidebarPanel(detailPanel, 'panel');
+        this._detailPanel = detailPanel;
+        detailPanel.querySelector('#bpDetailClose').addEventListener('click', () => this._closeDetail());
         document.querySelectorAll('.side-menu').forEach((menu) => menu.classList.add('hidden'));
         // 先提交收起态，再切 active，复用右侧主栏目同款滑入动画。
         void el.offsetWidth;
@@ -412,7 +445,7 @@ export const BuildingSystem = {
             this._cancelPlacement();
             this._setRecycleMode(false);
         });
-        el.querySelector('#bpRecycleMode').addEventListener('click', () => {
+        el.querySelector('#bpRecycleMode')?.addEventListener('click', () => {
             this._setRecycleMode(!this._recycleMode);
         });
         el.querySelector('#bpMirror').addEventListener('click', () => this._updateSnapHint());
@@ -439,7 +472,22 @@ export const BuildingSystem = {
         this._refreshCurrencies();
     },
 
+    refreshTechnologyUnlocks() {
+        if (!this.active) return;
+        this._cancelPlacement();
+        this._setRecycleMode(false);
+        this._panel?.remove();
+        this._detailPanel?.remove();
+        this._panel = null;
+        this._detailPanel = null;
+        this._buildPanel();
+    },
+
     _selectItem(item) {
+        if (!isBuildItemTechnologyUnlocked(item)) {
+            this._notify('该建筑尚未通过科技解锁', '#ffb35c');
+            return;
+        }
         this._setRecycleMode(false);
         this._cancelPlacement();
         this._placing = { item, mirror: false };
@@ -725,6 +773,10 @@ export const BuildingSystem = {
 
     _setRecycleMode(enabled) {
         const next = !!enabled;
+        if (next && !TechnologySystem.isUnlocked('mechanic', 'building_recycle')) {
+            this._notify('需要先研发工程制图', '#ffb35c');
+            return false;
+        }
         if (next) {
             this._cancelPlacement();
             if (this._detail) this._closeDetail();
@@ -939,6 +991,7 @@ export const BuildingSystem = {
             HamsterHutSystem?._panel,
             HamsterBarracksSystem?._panel,
             ProducerBuildingSystem?._panel,
+            World122TributeSystem?._panel,
         ].filter(Boolean);
     },
 
@@ -970,8 +1023,9 @@ export const BuildingSystem = {
         const detailPanels = this._buildingDetailPanels();
         const target = e.target;
         const insideMain = !!(this._panel && target && this._panel.contains(target));
+        const insideStructureDetail = !!(this._detailPanel && target && this._detailPanel.contains(target));
         const insideDetail = detailPanels.some((panel) => panel.el && target && panel.el.contains(target));
-        if (insideMain || insideDetail) return false;
+        if (insideMain || insideStructureDetail || insideDetail) return false;
         return this._closeAllBuildingPanels();
     },
 
@@ -2521,10 +2575,6 @@ export const BuildingSystem = {
         this._renderDetail();
     },
 
-    _mainPanelTitle() {
-        return `建筑面板（${SceneManager.scenes?.[SceneManager.currentScene]?.name || '当前世界'}）`;
-    },
-
     _detailPanelTitle(e) {
         if (e?._isCoverGate) return `${e._isGate4 ? '4格门' : (e.name || `铁栅栏门·${e.grade || 'D'}级`)} · 建筑详情`;
         if (e?._isWallStaircase) return `${WALL_STAIR_CONFIG.name} · 建筑详情`;
@@ -2532,12 +2582,11 @@ export const BuildingSystem = {
         return `掩体·${e?.grade || 'F'}级 · 建筑详情`;
     },
 
-    /** 详情视图渲染：_detail 为空回到网格列表；建筑被摧毁自动退回 */
+    /** 详情视图渲染：作为建筑主面板的同级独立右侧栏目。 */
     _renderDetail() {
-        if (!this._panel) return;
-        const grid = this._panel.querySelector('#bpGrid');
-        const det = this._panel.querySelector('#bpDetail');
-        if (!grid || !det) return;
+        if (!this._detailPanel) return;
+        const det = this._detailPanel.querySelector('#bpDetail');
+        if (!det) return;
         let e = this._detail;
         let show = !!(e && e.active && e.hp > 0);
         if (e && !show) {
@@ -2545,15 +2594,14 @@ export const BuildingSystem = {
             show = false;
             this._notify('建筑已被摧毁', '#ff8855');
         }
-        // 详情作为主建筑面板内的二级页面；返回时恢复建筑列表与原标题。
-        this._panel.classList.toggle('detail-active', show);
-        const title = this._panel.querySelector('#bpTitleText');
-        if (title) title.textContent = show ? this._detailPanelTitle(e) : this._mainPanelTitle();
-        det.style.display = show ? '' : 'none';
+        this._detailPanel.classList.toggle('active', show);
+        const title = this._detailPanel.querySelector('#bpDetailTitle');
+        if (title) title.textContent = show ? this._detailPanelTitle(e) : '建筑详情';
         if (!show) {
             det.innerHTML = '';
             return;
         }
+        mountRightSidebarPanel(this._detailPanel, 'panel', { bringToFront: true });
         // 门走专属详情（含常锁/常开模式按钮，2026-08-15）
         if (e._isCoverGate) { this._renderGateDetail(det, e); return; }
         // 城墙楼梯专属详情。
@@ -2902,10 +2950,15 @@ export const BuildingSystem = {
     _recycleButtonHtml(entity) {
         const info = this._recycleInfo(entity);
         const unit = info.currency === 'gold' ? '金' : '能';
-        return `<button id="bpRecycle" class="bp-recycle" style="background:#5a3028;color:#ffd7d0;border:1px solid #8a4a3a;border-radius:6px;padding:7px 4px;${info.recyclable ? 'cursor:pointer;' : 'opacity:0.45;cursor:default;'}" ${info.recyclable ? '' : 'disabled'}>${info.recyclable ? `回收（+${info.refund}${unit}）` : '不可回收'}</button>`;
+        return `<button id="bpRecycle" class="bp-recycle"
+            data-technology-gate-type="mechanic" data-technology-gate-id="building_recycle"
+            style="background:#5a3028;color:#ffd7d0;border:1px solid #8a4a3a;border-radius:6px;padding:7px 4px;
+            ${info.recyclable ? 'cursor:pointer;' : 'opacity:0.45;cursor:default;'}"
+            ${info.recyclable ? '' : 'disabled'}>${info.recyclable ? `回收（+${info.refund}${unit}）` : '不可回收'}</button>`;
     },
 
     _bindDetailActions(det) {
+        TechnologyGate.bindTree(det);
         const back = det.querySelector('#bpBack');
         const repair = det.querySelector('#bpRepair');
         const recycle = det.querySelector('#bpRecycle');
@@ -2973,6 +3026,11 @@ export const BuildingSystem = {
 
     _place(x, y) {
         const { item, mirror } = this._placing;
+        if (!isBuildItemTechnologyUnlocked(item)) {
+            this._notify('该建筑尚未通过科技解锁', '#ffb35c');
+            this._cancelPlacement();
+            return;
+        }
         if (!this._canPlace(x, y)) {
             this._notify('该位置无法放置', '#ff5555');
             return;

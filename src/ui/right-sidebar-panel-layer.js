@@ -15,11 +15,12 @@ export function getRightSidebarPanelLayer() {
 /**
  * @param {HTMLElement} element
  * @param {'backdrop'|'panel'|'modal'} role
+ * @param {{bringToFront?:boolean}} options
  */
-export function mountRightSidebarPanel(element, role = 'panel') {
+export function mountRightSidebarPanel(element, role = 'panel', { bringToFront = false } = {}) {
     if (!element) return null;
     const layer = getRightSidebarPanelLayer();
     element.classList.add('right-sidebar-layer-item', `right-sidebar-layer-item--${role}`);
-    if (element.parentElement !== layer) layer.appendChild(element);
+    if (element.parentElement !== layer || bringToFront) layer.appendChild(element);
     return element;
 }

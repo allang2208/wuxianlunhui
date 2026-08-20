@@ -16,6 +16,7 @@ import { BuildingSinkEffect } from '../effects/building-sink.js';
 import { SoundManager } from '../ui/sound-manager.js';
 import { BasePanel } from '../ui/panels/base-panel.js';
 import { renderBuildingDetailHeader } from '../ui/panels/building-detail-header.js';
+import { mountRightSidebarPanel } from '../ui/right-sidebar-panel-layer.js';
 import {
     ensureBuildingUpgradeTooltip,
     hideBuildingUpgradeTooltip,
@@ -409,6 +410,7 @@ class HamsterHutPanel extends BasePanel {
             panelGroup: 'buildingDetail',
             closeOnEscape: true,
             closeOnOutsidePointer: true,
+            mountElement: (el) => mountRightSidebarPanel(el, 'panel', { bringToFront: true }),
         });
         this.hut = null;
         this.player = null;
@@ -458,7 +460,6 @@ class HamsterHutPanel extends BasePanel {
 
     onOpen() {
         this.refresh();
-        if (this.el) this.el.style.display = 'block';
     }
 
     onClose() {
@@ -467,7 +468,6 @@ class HamsterHutPanel extends BasePanel {
             this._refreshTimer = null;
         }
         hideBuildingUpgradeTooltip();
-        if (this.el) this.el.style.display = 'none';
         this.hut = null;
         this.player = null;
     }

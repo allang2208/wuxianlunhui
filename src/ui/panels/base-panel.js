@@ -47,7 +47,8 @@ export class BasePanel {
      *  stateKey?:string,
      *  panelGroup?:string,
      *  closeOnEscape?:boolean,
-     *  closeOnOutsidePointer?:boolean
+     *  closeOnOutsidePointer?:boolean,
+     *  mountElement?:(el:HTMLDivElement)=>void
      * }} opts
      */
     constructor({
@@ -57,6 +58,7 @@ export class BasePanel {
         panelGroup = null,
         closeOnEscape = false,
         closeOnOutsidePointer = false,
+        mountElement = null,
     }) {
         if (!id || !className) throw new Error('[BasePanel] id 与 className 必填');
         this.id = id;
@@ -65,6 +67,7 @@ export class BasePanel {
         this.panelGroup = panelGroup;
         this.closeOnEscape = closeOnEscape;
         this.closeOnOutsidePointer = closeOnOutsidePointer;
+        this.mountElement = typeof mountElement === 'function' ? mountElement : null;
         this._built = false;
         /** @type {HTMLDivElement|null} */
         this.el = null;
@@ -77,6 +80,8 @@ export class BasePanel {
         if (this.isOpen) return;
         UIState.open(this.stateKey);
         this._ensureBuilt();
+        if (this.mountElement) this.mountElement(this.el);
+        if (this.mountElement) void this.el.offsetWidth;
         this.el.classList.add('active');
         this._openedAt = Date.now();
         this.onOpen();
@@ -102,7 +107,8 @@ export class BasePanel {
         el.className = this.className;
         this.el = el;
         this.buildContent(el);
-        document.body.appendChild(el);
+        if (this.mountElement) this.mountElement(el);
+        else document.body.appendChild(el);
         // 遮罩层点击关闭（每个实例各自挂监听并判断自身 isOpen，多面板共存）；
         // 忽略打开后 300ms 内的点击——打开动作本身的 click 事件（mousedown→面板开→mouseup→click）
         // 会落在刚激活的遮罩上，不拦截会导致"点开瞬间被关"（仓库点击打不开的根因）

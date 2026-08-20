@@ -10,12 +10,13 @@
 //   落到「墙/门 → 建筑 → 基地」顺序承伤。回场时仍在进行中的波次重开（break 阶段）。
 // - 采矿：矿工产出 = 数量 × 单矿工速率（miner 配置真源）× 采矿效率模块；受仓库
 //   剩余容量与矿点余量双重封顶；无仓库不采（与实机满仓口径一致）。
-// - 读条：铁匠铺能力/研究院研究按剩余时间完成并升全局等级；持续升级在后台只完成
+// - 读条：铁匠铺能力/研究院研究及出兵建筑模块按剩余时间完成并升全局等级；持续升级在后台只完成
 //   当前读条（不自动续升，回场由实机循环续）。
 // - commit=false 时为预览（世界切换面板用）：不改快照、不触发全局副作用。
 // ============================================================
 import { getAbilityLevel, getAbilityValue, raiseAbilityLevel } from './ability-store.js';
-import { getUnitUpgradeMults } from './unit-upgrade-store.js';
+import { getUnitUpgradeMults, raiseUnitUpgradeLevel } from './unit-upgrade-store.js';
+import { RECRUIT_MODE, normalizeRecruitMode } from './recruit-mode.js';
 import {
     getBuildingUpgradeAbility,
     getUpgradeModulesForUnitKind,
@@ -208,7 +209,7 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
         elapsedMs, wavesCleared: [], victory: false, defeated: false,
         energyMined: 0, passiveEnergy: 0, titheEnergy: 0, unitsProduced: 0,
         energySpentOnUnits: 0,
-        abilitiesCompleted: [], structuresLost: 0, baseDamage: 0,
+        abilitiesCompleted: [], modulesCompleted: [], structuresLost: 0, baseDamage: 0,
     };
     if (!snap || !snap.wave || !(elapsedMs > 0)) return report;
     const target = commit ? snap : JSON.parse(JSON.stringify(snap));
@@ -225,19 +226,27 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
     };
     const completionTimes = {};
 
-    // ---- 读条结算（铁匠铺能力/研究院研究；持续升级后台不自动续）----
+    // ---- 读条结算（能力/研究 + 出兵模块；持续升级后台不自动续）----
     for (const s of target.structures || []) {
-        if (s.kind !== 'producer' || !s.upgrade) continue;
+        if ((s.kind !== 'producer' && s.kind !== 'barracks') || !s.upgrade) continue;
         const up = s.upgrade;
         const elapsedMsLocal = Math.max(0, elapsedMs);
         if (up.remainMs <= elapsedMsLocal) {
-            if (!completionTimes[up.abilityId]) completionTimes[up.abilityId] = [];
-            completionTimes[up.abilityId].push(Math.max(0, Number(up.remainMs) || 0));
-            if (commit) {
-                const ability = getBuildingUpgradeAbility(up.abilityId);
-                raiseAbilityLevel(up.abilityId, ability?.maxLevel ?? 10);
+            if (up.abilityId) {
+                if (!completionTimes[up.abilityId]) completionTimes[up.abilityId] = [];
+                completionTimes[up.abilityId].push(Math.max(0, Number(up.remainMs) || 0));
+                if (commit) {
+                    const ability = getBuildingUpgradeAbility(up.abilityId);
+                    raiseAbilityLevel(up.abilityId, ability?.maxLevel ?? 10);
+                }
+                report.abilitiesCompleted.push(up.abilityId);
+            } else if (up.moduleId && up.unitType) {
+                const module = getUpgradeModulesForUnitKind(up.unitType)?.[up.moduleId];
+                if (module) {
+                    if (commit) raiseUnitUpgradeLevel(up.unitType, up.moduleId);
+                    report.modulesCompleted.push(`${up.unitType}:${up.moduleId}`);
+                }
             }
-            report.abilitiesCompleted.push(up.abilityId);
             s.upgrade = null; // _continuous 保留：回场实机循环自动续升
         } else {
             up.remainMs -= elapsedMsLocal;
@@ -347,11 +356,18 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
     for (const s of target.structures || []) {
         if (s.kind !== 'barracks' && s.kind !== 'producer') continue;
         if (s.kind === 'producer' && !s.unitType) continue; // 非产兵建筑
+        const recruitMode = normalizeRecruitMode(s.recruitMode);
+        const roster = _normalizedRoster(s);
+        if (recruitMode === RECRUIT_MODE.PAUSED) {
+            s.units = _rosterCount(roster);
+            s.unitRoster = roster;
+            s.unitDps = _rosterDps(roster);
+            continue;
+        }
         const baseInterval = _spawnIntervalOf(s);
         if (!(baseInterval > 0)) continue;
         const cap = _unitCapOf(s);
         let timer = Math.max(0, s.spawnTimer || 0);
-        const roster = _normalizedRoster(s);
         const deployed = Math.max(0, Math.floor(Number(s.troopLineDeployed) || 0));
         let alive = _rosterCount(roster) + deployed;
         const segments = _abilityTimeline(
@@ -362,6 +378,7 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
         );
         let previousInterval = baseInterval * _recruitMult(initialRecruitLevel);
         let energyBlocked = false;
+        let singleCompleted = false;
         for (const segment of segments) {
             const interval = baseInterval * _recruitMult(segment.level);
             if (previousInterval > 0 && interval !== previousInterval) {
@@ -387,9 +404,14 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
                 roster[s.unitType] = (roster[s.unitType] || 0) + 1;
                 report.unitsProduced++;
                 timer = interval;
+                if (recruitMode === RECRUIT_MODE.SINGLE) {
+                    s.recruitMode = RECRUIT_MODE.PAUSED;
+                    singleCompleted = true;
+                    break;
+                }
             }
             previousInterval = interval;
-            if (energyBlocked) break;
+            if (energyBlocked || singleCompleted) break;
             if (alive >= cap) {
                 timer = interval;
                 break;

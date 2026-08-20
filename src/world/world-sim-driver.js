@@ -19,6 +19,9 @@ import {
 import { settleWorld122 } from './world122-sim.js';
 import { EnvironmentLightingSystem } from './environment-lighting-system.js';
 import { TroopLineSystem } from './troop-line-system.js';
+import { TechnologySystem } from './technology-system.js';
+import { applyGlobalUpgradesToKind } from './unit-upgrade-store.js';
+import { getUpgradeModulesForUnitKind } from './building-upgrade-projects.js';
 
 const TICK_MS = 1000;
 
@@ -36,6 +39,18 @@ export const WorldSimDriver = {
         const nowGame = EnvironmentLightingSystem.serializeTime().elapsedMs || 0;
         const entries = Object.entries(getWorldSnapshots())
             .filter(([sceneId, snapshot]) => isWorldSnapshotCurrent(sceneId, snapshot));
+        const liveInstitutes = (Game.ProducerBuildingSystem?.buildings || []).filter((building) =>
+            building?.active !== false
+            && building?.cfgKey === 'research_institute'
+            && Number(building?.data?.hp ?? building?.hp ?? 1) > 0).length;
+        const backgroundInstitutes = entries.reduce((total, [sceneId, snapshot]) => {
+            if (isWorldLive(sceneId)) return total;
+            return total + (snapshot?.structures || []).filter((structure) =>
+                structure?.kind === 'producer'
+                && structure?.cfgKey === 'research_institute'
+                && Number(structure?.hp ?? 1) > 0).length;
+        }, 0);
+        TechnologySystem.update(TICK_MS, liveInstitutes + backgroundInstitutes);
         const hasLiveWorld = entries.some(([sceneId]) => isWorldLive(sceneId));
         const background = entries.filter(([sceneId, snap]) => snap?.wave && !isWorldLive(sceneId));
         const passiveTarget = hasLiveWorld ? null : background.reduce((best, entry) => {
@@ -66,6 +81,10 @@ export const WorldSimDriver = {
                 console.error(`[WorldSimDriver] ${sceneId} 后台结算异常:`, err);
                 continue;
             }
+            for (const completed of report.modulesCompleted || []) {
+                const [kind] = String(completed).split(':');
+                if (kind) applyGlobalUpgradesToKind(kind, getUpgradeModulesForUnitKind(kind));
+            }
             TroopLineSystem.onBackgroundProduction(sceneId, snap, productionBaseline);
             this._notify(sceneId, report);
         }
@@ -81,6 +100,7 @@ export const WorldSimDriver = {
         } else {
             if (report.unitsProduced > 0) lines.push([`${sceneId} 新兵 +${report.unitsProduced}`, '#8ad0ff']);
             if (report.energyMined > 0) lines.push([`${sceneId} 采集 +${Math.round(report.energyMined)} 能源`, '#7fd4ff']);
+            if (report.modulesCompleted?.length > 0) lines.push([`${sceneId} 兵种升级完成 ${report.modulesCompleted.length} 项`, '#8ad0ff']);
         }
         if (!lines.length || !player) return;
         lines.forEach(([text, color], i) => {

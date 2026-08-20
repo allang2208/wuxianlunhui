@@ -41,6 +41,7 @@ import {
  * @property {number} [aimDistance] 到瞄准点的平面距离
  * @property {number} [groundY] 枪口视觉Y还原后的地面平面Y
  * @property {number} [groundAngle] 地面平面内弹道角
+ * @property {Object|null} [wallContext] 调用方追加的墙体忽略上下文
  */
 
 export const ProjectileFactory = {
@@ -70,7 +71,8 @@ export const ProjectileFactory = {
             targetZ = null,
             aimDistance = null,
             groundY = null,
-            groundAngle = null
+            groundAngle = null,
+            wallContext = null
         } = options;
         const effectiveMaxRange = applyElevatedRangedRange(source, maxRange);
         const sourceHeight = source?.collider?.height || source?.collisionHeight || source?.size || 40;
@@ -149,7 +151,7 @@ export const ProjectileFactory = {
             p.active = true;
             p.hitTargets = new Set();
             p._embeddedWalls = embeddedWalls;
-            p._wallContext = projectileWallContext(source, null, {
+            p._wallContext = projectileWallContext(source, wallContext, {
                 x,
                 y: projectileY,
                 z: startZ,
@@ -168,7 +170,7 @@ export const ProjectileFactory = {
             p.depthBonus = depthBonus;
             p.knockback = knockback ?? 0;
             p._embeddedWalls = embeddedWalls;
-            p._wallContext = projectileWallContext(source, null, {
+            p._wallContext = projectileWallContext(source, wallContext, {
                 x,
                 y: projectileY,
                 z: startZ,
