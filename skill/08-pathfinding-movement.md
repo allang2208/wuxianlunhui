@@ -278,6 +278,31 @@ if (enemy._pathManager) {
 
 ---
 
+### 跨表面 AI 寻路接入边界（城墙/楼梯）
+
+- **分清目标与路线**：`PerceptionSystem`、指挥命令、队友跟随/撤退/施法站位、阵型和
+  `TacticalSquadAI` 继续决定“要去哪里”；高架导航只把已选定目标翻译成地面入口、楼梯、墙顶
+  航点，禁止改写索敌评分、威胁表或既有目标优先级。
+- **禁止复用目标槽保存路线状态**：`target`、`_lastKnownTargetPos`、`_tacticalTarget`、
+  `_specialTacticalTarget` 都有既有所有者。自动登墙应使用独立的 surface-nav intent/route/stage/
+  revision/progress 状态，不能用中间楼梯节点覆盖语义目标。
+- **保持地面 A* 职责**：地面单位先由 `PathManager/PathFinder` 走到楼梯入口；只有单位或当前航点
+  已进入 `stairs/wall_walk` 时才启用 `_surfaceRouteActive` 并暂停地面路径修复。推荐阶段为
+  `ground_approach → portal_queue → stair_traverse → wall_traverse → arrived`，下楼反向执行。
+- **高架必须有独立恢复**：地面随机 reposition、普通 `_tryUnstuck` 和队友掉队瞬移不得在高架阶段
+  运行；改用路线进度超时、统一表面回夹、当前 portal 重试或安全退回上一阶段。墙/楼梯拓扑变化时
+  通过路线 revision 失效并重算，禁止继续追陈旧 `wallId/staircaseId`。
+- **敌军按能力准入**：当前高架表面更新默认只覆盖玩家、队员和 `friendlyUnits`；敌军自动登墙时
+  只登记显式具备 elevated-navigation 能力的单位。近战仅在高度差阻止攻击且存在合法楼梯路线时登墙；
+  远程在当前射程与弹道有效时留在原层，不能全体无脑抢楼梯。
+- **多单位交通必须排队**：楼梯按 portal/方向维护预约与超时，狭窄段单列通行，墙顶终点再分配
+  footprint 内的站位槽；禁止让整组选中单位共享同一入口点或最终墙中心。
+- **指挥点击不等于索敌改造**：RTS 右键链路只负责屏幕点拾取、`resolveSurfaceTarget`、按单位选择
+  可用楼梯和消费显式 route。修复“点击墙顶却走到墙下”时先查拾取与命令契约，不得顺手修改敌军
+  `PerceptionSystem`。自主追击跨层目标才进入上述 surface-nav 适配层。
+
+---
+
 ### 怪物近战打建筑零伤害排查（2026-08-16 三根因，僵尸啃掩体实测）
 
 用户反馈：世界-122 怪物攻击掩体/墙壁，攻击距离足够、动画照播但零伤害。

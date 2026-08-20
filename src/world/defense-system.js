@@ -127,6 +127,7 @@ export const WALL_WALK_CONFIG = Object.freeze({
             Number(wallWalkCfg.surfaceUnitRadius) || 24
         )
     ),
+    commandPickTolerance: Math.max(0, Number(wallWalkCfg.commandPickTolerance) || 16),
     stuckFrameThreshold: Math.max(2, Number(wallWalkCfg.stuckFrameThreshold) || 2),
     emergencyRecoveryRadius: Math.max(
         1,
@@ -3131,11 +3132,14 @@ export const DefenseSystem = {
                 const groundY = y + topZ;
                 const blockGeometry = blockWallTopWalkGeometry(wall);
                 if (blockGeometry) {
+                    // 指挥拾取区可以比真实可行走面稍宽，但最终目标仍会按完整单位 footprint
+                    // 向墙顶安全区内收。这样低缩放下不必精确点中只有数像素宽的顶面边缘，
+                    // 同时不会把墙立面扩成可通行区域。
                     const insideWall = pointInIsoFootprint(
                         x,
                         groundY,
                         blockGeometry.footprint,
-                        blockGeometry.edgeTolerance
+                        blockGeometry.edgeTolerance + WALL_WALK_CONFIG.commandPickTolerance
                     );
                     if (insideWall) {
                         const distance = Math.hypot(
@@ -3296,6 +3300,73 @@ export const DefenseSystem = {
      */
     routeSurfaceMoveForUnit(unit, target) {
         if (!unit || !target) return target;
+        // 地面单位上墙时按“每个单位”选择最近的可用楼梯。resolveSurfaceTarget 只负责确定
+        // 被点击的墙顶；若所有选中单位复用它碰到的第一座楼梯，远处单位很容易从错误一侧
+        // 直冲墙体，多个楼梯并存时也无法利用更近入口。
+        if (target.surfaceKind === 'wall_walk'
+            && unit._surfaceKind !== 'wall_walk'
+            && unit._surfaceKind !== 'stairs') {
+            const Game = (typeof window !== 'undefined') ? window.Game : null;
+            const targetWall = Game?.entities
+                ? Array.from(Game.entities.values()).find((wall) =>
+                    wall?.active && wall.id === target.wallId)
+                : null;
+            const candidates = targetWall
+                ? (this.platforms || []).filter((staircase) =>
+                    staircase?.active
+                    && typeof staircase.routePoints === 'function'
+                    && (staircase.wall === targetWall || staircase.walls?.includes(targetWall)))
+                : [];
+            let chosen = null;
+            for (const staircase of candidates) {
+                const stairRoute = staircase.routePoints();
+                const entry = stairRoute[0];
+                if (!entry) continue;
+                const score = Math.hypot(entry.x - unit.x, entry.y - unit.y);
+                if (!chosen || score < chosen.score) chosen = { staircase, stairRoute, score };
+            }
+            if (chosen) {
+                const route = chosen.stairRoute.map((step) => ({ ...step }));
+                const wallPath = blockWallTopRoute(
+                    chosen.staircase.wall,
+                    targetWall,
+                    Game?.entities
+                );
+                for (const routeWall of wallPath) {
+                    const geometry = blockWallTopWalkGeometry(routeWall);
+                    if (!geometry) continue;
+                    const previous = route[route.length - 1];
+                    if (previous && Math.hypot(
+                        previous.x - geometry.center.x,
+                        previous.y - geometry.center.y
+                    ) < 1) continue;
+                    route.push({
+                        x: geometry.center.x,
+                        y: geometry.center.y,
+                        z: Number(routeWall._wallTopZ) || target.z || WALL_WALK_CONFIG.defaultTopZ,
+                        surfaceKind: 'wall_walk',
+                        wallId: routeWall.id,
+                    });
+                }
+                const previous = route[route.length - 1];
+                if (!previous || Math.hypot(previous.x - target.x, previous.y - target.y) >= 1) {
+                    route.push({
+                        x: target.x,
+                        y: target.y,
+                        z: target.z,
+                        surfaceKind: 'wall_walk',
+                        wallId: target.wallId,
+                    });
+                }
+                return {
+                    ...target,
+                    staircaseId: chosen.staircase.id,
+                    route,
+                    unreachable: false,
+                    reason: null,
+                };
+            }
+        }
         const route = Array.isArray(target.route) ? target.route : [];
         if (route.length || target.surfaceKind !== 'ground') return target;
         if (unit._surfaceKind !== 'wall_walk' && unit._surfaceKind !== 'stairs') return target;

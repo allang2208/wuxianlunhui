@@ -57,6 +57,7 @@
     "attachInset": 0,
     "maxUnitRadius": 30,
     "surfaceUnitRadius": 24,
+    "commandPickTolerance": 16,
     "stuckFrameThreshold": 2,
     "emergencyRecoveryRadius": 3,
     "rangedCombat": {
