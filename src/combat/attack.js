@@ -129,7 +129,7 @@ function applyEnchantOnHit(weapon, target, source) {
                     if (slashShape.intersectsEntity(entity)) {
                         const baseDamage = source.getCurrentWeaponAtk ? source.getCurrentWeaponAtk() : Math.floor((this.config.damage.min + this.config.damage.max) / 2);
                         const damage = baseDamage;
-                        const { killed } = DamagePipeline.applyHit(source, entity, {
+                        const { hit, killed } = DamagePipeline.applyHit(source, entity, {
                             damage,
                             damageType: 'physical',
                             knockback: this.config.knockback,
@@ -138,6 +138,7 @@ function applyEnchantOnHit(weapon, target, source) {
                             hitCountRef,
                             killCountRef
                         });
+                        if (!hit) return;
                         if (killed && !entity._summoned) killCount++;
                         hitCount++;
                     }
@@ -291,16 +292,17 @@ function applyEnchantOnHit(weapon, target, source) {
                     } else if (!thrustShape.intersectsEntity(entity)) {
                         return;
                     }
-                    pt.hitSet.add(entity);
                     let baseDamage = Math.floor((pt.damage.min + pt.damage.max) / 2);
                     const damage = baseDamage + pt.damageBonus;
-                    const { killed } = DamagePipeline.applyHit(source, entity, {
+                    const { hit, killed } = DamagePipeline.applyHit(source, entity, {
                         damage,
                         damageType: pt.damageType || 'physical',
                         knockback: pt.knockback,
                         angle,
                         currentWeapon
                     });
+                    if (!hit) return;
+                    pt.hitSet.add(entity);
                     if (this.config.crippleDuration && entity.applyCripple) {
                         entity.applyCripple(this.config.crippleDuration);
                     }
@@ -360,18 +362,19 @@ function applyEnchantOnHit(weapon, target, source) {
                         // 墙壁视线检测：不能攻击墙后的目标
                         if (WallSystem.blocked(ax, ay, entity.x, entity.y)) return;
                         if (!this._sectorIntersectsEntity(ax, ay, angle, range, halfArc, entity, surfaceContext)) return;
-                        pt.hitSet.add(entity);
                         const baseDamage = Math.floor((pt.damage.min + pt.damage.max) / 2) + pt.damageBonus;
                         const damage = Math.floor(baseDamage * damageMul);
                         // 击退方向：从玩家指向实体的径向
                         const radialAngle = Math.atan2(entity.y - ay, entity.x - ax);
-                        const { killed } = DamagePipeline.applyHit(source, entity, {
+                        const { hit, killed } = DamagePipeline.applyHit(source, entity, {
                             damage,
                             damageType: pt.damageType || 'physical',
                             knockback,
                             angle: radialAngle,
                             currentWeapon
                         });
+                        if (!hit) return;
+                        pt.hitSet.add(entity);
                         if (killed && !entity._summoned) killCount++;
                         hitCount++;
                         // 二段眩晕：仅普通类型怪物（rank 缺省视为 normal），时长配置 hitCheck.stunMs
@@ -398,10 +401,9 @@ function applyEnchantOnHit(weapon, target, source) {
                         // 墙壁视线检测：不能攻击墙后的目标
                         if (WallSystem.blocked(ax, ay, entity.x, entity.y)) return;
                         if (!rectShape.intersectsEntity(entity)) return;
-                        pt.hitSet.add(entity);
                         const baseDamage = Math.floor((pt.damage.min + pt.damage.max) / 2);
                         const damage = baseDamage + pt.damageBonus;
-                        const { killed } = DamagePipeline.applyHit(source, entity, {
+                        const { hit, killed } = DamagePipeline.applyHit(source, entity, {
                             damage,
                             damageType: pt.damageType || 'physical',
                             // 击退配置驱动（hitCheck.knockback 优先，缺省武器 attack.knockback）
@@ -409,6 +411,8 @@ function applyEnchantOnHit(weapon, target, source) {
                             angle,
                             currentWeapon
                         });
+                        if (!hit) return;
+                        pt.hitSet.add(entity);
                         if (killed && !entity._summoned) killCount++;
                         hitCount++;
                         // 一段眩晕：仅普通类型怪物（rank 缺省视为 normal），时长配置 hitCheck.stunMs

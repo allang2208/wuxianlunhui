@@ -20,6 +20,7 @@ import { DungeonMapSystem } from '../world/dungeon-map-system.js';
 import { COMBAT_FORMULAS } from '../config/combat-formulas.js';
 import { getTributeGoldMultiplier, getTributeKillMpHealRatio, getTributeKillHpHealRatio, getTributeMonsterDamageTakenMul, getMoonshadowConfig, rollTributeDrop } from '../config/tribute-effects.js';
 import { hasRangedLineOfSight } from '../combat/ranged-line-of-sight.js';
+import { canMeleeShareSurface } from '../combat/melee-surface.js';
 
 // 友方阵营组：玩家与友军互相免疫伤害（防御塔/基地/掩体/伙伴等，2026-08-14）
 const FRIENDLY_FACTIONS = new Set(['player', 'companion']);
@@ -71,11 +72,8 @@ export function isFriendlyFire(source, target) {
             takeDamage(damage, source, damageType = 'physical', isMelee = true) {
                 // 友方免伤：玩家/友军不能伤害同为友方的单位（防御塔/基地/掩体/伙伴）
                 if (isFriendlyFire(source, this)) return 0;
-                // 高度分层：近战只能命中脚底Z差在可触及范围内的目标。
-                if (isMelee && source) {
-                    const verticalReach = Number(source.meleeVerticalReach) || 48;
-                    if (Math.abs((Number(source.z) || 0) - (Number(this.z) || 0)) > verticalReach) return 0;
-                }
+                // 最终伤害保险与AI/攻击命中帧共用同一承载平面规则。
+                if (isMelee && source && !canMeleeShareSurface(source, this)) return 0;
                 // 新增：怪物之间不互相攻击
                 if (this._faction === 'enemy' && source && source._faction === 'enemy') return;
                 // 应用伤害公式：伤害 = 攻击力² / (攻击力 + 防御力)
@@ -1013,7 +1011,7 @@ export function isFriendlyFire(source, target) {
                     }
                     if (totalDmg > 0) {
                         // 灼伤属于魔法持续伤害；source 失效时用 this 自身占位，确保伤害数字正常结算
-                        this.takeDamage(totalDmg, source || this, 'magic');
+                        this.takeDamage(totalDmg, source || this, 'magic', false);
                         if (EffectManager) {
                             EffectManager.add(new FloatingTextEffect(this.x, this.y - this.size, `-${totalDmg}`, '#ff6b35'));
                         }
@@ -1151,7 +1149,7 @@ export function isFriendlyFire(source, target) {
                         destroyAfterMs: 700,
                         depth: (e._phaserSprite ? e._phaserSprite.depth : e.y + 10) + 2,
                     });
-                    e.takeDamage(damage, src, 'electric');
+                    e.takeDamage(damage, src, 'electric', false);
                 }
                 if (EffectManager) {
                     EffectManager.add(new FloatingTextEffect(this.x, this.y - this.size - 18, '⚡ 过载！', '#b98cff'));

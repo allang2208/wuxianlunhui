@@ -426,7 +426,7 @@ export class BoltSkillSystem {
             const dist = Math.sqrt((entity.x - x) ** 2 + (entity.y - y) ** 2);
             const distRatio = 1 - Math.min(dist / radius, 1);
             const finalDamage = Math.floor(damage * (0.5 + 0.5 * distRatio));
-            entity.takeDamage(finalDamage, this.source, 'magic');
+            entity.takeDamage(finalDamage, this.source, 'magic', false);
             // 烈焰吊坠：火系魔法造成伤害附加灼伤
             if (burnMul && typeof entity.applyBurn === 'function') {
                 entity.applyBurn(this.source, 1, burnDuration, burnMul, burnTickMs);

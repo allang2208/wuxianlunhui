@@ -1,41 +1,53 @@
-/** 世界-122 等距格 footprint 真源（单格投影包围盒 = 128×64 世界像素）。 */
-export const ONE_CELL_BUILDING_FOOT = Object.freeze({
-    w: 128,
-    d: 64,
-    offX: 0,
-    offY: 0,
-    collisionRadius: 64,
-    clearRadius: 70,
+import { PERSPECTIVE_SCALE_Y } from '../config/perspective-config.js';
+
+/** 世界-122 格网 footprint 公式真源：单格宽128，屏幕Y按0.5投影。 */
+export const BUILDING_GRID_CELL_WIDTH = 128;
+
+/** World-122 standard 2x2 foundation layer; body art stays a separate sprite. */
+export const BUILDING_FOUNDATION_CONFIG = Object.freeze({
+    key: 'building_foundation_2x2',
+    displayW: 256,
+    displayH: 128,
 });
+
+function standardGridFootprint(cells, { frontAnchored = true, clearRadius }) {
+    const count = Math.max(1, Number(cells) || 1);
+    const w = BUILDING_GRID_CELL_WIDTH * count;
+    const d = w * PERSPECTIVE_SCALE_Y;
+    return {
+        cells: count,
+        w,
+        d,
+        halfU: w / (2 * Math.SQRT2),
+        halfV: w / (2 * Math.SQRT2),
+        offX: 0,
+        // 普通建筑的 entity.y 是前顶点；墙块/楼梯段的 entity.y 是格心。
+        offY: frontAnchored ? -d / 2 : 0,
+        collisionRadius: w / 2,
+        clearRadius,
+    };
+}
+
+/** 1×1墙块/楼梯段：实体锚点位于格心。 */
+export const ONE_CELL_BUILDING_FOOT = Object.freeze(standardGridFootprint(1, {
+    frontAnchored: false,
+    clearRadius: 70,
+}));
 
 /** 除墙、门、陷阱外的普通建筑统一占 2×2。 */
-export const TWO_BY_TWO_BUILDING_FOOT = Object.freeze({
-    w: ONE_CELL_BUILDING_FOOT.w * 2,
-    d: ONE_CELL_BUILDING_FOOT.d * 2,
-    offX: 0,
-    offY: -64,
-    // 统一 Collider 用圆在等距投影后形成 256×128 椭圆：
-    // radius=128，屏幕 Y 按 PERSPECTIVE_SCALE_Y(0.5) 压缩为 64。
-    collisionRadius: ONE_CELL_BUILDING_FOOT.w,
+export const TWO_BY_TWO_BUILDING_FOOT = Object.freeze(standardGridFootprint(2, {
     clearRadius: 150,
-    cells: 2,
-});
+}));
 
 /** 世界-122 基地核心统一占 4×4。 */
-export const FOUR_BY_FOUR_BASE_FOOT = Object.freeze({
-    w: ONE_CELL_BUILDING_FOOT.w * 4,
-    d: ONE_CELL_BUILDING_FOOT.d * 4,
-    offX: 0,
-    offY: -128,
-    collisionRadius: ONE_CELL_BUILDING_FOOT.w * 2,
+export const FOUR_BY_FOUR_BASE_FOOT = Object.freeze(standardGridFootprint(4, {
     clearRadius: 290,
-    cells: 4,
-});
+}));
 
-/** 射击台占一个等距格；F 只改变格内楼梯/台面的朝向。 */
+/** 城墙楼梯的每一段占一个等距格；dir 描述该段的登高轴。 */
 const ISO_CELL_HALF = ONE_CELL_BUILDING_FOOT.w / (2 * Math.SQRT2);
 
-function firingPlatformFootprint(dir = 'e2') {
+function wallStairFootprint(dir = 'e2') {
     const halfU = ISO_CELL_HALF;
     const halfV = ISO_CELL_HALF;
     const collisionWidth = (halfU + halfV) * Math.SQRT2;
@@ -52,9 +64,9 @@ function firingPlatformFootprint(dir = 'e2') {
     });
 }
 
-export const FIRING_PLATFORM_FOOTPRINTS = Object.freeze({
-    e1: firingPlatformFootprint('e1'),
-    e2: firingPlatformFootprint('e2'),
+export const WALL_STAIR_FOOTPRINTS = Object.freeze({
+    e1: wallStairFootprint('e1'),
+    e2: wallStairFootprint('e2'),
 });
 
 /** 按格数取得标准 footprint；当前只开放 1/2/4 三档。 */
@@ -76,16 +88,18 @@ export function applyBuildingFootprint(entity, cells = 2) {
     entity.collisionShape = 'iso_rect';
     entity.collisionWidth = foot.w;
     entity.collisionHeight = foot.d;
-    entity.collisionIsoHalfU = foot.w / (2 * Math.SQRT2);
-    entity.collisionIsoHalfV = foot.w / (2 * Math.SQRT2);
+    entity.collisionIsoHalfU = foot.halfU;
+    entity.collisionIsoHalfV = foot.halfV;
     entity.collisionRadius = foot.collisionRadius;
     entity.colliderOffsetX = foot.offX;
     entity.colliderOffsetY = foot.offY;
+    // 标准格网公式重新应用时必须清掉旧像素拟合，避免热更新/旧实例残留。
+    delete entity._pixelFootprintLocal;
     if (typeof entity._refreshStructureDepth === 'function') entity._refreshStructureDepth();
     return entity;
 }
 
-/** 把贴图 alpha 拟合出的地面四边形应用到实体；占格标记保持不变。 */
+/** 显式异形建筑扩展：把贴图 alpha 拟合四边形应用到实体；普通格网建筑禁止默认调用。 */
 export function applyFittedBuildingFootprint(entity, fit) {
     if (!entity || !fit || !Array.isArray(fit.localVertices) || fit.localVertices.length !== 4) {
         return entity;
@@ -109,16 +123,16 @@ export function applyFittedBuildingFootprint(entity, fit) {
     return entity;
 }
 
-/** 将射击台设为单格 footprint；dir 仅描述格内楼梯向。 */
-export function applyFiringPlatformFootprint(entity, dir = 'e2') {
+/** 将城墙楼梯逻辑根实体设为单格 footprint；其余分段由组合实体单独校验。 */
+export function applyWallStairFootprint(entity, dir = 'e2') {
     if (!entity) return entity;
-    const foot = FIRING_PLATFORM_FOOTPRINTS[dir] || FIRING_PLATFORM_FOOTPRINTS.e2;
+    const foot = WALL_STAIR_FOOTPRINTS[dir] || WALL_STAIR_FOOTPRINTS.e2;
     entity._isGridBuilding = true;
     entity._buildingFootprintCells = 1;
     entity._isOneCellBuilding = true;
     entity._isTwoByTwoBuilding = false;
     entity._isFourByFourBuilding = false;
-    entity._firingPlatformDir = foot.dir;
+    entity._wallStairDir = foot.dir;
     entity.collisionShape = 'iso_rect';
     entity.collisionWidth = foot.collisionWidth;
     entity.collisionHeight = foot.collisionHeight;

@@ -6,13 +6,13 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const {
-    FIRING_PLATFORM_FOOTPRINTS,
+    WALL_STAIR_FOOTPRINTS,
     ONE_CELL_BUILDING_FOOT,
     TWO_BY_TWO_BUILDING_FOOT,
     FOUR_BY_FOUR_BASE_FOOT,
     applyBuildingFootprint,
     applyFittedBuildingFootprint,
-    applyFiringPlatformFootprint,
+    applyWallStairFootprint,
 } = await import('../src/world/building-footprint.js');
 const { Entity } = await import('../src/entities/entity.js');
 const {
@@ -45,7 +45,15 @@ function check(name, cond, detail = '') {
 check('墙体单格 footprint 保持 128×64',
     ONE_CELL_BUILDING_FOOT.w === 128
     && ONE_CELL_BUILDING_FOOT.d === 64
-    && ONE_CELL_BUILDING_FOOT.collisionRadius === 64);
+    && ONE_CELL_BUILDING_FOOT.collisionRadius === 64
+    && ONE_CELL_BUILDING_FOOT.offY === 0);
+check('标准格网公式由单格宽度和Y投影统一推导',
+    TWO_BY_TWO_BUILDING_FOOT.w === ONE_CELL_BUILDING_FOOT.w * 2
+    && TWO_BY_TWO_BUILDING_FOOT.d === TWO_BY_TWO_BUILDING_FOOT.w * 0.5
+    && TWO_BY_TWO_BUILDING_FOOT.offY === -TWO_BY_TWO_BUILDING_FOOT.d / 2
+    && FOUR_BY_FOUR_BASE_FOOT.w === ONE_CELL_BUILDING_FOOT.w * 4
+    && FOUR_BY_FOUR_BASE_FOOT.d === FOUR_BY_FOUR_BASE_FOOT.w * 0.5
+    && FOUR_BY_FOUR_BASE_FOOT.offY === -FOUR_BY_FOUR_BASE_FOOT.d / 2);
 
 const sample = {};
 applyBuildingFootprint(sample, 2);
@@ -60,22 +68,22 @@ check('普通建筑统一写入2×2矩形碰撞',
     && sample.colliderOffsetY === -64);
 
 const platformFootprint = new Entity(100, 200);
-applyFiringPlatformFootprint(platformFootprint, 'e2');
+applyWallStairFootprint(platformFootprint, 'e2');
 check('射击台占地为单格，默认e2只描述格内坡面方向',
     platformFootprint._buildingFootprintCells === 1
-    && platformFootprint._firingPlatformDir === 'e2'
+    && platformFootprint._wallStairDir === 'e2'
     && platformFootprint.colliderOffsetX === 0
     && platformFootprint.colliderOffsetY === 0
-    && platformFootprint.collisionIsoHalfU === FIRING_PLATFORM_FOOTPRINTS.e2.halfU
-    && platformFootprint.collisionIsoHalfV === FIRING_PLATFORM_FOOTPRINTS.e2.halfV);
-applyFiringPlatformFootprint(platformFootprint, 'e1');
+    && platformFootprint.collisionIsoHalfU === WALL_STAIR_FOOTPRINTS.e2.halfU
+    && platformFootprint.collisionIsoHalfV === WALL_STAIR_FOOTPRINTS.e2.halfV);
+applyWallStairFootprint(platformFootprint, 'e1');
 check('F镜像后的射击台保持单格并切换格内e1坡面',
-    platformFootprint._firingPlatformDir === 'e1'
+    platformFootprint._wallStairDir === 'e1'
     && platformFootprint._buildingFootprintCells === 1
     && platformFootprint.colliderOffsetX === 0
     && platformFootprint.colliderOffsetY === 0
-    && platformFootprint.collisionIsoHalfU === FIRING_PLATFORM_FOOTPRINTS.e1.halfU
-    && platformFootprint.collisionIsoHalfV === FIRING_PLATFORM_FOOTPRINTS.e1.halfV);
+    && platformFootprint.collisionIsoHalfU === WALL_STAIR_FOOTPRINTS.e1.halfU
+    && platformFootprint.collisionIsoHalfV === WALL_STAIR_FOOTPRINTS.e1.halfV);
 
 // 真实构造顺序：Entity 的旧圆 Collider 已存在，随后才切换 footprint、注册深度、重建 Collider。
 // 深度几何必须直接读取逻辑坐标 + 新 offset，不能被旧 collider 中心污染。
@@ -176,6 +184,13 @@ check('像素拟合四边形同步更新Collider中心与局部前缘',
 const pixelPush = resolveCircleFromIsoFootprint(86, 136, 20, pixelFitSample);
 check('像素拟合四边形支持圆形单位精确推出',
     pixelPush && Math.hypot(pixelPush.x, pixelPush.y) > 20);
+applyBuildingFootprint(pixelFitSample, 2);
+check('重新应用标准格网公式会清除旧像素拟合残留',
+    !pixelFitSample._pixelFootprintLocal
+    && pixelFitSample.collisionWidth === 256
+    && pixelFitSample.collisionHeight === 128
+    && pixelFitSample.colliderOffsetX === 0
+    && pixelFitSample.colliderOffsetY === -64);
 const baseSample = {};
 applyBuildingFootprint(baseSample, 4);
 check('基地统一写入4×4矩形碰撞',
@@ -196,7 +211,7 @@ const gameSceneSrc = fs.readFileSync(path.join(ROOT, 'src/phaser/scenes/GameScen
 
 check('防御塔、射击台与基地应用2×2/单格/4×4碰撞',
     /applyBuildingFootprint\(this, 2\)/.test(defenseSrc)
-    && /applyFiringPlatformFootprint\(this, this\.dir\)/.test(defenseSrc)
+    && /applyWallStairFootprint\(this, this\.dir\)/.test(defenseSrc)
     && /applyBuildingFootprint\(this, 4\)/.test(defenseSrc));
 check('方块墙与门同样使用地面旋转矩形',
     /this\.collisionShape = 'iso_rect'/.test(defenseSrc)
@@ -228,14 +243,25 @@ check('2×2建筑边界与清障半径共用 footprint 真源',
     && /TWO_BY_TWO_BUILDING_FOOT\.clearRadius/.test(buildingSrc));
 check('预览与实体共用塔、射击台、方块墙视觉参数',
     /DEFENSE_TOWER_VISUAL\.base\.w/.test(buildingSrc)
-    && /FIRING_PLATFORM_VISUAL\.w/.test(buildingSrc)
+    && /WALL_STAIR_VISUAL\.w/.test(buildingSrc)
     && /BLOCK_VISUAL\.w/.test(buildingSrc));
-check('普通建筑实体与建造幽灵共用alpha接地前顶点X校正',
+check('建筑面板楼梯图标锁定当前默认e2_pos正式贴图',
+    /DEFAULT_WALL_STAIR_TEXTURE[\s\S]{0,100}variants\.e2_pos\?\.lower\?\.texture/.test(buildingSrc)
+    && /icon: DEFAULT_WALL_STAIR_TEXTURE/.test(buildingSrc));
+check('楼梯吸附只忽略目标墙并跳过全部不可建候选',
+    /const ignoreEntities = new Set\(\[snap\.wall\]\)/.test(buildingSrc)
+    && !/const ignoreEntities = new Set\(attachedWalls\)/.test(buildingSrc)
+    && /不可建造的内层墙[\s\S]{0,180}return null;/.test(buildingSrc));
+check('普通建筑像素只校正视觉锚点，物理默认固定标准格网',
     /resolveStructureGroundFit/.test(gameSceneSrc)
     && /applyFittedBuildingFootprint/.test(gameSceneSrc)
     && /_getVisualOffsetX\(e, sprite\)/.test(gameSceneSrc)
     && /_ghostGroundFit\(\)/.test(buildingSrc)
-    && /applyFittedBuildingFootprint\(probe, fit\)/.test(buildingSrc));
+    && /autoFootprint: cfg\.autoFootprint === true/.test(producerSrc)
+    && /autoFootprint: false/.test(hutSrc)
+    && /autoFootprint: false/.test(barracksSrc)
+    && /entity\.spriteCfg\?\.autoFootprint === true/.test(gameSceneSrc)
+    && /PRODUCER_BUILDINGS\[item\.id\]\?\.autoFootprint === true/.test(buildingSrc));
 check('防御塔恢复放大前视觉尺寸但继续保留2×2 footprint',
     /base: \{ w: 170, h: 262, footOffsetY: 131 \}/.test(defenseSrc)
     && /w: 137,[\s\S]{0,80}h: 86/.test(defenseSrc)
@@ -255,13 +281,14 @@ const pngPath = path.join(ROOT, 'assets/terrain/research_institute.png');
 const png = fs.readFileSync(pngPath);
 const pngW = png.readUInt32BE(16);
 const pngH = png.readUInt32BE(20);
-check('研究院正式贴图已裁边并接入',
+check('研究院抠图贴图已按 2×2 footprint 接入',
     research.assetPending !== true
-    && research.displayW === 288
-    && research.displayH === 277
-    && research.footOffsetY === 139
-    && pngW === 1238
-    && pngH === 1190,
+    && typeof research.assetCutoutHash === 'string'
+    && research.displayW === 256
+    && research.displayH === 271
+    && research.footOffsetY === 136
+    && pngW === 1051
+    && pngH === 1114,
     `${pngW}×${pngH}`);
 
 console.log(`\n结果: ${pass} 通过, ${fail} 失败`);

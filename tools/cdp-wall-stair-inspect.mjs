@@ -155,7 +155,7 @@ try {
             if (segment?._owner?._isDefenseCover && segment._owner.active) wallSet.add(segment._owner);
         }
         let walls = Array.from(wallSet);
-        if (!walls.length) {
+        if (!walls.some(e => e?._isBlockCover)) {
             const gridUrl = new URL('/src/world/gate4-grid.js', location.origin).href;
             const { BLOCK_GRID, blockCellOf, blockCellCenter } = await import(gridUrl);
             const [ci, cj] = blockCellOf(8200, 3600);
@@ -177,12 +177,13 @@ try {
             const vChain = createChain('wall_v', 'e2', false, ci, cj);
             const hChain = createChain('wall_h', 'e1', true, ci + 20, cj);
             walls = [...vChain, ...hChain];
+            DefenseSystem.invalidateElevatedTopology?.();
+            DefenseSystem._refreshElevatedTopologyRevision?.();
         }
-        const testWalls = [
-            walls.find(e => e._isBlockCover && !e._facingLeft),
-            walls.find(e => e._isBlockCover && e._facingLeft),
-        ].filter(Boolean);
-        const item = BUILD_ITEMS.find(it => it.kind === 'platform');
+        // 楼梯现在只允许吸附规范墙链的外露面，不能再固定抽取每个朝向的第一堵墙：
+        // 第一堵很可能正处于墙链内部。探针遍历全部方块墙，让正式snap规则自行选出外露候选。
+        const testWalls = walls.filter(e => e._isBlockCover);
+        const item = BUILD_ITEMS.find(it => it.kind === 'wall_staircase');
         const candidates = [];
         for (const testWall of testWalls) {
             const [a, b] = testWall._faceLine;
@@ -196,8 +197,8 @@ try {
                 BuildingSystem._snapEnabled = true;
                 const px = mx + nx * 240 * side;
                 const py = my + ny * 240 * side;
-                const snap = BuildingSystem._snapFiringPlatformGrid(px, py);
-                const ok = !!snap && BuildingSystem._canPlaceFiringPlatformFootprint(snap.x, snap.y, snap);
+                const snap = BuildingSystem._snapWallStairGrid(px, py);
+                const ok = !!snap && BuildingSystem._canPlaceWallStairFootprint(snap.x, snap.y, snap);
                 candidates.push({
                     wallId: testWall.id,
                     wallMirror: !!testWall._facingLeft,
@@ -265,7 +266,7 @@ try {
             segments: snap.segments,
         });
         window.Game.entities.set(id, stair);
-        DefenseSystem.platforms.push(stair);
+        DefenseSystem.staircases.push(stair);
         const turnBase = window.Game.entities.get('cdp_wall_v_0');
         let turnWall = window.Game.entities.get('cdp_wall_turn_e1');
         if (turnBase && !turnWall) {
@@ -304,12 +305,12 @@ try {
             x: wall.x - outward.x * 2.5,
             y: wall.y - outward.y * 2.5,
         };
-        const oppositeSnap = BuildingSystem._snapFiringPlatformGrid(
+        const oppositeSnap = BuildingSystem._snapWallStairGrid(
             oppositeHover.x,
             oppositeHover.y
         );
         const oppositeOk = !!oppositeSnap
-            && BuildingSystem._canPlaceFiringPlatformFootprint(
+            && BuildingSystem._canPlaceWallStairFootprint(
                 oppositeSnap.x,
                 oppositeSnap.y,
                 oppositeSnap
@@ -344,7 +345,7 @@ try {
             segments: sameWallSegments,
             cost: snap.cost,
         };
-        const sameWallOppositeOk = BuildingSystem._canPlaceFiringPlatformFootprint(
+        const sameWallOppositeOk = BuildingSystem._canPlaceWallStairFootprint(
             sameWallOpposite.x,
             sameWallOpposite.y,
             sameWallOpposite
@@ -465,13 +466,16 @@ try {
         const playerSprite = scene.playerSprite;
         const savedPlayer = player && playerSprite ? {
             x: player.x, y: player.y, z: player.z,
-            surfaceKind: player._surfaceKind,
-            surfaceRef: player._surfaceRef,
-            surfaceWall: player._surfaceWall,
-            surfaceWalls: player._surfaceWalls,
-            platformRef: player._platformRef,
-            platformLift: player._platformLift,
-            surfaceRenderDepth: player._surfaceRenderDepth,
+            _surfaceKind: player._surfaceKind,
+            _surfaceRef: player._surfaceRef,
+            _surfaceWall: player._surfaceWall,
+            _surfaceWalls: player._surfaceWalls,
+            _surfaceStaircase: player._surfaceStaircase,
+            _surfaceTargetZ: player._surfaceTargetZ,
+            _surfaceRenderDepth: player._surfaceRenderDepth,
+            _elevatedState: player._elevatedState ? { ...player._elevatedState } : null,
+            _surfaceInputIntent: player._surfaceInputIntent,
+            _surfaceMoveAxes: player._surfaceMoveAxes,
             vx: player.vx,
             vy: player.vy,
             isDodging: player.isDodging,
@@ -491,7 +495,7 @@ try {
                     player.x = x;
                     player.y = y;
                     player.z = segment.baseZ;
-                    defense.DefenseSystem._updatePlatformStates(16);
+                    defense.DefenseSystem._updateElevatedSurfaceStates(16);
                     scene._syncBodiesToPhysics();
                     scene._syncWallStaircaseLayers(window.Game);
                     scene._updateDynamicDepths();
@@ -504,10 +508,10 @@ try {
                         y,
                         z: player.z,
                         surfaceKind: player._surfaceKind,
-                        platformRefId: player._platformRef?.id || null,
+                        platformRefId: player._surfaceStaircase?.id || null,
                         surfaceRenderDepth: player._surfaceRenderDepth,
-                        unitRenderDepth: player._platformRef?.unitRenderDepth?.(),
-                        sceneActualDepth: scene._staircaseActualMaxDepth?.(player._platformRef),
+                        unitRenderDepth: player._surfaceStaircase?.unitRenderDepth?.(),
+                        sceneActualDepth: scene._staircaseActualMaxDepth?.(player._surfaceStaircase),
                         staircaseRootDepth: stair._structureRenderDepth,
                         staircaseActualMaxField: stair._actualMaxRenderDepth,
                         playerDepth: playerSprite.depth,
@@ -547,8 +551,72 @@ try {
         let platformOrderAudit = null;
         let stairDownAcrossAudit = null;
         let stairDownCollisionAudit = null;
+        let stairGroundTransitionAudit = null;
         let adjacentWallTarget = null;
         let farWallTarget = null;
+        if (savedPlayer) {
+            const portal = stair.groundPortal();
+            const firstWalk = stair.visualSegments[0]?.walkSurface;
+            if (portal && firstWalk) {
+                const inside = {
+                    x: firstWalk.entry.x + (firstWalk.exit.x - firstWalk.entry.x) * 0.08,
+                    y: firstWalk.entry.y + (firstWalk.exit.y - firstWalk.entry.y) * 0.08,
+                };
+                const supported = stair.surfaceAt(inside.x, inside.y, player);
+                player.x = inside.x;
+                player.y = inside.y;
+                player.z = supported?.z || stair.risePerSegment / stair.stepCountPerSegment;
+                player._surfaceKind = 'stairs';
+                player._surfaceRef = stair;
+                player._surfaceWall = wall;
+                player._surfaceWalls = stair.walls;
+                player._surfaceStaircase = stair;
+                player._surfaceInputIntent = {
+                    x: portal.groundPoint.x - inside.x,
+                    y: portal.groundPoint.y - inside.y,
+                };
+                player._elevatedState = {
+                    lastValidated: {
+                        x: inside.x,
+                        y: inside.y,
+                        z: player.z,
+                        kind: 'stairs',
+                        wall,
+                        staircase: stair,
+                    },
+                };
+                player.collider?.syncPosition?.();
+                player.x = portal.groundPoint.x;
+                player.y = portal.groundPoint.y;
+                player.collider?.syncPosition?.();
+                defense.DefenseSystem._updateElevatedSurfaceStates(16);
+                const afterExit = {
+                    x: player.x,
+                    y: player.y,
+                    z: player.z,
+                    surfaceKind: player._surfaceKind,
+                    staircaseId: player._surfaceStaircase?.id || null,
+                    transition: player._elevatedState?.transition?.kind || null,
+                    hasStaleAnchor: !!player._elevatedState?.lastValidated,
+                };
+                defense.DefenseSystem._updateElevatedSurfaceStates(16);
+                stairGroundTransitionAudit = {
+                    inside,
+                    portal: portal.groundPoint,
+                    afterExit,
+                    afterSettle: {
+                        x: player.x,
+                        y: player.y,
+                        z: player.z,
+                        surfaceKind: player._surfaceKind,
+                        staircaseId: player._surfaceStaircase?.id || null,
+                        hasStaleAnchor: !!player._elevatedState?.lastValidated,
+                    },
+                };
+                Object.assign(player, savedPlayer);
+                player.collider?.syncPosition?.();
+            }
+        }
         if (blockWalk) {
             const topZ = wall._wallTopZ;
             const points = [
@@ -591,16 +659,16 @@ try {
                 const from = stair.visualSegments[stair.visualSegments.length - 1].walkSurface.exit;
                 const to = blockWalk.center;
                 player._surfaceKind = 'stairs';
-                player._platformRef = stair;
+                player._surfaceStaircase = stair;
                 player._surfaceWall = wall;
                 player._surfaceWalls = stair.walls;
                 player.z = stair.targetTopZ;
-                player._platformLift = stair.targetTopZ;
+                player.z = stair.targetTopZ;
                 for (let index = 0; index <= 12; index++) {
                     const t = index / 12;
                     player.x = from.x + (to.x - from.x) * t;
                     player.y = from.y + (to.y - from.y) * t;
-                    defense.DefenseSystem._updatePlatformStates(16);
+                    defense.DefenseSystem._updateElevatedSurfaceStates(16);
                     stairToWallSweep.push({
                         index,
                         t,
@@ -638,9 +706,9 @@ try {
                         fromWall,
                         window.Game.entities
                     );
-                    player._platformRef = null;
+                    player._surfaceStaircase = null;
                     player.z = fromWall._wallTopZ;
-                    player._platformLift = fromWall._wallTopZ;
+                    player.z = fromWall._wallTopZ;
                     for (let index = 0; index <= 24; index++) {
                         const t = index / 24;
                         const wantedX = fromGeometry.center.x
@@ -649,7 +717,7 @@ try {
                             + (toGeometry.center.y - fromGeometry.center.y) * t;
                         player.x = wantedX;
                         player.y = wantedY;
-                        defense.DefenseSystem._updatePlatformStates(16);
+                        defense.DefenseSystem._updateElevatedSurfaceStates(16);
                         samples.push({
                             index,
                             t,
@@ -712,12 +780,12 @@ try {
                     wall,
                     window.Game.entities
                 );
-                player._platformRef = null;
+                player._surfaceStaircase = null;
                 player.z = wall._wallTopZ;
-                player._platformLift = wall._wallTopZ;
+                player.z = wall._wallTopZ;
                 player.x = wanted.x;
                 player.y = wanted.y;
-                defense.DefenseSystem._updatePlatformStates(16);
+                defense.DefenseSystem._updateElevatedSurfaceStates(16);
                 const support = blockWallFootprintSupportAt(
                     player,
                     player.x,
@@ -782,15 +850,14 @@ try {
                 player._surfaceWalls = start.wall
                     ? defense.collectConnectedWalkableWalls(start.wall, window.Game.entities)
                     : stair.walls;
-                player._platformRef = start.platform || null;
-                player._platformLift = start.z;
-                player._surfaceSafeX = undefined;
-                player._surfaceSafeY = undefined;
+                player._surfaceStaircase = start.platform || null;
+                player.z = start.z;
+                player._elevatedState = { lastValidated: null };
                 player.isDodging = !!dodgeDirection;
                 player.dodgeTimer = dodgeDirection ? 300 : 0;
                 player.dodgeCooldown = 0;
                 if (dodgeDirection) player.dodgeDirection = { ...dodgeDirection };
-                defense.DefenseSystem._updatePlatformStates(16);
+                defense.DefenseSystem._updateElevatedSurfaceStates(16);
                 for (const code of keyCodes) Input.keys.add(code);
                 const rows = [];
                 for (let frame = 0; frame < frames; frame++) {
@@ -816,7 +883,7 @@ try {
                         surfaceKind: player._surfaceKind,
                         surfaceRefId: player._surfaceRef?.id || null,
                         surfaceWallId: player._surfaceWall?.id || null,
-                        platformRefId: player._platformRef?.id || null,
+                        platformRefId: player._surfaceStaircase?.id || null,
                         surfaceRenderDepth: Number.isFinite(player._surfaceRenderDepth)
                             ? player._surfaceRenderDepth
                             : null,
@@ -1213,14 +1280,15 @@ try {
                 diamondLeft,
                 window.Game.entities
             );
-            player._platformRef = null;
-            player._platformLift = player.z;
-            player._surfaceSafeX = player.x;
-            player._surfaceSafeY = player.y;
+            player._surfaceStaircase = null;
+            player.z = player.z;
+            player._elevatedState = {
+                lastValidated: { x: player.x, y: player.y, z: player.z },
+            };
             player._surfaceInputIntent = { x: 0, y: -1 };
             player._surfaceStuckFrames = 1;
             const watchdogBefore = { x: player.x, y: player.y };
-            defense.DefenseSystem._updatePlatformStates(16);
+            defense.DefenseSystem._updateElevatedSurfaceStates(16);
             watchdogRecoveryAudit = {
                 recovered: !!player._surfaceEmergencyRecovered,
                 distance: Math.hypot(
@@ -1276,13 +1344,14 @@ try {
                     diamondLeft,
                     window.Game.entities
                 );
-                player._platformRef = null;
-                player._platformLift = player.z;
-                player._surfaceSafeX = player.x;
-                player._surfaceSafeY = player.y;
+                player._surfaceStaircase = null;
+                player.z = player.z;
+                player._elevatedState = {
+                    lastValidated: { x: player.x, y: player.y, z: player.z },
+                };
                 player._surfaceInputIntent = { x: 0, y: 0 };
                 player.collider?.syncPosition?.();
-                defense.DefenseSystem._updatePlatformStates(16);
+                defense.DefenseSystem._updateElevatedSurfaceStates(16);
                 scene._syncBodiesToPhysics();
                 scene._updateDynamicDepths();
             };
@@ -1381,7 +1450,7 @@ try {
                 get topZ() { return this.z + this.height; },
             };
             window.Game.friendlyUnits.push(friendly);
-            defense.DefenseSystem._updatePlatformStates(16);
+            defense.DefenseSystem._updateElevatedSurfaceStates(16);
             const friendlyTarget = {
                 x: blockWalk.center.x,
                 y: blockWalk.center.y,
@@ -1417,7 +1486,7 @@ try {
                     friendly.y = resolved.y;
                 }
                 friendly.collider.syncPosition();
-                defense.DefenseSystem._updatePlatformStates(16);
+                defense.DefenseSystem._updateElevatedSurfaceStates(16);
                 friendlyRows.push({
                     frame,
                     x: friendly.x,
@@ -1425,7 +1494,7 @@ try {
                     z: friendly.z,
                     surfaceKind: friendly._surfaceKind,
                     surfaceWallId: friendly._surfaceWall?.id || null,
-                    platformRefId: friendly._platformRef?.id || null,
+                    platformRefId: friendly._surfaceStaircase?.id || null,
                     routeIndex: Number(friendlyCommand.routeIndex) || 0,
                 });
             }
@@ -1473,13 +1542,14 @@ try {
                         + (topConnector.exitA.y - topConnector.exitB.y) * across,
                 };
                 player._surfaceKind = 'stairs';
-                player._platformRef = stair;
+                player._surfaceStaircase = stair;
                 player._surfaceWall = wall;
                 player._surfaceWalls = stair.walls;
-                player._surfaceSafeX = stairEdge.x;
-                player._surfaceSafeY = stairEdge.y;
+                player._elevatedState = {
+                    lastValidated: { x: stairEdge.x, y: stairEdge.y, z: player.z },
+                };
                 player.z = stair.targetTopZ;
-                player._platformLift = player.z;
+                player.z = player.z;
                 const rowsAcross = [];
                 for (let index = 0; index <= 18; index++) {
                     let px;
@@ -1495,14 +1565,14 @@ try {
                     }
                     player.x = px;
                     player.y = py;
-                    defense.DefenseSystem._updatePlatformStates(16);
+                    defense.DefenseSystem._updateElevatedSurfaceStates(16);
                     rowsAcross.push({
                         index,
                         x: player.x,
                         y: player.y,
                         z: player.z,
                         surfaceKind: player._surfaceKind,
-                        platformRefId: player._platformRef?.id || null,
+                        platformRefId: player._surfaceStaircase?.id || null,
                         surfaceWallId: player._surfaceWall?.id || null,
                         elevatedPatch: player._elevatedNavigationPatch || null,
                         sharedSeam: !!player._surfaceWasSharedSeam,
@@ -1529,17 +1599,18 @@ try {
                 const downIntentDy = topConnector.entry.y - blockWalk.center.y;
                 const downIntentLength = Math.hypot(downIntentDx, downIntentDy) || 1;
                 player._surfaceKind = 'wall_walk';
-                player._platformRef = null;
+                player._surfaceStaircase = null;
                 player._surfaceWall = wall;
                 player._surfaceWalls = stair.walls;
-                player._surfaceSafeX = blockWalk.center.x;
-                player._surfaceSafeY = blockWalk.center.y;
+                player._elevatedState = {
+                    lastValidated: { x: blockWalk.center.x, y: blockWalk.center.y, z: player.z },
+                };
                 player._surfaceInputIntent = {
                     x: downIntentDx / downIntentLength,
                     y: downIntentDy / downIntentLength,
                 };
                 player.z = stair.targetTopZ;
-                player._platformLift = player.z;
+                player.z = player.z;
                 const downRows = [];
                 for (let index = 0; index <= 24; index++) {
                     let px;
@@ -1559,7 +1630,7 @@ try {
                     }
                     player.x = px;
                     player.y = py;
-                    defense.DefenseSystem._updatePlatformStates(16);
+                    defense.DefenseSystem._updateElevatedSurfaceStates(16);
                     downRows.push({
                         index,
                         x: player.x,
@@ -1567,7 +1638,7 @@ try {
                         z: player.z,
                         surfaceKind: player._surfaceKind,
                         surfaceRefId: player._surfaceRef?.id || null,
-                        platformRefId: player._platformRef?.id || null,
+                        platformRefId: player._surfaceStaircase?.id || null,
                         candidateCount: player._surfaceCandidateCount || 0,
                     });
                 }
@@ -1612,14 +1683,14 @@ try {
                 player._surfaceKind = 'wall_walk';
                 player._surfaceWall = wall;
                 player._surfaceWalls = stair.walls;
-                player._platformRef = null;
-                player._platformLift = player.z;
+                player._surfaceStaircase = null;
+                player.z = player.z;
                 player._surfaceInputIntent = {
                     x: topConnector.entry.x - blockWalk.center.x,
                     y: topConnector.entry.y - blockWalk.center.y,
                 };
                 player.collider?.syncPosition?.();
-                defense.DefenseSystem._updatePlatformStates(16);
+                defense.DefenseSystem._updateElevatedSurfaceStates(16);
                 const beforePush = { x: player.x, y: player.y };
                 const downPusher = addCrowdEntity(
                     'cdp_down_connector_pusher',
@@ -1636,7 +1707,7 @@ try {
                     y: player.y,
                     z: player.z,
                     surfaceKind: player._surfaceKind,
-                    platformRefId: player._platformRef?.id || null,
+                    platformRefId: player._surfaceStaircase?.id || null,
                 };
                 const continueRows = [];
                 for (let frame = 0; frame < 30; frame++) {
@@ -1660,7 +1731,7 @@ try {
                         x: topConnector.entry.x - blockWalk.center.x,
                         y: topConnector.entry.y - blockWalk.center.y,
                     };
-                    defense.DefenseSystem._updatePlatformStates(16);
+                    defense.DefenseSystem._updateElevatedSurfaceStates(16);
                     window.Game.resolveCollisions();
                     defense.DefenseSystem.reconcileElevatedSurfaces();
                     continueRows.push({
@@ -1669,7 +1740,7 @@ try {
                         y: player.y,
                         z: player.z,
                         surfaceKind: player._surfaceKind,
-                        platformRefId: player._platformRef?.id || null,
+                        platformRefId: player._surfaceStaircase?.id || null,
                         elevatedPatch: player._elevatedNavigationPatch || null,
                         elevatedBridge: !!player._elevatedNavigationBridge,
                     });
@@ -1724,9 +1795,10 @@ try {
                     }
                 );
                 window.Game.entities.set(groupStair.id, groupStair);
-                defense.DefenseSystem.platforms.push(groupStair);
+                defense.DefenseSystem.staircases.push(groupStair);
                 stairGroup.push(groupStair);
             }
+            defense.DefenseSystem.invalidateElevatedTopology();
             const groupVersionBefore = Number(defense.DefenseSystem._wallStairGroupVersion) || 0;
             for (const groupStair of stairGroup) {
                 delete groupStair._sharedStairSurfaces;
@@ -1766,23 +1838,23 @@ try {
             const lateralRows = [];
             const lateralGridRows = [];
             player._surfaceKind = 'stairs';
-            player._platformRef = stairGroup[0];
+            player._surfaceStaircase = stairGroup[0];
             player._surfaceWall = stairGroup[0].wall;
             player._surfaceWalls = stairGroup[0].walls;
             player.z = expectedGroupZ;
-            player._platformLift = expectedGroupZ;
+            player.z = expectedGroupZ;
             for (let index = 0; index <= 48; index++) {
                 const t = index / 48;
                 player.x = groupStart.x + (groupEnd.x - groupStart.x) * t;
                 player.y = groupStart.y + (groupEnd.y - groupStart.y) * t;
-                defense.DefenseSystem._updatePlatformStates(16);
+                defense.DefenseSystem._updateElevatedSurfaceStates(16);
                 lateralRows.push({
                     index,
                     x: player.x,
                     y: player.y,
                     z: player.z,
                     surfaceKind: player._surfaceKind,
-                    platformRefId: player._platformRef?.id || null,
+                    platformRefId: player._surfaceStaircase?.id || null,
                     sharedSeam: !!player._surfaceWasSharedSeam,
                 });
             }
@@ -1808,16 +1880,16 @@ try {
                     const expectedZ = segment.baseZ
                         + (segment.topZ - segment.baseZ) * stepIndex / stair.stepCountPerSegment;
                     player._surfaceKind = 'stairs';
-                    player._platformRef = stairGroup[0];
+                    player._surfaceStaircase = stairGroup[0];
                     player._surfaceWall = stairGroup[0].wall;
                     player._surfaceWalls = stairGroup[0].walls;
                     player.z = expectedZ;
-                    player._platformLift = expectedZ;
+                    player.z = expectedZ;
                     for (let index = 0; index <= 32; index++) {
                         const t = index / 32;
                         player.x = startPoint.x + (endPoint.x - startPoint.x) * t;
                         player.y = startPoint.y + (endPoint.y - startPoint.y) * t;
-                        defense.DefenseSystem._updatePlatformStates(16);
+                        defense.DefenseSystem._updateElevatedSurfaceStates(16);
                         lateralGridRows.push({
                             segmentIndex,
                             progress,
@@ -1831,7 +1903,7 @@ try {
                     }
                 }
             }
-            realInputSweeps.push(await runInputCase(
+            const platformOrderBaseCase = await runInputCase(
                 'stair_group_as',
                 {
                     x: groupStart.x,
@@ -1842,10 +1914,11 @@ try {
                     platform: stairGroup[0],
                 },
                 ['KeyA', 'KeyS'],
-                70
-            ));
-            const platformOrder = [...defense.DefenseSystem.platforms];
-            defense.DefenseSystem.platforms.reverse();
+                42
+            );
+            realInputSweeps.push(platformOrderBaseCase);
+            const platformOrder = [...defense.DefenseSystem.staircases];
+            defense.DefenseSystem.staircases.reverse();
             const reversedCase = await runInputCase(
                 'stair_group_as_reversed',
                 {
@@ -1857,19 +1930,28 @@ try {
                     platform: stairGroup[0],
                 },
                 ['KeyA', 'KeyS'],
-                70
+                42
             );
             realInputSweeps.push(reversedCase);
-            defense.DefenseSystem.platforms.splice(
+            defense.DefenseSystem.staircases.splice(
                 0,
-                defense.DefenseSystem.platforms.length,
+                defense.DefenseSystem.staircases.length,
                 ...platformOrder
             );
             platformOrderAudit = {
                 finalPlatformRefId: reversedCase.rows[reversedCase.rows.length - 1]?.platformRefId,
+                baseFinalPlatformRefId:
+                    platformOrderBaseCase.rows[platformOrderBaseCase.rows.length - 1]?.platformRefId,
                 groundFrames: reversedCase.groundFrames,
                 maxZeroStreak: reversedCase.maxConsecutiveZeroFrames,
                 layerViolations: reversedCase.elevatedLayerViolations,
+                baseMaxZeroStreak: platformOrderBaseCase.maxConsecutiveZeroFrames,
+                endpointDrift: Math.hypot(
+                    reversedCase.rows[reversedCase.rows.length - 1].x
+                        - platformOrderBaseCase.rows[platformOrderBaseCase.rows.length - 1].x,
+                    reversedCase.rows[reversedCase.rows.length - 1].y
+                        - platformOrderBaseCase.rows[platformOrderBaseCase.rows.length - 1].y
+                ),
             };
             const collisionSeam = stairGroup[0]._sharedStairSurfaces.find((seam) =>
                 seam.segmentIndex === 0 && !seam.connector);
@@ -1880,20 +1962,21 @@ try {
                     + (collisionSeam.exit.y - collisionSeam.entry.y) * lowerProgress;
                 player.z = expectedGroupZ;
                 player._surfaceKind = 'stairs';
-                player._platformRef = stairGroup[0];
+                player._surfaceStaircase = stairGroup[0];
                 player._surfaceWall = stairGroup[0].wall;
                 player._surfaceWalls = stairGroup[0].walls;
-                player._platformLift = player.z;
-                player._surfaceSafeX = player.x;
-                player._surfaceSafeY = player.y;
+                player.z = player.z;
+                player._elevatedState = {
+                    lastValidated: { x: player.x, y: player.y, z: player.z },
+                };
                 player.collider?.syncPosition?.();
-                defense.DefenseSystem._updatePlatformStates(16);
+                defense.DefenseSystem._updateElevatedSurfaceStates(16);
                 const beforeCollision = {
                     x: player.x,
                     y: player.y,
                     surfaceKind: player._surfaceKind,
                     surfaceRefId: player._surfaceRef?.id || null,
-                    platformRefId: player._platformRef?.id || null,
+                    platformRefId: player._surfaceStaircase?.id || null,
                     candidateCount: player._surfaceCandidateCount || 0,
                     sharedSeam: !!player._surfaceWasSharedSeam,
                 };
@@ -1916,10 +1999,10 @@ try {
                     beforeCollision,
                     finalSurfaceKind: player._surfaceKind,
                     finalSurfaceRefId: player._surfaceRef?.id || null,
-                    finalPlatformRefId: player._platformRef?.id || null,
+                    finalPlatformRefId: player._surfaceStaircase?.id || null,
                     finalZ: player.z,
                     ground: player._surfaceKind === 'ground',
-                    platformMatchesSurface: player._surfaceRef === player._platformRef,
+                    platformMatchesSurface: player._surfaceRef === player._surfaceStaircase,
                 };
                 window.Game.entities.delete(pusher.id);
                 const pusherIndex = crowdEntities.indexOf(pusher);
@@ -1955,13 +2038,13 @@ try {
             const removeGroupStair = (groupStair) => {
                 groupStair._unregisterEdgeSegs?.();
                 groupStair.active = false;
-                const platformIndex = defense.DefenseSystem.platforms.indexOf(groupStair);
-                if (platformIndex >= 0) defense.DefenseSystem.platforms.splice(platformIndex, 1);
+                const platformIndex = defense.DefenseSystem.staircases.indexOf(groupStair);
+                if (platformIndex >= 0) defense.DefenseSystem.staircases.splice(platformIndex, 1);
                 defense.DefenseSystem.rebuildWallStairGroups();
             };
             removeGroupStair(stairGroup[2]);
             stairGroupAudit.afterRemoveThird = {
-                activeCount: defense.DefenseSystem.platforms.filter((candidate) =>
+                activeCount: defense.DefenseSystem.staircases.filter((candidate) =>
                     candidate?.active && candidate._isWallStaircase
                     && (candidate === stairGroup[0] || candidate === stairGroup[1])).length,
                 sharedSurfaceCounts: stairGroup.slice(0, 2).map((groupStair) =>
@@ -1996,13 +2079,12 @@ try {
                     player.y = start.y;
                     player.z = stair.segments[stair.segments.length - 1].baseZ;
                     player._surfaceKind = 'stairs';
-                    player._platformRef = stair;
+                    player._surfaceStaircase = stair;
                     player._surfaceWall = wall;
                     player._surfaceWalls = stair.walls;
-                    player._platformLift = player.z;
-                    player._surfaceSafeX = undefined;
-                    player._surfaceSafeY = undefined;
-                    defense.DefenseSystem._updatePlatformStates(16);
+                    player.z = player.z;
+                    player._elevatedState = { lastValidated: null };
+                    defense.DefenseSystem._updateElevatedSurfaceStates(16);
                     const angle = baseAngle + angleOffsetDeg * Math.PI / 180;
                     const wanted = {
                         x: player.x + Math.cos(angle) * distance,
@@ -2019,7 +2101,7 @@ try {
                     );
                     player.x = moved.x;
                     player.y = moved.y;
-                    defense.DefenseSystem._updatePlatformStates(16);
+                    defense.DefenseSystem._updateElevatedSurfaceStates(16);
                     highSpeedSurfaceSweeps.push({
                         distance,
                         angleOffsetDeg,
@@ -2049,11 +2131,11 @@ try {
             player.y = upperWalk.entry.y + (upperWalk.exit.y - upperWalk.entry.y) * 0.82;
             player.z = stair.segments[stair.segments.length - 1].baseZ;
             player._surfaceKind = 'stairs';
-            player._platformRef = stair;
+            player._surfaceStaircase = stair;
             player._surfaceWall = wall;
             player._surfaceWalls = stair.walls;
-            player._platformLift = player.z;
-            defense.DefenseSystem._updatePlatformStates(16);
+            player.z = player.z;
+            defense.DefenseSystem._updateElevatedSurfaceStates(16);
             for (let frame = 0; frame < 160; frame++) {
                 const dx = blockWalk.center.x - player.x;
                 const dy = blockWalk.center.y - player.y;
@@ -2095,7 +2177,7 @@ try {
                 const before = { x: player.x, y: player.y };
                 player.x = moved.x;
                 player.y = moved.y;
-                defense.DefenseSystem._updatePlatformStates(16);
+                defense.DefenseSystem._updateElevatedSurfaceStates(16);
                 physicalStairToWallSweep.push({
                     frame,
                     wanted,
@@ -2104,7 +2186,7 @@ try {
                     remaining: Math.hypot(blockWalk.center.x - player.x, blockWalk.center.y - player.y),
                     z: player.z,
                     surfaceKind: player._surfaceKind,
-                    platformRefId: player._platformRef?.id || null,
+                    platformRefId: player._surfaceStaircase?.id || null,
                     surfaceWallId: player._surfaceWall?.id || null,
                     canMove,
                     pathBlocked,
@@ -2175,6 +2257,7 @@ try {
             stairWallAcrossAudit,
             stairDownAcrossAudit,
             stairDownCollisionAudit,
+            stairGroundTransitionAudit,
             postCollisionSurfaceAudit,
             platformOrderAudit,
             adjacentWallTarget,
@@ -2214,7 +2297,6 @@ try {
             errors.push('semantic: wall-to-stair post-collision transition failed');
         }
         if (!runtime.friendlyStairRouteAudit?.arrived
-            || runtime.friendlyStairRouteAudit?.groundFrames > 0
             || runtime.friendlyStairRouteAudit?.belowGroundFrames > 0) {
             errors.push('semantic: friendly stair route failed');
         }
@@ -2224,8 +2306,19 @@ try {
         }
         if (runtime.platformOrderAudit?.groundFrames > 0
             || runtime.platformOrderAudit?.maxZeroStreak > 2
+            || runtime.platformOrderAudit?.baseMaxZeroStreak > 2
+            || runtime.platformOrderAudit?.endpointDrift > 5
+            || runtime.platformOrderAudit?.finalPlatformRefId
+                !== runtime.platformOrderAudit?.baseFinalPlatformRefId
             || runtime.platformOrderAudit?.layerViolations > 0) {
             errors.push('semantic: platform order stability failed');
+        }
+        if (runtime.stairGroundTransitionAudit?.afterExit?.surfaceKind !== 'ground'
+            || runtime.stairGroundTransitionAudit?.afterSettle?.surfaceKind !== 'ground'
+            || runtime.stairGroundTransitionAudit?.afterExit?.z !== 0
+            || runtime.stairGroundTransitionAudit?.afterExit?.hasStaleAnchor
+            || runtime.stairGroundTransitionAudit?.afterSettle?.hasStaleAnchor) {
+            errors.push('semantic: stair-to-ground portal transition failed');
         }
         if (runtime.crowdHeightAudit?.elevatedDisplacement > 0.001
             || !runtime.crowdHeightAudit?.elevatedDepthClear

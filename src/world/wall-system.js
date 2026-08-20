@@ -271,6 +271,7 @@ const WallSystem = {
         if (this.isoSegments) {
             for (const s of this.isoSegments) {
                 if (ignore && ignore.segs && ignore.segs.has(s)) continue;
+                if (!this._segmentAppliesToMove(s, ignore)) continue;
                 if (this._groundPointSegDist(x, y, s) < radius + s.halfThick) return false;
             }
         }
@@ -293,6 +294,7 @@ const WallSystem = {
         if (this.isoSegments) {
             for (const s of this.isoSegments) {
                 if (ignore && ignore.segs && ignore.segs.has(s)) continue;
+                if (!this._segmentAppliesToMove(s, ignore)) continue;
                 if (this._segSegIntersect(x1, y1, x2, y2, s.x1, s.y1, s.x2, s.y2)) return true;
             }
         }
@@ -307,6 +309,7 @@ const WallSystem = {
         let best = null, bestD = Infinity;
         for (const s of this.isoSegments) {
             if (ignore && ignore.segs && ignore.segs.has(s)) continue;
+            if (!this._segmentAppliesToMove(s, ignore)) continue;
             const d = this._groundPointSegDist(nx, ny, s);
             if (d < r + s.halfThick + 4 && d < bestD) {
                 bestD = d;
@@ -1343,6 +1346,15 @@ const WallSystem = {
         const clY = Math.max(rect.y, Math.min(cy, rect.y + rect.h));
         return (cx - clX) ** 2 + (cy - clY) ** 2 < r * r;
     },
+    /** 墙顶外轮廓仅阻挡已经处于高架表面的单位，不参与地面、建造或弹道碰撞。 */
+    _segmentAppliesToMove(segment, ignore = null) {
+        if (!segment?._elevatedOnly) return true;
+        const entity = ignore?.surfaceEntity;
+        return !!entity && (Number(entity.z) || 0) > 1
+            && (entity._surfaceKind === 'wall_walk'
+                || entity._surfaceKind === 'stairs'
+                || entity._elevatedNavigationBridge);
+    },
     /** 高架表面单位只忽略其当前连接城墙；其它墙、门和楼梯侧边仍正常阻挡。 */
     ignoreForEntity(entity) {
         const walls = Array.isArray(entity?._surfaceWalls) && entity._surfaceWalls.length
@@ -1360,13 +1372,19 @@ const WallSystem = {
         if (entity?._surfaceKind === 'wall_walk' || entity?._elevatedNavigationBridge) {
             for (const segment of this.isoSegments || []) {
                 if (!segment?._stairEdge) continue;
+                // 墙顶外轮廓防坠线是真实边界；墙顶和桥接单位都不能忽略。
+                // 墙墙共享边与墙梯入口边根本不生成该线，因此无需靠忽略来放行。
+                if (segment._surfaceWallGuard) continue;
                 const staircase = segment._owner;
                 const staircaseWall = segment._owner?.wall;
-                const currentPlatform = entity?._platformRef;
+                const currentStaircase = entity?._surfaceStaircase;
                 const sameBridgeGroup = entity?._elevatedNavigationBridge
-                    && currentPlatform
-                    && (staircase === currentPlatform
-                        || (currentPlatform._sharedStairSurfaces || []).some((seam) =>
+                    && currentStaircase
+                    && (staircase === currentStaircase
+                        || (currentStaircase._wallStairGroupId
+                            && currentStaircase._wallStairGroupId
+                                === staircase?._wallStairGroupId)
+                        || (currentStaircase._sharedStairSurfaces || []).some((seam) =>
                             seam?.stairA === staircase || seam?.stairB === staircase));
                 if (sameBridgeGroup || (staircaseWall && walls.includes(staircaseWall))) {
                     segs.add(segment);
@@ -1395,6 +1413,7 @@ const WallSystem = {
                         } else if (item.type === 'seg') {
                             const s = item.obj;
                             if (ignore && ignore.segs && ignore.segs.has(s)) continue;
+                            if (!this._segmentAppliesToMove(s, ignore)) continue;
                             if (this._groundPointSegDist(x, y, s) < radius + s.halfThick) return false;
                         } else {
                             const t = item.obj;
@@ -1660,6 +1679,7 @@ const WallSystem = {
                             if (item.type !== 'seg') continue;
                             const s = item.obj;
                             if (ignore && ignore.segs && ignore.segs.has(s)) continue;
+                            if (!this._segmentAppliesToMove(s, ignore)) continue;
                             const d = this._groundPointSegDist(nx, ny, s);
                             // 平局按数组下标决胜（与线性版"先到先得"严格一致）
                             if (d < r + s.halfThick + 4 && (d < bestD || (d === bestD && item.idx < bestIdx))) {
@@ -1737,6 +1757,7 @@ const WallSystem = {
                         } else if (item.type === 'seg') {
                             const s = item.obj;
                             if (ignore && ignore.segs && ignore.segs.has(s)) continue;
+                            if (!this._segmentAppliesToMove(s, ignore)) continue;
                             if (this._segSegIntersect(x1, y1, x2, y2, s.x1, s.y1, s.x2, s.y2)) return true;
                         } else {
                             const t = item.obj;
@@ -1785,6 +1806,7 @@ const WallSystem = {
         if (!source) return null;
         if (this.isoSegments) {
             for (const s of this.isoSegments) {
+                if (s?._elevatedOnly) continue;
                 if (this._segSegIntersect(source.x, source.y, x, y, s.x1, s.y1, s.x2, s.y2)) {
                     out.segs.push({ seg: s, shooterSign: Math.sign(this.segSide(s, source.x, source.y)) || 1 });
                 }

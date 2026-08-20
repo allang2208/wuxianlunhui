@@ -11,6 +11,7 @@ import { MovementSystem } from '../systems/movement-system.js';
 import { WallSystem } from '../world/wall-system.js';
 import { SoundManager } from '../ui/sound-manager.js';
 import { clearRtsSurfaceRoute, resolveRtsMoveDestination } from './rts-command-utils.js';
+import { canMeleeReachElevation } from './elevated-navigation-controller.js';
 
 export class HamsterMilitiaAI {
     constructor(militia) {
@@ -125,7 +126,7 @@ export class HamsterMilitiaAI {
             m.target = enemy;
             const dist = Math.hypot(enemy.x - m.x, enemy.y - m.y);
             const range = this._attackRange + (enemy.groundRadius || 24);
-            if (dist <= range) {
+            if (dist <= range && canMeleeReachElevation(m, enemy)) {
                 // 进入攻击范围：站定；挥击节奏由 attackTimer 控制
                 m._tacticalTarget = null;
                 m.maxSpeed = 0;
@@ -171,7 +172,7 @@ export class HamsterMilitiaAI {
                     m._pathManager._clearPath();
                 }
             } else {
-                m._tacticalTarget = { x: fx, y: fy };
+                m._tacticalTarget = { x: fx, y: fy, _surfaceTarget: player };
                 m._animState = 'walk';
                 m.maxSpeed = this.cfg.walkSpeed ?? 150;
             }
@@ -188,7 +189,7 @@ export class HamsterMilitiaAI {
     /** RTS 命令：move（走到点，到位清指令）/ attack（锁定目标，进范围站定挥击）/ hold（待命） */
     _applyCommand(cmd) {
         const m = this.m;
-        if (cmd.mode !== 'move') clearRtsSurfaceRoute(m);
+        if (cmd.mode !== 'move' && !m._surfaceNavCommand) clearRtsSurfaceRoute(m);
         if (cmd.mode === 'move') {
             m.target = null;
             const move = resolveRtsMoveDestination(m, cmd);
@@ -217,7 +218,7 @@ export class HamsterMilitiaAI {
             m.target = t;
             const dist = Math.hypot(t.x - m.x, t.y - m.y);
             const range = this._attackRange + (t.groundRadius || 24);
-            if (dist <= range) {
+            if (dist <= range && canMeleeReachElevation(m, t)) {
                 // 进范围：站定 + 启动一次挥击（与索敌分支同口径）
                 m._tacticalTarget = null;
                 m.maxSpeed = 0;
@@ -275,9 +276,9 @@ export class HamsterMilitiaAI {
         if (e._isEnergyNode) return;
         const dist = Math.hypot(e.x - m.x, e.y - m.y);
         const range = this._attackRange + (e.groundRadius || 24);
-        if (dist > range) return;
+        if (dist > range || !canMeleeReachElevation(m, e)) return;
         if (typeof e.takeDamage === 'function') {
-            e.takeDamage(this._attackDamage, m, 'physical', true);
+            e.takeDamage(m.getPhysicalAttackDamage(this._attackDamage, e), m, 'physical', true);
             this._playSound('attack'); // 攻击音效（2026-08-16 用户素材，与战士/盾卫共用）
         }
     }
@@ -297,6 +298,14 @@ export class HamsterMilitiaAI {
     /** 卡死看门狗：行走 500ms 位移 <3px 累计 2 次 → 重选目标/传送到合法点（同款兜底） */
     _checkStuck(dt) {
         const m = this.m;
+        if (m._surfaceNavWaiting || m._surfaceRouteActive
+            || m._surfaceKind === 'stairs' || m._surfaceKind === 'wall_walk') {
+            this._stuckTimer = 0;
+            this._stuckStreak = 0;
+            this._lastPosX = m.x;
+            this._lastPosY = m.y;
+            return;
+        }
         if (m._animState !== 'walk') {
             this._stuckTimer = 0;
             this._lastPosX = m.x;

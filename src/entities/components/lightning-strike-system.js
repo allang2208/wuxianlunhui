@@ -196,7 +196,7 @@ export class LightningStrikeSystem {
                     jitter: effect.jitter,
                 }));
                 this._spawnImpact(target, decayMul);
-                target.takeDamage(finalDamage, src, 'electric');
+                target.takeDamage(finalDamage, src, 'electric', false);
                 // 电系专属：命中叠加感电（叠满 5 层触发过载）
                 if (typeof target.applyElectrified === 'function') {
                     target.applyElectrified(effect.electrifyStacks, effect.electrifyDurationMs, src);

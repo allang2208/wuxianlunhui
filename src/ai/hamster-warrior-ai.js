@@ -15,6 +15,7 @@ import { MathUtils } from '../config/math-utils.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
 import { clearRtsSurfaceRoute, resolveRtsMoveDestination } from './rts-command-utils.js';
+import { canMeleeReachElevation } from './elevated-navigation-controller.js';
 
 export class HamsterWarriorAI {
     constructor(warrior) {
@@ -33,6 +34,16 @@ export class HamsterWarriorAI {
         this._lastPosX = 0;
         this._lastPosY = 0;
         this._stuckStreak = 0;
+    }
+
+    cancelForCommand() {
+        this.m._animState = 'idle';
+        this.m.target = null;
+        this.m._tacticalTarget = null;
+        this.m.vx = 0;
+        this.m.vy = 0;
+        this.m.isMoving = false;
+        return true;
     }
 
     /**
@@ -81,7 +92,7 @@ export class HamsterWarriorAI {
             m.target = enemy;
             const dist = Math.hypot(enemy.x - m.x, enemy.y - m.y);
             const range = this._attackRange + (enemy.groundRadius || 24);
-            if (dist <= range) {
+            if (dist <= range && canMeleeReachElevation(m, enemy)) {
                 // 进入攻击范围：站定攻击（动画由渲染层两段式播放）
                 m._tacticalTarget = null;
                 m._animState = 'attack';
@@ -115,7 +126,7 @@ export class HamsterWarriorAI {
                     m._pathManager._clearPath();
                 }
             } else {
-                m._tacticalTarget = { x: fx, y: fy };
+                m._tacticalTarget = { x: fx, y: fy, _surfaceTarget: player };
                 m._animState = 'walk';
                 m.maxSpeed = this.cfg.walkSpeed ?? 120;
             }
@@ -132,7 +143,7 @@ export class HamsterWarriorAI {
     /** RTS 命令：move（走到点，到位清指令）/ attack（锁定目标，站定攻击）/ hold（待命） */
     _applyCommand(cmd) {
         const m = this.m;
-        if (cmd.mode !== 'move') clearRtsSurfaceRoute(m);
+        if (cmd.mode !== 'move' && !m._surfaceNavCommand) clearRtsSurfaceRoute(m);
         if (cmd.mode === 'move') {
             m.target = null;
             const move = resolveRtsMoveDestination(m, cmd);
@@ -161,7 +172,7 @@ export class HamsterWarriorAI {
             m.target = t;
             const dist = Math.hypot(t.x - m.x, t.y - m.y);
             const range = this._attackRange + (t.groundRadius || 24);
-            if (dist <= range) {
+            if (dist <= range && canMeleeReachElevation(m, t)) {
                 m._tacticalTarget = null;
                 m._animState = 'attack';
                 m.maxSpeed = 0;
@@ -208,11 +219,11 @@ export class HamsterWarriorAI {
         if (e._isEnergyNode) return;
         const dist = Math.hypot(e.x - m.x, e.y - m.y);
         const range = this._attackRange + (e.groundRadius || 24);
-        if (dist > range) return;
+        if (dist > range || !canMeleeReachElevation(m, e)) return;
         if (this._attackTimer > 0) return;
         this._attackTimer = this._attackInterval;
         if (typeof e.takeDamage === 'function') {
-            e.takeDamage(this._attackDamage, m, 'physical', true);
+            e.takeDamage(m.getPhysicalAttackDamage(this._attackDamage, e), m, 'physical', true);
             this._playSound('attack'); // 攻击音效（2026-08-16 用户素材，与盾卫共用）
             // 铁匠铺能力：横扫（2026-08-17）——普攻附带前方扇形 AOE 额外伤害
             // （参考玩家普攻扇形判定：pointInSector，中心方向 = 攻击朝向 rotation）
@@ -228,8 +239,9 @@ export class HamsterWarriorAI {
                     if (!ent || ent === e || !ent.active || ent.hp <= 0 || ent._faction !== 'enemy') continue;
                     if (ent._isEnergyNode) continue;
                     if (!MathUtils.pointInSector(ent.x, ent.y, m.x, m.y, m.rotation, aoeRange, arc)) continue;
+                    if (!canMeleeReachElevation(m, ent)) continue;
                     if (typeof ent.takeDamage === 'function') {
-                        ent.takeDamage(aoeDmg, m, 'physical', true);
+                        ent.takeDamage(m.getPhysicalAttackDamage(aoeDmg, ent), m, 'physical', true);
                         if (EffectManager) {
                             EffectManager.add(new FloatingTextEffect(ent.x, ent.y - 30, `-${aoeDmg}`, '#ffb27a'));
                         }
@@ -254,6 +266,14 @@ export class HamsterWarriorAI {
     /** 卡死看门狗：行走 500ms 位移 <3px 累计 2 次 → 重选目标/传送到合法点（矿工同款兜底） */
     _checkStuck(dt) {
         const m = this.m;
+        if (m._surfaceNavWaiting || m._surfaceRouteActive
+            || m._surfaceKind === 'stairs' || m._surfaceKind === 'wall_walk') {
+            this._stuckTimer = 0;
+            this._stuckStreak = 0;
+            this._lastPosX = m.x;
+            this._lastPosY = m.y;
+            return;
+        }
         if (m._animState !== 'walk') {
             this._stuckTimer = 0;
             this._lastPosX = m.x;

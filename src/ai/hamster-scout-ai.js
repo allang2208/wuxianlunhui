@@ -194,7 +194,7 @@ export class HamsterScoutAI {
                     m._pathManager._clearPath();
                 }
             } else {
-                m._tacticalTarget = { x: fx, y: fy };
+                m._tacticalTarget = { x: fx, y: fy, _surfaceTarget: player };
                 m._animState = 'walk';
                 m.maxSpeed = this.cfg.walkSpeed ?? 150;
             }
@@ -211,7 +211,7 @@ export class HamsterScoutAI {
     /** RTS 命令：move（走到点，到位清指令）/ attack（锁定目标，进射程站定射击）/ hold（待命） */
     _applyCommand(cmd) {
         const m = this.m;
-        if (cmd.mode !== 'move') m._surfaceRouteActive = false;
+        if (cmd.mode !== 'move' && !m._surfaceNavCommand) clearRtsSurfaceRoute(m);
         if (cmd.mode === 'move') {
             m.target = null;
             const move = resolveRtsMoveDestination(m, cmd);
@@ -433,6 +433,14 @@ export class HamsterScoutAI {
     /** 卡死看门狗：行走 500ms 位移 <3px 累计 2 次 → 重选目标/传送到合法点（同款兜底） */
     _checkStuck(dt) {
         const m = this.m;
+        if (m._surfaceNavWaiting || m._surfaceRouteActive
+            || m._surfaceKind === 'stairs' || m._surfaceKind === 'wall_walk') {
+            this._stuckTimer = 0;
+            this._stuckStreak = 0;
+            this._lastPosX = m.x;
+            this._lastPosY = m.y;
+            return;
+        }
         if (m._animState !== 'walk') {
             this._stuckTimer = 0;
             this._lastPosX = m.x;

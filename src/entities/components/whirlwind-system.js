@@ -126,7 +126,7 @@ export class WhirlwindSystem {
             this.player._whirlwindHitSet.add(entity);
             const wasAlive = entity.hp > 0;
             this._playMeleeHitSound(); // 风车命中
-            entity.takeDamage(finalDamage, this.player);
+            entity.takeDamage(finalDamage, this.player, 'physical', true);
             if (wasAlive && entity.hp <= 0 && !entity._summoned) killCount++;
             hitCount++;
             const dx = entity.x - this.player.x, dy = entity.y - this.player.y;

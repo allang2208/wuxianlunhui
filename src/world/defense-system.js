@@ -51,7 +51,7 @@ import {
     TWO_BY_TWO_BUILDING_FOOT,
     FOUR_BY_FOUR_BASE_FOOT,
     applyBuildingFootprint,
-    applyFiringPlatformFootprint,
+    applyWallStairFootprint,
 } from './building-footprint.js';
 import equipmentJson from '../../data/equipment.json';
 import defenseStructuresJson from '../../data/defense-structures.json';
@@ -59,8 +59,20 @@ import {
     chooseElevatedSurfaceCandidate,
     commitElevatedSurfaceIdentity,
 } from './elevated-surface-state.js';
-import { createWallStairGroupRegistry } from './wall-stair-group.js';
-import { createUnifiedElevatedNavigation } from './unified-elevated-navigation.js';
+import {
+    createWallStairGroupRegistry,
+    wallStairGroupId,
+    wallStairsShareGroup,
+} from './wall-stair-group.js';
+import {
+    clampStairGroupPortalLane,
+    createUnifiedElevatedNavigation,
+    resolveStairGroundPortalTransition,
+    stairGroundPortal,
+    stairGroupGroundPoint,
+} from './unified-elevated-navigation.js';
+import { ElevatedTopology } from './elevated-topology.js';
+import { ElevatedNavigationController } from '../ai/elevated-navigation-controller.js';
 
 // ==================== 配置 ====================
 
@@ -78,6 +90,20 @@ export const WALL_STAIR_CONFIG = Object.freeze({
     stepCountPerSegment: Math.max(1, Number(stairCfg.stepCountPerSegment) || 9),
     walkWidth: Number(stairCfg.walkWidth) || 80,
     edgeHalfThick: Math.max(0, Number(stairCfg.edgeHalfThick) || 0.5),
+    edgeRecoveryPadding: Math.max(
+        0.5,
+        Number(stairCfg.edgeRecoveryPadding) || 2
+    ),
+    edgeRecoverySteps: Math.max(
+        2,
+        Math.min(16, Number(stairCfg.edgeRecoverySteps) || 8)
+    ),
+    entryRailInset: Math.max(
+        0,
+        Number.isFinite(Number(stairCfg.entryRailInset))
+            ? Number(stairCfg.entryRailInset)
+            : 36
+    ),
     displayWidth: Number(stairCfg.displayWidth) || 220,
     displayHeight: Number(stairCfg.displayHeight) || 220,
     attachRadius: Number(stairCfg.attachRadius) || 420,
@@ -93,28 +119,31 @@ export const WALL_STAIR_CONFIG = Object.freeze({
         4,
         Number(stairCfg.handoffCaptureMargin) || 24
     ),
+    handoffStairOverlap: Math.max(
+        4,
+        Math.min(32, Number(stairCfg.handoffStairOverlap) || 16)
+    ),
+    connectorRailWallClearance: Math.max(
+        0,
+        Number.isFinite(Number(stairCfg.connectorRailWallClearance))
+            ? Number(stairCfg.connectorRailWallClearance)
+            : 2
+    ),
     variants: Object.freeze(stairCfg.variants || {}),
 });
 
 export const WALL_WALK_CONFIG = Object.freeze({
-    navigationMode: wallWalkCfg.navigationMode || 'graph',
-    movementMode: wallWalkCfg.movementMode || 'surface',
-    graphEntryRadius: Math.max(8, Number(wallWalkCfg.graphEntryRadius) || 48),
-    graphMinAlignment: Math.max(
+    routeMinAlignment: Math.max(
         0,
-        Math.min(1, Number(wallWalkCfg.graphMinAlignment) || 0.2)
+        Math.min(1, Number(wallWalkCfg.routeMinAlignment) || 0.2)
     ),
-    graphNodeSwitchT: Math.max(
+    routeNodeSwitchT: Math.max(
         0.9,
-        Math.min(1, Number(wallWalkCfg.graphNodeSwitchT) || 0.995)
+        Math.min(1, Number(wallWalkCfg.routeNodeSwitchT) || 0.995)
     ),
-    graphLateralCorrectionMax: Math.max(
-        0.5,
-        Number(wallWalkCfg.graphLateralCorrectionMax) || 3
-    ),
-    graphPortalOverrideMargin: Math.max(
+    portalPreferenceMargin: Math.max(
         0,
-        Math.min(1, Number(wallWalkCfg.graphPortalOverrideMargin) || 0.2)
+        Math.min(1, Number(wallWalkCfg.portalPreferenceMargin) || 0.2)
     ),
     defaultTopZ: Number(wallWalkCfg.defaultTopZ) || 125,
     laneWidth: Number(wallWalkCfg.laneWidth) || 48,
@@ -128,17 +157,45 @@ export const WALL_WALK_CONFIG = Object.freeze({
         )
     ),
     commandPickTolerance: Math.max(0, Number(wallWalkCfg.commandPickTolerance) || 16),
-    stuckFrameThreshold: Math.max(2, Number(wallWalkCfg.stuckFrameThreshold) || 2),
-    emergencyRecoveryRadius: Math.max(
-        1,
-        Math.min(6, Number(wallWalkCfg.emergencyRecoveryRadius) || 3)
-    ),
+    surfaceNavigation: Object.freeze({
+        ...(wallWalkCfg.surfaceNavigation || {}),
+        maxUnitRadius: Number(wallWalkCfg.maxUnitRadius) || 30,
+        portalCaptureMargin: Math.max(
+            2,
+            Number(wallWalkCfg.surfaceNavigation?.portalCaptureMargin) || 18
+        ),
+        handoffStuckFrameThreshold: Math.max(
+            2,
+            Number(wallWalkCfg.surfaceNavigation?.handoffStuckFrameThreshold) || 3
+        ),
+        handoffRecoveryStep: Math.max(
+            1,
+            Math.min(
+                3,
+                Number(wallWalkCfg.surfaceNavigation?.handoffRecoveryStep) || 3
+            )
+        ),
+    }),
     blockTopSurface: Object.freeze(wallWalkCfg.blockTopSurface || {}),
 });
 
 const unifiedElevatedNavigation = createUnifiedElevatedNavigation({
     chooseCandidate: chooseElevatedSurfaceCandidate,
-    maxPlatformDistance: 240,
+    candidateAllowed: (unit, candidate) => {
+        if (candidate?.surface?.kind !== 'stairs') return true;
+        const staircaseId = candidate?.staircase?.id
+            || candidate?.surface?.staircase?.id
+            || candidate?.surface?.owner?.id;
+        if (!staircaseId) return false;
+        if (unit?._surfaceKind === 'wall_walk'
+            && ElevatedNavigationController.isRouteControlled(unit)) {
+            return ElevatedNavigationController.canCrossPortal(unit, staircaseId, 'down');
+        }
+        // ground 和无路线墙顶单位要先完成候选选择，再对唯一选中的Portal申请许可；
+        // 不能在候选收集阶段依次预约多座重叠楼梯。
+        return true;
+    },
+    maxStaircaseDistance: 240,
 });
 
 export function getWallStairVariant(dir = 'e2', ascendingSign = 1) {
@@ -298,8 +355,8 @@ export const DEFENSE_CONFIG = {
     //  详情视图「修理」按钮进行，费率仍取本配置 coverHpPerEnergy）
     repair: {
         range: 150,
-        coverHpPerEnergy: 2,
-        towerHpPerEnergy: 3,
+        coverHpPerEnergy: 8,
+        towerHpPerEnergy: 7,
         tickMs: 100,
         tickHp: 25,
     },
@@ -760,6 +817,9 @@ export function blockWallTopWalkGeometry(wall) {
         edgeTolerance: Math.max(0, Number(cfg.edgeTolerance) || 0),
         stairAttachTolerance: Math.max(0, Number(cfg.stairAttachTolerance) || 0),
         wallConnectorTolerance: Math.max(0, Number(cfg.wallConnectorTolerance) || 0),
+        wallConnectorOverlap: Math.max(0, Number(cfg.wallConnectorOverlap) || 0),
+        wallConnectorSideMargin: Math.max(0, Number(cfg.wallConnectorSideMargin) || 0),
+        wallJunctionOverlap: Math.max(0, Number(cfg.wallJunctionOverlap) || 0),
         neighborCenterTolerance: Math.max(0, Number(cfg.neighborCenterTolerance) || 0),
         footprintSamples: Math.max(8, Number(cfg.footprintSamples) || 24),
         footprintTolerance: Math.max(0, Number(cfg.footprintTolerance) || 0),
@@ -774,12 +834,27 @@ function _edgeFacingPoint(vertices, target) {
         const b = vertices[(index + 1) % vertices.length];
         const midpoint = { x: (a.x + b.x) * 0.5, y: (a.y + b.y) * 0.5 };
         const distance = Math.hypot(midpoint.x - target.x, midpoint.y - target.y);
-        if (!best || distance < best.distance) best = { a, b, midpoint, distance };
+        if (!best || distance < best.distance) best = { a, b, midpoint, distance, index };
     }
     return best;
 }
 
-/** 两块相邻方块墙顶面的专属连接四边形，仅填补贴图顶面之间的窄缝。 */
+function _movePointToward(point, target, distance) {
+    const dx = target.x - point.x;
+    const dy = target.y - point.y;
+    const length = Math.hypot(dx, dy);
+    if (length <= 1e-6 || distance <= 0) return { x: point.x, y: point.y };
+    const travel = Math.min(distance, length * 0.35);
+    return {
+        x: point.x + dx / length * travel,
+        y: point.y + dy / length * travel,
+    };
+}
+
+/**
+ * 两块相邻同高方块墙的连续墙顶接缝。连接面会分别压进两侧墙顶，并沿接缝横向
+ * 略微放宽；同一拓扑组件因此按“墙顶多边形并集”移动，不再逐块跨越零宽边界。
+ */
 export function blockWallTopConnectorGeometry(wallA, wallB) {
     if (!wallA?._isBlockCover || !wallB?._isBlockCover || wallA === wallB) return null;
     const topA = Number(wallA._wallTopZ) || WALL_WALK_CONFIG.defaultTopZ;
@@ -799,7 +874,21 @@ export function blockWallTopConnectorGeometry(wallA, wallB) {
     );
     if (Math.abs(centerDistance - expectedDistance) > tolerance) return null;
 
-    const cacheKey = `${geometryA.cacheKey}|${geometryB.cacheKey}`;
+    const overlap = Math.max(
+        geometryA.wallConnectorOverlap,
+        geometryB.wallConnectorOverlap
+    );
+    const sideMargin = Math.max(
+        geometryA.wallConnectorSideMargin,
+        geometryB.wallConnectorSideMargin
+    );
+    const cacheKey = [
+        'wall-component-seam-v3',
+        geometryA.cacheKey,
+        geometryB.cacheKey,
+        overlap,
+        sideMargin,
+    ].join('|');
     if (!wallA._wallTopConnectorCache) wallA._wallTopConnectorCache = new Map();
     const wallBKey = wallB.id || `${wallB.x},${wallB.y}`;
     const cached = wallA._wallTopConnectorCache.get(wallBKey);
@@ -815,11 +904,54 @@ export function blockWallTopConnectorGeometry(wallA, wallB) {
     const crossed = Math.hypot(edgeA.a.x - b2.x, edgeA.a.y - b2.y)
         + Math.hypot(edgeA.b.x - b1.x, edgeA.b.y - b1.y);
     if (crossed < direct) [b1, b2] = [b2, b1];
+    // 用两条相对墙顶边的共同切线生成规则连接面。这样旧存档存在1~2px格心偏差时，
+    // 四个顶点仍保持两两平行，不会出现轴对齐矩形或斜切梯形侵入墙外。
+    const edgeADx = edgeA.b.x - edgeA.a.x;
+    const edgeADy = edgeA.b.y - edgeA.a.y;
+    const edgeBDx = b2.x - b1.x;
+    const edgeBDy = b2.y - b1.y;
+    const edgeALength = Math.hypot(edgeADx, edgeADy);
+    const edgeBLength = Math.hypot(edgeBDx, edgeBDy);
+    if (edgeALength <= 1e-6 || edgeBLength <= 1e-6) return null;
+    const tangentAX = edgeADx / edgeALength;
+    const tangentAY = edgeADy / edgeALength;
+    const tangentBX = edgeBDx / edgeBLength;
+    const tangentBY = edgeBDy / edgeBLength;
+    const tangentLength = Math.hypot(tangentAX + tangentBX, tangentAY + tangentBY);
+    const tangentX = tangentLength > 1e-6
+        ? (tangentAX + tangentBX) / tangentLength
+        : tangentAX;
+    const tangentY = tangentLength > 1e-6
+        ? (tangentAY + tangentBY) / tangentLength
+        : tangentAY;
+    const halfSpan = Math.min(edgeALength, edgeBLength) * 0.5 + sideMargin;
+    const insetA = _movePointToward(edgeA.midpoint, geometryA.center, overlap);
+    const insetB = _movePointToward(edgeB.midpoint, geometryB.center, overlap);
+    const normalX = -tangentY;
+    const normalY = tangentX;
+    const seamCenter = {
+        x: (insetA.x + insetB.x) * 0.5,
+        y: (insetA.y + insetB.y) * 0.5,
+    };
+    const signedHalfGap = ((insetB.x - insetA.x) * normalX
+        + (insetB.y - insetA.y) * normalY) * 0.5;
+    const alignedA = {
+        x: seamCenter.x - normalX * signedHalfGap,
+        y: seamCenter.y - normalY * signedHalfGap,
+    };
+    const alignedB = {
+        x: seamCenter.x + normalX * signedHalfGap,
+        y: seamCenter.y + normalY * signedHalfGap,
+    };
+    const a1 = { x: alignedA.x - tangentX * halfSpan, y: alignedA.y - tangentY * halfSpan };
+    const a2 = { x: alignedA.x + tangentX * halfSpan, y: alignedA.y + tangentY * halfSpan };
+    b1 = { x: alignedB.x - tangentX * halfSpan, y: alignedB.y - tangentY * halfSpan };
+    b2 = { x: alignedB.x + tangentX * halfSpan, y: alignedB.y + tangentY * halfSpan };
     const vertices = [
-        { key: 'a1', x: edgeA.a.x, y: edgeA.a.y },
+        { key: 'a1', x: a1.x, y: a1.y },
         { key: 'b1', x: b1.x, y: b1.y },
         { key: 'b2', x: b2.x, y: b2.y },
-        { key: 'a2', x: edgeA.b.x, y: edgeA.b.y },
+        { key: 'a2', x: a2.x, y: a2.y },
     ];
     const footprint = {
         x: 0,
@@ -841,23 +973,79 @@ export function blockWallTopConnectorGeometry(wallA, wallB) {
             geometryA.wallConnectorTolerance,
             geometryB.wallConnectorTolerance
         ),
+        overlap,
+        sideMargin,
     };
     wallA._wallTopConnectorCache.set(wallBKey, connector);
     return connector;
 }
 
+/** 四块同高相邻墙围成的最小网格中心补片；沿墙顶四个内角生成菱形，不扩大外墙边界。 */
+export function blockWallTopJunctionGeometry(walls) {
+    const uniqueWalls = Array.from(new Set(walls || [])).filter((wall) => wall?._isBlockCover);
+    if (uniqueWalls.length !== 4) return null;
+    const geometries = uniqueWalls.map((wall) => blockWallTopWalkGeometry(wall));
+    if (geometries.some((geometry) => !geometry)) return null;
+    const topZs = uniqueWalls.map((wall) =>
+        Number(wall._wallTopZ) || WALL_WALK_CONFIG.defaultTopZ);
+    if (Math.max(...topZs) - Math.min(...topZs) > 1) return null;
+    const center = {
+        x: geometries.reduce((sum, geometry) => sum + geometry.center.x, 0) / geometries.length,
+        y: geometries.reduce((sum, geometry) => sum + geometry.center.y, 0) / geometries.length,
+    };
+    const overlap = Math.max(...geometries.map((geometry) => geometry.wallJunctionOverlap));
+    const vertices = geometries.map((geometry, index) => {
+        const corner = geometry.vertices.reduce((best, point) => {
+            const distance = Math.hypot(point.x - center.x, point.y - center.y);
+            return !best || distance < best.distance ? { point, distance } : best;
+        }, null)?.point;
+        if (!corner) return null;
+        const inset = _movePointToward(corner, geometry.center, overlap);
+        return {
+            key: `j${index}`,
+            x: inset.x,
+            y: inset.y,
+        };
+    }).filter(Boolean).sort((left, right) =>
+        Math.atan2(left.y - center.y, left.x - center.x)
+        - Math.atan2(right.y - center.y, right.x - center.x));
+    if (vertices.length !== 4) return null;
+    const footprint = { x: 0, y: 0, _pixelFootprintLocal: vertices };
+    return {
+        cacheKey: ['wall-junction-v1', ...geometries.map((geometry) => geometry.cacheKey).sort(), overlap].join('|'),
+        walls: uniqueWalls,
+        topZ: topZs.reduce((sum, value) => sum + value, 0) / topZs.length,
+        vertices,
+        footprint,
+        center,
+        tolerance: Math.max(...geometries.map((geometry) => geometry.wallConnectorTolerance)),
+        overlap,
+    };
+}
+
+const elevatedTopology = new ElevatedTopology({
+    isWall: (wall) => !!(wall?._isWalkableWall && !wall?._sinking
+        && Array.isArray(wall?._faceLine)),
+    getTopZ: (wall) => Number(wall?._wallTopZ) || WALL_WALK_CONFIG.defaultTopZ,
+    connectorFor: (wallA, wallB) => blockWallTopConnectorGeometry(wallA, wallB),
+    junctionFor: (walls) => blockWallTopJunctionGeometry(walls),
+    neighborToleranceFor: (wall) =>
+        blockWallTopWalkGeometry(wall)?.neighborCenterTolerance || 0,
+    stepVectors: [
+        [ONE_CELL_BUILDING_FOOT.w / 2, ONE_CELL_BUILDING_FOOT.d / 2],
+        [-ONE_CELL_BUILDING_FOOT.w / 2, -ONE_CELL_BUILDING_FOOT.d / 2],
+        [-ONE_CELL_BUILDING_FOOT.w / 2, ONE_CELL_BUILDING_FOOT.d / 2],
+        [ONE_CELL_BUILDING_FOOT.w / 2, -ONE_CELL_BUILDING_FOOT.d / 2],
+    ],
+});
+
 function _blockWallIndex(entitySource) {
-    const index = new Map();
-    const source = entitySource?.values ? entitySource.values() : (entitySource || []);
-    for (const wall of source) {
-        if (!wall?.active || !wall._isBlockCover || !wall._isWalkableWall) continue;
-        index.set(`${Math.round(wall.x)},${Math.round(wall.y)}`, wall);
-    }
-    return index;
+    return elevatedTopology.ensure(entitySource, DefenseSystem?.staircases || []);
 }
 
 function _blockWallNeighbors(wall, index) {
     if (!wall || !index) return [];
+    if (typeof index.neighbors === 'function') return index.neighbors(wall);
     const stepX = ONE_CELL_BUILDING_FOOT.w / 2;
     const stepY = ONE_CELL_BUILDING_FOOT.d / 2;
     const tolerance = blockWallTopWalkGeometry(wall)?.neighborCenterTolerance || 0;
@@ -865,17 +1053,19 @@ function _blockWallNeighbors(wall, index) {
         const roundedX = Math.round(x);
         const roundedY = Math.round(y);
         const exact = index.get(`${roundedX},${roundedY}`);
-        if (exact) return exact;
+        if (exact) return Array.isArray(exact) ? exact[0] : exact;
         if (tolerance <= 0) return null;
         const radius = Math.ceil(tolerance);
         let best = null;
         for (let ox = -radius; ox <= radius; ox++) {
             for (let oy = -radius; oy <= radius; oy++) {
-                const candidate = index.get(`${roundedX + ox},${roundedY + oy}`);
-                if (!candidate) continue;
-                const distance = Math.hypot(candidate.x - x, candidate.y - y);
-                if (distance > tolerance) continue;
-                if (!best || distance < best.distance) best = { candidate, distance };
+                const values = index.get(`${roundedX + ox},${roundedY + oy}`);
+                for (const candidate of (Array.isArray(values) ? values : [values])) {
+                    if (!candidate) continue;
+                    const distance = Math.hypot(candidate.x - x, candidate.y - y);
+                    if (distance > tolerance) continue;
+                    if (!best || distance < best.distance) best = { candidate, distance };
+                }
             }
         }
         return best?.candidate || null;
@@ -894,6 +1084,7 @@ export function blockWallTopRoute(startWall, targetWall, entitySource = null) {
     if (startWall === targetWall) return [startWall];
     const source = entitySource || Game?.entities;
     const index = _blockWallIndex(source);
+    if (typeof index.route === 'function') return index.route(startWall, targetWall);
     const queue = [startWall];
     const previous = new Map([[startWall, null]]);
     while (queue.length) {
@@ -920,8 +1111,80 @@ export function blockWallTopRoute(startWall, targetWall, entitySource = null) {
     return [];
 }
 
+function liveWallsForStaircase(staircase, entitySource = null) {
+    const wall = staircase?.wall;
+    if (!wall?.active) return [];
+    const source = entitySource || Game?.entities;
+    if (wall._isBlockCover && source) {
+        const component = _blockWallIndex(source).component(wall);
+        return component.length ? component.filter((candidate) => candidate?.active) : [wall];
+    }
+    return collectConnectedWalkableWalls(wall, source);
+}
+
+function staircaseServesWall(staircase, wall, entitySource = null) {
+    if (!staircase?.active || !wall?.active) return false;
+    if (staircase.wall === wall) return true;
+    return liveWallsForStaircase(staircase, entitySource).includes(wall);
+}
+
+function appendWallTopRoutePoints(route, wallPath, fallbackZ) {
+    for (const wall of wallPath || []) {
+        const geometry = blockWallTopWalkGeometry(wall);
+        if (!geometry) continue;
+        const previous = route[route.length - 1];
+        if (previous && Math.hypot(
+            previous.x - geometry.center.x,
+            previous.y - geometry.center.y
+        ) < 1) continue;
+        route.push({
+            x: geometry.center.x,
+            y: geometry.center.y,
+            z: Number(wall._wallTopZ) || fallbackZ || WALL_WALK_CONFIG.defaultTopZ,
+            surfaceKind: 'wall_walk',
+            wallId: wall.id,
+        });
+    }
+    return route;
+}
+
+function appendUniqueRouteTarget(route, target) {
+    const previous = route[route.length - 1];
+    if (!previous || Math.hypot(previous.x - target.x, previous.y - target.y) >= 1) {
+        route.push({ ...target });
+    }
+    return route;
+}
+
+function finalizeSurfaceRoute(route) {
+    if (!Array.isArray(route)) return [];
+    for (let index = 1; index < route.length; index++) {
+        const previous = route[index - 1];
+        const current = route[index];
+        const fromKind = previous?.surfaceKind || ((Number(previous?.z) || 0) > 1 ? 'elevated' : 'ground');
+        const toKind = current?.surfaceKind || ((Number(current?.z) || 0) > 1 ? 'elevated' : 'ground');
+        if (fromKind === 'ground' && toKind === 'stairs') {
+            current.transition = 'ground_to_stairs';
+        } else if (fromKind === 'stairs' && toKind === 'ground') {
+            current.transition = 'stairs_to_ground';
+        } else if (fromKind === 'stairs' && toKind === 'wall_walk') {
+            current.transition = 'stairs_to_wall';
+        } else if (fromKind === 'wall_walk' && toKind === 'stairs') {
+            current.transition = 'wall_to_stairs';
+        } else if (toKind === 'stairs') {
+            current.transition = 'stair_traverse';
+        } else if (toKind === 'wall_walk') {
+            current.transition = 'wall_traverse';
+        } else {
+            delete current.transition;
+        }
+    }
+    return route;
+}
+
 function _blockWallComponent(startWall, index) {
     if (!startWall || !index) return [];
+    if (typeof index.component === 'function') return index.component(startWall);
     const queue = [startWall];
     const seen = new Set();
     const walls = [];
@@ -1051,11 +1314,11 @@ export function wallTopGraphProjection(
                 ? edge.wallB
                 : edge.wallA;
         } else if (edge.wallA === startWall) {
-            projectedWall = projected.t >= WALL_WALK_CONFIG.graphNodeSwitchT
+            projectedWall = projected.t >= WALL_WALK_CONFIG.routeNodeSwitchT
                 ? edge.wallB
                 : startWall;
         } else {
-            projectedWall = projected.t <= 1 - WALL_WALK_CONFIG.graphNodeSwitchT
+            projectedWall = projected.t <= 1 - WALL_WALK_CONFIG.routeNodeSwitchT
                 ? edge.wallA
                 : startWall;
         }
@@ -1114,7 +1377,7 @@ export function wallTopGraphProjection(
                         (oriented.to.x - oriented.from.x) * movementIntent.x
                         + (oriented.to.y - oriented.from.y) * movementIntent.y
                     ) / (length * intentLength);
-                    if (alignment < WALL_WALK_CONFIG.graphMinAlignment) continue;
+                    if (alignment < WALL_WALK_CONFIG.routeMinAlignment) continue;
                     if (!next || alignment > next.alignment) {
                         next = { edge, oriented, length, alignment };
                     }
@@ -1134,7 +1397,7 @@ export function wallTopGraphProjection(
                     + (next.oriented.to.x - next.oriented.from.x) * progress;
                 const py = next.oriented.from.y
                     + (next.oriented.to.y - next.oriented.from.y) * progress;
-                const projectedWall = progress >= WALL_WALK_CONFIG.graphNodeSwitchT
+                const projectedWall = progress >= WALL_WALK_CONFIG.routeNodeSwitchT
                     ? next.oriented.nextWall
                     : nodeWall;
                 if (remaining <= next.length + 1e-6) {
@@ -1169,7 +1432,10 @@ export function wallTopGraphProjection(
 function _blockWallUnionAtPoint(x, y, index, margin = 0, preferredWall = null) {
     if (!index) return null;
     let best = null;
-    for (const wall of index.values()) {
+    const indexedWalls = typeof index.nearbyWalls === 'function'
+        ? index.nearbyWalls(x, y)
+        : Array.from(index.values()).flatMap((value) => Array.isArray(value) ? value : [value]);
+    for (const wall of indexedWalls) {
         const geometry = blockWallTopWalkGeometry(wall);
         if (!geometry || !pointInIsoFootprint(x, y, geometry.footprint, margin)) continue;
         const distance = Math.hypot(x - geometry.center.x, y - geometry.center.y);
@@ -1179,8 +1445,61 @@ function _blockWallUnionAtPoint(x, y, index, margin = 0, preferredWall = null) {
     }
     if (best) return best;
 
+    const hasIndexedConnectors = typeof index.nearbyConnectors === 'function';
+    const hasIndexedJunctions = typeof index.nearbyJunctions === 'function';
+    if (hasIndexedConnectors) {
+        for (const connector of index.nearbyConnectors(x, y)) {
+            if (!connector || !pointInIsoFootprint(
+                x,
+                y,
+                connector.footprint,
+                margin
+            )) continue;
+            const { wallA, wallB } = connector;
+            const preferred = preferredWall === wallA
+                ? wallA
+                : (preferredWall === wallB ? wallB : null);
+            const owner = preferred || (
+                Math.hypot(x - wallA.x, y - wallA.y)
+                    <= Math.hypot(x - wallB.x, y - wallB.y)
+                    ? wallA
+                    : wallB
+            );
+            return {
+                wall: owner,
+                geometry: blockWallTopWalkGeometry(owner),
+                connector,
+                distance: Math.hypot(x - connector.center.x, y - connector.center.y),
+            };
+        }
+    }
+    if (hasIndexedJunctions) {
+        for (const junction of index.nearbyJunctions(x, y)) {
+            if (!junction || !pointInIsoFootprint(
+                x,
+                y,
+                junction.footprint,
+                margin
+            )) continue;
+            const preferred = junction.walls.includes(preferredWall) ? preferredWall : null;
+            const owner = preferred || junction.walls.reduce((best, wall) =>
+                !best || Math.hypot(x - wall.x, y - wall.y)
+                    < Math.hypot(x - best.x, y - best.y)
+                    ? wall
+                    : best, null);
+            return {
+                wall: owner,
+                geometry: blockWallTopWalkGeometry(owner),
+                connector: null,
+                junction,
+                distance: Math.hypot(x - junction.center.x, y - junction.center.y),
+            };
+        }
+    }
+    if (hasIndexedConnectors || hasIndexedJunctions) return null;
+
     const seen = new Set();
-    for (const wall of index.values()) {
+    for (const wall of indexedWalls) {
         for (const neighbor of _blockWallNeighbors(wall, index)) {
             const leftKey = wall.id || `${wall.x},${wall.y}`;
             const rightKey = neighbor.id || `${neighbor.x},${neighbor.y}`;
@@ -1228,16 +1547,33 @@ function _blockWallFootprintSupport(unit, x, y, index, preferredWall = null) {
     const localIndex = new Map();
     const addLocal = (wall) => {
         if (!wall) return;
-        localIndex.set(`${Math.round(wall.x)},${Math.round(wall.y)}`, wall);
+        const key = `${Math.round(wall.x)},${Math.round(wall.y)}`;
+        const walls = localIndex.get(key) || [];
+        if (!walls.includes(wall)) walls.push(wall);
+        localIndex.set(key, walls);
     };
     const seeds = new Set([
         centerHit.wall,
         centerHit.connector?.wallA,
         centerHit.connector?.wallB,
+        ...(centerHit.junction?.walls || []),
     ].filter(Boolean));
     for (const wall of seeds) {
         addLocal(wall);
         for (const neighbor of _blockWallNeighbors(wall, index)) addLocal(neighbor);
+    }
+    const localWalls = new Set(Array.from(localIndex.values()).flat());
+    const localConnectors = typeof index.nearbyConnectors === 'function'
+        ? index.nearbyConnectors(x, y, 192).filter((connector) =>
+            localWalls.has(connector.wallA) && localWalls.has(connector.wallB))
+        : [];
+    const localJunctions = typeof index.nearbyJunctions === 'function'
+        ? index.nearbyJunctions(x, y, 192).filter((junction) =>
+            junction.walls.every((wall) => localWalls.has(wall)))
+        : [];
+    if (localConnectors.length || localJunctions.length) {
+        localIndex.nearbyConnectors = () => localConnectors;
+        localIndex.nearbyJunctions = () => localJunctions;
     }
     const geometry = centerHit.geometry;
     const radius = Math.max(
@@ -1299,6 +1635,38 @@ function _clampBlockWallFootprintToSupport(unit, x, y, wall, index) {
         y: py,
         support: _blockWallFootprintSupport(unit, px, py, index, wall),
     };
+}
+
+function _nearestBlockWallFootprintSupport(unit, x, y, index, preferredWall = null) {
+    if (!index) return null;
+    // 恢复只能落在当前载体或直接邻墙，禁止扫描整条连通墙链后把单位跳到远端墙心。
+    const walls = preferredWall
+        ? [preferredWall, ...(index.neighbors?.(preferredWall) || [])]
+        : (index.nearbyWalls?.(x, y, 192) || []);
+    const candidates = walls
+        .filter((wall, position) => wall?.active && walls.indexOf(wall) === position)
+        .map((wall) => ({ wall, geometry: blockWallTopWalkGeometry(wall) }))
+        .filter((candidate) => candidate.geometry)
+        .sort((left, right) =>
+            Math.hypot(x - left.geometry.center.x, y - left.geometry.center.y)
+            - Math.hypot(x - right.geometry.center.x, y - right.geometry.center.y));
+    for (const candidate of candidates) {
+        const support = _blockWallFootprintSupport(
+            unit,
+            candidate.geometry.center.x,
+            candidate.geometry.center.y,
+            index,
+            candidate.wall
+        );
+        if (support) {
+            return {
+                x: candidate.geometry.center.x,
+                y: candidate.geometry.center.y,
+                support,
+            };
+        }
+    }
+    return null;
 }
 
 /** 调试/验证入口：查询指定单位的完整脚底footprint是否被墙顶道路联合区域承托。 */
@@ -1374,7 +1742,7 @@ export const DEFENSE_TOWER_VISUAL = {
 };
 
 /** 城墙楼梯单段预览与实体共用的显示标定。 */
-export const FIRING_PLATFORM_VISUAL = Object.freeze({
+export const WALL_STAIR_VISUAL = Object.freeze({
     // 单段占一个 128×64 等距格；多段由同一贴图按格位与 baseZ 逐段拼接。
     scale: 1,
     w: WALL_STAIR_CONFIG.displayWidth,
@@ -1411,7 +1779,13 @@ class DefenseBase extends Combatant {
         this.data.mdef = mdef;
         // 贴图：Blender 建模重建（立方体 + 扁平底座 + 大理石贴图，2026-08-16，
         // 规格 _blockout_specs/defense_base.json，渲染 assets/terrain/defense_base.png）
-        this.spriteCfg = { idleKey: 'defense_base', size: 440, sizeH: 366, footOffsetY: 184 };
+        this.spriteCfg = {
+            idleKey: 'defense_base',
+            size: 440,
+            sizeH: 366,
+            footOffsetY: 184,
+            autoFootprint: false,
+        };
         this.footOffsetY = 184;
         applyBuildingFootprint(this, 4);
         // 统一遮挡锚线（接地线 = 贴图显示半宽；单位在其后 → 被建筑遮挡，在前/同线 → 盖过建筑）
@@ -1596,6 +1970,7 @@ class DefenseCover extends Combatant {
 
     /** 从 WallSystem.isoSegments 移除本墙段（销毁/场景清理时调用） */
     removeFromCollision() {
+        DefenseSystem?.invalidateElevatedTopology?.();
         if (this._coverSeg && WallSystem && WallSystem.isoSegments) {
             const i = WallSystem.isoSegments.indexOf(this._coverSeg);
             if (i >= 0) WallSystem.isoSegments.splice(i, 1);
@@ -2192,7 +2567,14 @@ class DefenseTower extends Combatant {
 
 class DefenseTowerPanel extends BasePanel {
     constructor() {
-        super({ id: 'defenseTowerPanel', className: 'defense-tower-panel', stateKey: 'defenseTower' });
+        super({
+            id: 'defenseTowerPanel',
+            className: 'defense-tower-panel',
+            stateKey: 'defenseTower',
+            panelGroup: 'buildingDetail',
+            closeOnEscape: true,
+            closeOnOutsidePointer: true,
+        });
         this.tower = null;
         this.player = null;
     }
@@ -2395,7 +2777,7 @@ class DefenseTowerPanel extends BasePanel {
         });
 
         // 维修区（2026-08-15 用户要求）：与建筑面板掩体详情修理同口径——
-        // 底部信息 + 一次修满按钮，费率 towerHpPerEnergy（3 耐久/1 能源）
+        // 底部信息 + 一次修满按钮，费率读取 towerHpPerEnergy 配置。
         const rp = el.querySelector('#dtRepair');
         if (rp) {
             const rate = (DEFENSE_CONFIG.repair && DEFENSE_CONFIG.repair.towerHpPerEnergy) || 3;
@@ -2510,7 +2892,10 @@ class DefenseTowerPanel extends BasePanel {
         const sellBtn = el.querySelector('#dtSell');
         if (sellBtn) {
             sellBtn.style.display = '';
-            const refund = Math.floor((DEFENSE_CONFIG.tower.rebuildCost ?? 300) * (DEFENSE_CONFIG.tower.sellRefundRatio ?? 0.5));
+            const durability = Math.max(0, Math.min(1,
+                Number(t.hp) / Math.max(1, Number(t.maxHp) || 1)));
+            const refund = Math.floor((t._buildCost ?? DEFENSE_CONFIG.tower.rebuildCost ?? 300)
+                * (DEFENSE_CONFIG.tower.sellRefundRatio ?? 0.5) * durability);
             sellBtn.title = `出售返还 ${refund} 能源（武器归还背包）`;
             sellBtn.onclick = () => {
                 const res = DefenseSystem.sellTower(t, player);
@@ -2531,6 +2916,9 @@ export const DefenseSystem = {
     _victoryGranted: false,
     base: null,
     towers: [],
+    staircases: [],
+    _wallTopGuardSegs: [],
+    _wallTopGuardRevision: 0,
     // 离散波次状态机（2026-08-14）：'prep' 准备期 → 'wave' 战斗中 → 'break' 波间休息
     _phase: 'prep',
     _wave: 0,
@@ -2549,6 +2937,7 @@ export const DefenseSystem = {
     _repairTimer: 0,
     _repairTarget: null,
     _repairFlash: 0,
+    _elevatedNavUnits: new Set(),
     _managedExternally: false,
     _managedConfig: null,
     _managedResolved: null,
@@ -2578,6 +2967,11 @@ export const DefenseSystem = {
         this._managedConfig = null;
         this._managedResolved = null;
         this._worldId = options.worldId || null;
+        this._elevatedNavUnits.clear();
+        ElevatedNavigationController.reset();
+        this.towers = [];
+        this.gates = [];
+        this.staircases = [];
         this.base = options.targetEntity || null;
         if (this._managedExternally) {
             World122TributeSystem.setup(player, this.base);
@@ -2593,7 +2987,7 @@ export const DefenseSystem = {
 
         this.towers = [];
         this.gates = []; // 建筑面板放置的铁栅栏门
-        this.platforms = []; // 城墙楼梯集合（字段名保留旧接口兼容）
+        this.staircases = [];
         DEFENSE_CONFIG.towers.forEach((p, i) => {
             const tower = new DefenseTower(p.x, p.y, { id: `defense_tower_${i}` });
             Game.entities.set(`defense_tower_${i}`, tower);
@@ -2771,6 +3165,7 @@ export const DefenseSystem = {
     },
 
     teardown() {
+        this._clearWallTopGuardSegs();
         World122TributeSystem.teardown();
         this.active = false;
         this.defeated = false;
@@ -2781,15 +3176,19 @@ export const DefenseSystem = {
             for (const g of this.gates) { if (g && typeof g.destroy === 'function') g.destroy(); }
             this.gates = [];
         }
-        if (this.platforms) {
-            for (const p of [...this.platforms]) {
+        if (this.staircases) {
+            for (const p of [...this.staircases]) {
                 if (p && typeof p.destroy === 'function') p.destroy();
             }
-            this.platforms = [];
+            this.staircases = [];
         }
         this._wallStairGroupSignature = '';
         this._wallStairGroupVersion = 0;
         this._wallStairGroupCheckTimer = 0;
+        this._elevatedTopologySignature = '';
+        this._elevatedTopologyVersion = 0;
+        this._wallTopGuardRevision = 0;
+        elevatedTopology.reset();
         this.base = null;
         this.towers = [];
         this._phase = 'prep';
@@ -2803,11 +3202,13 @@ export const DefenseSystem = {
           this._goldScanTimer = 0;
           this._aliveCountCache = undefined;
           this._aliveCountTime = 0;
-          this._seq = 0;
+        this._seq = 0;
           this._managedExternally = false;
           this._managedConfig = null;
           this._managedResolved = null;
           this._worldId = null;
+          this._elevatedNavUnits.clear();
+          ElevatedNavigationController.reset();
           if (this._goldGranted) this._goldGranted.clear();
           this._goldGranted = null;
           // 掩体墙段已移除：寻路网格随之重建（怪物不再绕不存在的墙）
@@ -2837,11 +3238,12 @@ export const DefenseSystem = {
         this._wallStairGroupCheckTimer = (Number(this._wallStairGroupCheckTimer) || 0) - dt;
         if (this._wallStairGroupCheckTimer <= 0) {
             this._wallStairGroupCheckTimer = 250;
-            ensureWallStairGroups(this.platforms);
+            ensureWallStairGroups(this.staircases);
+            this._refreshElevatedTopologyRevision();
         }
         if (this.gate) this.gate.update(dt); // 友军靠近自动开门 / 离开延时关门
         for (const g of this.gates) { if (g && g.active) g.update(dt); } // 已放置的铁栅栏门
-        this._updatePlatformStates(dt); // 楼梯/墙顶表面判定与平滑Z抬升
+        this._updateElevatedSurfaceStates(dt);
         this._grantMonsterGold(dt);
         this._updateHud(dt);
         if (this._managedExternally && !this._managedConfig) return;
@@ -2888,8 +3290,118 @@ export const DefenseSystem = {
         // 脚本化生成，与波次节奏挂钩；旧配置字段 eliteEveryMs/lordEveryMs 保留兼容，不再驱动生成
     },
 
-    /** 实体分离后的高架最终提交，不重复推进卡死看门狗。 */
-    /** External global invasion scheduler API. */
+    _refreshElevatedTopologyRevision() {
+        // 建筑集合沿用同一个 Map，单靠引用相等无法发现外部会话/脚本直接增删墙体。
+        // 仅按既有 250ms 节流重算轻量签名；签名未变时 refresh 会立即返回，不把扫描摊到每个单位。
+        const topologyChanged = elevatedTopology.refresh(Game?.entities, this.staircases || []);
+        const registeredSegments = new Set(WallSystem?.isoSegments || []);
+        const guardsMissing = (this._wallTopGuardSegs || []).some((segment) =>
+            !registeredSegments.has(segment));
+        if (topologyChanged || guardsMissing
+            || this._wallTopGuardRevision !== elevatedTopology.revision) {
+            this._rebuildWallTopGuardSegs(elevatedTopology);
+        }
+        this._elevatedTopologySignature = elevatedTopology.signature;
+        this._elevatedTopologyVersion = elevatedTopology.revision;
+        return this._elevatedTopologyVersion;
+    },
+
+    invalidateElevatedTopology() {
+        elevatedTopology.invalidate();
+        this._wallStairGroupCheckTimer = 0;
+    },
+
+    _clearWallTopGuardSegs() {
+        const guards = new Set(this._wallTopGuardSegs || []);
+        if (WallSystem?.isoSegments && (guards.size
+            || WallSystem.isoSegments.some((segment) => segment?._surfaceWallTopGuard))) {
+            WallSystem.isoSegments = WallSystem.isoSegments.filter((segment) =>
+                !guards.has(segment) && !segment?._surfaceWallTopGuard);
+        }
+        this._wallTopGuardSegs = [];
+    },
+
+    /**
+     * 墙顶防坠线只覆盖连续墙体的真实外轮廓。墙墙共享边与墙梯入口边都是Portal，
+     * 必须保持开放；不能再由楼梯向墙外伸线，否则会重新切断宽入口。
+     */
+    _rebuildWallTopGuardSegs(topology = elevatedTopology) {
+        this._clearWallTopGuardSegs();
+        if (!WallSystem?.isoSegments || !topology) return;
+        const guards = [];
+        for (const wall of topology.values()) {
+            const geometry = blockWallTopWalkGeometry(wall);
+            if (!geometry?.vertices?.length) continue;
+            const openEdges = new Set();
+            for (const neighbor of topology.neighbors(wall)) {
+                const neighborGeometry = blockWallTopWalkGeometry(neighbor);
+                const sharedEdge = neighborGeometry
+                    ? _edgeFacingPoint(geometry.vertices, neighborGeometry.center)
+                    : null;
+                if (sharedEdge) openEdges.add(sharedEdge.index);
+            }
+            for (const staircase of this.staircases || []) {
+                if (!staircase?.active || staircase.wall !== wall) continue;
+                const connector = staircase.wallConnectorSurface?.();
+                if (Number.isInteger(connector?.wallEdgeIndex)) {
+                    openEdges.add(connector.wallEdgeIndex);
+                }
+            }
+            const topZ = Number(wall._wallTopZ) || WALL_WALK_CONFIG.defaultTopZ;
+            for (let edgeIndex = 0; edgeIndex < geometry.vertices.length; edgeIndex++) {
+                if (openEdges.has(edgeIndex)) continue;
+                const a = geometry.vertices[edgeIndex];
+                const b = geometry.vertices[(edgeIndex + 1) % geometry.vertices.length];
+                const guard = {
+                    x1: a.x,
+                    y1: a.y,
+                    x2: b.x,
+                    y2: b.y,
+                    halfThick: WALL_STAIR_CONFIG.edgeHalfThick,
+                    _surfaceZ1: topZ,
+                    _surfaceZ2: topZ,
+                    _surfaceWallGuard: true,
+                    _surfaceWallTopGuard: true,
+                    _elevatedOnly: true,
+                    _stairEdge: true,
+                    _owner: wall,
+                };
+                WallSystem.isoSegments.push(guard);
+                guards.push(guard);
+            }
+        }
+        this._wallTopGuardSegs = guards;
+        this._wallTopGuardRevision = Number(topology.revision) || 0;
+    },
+
+    elevatedNavigationRevision() {
+        return Number(elevatedTopology.revision) || Number(this._elevatedTopologyVersion) || 0;
+    },
+
+    /** 左下角“范围”开关使用：直接暴露当前导航真源，不另算一套调试几何。 */
+    debugElevatedNavigationGeometry(entitySource = null) {
+        ensureWallStairGroups(this.staircases || []);
+        const topology = _blockWallIndex(entitySource || Game?.entities);
+        if (this._wallTopGuardRevision !== topology.revision) {
+            this._rebuildWallTopGuardSegs(topology);
+        }
+        return {
+            revision: topology.revision,
+            walls: Array.from(topology.values()),
+            wallConnectors: Array.from(topology.connectors()),
+            wallJunctions: Array.from(topology.junctions()),
+            wallGuards: [...(this._wallTopGuardSegs || [])],
+            staircases: (this.staircases || []).filter((staircase) => staircase?.active),
+        };
+    },
+
+    isWallStairAttachmentEligible(wall, stepX, stepY) {
+        if (!wall?._isBlockCover || !wall?._isWalkableWall) return false;
+        const topology = _blockWallIndex(Game?.entities);
+        return topology.isExternalAttachment(wall, stepX, stepY);
+    },
+
+    /** 全局入侵调度器接管波次。世界本身常驻建筑系统，只有五日入侵到来时才启动刷怪。 */
     beginManagedInvasion(config, targetEntity, onResolved) {
         if (!this.active || !this._managedExternally || !targetEntity) return false;
         this.base = targetEntity;
@@ -2937,8 +3449,9 @@ export const DefenseSystem = {
         };
     },
 
+    /** 实体分离后的高架最终提交，不重复推进卡死看门狗。 */
     reconcileElevatedSurfaces() {
-        this._updatePlatformStates(0, {
+        this._updateElevatedSurfaceStates(0, {
             elevatedOnly: true,
             reconcileOnly: true,
         });
@@ -2987,7 +3500,7 @@ export const DefenseSystem = {
                     );
                 }
             }
-            for (const staircase of this.platforms || []) {
+            for (const staircase of this.staircases || []) {
                 if (!staircase?.active || staircase.wall !== wall) continue;
                 const connector = staircase.wallConnectorSurface?.();
                 if (connector) {
@@ -3010,6 +3523,145 @@ export const DefenseSystem = {
         return axes;
     },
 
+    /**
+     * 楼梯上的移动只能沿踏步坡向，或沿同层并排楼梯的共享缝横移。
+     * 把这两类真实可走方向交给 WallSystem 做速度投影，避免斜向输入持续顶住侧轨。
+     */
+    _stairMoveAxes(staircase, surface = null) {
+        if (!staircase?.active) return [];
+        const axes = [];
+        const addAxis = (dx, dy, kind = 'stair_run', target = null) => {
+            const length = Math.hypot(dx, dy);
+            if (length <= 1e-6) return;
+            const axis = {
+                x: dx / length,
+                y: dy / length,
+                kind,
+                staircaseId: staircase.id || null,
+                targetX: Number.isFinite(target?.x) ? target.x : null,
+                targetY: Number.isFinite(target?.y) ? target.y : null,
+            };
+            if (!axes.some((candidate) =>
+                Math.abs(candidate.x - axis.x) < 1e-4
+                && Math.abs(candidate.y - axis.y) < 1e-4)) axes.push(axis);
+        };
+        const segmentIndex = Math.max(0, staircase.segments?.indexOf(surface?.segment) ?? 0);
+        const walk = staircase.visualSegments?.[segmentIndex]?.walkSurface
+            || staircase.visualSegments?.[0]?.walkSurface;
+        if (walk) {
+            const dx = walk.exit.x - walk.entry.x;
+            const dy = walk.exit.y - walk.entry.y;
+            addAxis(dx, dy, 'stair_run', walk.exit);
+            addAxis(-dx, -dy, 'stair_run', walk.entry);
+        }
+        for (const seam of staircase._sharedStairSurfaces || []) {
+            if (seam.connector || seam.segmentIndex !== segmentIndex) continue;
+            const railAMid = {
+                x: (seam.railA[0].x + seam.railA[1].x) * 0.5,
+                y: (seam.railA[0].y + seam.railA[1].y) * 0.5,
+            };
+            const railBMid = {
+                x: (seam.railB[0].x + seam.railB[1].x) * 0.5,
+                y: (seam.railB[0].y + seam.railB[1].y) * 0.5,
+            };
+            const dx = railBMid.x - railAMid.x;
+            const dy = railBMid.y - railAMid.y;
+            addAxis(dx, dy, 'stair_lateral', railBMid);
+            addAxis(-dx, -dy, 'stair_lateral', railAMid);
+        }
+        return axes;
+    },
+
+    /**
+     * 实体分离可能在高架首次提交后把单位推入楼梯外侧护栏。楼梯四边形仍会认为
+     * 该点有承托，但 WallSystem 会拒绝之后的所有落点，形成永久卡死。这里只在
+     * 当前楼梯组的真实外侧护栏已经重叠时，把单位横向移到同一进度的最近安全点；
+     * 不改变纵向进度、Z 或表面身份，并排楼梯已删除的内部护栏不会参与。
+     */
+    _recoverStairEdgeOverlap(unit, surface, staircase, querySurfaceAt) {
+        if (!unit || surface?.kind !== 'stairs' || surface.connector
+            || surface.sharedSeam || !staircase?.active
+            || typeof querySurfaceAt !== 'function') return null;
+        const radius = Math.max(
+            1,
+            Number(unit.groundRadius)
+                || Number(unit.collisionRadius)
+                || WALL_WALK_CONFIG.surfaceUnitRadius
+        );
+        const segmentIndex = staircase.segments?.indexOf(surface.segment) ?? -1;
+        if (segmentIndex < 0) return null;
+        const groupMembers = Array.isArray(staircase._wallStairGroupMembers)
+            ? staircase._wallStairGroupMembers
+            : [staircase];
+        let overlapsOuterRail = false;
+        for (const member of groupMembers) {
+            if (!member?.active) continue;
+            for (const edge of member._edgeSegs || []) {
+                if (!edge?._stairEdge || edge._surfaceConnectorEdge
+                    || edge._surfaceSegmentIndex !== segmentIndex) continue;
+                const distance = WallSystem._groundPointSegDist(
+                    unit.x,
+                    unit.y,
+                    edge
+                );
+                if (distance < radius + (Number(edge.halfThick) || 0) - 0.05) {
+                    overlapsOuterRail = true;
+                    break;
+                }
+            }
+            if (overlapsOuterRail) break;
+        }
+        if (!overlapsOuterRail) return null;
+
+        const walkSurface = staircase.visualSegments?.[segmentIndex]?.walkSurface
+            || surface.segment?.walkSurface;
+        const coords = staircase._walkSurfaceCoordinates?.(
+            walkSurface,
+            unit.x,
+            unit.y
+        );
+        if (!walkSurface || !coords) return null;
+        const progress = Math.max(0, Math.min(1, Number(coords.progress) || 0));
+        const sideA = {
+            x: walkSurface.entryA.x
+                + (walkSurface.exitA.x - walkSurface.entryA.x) * progress,
+            y: walkSurface.entryA.y
+                + (walkSurface.exitA.y - walkSurface.entryA.y) * progress,
+        };
+        const sideB = {
+            x: walkSurface.entryB.x
+                + (walkSurface.exitB.x - walkSurface.entryB.x) * progress,
+            y: walkSurface.entryB.y
+                + (walkSurface.exitB.y - walkSurface.entryB.y) * progress,
+        };
+        const center = {
+            x: (sideA.x + sideB.x) * 0.5,
+            y: (sideA.y + sideB.y) * 0.5,
+        };
+        const dx = center.x - unit.x;
+        const dy = center.y - unit.y;
+        const distance = Math.hypot(dx, dy);
+        if (distance <= 1e-6) return null;
+        const ignore = WallSystem.ignoreForEntity(unit);
+        const steps = WALL_STAIR_CONFIG.edgeRecoverySteps;
+        const padding = WALL_STAIR_CONFIG.edgeRecoveryPadding;
+        for (let index = 1; index <= steps; index++) {
+            const travel = Math.min(distance, padding + distance * index / steps);
+            const ratio = travel / distance;
+            const x = unit.x + dx * ratio;
+            const y = unit.y + dy * ratio;
+            if (!WallSystem.canMoveTo(x, y, radius, ignore)) continue;
+            const recovered = querySurfaceAt(x, y);
+            if (recovered.surface?.kind !== 'stairs'
+                || !wallStairsShareGroup(
+                    recovered.staircase || recovered.surface.staircase,
+                    staircase
+                )) continue;
+            return { ...recovered, x, y, distance: travel };
+        }
+        return null;
+    },
+
     /** 查询单位脚下的城墙顶面；低空地面单位不能直接被吸到墙顶。 */
     _wallWalkSurfaceAt(unit, x, y) {
         const Game = (typeof window !== 'undefined') ? window.Game : null;
@@ -3017,54 +3669,6 @@ export const DefenseSystem = {
         const currentZ = Math.max(0, Number(unit?.z) || 0);
         const blockIndex = _blockWallIndex(Game.entities);
         let best = null;
-        if (WALL_WALK_CONFIG.movementMode === 'graph') {
-            const graphStartWall = unit?._surfaceWall || unit?._platformRef?.wall || null;
-            if (graphStartWall?._isBlockCover) {
-                const graph = wallTopGraphProjection(
-                    x,
-                    y,
-                    graphStartWall,
-                    Game.entities,
-                    this.platforms,
-                    true,
-                    unit?._surfaceMoveChosenAxis || null,
-                    unit?._surfaceInputIntent || null
-                );
-                const graphTopZ = Number(graph?.wall?._wallTopZ)
-                    || WALL_WALK_CONFIG.defaultTopZ;
-                const graphRenderDepth = [
-                    graph?.wall,
-                    graph?.edge?.wallA,
-                    graph?.edge?.wallB,
-                ].reduce((maxDepth, graphWall) => {
-                    if (!graphWall) return maxDepth;
-                    const depth = Number(graphWall._faceDepth)
-                        || structureDepthAtY(graphWall.y || y);
-                    return Math.max(maxDepth, depth);
-                }, -Infinity);
-                const canUseGraph = unit?._surfaceKind === 'wall_walk'
-                    || (unit?._surfaceKind === 'stairs'
-                        && currentZ >= graphTopZ - WALL_STAIR_CONFIG.risePerSegment - 2
-                        && graph?.distance <= WALL_WALK_CONFIG.graphEntryRadius);
-                if (graph && canUseGraph) {
-                    return {
-                        kind: 'wall_walk',
-                        z: graphTopZ,
-                        owner: graph.wall,
-                        wall: graph.wall,
-                        walls: graph.component,
-                        // 墙间图边同时被两块墙贴图覆盖，单位必须高于两端墙的较深者。
-                        renderDepth: Number.isFinite(graphRenderDepth)
-                            ? graphRenderDepth
-                            : (Number(graph.wall?._faceDepth)
-                                || structureDepthAtY(graph.wall?.y || y)),
-                        distance: graph.distance,
-                        projection: { x: graph.x, y: graph.y },
-                        graphProjection: graph,
-                    };
-                }
-            }
-        }
         const blockSupport = _blockWallFootprintSupport(
             unit,
             x,
@@ -3078,27 +3682,32 @@ export const DefenseSystem = {
             const continuing = unit?._surfaceKind === 'wall_walk';
             if (continuing || currentZ >= topZ - WALL_STAIR_CONFIG.risePerSegment - 2) {
                 const connector = blockSupport.connector;
+                const junction = blockSupport.junction;
                 best = {
                     kind: 'wall_walk',
-                    z: connector?.topZ ?? topZ,
+                    z: junction?.topZ ?? connector?.topZ ?? topZ,
                     owner: wall,
                     wall,
-                    walls: collectConnectedWalkableWalls(wall, Game.entities),
-                    renderDepth: connector
+                    walls: blockIndex.component(wall),
+                    renderDepth: junction
+                        ? Math.max(...junction.walls.map((candidate) =>
+                            Number(candidate?._faceDepth) || 0))
+                        : (connector
                         ? Math.max(
                             Number(connector.wallA?._faceDepth) || 0,
                             Number(connector.wallB?._faceDepth) || 0
                         )
-                        : (Number(wall._faceDepth) || structureDepthAtY(wall.y)),
+                        : (Number(wall._faceDepth) || structureDepthAtY(wall.y))),
                     distance: blockSupport.distance,
                     projection: { x, y },
                     walkGeometry: blockSupport.geometry,
                     walkConnector: connector || null,
+                    walkJunction: junction || null,
                     footprintRadius: blockSupport.radius,
                 };
             }
         }
-        for (const wall of Game.entities.values()) {
+        for (const wall of blockIndex.nearbyWalls(x, y, 240)) {
             if (!wall || !wall.active || !wall._isWalkableWall || !Array.isArray(wall._faceLine)) continue;
             if (wall._isBlockCover) continue; // 方块墙已按完整单位footprint联合区域判定
             const [a, b] = wall._faceLine;
@@ -3122,7 +3731,11 @@ export const DefenseSystem = {
                     z: topZ,
                     owner: wall,
                     wall,
-                    walls: collectConnectedWalkableWalls(wall, Game.entities),
+                    // 旧式长墙不使用方块网格连接器；继续按端点实时收集连通墙，
+                    // 否则每段都会得到独立componentId并被误判为不同承载面。
+                    walls: wall._isBlockCover
+                        ? (blockIndex.component(wall).length ? blockIndex.component(wall) : [wall])
+                        : collectConnectedWalkableWalls(wall, Game.entities),
                     renderDepth: Number(wall._faceDepth) || structureDepthAtY(Math.max(a.y, b.y)),
                     distance,
                     projection: { x: px, y: py },
@@ -3193,6 +3806,19 @@ export const DefenseSystem = {
                             }
                         }
                     }
+                    if (!supported && typeof blockIndex?.nearbyJunctions === 'function') {
+                        for (const junction of blockIndex.nearbyJunctions(pointX, pointY)) {
+                            if (!junction?.walls?.includes(wall)) continue;
+                            if (!pointInIsoFootprint(
+                                pointX,
+                                pointY,
+                                junction.footprint,
+                                junction.tolerance
+                            )) continue;
+                            supported = true;
+                            break;
+                        }
+                    }
                     if (supported) {
                         pushCandidate({ z: topZ, surfaceKind: 'wall_walk', wall });
                     }
@@ -3233,7 +3859,7 @@ export const DefenseSystem = {
      */
     resolveSurfaceTarget(x, y) {
         let stairTarget = null;
-        for (const staircase of this.platforms || []) {
+        for (const staircase of this.staircases || []) {
             if (!staircase?.active || typeof staircase.surfaceAt !== 'function') continue;
             for (const segment of staircase.segments || []) {
                 const steps = staircase.stepCountPerSegment || WALL_STAIR_CONFIG.stepCountPerSegment;
@@ -3267,6 +3893,7 @@ export const DefenseSystem = {
                         y: groundY,
                         z: surface.z,
                         surfaceKind: 'stairs',
+                        stairGroupId: wallStairGroupId(staircase),
                     };
                     const candidate = {
                         ...target,
@@ -3351,6 +3978,27 @@ export const DefenseSystem = {
                             };
                         }
                     }
+                    for (const junction of blockIndex?.nearbyJunctions?.(x, groundY) || []) {
+                        if (!junction?.walls?.includes(wall) || !pointInIsoFootprint(
+                            x,
+                            groundY,
+                            junction.footprint,
+                            junction.tolerance
+                        )) continue;
+                        const distance = Math.hypot(
+                            x - junction.center.x,
+                            groundY - junction.center.y
+                        );
+                        if (!wallSurface || distance < wallSurface.distance) {
+                            wallSurface = {
+                                wall,
+                                x,
+                                y: groundY,
+                                distance,
+                                junction,
+                            };
+                        }
+                    }
                     continue;
                 }
                 const dx = b.x - a.x;
@@ -3368,39 +4016,23 @@ export const DefenseSystem = {
             }
         }
         if (wallSurface) {
-            if (WALL_WALK_CONFIG.navigationMode === 'graph'
-                && wallSurface.wall?._isBlockCover
+            if (wallSurface.wall?._isBlockCover
                 && Game?.entities) {
                 const graph = wallTopGraphProjection(
                     wallSurface.x,
                     wallSurface.y,
                     wallSurface.wall,
                     Game.entities,
-                    this.platforms
+                    this.staircases
                 );
                 if (graph) {
                     wallSurface.x = graph.x;
                     wallSurface.y = graph.y;
                     wallSurface.wall = graph.wall || wallSurface.wall;
                 }
-            } else if (wallSurface.wall?._isBlockCover && Game?.entities) {
-                const clamped = _clampBlockWallFootprintToSupport(
-                    { groundRadius: WALL_WALK_CONFIG.maxUnitRadius },
-                    wallSurface.x,
-                    wallSurface.y,
-                    wallSurface.wall,
-                    blockIndex
-                );
-                if (clamped) {
-                    wallSurface.x = clamped.x;
-                    wallSurface.y = clamped.y;
-                    wallSurface.wall = clamped.support?.wall || wallSurface.wall;
-                }
             }
-            const staircase = (this.platforms || []).find((candidate) =>
-                candidate?.active
-                && (candidate.wall === wallSurface.wall
-                    || candidate.walls?.includes(wallSurface.wall)));
+            const staircase = (this.staircases || []).find((candidate) =>
+                staircaseServesWall(candidate, wallSurface.wall, Game?.entities));
             const topZ = Number(wallSurface.wall._wallTopZ) || WALL_WALK_CONFIG.defaultTopZ;
             if (!staircase) {
                 return {
@@ -3423,33 +4055,15 @@ export const DefenseSystem = {
                 wallSurface.wall,
                 Game?.entities
             );
-            for (const routeWall of wallPath) {
-                const geometry = blockWallTopWalkGeometry(routeWall);
-                if (!geometry) continue;
-                const previous = route[route.length - 1];
-                if (previous && Math.hypot(
-                    previous.x - geometry.center.x,
-                    previous.y - geometry.center.y
-                ) < 1) continue;
-                route.push({
-                    x: geometry.center.x,
-                    y: geometry.center.y,
-                    z: Number(routeWall._wallTopZ) || topZ,
-                    surfaceKind: 'wall_walk',
-                    wallId: routeWall.id,
-                });
-            }
-            const lastRoutePoint = route[route.length - 1];
-            if (!lastRoutePoint || Math.hypot(
-                lastRoutePoint.x - wallSurface.x,
-                lastRoutePoint.y - wallSurface.y
-            ) >= 1) route.push({
+            appendWallTopRoutePoints(route, wallPath, topZ);
+            appendUniqueRouteTarget(route, {
                 x: wallSurface.x,
                 y: wallSurface.y,
                 z: topZ,
                 surfaceKind: 'wall_walk',
                 wallId: wallSurface.wall.id,
             });
+            finalizeSurfaceRoute(route);
             return {
                 x: wallSurface.x,
                 y: wallSurface.y,
@@ -3469,29 +4083,29 @@ export const DefenseSystem = {
      */
     routeSurfaceMoveForUnit(unit, target) {
         if (!unit || !target) return target;
+        const Game = (typeof window !== 'undefined') ? window.Game : null;
         // 地面单位上墙时按“每个单位”选择最近的可用楼梯。resolveSurfaceTarget 只负责确定
         // 被点击的墙顶；若所有选中单位复用它碰到的第一座楼梯，远处单位很容易从错误一侧
         // 直冲墙体，多个楼梯并存时也无法利用更近入口。
         if (target.surfaceKind === 'wall_walk'
             && unit._surfaceKind !== 'wall_walk'
             && unit._surfaceKind !== 'stairs') {
-            const Game = (typeof window !== 'undefined') ? window.Game : null;
             const targetWall = Game?.entities
                 ? Array.from(Game.entities.values()).find((wall) =>
                     wall?.active && wall.id === target.wallId)
                 : null;
             const candidates = targetWall
-                ? (this.platforms || []).filter((staircase) =>
-                    staircase?.active
-                    && typeof staircase.routePoints === 'function'
-                    && (staircase.wall === targetWall || staircase.walls?.includes(targetWall)))
+                ? (this.staircases || []).filter((staircase) =>
+                    typeof staircase?.routePoints === 'function'
+                    && staircaseServesWall(staircase, targetWall, Game?.entities))
                 : [];
             let chosen = null;
             for (const staircase of candidates) {
                 const stairRoute = staircase.routePoints();
                 const entry = stairRoute[0];
                 if (!entry) continue;
-                const score = Math.hypot(entry.x - unit.x, entry.y - unit.y);
+                const score = Math.hypot(entry.x - unit.x, entry.y - unit.y)
+                    + ElevatedNavigationController.portalPenalty(staircase.id, 'up');
                 if (!chosen || score < chosen.score) chosen = { staircase, stairRoute, score };
             }
             if (chosen) {
@@ -3501,51 +4115,146 @@ export const DefenseSystem = {
                     targetWall,
                     Game?.entities
                 );
-                for (const routeWall of wallPath) {
-                    const geometry = blockWallTopWalkGeometry(routeWall);
-                    if (!geometry) continue;
-                    const previous = route[route.length - 1];
-                    if (previous && Math.hypot(
-                        previous.x - geometry.center.x,
-                        previous.y - geometry.center.y
-                    ) < 1) continue;
-                    route.push({
-                        x: geometry.center.x,
-                        y: geometry.center.y,
-                        z: Number(routeWall._wallTopZ) || target.z || WALL_WALK_CONFIG.defaultTopZ,
-                        surfaceKind: 'wall_walk',
-                        wallId: routeWall.id,
-                    });
-                }
-                const previous = route[route.length - 1];
-                if (!previous || Math.hypot(previous.x - target.x, previous.y - target.y) >= 1) {
-                    route.push({
-                        x: target.x,
-                        y: target.y,
-                        z: target.z,
-                        surfaceKind: 'wall_walk',
-                        wallId: target.wallId,
-                    });
-                }
+                appendWallTopRoutePoints(route, wallPath, target.z);
+                appendUniqueRouteTarget(route, {
+                    x: target.x,
+                    y: target.y,
+                    z: target.z,
+                    surfaceKind: 'wall_walk',
+                    wallId: target.wallId,
+                });
+                finalizeSurfaceRoute(route);
                 return {
                     ...target,
                     staircaseId: chosen.staircase.id,
                     route,
                     unreachable: false,
                     reason: null,
+                    routeRevision: this.elevatedNavigationRevision(),
                 };
             }
         }
+        if (target.surfaceKind === 'wall_walk'
+            && (unit._surfaceKind === 'wall_walk' || unit._surfaceKind === 'stairs')) {
+            const targetWall = Game?.entities
+                ? Array.from(Game.entities.values()).find((wall) =>
+                    wall?.active && wall.id === target.wallId)
+                : null;
+            const currentStaircase = unit._surfaceKind === 'stairs'
+                ? unit._surfaceStaircase
+                : null;
+            const startWall = unit._surfaceWall || currentStaircase?.wall || null;
+            const wallPath = blockWallTopRoute(startWall, targetWall, Game?.entities);
+            if (targetWall && startWall && wallPath.length) {
+                const route = currentStaircase?.routePoints?.().map((step) => ({ ...step })) || [];
+                appendWallTopRoutePoints(route, wallPath, target.z);
+                appendUniqueRouteTarget(route, {
+                    x: target.x,
+                    y: target.y,
+                    z: target.z,
+                    surfaceKind: 'wall_walk',
+                    wallId: target.wallId,
+                });
+                finalizeSurfaceRoute(route);
+                return {
+                    ...target,
+                    staircaseId: currentStaircase?.id || target.staircaseId || null,
+                    route,
+                    unreachable: false,
+                    reason: null,
+                    routeRevision: this.elevatedNavigationRevision(),
+                };
+            }
+            const connectedStairs = (wall) => (this.staircases || []).filter((staircase) =>
+                typeof staircase?.routePoints === 'function'
+                && staircaseServesWall(staircase, wall, Game?.entities));
+            const descentCandidates = startWall ? connectedStairs(startWall) : [];
+            const ascentCandidates = targetWall ? connectedStairs(targetWall) : [];
+            let descent = null;
+            for (const staircase of descentCandidates) {
+                const top = staircase.topCenter?.() || staircase;
+                const score = Math.hypot(top.x - unit.x, top.y - unit.y)
+                    + ElevatedNavigationController.portalPenalty(staircase.id, 'down');
+                if (!descent || score < descent.score) descent = { staircase, score };
+            }
+            let ascent = null;
+            const descentRoute = descent?.staircase.routePoints?.() || [];
+            const descentEntry = descentRoute[0] || unit;
+            for (const staircase of ascentCandidates) {
+                const stairRoute = staircase.routePoints();
+                const entry = stairRoute[0];
+                if (!entry) continue;
+                const score = Math.hypot(entry.x - descentEntry.x, entry.y - descentEntry.y)
+                    + ElevatedNavigationController.portalPenalty(staircase.id, 'up');
+                if (!ascent || score < ascent.score) ascent = { staircase, stairRoute, score };
+            }
+            if (descent && ascent) {
+                const route = descentRoute.map((step) => ({ ...step })).reverse();
+                const ascentEntry = ascent.stairRoute[0];
+                route.push({
+                    x: ascentEntry.x,
+                    y: ascentEntry.y,
+                    z: 0,
+                    surfaceKind: 'ground',
+                    staircaseId: ascent.staircase.id,
+                });
+                for (const step of ascent.stairRoute.slice(1)) route.push({ ...step });
+                const targetWallPath = blockWallTopRoute(
+                    ascent.staircase.wall,
+                    targetWall,
+                    Game?.entities
+                );
+                appendWallTopRoutePoints(route, targetWallPath, target.z);
+                appendUniqueRouteTarget(route, {
+                    x: target.x,
+                    y: target.y,
+                    z: target.z,
+                    surfaceKind: 'wall_walk',
+                    wallId: target.wallId,
+                });
+                finalizeSurfaceRoute(route);
+                return {
+                    ...target,
+                    staircaseId: descent.staircase.id,
+                    route,
+                    unreachable: false,
+                    reason: null,
+                    routeRevision: this.elevatedNavigationRevision(),
+                };
+            }
+            return {
+                ...target,
+                route: [],
+                unreachable: true,
+                reason: '当前高架区域与目标墙不连通',
+                routeRevision: this.elevatedNavigationRevision(),
+            };
+        }
         const route = Array.isArray(target.route) ? target.route : [];
-        if (route.length || target.surfaceKind !== 'ground') return target;
+        if (route.length || target.surfaceKind !== 'ground') {
+            return { ...target, routeRevision: this.elevatedNavigationRevision() };
+        }
         if (unit._surfaceKind !== 'wall_walk' && unit._surfaceKind !== 'stairs') return target;
 
-        const wall = unit._surfaceWall || unit._platformRef?.wall || null;
-        const staircase = (this.platforms || []).find((candidate) =>
-            candidate?.active
-            && (candidate === unit._platformRef
-                || candidate.wall === wall
-                || candidate.walls?.includes(wall)));
+        const wall = unit._surfaceWall || unit._surfaceStaircase?.wall || null;
+        const currentStaircase = unit._surfaceKind === 'stairs'
+            && unit._surfaceStaircase?.active
+            && typeof unit._surfaceStaircase.routePoints === 'function'
+            ? unit._surfaceStaircase
+            : null;
+        const staircase = currentStaircase || (this.staircases || [])
+            .filter((candidate) => typeof candidate?.routePoints === 'function'
+                && (candidate === unit._surfaceStaircase
+                    || staircaseServesWall(candidate, wall, Game?.entities)))
+            .map((candidate) => {
+                const top = candidate.topCenter?.() || candidate;
+                return {
+                    candidate,
+                    score: Math.hypot(top.x - unit.x, top.y - unit.y)
+                        + ElevatedNavigationController.portalPenalty(candidate.id, 'down'),
+                };
+            })
+            .sort((left, right) => left.score - right.score)[0]?.candidate || null;
         if (!staircase || typeof staircase.routePoints !== 'function') {
             return {
                 ...target,
@@ -3553,21 +4262,166 @@ export const DefenseSystem = {
                 reason: '当前高架区域没有可用楼梯',
             };
         }
-        const downRoute = staircase.routePoints().map((step) => ({ ...step })).reverse();
+        const downRoute = [];
+        if (unit._surfaceKind === 'wall_walk') {
+            const wallPath = blockWallTopRoute(wall, staircase.wall, Game?.entities);
+            appendWallTopRoutePoints(
+                downRoute,
+                wallPath,
+                Number(wall?._wallTopZ) || WALL_WALK_CONFIG.defaultTopZ
+            );
+        }
+        for (const step of staircase.routePoints().map((point) => ({ ...point })).reverse()) {
+            appendUniqueRouteTarget(downRoute, step);
+        }
         downRoute.push({ x: target.x, y: target.y, z: 0, surfaceKind: 'ground' });
+        finalizeSurfaceRoute(downRoute);
         return {
             ...target,
             staircaseId: staircase.id,
             route: downRoute,
+            routeRevision: this.elevatedNavigationRevision(),
         };
+    },
+
+    /** 把现有 AI 已选定的语义目标翻译成跨表面路线，不接管索敌或战术目标所有权。 */
+    planSurfaceRouteForUnit(unit, surfaceTarget) {
+        if (!unit || !surfaceTarget) return null;
+        const kind = surfaceTarget._surfaceKind || surfaceTarget.surfaceKind
+            || ((Number(surfaceTarget.z) || 0) > 1 ? 'elevated' : 'ground');
+        if (kind === 'wall_walk') {
+            const wall = surfaceTarget._surfaceWall || surfaceTarget._surfaceStaircase?.wall || null;
+            if (!wall?.active) return { unreachable: true, reason: '目标墙面已失效', route: [] };
+            return this.routeSurfaceMoveForUnit(unit, {
+                x: surfaceTarget.x,
+                y: surfaceTarget.y,
+                z: Number(surfaceTarget.z) || Number(wall._wallTopZ)
+                    || WALL_WALK_CONFIG.defaultTopZ,
+                surfaceKind: 'wall_walk',
+                wallId: wall.id,
+                route: [],
+            });
+        }
+        if (kind === 'stairs') {
+            const staircase = surfaceTarget._surfaceStaircase
+                || (this.staircases || []).find((candidate) =>
+                    candidate?.active && candidate.id === surfaceTarget.staircaseId);
+            if (!staircase?.active || typeof staircase.routePoints !== 'function') {
+                return { unreachable: true, reason: '目标楼梯已失效', route: [] };
+            }
+            const target = {
+                x: surfaceTarget.x,
+                y: surfaceTarget.y,
+                z: Number(surfaceTarget.z) || 0,
+                surfaceKind: 'stairs',
+                staircaseId: staircase.id,
+                stairGroupId: wallStairGroupId(staircase),
+            };
+            const surface = staircase.surfaceAt?.(
+                surfaceTarget.x,
+                surfaceTarget.y,
+                surfaceTarget
+            );
+            const targetSegmentIndex = Math.max(0, staircase.segments.indexOf(surface?.segment));
+            const allStairNodes = staircase.routePoints()
+                .filter((node) => node.surfaceKind === 'stairs')
+                .map((node) => ({ ...node }));
+            const currentZ = Number(unit.z) || 0;
+            const targetZ = Number(target.z) || 0;
+            const route = [];
+
+            if (unit._surfaceKind === 'wall_walk') {
+                const Game = (typeof window !== 'undefined') ? window.Game : null;
+                const startWall = unit._surfaceWall || null;
+                const wallPath = blockWallTopRoute(startWall, staircase.wall, Game?.entities);
+                appendWallTopRoutePoints(
+                    route,
+                    wallPath,
+                    Number(startWall?._wallTopZ) || WALL_WALK_CONFIG.defaultTopZ
+                );
+                for (const node of allStairNodes.slice().reverse()) {
+                    if ((Number(node.z) || 0) > targetZ + 1) appendUniqueRouteTarget(route, node);
+                }
+                appendUniqueRouteTarget(route, target);
+            } else if (unit._surfaceKind === 'stairs'
+                && (unit._surfaceStaircase === staircase
+                    || wallStairsShareGroup(unit._surfaceStaircase, staircase))) {
+                const ordered = targetZ < currentZ
+                    ? allStairNodes.slice().reverse()
+                    : allStairNodes;
+                for (const node of ordered) {
+                    const nodeZ = Number(node.z) || 0;
+                    if (targetZ < currentZ) {
+                        if (nodeZ < currentZ - 1 && nodeZ > targetZ + 1) {
+                            appendUniqueRouteTarget(route, node);
+                        }
+                    } else if (nodeZ > currentZ + 1 && nodeZ < targetZ - 1) {
+                        appendUniqueRouteTarget(route, node);
+                    }
+                }
+                appendUniqueRouteTarget(route, target);
+            } else if (unit._surfaceKind === 'stairs' || unit._surfaceKind === 'wall_walk') {
+                const groundPortal = staircase.groundPortal?.();
+                const descent = groundPortal
+                    ? this.routeSurfaceMoveForUnit(unit, {
+                        x: groundPortal.groundPoint.x,
+                        y: groundPortal.groundPoint.y,
+                        z: 0,
+                        surfaceKind: 'ground',
+                        route: [],
+                    })
+                    : null;
+                for (const node of descent?.route || []) appendUniqueRouteTarget(route, { ...node });
+                for (const node of staircase.routePoints(target, targetSegmentIndex)) {
+                    appendUniqueRouteTarget(route, { ...node });
+                }
+            } else {
+                for (const node of staircase.routePoints(target, targetSegmentIndex)) {
+                    appendUniqueRouteTarget(route, { ...node });
+                }
+            }
+            return {
+                ...target,
+                route: finalizeSurfaceRoute(route),
+                routeRevision: this.elevatedNavigationRevision(),
+            };
+        }
+        if (kind !== 'ground') {
+            return { unreachable: true, reason: '目标不在正式高架导航面', route: [] };
+        }
+        return this.routeSurfaceMoveForUnit(unit, {
+            x: surfaceTarget.x,
+            y: surfaceTarget.y,
+            z: 0,
+            surfaceKind: 'ground',
+            route: [],
+        });
+    },
+
+    replanSurfaceRouteForUnit(unit, point) {
+        if (!point) return null;
+        if (point.surfaceKind === 'stairs') {
+            return this.planSurfaceRouteForUnit(unit, {
+                ...point,
+                route: undefined,
+            });
+        }
+        return this.routeSurfaceMoveForUnit(unit, {
+            ...point,
+            route: [],
+            routeRevision: undefined,
+        });
+    },
+
+    trackElevatedNavigationUnit(unit) {
+        if (unit?.active !== false) this._elevatedNavUnits.add(unit);
     },
 
     /**
      * 城墙楼梯/墙顶表面判定：玩家、侍从和世界-122友军共用同一个连续 z。
      * 楼梯优先于墙顶；离开墙顶且没有进入楼梯时把单位约束回原墙顶通道，防止侧向坠落。
      */
-    _updatePlatformStates(dt = 16, options = null) {
-        const platforms = this.platforms || [];
+    _updateElevatedSurfaceStates(dt = 16, options = null) {
         const elevatedOnly = !!options?.elevatedOnly;
         const reconcileOnly = !!options?.reconcileOnly;
         const units = [];
@@ -3581,15 +4435,22 @@ export const DefenseSystem = {
                 if (u && u !== Game.player && u.active !== false && !units.includes(u)) units.push(u);
             }
         }
+        for (const u of this._elevatedNavUnits || []) {
+            if (!u || u.active === false) {
+                this._elevatedNavUnits.delete(u);
+                continue;
+            }
+            if (!units.includes(u)) units.push(u);
+        }
         for (const u of units) {
             if (elevatedOnly
                 && u._surfaceKind !== 'wall_walk'
                 && u._surfaceKind !== 'stairs'
                 && (Number(u.z) || 0) <= 1) continue;
-            const previousSafeX = Number(u._surfaceSafeX);
-            const previousSafeY = Number(u._surfaceSafeY);
-            u._wallWalkSupportRadius = WALL_WALK_CONFIG.movementMode === 'surface'
-                && (u._surfaceKind === 'wall_walk' || u._surfaceKind === 'stairs')
+            const lastValidated = u._elevatedState?.lastValidated || null;
+            let previousSafeX = Number(lastValidated?.x);
+            let previousSafeY = Number(lastValidated?.y);
+            u._wallWalkSupportRadius = (u._surfaceKind === 'wall_walk' || u._surfaceKind === 'stairs')
                 ? Math.min(
                     Number(u.groundRadius) || Number(u.collisionRadius) || WALL_WALK_CONFIG.maxUnitRadius,
                     WALL_WALK_CONFIG.surfaceUnitRadius
@@ -3597,6 +4458,7 @@ export const DefenseSystem = {
                 : null;
             const attemptedX = u.x;
             const attemptedY = u.y;
+            const topology = _blockWallIndex(Game?.entities);
             u._surfaceQueryMotionIntent = Number.isFinite(previousSafeX)
                 && Number.isFinite(previousSafeY)
                 ? {
@@ -3609,112 +4471,257 @@ export const DefenseSystem = {
                     u,
                     x,
                     y,
-                    platforms,
+                    topology.nearbyStaircases(x, y),
                     (px, py) => this._wallWalkSurfaceAt(u, px, py)
                 );
                 u._surfaceCandidateCount = selected.candidateCount;
+                if (selected.surface) {
+                    selected.surface.topologyRevision = topology.revision;
+                    const supportWall = selected.surface.wall || selected.staircase?.wall;
+                    selected.surface.topologyComponentId = supportWall?._isBlockCover
+                        ? topology.componentId(supportWall)
+                        : null;
+                }
                 return {
                     surface: selected.surface,
                     staircase: selected.staircase,
                 };
             };
-            let queried = querySurfaceAt(u.x, u.y);
+            let queried = querySurfaceAt(attemptedX, attemptedY);
             let surface = queried.surface;
             let staircase = queried.staircase;
-            const missedSurfaceAtAttempt = !surface;
+            let surfaceTransition = null;
+            let missedSurfaceAtAttempt = !surface;
             u._surfaceSweepClamped = false;
             u._surfaceBoundarySlid = false;
             u._surfaceBoundaryInset = 0;
-            if (!surface) {
-                const previousZ = Math.max(0, Number(u.z) || 0);
-                const protectHighSurface = u._surfaceKind === 'wall_walk'
-                    || (u._surfaceKind === 'stairs'
-                        && previousZ > WALL_STAIR_CONFIG.risePerSegment + 1);
-                const safeX = Number(u._surfaceSafeX);
-                const safeY = Number(u._surfaceSafeY);
-                if (protectHighSurface && Number.isFinite(safeX) && Number.isFinite(safeY)) {
-                    const dx = u.x - safeX;
-                    const dy = u.y - safeY;
-                    const distance = Math.hypot(dx, dy);
-                    if (distance > 0.01) {
-                        const samples = Math.min(96, Math.max(2, Math.ceil(distance / 3)));
-                        for (let index = samples - 1; index >= 0; index--) {
-                            const t = index / samples;
-                            const px = safeX + dx * t;
-                            const py = safeY + dy * t;
-                            queried = querySurfaceAt(px, py);
-                            if (!queried.surface) continue;
-                            u.x = px;
-                            u.y = py;
-                            surface = queried.surface;
-                            staircase = queried.staircase;
-                            u._surfaceSweepClamped = true;
-                            break;
-                        }
-                    }
+            const previousZ = Math.max(0, Number(u.z) || 0);
+            const wasElevated = u._surfaceKind === 'wall_walk' || u._surfaceKind === 'stairs';
+            let anchorInvalidated = false;
+            const anchorRevision = Number(lastValidated?.revision) || 0;
+            if (wasElevated && anchorRevision && anchorRevision !== topology.revision
+                && Number.isFinite(previousSafeX) && Number.isFinite(previousSafeY)) {
+                const anchorQuery = querySurfaceAt(previousSafeX, previousSafeY);
+                const anchorSurface = anchorQuery?.surface;
+                const anchorMatches = lastValidated.kind === 'stairs'
+                    ? anchorSurface?.kind === 'stairs'
+                        && (anchorQuery.staircase === lastValidated.staircase
+                            || wallStairsShareGroup(
+                                anchorQuery.staircase,
+                                lastValidated.staircase
+                            )
+                            || (lastValidated.stairGroupId
+                                && anchorSurface.stairGroupId === lastValidated.stairGroupId))
+                    : anchorSurface?.kind === 'wall_walk'
+                        && (!lastValidated.wall
+                            || anchorSurface.wall === lastValidated.wall
+                            || anchorSurface.walls?.includes(lastValidated.wall));
+                if (anchorMatches) {
+                    lastValidated.revision = topology.revision;
+                } else {
+                    anchorInvalidated = true;
+                    previousSafeX = Number.NaN;
+                    previousSafeY = Number.NaN;
+                    u._surfaceQueryMotionIntent = null;
+                    if (u._elevatedState) u._elevatedState.lastValidated = null;
+                    u._surfaceNavRetryAt = 0;
                 }
             }
-            if (!surface && u._surfaceKind === 'wall_walk' && u._surfaceWall?.active) {
-                // 墙顶只允许经楼梯离开。移动越出通道时回到上一面墙的最近点。
-                const wall = u._surfaceWall;
-                const [a, b] = wall._faceLine || [];
-                if (a && b) {
-                    const blockGeometry = blockWallTopWalkGeometry(wall);
-                    if (blockGeometry) {
-                        const blockIndex = _blockWallIndex(Game.entities);
-                        const clamped = _clampBlockWallFootprintToSupport(
-                            u,
-                            u.x,
-                            u.y,
-                            wall,
-                            blockIndex
-                        );
-                        if (clamped) {
-                            u.x = clamped.x;
-                            u.y = clamped.y;
-                            const supportWall = clamped.support?.wall || wall;
-                            surface = {
-                                kind: 'wall_walk',
-                                z: Number(supportWall._wallTopZ)
-                                    || WALL_WALK_CONFIG.defaultTopZ,
-                                owner: supportWall,
-                                wall: supportWall,
-                                walls: collectConnectedWalkableWalls(
-                                    supportWall,
-                                    Game.entities
-                                ),
-                                renderDepth: Number(supportWall._faceDepth)
-                                    || structureDepthAtY(supportWall.y),
-                                footprintRadius: clamped.support?.radius || 0,
-                            };
-                        }
-                    } else {
-                        const dx = b.x - a.x;
-                        const dy = b.y - a.y;
-                        const len2 = dx * dx + dy * dy || 1;
-                        const t = Math.max(0, Math.min(
-                            1,
-                            ((u.x - a.x) * dx + (u.y - a.y) * dy) / len2
-                        ));
-                        u.x = a.x + dx * t;
-                        u.y = a.y + dy * t;
-                    }
-                    if (!surface) {
-                        surface = {
-                            kind: 'wall_walk',
-                            z: Number(wall._wallTopZ) || WALL_WALK_CONFIG.defaultTopZ,
-                            owner: wall,
-                            wall,
-                            walls: collectConnectedWalkableWalls(wall, Game.entities),
-                            renderDepth: Number(wall._faceDepth)
-                                || structureDepthAtY(Math.max(a.y, b.y)),
+            if (!wasElevated && previousZ <= 1) {
+                // ground只能从首段底部门户进入stairs，禁止侧向、投影重叠或墙面重叠吸附。
+                // ground也绝不能直接取得wall_walk身份。
+                if (Game?.showAttackRange) u._surfacePortalDebug = null;
+                if (surface?.kind === 'stairs') {
+                    const storedGround = u._elevatedState?.lastGround || null;
+                    const hasUsableGround = Number.isFinite(storedGround?.x)
+                        && Number.isFinite(storedGround?.y)
+                        && Math.hypot(
+                            attemptedX - storedGround.x,
+                            attemptedY - storedGround.y
+                        ) <= 192;
+                    const fallbackGround = staircase
+                        ? stairGroupGroundPoint(
+                            staircase,
+                            { x: attemptedX, y: attemptedY },
+                            WALL_WALK_CONFIG.surfaceNavigation.portalEntryRadius
+                        )
+                        : null;
+                    const entryGround = hasUsableGround ? storedGround : fallbackGround;
+                    const fallbackMayEnter = hasUsableGround
+                        || (surface.segment === staircase?.segments?.[0]
+                            && Number(surface.progress) <= 0.35);
+                    const entryTransition = fallbackMayEnter && entryGround && staircase
+                        ? resolveStairGroundPortalTransition(
+                            staircase,
+                            entryGround,
+                            { x: attemptedX, y: attemptedY },
+                            'enter',
+                            {
+                                outsideDistance: WALL_WALK_CONFIG.surfaceNavigation.portalEntryRadius,
+                                captureMargin: WALL_WALK_CONFIG.surfaceNavigation.portalCaptureMargin,
+                            }
+                        )
+                        : null;
+                    const portalGranted = entryTransition
+                        && ElevatedNavigationController.canCrossPortal(u, staircase.id, 'up');
+                    if (Game?.showAttackRange) {
+                        u._surfacePortalDebug = {
+                            status: portalGranted ? 'accepted' : 'rejected',
+                            reason: !entryTransition ? 'portal_geometry' : 'traffic_permission',
+                            x: attemptedX,
+                            y: attemptedY,
+                            at: Date.now(),
+                            staircase,
+                            portal: entryTransition?.portal || null,
                         };
                     }
+                    if (portalGranted) {
+                        const laneInset = Math.max(
+                            2,
+                            Number(u.groundRadius)
+                                || Number(u.collisionRadius)
+                                || WALL_WALK_CONFIG.surfaceUnitRadius
+                        ) + WALL_STAIR_CONFIG.edgeHalfThick + 2;
+                        const lanePoint = clampStairGroupPortalLane(
+                            entryTransition.portal,
+                            { x: attemptedX, y: attemptedY },
+                            laneInset
+                        );
+                        if (Number.isFinite(lanePoint?.x) && Number.isFinite(lanePoint?.y)) {
+                            u.x = lanePoint.x;
+                            u.y = lanePoint.y;
+                            const laneQuery = querySurfaceAt(u.x, u.y);
+                            if (laneQuery.surface?.kind === 'stairs') {
+                                surface = laneQuery.surface;
+                                staircase = laneQuery.staircase;
+                            } else {
+                                u.x = attemptedX;
+                                u.y = attemptedY;
+                            }
+                        }
+                        surfaceTransition = { ...entryTransition, staircase };
+                    } else {
+                        // 首次追踪/读档/传送后可能还没有上一帧地面锚点。此时必须退到
+                        // 当前楼梯入口外侧播种锚点，不能把ground身份留在踏步内部，
+                        // 否则下一帧from/to都在入口内侧，会永久失去合法穿越机会。
+                        if (Number.isFinite(entryGround?.x) && Number.isFinite(entryGround?.y)) {
+                            u.x = entryGround.x;
+                            u.y = entryGround.y;
+                        }
+                        surface = null;
+                        staircase = null;
+                    }
+                } else if (surface?.kind === 'wall_walk') {
+                    surface = null;
+                    staircase = null;
+                }
+                missedSurfaceAtAttempt = !surface;
+            }
+            if (wasElevated && Number.isFinite(previousSafeX) && Number.isFinite(previousSafeY)) {
+                const swept = unifiedElevatedNavigation.sweep(
+                    { x: previousSafeX, y: previousSafeY },
+                    { x: attemptedX, y: attemptedY },
+                    querySurfaceAt,
+                    3,
+                    (sample) => {
+                        const sampleSurface = sample.previous?.surface;
+                        const sampleStaircase = sample.previous?.staircase
+                            || u._surfaceStaircase
+                            || null;
+                        const firstSegment = sampleStaircase?.segments?.[0] || null;
+                        if (sampleSurface?.kind !== 'stairs'
+                            || !sampleStaircase
+                            || sampleSurface.segment !== firstSegment
+                            || Number(sampleSurface.progress) > 0.35) return null;
+                        const transition = resolveStairGroundPortalTransition(
+                            sampleStaircase,
+                            sample.from,
+                            sample.to,
+                            'exit',
+                            {
+                                outsideDistance: WALL_WALK_CONFIG.surfaceNavigation.portalEntryRadius,
+                                captureMargin: WALL_WALK_CONFIG.surfaceNavigation.portalCaptureMargin,
+                            }
+                        );
+                        if (!transition || !ElevatedNavigationController.canCrossPortal(
+                            u,
+                            sampleStaircase.id,
+                            'down'
+                        )) return null;
+                        return { ...transition, staircase: sampleStaircase };
+                    }
+                );
+                if (swept.transition) {
+                    u.x = swept.x;
+                    u.y = swept.y;
+                    surface = null;
+                    staircase = null;
+                    surfaceTransition = swept.transition;
+                    missedSurfaceAtAttempt = false;
+                } else if (swept.surface) {
+                    u.x = swept.x;
+                    u.y = swept.y;
+                    surface = swept.surface;
+                    staircase = swept.staircase;
+                    if (!swept.completed) {
+                        missedSurfaceAtAttempt = true;
+                        u._surfaceSweepClamped = true;
+                    }
                 }
             }
-            if (missedSurfaceAtAttempt
-                && surface?.kind === 'wall_walk'
-                && WALL_WALK_CONFIG.movementMode === 'surface') {
+            if (surface?.kind === 'stairs' && staircase) {
+                const recovered = this._recoverStairEdgeOverlap(
+                    u,
+                    surface,
+                    staircase,
+                    querySurfaceAt
+                );
+                if (recovered) {
+                    u.x = recovered.x;
+                    u.y = recovered.y;
+                    surface = recovered.surface;
+                    staircase = recovered.staircase;
+                    missedSurfaceAtAttempt = false;
+                    u._surfaceSweepClamped = false;
+                    u._surfaceBoundarySlid = true;
+                    u._surfaceBoundaryInset = recovered.distance;
+                    u._surfaceEdgeRecovered = true;
+                } else {
+                    u._surfaceEdgeRecovered = false;
+                }
+            } else {
+                u._surfaceEdgeRecovered = false;
+            }
+            if (!surface && u._surfaceKind === 'wall_walk' && u._surfaceWall?.active) {
+                // 最后有效点因拓扑变化失效时，只允许回夹到仍有真实footprint承托的位置。
+                const wall = u._surfaceWall;
+                const blockGeometry = blockWallTopWalkGeometry(wall);
+                if (blockGeometry) {
+                    const blockIndex = _blockWallIndex(Game.entities);
+                    const clamped = _clampBlockWallFootprintToSupport(
+                        u,
+                        attemptedX,
+                        attemptedY,
+                        wall,
+                        blockIndex
+                    ) || _nearestBlockWallFootprintSupport(
+                        u,
+                        attemptedX,
+                        attemptedY,
+                        blockIndex,
+                        wall
+                    );
+                    if (clamped?.support) {
+                        u.x = clamped.x;
+                        u.y = clamped.y;
+                        queried = querySurfaceAt(u.x, u.y);
+                        surface = queried.surface;
+                        staircase = queried.staircase;
+                        u._surfaceSweepClamped = !!surface;
+                    }
+                }
+            }
+            if (missedSurfaceAtAttempt && surface?.kind === 'wall_walk') {
                 const baseX = u.x;
                 const baseY = u.y;
                 const remainingX = attemptedX - baseX;
@@ -3748,7 +4755,7 @@ export const DefenseSystem = {
                     if (bestWall && bestPortal
                         && bestPortal.alignment > bestWall.alignment
                         && bestPortal.alignment - bestWall.alignment
-                            < WALL_WALK_CONFIG.graphPortalOverrideMargin) {
+                            < WALL_WALK_CONFIG.portalPreferenceMargin) {
                         const wallIndex = candidates.indexOf(bestWall);
                         if (wallIndex > 0) {
                             candidates.splice(wallIndex, 1);
@@ -3819,135 +4826,224 @@ export const DefenseSystem = {
                     if (slid) break;
                 }
             }
-            if (surface?.graphProjection && surface.projection) {
-                const edge = surface.graphProjection.edge;
-                const edgeDx = Number(edge?.b?.x) - Number(edge?.a?.x);
-                const edgeDy = Number(edge?.b?.y) - Number(edge?.a?.y);
-                const edgeLength = Math.hypot(edgeDx, edgeDy);
-                const correctionX = surface.projection.x - u.x;
-                const correctionY = surface.projection.y - u.y;
-                if (edgeLength > 1e-6) {
-                    const axisX = edgeDx / edgeLength;
-                    const axisY = edgeDy / edgeLength;
-                    const parallel = correctionX * axisX + correctionY * axisY;
-                    const parallelX = axisX * parallel;
-                    const parallelY = axisY * parallel;
-                    const lateralX = correctionX - parallelX;
-                    const lateralY = correctionY - parallelY;
-                    const lateralLength = Math.hypot(lateralX, lateralY);
-                    const lateralScale = lateralLength > WALL_WALK_CONFIG.graphLateralCorrectionMax
-                        ? WALL_WALK_CONFIG.graphLateralCorrectionMax / lateralLength
-                        : 1;
-                    // 端点越界沿道路方向立即挡住；横向吸附则分帧完成，避免楼梯/转角横跳。
-                    u.x += parallelX + lateralX * lateralScale;
-                    u.y += parallelY + lateralY * lateralScale;
-                } else {
-                    u.x = surface.projection.x;
-                    u.y = surface.projection.y;
-                }
-            }
             if (!reconcileOnly) {
-            u._surfaceEmergencyRecovered = false;
-            const recoveryIntent = u._surfaceInputIntent;
-            const recoveryIntentLength = Math.hypot(
-                Number(recoveryIntent?.x) || 0,
-                Number(recoveryIntent?.y) || 0
-            );
-            const movedFromSafe = Number.isFinite(previousSafeX) && Number.isFinite(previousSafeY)
-                ? Math.hypot(u.x - previousSafeX, u.y - previousSafeY)
-                : Infinity;
-            if (surface?.kind === 'wall_walk'
-                && WALL_WALK_CONFIG.movementMode === 'surface'
-                && recoveryIntentLength > 1e-6
-                && Number.isFinite(movedFromSafe)
-                && movedFromSafe < 0.05) {
-                u._surfaceStuckFrames = (Number(u._surfaceStuckFrames) || 0) + 1;
-            } else {
-                u._surfaceStuckFrames = 0;
-            }
-            if (u._surfaceStuckFrames >= WALL_WALK_CONFIG.stuckFrameThreshold
-                && surface?.kind === 'wall_walk') {
-                const intentX = recoveryIntent.x / recoveryIntentLength;
-                const intentY = recoveryIntent.y / recoveryIntentLength;
-                const axes = this._wallWalkMoveAxes(surface.wall);
-                const forwardAxes = axes
-                    .map((axis) => ({
-                        axis,
-                        alignment: intentX * axis.x + intentY * axis.y,
-                    }))
-                    .filter((candidate) => candidate.alignment > 0.05)
-                    .sort((left, right) => right.alignment - left.alignment);
-                if (forwardAxes.length) {
-                    const directions = [];
-                    const addDirection = (x, y, bias = 0) => {
-                        const length = Math.hypot(x, y);
-                        if (length <= 1e-6) return;
-                        const direction = { x: x / length, y: y / length, bias };
-                        if (directions.some((existing) =>
-                            Math.abs(existing.x - direction.x) < 1e-4
-                            && Math.abs(existing.y - direction.y) < 1e-4)) return;
-                        directions.push(direction);
-                    };
-                    for (const candidate of forwardAxes) {
-                        if (Number.isFinite(candidate.axis.targetX)
-                            && Number.isFinite(candidate.axis.targetY)) {
-                            addDirection(
-                                candidate.axis.targetX - u.x,
-                                candidate.axis.targetY - u.y,
-                                2
-                            );
+                const navDestination = u._surfaceNavDestination;
+                const recoveryIntent = u._surfaceInputIntent
+                    || (Number.isFinite(navDestination?.x) && Number.isFinite(navDestination?.y)
+                        ? {
+                            x: navDestination.x - u.x,
+                            y: navDestination.y - u.y,
                         }
-                        addDirection(candidate.axis.x, candidate.axis.y, 1);
+                        : null);
+                const recoveryIntentLength = Math.hypot(
+                    Number(recoveryIntent?.x) || 0,
+                    Number(recoveryIntent?.y) || 0
+                );
+                const movedFromSafe = Number.isFinite(previousSafeX) && Number.isFinite(previousSafeY)
+                    ? Math.hypot(u.x - previousSafeX, u.y - previousSafeY)
+                    : Infinity;
+                u._surfaceHandoffRecovered = false;
+                const connector = staircase?.wallConnectorSurface?.() || null;
+                const topSegment = staircase?.segments?.length
+                    ? staircase.segments[staircase.segments.length - 1]
+                    : null;
+                const onTopHandoff = surface?.kind === 'stairs'
+                    && connector
+                    && Number(surface?.z) >= (Number(staircase?.targetTopZ) || 0) - 2
+                    && (surface?.connector
+                        || surface?.handoffDown
+                        || surface?.segment === topSegment
+                        || u._elevatedNavigationBridge);
+                let handoffTarget = null;
+                let handoffStage = null;
+                const handoffDirectionAlignment = Math.max(
+                    0.05,
+                    Number(WALL_WALK_CONFIG.surfaceNavigation.portalDirectionMinAlignment)
+                        || 0.15
+                );
+                if (onTopHandoff && recoveryIntentLength > 1e-6) {
+                    const routeStage = u._surfaceRouteStage;
+                    if (routeStage === 'handoff_to_wall') {
+                        handoffTarget = connector.exit;
+                        handoffStage = routeStage;
+                    } else if (routeStage === 'handoff_to_stairs') {
+                        handoffTarget = connector.entry;
+                        handoffStage = routeStage;
+                    } else {
+                        const runX = connector.exit.x - connector.entry.x;
+                        const runY = connector.exit.y - connector.entry.y;
+                        const runLength = Math.hypot(runX, runY);
+                        const alignment = runLength > 1e-6
+                            ? (recoveryIntent.x * runX + recoveryIntent.y * runY)
+                                / (recoveryIntentLength * runLength)
+                            : 0;
+                        if (alignment >= handoffDirectionAlignment) {
+                            handoffTarget = connector.exit;
+                            handoffStage = 'handoff_to_wall';
+                        } else if (alignment <= -handoffDirectionAlignment) {
+                            handoffTarget = connector.entry;
+                            handoffStage = 'handoff_to_stairs';
+                        }
                     }
-                    const intentAngle = Math.atan2(intentY, intentX);
-                    for (const offsetDeg of [0, -15, 15, -30, 30, -45, 45, -60, 60, -90, 90]) {
-                        const angle = intentAngle + offsetDeg * Math.PI / 180;
-                        addDirection(Math.cos(angle), Math.sin(angle), 0);
-                    }
-                    let recovery = null;
-                    for (const distance of [
-                        WALL_WALK_CONFIG.emergencyRecoveryRadius,
-                        WALL_WALK_CONFIG.emergencyRecoveryRadius * 0.5,
-                    ]) {
-                        for (const direction of directions) {
-                            const px = u.x + direction.x * distance;
-                            const py = u.y + direction.y * distance;
+                }
+                if (handoffTarget
+                    && Number.isFinite(movedFromSafe)
+                    && movedFromSafe < 0.05) {
+                    u._surfaceHandoffStuckFrames =
+                        (Number(u._surfaceHandoffStuckFrames) || 0) + 1;
+                } else {
+                    u._surfaceHandoffStuckFrames = 0;
+                }
+                if (handoffTarget
+                    && u._surfaceHandoffStuckFrames
+                        >= WALL_WALK_CONFIG.surfaceNavigation.handoffStuckFrameThreshold) {
+                    const targetDx = handoffTarget.x - u.x;
+                    const targetDy = handoffTarget.y - u.y;
+                    const targetDistance = Math.hypot(targetDx, targetDy);
+                    if (targetDistance > 0.05) {
+                        const recoveryStep = Math.min(
+                            targetDistance,
+                            WALL_WALK_CONFIG.surfaceNavigation.handoffRecoveryStep
+                        );
+                        for (const step of [recoveryStep, recoveryStep * 0.5]) {
+                            if (step < 0.05) continue;
+                            const px = u.x + targetDx / targetDistance * step;
+                            const py = u.y + targetDy / targetDistance * step;
                             const recoveryQuery = querySurfaceAt(px, py);
                             if (!recoveryQuery.surface) continue;
-                            const inputAlignment = intentX * direction.x + intentY * direction.y;
-                            if (inputAlignment < -0.05) continue;
-                            const score = inputAlignment * 10 + direction.bias + distance * 0.01;
-                            if (!recovery || score > recovery.score) {
-                                recovery = {
-                                    x: px,
-                                    y: py,
-                                    surface: recoveryQuery.surface,
-                                    staircase: recoveryQuery.staircase,
-                                    score,
-                                    distance,
-                                };
-                            }
+                            const remainingDistance = Math.hypot(
+                                handoffTarget.x - px,
+                                handoffTarget.y - py
+                            );
+                            if (remainingDistance >= targetDistance - 0.05) continue;
+                            u.x = px;
+                            u.y = py;
+                            surface = recoveryQuery.surface;
+                            staircase = recoveryQuery.staircase;
+                            u._surfaceHandoffRecovered = true;
+                            u._surfaceHandoffRecoveryStage = handoffStage;
+                            u._surfaceHandoffRecoveryDistance = step;
+                            u._surfaceHandoffStuckFrames = 0;
+                            break;
                         }
-                    }
-                    if (recovery) {
-                        u.x = recovery.x;
-                        u.y = recovery.y;
-                        surface = recovery.surface;
-                        staircase = recovery.staircase;
-                        u._surfaceEmergencyRecovered = true;
-                        u._surfaceEmergencyDistance = recovery.distance;
-                        u._surfaceStuckFrames = 0;
                     }
                 }
             }
+            const previousStaircase = u._surfaceStaircase || null;
+            const atStairTop = u._surfaceKind === 'stairs' && previousStaircase
+                && previousZ >= (Number(previousStaircase.targetTopZ) || 0) - 2;
+            const carrierRemoved = (u._surfaceKind === 'wall_walk'
+                && (!u._surfaceWall?.active || u._surfaceWall?._sinking))
+                || (u._surfaceKind === 'stairs' && (!previousStaircase?.active
+                    || (atStairTop && (!previousStaircase.wall?.active
+                        || previousStaircase.wall?._sinking))));
+            if (carrierRemoved) {
+                surface = null;
+                staircase = null;
+                surfaceTransition = {
+                    kind: 'carrier_removed',
+                    fromKind: u._surfaceKind,
+                    toKind: 'ground',
+                    staircase: previousStaircase,
+                };
+                const portal = previousStaircase?.groundPortal?.();
+                if (portal?.groundPoint) {
+                    u.x = portal.groundPoint.x;
+                    u.y = portal.groundPoint.y;
+                }
             }
-            const targetZ = surface ? surface.z : 0;
+            let transitioningToGround = surfaceTransition?.toKind === 'ground';
+            if (!surface && wasElevated && !transitioningToGround) {
+                if (Number.isFinite(previousSafeX) && Number.isFinite(previousSafeY)) {
+                    u.x = previousSafeX;
+                    u.y = previousSafeY;
+                    queried = querySurfaceAt(u.x, u.y);
+                    surface = queried.surface;
+                    staircase = queried.staircase;
+                }
+                if (!surface) {
+                    u._surfaceUnsupportedFrames = (Number(u._surfaceUnsupportedFrames) || 0) + 1;
+                    if (anchorInvalidated || u._surfaceUnsupportedFrames >= 2) {
+                        // 真实拓扑已变化且局部载体/直接邻居均无法恢复：确定性受控落地，
+                        // 禁止永久保留悬空Z和陈旧surface身份。
+                        surfaceTransition = {
+                            kind: 'support_invalidated',
+                            fromKind: u._surfaceKind,
+                            toKind: 'ground',
+                            staircase: previousStaircase,
+                        };
+                        surface = null;
+                        staircase = null;
+                        transitioningToGround = true;
+                        const portal = previousStaircase?.groundPortal?.();
+                        const lastGround = u._elevatedState?.lastGround;
+                        if (portal?.groundPoint) {
+                            u.x = portal.groundPoint.x;
+                            u.y = portal.groundPoint.y;
+                        } else if (Number.isFinite(lastGround?.x)
+                            && Number.isFinite(lastGround?.y)
+                            && Math.hypot(lastGround.x - u.x, lastGround.y - u.y) <= 192
+                            && WallSystem.canMoveTo(lastGround.x, lastGround.y, u.groundRadius || 20)) {
+                            u.x = lastGround.x;
+                            u.y = lastGround.y;
+                        }
+                    } else {
+                        u.z = previousZ;
+                        u._surfaceNavRetryAt = 0;
+                        u._surfaceRouteActive = false;
+                        if (u.collider && typeof u.collider.syncPosition === 'function') {
+                            u.collider.syncPosition();
+                        }
+                        continue;
+                    }
+                }
+            } else {
+                u._surfaceUnsupportedFrames = 0;
+            }
+            let targetZ = surface ? surface.z : 0;
             const currentZ = Math.max(0, Number(u.z) || 0);
             const wasOnStairs = u._surfaceKind === 'stairs';
             const enteringWallFromStairs = wasOnStairs && surface?.kind === 'wall_walk';
+            let enteringStairsFromWall = u._surfaceKind === 'wall_walk'
+                && surface?.kind === 'stairs';
+            if (enteringStairsFromWall && !ElevatedNavigationController.canCrossPortal(
+                u,
+                staircase?.id,
+                'down'
+            )) {
+                // 无路线单位也必须在切面前排队；保持在最后确认的墙顶点，不能先进入楼梯。
+                if (Number.isFinite(previousSafeX) && Number.isFinite(previousSafeY)) {
+                    u.x = previousSafeX;
+                    u.y = previousSafeY;
+                    queried = querySurfaceAt(u.x, u.y);
+                    surface = queried.surface;
+                    staircase = queried.staircase;
+                } else {
+                    surface = null;
+                    staircase = null;
+                }
+                enteringStairsFromWall = false;
+                targetZ = surface ? surface.z : 0;
+            }
+            if (!surfaceTransition && enteringWallFromStairs) {
+                surfaceTransition = {
+                    kind: 'stairs_to_wall',
+                    fromKind: 'stairs',
+                    toKind: 'wall_walk',
+                    staircase: previousStaircase,
+                };
+            } else if (!surfaceTransition && enteringStairsFromWall) {
+                surfaceTransition = {
+                    kind: 'wall_to_stairs',
+                    fromKind: 'wall_walk',
+                    toKind: 'stairs',
+                    staircase,
+                };
+            }
             let z;
-            if (surface?.kind === 'stairs' || enteringWallFromStairs || (!surface && wasOnStairs)) {
-                // 踏步不是连续斜坡：脚底直接贴当前一级顶面，离开底级时也立即回到地面。
+            if (surface?.kind === 'stairs' || enteringWallFromStairs || transitioningToGround) {
+                // 踏步直接贴当前一级顶面；正常情况下只有楼梯下入口允许切回地面。
+                // 承托结构已被拆除/沉陷时允许受控落地，避免保留失效高架身份永久卡死。
                 z = targetZ;
             } else {
                 const seconds = Math.min(0.05, Math.max(0, Number(dt) || 0) / 1000);
@@ -3956,39 +5052,29 @@ export const DefenseSystem = {
                     * Math.min(Math.abs(targetZ - currentZ), speed * seconds);
             }
             u.z = z;
-            u._platformTargetZ = targetZ;
+            u._surfaceTargetZ = targetZ;
             if (u.collider && typeof u.collider.syncPosition === 'function') u.collider.syncPosition();
-            commitElevatedSurfaceIdentity(u, surface, staircase, z);
+            commitElevatedSurfaceIdentity(u, surface, staircase, z, surfaceTransition);
             unifiedElevatedNavigation.commitFlags(u, surface);
+            if (surfaceTransition) {
+                ElevatedNavigationController.onSurfaceTransition(u, surfaceTransition);
+            }
+            ElevatedNavigationController.syncSurfaceOccupancy(u);
             u._surfaceWasSharedSeam = !!surface?.sharedSeam;
             u._surfaceRenderDepth = Number.isFinite(surface?.renderDepth)
                 ? surface.renderDepth
                 : (Number.isFinite(surface?.segment?.y) ? surface.segment.y + 12 : null);
-            u._surfaceMoveAxes = surface?.kind === 'wall_walk'
-                && WALL_WALK_CONFIG.movementMode === 'graph'
-                ? this._wallWalkMoveAxes(surface.wall)
+            u._surfaceMoveAxes = surface?.kind === 'stairs'
+                ? this._stairMoveAxes(staircase, surface)
                 : null;
-            u._surfaceMoveMinAlignment = surface?.kind === 'wall_walk'
-                && WALL_WALK_CONFIG.movementMode === 'graph'
-                ? WALL_WALK_CONFIG.graphMinAlignment
+            u._surfaceMoveMinAlignment = surface?.kind === 'stairs'
+                ? Math.max(
+                    0.05,
+                    Number(WALL_WALK_CONFIG.surfaceNavigation.stairMoveMinAlignment) || 0.2
+                )
                 : null;
-            u._surfacePortalOverrideMargin = surface?.kind === 'wall_walk'
-                && WALL_WALK_CONFIG.movementMode === 'graph'
-                ? WALL_WALK_CONFIG.graphPortalOverrideMargin
-                : null;
-            if (WALL_WALK_CONFIG.movementMode !== 'graph') {
-                u._surfaceMoveChosenAxis = null;
-            }
-            if (surface) {
-                u._surfaceSafeX = u.x;
-                u._surfaceSafeY = u.y;
-                u._surfaceSafeZ = z;
-            }
-            if (window && window.Game && window.Game._devMode && u._onPlatformPrev !== u._onPlatform) {
-                console.log(`[platform] ${u.name || u.id || 'unit'} on=${u._onPlatform}`);
-            }
-            u._platformLiftPrev = u._platformLift;
-            u._onPlatformPrev = u._onPlatform;
+            u._surfacePortalOverrideMargin = null;
+            u._surfaceMoveChosenAxis = null;
         }
     },
 
@@ -4370,6 +5456,8 @@ export const DefenseSystem = {
             }
         }
         monster._defenseMonster = true;
+        monster._elevatedNavigationMode = WALL_WALK_CONFIG.surfaceNavigation
+            .enemyArchetypes?.[type] || null;
         // 防守击杀金币：不走地面掉落物，由 DefenseSystem 结算直接进背包
         monster._noGoldDrop = true;
         monster._defenseGoldMul = DEFENSE_CONFIG.spawn.goldDropMul || 1;
@@ -4454,7 +5542,10 @@ export const DefenseSystem = {
     /** 出售塔：返还 50% 建造能源；武器归还背包（满则原地掉落）；移除实体 */
     sellTower(tower, _player) {
         if (!tower || tower.active === false) return { ok: false, reason: '防御塔已被摧毁' };
-        const refund = Math.floor((DEFENSE_CONFIG.tower.rebuildCost ?? 300) * (DEFENSE_CONFIG.tower.sellRefundRatio ?? 0.5));
+        const durability = Math.max(0, Math.min(1,
+            Number(tower.hp) / Math.max(1, Number(tower.maxHp) || 1)));
+        const refund = Math.floor((tower._buildCost ?? DEFENSE_CONFIG.tower.rebuildCost ?? 300)
+            * (DEFENSE_CONFIG.tower.sellRefundRatio ?? 0.5) * durability);
         if (!EnergyManager || !EnergyManager.canStore(refund)) {
             return { ok: false, reason: '仓库空间不足，无法接收出售返还能源' };
         }
@@ -4813,7 +5904,7 @@ function restoreTrimmedCovers(gate) {
     if (!gate || !gate._trimmedCovers || !WallSystem || !WallSystem.isoSegments) return;
     for (const s of gate._trimmedCovers) {
         if (!s || !s._orig) continue;
-        // 分裂裁墙（射击台）：回收分裂件 + 把原段重新注册（原段已被移除）
+        // 分裂裁墙：回收分裂件并把原段重新注册。
         if (s._splitParts) {
             for (const ns of s._splitParts) {
                 const i = WallSystem.isoSegments.indexOf(ns);
@@ -5049,7 +6140,7 @@ const _CoverGate = {
  *
  * 一个逻辑建筑由 N 个 1×1 楼梯段组成，从底部格沿 e1/e2 轴逐段升高；
  * 当前城墙 topZ=125、每段 rise=62.5，因此自动生成两段。x/y 始终是地面格坐标，
- * z 是单位脚底高度真源；_platformLift 仅作为旧渲染入口的兼容镜像。
+ * z 是单位脚底高度真源。
  */
 const wallStairGroupState = {
     get signature() { return DefenseSystem._wallStairGroupSignature; },
@@ -5065,17 +6156,40 @@ const wallStairGroupRegistry = createWallStairGroupRegistry({
         railGapTolerance: WALL_STAIR_CONFIG.groupRailGapTolerance,
     },
     state: wallStairGroupState,
-    getPlatforms: () => DefenseSystem?.platforms || [],
+    getStaircases: () => DefenseSystem?.staircases || [],
     convexHull: _convexHull,
     isoLocalToWorldDelta,
     worldDeltaToIsoLocal,
 });
-const rebuildWallStairGroups = (staircases = null) =>
-    wallStairGroupRegistry.rebuild(staircases);
+const rebuildWallStairGroups = (staircases = null) => {
+    const result = wallStairGroupRegistry.rebuild(staircases);
+    elevatedTopology.invalidate();
+    return result;
+};
 const ensureWallStairGroups = (staircases = null) =>
     wallStairGroupRegistry.ensure(staircases);
 DefenseSystem.rebuildWallStairGroups = rebuildWallStairGroups;
 DefenseSystem.ensureWallStairGroups = ensureWallStairGroups;
+ElevatedNavigationController.configure({
+    revision: () => DefenseSystem.elevatedNavigationRevision(),
+    stairTrafficKey: (staircaseId) => {
+        const staircase = (DefenseSystem.staircases || []).find((candidate) =>
+            candidate?.active && candidate.id === staircaseId);
+        return staircase ? wallStairGroupId(staircase) : staircaseId;
+    },
+    stairGroupSize: (staircaseId) => {
+        const staircase = (DefenseSystem.staircases || []).find((candidate) =>
+            candidate?.active
+            && (candidate.id === staircaseId
+                || wallStairGroupId(candidate) === staircaseId));
+        return staircase?._wallStairGroupMembers?.filter((member) => member?.active).length || 1;
+    },
+    planRoute: (unit, surfaceTarget) =>
+        DefenseSystem.planSurfaceRouteForUnit(unit, surfaceTarget),
+    replanRoute: (unit, point) =>
+        DefenseSystem.replanSurfaceRouteForUnit(unit, point),
+    trackUnit: (unit) => DefenseSystem.trackElevatedNavigationUnit(unit),
+}, WALL_WALK_CONFIG.surfaceNavigation);
 
 class WallStaircase extends Combatant {
     constructor(x, y, config = {}) {
@@ -5099,7 +6213,6 @@ class WallStaircase extends Combatant {
             name: config.name ?? WALL_STAIR_CONFIG.name,
         });
         this.id = config.id || `wall_staircase_${Math.random().toString(36).slice(2, 7)}`;
-        this._isFiringPlatform = true; // 旧渲染/存档查询兼容
         this._isWallStaircase = true;
         this._dormantBand = true; // 2026-08-19：静态结构进休眠带（1/4 帧率聚合 dt）
         this._isDefenseStructure = true; // 怪物可锁定攻击（防御建筑）
@@ -5115,9 +6228,8 @@ class WallStaircase extends Combatant {
         this.orient = this.dir === 'e1' ? 'h' : 'v';
         this._facingLeft = this.dir === 'e1';
         this.wall = config.wall || null;
-        this.walls = Array.isArray(config.walls) && config.walls.length
-            ? config.walls
-            : collectConnectedWalkableWalls(this.wall);
+        // 存档可继续传入 walls，但运行时连通关系只认 ElevatedTopology 当前版本。
+        this.walls = this.wall ? [this.wall] : [];
         this._wallLine = this.wall?._faceLine || null;
         this._wallSeg = this.wall?._coverSeg || null;
         this.attachPoint = config.attachPoint || (this._wallLine
@@ -5140,8 +6252,8 @@ class WallStaircase extends Combatant {
         const variant = getWallStairVariant(this.dir, this.ascendingSign);
         this.spriteCfg = {
             idleKey: variant?.lower?.texture || 'wall_stair_lower_e2_pos',
-            size: Number(variant?.displayWidth) || FIRING_PLATFORM_VISUAL.w,
-            sizeH: Number(variant?.displayHeight) || FIRING_PLATFORM_VISUAL.h,
+            size: Number(variant?.displayWidth) || WALL_STAIR_VISUAL.w,
+            sizeH: Number(variant?.displayHeight) || WALL_STAIR_VISUAL.h,
             offsetX: 0,
             footOffsetY: 0,
         };
@@ -5157,7 +6269,7 @@ class WallStaircase extends Combatant {
             : this._buildSegments(x, y);
         this.visualSegments = this._buildVisualSegments();
         this._initSegmentColliders();
-        applyFiringPlatformFootprint(this, this.dir);
+        applyWallStairFootprint(this, this.dir);
         setupStructureDepth(this);
         this._registerEdgeSegs();
         this.rebuildCollider();
@@ -5189,7 +6301,7 @@ class WallStaircase extends Combatant {
             segment.z = segment.baseZ;
             segment.elevation = 'ground';
             segment._isWallStairSegment = true;
-            applyFiringPlatformFootprint(segment, this.dir);
+            applyWallStairFootprint(segment, this.dir);
             segment.collider = Collider.fromEntity(segment);
             segment.collider.attach(segment);
             segment.collider.walkSurface = segment.walkSurface || null;
@@ -5281,12 +6393,13 @@ class WallStaircase extends Combatant {
     destroy() {
         this._unregisterEdgeSegs();
         for (const segment of this.segments || []) segment.active = false;
-        if (DefenseSystem && DefenseSystem.platforms) {
-            const i = DefenseSystem.platforms.indexOf(this);
-            if (i >= 0) DefenseSystem.platforms.splice(i, 1);
+        if (DefenseSystem && DefenseSystem.staircases) {
+            const i = DefenseSystem.staircases.indexOf(this);
+            if (i >= 0) DefenseSystem.staircases.splice(i, 1);
         }
         this.active = false;
-        rebuildWallStairGroups(DefenseSystem?.platforms);
+        DefenseSystem?.invalidateElevatedTopology?.();
+        rebuildWallStairGroups(DefenseSystem?.staircases);
     }
 
     takeDamage(damage, source, damageType, isMelee) {
@@ -5301,11 +6414,12 @@ class WallStaircase extends Combatant {
         this._sinking = true;
         this._unregisterEdgeSegs();
         for (const segment of this.segments || []) segment.active = false;
-        if (DefenseSystem && DefenseSystem.platforms) {
-            const i = DefenseSystem.platforms.indexOf(this);
-            if (i >= 0) DefenseSystem.platforms.splice(i, 1);
+        if (DefenseSystem && DefenseSystem.staircases) {
+            const i = DefenseSystem.staircases.indexOf(this);
+            if (i >= 0) DefenseSystem.staircases.splice(i, 1);
         }
-        rebuildWallStairGroups(DefenseSystem?.platforms);
+        DefenseSystem?.invalidateElevatedTopology?.();
+        rebuildWallStairGroups(DefenseSystem?.staircases);
         if (EffectManager) {
             EffectManager.add(new FloatingTextEffect(this.x, this.y - 40, '城墙楼梯被摧毁', '#ff8855'));
             EffectManager.add(new BuildingSinkEffect(this));
@@ -5322,17 +6436,42 @@ class WallStaircase extends Combatant {
             const surface = this.visualSegments[index]?.walkSurface || segment.walkSurface;
             if (!surface) continue;
             // 阻挡线直接使用Blender踏步左右边缘，入口、段间接口和墙顶端保持开放。
-            const isTopSegment = index === this.segments.length - 1;
-            if (isTopSegment && connector) continue; // 上段与转向区共用连接面凸包外边界
             const rails = [
                 [surface.entryA, surface.exitA],
                 [surface.entryB, surface.exitB],
             ];
-            for (const [p1, p2] of rails) {
+            for (let sideIndex = 0; sideIndex < rails.length; sideIndex++) {
+                const [p1, p2] = rails[sideIndex];
                 if (this._isSharedStairRail(p1, p2)) continue;
+                let railStart = p1;
+                let railStartT = 0;
+                if (index === 0 && WALL_STAIR_CONFIG.entryRailInset > 0) {
+                    const railDx = p2.x - p1.x;
+                    const railDy = p2.y - p1.y;
+                    const railLength = Math.hypot(railDx, railDy);
+                    if (railLength > 1e-6) {
+                        const inset = Math.min(
+                            WALL_STAIR_CONFIG.entryRailInset,
+                            railLength * 0.45
+                        );
+                        railStartT = inset / railLength;
+                        railStart = {
+                            x: p1.x + railDx / railLength * inset,
+                            y: p1.y + railDy / railLength * inset,
+                        };
+                    }
+                }
                 const s = {
-                    x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y,
+                    x1: railStart.x,
+                    y1: railStart.y,
+                    x2: p2.x,
+                    y2: p2.y,
                     halfThick: WALL_STAIR_CONFIG.edgeHalfThick,
+                    _surfaceZ1: segment.baseZ
+                        + (segment.topZ - segment.baseZ) * railStartT,
+                    _surfaceZ2: segment.topZ,
+                    _surfaceSegmentIndex: index,
+                    _surfaceSide: sideIndex === 0 ? 'A' : 'B',
                     _stairEdge: true,
                     _owner: this,
                 };
@@ -5341,14 +6480,21 @@ class WallStaircase extends Combatant {
             }
         }
         if (connector) {
-            for (const [p1, p2] of connector.sideRails) {
-                if (this._isSharedStairRail(p1, p2)) continue;
+            for (let railIndex = 0; railIndex < connector.sideRails.length; railIndex++) {
+                const [sourceP1, sourceP2] = connector.sideRails[railIndex];
+                if (this._isSharedStairRail(sourceP1, sourceP2)) continue;
+                const collisionRail = connector.collisionSideRails?.[railIndex];
+                if (!collisionRail) continue;
+                const [p1, p2] = collisionRail;
                 const edge = {
                     x1: p1.x,
                     y1: p1.y,
                     x2: p2.x,
                     y2: p2.y,
                     halfThick: WALL_STAIR_CONFIG.edgeHalfThick,
+                    _surfaceZ1: this.targetTopZ,
+                    _surfaceZ2: this.targetTopZ,
+                    _surfaceConnectorEdge: true,
                     _stairEdge: true,
                     _owner: this,
                 };
@@ -5421,7 +6567,7 @@ class WallStaircase extends Combatant {
             const progress = runLengthSq > 1e-9
                 ? Math.max(0, Math.min(1, (point.u * run.u + point.v * run.v) / runLengthSq))
                 : 0;
-            const staircase = unit?._platformRef === seam.stairB ? seam.stairB : seam.stairA;
+            const staircase = unit?._surfaceStaircase === seam.stairB ? seam.stairB : seam.stairA;
             const other = staircase === seam.stairA ? seam.stairB : seam.stairA;
             let z;
             let segment = null;
@@ -5446,6 +6592,22 @@ class WallStaircase extends Combatant {
             } else {
                 segment = staircase.segments[seam.segmentIndex];
                 if (!segment) continue;
+                const atGroupTop = seam.segmentIndex === staircase.segments.length - 1
+                    && unit?._surfaceKind === 'stairs'
+                    && (Number(unit.z) || 0) >= staircase.targetTopZ - 2;
+                if (atGroupTop) {
+                    const supportedByWall = (staircase._wallStairGroupMembers || [staircase])
+                        .map((member) => member?.wall)
+                        .filter(Boolean)
+                        .some((wall) => blockWallFootprintSupportAt(
+                            unit,
+                            ux,
+                            uy,
+                            Game?.entities,
+                            wall
+                        ));
+                    if (supportedByWall) continue;
+                }
                 const steps = staircase.stepCountPerSegment;
                 stepIndex = Math.min(steps, Math.floor(progress * steps) + 1);
                 z = segment.baseZ + (segment.topZ - segment.baseZ) * stepIndex / steps;
@@ -5455,10 +6617,12 @@ class WallStaircase extends Combatant {
                 z,
                 owner: staircase,
                 staircase,
+                stairGroupId: wallStairGroupId(staircase),
+                stairGroupMembers: staircase._wallStairGroupMembers || [staircase],
                 wall: staircase.wall,
                 walls: Array.from(new Set([
-                    ...(staircase.walls || []),
-                    ...(other.walls || []),
+                    ...staircase.connectedWalls(),
+                    ...other.connectedWalls(),
                 ])),
                 segment,
                 connector: !!seam.connector,
@@ -5483,7 +6647,7 @@ class WallStaircase extends Combatant {
         const wallGeometry = blockWallTopWalkGeometry(this.wall);
         if (!stairExit || !wallGeometry) return null;
         const cacheKey = [
-            'safe-hull-v3',
+            'wall-portal-quad-v6',
             stairExit.entryA.x,
             stairExit.entryA.y,
             stairExit.entryB.x,
@@ -5492,6 +6656,8 @@ class WallStaircase extends Combatant {
             stairExit.exitA.y,
             stairExit.exitB.x,
             stairExit.exitB.y,
+            WALL_STAIR_CONFIG.handoffStairOverlap,
+            WALL_STAIR_CONFIG.connectorRailWallClearance,
             wallGeometry.cacheKey,
         ].join(':');
         if (this._wallConnectorSurface?.cacheKey === cacheKey) {
@@ -5501,6 +6667,11 @@ class WallStaircase extends Combatant {
             x: (stairExit.exitA.x + stairExit.exitB.x) * 0.5,
             y: (stairExit.exitA.y + stairExit.exitB.y) * 0.5,
         };
+        // 墙梯口只能落在正对楼梯的同一条墙顶边上。若分别扫描整块菱形的四条边，
+        // 入口恰好靠近墙角时，两根侧轨可能命中不同边，既生成不了平行护栏，也会留下
+        // 可滑出承托面的角缝。
+        const portalWallEdge = _edgeFacingPoint(wallGeometry.vertices, stairExitMid);
+        if (!portalWallEdge) return null;
         // 目标边保持楼梯顶边宽度，并以墙顶安全中心为中点。
         const exitA = {
             key: 'targetA',
@@ -5512,11 +6683,31 @@ class WallStaircase extends Combatant {
             x: wallGeometry.center.x + (stairExit.exitB.x - stairExitMid.x),
             y: wallGeometry.center.y + (stairExit.exitB.y - stairExitMid.y),
         };
+        const extendTowardStairs = (topPoint, lowerPoint) => {
+            const dx = lowerPoint.x - topPoint.x;
+            const dy = lowerPoint.y - topPoint.y;
+            const length = Math.hypot(dx, dy);
+            if (length <= 1e-6) return { ...topPoint };
+            const overlap = Math.min(
+                WALL_STAIR_CONFIG.handoffStairOverlap,
+                length * 0.35
+            );
+            return {
+                x: topPoint.x + dx / length * overlap,
+                y: topPoint.y + dy / length * overlap,
+            };
+        };
+        const portalEntryA = extendTowardStairs(stairExit.exitA, stairExit.entryA);
+        const portalEntryB = extendTowardStairs(stairExit.exitB, stairExit.entryB);
+        const portalEntry = {
+            x: (portalEntryA.x + portalEntryB.x) * 0.5,
+            y: (portalEntryA.y + portalEntryB.y) * 0.5,
+        };
+        // 接口从墙顶安全边向楼梯顶段内重叠少量距离，让最后一级踏步与墙顶切换区
+        // 没有单帧精度缝；高亮和实际判定继续共用这一个四边形。
         const sourcePoints = [
-            { key: 'upperEntryA', ...stairExit.entryA },
-            { key: 'upperEntryB', ...stairExit.entryB },
-            { key: 'upperExitA', ...stairExit.exitA },
-            { key: 'upperExitB', ...stairExit.exitB },
+            { key: 'portalEntryA', ...portalEntryA },
+            { key: 'portalEntryB', ...portalEntryB },
             exitA,
             exitB,
         ];
@@ -5526,7 +6717,7 @@ class WallStaircase extends Combatant {
             y: 0,
             _pixelFootprintLocal: hull,
         };
-        const entryKeys = new Set(['upperEntryA', 'upperEntryB']);
+        const entryKeys = new Set(['portalEntryA', 'portalEntryB']);
         const targetKeys = new Set(['targetA', 'targetB']);
         const sideRails = [];
         for (let index = 0; index < hull.length; index++) {
@@ -5536,16 +6727,53 @@ class WallStaircase extends Combatant {
                 || (targetKeys.has(a.key) && targetKeys.has(b.key))) continue;
             sideRails.push([a, b]);
         }
+        const collisionRailDetails = sideRails.map(([first, second]) => {
+            // 导航连接面需要深入墙顶安全区，但真实侧轨只能存在于楼梯口到墙顶边界之间。
+            // 按墙顶多边形求首次交点，避免红色碰撞线横穿墙面。
+            const outside = entryKeys.has(first.key) ? first : second;
+            const inside = outside === first ? second : first;
+            const rx = inside.x - outside.x;
+            const ry = inside.y - outside.y;
+            const railLength = Math.hypot(rx, ry);
+            if (railLength <= 1e-6) return null;
+            const wallA = portalWallEdge.a;
+            const wallB = portalWallEdge.b;
+            const sx = wallB.x - wallA.x;
+            const sy = wallB.y - wallA.y;
+            const denominator = rx * sy - ry * sx;
+            if (Math.abs(denominator) <= 1e-8) return null;
+            const qx = wallA.x - outside.x;
+            const qy = wallA.y - outside.y;
+            const t = (qx * sy - qy * sx) / denominator;
+            const u = (qx * ry - qy * rx) / denominator;
+            if (t < -1e-6 || t > 1 + 1e-6 || u < -1e-6 || u > 1 + 1e-6) return null;
+            const boundaryT = Math.max(0, Math.min(1, t));
+            const clearanceT = WALL_STAIR_CONFIG.connectorRailWallClearance / railLength;
+            const endT = Math.max(0, boundaryT - clearanceT);
+            if (endT * railLength <= 0.05) return null;
+            return {
+                rail: [
+                    outside,
+                    {
+                        x: outside.x + rx * endT,
+                        y: outside.y + ry * endT,
+                    },
+                ],
+            };
+        });
+        const collisionSideRails = collisionRailDetails.map((detail) => detail?.rail || null);
         this._wallConnectorSurface = {
             cacheKey,
             footprint,
             hull,
             sideRails,
-            entryA: stairExit.entryA,
-            entryB: stairExit.entryB,
+            collisionSideRails,
+            wallEdgeIndex: portalWallEdge.index,
+            entryA: portalEntryA,
+            entryB: portalEntryB,
             exitA,
             exitB,
-            entry: stairExit.exit,
+            entry: portalEntry,
             exit: {
                 x: (exitA.x + exitB.x) * 0.5,
                 y: (exitA.y + exitB.y) * 0.5,
@@ -5562,7 +6790,8 @@ class WallStaircase extends Combatant {
     navigationBridgeAt(ux, uy, unit = null) {
         const enteringFromWall = unit?._surfaceKind === 'wall_walk';
         const continuingBridge = unit?._surfaceKind === 'stairs'
-            && unit?._platformRef === this
+            && (unit?._surfaceStaircase === this
+                || wallStairsShareGroup(unit?._surfaceStaircase, this))
             && unit?._elevatedNavigationPatch === 'wall-stair-bridge';
         if (!enteringFromWall && !continuingBridge) return null;
         const connector = this.wallConnectorSurface();
@@ -5594,8 +6823,8 @@ class WallStaircase extends Combatant {
             ) / (portalLength * intentLength)
             : null;
         const queryMotion = unit?._surfaceQueryMotionIntent;
-        const safeX = Number(unit?._surfaceSafeX);
-        const safeY = Number(unit?._surfaceSafeY);
+        const safeX = Number(unit?._elevatedState?.lastValidated?.x);
+        const safeY = Number(unit?._elevatedState?.lastValidated?.y);
         const motionDx = Number.isFinite(queryMotion?.x)
             ? queryMotion.x
             : (Number.isFinite(safeX) ? ux - safeX : 0);
@@ -5607,7 +6836,14 @@ class WallStaircase extends Combatant {
             ? (portalDx * motionDx + portalDy * motionDy) / (portalLength * motionLength)
             : null;
         if (enteringFromWall) {
-            const requiredAlignment = WALL_WALK_CONFIG.movementMode === 'graph' ? 0.98 : 0.55;
+            const requiredAlignment = Math.max(
+                0.05,
+                Number(WALL_WALK_CONFIG.surfaceNavigation.portalDirectionMinAlignment) || 0.15
+            );
+            const requiredMotionAlignment = Math.max(
+                0.01,
+                Number(WALL_WALK_CONFIG.surfaceNavigation.portalMotionMinAlignment) || 0.05
+            );
             if (Number.isFinite(safeX) && Number.isFinite(safeY)) {
                 const previousWallDistance = Math.hypot(
                     safeX - wallGeometry.center.x,
@@ -5619,14 +6855,21 @@ class WallStaircase extends Combatant {
                 );
                 if (currentWallDistance <= previousWallDistance + 0.05) return null;
             }
-            if (motionAlignment !== null && motionAlignment < 0.2) return null;
+            if (motionAlignment !== null
+                && motionAlignment < requiredMotionAlignment) return null;
             if (alignment === null || alignment < requiredAlignment) return null;
         } else if (wallSupport
             && motionAlignment !== null
-            && motionAlignment < 0.2) {
+            && motionAlignment < -Math.max(
+                0.01,
+                Number(WALL_WALK_CONFIG.surfaceNavigation.portalMotionMinAlignment) || 0.05
+            )) {
             // 实际位移已回到墙顶时，优先相信位移方向，忽略上一帧残留的下楼输入。
             return null;
-        } else if (alignment !== null && alignment < -0.2) {
+        } else if (alignment !== null && alignment < -Math.max(
+            0.05,
+            Number(WALL_WALK_CONFIG.surfaceNavigation.portalDirectionMinAlignment) || 0.15
+        )) {
             // 已进入捕获带后，停止输入可原地保持；明确反向时立即把控制权还给墙顶。
             return null;
         }
@@ -5645,7 +6888,7 @@ class WallStaircase extends Combatant {
             owner: this,
             staircase: this,
             wall: this.wall,
-            walls: this.walls,
+            walls: this.connectedWalls(),
             segment: topSegment,
             connector: true,
             handoffDown: true,
@@ -5715,7 +6958,7 @@ class WallStaircase extends Combatant {
                 owner: this,
                 staircase: this,
                 wall: this.wall,
-                walls: this.walls,
+                walls: this.connectedWalls(),
                 segment: topSegment,
                 connector: true,
                 progress: 1,
@@ -5743,11 +6986,14 @@ class WallStaircase extends Combatant {
             ) / (portalLength * chosenLength);
             // graph模式要求明确选中Portal轴；surface模式按真实输入走入连接面，
             // 只需确认输入总体朝向楼梯，墙顶联合承托仍会阻止过早切换。
-            const requiredAlignment = WALL_WALK_CONFIG.movementMode === 'graph' ? 0.98 : 0.55;
+            const requiredAlignment = Math.max(
+                0.05,
+                Number(WALL_WALK_CONFIG.surfaceNavigation.portalDirectionMinAlignment) || 0.15
+            );
             if (alignment < requiredAlignment) return null;
             const queryMotion = unit?._surfaceQueryMotionIntent;
-            const safeX = Number(unit?._surfaceSafeX);
-            const safeY = Number(unit?._surfaceSafeY);
+            const safeX = Number(unit?._elevatedState?.lastValidated?.x);
+            const safeY = Number(unit?._elevatedState?.lastValidated?.y);
             const motionDx = Number.isFinite(queryMotion?.x)
                 ? queryMotion.x
                 : (Number.isFinite(safeX) ? ux - safeX : 0);
@@ -5777,7 +7023,11 @@ class WallStaircase extends Combatant {
                 const motionAlignment = (
                     portalDx * motionDx + portalDy * motionDy
                 ) / (portalLength * motionLength);
-                if (motionAlignment < 0.2) return null;
+                const requiredMotionAlignment = Math.max(
+                    0.01,
+                    Number(WALL_WALK_CONFIG.surfaceNavigation.portalMotionMinAlignment) || 0.05
+                );
+                if (motionAlignment < requiredMotionAlignment) return null;
             }
             const connectorCandidate = connectorSurface();
             if (connectorCandidate) return connectorCandidate;
@@ -5795,7 +7045,7 @@ class WallStaircase extends Combatant {
                 owner: this,
                 staircase: this,
                 wall: this.wall,
-                walls: this.walls,
+                walls: this.connectedWalls(),
                 segment: topSegment,
                 handoffDown: true,
                 progress: topCoords.progress,
@@ -5809,6 +7059,22 @@ class WallStaircase extends Combatant {
             const walkSurface = this.visualSegments[index]?.walkSurface || segment.walkSurface;
             const coords = this._walkSurfaceCoordinates(walkSurface, ux, uy);
             if (!coords) continue;
+            const atGroupTop = index === this.segments.length - 1
+                && unit?._surfaceKind === 'stairs'
+                && (Number(unit.z) || 0) >= this.targetTopZ - 2;
+            if (atGroupTop) {
+                const supportedByWall = (this._wallStairGroupMembers || [this])
+                    .map((member) => member?.wall)
+                    .filter(Boolean)
+                    .some((wall) => blockWallFootprintSupportAt(
+                        unit,
+                        ux,
+                        uy,
+                        Game?.entities,
+                        wall
+                    ));
+                if (supportedByWall) continue;
+            }
             const steps = this.stepCountPerSegment;
             const stepIndex = Math.min(steps, Math.floor(coords.progress * steps) + 1);
             const segmentRise = segment.topZ - segment.baseZ;
@@ -5818,7 +7084,7 @@ class WallStaircase extends Combatant {
                 owner: this,
                 staircase: this,
                 wall: this.wall,
-                walls: this.walls,
+                walls: this.connectedWalls(),
                 segment,
                 progress: coords.progress,
                 across: coords.across,
@@ -5835,12 +7101,28 @@ class WallStaircase extends Combatant {
     routePoints(target = null, targetSegmentIndex = null) {
         const points = [];
         const first = this.visualSegments[0]?.walkSurface;
-        if (first) {
+        const groundPortal = this.groundPortal();
+        const routeGroundPoint = groundPortal
+            ? stairGroupGroundPoint(
+                this,
+                groundPortal.entry,
+                Math.max(
+                    8,
+                    Number(WALL_WALK_CONFIG.surfaceNavigation.portalEntryRadius) || 14
+                )
+            )
+            : null;
+        if (first && routeGroundPoint) {
             points.push({
-                x: first.entry.x,
-                y: first.entry.y,
+                x: routeGroundPoint.x,
+                y: routeGroundPoint.y,
                 z: this.segments[0]?.baseZ || 0,
-                surfaceKind: 'stairs',
+                // 地面节点必须位于楼梯边界外；上楼和下楼都会真实穿过同一个Portal，
+                // 不能停在surfaceAt仍返回第一级踏步的entry边界上。
+                surfaceKind: 'ground',
+                staircaseId: this.id,
+                stairGroupId: wallStairGroupId(this),
+                portalKind: 'ground',
             });
         }
         for (let index = 0; index < this.segments.length; index++) {
@@ -5853,18 +7135,28 @@ class WallStaircase extends Combatant {
                 y: surface.exit.y,
                 z: segment.topZ,
                 surfaceKind: 'stairs',
+                staircaseId: this.id,
+                stairGroupId: wallStairGroupId(this),
+                transition: index === 0 ? 'ground_to_stairs' : 'stair_traverse',
             });
         }
-        if (target) points.push({ ...target });
+        if (target) points.push({
+            ...target,
+            stairGroupId: target.stairGroupId || wallStairGroupId(this),
+        });
         return points;
     }
 
-    isOnPlatform(ux, uy) {
-        return !!this.surfaceAt(ux, uy);
+    /** 楼梯底部唯一的地面转换门户，几何完全来自首段walkSurface。 */
+    groundPortal() {
+        return stairGroundPortal(
+            this,
+            Math.max(8, Number(WALL_WALK_CONFIG.surfaceNavigation.portalEntryRadius) || 14)
+        );
     }
 
-    getLift(ux, uy) {
-        return this.surfaceAt(ux, uy)?.z || 0;
+    connectedWalls() {
+        return liveWallsForStaircase(this, Game?.entities);
     }
 
     /** 顶段中心世界坐标。 */
@@ -5873,9 +7165,6 @@ class WallStaircase extends Combatant {
         return top ? { x: top.x, y: top.y, z: top.topZ } : { x: this.x, y: this.y, z: this.targetTopZ };
     }
 }
-
-// 旧存档/跨模块导入兼容：读取历史 platform 时仍指向新楼梯实现。
-const FiringPlatform = WallStaircase;
 
 class BuildableGate extends Combatant {
     constructor(x, y, config = {}) {
@@ -6231,6 +7520,6 @@ class BuildableGate extends Combatant {
 // _setRepairHeld / _repairTick 方法体保留备用，此处不再注册任何监听器。
 
 export {
-    DefenseBase, DefenseCover, DefenseTower, BuildableGate, WallStaircase, FiringPlatform,
+    DefenseBase, DefenseCover, DefenseTower, BuildableGate, WallStaircase,
     GATE_GEOM, GATE4_VISUAL, GATE_GRADES, gateConfigFor, GATE_CONFIG, syncGateSeamDepths,
 };

@@ -117,7 +117,7 @@ export class FlameArmorSystem {
             + (d.int ?? 0) * (effect.hitIntMul ?? 0)) * (mul || 1));
         if (damage <= 0) return;
         const wasAlive = target.hp > 0;
-        target.takeDamage(damage, src, 'magic');
+        target.takeDamage(damage, src, 'magic', false);
         this._spawnSparks(target.x, target.y);
         this._acc.hits++;
         if (wasAlive && target.hp <= 0 && !target._summoned) this._acc.kills++;
@@ -140,7 +140,7 @@ export class FlameArmorSystem {
             if (e._faction === src._faction) continue;
             if (!shape.intersectsEntity(e)) continue;
             const wasAlive = e.hp > 0;
-            e.takeDamage(damage, src, 'magic');
+            e.takeDamage(damage, src, 'magic', false);
             this._spawnSparks(e.x, e.y);
             tickHits++;
             this._acc.hits++;

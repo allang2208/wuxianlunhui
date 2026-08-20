@@ -12,6 +12,7 @@ import { buildSkillMap, restoreSkills, grantCompanionSkillExp } from '../systems
 import COMBAT_FORMULAS from '../../data/combat-formulas.json';
 import companionConfigData from '../../data/companion-config.json';
 import { EnergyManager } from '../systems/energy-manager.js';
+import { canMeleeShareSurface } from '../combat/melee-surface.js';
 
 const ATTR_KEYS = ['str', 'dex', 'int', 'con', 'wis', 'luck'];
 
@@ -317,9 +318,25 @@ export class Companion {
      * 否则照常掉血。敌人当前不主动攻击队友，此方法供未来仇恨/范围伤害链路复用。
      * @returns {{damage:number, parried:boolean}}
      */
-    takeDamage(damage, attacker, _damageType = 'physical', isMelee = true) {
+    takeDamage(damage, attacker, damageType = 'physical', isMelee = true) {
+        // 必须在暴击、盾反、击退和修炼奖励之前关门，避免跨层攻击产生任何副作用。
+        if (isMelee && attacker && !canMeleeShareSurface(attacker, this)) {
+            return { damage: 0, parried: false, critical: false, blockedBySurface: true };
+        }
         const d = this.data;
-        const raw = Math.max(0, damage || 0);
+        let raw = Math.max(0, Number(damage) || 0);
+        const finalCritRate = Math.max(
+            0,
+            (Number(attacker?.data?.crit) || 0) - (Number(d.critRes) || 0)
+        );
+        const critical = Math.random() * 100 < finalCritRate;
+        if (critical) raw *= 1.5;
+        const defense = damageType === 'magic' || damageType === 'electric'
+            ? Math.max(0, Number(d.mdef) || 0)
+            : Math.max(0, Number(d.def) || 0);
+        const reduction = defense / (defense + 60);
+        const minimum = Math.floor(raw * 0.1);
+        const mitigated = Math.max(minimum, Math.floor(raw * (1 - reduction)));
         if (this._defending) {
             const shieldData = this._getShieldData();
             const defense = (shieldData && shieldData.defense) || {};

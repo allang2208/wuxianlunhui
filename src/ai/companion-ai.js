@@ -10,9 +10,10 @@
 import { MovementSystem } from '../systems/movement-system.js';
 import { WallSystem } from '../world/wall-system.js';
 import { clearRtsSurfaceRoute, resolveRtsMoveDestination } from './rts-command-utils.js';
+import { canMeleeReachElevation } from './elevated-navigation-controller.js';
 import { GroundCircle } from '../physics/skill-shapes.js';
-import { SceneManager } from '../world/scene-manager.js';
 import { surfaceEffectFromEntity } from '../physics/elevation.js';
+import { SceneManager } from '../world/scene-manager.js';
 import { DungeonMapSystem } from '../world/dungeon-map-system.js';
 import { FireballSystem } from '../entities/components/fireball-system.js';
 import { IceSpikeSystem } from '../entities/components/ice-spike-system.js';
@@ -380,7 +381,8 @@ export class CompanionAI {
      */
     _checkStuck(dt, player) {
         const c = this.c;
-        if (c._surfaceRouteActive
+        if (c._surfaceNavWaiting
+            || c._surfaceRouteActive
             || c._surfaceKind === 'stairs'
             || c._surfaceKind === 'wall_walk') {
             this._stuckSamples.length = 0;
@@ -426,7 +428,8 @@ export class CompanionAI {
     /** 瞬移脱离卡死位置：优先卡死点附近"更靠近玩家"的合法点，否则玩家附近合法点 */
     _teleportStuck(player) {
         const c = this.c;
-        if (c._surfaceRouteActive
+        if (c._surfaceNavWaiting
+            || c._surfaceRouteActive
             || c._surfaceKind === 'stairs'
             || c._surfaceKind === 'wall_walk') return;
         this._teleportCd = 4000;
@@ -681,7 +684,7 @@ export class CompanionAI {
     /** 非 follow 指令主入口（决策 tick 调用）：aggressive / patrol / gather / hold */
     _applyCommand(entities, player, cmd) {
         const c = this.c;
-        if (cmd.mode !== 'move') c._surfaceRouteActive = false;
+        if (cmd.mode !== 'move' && !c._surfaceNavCommand) clearRtsSurfaceRoute(c);
         // 剑盾近战（伊莉丝）：指令走近战分支（aggressive/patrol 追击近战，gather 无远程回落跟随）
         if ((this.cfg.role || '').startsWith('melee')) {
             this._applyWarriorCommand(entities, player, cmd);
@@ -1105,7 +1108,9 @@ export class CompanionAI {
         const meleeRange = cfg.meleeRange || 165;
         const engageRange = cfg.engageRange || 460;
 
-        if (c.target && targetDist !== null && targetDist <= meleeRange + (c.target.groundRadius || 20)) {
+        if (c.target && targetDist !== null
+            && targetDist <= meleeRange + (c.target.groundRadius || 20)
+            && canMeleeReachElevation(c, c.target)) {
             if (this._basicAtkCd <= 0) {
                 this._tryMeleeAttack(c.target);
                 return;
@@ -1151,7 +1156,7 @@ export class CompanionAI {
     /** 剑盾近战指令：aggressive 全图追击；patrol 圈内反击/游走；hold 待命；gather 近战采集 */
     _applyWarriorCommand(entities, player, cmd) {
         const c = this.c;
-        if (cmd.mode !== 'move') c._surfaceRouteActive = false;
+        if (cmd.mode !== 'move' && !c._surfaceNavCommand) clearRtsSurfaceRoute(c);
         // 待命/移动：立即打断攻击/防御/风车（否则要等 1.5~3s 动画播完才生效；
         // 移动=玩家右键最高优先级指令，先清掉一切进行中的指令状态再执行）
         if (cmd.mode === 'hold' || cmd.mode === 'move') {
@@ -1273,7 +1278,9 @@ export class CompanionAI {
         if (c.target && (!c.target.active || c.target.hp <= 0)) c.target = null;
         if (!c.target) c.target = this._pickMeleeTarget(enemies, c);
         const d = c.target ? Math.hypot(c.target.x - c.x, c.target.y - c.y) : null;
-        if (c.target && d !== null && d <= (cfg.meleeRange || 165) + (c.target.groundRadius || 20)) {
+        if (c.target && d !== null
+            && d <= (cfg.meleeRange || 165) + (c.target.groundRadius || 20)
+            && canMeleeReachElevation(c, c.target)) {
             if (this._basicAtkCd <= 0) { this._tryMeleeAttack(c.target); return; }
             c.vx = 0; c.vy = 0; c.isMoving = false;
             c._animState = 'idle';
@@ -1413,7 +1420,7 @@ export class CompanionAI {
         const effect = skill.getEffect(skill.level);
         const radius = (effect.radius || 120) + (effect.swordRadiusBonus || 80);
         return shouldWarriorWhirlwind({
-            enemies,
+            enemies: enemies.filter((enemy) => canMeleeReachElevation(c, enemy)),
             cx: c.x, cy: c.y,
             range: radius,
             minTargets: cfg.whirlwindMinTargets || 2,
@@ -1453,10 +1460,11 @@ export class CompanionAI {
         let hitCount = 0, killCount = 0;
         for (const e of this._activeEnemies(entities)) {
             if (!e || this._whirlwindHitSet.has(e)) continue;
+            if (!canMeleeReachElevation(c, e)) continue;
             if (!shape.intersectsEntity(e)) continue;
             this._whirlwindHitSet.add(e);
             const wasAlive = e.hp > 0;
-            if (typeof e.takeDamage === 'function') e.takeDamage(finalDamage, c, 'physical');
+            if (typeof e.takeDamage === 'function') e.takeDamage(finalDamage, c, 'physical', true);
             if (wasAlive && e.hp <= 0) killCount++;
             hitCount++;
             if (typeof e.applyKnockback === 'function') {
@@ -1532,9 +1540,9 @@ export class CompanionAI {
         const d = Math.hypot(t.x - c.x, t.y - c.y);
         const range = (this.cfg.meleeRange || 165) + (t.groundRadius || 20);
         if (d > range + 20) return; // 目标走出范围：空挥
-        if (Math.abs((Number(c.z) || 0) - (Number(t.z) || 0)) > (Number(c.meleeVerticalReach) || 48)) return;
+        if (!canMeleeReachElevation(c, t)) return;
         const dmg = Math.max(1, Math.floor((c.data.atk || 0) * (this.cfg.attackDamageMul || 1.25)));
-        if (typeof t.takeDamage === 'function') t.takeDamage(dmg, c, 'physical');
+        if (typeof t.takeDamage === 'function') t.takeDamage(dmg, c, 'physical', true);
         // 普通攻击眩晕：与玩家近战一段同口径（attackStunMs，默认 1000ms，
         // 对应 public/data/weapon-anim-config.json sword.attack.hitCheck.stunMs），
         // 仅普通类型怪物有效（rank 缺省视为 normal，精英/领主/minor 不受影响）
@@ -1732,7 +1740,7 @@ export class CompanionAI {
         }
         if (hit) {
             const dmg = Math.max(1, Math.floor((c.data.matk || 0) * (this.cfg.basicAttackDamageMul || 1.0)));
-            if (typeof hit.takeDamage === 'function') hit.takeDamage(dmg, c, 'magic');
+            if (typeof hit.takeDamage === 'function') hit.takeDamage(dmg, c, 'magic', false);
             EffectManager.add(new FloatingTextEffect(hit.x, hit.y - 30, `-${dmg}`, '#6ab0ff'));
             this._lastAttackAt = Date.now(); // 命中 → 明确造成伤害
             c._basic = null;
@@ -1834,11 +1842,11 @@ export class CompanionAI {
         const now = Date.now();
         if (this._followCache && now - this._followCache.t < 500) return this._followCache.p;
         // 跟随点优先走合法落点（避免目标点在墙内导致寻路失败/卡墙）
-        let best = { x: player.x + dir * off, y: player.y + 34 };
+        let best = { x: player.x + dir * off, y: player.y + 34, _surfaceTarget: player };
         if (WallSystem && typeof WallSystem.canMoveTo === 'function') {
             const radius = (this.c.groundRadius || 26) * 0.8;
             if (!WallSystem.canMoveTo(best.x, best.y, radius)) {
-                best = this._findValidSpawn(player);
+                best = { ...this._findValidSpawn(player), _surfaceTarget: player };
             }
         }
         this._followCache = { t: now, p: best };

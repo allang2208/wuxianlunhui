@@ -183,7 +183,7 @@ export class HamsterPriestAI {
     /** RTS 指令：移动/待命优先于自动施法；指定攻击用圣光锁定目标。 */
     _applyCommand(command) {
         const m = this.m;
-        if (command.mode !== 'move') clearRtsSurfaceRoute(m);
+        if (command.mode !== 'move' && !m._surfaceNavCommand) clearRtsSurfaceRoute(m);
         if (command.mode === 'move') {
             m.target = null;
             const move = resolveRtsMoveDestination(m, command);
@@ -354,7 +354,11 @@ export class HamsterPriestAI {
             this._stop();
             return;
         }
-        const target = { x: player.x - (this.cfg.followOffset ?? 150), y: player.y };
+        const target = {
+            x: player.x - (this.cfg.followOffset ?? 150),
+            y: player.y,
+            _surfaceTarget: player,
+        };
         if (Math.hypot(target.x - m.x, target.y - m.y) <= (this.cfg.followArriveDist ?? 40)) {
             this._stop();
             return;
@@ -379,6 +383,14 @@ export class HamsterPriestAI {
 
     _checkStuck(dt) {
         const m = this.m;
+        if (m._surfaceNavWaiting || m._surfaceRouteActive
+            || m._surfaceKind === 'stairs' || m._surfaceKind === 'wall_walk') {
+            this._stuckTimer = 0;
+            this._stuckStreak = 0;
+            this._lastPosX = m.x;
+            this._lastPosY = m.y;
+            return;
+        }
         if (m._animState !== 'walk') {
             this._stuckTimer = 0;
             this._lastPosX = m.x;

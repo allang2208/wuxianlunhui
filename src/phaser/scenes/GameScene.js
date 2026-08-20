@@ -53,7 +53,13 @@ import { ExpeditionSystem } from '../../ui/expedition-system.js';
 import { getCastSpeedMultiplier } from '../../utils/magic-craft-helper.js';
 import { burstParticles } from '../../effects/combat-fx.js';
 import { GunFeel } from '../../effects/gunfeel.js';
-import { DEFENSE_TOWER_VISUAL, DefenseSystem } from '../../world/defense-system.js';
+import {
+    DEFENSE_TOWER_VISUAL,
+    DefenseSystem,
+    WALL_WALK_CONFIG,
+    blockWallTopWalkGeometry,
+} from '../../world/defense-system.js';
+import { stairGroupGroundPortal } from '../../world/unified-elevated-navigation.js';
 import {
     applyFittedBuildingFootprint,
     getBuildingFootprint,
@@ -180,6 +186,8 @@ export class GameScene extends Scene {
         this.screenHudGraphics.setScrollFactor(0);
         // 碰撞体积可视化（点击左下角“范围”按钮后显示半透明红圈）
         this._collisionRadiusGraphics = null;
+        this._elevatedNavigationRangeGraphics = null;
+        this._elevatedNavigationRangeLabel = null;
         // 无专属 Phaser Sprite 的实体（训练靶/NPC）通用渲染容器
         this._neutralSprites = new Map();
         // 防御塔三层渲染（基座/机械臂/挂载武器）
@@ -497,6 +505,259 @@ export class GameScene extends Scene {
         // 这里只改 Phaser 可见性/占地投影，不改实体、碰撞、寻路或高度语义。
         FlatViewSystem.sync(this, _game, WallSystem);
         this._updateCamera();
+    }
+
+    /** 左下角“范围”开关：显示墙顶、楼梯、共享缝、Portal 和真实侧轨。 */
+    _syncElevatedNavigationRanges(_game, show) {
+        if (!show || !DefenseSystem?.active || !_game?.entities) {
+            if (this._elevatedNavigationRangeGraphics) {
+                this._elevatedNavigationRangeGraphics.clear();
+                this._elevatedNavigationRangeGraphics.setVisible(false);
+            }
+            if (this._elevatedNavigationRangeLabel) {
+                this._elevatedNavigationRangeLabel.setVisible(false);
+            }
+            return;
+        }
+        if (!this._elevatedNavigationRangeGraphics) {
+            this._elevatedNavigationRangeGraphics = this.add.graphics();
+            this._elevatedNavigationRangeGraphics.setDepth(99998);
+        }
+        const g = this._elevatedNavigationRangeGraphics;
+        g.clear();
+        g.setVisible(true);
+        const debug = DefenseSystem.debugElevatedNavigationGeometry?.(_game.entities);
+        if (!debug) return;
+
+        const drawPolygon = (
+            points,
+            fillColor = 0x20ff70,
+            fillAlpha = 0.12,
+            lineColor = 0x39ff7a,
+            lineAlpha = 0.9,
+            lineWidth = 1.5
+        ) => {
+            if (!Array.isArray(points) || points.length < 3) return;
+            g.fillStyle(fillColor, fillAlpha);
+            g.lineStyle(lineWidth, lineColor, lineAlpha);
+            g.beginPath();
+            g.moveTo(points[0].x, points[0].y);
+            for (let index = 1; index < points.length; index++) {
+                g.lineTo(points[index].x, points[index].y);
+            }
+            g.closePath();
+            if (fillAlpha > 0) g.fillPath();
+            g.strokePath();
+        };
+        const drawLine = (from, to, color, alpha = 1, width = 1.5) => {
+            if (!from || !to) return;
+            g.lineStyle(width, color, alpha);
+            g.beginPath();
+            g.moveTo(from.x, from.y);
+            g.lineTo(to.x, to.y);
+            g.strokePath();
+        };
+        const elevated = (point, z) => ({
+            x: point.x,
+            y: point.y - (Number(z) || 0),
+        });
+
+        // 墙顶主面、两墙连接面与四墙交汇面：绿色区域就是统一高架查询的几何真源。
+        for (const wall of debug.walls || []) {
+            const geometry = blockWallTopWalkGeometry(wall);
+            if (!geometry?.vertices?.length) continue;
+            const topZ = Number(wall._wallTopZ) || WALL_WALK_CONFIG.defaultTopZ;
+            drawPolygon(geometry.vertices.map((point) => elevated(point, topZ)));
+        }
+        for (const connector of debug.wallConnectors || []) {
+            drawPolygon(
+                (connector.vertices || []).map((point) => elevated(point, connector.topZ)),
+                0x43ff83,
+                0.18,
+                0x8dffb2,
+                1,
+                2
+            );
+        }
+        for (const junction of debug.wallJunctions || []) {
+            drawPolygon(
+                (junction.vertices || []).map((point) => elevated(point, junction.topZ)),
+                0x43ff83,
+                0.24,
+                0xb8ffd0,
+                1,
+                2
+            );
+        }
+        // 墙顶红线只画连续墙面的真实外轮廓；共享墙边和楼梯入口边不会生成。
+        for (const guard of debug.wallGuards || []) {
+            drawLine(
+                elevated({ x: guard.x1, y: guard.y1 }, guard._surfaceZ1),
+                elevated({ x: guard.x2, y: guard.y2 }, guard._surfaceZ2),
+                0xff3355,
+                0.95,
+                2
+            );
+        }
+
+        const seenSeams = new Set();
+        const seenGroups = new Set();
+        for (const staircase of debug.staircases || []) {
+            for (let index = 0; index < (staircase.segments || []).length; index++) {
+                const segment = staircase.segments[index];
+                const surface = staircase.visualSegments?.[index]?.walkSurface
+                    || segment?.walkSurface;
+                if (!segment || !surface) continue;
+                drawPolygon([
+                    elevated(surface.entryA, segment.baseZ),
+                    elevated(surface.entryB, segment.baseZ),
+                    elevated(surface.exitB, segment.topZ),
+                    elevated(surface.exitA, segment.topZ),
+                ]);
+            }
+
+            // 相邻楼梯之间真正补上的共享面；没有此绿色区域就仍然存在几何暗缝。
+            for (const seam of staircase._sharedStairSurfaces || []) {
+                if (!seam || seenSeams.has(seam)) continue;
+                seenSeams.add(seam);
+                const segment = staircase.segments?.[seam.segmentIndex];
+                const entryZ = seam.connector
+                    ? staircase.targetTopZ
+                    : (Number(segment?.baseZ) || 0);
+                const exitZ = seam.connector
+                    ? staircase.targetTopZ
+                    : (Number(segment?.topZ) || entryZ);
+                const seamFill = seam.connector ? 0x00ff55 : 0x55ff99;
+                const seamLine = seam.connector ? 0x00ff66 : 0xb0ffd0;
+                drawPolygon([
+                    elevated(seam.railA[0], entryZ),
+                    elevated(seam.railB[0], entryZ),
+                    elevated(seam.railB[1], exitZ),
+                    elevated(seam.railA[1], exitZ),
+                ], seamFill, seam.connector ? 0.16 : 0.22, seamLine, 1,
+                seam.connector ? 2.5 : 2);
+            }
+
+            const wallConnector = staircase.wallConnectorSurface?.();
+            if (wallConnector?.hull?.length) {
+                drawPolygon(
+                    wallConnector.hull.map((point) => elevated(point, staircase.targetTopZ)),
+                    0x00ff55,
+                    0.16,
+                    0x00ff66,
+                    1,
+                    2.5
+                );
+            }
+
+            // 楼梯红线仅保留真实外侧侧轨；组内侧轨已经被删除，因此不会显示。
+            for (const edge of staircase._edgeSegs || []) {
+                drawLine(
+                    elevated({ x: edge.x1, y: edge.y1 }, edge._surfaceZ1),
+                    elevated({ x: edge.x2, y: edge.y2 }, edge._surfaceZ2),
+                    0xff3355,
+                    0.95,
+                    2
+                );
+            }
+
+            const groupId = staircase._wallStairGroupId || staircase.id;
+            if (seenGroups.has(groupId)) continue;
+            seenGroups.add(groupId);
+            const portal = stairGroupGroundPortal(
+                staircase,
+                WALL_WALK_CONFIG.surfaceNavigation.portalEntryRadius
+            );
+            if (!portal) continue;
+            const margin = Math.max(
+                2,
+                Number(WALL_WALK_CONFIG.surfaceNavigation.portalCaptureMargin) || 18
+            );
+            const halfWidth = portal.halfWidth + margin;
+            const portalPoint = (along, across) => ({
+                x: portal.entry.x
+                    + portal.axisX * along
+                    + portal.acrossAxisX * across,
+                y: portal.entry.y
+                    + portal.axisY * along
+                    + portal.acrossAxisY * across,
+            });
+            drawPolygon([
+                portalPoint(-margin, -halfWidth),
+                portalPoint(margin, -halfWidth),
+                portalPoint(margin, halfWidth),
+                portalPoint(-margin, halfWidth),
+            ], 0x00ff55, 0.16, 0x00ff66, 1, 2.5);
+            drawLine(portal.groundPoint, portal.entry, 0x00ff66, 1, 2);
+        }
+
+        // 当前单位脚底状态：红=被夹回/排队，绿=已提交高架身份，黄=仍是地面身份。
+        const unit = _game.player;
+        if (unit?.active) {
+            const portalDebug = unit._surfacePortalDebug
+                && Date.now() - (Number(unit._surfacePortalDebug.at) || 0) <= 500
+                ? unit._surfacePortalDebug
+                : null;
+            const blocked = unit._surfaceSweepClamped
+                || unit._surfaceNavWaiting
+                || portalDebug?.status === 'rejected';
+            const elevatedUnit = unit._surfaceKind === 'stairs' || unit._surfaceKind === 'wall_walk';
+            const color = blocked ? 0xff2244 : (elevatedUnit ? 0x00ff66 : 0xffdd33);
+            g.lineStyle(3, color, 1);
+            g.strokeCircle(unit.x, unit.y - (Number(unit.z) || 0), 8);
+            if (portalDebug) {
+                const portalColor = portalDebug.status === 'accepted'
+                    ? 0x00ff66
+                    : 0xff2244;
+                g.fillStyle(portalColor, 0.9);
+                g.fillCircle(
+                    portalDebug.x,
+                    portalDebug.y,
+                    4
+                );
+            }
+            const lastValidated = unit._elevatedState?.lastValidated;
+            if (lastValidated) {
+                g.lineStyle(1.5, 0xaaffcc, 0.9);
+                g.strokeCircle(
+                    lastValidated.x,
+                    lastValidated.y - (Number(lastValidated.z) || 0),
+                    5
+                );
+            }
+            if (!this._elevatedNavigationRangeLabel) {
+                this._elevatedNavigationRangeLabel = this.add.text(0, 0, '', {
+                    fontFamily: 'SimHei, "Microsoft YaHei", sans-serif',
+                    fontSize: '12px',
+                    color: '#ffffff',
+                    backgroundColor: 'rgba(0, 0, 0, 0.78)',
+                    padding: { x: 5, y: 3 },
+                });
+                this._elevatedNavigationRangeLabel.setOrigin(0.5, 1);
+                this._elevatedNavigationRangeLabel.setDepth(100000);
+            }
+            const kindLabel = unit._surfaceKind === 'stairs'
+                ? '楼梯'
+                : (unit._surfaceKind === 'wall_walk' ? '墙顶' : '地面');
+            const reasonLabel = portalDebug?.status === 'rejected'
+                ? (portalDebug.reason === 'portal_geometry'
+                    ? ' | 拒绝:入口几何'
+                    : ' | 拒绝:通行许可')
+                : (portalDebug?.status === 'accepted' ? ' | 入口已接受' : '');
+            const groupSize = unit._surfaceStairGroupMembers?.length || 0;
+            this._elevatedNavigationRangeLabel
+                .setText(
+                    `${kindLabel} Z:${Math.round(Number(unit.z) || 0)}`
+                    + ` 候选:${Number(unit._surfaceCandidateCount) || 0}`
+                    + (groupSize > 1 ? ` 楼梯组:${groupSize}` : '')
+                    + reasonLabel
+                )
+                .setColor(blocked ? '#ff5570' : (elevatedUnit ? '#66ff99' : '#ffe066'))
+                .setPosition(unit.x, unit.y - (Number(unit.z) || 0) - 14)
+                .setVisible(true);
+        } else if (this._elevatedNavigationRangeLabel) {
+            this._elevatedNavigationRangeLabel.setVisible(false);
+        }
     }
 
     /**
@@ -5916,6 +6177,7 @@ export class GameScene extends Scene {
     _syncCollisionRadii(_game) {
         if (!_game || !_game.entities) return;
         const show = _game.showAttackRange;
+        this._syncElevatedNavigationRanges(_game, show);
         if (!show) {
             if (this._collisionRadiusGraphics) {
                 this._collisionRadiusGraphics.clear();

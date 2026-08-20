@@ -10,6 +10,7 @@ import { WallSystem } from '../world/wall-system.js';
 import { SoundManager } from '../ui/sound-manager.js';
 import { EffectFactory } from '../utils/effect-factory.js';
 import { clearRtsSurfaceRoute, resolveRtsMoveDestination } from './rts-command-utils.js';
+import { canMeleeReachElevation } from './elevated-navigation-controller.js';
 
 export class HamsterKnightAI {
     constructor(knight) {
@@ -105,12 +106,13 @@ export class HamsterKnightAI {
             const range = this._attackRange + (enemy.groundRadius || 24);
             const charge = this._chargeConfig();
             if (this._chargeCooldown <= 0
+                && canMeleeReachElevation(m, enemy)
                 && distance > (charge.minTriggerRange ?? 0)
                 && distance <= (charge.triggerRange ?? 550) + (enemy.groundRadius || 24)) {
                 this._startCharge(enemy);
                 return;
             }
-            if (distance <= range) {
+            if (distance <= range && canMeleeReachElevation(m, enemy)) {
                 m._tacticalTarget = null;
                 m.rotation = Math.atan2(enemy.y - m.y, enemy.x - m.x);
                 m._lastFaceRight = enemy.x >= m.x;
@@ -130,7 +132,7 @@ export class HamsterKnightAI {
 
     _applyCommand(command) {
         const m = this.m;
-        if (command.mode !== 'move') clearRtsSurfaceRoute(m);
+        if (command.mode !== 'move' && !m._surfaceNavCommand) clearRtsSurfaceRoute(m);
         if (command.mode === 'move') {
             m.target = null;
             const move = resolveRtsMoveDestination(m, command);
@@ -158,10 +160,11 @@ export class HamsterKnightAI {
             const range = this._attackRange + (target.groundRadius || 24);
             const charge = this._chargeConfig();
             if (this._chargeCooldown <= 0
+                && canMeleeReachElevation(m, target)
                 && distance > (charge.minTriggerRange ?? 0)
                 && distance <= (charge.triggerRange ?? 550) + (target.groundRadius || 24)) {
                 this._startCharge(target);
-            } else if (distance <= range) {
+            } else if (distance <= range && canMeleeReachElevation(m, target)) {
                 m.rotation = Math.atan2(target.y - m.y, target.x - m.x);
                 m._lastFaceRight = target.x >= m.x;
                 if (this._attackTimer <= 0) this._startSwing(target);
@@ -183,7 +186,7 @@ export class HamsterKnightAI {
             this._stopAtTarget();
             return;
         }
-        const target = { x: player.x - this._followOffset, y: player.y };
+        const target = { x: player.x - this._followOffset, y: player.y, _surfaceTarget: player };
         if (Math.hypot(target.x - m.x, target.y - m.y) <= this._followArriveDist) {
             this._stopAtTarget();
             return;
@@ -241,7 +244,7 @@ export class HamsterKnightAI {
         const m = this.m;
         const target = m.target;
         if (!this._validEnemy(target) || !this._inRange(target, this._attackRange)) return;
-        target.takeDamage(this._attackDamage, m, 'physical', true);
+        target.takeDamage(m.getPhysicalAttackDamage(this._attackDamage, target), m, 'physical', true);
         this._playSound('attack');
     }
 
@@ -329,7 +332,10 @@ export class HamsterKnightAI {
         const cfg = this._chargeConfig();
         const upgradeMult = Math.max(0, Number(this.cfg.chargeDamageMult) || 1);
         target.takeDamage(
-            Math.max(1, Math.round(this._attackDamage * (cfg.damageMul ?? 2) * upgradeMult)),
+            this.m.getPhysicalAttackDamage(
+                this._attackDamage * (cfg.damageMul ?? 2) * upgradeMult,
+                target
+            ),
             this.m,
             'physical',
             true,
@@ -381,7 +387,8 @@ export class HamsterKnightAI {
     _inRange(target, range) {
         if (!target) return false;
         const targetRadius = target.groundRadius || target.collisionRadius || target.size * 0.6 || 0;
-        return Math.hypot(target.x - this.m.x, target.y - this.m.y) <= range + targetRadius;
+        return canMeleeReachElevation(this.m, target)
+            && Math.hypot(target.x - this.m.x, target.y - this.m.y) <= range + targetRadius;
     }
 
     _playSound(key) {
@@ -400,6 +407,14 @@ export class HamsterKnightAI {
 
     _checkStuck(dt) {
         const m = this.m;
+        if (m._surfaceNavWaiting || m._surfaceRouteActive
+            || m._surfaceKind === 'stairs' || m._surfaceKind === 'wall_walk') {
+            this._stuckTimer = 0;
+            this._stuckStreak = 0;
+            this._lastPosX = m.x;
+            this._lastPosY = m.y;
+            return;
+        }
         if (m._animState !== 'walk') {
             this._stuckTimer = 0;
             this._lastPosX = m.x;

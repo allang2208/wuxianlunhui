@@ -7,6 +7,7 @@ import { loadImage } from '../utils/image-loader.js';
 
 import { WEAPON_ANIM } from '../config/math-utils.js';
 import { ProjectileFactory } from '../utils/projectile-factory.js';
+import { canMeleeShareSurface } from '../combat/melee-surface.js';
 
 /**
  * Combatant 基类 — 通用战斗者接口
@@ -611,6 +612,7 @@ class Combatant extends DamageableEntity {
     // ==================== 受击 ====================
 
     takeDamage(damage, source, damageType = 'physical', _isMelee = true) {
+        if (_isMelee && source && !canMeleeShareSurface(source, this)) return 0;
         // 计算暴击
         const critRate = (source && source.data && source.data.crit) || 0;
         const critRes = (this.data && this.data.critRes) || 0;

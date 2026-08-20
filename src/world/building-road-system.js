@@ -1,6 +1,7 @@
 import { blockCellCenter, blockCellOf } from './gate4-grid.js';
 
 export const BUILDING_ROAD_TEXTURE = 'building_road_tiles';
+export const BUILDING_ROAD_ICON = 'building_road';
 export const BUILDING_ROAD_FRAME_WIDTH = 128;
 export const BUILDING_ROAD_FRAME_HEIGHT = 64;
 export const BUILDING_ROAD_DISPLAY_WIDTH = 130;

@@ -3,6 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import {
+    BUILDING_ROAD_ICON,
     BuildingRoadSystem,
     buildingRoadLayout,
 } from '../src/world/building-road-system.js';
@@ -82,6 +83,12 @@ const asset = path.join(ROOT, 'assets', 'terrain', 'building_road_tiles.png');
 const size = pngSize(asset);
 check('道路精灵表已入库', fs.existsSync(asset));
 check('道路精灵表为4帧128×64', size?.width === 512 && size?.height === 64);
+const iconAsset = path.join(ROOT, 'assets', 'terrain', `${BUILDING_ROAD_ICON}.png`);
+const iconSize = pngSize(iconAsset);
+check('建筑面板道路使用独立单格贴图',
+    fs.existsSync(iconAsset)
+    && iconSize?.width === 128
+    && iconSize?.height === 64);
 
 const boot = fs.readFileSync(path.join(ROOT, 'src', 'phaser', 'scenes', 'BootScene.js'), 'utf8');
 const building = fs.readFileSync(path.join(ROOT, 'src', 'world', 'building-system.js'), 'utf8');
@@ -107,12 +114,19 @@ check('快照恢复重建道路环',
 check('建筑沉陷时释放道路环',
     sink.includes("typeof e._removeBuildingRoads === 'function'"));
 check('建筑面板提供10能源道路并复用拖墙手势',
-    building.includes("id: 'road', name: '道路', cost: 10")
+    building.includes("id: 'road'")
+    && building.includes("name: '道路'")
+    && building.includes('cost: 10')
+    && building.includes('icon: BUILDING_ROAD_ICON')
     && building.includes("itemKind === 'road'")
     && building.includes('_placeRoadRow(cells)'));
 check('手动道路按新增格逐块扣费',
     building.includes('_deductBuildCost(item.currency, item.cost)')
     && building.includes('BuildingRoadSystem.addManualRoad(i, j)'));
+check('道路可贴方块墙两侧而墙所在格仍由 footprint 拦截',
+    building.includes('仅忽略方块墙的线段阻挡')
+    && building.includes('e?.active && e._isBlockCover && e._coverSeg')
+    && building.includes('ignoreSegs,'));
 check('玩家与常规单位道路移速动态乘1.2',
     movement.includes('_getEnemyMoveSpeed(enemy)')
     && movement.includes('BuildingRoadSystem.movementMultiplierAt(enemy.x, enemy.y)')

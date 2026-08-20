@@ -89,7 +89,7 @@ export class HamsterMusketeerAI {
         if (this._shotActive) return;
         const cmd = m._command;
         if (cmd && cmd.mode && cmd.mode !== 'follow') {
-            if (cmd.mode !== 'move') clearRtsSurfaceRoute(m);
+            if (cmd.mode !== 'move' && !m._surfaceNavCommand) clearRtsSurfaceRoute(m);
             if (cmd.mode === 'attack') {
                 if (!cmd.target?.active || cmd.target.hp <= 0 || cmd.target._isEnergyNode) {
                     m._command = { mode: 'follow' };
@@ -125,7 +125,7 @@ export class HamsterMusketeerAI {
         }
         m.target = null;
         if (!player) return;
-        const dest = { x: player.x - this._followOffset, y: player.y };
+        const dest = { x: player.x - this._followOffset, y: player.y, _surfaceTarget: player };
         const d = Math.hypot(dest.x - m.x, dest.y - m.y);
         if (d > 40) {
             m._tacticalTarget = dest;
@@ -273,6 +273,14 @@ export class HamsterMusketeerAI {
 
     _checkStuck(dt) {
         const m = this.m;
+        if (m._surfaceNavWaiting || m._surfaceRouteActive
+            || m._surfaceKind === 'stairs' || m._surfaceKind === 'wall_walk') {
+            this._stuckTimer = 0;
+            this._stuckStreak = 0;
+            this._lastPosX = m.x;
+            this._lastPosY = m.y;
+            return;
+        }
         if (m._animState !== 'walk') {
             this._stuckTimer = 0;
             this._lastPosX = m.x;

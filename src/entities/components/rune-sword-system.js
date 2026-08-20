@@ -210,7 +210,7 @@ export class RuneSwordSystem {
                 const magicAtk = d.matk || 0;
                 const damage = Math.floor((physAtk + magicAtk) * 1.2);
                 const wasAlive = entity.hp > 0;
-                entity.takeDamage(damage, this.player, 'magic');
+                entity.takeDamage(damage, this.player, 'magic', false);
                 if (wasAlive && entity.hp <= 0) {
                     this._triggerCooldownReduction();
                 }

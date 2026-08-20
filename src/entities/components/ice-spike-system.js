@@ -125,7 +125,7 @@ const ICE_SPIKE_KIND = {
         }
         if (hitEntity) {
             const wasAlive = hitEntity.hp > 0;
-            hitEntity.takeDamage(damage, sys.source, 'magic');
+            hitEntity.takeDamage(damage, sys.source, 'magic', false);
             // 冰魄吊坠：冰系魔法命中附加寒冷
             const ce = getCurrentWeaponCraftEffects(sys.source);
             if (ce && ce.iceChillSlowPercent && typeof hitEntity.applyChill === 'function') {

@@ -23,7 +23,10 @@ const {
     getMagicAreaMultiplier,
 } = await import('../src/utils/magic-craft-helper.js');
 const { WallSystem } = await import('../src/world/wall-system.js');
-const { hasRangedLineOfSight } = await import('../src/combat/ranged-line-of-sight.js');
+const {
+    hasRangedLineOfSight,
+    rangedLineOfSightCacheToken,
+} = await import('../src/combat/ranged-line-of-sight.js');
 
 let passed = 0;
 let failed = 0;
@@ -41,6 +44,25 @@ const wallPlayer = { _faction: 'player', _surfaceKind: 'wall_walk', z: 125 };
 const wallFriend = { _faction: 'companion', _surfaceKind: 'wall_walk', z: 125 };
 const stairFriend = { _faction: 'companion', _surfaceKind: 'stairs', z: 90 };
 const wallEnemy = { _faction: 'enemy', _surfaceKind: 'wall_walk', z: 125 };
+
+check('楼梯底端即使z=0也会使LOS缓存身份区别于地面',
+    rangedLineOfSightCacheToken(
+        { _surfaceKind: 'ground', z: 0 },
+        { _surfaceKind: 'ground', z: 0 }
+    ) !== rangedLineOfSightCacheToken(
+        { _surfaceKind: 'stairs', z: 0, _surfaceStaircase: { id: 'stair_a' } },
+        { _surfaceKind: 'ground', z: 0 }
+    ));
+check('墙梯拓扑版本变化会立即废弃旧LOS缓存',
+    rangedLineOfSightCacheToken(
+        { _surfaceKind: 'wall_walk', z: 125, _surfaceComponentId: 1,
+            _elevatedState: { lastValidated: { revision: 1 } } },
+        wallEnemy
+    ) !== rangedLineOfSightCacheToken(
+        { _surfaceKind: 'wall_walk', z: 125, _surfaceComponentId: 1,
+            _elevatedState: { lastValidated: { revision: 2 } } },
+        wallEnemy
+    ));
 
 check('玩家站墙顶射程倍率=1.2',
     getElevatedRangedRangeMultiplier(wallPlayer) === 1.2);
