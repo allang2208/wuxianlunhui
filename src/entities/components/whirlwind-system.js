@@ -4,6 +4,7 @@ import { EffectManager } from '../../effects/effect-manager.js';
 import { SkillManager } from '../../ui/skill-manager.js';
 import { SoundManager } from '../../ui/sound-manager.js';
 import { GroundCircle } from '../../physics/skill-shapes.js';
+import { surfaceEffectFromEntity } from '../../physics/elevation.js';
 export class WhirlwindSystem {
     constructor(player) {
         this.player = player;
@@ -112,7 +113,12 @@ export class WhirlwindSystem {
         const baseDamage = this.player.getCurrentWeaponAtk();
         const finalDamage = Math.round(baseDamage * damageMul);
         let hitCount = 0, killCount = 0;
-        const shape = new GroundCircle(this.player.x, this.player.y, radius);
+        const shape = new GroundCircle(
+            this.player.x,
+            this.player.y,
+            radius,
+            surfaceEffectFromEntity(this.player)
+        );
         entities.forEach(entity => {
             if (entity === this.player || !entity.active || !entity.hittable) return;
             if (this.player._whirlwindHitSet.has(entity)) return;

@@ -13,6 +13,7 @@ import { createHudPanelsShopEnhanceCraftEnchant } from './hud-panels-shop-enhanc
 import { createHudPanelsExpeditionQuestReward } from './hud-panels-expedition-quest-reward.js';
 import { createHudPanelsMisc } from './hud-panels-misc.js';
 import { createDevToolPanel } from './dev-tools.js';
+import { mountRightSidebarPanel } from '../right-sidebar-panel-layer.js';
 
 /**
  * 初始化所有 UI 面板
@@ -41,7 +42,10 @@ export function initUIPanels(gameContainer) {
     // 系统面板 + Tab 页
     const systemTabs = createHudPanelsSystemTabs();
     while (systemTabs.firstChild) {
-        uiLayer.appendChild(systemTabs.firstChild);
+        const child = systemTabs.firstChild;
+        if (child.id === 'panelOverlay') mountRightSidebarPanel(child, 'backdrop');
+        else if (child.id === 'systemPanel') mountRightSidebarPanel(child, 'panel');
+        else uiLayer.appendChild(child);
     }
 
     // NPC 相关
@@ -59,7 +63,9 @@ export function initUIPanels(gameContainer) {
     // 出征/任务/奖励
     const expeditionPanels = createHudPanelsExpeditionQuestReward();
     while (expeditionPanels.firstChild) {
-        uiLayer.appendChild(expeditionPanels.firstChild);
+        const child = expeditionPanels.firstChild;
+        if (child.id === 'questPanel') mountRightSidebarPanel(child, 'panel');
+        else uiLayer.appendChild(child);
     }
 
     // 杂项面板（侧边菜单、快捷栏、经验条、操作提示等）

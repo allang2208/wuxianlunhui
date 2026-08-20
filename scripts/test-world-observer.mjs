@@ -2,6 +2,7 @@
  * 观察模式 + 指挥模式 RTS 化回归（2026-08-19）：
  * - 世界切换面板切世界 = 仅相机跳转（观察模式不生成玩家、自动进指挥模式）；
  * - 玩家坐标按世界记忆，返回本体原位恢复；
+ * - 切换事务失败时恢复原场景、观察状态、玩家位置与世界坐标，面板只在成功后同步 RTS；
  * - 指挥模式 RTS 化：边缘平移 / 双击同类复选 / Ctrl+数字编队 / Shift 加编 / 数字选中；
  * - 中键轮盘统一：指挥模式下指令下达全部选中单位（队友视同仓鼠友军）；
  * - 观察模式守卫：仓鼠不跟随不在场玩家、出兵集结点回建筑自身。
@@ -41,6 +42,17 @@ check('122 正常进入按坐标记忆原位恢复',
     /Game\._worldPlayerPos\.scene8/.test(sceneMgr));
 check('123/124 观察模式不生成玩家（两处分支）',
     (sceneMgr.match(/else if \(Game\._observerMode\)/g) || []).length >= 3);
+check('123/124/125 正常返回按各自世界坐标恢复',
+    ['scene9', 'scene10', 'scene11'].every((id) => sceneMgr.includes(`Game._worldPlayerPos?.${id}`)));
+check('观察主城不生成玩家，也不污染主城驻留快照与本体坐标',
+    /Game\.entities = new Map\(this\._mainEntities\)/.test(sceneMgr)
+    && /else if \(observing\)[\s\S]*?Game\.entities\.delete\('player'\)/.test(sceneMgr)
+    && /Game\.player && Game\.entities\.get\('player'\) === Game\.player/.test(sceneMgr));
+check('切换回滚完整恢复观察状态、本体位置与各世界坐标',
+    /_rollbackObserverMode = !!Game\._observerMode/.test(sceneMgr)
+    && /_rollbackPlayerPos = player \? \{ x: player\.x, y: player\.y \}/.test(sceneMgr)
+    && /Game\._worldPlayerPos = \{ \.\.\.\(this\._rollbackWorldPlayerPos \|\| \{\}\) \}/.test(sceneMgr)
+    && /!rollbackObserverMode && player && !Game\.entities\.has\('player'\)/.test(sceneMgr));
 check('Game 声明观察模式状态', /_observerMode: false/.test(gameSrc)
     && /_observerHomeScene: null/.test(gameSrc) && /_worldPlayerPos: \{\}/.test(gameSrc));
 check('观察/指挥模式相机不跟随玩家（game.js + GameScene 双卡口）',
@@ -50,12 +62,19 @@ check('观察/指挥模式相机不跟随玩家（game.js + GameScene 双卡口�
 // ---- 2. 世界切换面板 = 相机跳转 + 自动指挥模式 ----
 check('面板 _travel：非本体世界 → observer + 自动进指挥模式',
     /const observer = target !== home/.test(panel)
-    && /RTSCommand\.setEnabled\(observer\)/.test(panel));
+    && /RTSCommand\.setEnabled\(!!Game\._observerMode\)/.test(panel));
+check('面板只在切换成功且目标一致后同步 RTS，并拦截重复加载',
+    /const switched = await SceneManager\.switchScene/.test(panel)
+    && /!switched \|\| SceneManager\.currentScene !== target/.test(panel)
+    && /if \(SceneManager\.isLoading\)/.test(panel));
+check('地牢中禁止通过世界栏目绕过探险结算',
+    /SceneManager\.currentScene === 'scene7'[\s\S]*?地牢探险期间无法切换世界/.test(panel));
 check('面板标记本体所在世界并给返回入口',
     /_observerHomeScene/.test(panel) && /返回本体/.test(panel) && /ws-home-badge/.test(panel));
 
 // ---- 3. 指挥模式 RTS 化 ----
-check('指挥模式可用域 = 122 或观察模式', /sceneId === 'scene8' \|\| observer/.test(rts));
+check('指挥模式可用域 = scene8~scene11 或观察模式',
+    /PERSISTENT_WORLDS\.has\(sceneId\) \|\| observer/.test(rts));
 check('边缘平移（四缘 24px / 900px/s / dt 缩放 / 世界边界钳制）',
     /_edgePan\(dt/.test(rts) && /EDGE = 24/.test(rts) && /Camera\.x = Math\.max\(0, Math\.min\(W/.test(rts));
 check('双击同类复选（350ms 同窗 + 屏幕内同类型全选）',

@@ -7,6 +7,7 @@ import { loadImage } from '../../utils/image-loader.js';
 import { FloatingTextEffect } from '../../effects/floating-text.js';
 import { EffectManager } from '../../effects/effect-manager.js';
 import { GroundCircle } from '../../physics/skill-shapes.js';
+import { surfaceEffectFromEntity } from '../../physics/elevation.js';
 
 /** 无人机数值默认（配置唯一真相：skills.json droneSkill effectFormula 必有；缺省兜底统一收敛于此） */
 const DRONE_DEFAULTS = {
@@ -257,7 +258,7 @@ export class DroneSystem {
         const _baseCritBonus = effect.critBonusPercent;
         // 先收集当前在范围内的实体
         const inRangeEntities = new Set();
-        const shape = new GroundCircle(this.x, this.y, this.radius);
+        const shape = new GroundCircle(this.x, this.y, this.radius, surfaceEffectFromEntity(this.player));
         entities.forEach(entity => {
             if (entity === this.player || !entity.active || !entity.hittable) return;
             if (shape.intersectsEntity(entity)) {

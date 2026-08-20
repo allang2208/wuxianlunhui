@@ -187,6 +187,7 @@ export const DungeonMapSystem = {
         this.sceneId = sceneId;
         this.player = player;
         this.dungeonType = dungeonType;
+        this._runResultRecorded = false;
         // 经验系统：注入当前地牢类型（exp-system 计算怪物经验/压级衰减的上下文）
         setCurrentDungeonType(dungeonType);
         const dungeonList = DungeonConfig.getDungeonList();
@@ -254,6 +255,7 @@ export const DungeonMapSystem = {
     },
 
     shutdown() {
+        if (this.active && !this._runResultRecorded) this._recordRunResult('failed');
         this.active = false;
         this.state = "idle";
         // 经验系统：离开地牢，回退主神空间口径（F 档）
@@ -317,6 +319,14 @@ export const DungeonMapSystem = {
         if (this.player) {
             Camera.follow(this.player);
         }
+    },
+
+    /** 每次探险只登记一次；成功/失败/撤离/放弃都推进对应难度的全局入侵进度。 */
+    _recordRunResult(outcome) {
+        if (this._runResultRecorded || !this.dungeonType) return null;
+        this._runResultRecorded = true;
+        const grade = DungeonConfig.getDungeonGrade(this.dungeonType) || 'F';
+        return window.WorldInvasionSystem?.recordDungeonRun?.(this.dungeonType, grade, outcome) || null;
     },
 
     // ───────────────────────────────────────────────
@@ -2605,8 +2615,9 @@ export const DungeonMapSystem = {
         btn.onmouseenter = () => btn.style.background = "#5a7a4a";
         btn.onmouseleave = () => btn.style.background = "#4a6a3a";
         btn.onclick = async () => {
-            
+
             overlay.remove();
+            this._recordRunResult('success');
             this.shutdown();
             const player = Game.player || this.player;
             if (!player) {
@@ -2638,6 +2649,7 @@ export const DungeonMapSystem = {
     /** 安全撤离：返回主神空间，不丢失背包物品（仅起始点可用，见 _updateSafeEvacButton） */
     async _safeEvacuate() {
         this._removeSafeEvacButton();
+        this._recordRunResult('safe_evac');
         this.shutdown();
         const player = Game.player || this.player;
         if (player) {
@@ -2685,6 +2697,7 @@ export const DungeonMapSystem = {
             overlay.remove();
             // 放弃惩罚：丢失背包中所有物品（安全撤离/通关/胜利不触发）
             this._clearPlayerBackpack();
+            this._recordRunResult('abandoned');
             this.shutdown();
             const player = Game.player || this.player;
             if (player) {

@@ -33,12 +33,13 @@ import { BuildingSystem } from './building-system.js';
 import { BuildingRoadSystem } from './building-road-system.js';
 import { DefenseTrapSystem } from './defense-trap-system.js';
 import {
-    captureAndStoreWorld122, applyWorld122Snapshot, getWorld122Snapshot,
-    configureWorld122SnapshotRuntime,
+    captureAndStoreWorld, applyWorldSnapshot, getWorldSnapshot,
+    configureWorld122SnapshotRuntime, resetWorldSnapshot,
 } from './world122-snapshot.js';
 import { EnergyManager } from '../systems/energy-manager.js';
 import { ResearchSystem } from './research-system.js';
 import { scatterWorld125Environment } from './world125-environment.js';
+import { WorldProgressionSystem } from './world-progression-system.js';
 
 export const SceneManager = {
     currentScene: null,
@@ -48,8 +49,10 @@ export const SceneManager = {
     _sceneLabel: null, // 当前场景名称标签
     _inMainHub: false, // 主神空间无敌保护开关，避免依赖 currentScene 产生泄漏
     _mainHubInvincible: true, // 主神空间是否开启无敌（可通过 UI 切换）
+    _worldDestructionTransactions: new Map(),
 
     init() {
+        this._worldDestructionTransactions.clear();
         // 快照模块保持无启动期静态依赖；在 Game 已完成定义后才注入恢复所需的实体构造器。
         configureWorld122SnapshotRuntime({
             Game,
@@ -70,7 +73,12 @@ export const SceneManager = {
             EnergyManager,
             ResearchSystem,
             GoldManager,
+            getWorldEpoch: (sceneId) => WorldProgressionSystem.getWorldEpoch(sceneId),
+            canPersistWorld: (sceneId) => WorldProgressionSystem.isPortalConstructed(sceneId),
+            getWorldGenerationContext: (sceneId) => WorldProgressionSystem.getWorldGenerationContext(sceneId),
         });
+        // 新游戏初始传送门也必须在五日入侵开始前拥有基础位面快照。
+        WorldProgressionSystem.ensureConstructedWorldSnapshots();
         const cfg = GAME_CONFIG.scenes || {};
         this.scenes = {
             main: cfg.main || { name: '主神空间', type: 'main', label: '场景一', width: 7650, height: 3800, background: '#2a3520', origin: { x: 3825, y: 1886 } },
@@ -125,18 +133,33 @@ export const SceneManager = {
         if (text) text.textContent = Math.floor(this.loadProgress) + '%';
     },
 
-    async switchScene(sceneId, player, mode, opts = {})
-        {
-        if (this.isLoading || this.currentScene === sceneId) {
-            return;
+    async switchScene(sceneId, player, mode, opts = {}) {
+        if (this.isLoading) return false;
+        if (this.currentScene === sceneId) return true;
+        if (this._isPersistentWorld(sceneId) && !WorldProgressionSystem.isPortalConstructed(sceneId)) {
+            this.showTopNotification('该世界位面尚未搭建传送门', { color: '#ff7766' });
+            return false;
         }
+        const scene = this.scenes[sceneId];
+        if (!scene) {
+            console.error('Scene not found:', sceneId);
+            this.showTopNotification('目标世界不存在，无法切换', { color: '#ff7766' });
+            return false;
+        }
+        // 位面毁灭强制回城不能保留旧位面实体作为回滚候选；普通切换则必须在任何状态写入前存档。
+        if (opts.worldDestructionTx) this._clearRollbackState();
+        else this._saveRollbackState(player);
         // 观察模式状态机（2026-08-19）：世界切换面板切世界 = 仅相机跳转，玩家不瞬移——
         // opts.observer=true 进入观察（本体留在 _observerHomeScene）；前往本体所在世界
         // （observer=false）即返回本体。玩家坐标按世界记忆（离场时保存、回场原位恢复）。
         const g = (typeof window !== 'undefined' ? window.Game : null) || Game;
         if (g) {
             if (!g._worldPlayerPos) g._worldPlayerPos = {};
-            if (player && g.entities && g.entities.get('player') === player && this.currentScene) {
+            const departingWorldDestroyed = this._isPersistentWorld(this.currentScene)
+                && WorldProgressionSystem.getPortalState(this.currentScene).destroyed;
+            if (departingWorldDestroyed) {
+                delete g._worldPlayerPos[this.currentScene];
+            } else if (player && g.entities && g.entities.get('player') === player && this.currentScene) {
                 g._worldPlayerPos[this.currentScene] = { x: player.x, y: player.y };
             }
             if (opts.observer) {
@@ -147,18 +170,9 @@ export const SceneManager = {
                 g._observerHomeScene = null;
             }
         }
-        // 保存回滚状态，部分失败时恢复
-        this._saveRollbackState(player);
         try {
             this.showLoadingScreen();
             this._enterMode = mode || 'explore'; // 'quest' | 'explore'
-
-            const scene = this.scenes[sceneId];
-            if (!scene) {
-                console.error('Scene not found:', sceneId);
-                this._rollback(player);
-                return;
-            }
 
             this.setProgress(10);
             await this.delay(100);
@@ -187,8 +201,15 @@ export const SceneManager = {
             }
             // 世界-122 防守地图：离场统一拆除（关面板/停波次；实体由下方 clear 统一清理）
             // 世界-122 快照：离场先捕获再拆除（M0：重进恢复建筑/波次/矿点，不归零）
-            if (this.currentScene === 'scene8' && DefenseSystem && DefenseSystem.active) {
-                captureAndStoreWorld122();
+            if (this._isPersistentWorld(this.currentScene) && DefenseSystem && DefenseSystem.active) {
+                window.WorldInvasionSystem?.onWorldLeaving?.(this.currentScene);
+                if (WorldProgressionSystem.getPortalState(this.currentScene).destroyed) {
+                    if (WorldProgressionSystem.shouldClearWorldScope(this.currentScene, 'snapshot')) {
+                        resetWorldSnapshot(this.currentScene);
+                    }
+                } else {
+                    captureAndStoreWorld(this.currentScene);
+                }
                 DefenseSystem.teardown();
             }
             if (this.currentScene === 'scene8' || this.currentScene === 'scene9'
@@ -292,6 +313,7 @@ export const SceneManager = {
 
             this.currentScene = sceneId;
             this._inMainHub = (sceneId === 'main');
+            if (sceneId === 'main') this._finishWorldDestructionTransactions(opts.worldDestructionTx);
             // 双保险：世界尺寸可能刚变化，强制小地图静态层按新尺寸重绘（避免放大墙层残留）
             if (window.__phaserScene) window.__phaserScene._minimapStaticKey = null;
             this.hideLoadingScreen();
@@ -301,27 +323,82 @@ export const SceneManager = {
             if (SoundManager && typeof SoundManager.playBgmForScene === 'function') {
                 SoundManager.playBgmForScene(sceneId);
             }
+            if (!opts.worldDestructionTx) this._clearRollbackState();
+            return true;
         } catch (err) {
             console.error('[switchScene] ERROR:', err);
-            this._rollback(player);
+            if (opts.worldDestructionTx) this._handleWorldDestructionSwitchFailure(opts.worldDestructionTx);
+            else this._rollback(player);
             throw err;
         }
     },
 
-    _saveRollbackState(_player) {
+    _clearRollbackState() {
+        this._rollbackEntities = null;
+        this._rollbackEffects = null;
+        this._rollbackTrees = null;
+        this._rollbackCamera = null;
+        this._rollbackCurrentScene = null;
+        this._rollbackPlayerPos = null;
+        this._rollbackObserverMode = null;
+        this._rollbackObserverHomeScene = null;
+        this._rollbackWorldPlayerPos = null;
+    },
+
+    _handleWorldDestructionSwitchFailure(tx) {
+        this.isLoading = false;
+        this.hideLoadingScreen();
+        // 强制回城失败也不能把已毁位面从通用 rollback 缓存复活。
+        const phaserScene = typeof window !== 'undefined' ? window.__phaserScene : null;
+        phaserScene?.clearCombatView?.();
+        phaserScene?.clearAllEntitySprites?.();
+        BuildingSystem?.close?.();
+        DefenseTrapSystem?.teardown?.();
+        DefenseSystem?.teardown?.();
+        EnergyNodeSystem?.teardown?.();
+        HamsterMinerSystem?.teardown?.();
+        HamsterHutSystem?.teardown?.();
+        HamsterBarracksSystem?.teardown?.();
+        ProducerBuildingSystem?.teardown?.();
+        BuildingRoadSystem?.reset?.();
+        WallSystem?.init?.(0, 0);
+        EffectManager?.clearFloatingTexts?.();
+        Game.entities?.clear?.();
+        if (EffectManager && Array.isArray(EffectManager.effects)) {
+            for (const fx of EffectManager.effects) {
+                try { fx?._destroyPhaserSprite?.(); } catch (_e) { /* 强制清场继续 */ }
+            }
+            EffectManager.effects = [];
+        }
+        SoundManager?.stopAllLoops?.();
+        this.currentScene = null;
+        this._inMainHub = false;
+        this._clearRollbackState();
+        const stored = this._worldDestructionTransactions.get(tx?.sceneId);
+        if (stored && stored.transactionId === tx.transactionId) stored.lastFailureAt = Date.now();
+    },
+
+    _saveRollbackState(player) {
         this._rollbackEntities = Game.entities ? new Map(Game.entities) : null;
         this._rollbackEffects = EffectManager.effects ? EffectManager.effects.slice() : null;
         this._rollbackTrees = WallSystem.trees ? WallSystem.trees.slice() : null;
         this._rollbackCamera = { x: Camera.x, y: Camera.y };
         this._rollbackCurrentScene = this.currentScene;
+        this._rollbackPlayerPos = player ? { x: player.x, y: player.y } : null;
+        this._rollbackObserverMode = !!Game._observerMode;
+        this._rollbackObserverHomeScene = Game._observerHomeScene || null;
+        this._rollbackWorldPlayerPos = { ...(Game._worldPlayerPos || {}) };
     },
 
     _rollback(player) {
         this.isLoading = false;
         this.hideLoadingScreen();
+        const rollbackObserverMode = !!this._rollbackObserverMode;
         if (this._rollbackEntities) {
             Game.entities = this._rollbackEntities;
-            if (player && !Game.entities.has('player')) Game.entities.set('player', player);
+            if (!rollbackObserverMode && player && !Game.entities.has('player')) {
+                Game.entities.set('player', player);
+            }
         }
         if (EffectManager.effects && this._rollbackEffects) {
             EffectManager.effects = this._rollbackEffects;
@@ -333,8 +410,16 @@ export const SceneManager = {
             Camera.x = this._rollbackCamera.x;
             Camera.y = this._rollbackCamera.y;
         }
+        if (player && this._rollbackPlayerPos) {
+            player.x = this._rollbackPlayerPos.x;
+            player.y = this._rollbackPlayerPos.y;
+        }
+        Game._observerMode = rollbackObserverMode;
+        Game._observerHomeScene = this._rollbackObserverHomeScene || null;
+        Game._worldPlayerPos = { ...(this._rollbackWorldPlayerPos || {}) };
         this.currentScene = this._rollbackCurrentScene;
         this._inMainHub = (this._rollbackCurrentScene === 'main');
+        this._clearRollbackState();
     },
 
     _showSceneLabel(name) {
@@ -369,7 +454,11 @@ export const SceneManager = {
             if (e && e._isEnergyNode) continue;
             this._mainEntities.set(k, e);
         }
-        this._mainPlayerPos = Game.player ? { x: Game.player.x, y: Game.player.y } : null;
+        // 以实体是否真实在场判定本体：正常从主城进入观察模式时 observer 标志已提前写入，
+        // 但仍须保存离场坐标；观察主城时实体表没有 player，自然不会被异世界本体覆盖。
+        if (Game.player && Game.entities.get('player') === Game.player) {
+            this._mainPlayerPos = { x: Game.player.x, y: Game.player.y };
+        }
         // 注：树木/特效/相机不保存——树木按设计不恢复（主神空间障碍物已清除）；
         // 特效由各系统重建、相机在 _loadMainScene 重新 follow 玩家，保存是误导性死状态（2026-07-30 清理）
     },
@@ -610,11 +699,13 @@ export const SceneManager = {
         const mainSize = this._resolveWorldSize(this.scenes.main);
         CONFIG.WORLD_WIDTH = mainSize.width;
         CONFIG.WORLD_HEIGHT = mainSize.height;
+        const observing = !!Game._observerMode;
 
         if (this._mainEntities) {
             // 主神空间使用固定大小，不随分辨率变化
             Renderer.generateWorld();
-            Game.entities = this._mainEntities;
+            // 当前运行态与驻留快照必须分离，观察主城时删除玩家不能污染下次真实回城。
+            Game.entities = new Map(this._mainEntities);
             // 防御：主城快照若含矿点（旧版本污染），恢复时剔除——
             // 能源矿点只能由世界-122 的 EnergyNodeSystem.setup 生成
             for (const [k, e] of Array.from(Game.entities.entries())) {
@@ -628,8 +719,8 @@ export const SceneManager = {
         } else {
             // 兜底：如果主场景状态未保存（比如测试场景直接进入），重新生成主场景基础环境
             Renderer.generateWorld();
-            // 确保玩家实体在 entities 中
-            if (player) {
+            // 正常回城才生成玩家；观察主城时本体仍留在原世界。
+            if (player && !observing) {
                 Game.entities.set('player', player);
             }
         }
@@ -637,7 +728,7 @@ export const SceneManager = {
         // 地板与边界墙：统一入口（与 Game.init 首启同一路径）
         this._setupMainHubTerrain();
 
-        if (player) {
+        if (player && !observing) {
             Game.entities.set('player', player);
             // 优先使用死亡重生位置，其次使用之前保存的主神空间位置
             if (this._respawnPos) {
@@ -650,6 +741,12 @@ export const SceneManager = {
             }
             Camera.follow(player);
             QuickBar.refreshSpecialAttack(player);
+        } else if (observing) {
+            Game.entities.delete('player');
+            const anchor = this._mainPlayerPos || this.scenes.main?.origin
+                || { x: CONFIG.WORLD_WIDTH / 2, y: CONFIG.WORLD_HEIGHT / 2 };
+            Camera.x = anchor.x;
+            Camera.y = anchor.y;
         }
 
         // 确保关键实体（靶子）存在，如果不存在则重新生成
@@ -667,6 +764,8 @@ export const SceneManager = {
         if (Game && Game.spawnMainHubTestEntities) {
             Game.spawnMainHubTestEntities();
         }
+        // 构造或摧毁世界传送门后，回城立即按进度状态重建主神空间入口。
+        Game.syncMainHubWorldPortals?.();
     },
 
     _loadScene3(player) {
@@ -1043,6 +1142,7 @@ export const SceneManager = {
         // 菱形地块（2026-08-16 v2）：区外全黑，菱形内继续泥地无缝纹理铺贴；
         // 边斜率 0.5（26.57°），与掩体墙/基地房/建筑视角平行（见 _scene8Diamond）
         const diamond = this._scene8Diamond(scene);
+        const floorSeed = WorldProgressionSystem.getWorldGenerationSeed('scene8', 'floor_deco');
         // 平材质地面（泥/沙）不用"独立菱形石板"拼接（草苔盖缝失效后会露黑边/硬接缝）：
         // 改走连续无缝纹理——floor_mud_seamless 按世界坐标对齐相位全图铺贴（任意方向无接缝），
         // 沙地以软边补丁混入（sandPatches 径向渐隐），荒漠植物由 deco 层固定朝向点缀。
@@ -1067,6 +1167,7 @@ export const SceneManager = {
             },
             deco: {
                 textures: ['deco_desert_1', 'deco_desert_2', 'deco_desert_3', 'deco_desert_4'],
+                seed: floorSeed,
                 perChunk: 28,
                 size: 110,
                 minDist: 120,
@@ -1119,32 +1220,9 @@ export const SceneManager = {
         // 仙人掌随机散布（2026-08-16，替代已删除的树木散布）：必须在 DefenseSystem.setup
         // 之前——rebuildIsoCollision 只保留门闸 isoSegments，掩体墙段在 setup 时才注册（两不相扰）；
         // 基地房矩形/玩家出生点/能源点/刷怪点按排除带规避。配置：scenes.scene8.cactusScatter
-        this._scatterCactiScene8(player);
+        this._scatterCactiScene8(player, WorldProgressionSystem.createWorldRandom('scene8', 'obstacles'));
 
-        // 世界-122 防守战：基地核心 + 防御塔 + 边界刷怪波次
-        DefenseSystem.setup(player);
-
-        // 世界-122 能源资源点：散落地图，供玩家/队员攻击采集能源（修建/修理用）
-        EnergyNodeSystem.setup();
-
-        // 世界-122 仓鼠小屋：建筑面板建造生成仓鼠矿工（矿工随小屋）
-        HamsterHutSystem.setup();
-
-        // 世界-122 仓鼠兵营：建筑面板建造，每 30s 生成仓鼠战士/射手（单位随兵营）
-        HamsterBarracksSystem.setup();
-
-        // 世界-122 通用产兵建筑：配置驱动（出兵时间/出品种类读 data/producer-buildings.json）
-        ProducerBuildingSystem.setup();
-
-        // 世界-122 仓鼠矿工：玩家友方单位，自动找最近能源矿点采矿
-        HamsterMinerSystem.setup(player);
-
-        // 世界-122 场景快照恢复（M0）：有快照则重建玩家建筑/波次/矿点，不归零；
-        // M1：恢复前按离场时长后台结算（产兵/采矿/读条/波次战报），回场播报战报
-        if (getWorld122Snapshot()) {
-            const result = applyWorld122Snapshot();
-            this._announceWorld122Report(player, result);
-        }
+        this._setupPersistentWorld('scene8', player, diamond);
 
     },
 
@@ -1160,6 +1238,7 @@ export const SceneManager = {
             if (r.victory) lines.push(['防守胜利！奖励已发放', '#ffd700']);
             if (r.energyMined > 0) lines.push([`矿工离线采集 +${Math.round(r.energyMined)} 能源`, '#7fd4ff']);
             if (r.passiveEnergy > 0) lines.push([`能源回收矩阵 +${r.passiveEnergy} 能源`, '#7fd4ff']);
+            if (r.titheEnergy > 0) lines.push([`牧师什一税 +${r.titheEnergy} 能源`, '#c9a0ff']);
             if (r.unitsProduced > 0) lines.push([`新兵报到 +${r.unitsProduced}`, '#8ad0ff']);
             if (r.abilitiesCompleted.length > 0) lines.push([`研究/能力完成 ${r.abilitiesCompleted.length} 项`, '#c9a0ff']);
             if (r.structuresLost > 0) lines.push([`离线战斗损失建筑 ${r.structuresLost} 座`, '#ff8855']);
@@ -1199,7 +1278,7 @@ export const SceneManager = {
      * - 调用顺序约束：必须在 DefenseSystem.setup 之前（见 _loadScene8 注释）。
      * 配置：data/game-config.json scenes.scene8.cactusScatter（enabled=false 关闭）。
      */
-    _scatterCactiScene8(player) {
+    _scatterCactiScene8(player, random = Math.random) {
         const scene = this.scenes.scene8;
         const cfg = (scene && scene.cactusScatter) || {};
         if (cfg.enabled === false) return;
@@ -1232,13 +1311,13 @@ export const SceneManager = {
         const pieces = [];
         let guard = 0;
         while (pieces.length < count && guard++ < count * 30) {
-            const x = x0 + Math.random() * (x1 - x0);
-            const y = y0 + Math.random() * (y1 - y0);
+            const x = x0 + random() * (x1 - x0);
+            const y = y0 + random() * (y1 - y0);
             if (!inDiamond(x, y)) continue;
-            const tex = 'obstacle_cactus_' + variants[(Math.random() * variants.length) | 0];
+            const tex = 'obstacle_cactus_' + variants[(random() * variants.length) | 0];
             const geo = (typeof WallSystem._geoForTex === 'function') ? WallSystem._geoForTex(tex) : null;
             if (!geo) continue;
-            const s = ((geo.obstacleH ?? 200) / geo.h) * (1 - jitter + Math.random() * jitter * 2);
+            const s = ((geo.obstacleH ?? 200) / geo.h) * (1 - jitter + random() * jitter * 2);
             // [FIX] 排除带与碰撞同一口径：真实碰撞 footprint 中心在贴图锚点下方，
             // 所有排除带/合法性检查改用 footprint 矩形/中心判定（原按锚点判定会整体错位）
             const fp = (typeof WallSystem.getObstacleFootprintRect === 'function')
@@ -1255,7 +1334,7 @@ export const SceneManager = {
             if (pieces.some((q) => Math.hypot(x - q.x, y - q.y) < minDist)) continue;
             const fr = Math.max(20, (geo.foot ? geo.foot.w / 2 : 40) * s);
             if (typeof WallSystem.canMoveTo === 'function' && !WallSystem.canMoveTo(fx, fy, fr)) continue;
-            pieces.push({ tex, x, y, scaleX: s, scaleY: s, flipX: Math.random() < 0.5, _scatter: true });
+            pieces.push({ tex, x, y, scaleX: s, scaleY: s, flipX: random() < 0.5, _scatter: true });
         }
         for (const p of pieces) WallSystem.isoVisuals.push(p);
         if (pieces.length && typeof WallSystem.rebuildIsoCollision === 'function') {
@@ -1309,6 +1388,7 @@ export const SceneManager = {
 
         // 连续无缝主雪层 + 两层确定性软边补丁。渲染器统一按 0.5774 做30°等距纵向压缩。
         const diamond = this._scene8Diamond(scene);
+        const floorSeed = WorldProgressionSystem.getWorldGenerationSeed('scene9', 'floor_deco');
         setDungeonFloorProfile({
             tiles: ['floor_snow_fresh_seamless'],
             continuous: true,
@@ -1321,8 +1401,8 @@ export const SceneManager = {
             // 雪地草/蕨已缩至荒漠点缀物的 50%：128² 成品、55px 显示；不参与碰撞。
             deco: {
                 textures: ['deco_snow_1', 'deco_snow_2', 'deco_snow_3', 'deco_snow_4', 'deco_snow_5'],
-                // 每次进入雪原生成新 seed；同一轮分块重烘焙仍稳定，避免相机移动时草簇跳变。
-                seed: (Math.random() * 0x100000000) >>> 0,
+                // 同一位面世代固定 seed；重建传送门后换新布局。
+                seed: floorSeed,
                 perChunk: 14,
                 size: 55,
                 minDist: 120,
@@ -1341,25 +1421,28 @@ export const SceneManager = {
         if (WallSystem._syncWallsToPhaser) WallSystem._syncWallsToPhaser();
 
         if (player && !Game._observerMode) {
-            player.x = diamond ? diamond.cx : w / 2;
-            player.y = diamond ? diamond.cy : h / 2;
+            const entry = WorldProgressionSystem.getWorldConfig('scene9')?.portalSpawn
+                || { x: diamond ? diamond.cx : w / 2, y: diamond ? diamond.cy : h / 2 };
+            const savedPos = Game._worldPlayerPos?.scene9;
+            player.x = Number.isFinite(savedPos?.x) ? savedPos.x : entry.x + 228;
+            player.y = Number.isFinite(savedPos?.y) ? savedPos.y : entry.y;
             Game.entities.set('player', player);
             Camera.follow(player);
             QuickBar.refreshSpecialAttack(player);
         } else if (Game._observerMode) {
             // 观察模式（2026-08-19）：不生成玩家，相机落世界中心自由平移
-            Camera.x = diamond ? diamond.cx : w / 2;
-            Camera.y = diamond ? diamond.cy : h / 2;
+            const entry = WorldProgressionSystem.getWorldConfig('scene9')?.portalSpawn;
+            Camera.x = entry?.x ?? (diamond ? diamond.cx : w / 2);
+            Camera.y = entry?.y ?? (diamond ? diamond.cy : h / 2);
         }
-        this._scatterSnowPinesScene9(player, diamond);
-        if (diamond) {
-            const portal = new Portal(diamond.cx, diamond.cy + diamond.ry - 160, 'main', '返回主神空间');
-            Game.entities.set('portal_return', portal);
-        }
+        this._scatterSnowPinesScene9(
+            player, diamond, WorldProgressionSystem.createWorldRandom('scene9', 'obstacles')
+        );
+        this._setupPersistentWorld('scene9', player, diamond);
     },
 
     /** 世界-123高瘦雪松散布：五个姿态等概率取样，只落在雪原菱形内。 */
-    _scatterSnowPinesScene9(player, diamond) {
+    _scatterSnowPinesScene9(player, diamond, random = Math.random) {
         const scene = this.scenes.scene9;
         const cfg = scene.snowPineScatter || {};
         if (cfg.enabled === false || !diamond) return;
@@ -1369,26 +1452,27 @@ export const SceneManager = {
         const playerExclusion = cfg.playerExclusion ?? 440;
         const portalExclusion = cfg.portalExclusion ?? 340;
         const variants = ['01', '02', '03', '04', '05'];
-        const portalY = diamond.cy + diamond.ry - 160;
+        const portalSpawn = WorldProgressionSystem.getWorldConfig('scene9')?.portalSpawn
+            || { x: diamond.cx, y: diamond.cy };
         const pieces = [];
         let guard = 0;
         while (pieces.length < count && guard++ < count * 40) {
-            const x = 220 + Math.random() * (scene.width - 440);
-            const y = 220 + Math.random() * (scene.height - 440);
+            const x = 220 + random() * (scene.width - 440);
+            const y = 220 + random() * (scene.height - 440);
             if (Math.abs(x - diamond.cx) / diamond.rx + Math.abs(y - diamond.cy) / diamond.ry > 0.96) continue;
-            const tex = `obstacle_snow_pine_${variants[(Math.random() * variants.length) | 0]}`;
+            const tex = `obstacle_snow_pine_${variants[(random() * variants.length) | 0]}`;
             const geo = WallSystem._geoForTex?.(tex);
             if (!geo) continue;
-            const scale = (geo.obstacleH / geo.h) * (1 - jitter + Math.random() * jitter * 2);
+            const scale = (geo.obstacleH / geo.h) * (1 - jitter + random() * jitter * 2);
             const footprint = WallSystem.getObstacleFootprintRect?.({ tex, x, y, scaleX: scale, scaleY: scale });
             const fx = footprint ? footprint.x + footprint.w / 2 : x;
             const fy = footprint ? footprint.y + footprint.h / 2 : y;
             if (player && Math.hypot(fx - player.x, fy - player.y) < playerExclusion) continue;
-            if (Math.hypot(fx - diamond.cx, fy - portalY) < portalExclusion) continue;
+            if (Math.hypot(fx - portalSpawn.x, fy - portalSpawn.y) < portalExclusion) continue;
             if (pieces.some((piece) => Math.hypot(piece.x - x, piece.y - y) < minDist)) continue;
             const radius = Math.max(18, (geo.foot?.w ?? 80) * scale / 2);
             if (!WallSystem.canMoveTo?.(fx, fy, radius)) continue;
-            pieces.push({ tex, x, y, scaleX: scale, scaleY: scale, flipX: Math.random() < 0.5, _scatter: true });
+            pieces.push({ tex, x, y, scaleX: scale, scaleY: scale, flipX: random() < 0.5, _scatter: true });
         }
         for (const piece of pieces) WallSystem.isoVisuals.push(piece);
         if (pieces.length) WallSystem.rebuildIsoCollision?.();
@@ -1413,6 +1497,7 @@ export const SceneManager = {
         CONFIG.WORLD_WIDTH = w;
         CONFIG.WORLD_HEIGHT = h;
         const diamond = this._scene8Diamond(scene);
+        const floorSeed = WorldProgressionSystem.getWorldGenerationSeed('scene10', 'floor_deco');
         setDungeonFloorProfile({
             tiles: ['floor_grass_forest_seamless'],
             continuous: true,
@@ -1420,7 +1505,7 @@ export const SceneManager = {
             backgroundColor: scene.background || '#102015',
             deco: {
                 textures: ['deco_forest_grass_1', 'deco_forest_grass_2', 'deco_forest_grass_3', 'deco_forest_grass_4'],
-                seed: (Math.random() * 0x100000000) >>> 0,
+                seed: floorSeed,
                 perChunk: 24,
                 size: 110,
                 minDist: 130,
@@ -1439,24 +1524,28 @@ export const SceneManager = {
         if (WallSystem._syncWallsToPhaser) WallSystem._syncWallsToPhaser();
 
         if (player && !Game._observerMode) {
-            player.x = diamond ? diamond.cx : w / 2;
-            player.y = diamond ? diamond.cy : h / 2;
+            const entry = WorldProgressionSystem.getWorldConfig('scene10')?.portalSpawn
+                || { x: diamond ? diamond.cx : w / 2, y: diamond ? diamond.cy : h / 2 };
+            const savedPos = Game._worldPlayerPos?.scene10;
+            player.x = Number.isFinite(savedPos?.x) ? savedPos.x : entry.x + 228;
+            player.y = Number.isFinite(savedPos?.y) ? savedPos.y : entry.y;
             Game.entities.set('player', player);
             Camera.follow(player);
             QuickBar.refreshSpecialAttack(player);
         } else if (Game._observerMode) {
             // 观察模式（2026-08-19）：不生成玩家，相机落世界中心自由平移
-            Camera.x = diamond ? diamond.cx : w / 2;
-            Camera.y = diamond ? diamond.cy : h / 2;
+            const entry = WorldProgressionSystem.getWorldConfig('scene10')?.portalSpawn;
+            Camera.x = entry?.x ?? (diamond ? diamond.cx : w / 2);
+            Camera.y = entry?.y ?? (diamond ? diamond.cy : h / 2);
         }
-        this._scatterForestPinesScene10(player, diamond);
-        if (diamond) {
-            Game.entities.set('portal_return', new Portal(diamond.cx, diamond.cy + diamond.ry - 160, 'main', '返回主神空间'));
-        }
+        this._scatterForestPinesScene10(
+            player, diamond, WorldProgressionSystem.createWorldRandom('scene10', 'obstacles')
+        );
+        this._setupPersistentWorld('scene10', player, diamond);
     },
 
     /** 世界-124林地树木散布：五种正式针叶树随机取样，避开出生点与返回门。 */
-    _scatterForestPinesScene10(player, diamond) {
+    _scatterForestPinesScene10(player, diamond, random = Math.random) {
         const scene = this.scenes.scene10;
         const cfg = scene.forestTreeScatter || {};
         if (cfg.enabled === false || !diamond) return;
@@ -1466,26 +1555,27 @@ export const SceneManager = {
         const playerExclusion = cfg.playerExclusion ?? 440;
         const portalExclusion = cfg.portalExclusion ?? 340;
         const variants = ['01', '02', '03', '04', '05'];
-        const portalY = diamond.cy + diamond.ry - 160;
+        const portalSpawn = WorldProgressionSystem.getWorldConfig('scene10')?.portalSpawn
+            || { x: diamond.cx, y: diamond.cy };
         const pieces = [];
         let guard = 0;
         while (pieces.length < count && guard++ < count * 40) {
-            const x = 220 + Math.random() * (scene.width - 440);
-            const y = 220 + Math.random() * (scene.height - 440);
+            const x = 220 + random() * (scene.width - 440);
+            const y = 220 + random() * (scene.height - 440);
             if (Math.abs(x - diamond.cx) / diamond.rx + Math.abs(y - diamond.cy) / diamond.ry > 0.96) continue;
-            const tex = `obstacle_forest_pine_${variants[(Math.random() * variants.length) | 0]}`;
+            const tex = `obstacle_forest_pine_${variants[(random() * variants.length) | 0]}`;
             const geo = WallSystem._geoForTex?.(tex);
             if (!geo) continue;
-            const scale = (geo.obstacleH / geo.h) * (1 - jitter + Math.random() * jitter * 2);
+            const scale = (geo.obstacleH / geo.h) * (1 - jitter + random() * jitter * 2);
             const footprint = WallSystem.getObstacleFootprintRect?.({ tex, x, y, scaleX: scale, scaleY: scale });
             const fx = footprint ? footprint.x + footprint.w / 2 : x;
             const fy = footprint ? footprint.y + footprint.h / 2 : y;
             if (player && Math.hypot(fx - player.x, fy - player.y) < playerExclusion) continue;
-            if (Math.hypot(fx - diamond.cx, fy - portalY) < portalExclusion) continue;
+            if (Math.hypot(fx - portalSpawn.x, fy - portalSpawn.y) < portalExclusion) continue;
             if (pieces.some((piece) => Math.hypot(piece.x - x, piece.y - y) < minDist)) continue;
             const radius = Math.max(18, (geo.foot?.w ?? 80) * scale / 2);
             if (!WallSystem.canMoveTo?.(fx, fy, radius)) continue;
-            pieces.push({ tex, x, y, scaleX: scale, scaleY: scale, flipX: Math.random() < 0.5, _scatter: true });
+            pieces.push({ tex, x, y, scaleX: scale, scaleY: scale, flipX: random() < 0.5, _scatter: true });
         }
         for (const piece of pieces) WallSystem.isoVisuals.push(piece);
         if (pieces.length) WallSystem.rebuildIsoCollision?.();
@@ -1530,26 +1620,172 @@ export const SceneManager = {
         WallSystem._syncWallsToPhaser?.();
 
         if (player && !Game._observerMode) {
-            player.x = diamond ? diamond.cx : w / 2;
-            player.y = diamond ? diamond.cy : h / 2;
+            const entry = WorldProgressionSystem.getWorldConfig('scene11')?.portalSpawn
+                || { x: diamond ? diamond.cx : w / 2, y: diamond ? diamond.cy : h / 2 };
+            const savedPos = Game._worldPlayerPos?.scene11;
+            player.x = Number.isFinite(savedPos?.x) ? savedPos.x : entry.x + 228;
+            player.y = Number.isFinite(savedPos?.y) ? savedPos.y : entry.y;
             Game.entities.set('player', player);
             Camera.follow(player);
             QuickBar.refreshSpecialAttack(player);
         } else if (Game._observerMode) {
-            Camera.x = diamond ? diamond.cx : w / 2;
-            Camera.y = diamond ? diamond.cy : h / 2;
+            const entry = WorldProgressionSystem.getWorldConfig('scene11')?.portalSpawn;
+            Camera.x = entry?.x ?? (diamond ? diamond.cx : w / 2);
+            Camera.y = entry?.y ?? (diamond ? diamond.cy : h / 2);
         }
 
         // BootScene 是异步预载；这里显式等待预制库和障碍默认状态，保证首次进入也有组合。
         await Promise.all([loadWallPrefabs(), loadObstacleDefaults()]);
-        scatterWorld125Environment(scene, diamond, Game._observerMode ? null : player);
+        scatterWorld125Environment(scene, diamond, Game._observerMode ? null : player, {
+            random: WorldProgressionSystem.createWorldRandom('scene11', 'obstacles'),
+        });
 
-        if (diamond) {
-            Game.entities.set(
-                'portal_return',
-                new Portal(diamond.cx, diamond.cy + diamond.ry - 160, 'main', '返回主神空间')
-            );
+        this._setupPersistentWorld('scene11', player, diamond);
+    },
+
+    _isPersistentWorld(sceneId) {
+        return ['scene8', 'scene9', 'scene10', 'scene11'].includes(sceneId);
+    },
+
+    /** scene8~scene11 共用的建筑、资源、快照与入侵运行时。 */
+    _setupPersistentWorld(sceneId, player, diamond) {
+        DefenseSystem.setup(player, { managedExternally: true, worldId: sceneId });
+        const generation = WorldProgressionSystem.getWorldGenerationContext(sceneId);
+        if (generation.resourceRule === 'none') EnergyNodeSystem.teardown();
+        else EnergyNodeSystem.setup({
+            random: WorldProgressionSystem.createWorldRandom(sceneId, `resources:${generation.resourceRule}`),
+        });
+        HamsterHutSystem.setup();
+        HamsterBarracksSystem.setup();
+        ProducerBuildingSystem.setup();
+        HamsterMinerSystem.setup(player);
+
+        let result = null;
+        if (getWorldSnapshot(sceneId)) result = applyWorldSnapshot(sceneId);
+        const portal = this._ensureWorldPortalEntity(sceneId, diamond);
+        DefenseSystem.base = portal;
+        window.WorldInvasionSystem?.onWorldLoaded?.(sceneId, portal, diamond);
+        this._announceWorld122Report(player, result);
+    },
+
+    _ensureWorldPortalEntity(sceneId, diamond) {
+        const portalState = WorldProgressionSystem.getPortalState(sceneId);
+        if (!portalState.everConstructed) return null;
+        let portal = (ProducerBuildingSystem.buildings || []).find((building) => building?.cfgKey === 'portal');
+        if (!portal) {
+            const worldCfg = WorldProgressionSystem.getWorldConfig(sceneId) || {};
+            const spawn = worldCfg.portalSpawn || { x: diamond?.cx || CONFIG.WORLD_WIDTH / 2, y: diamond?.cy || CONFIG.WORLD_HEIGHT / 2 };
+            portal = new ProducerBuilding(spawn.x, spawn.y, {
+                id: `world_portal_${sceneId}`,
+                cfgKey: 'portal',
+                hp: WorldProgressionSystem.config.portal?.maxHp || 5000,
+            });
+            portal._builtByPlayer = true;
+            portal._buildCost = 0;
+            portal._buildCurrency = 'energy';
+            Game.entities.set(portal.id, portal);
+            ProducerBuildingSystem.buildings.push(portal);
+            BuildingRoadSystem.attach(portal, { allowOverlap: true });
         }
+        portal._isWorldPortalCore = true;
+        portal._worldId = sceneId;
+        portal._worldEpoch = portalState.worldEpoch;
+        portal.def = WorldProgressionSystem.config.portal?.def ?? portal.def;
+        portal.mdef = WorldProgressionSystem.config.portal?.mdef ?? portal.mdef;
+        portal._cfg.panelDescription = '该世界与传送网络的唯一通道，也是怪物入侵的最终目标。';
+        portal.onDeath = function onWorldPortalDeath() {
+            this.hp = 0;
+            if (this.data) this.data.hp = 0;
+            this.active = true;
+            this.hittable = false;
+            this._portalDestroyed = true;
+            if (window.WorldInvasionSystem?.onPortalDestroyed) {
+                window.WorldInvasionSystem.onPortalDestroyed(sceneId, this._worldEpoch);
+            } else {
+                SceneManager.destroyWorld(sceneId, this._worldEpoch);
+            }
+        };
+        if (portalState.constructed && !portalState.destroyed) {
+            WorldProgressionSystem.revivePortalEntity(sceneId, portal);
+        } else {
+            portal.hp = 0;
+            if (portal.data) portal.data.hp = 0;
+            portal.active = true;
+            portal.hittable = false;
+            portal._portalDestroyed = true;
+            portal.name = `${WorldProgressionSystem.getWorldConfig(sceneId)?.name || sceneId}传送门遗迹`;
+        }
+        return portal;
+    },
+
+    _beginWorldDestructionTransaction(sceneId, worldEpoch) {
+        const transactionId = `${sceneId}:${worldEpoch}`;
+        const existing = this._worldDestructionTransactions.get(sceneId);
+        if (existing?.transactionId === transactionId) return existing;
+        const tx = { sceneId, worldEpoch, transactionId, attempts: 0, startedAt: Date.now() };
+        this._worldDestructionTransactions.set(sceneId, tx);
+        return tx;
+    },
+
+    _finishWorldDestructionTransactions(tx = null) {
+        if (tx?.sceneId) {
+            const stored = this._worldDestructionTransactions.get(tx.sceneId);
+            if (stored?.transactionId === tx.transactionId) {
+                this._worldDestructionTransactions.delete(tx.sceneId);
+            }
+        } else {
+            this._worldDestructionTransactions.clear();
+        }
+        this._clearRollbackState();
+    },
+
+    _scheduleWorldDestructionReturn(tx) {
+        const stored = this._worldDestructionTransactions.get(tx.sceneId);
+        if (!stored || stored.transactionId !== tx.transactionId) return;
+        if (this.currentScene === 'main') {
+            this._finishWorldDestructionTransactions(tx);
+            return;
+        }
+        if (this.isLoading) {
+            TimerManager.setTimeout(() => this._scheduleWorldDestructionReturn(tx), 100);
+            return;
+        }
+        if (stored.attempts >= 3) {
+            this.showTopNotification('位面已毁灭，返回主城失败，请重新进入主城', {
+                color: '#ff5555', fontSize: '28px', duration: 5000,
+            });
+            return;
+        }
+        stored.attempts++;
+        this.switchScene('main', Game.player, undefined, { worldDestructionTx: stored }).catch((err) => {
+            console.error('[world destroyed] return to main failed:', err);
+            TimerManager.setTimeout(() => this._scheduleWorldDestructionReturn(stored), 150);
+        });
+    },
+
+    /** 传送门被毁即判定位面毁灭：作废快照、旧坐标，并把仍在该位面的玩家/观察者送回主城。 */
+    destroyWorld(sceneId, expectedEpoch = null) {
+        if (!WorldProgressionSystem.markPortalDestroyed(sceneId, { expectedEpoch })) return false;
+        const worldEpoch = WorldProgressionSystem.getWorldEpoch(sceneId);
+        const tx = this._beginWorldDestructionTransaction(sceneId, worldEpoch);
+        if (WorldProgressionSystem.shouldClearWorldScope(sceneId, 'snapshot')) {
+            resetWorldSnapshot(sceneId);
+        }
+        if (WorldProgressionSystem.shouldClearWorldScope(sceneId, 'playerPosition')
+            && Game?._worldPlayerPos) delete Game._worldPlayerPos[sceneId];
+        // 后台位面失守时玩家可能正在主城：立即撤掉已断线的主城入口，
+        // 不等下一次切场景才刷新传送网络。
+        if (this.currentScene === 'main') Game.syncMainHubWorldPortals?.();
+        const occupied = this.currentScene === sceneId
+            || (Game?._observerMode && Game._observerHomeScene === sceneId);
+        if (!occupied) {
+            this._finishWorldDestructionTransactions(tx);
+            return true;
+        }
+        Game._observerMode = false;
+        Game._observerHomeScene = null;
+        Promise.resolve().then(() => this._scheduleWorldDestructionReturn(tx));
+        return true;
     },
 
     _loadScene7(player, _dungeonType = 'zombie') {

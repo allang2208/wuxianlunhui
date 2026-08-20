@@ -24,6 +24,7 @@ export class BlizzardZone extends GroundZone {
         super({
             x: o.x,
             y: o.y,
+            surfaceContext: o.surfaceContext,
             radius: o.radiusX || 200,
             duration: o.durationMs || 6000,
             tickMs: o.tickMs || 500,
@@ -112,7 +113,7 @@ export class BlizzardZone extends GroundZone {
         this._streaks = [];
         this._falling = [];
         // 乌云中心 = 区域上方（半径比例）+ 额外抬升；改 skill 范围时自动跟随
-        this._cloudY = this.y - this.radiusY * this._cloudCfg.heightMul - this._cloudCfg.liftY;
+        this._cloudY = this.displayY - this.radiusY * this._cloudCfg.heightMul - this._cloudCfg.liftY;
         this._buildIce();
         this._buildCloud();
     }
@@ -217,9 +218,9 @@ export class BlizzardZone extends GroundZone {
         const oil = scene.add.graphics();
         oil.fillStyle(c, this._baseCfg.alpha);
         oil.fillEllipse(0, 0, rx * 2, ry * 2);
-        oil.setPosition(this.x, this.y);
+        oil.setPosition(this.x, this.displayY);
         oil.setScale(this.oilFrac);
-        oil.setDepth(this.y - 1000);
+        oil.setDepth(this.displayY - 1000);
         this.oilGfx = oil;
         this._gfx.push(oil);
         const b = this._baseCfg.breathe || {};
@@ -229,10 +230,10 @@ export class BlizzardZone extends GroundZone {
         const gloss = scene.add.graphics();
         gloss.lineStyle(this._glossCfg.lineWidth ?? 8, gc, this._glossCfg.alpha ?? 0.4);
         gloss.strokeEllipse(0, 0, rx * 2, ry * 2);
-        gloss.setPosition(this.x, this.y);
+        gloss.setPosition(this.x, this.displayY);
         gloss.setScale(this.oilFrac);
         gloss.setBlendMode('ADD');
-        gloss.setDepth(this.y - 999);
+        gloss.setDepth(this.displayY - 999);
         this.glossGfx = gloss;
         this._gfx.push(gloss);
         const gb = this._glossCfg.breathe || {};
@@ -257,10 +258,10 @@ export class BlizzardZone extends GroundZone {
             tint: F.tint, blendMode: F.blendMode, emitting: false,
         });
         em.addToUpdateList();
-        em.setDepth(this.y - 998);
+        em.setDepth(this.displayY - 998);
         for (let i = 0; i < F.burstCount; i++) {
             const fx = this.x + (Math.random() * 2 - 1) * this.radiusX * 0.9;
-            const fy = this.y - Math.random() * this.radiusY * 0.9;
+            const fy = this.displayY - Math.random() * this.radiusY * 0.9;
             em.explode(1, fx, fy);
         }
         scene.time.delayedCall(F.emitterTtlMs ?? 1300, () => { if (em && em.active) em.destroy(); });
@@ -277,12 +278,12 @@ export class BlizzardZone extends GroundZone {
             tint: F.tint, blendMode: F.blendMode, emitting: false,
         });
         em.addToUpdateList();
-        em.setDepth(this.y - 998);
+        em.setDepth(this.displayY - 998);
         for (let i = 0; i < F.burstCount; i++) {
             const a = Math.random() * Math.PI * 2;
             const rr = Math.sqrt(Math.random());
             const fx = this.x + Math.cos(a) * rr * this.radiusX;
-            const fy = this.y + Math.sin(a) * rr * this.radiusY;
+            const fy = this.displayY + Math.sin(a) * rr * this.radiusY;
             em.explode(1, fx, fy);
         }
         scene.time.delayedCall(F.emitterTtlMs ?? 2200, () => { if (em && em.active) em.destroy(); });
@@ -295,7 +296,7 @@ export class BlizzardZone extends GroundZone {
         if (!scene || !scene.add || !S) return;
         const count = S.perBurst || 2;
         for (let k = 0; k < count; k++) {
-            const y = this.y + (Math.random() * 2 - 1) * this.radiusY * (S.ySpread ?? 0.75);
+            const y = this.displayY + (Math.random() * 2 - 1) * this.radiusY * (S.ySpread ?? 0.75);
             const x0 = this.x + (Math.random() * 2 - 1) * this.radiusX * (S.xSpread ?? 0.7);
             const len = this.radiusX * ((S.lenMin ?? 0.18) + Math.random() * ((S.lenMax ?? 0.53) - (S.lenMin ?? 0.18)));
             const g = scene.add.graphics();
@@ -303,7 +304,7 @@ export class BlizzardZone extends GroundZone {
             g.lineBetween(0, 0, len, 0);
             g.setPosition(x0, y);
             g.setBlendMode('ADD');
-            g.setDepth(this.y - 996);
+            g.setDepth(this.displayY - 996);
             g.setAlpha(0);
             this._streaks.push(g);
             const dur = S.durationMs || 420;
@@ -346,7 +347,7 @@ export class BlizzardZone extends GroundZone {
         const rr = Math.sqrt(Math.random());
         const a = Math.random() * Math.PI * 2;
         const landX = this.x + Math.cos(a) * rr * this.radiusX;
-        const landY = this.y + Math.sin(a) * rr * this.radiusY;
+        const landY = this.displayY + Math.sin(a) * rr * this.radiusY;
         // 从乌云内生成：水平/垂直抖动（半径比例，范围变化自动跟随）
         const x = landX + (Math.random() - 0.5) * this.radiusX * F.spawnJitterX;
         const y = this._cloudY + (Math.random() - 0.5) * this.radiusY * F.spawnJitterY;

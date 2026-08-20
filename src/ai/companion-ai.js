@@ -12,6 +12,7 @@ import { WallSystem } from '../world/wall-system.js';
 import { clearRtsSurfaceRoute, resolveRtsMoveDestination } from './rts-command-utils.js';
 import { GroundCircle } from '../physics/skill-shapes.js';
 import { SceneManager } from '../world/scene-manager.js';
+import { surfaceEffectFromEntity } from '../physics/elevation.js';
 import { DungeonMapSystem } from '../world/dungeon-map-system.js';
 import { FireballSystem } from '../entities/components/fireball-system.js';
 import { IceSpikeSystem } from '../entities/components/ice-spike-system.js';
@@ -1448,7 +1449,7 @@ export class CompanionAI {
         const knockback = effect.knockback || 250;
         const stunDuration = effect.stunDuration || 2500;
         const finalDamage = Math.max(1, Math.round((c.data.atk || 0) * damageMul));
-        const shape = new GroundCircle(c.x, c.y, radius);
+        const shape = new GroundCircle(c.x, c.y, radius, surfaceEffectFromEntity(c));
         let hitCount = 0, killCount = 0;
         for (const e of this._activeEnemies(entities)) {
             if (!e || this._whirlwindHitSet.has(e)) continue;

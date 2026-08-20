@@ -33,6 +33,10 @@
 - `new BasePanel({ id, className, stateKey })`：懒构建单例 DOM（首次 open 创建），open/close/toggle 统一走 UIState + active 类（抽屉动画由 CSS className 自带）；
 - 只需实现 `buildContent(el)`（填充 HTML/绑事件，只调一次）与可选 `onOpen()/onClose()` 钩子；遮罩层点击关闭框架自带（各自判断 isOpen，多面板共存）；
 - 对象字面量系统同样适用（参考 `warehouse-system.js` 的 `_getPanel()` 懒创建模式 + `get _isOpen()` 代理）。
+- **右侧栏目层级（2026-08-20）**：状态/装备背包/技能/图鉴、任务、位面与队员管理统一用
+  `mountRightSidebarPanel` 挂到 `#rightSidebarPanelLayer`，禁止继续分别挂在 `#uiLayer`、
+  `#gameContainer` 或 `body` 后只调子元素 z-index。普通右栏面板 role=`panel`，遮罩=`backdrop`，
+  队员招募等从属模态=`modal`；统一层高于普通场景 UI，但暂停菜单等全局模态仍在其上。
 - **建筑详情统一关闭（2026-08-19）**：建筑类 BasePanel 传
   `panelGroup:'buildingDetail' / closeOnEscape:true / closeOnOutsidePointer:true`。
   `closeBasePanels('buildingDetail')` 同时覆盖浏览器键盘与 Electron ESC；面板外左/右
@@ -45,6 +49,18 @@
   `position:fixed; right:<主面板右缘+宽+间距>`（建筑面板右缘 8 + 420 + 8 = 436px），
   并排时**不隐藏主面板内容**；建设模式全局标记 `Game._buildMode` 供塔/陷阱/小屋/
   兵营各自跳过 260px 交互距离（免循环依赖 import），详见 lessons #56。
+
+### 模式级快捷键与角色输入隔离
+
+- 建造、RTS、观察者等模式复用角色键位时，模式监听必须注册在捕获阶段，先于通用 `Input`
+  消费事件；合法模式事件执行 `preventDefault()`、`stopImmediatePropagation()`，并清除
+  `Input.keys` 中已经遗留的同名按键状态。
+- 模式切换入口还要主动清理旧按键状态；按钮通过键盘激活后应立即 `blur()`，避免同一次空格
+  既激活按钮又在下一帧触发角色翻滚。
+- 文本框、下拉框和 `contenteditable` 保留浏览器的文字输入，但仍阻断事件进入角色输入链；
+  `event.repeat` 不重复切换模式。
+- 模式快捷键只改变显示或指令状态，不能进入伤害、碰撞、寻路等逻辑真源。
+
 
 #### 步骤4: 声道与 BGM（2026-07-21 新增）
 - **声道**：`playFile(path, volume, channel)` 第三参为声道（`sfx` 战斗音效默认 / `ui` 界面 / `music` 音乐），声道音量配置在 `data/audio-config.json` 的 `channels`（独立于 masterVolume 的二级调节）；运行时可 `SoundManager.setChannelVolume(channel, v)`。

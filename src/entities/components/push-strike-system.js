@@ -5,6 +5,7 @@ import { BloodHitEffect as HitEffect } from '../../effects/blood-hit-effect.js';
 import { SkillManager } from '../../ui/skill-manager.js';
 import { SoundManager } from '../../ui/sound-manager.js';
 import { VerticalSector } from '../../physics/skill-shapes.js';
+import { entitySurfaceZ, surfaceEffectFromEntity } from '../../physics/elevation.js';
 export class PushStrikeSystem {
     constructor(player) {
         this.player = player;
@@ -103,7 +104,17 @@ export class PushStrikeSystem {
         const hitArc = effect.hitArc;
         const stunDuration = effect.stunDuration;
         let hitCount = 0, killCount = 0;
-        const shape = new VerticalSector(this.player.x, this.player.y, attackAngle, radius, hitArc, 0, this.player.bodyHeight || 150);
+        const minZ = entitySurfaceZ(this.player);
+        const shape = new VerticalSector(
+            this.player.x,
+            this.player.y,
+            attackAngle,
+            radius,
+            hitArc,
+            minZ,
+            minZ + (this.player.bodyHeight || 150),
+            surfaceEffectFromEntity(this.player)
+        );
         entities.forEach(entity => {
             if (entity === this.player || !entity.active || !entity.hittable) return;
             if (this.player._pushStrikeHitSet.has(entity)) return;

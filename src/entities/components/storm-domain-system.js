@@ -18,6 +18,7 @@ import {
 import skillsData from '../../../data/skills.json';
 import { isSkillCheatEnabled } from '../../config/dev-cheats.js';
 import { meetsMagicWeaponReq } from '../../config/magic-categories.js';
+import { hasRangedLineOfSight } from '../../combat/ranged-line-of-sight.js';
 
 /** 雷暴领域数值默认（配置唯一真相：skills.json effectFormula 必有；缺省兜底统一收敛于此） */
 const STORM_DEFAULTS = {
@@ -160,6 +161,7 @@ export class StormDomainSystem {
             if (e._faction === src._faction) continue;
             const dist = Math.hypot(e.x - src.x, e.y - src.y);
             if (dist > radius || dist >= mainDist) continue;
+            if (!hasRangedLineOfSight(src, e)) continue;
             mainDist = dist;
             main = e;
         }
@@ -169,7 +171,7 @@ export class StormDomainSystem {
         const chain = [main];
         let cursor = main;
         for (let hop = 0; hop < chainExtra; hop++) {
-            const next = this._nearestHostileTo(cursor.x, cursor.y, chainRange, chain, entityList);
+            const next = this._nearestHostileTo(cursor, chainRange, chain, entityList);
             if (!next) break;
             chain.push(next);
             cursor = next;
@@ -204,15 +206,17 @@ export class StormDomainSystem {
         if (strikeHits >= 2) this._acc.multiHit = true;
     }
 
-    _nearestHostileTo(x, y, range, exclude, entityList) {
+    _nearestHostileTo(origin, range, exclude, entityList) {
+        if (!origin?.active) return null;
         let best = null;
         let bestDist = Infinity;
         for (const e of entityList) {
             if (!e || e === this.source || !e.active || !e.hittable) continue;
             if (e._faction === this.source._faction) continue;
             if (exclude && exclude.includes(e)) continue;
-            const dist = Math.hypot(e.x - x, e.y - y);
+            const dist = Math.hypot(e.x - origin.x, e.y - origin.y);
             if (dist > range || dist >= bestDist) continue;
+            if (!hasRangedLineOfSight(origin, e)) continue;
             bestDist = dist;
             best = e;
         }

@@ -4,19 +4,23 @@ import { SystemUI } from '../system-ui.js';
 import { SceneManager } from '../../world/scene-manager.js';
 import { WallEditor } from '../wall-editor.js';
 import { CompanionPanel } from '../companion-panel.js';
+import { WorldSwitchPanel } from '../world-switch-panel.js';
 export function createHudPanelsMisc() {
     const root = document.createElement('div');
 
     // ===== 侧边菜单 =====
     const sideMenu = document.createElement('div');
     sideMenu.className = 'side-menu';
+    // 2026-08-19 用户口径：技能↔背包对调、世界传送（组队原位置）↔组队（移到队尾）对调；
+    // 快捷键徽标同位置同款：世界传送 O / 队员管理 P（P 键自暂停让位——暂停已整合进 Esc 菜单）；图鉴 O 让位给 U
     const sideMenuItems = [
         { tab: 'status', title: '角色状态 (CapsLock)', icon: 'assets/ui/icons/status.png', alt: '状态', key: 'Caps', label: '人物状态' },
-        { tab: 'equip', title: '装备背包 (Tab)', icon: 'assets/ui/icons/inventory.png', alt: '背包', key: 'Tab', label: '背包' },
         { tab: 'skill', title: '技能 (K)', icon: 'assets/ui/icons/skills.png', alt: '技能', key: 'K', label: '技能栏' },
-        { tab: 'codex', title: '图鉴 (O)', icon: 'assets/ui/icons/codex.png', alt: '图鉴', key: 'O', label: '图鉴栏' },
+        { tab: 'equip', title: '装备背包 (Tab)', icon: 'assets/ui/icons/inventory.png', alt: '背包', key: 'Tab', label: '背包' },
+        { tab: 'codex', title: '图鉴 (U)', icon: 'assets/ui/icons/codex.png', alt: '图鉴', key: 'U', label: '图鉴栏' },
         { action: 'QuestSystem.open()', title: '任务 (L)', icon: 'assets/ui/icons/quest.png', alt: '任务', key: 'L', label: '任务栏' },
-        { action: 'CompanionPanel.openManage()', title: '管理队员', icon: 'assets/ui/icons/party.png', alt: '队员', key: null, label: '队员管理' },
+        { action: 'WorldSwitchPanel.toggle()', title: '世界传送 (O)', icon: 'assets/ui/icons/world_switch.png', alt: '世界传送', key: 'O', label: '世界传送', id: 'worldSwitchBtn' },
+        { action: 'CompanionPanel.openManage()', title: '管理队员 (P)', icon: 'assets/ui/icons/party.png', alt: '队员', key: 'P', label: '队员管理' },
         { action: 'Game.handleAddPoint()', title: '属性点', icon: 'assets/ui/addpoint.png', alt: '属性点', key: null, label: '属性点', id: 'addPointBtn', extraClass: 'addpoint-btn hidden' }
     ];
     sideMenuItems.forEach(item => {
@@ -32,6 +36,7 @@ export function createHudPanelsMisc() {
                 if (action === 'QuestSystem.open()') QuestSystem.open();
                 else if (action === 'Game.handleAddPoint()') Game.handleAddPoint();
                 else if (action === 'CompanionPanel.openManage()') CompanionPanel.openManage();
+                else if (action === 'WorldSwitchPanel.toggle()') WorldSwitchPanel.toggle();
             };
         }
         if (item.emoji) {
@@ -99,8 +104,9 @@ export function createHudPanelsMisc() {
         'F - 切换武器 | R - 换弹',
         '1~4 - 快捷栏 | Q/E/X/C - 技能',
         'Z - 范围拾取 | Tab - 背包',
-        'CapsLock - 状态栏 | K - 技能栏 | O - 图鉴',
-        'Tab - 背包 | L - 任务 | Esc - 菜单'
+        'CapsLock - 状态栏 | K - 技能栏 | U - 图鉴',
+        'Tab - 背包 | L - 任务 | P - 队员 | O - 世界传送',
+        'Esc - 菜单（打开即暂停）'
     ];
     controlsLines.forEach(line => {
         const div = document.createElement('div');
@@ -178,6 +184,37 @@ export function createHudPanelsMisc() {
     const gameTime = document.createElement('div');
     gameTime.id = 'gameTime';
     gameTime.className = 'game-time';
+    // 24h 太阳针表盘（2026-08-19）：针=太阳方位——上=正午、右=日落、下=午夜、左=日出；
+    // 上半圆白昼弧、下半圆黑夜弧。角度在 refreshGameTime 由 getSun().phase 驱动。
+    const minorTicks = [];
+    for (let i = 0; i < 24; i++) {
+        if (i % 6 === 0) continue; // 四主刻度位（正午/日落/午夜/日出）另画
+        const a = (i / 24) * Math.PI * 2 - Math.PI / 2;
+        const x1 = 24 + Math.cos(a) * 19.5;
+        const y1 = 24 + Math.sin(a) * 19.5;
+        const x2 = 24 + Math.cos(a) * 21.5;
+        const y2 = 24 + Math.sin(a) * 21.5;
+        minorTicks.push(`<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" class="dial-tick-minor"/>`);
+    }
+    const dial = document.createElement('span');
+    dial.id = 'gameTimeDial';
+    dial.className = 'time-dial';
+    dial.innerHTML = `<svg viewBox="0 0 48 48" width="60" height="60" aria-hidden="true">
+  <circle cx="24" cy="24" r="22" class="dial-face"/>
+  <path d="M 4 24 A 20 20 0 0 1 44 24" class="dial-arc-day"/>
+  <path d="M 4 24 A 20 20 0 0 0 44 24" class="dial-arc-night"/>
+  <line x1="4" y1="24" x2="44" y2="24" class="dial-horizon"/>
+  ${minorTicks.join('')}
+  <line x1="24" y1="3" x2="24" y2="8" class="dial-tick-major"/>
+  <line x1="24" y1="40" x2="24" y2="45" class="dial-tick-major"/>
+  <line x1="3" y1="24" x2="8" y2="24" class="dial-tick-major"/>
+  <line x1="40" y1="24" x2="45" y2="24" class="dial-tick-major"/>
+  <g id="gameTimeDialHand">
+    <line x1="24" y1="24" x2="24" y2="9" class="dial-hand"/>
+    <circle cx="24" cy="9" r="3" class="dial-hand-tip"/>
+  </g>
+  <circle cx="24" cy="24" r="2" class="dial-center"/>
+</svg>`;
     const timeIcon = document.createElement('span');
     timeIcon.id = 'gameTimeIcon';
     timeIcon.className = 'time-icon';
@@ -186,8 +223,21 @@ export function createHudPanelsMisc() {
     timeText.id = 'gameTimeText';
     timeText.className = 'time-text';
     timeText.textContent = '第1日 · 12:00 · 白昼';
-    gameTime.append(timeIcon, timeText);
+    gameTime.append(dial, timeIcon, timeText);
     root.appendChild(gameTime);
+
+    const invasionHud = document.createElement('div');
+    invasionHud.id = 'worldInvasionHud';
+    invasionHud.className = 'world-invasion-hud';
+    invasionHud.innerHTML = `
+        <div class="world-invasion-label"><span>⚠</span><span id="worldInvasionText">距离入侵 5.0 天</span></div>
+        <div id="worldInvasionDetail" class="world-invasion-detail"></div>
+        <button id="worldInvasionSupport" class="world-invasion-support" type="button">⚔ 前往支援</button>
+        <div class="world-invasion-track"><div id="worldInvasionBar" class="world-invasion-bar"></div></div>`;
+    invasionHud.querySelector('#worldInvasionSupport')?.addEventListener('click', () => {
+        WorldSwitchPanel.supportActiveInvasion();
+    });
+    root.appendChild(invasionHud);
 
     // ===== 装备 Tooltip =====
     const equipTooltip = document.createElement('div');

@@ -80,7 +80,7 @@ const FIREBALL_KIND = {
         SkillManager.addFireballExp(source, hitCount, killCount);
     },
     // 命中/撞墙：范围爆炸（特效三层 + AOE 距离衰减）
-    onImpact(sys, spike, { x, y, entities, damage, effect, skill }) {
+    onImpact(sys, spike, { x, y, entities, damage, effect, skill, surfaceContext }) {
         // 同帧多目标重叠时命中循环会重复调用本方法：首爆后 flyActive=false，后续调用直接忽略
         // （火球一次只能爆一次；冰锥是准穿透逐目标结算，不加此守卫）
         if (!spike.flyActive) return;
@@ -89,6 +89,7 @@ const FIREBALL_KIND = {
         spike.flyActive = false;
         spike.active = false;
         const radius = effect.explosionRadius;
+        const displayY = y - (Number(surfaceContext?.z) || 0);
         try {
             // 命中音效（skills.json fireball.sounds.hit 配置驱动；命中/撞墙/到射程爆炸同点播放）
             const hitSound = skillsData.skills?.fireball?.sounds?.hit;
@@ -97,12 +98,12 @@ const FIREBALL_KIND = {
             }
             // 爆炸特效：① 冲击波扩散圈 ② ADD 火焰爆发 ③ 烟尘余韵
             fireGroundShockwave({
-                x, y, maxRadius: radius,
+                x, y: displayY, maxRadius: radius,
                 strokeColor: 0xff7020, fillColor: 0xff9540,
                 lineWidth: 7, duration: 420, flicker: true,
             });
             burstParticles({
-                texture: 'impact_dot', x, y, count: 26, jitter: radius * 0.25,
+                texture: 'impact_dot', x, y: displayY, count: 26, jitter: radius * 0.25,
                 config: {
                     speed: { min: 120, max: 420 },
                     scale: { start: 2.8, end: 0.2 },
@@ -111,10 +112,10 @@ const FIREBALL_KIND = {
                     tint: [0xffffff, 0xffd27a, 0xff8830, 0xff5510],
                     blendMode: 'ADD',
                 },
-                destroyAfterMs: 800, depth: y + 60,
+                destroyAfterMs: 800, depth: displayY + 60,
             });
             burstParticles({
-                texture: 'smoke_particle', x, y, count: 8, jitter: radius * 0.2,
+                texture: 'smoke_particle', x, y: displayY, count: 8, jitter: radius * 0.2,
                 config: {
                     speed: { min: 20, max: 70 },
                     scale: { start: 1.5, end: 3.5 },
@@ -122,9 +123,9 @@ const FIREBALL_KIND = {
                     lifespan: { min: 700, max: 1100 },
                     tint: 0x555555,
                 },
-                destroyAfterMs: 1300, depth: y + 55,
+                destroyAfterMs: 1300, depth: displayY + 55,
             });
-            sys._explodeAoE(x, y, damage, radius, entities, skill);
+            sys._explodeAoE(x, y, damage, radius, entities, skill, surfaceContext);
         } catch (e) {
             // 结算异常不阻塞火球回收（状态已清）
             if (typeof console !== 'undefined') console.error('[Fireball] 命中结算异常（火球已回收）:', e);

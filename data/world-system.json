@@ -1,0 +1,128 @@
+{
+  "version": 2,
+  "resetPolicyDefaults": {
+    "policyVersion": 1,
+    "baseTemplate": "portal_only_v1",
+    "generationVersion": 1,
+    "seedStrategy": "per_world_epoch",
+    "resourceRule": "energy_clusters_v1",
+    "preserveOnDestroy": [
+      "dungeonProgress",
+      "globalClock",
+      "invasionProgress",
+      "playerInventory",
+      "globalUpgrades"
+    ],
+    "clearOnDestroy": [
+      "snapshot",
+      "playerPosition",
+      "structures",
+      "units",
+      "drops",
+      "resourceNodes",
+      "roads",
+      "activeInvasion"
+    ],
+    "rebuildProtectionDays": 1
+  },
+  "worlds": {
+    "scene8": {
+      "name": "世界-122",
+      "icon": "🏜️",
+      "description": "荒漠防线",
+      "initialPortal": true,
+      "constructionEnabled": false,
+      "portalSpawn": { "x": 4200, "y": 4096 },
+      "resetPolicy": { "baseSeed": 122008 }
+    },
+    "scene9": {
+      "name": "世界-123·雪原",
+      "icon": "❄️",
+      "description": "雪原位面",
+      "constructionEnabled": false,
+      "requirements": { "completedDungeons": [] },
+      "portalSpawn": { "x": 6144, "y": 4096 },
+      "resetPolicy": { "baseSeed": 123009 }
+    },
+    "scene10": {
+      "name": "世界-124·林地",
+      "icon": "🌲",
+      "description": "林地位面",
+      "constructionEnabled": false,
+      "requirements": { "completedDungeons": [] },
+      "portalSpawn": { "x": 6144, "y": 4096 },
+      "resetPolicy": { "baseSeed": 124010 }
+    },
+    "scene11": {
+      "name": "世界-125·地牢遗迹",
+      "icon": "🕯️",
+      "description": "僵尸地牢位面",
+      "constructionEnabled": true,
+      "requirements": { "completedDungeons": ["zombieBeginner"] },
+      "portalSpawn": { "x": 6144, "y": 4096 },
+      "resetPolicy": { "baseSeed": 125011 }
+    }
+  },
+  "portal": {
+    "maxHp": 5000,
+    "def": 90,
+    "mdef": 90,
+    "rebuildCost": { "gold": 1000, "energy": 2500 }
+  },
+  "invasion": {
+    "intervalDays": 5,
+    "dungeonProgressByGrade": {
+      "F": 0.1,
+      "E": 0.2,
+      "D": 0.3,
+      "C": 0.4,
+      "B": 0.5,
+      "A": 0.6
+    },
+    "baseWaves": 3,
+    "extraWaveEveryCycles": 2,
+    "maxWaves": 10,
+    "waveBreakMs": 10000,
+    "baseMonsterCount": 6,
+    "monsterCountPerWave": 2,
+    "monsterCountPerCycle": 1,
+    "maxAlive": 60,
+    "hpGrowthPerCycle": 0.12,
+    "atkGrowthPerCycle": 0.08,
+    "hpGrowthPerWave": 0.1,
+    "atkGrowthPerWave": 0.06,
+    "backgroundWaveSeconds": 35,
+    "backgroundWaveMaxSeconds": 180,
+    "backgroundContactRatio": 0.45,
+    "portalWarnings": [
+      {
+        "stage": 1,
+        "ratio": 0.5,
+        "severity": "warning",
+        "text": "{world}传送门耐久低于50%，请准备跨世界支援"
+      },
+      {
+        "stage": 2,
+        "ratio": 0.25,
+        "severity": "critical",
+        "text": "{world}传送门耐久低于25%，防线即将失守"
+      },
+      {
+        "stage": 3,
+        "ratio": 0.1,
+        "severity": "evacuation",
+        "text": "{world}传送门即将毁灭，立即支援或撤离"
+      }
+    ],
+    "monsters": [
+      { "type": "zombie", "weight": 10, "threat": 1, "unlockDay": 1 },
+      { "type": "zombieDog", "weight": 6, "threat": 1.4, "unlockDay": 5 },
+      { "type": "spitterZombie", "weight": 5, "threat": 1.8, "unlockDay": 10 },
+      { "type": "fatZombie", "weight": 4, "threat": 2.4, "unlockDay": 15 },
+      { "type": "minerZombie", "weight": 4, "threat": 2.2, "unlockDay": 20 },
+      { "type": "armoredKnight", "weight": 3, "threat": 3.4, "unlockDay": 25 },
+      { "type": "flySwarm", "weight": 4, "threat": 1.5, "unlockDay": 30 },
+      { "type": "witch", "weight": 2, "threat": 4.5, "unlockDay": 40 }
+    ]
+  }
+}

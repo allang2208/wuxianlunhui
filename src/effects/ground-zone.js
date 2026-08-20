@@ -1,4 +1,5 @@
 import { PERSPECTIVE_SCALE_Y } from '../config/perspective-config.js';
+import { surfaceEffectAtPoint } from '../physics/elevation.js';
 
 /**
  * 地表持续区域特效基类（GroundZone，2026-07-28 自提灯燃烧区抽出的模板）
@@ -30,6 +31,7 @@ export class GroundZone {
      * @param {number} o.radius 区域半径
      * @param {number} [o.duration=4000] 存活时长 ms
      * @param {number} [o.tickMs=500] 伤害周期 ms
+     * @param {object} [o.surfaceContext] 释放时解析的承载面高度快照；缺省按区域中心解析一次
      * @param {function} o.onTick (zone, entities) => void 伤害/效果周期回调（必需）
      * @param {object} [o.oil] 底面：{ color=0x8a6d1f, alpha=0.5, growMs=300, breathe={to=0.55,duration=600} }；传 null 不要底面
      * @param {object} [o.gloss] 反光：{ color=0xffe9a0, alpha=0.35, lineWidth=10, breathe={to=0.3,duration=450} }；传 null 不要反光
@@ -40,6 +42,8 @@ export class GroundZone {
     constructor(o) {
         this.x = o.x;
         this.y = o.y;
+        this.surfaceContext = o.surfaceContext || surfaceEffectAtPoint(this.x, this.y, { impactZ: 0 });
+        this.displayY = this.y - (Number(this.surfaceContext?.z) || 0);
         this.radius = o.radius ?? 300;
         this.timer = o.duration ?? 4000;
         this.tickMs = o.tickMs ?? 500;
@@ -78,9 +82,9 @@ export class GroundZone {
             const oil = scene.add.graphics();
             oil.fillStyle(c, this._oilCfg.alpha);
             oil.fillEllipse(0, 0, radius * 2, radius * 2 * PERSPECTIVE_SCALE_Y);
-            oil.setPosition(this.x, this.y);
+            oil.setPosition(this.x, this.displayY);
             oil.setScale(this.oilFrac);
-            oil.setDepth(this.y - 1000); // 最低层（所有实体之下）
+            oil.setDepth(this.displayY - 1000); // 最低层（所有实体之下）
             this.oilGfx = oil;
             this._gfx.push(oil);
             const b = this._oilCfg.breathe || {};
@@ -92,10 +96,10 @@ export class GroundZone {
             const gloss = scene.add.graphics();
             gloss.lineStyle(this._glossCfg.lineWidth ?? 10, gc, this._glossCfg.alpha ?? 0.35);
             gloss.strokeEllipse(0, 0, radius * 2, radius * 2 * PERSPECTIVE_SCALE_Y);
-            gloss.setPosition(this.x, this.y);
+            gloss.setPosition(this.x, this.displayY);
             gloss.setScale(this.oilFrac);
             gloss.setBlendMode('ADD');
-            gloss.setDepth(this.y - 999);
+            gloss.setDepth(this.displayY - 999);
             this.glossGfx = gloss;
             this._gfx.push(gloss);
             const b = this._glossCfg.breathe || {};
@@ -117,7 +121,7 @@ export class GroundZone {
         const a = Math.random() * Math.PI * 2;
         const rr = Math.sqrt(Math.random()) * spawnR;
         const fx = this.x + Math.cos(a) * rr;
-        const fy = this.y + Math.sin(a) * rr * PERSPECTIVE_SCALE_Y;
+        const fy = this.displayY + Math.sin(a) * rr * PERSPECTIVE_SCALE_Y;
         const em = scene.add.particles(0, 0, F.texture, {
             speed: F.speed, angle: { min: 0, max: 360 }, scale: F.scale,
             alpha: F.alpha, lifespan: F.lifespan, tint: F.tint, blendMode: F.blendMode,

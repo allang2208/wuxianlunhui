@@ -5,6 +5,7 @@
  * - 随机散布石柱、烛台与摆墙预制障碍组合；
  * - 主神空间、世界切换面板和建筑传送门均可进入。
  */
+await import('./register-json-loader.mjs');
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -17,6 +18,7 @@ const cfg = JSON.parse(cfgBytes);
 const buildings = JSON.parse(read('data/producer-buildings.json'));
 const audio = JSON.parse(read('data/audio-config.json'));
 const prefabs = JSON.parse(read('public/data/wall-prefabs.json'));
+const worldSystem = JSON.parse(read('data/world-system.json'));
 const scene = cfg.scenes?.scene11;
 const sceneSrc = read('src/world/scene-manager.js');
 const envSrc = read('src/world/world125-environment.js');
@@ -45,10 +47,11 @@ check('场景十一复用僵尸地牢高级地砖池并使用2048分块',
     && /applyDungeonFloorChunked\(w, h, 2048, diamond\)/.test(sceneSrc)
     && bootSrc.includes("this.load.image('blackbrick_7'")
     && bootSrc.includes("this.load.image('blackbrick_8'"));
-check('世界-125不接入世界-122防守、采矿或生产系统',
-    !/async _loadScene11\(player\)[\s\S]*?DefenseSystem\.setup/.test(
-        (sceneSrc.split('async _loadScene11(player) {')[1] || '').split('_loadScene7(')[0]
-    ));
+check('世界-125接入 scene8~scene11 共用建筑、采矿、生产与入侵运行时',
+    /this\._setupPersistentWorld\('scene11', player, diamond\)/.test(sceneSrc)
+    && /_setupPersistentWorld\(sceneId, player, diamond\)/.test(sceneSrc)
+    && /DefenseSystem\.setup\(player, \{ managedExternally: true, worldId: sceneId \}\)/.test(sceneSrc)
+    && /window\.WorldInvasionSystem\?\.onWorldLoaded/.test(sceneSrc));
 check('环境散布配置包含石柱、烛台和预制组合',
     scene?.dungeonObstacleScatter?.enabled === true
     && scene.dungeonObstacleScatter.pillarCount > 0
@@ -74,6 +77,9 @@ check('主神空间传送门已添加世界-125入口',
 check('建筑传送门已添加世界-125按钮',
     buildings.portal?.destinations?.some((entry) =>
         entry.sceneId === 'scene11' && entry.label === '世界-125·地牢遗迹'));
+check('世界-125构造资格由僵尸初级地牢完成状态解锁',
+    worldSystem.worlds?.scene11?.constructionEnabled === true
+    && worldSystem.worlds.scene11.requirements?.completedDungeons?.includes('zombieBeginner'));
 check('世界-125复用僵尸地牢环境音乐',
     audio.bgm?.scene11 === 'assets/sounds/music/dungeon_echo.mp3');
 check('世界-125镜头缩放与世界-122一致为70%',

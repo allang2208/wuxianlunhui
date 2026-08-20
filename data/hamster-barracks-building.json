@@ -1,0 +1,20 @@
+{
+  "id": "hamster_barracks",
+  "name": "仓鼠军营",
+  "cost": 1500,
+  "hp": 2000,
+  "def": 60,
+  "mdef": 60,
+  "tex": "barracks",
+  "displayW": 275,
+  "displayH": 231,
+  "footOffsetY": 116,
+  "sellRefundRatio": 0.5,
+  "spawnIntervalMs": 45000,
+  "spawnRadius": 90,
+  "unitCap": 5,
+  "defaultUnitType": "warrior",
+  "unitTypes": ["warrior", "guard"],
+  "unitSpawnEnergyCost": { "warrior": 125, "guard": 150 },
+  "upgradeProject": "barracks_defense"
+}

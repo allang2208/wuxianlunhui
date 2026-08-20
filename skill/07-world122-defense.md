@@ -1660,8 +1660,11 @@
    - **手动铺路（2026-08-19）**：建筑面板增加`道路`，每格10能源；按方块墙同款手势
      单击铺1格、长按沿e1/e2主轴拖动铺一排。只对新增且合法的格逐块扣费，已有道路、
      建筑4×4预约格和实体占用格跳过，能源不足时保留已铺部分并停止。
-   - 手动道路不生成实体或碰撞，写入`world122.scene.roads=[{i,j}]`；自动道路环与手动道路
-     共用同一格贴图。建筑外围12格允许复用手动道路，中央2×2禁止压住手动道路；
+   - 手动道路不生成实体或碰撞，快照记录
+     `{i,j,refundable,buildCost,buildCurrency}`；自动道路环与手动道路共用同一格贴图。
+     玩家付费铺设时记录真实成本并按半价回收；建筑拆除后转成的独立附属道路必须标记
+     `refundable:false/buildCost:0`，允许继续拆除但禁止返资源，避免拆建刷资源。旧 `{i,j}`
+     快照按玩家付费道路兼容恢复。建筑外围12格允许复用手动道路，中央2×2禁止压住手动道路；
      自动建筑拆除后，共享格上的手动道路继续保留。
 6. **建筑详情三段式（强制）**：所有可交互建筑（墙/门/射击台/基地/塔/小屋/兵营/
    生产建筑/陷阱）统一复用 `renderBuildingDetailHeader`，顺序不可颠倒：
@@ -1787,6 +1790,11 @@
     返回 / 修理 / 回收；回收返还实际建造成本 50%。4格门用 `_buildGroup` 整组回收，
     点击任一石柱通过 `_buildGroupRoot` 跳转门详情；拆除顺序必须**门先、墙后**，
     防 gate.destroy 恢复已删除墙段形成幽灵碰撞。
+  - **快捷回收模式（2026-08-20）**：建筑面板底部用独立 `_recycleMode`；启用时必须先取消
+    放置和详情，与建造选择互斥。左键可连续命中并回收玩家建筑或手动道路，右键/Esc只退出
+    回收并保留建筑面板；捕获阶段调用 `stopImmediatePropagation()`，防止同次点击继续打开详情。
+    实体命中优先于道路，且只接受 `_builtByPlayer`；营地/兵营/通用生产建筑复用各自 `sell()`，
+    墙/门/楼梯/塔走 BuildingSystem 统一清理，继续同步碰撞、系统数组和高架拓扑。
   - 方块墙详情用 `obstacle_block` 与真实400能源；4格门详情用 `gate_4cell`、真实结构/价格；
     射击台详情补建造成本。预置建筑无 `_builtByPlayer`，回收按钮禁用。
   - **尺寸判定**：紧凑建筑按真实 collisionRadius，两建筑最小中心距 =
@@ -2108,6 +2116,61 @@
   按兵种配置的能源费用，形成战斗期持续消耗；被动能源最高10/秒可保留，但要求只结算一次。
 - **旧奖励口径**：新五日入侵胜利路径当前不发能源；`DEFENSE_CONFIG.spawn.victoryReward.energy=500`
   属旧十波防守遗留，未明确迁移前不得计入新入侵收益模型。
+
+### 多世界传送门与五日入侵（2026-08-20）
+
+- **配置真源**：`data/world-system.json`（运行时 import）与 `public/data/world-system.json`
+  保持镜像。世界名称、地牢通关条件、传送门出生点/耐久/重建费用、入侵间隔、波次成长和怪物池
+  全部由此配置；新增怪物只需登记 `type/weight/threat/unlockDay`，实体构造器继续由
+  `DefenseSystem.MONSTER_FACTORY` 负责。
+- **进度真源**：`WorldProgressionSystem` 保存地牢通关次数、每类探险结果和各世界传送门
+  `everConstructed/constructed/destroyed/hp`。第一次构造免费，只有被摧毁后的重建走真实金币/
+  能源支付事务；未建成或已摧毁的世界不得进入传送目标列表。
+- **基础快照不变量**：已建成且未摧毁的传送门必须对应一个 `sceneId` 快照。首次构造、重建、
+  新游戏初始世界和读档都会调用 `ensureWorldBaseSnapshot`；已有完整快照不覆盖，重建则强制生成
+  只含基础传送门和时间锚点的空建设快照。首次进入继续按场景规则生成地形/资源，离场后捕获为
+  完整快照；入侵选目标前必须再次兜底补齐，禁止“已建门但无快照”的空位面进入后台结算。
+- **生命周期与世代号**：`WorldProgressionSystem` 的唯一内部状态为 `LOCKED / AVAILABLE /
+  ACTIVE / DESTROYED / REBUILDING`；旧 `constructed/destroyed/everConstructed` 仅作为兼容派生字段。
+  首次构造进入 `worldEpoch=1`，每次重建递增。基础/完整快照、入侵活动和世界传送门实体必须携带
+  同一世代号；恢复、后台 tick、承伤、胜负回调和毁灭入口都要校验世代，旧世代回调只能忽略，
+  不能清除或伤害新世界。v1 布尔存档迁移时，已建/已毁位面归入世代1，半途 `REBUILDING` 按毁坏处理。
+- **毁灭事务与保存原子性**：毁灭事务以 `sceneId + worldEpoch` 幂等；先把进度状态置为
+  `DESTROYED`，再删快照/旧坐标、撤主城入口并撤离玩家或观察者。快照捕获和存档序列化必须调用
+  `canPersistWorld`，禁止在毁门与离场/保存竞态中重新写回旧实体。强制回城不得使用通用 rollback；
+  加载失败时清空位面系统、墙体、实体、特效与循环音，有限重试，成功抵达主城才关闭事务。
+- **配置化重置规则**：`world-system.json.resetPolicyDefaults` 提供 `baseTemplate / generationVersion /
+  seedStrategy / resourceRule / preserveOnDestroy / clearOnDestroy / rebuildProtectionDays`，世界条目只需
+  覆盖差异（当前每个世界声明独立 `baseSeed`）。`world-reset-policy.js` 是唯一归一化与种子派生入口；
+  传送门状态和快照封存当前世代的 `generationVersion/generationSeed`。同一 `worldEpoch` 按用途盐拆分
+  地表、障碍、资源随机流，重复进入稳定复现；重建后世代递增才换布局。旧档缺生成字段时按
+  `sceneId + baseSeed + generationVersion + worldEpoch` 补齐。新建/重建时写入绝对游戏时钟保护截止点，
+  保护期内由统一候选池排除；毁门清零保护，旧档缺字段按无保护迁移。
+- **统一时间**：`WorldInvasionSystem.progressMs` 只消费 `EnvironmentLightingSystem` 的游戏帧增量，
+  五日阈值到达后从已建传送门中随机选世界。前台目标调用 `DefenseSystem.beginManagedInvasion`；
+  后台目标直接修改对应 sceneId 快照，承伤顺序为墙/门 → 普通建筑 → 传送门。
+- **四世界同构**：scene8~scene11 都走 `SceneManager._setupPersistentWorld`，共同接入建筑、资源、
+  单位、道路、快照和 RTS。`world122-snapshot.js` 旧导出保留兼容，新代码使用按 sceneId 的
+  `capture/apply/serialize/restoreWorldScenes`；后台生产用游戏时间锚点，地牢冻结时自然停止。
+- **传送门死亡契约**：世界核心传送门标记 `_isWorldPortalCore`，目标分类按 BASE 处理；死亡即判定
+  整个位面毁灭，删除该 `sceneId` 的建筑/单位/掉落物/矿点/道路快照和玩家旧坐标，位面内玩家或
+  以该位面为本体的观察者强制返回主城。未重建传送门前禁止载入该位面；重建只恢复传送门进度，
+  下次进入没有旧快照，必须按场景基础规则重新生成。若所有已建传送门同时断线，主城世界面板只
+  开放“曾经建成过”的传送门应急重建，不能借此首次构造新世界。
+- **入侵响应与调试契约**：传送门耐久按 `world-system.json.invasion.portalWarnings` 的 50%/25%/10%
+  分段预警；HUD 显示实时耐久，异世界目标提供“本体支援”并以 `observer:false` 明确转移玩家，10%
+  阶段提示支援或撤离。交互开发工具“位面”页签只调用系统公开调试入口：展示状态/世代/快照/候选池，
+  推进时间必须同时推进 `EnvironmentLightingSystem` 统一时钟和入侵系统，模拟毁门必须复用正式毁灭事务。
+- **顶部入侵条颜色语义**：条宽继续读取 HUD 模型的 `progress`，但颜色读取归一化“危险度”。等待期
+  `danger=progress`，入侵期因 `progress` 表示传送门剩余耐久，必须使用 `danger=1-progress`；危险度按
+  0、1/3、2/3、1 四个锚点连续经过绿、蓝、黄、红，禁止把满耐久传送门显示成红色。
+- **世界栏目切换事务（2026-08-20 修复）**：`SceneManager.switchScene` 以布尔值报告是否真正完成；
+  目标不存在、传送门未建成或已有切换进行中时必须拒绝且不得改写观察/RTS 状态。普通切换在任何状态写入前
+  快照实体、特效、相机、当前场景、本体坐标、观察状态及 `_worldPlayerPos`，加载失败统一回滚；观察态回滚
+  禁止补入玩家实体。面板只有在返回成功且 `currentScene===target` 后才按真实 `_observerMode` 同步 RTS。
+- **观察与坐标不变量**：观察主城也不能生成/移动玩家、消费重生点或用异世界本体覆盖 `_mainPlayerPos`；
+  主城运行实体必须从驻留 Map 克隆后删除玩家，避免污染下次真实回城。scene8~scene11 正常返回均优先恢复
+  各自 `_worldPlayerPos`。地牢期间世界栏目必须拒绝切换，不能绕过成功/失败/放弃的统一结算入口。
 
 ### 后续打磨方向（未做）
 - 波次/Boss 波/经济平衡数值；塔血量被摧毁后重建/出售；怪物分路（多入口）与减速/范围塔；

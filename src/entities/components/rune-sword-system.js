@@ -7,7 +7,13 @@ import { loadImage } from '../../utils/image-loader.js';
 import { fireRadialBurst, burstParticles } from '../../effects/combat-fx.js';
 import { QuickBar } from '../../ui/quick-bar.js';
 import { GroundCircle } from '../../physics/skill-shapes.js';
+import {
+    effectElevationIntersectsEntity,
+    surfaceEffectFromEntity,
+    volumeEffectContext,
+} from '../../physics/elevation.js';
 import { pointHitsTorso } from '../../physics/torso-hitbox.js';
+import { projectileWallContext } from '../../combat/elevated-ranged.js';
 export class RuneSwordSystem {
     constructor(player) {
         this.player = player;
@@ -111,12 +117,17 @@ export class RuneSwordSystem {
         const cos = Math.cos(this.player.rotation), sin = Math.sin(this.player.rotation);
         sword.flyX = this.player.x + sword.offsetX * cos - sword.offsetY * sin;
         sword.flyY = this.player.y + sword.offsetX * sin + sword.offsetY * cos;
+        sword.surfaceContext = surfaceEffectFromEntity(this.player);
+        sword.flyZ = (Number(sword.surfaceContext.z) || 0)
+            + (Number(sword.elev) || (this.player.bodyHeight || 0) * 0.5);
+        sword.wallContext = projectileWallContext(this.player);
         // 每把剑独立计算朝向：从剑位置到鼠标位置
         const sp = Renderer.worldToScreen(this.player.x, this.player.y);
         let mouseWorldX = this.player.x, mouseWorldY = this.player.y;
         if (Input.mouse && typeof Input.mouse.x === 'number' && typeof Input.mouse.y === 'number' && sp && typeof sp.x === 'number' && typeof sp.y === 'number') {
             mouseWorldX = Renderer.screenToWorld(Input.mouse.x, Input.mouse.y).x;
-            mouseWorldY = Renderer.screenToWorld(Input.mouse.x, Input.mouse.y).y;
+            mouseWorldY = Renderer.screenToWorld(Input.mouse.x, Input.mouse.y).y
+                + (Number(sword.surfaceContext.z) || 0);
         }
         sword.flyAngle = Math.atan2(mouseWorldY - sword.flyY, mouseWorldX - sword.flyX);
     }
@@ -128,36 +139,53 @@ export class RuneSwordSystem {
             const cos = Math.cos(sword.flyAngle), sin = Math.sin(sword.flyAngle);
             // 移动：速度 600px/s
             const moveDist = sword.flySpeed * dtSec;
-            const nextX = sword.flyX + cos * moveDist;
-            const nextY = sword.flyY + sin * moveDist;
-            sword.flyDistance += moveDist;
             // 最大飞行距离：基础1000px + 鹰眼符文加成
             const currentItem = this.player.equipments[this.player.weaponMode];
             const ce = currentItem && currentItem._craftEffects || {};
             const maxFlyDistance = 1000 + (ce.specialRangeDelta || 0);
-            if (sword.flyDistance >= maxFlyDistance) {
-                fireRadialBurst({ x: sword.flyX, y: sword.flyY });
-                sword.flyActive = false;
-                sword.active = false;
-                return;
-            }
+            const previousDistance = Number(sword.flyDistance) || 0;
+            const remainingDistance = Math.max(0, maxFlyDistance - previousDistance);
+            const travelDistance = Math.min(moveDist, remainingDistance);
+            const nextX = sword.flyX + cos * travelDistance;
+            const nextY = sword.flyY + sin * travelDistance;
+            const reachesMaxRange = moveDist >= remainingDistance;
             // 墙壁碰撞检测
-            const resolved = WallSystem.resolve(sword.flyX, sword.flyY, nextX, nextY, 8);
-            const hitWall = Math.abs(resolved.x - nextX) > 1 || Math.abs(resolved.y - nextY) > 1;
+            const flyZ = Number(sword.flyZ) || 0;
+            const hitWall = WallSystem.projectileBlocked
+                ? WallSystem.projectileBlocked(
+                    sword.flyX,
+                    sword.flyY,
+                    flyZ,
+                    nextX,
+                    nextY,
+                    flyZ,
+                    sword.wallContext || projectileWallContext(this.player)
+                )
+                : WallSystem.blocked(sword.flyX, sword.flyY, nextX, nextY);
             if (hitWall) {
-                fireRadialBurst({ x: sword.flyX, y: sword.flyY });
+                fireRadialBurst({ x: sword.flyX, y: sword.flyY - flyZ });
                 sword.flyActive = false;
                 sword.active = false;
                 return;
             }
-            sword.flyX = resolved.x;
-            sword.flyY = resolved.y;
+            sword.flyX = nextX;
+            sword.flyY = nextY;
+            sword.flyDistance = previousDistance + travelDistance;
+            if (reachesMaxRange) {
+                fireRadialBurst({ x: sword.flyX, y: sword.flyY - flyZ });
+                sword.flyActive = false;
+                sword.active = false;
+                return;
+            }
             // 飞剑蓝色能量尾迹：每 60ms 一粒（共享件 burstParticles，ADD 发光）
             sword._trailTimer = (sword._trailTimer || 0) + dt;
             if (sword._trailTimer >= 60) {
                 sword._trailTimer = 0;
                 burstParticles({
-                    texture: 'impact_dot', x: sword.flyX - cos * 12, y: sword.flyY - sin * 12, count: 1,
+                    texture: 'impact_dot',
+                    x: sword.flyX - cos * 12,
+                    y: sword.flyY - flyZ - sin * 12,
+                    count: 1,
                     config: {
                         speed: { min: 0, max: 30 },
                         scale: { start: 1.0, end: 0.1 },
@@ -166,13 +194,15 @@ export class RuneSwordSystem {
                         tint: [0xffffff, 0x7ab0ff, 0x3282ff],
                         blendMode: 'ADD',
                     },
-                    destroyAfterMs: 480, depth: sword.flyY + 14,
+                    destroyAfterMs: 480, depth: sword.flyY - flyZ + 14,
                 });
             }
             // 目标碰撞检测
-            const hitShape = new GroundCircle(sword.flyX, sword.flyY, 15);
+            const hitElevation = volumeEffectContext(flyZ, 15);
+            const hitShape = new GroundCircle(sword.flyX, sword.flyY, 15, hitElevation);
             entities.forEach(entity => {
                 if (entity === this.player || !entity.active || !entity.hittable) return;
+                if (!effectElevationIntersectsEntity(hitElevation, entity)) return;
                 // 地面 footprint 或 躯干矩形（投射物贴图身体位置）任一命中即算命中
                 if (!hitShape.intersectsEntity(entity) && !pointHitsTorso(entity, sword.flyX, sword.flyY, 15)) return;
                 const d = this.player.data;
@@ -189,7 +219,7 @@ export class RuneSwordSystem {
                     const stacks = ce.magicVulnerabilityStacks || 2;
                     entity.applyMagicVulnerability(stacks);
                 }
-                fireRadialBurst({ x: sword.flyX, y: sword.flyY });
+                fireRadialBurst({ x: sword.flyX, y: sword.flyY - flyZ });
                 sword.flyActive = false;
                 sword.active = false;
             });

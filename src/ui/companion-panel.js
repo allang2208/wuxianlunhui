@@ -12,6 +12,7 @@ import { RecruitUI } from './recruit-ui.js';
 import { EquipTooltipManager } from './equip-tooltip-manager.js';
 import { RARITY_LABELS } from '../config/rarity.js';
 import { getConsumableEffect } from '../config/consumable.js';
+import { mountRightSidebarPanel } from './right-sidebar-panel-layer.js';
 
 // 玩家系统面板同款装备槽（15 槽，与 hud-panels-system-tabs.js equipSlots 完全一致）
 const EQUIP_SLOTS = [
@@ -124,7 +125,7 @@ export const CompanionPanel = {
         overlay.addEventListener('click', (e) => {
             if (e.target === overlay) this.close();
         });
-        document.getElementById('gameContainer').appendChild(overlay);
+        mountRightSidebarPanel(overlay, 'panel');
         this._overlay = overlay;
         // 队员背包 → 玩家背包（EventBus 桥接，避免 drag-drop-manager ↔ 本模块循环依赖）
         EventBus.on('companion:moveToPlayerBackpack', this._onCompanionMoveToPlayer.bind(this));

@@ -2,6 +2,7 @@ import { Enemy } from '../enemy.js';
 import enemyConfigData from '../../../data/enemy-config.json';
 import { hostilesOf } from './_shared/enemy-utils.js';
 import { throwVenomBottle, updateVenomZones, destroyVenomZones } from './_shared/venom-bottle.js';
+import { surfaceEffectFromEntity } from '../../physics/elevation.js';
 
 /**
  * 煮锅（其他 family）——巫婆伴生站桩（参考墓碑 tombstone / 矿洞 mine-cave 静态站桩实现）
@@ -114,7 +115,7 @@ export class Cauldron extends Enemy {
                 tx += Math.cos(a) * r;
                 ty += Math.sin(a) * r;
             }
-            throwVenomBottle(this, cfg, tx, ty);
+            throwVenomBottle(this, cfg, tx, ty, surfaceEffectFromEntity(target));
         }
     }
 

@@ -10,6 +10,7 @@ import { DashFireTrailEffect, GoldenConvergeEffect } from '../../effects/dash-ef
 import { Easing } from '../../config/math-utils.js';
 import { WeaponAnimConfig } from '../../items/weapon-anim-config.js';
 import { VerticalSector, VerticalRect } from '../../physics/skill-shapes.js';
+import { entitySurfaceZ, surfaceEffectFromEntity } from '../../physics/elevation.js';
 import { EffectManager } from '../../effects/effect-manager.js';
 import { BloodHitEffect as HitEffect, BloodHitEffect as CritEffect } from '../../effects/blood-hit-effect.js';
 import { SkillManager } from '../../ui/skill-manager.js';
@@ -473,7 +474,8 @@ class DashSystem {
             if (hitIndex === 0) {
                 // 第一次判定：矩形范围判定，记录命中目标
                 const backOffset = this.player._getSkillParam('dashAttackThrust', 'hitCheck.backOffset', effect.hitBackOffset);
-                const shape = new VerticalRect(this.player._dashSlashPos.x, this.player._dashSlashPos.y, attackAngle, rectLength, rectWidth, 0, this.player.bodyHeight || 150, backOffset);
+                const minZ = entitySurfaceZ(this.player);
+                const shape = new VerticalRect(this.player._dashSlashPos.x, this.player._dashSlashPos.y, attackAngle, rectLength, rectWidth, minZ, minZ + (this.player.bodyHeight || 150), backOffset, surfaceEffectFromEntity(this.player));
                 entities.forEach(entity => {
                     if (entity === this.player || !entity.active || !entity.hittable) return;
                     if (!shape.intersectsEntity(entity)) return;
@@ -552,7 +554,8 @@ class DashSystem {
             // === 扇形单次判定（原始冲刺攻击 / 冲刺攻击-火）===
             const isFire = activeSkillId === 'dashAttackFire';
             const hitArc = effect.hitArc;
-            const shape = new VerticalSector(this.player._dashSlashPos.x, this.player._dashSlashPos.y, attackAngle, range, hitArc, 0, this.player.bodyHeight || 150);
+            const minZ = entitySurfaceZ(this.player);
+            const shape = new VerticalSector(this.player._dashSlashPos.x, this.player._dashSlashPos.y, attackAngle, range, hitArc, minZ, minZ + (this.player.bodyHeight || 150), surfaceEffectFromEntity(this.player));
             entities.forEach(entity => {
                 if (entity === this.player || !entity.active || !entity.hittable) return;
                 if (this.player._dashHitSet.has(entity)) return;

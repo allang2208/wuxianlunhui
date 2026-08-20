@@ -19,6 +19,31 @@
 - 墙碰撞必须在真实二维交点插值弹道 Z：矩形墙用 Liang-Barsky 的 enter/exit 区间，
   面线墙用唯一交点。不得恢复“站上平台后忽略全部墙段”的旧穿墙特例。
 
+### 范围技能与连锁法术统一 Z 轴结算（2026-08-20）
+
+- 唯一配置为 `data/combat-elevation.json`（与 `public/data` 双份同步）：`surfaceTolerance` 控制同一承载层
+  的台阶连续容差，`projectileVerticalPadding` 控制飞行技能体积的微小碰撞补偿；业务系统不得另写墙高阈值。
+- 高度上下文统一由 `src/physics/elevation.js` 创建：施法者跟随范围用 `surfaceEffectFromEntity`，指定落点用
+  `surfaceEffectAtPoint`，真实飞行碰撞用 `volumeEffectContext(flyZ, radius)`。这些都是释放/撞击瞬间快照，
+  后续上下墙不得让已释放效果换层。
+- 鼠标/RTS 屏幕点用 `DefenseSystem.resolveSurfaceTarget`；已经处于真实物理平面的弹体撞击点必须用
+  `DefenseSystem.resolvePhysicalSurface(x, y, impactZ)`，保持 `x/y` 不变并按撞击高度选择最近承载层，禁止
+  再用 `impactZ` 反推屏幕 `y`。
+- `Ground*` 与现有 `Vertical*` 形状的最后一个参数为 `elevationContext`。新调用必须显式传入；地表形状先
+  验证目标脚底与效果承载面，再执行 footprint；缺失上下文时必须失败关闭，不能回退二维命中。飞行魔法的
+  躯干回退也必须额外经过同一个高度体积门禁。
+- 弹体每帧先夹取到目标或最大射程的真实终点，再检查该完整三维线段是否撞墙，最后才允许命中或结束；
+  最后一帧不得先结算目标、先按射程销毁再补墙检。
+- `GroundZone` 必须持有 `surfaceContext` 并由每次 tick 的形状复用；暴风雪、熔岩、毒雾、燃烧区等持续区域
+  禁止每帧重新按施法者位置解析高度。冰墙生成伤害、弹开和寒冷光环同样只作用于墙段快照所在层。
+- 逻辑坐标始终保留真实物理 `x/y`；飞行体、地表区域、落点粒子、光束和浮字的显示统一使用
+  `displayY = physicalY - z`，不得为了视觉对齐修改伤害中心或路径坐标。
+- 连锁法术每一跳都以“上一跳实体”为 LOS 起点重新调用 `hasRangedLineOfSight`。闪电、雷暴领域、感电过载
+  任一跳被墙体或高度阻断就终止，不能只按二维 `chainRange` 择敌或复用首跳结果。
+- 带施法前摇的锁定法术在释放帧必须重新验证目标存活、`hittable`、阵营/建筑限制、真实射程和 LOS；
+  鼠标候选距离使用目标投影位置 `entity.y - entitySurfaceZ(entity)`，物理射程仍使用真实 `x/y`。
+- `FlatViewSystem` 只读显示，不得出现在任何命中判定中；普通/压平视图必须运行完全相同的 Z 轴结算。
+
 ### 技能添加标准工作流（2026-08-02 定稿，闪电技能首航）
 
 新增技能一律按此开展（闪电：锁定+传导+伤害+击退+眩晕+修炼+音效+图标+面板全链路验证）。
@@ -168,7 +193,7 @@
 
 ### 持续区域特效基类 GroundZone（2026-07-28，毒雾/酸液新区域一律按此开展）
 
-`src/effects/ground-zone.js`（自提灯燃烧区抽出的模板）：三层分离（底面 NORMAL 贴花 growMs 扩散+呼吸 / 反光 ADD 描边错相位呼吸 / 区域粒子簇 (0,0) 陷阱收口）+ 生命周期（timer/tickTimer/oilFrac/flameTimer）自管。**伤害逻辑由调用方 onTick(zone, entities) 回调提供**（读自己的 matk/公式，基类不管数值）；底面/反光/粒子参数全可配（毒雾=绿 tint、酸液=黄绿即可复用）。调用方持有 zones 数组：update 中 `if (!zone.update(dt, entities)) splice`，`_destroyCustomEffects` 中 `zone.destroy()`。已迁移：提灯燃烧区（-152 行）。
+`src/effects/ground-zone.js`（自提灯燃烧区抽出的模板）：三层分离（底面 NORMAL 贴花 growMs 扩散+呼吸 / 反光 ADD 描边错相位呼吸 / 区域粒子簇 (0,0) 陷阱收口）+ 生命周期（timer/tickTimer/oilFrac/flameTimer）自管。**伤害逻辑由调用方 onTick(zone, entities) 回调提供**（读自己的 matk/公式，基类不管数值）；底面/反光/粒子参数全可配（毒雾=绿 tint、酸液=黄绿即可复用）。构造时必须传释放点的 `surfaceContext`（缺省只解析一次），每次 tick 复用 `zone.surfaceContext`，禁止持续区域在宿主上下墙后跟着换层。调用方持有 zones 数组：update 中 `if (!zone.update(dt, entities)) splice`，`_destroyCustomEffects` 中 `zone.destroy()`。已迁移：提灯燃烧区（-152 行）。
 
 ---
 

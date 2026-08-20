@@ -1,6 +1,7 @@
 import { Enemy } from '../enemy.js';
 import enemyConfigData from '../../../data/enemy-config.json';
 import { GroundEllipse } from '../../physics/skill-shapes.js';
+import { surfaceEffectFromEntity } from '../../physics/elevation.js';
 import { PERSPECTIVE_SCALE_Y } from '../../config/perspective-config.js';
 import { hostilesOf, playSoundFrom, inMeleeRange } from './_shared/enemy-utils.js';
 import { launchArcProjectile, createGroundWarning, keepWarningAlive, destroyWarning, fireGroundShockwave, burstParticles } from '../../effects/combat-fx.js';
@@ -235,9 +236,10 @@ export class OreSpider extends Enemy {
             tx = t.x + (t.vx || 0) * flyS;
             ty = t.y + (t.vy || 0) * flyS;
         }
+        const surfaceContext = t ? surfaceEffectFromEntity(t) : surfaceEffectFromEntity(this);
         const scene = typeof window !== 'undefined' ? window.__phaserScene : null;
         if (!scene || !scene.add || !scene.tweens) {
-            this._crystalImpact(tx, ty);
+            this._crystalImpact(tx, ty, surfaceContext);
             return;
         }
         // 落点红色椭圆警示（共享件 createGroundWarning；飞行期间每帧保活，落地销毁）
@@ -258,7 +260,7 @@ export class OreSpider extends Enemy {
             onImpact: (ix, iy) => {
                 this._crystalSprite = null;
                 this._crystalTween = null;
-                this._crystalImpact(ix, iy);
+                this._crystalImpact(ix, iy, surfaceContext);
             },
         });
         // scene 已在上方确认存在，handle 必非 null
@@ -267,12 +269,18 @@ export class OreSpider extends Enemy {
     }
 
     /** 晶石落地：椭圆范围物理 ×damageMul + 落地扩散圈 */
-    _crystalImpact(tx, ty) {
+    _crystalImpact(tx, ty, surfaceContext = null) {
         this._destroyCrystalWarning();
         const cfg = this._getThrowConfig();
         const radius = cfg.impactRadius ?? 200;
         const atk = this.data?.atk || 0;
-        const shape = new GroundEllipse(tx, ty, radius, radius * PERSPECTIVE_SCALE_Y);
+        const shape = new GroundEllipse(
+            tx,
+            ty,
+            radius,
+            radius * PERSPECTIVE_SCALE_Y,
+            surfaceContext || surfaceEffectFromEntity(this)
+        );
         for (const e of hostilesOf(this)) {
             if (!shape.intersectsEntity(e)) continue;
             e.takeDamage(Math.max(1, Math.round(atk * (cfg.damageMul ?? 1.25))), this, 'physical', false);
@@ -333,7 +341,13 @@ export class OreSpider extends Enemy {
         for (const e of hostilesOf(this, entities)) {
             // 取最小命中圈（不叠加）
             for (const z of zones) {
-                const shape = new GroundEllipse(this.x, this.y, z.radius, z.radius * PERSPECTIVE_SCALE_Y);
+                const shape = new GroundEllipse(
+                    this.x,
+                    this.y,
+                    z.radius,
+                    z.radius * PERSPECTIVE_SCALE_Y,
+                    surfaceEffectFromEntity(this)
+                );
                 if (!shape.intersectsEntity(e)) continue;
                 e.takeDamage(Math.max(1, Math.round(atk * (z.damageMul ?? 1))), this, 'physical', true);
                 // 命中眩晕（配置 stunMs；状态免疫目标由 applyStun 内部拦截）

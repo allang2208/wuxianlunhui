@@ -200,6 +200,7 @@ for (const type of Object.keys(TRAP_CONFIG)) {
 export const BuildingSystem = {
     active: false,
     _placing: null,       // { item, mirror }
+    _recycleMode: false,  // 建筑面板快捷回收：左键连续回收建筑/道路
     _detail: null,        // 建筑详情视图：当前查看的掩体实体（2026-08-15）
     _ghost: null,
     _guide: null,         // 产兵建筑对齐线（Phaser Graphics，2026-08-17）
@@ -266,6 +267,7 @@ export const BuildingSystem = {
         clearInterval(this._refreshTimer);
         this._refreshTimer = null;
         this._cancelPlacement();
+        this._recycleMode = false;
         this._detail = null;
         if (this._downFn) window.removeEventListener('mousedown', this._downFn, true);
         if (this._moveFn) window.removeEventListener('mousemove', this._moveFn);
@@ -328,9 +330,13 @@ export const BuildingSystem = {
                 <button id="bpCancel" title="取消放置（右键/Esc）">取消</button>
                 <span class="we-selinfo" id="bpSel">未选择建筑</span>
             </div>
+            <div class="we-row" style="margin-top:7px;">
+                <button id="bpRecycleMode" title="进入回收模式后，左键点击建筑或道路进行回收" style="width:100%;background:#5a3028;color:#ffd7d0;border:1px solid #8a4a3a;">回收建筑</button>
+            </div>
             <div class="we-hints" id="bpHints">
                 B=开/关面板 | 点击建筑后移动鼠标预览<br>
                 左键放置（掩体/塔扣能源）| F=镜像（垂直↔水平）| 右键/Esc=取消<br>
+                回收建筑=进入快捷回收，左键可连续回收建筑或道路<br>
                 点击已建掩体查看详情（耐久/消耗）| Esc=返回/关闭<br>
                 掩体靠近已有掩体端点自动吸附（变绿=已吸附）<br>
                 墙段只能端点拼接，不能重叠摆放<br>
@@ -341,7 +347,13 @@ export const BuildingSystem = {
         this._panel = el;
         el.querySelector('#bpClose').addEventListener('click', () => this.close());
         el.querySelector('#bpMirror').addEventListener('click', () => this._toggleMirror());
-        el.querySelector('#bpCancel').addEventListener('click', () => this._cancelPlacement());
+        el.querySelector('#bpCancel').addEventListener('click', () => {
+            this._cancelPlacement();
+            this._setRecycleMode(false);
+        });
+        el.querySelector('#bpRecycleMode').addEventListener('click', () => {
+            this._setRecycleMode(!this._recycleMode);
+        });
         el.querySelector('#bpMirror').addEventListener('click', () => this._updateSnapHint());
         this._updateSnapHint();
         el.querySelectorAll('.we-thumb').forEach((t) => {
@@ -366,6 +378,7 @@ export const BuildingSystem = {
     },
 
     _selectItem(item) {
+        this._setRecycleMode(false);
         this._cancelPlacement();
         this._placing = { item, mirror: false };
         const scene = window.__phaserScene;
@@ -602,6 +615,28 @@ export const BuildingSystem = {
         if (sel) sel.textContent = '未选择建筑';
     },
 
+    _setRecycleMode(enabled) {
+        const next = !!enabled;
+        if (next) {
+            this._cancelPlacement();
+            if (this._detail) this._closeDetail();
+        }
+        this._recycleMode = next;
+        const button = this._panel && this._panel.querySelector('#bpRecycleMode');
+        if (button) {
+            button.textContent = next ? '退出回收' : '回收建筑';
+            button.style.background = next ? '#8a3f32' : '#5a3028';
+            button.style.color = next ? '#fff2a8' : '#ffd7d0';
+            button.style.boxShadow = next ? '0 0 0 2px rgba(255,215,0,0.35) inset' : 'none';
+        }
+        const sel = this._panel && this._panel.querySelector('#bpSel');
+        if (sel) {
+            sel.textContent = next
+                ? '回收模式：左键回收建筑/道路，右键或 Esc 退出'
+                : (this._placing ? sel.textContent : '未选择建筑');
+        }
+    },
+
     // ==================== 鼠标 / 键盘 ====================
 
     _clientToWorld(e) {
@@ -813,7 +848,7 @@ export const BuildingSystem = {
     _closeBuildingPanelsFromOutside(e) {
         if (!e || (e.button !== 0 && e.button !== 2)) return false;
         // 已选择待建建筑时，鼠标交给后续放置流程：左键放置，右键只取消当前选择。
-        if (this._placing) return false;
+        if (this._placing || this._recycleMode) return false;
         const detailPanels = this._buildingDetailPanels();
         const target = e.target;
         const insideMain = !!(this._panel && target && this._panel.contains(target));
@@ -853,13 +888,22 @@ export const BuildingSystem = {
     _onMouseDown(e) {
         if (this._closeBuildingPanelsFromOutside(e)) return;
         if (e.button === 2) {
-            // 右键取消放置
+            // 右键取消放置或退出快捷回收，保留建筑面板。
             this._cancelPlacement();
+            this._setRecycleMode(false);
             return;
         }
         if (e.button !== 0) return;
         // 点击落在面板自身 DOM 上不穿透到场景
         if (this._panel && e.target && this._panel.contains(e.target)) return;
+        if (this._recycleMode) {
+            const p = this._clientToWorld(e);
+            if (!p || !p.overCanvas) return;
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            this._recycleAt(p.x, p.y);
+            return;
+        }
         // 非放置状态：点击已建掩体 → 详情视图（2026-08-15；
         // 防御塔/陷阱维持原有各自面板，由 game.js 点击分发处理，不在此拦截）
         if (!this._placing) {
@@ -937,6 +981,10 @@ export const BuildingSystem = {
         if (e.code === 'Escape') {
             e.preventDefault();
             e.stopPropagation();
+            if (this._recycleMode) {
+                this._setRecycleMode(false);
+                return;
+            }
             this._closeAllBuildingPanels();
             return;
         }
@@ -1539,7 +1587,11 @@ export const BuildingSystem = {
                 break;
             }
             const [i, j] = this._blockCellOf(x, y);
-            if (!BuildingRoadSystem.addManualRoad(i, j)) {
+            if (!BuildingRoadSystem.addManualRoad(i, j, {
+                refundable: !free,
+                buildCost: free ? 0 : item.cost,
+                buildCurrency: item.currency,
+            })) {
                 if (!free) this._refundBuildCost(item.currency, item.cost);
                 continue;
             }
@@ -2230,6 +2282,53 @@ export const BuildingSystem = {
         return best ? best.e : null;
     },
 
+    /** 快捷回收命中：只允许玩家建造的实体，按实际占地/精灵范围选最近目标。 */
+    _hitTestRecyclableEntity(wx, wy) {
+        const roots = new Set();
+        const hits = [];
+        for (const raw of Game.entities.values()) {
+            if (!raw || !raw.active || !raw._builtByPlayer) continue;
+            const entity = raw._buildGroupRoot && raw._buildGroupRoot.active
+                ? raw._buildGroupRoot
+                : raw;
+            if (roots.has(entity)) continue;
+            roots.add(entity);
+            if (!this._recycleInfo(entity).recyclable) continue;
+
+            let score = Infinity;
+            if (entity._isWallStaircase && Array.isArray(entity.visualSegments)) {
+                for (const visual of entity.visualSegments) {
+                    const dx = Math.max(0, Math.abs(wx - visual.x) - visual.displayWidth * 0.5);
+                    const dy = Math.max(0, Math.abs(wy - visual.y) - visual.displayHeight * 0.5);
+                    score = Math.min(score, Math.hypot(dx, dy));
+                }
+            }
+            if (entity._faceLine && entity._faceLine.length === 2) {
+                score = Math.min(score,
+                    this._pointSegDist(wx, wy, entity._faceLine[0], entity._faceLine[1])
+                    - (entity._coverHalfThick ?? 26));
+            }
+            if (entity.collisionShape === 'iso_rect'
+                && pointInIsoFootprint(wx, wy, entity, 16)) {
+                score = Math.min(score, 0);
+            }
+            const spr = entity.spriteCfg;
+            if (spr) {
+                const cx = entity.x + (spr.offsetX || 0);
+                const cy = entity.y - (entity._visualFootOffsetY ?? spr.footOffsetY ?? 0);
+                const hw = (spr.size || entity.size || 32) * 0.5;
+                const hh = (spr.sizeH || spr.size || entity.size || 32) * 0.5;
+                const dx = Math.max(0, Math.abs(wx - cx) - hw);
+                const dy = Math.max(0, Math.abs(wy - cy) - hh);
+                score = Math.min(score, Math.hypot(dx, dy));
+            }
+            score = Math.min(score, Math.hypot(wx - entity.x, wy - entity.y) - 90);
+            if (score <= 24) hits.push({ entity, score });
+        }
+        hits.sort((a, b) => a.score - b.score || b.entity.y - a.entity.y);
+        return hits[0]?.entity || null;
+    },
+
     /** 点到线段的最短距离 */
     _pointSegDist(px, py, a, b) {
         const dx = b.x - a.x, dy = b.y - a.y;
@@ -2498,6 +2597,13 @@ export const BuildingSystem = {
             for (const segment of entity.segments || []) segment.active = false;
             DefenseSystem.rebuildWallStairGroups?.();
         }
+        if (entity._isDefenseTower && DefenseSystem && Array.isArray(DefenseSystem.towers)) {
+            const i = DefenseSystem.towers.indexOf(entity);
+            if (i >= 0) DefenseSystem.towers.splice(i, 1);
+            if (DefenseSystem._panel?.isOpen && DefenseSystem._panel.tower === entity) {
+                DefenseSystem._panel.close();
+            }
+        }
         entity.hittable = false;
         entity._sinking = true;
         if (EffectManager) {
@@ -2510,16 +2616,36 @@ export const BuildingSystem = {
     },
 
     /** 详情面板半价回收玩家放置建筑；4格门按组件组整体回收。 */
-    _recycleBuilding() {
-        const entity = this._detail;
+    _recycleEntity(entity) {
+        entity = entity && entity._buildGroupRoot && entity._buildGroupRoot.active
+            ? entity._buildGroupRoot
+            : entity;
+        if (entity && typeof entity.sell === 'function'
+            && (entity._isHamsterHut || entity._isHamsterBarracks || entity._isProducerBuilding)) {
+            const currency = entity._buildCurrency === 'gold' ? 'gold' : 'energy';
+            const result = entity.sell();
+            if (!result?.ok) {
+                this._notify(result?.reason || '该建筑无法回收', '#ff5555');
+                return false;
+            }
+            this._detail = null;
+            this._renderDetail();
+            this._refreshCurrencies();
+            const unit = currency === 'gold' ? '金币' : '能源';
+            this._notify(`建筑已回收（+${result.refund || 0} ${unit}）`, '#ffd700');
+            if (SoundManager && typeof SoundManager.playFile === 'function') {
+                SoundManager.playFile('assets/sounds/ui/sell.wav');
+            }
+            return true;
+        }
         const info = this._recycleInfo(entity);
         if (!entity || !info.recyclable) {
             this._notify('该建筑不可回收', '#ff8855');
-            return;
+            return false;
         }
         if (info.currency === 'energy' && (!EnergyManager || !EnergyManager.canStore(info.refund))) {
             this._notify('仓库空间不足，无法接收回收返还能源', '#ff5555');
-            return;
+            return false;
         }
         // 门先拆：destroy() 会恢复被门裁剪的墙段；随后再拆两端方块，避免幽灵碰撞段复活。
         const ordered = [
@@ -2533,6 +2659,46 @@ export const BuildingSystem = {
         this._renderDetail();
         this._refreshCurrencies();
         this._notify(`建筑已回收（+${info.refund} ${unit}）`, '#ffd700');
+        if (SoundManager && typeof SoundManager.playFile === 'function') {
+            SoundManager.playFile('assets/sounds/ui/sell.wav');
+        }
+        return true;
+    },
+
+    /** 详情面板半价回收玩家放置建筑；4格门按组件组整体回收。 */
+    _recycleBuilding() {
+        this._recycleEntity(this._detail);
+    },
+
+    _recycleAt(wx, wy) {
+        const entity = this._hitTestRecyclableEntity(wx, wy);
+        if (entity) {
+            this._recycleEntity(entity);
+            return;
+        }
+        const road = BuildingRoadSystem.getManualRoadAt(wx, wy);
+        if (!road) {
+            this._notify('此处没有可回收的建筑或道路', '#ff8855');
+            return;
+        }
+        const roadItem = BUILD_ITEMS.find((item) => item.kind === 'road');
+        const paidCost = Number.isFinite(Number(road.buildCost)) && Number(road.buildCost) > 0
+            ? Number(road.buildCost)
+            : (road.refundable !== false ? Number(roadItem?.cost) || 0 : 0);
+        const currency = road.buildCurrency === 'gold' ? 'gold' : 'energy';
+        const refund = road.refundable === false ? 0 : Math.floor(paidCost * 0.5);
+        if (currency === 'energy' && (!EnergyManager || !EnergyManager.canStore(refund))) {
+            this._notify('仓库空间不足，无法接收回收返还能源', '#ff5555');
+            return;
+        }
+        if (!BuildingRoadSystem.removeManualRoad(road.i, road.j)) {
+            this._notify('道路回收失败', '#ff5555');
+            return;
+        }
+        this._refundBuildCost(currency, refund);
+        this._refreshCurrencies();
+        const unit = currency === 'gold' ? '金币' : '能源';
+        this._notify(`道路已回收（+${refund} ${unit}）`, '#ffd700');
         if (SoundManager && typeof SoundManager.playFile === 'function') {
             SoundManager.playFile('assets/sounds/ui/sell.wav');
         }

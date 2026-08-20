@@ -9,6 +9,7 @@ import { AttackRangeEffect } from '../../effects/attack-range-effect.js';
 import { NightFlameBeamEffect } from '../../effects/nightflame-effect.js';
 import { EffectManager } from '../../effects/effect-manager.js';
 import { VerticalRect } from '../../physics/skill-shapes.js';
+import { entitySurfaceZ, surfaceEffectFromEntity } from '../../physics/elevation.js';
 class SpecialAttackSystem {
     constructor(player) {
         this.player = player;
@@ -135,7 +136,18 @@ class SpecialAttackSystem {
         const cos = Math.cos(angle), sin = Math.sin(angle);
         const effectX = this.player.x + localCenterX * cos - localCenterY * sin;
         const effectY = this.player.y + localCenterX * sin + localCenterY * cos;
-        const shape = new VerticalRect(effectX, effectY, angle, length, effect.beamWidth, 0, this.player.bodyHeight || 150);
+        const minZ = entitySurfaceZ(this.player);
+        const shape = new VerticalRect(
+            effectX,
+            effectY,
+            angle,
+            length,
+            effect.beamWidth,
+            minZ,
+            minZ + (this.player.bodyHeight || 150),
+            0,
+            surfaceEffectFromEntity(this.player)
+        );
         // 矩形区域检测：每 tick 对范围内所有目标造成伤害（持续判定，非一次性）
         entities.forEach(entity => {
             if (entity === this.player || !entity.active || !entity.hittable) return;

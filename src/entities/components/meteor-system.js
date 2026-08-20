@@ -4,6 +4,7 @@ import { EffectManager } from '../../effects/effect-manager.js';
 import { FloatingTextEffect } from '../../effects/floating-text.js';
 import { SceneManager } from '../../world/scene-manager.js';
 import { GroundCircle, GroundEllipse } from '../../physics/skill-shapes.js';
+import { entitySurfaceZ, surfaceEffectAtPoint, surfaceEffectFromEntity } from '../../physics/elevation.js';
 import { MeteorStrike } from '../../effects/meteor-strike.js';
 import { SoundManager } from '../../ui/sound-manager.js';
 import { SkillManager } from '../../ui/skill-manager.js';
@@ -78,10 +79,12 @@ export class MeteorSystem {
         // 瞄准点：玩家=鼠标世界坐标
         let aimX = src.x;
         let aimY = src.y;
+        let surfaceContext = surfaceEffectFromEntity(src);
         if (this._isPlayer()) {
             const aim = Renderer.screenToWorld(Input.mouse.x, Input.mouse.y);
-            aimX = aim.x;
-            aimY = aim.y;
+            surfaceContext = surfaceEffectAtPoint(aim.x, aim.y);
+            aimX = surfaceContext.x;
+            aimY = surfaceContext.y;
         }
 
         // 施法距离门禁（失败不耗蓝/冷却/链式层数）
@@ -100,7 +103,7 @@ export class MeteorSystem {
         const mpMul = getMagicMpCostMultiplier(src, ce, chainStacks);
         const mpCost = effect.mpCost ? Math.max(0, Math.floor(effect.mpCost * mpMul)) : 0;
         if (!isSkillCheatEnabled() && this._isPlayer() && mpCost > 0 && src.data.mp < mpCost) {
-            EffectManager.add(new FloatingTextEffect(src.x, src.y - 30, '魔法不足', '#ff6b35'));
+            EffectManager.add(new FloatingTextEffect(src.x, src.y - entitySurfaceZ(src) - 30, '魔法不足', '#ff6b35'));
             return;
         }
         const chain = consumeChainSpellBonus(src);
@@ -116,8 +119,8 @@ export class MeteorSystem {
             if (castSounds && SoundManager && typeof SoundManager.playFile === 'function') {
                 (Array.isArray(castSounds) ? castSounds : [castSounds]).forEach(p => SoundManager.playFile(p));
             }
-            this._spawnStrike(aimX, aimY, effect);
-            EffectManager.add(new FloatingTextEffect(src.x, src.y - 40, '☄ 陨星坠落', '#ff8f7a'));
+            this._spawnStrike(aimX, aimY, effect, surfaceContext);
+            EffectManager.add(new FloatingTextEffect(src.x, src.y - entitySurfaceZ(src) - 40, '☄ 陨星坠落', '#ff8f7a'));
             addChainSpellStack(src);
             applyCastHaste(src);
         };
@@ -128,14 +131,15 @@ export class MeteorSystem {
         }
     }
 
-    _spawnStrike(x, y, effect) {
+    _spawnStrike(x, y, effect, surfaceContext = null) {
         const src = this.source;
         const acc = { hits: 0, kills: 0, multiHit: false };
         const d = src.data;
+        surfaceContext ||= surfaceEffectFromEntity(src);
 
         // 爆炸命中结算：范围伤害（中心全额→边缘 50% 距离衰减）+ 击退 + 叠灼伤
         const onImpact = (ix, iy, entities) => {
-            const shape = new GroundCircle(ix, iy, effect.explosionRadius);
+            const shape = new GroundCircle(ix, iy, effect.explosionRadius, surfaceContext);
             const baseDamage = Math.floor(
                 (effect.damageBase ?? 0)
                 + (d.matk ?? 0) * (effect.magicMul ?? 0)
@@ -170,7 +174,13 @@ export class MeteorSystem {
 
         // 熔岩区域每跳：灼烧伤害 + 叠灼伤
         const onTick = (zone, entities) => {
-            const shape = new GroundEllipse(zone.x, zone.y, effect.lavaRadius, effect.lavaRadius * 0.5);
+            const shape = new GroundEllipse(
+                zone.x,
+                zone.y,
+                effect.lavaRadius,
+                effect.lavaRadius * 0.5,
+                zone.surfaceContext
+            );
             const tickDamage = Math.floor(
                 ((effect.lavaDamageBase ?? 0)
                 + (d.matk ?? 0) * (effect.lavaMagicMul ?? 0)
@@ -205,6 +215,7 @@ export class MeteorSystem {
         const strike = new MeteorStrike({
             x,
             y,
+            surfaceContext,
             explosionRadius: effect.explosionRadius,
             lavaRadius: effect.lavaRadius,
             lavaDurationMs: effect.lavaDuration * 1000,

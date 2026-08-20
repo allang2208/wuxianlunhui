@@ -1,6 +1,7 @@
 import { Enemy } from '../enemy.js';
 import { PERSPECTIVE_SCALE_Y } from '../../config/perspective-config.js';
 import { GroundEllipse } from '../../physics/skill-shapes.js';
+import { surfaceEffectFromEntity } from '../../physics/elevation.js';
 import { FlySwarm } from './fly-swarm.js';
 import { SoundManager } from '../../ui/sound-manager.js';
 import enemyConfigData from '../../../data/enemy-config.json';
@@ -181,7 +182,13 @@ export class FlyHand extends Enemy {
             return;
         }
         // 范围技能：椭圆判定（2:1 平面透视）
-        const shape = new GroundEllipse(this.x, this.y, range, range * PERSPECTIVE_SCALE_Y);
+        const shape = new GroundEllipse(
+            this.x,
+            this.y,
+            range,
+            range * PERSPECTIVE_SCALE_Y,
+            surfaceEffectFromEntity(this)
+        );
         // 砸地红圈扩散特效（判定帧触发，扩散到攻击影响范围）
         this._fireSlamShockwave(range);
         for (const e of hostilesOf(this, entities)) {

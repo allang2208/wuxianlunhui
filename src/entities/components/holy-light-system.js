@@ -20,6 +20,7 @@ import {
 import skillsData from '../../../data/skills.json';
 import { isSkillCheatEnabled } from '../../config/dev-cheats.js';
 import { hasRangedLineOfSight } from '../../combat/ranged-line-of-sight.js';
+import { entitySurfaceZ } from '../../physics/elevation.js';
 
 /** 圣光数值默认（配置唯一真相：skills.json effectFormula 必有；缺省兜底统一收敛于此） */
 const HOLY_LIGHT_DEFAULTS = {
@@ -93,7 +94,8 @@ export class HolyLightSystem {
         const nearMouse = [];
         for (const e of entities) {
             if (!e || !e.active || !e.hittable || isHolyLightBuilding(e)) continue;
-            const dAim = Math.hypot(e.x - aimX, e.y - aimY);
+            const projectedY = e.y - entitySurfaceZ(e);
+            const dAim = Math.hypot(e.x - aimX, projectedY - aimY);
             if (dAim <= aimRadius) {
                 nearMouse.push({ e, dAim, dPlayer: Math.hypot(e.x - src.x, e.y - src.y) });
             }
@@ -133,7 +135,7 @@ export class HolyLightSystem {
         const mpMul = getMagicMpCostMultiplier(src, ce, chainStacks);
         const mpCost = effect.mpCost ? Math.max(0, Math.floor(effect.mpCost * mpMul)) : 0;
         if (!isSkillCheatEnabled() && this._isPlayer() && mpCost > 0 && src.data.mp < mpCost) {
-            EffectManager.add(new FloatingTextEffect(src.x, src.y - 30, '魔法不足！', '#ffd27a'));
+            EffectManager.add(new FloatingTextEffect(src.x, src.y - entitySurfaceZ(src) - 30, '魔法不足！', '#ffd27a'));
             return;
         }
         // 门禁通过：正式消费链式强化并扣蓝（失败路径不再白丢层数）
@@ -146,6 +148,12 @@ export class HolyLightSystem {
         if (!isSkillCheatEnabled()) src._holyLightCooldown = effect.cooldown * 1000;
         // 播放施法动画，第 8 帧触发释放
         const doRelease = () => {
+            if (!this._isReleaseTargetValid(best, maxRange)) {
+                if (SceneManager && typeof SceneManager.showTopNotification === 'function') {
+                    SceneManager.showTopNotification('✦ 目标已失效或被遮挡！');
+                }
+                return;
+            }
             const castSounds = skillsData.skills?.holyLight?.sounds?.cast;
             if (Array.isArray(castSounds) && SoundManager && typeof SoundManager.playFile === 'function') {
                 for (const p of castSounds) SoundManager.playFile(p);
@@ -164,7 +172,7 @@ export class HolyLightSystem {
                     const maxHp = best.data.maxHp || best.maxHp || 0;
                     best.data.hp = Math.min(maxHp > 0 ? maxHp : Infinity, best.data.hp + amount);
                 }
-                EffectManager.add(new FloatingTextEffect(best.x, best.y - 30, `+${amount}`, '#7aff9a'));
+                EffectManager.add(new FloatingTextEffect(best.x, best.y - entitySurfaceZ(best) - 30, `+${amount}`, '#7aff9a'));
                 // 翠灵水晶：治疗后给目标添加圣光续疗
                 if (ce && ce.holyLightHoTStacks && typeof best.applyHolyRenewal === 'function') {
                     best.applyHolyRenewal(ce.holyLightHoTStacks, (ce.holyLightHoTSeconds || 3) * 1000, 0.01);
@@ -198,7 +206,7 @@ export class HolyLightSystem {
                 beamHeight: effect.beamHeight,
                 dissolveRatio: effect.dissolveRatio,
             }));
-            EffectManager.add(new FloatingTextEffect(src.x, src.y - 40, '✨ 圣光', '#ffd27a'));
+            EffectManager.add(new FloatingTextEffect(src.x, src.y - entitySurfaceZ(src) - 40, '✨ 圣光', '#ffd27a'));
             // 松木握柄：施法后添加 1 层链式强化；檀木握柄：施法后给自身加速
             addChainSpellStack(src);
             applyCastHaste(src);
@@ -225,7 +233,7 @@ export class HolyLightSystem {
         const mpMul = getMagicMpCostMultiplier(src, ce, chainStacks);
         const mpCost = effect.mpCost ? Math.max(0, Math.floor(effect.mpCost * mpMul)) : 0;
         if (!isSkillCheatEnabled() && this._isPlayer() && mpCost > 0 && src.data.mp < mpCost) {
-            EffectManager.add(new FloatingTextEffect(src.x, src.y - 30, '魔法不足！', '#ffd27a'));
+            EffectManager.add(new FloatingTextEffect(src.x, src.y - entitySurfaceZ(src) - 30, '魔法不足！', '#ffd27a'));
             return;
         }
         // 门禁通过：正式消费链式强化并扣蓝（失败路径不再白丢层数）
@@ -238,6 +246,7 @@ export class HolyLightSystem {
         if (!isSkillCheatEnabled()) src._holyLightCooldown = effect.cooldown * 1000;
         // 播放施法动画，第 8 帧触发释放
         const doRelease = () => {
+            if (!src.active) return;
             const castSounds = skillsData.skills?.holyLight?.sounds?.cast;
             if (Array.isArray(castSounds) && SoundManager && typeof SoundManager.playFile === 'function') {
                 for (const p of castSounds) SoundManager.playFile(p);
@@ -251,7 +260,7 @@ export class HolyLightSystem {
             );
             const maxHp = src.data.maxHp || 0;
             src.data.hp = Math.min(maxHp > 0 ? maxHp : Infinity, src.data.hp + amount);
-            EffectManager.add(new FloatingTextEffect(src.x, src.y - 30, `+${amount}`, '#7aff9a'));
+            EffectManager.add(new FloatingTextEffect(src.x, src.y - entitySurfaceZ(src) - 30, `+${amount}`, '#7aff9a'));
             // 翠灵水晶：自愈也添加续疗
             if (ce && ce.holyLightHoTStacks && typeof src.applyHolyRenewal === 'function') {
                 src.applyHolyRenewal(ce.holyLightHoTStacks, (ce.holyLightHoTSeconds || 3) * 1000, 0.01);
@@ -276,7 +285,7 @@ export class HolyLightSystem {
                 beamHeight: effect.beamHeight,
                 dissolveRatio: effect.dissolveRatio,
             }));
-            EffectManager.add(new FloatingTextEffect(src.x, src.y - 40, '✨ 圣光', '#ffd27a'));
+            EffectManager.add(new FloatingTextEffect(src.x, src.y - entitySurfaceZ(src) - 40, '✨ 圣光', '#ffd27a'));
             // 松木握柄：施法后添加 1 层链式强化；檀木握柄：施法后给自身加速
             addChainSpellStack(src);
             applyCastHaste(src);
@@ -294,7 +303,7 @@ export class HolyLightSystem {
      */
     triggerOn(target) {
         const src = this.source;
-        if (!src || !target || !target.active || isHolyLightBuilding(target)) return false;
+        if (!src || !target || !target.active || !target.hittable || isHolyLightBuilding(target)) return false;
         if (!isSkillCheatEnabled() && src._holyLightCooldown > 0) return false;
         const skill = src.skills && src.skills.holyLight;
         if (!skill) return false;
@@ -320,6 +329,7 @@ export class HolyLightSystem {
         if (!isSkillCheatEnabled()) src._holyLightCooldown = effect.cooldown * 1000;
 
         const doRelease = () => {
+            if (!this._isReleaseTargetValid(target, maxRange)) return;
             const castSounds = skillsData.skills?.holyLight?.sounds?.cast;
             if (Array.isArray(castSounds) && SoundManager && typeof SoundManager.playFile === 'function') {
                 for (const p of castSounds) SoundManager.playFile(p);
@@ -338,7 +348,7 @@ export class HolyLightSystem {
                     const maxHp = best.data.maxHp || best.maxHp || 0;
                     best.data.hp = Math.min(maxHp > 0 ? maxHp : Infinity, best.data.hp + amount);
                 }
-                EffectManager.add(new FloatingTextEffect(best.x, best.y - 30, `+${amount}`, '#7aff9a'));
+                EffectManager.add(new FloatingTextEffect(best.x, best.y - entitySurfaceZ(best) - 30, `+${amount}`, '#7aff9a'));
                 // 翠灵水晶：治疗后给目标添加圣光续疗
                 if (ce && ce.holyLightHoTStacks && typeof best.applyHolyRenewal === 'function') {
                     best.applyHolyRenewal(ce.holyLightHoTStacks, (ce.holyLightHoTSeconds || 3) * 1000, 0.01);
@@ -372,7 +382,7 @@ export class HolyLightSystem {
                 beamHeight: effect.beamHeight,
                 dissolveRatio: effect.dissolveRatio,
             }));
-            EffectManager.add(new FloatingTextEffect(src.x, src.y - 40, '✨ 圣光', '#ffd27a'));
+            EffectManager.add(new FloatingTextEffect(src.x, src.y - entitySurfaceZ(src) - 40, '✨ 圣光', '#ffd27a'));
             // 松木握柄：施法后添加 1 层链式强化；檀木握柄：施法后给自身加速
             addChainSpellStack(src);
             applyCastHaste(src);
@@ -398,6 +408,13 @@ export class HolyLightSystem {
     /** 视线检测：地面走二维墙判定，高架走带 Z 的弹道墙交点判定。 */
     _isLineOfSightClear(target, radius = 8) {
         return hasRangedLineOfSight(this.source, target, radius);
+    }
+
+    _isReleaseTargetValid(target, maxRange) {
+        const src = this.source;
+        if (!src?.active || !target?.active || !target.hittable || isHolyLightBuilding(target)) return false;
+        if (Math.hypot(target.x - src.x, target.y - src.y) > maxRange) return false;
+        return this._isLineOfSightClear(target);
     }
 
     update(dt) {

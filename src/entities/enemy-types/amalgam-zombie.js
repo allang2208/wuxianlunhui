@@ -1,6 +1,7 @@
 import { Enemy } from '../enemy.js';
 import enemyConfigData from '../../../data/enemy-config.json';
 import { GroundEllipse } from '../../physics/skill-shapes.js';
+import { surfaceEffectFromEntity } from '../../physics/elevation.js';
 import { PERSPECTIVE_SCALE_Y } from '../../config/perspective-config.js';
 import { WallSystem } from '../../world/wall-system.js';
 import { SoundManager } from '../../ui/sound-manager.js';
@@ -235,9 +236,17 @@ export class AmalgamZombie extends Enemy {
                 const fireDelayS = (((cfg.fireFrame || 1) - 1) / (cfg.frames || 1)) * (cfg.duration || 0) / 1000;
                 const projSpeed = flyS > 0 ? dist / flyS : 1000;
                 const lead = AimHelper.lead(this.x, this.y, t.x, t.y, t.vx || 0, t.vy || 0, projSpeed, fireDelayS);
-                this._throwTarget = { x: lead.x, y: lead.y };
+                this._throwTarget = {
+                    x: lead.x,
+                    y: lead.y,
+                    surfaceContext: surfaceEffectFromEntity(t),
+                };
             } else {
-                this._throwTarget = { x: this.x, y: this.y };
+                this._throwTarget = {
+                    x: this.x,
+                    y: this.y,
+                    surfaceContext: surfaceEffectFromEntity(this),
+                };
             }
             this._throwFired = false;
             this._throwSoundPlayed = false;
@@ -272,7 +281,13 @@ export class AmalgamZombie extends Enemy {
         this._fireSlamShockwave();
         for (const e of hostilesOf(this, entities)) {
             for (const zone of zones) {
-                const shape = new GroundEllipse(this.x, this.y, zone.radius, zone.radius * PERSPECTIVE_SCALE_Y);
+                const shape = new GroundEllipse(
+                    this.x,
+                    this.y,
+                    zone.radius,
+                    zone.radius * PERSPECTIVE_SCALE_Y,
+                    surfaceEffectFromEntity(this)
+                );
                 if (shape.intersectsEntity(e)) {
                     e.takeDamage(atk * (zone.damageMul ?? 1), this, 'physical', true);
                     break;
@@ -326,7 +341,13 @@ export class AmalgamZombie extends Enemy {
         const radius = cfg.impactRadius || 45;
         const atk = this.data?.atk || 0;
         // 落点椭圆范围伤害
-        const shape = new GroundEllipse(tx, ty, radius, radius * PERSPECTIVE_SCALE_Y);
+        const shape = new GroundEllipse(
+            tx,
+            ty,
+            radius,
+            radius * PERSPECTIVE_SCALE_Y,
+            this._throwTarget?.surfaceContext || surfaceEffectFromEntity(this)
+        );
         for (const e of hostilesOf(this)) {
             if (shape.intersectsEntity(e)) {
                 e.takeDamage(atk * (cfg.damageMul ?? 1), this, 'physical', false);

@@ -1,4 +1,5 @@
 import { PERSPECTIVE_SCALE_Y } from '../config/perspective-config.js';
+import { entitySurfaceZ } from '../physics/elevation.js';
 
 /**
  * 圣光降临特效（2026-08-02 v2 定稿：干净锥形光束 + 仅底部接触地面处不规则淡出）
@@ -94,7 +95,9 @@ class HolyLightEffect {
             return;
         }
         // 粒子位置跟随目标；淡出期停发（余粒飘完随销毁）
-        const groundY = this.target ? this.target.y : (this._lastY || 0);
+        const groundY = this.target
+            ? this.target.y - entitySurfaceZ(this.target)
+            : (this._lastY || 0);
         const chestY = groundY - ((this.target && this.target.bodyHeight) || 120) * 0.5;
         if (this._emitter) {
             this._emitter.setPosition(this.target ? this.target.x : (this._lastX || 0), chestY);
@@ -125,7 +128,7 @@ class HolyLightEffect {
         if (!this._graphics || !this._graphics.active || this._bottomEdges.length < 2) return;
         const t = this.target;
         const x = t ? t.x : (this._lastX || 0);
-        const groundY = t ? t.y : (this._lastY || 0);
+        const groundY = t ? t.y - entitySurfaceZ(t) : (this._lastY || 0);
         const skyY = groundY - this.beamHeight;
         const dissolveTopY = groundY - this.beamHeight * this.dissolveRatio;
         const midHalf = this.beamTopWidth / 2 + (this.beamBottomWidth / 2 - this.beamTopWidth / 2) * (1 - this.dissolveRatio);

@@ -17,6 +17,7 @@ import { SkillManager } from '../ui/skill-manager.js';
 import { AimHelper } from '../utils/aim-helper.js';
 import { distanceToEntityShape } from '../utils/collision-helpers.js';
 import { GroundSector, GroundDirectedRect } from '../physics/skill-shapes.js';
+import { effectElevationIntersectsEntity, surfaceEffectFromEntity } from '../physics/elevation.js';
 import SpatialPartitionSystem from '../systems/spatial-partition-system.js';
 
 // ===== 通用附魔命中效果系统 =====
@@ -118,7 +119,8 @@ function applyEnchantOnHit(weapon, target, source) {
                 let hitCount = 0, killCount = 0;
                 const hitCountRef = { value: 0 };
                 const killCountRef = { value: 0 };
-                const slashShape = new GroundSector(originX, originY, attackAngle, effectiveRange, arc);
+                const surfaceContext = surfaceEffectFromEntity(source);
+                const slashShape = new GroundSector(originX, originY, attackAngle, effectiveRange, arc, surfaceContext);
                 const candidates = this._queryNearbyEntities(originX, originY, effectiveRange + 100, source, entities);
                 candidates.forEach(entity => {
                     if (entity === source || !entity.active || !entity.hittable) return;
@@ -247,13 +249,15 @@ function applyEnchantOnHit(weapon, target, source) {
                 // 剑类武器攻击范围：使用 WeaponAnimConfig.sword.hitBox 统一配置
                 const hitBox = WeaponAnimConfig.sword.hitBox;
                 const backExt = isSword ? (hitBox.backExtension || 0) : 0;
-                const thrustShape = new GroundDirectedRect(ax, ay, angle, range, width, backExt);
+                const surfaceContext = surfaceEffectFromEntity(source);
+                const thrustShape = new GroundDirectedRect(ax, ay, angle, range, width, backExt, surfaceContext);
                 const candidates = this._queryNearbyEntities(ax, ay, range + 100, source, pt.entities);
                 candidates.forEach(entity => {
                     if (entity === source || !entity.active || !entity.hittable) return;
                     if (pt.hitSet.has(entity)) return; // 已命中过
                     // 友方免伤 + 怪物之间不互相攻击
                     if (isFriendlyFire(source, entity) || (source._faction === 'enemy' && entity._faction === 'enemy')) return;
+                    if (!effectElevationIntersectsEntity(surfaceContext, entity)) return;
                     // 墙壁视线检测：不能攻击墙后的目标
                     // [FIX-LOS] 防守结构（掩体/基地）贴身免 LOS：掩体中心在自身 face 线后方，
                     // 从墙背面挥击时到中心的射线必被自身/相邻掩体段误挡，导致贴身啃墙零伤害
@@ -309,9 +313,10 @@ function applyEnchantOnHit(weapon, target, source) {
             }
             // 扇形与实体地面 footprint（圆形近似）相交判定：
             // 实体地面点到原点距离 ≤ 半径+footRadius，且角度差 ≤ halfArc + asin(footRadius/dist) 修正
-            _sectorIntersectsEntity(ax, ay, angle, radius, halfArc, entity) {
+            _sectorIntersectsEntity(ax, ay, angle, radius, halfArc, entity, elevationContext = null) {
                 const c = entity?.collider;
                 if (!c || !c.isGroundTarget) return false;
+                if (!effectElevationIntersectsEntity(elevationContext, entity)) return false;
                 const dx = c.x - ax, dy = c.y - ay;
                 // dy 逆透视变换（÷PERSPECTIVE_SCALE_Y）：与 AttackRangeEffect('sector')
                 // 的 Y 压缩显示同口径——红扇画多大就实际打多大（footprint 相交口径保留）
@@ -334,6 +339,7 @@ function applyEnchantOnHit(weapon, target, source) {
                 // 判定半径倍率（配置 hitCheck.rangeMul，缺省 1）——乘算武器攻击范围，判定与可视化同口径
                 const range = pt.range * (typeof hitCheckCfg.rangeMul === 'number' ? hitCheckCfg.rangeMul : 1);
                 const currentWeapon = source.getCurrentWeapon ? source.getCurrentWeapon() : (source.equipments && source.weaponMode ? source.equipments[source.weaponMode] : null);
+                const surfaceContext = surfaceEffectFromEntity(source);
                 const shape = hitCheckCfg.shape || 'rect';
                 let hitCount = 0, killCount = 0;
                 const candidates = this._queryNearbyEntities(ax, ay, range + 100, source, pt.entities);
@@ -353,7 +359,7 @@ function applyEnchantOnHit(weapon, target, source) {
                         if (isFriendlyFire(source, entity) || (source._faction === 'enemy' && entity._faction === 'enemy')) return;
                         // 墙壁视线检测：不能攻击墙后的目标
                         if (WallSystem.blocked(ax, ay, entity.x, entity.y)) return;
-                        if (!this._sectorIntersectsEntity(ax, ay, angle, range, halfArc, entity)) return;
+                        if (!this._sectorIntersectsEntity(ax, ay, angle, range, halfArc, entity, surfaceContext)) return;
                         pt.hitSet.add(entity);
                         const baseDamage = Math.floor((pt.damage.min + pt.damage.max) / 2) + pt.damageBonus;
                         const damage = Math.floor(baseDamage * damageMul);
@@ -383,7 +389,7 @@ function applyEnchantOnHit(weapon, target, source) {
                     if (Game.showAttackRange) {
                         EffectManager.add(new AttackRangeEffect(ax, ay, angle, range, pt.width, 'triangle', 300, 0.7, true, backExt));
                     }
-                    const rectShape = new GroundDirectedRect(ax, ay, angle, range, pt.width, backExt);
+                    const rectShape = new GroundDirectedRect(ax, ay, angle, range, pt.width, backExt, surfaceContext);
                     candidates.forEach(entity => {
                         if (entity === source || !entity.active || !entity.hittable) return;
                         if (pt.hitSet.has(entity)) return; // 已命中过

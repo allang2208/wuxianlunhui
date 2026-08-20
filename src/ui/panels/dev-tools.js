@@ -55,6 +55,16 @@ export function createDevToolPanel() {
     tabSkill.textContent = '技能';
     tabs.appendChild(tabSkill);
 
+    const tabWorld = document.createElement('div');
+    tabWorld.className = 'dev-tool-tab';
+    tabWorld.dataset.tab = 'world';
+    tabWorld.addEventListener('click', () => {
+        DevTool.switchTab('world');
+        renderWorldDebug();
+    });
+    tabWorld.textContent = '位面';
+    tabs.appendChild(tabWorld);
+
     root.appendChild(tabs);
 
     // ===== Tab 内容：武器 =====
@@ -551,6 +561,87 @@ export function createDevToolPanel() {
     skillWrap.appendChild(skillRow);
     contentSkill.appendChild(skillWrap);
     root.appendChild(contentSkill);
+
+    // ===== Tab 内容：位面生命周期调试 =====
+    const contentWorld = document.createElement('div');
+    contentWorld.className = 'dev-tool-tab-content';
+    contentWorld.dataset.tabContent = 'world';
+    contentWorld.style.cssText = 'display:none;';
+
+    const worldWrap = document.createElement('div');
+    worldWrap.className = 'collision-tab-wrap';
+    worldWrap.innerHTML = `
+        <div class="collision-tab-desc">
+            <p>🌐 位面生命周期调试：查看状态、世代、快照和真实入侵候选池。</p>
+            <p style="color:#d8a26a;">推进时间会修改统一游戏时钟；模拟毁门会执行正式毁灭事务。</p>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin:8px 0;">
+            <button id="devWorldRefresh" class="dev-tool-menu-btn">刷新</button>
+            <button id="devWorldAdvance1" class="dev-tool-menu-btn">推进 1 天</button>
+            <button id="devWorldAdvance5" class="dev-tool-menu-btn">推进 5 天</button>
+            <select id="devWorldSelect" style="min-width:150px;padding:4px;background:#1c1c1c;color:#d4c5a9;border:1px solid #3a3a3a;"></select>
+            <button id="devWorldDestroy" class="dev-tool-menu-btn" style="border-color:#9b4b43;color:#ffb4aa;">模拟毁门</button>
+        </div>
+        <div id="devWorldSummary" style="font-size:12px;color:#b8d8ff;margin-bottom:8px;"></div>
+        <div id="devWorldRows" style="display:flex;flex-direction:column;gap:7px;"></div>`;
+    contentWorld.appendChild(worldWrap);
+    root.appendChild(contentWorld);
+
+    const renderWorldDebug = () => {
+        const system = window.WorldInvasionSystem;
+        const summary = root.querySelector('#devWorldSummary');
+        const rows = root.querySelector('#devWorldRows');
+        const select = root.querySelector('#devWorldSelect');
+        if (!system?.getDebugModel || !summary || !rows || !select) {
+            if (summary) summary.textContent = '位面系统尚未初始化';
+            return;
+        }
+        const model = system.getDebugModel();
+        const currentSelection = select.value;
+        select.innerHTML = model.worlds.map((world) =>
+            `<option value="${world.sceneId}">${world.name} (${world.sceneId})</option>`).join('');
+        if (model.worlds.some((world) => world.sceneId === currentSelection)) select.value = currentSelection;
+        const elapsedDays = model.nowGameTimeMs / Math.max(1, model.dayDurationMs);
+        const invasion = model.active
+            ? `${model.active.targetWorld} 第${model.active.waveIndex}/${model.active.waveCount}波`
+            : '无';
+        summary.innerHTML = `游戏时间：${elapsedDays.toFixed(2)} 天 · 入侵轮次：${model.cycle} · `
+            + `当前入侵：${invasion}<br>候选池：${model.candidatePool.length ? model.candidatePool.join(', ') : '空'}`;
+        rows.innerHTML = model.worlds.map((world) => {
+            const protectionDays = world.protectionRemainingMs / Math.max(1, model.dayDurationMs);
+            const snapshot = world.snapshot.exists
+                ? `epoch ${world.snapshot.worldEpoch} · 建筑 ${world.snapshot.structures} · 单位 ${world.snapshot.units}`
+                    + ` · 资源点 ${world.snapshot.resourceNodes} · 道路 ${world.snapshot.roads}`
+                : '无快照';
+            return `<div style="padding:8px;border:1px solid ${world.candidate ? '#5f9d77' : '#4a4238'};border-radius:6px;background:rgba(24,22,20,.72);">
+                <div><b>${world.name}</b> · ${world.status} · epoch ${world.worldEpoch} · HP ${Math.ceil(world.hp)}</div>
+                <div style="font-size:11px;color:#aeb6bf;margin-top:3px;">
+                    候选：${world.candidate ? '是' : '否'} · 保护：${world.protected ? `${protectionDays.toFixed(2)} 天` : '无'} ·
+                    生成 v${world.generationVersion} / seed ${world.generationSeed}
+                </div>
+                <div style="font-size:11px;color:#8fc2d2;margin-top:2px;">快照：${snapshot}</div>
+            </div>`;
+        }).join('');
+    };
+
+    root.querySelector('#devWorldRefresh').addEventListener('click', renderWorldDebug);
+    root.querySelector('#devWorldAdvance1').addEventListener('click', () => {
+        window.WorldInvasionSystem?.debugAdvanceDays?.(1);
+        renderWorldDebug();
+    });
+    root.querySelector('#devWorldAdvance5').addEventListener('click', () => {
+        window.WorldInvasionSystem?.debugAdvanceDays?.(5);
+        renderWorldDebug();
+    });
+    root.querySelector('#devWorldDestroy').addEventListener('click', () => {
+        const sceneId = root.querySelector('#devWorldSelect')?.value;
+        if (!sceneId || !window.confirm(`确认模拟摧毁 ${sceneId} 的传送门？`)) return;
+        const result = window.WorldInvasionSystem?.debugDestroyPortal?.(sceneId);
+        if (!result?.ok && DevTool && typeof DevTool._showToast === 'function') {
+            DevTool._showToast(`✕ ${result?.reason || '模拟毁门失败'}`);
+        }
+        renderWorldDebug();
+    });
 
     // ===== 技能等级调试逻辑 =====
     const fillSkillSelect = () => {

@@ -1,3 +1,5 @@
+import { entitySurfaceZ } from '../physics/elevation.js';
+
 /**
  * 锁定/传导类连接特效模板（2026-08-02，闪电技能首航；同类型技能直接复用）
  *
@@ -61,14 +63,17 @@ class LightningBoltEffect {
 
     _startPoint() {
         const s = this.source;
-        return { x: s.x, y: s.y - ((s.bodyHeight || 120) * 0.5) };
+        return {
+            x: s.x,
+            y: s.y - entitySurfaceZ(s) - ((s.bodyHeight || 120) * 0.5),
+        };
     }
 
     _endPoint() {
         const t = this.target;
         if (this._endX == null || (t && t.active)) {
             this._endX = t.x;
-            this._endY = t.y - ((t.bodyHeight || 120) * 0.5);
+            this._endY = t.y - entitySurfaceZ(t) - ((t.bodyHeight || 120) * 0.5);
         }
         return { x: this._endX, y: this._endY };
     }

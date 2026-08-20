@@ -15,6 +15,11 @@
 // 由 SceneManager.init() 在 Game 初始化完成后注入运行时依赖。
 import { settleWorld122 } from './world122-sim.js'; // 纯数据结算（无 Game 依赖链），可静态导入
 import { BuildingRoadSystem } from './building-road-system.js';
+import { getUnitKind } from './unit-upgrade-store.js';
+import barracksBuildingCfg from '../../data/hamster-barracks-building.json';
+import worldSystemConfig from '../../data/world-system.json';
+import { EnvironmentLightingSystem } from './environment-lighting-system.js';
+import { createWorldGenerationContext, getWorldResetPolicy } from './world-reset-policy.js';
 
 let Game = null;
 let DefenseSystem = null;
@@ -34,6 +39,9 @@ let EnergyNodeSystem = null;
 let EnergyManager = null;
 let ResearchSystem = null;
 let GoldManager = null;
+let getWorldEpoch = null;
+let canPersistWorld = null;
+let getWorldGenerationContext = null;
 
 export function configureWorld122SnapshotRuntime(deps = {}) {
     ({
@@ -55,15 +63,123 @@ export function configureWorld122SnapshotRuntime(deps = {}) {
         EnergyManager,
         ResearchSystem,
         GoldManager,
+        getWorldEpoch,
+        canPersistWorld,
+        getWorldGenerationContext,
     } = deps);
 }
 
 const SNAPSHOT_VERSION = 1;
 
-// 内存驻留：本局内离开 122 即捕获，重进恢复；主存档读写同一数据。
-let _stored = null;
+// 多世界驻留：scene8~scene11 共用同一套建筑协议，按 sceneId 分槽保存。
+const _storedByWorld = {};
 
 const _clone = (o) => JSON.parse(JSON.stringify(o));
+
+function _snapshotConfig() {
+    const spawnCfg = DEFENSE_CONFIG?.spawn || {};
+    return {
+        prepMs: spawnCfg.prepMs ?? 30000,
+        waveBreakMs: spawnCfg.waveBreakMs ?? 10000,
+        victoryWave: spawnCfg.victoryWave ?? 10,
+        victoryReward: spawnCfg.victoryReward || { gold: 500, energy: 500 },
+        waveBudgetBase: spawnCfg.waveBudgetBase ?? 26,
+        waveBudgetGrowth: spawnCfg.waveBudgetGrowth ?? 1.15,
+        hpPerWave: spawnCfg.hpPerWave ?? 0.16,
+        atkPerWave: spawnCfg.atkPerWave ?? 0.08,
+    };
+}
+
+function _snapshotLifecycle(sceneId, worldEpoch, generationOverride = null) {
+    const policy = getWorldResetPolicy(sceneId);
+    const generation = generationOverride
+        || getWorldGenerationContext?.(sceneId)
+        || createWorldGenerationContext(sceneId, worldEpoch);
+    const templateKey = BASE_SNAPSHOT_TEMPLATES[policy.baseTemplate]
+        ? policy.baseTemplate
+        : 'portal_only_v1';
+    return {
+        reset: {
+            policyVersion: policy.policyVersion,
+            baseTemplate: templateKey,
+            resourceRule: generation.resourceRule || policy.resourceRule,
+        },
+        generation: {
+            generationVersion: Math.max(1, Math.floor(Number(generation.generationVersion) || 1)),
+            seedStrategy: generation.seedStrategy === 'fixed' ? 'fixed' : 'per_world_epoch',
+            seed: Number(generation.seed) >>> 0,
+        },
+    };
+}
+
+function _portalOnlyBaseTemplate({ spawn, hp, maxHp }) {
+    return {
+        base: { hp },
+        wave: { wave: 0, phase: 'prep', phaseTimer: 0, victory: true },
+        structures: [{
+            kind: 'producer',
+            cfgKey: 'portal',
+            x: Number(spawn.x) || 0,
+            y: Number(spawn.y) || 0,
+            hp,
+            maxHp,
+            buildCost: 0,
+            buildCurrency: 'energy',
+        }],
+        nodes: [],
+        roads: [],
+    };
+}
+
+const BASE_SNAPSHOT_TEMPLATES = Object.freeze({
+    portal_only_v1: _portalOnlyBaseTemplate,
+});
+
+/**
+ * 传送门一旦建成，立即按世界 resetPolicy 建立可存档、可后台承伤的基础位面快照。
+ * 地形和资源仍由场景首次物化时按 generation/resourceRule 生成；首次离场后升级为完整快照。
+ */
+export function ensureWorldBaseSnapshot(sceneId, {
+    portalHp, worldEpoch, generation = null, replace = false,
+} = {}) {
+    const worldCfg = worldSystemConfig.worlds?.[sceneId];
+    if (!worldCfg) return null;
+    const epoch = Math.max(0, Math.floor(Number(worldEpoch) || 0));
+    const lifecycle = _snapshotLifecycle(sceneId, epoch, generation);
+    const existing = _storedByWorld[sceneId];
+    if (!replace && existing) {
+        const storedEpoch = Math.max(0, Math.floor(Number(existing.worldEpoch) || 0));
+        // v1 旧档没有世代号：首次恢复时归入当前世代；显式旧世代则不得沿用。
+        if (epoch > 0 && storedEpoch <= 0) existing.worldEpoch = epoch;
+        else if (epoch > 0 && storedEpoch !== epoch) replace = true;
+        if (!replace) {
+            // v1 快照迁移：补元数据但不覆盖已有完整建设状态。
+            if (!existing.reset) existing.reset = lifecycle.reset;
+            if (!existing.generation) existing.generation = lifecycle.generation;
+            return existing;
+        }
+    }
+    const maxHp = Math.max(1, Number(worldSystemConfig.portal?.maxHp) || 5000);
+    const hp = Math.max(1, Math.min(maxHp, Number(portalHp) || maxHp));
+    const spawn = worldCfg.portalSpawn || { x: 0, y: 0 };
+    const capturedAt = Date.now();
+    const capturedGameTimeMs = EnvironmentLightingSystem.serializeTime().elapsedMs || 0;
+    const builder = BASE_SNAPSHOT_TEMPLATES[lifecycle.reset.baseTemplate]
+        || BASE_SNAPSHOT_TEMPLATES.portal_only_v1;
+    const snapshot = {
+        version: SNAPSHOT_VERSION,
+        sceneId,
+        worldEpoch: epoch,
+        initializedByPortal: true,
+        ...lifecycle,
+        capturedAt,
+        capturedGameTimeMs,
+        config: _snapshotConfig(),
+        ...builder({ sceneId, spawn, hp, maxHp, generation: lifecycle.generation }),
+    };
+    _storedByWorld[sceneId] = snapshot;
+    return snapshot;
+}
 
 /** 塔 DPS（实机口径入快照：武器伤害×模块×芯片已由 _recalcDamage 写入 attacks.config.damage） */
 function _towerDps(t) {
@@ -86,10 +202,22 @@ function _unitsDps(units) {
     return Math.round(sum);
 }
 
+function _unitRoster(units) {
+    const roster = {};
+    for (const unit of units || []) {
+        if (!unit || unit.active === false || unit._dying || !(unit.data?.hp > 0)) continue;
+        const kind = getUnitKind(unit);
+        if (!kind) continue;
+        roster[kind] = (roster[kind] || 0) + 1;
+    }
+    return roster;
+}
+
 /** 捕获当前世界-122 实况（要求 DefenseSystem.active，即玩家在 122 内） */
-export function captureWorld122() {
+export function captureWorld(sceneId = 'scene8') {
     if (!DefenseSystem || !DefenseSystem.active) return null;
-    if (DefenseSystem.defeated) return null; // 败北不持久化
+    if (canPersistWorld && !canPersistWorld(sceneId)) return null;
+    if (!DefenseSystem._managedExternally && DefenseSystem.defeated) return null;
 
     // 系统持有的建筑（小屋/兵营/产兵）单独遍历，实体表扫描时跳过防双计
     const systemOwned = new Set();
@@ -105,7 +233,7 @@ export function captureWorld122() {
         if (!alive(e) || !e._builtByPlayer || systemOwned.has(e)) continue;
         if (e._isDefenseTower) {
             structures.push({
-                kind: 'tower', x: e.x, y: e.y, hp: Math.ceil(e.hp),
+                kind: 'tower', x: e.x, y: e.y, hp: Math.ceil(e.hp), maxHp: Math.ceil(e.maxHp),
                 mirror: !!e._mirrored,
                 chip: e.chip ? { ...e.chip } : null,
                 modules: e.modules ? { ...e.modules } : {},
@@ -117,16 +245,16 @@ export function captureWorld122() {
             // 4格门整组：门主体 + 石柱（整组回收口径的镜像）
             const pillars = (e._buildGroup || [])
                 .filter((p) => p && p._isBlockCover && alive(p))
-                .map((p) => ({ x: p.x, y: p.y, hp: Math.ceil(p.hp) }));
+                .map((p) => ({ x: p.x, y: p.y, hp: Math.ceil(p.hp), maxHp: Math.ceil(p.maxHp) }));
             structures.push({
-                kind: 'gate4', x: e.x, y: e.y, hp: Math.ceil(e.hp),
+                kind: 'gate4', x: e.x, y: e.y, hp: Math.ceil(e.hp), maxHp: Math.ceil(e.maxHp),
                 mirror: !!e.mirror, dir: e.mirror ? 'e1' : 'e2',
                 pillars,
                 buildCost: e._buildCost ?? null, buildCurrency: e._buildCurrency ?? null,
             });
         } else if (e._isBlockCover && !e._buildGroupRoot) {
             structures.push({
-                kind: 'block', x: e.x, y: e.y, hp: Math.ceil(e.hp),
+                kind: 'block', x: e.x, y: e.y, hp: Math.ceil(e.hp), maxHp: Math.ceil(e.maxHp),
                 grade: e.grade || 'C',
                 buildCost: e._buildCost ?? null, buildCurrency: e._buildCurrency ?? null,
             });
@@ -179,7 +307,7 @@ export function captureWorld122() {
         structures.push({
             kind: 'barracks', x: b.x, y: b.y, hp: Math.ceil(b.hp),
             unitType: b.unitType, spawnTimer: b._spawnTimer,
-            units: b.aliveUnitCount(), unitDps: _unitsDps(b.units),
+            units: b.aliveUnitCount(), unitRoster: _unitRoster(b.units), unitDps: _unitsDps(b.units),
             rally: b._rallyPoint ? { x: b._rallyPoint.x, y: b._rallyPoint.y } : null,
             buildCost: b._buildCost ?? null, buildCurrency: b._buildCurrency ?? null,
         });
@@ -192,9 +320,11 @@ export function captureWorld122() {
             kind: 'producer', cfgKey: p.cfgKey, x: p.x, y: p.y, hp: Math.ceil(p.hp),
             unitType: p.unitType || '', spawnTimer: p._spawnTimer || 0,
             units: p.spawnEnabled ? p.aliveUnitCount() : 0,
+            unitRoster: p.spawnEnabled ? _unitRoster(p.units) : {},
             unitDps: p.spawnEnabled ? _unitsDps(p.units) : 0,
             upgrade: p._upgrade ? { abilityId: p._upgrade.abilityId, totalMs: p._upgrade.totalMs, remainMs: p._upgrade.remainMs } : null,
             continuous: p._continuous || null,
+            titheTimerMs: p.units?.find((unit) => unit?._isHamsterPriest && unit.active !== false)?._ai?._titheTimer || 0,
             storedEnergy: p._isEnergyWarehouse ? (p.storedEnergy || 0) : undefined,
             rally: p._rallyPoint ? { x: p._rallyPoint.x, y: p._rallyPoint.y } : null,
             buildCost: p._buildCost ?? null, buildCurrency: p._buildCurrency ?? null,
@@ -209,6 +339,10 @@ export function captureWorld122() {
         phaseTimer: DefenseSystem._phaseTimer ?? (spawnCfg.prepMs ?? 30000),
         victory: !!DefenseSystem.victory,
     };
+    // 新全局入侵由 WorldInvasionSystem 管理；世界快照只负责生产与建筑，不再启动旧十波防守。
+    if (DefenseSystem._managedExternally) {
+        wave = { wave: 0, phase: 'prep', phaseTimer: 0, victory: true };
+    }
     if (wave.phase === 'wave') {
         wave = { wave: wave.wave, phase: 'break', phaseTimer: spawnCfg.waveBreakMs ?? 10000, victory: false };
     }
@@ -218,27 +352,23 @@ export function captureWorld122() {
         ? { hp: Math.max(1, Math.ceil(DefenseSystem.base.hp)) }
         : null;
 
-    // ---- 能源矿点（位置/余量/枯竭计时；位置每局随机，必须入快照）----
+    // ---- 能源矿点（位置由位面世代种子生成；余量/枯竭计时必须入快照）----
     const nodes = (EnergyNodeSystem.nodes || []).filter(alive).map((n) => ({
         x: n.x, y: n.y, hp: Math.ceil(n.hp), maxHp: n.maxHp,
         depleted: !!n._depleted, respawnTimer: n._respawnTimer || 0,
         variant: n._variant || 1,
     }));
 
+    const worldEpoch = Math.max(0, Math.floor(Number(getWorldEpoch?.(sceneId)) || 0));
     return {
         version: SNAPSHOT_VERSION,
+        sceneId,
+        worldEpoch,
+        ..._snapshotLifecycle(sceneId, worldEpoch),
         capturedAt: Date.now(),
+        capturedGameTimeMs: EnvironmentLightingSystem.serializeTime().elapsedMs || 0,
         // 波次/结算参数随快照封存（后台结算与配置同生命周期，防版本间口径漂移）
-        config: {
-            prepMs: spawnCfg.prepMs ?? 30000,
-            waveBreakMs: spawnCfg.waveBreakMs ?? 10000,
-            victoryWave: spawnCfg.victoryWave ?? 10,
-            victoryReward: spawnCfg.victoryReward || { gold: 500, energy: 500 },
-            waveBudgetBase: spawnCfg.waveBudgetBase ?? 26,
-            waveBudgetGrowth: spawnCfg.waveBudgetGrowth ?? 1.15,
-            hpPerWave: spawnCfg.hpPerWave ?? 0.16,
-            atkPerWave: spawnCfg.atkPerWave ?? 0.08,
-        },
+        config: _snapshotConfig(),
         base,
         wave,
         structures,
@@ -248,49 +378,118 @@ export function captureWorld122() {
 }
 
 /** 捕获并驻留内存（场景离场钩子调用） */
-export function captureAndStoreWorld122() {
-    const snap = captureWorld122();
-    if (snap) _stored = snap;
+export function captureAndStoreWorld(sceneId = 'scene8') {
+    const snap = captureWorld(sceneId);
+    if (snap) _storedByWorld[sceneId] = snap;
+    else if (canPersistWorld && !canPersistWorld(sceneId)) delete _storedByWorld[sceneId];
     return snap;
 }
 
+export function captureWorld122() { return captureWorld('scene8'); }
+export function captureAndStoreWorld122() { return captureAndStoreWorld('scene8'); }
+
 /** 读取驻留快照（不消费） */
 export function getWorld122Snapshot() {
-    return _stored;
+    const snapshot = _storedByWorld.scene8;
+    return isWorldSnapshotCurrent('scene8', snapshot) ? snapshot : null;
+}
+
+export function getWorldSnapshot(sceneId) {
+    const snapshot = _storedByWorld[sceneId];
+    return isWorldSnapshotCurrent(sceneId, snapshot) ? snapshot : null;
+}
+
+export function getWorldSnapshots() {
+    return _storedByWorld;
+}
+
+/** 只有当前位面世代的快照才允许恢复、保存或参与后台结算。 */
+export function isWorldSnapshotCurrent(sceneId, snapshot = _storedByWorld[sceneId]) {
+    if (!snapshot) return false;
+    const expected = Math.max(0, Math.floor(Number(getWorldEpoch?.(sceneId)) || 0));
+    if (expected <= 0) return true;
+    return Math.floor(Number(snapshot.worldEpoch) || 0) === expected;
+}
+
+/** 彻底作废单个位面的全部驻留记录；下次建门后按场景基础规则重新生成。 */
+export function resetWorldSnapshot(sceneId) {
+    if (!sceneId || !_storedByWorld[sceneId]) return false;
+    delete _storedByWorld[sceneId];
+    return true;
 }
 
 /** 清空快照（新游戏重置） */
 export function resetWorld122Snapshot() {
-    _stored = null;
+    for (const key of Object.keys(_storedByWorld)) delete _storedByWorld[key];
 }
+
+export const resetWorldSnapshots = resetWorld122Snapshot;
 
 /** 主存档序列化：在 122 内取实况，否则取驻留 */
 export function serializeWorld122Scene() {
-    if (DefenseSystem && DefenseSystem.active) {
-        const live = captureWorld122();
-        if (live) { _stored = live; return live; }
+    if (canPersistWorld && !canPersistWorld('scene8')) {
+        delete _storedByWorld.scene8;
+        return null;
     }
-    return _stored;
+    if (DefenseSystem && DefenseSystem.active && DefenseSystem._worldId === 'scene8') {
+        const live = captureWorld('scene8');
+        if (live) { _storedByWorld.scene8 = live; return live; }
+    }
+    return isWorldSnapshotCurrent('scene8', _storedByWorld.scene8) ? _storedByWorld.scene8 : null;
+}
+
+export function serializeWorldScenes() {
+    if (DefenseSystem?.active && DefenseSystem._worldId) {
+        const liveSceneId = DefenseSystem._worldId;
+        const live = captureWorld(liveSceneId);
+        if (live) _storedByWorld[liveSceneId] = live;
+        else if (canPersistWorld && !canPersistWorld(liveSceneId)) delete _storedByWorld[liveSceneId];
+    }
+    for (const [sceneId, snapshot] of Object.entries(_storedByWorld)) {
+        if ((canPersistWorld && !canPersistWorld(sceneId))
+            || !isWorldSnapshotCurrent(sceneId, snapshot)) delete _storedByWorld[sceneId];
+    }
+    return _clone(_storedByWorld);
 }
 
 /** 主存档恢复：写入驻留（进入 122 时才真正物化） */
 export function restoreWorld122Scene(data) {
-    _stored = (data && data.version === SNAPSHOT_VERSION) ? data : null;
+    if (data && data.version === SNAPSHOT_VERSION) _storedByWorld.scene8 = data;
+    else delete _storedByWorld.scene8;
+}
+
+export function restoreWorldScenes(data) {
+    for (const key of Object.keys(_storedByWorld)) delete _storedByWorld[key];
+    if (!data || typeof data !== 'object') return;
+    // 兼容旧档直接保存单个 scene8 快照。
+    if (data.version === SNAPSHOT_VERSION && Array.isArray(data.structures)) {
+        _storedByWorld.scene8 = data;
+        return;
+    }
+    for (const [sceneId, snap] of Object.entries(data)) {
+        if (snap && snap.version === SNAPSHOT_VERSION) _storedByWorld[sceneId] = snap;
+    }
 }
 
 /** 玩家是否在世界-122 内（前台全真时后台驱动停 tick） */
 export function isWorld122Live() {
-    return !!(DefenseSystem && DefenseSystem.active);
+    return !!(DefenseSystem && DefenseSystem.active && DefenseSystem._worldId === 'scene8');
+}
+
+export function isWorldLive(sceneId) {
+    return !!(DefenseSystem && DefenseSystem.active && DefenseSystem._worldId === sceneId);
 }
 
 /** 世界切换面板预览：不回写快照、无全局副作用（commit=false）；
  *  玩家在 122 内或无快照时返回 null。 */
 export function previewWorld122Report() {
-    if (!_stored) return null;
-    if (DefenseSystem && DefenseSystem.active) return null;
-    const elapsed = Date.now() - (_stored.capturedAt || Date.now());
+    const stored = _storedByWorld.scene8;
+    if (!stored || !isWorldSnapshotCurrent('scene8', stored)) return null;
+    if (isWorld122Live()) return null;
+    const nowGame = EnvironmentLightingSystem.serializeTime().elapsedMs || 0;
+    const elapsed = Math.max(0, nowGame - (stored.capturedGameTimeMs || nowGame));
     if (elapsed < 1000) return null;
-    return settleWorld122(_stored, elapsed, { commit: false });
+    return settleWorld122(stored, elapsed, { commit: false, skipWaves: true });
 }
 
 // ==================== 恢复（_loadScene8 尾部调用） ====================
@@ -301,7 +500,15 @@ function _markRestored(entity, entry) {
     entity._builtByPlayer = true;
     if (entry.buildCost != null) entity._buildCost = entry.buildCost;
     if (entry.buildCurrency) entity._buildCurrency = entry.buildCurrency;
-    if (entry.hp != null) entity.hp = Math.min(entry.hp, entity.maxHp ?? entry.hp);
+    if (entry.hp != null) {
+        if (entry.maxHp > 0 && entity.maxHp > 0) {
+            const missingHp = Math.max(0, entry.maxHp - entry.hp);
+            entity.hp = Math.max(0, entity.maxHp - missingHp);
+        } else {
+            entity.hp = Math.min(entry.hp, entity.maxHp ?? entry.hp);
+        }
+        if (entity.data) entity.data.hp = entity.hp;
+    }
 }
 
 function _restoreTower(s) {
@@ -331,7 +538,9 @@ function _restoreGate4(s) {
     // 先石柱后门（与 _placeGate4 同序），整组回收链路重建
     const group = [];
     for (const p of s.pillars || []) {
-        const cover = _restoreBlock({ kind: 'block', x: p.x, y: p.y, hp: p.hp, grade: 'C' });
+        const cover = _restoreBlock({
+            kind: 'block', x: p.x, y: p.y, hp: p.hp, maxHp: p.maxHp, grade: 'C'
+        });
         cover._buildCost = 0; // 石柱成本计入门主体
         group.push(cover);
     }
@@ -417,18 +626,42 @@ function _restoreHut(s) {
 function _restoreBarracks(s) {
     const barracks = new HamsterBarracks(s.x, s.y, { id: s.id || `built_barracks_r${++_seq}` });
     _markRestored(barracks, s);
-    if (!['warrior', 'guard'].includes(s.unitType)) s.unitType = 'warrior'; // 旧档纠偏
+    if (!(barracksBuildingCfg.unitTypes || []).includes(s.unitType)) {
+        s.unitType = barracksBuildingCfg.defaultUnitType || 'warrior';
+    }
     barracks.unitType = s.unitType;
     barracks._spawnTimer = Math.max(0, s.spawnTimer || 0);
     if (s.rally) barracks._rallyPoint = { x: s.rally.x, y: s.rally.y };
     Game.entities.set(barracks.id, barracks);
     HamsterBarracksSystem.barracks.push(barracks);
     BuildingRoadSystem.attach(barracks, { allowOverlap: true });
-    const want = Math.max(0, Math.min(s.units || 0, barracks.unitCount()));
+    const roster = s.unitRoster && typeof s.unitRoster === 'object'
+        ? s.unitRoster
+        : { [barracks.unitType]: s.units || 0 };
+    const selectedType = barracks.unitType;
     let spawned = 0;
-    for (let i = 0; i < want; i++) if (barracks.spawnUnit()) spawned++;
+    const restoreQueue = [];
+    const cap = barracks.unitCount();
+    for (const [kind, rawCount] of Object.entries(roster)) {
+        if (!(barracksBuildingCfg.unitTypes || []).includes(kind)) continue;
+        barracks.unitType = kind;
+        const count = Math.max(0, Math.min(Math.floor(Number(rawCount) || 0), cap - spawned));
+        for (let i = 0; i < count; i++) {
+            if (barracks.spawnUnit()) spawned++;
+            else restoreQueue.push(kind);
+        }
+        if (spawned >= cap) break;
+    }
+    barracks.unitType = selectedType;
+    const want = Math.max(0, Math.min(
+        Object.values(roster).reduce((sum, count) => sum + Math.max(0, Number(count) || 0), 0),
+        cap
+    ));
     // 出口槽位预约窗口 750ms，爆发生成会互撞——缺额走 _restoreTopUp 加速补齐（立即启动 800ms 节拍）
-    if (spawned < want) { barracks._restoreTopUp = want - spawned; barracks._spawnTimer = 800; }
+    if (spawned < want) {
+        barracks._restoreRosterQueue = restoreQueue;
+        barracks._spawnTimer = 800;
+    }
 }
 
 function _restoreProducer(s) {
@@ -438,6 +671,7 @@ function _restoreProducer(s) {
     _markRestored(producer, s);
     if ((cfg.unitTypes || []).some((t) => t.key === s.unitType)) producer.unitType = s.unitType;
     producer._spawnTimer = Math.max(0, s.spawnTimer || 0);
+    producer._restoredTitheTimer = Math.max(0, Number(s.titheTimerMs) || 0);
     if (s.rally) producer._rallyPoint = { x: s.rally.x, y: s.rally.y };
     // 能力/研究读条续跑（等级全局共享，读条属建筑实例）
     if (s.upgrade && cfg.abilities && cfg.abilities[s.upgrade.abilityId]) {
@@ -456,34 +690,63 @@ function _restoreProducer(s) {
         producer.storedEnergy = Math.max(0, Math.min(producer.storageCapacity || 0, Math.floor(s.storedEnergy)));
     }
     if (producer.spawnEnabled) {
-        const want = Math.max(0, Math.min(s.units || 0, producer.unitCount()));
+        const roster = s.unitRoster && typeof s.unitRoster === 'object'
+            ? s.unitRoster
+            : { [producer.unitType]: s.units || 0 };
+        const selectedType = producer.unitType;
         let spawned = 0;
-        for (let i = 0; i < want; i++) if (producer.spawnUnit()) spawned++;
+        const restoreQueue = [];
+        const cap = producer.unitCount();
+        for (const [kind, rawCount] of Object.entries(roster)) {
+            if (!(cfg.unitTypes || []).some((unit) => unit.key === kind)) continue;
+            producer.unitType = kind;
+            const count = Math.max(0, Math.min(Math.floor(Number(rawCount) || 0), cap - spawned));
+            for (let i = 0; i < count; i++) {
+                if (producer.spawnUnit()) spawned++;
+                else restoreQueue.push(kind);
+            }
+            if (spawned >= cap) break;
+        }
+        producer.unitType = selectedType;
+        const want = Math.max(0, Math.min(
+            Object.values(roster).reduce((sum, count) => sum + Math.max(0, Number(count) || 0), 0),
+            cap
+        ));
         // 出口槽位预约窗口 750ms，爆发生成会互撞——缺额走 _restoreTopUp 加速补齐（立即启动 800ms 节拍）
-        if (spawned < want) { producer._restoreTopUp = want - spawned; producer._spawnTimer = 800; }
+        if (spawned < want) {
+            producer._restoreRosterQueue = restoreQueue;
+            producer._spawnTimer = 800;
+        }
     }
 }
 
 /** 入场恢复（各系统 setup 完成后调用；无快照或版本不符则跳过）。
  *  M1：先按离场时长做后台抽象结算（settleWorld122），再物化；
  *  返回 false（未恢复）/ 结算报告对象（含 report；defeated 时快照作废）。 */
-export function applyWorld122Snapshot(snap = _stored) {
+export function applyWorldSnapshot(sceneId = 'scene8', snap = _storedByWorld[sceneId]) {
     if (!snap || snap.version !== SNAPSHOT_VERSION) return false;
     if (!DefenseSystem || !DefenseSystem.active) return false;
+    if (!isWorldSnapshotCurrent(sceneId, snap)) {
+        delete _storedByWorld[sceneId];
+        return false;
+    }
 
     // ---- M1 后台结算（离场 >1s 才结算，避免同场秒切空跑）----
-    const elapsed = Date.now() - (snap.capturedAt || Date.now());
+    const nowGame = EnvironmentLightingSystem.serializeTime().elapsedMs || 0;
+    const elapsed = Math.max(0, nowGame - (snap.capturedGameTimeMs || nowGame));
     let report = null;
     if (elapsed > 1000) {
         report = settleWorld122(snap, elapsed, {
             commit: true,
+            skipWaves: DefenseSystem._managedExternally === true,
+            gameTimeMs: nowGame,
             grant: (reward) => {
                 // 金币入全局金库；能源已由结算直接写入快照仓库（建筑尚未物化，EnergyManager 无法承接）
                 if (reward.gold && GoldManager && typeof GoldManager.addGold === 'function') GoldManager.addGold(reward.gold);
             },
         });
         if (report.defeated) {
-            _stored = null; // 后台失守：快照作废，世界重新开局（与 M0 败北口径一致）
+            delete _storedByWorld[sceneId];
             return { defeated: true, report };
         }
         // 结算后仍进行中的波次重开（实体不留档，M0 口径；后台进度清零）
@@ -527,7 +790,7 @@ export function applyWorld122Snapshot(snap = _stored) {
             else continue;
             restored++;
         } catch (err) {
-            console.error('[World122Snapshot] 建筑恢复失败:', s.kind, err);
+            console.error('[WorldSnapshot] 建筑恢复失败:', sceneId, s.kind, err);
         }
     }
 
@@ -550,4 +813,8 @@ export function applyWorld122Snapshot(snap = _stored) {
         ResearchSystem.refreshWorld();
     }
     return { restored: restored > 0, report };
+}
+
+export function applyWorld122Snapshot(snap = _storedByWorld.scene8) {
+    return applyWorldSnapshot('scene8', snap);
 }

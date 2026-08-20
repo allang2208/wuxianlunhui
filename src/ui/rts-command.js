@@ -46,6 +46,7 @@ export const RTSCommand = {
     _domSig: null,         // 属性面板 DOM 签名（目标变化才重建；数值每帧原地更新）
     _dom: null,            // 属性面板 DOM 引用（hp/mp 条、六维、战斗属性 span）
     _lastClick: null,      // 双击同类复选（{at, ref}）
+    _flatHitCycle: null,   // 压平视图同屏重叠单位轮换（墙上/墙下候选保持固定次序）
     _mouseSeen: false,       // 见过真实鼠标移动才允许边缘平移（无头/未动鼠标防漂）
     _pointerOverUi: false,
     _groups: null,         // 编队：digit -> [友军 ref]（Ctrl+数字编 / Shift+数字加 / 数字选中）
@@ -102,9 +103,14 @@ export const RTSCommand = {
     setEnabled(on) {
         if (on) this._closeBuildingUI();
         this.enabled = !!on;
+        // 模式切换前可能已有 Space 留在 Input.keys（例如键盘激活仍聚焦的指挥按钮）；
+        // 无论进入还是退出都先清掉，禁止角色把同一次空格解释成翻滚。
+        const input = _game()?.Input || this._input();
+        input?.keys?.delete?.('Space');
         if (this._btn) this._btn.classList.toggle('active', this.enabled);
         if (!this.enabled) {
             this._pendingRightClick = null;
+            this._flatHitCycle = null;
             this._clearSelection();
             this._hidePanel();
             this._clearDrag();
@@ -143,7 +149,10 @@ export const RTSCommand = {
         btn.className = 'rts-command-btn';
         btn.textContent = '⚔ 指挥模式';
         btn.title = '进入 RTS 指挥模式：左键选择/框选，右键移动/攻击，单击空地取消';
-        btn.addEventListener('click', () => this.setEnabled(!this.enabled));
+        btn.addEventListener('click', () => {
+            btn.blur();
+            this.setEnabled(!this.enabled);
+        });
         const container = document.getElementById('gameContainer');
         container.appendChild(btn);
         this._btn = btn;
@@ -268,34 +277,91 @@ export const RTSCommand = {
             if (!e || !e.active || seen.has(e) || e === g.player) continue;
             const f = e._faction;
             if (f !== 'player' && f !== 'companion' && f !== 'ally' && f !== 'friendly') continue;
-            if (e._isDefenseStructure || e._isFiringPlatform || e._isEnergyNode) continue;
+            if (e._isDefenseStructure || e._isWallStaircase || e._isEnergyNode) continue;
             if (e.itemData || e.targetScene || e.npcType || e._isNPC) continue;
             allies.push(e);
         }
         return allies;
     },
 
-    _hitUnitAt(sx, sy) {
-        let best = null;
-        let bestD = Infinity;
+    _hitUnitAt(sx, sy, { cycle = false } = {}) {
+        const candidates = [];
+        const addCandidate = (kind, ref) => {
+            const rect = this._unitScreenRect(ref);
+            if (!rect || sx < rect.x0 || sx > rect.x1 || sy < rect.y0 || sy > rect.y1) return;
+            candidates.push({
+                kind,
+                ref,
+                distance: Math.hypot(sx - rect.cx, sy - rect.cy),
+                z: Number(ref.z) || 0,
+                layer: this._surfaceLayerKey(ref),
+            });
+        };
         for (const m of this._collectAllies()) {
-            const rect = this._unitScreenRect(m);
-            if (!rect || sx < rect.x0 || sx > rect.x1 || sy < rect.y0 || sy > rect.y1) continue;
-            const d = Math.hypot(sx - rect.cx, sy - rect.cy);
-            if (d < bestD) { bestD = d; best = { kind: 'ally', ref: m }; }
+            addCandidate('ally', m);
         }
         const g = _game();
         if (g && g.entities) {
             for (const e of g.entities.values()) {
                 if (!e || !e.active) continue;
                 if (e._faction !== 'enemy' && e._faction !== 'agent') continue;
-                const rect = this._unitScreenRect(e);
-                if (!rect || sx < rect.x0 || sx > rect.x1 || sy < rect.y0 || sy > rect.y1) continue;
-                const d = Math.hypot(sx - rect.cx, sy - rect.cy);
-                if (d < bestD) { bestD = d; best = { kind: 'enemy', ref: e }; }
+                addCandidate('enemy', e);
             }
         }
-        return best;
+        if (!candidates.length) return null;
+
+        const flat = !!g?.FlatViewSystem?.enabled;
+        const selectedLayers = new Set(this._selection.map((entry) => this._surfaceLayerKey(entry.ref)));
+        candidates.sort((left, right) => {
+            if (flat && selectedLayers.size) {
+                const leftSelected = selectedLayers.has(left.layer) ? 0 : 1;
+                const rightSelected = selectedLayers.has(right.layer) ? 0 : 1;
+                if (leftSelected !== rightSelected) return leftSelected - rightSelected;
+            }
+            const distanceDelta = left.distance - right.distance;
+            if (Math.abs(distanceDelta) > 0.5) return distanceDelta;
+            // 同一屏幕位置优先墙顶/较高单位；后续重复点击可在固定候选序列中轮换。
+            return right.z - left.z;
+        });
+        if (!flat || !cycle || candidates.length === 1) {
+            return { kind: candidates[0].kind, ref: candidates[0].ref };
+        }
+
+        const candidateKey = (candidate) => `${candidate.kind}:${candidate.ref.id ?? candidate.ref.name ?? 'unit'}:${candidate.layer}`;
+        const signature = candidates.map(candidateKey).sort().join('|');
+        const now = Date.now();
+        const previous = this._flatHitCycle;
+        const sameCycle = previous
+            && previous.signature === signature
+            && now - previous.at <= 650
+            && Math.hypot(sx - previous.x, sy - previous.y) <= 10;
+        const order = sameCycle
+            ? previous.order.filter((old) => candidates.some((candidate) => candidate.ref === old.ref && candidate.kind === old.kind))
+            : candidates;
+        const completeOrder = [
+            ...order,
+            ...candidates.filter((candidate) => !order.some((old) => old.ref === candidate.ref && old.kind === candidate.kind)),
+        ];
+        const index = sameCycle ? (previous.index + 1) % completeOrder.length : 0;
+        this._flatHitCycle = { x: sx, y: sy, at: now, signature, order: completeOrder, index };
+        return { kind: completeOrder[index].kind, ref: completeOrder[index].ref };
+    },
+
+    _surfaceLayerKey(entity) {
+        if (!entity) return 'ground';
+        const kind = entity._surfaceKind || ((Number(entity.z) || 0) > 1 ? 'elevated' : 'ground');
+        if (kind === 'wall_walk') {
+            const walls = Array.isArray(entity._surfaceWalls) && entity._surfaceWalls.length
+                ? entity._surfaceWalls
+                : [entity._surfaceWall].filter(Boolean);
+            const wallIds = walls.map((wall) => wall?.id || wall?._topologyId || 'wall').sort().join(',');
+            return `wall_walk:${wallIds || Math.round((Number(entity.z) || 0) / 8)}`;
+        }
+        if (kind === 'stairs') {
+            const staircase = entity._surfaceStaircase;
+            return `stairs:${staircase?.id || Math.round((Number(entity.z) || 0) / 8)}`;
+        }
+        return kind === 'ground' ? 'ground' : `${kind}:${Math.round((Number(entity.z) || 0) / 8)}`;
     },
 
     /** 可见单位点击/框选矩形：覆盖身体而不只认逻辑脚底小圆。 */
@@ -442,7 +508,7 @@ export const RTSCommand = {
             this._setSelection(this._selectInRect(this._downX, this._downY, e.clientX, e.clientY));
         } else {
             // 单击：单位（双击同类全选）→ 建筑 → 空地取消
-            const hit = this._hitUnitAt(e.clientX, e.clientY);
+            const hit = this._hitUnitAt(e.clientX, e.clientY, { cycle: true });
             if (hit) {
                 const now = Date.now();
                 const dbl = this._lastClick && now - this._lastClick.at <= 350 && this._lastClick.ref === hit.ref;
@@ -605,6 +671,11 @@ export const RTSCommand = {
                 const attackers = this._issueCommandToAllies('attack', null, hit.ref);
                 if (attackers > 0) {
                     this._flashAttackTarget(hit.ref);
+                    _game()?.FlatViewSystem?.notifyCommandTarget?.(
+                        'attack',
+                        hit.ref,
+                        this._selection.filter((s) => s.kind === 'ally').map((s) => s.ref)
+                    );
                     if (phaser && typeof phaser.showMoveMarker === 'function') {
                         phaser.showMoveMarker(hit.ref.x, hit.ref.y - (Number(hit.ref.z) || 0));
                     }
@@ -630,8 +701,15 @@ export const RTSCommand = {
                 return;
             }
             const commanded = this._issueCommandToAllies('move', point, null);
-            if (commanded > 0 && phaser && typeof phaser.showMoveMarker === 'function') {
-                phaser.showMoveMarker(point.x, point.y - (point.z || 0));
+            if (commanded > 0) {
+                _game()?.FlatViewSystem?.notifyCommandTarget?.(
+                    'move',
+                    point,
+                    this._selection.filter((s) => s.kind === 'ally').map((s) => s.ref)
+                );
+                if (phaser && typeof phaser.showMoveMarker === 'function') {
+                    phaser.showMoveMarker(point.x, point.y - (point.z || 0));
+                }
             } else if (commanded === 0 && this._lastCommandRejectReason) {
                 EffectManager.add(new FloatingTextEffect(
                     point.x,
@@ -857,22 +935,32 @@ export const RTSCommand = {
             : (e.aiConfig && typeof e.aiConfig.attackDamage === 'number'
                 ? e.aiConfig.attackDamage
                 : (e.ai && typeof e.ai.attackDamage === 'number' ? e.ai.attackDamage : null));
-        if (actualAttack !== null) atk = String(Math.round(actualAttack));
+        if (actualAttack !== null && typeof e.getPhysicalAttackDamagePreview === 'function') {
+            atk = String(e.getPhysicalAttackDamagePreview(actualAttack));
+        } else if (actualAttack !== null) atk = String(Math.round(actualAttack));
         else if (typeof d.atk === 'number' && d.atk > 0) atk = String(Math.round(d.atk));
         else atk = this._enemyAttackText(e);
         const matk = typeof d.matk === 'number' ? Math.round(d.matk) : '—';
         const def = typeof d.def === 'number' ? Math.round(d.def) : (e.def ?? e.mdef ?? '—');
         const configuredSpeed = e.aiConfig?.walkSpeed ?? e.ai?.walkSpeed ?? e.aiConfig?.runSpeed;
         const speed = Math.round(configuredSpeed ?? e.maxSpeed ?? e.speed ?? 0) || '—';
+        const baseType = isEnemy ? (e.type || '敌人') : (e.title || '友军');
+        const surface = this._surfaceLabel(e);
         return {
             name: e.name || d.name || (isEnemy ? '敌人' : '友军'),
             level: e.level ?? d.level ?? 1,
-            type: isEnemy ? (e.type || '敌人') : (e.title || '友军'),
+            type: surface ? `${baseType} · ${surface}` : baseType,
             hp, maxHp, mp, maxMp,
             str: num('str'), dex: num('dex'), int: num('int'),
             con: num('con'), wis: num('wis'), luck: num('luck'),
             atk, matk, def, speed,
         };
+    },
+
+    _surfaceLabel(entity) {
+        if (entity?._surfaceKind === 'wall_walk') return `墙顶 +${Math.round(Number(entity.z) || 0)}`;
+        if (entity?._surfaceKind === 'stairs') return `楼梯 +${Math.round(Number(entity.z) || 0)}`;
+        return '';
     },
 
     _updatePanelValues() {
@@ -891,6 +979,20 @@ export const RTSCommand = {
             this._dom.multi.textContent = Array.from(groups.entries())
                 .map(([label, n]) => `${label} ×${n}`)
                 .join(' · ');
+            const surfaceGroups = new Map();
+            for (const s of this._selection) {
+                const kind = s.ref?._surfaceKind || ((Number(s.ref?.z) || 0) > 1 ? 'elevated' : 'ground');
+                const label = kind === 'wall_walk'
+                    ? '墙顶'
+                    : (kind === 'stairs' ? '楼梯' : (kind === 'ground' ? '地面' : '高层'));
+                surfaceGroups.set(label, (surfaceGroups.get(label) || 0) + 1);
+            }
+            if (surfaceGroups.size > 1 || !surfaceGroups.has('地面')) {
+                const surfaceText = Array.from(surfaceGroups.entries())
+                    .map(([label, n]) => `${label} ×${n}`)
+                    .join(' · ');
+                this._dom.multi.textContent += ` ｜ 层级：${surfaceText}`;
+            }
             return;
         }
         const st = this._readStats(this._selection[0].ref);

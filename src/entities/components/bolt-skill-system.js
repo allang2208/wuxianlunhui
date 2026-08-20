@@ -7,6 +7,13 @@ import { FloatingTextEffect } from '../../effects/floating-text.js';
 import { EffectManager } from '../../effects/effect-manager.js';
 import { AimHelper } from '../../utils/aim-helper.js';
 import { GroundCircle } from '../../physics/skill-shapes.js';
+import {
+    entitySurfaceZ,
+    effectElevationIntersectsEntity,
+    surfaceEffectAtPoint,
+    surfaceEffectFromEntity,
+    volumeEffectContext,
+} from '../../physics/elevation.js';
 import { pointHitsTorso } from '../../physics/torso-hitbox.js';
 import { burstParticles } from '../../effects/combat-fx.js';
 import {
@@ -21,7 +28,11 @@ import {
 } from '../../utils/magic-craft-helper.js';
 import { getSkillMagicCategory } from '../../config/magic-categories.js';
 import { isSkillCheatEnabled } from '../../config/dev-cheats.js';
-import { projectileWallContext } from '../../combat/elevated-ranged.js';
+import {
+    projectileSourceZ,
+    projectileTargetZ,
+    projectileWallContext,
+} from '../../combat/elevated-ranged.js';
 
 /**
  * 法系投射物技能系统基类（2026-07-28：FireballSystem/IceSpikeSystem ~90% 雷同合并）
@@ -101,7 +112,15 @@ export class BoltSkillSystem {
 
     _getAimTarget() {
         if (this._isPlayer()) {
-            return Renderer.screenToWorld(Input.mouse.x, Input.mouse.y);
+            const aim = Renderer.screenToWorld(Input.mouse.x, Input.mouse.y);
+            if (!aim) return null;
+            const surfaceContext = surfaceEffectAtPoint(aim.x, aim.y);
+            return {
+                x: surfaceContext.x,
+                y: surfaceContext.y,
+                targetZ: projectileTargetZ({ z: surfaceContext.z }),
+                surfaceContext,
+            };
         }
         const target = this.source.target;
         if (!target || !target.active) return null;
@@ -109,7 +128,12 @@ export class BoltSkillSystem {
         const base = skill ? skill.getEffect(skill.level) : {};
         const effect = { ...(this.kind.defaults || {}), ...base };
         const speed = effect.flySpeed;
-        return AimHelper.lead(this.source.x, this.source.y, target.x, target.y, target.vx || 0, target.vy || 0, speed);
+        const lead = AimHelper.lead(this.source.x, this.source.y, target.x, target.y, target.vx || 0, target.vy || 0, speed);
+        return {
+            ...lead,
+            targetZ: projectileTargetZ(target),
+            surfaceContext: surfaceEffectFromEntity(target),
+        };
     }
 
     _spikes() { return this.source[this.kind.fields.spikes] || []; }
@@ -136,7 +160,12 @@ export class BoltSkillSystem {
         // 玩家消耗魔法值；敌人不消耗
         if (this._isPlayer()) {
             if (!isSkillCheatEnabled() && this.source.data.mp < effect.mpCost) {
-                EffectManager.add(new FloatingTextEffect(this.source.x, this.source.y - 30, '魔法不足！', this.kind.mpShortageColor));
+                EffectManager.add(new FloatingTextEffect(
+                    this.source.x,
+                    this.source.y - entitySurfaceZ(this.source) - 30,
+                    '魔法不足！',
+                    this.kind.mpShortageColor
+                ));
                 return;
             }
             if (!isSkillCheatEnabled()) this.source.data.mp -= effect.mpCost;
@@ -165,7 +194,12 @@ export class BoltSkillSystem {
         if (this.kind.img && (!src[this.kind.img.field] || src[this.kind.img.field].naturalWidth === 0 || src[this.kind.img.field].src !== this.kind.img.src)) {
             src[this.kind.img.field] = loadImage(this.kind.img.src);
         }
-        EffectManager.add(new FloatingTextEffect(src.x, src.y - 40, this.kind.spawnText(effect), this.kind.mpShortageColor));
+        EffectManager.add(new FloatingTextEffect(
+            src.x,
+            src.y - entitySurfaceZ(src) - 40,
+            this.kind.spawnText(effect),
+            this.kind.mpShortageColor
+        ));
     }
 
     /** 玩家施法动作包装：播空手施法动画，第 8 帧触发 onRelease（魔法实际结算/发射） */
@@ -202,8 +236,10 @@ export class BoltSkillSystem {
             spike.tx = mx;
             spike.ty = my;
             spike.targetDist = Math.hypot(mx - spike.flyX, my - spike.flyY);
-            spike.flyZ = (Number(this.source.z) || 0) + (this.source.collider?.height || 40) * 0.58;
-            spike.flyVz = (24 - spike.flyZ)
+            spike.flyZ = projectileSourceZ(this.source);
+            spike.targetZ = Number.isFinite(Number(target.targetZ)) ? Number(target.targetZ) : 24;
+            spike.targetSurfaceContext = target.surfaceContext || surfaceEffectAtPoint(mx, my);
+            spike.flyVz = (spike.targetZ - spike.flyZ)
                 / Math.max(0.001, spike.targetDist / Math.max(1, spike.flySpeed));
             spike.maxRange = launchEffect.maxRange;
             spike.wallContext = projectileWallContext(this.source);
@@ -271,48 +307,62 @@ export class BoltSkillSystem {
             if (!spike.flyActive) return;
             const cos = Math.cos(spike.flyAngle), sin = Math.sin(spike.flyAngle);
             const moveDist = spike.flySpeed * dtSec;
+            const previousDistance = Number(spike.flyDistance) || 0;
+            const proposedDistance = previousDistance + moveDist;
             const nextX = spike.flyX + cos * moveDist;
             const nextY = spike.flyY + sin * moveDist;
             const nextZ = (Number(spike.flyZ) || 0) + (Number(spike.flyVz) || 0) * dtSec;
-            spike.flyDistance += moveDist;
             const maxRange = Number(spike.maxRange) || effect.maxRange;
-
-            // 发射时射程快照优先。目标在射程外时必须先按 maxRange 结束，
-            // 防止单帧同时跨过 maxRange 与 targetDist 后越界命中。
-            if (spike.flyDistance >= maxRange
-                && (spike.targetDist == null || maxRange < spike.targetDist)) {
-                this.kind.onMaxRange(this, spike, { entities: entityList, damage, effect, skill });
-                spike.flyActive = false;
-                spike.active = false;
-                return;
-            }
-
-            // 到达瞄准目标点（鼠标准星/锁定目标）：精确汇聚并在该点结算
-            if (spike.targetDist != null && spike.flyDistance >= spike.targetDist) {
-                spike.flyX = spike.tx;
-                spike.flyY = spike.ty;
-                this.kind.onImpact(this, spike, { x: spike.flyX, y: spike.flyY, entities: entityList, damage, effect, skill });
-                spike.flyActive = false;
-                spike.active = false;
-                return;
-            }
-
-            // 最大飞行距离
-            if (spike.flyDistance >= maxRange) {
-                this.kind.onMaxRange(this, spike, { entities: entityList, damage, effect, skill });
-                spike.flyActive = false;
-                spike.active = false;
-                return;
-            }
-            const hitWall = WallSystem.projectileBlocked
+            const targetDist = Number(spike.targetDist);
+            const reachesTargetFirst = spike.targetDist != null
+                && Number.isFinite(targetDist)
+                && targetDist <= maxRange;
+            const terminalDistance = reachesTargetFirst ? targetDist : maxRange;
+            const wallContext = spike.wallContext || projectileWallContext(this.source);
+            const segmentBlocked = (endX, endY, endZ) => WallSystem.projectileBlocked
                 ? WallSystem.projectileBlocked(
                     spike.flyX, spike.flyY, Number(spike.flyZ) || 0,
-                    nextX, nextY, nextZ,
-                    spike.wallContext || projectileWallContext(this.source)
+                    endX, endY, endZ,
+                    wallContext
                 )
-                : WallSystem.blocked(spike.flyX, spike.flyY, nextX, nextY);
+                : WallSystem.blocked(spike.flyX, spike.flyY, endX, endY);
+
+            // 本帧会到达目标或射程终点时，先把线段夹到真实终点并做墙碰撞。
+            // 终点结算必须排在墙检测之后，不能让最后一帧跨墙命中。
+            if (proposedDistance >= terminalDistance) {
+                const travel = Math.max(0, terminalDistance - previousDistance);
+                const ratio = moveDist > 0 ? Math.min(1, travel / moveDist) : 0;
+                const endX = reachesTargetFirst ? spike.tx : spike.flyX + cos * travel;
+                const endY = reachesTargetFirst ? spike.ty : spike.flyY + sin * travel;
+                const endZ = reachesTargetFirst
+                    ? spike.targetZ
+                    : (Number(spike.flyZ) || 0) + (Number(spike.flyVz) || 0) * dtSec * ratio;
+                if (segmentBlocked(endX, endY, endZ)) {
+                    const surfaceContext = surfaceEffectAtPoint(spike.flyX, spike.flyY, { impactZ: spike.flyZ });
+                    this.kind.onImpact(this, spike, { x: spike.flyX, y: spike.flyY, entities: entityList, damage, effect, skill, surfaceContext });
+                } else {
+                    spike.flyX = endX;
+                    spike.flyY = endY;
+                    spike.flyZ = endZ;
+                    spike.flyDistance = terminalDistance;
+                    if (reachesTargetFirst) {
+                        const surfaceContext = spike.targetSurfaceContext
+                            || surfaceEffectAtPoint(endX, endY, { impactZ: endZ });
+                        this.kind.onImpact(this, spike, { x: endX, y: endY, entities: entityList, damage, effect, skill, surfaceContext });
+                    } else {
+                        const surfaceContext = surfaceEffectAtPoint(endX, endY, { impactZ: endZ });
+                        this.kind.onMaxRange(this, spike, { entities: entityList, damage, effect, skill, surfaceContext });
+                    }
+                }
+                spike.flyActive = false;
+                spike.active = false;
+                return;
+            }
+
+            const hitWall = segmentBlocked(nextX, nextY, nextZ);
             if (hitWall) {
-                this.kind.onImpact(this, spike, { x: spike.flyX, y: spike.flyY, entities: entityList, damage, effect, skill });
+                const surfaceContext = surfaceEffectAtPoint(spike.flyX, spike.flyY, { impactZ: spike.flyZ });
+                this.kind.onImpact(this, spike, { x: spike.flyX, y: spike.flyY, entities: entityList, damage, effect, skill, surfaceContext });
                 spike.flyActive = false;
                 spike.active = false;
                 return;
@@ -320,6 +370,7 @@ export class BoltSkillSystem {
             spike.flyX = nextX;
             spike.flyY = nextY;
             spike.flyZ = nextZ;
+            spike.flyDistance = proposedDistance;
 
             // 飞行尾迹（共享件 burstParticles）
             const trail = this.kind.trail;
@@ -329,9 +380,11 @@ export class BoltSkillSystem {
                     spike._trailTimer = 0;
                     burstParticles({
                         texture: 'impact_dot',
-                        x: spike.flyX - cos * trail.backOffset, y: spike.flyY - sin * trail.backOffset,
+                        x: spike.flyX - cos * trail.backOffset,
+                        y: spike.flyY - (Number(spike.flyZ) || 0) - sin * trail.backOffset,
                         count: 1, config: trail.config,
-                        destroyAfterMs: trail.destroyAfterMs, depth: spike.flyY + 14,
+                        destroyAfterMs: trail.destroyAfterMs,
+                        depth: spike.flyY - (Number(spike.flyZ) || 0) + 14,
                     });
                 }
             }
@@ -339,20 +392,28 @@ export class BoltSkillSystem {
             // 目标碰撞（地面 footprint ∪ 躯干矩形）
             // 注意：不在命中后 break——原冰锥在同一帧可对多个重叠目标结算（准穿透），
             // 投射物 active/flyActive 由 kind.onImpact 自行处置（火球=爆炸一次，冰锥=逐目标结算）
-            const hitShape = new GroundCircle(spike.flyX, spike.flyY, this.kind.hitRadius);
+            const hitElevation = volumeEffectContext(spike.flyZ, this.kind.hitRadius);
+            const hitShape = new GroundCircle(spike.flyX, spike.flyY, this.kind.hitRadius, hitElevation);
             for (const entity of entityList) {
                 if (!this._isHostile(entity) || !entity.active || !entity.hittable) continue;
+                if (!effectElevationIntersectsEntity(hitElevation, entity)) continue;
                 if (!hitShape.intersectsEntity(entity) && !pointHitsTorso(entity, spike.flyX, spike.flyY, this.kind.hitRadius)) continue;
-                this.kind.onImpact(this, spike, { x: spike.flyX, y: spike.flyY, entities: entityList, damage, effect, skill, hitEntity: entity });
+                const surfaceContext = surfaceEffectFromEntity(entity);
+                this.kind.onImpact(this, spike, { x: spike.flyX, y: spike.flyY, entities: entityList, damage, effect, skill, hitEntity: entity, surfaceContext });
             }
         });
     }
 
     /** 范围爆炸结算（火球 kind 用；本类提供，避免各 kind 重写） */
-    _explodeAoE(x, y, damage, radius, entityList, skill) {
+    _explodeAoE(x, y, damage, radius, entityList, skill, surfaceContext = null) {
         let hitCount = 0;
         let killCount = 0;
-        const explosionShape = new GroundCircle(x, y, radius);
+        const explosionShape = new GroundCircle(
+            x,
+            y,
+            radius,
+            surfaceContext || surfaceEffectAtPoint(x, y, { impactZ: 0 })
+        );
         const ce = getCurrentWeaponCraftEffects(this.source);
         const burnMul = ce && ce.fireBurnDamageMul;
         const burnDuration = (ce && ce.fireBurnDuration) || 3000;

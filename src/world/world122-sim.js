@@ -110,7 +110,9 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
         getBuildingUpgradeAbility('research_passive_energy'),
         passiveLv
     );
-    report.passiveEnergy = passiveLv > 0 ? Math.floor(t) * passivePerSecond : 0;
+    report.passiveEnergy = opts.includePassiveEnergy === false
+        ? 0
+        : (passiveLv > 0 ? Math.floor(t) * passivePerSecond : 0);
 
     // ---- 采矿与仓储 ----
     const warehouses = (target.structures || []).filter((s) => s.kind === 'producer'
@@ -203,9 +205,12 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
         if (s.kind === 'barracks' || (s.kind === 'producer' && s.unitType)) return sum + (s.unitDps || 0);
         return sum;
     }, 0);
-    _settleWaves(target, cfg, defenseDps, t, report);
+    if (!opts.skipWaves) _settleWaves(target, cfg, defenseDps, t, report);
 
-    if (commit) target.capturedAt = Date.now();
+    if (commit) {
+        target.capturedAt = Date.now();
+        if (Number.isFinite(opts.gameTimeMs)) target.capturedGameTimeMs = opts.gameTimeMs;
+    }
     if (commit && report.victory && !target.wave.victoryGrantedPaid) {
         const reward = cfg.victoryReward || { gold: 500, energy: 500 };
         // 能源入快照仓库（恢复时物化）；金币走全局（grant 回调由调用方注入）
