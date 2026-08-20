@@ -46,25 +46,39 @@ ASSETS = [
     "warehouse",
     "shooting_range",
     "thatch_hut",
+    "cavalry_school",
     "portal",
+    # 2026-08-19 墙壁/楼梯/门接入阴影系统
+    "obstacle_block",
+    "wall_stair_1x1_h",
+    "wall_stair_1x1_v",
+    "wall_stair_lower_e1_pos",
+    "wall_stair_lower_e1_neg",
+    "wall_stair_lower_e2_pos",
+    "wall_stair_lower_e2_neg",
+    "wall_stair_upper_e1_pos",
+    "wall_stair_upper_e1_neg",
+    "wall_stair_upper_e2_pos",
+    "wall_stair_upper_e2_neg",
+    "cover_gate_A",
+    "cover_gate_B",
+    "cover_gate_C",
+    "cover_gate_D",
 ]
 
-SHADOW_OVERRIDES = {
-    "defense_base": {
-        "anchorMode": "footprint_center",
-        "anchorInsetX": 120,
-        "anchorInsetY": -120,
-    },
-    "obstacle_cactus_barrel": {
-        "anchorMode": "footprint_center",
-        "anchorInsetX": 0,
-        "anchorInsetY": 0,
-    },
+# 多帧 spritesheet 的剪影量测帧（cell 裁剪窗）：铁栅栏门 16 帧取关闭帧 0。
+FRAME_CROPS = {
+    "cover_gate_A": (0, 0, 640, 634),
+    "cover_gate_B": (0, 0, 640, 634),
+    "cover_gate_C": (0, 0, 640, 634),
+    "cover_gate_D": (0, 0, 640, 634),
 }
 
+
 PROJECTION_BOTTOM_BANDS = {
-    # 基地投影只使用扁平大理石底座；投完整立方体/顶盖会产生不可信的大块阴影。
-    "defense_base": 0.20,
+    # 2026-08-19 审计修复：单层烘焙管线（四边形实心段+轮廓延长段）下禁用带状采样——
+    # 带状图的内容贴向远端，延长段会与四边形实心段脱节成第二颗菱形（断裂）。
+    # 旧旋转矩形时代用于 defense_base 的 0.20 配置已移除；新建筑一律 full-alpha。
 }
 
 
@@ -77,6 +91,39 @@ def alpha_bbox(alpha: np.ndarray) -> tuple[int, int, int, int]:
     if len(xs) == 0:
         return (0, 0, 0, 0)
     return (int(xs.min()), int(ys.min()), int(xs.max()) + 1, int(ys.max()) + 1)
+
+
+
+
+def measure_shadow_silhouette(alpha: np.ndarray, bbox: tuple[int, int, int, int]) -> dict | None:
+    """逐列剪影量测（2026-08-19 八轮：逐帧剪影多边形阴影的离线真源）。
+
+    每列取最上/最下不透明像素（建筑均为 x 单调 billboard），最多 128 列；
+    运行时把"接地曲线"（各列 bottomY）与"顶线"（各列 topY）按太阳方向逐帧
+    展开成多边形——无烘焙、无分桶、连续，且根/远两条边全部贴图实测。
+    frontX/frontY = 全图最低接地点（视觉脚底锚点）。
+    """
+    x0, y0, x1, y1 = bbox
+    if x1 <= x0 or y1 <= y0:
+        return None
+    width = x1 - x0
+    step = max(1, width // 128)
+    cols = []
+    front_x, front_y = None, -1
+    for x in range(x0, x1, step):
+        col = alpha[y0:y1, x]
+        ys = np.where(col > 0.02)[0]
+        if len(ys) == 0:
+            continue
+        top = y0 + int(ys.min())
+        bottom = y0 + int(ys.max())
+        cols.append([int(x), top, bottom])
+        if bottom > front_y:
+            front_y = bottom
+            front_x = int(x)
+    if len(cols) < 3 or front_x is None:
+        return None
+    return {"step": step, "frontX": front_x, "frontY": int(front_y), "columns": cols}
 
 
 def make_height(alpha_img: Image.Image) -> Image.Image:
@@ -124,6 +171,9 @@ def make_projection(alpha_img: Image.Image, bottom_band: float | None = None) ->
 
     运行时只需按太阳方向旋转，不会再把原始竖向角色/植物轮廓压成极细横线。
     轻度羽化保留轮廓，又避免投影边缘像硬切纸片。
+    旋转后必须按内容 bbox 紧身裁剪：底部带状采样（如 defense_base bottom-20%）
+    会让内容只占长轴一小段，运行时按整图拉伸 displayLong 会把内容再压回
+    建筑底下（晨昏长影被 footprint 吞没、正午贴影不可见的根因）。
     """
     source = alpha_img
     if bottom_band is not None:
@@ -133,6 +183,16 @@ def make_projection(alpha_img: Image.Image, bottom_band: float | None = None) ->
         source = Image.fromarray(arr, "L")
     rotated = source.transpose(Image.Transpose.ROTATE_270)
     softened = rotated.filter(ImageFilter.GaussianBlur(radius=0.9))
+    # 内容紧身裁剪（羽化留 4px 边），保证投影长轴 100% 是有效影子内容。
+    mask = np.asarray(softened, dtype=np.float32) / 255.0
+    ys, xs = np.where(mask > 0.02)
+    if len(xs) > 0:
+        pad = 4
+        x0 = max(0, int(xs.min()) - pad)
+        y0 = max(0, int(ys.min()) - pad)
+        x1 = min(softened.width, int(xs.max()) + 1 + pad)
+        y1 = min(softened.height, int(ys.max()) + 1 + pad)
+        softened = softened.crop((x0, y0, x1, y1))
     out = Image.new("RGBA", softened.size, (0, 0, 0, 0))
     out.putalpha(softened)
     return out
@@ -143,6 +203,9 @@ def build_asset(name: str, previous: dict | None = None) -> dict:
     if not source.exists():
         raise FileNotFoundError(source)
     rgba = Image.open(source).convert("RGBA")
+    crop = FRAME_CROPS.get(name)
+    if crop is not None:
+        rgba = rgba.crop(crop)
     alpha = rgba.getchannel("A")
     height = make_height(alpha)
     normal = make_normal(height, alpha)
@@ -158,9 +221,10 @@ def build_asset(name: str, previous: dict | None = None) -> dict:
     height.save(height_path)
     normal.save(normal_path)
 
-    shadow = dict((previous or {}).get("shadow") or {})
-    shadow.setdefault("anchorMode", "footprint_center")
-    shadow.update(SHADOW_OVERRIDES.get(name, {}))
+    bbox = alpha_bbox(np.asarray(alpha, dtype=np.float32) / 255.0)
+    # 保留占位字段：建筑贴图替换回归测试（test-world122-building-layer-assets）
+    # 断言 shadow.anchorMode 存在——阴影链已不消费它，仅作契约兼容。
+    shadow = {"anchorMode": "footprint_center"}
     return {
         "source": relative(source),
         "silhouette": relative(silhouette_path),
@@ -168,10 +232,11 @@ def build_asset(name: str, previous: dict | None = None) -> dict:
         "height": relative(height_path),
         "normal": relative(normal_path),
         "size": {"width": rgba.width, "height": rgba.height},
-        "alphaBBox": dict(zip(("x0", "y0", "x1", "y1"), alpha_bbox(np.asarray(alpha, dtype=np.float32) / 255.0))),
+        "alphaBBox": dict(zip(("x0", "y0", "x1", "y1"), bbox)),
+        "shadowSilhouette": measure_shadow_silhouette(np.asarray(alpha, dtype=np.float32) / 255.0, bbox),
         "normalKind": "alpha-height-gradient",
-        "projectionSource": f"bottom-{int(PROJECTION_BOTTOM_BANDS[name] * 100)}%" if name in PROJECTION_BOTTOM_BANDS else "full-alpha",
         "shadow": shadow,
+        "projectionSource": f"bottom-{int(PROJECTION_BOTTOM_BANDS[name] * 100)}%" if name in PROJECTION_BOTTOM_BANDS else "full-alpha",
     }
 
 
