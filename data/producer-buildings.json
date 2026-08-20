@@ -18,8 +18,8 @@
     "unitCap": 5,
     "defaultUnitType": "militia",
     "unitTypes": [
-      { "key": "militia", "name": "仓鼠民兵" },
-      { "key": "scout", "name": "仓鼠斥候" }
+      { "key": "militia", "name": "仓鼠民兵", "spawnEnergyCost": 50 },
+      { "key": "scout", "name": "仓鼠斥候", "spawnEnergyCost": 75 }
     ],
     "upgradeProject": "combat_standard"
   },
@@ -53,16 +53,18 @@
     "def": 80,
     "mdef": 120,
     "tex": "church",
-    "displayW": 275,
-    "displayH": 269,
-    "footOffsetY": 134,
+    "foundation": false,
+    "displayW": 480,
+    "displayH": 480,
+    "footOffsetY": 167,
+    "assetCutoutHash": "24DA4936515AA9D84DCF6578A9C893A02278168B789BCEAC4CE4374DF2F367E7",
     "sellRefundRatio": 0.5,
     "spawnIntervalMs": 90000,
     "spawnRadius": 90,
     "unitCap": 2,
     "defaultUnitType": "priest",
     "unitTypes": [
-      { "key": "priest", "name": "仓鼠牧师" }
+      { "key": "priest", "name": "仓鼠牧师", "spawnEnergyCost": 240 }
     ],
     "upgradeProject": "priest_support"
   },
@@ -104,9 +106,11 @@
     "def": 70,
     "mdef": 90,
     "tex": "research_institute",
-    "displayW": 275,
-    "displayH": 268,
-    "footOffsetY": 134,
+    "foundation": { "key": "building_foundation_2x2", "displayW": 256, "displayH": 128 },
+    "displayW": 256,
+    "displayH": 271,
+    "footOffsetY": 136,
+    "assetCutoutHash": "1EAA8A2ED28923B6FBC3436FD98EBFF2EA6D667303A5B494474C9FDE92C86903",
     "sellRefundRatio": 0.5,
     "spawnEnabled": false,
     "spawnIntervalMs": 10000,
@@ -133,6 +137,7 @@
     "displayH": 298,
     "footOffsetY": 145,
     "sellRefundRatio": 0.5,
+    "firstWhenNoneCost": 0,
     "spawnEnabled": false,
     "spawnIntervalMs": 10000,
     "spawnRadius": 90,
@@ -140,7 +145,7 @@
     "defaultUnitType": "",
     "unitTypes": [],
     "workshopType": "warehouse",
-    "storageCapacity": 5000
+    "storageCapacity": 15000
   },
   "shooting_range": {
     "id": "shooting_range",
@@ -160,8 +165,8 @@
     "unitCap": 5,
     "defaultUnitType": "musketeer",
     "unitTypes": [
-      { "key": "musketeer", "name": "仓鼠火枪", "spawnIntervalMs": 60000 },
-      { "key": "shooter", "name": "仓鼠射手", "spawnIntervalMs": 45000 }
+      { "key": "musketeer", "name": "仓鼠火枪", "spawnIntervalMs": 60000, "spawnEnergyCost": 180 },
+      { "key": "shooter", "name": "仓鼠射手", "spawnIntervalMs": 45000, "spawnEnergyCost": 120 }
     ],
     "upgradeProject": "shooting_range_special"
   },
@@ -178,12 +183,13 @@
     "displayH": 202,
     "footOffsetY": 101,
     "sellRefundRatio": 0.5,
-    "spawnIntervalMs": 45000,
+    "spawnIntervalMs": 90000,
     "spawnRadius": 90,
     "unitCap": 5,
     "defaultUnitType": "knight",
     "unitTypes": [
-      { "key": "knight", "name": "仓鼠骑士", "spawnIntervalMs": 45000 }
+      { "key": "knight", "name": "仓鼠骑士", "spawnIntervalMs": 90000, "spawnEnergyCost": 300 },
+      { "key": "light_cavalry", "name": "仓鼠轻骑", "spawnIntervalMs": 60000, "spawnEnergyCost": 220 }
     ],
     "upgradeProject": "cavalry_charge"
   }

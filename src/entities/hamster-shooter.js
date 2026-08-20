@@ -7,13 +7,13 @@
 // - _enemyTargetable=true：防守怪可锁定/攻击它，因此提供 hp/maxHp/takeDamage；
 // - 攻击：每 2s 发射一支箭（攻击动画第 10 帧出膛），造成 60 物理伤害，
 //   瞄准目标贴图中心 + AimHelper 提前量，绝不攻击能源矿点；
-// - 死亡：播 dying 动画（11 帧）后自动从场景移除。
+// - 死亡：播 dying 动画（10 个有效帧）后自动从场景移除。
 // ============================================================
 import { Companion } from './companion.js';
 import { HamsterShooterAI } from '../ai/hamster-shooter-ai.js';
 import hamsterShooterConfig from '../../data/hamster-shooter-config.json';
 
-const DYING_DURATION_MS = 1000; // dying 11 帧 @12fps ≈ 917ms，留余量
+const DYING_DURATION_MS = 834; // dying 10 帧 @12fps
 
 export class HamsterShooter extends Companion {
     constructor(x, y, overrides = {}) {
@@ -57,8 +57,7 @@ export class HamsterShooter extends Companion {
     takeDamage(damage, source, _damageType = 'physical', _isMelee = true) {
         if (this._dying || this.data.hp <= 0) return 0;
         const before = this.data.hp;
-        this.data.hp = Math.max(0, this.data.hp - damage);
-        this.hitFlash = 120;
+        super.takeDamage(damage, source, _damageType, _isMelee);
         if (this.data.hp <= 0) {
             this._startDying();
         }
@@ -119,6 +118,7 @@ export class HamsterShooter extends Companion {
     /** 死亡结算：从实体表与友方单位表移除（Phaser 精灵由 GameScene 同步循环清理） */
     _removeFromScene() {
         this.active = false;
+        this.detachFromOwner();
         const game = (typeof window !== 'undefined' && window.Game) || null;
         if (game) {
             if (game.entities && this.id) game.entities.delete(this.id);

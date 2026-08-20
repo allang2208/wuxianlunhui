@@ -449,8 +449,14 @@ export function createHudPanelsSystemTabs() {
     codexTabMonster.className = 'codex-main-tab';
     codexTabMonster.dataset.section = 'monster';
     codexTabMonster.textContent = '怪物';
+    // 友军栏目（2026-08-19）：近期友军单位（仓鼠部队）独立成栏
+    const codexTabAlly = document.createElement('div');
+    codexTabAlly.className = 'codex-main-tab';
+    codexTabAlly.dataset.section = 'ally';
+    codexTabAlly.textContent = '友军';
     codexMainTabs.appendChild(codexTabEquip);
     codexMainTabs.appendChild(codexTabMonster);
+    codexMainTabs.appendChild(codexTabAlly);
     codexLayout.appendChild(codexMainTabs);
 
     const codexEquipLayout = document.createElement('div');
@@ -478,6 +484,15 @@ export function createHudPanelsSystemTabs() {
     codexMonsterGrid.id = 'codexMonsterGrid';
     codexMonsterLayout.appendChild(codexMonsterGrid);
     codexLayout.appendChild(codexMonsterLayout);
+    // 友军子布局（单列一行网格，数据驱动 hamster-*-config）
+    const codexAllyLayout = document.createElement('div');
+    codexAllyLayout.className = 'codex-sub-layout';
+    codexAllyLayout.id = 'codexAllyLayout';
+    const codexAllyGrid = document.createElement('div');
+    codexAllyGrid.className = 'codex-grid codex-ally-grid';
+    codexAllyGrid.id = 'codexAllyGrid';
+    codexAllyLayout.appendChild(codexAllyGrid);
+    codexLayout.appendChild(codexAllyLayout);
     codexWrapper.appendChild(codexLayout);
 
     const codexDetail = document.createElement('div');

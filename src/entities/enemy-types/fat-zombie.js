@@ -180,7 +180,7 @@ export class FatZombie extends Enemy {
             if (!entity || entity === this || !entity.active || !entity.hittable) continue;
             if (entity._faction === this._faction) continue;
             if (shape.intersectsEntity(entity)) {
-                entity.takeDamage(this._auraDamage, this, 'magic');
+                entity.takeDamage(this._auraDamage, this, 'magic', false);
             }
         }
     }

@@ -1,12 +1,7 @@
 // ============================================================
 // RTS 指挥模式（RTSCommand，2026-08-16）
-// 需求（用户）：世界-122 组队栏下方 5px 新增「指挥模式」按钮，点击进入后像 RTS 操作：
-//  - 左键单击选择目标（友军/敌人），显示属性面板（生命/魔法/六维/攻击/防御/移速）；
-//  - 右键空地 = 选中友军移动到目标区域；右键敌方目标 = 选中友军对其发起进攻；
-//  - 单击空地取消选择；长按左键拖框 = 框选区域内单位（不含建筑）；
-//  - 左键单击建筑仍走既有建筑详情面板。
-// 集成：game.js Game.init() 调 init()；Game.update 每帧调 tick(sceneId)（scene8 启用时
-// 接管输入并禁用玩家攻击/瞄准）。避免循环 import：建筑/防守系统全部经 window.Game 惰性访问。
+// 左键选择或框选单位，右键移动或攻击；建筑详情仍复用现有系统。
+// 通过 game.js 初始化并逐帧 tick；跨系统依赖使用 window.Game 惰性访问以避免循环 import。
 // ============================================================
 
 import { PartySystem } from '../systems/party-system.js';
@@ -16,13 +11,17 @@ import { CONFIG } from '../config/config.js';
 import { getUnitKind } from '../world/unit-upgrade-store.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
+import { TroopLineSystem } from '../world/troop-line-system.js';
+import { RTS_DEFAULT_ACQUIRE_RANGE } from '../ai/rts-command-utils.js';
 
 const DRAG_THRESHOLD = 6; // 屏幕 px：超过判定为拖框
+const PERSISTENT_WORLDS = new Set(['scene8', 'scene9', 'scene10', 'scene11']);
 const POINTER_BLOCK_SELECTOR = [
     '.system-panel', '.panel-overlay', '.side-menu', '.back-menu-btn', '.menu-btn',
     '.party-bar', '.rts-unit-panel', '.rts-command-btn', '.companion-overlay',
     '.recruit-overlay', '.wall-editor-panel', '.world-switch-panel',
     '.hamster-hut-panel', '.hamster-barracks-panel', '.producer-building-panel',
+    '.troop-line-panel', '.rts-command-bar',
 ].join(', ');
 
 const _game = () => (typeof window !== 'undefined' ? window.Game : null);
@@ -44,17 +43,23 @@ export const RTSCommand = {
     _enemyRings: null,     // Map<enemy, Phaser.Ellipse> 选中敌人脚下红圈
     _allyRings: null,      // Map<unit, Phaser.Ellipse> 非组队友军（仓鼠等）脚下金色光圈
     _domSig: null,         // 属性面板 DOM 签名（目标变化才重建；数值每帧原地更新）
-    _dom: null,            // 属性面板 DOM 引用（hp/mp 条、六维、战斗属性 span）
+    _dom: null,            // 属性面板 DOM 引用（HP/MP 条、六维、战斗属性 span）
     _lastClick: null,      // 双击同类复选（{at, ref}）
-    _flatHitCycle: null,   // 压平视图同屏重叠单位轮换（墙上/墙下候选保持固定次序）
-    _mouseSeen: false,       // 见过真实鼠标移动才允许边缘平移（无头/未动鼠标防漂）
+    _flatHitCycle: null,   // 压平视图同屏重叠单位轮换
+    _mouseSeen: false,     // 见过真实鼠标移动才允许边缘平移
     _pointerOverUi: false,
-    _groups: null,         // 编队：digit -> [友军 ref]（Ctrl+数字编 / Shift+数字加 / 数字选中）
+    _groups: null,         // 编队：digit -> [友军 ref]
     _pendingRightClick: null, // RTS 自己捕获右键，避免依赖 Input 边沿标志而漏命令
+    _troopLinePanel: null,
+    _commandBar: null,
+    _rallyPicking: false,
+    _troopLineRevision: -1,
 
     init() {
         this._createButton();
         this._createPanel();
+        this._createTroopLinePanel();
+        this._createCommandBar();
         this._enemyRings = new Map();
         this._allyRings = new Map();
         window.addEventListener('mousedown', (e) => this._onMouseDown(e));
@@ -66,20 +71,21 @@ export const RTSCommand = {
         this.setEnabled(false);
     },
 
-    /** game.js 每帧调用（所有场景）：同步场景、非 scene8 自动退出、刷新渲染/面板。
-     *  Input 由 game.js 传入（模块实例；window.Input 未挂载，勿依赖全局） */
+    /** game.js 每帧调用：同步场景、处理输入并刷新渲染与面板。 */
     tick(sceneId, Input, dt) {
         const g = _game();
         const observer = !!(g && g._observerMode);
-        // 指挥模式可用域：世界-122 或观察模式下的任意世界（2026-08-19）
-        const commandable = sceneId === 'scene8' || observer;
-        const leavingScene8 = this._scene === 'scene8' && sceneId !== 'scene8';
+        // 指挥模式可用于所有持久世界，以及观察模式下的世界。
+        const commandable = PERSISTENT_WORLDS.has(sceneId) || observer;
+        const leavingWorld = PERSISTENT_WORLDS.has(this._scene) && this._scene !== sceneId;
         this._scene = sceneId;
         if (this._btn) this._btn.style.display = commandable ? '' : 'none';
-        if (leavingScene8 && !observer) this._resetPartyCommandsForSceneExit();
+        if (this._troopLinePanel) this._troopLinePanel.style.display = (commandable && this.enabled) ? '' : 'none';
+        if (leavingWorld && !observer) this._resetPartyCommandsForSceneExit();
         if (!commandable && this.enabled) this.setEnabled(false);
         if (!this.enabled) return;
         this._pruneSelection();
+        this._syncCommandBarVisibility();
         this._edgePan(dt, Input);
         const input = Input || this._input();
         const pendingRightClick = this._pendingRightClick;
@@ -93,22 +99,25 @@ export const RTSCommand = {
         }
         this._renderSelectionFx();
         this._refreshPanel();
+        this._refreshTroopLinePanel();
     },
 
     _input() {
-        // input.js 模块未静态 import（避免与 game.js 循环），经全局访问
+        // input.js 模块不静态 import，避免与 game.js 循环依赖。
         return (typeof window !== 'undefined' && window.Input) ? window.Input : null;
     },
 
     setEnabled(on) {
         if (on) this._closeBuildingUI();
         this.enabled = !!on;
-        // 模式切换前可能已有 Space 留在 Input.keys（例如键盘激活仍聚焦的指挥按钮）；
-        // 无论进入还是退出都先清掉，禁止角色把同一次空格解释成翻滚。
+        // 切换前清掉 Space，避免角色把同一次按键解释成翻滚。
         const input = _game()?.Input || this._input();
         input?.keys?.delete?.('Space');
         if (this._btn) this._btn.classList.toggle('active', this.enabled);
+        if (this._troopLinePanel) this._troopLinePanel.style.display = this.enabled ? '' : 'none';
+        this._syncCommandBarVisibility();
         if (!this.enabled) {
+            this._rallyPicking = false;
             this._pendingRightClick = null;
             this._flatHitCycle = null;
             this._clearSelection();
@@ -121,12 +130,12 @@ export const RTSCommand = {
             }
         }
         this._renderSelectionFx();
+        this._refreshTroopLinePanel(true);
     },
 
-    /** 跨场景时清除 scene8 世界坐标/实体引用，防止队员在新场景继续执行旧命令。 */
+    /** 跨场景时清除旧世界坐标与实体引用。 */
     _resetPartyCommandsForSceneExit() {
         if (!PartySystem) return;
-        PartySystem.setCommand('all', 'follow');
         for (const m of PartySystem.members) {
             if (!m) continue;
             m.target = null;
@@ -157,7 +166,7 @@ export const RTSCommand = {
         container.appendChild(btn);
         this._btn = btn;
         this._placeButton();
-        // 组队栏/窗口尺寸变化时重新定位（下方 5px）
+        // 组队栏或窗口尺寸变化时重新定位。
         window.addEventListener('resize', () => this._placeButton());
     },
 
@@ -167,7 +176,8 @@ export const RTSCommand = {
         const top = bar ? bar.getBoundingClientRect().bottom + 5 : 225;
         this._btn.style.top = `${top}px`;
         this._btn.style.left = '10px';
-        this._btn.style.width = '220px';
+        this._btn.style.width = '252px';
+        this._placeTroopLinePanel();
     },
 
     _createPanel() {
@@ -179,23 +189,147 @@ export const RTSCommand = {
         const container = document.getElementById('gameContainer');
         container.appendChild(el);
         this._panel = el;
+        this._placeUnitPanel();
+        window.addEventListener('resize', () => this._placeUnitPanel());
+    },
+
+    _createTroopLinePanel() {
+        if (this._troopLinePanel) return;
+        const el = document.createElement('div');
+        el.id = 'troopLinePanel';
+        el.className = 'troop-line-panel';
+        el.style.cssText = [
+            'display:none;position:fixed;left:10px;width:252px;height:164px;z-index:4700;',
+            'background:rgba(18,20,24,.94);border:2px solid #6d7b8d;border-radius:8px;',
+            'padding:10px 14px;color:#d8dfeb;box-shadow:0 5px 18px rgba(0,0,0,.5);box-sizing:border-box;',
+            'font-family:SimHei,"Microsoft YaHei",sans-serif;pointer-events:auto;',
+        ].join('');
+        el.innerHTML = `
+            <div style="font-size:13px;font-weight:700;color:#f0cf78;margin-bottom:8px;">兵线控制</div>
+            <div class="troop-line-actions" style="display:grid;grid-template-columns:repeat(3,1fr);gap:5px;">
+                <button data-mode="follow">跟随</button>
+                <button data-mode="hold">待命</button>
+                <button data-mode="rally">自订</button>
+            </div>
+            <div data-role="status" style="font-size:12px;line-height:1.55;color:#aeb9c8;margin-top:8px;height:76px;overflow:hidden;box-sizing:border-box;white-space:pre-line;"></div>
+        `;
+        for (const button of el.querySelectorAll('[data-mode]')) {
+            button.style.cssText = 'padding:6px 2px;border:1px solid #586474;border-radius:5px;background:#29313c;color:#d8dfeb;cursor:pointer;font-size:12px;';
+            button.addEventListener('click', () => {
+                const mode = button.dataset.mode;
+                if (mode === 'rally') {
+                    if (this._rallyPicking) {
+                        this._cancelRallyPick();
+                    } else {
+                        this._rallyPicking = true;
+                        this._refreshTroopLinePanel(true);
+                    }
+                    return;
+                } else {
+                    this._rallyPicking = false;
+                    TroopLineSystem.setMode(mode);
+                }
+                this._refreshTroopLinePanel(true);
+            });
+        }
+        document.getElementById('gameContainer')?.appendChild(el);
+        this._troopLinePanel = el;
+        this._placeTroopLinePanel();
+        window.addEventListener('resize', () => this._placeTroopLinePanel());
+    },
+
+    _placeTroopLinePanel() {
+        if (!this._troopLinePanel) return;
+        const buttonBottom = this._btn?.getBoundingClientRect?.().bottom || 270;
+        this._troopLinePanel.style.top = `${buttonBottom + 6}px`;
+        this._placeCommandBar();
+    },
+
+    _createCommandBar() {
+        if (this._commandBar) return;
+        const el = document.createElement('div');
+        el.id = 'rtsCommandBar';
+        el.className = 'rts-command-bar';
+        el.style.display = 'none';
+        el.setAttribute('aria-label', '指令栏');
+        document.getElementById('gameContainer')?.appendChild(el);
+        this._commandBar = el;
+        this._placeCommandBar();
+        window.addEventListener('resize', () => this._placeCommandBar());
+    },
+
+    _placeCommandBar() {
+        if (!this._commandBar) return;
+        const troopBottom = this._troopLinePanel?.getBoundingClientRect?.().bottom || 440;
+        this._commandBar.style.top = `${troopBottom + 6}px`;
+    },
+
+    _syncCommandBarVisibility() {
+        if (!this._commandBar) return;
+        const show = this.enabled && this._selection.length > 0;
+        this._commandBar.style.display = show ? '' : 'none';
+        if (show) this._placeCommandBar();
+    },
+
+    _placeUnitPanel() {
+        if (!this._panel) return;
+        const clock = document.querySelector('.game-time');
+        const clockBottom = clock?.getBoundingClientRect?.().bottom || 84;
+        this._panel.style.top = `${clockBottom + 8}px`;
+        this._panel.style.right = '100px';
+    },
+
+    _cancelRallyPick() {
+        if (!this._rallyPicking) return;
+        this._rallyPicking = false;
+        this._refreshTroopLinePanel(true);
+    },
+
+    _refreshTroopLinePanel(force = false) {
+        const el = this._troopLinePanel;
+        if (!el) return;
+        const state = TroopLineSystem.getState();
+        if (!force && !this._rallyPicking && state.revision === this._troopLineRevision) return;
+        this._troopLineRevision = state.revision;
+        for (const button of el.querySelectorAll('[data-mode]')) {
+            const active = this._rallyPicking
+                ? button.dataset.mode === 'rally'
+                : button.dataset.mode === state.mode;
+            button.style.background = active ? '#536d42' : '#29313c';
+            button.style.borderColor = active ? '#a8cf78' : '#586474';
+            button.style.color = active ? '#f1f7e8' : '#d8dfeb';
+        }
+        const status = el.querySelector('[data-role="status"]');
+        if (!status) return;
+        if (this._rallyPicking) {
+            status.textContent = '请在当前位面右键选择集结点；可按 Esc 或再次点击“自订”取消。';
+        } else if (state.mode === 'rally' && state.rally) {
+            const worldName = window.WorldProgressionSystem?.getWorldConfig?.(state.rally.sceneId)?.name || state.rally.sceneId;
+            status.textContent = `自订集结：${worldName}（${Math.round(state.rally.x)}, ${Math.round(state.rally.y)}）`;
+        } else if (state.mode === 'hold') {
+            status.textContent = '新生产士兵将在建筑出口原地待命。';
+        } else {
+            status.textContent = '新生产士兵跟随玩家；传送时跟随部队与队友一同通过。';
+        }
+        status.style.whiteSpace = 'pre-line';
+        status.textContent += `\n驻军 ${state.garrisoned} · 途中 ${state.transit} · 编制 ${state.assigned}/${state.capacity}`;
     },
 
     _hidePanel() {
         if (this._panel) this._panel.style.display = 'none';
     },
 
-    /** 互斥接口：面板当前是否显示（供 game.js 仲裁：建筑界面打开时关闭本面板） */
+    /** 互斥接口：面板当前是否显示，供 game.js 仲裁。 */
     hasPanel() {
         return !!(this._panel && this._panel.style.display !== 'none');
     },
 
-    /** 互斥接口：仅隐藏单位/复数面板（保留选择与选中光圈） */
+    /** 互斥接口：仅隐藏单位/复数面板，保留选择与选中光圈。 */
     closePanel() {
         this._hidePanel();
     },
 
-    /** 关闭全部建筑选择/详情界面（B 面板 / 防御塔 / 陷阱 / 小屋 / 兵营） */
+    /** 关闭全部建筑选择与详情界面。 */
     _closeBuildingUI() {
         const g = _game();
         if (!g) return;
@@ -227,17 +361,19 @@ export const RTSCommand = {
             this._syncPartySelection();
             this._renderSelectionFx();
             this._domSig = null;
+            this._syncCommandBarVisibility();
         }
     },
 
     _setSelection(list) {
         this._selection = (list || []).filter((s) => s && s.ref && s.ref.active);
-        // 互斥（2026-08-16）：单位详细 / 复数选择界面打开时，关闭建筑选择界面
+        // 打开单位详情或复数选择面板时，关闭建筑选择界面。
         this._closeBuildingUI();
         this._syncPartySelection();
         this._renderSelectionFx();
         this._domSig = null;
         this._refreshPanel();
+        this._syncCommandBarVisibility();
     },
 
     _clearSelection() {
@@ -247,9 +383,10 @@ export const RTSCommand = {
         this._renderSelectionFx();
         this._hidePanel();
         this._domSig = null;
+        this._syncCommandBarVisibility();
     },
 
-    /** 友军选中同步组队栏（PartySystem.selectedIds → 组队栏高亮 + GameScene 金色光圈） */
+    /** 友军选中同步至组队栏高亮与场景选中光圈。 */
     _syncPartySelection() {
         if (!PartySystem) return;
         const allyIds = this._selection.filter((s) => s.kind === 'ally').map((s) => s.ref.id);
@@ -259,12 +396,12 @@ export const RTSCommand = {
     // ==================== 命中 / 框选 ====================
 
     /** 全部友军单位：PartySystem 侍从 + 场上 player/companion 阵营实体（仓鼠单位等），
-     *  排除玩家本人 / 建筑 / 掉落物 / 传送门 / NPC / 能源点 */
+     * 排除玩家本人、建筑、掉落物、传送门、NPC 与能源节点。 */
     _collectAllies() {
         const allies = [];
         const seen = new Set();
         const g = _game();
-        // 观察世界没有玩家本体及随行队员，不能把本体世界的 PartySystem 对象当作幽灵单位选中。
+        // 观察世界没有玩家本体及随行队员，不读取本体世界的 PartySystem 对象。
         if (!g?._observerMode) {
             for (const m of PartySystem.members) {
                 if (!m || !m.active) continue;
@@ -320,7 +457,7 @@ export const RTSCommand = {
             }
             const distanceDelta = left.distance - right.distance;
             if (Math.abs(distanceDelta) > 0.5) return distanceDelta;
-            // 同一屏幕位置优先墙顶/较高单位；后续重复点击可在固定候选序列中轮换。
+            // 同一屏幕位置优先墙顶或较高单位。
             return right.z - left.z;
         });
         if (!flat || !cycle || candidates.length === 1) {
@@ -364,7 +501,7 @@ export const RTSCommand = {
         return kind === 'ground' ? 'ground' : `${kind}:${Math.round((Number(entity.z) || 0) / 8)}`;
     },
 
-    /** 可见单位点击/框选矩形：覆盖身体而不只认逻辑脚底小圆。 */
+    /** 可见单位点击/框选矩形覆盖身体，而不只认逻辑脚底小圆。 */
     _unitScreenRect(e) {
         if (!e) return null;
         const halfW = Math.max(
@@ -412,15 +549,13 @@ export const RTSCommand = {
         return sel;
     },
 
-    /** 建筑点击（2026-08-16 指挥模式无视距离）：复用既有详情面板——防御塔/陷阱/
-     *  小屋/兵营临时以建设模式口径调用（内部 buildMode 跳过 260px 距离检查）；
-     *  掩体/门走 BuildingSystem 详情（确保 B 面板 DOM 存在并置 active）。 */
+    /** 建筑点击在指挥模式下忽略交互距离，并复用既有详情面板。 */
     _tryBuildingClick(sx, sy) {
         const g = _game();
         const p = g ? g.player : null;
         if (!g) return false;
         const prevBuild = g._buildMode;
-        g._buildMode = true; // 指挥模式无视距离（try/finally 恢复）
+        g._buildMode = true;
         try {
             if (g.DefenseTrapSystem && g.DefenseTrapSystem.tryInteract && g.DefenseTrapSystem.tryInteract(sx, sy, p)) { this.setEnabled(false); return true; }
             if (g.DefenseSystem && g.DefenseSystem.active && g.DefenseSystem.tryInteract && g.DefenseSystem.tryInteract(sx, sy, p)) { this.setEnabled(false); return true; }
@@ -430,7 +565,7 @@ export const RTSCommand = {
         } finally {
             g._buildMode = prevBuild;
         }
-        // 掩体/铁栅栏门：BuildingSystem 详情（原本要求 B 面板 active；指挥模式下直接弹）
+        // 掩体与铁栅栏门复用 BuildingSystem 详情。
         const bs = g.BuildingSystem;
         const mw = Renderer.screenToWorld(sx, sy);
         if (bs && mw && typeof bs._hitTestCover === 'function' && typeof bs._showDetail === 'function') {
@@ -445,11 +580,11 @@ export const RTSCommand = {
         return false;
     },
 
-    // ==================== 鼠标事件 ====================
+    // ==================== 榧犳爣浜嬩欢 ====================
 
     _isCommandable() {
         const g = _game();
-        return this._scene === 'scene8' || !!g?._observerMode;
+        return PERSISTENT_WORLDS.has(this._scene) || !!g?._observerMode;
     },
 
     _isPointerBlocked(e) {
@@ -507,7 +642,7 @@ export const RTSCommand = {
         if (this._dragging) {
             this._setSelection(this._selectInRect(this._downX, this._downY, e.clientX, e.clientY));
         } else {
-            // 单击：单位（双击同类全选）→ 建筑 → 空地取消
+            // 单击单位（双击同类全选）、建筑，或点击空地取消。
             const hit = this._hitUnitAt(e.clientX, e.clientY, { cycle: true });
             if (hit) {
                 const now = Date.now();
@@ -519,7 +654,7 @@ export const RTSCommand = {
                     this._setSelection([hit]);
                 }
             } else if (this._tryBuildingClick(e.clientX, e.clientY)) {
-                // 互斥：打开建筑界面 → 关闭单位/复数面板（保留选择）
+                // 打开建筑界面时关闭单位/复数面板，保留选择。
                 this._hidePanel();
             } else {
                 this._clearSelection();
@@ -535,13 +670,13 @@ export const RTSCommand = {
         if (this._boxG) this._boxG.clear();
     },
 
-    // ==================== 边缘平移 / 双击复选 / 编队（2026-08-19 RTS 化） ====================
+    // ==================== 边缘平移 / 双击复选 / 编队 ====================
 
-    /** 边缘平移：鼠标贴屏幕四缘（24px）→ 相机平移（900 world px/s，dt 缩放）。 */
+    /** 边缘平移：鼠标贴近屏幕四缘时平移相机。 */
     _edgePan(dt, Input) {
         const input = Input || this._input();
         const m = input && input.mouse;
-        if (!this._mouseSeen) return; // 无头环境/未动鼠标：默认 (0,0) 会被误判成贴左上缘
+        if (!this._mouseSeen) return;
         if (this._pointerOverUi) return;
         if (!m || typeof m.x !== 'number') return;
         const g = _game();
@@ -562,34 +697,43 @@ export const RTSCommand = {
 
     },
 
-    /** 编队键（Ctrl+数字编 / Shift+数字加选 / 数字选中；capture 阶段先于快捷栏） */
+    /** 编队键：Ctrl+数字编队，Shift+数字追加，数字选中。 */
     _onKeyDown(e) {
         if (!this.enabled) return;
         const g = _game();
-        if (!g || !(g._observerMode || this._scene === 'scene8')) return;
+        if (!g || !(g._observerMode || PERSISTENT_WORLDS.has(this._scene))) return;
+        if (this._rallyPicking && e.code === 'Escape') {
+            this._cancelRallyPick();
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            return;
+        }
         const m = /^Digit([0-9])$/.exec(e.code);
         if (!m) return;
         if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
         const d = m[1];
         if (e.ctrlKey || e.metaKey) {
-            const refs = this._selection.filter((s) => s.kind === 'ally').map((s) => s.ref);
-            if (!refs.length) return;
-            this._groups.set(d, refs);
-            this._groupNotify(d, refs.length, '编入');
+            const ids = this._selection.filter((s) => s.kind === 'ally')
+                .map((s) => s.ref?.id).filter(Boolean);
+            if (!ids.length) return;
+            this._groups.set(d, [...new Set(ids)]);
+            this._groupNotify(d, ids.length, '编入');
             e.preventDefault(); e.stopImmediatePropagation();
         } else if (e.shiftKey) {
-            const add = this._selection.filter((s) => s.kind === 'ally').map((s) => s.ref);
+            const add = this._selection.filter((s) => s.kind === 'ally')
+                .map((s) => s.ref?.id).filter(Boolean);
             if (!add.length) return;
-            const cur = this._groups.get(d) || [];
+            const cur = (this._groups.get(d) || []).map((entry) => (
+                typeof entry === 'string' ? entry : entry?.id
+            )).filter(Boolean);
             const merged = [...new Set([...cur, ...add])];
             this._groups.set(d, merged);
             this._groupNotify(d, merged.length, '加编');
             e.preventDefault(); e.stopImmediatePropagation();
         } else {
-            const selectable = new Set(this._collectAllies());
-            const grp = (this._groups.get(d) || []).filter((u) => u && u.active && selectable.has(u));
+            const grp = this._resolveGroupUnits(this._groups.get(d) || []);
             if (!grp.length) return;
-            this._groups.set(d, grp); // 顺手清死
+            this._groups.set(d, grp.map((unit) => unit.id));
             this._setSelection(grp.map((ref) => ({ kind: 'ally', ref })));
             this._groupNotify(d, grp.length, '选中');
             e.preventDefault(); e.stopImmediatePropagation();
@@ -600,7 +744,15 @@ export const RTSCommand = {
         EffectManager.add(new FloatingTextEffect(Camera.x, Camera.y - 120, `${verb}编队 ${digit}（${n} 单位）`, '#8ad0ff'));
     },
 
-    /** 双击同类复选（SC2 口径）：屏幕上所有同类型友军全选 */
+    _resolveGroupUnits(entries) {
+        const allies = new Map(this._collectAllies()
+            .filter((unit) => unit?.active && unit.id)
+            .map((unit) => [unit.id, unit]));
+        return entries.map((entry) => allies.get(typeof entry === 'string' ? entry : entry?.id))
+            .filter(Boolean);
+    },
+
+    /** 双击同类复选：选中屏幕上所有同类型友军。 */
     _selectSameTypeOnScreen(ref) {
         const key = this._unitTypeKey(ref);
         if (!key) { this._setSelection([{ kind: 'ally', ref }]); return; }
@@ -610,7 +762,7 @@ export const RTSCommand = {
             if (this._unitTypeKey(u) !== key) continue;
             const r = this._unitScreenRect(u);
             if (!r) continue;
-            if (r.x1 < 0 || r.y1 < 0 || r.x0 > vw || r.y0 > vh) continue; // 屏幕外不选
+            if (r.x1 < 0 || r.y1 < 0 || r.x0 > vw || r.y0 > vh) continue;
             list.push({ kind: 'ally', ref: u });
         }
         if (!list.some((s) => s.ref === ref)) list.push({ kind: 'ally', ref });
@@ -627,43 +779,102 @@ export const RTSCommand = {
         return this._selection.some((s) => s.kind === 'ally');
     },
 
-    /** 轮盘指令统一出口（指挥模式）：队友走 PartySystem，仓鼠等非成员按映射直写 _command。
-     *  返回生效单位数（供轮盘通知）。 */
+    /** 轮盘指令统一出口：队友走 PartySystem，其他友军按映射写入 _command。 */
     issueWheelCommand(mode, point) {
-        const memberIds = [];
+        const members = [];
         const direct = [];
         for (const s of this._selection) {
             if (s.kind !== 'ally') continue;
-            if (PartySystem.members.includes(s.ref)) memberIds.push(s.ref.id);
+            if (PartySystem.members.includes(s.ref)) members.push(s.ref);
             else direct.push(s.ref);
         }
         let n = 0;
-        if (memberIds.length) n += PartySystem.setCommand(memberIds, mode, point);
+        if (mode === 'aggressive') {
+            for (const member of members) {
+                const target = this._nearestCommandEnemy(member);
+                n += PartySystem.setCommand(
+                    [member.id],
+                    target ? 'attack' : 'hold',
+                    null,
+                    target
+                );
+            }
+        } else if (members.length) {
+            n += PartySystem.setCommand(members.map((member) => member.id), mode, point);
+        }
         for (const u of direct) {
             const mapped = this._mapWheelModeForUnit(u, mode, point);
             if (!mapped) continue;
             if (u._ai && typeof u._ai.cancelForCommand === 'function') u._ai.cancelForCommand();
+            delete u._troopLineTransit;
+            delete u._troopLineRally;
             u._command = mapped;
             n++;
         }
         return n;
     },
 
-    /** 轮盘五指令 → 仓鼠单位指令映射（仓鼠 AI 只消费 move/attack/hold/follow）：
-     *  aggressive（自由索敌）= 仓鼠默认行为 → follow；patrol ≈ move 到指令点驻守；
-     *  gather 仅矿工有意义（回默认自动采矿），战斗单位忽略。 */
+    /** 将轮盘指令映射为仓鼠单位支持的 move/attack/hold/follow 指令。 */
     _mapWheelModeForUnit(u, mode, point) {
-        if (mode === 'follow' || mode === 'aggressive') return { mode: 'follow' };
+        if (mode === 'follow') return { mode: 'follow' };
+        if (mode === 'aggressive') {
+            const target = this._nearestCommandEnemy(u);
+            return target
+                ? { mode: 'attack', point: null, target }
+                : { mode: 'hold', point: null, target: null };
+        }
         if (mode === 'hold') return { mode: 'hold', point: null, target: null };
         if (mode === 'patrol') return { mode: 'move', point: point ? { x: point.x, y: point.y } : null, target: null };
         if (mode === 'gather') return u._isHamsterMiner ? { mode: 'follow' } : null;
         return null;
     },
 
-    /** 右键：空地 = 选中友军移动；命中敌人 = 选中友军对其进攻 */
+    _nearestCommandEnemy(unit) {
+        const entities = _game()?.entities;
+        if (!unit || !entities) return null;
+        let nearest = null;
+        let nearestDistance = RTS_DEFAULT_ACQUIRE_RANGE;
+        for (const entity of entities.values()) {
+            if (!entity || !entity.active || entity.hp <= 0 || entity._isEnergyNode) continue;
+            if (entity._faction !== 'enemy' && entity._faction !== 'agent') continue;
+            const distance = Math.hypot(entity.x - unit.x, entity.y - unit.y);
+            if (distance <= nearestDistance) {
+                nearest = entity;
+                nearestDistance = distance;
+            }
+        }
+        return nearest;
+    },
+
+    /** 右键空地移动选中友军，右键敌方目标发起进攻。 */
     _handleRightClick(sx, sy) {
         const w = Renderer.screenToWorld(sx, sy);
-        if (!w) return;
+        if (!w) {
+            this._cancelRallyPick();
+            return;
+        }
+        if (this._rallyPicking) {
+            const defenseSystem = _game()?.DefenseSystem;
+            const point = defenseSystem?.resolveSurfaceTarget
+                ? defenseSystem.resolveSurfaceTarget(w.x, w.y)
+                : { x: w.x, y: w.y, z: 0, surfaceKind: 'ground', route: [] };
+            if (point.unreachable) {
+                EffectManager.add(new FloatingTextEffect(point.x, point.y, point.reason || '该位置无法集结', '#ff8855'));
+                this._cancelRallyPick();
+                return;
+            }
+            if (!TroopLineSystem.setRally(this._scene, point)) {
+                EffectManager.add(new FloatingTextEffect(point.x, point.y, '当前位面未接入传送网络', '#ff8855'));
+                this._cancelRallyPick();
+                return;
+            }
+            this._rallyPicking = false;
+            this._refreshTroopLinePanel(true);
+            const phaser = _scene();
+            phaser?.showMoveMarker?.(point.x, point.y - (point.z || 0));
+            EffectManager.add(new FloatingTextEffect(point.x, point.y - (point.z || 0), '集结点已保存', '#8ad0ff'));
+            return;
+        }
         const hit = this._hitUnitAt(sx, sy);
         const phaser = _scene();
         if (hit && hit.kind === 'enemy') {
@@ -683,7 +894,7 @@ export const RTSCommand = {
                     EffectManager.add(new FloatingTextEffect(hit.ref.x, hit.ref.y - (Number(hit.ref.z) || 0), '选中单位无法攻击', '#ff8855'));
                 }
             } else {
-                // 无友军选中：右键敌人 = 选中并查看属性
+                // 无友军选中时，右键敌人仅选中并查看属性。
                 this._setSelection([hit]);
             }
         } else if (this._selection.some((s) => s.kind === 'ally')) {
@@ -722,7 +933,7 @@ export const RTSCommand = {
     },
 
     /** 命令下发到所有选中友军：组队侍从走 PartySystem（CompanionAI 消费），
-     *  仓鼠等非成员单位直接写 _command（hamster-*-ai 消费） */
+     * 仓鼠等非成员单位直接写入 _command。 */
     _issueCommandToAllies(mode, point, target) {
         const memberIds = [];
         const directUnits = [];
@@ -745,6 +956,8 @@ export const RTSCommand = {
         for (const u of directUnits) {
             if (mode === 'attack' && u._rtsCanAttack === false) {
                 if (u._ai && typeof u._ai.cancelForCommand === 'function') u._ai.cancelForCommand();
+                delete u._troopLineTransit;
+                delete u._troopLineRally;
                 u._command = { mode: 'hold', point: null, target: null };
                 continue;
             }
@@ -756,6 +969,9 @@ export const RTSCommand = {
                 this._lastCommandRejectReason ||= commandPoint.reason || '目标不可达';
                 continue;
             }
+            // 显式 RTS 指令优先于出生时继承的全局兵线命令。
+            delete u._troopLineTransit;
+            delete u._troopLineRally;
             u._command = {
                 mode,
                 point: commandPoint ? {
@@ -775,7 +991,7 @@ export const RTSCommand = {
         return defenseSystem.routeSurfaceMoveForUnit(unit, point);
     },
 
-    /** 右键攻击指令反馈：目标贴图短暂红/白交替闪现。实际 tint 由 GameScene 每帧统一应用。 */
+    /** 右键攻击指令反馈：目标贴图短暂红白交替闪现。 */
     _flashAttackTarget(target) {
         if (!target || !target.active) return;
         const now = Date.now();
@@ -783,7 +999,7 @@ export const RTSCommand = {
         target._rtsAttackFlashUntil = now + 720;
     },
 
-    // ==================== 渲染（拖框 + 敌人选中光圈） ====================
+    // ==================== 渲染（拖框 + 选中光圈） ====================
 
     _renderSelectionFx() {
         const scene = _scene();
@@ -805,7 +1021,7 @@ export const RTSCommand = {
         }
         this._boxG.setDepth(99990);
 
-        // 敌人选中红圈（脚下椭圆，深度跟随精灵）
+        // 敌人选中红圈，深度跟随精灵。
         const alive = new Set();
         for (const s of this._selection) {
             if (s.kind !== 'enemy') continue;
@@ -822,16 +1038,14 @@ export const RTSCommand = {
             ring.setPosition(e.x, e.y - (Number(e.z) || 0));
             ring.setVisible(true);
             const sp = e._phaserSprite;
-            // 深度：优先跟随精灵（精灵-0.1，与脚下光圈同口径）；无精灵引用兜底按世界 y
+            // 优先跟随精灵深度；无精灵引用时按世界 y 兜底。
             ring.setDepth(sp && sp.active ? sp.depth - 0.1 : e.y);
         }
         for (const [e, ring] of this._enemyRings) {
             if (!alive.has(e)) { ring.destroy(); this._enemyRings.delete(e); }
         }
 
-        // 友军选中金圈（2026-08-16 用户口径：与组队栏选中同款黄圈）。组队侍从由
-        // GameScene._selectionRings（PartySystem.isSelected）负责；这里只给非成员
-        // 友军（仓鼠战士/盾卫/射手/矿工等）补同款金圈，避免成员脚下双圈重影。
+        // 组队侍从光圈由 GameScene 负责；这里只为非成员友军补金色光圈。
         const memberSet = new Set(PartySystem.members);
         const allyAlive = new Set();
         for (const s of this._selection) {
@@ -858,8 +1072,7 @@ export const RTSCommand = {
 
     // ==================== 属性面板 ====================
 
-    /** 每帧刷新：目标变化才重建 DOM，数值（HP/MP/六维/战斗属性）原地实时更新，
-     *  友军每帧重算战斗属性（calculateCombatStats 幂等，含装备/等级/建筑加成实时反显） */
+    /** 目标变化时重建 DOM，其余帧只刷新实时数值。 */
     _refreshPanel() {
         if (!this._panel) return;
         if (!this._selection.length) { this._hidePanel(); return; }
@@ -920,9 +1133,9 @@ export const RTSCommand = {
     _readStats(e) {
         const d = e.data || {};
         const isEnemy = e._faction === 'enemy' || e._faction === 'agent';
-        // 友军每帧重算（装备/等级/属性加成实时反显）；敌人不可重算（会重置 HP）
+        // 友军每帧重算装备与等级加成；敌人保持当前战斗状态。
         if (!isEnemy && typeof e.calculateCombatStats === 'function') {
-            try { e.calculateCombatStats(); } catch (_err) { /* 重算失败读旧值 */ }
+            try { e.calculateCombatStats(); } catch (_err) { /* 重算失败时读取旧值 */ }
         }
         const hp = Math.max(0, Math.round(e.hp ?? d.hp ?? 0));
         const maxHp = Math.round(e.maxHp ?? d.maxHp ?? hp);
@@ -967,7 +1180,7 @@ export const RTSCommand = {
         if (!this._dom || !this._panel) return;
         if (this._selection.length > 1) {
             this._dom.count.textContent = `已选择 ${this._selection.length} 个单位`;
-            // 按单位类型分组统计（2026-08-16 用户口径：仓鼠战士 ×5 / 仓鼠盾卫 ×3 …）
+            // 按单位类型分组统计。
             const groups = new Map();
             for (const s of this._selection) {
                 const e = s.ref;
@@ -991,7 +1204,7 @@ export const RTSCommand = {
                 const surfaceText = Array.from(surfaceGroups.entries())
                     .map(([label, n]) => `${label} ×${n}`)
                     .join(' · ');
-                this._dom.multi.textContent += ` ｜ 层级：${surfaceText}`;
+                this._dom.multi.textContent += ` · 层级：${surfaceText}`;
             }
             return;
         }

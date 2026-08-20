@@ -21,6 +21,7 @@ import {
     restoreWorldScenes,
 } from '../world/world122-snapshot.js';
 import { EnvironmentLightingSystem } from '../world/environment-lighting-system.js';
+import { TroopLineSystem } from '../world/troop-line-system.js';
 
 // Game UI Manager - Extracted from Game.js
 // Handles UI updates, save/load, timers, and menu operations
@@ -280,6 +281,7 @@ export const GameUIManager = {
         if (data.worlds?.scenes) restoreWorldScenes(data.worlds.scenes);
         else restoreWorld122Scene(data.world122?.scene);
         window.WorldProgressionSystem?.restore?.(data.worlds?.progression);
+        TroopLineSystem.restore(data.worlds?.troopLines);
         window.WorldInvasionSystem?.restore?.(data.worlds?.invasion);
         if (Array.isArray(data.backpack) && typeof EquipManager !== 'undefined') {
             // 原地替换内容而非换数组：init 时旧数组引用已注入 EquipTooltipManager/
@@ -328,6 +330,7 @@ export const GameUIManager = {
             },
             worlds: {
                 progression: window.WorldProgressionSystem?.serialize?.() || null,
+                troopLines: TroopLineSystem.serialize(),
                 invasion: window.WorldInvasionSystem?.serialize?.() || null,
                 scenes: serializeWorldScenes(),
             },

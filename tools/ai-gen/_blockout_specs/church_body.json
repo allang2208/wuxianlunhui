@@ -1,0 +1,18 @@
+{
+  "elevation": 30,
+  "azimuth": 0,
+  "resolution": 1024,
+  "bottom_y": 880,
+  "max_width_frac": 0.80,
+  "top_margin_px": 48,
+  "primitives": [
+    { "type": "box", "size": [270, 166, 214], "pos": [0, 0, 107], "rot": [0, 0, 44.8] },
+    { "type": "prism", "size": [294, 184, 94], "pos": [10, 4, 261], "rot": [0, 0, 44.8] },
+    { "type": "box", "size": [126, 150, 196], "pos": [-74, -19, 98], "rot": [0, 0, 44.8] },
+    { "type": "prism", "size": [150, 166, 96], "pos": [-74, -19, 242], "rot": [0, 0, 44.8] },
+    { "type": "box", "size": [68, 68, 330], "pos": [-92, -28, 165], "rot": [0, 0, 44.8] },
+    { "type": "cone", "radius1": 54, "radius2": 0, "depth": 154, "pos": [-92, -28, 407], "rot": [0, 0, 44.8] },
+    { "type": "cylinder", "radius": 42, "depth": 82, "pos": [38, 30, 255], "rot": [0, 0, 44.8] },
+    { "type": "cone", "radius1": 48, "radius2": 0, "depth": 90, "pos": [38, 30, 341], "rot": [0, 0, 44.8] }
+  ]
+}

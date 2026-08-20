@@ -13,6 +13,8 @@ import scoutCfg from '../../data/hamster-scout-config.json';
 import musketeerCfg from '../../data/hamster-musketeer-config.json';
 import priestCfg from '../../data/hamster-priest-config.json';
 import knightCfg from '../../data/hamster-knight-config.json';
+import lightCavalryCfg from '../../data/hamster-light-cavalry-config.json';
+import { getUpgradeModulesForUnitKind } from './building-upgrade-projects.js';
 
 /** 全局升级等级：{ [kind]: { [moduleId]: level } }（满级由建筑模块配置 maxLevel 控制） */
 export const GLOBAL_UNIT_UPGRADES = {};
@@ -33,8 +35,11 @@ export function restoreUnitUpgrades(data) {
     if (!data || typeof data !== 'object') return;
     for (const [kind, modules] of Object.entries(data)) {
         if (!UNIT_KIND_CFG[kind] || !modules || typeof modules !== 'object') continue;
+        const moduleConfig = getUpgradeModulesForUnitKind(kind);
         for (const [moduleId, rawLevel] of Object.entries(modules)) {
-            const level = Math.max(0, Math.floor(Number(rawLevel) || 0));
+            const maxLevel = moduleConfig?.[moduleId]?.maxLevel;
+            if (!Number.isFinite(maxLevel)) continue;
+            const level = Math.min(maxLevel, Math.max(0, Math.floor(Number(rawLevel) || 0)));
             if (level > 0) {
                 if (!GLOBAL_UNIT_UPGRADES[kind]) GLOBAL_UNIT_UPGRADES[kind] = {};
                 GLOBAL_UNIT_UPGRADES[kind][moduleId] = level;
@@ -53,6 +58,7 @@ export const UNIT_KIND_CFG = {
     musketeer: musketeerCfg,
     priest: priestCfg,
     knight: knightCfg,
+    light_cavalry: lightCavalryCfg,
 };
 
 /** 实体识别兵种 key（非战斗兵种返回 null） */
@@ -66,6 +72,7 @@ export function getUnitKind(unit) {
     if (unit._isHamsterMusketeer) return 'musketeer';
     if (unit._isHamsterPriest) return 'priest';
     if (unit._isHamsterKnight) return 'knight';
+    if (unit._isHamsterLightCavalry) return 'light_cavalry';
     return null;
 }
 
@@ -84,7 +91,7 @@ export function raiseUnitUpgradeLevel(kind, moduleId) {
 }
 
 /** 按模块 effect 字段与等级计算通用属性补丁；不依赖特定建筑或模块 ID。 */
-export function getUpgradeMultsFromLevels(modulesCfg, levels = {}) {
+export function getUpgradeMultsFromLevels(modulesCfg, levels = {}, kind = null) {
     const out = {
         attackIntervalMult: 1,
         attackDamageMult: 1,
@@ -101,7 +108,11 @@ export function getUpgradeMultsFromLevels(modulesCfg, levels = {}) {
         titheEnergyPerTick: 0,
     };
     for (const [moduleId, module] of Object.entries(modulesCfg || {})) {
-        const level = Math.max(0, Math.floor(Number(levels[moduleId]) || 0));
+        if (kind && Array.isArray(module?.unitKinds) && !module.unitKinds.includes(kind)) continue;
+        const rawLevel = Math.max(0, Math.floor(Number(levels[moduleId]) || 0));
+        const level = Number.isFinite(module?.maxLevel)
+            ? Math.min(rawLevel, Math.max(0, Math.floor(module.maxLevel)))
+            : rawLevel;
         const effect = module?.effect;
         const per = Number(module?.per);
         if (!level || !effect || !Number.isFinite(per) || !(effect in out)) continue;
@@ -113,7 +124,7 @@ export function getUpgradeMultsFromLevels(modulesCfg, levels = {}) {
 
 /** 按兵种全局等级 + 建筑模块配置计算倍率。 */
 export function getUnitUpgradeMults(kind, modulesCfg) {
-    return getUpgradeMultsFromLevels(modulesCfg, (kind && GLOBAL_UNIT_UPGRADES[kind]) || {});
+    return getUpgradeMultsFromLevels(modulesCfg, (kind && GLOBAL_UNIT_UPGRADES[kind]) || {}, kind);
 }
 
 /** 该兵种在当前全局等级下的最终属性补丁（新生成单位直接用） */

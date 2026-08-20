@@ -12,6 +12,10 @@ import { PNG } from 'pngjs';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const cfg = JSON.parse(fs.readFileSync(path.join(ROOT, 'data/producer-buildings.json'), 'utf8'));
 const boot = fs.readFileSync(path.join(ROOT, 'src/phaser/scenes/BootScene.js'), 'utf8');
+const producer = fs.readFileSync(path.join(ROOT, 'src/world/producer-building-system.js'), 'utf8');
+const building = fs.readFileSync(path.join(ROOT, 'src/world/building-system.js'), 'utf8');
+const gameScene = fs.readFileSync(path.join(ROOT, 'src/phaser/scenes/GameScene.js'), 'utf8');
+const lightingAssets = JSON.parse(fs.readFileSync(path.join(ROOT, 'data/environment-lighting-assets.json'), 'utf8'));
 let fail = 0;
 function check(name, condition) {
     console.log(`${condition ? '  ✓' : '  ✗'} ${name}`);
@@ -36,13 +40,18 @@ check('传送门带目的地列表（主神空间/123/124/125）',
     && portal.destinations.some((d) => d.sceneId === 'scene11'));
 check('传送门贴图已注册（BootScene load + 投影清单）',
     /this\.load\.image\('portal', 'assets\/terrain\/portal\.png'\)/.test(boot)
-    && /'thatch_hut', 'portal'\]/.test(boot));
+    && lightingAssets.assets?.portal?.source === 'assets/terrain/portal.png');
 check('传送门贴图紧身裁剪尺寸正确', portalPng.width === 1127 && portalPng.height === 1192);
-check('传送门显示参数按裁剪比例标定',
-    portal.displayW === 288 && portal.displayH === 305 && portal.footOffsetY === 153);
+check('传送门贴图放大并保持等比锚点',
+    portal.displayW === 335 && portal.displayH === 354 && portal.footOffsetY === 177);
+check('传送门固定使用标准2×2 footprint，不被能量结构缩小',
+    portal.autoFootprint === false
+    && /autoFootprint: cfg\.autoFootprint === true/.test(producer)
+    && /entity\.spriteCfg\?\.autoFootprint === true/.test(gameScene)
+    && /PRODUCER_BUILDINGS\[item\.id\]\?\.autoFootprint === true/.test(building));
 check('传送门光照派生图已生成',
     ['portal_projection.png', 'portal_silhouette.png', 'portal_height.png', 'portal_normal.png']
         .every((f) => fs.existsSync(path.join(ROOT, 'assets/terrain/lighting', f))));
 
-console.log(`\n结果: ${7 - fail} 通过, ${fail} 失败`);
+console.log(`\n结果: ${8 - fail} 通过, ${fail} 失败`);
 process.exit(fail ? 1 : 0);

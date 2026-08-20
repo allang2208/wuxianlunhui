@@ -49,8 +49,7 @@ export class HamsterMusketeer extends Companion {
     takeDamage(damage, source, _damageType = 'physical', _isMelee = true) {
         if (this._dying || this.data.hp <= 0) return 0;
         const before = this.data.hp;
-        this.data.hp = Math.max(0, this.data.hp - damage);
-        this.hitFlash = 120;
+        super.takeDamage(damage, source, _damageType, _isMelee);
         if (this.data.hp <= 0) this._startDying();
         return before - this.data.hp;
     }
@@ -104,6 +103,7 @@ export class HamsterMusketeer extends Companion {
 
     _removeFromScene() {
         this.active = false;
+        this.detachFromOwner();
         const game = typeof window !== 'undefined' ? window.Game : null;
         if (!game) return;
         if (game.entities && this.id) game.entities.delete(this.id);

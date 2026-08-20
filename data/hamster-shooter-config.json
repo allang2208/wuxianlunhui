@@ -54,7 +54,7 @@
     "dying": {
       "src": "assets/companions/hamster_shooter/dying.png",
       "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 4,
-      "frameCount": 11, "frames": [0, 10], "frameRate": 12, "repeat": 0
+      "frameCount": 10, "frames": [0, 9], "frameRate": 12, "repeat": 0
     },
     "projectile": {
       "src": "assets/companions/hamster_shooter/projective.png",

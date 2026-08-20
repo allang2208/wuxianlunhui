@@ -5,6 +5,8 @@ const FOOT_SCAN_MIN_U = 0.20;
 const FOOT_SCAN_MAX_U = 0.80;
 const FOOT_CONTACT_BAND_RATIO = 0.03;
 const FOOT_CONTACT_MAX_SPAN_RATIO = 0.12;
+const LEGACY_GROUND_SLOPE = PERSPECTIVE_SCALE_Y;
+const VISUAL_GROUND_SLOPE_30 = Math.tan(Math.PI / 6);
 const _footRatioCache = new Map();
 const _groundFitCache = new Map();
 
@@ -177,8 +179,23 @@ export function fitOpaqueGroundFootprint(
         rightX = selected.rightX;
     }
 
-    const backX = leftX + rightX;
-    const centerX = backX * 0.5;
+    // 最低像素可能是台阶、门槛或装饰凸出，不能让它拖着整栋建筑偏离2×2中心。
+    // 用稳定底座横截面的中心校准贴图；碰撞四边形自身始终左右对称并锁在格心。
+    const measuredSideRise = sideRise;
+    const measuredSideCenter = (leftX + rightX) * 0.5;
+    const measuredHalfWidth = Math.max(4, (rightX - leftX) * 0.5);
+    const measuredSlope = measuredSideRise / measuredHalfWidth;
+    const groundSlope = Math.abs(measuredSlope - VISUAL_GROUND_SLOPE_30)
+        < Math.abs(measuredSlope - LEGACY_GROUND_SLOPE)
+        ? VISUAL_GROUND_SLOPE_30
+        : LEGACY_GROUND_SLOPE;
+    // 在不突变面积的前提下把角度吸附到 26.565°（旧仓库）或 30°（新建筑）最近档。
+    const fittedHalfWidth = Math.sqrt(measuredHalfWidth * measuredSideRise / groundSlope);
+    sideRise = fittedHalfWidth * groundSlope;
+    leftX = -fittedHalfWidth;
+    rightX = fittedHalfWidth;
+    const backX = 0;
+    const centerX = 0;
     const centerY = -sideRise;
     const localVertices = [
         { key: 'back', x: backX, y: -sideRise * 2 },
@@ -188,7 +205,8 @@ export function fitOpaqueGroundFootprint(
     ];
     const groundRadius = Math.max(...localVertices.map((point) =>
         Math.hypot(point.x - centerX, (point.y - centerY) / PERSPECTIVE_SCALE_Y)));
-    const visualOffsetX = visualOffsetXFromOpaqueContact(dw, measured.width, contactX);
+    const contactOffsetX = visualOffsetXFromOpaqueContact(dw, measured.width, contactX);
+    const visualOffsetX = contactOffsetX - measuredSideCenter;
     const footOffsetY = footOffsetFromOpaqueBottom(dh, measured.height, measured.bottomY);
     return {
         visualOffsetX,
@@ -200,6 +218,10 @@ export function fitOpaqueGroundFootprint(
         rightX,
         centerX,
         centerY,
+        groundSlope,
+        groundAngleDeg: Math.atan(groundSlope) * 180 / Math.PI,
+        measuredSideCenter,
+        measuredSideRise,
         collisionWidth: Math.max(rightX, backX, 0) - Math.min(leftX, backX, 0),
         collisionHeight: sideRise * 2,
         collisionRadius: groundRadius,
@@ -310,7 +332,7 @@ export function shouldAutoAnchorStructure(entity) {
         && !entity._isDefenseCover
         && !entity._isCoverGate
         && !entity._isDefenseTower
-        && !entity._isFiringPlatform
+        && !entity._isWallStaircase
         && !entity._isDefenseTrap
     );
 }

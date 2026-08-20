@@ -75,10 +75,12 @@ export const ProjectileFactory = {
         const effectiveMaxRange = applyElevatedRangedRange(source, maxRange);
         const sourceHeight = source?.collider?.height || source?.collisionHeight || source?.size || 40;
         const startZ = Number.isFinite(z) ? z : (Number(source?.z) || 0) + sourceHeight * 0.58;
+        const projectileY = Number.isFinite(groundY) ? groundY : y;
         const sourceTarget = source?.target?.active ? source.target : null;
         const endZ = Number.isFinite(targetZ)
             ? targetZ
-            : (sourceTarget?.collider?.centerZ ?? ((Number(sourceTarget?.z) || 0) + 24));
+            : (sourceTarget?.collider?.centerZ
+                ?? ((Number(sourceTarget?.z) || 0) + 24));
         const targetDistance = sourceTarget
             ? Math.hypot((sourceTarget.x || 0) - x, (sourceTarget.y || 0) - y)
             : 0;
@@ -88,7 +90,6 @@ export const ProjectileFactory = {
         );
         const travelTime = horizontalDistance / Math.max(1, speed || 1);
         const vz = (endZ - startZ) / Math.max(0.001, travelTime);
-        const projectileY = Number.isFinite(groundY) ? groundY : y;
         const projectileAngle = Number.isFinite(groundAngle) ? groundAngle : angle;
         const projectileVisualAngle = Number.isFinite(groundAngle)
             ? angle
@@ -148,7 +149,11 @@ export const ProjectileFactory = {
             p.active = true;
             p.hitTargets = new Set();
             p._embeddedWalls = embeddedWalls;
-            p._wallContext = projectileWallContext(source);
+            p._wallContext = projectileWallContext(source, null, {
+                x,
+                y: projectileY,
+                z: startZ,
+            });
             p.z = startZ;
             p.prevZ = startZ;
             p.vz = vz;
@@ -163,7 +168,11 @@ export const ProjectileFactory = {
             p.depthBonus = depthBonus;
             p.knockback = knockback ?? 0;
             p._embeddedWalls = embeddedWalls;
-            p._wallContext = projectileWallContext(source);
+            p._wallContext = projectileWallContext(source, null, {
+                x,
+                y: projectileY,
+                z: startZ,
+            });
             p.z = startZ;
             p.prevZ = startZ;
             p.vz = vz;

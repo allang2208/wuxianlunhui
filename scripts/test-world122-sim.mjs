@@ -73,8 +73,23 @@ function makeSnap(overrides = {}) {
     check('读条完成并升全局等级', r.abilitiesCompleted.includes('research_passive_energy')
         && getAbilityLevel('research_passive_energy') === 1);
     const wh = snap.structures[1];
-    check('被动能源按秒入仓（60s × 1/s = 60）', r.passiveEnergy === 60 && wh.storedEnergy === 60);
+    check('被动能源按完成时点分段（后30s × 1/s = 30）', r.passiveEnergy === 30 && wh.storedEnergy === 30);
     resetAbilityLevels();
+}
+
+// ---- 3b. 混编兵种在后台保持组成 ----
+{
+    const snap = makeSnap({
+        structures: [{
+            kind: 'producer', cfgKey: 'shooting_range', x: 0, y: 0, hp: 2200,
+            unitType: 'shooter', spawnTimer: 45000, units: 4,
+            unitRoster: { musketeer: 3, shooter: 1 },
+        }],
+    });
+    settleWorld122(snap, 1000);
+    const building = snap.structures[0];
+    check('混编 roster 不被当前生产类型整体覆盖',
+        building.unitRoster.musketeer === 3 && building.unitRoster.shooter === 1);
 }
 
 // ---- 4. 波次清剿 + 墙先承伤 + 波次推进 ----

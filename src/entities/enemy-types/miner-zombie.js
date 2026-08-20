@@ -1,6 +1,7 @@
 import { Enemy } from '../enemy.js';
 import enemyConfigData from '../../../data/enemy-config.json';
 import { hostilesOf, playSoundFrom, inMeleeRange } from './_shared/enemy-utils.js';
+import { canMeleeShareSurface } from '../../combat/melee-surface.js';
 
 /**
  * 矿工僵尸（普通，僵尸 family）
@@ -179,6 +180,7 @@ export class MinerZombie extends Enemy {
         const atk = this.data?.atk || 0;
         for (const e of hostilesOf(this, entities)) {
             if (!inMeleeRange(this, e, range)) continue;
+            if (!canMeleeShareSurface(this, e)) continue;
             e.takeDamage(Math.max(1, Math.round(atk)), this, 'physical', true);
             const knockback = slam.knockback ?? 75;
             if (knockback > 0 && typeof e.applyKnockback === 'function') {

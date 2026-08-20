@@ -82,12 +82,12 @@
   - **实现位置**：`enemy-types.js` RedWolfKing 类新增 `_isTransforming`/`_isTransformed`/`_transformTriggered` 状态，`_getTextureKey`/`_drawBody`/`_getPhaserOptions` 支持变身状态，`_updateAIState` 变身期间不执行，`_executeAI` 变身期间不执行
   - **配置位置**：`enemy-config.json` `redWolfKing.transform` 对象
   - **资源加载**：`BootScene.js` 新增 `enemy_red_wolf_king_change`、`enemy_red_wolf_king_changed_run`、`enemy_red_wolf_king_changed_idle` 三个 spritesheet
-
+  
 - v1.7 (2026-07-06) — 优化精灵图朝向翻转：
   - 新增 `_lastHorizontalFacing` 保存机制，解决纯垂直移动/idle时狼永远朝右的问题
   - 攻击期间 `up`/`down` 状态的 flip 改用 `_dashAngle` 而非 `vx`，确保冲刺方向与视觉一致
   - 同步应用到 BlackWolf 和 RedWolfKing
-
+  
 - v1.6 (2026-07-06) — 修复黑狼 facing 翻转：四方向 facing 但仅有两方向精灵图时，`up`/`down` 状态下根据 `vx` 符号判断水平方向，确保 sprite 翻转与运动方向一致。修改 `enemy-types.js` 的 `_getPhaserOptions`（flipX）和 `_drawBody`（ctx.scale）
 
 - v1.5 (2026-07-05) — 智能寻路系统（参考《环世界》）：预规划 + 定期路径检查 + 局部修复

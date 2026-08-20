@@ -5,6 +5,7 @@ import { EffectFactory } from '../../utils/effect-factory.js';
 import { WallSystem } from '../../world/wall-system.js';
 import { SoundManager } from '../../ui/sound-manager.js';
 import enemyConfigData from '../../../data/enemy-config.json';
+import { canMeleeShareSurface } from '../../combat/melee-surface.js';
 
 /**
  * 铠甲骑士（精英）
@@ -331,6 +332,7 @@ export class ArmoredKnight extends Enemy {
         const t = this._comboTarget;
         if (!t || !t.active || !t.hittable) return;
         if (!this._isTargetInRange(t, cfg.range ?? 125)) return;
+        if (!canMeleeShareSurface(this, t)) return;
         const atk = this.data?.atk || 0;
         t.takeDamage(Math.max(1, Math.round(atk * (cfg.damageMul ?? 1))), this, 'physical', true);
     }
@@ -423,8 +425,7 @@ export class ArmoredKnight extends Enemy {
 
         // 命中判定：撞到目标立即结算并停止
         if (!this._chargeDamaged && t && t.active && t.hittable && this._isTargetInRange(t, cfg.hitRange ?? 60)) {
-            this._chargeDamaged = true;
-            this._dealChargeHit(t);
+            this._chargeDamaged = this._dealChargeHit(t);
         }
 
         // 停止条件：命中 / 超出最大范围 / 超时未命中
@@ -434,6 +435,7 @@ export class ArmoredKnight extends Enemy {
     }
 
     _dealChargeHit(t) {
+        if (!canMeleeShareSurface(this, t)) return false;
         const cfg = this._getSkillConfigs().charge;
         this._playSound('block'); // 撞击到目标：播放一次盾击音
         const atk = this.data?.atk || 0;
@@ -444,6 +446,7 @@ export class ArmoredKnight extends Enemy {
         const angle = Math.atan2(t.y - this.y, t.x - this.x);
         if (t.applyKnockback) t.applyKnockback(angle, cfg.knockback ?? 200);
         if (!parried && t.applyStun) t.applyStun(cfg.stunMs ?? 2500);
+        return true;
     }
 
     _endCharge() {
@@ -498,6 +501,8 @@ export class ArmoredKnight extends Enemy {
     // ========== 格挡弹反（复制玩家盾系统语义） ==========
 
     takeDamage(damage, source, damageType = 'physical', isMelee = true) {
+        // 必须先于格挡/弹反副作用执行同承载面门禁；跨层攻击不构成一次有效命中。
+        if (isMelee && source && !canMeleeShareSurface(source, this)) return;
         // 格挡期间（前摇结束后）：所有玩家来源伤害判定为弹反——免伤，近战攻击者被眩晕击退
         if (this._animState === 'defend' && this._blockWindup <= 0 && source && source._faction === 'player') {
             this.shieldSystem._lastParried = true;

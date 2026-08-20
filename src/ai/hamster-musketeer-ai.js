@@ -2,12 +2,15 @@ import { MovementSystem } from '../systems/movement-system.js';
 import { WallSystem } from '../world/wall-system.js';
 import { AimHelper } from '../utils/aim-helper.js';
 import { SoundManager } from '../ui/sound-manager.js';
-import { clearRtsSurfaceRoute, resolveRtsMoveDestination } from './rts-command-utils.js';
+import { clearRtsSurfaceRoute, finishRtsCommandAtHold, resolveRtsMoveDestination, RTS_DEFAULT_ACQUIRE_RANGE } from './rts-command-utils.js';
 import {
+    applyProjectileWallImpact,
     applyElevatedRangedRange,
+    canUseWallTopModelException,
     projectileSourceZ,
     projectileTargetZ,
     projectileWallContext,
+    wallHitSupportsTarget,
 } from '../combat/elevated-ranged.js';
 import { hasRangedLineOfSight } from '../combat/ranged-line-of-sight.js';
 
@@ -22,7 +25,7 @@ export class HamsterMusketeerAI {
         this._attackInterval = this.cfg.attackInterval ?? 2500;
         this._attackDamage = this.cfg.attackDamage ?? 80;
         this._attackRange = this.cfg.attackRange ?? 650;
-        this._engageRange = this.cfg.engageRange ?? 1000;
+        this._engageRange = RTS_DEFAULT_ACQUIRE_RANGE;
         this._projectileSpeed = this.cfg.projectileSpeed ?? 1248;
         this._followOffset = this.cfg.followOffset ?? 160;
         const anim = unit.animations?.attack || {};
@@ -92,7 +95,7 @@ export class HamsterMusketeerAI {
             if (cmd.mode !== 'move' && !m._surfaceNavCommand) clearRtsSurfaceRoute(m);
             if (cmd.mode === 'attack') {
                 if (!cmd.target?.active || cmd.target.hp <= 0 || cmd.target._isEnergyNode) {
-                    m._command = { mode: 'follow' };
+                    finishRtsCommandAtHold(m);
                     m.target = null;
                     m._tacticalTarget = null;
                     m._animState = 'idle';
@@ -110,7 +113,7 @@ export class HamsterMusketeerAI {
                     m._animState = 'walk';
                     m.maxSpeed = this.cfg.walkSpeed ?? 120;
                 } else {
-                    m._command = { mode: 'follow' };
+                    finishRtsCommandAtHold(m);
                     clearRtsSurfaceRoute(m);
                 }
                 return;
@@ -239,7 +242,7 @@ export class HamsterMusketeerAI {
         b.y += Math.sin(b.angle) * step;
         b.z = prevZ + (Number(b.vz) || 0) * dt / 1000;
         b.dist += step;
-        if (WallSystem.projectileBlocked?.(
+        const wallHit = WallSystem.projectileWallHit?.(
             prevX,
             prevY,
             prevZ,
@@ -247,10 +250,7 @@ export class HamsterMusketeerAI {
             b.y,
             b.z,
             b.wallContext || projectileWallContext(m)
-        )) {
-            m._basic = null;
-            return;
-        }
+        );
         let hit = null;
         for (const e of (entities?.values ? entities.values() : entities || [])) {
             if (!e || !e.active || e.hp <= 0 || e._faction !== 'enemy' || e._isEnergyNode) continue;
@@ -262,6 +262,15 @@ export class HamsterMusketeerAI {
                 hit = e;
                 break;
             }
+        }
+        const modelHitThroughSupport = wallHit
+            && canUseWallTopModelException(m)
+            && hit
+            && wallHitSupportsTarget(wallHit, hit);
+        if (wallHit && !modelHitThroughSupport) {
+            applyProjectileWallImpact(m, wallHit, this._attackDamage, 'physical');
+            m._basic = null;
+            return;
         }
         if (hit) {
             hit.takeDamage?.(m.getPhysicalAttackDamage(this._attackDamage, hit), m, 'physical', false);

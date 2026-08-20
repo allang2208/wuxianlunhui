@@ -10,7 +10,7 @@
 import { MovementSystem } from '../systems/movement-system.js';
 import { WallSystem } from '../world/wall-system.js';
 import { SoundManager } from '../ui/sound-manager.js';
-import { clearRtsSurfaceRoute, resolveRtsMoveDestination } from './rts-command-utils.js';
+import { clearRtsSurfaceRoute, finishRtsCommandAtHold, resolveRtsMoveDestination, RTS_DEFAULT_ACQUIRE_RANGE } from './rts-command-utils.js';
 import { canMeleeReachElevation } from './elevated-navigation-controller.js';
 
 export class HamsterGuardAI {
@@ -22,7 +22,7 @@ export class HamsterGuardAI {
         this._attackInterval = this.cfg.attackInterval ?? 2000;
         this._attackDamage = this.cfg.attackDamage ?? 30;
         this._attackRange = this.cfg.attackRange ?? 55;
-        this._engageRange = this.cfg.engageRange ?? 900;
+        this._engageRange = RTS_DEFAULT_ACQUIRE_RANGE;
         this._followOffset = this.cfg.followOffset ?? 140;
         this._followArriveDist = this.cfg.followArriveDist ?? 40;
         // 攻击动画第 N 帧伤害判定（用户口径）：整段 12 帧 @12fps = 1.0s，
@@ -198,7 +198,7 @@ export class HamsterGuardAI {
                 m._animState = 'walk';
                 m.maxSpeed = this.cfg.walkSpeed ?? 100;
             } else {
-                m._command = { mode: 'follow' }; // 到位清除命令，回到默认跟随
+                finishRtsCommandAtHold(m);
                 m._tacticalTarget = null;
                 clearRtsSurfaceRoute(m);
                 m._animState = 'idle';
@@ -210,7 +210,7 @@ export class HamsterGuardAI {
         if (cmd.mode === 'attack') {
             const t = cmd.target;
             if (!t || !t.active || t.hp <= 0) {
-                m._command = { mode: 'follow' };
+                finishRtsCommandAtHold(m);
                 m.target = null;
                 m._animState = 'idle';
                 return;

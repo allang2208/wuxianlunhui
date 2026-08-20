@@ -26,6 +26,21 @@ export function resolveBuildingUpgradeProject(buildingCfg) {
     };
 }
 
+/** 模块升级费用：模块可按等级覆盖金币/能源，否则回退到项目统一费用。 */
+export function getBuildingModuleUpgradeCost(buildingCfg, moduleId, currentLevel = 0) {
+    const module = buildingCfg?.modules?.[moduleId];
+    if (!module) return null;
+    const defaults = buildingCfg.upgradeCost || buildingCfg.moduleUpgrade || {};
+    const level = Math.max(0, Math.floor(Number(currentLevel) || 0));
+    const byLevel = (value, fallback) => Array.isArray(value)
+        ? (value[level] ?? value[value.length - 1] ?? fallback)
+        : (value ?? fallback);
+    return {
+        gold: Math.max(0, Math.floor(Number(byLevel(module.goldByLevel, defaults.gold)) || 0)),
+        energy: Math.max(0, Math.floor(Number(byLevel(module.energyByLevel, defaults.energy)) || 0)),
+    };
+}
+
 /** 兵种按项目声明取模块，不依赖某个具体建筑名称。 */
 export function getUpgradeModulesForUnitKind(kind) {
     for (const project of Object.values(BUILDING_UPGRADE_PROJECTS)) {

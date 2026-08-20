@@ -81,9 +81,7 @@
       }
     },
     "rangedCombat": {
-      "rangeMultiplier": 1.2,
-      "wallClearance": 2,
-      "wallClearanceRadius": 220
+      "rangeMultiplier": 1.2
     },
     "blockTopSurface": {
       "sourceSize": [1024, 1024],

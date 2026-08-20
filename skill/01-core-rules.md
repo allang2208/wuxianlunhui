@@ -15,3 +15,4 @@
 8. **敌人的 `colliderOffsetY/X` 必须写在 `render` 块内** — `enemy.js` 基类只读 `config.render.colliderOffsetY`，写在配置顶层是死配置不生效（工头/矿洞/手脑/骑士都踩过，2026-07-25 工头修复后实机验证生效）；NPC 类相反，读顶层（npc.js:48）
 
 ---
+

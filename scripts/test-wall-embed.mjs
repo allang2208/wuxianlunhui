@@ -18,17 +18,36 @@ globalThis.window = globalThis.window || {};
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const { WallSystem } = await import('../src/world/wall-system.js');
-const { projectileWallContext } = await import('../src/combat/elevated-ranged.js');
+const {
+    applyProjectileWallImpact,
+    canUseWallTopModelException,
+    projectileWallContext,
+    wallHitSupportsTarget,
+} = await import('../src/combat/elevated-ranged.js');
 
 // Projectile 类：剥 import 后注入桩执行（damage-pipeline 链会拉进 Phaser，node 下不可直接 import）
-const projSrc = fs.readFileSync(path.join(ROOT, 'src/combat/projectile.js'), 'utf-8')
-    .split('\n')
-    .filter(l => !l.trimStart().startsWith('import '))
+const projectileLines = fs.readFileSync(path.join(ROOT, 'src/combat/projectile.js'), 'utf-8').split('\n');
+let skippingImport = false;
+const projSrc = projectileLines
+    .filter(line => {
+        const trimmed = line.trimStart();
+        if (!skippingImport && trimmed.startsWith('import ')) {
+            skippingImport = !trimmed.includes(';');
+            return false;
+        }
+        if (skippingImport) {
+            if (trimmed.includes(';')) skippingImport = false;
+            return false;
+        }
+        return true;
+    })
     .join('\n')
     .replace('export { Projectile };', '');
 const Projectile = new Function(
     'WallSystem', 'DamagePipeline', 'segmentIntersectsCapsule', 'segmentHitsTorso',
-    'ELEVATION', 'PERSPECTIVE_SCALE_Y', 'SpatialPartitionSystem', 'projectileWallContext',
+    'ELEVATION', 'PERSPECTIVE_SCALE_Y', 'SpatialPartitionSystem', 'isFriendlyFire',
+    'applyProjectileWallImpact', 'canUseWallTopModelException', 'projectileWallContext',
+    'wallHitSupportsTarget', 'entityVerticalRange',
     projSrc + '\nreturn Projectile;'
 )(
     WallSystem,
@@ -36,7 +55,12 @@ const Projectile = new Function(
     () => false, () => false,
     { FLYING: 1 }, 0.5,
     { queryRadius: () => [] },
-    projectileWallContext
+    () => false,
+    applyProjectileWallImpact,
+    canUseWallTopModelException,
+    projectileWallContext,
+    wallHitSupportsTarget,
+    () => ({ bottom: 0, top: 0 })
 );
 
 let passed = 0, failed = 0;

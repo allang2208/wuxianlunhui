@@ -162,9 +162,9 @@ const result = await evalJs(`(async () => {
 })()`);
 
 const expected = {
-    pixel_fit_warehouse: { width: [260, 275], height: [125, 135], visual: [-8, 0] },
-    pixel_fit_shooting: { width: [265, 282], height: [160, 176], visual: [-44, -40] },
-    pixel_fit_barracks: { width: [255, 270], height: [140, 158], visual: [-33, -29] },
+    pixel_fit_warehouse: { width: [260, 270], height: [128, 136], visual: [0, 3] },
+    pixel_fit_shooting: { width: [280, 294], height: [160, 172], visual: [-4, 0] },
+    pixel_fit_barracks: { width: [255, 266], height: [145, 155], visual: [-10, -6] },
 };
 let failed = 0;
 console.log('diag', JSON.stringify(result?.beforeSync), {
@@ -180,6 +180,7 @@ for (const sample of result?.samples || []) {
         && sample.height >= exp.height[0] && sample.height <= exp.height[1]
         && sample.visualOffsetX >= exp.visual[0] && sample.visualOffsetX <= exp.visual[1]
         && Math.abs(sample.spriteX - (sample.entityX + sample.visualOffsetX)) < 0.6
+        && Math.abs(sample.colliderX - sample.entityX) < 0.1
         && Math.abs(sample.frontX - sample.entityX) < 0.1
         && Math.abs(sample.frontY - 1800) < 0.1;
     console.log(ok ? 'PASS' : 'FAIL', JSON.stringify(sample));

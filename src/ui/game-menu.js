@@ -1,7 +1,8 @@
 /**
  * 游戏菜单（左上角菜单按钮）
- * 暂停游戏 + 全屏覆盖层，包含三个入口：
+ * 暂停游戏 + 全屏覆盖层，包含四个入口：
  *   - 返回游戏：关闭菜单、恢复游戏
+ *   - 操作说明：集中展示移动、战斗与面板快捷键
  *   - 设置：音量（主音量）与背景音量（BGM）两个滚动条
  *   - 退出游戏：Electron 打包版经 preload IPC 退出；浏览器环境回退 window.close
  */
@@ -22,6 +23,20 @@ import { UIState } from './ui-state.js';
 import { TimerManager } from '../utils/timer-manager.js';
 import { UnitDisplaySettings } from './unit-display-settings.js';
 import { EnvironmentLightingSettings } from './environment-lighting-settings.js';
+
+const CONTROL_GUIDE = [
+    ['WASD / 鼠标', '移动 / 瞄准'],
+    ['鼠标左键 / 右键', '攻击 / 特殊攻击'],
+    ['空格 / Shift', '闪避 / 冲刺'],
+    ['F / R', '切换武器 / 换弹'],
+    ['1~4', '快捷栏'],
+    ['Q / E / X / C', '技能'],
+    ['Z', '范围拾取'],
+    ['CapsLock', '状态栏'],
+    ['Tab / K / U / L', '背包 / 技能 / 图鉴 / 任务'],
+    ['P / O', '队员管理 / 世界传送'],
+    ['Esc', '打开或关闭暂停菜单'],
+];
 
 export const GameMenu = {
     _overlay: null,
@@ -52,6 +67,7 @@ export const GameMenu = {
         mainView.id = 'gameMenuMainView';
         const actions = [
             { label: '▶ 返回游戏', action: 'resume' },
+            { label: '⌨ 操作说明', action: 'controls' },
             { label: '⚙ 设置', action: 'settings' },
             { label: '✕ 退出游戏', action: 'exit', danger: true },
         ];
@@ -63,6 +79,43 @@ export const GameMenu = {
             mainView.appendChild(btn);
         }
         panel.appendChild(mainView);
+
+        // ===== 操作说明视图 =====
+        const controlsView = document.createElement('div');
+        controlsView.className = 'game-menu-view hidden';
+        controlsView.id = 'gameMenuControlsView';
+
+        const controlsTitle = document.createElement('div');
+        controlsTitle.className = 'game-menu-subtitle';
+        controlsTitle.textContent = '操作说明';
+        controlsView.appendChild(controlsTitle);
+
+        const controlsList = document.createElement('div');
+        controlsList.className = 'game-menu-controls';
+        for (const [key, description] of CONTROL_GUIDE) {
+            const row = document.createElement('div');
+            row.className = 'game-menu-control-row';
+
+            const keyLabel = document.createElement('span');
+            keyLabel.className = 'game-menu-control-key';
+            keyLabel.textContent = key;
+
+            const actionLabel = document.createElement('span');
+            actionLabel.className = 'game-menu-control-action';
+            actionLabel.textContent = description;
+
+            row.append(keyLabel, actionLabel);
+            controlsList.appendChild(row);
+        }
+        controlsView.appendChild(controlsList);
+
+        const controlsBackBtn = document.createElement('button');
+        controlsBackBtn.className = 'game-menu-btn';
+        controlsBackBtn.textContent = '← 返回';
+        controlsBackBtn.addEventListener('click', () => this._onAction('back'));
+        controlsView.appendChild(controlsBackBtn);
+
+        panel.appendChild(controlsView);
 
         // ===== 设置视图 =====
         const settingsView = document.createElement('div');
@@ -102,6 +155,7 @@ export const GameMenu = {
 
         this._overlay = overlay;
         this._mainView = mainView;
+        this._controlsView = controlsView;
         this._settingsView = settingsView;
         this._masterSlider = overlay.querySelector('#gameMenuMasterVol');
         this._masterVal = overlay.querySelector('#gameMenuMasterVal');
@@ -358,14 +412,16 @@ export const GameMenu = {
     },
 
     _showView(name) {
-        if (!this._mainView || !this._settingsView) return;
+        if (!this._mainView || !this._controlsView || !this._settingsView) return;
         this._mainView.classList.toggle('hidden', name !== 'main');
+        this._controlsView.classList.toggle('hidden', name !== 'controls');
         this._settingsView.classList.toggle('hidden', name !== 'settings');
     },
 
     _onAction(action) {
         switch (action) {
             case 'resume': this.close(); break;
+            case 'controls': this._showView('controls'); break;
             case 'settings': this._showView('settings'); break;
             case 'back': this._showView('main'); break;
             case 'exit': this._exitGame(); break;

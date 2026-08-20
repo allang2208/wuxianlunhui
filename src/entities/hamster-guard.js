@@ -2,7 +2,7 @@
 // HamsterGuard — 仓鼠盾卫（2026-08-16）
 // 玩家友方单位：复用 Companion 数据模型（data.hp/六维/动画配置），
 // 由 HamsterGuardAI 驱动在世界-122 自动寻找最近敌人近战输出。
-// - 生命 350（baseMaxHp 覆盖：con=25 ×10 + base 100 = 350，与用户口径一致）；
+// - 生命 300（baseMaxHp 覆盖：con=25 ×10 + base 100 = 350 → 300）；
 // - _faction='companion'（友方阵营，与玩家互不误伤）；
 // - _enemyTargetable=true：防守怪可锁定/攻击它，因此提供 hp/maxHp/takeDamage；
 // - 攻击：每 2s 一次，攻击动画第 10 帧判定 30 物理伤害，绝不攻击能源矿点；
@@ -15,6 +15,7 @@ import { getAbilityLevel, getAbilityValue } from '../world/ability-store.js';
 import { getBuildingUpgradeAbility } from '../world/building-upgrade-projects.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
+import { canMeleeShareSurface } from '../combat/melee-surface.js';
 
 const DYING_DURATION_MS = 1250; // dying 15 帧 @12fps = 1250ms
 
@@ -60,6 +61,7 @@ export class HamsterGuard extends Companion {
      */
     takeDamage(damage, source, _damageType = 'physical', _isMelee = true) {
         if (this._dying || this.data.hp <= 0) return 0;
+        if (_isMelee && source && !canMeleeShareSurface(source, this)) return 0;
         // 铁匠铺能力：自动防御（2026-08-17）——受击 25%+5%/级 概率触发，减免 50% 伤害
         const guardLv = getAbilityLevel('auto_guard');
         const guardAbility = getBuildingUpgradeAbility('auto_guard');
@@ -70,8 +72,7 @@ export class HamsterGuard extends Companion {
             }
         }
         const before = this.data.hp;
-        this.data.hp = Math.max(0, this.data.hp - damage);
-        this.hitFlash = 120;
+        super.takeDamage(damage, source, _damageType, _isMelee);
         if (this.data.hp <= 0) {
             this._startDying();
         }
@@ -129,6 +130,7 @@ export class HamsterGuard extends Companion {
     /** 死亡结算：从实体表与友方单位表移除（Phaser 精灵由 GameScene 同步循环清理） */
     _removeFromScene() {
         this.active = false;
+        this.detachFromOwner();
         const game = (typeof window !== 'undefined' && window.Game) || null;
         if (game) {
             if (game.entities && this.id) game.entities.delete(this.id);

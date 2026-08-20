@@ -7,6 +7,8 @@ import { WorldProgressionSystem } from './world-progression-system.js';
 import { ensureWorldBaseSnapshot, getWorldSnapshot, resetWorldSnapshot } from './world122-snapshot.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
+import { TroopLineSystem } from './troop-line-system.js';
+import { DungeonConfig } from '../config/dungeon-config.js';
 
 const VERSION = 3;
 const cfg = worldSystemConfig.invasion || {};
@@ -103,8 +105,8 @@ function spawnPointsFor(diamond) {
     ];
 }
 
-function defenseDps(snapshot) {
-    return (snapshot?.structures || []).reduce((sum, structure) => {
+function defenseDps(snapshot, sceneId, worldEpoch) {
+    const structureDps = (snapshot?.structures || []).reduce((sum, structure) => {
         if (!(structure.hp > 0)) return sum;
         if (structure.kind === 'tower') return sum + Math.max(0, structure.dps || 0);
         if (structure.kind === 'barracks' || structure.kind === 'producer') {
@@ -112,6 +114,7 @@ function defenseDps(snapshot) {
         }
         return sum;
     }, 0);
+    return structureDps + TroopLineSystem.getBackgroundDefense(sceneId, worldEpoch).dps;
 }
 
 function waveThreat(active) {
@@ -348,10 +351,21 @@ export const WorldInvasionSystem = {
         const threat = waveThreat(active);
         const cycleMul = 1 + Math.max(0, active.cycle - 1) * (cfg.atkGrowthPerCycle || 0.08);
         const attackDps = threat * 6 * cycleMul;
-        const defenders = defenseDps(snapshot);
+        const defenders = defenseDps(snapshot, active.targetWorld, active.worldEpoch);
         const mitigation = Math.max(0.18, 1 - defenders / Math.max(1, threat * 28));
         const damage = attackDps * (cfg.backgroundContactRatio || 0.45) * mitigation * (deltaMs / 1000);
-        const hp = applyBackgroundDamage(snapshot, active.targetWorld, damage, active.worldEpoch);
+        const garrisonExposure = Math.max(0, Math.min(1, Number(cfg.backgroundGarrisonAbsorbRatio) || 0));
+        const absorbed = TroopLineSystem.applyBackgroundAttrition(
+            active.targetWorld,
+            active.worldEpoch,
+            damage * garrisonExposure
+        );
+        const hp = applyBackgroundDamage(
+            snapshot,
+            active.targetWorld,
+            Math.max(0, damage - absorbed),
+            active.worldEpoch
+        );
         this._checkPortalWarnings(active.targetWorld, hp);
         if (hp <= 0) {
             this._resolveActive(false);
@@ -455,10 +469,14 @@ export const WorldInvasionSystem = {
         const candidates = this._getInvasionCandidates(nowGameTimeMs);
         const candidateIds = new Set(candidates.map((world) => world.sceneId));
         const worlds = WorldProgressionSystem.getWorldIds().map((sceneId) => {
+            const worldCfg = WorldProgressionSystem.getWorldConfig(sceneId) || {};
             const portal = WorldProgressionSystem.getPortalState(sceneId);
             const protection = WorldProgressionSystem.getPortalProtection(sceneId, nowGameTimeMs);
             const generation = WorldProgressionSystem.getWorldGenerationContext(sceneId);
             const snapshot = getWorldSnapshot(sceneId);
+            const requiredDungeons = Array.isArray(worldCfg.requirements?.completedDungeons)
+                ? worldCfg.requirements.completedDungeons
+                : [];
             return {
                 sceneId,
                 name: worldName(sceneId),
@@ -468,6 +486,11 @@ export const WorldInvasionSystem = {
                 protected: protection.active,
                 protectionRemainingMs: protection.remainingMs,
                 candidate: candidateIds.has(sceneId),
+                constructionEnabled: worldCfg.constructionEnabled !== false,
+                requiredDungeons: requiredDungeons.map((dungeonType) => ({
+                    dungeonType,
+                    completed: WorldProgressionSystem.hasCompletedDungeon(dungeonType),
+                })),
                 generationVersion: generation.generationVersion,
                 generationSeed: generation.seed,
                 snapshot: snapshot ? {
@@ -502,6 +525,51 @@ export const WorldInvasionSystem = {
         EnvironmentLightingSystem.advanceTime(advancedMs);
         this.update(advancedMs, currentScene);
         return { ok: true, advancedMs, model: this.getDebugModel() };
+    },
+
+    /** 开发工具：按正式地牢成功结算入口补齐目标位面的全部地牢前置。 */
+    debugCompleteWorldRequirements(sceneId) {
+        const world = WorldProgressionSystem.getWorldConfig(sceneId);
+        if (!world) return { ok: false, reason: '未知世界位面' };
+
+        const portalBefore = WorldProgressionSystem.getPortalState(sceneId);
+        if (portalBefore.constructed && !portalBefore.destroyed) {
+            return { ok: true, changed: false, reason: '该位面已经接入传送网络', model: this.getDebugModel() };
+        }
+        if (world.constructionEnabled === false && !portalBefore.everConstructed) {
+            return { ok: false, reason: '该位面配置尚未开放首次传送门构造' };
+        }
+
+        const required = Array.isArray(world.requirements?.completedDungeons)
+            ? world.requirements.completedDungeons.filter(Boolean)
+            : [];
+        const completed = [];
+        for (const dungeonType of required) {
+            if (WorldProgressionSystem.hasCompletedDungeon(dungeonType)) continue;
+            const grade = DungeonConfig.getDungeonGrade(dungeonType) || 'F';
+            this.recordDungeonRun(dungeonType, grade, 'success');
+            completed.push({ dungeonType, grade });
+        }
+
+        const portal = WorldProgressionSystem.getPortalState(sceneId);
+        const constructable = WorldProgressionSystem.getConstructableWorlds()
+            .some((entry) => entry.sceneId === sceneId);
+        if (!constructable && !portal.constructed) {
+            return {
+                ok: false,
+                reason: required.length ? '地牢前置已完成，但该位面当前仍不可构造' : '该位面没有可补齐的地牢前置',
+                completed,
+                model: this.getDebugModel(),
+            };
+        }
+        return {
+            ok: true,
+            changed: completed.length > 0,
+            completed,
+            sceneId,
+            portalStatus: portal.status,
+            model: this.getDebugModel(),
+        };
     },
 
     debugDestroyPortal(sceneId) {

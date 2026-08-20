@@ -29,6 +29,7 @@ import * as World122Sim from './world/world122-sim.js';
 import { EnvironmentLightingSystem } from './world/environment-lighting-system.js';
 import { WorldProgressionSystem } from './world/world-progression-system.js';
 import { WorldInvasionSystem } from './world/world-invasion-system.js';
+import { TroopLineSystem } from './world/troop-line-system.js';
 
 import { getElement } from './utils/dom-utils.js';
 
@@ -121,6 +122,7 @@ async function initModules() {
     window.World122Sim = World122Sim;
     window.WorldProgressionSystem = WorldProgressionSystem;
     window.WorldInvasionSystem = WorldInvasionSystem;
+    window.TroopLineSystem = TroopLineSystem;
     window.SceneManager = SceneManager;
     // 环境光照唯一实例挂载（HMR 后裸路径 import 会拿到第二实例，探针必须走这里）
     window.EnvironmentLightingSystem = EnvironmentLightingSystem;

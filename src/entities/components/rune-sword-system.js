@@ -13,7 +13,12 @@ import {
     volumeEffectContext,
 } from '../../physics/elevation.js';
 import { pointHitsTorso } from '../../physics/torso-hitbox.js';
-import { projectileWallContext } from '../../combat/elevated-ranged.js';
+import {
+    applyProjectileWallImpact,
+    canUseWallTopModelException,
+    projectileWallContext,
+    wallHitSupportsTarget,
+} from '../../combat/elevated-ranged.js';
 export class RuneSwordSystem {
     constructor(player) {
         this.player = player;
@@ -151,8 +156,8 @@ export class RuneSwordSystem {
             const reachesMaxRange = moveDist >= remainingDistance;
             // 墙壁碰撞检测
             const flyZ = Number(sword.flyZ) || 0;
-            const hitWall = WallSystem.projectileBlocked
-                ? WallSystem.projectileBlocked(
+            const hitWall = WallSystem.projectileWallHit
+                ? WallSystem.projectileWallHit(
                     sword.flyX,
                     sword.flyY,
                     flyZ,
@@ -161,8 +166,26 @@ export class RuneSwordSystem {
                     flyZ,
                     sword.wallContext || projectileWallContext(this.player)
                 )
-                : WallSystem.blocked(sword.flyX, sword.flyY, nextX, nextY);
-            if (hitWall) {
+                : (WallSystem.blocked(sword.flyX, sword.flyY, nextX, nextY)
+                    ? { wall: null, owner: null, x: sword.flyX, y: sword.flyY, z: flyZ }
+                    : null);
+            let modelHitThroughSupport = false;
+            if (hitWall && canUseWallTopModelException(this.player)) {
+                const nextElevation = volumeEffectContext(flyZ, 15);
+                entities.forEach(entity => {
+                    if (modelHitThroughSupport || entity === this.player
+                        || !entity.active || !entity.hittable
+                        || entity._faction !== 'enemy'
+                        || entity._surfaceKind !== 'wall_walk'
+                        || !wallHitSupportsTarget(hitWall, entity)
+                        || !effectElevationIntersectsEntity(nextElevation, entity)) return;
+                    modelHitThroughSupport = pointHitsTorso(entity, nextX, nextY, 15);
+                });
+            }
+            if (hitWall && !modelHitThroughSupport) {
+                const d = this.player.data;
+                const damage = Math.floor((this.player.getCurrentWeaponAtk() + (d.matk || 0)) * 1.2);
+                applyProjectileWallImpact(this.player, hitWall, damage, 'magic');
                 fireRadialBurst({ x: sword.flyX, y: sword.flyY - flyZ });
                 sword.flyActive = false;
                 sword.active = false;

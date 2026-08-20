@@ -9,7 +9,7 @@
 // ============================================================
 import { MovementSystem } from '../systems/movement-system.js';
 import { WallSystem } from '../world/wall-system.js';
-import { clearRtsSurfaceRoute, resolveRtsMoveDestination } from './rts-command-utils.js';
+import { clearRtsSurfaceRoute, finishRtsCommandAtHold, resolveRtsMoveDestination, RTS_DEFAULT_ACQUIRE_RANGE } from './rts-command-utils.js';
 import { AimHelper } from '../utils/aim-helper.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
@@ -17,8 +17,11 @@ import { SoundManager } from '../ui/sound-manager.js';
 import { getAbilityLevel, getAbilityValue } from '../world/ability-store.js';
 import { getBuildingUpgradeAbility } from '../world/building-upgrade-projects.js';
 import {
+    applyProjectileWallImpact,
     applyElevatedRangedRange,
+    canUseWallTopModelException,
     projectileWallContext,
+    wallHitSupportsTarget,
 } from '../combat/elevated-ranged.js';
 import { hasRangedLineOfSight } from '../combat/ranged-line-of-sight.js';
 
@@ -33,7 +36,7 @@ export class HamsterScoutAI {
         this._attackInterval = this.cfg.attackInterval ?? 2500;
         this._attackDamage = this.cfg.attackDamage ?? 25;
         this._attackRange = this.cfg.attackRange ?? 600;
-        this._engageRange = this.cfg.engageRange ?? 900;
+        this._engageRange = RTS_DEFAULT_ACQUIRE_RANGE;
         this._projectileSpeed = this.cfg.projectileSpeed ?? 600;
         this._followOffset = this.cfg.followOffset ?? 140;
         this._followArriveDist = this.cfg.followArriveDist ?? 40;
@@ -221,7 +224,7 @@ export class HamsterScoutAI {
                 m.maxSpeed = this.cfg.walkSpeed ?? 150;
             } else {
                 clearRtsSurfaceRoute(m);
-                m._command = { mode: 'follow' }; // 到位清除命令，回到默认跟随
+                finishRtsCommandAtHold(m);
                 m._tacticalTarget = null;
                 m._animState = 'idle';
                 m.maxSpeed = 0;
@@ -232,7 +235,7 @@ export class HamsterScoutAI {
         if (cmd.mode === 'attack') {
             const t = cmd.target;
             if (!t || !t.active || t.hp <= 0) {
-                m._command = { mode: 'follow' };
+                finishRtsCommandAtHold(m);
                 m.target = null;
                 m._animState = 'idle';
                 return;
@@ -362,7 +365,7 @@ export class HamsterScoutAI {
         b.y += Math.sin(b.angle) * step;
         b.z = prevZ + (Number(b.vz) || 0) * dtSec;
         b.dist += step;
-        if (WallSystem.projectileBlocked?.(
+        const wallHit = WallSystem.projectileWallHit?.(
             prevX,
             prevY,
             prevZ,
@@ -370,11 +373,7 @@ export class HamsterScoutAI {
             b.y,
             b.z,
             b.wallContext || projectileWallContext(m)
-        )) {
-            b.active = false;
-            return;
-        }
-
+        );
         let hit = null;
         const hits = (entity) => {
             const collider = entity?.collider;
@@ -398,6 +397,15 @@ export class HamsterScoutAI {
                     break;
                 }
             }
+        }
+        const modelHitThroughSupport = wallHit
+            && canUseWallTopModelException(m)
+            && hit
+            && wallHitSupportsTarget(wallHit, hit);
+        if (wallHit && !modelHitThroughSupport) {
+            applyProjectileWallImpact(m, wallHit, this._attackDamage, 'physical');
+            b.active = false;
+            return;
         }
         if (hit) {
             if (typeof hit.takeDamage === 'function') {

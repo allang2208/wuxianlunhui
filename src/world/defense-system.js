@@ -27,6 +27,7 @@ import { EffectFactory } from '../utils/effect-factory.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
 import { SoundManager } from '../ui/sound-manager.js';
 import { EnergyManager } from '../systems/energy-manager.js';
+import { payBuildingUpgradeCost } from './building-upgrade-payment.js';
 import { BasePanel } from '../ui/panels/base-panel.js';
 import { renderBuildingDetailHeader } from '../ui/panels/building-detail-header.js';
 import { Renderer } from './renderer.js';
@@ -442,8 +443,9 @@ const TOWER_HIT = { cx: 0, cy: -135, hw: 115, hh: 175 };
 
 /** 世界点是否命中防御塔（整塔矩形） */
 function pointHitsTower(wx, wy, t) {
+    const groundY = t.y + (Number(t._visualGroundOffsetY) || 0);
     return wx >= t.x + TOWER_HIT.cx - TOWER_HIT.hw && wx <= t.x + TOWER_HIT.cx + TOWER_HIT.hw
-        && wy >= t.y + TOWER_HIT.cy - TOWER_HIT.hh && wy <= t.y + TOWER_HIT.cy + TOWER_HIT.hh;
+        && wy >= groundY + TOWER_HIT.cy - TOWER_HIT.hh && wy <= groundY + TOWER_HIT.cy + TOWER_HIT.hh;
 }
 
 /** 弹丸贴图直接复用现有武器贴图（无映射则默认曳光弹） */
@@ -1696,7 +1698,13 @@ export function blockWallFootprintSupportAt(
  */
 export const DEFENSE_TOWER_VISUAL = {
     scale: 1,
-    base: { w: 170, h: 262, footOffsetY: 131 },
+    base: {
+        w: 170,
+        h: 262,
+        footOffsetY: 131,
+        // 防御塔实体仍以前顶点为逻辑锚点；贴图接地点移动到标准 2x2 footprint 中心。
+        footprintCenterOffsetY: TWO_BY_TWO_BUILDING_FOOT.offY,
+    },
     arm: {
         // 2026-08-14 预渲染 3D 旋转帧：Blender 绕塔顶轴渲染 48 帧（7.5°×48），
         // 每帧真等距透视（肘关节/前臂随角度真实转动），游戏按 aimAngle 选帧显示，
@@ -2018,13 +2026,17 @@ class DefenseTower extends Combatant {
         this.data.mdef = mdef;
         // 贴图：世界-122 防御塔（2026-08-12 Blender 圆柱塔基 + 机械臂，纯色参考版；
         // 内容框 324×498，显示 170×262）
+        const visualFootOffsetY = DEFENSE_TOWER_VISUAL.base.footOffsetY
+            - DEFENSE_TOWER_VISUAL.base.footprintCenterOffsetY;
         this.spriteCfg = {
             idleKey: 'obstacle_defense_tower',
             size: DEFENSE_TOWER_VISUAL.base.w,
             sizeH: DEFENSE_TOWER_VISUAL.base.h,
-            footOffsetY: DEFENSE_TOWER_VISUAL.base.footOffsetY,
+            footOffsetY: visualFootOffsetY,
         };
-        this.footOffsetY = DEFENSE_TOWER_VISUAL.base.footOffsetY;
+        this.footOffsetY = visualFootOffsetY;
+        this._visualGroundOffsetY = DEFENSE_TOWER_VISUAL.base.footprintCenterOffsetY;
+        this._visualFootOffsetY = visualFootOffsetY;
         applyBuildingFootprint(this, 2);
         // 统一遮挡锚线（塔三层贴图深度一律从 _faceDepth 取，见 GameScene._syncDefenseTowers）
         setupStructureDepth(this);
@@ -2235,7 +2247,8 @@ class DefenseTower extends Combatant {
         const cur = this.chip[statKey] ?? baseVal;
         if (cur >= (cfg.max ?? 99)) return { ok: false, reason: `${s.name}已达上限` };
         const cost = this.getChipUpgradeCost(statKey);
-        if (!GoldManager || !GoldManager.deductGold(cost)) return { ok: false, reason: '金币不足' };
+        const payment = payBuildingUpgradeCost({ gold: cost });
+        if (!payment.ok) return payment;
         this.chip[statKey] = cur + 1;
         this._recalcDamage();
         if (SoundManager && typeof SoundManager.playFile === 'function') {
@@ -2277,7 +2290,8 @@ class DefenseTower extends Combatant {
         const cur = this.modules[moduleId] || 0;
         if (cur >= mod.maxLevel) return { ok: false, reason: `${mod.name}已满级` };
         const cost = this.getModuleCost(moduleId);
-        if (!GoldManager || !GoldManager.deductGold(cost)) return { ok: false, reason: '金币不足' };
+        const payment = payBuildingUpgradeCost({ gold: cost });
+        if (!payment.ok) return payment;
         this.modules[moduleId] = cur + 1;
         this._applyModuleWeaponParams();
         this._recalcDamage();
@@ -2401,7 +2415,7 @@ class DefenseTower extends Combatant {
     _muzzlePoint() {
         const V = DEFENSE_TOWER_VISUAL;
         const pivotX = this.x;
-        const pivotY = this.y - V.arm.pivotWorldY;
+        const pivotY = this.y + (Number(this._visualGroundOffsetY) || 0) - V.arm.pivotWorldY;
         const m = this._mirrored ? -1 : 1;
         const tipOX = V.arm.gameScale * V.arm.k * V.arm.reach * Math.cos(this.aimAngle) * m;
         const tipOY = V.arm.gameScale * V.arm.k * (0.5 * V.arm.reach * Math.sin(this.aimAngle) - 0.866 * V.arm.dz);
@@ -2492,7 +2506,7 @@ class DefenseTower extends Combatant {
         const V = DEFENSE_TOWER_VISUAL;
         let desired = V.arm.naturalAngle;
         if (target && target.active) {
-            const pivotY = this.y - V.arm.pivotWorldY;
+            const pivotY = this.y + (Number(this._visualGroundOffsetY) || 0) - V.arm.pivotWorldY;
             desired = Math.atan2(target.y - pivotY, target.x - this.x);
         }
         let diff = desired - this.aimAngle;
@@ -2577,6 +2591,7 @@ class DefenseTowerPanel extends BasePanel {
         });
         this.tower = null;
         this.player = null;
+        this._telemetryTimer = null;
     }
 
     buildContent(el) {
@@ -2617,12 +2632,104 @@ class DefenseTowerPanel extends BasePanel {
     onOpen() {
         this.refresh();
         if (this.el) this.el.style.display = 'block';
+        this._startWeaponTelemetry();
     }
 
     onClose() {
+        this._stopWeaponTelemetry();
         if (this.el) this.el.style.display = 'none';
         this.tower = null;
         this.player = null;
+    }
+
+    _startWeaponTelemetry() {
+        this._stopWeaponTelemetry();
+        this._refreshWeaponTelemetry();
+        if (typeof window === 'undefined') return;
+        this._telemetryTimer = window.setInterval(() => this._refreshWeaponTelemetry(), 100);
+    }
+
+    _stopWeaponTelemetry() {
+        if (this._telemetryTimer == null) return;
+        if (typeof window !== 'undefined') window.clearInterval(this._telemetryTimer);
+        this._telemetryTimer = null;
+    }
+
+    /**
+     * 只刷新武器运行遥测，不重建芯片/模块按钮，避免面板打开时的高频 DOM 抖动。
+     * 弹药、换弹和过热均只读取 DefenseTower 已有运行状态，不另建第二套规则。
+     */
+    _refreshWeaponTelemetry() {
+        const t = this.tower;
+        const box = this.el && this.el.querySelector('#dtWeaponTelemetry');
+        if (!t || !t.weaponItem || !box) return;
+
+        const item = t.weaponItem;
+        const ammo = t._ammoState && t._ammoState.weapon;
+        const maxAmmo = Number(ammo && ammo.max);
+        const infiniteAmmo = ammo && !Number.isFinite(maxAmmo);
+        const currentAmmo = ammo ? Math.max(0, Math.floor(Number(ammo.current) || 0)) : null;
+        const ammoText = !ammo ? '—' : (infiniteAmmo ? '∞' : `${currentAmmo} / ${Math.max(0, Math.floor(maxAmmo))}`);
+        const lowAmmo = ammo && !infiniteAmmo && maxAmmo > 0 && currentAmmo <= maxAmmo * 0.2;
+
+        const attack = t._attackKey && t.attacks ? t.attacks[t._attackKey] : null;
+        const interval = Math.max(0, Number(attack && (attack.maxCooldown || attack.config?.cooldown))
+            || Number(item.attack && item.attack.attackInterval) || 0);
+        const rpm = interval > 0 ? Math.round(60000 / interval) : 0;
+        const range = Math.max(0, Math.round(Number(t.range) || 0));
+
+        const reloading = !!(ammo && ammo.reloading);
+        const reloadDuration = Math.max(1, Number(ammo && (ammo.reloadDuration || ammo.reloadTime)) || 1);
+        const reloadRemaining = Math.max(0, Number(ammo && ammo.reloadTimer) || 0);
+        const reloadProgress = reloading
+            ? Math.max(0, Math.min(1, 1 - reloadRemaining / reloadDuration))
+            : 0;
+        const heatMax = Math.max(0.001, Number(t._overheatMax) || 1);
+        const heatProgress = Math.max(0, Math.min(1, (Number(t._overheatValue) || 0) / heatMax));
+        const overheated = !!t._overheatOverheated;
+        const showHeat = overheated || !!t._overheatActive || t._overheatWeaponType === item.weaponType;
+        const stateText = reloading ? '换弹中' : (overheated ? '过热冷却' : '自动索敌');
+        const stateColor = reloading ? '#8ad0ff' : (overheated ? '#ff8a66' : '#7fe0c8');
+        const ammoColor = lowAmmo ? '#ff8a66' : '#e8ddc0';
+
+        const html = `
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:9px;">
+                <div style="background:rgba(255,255,255,0.035);border:1px solid #3a3528;border-radius:6px;padding:6px;text-align:center;">
+                    <div style="font-size:10px;color:#8f846e;">弹药</div>
+                    <div style="font-size:14px;font-weight:700;color:${ammoColor};">${ammoText}</div>
+                </div>
+                <div style="background:rgba(255,255,255,0.035);border:1px solid #3a3528;border-radius:6px;padding:6px;text-align:center;">
+                    <div style="font-size:10px;color:#8f846e;">理论射速</div>
+                    <div style="font-size:14px;font-weight:700;color:#e8ddc0;">${rpm > 0 ? `${rpm} RPM` : '—'}</div>
+                </div>
+                <div style="background:rgba(255,255,255,0.035);border:1px solid #3a3528;border-radius:6px;padding:6px;text-align:center;">
+                    <div style="font-size:10px;color:#8f846e;">射程</div>
+                    <div style="font-size:14px;font-weight:700;color:#e8ddc0;">${range || '—'}</div>
+                </div>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:7px;font-size:11px;">
+                <span style="color:#8f846e;">运行状态</span>
+                <span style="color:${stateColor};font-weight:700;">${stateText}</span>
+            </div>
+            ${reloading ? `
+                <div style="display:flex;justify-content:space-between;margin-top:5px;font-size:10px;color:#7899a8;">
+                    <span>${ammo.singleReloadMode ? '逐发装填' : '整匣换弹'}</span>
+                    <span>${Math.ceil(reloadRemaining / 100) / 10}s</span>
+                </div>
+                <div style="height:6px;background:#20262a;border:1px solid #3f5e6b;border-radius:3px;overflow:hidden;margin-top:3px;">
+                    <div style="width:${Math.round(reloadProgress * 100)}%;height:100%;background:#62b7df;"></div>
+                </div>` : ''}
+            ${showHeat ? `
+                <div style="display:flex;justify-content:space-between;margin-top:5px;font-size:10px;color:#a88772;">
+                    <span>枪管热量</span><span>${Math.round(heatProgress * 100)}%</span>
+                </div>
+                <div style="height:6px;background:#2a211d;border:1px solid #6b4938;border-radius:3px;overflow:hidden;margin-top:3px;">
+                    <div style="width:${Math.round(heatProgress * 100)}%;height:100%;background:${overheated ? '#ff654f' : '#d68a45'};"></div>
+                </div>` : ''}`;
+
+        if (box.dataset.telemetryHtml === html) return;
+        box.innerHTML = html;
+        box.dataset.telemetryHtml = html;
     }
 
     /**
@@ -2746,8 +2853,10 @@ class DefenseTowerPanel extends BasePanel {
                         </div>
                     </div>
                     <button id="dtUnequip" style="flex-shrink:0;background:#5a3028;color:#ffd7d0;border:1px solid #8a4a3a;border-radius:6px;padding:4px 10px;cursor:pointer;">卸下</button>
-                </div>`;
+                </div>
+                <div id="dtWeaponTelemetry" aria-live="polite"></div>`;
             slot.querySelector('#dtUnequip').addEventListener('click', () => this._unequip(t, player));
+            this._refreshWeaponTelemetry();
         } else {
             slot.innerHTML = '<div style="color:#8a8a8a;font-size:13px;">未装备武器 —— 从下方列表选择一件远程武器（手枪除外）</div>';
         }

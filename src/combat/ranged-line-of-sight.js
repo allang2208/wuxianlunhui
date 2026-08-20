@@ -1,8 +1,10 @@
 import { WallSystem } from '../world/wall-system.js';
 import {
+    canUseWallTopModelException,
     projectileSourceZ,
     projectileTargetZ,
     projectileWallContext,
+    wallHitSupportsTarget,
 } from './elevated-ranged.js';
 
 function surfaceIdentityToken(entity) {
@@ -36,6 +38,20 @@ export function hasRangedLineOfSight(source, target, radius = 8, ignore = null) 
         || target._surfaceKind === 'stairs' || target._surfaceKind === 'wall_walk'
         || (Number(source.z) || 0) > 0 || (Number(target.z) || 0) > 0;
     if (elevated && typeof WallSystem.projectileBlocked === 'function') {
+        const context = projectileWallContext(source, ignore);
+        if (typeof WallSystem.projectileWallHit === 'function') {
+            const wallHit = WallSystem.projectileWallHit(
+                source.x,
+                source.y,
+                projectileSourceZ(source),
+                targetX,
+                targetY,
+                projectileTargetZ(target),
+                context
+            );
+            return !wallHit || (canUseWallTopModelException(source)
+                && wallHitSupportsTarget(wallHit, target));
+        }
         return !WallSystem.projectileBlocked(
             source.x,
             source.y,
@@ -43,7 +59,7 @@ export function hasRangedLineOfSight(source, target, radius = 8, ignore = null) 
             targetX,
             targetY,
             projectileTargetZ(target),
-            projectileWallContext(source, ignore)
+            context
         );
     }
     if (typeof WallSystem.resolve === 'function') {

@@ -29,6 +29,9 @@ export function isHamsterTarget(entity) {
         || entity._isHamsterMilitia
         || entity._isHamsterScout
         || entity._isHamsterMusketeer
+        || entity._isHamsterPriest
+        || entity._isHamsterKnight
+        || entity._isHamsterLightCavalry
     ));
 }
 
@@ -36,7 +39,7 @@ export function classifyDefenseTarget(entity) {
     if (!entity) return DEFENSE_TARGET_TYPE.INVALID;
     if (isHamsterTarget(entity) && entity._enemyTargetable) return DEFENSE_TARGET_TYPE.HAMSTER;
     if (entity._isPartyCompanion && entity._enemyTargetable) return DEFENSE_TARGET_TYPE.PARTY;
-    if (entity._isDefenseBase) return DEFENSE_TARGET_TYPE.BASE;
+    if (entity._isDefenseBase || entity._isWorldPortalCore) return DEFENSE_TARGET_TYPE.BASE;
     if (entity._isDefenseStructure) return DEFENSE_TARGET_TYPE.BUILDING;
     if (entity._faction === 'player') return DEFENSE_TARGET_TYPE.PLAYER;
     return DEFENSE_TARGET_TYPE.INVALID;

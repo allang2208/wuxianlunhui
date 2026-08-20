@@ -21,12 +21,13 @@
     }
   },
   "cavalry_charge": {
-    "unitKinds": ["knight"],
+    "unitKinds": ["knight", "light_cavalry"],
     "moduleUpgrade": { "gold": 1000, "energy": 500 },
     "modules": {
       "attackSpd": { "name": "攻击加速", "icon": "⚡", "effect": "attackIntervalMult", "per": -0.025, "maxLevel": 10, "desc": "攻击间隔 -{pct}%" },
       "damage": { "name": "攻击强化", "icon": "⚔️", "effect": "attackDamageMult", "per": 0.025, "maxLevel": 10, "desc": "每次攻击伤害 +{pct}%" },
-      "chargeDamage": { "name": "冲锋强化", "icon": "🛡️", "effect": "chargeDamageMult", "per": 0.15, "maxLevel": 10, "desc": "冲锋伤害 +{pct}%" },
+      "chargeDamage": { "name": "冲锋强化", "icon": "🛡️", "effect": "chargeDamageMult", "per": 0.15, "maxLevel": 10, "unitKinds": ["knight"], "desc": "冲锋伤害 +{pct}%" },
+      "moveSpd": { "name": "轻骑机动", "icon": "🐎", "effect": "moveSpeedMult", "per": 0.015, "maxLevel": 10, "unitKinds": ["light_cavalry"], "desc": "移动速度 +{pct}%" },
       "hp": { "name": "生命强化", "icon": "❤️", "effect": "hpMult", "per": 0.05, "maxLevel": 10, "desc": "单位生命 +{pct}%" }
     }
   },
@@ -53,11 +54,11 @@
   "miner_economy": {
     "moduleUpgrade": { "gold": 1000, "energy": 500 },
     "modules": {
-      "mining": { "name": "采矿效率", "icon": "⛏️", "effect": "miningMult", "per": 0.15, "maxLevel": 10, "desc": "采矿攻击力 +{pct}%" },
-      "attackSpd": { "name": "攻击加速", "icon": "⚡", "effect": "attackIntervalMult", "per": -0.025, "maxLevel": 10, "desc": "攻击间隔 -{pct}%" },
-      "damage": { "name": "攻击强化", "icon": "⚔️", "effect": "attackDamageMult", "per": 0.025, "maxLevel": 10, "desc": "每次攻击伤害 +{pct}%" },
+      "mining": { "name": "采矿效率", "icon": "⛏️", "effect": "miningMult", "per": 0.06, "maxLevel": 10, "energyByLevel": [250, 300, 350, 400, 450, 500, 575, 650, 725, 800], "desc": "采矿攻击力 +{pct}%" },
+      "attackSpd": { "name": "攻击加速", "icon": "⚡", "effect": "attackIntervalMult", "per": -0.01, "maxLevel": 10, "desc": "攻击间隔 -{pct}%" },
+      "damage": { "name": "攻击强化", "icon": "⚔️", "effect": "attackDamageMult", "per": 0.015, "maxLevel": 10, "desc": "每次攻击伤害 +{pct}%" },
       "moveSpd": { "name": "机动强化", "icon": "👟", "effect": "moveSpeedMult", "per": 0.015, "maxLevel": 10, "desc": "移动速度 +{pct}%" },
-      "count": { "name": "仓鼠增援", "icon": "🐹", "effect": "count", "mode": "add", "per": 1, "maxLevel": 5, "onUpgrade": "spawnMiner", "desc": "仓鼠矿工数量 +{value}" }
+      "count": { "name": "仓鼠增援", "icon": "🐹", "effect": "count", "mode": "add", "per": 1, "maxLevel": 2, "energyByLevel": [5000, 8000], "onUpgrade": "spawnMiner", "desc": "仓鼠矿工数量 +{value}" }
     }
   },
   "blacksmith_special": {

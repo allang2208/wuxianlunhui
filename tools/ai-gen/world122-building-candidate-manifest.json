@@ -1,0 +1,111 @@
+{
+  "outputRoot": "Y:/工作/无尽轮回/scratch/world122_building_candidates_20260820",
+  "host": "192.168.3.142",
+  "model": "flux2-dev-depth",
+  "steps": 48,
+  "strength": 0.84,
+  "variants": 2,
+  "assets": [
+    {
+      "id": "church",
+      "label": "教堂",
+      "sourceSpec": "tools/ai-gen/_blockout_specs/church_body.json",
+      "primaryRequest": "a compact Gothic church body, nave, a restrained bell tower, small crossing dome, pointed slate roofs, arched stained-glass windows, weathered pale limestone and subtle dark bronze trim"
+    },
+    {
+      "id": "research_institute",
+      "label": "研究院",
+      "primitives": [
+        { "type": "box", "size": [250, 165, 178], "pos": [0, 0, 89], "rot": [0, 0, 44.8] },
+        { "type": "prism", "size": [278, 193, 88], "pos": [0, 0, 222], "rot": [0, 0, 44.8] },
+        { "type": "box", "size": [82, 82, 175], "pos": [38, 24, 252], "rot": [0, 0, 44.8] },
+        { "type": "prism", "size": [103, 103, 62], "pos": [38, 24, 370], "rot": [0, 0, 44.8] }
+      ],
+      "primaryRequest": "a compact medieval research institute, pale cold-gray ashlar stone academy with the same ashlar wall material continuing uninterrupted all the way to the ground line, an integrated square observatory tower, muted blue-slate gable roofs, narrow warm-lit mullioned windows, one small copper astrolabe dial and brass lens housing built into the tower walls; no pipes, tubes or plumbing; the bottom edge must be plain ashlar wall, never white marble, never a plinth, never a foundation band"
+    },
+    {
+      "id": "blacksmith",
+      "label": "铁匠铺",
+      "primitives": [
+        { "type": "box", "size": [240, 158, 112], "pos": [0, 0, 56], "rot": [0, 0, 44.8] },
+        { "type": "prism", "size": [270, 184, 82], "pos": [0, 0, 153], "rot": [0, 0, 44.8] },
+        { "type": "box", "size": [42, 42, 195], "pos": [72, 36, 98], "rot": [0, 0, 44.8] },
+        { "type": "cylinder", "radius": 31, "depth": 32, "pos": [72, 36, 211], "rot": [0, 0, 44.8] }
+      ],
+      "primaryRequest": "a compact medieval blacksmith workshop, soot-dark stone lower walls, weathered heavy timber frame, muted brick-and-slate roof, one integrated forge chimney, restrained warm forge glow inside an arched doorway, dark iron braces and a small built-in anvil sign"
+    },
+    {
+      "id": "shooting_range",
+      "label": "靶场",
+      "primitives": [
+        { "type": "box", "size": [280, 150, 82], "pos": [0, 0, 41], "rot": [0, 0, 44.8] },
+        { "type": "prism", "size": [306, 176, 64], "pos": [0, 0, 114], "rot": [0, 0, 44.8] },
+        { "type": "box", "size": [38, 38, 145], "pos": [-92, -42, 73], "rot": [0, 0, 44.8] },
+        { "type": "box", "size": [38, 38, 145], "pos": [86, 42, 73], "rot": [0, 0, 44.8] }
+      ],
+      "primaryRequest": "a detailed compact military shooting range building, dark timber and charcoal stone, covered long firing hall with integrated narrow target-window bays, muted red-brown tiled roof, small built-in archery and musket training details, no detached targets or loose equipment; the charcoal lower wall must continue to the ground edge with no white or pale stone skirt"
+    },
+    {
+      "id": "cavalry_school",
+      "label": "骑兵学校",
+      "primitives": [
+        { "type": "box", "size": [270, 172, 106], "pos": [0, 0, 53], "rot": [0, 0, 44.8] },
+        { "type": "prism", "size": [298, 198, 92], "pos": [0, 0, 152], "rot": [0, 0, 44.8] },
+        { "type": "box", "size": [62, 62, 184], "pos": [-82, -28, 92], "rot": [0, 0, 44.8] },
+        { "type": "cone", "radius1": 48, "radius2": 0, "depth": 84, "pos": [-82, -28, 226], "rot": [0, 0, 44.8] }
+      ],
+      "primaryRequest": "a compact hamster cavalry school in the same settlement style, stone-and-timber riding academy, wide stable doors, muted slate roof, one small training tower, subtle cat-themed carved crest and neatly stacked integrated cat-food sacks inside the doorway, no animals, no detached props"
+    },
+    {
+      "id": "mine",
+      "label": "矿工营地",
+      "primitives": [
+        { "type": "box", "size": [235, 160, 94], "pos": [0, 0, 47], "rot": [0, 0, 44.8] },
+        { "type": "prism", "size": [262, 187, 72], "pos": [0, 0, 130], "rot": [0, 0, 44.8] },
+        { "type": "box", "size": [120, 62, 92], "pos": [-42, -58, 46], "rot": [0, 0, 44.8] },
+        { "type": "box", "size": [31, 31, 160], "pos": [76, 35, 80], "rot": [0, 0, 44.8] }
+      ],
+      "primaryRequest": "a compact mining camp and mine entrance, dark gray stone-cut portal integrated into a low weathered timber shed, thick timber beams, muted rusted iron braces, a small integrated ore-lift hoist and warm lantern glow deep inside the entry, layered slate-and-timber roof; the timber and dark portal materials must continue to the ground edge with no pale stone foundation band"
+    },
+    {
+      "id": "warehouse",
+      "label": "仓库",
+      "primitives": [
+        { "type": "box", "size": [285, 176, 132], "pos": [0, 0, 66], "rot": [0, 0, 44.8] },
+        { "type": "prism", "size": [315, 205, 98], "pos": [0, 0, 181], "rot": [0, 0, 44.8] },
+        { "type": "box", "size": [48, 48, 190], "pos": [-96, -45, 95], "rot": [0, 0, 44.8] },
+        { "type": "box", "size": [48, 48, 170], "pos": [88, 38, 85], "rot": [0, 0, 44.8] }
+      ],
+      "primaryRequest": "a large compact medieval settlement warehouse, pale weathered stone lower walls, heavy dark timber frame, broad reinforced double storage doors, a muted gray-blue tiled roof, two integrated square granary vents and small dark metal storage braces"
+    },
+    {
+      "id": "barracks",
+      "label": "仓鼠兵营",
+      "sourceSpec": "tools/ai-gen/_blockout_specs/hamster_barracks.json",
+      "primaryRequest": "a compact hamster military barracks, charcoal-black brick walls, muted red tile gable roof, two integrated short corner towers, narrow warm-lit arched windows, restrained iron military trim and crisp individual roof tiles"
+    },
+    {
+      "id": "thatch_hut",
+      "label": "仓鼠草屋",
+      "sourceSpec": "tools/ai-gen/_blockout_specs/thatch_hut.json",
+      "primaryRequest": "a compact hamster thatched cottage, weathered pale stone and dark timber walls, thick muted straw roof, warm small windows and one integrated chimney, detailed but sober low-saturation settlement materials; the plaster and timber walls must reach the ground edge with no marble or white stone foundation skirt"
+    },
+    {
+      "id": "portal",
+      "label": "传送门",
+      "primitives": [
+        { "type": "box", "size": [220, 150, 156], "pos": [0, 0, 78], "rot": [0, 0, 44.8] },
+        { "type": "prism", "size": [248, 176, 80], "pos": [0, 0, 196], "rot": [0, 0, 44.8] },
+        { "type": "box", "size": [62, 62, 246], "pos": [-66, -21, 123], "rot": [0, 0, 44.8] },
+        { "type": "cone", "radius1": 46, "radius2": 0, "depth": 98, "pos": [-66, -21, 295], "rot": [0, 0, 44.8] }
+      ],
+      "primaryRequest": "a compact world portal building, pale ancient stone gatehouse with an integrated arched blue energy portal, dark slate roofs, restrained bronze runic trim, one small tower, subtle cyan internal glow only inside the arch"
+    },
+    {
+      "id": "defense_base",
+      "label": "基地核心",
+      "sourceSpec": "tools/ai-gen/_blockout_specs/defense_base.json",
+      "primaryRequest": "a compact fortified command base body, pale carved stone central keep, dark bronze braces, restrained blue energy signal details, layered square roofline, sober military silhouette, no detached statue or separate platform; the carved-stone body must continue to the ground edge with no separate white marble slab, floor, plinth, or pedestal"
+    }
+  ]
+}

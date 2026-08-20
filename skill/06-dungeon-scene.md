@@ -559,47 +559,78 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
   平底建筑即 V 形底座本身，球面/手臂/挑檐高于 iso 线时影子落回地面）；
   实体真源分流——建筑用剪影接地实体，散布障碍物用 geo foot 手调碰撞四边形
   （球体/异形不适用平底截断法）；
-  归一参考取 **实体自身阴影高度 `data.height`**（与 profile.length 同源，
-  列高统计会被矮件稀释）；塔尖拉长按 maxOffset 钳制。剪影离线真源 = manifest `shadowSilhouette`
+  归一参考取 **剪影实测代表高度 `measuredHeight`**（iso 地面线以上内容高 75 分位，
+  `data.height` 在结构 ensure 里被它覆盖——footprint 半径估算会让墙/楼梯这类
+  高薄件影长低估一半）；塔尖拉长按 maxOffset 钳制。
+  **抬升结构（楼梯/射击台）阴影锚点 = footprint 四边形前顶点**（地面真源），
+  禁用含 z 抬升的精灵屏幕位置（锚在那里影子浮空）。剪影离线真源 = manifest `shadowSilhouette`
   逐列 [texX, topY, bottomY]；无剪影数据回退纯凸包。每实体一个 Graphics 逐帧直画 +
-  **共享结构阴影层**（2026-08-19 十三轮）：单个 Graphics、深度 −998（地板块 −1000 之上、道路 −995 之下，阴影不压道路），每帧汇入全部结构阴影多边形——核心两环 alpha 1 实心 + 外圈三环（×1.045/1.07/1.10，alpha 0.30/0.18/0.10）淡出，整层乘统一透明度。**任何相邻阴影交叠与单影同深**（层内 alpha 1 恒等，杜绝重叠加深；禁止回到逐实体 Sprite 各自叠加）；
+  **共享结构阴影层**（2026-08-19 十三轮）：单个 Graphics、深度 **−994**（地板块 −1000 与道路 −995 之上——道路即地面，阴影压暗路面如压裸地；曾放 −998 被道路完全遮挡，禁止放回道路之下），每帧汇入全部结构阴影多边形——**重叠/相贴的 job 先几何并集再画**（`_mergeShadowJobsIntoClusters` 顶点互含/边相交聚簇 + `getUnionOfPolygons` 太阳帧包络合并：一次填充统一强度、只沿外轮廓单次 lineStyle(6,0.32) 描边软边，簇内无接缝；互不相交保持独立，禁止桥接远处建筑），整层乘统一透明度；树木/散布障碍物的静态胶囊影也并入此层（旋转椭圆 16 边形作为普通 job，跨系统 Sprite 叠加会变深近两倍，精灵仅留作注册键）——移动单位仍用独立胶囊 Sprite。**任何相邻阴影交叠与单影同深**（几何并集从结构上保证，不依赖混合幂等；禁止回到逐实体 Sprite 各自叠加；质心放大淡出环已废弃）；
   深度 = 本体 − 0.1。**逐帧纯几何、无烘焙无分桶无缓存——连续不跳**；
   任何"加缓存/分桶"的优化都已证明引入错位/跳动/分割，禁止回潮
   （形变烘焙、旋转矩形、固定画布、contactQuad、垂直剪切五条弯路留档）。
 - **顶点真源**：`isoFootprintVertices(entity)`（`_pixelFootprintLocal`
   像素拟合优先，与放置/建造幽灵/遮挡/范围显示同一组顶点）；散布障碍物
   视觉底座矩形四角（foot × visualWidthMul/DepthMul，纵深 ×0.5 压扁）。
-- **深浅与夜影**：`opacity = 0.385 × clamp((daylight−0.1)/0.2)`（基准 0.55 −30%，
-  2026-08-19 用户口径）——daylight≥0.3 白昼全强度，≤0.1（约 18:35~05:25）
-  归零且 Sprite 隐藏；个体仍可 `shadow.opacity` 覆盖。
+- **深浅与夜影**：`opacity = 0.1925 × clamp((daylight−0.1)/0.2)`（基准 0.55
+  →−30%→再−50%，2026-08-19 用户口径）——daylight≥0.3 白昼全强度，
+  ≤0.1（约 18:35~05:25）归零且 Sprite 隐藏；个体仍可 `shadow.opacity` 覆盖。
   改深浅调 `STATIC/DYNAMIC_SHADOW_OPACITY`。
 - **延长段上限**：建筑 `maxOffset = max(43, height×0.5)`；障碍物各自
   `shadow.maxOffset`（42~72）；length 随仰角曲线（正午短、晨昏长）。
-- **胶囊接触影（独立小系统）**：树木、桶状仙人掌（contact 型）、墙件、
-  动态单位脚底影——柔边椭圆随太阳偏移拉长，透明度同一公式。
+- **胶囊接触影（单位唯一做法，2026-08-19 定稿）**：玩家/怪物/友军/NPC 脚底
+  柔边椭圆——长轴沿太阳方向拉伸、宽深随 groundRadius（唯一真源）、随仰角收放、
+  透明度与建筑同口径（0.385×夜影衰减）、深度跟随本体仲裁后 −0.1（墙体遮挡继承）。
+  单位不做逐列剪影（动画逐帧换形不适用）；帧剪影链（unit_projection）已退役，
+  禁止回潮。树木/桶状仙人掌（contact 型）/墙件同此胶囊。
 - **投影图派生资产仍保留**（silhouette/projection/height/normal 供后续局部光效）；
   生成必须内容紧身裁剪，禁止 PROJECTION_BOTTOM_BANDS 带状采样。
 - **flipX 一次性镜像**（2026-08-19）：镜像实例在 `_resolveShadowSilhouette` 先把
   列/前顶点按贴图中心镜像（mirrorX=texW−x），下游全部用镜像后几何、flipSign 归一；
   禁止下游再补镜像（错位根因）。
+- **门/斜墙类走 `groundLine` 面线映射**（2026-08-19）：它们的地面接触是对角面线
+  不是 V 形底座——`_ensureGateSunShadow` 专用注册（body=自身 iso footprint 薄矩形、
+  剪影列沿实体 `_faceLine` 世界面线映射、`_facingLeft` 列镜像）；无 spriteCfg 的
+  实体（占位圆）不能走通用 ensure。
+- **楼梯整条一影（2026-08-19 定稿）**：楼梯由多块主体拼接（segmentSprites 逐段
+  z 抬升）——实体级单影只盖第 0 段（碎裂根因），逐段出影有分块感，而贴图是
+  对角斜墙、剪影展开会偏离全局影向 40°+（七扭八斜根因）。最终方案：全段 1×1
+  footprint 顶点合并成梯轴长带，单个凸包沿全局影向统一挤出（`_silCache` 置 null
+  走纯凸包）；高度取各段剪影实测最大 measuredHeight（影长修复不回退）。
+  `_ensureStairSunShadows` 专用注册；`_structureSunShadows` 值对楼梯回到单值。
+- **掩体墙只用 footprint 凸包（2026-08-19 用户口径）**：`_isDefenseCover`（方块墙/
+  各档护墙）在 ensure 里 `_silCache` 置 null——多边形回退 footprint 凸包
+  （方块墙 1×1 菱形、护墙面线薄条），剪影只取实测高度。墙贴图内容在大画布内
+  偏移大，剪影实体四边形会比 footprint 宽近一倍且沿墙斜向歪轴。
 - **墙壁/门/楼梯**： obstacle_block、wall_stair_*、cover_gate_A~D 已入光照清单
   （spritesheet 走 FRAME_CROPS 帧 0 裁剪）；结构阴影过滤器不再排除掩体，
   能源矿（发光体）仍排除。
+- **性能口径（2026-08-19 审计整改）**：多边形按 epsilon 脏检查缓存复用
+  （0.11°/0.5px/顶点签名），共享层干净帧跳过重画；场景重启复位层脏检查状态。
+- **死链纪律**：派生 projection/silhouette PNG 运行时不加载（剪影数据走 manifest
+  shadowSilhouette 列）；manifest 只留 alphaBBox/shadowSilhouette/路径字段
+  （anchorMode 为贴图回归测试契约占位保留，别删）。
 - **实机探针**：`tools/cdp-sun-shadow-verify.mjs`（三时相冻结+inspect+截图）、
   `tools/cdp-obstacle-shadow-debug.mjs`、`tools/cdp-sun-shadow-audit.mjs`。
   配置太阳必须走 `window.EnvironmentLightingSystem`（main.js 挂载）：HMR 后
   裸路径 import 是第二实例，configure 不到游戏真正读的太阳。
 - **重建派生图的坑**：先关无头 Edge 再跑 build-lighting-maps.py——页面把贴图
   内存映射，PIL save 会随机报 Errno 22（Windows 文件映射占用）。
+- **保鲜护栏（2026-08-19 贴合审计）**：契约测试逐资产对照当前贴图校验
+  alphaBBox/剪影列/frontY（±2px）——换/改贴图没跑 build-lighting-maps.py 直接
+  红测，报错信息写明哪个键失配。失配症状就是"阴影整套错位不贴边"
+  （church/research_institute 曾因此错位：旧条目 1239/1126 宽、新图 1039/1051）。
 
 #### 建筑贴图替换后的阴影工作流
 
 1. **保持贴图键不变时**：替换 `assets/terrain/<key>.png` 后运行
    `python tools/ai-gen/build-lighting-maps.py`，重新生成 `<key>_projection/height/normal/silhouette`
    与 manifest `base` 实测（先关无头 Edge，否则 PIL save 可能 Errno 22）。
-2. **新贴图键/新建筑时**：把 key 加入 `build-lighting-maps.py` 的 `ASSETS`，运行脚本；再在
-   `BootScene` 预加载 `<key>_projection`（障碍物/树木与建筑轮廓条带层都按
-   `texture.key + "_projection"` 取图，缺图时建筑只剩凸包接地层）。
+2. **新贴图键/新建筑时**：把 key 加入 `build-lighting-maps.py` 的 `ASSETS` 并运行脚本即可。
+   运行时只消费 manifest 的 `shadowSilhouette`/`alphaBBox`（projection/silhouette/height/normal
+   PNG 仅磁盘留档，不再预加载）；散布障碍物的 hull+剪影门也直接看 manifest
+   有没有剪影列（2026-08-19 唯一性审计：曾用 `textures.exists(key+'_projection')`
+   当门，预加载清理后该门永假、仙人掌/雪松静默退化成椭圆——已改 manifest 门复活）。
    建筑阴影根部自动贴 footprint 四边形，无需任何锚点配置。
 3. 检查 `data/environment-lighting-assets.json`：`base.centerX/width` 已自动生成；
    `shadow.anchorMode/anchorInsetX/Y` 仅对沿用预投影贴图的散布障碍物有意义，建筑不需要。
@@ -607,8 +638,8 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
 4. 进入世界-122，至少在正午与晨昏观察（或用 `tools/cdp-sun-shadow-verify.mjs` 冻结三时相）：
    影子根部贴建筑底座四边形、长度不过门/墙、建筑本体不被影子盖住；
    换贴图后必须重启 Vite，确保新增静态资源被加载。
-5. 提交原贴图、`assets/terrain/lighting/` 派生图、manifest、BootScene 预加载与配置改动；
-   不得只提交原图或只提交 projection。
+5. 提交原贴图、`assets/terrain/lighting/` 派生图与 manifest 改动；不得只提交原图。
+   换贴图后必须重启 Vite，确保新增静态资源被加载。
 
 #### 游戏内时间系统（2026-08-18）
 
@@ -625,6 +656,11 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
   SVG `<g>` 单针、`refreshGameTime` 内 `rotate(phase×360−90, 24, 24)` 由 `getSun().phase`
   驱动——上=正午、右=日落、下=午夜、左=日出（针=太阳方位）；
   不做精灵图帧（帧数爆炸跳变），刷新与暂停/读档同链，无独立秒表。
+- **地牢冻结与入侵进度（2026-08-20）**：`GameScene.update` 只在游戏运行、未暂停且
+  `scene7 + DungeonMapSystem.active` 不成立时推进 `EnvironmentLightingSystem` 和
+  `WorldInvasionSystem`。地牢成功/失败/安全撤离/主动放弃必须在 `shutdown` 前统一调用
+  `_recordRunResult`，每局只登记一次；F→A 进度比例只读 `world-system.json`，禁止在退出按钮
+  分支另写常量。成功结果同时是世界位面解锁条件，失败与放弃只推进入侵、不解锁世界。
 
 #### 出图提示词要点
 - 写"**底边与水平线呈 30 度夹角**"（对齐地板线）；不要再写 26.5 度/2:1
@@ -884,3 +920,4 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
 - `node scripts/test-collider.mjs` / `test-craft-sync.mjs` ✅
 
 ---
+

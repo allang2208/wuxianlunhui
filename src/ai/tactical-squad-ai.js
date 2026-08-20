@@ -2,6 +2,7 @@ import { WallSystem } from '../world/wall-system.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { loadImage } from '../utils/image-loader.js';
+import { hasRangedLineOfSight } from '../combat/ranged-line-of-sight.js';
 
 /**
  * 战术小队AI系统
@@ -71,15 +72,8 @@ export class TacticalSquadAI {
         for (const m of this.members) {
             if (!m.active || !m.target) continue;
             const elevated = (Number(m.z) || 0) > 0 || (Number(player.z) || 0) > 0;
-            const hasLOS = !WallSystem || (elevated && WallSystem.projectileBlocked
-                ? !WallSystem.projectileBlocked(
-                    m.x,
-                    m.y,
-                    (Number(m.z) || 0) + (m.collider?.height || 40) * 0.58,
-                    player.x,
-                    player.y,
-                    (Number(player.z) || 0) + (player.collider?.height || 40) * 0.5
-                )
+            const hasLOS = !WallSystem || (elevated
+                ? hasRangedLineOfSight(m, player)
                 : !WallSystem.blocked(m.x, m.y, player.x, player.y));
             if (hasLOS) {
                 someoneHasLOS = true;

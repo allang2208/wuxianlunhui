@@ -129,7 +129,9 @@ export class Companion {
         // 世界-122 友军同样可承接 DamageableEntity 的公共增益语义（如牧师的激励）。
         this.statusEffects = [];
         this._inspireMul = null;
+        this._usesModifierInspire = true;
         this.calculateCombatStats(); // 初始化战斗属性（matk 等，含无装备基础魔攻）
+        this._formulaBaseAtk = Math.max(1, Number(this.data.atk) || 1);
         this.updateMaxStats();
         this.data.hp = this.data.maxHp;
         this.data.mp = this.data.maxMp;
@@ -172,37 +174,60 @@ export class Companion {
         }
     }
 
-    /** 与现有怪物激励完全同口径：移速 ×1.33、物理攻击 ×1.5，重复仅刷新时长。 */
+    /**
+     * 友军激励使用临时修饰器，不再直接乘除基础属性/AI配置。
+     * 这样激励期间升级、重算六维或切换装备都不会在结束时被错误除回旧值。
+     */
     applyInspire(duration, opts = {}) {
         const speedMul = opts.speedMul ?? 1.33;
         const atkMul = opts.atkMul ?? 1.5;
         if (!this.hasStatusEffect('inspire')) {
             this._inspireMul = { speedMul, atkMul };
-            if (typeof this.data?.atk === 'number') this.data.atk = Math.max(1, Math.round(this.data.atk * atkMul));
-            if (this.aiConfig?.walkSpeed) this.aiConfig.walkSpeed *= speedMul;
-            if (this.aiConfig?.runSpeed) this.aiConfig.runSpeed *= speedMul;
-            if (this._ai?._attackDamage) this._ai._attackDamage *= atkMul;
-            // 正式队友的 CompanionAI 复制 aiConfig 为 cfg；仓鼠 AI 则共用同一对象，避免重复乘算。
-            if (this._ai?.cfg && this._ai.cfg !== this.aiConfig) {
-                if (this._ai.cfg.walkSpeed) this._ai.cfg.walkSpeed *= speedMul;
-                if (this._ai.cfg.runSpeed) this._ai.cfg.runSpeed *= speedMul;
-            }
         }
         this.addStatusEffect('inspire', duration, { name: '激励', icon: '📣', color: '#ffb347' });
     }
 
     _onInspireEnd() {
-        const mul = this._inspireMul;
-        if (!mul) return;
         this._inspireMul = null;
-        if (typeof this.data?.atk === 'number') this.data.atk = Math.max(1, Math.round(this.data.atk / mul.atkMul));
-        if (this.aiConfig?.walkSpeed) this.aiConfig.walkSpeed /= mul.speedMul;
-        if (this.aiConfig?.runSpeed) this.aiConfig.runSpeed /= mul.speedMul;
-        if (this._ai?._attackDamage) this._ai._attackDamage /= mul.atkMul;
-        if (this._ai?.cfg && this._ai.cfg !== this.aiConfig) {
-            if (this._ai.cfg.walkSpeed) this._ai.cfg.walkSpeed /= mul.speedMul;
-            if (this._ai.cfg.runSpeed) this._ai.cfg.runSpeed /= mul.speedMul;
-        }
+    }
+
+    getMoveSpeedMultiplier() {
+        return Math.max(0, Number(this._inspireMul?.speedMul) || 1);
+    }
+
+    /**
+     * 配置 attackDamage 是该单位初始六维下的基准伤害。
+     * 等级/装备改变物攻后按当前物攻÷初始物攻缩放；激励作为独立临时乘区。
+     * 暴击率与目标暴抗按百分比相减，暴击伤害固定 1.5 倍。
+     */
+    getPhysicalAttackDamagePreview(configuredDamage) {
+        const baseDamage = Math.max(0, Number(configuredDamage) || 0);
+        const currentAtk = Math.max(1, Number(this.data?.atk) || this._formulaBaseAtk || 1);
+        const baseAtk = Math.max(1, Number(this._formulaBaseAtk) || currentAtk);
+        const inspireMul = Math.max(0, Number(this._inspireMul?.atkMul) || 1);
+        return Math.max(1, Math.round(baseDamage * currentAtk / baseAtk * inspireMul));
+    }
+
+    getPhysicalAttackDamage(configuredDamage, target = null) {
+        let damage = this.getPhysicalAttackDamagePreview(configuredDamage);
+        const critRate = Math.max(
+            0,
+            (Number(this.data?.crit) || 0) - (Number(target?.data?.critRes) || 0)
+        );
+        this._lastAttackCrit = Math.random() * 100 < critRate;
+        if (this._lastAttackCrit) damage *= 1.5;
+        return Math.max(1, Math.round(damage));
+    }
+
+    /** 单位死亡后从所属建筑持有列表移除，避免补员数越多历史引用越长。 */
+    detachFromOwner() {
+        const owner = this._barracks || this._hut || null;
+        const list = this._hut ? owner?.miners : owner?.units;
+        if (!Array.isArray(list)) return false;
+        const index = list.indexOf(this);
+        if (index < 0) return false;
+        list.splice(index, 1);
+        return true;
     }
 
     /** 升级曲线与玩家同口径（唯一来源 combat-formulas player.expPerLevel） */
@@ -359,14 +384,14 @@ export class Companion {
                     grantCompanionSkillExp(this, 'shieldDefense', rw.parry || 10);
                 }
             }
-            const dealt = raw * remainingRatio;
+            const dealt = mitigated * remainingRatio;
             d.hp = Math.max(0, d.hp - dealt);
             if (dealt > 0) this.hitFlash = this.hitFlashDuration;
-            return { damage: dealt, parried: true };
+            return { damage: dealt, parried: true, critical };
         }
-        d.hp = Math.max(0, d.hp - raw);
-        if (raw > 0) this.hitFlash = this.hitFlashDuration;
-        return { damage: raw, parried: false };
+        d.hp = Math.max(0, d.hp - mitigated);
+        if (mitigated > 0) this.hitFlash = this.hitFlashDuration;
+        return { damage: mitigated, parried: false, critical };
     }
 
     /** 当前装备的盾（副手优先，ring2 兜底；无盾返回 null） */

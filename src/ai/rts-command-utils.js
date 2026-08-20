@@ -1,7 +1,12 @@
 import { ElevatedNavigationController } from './elevated-navigation-controller.js';
+import { GAME_CONFIG } from '../config/game-config.js';
 
 export const RTS_ROUTE_NODE_DISTANCE = 12;
 export const RTS_ROUTE_Z_TOLERANCE = 12;
+export const RTS_DEFAULT_ACQUIRE_RANGE = Math.max(
+    0,
+    Number(GAME_CONFIG.rtsCommand?.defaultAcquireRange) || 900
+);
 
 function isElevatedSurfaceKind(kind) {
     return kind === 'stairs' || kind === 'wall_walk';
@@ -198,4 +203,19 @@ export function resolveRtsMoveDestination(
 
 export function clearRtsSurfaceRoute(entity) {
     ElevatedNavigationController.complete(entity);
+}
+
+/** 显式移动或攻击完成后的统一终态：停在当前位置，等待下一条指令。 */
+export function finishRtsCommandAtHold(entity) {
+    if (!entity) return;
+    entity._command = { mode: 'hold', point: null, target: null };
+    entity.target = null;
+    entity._tacticalTarget = null;
+    clearRtsSurfaceRoute(entity);
+    entity._pathManager?._clearPath?.();
+    entity.vx = 0;
+    entity.vy = 0;
+    entity.isMoving = false;
+    entity.maxSpeed = 0;
+    entity._animState = 'idle';
 }

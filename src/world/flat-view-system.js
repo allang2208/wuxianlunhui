@@ -587,15 +587,19 @@ export const FlatViewSystem = {
         const available = this.isAvailable();
         if (!this._indicator && (this.enabled || available) && document.body) {
             const indicator = document.createElement('div');
+            const invasionHud = document.getElementById('worldInvasionHud');
             indicator.id = 'flatViewIndicator';
             indicator.setAttribute('aria-live', 'polite');
             Object.assign(indicator.style, {
-                position: 'fixed',
-                top: '12px',
+                position: invasionHud ? 'absolute' : 'fixed',
+                top: invasionHud ? 'calc(100% + 8px)' : '128px',
                 left: '50%',
                 transform: 'translateX(-50%)',
                 zIndex: '10020',
                 pointerEvents: 'none',
+                width: 'max-content',
+                maxWidth: 'calc(100vw - 24px)',
+                textAlign: 'center',
                 padding: '7px 12px',
                 border: '1px solid rgba(159, 198, 223, 0.72)',
                 borderRadius: '4px',
@@ -604,7 +608,7 @@ export const FlatViewSystem = {
                 font: '13px/1.2 "Microsoft YaHei", sans-serif',
                 boxShadow: '0 2px 10px rgba(0,0,0,0.38)',
             });
-            document.body.appendChild(indicator);
+            (invasionHud || document.body).appendChild(indicator);
             this._indicator = indicator;
         }
         if (!this._indicator) return;

@@ -9,7 +9,12 @@
 
 import { MovementSystem } from '../systems/movement-system.js';
 import { WallSystem } from '../world/wall-system.js';
-import { clearRtsSurfaceRoute, resolveRtsMoveDestination } from './rts-command-utils.js';
+import {
+    clearRtsSurfaceRoute,
+    finishRtsCommandAtHold,
+    resolveRtsMoveDestination,
+    RTS_DEFAULT_ACQUIRE_RANGE,
+} from './rts-command-utils.js';
 import { canMeleeReachElevation } from './elevated-navigation-controller.js';
 import { GroundCircle } from '../physics/skill-shapes.js';
 import { surfaceEffectFromEntity } from '../physics/elevation.js';
@@ -29,10 +34,13 @@ import { AimHelper } from '../utils/aim-helper.js';
 import { SoundManager } from '../ui/sound-manager.js';
 import { getMagicRangeMultiplier } from '../utils/magic-craft-helper.js';
 import {
+    applyProjectileWallImpact,
     applyElevatedRangedRange,
+    canUseWallTopModelException,
     projectileSourceZ,
     projectileTargetZ,
     projectileWallContext,
+    wallHitSupportsTarget,
 } from '../combat/elevated-ranged.js';
 import { hasRangedLineOfSight } from '../combat/ranged-line-of-sight.js';
 import {
@@ -58,6 +66,7 @@ export class CompanionAI {
     constructor(companion) {
         this.c = companion;
         this.cfg = { ...DEFAULT_MAGE_AI, ...(companion.aiConfig || {}) };
+        this.cfg.engageRange = RTS_DEFAULT_ACQUIRE_RANGE;
         this._systems = null;
         this._decisionTimer = 0;
         this._castTimer = 0;
@@ -541,7 +550,7 @@ export class CompanionAI {
             this._tickWarrior(entities, player);
             return;
         }
-        const enemies = this._activeEnemies(entities);
+        const enemies = this._activeEnemies(entities, this.cfg.engageRange);
         const { threat, threatDist } = this._meleeThreat(enemies, c);
         const hasEnemy = enemies.length > 0;
         const fleeNow = threatDist !== null && threatDist < (this.cfg.safeDistance || 230);
@@ -732,17 +741,15 @@ export class CompanionAI {
         if (c.target) c.rotation = Math.atan2(c.target.y - c.y, c.target.x - c.x);
     }
 
-    /** 主动攻击：全图搜索最近敌人主动追击/施法；近战威胁贴脸仍保留 flee 保命。
+    /** 主动攻击：统一索敌范围内搜索最近敌人主动追击/施法；近战威胁贴脸仍保留 flee 保命。
      *  forcedTarget 非空 = RTS 右键指定攻击目标（2026-08-16）：只打该目标，
-     *  目标死亡/失活自动清除指令回落跟随。 */
+     *  目标死亡/失活后原地待命。 */
     _cmdAggressive(entities, player, forcedTarget = null) {
         const c = this.c;
-        const enemies = this._activeEnemies(entities);
+        const enemies = this._activeEnemies(entities, this.cfg.engageRange);
         if (forcedTarget) {
             if (!forcedTarget.active || forcedTarget.hp <= 0) {
-                c._command = { mode: 'follow' };
-                c.target = null;
-                this._cmdFollowOnly(player);
+                finishRtsCommandAtHold(c);
                 return;
             }
             const { threat, threatDist } = this._meleeThreat(enemies, c);
@@ -771,7 +778,7 @@ export class CompanionAI {
             return;
         }
         if (!enemies.length) {
-            this._cmdFollowOnly(player);
+            finishRtsCommandAtHold(c);
             return;
         }
         const { threat, threatDist } = this._meleeThreat(enemies, c);
@@ -933,12 +940,7 @@ export class CompanionAI {
             c._tacticalTarget = dest;
             this._setMoveState(this._shouldRun(move.distance, 'follow') ? 'run' : 'walk');
         } else {
-            // 到达：停步站定（不攻击、不跟随）
-            c._tacticalTarget = null;
-            if (c._pathManager) c._pathManager._clearPath();
-            c.vx = 0; c.vy = 0; c.isMoving = false;
-            clearRtsSurfaceRoute(c);
-            this._setMoveState('idle');
+            finishRtsCommandAtHold(c);
         }
     }
 
@@ -1053,7 +1055,7 @@ export class CompanionAI {
         }
         if (bestTeammate) return bestTeammate;
         // 4) 敌方：无友方缺血时打最近敌人
-        return this._pickMeleeTarget(this._activeEnemies(entities), c);
+        return this._pickMeleeTarget(this._activeEnemies(entities, this.cfg.engageRange), c);
     }
 
     /** 圣光施法（解锁/冷却就绪时按目标优先级出手；成功返回 true） */
@@ -1080,7 +1082,7 @@ export class CompanionAI {
     _tickWarrior(entities, player) {
         const c = this.c;
         const cfg = this.cfg;
-        const enemies = this._activeEnemies(entities);
+        const enemies = this._activeEnemies(entities, this.cfg.engageRange);
 
         // 防御中：站定播完整个防御流程（enter → hold → exit），不打断
         if (this._defendPhase) return;
@@ -1240,16 +1242,14 @@ export class CompanionAI {
 
     /** 主动攻击/巡逻：追击最近敌人近战；防御条件满足仍优先举盾。
      *  forcedTarget 非空 = RTS 右键指定攻击目标（2026-08-16）：只打该目标，
-     *  目标死亡/失活自动清除指令回落跟随。 */
+     *  目标死亡/失活后原地待命。 */
     _cmdWarriorAggressive(entities, player, cmd, forcedTarget = null) {
         const c = this.c;
         const cfg = this.cfg;
         let enemies = this._activeEnemies(entities);
         if (forcedTarget) {
             if (!forcedTarget.active || forcedTarget.hp <= 0) {
-                c._command = { mode: 'follow' };
-                c.target = null;
-                this._cmdFollowOnly(player);
+                finishRtsCommandAtHold(c);
                 return;
             }
             if (!enemies.some((e) => e === forcedTarget)) enemies = [forcedTarget];
@@ -1259,7 +1259,7 @@ export class CompanionAI {
         }
         if (!enemies.length) {
             if (cmd) this._patrolWander(cmd);
-            else this._cmdFollowOnly(player);
+            else finishRtsCommandAtHold(c);
             return;
         }
         // 与默认状态机同口径：风车/防御优先级一致（风车优先），冷却中正常近战
@@ -1291,7 +1291,8 @@ export class CompanionAI {
             this._setMoveState(this._shouldRun(d, 'advance') ? 'run' : 'walk');
             return;
         }
-        this._cmdFollowOnly(player);
+        if (cmd) this._patrolWander(cmd);
+        else finishRtsCommandAtHold(c);
     }
 
     /** 巡逻无目标：圈内随机游走（2~4s 换点；到位 idle） */
@@ -1706,7 +1707,7 @@ export class CompanionAI {
         b.y += Math.sin(b.angle) * step;
         b.z = prevZ + (Number(b.vz) || 0) * dtSec;
         b.dist += step;
-        if (WallSystem.projectileBlocked?.(
+        const wallHit = WallSystem.projectileWallHit?.(
             prevX,
             prevY,
             prevZ,
@@ -1714,10 +1715,7 @@ export class CompanionAI {
             b.y,
             b.z,
             b.wallContext || projectileWallContext(c)
-        )) {
-            c._basic = null;
-            return;
-        }
+        );
         // 命中检测：优先发射目标，其次光球路径上经过的所有敌人——
         // 此前只查 b.target，路径上的其他怪物会被光球直接穿过（2026-08-15）
         let hit = null;
@@ -1738,6 +1736,19 @@ export class CompanionAI {
                 if (hits(e)) { hit = e; break; }
             }
         }
+        const modelHitThroughSupport = wallHit
+            && canUseWallTopModelException(c)
+            && hit
+            && wallHitSupportsTarget(wallHit, hit);
+        if (wallHit && !modelHitThroughSupport) {
+            const wallDamage = Math.max(
+                1,
+                Math.floor((c.data.matk || 0) * (this.cfg.basicAttackDamageMul || 1.0))
+            );
+            applyProjectileWallImpact(c, wallHit, wallDamage, 'magic');
+            c._basic = null;
+            return;
+        }
         if (hit) {
             const dmg = Math.max(1, Math.floor((c.data.matk || 0) * (this.cfg.basicAttackDamageMul || 1.0)));
             if (typeof hit.takeDamage === 'function') hit.takeDamage(dmg, c, 'magic', false);
@@ -1751,12 +1762,13 @@ export class CompanionAI {
 
     // ==================== 目标/威胁 ====================
 
-    _activeEnemies(entities) {
+    _activeEnemies(entities, maxRange = Number.POSITIVE_INFINITY) {
         const out = [];
         const iter = entities && entities.values ? entities.values() : entities || [];
         for (const e of iter) {
             if (!e || !e.active || e.hp <= 0) continue;
             if (e._faction !== 'enemy') continue;
+            if (Math.hypot(e.x - this.c.x, e.y - this.c.y) > maxRange) continue;
             out.push(e);
         }
         return out;

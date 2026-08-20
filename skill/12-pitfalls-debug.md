@@ -7,14 +7,14 @@
 
 #### 精灵图加载时报 "has no frame X"
 
-原因：图片高度不是 `frameHeight` 的整数倍，Phaser 只识别了整数行数。
+原因：图片高度不是 `frameHeight` 的整数倍，Phaser 只识别了整数行数。  
 解决：
 1. 短期：在 `load.spritesheet` 中加 `endFrame: N`
 2. 长期：运行 `sprite-normalizer.py` 自动填充到正确尺寸
 
 #### 切换动画时贴图忽大忽小
 
-原因：不同精灵图的内容大小/中心位置不一致，Phaser 按整帧缩放导致内容大小差异。
+原因：不同精灵图的内容大小/中心位置不一致，Phaser 按整帧缩放导致内容大小差异。  
 解决：运行 `sprite-normalizer.py` 统一所有精灵图的内容大小和中心位置。
 
 ---
@@ -195,3 +195,4 @@ if (this._facing === 'left') {
 - `tools/sprite-meta.json` — 脚本输出元数据（记录目标参数）
 
 ---
+

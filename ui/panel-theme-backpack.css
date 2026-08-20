@@ -1,0 +1,1915 @@
+/*
+ * Backpack-derived panel theme
+ *
+ * Visual contract:
+ * - charcoal/black shells like the player system panel
+ * - white primary copy and cool-gray secondary copy
+ * - neutral gray cards and controls
+ * - gameplay colors remain reserved for rarity, danger, success and resources
+ *
+ * This is intentionally an override layer. It unifies presentation without
+ * changing panel DOM, lifecycle, drag/drop or gameplay state.
+ */
+
+:root {
+    --bp-ui-black: #090c0f;
+    --bp-ui-black-soft: #101419;
+    --bp-ui-charcoal: #171d23;
+    --bp-ui-graphite: #232b33;
+    --bp-ui-gray: #34414b;
+    --bp-ui-gray-light: #a6b2bb;
+    --bp-ui-white: #f3f6f8;
+    --bp-ui-white-soft: #d9e0e5;
+    --bp-ui-text: #eef3f5;
+    --bp-ui-text-muted: #9ca8b1;
+    --bp-ui-text-dim: #6b7882;
+    --bp-ui-text-dark: #10161b;
+    --bp-ui-accent: #8ea6b2;
+    --bp-ui-accent-bright: #c4d3da;
+    --bp-ui-accent-muted: rgba(142, 166, 178, 0.18);
+    --bp-ui-line: rgba(181, 205, 217, 0.18);
+    --bp-ui-line-strong: rgba(197, 219, 228, 0.38);
+    --bp-ui-line-accent: rgba(162, 188, 200, 0.56);
+    --bp-ui-shell: linear-gradient(145deg, rgba(24, 30, 36, 0.98), rgba(7, 10, 13, 0.99));
+    --bp-ui-surface: linear-gradient(180deg, rgba(48, 58, 67, 0.97), rgba(27, 33, 40, 0.99));
+    --bp-ui-surface-hover: linear-gradient(180deg, rgba(67, 80, 91, 0.98), rgba(39, 48, 56, 0.99));
+    --bp-ui-surface-light: linear-gradient(180deg, #f5f8fa, #d8e0e5);
+    --bp-ui-control: linear-gradient(180deg, #35414a, #20272e);
+    --bp-ui-shadow: -8px 0 32px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(197, 219, 228, 0.05);
+    --bp-ui-shadow-float: 0 18px 60px rgba(0, 0, 0, 0.76), 0 0 0 1px rgba(197, 219, 228, 0.07);
+    --bp-ui-radius: 10px;
+
+    /* Six-step desktop UI type scale. */
+    --bp-font-ui: "Microsoft YaHei UI", "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", sans-serif;
+    --bp-font-number: Consolas, "SFMono-Regular", monospace;
+    --bp-type-caption: 11px;
+    --bp-type-meta: 12px;
+    --bp-type-body: 14px;
+    --bp-type-subtitle: 16px;
+    --bp-type-title: 20px;
+    --bp-type-display: 24px;
+    --bp-leading-tight: 1.25;
+    --bp-leading-body: 1.55;
+    --bp-tracking-label: 0.04em;
+    --bp-tracking-title: 0.08em;
+}
+
+/* ===== User-facing panel shells ===== */
+:is(
+    .shop-panel,
+    .craft-panel,
+    .enhance-panel,
+    .enchant-panel,
+    .warehouse-panel,
+    .fusion-panel,
+    .expedition-panel,
+    .quest-panel,
+    .world-switch-panel,
+    .game-menu-panel,
+    .recruit-panel,
+    .wall-editor-panel,
+    .defense-tower-panel,
+    .defense-trap-panel,
+    .hamster-hut-panel,
+    .hamster-barracks-panel,
+    .producer-building-panel,
+    .world122-base-panel,
+    .rts-unit-panel,
+    .troop-line-panel,
+    .expedition-rule-panel,
+    .npc-dialogue-box,
+    .reward-card
+) {
+    color: var(--bp-ui-text) !important;
+    background: var(--bp-ui-shell) !important;
+    border-color: var(--bp-ui-line-strong) !important;
+    box-shadow: var(--bp-ui-shadow) !important;
+    backdrop-filter: blur(14px) saturate(0.55);
+}
+
+:is(.game-menu-panel, .recruit-panel, .npc-dialogue-box, .reward-card) {
+    box-shadow: var(--bp-ui-shadow-float) !important;
+}
+
+:is(.panel-overlay, .recruit-overlay, .companion-overlay, .game-menu-overlay, .reward-panel) {
+    background: rgba(0, 0, 0, 0.66);
+    backdrop-filter: blur(3px);
+}
+
+/* ===== Header hierarchy ===== */
+:is(
+    .shop-header,
+    .craft-header,
+    .enhance-header,
+    .enchant-header,
+    .warehouse-header,
+    .fusion-header,
+    .expedition-header,
+    .quest-panel-header,
+    .world-switch-panel .ws-header,
+    .recruit-header,
+    .companion-headbar
+) {
+    min-height: 56px;
+    box-sizing: border-box;
+    background: rgba(35, 36, 41, 0.94) !important;
+    border-color: var(--bp-ui-line) !important;
+}
+
+:is(
+    .shop-title,
+    .craft-title,
+    .enhance-title,
+    .enchant-title,
+    .warehouse-title,
+    .fusion-title,
+    .expedition-title,
+    .quest-panel-title,
+    .world-switch-panel .ws-title,
+    .recruit-title,
+    .reward-panel-title,
+    .reward-card-title,
+    .game-menu-title,
+    .game-menu-subtitle,
+    .npc-dialogue-text,
+    .wall-editor-panel .we-title
+) {
+    color: var(--bp-ui-white) !important;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.75);
+}
+
+:is(
+    .shop-money,
+    .enhance-money,
+    .enchant-dust,
+    .warehouse-page-info,
+    .warehouse-page-num,
+    .recruit-sub,
+    .world-switch-panel .ws-status,
+    .game-menu-setting-label,
+    .game-menu-unit-display-hint
+) {
+    color: var(--bp-ui-text-muted) !important;
+}
+
+:is(
+    .shop-close,
+    .craft-close,
+    .enhance-close,
+    .enchant-close,
+    .warehouse-close,
+    .fusion-close,
+    .expedition-close,
+    .quest-panel-close,
+    .world-switch-panel .ws-close,
+    .recruit-close,
+    .companion-close
+) {
+    width: 32px;
+    height: 32px;
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 !important;
+    color: var(--bp-ui-text-muted) !important;
+    background: rgba(255, 255, 255, 0.07) !important;
+    border: 1px solid var(--bp-ui-line) !important;
+    border-radius: 6px !important;
+    transition: color 0.16s ease, background 0.16s ease, border-color 0.16s ease;
+}
+
+:is(
+    .shop-close,
+    .craft-close,
+    .enhance-close,
+    .enchant-close,
+    .warehouse-close,
+    .fusion-close,
+    .expedition-close,
+    .quest-panel-close,
+    .world-switch-panel .ws-close,
+    .recruit-close,
+    .companion-close
+):hover {
+    color: var(--bp-ui-black) !important;
+    background: var(--bp-ui-white) !important;
+    border-color: var(--bp-ui-white) !important;
+}
+
+/* ===== Panel section surfaces ===== */
+:is(
+    .shop-section-title,
+    .craft-edit-bar,
+    .warehouse-footer,
+    .warehouse-actions,
+    .fusion-actions,
+    .enchant-scroll-list,
+    .quest-mode-tabs,
+    .game-menu-unit-display,
+    .expedition-rule-panel .rule-current,
+    .expedition-rule-panel .rule-rewards
+) {
+    background: rgba(255, 255, 255, 0.035) !important;
+    border-color: var(--bp-ui-line) !important;
+}
+
+:is(
+    .shop-section-title,
+    .craft-edit-hint,
+    .craft-drop-placeholder,
+    .craft-mod-option-desc,
+    .enchant-section-title,
+    .enchant-slot-placeholder,
+    .enchant-scroll-list-title,
+    .enchant-scroll-list-empty,
+    .quest-item-type,
+    .quest-detail-desc,
+    .quest-objective-item,
+    .quest-scene-label,
+    .recruit-card-desc,
+    .recruit-card-growth,
+    .companion-note,
+    .companion-empty,
+    .warehouse-sort-row.back,
+    .world-switch-panel .ws-status .ws-dim,
+    .world-switch-panel .ws-preview,
+    .game-menu-unit-display-hint,
+    .expedition-rule-panel .rule-desc,
+    .expedition-rule-panel .rule-sub,
+    .wall-editor-panel .we-hints,
+    .wall-editor-panel .we-family,
+    .wall-editor-panel .we-selinfo
+) {
+    color: var(--bp-ui-text-muted) !important;
+}
+
+:is(
+    .shop-section-title,
+    .craft-mod-option-name,
+    .enchant-preview-content,
+    .enchant-scroll-row-name,
+    .quest-list-item,
+    .quest-detail-title,
+    .quest-objective-title,
+    .quest-reward-label,
+    .quest-scene-name,
+    .recruit-card-name,
+    .companion-headbar-name,
+    .warehouse-sort-row,
+    .fusion-rarity-row,
+    .world-switch-panel .ws-name,
+    .game-menu-setting-value,
+    .wall-editor-panel .we-thumb span
+) {
+    color: var(--bp-ui-text) !important;
+}
+
+/* ===== Backpack-like cards, rows and slots ===== */
+:is(
+    .shop-buy-cell,
+    .shop-sell-cell,
+    .craft-drop-zone,
+    .craft-mod-cell,
+    .enhance-slot,
+    .enchant-scroll-slot,
+    .enchant-equip-slot,
+    .enchant-preview,
+    .enchant-scroll-row,
+    .quest-list-item,
+    .quest-scene-item,
+    .quest-detail-panel,
+    .quest-detail-rewards,
+    .recruit-card,
+    .expedition-member-circle,
+    .world-switch-panel .ws-row,
+    .game-menu-unit-display-option,
+    .npc-dialogue-content,
+    .wall-editor-panel .we-info,
+    .wall-editor-panel .we-thumb,
+    .wall-editor-panel .we-pf
+) {
+    background: var(--bp-ui-surface) !important;
+    border-color: var(--bp-ui-line) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+:is(
+    .shop-buy-cell,
+    .shop-sell-cell,
+    .craft-drop-zone,
+    .craft-mod-cell,
+    .enchant-scroll-slot,
+    .enchant-equip-slot,
+    .enchant-scroll-row,
+    .quest-list-item,
+    .quest-scene-item,
+    .recruit-card,
+    .expedition-member-circle,
+    .world-switch-panel .ws-row,
+    .game-menu-unit-display-option,
+    .npc-option-btn,
+    .wall-editor-panel .we-thumb,
+    .wall-editor-panel .we-pf
+):hover {
+    background: var(--bp-ui-surface-hover) !important;
+    border-color: var(--bp-ui-line-strong) !important;
+}
+
+:is(
+    .quest-list-item.active,
+    .quest-scene-item.active,
+    .world-switch-panel .ws-row.current,
+    .companion-member-chip.active,
+    .wall-editor-panel .we-tab.active,
+    .wall-editor-panel .we-cat-tab.active
+) {
+    color: var(--bp-ui-text-dark) !important;
+    background: var(--bp-ui-surface-light) !important;
+    border-color: var(--bp-ui-white) !important;
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.16), 0 4px 14px rgba(0, 0, 0, 0.28) !important;
+}
+
+:is(
+    .quest-list-item.active,
+    .quest-scene-item.active,
+    .world-switch-panel .ws-row.current,
+    .companion-member-chip.active,
+    .wall-editor-panel .we-tab.active,
+    .wall-editor-panel .we-cat-tab.active
+) :is(.quest-item-name, .quest-item-type, .quest-scene-name, .quest-scene-label, .ws-name, .ws-status, .companion-chip-name, .companion-chip-level) {
+    color: var(--bp-ui-text-dark) !important;
+    text-shadow: none;
+}
+
+/* ===== Neutral controls ===== */
+:is(
+    .craft-edit-btn,
+    .enchant-reset-btn,
+    .enchant-convert-btn,
+    .warehouse-page-btn,
+    .warehouse-action-btn,
+    .fusion-action-btn,
+    .quest-mode-tab,
+    .quest-btn-later,
+    .recruit-card-btn,
+    .companion-empty-recruit,
+    .game-menu-btn,
+    .npc-option-btn,
+    .world-switch-panel .ws-go,
+    .world-switch-panel .ws-support,
+    .world-switch-panel .ws-rebuild,
+    .wall-editor-panel .we-row button,
+    .wall-editor-panel .we-tab,
+    .wall-editor-panel .we-cat-tab,
+    .wall-editor-panel .we-pf button,
+    .bp-back
+) {
+    color: var(--bp-ui-text) !important;
+    background: linear-gradient(180deg, #383a40, #222328) !important;
+    border-color: var(--bp-ui-line-strong) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07);
+}
+
+:is(
+    .craft-edit-btn,
+    .enchant-reset-btn,
+    .enchant-convert-btn,
+    .warehouse-page-btn,
+    .warehouse-action-btn,
+    .fusion-action-btn,
+    .quest-mode-tab,
+    .quest-btn-later,
+    .recruit-card-btn,
+    .companion-empty-recruit,
+    .game-menu-btn,
+    .npc-option-btn,
+    .world-switch-panel .ws-go,
+    .world-switch-panel .ws-support,
+    .world-switch-panel .ws-rebuild,
+    .wall-editor-panel .we-row button,
+    .wall-editor-panel .we-pf button,
+    .bp-back
+):hover:not(:disabled) {
+    color: var(--bp-ui-text-dark) !important;
+    background: var(--bp-ui-surface-light) !important;
+    border-color: var(--bp-ui-white) !important;
+    transform: translateY(-1px);
+}
+
+:is(
+    .enhance-btn,
+    .enchant-do-btn,
+    .fusion-action-btn.primary,
+    .quest-btn-accept
+) {
+    color: var(--bp-ui-text-dark) !important;
+    background: var(--bp-ui-surface-light) !important;
+    border-color: var(--bp-ui-white) !important;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3), inset 0 1px 0 #fff;
+}
+
+:is(.enhance-btn, .enchant-do-btn, .fusion-action-btn.primary, .quest-btn-accept):hover:not(:disabled) {
+    background: #fff !important;
+    border-color: #fff !important;
+    transform: translateY(-1px);
+}
+
+:is(
+    .wall-editor-panel .we-row select,
+    .wall-editor-panel .we-row input,
+    .game-menu-unit-display-option select,
+    .game-menu-unit-display-option input
+) {
+    color: var(--bp-ui-text) !important;
+    background: var(--bp-ui-black-soft) !important;
+    border-color: var(--bp-ui-line) !important;
+}
+
+/* ===== Status, skills and codex beside the backpack tab ===== */
+#tab-status :is(.status-header, .status-section) {
+    background: rgba(255, 255, 255, 0.045);
+    border: 1px solid var(--bp-ui-line);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
+}
+
+#tab-status :is(.header-name, .status-section h4, .attr-val, .status-value) {
+    color: var(--bp-ui-text) !important;
+}
+
+#tab-status :is(.header-class, .header-level, .header-attrpoints, .bar-label, .attr-name) {
+    color: var(--bp-ui-text-muted) !important;
+}
+
+#tab-status :is(.status-section h4, .attr-item) {
+    border-color: var(--bp-ui-line) !important;
+}
+
+#tab-skill .skill-filter-btn {
+    color: var(--bp-ui-text);
+    background: var(--bp-ui-surface);
+    border-color: var(--bp-ui-line);
+}
+
+#tab-skill .skill-filter-btn:hover,
+#tab-skill .skill-filter-btn.active {
+    color: var(--bp-ui-text-dark);
+    background: var(--bp-ui-surface-light);
+    border-color: var(--bp-ui-white);
+}
+
+#tab-skill .skill-card {
+    background: var(--bp-ui-surface-light);
+    border-color: rgba(255, 255, 255, 0.55);
+    box-shadow: 0 5px 16px rgba(0, 0, 0, 0.24);
+}
+
+#tab-skill .skill-detail {
+    color: var(--bp-ui-text-dark);
+    background: #f5f5f6;
+}
+
+#tab-codex :is(.codex-main-tab, .codex-cat-tab, .codex-card, .codex-ally-card) {
+    color: var(--bp-ui-text-muted);
+    background: var(--bp-ui-surface) !important;
+    border-color: var(--bp-ui-line) !important;
+}
+
+#tab-codex :is(.codex-main-tab, .codex-cat-tab):hover,
+#tab-codex :is(.codex-main-tab, .codex-cat-tab).active {
+    color: var(--bp-ui-text-dark) !important;
+    background: var(--bp-ui-surface-light) !important;
+    border-color: var(--bp-ui-white) !important;
+}
+
+#tab-codex .codex-cat-tab {
+    color: var(--bp-ui-text-muted) !important;
+    background: rgba(255, 255, 255, 0.045) !important;
+    border-color: var(--bp-ui-line) !important;
+}
+
+/* ===== Backpack-compatible inventory surfaces reused by other panels ===== */
+:is(.warehouse-grid, .fusion-grid, .shop-grid, #shopSellGrid, .companion-pack-grid) {
+    scrollbar-color: var(--bp-ui-gray) var(--bp-ui-black-soft);
+}
+
+:is(.warehouse-grid, .fusion-grid, .shop-grid, #shopSellGrid, .companion-pack-grid)::-webkit-scrollbar-track {
+    background: var(--bp-ui-black-soft);
+}
+
+:is(.warehouse-grid, .fusion-grid, .shop-grid, #shopSellGrid, .companion-pack-grid)::-webkit-scrollbar-thumb {
+    background: var(--bp-ui-gray);
+    border: 1px solid var(--bp-ui-black-soft);
+    border-radius: 4px;
+}
+
+/* ===== Floating menus and nested dialogs ===== */
+:is(.warehouse-sort-menu, .fusion-rarity-menu, .craft-mod-popup) {
+    color: var(--bp-ui-text) !important;
+    background: var(--bp-ui-shell) !important;
+    border-color: var(--bp-ui-line-strong) !important;
+    box-shadow: var(--bp-ui-shadow-float) !important;
+}
+
+:is(.warehouse-sort-row, .fusion-rarity-row, .craft-mod-popup-header) {
+    border-color: var(--bp-ui-line) !important;
+}
+
+:is(.warehouse-sort-row, .fusion-rarity-row):hover {
+    color: var(--bp-ui-text-dark) !important;
+    background: var(--bp-ui-surface-light) !important;
+}
+
+/* ===== Tactical/building panels: neutralize old brown/green chrome only ===== */
+.wall-editor-panel :is(.we-std-scroll, .we-prefab-list) {
+    scrollbar-color: var(--bp-ui-gray) transparent;
+}
+
+.wall-editor-panel :is(.we-std-scroll, .we-prefab-list)::-webkit-scrollbar-thumb {
+    background: var(--bp-ui-gray);
+}
+
+.build-panel #bpDetail {
+    color: var(--bp-ui-text) !important;
+    background: var(--bp-ui-shell) !important;
+    border-color: var(--bp-ui-line-strong) !important;
+    box-shadow: var(--bp-ui-shadow-float);
+}
+
+.bp-detail-name,
+.bp-detail-rows b {
+    color: var(--bp-ui-text) !important;
+}
+
+.bp-detail-rows {
+    color: var(--bp-ui-text-muted) !important;
+    border-color: var(--bp-ui-line) !important;
+}
+
+.rts-up-name,
+.rts-up-lv,
+.rts-up-multi {
+    color: var(--bp-ui-text) !important;
+}
+
+.rts-up-type,
+.rts-up-row > span:first-child,
+.rts-up-num {
+    color: var(--bp-ui-text-muted) !important;
+}
+
+/* Building detail panels are mostly inline-rendered; constrain their chrome
+   without replacing semantic resource, health or warning colors. */
+:is(
+    .defense-tower-panel,
+    .defense-trap-panel,
+    .hamster-hut-panel,
+    .hamster-barracks-panel,
+    .producer-building-panel,
+    .world122-base-panel
+) :is(#dtTitle, #tpTitle, #hhTitle, #hbTitle, #pbTitle) {
+    color: var(--bp-ui-text) !important;
+    letter-spacing: 0.05em;
+}
+
+:is(
+    .defense-tower-panel,
+    .defense-trap-panel,
+    .hamster-hut-panel,
+    .hamster-barracks-panel,
+    .producer-building-panel,
+    .world122-base-panel
+) :is(
+    #dtWeaponSlot,
+    #dtWeaponList,
+    #dtChip,
+    #dtModules,
+    #dtRepair,
+    #tpStats,
+    #hhStatus,
+    #hhModules,
+    #hbStatus,
+    #hbUnitType,
+    #hbModules,
+    #pbStatus,
+    #pbUnitType,
+    #pbModules
+) {
+    background: rgba(255, 255, 255, 0.045) !important;
+    border-color: var(--bp-ui-line) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
+}
+
+:is(
+    .defense-tower-panel,
+    .defense-trap-panel,
+    .hamster-hut-panel,
+    .hamster-barracks-panel,
+    .producer-building-panel,
+    .world122-base-panel
+) :is(#dtClose, #tpClose, #hhClose, #hbClose, #pbClose) {
+    color: var(--bp-ui-text) !important;
+    background: linear-gradient(180deg, #383a40, #222328) !important;
+    border-color: var(--bp-ui-line-strong) !important;
+}
+
+:is(
+    .defense-tower-panel,
+    .defense-trap-panel,
+    .hamster-hut-panel,
+    .hamster-barracks-panel,
+    .producer-building-panel
+) :is(#dtSell, #tpSell, #hhSell, #hbSell, #pbSell),
+.game-menu-btn.danger,
+.world-switch-panel .ws-support,
+.sell-confirm-btn {
+    color: #ffe7e5 !important;
+    background: linear-gradient(180deg, #612f32, #351a1d) !important;
+    border-color: #9b565b !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+}
+
+:is(
+    .defense-tower-panel,
+    .defense-trap-panel,
+    .hamster-hut-panel,
+    .hamster-barracks-panel,
+    .producer-building-panel
+) :is(#dtSell, #tpSell, #hhSell, #hbSell, #pbSell):hover,
+.game-menu-btn.danger:hover,
+.world-switch-panel .ws-support:hover,
+.sell-confirm-btn:hover {
+    color: #fff !important;
+    background: linear-gradient(180deg, #7c3c41, #4b2226) !important;
+    border-color: #d18489 !important;
+}
+
+.magic-circle,
+.magic-circle::before,
+.magic-circle::after,
+.magic-circle-ring {
+    border-color: rgba(255, 255, 255, 0.18) !important;
+}
+
+.magic-circle-glow {
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.08), transparent 70%) !important;
+}
+
+.reward-card-desc {
+    color: var(--bp-ui-text-muted) !important;
+}
+
+/* ===== World switch: match the primary right sidebar panel ===== */
+.world-switch-panel {
+    top: 0 !important;
+    right: 0 !important;
+    bottom: auto !important;
+    width: 45vw !important;
+    height: 100% !important;
+    max-height: none !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-left: 3px solid var(--bp-ui-line-strong) !important;
+    border-radius: 0 !important;
+    opacity: 1 !important;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateX(100%) !important;
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.25s !important;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.world-switch-panel.active {
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateX(0) !important;
+}
+
+.world-switch-panel .ws-header {
+    flex: 0 0 auto;
+    padding: 12px 20px;
+}
+
+.world-switch-panel .ws-list {
+    flex: 1 1 auto;
+    min-height: 0;
+    padding: 12px 16px;
+    overflow-y: auto;
+    scrollbar-color: var(--bp-ui-gray) var(--bp-ui-black-soft);
+}
+
+.world-switch-panel .ws-list::-webkit-scrollbar {
+    width: 8px;
+}
+
+.world-switch-panel .ws-list::-webkit-scrollbar-track {
+    background: var(--bp-ui-black-soft);
+}
+
+.world-switch-panel .ws-list::-webkit-scrollbar-thumb {
+    background: var(--bp-ui-gray);
+    border: 1px solid var(--bp-ui-black-soft);
+    border-radius: 4px;
+}
+
+.world-switch-panel .ws-row {
+    padding: 12px 14px;
+}
+
+/* ===== Cold steel archive identity ===== */
+:is(
+    .system-panel,
+    .shop-panel,
+    .craft-panel,
+    .enhance-panel,
+    .enchant-panel,
+    .warehouse-panel,
+    .fusion-panel,
+    .expedition-panel,
+    .quest-panel,
+    .world-switch-panel,
+    .game-menu-panel,
+    .recruit-panel,
+    .wall-editor-panel,
+    .defense-tower-panel,
+    .defense-trap-panel,
+    .hamster-hut-panel,
+    .hamster-barracks-panel,
+    .producer-building-panel,
+    .world122-base-panel,
+    .rts-unit-panel,
+    .troop-line-panel,
+    .expedition-rule-panel,
+    .npc-dialogue-box,
+    .reward-card
+) {
+    color: var(--bp-ui-text) !important;
+    background: var(--bp-ui-shell) !important;
+    border-color: var(--bp-ui-line-accent) !important;
+    box-shadow: var(--bp-ui-shadow) !important;
+    backdrop-filter: blur(14px) saturate(0.58);
+}
+
+:is(
+    .panel-header,
+    .shop-header,
+    .craft-header,
+    .enhance-header,
+    .enchant-header,
+    .warehouse-header,
+    .fusion-header,
+    .expedition-header,
+    .quest-panel-header,
+    .world-switch-panel .ws-header,
+    .recruit-header,
+    .companion-headbar
+) {
+    background: linear-gradient(180deg, rgba(43, 52, 61, 0.98), rgba(25, 31, 37, 0.98)) !important;
+    border-bottom-color: var(--bp-ui-line-accent) !important;
+    box-shadow: inset 0 1px 0 rgba(220, 234, 240, 0.07);
+}
+
+.panel-title {
+    color: var(--bp-ui-white) !important;
+}
+
+.panel-close {
+    color: var(--bp-ui-text-muted) !important;
+    background: rgba(197, 219, 228, 0.07) !important;
+    border-color: var(--bp-ui-line) !important;
+}
+
+.panel-close:hover {
+    color: var(--bp-ui-text-dark) !important;
+    background: var(--bp-ui-surface-light) !important;
+    border-color: var(--bp-ui-white) !important;
+}
+
+:is(
+    .craft-edit-btn,
+    .enchant-reset-btn,
+    .enchant-convert-btn,
+    .warehouse-page-btn,
+    .warehouse-action-btn,
+    .fusion-action-btn,
+    .quest-mode-tab,
+    .quest-btn-later,
+    .recruit-card-btn,
+    .companion-empty-recruit,
+    .game-menu-btn,
+    .npc-option-btn,
+    .world-switch-panel .ws-go,
+    .world-switch-panel .ws-support,
+    .world-switch-panel .ws-rebuild,
+    .wall-editor-panel .we-row button,
+    .wall-editor-panel .we-tab,
+    .wall-editor-panel .we-cat-tab,
+    .wall-editor-panel .we-pf button,
+    .bp-back
+) {
+    background: var(--bp-ui-control) !important;
+}
+
+:is(
+    .panel-tab,
+    .shop-tab,
+    .quest-mode-tab,
+    .skill-filter-btn,
+    .codex-main-tab,
+    .codex-cat-tab,
+    .wall-editor-panel .we-tab,
+    .wall-editor-panel .we-cat-tab
+).active {
+    color: var(--bp-ui-white) !important;
+    background: var(--bp-ui-accent-muted) !important;
+    border-color: var(--bp-ui-accent) !important;
+    box-shadow: inset 0 -2px 0 var(--bp-ui-accent);
+}
+
+#tab-skill .skill-filter-btn.active,
+#tab-codex :is(.codex-main-tab, .codex-cat-tab).active {
+    color: var(--bp-ui-white) !important;
+    background: var(--bp-ui-accent-muted) !important;
+    border-color: var(--bp-ui-accent) !important;
+    box-shadow: inset 0 -2px 0 var(--bp-ui-accent);
+}
+
+:is(
+    .shop-money,
+    .enhance-money,
+    .enchant-dust,
+    .warehouse-page-info,
+    .world-switch-panel .ws-current,
+    .status-header .header-level,
+    .game-menu-setting-value
+) {
+    color: var(--bp-ui-accent-bright) !important;
+}
+
+/* ===== Cold steel typography scale ===== */
+:is(
+    .system-panel,
+    .shop-panel,
+    .craft-panel,
+    .enhance-panel,
+    .enchant-panel,
+    .warehouse-panel,
+    .fusion-panel,
+    .expedition-panel,
+    .quest-panel,
+    .world-switch-panel,
+    .game-menu-panel,
+    .recruit-panel,
+    .companion-overlay,
+    .wall-editor-panel,
+    .defense-tower-panel,
+    .defense-trap-panel,
+    .hamster-hut-panel,
+    .hamster-barracks-panel,
+    .producer-building-panel,
+    .world122-base-panel,
+    .rts-unit-panel,
+    .troop-line-panel,
+    .expedition-rule-panel,
+    .npc-dialogue-box,
+    .reward-card,
+    .equip-tooltip
+) {
+    font-family: var(--bp-font-ui) !important;
+    font-size: var(--bp-type-body);
+    line-height: var(--bp-leading-body);
+}
+
+:is(
+    .system-panel,
+    .shop-panel,
+    .craft-panel,
+    .enhance-panel,
+    .enchant-panel,
+    .warehouse-panel,
+    .fusion-panel,
+    .expedition-panel,
+    .quest-panel,
+    .world-switch-panel,
+    .game-menu-panel,
+    .recruit-panel,
+    .companion-overlay,
+    .wall-editor-panel,
+    .npc-dialogue-box,
+    .reward-card
+) :is(button, input, select, textarea) {
+    font-family: inherit !important;
+}
+
+/* 24px: modal or page-level display heading. */
+:is(.game-menu-title, .reward-card-title, .npc-dialogue-speaker, .status-header .header-name) {
+    font-size: var(--bp-type-display) !important;
+    line-height: var(--bp-leading-tight);
+    font-weight: 700;
+    letter-spacing: var(--bp-tracking-title);
+}
+
+/* 20px: primary panel heading. */
+:is(
+    .panel-title,
+    .shop-title,
+    .craft-title,
+    .enhance-title,
+    .enchant-title,
+    .warehouse-title,
+    .fusion-title,
+    .expedition-title,
+    .quest-panel-title,
+    .world-switch-panel .ws-title,
+    .recruit-title,
+    .wall-editor-panel .we-title,
+    #dtTitle,
+    #tpTitle,
+    #hhTitle,
+    #hbTitle,
+    #pbTitle
+) {
+    font-size: var(--bp-type-title) !important;
+    line-height: var(--bp-leading-tight);
+    font-weight: 700;
+    letter-spacing: var(--bp-tracking-title);
+}
+
+/* 16px: tabs, subsection headings and important row names. */
+:is(
+    .panel-tab,
+    .game-menu-subtitle,
+    .game-menu-unit-display-title,
+    .inventory-header h3,
+    .codex-header h3,
+    .skill-module-header h3,
+    .shop-section-title,
+    .enchant-section-title,
+    .enchant-scroll-list-title,
+    .quest-detail-title,
+    .quest-objective-title,
+    .quest-reward-label,
+    .recruit-card-name,
+    .companion-headbar-name,
+    .world-switch-panel .ws-name,
+    .bp-detail-name,
+    .status-header .header-class,
+    .status-header .header-level,
+    .cd-hero-name,
+    .codex-detail-title,
+    .cd-section h4,
+    .status-section h4,
+    .skill-module-info h4,
+    .equip-tooltip .tt-name
+) {
+    font-size: var(--bp-type-subtitle) !important;
+    line-height: 1.4;
+    font-weight: 600;
+    letter-spacing: var(--bp-tracking-label);
+}
+
+/* 14px: normal content, tabs and actions. */
+:is(
+    .shop-tab,
+    .quest-mode-tab,
+    .skill-filter-btn,
+    .codex-main-tab,
+    .codex-cat-tab,
+    .quest-list-item,
+    .quest-detail-desc,
+    .quest-objective-item,
+    .quest-scene-name,
+    .warehouse-sort-row,
+    .fusion-rarity-row,
+    .craft-mod-option-name,
+    .enchant-scroll-row-name,
+    .enchant-preview-content,
+    .game-menu-btn,
+    .npc-option-btn,
+    .npc-dialogue-text,
+    .reward-card-desc,
+    .status-value,
+    .attr-val,
+    .equip-tooltip .tt-stat,
+    .world-switch-panel .ws-go,
+    .world-switch-panel .ws-support,
+    .world-switch-panel .ws-rebuild,
+    .recruit-card-btn
+) {
+    font-size: var(--bp-type-body) !important;
+    line-height: var(--bp-leading-body);
+}
+
+/* 12px: secondary information and compact labels. */
+:is(
+    .shop-money,
+    .enhance-money,
+    .enchant-dust,
+    .warehouse-page-info,
+    .warehouse-page-num,
+    .inventory-capacity,
+    .quest-item-type,
+    .quest-scene-label,
+    .recruit-sub,
+    .recruit-card-desc,
+    .recruit-card-growth,
+    .companion-chip-level,
+    .world-switch-panel .ws-status,
+    .game-menu-setting-label,
+    .game-menu-setting-value,
+    .status-header .header-attrpoints,
+    .bar-label,
+    .attr-name,
+    .skill-module-desc,
+    .interface-item,
+    .equip-tooltip .tt-type,
+    .equip-tooltip .tt-extra,
+    .equip-tooltip .tt-desc,
+    .bp-detail-rows,
+    .rts-up-type,
+    .rts-up-num,
+    .inv-cell .inv-name,
+    .inv-cell .inv-stack
+) {
+    font-size: var(--bp-type-meta) !important;
+    line-height: 1.45;
+}
+
+/* 11px: hints, annotations and tertiary metadata. */
+:is(
+    .craft-edit-hint,
+    .craft-drop-placeholder,
+    .craft-mod-option-desc,
+    .enchant-slot-placeholder,
+    .enchant-scroll-list-empty,
+    .companion-note,
+    .game-menu-unit-display-hint,
+    .wall-editor-panel .we-hints,
+    .wall-editor-panel .we-family,
+    .wall-editor-panel .we-selinfo,
+    .cd-family-tag,
+    .skill-slot-name,
+    .codex-card .cc-name,
+    .codex-card .cc-type
+) {
+    font-size: var(--bp-type-caption) !important;
+    line-height: 1.4;
+    letter-spacing: 0.01em;
+}
+
+:is(
+    .warehouse-page-num,
+    .game-menu-setting-value,
+    .inv-cell .inv-stack,
+    .status-value,
+    .attr-val,
+    .rts-up-lv,
+    .rts-up-multi,
+    .rts-up-num
+) {
+    font-family: var(--bp-font-number) !important;
+    font-variant-numeric: tabular-nums;
+}
+
+/* Reusable utility tiers for new panels. */
+.bp-type-display,
+.bp-type-title,
+.bp-type-subtitle,
+.bp-type-body,
+.bp-type-meta,
+.bp-type-caption { font-family: var(--bp-font-ui) !important; }
+.bp-type-display { font-size: var(--bp-type-display) !important; line-height: var(--bp-leading-tight); font-weight: 700; }
+.bp-type-title { font-size: var(--bp-type-title) !important; line-height: var(--bp-leading-tight); font-weight: 700; }
+.bp-type-subtitle { font-size: var(--bp-type-subtitle) !important; line-height: 1.4; font-weight: 600; }
+.bp-type-body { font-size: var(--bp-type-body) !important; line-height: var(--bp-leading-body); }
+.bp-type-meta { font-size: var(--bp-type-meta) !important; line-height: 1.45; }
+.bp-type-caption { font-size: var(--bp-type-caption) !important; line-height: 1.4; }
+
+/* ===== Cold steel HUD surfaces ===== */
+:is(
+    .top-bar,
+    .bottom-bar,
+    .back-menu-btn,
+    .side-menu,
+    .party-bar,
+    .rts-command-btn,
+    .game-time,
+    .world-invasion-hud,
+    #weaponInfo,
+    .controls-hint-left,
+    .attack-range-toggle
+) {
+    font-family: var(--bp-font-ui) !important;
+}
+
+:is(.top-bar, .party-bar, .game-time, .world-invasion-hud, #weaponInfo, .controls-hint-left) {
+    color: var(--bp-ui-text) !important;
+    background: linear-gradient(145deg, rgba(23, 29, 35, 0.95), rgba(8, 11, 14, 0.96)) !important;
+    border-color: var(--bp-ui-line-accent) !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.46), inset 0 1px 0 rgba(220, 234, 240, 0.055) !important;
+    backdrop-filter: blur(12px) saturate(0.58);
+}
+
+/* Top status strip: compact archive labels over stable numeric values. */
+.top-bar {
+    gap: 14px;
+    padding: 7px 18px;
+    border-width: 1px !important;
+    border-radius: 10px;
+}
+
+.top-item {
+    color: var(--bp-ui-text) !important;
+    font-size: var(--bp-type-body) !important;
+    line-height: 1.3;
+}
+
+.top-item .label {
+    color: var(--bp-ui-text-dim) !important;
+    font-size: var(--bp-type-caption) !important;
+    line-height: 1.25;
+    letter-spacing: var(--bp-tracking-label);
+}
+
+.top-item .value {
+    color: var(--bp-ui-white) !important;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+}
+
+#uiLevel,
+#uiPos,
+#uiKills,
+.top-bar-value {
+    font-family: var(--bp-font-number) !important;
+    font-variant-numeric: tabular-nums;
+}
+
+.top-bar-track {
+    height: 9px;
+    background: var(--bp-ui-black-soft) !important;
+    border: 1px solid var(--bp-ui-line) !important;
+    border-radius: 3px;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.72);
+}
+
+.top-bar-fill {
+    border-radius: 2px;
+}
+
+.top-bar-fill.hp {
+    background: linear-gradient(90deg, #763b43, #bd626d) !important;
+}
+
+.top-bar-fill.mp {
+    background: linear-gradient(90deg, #36566e, #7194ac) !important;
+}
+
+.top-bar-value {
+    color: var(--bp-ui-text-muted) !important;
+    font-size: var(--bp-type-caption) !important;
+    line-height: 1.25;
+}
+
+/* Main play controls and quick access chrome. */
+.bottom-bar {
+    padding: 9px;
+    background: rgba(11, 15, 19, 0.84) !important;
+    border: 1px solid var(--bp-ui-line-accent) !important;
+    border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(220, 234, 240, 0.05) !important;
+    backdrop-filter: blur(10px) saturate(0.58);
+}
+
+.quick-slot,
+.quick-slot.skill,
+.quick-slot.item,
+.quick-slot.special {
+    color: var(--bp-ui-text-muted) !important;
+    background: var(--bp-ui-surface) !important;
+    border-color: var(--bp-ui-line) !important;
+    border-width: 1px;
+    border-radius: 7px;
+    box-shadow: inset 0 1px 0 rgba(220, 234, 240, 0.04);
+}
+
+.quick-slot:hover,
+.quick-slot.skill:hover,
+.quick-slot.item:hover,
+.quick-slot.special:hover {
+    color: var(--bp-ui-white) !important;
+    background: var(--bp-ui-surface-hover) !important;
+    border-color: var(--bp-ui-accent) !important;
+    box-shadow: 0 0 0 1px rgba(142, 166, 178, 0.18), 0 6px 14px rgba(0, 0, 0, 0.34) !important;
+}
+
+.quick-slot.active {
+    color: var(--bp-ui-white) !important;
+    background: var(--bp-ui-accent-muted) !important;
+    border-color: var(--bp-ui-accent-bright) !important;
+    box-shadow: 0 0 12px rgba(142, 166, 178, 0.34), inset 0 0 0 1px rgba(220, 234, 240, 0.1) !important;
+}
+
+.quick-slot .key-hint {
+    color: var(--bp-ui-accent-bright) !important;
+    font-family: var(--bp-font-number) !important;
+    font-size: var(--bp-type-caption) !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.86) !important;
+}
+
+.quick-slot-divider {
+    width: 1px;
+    background: var(--bp-ui-line-strong) !important;
+}
+
+.exp-bar-container {
+    background: var(--bp-ui-black) !important;
+    border-top: 1px solid var(--bp-ui-line);
+}
+
+.exp-bar-fill {
+    background: linear-gradient(90deg, #536773, #a7bbc5, #536773) !important;
+    box-shadow: 0 0 7px rgba(142, 166, 178, 0.52) !important;
+}
+
+.back-menu-btn,
+.attack-range-toggle,
+.rts-command-btn {
+    color: var(--bp-ui-text-muted) !important;
+    background: var(--bp-ui-control) !important;
+    border: 1px solid var(--bp-ui-line-strong) !important;
+    border-radius: 7px;
+    font-size: var(--bp-type-meta) !important;
+    letter-spacing: var(--bp-tracking-label);
+    box-shadow: inset 0 1px 0 rgba(220, 234, 240, 0.055);
+}
+
+:is(.back-menu-btn, .attack-range-toggle, .rts-command-btn):hover {
+    color: var(--bp-ui-white) !important;
+    background: var(--bp-ui-surface-hover) !important;
+    border-color: var(--bp-ui-accent) !important;
+}
+
+:is(.back-menu-btn, .attack-range-toggle, .rts-command-btn).active {
+    color: var(--bp-ui-white) !important;
+    background: var(--bp-ui-accent-muted) !important;
+    border-color: var(--bp-ui-accent-bright) !important;
+    box-shadow: 0 0 10px rgba(142, 166, 178, 0.3), inset 0 -2px 0 var(--bp-ui-accent) !important;
+}
+
+#weaponInfo {
+    background: linear-gradient(145deg, rgba(23, 29, 35, 0.9), rgba(8, 11, 14, 0.92)) !important;
+    border: 1px solid var(--bp-ui-line) !important;
+    border-radius: 8px !important;
+}
+
+#weaponInfo .wi-mode {
+    color: var(--bp-ui-text-dim) !important;
+    font-size: var(--bp-type-meta) !important;
+    letter-spacing: var(--bp-tracking-label);
+}
+
+#weaponInfo .wi-name {
+    color: var(--bp-ui-accent-bright) !important;
+    font-size: var(--bp-type-title) !important;
+    line-height: var(--bp-leading-tight);
+    letter-spacing: var(--bp-tracking-label);
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.85) !important;
+}
+
+.controls-hint-left {
+    color: var(--bp-ui-text-dim) !important;
+    border-width: 1px !important;
+    border-radius: 7px;
+    font-size: var(--bp-type-caption) !important;
+    line-height: 1.65;
+}
+
+.side-menu-btn:hover {
+    box-shadow: 0 0 0 1px var(--bp-ui-line-accent), 0 0 14px rgba(142, 166, 178, 0.32) !important;
+}
+
+.side-menu-btn:hover img {
+    filter: grayscale(0.2) brightness(1.14) drop-shadow(0 0 5px rgba(196, 211, 218, 0.58)) !important;
+}
+
+.side-menu-btn:hover .side-menu-emoji {
+    filter: grayscale(0.25) drop-shadow(0 0 5px rgba(196, 211, 218, 0.58)) !important;
+}
+
+.side-menu-btn.active {
+    box-shadow: 0 0 0 1px var(--bp-ui-accent), 0 0 10px rgba(142, 166, 178, 0.3) !important;
+}
+
+.side-menu-btn .key-hint,
+.side-menu-btn .panel-label {
+    color: var(--bp-ui-accent-bright) !important;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.88) !important;
+}
+
+.side-menu-btn .key-hint {
+    font-family: var(--bp-font-number) !important;
+}
+
+.side-menu-btn .panel-label {
+    font-family: var(--bp-font-ui) !important;
+    font-size: var(--bp-type-caption) !important;
+}
+
+/* Left party roster: same archive shell, denser selectable records. */
+.party-bar {
+    border-width: 1px !important;
+    border-radius: 9px;
+    padding: 10px 12px;
+}
+
+.party-bar-title {
+    color: var(--bp-ui-white) !important;
+    font-size: var(--bp-type-subtitle) !important;
+    line-height: 1.35;
+    letter-spacing: var(--bp-tracking-label);
+    text-shadow: none !important;
+}
+
+.party-slot {
+    min-height: 42px;
+    padding: 5px 8px;
+    color: var(--bp-ui-text) !important;
+    background: var(--bp-ui-surface) !important;
+    border: 1px solid var(--bp-ui-line) !important;
+    border-radius: 6px;
+}
+
+.party-slot:hover {
+    background: var(--bp-ui-surface-hover) !important;
+    border-color: var(--bp-ui-accent) !important;
+}
+
+.party-slot--selected {
+    background: var(--bp-ui-accent-muted) !important;
+    border-color: var(--bp-ui-accent-bright) !important;
+    box-shadow: 0 0 10px rgba(142, 166, 178, 0.28), inset 3px 0 0 var(--bp-ui-accent) !important;
+}
+
+.party-slot--selected :is(.party-slot-name, .party-slot-level) {
+    color: var(--bp-ui-white) !important;
+}
+
+.party-slot-avatar {
+    color: var(--bp-ui-white-soft) !important;
+    background: var(--bp-ui-black-soft) !important;
+    border: 1px solid var(--bp-ui-line);
+    border-radius: 6px;
+}
+
+.party-slot-plus {
+    color: var(--bp-ui-accent) !important;
+}
+
+.party-slot-name {
+    color: var(--bp-ui-text) !important;
+    font-size: var(--bp-type-meta) !important;
+    font-weight: 600;
+}
+
+.party-slot-level {
+    color: var(--bp-ui-text-muted) !important;
+    font-family: var(--bp-font-number) !important;
+    font-size: var(--bp-type-caption) !important;
+    font-variant-numeric: tabular-nums;
+}
+
+/* Right-top world clock: archive instrument, day/night colors stay semantic. */
+.game-time {
+    gap: 10px;
+    padding: 6px 12px;
+    border-width: 1px !important;
+    border-radius: 10px;
+}
+
+.game-time .time-icon {
+    color: var(--bp-ui-accent-bright) !important;
+    filter: drop-shadow(0 0 3px rgba(196, 211, 218, 0.42)) !important;
+}
+
+.time-dial .dial-face {
+    fill: rgba(8, 12, 16, 0.88) !important;
+    stroke: var(--bp-ui-line-accent) !important;
+}
+
+.time-dial .dial-arc-day {
+    stroke: #c6b477 !important;
+}
+
+.time-dial .dial-arc-night {
+    stroke: #66829a !important;
+}
+
+.time-dial .dial-horizon,
+.time-dial .dial-tick-minor {
+    stroke: rgba(196, 211, 218, 0.38) !important;
+}
+
+.time-dial .dial-tick-major {
+    stroke: var(--bp-ui-accent-bright) !important;
+}
+
+.time-dial .dial-hand {
+    stroke: var(--bp-ui-white) !important;
+    filter: drop-shadow(0 0 2px rgba(196, 211, 218, 0.62)) !important;
+}
+
+.time-dial .dial-hand-tip,
+.time-dial .dial-center {
+    fill: var(--bp-ui-accent-bright) !important;
+}
+
+.game-time .time-text {
+    color: var(--bp-ui-white) !important;
+    font-family: var(--bp-font-ui) !important;
+    font-size: var(--bp-type-body) !important;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.03em;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.86) !important;
+}
+
+/* Invasion remains a danger surface, but now shares the same archive shell. */
+.world-invasion-hud {
+    padding: 7px 10px 9px;
+    border-color: var(--bp-ui-line-accent) !important;
+    border-radius: 8px;
+}
+
+.world-invasion-label {
+    color: var(--bp-ui-white) !important;
+    font-size: var(--bp-type-meta) !important;
+    line-height: 1.4;
+    letter-spacing: var(--bp-tracking-label);
+}
+
+.world-invasion-detail {
+    color: var(--bp-ui-text-muted) !important;
+    font-size: var(--bp-type-caption) !important;
+    line-height: 1.4;
+}
+
+.world-invasion-hud.active {
+    border-color: #d56a66 !important;
+    box-shadow: 0 0 14px rgba(213, 92, 86, 0.32), inset 3px 0 0 #c45d58 !important;
+}
+
+.world-invasion-hud.warning {
+    border-color: #c19b63 !important;
+}
+
+.world-invasion-hud.critical,
+.world-invasion-hud.evacuation {
+    border-color: #d56a66 !important;
+}
+
+.world-invasion-support {
+    color: #fff0ed !important;
+    background: linear-gradient(180deg, #743b3e, #421f23) !important;
+    border: 1px solid #a95d60 !important;
+    border-radius: 5px;
+    font-family: var(--bp-font-ui) !important;
+    font-size: var(--bp-type-meta) !important;
+}
+
+.world-invasion-support:hover {
+    background: linear-gradient(180deg, #91484c, #57272c) !important;
+    border-color: #d78383 !important;
+}
+
+.world-invasion-track {
+    background: var(--bp-ui-black-soft) !important;
+    border: 1px solid var(--bp-ui-line);
+    border-radius: 3px;
+}
+
+/* ===== Right drawer building panel and RTS layout ===== */
+.wall-editor-panel.build-panel {
+    top: 0 !important;
+    right: 0 !important;
+    width: 45vw !important;
+    height: 100% !important;
+    max-height: none !important;
+    padding: 12px 16px !important;
+    display: flex !important;
+    flex-direction: column;
+    overflow: hidden !important;
+    border: 0 !important;
+    border-left: 3px solid var(--bp-ui-line-strong) !important;
+    border-radius: 0 !important;
+    visibility: hidden;
+    pointer-events: none !important;
+    transform: translateX(100%);
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.25s !important;
+}
+
+.wall-editor-panel.build-panel.active {
+    visibility: visible;
+    pointer-events: auto !important;
+    transform: translateX(0);
+}
+
+.build-panel .we-title,
+.build-panel .we-hotkeys,
+.build-panel .we-info,
+.build-panel .we-row,
+.build-panel .we-hints {
+    flex: 0 0 auto;
+}
+
+.build-panel .we-grid {
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: none !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    align-content: start;
+    padding-right: 4px;
+}
+
+.build-panel .we-thumb img {
+    width: 100%;
+}
+
+.build-panel .we-hints {
+    max-height: 132px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.build-panel #bpDetail {
+    position: static !important;
+    inset: auto !important;
+    width: 100% !important;
+    max-height: none !important;
+    flex: 1 1 auto;
+    min-height: 0;
+    margin: 0 !important;
+    padding: 16px 18px !important;
+    overflow-y: auto;
+    box-sizing: border-box;
+    border: 1px solid var(--bp-ui-line-strong) !important;
+    border-radius: 8px;
+    box-shadow: none !important;
+    scrollbar-color: var(--bp-ui-gray) var(--bp-ui-black-soft);
+}
+
+.build-panel #bpDetail::-webkit-scrollbar {
+    width: 8px;
+}
+
+.build-panel #bpDetail::-webkit-scrollbar-track {
+    background: var(--bp-ui-black-soft);
+}
+
+.build-panel #bpDetail::-webkit-scrollbar-thumb {
+    background: var(--bp-ui-gray);
+}
+
+.build-panel.detail-active :is(#bpHotkeys, #bpCur, #bpGrid, #bpRow, #bpRecycleRow, #bpHints) {
+    display: none !important;
+}
+
+.build-panel.detail-active .we-title {
+    margin-bottom: 12px;
+}
+
+.build-panel #bpDetail .bp-detail-head {
+    min-height: 104px;
+    padding: 12px;
+    box-sizing: border-box;
+    background: linear-gradient(145deg, rgba(42, 48, 54, 0.78), rgba(16, 20, 24, 0.9));
+    border: 1px solid var(--bp-ui-line);
+    border-radius: 6px;
+}
+
+.build-panel #bpDetail .bp-detail-head img {
+    width: 92px;
+    height: 92px;
+    border-color: var(--bp-ui-line-strong);
+    border-radius: 4px;
+}
+
+.build-panel #bpDetail .bp-detail-name {
+    font-size: var(--bp-type-subtitle);
+}
+
+.build-panel #bpDetail .bp-detail-rows {
+    padding: 10px 2px;
+    margin: 12px 0;
+}
+
+.rts-unit-panel {
+    right: 100px;
+    width: 252px;
+    box-sizing: border-box;
+    border-width: 1px !important;
+}
+
+.rts-command-bar {
+    position: fixed;
+    left: 10px;
+    width: var(--bp-left-hud-width, 252px);
+    height: 72px;
+    z-index: 4700;
+    box-sizing: border-box;
+    pointer-events: auto;
+    color: var(--bp-ui-text);
+    background: linear-gradient(145deg, rgba(23, 29, 35, 0.95), rgba(8, 11, 14, 0.96));
+    border: 1px solid var(--bp-ui-line-accent);
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.46), inset 0 1px 0 rgba(220, 234, 240, 0.055);
+    backdrop-filter: blur(12px) saturate(0.58);
+}
+
+#weaponInfo {
+    height: 76px !important;
+    padding: 8px 10px !important;
+}
+
+@media (max-width: 1400px) {
+    .build-panel .we-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+/* ===== Cold steel start screen ===== */
+#menuLayer {
+    isolation: isolate;
+    color: var(--bp-ui-text);
+    background-color: #070a0d !important;
+    font-family: var(--bp-font-ui) !important;
+}
+
+#menuLayer .menu-bg {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background:
+        radial-gradient(circle at 50% 46%, rgba(108, 132, 144, 0.12), transparent 36%),
+        linear-gradient(90deg, rgba(4, 7, 9, 0.76), rgba(7, 10, 13, 0.12) 34%, rgba(7, 10, 13, 0.12) 66%, rgba(4, 7, 9, 0.76)),
+        linear-gradient(180deg, rgba(4, 7, 10, 0.18), rgba(4, 7, 10, 0.58));
+}
+
+#menuLayer .menu-bg::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    opacity: 0.18;
+    background-image: repeating-linear-gradient(
+        0deg,
+        transparent 0,
+        transparent 3px,
+        rgba(196, 211, 218, 0.055) 4px
+    );
+}
+
+#menuLayer .menu-content {
+    position: relative;
+    z-index: 1;
+    width: min(500px, calc(100vw - 40px));
+    padding: 42px 42px 32px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: var(--bp-ui-text);
+    text-align: center;
+    background: var(--bp-ui-shell);
+    border: 1px solid var(--bp-ui-line-strong);
+    border-radius: var(--bp-ui-radius);
+    box-shadow:
+        0 24px 72px rgba(0, 0, 0, 0.78),
+        inset 4px 0 0 rgba(162, 188, 200, 0.72),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(16px) saturate(0.55);
+}
+
+#menuLayer .menu-content::before {
+    content: "轮回档案 // 接入终端";
+    position: absolute;
+    top: 14px;
+    left: 20px;
+    color: var(--bp-ui-text-dim);
+    font-family: var(--bp-font-number);
+    font-size: var(--bp-type-caption);
+    letter-spacing: 0.14em;
+}
+
+#menuLayer .menu-content::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 18px;
+    width: 74px;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, var(--bp-ui-accent-bright));
+    opacity: 0.76;
+}
+
+#menuLayer .game-title {
+    margin: 12px 0 8px;
+    color: var(--bp-ui-white);
+    font-size: clamp(40px, 5vw, 56px);
+    font-weight: 700;
+    line-height: var(--bp-leading-tight);
+    letter-spacing: 0.16em;
+    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.88);
+}
+
+#menuLayer .game-subtitle {
+    margin: 0;
+    color: var(--bp-ui-text-muted);
+    font-size: var(--bp-type-body);
+    letter-spacing: 0.22em;
+}
+
+#menuLayer .game-version {
+    margin: 6px 0 0 !important;
+    color: var(--bp-ui-text-dim) !important;
+    font-family: var(--bp-font-number) !important;
+    font-size: var(--bp-type-caption) !important;
+    letter-spacing: 0.1em !important;
+}
+
+#menuLayer .menu-buttons {
+    width: 100%;
+    margin-top: 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+#menuLayer .menu-btn {
+    width: 100%;
+    min-height: 48px;
+    margin: 0;
+    padding: 12px 18px;
+    color: var(--bp-ui-text) !important;
+    background: var(--bp-ui-control) !important;
+    border: 1px solid var(--bp-ui-line-strong) !important;
+    border-radius: 6px;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07), 0 7px 18px rgba(0, 0, 0, 0.3);
+    font-family: var(--bp-font-ui);
+    font-size: var(--bp-type-subtitle);
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    transition: transform 0.16s ease, color 0.16s ease, background 0.16s ease, border-color 0.16s ease;
+}
+
+#menuLayer .menu-btn:hover {
+    color: var(--bp-ui-white) !important;
+    background: var(--bp-ui-surface-hover) !important;
+    border-color: var(--bp-ui-accent-bright) !important;
+    transform: translateY(-1px);
+}
+
+#menuLayer .menu-btn:active {
+    transform: translateY(0);
+}
+
+#menuLayer .menu-btn:focus-visible {
+    outline: 2px solid var(--bp-ui-accent-bright);
+    outline-offset: 2px;
+}
+
+#menuLayer .start-btn {
+    color: var(--bp-ui-text-dark) !important;
+    background: var(--bp-ui-surface-light) !important;
+    border-color: var(--bp-ui-white) !important;
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.38), inset 0 1px 0 #ffffff;
+}
+
+#menuLayer .start-btn:hover {
+    color: #05080a !important;
+    background: linear-gradient(180deg, #ffffff, #c7d3da) !important;
+}
+
+#menuLayer .menu-info {
+    width: 100%;
+    margin-top: 18px;
+    padding: 12px 14px;
+    color: var(--bp-ui-text-dim);
+    background: rgba(255, 255, 255, 0.025);
+    border: 1px solid var(--bp-ui-line);
+    border-radius: 6px;
+    font-size: var(--bp-type-caption);
+    line-height: 1.65;
+    text-align: left;
+}
+
+#menuLayer .menu-info::before {
+    content: "快捷操作";
+    display: block;
+    margin-bottom: 5px;
+    color: var(--bp-ui-accent);
+    font-size: var(--bp-type-meta);
+    font-weight: 700;
+    letter-spacing: var(--bp-tracking-label);
+}
+
+#menuLayer .menu-info p {
+    margin: 0;
+}
+
+@media (max-width: 600px) {
+    #menuLayer .menu-content {
+        width: min(440px, calc(100vw - 24px));
+        padding: 38px 24px 24px;
+    }
+
+    #menuLayer .game-title {
+        font-size: 38px;
+        letter-spacing: 0.1em;
+    }
+
+    #menuLayer .menu-info {
+        font-size: 10px;
+    }
+}
+
+/* ===== Left HUD alignment and pause controls ===== */
+:root {
+    --bp-left-hud-width: 252px;
+}
+
+:is(.party-bar, .rts-command-btn, #troopLinePanel, #weaponInfo) {
+    left: 10px !important;
+    width: var(--bp-left-hud-width) !important;
+    box-sizing: border-box !important;
+}
+
+#weaponInfo {
+    bottom: 72px !important;
+}
+
+.game-menu-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-height: 52vh;
+    overflow-y: auto;
+    padding-right: 4px;
+    scrollbar-color: var(--bp-ui-gray) var(--bp-ui-black-soft);
+}
+
+.game-menu-control-row {
+    display: grid;
+    grid-template-columns: minmax(96px, 0.8fr) minmax(0, 1.2fr);
+    gap: 12px;
+    align-items: center;
+    padding: 7px 9px;
+    background: rgba(255, 255, 255, 0.035);
+    border: 1px solid var(--bp-ui-line);
+    border-radius: 5px;
+}
+
+.game-menu-control-key {
+    color: var(--bp-ui-accent-bright);
+    font-family: var(--bp-font-number);
+    font-size: var(--bp-type-meta);
+    font-weight: 700;
+}
+
+.game-menu-control-action {
+    color: var(--bp-ui-text-muted);
+    font-size: var(--bp-type-meta);
+    line-height: 1.4;
+}
+
+/* Preserve semantic feedback colors while keeping their surfaces restrained. */
+:is(.recruit-status--ok, .recruit-status--warn, .recruit-status--err, .enchant-message, .fusion-message) {
+    border-color: currentColor;
+}
+
+@media (max-width: 1100px) {
+    :is(.shop-panel, .craft-panel, .enhance-panel, .enchant-panel, .warehouse-panel, .fusion-panel) {
+        width: min(380px, 44vw);
+    }
+
+    .recruit-panel {
+        width: min(780px, calc(100vw - 40px));
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    :is(
+        .shop-panel,
+        .craft-panel,
+        .enhance-panel,
+        .enchant-panel,
+        .warehouse-panel,
+        .fusion-panel,
+        .quest-panel,
+        .world-switch-panel
+    ) {
+        transition-duration: 0.01ms !important;
+    }
+}

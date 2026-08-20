@@ -7,6 +7,7 @@ import { SoundManager } from '../../ui/sound-manager.js';
 import enemyConfigData from '../../../data/enemy-config.json';
 import { inMeleeRange, hostilesOf } from './_shared/enemy-utils.js';
 import { fireGroundShockwave, fireRadialLines } from '../../effects/combat-fx.js';
+import { canMeleeShareSurface } from '../../combat/melee-surface.js';
 
 /**
  * 手脑（领主 lord）
@@ -181,6 +182,7 @@ export class Shounao extends Enemy {
         // 统一口径：圆形边缘距离（与 CombatSystem 触发同语义，inMeleeRange）
         for (const e of hostilesOf(this, entities)) {
             if (!inMeleeRange(this, e, range)) continue;
+            if (!canMeleeShareSurface(this, e)) continue;
             e.takeDamage(Math.max(1, Math.round(atk * (cfg.damageMul ?? 2))), this, 'physical', true);
         }
     }

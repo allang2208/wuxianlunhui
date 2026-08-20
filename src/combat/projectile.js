@@ -6,7 +6,12 @@ import { ELEVATION } from '../physics/collider.js';
 import { PERSPECTIVE_SCALE_Y } from '../config/perspective-config.js';
 import SpatialPartitionSystem from '../systems/spatial-partition-system.js';
 import { isFriendlyFire } from '../entities/damageable-entity.js';
-import { projectileWallContext } from './elevated-ranged.js';
+import {
+    applyProjectileWallImpact,
+    canUseWallTopModelException,
+    projectileWallContext,
+    wallHitSupportsTarget,
+} from './elevated-ranged.js';
 import { entityVerticalRange } from '../physics/elevation.js';
 
 class Projectile {
@@ -25,6 +30,7 @@ class Projectile {
         this.poisonChance = poisonChance; // 命中时附加中毒的概率（0~1）
         this.poisonStacks = poisonStacks; // 附加中毒层数
         this._embeddedWalls = null; // 出膛嵌墙记录（ProjectileFactory 创建时检测；"只出不进"判定用）
+        this._lastWallHit = null;
 
         // 伪3D直线弹道：z/vz 与 x/y 同步积分，命中走3D胶囊体。
         this.z = 0;
@@ -45,63 +51,71 @@ class Projectile {
         this.traveled += this.speed * scale;
         if (this.traveled >= this.maxRange) {
             this.active = false;
-        } else if (this._isBlockedByWall(prevX, prevY)) {
-            // 墙壁碰撞检测（含嵌墙"只出不进"判定：出膛嵌墙仅允许朝射手一侧越出）
-            // 压平视图隐藏墙体立面时给出短时阻挡标记；不改变本次真实碰撞或弹体生命周期。
-            if (typeof window !== 'undefined') {
-                window.Game?.FlatViewSystem?.notifyProjectileBlocked?.(
-                    this.x,
-                    this.y,
-                    ((Number(this.prevZ) || 0) + (Number(this.z) || 0)) * 0.5 + this.size * 0.5
-                );
-            }
-            this.active = false;
         } else {
-            // 清理已失效目标的命中记录
-            for (const target of Array.from(this.hitTargets)) {
-                if (!target.active) {
-                    this.hitTargets.delete(target);
+            const wallTopModelTarget = this._findWallTopModelTarget(prevX, prevY);
+            const blockedByWall = this._isBlockedByWall(prevX, prevY);
+            const modelHitThroughSupport = blockedByWall
+                && wallTopModelTarget
+                && wallHitSupportsTarget(this._lastWallHit, wallTopModelTarget);
+            if (blockedByWall && !modelHitThroughSupport) {
+                // 墙壁碰撞检测（含嵌墙"只出不进"判定：出膛嵌墙仅允许朝射手一侧越出）
+                // 压平视图隐藏墙体立面时给出短时阻挡标记；不改变本次真实碰撞或弹体生命周期。
+                if (typeof window !== 'undefined') {
+                    window.Game?.FlatViewSystem?.notifyProjectileBlocked?.(
+                        this.x,
+                        this.y,
+                        ((Number(this.prevZ) || 0) + (Number(this.z) || 0)) * 0.5 + this.size * 0.5
+                    );
                 }
-            }
-
-            // 空间网格 broadphase：只查询路径附近的实体
-            const candidates = this._getCandidateEntities(prevX, prevY);
-            for (const entity of candidates) {
-                // 友军伤害免疫：跳过同阵营目标（放在 hitTargets 检查之前，避免同一友军被反复判断）
-                // 开发工具「友军伤害」开启时放行（isFriendlyFire 已随开关返回 false，
-                // 同阵营硬过滤也要一并放行，否则枪弹打掩体/队友仍被跳过，2026-08-16）
-                const devFF = (typeof window !== 'undefined' && window.Game && window.Game._devFriendlyFire);
-                if (entity === this.source || !entity.active || !entity.hittable ||
-                    isFriendlyFire(this.source, entity) ||
-                    (!devFF && this.source && this.source._faction && entity._faction && this.source._faction === entity._faction) ||
-                    this.hitTargets.has(entity)) continue;
-                if (this._isHittingEntity(entity, prevX, prevY)) {
-                    this.hitTargets.add(entity);
-                    const damage = typeof this.damage === 'object' ? Math.floor(this.damage.min + Math.random() * (this.damage.max - this.damage.min + 1)) : this.damage;
-                    // 毒液/中毒投射物：命中后按概率给目标叠加中毒
-                    if ((this.isSpit || this.poisonChance > 0) && typeof entity.applyPoison === 'function') {
-                        const chance = this.isSpit && this.poisonChance === 0 ? 1 : this.poisonChance;
-                        if (Math.random() < chance) {
-                            entity.applyPoison(this.poisonStacks);
-                        }
+                applyProjectileWallImpact(
+                    this.source,
+                    this._lastWallHit,
+                    this.damage,
+                    this.damageType || 'ranged'
+                );
+                this.active = false;
+            } else {
+                // 清理已失效目标的命中记录
+                for (const target of Array.from(this.hitTargets)) {
+                    if (!target.active) {
+                        this.hitTargets.delete(target);
                     }
-                    // 命中效果按发射瞬间的快照判定（无快照时回退到当前武器，兼容非工厂创建的投射物）
-                    const snap = this._effectSnapshot;
-                    const weapon = snap
-                        ? { _enchantEffects: snap.enchant, _craftEffects: snap.craft }
-                        : (this.source ? (this.source.getCurrentWeapon ? this.source.getCurrentWeapon() : (this.source.equipments && this.source.weaponMode ? this.source.equipments[this.source.weaponMode] : null)) : null);
-                    DamagePipeline.applyHit(this.source, entity, {
-                        damage,
-                        damageType: this.damageType || 'ranged',
-                        currentWeapon: weapon,
-                        isMelee: false,
-                        // 投射物击退（工厂 create 的 knockback 选项驱动；无配置时为 0 不生效）
-                        knockback: this.knockback || 0,
-                        angle: this.angle
-                    });
-                    if (this.piercing) { this.piercing--; if (this.piercing <= 0) this.active = false; }
-                    else { this.active = false; }
-                    if (!this.active) break;
+                }
+
+                // 空间网格 broadphase：只查询路径附近的实体
+                const candidates = modelHitThroughSupport
+                    ? [wallTopModelTarget]
+                    : this._getCandidateEntities(prevX, prevY);
+                for (const entity of candidates) {
+                    if (!this._canHitEntity(entity)) continue;
+                    if (this._isHittingEntity(entity, prevX, prevY)) {
+                        this.hitTargets.add(entity);
+                        const damage = typeof this.damage === 'object' ? Math.floor(this.damage.min + Math.random() * (this.damage.max - this.damage.min + 1)) : this.damage;
+                        // 毒液/中毒投射物：命中后按概率给目标叠加中毒
+                        if ((this.isSpit || this.poisonChance > 0) && typeof entity.applyPoison === 'function') {
+                            const chance = this.isSpit && this.poisonChance === 0 ? 1 : this.poisonChance;
+                            if (Math.random() < chance) {
+                                entity.applyPoison(this.poisonStacks);
+                            }
+                        }
+                        // 命中效果按发射瞬间的快照判定（无快照时回退到当前武器，兼容非工厂创建的投射物）
+                        const snap = this._effectSnapshot;
+                        const weapon = snap
+                            ? { _enchantEffects: snap.enchant, _craftEffects: snap.craft }
+                            : (this.source ? (this.source.getCurrentWeapon ? this.source.getCurrentWeapon() : (this.source.equipments && this.source.weaponMode ? this.source.equipments[this.source.weaponMode] : null)) : null);
+                        DamagePipeline.applyHit(this.source, entity, {
+                            damage,
+                            damageType: this.damageType || 'ranged',
+                            currentWeapon: weapon,
+                            isMelee: false,
+                            // 投射物击退（工厂 create 的 knockback 选项驱动；无配置时为 0 不生效）
+                            knockback: this.knockback || 0,
+                            angle: this.angle
+                        });
+                        if (this.piercing) { this.piercing--; if (this.piercing <= 0) this.active = false; }
+                        else { this.active = false; }
+                        if (!this.active) break;
+                    }
                 }
             }
         }
@@ -117,6 +131,7 @@ class Projectile {
      */
     _isBlockedByWall(prevX, prevY) {
         if (!WallSystem || !WallSystem.blocked) return false;
+        this._lastWallHit = null;
         const emb = this._embeddedWalls;
         // 普通墙（嵌墙面线 + 其阶梯块 + 嵌墙矩形除外）撞线即死
         const embeddedIgnore = emb ? {
@@ -133,7 +148,17 @@ class Projectile {
         };
         const z1 = this.prevZ + this.size / 2;
         const z2 = this.z + this.size / 2;
-        if (typeof WallSystem.projectileBlocked === 'function') {
+        if (typeof WallSystem.projectileWallHit === 'function') {
+            const wallHit = WallSystem.projectileWallHit(
+                prevX, prevY, z1,
+                this.x, this.y, z2,
+                ignore
+            );
+            if (wallHit) {
+                this._lastWallHit = wallHit;
+                return true;
+            }
+        } else if (typeof WallSystem.projectileBlocked === 'function') {
             if (WallSystem.projectileBlocked(prevX, prevY, z1, this.x, this.y, z2, ignore)) return true;
         } else if (WallSystem.blocked(prevX, prevY, this.x, this.y, ignore)) return true;
         if (!emb) return false;
@@ -147,13 +172,19 @@ class Projectile {
                     // 已回到射手侧：面线恢复普通判定（再反向越线即死），其阶梯块永久放行（墙厚区）
                     if (e.linked) for (const w of e.linked) emb.clearedRects.add(w);
                     emb.segs.splice(i, 1);
-                } else return true; // 背向钻透：销毁
+                } else {
+                    this._lastWallHit = { owner: e.seg?._owner || null, obstacle: e.seg, wall: e.seg?._owner || null };
+                    return true; // 背向钻透：销毁
+                }
                 continue;
             }
             // 未跨线但在远侧越飞越远（背向远离墙面）：同样销毁——否则出膛在墙外的子弹直接穿墙飞走
             const sPrev = WallSystem.segSide(e.seg, prevX, prevY);
             const sCur = WallSystem.segSide(e.seg, this.x, this.y);
-            if (Math.sign(sCur) !== e.shooterSign && Math.abs(sCur) > Math.abs(sPrev)) return true;
+            if (Math.sign(sCur) !== e.shooterSign && Math.abs(sCur) > Math.abs(sPrev)) {
+                this._lastWallHit = { owner: e.seg?._owner || null, obstacle: e.seg, wall: e.seg?._owner || null };
+                return true;
+            }
         }
         // 矩形墙嵌墙：矩形内不判，越出看方位
         for (let i = emb.rects.length - 1; i >= 0; i--) {
@@ -161,9 +192,50 @@ class Projectile {
             if (WallSystem.pointInRect(this.x, this.y, e.rect)) continue;
             const side = WallSystem.sideOfRect(this.x, this.y, e.rect);
             if (e.shooterSide === 'inside' || side === e.shooterSide) emb.rects.splice(i, 1); // 朝射手一侧越出：放行
-            else return true; // 从另一侧钻出：销毁
+            else {
+                this._lastWallHit = { owner: e.rect?._owner || null, obstacle: e.rect, wall: e.rect?._owner || null };
+                return true; // 从另一侧钻出：销毁
+            }
         }
         return false;
+    }
+
+    _canHitEntity(entity) {
+        const devFF = typeof window !== 'undefined' && window.Game && window.Game._devFriendlyFire;
+        return !!entity
+            && entity !== this.source
+            && entity.active
+            && entity.hittable
+            && !isFriendlyFire(this.source, entity)
+            && !(!devFF && this.source?._faction && entity._faction
+                && this.source._faction === entity._faction)
+            && !this.hitTargets.has(entity);
+    }
+
+    /** 墙下射墙上时，仅精确躯干命中可以越过目标自己的承托墙。 */
+    _findWallTopModelTarget(prevX, prevY) {
+        if (!canUseWallTopModelException(this.source)) return null;
+        const candidates = this._getCandidateEntities(prevX, prevY);
+        let best = null;
+        let bestT = Infinity;
+        const dx = this.x - prevX;
+        const dy = this.y - prevY;
+        const lengthSq = dx * dx + dy * dy;
+        for (const entity of candidates) {
+            if (!this._canHitEntity(entity) || entity._surfaceKind !== 'wall_walk') continue;
+            if (!this._projectileVerticalSpanOverlapsEntity(entity)
+                || !this._hitTorsoRect(entity, prevX, prevY)) continue;
+            const targetX = Number(entity.collider?.x ?? entity.x) || 0;
+            const targetY = Number(entity.collider?.y ?? entity.y) || 0;
+            const t = lengthSq > 1e-6
+                ? Math.max(0, Math.min(1, ((targetX - prevX) * dx + (targetY - prevY) * dy) / lengthSq))
+                : 0;
+            if (t < bestT) {
+                best = entity;
+                bestT = t;
+            }
+        }
+        return best;
     }
 
     /**

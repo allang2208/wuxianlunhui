@@ -9,6 +9,7 @@ import { AimHelper } from '../../utils/aim-helper.js';
 import { hostilesOf } from './_shared/enemy-utils.js';
 import { summonMonster } from './_shared/summon-helper.js';
 import { launchArcProjectile, createGroundWarning, keepWarningAlive, destroyWarning, fireGroundShockwave } from '../../effects/combat-fx.js';
+import { canMeleeShareSurface } from '../../combat/melee-surface.js';
 
 /**
  * 集合体（AmalgamZombie，首领）
@@ -289,6 +290,7 @@ export class AmalgamZombie extends Enemy {
                     surfaceEffectFromEntity(this)
                 );
                 if (shape.intersectsEntity(e)) {
+                    if (!canMeleeShareSurface(this, e)) continue;
                     e.takeDamage(atk * (zone.damageMul ?? 1), this, 'physical', true);
                     break;
                 }

@@ -9,7 +9,7 @@ import { MovementSystem } from '../systems/movement-system.js';
 import { WallSystem } from '../world/wall-system.js';
 import { SoundManager } from '../ui/sound-manager.js';
 import { EffectFactory } from '../utils/effect-factory.js';
-import { clearRtsSurfaceRoute, resolveRtsMoveDestination } from './rts-command-utils.js';
+import { clearRtsSurfaceRoute, finishRtsCommandAtHold, resolveRtsMoveDestination, RTS_DEFAULT_ACQUIRE_RANGE } from './rts-command-utils.js';
 import { canMeleeReachElevation } from './elevated-navigation-controller.js';
 
 export class HamsterKnightAI {
@@ -21,7 +21,7 @@ export class HamsterKnightAI {
         this._attackInterval = this.cfg.attackInterval ?? 2000;
         this._attackDamage = this.cfg.attackDamage ?? 100;
         this._attackRange = this.cfg.attackRange ?? 55;
-        this._engageRange = this.cfg.engageRange ?? 900;
+        this._engageRange = RTS_DEFAULT_ACQUIRE_RANGE;
         this._followOffset = this.cfg.followOffset ?? 155;
         this._followArriveDist = this.cfg.followArriveDist ?? 40;
 
@@ -141,7 +141,7 @@ export class HamsterKnightAI {
                 m._animState = 'walk';
                 m.maxSpeed = this.cfg.walkSpeed ?? 210;
             } else {
-                m._command = { mode: 'follow' };
+                finishRtsCommandAtHold(m);
                 clearRtsSurfaceRoute(m);
                 this._stopAtTarget();
             }
@@ -150,7 +150,7 @@ export class HamsterKnightAI {
         if (command.mode === 'attack') {
             const target = command.target;
             if (!target || !target.active || target.hp <= 0 || target._isEnergyNode) {
-                m._command = { mode: 'follow' };
+                finishRtsCommandAtHold(m);
                 m.target = null;
                 this._stopAtTarget();
                 return;

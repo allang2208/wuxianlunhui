@@ -80,9 +80,11 @@ export function structureDepthSpan(entity) {
 
 /**
  * 取得 iso 建筑在指定屏幕 X 位置的真实地面前缘 Y。
- * 只采样 footprint 两条前边，不延长线段，因此不会在前顶点/侧角被另一条边误判。
+ * 只采样 footprint 两条前边。sideRange 仅表示移动精灵真实接地/碰撞的横向半径，
+ * 不等于显示贴图宽度；当其中心略越过前角、但贴图仍与建筑相交时，仍以端点作为前缘，
+ * 不能无限延长线段。
  */
-export function structureFrontYAtX(entity, x) {
+export function structureFrontYAtX(entity, x, sideRange = 0) {
     if (!entity || entity._structureDepthMode !== 'iso_footprint') return null;
     if (!Array.isArray(entity._faceLines) || entity._faceLines.length !== 2) {
         refreshStructureDepth(entity);
@@ -93,7 +95,8 @@ export function structureFrontYAtX(entity, x) {
         if (!a || !b) continue;
         const minX = Math.min(a.x, b.x);
         const maxX = Math.max(a.x, b.x);
-        if (x < minX || x > maxX) continue;
+        const lateralReach = Math.max(0, Number(sideRange) || 0);
+        if (x < minX - lateralReach || x > maxX + lateralReach) continue;
         const dx = b.x - a.x;
         const t = Math.max(0, Math.min(1, (x - a.x) / (Math.abs(dx) > 1e-6 ? dx : 1)));
         const y = a.y + (b.y - a.y) * t;
@@ -102,9 +105,9 @@ export function structureFrontYAtX(entity, x) {
     return frontY;
 }
 
-/** 给 WallSystem 的无分支采样结果：null 表示单位横向不与该建筑 footprint 相交。 */
-export function structureDepthRelationAtPoint(entity, x, y) {
-    const frontY = structureFrontYAtX(entity, x);
+/** 给 WallSystem 的无分支采样结果：null 表示单位可见横向范围不与该建筑前缘相交。 */
+export function structureDepthRelationAtPoint(entity, x, y, sideRange = 0) {
+    const frontY = structureFrontYAtX(entity, x, sideRange);
     if (frontY === null) return null;
     const inFront = y >= frontY;
     const span = structureDepthSpan(entity);

@@ -1,6 +1,10 @@
 import { SkillManager } from '../../ui/skill-manager.js';
 import { BoltSkillSystem } from './bolt-skill-system.js';
-import { burstParticles, fireGroundShockwave } from '../../effects/combat-fx.js';
+import {
+    burstParticles,
+    fireGroundShockwave,
+    resolveSkillEffectDepth,
+} from '../../effects/combat-fx.js';
 import { SoundManager } from '../../ui/sound-manager.js';
 import skillsData from '../../../data/skills.json';
 
@@ -90,6 +94,20 @@ const FIREBALL_KIND = {
         spike.active = false;
         const radius = effect.explosionRadius;
         const displayY = y - (Number(surfaceContext?.z) || 0);
+        const effectDepth = resolveSkillEffectDepth({
+            source: sys.source,
+            groundY: y,
+            context: spike.renderDepthContext,
+            groundOffset: 60,
+            preferSourceDepth: false,
+        });
+        const smokeDepth = resolveSkillEffectDepth({
+            source: sys.source,
+            groundY: y,
+            context: spike.renderDepthContext,
+            groundOffset: 55,
+            preferSourceDepth: false,
+        });
         try {
             // 命中音效（skills.json fireball.sounds.hit 配置驱动；命中/撞墙/到射程爆炸同点播放）
             const hitSound = skillsData.skills?.fireball?.sounds?.hit;
@@ -101,6 +119,7 @@ const FIREBALL_KIND = {
                 x, y: displayY, maxRadius: radius,
                 strokeColor: 0xff7020, fillColor: 0xff9540,
                 lineWidth: 7, duration: 420, flicker: true,
+                depth: effectDepth,
             });
             burstParticles({
                 texture: 'impact_dot', x, y: displayY, count: 26, jitter: radius * 0.25,
@@ -112,7 +131,7 @@ const FIREBALL_KIND = {
                     tint: [0xffffff, 0xffd27a, 0xff8830, 0xff5510],
                     blendMode: 'ADD',
                 },
-                destroyAfterMs: 800, depth: displayY + 60,
+                destroyAfterMs: 800, depth: effectDepth,
             });
             burstParticles({
                 texture: 'smoke_particle', x, y: displayY, count: 8, jitter: radius * 0.2,
@@ -123,7 +142,7 @@ const FIREBALL_KIND = {
                     lifespan: { min: 700, max: 1100 },
                     tint: 0x555555,
                 },
-                destroyAfterMs: 1300, depth: displayY + 55,
+                destroyAfterMs: 1300, depth: smokeDepth,
             });
             sys._explodeAoE(x, y, damage, radius, entities, skill, surfaceContext);
         } catch (e) {

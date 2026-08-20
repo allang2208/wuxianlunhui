@@ -19,7 +19,7 @@
         .right-sidebar-panel-layer > .companion-overlay,
         .right-sidebar-panel-layer > .recruit-overlay { pointer-events: auto; }
 
-        #menuLayer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: var(--z-main-menu); background: linear-gradient(135deg, #3d342b 0%, #2a2520 50%, #1e1a16 100%); display: flex; flex-direction: column; justify-content: center; align-items: center; transition: opacity 1.2s ease, visibility 1.2s ease; }
+        #menuLayer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: var(--z-main-menu); background-color: #080d18; background-image: linear-gradient(rgba(4, 8, 18, 0.16), rgba(4, 8, 18, 0.34)), url('./assets/ui/start-screen-background.png'); background-position: center bottom; background-size: cover; background-repeat: no-repeat; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: opacity 1.2s ease, visibility 1.2s ease; }
         #menuLayer.hidden { opacity: 0; pointer-events: none; visibility: hidden; }
         .menu-title { font-size: 56px; color: #d4c5a9; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); letter-spacing: 8px; margin-bottom: 8px; font-weight: 700; }
         .menu-sub { font-size: 14px; color: #8a7d6b; margin-bottom: 50px; letter-spacing: 3px; }
@@ -2622,9 +2622,6 @@
     50% { transform: translateY(-10px); }
 }
 
-
-/* ===== 任务追踪栏 ===== */
-
 /* ============================================
    NPC 立绘调整工具（参考 dev-tool 样式）
    ============================================ */
@@ -2722,21 +2719,9 @@
     background: linear-gradient(to bottom, #3d3d3d, #2a2a2a);
     border-color: #5a5a5a;
 }
-.quest-tracker {
-    position: absolute; top: 225px; left: 10px; width: 220px;
-    background: rgba(42, 37, 32, 0.85); border: 2px solid #5a4d3f;
-    border-radius: 8px; padding: 10px 14px; z-index: 11;
-    pointer-events: none; font-family: SimHei, "Microsoft YaHei", "黑体", sans-serif;
-}
-.quest-tracker-title { font-size: 13px; font-weight: 700; color: #ffd700; margin-bottom: 6px; text-shadow: 0 0 4px rgba(255, 215, 0, 0.4); }
-.quest-tracker-name { font-size: 12px; font-weight: 600; color: #d4c5a9; margin-bottom: 4px; }
-.quest-tracker-obj { font-size: 11px; color: #b4a599; padding: 2px 0; }
-.quest-tracker-obj.completed { color: #7a9a6a; text-decoration: line-through; }
-.quest-tracker-empty { font-size: 11px; color: #6b5d4f; }
-
-        /* ===== 组队栏（替换左侧任务追踪栏位置） ===== */
+        /* ===== 左侧组队栏 ===== */
         .party-bar {
-            position: absolute; top: 225px; left: 10px; width: 220px;
+            position: absolute; top: 225px; left: 10px; width: 252px;
             background: rgba(42, 37, 32, 0.85); border: 2px solid #5a4d3f;
             border-radius: 8px; padding: 10px 14px; z-index: 11;
             font-family: SimHei, "Microsoft YaHei", "黑体", sans-serif;
@@ -2762,7 +2747,7 @@
 
         /* ===== RTS 指挥模式（2026-08-16：组队栏下方按钮 + 单位属性面板） ===== */
         .rts-command-btn {
-            position: absolute; height: 32px; left: 10px; width: 220px;
+            position: absolute; height: 32px; left: 10px; width: 252px; box-sizing: border-box;
             background: rgba(42, 37, 32, 0.85); color: #d4c5a9;
             border: 2px solid #5a4d3f; border-radius: 6px;
             font-family: SimHei, "Microsoft YaHei", "黑体", sans-serif;
@@ -3172,7 +3157,6 @@
 body.map-mode .bottom-bar,
 body.map-mode .top-bar,
 body.map-mode .controls-hint-left,
-body.map-mode .quest-tracker,
 body.map-mode #weaponInfo {
   display: none !important;
 }
@@ -3340,6 +3324,15 @@ body.map-mode #weaponInfo {
 .wall-editor-panel.build-panel { width: 420px; }
 .build-panel .we-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
 .build-panel .we-thumb { width: auto; cursor: pointer; }
+.build-panel .we-thumb img {
+  /* 统一道路图标同款预览框；图片只做等比缩放，禁止拉伸或裁切。 */
+  display: block;
+  width: 116px;
+  max-width: 100%;
+  height: 58px;
+  margin: 0 auto;
+  object-fit: contain;
+}
 
 /* 建筑详情面板（2026-08-16）：与建筑面板并排，置于其左侧 */
 .build-panel #bpDetail {
@@ -3631,3 +3624,10 @@ body.map-mode #weaponInfo {
 .world-switch-panel .ws-status .ws-current { color: #7fe0c8; font-weight: 700; }
 .world-switch-panel .ws-status .ws-dim { color: #8a7d6b; }
 .world-switch-panel .ws-preview { margin-top: 4px; color: #9ad0ff; }
+
+/* ===== 图鉴友军栏目 + 主 tab 风格统一（2026-08-19，契合背包/属性栏金棕主色调） ===== */
+.codex-main-tab.active { color: #ffd98a; background: rgba(90,77,63,0.4); border-color: #d4c5a9; }
+.codex-ally-card { background: linear-gradient(135deg, rgba(50,80,90,0.8), rgba(35,55,65,0.9)); border-color: rgba(100,160,180,0.4); }
+.codex-ally-card:hover { border-color: rgba(140,210,230,0.7); }
+.codex-ally-grid { grid-template-columns: 1fr; }
+.cd-family-tag.ally { background: rgba(74,122,138,0.35); color: #8ad0e8; }

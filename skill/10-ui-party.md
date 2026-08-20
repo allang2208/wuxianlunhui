@@ -61,7 +61,6 @@
   `event.repeat` 不重复切换模式。
 - 模式快捷键只改变显示或指令状态，不能进入伤害、碰撞、寻路等逻辑真源。
 
-
 #### 步骤4: 声道与 BGM（2026-07-21 新增）
 - **声道**：`playFile(path, volume, channel)` 第三参为声道（`sfx` 战斗音效默认 / `ui` 界面 / `music` 音乐），声道音量配置在 `data/audio-config.json` 的 `channels`（独立于 masterVolume 的二级调节）；运行时可 `SoundManager.setChannelVolume(channel, v)`。
 - **BGM**：`data/audio-config.json` 的 `bgm` 映射场景 → 音轨（`null` = 无 BGM），切场景自动播放/停止（SceneManager 已接入 `playBgmForScene`）；音轨用 `playLoop` 循环，交叉淡入 `bgmCrossfadeSec`。新 BGM 素材放入 `assets/sounds/music/` 并填配置即可。
@@ -318,3 +317,4 @@
   + 动态 import src 模块（静态 import 在 loader 注册前解析会报 ERR_IMPORT_ATTRIBUTE_MISSING）。
 - 新增侍从技能/战斗模型/装备属性结算/存档落盘：在框架对应留白处接入（skills 空对象、
   modelPlaceholder 未渲染、equipments 无属性结算）。
+

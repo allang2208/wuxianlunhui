@@ -9,6 +9,7 @@ import { EnhanceSystem } from './enhance-system.js';
 import { CraftSystem } from './craft-system.js';
 import { EnchantSystem } from './enchant-system.js';
 import { QuestSystem } from './quest-system.js';
+import { CompanionPanel } from './companion-panel.js';
 import { QuickBar } from './quick-bar.js';
 import { WarehouseSystem } from './warehouse-system.js';
 import { FusionSystem } from './fusion-system.js';
@@ -16,7 +17,7 @@ import { SystemUI } from './system-ui.js';
 import { ExpeditionSystem } from './expedition-system.js';
 import { GameMenu } from './game-menu.js';
 import DevTool from './dev-tool.js';
-import { TimerManager } from '../utils/timer-manager.js';
+import { closeBasePanels } from './panels/base-panel.js';
         export const Input = {
             keys: new Set(),
             mouse: { x: 0, y: 0, leftDown: false, rightDown: false, leftPressed: false, rightPressed: false },
@@ -55,10 +56,12 @@ import { TimerManager } from '../utils/timer-manager.js';
                 });
                 window.addEventListener('mousemove', e => { this.mouse.x = e.clientX; this.mouse.y = e.clientY; });
                 window.addEventListener('mousedown', e => {
+                    this.mouse.x = e.clientX;
+                    this.mouse.y = e.clientY;
                     if (Game._wallEditMode || Game._collisionEditMode || Game._buildMode) return; // 墙壁/碰撞/建筑编辑模式：鼠标交给编辑器，不触发攻击
                     // DOM 覆盖层点击不进入世界点击（组队栏/队员面板/招募界面等）：
                     // 并行新增 BuildingSystem.tryInteract 后，漏拦截会误开建筑面板
-                    const isSystemUI = e.target.closest('.system-panel, .panel-overlay, .side-menu, .back-menu-btn, .menu-btn, .party-bar, .companion-overlay, .recruit-overlay, .rts-command-btn, .rts-unit-panel');
+                    const isSystemUI = !!e.target?.closest?.('.system-panel, .panel-overlay, .side-menu, .back-menu-btn, .menu-btn, .party-bar, .companion-overlay, .recruit-overlay, .rts-command-btn, .rts-unit-panel, .rts-command-bar, .wall-editor-panel, .world-switch-panel, .hamster-hut-panel, .hamster-barracks-panel, .producer-building-panel');
                     if (e.button === 0) { this.mouse.leftDown = true; if (!isSystemUI) this.mouse.leftPressed = true; }
                     if (e.button === 2) { this.mouse.rightDown = true; if (!isSystemUI) this.mouse.rightPressed = true; }
                 });
@@ -70,14 +73,11 @@ import { TimerManager } from '../utils/timer-manager.js';
             },
     handleKey(code, altKey = false) {
                 if (Game._wallEditMode || Game._collisionEditMode || Game._buildMode) return; // 墙壁/碰撞/建筑编辑模式：按键交给编辑器（捕获监听先处理）
-                if (code === CONFIG.KEYS.PAUSE) {
-                    Game._paused = !Game._paused;
-                    // P 键暂停与菜单暂停同口径：冻结全部定时器（波次/计时/冷却等）
-                    TimerManager.setPaused(Game._paused);
-                    EffectManager.add(new FloatingTextEffect(Game.player.x, Game.player.y - 50, Game._paused ? '游戏暂停' : '游戏继续', '#ffdd00'));
-                    return;
-                }
+                // 暂停已与菜单整合（Esc 开菜单即暂停，game-menu open/close 双循环+定时器）；P 键让位队员管理（2026-08-19）
                 if (code === CONFIG.KEYS.MENU) {
+                    // 建筑详情面板（出兵/铁匠铺/研究/塔/陷阱等）Esc 优先关闭，
+                    // 不应在同一次按键继续打开暂停菜单；Electron 转发的 ESC 同样走这里。
+                    if (closeBasePanels('buildingDetail') > 0) return;
                     // 任务栏打开时按ESC关闭任务栏
                     if (UIState.isOpen('quest')) {
                         QuestSystem.close();
@@ -119,6 +119,8 @@ import { TimerManager } from '../utils/timer-manager.js';
                     if (code === CONFIG.KEYS.SKILL) { SystemUI.toggle('skill'); return; }
                     if (code === CONFIG.KEYS.CODEX) { SystemUI.toggle('codex'); return; }
                     if (code === CONFIG.KEYS.QUEST) { if (QuestSystem) QuestSystem.toggle(); return; }
+                    if (code === CONFIG.KEYS.PARTY) { CompanionPanel.openManage(); return; }
+                    if (code === CONFIG.KEYS.WORLD) { if (typeof window !== 'undefined' && window.WorldSwitchPanel) window.WorldSwitchPanel.toggle(); return; }
                     if (code === 'KeyF' && Game.player) { Game.player.switchWeaponMode(); return; }
                     if (code === 'KeyZ' && Game.isRunning) { Game._pickupNearbyFlag = true; return; }
                     return; // 其他按键在面板打开时忽略
@@ -128,6 +130,8 @@ import { TimerManager } from '../utils/timer-manager.js';
                 if (code === CONFIG.KEYS.SKILL) SystemUI.toggle('skill');
                 if (code === CONFIG.KEYS.CODEX) SystemUI.toggle('codex');
                 if (code === CONFIG.KEYS.QUEST) { if (QuestSystem) QuestSystem.toggle(); }
+                if (code === CONFIG.KEYS.PARTY) { CompanionPanel.openManage(); }
+                if (code === CONFIG.KEYS.WORLD) { if (typeof window !== 'undefined' && window.WorldSwitchPanel) window.WorldSwitchPanel.toggle(); }
                 if (code === CONFIG.KEYS.SKILL_Q || code === CONFIG.KEYS.SKILL_E || code === CONFIG.KEYS.SKILL_R || code === CONFIG.KEYS.SKILL_C) {
                     // 雷枪蓄力键：按下即开始蓄力，松开/满蓄释放（<0.5s 失败不进 CD）
                     if (QuickBar.isThunderLanceKey(code)) {

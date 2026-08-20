@@ -7,7 +7,7 @@ import { SceneManager } from '../world/scene-manager.js';
  */
 
 import { UIState } from './ui-state.js';
-import { queryAllElements, getElement, getElementIfExists } from '../utils/dom-utils.js';
+import { queryAllElements, getElement } from '../utils/dom-utils.js';
 import { EquipManager } from './equip-manager.js';
 import { BackpackDialogManager } from './backpack-dialog-manager.js';
 import { SystemUI } from './system-ui.js';
@@ -95,9 +95,6 @@ export const ExpeditionSystem = {
         this._updateCapacityDisplay();
         this._showMessage('请从背包拖入物品，点击已放入的格子可移除');
 
-        // 出征界面隐藏任务追踪栏
-        const questTracker = getElementIfExists('questTracker');
-        if (questTracker) questTracker.style.display = 'none';
     },
 
     // 关闭出征准备面板 — 归还所有物品到背包
@@ -119,9 +116,6 @@ export const ExpeditionSystem = {
         if (overlay) overlay.classList.remove('active');
         this._hideRulePanel();
 
-        // 恢复任务追踪栏
-        const questTracker = getElementIfExists('questTracker');
-        if (questTracker) questTracker.style.display = 'block';
     },
 
     // 切换面板
@@ -767,10 +761,6 @@ export const ExpeditionSystem = {
         if (overlay) overlay.classList.remove('active');
         UIState.close('expedition');
         this._hideRulePanel(); // 出征后左侧条件栏一并隐藏（面板清理完整还原）
-
-        // 恢复任务追踪栏（与 close() 同口径）
-        const questTracker = getElementIfExists('questTracker');
-        if (questTracker) questTracker.style.display = 'block';
 
         // 清空出征数据（物品已确认带走）
         this._carriedItems = new Array(this.CAPACITY).fill(null);

@@ -498,7 +498,7 @@ export function createDevToolPanel() {
     cheatRow.append(btnCheat, cheatHint);
     skillRow.appendChild(cheatRow);
 
-    // ===== 测试开关：无限资源（建造建筑不消耗能源/金币） =====
+    // ===== 测试开关：无限资源（建造、产兵、升级项目不消耗能源/金币） =====
     const resourceRow = document.createElement('div');
     resourceRow.style.cssText = 'display:flex;gap:8px;align-items:center;padding:6px 0;border-top:1px solid #3a3a3a;margin-top:6px;';
     const btnResource = document.createElement('button');
@@ -518,12 +518,12 @@ export function createDevToolPanel() {
         window.Game._devInfiniteResources = next;
         syncResourceBtn();
         if (DevTool && typeof DevTool._showToast === 'function') {
-            DevTool._showToast(next ? '✅ 无限资源 已开启（建造不消耗能源/金币）' : '无限资源 已关闭');
+            DevTool._showToast(next ? '✅ 无限资源 已开启（建造、产兵、升级项目免费）' : '无限资源 已关闭');
         }
     });
     syncResourceBtn();
     const resourceHint = document.createElement('span');
-    resourceHint.textContent = '测试用：建造建筑/小屋升级不消耗能源和金币';
+    resourceHint.textContent = '测试用：建造建筑、生成单位、升级项目均不消耗金币和能源';
     resourceHint.style.cssText = 'color:#9aa5b1;font-size:11px;';
     resourceRow.append(btnResource, resourceHint);
     skillRow.appendChild(resourceRow);
@@ -573,13 +573,14 @@ export function createDevToolPanel() {
     worldWrap.innerHTML = `
         <div class="collision-tab-desc">
             <p>🌐 位面生命周期调试：查看状态、世代、快照和真实入侵候选池。</p>
-            <p style="color:#d8a26a;">推进时间会修改统一游戏时钟；模拟毁门会执行正式毁灭事务。</p>
+            <p style="color:#d8a26a;">打通位面会按正式成功结算补齐地牢前置；推进时间会修改统一游戏时钟；模拟毁门会执行正式毁灭事务。</p>
         </div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin:8px 0;">
             <button id="devWorldRefresh" class="dev-tool-menu-btn">刷新</button>
             <button id="devWorldAdvance1" class="dev-tool-menu-btn">推进 1 天</button>
             <button id="devWorldAdvance5" class="dev-tool-menu-btn">推进 5 天</button>
             <select id="devWorldSelect" style="min-width:150px;padding:4px;background:#1c1c1c;color:#d4c5a9;border:1px solid #3a3a3a;"></select>
+            <button id="devWorldUnlock" class="dev-tool-menu-btn" style="border-color:#4f8f72;color:#a9f0c8;">打通位面</button>
             <button id="devWorldDestroy" class="dev-tool-menu-btn" style="border-color:#9b4b43;color:#ffb4aa;">模拟毁门</button>
         </div>
         <div id="devWorldSummary" style="font-size:12px;color:#b8d8ff;margin-bottom:8px;"></div>
@@ -609,6 +610,12 @@ export function createDevToolPanel() {
             + `当前入侵：${invasion}<br>候选池：${model.candidatePool.length ? model.candidatePool.join(', ') : '空'}`;
         rows.innerHTML = model.worlds.map((world) => {
             const protectionDays = world.protectionRemainingMs / Math.max(1, model.dayDurationMs);
+            const requiredDungeons = world.requiredDungeons || [];
+            const completedRequirements = requiredDungeons.filter((entry) => entry.completed).length;
+            const requirementText = requiredDungeons.length
+                ? `${completedRequirements}/${requiredDungeons.length} · ${requiredDungeons.map((entry) =>
+                    `${entry.dungeonType}${entry.completed ? '✓' : '✕'}`).join(', ')}`
+                : '无';
             const snapshot = world.snapshot.exists
                 ? `epoch ${world.snapshot.worldEpoch} · 建筑 ${world.snapshot.structures} · 单位 ${world.snapshot.units}`
                     + ` · 资源点 ${world.snapshot.resourceNodes} · 道路 ${world.snapshot.roads}`
@@ -619,6 +626,7 @@ export function createDevToolPanel() {
                     候选：${world.candidate ? '是' : '否'} · 保护：${world.protected ? `${protectionDays.toFixed(2)} 天` : '无'} ·
                     生成 v${world.generationVersion} / seed ${world.generationSeed}
                 </div>
+                <div style="font-size:11px;color:#b9d7a8;margin-top:2px;">地牢前置：${requirementText} · 首次构造：${world.constructionEnabled ? '开放' : '配置关闭'}</div>
                 <div style="font-size:11px;color:#8fc2d2;margin-top:2px;">快照：${snapshot}</div>
             </div>`;
         }).join('');
@@ -631,6 +639,22 @@ export function createDevToolPanel() {
     });
     root.querySelector('#devWorldAdvance5').addEventListener('click', () => {
         window.WorldInvasionSystem?.debugAdvanceDays?.(5);
+        renderWorldDebug();
+    });
+    root.querySelector('#devWorldUnlock').addEventListener('click', () => {
+        const sceneId = root.querySelector('#devWorldSelect')?.value;
+        if (!sceneId) return;
+        const result = window.WorldInvasionSystem?.debugCompleteWorldRequirements?.(sceneId);
+        if (DevTool && typeof DevTool._showToast === 'function') {
+            if (!result?.ok) {
+                DevTool._showToast(`✕ ${result?.reason || '打通位面失败'}`);
+            } else if (result.changed) {
+                const dungeons = (result.completed || []).map((entry) => entry.dungeonType).join('、');
+                DevTool._showToast(`✓ ${sceneId} 已打通（${dungeons}），现在可在传送门中构造连接`);
+            } else {
+                DevTool._showToast(`✓ ${result.reason || `${sceneId} 已满足传送门构造条件`}`);
+            }
+        }
         renderWorldDebug();
     });
     root.querySelector('#devWorldDestroy').addEventListener('click', () => {

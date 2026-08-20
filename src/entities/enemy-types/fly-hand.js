@@ -8,6 +8,7 @@ import enemyConfigData from '../../../data/enemy-config.json';
 import { hostilesOf } from './_shared/enemy-utils.js';
 import { summonMonster } from './_shared/summon-helper.js';
 import { fireGroundShockwave } from '../../effects/combat-fx.js';
+import { canMeleeShareSurface } from '../../combat/melee-surface.js';
 /**
  * 蝇手（领主 lord，僵尸 family）
  * 无默认普攻（aiInterval=MAX），三技能（数值全部由 enemy-config.json attackSkills 驱动）：
@@ -172,7 +173,8 @@ export class FlyHand extends Enemy {
         if (kind === 'hammer') {
             // 单体近战：目标在判定距离内才结算
             const t = this.target;
-            if (t && t.active && t.hittable && this._isTargetInRange(t, range)) {
+            if (t && t.active && t.hittable && this._isTargetInRange(t, range)
+                && canMeleeShareSurface(this, t)) {
                 t.takeDamage(damage, this, cfg.damageType || 'physical', true);
                 if (cfg.knockback && t.applyKnockback) {
                     const angle = Math.atan2(t.y - this.y, t.x - this.x);
@@ -193,6 +195,7 @@ export class FlyHand extends Enemy {
         this._fireSlamShockwave(range);
         for (const e of hostilesOf(this, entities)) {
             if (!shape.intersectsEntity(e)) continue;
+            if (!canMeleeShareSurface(this, e)) continue;
             e.takeDamage(damage, this, cfg.damageType || 'physical', true);
             if (cfg.stunMs && typeof e.applyStun === 'function') e.applyStun(cfg.stunMs);
         }

@@ -271,7 +271,9 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
         }
 
         // [ENHANCE] 攻击范围内渐进减速：冲到更近位置再停车，避免前排一进入范围就堵死
-        if (enemy.target && enemy.target.active) {
+        if (enemy.target && enemy.target.active
+            && !enemy._surfaceNavCommand
+            && !enemy._surfaceRouteActive) {
             this._applyAttackRangeFriction(enemy, dist);
         }
 
@@ -280,6 +282,27 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
 
         // 更新移动动画状态
         this._updateMovementAnim(enemy, dt);
+    },
+
+    /**
+     * 返回现有 AI 优先级选出的语义目标。高架规划只读取，不改写这些所有者的目标槽。
+     */
+    _resolveSemanticMoveGoal(enemy) {
+        const chargeStraight = enemy.ai && enemy.ai.chargeStraight;
+        if (enemy._spawnEgress && !chargeStraight) return enemy._spawnEgress;
+        if (enemy._specialTacticalTarget && !chargeStraight) return enemy._specialTacticalTarget;
+        if (enemy._tacticalTarget && !chargeStraight) return enemy._tacticalTarget;
+        if (Game && Game._battleCommander && !chargeStraight && !enemy._defenseMonster) {
+            const point = Game._battleCommander.getTarget(enemy.id);
+            if (point) return { x: point.targetX, y: point.targetY };
+        }
+        if (enemy.target && enemy.target.active) return enemy.target;
+        if (enemy._lastKnownTargetPos) return enemy._lastKnownTargetPos;
+        if (enemy._searchTarget?.phase === 'searchAround'
+            && enemy._searchTarget.searchPoints?.length) {
+            return enemy._searchTarget.searchPoints[0];
+        }
+        return null;
     },
 
     /**
@@ -554,7 +577,11 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
     _getEnemyBaseSpeed(enemy) {
         const base = enemy.maxSpeed ?? enemy.speed ?? 100;
         const chillMul = (typeof enemy.getChillSpeedMul === 'function') ? enemy.getChillSpeedMul() : 1;
-        return base * chillMul;
+        const inspireMul = enemy._usesModifierInspire
+            && typeof enemy.getMoveSpeedMultiplier === 'function'
+            ? enemy.getMoveSpeedMultiplier()
+            : 1;
+        return base * chillMul * inspireMul;
     },
 
     /** 道路加速只在最终移动计算链动态乘算，不修改 maxSpeed，离开道路立即恢复。 */
@@ -1024,7 +1051,7 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
           let best = null, bestScore = Infinity;
           const iter = entities.values ? entities.values() : entities;
           for (const e of iter) {
-              if (!e || !e._isEnergyNode || !e.active) continue;
+              if (!e || !e._isEnergyNode || !e.active || e.noCollision) continue;
               const nodeR = e.groundRadius || 30;
               const dx = enemy.x - e.x, dy = enemy.y - e.y;
               const d = Math.sqrt(dx * dx + dy * dy);

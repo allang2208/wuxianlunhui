@@ -23,7 +23,7 @@
     "attackInterval": 2500,
     "attackDamage": 80,
     "attackRange": 650,
-    "engageRange": 1000,
+    "engageRange": 900,
     "projectileSpeed": 1248,
     "attackAnimFps": 12,
     "attackLaunchFrame": 10,

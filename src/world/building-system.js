@@ -16,6 +16,7 @@ import { BuildingSinkEffect } from '../effects/building-sink.js';
 import { SoundManager } from '../ui/sound-manager.js';
 import { UIState } from '../ui/ui-state.js';
 import { renderBuildingDetailHeader } from '../ui/panels/building-detail-header.js';
+import { mountRightSidebarPanel } from '../ui/right-sidebar-panel-layer.js';
 import { CONFIG } from '../config/config.js';
 import { SceneManager } from './scene-manager.js';
 import { Renderer } from './renderer.js';
@@ -131,6 +132,11 @@ function isTwoByTwoBuildItem(item) {
     return !!item && ['tower', 'hamster_hut', 'hamster_barracks', 'producer'].includes(item.kind);
 }
 
+/** 防御塔只占标准 2x2，不预留或生成外围道路。 */
+function usesBuildingRoads(item) {
+    return isTwoByTwoBuildItem(item) && item.kind !== 'tower';
+}
+
 function isWallStairBuildItem(item) {
     return !!item && item.kind === 'wall_staircase';
 }
@@ -142,6 +148,8 @@ function wallStairDir(mirror) {
 const C_GRADE_WALL_COST = Math.round((DEFENSE_CONFIG.covers.hp.C ?? 1600) * 0.25);
 const DEFAULT_WALL_STAIR_TEXTURE =
     WALL_STAIR_CONFIG.variants.e2_pos?.lower?.texture || 'wall_stair_lower_e2_pos';
+const WALL_STAIR_PANEL_ICON =
+    WALL_STAIR_CONFIG.variants.e1_pos?.lower?.texture || 'wall_stair_lower_e1_pos';
 
 export const BUILD_ITEMS = [
     { id: 'tower', name: '防御塔', cost: 300, tex: 'obstacle_defense_tower', kind: 'tower', currency: 'energy' },
@@ -179,7 +187,7 @@ export const BUILD_ITEMS = [
         cost: WALL_STAIR_CONFIG.costPerSegment * 2,
         costPerSegment: WALL_STAIR_CONFIG.costPerSegment,
         tex: DEFAULT_WALL_STAIR_TEXTURE,
-        icon: DEFAULT_WALL_STAIR_TEXTURE,
+        icon: WALL_STAIR_PANEL_ICON,
         kind: 'wall_staircase',
         currency: 'energy',
     },
@@ -242,6 +250,7 @@ export const BuildingSystem = {
     _gate4Dir: null,       // 当前4格门方向（e1/e2）
     _gate4Hover: null,     // 最后一次场景鼠标世界坐标；F切换必须从原始坐标重算，不能用半格锚点
     _panel: null,
+    _panelCloseTimer: null,
     _downFn: null,
     _moveFn: null,
     _keyFn: null,
@@ -302,9 +311,17 @@ export const BuildingSystem = {
         if (this._blurFn) window.removeEventListener('blur', this._blurFn);
         this._downFn = this._moveFn = this._upFn = this._keyFn = this._blurFn = null;
         if (this._panel) {
-            this._panel.remove();
-            this._panel = null;
+            const closingPanel = this._panel;
+            closingPanel.classList.remove('active');
+            clearTimeout(this._panelCloseTimer);
+            this._panelCloseTimer = setTimeout(() => {
+                if (this._panel !== closingPanel) return;
+                closingPanel.remove();
+                this._panel = null;
+                this._panelCloseTimer = null;
+            }, 260);
         }
+        document.querySelectorAll('.side-menu').forEach((menu) => menu.classList.remove('hidden'));
     },
 
     /** 点击掩体/铁栅栏门 → 打开建筑详情（2026-08-16 用户口径调整）：
@@ -336,16 +353,18 @@ export const BuildingSystem = {
     },
 
     _buildPanel() {
+        clearTimeout(this._panelCloseTimer);
+        this._panelCloseTimer = null;
         if (this._panel) this._panel.remove();
         const el = document.createElement('div');
-        // build-panel 专属类（2026-08-15）：拉伸宽度 + 固定三列网格，不影响摆墙编辑器共享样式
+        // build-panel 专属类：右侧主栏目尺寸与响应式建筑网格，不影响摆墙编辑器共享样式。
         el.className = 'wall-editor-panel build-panel';
         const gold = GoldManager ? GoldManager.getGold() : 0;
         const energy = EnergyManager ? EnergyManager.getEnergy() : 0;
         el.innerHTML = `
-            <div class="we-title">建筑面板（${SceneManager.scenes?.[SceneManager.currentScene]?.name || '当前世界'}） <span class="we-close" id="bpClose">×</span></div>
+            <div class="we-title"><span id="bpTitleText">建筑面板（${SceneManager.scenes?.[SceneManager.currentScene]?.name || '当前世界'}）</span> <span class="we-close" id="bpClose">×</span></div>
             <div class="we-hotkeys" id="bpHotkeys" style="font-size:12px;color:#ffd700;background:rgba(90,70,20,0.25);border:1px solid #6a5a2a;border-radius:4px;padding:4px 8px;margin-bottom:8px;">
-                镜像翻转 <b>F</b> ｜ 辅助吸附 <b>G</b>（<span id="bpSnapState">开</span>）｜ 墙吸附 <b>H</b>（<span id="bpWallSnap">外部</span>）
+                镜像翻转 <b>F</b>（<span id="bpMirrorState">关</span>）｜ 辅助吸附 <b>G</b>（<span id="bpSnapState">开</span>）｜ 墙吸附 <b>H</b>（<span id="bpWallSnap">外部</span>）
             </div>
             <div class="we-info" id="bpCur">
                 金币：<b style="color:#ffd700;">${gold}</b>&nbsp;&nbsp;能源：<b style="color:#7fd4ff;">${energy}</b>（点击建筑后到场景里放置）
@@ -368,7 +387,7 @@ export const BuildingSystem = {
                 <button id="bpCancel" title="取消放置（右键/Esc）">取消</button>
                 <span class="we-selinfo" id="bpSel">未选择建筑</span>
             </div>
-            <div class="we-row" style="margin-top:7px;">
+            <div class="we-row" id="bpRecycleRow" style="margin-top:7px;">
                 <button id="bpRecycleMode" title="进入回收模式后，左键点击建筑或道路进行回收" style="width:100%;background:#5a3028;color:#ffd7d0;border:1px solid #8a4a3a;">回收建筑</button>
             </div>
             <div class="we-hints" id="bpHints">
@@ -381,8 +400,12 @@ export const BuildingSystem = {
                 H=切换墙段吸附位置（外部=端到端 / 内部=端帽重叠）<br>
                 小屋/兵营/铁匠铺/草屋靠近已有同类建筑按地面 30° 地板线轴对齐（F=镜像，G=取消吸附）
             </div>`;
-        document.body.appendChild(el);
+        mountRightSidebarPanel(el, 'panel');
         this._panel = el;
+        document.querySelectorAll('.side-menu').forEach((menu) => menu.classList.add('hidden'));
+        // 先提交收起态，再切 active，复用右侧主栏目同款滑入动画。
+        void el.offsetWidth;
+        el.classList.add('active');
         el.querySelector('#bpClose').addEventListener('click', () => this.close());
         el.querySelector('#bpMirror').addEventListener('click', () => this._toggleMirror());
         el.querySelector('#bpCancel').addEventListener('click', () => {
@@ -394,6 +417,7 @@ export const BuildingSystem = {
         });
         el.querySelector('#bpMirror').addEventListener('click', () => this._updateSnapHint());
         this._updateSnapHint();
+        this._updateMirrorUi();
         el.querySelectorAll('.we-thumb').forEach((t) => {
             t.addEventListener('click', () => {
                 const item = BUILD_ITEMS.find((it) => it.id === t.dataset.id);
@@ -476,7 +500,8 @@ export const BuildingSystem = {
                 this._ghost.setDisplaySize(260, Math.round(260 / (this._coverAspect(item) || 1)));
             }
         }
-        if (isTwoByTwoBuildItem(item)) this._ensureRoadPreview(scene);
+        this._updateMirrorUi();
+        if (usesBuildingRoads(item)) this._ensureRoadPreview(scene);
         else this._clearRoadPreview();
         const sel = this._panel && this._panel.querySelector('#bpSel');
         if (sel) {
@@ -493,6 +518,7 @@ export const BuildingSystem = {
 
     _toggleMirror() {
         if (!this._placing) return;
+        const previousVisualOffsetX = this._ghostVisualOffsetX();
         this._placing.mirror = !this._placing.mirror;
         if (this._placing.item.kind === 'gate4') {
             const hover = this._gate4Hover;
@@ -513,6 +539,29 @@ export const BuildingSystem = {
             this._updateStairPreview(next, ok);
         } else if (this._ghost) {
             this._ghost.setFlipX(this._placing.mirror);
+            // alpha 底座中心可能不在贴图正中；镜像后视觉偏移也要反号，
+            // 保证幽灵底座仍对齐同一个逻辑 footprint。
+            const nextVisualOffsetX = this._ghostVisualOffsetX();
+            this._ghost.x += nextVisualOffsetX - previousVisualOffsetX;
+            this._updateGuide(this._snapped, this._placing.item, this._ghost.x, this._ghost.y);
+        }
+        this._updateMirrorUi();
+    },
+
+    _updateMirrorUi() {
+        if (!this._panel) return;
+        const enabled = !!this._placing?.mirror;
+        const available = !!this._placing;
+        const state = this._panel.querySelector('#bpMirrorState');
+        if (state) {
+            state.textContent = enabled ? '开' : '关';
+            state.style.color = enabled ? '#9dff9d' : '#ffd700';
+        }
+        const button = this._panel.querySelector('#bpMirror');
+        if (button) {
+            button.disabled = !available;
+            button.textContent = enabled ? '镜像 F：开' : '镜像 F：关';
+            button.style.color = enabled ? '#9dff9d' : '';
         }
     },
 
@@ -669,6 +718,7 @@ export const BuildingSystem = {
             this._guide = null;
         }
         this._placing = null;
+        this._updateMirrorUi();
         const sel = this._panel && this._panel.querySelector('#bpSel');
         if (sel) sel.textContent = '未选择建筑';
     },
@@ -750,7 +800,9 @@ export const BuildingSystem = {
             const sp = this._ghostAnchor(snap.x, snap.y);
             this._ghost.setPosition(sp.x, sp.y);
             this._ghost.setTint(ok ? 0x9dff9d : 0xff7777);
-            this._updateRoadPreview(snap.x, snap.y, this._roadPlacementStatus, ok);
+            if (usesBuildingRoads(item)) {
+                this._updateRoadPreview(snap.x, snap.y, this._roadPlacementStatus, ok);
+            }
             this._updateGuide(snap, item, this._ghost.x, this._ghost.y);
             return;
         }
@@ -777,6 +829,13 @@ export const BuildingSystem = {
 
     /** 幽灵锚点：与实体渲染完全一致（精灵中心 = 锚点 + offsetX/footOffsetY） */
     _ghostAnchor(x, y) {
+        if (this._placing && this._placing.item.kind === 'tower') {
+            return {
+                x,
+                y: y + DEFENSE_TOWER_VISUAL.base.footprintCenterOffsetY
+                    - DEFENSE_TOWER_VISUAL.base.footOffsetY,
+            };
+        }
         if (this._placing && this._placing.item.kind === 'wall_staircase') {
             return {
                 x: x + (this._placing.mirror ? -WALL_STAIR_VISUAL.offsetX : WALL_STAIR_VISUAL.offsetX),
@@ -790,7 +849,8 @@ export const BuildingSystem = {
     },
 
     _ghostVisualOffsetX() {
-        return this._ghostGroundFit()?.visualOffsetX || 0;
+        const offsetX = this._ghostGroundFit()?.visualOffsetX || 0;
+        return this._placing?.mirror ? -offsetX : offsetX;
     },
 
     _ghostGroundFit() {
@@ -933,7 +993,10 @@ export const BuildingSystem = {
             }
             const spr = entity.spriteCfg;
             if (spr) {
-                const cx = entity.x + (spr.offsetX || 0);
+                const fallbackOffsetX = entity._facingLeft
+                    ? -(spr.offsetX || 0)
+                    : (spr.offsetX || 0);
+                const cx = entity.x + (entity._visualFootOffsetX ?? fallbackOffsetX);
                 const cy = entity.y - (entity._visualFootOffsetY ?? spr.footOffsetY ?? 0);
                 const hw = (spr.size || entity.size || 32) / 2;
                 const hh = (spr.sizeH || spr.size || entity.size || 32) / 2;
@@ -2089,7 +2152,9 @@ export const BuildingSystem = {
     _canPlaceBuildingFootprint(x, y) {
         const item = this._placing && this._placing.item;
         if (!item) return false;
-        const status = this._buildingRoadPlacementStatus(x, y);
+        const status = this._buildingRoadPlacementStatus(x, y, {
+            includeRoadRing: usesBuildingRoads(item),
+        });
         this._roadPlacementStatus = status;
         if (!this._fitsPlacementBounds(item, x, y)) return false;
         if (!this._canPlaceIsoBuildingFootprint(this._buildingFootprintProbe(x, y))) return false;
@@ -2143,10 +2208,11 @@ export const BuildingSystem = {
         );
     },
 
-    _buildingRoadPlacementStatus(x, y) {
+    _buildingRoadPlacementStatus(x, y, { includeRoadRing = true } = {}) {
         const layout = buildingRoadLayout(x, y);
         const validByKey = new Map();
-        for (const cell of layout.reservationCells) {
+        const checkedCells = includeRoadRing ? layout.reservationCells : layout.buildingCells;
+        for (const cell of checkedCells) {
             const valid = !BuildingRoadSystem.isReservedCell(cell.i, cell.j)
                 && (cell.road || !BuildingRoadSystem.isManualRoadCell(cell.i, cell.j))
                 && this._roadCellFitsBounds(cell)
@@ -2159,7 +2225,7 @@ export const BuildingSystem = {
         return {
             layout,
             validByKey,
-            ok: layout.reservationCells.every((cell) => validByKey.get(cell.key)),
+            ok: checkedCells.every((cell) => validByKey.get(cell.key)),
         };
     },
 
@@ -2416,7 +2482,10 @@ export const BuildingSystem = {
             }
             const spr = entity.spriteCfg;
             if (spr) {
-                const cx = entity.x + (spr.offsetX || 0);
+                const fallbackOffsetX = entity._facingLeft
+                    ? -(spr.offsetX || 0)
+                    : (spr.offsetX || 0);
+                const cx = entity.x + (entity._visualFootOffsetX ?? fallbackOffsetX);
                 const cy = entity.y - (entity._visualFootOffsetY ?? spr.footOffsetY ?? 0);
                 const hw = (spr.size || entity.size || 32) * 0.5;
                 const hh = (spr.sizeH || spr.size || entity.size || 32) * 0.5;
@@ -2452,6 +2521,17 @@ export const BuildingSystem = {
         this._renderDetail();
     },
 
+    _mainPanelTitle() {
+        return `建筑面板（${SceneManager.scenes?.[SceneManager.currentScene]?.name || '当前世界'}）`;
+    },
+
+    _detailPanelTitle(e) {
+        if (e?._isCoverGate) return `${e._isGate4 ? '4格门' : (e.name || `铁栅栏门·${e.grade || 'D'}级`)} · 建筑详情`;
+        if (e?._isWallStaircase) return `${WALL_STAIR_CONFIG.name} · 建筑详情`;
+        if (e?._isBlockCover) return '方块墙 · 建筑详情';
+        return `掩体·${e?.grade || 'F'}级 · 建筑详情`;
+    },
+
     /** 详情视图渲染：_detail 为空回到网格列表；建筑被摧毁自动退回 */
     _renderDetail() {
         if (!this._panel) return;
@@ -2465,9 +2545,15 @@ export const BuildingSystem = {
             show = false;
             this._notify('建筑已被摧毁', '#ff8855');
         }
-        // 详情与建筑列表并排显示（2026-08-16）：不再隐藏网格/操作行/提示
+        // 详情作为主建筑面板内的二级页面；返回时恢复建筑列表与原标题。
+        this._panel.classList.toggle('detail-active', show);
+        const title = this._panel.querySelector('#bpTitleText');
+        if (title) title.textContent = show ? this._detailPanelTitle(e) : this._mainPanelTitle();
         det.style.display = show ? '' : 'none';
-        if (!show) return;
+        if (!show) {
+            det.innerHTML = '';
+            return;
+        }
         // 门走专属详情（含常锁/常开模式按钮，2026-08-15）
         if (e._isCoverGate) { this._renderGateDetail(det, e); return; }
         // 城墙楼梯专属详情。
@@ -2913,16 +2999,19 @@ export const BuildingSystem = {
                 placedEntity = tower;
             } else if (item.kind === 'hamster_hut') {
                 const hut = this._markBuiltEntity(new HamsterHut(x, y, { id }), item);
+                hut._facingLeft = mirror;
                 Game.entities.set(id, hut);
                 HamsterHutSystem.huts.push(hut);
                 placedEntity = hut;
             } else if (item.kind === 'hamster_barracks') {
                 const barracks = this._markBuiltEntity(new HamsterBarracks(x, y, { id }), item);
+                barracks._facingLeft = mirror;
                 Game.entities.set(id, barracks);
                 HamsterBarracksSystem.barracks.push(barracks);
                 placedEntity = barracks;
             } else if (item.kind === 'producer') {
                 const producer = this._markBuiltEntity(new ProducerBuilding(x, y, { id, cfgKey: item.id }), item);
+                producer._facingLeft = mirror;
                 Game.entities.set(id, producer);
                 ProducerBuildingSystem.buildings.push(producer);
                 placedEntity = producer;
@@ -2987,7 +3076,7 @@ export const BuildingSystem = {
                     this._fixCoverCornerDepth(cover);
                 }
             }
-            if (placedEntity && isTwoByTwoBuildItem(item)) {
+            if (placedEntity && usesBuildingRoads(item)) {
                 BuildingRoadSystem.attach(placedEntity);
             }
         } catch (err) {
@@ -3020,7 +3109,8 @@ export const BuildingSystem = {
             })));
         } else if (isTwoByTwoBuildItem(item)) {
             const layout = placedEntity?._buildingRoadLayout || buildingRoadLayout(x, y);
-            this._clearBuildZones(layout.reservationCells.map((cell) => ({
+            const clearCells = usesBuildingRoads(item) ? layout.reservationCells : layout.buildingCells;
+            this._clearBuildZones(clearCells.map((cell) => ({
                 x: cell.x,
                 y: cell.y,
                 radius: ONE_CELL_BUILDING_FOOT.clearRadius,

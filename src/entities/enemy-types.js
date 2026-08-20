@@ -1,6 +1,11 @@
 import { WallSystem } from '../world/wall-system.js';
 import { Enemy } from './enemy.js';
 import { distanceToEntityShape } from '../utils/collision-helpers.js';
+import { canMeleeShareSurface } from '../combat/melee-surface.js';
+import {
+    hasRangedLineOfSight,
+    rangedLineOfSightCacheToken,
+} from '../combat/ranged-line-of-sight.js';
 
 import enemyConfigData from '../../data/enemy-config.json';
 import { ANIMATION_CONFIG } from '../config/animation-config.js';
@@ -234,7 +239,8 @@ class BlackWolf extends Enemy {
         // 命中检测（飞扑专用判定距离 pounceHitDistance）
         const hitTarget = this._pounceTarget && this._pounceTarget.active ? this._pounceTarget : this.target;
         if (!this._pounceDamaged && hitTarget && hitTarget.active && hitTarget.hittable) {
-            if (this._isTargetInRange(hitTarget, this.config?.pounceHitDistance ?? 100)) {
+            if (this._isTargetInRange(hitTarget, this.config?.pounceHitDistance ?? 100)
+                && canMeleeShareSurface(this, hitTarget)) {
                 hitTarget.takeDamage(this._getPounceDamage(), this, 'physical', true);
                 this._pounceDamaged = true;
                 // 盾牌弹反：不再眩晕，弹反本身已处理（参照 mutant-3）
@@ -339,7 +345,9 @@ class BlackWolf extends Enemy {
         const elapsed = (this._attackTypes?.bite?.durationMs ?? 600) - this._biteTimer;
         if (!this._biteDamaged && elapsed >= 200 && elapsed <= 450) {
             const t = this._biteTarget && this._biteTarget.active ? this._biteTarget : this.target;
-            if (t && t.active && t.hittable && this._isTargetInRange(t, this.config?.biteHitDistance ?? 90)) {
+            if (t && t.active && t.hittable
+                && this._isTargetInRange(t, this.config?.biteHitDistance ?? 90)
+                && canMeleeShareSurface(this, t)) {
                 t.takeDamage(this._getBiteDamage(), this, 'physical', true);
                 this._biteDamaged = true;
             }
@@ -457,22 +465,12 @@ class BlackWolf extends Enemy {
         if (!target) return false;
         const losCache = this._perception && this._perception.losCache;
         const cached = losCache ? losCache.get(target.id) : null;
-        if (cached) return !!cached.result;
-        if (WallSystem && WallSystem.blocked) {
-            const elevated = (Number(this.z) || 0) > 0 || (Number(target.z) || 0) > 0;
-            if (elevated && WallSystem.projectileBlocked) {
-                return !WallSystem.projectileBlocked(
-                    this.x,
-                    this.y,
-                    (Number(this.z) || 0) + (this.collider?.height || 40) * 0.58,
-                    target.x,
-                    target.y,
-                    (Number(target.z) || 0) + (target.collider?.height || 40) * 0.5
-                );
-            }
-            return !WallSystem.blocked(this.x, this.y, target.x, target.y);
-        }
-        return true;
+        const surfaceToken = rangedLineOfSightCacheToken(this, target);
+        const interval = Number(this._perception?.losCheckInterval) || 0;
+        if (cached && cached.surfaceToken === surfaceToken
+            && (!interval || Date.now() - cached.time < interval)) return !!cached.result;
+        const ignore = target._coverSeg ? { segs: new Set([target._coverSeg]) } : null;
+        return hasRangedLineOfSight(this, target, 8, ignore);
     }
 
     // 冲锋速度线条：狼身后沿反方向拖出短色块链（参考 LightningBoltEffect 的
@@ -952,7 +950,9 @@ class RedWolfKing extends BlackWolf {
         const hitEnd = Math.round(duration * 0.75);
         if (!this._biteDamaged && elapsed >= hitStart && elapsed <= hitEnd) {
             const t = this._biteTarget && this._biteTarget.active ? this._biteTarget : this.target;
-            if (t && t.active && t.hittable && this._isTargetInRange(t, this.config?.biteHitDistance ?? 100)) {
+            if (t && t.active && t.hittable
+                && this._isTargetInRange(t, this.config?.biteHitDistance ?? 100)
+                && canMeleeShareSurface(this, t)) {
                 t.takeDamage(this._getBiteDamage(), this, 'physical', true);
                 this._biteDamaged = true;
             }

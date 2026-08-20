@@ -4,6 +4,7 @@ import { Easing } from '../config/math-utils.js';
 import { distanceToEntityShape } from '../utils/collision-helpers.js';
 import { nowMs } from '../entities/player/anim-state.js';
 import { canMeleeShareSurface } from '../combat/melee-surface.js';
+import { hasRangedLineOfSight } from '../combat/ranged-line-of-sight.js';
 
 /**
  * CombatSystem — 敌人战斗AI子系统（精简版）
@@ -110,13 +111,8 @@ class CombatSystemImpl {
                     || (Number(enemy.z) || 0) > 0 || (Number(enemy.target.z) || 0) > 0);
             const losCache = !elevatedShot && enemy._perception && enemy._perception.losCache;
             const cachedLos = losCache ? losCache.get(enemy.target.id) : null;
-            if (elevatedShot && WallSystem?.projectileBlocked) {
-                const sourceZ = (Number(enemy.z) || 0) + (enemy.collider?.height || 40) * 0.58;
-                const targetZ = (Number(enemy.target.z) || 0) + (enemy.target.collider?.height || 40) * 0.5;
-                isBlocked = WallSystem.projectileBlocked(
-                    enemy.x, enemy.y, sourceZ,
-                    targetX, targetY, targetZ
-                );
+            if (elevatedShot) {
+                isBlocked = !hasRangedLineOfSight(enemy, enemy.target);
             } else if (cachedLos) {
                 // 缓存命中：直接复用 PerceptionSystem 的 LOS 结果
                 isBlocked = !cachedLos.result;

@@ -59,41 +59,67 @@ function fitAsset(file, displayWidth, displayHeight) {
 }
 
 const shootingRange = scanAsset('../assets/terrain/shooting_range.png');
-check('靶场按底部接地前顶点自动左移约42px，与2×2 footprint前顶点对齐',
-    shootingRange.offsetX < -40 && shootingRange.offsetX > -44,
+check('合格版靶场最低接地点水平居中',
+    Math.abs(shootingRange.offsetX) < 0.2,
     shootingRange.offsetX.toFixed(2));
 
 const barracks = scanAsset('../assets/terrain/barracks.png');
-check('军营按底部接地前顶点自动左移约31px，与2×2 footprint前顶点对齐',
-    barracks.offsetX < -29 && barracks.offsetX > -33,
+check('合格版军营最低接地点水平居中',
+    Math.abs(barracks.offsetX) < 1.5,
     barracks.offsetX.toFixed(2));
 
 const warehouseFit = fitAsset('../assets/terrain/warehouse.png', 288, 308);
 check('仓库像素拟合保持接近标准256×128 footprint',
     warehouseFit.collisionWidth > 260
-    && warehouseFit.collisionWidth < 275
-    && warehouseFit.collisionHeight > 125
-    && warehouseFit.collisionHeight < 135
-    && Math.abs(warehouseFit.centerX) < 10,
-    `${warehouseFit.collisionWidth.toFixed(2)}×${warehouseFit.collisionHeight.toFixed(2)} / centerX ${warehouseFit.centerX.toFixed(2)}`);
+    && warehouseFit.collisionWidth < 270
+    && warehouseFit.collisionHeight > 128
+    && warehouseFit.collisionHeight < 136
+    && warehouseFit.groundAngleDeg > 26
+    && warehouseFit.groundAngleDeg < 27
+    && warehouseFit.centerX === 0,
+    `${warehouseFit.collisionWidth.toFixed(2)}×${warehouseFit.collisionHeight.toFixed(2)} / ${warehouseFit.groundAngleDeg.toFixed(3)}°`);
 
-const shootingFit = fitAsset('../assets/terrain/shooting_range.png', 288, 272);
-check('靶场自动识别更深的接地底座并左移碰撞中心',
-    shootingFit.collisionWidth > 265
-    && shootingFit.collisionWidth < 282
-    && shootingFit.collisionHeight > 160
-    && shootingFit.collisionHeight < 176
-    && shootingFit.centerX < -30,
-    `${shootingFit.collisionWidth.toFixed(2)}×${shootingFit.collisionHeight.toFixed(2)} / centerX ${shootingFit.centerX.toFixed(2)}`);
+const shootingFit = fitAsset('../assets/terrain/shooting_range.png', 272, 217);
+check('合格版靶场匹配26.565°与256×128占地',
+    shootingFit.collisionWidth > 253
+    && shootingFit.collisionWidth < 256
+    && shootingFit.collisionHeight > 126
+    && shootingFit.collisionHeight < 129
+    && Math.abs(shootingFit.groundAngleDeg - 26.565) < 0.01
+    && shootingFit.centerX === 0
+    && Math.abs(shootingFit.visualOffsetX) < 1.5,
+    `${shootingFit.collisionWidth.toFixed(2)}×${shootingFit.collisionHeight.toFixed(2)} / ${shootingFit.groundAngleDeg.toFixed(3)}° / offsetX ${shootingFit.visualOffsetX.toFixed(2)}`);
 
-const barracksFit = fitAsset('../assets/terrain/barracks.png', 288, 230);
-check('军营自动识别底座展开高度并拟合宽深',
-    barracksFit.collisionWidth > 255
-    && barracksFit.collisionWidth < 270
-    && barracksFit.collisionHeight > 140
-    && barracksFit.collisionHeight < 158
-    && barracksFit.centerX < -15,
-    `${barracksFit.collisionWidth.toFixed(2)}×${barracksFit.collisionHeight.toFixed(2)} / centerX ${barracksFit.centerX.toFixed(2)}`);
+const barracksFit = fitAsset('../assets/terrain/barracks.png', 275, 231);
+check('合格版军营匹配26.565°与256×128占地',
+    barracksFit.collisionWidth > 254
+    && barracksFit.collisionWidth < 257
+    && barracksFit.collisionHeight > 127
+    && barracksFit.collisionHeight < 129
+    && Math.abs(barracksFit.groundAngleDeg - 26.565) < 0.01
+    && barracksFit.centerX === 0
+    && Math.abs(barracksFit.visualOffsetX) < 1.5,
+    `${barracksFit.collisionWidth.toFixed(2)}×${barracksFit.collisionHeight.toFixed(2)} / ${barracksFit.groundAngleDeg.toFixed(3)}° / offsetX ${barracksFit.visualOffsetX.toFixed(2)}`);
+
+const mineFit = fitAsset('../assets/terrain/mine.png', 277, 217);
+check('合格版矿场匹配26.565°与256×128占地',
+    mineFit.collisionWidth > 253
+    && mineFit.collisionWidth < 256
+    && mineFit.collisionHeight > 126
+    && mineFit.collisionHeight < 129
+    && Math.abs(mineFit.groundAngleDeg - 26.565) < 0.01
+    && Math.abs(mineFit.visualOffsetX) < 1.5,
+    `${mineFit.collisionWidth.toFixed(2)}×${mineFit.collisionHeight.toFixed(2)} / ${mineFit.groundAngleDeg.toFixed(3)}° / offsetX ${mineFit.visualOffsetX.toFixed(2)}`);
+
+const thatchFit = fitAsset('../assets/terrain/thatch_hut.png', 275, 225);
+check('合格版茅草屋匹配26.565°与256×128占地',
+    thatchFit.collisionWidth > 253
+    && thatchFit.collisionWidth < 256
+    && thatchFit.collisionHeight > 126
+    && thatchFit.collisionHeight < 129
+    && Math.abs(thatchFit.groundAngleDeg - 26.565) < 0.01
+    && Math.abs(thatchFit.visualOffsetX) < 1.5,
+    `${thatchFit.collisionWidth.toFixed(2)}×${thatchFit.collisionHeight.toFixed(2)} / ${thatchFit.groundAngleDeg.toFixed(3)}° / offsetX ${thatchFit.visualOffsetX.toFixed(2)}`);
 
 console.log(`\n结果: ${pass} 通过, ${fail} 失败`);
 process.exit(fail ? 1 : 0);

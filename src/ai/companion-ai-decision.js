@@ -10,6 +10,7 @@ export const DEFAULT_MAGE_AI = {
     followOffset: 150,      // 跟随点距玩家水平偏移（px）
     followArriveDist: 55,   // 距离跟随点小于此值即停步
     combatRange: 640,       // 施法射程（技能自身 maxRange 更大时以技能为准）
+    engageRange: 900,       // 默认索敌范围；运行时由 RTS 公共配置统一覆盖
     safeDistance: 230,      // 近战威胁安全距离
     castFrozenMs: 650,      // 施法站定时长（前摇+后摇）
     castCooldown: 350,      // AI 施法节流

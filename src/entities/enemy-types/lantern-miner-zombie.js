@@ -6,6 +6,7 @@ import { hostilesOf, playSoundFrom, inMeleeRange } from './_shared/enemy-utils.j
 import { launchArcProjectile } from '../../effects/combat-fx.js';
 import { GroundZone } from '../../effects/ground-zone.js';
 import { surfaceEffectFromEntity } from '../../physics/elevation.js';
+import { canMeleeShareSurface } from '../../combat/melee-surface.js';
 
 /**
  * 矿工提灯僵尸（精英，僵尸 family）
@@ -215,6 +216,7 @@ export class LanternMinerZombie extends Enemy {
         const atk = this.data?.atk || 0;
         for (const e of hostilesOf(this, entities)) {
             if (!inMeleeRange(this, e, range)) continue;
+            if (!canMeleeShareSurface(this, e)) continue;
             e.takeDamage(Math.max(1, Math.round(atk * (slam.damageMul ?? 1.5))), this, 'physical', true);
         }
     }

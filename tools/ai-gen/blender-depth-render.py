@@ -67,6 +67,28 @@ def parse_args():
     return argv[0], argv[1], mirror
 
 
+def make_prism(length, width, height):
+    """Create a triangular prism for deterministic gabled-roof depth silhouettes."""
+    mesh = bpy.data.meshes.new("prism")
+    vertices = [
+        (-length / 2, -width / 2, 0),
+        (-length / 2, width / 2, 0),
+        (-length / 2, 0, height),
+        (length / 2, -width / 2, 0),
+        (length / 2, width / 2, 0),
+        (length / 2, 0, height),
+    ]
+    faces = [
+        (0, 2, 1), (3, 4, 5), (0, 1, 4, 3),
+        (1, 2, 5, 4), (0, 3, 5, 2),
+    ]
+    mesh.from_pydata(vertices, [], faces)
+    mesh.update()
+    obj = bpy.data.objects.new("prism", mesh)
+    bpy.context.scene.collection.objects.link(obj)
+    return obj
+
+
 def build_primitives(prims):
     """按 spec 建白模图元，返回对象列表。"""
     objs = []
@@ -77,6 +99,9 @@ def build_primitives(prims):
             o = bpy.context.active_object
             w, d, h = p["size"]
             o.scale = (w / 2, d / 2, h / 2)
+        elif t == "prism":
+            length, width, height = p["size"]
+            o = make_prism(length, width, height)
         elif t == "cylinder":
             bpy.ops.mesh.primitive_cylinder_add(radius=p["radius"], depth=p["depth"])
             o = bpy.context.active_object
@@ -158,7 +183,10 @@ def setup_camera(spec, objs):
     cam_data.ortho_scale = s
 
     # shift：水平居中；底边移到 bottom_y（shift>0 = 取景框上移 = 内容下移）
-    cam_data.shift_x = float((minx + maxx) / 2) / s
+    if spec.get("center_on_origin", False):
+        cam_data.shift_x = 0.0
+    else:
+        cam_data.shift_x = float((minx + maxx) / 2) / s
     target_bottom = (0.5 - bottom_y / SIZE) * s
     cam_data.shift_y = float(miny - target_bottom) / s
 
