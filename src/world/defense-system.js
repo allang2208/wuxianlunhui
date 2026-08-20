@@ -3059,6 +3059,101 @@ export const DefenseSystem = {
     },
 
     /**
+     * 按真实物理平面坐标解析撞击点承载层。
+     * 与 resolveSurfaceTarget 的“屏幕投影点击”语义分离，避免用弹体中心 Z 反推屏幕 Y
+     * 后在窄墙顶/楼梯边缘命中相邻层。返回值不做 RTS 路线或单位半径内收。
+     */
+    resolvePhysicalSurface(x, y, impactZ = 0) {
+        const pointX = Number(x) || 0;
+        const pointY = Number(y) || 0;
+        const hitZ = Number(impactZ) || 0;
+        const candidates = [{ x: pointX, y: pointY, z: 0, surfaceKind: 'ground' }];
+        const pushCandidate = (candidate) => {
+            const z = Number(candidate?.z);
+            if (!Number.isFinite(z)) return;
+            candidates.push({
+                x: pointX,
+                y: pointY,
+                z,
+                surfaceKind: candidate.surfaceKind || candidate.kind || null,
+                wallId: candidate.wallId || candidate.wall?.id || null,
+                staircaseId: candidate.staircaseId || candidate.staircase?.id || null,
+            });
+        };
+
+        for (const staircase of this.staircases || this.platforms || []) {
+            if (!staircase?.active || typeof staircase.surfaceAt !== 'function') continue;
+            const surface = staircase.surfaceAt(pointX, pointY);
+            if (!surface) continue;
+            pushCandidate({
+                ...surface,
+                surfaceKind: 'stairs',
+                staircase: staircase,
+            });
+        }
+
+        const blockIndex = Game?.entities ? _blockWallIndex(Game.entities) : null;
+        if (Game?.entities) {
+            for (const wall of Game.entities.values()) {
+                if (!wall?.active || !wall._isWalkableWall || !Array.isArray(wall._faceLine)) continue;
+                const topZ = Number(wall._wallTopZ) || WALL_WALK_CONFIG.defaultTopZ;
+                const blockGeometry = blockWallTopWalkGeometry(wall);
+                if (blockGeometry) {
+                    let supported = pointInIsoFootprint(
+                        pointX,
+                        pointY,
+                        blockGeometry.footprint,
+                        blockGeometry.edgeTolerance
+                    );
+                    if (!supported) {
+                        for (const neighbor of _blockWallNeighbors(wall, blockIndex)) {
+                            const connector = blockWallTopConnectorGeometry(wall, neighbor);
+                            if (connector && pointInIsoFootprint(
+                                pointX,
+                                pointY,
+                                connector.footprint,
+                                connector.tolerance
+                            )) {
+                                supported = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (supported) {
+                        pushCandidate({ z: topZ, surfaceKind: 'wall_walk', wall });
+                    }
+                    continue;
+                }
+
+                const [a, b] = wall._faceLine;
+                const dx = b.x - a.x;
+                const dy = b.y - a.y;
+                const len2 = dx * dx + dy * dy;
+                if (len2 <= 1e-6) continue;
+                const t = Math.max(0, Math.min(1, ((pointX - a.x) * dx + (pointY - a.y) * dy) / len2));
+                const px = a.x + dx * t;
+                const py = a.y + dy * t;
+                const halfWidth = (Number(wall._wallWalkWidth) || WALL_WALK_CONFIG.laneWidth) / 2;
+                if (Math.hypot(pointX - px, pointY - py) <= halfWidth) {
+                    pushCandidate({ z: topZ, surfaceKind: 'wall_walk', wall });
+                }
+            }
+        }
+
+        let best = candidates[0];
+        let bestDistance = Math.abs(hitZ - best.z);
+        for (let index = 1; index < candidates.length; index++) {
+            const candidate = candidates[index];
+            const distance = Math.abs(hitZ - candidate.z);
+            if (distance < bestDistance) {
+                best = candidate;
+                bestDistance = distance;
+            }
+        }
+        return best;
+    },
+
+    /**
      * 把RTS/点击目标解析成带高度与表面路线的位置。
      * 墙顶目标自动附带：楼梯底段 → 各段中心 → 墙顶投影点。
      */

@@ -1,6 +1,7 @@
 import { EffectManager } from '../../effects/effect-manager.js';
 import { FloatingTextEffect } from '../../effects/floating-text.js';
 import { GroundCircle } from '../../physics/skill-shapes.js';
+import { surfaceEffectFromEntity } from '../../physics/elevation.js';
 import { burstParticles } from '../../effects/combat-fx.js';
 import { SoundManager } from '../../ui/sound-manager.js';
 import { SkillManager } from '../../ui/skill-manager.js';
@@ -126,7 +127,7 @@ export class FlameArmorSystem {
     _tickAura(entities, effect) {
         const src = this.source;
         const radius = effect.auraRadius;
-        const shape = new GroundCircle(src.x, src.y, radius);
+        const shape = new GroundCircle(src.x, src.y, radius, surfaceEffectFromEntity(src));
         const d = src.data;
         const mul = getMagicDamageMultiplier(src, 'flameArmor', getCurrentWeaponCraftEffects(src));
         const damage = Math.floor(((effect.auraDamageBase ?? 0)

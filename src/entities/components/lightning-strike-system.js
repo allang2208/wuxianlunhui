@@ -21,6 +21,7 @@ import {
 import skillsData from '../../../data/skills.json';
 import { isSkillCheatEnabled } from '../../config/dev-cheats.js';
 import { hasRangedLineOfSight } from '../../combat/ranged-line-of-sight.js';
+import { entitySurfaceZ } from '../../physics/elevation.js';
 
 /** 闪电锁定数值默认（配置唯一真相：skills.json effectFormula 必有；缺省兜底统一收敛于此） */
 const LIGHTNING_STRIKE_DEFAULTS = {
@@ -95,7 +96,8 @@ export class LightningStrikeSystem {
         for (const e of entities) {
             if (!e || e === src || !e.active || !e.hittable) continue;
             if (!this._isHostileFaction(e._faction, src._faction)) continue;
-            const dAim = Math.hypot(e.x - aimX, e.y - aimY);
+            const projectedY = e.y - entitySurfaceZ(e);
+            const dAim = Math.hypot(e.x - aimX, projectedY - aimY);
             if (dAim <= aimRadius) {
                 nearMouse.push({ e, dAim, dPlayer: Math.hypot(e.x - src.x, e.y - src.y) });
             }
@@ -135,7 +137,7 @@ export class LightningStrikeSystem {
         const mpMul = getMagicMpCostMultiplier(src, ce, chainStacks);
         const mpCost = effect.mpCost ? Math.max(0, Math.floor(effect.mpCost * mpMul)) : 0;
         if (!isSkillCheatEnabled() && this._isPlayer() && mpCost > 0 && src.data.mp < mpCost) {
-            EffectManager.add(new FloatingTextEffect(src.x, src.y - 30, '魔法不足！', '#b48bff'));
+            EffectManager.add(new FloatingTextEffect(src.x, src.y - entitySurfaceZ(src) - 30, '魔法不足！', '#b48bff'));
             return;
         }
         // 门禁通过：正式消费链式强化并扣蓝（失败路径不再白丢层数）
@@ -153,6 +155,12 @@ export class LightningStrikeSystem {
         if (!isSkillCheatEnabled()) src._lightningStrikeCooldown = effect.cooldown * 1000;
         // 播放施法动画，第 8 帧触发释放
         const doRelease = () => {
+            if (!this._isReleaseTargetValid(best, maxRange)) {
+                if (SceneManager && typeof SceneManager.showTopNotification === 'function') {
+                    SceneManager.showTopNotification('⚡ 目标已失效或被遮挡！');
+                }
+                return;
+            }
             const castSounds = skillsData.skills?.lightningStrike?.sounds?.cast;
             if (Array.isArray(castSounds) && SoundManager && typeof SoundManager.playFile === 'function') {
                 for (const p of castSounds) SoundManager.playFile(p);
@@ -164,7 +172,7 @@ export class LightningStrikeSystem {
             const chain = [best];
             let cursor = best;
             for (let hop = 1; hop < chainTargets; hop++) {
-                const next = this._nearestHostileTo(cursor.x, cursor.y, chainRange, chain);
+                const next = this._nearestHostileTo(cursor, chainRange, chain);
                 if (!next) break;
                 chain.push(next);
                 cursor = next;
@@ -204,7 +212,7 @@ export class LightningStrikeSystem {
             if (this._isPlayer()) {
                 SkillManager.addLightningStrikeExp(src, hitCount, killCount, hitCount >= 2);
             }
-            EffectManager.add(new FloatingTextEffect(src.x, src.y - 40, `⚡ 闪电 ×${hitCount}`, '#b48bff'));
+            EffectManager.add(new FloatingTextEffect(src.x, src.y - entitySurfaceZ(src) - 40, `⚡ 闪电 ×${hitCount}`, '#b48bff'));
             // 松木握柄：施法后添加 1 层链式强化；檀木握柄：施法后给自身加速
             addChainSpellStack(src);
             applyCastHaste(src);
@@ -227,7 +235,8 @@ export class LightningStrikeSystem {
     }
 
     /** 以指定点为中心、range 内最近的敌对单位（排除已命中集合） */
-    _nearestHostileTo(x, y, range, exclude) {
+    _nearestHostileTo(origin, range, exclude) {
+        if (!origin?.active) return null;
         const entities = (typeof window !== 'undefined' && window.Game && window.Game.entities)
             ? Array.from(window.Game.entities.values()) : [];
         let best = null, bestDist = Infinity;
@@ -235,8 +244,9 @@ export class LightningStrikeSystem {
             if (!e || e === this.source || !e.active || !e.hittable) continue;
             if (!this._isHostileFaction(e._faction, this.source._faction)) continue;
             if (exclude && exclude.includes(e)) continue;
-            const d = Math.hypot(e.x - x, e.y - y);
+            const d = Math.hypot(e.x - origin.x, e.y - origin.y);
             if (d > range || d >= bestDist) continue;
+            if (!hasRangedLineOfSight(origin, e)) continue;
             bestDist = d;
             best = e;
         }
@@ -258,10 +268,17 @@ export class LightningStrikeSystem {
         return hasRangedLineOfSight(this.source, target, radius);
     }
 
+    _isReleaseTargetValid(target, maxRange) {
+        if (!this.source?.active || !target?.active || !target.hittable) return false;
+        if (!this._isHostileFaction(target._faction, this.source._faction)) return false;
+        if (Math.hypot(target.x - this.source.x, target.y - this.source.y) > maxRange) return false;
+        return this._isLineOfSightClear(target);
+    }
+
     /** 命中点蓝紫爆炸（火球爆炸同款三层：冲击波 + 白热内芯 + 蓝紫外圈） */
     _spawnImpact(target, decayMul) {
         const hitX = target.x;
-        const hitY = target.y - ((target.bodyHeight || 120) * 0.5);
+        const hitY = target.y - entitySurfaceZ(target) - ((target.bodyHeight || 120) * 0.5);
         const hitDepth = (target._phaserSprite ? target._phaserSprite.depth : target.y + 10) + 2;
         const scale = 0.75 + 0.25 * (decayMul || 1); // 传导后爆炸略收敛，主目标最炸
         fireGroundShockwave({

@@ -1,6 +1,7 @@
 import { Enemy } from '../enemy.js';
 import { PERSPECTIVE_SCALE_Y } from '../../config/perspective-config.js';
 import { GroundEllipse } from '../../physics/skill-shapes.js';
+import { surfaceEffectFromEntity } from '../../physics/elevation.js';
 import { EffectFactory } from '../../utils/effect-factory.js';
 import { SoundManager } from '../../ui/sound-manager.js';
 import enemyConfigData from '../../../data/enemy-config.json';
@@ -285,7 +286,13 @@ export class Shounao extends Enemy {
         // 每次伤害判定同步播放一次冲击波扩散
         this._fireHowlShockwave();
         // 椭圆判定（2:1 平面透视），与紫色扩散圈视觉一致
-        const shape = new GroundEllipse(this.x, this.y, range, range * PERSPECTIVE_SCALE_Y);
+        const shape = new GroundEllipse(
+            this.x,
+            this.y,
+            range,
+            range * PERSPECTIVE_SCALE_Y,
+            surfaceEffectFromEntity(this)
+        );
         for (const e of hostilesOf(this, entities)) {
             if (!shape.intersectsEntity(e)) continue;
             e.takeDamage(Math.max(1, Math.round(matk * (cfg.damageMul ?? 0.5))), this, 'magic', false);

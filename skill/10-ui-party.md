@@ -50,6 +50,18 @@
   并排时**不隐藏主面板内容**；建设模式全局标记 `Game._buildMode` 供塔/陷阱/小屋/
   兵营各自跳过 260px 交互距离（免循环依赖 import），详见 lessons #56。
 
+### 模式级快捷键与角色输入隔离
+
+- 建造、RTS、观察者等模式复用角色键位时，模式监听必须注册在捕获阶段，先于通用 `Input`
+  消费事件；合法模式事件执行 `preventDefault()`、`stopImmediatePropagation()`，并清除
+  `Input.keys` 中已经遗留的同名按键状态。
+- 模式切换入口还要主动清理旧按键状态；按钮通过键盘激活后应立即 `blur()`，避免同一次空格
+  既激活按钮又在下一帧触发角色翻滚。
+- 文本框、下拉框和 `contenteditable` 保留浏览器的文字输入，但仍阻断事件进入角色输入链；
+  `event.repeat` 不重复切换模式。
+- 模式快捷键只改变显示或指令状态，不能进入伤害、碰撞、寻路等逻辑真源。
+
+
 #### 步骤4: 声道与 BGM（2026-07-21 新增）
 - **声道**：`playFile(path, volume, channel)` 第三参为声道（`sfx` 战斗音效默认 / `ui` 界面 / `music` 音乐），声道音量配置在 `data/audio-config.json` 的 `channels`（独立于 masterVolume 的二级调节）；运行时可 `SoundManager.setChannelVolume(channel, v)`。
 - **BGM**：`data/audio-config.json` 的 `bgm` 映射场景 → 音轨（`null` = 无 BGM），切场景自动播放/停止（SceneManager 已接入 `playBgmForScene`）；音轨用 `playLoop` 循环，交叉淡入 `bgmCrossfadeSec`。新 BGM 素材放入 `assets/sounds/music/` 并填配置即可。

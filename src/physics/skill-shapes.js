@@ -6,6 +6,7 @@
 
 import { MathUtils } from '../config/math-utils.js';
 import { PERSPECTIVE_SCALE_Y } from '../config/perspective-config.js';
+import { effectElevationIntersectsEntity } from './elevation.js';
 
 /**
  * 检查目标 Collider 是否与给定高度区间有重叠
@@ -22,15 +23,17 @@ function hasVerticalOverlap(collider, minZ, maxZ) {
  * 地面圆形 AOE（例如火球爆炸、旋风、胖子僵尸尸体光环）
  */
 export class GroundCircle {
-    constructor(x, y, radius) {
+    constructor(x, y, radius, elevationContext = null) {
         this.x = x;
         this.y = y;
         this.radius = radius;
+        this.elevationContext = elevationContext;
     }
 
     intersectsEntity(entity) {
         if (!entity || !entity.collider) return false;
         if (!entity.collider.isGroundTarget) return false;
+        if (!effectElevationIntersectsEntity(this.elevationContext, entity)) return false;
         return entity.collider.intersectsGroundCircle(this.x, this.y, this.radius);
     }
 }
@@ -40,16 +43,18 @@ export class GroundCircle {
  * rx/ry 分别为地面椭圆 X/Y 半径；把实体 footprint 半径膨胀进轴长做保守判定。
  */
 export class GroundEllipse {
-    constructor(x, y, rx, ry) {
+    constructor(x, y, rx, ry, elevationContext = null) {
         this.x = x;
         this.y = y;
         this.rx = rx;
         this.ry = ry;
+        this.elevationContext = elevationContext;
     }
 
     intersectsEntity(entity) {
         if (!entity || !entity.collider) return false;
         if (!entity.collider.isGroundTarget) return false;
+        if (!effectElevationIntersectsEntity(this.elevationContext, entity)) return false;
         const c = entity.collider;
         const dx = c.x - this.x;
         const dy = c.y - this.y;
@@ -64,16 +69,18 @@ export class GroundEllipse {
  * 地面矩形 AOE（例如胖子僵尸尸体腐蚀领域）
  */
 export class GroundRect {
-    constructor(x, y, width, height) {
+    constructor(x, y, width, height, elevationContext = null) {
         this.x = x;
         this.y = y;
         this.width = width;
         this.height = height;
+        this.elevationContext = elevationContext;
     }
 
     intersectsEntity(entity) {
         if (!entity || !entity.collider) return false;
         if (!entity.collider.isGroundTarget) return false;
+        if (!effectElevationIntersectsEntity(this.elevationContext, entity)) return false;
         return entity.collider.intersectsGroundRect(this.x, this.y, this.width, this.height);
     }
 }
@@ -91,7 +98,7 @@ export class VerticalSector {
      * @param {number} minZ 最低命中高度
      * @param {number} maxZ 最高命中高度
      */
-    constructor(x, y, angle, radius, arcAngle, minZ = 0, maxZ = 200) {
+    constructor(x, y, angle, radius, arcAngle, minZ = 0, maxZ = 200, elevationContext = null) {
         this.x = x;
         this.y = y;
         this.angle = angle;
@@ -99,12 +106,14 @@ export class VerticalSector {
         this.arcAngle = arcAngle;
         this.minZ = minZ;
         this.maxZ = maxZ;
+        this.elevationContext = elevationContext;
     }
 
     intersectsEntity(entity) {
         if (!entity || !entity.collider) return false;
         const c = entity.collider;
         if (!hasVerticalOverlap(c, this.minZ, this.maxZ)) return false;
+        if (!effectElevationIntersectsEntity(this.elevationContext, entity)) return false;
         // 水平面：dy 先做逆透视变换（÷PERSPECTIVE_SCALE_Y），与 AttackRangeEffect('sector')
         // 的 Y 压缩显示同口径——红扇画多大就实际打多大（footprint 半径照旧膨胀进半径）
         const dx = c.x - this.x;
@@ -127,7 +136,7 @@ export class VerticalRect {
      * @param {number} maxZ 最高命中高度
      * @param {number} backExtension 向起点后方延伸的长度（默认 0）
      */
-    constructor(x, y, angle, length, width, minZ = 0, maxZ = 200, backExtension = 0) {
+    constructor(x, y, angle, length, width, minZ = 0, maxZ = 200, backExtension = 0, elevationContext = null) {
         this.x = x;
         this.y = y;
         this.angle = angle;
@@ -136,12 +145,14 @@ export class VerticalRect {
         this.minZ = minZ;
         this.maxZ = maxZ;
         this.backExtension = backExtension ?? 0;
+        this.elevationContext = elevationContext;
     }
 
     intersectsEntity(entity) {
         if (!entity || !entity.collider) return false;
         const c = entity.collider;
         if (!hasVerticalOverlap(c, this.minZ, this.maxZ)) return false;
+        if (!effectElevationIntersectsEntity(this.elevationContext, entity)) return false;
 
         // 把实体中心转换到矩形本地坐标系（dy 先做逆透视变换，
         // 与 AttackRangeEffect('triangle') 的 Y 压缩显示同口径——红框画多大就打多大）
@@ -170,17 +181,19 @@ export class GroundSector {
      * @param {number} radius 扇形半径
      * @param {number} arcAngle 扇形张角（弧度）
      */
-    constructor(x, y, angle, radius, arcAngle) {
+    constructor(x, y, angle, radius, arcAngle, elevationContext = null) {
         this.x = x;
         this.y = y;
         this.angle = angle;
         this.radius = radius;
         this.arcAngle = arcAngle;
+        this.elevationContext = elevationContext;
     }
 
     intersectsEntity(entity) {
         const c = entity?.collider;
         if (!c || !c.isGroundTarget) return false;
+        if (!effectElevationIntersectsEntity(this.elevationContext, entity)) return false;
         // 把实体 footprint 半径加进扇形半径；dy 先做逆透视变换（÷PERSPECTIVE_SCALE_Y），
         // 与 AttackRangeEffect('sector') 的 Y 压缩显示同口径——红扇画多大就实际打多大
         const dx = c.x - this.x;
@@ -202,18 +215,20 @@ export class GroundDirectedRect {
      * @param {number} width 矩形宽度
      * @param {number} backExtension 向起点后方延伸的长度（默认 0）
      */
-    constructor(x, y, angle, length, width, backExtension = 0) {
+    constructor(x, y, angle, length, width, backExtension = 0, elevationContext = null) {
         this.x = x;
         this.y = y;
         this.angle = angle;
         this.length = length;
         this.width = width;
         this.backExtension = backExtension ?? 0;
+        this.elevationContext = elevationContext;
     }
 
     intersectsEntity(entity) {
         const c = entity?.collider;
         if (!c || !c.isGroundTarget) return false;
+        if (!effectElevationIntersectsEntity(this.elevationContext, entity)) return false;
 
         // 把实体中心转换到矩形本地坐标系（dy 先做逆透视变换，
         // 与 AttackRangeEffect('triangle') 的 Y 压缩显示同口径——红框画多大就打多大）

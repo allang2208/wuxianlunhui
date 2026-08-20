@@ -28,6 +28,8 @@ export class MeteorStrike {
     constructor(o) {
         this.x = o.x;
         this.y = o.y;
+        this.surfaceContext = o.surfaceContext || null;
+        this.displayY = this.y - (Number(this.surfaceContext?.z) || 0);
         this.explosionRadius = o.explosionRadius ?? 150;
         this.lavaRadius = o.lavaRadius ?? 130;
         this.lavaDurationMs = o.lavaDurationMs ?? 3500;
@@ -42,7 +44,7 @@ export class MeteorStrike {
         this._fallTimer = 0;
         this._trailTimer = 0;
         this._meteor = null;
-        this._fallFromY = o.fallFromY ?? (this.y - 880);
+        this._fallFromY = o.fallFromY ?? (this.displayY - 880);
         this._lavaZone = null;
         this._lavaEmitters = [];
         this._lavaElapsed = 0;
@@ -157,18 +159,19 @@ export class MeteorStrike {
     _doImpact(entities) {
         const x = this.x;
         const y = this.y;
+        const displayY = this.displayY;
         // 落地音效（无论是否命中都播）
         this._playSound(SOUND_LAND);
         // 伤害结算由调用方负责（含灼伤/击退/经验）
         if (this.onImpact) this.onImpact(x, y, entities);
         // 爆炸特效：冲击波扩散圈 + ADD 火焰爆发 + 烟尘余韵
         fireGroundShockwave({
-            x, y, maxRadius: this.explosionRadius,
+            x, y: displayY, maxRadius: this.explosionRadius,
             strokeColor: 0xff7020, fillColor: 0xff9540,
             lineWidth: 9, duration: 460, flicker: true,
         });
         burstParticles({
-            texture: 'impact_dot', x, y, count: 42, jitter: 0, // 爆点精确对准落地点（粒子靠速度随机散射）
+            texture: 'impact_dot', x, y: displayY, count: 42, jitter: 0, // 爆点精确对准落地点（粒子靠速度随机散射）
             config: {
                 speed: { min: 150, max: 520 },
                 scale: { start: 3.2, end: 0.2 },
@@ -177,10 +180,10 @@ export class MeteorStrike {
                 tint: [0xffffff, 0xffd27a, 0xff8830, 0xff5510],
                 blendMode: 'ADD',
             },
-            destroyAfterMs: 900, depth: y + 60,
+            destroyAfterMs: 900, depth: displayY + 60,
         });
         burstParticles({
-            texture: 'smoke_particle', x, y, count: 14, jitter: 0,
+            texture: 'smoke_particle', x, y: displayY, count: 14, jitter: 0,
             config: {
                 speed: { min: 30, max: 110 },
                 scale: { start: 1.6, end: 4.0 },
@@ -188,7 +191,7 @@ export class MeteorStrike {
                 lifespan: { min: 800, max: 1400 },
                 tint: 0x444444,
             },
-            destroyAfterMs: 1600, depth: y + 55,
+            destroyAfterMs: 1600, depth: displayY + 55,
         });
         // 震屏（Camera.triggerShake 自带衰减，duration 由强度决定）
         if (this.shakeIntensity > 0 && Camera && typeof Camera.triggerShake === 'function') {
@@ -207,6 +210,7 @@ export class MeteorStrike {
         this._lavaZone = new GroundZone({
             x: this.x,
             y: this.y,
+            surfaceContext: this.surfaceContext,
             radius: this.lavaRadius,
             duration: this.lavaDurationMs,
             tickMs: this.lavaTickMs,
@@ -238,7 +242,7 @@ export class MeteorStrike {
             const a = Math.random() * Math.PI * 2;
             const pt = {
                 x: this.x + Math.cos(a) * rr * rx,
-                y: this.y + Math.sin(a) * rr * ry,
+                y: this.displayY + Math.sin(a) * rr * ry,
             };
             const em = scene.add.particles(pt.x, pt.y, 'impact_dot', {
                 frequency: 70,
@@ -265,7 +269,7 @@ export class MeteorStrike {
             this._fallTimer += dt;
             const p = Math.min(1, this._fallTimer / this.fallMs);
             const p2 = p * p; // 加速下坠
-            const curY = this._fallFromY + (this.y - this._fallFromY) * p2;
+            const curY = this._fallFromY + (this.displayY - this._fallFromY) * p2;
             if (this._meteor && this._meteor.active) {
                 this._meteor.setPosition(this.x, curY);
                 this._meteor.setScale(0.45 + p * 0.9);
@@ -347,13 +351,13 @@ export class MeteorStrike {
         const g = this._lavaRingGfx;
         g.clear();
         g.setPosition(0, 0);
-        g.setDepth(this.y - 998); // 在火炬火焰（y-996）之下
+        g.setDepth(this.displayY - 998); // 在火炬火焰（y-996）之下
         const baseR = Math.max(2, this.lavaRadius * this._ringGrow);
         const baseRy = baseR * 0.5; // 透视 2:1，与熔岩椭圆同口径
         // 扩散期：恒定 alpha 半透明填充，让"从点向外推开"清晰可见（无呼吸）
         if (this._ringGrow < 1) {
             g.fillStyle(0xff7020, 0.08);
-            g.fillEllipse(this.x, this.y, baseR * 2, baseRy * 2);
+            g.fillEllipse(this.x, this.displayY, baseR * 2, baseRy * 2);
         }
         // 多层软光晕（标准椭圆）：外圈宽淡辉光 → 内圈窄亮焰心，柔和无硬边
         const layers = [
@@ -365,7 +369,7 @@ export class MeteorStrike {
         ];
         for (const L of layers) {
             g.lineStyle(L.w, L.c, L.a);
-            g.strokeEllipse(this.x, this.y, baseR * 2, baseRy * 2);
+            g.strokeEllipse(this.x, this.displayY, baseR * 2, baseRy * 2);
         }
     }
 

@@ -5,6 +5,7 @@ import { AimHelper } from '../../utils/aim-helper.js';
 import { ProjectileFactory } from '../../utils/projectile-factory.js';
 import { summonMonster } from './_shared/summon-helper.js';
 import { throwVenomBottle, updateVenomZones, destroyVenomZones } from './_shared/venom-bottle.js';
+import { surfaceEffectFromEntity } from '../../physics/elevation.js';
 
 /**
  * 巫婆（领主，僵尸 family）
@@ -306,7 +307,13 @@ export class Witch extends Enemy {
             tx = t.x + (t.vx || 0) * flyS;
             ty = t.y + (t.vy || 0) * flyS;
         }
-        throwVenomBottle(this, cfg, tx, ty);
+        throwVenomBottle(
+            this,
+            cfg,
+            tx,
+            ty,
+            t ? surfaceEffectFromEntity(t) : surfaceEffectFromEntity(this)
+        );
     }
 
     /** 统一特效清理（game.js removeEntity / onDeath 约定入口） */

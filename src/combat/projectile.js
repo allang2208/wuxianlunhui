@@ -7,6 +7,7 @@ import { PERSPECTIVE_SCALE_Y } from '../config/perspective-config.js';
 import SpatialPartitionSystem from '../systems/spatial-partition-system.js';
 import { isFriendlyFire } from '../entities/damageable-entity.js';
 import { projectileWallContext } from './elevated-ranged.js';
+import { entityVerticalRange } from '../physics/elevation.js';
 
 class Projectile {
     constructor(x, y, angle, speed, maxRange, size, damage, piercing, source, entities, image, isTracer = false, isGold = false, isDarkGold = false, damageType = 'physical', _noRender = false, isGreen = false, isSpit = false, poisonChance = 0, poisonStacks = 1, textureKey = null) {
@@ -46,6 +47,14 @@ class Projectile {
             this.active = false;
         } else if (this._isBlockedByWall(prevX, prevY)) {
             // 墙壁碰撞检测（含嵌墙"只出不进"判定：出膛嵌墙仅允许朝射手一侧越出）
+            // 压平视图隐藏墙体立面时给出短时阻挡标记；不改变本次真实碰撞或弹体生命周期。
+            if (typeof window !== 'undefined') {
+                window.Game?.FlatViewSystem?.notifyProjectileBlocked?.(
+                    this.x,
+                    this.y,
+                    ((Number(this.prevZ) || 0) + (Number(this.z) || 0)) * 0.5 + this.size * 0.5
+                );
+            }
             this.active = false;
         } else {
             // 清理已失效目标的命中记录
@@ -198,9 +207,20 @@ class Projectile {
             return this._hitBodyCapsule(entity, prevX, prevY);
         }
 
+        // footprint/躯干矩形是二维兼容判定，必须先确认本帧弹道的真实 z 区间
+        // 与目标身体相交，避免楼梯/墙顶射击时隔层提前命中。
+        if (!this._projectileVerticalSpanOverlapsEntity(entity)) return false;
         return this._hitFootprintEllipse(entity, prevX, prevY) ||
                this._hitTorsoRect(entity, prevX, prevY) ||
                this._hitBodyCapsule(entity, prevX, prevY);
+    }
+
+    _projectileVerticalSpanOverlapsEntity(entity) {
+        const radius = Math.max(0, Number(this.size) || 0) * 0.5;
+        const minZ = Math.min(Number(this.prevZ) || 0, Number(this.z) || 0);
+        const maxZ = Math.max(Number(this.prevZ) || 0, Number(this.z) || 0) + radius * 2;
+        const target = entityVerticalRange(entity);
+        return minZ < target.top && maxZ > target.bottom;
     }
 
     /**

@@ -4,6 +4,7 @@ import { EffectManager } from '../../effects/effect-manager.js';
 import { FloatingTextEffect } from '../../effects/floating-text.js';
 import { SceneManager } from '../../world/scene-manager.js';
 import { GroundEllipse } from '../../physics/skill-shapes.js';
+import { entitySurfaceZ, surfaceEffectAtPoint, surfaceEffectFromEntity } from '../../physics/elevation.js';
 import { BlizzardZone } from '../../effects/blizzard-zone.js';
 import { SoundManager } from '../../ui/sound-manager.js';
 import { SkillManager } from '../../ui/skill-manager.js';
@@ -76,10 +77,12 @@ export class BlizzardSystem {
         // 瞄准点：玩家=鼠标世界坐标
         let aimX = src.x;
         let aimY = src.y;
+        let surfaceContext = surfaceEffectFromEntity(src);
         if (this._isPlayer()) {
             const aim = Renderer.screenToWorld(Input.mouse.x, Input.mouse.y);
-            aimX = aim.x;
-            aimY = aim.y;
+            surfaceContext = surfaceEffectAtPoint(aim.x, aim.y);
+            aimX = surfaceContext.x;
+            aimY = surfaceContext.y;
         }
 
         // 施法距离门禁（失败不耗蓝/冷却/链式层数）
@@ -98,7 +101,7 @@ export class BlizzardSystem {
         const mpMul = getMagicMpCostMultiplier(src, ce, chainStacks);
         const mpCost = effect.mpCost ? Math.max(0, Math.floor(effect.mpCost * mpMul)) : 0;
         if (!isSkillCheatEnabled() && this._isPlayer() && mpCost > 0 && src.data.mp < mpCost) {
-            EffectManager.add(new FloatingTextEffect(src.x, src.y - 30, '魔法不足', '#5a8aaa'));
+            EffectManager.add(new FloatingTextEffect(src.x, src.y - entitySurfaceZ(src) - 30, '魔法不足', '#5a8aaa'));
             return;
         }
         const chain = consumeChainSpellBonus(src);
@@ -114,8 +117,8 @@ export class BlizzardSystem {
             if (castSounds && SoundManager && typeof SoundManager.playFile === 'function') {
                 (Array.isArray(castSounds) ? castSounds : [castSounds]).forEach(p => SoundManager.playFile(p));
             }
-            this._spawnZone(aimX, aimY, effect);
-            EffectManager.add(new FloatingTextEffect(src.x, src.y - 40, '❄ 暴风雪', '#9fd8ff'));
+            this._spawnZone(aimX, aimY, effect, surfaceContext);
+            EffectManager.add(new FloatingTextEffect(src.x, src.y - entitySurfaceZ(src) - 40, '❄ 暴风雪', '#9fd8ff'));
             addChainSpellStack(src);
             applyCastHaste(src);
         };
@@ -126,21 +129,23 @@ export class BlizzardSystem {
         }
     }
 
-    _spawnZone(x, y, effect) {
+    _spawnZone(x, y, effect, surfaceContext = null) {
         const src = this.source;
         const radiusX = effect.radiusX;
         const radiusY = effect.radiusY;
+        surfaceContext ||= surfaceEffectFromEntity(src);
         const acc = { hits: 0, kills: 0, multiHit: false };
 
         const zone = new BlizzardZone({
             x,
             y,
+            surfaceContext,
             radiusX,
             radiusY,
             durationMs: effect.duration * 1000,
             tickMs: effect.tickMs,
             onTick: (z, entities) => {
-                const shape = new GroundEllipse(z.x, z.y, radiusX, radiusY);
+                const shape = new GroundEllipse(z.x, z.y, radiusX, radiusY, z.surfaceContext);
                 const baseDamage = Math.floor(
                     (effect.damageBase ?? 0)
                     + (src.data.matk ?? 0) * (effect.magicMul ?? 0)

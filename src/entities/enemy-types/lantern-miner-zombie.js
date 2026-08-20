@@ -5,6 +5,7 @@ import { PERSPECTIVE_SCALE_Y } from '../../config/perspective-config.js';
 import { hostilesOf, playSoundFrom, inMeleeRange } from './_shared/enemy-utils.js';
 import { launchArcProjectile } from '../../effects/combat-fx.js';
 import { GroundZone } from '../../effects/ground-zone.js';
+import { surfaceEffectFromEntity } from '../../physics/elevation.js';
 
 /**
  * 矿工提灯僵尸（精英，僵尸 family）
@@ -231,9 +232,10 @@ export class LanternMinerZombie extends Enemy {
             tx = t.x + (t.vx || 0) * flyS;
             ty = t.y + (t.vy || 0) * flyS;
         }
+        const surfaceContext = t ? surfaceEffectFromEntity(t) : surfaceEffectFromEntity(this);
         const scene = typeof window !== 'undefined' ? window.__phaserScene : null;
         if (!scene || !scene.add || !scene.tweens) {
-            this._lanternImpact(tx, ty);
+            this._lanternImpact(tx, ty, surfaceContext);
             return;
         }
         const dirX = (this._getPhaserOptions().flipX) ? -1 : 1;
@@ -258,7 +260,7 @@ export class LanternMinerZombie extends Enemy {
             depth: this.y + 15,
             onImpact: (ix, iy) => {
                 this._lanternSprite = null;
-                this._lanternImpact(ix, iy);
+                this._lanternImpact(ix, iy, surfaceContext);
             },
         });
         // scene 已在上方确认存在，handle 必非 null
@@ -266,12 +268,13 @@ export class LanternMinerZombie extends Enemy {
     }
 
     /** 矿灯落地：创建燃烧区（200px 椭圆，4s，每 0.5s 魔法伤害；GroundZone 模板：油脂地面 + 火焰簇） */
-    _lanternImpact(tx, ty) {
+    _lanternImpact(tx, ty, surfaceContext = null) {
         const L = this._getLanternConfig();
         // 燃烧音效（投射物落地后播放）
         playSoundFrom(this, 'burn');
         const zone = new GroundZone({
             x: tx, y: ty,
+            surfaceContext: surfaceContext || surfaceEffectFromEntity(this),
             radius: L.impactRadius ?? 300,
             duration: L.burnDuration ?? 4000,
             tickMs: L.tickMs ?? 500,
@@ -283,7 +286,13 @@ export class LanternMinerZombie extends Enemy {
             },
             onTick: (z, entities) => {
                 const matk = this.data?.matk || 0;
-                const shape = new GroundEllipse(z.x, z.y, z.radius, z.radius * PERSPECTIVE_SCALE_Y);
+                const shape = new GroundEllipse(
+                    z.x,
+                    z.y,
+                    z.radius,
+                    z.radius * PERSPECTIVE_SCALE_Y,
+                    z.surfaceContext
+                );
                 for (const e of hostilesOf(this, entities)) {
                     if (!shape.intersectsEntity(e)) continue;
                     e.takeDamage(Math.max(1, Math.round(matk * (L.damageMul ?? 0.75))), this, 'magic', false);

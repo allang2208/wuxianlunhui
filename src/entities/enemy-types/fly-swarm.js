@@ -1,6 +1,7 @@
 import { Enemy } from '../enemy.js';
 import { PERSPECTIVE_SCALE_Y } from '../../config/perspective-config.js';
 import { GroundEllipse } from '../../physics/skill-shapes.js';
+import { surfaceEffectFromEntity } from '../../physics/elevation.js';
 import { SoundManager } from '../../ui/sound-manager.js';
 import enemyConfigData from '../../../data/enemy-config.json';
 
@@ -105,7 +106,13 @@ export class FlySwarm extends Enemy {
     /** 目标是否与任一三位一体子圆相交（地面 footprint 椭圆，2:1 透视） */
     _touchingAnyCircle(target, circles) {
         for (const c of circles) {
-            const shape = new GroundEllipse(this.x + (c.x || 0), this.y + (c.y || 0), c.r, c.r * PERSPECTIVE_SCALE_Y);
+            const shape = new GroundEllipse(
+                this.x + (c.x || 0),
+                this.y + (c.y || 0),
+                c.r,
+                c.r * PERSPECTIVE_SCALE_Y,
+                surfaceEffectFromEntity(this)
+            );
             if (shape.intersectsEntity(target)) return true;
         }
         return false;

@@ -19,6 +19,7 @@ import { SkillManager } from '../ui/skill-manager.js';
 import { DungeonMapSystem } from '../world/dungeon-map-system.js';
 import { COMBAT_FORMULAS } from '../config/combat-formulas.js';
 import { getTributeGoldMultiplier, getTributeKillMpHealRatio, getTributeKillHpHealRatio, getTributeMonsterDamageTakenMul, getMoonshadowConfig, rollTributeDrop } from '../config/tribute-effects.js';
+import { hasRangedLineOfSight } from '../combat/ranged-line-of-sight.js';
 
 // 友方阵营组：玩家与友军互相免疫伤害（防御塔/基地/掩体/伙伴等，2026-08-14）
 const FRIENDLY_FACTIONS = new Set(['player', 'companion']);
@@ -1124,6 +1125,7 @@ export function isFriendlyFire(source, target) {
                     if (!e || e === this || !e.active || !e.hittable) continue;
                     if (e._faction === this._faction) continue;
                     if (Math.hypot(e.x - this.x, e.y - this.y) > overloadRadius) continue;
+                    if (!hasRangedLineOfSight(this, e)) continue;
                     EffectManager.add(new LightningBoltEffect(this, e, {
                         durationMs: 450,
                         fadeMs: 220,

@@ -10,6 +10,7 @@ import { EnergyNodeSystem } from '../../world/energy-node-system.js';
 // ============================================================
 import { Scene, BlendModes } from 'phaser';
 import { WallSystem } from '../../world/wall-system.js';
+import { FlatViewSystem } from '../../world/flat-view-system.js';
 import { WallGate } from '../../world/wall-gate.js';
 import { ChestRoomSystem } from '../../world/chest-room-system.js';
 import { Renderer } from '../../world/renderer.js';
@@ -484,6 +485,9 @@ export class GameScene extends Scene {
         this._syncEnvironmentGlows(_delta, isMapMode);
         // X 光圆圈：被墙壁遮挡的实体以黑渐变圆圈透视显示
         this._syncXRayCircles(_game);
+        // 要塞式压平视图最后接管建筑显示，避免前面的常规同步在同帧重新显示立面。
+        // 这里只改 Phaser 可见性/占地投影，不改实体、碰撞、寻路或高度语义。
+        FlatViewSystem.sync(this, _game, WallSystem);
         this._updateCamera();
     }
 
@@ -6889,6 +6893,16 @@ export class GameScene extends Scene {
         if (!_game || !_game.entities) return;
         const active = new Set();
 
+        // 压平视图只移除建筑自身投影；共享层中的树木/环境障碍阴影继续由
+        // _syncStaticSunShadows 绘制，不能直接隐藏整个共享 Graphics。
+        if (FlatViewSystem.enabled) {
+            for (const [entity, shadow] of this._structureSunShadows.entries()) {
+                this.unregisterStaticSunShadow(shadow);
+                this._structureSunShadows.delete(entity);
+            }
+            return;
+        }
+
         const ensure = (entity, sprite) => {
             if (!sprite || !sprite.active) return;
             const footprint = this._getGroundShadowFootprint(entity, entity.collisionRadius || 10, {
@@ -7228,6 +7242,13 @@ export class GameScene extends Scene {
 
     _syncBuildingDamageFx(_game) {
         if (!_game?.entities) return;
+        if (FlatViewSystem.enabled) {
+            // 建筑立面不可见时同步回收其附着火焰/烟雾；退出压平后会按血量自动重建。
+            for (const entity of _game.entities.values()) {
+                if (entity?._buildingDamageFx?.active) entity._buildingDamageFx.destroy();
+            }
+            return;
+        }
         for (const entity of _game.entities.values()) {
             if (!isBuildingDamageFxTarget(entity)) continue;
             const count = buildingDamageFlameCount(entity);

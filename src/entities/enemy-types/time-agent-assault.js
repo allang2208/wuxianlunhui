@@ -1,6 +1,7 @@
 import { Enemy } from '../enemy.js';
 import enemyConfigData from '../../../data/enemy-config.json';
 import { GroundEllipse } from '../../physics/skill-shapes.js';
+import { surfaceEffectFromEntity } from '../../physics/elevation.js';
 import { PERSPECTIVE_SCALE_Y } from '../../config/perspective-config.js';
 import { AimHelper } from '../../utils/aim-helper.js';
 import { WallSystem } from '../../world/wall-system.js';
@@ -642,7 +643,8 @@ export class TimeAgentAssault extends Enemy {
                 flyS > 0 ? Math.hypot(t.x - this.x, t.y - this.y) / flyS : 1000, 0);
             tx = lead.x; ty = lead.y;
         }
-        this._flashTarget = { x: tx, y: ty };
+        const surfaceContext = t ? surfaceEffectFromEntity(t) : surfaceEffectFromEntity(this);
+        this._flashTarget = { x: tx, y: ty, surfaceContext };
         // 地面红色椭圆预警（与落地判定同半径，保活至落地；共享件）
         this._destroyFlashWarning();
         this._flashWarning = createGroundWarning(tx, ty, FB.impactRadius || 100);
@@ -663,20 +665,26 @@ export class TimeAgentAssault extends Enemy {
             onImpact: (ix, iy) => {
                 this._flashSprite = null;
                 this._flashTween = null;
-                this._impactFlashbang(ix, iy);
+                this._impactFlashbang(ix, iy, surfaceContext);
             },
         });
         this._flashSprite = handle ? handle.sprite : null;
         this._flashTween = handle;
     }
 
-    _impactFlashbang(tx, ty) {
+    _impactFlashbang(tx, ty, surfaceContext = null) {
         this._destroyFlashWarning();
         playSoundFrom(this, 'flash'); // 投射物消失（落地）音效
         const FB = this._getSkillConfigs().flashbang;
         const radius = FB.impactRadius || 100;
         const matk = this.data?.matk || 0;
-        const shape = new GroundEllipse(tx, ty, radius, radius * PERSPECTIVE_SCALE_Y);
+        const shape = new GroundEllipse(
+            tx,
+            ty,
+            radius,
+            radius * PERSPECTIVE_SCALE_Y,
+            surfaceContext || surfaceEffectFromEntity(this)
+        );
         for (const e of hostilesOf(this)) {
             if (!shape.intersectsEntity(e)) continue;
             e.takeDamage(Math.max(1, Math.round(matk * (FB.damageMul ?? 1.5))), this, 'magic', false);

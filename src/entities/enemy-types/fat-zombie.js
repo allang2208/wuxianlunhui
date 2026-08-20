@@ -1,6 +1,7 @@
 import { Enemy } from '../enemy.js';
 import enemyConfigData from '../../../data/enemy-config.json';
 import { GroundEllipse } from '../../physics/skill-shapes.js';
+import { surfaceEffectFromEntity } from '../../physics/elevation.js';
 import { playSoundFrom } from './_shared/enemy-utils.js';
 import { createGroundWarning, destroyWarning } from '../../effects/combat-fx.js';
 
@@ -166,7 +167,13 @@ export class FatZombie extends Enemy {
         const dims = this._getAuraDimensions();
         const cx = this.x;
         const cy = this.y + dims.offsetY;
-        const shape = new GroundEllipse(cx, cy, dims.width / 2, dims.height / 2);
+        const shape = new GroundEllipse(
+            cx,
+            cy,
+            dims.width / 2,
+            dims.height / 2,
+            surfaceEffectFromEntity(this)
+        );
 
         const list = Array.isArray(entities) ? entities : (entities ? Array.from(entities.values()) : []);
         for (const entity of list) {

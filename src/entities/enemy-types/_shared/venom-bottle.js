@@ -3,6 +3,7 @@ import { PERSPECTIVE_SCALE_Y } from '../../../config/perspective-config.js';
 import { hostilesOf, playSoundFrom } from './enemy-utils.js';
 import { launchArcProjectile, createGroundWarning, destroyWarning } from '../../../effects/combat-fx.js';
 import { GroundZone } from '../../../effects/ground-zone.js';
+import { surfaceEffectFromEntity } from '../../../physics/elevation.js';
 
 /**
  * 毒液瓶共享机制（巫婆攻击 2 / 煮锅伴生攻击共用，单一实现勿重复）
@@ -18,11 +19,11 @@ import { GroundZone } from '../../../effects/ground-zone.js';
  */
 
 /** 掷出一个毒液瓶（tx/ty 为落点；host 用于特效 depth 与伤害来源） */
-export function throwVenomBottle(host, cfg, tx, ty) {
+export function throwVenomBottle(host, cfg, tx, ty, surfaceContext = null) {
     const scene = typeof window !== 'undefined' ? window.__phaserScene : null;
     if (!scene || !scene.add || !scene.tweens) {
         // 无渲染场景时直接结算（防御性回退）
-        createVenomZone(host, cfg, tx, ty);
+        createVenomZone(host, cfg, tx, ty, surfaceContext);
         return null;
     }
     const dirX = (host._getPhaserOptions && host._getPhaserOptions().flipX) ? -1 : 1;
@@ -49,14 +50,14 @@ export function throwVenomBottle(host, cfg, tx, ty) {
         depth: host.y + 15,
         onImpact: (ix, iy) => {
             destroyWarning(warning);
-            createVenomZone(host, cfg, ix, iy);
+            createVenomZone(host, cfg, ix, iy, surfaceContext);
         },
     });
     return handle ? handle.sprite : null;
 }
 
 /** 落点生成毒液区（绿色椭圆 + 绿烟粒子簇；伤害与叠毒在 onTick） */
-export function createVenomZone(host, cfg, x, y) {
+export function createVenomZone(host, cfg, x, y, surfaceContext = null) {
     // 落地音效（配置 sounds.land，巫婆/煮锅同 key 同文件）
     playSoundFrom(host, 'land');
     // 绿烟配置（配置里 tint 为 "0x......" 字符串，Phaser 粒子需要数值）
@@ -73,6 +74,7 @@ export function createVenomZone(host, cfg, x, y) {
     else if (flameCfg.tint !== undefined) flameCfg.tint = parseTint(flameCfg.tint);
     const zone = new GroundZone({
         x, y,
+        surfaceContext: surfaceContext || surfaceEffectFromEntity(host),
         radius: cfg.impactRadius ?? 200,
         duration: cfg.zoneDuration ?? 6000,
         tickMs: cfg.tickMs ?? 500,
@@ -80,7 +82,13 @@ export function createVenomZone(host, cfg, x, y) {
         flame: flameCfg,
         onTick: (z, entities) => {
             const matk = host.data?.matk || 0;
-            const shape = new GroundEllipse(z.x, z.y, z.radius, z.radius * PERSPECTIVE_SCALE_Y);
+            const shape = new GroundEllipse(
+                z.x,
+                z.y,
+                z.radius,
+                z.radius * PERSPECTIVE_SCALE_Y,
+                z.surfaceContext
+            );
             for (const e of hostilesOf(host, entities)) {
                 if (!shape.intersectsEntity(e)) continue;
                 e.takeDamage(Math.max(1, Math.round(matk * (cfg.damageMul ?? 0.75))), host, 'magic', false);

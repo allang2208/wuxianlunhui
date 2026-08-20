@@ -10,6 +10,11 @@ import { meetsMagicWeaponReq } from '../../config/magic-categories.js';
 import { isSkillCheatEnabled } from '../../config/dev-cheats.js';
 import { SkillManager } from '../../ui/skill-manager.js';
 import {
+    effectElevationIntersectsEntity,
+    surfaceEffectAtPoint,
+    surfaceEffectFromEntity,
+} from '../../physics/elevation.js';
+import {
     getCurrentWeaponCraftEffects,
     getMagicRangeMultiplier,
     getMagicMpCostMultiplier,
@@ -108,14 +113,18 @@ export class IceWallSystem {
 
         // 瞄准点：玩家用鼠标，非玩家用当前目标
         let aimX = src.x, aimY = src.y;
+        let surfaceContext = null;
         if (this._isPlayer()) {
             const aim = Renderer.screenToWorld(Input.mouse.x, Input.mouse.y);
-            aimX = aim.x;
-            aimY = aim.y;
+            surfaceContext = surfaceEffectAtPoint(aim.x, aim.y);
+            aimX = surfaceContext.x;
+            aimY = surfaceContext.y;
         } else if (src.target && src.target.active) {
             aimX = src.target.x;
             aimY = src.target.y;
+            surfaceContext = surfaceEffectFromEntity(src.target);
         }
+        surfaceContext ||= surfaceEffectFromEntity(src);
 
         // 施法距离判定
         const ce = getCurrentWeaponCraftEffects(src);
@@ -156,9 +165,9 @@ export class IceWallSystem {
             // 冰墙生成延迟（spawnDelayMs）：破土前有一个凝聚过程
             const delayMs = effect.spawnDelayMs;
             if (delayMs > 0) {
-                this._pendingSpawns.push({ src, aimX, aimY, effect, timer: delayMs });
+                this._pendingSpawns.push({ src, aimX, aimY, effect, surfaceContext, timer: delayMs });
             } else {
-                this._spawnWall(src, aimX, aimY, effect);
+                this._spawnWall(src, aimX, aimY, effect, surfaceContext);
             }
             EffectManager.add(new FloatingTextEffect(src.x, src.y - 40, '🧱 冰墙', '#a0d8ff'));
             // 松木握柄：施法后添加 1 层链式强化；檀木握柄：施法后给自身加速
@@ -174,7 +183,7 @@ export class IceWallSystem {
     }
 
     /** 生成垂直于施法方向的冰墙段（含碰撞注册 + 落点单位弹开） */
-    _spawnWall(src, aimX, aimY, effect) {
+    _spawnWall(src, aimX, aimY, effect, surfaceContext) {
         const count = effect.segmentCount;
         const width = effect.segmentWidth;
         const height = effect.segmentHeight;
@@ -223,12 +232,22 @@ export class IceWallSystem {
                 age: 0,
                 spawnDelay: Math.round(Math.abs(i - center) * 45),
                 variant: Math.floor(Math.random() * 4),
+                surfaceContext,
                 _colSeg: seg,
             });
             spawned.push({ x: wx, y: wy });
         }
         // 落点命中：物理伤害 + 击退 50px + 弹开（距离翻倍），返回命中/击杀数结算技能经验
-        const { hits, kills } = this._applySpawnHit(spawned, perpX, perpY, normalX, normalY, spacing, effect);
+        const { hits, kills } = this._applySpawnHit(
+            spawned,
+            perpX,
+            perpY,
+            normalX,
+            normalY,
+            spacing,
+            effect,
+            surfaceContext
+        );
         if (this._isPlayer() && (hits > 0 || kills > 0) && SkillManager && typeof SkillManager.addIceWallExp === 'function') {
             SkillManager.addIceWallExp(src, hits, kills);
         }
@@ -261,7 +280,7 @@ export class IceWallSystem {
      * + 沿墙面法向弹开（pushDistanceMul 倍）；敌人走 knockback 通道，玩家直接位移
      * （玩家 knockback 无消费方）。返回 { hits, kills } 供技能经验结算。
      */
-    _applySpawnHit(segs, perpX, perpY, normalX, normalY, spacing, effect) {
+    _applySpawnHit(segs, perpX, perpY, normalX, normalY, spacing, effect, surfaceContext) {
         const targets = this._hostileTargets();
         const d = this.source.data || {};
         // 伤害 = damageBase + 智力×damageIntMul + 精神×damageWisMul（公式见 skills.json，随等级解析）
@@ -274,6 +293,7 @@ export class IceWallSystem {
         const pushMul = effect.pushDistanceMul;
         let hits = 0, kills = 0;
         for (const t of targets) {
+            if (!effectElevationIntersectsEntity(surfaceContext, t)) continue;
             const r = (t.collisionRadius || t.groundRadius || 16);
             for (const s of segs) {
                 const dx = t.x - s.x, dy = t.y - s.y;
@@ -315,6 +335,7 @@ export class IceWallSystem {
             const r = (t.collisionRadius || t.groundRadius || 16);
             let inAura = false;
             for (const w of this._walls) {
+                if (!effectElevationIntersectsEntity(w.surfaceContext, t)) continue;
                 const dx = t.x - w.x, dy = t.y - w.y;
                 if (Math.hypot(dx, dy) <= this._chillRadius + r) {
                     inAura = true;
@@ -365,7 +386,9 @@ export class IceWallSystem {
             p.timer -= dt;
             if (p.timer <= 0) {
                 this._pendingSpawns.splice(i, 1);
-                if (p.src && p.src.active !== false) this._spawnWall(p.src, p.aimX, p.aimY, p.effect);
+                if (p.src && p.src.active !== false) {
+                    this._spawnWall(p.src, p.aimX, p.aimY, p.effect, p.surfaceContext);
+                }
             }
         }
         for (let i = this._walls.length - 1; i >= 0; i--) {

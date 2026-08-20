@@ -13,6 +13,7 @@ import { LevelUpEffectQueue } from './effects/level-up-queue.js';
 import { SweepEffect } from './effects/sweep-effect.js';
 import { WallSystem } from './world/wall-system.js';
 import { BuildingSystem } from './world/building-system.js';
+import { FlatViewSystem } from './world/flat-view-system.js';
 import { EnergyManager } from './systems/energy-manager.js';
 import { PERSPECTIVE_SCALE_Y } from './config/perspective-config.js';
 import { resolveCircleFromIsoFootprint } from './physics/iso-footprint.js';
@@ -124,6 +125,7 @@ export const Game = {
         CompanionCommandWheel.init();
         // RTS 指挥模式（世界-122 组队栏下方按钮；scene8 启用时接管左/右键）
         RTSCommand.init();
+        FlatViewSystem.init();
         this.EquipManager = EquipManager; // 供侍从面板背包拖动交换访问
         this.PartySystem = PartySystem;   // 供调试/其他模块访问队伍
         this.RecruitUI = RecruitUI;       // 招募界面（单一模块实例，调试/外部调用用 window.Game.RecruitUI）
@@ -131,6 +133,8 @@ export const Game = {
         this.PartyUI = PartyUI;           // 组队栏（选中状态调试/探针）
         this.CompanionCommandWheel = CompanionCommandWheel; // 指令轮盘（探针可直接驱动 _execute）
         this.RTSCommand = RTSCommand;     // RTS 指挥模式（探针可直接驱动 enabled/setEnabled）
+        this.FlatViewSystem = FlatViewSystem; // 建造/RTS/观察者上下文的空格压平显示
+        this.Input = Input;               // 模式级快捷键隔离只清理按键状态，不绕过 Input 处理流程
         // RTS 建筑点击复用的系统句柄（避免模块循环 import，经 window.Game 惰性访问）
         this.DefenseSystem = DefenseSystem;
         this.DefenseTrapSystem = DefenseTrapSystem;

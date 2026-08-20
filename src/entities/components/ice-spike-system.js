@@ -95,9 +95,10 @@ const ICE_SPIKE_KIND = {
         },
     },
     // 命中/撞墙：冰锥碎裂（特效两层：冰屑带重力 + 小冰环）；同帧多目标逐目标结算（准穿透）
-    onImpact(sys, spike, { x, y, damage, skill, hitEntity }) {
+    onImpact(sys, spike, { x, y, damage, skill, hitEntity, surfaceContext }) {
+        const displayY = y - (Number(surfaceContext?.z) || 0);
         burstParticles({
-            texture: 'impact_dot', x, y, count: 12, jitter: 8,
+            texture: 'impact_dot', x, y: displayY, count: 12, jitter: 8,
             config: {
                 speed: { min: 100, max: 320 },
                 scale: { start: 1.6, end: 0.15 },
@@ -107,10 +108,10 @@ const ICE_SPIKE_KIND = {
                 tint: [0xffffff, 0xaaddff, 0x66aaff],
                 blendMode: 'ADD',
             },
-            destroyAfterMs: 700, depth: y + 60,
+            destroyAfterMs: 700, depth: displayY + 60,
         });
         fireGroundShockwave({
-            x, y, maxRadius: 70,
+            x, y: displayY, maxRadius: 70,
             strokeColor: 0x9fd8ff, fillColor: 0xd8f0ff,
             lineWidth: 4, duration: 320, flicker: true,
         });
