@@ -9,6 +9,7 @@
 
 import { MovementSystem } from '../systems/movement-system.js';
 import { WallSystem } from '../world/wall-system.js';
+import { clearRtsSurfaceRoute, resolveRtsMoveDestination } from './rts-command-utils.js';
 import { GroundCircle } from '../physics/skill-shapes.js';
 import { SceneManager } from '../world/scene-manager.js';
 import { DungeonMapSystem } from '../world/dungeon-map-system.js';
@@ -24,13 +25,20 @@ import { getConsumableEffect, applyConsumableEffect } from '../config/consumable
 import { grantCompanionSkillExp } from '../systems/skill-system.js';
 import { AimHelper } from '../utils/aim-helper.js';
 import { SoundManager } from '../ui/sound-manager.js';
+import { getMagicRangeMultiplier } from '../utils/magic-craft-helper.js';
+import {
+    applyElevatedRangedRange,
+    projectileSourceZ,
+    projectileTargetZ,
+    projectileWallContext,
+} from '../combat/elevated-ranged.js';
+import { hasRangedLineOfSight } from '../combat/ranged-line-of-sight.js';
 import {
     DEFAULT_MAGE_AI, decideCompanionAction, pickCompanionSpell,
     shouldRelocateCompanion, shouldUseRun,
     shouldWarriorDefend, shouldWarriorWhirlwind, pickPatrolPoint, pickNearestNode,
 } from './companion-ai-decision.js';
 
-const WALL_ROUTE_Z_TOLERANCE = 34;
 const MELEE_THREAT_RANGE = 220; // 攻击距离低于此值视为近战威胁
 // 技能射程兜底（与技能系统默认一致；skills.json effectFormula 通常不含 maxRange）
 const SKILL_RANGE_FALLBACK = { fireball: 1200, iceSpike: 800, lightningStrike: 600 };
@@ -83,6 +91,14 @@ export class CompanionAI {
         this._patrolTarget = null;  // 巡逻随机目标点
         this._patrolTimer = 0;      // 巡逻换点计时
         this._gatherPhase = 'work'; // 'work' 采集 | 'return' 满载回玩家
+    }
+
+    _combatRange() {
+        return applyElevatedRangedRange(this.c, this.cfg.combatRange || 640);
+    }
+
+    _basicAttackRange() {
+        return applyElevatedRangedRange(this.c, this.cfg.basicAttackRange || 600);
     }
 
     /** 懒构造技能系统（仅在运行时；避免 node 单测加载 Phaser 依赖链） */
@@ -206,8 +222,13 @@ export class CompanionAI {
         // 卡住证据 = 距离超阈值 + PathManager stuckCount / 撞墙；正常远离 = flee/站位/施法/距离在缩小。
         // 指挥指令（巡逻/采集/主动攻击）允许远离玩家：这些模式跳过掉队瞬移（指令自带寻路重试）。
         const cmdMode = c._command && c._command.mode;
+        const onElevatedSurface = c._surfaceRouteActive
+            || c._surfaceKind === 'stairs'
+            || c._surfaceKind === 'wall_walk';
         this._relocateTimer -= dt;
-        if (this._relocateTimer <= 0 && (!cmdMode || cmdMode === 'follow')) {
+        if (this._relocateTimer <= 0
+            && !onElevatedSurface
+            && (!cmdMode || cmdMode === 'follow')) {
             this._relocateTimer = 1500;
             if (this._evaluateRelocate(player)) {
                 const sp = this._findValidSpawn(player);
@@ -358,6 +379,13 @@ export class CompanionAI {
      */
     _checkStuck(dt, player) {
         const c = this.c;
+        if (c._surfaceRouteActive
+            || c._surfaceKind === 'stairs'
+            || c._surfaceKind === 'wall_walk') {
+            this._stuckSamples.length = 0;
+            this._stuckStreak = 0;
+            return;
+        }
         // 施法站定/无生命不检测
         if (c._castState !== 'idle' || c._frozenForCast || c.data.hp <= 0) {
             this._stuckStreak = 0;
@@ -397,6 +425,9 @@ export class CompanionAI {
     /** 瞬移脱离卡死位置：优先卡死点附近"更靠近玩家"的合法点，否则玩家附近合法点 */
     _teleportStuck(player) {
         const c = this.c;
+        if (c._surfaceRouteActive
+            || c._surfaceKind === 'stairs'
+            || c._surfaceKind === 'wall_walk') return;
         this._teleportCd = 4000;
         const radius = (c.groundRadius || 26) * 0.8;
         const curDist = Math.hypot(c.x - player.x, c.y - player.y);
@@ -521,7 +552,7 @@ export class CompanionAI {
 
         // 技能就绪判断（含射程/MP/冷却）；无法术时普通攻击兜底（蓝色光球）
         const spell = hasEnemy && c.target ? this._pickReadySpell(enemies, c.target, targetDist) : null;
-        const basic = hasEnemy && c.target ? this._basicReady(targetDist) : false;
+        const basic = hasEnemy && c.target ? this._basicReady(targetDist, c.target) : false;
 
         // 状态机：follow 距离以"到跟随点"为准（到玩家距离恒为偏移量，会导致永远走不到而停不下来）
         const followPoint = hasEnemy ? null : this._followPoint(player);
@@ -532,7 +563,7 @@ export class CompanionAI {
             threatDist,
             safeDistance: this.cfg.safeDistance || 230,
             targetDist,
-            combatRange: this.cfg.combatRange || 640,
+            combatRange: this._combatRange(),
             spellReady: !!spell || !!basic,
             followDist,
             followArriveDist: this.cfg.followArriveDist || 55,
@@ -597,7 +628,7 @@ export class CompanionAI {
                         this._setMoveState('run');
                         break;
                     }
-                    const standRange = (this.cfg.combatRange || 640) * 0.72;
+                    const standRange = this._combatRange() * 0.72;
                     if (targetDist !== null && targetDist > standRange * 0.9) {
                         const sp = this._standPoint(c.target, standRange);
                         // 远程后排不追远目标：站位点离玩家过远 → 站桩等目标进射程
@@ -720,15 +751,15 @@ export class CompanionAI {
             c.target = forcedTarget;
             const forcedDist = Math.hypot(forcedTarget.x - c.x, forcedTarget.y - c.y);
             const spell = this._pickReadySpell(enemies, forcedTarget, forcedDist);
-            if (spell && forcedDist <= (this.cfg.combatRange || 640)) {
+            if (spell && forcedDist <= this._combatRange()) {
                 this._tryCast(spell, forcedTarget);
                 return;
             }
-            if (this._basicReady(forcedDist)) {
+            if (this._basicReady(forcedDist, forcedTarget)) {
                 this._tryBasicAttack(forcedTarget);
                 return;
             }
-            const standRange = (this.cfg.combatRange || 640) * 0.72;
+            const standRange = this._combatRange() * 0.72;
             if (forcedDist > standRange * 0.9) {
                 c._tacticalTarget = this._standPoint(forcedTarget, standRange);
                 this._setMoveState(this._shouldRun(forcedDist, 'advance') ? 'run' : 'walk');
@@ -754,17 +785,17 @@ export class CompanionAI {
         }
         c.target = best;
         const spell = this._pickReadySpell(enemies, c.target, bestD);
-        if (spell && bestD <= (this.cfg.combatRange || 640)) {
+        if (spell && bestD <= this._combatRange()) {
             this._tryCast(spell, c.target);
             return;
         }
         // 无法术可用 → 统一普通攻击（与默认状态机同一套）
-        if (this._basicReady(bestD)) {
+        if (this._basicReady(bestD, c.target)) {
             this._tryBasicAttack(c.target);
             return;
         }
         // 追击：站位点朝目标推进（无玩家距离上限）
-        const standRange = (this.cfg.combatRange || 640) * 0.72;
+        const standRange = this._combatRange() * 0.72;
         if (bestD > standRange * 0.9) {
             c._tacticalTarget = this._standPoint(c.target, standRange);
             this._setMoveState(this._shouldRun(bestD, 'advance') ? 'run' : 'walk');
@@ -793,16 +824,16 @@ export class CompanionAI {
             }
             c.target = best;
             const spell = this._pickReadySpell(near, c.target, bestD);
-            if (spell && bestD <= (this.cfg.combatRange || 640)) {
+            if (spell && bestD <= this._combatRange()) {
                 this._tryCast(spell, c.target);
                 return;
             }
-            if (this._basicReady(bestD)) {
+            if (this._basicReady(bestD, c.target)) {
                 this._tryBasicAttack(c.target);
                 return;
             }
-            if (bestD > (this.cfg.combatRange || 640) * 0.9) {
-                const sp = this._standPoint(c.target, (this.cfg.combatRange || 640) * 0.72);
+            if (bestD > this._combatRange() * 0.9) {
+                const sp = this._standPoint(c.target, this._combatRange() * 0.72);
                 c._tacticalTarget = this._clampToCircle(sp, center, CMD_PATROL_RADIUS);
                 this._setMoveState(this._shouldRun(bestD, 'advance') ? 'run' : 'walk');
             }
@@ -855,13 +886,13 @@ export class CompanionAI {
         }
         c.target = node;
         const d = Math.hypot(node.x - c.x, node.y - c.y);
-        if (d > (this.cfg.basicAttackRange || 600)) {
+        if (d > this._basicAttackRange()) {
             c._tacticalTarget = { x: node.x, y: node.y };
             this._setMoveState(this._shouldRun(d, 'follow') ? 'run' : 'walk');
             return;
         }
         // 统一普通攻击（蓝色光球）：与打普通怪完全同一套公式/间隔/投射物
-        if (this._basicReady(d)) this._tryBasicAttack(node);
+        if (this._basicReady(d, node)) this._tryBasicAttack(node);
         c.rotation = Math.atan2(node.y - c.y, node.x - c.x);
     }
 
@@ -892,29 +923,17 @@ export class CompanionAI {
         // 最高优先级：清掉采集/巡逻残余状态（右键移动覆盖一切当前指令）
         c._gatherPhase = 'work';
         this._patrolTarget = null;
-        const route = Array.isArray(cmd.point?.route) ? cmd.point.route : [];
-        c._surfaceRouteActive = route.length > 0;
-        let routeIndex = Math.max(0, Math.min(route.length - 1, Number(cmd.routeIndex) || 0));
-        let requested = route.length ? route[routeIndex] : (cmd.point || { x: c.x, y: c.y });
-        let d = Math.hypot(requested.x - c.x, requested.y - c.y);
-        let dz = Math.abs((Number(requested.z) || 0) - (Number(c.z) || 0));
-        if (route.length && d <= 42 && dz <= WALL_ROUTE_Z_TOLERANCE && routeIndex < route.length - 1) {
-            routeIndex++;
-            cmd.routeIndex = routeIndex;
-            requested = route[routeIndex];
-            d = Math.hypot(requested.x - c.x, requested.y - c.y);
-            dz = Math.abs((Number(requested.z) || 0) - (Number(c.z) || 0));
-        }
-        const dest = this._nearestWalkable(requested);
-        if (d > 40) {
+        const move = resolveRtsMoveDestination(c, cmd, 40);
+        const dest = move.hasRoute ? move.destination : this._nearestWalkable(move.destination);
+        if (!move.arrived) {
             c._tacticalTarget = dest;
-            this._setMoveState(this._shouldRun(d, 'follow') ? 'run' : 'walk');
-        } else if (dz <= WALL_ROUTE_Z_TOLERANCE) {
+            this._setMoveState(this._shouldRun(move.distance, 'follow') ? 'run' : 'walk');
+        } else {
             // 到达：停步站定（不攻击、不跟随）
             c._tacticalTarget = null;
             if (c._pathManager) c._pathManager._clearPath();
             c.vx = 0; c.vy = 0; c.isMoving = false;
-            c._surfaceRouteActive = false;
+            clearRtsSurfaceRoute(c);
             this._setMoveState('idle');
         }
     }
@@ -1556,6 +1575,7 @@ export class CompanionAI {
 
     _pickReadySpell(enemies, target, targetDist) {
         const c = this.c;
+        if (!hasRangedLineOfSight(c, target)) return null;
         // 内置施法 CD（2026-08-15）：所有法术共享 2s 最小释放间隔
         if (c._castCooldown > 0) return null;
         const cds = { fireball: c._fireballCooldown, iceSpike: c._iceSpikeCooldown, lightningStrike: c._lightningStrikeCooldown };
@@ -1565,7 +1585,8 @@ export class CompanionAI {
             if (!sk) { cds[key] = Infinity; continue; }
             const eff = sk.getEffect(sk.level);
             mpCosts[key] = eff.mpCost || 0;
-            ranges[key] = eff.maxRange || SKILL_RANGE_FALLBACK[key] || 0;
+            ranges[key] = (eff.maxRange || SKILL_RANGE_FALLBACK[key] || 0)
+                * getMagicRangeMultiplier(c);
         }
         const grouped = enemies.length >= 2 && enemies.some(a =>
             enemies.some(b => b !== a && Math.hypot(a.x - b.x, a.y - b.y) < 200));
@@ -1608,8 +1629,11 @@ export class CompanionAI {
     }
 
     /** 普通攻击就绪：间隔 CD 到、无飞行中光球、目标在射程内 */
-    _basicReady(targetDist) {
-        return this._basicAtkCd <= 0 && !this.c._basic && targetDist <= (this.cfg.basicAttackRange || 600);
+    _basicReady(targetDist, target = this.c.target) {
+        return this._basicAtkCd <= 0
+            && !this.c._basic
+            && targetDist <= this._basicAttackRange()
+            && hasRangedLineOfSight(this.c, target);
     }
 
     /** 普通攻击：发射蓝色光球（600px/s），攻击动作播 spell 动画（500ms） */
@@ -1631,14 +1655,30 @@ export class CompanionAI {
         const c = this.c;
         if (!target || !target.active) return;
         const speed = this.cfg.basicAttackSpeed || 600;
-        const startY = c.y - (Number(c.z) || 0);
-        const targetY = target.y - (Number(target.z) || 0);
-        const lead = AimHelper.lead(c.x, startY, target.x, targetY, target.vx || 0, target.vy || 0, speed);
-        const ang = Math.atan2(lead.y - startY, lead.x - c.x);
+        const startZ = projectileSourceZ(c);
+        const targetZ = projectileTargetZ(target);
+        const lead = AimHelper.lead(
+            c.x,
+            c.y,
+            target.x,
+            target.y,
+            target.vx || 0,
+            target.vy || 0,
+            speed
+        );
+        const ang = Math.atan2(lead.y - c.y, lead.x - c.x);
+        const targetDist = Math.max(1, Math.hypot(lead.x - c.x, lead.y - c.y));
         // 存 companion 字段（GameScene._syncCompanionBasics 读 m._basic 渲染光球）
         c._basic = {
-            active: true, x: c.x, y: startY, angle: ang,
-            dist: 0, maxDist: this.cfg.basicAttackRange || 600,
+            active: true,
+            x: c.x,
+            y: c.y,
+            z: startZ,
+            vz: (targetZ - startZ) / Math.max(0.001, targetDist / speed),
+            angle: ang,
+            dist: 0,
+            maxDist: this._basicAttackRange(),
+            wallContext: projectileWallContext(c),
             target,
         };
     }
@@ -1650,19 +1690,43 @@ export class CompanionAI {
         if (!b || !b.active) return;
         const dtSec = dt / 1000;
         const step = (this.cfg.basicAttackSpeed || 600) * dtSec;
+        const prevX = b.x;
+        const prevY = b.y;
+        const prevZ = Number(b.z) || 0;
         b.x += Math.cos(b.angle) * step;
         b.y += Math.sin(b.angle) * step;
+        b.z = prevZ + (Number(b.vz) || 0) * dtSec;
         b.dist += step;
+        if (WallSystem.projectileBlocked?.(
+            prevX,
+            prevY,
+            prevZ,
+            b.x,
+            b.y,
+            b.z,
+            b.wallContext || projectileWallContext(c)
+        )) {
+            c._basic = null;
+            return;
+        }
         // 命中检测：优先发射目标，其次光球路径上经过的所有敌人——
         // 此前只查 b.target，路径上的其他怪物会被光球直接穿过（2026-08-15）
         let hit = null;
         const t = b.target;
-        if (t && t.active && t.hp > 0 && Math.hypot(t.x - b.x, t.y - b.y) < 30) {
+        const hits = (entity) => {
+            const bottom = entity?.collider?.bottomZ ?? (Number(entity?.z) || 0);
+            const top = entity?.collider?.topZ
+                ?? (bottom + (entity?.bodyHeight || entity?.size || 80));
+            return Math.hypot(entity.x - b.x, entity.y - b.y) < 30
+                && b.z >= bottom - 30
+                && b.z <= top + 30;
+        };
+        if (t && t.active && t.hp > 0 && hits(t)) {
             hit = t;
         } else if (Game && Game.entities) {
             for (const e of Game.entities.values()) {
                 if (!e || !e.active || e.hp <= 0 || e._faction !== 'enemy') continue;
-                if (Math.hypot(e.x - b.x, e.y - b.y) < 30) { hit = e; break; }
+                if (hits(e)) { hit = e; break; }
             }
         }
         if (hit) {
@@ -1712,7 +1776,7 @@ export class CompanionAI {
     _pickTarget(enemies, c) {
         // 远程后排：只锁定施法距离 1.3 倍内的目标，避免跨图追残血；
         // 范围内无目标时才退回最近者
-        const maxPick = (this.cfg.combatRange || 640) * 1.3;
+        const maxPick = this._combatRange() * 1.3;
         const near = enemies.filter(e => Math.hypot(e.x - c.x, e.y - c.y) <= maxPick);
         const pool = near.length ? near : enemies;
         let best = null; let bestScore = -Infinity;

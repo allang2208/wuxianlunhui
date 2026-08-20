@@ -1,4 +1,5 @@
-export const RTS_ROUTE_Z_TOLERANCE = 34;
+export const RTS_ROUTE_NODE_DISTANCE = 12;
+export const RTS_ROUTE_Z_TOLERANCE = 12;
 
 /**
  * 统一解析 RTS move 命令的当前航点。
@@ -12,6 +13,12 @@ export function resolveRtsMoveDestination(
 ) {
     const point = command?.point || { x: entity.x, y: entity.y, z: entity.z || 0 };
     const route = Array.isArray(point.route) ? point.route : [];
+    const effectiveArriveDistance = route.length
+        ? Math.min(arriveDistance, RTS_ROUTE_NODE_DISTANCE)
+        : arriveDistance;
+    const effectiveZTolerance = route.length
+        ? Math.min(zTolerance, RTS_ROUTE_Z_TOLERANCE)
+        : zTolerance;
     const explicitRouteIndex = Number.isInteger(command?.routeIndex);
     let routeIndex = route.length && explicitRouteIndex
         ? Math.max(0, Math.min(route.length - 1, command.routeIndex))
@@ -35,8 +42,8 @@ export function resolveRtsMoveDestination(
 
     // 跳过已抵达或重复的路线点，避免每个决策周期只前进一个零距离节点。
     while (route.length
-        && distance <= arriveDistance
-        && verticalDistance <= zTolerance
+        && distance <= effectiveArriveDistance
+        && verticalDistance <= effectiveZTolerance
         && routeIndex < route.length - 1) {
         routeIndex++;
         destination = route[routeIndex];
@@ -45,7 +52,8 @@ export function resolveRtsMoveDestination(
     }
 
     if (route.length) command.routeIndex = routeIndex;
-    const arrived = distance <= arriveDistance && verticalDistance <= zTolerance;
+    const arrived = distance <= effectiveArriveDistance
+        && verticalDistance <= effectiveZTolerance;
     entity._surfaceRouteActive = route.length > 0 && !arrived;
     return { destination, distance, verticalDistance, arrived, hasRoute: route.length > 0 };
 }

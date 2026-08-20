@@ -6,6 +6,7 @@ import { ELEVATION } from '../physics/collider.js';
 import { PERSPECTIVE_SCALE_Y } from '../config/perspective-config.js';
 import SpatialPartitionSystem from '../systems/spatial-partition-system.js';
 import { isFriendlyFire } from '../entities/damageable-entity.js';
+import { projectileWallContext } from './elevated-ranged.js';
 
 class Projectile {
     constructor(x, y, angle, speed, maxRange, size, damage, piercing, source, entities, image, isTracer = false, isGold = false, isDarkGold = false, damageType = 'physical', _noRender = false, isGreen = false, isSpit = false, poisonChance = 0, poisonStacks = 1, textureKey = null) {
@@ -24,9 +25,11 @@ class Projectile {
         this.poisonStacks = poisonStacks; // 附加中毒层数
         this._embeddedWalls = null; // 出膛嵌墙记录（ProjectileFactory 创建时检测；"只出不进"判定用）
 
-        // 伪 3D：地面投射物 z=0；未来可扩展为抛物线/对空投射物
+        // 伪3D直线弹道：z/vz 与 x/y 同步积分，命中走3D胶囊体。
         this.z = 0;
         this.prevZ = 0;
+        this.vz = 0;
+        this.visualAngle = angle;
 
         this._createPhaserSprite();
     }
@@ -35,7 +38,10 @@ class Projectile {
         const dx = Math.cos(this.angle) * this.speed * scale, dy = Math.sin(this.angle) * this.speed * scale;
         const prevX = this.x, prevY = this.y;
         this.prevZ = this.z;
-        this.x += dx; this.y += dy; this.traveled += this.speed * scale;
+        this.x += dx;
+        this.y += dy;
+        this.z += (Number(this.vz) || 0) * scale;
+        this.traveled += this.speed * scale;
         if (this.traveled >= this.maxRange) {
             this.active = false;
         } else if (this._isBlockedByWall(prevX, prevY)) {
@@ -104,7 +110,7 @@ class Projectile {
         if (!WallSystem || !WallSystem.blocked) return false;
         const emb = this._embeddedWalls;
         // 普通墙（嵌墙面线 + 其阶梯块 + 嵌墙矩形除外）撞线即死
-        let ignore = emb ? {
+        const embeddedIgnore = emb ? {
             segs: new Set(emb.segs.map(e => e.seg)),
             rects: new Set([
                 ...(emb.clearedRects || []),
@@ -112,20 +118,15 @@ class Projectile {
                 ...emb.segs.flatMap(e => e.linked ? [...e.linked] : []),
             ]),
         } : null;
-        // 防御塔弹丸：忽略己方掩体墙段——塔可越过己方掩体射击（2026-08-14）
-        // 射击台（2026-08-16）：站在射击台上的单位（玩家/友方，_onPlatform）同样忽略
-        // 己方掩体段，可越过围墙向外远程攻击（与防御塔同机制）
-        if (this.source && (this.source._isDefenseTower || this.source._onPlatform) && WallSystem && WallSystem.isoSegments) {
-            const coverSegs = new Set(WallSystem.isoSegments.filter((s) => s && s._cover));
-            if (coverSegs.size) {
-                if (!ignore) {
-                    ignore = { segs: coverSegs, rects: null };
-                } else {
-                    ignore.segs = new Set([...(ignore.segs || []), ...coverSegs]);
-                }
-            }
-        }
-        if (WallSystem.blocked(prevX, prevY, this.x, this.y, ignore)) return true;
+        const ignore = {
+            ...(this._wallContext || projectileWallContext(this.source)),
+            ...(embeddedIgnore || {}),
+        };
+        const z1 = this.prevZ + this.size / 2;
+        const z2 = this.z + this.size / 2;
+        if (typeof WallSystem.projectileBlocked === 'function') {
+            if (WallSystem.projectileBlocked(prevX, prevY, z1, this.x, this.y, z2, ignore)) return true;
+        } else if (WallSystem.blocked(prevX, prevY, this.x, this.y, ignore)) return true;
         if (!emb) return false;
         if (!emb.clearedRects) emb.clearedRects = new Set();
         // iso 面线嵌墙：只出不进
@@ -283,7 +284,7 @@ class Projectile {
         const phaserScene = window.__phaserScene;
         if (!phaserScene || !phaserScene.projectilesGroup) return;
         const key = this._getProjectileTextureKey();
-        const sprite = phaserScene.add.sprite(this.x, this.y, key);
+        const sprite = phaserScene.add.sprite(this.x, this.y - this.z, key);
         // 深度=脚底 y + 500（原 +12）：弹道贴图必须压在墙壁之上——贴墙飞行时被墙面盖住又露出的根因；
         // 物理上子弹不会穿墙（嵌墙"只出不进"），视觉上压墙永远成立
         sprite.setDepth((this.y || 0) + 500 + (this.depthBonus || 0));
@@ -296,9 +297,9 @@ class Projectile {
 
     _updatePhaserSprite() {
         if (!this._phaserSprite || !this._phaserSprite.active) return;
-        this._phaserSprite.setPosition(this.x, this.y);
+        this._phaserSprite.setPosition(this.x, this.y - this.z);
         // 显式纹理键投射物不随弹道旋转（球体光照贴图旋转会丢失光照方向）
-        this._phaserSprite.setRotation(this.textureKey ? 0 : this.angle);
+        this._phaserSprite.setRotation(this.textureKey ? 0 : (this.visualAngle ?? this.angle));
         // 深度=脚底 y + 500（与 _createPhaserSprite 同口径）：弹道贴图必须压在墙壁之上——
         // 贴墙飞行时被墙面盖住又露出的根因；此处曾残留 y+12 覆盖掉创建时的 y+500，修复未生效
         this._phaserSprite.setDepth((this.y || 0) + 500 + (this.depthBonus || 0));

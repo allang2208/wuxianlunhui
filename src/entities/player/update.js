@@ -19,6 +19,12 @@ import { BuildingRoadSystem } from '../../world/building-road-system.js';
 
 const updateMixin = {
 update(dt, entities) {
+                // 墙顶/楼梯是窄通道：浏览器偶发长帧不能把约100ms一次积分成数十像素瞬移。
+                // 计时器仍使用真实dt，仅位置积分限制为最多约两帧。
+                const elevatedMoveDt = this._surfaceKind === 'wall_walk'
+                    || this._surfaceKind === 'stairs'
+                    ? Math.min(dt, 34)
+                    : dt;
                 if (this.hitFlash > 0) {
                     this.hitFlash = Math.max(0, this.hitFlash - dt);
                 }
@@ -108,9 +114,12 @@ update(dt, entities) {
                     this._updateSubsystems(dt, entities);
                     // 位置积分与墙壁解析（失控移动也要走正常通道，不可穿墙）
                     {
-                        const mScale = dt / 1000;
+                        const mScale = elevatedMoveDt / 1000;
                         const nx = this.x + this.vx * mScale, ny = this.y + this.vy * mScale;
-                        const resolved = WallSystem.resolve(this.x, this.y, nx, ny, this.groundRadius);
+                        const resolved = WallSystem.resolve(
+                            this.x, this.y, nx, ny, this.groundRadius,
+                            WallSystem.ignoreForEntity ? WallSystem.ignoreForEntity(this) : null
+                        );
                         this.x = resolved.x;
                         this.y = resolved.y;
                     }
@@ -218,6 +227,9 @@ update(dt, entities) {
                 this._updateAmmoDisplay();
 
                 const move = Input.getMovement();
+                this._surfaceInputIntent = this.isDodging
+                    ? { x: this.dodgeDirection.x, y: this.dodgeDirection.y }
+                    : { x: move.x, y: move.y };
                 // 无人机操控模式下：禁用玩家移动，但继续更新其他逻辑
                 const isDroneControlling = this.droneSystem && this.droneSystem.controlling;
                 // 近战攻击期间禁止转向，变量供下方移动/旋转逻辑共享
@@ -225,14 +237,19 @@ update(dt, entities) {
                 if (this.dodgeCooldown > 0) this.dodgeCooldown -= dt;
                 if (this.weaponSwitchCooldown > 0) this.weaponSwitchCooldown -= dt;
                 if (this.isDodging) {
-                    this.dodgeTimer -= dt;
+                    // 高架长帧位移已经限幅，翻滚计时也使用同一积分量，
+                    // 否则卡顿帧会只消耗时长却不走完距离，表现为突然刹停。
+                    this.dodgeTimer -= elevatedMoveDt;
                     if (this.dodgeTimer <= 0) { this._endDodge(); }
                     else {
-                        const dScale = dt / 1000;
+                        const dScale = elevatedMoveDt / 1000;
                         // 生效速度走 calculateCombatStats 面板（可被装备/道具修饰），缺省回退配置基准
                         const dodgeSpeed = (this.data && this.data.dodgeSpeed) || CONFIG.DODGE_SPEED;
                         const dnx = this.x + this.dodgeDirection.x * dodgeSpeed * 0.33 * dScale, dny = this.y + this.dodgeDirection.y * dodgeSpeed * 0.33 * dScale;
-                        const dr = WallSystem.resolve(this.x, this.y, dnx, dny, this.groundRadius);
+                        const dr = WallSystem.resolve(
+                            this.x, this.y, dnx, dny, this.groundRadius,
+                            WallSystem.ignoreForEntity ? WallSystem.ignoreForEntity(this) : null
+                        );
                         this.x = dr.x; this.y = dr.y;
                         // 主神空间：限制在场景范围内(0,0)-(WORLD_WIDTH,WORLD_HEIGHT)，其他场景保持大范围
                         if (SceneManager && SceneManager.currentScene === 'main') {
@@ -348,9 +365,12 @@ update(dt, entities) {
                         // GameScene._syncBodiesToPhysics() 会从 Phaser 同步位置回 Player
                     } else {
                         // 原有模式：直接位置设置 + WallSystem 碰撞解析
-                        const mScale = dt / 1000;
+                        const mScale = elevatedMoveDt / 1000;
                         const nx = this.x + this.vx * mScale, ny = this.y + this.vy * mScale;
-                        const resolved = WallSystem.resolve(this.x, this.y, nx, ny, this.groundRadius);
+                        const resolved = WallSystem.resolve(
+                            this.x, this.y, nx, ny, this.groundRadius,
+                            WallSystem.ignoreForEntity ? WallSystem.ignoreForEntity(this) : null
+                        );
                         // 墙壁碰撞音效：速度较大且位置被阻挡时
                         if ((Math.abs(this.vx) > 1.5 || Math.abs(this.vy) > 1.5) && (Math.abs(resolved.x - nx) > 1 || Math.abs(resolved.y - ny) > 1)) {
                             // SoundManager.play('wall_hit');

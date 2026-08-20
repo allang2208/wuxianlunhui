@@ -38,6 +38,8 @@ import { AnimChannel, resolveAnimChannel, enterRecover, clearPose, nowMs,
     MELEE_STAGE_ANIM_KEYS, meleeStageCfgKey, meleeStageRecoverMs } from '../../entities/player/anim-state.js';
 import { PERSPECTIVE_SCALE_Y } from '../../config/perspective-config.js';
 import { getTorsoRect } from '../../physics/torso-hitbox.js';
+import { isEntityStrictlyBelow } from '../../physics/elevation.js';
+import SpatialPartitionSystem from '../../systems/spatial-partition-system.js';
 
 import { DungeonMapSystem } from '../../world/dungeon-map-system.js';
 import { Camera } from '../../world/camera.js';
@@ -1152,19 +1154,20 @@ export class GameScene extends Scene {
                     }
                     this._companionBasicSprites[m.id] = spr;
                 }
-                spr.setPosition(b.x, b.y);
+                const projectileY = Number.isFinite(b.z) ? b.y - b.z : b.y;
+                spr.setPosition(b.x, projectileY);
                 if (musket) {
-                    spr.setRotation(b.angle);
+                    spr.setRotation(b.visualAngle ?? b.angle);
                     spr.setDisplaySize(54, 4);
                     spr.setBlendMode(BlendModes.ADD);
                 } else if (ranged && arrowKey && this.textures.exists(arrowKey)) {
                     // 尖头方向：射手朝左旋转 +180°；斥候朝右直接旋转到飞行角
-                    spr.setRotation(b.angle + (tipLeft ? Math.PI : 0));
+                    spr.setRotation((b.visualAngle ?? b.angle) + (tipLeft ? Math.PI : 0));
                     spr.setBlendMode(BlendModes.NORMAL);
                 } else {
                     spr.setRotation(0);
                 }
-                spr.setDepth(b.y + 15);
+                spr.setDepth((b.y || 0) + 500);
                 spr.setVisible(true);
             } else if (spr) {
                 spr.setVisible(false);
@@ -1293,25 +1296,17 @@ export class GameScene extends Scene {
             if (!entity || !sprite || (Number(entity.z) || 0) <= 1 || !Game.entities) {
                 return depth;
             }
-            const upperBottom = Number(entity.collider?.bottomZ);
-            const upperBottomZ = Number.isFinite(upperBottom)
-                ? upperBottom
-                : (Number(entity.z) || 0);
             const invScale = 1 / PERSPECTIVE_SCALE_Y;
             let resolvedDepth = depth;
-            for (const lower of Game.entities.values()) {
+            const queryRadius = (Number(entity.groundRadius) || 20) + 140;
+            const lowerCandidates = SpatialPartitionSystem?.queryRadius
+                ? SpatialPartitionSystem.queryRadius(entity.x, entity.y, queryRadius, entity)
+                : Game.entities.values();
+            for (const lower of lowerCandidates) {
                 if (!lower || lower === entity || !lower.active || lower._isDefenseStructure) continue;
                 const lowerSprite = lower._phaserSprite;
                 if (!lowerSprite?.active) continue;
-                const lowerTop = Number(lower.collider?.topZ);
-                const lowerHeight = Number(lower.collider?.height)
-                    || Number(lower.collisionHeight)
-                    || Number(lower.size)
-                    || (Number(lower.groundRadius) || 20) * 2;
-                const lowerTopZ = Number.isFinite(lowerTop)
-                    ? lowerTop
-                    : (Number(lower.z) || 0) + lowerHeight;
-                if (lowerTopZ > upperBottomZ + 2) continue;
+                if (!isEntityStrictlyBelow(lower, entity)) continue;
                 const dx = lower.x - entity.x;
                 const dy = (lower.y - entity.y) * invScale;
                 const nearRadius = (Number(entity.groundRadius) || 20)

@@ -271,7 +271,16 @@ export class BootScene extends Scene {
         this.load.image('obstacle_defense_tower', 'assets/terrain/obstacle_defense_tower.png');
         // 世界-122 基地核心（Blender 建模：立方体 + 扁平底座 + 大理石贴图，2026-08-16）
         this.load.image('defense_base', 'assets/terrain/defense_base.png');
-        // 世界-122 射击台（单格 Blender 重构：格内三级台阶 + 半格台面）
+        // 世界-122 城墙楼梯：以 obstacle_block 方块墙为基准，四方向分别直接渲染。
+        for (const key of [
+            'wall_stair_lower_e1_pos', 'wall_stair_upper_e1_pos',
+            'wall_stair_lower_e1_neg', 'wall_stair_upper_e1_neg',
+            'wall_stair_lower_e2_pos', 'wall_stair_upper_e2_pos',
+            'wall_stair_lower_e2_neg', 'wall_stair_upper_e2_neg',
+        ]) {
+            this.load.image(key, `assets/terrain/${key}.png`);
+        }
+        // 旧存档射击台纹理保留加载，仅读取兼容，不再出现在建造面板。
         this.load.image('firing_platform', 'assets/terrain/firing_platform_1x1.png');
         this.load.image('firing_platform_h', 'assets/terrain/firing_platform_h.png');
         // 世界-122 仓鼠小屋（建筑面板可建造，生成仓鼠矿工；贴图 Blender 建模渲染）

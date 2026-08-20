@@ -26,6 +26,7 @@ import { SynergySystem, DEFAULT_SYNERGY_RULES } from './ai/synergy-system.js';
 import { BattleCommander } from './ai/battle-commander.js';
 import { Enemy } from './entities/enemy.js';
 import SpatialPartitionSystem from './systems/spatial-partition-system.js';
+import { verticalRangesOverlap } from './physics/elevation.js';
 import FormationSystem from './systems/formation-system.js';
 import { TacticalSquadRoleSwitch } from './systems/tactical-squad-role-switch.js';
 import { DungeonMapSystem } from './world/dungeon-map-system.js';
@@ -1628,6 +1629,11 @@ const pickupCfg = GAME_CONFIG.pickup || {};
             }
         }
 this.resolveCollisions();
+        if (SceneManager.currentScene === 'scene8'
+            && DefenseSystem?.active
+            && typeof DefenseSystem.reconcileElevatedSurfaces === 'function') {
+            DefenseSystem.reconcileElevatedSurfaces();
+        }
 EffectManager.update(dt);
         // ===== 状态栏更新 =====
         if (StatusBar) {
@@ -1782,6 +1788,11 @@ if (SceneManager.currentScene === 'scene3') {
                 const j = indexOf.get(bRaw);
                 if (j === undefined || j <= i) continue;
                 const b = bRaw;
+                // 墙梯接口/楼梯共享缝属于统一高架桥面，短暂关闭单位分离，
+                // 防止surface提交后又被同层单位推离桥面。
+                if (a._elevatedNavigationBridge || b._elevatedNavigationBridge) continue;
+                // 墙上/楼梯单位与墙下地面单位垂直区间不重叠时，二维投影即使重合也不分离。
+                if (!verticalRangesOverlap(a, b)) continue;
                 // 防御塔只挡怪物、不挡玩家/友军（友方可贴塔站位；2026-08-14）
                 const aTower = !!a._isDefenseTower, bTower = !!b._isDefenseTower;
                 if (aTower !== bTower) {
@@ -1816,6 +1827,11 @@ if (SceneManager.currentScene === 'scene3') {
                     : ((b.collisionShape === 'iso_rect' && b.collisionWidth > 0) ? b : null);
                 if (isoEnt) {
                     const other = isoEnt === a ? b : a;
+                    const supportedByIsoWall = isoEnt._isDefenseCover
+                        && (Number(other.z) || 0) > 1
+                        && Array.isArray(other._surfaceWalls)
+                        && other._surfaceWalls.includes(isoEnt);
+                    if (supportedByIsoWall) continue;
                     if (isoEnt._isDefenseCover && other._faction === 'companion') continue;
                     const immIso = !!isoEnt.noSeparation;
                     const immOther = !!other.noSeparation;
@@ -1835,7 +1851,8 @@ if (SceneManager.currentScene === 'scene3') {
                                     isoEnt.x, isoEnt.y,
                                     isoEnt.x - push.x * shareIso,
                                     isoEnt.y - push.y * shareIso,
-                                    isoEnt.groundRadius
+                                    isoEnt.groundRadius,
+                                    WallSystem.ignoreForEntity?.(isoEnt) || null
                                 );
                                 isoEnt.x = movedIso.x;
                                 isoEnt.y = movedIso.y;
@@ -1845,7 +1862,8 @@ if (SceneManager.currentScene === 'scene3') {
                                     other.x, other.y,
                                     other.x + push.x * shareOther,
                                     other.y + push.y * shareOther,
-                                    other.groundRadius
+                                    other.groundRadius,
+                                    WallSystem.ignoreForEntity?.(other) || null
                                 );
                                 other.x = movedOther.x;
                                 other.y = movedOther.y;
@@ -1887,10 +1905,12 @@ if (SceneManager.currentScene === 'scene3') {
                             const shareR = immR ? 0 : (immO ? 1 : 0.5);
                             const shareO = immO ? 0 : (immR ? 1 : 0.5);
                             const mr = WallSystem.resolve(rectEnt.x, rectEnt.y,
-                                rectEnt.x - nx2 * overlap * shareR, rectEnt.y - ny2 * overlap * shareR * PERSPECTIVE_SCALE_Y, rectEnt.groundRadius);
+                                rectEnt.x - nx2 * overlap * shareR, rectEnt.y - ny2 * overlap * shareR * PERSPECTIVE_SCALE_Y, rectEnt.groundRadius,
+                                WallSystem.ignoreForEntity?.(rectEnt) || null);
                             rectEnt.x = mr.x; rectEnt.y = mr.y;
                             const mo = WallSystem.resolve(other.x, other.y,
-                                other.x + nx2 * overlap * shareO, other.y + ny2 * overlap * shareO * PERSPECTIVE_SCALE_Y, otherR);
+                                other.x + nx2 * overlap * shareO, other.y + ny2 * overlap * shareO * PERSPECTIVE_SCALE_Y, otherR,
+                                WallSystem.ignoreForEntity?.(other) || null);
                             other.x = mo.x; other.y = mo.y;
                         }
                     }
@@ -1916,8 +1936,18 @@ if (SceneManager.currentScene === 'scene3') {
                     };
 
                     // 用 WallSystem 校验，避免分离把实体推进墙里
-                    const na = WallSystem.resolve(a.x, a.y, a.x + moveA.x, a.y + moveA.y, radiusA);
-                    const nb = WallSystem.resolve(b.x, b.y, b.x + moveB.x, b.y + moveB.y, radiusB);
+                    const na = WallSystem.resolve(
+                        a.x, a.y,
+                        a.x + moveA.x, a.y + moveA.y,
+                        radiusA,
+                        WallSystem.ignoreForEntity?.(a) || null
+                    );
+                    const nb = WallSystem.resolve(
+                        b.x, b.y,
+                        b.x + moveB.x, b.y + moveB.y,
+                        radiusB,
+                        WallSystem.ignoreForEntity?.(b) || null
+                    );
                     a.x = na.x; a.y = na.y;
                     b.x = nb.x; b.y = nb.y;
                 }

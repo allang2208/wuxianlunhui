@@ -1,0 +1,83 @@
+{
+  "_comment": "世界-122 防御结构配置唯一真源。城墙楼梯按目标墙顶高度自动向地面延伸。",
+  "wallStaircase": {
+    "id": "wall_staircase",
+    "name": "城墙楼梯",
+    "costPerSegment": 200,
+    "hpPerSegment": 400,
+    "footprintCellsPerSegment": 1,
+    "risePerSegment": 62.5,
+    "minSegments": 1,
+    "maxSegments": 8,
+    "stepCountPerSegment": 9,
+    "walkWidth": 80,
+    "edgeHalfThick": 0.5,
+    "displayWidth": 220,
+    "displayHeight": 220,
+    "attachRadius": 420,
+    "groupCenterTolerance": 8,
+    "groupRunTolerance": 1.5,
+    "groupRailGapTolerance": 48,
+    "groupSeamMargin": 4,
+    "handoffTopProgress": 0.65,
+    "handoffCaptureMargin": 24,
+    "variants": {
+      "e1_pos": {
+        "displayWidth": 220, "displayHeight": 220,
+        "lower": {"texture": "wall_stair_lower_e1_pos", "surfacePx": [511.999969, 656.185638], "entryPx": [363.054565, 727.167480], "exitPx": [660.945374, 585.203827], "walkEntryAPx": [231.404099, 792.992645], "walkEntryBPx": [494.705017, 661.342285], "walkExitAPx": [529.294922, 651.028992], "walkExitBPx": [792.595825, 519.378632]},
+        "upper": {"texture": "wall_stair_upper_e1_pos", "surfacePx": [512.000000, 365.276489], "entryPx": [363.054565, 436.258301], "exitPx": [660.945435, 294.294678], "walkEntryAPx": [231.404160, 502.083496], "walkEntryBPx": [494.704987, 370.433105], "walkExitAPx": [529.295044, 360.119873], "walkExitBPx": [792.595825, 228.469482]}
+      },
+      "e1_neg": {
+        "displayWidth": 220, "displayHeight": 220,
+        "lower": {"texture": "wall_stair_lower_e1_neg", "surfacePx": [512.000000, 656.185638], "entryPx": [660.945374, 876.112930], "exitPx": [363.054596, 436.258362], "walkEntryAPx": [792.595886, 810.287750], "walkEntryBPx": [529.294922, 941.938103], "walkExitAPx": [494.705078, 370.433167], "walkExitBPx": [231.404144, 502.083557]},
+        "upper": {"texture": "wall_stair_upper_e1_neg", "surfacePx": [512.000000, 365.276489], "entryPx": [660.945435, 585.203735], "exitPx": [363.054565, 145.349243], "walkEntryAPx": [792.595825, 519.378540], "walkEntryBPx": [529.295044, 651.028961], "walkExitAPx": [494.704987, 79.523987], "walkExitBPx": [231.404160, 211.174438]}
+      },
+      "e2_pos": {
+        "displayWidth": 220, "displayHeight": 220,
+        "lower": {"texture": "wall_stair_lower_e2_pos", "surfacePx": [512.000000, 656.185638], "entryPx": [660.945496, 727.167511], "exitPx": [363.054535, 585.203766], "walkEntryAPx": [529.295105, 661.342285], "walkEntryBPx": [792.595886, 792.992737], "walkExitAPx": [231.404144, 519.378571], "walkExitBPx": [494.704926, 651.028992]},
+        "upper": {"texture": "wall_stair_upper_e2_pos", "surfacePx": [512.000000, 365.276489], "entryPx": [660.945435, 436.258301], "exitPx": [363.054565, 294.294678], "walkEntryAPx": [529.295044, 370.433105], "walkEntryBPx": [792.595825, 502.083496], "walkExitAPx": [231.404160, 228.469482], "walkExitBPx": [494.704987, 360.119873]}
+      },
+      "e2_neg": {
+        "displayWidth": 220, "displayHeight": 220,
+        "lower": {"texture": "wall_stair_lower_e2_neg", "surfacePx": [511.999969, 656.185638], "entryPx": [363.054474, 876.112885], "exitPx": [660.945496, 436.258423], "walkEntryAPx": [494.704865, 941.938103], "walkEntryBPx": [231.404083, 810.287674], "walkExitAPx": [792.595886, 502.083618], "walkExitBPx": [529.295105, 370.433167]},
+        "upper": {"texture": "wall_stair_upper_e2_neg", "surfacePx": [512.000000, 365.276489], "entryPx": [363.054565, 585.203735], "exitPx": [660.945435, 145.349243], "walkEntryAPx": [494.704987, 651.028961], "walkEntryBPx": [231.404160, 519.378540], "walkExitAPx": [792.595825, 211.174438], "walkExitBPx": [529.295044, 79.523987]}
+      }
+    }
+  },
+  "wallWalk": {
+    "navigationMode": "graph",
+    "movementMode": "surface",
+    "graphEntryRadius": 48,
+    "graphMinAlignment": 0.2,
+    "graphNodeSwitchT": 0.995,
+    "graphLateralCorrectionMax": 3,
+    "graphPortalOverrideMargin": 0.2,
+    "defaultTopZ": 125,
+    "laneWidth": 48,
+    "attachInset": 0,
+    "maxUnitRadius": 30,
+    "surfaceUnitRadius": 24,
+    "stuckFrameThreshold": 2,
+    "emergencyRecoveryRadius": 3,
+    "rangedCombat": {
+      "rangeMultiplier": 1.2,
+      "wallClearance": 2,
+      "wallClearanceRadius": 220
+    },
+    "blockTopSurface": {
+      "sourceSize": [1024, 1024],
+      "verticesPx": {
+        "rear": [512, 85],
+        "right": [733, 196],
+        "front": [512, 307],
+        "left": [291, 196]
+      },
+      "edgeTolerance": 4,
+      "stairAttachTolerance": 24,
+      "wallConnectorTolerance": 2,
+      "neighborCenterTolerance": 2,
+      "footprintSamples": 24,
+      "footprintTolerance": 1.5
+    }
+  }
+}

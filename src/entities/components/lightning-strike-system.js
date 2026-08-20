@@ -1,5 +1,4 @@
 import { Renderer } from '../../world/renderer.js';
-import { WallSystem } from '../../world/wall-system.js';
 import { Input } from '../../ui/input.js';
 import { EffectManager } from '../../effects/effect-manager.js';
 import { FloatingTextEffect } from '../../effects/floating-text.js';
@@ -11,6 +10,7 @@ import { SkillManager } from '../../ui/skill-manager.js';
 import {
     getCurrentWeaponCraftEffects,
     getMagicRangeMultiplier,
+    getMagicAreaMultiplier,
     getMagicMpCostMultiplier,
     getMagicCooldownMultiplier,
     getMagicDamageMultiplierWithChain,
@@ -20,6 +20,7 @@ import {
 } from '../../utils/magic-craft-helper.js';
 import skillsData from '../../../data/skills.json';
 import { isSkillCheatEnabled } from '../../config/dev-cheats.js';
+import { hasRangedLineOfSight } from '../../combat/ranged-line-of-sight.js';
 
 /** 闪电锁定数值默认（配置唯一真相：skills.json effectFormula 必有；缺省兜底统一收敛于此） */
 const LIGHTNING_STRIKE_DEFAULTS = {
@@ -85,7 +86,8 @@ export class LightningStrikeSystem {
         // ===== 三重判定（2026-08-02 定稿）：失败不消耗冷却/耗蓝/链式强化 =====
         const ce = getCurrentWeaponCraftEffects(src);
         const rangeMul = getMagicRangeMultiplier(src, ce);
-        const aimRadius = effect.aimRadius * rangeMul;
+        const areaMul = getMagicAreaMultiplier(src, ce);
+        const aimRadius = effect.aimRadius * areaMul;
         const maxRange = effect.maxRange * rangeMul;
         const entities = (typeof window !== 'undefined' && window.Game && window.Game.entities)
             ? Array.from(window.Game.entities.values()) : [];
@@ -111,7 +113,7 @@ export class LightningStrikeSystem {
         for (const c of nearMouse) {
             if (c.dPlayer > maxRange) continue;
             anyInRange = true;
-            if (!this._isLineOfSightClear(src.x, src.y, c.e.x, c.e.y)) {
+            if (!this._isLineOfSightClear(c.e)) {
                 anyBlocked = true;
                 continue;
             }
@@ -141,7 +143,7 @@ export class LightningStrikeSystem {
         if (!isSkillCheatEnabled() && this._isPlayer() && mpCost > 0) src.data.mp -= mpCost;
         effect.mpCost = mpCost;
         effect.cooldown = effect.cooldown * getMagicCooldownMultiplier(src, ce);
-        effect.chainRange = effect.chainRange * rangeMul;
+        effect.chainRange = effect.chainRange * areaMul;
         if (ce && ce.lightningChainTargetsDelta) {
             effect.chainTargets = effect.chainTargets + ce.lightningChainTargetsDelta;
         }
@@ -251,11 +253,9 @@ export class LightningStrikeSystem {
         return ef === 'enemy';
     }
 
-    /** 视线检测：玩家→目标 线段是否被墙体阻挡（WallSystem.resolve 畅通时原样返回目标点） */
-    _isLineOfSightClear(x1, y1, x2, y2, radius = 8) {
-        if (!WallSystem || typeof WallSystem.resolve !== 'function') return true; // 无墙系统兜底放行
-        const resolved = WallSystem.resolve(x1, y1, x2, y2, radius);
-        return Math.abs(resolved.x - x2) <= 1 && Math.abs(resolved.y - y2) <= 1;
+    /** 视线检测：地面走二维墙判定，高架走带 Z 的弹道墙交点判定。 */
+    _isLineOfSightClear(target, radius = 8) {
+        return hasRangedLineOfSight(this.source, target, radius);
     }
 
     /** 命中点蓝紫爆炸（火球爆炸同款三层：冲击波 + 白热内芯 + 蓝紫外圈） */

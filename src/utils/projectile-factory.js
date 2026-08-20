@@ -7,6 +7,10 @@
 import { EffectManager } from '../effects/effect-manager.js';
 import { Projectile } from '../combat/projectile.js';
 import { WallSystem } from '../world/wall-system.js';
+import {
+    applyElevatedRangedRange,
+    projectileWallContext,
+} from '../combat/elevated-ranged.js';
 
 /**
  * @typedef {Object} ProjectileOptions
@@ -32,6 +36,11 @@ import { WallSystem } from '../world/wall-system.js';
  * @property {number} [poisonStacks] 附加中毒层数
  * @property {string|null} [textureKey] 显式 Phaser 纹理键（优先于 image 的箭头回退）
  * @property {number} [depthBonus] 深度加成（叠加在 y+12 之上，用于保证贴图层级不被遮挡）
+ * @property {number} [z] 发射高度
+ * @property {number} [targetZ] 瞄准高度
+ * @property {number} [aimDistance] 到瞄准点的平面距离
+ * @property {number} [groundY] 枪口视觉Y还原后的地面平面Y
+ * @property {number} [groundAngle] 地面平面内弹道角
  */
 
 export const ProjectileFactory = {
@@ -56,23 +65,65 @@ export const ProjectileFactory = {
             poisonChance = 0,
             poisonStacks = 1,
             textureKey = null,
-            depthBonus = 0
+            depthBonus = 0,
+            z = null,
+            targetZ = null,
+            aimDistance = null,
+            groundY = null,
+            groundAngle = null
         } = options;
+        const effectiveMaxRange = applyElevatedRangedRange(source, maxRange);
+        const sourceHeight = source?.collider?.height || source?.collisionHeight || source?.size || 40;
+        const startZ = Number.isFinite(z) ? z : (Number(source?.z) || 0) + sourceHeight * 0.58;
+        const sourceTarget = source?.target?.active ? source.target : null;
+        const endZ = Number.isFinite(targetZ)
+            ? targetZ
+            : (sourceTarget?.collider?.centerZ ?? ((Number(sourceTarget?.z) || 0) + 24));
+        const targetDistance = sourceTarget
+            ? Math.hypot((sourceTarget.x || 0) - x, (sourceTarget.y || 0) - y)
+            : 0;
+        const horizontalDistance = Math.max(
+            1,
+            Number(aimDistance) || targetDistance || effectiveMaxRange || 1
+        );
+        const travelTime = horizontalDistance / Math.max(1, speed || 1);
+        const vz = (endZ - startZ) / Math.max(0.001, travelTime);
+        const projectileY = Number.isFinite(groundY) ? groundY : y;
+        const projectileAngle = Number.isFinite(groundAngle) ? groundAngle : angle;
+        const projectileVisualAngle = Number.isFinite(groundAngle)
+            ? angle
+            : Math.atan2(
+                Math.sin(projectileAngle) * speed - vz,
+                Math.cos(projectileAngle) * speed
+            );
 
         // 出膛嵌墙检测（不改变出弹位置，"只出不进"方案）：
         // 枪口探入/探过墙体时，记录被嵌入的墙 + 射手所在侧——该投射物只允许朝射手一侧越出，
         // 越向另一侧（钻透）即销毁；其余墙与无嵌墙情况走原 blocked 判定（贴墙开不出枪的根因治理）
-        const embeddedWalls = (source && WallSystem && typeof WallSystem.detectEmbeddedWalls === 'function')
-            ? WallSystem.detectEmbeddedWalls(x, y, source)
+        let embeddedWalls = (source && WallSystem && typeof WallSystem.detectEmbeddedWalls === 'function')
+            ? WallSystem.detectEmbeddedWalls(x, projectileY, source)
             : null;
+        if (embeddedWalls) {
+            embeddedWalls.segs = (embeddedWalls.segs || []).filter((entry) => {
+                const height = Number(entry.seg?._owner?._wallTopZ)
+                    || Number(entry.seg?.height)
+                    || Number(WallSystem._wallHeight)
+                    || 60;
+                return startZ <= height;
+            });
+            embeddedWalls.rects = (embeddedWalls.rects || []).filter((entry) =>
+                startZ <= (Number(entry.rect?.height) || Number(WallSystem._wallHeight) || 60));
+            if (!embeddedWalls.segs.length && !embeddedWalls.rects.length) embeddedWalls = null;
+        }
 
         let p = EffectManager._acquire('Projectile');
         if (p) {
             p.x = x;
-            p.y = y;
-            p.angle = angle;
+            p.y = projectileY;
+            p.angle = projectileAngle;
+            p.visualAngle = projectileVisualAngle;
             p.speed = speed;
-            p.maxRange = maxRange;
+            p.maxRange = effectiveMaxRange;
             p.size = size;
             p.damage = damage;
             p.piercing = piercing;
@@ -97,10 +148,14 @@ export const ProjectileFactory = {
             p.active = true;
             p.hitTargets = new Set();
             p._embeddedWalls = embeddedWalls;
+            p._wallContext = projectileWallContext(source);
+            p.z = startZ;
+            p.prevZ = startZ;
+            p.vz = vz;
             p.syncPhaserSprite();
         } else {
             p = new Projectile(
-                x, y, angle, speed, maxRange, size,
+                x, projectileY, projectileAngle, speed, effectiveMaxRange, size,
                 damage, piercing, source, entities, image,
                 isTracer, isGold, isDarkGold, damageType,
                 noRender, isGreen, isSpit, poisonChance, poisonStacks, textureKey
@@ -108,6 +163,11 @@ export const ProjectileFactory = {
             p.depthBonus = depthBonus;
             p.knockback = knockback ?? 0;
             p._embeddedWalls = embeddedWalls;
+            p._wallContext = projectileWallContext(source);
+            p.z = startZ;
+            p.prevZ = startZ;
+            p.vz = vz;
+            p.visualAngle = projectileVisualAngle;
             // 构造函数内已创建 Sprite（depthBonus 尚未生效），立即同步一次深度/尺寸
             p.syncPhaserSprite();
         }

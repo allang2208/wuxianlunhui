@@ -18,6 +18,7 @@ globalThis.window = globalThis.window || {};
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const { WallSystem } = await import('../src/world/wall-system.js');
+const { projectileWallContext } = await import('../src/combat/elevated-ranged.js');
 
 // Projectile 类：剥 import 后注入桩执行（damage-pipeline 链会拉进 Phaser，node 下不可直接 import）
 const projSrc = fs.readFileSync(path.join(ROOT, 'src/combat/projectile.js'), 'utf-8')
@@ -27,14 +28,15 @@ const projSrc = fs.readFileSync(path.join(ROOT, 'src/combat/projectile.js'), 'ut
     .replace('export { Projectile };', '');
 const Projectile = new Function(
     'WallSystem', 'DamagePipeline', 'segmentIntersectsCapsule', 'segmentHitsTorso',
-    'ELEVATION', 'PERSPECTIVE_SCALE_Y', 'SpatialPartitionSystem',
+    'ELEVATION', 'PERSPECTIVE_SCALE_Y', 'SpatialPartitionSystem', 'projectileWallContext',
     projSrc + '\nreturn Projectile;'
 )(
     WallSystem,
     { applyHit() {} },
     () => false, () => false,
     { FLYING: 1 }, 0.5,
-    { queryRadius: () => [] }
+    { queryRadius: () => [] },
+    projectileWallContext
 );
 
 let passed = 0, failed = 0;

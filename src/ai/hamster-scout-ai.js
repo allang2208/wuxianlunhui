@@ -9,12 +9,18 @@
 // ============================================================
 import { MovementSystem } from '../systems/movement-system.js';
 import { WallSystem } from '../world/wall-system.js';
+import { clearRtsSurfaceRoute, resolveRtsMoveDestination } from './rts-command-utils.js';
 import { AimHelper } from '../utils/aim-helper.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
 import { SoundManager } from '../ui/sound-manager.js';
 import { getAbilityLevel, getAbilityValue } from '../world/ability-store.js';
 import { getBuildingUpgradeAbility } from '../world/building-upgrade-projects.js';
+import {
+    applyElevatedRangedRange,
+    projectileWallContext,
+} from '../combat/elevated-ranged.js';
+import { hasRangedLineOfSight } from '../combat/ranged-line-of-sight.js';
 
 const PROJECTILE_HIT_RADIUS = 28; // 命中半径（瞄准中心，与射手一致）
 
@@ -60,6 +66,14 @@ export class HamsterScoutAI {
         this.m.vx = 0;
         this.m.vy = 0;
         this.m.isMoving = false;
+    }
+
+    _effectiveAttackRange() {
+        return applyElevatedRangedRange(this.m, this._attackRange);
+    }
+
+    _canShootTarget(target) {
+        return hasRangedLineOfSight(this.m, target);
     }
 
     /**
@@ -134,7 +148,7 @@ export class HamsterScoutAI {
         if (enemy) {
             m.target = enemy;
             const dist = Math.hypot(enemy.x - m.x, enemy.y - m.y);
-            if (dist <= this._attackRange) {
+            if (dist <= this._effectiveAttackRange() && this._canShootTarget(enemy)) {
                 // 进入射程：站定；开火节奏由 attackTimer 控制
                 m._tacticalTarget = null;
                 m.maxSpeed = 0;
@@ -200,25 +214,13 @@ export class HamsterScoutAI {
         if (cmd.mode !== 'move') m._surfaceRouteActive = false;
         if (cmd.mode === 'move') {
             m.target = null;
-            const route = Array.isArray(cmd.point?.route) ? cmd.point.route : [];
-            m._surfaceRouteActive = route.length > 0;
-            let routeIndex = Math.max(0, Math.min(route.length - 1, Number(cmd.routeIndex) || 0));
-            let dest = route.length ? route[routeIndex] : (cmd.point || { x: m.x, y: m.y });
-            let dist = Math.hypot(dest.x - m.x, dest.y - m.y);
-            let dz = Math.abs((Number(dest.z) || 0) - (Number(m.z) || 0));
-            if (route.length && dist <= 40 && dz <= 34 && routeIndex < route.length - 1) {
-                routeIndex++;
-                cmd.routeIndex = routeIndex;
-                dest = route[routeIndex];
-                dist = Math.hypot(dest.x - m.x, dest.y - m.y);
-                dz = Math.abs((Number(dest.z) || 0) - (Number(m.z) || 0));
-            }
-            if (dist > 40 || dz > 34) {
-                m._tacticalTarget = dest;
+            const move = resolveRtsMoveDestination(m, cmd);
+            if (!move.arrived) {
+                m._tacticalTarget = move.destination;
                 m._animState = 'walk';
                 m.maxSpeed = this.cfg.walkSpeed ?? 150;
             } else {
-                m._surfaceRouteActive = false;
+                clearRtsSurfaceRoute(m);
                 m._command = { mode: 'follow' }; // 到位清除命令，回到默认跟随
                 m._tacticalTarget = null;
                 m._animState = 'idle';
@@ -237,7 +239,7 @@ export class HamsterScoutAI {
             }
             m.target = t;
             const dist = Math.hypot(t.x - m.x, t.y - m.y);
-            if (dist <= this._attackRange) {
+            if (dist <= this._effectiveAttackRange() && this._canShootTarget(t)) {
                 // 进射程：站定 + 启动一次射击（与索敌分支同口径）
                 m._tacticalTarget = null;
                 m.maxSpeed = 0;
@@ -273,6 +275,9 @@ export class HamsterScoutAI {
     _nearestEnemy(entities, m) {
         let best = null;
         let bestD = Infinity;
+        let bestShootable = null;
+        let bestShootableD = Infinity;
+        const attackRange = this._effectiveAttackRange();
         const iter = entities && entities.values ? entities.values() : entities || [];
         for (const e of iter) {
             if (!e || !e.active || e.hp <= 0) continue;
@@ -283,8 +288,12 @@ export class HamsterScoutAI {
                 bestD = d;
                 best = e;
             }
+            if (d <= attackRange && d < bestShootableD && this._canShootTarget(e)) {
+                bestShootableD = d;
+                bestShootable = e;
+            }
         }
-        return best;
+        return bestShootable || best;
     }
 
     /** 目标贴图中心 Y（瞄准基准；无精灵时退回身体中心） */
@@ -300,6 +309,7 @@ export class HamsterScoutAI {
         const m = this.m;
         const target = m.target;
         if (!target || !target.active || target.hp <= 0) return;
+        if (!this._canShootTarget(target)) return;
         const startZ = (Number(m.z) || 0) + 45;
         const targetZ = target.collider?.centerZ ?? ((Number(target.z) || 0) + 24);
         const lead = AimHelper.lead(
@@ -321,7 +331,8 @@ export class HamsterScoutAI {
             angle: ang,
             visualAngle,
             dist: 0,
-            maxDist: this._attackRange + 150,
+            maxDist: applyElevatedRangedRange(m, this._attackRange + 150),
+            wallContext: projectileWallContext(m),
             target,
         };
         this._playSound('attack'); // 出膛音效（2026-08-17 复用射手出膛素材）
@@ -351,7 +362,15 @@ export class HamsterScoutAI {
         b.y += Math.sin(b.angle) * step;
         b.z = prevZ + (Number(b.vz) || 0) * dtSec;
         b.dist += step;
-        if (WallSystem.projectileBlocked?.(prevX, prevY, prevZ, b.x, b.y, b.z)) {
+        if (WallSystem.projectileBlocked?.(
+            prevX,
+            prevY,
+            prevZ,
+            b.x,
+            b.y,
+            b.z,
+            b.wallContext || projectileWallContext(m)
+        )) {
             b.active = false;
             return;
         }
@@ -382,7 +401,7 @@ export class HamsterScoutAI {
         }
         if (hit) {
             if (typeof hit.takeDamage === 'function') {
-                hit.takeDamage(this._attackDamage, m, 'physical');
+                hit.takeDamage(m.getPhysicalAttackDamage(this._attackDamage, hit), m, 'physical', false);
             }
             // 铁匠铺能力：标记箭（2026-08-17）——命中 25%+5%/级 概率标记 3s，
             // 走标准 Buff 工作流（addStatusEffect 统一入口，STATUS_CONFIG 已注册 'marked'）

@@ -293,7 +293,14 @@ export class HamsterKnightAI {
                 if (Math.abs(dx) > 20) m._lastFaceRight = dx > 0;
                 const contact = (m.groundRadius || 0) + (target.groundRadius || target.collisionRadius || 0);
                 const step = Math.min(speed * dt / 1000, Math.max(0, distance - contact));
-                const resolved = WallSystem.resolve(m.x, m.y, m.x + dx / distance * step, m.y + dy / distance * step, m.groundRadius);
+                const resolved = WallSystem.resolve(
+                    m.x,
+                    m.y,
+                    m.x + dx / distance * step,
+                    m.y + dy / distance * step,
+                    m.groundRadius,
+                    WallSystem.ignoreForEntity?.(m) || null
+                );
                 this._chargeTraveled += Math.hypot(resolved.x - m.x, resolved.y - m.y);
                 m.x = resolved.x;
                 m.y = resolved.y;

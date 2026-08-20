@@ -35,6 +35,14 @@ class DamagePipeline {
             killCountRef,
             isMelee = true
         } = options;
+        if (isMelee) {
+            const sourceZ = Number(source?.z) || 0;
+            const targetZ = Number(target?.z) || 0;
+            const verticalReach = Number(source?.meleeVerticalReach) || 48;
+            if (Math.abs(sourceZ - targetZ) > verticalReach) {
+                return { hit: false, killed: false };
+            }
+        }
 
         const weapon = currentWeapon !== undefined
             ? currentWeapon

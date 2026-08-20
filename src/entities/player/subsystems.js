@@ -1251,7 +1251,10 @@ _initAmmoForSlot(slot) {
                 const t = Math.min(1, (now - (this._castStartTime || now)) / (this._castForwardMs || 500));
                 const targetX = (this._castOriginX ?? this.x) + (this._castStepDirX || 0) * (this._castStepMax || 30) * t;
                 const targetY = (this._castOriginY ?? this.y) + (this._castStepDirY || 0) * (this._castStepMax || 30) * t;
-                const resolved = WallSystem.resolve(this.x, this.y, targetX, targetY, this.groundRadius);
+                const resolved = WallSystem.resolve(
+                    this.x, this.y, targetX, targetY, this.groundRadius,
+                    WallSystem.ignoreForEntity ? WallSystem.ignoreForEntity(this) : null
+                );
                 this.x = resolved.x;
                 this.y = resolved.y;
             } else if (this._castState === 'recover') {
@@ -1262,7 +1265,10 @@ _initAmmoForSlot(slot) {
                 const ry = this._castRecoverOriginY ?? this.y;
                 const targetX = ox + (rx - ox) * (1 - t);
                 const targetY = oy + (ry - oy) * (1 - t);
-                const resolved = WallSystem.resolve(this.x, this.y, targetX, targetY, this.groundRadius);
+                const resolved = WallSystem.resolve(
+                    this.x, this.y, targetX, targetY, this.groundRadius,
+                    WallSystem.ignoreForEntity ? WallSystem.ignoreForEntity(this) : null
+                );
                 this.x = resolved.x;
                 this.y = resolved.y;
             }
@@ -1528,7 +1534,7 @@ _getMuzzlePosition(gunLX, gunLY, forwardOffset = 0) {
                 const c = Math.cos(this.rotation), sin = Math.sin(this.rotation);
                 return {
                     x: this.x + c * (gunLX + forwardOffset) - sin * gunLY,
-                    // 射击台（2026-08-16）：兜底枪口同样跟随平台抬升
+                    // 高架表面：兜底枪口同样跟随实体z抬升
                     y: this.y + sin * (gunLX + forwardOffset) + c * gunLY - (this._platformLift || 0)
                 };
             },
@@ -1585,6 +1591,39 @@ _getMuzzleWorldPosition(hand = 'main') {
                     x: sprite.x + cos * offX - sin * offY + ohx,
                     y: sprite.y + sin * offX + cos * offY - up + ohy,
                     angle: sprite.rotation
+                };
+            },
+
+            /** 把2D瞄准点补成伪3D直线弹道参数；目标缺少实体高度时默认瞄准身体下段。 */
+            _projectileAim3D(spawnPos, targetX, targetY, targetZ = 24, visualAngle = null, entities = null) {
+                const startZ = (Number(this.z) || 0) + (this.collider?.height || this.size || 40) * 0.58;
+                const groundY = spawnPos.y + startZ;
+                const visualBase = Math.atan2(targetY - spawnPos.y, targetX - spawnPos.x);
+                const spread = Number.isFinite(visualAngle) ? visualAngle - visualBase : 0;
+                let groundTargetX = targetX;
+                let groundTargetY = targetY;
+                let resolvedTargetZ = targetZ;
+                let bestDist = 90;
+                const candidates = entities?.values ? entities.values() : (entities || []);
+                for (const entity of candidates) {
+                    if (!entity?.active || !entity.hittable || entity === this) continue;
+                    const visualX = entity._phaserSprite?.x ?? entity.x;
+                    const visualY = entity._phaserSprite?.y
+                        ?? (entity.y - (Number(entity.z) || 0) - (entity.collider?.height || 40) * 0.5);
+                    const distance = Math.hypot(targetX - visualX, targetY - visualY);
+                    if (distance >= bestDist) continue;
+                    bestDist = distance;
+                    groundTargetX = entity.collider?.x ?? entity.x;
+                    groundTargetY = entity.collider?.y ?? entity.y;
+                    resolvedTargetZ = entity.collider?.centerZ
+                        ?? ((Number(entity.z) || 0) + (entity.collider?.height || 40) * 0.5);
+                }
+                return {
+                    z: startZ,
+                    targetZ: resolvedTargetZ,
+                    groundY,
+                    groundAngle: Math.atan2(groundTargetY - groundY, groundTargetX - spawnPos.x) + spread,
+                    aimDistance: Math.max(1, Math.hypot(groundTargetX - spawnPos.x, groundTargetY - groundY)),
                 };
             },
 
@@ -1661,6 +1700,7 @@ _fireRanged(hand = 'main') {
                             const offIsDarkGold = offhandItem.isDarkGold || false;
                             ProjectileFactory.create({
                                 x: muzzlePos.x, y: muzzlePos.y, angle: leftFinalAngle,
+                                ...this._projectileAim3D(muzzlePos, d.targetX, d.targetY, 24, leftFinalAngle, d.entities),
                                 speed: offPC.projectileSpeed, maxRange: offPC.projectileRange, size: offPC.projectileSize,
                                 damage: offhandDamageObj, piercing: this._getEffectivePiercing(offPC.piercing, offhandItem),
                                 source: this, entities: d.entities, image: null,
@@ -1723,6 +1763,7 @@ _fireRanged(hand = 'main') {
                             const mainIsDarkGold = currentItem.isDarkGold || false;
                             ProjectileFactory.create({
                                 x: muzzlePos.x, y: muzzlePos.y, angle: finalAngle,
+                                ...this._projectileAim3D(muzzlePos, d.targetX, d.targetY, 24, finalAngle, d.entities),
                                 speed: mainPC.projectileSpeed, maxRange: mainPC.projectileRange, size: mainPC.projectileSize,
                                 damage: mainDamageObj, piercing: this._getEffectivePiercing(mainPC.piercing, currentItem),
                                 source: this, entities: d.entities, image: null,
@@ -1814,6 +1855,7 @@ _fireRanged(hand = 'main') {
                         // 创建弹丸
                         ProjectileFactory.create({
                             x: spawnPos.x, y: spawnPos.y, angle: angle,
+                            ...this._projectileAim3D(spawnPos, d.targetX, d.targetY, 24, angle, d.entities),
                             speed: effectiveProjectileSpeed, maxRange: effectiveRange, size: pc.projectileSize,
                             damage: damage, piercing: this._getEffectivePiercing(pc.piercing, currentItem),
                             source: this, entities: d.entities, image: null,
@@ -1905,6 +1947,7 @@ _fireRanged(hand = 'main') {
                                 const angle = baseAngle + slugSpreadRad;
                                 ProjectileFactory.create({
                                     x: spawnPos.x, y: spawnPos.y, angle: angle,
+                                    ...this._projectileAim3D(spawnPos, d.targetX, d.targetY, 24, angle, d.entities),
                                     speed: effectiveSpeed, maxRange: effectiveRange, size: pc.projectileSize,
                                     damage: damage, piercing: piercing,
                                     source: this, entities: d.entities, image: null,
@@ -1923,6 +1966,7 @@ _fireRanged(hand = 'main') {
                                     const angle = baseAngle + spreadRad;
                                     ProjectileFactory.create({
                                         x: spawnPos.x, y: spawnPos.y, angle: angle,
+                                        ...this._projectileAim3D(spawnPos, d.targetX, d.targetY, 24, angle, d.entities),
                                         speed: effectiveSpeed, maxRange: effectiveRange, size: pc.projectileSize,
                                         damage: damage, piercing: piercing,
                                         source: this, entities: d.entities, image: null,
@@ -1961,6 +2005,7 @@ _fireRanged(hand = 'main') {
                     const projPiercing = this._getEffectivePiercing(weaponCfg.piercing !== undefined ? weaponCfg.piercing : cfg.piercing, currentItem);
                     ProjectileFactory.create({
                         x: spawnPos.x, y: spawnPos.y, angle: angle,
+                        ...this._projectileAim3D(spawnPos, d.targetX, d.targetY, 24, angle, d.entities),
                         speed: projSpeed, maxRange: projRange, size: projSize,
                         damage: damage, piercing: projPiercing,
                         source: this, entities: d.entities, image: this.arrowImage

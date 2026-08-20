@@ -414,7 +414,18 @@ class PerceptionSystemImpl {
             // 掩体目标忽略自身 face 墙段：从墙背面接近时射线必穿自身线段，
             // 不忽略会永远判"无视线"导致 CombatSystem 拒绝对掩体出手
             const ignore = target._coverSeg ? { segs: new Set([target._coverSeg]) } : null;
-            result = !WallSystem.blocked(enemy.x, enemy.y, target.x, target.y, ignore);
+            const elevated = (Number(enemy.z) || 0) > 0 || (Number(target.z) || 0) > 0;
+            if (elevated && WallSystem.projectileBlocked) {
+                const sourceZ = (Number(enemy.z) || 0) + (enemy.collider?.height || 40) * 0.58;
+                const targetZ = (Number(target.z) || 0) + (target.collider?.height || 40) * 0.5;
+                result = !WallSystem.projectileBlocked(
+                    enemy.x, enemy.y, sourceZ,
+                    target.x, target.y, targetZ,
+                    ignore
+                );
+            } else {
+                result = !WallSystem.blocked(enemy.x, enemy.y, target.x, target.y, ignore);
+            }
         }
 
         // 缓存兜底：异常膨胀时整体清空重建（玩家阵营目标数量有限，正常不会触发）

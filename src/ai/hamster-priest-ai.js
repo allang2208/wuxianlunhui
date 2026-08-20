@@ -12,6 +12,8 @@ import { getAbilityLevel, getAbilityValue } from '../world/ability-store.js';
 import { getBuildingUpgradeAbility } from '../world/building-upgrade-projects.js';
 import { EnergyManager } from '../systems/energy-manager.js';
 import { clearRtsSurfaceRoute, resolveRtsMoveDestination } from './rts-command-utils.js';
+import { getMagicRangeMultiplier } from '../utils/magic-craft-helper.js';
+import { hasRangedLineOfSight } from '../combat/ranged-line-of-sight.js';
 
 const INSPIRE_MAGIC = getBuildingUpgradeAbility('inspire_magic') || {};
 
@@ -72,6 +74,16 @@ export class HamsterPriestAI {
         this.m.vy = 0;
         this.m.isMoving = false;
         return true;
+    }
+
+    _castRange() {
+        return (this.cfg.castRange ?? 600) * getMagicRangeMultiplier(this.m);
+    }
+
+    _canCastAt(target) {
+        return !!target
+            && Math.hypot(target.x - this.m.x, target.y - this.m.y) <= this._castRange()
+            && hasRangedLineOfSight(this.m, target);
     }
 
     update(dt, entities, player) {
@@ -194,11 +206,10 @@ export class HamsterPriestAI {
                 this._stop();
                 return;
             }
-            const castRange = this.cfg.castRange ?? 600;
-            const distance = Math.hypot(target.x - m.x, target.y - m.y);
-            if (distance <= castRange && m._holyLightCooldown <= 0 && m.skills?.holyLight) {
+            const canCast = this._canCastAt(target);
+            if (canCast && m._holyLightCooldown <= 0 && m.skills?.holyLight) {
                 this._startPrayerCast('holyLight', { target });
-            } else if (distance > castRange) {
+            } else if (!canCast) {
                 m.target = target;
                 m._tacticalTarget = { x: target.x, y: target.y };
                 m._animState = 'walk';
@@ -301,11 +312,12 @@ export class HamsterPriestAI {
         let bestFriend = null;
         let bestRatio = 0;
         let bestMissing = 0;
-        const castRange = this.cfg.castRange ?? 600;
+        const castRange = this._castRange();
         for (const friend of friends) {
             if (!friend || friend.active === false) continue;
             if (friend._faction !== 'player' && friend._faction !== 'companion') continue;
             if (Math.hypot(friend.x - m.x, friend.y - m.y) > castRange) continue;
+            if (!hasRangedLineOfSight(m, friend)) continue;
             const hp = friend.data?.hp ?? friend.hp;
             const maxHp = friend.data?.maxHp ?? friend.maxHp;
             if (!(hp > 0) || !(maxHp > hp)) continue;
@@ -325,7 +337,9 @@ export class HamsterPriestAI {
             if (!entity || !entity.active || entity.hp <= 0) continue;
             if (entity._faction !== 'enemy' || entity._isEnergyNode) continue;
             const dist = Math.hypot(entity.x - m.x, entity.y - m.y);
-            if (dist <= (this.cfg.castRange ?? 600) && dist < nearestDist) {
+            if (dist <= castRange
+                && hasRangedLineOfSight(m, entity)
+                && dist < nearestDist) {
                 nearestEnemy = entity;
                 nearestDist = dist;
             }
