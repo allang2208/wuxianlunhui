@@ -20,6 +20,7 @@ import { mountRightSidebarPanel } from '../ui/right-sidebar-panel-layer.js';
 import { CONFIG } from '../config/config.js';
 import { SceneManager } from './scene-manager.js';
 import { Renderer } from './renderer.js';
+import { World122TributeSystem } from './world122-tribute-system.js';
 import {
     DefenseSystem, DefenseTower, DefenseCover, BuildableGate, WallStaircase,
     DEFENSE_CONFIG, COVER_FACE, COVER_FOOT, GATE_GEOM, GATE4_VISUAL,
@@ -250,6 +251,7 @@ export const BuildingSystem = {
     _gate4Dir: null,       // 当前4格门方向（e1/e2）
     _gate4Hover: null,     // 最后一次场景鼠标世界坐标；F切换必须从原始坐标重算，不能用半格锚点
     _panel: null,
+    _detailPanel: null,
     _panelCloseTimer: null,
     _downFn: null,
     _moveFn: null,
@@ -268,13 +270,9 @@ export const BuildingSystem = {
         if (Game.RTSCommand && Game.RTSCommand.enabled) Game.RTSCommand.setEnabled(false);
         this.active = true;
         Game._buildMode = true;
-        // 塔升级面板与建筑面板互斥
-        if (DefenseSystem && DefenseSystem._panel && DefenseSystem._panel.isOpen) {
-            DefenseSystem._panel.close();
-        }
-        // 陷阱面板与建筑面板互斥
-        if (DefenseTrapSystem && DefenseTrapSystem._panel && DefenseTrapSystem._panel.isOpen) {
-            DefenseTrapSystem._panel.close();
+        // 建筑主面板打开前清理所有独立建筑详情，避免旧面板残留在二级页之外。
+        for (const panel of this._buildingDetailPanels()) {
+            if (panel.isOpen && typeof panel.close === 'function') panel.close();
         }
         this._buildPanel();
         this._downFn = (e) => this._onMouseDown(e);
@@ -303,7 +301,10 @@ export const BuildingSystem = {
         this._refreshTimer = null;
         this._cancelPlacement();
         this._recycleMode = false;
-        this._detail = null;
+        this._closeDetail();
+        for (const panel of this._buildingDetailPanels()) {
+            if (panel.isOpen && typeof panel.close === 'function') panel.close();
+        }
         if (this._downFn) window.removeEventListener('mousedown', this._downFn, true);
         if (this._moveFn) window.removeEventListener('mousemove', this._moveFn);
         if (this._upFn) window.removeEventListener('mouseup', this._upFn);
@@ -312,12 +313,16 @@ export const BuildingSystem = {
         this._downFn = this._moveFn = this._upFn = this._keyFn = this._blurFn = null;
         if (this._panel) {
             const closingPanel = this._panel;
+            const closingDetailPanel = this._detailPanel;
             closingPanel.classList.remove('active');
+            if (closingDetailPanel) closingDetailPanel.classList.remove('active');
             clearTimeout(this._panelCloseTimer);
             this._panelCloseTimer = setTimeout(() => {
                 if (this._panel !== closingPanel) return;
                 closingPanel.remove();
+                if (closingDetailPanel) closingDetailPanel.remove();
                 this._panel = null;
+                if (this._detailPanel === closingDetailPanel) this._detailPanel = null;
                 this._panelCloseTimer = null;
             }, 260);
         }
@@ -356,6 +361,7 @@ export const BuildingSystem = {
         clearTimeout(this._panelCloseTimer);
         this._panelCloseTimer = null;
         if (this._panel) this._panel.remove();
+        if (this._detailPanel) this._detailPanel.remove();
         const el = document.createElement('div');
         // build-panel 专属类：右侧主栏目尺寸与响应式建筑网格，不影响摆墙编辑器共享样式。
         el.className = 'wall-editor-panel build-panel';
@@ -381,7 +387,6 @@ export const BuildingSystem = {
                     </div>`;
                 }).join('')}
             </div>
-            <div id="bpDetail" style="display:none;"></div>
             <div class="we-row" id="bpRow">
                 <button id="bpMirror" title="镜像翻转摆放方向（F）">镜像 F</button>
                 <button id="bpCancel" title="取消放置（右键/Esc）">取消</button>
@@ -402,6 +407,17 @@ export const BuildingSystem = {
             </div>`;
         mountRightSidebarPanel(el, 'panel');
         this._panel = el;
+        const detailPanel = document.createElement('div');
+        detailPanel.className = 'build-structure-detail-panel';
+        detailPanel.innerHTML = `
+            <div class="building-detail-column-header">
+                <span id="bpDetailTitle">建筑详情</span>
+                <button id="bpDetailClose" type="button" aria-label="关闭建筑详情">×</button>
+            </div>
+            <div id="bpDetail" class="building-detail-column-body"></div>`;
+        mountRightSidebarPanel(detailPanel, 'panel');
+        this._detailPanel = detailPanel;
+        detailPanel.querySelector('#bpDetailClose').addEventListener('click', () => this._closeDetail());
         document.querySelectorAll('.side-menu').forEach((menu) => menu.classList.add('hidden'));
         // 先提交收起态，再切 active，复用右侧主栏目同款滑入动画。
         void el.offsetWidth;
@@ -939,6 +955,7 @@ export const BuildingSystem = {
             HamsterHutSystem?._panel,
             HamsterBarracksSystem?._panel,
             ProducerBuildingSystem?._panel,
+            World122TributeSystem?._panel,
         ].filter(Boolean);
     },
 
@@ -970,8 +987,9 @@ export const BuildingSystem = {
         const detailPanels = this._buildingDetailPanels();
         const target = e.target;
         const insideMain = !!(this._panel && target && this._panel.contains(target));
+        const insideStructureDetail = !!(this._detailPanel && target && this._detailPanel.contains(target));
         const insideDetail = detailPanels.some((panel) => panel.el && target && panel.el.contains(target));
-        if (insideMain || insideDetail) return false;
+        if (insideMain || insideStructureDetail || insideDetail) return false;
         return this._closeAllBuildingPanels();
     },
 
@@ -2521,10 +2539,6 @@ export const BuildingSystem = {
         this._renderDetail();
     },
 
-    _mainPanelTitle() {
-        return `建筑面板（${SceneManager.scenes?.[SceneManager.currentScene]?.name || '当前世界'}）`;
-    },
-
     _detailPanelTitle(e) {
         if (e?._isCoverGate) return `${e._isGate4 ? '4格门' : (e.name || `铁栅栏门·${e.grade || 'D'}级`)} · 建筑详情`;
         if (e?._isWallStaircase) return `${WALL_STAIR_CONFIG.name} · 建筑详情`;
@@ -2532,12 +2546,11 @@ export const BuildingSystem = {
         return `掩体·${e?.grade || 'F'}级 · 建筑详情`;
     },
 
-    /** 详情视图渲染：_detail 为空回到网格列表；建筑被摧毁自动退回 */
+    /** 详情视图渲染：作为建筑主面板的同级独立右侧栏目。 */
     _renderDetail() {
-        if (!this._panel) return;
-        const grid = this._panel.querySelector('#bpGrid');
-        const det = this._panel.querySelector('#bpDetail');
-        if (!grid || !det) return;
+        if (!this._detailPanel) return;
+        const det = this._detailPanel.querySelector('#bpDetail');
+        if (!det) return;
         let e = this._detail;
         let show = !!(e && e.active && e.hp > 0);
         if (e && !show) {
@@ -2545,15 +2558,14 @@ export const BuildingSystem = {
             show = false;
             this._notify('建筑已被摧毁', '#ff8855');
         }
-        // 详情作为主建筑面板内的二级页面；返回时恢复建筑列表与原标题。
-        this._panel.classList.toggle('detail-active', show);
-        const title = this._panel.querySelector('#bpTitleText');
-        if (title) title.textContent = show ? this._detailPanelTitle(e) : this._mainPanelTitle();
-        det.style.display = show ? '' : 'none';
+        this._detailPanel.classList.toggle('active', show);
+        const title = this._detailPanel.querySelector('#bpDetailTitle');
+        if (title) title.textContent = show ? this._detailPanelTitle(e) : '建筑详情';
         if (!show) {
             det.innerHTML = '';
             return;
         }
+        mountRightSidebarPanel(this._detailPanel, 'panel', { bringToFront: true });
         // 门走专属详情（含常锁/常开模式按钮，2026-08-15）
         if (e._isCoverGate) { this._renderGateDetail(det, e); return; }
         // 城墙楼梯专属详情。

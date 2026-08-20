@@ -30,6 +30,7 @@ import { EnergyManager } from '../systems/energy-manager.js';
 import { payBuildingUpgradeCost } from './building-upgrade-payment.js';
 import { BasePanel } from '../ui/panels/base-panel.js';
 import { renderBuildingDetailHeader } from '../ui/panels/building-detail-header.js';
+import { mountRightSidebarPanel } from '../ui/right-sidebar-panel-layer.js';
 import { Renderer } from './renderer.js';
 // SceneManager 导入已于 2026-08-15 移除：E 键修理监听器停用后不再引用
 import { loadImage } from '../utils/image-loader.js';
@@ -2588,6 +2589,7 @@ class DefenseTowerPanel extends BasePanel {
             panelGroup: 'buildingDetail',
             closeOnEscape: true,
             closeOnOutsidePointer: true,
+            mountElement: (el) => mountRightSidebarPanel(el, 'panel', { bringToFront: true }),
         });
         this.tower = null;
         this.player = null;
@@ -2631,13 +2633,11 @@ class DefenseTowerPanel extends BasePanel {
 
     onOpen() {
         this.refresh();
-        if (this.el) this.el.style.display = 'block';
         this._startWeaponTelemetry();
     }
 
     onClose() {
         this._stopWeaponTelemetry();
-        if (this.el) this.el.style.display = 'none';
         this.tower = null;
         this.player = null;
     }

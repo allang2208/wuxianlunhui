@@ -16,6 +16,7 @@
 // ============================================================
 import { getAbilityLevel, getAbilityValue, raiseAbilityLevel } from './ability-store.js';
 import { getUnitUpgradeMults } from './unit-upgrade-store.js';
+import { RECRUIT_MODE, normalizeRecruitMode } from './recruit-mode.js';
 import {
     getBuildingUpgradeAbility,
     getUpgradeModulesForUnitKind,
@@ -347,11 +348,18 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
     for (const s of target.structures || []) {
         if (s.kind !== 'barracks' && s.kind !== 'producer') continue;
         if (s.kind === 'producer' && !s.unitType) continue; // 非产兵建筑
+        const recruitMode = normalizeRecruitMode(s.recruitMode);
+        const roster = _normalizedRoster(s);
+        if (recruitMode === RECRUIT_MODE.PAUSED) {
+            s.units = _rosterCount(roster);
+            s.unitRoster = roster;
+            s.unitDps = _rosterDps(roster);
+            continue;
+        }
         const baseInterval = _spawnIntervalOf(s);
         if (!(baseInterval > 0)) continue;
         const cap = _unitCapOf(s);
         let timer = Math.max(0, s.spawnTimer || 0);
-        const roster = _normalizedRoster(s);
         const deployed = Math.max(0, Math.floor(Number(s.troopLineDeployed) || 0));
         let alive = _rosterCount(roster) + deployed;
         const segments = _abilityTimeline(
@@ -362,6 +370,7 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
         );
         let previousInterval = baseInterval * _recruitMult(initialRecruitLevel);
         let energyBlocked = false;
+        let singleCompleted = false;
         for (const segment of segments) {
             const interval = baseInterval * _recruitMult(segment.level);
             if (previousInterval > 0 && interval !== previousInterval) {
@@ -387,9 +396,14 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
                 roster[s.unitType] = (roster[s.unitType] || 0) + 1;
                 report.unitsProduced++;
                 timer = interval;
+                if (recruitMode === RECRUIT_MODE.SINGLE) {
+                    s.recruitMode = RECRUIT_MODE.PAUSED;
+                    singleCompleted = true;
+                    break;
+                }
             }
             previousInterval = interval;
-            if (energyBlocked) break;
+            if (energyBlocked || singleCompleted) break;
             if (alive >= cap) {
                 timer = interval;
                 break;

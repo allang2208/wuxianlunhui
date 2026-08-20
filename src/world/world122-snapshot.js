@@ -16,6 +16,7 @@
 import { settleWorld122 } from './world122-sim.js'; // 纯数据结算（无 Game 依赖链），可静态导入
 import { BuildingRoadSystem } from './building-road-system.js';
 import { getUnitKind } from './unit-upgrade-store.js';
+import { normalizeRecruitMode } from './recruit-mode.js';
 import barracksBuildingCfg from '../../data/hamster-barracks-building.json';
 import worldSystemConfig from '../../data/world-system.json';
 import { EnvironmentLightingSystem } from './environment-lighting-system.js';
@@ -309,7 +310,7 @@ export function captureWorld(sceneId = 'scene8') {
         structures.push({
             kind: 'barracks', id: b.id, x: b.x, y: b.y, hp: Math.ceil(b.hp), mirror: !!b._facingLeft,
             troopProducer: true,
-            unitType: b.unitType, spawnTimer: b._spawnTimer,
+            unitType: b.unitType, spawnTimer: b._spawnTimer, recruitMode: normalizeRecruitMode(b._recruitMode),
             units: localUnits, unitRoster, unitDps: _unitsDps(b.units),
             troopLineDeployed: Math.max(0, b.aliveUnitCount() - localUnits),
             rally: b._rallyPoint ? { x: b._rallyPoint.x, y: b._rallyPoint.y } : null,
@@ -325,7 +326,7 @@ export function captureWorld(sceneId = 'scene8') {
         structures.push({
             kind: 'producer', id: p.id, cfgKey: p.cfgKey, x: p.x, y: p.y, hp: Math.ceil(p.hp), mirror: !!p._facingLeft,
             troopProducer: !!p._isTroopProducer,
-            unitType: p.unitType || '', spawnTimer: p._spawnTimer || 0,
+            unitType: p.unitType || '', spawnTimer: p._spawnTimer || 0, recruitMode: normalizeRecruitMode(p._recruitMode),
             units: localUnits,
             unitRoster,
             unitDps: p.spawnEnabled ? _unitsDps(p.units) : 0,
@@ -644,6 +645,7 @@ function _restoreBarracks(s, sceneId) {
     }
     barracks.unitType = s.unitType;
     barracks._spawnTimer = Math.max(0, s.spawnTimer || 0);
+    barracks._recruitMode = normalizeRecruitMode(s.recruitMode);
     if (s.rally) barracks._rallyPoint = { x: s.rally.x, y: s.rally.y };
     Game.entities.set(barracks.id, barracks);
     HamsterBarracksSystem.barracks.push(barracks);
@@ -684,6 +686,7 @@ function _restoreProducer(s, sceneId) {
     _markRestored(producer, s);
     if ((cfg.unitTypes || []).some((t) => t.key === s.unitType)) producer.unitType = s.unitType;
     producer._spawnTimer = Math.max(0, s.spawnTimer || 0);
+    producer._recruitMode = normalizeRecruitMode(s.recruitMode);
     producer._restoredTitheTimer = Math.max(0, Number(s.titheTimerMs) || 0);
     if (s.rally) producer._rallyPoint = { x: s.rally.x, y: s.rally.y };
     // 能力/研究读条续跑（等级全局共享，读条属建筑实例）
