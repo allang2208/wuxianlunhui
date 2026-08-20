@@ -4,6 +4,7 @@
  */
 
 import { getSkillMagicCategory } from '../config/magic-categories.js';
+import { getElevatedRangedRangeMultiplier } from '../combat/elevated-ranged.js';
 
 /** 获取 source 当前主手武器的改造聚合效果 */
 export function getCurrentWeaponCraftEffects(source) {
@@ -78,11 +79,17 @@ export function getMagicHealMultiplierWithChain(source, skillId, ce, chainStacks
     return mul;
 }
 
-/** 计算魔法距离倍率（maxRange / aimRadius / chainRange / explosionRadius 等） */
+/** 计算施法者到目标的最大射程倍率：武器改造 × 墙顶远程加成。 */
 export function getMagicRangeMultiplier(source, ce) {
     ce = ce || getCurrentWeaponCraftEffects(source);
-    if (!ce) return 1;
-    return 1 + (ce.magicRangePercent || 0);
+    const craftMultiplier = ce ? 1 + (ce.magicRangePercent || 0) : 1;
+    return craftMultiplier * getElevatedRangedRangeMultiplier(source);
+}
+
+/** 计算锁定容差、传导和范围半径倍率；墙顶只加最大射程，不扩大技能作用范围。 */
+export function getMagicAreaMultiplier(source, ce) {
+    ce = ce || getCurrentWeaponCraftEffects(source);
+    return ce ? 1 + (ce.magicRangePercent || 0) : 1;
 }
 
 /** 计算魔法 MP 消耗倍率（含链式强化已消费层数） */

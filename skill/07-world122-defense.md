@@ -1209,6 +1209,22 @@
   `data.segmentSprites`；第0段可复用父中立Sprite，其余段必须独立创建、定位、定尺寸和定深度。
   四方向已经使用独立Blender贴图，楼梯严禁进入普通中立实体的`flipX(_facingLeft)`，否则会
   二次镜像。地图隐藏、动态深度、沉陷和销毁必须遍历全部`segmentSprites`，禁止退化成只显示下段。
+- **同向并排楼梯必须组成楼梯组**：两座楼梯仅在`dir/ascendingSign/segmentCount/groundZ/targetTopZ`
+  一致，且首段中心沿垂直登高轴相差一个标准格（`groupCenterTolerance=8`）时合并。每对楼梯逐段
+  选择最近侧边，边端总差允许到`groupRailGapTolerance=48`，
+  删除两侧内部`_stairEdge`，并用四边形共享接缝填补Blender踏步间约8px空档；顶部墙连接区同样
+  生成共享接缝。接缝命中外扩保护`groupSeamMargin=4`；高度按对应段九级踏步量化，禁止连续斜坡插值。
+  横向容差与沿坡相位必须分开：`groupRunTolerance=1.5`限制沿坡误差，禁止用8px总距离把错级踏步
+  强行合组。
+- **顶部连接宽度禁止重复扣半径**：`WallSystem`侧边线已经按单位`groundRadius`约束中心位置，
+  `connectorSurface`只需校验中心仍在`walkWidth/2-edgeHalfThick`内；禁止再次减单位半径。
+  80px楼梯重复扣玩家30px半径后只剩19px通道，会让稍微偏心的玩家/友军在墙接口失去surface。
+  正确有效半宽为39.5px，并排楼梯共享顶部接缝同口径。
+- **楼梯组边界必须动态重建**：新增、读档、回收、摧毁任一楼梯后统一调用
+  `DefenseSystem.rebuildWallStairGroups`；先注销全部组员边线，再重算共享面/共享边，最后仅注册
+  整组外轮廓。3座→2座→1座时，内部边必须依次恢复为新外边，禁止残留幽灵阻挡或永久开口。
+  `DefenseSystem.update`还必须每250ms比较楼梯拓扑签名；热更新旧实例缺少共享数组、组版本过期或
+  楼梯坐标集合变化时自动重建，不能要求玩家重新放置或刷新存档。
 - **方块墙吸附**：block墙不得投影到 `BLOCK_FACE` 后猜位置；直接复用
   `BLOCK_GRID.e1/e2` 四邻格：顶段中心=墙格心+一个方向步长，下段=墙格心+两个步长，
   墙接口=墙格心+半步长。四方向由鼠标所在侧选择。
@@ -1279,6 +1295,9 @@
   两实体`Collider.bottomZ/topZ`；高度区间相隔超过2px时跳过二维footprint分离。墙下怪物不得推挤
   墙顶/楼梯单位，同层单位仍正常分离。分离位移调用`WallSystem.resolve`时必须传
   `WallSystem.ignoreForEntity(entity)`，否则同层拥挤推力会被脚下墙段挡回并形成卡死。
+- **碰撞后必须最终提交surface**：生产顺序中`Game.resolveCollisions`晚于`DefenseSystem.update`，
+  同层单位分离仍可修改高架坐标；碰撞完成后必须调用
+  `DefenseSystem.reconcileElevatedSurfaces()`，只重算/回夹高架surface，不重复推进卡死计数。
 - **墙顶单位深度唯一权威**：图边上的单位可能同时与两块墙贴图重叠，`wall_walk.renderDepth`
   必须取图边两端墙`_faceDepth`的较大值；`GameScene._updateDynamicDepths`对玩家、侍从和普通实体
   必须至少使用`_surfaceRenderDepth+1`。禁止只按单位自然Y或当前归属墙排序，否则切墙过程中较深的
@@ -1292,15 +1311,22 @@
 - **楼梯Portal必须按真实输入进入**：平台查询顺序是楼梯优先于墙顶；surface模式读取
   `_surfaceInputIntent`，只有输入朝墙中心→Portal入口方向点积≥0.55且完整脚底已离开墙顶安全区时
   才切成`stairs`。人物仍在墙顶联合承托内时楼梯不得抢占，避免`wall_walk/stairs`反复切换。
+- **下楼必须有顶部handoff接管区**：墙顶单位输入朝楼梯时，除连接凸包外，上段最后
+  `handoffTopProgress=0.65`之后的踏步区域也可返回`handoffDown`候选；该候选优先于仍重叠的墙顶面，
+  并原子锁定对应`_platformRef`。一旦进入stairs，平台连续性优先，禁止外侧位置因墙面仍有承托而
+  永远无法下楼。碰撞后被推离连接区仍须通过post-collision提交重新进入handoff。
+- **重叠surface必须统一选优并原子提交**：禁止按`platforms`数组顺序第一个命中即返回。所有楼梯、
+  共享面与墙顶候选由`chooseElevatedSurfaceCandidate`按当前platform/owner、surfaceKind、Z连续性
+  和距离排序；共享面只作平局补缝，不得压过高度连续的正常踏步。`_surfaceRef/_surfaceWall/
+  _surfaceWalls/_platformRef/_platformLift`必须由同一候选一次提交。
 - **墙顶连接面**：连接几何必须取“上段踏步矩形四点+墙顶目标边两点”的凸包，
   只注册凸包外侧边，入口边和墙顶出口边保持开放；禁止用两条直线斜边包住转弯区，
   后侧方向会让斜边穿过玩家footprint。
   旧版只接到墙顶原始边缘，在完整footprint内缩后仍留下约20~24px安全断层，会在真实移动
   第8帧掉到Z=0并卡死。正式连接面必须保持楼梯顶边宽度并延长到墙顶安全中心。
   `surfaceAt(x,y,unit)`先认两段踏步，再认连接面；连接面保持`kind=stairs/z=topZ`，
-  连接面人物中心通道按`walkWidth/2 - groundRadius - edgeThick`收窄
-  （玩家=40-30-0.5=9.5px），
-  防止延长后的连接面覆盖墙外角；当单位完整footprint已被墙顶承托时返回null，
+  连接面人物中心通道按`walkWidth/2-edgeThick`校验；单位半径已经由楼梯侧边碰撞负责，
+  禁止重复扣`groundRadius`。当单位完整footprint已被墙顶承托时返回null，
   让`wall_walk`接管。
 - **楼梯边界碰撞使用等距距离**：`_stairEdge`不能用屏幕正圆半径判定。点/线距离必须先将
   Y除以`PERSPECTIVE_SCALE_Y=0.5`还原地面，再与`groundRadius`比较；当前边线半厚0.5。
@@ -1330,9 +1356,21 @@
 - **高度真源**：实体 `z` 是脚底高度；`_platformLift=z` 只保留给旧人物/武器/阴影入口。
   每段 `surfaceAt` 按配置的九级踏步量化高度，楼梯上脚底直接贴当前踏步顶面，不再做连续
   斜坡插值或高度缓动；墙顶走`wall_walk`表面并约束在城墙顶面线范围。
+  当前两段高度必须严格为`0→62.5→125`且墙顶Z=125；静态接口误差应接近浮点零，禁止用调高模型
+  掩盖连接宽度或surface判定错误。
 - **目标位置**：墙顶RTS目标必须包含 `{x,y,z,surfaceKind,route}`；route 顺序为
   楼梯各段中心→起始墙顶中心→BFS墙链中心→墙顶投影点。整条连续墙链没有有效楼梯时
   才返回`unreachable`。
+- **友军高架航点必须精确消费**：普通地面命令可保留40px到达半径，但route节点统一使用
+  `RTS_ROUTE_NODE_DISTANCE=12`和`RTS_ROUTE_Z_TOLERANCE=12`。楼梯出口到墙中心仅约32px，
+  禁止使用40~42px/34px提前连续跳过两个节点，否则友军会从上段直接追后续墙点并掉地。
+  侍从、射手、斥候及其他仓鼠AI必须复用`resolveRtsMoveDestination`，不得复制私有routeIndex逻辑。
+- **通用AI脱困不得接管高架路线**：`_surfaceRouteActive`、`stairs`或`wall_walk`期间，
+  MovementSystem的A*卡死重算/随机脱困和CompanionAI的掉队/卡死瞬移必须暂停；高架恢复只走
+  surface回夹与看门狗。技能位移调用`WallSystem.resolve`也必须携带`ignoreForEntity`。
+- **高架模块边界**：垂直区间统一在`physics/elevation.js`；候选排序与surface身份提交在
+  `world/elevated-surface-state.js`；并排楼梯识别、共享接缝和拓扑自愈在
+  `world/wall-stair-group.js`。`defense-system.js`只负责组合与运行时调度，禁止把纯规则复制回主文件。
 - **攻击受击**：普通投射物用独立 `z/vz`，墙碰撞在二维交点处比较弹道高度与墙顶高度；
   禁止恢复 `_onPlatform` 后忽略所有 `_cover` 的旧穿墙特例。近战双方脚底Z差超过48时不命中。
 - **所有远程入口同口径**：玩家枪械、`RangedAttack`、`Combatant.fireProjectile`、
@@ -1491,6 +1529,25 @@
 
 - **道路生命周期**：`BuildingRoadSystem.detach(entity, { preserveRoads:true })` 用于建筑沉陷和主动拆除：释放中央 2×2/4×4 预约，同时把外围自动道路转为独立道路；道路不随建筑消失，原位可直接重建。场景 teardown/普通重挂仍走默认 detach，避免遗留预约。
 - **升级项目唯一源**：`data/building-upgrades.json` 定义项目、费用、模块 `effect` 与能力；建筑只在 `producer-buildings.json` 或固定建筑配置中声明 `upgradeProject`。`building-upgrade-projects.js` 负责解析，`unit-upgrade-store.js` 按 `effect` 生成统一补丁，禁止再按 `attackSpd/damage/moveSpd` 等模块 ID 写分支。
+- **升级支付事务（2026-08-19）**：矿场/兵营/通用产兵与铁匠铺、研究院能力升级统一走
+  `payBuildingUpgradeCost()`；升级永远消耗真实金币与能源，`_devInfiniteResources`
+  只允许建筑放置免费。支付顺序为余额预检→扣金币→扣能源，能源扣除失败必须退还金币。
+- **每栋建筑独立生产选择（2026-08-19）**：`unitType` 只属于建筑实例，通用产兵建筑
+  构造时复制独立运行时配置，禁止写共享 `PRODUCER_BUILDINGS` 模板。相邻建筑命中盒重叠时，
+  `tryInteract` 必须在全部命中候选中选择离点击点最近的实例，禁止数组第一项抢交互造成
+  “同类建筑同步切兵种”的错觉；快照继续逐建筑保存/恢复 `unitType`。
+- **混编快照（2026-08-20）**：产兵建筑与兵营除当前 `unitType` 外，必须保存
+  `unitRoster:{kind:count}`；恢复按兵种逐个重建，出口预约失败的缺额进入
+  `_restoreRosterQueue`，禁止按当前生产类型把旧部队整体转换。后台DPS也必须逐兵种求和。
+- **全局能力升级锁（2026-08-20）**：同一 `abilityId` 同时只能有一座铁匠铺/研究院读条；
+  `raiseAbilityLevel` 和读档均按配置 `maxLevel` 钳制。后台完成时间按真实剩余时间分段，
+  被动能源、募兵速度、结构生命、激励/标记等不得回溯作用于研究完成前的时段。
+- **后台经济一致性（2026-08-20）**：牧师什一税保存每座教堂的 `titheTimerMs` 余数并入仓；
+  矿工采集比、采矿/数量模块读取 `ENERGY_CONFIG` 与 `miner_economy` 项目，禁止复制0.5/0.15
+  等参数；仓鼠军营基础数据统一读取 `data/hamster-barracks-building.json`。
+- **首轮出兵与退款（2026-08-20）**：新建产兵建筑从完整生产周期开始计时，只有快照恢复
+  缺员可走800ms快速物化；出售按实体 `_buildCost/_buildCurrency` 返还，禁止读取当前版本
+  配置价格篡改旧存档的实际成本。
 - **特殊模块接线**：靶场 `attackRangeBonus`（+15px/级）、兵营 `defenseMult`（+5%/级）、骑兵学校 `chargeDamageMult`（+15%/级）；教堂 `holyLightRangeBonus`（+15px/级）与 `titheEnergyPerTick`（每10s、每牧师、仅有仓库时入库）。补丁必须同时覆盖新生成单位和场上存活单位。
 - **普通2×2贴图校准**：逻辑 footprint 永远固定 256×128；贴图只允许改 `displayW/displayH/footOffsetY` 和视觉 X 偏移。`node tools/calibrate-building-footprints.mjs --check` 扫真实 alpha、迭代到 256×128 容差，并输出推荐显示尺寸；贴图替换后先跑它，再更新配置。
 - **底部锁定铁律**：实体与建造幽灵必须共用 `resolveStructureGroundFit()` 的 `footOffsetY + visualOffsetX`。禁止实体走 `resolveStructureFootOffset()`、幽灵另走一套最低像素计算，否则预览贴地但落地后跳动。像素四边形物理仍只允许显式 `autoFootprint:true` 的异形建筑使用。
@@ -1972,6 +2029,85 @@
   夹角大）；TR/LB 边投影充足。修复方向 = 拉伸 box 长度（或调整 rot/摆位）直到投影 ≥ 间距。
 - ⚠ 渲染黑屏坑：`--factory-startup` 后默认灯随全选删除一起没了，必须补 Sun 灯（energy 3）。
 - 待办：Blender 几何诊断精修（端面间距要含短轴贡献）、渲染贴图复刻、游戏内验证。
+
+### 墙面与楼梯统一高架导航面（2026-08-19）
+
+- 修改前备份：`backup/unified-elevated-surface-20260820-015841`。
+- `src/world/unified-elevated-navigation.js` 是墙顶、楼梯踏步、楼梯共享缝与墙梯桥接的统一查询入口；
+  必须先收集全部候选，再按高度连续性、当前表面和显式 handoff 选择，最后原子提交
+  `surfaceKind/surfaceRef/surfaceWall/platformRef/z`。
+- `stair-seam` 只代表并排同向楼梯之间的横向接缝；`wall-stair-bridge` 才允许墙梯交接保护。
+  两者不得共用“继续下楼”的状态判断，否则低层横移会被顶层接口抬到墙高。
+- 墙顶下楼提前捕获由 `handoffCaptureMargin=24` 控制。启动条件同时包含：
+  脚底仍受目标墙顶承托、输入朝向楼梯、实际位移正在远离墙中心。初次查询、边界扫掠与
+  碰撞后复核必须复用同一份 `_surfaceQueryMotionIntent`，不能在回退采样时把位移误清零。
+- 楼梯单位当前高度低于顶层 2px 以上时禁止命中顶层 connector；完整进入墙顶安全承托区后，
+  楼梯面必须让位给 `wall_walk`。这两条负责消除 2.5D 投影重叠造成的跨层抢占。
+- 桥接面期间关闭单位分离并忽略当前楼梯组/连接墙边线；离开桥接面后恢复普通高度分层碰撞。
+  `Game.resolveCollisions()` 后调用 `DefenseSystem.reconcileElevatedSurfaces()` 提交最终身份。
+- 回归：RTS 32/32、快照 42/42、墙深度 10/10、ESLint 0 error；
+  `tools/cdp-wall-stair-inspect.mjs` 的五档宽度上下墙、并排三楼梯多层横移、友军路线、
+  拥挤推挤、平台倒序和碰撞后复核全部通过，最终 `errors: []`。
+
+### 城墙高架远程战斗（2026-08-20）
+
+- 配置真源：`defense-structures.json.wallWalk.rangedCombat`。当前
+  `rangeMultiplier=1.2`、`wallClearance=2`；data/public 必须同步。
+- 加成资格唯一口径：`_surfaceKind==='wall_walk'` 且阵营为 `player/companion`。
+  楼梯途中不加成，敌人不加成。禁止用 `z>0` 代替正式墙顶身份，否则楼梯与其它浮空状态会误吃收益。
+- `combat/elevated-ranged.js` 负责射程、发射/目标Z及墙体上下文；
+  `combat/ranged-line-of-sight.js` 负责枪械、锁定魔法和直线光束的统一视线。所有发射物必须在
+  发射瞬间快照射程与墙体上下文，禁止飞行途中因单位上下墙而改变既有弹道。
+- 标准枪弹统一在 `ProjectileFactory` 应用倍率；魔法统一在
+  `getMagicRangeMultiplier` 与原武器改造倍率乘算。雷枪不走普通魔法弹道，必须显式消费该倍率。
+- AI攻击判断和实际飞行距离必须同时加成：露娜的 `combatRange/basicAttackRange/技能ranges`，
+  射手、斥候、火枪手的 attackRange/maxDist 都要读统一函数。只延长弹体而不延长AI判断等于功能未生效。
+- 矩形墙弹道碰撞必须使用线段进入/离开矩形的参数区间，在两个真实交点插值Z并取最低值；
+  禁止使用整段平均Z。面线墙继续在唯一交点插值Z。墙顶发射允许2px浮点净空，但远处弹道降到
+  墙顶以下仍必须阻挡，禁止恢复“台上忽略全部掩体”的旧特例。
+- 露娜普通光球与火枪手必须和射手/斥候一样保存`z/vz`并走`projectileBlocked`；
+  渲染读取`y-z`与`visualAngle`，深度跟标准投射物一致为`groundY+500`。
+- **全面审计整改（同日）**：
+  - 牧师`castRange`、自动/指令目标选择与`HolyLightSystem.triggerOn`必须统一消费
+    `getMagicRangeMultiplier + hasRangedLineOfSight`；调用方选定目标不等于允许跳过最终门禁。
+  - Bolt类投射物必须在`_launchAll`快照每发`maxRange`，飞行更新只读快照；
+    射程外目标与maxRange同帧越界时先终止弹体。
+  - 枪手/法师AI的“进入射程”必须同时满足LOS；候选优先选择当前可直射目标，
+    出膛前再复核一次，防目标在动画前摇期间移到墙后。
+  - 墙顶20%只作用`maxRange`。`aimRadius/chainRange`等技能作用范围只保留武器改造倍率。
+  - 墙顶2px净空只对发射时承托墙链中、距发射点`wallClearanceRadius=220`内的墙/段生效；
+    远处墙即使属于同一墙链也按真实高度阻挡。
+- 回归：`test-elevated-ranged.mjs` 22/22、`test-wall-embed.mjs` 10/10、
+  `cdp-elevated-ranged.mjs errors: []`；专项已纳入`npm test`主链。
+
+### 能源经济数值审计基线（2026-08-20，待整改）
+
+- **统一模型**：能源余额按“手动采矿 + 矿工采矿 + 研究被动 + 牧师什一税 − 建造/升级/修理”
+  结算，并受 `EnergyManager` 聚合仓储上限约束。矿点产出=`实际伤害×gatherRatio(0.5)`；
+  基础矿工=`100伤害÷2秒×0.5=25能源/秒`。
+- **矿工成长真值**：数量 `N=1+countLv`；攻击伤害倍率`1+0.025×damageLv`；采矿倍率
+  `1+0.15×miningLv`；攻击间隔倍率`1-0.025×attackSpdLv`。不计暴击时满经济模块
+  `N=6、125伤害、2.5倍采矿、1.5秒间隔`，因逐击取整约624能源/秒；暴击期望约646/秒。
+  `world122-sim` 必须消费伤害、攻速、采矿、数量和暴击的同一公式，禁止只算数量与采矿倍率。
+- **资源场与仓储基线**：4簇共54矿点，平均总HP约162000，即单轮约81000能源，枯竭90秒刷新；
+  单仓仅5000。基础矿工约200秒满仓，满级营地约8秒满仓，研究最后一级单次6198能源还要求
+  至少两仓。下次调参必须同时调整产能与容量，不能只改一侧。
+- **当前消耗总账**：不含额外传送门、仓库和墙阵的核心功能建筑各一座约7100能源；单位/矿工
+  模块满级202500能源，铁匠铺六能力65508能源，研究院三研究62826能源；升级总计330834能源，
+  同时需要476118金币。基础矿工约3小时41分产完升级能源，满级营地约8分50秒，后期实际门槛
+  已退化为金币而非能源。
+- **闭环判定**：当前为“前期仓库/金币冷启动 → 矿工指数式放大 → 有限消耗完成 → 满仓停产”，
+  不存在长期稳态。出兵与死亡补员免费、矿点/研究/什一税无限产出，是能源最终失去价值的根因。
+- **修理/回收约束**：1600HP墙按2HP/能源修满需800能源，但半价回收后重建净花200；1400HP塔
+  按3HP/能源修满约467，出售重建净花150。调整时必须让同耐久修理成本低于回收重建，或让回收
+  随剩余HP衰减，禁止保留“拆掉更便宜”的最优策略。
+- **多世界约束**：`research_passive_energy` 是全局能力，只能按全局时间结算一次；不得由
+  `WorldSimDriver` 对每个驻留世界快照重复生成。什一税可以按各世界实际牧师数结算。
+- **下一版目标区间**：基础矿工5~8能源/秒；单营地满成长30~45/秒；首仓避免零容量软锁且容量
+  至少10000~20000；数量/采矿模块改递增成本，边际能源回本目标8~20分钟；单位生成/补员加入
+  按兵种配置的能源费用，形成战斗期持续消耗；被动能源最高10/秒可保留，但要求只结算一次。
+- **旧奖励口径**：新五日入侵胜利路径当前不发能源；`DEFENSE_CONFIG.spawn.victoryReward.energy=500`
+  属旧十波防守遗留，未明确迁移前不得计入新入侵收益模型。
 
 ### 后续打磨方向（未做）
 - 波次/Boss 波/经济平衡数值；塔血量被摧毁后重建/出售；怪物分路（多入口）与减速/范围塔；

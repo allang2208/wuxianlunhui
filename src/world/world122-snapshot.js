@@ -100,7 +100,7 @@ export function captureWorld122() {
     const structures = [];
     const alive = (e) => e && e.active !== false && (e.hp === undefined || e.hp > 0);
 
-    // ---- 防御侧：塔/方块墙/4格门/射击台（扫描实体表，仅玩家建造）----
+    // ---- 防御侧：塔/方块墙/4格门/城墙楼梯（扫描实体表，仅玩家建造）----
     for (const e of Game.entities.values()) {
         if (!alive(e) || !e._builtByPlayer || systemOwned.has(e)) continue;
         if (e._isDefenseTower) {
@@ -131,9 +131,29 @@ export function captureWorld122() {
                 buildCost: e._buildCost ?? null, buildCurrency: e._buildCurrency ?? null,
             });
         } else if (e._isFiringPlatform) {
+            const wallLine = e.wall?._faceLine;
             structures.push({
-                kind: 'platform', x: e.x, y: e.y, hp: Math.ceil(e.hp),
+                kind: e._isWallStaircase ? 'wall_staircase' : 'platform',
+                stairVersion: e._isWallStaircase ? 2 : 0,
+                x: e.x, y: e.y, hp: Math.ceil(e.hp),
                 mirror: !!e._facingLeft,
+                dir: e.dir || null,
+                ascendingSign: e.ascendingSign || 1,
+                segmentCount: e.segmentCount || 2,
+                targetTopZ: e.targetTopZ || e.platformHeight || 125,
+                segments: Array.isArray(e.segments)
+                    ? e.segments.map((segment) => ({ x: segment.x, y: segment.y }))
+                    : null,
+                attachPoint: e.attachPoint ? { x: e.attachPoint.x, y: e.attachPoint.y } : null,
+                wallAnchor: wallLine
+                    ? {
+                        x: (wallLine[0].x + wallLine[1].x) / 2,
+                        y: (wallLine[0].y + wallLine[1].y) / 2,
+                    }
+                    : null,
+                wallPosition: e.wall
+                    ? { x: e.wall.x, y: e.wall.y }
+                    : null,
                 buildCost: e._buildCost ?? null, buildCurrency: e._buildCurrency ?? null,
             });
         }
@@ -332,13 +352,48 @@ function _restoreGate4(s) {
     }
 }
 
+function _nearestWalkableWall(anchor, wallPosition = null) {
+    if ((!anchor && !wallPosition) || !Game.entities) return null;
+    let best = null;
+    for (const wall of Game.entities.values()) {
+        if (!wall || !wall.active || !wall._isWalkableWall || !Array.isArray(wall._faceLine)) continue;
+        if (wallPosition) {
+            const positionDistance = Math.hypot(
+                wall.x - wallPosition.x,
+                wall.y - wallPosition.y
+            );
+            if (positionDistance <= 8) return wall;
+        }
+        if (!anchor) continue;
+        const [a, b] = wall._faceLine;
+        const mx = (a.x + b.x) / 2;
+        const my = (a.y + b.y) / 2;
+        const d = Math.hypot(mx - anchor.x, my - anchor.y);
+        if (!best || d < best.d) best = { wall, d };
+    }
+    return best && best.d <= 96 ? best.wall : null;
+}
+
 function _restorePlatform(s) {
+    const wall = _nearestWalkableWall(s.wallAnchor, s.wallPosition);
+    if (!wall) throw new Error('楼梯恢复失败：找不到原墙体');
     const platform = new FiringPlatform(s.x, s.y, {
-        mirror: !!s.mirror, id: s.id || `built_platform_r${++_seq}`,
+        mirror: !!s.mirror,
+        dir: s.dir || (s.mirror ? 'e1' : 'e2'),
+        ascendingSign: s.ascendingSign || 1,
+        segmentCount: s.segmentCount || 2,
+        targetTopZ: s.targetTopZ || wall?._wallTopZ || 125,
+        segments: s.segments || null,
+        attachPoint: s.attachPoint || s.wallAnchor || null,
+        wall,
+        id: s.id || `built_wall_staircase_r${++_seq}`,
     });
     _markRestored(platform, s);
     Game.entities.set(platform.id, platform);
-    if (DefenseSystem.platforms) DefenseSystem.platforms.push(platform);
+    if (DefenseSystem.platforms) {
+        DefenseSystem.platforms.push(platform);
+        DefenseSystem.rebuildWallStairGroups?.();
+    }
 }
 
 function _restoreHut(s) {
@@ -464,7 +519,8 @@ export function applyWorld122Snapshot(snap = _stored) {
             if (s.kind === 'tower') _restoreTower(s);
             else if (s.kind === 'block') _restoreBlock(s);
             else if (s.kind === 'gate4') _restoreGate4(s);
-            else if (s.kind === 'platform') _restorePlatform(s);
+            // 旧射击台/旧单块楼梯不再迁移，防止在城墙上自动恢复出孤立贴图。
+            else if (s.kind === 'wall_staircase' && (s.stairVersion || 0) >= 2) _restorePlatform(s);
             else if (s.kind === 'hut') _restoreHut(s);
             else if (s.kind === 'barracks') _restoreBarracks(s);
             else if (s.kind === 'producer') _restoreProducer(s);

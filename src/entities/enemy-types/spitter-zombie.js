@@ -172,11 +172,14 @@ export class SpitterZombie extends Enemy {
         const projectileSize = cfg.projectileSize || projDefaults.size;
 
         const head = this._getHeadWorldPosition();
+        const startZ = (Number(this.z) || 0) + (this.collider?.height || this.bodyHeight || 80) * 0.58;
+        const groundY = head.y + startZ;
+        const targetZ = this.target?.collider?.centerZ ?? ((Number(this.target?.z) || 0) + 24);
         let aimX = pending.targetX;
         let aimY = pending.targetY;
         if (this.target && this.target.active && this.target.vx !== undefined) {
             const lead = AimHelper.lead(
-                head.x, head.y,
+                head.x, groundY,
                 this.target.x, this.target.y,
                 this.target.vx || 0, this.target.vy || 0,
                 projectileSpeed
@@ -184,13 +187,19 @@ export class SpitterZombie extends Enemy {
             aimX = lead.x;
             aimY = lead.y;
         }
-        const angle = Math.atan2(aimY - head.y, aimX - head.x);
+        const groundAngle = Math.atan2(aimY - groundY, aimX - head.x);
+        const angle = Math.atan2((aimY - targetZ) - head.y, aimX - head.x);
 
         SoundManager.play('bow_fire');
         ProjectileFactory.create({
             x: head.x,
             y: head.y,
             angle,
+            z: startZ,
+            targetZ,
+            groundY,
+            groundAngle,
+            aimDistance: Math.max(1, Math.hypot(aimX - head.x, aimY - groundY)),
             speed: projectileSpeed,
             maxRange: projectileRange,
             size: projectileSize,

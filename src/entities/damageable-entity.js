@@ -70,6 +70,11 @@ export function isFriendlyFire(source, target) {
             takeDamage(damage, source, damageType = 'physical', isMelee = true) {
                 // 友方免伤：玩家/友军不能伤害同为友方的单位（防御塔/基地/掩体/伙伴）
                 if (isFriendlyFire(source, this)) return 0;
+                // 高度分层：近战只能命中脚底Z差在可触及范围内的目标。
+                if (isMelee && source) {
+                    const verticalReach = Number(source.meleeVerticalReach) || 48;
+                    if (Math.abs((Number(source.z) || 0) - (Number(this.z) || 0)) > verticalReach) return 0;
+                }
                 // 新增：怪物之间不互相攻击
                 if (this._faction === 'enemy' && source && source._faction === 'enemy') return;
                 // 应用伤害公式：伤害 = 攻击力² / (攻击力 + 防御力)
@@ -1194,7 +1199,14 @@ export function isFriendlyFire(source, target) {
                     // 击退时加入墙壁碰撞检测，防止穿墙
                     const radius = this.groundRadius;
                     if (WallSystem && WallSystem.walls && WallSystem.walls.length > 0) {
-                        const resolved = WallSystem.resolve(this.x, this.y, nx, ny, radius);
+                        const resolved = WallSystem.resolve(
+                            this.x,
+                            this.y,
+                            nx,
+                            ny,
+                            radius,
+                            WallSystem.ignoreForEntity?.(this) || null
+                        );
                         // 撞墙检测：如果resolve限制了移动，往反方向反弹5px
                         const hitWall = Math.abs(resolved.x - nx) > 0.5 || Math.abs(resolved.y - ny) > 0.5;
                         if (hitWall) {

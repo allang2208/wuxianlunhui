@@ -271,7 +271,7 @@ const WallSystem = {
         if (this.isoSegments) {
             for (const s of this.isoSegments) {
                 if (ignore && ignore.segs && ignore.segs.has(s)) continue;
-                if (this._pointSegDist(x, y, s.x1, s.y1, s.x2, s.y2) < radius + s.halfThick) return false;
+                if (this._groundPointSegDist(x, y, s) < radius + s.halfThick) return false;
             }
         }
         // 检查树木碰撞：使用独立的 collisionRadius（视觉半径的60%）
@@ -307,7 +307,7 @@ const WallSystem = {
         let best = null, bestD = Infinity;
         for (const s of this.isoSegments) {
             if (ignore && ignore.segs && ignore.segs.has(s)) continue;
-            const d = this._pointSegDist(nx, ny, s.x1, s.y1, s.x2, s.y2);
+            const d = this._groundPointSegDist(nx, ny, s);
             if (d < r + s.halfThick + 4 && d < bestD) {
                 bestD = d;
                 best = s;
@@ -1343,6 +1343,40 @@ const WallSystem = {
         const clY = Math.max(rect.y, Math.min(cy, rect.y + rect.h));
         return (cx - clX) ** 2 + (cy - clY) ** 2 < r * r;
     },
+    /** 高架表面单位只忽略其当前连接城墙；其它墙、门和楼梯侧边仍正常阻挡。 */
+    ignoreForEntity(entity) {
+        const walls = Array.isArray(entity?._surfaceWalls) && entity._surfaceWalls.length
+            ? entity._surfaceWalls
+            : (entity?._surfaceWall ? [entity._surfaceWall] : []);
+        if (!walls.length || (Number(entity.z) || 0) <= 1) return null;
+        const segs = new Set();
+        const rects = new Set();
+        for (const wall of walls) {
+            if (!wall?.active) continue;
+            if (wall._coverSeg) segs.add(wall._coverSeg);
+            if (wall._gateSeg) segs.add(wall._gateSeg);
+            if (wall._wallRect) rects.add(wall._wallRect);
+        }
+        if (entity?._surfaceKind === 'wall_walk' || entity?._elevatedNavigationBridge) {
+            for (const segment of this.isoSegments || []) {
+                if (!segment?._stairEdge) continue;
+                const staircase = segment._owner;
+                const staircaseWall = segment._owner?.wall;
+                const currentPlatform = entity?._platformRef;
+                const sameBridgeGroup = entity?._elevatedNavigationBridge
+                    && currentPlatform
+                    && (staircase === currentPlatform
+                        || (currentPlatform._sharedStairSurfaces || []).some((seam) =>
+                            seam?.stairA === staircase || seam?.stairB === staircase));
+                if (sameBridgeGroup || (staircaseWall && walls.includes(staircaseWall))) {
+                    segs.add(segment);
+                }
+            }
+        }
+        return segs.size || rects.size || entity?._surfaceMoveAxes?.length
+            ? { segs, rects, surfaceEntity: entity }
+            : null;
+    },
     canMoveTo(x, y, radius, ignore = null) {
         if (this._collisionAccel) {
             const g = this._getCollisionGrid();
@@ -1361,7 +1395,7 @@ const WallSystem = {
                         } else if (item.type === 'seg') {
                             const s = item.obj;
                             if (ignore && ignore.segs && ignore.segs.has(s)) continue;
-                            if (this._pointSegDist(x, y, s.x1, s.y1, s.x2, s.y2) < radius + s.halfThick) return false;
+                            if (this._groundPointSegDist(x, y, s) < radius + s.halfThick) return false;
                         } else {
                             const t = item.obj;
                             const ddx = x - t.x, ddy = y - t.y;
@@ -1384,6 +1418,28 @@ const WallSystem = {
         t = Math.max(0, Math.min(1, t));
         return Math.hypot(px - (x1 + t * dx), py - (y1 + t * dy));
     },
+    /** 楼梯边界位于等距地面：Y先逆压缩，按真实groundRadius判定；普通墙保持屏幕距离。 */
+    _groundPointSegDist(px, py, segment) {
+        if (!segment?._stairEdge) {
+            return this._pointSegDist(
+                px,
+                py,
+                segment.x1,
+                segment.y1,
+                segment.x2,
+                segment.y2
+            );
+        }
+        const invScale = 1 / PERSPECTIVE_SCALE_Y;
+        return this._pointSegDist(
+            px,
+            py * invScale,
+            segment.x1,
+            segment.y1 * invScale,
+            segment.x2,
+            segment.y2 * invScale
+        );
+    },
     /** 两线段是否相交 */
     _segSegIntersect(ax, ay, bx, by, cx, cy, dx, dy) {
         const d = (bx - ax) * (dy - cy) - (by - ay) * (dx - cx);
@@ -1392,7 +1448,145 @@ const WallSystem = {
         const u = ((cx - ax) * (by - ay) - (cy - ay) * (bx - ax)) / d;
         return t >= 0 && t <= 1 && u >= 0 && u <= 1;
     },
+    /**
+     * 带高度的投射物墙体判定。二维轨迹与墙相交后，再比较交点附近弹道 z 与墙顶高度；
+     * 取代“站上高台后忽略全部掩体”的旧特例。
+     */
+    projectileBlocked(x1, y1, z1, x2, y2, z2, ignore = null) {
+        const startZ = Number(z1) || 0;
+        const endZ = Number(z2) || 0;
+        const baseClearance = Math.max(0, Number(ignore?.wallClearance) || 0);
+        const clearanceWalls = ignore?.wallClearanceWalls;
+        const clearanceOrigin = ignore?.wallClearanceOrigin;
+        const clearanceRadius = Math.max(0, Number(ignore?.wallClearanceRadius) || 0);
+        const clearanceFor = (obstacle, owner = null) => {
+            if (!(baseClearance > 0) || !clearanceWalls?.size) return 0;
+            if (!clearanceWalls.has(obstacle) && !clearanceWalls.has(owner)) return 0;
+            if (!clearanceOrigin || !(clearanceRadius > 0)) return baseClearance;
+            const x = Number(owner?.x)
+                || (Number.isFinite(obstacle?.x) && Number.isFinite(obstacle?.w)
+                    ? obstacle.x + obstacle.w * 0.5
+                    : (Number(obstacle?.x1) + Number(obstacle?.x2)) * 0.5);
+            const y = Number(owner?.y)
+                || (Number.isFinite(obstacle?.y) && Number.isFinite(obstacle?.h)
+                    ? obstacle.y + obstacle.h * 0.5
+                    : (Number(obstacle?.y1) + Number(obstacle?.y2)) * 0.5);
+            return Number.isFinite(x) && Number.isFinite(y)
+                && Math.hypot(x - clearanceOrigin.x, y - clearanceOrigin.y) <= clearanceRadius
+                ? baseClearance
+                : 0;
+        };
+        const blocksAtHeight = (crossingZ, height, clearance) =>
+            crossingZ <= height - clearance;
+        for (const wall of this.walls || []) {
+            if (ignore?.rects?.has(wall)) continue;
+            const interval = this._lineRectInterval(x1, y1, x2, y2, wall);
+            if (!interval || interval.enter >= interval.exit) continue;
+            const height = Number(wall._owner?._wallTopZ)
+                || Number(wall._wallTopZ)
+                || Number(wall.height)
+                || this._wallHeight
+                || 60;
+            const enterZ = startZ + (endZ - startZ) * interval.enter;
+            const exitZ = startZ + (endZ - startZ) * interval.exit;
+            if (blocksAtHeight(
+                Math.min(enterZ, exitZ),
+                height,
+                clearanceFor(wall, wall._owner)
+            )) return true;
+        }
+        for (const segment of this.isoSegments || []) {
+            if (ignore?.segs?.has(segment) || segment._stairEdge) continue;
+            const ax = x2 - x1;
+            const ay = y2 - y1;
+            const bx = segment.x2 - segment.x1;
+            const by = segment.y2 - segment.y1;
+            const denom = ax * by - ay * bx;
+            if (Math.abs(denom) <= 1e-8) continue;
+            const cx = segment.x1 - x1;
+            const cy = segment.y1 - y1;
+            const t = (cx * by - cy * bx) / denom;
+            const u = (cx * ay - cy * ax) / denom;
+            if (t < 0 || t > 1 || u < 0 || u > 1) continue;
+            const ownerHeight = Number(segment._owner?._wallTopZ);
+            const height = Number.isFinite(ownerHeight)
+                ? ownerHeight
+                : (Number(segment.height) || this._wallHeight || 60);
+            const crossingZ = startZ + (endZ - startZ) * t;
+            if (blocksAtHeight(
+                crossingZ,
+                height,
+                clearanceFor(segment, segment._owner)
+            )) return true;
+        }
+        return false;
+    },
     resolve(x, y, nx, ny, r, ignore = null) {
+        if (ignore) {
+            ignore._surfaceProjected = false;
+            ignore._surfaceProjectedTarget = null;
+        }
+        const surfaceEntity = ignore?.surfaceEntity;
+        const axes = surfaceEntity?._surfaceKind === 'wall_walk'
+            && Array.isArray(surfaceEntity._surfaceMoveAxes)
+            ? surfaceEntity._surfaceMoveAxes
+            : null;
+        if (axes?.length) {
+            const dx = nx - x;
+            const dy = ny - y;
+            const magnitude = Math.hypot(dx, dy);
+            if (magnitude > 1e-6) surfaceEntity._surfaceMoveChosenAxis = null;
+            const inputIntent = surfaceEntity?._surfaceInputIntent;
+            const intentX = inputIntent && Math.hypot(inputIntent.x, inputIntent.y) > 1e-6
+                ? inputIntent.x
+                : dx;
+            const intentY = inputIntent && Math.hypot(inputIntent.x, inputIntent.y) > 1e-6
+                ? inputIntent.y
+                : dy;
+            const intentMagnitude = Math.hypot(intentX, intentY);
+            let best = null;
+            let bestWall = null;
+            let bestPortal = null;
+            for (const axis of axes) {
+                const dot = intentX * axis.x + intentY * axis.y;
+                if (dot <= 0.01) continue;
+                const candidate = {
+                    axis,
+                    dot,
+                    alignment: intentMagnitude > 1e-6 ? dot / intentMagnitude : 0,
+                };
+                if (!best || dot > best.dot) best = candidate;
+                if (axis.kind === 'stair_portal') {
+                    if (!bestPortal || dot > bestPortal.dot) bestPortal = candidate;
+                } else if (!bestWall || dot > bestWall.dot) {
+                    bestWall = candidate;
+                }
+            }
+            const portalOverrideMargin = Number(surfaceEntity._surfacePortalOverrideMargin) || 0.2;
+            if (bestWall && bestPortal && bestPortal.alignment > bestWall.alignment
+                && bestPortal.alignment - bestWall.alignment < portalOverrideMargin) {
+                best = bestWall;
+            }
+            const minAlignment = Number(surfaceEntity._surfaceMoveMinAlignment) || 0.2;
+            if (best && magnitude > 1e-6 && intentMagnitude > 1e-6
+                && best.dot / intentMagnitude >= minAlignment) {
+                surfaceEntity._surfaceMoveChosenAxis = {
+                    x: best.axis.x,
+                    y: best.axis.y,
+                    kind: best.axis.kind || 'wall',
+                    staircaseId: best.axis.staircaseId || null,
+                };
+                // 选择图边后旋转完整意图速度，保持速度大小不变，不再因墙轴角度降低移速。
+                const projectedX = x + best.axis.x * magnitude;
+                const projectedY = y + best.axis.y * magnitude;
+                if (Math.hypot(projectedX - nx, projectedY - ny) > 0.01) {
+                    nx = projectedX;
+                    ny = projectedY;
+                    ignore._surfaceProjected = true;
+                    ignore._surfaceProjectedTarget = { x: nx, y: ny };
+                }
+            }
+        }
         if (this.canMoveTo(nx, ny, r, ignore) && !this.blocked(x, y, nx, ny, ignore)) return { x: nx, y: ny };
         // iso 墙切向滑动：找最近阻挡墙段，取移动在墙方向上的分量（速度不超意图，杜绝加速滑行）
         const seg = this._nearestBlockingSeg(nx, ny, r, ignore);
@@ -1466,7 +1660,7 @@ const WallSystem = {
                             if (item.type !== 'seg') continue;
                             const s = item.obj;
                             if (ignore && ignore.segs && ignore.segs.has(s)) continue;
-                            const d = this._pointSegDist(nx, ny, s.x1, s.y1, s.x2, s.y2);
+                            const d = this._groundPointSegDist(nx, ny, s);
                             // 平局按数组下标决胜（与线性版"先到先得"严格一致）
                             if (d < r + s.halfThick + 4 && (d < bestD || (d === bestD && item.idx < bestIdx))) {
                                 bestD = d;
@@ -1504,15 +1698,19 @@ const WallSystem = {
         const t1 = (-b - Math.sqrt(det)) / (2 * a), t2 = (-b + Math.sqrt(det)) / (2 * a);
         return (t1 >= 0 && t1 <= 1) || (t2 >= 0 && t2 <= 1);
     },
-    lineRect(x1, y1, x2, y2, rect) {
+    _lineRectInterval(x1, y1, x2, y2, rect) {
         const dx = x2 - x1, dy = y2 - y1;
         let u1 = 0, u2 = 1;
         const p = [-dx, dx, -dy, dy], q = [x1 - rect.x, rect.x + rect.w - x1, y1 - rect.y, rect.y + rect.h - y1];
         for (let i = 0; i < 4; i++) {
-            if (p[i] === 0) { if (q[i] < 0) return false; }
+            if (p[i] === 0) { if (q[i] < 0) return null; }
             else { const t = q[i] / p[i]; if (p[i] < 0) { if (t > u1) u1 = t; } else { if (t < u2) u2 = t; } }
         }
-        return u1 < u2;
+        return u1 <= u2 ? { enter: u1, exit: u2 } : null;
+    },
+    lineRect(x1, y1, x2, y2, rect) {
+        const interval = this._lineRectInterval(x1, y1, x2, y2, rect);
+        return !!interval && interval.enter < interval.exit;
     },
     blocked(x1, y1, x2, y2, ignore = null) {
         if (this._collisionAccel) {

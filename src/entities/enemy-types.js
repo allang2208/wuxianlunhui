@@ -459,6 +459,17 @@ class BlackWolf extends Enemy {
         const cached = losCache ? losCache.get(target.id) : null;
         if (cached) return !!cached.result;
         if (WallSystem && WallSystem.blocked) {
+            const elevated = (Number(this.z) || 0) > 0 || (Number(target.z) || 0) > 0;
+            if (elevated && WallSystem.projectileBlocked) {
+                return !WallSystem.projectileBlocked(
+                    this.x,
+                    this.y,
+                    (Number(this.z) || 0) + (this.collider?.height || 40) * 0.58,
+                    target.x,
+                    target.y,
+                    (Number(target.z) || 0) + (target.collider?.height || 40) * 0.5
+                );
+            }
             return !WallSystem.blocked(this.x, this.y, target.x, target.y);
         }
         return true;

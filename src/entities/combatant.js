@@ -501,8 +501,15 @@ class Combatant extends DamageableEntity {
         // 创建弹丸
         // 敌人使用曳光弹效果，确保弹道可见
         const isEnemy = this._faction === 'enemy';
+        const startZ = (Number(this.z) || 0) + (this.collider?.height || this.size || 40) * 0.58;
+        const targetZ = Number.isFinite(config.targetZ)
+            ? config.targetZ
+            : (this.target?.collider?.centerZ ?? ((Number(this.target?.z) || 0) + 24));
         ProjectileFactory.create({
             x: this.x, y: this.y, angle,
+            z: startZ,
+            targetZ,
+            aimDistance: Math.max(1, Math.hypot(aimX - this.x, aimY - this.y)),
             speed, maxRange: range, size,
             damage, piercing,
             source: this, entities,

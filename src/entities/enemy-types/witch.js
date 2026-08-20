@@ -250,17 +250,22 @@ export class Witch extends Enemy {
             mx += cfg.muzzleRightDx ?? 0;
             my += cfg.muzzleRightDy ?? 0;
         }
+        const startZ = (Number(this.z) || 0) + (this.collider?.height || this.bodyHeight || 100) * 0.58;
+        const groundY = my + startZ;
+        const targetZ = t?.collider?.centerZ ?? ((Number(t?.z) || 0) + 24);
 
         // 预判瞄准（真实发射点调用；无有效解回退目标当前位置）
         let aimX = this.x + dirX * 100, aimY = this.y;
         if (t) {
             aimX = t.x; aimY = t.y;
             if (t.vx !== undefined) {
-                const lead = AimHelper.lead(mx, my, t.x, t.y, t.vx || 0, t.vy || 0, cfg.projectileSpeed ?? 500);
+                const lead = AimHelper.lead(mx, groundY, t.x, t.y, t.vx || 0, t.vy || 0, cfg.projectileSpeed ?? 500);
                 aimX = lead.x; aimY = lead.y;
             }
         }
-        const baseAngle = Math.atan2(aimY - my, aimX - mx);
+        const baseAngle = Math.atan2((aimY - targetZ) - my, aimX - mx);
+        const groundBaseAngle = Math.atan2(aimY - groundY, aimX - mx);
+        const aimDistance = Math.max(1, Math.hypot(aimX - mx, aimY - groundY));
 
         const count = Math.max(1, cfg.projectileCount ?? 3);
         const fan = cfg.fanAngle ?? (Math.PI / 6);
@@ -270,6 +275,11 @@ export class Witch extends Enemy {
             ProjectileFactory.create({
                 x: mx, y: my,
                 angle: baseAngle + offset,
+                z: startZ,
+                targetZ,
+                groundY,
+                groundAngle: groundBaseAngle + offset,
+                aimDistance,
                 speed: cfg.projectileSpeed ?? 500,
                 maxRange: cfg.projectileRange ?? 900,
                 size: cfg.projectileSize ?? 20,

@@ -13,6 +13,7 @@ import {
     getCurrentWeaponCraftEffects,
     getMagicMpCostMultiplier,
     getMagicCooldownMultiplier,
+    getMagicRangeMultiplier,
     getMagicDamageMultiplierWithChain,
     consumeChainSpellBonus,
     addChainSpellStack,
@@ -21,6 +22,10 @@ import {
 import skillsData from '../../../data/skills.json';
 import { isSkillCheatEnabled } from '../../config/dev-cheats.js';
 import { meetsMagicWeaponReq } from '../../config/magic-categories.js';
+import {
+    hasRangedLineOfSight,
+    resolveRangedLineEnd,
+} from '../../combat/ranged-line-of-sight.js';
 
 /** 手层内容质心缓存（纹理键+帧名 → 归一化局部偏移），像素分析一次后复用 */
 const HAND_CENTROID_CACHE = new Map();
@@ -183,6 +188,7 @@ export class ThunderLanceSystem {
         // 配置唯一真相：默认值集中收敛于 LANCE_DEFAULTS（skills.json 双份必有），代码不再散落魔法数字
         const effect = { ...LANCE_DEFAULTS, ...baseEffect, mpCost };
         effect.cooldown = effect.cooldown * getMagicCooldownMultiplier(src, ce);
+        effect.maxRange *= getMagicRangeMultiplier(src, ce);
         this._magicDamageMul = getMagicDamageMultiplierWithChain(src, 'thunderLance', ce, chain.stacks);
         // 长按蓄力：按下即进入冷却（用户定稿：没有蓄力满也要进入 CD，失败/提前释放都计 CD）
         if (!isSkillCheatEnabled()) src._thunderLanceCooldown = effect.cooldown * 1000;
@@ -373,7 +379,7 @@ export class ThunderLanceSystem {
             const perp = Math.abs(ex * uy - ey * ux);
             const threshold = coneHalf + (e.collisionRadius || e.size || 12) * 0.6;
             if (perp > threshold) continue;
-            if (!this._isLineOfSightClear(src.x, src.y, e.x, e.y)) continue;
+            if (!this._isLineOfSightClear(e)) continue;
             hits.push({ e, proj });
         }
         hits.sort((a, b) => a.proj - b.proj);
@@ -393,8 +399,8 @@ export class ThunderLanceSystem {
         const endY = src.y + uy * maxRange;
         let ex = endX;
         let ey = endY;
-        if (WallSystem && typeof WallSystem.resolve === 'function') {
-            const resolved = WallSystem.resolve(src.x, src.y, endX, endY, 8);
+        if (WallSystem) {
+            const resolved = resolveRangedLineEnd(src, endX, endY, 8);
             if (Math.abs(resolved.x - endX) > 1 || Math.abs(resolved.y - endY) > 1) {
                 const t = Math.hypot(resolved.x - src.x, resolved.y - src.y);
                 const reach = Math.max(50, t - 20);
@@ -486,10 +492,8 @@ export class ThunderLanceSystem {
     }
 
     /** 视线检测：玩家→目标 线段是否被墙体阻挡 */
-    _isLineOfSightClear(x1, y1, x2, y2, radius = 8) {
-        if (!WallSystem || typeof WallSystem.resolve !== 'function') return true;
-        const resolved = WallSystem.resolve(x1, y1, x2, y2, radius);
-        return Math.abs(resolved.x - x2) <= 1 && Math.abs(resolved.y - y2) <= 1;
+    _isLineOfSightClear(target, radius = 8) {
+        return hasRangedLineOfSight(this.source, target, radius);
     }
 
     /** 玩家施法动作包装：播施法动画，第 8 帧触发 onRelease；holdAtRelease=蓄力定格（保持释放帧，等 resume 收尾） */

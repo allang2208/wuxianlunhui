@@ -3,6 +3,13 @@ import { WallSystem } from '../world/wall-system.js';
 import { AimHelper } from '../utils/aim-helper.js';
 import { SoundManager } from '../ui/sound-manager.js';
 import { clearRtsSurfaceRoute, resolveRtsMoveDestination } from './rts-command-utils.js';
+import {
+    applyElevatedRangedRange,
+    projectileSourceZ,
+    projectileTargetZ,
+    projectileWallContext,
+} from '../combat/elevated-ranged.js';
+import { hasRangedLineOfSight } from '../combat/ranged-line-of-sight.js';
 
 const HIT_RADIUS = 28;
 
@@ -26,12 +33,24 @@ export class HamsterMusketeerAI {
         this._shotActive = false;
         this._shotTimer = 0;
         this._shotAnimLeft = 0;
+        this._stuckTimer = 0;
+        this._lastPosX = unit.x;
+        this._lastPosY = unit.y;
+        this._stuckStreak = 0;
     }
 
     cancelForCommand() {
         this._shotActive = false;
         this.m._attackSwing = false;
         this.m._animState = 'idle';
+    }
+
+    _effectiveAttackRange() {
+        return applyElevatedRangedRange(this.m, this._attackRange);
+    }
+
+    _canShootTarget(target) {
+        return hasRangedLineOfSight(this.m, target);
     }
 
     update(dt, entities, player) {
@@ -62,6 +81,7 @@ export class HamsterMusketeerAI {
         }
         if (m._animState === 'attack') m._animState = 'idle';
         MovementSystem.update(m, dt, entities);
+        this._checkStuck(dt);
     }
 
     _tick(entities, player) {
@@ -123,7 +143,7 @@ export class HamsterMusketeerAI {
         const m = this.m;
         m.target = target;
         const d = Math.hypot(target.x - m.x, target.y - m.y);
-        if (d > this._attackRange) {
+        if (d > this._effectiveAttackRange() || !this._canShootTarget(target)) {
             m._tacticalTarget = { x: target.x, y: target.y };
             m._animState = 'walk';
             m.maxSpeed = this.cfg.walkSpeed ?? 120;
@@ -145,13 +165,19 @@ export class HamsterMusketeerAI {
 
     _nearestEnemy(entities) {
         let best = null, bestD = Infinity;
+        let bestShootable = null, bestShootableD = Infinity;
+        const attackRange = this._effectiveAttackRange();
         const iter = entities?.values ? entities.values() : entities || [];
         for (const e of iter) {
             if (!e || !e.active || e.hp <= 0 || e._faction !== 'enemy' || e._isEnergyNode) continue;
             const d = Math.hypot(e.x - this.m.x, e.y - this.m.y);
             if (d <= this._engageRange && d < bestD) { best = e; bestD = d; }
+            if (d <= attackRange && d < bestShootableD && this._canShootTarget(e)) {
+                bestShootable = e;
+                bestShootableD = d;
+            }
         }
-        return best;
+        return bestShootable || best;
     }
 
     _aimY(target) {
@@ -163,11 +189,39 @@ export class HamsterMusketeerAI {
         const m = this.m;
         const t = m.target;
         if (!t?.active || t.hp <= 0) return;
-        const spawnY = m.y - 45;
-        const aimY = this._aimY(t);
-        const lead = AimHelper.lead(m.x, spawnY, t.x, aimY, t.vx || 0, t.vy || 0, this._projectileSpeed);
-        const angle = Math.atan2(lead.y - spawnY, lead.x - m.x);
-        m._basic = { active: true, x: m.x, y: spawnY, aimY, angle, dist: 0, maxDist: this._attackRange + 180, target: t, musketTracer: true };
+        if (!this._canShootTarget(t)) return;
+        const startZ = projectileSourceZ(m);
+        const targetZ = projectileTargetZ(t);
+        const lead = AimHelper.lead(
+            m.x,
+            m.y,
+            t.x,
+            t.y,
+            t.vx || 0,
+            t.vy || 0,
+            this._projectileSpeed
+        );
+        const angle = Math.atan2(lead.y - m.y, lead.x - m.x);
+        const targetDist = Math.max(1, Math.hypot(lead.x - m.x, lead.y - m.y));
+        const visualAngle = Math.atan2(
+            (lead.y - targetZ) - (m.y - startZ),
+            lead.x - m.x
+        );
+        m._basic = {
+            active: true,
+            x: m.x,
+            y: m.y,
+            z: startZ,
+            vz: (targetZ - startZ)
+                / Math.max(0.001, targetDist / this._projectileSpeed),
+            angle,
+            visualAngle,
+            dist: 0,
+            maxDist: applyElevatedRangedRange(m, this._attackRange + 180),
+            wallContext: projectileWallContext(m),
+            target: t,
+            musketTracer: true,
+        };
         const sound = m.sounds?.attack;
         if (sound && SoundManager?.playWorld) SoundManager.playWorld(sound, m.x, m.y);
         else if (sound && SoundManager?.playFile) SoundManager.playFile(sound);
@@ -178,19 +232,73 @@ export class HamsterMusketeerAI {
         const b = m._basic;
         if (!b?.active) return;
         const step = this._projectileSpeed * dt / 1000;
+        const prevX = b.x;
+        const prevY = b.y;
+        const prevZ = Number(b.z) || 0;
         b.x += Math.cos(b.angle) * step;
         b.y += Math.sin(b.angle) * step;
+        b.z = prevZ + (Number(b.vz) || 0) * dt / 1000;
         b.dist += step;
+        if (WallSystem.projectileBlocked?.(
+            prevX,
+            prevY,
+            prevZ,
+            b.x,
+            b.y,
+            b.z,
+            b.wallContext || projectileWallContext(m)
+        )) {
+            m._basic = null;
+            return;
+        }
         let hit = null;
         for (const e of (entities?.values ? entities.values() : entities || [])) {
             if (!e || !e.active || e.hp <= 0 || e._faction !== 'enemy' || e._isEnergyNode) continue;
-            if (Math.hypot(e.x - b.x, this._aimY(e) - b.y) < HIT_RADIUS) { hit = e; break; }
+            const bottom = e.collider?.bottomZ ?? (Number(e.z) || 0);
+            const top = e.collider?.topZ ?? (bottom + (e.bodyHeight || e.size || 80));
+            if (Math.hypot(e.x - b.x, e.y - b.y) < HIT_RADIUS
+                && b.z >= bottom - HIT_RADIUS
+                && b.z <= top + HIT_RADIUS) {
+                hit = e;
+                break;
+            }
         }
         if (hit) {
-            hit.takeDamage?.(this._attackDamage, m, 'physical', false);
+            hit.takeDamage?.(m.getPhysicalAttackDamage(this._attackDamage, hit), m, 'physical', false);
             m._basic = null;
-        } else if (b.dist >= b.maxDist || (WallSystem?.blocked && WallSystem.blocked(m.x, m.y - 45, b.x, b.y))) {
+        } else if (b.dist >= b.maxDist) {
             m._basic = null;
         }
+    }
+
+    _checkStuck(dt) {
+        const m = this.m;
+        if (m._animState !== 'walk') {
+            this._stuckTimer = 0;
+            this._lastPosX = m.x;
+            this._lastPosY = m.y;
+            return;
+        }
+        this._stuckTimer += dt;
+        if (this._stuckTimer < 500) return;
+        this._stuckTimer = 0;
+        const moved = Math.hypot(m.x - this._lastPosX, m.y - this._lastPosY);
+        this._lastPosX = m.x;
+        this._lastPosY = m.y;
+        if (moved > 3) {
+            this._stuckStreak = 0;
+            return;
+        }
+        this._stuckStreak++;
+        if (this._stuckStreak < 2) return;
+        this._stuckStreak = 0;
+        const safe = WallSystem.findSafeSpawn?.(m.x, m.y, m.groundRadius || 20);
+        if (safe && Math.hypot(safe.x - m.x, safe.y - m.y) > 5) {
+            m.x = safe.x;
+            m.y = safe.y;
+        }
+        m.target = null;
+        m._tacticalTarget = null;
+        m._pathManager?._clearPath?.();
     }
 }

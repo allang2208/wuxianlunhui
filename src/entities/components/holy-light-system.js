@@ -1,5 +1,4 @@
 import { Renderer } from '../../world/renderer.js';
-import { WallSystem } from '../../world/wall-system.js';
 import { Input } from '../../ui/input.js';
 import { EffectManager } from '../../effects/effect-manager.js';
 import { FloatingTextEffect } from '../../effects/floating-text.js';
@@ -10,6 +9,7 @@ import { SkillManager } from '../../ui/skill-manager.js';
 import {
     getCurrentWeaponCraftEffects,
     getMagicRangeMultiplier,
+    getMagicAreaMultiplier,
     getMagicMpCostMultiplier,
     getMagicCooldownMultiplier,
     getMagicHealMultiplierWithChain,
@@ -19,6 +19,7 @@ import {
 } from '../../utils/magic-craft-helper.js';
 import skillsData from '../../../data/skills.json';
 import { isSkillCheatEnabled } from '../../config/dev-cheats.js';
+import { hasRangedLineOfSight } from '../../combat/ranged-line-of-sight.js';
 
 /** 圣光数值默认（配置唯一真相：skills.json effectFormula 必有；缺省兜底统一收敛于此） */
 const HOLY_LIGHT_DEFAULTS = {
@@ -85,7 +86,7 @@ export class HolyLightSystem {
         // ===== 三重判定：失败不消耗冷却/耗蓝/链式强化 =====
         const ce = getCurrentWeaponCraftEffects(src);
         const rangeMul = getMagicRangeMultiplier(src, ce);
-        const aimRadius = effect.aimRadius * rangeMul;
+        const aimRadius = effect.aimRadius * getMagicAreaMultiplier(src, ce);
         const maxRange = effect.maxRange * rangeMul;
         const entities = (typeof window !== 'undefined' && window.Game && window.Game.entities)
             ? Array.from(window.Game.entities.values()) : [];
@@ -110,7 +111,7 @@ export class HolyLightSystem {
         for (const c of nearMouse) {
             if (c.dPlayer > maxRange) continue;
             anyInRange = true;
-            if (!this._isLineOfSightClear(src.x, src.y, c.e.x, c.e.y)) {
+            if (!this._isLineOfSightClear(c.e)) {
                 anyBlocked = true;
                 continue;
             }
@@ -285,7 +286,7 @@ export class HolyLightSystem {
 
     /**
      * 对指定目标直接施放圣光（AI/队友入口，2026-08-17）：
-     * 跳过鼠标瞄准/距离/视线三重判定（目标由调用方选定），
+     * 跳过鼠标附近目标搜索，但保留最终射程与带高度LOS门禁，
      * 冷却/技能/链式/耗蓝与结算口径与 trigger 完全一致；
      * 目标为友方=治疗、敌方=伤害（僵尸 ×zombieDamageMul）。
      * @param {object} target 施法目标实体
@@ -301,6 +302,11 @@ export class HolyLightSystem {
         const effect = { ...HOLY_LIGHT_DEFAULTS, ...baseEffect };
 
         const ce = getCurrentWeaponCraftEffects(src);
+        const configuredRange = Number(src.aiConfig?.castRange);
+        const baseRange = configuredRange > 0 ? configuredRange : effect.maxRange;
+        const maxRange = baseRange * getMagicRangeMultiplier(src, ce);
+        if (Math.hypot(target.x - src.x, target.y - src.y) > maxRange) return false;
+        if (!hasRangedLineOfSight(src, target)) return false;
         const chainStacks = src._chainSpellStacks || 0;
         const mpMul = getMagicMpCostMultiplier(src, ce, chainStacks);
         const mpCost = effect.mpCost ? Math.max(0, Math.floor(effect.mpCost * mpMul)) : 0;
@@ -389,11 +395,9 @@ export class HolyLightSystem {
         }
     }
 
-    /** 视线检测：玩家→目标 线段是否被墙体阻挡（WallSystem.resolve 畅通时原样返回目标点） */
-    _isLineOfSightClear(x1, y1, x2, y2, radius = 8) {
-        if (!WallSystem || typeof WallSystem.resolve !== 'function') return true;
-        const resolved = WallSystem.resolve(x1, y1, x2, y2, radius);
-        return Math.abs(resolved.x - x2) <= 1 && Math.abs(resolved.y - y2) <= 1;
+    /** 视线检测：地面走二维墙判定，高架走带 Z 的弹道墙交点判定。 */
+    _isLineOfSightClear(target, radius = 8) {
+        return hasRangedLineOfSight(this.source, target, radius);
     }
 
     update(dt) {

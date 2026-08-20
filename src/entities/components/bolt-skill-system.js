@@ -21,6 +21,7 @@ import {
 } from '../../utils/magic-craft-helper.js';
 import { getSkillMagicCategory } from '../../config/magic-categories.js';
 import { isSkillCheatEnabled } from '../../config/dev-cheats.js';
+import { projectileWallContext } from '../../combat/elevated-ranged.js';
 
 /**
  * 法系投射物技能系统基类（2026-07-28：FireballSystem/IceSpikeSystem ~90% 雷同合并）
@@ -182,6 +183,7 @@ export class BoltSkillSystem {
         if (spikes.length === 0) return;
         const target = this._getAimTarget();
         if (!target) return;
+        const launchEffect = this._getEffect();
         const mx = target.x, my = target.y;
         const cos = Math.cos(this.source.rotation || 0);
         const sin = Math.sin(this.source.rotation || 0);
@@ -200,6 +202,11 @@ export class BoltSkillSystem {
             spike.tx = mx;
             spike.ty = my;
             spike.targetDist = Math.hypot(mx - spike.flyX, my - spike.flyY);
+            spike.flyZ = (Number(this.source.z) || 0) + (this.source.collider?.height || 40) * 0.58;
+            spike.flyVz = (24 - spike.flyZ)
+                / Math.max(0.001, spike.targetDist / Math.max(1, spike.flySpeed));
+            spike.maxRange = launchEffect.maxRange;
+            spike.wallContext = projectileWallContext(this.source);
         });
         this.source[this.kind.fields.timer] = 0;
     }
@@ -266,7 +273,19 @@ export class BoltSkillSystem {
             const moveDist = spike.flySpeed * dtSec;
             const nextX = spike.flyX + cos * moveDist;
             const nextY = spike.flyY + sin * moveDist;
+            const nextZ = (Number(spike.flyZ) || 0) + (Number(spike.flyVz) || 0) * dtSec;
             spike.flyDistance += moveDist;
+            const maxRange = Number(spike.maxRange) || effect.maxRange;
+
+            // 发射时射程快照优先。目标在射程外时必须先按 maxRange 结束，
+            // 防止单帧同时跨过 maxRange 与 targetDist 后越界命中。
+            if (spike.flyDistance >= maxRange
+                && (spike.targetDist == null || maxRange < spike.targetDist)) {
+                this.kind.onMaxRange(this, spike, { entities: entityList, damage, effect, skill });
+                spike.flyActive = false;
+                spike.active = false;
+                return;
+            }
 
             // 到达瞄准目标点（鼠标准星/锁定目标）：精确汇聚并在该点结算
             if (spike.targetDist != null && spike.flyDistance >= spike.targetDist) {
@@ -279,28 +298,28 @@ export class BoltSkillSystem {
             }
 
             // 最大飞行距离
-            if (spike.flyDistance >= effect.maxRange) {
+            if (spike.flyDistance >= maxRange) {
                 this.kind.onMaxRange(this, spike, { entities: entityList, damage, effect, skill });
                 spike.flyActive = false;
                 spike.active = false;
                 return;
             }
-            // 墙壁碰撞（射击台 2026-08-16：施法者在台上时忽略己方掩体段——越墙魔法攻击）
-            let ignore = null;
-            if (src._onPlatform && WallSystem && WallSystem.isoSegments) {
-                const coverSegs = new Set(WallSystem.isoSegments.filter((s) => s && s._cover));
-                if (coverSegs.size) ignore = { segs: coverSegs, rects: null };
-            }
-            const resolved = WallSystem.resolve(spike.flyX, spike.flyY, nextX, nextY, this.kind.wallRadius, ignore);
-            const hitWall = Math.abs(resolved.x - nextX) > 1 || Math.abs(resolved.y - nextY) > 1;
+            const hitWall = WallSystem.projectileBlocked
+                ? WallSystem.projectileBlocked(
+                    spike.flyX, spike.flyY, Number(spike.flyZ) || 0,
+                    nextX, nextY, nextZ,
+                    spike.wallContext || projectileWallContext(this.source)
+                )
+                : WallSystem.blocked(spike.flyX, spike.flyY, nextX, nextY);
             if (hitWall) {
-                this.kind.onImpact(this, spike, { x: resolved.x, y: resolved.y, entities: entityList, damage, effect, skill });
+                this.kind.onImpact(this, spike, { x: spike.flyX, y: spike.flyY, entities: entityList, damage, effect, skill });
                 spike.flyActive = false;
                 spike.active = false;
                 return;
             }
-            spike.flyX = resolved.x;
-            spike.flyY = resolved.y;
+            spike.flyX = nextX;
+            spike.flyY = nextY;
+            spike.flyZ = nextZ;
 
             // 飞行尾迹（共享件 burstParticles）
             const trail = this.kind.trail;

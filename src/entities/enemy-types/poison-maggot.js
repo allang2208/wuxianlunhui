@@ -133,10 +133,13 @@ export class PoisonMaggot extends Enemy {
             SoundManager.play(spitSound);
         }
 
+        const startZ = (Number(this.z) || 0) + (this.collider?.height || this.bodyHeight || 60) * 0.58;
         const p = ProjectileFactory.create({
             x: head.x,
             y: head.y,
             angle,
+            z: startZ,
+            groundY: head.y + startZ,
             speed: cfg.projectileSpeed ?? 320,
             maxRange: cfg.projectileRange ?? 600,
             size: cfg.projectileSize ?? 10,

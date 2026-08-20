@@ -147,6 +147,21 @@ const routeCommand = {
         ],
     },
 };
+const approachEntity = { x: -200, y: 0, z: 0, _surfaceKind: 'ground' };
+const approachCommand = {
+    mode: 'move',
+    point: {
+        x: 100,
+        y: 0,
+        z: 20,
+        route: routeCommand.point.route.map((step) => ({ ...step })),
+    },
+};
+const groundApproach = resolveRtsMoveDestination(approachEntity, approachCommand);
+check('地面单位先用普通 A* 接近楼梯入口，不提前关闭地面寻路与脱困',
+    groundApproach.routeStage === 'ground_approach'
+    && approachEntity._surfaceRouteActive === false
+    && groundApproach.destination.surfaceKind === 'ground');
 const firstWaypoint = resolveRtsMoveDestination(routeEntity, routeCommand);
 check('统一 route 解析跳过已抵达节点并保留高架路线状态',
     routeCommand.routeIndex === 1

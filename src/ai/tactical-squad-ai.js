@@ -70,7 +70,17 @@ export class TacticalSquadAI {
         // 检查每个成员是否有视线
         for (const m of this.members) {
             if (!m.active || !m.target) continue;
-            const hasLOS = !WallSystem || !WallSystem.blocked(m.x, m.y, player.x, player.y);
+            const elevated = (Number(m.z) || 0) > 0 || (Number(player.z) || 0) > 0;
+            const hasLOS = !WallSystem || (elevated && WallSystem.projectileBlocked
+                ? !WallSystem.projectileBlocked(
+                    m.x,
+                    m.y,
+                    (Number(m.z) || 0) + (m.collider?.height || 40) * 0.58,
+                    player.x,
+                    player.y,
+                    (Number(player.z) || 0) + (player.collider?.height || 40) * 0.5
+                )
+                : !WallSystem.blocked(m.x, m.y, player.x, player.y));
             if (hasLOS) {
                 someoneHasLOS = true;
                 bestPos = { x: player.x, y: player.y };

@@ -499,9 +499,15 @@ function applyEnchantOnHit(weapon, target, source) {
                     aimX = lead.x; aimY = lead.y;
                 }
                 const angle = Math.atan2(aimY - source.y, aimX - source.x);
+                const startZ = (Number(source.z) || 0) + (source.collider?.height || source.size || 40) * 0.58;
+                const targetZ = source.target?.collider?.centerZ
+                    ?? ((Number(source.target?.z) || 0) + 24);
 
                 ProjectileFactory.create({
                     x: source.x, y: source.y, angle,
+                    z: startZ,
+                    targetZ,
+                    aimDistance: Math.max(1, Math.hypot(aimX - source.x, aimY - source.y)),
                     speed: projectileSpeed, maxRange: projectileRange, size: projectileSize,
                     damage, piercing, source, entities,
                     image: source.arrowImage,
