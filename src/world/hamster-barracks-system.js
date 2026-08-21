@@ -46,6 +46,7 @@ import { isInfiniteResourcesEnabled } from '../config/dev-cheats.js';
 import { TechnologySystem } from './technology-system.js';
 import { hasBackgroundBuildingUpgrade } from './world122-snapshot.js';
 import { PopulationEconomySystem } from './population-economy-system.js';
+import { CrossPlaneResourceSystem } from './cross-plane-resource-system.js';
 import {
     applyGlobalUpgradesToKind,
     getUpgradeMultsFromLevels,
@@ -203,9 +204,9 @@ export class HamsterBarracks extends DamageableEntity {
         const next = normalizeRecruitMode(mode);
         if (next === RECRUIT_MODE.SINGLE) {
             if (this.aliveUnitCount() >= this.unitCount()) return { ok: false, reason: '单位数量已达上限' };
-            const cost = this._unitSpawnFoodCost();
+            const cost = CrossPlaneResourceSystem.quote({ food: this._unitSpawnFoodCost() }).food;
             if (cost > 0 && !isInfiniteResourcesEnabled()
-                && PopulationEconomySystem.getFoodStored() < cost) {
+                && CrossPlaneResourceSystem.getAvailable('food') < cost) {
                 return { ok: false, reason: `粮食不足，单次招募需要 ${cost} 粮食` };
             }
         }
@@ -607,8 +608,8 @@ class HamsterBarracksPanel extends BasePanel {
         const el = this.el;
         if (!el || !this.barracks) return;
         const b = this.barracks;
-        const energy = EnergyManager ? EnergyManager.getEnergy() : 0;
-        const food = PopulationEconomySystem.getFoodStored();
+        const energy = CrossPlaneResourceSystem.getAvailable('energy');
+        const food = CrossPlaneResourceSystem.getAvailable('food');
         const gold = GoldManager ? GoldManager.getGold() : 0;
         const cfg = BARRACKS_CONFIG;
         el.querySelector('#hbTitle').textContent = '建筑详情';
@@ -645,7 +646,7 @@ class HamsterBarracksPanel extends BasePanel {
             <div class="troop-panel-copy">
                 军事单位 <span style="color:#8ad0ff;">${b.aliveUnitCount()}/${b.unitCount()}</span> ·
                 当前生成 <b style="color:#7fe0c8;">${curType.name || '—'}</b>
-                （每名 ${cfg.barracks.unitSpawnFoodCost?.[b.unitType] || 0} 粮食）<br>
+                （每名 ${CrossPlaneResourceSystem.quote({ food: cfg.barracks.unitSpawnFoodCost?.[b.unitType] || 0 }).food} 粮食）<br>
                 招募状态 <b id="hbRecruitMode" style="color:${paused ? '#aab0b6' : '#7fe0c8'};">${recruitModeLabel(recruitMode)} · ${recruitStatusText(b)}</b> ·
                 下次生成 <b id="hbSpawnNext" style="color:${b._spawnBlocked ? '#ff7755' : '#7fd4ff'};">${nextText}</b>（当前周期 ${(spawnMs / 1000).toFixed(1)}s）<br>
                 攻击间隔/伤害/移速/生命随模块升级
@@ -667,7 +668,7 @@ class HamsterBarracksPanel extends BasePanel {
             const active = b.unitType === key;
             return `<button class="troop-panel-unit-button ${active ? 'is-active' : ''}" data-unit-type="${key}"
                 data-technology-gate-type="unit" data-technology-gate-id="${key}"
-                style="flex:1;padding:7px 0;cursor:pointer;">${u.name}<br><small>${cfg.barracks.unitSpawnFoodCost?.[key] || 0} 粮食</small></button>`;
+                style="flex:1;padding:7px 0;cursor:pointer;">${u.name}<br><small>${CrossPlaneResourceSystem.quote({ food: cfg.barracks.unitSpawnFoodCost?.[key] || 0 }).food} 粮食</small></button>`;
         };
         ut.innerHTML = `
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">

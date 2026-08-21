@@ -382,6 +382,25 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
     const completionTimes = {};
     const warehouses = (target.structures || []).filter((s) => s.kind === 'producer'
         && getProducerStorageCap(s) > 0);
+    for (const warehouse of warehouses) {
+        if (!warehouse.warehouseUpgrade) continue;
+        warehouse.warehouseUpgrade.remainMs = Math.max(
+            0,
+            (Number(warehouse.warehouseUpgrade.remainMs) || 0) - elapsedMs
+        );
+        if (warehouse.warehouseUpgrade.remainMs > 0) continue;
+        const moduleId = warehouse.warehouseUpgrade.moduleId;
+        const module = buildingUpgradesJson.warehouse_logistics?.modules?.[moduleId];
+        if (module) {
+            warehouse.warehouseModules = warehouse.warehouseModules || {};
+            warehouse.warehouseModules[moduleId] = Math.min(
+                Number(module.maxLevel) || 0,
+                Math.max(0, Math.floor(Number(warehouse.warehouseModules[moduleId]) || 0)) + 1
+            );
+        }
+        warehouse.warehouseUpgrade = null;
+        warehouse.storageCapacity = getProducerStorageCap(warehouse);
+    }
 
     // v1 快照把粮食挂在位面全局；后台结算开始时先迁入真实仓库，放不下的留作回场迁移。
     const savedEconomy = target.populationEconomy && typeof target.populationEconomy === 'object'
@@ -587,12 +606,12 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
     }, 0));
 
     // ---- 采矿与仓储 ----
-    let warehouseFree = warehouses.reduce((sum, w) => sum + _warehouseFree(w), 0);
+    let warehouseFree = _energyStorableInWarehouses(warehouses);
     // 被动能源先入仓
     if (report.passiveEnergy > 0 && warehouseFree > 0) {
         const add = Math.min(report.passiveEnergy, warehouseFree);
         _depositToWarehouses(warehouses, add);
-        warehouseFree -= add;
+        warehouseFree = _energyStorableInWarehouses(warehouses);
         report.passiveEnergy = add; // 满仓截断（与实机满仓口径一致）
     }
     // 教堂什一税：保存每座教堂的周期余数，后台1Hz增量结算也能累计到完整10秒。
@@ -613,7 +632,7 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
             if (ticks <= 0 || warehouseFree <= 0) continue;
             const add = Math.min(warehouseFree, priests * tithePerTick * ticks);
             _depositToWarehouses(warehouses, add);
-            warehouseFree -= add;
+            warehouseFree = _energyStorableInWarehouses(warehouses);
             report.titheEnergy += add;
         }
     }
@@ -622,8 +641,8 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
         if (s.kind !== 'hut' || !(s.storedEnergy > 0) || warehouseFree <= 0) continue;
         const moved = Math.min(s.storedEnergy, warehouseFree);
         s.storedEnergy -= moved;
-        warehouseFree -= moved;
         _depositToWarehouses(warehouses, moved);
+        warehouseFree = _energyStorableInWarehouses(warehouses);
     }
     // 矿点枯竭重生先结算
     for (const n of target.nodes || []) {
@@ -646,7 +665,7 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
             const mined = Math.min(_mineFromNodes(nodes, want), warehouseFree);
             if (mined > 0) {
                 _depositToWarehouses(warehouses, mined);
-                warehouseFree -= mined;
+                warehouseFree = _energyStorableInWarehouses(warehouses);
                 report.energyMined += mined;
             }
         };
@@ -658,7 +677,7 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
                 const cost = miners < freeMinimum ? 0 : spawnCost;
                 if (cost > 0 && !_deductFromWarehouses(warehouses, cost)) break;
                 miners++;
-                warehouseFree += cost;
+                warehouseFree = _energyStorableInWarehouses(warehouses);
                 report.energySpentOnMiners += cost;
             }
             s.miners = miners;
@@ -710,7 +729,7 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
                         if (spawnCost > 0 && !_deductFoodFromWarehouses(warehouses, spawnCost)) {
                             timer = 0; stop = true; queue.foodBlocked = true; break;
                         }
-                        warehouseFree += spawnCost;
+                        warehouseFree = _energyStorableInWarehouses(warehouses);
                         report.foodSpentOnUnits += spawnCost;
                         alive++; roster[kind] = alive; report.unitsProduced++;
                         timer = interval;
@@ -771,7 +790,7 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
                     foodBlocked = true;
                     break;
                 }
-                warehouseFree += spawnCost;
+                warehouseFree = _energyStorableInWarehouses(warehouses);
                 report.foodSpentOnUnits += spawnCost;
                 alive++;
                 roster[s.unitType] = (roster[s.unitType] || 0) + 1;
@@ -907,14 +926,33 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
 
 function getProducerStorageCap(s) {
     const cfg = producerBuildingsJson[s.cfgKey];
-    return cfg && cfg.workshopType === 'warehouse' ? (cfg.storageCapacity ?? 5000) : 0;
+    if (!cfg || cfg.workshopType !== 'warehouse') return 0;
+    const module = buildingUpgradesJson.warehouse_logistics?.modules?.warehouse_capacity;
+    const level = Math.max(0, Math.min(
+        Number(module?.maxLevel) || 10,
+        Math.floor(Number(s.warehouseModules?.warehouse_capacity) || 0)
+    ));
+    return Math.max(0, Math.floor(
+        (Number(module?.base) || Number(cfg.storageCapacity) || 5000)
+            + (Number(module?.per) || 0) * level
+    ));
+}
+
+function _warehouseFactor(warehouse, moduleId) {
+    const module = buildingUpgradesJson.warehouse_logistics?.modules?.[moduleId];
+    const level = Math.max(0, Math.min(
+        Number(module?.maxLevel) || 10,
+        Math.floor(Number(warehouse?.warehouseModules?.[moduleId]) || 0)
+    ));
+    return Math.max(0.1, Math.min(1,
+        1 + (Number(module?.base) || 0) + (Number(module?.per) || 0) * level));
 }
 
 function _depositToWarehouses(warehouses, amount) {
     let left = amount;
     for (const w of warehouses) {
         const free = _warehouseFree(w);
-        const add = Math.min(free, left);
+        const add = Math.min(Math.floor(free / _warehouseFactor(w, 'warehouse_energy_density')), left);
         w.storedEnergy = (w.storedEnergy || 0) + add;
         left -= add;
         if (left <= 0) break;
@@ -927,7 +965,7 @@ function _depositFoodToWarehouses(warehouses, amount) {
     const requested = left;
     for (const w of warehouses) {
         const free = _warehouseFree(w);
-        const add = Math.min(free, left);
+        const add = Math.min(Math.floor(free / _warehouseFactor(w, 'warehouse_food_density')), left);
         w.storedFood = Math.max(0, Number(w.storedFood) || 0) + add;
         left -= add;
         if (left <= 0) break;
@@ -944,8 +982,16 @@ function _warehouseFree(warehouse) {
         0,
         getProducerStorageCap(warehouse)
             - Math.max(0, Number(warehouse.storedEnergy) || 0)
+                * _warehouseFactor(warehouse, 'warehouse_energy_density')
             - Math.max(0, Number(warehouse.storedFood) || 0)
+                * _warehouseFactor(warehouse, 'warehouse_food_density')
     );
+}
+
+function _energyStorableInWarehouses(warehouses) {
+    return warehouses.reduce((sum, warehouse) => sum + Math.floor(
+        _warehouseFree(warehouse) / _warehouseFactor(warehouse, 'warehouse_energy_density')
+    ), 0);
 }
 
 function _deductFromWarehouses(warehouses, amount) {

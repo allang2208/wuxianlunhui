@@ -38,8 +38,14 @@ export function getBuildingModuleUpgradeCost(buildingCfg, moduleId, currentLevel
         ? (value[level] ?? value[value.length - 1] ?? fallback)
         : (value ?? fallback);
     return {
-        gold: Math.max(0, Math.floor(Number(byLevel(module.goldByLevel, defaults.gold)) || 0)),
-        energy: Math.max(0, Math.floor(Number(byLevel(module.energyByLevel, defaults.energy)) || 0)),
+        gold: Math.max(0, Math.floor(Number(byLevel(
+            module.goldByLevel ?? defaults.goldByLevel,
+            defaults.gold
+        )) || 0)),
+        energy: Math.max(0, Math.floor(Number(byLevel(
+            module.energyByLevel ?? defaults.energyByLevel,
+            defaults.energy
+        )) || 0)),
         timeMs: Math.max(1, Math.floor(Number(byLevel(
             module.timeByLevel,
             (defaults.timeBaseMs ?? DEFAULT_BUILDING_UPGRADE_TIME_MS)

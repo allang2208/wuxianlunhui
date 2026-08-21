@@ -7,7 +7,8 @@ import {
     applyCivilianAnimSize,
     fadeOutAndDestroyCivilian,
     registerCivilianVisual,
-    syncCivilianVisualDepth,
+    resolveCivilianVisualPosition,
+    sweepCivilianVisualMove,
 } from './civilian-visual-utils.js';
 
 const HOSTILE_FACTIONS = new Set(['enemy', 'agent']);
@@ -82,19 +83,19 @@ function randomWanderPoint(building) {
     const radius = Math.max(0, Number(engineerVisualConfig().wanderRadius) || 300);
     const distance = Math.sqrt(Math.random()) * radius;
     const angle = Math.random() * Math.PI * 2;
-    return {
-        x: building.x + Math.cos(angle) * distance,
-        y: building.y + Math.sin(angle) * distance,
-    };
+    return resolveCivilianVisualPosition(
+        building.x + Math.cos(angle) * distance,
+        building.y + Math.sin(angle) * distance
+    );
 }
 
 function repairPoint(target, index) {
     const radius = Math.max(28, Number(target?.collisionRadius) || 48);
     const angle = (index % 5) * Math.PI * 2 / 5;
-    return {
-        x: target.x + Math.cos(angle) * radius * 0.72,
-        y: target.y + Math.sin(angle) * radius * 0.42,
-    };
+    return resolveCivilianVisualPosition(
+        target.x + Math.cos(angle) * radius * 0.72,
+        target.y + Math.sin(angle) * radius * 0.42
+    );
 }
 
 // 平滑移动：期望速度按帧率指数渐近（≈0.85/帧），起步/转向/停步不再瞬时；
@@ -110,8 +111,19 @@ function moveWorker(worker, target, speed, dt) {
     const k = 1 - Math.pow(0.85, dtMs / 16.67);
     worker.vx = (worker.vx || 0) + (wantX - (worker.vx || 0)) * k;
     worker.vy = (worker.vy || 0) + (wantY - (worker.vy || 0)) * k;
-    worker.x += worker.vx * dtMs / 1000;
-    worker.y += worker.vy * dtMs / 1000;
+    const fromX = worker.x;
+    const fromY = worker.y;
+    const move = sweepCivilianVisualMove(
+        worker,
+        worker.x + worker.vx * dtMs / 1000,
+        worker.y + worker.vy * dtMs / 1000
+    );
+    worker.x = move.x;
+    worker.y = move.y;
+    if (move.blocked && dtMs > 0) {
+        worker.vx = (worker.x - fromX) * 1000 / dtMs;
+        worker.vy = (worker.y - fromY) * 1000 / dtMs;
+    }
     // 到位判定：距离足够近且速度已衰减，避免高速冲过判定点
     if (distance <= Math.max(2, speed * dtMs / 1000 * 2) && Math.hypot(worker.vx, worker.vy) < 10) {
         worker.x = target.x;
@@ -127,7 +139,6 @@ function syncWorkerSprite(worker) {
     const sprite = worker?.sprite;
     if (!sprite?.active) return;
     sprite.setPosition(worker.x, worker.y);
-    syncCivilianVisualDepth(worker);
 }
 
 /**
@@ -319,10 +330,14 @@ export const WorkshopEconomySystem = {
         for (const worker of record.engineers) {
             if (worker.sprite?.active && worker.sprite.scene === scene) continue;
             if (worker.sprite?.active) fadeOutAndDestroyCivilian(worker);
+            const home = resolveCivilianVisualPosition(worker.x, worker.y);
+            worker.x = home.x;
+            worker.y = home.y;
             worker.sprite = scene.add.sprite(worker.x, worker.y, texture, 0);
             worker.sprite.setOrigin(0.5, Number(visual.originY) || 0.82);
             const displaySize = Math.max(1, Number(visual.displaySize) || 128);
             worker.sprite.setDisplaySize(displaySize, displaySize);
+            worker.sprite.setDepth(worker.y + 10);
             registerCivilianVisual(worker, 'engineer');
             syncWorkerAnimation(worker, true);
             syncWorkerSprite(worker);

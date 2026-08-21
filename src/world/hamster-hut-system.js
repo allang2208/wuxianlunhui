@@ -33,6 +33,7 @@ import { payBuildingUpgradeCost } from './building-upgrade-payment.js';
 import { isInfiniteResourcesEnabled } from '../config/dev-cheats.js';
 import minerCfg from '../../data/hamster-miner-config.json';
 import { MINER_CAMP_CONFIG, getMinerEconomyStats } from './miner-economy.js';
+import { CrossPlaneResourceSystem } from './cross-plane-resource-system.js';
 
 // ==================== 配置 ====================
 
@@ -166,7 +167,7 @@ export class HamsterHut extends DamageableEntity {
         const freeMinimum = Math.max(0, Number(HAMSTER_CONFIG.hut.freeMinimumCount) || 0);
         const shouldPay = payEnergy && this.aliveMinerCount() >= freeMinimum && spawnCost > 0
             && !isInfiniteResourcesEnabled();
-        if (shouldPay && (!EnergyManager || !EnergyManager.deductEnergy(spawnCost))) {
+        if (shouldPay && !CrossPlaneResourceSystem.pay({ energy: spawnCost }).ok) {
             this._spawnEnergyBlocked = true;
             return null;
         }
@@ -483,7 +484,7 @@ class HamsterHutPanel extends BasePanel {
         const el = this.el;
         if (!el || !this.hut) return;
         const h = this.hut;
-        const energy = EnergyManager ? EnergyManager.getEnergy() : 0;
+        const energy = CrossPlaneResourceSystem.getAvailable('energy');
         el.querySelector('#hhTitle').textContent = '建筑详情';
         const detail = el.querySelector('#hhBuildingDetail');
         if (detail) {

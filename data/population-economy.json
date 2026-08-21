@@ -3,7 +3,8 @@
   "tickMs": 1000,
   "civilianVisual": {
     "fadeOutDurationMs": 320,
-    "depthSideRange": 18
+    "depthSideRange": 18,
+    "groundRadius": 18
   },
   "house": {
     "upgradeCompleteSound": "assets/sounds/ui/house_upgrade_complete.mp3",
@@ -155,17 +156,18 @@
     "workerSlots": 2,
     "workerLabel": "商人",
     "minWorkersToTrade": 1,
-    "spreadReductionPerWorker": 0.015,
-    "minSpread": 0.02,
-    "pressureDecayMultiplierPerWorker": 0.5,
+    "spreadReductionPerWorker": 0.01,
+    "minSpread": 0.04,
+    "pressureDecayMultiplierPerWorker": 0.25,
     "visualWorkerCap": 2,
     "visualMode": "building_work",
     "baseEnergyPerGold": 10,
     "minEnergyPerGold": 5,
     "maxEnergyPerGold": 25,
     "spread": 0.08,
-    "pressureImpactPerGold": 0.002,
-    "pressureDecayPerSecond": 0.025,
+    "minimumTradeLossRate": 0.15,
+    "pressureImpactPerGold": 0.0125,
+    "pressureDecayPerSecond": 0.0005,
     "minPressure": -0.5,
     "maxPressure": 1.5,
     "buyEnergyBatch": 100,

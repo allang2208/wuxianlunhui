@@ -145,7 +145,8 @@
     "defaultUnitType": "",
     "unitTypes": [],
     "workshopType": "warehouse",
-    "storageCapacity": 15000
+    "storageCapacity": 15000,
+    "upgradeProject": "warehouse_logistics"
   },
   "shooting_range": {
     "id": "shooting_range",

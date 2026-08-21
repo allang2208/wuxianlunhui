@@ -94,6 +94,20 @@
       "research_recruit_speed": { "id": "research_recruit_speed", "name": "快速募兵", "icon": "🚀", "target": "所有军事产兵建筑", "firstLevel": 0.1, "per": 0.02, "displayMode": "percent", "maxLevel": 10, "desc": "全局募兵速度 +{pct}（Lv.1 为 10%，之后每级 +2%）" }
     }
   },
+  "warehouse_logistics": {
+    "moduleUpgrade": {
+      "goldByLevel": [300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200],
+      "energyByLevel": [500, 650, 800, 950, 1100, 1250, 1400, 1550, 1700, 1850],
+      "timeBaseMs": 30000,
+      "timeGrowthMs": 5000
+    },
+    "modules": {
+      "warehouse_capacity": { "name": "立体货架", "icon": "📦", "effect": "warehouseCapacity", "mode": "add", "base": 15000, "per": 5000, "maxLevel": 10, "desc": "本仓库容量 {value}" },
+      "warehouse_energy_density": { "name": "晶格压缩舱", "icon": "⚡", "effect": "warehouseEnergyDensity", "mode": "add", "base": 0, "per": -0.03, "maxLevel": 10, "desc": "能源占用容量 -{pct}%" },
+      "warehouse_food_density": { "name": "密封谷仓", "icon": "🌾", "effect": "warehouseFoodDensity", "mode": "add", "base": 0, "per": -0.03, "maxLevel": 10, "desc": "粮食占用容量 -{pct}%" },
+      "warehouse_cross_plane": { "name": "跨位面协议", "icon": "🌀", "effect": "warehouseCrossPlaneSurcharge", "mode": "add", "base": 0.5, "per": -0.05, "maxLevel": 10, "desc": "跨位面建造、出兵与升级额外消耗 {pct}%" }
+    }
+  },
   "economic_workshop": {
     "moduleUpgrade": { "gold": 500, "energy": 750, "timeBaseMs": 30000, "timeGrowthMs": 5000 },
     "modules": {

@@ -24,6 +24,7 @@ import { EnvironmentLightingSystem } from './environment-lighting-system.js';
 import { createWorldGenerationContext, getWorldResetPolicy } from './world-reset-policy.js';
 import { getBuildingUpgradeProgressKey } from './building-upgrade-projects.js';
 import { FogOfWarSystem } from './fog-of-war-system.js';
+import { setCrossPlaneSnapshotProvider } from './cross-plane-resource-system.js';
 
 let Game = null;
 let DefenseSystem = null;
@@ -79,6 +80,7 @@ const SNAPSHOT_VERSION = 1;
 
 // 多世界驻留：scene8~scene11 共用同一套建筑协议，按 sceneId 分槽保存。
 const _storedByWorld = {};
+setCrossPlaneSnapshotProvider(() => _storedByWorld);
 
 const _clone = (o) => JSON.parse(JSON.stringify(o));
 
@@ -398,6 +400,13 @@ export function captureWorld(sceneId = 'scene8') {
             titheTimerMs: p.units?.find((unit) => unit?._isHamsterPriest && unit.active !== false)?._ai?._titheTimer || 0,
             storedEnergy: p._isEnergyWarehouse ? (p.storedEnergy || 0) : undefined,
             storedFood: p._isEnergyWarehouse ? (p.storedFood || 0) : undefined,
+            storageCapacity: p._isEnergyWarehouse ? (p.storageCapacity || 0) : undefined,
+            warehouseModules: p._isEnergyWarehouse ? { ...(p.warehouseModules || {}) } : undefined,
+            warehouseUpgrade: p._warehouseUpgrade ? {
+                moduleId: p._warehouseUpgrade.moduleId,
+                totalMs: p._warehouseUpgrade.totalMs,
+                remainMs: p._warehouseUpgrade.remainMs,
+            } : null,
             economyLevel: p._economyLevel || undefined,
             economyTickMs: p._economyTickMs || 0,
             economyUpgrade: p._economyUpgrade ? {
@@ -815,6 +824,8 @@ function _restoreProducer(s, sceneId) {
         bankUpgrade: s.bankUpgrade,
         workshopModules: s.workshopModules,
         workshopUpgrade: s.workshopUpgrade,
+        warehouseModules: s.warehouseModules,
+        warehouseUpgrade: s.warehouseUpgrade,
     });
     _markRestored(producer, s);
     if ((cfg.unitTypes || []).some((t) => t.key === s.unitType)) producer.unitType = s.unitType;
@@ -858,9 +869,14 @@ function _restoreProducer(s, sceneId) {
     // 构造注册会先消费主存档 pending 能源；随后按快照覆盖本仓精确分量，避免同一库存重复恢复。
     if (producer._isEnergyWarehouse && EnergyManager) {
         const capacity = Math.max(0, Number(producer.storageCapacity) || 0);
-        producer.storedEnergy = Math.max(0, Math.min(capacity, Math.floor(Number(s.storedEnergy) || 0)));
+        const energyFactor = EnergyManager.getWarehouseEnergyFactor(producer);
+        const foodFactor = EnergyManager.getWarehouseFoodFactor(producer);
+        producer.storedEnergy = Math.max(0, Math.min(
+            Math.floor(capacity / energyFactor),
+            Math.floor(Number(s.storedEnergy) || 0)
+        ));
         producer.storedFood = Math.max(0, Math.min(
-            capacity - producer.storedEnergy,
+            Math.floor(Math.max(0, capacity - producer.storedEnergy * energyFactor) / foodFactor),
             Math.floor(Number(s.storedFood) || 0)
         ));
     }

@@ -9,6 +9,7 @@ import { payBuildingUpgradeCost } from './building-upgrade-payment.js';
 import { createGoldItem, routeProducedGold as routeBankGold } from './economy-gold-routing.js';
 import { WorkshopEconomySystem } from './workshop-economy-system.js';
 import { BankEconomySystem } from './bank-economy-system.js';
+import { CrossPlaneResourceSystem } from './cross-plane-resource-system.js';
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 
@@ -265,8 +266,8 @@ export const PopulationEconomySystem = {
 
     consumeFood(amount) {
         const value = Math.max(0, Number(amount) || 0);
-        if (value <= 0 || this.getFoodStored() < value) return false;
-        return !!EnergyManager?.deductFood?.(value);
+        if (value <= 0) return true;
+        return CrossPlaneResourceSystem.pay({ food: value }).ok;
     },
 
     routeProducedGold(amount) {
@@ -394,6 +395,7 @@ export const PopulationEconomySystem = {
 
     getMarketQuote(building) {
         const cfg = populationEconomyConfig.market || {};
+        const baseEnergyPerGold = Math.max(0.01, Number(cfg.baseEnergyPerGold) || 10);
         const effectiveWorkers = Math.max(0, Number(building?._assignedWorkers) || 0)
             * this.getLaborEfficiency()
             * WorkshopEconomySystem.getEfficiencyMultiplier(building);
@@ -403,7 +405,7 @@ export const PopulationEconomySystem = {
             Number(cfg.maxPressure) || 1.5
         );
         const mid = clamp(
-            (Number(cfg.baseEnergyPerGold) || 10) * (1 + pressure),
+            baseEnergyPerGold * (1 + pressure),
             Number(cfg.minEnergyPerGold) || 5,
             Number(cfg.maxEnergyPerGold) || 25
         );
@@ -413,12 +415,22 @@ export const PopulationEconomySystem = {
             Math.max(0, Number(cfg.minSpread) || 0),
             0.49
         );
+        // 市场只提供紧急流动性，不提供套利：无论压力方向与商人数如何，玩家买入
+        // 金币的成本都高于基准价，卖出金币的收入都低于基准价。
+        const minimumTradeLossRate = clamp(
+            Number(cfg.minimumTradeLossRate) || 0,
+            0,
+            0.49
+        );
+        const buyFloor = baseEnergyPerGold * (1 + minimumTradeLossRate);
+        const sellCeiling = baseEnergyPerGold * (1 - minimumTradeLossRate);
         return {
             midEnergyPerGold: mid,
-            buyEnergyPerGold: mid * (1 + spread),
-            sellEnergyPerGold: mid * (1 - spread),
+            buyEnergyPerGold: Math.max(buyFloor, mid * (1 + spread)),
+            sellEnergyPerGold: Math.max(0.01, Math.min(sellCeiling, mid * (1 - spread))),
             pressure,
             spread,
+            minimumTradeLossRate,
             effectiveWorkers,
         };
     },

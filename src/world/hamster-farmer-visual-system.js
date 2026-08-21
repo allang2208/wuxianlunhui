@@ -4,7 +4,8 @@ import {
     applyCivilianAnimSize,
     fadeOutAndDestroyCivilian,
     registerCivilianVisual,
-    syncCivilianVisualDepth,
+    resolveCivilianVisualPosition,
+    sweepCivilianVisualMove,
 } from './civilian-visual-utils.js';
 
 function randomRange(range, fallbackMin, fallbackMax) {
@@ -39,10 +40,10 @@ function randomFieldPoint(cell, config) {
     if (Math.abs(u) + Math.abs(v) > 1) {
         u = Math.sign(u) * (1 - Math.abs(v));
     }
-    return {
-        x: cell.x + u * Math.max(0, Number(config.fieldJitterX) || 0),
-        y: cell.y + v * Math.max(0, Number(config.fieldJitterY) || 0),
-    };
+    return resolveCivilianVisualPosition(
+        cell.x + u * Math.max(0, Number(config.fieldJitterX) || 0),
+        cell.y + v * Math.max(0, Number(config.fieldJitterY) || 0)
+    );
 }
 
 function nextFieldCell(cells, currentCell) {
@@ -86,10 +87,6 @@ function setState(worker, state) {
     }
 }
 
-function updateDepth(worker) {
-    syncCivilianVisualDepth(worker);
-}
-
 function createWorker(scene, building, cells) {
     const config = farmerVisualConfig();
     if (!config) return null;
@@ -120,7 +117,7 @@ function createWorker(scene, building, cells) {
         moveDurationMs: 0,
     }, 'farmer');
     setState(worker, 'idle');
-    updateDepth(worker);
+    sprite.setDepth(point.y + 10);
     return worker;
 }
 
@@ -156,22 +153,19 @@ function updateWorker(worker, cells, dt) {
         const dx = worker.targetX - worker.moveFromX;
         const dy = worker.targetY - worker.moveFromY;
         worker.sprite.setFlipX(dx < 0);
-        if (t >= 1) {
-            worker.sprite.setPosition(worker.targetX, worker.targetY);
+        const desiredX = worker.moveFromX + dx * p;
+        const desiredY = worker.moveFromY + dy * p;
+        const move = sweepCivilianVisualMove(worker, desiredX, desiredY);
+        worker.sprite.setPosition(move.x, move.y);
+        if (t >= 1 && Math.hypot(move.x - worker.targetX, move.y - worker.targetY) <= 2) {
             worker.currentCell = worker.targetCell;
             worker.targetCell = null;
             setState(worker, 'harvesting');
-        } else {
-            worker.sprite.setPosition(
-                worker.moveFromX + dx * p,
-                worker.moveFromY + dy * p
-            );
         }
     } else {
         worker.stateRemainMs -= elapsedMs;
         if (worker.stateRemainMs <= 0) setState(worker, 'idle');
     }
-    updateDepth(worker);
 }
 
 /**

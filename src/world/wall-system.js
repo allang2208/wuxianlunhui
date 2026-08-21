@@ -169,6 +169,7 @@ const WallSystem = {
         this.isoVisuals = [];
         this.isoSegments = []; // 新场景全清（门闸线段由门实体放置后重新注册）
         this._faceSegCache = null; // 衔接仲裁缓存随场景重建失效
+        this._dynamicStructureDepthFrameCache = null;
         this.trees = [];
         // 主神空间不再生成迷宫（开阔测试场地；maze-generator.js 保留备用）
         this.mazeEndY = 0;
@@ -951,14 +952,6 @@ const WallSystem = {
         return null;
     },
 
-    /**
-     * 衔接处遮挡仲裁（P1 方案）：
-     * iso 墙件深度是按"件"的 flat 标量（min/max 端点 + 偏置），斜墙的前后关系随 x 变化，
-     * 单标量在衔接处必然错——"该挡的没挡、不该挡的乱挡"的根源（与碰撞体积无关）。
-     * 逐实体按"脚底 y vs face 斜线在该 x 处的 y"判定几何前后，仅在违反时单向钳制深度：
-     * 面线后（y 小）→ 深度不高于墙件；面线前（y 大）→ 深度不低于墙件。正常排序不受影响。
-     * 生效范围：face 线 ±60px 内（贴近墙面的衔接带）；取最近面线，避免远处墙件拉扯。
-     */
     /**
      * 当前渲染帧的动态建筑遮挡候选。玩家、敌人、友军和平民共用同一份结构数组，
      * 避免每个移动对象都重新扫描包含大量非建筑单位的 Game.entities。

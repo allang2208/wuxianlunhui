@@ -13,7 +13,7 @@
 - **关闭口径**：建筑详情使用 `panelGroup:'buildingDetail' / closeOnEscape:true / closeOnOutsidePointer:true`，外部关闭不得穿透到攻击、移动或场景选择。
 - **字体口径**：display 只用于重大页面；title=一级标题，subtitle=分区标题，body=正文，meta=辅助信息，caption=微型提示，数字/计时使用 `--bp-font-number`。
 - **范围纪律**：单个 UI 需求只改目标面板及必要共享件，不借机全量迁移旧面板；若需要改变本规范，先更新规范和主题真源，再实现业务代码。
-- **人口经济岗位面板（2026-08-21）**：可安排岗位的经济建筑统一用 `.economy-workforce`、`.economy-progress` 与 `.economy-*-label/note`，第一根条固定显示“岗位安排百分比”；第二根条必须按建筑语义取权威数据——风车显示实际/基础产量，市场显示稳定的有效商人人效，工坊显示 `actualEfficiency / configuredEfficiency` 增效发挥率，银行显示本栋离散结算周期、剩余时间与本轮金币，禁止把共享 `_economyTickMs` 当成市场或工坊的生产进度。进度只以内联 `width` 表达动态值，外观和低→中→高语义渐变必须留在 `panel-theme-backpack.css`；禁止为各建筑复制色板和按钮样式。经济工坊与银行的四项本栋升级继续调用 `renderBuildingUpgradeCard` 与共用 tooltip，状态区用两列数字档案，窄屏退化单列；选中对应建筑时覆盖圈必须同步显示并随范围升级刷新。带有布局惩罚等关键副作用的建筑，建造配置应提供 `buildWarning`，选择建筑后在 `#bpHints` 的 `.build-context-warning` 以危险红色显示，取消选择时清空，禁止把警告混进普通快捷键文案。
+- **人口经济岗位面板（2026-08-21）**：可安排岗位的经济建筑统一用 `.economy-workforce`、`.economy-progress` 与 `.economy-*-label/note`，第一根条固定显示“岗位安排百分比”；第二根条必须按建筑语义取权威数据——风车显示实际/基础产量，市场显示稳定的有效商人人效，工坊显示 `actualEfficiency / configuredEfficiency` 增效发挥率，银行显示本栋离散结算周期、剩余时间与本轮金币，禁止把共享 `_economyTickMs` 当成市场或工坊的生产进度。仓库不套岗位条语义：第一根“仓储容量”只显示当前仓库的压缩后物理占用率，紧随其后的“位面总容量”显示全部活动仓库聚合占用率，两条均从同一容量服务读取并随面板 tick 刷新。进度只以内联 `width` 表达动态值，外观和低→中→高语义渐变必须留在 `panel-theme-backpack.css`；禁止为各建筑复制色板和按钮样式。市场档案必须同时显示买价、卖价、压力、动态价差和固定交易损耗，按钮文案显示真实扣款/所得而非批次预算。经济工坊与银行的四项本栋升级继续调用 `renderBuildingUpgradeCard` 与共用 tooltip，状态区用两列数字档案，窄屏退化单列；选中对应建筑时覆盖圈必须同步显示并随范围升级刷新。带有布局惩罚等关键副作用的建筑，建造配置应提供 `buildWarning`，选择建筑后在 `#bpHints` 的 `.build-context-warning` 以危险红色显示，取消选择时清空，禁止把警告混进普通快捷键文案。
 
 ### 小地图（GameScene 静态层/动态层，2026-08-16 布局修复沉淀）
 

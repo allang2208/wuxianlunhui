@@ -87,6 +87,8 @@ import { HamsterFarmerVisualSystem } from './hamster-farmer-visual-system.js';
 import { HamsterBankerVisualSystem } from './hamster-banker-visual-system.js';
 import { WorkshopEconomySystem } from './workshop-economy-system.js';
 import { BankEconomySystem } from './bank-economy-system.js';
+import { WarehouseEconomySystem } from './warehouse-economy-system.js';
+import { CrossPlaneResourceSystem } from './cross-plane-resource-system.js';
 
 const ABILITY_TARGET_NAMES = Object.freeze({
     warrior: '仓鼠战士',
@@ -331,10 +333,11 @@ export class ProducerBuilding extends DamageableEntity {
         this._upgrade = null;         // 升级读条：abilityId 或 unitType + moduleId
         this._continuous = null;      // 持续升级的能力 id（资源足够自动续升）
         this._isEnergyWarehouse = cfg.workshopType === 'warehouse';
+        WarehouseEconomySystem.initializeBuilding(this, config);
         if (this._isEnergyWarehouse && EnergyManager) {
             this.storedEnergy = 0;
             this.storedFood = 0;
-            EnergyManager.registerWarehouse(this, cfg.storageCapacity ?? 5000);
+            EnergyManager.registerWarehouse(this, this.storageCapacity ?? cfg.storageCapacity ?? 5000);
         }
         PopulationEconomySystem.initializeBuilding(this, config);
         BankEconomySystem.initializeBuilding(this, config);
@@ -401,9 +404,9 @@ export class ProducerBuilding extends DamageableEntity {
         const next = normalizeRecruitMode(mode);
         if (next === RECRUIT_MODE.SINGLE) {
             if (this.aliveUnitCount() >= this.unitCount()) return { ok: false, reason: '单位数量已达上限' };
-            const cost = this._unitSpawnFoodCost();
+            const cost = CrossPlaneResourceSystem.quote({ food: this._unitSpawnFoodCost() }).food;
             if (cost > 0 && !isInfiniteResourcesEnabled()
-                && PopulationEconomySystem.getFoodStored() < cost) {
+                && CrossPlaneResourceSystem.getAvailable('food') < cost) {
                 return { ok: false, reason: `粮食不足，单次招募需要 ${cost} 粮食` };
             }
         }
@@ -430,9 +433,9 @@ export class ProducerBuilding extends DamageableEntity {
         const next = normalizeRecruitMode(mode);
         if (next === RECRUIT_MODE.SINGLE) {
             if (this.aliveUnitCount(kind) >= this.parallelUnitCap(kind)) return { ok: false, reason: '该单位数量已达上限' };
-            const cost = this._unitSpawnFoodCost(kind);
+            const cost = CrossPlaneResourceSystem.quote({ food: this._unitSpawnFoodCost(kind) }).food;
             if (cost > 0 && !isInfiniteResourcesEnabled()
-                && PopulationEconomySystem.getFoodStored() < cost) {
+                && CrossPlaneResourceSystem.getAvailable('food') < cost) {
                 return { ok: false, reason: `粮食不足，单次招募需要 ${cost} 粮食` };
             }
         }
@@ -469,7 +472,7 @@ export class ProducerBuilding extends DamageableEntity {
         if (!spot) return null;
         const spawnCost = this._unitSpawnFoodCost();
         if (payFood && spawnCost > 0 && !isInfiniteResourcesEnabled()
-            && !PopulationEconomySystem.consumeFood(spawnCost)) {
+            && !CrossPlaneResourceSystem.pay({ food: spawnCost }).ok) {
             this._spawnFoodBlocked = true;
             return null;
         }
@@ -684,6 +687,7 @@ export class ProducerBuilding extends DamageableEntity {
     update(dt) {
         if (!this.active) return;
         this._updateUpgrade(dt);
+        WarehouseEconomySystem.updateBuilding(this, dt);
         BankEconomySystem.updateBuilding(this, dt);
         PopulationEconomySystem.updateBuilding(this, dt);
         HamsterFarmerVisualSystem.updateBuilding(this, dt);
@@ -803,6 +807,7 @@ export class ProducerBuilding extends DamageableEntity {
         HamsterBankerVisualSystem.clearBuilding(this);
         BankEconomySystem.unregisterBuilding(this);
         WorkshopEconomySystem.unregisterBuilding(this);
+        WarehouseEconomySystem.unregisterBuilding(this);
         PopulationEconomySystem.unregisterBuilding(this);
         TroopLineSystem.clearProducerRally(this);
         this._despawnUnits();
@@ -861,6 +866,7 @@ export class ProducerBuilding extends DamageableEntity {
         HamsterBankerVisualSystem.clearBuilding(this);
         BankEconomySystem.unregisterBuilding(this);
         WorkshopEconomySystem.unregisterBuilding(this);
+        WarehouseEconomySystem.unregisterBuilding(this);
         PopulationEconomySystem.unregisterBuilding(this);
         TroopLineSystem.clearProducerRally(this);
         this._despawnUnits();
@@ -1066,12 +1072,15 @@ class ProducerBuildingPanel extends BasePanel {
                 const quote = PopulationEconomySystem.getMarketQuote(b);
                 const buyBatch = populationEconomyConfig.market.buyEnergyBatch;
                 const sellBatch = populationEconomyConfig.market.sellGoldBatch;
+                const buyGold = Math.floor(buyBatch / quote.buyEnergyPerGold);
+                const buyEnergy = Math.ceil(buyGold * quote.buyEnergyPerGold);
                 const values = {
                     pbEconomyMarketMid: quote.midEnergyPerGold.toFixed(2),
                     pbEconomyMarketBuy: quote.buyEnergyPerGold.toFixed(2),
                     pbEconomyMarketSell: quote.sellEnergyPerGold.toFixed(2),
                     pbEconomyMarketPressure: quote.pressure.toFixed(3),
                     pbEconomyMarketSpread: `${(quote.spread * 100).toFixed(1)}%`,
+                    pbEconomyMarketLoss: `买 +${(quote.minimumTradeLossRate * 100).toFixed(0)}% / 卖 -${(quote.minimumTradeLossRate * 100).toFixed(0)}%`,
                 };
                 Object.entries(values).forEach(([id, value]) => {
                     const node = el.querySelector(`#${id}`);
@@ -1082,7 +1091,7 @@ class ProducerBuildingPanel extends BasePanel {
                 const sellButton = el.querySelector('[data-market-sell]');
                 if (buyButton) {
                     buyButton.disabled = !canTrade;
-                    buyButton.innerHTML = `${buyBatch} 能源 → <span class="economy-unit-gold">${Math.floor(buyBatch / quote.buyEnergyPerGold)} 金币</span>`;
+                    buyButton.innerHTML = `${buyEnergy} 能源 → <span class="economy-unit-gold">${buyGold} 金币</span>`;
                 }
                 if (sellButton) {
                     sellButton.disabled = !canTrade;
@@ -1122,21 +1131,37 @@ class ProducerBuildingPanel extends BasePanel {
         if (b._isEnergyWarehouse) {
             const ownEnergy = Math.floor(b.storedEnergy || 0);
             const ownFood = Math.floor(b.storedFood || 0);
-            const own = ownEnergy + ownFood;
+            const own = EnergyManager ? EnergyManager.getWarehouseUsedCapacity(b) : ownEnergy + ownFood;
             const ownCap = Math.floor(b.storageCapacity || b._cfg.storageCapacity || 5000);
             const totalEnergy = EnergyManager ? EnergyManager.getEnergy() : 0;
             const totalFood = EnergyManager ? EnergyManager.getFood() : 0;
-            const total = totalEnergy + totalFood;
             const totalCap = EnergyManager ? EnergyManager.getCapacity() : 0;
+            const totalUsed = totalCap - (EnergyManager ? EnergyManager.getFreeCapacity() : 0);
             const pct = ownCap > 0 ? Math.round(own / ownCap * 100) : 0;
+            const totalPct = totalCap > 0 ? Math.round(totalUsed / totalCap * 100) : 0;
             const ownEl = el.querySelector('#pbWarehouseOwn');
             const totalEl = el.querySelector('#pbWarehouseTotal');
             const pctEl = el.querySelector('#pbWarehousePct');
             const barEl = el.querySelector('#pbWarehouseBar');
-            if (ownEl) ownEl.textContent = `${own}/${ownCap}（能 ${ownEnergy} / 粮 ${ownFood}）`;
-            if (totalEl) totalEl.textContent = `${total}/${totalCap}（能 ${totalEnergy} / 粮 ${totalFood}）`;
+            const totalPctEl = el.querySelector('#pbWarehouseTotalPct');
+            const totalBarEl = el.querySelector('#pbWarehouseTotalBar');
+            if (ownEl) ownEl.textContent = `${Math.round(own)}/${ownCap}（能 ${ownEnergy} / 粮 ${ownFood}）`;
+            if (totalEl) totalEl.textContent = `${Math.round(totalUsed)}/${totalCap}（能 ${totalEnergy} / 粮 ${totalFood}）`;
             if (pctEl) pctEl.textContent = `${pct}%`;
             if (barEl) barEl.style.width = `${pct}%`;
+            if (totalPctEl) totalPctEl.textContent = `${totalPct}%`;
+            if (totalBarEl) totalBarEl.style.width = `${totalPct}%`;
+            const upgrade = b._warehouseUpgrade;
+            if (upgrade) {
+                const upgradePct = Math.max(0, Math.min(100,
+                    Math.round((1 - upgrade.remainMs / upgrade.totalMs) * 100)));
+                const upgradeBar = el.querySelector(`#pbUpgradeBar_${upgrade.moduleId}`);
+                const upgradeText = el.querySelector(`#pbUpgradeText_${upgrade.moduleId}`);
+                if (upgradeBar) upgradeBar.style.width = `${upgradePct}%`;
+                if (upgradeText) upgradeText.textContent = `升级中 ${upgradePct}%（剩余 ${Math.ceil(upgrade.remainMs / 1000)}s）`;
+            } else if (el.querySelector('[data-warehouse-upgrading="true"]')) {
+                this.refresh();
+            }
             return;
         }
         if (b._parallelProduction) {
@@ -1232,8 +1257,8 @@ class ProducerBuildingPanel extends BasePanel {
         if (!el || !this.building) return;
         const b = this.building;
         const cfg = b._cfg;
-        const energy = EnergyManager ? EnergyManager.getEnergy() : 0;
-        const food = PopulationEconomySystem.getFoodStored();
+        const energy = CrossPlaneResourceSystem.getAvailable('energy');
+        const food = CrossPlaneResourceSystem.getAvailable('food');
         const gold = GoldManager ? GoldManager.getGold() : 0;
         const isWarehouse = cfg.workshopType === 'warehouse';
         const isPortal = cfg.panelMode === 'portal';
@@ -1241,7 +1266,7 @@ class ProducerBuildingPanel extends BasePanel {
         const isEconomy = !!cfg.economyType;
         const isAbilityShop = cfg.spawnEnabled === false && !isWarehouse && !isPassive && !isEconomy;
         el.classList.toggle('is-troop-producer', !!b._isTroopProducer);
-        el.classList.toggle('is-economy-building', isEconomy);
+        el.classList.toggle('is-economy-building', isEconomy || isWarehouse);
         const applicableModules = isEconomy ? [] : Object.entries(cfg.modules || {})
             .filter(([, module]) => moduleAppliesToUnit(module, b.unitType));
         const upgradeSummary = applicableModules.map(([, module]) => module.name).join(' / ') || '无单位升级项目';
@@ -1290,7 +1315,7 @@ class ProducerBuildingPanel extends BasePanel {
                 const progress = queue.blocked ? 1 : Math.max(0, Math.min(1, 1 - queue.timer / interval));
                 const pct = Math.round(progress * 100);
                 return `<div style="padding:9px 0;border-bottom:1px solid rgba(127,224,200,.18);">
-                    <div style="display:flex;justify-content:space-between;"><b style="color:#7fe0c8;">${unit.name}</b><span>${b.aliveUnitCount(unit.key)}/${b.parallelUnitCap(unit.key)} · ${unit.spawnFoodCost || 0} 粮食</span></div>
+                    <div style="display:flex;justify-content:space-between;"><b style="color:#7fe0c8;">${unit.name}</b><span>${b.aliveUnitCount(unit.key)}/${b.parallelUnitCap(unit.key)} · ${CrossPlaneResourceSystem.quote({ food: unit.spawnFoodCost || 0 }).food} 粮食</span></div>
                     <div style="display:flex;justify-content:space-between;margin-top:5px;"><span data-parallel-next="${unit.key}">${mode === RECRUIT_MODE.PAUSED ? '已暂停' : `${Math.ceil(queue.timer / 1000)}s`}</span><span data-parallel-pct="${unit.key}">${pct}%</span></div>
                     <div style="height:9px;background:rgba(255,255,255,.1);border-radius:5px;overflow:hidden;"><div data-parallel-bar="${unit.key}" style="height:100%;width:${pct}%;background:linear-gradient(90deg,#ffd700,#7fe0c8);transition:width .2s linear;"></div></div>
                     <div class="recruit-control-row">
@@ -1340,7 +1365,7 @@ class ProducerBuildingPanel extends BasePanel {
             </div>
             <div class="troop-panel-copy">
                 军事单位 <span style="color:#8ad0ff;">${b.aliveUnitCount()}/${b.unitCount()}</span> ·
-                当前生成 <b style="color:#7fe0c8;">${curType}</b>（每名 ${b._unitSpawnFoodCost()} 粮食）<br>
+                当前生成 <b style="color:#7fe0c8;">${curType}</b>（每名 ${CrossPlaneResourceSystem.quote({ food: b._unitSpawnFoodCost() }).food} 粮食）<br>
                 招募状态 <b id="pbRecruitMode" style="color:${paused ? '#aab0b6' : '#7fe0c8'};">${recruitModeLabel(recruitMode)} · ${recruitStatusText(b)}</b> ·
                 下次生成 <b id="pbSpawnNext" style="color:${b._spawnBlocked ? '#ff7755' : '#7fd4ff'};">${nextText}</b>（当前周期 ${(spawnMs / 1000).toFixed(1)}s）<br>
                 ${upgradeSummary}
@@ -1361,7 +1386,7 @@ class ProducerBuildingPanel extends BasePanel {
             const active = b.unitType === u.key;
             return `<button class="troop-panel-unit-button ${active ? 'is-active' : ''}" data-unit-type="${u.key}"
                 data-technology-gate-type="unit" data-technology-gate-id="${u.key}"
-                style="flex:1;padding:7px 0;cursor:pointer;">${u.name}<br><small>${u.spawnFoodCost || 0} 粮食</small></button>`;
+                style="flex:1;padding:7px 0;cursor:pointer;">${u.name}<br><small>${CrossPlaneResourceSystem.quote({ food: u.spawnFoodCost || 0 }).food} 粮食</small></button>`;
         };
         ut.innerHTML = `
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
@@ -1574,6 +1599,7 @@ class ProducerBuildingPanel extends BasePanel {
                 const buyBatch = populationEconomyConfig.market.buyEnergyBatch;
                 const sellBatch = populationEconomyConfig.market.sellGoldBatch;
                 const buyGold = Math.floor(buyBatch / quote.buyEnergyPerGold);
+                const buyEnergy = Math.ceil(buyGold * quote.buyEnergyPerGold);
                 const sellEnergy = Math.floor(sellBatch * quote.sellEnergyPerGold);
                 st.innerHTML = `
                 <div class="economy-panel-heading">⚖ 动态市场</div>
@@ -1584,15 +1610,16 @@ class ProducerBuildingPanel extends BasePanel {
                     <div><span>位面人口</span><b id="pbEconomyPopulation">${population.used}/${population.capacity} · 空余 ${population.free}${population.overcrowded > 0 ? ` · 超额 ${population.overcrowded}` : ''}</b></div>
                     <div><span>压力</span><b id="pbEconomyMarketPressure">${quote.pressure.toFixed(3)}</b></div>
                     <div><span>价差</span><b id="pbEconomyMarketSpread">${(quote.spread * 100).toFixed(1)}%</b></div>
+                    <div><span>最低交易损耗</span><b id="pbEconomyMarketLoss">买 +${(quote.minimumTradeLossRate * 100).toFixed(0)}% / 卖 -${(quote.minimumTradeLossRate * 100).toFixed(0)}%</b></div>
                 </div>
-                <p class="economy-panel-note">至少安排 1 名商人才能交易；更多商人会缩小价差并加快价格回归。</p>`;
+                <p class="economy-panel-note">至少安排 1 名商人才能交易；更多商人会缩小动态价差并略微加快价格回归，但不能消除固定交易损耗。</p>`;
                 const canTrade = PopulationEconomySystem.canMarketTrade(b);
                 modBox.innerHTML = `${this._renderWorkforceControls(b)}
                 <div class="economy-trade-actions">
-                    <button class="troop-panel-unit-button" data-market-buy ${canTrade ? '' : 'disabled'}>${buyBatch} 能源 → ${buyGold} <span class="economy-unit-gold">金币</span></button>
+                    <button class="troop-panel-unit-button" data-market-buy ${canTrade ? '' : 'disabled'}>${buyEnergy} 能源 → ${buyGold} <span class="economy-unit-gold">金币</span></button>
                     <button class="troop-panel-unit-button" data-market-sell ${canTrade ? '' : 'disabled'}>${sellBatch} <span class="economy-unit-gold">金币</span> → ${sellEnergy} 能源</button>
                 </div>
-                <div class="economy-panel-note">每 1 金可按当前中间价买卖；市场压力会影响买卖价差。</div>`;
+                <div class="economy-panel-note">市场用于应急周转：买入金币至少溢价 15%，卖出金币至多获得基准价 85%；连续同向兑换还会恶化价格。</div>`;
                 this._bindWorkforceControls(modBox);
                 modBox.querySelector('[data-market-buy]')?.addEventListener('click', () => this._marketBuy());
                 modBox.querySelector('[data-market-sell]')?.addEventListener('click', () => this._marketSell());
@@ -1616,29 +1643,65 @@ class ProducerBuildingPanel extends BasePanel {
         if (isWarehouse) {
             const ownEnergy = Math.floor(b.storedEnergy || 0);
             const ownFood = Math.floor(b.storedFood || 0);
-            const own = ownEnergy + ownFood;
+            const own = EnergyManager ? EnergyManager.getWarehouseUsedCapacity(b) : ownEnergy + ownFood;
             const ownCap = Math.floor(b.storageCapacity || cfg.storageCapacity || 5000);
             const totalEnergy = EnergyManager ? EnergyManager.getEnergy() : 0;
             const totalFood = EnergyManager ? EnergyManager.getFood() : 0;
-            const total = totalEnergy + totalFood;
             const totalCap = EnergyManager ? EnergyManager.getCapacity() : 0;
+            const totalUsed = totalCap - (EnergyManager ? EnergyManager.getFreeCapacity() : 0);
             const warehouseCount = EnergyManager ? EnergyManager.getWarehouseCount() : 0;
             const pct = ownCap > 0 ? Math.round(own / ownCap * 100) : 0;
+            const totalPct = totalCap > 0 ? Math.round(totalUsed / totalCap * 100) : 0;
+            const energySaving = Math.round((1 - WarehouseEconomySystem.getEnergyFactor(b)) * 100);
+            const foodSaving = Math.round((1 - WarehouseEconomySystem.getFoodFactor(b)) * 100);
+            const protocolSurcharge = Math.round(WarehouseEconomySystem.getProtocolSurcharge(b) * 100);
             st.innerHTML = `
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-                    <div><span style="color:#ffd700;font-weight:700;">📦 位面仓库</span></div>
-                    <div style="font-size:12px;color:#9a9a9a;">仓库数 ${warehouseCount}</div>
+                <div class="economy-panel-heading">
+                    <span>📦 位面仓库</span><span class="economy-panel-meta">本位面 ${warehouseCount} 座</span>
                 </div>
-                <div style="font-size:12px;color:#c8b98a;line-height:1.7;">
-                    本仓库：<b id="pbWarehouseOwn" style="color:#7fd4ff;">${own}/${ownCap}（能 ${ownEnergy} / 粮 ${ownFood}）</b><br>
-                    全部仓库：<b id="pbWarehouseTotal" style="color:#7fd4ff;">${total}/${totalCap}（能 ${totalEnergy} / 粮 ${totalFood}）</b> · 数量 ${warehouseCount}
-                </div>`;
-            modBox.innerHTML = `
-                <div style="font-size:13px;font-weight:700;color:#7fd4ff;margin-bottom:6px;">仓储容量 <span id="pbWarehousePct">${pct}%</span></div>
-                <div style="height:12px;background:#1b2830;border:1px solid #3a6475;border-radius:6px;overflow:hidden;">
-                    <div id="pbWarehouseBar" style="height:100%;width:${pct}%;background:linear-gradient(90deg,#2a8ab8,#7fd4ff);"></div>
+                <div class="economy-stat-grid">
+                    <div><span>本仓占用</span><b id="pbWarehouseOwn" class="economy-unit-energy">${Math.round(own)}/${ownCap}（能 ${ownEnergy} / 粮 ${ownFood}）</b></div>
+                    <div><span>位面总占用</span><b id="pbWarehouseTotal" class="economy-unit-energy">${Math.round(totalUsed)}/${totalCap}（能 ${totalEnergy} / 粮 ${totalFood}）</b></div>
+                    <div><span>能源压缩</span><b>-${energySaving}% 容量占用</b></div>
+                    <div><span>粮食压缩</span><b>-${foodSaving}% 容量占用</b></div>
+                    <div><span>跨位面损耗</span><b>${protocolSurcharge > 0 ? `+${protocolSurcharge}%` : '0%'}</b></div>
                 </div>
-                <div style="font-size:11px;color:#8aa0aa;margin-top:6px;">采矿能源与风车粮食共享全部仓库容量。</div>`;
+                <div class="economy-progress-label"><span>仓储容量</span><b id="pbWarehousePct">${pct}%</b></div>
+                <div class="economy-progress"><div id="pbWarehouseBar" style="width:${pct}%"></div></div>
+                <div class="economy-progress-label"><span>位面总容量</span><b id="pbWarehouseTotalPct">${totalPct}%</b></div>
+                <div class="economy-progress"><div id="pbWarehouseTotalBar" style="width:${totalPct}%"></div></div>
+                <p class="economy-panel-note">能源与粮食共享物理容量；压缩升级只降低对应资源的容量占用，不凭空增加库存。</p>`;
+            const upgrade = b._warehouseUpgrade;
+            const rows = Object.entries(cfg.modules || {}).map(([moduleId, module]) => {
+                const level = WarehouseEconomySystem.getModuleLevel(b, moduleId);
+                const maxed = level >= module.maxLevel;
+                const inProgress = upgrade?.moduleId === moduleId;
+                const progressPct = inProgress
+                    ? Math.round((1 - upgrade.remainMs / upgrade.totalMs) * 100)
+                    : 0;
+                const actionsHtml = maxed
+                    ? '<span class="troop-panel-caption">已满级</span>'
+                    : `<button class="troop-panel-upgrade-button" data-warehouse-upgrade="${moduleId}" ${upgrade ? 'disabled' : ''}>升级</button>`;
+                return renderBuildingUpgradeCard({
+                    rowAttribute: 'data-warehouse-row', projectId: moduleId,
+                    icon: module.icon, name: module.name, level, maxLevel: module.maxLevel,
+                    cost: WarehouseEconomySystem.getUpgradeCost(b, moduleId), maxed,
+                    inProgress, progressPct,
+                    remainMs: inProgress ? upgrade.remainMs : 0,
+                    barId: `pbUpgradeBar_${moduleId}`, textId: `pbUpgradeText_${moduleId}`,
+                    actionsHtml, accent: '#7fd4ff',
+                }).replace('class="building-upgrade-card"',
+                    `class="building-upgrade-card" data-warehouse-upgrading="${inProgress}"`);
+            }).join('');
+            modBox.innerHTML = `<div class="economy-panel-heading"><span>仓库升级项目</span><span class="economy-panel-meta">持有 ${gold} 金 / ${energy} 能</span></div>${rows}`;
+            modBox.querySelectorAll('[data-warehouse-upgrade]').forEach((button) => {
+                button.addEventListener('click', () => this._upgradeWarehouse(button.dataset.warehouseUpgrade));
+            });
+            modBox.querySelectorAll('[data-warehouse-row]').forEach((row) => {
+                row.addEventListener('mouseenter', (event) => this._showWarehouseTip(row.dataset.warehouseRow, event));
+                row.addEventListener('mousemove', (event) => this._moveAbilityTip(event));
+                row.addEventListener('mouseleave', () => this._hideAbilityTip());
+            });
             return;
         }
         if (isPortal) {
@@ -1942,6 +2005,38 @@ class ProducerBuildingPanel extends BasePanel {
             <div>${maxed ? '' : `读条时间：${Math.round(cost.timeMs / 1000)} 秒`}</div>`, event);
     }
 
+    _upgradeWarehouse(moduleId) {
+        if (!this.building) return;
+        const result = WarehouseEconomySystem.startUpgrade(this.building, moduleId);
+        const name = this.building._cfg.modules?.[moduleId]?.name || moduleId;
+        this._notify(result.ok ? `${name}开始升级（${Math.round(result.cost.timeMs / 1000)}秒）` : result.reason,
+            result.ok ? '#7fd4ff' : '#ff5555');
+        this.refresh();
+    }
+
+    _showWarehouseTip(moduleId, event) {
+        if (!this.building) return;
+        const module = this.building._cfg.modules?.[moduleId];
+        if (!module) return;
+        const level = WarehouseEconomySystem.getModuleLevel(this.building, moduleId);
+        const maxed = level >= module.maxLevel;
+        const valueAt = (atLevel) => (Number(module.base) || 0) + (Number(module.per) || 0) * atLevel;
+        const format = (value) => {
+            if (module.effect === 'warehouseCapacity') return `${Math.round(value)} 容量`;
+            if (module.effect === 'warehouseCrossPlaneSurcharge') {
+                return `额外消耗 +${Math.max(0, Math.round(value * 100))}%`;
+            }
+            return `容量占用 -${Math.max(0, Math.round(-value * 100))}%`;
+        };
+        const cost = WarehouseEconomySystem.getUpgradeCost(this.building, moduleId);
+        showBuildingUpgradeTooltip(`
+            <div style="font-weight:700;font-size:13px;margin-bottom:4px;">${module.icon} ${module.name} <span style="color:#8a5a00;">Lv.${level}/${module.maxLevel}</span></div>
+            <div>${format(valueAt(level))}${maxed ? '' : ` → ${format(valueAt(level + 1))}`}</div>
+            <div style="margin-top:4px;color:#5a4a2a;">本栋仓库独立升级；出售或被毁后不保留等级</div>
+            <div style="margin-top:2px;">${maxed ? '已达到最高等级' : `升级费用：${cost.gold} 金币 + ${cost.energy} 能源`}</div>
+            <div>${maxed ? '' : `读条时间：${Math.round(cost.timeMs / 1000)} 秒`}</div>`, event);
+    }
+
     _bindWorkforceControls(root) {
         root?.querySelectorAll('[data-worker-delta]').forEach((button) => {
             button.addEventListener('click', () => this._adjustWorkers(Number(button.dataset.workerDelta) || 0));
@@ -2149,6 +2244,7 @@ export const ProducerBuildingSystem = {
                 HamsterBankerVisualSystem.clearBuilding(b);
                 BankEconomySystem.unregisterBuilding(b);
                 WorkshopEconomySystem.unregisterBuilding(b);
+                WarehouseEconomySystem.unregisterBuilding(b);
                 b._despawnUnits();
                 if (Game && Game.entities && b.id) Game.entities.delete(b.id);
             }
@@ -2158,6 +2254,7 @@ export const ProducerBuildingSystem = {
         HamsterBankerVisualSystem.reset();
         BankEconomySystem.reset();
         WorkshopEconomySystem.reset();
+        WarehouseEconomySystem.reset();
         PopulationEconomySystem.reset();
         if (this._panel) {
             if (this._panel.isOpen) this._panel.close();

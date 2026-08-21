@@ -86,6 +86,7 @@ import {
     getVisibleSpriteTopY,
     resolveSpriteDepthProfile,
 } from '../../world/sprite-depth-profile.js';
+import { syncAllCivilianVisualDepths } from '../../world/civilian-visual-utils.js';
 import { EnvironmentLightingSystem } from '../../world/environment-lighting-system.js';
 import { resolveStructureShadowCaster } from '../../world/structure-shadow-caster.js';
 import lightingAssets from '../../../data/environment-lighting-assets.json';
@@ -1773,6 +1774,9 @@ export class GameScene extends Scene {
         // 结构候选每帧只从实体表提取一次；此前玩家/每只敌人/每只友军都会各自
         // 重扫整张 Game.entities，单位和建筑越多，图层仲裁的重复开销越明显。
         const structureCandidates = WallSystem.collectDynamicStructureDepthEntities(Game.entities);
+        // 纯视觉平民不在 Game.entities：其最终 depth 也必须在本帧建筑拓扑排序完成后
+        // 统一落地，不能由风车/工坊/银行的业务 update 提前各写一遍旧结构深度。
+        syncAllCivilianVisualDepths(structureCandidates);
         const raiseElevatedAboveLowerUnits = (entity, sprite, depth) => {
             if (!entity || !sprite || (Number(entity.z) || 0) <= 1 || !Game.entities) {
                 return depth;

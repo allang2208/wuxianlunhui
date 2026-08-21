@@ -4,7 +4,8 @@ import {
     fadeOutAndDestroyCivilian,
     getActiveCivilianVisuals,
     registerCivilianVisual,
-    syncCivilianVisualDepth,
+    resolveCivilianVisualPosition,
+    sweepCivilianVisualMove,
 } from './civilian-visual-utils.js';
 
 function randomRange(range, fallbackMin, fallbackMax) {
@@ -49,10 +50,10 @@ function randomWanderPoint(building) {
     const radius = Math.max(0, Number(bankerVisualConfig()?.wanderRadius) || 260);
     const distance = Math.sqrt(Math.random()) * radius;
     const angle = Math.random() * Math.PI * 2;
-    return {
-        x: building.x + Math.cos(angle) * distance,
-        y: building.y + Math.sin(angle) * distance,
-    };
+    return resolveCivilianVisualPosition(
+        building.x + Math.cos(angle) * distance,
+        building.y + Math.sin(angle) * distance
+    );
 }
 
 // 平滑移动：期望速度按帧率指数渐近（≈0.85/帧），起步/转向/停步不再瞬时；
@@ -68,8 +69,19 @@ function moveWorker(worker, target, speed, dt) {
     const k = 1 - Math.pow(0.85, dtMs / 16.67);
     worker.vx = (worker.vx || 0) + (wantX - (worker.vx || 0)) * k;
     worker.vy = (worker.vy || 0) + (wantY - (worker.vy || 0)) * k;
-    worker.x += worker.vx * dtMs / 1000;
-    worker.y += worker.vy * dtMs / 1000;
+    const fromX = worker.x;
+    const fromY = worker.y;
+    const move = sweepCivilianVisualMove(
+        worker,
+        worker.x + worker.vx * dtMs / 1000,
+        worker.y + worker.vy * dtMs / 1000
+    );
+    worker.x = move.x;
+    worker.y = move.y;
+    if (move.blocked && dtMs > 0) {
+        worker.vx = (worker.x - fromX) * 1000 / dtMs;
+        worker.vy = (worker.y - fromY) * 1000 / dtMs;
+    }
     // 到位判定：距离足够近且速度已衰减，避免高速冲过判定点
     if (distance <= Math.max(2, speed * dtMs / 1000 * 2) && Math.hypot(worker.vx, worker.vy) < 10) {
         worker.x = target.x;
@@ -84,7 +96,6 @@ function moveWorker(worker, target, speed, dt) {
 function syncSprite(worker) {
     if (!worker?.sprite?.active) return;
     worker.sprite.setPosition(worker.x, worker.y);
-    syncCivilianVisualDepth(worker);
 }
 
 function speechDurationMs() {
@@ -109,9 +120,13 @@ function targetPoint(worker, target) {
         dy = Math.sin(angle);
         length = 1;
     }
+    const point = resolveCivilianVisualPosition(
+        target.sprite.x + dx / length * worker.speechDistance,
+        target.sprite.y + dy / length * worker.speechDistance
+    );
     return {
-        x: target.sprite.x + dx / length * worker.speechDistance,
-        y: target.sprite.y + dy / length * worker.speechDistance,
+        x: point.x,
+        y: point.y,
         min: Math.max(0, Number(distanceRange[0]) || 50),
         max: Math.max(0, Number(distanceRange[1]) || 80),
     };
@@ -141,12 +156,17 @@ export const HamsterBankerVisualSystem = {
         const idleKey = animationKey('idle');
         if (!config || !idleKey || !scene?.textures?.exists(idleKey) || !scene?.add?.sprite) return null;
         const centered = index - (count - 1) / 2;
-        const x = building.x + centered * 28;
-        const y = building.y + 16 + Math.abs(centered) * 5;
+        const home = resolveCivilianVisualPosition(
+            building.x + centered * 28,
+            building.y + 16 + Math.abs(centered) * 5
+        );
+        const x = home.x;
+        const y = home.y;
         const sprite = scene.add.sprite(x, y, idleKey, 0);
         sprite.setOrigin(0.5, Number(config.originY) || 0.82);
         const displaySize = Math.max(1, Number(config.displaySize) || 128);
         sprite.setDisplaySize(displaySize, displaySize);
+        sprite.setDepth(y + 10);
         const worker = registerCivilianVisual({
             building,
             index,
