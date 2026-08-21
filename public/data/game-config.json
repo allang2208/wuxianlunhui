@@ -17,8 +17,8 @@
   },
   "world": {
     "main": {
-      "width": 4096,
-      "height": 4096
+      "width": 12288,
+      "height": 8192
     },
     "default": {
       "width": 7680,
@@ -36,8 +36,8 @@
   "scenes": {
     "mainHub": {
       "origin": {
-        "x": 2048,
-        "y": 2048
+        "x": 6144,
+        "y": 4096
       },
       "wallThickness": 20,
       "floor": {
@@ -54,12 +54,15 @@
       "name": "主神空间",
       "type": "main",
       "label": "场景一",
-      "width": 4096,
-      "height": 4096,
+      "width": 12288,
+      "height": 8192,
       "background": "#2a3520",
+      "diamondFloor": {
+        "enabled": true
+      },
       "origin": {
-        "x": 2048,
-        "y": 2048
+        "x": 6144,
+        "y": 4096
       }
     },
     "scene2": {
@@ -277,11 +280,11 @@
   },
   "portals": {
     "mainHub": {
-      "comment": "主神空间使用单座实体传送门建筑；祭坛位于 (1842,1711)，传送门向左间隔 480px，贴图与碰撞均不重叠。",
+      "comment": "主神空间使用单座实体传送门建筑；祭坛位于 (5938,3759)，传送门向左间隔 480px，贴图与碰撞均不重叠。",
       "building": {
         "cfgKey": "portal",
-        "x": 1362,
-        "y": 1711
+        "x": 5458,
+        "y": 3759
       },
       "cooldownMs": 2000,
       "triggerDistance": 30,
@@ -308,8 +311,8 @@
   "targets": {
     "training": {
       "base": {
-        "x": 3821,
-        "y": 2365
+        "x": 7917,
+        "y": 4413
       },
       "cols": 3,
       "rows": 3,
@@ -319,8 +322,8 @@
       "namePrefix": "训练靶"
     },
     "dpsTest": {
-      "x": 3244,
-      "y": 1879,
+      "x": 7340,
+      "y": 3927,
       "hp": 999999,
       "maxHp": 999999,
       "size": 32,
@@ -331,8 +334,8 @@
     },
     "testTargets": {
       "base": {
-        "x": 2800,
-        "y": 2300
+        "x": 6896,
+        "y": 4348
       },
       "spacing": 60,
       "perRow": 5,
@@ -639,8 +642,8 @@
   },
   "effects": {
     "testArea": {
-      "x": 3478,
-      "y": 2363,
+      "x": 7574,
+      "y": 4411,
       "width": 100,
       "height": 100,
       "thickness": 10,

@@ -21,6 +21,7 @@ import barracksBuildingCfg from '../../data/hamster-barracks-building.json';
 import worldSystemConfig from '../../data/world-system.json';
 import { EnvironmentLightingSystem } from './environment-lighting-system.js';
 import { createWorldGenerationContext, getWorldResetPolicy } from './world-reset-policy.js';
+import { getBuildingUpgradeProgressKey } from './building-upgrade-projects.js';
 
 let Game = null;
 let DefenseSystem = null;
@@ -76,6 +77,19 @@ const SNAPSHOT_VERSION = 1;
 const _storedByWorld = {};
 
 const _clone = (o) => JSON.parse(JSON.stringify(o));
+
+function _snapshotUpgrade(upgrade) {
+    if (!upgrade) return null;
+    const out = {
+        kind: upgrade.kind || (upgrade.abilityId ? 'ability' : 'module'),
+        totalMs: Math.max(1, Number(upgrade.totalMs) || 1),
+        remainMs: Math.max(0, Number(upgrade.remainMs) || 0),
+    };
+    if (upgrade.abilityId) out.abilityId = upgrade.abilityId;
+    if (upgrade.moduleId) out.moduleId = upgrade.moduleId;
+    if (upgrade.unitType) out.unitType = upgrade.unitType;
+    return out;
+}
 
 function _snapshotConfig() {
     const spawnCfg = DEFENSE_CONFIG?.spawn || {};
@@ -313,6 +327,7 @@ export function captureWorld(sceneId = 'scene8') {
             unitType: b.unitType, spawnTimer: b._spawnTimer, recruitMode: normalizeRecruitMode(b._recruitMode),
             units: localUnits, unitRoster, unitDps: _unitsDps(b.units),
             troopLineDeployed: Math.max(0, b.aliveUnitCount() - localUnits),
+            upgrade: _snapshotUpgrade(b._upgrade),
             rally: b._rallyPoint ? { x: b._rallyPoint.x, y: b._rallyPoint.y } : null,
             buildCost: b._buildCost ?? null, buildCurrency: b._buildCurrency ?? null,
         });
@@ -331,7 +346,7 @@ export function captureWorld(sceneId = 'scene8') {
             unitRoster,
             unitDps: p.spawnEnabled ? _unitsDps(p.units) : 0,
             troopLineDeployed: p.spawnEnabled ? Math.max(0, p.aliveUnitCount() - localUnits) : 0,
-            upgrade: p._upgrade ? { abilityId: p._upgrade.abilityId, totalMs: p._upgrade.totalMs, remainMs: p._upgrade.remainMs } : null,
+            upgrade: _snapshotUpgrade(p._upgrade),
             continuous: p._continuous || null,
             titheTimerMs: p.units?.find((unit) => unit?._isHamsterPriest && unit.active !== false)?._ai?._titheTimer || 0,
             storedEnergy: p._isEnergyWarehouse ? (p.storedEnergy || 0) : undefined,
@@ -487,6 +502,18 @@ export function isWorld122Live() {
 
 export function isWorldLive(sceneId) {
     return !!(DefenseSystem && DefenseSystem.active && DefenseSystem._worldId === sceneId);
+}
+
+/** 其他后台位面是否正在推进同一个全局能力/兵种模块项目。 */
+export function hasBackgroundBuildingUpgrade(upgrade) {
+    const key = getBuildingUpgradeProgressKey(upgrade);
+    if (!key) return false;
+    for (const [sceneId, snapshot] of Object.entries(_storedByWorld)) {
+        if (isWorldLive(sceneId) || !isWorldSnapshotCurrent(sceneId, snapshot)) continue;
+        if ((snapshot.structures || []).some((structure) =>
+            getBuildingUpgradeProgressKey(structure?.upgrade) === key)) return true;
+    }
+    return false;
 }
 
 /** 世界切换面板预览：不回写快照、无全局副作用（commit=false）；
@@ -646,6 +673,17 @@ function _restoreBarracks(s, sceneId) {
     barracks.unitType = s.unitType;
     barracks._spawnTimer = Math.max(0, s.spawnTimer || 0);
     barracks._recruitMode = normalizeRecruitMode(s.recruitMode);
+    if (s.upgrade?.moduleId) {
+        barracks._upgrade = {
+            kind: 'module',
+            moduleId: s.upgrade.moduleId,
+            unitType: (barracksBuildingCfg.unitTypes || []).includes(s.upgrade.unitType)
+                ? s.upgrade.unitType
+                : barracks.unitType,
+            totalMs: Math.max(1, Number(s.upgrade.totalMs) || 1),
+            remainMs: Math.max(0, Number(s.upgrade.remainMs) || 0),
+        };
+    }
     if (s.rally) barracks._rallyPoint = { x: s.rally.x, y: s.rally.y };
     Game.entities.set(barracks.id, barracks);
     HamsterBarracksSystem.barracks.push(barracks);
@@ -689,14 +727,25 @@ function _restoreProducer(s, sceneId) {
     producer._recruitMode = normalizeRecruitMode(s.recruitMode);
     producer._restoredTitheTimer = Math.max(0, Number(s.titheTimerMs) || 0);
     if (s.rally) producer._rallyPoint = { x: s.rally.x, y: s.rally.y };
-    // 能力/研究读条续跑（等级全局共享，读条属建筑实例）
+    // 能力/研究与兵种模块读条续跑（等级全局共享，读条属建筑实例）
     if (s.upgrade && cfg.abilities && cfg.abilities[s.upgrade.abilityId]) {
         producer._upgrade = {
+            kind: 'ability',
             abilityId: s.upgrade.abilityId,
             totalMs: Math.max(1, s.upgrade.totalMs || 1),
             remainMs: Math.max(0, s.upgrade.remainMs || 0),
         };
         producer._continuous = s.continuous && cfg.abilities[s.continuous] ? s.continuous : null;
+    } else if (s.upgrade?.moduleId && cfg.modules?.[s.upgrade.moduleId]) {
+        producer._upgrade = {
+            kind: 'module',
+            moduleId: s.upgrade.moduleId,
+            unitType: (cfg.unitTypes || []).some((unit) => unit.key === s.upgrade.unitType)
+                ? s.upgrade.unitType
+                : producer.unitType,
+            totalMs: Math.max(1, Number(s.upgrade.totalMs) || 1),
+            remainMs: Math.max(0, Number(s.upgrade.remainMs) || 0),
+        };
     }
     Game.entities.set(producer.id, producer);
     ProducerBuildingSystem.buildings.push(producer);

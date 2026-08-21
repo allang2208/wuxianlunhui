@@ -726,7 +726,8 @@ export const ExpeditionSystem = {
     },
 
     // 确认出征 — 物品已从背包真正移出，直接带走
-    depart() {
+    async depart() {
+        if (SceneManager?.isLoading) return;
         const carried = this._carriedItems.filter(c => c !== null);
         if (carried.length === 0) {
             this._showMessage('请至少放入一种祭品', 'error');
@@ -741,6 +742,11 @@ export const ExpeditionSystem = {
             this._showMessage('请根据提示放入对应等级祭品', 'error');
             return;
         }
+        const dungeonType = this.selectedDungeon || 'zombie';
+        SceneManager?.showLoadingScreen?.({ sceneId: 'scene7', dungeonType });
+        SceneManager?.setProgress?.(10);
+        // 先让浏览器绘制 loading，再执行地牢初始化；最短展示时间由 SceneManager 统一保证。
+        if (SceneManager?.delay) await SceneManager.delay(50);
 
         // 保存携带物品到 DungeonMapSystem（物品已从背包移出，直接带走）
         if (DungeonMapSystem) {
@@ -769,11 +775,11 @@ export const ExpeditionSystem = {
         if (SystemUI) {
             SystemUI.close();
         }
+        SceneManager?.setProgress?.(55);
 
         // 初始化地牢（传入选中的地牢类型）+ 切换场景状态到 scene7
         if (DungeonMapSystem) {
             const player = Game.player;
-            const dungeonType = this.selectedDungeon || 'zombie';
 
             // 出征前保存主神空间状态（depart 绕开 switchScene 直接清实体——不保存的话，
             // 返回时 SceneManager._mainEntities 为空，_loadMainScene 走兜底只剩光杆玩家，
@@ -805,12 +811,19 @@ export const ExpeditionSystem = {
 
             DungeonMapSystem.init('scene7', player, dungeonType);
             SceneManager.currentScene = 'scene7';
+            SceneManager.setProgress(90);
             // BGM 场景切换：depart 绕开 switchScene（switchScene 尾部的 playBgmForScene
             // 不会执行）——手动补发；data/audio-config.json bgm.scene7 = 僵尸地牢共用音轨
             if (SoundManager && typeof SoundManager.playBgmForScene === 'function') {
                 SoundManager.playBgmForScene('scene7');
             }
         }
+        if (SceneManager?.waitForMinimumLoadingDuration) {
+            await SceneManager.waitForMinimumLoadingDuration();
+        }
+        SceneManager?.setProgress?.(100);
+        if (SceneManager?.delay) await SceneManager.delay(100);
+        SceneManager?.hideLoadingScreen?.();
     },
 
     // 从出征准备返回主神空间（保留，用于外部调用）

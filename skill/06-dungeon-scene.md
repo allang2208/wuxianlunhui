@@ -479,6 +479,9 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
 - **墙样式**：`ISO_WALL_GEO.hub_straight`（slope 0.5049 / wallH 703.9）+ `ISO_WALL_STYLES.mainHub`（无 corners/gate → 全直墙无门）；从地牢返回时样式被复位，统一入口每次重设 mainHub 再建墙。
 - **坐标迁移**：portals/testArea 等绝对坐标项必须随世界尺寸手迁（本次 (3478,2363)→(3918,1949)）；相对 origin 的（NPC/武器排/掉落）自动跟随。
 - **祭坛贴图 NPC**：仿仓库宝箱模板（sprite.idleKey 静态图 + obstacle 底座 + clickArea + noSeparation/noShadow），注意 `game.js` 创建 NPC 时这些字段要逐个透传（祭坛此前只传基础字段=实心圆的根因）。
+- **2026-08-21 重新菱形化（用户明确要求，对齐世界-122）**：主神空间 4096×4096 方形 → 12288×8192 菱形；
+  复用 `_scene8Diamond`/`_registerScene8Boundary` 同一真源，分块地板菱形裁剪区外全黑，硬边界墙改 noVisual 兜底；
+  hub_brick 砖池与相机 1.0 保留；坐标统一平移 (+4096,+2048)，`_loadMainScene` 带菱形落点守卫。详见 CHANGELOG 当日条目。
 
 #### 白底 AI 素材抠图（2026-07-29，大理石墙血泪经验）
 即梦白底图（含烘焙进 RGB 的假透明棋盘底纹）抠图三坑，正解 = **GrabCut + 盖板几何重建**（`tools/prep-hub-assets.py`）：
@@ -580,9 +583,14 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
   `shadow.maxOffset`（42~72）；length 随仰角曲线（正午短、晨昏长）。
 - **胶囊接触影（单位唯一做法，2026-08-19 定稿）**：玩家/怪物/友军/NPC 脚底
   柔边椭圆——长轴沿太阳方向拉伸、宽深随 groundRadius（唯一真源）、随仰角收放、
-  透明度与建筑同口径（0.385×夜影衰减）、深度跟随本体仲裁后 −0.1（墙体遮挡继承）。
+  透明度与建筑同口径（0.1925×夜影衰减；0.385 为中间档旧值）、深度跟随本体仲裁后 −0.1（墙体遮挡继承）。
   单位不做逐列剪影（动画逐帧换形不适用）；帧剪影链（unit_projection）已退役，
   禁止回潮。树木/桶状仙人掌（contact 型）/墙件同此胶囊。
+  **几何定稿（2026-08-21 对齐修复）**：椭圆长轴 = footprint 宽 + 影向位移量、随影向旋转
+  （`atan2(offsetY, offsetX)`），中心只走位移一半——影根始终盖住脚底（旧版整体平移
+  offset 全量、不旋转，小半径单位影子会脱脚）；位移 ≤3px（近正午）不旋转保持 2:1 地面椭圆。
+  锚点：玩家/怪/NPC = collider.x/y（footprint 圆心，玩家再 −z）；友军 = 视觉脚底
+  `sprite.y + footOffsetY`（精灵已含 z 与帧格归一化，纯跟随队员无逻辑坐标也不错位）。
 - **投影图派生资产仍保留**（silhouette/projection/height/normal 供后续局部光效）；
   生成必须内容紧身裁剪，禁止 PROJECTION_BOTTOM_BANDS 带状采样。
 - **flipX 一次性镜像**（2026-08-19）：镜像实例在 `_resolveShadowSilhouette` 先把

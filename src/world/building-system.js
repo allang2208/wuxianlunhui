@@ -17,6 +17,7 @@ import { SoundManager } from '../ui/sound-manager.js';
 import { UIState } from '../ui/ui-state.js';
 import { renderBuildingDetailHeader } from '../ui/panels/building-detail-header.js';
 import { mountRightSidebarPanel } from '../ui/right-sidebar-panel-layer.js';
+import { TechnologyGate } from '../ui/technology-gate.js';
 import { CONFIG } from '../config/config.js';
 import { SceneManager } from './scene-manager.js';
 import { Renderer } from './renderer.js';
@@ -49,6 +50,7 @@ import {
     pointInIsoFootprint,
 } from '../physics/iso-footprint.js';
 import { structureDepthAtY } from './structure-depth.js';
+import { TechnologySystem } from './technology-system.js';
 import {
     resolveStructureGroundFit,
 } from './structure-visual-anchor.js';
@@ -230,6 +232,12 @@ for (const type of Object.keys(TRAP_CONFIG)) {
     }
 }
 
+function isBuildItemTechnologyUnlocked(item) {
+    if (!item) return false;
+    if (item.kind === 'trap') return TechnologySystem.isUnlocked('buildingKind', 'trap');
+    return TechnologySystem.isUnlocked('building', item.id);
+}
+
 // ==================== 建筑系统 ====================
 
 export const BuildingSystem = {
@@ -376,12 +384,17 @@ export const BuildingSystem = {
                 金币：<b style="color:#ffd700;">${gold}</b>&nbsp;&nbsp;能源：<b style="color:#7fd4ff;">${energy}</b>（点击建筑后到场景里放置）
             </div>
             <div class="we-grid we-std-scroll" id="bpGrid" style="max-height:62vh;overflow-y:auto;">
-                ${BUILD_ITEMS.filter((it) => it.kind !== 'trap').map((it) => {
+                ${BUILD_ITEMS
+                    // 陷阱原本不在建筑栏，解锁后只追加到末尾；未解锁时不制造大段空白滚动区。
+                    .filter((it) => it.kind !== 'trap' || isBuildItemTechnologyUnlocked(it))
+                    .map((it) => {
                     const cur = it.currency === 'energy' ? '能' : '金';
                     const thumb = it.icon || it.tex;
                     const cost = this._effectiveBuildCost(it);
                     return `
-                    <div class="we-thumb" data-id="${it.id}" title="${it.name} — ${cost} ${cur}">
+                    <div class="we-thumb" data-id="${it.id}" title="${it.name} — ${cost} ${cur}"
+                         data-technology-gate-type="${it.kind === 'trap' ? 'buildingKind' : 'building'}"
+                         data-technology-gate-id="${it.kind === 'trap' ? 'trap' : it.id}">
                         <img src="assets/terrain/${thumb}.png" draggable="false" alt="${it.name}">
                         <span>${it.name}<br><em data-build-cost style="color:${it.currency === 'energy' ? '#7fd4ff' : '#ffd700'};font-style:normal;">${cost}${cur}</em></span>
                     </div>`;
@@ -392,7 +405,10 @@ export const BuildingSystem = {
                 <button id="bpCancel" title="取消放置（右键/Esc）">取消</button>
                 <span class="we-selinfo" id="bpSel">未选择建筑</span>
             </div>
-            <div class="we-row" id="bpRecycleRow" style="margin-top:7px;">
+            <div class="we-row" id="bpRecycleRow"
+                 data-technology-gate-type="mechanic"
+                 data-technology-gate-id="building_recycle"
+                 style="margin-top:7px;">
                 <button id="bpRecycleMode" title="进入回收模式后，左键点击建筑或道路进行回收" style="width:100%;background:#5a3028;color:#ffd7d0;border:1px solid #8a4a3a;">回收建筑</button>
             </div>
             <div class="we-hints" id="bpHints">
@@ -405,6 +421,7 @@ export const BuildingSystem = {
                 H=切换墙段吸附位置（外部=端到端 / 内部=端帽重叠）<br>
                 小屋/兵营/铁匠铺/草屋靠近已有同类建筑按地面 30° 地板线轴对齐（F=镜像，G=取消吸附）
             </div>`;
+        TechnologyGate.bindTree(el);
         mountRightSidebarPanel(el, 'panel');
         this._panel = el;
         const detailPanel = document.createElement('div');
@@ -428,7 +445,7 @@ export const BuildingSystem = {
             this._cancelPlacement();
             this._setRecycleMode(false);
         });
-        el.querySelector('#bpRecycleMode').addEventListener('click', () => {
+        el.querySelector('#bpRecycleMode')?.addEventListener('click', () => {
             this._setRecycleMode(!this._recycleMode);
         });
         el.querySelector('#bpMirror').addEventListener('click', () => this._updateSnapHint());
@@ -455,7 +472,22 @@ export const BuildingSystem = {
         this._refreshCurrencies();
     },
 
+    refreshTechnologyUnlocks() {
+        if (!this.active) return;
+        this._cancelPlacement();
+        this._setRecycleMode(false);
+        this._panel?.remove();
+        this._detailPanel?.remove();
+        this._panel = null;
+        this._detailPanel = null;
+        this._buildPanel();
+    },
+
     _selectItem(item) {
+        if (!isBuildItemTechnologyUnlocked(item)) {
+            this._notify('该建筑尚未通过科技解锁', '#ffb35c');
+            return;
+        }
         this._setRecycleMode(false);
         this._cancelPlacement();
         this._placing = { item, mirror: false };
@@ -741,6 +773,10 @@ export const BuildingSystem = {
 
     _setRecycleMode(enabled) {
         const next = !!enabled;
+        if (next && !TechnologySystem.isUnlocked('mechanic', 'building_recycle')) {
+            this._notify('需要先研发工程制图', '#ffb35c');
+            return false;
+        }
         if (next) {
             this._cancelPlacement();
             if (this._detail) this._closeDetail();
@@ -2914,10 +2950,15 @@ export const BuildingSystem = {
     _recycleButtonHtml(entity) {
         const info = this._recycleInfo(entity);
         const unit = info.currency === 'gold' ? '金' : '能';
-        return `<button id="bpRecycle" class="bp-recycle" style="background:#5a3028;color:#ffd7d0;border:1px solid #8a4a3a;border-radius:6px;padding:7px 4px;${info.recyclable ? 'cursor:pointer;' : 'opacity:0.45;cursor:default;'}" ${info.recyclable ? '' : 'disabled'}>${info.recyclable ? `回收（+${info.refund}${unit}）` : '不可回收'}</button>`;
+        return `<button id="bpRecycle" class="bp-recycle"
+            data-technology-gate-type="mechanic" data-technology-gate-id="building_recycle"
+            style="background:#5a3028;color:#ffd7d0;border:1px solid #8a4a3a;border-radius:6px;padding:7px 4px;
+            ${info.recyclable ? 'cursor:pointer;' : 'opacity:0.45;cursor:default;'}"
+            ${info.recyclable ? '' : 'disabled'}>${info.recyclable ? `回收（+${info.refund}${unit}）` : '不可回收'}</button>`;
     },
 
     _bindDetailActions(det) {
+        TechnologyGate.bindTree(det);
         const back = det.querySelector('#bpBack');
         const repair = det.querySelector('#bpRepair');
         const recycle = det.querySelector('#bpRecycle');
@@ -2985,6 +3026,11 @@ export const BuildingSystem = {
 
     _place(x, y) {
         const { item, mirror } = this._placing;
+        if (!isBuildItemTechnologyUnlocked(item)) {
+            this._notify('该建筑尚未通过科技解锁', '#ffb35c');
+            this._cancelPlacement();
+            return;
+        }
         if (!this._canPlace(x, y)) {
             this._notify('该位置无法放置', '#ff5555');
             return;

@@ -1713,6 +1713,135 @@
     box-shadow: inset 3px 0 0 var(--bp-ui-accent-bright), 0 0 0 1px rgba(190, 214, 224, 0.08);
 }
 
+/* ===== 出兵建筑：冷钢档案字体与信息层级 ===== */
+:is(
+    .hamster-barracks-panel,
+    .producer-building-panel.is-troop-producer
+) {
+    color: var(--bp-ui-text) !important;
+    font-family: var(--bp-font-ui) !important;
+}
+
+:is(
+    .hamster-barracks-panel,
+    .producer-building-panel.is-troop-producer
+) :is(#hbStatus, #pbStatus, #hbUnitType, #pbUnitType, #hbModules, #pbModules) {
+    color: var(--bp-ui-text) !important;
+    background: linear-gradient(180deg, rgba(37, 42, 48, 0.9), rgba(21, 25, 30, 0.92)) !important;
+    border-color: var(--bp-ui-line) !important;
+    border-radius: 5px !important;
+}
+
+:is(
+    .hamster-barracks-panel,
+    .producer-building-panel.is-troop-producer
+) :is(.troop-panel-section-title, .world122-building-detail-name) {
+    color: var(--bp-ui-white) !important;
+    font-size: var(--bp-type-subtitle) !important;
+    font-weight: 700;
+    line-height: 1.35;
+    letter-spacing: 0.04em;
+}
+
+:is(
+    .hamster-barracks-panel,
+    .producer-building-panel.is-troop-producer
+) :is(.troop-panel-primary-label, .troop-panel-copy) {
+    color: var(--bp-ui-text) !important;
+    font-size: var(--bp-type-body) !important;
+    line-height: 1.65;
+}
+
+:is(
+    .hamster-barracks-panel,
+    .producer-building-panel.is-troop-producer
+) :is(
+    .troop-panel-resource-summary,
+    .troop-panel-section-meta,
+    .troop-panel-empty,
+    .world122-building-detail-durability,
+    .building-upgrade-card-level,
+    .building-upgrade-card-requirement,
+    .building-upgrade-card-actions > span
+) {
+    color: var(--bp-ui-text) !important;
+    font-size: var(--bp-type-meta) !important;
+    line-height: 1.45;
+}
+
+:is(
+    .hamster-barracks-panel,
+    .producer-building-panel.is-troop-producer
+) :is(
+    .troop-panel-progress-label,
+    .troop-panel-caption,
+    .world122-building-detail-status,
+    .building-upgrade-card-progress
+) {
+    font-size: var(--bp-type-meta) !important;
+    line-height: 1.45;
+}
+
+:is(
+    .hamster-barracks-panel,
+    .producer-building-panel.is-troop-producer
+) :is(.troop-panel-progress-label, .troop-panel-caption) {
+    color: var(--bp-ui-text-muted) !important;
+}
+
+:is(
+    .hamster-barracks-panel,
+    .producer-building-panel.is-troop-producer
+) .building-upgrade-card-name {
+    color: var(--bp-ui-white) !important;
+    font-size: var(--bp-type-subtitle) !important;
+    font-weight: 700;
+    line-height: 1.35;
+}
+
+:is(
+    .hamster-barracks-panel,
+    .producer-building-panel.is-troop-producer
+) :is(.troop-panel-unit-button, .troop-panel-upgrade-button) {
+    min-height: 38px;
+    color: var(--bp-ui-text-muted) !important;
+    background: linear-gradient(180deg, #323840, #1d2228) !important;
+    border: 1px solid var(--bp-ui-line-strong) !important;
+    border-radius: 4px !important;
+    font-family: var(--bp-font-ui) !important;
+    font-size: var(--bp-type-body) !important;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+}
+
+:is(
+    .hamster-barracks-panel,
+    .producer-building-panel.is-troop-producer
+) .troop-panel-unit-button small {
+    color: var(--bp-ui-text-muted) !important;
+    font-family: var(--bp-font-number) !important;
+    font-size: var(--bp-type-meta) !important;
+    font-weight: 600;
+}
+
+:is(
+    .hamster-barracks-panel,
+    .producer-building-panel.is-troop-producer
+) :is(.troop-panel-unit-button, .troop-panel-upgrade-button):hover {
+    color: var(--bp-ui-white) !important;
+    border-color: var(--bp-ui-accent-bright) !important;
+}
+
+:is(
+    .hamster-barracks-panel,
+    .producer-building-panel.is-troop-producer
+) .troop-panel-unit-button.is-active {
+    color: var(--bp-ui-white) !important;
+    background: linear-gradient(180deg, #4a5962, #273138) !important;
+    border-color: var(--bp-ui-accent-bright) !important;
+    box-shadow: inset 3px 0 0 var(--bp-ui-accent-bright);
+}
+
 .rts-unit-panel {
     right: 100px;
     width: 252px;

@@ -75,6 +75,10 @@ import {
 } from './unified-elevated-navigation.js';
 import { ElevatedTopology } from './elevated-topology.js';
 import { ElevatedNavigationController } from '../ai/elevated-navigation-controller.js';
+import {
+    projectileTargetZ,
+    wallHitSupportsTarget,
+} from '../combat/elevated-ranged.js';
 
 // ==================== 配置 ====================
 
@@ -2039,6 +2043,8 @@ class DefenseTower extends Combatant {
         this._visualGroundOffsetY = DEFENSE_TOWER_VISUAL.base.footprintCenterOffsetY;
         this._visualFootOffsetY = visualFootOffsetY;
         applyBuildingFootprint(this, 2);
+        // 地面 footprint 深度与塔身垂直高度分离，避免 2x2 占地被当成弹道发射高度。
+        this.collisionBodyHeight = DEFENSE_TOWER_VISUAL.base.h;
         // 统一遮挡锚线（塔三层贴图深度一律从 _faceDepth 取，见 GameScene._syncDefenseTowers）
         setupStructureDepth(this);
         this.weaponItem = null;
@@ -2372,22 +2378,68 @@ class DefenseTower extends Combatant {
         return { current, next, stat };
     }
 
+    /** 防御塔只忽略己方防御墙；真实墙、敌方墙仍交给高度弹道判定。 */
+    _projectileWallIgnore() {
+        if (!WallSystem || !Array.isArray(WallSystem.isoSegments)) return null;
+        const segs = WallSystem.isoSegments.filter((segment) => {
+            if (!segment?._cover) return false;
+            const faction = segment._owner?._faction;
+            return !faction
+                || faction === this._faction
+                || (this._faction === 'player' && faction === 'companion')
+                || (this._faction === 'companion' && faction === 'player');
+        });
+        return { segs: new Set(segs) };
+    }
+
+    /** 统一取得目标的地面坐标、真实瞄准高度与屏幕瞄准点。 */
+    _targetAimPoint(target) {
+        const colliderX = Number(target?.collider?.x);
+        const colliderY = Number(target?.collider?.y);
+        const groundX = Number.isFinite(colliderX) ? colliderX : (Number(target?.x) || 0);
+        const groundY = Number.isFinite(colliderY) ? colliderY : (Number(target?.y) || 0);
+        const targetZ = projectileTargetZ(target);
+        return {
+            groundX,
+            groundY,
+            targetZ,
+            screenX: groundX,
+            screenY: groundY - targetZ,
+        };
+    }
+
+    /** 索敌从 2x2 footprint 中心、塔顶枪架高度出发，不再从前顶点做二维射线。 */
+    _targetingOrigin() {
+        return {
+            x: Number(this.collider?.x) || this.x,
+            y: Number(this.collider?.y) || (this.y + (Number(this._visualGroundOffsetY) || 0)),
+            z: (Number(this.z) || 0) + DEFENSE_TOWER_VISUAL.arm.pivotWorldY,
+        };
+    }
+
     _acquireTarget(entities) {
         let best = null;
         let bestD = Infinity;
         const arr = entities && entities.values ? Array.from(entities.values()) : (Array.isArray(entities) ? entities : []);
+        const origin = this._targetingOrigin();
+        const wallIgnore = this._projectileWallIgnore();
         for (const e of arr) {
             if (!e || e === this || !e.active || e.hp <= 0) continue;
             if (e._faction !== 'enemy') continue;
             if (typeof e.x !== 'number' || typeof e.y !== 'number') continue;
-            const d = Math.hypot(e.x - this.x, e.y - this.y);
+            const aim = this._targetAimPoint(e);
+            const d = Math.hypot(aim.groundX - origin.x, aim.groundY - origin.y);
             if (d > this.range) continue;
-            // 索敌视线：真实墙壁仍阻挡，但己方掩体墙段不阻挡——防御塔可越过己方掩体射击（2026-08-14）
-            if (WallSystem && typeof WallSystem.blocked === 'function') {
-                const coverIgnore = WallSystem.isoSegments
-                    ? { segs: new Set(WallSystem.isoSegments.filter((s) => s && s._cover)) }
-                    : null;
-                if (WallSystem.blocked(this.x, this.y, e.x, e.y, coverIgnore)) continue;
+            // 与实际弹丸使用同一套高度墙体检测；目标站在墙顶时允许命中其支撑墙后的模型。
+            if (WallSystem && typeof WallSystem.projectileWallHit === 'function') {
+                const wallHit = WallSystem.projectileWallHit(
+                    origin.x, origin.y, origin.z,
+                    aim.groundX, aim.groundY, aim.targetZ,
+                    wallIgnore
+                );
+                if (wallHit && !wallHitSupportsTarget(wallHit, e)) continue;
+            } else if (WallSystem && typeof WallSystem.blocked === 'function') {
+                if (WallSystem.blocked(origin.x, origin.y, aim.groundX, aim.groundY, wallIgnore)) continue;
             }
             if (d < bestD) {
                 bestD = d;
@@ -2401,18 +2453,17 @@ class DefenseTower extends Combatant {
         if (!this.weaponItem || !this._attackKey) return;
         const attack = this.attacks[this._attackKey];
         if (!attack || !attack.canUse()) return;
-        const aimX = target.x;
-        const aimY = (target.collider ? target.collider.y : target.y) - 40;
+        const aim = this._targetAimPoint(target);
         if (this.weaponItem.weaponType === 'shotgun') {
             // 散弹：一次击发 = 1 发弹壳，多发弹丸共享一个枪口 + 一次特效（2026-08-15 修复）
             const pellets = this.weaponItem.pelletCount || (this.weaponItem.weaponId === 'saiga12k' ? 4 : 6);
-            this._fireBlast(aimX, aimY, entities, pellets);
+            this._fireBlast(aim, entities, pellets);
         } else {
-            this._fireShot(aimX, aimY, entities);
+            this._fireShot(aim, entities);
         }
     }
 
-    /** 枪口点 = 枪管尖端（椭圆臂尖 + 枪管长度，与渲染同口径；墙体回退忽略己方掩体段） */
+    /** 枪口点 = 屏幕枪口 + 对应的地面平面坐标和真实发射高度。 */
     _muzzlePoint() {
         const V = DEFENSE_TOWER_VISUAL;
         const pivotX = this.x;
@@ -2425,24 +2476,10 @@ class DefenseTower extends Combatant {
         if (this._mirrored) wAng = Math.PI - wAng;
         const muzzleLen = barrelCfg ? barrelCfg.w * (barrelCfg.height / barrelCfg.h) : 16;
         const rootInset = barrelCfg ? (barrelCfg.inset ?? 7) : 0;
-        let mx = pivotX + tipOX + Math.cos(wAng) * (muzzleLen - rootInset);
-        let my = pivotY + tipOY + Math.sin(wAng) * (muzzleLen - rootInset);
-        const ox = this.x;
-        const oy = this.y;
-        // 枪口回退只针对真实墙壁：己方掩体段不参与（塔可越掩体射击）——
-        // 否则 resolve 会把枪口沿掩体段滑回塔脚（"下沉到底座" bug，2026-08-14 修复）
-        if (WallSystem && typeof WallSystem.resolve === 'function') {
-            const coverIgnore = WallSystem.isoSegments
-                ? { segs: new Set(WallSystem.isoSegments.filter((s) => s && s._cover)) }
-                : null;
-            const wallBlockedOnly = WallSystem.blocked(ox, oy, mx, my, coverIgnore);
-            if (wallBlockedOnly) {
-                const resolved = WallSystem.resolve(ox, oy, mx, my, 4);
-                mx = resolved.x;
-                my = resolved.y;
-            }
-        }
-        return { mx, my };
+        const mx = pivotX + tipOX + Math.cos(wAng) * (muzzleLen - rootInset);
+        const my = pivotY + tipOY + Math.sin(wAng) * (muzzleLen - rootInset);
+        const startZ = (Number(this.z) || 0) + V.arm.pivotWorldY;
+        return { mx, my, startZ, groundY: my + startZ };
     }
 
     /** 枪口特效（火焰/开火火光/弹壳/音效）——散弹一次击发只播一次 */
@@ -2461,44 +2498,55 @@ class DefenseTower extends Combatant {
     }
 
     /** 单发开火：枪口偏移 + 墙体回退 + 弹丸（复用 Combatant.fireProjectile）+ 枪口特效 */
-    _fireShot(aimX, aimY, entities) {
+    _fireShot(aim, entities) {
         if (!this._attackKey || !this.attacks[this._attackKey]) return false;
         const p = this._muzzlePoint();
         const mx = p.mx, my = p.my;
-        const ox = this.x;
-        const oy = this.y;
-        this.x = mx;
-        this.y = my;
-        const fired = this.fireProjectile(aimX, aimY, entities, { slot: 'weapon' });
-        this.x = ox;
-        this.y = oy;
+        const fired = this.fireProjectile(aim.screenX, aim.screenY, entities, {
+            slot: 'weapon',
+            spawnX: mx,
+            spawnY: my,
+            startZ: p.startZ,
+            groundY: p.groundY,
+            groundTargetY: aim.groundY,
+            targetZ: aim.targetZ,
+            aimDistance: Math.hypot(aim.groundX - mx, aim.groundY - p.groundY),
+            wallContext: this._projectileWallIgnore(),
+        });
         if (!fired) return false;
-        this._muzzleEffects(mx, my, aimX, aimY);
+        this._muzzleEffects(mx, my, aim.screenX, aim.screenY);
         return true;
     }
 
     /** 散弹一次击发：多发弹丸共享一个枪口、扣 1 发弹壳、播一次特效（2026-08-15 修复） */
-    _fireBlast(aimX, aimY, entities, pelletCount) {
+    _fireBlast(aim, entities, pelletCount) {
         if (!this._attackKey || !this.attacks[this._attackKey]) return false;
         const p = this._muzzlePoint();
         const mx = p.mx, my = p.my;
-        const ox = this.x;
-        const oy = this.y;
         const attack = this.attacks[this._attackKey];
-        this.x = mx;
-        this.y = my;
+        const wallContext = this._projectileWallIgnore();
         let fired = false;
         for (let i = 0; i < pelletCount; i++) {
             attack.cooldown = 0; // 弹丸间不互相挡冷却
-            const jx = aimX + (Math.random() - 0.5) * 90;
-            const jy = aimY + (Math.random() - 0.5) * 90;
-            if (this.fireProjectile(jx, jy, entities, { slot: 'weapon', noAmmoConsume: true })) fired = true;
+            const jx = aim.groundX + (Math.random() - 0.5) * 90;
+            const jGroundY = aim.groundY + (Math.random() - 0.5) * 90;
+            const jScreenY = jGroundY - aim.targetZ;
+            if (this.fireProjectile(jx, jScreenY, entities, {
+                slot: 'weapon',
+                noAmmoConsume: true,
+                spawnX: mx,
+                spawnY: my,
+                startZ: p.startZ,
+                groundY: p.groundY,
+                groundTargetY: jGroundY,
+                targetZ: aim.targetZ,
+                aimDistance: Math.hypot(jx - mx, jGroundY - p.groundY),
+                wallContext,
+            })) fired = true;
         }
-        this.x = ox;
-        this.y = oy;
         if (!fired) return false;
         this._consumeAmmo('weapon'); // 一次击发 = 1 发弹壳
-        this._muzzleEffects(mx, my, aimX, aimY);
+        this._muzzleEffects(mx, my, aim.screenX, aim.screenY);
         return true;
     }
 
@@ -2508,7 +2556,8 @@ class DefenseTower extends Combatant {
         let desired = V.arm.naturalAngle;
         if (target && target.active) {
             const pivotY = this.y + (Number(this._visualGroundOffsetY) || 0) - V.arm.pivotWorldY;
-            desired = Math.atan2(target.y - pivotY, target.x - this.x);
+            const aim = this._targetAimPoint(target);
+            desired = Math.atan2(aim.screenY - pivotY, aim.screenX - this.x);
         }
         let diff = desired - this.aimAngle;
         while (diff > Math.PI) diff -= Math.PI * 2;
@@ -2560,6 +2609,7 @@ class DefenseTower extends Combatant {
         if (typeof this._updateReload === 'function') this._updateReload(dt);
         this._recalcDamage();
         const target = this._acquireTarget(entities);
+        this.target = target || null;
         this._updateAim(dt, target);
         // 过热驱动（与玩家"持续开火"口径一致）：有目标 + 有弹 + 非换弹 + 未过热才算开火中；
         // 冷却（attack.canUse）不参与——机枪连续压制时枪管持续升温
@@ -2569,9 +2619,10 @@ class DefenseTower extends Combatant {
             && !(this._overheatOverheated && this.weaponItem && this.weaponItem.weaponType === this._overheatWeaponType));
         if (typeof this._updateOverheat === 'function') this._updateOverheat(dt, isFiring);
         if (target) {
+            const aim = this._targetAimPoint(target);
             this._aimTargetPos = {
-                x: target.x,
-                y: (target.collider ? target.collider.y : target.y) - 40,
+                x: aim.screenX,
+                y: aim.screenY,
             };
             this._fireAtTarget(target, entities);
         }

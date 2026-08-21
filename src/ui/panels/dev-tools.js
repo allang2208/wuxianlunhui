@@ -1,6 +1,7 @@
 import DevTool from '../dev-tool.js';
 import { CollisionEditor } from '../collision-editor.js';
 import { QuickBar } from '../quick-bar.js';
+import { TechnologySystem } from '../../world/technology-system.js';
 // src/ui/panels/dev-tools.js
 // 动态创建交互开发工具面板 (dev-tool-panel)
 
@@ -527,6 +528,34 @@ export function createDevToolPanel() {
     resourceHint.style.cssText = 'color:#9aa5b1;font-size:11px;';
     resourceRow.append(btnResource, resourceHint);
     skillRow.appendChild(resourceRow);
+
+    // ===== 测试按钮：一次性解锁全部科技与受控功能 =====
+    const technologyRow = document.createElement('div');
+    technologyRow.style.cssText = 'display:flex;gap:8px;align-items:center;padding:6px 0;border-top:1px solid #3a3a3a;margin-top:6px;';
+    const unlockTechnologyBtn = document.createElement('button');
+    unlockTechnologyBtn.id = 'devToolUnlockAllTechnology';
+    unlockTechnologyBtn.className = 'dev-tool-menu-btn';
+    const syncTechnologyBtn = () => {
+        const completed = TechnologySystem.state.completed.length;
+        const total = TechnologySystem.getNodes().length;
+        unlockTechnologyBtn.textContent = completed >= total ? `🔬 全部科技已解锁（${total}/${total}）` : `🔬 解锁全部科技（${completed}/${total}）`;
+        unlockTechnologyBtn.style.background = completed >= total ? '#3a6b3a' : '';
+    };
+    unlockTechnologyBtn.addEventListener('click', () => {
+        if (!window.Game?.isRunning) {
+            DevTool?._showToast?.('❌ 请先进入游戏');
+            return;
+        }
+        const unlocked = TechnologySystem.unlockAll({ source: 'dev' });
+        syncTechnologyBtn();
+        DevTool?._showToast?.(unlocked > 0 ? `✅ 已解锁全部科技（新增 ${unlocked} 项）` : '全部科技已经解锁');
+    });
+    syncTechnologyBtn();
+    const technologyHint = document.createElement('span');
+    technologyHint.textContent = '测试用：立即显示并启用全部科技门禁功能';
+    technologyHint.style.cssText = 'color:#9aa5b1;font-size:11px;';
+    technologyRow.append(unlockTechnologyBtn, technologyHint);
+    skillRow.appendChild(technologyRow);
 
     // ===== 测试开关：友军伤害（开启后玩家可对友方单位造成伤害） =====
     const ffRow = document.createElement('div');

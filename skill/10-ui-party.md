@@ -48,6 +48,11 @@
   `mountRightSidebarPanel` 挂到 `#rightSidebarPanelLayer`，禁止继续分别挂在 `#uiLayer`、
   `#gameContainer` 或 `body` 后只调子元素 z-index。普通右栏面板 role=`panel`，遮罩=`backdrop`，
   队员招募等从属模态=`modal`；统一层高于普通场景 UI，但暂停菜单等全局模态仍在其上。
+- **右栏浮窗必须进入同一堆叠上下文（2026-08-21）**：右侧栏目层本身是
+  `z-index: var(--z-right-sidebar-panels)` 的独立 stacking context。项目说明、装备提示等浮窗若仍直接
+  挂在 `body`，即使自身 `z-index` 很高也可能被整层右栏遮住；应挂到 `#rightSidebarPanelLayer`
+  内并高于 panel 子层。共用建筑升级浮窗以 `building-upgrade-tooltip.js` 为参考，同时负责把旧的
+  body 子节点迁回正确层级。
 - **建筑详情统一关闭（2026-08-19）**：建筑类 BasePanel 传
   `panelGroup:'buildingDetail' / closeOnEscape:true / closeOnOutsidePointer:true`。
   `closeBasePanels('buildingDetail')` 同时覆盖浏览器键盘与 Electron ESC；面板外左/右

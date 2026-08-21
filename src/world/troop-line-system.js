@@ -7,8 +7,9 @@ import { WorldProgressionSystem } from './world-progression-system.js';
 import { getUnitKind } from './unit-upgrade-store.js';
 import { isSpawnPositionFree } from './spawn-placement.js';
 import { WallSystem } from './wall-system.js';
+import { TechnologySystem } from './technology-system.js';
 
-const VERSION = 2;
+const VERSION = 3;
 const MODES = new Set(['follow', 'hold', 'rally']);
 const MILITARY_KINDS = new Set([
     'militia', 'warrior', 'shooter', 'guard', 'scout', 'musketeer', 'priest', 'knight', 'light_cavalry',
@@ -58,9 +59,26 @@ function normalizeTarget(target) {
     };
 }
 
+function producerRallyKey(producerId, originSceneId, originWorldEpoch) {
+    return `${originSceneId || ''}\u0000${Number(originWorldEpoch) || 0}\u0000${producerId || ''}`;
+}
+
+function normalizeProducerRally(record) {
+    if (!record?.producerId || !record.originSceneId) return null;
+    const target = normalizeTarget(record.target);
+    if (!target || target.sceneId !== record.originSceneId) return null;
+    return {
+        producerId: record.producerId,
+        originSceneId: record.originSceneId,
+        originWorldEpoch: Number(record.originWorldEpoch) || currentEpoch(record.originSceneId),
+        target,
+    };
+}
+
 export const TroopLineSystem = {
     mode: 'follow',
     rally: null,
+    _producerRallies: new Map(),
     _pendingByWorld: {},
     _liveDetached: new Set(),
     _portalTravelRecords: new Set(),
@@ -82,6 +100,7 @@ export const TroopLineSystem = {
         for (const unit of Array.from(this._liveDetached)) this._detachUnit(unit);
         this.mode = 'follow';
         this.rally = null;
+        this._producerRallies.clear();
         this._pendingByWorld = {};
         this._liveDetached.clear();
         this._portalTravelRecords.clear();
@@ -93,9 +112,11 @@ export const TroopLineSystem = {
 
     getState() {
         this.validateRally();
+        this.validateProducerRallies();
         return {
             mode: this.mode,
             rally: this.rally ? { ...this.rally } : null,
+            independentRallyCount: this._producerRallies.size,
             revision: this._revision,
             ...this.getSummary(),
         };
@@ -121,6 +142,7 @@ export const TroopLineSystem = {
 
     setMode(mode) {
         if (!MODES.has(mode) || mode === 'rally') return false;
+        if (mode === 'hold' && !TechnologySystem.isUnlocked('mechanic', 'troop_hold')) return false;
         this.mode = mode;
         this.rally = null;
         this._revision++;
@@ -128,15 +150,99 @@ export const TroopLineSystem = {
     },
 
     setRally(sceneId, point) {
+        if (!TechnologySystem.isUnlocked('mechanic', 'troop_rally')) return false;
+        const currentSceneId = sceneManager()?.currentScene;
+        if (currentSceneId && sceneId !== currentSceneId
+            && !TechnologySystem.isUnlocked('mechanic', 'cross_world_reinforcement')) return false;
         if (!PERSISTENT_WORLDS.has(sceneId) || !point
             || !Number.isFinite(point.x) || !Number.isFinite(point.y)
             || !WorldProgressionSystem.isPortalConstructed(sceneId)) return false;
         const worldEpoch = currentEpoch(sceneId);
         if (!(worldEpoch > 0)) return false;
+        const rally = normalizeTarget({ sceneId, worldEpoch, ...point });
+        if (!rally) return false;
         this.mode = 'rally';
-        this.rally = normalizeTarget({ sceneId, worldEpoch, ...point });
+        this.rally = rally;
+        // 全局“自订”成功落地后才清空；取点失败或取消不得影响建筑独立设置。
+        this._producerRallies.clear();
         this._revision++;
-        return !!this.rally;
+        return true;
+    },
+
+    setProducerRally(producer, sceneId, point) {
+        if (!TechnologySystem.isUnlocked('mechanic', 'troop_rally')) return false;
+        if (!this.isTroopProducer(producer) || producer.active === false || !producer.id
+            || !PERSISTENT_WORLDS.has(sceneId) || !point
+            || !Number.isFinite(point.x) || !Number.isFinite(point.y)) return false;
+        const worldEpoch = currentEpoch(sceneId);
+        if (!(worldEpoch > 0)) return false;
+        const record = normalizeProducerRally({
+            producerId: producer.id,
+            originSceneId: sceneId,
+            originWorldEpoch: worldEpoch,
+            target: { sceneId, worldEpoch, ...point },
+        });
+        if (!record || !this._isProducerRallyCurrent(record)) return false;
+        this._producerRallies.set(
+            producerRallyKey(record.producerId, record.originSceneId, record.originWorldEpoch),
+            record
+        );
+        this._revision++;
+        return true;
+    },
+
+    getProducerRally(producer, sourceSceneId = null) {
+        if (!this.isTroopProducer(producer) || !producer.id) return null;
+        const sceneId = sourceSceneId || sceneManager()?.currentScene;
+        if (!sceneId) return null;
+        return this.getProducerRallyForOrigin(producer.id, sceneId, currentEpoch(sceneId));
+    },
+
+    getProducerRallyForOrigin(producerId, originSceneId, originWorldEpoch = null) {
+        if (!producerId || !originSceneId) return null;
+        const key = producerRallyKey(
+            producerId,
+            originSceneId,
+            originWorldEpoch ?? currentEpoch(originSceneId)
+        );
+        const record = this._producerRallies.get(key);
+        if (!record) return null;
+        if (!this._isProducerRallyCurrent(record)) {
+            this._producerRallies.delete(key);
+            this._revision++;
+            return null;
+        }
+        return { ...record.target };
+    },
+
+    clearProducerRally(producer, sourceSceneId = null) {
+        if (!producer?.id) return false;
+        const sceneId = sourceSceneId || sceneManager()?.currentScene;
+        if (!sceneId) return false;
+        const removed = this._producerRallies.delete(
+            producerRallyKey(producer.id, sceneId, currentEpoch(sceneId))
+        );
+        if (removed) this._revision++;
+        return removed;
+    },
+
+    clearAllProducerRallies() {
+        const count = this._producerRallies.size;
+        if (!count) return 0;
+        this._producerRallies.clear();
+        this._revision++;
+        return count;
+    },
+
+    validateProducerRallies() {
+        let changed = false;
+        for (const [key, record] of this._producerRallies) {
+            if (this._isProducerRallyCurrent(record)) continue;
+            this._producerRallies.delete(key);
+            changed = true;
+        }
+        if (changed) this._revision++;
+        return !changed;
     },
 
     validateRally({ notify = false } = {}) {
@@ -199,9 +305,19 @@ export const TroopLineSystem = {
     },
 
     getSpawnDirectionTarget(sourceSceneId, building) {
-        if (this.mode === 'hold') return { x: building.x, y: building.y };
-        if (this.mode === 'rally' && this.validateRally()) {
+        const producerRally = TechnologySystem.isUnlocked('mechanic', 'troop_rally')
+            ? this.getProducerRally(building, sourceSceneId)
+            : null;
+        if (producerRally) return producerRally;
+        if (this.mode === 'hold' && TechnologySystem.isUnlocked('mechanic', 'troop_hold')) {
+            return { x: building.x, y: building.y };
+        }
+        if (this.mode === 'rally' && TechnologySystem.isUnlocked('mechanic', 'troop_rally')
+            && this.validateRally()) {
             if (this.rally.sceneId === sourceSceneId) return this.rally;
+            if (!TechnologySystem.isUnlocked('mechanic', 'cross_world_reinforcement')) {
+                return { x: building.x, y: building.y };
+            }
             return this._sourcePortalPoint(sourceSceneId) || { x: building.x, y: building.y };
         }
         return game()?._observerMode ? { x: building.x, y: building.y } : game()?.player;
@@ -216,16 +332,28 @@ export const TroopLineSystem = {
         unit._troopLineOriginWorldEpoch = currentEpoch(sceneId);
         this._revision++;
         if (!aliveMilitaryUnit(unit) || restoring) return;
-        if (this.mode === 'hold') {
+        const producerRally = TechnologySystem.isUnlocked('mechanic', 'troop_rally')
+            ? this.getProducerRally(producer, sceneId)
+            : null;
+        if (producerRally) {
+            this._issueRallyMove(unit, producerRally);
+            return;
+        }
+        if (this.mode === 'hold' && TechnologySystem.isUnlocked('mechanic', 'troop_hold')) {
             unit._command = { mode: 'hold', point: null, target: null };
             return;
         }
-        if (this.mode !== 'rally' || !this.validateRally({ notify: true })) {
+        if (this.mode !== 'rally' || !TechnologySystem.isUnlocked('mechanic', 'troop_rally')
+            || !this.validateRally({ notify: true })) {
             unit._command = { mode: 'follow', point: null, target: null };
             return;
         }
         if (this.rally.sceneId === sceneId) {
             this._issueRallyMove(unit, this.rally);
+            return;
+        }
+        if (!TechnologySystem.isUnlocked('mechanic', 'cross_world_reinforcement')) {
+            unit._command = { mode: 'hold', point: null, target: null };
             return;
         }
         const portal = this._sourcePortalPoint(sceneId);
@@ -283,13 +411,15 @@ export const TroopLineSystem = {
         const travel = { fromSceneId, toSceneId, troops: [], companionIds: [] };
         if (!g?.entities) return travel;
         const partyMembers = new Set(g.PartySystem?.members || []);
-        for (const unit of Array.from(g.entities.values())) {
-            if (!aliveMilitaryUnit(unit) || partyMembers.has(unit)) continue;
-            if ((unit._command?.mode || 'follow') !== 'follow') continue;
-            const record = this._recordUnit(unit, null, 'travel');
-            travel.troops.push(record);
-            this._portalTravelRecords.add(record);
-            this._detachUnit(unit);
+        if (TechnologySystem.isUnlocked('mechanic', 'cross_world_reinforcement')) {
+            for (const unit of Array.from(g.entities.values())) {
+                if (!aliveMilitaryUnit(unit) || partyMembers.has(unit)) continue;
+                if ((unit._command?.mode || 'follow') !== 'follow') continue;
+                const record = this._recordUnit(unit, null, 'travel');
+                travel.troops.push(record);
+                this._portalTravelRecords.add(record);
+                this._detachUnit(unit);
+            }
         }
         for (const member of g.PartySystem?.members || []) {
             if (member?.active === false) continue;
@@ -388,6 +518,7 @@ export const TroopLineSystem = {
 
     onSceneEntered(sceneId) {
         this.validateRally({ notify: true });
+        this.validateProducerRallies();
         this._syncCompanionResidencyForScene(sceneId);
         this._flushIfLive(sceneId, true);
     },
@@ -427,6 +558,11 @@ export const TroopLineSystem = {
                 color: '#ffcc66', fontSize: '24px', duration: 3600,
             });
         }
+        for (const [key, record] of this._producerRallies) {
+            if (record.originSceneId === sceneId || record.target?.sceneId === sceneId) {
+                this._producerRallies.delete(key);
+            }
+        }
         this._revision++;
     },
 
@@ -455,11 +591,19 @@ export const TroopLineSystem = {
     },
 
     onBackgroundProduction(sourceSceneId, snapshot, baseline) {
+        if (!TechnologySystem.isUnlocked('mechanic', 'cross_world_reinforcement')) return 0;
         if (this.mode !== 'rally' || !this.validateRally() || this.rally.sceneId === sourceSceneId) return 0;
         let moved = 0;
+        const originWorldEpoch = Number(snapshot?.worldEpoch) || currentEpoch(sourceSceneId);
         for (const before of baseline || []) {
             const structure = snapshot?.structures?.[before.index];
             if (!structure || !this._snapshotIsTroopProducer(structure)) continue;
+            // 独立集结优先级最高：后台新增编制保留在原位面，不被全局跨位面兵线抽走。
+            if (this.getProducerRallyForOrigin(
+                structure.id || before.producerId,
+                sourceSceneId,
+                originWorldEpoch
+            )) continue;
             let movedForStructure = 0;
             const roster = { ...(structure.unitRoster || {}) };
             const afterCount = Object.values(roster).reduce((sum, value) => sum + Math.max(0, Number(value) || 0), 0);
@@ -479,7 +623,7 @@ export const TroopLineSystem = {
                         sourceSceneId,
                         originProducerId: structure.id || before.producerId || null,
                         originSceneId: sourceSceneId,
-                        originWorldEpoch: Number(snapshot?.worldEpoch) || currentEpoch(sourceSceneId),
+                        originWorldEpoch,
                     });
                 }
                 moved += delta;
@@ -545,6 +689,7 @@ export const TroopLineSystem = {
 
     serialize() {
         this.validateRally();
+        this.validateProducerRallies();
         this._pruneInvalidPending();
         const g = game();
         const residencyScene = g?._observerMode
@@ -572,6 +717,7 @@ export const TroopLineSystem = {
             version: VERSION,
             mode: this.mode,
             rally: this.rally ? { ...this.rally } : null,
+            producerRallies: Array.from(this._producerRallies.values()).map((record) => clone(record)),
             pending,
             companionResidency: clone(this._companionResidency),
         };
@@ -579,9 +725,14 @@ export const TroopLineSystem = {
 
     restore(data) {
         this.reset();
-        if (!data || (data.version !== 1 && data.version !== VERSION)) return;
+        if (!data || ![1, 2, VERSION].includes(data.version)) return;
         this.mode = MODES.has(data.mode) ? data.mode : 'follow';
         this.rally = normalizeTarget(data.rally);
+        if (this.mode === 'hold' && !TechnologySystem.isUnlocked('mechanic', 'troop_hold')) this.mode = 'follow';
+        if (this.mode === 'rally' && !TechnologySystem.isUnlocked('mechanic', 'troop_rally')) {
+            this.mode = 'follow';
+            this.rally = null;
+        }
         for (const [sceneId, records] of Object.entries(data.pending || {})) {
             if (!Array.isArray(records)) continue;
             const normalized = records
@@ -593,7 +744,16 @@ export const TroopLineSystem = {
         if (data.companionResidency && typeof data.companionResidency === 'object') {
             this._companionResidency = clone(data.companionResidency);
         }
+        for (const raw of data.producerRallies || []) {
+            const record = normalizeProducerRally(raw);
+            if (!record || !this._isProducerRallyCurrent(record)) continue;
+            this._producerRallies.set(
+                producerRallyKey(record.producerId, record.originSceneId, record.originWorldEpoch),
+                record
+            );
+        }
         this.validateRally();
+        this.validateProducerRallies();
         this._revision++;
         const currentScene = sceneManager()?.currentScene;
         if (currentScene) this.onSceneEntered(currentScene);
@@ -622,6 +782,18 @@ export const TroopLineSystem = {
         if (!PERSISTENT_WORLDS.has(target.sceneId)) return true;
         return WorldProgressionSystem.isPortalConstructed(target.sceneId)
             && WorldProgressionSystem.isWorldEpochCurrent(target.sceneId, target.worldEpoch);
+    },
+
+    _isProducerRallyCurrent(record) {
+        if (!record?.producerId || !record.originSceneId || !record.target) return false;
+        if (record.target.sceneId !== record.originSceneId) return false;
+        if (!PERSISTENT_WORLDS.has(record.originSceneId)) return this._isTargetCurrent(record.target);
+        return WorldProgressionSystem.isPortalConstructed(record.originSceneId)
+            && WorldProgressionSystem.isWorldEpochCurrent(
+                record.originSceneId,
+                record.originWorldEpoch
+            )
+            && this._isTargetCurrent(record.target);
     },
 
     _recordBelongsToWorld(record, sceneId, worldEpoch) {

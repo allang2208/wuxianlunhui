@@ -2,7 +2,7 @@
   "_comment": "世界-122 建筑升级项目库。建筑仅通过 producer-buildings.json / BARRACKS_CONFIG 的 upgradeProject 引用本文件；模块 effect 决定通用属性补丁，避免在建筑或 AI 中按模块名硬编码。",
   "combat_standard": {
     "unitKinds": ["militia", "scout"],
-    "moduleUpgrade": { "gold": 1000, "energy": 500 },
+    "moduleUpgrade": { "gold": 1000, "energy": 500, "timeBaseMs": 60000, "timeGrowthMs": 0 },
     "modules": {
       "attackSpd": { "name": "攻击加速", "icon": "⚡", "effect": "attackIntervalMult", "per": -0.025, "maxLevel": 10, "desc": "攻击间隔 -{pct}%" },
       "damage": { "name": "攻击强化", "icon": "⚔️", "effect": "attackDamageMult", "per": 0.025, "maxLevel": 10, "desc": "每次攻击伤害 +{pct}%" },
@@ -12,7 +12,7 @@
   },
   "priest_support": {
     "unitKinds": ["priest"],
-    "moduleUpgrade": { "gold": 1000, "energy": 500 },
+    "moduleUpgrade": { "gold": 1000, "energy": 500, "timeBaseMs": 60000, "timeGrowthMs": 0 },
     "modules": {
       "castSpd": { "name": "施法加速", "icon": "⚡", "effect": "holyLightCooldownMult", "per": -0.05, "maxLevel": 10, "desc": "圣光冷却 -{pct}%" },
       "holyLight": { "name": "圣光强化", "icon": "✨", "effect": "holyLightLevel", "mode": "add", "per": 1, "base": 1, "maxLevel": 10, "desc": "圣光等级 Lv.{level}" },
@@ -22,7 +22,7 @@
   },
   "cavalry_charge": {
     "unitKinds": ["knight", "light_cavalry"],
-    "moduleUpgrade": { "gold": 1000, "energy": 500 },
+    "moduleUpgrade": { "gold": 1000, "energy": 500, "timeBaseMs": 60000, "timeGrowthMs": 0 },
     "modules": {
       "attackSpd": { "name": "攻击加速", "icon": "⚡", "effect": "attackIntervalMult", "per": -0.025, "maxLevel": 10, "desc": "攻击间隔 -{pct}%" },
       "damage": { "name": "攻击强化", "icon": "⚔️", "effect": "attackDamageMult", "per": 0.025, "maxLevel": 10, "desc": "每次攻击伤害 +{pct}%" },
@@ -33,7 +33,7 @@
   },
   "shooting_range_special": {
     "unitKinds": ["musketeer", "shooter"],
-    "moduleUpgrade": { "gold": 1000, "energy": 500 },
+    "moduleUpgrade": { "gold": 1000, "energy": 500, "timeBaseMs": 60000, "timeGrowthMs": 0 },
     "modules": {
       "attackSpd": { "name": "攻击加速", "icon": "⚡", "effect": "attackIntervalMult", "per": -0.025, "maxLevel": 10, "desc": "攻击间隔 -{pct}%" },
       "damage": { "name": "攻击强化", "icon": "⚔️", "effect": "attackDamageMult", "per": 0.025, "maxLevel": 10, "desc": "每次攻击伤害 +{pct}%" },
@@ -43,7 +43,7 @@
   },
   "barracks_defense": {
     "unitKinds": ["warrior", "guard"],
-    "moduleUpgrade": { "gold": 1000, "energy": 500 },
+    "moduleUpgrade": { "gold": 1000, "energy": 500, "timeBaseMs": 60000, "timeGrowthMs": 0 },
     "modules": {
       "attackSpd": { "name": "攻击加速", "icon": "⚡", "effect": "attackIntervalMult", "per": -0.025, "maxLevel": 10, "desc": "攻击间隔 -{pct}%" },
       "damage": { "name": "攻击强化", "icon": "⚔️", "effect": "attackDamageMult", "per": 0.025, "maxLevel": 10, "desc": "每次攻击伤害 +{pct}%" },

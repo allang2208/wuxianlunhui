@@ -22,6 +22,7 @@ import {
 } from '../world/world122-snapshot.js';
 import { EnvironmentLightingSystem } from '../world/environment-lighting-system.js';
 import { TroopLineSystem } from '../world/troop-line-system.js';
+import { TechnologySystem } from '../world/technology-system.js';
 
 // Game UI Manager - Extracted from Game.js
 // Handles UI updates, save/load, timers, and menu operations
@@ -275,6 +276,7 @@ export const GameUIManager = {
         if (data.equipments) this.player.equipments = data.equipments;
         restoreUnitUpgrades(data.world122?.unitUpgrades);
         restoreAbilityLevels(data.world122?.abilityLevels);
+        TechnologySystem.restore(data.technologyTree, { legacyUnlockAll: !data.technologyTree });
         ResearchSystem.refreshWorld();
         EnergyManager.restoreStorage(data.world122?.energyStorage);
         World122TributeSystem.restore(data.world122?.tributeBuffs);
@@ -318,6 +320,7 @@ export const GameUIManager = {
             player: this.player.data,
             position: { x: this.player.x, y: this.player.y },
             gameTime: EnvironmentLightingSystem.serializeTime(),
+            technologyTree: TechnologySystem.serialize(),
             // 装备与背包一并持久化（附魔/强化/改造数据在物品字段上）
             equipments: this.player.equipments,
             backpack: (typeof EquipManager !== 'undefined') ? EquipManager.backpackItems : [],

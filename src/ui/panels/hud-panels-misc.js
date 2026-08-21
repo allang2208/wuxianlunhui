@@ -5,6 +5,7 @@ import { SceneManager } from '../../world/scene-manager.js';
 import { WallEditor } from '../wall-editor.js';
 import { CompanionPanel } from '../companion-panel.js';
 import { WorldSwitchPanel } from '../world-switch-panel.js';
+import { TechnologyTreePanel } from '../technology-tree-panel.js';
 export function createHudPanelsMisc() {
     const root = document.createElement('div');
 
@@ -21,7 +22,9 @@ export function createHudPanelsMisc() {
         { action: 'QuestSystem.open()', title: '任务 (L)', icon: 'assets/ui/icons/quest.png', alt: '任务', key: 'L', label: '任务栏' },
         { action: 'WorldSwitchPanel.toggle()', title: '世界传送 (O)', icon: 'assets/ui/icons/world_switch.png', alt: '世界传送', key: 'O', label: '世界传送', id: 'worldSwitchBtn' },
         { action: 'CompanionPanel.openManage()', title: '管理队员 (P)', icon: 'assets/ui/icons/party.png', alt: '队员', key: 'P', label: '队员管理' },
-        { action: 'Game.handleAddPoint()', title: '属性点', icon: 'assets/ui/addpoint.png', alt: '属性点', key: null, label: '属性点', id: 'addPointBtn', extraClass: 'addpoint-btn hidden' }
+        { action: 'Game.handleAddPoint()', title: '属性点', icon: 'assets/ui/addpoint.png', alt: '属性点', key: null, label: '属性点', id: 'addPointBtn', extraClass: 'addpoint-btn hidden' },
+        // 新入口追加在全部既有栏目之后，避免改变任何原按钮的预设序号。
+        { action: 'TechnologyTreePanel.open()', title: '科技树 (Y)', emoji: '🔬', alt: '科技树', key: 'Y', label: '科技树', id: 'technologyTreeBtn' }
     ];
     sideMenuItems.forEach(item => {
         const btn = document.createElement('div');
@@ -34,6 +37,7 @@ export function createHudPanelsMisc() {
             const action = item.action;
             btn.onclick = function() {
                 if (action === 'QuestSystem.open()') QuestSystem.open();
+                else if (action === 'TechnologyTreePanel.open()') TechnologyTreePanel.open();
                 else if (action === 'Game.handleAddPoint()') Game.handleAddPoint();
                 else if (action === 'CompanionPanel.openManage()') CompanionPanel.openManage();
                 else if (action === 'WorldSwitchPanel.toggle()') WorldSwitchPanel.toggle();

@@ -2190,15 +2190,25 @@ export class GameScene extends Scene {
             // 单位不需要精细轮廓）——逐帧 alpha 剪影链（unit_projection）已退役。
             sprite.setTexture('entity_shadow');
             sprite.setOrigin(0.5, 0.5);
-            sprite.setPosition(
-                footprint.x + profile.offsetX,
-                footprint.y + profile.offsetY
-            );
-            sprite.setDisplaySize(
-                footprint.width * profile.widthMul,
-                footprint.height * profile.depthMul
-            );
-            sprite.setRotation(0);
+            // 影向几何（2026-08-21 对齐 footprint 修复）：阴影从脚底 footprint 沿影向拉伸——
+            // 长轴 = footprint 宽 + 影向位移量并旋转到影向，中心只走位移的一半（影根盖住脚底），
+            // 不再整体平移（旧做法在小半径单位上会把整个椭圆推出 footprint 之外）。
+            // 位移过小（近正午）时保持 2:1 地面椭圆不旋转，避免竖直细影。
+            const offLen = Math.hypot(profile.offsetX, profile.offsetY);
+            const baseW = footprint.width * profile.widthMul;
+            const baseH = footprint.height * profile.depthMul;
+            if (offLen > 3) {
+                sprite.setPosition(
+                    footprint.x + profile.offsetX * 0.5,
+                    footprint.y + profile.offsetY * 0.5
+                );
+                sprite.setDisplaySize(baseW + offLen, baseH);
+                sprite.setRotation(Math.atan2(profile.offsetY, profile.offsetX));
+            } else {
+                sprite.setPosition(footprint.x, footprint.y);
+                sprite.setDisplaySize(baseW, baseH);
+                sprite.setRotation(0);
+            }
             sprite.setFlipX(false);
             sprite.setFlipY(false);
             sprite.setDepth(depth);
@@ -2252,14 +2262,20 @@ export class GameScene extends Scene {
             const sprite = this._companionSprites && this._companionSprites[e.id];
             if (!sprite || !sprite.active || !sprite.visible) continue;
             active.add(e);
-            const footOffsetY = this._getFootOffsetY(e, sprite);
+            // 友军阴影锚定视觉脚底（sprite.y + footOffsetY，与深度仲裁同一锚点）：
+            // 精灵位置已含 z 抬升与帧格归一化修正，纯跟随队员（无 AI 逻辑坐标）也不会错位；
+            // 尺寸仍随 groundRadius（footprint 唯一真源）。
+            const friendlyRadius = Math.max(1, Number(e.groundRadius) || 10);
+            const footprint = {
+                x: sprite.x,
+                y: sprite.y + this._getFootOffsetY(e, sprite),
+                width: friendlyRadius * 2,
+                height: friendlyRadius * 2 * PERSPECTIVE_SCALE_Y,
+            };
             ensureShadow(
                 e,
                 e,
-                this._getGroundShadowFootprint(e, e.groundRadius || 10, {
-                    x: sprite.x,
-                    y: sprite.y + footOffsetY,
-                }),
+                footprint,
                 sprite.depth - 0.1,
                 !isMapMode,
                 sprite

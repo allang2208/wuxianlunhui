@@ -95,6 +95,7 @@ import { ProducerBuilding, ProducerBuildingSystem } from './world/producer-build
 import { resetUnitUpgrades } from './world/unit-upgrade-store.js';
 import { resetAbilityLevels } from './world/ability-store.js';
 import { resetWorld122Snapshot } from './world/world122-snapshot.js';
+import { TechnologySystem } from './world/technology-system.js';
 
 export const Game = {
     VERSION: GAME_CONFIG.meta?.version || '0.198', // 游戏版本号（每次更新必须递增）
@@ -134,7 +135,7 @@ export const Game = {
         this.CompanionCommandWheel = CompanionCommandWheel; // 指令轮盘（探针可直接驱动 _execute）
         this.RTSCommand = RTSCommand;     // RTS 指挥模式（探针可直接驱动 enabled/setEnabled）
         this.TroopLineSystem = TroopLineSystem;
-        this.FlatViewSystem = FlatViewSystem; // 建造/RTS/观察者上下文的空格压平显示
+        this.FlatViewSystem = FlatViewSystem; // 正常/建筑模式滚轮压平；RTS/观察者保留空格入口
         this.Input = Input;               // 模式级快捷键隔离只清理按键状态，不绕过 Input 处理流程
         // RTS 建筑点击复用的系统句柄（避免模块循环 import，经 window.Game 惰性访问）
         this.DefenseSystem = DefenseSystem;
@@ -143,6 +144,7 @@ export const Game = {
         this.HamsterBarracksSystem = HamsterBarracksSystem;
         this.ProducerBuildingSystem = ProducerBuildingSystem;
         this.BuildingSystem = BuildingSystem;
+        this.TechnologySystem = TechnologySystem;
         this.Renderer = Renderer;         // 屏幕↔世界坐标（探针/调试）
         this.WallSystem = WallSystem;     // 墙体可达性（探针/调试）
         this.ExpeditionSystem = ExpeditionSystem;
@@ -156,12 +158,13 @@ export const Game = {
             resetUnitUpgrades();
             resetAbilityLevels();
             resetWorld122Snapshot();
+            TechnologySystem.reset();
             FlatViewSystem.reset();
             window.WorldProgressionSystem?.reset?.();
             window.WorldInvasionSystem?.reset?.();
             TroopLineSystem.reset();
             const menuLayer = getElement('menuLayer'); const uiLayer = getElement('uiLayer'); const gameLayer = getElement('gameLayer'); if (menuLayer) menuLayer.classList.add('hidden'); if (uiLayer) uiLayer.style.display = 'block'; if (gameLayer) gameLayer.style.display = 'block';
-            // 先初始化场景管理器并标记主场景，保证 Renderer.generateWorld / spawnNPC 用 4096×4096 主神空间尺寸
+            // 先初始化场景管理器并标记主场景，保证 Renderer.generateWorld / spawnNPC 用 12288×8192 主神空间尺寸（2026-08-21 菱形化）
             SceneManager.init();
             SceneManager.currentScene = 'main';
             SceneManager._inMainHub = true;

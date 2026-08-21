@@ -18,6 +18,7 @@ import { ExpeditionSystem } from './expedition-system.js';
 import { GameMenu } from './game-menu.js';
 import DevTool from './dev-tool.js';
 import { closeBasePanels } from './panels/base-panel.js';
+import { TechnologyTreePanel } from './technology-tree-panel.js';
         export const Input = {
             keys: new Set(),
             mouse: { x: 0, y: 0, leftDown: false, rightDown: false, leftPressed: false, rightPressed: false },
@@ -61,7 +62,7 @@ import { closeBasePanels } from './panels/base-panel.js';
                     if (Game._wallEditMode || Game._collisionEditMode || Game._buildMode) return; // 墙壁/碰撞/建筑编辑模式：鼠标交给编辑器，不触发攻击
                     // DOM 覆盖层点击不进入世界点击（组队栏/队员面板/招募界面等）：
                     // 并行新增 BuildingSystem.tryInteract 后，漏拦截会误开建筑面板
-                    const isSystemUI = !!e.target?.closest?.('.system-panel, .panel-overlay, .side-menu, .back-menu-btn, .menu-btn, .party-bar, .companion-overlay, .recruit-overlay, .rts-command-btn, .rts-unit-panel, .rts-command-bar, .wall-editor-panel, .world-switch-panel, .hamster-hut-panel, .hamster-barracks-panel, .producer-building-panel');
+                    const isSystemUI = !!e.target?.closest?.('.system-panel, .panel-overlay, .side-menu, .back-menu-btn, .menu-btn, .party-bar, .companion-overlay, .recruit-overlay, .rts-command-btn, .rts-unit-panel, .rts-command-bar, .wall-editor-panel, .world-switch-panel, .technology-tree-panel, .hamster-hut-panel, .hamster-barracks-panel, .producer-building-panel');
                     if (e.button === 0) { this.mouse.leftDown = true; if (!isSystemUI) this.mouse.leftPressed = true; }
                     if (e.button === 2) { this.mouse.rightDown = true; if (!isSystemUI) this.mouse.rightPressed = true; }
                 });
@@ -118,6 +119,7 @@ import { closeBasePanels } from './panels/base-panel.js';
                     if (code === CONFIG.KEYS.STATUS) { SystemUI.toggle('status'); return; }
                     if (code === CONFIG.KEYS.SKILL) { SystemUI.toggle('skill'); return; }
                     if (code === CONFIG.KEYS.CODEX) { SystemUI.toggle('codex'); return; }
+                    if (code === CONFIG.KEYS.TECHNOLOGY) { TechnologyTreePanel.open(); return; }
                     if (code === CONFIG.KEYS.QUEST) { if (QuestSystem) QuestSystem.toggle(); return; }
                     if (code === CONFIG.KEYS.PARTY) { CompanionPanel.openManage(); return; }
                     if (code === CONFIG.KEYS.WORLD) { if (typeof window !== 'undefined' && window.WorldSwitchPanel) window.WorldSwitchPanel.toggle(); return; }
@@ -129,6 +131,7 @@ import { closeBasePanels } from './panels/base-panel.js';
                 if (code === CONFIG.KEYS.STATUS) SystemUI.toggle('status');
                 if (code === CONFIG.KEYS.SKILL) SystemUI.toggle('skill');
                 if (code === CONFIG.KEYS.CODEX) SystemUI.toggle('codex');
+                if (code === CONFIG.KEYS.TECHNOLOGY) TechnologyTreePanel.open();
                 if (code === CONFIG.KEYS.QUEST) { if (QuestSystem) QuestSystem.toggle(); }
                 if (code === CONFIG.KEYS.PARTY) { CompanionPanel.openManage(); }
                 if (code === CONFIG.KEYS.WORLD) { if (typeof window !== 'undefined' && window.WorldSwitchPanel) window.WorldSwitchPanel.toggle(); }

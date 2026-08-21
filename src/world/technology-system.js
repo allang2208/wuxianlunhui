@@ -1,0 +1,453 @@
+import technologyTree from '../../data/technology-tree.json';
+import { EventBus } from '../core/event-bus.js';
+
+const VERSION = 2;
+const ALLOWED_UNLOCK_TYPES = new Set(['building', 'buildingKind', 'unit', 'upgrade', 'mechanic']);
+const nodes = Array.isArray(technologyTree.nodes) ? technologyTree.nodes : [];
+const nodesById = new Map(nodes.map((node) => [node.id, node]));
+const unlockOwners = new Map();
+
+for (const node of nodes) {
+    for (const unlock of node.unlocks || []) {
+        const key = `${unlock.type}:${unlock.id}`;
+        if (!unlockOwners.has(key)) unlockOwners.set(key, []);
+        unlockOwners.get(key).push(node.id);
+    }
+}
+
+function emptyState() {
+    return {
+        version: VERSION,
+        completed: [],
+        activeTechId: null,
+        activeSource: null,
+        targetTechId: null,
+        researchQueue: [],
+        progressById: {},
+    };
+}
+
+function normalizeProgress(value, cost) {
+    const number = Number(value);
+    if (!Number.isFinite(number)) return 0;
+    return Math.max(0, Math.min(Math.max(0, Number(cost) || 0), number));
+}
+
+function validateTechnologyTreeConfig(config) {
+    const errors = [];
+    const warnings = [];
+    const sourceNodes = Array.isArray(config?.nodes) ? config.nodes : [];
+    const ids = new Set();
+    const unlocks = new Map();
+
+    if (!Array.isArray(config?.nodes)) errors.push('nodes 必须是数组');
+    if (!(Number(config?.pointsPerInstitutePerSecond) > 0)) {
+        errors.push('pointsPerInstitutePerSecond 必须大于 0');
+    }
+
+    for (const [index, node] of sourceNodes.entries()) {
+        const id = typeof node?.id === 'string' ? node.id.trim() : '';
+        if (!id) {
+            errors.push(`nodes[${index}] 缺少有效 id`);
+            continue;
+        }
+        if (ids.has(id)) errors.push(`重复科技 id：${id}`);
+        ids.add(id);
+        if (!(Number(node.researchCost) > 0)) errors.push(`${id} 的 researchCost 必须大于 0`);
+        if (typeof node.branch !== 'string' || !node.branch.trim()) warnings.push(`${id} 缺少 branch`);
+        if (!Number.isFinite(Number(node.column)) || !Number.isFinite(Number(node.lane))) {
+            warnings.push(`${id} 缺少有效 column/lane 布局坐标`);
+        }
+        if (!Array.isArray(node.prerequisites)) errors.push(`${id} 的 prerequisites 必须是数组`);
+        if (!Array.isArray(node.unlocks)) errors.push(`${id} 的 unlocks 必须是数组`);
+
+        for (const unlock of node.unlocks || []) {
+            if (!ALLOWED_UNLOCK_TYPES.has(unlock?.type)) {
+                errors.push(`${id} 使用了非法解锁类型：${unlock?.type || '(empty)'}`);
+                continue;
+            }
+            if (typeof unlock.id !== 'string' || !unlock.id.trim()) {
+                errors.push(`${id} 存在缺少 id 的 ${unlock.type} 解锁项`);
+                continue;
+            }
+            const key = `${unlock.type}:${unlock.id}`;
+            if (unlocks.has(key)) {
+                warnings.push(`解锁目标 ${key} 同时由 ${unlocks.get(key)} 与 ${id} 提供`);
+            } else {
+                unlocks.set(key, id);
+            }
+        }
+    }
+
+    for (const node of sourceNodes) {
+        if (!node?.id) continue;
+        for (const requiredId of node.prerequisites || []) {
+            if (requiredId === node.id) errors.push(`${node.id} 不能依赖自身`);
+            else if (!ids.has(requiredId)) errors.push(`${node.id} 引用了不存在的前置科技：${requiredId}`);
+        }
+    }
+
+    const visitState = new Map();
+    const stack = [];
+    const visit = (id) => {
+        const state = visitState.get(id) || 0;
+        if (state === 2) return;
+        if (state === 1) {
+            const start = Math.max(0, stack.indexOf(id));
+            errors.push(`科技树存在循环依赖：${[...stack.slice(start), id].join(' -> ')}`);
+            return;
+        }
+        visitState.set(id, 1);
+        stack.push(id);
+        const node = sourceNodes.find((entry) => entry?.id === id);
+        for (const requiredId of node?.prerequisites || []) {
+            if (ids.has(requiredId)) visit(requiredId);
+        }
+        stack.pop();
+        visitState.set(id, 2);
+    };
+    for (const id of ids) visit(id);
+
+    const reachable = new Set(sourceNodes
+        .filter((node) => node?.id && (node.prerequisites || []).length === 0)
+        .map((node) => node.id));
+    let changed = true;
+    while (changed) {
+        changed = false;
+        for (const node of sourceNodes) {
+            if (!node?.id || reachable.has(node.id)) continue;
+            const prerequisites = node.prerequisites || [];
+            if (prerequisites.length && prerequisites.every((id) => reachable.has(id))) {
+                reachable.add(node.id);
+                changed = true;
+            }
+        }
+    }
+    for (const id of ids) {
+        if (!reachable.has(id)) warnings.push(`科技 ${id} 无法从任何根科技到达`);
+    }
+
+    return Object.freeze({
+        valid: errors.length === 0,
+        errors: Object.freeze([...new Set(errors)]),
+        warnings: Object.freeze([...new Set(warnings)]),
+    });
+}
+
+const CONFIG_VALIDATION = validateTechnologyTreeConfig(technologyTree);
+if (CONFIG_VALIDATION.errors.length) {
+    console.error('[TechnologySystem] 科技配置校验失败', CONFIG_VALIDATION.errors);
+}
+if (CONFIG_VALIDATION.warnings.length) {
+    console.warn('[TechnologySystem] 科技配置警告', CONFIG_VALIDATION.warnings);
+}
+
+export const TechnologySystem = {
+    config: technologyTree,
+    validation: CONFIG_VALIDATION,
+    state: emptyState(),
+    lastInstituteCount: 0,
+
+    reset() {
+        this.state = emptyState();
+        this.lastInstituteCount = 0;
+        this._emitChanged('reset');
+    },
+
+    validateConfig() {
+        return this.validation;
+    },
+
+    getNodes() {
+        return nodes;
+    },
+
+    getNode(id) {
+        return nodesById.get(id) || null;
+    },
+
+    isCompleted(id) {
+        return this.state.completed.includes(id);
+    },
+
+    isAvailable(id) {
+        const node = this.getNode(id);
+        return !!node && !this.isCompleted(id)
+            && (node.prerequisites || []).every((requiredId) => this.isCompleted(requiredId));
+    },
+
+    getAvailableNodes() {
+        return nodes.filter((node) => this.isAvailable(node.id));
+    },
+
+    isUnlocked(type, id) {
+        const owners = unlockOwners.get(`${type}:${id}`);
+        if (!owners?.length) return true;
+        return owners.some((nodeId) => this.isCompleted(nodeId));
+    },
+
+    getProgress(id) {
+        return normalizeProgress(this.state.progressById[id], this.getNode(id)?.researchCost);
+    },
+
+    getDependencyPath(id, { includeCompleted = true } = {}) {
+        const order = [];
+        const visited = new Set();
+        const visiting = new Set();
+        const visit = (nodeId) => {
+            if (visited.has(nodeId) || visiting.has(nodeId)) return;
+            const node = this.getNode(nodeId);
+            if (!node) return;
+            visiting.add(nodeId);
+            for (const requiredId of node.prerequisites || []) visit(requiredId);
+            visiting.delete(nodeId);
+            visited.add(nodeId);
+            if (includeCompleted || !this.isCompleted(nodeId)) order.push(nodeId);
+        };
+        visit(id);
+        return order;
+    },
+
+    getResearchPlan(id) {
+        if (!this.getNode(id) || this.isCompleted(id)) return [];
+        return this.getDependencyPath(id, { includeCompleted: false });
+    },
+
+    getResearchQueue() {
+        return [...this.state.researchQueue];
+    },
+
+    getResearchMode() {
+        if (this.state.targetTechId) return 'target';
+        if (this.state.activeTechId && this.state.activeSource === 'auto') return 'auto';
+        return 'idle';
+    },
+
+    getRemainingResearchPoints(ids = null) {
+        const queue = Array.isArray(ids)
+            ? ids
+            : (this.state.researchQueue.length
+                ? this.state.researchQueue
+                : (this.state.activeTechId ? [this.state.activeTechId] : []));
+        return queue.reduce((sum, id) => {
+            const node = this.getNode(id);
+            if (!node || this.isCompleted(id)) return sum;
+            return sum + Math.max(0, Number(node.researchCost) - this.getProgress(id));
+        }, 0);
+    },
+
+    getEstimatedSeconds(ids = null, instituteCount = this.lastInstituteCount) {
+        const rate = Math.max(0, Number(this.config.pointsPerInstitutePerSecond) || 0)
+            * Math.max(0, Math.floor(Number(instituteCount) || 0));
+        if (!(rate > 0)) return null;
+        return this.getRemainingResearchPoints(ids) / rate;
+    },
+
+    setResearchTarget(id, { source = 'manual-target' } = {}) {
+        if (!this.getNode(id) || this.isCompleted(id)) return false;
+        const plan = this.getResearchPlan(id);
+        const nextId = plan.find((nodeId) => this.isAvailable(nodeId));
+        if (!nextId) return false;
+        this.state.targetTechId = id;
+        this.state.researchQueue = plan;
+        this.state.activeTechId = nextId;
+        this.state.activeSource = 'target';
+        this._emitChanged(source);
+        return true;
+    },
+
+    setActive(id, options = {}) {
+        return this.setResearchTarget(id, options);
+    },
+
+    clearResearchTarget({ source = 'clear-target' } = {}) {
+        const changed = !!(this.state.targetTechId || this.state.researchQueue.length
+            || this.state.activeSource === 'target');
+        this.state.targetTechId = null;
+        this.state.researchQueue = [];
+        this.state.activeTechId = null;
+        this.state.activeSource = null;
+        if (changed) this._emitChanged(source);
+        return changed;
+    },
+
+    clearActive() {
+        return this.clearResearchTarget({ source: 'clear' });
+    },
+
+    update(deltaMs, instituteCount = 0) {
+        const count = Math.max(0, Math.floor(Number(instituteCount) || 0));
+        this.lastInstituteCount = count;
+        if (count <= 0 || deltaMs <= 0) return null;
+
+        if (!this.isAvailable(this.state.activeTechId)) {
+            this._selectNextResearch();
+            if (!this.state.activeTechId) return null;
+        }
+
+        const node = this.getNode(this.state.activeTechId);
+        const rate = Math.max(0, Number(technologyTree.pointsPerInstitutePerSecond) || 0) * count;
+        const next = this.getProgress(node.id) + rate * (deltaMs / 1000);
+        this.state.progressById[node.id] = Math.min(node.researchCost, next);
+
+        if (next < node.researchCost) {
+            this._emitChanged('progress');
+            return null;
+        }
+
+        if (!this.state.completed.includes(node.id)) this.state.completed.push(node.id);
+        delete this.state.progressById[node.id];
+        this.state.activeTechId = null;
+
+        if (this.state.targetTechId === node.id) {
+            this.state.targetTechId = null;
+            this.state.researchQueue = [];
+            this.state.activeSource = null;
+        } else if (this.state.targetTechId) {
+            this._rebuildTargetQueue();
+        } else {
+            this.state.activeSource = null;
+        }
+
+        this._emitChanged('completed', node);
+        this._refreshConsumers();
+        const sceneManager = typeof window !== 'undefined' ? window.SceneManager : null;
+        const unlockSummary = (node.unlocks || [])
+            .map((unlock) => unlock.label || unlock.id)
+            .filter(Boolean)
+            .join('、');
+        sceneManager?.showTopNotification?.(
+            `科技研发完成：${node.name}${unlockSummary ? `｜解锁 ${unlockSummary}` : ''}`,
+            { color: '#8ee6ff' }
+        );
+        return node;
+    },
+
+    unlockAll({ source = 'dev' } = {}) {
+        const before = this.state.completed.length;
+        this.state.completed = nodes.map((node) => node.id);
+        this.state.activeTechId = null;
+        this.state.activeSource = null;
+        this.state.targetTechId = null;
+        this.state.researchQueue = [];
+        this.state.progressById = {};
+        this._emitChanged(source);
+        this._refreshConsumers();
+        return Math.max(0, this.state.completed.length - before);
+    },
+
+    serialize() {
+        return {
+            version: VERSION,
+            completed: [...this.state.completed],
+            activeTechId: this.state.activeTechId,
+            activeSource: this.state.activeSource,
+            targetTechId: this.state.targetTechId,
+            researchQueue: [...this.state.researchQueue],
+            progressById: { ...this.state.progressById },
+        };
+    },
+
+    restore(saved, { legacyUnlockAll = false } = {}) {
+        if (!saved || typeof saved !== 'object') {
+            this.state = emptyState();
+            if (legacyUnlockAll) this.unlockAll({ source: 'legacy-save' });
+            else this._emitChanged('restore');
+            return;
+        }
+
+        const completed = Array.isArray(saved.completed)
+            ? [...new Set(saved.completed.filter((id) => nodesById.has(id)))]
+            : [];
+        const progressById = {};
+        for (const [id, value] of Object.entries(saved.progressById || {})) {
+            const node = this.getNode(id);
+            if (node && !completed.includes(id)) progressById[id] = normalizeProgress(value, node.researchCost);
+        }
+        this.state = {
+            ...emptyState(),
+            completed,
+            progressById,
+        };
+
+        const savedTargetId = this.getNode(saved.targetTechId) && !this.isCompleted(saved.targetTechId)
+            ? saved.targetTechId
+            : null;
+        if (savedTargetId) {
+            this.state.targetTechId = savedTargetId;
+            this._rebuildTargetQueue();
+            if (this.state.researchQueue.includes(saved.activeTechId) && this.isAvailable(saved.activeTechId)) {
+                this.state.activeTechId = saved.activeTechId;
+            }
+        } else if (Number(saved.version) < VERSION
+            && this.getNode(saved.activeTechId)
+            && this.isAvailable(saved.activeTechId)) {
+            // v1 的手选项目迁移为同名研究目标，已有进度不丢失。
+            this.state.targetTechId = saved.activeTechId;
+            this._rebuildTargetQueue();
+            this.state.activeTechId = saved.activeTechId;
+        } else if (this.getNode(saved.activeTechId) && this.isAvailable(saved.activeTechId)) {
+            this.state.activeTechId = saved.activeTechId;
+            this.state.activeSource = 'auto';
+        }
+
+        this._emitChanged('restore');
+        this._refreshConsumers();
+    },
+
+    _selectNextResearch() {
+        if (this.state.targetTechId && !this.isCompleted(this.state.targetTechId)) {
+            this._rebuildTargetQueue();
+            if (this.state.activeTechId) {
+                this._emitChanged('queue-next');
+                return this.state.activeTechId;
+            }
+        }
+
+        this.state.targetTechId = null;
+        this.state.researchQueue = [];
+        const available = this.getAvailableNodes();
+        this.state.activeTechId = available.length
+            ? available[Math.floor(Math.random() * available.length)].id
+            : null;
+        this.state.activeSource = this.state.activeTechId ? 'auto' : null;
+        if (this.state.activeTechId) this._emitChanged('auto-select');
+        return this.state.activeTechId;
+    },
+
+    _rebuildTargetQueue() {
+        const targetId = this.state.targetTechId;
+        if (!targetId || this.isCompleted(targetId)) {
+            this.state.targetTechId = null;
+            this.state.researchQueue = [];
+            this.state.activeTechId = null;
+            this.state.activeSource = null;
+            return [];
+        }
+        const plan = this.getResearchPlan(targetId);
+        this.state.researchQueue = plan;
+        const activeStillValid = plan.includes(this.state.activeTechId)
+            && this.isAvailable(this.state.activeTechId);
+        if (!activeStillValid) {
+            this.state.activeTechId = plan.find((id) => this.isAvailable(id)) || null;
+        }
+        this.state.activeSource = this.state.activeTechId ? 'target' : null;
+        return plan;
+    },
+
+    _emitChanged(reason, completedNode = null) {
+        EventBus.emit('technology:changed', {
+            reason,
+            completedNode,
+            state: this.serialize(),
+        });
+    },
+
+    _refreshConsumers() {
+        const game = typeof window !== 'undefined' ? window.Game : null;
+        game?.BuildingSystem?.refreshTechnologyUnlocks?.();
+        game?.ProducerBuildingSystem?._panel?.refresh?.();
+        game?.HamsterBarracksSystem?._panel?.refresh?.();
+        game?.RTSCommand?._refreshTroopLinePanel?.(true);
+    },
+};

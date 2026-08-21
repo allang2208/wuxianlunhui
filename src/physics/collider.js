@@ -67,6 +67,8 @@ export class Collider {
     static _deriveHeight(entity, radius) {
         const cfg = entity.config || {};
         const render = cfg.render || {};
+        // 建筑的 collisionHeight 表示地面 footprint 深度；需要独立字段描述垂直体积。
+        if (entity.collisionBodyHeight > 0) return entity.collisionBodyHeight;
         if (cfg.height > 0) return cfg.height;
         if (render.spriteSize > 0) return render.spriteSize;
         if (entity.collisionHeight > 0) return entity.collisionHeight;

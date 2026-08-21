@@ -1,0 +1,19 @@
+{
+  "zombieDungeon": {
+    "sceneIds": [
+      "scene7"
+    ],
+    "dungeonTypes": [
+      "zombie",
+      "zombieBeginner",
+      "zombieMid"
+    ],
+    "minimumDurationMs": 1000,
+    "title": "僵尸地牢加载中...",
+    "backgrounds": [
+      "assets/scenes/loading/zombie-dungeon-1.png",
+      "assets/scenes/loading/zombie-dungeon-2.png",
+      "assets/scenes/loading/zombie-dungeon-3.png"
+    ]
+  }
+}
