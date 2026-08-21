@@ -1,0 +1,7 @@
+Use case: stylized-concept
+Asset type: World-122 building preview, transparent PNG
+Primary request: A redesigned compact shooting range pavilion, weathered gray-brown stone foundation with dark aged timber structural braces, an open warm-lit firing bay across the front, two short attached support towers, and a broad low-pitched muted olive-gray shingle gable roof with a very low ridge, shallow roof slope around 15 degrees, long layered eaves; visible individual roof shingles, iron brackets, layered timber beams, plank target-board silhouettes and straw target backs inside the bay only. Avoid a tall steep roof, avoid a high triangular roof silhouette.
+Style/medium: unified World-122 game building asset, high-detail realistic 3D-rendered PBR surfaces, muted low-saturation palette, restrained weathering, crisp ambient occlusion in joints, clean readable silhouette.
+Composition/framing: strict orthographic isometric camera at 26.565 degrees; fixed rectangular ground footprint exactly 256 by 128 in world proportion, visible top faces form a clean 2:1 diamond; centered full building with generous transparent margin.
+Lighting/mood: soft even diffuse studio light, no cast shadow, no ground plane.
+Constraints: transparent-background asset; all walls vertical; only the roof and top faces follow isometric perspective; no perspective convergence; no text; no logo; no watermark; no characters; no loose weapons; no trees.

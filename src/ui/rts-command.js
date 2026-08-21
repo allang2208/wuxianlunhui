@@ -920,6 +920,7 @@ export const RTSCommand = {
         if (mode === 'hold') return { mode: 'hold', point: null, target: null };
         if (mode === 'patrol') return { mode: 'move', point: point ? { x: point.x, y: point.y } : null, target: null };
         if (mode === 'gather') return u._isHamsterMiner ? { mode: 'follow' } : null;
+        if (mode === 'explore') return u._isHamsterExplorer ? { mode: 'explore' } : null;
         return null;
     },
 
@@ -1215,8 +1216,12 @@ export const RTSCommand = {
             }
             ring.setPosition(e.x, e.y - (Number(e.z) || 0));
             ring.setVisible(true);
-            const sp = e._phaserSprite;
-            ring.setDepth(sp && sp.active ? sp.depth - 0.1 : e.y);
+            // 建筑产出的友军由 GameScene._companionSprites 渲染，并不一定持有
+            // _phaserSprite；必须跟随真实显示精灵，不能退回 e.y 盖到单位身上。
+            const sp = e._phaserSprite?.active
+                ? e._phaserSprite
+                : scene._companionSprites?.[e.id];
+            ring.setDepth(sp?.active ? sp.depth - 0.2 : e.y - 0.2);
         }
         for (const [e, ring] of this._allyRings) {
             if (!allyAlive.has(e)) { ring.destroy(); this._allyRings.delete(e); }
@@ -1260,6 +1265,12 @@ export const RTSCommand = {
             if (!producerAlive.has(building)) { marker.destroy(); this._producerRings.delete(building); }
         }
         this._renderRallyGuide(scene);
+    },
+
+    /** GameScene 完成单位当帧遮挡仲裁后回写黄圈，确保黄圈低于贴图与脚底阴影。 */
+    syncAllyRingDepth(unit, unitDepth) {
+        const ring = this._allyRings?.get(unit);
+        if (ring?.active && Number.isFinite(unitDepth)) ring.setDepth(unitDepth - 0.2);
     },
 
     _activeRallyGuideTarget() {

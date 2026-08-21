@@ -14,6 +14,10 @@ import musketeerCfg from '../../data/hamster-musketeer-config.json';
 import priestCfg from '../../data/hamster-priest-config.json';
 import knightCfg from '../../data/hamster-knight-config.json';
 import lightCavalryCfg from '../../data/hamster-light-cavalry-config.json';
+import explorerCfg from '../../data/hamster-explorer-config.json';
+import bountyHunterCfg from '../../data/hamster-bounty-hunter-config.json';
+import jaguarWarriorCfg from '../../data/jaguar-warrior-config.json';
+import junglePriestCfg from '../../data/jungle-priest-config.json';
 import { getUpgradeModulesForUnitKind } from './building-upgrade-projects.js';
 
 /** 全局升级等级：{ [kind]: { [moduleId]: level } }（满级由建筑模块配置 maxLevel 控制） */
@@ -59,12 +63,20 @@ export const UNIT_KIND_CFG = {
     priest: priestCfg,
     knight: knightCfg,
     light_cavalry: lightCavalryCfg,
+    explorer: explorerCfg,
+    bounty_hunter: bountyHunterCfg,
+    jaguar_warrior: jaguarWarriorCfg,
+    jungle_priest: junglePriestCfg,
 };
 
 /** 实体识别兵种 key（非战斗兵种返回 null） */
 export function getUnitKind(unit) {
     if (!unit) return null;
     if (unit._isHamsterMilitia) return 'militia';
+    if (unit._isHamsterExplorer) return 'explorer';
+    if (unit._isHamsterBountyHunter) return 'bounty_hunter';
+    if (unit._isJaguarWarrior) return 'jaguar_warrior';
+    if (unit._isJunglePriest) return 'jungle_priest';
     if (unit._isHamsterWarrior) return 'warrior';
     if (unit._isHamsterShooter) return 'shooter';
     if (unit._isHamsterGuard) return 'guard';

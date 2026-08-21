@@ -1,0 +1,75 @@
+{
+  "outputRoot": "Y:/工作/无尽轮回/scratch/world122_housing_20260821",
+  "host": "192.168.3.142",
+  "model": "flux2-dev-depth",
+  "steps": 48,
+  "strength": 0.84,
+  "variants": 1,
+  "structureSteps": 12,
+  "structureVariants": 2,
+  "structureDepthStrength": 0.78,
+  "structureEdgeStrength": 0.38,
+  "useEdgeControl": false,
+  "refineSteps": 48,
+  "refineVariants": 1,
+  "refineDenoise": 0.3,
+  "refineDepthStrength": 0.75,
+  "refineEdgeStrength": 0.38,
+  "structuralOverlapZ": 8,
+  "maskEdgePad": 12,
+  "structureSeedBase": 122340,
+  "refineSeedBase": 122440,
+  "selectedStructureSeeds": {
+    "house_lv1": 122342,
+    "house_lv2": 122351,
+    "house_lv3": 122362
+  },
+  "selectedRefineSeeds": {
+    "house_lv1": 122441,
+    "house_lv2": 122451,
+    "house_lv3": 122461
+  },
+  "finalAssets": {
+    "house_lv1": "assets/terrain/house_lv1.png",
+    "house_lv2": "assets/terrain/house_lv2.png",
+    "house_lv3": "assets/terrain/house_lv3.png"
+  },
+  "assets": [
+    {
+      "id": "house_lv1",
+      "label": "房屋 Lv.1",
+      "primitives": [
+        { "type": "box", "size": [198, 178, 96], "pos": [0, 0, 48], "rot": [0, 0, 44.8] },
+        { "type": "prism", "size": [224, 204, 72], "pos": [0, 0, 132], "rot": [0, 0, 44.8] },
+        { "type": "box", "size": [30, 30, 88], "pos": [58, 34, 116], "rot": [0, 0, 44.8] }
+      ],
+      "primaryRequest": "a modest compact medieval civilian cottage, one low single-story pale fieldstone and dark oak house, one simple muted golden-brown shingle roof, one small integrated brick chimney, one closed wooden door and a few warm shallow windows, sober low-saturation settlement materials",
+      "structureRequest": "exactly one closed low single-story square 2x2 cottage body, exactly one continuous simple hipped roof and one small chimney integrated into the roof; no second floor, no tower, no dormer, no annex, no porch and no detached component; solid walls continue directly to the ground-contact line; absolutely no base slab, plinth, platform, foundation, terrain or props",
+      "detailRequest": "preserve the exact low single-story cottage silhouette, roof, chimney, camera and ground-contact edge; refine pale weathered fieldstone, restrained dark oak framing, muted golden-brown shingles, one closed plank door and two or three warm shallow windows; no second floor, tower, dormer, annex, porch, base slab, plinth, platform, terrain or loose props"
+    },
+    {
+      "id": "house_lv2",
+      "label": "房屋 Lv.2",
+      "primitives": [
+        { "type": "box", "size": [208, 188, 136], "pos": [0, 0, 68], "rot": [0, 0, 44.8] },
+        { "type": "prism", "size": [236, 216, 78], "pos": [0, 0, 175], "rot": [0, 0, 44.8] },
+        { "type": "box", "size": [32, 32, 114], "pos": [62, 36, 144], "rot": [0, 0, 44.8] }
+      ],
+      "primaryRequest": "a sturdy upgraded medieval civilian family house, compact two-story pale fieldstone and dark oak residence, one simple muted golden-brown shingle roof, one integrated brick chimney, a reinforced closed wooden door and additional warm mullioned windows, sober low-saturation settlement materials",
+      "structureRequest": "exactly one closed square 2x2 two-story house body, exactly one continuous simple hipped roof and one small chimney integrated into the roof; clearly readable lower and upper floor window rows; no tower, no dormer, no annex, no porch and no detached component; solid walls continue directly to the ground-contact line; absolutely no base slab, plinth, platform, foundation, terrain or props",
+      "detailRequest": "preserve the exact compact two-story house silhouette, roof, chimney, camera and ground-contact edge; refine pale weathered fieldstone, stronger dark oak floor beams and corner braces, muted golden-brown shingles, one reinforced closed plank door and four or five warm mullioned windows; no tower, dormer, annex, porch, base slab, plinth, platform, terrain or loose props"
+    },
+    {
+      "id": "house_lv3",
+      "label": "房屋 Lv.3",
+      "primitives": [
+        { "type": "box", "size": [220, 200, 168], "pos": [0, 0, 84], "rot": [0, 0, 44.8] },
+        { "type": "prism", "size": [250, 230, 86], "pos": [0, 0, 211], "rot": [0, 0, 44.8] },
+        { "type": "box", "size": [36, 36, 132], "pos": [66, 38, 174], "rot": [0, 0, 44.8] }
+      ],
+      "primaryRequest": "a prosperous fully upgraded medieval civilian townhouse, substantial compact two-story pale ashlar and dark carved oak residence, one broad muted golden-brown tiled roof, one integrated masonry chimney, a refined reinforced closed door, balanced rows of warm mullioned windows and restrained carved timber braces, sober low-saturation settlement materials",
+      "structureRequest": "exactly one closed substantial square 2x2 two-story townhouse body, exactly one continuous broad hipped roof and one chimney integrated into the roof; clearly readable reinforced lower level and orderly upper window row; no third floor, no tower, no dormer, no annex, no balcony and no detached component; solid walls continue directly to the ground-contact line; absolutely no base slab, plinth, platform, foundation, terrain or props",
+      "detailRequest": "preserve the exact substantial two-story townhouse silhouette, roof, chimney, camera and ground-contact edge; refine pale cut-stone masonry, dark carved oak floor beams and corner braces, muted golden-brown roof tiles, one refined closed reinforced door and six orderly warm mullioned windows, restrained bronze brackets only integrated into the walls; no third floor, tower, dormer, annex, balcony, base slab, plinth, platform, terrain or loose props"
+    }
+  ]
+}

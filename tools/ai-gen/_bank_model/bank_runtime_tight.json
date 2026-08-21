@@ -1,0 +1,27 @@
+{
+  "source": "assets\\terrain\\bank.png",
+  "output": "tools\\ai-gen\\_bank_model\\bank_5080_s48_glassdoor_seed122821_runtime_tight.png",
+  "sourceMode": "RGBA",
+  "background": null,
+  "cropBox": [
+    73,
+    164,
+    949,
+    902
+  ],
+  "fileSize": [
+    876,
+    738
+  ],
+  "alphaBBox": [
+    4,
+    4,
+    872,
+    734
+  ],
+  "displayW": 266,
+  "displayH": 224,
+  "footOffsetY": 111,
+  "scaleX": 0.3036529680365297,
+  "scaleY": 0.3035230352303523
+}

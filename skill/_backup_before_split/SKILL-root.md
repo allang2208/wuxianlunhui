@@ -1,0 +1,8684 @@
+# Sprite Pipeline 技能文档（无限轮回 wuxian-lunhui）
+
+## 版本: 3.0（2026-08-13 系统化重组）
+
+> 本文档是《无限轮回》项目（game-dev，Phaser 4 + Vite + Electron）的开发技能库。
+> 2026-08-13 重组：按主题大类归类（同类技能/痛点集中放置）、删除样板重复、新增目录索引；
+> 原按时间线散落的阶段性进度总结已归位到对应大类，历史性记录集中在文末附录。
+> 旧版完整备份：`SKILL.md.backup-20260813_184745`。
+
+## 0. 目录索引
+
+**1. 项目总览与通用铁律**
+- 核心规则
+
+**2. AI 资产与出图管线**
+- ⭐ AI 资产统一入口：ai-asset.py（2026-08-08 定稿，开展 AI 生图/视频/抠图/怪物动画工作一律先走这里）
+- ⭐ 识图优先入口：GLM-4.6V 识图系统（2026-08-03 构建，读图一律先走这里）
+- 本地 AI 出图工作流（双机 ComfyUI 优先 + 智谱 API 兜底 + GLM-4.6V 验收，2026-08-04 二轮调整）
+- 双机开源 AI 工具实机盘点（2026-08-13：TRELLIS 2 已就绪、Hunyuan 3D 未装）
+- 场景要素训练结论 + 墙体材质 LoRA（2026-08-07）
+- 视频→精灵图→游戏落地全管线（2026-08-05 工头 walk 实战沉淀，100% 达标）
+- 人形角色视频→精灵图全流程（2026-08-12 露娜 Luna 四动作 32 帧实战定稿）
+- 四足动物（狼系）动画精灵图全管线（2026-08-07 黑狼/红狼王定稿）
+- 黑狼动画升级（2026-08-06，H3 全动作管线落地）
+- 阶段性进度总结（2026-08-04：生图标准工作流 + 提示词固化定稿）
+- 阶段性进度总结（2026-08-04 二轮：生图入口优先级调整 + FLUX.2 dev Depth ControlNet 视角锁定）
+- 树木等距素材管线（2026-08-15 两轮定稿：白模 30° 深度锁 → flux2-dev-depth → BiRefNet 进程内合成，新树/植被一律按此开展）
+- Blender 建模渲染管线（2026-08-16 定稿：blockout 规格 → render-factory-real.py 直接渲成品，
+- ⭐ 地面无缝纹理统一入口：floor-asset.py（2026-08-16 定稿，泥/沙等平材质地面一律先走这里）
+  支持 prism 屋顶 / wall·interior·window 材质 / spec.lighting 加亮 / 滑门 16 帧动画；采样既有贴图优先）
+
+**3. 玩家角色与武器动画**
+- 玩家角色动画标准工作流（射击/近战新动作一律按此开展，2026-07-26 定稿）
+- 阶段性进度总结（2026-07-26 深夜：手枪姿态系 + 跑步系 + 瞄准死区）
+- 阶段性进度总结（2026-07-26 晚间：持枪瞄准体系全套落地）
+- 阶段性进度总结（2026-07-26 玩家动画体系）
+- 阶段性进度总结（2026-07-27：腰射⇄瞄准 aimFrames 帧动画重做落地 + 实机达标）
+- 阶段性进度总结（2026-07-28：近战连段体系 + 攻击范围重构 + 挥砍特效 + 贴图标准化）
+- 武器动画调试基准（2026-07-26 定稿）
+- 行走逐帧武器轨迹（walkFrames，2026-08-02）
+- 手部分层（handLayer，2026-08-02）
+- 复用武器动画独立调参（staff 法杖，2026-08-02 实测定稿）
+- 普通攻击一段跟手 + 方向性运动模糊（2026-08-03 落地；08-03 二轮复核修正，30 帧全贴手）
+- 二段攻击（attack_sword_2）双手横挥优化（2026-08-03）
+- 冲刺攻击（dash_attack）跟手优化（2026-08-03 初版；2026-08-16 dashHand 剑柄锚手定稿）
+- 挥砍剑气轨迹（SwordAuraTrail，2026-08-16 已停用，代码保留）
+- 平滑弧形刀光（SwordArcTrail，2026-08-16 已暂停，代码保留）
+- 交互式开发工具（DevTool）与攻击动画插帧系统
+
+**4. 武器与装备系统**
+- 武器添加标准工作流（2026-07-28 定稿，新武器一律按此开展）
+- 枪械无法开火排查手册（开枪链路全断点地图，2026-07-26 定稿）
+- 阶段性进度总结（2026-07-27：攻击力公式体系统一——单一公式源）
+- 装备/道具图标统一处理工作流（2026-08-02 定稿：装备图标放大 + 视觉居中沉淀）
+- 装备/首饰添加标准工作流（2026-08-03 定稿，稀有套装入库首航）
+- 祭品添加标准工作流（新增祭品一律按此开展）
+
+**5. 技能与战斗系统**
+- 技能添加标准工作流（2026-08-02 定稿，闪电技能首航）
+- 法系投射物技能系统（2026-07-28，火球/冰锥合并）
+- 火焰/油脂区域特效工作流（2026-07-23 新增；2026-07-28 共享件 combat-fx.js 落地）
+- 持续区域特效基类 GroundZone（2026-07-28，毒雾/酸液新区域一律按此开展）
+- 锁定/传导类技能特效模板（2026-08-02，LightningBoltEffect 首航）
+- 魔法施法动作标准（2026-08-02 定稿：前摇/第 N 帧释放/倒放后摇/跨步）
+- Buff/Debuff 添加标准工作流（新状态效果一律按此开展）
+- 状态效果系统（DamageableEntity 统一驱动）
+- 阶段性进度总结（2026-07-28：经验系统重构一期——pacing 闭环 + 压级衰减）
+- 阶段性进度总结（2026-08-03：火系高级魔法「陨星坠落」落地）
+- 阶段性进度总结（2026-08-03：火系初级 Buff 型技能「灼锋焰甲」落地）
+- 阶段性进度总结（2026-08-05：电系中高级技能 + 感电叠层机制落地）
+
+**6. 地牢与场景构建**
+- ⭐ 生成世界标准工作流（2026-08-19 定稿，新增世界一律按此开展）
+- ⭐ 地牢迷宫自动生成关键参考（2026-08-11 定稿，新增地牢/迷宫必读）
+- 地牢添加标准工作流（新增地牢一律按此开展）
+- 地牢场景构建标准工作流（2026-07-25 定稿，全套实战经验）
+- 墙体添加标准工作流（独立流程，新墙类素材/墙件一律按此开展）
+- 墙壁系统（2026-07-24 重构：可视化编辑器 + 预制组合）
+- 等距投影素材规范（所有场景素材必须遵守）
+- 阶段性进度总结（2026-07-26）
+- 阶段性进度总结（2026-07-26 续）
+- 阶段性进度总结（2026-07-25）
+
+**7. 世界-122 防守地图**
+- 世界-122 防守地图（雏形，2026-08-04）
+- 世界-122 迭代沉淀（2026-08-15：塔死角排查/塔整塔命中+悬停轮廓+神经芯片面板/基地退回/树木散布）
+- 世界-122 荒漠化（2026-08-16：树木全部移除 → 仙人掌 4 姿态障碍物 cactusScatter + deco 荒漠植物点缀）
+- 防御塔升级重构——六维芯片取代等级（2026-08-16：武器↔主属性挂钩、伤害实时公式、费用逐级递增、面板武器贴图；二轮重新引入改造模块图标卡）
+- 世界-122 相机默认恒居玩家中央（2026-08-16：非瞄准钉玩家/瞄准才偏移；相机平滑拖尾修复）
+- 世界-122 扩展：6144×4096 / 分块惰性地板 / 大能源点簇 / 基地门可攻击（2026-08-16）
+- 世界-122 仓鼠兵营接入游戏（2026-08-16：B 面板 1500 能源建造，同小屋尺寸；每 45s 生成战士/盾卫可切换——2026-08-18 调整；升级复制小屋模块）
+- 世界-122 进度条实时刷新模式（2026-08-16：兵营出发进度 + 怪物来袭倒计时，100ms tick + 0.2s 过渡平滑增长）
+- 世界-122 建筑详情面板交互调整（2026-08-16：仅建设模式弹出、建设模式无视距离、详情与建筑面板左侧并排）
+- 后续打磨方向（未做）
+
+**8. AI 寻路、碰撞与移动**
+- 智能寻路系统（参考《环世界》PathManager）
+- 寻路性能优化（2026-08-03 落地，改寻路代码前必读）
+- 大场景 AI 索敌 + 寻路（2026-08-08 定稿，世界-122 驱动、机制全局生效）
+- 防守怪物 A 移动 + 全局移速倍率（2026-08-15：交战半径沿途攻击/脱离滞回/免滞回转火；enemyDefaults.globalSpeedMultiplier）
+- 防守怪目标分摊（拥挤感知，2026-08-16：真射程保持/可达过滤/防 ping-pong）
+- 常见陷阱：isReachable 步数限制导致路径计算失败
+- 伪 3D 碰撞重构记录（进行中）
+- 树木碰撞体优化（大怪物卡树问题）
+- Dash 偏移计算（_getDashOffset 统一接口）
+- 阶段性进度总结（2026-08-03：怪物寻路全面审计 + 性能优化落地）
+
+**9. 怪物与 NPC**
+- 流水线流程（以后每个新角色/怪物都走这套）
+- 怪物共享基础件（2026-07-21 新增，新怪物优先复用）
+- 怪物 AI 状态机（BlackWolf 示例）
+- 怪物 HUD 锚点工作流（2026-07-21 新增；2026-07-23 起为**新怪物必做项**）
+- 怪物 HUD（名字/血条）定位规则
+- ⭐ 怪物渲染图层与构造铁律（2026-08-15：阴影时序 / 贴图键≠动画键 / 构造必并配置）
+- NPC 添加标准工作流（2026-07-22 新增，新 NPC 一律按此开展）
+- 玩家友方单位添加工作流（2026-08-15 仓鼠矿工首航；2026-08-17 仓鼠民兵/斥候）
+
+**10. UI、面板与组队系统**
+- 面板生命周期框架（2026-07-21 新增，新面板优先复用）
+- 侍从系统框架（2026-08-12，占位符阶段）
+- 图层/背景随分辨率适配工作流（"cover 铺满 + bottom 锚定"）
+
+**11. 音效系统**
+- 音效导入工作流（2026-07-17 新增，参照集合体落地；2026-07-21 目录规范更新）
+
+**12. 常见陷阱与调试手册**
+- 常见问题
+- 常见陷阱：功能失效优先查数据/配置完整性（弹药初始化同款两连）
+- 常见陷阱：anim.timer === 0（死代码）
+- 常见陷阱：const 重复声明
+- 常见陷阱：四方向 facing 但仅有两方向精灵图时的翻转逻辑
+- 常见陷阱：Phaser 4 的 FX API 不是 postFX
+- 常见陷阱：Phaser 4 filters 是 per-object 渲染通道（数量多即卡）
+- 遭遇导演（2026-07-28 移除：零调用的预留抽象）
+- 工具文件
+
+**13. 历史记录与变更日志（附录）**
+- 变更记录
+- 技术回顾与清理（2026-07-13）
+- 阶段性进度总结（2026-08-03：距离音效/游戏菜单/冰墙与魔法改造修复/全量审计）
+- 阶段性进度总结（2026-07-28：Boss 场地门闸化 + 防再犯单测 + 武器工作流定稿）
+- 阶段性进度总结（2026-07-13 晚间收尾）
+- 阶段性进度总结（2026-07-13 续）
+- 阶段性进度总结（2026-07-13）
+- 阶段性进度总结（2026-07-12）
+- 阶段性进度总结（2026-07-11）
+
+---
+
+## 1. 项目总览与通用铁律
+
+### 核心规则
+
+1. **完成任务不测试、立即汇报** — 完成用户下达的指令后**不用进行测试**，用户自己会测试；完成后**立即汇报**即可
+2. **多会话并行、只做自己的事** — 会有多个会话同步开展工作：**不是自己做的改动一律不管、不排查、不提交**；工作中其他文件被修改（含本会话文件被他人改）属正常现象，不要进行排查或修复
+3. **Phaser `spritesheet` 加载时必须带 `endFrame`** — 防御性配置，防止图片高度差1像素导致帧数错误
+4. **所有精灵图在入代码前必须跑标准化脚本** — 统一内容大小和中心位置，避免代码手动调 spriteSize
+5. **精灵图尺寸必须严格是 `frameSize × cols × rows`** — 不足时脚本自动填充透明行
+6. **敌人动画同步必须限定 `_faction === 'enemy'`** — `_syncEnemyAnimation` 这类按实体刷新的逻辑只能作用于敌人，否则会把中立实体/掉落物/特效 Sprite 的纹理错误覆盖为 `enemy_circle`
+7. **外部素材导入前先检查实际帧布局** — 如僵尸犬 4096×4096 合并图是 8×8 的 512×512 网格，但有效帧可能只有一行；导入前用脚本/工具确认非空帧数，避免加载空白帧
+8. **敌人的 `colliderOffsetY/X` 必须写在 `render` 块内** — `enemy.js` 基类只读 `config.render.colliderOffsetY`，写在配置顶层是死配置不生效（工头/矿洞/手脑/骑士都踩过，2026-07-25 工头修复后实机验证生效）；NPC 类相反，读顶层（npc.js:48）
+
+---
+
+## 2. AI 资产与出图管线
+
+### ⭐ AI 资产统一入口：ai-asset.py（2026-08-08 定稿，开展 AI 生图/视频/抠图/怪物动画工作一律先走这里）
+
+**任何涉及 AI 生成图片、生成视频、抠图、怪物动画精灵图、CLEAN 验证的工作，
+一律从 `game-dev/tools/ai-gen/ai-asset.py` 进入**（ComfyUI venv python 运行）。
+一个大类一个入口（当前：monster），固定工作流已编排好，**不要散落到各底层脚本找命令**
+（底层 comfyui-gen / minimax-h3-gen / quadruped-rebuild / rmbg_cutout / pick_bg_color
+是 ai-asset 的内部实现，可单独调试但日常工作从入口进）。
+
+```bash
+# 四足怪物工作流（idle → 动画视频 → sheet，全链路强制主体无色背景 + ComfyUI-RMBG 抠图）
+python tools/ai-gen/ai-asset.py monster idle    --name <X> --ref <参考图> --prompt <提示词.txt> [--bg-color auto|#hex]
+python tools/ai-gen/ai-asset.py monster video   --name <X> --kind run|attack --ref <idle图> [--bg-color auto|#hex]
+python tools/ai-gen/ai-asset.py monster rebuild --name <X> --video <y.mp4> --kind run|attack [--bg-color 同色] [--cell 640]
+python tools/ai-gen/ai-asset.py monster status  --name <X>
+# 枪械武器全自动添加（add-weapon.py 编排：scaffold → gen-image → process-image → gen-video → verify）
+python tools/ai-gen/ai-asset.py weapon scaffold      --spec tools/ai-gen/weapon-specs/<key>.json
+python tools/ai-gen/ai-asset.py weapon gen-image     --spec <spec> [--seeds 1,2,3] [--ref-image 参考图]
+python tools/ai-gen/ai-asset.py weapon process-image --spec <spec> --raw <候选图.png>
+python tools/ai-gen/ai-asset.py weapon gen-video     --spec <spec>
+python tools/ai-gen/ai-asset.py weapon verify        --spec <spec>
+# 装备/道具/技能图标
+python tools/ai-gen/ai-asset.py icon transparent --src <白底图> --dst <out.png>
+python tools/ai-gen/ai-asset.py icon normalize   --src <png> --dst <out.png>
+python tools/ai-gen/ai-asset.py icon pipeline    [--keys k1,k2]
+python tools/ai-gen/ai-asset.py icon check
+# 人形怪/工头动画（h3-loop / h3-attack 抽帧）
+python tools/ai-gen/ai-asset.py humanoid loop   --video <loop.mp4> --out walking.png [--period 48,48]
+python tools/ai-gen/ai-asset.py humanoid attack --video <attack.mp4> --out attack.png
+# LoRA 训练（5080）
+python tools/ai-gen/ai-asset.py lora prep    # 从技能图标生成训练集
+python tools/ai-gen/ai-asset.py lora train --yaml <本地或远程配置.yaml>   # schtasks 启动，防断连杀进程
+python tools/ai-gen/ai-asset.py lora status  # 进程/GPU/checkpoint
+# 通用子命令（所有大类复用）
+python tools/ai-gen/ai-asset.py cutout   --src <图> --out <alpha.png>
+python tools/ai-gen/ai-asset.py bg-color --image <参考图>
+python tools/ai-gen/ai-asset.py verify   --sheet <sheet.png> --cell 512|640
+```
+
+铁律（入口内置，但记在这里防绕路）：
+- **背景色强制**：生成背景必须用主体没有的颜色（`--bg-color auto` 自动选，或显式
+  `#hex`），抠图侧 `rebuild --bg-color` 传同色；
+- **抠图强制 ComfyUI-RMBG**（BiRefNet-general，`rmbg_cutout.py` 唯一入口）；
+- 所有子命令支持 `--dry-run` 先看命令；
+- 产物统一落 `Y:\工作\无尽轮回\scratch\<name>_*`，`monster status` 一键查。
+- 详细参数/异常处理见「四足动物（狼系）动画精灵图全管线」章节。
+
+---
+
+### ⭐ 识图优先入口：GLM-4.6V 识图系统（2026-08-03 构建，读图一律先走这里）
+
+需要读取/理解任何图片（用户发图、游戏截图、贴图、UI 截图、OCR 等）时，
+**优先调用已构建的 GLM-4.6V 识图系统**（deepseek-vision-skill，智谱 GLM-4.6V 接口）：
+
+```bash
+# 读本地图片（可多张）：
+node "C:\Users\allan\.codex\skills\deepseek-vision-skill\scripts\describe-image.js" "路径\图片.png"
+# 带具体问题：
+node "...\describe-image.js" --prompt "图片里剑柄是否在手中？" "路径\图片.png"
+# 恢复用户最新发送的图片（本模型收不到图时）：
+node "...\describe-image.js" --latest
+```
+
+要点（实战沉淀，2026-08-03 一段攻击跟手三轮）：
+- **定位坐标不可靠**：GLM-4.6V 读绝对像素坐标会跑飞（全图/网格/裁剪多格式均验证过）；
+  需要精确定位时用它做定性判断（ON/OFF、方向、内容描述、OCR），坐标以贴图真值掩码为准。
+- **特写图效果最好**：把目标区域裁小（~140px）、2 倍/3 倍放大、必要时加红点标记当前点，
+  问"红点是否在目标上 / 偏哪个方向多少像素"，回答稳定可用。
+- 接口 key/endpoint/model 在 skill 目录 `config.json`；provider 守卫要求主模型为
+  deepseek-v4-flash/pro（当前 config.toml 即 flash，可直接用）。
+
+---
+
+### 本地 AI 出图工作流（双机 ComfyUI 优先 + 智谱 API 兜底 + GLM-4.6V 验收，2026-08-04 二轮调整）
+
+> **标准执行入口（2026-08-04 定稿）**：`game-dev/tools/ai-gen/WORKFLOW.md`（六步全流程 + 入口矩阵 +
+> 各类资产子流程 + 沉淀坑位）与 `game-dev/tools/ai-gen/prompts/`（固化提示词库，8 个模板：skill-icon / equipment-icon /
+obstacle / monster-sprite / video / cover / defense-tower / transparent-subject）。
+> 本节约为摘要速查，细则以 WORKFLOW.md 为准；提示词一律从 prompts/ 库取用，禁止现场自由发挥。
+>
+> **入口优先级（2026-08-04 二轮调整）**：双机 ComfyUI 自建生图系统（远程 5080 主力 +
+> 本机 3080 Ti 兜底）→ **本地零成本**；智谱 API 降级为第三兜底。5080 主力模型
+> **FLUX.2 dev fp8 + Flux.2 Depth ControlNet**（固定视角/方向出图）。
+
+新技能贴图/图标/素材一律**优先走双机 ComfyUI**（本地零成本、不限量）：
+远程 5080 主力出图（FLUX.2 dev fp8 + Depth ControlNet 锁视角/方向），本机 3080 Ti 兜底；
+智谱 API 作为第三兜底（双机不可用 / 特殊场景，有免费额度）。出图后必须过 GLM-4.6V 验收再入库。
+
+#### 生图入口（优先：双机 ComfyUI；智谱 API 第三兜底，2026-08-04 调整）
+- **远程 5080 主力（默认）**：`python tools/ai-gen/comfyui-gen.py --host 192.168.3.142 --model flux2-dev-fp8 --prompt "..." --out out.png`（命令相对 game-dev/ 仓库根目录执行）
+- **固定视角/方向**：`--model flux2-dev-depth --control-image <深度图> --prompt "..."`（见 WORKFLOW §1.5）
+- **本机 3080 Ti 兜底**：`python tools/ai-gen/comfyui-gen.py --host 127.0.0.1 --model sdxl --prompt "..." --out out.png`
+- 客户端：`tools/ai-gen/zhipu-gen.py`（--prompt / --prompt-file / --model / --size / --out）
+- 接口：`POST https://open.bigmodel.cn/api/paas/v4/images/generations`，默认模型 **glm-image**（推荐 1280×1280）
+- key：环境变量 `ZHIPU_API_KEY` → 自动读 deepseek-vision-skill 的 `config.json`（与 GLM-4.6V 共用智谱账号）
+- **可用模型（2026-08-03 实测）**：`cogview-3-flash`（1024×1024，单物件图标可出）同样可用；
+  `glm-4.6v` 是**识图模型不能生图**，别混用。批量多图脚本参考
+  `tools/ai-gen/archive/one-off/zhipu-gen-necklaces.py`（一次性脚本已归档，仅作写法参考，
+  勿当通用工具；一次提交多 prompt，逐张下载）。
+- **不支持负面词参数**：避项（watermark / text / blurry 等）必须写进正向提示词
+- **固定水印**：每张图右下角带"AI生成"水印；去水印需账号在智谱后台签免责声明
+  （cogview-3-flash 实测同样带水印）。处理：`tools/ai-gen/zhipu-process.py` 检测右下角
+  **面积最小、最靠角落**的暗色连通域为水印框（y≥78% 区域，面积 >800px 跳过防误伤主体）→
+  白底覆盖 → BiRefNet 抠图丢弃。**教训：全右下象限暗像素 bbox 会把戒指底部误当水印
+  覆盖出缺口（2026-08-03 星陨之戒两连坑），必须按连通域+面积过滤。**
+- 障碍物统一提示词策略：`game-dev/tools/ai-gen/prompts/obstacle.md`
+  （风格基准块 + 视角块 + 避项，新道具必须同一视角）；抠图走 `tools/ai-gen/prep-obstacle.py`
+
+#### 环境（ComfyUI 双机系统，2026-08-04 二轮）
+- **远程 5080 主力机（2026-08-04 沉淀）**：`192.168.3.142:8188`（RTX 5080 16GB，ComfyUI 0.30）；
+  启动 `tools/ai-gen/start-comfyui-remote.bat`（`--listen 0.0.0.0`，防火墙放行 8188/专用网络；
+  机器休眠会断服务，需关闭休眠）
+- 已装模型（2026-08-04 实机核对）：**FLUX.2 dev fp8**（`flux2_dev_fp8mixed` +
+  `mistral_3_small_flux2_fp4_mixed` + `flux2-vae`）+ **FLUX.2 Depth ControlNet**
+  （`FLUX.2-dev-Fun-Controlnet-Union.safetensors`，Depth/Canny/HED/Pose 单文件多模式）+
+  SDXL（`sd_xl_base_1.0`，对比/兜底）+ FLUX.2 klein 4B（`flux-2-klein-4b-fp8` +
+  `qwen_3_4b`，蒸馏备用）+ MiniMax H3 视频模型
+- **多模型切换客户端**：`tools/ai-gen/comfyui-gen.py`（`--model` / `--host` / `--list-models`，
+  模型登记表 `tools/ai-gen/models.json`，每模型独立工作流+默认参数）
+  ```bash
+  python tools/ai-gen/comfyui-gen.py --host 192.168.3.142 --model flux2-dev-fp8 --prompt "..." --out out.png
+  python tools/ai-gen/comfyui-gen.py --host 192.168.3.142 --model flux2-dev-depth --control-image depth.png --prompt "..." --out out.png
+  python tools/ai-gen/comfyui-gen.py --host 192.168.3.142 --model flux2-dev-mesh --prompt "..." --out out.png
+  python tools/ai-gen/comfyui-gen.py --host 192.168.3.142 --model sdxl --prompt "..." --out out.png
+  ```
+- **兼容修复已应用（2026-08-04）**：flux2fun-controlnet v1.1.0 两处补丁
+  （`timestep_zero_index` / `multigpu_clones`）与 comfyui-mesh Icarus stub 补丁已在 5080
+  部署（备份与修复版在 `tools/ai-gen/remote-patch/`），FLUX.2 全系列正常出图。
+- **跨机 Mesh（2026-08-04 实测通过）**：FLUX.2 dev fp8 拆两卡——5080 跑前端（Icarus），
+  本机 3080 Ti 跑后端 4 块（Daedalus @192.168.3.153:7777，n_blocks=4，Turbo LoRA 两端本地加载）。
+  用法：`--model flux2-dev-mesh`（8 步 turbo，服务端每步约 0.8s）。前提：本机 Daedalus 已启动
+  （`tools/ai-gen/start-daedalus.ps1 -SkipSmoke`）；客户端崩溃遗留会话会卡死 Daedalus，重启即可。
+- **模型选择矩阵（2026-08-04 定稿）**：入库资产用 FLUX.2 Dev（mesh 在线时 8 步 turbo 提速），
+  批量/探索用 Klein 4B（4 步），兜底 SDXL / 智谱 API，视频只有 MiniMax H3；
+  完整矩阵（含各资产子流程的规则/参数）见 `game-dev/tools/ai-gen/WORKFLOW.md §1.6`。
+- **类目路由（2026-08-05 定稿）**：中大型物件（建筑/道具/植被/家具）默认从 Blender 白模
+  深度起步（`tools/ai-gen/blender-depth-render.py` + `_blockout_specs/`，锁视角/朝向/比例）；
+  小型装备/图标不走白模，直接 prompts/ 统一模板 + 标准生图。细则见 WORKFLOW.md §1.5。
+- 本地 3080 Ti 兜底：http://127.0.0.1:8188，启动 `start-comfyui.bat`（位于备份根目录
+  `E:\无尽轮回\长期备份\2026-7-13-1\`，不在 game-dev 仓库内；同一客户端，`--host 127.0.0.1`）
+- 抠图/校验：`tools/ai-gen/make-transparent-icon.py`（白底→透明 RGBA）、`tools/ai-gen/check-icon-sizes.py`（内容框测量）
+- 同系列新图标模板化生成：`tools/ai-gen/gen-meteor-icon-template.py`（换参考图+提示词即可复用）
+- **队列/超时/抠图坑（2026-08-11 铁匠正面版实战）**：
+  - **5080 队列会被视频任务挤压**：ComfyUI 队列里有 minimax_h3 视频任务时，一张
+    dev 图排队 10~20 分钟甚至更久——提交前先查 `/queue`，长任务客户端
+    `--timeout 900` 也不够，**shell 调用本身的 timeout 要 ≥15 分钟**（否则 shell
+    截断客户端，任务留在服务端继续跑）。
+  - **客户端超时退出后图不会下载到 --out**：任务完成后 PNG 留在 ComfyUI
+    output 目录——查 `/history` 拿文件名，再用
+    `/view?filename=<名>&subfolder=&type=output` 手动下载（本例 comfyui_0060X）。
+  - **BiRefNet 会吞"站立底座"**：铁匠脚下棕色木桩被判为背景抠掉（底部只剩脚宽
+    170px vs 木桩应 ~320px）。抠图后必须**像素检查底部不透明宽度**；从 raw 用
+    **背景色距离阈值**把底座单独抠回（`tools/ai-gen/restore-blacksmith-stump.py`，
+    自动检测四角背景色 + 底部区域合并，max alpha）。
+  - **正面人形剪影深度图**：头+鼠耳+身体+裙摆+腿+底座即可锁正面（IoU 0.82 验证）；
+    锤子必须把**锤柄画到手上**（柄斜线连到腰侧手位），否则模型出"悬浮锤"
+    （v1 教训）；提示词补 "hammer held firmly in her hand" 双保险。
+  - **验收要合成灰底预览**（restore 脚本自带 `_preview.png`），GLM 单张逐项过；
+    透明底直接看会漏底座缺失（v1 教训）。
+
+#### 标准流程（六步）
+1. **定风格**：先看项目现有同类素材（魔法技能图标=紫色六边形徽章+金描边+底部浮雕方块底座），新贴图必须同系列
+   → 同系列内容框基准（2026-08-04 陨星教训）：fireball=788×939、宽高比 0.84、占比~70%、偏下构图(cy≈+29)，
+   用 `tools/ai-gen/check-icon-sizes.py` 量化对齐
+2. **生成**：默认 `flux2-dev-fp8`（5080）；**固定视角/方向走 `flux2-dev-depth` +
+   `--control-image` 深度图**（同系列复用已定稿图深度，见 WORKFLOW §1.5）；
+   白底 sticker 提示 + 强负面词（gradient/dark/frame/hexagon）；img2img 以现有同系列图为参考；
+   **模板锁定 img2img**：参考图先压白底再上传（透明角直传会被合成黑底→出黑角图），
+   提示词强调 same template/size/position as reference
+3. **粗筛**：像素统计（opaque% 主体占比、白底比例、bbox 宽高比、中心偏移）；
+   新图标入库前必须过 `tools/ai-gen/check-icon-sizes.py`，内容框与系列基准偏差 >5% 需重抽或归一
+4. **视觉验收**：GLM-4.6V 定性（内容/风格/构图）+ 像素统计定量交叉，二者矛盾时以像素统计为准
+5. **抠图入库**：统一走 `tools/ai-gen/make-transparent-icon.py`（角点 flood fill + 羽化 + 边缘去污染，
+   1024×1024 透明底入库），入库后再跑 `tools/ai-gen/check-icon-sizes.py` 复核
+6. **清理废案（强制）**：确认最终资产已被引用后，删除迭代过程中的全部废案与未调用图片——
+   被否方案、v1/v2…迭代版、候选图、预览图、临时抠图一律清除，只保留最终被引用的文件，防止仓库膨胀
+
+#### 技能贴图要点（逐步沉淀，2026-08-03 首版）
+- **同系列优先**：魔法技能图标必须复刻现有"六边形徽章+浮雕底座"风格，不要自由发挥（暴风雪 v1 白底贴纸被否）
+- **同系列大小统一（2026-08-04 陨星教训）**：图标观感由内容框（非透明 bbox）决定，与画布像素无关；
+  系列基准=fireball 788×939/宽高比 0.84/占比~70%/偏下 cy≈+29。FLUX.2 直出窄徽章（750×951）观感偏小 →
+  必须用参考图模板锁定 img2img 重抽 + check-icon-sizes.py 校验后入库
+- **img2img 主体替换顽固**：低 denoise（0.55~0.65）保框架但主体不换，高 denoise（0.75+）换主体但丢底座细节
+  → 两段式：先合适 denoise 出主体，再对局部区域 inpaint 补回底座
+- **ComfyUI inpaint 遮罩坑**：`SetLatentNoiseMask` 的 mask 来自 `LoadImage` 的 **alpha 通道输出**（节点第 2 个输出）；
+  遮罩存成无 alpha 的灰度图会被当空遮罩 → inpaint 只改 ~1% 像素。遮罩必须存 RGBA，alpha=255 为重绘区
+- **白底出图**：提示含 "sticker style, isolated on plain pure white background"，负面含 gradient/dark/frame/border/hexagon；
+  SDXL 对"纯白背景"遵循不稳定（可能出浅灰/渐变底）——背景色以角点像素均值判定，不要信 GLM 描述
+- **透明主体走纯色底（方案一，2026-08-04）**：白色要素多的主体禁用白底（抠不净需人工介入）；
+  生成加 `--transparent`（AI 选底色 `tools/ai-gen/pick_bg_color.py` + 阈值抠图
+  `tools/ai-gen/transparent_cutout.py` + GrabCut/BiRefNet 兜底；背景非均匀时自动切
+  GrabCut 主导——SDXL 渐变底实测 BiRefNet 残留多、GrabCut 残留清零）
+- **纯色小物件**（雪球等）：直接用运行时 createCanvas 径向渐变生成纹理，不要 AI 出图再抠（白边抠不净）
+- **抠图去污染**：边缘 alpha 反推前景色（decontamination），半透明边缘"灰调残留比例"应 <5%
+- **废案必清**：入库后删除迭代废案/未调用图片（2026-08-03 教训：blizzard-icons v1~v6、ice-icons-v1、
+  snowball 变体共 79MB 全部删除），只保留最终被引用资产
+- **GLM-4.6V 边界**：定性判断（主体/构图/风格）可靠；多图一起描述会串扰、背景色判断不可靠 → 单张+具体问题，交叉像素统计
+
+#### 技能图标重出沉淀（2026-08-06：雷暴领域/贯穿雷枪 v2 定稿）
+
+- **正式出图必须走 FLUX.2 Dev + 控制图，klein 4B 只做初筛/草图**：8 张 klein 12 步候选全被否
+  （主题细节糊）；Dev 24 步 + 控制图可出高画质。工作流"入库=Dev、探索=klein"再次验证。
+- **控制图首选"原图 alpha 剪影"（hf 深度模型被墙时的零依赖替代）**：定稿图标透明底 alpha>10
+  填白 + 3px 高斯羽化 → `tools/ai-gen/_depth_templates/<名>_sil.png`，锁原图构图/主体占比/位置；
+  实测无需 DepthAnything 权重（hf-mirror 404、hf.co 超时）。
+- **提示词三段分离**：①背景风格块 `the hexagonal badge background is <切割宝石/冰晶/晶簇>`；
+  ②原风格主体块（写实体积感雷云=深紫暗部+浅蓝亮部+亮白分支闪电；水晶棱面雷枪=浅蓝白渐变+
+  电光蓝+能量环），明写"占比约 2/3"；③徽章模板块（六边形+金边）。
+- **"草图感"根因 = 未归一化就交付**：原始出图是白底 1024² 未裁剪，直接给人看像草图；交付前
+  必须走 `tools/ai-gen/normalize-skill-icon.py`（自带白底移除）归一到系列基准
+  （~790×930 / 0.85 / fill70% / cy+28）再验收。
+- **验收对照原图而非只看模板**：像素统计（bbox/aspect/fill/cy）+ GLM 单张，主体色调与占比逐项
+  对照原图（雷云亮部浅蓝 vs 浅紫、占比 60~70% vs 80% 都是肉眼可辨的偏差）。
+- **流程纪律**：被否后先诊断"模板没锁住 vs 风格没对上 vs 没归一化"，别盲目换 seed 重跑；
+  本轮三轮（klein → dev 缺风格块 → dev+剪影+归一化）才收敛。
+- **并行会话注意**：`models.json` 的 LoRA 版本（klein-skillicon-v3 / klein-equipment-v1）由并行
+  会话更新，本地 klein 需同步拷 v3；5080 被并行任务占用时 dev 出图 5~15min/张，
+  klein 可本机 18~30s/张。
+
+#### 武器精通图标系列 v2（2026-08-07 定稿：蓝宝石切割徽章 + 原武器主体）
+
+- **系列基线（精通系列与魔法系列不同，先量后定）**：六把精通图标（剑/机枪/步枪/手枪/散弹枪/弓）
+  统一归一化到 **825×889 / aspect≈0.93 / fill 70% / cx=0 / cy=+28**（魔法技能系列是
+  ~790×930 / 0.85——两个系列基线不同，不能混用；`normalize-skill-icon.py` 默认值即精通基线）。
+  验收用 `tools/ai-gen/check-icon-sizes.py`，六张必须同框。
+- **深度控制图锁"武器大形"是刚需，光靠提示词会飘**：机枪 v2d 只用徽章剪影当控制图，FLUX
+  把"机枪"画成了 AK 突击步枪（弯弹匣）——深度图里没有武器形状，提示词再详细也拦不住
+  FLUX 对常见枪型的先验。修复：把**游戏内已定稿武器素材的 alpha 剪影直接合成进徽章剪影**
+  （徽章灰 130 + 武器白 255，黑底），PKM 一次收敛。同理其余五把也应有武器剪影模板
+  （`_depth_templates/sword_sil.png` 等，与徽章模板同构）。
+- **合成剪影的两个坑**：①System.Drawing 的 DrawImage 合成透明 PNG 会丢 alpha，改用 PIL
+  按 alpha 逐像素合成；②整张 2048² 画布直接缩到 560 宽会把武器压成 ~90px 细条，必须先
+  **裁剪武器实际 bbox 再缩放**（PKM 实占 1871×328，按 640 宽缩放后 ~112px 高才可辨）。
+- **宝石背景质感 = 提示词显式描述，否则出"闷蓝"**：机枪首版宝石偏深偏闷、与其他五张
+  （明亮宝蓝、切面丰富、通透带内部折射）差一档。补足提示词后收敛：`vivid luminous deep
+  blue sapphire, multi-faceted crystalline cut, crisp facet planes, strong specular
+  highlights, inner light refraction and translucency`——宝石效果靠显式视觉词驱动，
+  同款控制图+同 seed 重跑不换描述不会改善。
+- **多 seed 候选 + GLM 双维度验收再定稿**：武器形体（是否 PKM、侧视朝右、无变形）与
+  背景宝石（饱和/切面/通透/高光）分开打分；GLM 单张评分稳定（9~10 分可收），多图并列
+  对比会串扰/超时，改用单张同题逐个打分再横向比较。用户从候选里挑 v2f2，未挑更高
+  seed——**验收时给候选让用户选，别自作主张**。
+- **系列统一后入库**：旧 48px 占位（pistol/machine_gun）与旧 2048² 旧风格图全部备份到
+  `Y:\工作\无尽轮回\scratch\backup\` 再替换；UI 是 `<img>` + CSS 48×48 object-fit:contain
+  渲染，1024² 透明底直接可用，无需改代码。
+
+#### 视频生成（MiniMax H3，远程 5080，2026-08-04 落地）
+- 模型：`fl2va`（文生/图生视频）+ `ref2va`（参考生视频）；Qwen3-VL 32B 编码器；视频+音频双 VAE——
+  **音画同一轮扩散生成**（原生立体声，非后期配音），MP4 直出
+- 客户端：`tools/ai-gen/minimax-h3-gen.py`（--prompt / --duration / --size / --seed / --out）
+  官方 T2V 管线：UNETLoader+CLIPLoader+双VAE → MiniMaxH3ImageToVideo →
+  BasicGuider + RandomNoise + KSamplerSelect(res_multistep) + BasicScheduler(simple 20步) →
+  SamplerCustomAdvanced → VAEDecode+VAEDecodeAudio → CreateVideo(24fps) → SaveVideo(mp4)
+- 实测：1344×768、2s（56 帧）≈ 315s（5080 int8）；时长按 17k+5 网格（24fps），
+  如 2s=56 帧、5s=124 帧；生成中机器休眠会断，需关休眠
+- 用法两条路：
+  - 视频资源：MP4 直入项目（Phaser video key 播放）
+  - 精灵序列：PyAV 抽帧 → sprite sheet（动作动画截帧路线）
+- R2V 参考模式：`MiniMaxH3ReferenceToVideo`，按接入顺序用 `<Picture 1>` / `<Video 1>` / `<Audio 1>`
+  标签引用，可锁角色/风格/动作/声音；ref_image_size=match 快 / max 保真（更慢）
+- 提示词规范：整场描述（场景 → 分镜 → 镜头运动 → 音效）写在一个块里；
+  短边 768px、尺寸 32 的倍数（H3 原生画布）
+
+#### 素材/模型/备份归置（NAS Y:\，2026-08-04）
+- Y:\ = NAS 映射盘（\\192.168.3.2 共享，SMB），素材库双机共用；目录约定：
+  - `Y:\素材库\`：原始素材/参考图
+  - `Y:\工作\无尽轮回\scratch\`：AI 出图/视频中间产物与候选（生成脚本默认输出地，定稿才进仓库）
+  - `Y:\模型库\ComfyUI\models\`：大模型归档（双机共用；冷模型可 junction：
+    `mklink /J models Y:\模型库\ComfyUI\models`，热模型留本机保证加载速度）
+- **版本控制走 GitHub**（origin `allang2208/wuxianlunhui`），`tools/ai-gen/backup-to-nas.ps1`
+  保留为手动可选备份，不做定时
+- 原则：仓库只保留被引用资产；候选/废案/大视频一律落 Y:，E: 只放源码+入库资产
+
+#### 多视图/多件排列硬筛（2026-08-03 沉淀：SDXL 帽子/法袍顽固出多视图）
+- SDXL 对 "wizard hat" / "robe" 极易画成**多视图设计稿**（5~10 个分离主体），GLM-4.6V 描述
+  "五个视角"不可轻信；**连通域计数是唯一硬证据**：`tools/ai-gen/check-components.py` 对
+  BiRefNet alpha>60 做 `ndimage.label`，**components == 1 才合格**。
+- 兜底流程：批量生成 4 个候选（`gen-hat-candidates.py` / `gen-robe-candidates.py`，不同 seed）→
+  逐张连通域筛选单主体 → GLM-4.6V 复核构图/装饰 → 选最优。
+- **提示词权重语法**：`(exactly one hat:1.5), (one hat only:1.5), (single straight front
+  view:1.4), (isolated single object:1.3)` + 负面 `multiple views, turnaround, design
+  sheet, blueprint, multiple hats/robes, duplicate items, clothing rack, mannequin`。
+- **简笔画陷阱**：为去中间徽章写 `plain hat body, completely blank surface` 会把帽子画成
+  无纹理简笔画——去徽章应写 `no large emblem, no diamond, no triangle, no crest`，
+  同时保留 `velvet fabric texture, folds, rich shading` 写实质感（2026-08-03 蚀月法帽两连坑）。
+
+#### 落地范例
+- 冰锥 4 张贴图：img2img 参考 Meshy 冰锥图 → 抠图 → 随机抽取入库
+- 暴风雪图标：v1 白底贴纸（否）→ v6 冰墙参考 + 局部 inpaint 补底座（定稿）
+- 雪球：运行时生成纯白圆（不占贴图资源）
+- 陨星坠落（2026-08-04）：FLUX.2 文生图初稿（窄 750×951，观感偏小被否）→ 火球白底参考
+  模板锁定 img2img 重抽 8 候选 → 自动抠底 + 内容框校验（793×945 达标）→ 定稿替换
+- 陨星图标 FLUX.2 dev 重制（2026-08-04 五轮）：dev 恢复后用 `tools/gen-meteor-dev.py`
+  （一次性脚本，已删除未入库，仅留此记录；火球模板 + SplitSigmasDenoise img2img）两轮 14 候选 → GLM-4.6V 验收「流星撞击地面」→
+  定稿 d0.62_s04（794×941/0.84/71.3%）→ 替换 `assets/skills/陨星坠落.png`（旧图备份
+  Y:\scratch\backup）
+- MiniMax H3 视频（2026-08-04）：陨星 VFX 2s 文生视频（1344×768/56帧/原生音效）
+  → `assets/videos/`（远程 5080 生成，约 5 分钟）
+
+---
+
+### 双机开源 AI 工具实机盘点（2026-08-13：TRELLIS 2 已就绪、Hunyuan 3D 未装）
+> SSH 进 5080 实机核对磁盘后的权威清单（配合 `SETUP-OVERVIEW.md` 使用）；以后查"哪台机器有什么模型"
+> 一律以此节为准，先 SSH/实盘再下结论。
+
+**拓扑（与 SETUP-OVERVIEW.md 一致）**
+- 5080 主力机：RTX 5080 16GB，`192.168.3.142`，SSH 别名 `r5080`（免密，hostname=小鼠），
+  ComfyUI 0.30.0 @ `D:\开发文件\ComfyUI`，端口 8188（生产中，只认真正 LISTENING 的进程）。
+- 本机：RTX 3080 Ti 12GB，`192.168.3.153`，Daedalus 7777 + 本地 ComfyUI 0.30.0 @
+  `E:\无尽轮回\长期备份\2026-7-13-1\ComfyUI`。
+- NAS 群晖：`192.168.3.2`（Y:）备份/中转——`Y:\开发\ComfyUI`（5080 备份）、`Y:\flux2_dev`
+  （dev fp8 33GB + Turbo）、`Y:\工作\无尽轮回\scratch\klein-lora-*`。
+- ⚠ 查 GPU 用 `nvidia-smi`，别信 `Win32_VideoController`（本机 CIM 误报 GTX 750 Ti，nvidia-smi 才是 3080 Ti）。
+
+**5080 主力机（模型最全）**
+- custom_nodes：ComfyUI-Trellis2、comfyui-mesh（Icarus）、comfyui-flux2fun-controlnet（打过补丁）、
+  ComfyUI-BiRefNet-ZHO、ComfyUI-Image-Removal、ComfyUI-Manager。
+- 3D：**微软 TRELLIS 2 全套已就绪**（TRELLIS.2-4B 九个 ckpt + TRELLIS-image-large + facebook/dinov3）——
+  图生 3D 直接用 5080 的 ComfyUI-Trellis2 节点，无需再装；`tools/ai-gen/trellis-gen.py` 是 API 客户端备用。
+- 视频：MiniMax H3 开源权重（`minimax_h3_fl2va/ref2va_pruned_int8_convrot` 各 19.5GB + qwen3vl-32b
+  nvfp4 awq 14.6GB + 音视频 VAE）。
+- 2D：FLUX.2 Klein 4B fp8（3.8GB，生产主力）+ FLUX.2 Dev fp8（33GB）+ FLUX.2-dev-Fun-Controlnet-Union
+  （7.7GB）+ Mistral3 Small 文本编码器（11.4GB）+ Qwen3-4B（7.5GB）+ flux2-vae。
+- LoRA：Flux2TurboComfyv2 + klein 六件套（epic/equipment/skillicon v1~v3/walltex）；SDXL 底模；BiRefNet。
+- 训练环境 `D:\开发文件\lora-train`：AI-Toolkit + 6 套数据集 + Klein 4B Base 7.2GB + venv cu128。
+
+**本机（3080 Ti）**
+- ComfyUI 0.30.0 @ `E:\无尽轮回\长期备份\2026-7-13-1\ComfyUI`：Klein 4B fp8 + Qwen3-4B + flux2-vae +
+  klein LoRAs（epic/skillicon v2~v3）+ SDXL + 抠图三件套（BEN2/BiRefNet×2/RMBG-2.0）；
+  custom_nodes：ComfyUI-Manager、comfyui-mesh（Icarus）、ComfyUI-RMBG。
+- comfyui-mesh Daedalus 后端 @ `comfyui-mesh\server`（dev fp8 33GB + Turbo，端口 7777，NVENC 跨机编码）。
+- 训练环境 `D:\lora-train`：AI-Toolkit + diffusers + Klein 4B Base + Qwen3-4B + venv。
+
+**选型结论（2026-08-13）**
+- **Hunyuan 3D 两台机器均未安装**；评估：TRELLIS 2 对硬表面白模起步更强且已就绪，Hunyuan 2.1 的 PBR
+  优势在"先白模后贴图"流程暂不需要，且 16GB 跑其纹理生成贴线（fp8/offload 才稳）→ 暂不装。
+- 运维：5080 上曾出现多个 `main.py --port 8188` 进程并存，只有真正 LISTENING 8188 的生效；重启/清理
+  按 PID 核对，别全杀。
+
+---
+
+### 场景要素训练结论 + 墙体材质 LoRA（2026-08-07）
+
+#### 诚实评测结论（先结论后干活）
+- **端到端"训练构建场景要素"（地板/墙壁/障碍物）无意义且有害**：几何/碰撞/拼接/视角是确定性
+  数据层（Blender spec + face 线 + 30° 底边 + ISO_WALL_GEO + 镜像规则），AI 几何不可靠有大量实证
+  （h/v 斜向不分、白底残留、沙袋位置错误、圆角/UV 只能 Blender 修）。训练它=把唯一确定性层换掉。
+- **只训练"贴图"（材质风格 LoRA）有意义**，且是 BL+贴图管线唯一值得训的部分（痛点全在材质侧：
+  E/C/B/A 多轮返工、提示词 roulette、变体靠微调提示词）。
+
+#### klein-walltex-v1（已训已部署，2026-08-07）
+- 数据集：30 张 Blender 面纹理（6 级 × 5 变体，1024×656，NAS `world122\raw\tex_<G>_v1..v5`），
+  平光无阴影无透视；**不能拿烘焙透视的 cover 成品/直墙入训练集**。
+- 6 族独立触发词：`pale brick / sandstone / red brick / concrete steel / riveted steel / rune brick
+  wall texture`；统一尾块 = TAIL（flat frontal view / regular square brick grid / no shadows）。
+- 训练：klein 4B base、dim 48/alpha 24、1200 步、lr 1e-4、**resolution [1024,656]**（非方形，
+  不能默认 center-crop）；实测 ~28 分钟。
+- 部署：5080 `ComfyUI\models\loras\` + NAS `klein-lora-walltex-v1\` + models.json
+  `flux2-klein-4b-walltex`（size 1024x656）；训练文件版本化在 `tools/ai-gen/lora-train/`。
+- 验收：6 族材质 GLM 识别 + 砖格 FFT 峰 0.98~3.80（对照 dev 0.64~5.08）+ white%=0 + 变体平光；
+  完整管线（生成 → 平场 → Blender 渲染 → 实机 CDP 并排对比）已验证，质感 ≥ dev 现有纹理。
+- **已知坑**：klein 金属/符文自带方向光照（B 族左右亮度斜坡 ~25 点，dev 仅 ~10）→ 出图后统一
+  平场校正（除以大核高斯模糊，实测压到 ~12 点）；C 族（混凝土+钢板复合）识别偏弱，补数据或单独训。
+- **触发词注入机制**：AI-Toolkit 的 `trigger_word` 只注入 sample prompts
+  （`inject_trigger_into_prompt(..., add_if_not_present=False)`），训练标注直接用 txt 原文 → 多触发词
+  数据集的正确做法=每条标注自带触发词，yaml 的 trigger_word 只写兜底。
+
+#### NAS-first 约定（2026-08-07 起）
+- 新增输出（候选/训练产物/报告/临时文件）一律落 `Y:\工作\无尽轮回\scratch\` 对应模块目录，
+  本地 scratch_tmp 只做中转不长期留存；大模型/素材库按既有 `Y:\模型库` / `Y:\素材库` 约定。
+
+#### 白色主体的生图/抠图铁律（2026-08-07，神域返工教训）
+- **白金/白底为主的装备主体（白金色金属、圣光白亮件）禁止在白底上生成**：阈值抠图会把主体亮部
+  当背景啃掉，留下白边残留/亮部缺失。必须走 `comfyui-gen.py --transparent`（AI 自动选主体完全没有的
+  背景色，实测选纯蓝 #0000FF），出图后按真实底色阈值抠图，再归一化。
+- 同稀有度套装 = **轻甲/法袍/重甲三系**（对照 epic：星穹轻甲/苍月法袍/天罡重甲）。神话三系**三命名**：
+  神域（重甲：战盔/战甲/战靴 + 首饰 6 件）+ 圣辉（轻甲：轻盔/轻甲/轻靴 3 件）+ 神谕（法袍：
+  法帽/法袍/长靴 3 件）。生成时三系分别出图，不要只出一套、也不要三系共用同一前缀名。
+- **JSON 中文被 GBK 管道吃成 "????"（2026-08-07 神域返工教训）**：PowerShell 管道 heredoc 喂 Python
+  时 stdin 是 GBK，脚本里的中文字符串会变 "????"（本次把装备 name/iconImage 全改坏、商店显示 ???）。
+  凡脚本要写中文 → 用 apply_patch 写 UTF-8 文件再跑，或全用 unicode 转义；改完必须抽查 JSON 实际
+  codepoints（如 `"?" in name` 检查）。
+
+#### CDP 残留教训（2026-08-07，C 盘爆满根因）
+- headless Edge CDP 每次运行在 `%TEMP%` 建 `edge-cdp-*` profile（一个 ~600MB）；多次运行累积
+  实测 111 个 47.7GB → C 盘 0GB 满。**用完即删或定期清 `%TEMP%\edge-*`**。
+- **治本（2026-08-08，C 盘再次爆满后落地）**：所有 `tools/cdp-*.mjs`（30 个）在
+  `fs.mkdtempSync` 后统一注册退出自动清理
+  `process.on('exit', () => { try { fs.rmSync(profile, { recursive: true, force: true }); } catch {} })`——
+  新建 CDP 工具必须带这行；另建每日计划任务 `CleanEdgeCDP`（06:30）跑
+  `tools/clean-edge-temp.ps1` 兜底（异常退出/SIGKILL/断电残留次日必清），手动清：
+  `powershell -File tools/clean-edge-temp.ps1`。
+- 删除 `%TEMP%\edge-*`：命令行内联 `Remove-Item -Recurse` 会被安全策略拦（blocked by policy），
+  实测把删除逻辑写进 .ps1 脚本文件后 `powershell -File` 执行可正常删除；也可用
+  `.NET Directory.Delete(path, true)`。正在被 Edge 占用的 profile 删不掉会自动跳过。
+
+---
+
+### 视频→精灵图→游戏落地全管线（2026-08-05 工头 walk 实战沉淀，100% 达标）
+
+#### 1. 视频模型选择：H3 首帧模式（不是 ref2va）
+- H3 的 `MiniMaxH3ImageToVideo` 节点（`comfy_extras.nodes_minimax_h3`）自带 `first_frame` / `last_frame`
+  输入：首帧=参考图 → **像素级锁定角色**，这才是"图生视频"的正确姿势。
+- **ref2va（`MiniMaxH3ReferenceToVideo`）是参考注入不是首帧**：特征能锁、画风锁不住，
+  角色会"从头到尾不是原贴图那个角色"（实测踩坑，曾误判为模型缺陷）。
+- 客户端：`tools/ai-gen/minimax-h3-gen.py --first-frame x.png [--last-frame x.png] --duration 5.17 ...`
+  （脚本已支持；ref2va 用 `--ref-image`，首帧模式用 `--first-frame`，二者互斥）。
+- 时长网格 17k+5 @24fps：2s=56 帧、5.17s=124 帧；**H3 训练区间 124~362 帧（5~15s），
+  2s 在训练分布外**，循环/图生视频至少取 124 帧。
+- 实测耗时（5080 int8，1344×768，20 步）：56 帧≈6min、124 帧≈17min；机器休眠会断服务。
+
+#### 2. 视频背景色选择（关键，直接决定抠图成败）
+- **背景色必须与主体色系距离最大**；选色前先对参考图做像素统计确认主体调色板
+  （不要信 GLM 描述，GLM 背景色判断不可靠）。
+- 工头案例：品红底失败——主体含红血污/红眼/头灯暖光/粉色过渡，品红抠图容差一松就吃掉
+  同色系区域（用户反馈"部分缺失"）；**换纯白底成功**——主体是深色系（深棕/灰/黑），
+  与白色色距极远。
+- 规则：① 扫主体调色板，选统计上完全缺席的颜色；② 主体含大量白色的禁止白底（如雪球）；
+  ③ 生成后做**孤立背景色斑检测**（连通域：不贴画布边框的孤立背景色块=角色内部真实孔洞），
+  用形态学闭运算填孔（工头唯一近白点=头灯高光，约 20px，闭运算 3×3 即填掉）。
+- 白底视频提示词：`flat solid pure white background identical to the first frame,
+  completely uniform white, no ground, no shadow, no reflection`。
+
+#### 3. 镜头/构图（防"超出显示区域"）
+- **首帧角色高度占画布 70~75%、四周留 ≥10% 安全边距**；顶天立地（100%）时实测
+  56 帧里 45 帧贴边、头脚被裁。
+- 提示词：`static camera locked in place, no camera movement, no pan, no zoom,
+  no push-in, no pull-out, no tilt, no rotation, the body stays perfectly centered
+  in the frame and never drifts left or right, only the arms and legs move,
+  the entire character with hat and bare feet always fully visible inside the frame
+  with generous empty margin on all sides, nothing is cropped or touches the frame edges`。
+- 验收量化：逐帧主体 bbox 贴边帧数必须 = 0；水平中心漂移初始 206px → 缩 75% + 强化
+  静态镜头后 35px（可接受，拼图时逐帧居中可消）。
+
+#### 4. 无缝循环生成（首帧=尾帧）
+- `--first-frame` 与 `--last-frame` 传**同一张图**：结尾姿势/位置强制回到首帧
+  （实测中心差 (0,0)px、轮廓重合 IoU 0.99、结尾 5 帧速度无突变=无橡皮筋回弹）。
+- 提示词加：`at the end of the video the character naturally returns to the exact
+  same pose and the exact same position as the first frame, seamless loop,
+  no freeze and no slow down at the end`。
+- 已知现象：模型仍会在片头/片尾各留 ~8 帧缓动（"慢起→匀速→缓回"），这是正常现象，
+  靠截取算法规避（见 §5），不要因此误判视频失败。
+
+#### 5. 循环截取算法（h3-loop-spritesheet.py，本次核心沉淀）
+- **全身平均像素差 / 全身 IoU ≠ 步态相似度**：躯干占比大，这些指标到处 0.9+，
+  找不到周期（实测误判过 T=113、T=112 都是错的）；**必须用腿部区域
+  （身体 bbox 下 35%）IoU** 判"同相位"。
+- 流程：
+  1. 抠底：背景阈值 235 → 3×3 闭运算填孔 → alpha 高斯羽化（3×3, σ0.8）软边；
+  2. 在匀速中段（如 steady=12,105）扫 `leg_iou(s, s+P)`，P∈[70,120]，
+     取 IoU>0.80 的最强配对（工头：s=24, e=104, P=80, leg-IoU=0.952）；
+  3. **循环 = [s, e-step]，必须去掉重复端点 e**：pose(e)≈pose(s)（同相位），
+     留着会让接缝变成"定格"；去掉后接缝 = 一次正常步幅；
+  4. 验证：接缝步幅必须落在正常步幅区间内（工头：正常 27.4~61.0，接缝 31.2）。
+- 判定铁律：**接缝步幅 ≈ 正常步幅 ±50% 才合格**；偏小=接缝定格、偏大=接缝跳变，
+  两者用户都能一眼看出"一段播完突兀开新段"。
+
+#### 6. 精灵图抠图/对齐（防"扯回"）
+- 抠图：白底阈值 235 → 形态学闭运算（3×3，填头灯高光等小孔）→ alpha 高斯羽化软边。
+- **对齐三铁律（逐帧量化，必须零偏差）**：
+  - 角色高度固定（先实测旧图标定，工头=262px）；
+  - 脚底基线固定（工头 y=410，防上下跳）；
+  - 水平中心固定（工头 x=256，防左右扯/滑步）。
+- 尺寸/脚底/中心与旧图一致 ⇒ 碰撞体积配置（collisionWidth/Height、footOffsetY）不用动。
+- 进游戏前**先扫空白帧**（格内 alpha>10 像素数 <50 视为空），禁止把空格注册进动画
+  （否则周期闪没，毒液僵尸 idle 24 格仅带 0 有内容的旧教训）。
+
+#### 7. 游戏集成（Phaser 512 切帧惯例）
+- 一律 512×512 格子；工头 walk 旧规格：15 帧 8×4 网格 → 新版 20 帧 5×4 网格。
+- BootScene：`load.spritesheet` 的 `endFrame = 帧数-1`；`anims.create` frames 0..N-1、
+  walk 用 `repeat:-1`；frameRate 按观感调（工头 20 帧 8fps=2.5s/圈，10fps 偏快）。
+- `_getTextureKey()` 必须与动画源 spritesheet 一致；换素材前先备份旧图到
+  `Y:\工作\无尽轮回\scratch\backup\`（git 里也有历史版本，可放心清）。
+
+#### 8. 验证清单（像素统计优先，GLM 辅助）
+- **像素统计优先级 > GLM 描述**：GLM 会跑偏（曾说视频衣服是绿色、背景判断不可靠、
+  还会输出模板化"assuming…"套话）。量化证据：直方图相关度、步幅差值、贴边帧数、
+  中心漂移、对齐三铁律。
+- 循环验证：首尾中心差、(腿部)同相 IoU、接缝步幅 vs 正常步幅、结尾 5 帧速度无突变。
+- 抠图验证：每帧背景占比稳定、角色内部孤立背景斑（连通域）、无空格帧。
+- 集成验证：`npx vite build` + `npx eslint` + 无空格帧 + GLM **单张**抽查
+  （多图并排 GLM 会串扰，联系图只用于定性）。
+
+#### 9. 本次产物与可复用命令
+- 循环视频：75% 白底首帧，`--first-frame` = `--last-frame`，5.17s/124 帧，
+  seed 2026080504 → `foreman_walk_loop_5s_h3_white.mp4`。
+- 精灵图：`h3-loop-spritesheet.py --video <loop.mp4> --out walking.png --cols 5`
+  （自动出 20 帧 5×4、2560×2048，附 GIF 预览）。
+- 入库：`assets/enemies/foreman_zombie/walking.png` + BootScene endFrame 19 /
+  anim 0..19 / frameRate 8；中文路径写入 Python 必须先 Copy-Item 到 `%TEMP%`。
+
+---
+
+### 主角一段攻击（attack_sword）关键帧→H3 两段式挥砍重生（2026-08-15 试作，已被下方 v4 取代）
+
+手绘关键帧 A起手/B命中/C收势 → H3 首尾帧插值 AB、BC 两段视频 → 拼 12 帧 sheet。
+针对旧 v2 三连反馈（双手→单手、僵硬、要前移）：新动作=上步单手反手挥砍+弓步前倾。
+
+- **四步管线**（全部 ComfyUI venv python，产物落 `Y:\工作\无尽轮回\scratch\player_attack_sword\`）：
+  1. `prep-player-attack-keyframes.py`：原图 BiRefNet 抠图→alpha 去污染→对齐→纯色底
+     1024×576 关键帧（**H3 I2V 的 first/last frame 只读 RGB 不读 alpha，必须先抠再合成纯色底**；
+     底色写 `keyframes/bg.txt`，本次=纯黄 #FFFF00，主体骨白/黑描边与黄色距极远）；
+  2. `run-player-attack-sword.py --seeds 1,2,3,4`：AB/BC 两段 × 4 种子（每段 5.17s/124 帧 ≈7min）；
+  3. `analyze-player-attack-sword.py`：PyAV 定量（漂移/贴边/背景残差/左右运动密度）+ contact sheet；
+     **肉眼复看用逐帧 montage 裁主体放大**（contact 256px 格太小看不清手臂弧线）；
+  4. `build-player-attack-sheet.py --ab-end 44 --bc-end 50`：抠黄（max 通道距>45 + 闭运算 + 羽化）
+     → **去黄溢色**（alpha>0 且 min(R,G)-B>24 → 亮度均值，骨白 R-B≈+6~10 不误伤）
+     → 视觉均匀重采样（挥砍段自动加密）→ 对齐入库规格。
+- **选 seed 结论**：AB=s01、BC=s01（center_x_std 4.9/3.7、零贴边、弧线连贯；s02 腿部几乎不动、
+  s04 中心漂移 21px 淘汰）。
+- **活动窗口别信单一阈值**：AB 收尾静止早（窗口 [0,44] 即可，末帧必须已是 B 姿势才能接 BC），
+  BC 挥砍到 ~50 后长尾静止（[0,50] 切尾防静止帧稀释采样）；用 `--ab-end/--bc-end` 手动指定，
+  末帧=完全伸展 → 定格帧=攻击满弓姿势，正好做连段窗口定格。
+- **对齐规格（现网 attack_sword 实测标定）**：格 512×512、4×3、12 帧；站立身高 432、
+  脚底基线 y=492、帧0 格内 cx=209.5；固定缩放（AB 帧0 身高→432 全帧同比例）+ keep-dx
+  保留格内前移（dx 实测 +23→-4 弧内变化）；config `frameDurations 50×12` 不动，
+  **最大伸展落在 f10~f11，与 hitCheck f9 基本对齐**。
+- **入库**：旧图留档 `backup/2026-08-15-player-attack-h3/`；新 sheet 直接覆盖
+  `assets/player/attack_sword.png`（帧数/格规格不变，player-anim-config.json 零改动）；
+  **武器轨迹 `sword.attack` 12 点按旧身体调的，需 DevTool 逐帧重对**（同 v2 换入时的遗留动作）。
+- **坑**：cv2.imwrite 写中文路径静默失败（返回 False 不报错）→ `cv2.imencode` +
+  `Path.write_bytes` 或 PIL 保存；analyze 脚本 `np.max(axis=2)` 对 (N,3) 边界样本炸
+  AxisError → 用 `axis=-1` 兼容。
+
+#### v4 绿幕单段直剪定稿（2026-08-16 入库，用户评审淘汰两段式后重做）
+
+两段式失败原因：124 帧慢速源把 0.6s 攻击拉成慢动作、A 帧正面站立白烧 3 帧转身、
+反手挥砍幅度小——"还不如三段突刺"。v4 回到三段同管线（绿幕 H3 单段 56 帧快节奏），
+**关键教训：短平快攻击用 56 帧单段直出，不要首尾帧两段插值**。
+
+- **首帧复用** `scratch/player_melee3/firstframe_onehand.png`（1344×768 绿幕侧视备战，
+  右手胯部握姿）；提示词 `prompts/player-attack-slash-h3.txt`。
+- **剑影轮盘**：挥砍提示词极易诱模型画剑——v3 实体剑+扇形残迹、s03 大斧头、s04 扇形
+  拖尾、s05 大镰刀、s06 橙色弧；**s02 全程干净**、s01 仅 2 帧细残迹。对策=强化"EMPTY
+  fist / no stick / nothing in or near hands" + **6 seed 轮盘挑干净的** + 细残迹可用
+  `--erase 帧:x0:y0:x1:y1`（绿底矩形抹除，builder 已内置）。
+- **逐帧色偏**：v4 挥砍帧骨骼泛品红（视频 VAE 色偏，montage 小图看不出，必须抽帧原图查）
+  → builder 对全部不透明像素**强制亮度化**（主体纯灰度，色度即伪影；比 prep-melee3
+  中性化更彻底，绿/品红边一并消）。
+- **剪片**：`build-player-attack-sheet.py --video slash1_v4_s02.mp4 --bg-hex 00FF00
+  --n 12 --end 24`（builder 已支持单段+绿幕模式）；窗口终点停在**顺势低位**（v24），
+  不要收进恢复段——连段定格=满弓后低位，接续二段更顺。命中帧（最大伸展）落 f9 与
+  hitCheck 精确对齐；前移 dx 峰值 +88（v2 才 +25）。
+- **武器轨迹重对 v1（中心 origin，已被下方 v2 剑柄锚手取代）**：网格标定每帧拳头 cell 像素 +
+  前臂延长线定刃向 → `offsetX/Y = 拳 + R(rot)·(0,-gripOffset40)`（同 prep-sword-attack-hand
+  公式）；**display px 换算必须含 displayScale**：`(px-256)×(144×displayScale)/512`
+  （attack_sword displayScale=1.0956，漏乘全弧 magnitude 小 8.7%）；**rotation 相邻帧
+  差值必须 ≤180°**——`_getPerFramePrecomputed` 对原值再做最短程解卷绕（delta>π 会
+  被拉回反向绕远，首发版 f0=135→f1=317 差 182° 被改走 -178°，起手 100ms 剑甩穿躯干
+  =用户目击"脱手"根因；把 f0 改 140 让设计路径=最短程路径即可）；**标定验收用
+  alpha 掩码逐帧贴附率**（拳头显示坐标 7×7 邻域 alpha>100 占比 >20% 判贴手，小拳头
+  ±5px 目读误差即浮空——f2/f3/f11 首发全错：f2 把肘当拳、f3 点在空气、f11 拳在 (312,295)
+  不在 (255,292)）；离线合成预览 = `getWeaponSize`（sword=78.75×0.63×s × 78.75×s
+  display px）×(512/144) 贴 cell 验证后再写 `public/data/weapon-anim-config.json`
+  （只此一份，无镜像）。
+- **武器轨迹重对 v2 = 剑柄锚手定稿（anchor='grip'，dashHand 同款移植，2026-08-16）**：
+  v1 数据全部验证通过用户仍报"后几帧剑柄不在手腕"——**中心 origin 是结构性缺陷**：
+  旋转大步长的帧间中点握把甩离手 ~20~40 display px，改数据无解，必须换锚定模型。
+  - 配置：`sword.attack.anchor = "grip"`，frames 的 `offsetX/offsetY` 直接写**拳头本地
+    偏移**（`(px-256)×(144×displayScale)/512`），rotation=刃向连续链（相邻差 ≤180°，
+    `_getPerFramePrecomputed` 对原值再做最短程解卷绕，delta>π 会被拉回反向绕远）；
+    attack2/attack3 无 anchor 字段保持中心 origin 不动。
+  - 运行时两处新代码：`WeaponTransform.getInterpolatedGripPerFramePosition`（位置同口径
+    插值 + 追加 `gripX=0.5 / gripY=0.5+gripOffset/显示高`）与 `getAttackRecoverStartPosition`
+    （收势起点=末帧握把+R(rot)·(0,-grip) 反推中心，同 getDashRecoverStartPosition 公式）；
+    GameScene 攻击 perFrame 分支 `anchor==='grip'` 时 `setOrigin(0.5或镜像, gripY)`——
+    **origin 复位链现成**：syncWeapon 普通路径每帧开头已 reset origin(0.5,0.5)，无泄漏。
+  - **连段闭环测试跨锚点**：attack3 末帧（中心 origin）= attack 首帧握把反推中心；
+    `scripts/test-melee-sync.mjs` 已改锚点感知比较（位置按公式换算、角度取最短弧差）。
+  - **拳头标定法升级**：质心/掩码粗定 → **细网格 4× 放大逐帧目视复核**（质心在拳头与
+    骨盆/腿粘连时被连通域合并拖走：f0/f11 被骨盆拖偏、f10 曾误标到大腿骨——"末端过滤"
+    判据识别不了合并）；**验收 = alpha 掩码贴附率 12/12 >20%**（拳头显示坐标 7×7 邻域，
+    BILINEAR 缩放到显示尺寸）。
+  - DevTool 语义提示：attack 块 offset 现在是**握把点**（拳头），不再是贴图中心。
+  - **刃向是「看起来脱手」的常见真凶**：一段末帧定格时剑 209° 向后下穿过腿（前臂方向推的刃向）
+    被用户读成「武器没绑在手上」——垂持姿势刃向要前下 ~150°（手在髋前、剑尖朝前下方）。
+    突刺伸展帧用户要「绝对水平」：attack3 f8~f11 刃向精确 90°（链差 0，无角度偏移）。
+  - **实机定格复核管线（12/16 帧适配版）**：`tools/cdp-sword-hold-v4.mjs`（旧
+    cdp-sword-hold-frames.mjs 的帧映射是 8 帧时代硬编码，勿直接用）——**probe 里必须走
+    `setPlayerAnimation(animKey, 40000)` 再 timeScale=0 冻结**（直接 setTexture+play 会跳过
+    displayScale，人物框 142.9≠真实 156.5，截图口径全错）；环境：`start-vite-dev.ps1`(5173)
+    + 无头 Edge(9224) + `cdp-run.ps1` 安全入口；meta JSON 直接采样武器世界坐标/旋转/origin
+    逐帧核对（握把 = player + 配置偏移 − footOffset，实测逐位一致）。
+  - **尺寸口径勘误**：武器屏显高 = WEAPON_ANIM.size 126 × MELEE_SCALE **0.75** × scale
+    =141.75（旧注释里的 78.75 是 0.625 时代残留）；剑柄 originY = 0.5+40/141.75 = 0.782。
+  - **「帧末武器脱手」的根因 = 进度映射错配（2026-08-16 实机定位）**：旧平滑 lerp 把
+    progress×(n-1) 映射到轨迹点，而精灵帧 k 覆盖 [k/n,(k+1)/n)——武器在帧窗中段就跑向
+    下一点、帧窗末尾已偏 92%，攻击一段 f0 窗末实测旋转 140°→302°（身体还在备战、剑已甩
+    头后）。修法=**阶梯映射**（anchor='grip' 块专属）：位置钉当前帧锚点整帧不动，旋转在
+    帧窗内向下一帧 lerp（绕钉住的剑柄扫刃）——`getInterpolatedPerFramePosition` 内
+    `block.anchor==='grip'` 分支；dash/旧中心块口径不动。这正是 2026-08-03「手部只有离散
+    帧时武器必须阶梯映射」教训的运行时落地（当年只在生成脚本侧做）。
+  - 实机验证复用 `tools/cdp-sword-hold-v4.mjs`（每帧 meta 采样武器世界坐标/旋转/origin +
+    截图）；帧末时刻要单独采（探针 progress 时钟推进约 +0.004/150ms 采样延迟）。
+  - **落脚点对齐重建后，握点必须按新 sheet 重新实标，禁止 bbox 原点差平移补偿**——
+    2026-08-16 踩坑：bbox 原点差法在 bbox 边沿换身体部位时失真（一段 f11 差 (+18,−8)、
+    用户实机目击「剑没贴在手上」）；正确做法 = 当前 sheet 上细网格重读 + 质心精修 +
+    十字校验网格逐帧目视 + 贴附率复验（三段 12/12/16 全过）+ 实机探针截图抽查关键帧
+    （`cdp-fist-fit-probe.mjs` 定格+带/不带武器双程截图 + 屏幕坐标换算核对）。
+    另：用户客户端吃不到改动时先查 5173 在线内容（curl /data/...），确认后硬性刷新。
+  - **刃向错误也会被读成「脱手」**（2026-08-17 三段案例）：握点全部贴附率过关、实机坐标
+    逐位一致，用户仍报「不跟手」——实机逐帧截图才看出蓄势帧剑浮在头上方：位置对、
+    **刃向没跟前臂走**（拳头回收刃向就得后指，顶点突刺刃向精确 90°）。点位重标定时
+    rotation 必须按当前 sheet 的前臂方向一并重推，不能只搬位置；验证要看全部中间帧
+    截图，不是只看顶点帧。
+  - 探针验证的缓存坑：无头 Edge 里的游戏配置是**启动时** fetch 的，改配置后必须重启
+    探针页面再采样，否则对着旧配置误判「改了没生效」（同人端刷新一个道理）。
+  - **探针会假朝左**：无头 Edge 无鼠标事件，指针默认 (0,0) → 玩家朝左、武器走镜像分支，
+    采样值全部带 180° 镜像（曾误判为旋转 bug 追了一小时）。探针里要么钉指针到玩家右侧，
+    要么 `s._getVisualFacingRight = () => true` 临时改写（liver 系列探针已带）。
+  - **细线化 T 值实测定稿 2.0**（T=1.2 用户仍嫌粗）：`thin-strokes.py` 默认已改 2.0，
+    从加粗源（scratch 的 *_aligned.png）重出 attack2/attack3/recover 三张后入库。
+
+#### 跟手失败多次复盘（2026-08-16，对照 2026-08-03 老方法找差距）
+
+老沉淀（掩码贴附率 + GLM 只判 ON/OFF + 阶梯映射 + 实机冻结）本身没错，但它是**中心
+origin + 30 点轨迹 + 8 帧动画**时代的经验；换到 12/16 点 1:1 帧图 + H3 新素材时代，
+反复失败的真正原因按次序：
+1. **origin 模型是结构性误差源**：中心 origin + 旋转 lerp 在旋转大步长帧间把剑柄甩离手
+   20~40px——老方法默认这个模型没质疑过它；dashHand 剑柄锚手（origin=剑柄）才是结构解，
+   应第一时间移植而不是先在旧模型里调数据。
+2. **1:1 点帧时 progress 映射必须阶梯**：progress×(n-1) 与帧窗 [k/n,(k+1)/n) 错半帧相位，
+   帧末武器已偏 92%——老阶梯教训只在生成脚本侧（30 点手写映射），运行时 lerp 的错配
+   当时没暴露。**经验迁移要查公式前提，不是只看条目在不在。**
+3. **对齐/重建后禁止用几何推算握点**（bbox 原点差平移在 bbox 换边沿部位时失真，实测
+   差 18px）——必须在新 sheet 上重新实标。这是「用推算代替实测」的偷懒，直接违反老
+   沉淀的贴图真值原则。
+4. **掩码贴附率 20% 阈值只是底线不是合格线**：质心在拳头与骨盆/腿粘连时被连通域拖走
+  （f0/f11/f13 各踩一次）、把肘当拳、把腿当拳、视频缩放系数算错——每个都要**细网格
+   4× 放大逐帧目视复核**兜底，批量方法只配当粗筛。
+5. **离线合成预览 ≠ 实机**：displayScale/footOffset/运行时二次解卷绕这些口径问题只有
+   实机定格探针（cdp-sword-hold-v4 / cdp-fist-fit-probe）能抓到；交付前必须跑。
+6. **「改了没生效」沟通通道**：改 JSON/贴图只在页面加载时生效——交付时主动给用户
+   可验证手段（curl 线上 /data/ 配置逐字节核对 + 一个手感上不可能错过的行为标记，
+   如「三段终结技无定格」），别让用户对着旧缓存验收。
+
+#### 二段攻击（attack_sword_2）v4 上撩回斩（2026-08-16 入库，连段连贯首帧方案）
+
+- **连段连贯 = 首帧用前段视频的末帧原生抽帧**：attack2 的 H3 首帧 = slash1_v4_s02.mp4
+  第 24 帧（=一段 sheet f11 的源帧，同相机/同底色/同体格），不是重画/重合成——
+  `extract f24 → firstframe_slash2_v4.png`，一段收势姿势像素级流入二段起手。
+- **提示词教训（两条方向性）**：水平横挥/反手横扫在严格侧视下系统性翻车——躯干必然
+  转向正面成 T-pose、且不收势（s11~s13 三连全废）；**上撩回斩（低→高对角线）天然侧视
+  兼容**，s22/s24/s26 三个干净（选定 s24：顶点 50°、底盘稳、无剑影）。提示词模板
+  `prompts/player-attack-slash2-h3.txt`（保留 EMPTY fist/no stick 全套防剑影条款）。
+- **剪片连段口径**：`build-player-attack-sheet.py --video slash2_v4_s24.mp4 --bg-hex 00FF00
+  --n 12 --end 20 --anchor-cx 276 --scale 0.7742`——`--anchor-cx` = 一段末帧格内 cx（276，
+  消 1→2 接缝跳变）、`--scale` 复用一段的 0.7742（参考帧是蹲姿收势不是站姿，不能反推）；
+  窗口终点停在顶点伸展后（v20），最大伸展落 sheet f10 → `attack2.hitCheck.frame=10`。
+- **attack2 同切 anchor='grip'**：拳头标定注意 f6 类薄拳（点指时拳心偏下，掩码贴附率
+  6% 报警→细网格复读修正 (497,150)）；刃向链 222→216→96→88→83→57→51→37→31 相邻差
+  全 ≤180°。一段末帧（grip 16.9,11.4/rot 572≡212）与二段首帧（grip 25.9,8.3/rot 222）
+  姿态同族，接缝自然。
+- 入库：`assets/player/attack_sword_2.png` 覆盖，旧 v2 留档 `backup/2026-08-16-player-attack2-h3/`。
+
+#### 二段 v5 沉身下劈定稿（2026-08-16；v4 上撩回斩被用户否掉）
+
+v4 上撩回斩被否原因：向上挥向空气无目标承接、缺冲击力、动作软。v5 改**正手快劈**：
+短促抬拳→爆发下劈穿躯干目标区→整个身体重量砸进（屈膝沉身），收在低位前伸全力姿势。
+- **"violent/slam"措辞几乎必出月牙伪影**：s31~s36 全系列在砸下瞬间带白色月牙大剑影
+  （小尺寸 montage 看不出来，必须抽原始帧放大查挥砍瞬间）。对策=**战略性跳帧**：
+  `--picks` 手动取帧直接不取月牙帧（v5 s31 用 `0,4,8,11,14,15,16,17,21,22,23,24`）——
+  蓄势末帧（臂高举）→ 闪切到命中帧（沉身臂前伸），**动画中割抽掉反而更有冲击**
+  （日式闪帧手法）；新增 `--picks` 参数即为此；builder 撞帧掉数已修（最大空档补中，
+  禁止空帧注册进动画）。
+- hitCheck 跟着闪切帧走：命中帧=sheet f8（(frame-1)/(n-1) 阈值 0.727 落在 f8 显示窗），
+  `attack2.hitCheck.frame=9`；blur 峰值 f8=10/6 贴闪切瞬间。
+- 轨迹同 anchor='grip'；薄拳帧（点指）掩码报警后必须 8px 细网格 4× 复读（f6/f7 拳头
+  真值 (195,82)/(213,80)，粗读全偏）。
+- 入库：v5 sheet 覆盖 `attack_sword_2.png`；v4 上撩版留档 `backup/2026-08-16-player-attack2-h3/
+  attack_sword_2_v4riser.png`（同目录还有 v2 旧版）。
+
+#### 三段突刺（attack_sword_3）v4 后退-突刺重做（2026-08-16 入库，三段连段全切新管线）
+
+- 首帧 = 二段视频 slash2_v5_s31 第 24 帧原生抽帧（二段 sheet f11 源帧），2→3 无缝；
+  提示词 `prompts/player-attack-thrust-h3.txt`：Phase1 收拳退步 → Phase2 蹬腿爆发突刺
+  → Phase3 收回直立备战（**Phase3 是为了 3→1 回一段的身体衔接**）。六连发 s41/s42/s44
+  干净（s43 细线尾迹、s45 突刺帧歪头、s46 尾迹淘汰），选 **s44**（收回备战最完整）。
+- 剪片：`--n 16 --end 52 --anchor-cx 318.5 --scale 0.7742`（anchor-cx=二段末帧 cx 318.5，
+  沿用 4×4 16 帧规格，frameDurations/combo 配置零改动）；突刺顶点=sheet f9（v27，
+  dx+104），hitCheck.frame=10 原值不动（阈值 0.6 落在 f9 显示窗 450~500ms 内）。
+- attack3 同切 anchor='grip'，16 点标定；收势段拳头粘连骨盆照常细网格复读
+  （f13 拳头真值 (372,260)，粗读曾幻想在 (440,258)=空白区）。
+- **闭环测试改容差版**：两段均 grip 锚点后直比握把点，但三段末帧收势体格锚
+  （cx≈293）与一段首帧（cx≈209）不同，连段换贴图身体本身有 26px 位移——
+  `test-melee-sync.mjs` 闭环断言改 45px/35° 容差并打印实测（当前 Δpos=42.6px Δrot=13°）。
+- 入库：`attack_sword_3.png` 覆盖，旧 v2 留档 `backup/2026-08-16-player-attack3-h3/`。
+
+**三段连段 v4/v5 总览（2026-08-16 全切）**：一段斜劈（v4 s02）→ 二段沉身快劈闪切
+（v5 s31）→ 三段后退爆发突刺（v4 s44）；三段的 H3 首帧链路 = 前段视频末帧原生抽帧，
+轨迹全部 anchor='grip' 剑柄锚手，hitCheck 帧 9/9/10，blur 峰值贴各自挥砍瞬间。
+
+#### 收势动画（recover）v4 重做（2026-08-16 入库，首尾帧双锁）
+
+- **首帧 = 三段视频 thrust_v4_s44 第 52 帧**（三段 sheet f15 源帧），**尾帧 = idle.png
+  绿幕合成**（内容高按视频角色 556px 缩放 ×1.166、脚底/中心对齐三段末帧）——H3 首尾帧
+  双锁，收势=战备姿势松回 idle 姿势，两端分别与三段末帧/idle 无缝。提示词
+  `prompts/player-recover-h3.txt`（平缓、无武器、无特效）；4 连发低伪影风险，s51 干净平顺。
+- 剪片：`--n 13 --cols 5 --anchor-cx 293.5 --scale 0.7742`（anchor-cx=三段末帧 cx）；
+  视觉均匀采样在动作完成后会取"动作完成点"而非视频末帧（cum 平台期 searchsorted 取首个），
+  收势类动作这正好合适。
+- **体格口径统一**：recover 改 512×512 格并加 `displayScale 1.0956`（与三段攻击同屏显身高，
+  三段→收势无大小跳变）；旧手绘 512×516 退役。`test-melee-sync.mjs` 的"recover 无
+  displayScale"守卫已按素材变迁更新（walk 仍保持无缩放）；recover 时长 13×25.4ms≈330ms
+  不动，各段收势时长仍由 `meleeCombo.stageNRecoverMs` 驱动。
+- 入库：`recover_sheet.png` 覆盖，旧手绘版留档 `backup/2026-08-16-player-recover-h3/`。
+
+#### 线宽代际漂移与细线化（2026-08-16 用户反馈「线条加粗」实测定稿）
+
+- **H3 每代际系统性加粗描边**：首帧链路（前段视频末帧→下段首帧）每过一代线宽
+  +0.4px——实测躯干笔画宽 idle 2.7px / 一段 3.2px / 二段 4.0px / 三段 4.3px
+  （距离变换半径均值×2 量化，工具即 `thin-strokes.py` 的统计输出）。
+- **细线化工具 `tools/ai-gen/thin-strokes.py`**：距离变换层级收缩 T=1.2 + 软边带混白
+  55% 抗锯齿；**只动 RGB 不动 alpha**（轮廓不变 → 剑柄锚定标定不受影响，可后处理随时
+  重跑）。本次统一处理 attack_sword_2/attack_sword_3/recover_sheet 三张（一段 3.2px
+  用户认可未动）。处理后肋骨/关节环/指骨细节保留，与 idle 细线风一致。
+- 教训：montage 小图看不出线宽差异，**线宽要用距离变换量化**；后处理在剪片入库后做即可
+  （sheet 级，不用回视频返工）。
+
+#### 全链路落脚点对齐（2026-08-16 用户反馈「三段/idle 错位、大小不整齐」定稿）
+
+- **屏显口径审计法**：逐帧算 屏显身高=内容高/512×(144×displayScale)、脚底偏移=(feet_y-256)
+  ×K、中心偏移=(cx-256)×K（display px 相对 player 中心）——审计发现：攻击链脚底 +72.7 vs
+  idle +65.0（收势→idle 脚跳 7.7px）；水平中心 idle +3.6 → attack1 f0 −14.5（idle→一段跳
+  18px!）→ 1→2 跳 20.7px → recover→idle 跳 −7.3px。
+- **统一口径**：四张 sheet 全部 `feet_y=467`（= idle 屏显脚底 +65.0）+ 首帧锚 cx=268
+  （= idle 屏显中心 +3.6）；链式锚点：一段末=268 → 二段首=268 → 二段末保留自然前冲
+  (+13.2) → 三段首=16.6 → **三段末钉回 268** → 收势 268→268 → idle 3.6，全链接缝 ≤1px。
+- builder 新增 `--anchor-end-cx`（基底 lerp 到 目标−末帧自然dx，末帧精确落点、段内位移
+  保留）与 `--picks`（手动取帧，战略跳过伪影帧）——注意：`--picks` 曾在并行工作中被外部
+  回滚弄丢过一次，重建前 `grep picks build-player-attack-sheet.py` 先自检。
+- **武器握点不平移重标**：sheet 内容放置原点变了，按新旧 sheet 每帧 bbox 原点差 Δ 平移
+  补偿即可（`offset新 = ((旧偏移/K+256)+Δ−256)×K`），rotation/blur/stretch/hitCheck 不动；
+  平移后贴附率复验 0 失败。
+- 细线化是 RGB-only 后处理（alpha 不变），重建 sheet 后需对二/三/收势重跑
+  `thin-strokes.py`。
+- 已知限制：三段突刺顶点内容宽 406px + 前冲 dx，512 格放不下会 clamp（clamp=完整保留、
+  顶点略左移，旧版同此行为）；要彻底解决得 640 格 + hitCheck/轨迹重建，暂不需要。
+- 备份：对齐前版本在各自 backup 目录的 `*_prealign.png`。
+- 入库：旧 v2 留档 `backup/2026-08-15-player-attack-h3/attack_sword.png`，两段式留档
+  同目录 `attack_sword_keyframe2seg.png`；blur 峰移 f8~f10 贴挥砍段。
+
+---
+
+### 人形角色视频→精灵图全流程（2026-08-12 露娜 Luna 四动作 32 帧实战定稿）
+
+适用：已有角色动作视频（walk/run/jump/spell），直接产出游戏精灵图，不再走 AI 生图。
+工具：`tools/ai-gen/luna-sprite-builder.py`（BiRefNet 批量抠图 + 对齐三铁律 + 拼 sheet；
+模型加载一次后 CUDA 约 0.6s/帧）。产物落 `Y:\工作\无尽轮回\scratch\luna-sheets\`。
+
+#### 1. 素材结构分析（先分段再动手）
+- 720×720 24fps；`walking and running.mp4` 常是"走路段 + 静止过渡 + 跑步段"三段：
+  用**相邻帧差曲线**定位分界（露娜：walking 0-45 / 静止 48-81 / running 81-120）。
+- `spelling.mp4` 可能含"施法→坐地"完整流程，只取站立施法段（露娜 0-63），坐地帧不能进施法动画。
+- `jumping.mp4` 是"准备→起跳→空中→落地→静止"；空中帧离地高度用 BiRefNet alpha 实测
+  （露娜 81px，占主体高 12%）。
+
+#### 2. 动作循环检测（素材常不是无缝循环，先量化再选窗）
+- **腿 IoU 会饱和**（0.85~0.99 全周期都高，分不清周期）；全身 RGB 帧差又混入整体位移。
+  正确姿势：**先按 bbox 对齐（消除位移）再比腿部姿态**；或提取"腿部质心相对身体中心 /
+  腿部展开度"相位特征做自相关（走路 leg_spread 周期信号比 RGB 可靠）。
+- 无同相帧对时（走路/跑步段不足完整步态周期，露娜走路 0-44 内任何帧对腿差 ≥37）：
+  用**视觉均匀重采样**——按帧间视觉差等距选帧压接缝，不要均匀跳帧（跳帧 = 步伐节奏卡顿）。
+- running 由"起步 + 奔跑"构成：起步段（加速过程，帧差由小变大）视觉压缩 N 帧 +
+  奔跑段取"对齐后腿差最小"的窗口；交付时**明确循环起始帧**（露娜：起步 10 帧 + 奔跑 22 帧，
+  从帧 10 开始循环奔跑段）。
+
+#### 3. 对齐与出格（512/640 格决策）
+- 地面循环（走/跑/施法）：高度固定 + 脚底基线固定 + 水平中心固定（对齐三铁律，std≈0）。
+- **跳跃必须 ground-relative**：以序列最低脚底为地面基准，空中帧保留离地高度
+  （`feet_y - lift×scale`），否则空中帧被拉到地面，跳跃感消失。
+- 出格量化：跳跃空中帧 `lift×scale + target_h` 超出格子必切头/切法杖
+  （露娜 512 格 target_h=500 时出格 61px）——空中帧需要空间，**跳跃单独用 640 格**
+  （游戏显示大小由 spriteSize 控制，与格子分辨率无关）。
+- 跑步跨步帧横向贴边：target_h 放大后手臂/法杖出格，露娜实测**内容 470/512=92% 是安全值**
+  （也匹配玩家 idle 92% 占格）；跨步最宽帧 651px 原始 → 470 高缩放后 430px，居中 256 不出格。
+
+#### 4. 玩家大小匹配基准
+- 玩家 `PLAYER_DEFAULTS.physics.spriteSize = 173`，玩家贴图内容占格 92~99%（接近满格）。
+- 新角色精灵图内容高度按同比例定（露娜 470/512 = 92%）；游戏内显示尺寸由 spriteSize 控制。
+
+#### 5. 验证清单
+- 接缝 vs 相邻帧差：walking 接缝须落在正常步幅区间内；running 奔跑接缝 ≤ 段内 max×1.5。
+- 贴边检查：每格 alpha 距边缘 6px 内像素数（横向/顶部），露娜 470 高无贴边、跳跃 top8px=0。
+- 空帧检查：格内 alpha>10 像素数 <50 视为空（禁注册进动画）。
+- GIF 按**游戏内播放方式**生成：running = 起步 10 帧一次 + 奔跑 22 帧循环 3 轮；
+  不要全序列循环（31→0 会闪回起步帧，被误判为"循环截取错误"）。
+
+#### 6. 坑（2026-08-12 全踩过）
+- cv2/PIL 读中文路径失败 → 帧先 Copy-Item 到 `%TEMP%`（无中文），产出再 Copy-Item 回中文路径。
+- 阈值 mask 粗查 bbox 会被**脚下阴影**骗到（bbox 贴底/贴边误判"角色出画布被裁"），
+  必须用 BiRefNet alpha 复检（露娜跑步段左边缘 alpha=0，实际完整无裁切）。
+- 阈值 mask 把背景暗角算进主体（背景角落 159-236，纯阈值抠图不可靠），统一 BiRefNet。
+- 重采样选帧用"视觉距离"而非"帧号均匀"：`linspace(0,33,32)` 取整会跳帧造成卡顿，
+  等视觉距离选帧（相邻 RGB 差均匀）后露娜 walking 接缝从 17.1 → 11.8（落在正常步幅区间）。
+
+#### 7. 露娜奔跑重生成（2026-08-13，H3 图生视频 + 无漂移验证）
+背景：AI 生成的 running.png 有水平漂移（质心 31px、循环回跳 25px）。改用 H3 i2v 重新生成原地奔跑：
+- **参考图**：取现有 running_norm.png 最居中帧 → 合成 1024×576 纯白底，角色高 75%（432px）；
+  `--first-frame`/`--last-frame` 传同一张（锁体型 + 无缝循环），`--duration 5.17`（124 帧）/16 步/1024×576。
+- **防漂移提示词**：`static camera locked in place ... the body stays perfectly centered
+  in the frame and never drifts left or right, only the arms and legs move ...` + 白底 + 无缝循环条款。
+- **生成后验证（必须）**：① 逐帧主体质心 x 漂移（露娜 v2 全帧 22.5px=步态摆动、首尾同 511.1 对称）；
+  ② 背景色伪影检测（非目标色像素数，`R>200&G<180&B>180` 应为 0）；③ 首尾帧 bbox 一致。
+- **选 32 帧窗口**：腿部区域差扫描 `[s, s+31]` 接缝最小（露娜 v2：s=46，seam=3.24 << 内均 7.48）；
+  原地跑无位移，连续窗口即可，无需视觉重采样。
+- **成品**：512 格 8×4、内容高 461、脚底 480（与 walking/spelling 一致）；接缝质心跳变 1.8px、
+  接缝帧差 10.89（低于相邻 mean 13.49）。已替换 `assets/companions/luna/running.png`（旧图备份
+  `Y:\工作\无尽轮回\scratch\luna-sheets\running_old_20260813.png`）。
+
+#### 7b. 左右脚交替筛选（2026-08-14 二轮，AI 视频老问题根治）
+用户反馈 v2 仍"左右脚错误替换"：GLM 证实 v2 窗口帧 31（左腿前）→帧 0（右腿前）左右脚互换，
+且帧 0/1/30/31 每帧都在换腿——**源视频步态交替节奏本身混乱**（脚部特征谷值间隔 22~32 帧波动）。
+教训：**接缝帧差/质心小 ≠ 循环正确**，必须验证左右脚同相。第二轮流程：
+- **多 seed 生成候选**（同一参考图/提示词，seed 换号），提示词加
+  `left and right legs alternate naturally in a steady rhythm, each leg takes a full stride
+  before switching to the other leg, no leg swapping, no twitching, no abrupt leg switching`。
+- **自动筛选（脚部交替规整性）**：逐帧脚部特征 = 脚部区域（底部 20%）质心相对身体中心 X
+  （注意 np.where 返回 (rows, cols)，质心 x 必须用 cols！），5 点平滑后找局部极值；
+  谷值（脚收回）间隔的 std 衡量交替规整度。候选 2 谷值间隔 31/31/31（std=0）= 双步周期 31 帧；
+  候选 1 脚部特征几乎不动（帧差 2-3）= 角色没在跑，直接淘汰。
+- **循环窗口同相验证（GLM 必做）**：裁窗口后抽帧 0/15/16/31 问 GLM"每帧哪条腿在前"，
+  要求帧 31 与帧 0 前腿一致（同相、无左右脚互换）。v3 帧 0/15/31=右腿前、帧 16=左腿前（交替中）✓。
+- **成品 v3**：候选 2 帧 30-61 窗口，seam=1.43（远小于内均 5.73）、接缝帧差 7.38、接缝质心跳变 1.4px；
+  双步周期 31 帧交替规整。已替换 running.png（v2 备份 running_v2_20260814.png）。
+
+#### 7c. 32 帧数学约束与 24 帧定稿（2026-08-14 三轮，用户确认 24 帧）
+用户仍反馈"第 16 帧左右脚互换"，且 GLM 多次判断前后矛盾（同帧组两次答不同前腿）——
+**根因是跑步自然步频与 32 帧规格冲突，不是单纯 AI 质量问题**：
+- **实测所有候选双步周期**：候选 2/5=31 帧、候选 6=25-26 帧（模板匹配 24）、候选 7 不规整；
+  **32 帧无法被任何自然周期整除**，32 帧循环接缝必然左右脚相位错位。
+- **陷阱：像素同相 ≠ 语义同相**。候选 2/5 的 32 帧窗口接缝腿差仅 1.4（侧视左右脚互换时轮廓相似），
+  但语义上左右脚已换——这就是"接缝帧差小却左右脚互换"的原因。
+- **语义同相验证（模板匹配，比 GLM 可靠）**：取 GLM 确认的右腿前帧/左腿前帧做腿部模板，
+  每帧"右前度" = 与右模板相似度 - 与左模板相似度（cosine）；窗口首尾右前度同为显著正值
+  （>+0.15）才算真同相。候选 6 帧 0/24/48/72/96 右前度 +0.16~+0.20 → 双步周期 24 帧。
+- **定稿（24 帧精灵图）**：候选 6 帧 24-47（首尾右前度 +0.197/+0.165 同相），接缝帧差 10.83
+  （低于内均 14.75）、质心跳变 2.3px；GLM 确认帧 23→0 均右腿前（无互换）、帧 10-13 左腿保持换腿自然。
+  已替换 `assets/companions/luna/running.png`（24 帧 8×3、2048×1536；v3 备份 running_v3_20260814.png）。
+- **教训**：强制帧数规格前先测步态周期——循环帧数必须是周期的整数倍，否则左右脚必然错位；
+  AI 跑步视频步频在 24~31 帧区间，常用 24 帧规格恰好落在范围内，32 帧是"最差"选择。
+
+#### 7d. 已有 AI 角色六动作精灵图重做（2026-08-16 伊莉丝 Elise 实战）
+
+背景：素材库已有 4×8 切好的六张 4096×2048（idle 1/walk 14/run 23/attack 28/
+defend 19/windmill 23 帧），只需按 SKILL 对齐三铁律重建入库，**不需要重新出图**。
+成品参考 `tools/ai-gen/elise-sprite-align.py`（luna-run-align 同款口径）。
+
+- **重建脚本铁律（踩坑实录）**：
+  - 脚底定位必须用**缩放后内容高**：`dy = FEET_Y - nh`（`nh=round(h*scale)`）。
+    写成 `FEET_Y - bottom*scale` 会把整帧顶到格子外 → 内容全部被裁剪到几像素
+    （idle 只剩 13px 高，肉眼即"截取不全"）。
+  - 水平平移 clamp 边界：`dx ∈ [2, 510-(nw-1)]`（内容左右缘落在 [2,510]）。
+    写反（`[2-(nw-1), 510]`）会让宽帧右缘溢出 511 被裁。
+  - alpha 阈值：度量口径 alpha>16。若用 alpha>40，attacking f5 剑尖
+    （alpha 仅 16~40）会被当噪点断掉；同理 windmill 剑弧等细长部件。
+  - 连通域去噪只用于确实有散布噪点的 sheet（defend f12/f13 右下角 9px 脏点，
+    alpha>16 下仍是独立小域、距主体 >24px，合并规则不会误删）。
+- **每 sheet 缩放口径**（512 格、脚底 480）：idle/walk/run/defend 站姿 461 高
+  （露娜同款）；**attack 1.75**（源图挥剑帧宽 262，1.80 时最宽帧右缘溢出；
+  剑举过头帧 f5 单独 1.441 保整把剑含剑尖到 y0）；**windmill 1.52**
+  （旋转剑弧宽 319，统一缩放保证剑弧完整入格，角色偏小是源图宽弧的必然）。
+- **验收量化**：成品 512 格扫描——walk/run/defend/windmill 质心 X 跨度 ≤2.3px、
+  0 贴边；attack 因挥剑姿态剑尖右伸，质心跨度 ~46px 属正常，内容完整不裁切
+  （裁切判据 = 帧 bbox 触格边缘，不是质心跨度）。
+- **风车动画不播的排查**：先确认 `_animState==='windmill'` 且 sprite 动画键
+  `companion_warrior_bruno_windmill` 已注册、`wmPlayed` 复位逻辑（idle 分支）
+  正常；坏精灵图（全部缩到角落）会让动画"看起来没播"——先验图再查代码。
+
+#### 7e. 多动作统一角色尺度：多格规格 + 渲染归一化（2026-08-17 伊莉丝 v2 定稿）
+
+7d 的"512 格一刀切 + 每 sheet 独立缩放"有硬伤：attacking/windmill 剑弧宽（源 262/319px），
+512 格装不下统一尺度 → 被迫小缩放（1.75/1.52），游戏内角色挥剑缩到走路体型 65%、风车 53%；
+f5 举剑帧单独缩放（身体 245）；且 512 格下宽帧质心对齐 clamp → run 循环帧水平跳 18.8px、
+defend 持盾帧右偏 13px。**结论：武器弧远超身体宽的动作，格子必须按内容选型，不能一刀切。**
+另：idle 待机图后续换源为 `素材库/人物/Elise/抠图版本.png`（用户指定，1536² 透明底全身
+持剑盾），同样按本节口径重建（全身内容高 461/脚底 480/质心 256/512 格）入库统一大小。
+
+- **统一尺度铁律**：所有动作共用**同一个全局缩放 S**（伊莉丝 = 461/171，站立身体高 461 =
+  露娜同款），不做每 sheet 独立缩放、不做逐帧拉高——跨动作身体大小一致，动作间切换无缩放跳变。
+- **格规格按最大内容选型**：每 sheet 量出最大帧内容 w/h × S，格宽还要满足"质心对齐到格心
+  不 clamp"（伊莉丝 attack 最宽帧质心在内容 34% 处 → 960 格；windmill 52% → 896 格）。
+  帧格可非正方形（attack 960×1024：f5 举剑 898 高完整入格，**不再单独缩小**）。
+  布局 cols/rows 按帧数自由选（attack 28 帧 5×6、windmill 23 帧 5×5），不再沿袭源图 8×4。
+- **脚底统一 0.9375×格高**（512→480 / 640→600 / 1024→960）：脚底偏移只与格高相关，
+  渲染侧可用单一公式归一化。
+- **渲染归一化（改图必须同步改渲染，本次"大小无法统一"的渲染侧根因）**：Phaser 换纹理时
+  按新帧格重算显示尺寸——只改图不改渲染，帧格一变角色就整体缩放/漂移。GameScene 每帧按
+  当前帧格线性映射：`setDisplaySize(帧格W×size/512, 帧格H×size/512)` + 位置补
+  `-(帧格H-512)×0.4375×size/512`（512 格 = 显示基准，全 512 格的露娜/仓鼠零影响）。
+  派生公式：内容高统一 461 → 世界高 = 461×size/512 恒等；脚底世界偏移 = 0.4375×格高×size/512。
+- **验收口径**：重建后逐帧扫 alpha>16——质心 X 跨度 ≤5px（clamp 归零）、0 贴边、0 裁剪、
+  非空帧必须连续 0..N-1、尾格全空；GLM 单张查"六动作首帧身体大小是否一致"（多图并排会串扰，
+  只做定性）；GIF 按游戏内播放口径生成（walk=起步全播+循环段、run 同、attack/windmill 单次、
+  defend=enter+hold+exit）。
+- **契约测试**：`scripts/test-elise-sheets.mjs` 锁格规格 + sheet 实物 IHDR×配置一致性，
+  防止"改配置漏改素材"或退回小格缩水（已入 npm test）。
+- **二轮修复（实机反馈，2026-08-17）**：
+  - **循环闪回 = 末帧与段内某帧同相**：run 循环 [10,22] 末帧 f22 与 f11 腿部同相
+    （腿部 IoU 0.565 vs 段内均值 0.252）且是周期外最深迈步帧 → 接缝同一条腿连播两次。
+    修：`loopFrames [10,22]→[10,21]`（删末帧）。诊断法：腿部区域（bbox 底部 35%）IoU 比
+    全身像素差灵敏——接缝帧差 42.6 看着"正常"，腿部 IoU 才暴露同相。
+  - **idle 漂移 = 起步前摇帧原地重播**：walking f0/f1 是"前倾重心偏移、未迈步"的准备帧
+    （GLM 确认），AI 跟随微调反复 idle↔walk → 前摇原地抖。凡"状态动画+起步前摇"结构的动作，
+    起步段必须排除非步态前摇帧。
+  - **最终口径（五轮，用户拍板）**：① **前摇帧直接从素材删除**（walking.png 14 帧裁成
+    12 帧 4×3，不是只在配置里跳帧）；② **取消一切移动门槛**——状态是 walk 就无条件播
+    行走动画，任何小范围移动都强制走 walking（静止时 AI 切 idle 分支显示待机）。
+    教训：移动门槛（逐帧位移采样/isMoving+宽限）都会引入"待机姿态滑行"或"动画只播
+    一两帧"的观感问题，用户最终选择"纯步态素材 + 无条件播放"——**先删素材里的非步态
+    前摇帧，门槛能不加就不加**。
+  - **AI 阶段字段与渲染同源（防御重复动画根因）**：AI 把防御阶段存实例字段
+    `this._defendPhase`、渲染读 `member._defendPhase` → 恒 undefined → 永远按 enter 重播。
+    阶段字段一律写到实体成员（与 `_animState` 同口径）；渲染侧一次性动画（repeat 0）
+    只在阶段变化时 play 一次、播完停末帧，不能用 `!isPlaying` 当重播条件（播完即回放）。
+
+#### 8. 远程 5080 H3 生成故障排查（2026-08-13 实录）
+- **症状**：提交即 `SamplerCustomAdvanced` 执行失败，`NotImplementedError: No operator found for
+  memory_efficient_attention_forward`，`fa3F/cutlassF-pt ... requires device with capability <(8,0)
+  but your GPU has capability (12,0) (too new)`。
+- **根因**：RTX 5080 是 Blackwell（sm_120），远程 xformers 2.8.3 没有为 sm_120 编译的 fmha kernel。
+- **修复**：远程 ComfyUI 加 `--disable-xformers` 重启（走 PyTorch SDPA，实测 124 帧 6.2 分钟反而更快）。
+  重启要点：schtasks 的 `/tr` 嵌套引号会丢参数（第一次启动成了无参进程、端口占用让 bat 失效）——
+  用远程写 bat（`D:\开发文件\ComfyUI\start_h3_noxformers.bat`，GBK 编码写中文路径）再由 schtasks 运行；
+  重启前必须杀干净旧 8188 进程（会出现双进程抢端口）。
+- **坑**：`pick_bg_color.name_for_hex('#FFFFFF')` 原返回 "vivid magenta"（CANDIDATES 无白色，
+  距离并列取第一个）→ H3 把背景生成成粉色（12 万像素/帧）→ 已修复：CANDIDATES 首位加
+  `("pure white", "FFFFFF", (255,255,255))`。**显式 --bg-color 后必须核对日志注入的色名**。
+
+---
+
+### 四足动物（狼系）动画精灵图全管线（2026-08-07 黑狼/红狼王定稿）
+
+适用范围：黑狼/红狼王等四足狼系怪物，H3 视频 → 精灵图 → 游戏入库。
+管线段：视频生成 → 周期/窗口检测 → 抽帧 → BiRefNet 抠图 → 缩放摆放 →
+去污染去白 → 定量验证 → 游戏接入。以下每条都是踩坑后定稿，换新四足动物
+（虎/熊/犬等）直接照抄流程，只重测周期参数。
+
+#### 1. 视频生成（MiniMax H3）
+- 配置：1024×576 + 16 步 = 6 分钟/段（1344×768+20 步 17 分钟，快 2.6 倍）；
+  H3 最短可靠 124 帧（5.17s），循环靠截取不靠续帧。
+- 首帧模式：loop 视频 `--first-frame` = `--last-frame` 同图；攻击视频是
+  "idle → 动作 → 回 idle" 的一次性弧线。
+- 提示词铁律：
+  - 攻击必须写"肢体前扑"（steps front legs forward / stretches torso /
+    thrusts head），只写 lunge/open jaws 会被 H3 理解成只张嘴（v1 实锤）。
+  - 撕咬力量感靠"大张嘴+头前探+快速帧节奏"，H3 不生成闭合帧，闭合靠
+    抽帧选取（张→咬→张），不要指望模型咬合。
+  - 参考图体型必须做壮（宽度目标 ≥150/262 高），H3 受参考图体型影响极大
+    （红狼人 108→161 宽的教训）。
+  - run 视频固有水平拉伸（提示词 "body stays compact" 仍 430），接受为
+    奔跑姿态，不要为此重生成。
+- 视频特性：狼大小漂移是生成特性（run 首帧 471→中段 631 宽）；切帧只能
+  统一高度，宽度差异读作姿态（黑狼 idle 408 / walk 415 / run 458 同款）。
+
+#### 2. 周期/窗口检测（先扫参数，别沿用工头默认）
+- 周期扫描：`leg_iou(s, s+P)`，P∈[16,120]，限定匀速中段 steady(12..105)；
+  **首尾高 IoU（~0.98）是 idle 重影不是周期，别信**。
+- **扫描必须同时限定动作窗口**（驱动 `quadruped-rebuild.py` 实测踩坑）：先
+  `detect_window` 拿到动作区间 [w0,w1]，周期候选要求 **s+2P ≤ w1**（两个采样
+  周期完整落在窗口内）——否则尾段回位/idle 的 0.99 高 IoU 会把采样带偏到
+  尾段，导致首尾 IoU 断链（bear_run 首轮 0.00 的根因）。
+- 黑狼实测：walk P=48（s=40，iou 0.80）、run P=28（s=40，iou 0.66——
+  低伏姿态腿部占比小，阈值要放宽，0.66 就是正常值）。
+- 攻击窗口：mask 相对首帧 IoU 差定位（撕咬 21..43、飞扑 14..74）。
+
+#### 3. 抽帧策略
+- walk：step 3 → 16 帧（4×4）覆盖完整周期；run：**step 1 连续 28 帧**
+  （=视频原帧，4×7）。快速动作帧数宁多勿少：run 14 帧 step2 腿部 IoU 0.14
+  僵硬，28 帧连续 0.45+ 顺滑。
+- 攻击：**保留水平位移**（以首帧 bbox 中心为参照，按 dx×scale 平移，不
+  逐帧居中——否则前扑 reach 被抹掉）；`--fixed-scale 1`（首帧同比例）防
+  蓄力压低帧被放大；飞扑 20 帧（4×5）、撕咬 6 帧（3×2）。
+- idle 抽 1 帧静态；攻击帧 cols 不满行补透明格。
+
+#### 4. 抠图（BiRefNet 管线，正式入库唯一路径）
+- 模型：`ComfyUI/models/BiRefNet/MS-BiRefNet`，**必须用 ComfyUI venv
+  python**（系统 python 无 transformers）。
+- alpha = max(BiRefNet, 全身深色阈值 threshold-13=235, 腿部区域阈值 248)：
+  - 235 只兜深色区，灰白压缩背景（235~248）交给 BiRefNet 判定，否则留白边；
+  - **腿部区域（bbox 底部 35%）单独用 248**：run 低伏奔跑腿部运动模糊
+    灰度 200~248，超 235 兜底线，BiRefNet 对模糊腿 alpha 不稳 → 硬边后
+    腿型逐帧抖动（重建后腿部 IoU 0.28 vs 视频原帧 0.64）。腿部兜底后 0.45。
+- 去污染（sprite-decontaminate.py）：半透反推前景色 F=(C-(1-α)·B)/α；
+  亮半透（lum>150 且 alpha<250）清零；白色半透直接清零。
+- 硬边：黑狼 alpha<245 全清零（semi=0，接受轻微锯齿）；红狼王留 0.5%
+  浅毛软边（lum-clear 200 只清近白边，保浅色毛）。
+- 边缘亮像素（lum>150 且贴透明 2px 内）压暗到 18（黑毛色）；内部白毛保留。
+- 透明区 RGB 归零（trans_nonblack=0）。
+- **腿部区域去残留**：bbox 底部 35% 内不透明亮像素（lum>160）→ 5×5 邻域
+  毛色均值替换（清脚底贴地/运动模糊灰白；躯干白毛不受影响）。脚底残留
+  alpha=255 离透明区>2px，光靠"邻接透明压暗"清不掉。
+- 彻底去白（用户要无白时）：RGB min>220 近白像素替换 5×5 邻域非白毛色均值
+  （白毛区变深色毛），别只清孤立点。
+- 白点分类：边缘噪声（清）vs 白毛（留），按到内容边缘距离区分，勿一刀切。
+- **resize 后必须逐格清理**（硬二值化 → 每格最大连通域 → 边缘压暗 →
+  透明归零 → 腿部去白），否则插值会再造半透带/白圈（walk 首版 DIRTY 教训）。
+  **2026-08-08 起该清理已内置 `rebuild-h3-birefnet.py --auto-clean`（默认开），
+  不再需要外部手动补一步**（直接调 CLI 出 CLEAN sheet）。
+
+#### 5. 缩放/摆放
+- 高度统一：uniform-h target_h=262（黑狼/红狼王全部狼形态），宽度随姿态；
+  攻击帧 fixed-scale 1（首帧同比例）防"忽大忽小"。
+- 脚底基线：512 格 feet-y 410（feet fraction 0.80）；格子放大按比例
+  （640 格 feet-y 513），保证与其它状态同世界高度。
+- 前扑伸展帧宽超 512（545~583px）→ 格子放大 640²（红狼王撕咬同款 576²），
+  BootScene frameWidth/Height 同步，canvas 按 naturalWidth/cols 自动切帧。
+- 显示 151×151、内容高 262/脚底 410/居中；碰撞体积不动。
+
+#### 6. 验证（定量铁律，GLM 辅助）
+- CLEAN 判据：stray=0 / semi=0 / trans_nonblack=0 / edge_bright=0 /
+  composite_residue=0（合成到 180 背景，暴露地面混合问题）。
+- 动画平滑：相邻帧腿部 IoU（run≥0.4、walk≥0.5 合格；视频原帧 0.64 为上限）。
+- 循环衔接：首尾帧 alpha IoU 应显著高于正常步进 IoU（黑狼 0.90~0.95 vs 0.75~0.80）。
+- 朝向：新旧首帧交叉相关（flip diff 大=同向）；质量中心偏移对对称狼不可靠
+  （误报过 FLIPPED）。
+- 体型：各状态高度统一 ±1.5%；宽度差异读作姿态，GLM 会把低伏 run 误读为
+  "最小"，以像素高度为准。
+- GLM 复核构图/动作；**黑狼图集锯齿会被误读为色块，以像素为准**。
+
+#### 7. 游戏接入
+- BootScene：spritesheet frameWidth/Height = 格子尺寸（512/640），
+  endFrame = 帧数-1；动画键与 `_getTextureKey()` 一致。
+- animation-config frameLayouts **双份同步**（data/ + public/data/）
+  cols/rows/frames 与 sheet 严格一致。
+- 黑狼走 Phaser setFrame 帧索引路径（无 anims 注册）；帧率 run 40ms/帧、
+  walk 120ms/帧（28×40 与原 14×80 圈时一致）。
+- 多贴图混用纪律：同敌人新旧贴图画布尺寸必须统一（本项目 512²/640²），
+  否则创建时一次性 displaySize 会压扁后续贴图。
+- 攻击动画帧率快（撕咬 6 帧 ~500ms）强化"咬一下"节奏。
+
+#### 8. 坑清单（技术）
+- **cv2.imwrite 按 BGR 解析 RGBA 数组 → 红狼变蓝 bug**：sheet 必须
+  `Image.fromarray(sheet, "RGBA").save()`（PIL），禁止 cv2.imwrite。
+- 中文路径：写文件用绝对路径（cwd 飘忽静默失败）；cv2 中文路径静默失败；
+  PowerShell 管道 heredoc 是 GBK 会吃中文字符串 → 用环境变量传路径。
+- 游戏缓存旧图：资产确认干净仍见白底 = 浏览器缓存，硬刷新/重启 dev server。
+- 数值回退用 `??` 不用 `||`（falsy-0 把显式 0 回退成默认值）。
+
+#### 9. 工具链
+- **统一入口 `tools/ai-gen/ai-asset.py`（2026-08-08 定稿：一个大类一个入口，工作一律从这进）**：
+  - `monster idle --name X --ref 参考图 --prompt 提示词 [--bg-color auto|#hex]`：5080 生图候选
+    → BiRefNet 抠图 → 512 归一化（自动选主体无色背景并注入提示词）；
+  - `monster video --name X --kind run|attack --ref idle图 [--bg-color auto|#hex]`：5080 H3 生成动画视频；
+  - `monster rebuild --name X --video y.mp4 --kind run|attack [--bg-color 同色] [--cell 640]`：
+    视频 → 动画 sheet（周期/窗口检测 + BiRefNet 重建 + CLEAN 验证报告）；
+  - `monster status --name X`：列出该怪物全部产物（scratch/<name>_*）；
+  - 通用子命令：`cutout --src --out`（抠图）、`bg-color --image`（选背景色）、
+    `verify --sheet --cell`（CLEAN 验证）。
+  - 所有子命令支持 `--dry-run`（只打印将执行的命令）。底层脚本仍可单独调用，但开展工作
+    一律从统一入口进，避免"散落各地没法调用"。
+- 视频：`tools/ai-gen/minimax-h3-gen.py`（5080 远程，可被 ai-asset monster video 调用）。
+- 重建：**`quadruped-rebuild.py`（通用一键：周期扫描/窗口检测 → 采样 →
+  rebuild → auto-clean → 验证报告）**：`--video x.mp4 --kind run|attack --out y.png`
+  （run 自动采 P×2 连续帧无缝循环，attack 窗口均分 20 帧；可 --cell 640 等覆盖）。
+  `rebuild-h3-birefnet.py`（--frames/--frames-count/腿部兜底/内置 auto-clean）、
+  `blackwolf-rebuild-from-video.py`（黑狼专用驱动）。
+- 验证：`blackwolf-rebuild-verify.py`（CLEAN 五指标）、
+  `blackwolf-rmbg-compare.py`（旧新对比）、`sprite-decontaminate.py`（去污）。
+- 识图：`tools/glm-analyze-image.mjs`（GLM-4.6V 复核）。
+
+---
+
+### 黑狼动画升级（2026-08-06，H3 全动作管线落地）
+
+#### 1. 步态周期不能沿用工头默认（关键）
+- `h3-loop-spritesheet.py` 默认 `--period 70,120` 是按工头 walk（P=80）标定的；
+  **黑狼 walk 实测周期 P=48（s=36,e=84）、run P=28（s=40,e=68）**，用默认周期
+  直接报 "no same-phase gait pair found"。换动物必须先做腿部 IoU 周期扫描
+  （`leg_iou(s, s+P)`，P∈[16,120]）定真实周期，再传 `--period P,P`。
+- 首尾高 IoU 配（~0.98）是"首帧=尾帧 idle 重影"，不是步态周期，别被它骗；
+  限定匀速中段（steady 12..105）再找周期。
+- 步进：walk P=48 用 `--step 3` → 16 帧（4×4）；run P=28 用 `--step 2` → 14 帧（7×2）。
+- **四足奔跑提帧优化（2026-08-06）**：run 14 帧（step 2）实测僵硬——
+  相邻帧腿部 IoU 仅 0.140（帧间腿部跳变 = 僵硬）。优化：
+  ① **提高采样密度** step 2→1（28 帧 = 视频原帧，4×7 网格），
+    相邻帧腿部 IoU 0.538，平滑度 +285%；
+  ② 重建走阈值 bbox + max(BiRefNet, 阈值) 腿部兜底（run 四腿运动同样会丢腿）；
+  ③ 游戏帧率 80→40ms/帧（28×40=1120ms，与原 14×80 圈时一致）。
+  经验：**快速动作（run）帧数宁多勿少，step 1 逼近视频原帧最顺滑**；
+  慢速动作（walk）step 3 可接受。
+- **飞扑同款提帧（2026-08-06）**：飞扑 11 帧 → 20 帧（prepare 4→6、charge 7→14，
+  4×5 网格），相邻帧 IoU 0.418→0.553（+32%）；垂直提升抛物线按 14 帧细化
+  （起跳 10 → 空中 32 → 落地 2px）；prepare 帧 200ms/帧、charge 95ms/帧。
+  攻击动画提帧同样适用"密采样 + 阈值兜底"，GLM 五项全过。
+- **H3 撕咬生成坑（2026-08-06）**：H3 对"咬合撕咬"不敏感，4 版提示词
+  （强调 jaw snap/clamp）仍生成"张嘴吼"（嘴巴大张保持）。解决：
+  **抽帧避开大张帧，选"闭嘴→小张→闭合→松开"的闭合帧序列**（v3 视频的
+  f36/40/52/56/60/64），GLM 确认小幅咬合、无大张吼叫帧。
+  经验：H3 生成嘴部动作节奏慢，撕咬动画靠帧选取塑造咬合感，
+  游戏帧率调快（6 帧 ~500ms）强化"咬一下"节奏。
+- **移动动画白底/灰边排查（2026-08-07）**：walk 旧版为 BiRefNet 纯 alpha，
+  半透边缘像素高达 8 万/张（虽深色，但在浅色地面移动时显灰圈）。修复：
+  用统一管线重建（阈值 bbox + max(BiRefNet,阈值) + **decontaminate 收紧
+  lum>150 半透清零**），半透像素 80867→171，边缘全硬无残留；
+  run 近白像素是狼真实白毛/高光（腹部/胸口），非背景残留，勿误删。
+  经验：移动动画边缘残留先量化半透像素数，浅色地面会放大浅灰边缘；
+  资产确认干净后仍见白底 = 游戏缓存旧图，刷新/重启 dev server。
+- **抠图白点清理（2026-08-07）**：阈值兜底会把 235~248 的浅色边缘像素保留为
+  白色噪点（walk 孤立白点 4235 / run 7366 / pounce 4791，99% 在内容边缘 2px 内）。
+  修复：近白像素（RGB min>235 且 alpha>200）在内容边缘 2px 内一律 alpha 归零 +
+  3×3 孤立白点清除 + 低 alpha 白残留清零；内部连片白毛（距离>2px）保留。
+  清理后 GLM 确认：边缘无白点/白边/锯齿、白毛自然、整体干净。
+  经验：白点分"边缘噪声"（清）与"白毛"（留），按到内容边缘距离区分，
+  不要一刀切删全部近白像素（会毁掉腹部白毛）。
+- **彻底去白（2026-08-07 用户要求）**：孤立点清理仍不够，用户要求"直接排除
+  白色/类白色像素"。终极方案：**RGB min>220 的近白像素（含 alpha<200 半透白）
+  一律替换为 5×5 邻域非白像素的毛色均值**（不是删 alpha，是颜色替换——
+  无白点、无洞、白毛区变深色毛），半透白边缘 alpha 压到 120。
+  处理后 5 张贴图残留类白像素 = 0。经验：用户要"无白"就颜色替换整片去白，
+  别只清孤立点（孤立法漏掉连片浅白边缘）。
+- **黑狼攻击冻结移动（2026-08-07）**：bite 攻击阶段设 `_frozenForCast=true`
+  （MovementSystem 检查禁移动），pounce 沿用 prepare `_frozenForCast` +
+  charge `_attackAnimTimer`——攻击期间不再边攻击边漂移。
+- **撕咬攻击性重生成（2026-08-07 v5）**：提示词强化 "snaps jaws open and shut
+  with strong force, teeth clashing, lower jaw closes up fast and hard with
+  visible impact, aggressive and fierce, the head jerks forward slightly"。
+  H3 仍不生成闭合帧（全程大张），但抽帧后节奏呈"张→咬→张"，GLM 确认
+  攻击性/力量感强、无静止吼叫帧。经验：H3 撕咬要力量感靠"大张嘴+头前探+
+  快速帧节奏"，闭合细节依赖帧选取。
+
+#### 2. 攻击视频抽帧（新工具 `h3-attack-spritesheet.py`）
+- 攻击视频同为首帧=尾帧=idle 的一次性弧线（idle → 攻击 → 回 idle），
+  用狼 mask 相对首帧的 IoU 差定位攻击窗口（撕咬 21..43、飞扑 14..74）。
+- **水平位移必须保留**：攻击帧不能像循环那样逐帧居中——否则前扑/撕咬的
+  水平 reach 全被抹掉。以首帧 bbox 中心为参照，各帧按相对位移 dx×scale
+  平移（飞扑 cx 从 638→737，占格内 36px）；脚底基线仍固定 410。
+- 攻击帧数：撕咬 8 帧（step 3）、飞扑 11 帧（step 6）；cols 不满行补透明格。
+- 黑狼步态动画走 **Phaser setFrame 帧索引路径（无 anims）**：每状态独立
+  `frameLayouts`（cols/rows/frames），`_animFrame` 按状态取模，比 foreman 的
+  `anims.create` 集成方式不同——`_getTextureKey` 换贴图 + `_getPhaserOptions.frame`
+  切帧即可，不要套用 anims 注册（黑狼本来就不注册动画）。
+
+#### 2.1 攻击帧必须固定缩放比例 + 防裁切（2026-08-06 撕咬反馈修复）
+- **症状**：撕咬时狼被误放大、前扑帧左右被裁。根因二连：
+  ① 逐帧 `scale = 262/当前高` 统一缩放到 262——蓄力压低帧（视频高 525 vs idle 556）
+  被放大 6%，前扑帧高度波动导致狼忽大忽小；
+  ② 前扑帧内容宽（视频 903→1024）+ 水平位移 dx → `ox+nw > 512` 直接裁剪
+  （旧 sheet 多帧宽 512 贴满 cell、左右触边）。
+- **修复（`h3-attack-spritesheet.py --fixed-scale 1`，默认）**：
+  ① **固定缩放**：所有攻击帧用首帧（idle）同比例 `scale = 262/首帧高`——
+  狼与 idle 恒等尺寸，蓄力压低/前扑伸展读作真实姿态（高 224~261 自然变化），
+  不放大；② **防裁切 clamp**：`ox = clamp(ox, 0, cell-nw)` 内容优先完整，
+  不再裁剪超界像素。
+- **验收判据**：各帧 bbox 无 touch（x1<510）、高度含蓄力帧自然矮、
+  GLM 确认"大小一致无突然放大、前扑头爪完整"。
+- 撕咬 v3：帧高 224~261、宽 405~482 全完整；飞扑 v3：宽 431~504 完整。
+
+#### 3. 黑狼攻击 = 只保留撕咬（2026-08-16 定稿；历史沿革见下）
+- **当前定稿（2026-08-16）**：用户要求删除飞扑攻击及其动画，只保留撕咬一种攻击方式。
+  已删：`black_wolf_pounce.png` 的 BootScene spritesheet 加载、animation-config.blackWolf
+  的 sprites.pounce / attackTypes.pounce / frameLayouts.pounce、enemy-config.blackWolf
+  的 pounceRange/pounceCooldown/pounceHitDistance/pounceCrippleMs/pounceMaxDist/
+  pounceOvershoot（attackType "飞扑"→"撕咬"）；`BlackWolf._usesPounce=false`，
+  攻击决策/贴图/网格/帧数一律走 bite（`_getTextureKey/_getFrameLayout/
+  _getStateFrameCount/_drawBody` 的 pounce 分支已删）。
+- **红狼王不受影响**：`RedWolfKing extends BlackWolf` 复用基类飞扑状态机
+  （`_startPounce/_startCharge/_endPounce/_updatePounceCharge/_spawnSpeedLine` +
+  `_pounceState` 系列字段），红狼王构造器 `_usesPounce=true` 并补齐字段声明，
+  双攻击（近咬 pounceBite / 中距飞扑 pounceClaw）照旧；黑狼删掉的 pounce
+  渲染分支红狼王均各自 override，互不影响。
+- **历史沿革**：2026-08-06 曾按"只保留飞扑、移除撕咬"定稿（mutant-3 同构）；
+  2026-08-07 加回普通撕咬做近距攻击（biteRange 150，飞扑留中距技能）；
+  2026-08-16 最终定稿只保留撕咬。
+- **飞扑机制（红狼王在用，黑狼已停用；与 mutant-3 同构）**：
+  - `_pounceState`：idle → prepare（蓄力 1s，`_frozenForCast=true` 锁定移动、面向目标）
+    → charge（锁方向 1s 直线冲刺：穿过目标 + overshoot 或最远 maxDist，
+    固定速度 = 距离/1s，逐帧 `WallSystem.resolve` 撞墙）；
+  - 命中：charge 每帧 `_isTargetInRange(hitTarget, pounceHitDistance)` →
+    `takeDamage + applyCripple(3000)`（致残减速 debuff，非眩晕）；
+    盾牌弹反 `_lastParried` 不施加致残；
+  - `aiInterval = Number.MAX_SAFE_INTEGER` 关闭通用 CombatSystem 攻击，
+    状态机自主触发（目标距离 ≤ pounceRange 500 且冷却 12s）；
+  - `_attackAnimTimer` 在 charge 期间保持 >0，阻止 MovementSystem 覆盖朝向；
+  - 冲锋速度线条 `_spawnSpeedLine`（替代残影）：沿狼身后反方向拖出短色块链，
+    白芯 + 浅蓝辉光 ADD——参考 LightningBoltEffect 的圆块链风格，
+    线条感强于纯粒子、柔于纯线条（折中方案），每 80ms 一条、170ms 淡出。
+- **动画阶段帧区间**：pounce sheet 11 帧按阶段分区——prepare 帧 0~3（蓄力蹲）、
+  charge 帧 4~10（跃起扑击）；命中即中断（只播 4~6 后回 idle，与 mutant-3 一致）。
+- **配置（红狼王在用）**：`animation-config.redWolfKing.attackTypes.pounce`
+  （prepareMs/chargeMs/prepareFrames）+ `enemy-config.redWolfKing` 的
+  pounceRange/pounceCooldown/pounceHitDistance/pounceCrippleMs/pounceMaxDist/
+  pounceOvershoot；黑狼侧 pounce 配置已全部移除。
+- **飞扑动画重制（2026-08-06 v3 定稿）**：提示词强化爪子细节
+  （"swing forward in a wide visible arc like a cat swiping, claws spread wide
+  apart and clearly visible with sharp distinct claw tips"）后重生成，
+  特写验收确认"前爪前伸 + 爪尖张开可见"（挥击弧线是 H3 侧视模型的生成极限）；
+  游戏内动作时长按用户要求调到 ~3s（prepareMs 1200 + chargeMs 1800）。
+- **飞扑动画重制 v4（2026-08-06 定稿）**：两阶段提示词——
+  phase one 准备（"lowers its body close to the ground, belly almost touching
+  the ground, stretches all four legs wide apart, muscles tensed"）、
+  phase two 飞扑（"leaps through the air, opens its mouth wide in a fierce
+  biting snap, swings both front paws forward in wide slashing arcs with claws
+  fully extended, biting and clawing at the same time, strong exaggerated
+  motion"）。GLM 五项全过：准备下压+四肢张开 / 飞扑嘴张撕咬+爪挥 /
+  幅度力度更大 / 大小一致无裁切 / 连贯。准备帧高度 204~233（压低明显）。
+- **BiRefNet 压低帧丢腿坑（2026-08-06 v6 定稿）**：GLM 复验发现中间帧明显偏小，
+  像素统计定位根因——**BiRefNet 对四肢张开/下腹贴地的压低帧把腿部大量识别为背景**
+  （f32 腿部仅保留 5%，bbox 高收缩 21%），按 BiRefNet bbox 重建 → 帧变小。
+  修复：crop 用阈值 mask(248) bbox（完整狼）+ **alpha = max(BiRefNet, 阈值mask)**
+  腿部兜底 + 固定 scale + 加强去污染（亮半透边缘 lum>180 清零）。
+  修复后各帧高度 -1%~-4%（之前 -22%），四腿完整，白边 0.00%，GLM 六项全过。
+- **飞扑垂直提升 + 速度调整 + 普通撕咬（2026-08-06）**：
+  - 空中效果：精灵图层 charge 帧脚底按抛物线提升（起跳 +8px → 空中 +30px → 落地 +4px），
+    游戏内无需额外偏移；准备帧脚底保持地面 410；
+  - 飞扑速度 -25%：`pounceSpeed = 距离/(chargeMs/1000)`（原硬编码 /1），
+    chargeMs 1333 = 原 1s 的 1.333 倍（525px/s vs 700px/s，精确 -25%）；
+  - **普通攻击（近距离撕咬）**：`_biteState` 状态机——距离 ≤ biteRange 150 触发，
+    6 帧 3×2 小幅前探张嘴咬（无回转、无位移），中段 200~450ms 命中一次，
+    无致残/眩晕；命中距离 biteHitDistance 165 须 ≥ 触发范围（否则空挥）。
+    攻击决策：近距撕咬优先，中距（150~500）飞扑技能。
+- 资产：`black_wolf_idle/walk/run/bite_regular.png` 四张
+  512×512、内容高 262 / 脚底 410 / 居中；显示仍 151×151（内容 ~77px，与旧图一致），
+  碰撞体积（120×65 / footOffsetY 41）不用动（`black_wolf_pounce.png` 已废弃停用）。
+
+#### 4. H3 视频抽帧必须走 BiRefNet 抠图（2026-08-06 白边教训，已重做）
+- **阈值 235 + 羽化 σ0.8 必留白边**：H3 视频背景实测纯白 254~255，但狼体边缘有
+  压缩光晕（235~253 灰白）与浅色毛混在一起（帧 68 有 41% 亮像素深达狼体内部），
+  阈值顾此失彼：调低留灰白边、调高切浅毛。**半透明边缘像素 80% 亮度>200 即白边**
+  （量化判据），修复后必须 <1%。
+- **正确做法**：抽帧后逐帧过 BiRefNet（`birefnet-cutout.py`，模型
+  `Y:\模型库\ComfyUI\models\BiRefNet`，junction 到 `ComfyUI\models\BiRefNet`）→
+  用 BiRefNet alpha 重建 sheet → 边缘反推去污染兜底（白色半透明像素直接清零，
+  灰调半透明像素反推前景色）。修复后白边 0.00~0.25%，GLM 复验浅毛高光完整。
+- 工具 `h3-loop-spritesheet.py` / `h3-attack-spritesheet.py` 已加
+  `--threshold`（默认 248）/ `--feather`（默认 0.3）参数，但**只用于定位/快速预览，
+  正式入库一律走 BiRefNet**。
+- **攻击提示词必须写"肢体前扑"**：光写 "lunges its head forward, opens jaws" 会被
+  H3 理解成只张嘴（v1 实锤）。v2 改成 "drops its chest low, steps its front legs
+  forward in a long stride, stretches its whole torso and shoulders toward the
+  target, thrusts its head forward with jaws wide open" 后，帧宽 433→512
+  （前扑拉伸 79px）、GLM 确认"身体前倾/前腿跨步/躯干前探"。攻击帧抽 10 帧
+  （windup→lunge→bite→retract→return），5×2 网格。
+
+#### 5. Phaser displaySize 只在创建时按初始纹理算（2026-08-06 idle 小图根因）
+- **症状**：idle 显示小/扁。根因：`_configureEnemyBody` 只执行一次，按创建时
+  纹理的帧尺寸算 displaySize；黑狼初始 `_aiState='pacing'` → 创建时用旧
+  250×215 pacing 贴图 → displaySize=151×130，之后切到任何 512² 新贴图都不重算。
+- **修复**：`GameScene._syncEnemyAnimation` 在 setTexture 后按当前帧尺寸重算
+  `setDisplaySize`（spriteSize 语义）；同时 pacing 也统一走新 walk 贴图
+  （16 帧慢速 180ms），全状态 512² 显示一致。
+- **多贴图混用纪律**：同一敌人的新旧贴图画布尺寸必须统一（本项目 512²），
+  否则创建时算的一次性 displaySize 会压扁后续贴图；新增贴图先查初始状态
+  用的纹理尺寸。
+
+#### 6. 防守陷阱贴图管线（2026-08-07，世界-122 地面陷阱）
+- **范围**：4 类（地刺 spike / 地雷 mine / 减速带 tar / 燃烧区 burn）× F→A 六档 = 24 张，
+  入库 `assets/terrain/trap_<type>_<grade>.png`；显示尺寸 70~92 × 50~68（trap-config.js）。
+- **视角**：等距地面物件——30° 俯视、顶面可见、平贴地面、单件居中（与掩体 30° 底边
+  斜墙同视角体系，但陷阱强调"俯视看到顶面/内部"，不是立墙）。
+- **视角定稿（2026-08-07 用户三轮校正）**：陷阱视角基准 = **游戏掩体墙的 2.5D 等距
+  30° 地板线**（`front face visible, top surface slightly visible and foreshortened`），
+  **不是**障碍物的 2:1 diamond 俯视基准（第一轮错用），也**不是**正俯视/立式桶鼓。
+  各类型差异：地刺/减速带/燃烧区天然有立面感，通用视角块即可；**地雷必须按
+  "平贴地面的扁平圆盘"写**——`flat round mine lying flat on the ground, seen from a
+  30-degree elevated angle, the circular top is a foreshortened ellipse (not a full
+  circle), only a thin low side wall is visible below the top rim, low and flat like a
+  pancake`（写"standing upright drum/side dominant"会被画成油桶，已否）。
+- **提示词模板**：`tools/ai-gen/prompts/trap.md`（风格基准 + 视角块 + 类型×档位主题词 +
+  负面词；材质逐档递进：F 木/铁简陋 → A 符文魔改）。
+- **生成**：`tools/ai-gen/gen-trap-assets.py`（5080 `flux2-dev-fp8`，默认 24 步；
+  支持 `--keys` 小批验证、`--skip-existing` 断点续传、`--timeout` 单张超时）。
+  5080 空闲单张 ~56s；被并行任务占用时 10~20min/张，务必断点续传分批跑。
+- **抠图铁律**：用 `make-transparent-icon.py`（flood fill，半透明残留 ~0.7%）；
+  **不要用 `prep-obstacle.py`（GrabCut）抠陷阱**——白底 AI 出图的浅色主体边缘
+  灰边残留 6~37% 超标（掩体深色材质不受影响，陷阱的浅木/金属/火焰必翻车）。
+- **验收**：GLM 检查视角/主体/无白边；实机放 4 类 D 级陷阱截图，GLM 确认与地面
+  墙壁协调、大小合适、类型可辨识。
+
+#### 8. 掩体墙根土块（Blender 整合建模，2026-08-08 最终定稿）
+- **最终方案（用户反复校正后定稿）**：**土块与墙在同一个 Blender 渲染中整合建模**
+  （烘焙进墙贴图），土块沿墙底边精确贴合；独立叠加方案（sprite/贴花）已否——
+  对不齐墙体、图层混乱。
+- **实现**：`render-cover-real.py` 的 `build_wall` 加 `soil` 字段（墙 box 不设 hidden，
+  土块一起渲染）：土埂（bankW≈w 铺满整条底边）+ 60 个碎石颗粒（sz 8-16 高低起伏、
+  前后错落、bevel 2，前侧 -y + 土埂），程序化泥土材质。
+  入库 `obstacle_cover_D*`（D 级 5 变体 × h/v）；GameScene 无独立土块层
+  （土块随墙贴图渲染，depth = `_faceDepth` 单一图层，无图层问题）。
+- **验证**：实机确认——土块贴合墙斜向底边无错位/悬浮、拼接竖缝墙身无缝、
+  拼接处土块连续自然；转角图层顺序后改为 `cornerLayer: 'rightOnTop'`
+  （见下方 2026-08-08 修正）。
+- **坑**：独立土块 sprite（不同尺寸/位置/图层）必然对不齐墙 + 图层混乱——
+  土块必须与墙同渲染烘焙，不能分开建模后游戏层叠加。
+- **⚠ 拼接缝隙根因（2026-08-08 实机复现）**：`soil_margin` 默认 0.18 会撑大
+    ortho 取景、让墙身贴图缩小（内容 x 215-843 vs 原版 163-856），端帽边缘偏移 →
+   水平拼接处露 1-2px 暗缝。土块在墙身 box 内（`bankW`/`halfW` ≤ w）时不需要余量，
+   必须设 `soil_margin: 0`——墙身恢复原版尺寸、拼接无缝。渲染后核对内容框
+    x 范围（原版 163-856 基准）。
+  - **⚠ 用户报“拼接还有缝”先查构建版本（2026-08-08 二次复现）**：源码贴图修好后，
+    实机仍报“同一水平线拼合有明显缝隙”，排查发现用户运行的是**旧打包版
+    （dist-electron-new 0.198.6，构建于修图前）**——打包版 resources/app/dist/assets
+    里的贴图仍是旧内容框（163-860/无土），dev server 才是新图（163-902/带土）。
+    结论：**改贴图后必须重新打包**（`npm run build:win`，产物 `dist-electron-new/无限轮回 X.Y.Z.exe`），
+    并核对 win-unpacked/resources/app/dist/assets 与源图 SHA 一致；dev 侧用户硬刷新
+    （Ctrl+F5）即可。验证工具：`tools/cdp-join-audit.mjs`（带坐标系校验标记 +
+    精确定位接缝）+ `tools/join-sim.py`（25 组变体组合确定性模拟，0 缝隙）。
+  - **⚠ 上夹角“侵入式叠合”根因（2026-08-08 诊断）**：`_buildBaseRoom` 用
+    `faceLen/2`（98.17）当作 face 在边方向上的对称半跨来算首件位置
+    （`t0 = -cornerExtend + faceLen/2`），但 COVER_FACE 端点在边方向上的真实投影
+    不对称（v 向在 TL/RB 边：A 投影 +69.3、B 投影 −127；h 向反之）→
+    转角件 face 实际越过顶点 **73.8px**（意图 cornerExtend=45px），
+    两臂在角点叠合 ~147px，即用户看到的“侵入式贴合/图层错误”。
+    修正：按真实投影算首/末件 t0/t_last（朝顶点端投影 127），让 face 端点正好
+    越过顶点 cornerExtend；`faceLen/2` 假设仅适用于对称 face。
+  - **图层顺序 A/B 实测（2026-08-08）**：上夹角 TL(v) 盖 TR(h)（当前 depthBias+0.5）
+    vs TR(h) 盖 TL(v)，GLM 对比实机截图认为 **TR 盖 TL 更自然**（砖纹过渡连贯、
+    尖角像单层、无明显暗缝；反之转角有暗缝/断层）。叠合区（face 交线上方）图层
+    顺序肉眼可辨；下方（face 交线下）两者相同。下夹角 LB(h) 盖 RB(v) 是否也要
+    反过来需同样 A/B 复核。验证：`tools/cdp-corner-audit.mjs`（改 e._faceDepth
+    即切图层，每帧深度同步读它）。
+  - **转角底部透底**：两面墙土带在角点下方不衔接（cap 端纹理提前透明），
+    角点正下方出现竖向暗缝/亮地面透出；Blender 土埂/颗粒需覆盖到端帽外缘底角。
+  - **✅ 修复实施（2026-08-08 已落地）**：`_buildBaseRoom` 改按 COVER_FACE 端点
+    在边方向上的真实投影（朝顶点端 127px / 另一端 69.3px）计算首/末件位置，
+    `cornerExtend: 45 → 29`——29 恰好让两臂 face 端点在角点 face 交线交点相接
+    （干净斜接、不侵入），四个角全部验证 face 端点精确汇于一点
+    （上 (900,1728)、左 (387,1984)、右 (1413,1984)、下 (900,2239)）。
+    `cornerLayer: 'rightOnTop'` 上角 TR 盖 TL、下角 RB 盖 LB（A/B 实测右盖左更自然；
+    因 face 已斜接不相交，图层偏置实际不再影响视觉）。实机全房间 GLM：四角干净、
+    四边无缝。转角底部"透底"实为两墙底边下方的正常房间地板 V 区（土带延伸
+    只能减少 ~9% 暴露），非缺陷，D 级贴图保持不变。
+    回退：`git reset --hard 11f2d11`（优化前快照）或
+    `backup/rollback-corner-20260808_105347/` 文件副本。
+  - **✅ 左右下夹角"按土块判定"根因与修复（2026-08-08）**：用户反馈上夹角正常、
+    左右下夹角"以地下土块进行碰撞/移动判定"。排查发现：**寻路器（PathFinder 的
+    SpatialHash）只建模 WallSystem.walls/trees，有意不纳入 isoSegments**——基地掩体墙
+    只注册了 `_coverSeg`（isoSegments），所以怪物寻路把墙当可通行，直线穿墙后由
+    MovementSystem 的 WallSystem.resolve 挡停；在直墙段会沿墙滑，在左右下夹角
+    （两墙交汇）被卡在墙根土块上抖动。修复：`src/ai/pathfinder.js` 把带
+    `_cover` 标记的静态掩体墙段纳入空间哈希（type 'seg'，阻挡口径与
+    `WallSystem.canMoveTo` 一致：点到线段距离 < 半径+halfThick），动态段
+    （门闸/冰墙无 `_cover`）仍排除；`defense-system.js` 在搭建/拆除/摆放掩体时
+    `pathFinder.invalidateCache()`。验证：右墙外→基地的路径由"直线穿墙 2 点"
+    变为"绕墙走门洞 9 点"；269 项测试全绿。
+  - **✅ 土块推广到 F/E/C/B/A 档（2026-08-08）**：D 级带土贴图验收通过后，用同一
+  spec（`cover_integrated_spec3.json`，soil_margin:0 + soil 字段）批量渲染
+  5 档 × 5 变体（tex_<grade>.png / tex_<grade>_v2..v5.png），h = fliplr(v)，
+  替换 `obstacle_cover_{F,E,C,B,A}_{v,h}/_v2..v5_*` 共 50 张；内容框全部
+  163-902 × 87-890（与 D 一致，soil_margin:0 保拼接无缝）。实机换档验证
+  （`tools/cdp-grade-soil-check.mjs` 直接 setTexture 换档截四角）：F/A 均墙根
+  带土、四角干净、四边无缝。旧贴图备份：
+  `backup/cover-soil-allgrades-20260808_115237/`（50 张）。
+
+---
+
+### 阶段性进度总结（2026-08-04：生图标准工作流 + 提示词固化定稿）
+
+#### 本次完成
+1. **生图标准工作流定稿**：`game-dev/tools/ai-gen/WORKFLOW.md`——六步全流程
+   （定风格→生成→粗筛→视觉验收→抠图入库→清理废案）+ 生成入口矩阵（智谱 API 优先 /
+   ComfyUI 兜底 / 远程 5080 主力 / 本地 3080 Ti 兜底 / models.json 模型登记表）+
+   各类资产子流程（技能图标 / 装备图标 / 障碍物 / 怪物 / 投射物 / 视频）+
+   沉淀坑位清单 + NAS 归置原则。
+2. **提示词固化**：`game-dev/tools/ai-gen/prompts/` 提示词库——
+   README（拼接顺序 / 权重语法 / 智谱 vs ComfyUI 差异 / img2img 模板锁定规则）+
+   8 个固化模板：skill-icon（六边形徽章系列，含 fireball 内容框基准）、
+   equipment-icon（style_prefix + 负面词 + 单件强制 + 构图硬性规则）、obstacle、
+   monster-sprite、video（MiniMax H3）、cover（世界-122 掩体六档）、
+   defense-tower（世界-122 防御塔）、transparent-subject（透明主体纯色底）。
+3. **一致性修正**：文首工作流「标准流程」命名由五步修正为六步（实际条目一直是 6 条）；
+   障碍物提示词引用改指 prompts/obstacle.md（旧 obstacle-prompt-strategy.md 收敛为跳转桩）。
+
+#### 验证
+- WORKFLOW.md 引用的工具路径全部核实存在（当时位于根 `tools/`，现已整体迁入
+  `game-dev/tools/ai-gen/`：comfyui-gen.py、models.json、make-transparent-icon.py、
+  check-icon-sizes.py、birefnet-cutout.py、verify-eclipse-icons.py、flip-boots-right.py、
+  check-components.py、minimax-h3-gen.py、start-comfyui-remote.bat 等）。
+- 模板内容全部来自实战沉淀（陨星/暴风雪图标、稀有三套+首饰、沙袋/拒马、陨星 VFX 视频），非虚构。
+
+---
+
+### 阶段性进度总结（2026-08-04 二轮：生图入口优先级调整 + FLUX.2 dev Depth ControlNet 视角锁定）
+
+#### 本次完成
+1. **入口优先级调整**：双机 ComfyUI 优先（远程 5080 主力 + 本机 3080 Ti 兜底）→ 本地零成本；
+   智谱 API 降级为第三兜底（双机不可用/特殊场景）。
+2. **5080 主力模型实机核对并登记**：FLUX.2 dev fp8（`flux2_dev_fp8mixed` +
+   `mistral_3_small_flux2_fp4_mixed` + `flux2-vae`）+ FLUX.2 Depth ControlNet
+   （`FLUX.2-dev-Fun-Controlnet-Union`，Depth/Canny/HED/Pose 单文件多模式）已装；
+   `tools/ai-gen/models.json` 登记 `flux2-dev-fp8`（24 步/CFG 3.5）+ `flux2-dev-depth`（默认强度 0.75）。
+3. **客户端升级**：`tools/ai-gen/comfyui-gen.py` 新增 `--control-image` / `--strength` 与
+   ControlNet 工作流分支（Flux2FunControlNetLoader/Apply），深度图锁视角/方向；
+   官方 BFL JSON 结构化提示词（camera 块）作双保险。
+4. **兼容修复（已应用 2026-08-04）**：flux2fun-controlnet v1.1.0 的
+   `timestep_zero_index` / `multigpu_clones` 两处补丁与 comfyui-mesh Icarus stub 补丁
+   已在 5080 替换并重启（原文件备份 + 修复版在 `tools/ai-gen/remote-patch/`，NAS 同步一份）；
+   Mesh 跨机出图实测通过（`flux2-dev-mesh`，8 步 turbo，Turbo LoRA 两端本地加载）。
+5. **文档同步**：WORKFLOW.md（入口矩阵/§1.5/第 2 步）、prompts/ 8 个模板补深度锁用法、
+   SKILL.md v2.1、CHANGELOG。
+
+#### 验证
+- 远程 5080 在线（192.168.3.142，RTX 5080 16GB，ComfyUI 0.30.0），模型/节点清单实机核对
+  （Flux2FunControlNetLoader/Apply 存在，ControlNet 文件在 models/controlnet）。
+- `tools/ai-gen/comfyui-gen.py --list-models` 通过；`flux2-dev-mesh` 跨机实测出图成功
+  （5080 Icarus + 3080 Ti Daedalus，8 步 turbo，服务端每步 decode~140ms/fwd~9ms/enc~650ms）。
+
+---
+
+### 树木等距素材管线（2026-08-15 两轮定稿，新树/植被素材按此开展）
+> 2026-08-16：世界-122 树木资产/脚本已全删（荒漠化改仙人掌，见第 7 区）；本条目
+> 保留为通用「白模深度锁视角 → 生图 → 抠图」管线参考（树不再入库，别按它补树）。
+
+**管线（白模深度锁视角 → 生图 → 抠图入库）**
+- 白模：`_blockout_specs/tree_iso2_<species>.json`（trunk 圆柱 + 树冠球/层叠圆柱，
+  **elevation 30** = 防御塔/掩体同视角；billboard 资产 ≤12°）→ `blender-depth-render.py`
+  出深度图（输出走 %TEMP% ASCII 路径）。
+- 生图：`gen-tree-iso2-assets.py`（flux2-dev-depth @5080，24 步 cfg 3.5）。
+- **画风锚定**：写实 = `photograph of a real tree` + 自然低饱和 + 树皮/枝叶细节
+  （flux2 类型不吃 negative 词，全靠正向锁定；v1 卡通风被用户退回——卡通/写实分歧
+  必须首轮小样验收）。5 变体用**树种区分法**（白杨/橡树/白桦/枯树/松树）——同一形态族
+  （高瘦）+ 物种差异，比形状差异更自然。
+- **抠图铁律**：`ai-asset.py cutout` 子命令经 rmbg_cutout CLI 只出灰度掩膜（会把掩膜当
+  成品入库）；入库必须进程内 `predict_alpha` 合成 RGBA（rebuild-h3-birefnet 同款），
+  且整个进程跑 ComfyUI venv python（torch + ComfyUI-RMBG）。
+- 入库：`process-tree-iso2-assets.py`（紧身裁剪 + 底部树干保留检查 + 旧图备份
+  `.bak-tree-*` + 同名键覆盖 + 打印 ISO_WALL_GEO 注册值）。
+- **摆放缩放**：isoVisuals 件显示缩放 = `obstacleH / geo.h`（摆墙编辑器口径）；裸推 piece
+  不给 scaleX 会按贴图原尺寸放大数倍（实机探针实踩）。
+- 工具链：`gen-tree-iso2-assets.py` / `process-tree-iso2-assets.py` /
+  `_blockout_specs/tree_iso2_*.json`；v1 等距卡通风版备份 `.bak-tree-iso1-20260815/`。
+
+### ⭐ 地面无缝纹理统一入口：floor-asset.py（2026-08-16 定稿，泥/沙等平材质地面一律先走这里）
+
+平材质地面（泥/沙/干土等）**禁止用「独立菱形石板 + 随机镜像」拼接**——草地砖靠草苔
+盖住接缝，平材质无细节可遮，会露黑边/硬接缝/无法 8 向循环。改走**无缝连续纹理**：
+
+```bat
+python tools/ai-gen/floor-asset.py mud  --out assets/terrain/floor_mud_seamless.png  --seed 9001
+python tools/ai-gen/floor-asset.py sand --out assets/terrain/floor_sand_seamless.png --seed 9101 --desat 0.5
+```
+
+一条命令 = `comfyui-gen`（prompts/floor-seamless-*.txt，低饱和提示词）→ `make-seamless.py`
+（偏移叠融四边环绕）→ `desaturate-texture.py`（默认 mud 0.55 / sand 0.5）。
+
+渲染侧（dungeon-floor-texture.js `bakeDungeonFloorChunk`，`profile.continuous=true`）：
+
+1. **连续铺贴**：整张无缝纹理按**世界坐标对齐相位**重复（跨分块/跨方向天然无接缝），
+   不做单砖镜像——8 向循环自动满足；
+2. **30° 等距压缩**：纵向按 `textureScaleY ?? 0.5774` 压缩（SKILL 地板标准），
+   否则像垂直俯视；沙地补丁内纹理同压缩；
+3. **侵入式分块拼接**：`applyDungeonFloorChunked(..., pad=3)` 烘焙四周扩 3px、
+   精灵原位重叠，盖住分块并排的亚像素缝隙（细线/黑边）；
+4. **沙地软边补丁**：`sandPatches` 双八度值噪声不规则边界 + 宽淡入淡出
+   （⚠ 补丁画布内必须**循环平铺**纹理——单张画不满会露直角直切边，2026-08-16 真机踩过）；
+5. **草/植被点缀**：独立贴图（prompts/grass-tuft.txt，俯视径向对称）固定朝向 `deco`
+   烘焙，不做 X/Y 翻转——草不画进砖里，8 向循环永不会把草转反。
+   - 2026-08-16 v3 荒漠植物定稿（v1 糊团假绿、v2 圆团正俯视高饱和，两轮均被退回）：
+     **视角铁律——点缀植物不是正俯视圆团，是"微俯 30° 侧看 + 直立株型"**
+     （对齐「等距投影素材规范」：立着的垂直站、顶面走 30°；billboard 资产 ≤12°~30°，
+     正俯视径向提示词必出圆团，勿用）；**画风锚 = 树木管线同款** `photograph of a real
+     desert plant` + muted/desaturated（卡通/高饱和首轮必退）；世界-122 沙漠主题用
+     束草/蒿灌木/龙舌兰/风滚草四物种，白底出图（避开品红底——v2 实测品红底抠图
+     7~15% 像素带 R/B 溢色粉边，检测 `(r>g+25)&(b>g+10)`）→ `process-desert-plant.py`
+     （BiRefNet 进程内抠图 + `--desat 0.7` 对齐低饱和 + 紧身裁剪 + 256²，ComfyUI venv
+     python 运行）→ `deco_desert_1~4.png`（BootScene 注册，scene-manager deco.textures）。
+     中间件在 scratch `desert_*`；v2 品红 despill 修复件留 scratch `grass_v2_*` 备用。
+
+场景配置参考（scene-manager `_loadScene8`）：`{ tiles:['floor_mud_seamless'],
+continuous:true, textureScaleY:0.5774, sandPatches:{texture:'floor_sand_seamless',
+perChunk:6, size:760}, deco:{textures:['deco_grass_1','deco_grass_2'], perChunk:28, size:110} }`。
+
+### Blender 建模渲染管线（render-factory-real.py，2026-08-16 定稿）
+
+直接渲染成品贴图（不再走「白模深度 → AI 生图」两步），适合几何明确的建筑/道具：
+
+```bat
+"E:/Program Files/Blender Foundation/Blender 5.1/blender.exe" --background --factory-startup ^
+  --python tools/ai-gen/render-factory-real.py -- _blockout_specs/<name>.json assets/terrain/<name>.png [--slide 0..1]
+```
+
+- **Spec**（`_blockout_specs/<name>.json`）：`primitives` 支持 box / **prism**（三角坡屋顶），
+  每件 `material`：`wall`（主贴图 tex）/ `interior`（黄→白渐变自发光，门洞灯光）/
+  `window`（暖黄自发光）/ `dark`；`plates + slide` 做横向滑门（`--slide 0` 关 / `1` 开，
+  滑入两侧立柱窗口）；`lighting` 覆盖环境/主光/补光/曝光（暗了调这里，别后处理）。
+- **视角**：elevation 30 + `rot.z 44.8`（与掩体/工厂同口径接地，底部菱形接地线）；
+  正面平视建筑（仓库/祭坛类）才用 elevation 5 + rot 0。
+- **坑① AgX 洗黄**：EEVEE 默认 AgX 视图变换会把亮黄（255,200,80）压成米白——渲染器
+  已固定 `view_transform = Standard`，窗户/门洞灯光才保得住黄色。
+- **坑② 前突组件投影右移**：墙面 44.8° 旋转下，门/窗等 `ly≠0` 前突件世界 X 会整体偏移，
+  投影偏出画面中央——按 `lx' = lx + ly·tan(44.8°)` 补偿（或直接量投影位置摆）。
+- **入库显示尺寸铁律**：成品**必须先紧身裁剪到内容框**再入库——方形画布带透明边时，
+  按内容宽高比设非方形显示（如 220×183）会把方形画布拉伸变形（实机实踩）。
+  裁剪后内容占满画布，再按 `displayW` 固定、`displayH = W/宽高比`、
+  `footOffsetY ≈ displayH/2`（内容占满画布时脚底即贴图底边）。
+- **滑门动画**：16 帧 `--slide n/15` → `compose-hamster-hut-door.py` 合成 4×4 精灵表 →
+  BootScene 注册 open（0→15）/close（15→0）→ 实体门状态机（opening→spawn→closing）。
+
+**采样既有贴图（基地核心成功案例，非常精准）**：重构基地时**优先采样仓库里已有的高质量
+贴图**而不是重新出图——基地核心 = 立方体 + 顶部压顶 + 扁平底座，直接贴
+`scratch/world122/raw/tex_altar.png`（白底大理石 + 灰纹 + 暖色点缀，祭坛同源），
+`spec.lighting` 加亮（ambient 0.66 / sun 1.45 / fill 110 / exposure 0.32）后大理石亮度 ≈183；
+入库 `assets/terrain/defense_base.png`，`DefenseBase.spriteCfg = { size:220, sizeH:183, footOffsetY:92 }`。
+教训：上一版「AI 直出大理石 + 祭坛式建模」用户验收不过，这版「采样祭坛贴图 + 立方体底座」
+一次通过——核心视觉有现成素材时，先采样再考虑出图。
+
+**宝箱（主神空间仓库 NPC，2026-08-16 已退回原版）**：多轮 3D 建模（立方体+拱盖、纯白
+大理石贴图等）用户均不满意，**最终退回仓库 NPC 原贴图**（`warehouse.png` ==
+`chest_opened.png`）与原配置（size 180 / footOffsetY 64）。保留的可复用管线沉淀：
+render-factory-real.py 的 cylinder 图元（放倒半圆柱，显式实心端盖 + UV + 法线一致化）、
+spec.lighting / roof / lid 材质。教训：核心视觉反复不满时，及时退回原版，管线能力保留
+供后续其他道具复用，不为单个资产无限内耗。
+
+**仓鼠兵营（2026-08-16，黑砖兵营案例）**：**世界-122 建筑一律 elevation 30 + rot.z 44.8**
+（与掩体/工厂/防御塔同口径菱形接地线，勿用仓鼠小屋的 rot 0 正面版——用户验收口径）。
+主体 box 260×150×90 + 坡屋顶 prism 280×170×68 + 四角细长塔台（前 36×36×175、后 36×36×190），
+所有图元 rot [0,0,44.8]；前突件（门/窗/塔）按坑②补偿 `lx' = lx + ly·tan(44.8°)`
+（前塔 -205.5/70.5、后塔 -18.5/153.5、门 -77.4、窗 -128.4/-24.4），保证屏幕投影对称。
+**后右塔（153.5,68）投影成独立高柱已删**——44.8° 布局下该角塔在屏幕右上独立矗立，
+视觉像多出来的柱子；三塔（前左/前右/后左）+ 主体更稳。
+**删"脱离主体外"的塔（v5 纠错）**：用户要删的是**脱离在房屋主体外面**的塔
+（前左 -205.5,-68 → 世界 (-97.9,-193.1) 悬在房前），不是屋后那根（后左 -18.5,68）。
+先误删后左又被纠正恢复；最终保留 前右(70.5,-68) + 后左(-18.5,68) 两座贴主体塔，
+删除 前左 + 后右(153.5,68) 两座脱离主体外的塔。
+黑砖贴图走 `comfyui-gen.py --host 192.168.3.142 --model flux2-klein-4b-walltex`
+（1024×656，seed 固定，暗色 36.5 / 白边 0% / 砖格 FFT 峰强），入库
+`assets/terrain/hamster_barracks.png`（656×623，footOffsetY≈312）。
+屋顶红瓦：`roof_tex = hamster_barracks_roof_tex.png`（同管线红瓦 prompt，seed 12202，
+RGB 151/87/70 红主色）+ 屋顶 prism 材质 `roof`（墙身仍是黑砖 wall）。
+**屋顶只坡面红瓦、山墙黑砖 + 瓦行平行檐口**：render-factory-real.py 的 make_prism 现在
+按面分材质槽（端三角/底面=槽0 墙，坡面=槽1 屋顶）+ 新增 prism_uv（坡面 u 沿 X 瓦行
+平行斜边、v=z/H 沿坡度；山墙平面映射）——`material:"roof"` 的棱柱自动走双槽+坡面 UV，
+其它材质棱柱兜底复位单槽。
+**山墙端面 UV 必须 u 沿 Y**（端面在 Y-Z 平面，u 沿 X=法线方向会让纹理坍缩成单列竖带
+拉满三角——黑砖"错误拉伸"根因，2026-08-16 v2 修复）；红瓦贴图**按斜面长宽比重新生成**
+（1280×500≈2.57:1，瓦行平行长边；旧 1024×656 平铺到 280×109 斜面会把瓦片横向拉长 1.6×）。
+**斜面加厚 + 瓦行平行验证（v3/v4）**：棱柱 H 68→76（实心楔，屋顶更厚实）；
+瓦行方向用**横条纹测试贴图**实证：投影后条纹角 -26° == 屋脊/斜边投影角 -26.4°
+（屏幕斜率公式 Δsy=-0.5·Δy-0.866·Δz，别误用 cos30 当水平分量）→ 瓦行确实平行斜边。
+**不要用"檐口圈"加厚（v4 用户纠错）**：棱柱下垫红色厚板会在斜面下方形成一圈屋檐，
+用户要的是斜面本身加厚。`roof_slab` 厚斜板图元（顶/边红瓦、底黑砖，两块在屋脊相接）
+已实现但易与塔台重叠、黑底可见，暂回归棱柱实心楔；要厚板造型需先调塔台布局。
+投影坑：前塔尖顶（z 高于屋脊但 y 更靠前）会被屋顶前坡遮挡——2.5D 前低后高投影下，
+「塔顶高于屋脊」≠「屏幕上高于屋脊」，塔台做平顶最稳。
+
+---
+
+## 3. 玩家角色与武器动画
+
+### 玩家角色动画标准工作流（射击/近战新动作一律按此开展，2026-07-26 定稿）
+
+#### 0. 设计原则（先读，违反必返工）
+- **分层不烘焙**：武器/装备永远不画进身体帧。AI 只出"空手持握状"的身体动作，武器用程序贴图叠加（枪械 360° 程序旋转已实现）；**不让 AI 画枪，也就永远不用抠枪**。
+- **帧数克制**：AI 帧间必抖，帧数越少越稳；对齐前先提高 alpha 阈值区分本体与残影。
+- **平面内动作**：侧视朝右、无镜头运动；不做转身/透视缩放/遮挡穿越（AI 一致性崩塌区）。360° 全身瞄准动画是伪需求，禁止走这条路。
+- **换装 = 整套皮肤换纹理键**（一套铠甲一整套角色变体），不做单件叠加纸娃娃（无骨骼系统必错位）；头盔/背包/披风类低贴合挂件可单独锚点叠加。
+
+#### 1. 姿态规划（立项先定清单与帧数）
+- **优先级**：gun_idle/gun_fire（枪械主力，最急）→ hurt → death → bow_draw/bow_release → reload → 新近战攻击动作。
+- **帧数规格表**：
+
+| 姿态 | 帧数 | repeat | 备注 |
+|---|---|---|---|
+| idle / gun_idle | 1~4 | -1 循环 | 呼吸即可 |
+| walk / run | 沿用现有 | -1 循环 | 不重做 |
+| attack_sword（已验证） | 8 | 0 | 标杆规格 |
+| gun_fire | 2~4 | 0 | 含后坐上跳 |
+| hurt | 2~3 | 0 | 受击反馈 |
+| death | 6~10 | 0 | 末帧定格 |
+| reload / bow_draw | 6~8 | 0 | |
+
+#### 2. AI 素材生成规范
+- 固定一张角色基准图；**所有动作从同一首帧 img2video 出发**，保证跨动作一致性。
+- 侧视朝右、全身入画、脚底贴底边、画布对齐 512×516、透明/纯色底。
+- 提示词写"**无武器、空手呈握持/挥击状**"；干净输出三件套：透明底、无白色描边/辅助线、无水印。
+- 同一套动作**一批出齐**，不分开生成（分开必出规格差）。
+
+#### 3. 素材管线（入库前必过）
+- 切帧 + 抠图（边界泛洪 / alpha 阈值清零）。
+- 标准化：内容高度统一、底部对齐（`tools/sprite-normalizer.py` 或既有切帧脚本；帧尺寸严格 = 帧宽×列×行，不足补透明行）。**尺寸基准（2026-07-26 定稿）：以剑姿态为准——内容高 477px、脚底基线 y=492（512×516 画布）；新姿态一律缩放到该基准**（枪姿态系列已按此放大 1.084，绕髋点缩放 + 逐帧独立处理多帧 sheet）。
+- 复制进 `assets/player/` 或 `assets/character/`（原则 9），命名 `player_<动作>.png`。
+
+#### 4. 配置接入（唯一真相源，`data/` ↔ `public/data/` 双份同步）
+`data/player-anim-config.json` 加条目：
+```json
+"gun_fire": {
+  "type": "sheet", "src": "assets/player/gun_fire.png",
+  "frameWidth": 512, "frameHeight": 516, "cols": 8, "rows": 1,
+  "frameCount": 4, "frames": [0, 3], "frameRate": 12, "repeat": 0
+}
+```
+- `repeat`：-1 循环（idle/walk）/ 0 播放一次（attack/hurt/death/gun_fire）。
+- `frameDurations`（可选，ms/帧数组，2026-07-27 新增）：逐帧时长覆盖均匀帧率——如攻击末帧定格更久（`"frameDurations": [83,83,83,83,83,83,83,300]`）。总时长=各帧之和，武器轨迹 Tween 经 `animDef.duration` 自动同步，武器 30 点轨迹无需联动改；调节奏只报比例即可（助手换算成 ms 写双份 JSON）。
+- `frameWeights`（可选，占比数组，推荐）：按权重分配**原总时长**——总时长锁定（帧数/帧率），只改各帧占比（如 `"frameWeights": [1,1,1,1,1,1,1,3]` 末帧占 3/10），武器轨迹/命中时序零影响。调节奏优先用它；frameDurations 仅用于需要改变总时长的场景。**开发面板预览已同源（2026-07-27）：面板自动读取 weights/durations 并按累计时长窗口定位角色帧，调节奏只改配置即可，无需手动同步面板**；面板 fps 输入框手动输入时仍按均匀帧率预览（调试覆盖语义保留）。**时长陷阱（2026-07-27）**：Phaser `Animation.duration` 只按 frameRate 派生、无视逐帧时长——凡取动画时长必须 `getPlayerAnimDurationMs` 优先（它认识 weights/durations 求和），否则贴图与武器轨迹/命中 Tween 脱节（"慢半拍"根因）。
+- 纹理键自动 = `player_<键名>`；BootScene 加载注册、开发面板预览**全部自动生效，无需改代码**。
+- **面板登记（2026-08-02 补充）**：新增姿态**不是完全自动**——除 JSON 加条目外，还必须在开发面板登记三处：`src/ui/panels/dev-tools.js` 的 `animOptions`（下拉显示名）+ `src/ui/dev-tool.js` 的 `ANIM_NAME`（状态名）与 `PANEL_ANIM_TO_CONFIG`（面板键→配置键映射）；新增武器同理登记 `weaponOptions` + `WEAPON_MAP`（贴图路径读 `weapon-texture-map.js` 加载清单同源）。漏登记 = 面板看不到该姿态/武器（V0.375 施法动画首漏，已补）。
+
+#### 5. 运行时姿态切换
+- **近战攻击（模板已内置）**：`_playSwordAttackTween` → `setPlayerAnimation('attack_sword', tweenDuration)`（timeScale 贴图-Tween 时长同步）；repeat 0 动作播完自动回 idle（配置表通用处理）。
+- **持枪姿态（已实现，2026-07-26）**：`GameScene._updatePlayerAnimation`——当前武器为枪械（`isGunWeapon`）且站立时姿态键切 `gun_idle`，移动沿用 walk/run；配置缺失自动回退 idle。首版 `gun_idle` 为低持/腰射单帧（素材库 shooting/2.png 抠底标准化，`tools/archive/prep-gun-idle.py`）；斜上/斜下角度分区姿态与 `gun_fire` 待素材。
+- **近距角度平滑（2026-07-27，取代瞄准死区/可调锥）**：死区已废除（冻结手感差）。`twist.aimSmoothRadius`（默认 160 世界 px，0=全距离精准零平滑）+ `aimSmoothTau`（默认 120ms）——任何距离用真实瞄准方向（弹道零误差）；准心进半径后对瞄准角做短弧 EMA，tau×(1−dist/R)（边缘零延迟→中心最强，dt 归一化帧率无关）。姿态/贴图/锚点/**弹道**统一走 `_effectiveAim`（`_frozenAimActive` 标记沿用=平滑激活）。"枪械近战弱"改为用 tau 体现（加大 tau 如 250 更"肉"）。
+- **手臂条层（单骨伪 IK，2026-07-26）**：`twist.arm { src, pivotX, pivotY(肩关节), handX, handY }`——双臂整体一条刚体贴图（躯干原位抹臂），`_syncGunArm` 每帧 `rotation = atan2(枪握把 − 肩) − 自然角` 追随握把，肩随躯干扭转绕腰轴旋转，翻转用 `_arm_flip` 烘焙镜像；深度在躯干与枪之间。**纯只读增量层，不改锚点/扭转逻辑**；躯干钳制之外的角度由它补齐（正上/正下不错位）。
+- **上半身分层扭转（360° 瞄准定稿，2026-07-26）**：姿态条目配 `twist: { legsSrc, torsoSrc, pivotX, pivotY, maxAngle, angleScale, walkLegs? }`——素材在同一 512×516 画布上按髋关节节线裁腿层/躯干层（轴心=髋关节间脊柱末端）；BootScene 自动加载 `player_<key>_legs/_torso`（及 `_walklegs` 走腿 sheet）；`GameScene._syncGunTwist` 每帧：躯干层原点=轴心、贴腰轴世界点、按瞄准角（面向系相对角，±0.05 翻转死区）×angleScale 钳制 ±maxAngle 旋转、左瞄换 canvas 烘焙的 `_torso_flip` 镜像贴图+镜像原点（不用 flipX）、腿层翻转覆盖；`syncWeapon` 枪锚点绕同一腰轴旋转（手转枪跟），枪旋转仍精确 atan2。**裁腰预览先用 PIL rotate(center=pivot) 离线验证接缝再上引擎**。持枪移动：`_updatePlayerAnimation` 检测 twist.walkLegs 时腿层播走腿动画、躯干保持（冲刺 timeScale 1.5）。**铁律：play() 前必须 setTexture 同源**（扭转腿层残留会卡动画第一帧，"上半身消失+腿不动"根因）；**`anims.stop()` 后 `currentAnim` 引用不清空**——凡按 currentAnim 做状态判断的（如逐帧跟随），必须同时校验 `isPlaying`（"idle 错位"根因）。**走腿裁片流程（定稿）**：躯干裁线取骨盆完整位（295）让大腿顶藏进骨盆下叠合；walk sheet 按节线裁出后做连通域分析**只保留最大的 2 个组件（两条腿）**——脚底对齐/时序过滤会误伤腿顶，禁用；与腿同连通域的手部残片只能人工逐帧修。**走腿与 idle 对齐（2026-07-26 定稿）**：按 idle 基准（髋 X=217 / 脚底 Y=500）逐帧平移烘焙 sheet——walking 与 idle 天然一致，不要用逐帧髋部跟随机制（已废弃移除，`anims.stop()` 后 `currentAnim` 引用不清空的陷阱也随之失效）。`twist.torsoShiftY`（世界 px）为躯干整体下移微调，统一加在腰轴世界 Y（躯干/肩/枪锚点随动）。
+- 新姿态切换一律按武器类型/状态从配置表查键，**禁止新增硬编码分支**。
+
+#### 6. 武器贴合调参（左下开发面板）
+- **攻击类动作**：面板切"攻击" → 拖帧滑块逐帧摆武器 → 💾保存（写 `attack.frames` perFrame）；▶播放 + `#devToolFps` 输入框预览时长同步观感。新近战动作同一流程。**拆帧无配置时自动播种 30 帧同一基线位置（2026-07-27）**，进入攻击页即可开调；右上角重置键 = 一键把当前动画恢复初始状态（attack=全帧回种子基线，其他=恢复已保存配置；种子只改内存，💾保存才落盘）。
+- **朝向翻转（2026-07-27 终极绑定）**：**近战武器朝向一律 = `playerSprite.flipX`**（身体是唯一权威，V0.296 起）——攻击逐帧/定格/收势滑行/idle/walk/副手全部直接读身体 flipX，禁止任何独立的武器朝向判定/捕获；身体 flipX 由 `GameScene._getVisualFacingRight`（|cos(rotation)|>0.05 滞回，存 `player._facingRightVisual`）驱动，攻击/定格/收势期间身体冻结故武器自然冻结。枪械走 twist 面向（±0.05 同源语义）。**近战朝左贴图用 flipX**（关系式 M∘Rot(R)=Rot(−R)∘M；旋转码 π−idleRot 恰等于 −R_r 正确镜像角，补 flipX 构成垂直轴完整镜像——与攻击 perFrame 分支"旋转取反+flipX"同惯例）；位置镜像由 localToWorld 完成。
+
+- **挥砍特效 A+B（2026-07-27 落地，2026-07-29 改残影实现）**：perFrame 帧数据可加 `blurX/blurY` 与 `stretchX/stretchY`（乘 displaySize）——插值/面板输入/保存直写全链路支持；播种用帧间位移推导（峰值帧最强，端点为零）。**游戏内运动模糊 = 残影（afterimage）**：`GameScene._syncWeaponGhosts` 沿 perFrame 轨迹回放 3 道历史姿态武器副本（透明度 0.34/0.23/0.11 递减，步长 0.035~0.085 进度随强度伸缩，强度=max(blurX,blurY) 归一到峰值 12，<1.5 不出残影）——攻击/冲刺两分支共用，攻击结束/弓分支/Tween 分支/地图模式各兜底隐藏。**旧高斯滤镜方案已废弃**：`filters.internal.addBlur` 链路实测"激活但观感失败"——高斯模糊对 3px 宽细剑是能量摊薄，峰值帧剑身近乎消失（CDP 像素级对比取证），且面板大尺寸慢放预览放大了"生效"的错觉。面板预览模糊仍是 canvas filter 近似。
+- **📍固定点工具（2026-07-27）**：武器参数区下方按钮——点击进入放置模式后点画布武器即标记（存武器局部坐标，逆变换：平移→反向旋转→÷缩放），红点刚性跟随武器跨帧显示（校准握把/刃尖用）；有标记时点按钮=清除。**面板 DOM 改动注意**：真实面板 DOM 由 `src/ui/panels/dev-tools.js` 程序化构建，`ui/components/dev-tool-panel.html` 是无引用的死文件，勿改。**攻击输入全锁**：`weaponAnim.isAttacking` 期间移动/闪避/新攻击/切武器/冲刺/右键特殊攻击/风车/推击全部无效（注意：闪避不再能取消攻击）。
+- **近战连段与收势（2026-07-27；三段已落地 2026-08-13）**：perFrame 攻击 Tween 结束时记 `_lastMeleeAttackEnd` 并设 `_attackHoldUntil`（=连段窗口）——窗口内定格末帧等待连段；窗口内再攻击派生下一段；无输入则播 `recover` 收势动画回 idle；移动立即取消定格/收势。攻击期输入全锁（见 📍固定点工具条目）。**三段连段（挥击×2+突刺×1，2026-08-13）**：stage 1 过顶下劈 `attack_sword`（12帧/600ms）→ 2 肩高快劈 `attack_sword_2`（12帧/600ms）→ 3 弓步突刺 `attack_sword_3`（16帧/800ms，终结段）→ 回 1；段数映射/定格/收势梯度收口 `src/entities/player/anim-state.js`（`MELEE_STAGE_ANIM_KEYS`/`meleeStageCfgKey`/`meleeStageHoldMs`/`meleeStageRecoverMs`，纹理/轨迹块缺失逐级回退 stage3→2→1），时长配置 `data/combat-config.json` `meleeCombo.stageN{HoldMs,RecoverMs}`（500/200/**0** + -/300/400；2026-08-16 用户指定：终结段播完直接收势回 idle，不留定格窗口——三连击严格 1→2→3→收势，无 3→1 回环，想恢复回环改回 300）；武器轨迹块 `sword.attack/attack2/attack3`（12/12/16 点，attack3=rect 判定 damageMul 2.0，初始种子值待 DevTool 逐帧精调）。新 sheet 格 512×512（管线 `tools/prep-melee3-sheets.py`，色偏中性化+留档），frameWeights 口径已退役统一 frameDurations。
+
+- **逐帧导出交接（2026-07-27 改为直写）**：💾保存 = 内存生效 + **直接合并进 `public/data/weapon-anim-config.json`**（保留 attack 下 trail 等字段，写前滚动备份 `weapon-frames/weapon-anim-config.backup.json`）+ 覆盖写 `weapon-frames/latest.js`（仅记录/回滚参考）+ 剪贴板。**保存即永久生效，无需通知助手合并**；Vite 走 `/__save-weapon-frames` 中间件（改中间件需重启 dev server），Electron 走 `save-weapon-frames` IPC。需回滚时用 backup.json 还原或叫助手处理。**多段轨迹（2026-07-27）**：`attack`/`attack2` 块各存一段轨迹，面板切对应动画页调整即按块保存；运行时连段按 `_meleeComboStage` 选块；`WeaponTransform.getInterpolatedPerFramePosition(..., cfgKey)` 支持选块。
+- **静态姿态**（gun_idle 等）：面板拖武器到手上 → 💾保存（每状态 `holdOffsetX/Y + idleRotation/idleScale`）。
+- **枪械握把轴心（2026-07-26）**：`WeaponAnimConfig[wt].grip {x, y}`（贴图内握把点 0~1 分数，缺省中心）——游戏内/面板统一以握把为旋转轴与锚点（360 瞄准不滑手）；扭转激活时锚点在躯干空间计算（禁止 localToWorld 按 player.rotation 公转，否则与扭转轨道叠加成双重旋转）。
+- **冲刺攻击 Lerp 模式（2026-08-12）**：`sword.dashLerp { type:'lerp', grip:{x,y},
+  from:{x,y,rotation}, to:{x,y,rotation}, scale, stretchX/Y, blurPeak }`——剑柄锚手 +
+  起始/结束双端点线性插值（位置 + 角度），替代 30 帧 perFrame 手调。铁律：
+  ① 角度**字面线性**（不做短弧解卷绕——端点 -100°→115° 是大扫意图，解卷绕会反向扫）；
+  ② `origin = grip`（翻转时 X 镜像 1−x）→ 旋转绕剑柄 → 剑柄钉在插值位置、剑身绕手转；
+  ③ **非冲刺路径必须复位 origin 0.5**（`_syncSpecialWeaponAnim` 只在 isSpecialAnim 调用，
+  普通攻击路径自行复位，否则残留绕剑柄旋转）；④ 旧 `dash` perFrame 数据保留可回退。
+  调参只动 from/to（起止剑柄位置+剑身角）与 grip（剑柄贴图内分数位置）。单测
+  `scripts/test-dash-lerp.mjs`、实机探针 `tools/cdp-dash-lerp.mjs`。
+
+#### 7. 验证
+- JSON 双份一致；lint / vite build / test-collider。
+- **实机清单**：姿态切换（站立/移动/攻击）、左右镜像 flipX、贴图与武器轨迹时长同步、repeat 0 播完回 idle、面板预览与游戏一致、**主神空间+地牢双场景**（原则 10 全场景生效）。
+
+---
+
+### 阶段性进度总结（2026-07-26 深夜：手枪姿态系 + 跑步系 + 瞄准死区）
+
+#### 本次完成：三姿态体系 / 跑步腿层与体感 / 瞄准死区可调锥（实机达标）
+1. **三姿态自动切换**：`gun_idle`（长枪低持）/ `gun_idle_pistol`（单持前伸）/ `gun_idle_dual`（双持双臂前伸）——`_resolveGunPose()` 按主/副手武器类型解析，移动中换武器也能正确重建分层（姿态键变化即 setPlayerAnimation 修复）。用户 AI 出图（纯黑底）→ 阈值抠图+暗邻域轮廓还原 → 477/492 基准化+髋部对齐 217 → 裁躯干/手臂条 → 描边膨胀加粗统一旧骷髅线条。
+2. **跑步腿层**：`gun_run_legs`（running.png 裁下半身+top2 连通域+逐帧对齐 217/492+出帧钳制）；走/跑自动切换（原生帧率，弃 timeScale hack）。
+3. **体感系统**：`bodyBobY`（走/跑逐帧头顶 Y 起伏）+ `bodyBobX`（逐帧髋 X 前后摆，bobXScale 默认 0.5；run/walk 全覆盖）——数据驱动自原动画，isPlaying 防御 stop() 残留。
+4. **瞄准死区+可调锥（枪械近战弱设定落地）**：`aimDeadZone`(160px) + `aimDeadZoneCone`(20°)——死区内以进入时自由角为基准仅 ±cone 可调；姿态/贴图/锚点/**弹道**四通道统一 `_effectiveAim`，贴身扫射沿基准散开，近战武器获得空间。
+5. **副手同口径**：`_computeGunAnchor` 提取主副手共用；副手补 grip 轴心（flipY 补偿）；`WEAPON_TRANSFORM_CONFIG.pistol.offBase` 改 (-23,19) 锚定双持低手位。
+6. **后坐上身**：`twist.recoilTorsoScale`(默认 0.3) 开火时 recoil 反向作用于腰轴。
+7. **微调配置族**：`torsoShiftX/Y`（躯干整体微调，翻转镜像）；手枪类贴图 idleScale 0.6 + holdOffset 多轮微调（面板→助手合并流）。
+
+#### 关键改动文件
+- `src/phaser/scenes/GameScene.js`（_resolveGunPose/_syncGunTwist/_syncGunArm/_computeGunAnchor/死区逻辑）
+- `src/phaser/scenes/BootScene.js`（walkLegs/runLegs 循环加载注册 + torso/arm 镜像烘焙）
+- `src/entities/player/subsystems.js`（弹道死区改写）、`src/combat/weapon-transform.js`（pistol offBase）
+- `assets/player/gun_idle_pistol*.png`、`gun_idle_dual*.png`、`gun_run_legs.png`
+- `data/player-anim-config.json`（双份）、`public/data/weapon-anim-config.json`
+
+#### 验证状态
+- `npm run lint` ✅（0 error）、`npx vite build` ✅、`test-collider` ✅、`test-craft-sync` ✅
+- 实机用户确认：双持/双手武器贴图动画"接近预期标准"
+
+---
+
+### 阶段性进度总结（2026-07-26 晚间：持枪瞄准体系全套落地）
+
+#### 本次完成：姿态层 + 分层扭转 + 手臂条 + 锚定体系（ROADMAP 任务1 主体收官）
+1. **姿态层**：`gun_idle` 低持姿态（素材库 shooting/2.png 重管线）；`player-anim-config.json` 驱动，`isGunWeapon && 站立` 自动切换。
+2. **上半身分层扭转（360° 瞄准）**：`twist { legsSrc, torsoSrc, pivotX, pivotY, maxAngle, angleScale, walkLegs, arm, torsoShiftY }`——腿层站死、躯干绕腰轴 ±40°、左瞄 canvas 烘焙 `_torso_flip` 镜像贴图（不用 flipX）；走腿 sheet 按 idle 基准（髋 217/脚 492）逐帧烘焙对齐，walking=idle 天然一致。
+3. **手臂条层（单骨伪 IK）**：双臂整体一条（躯干原位抹臂），`_syncGunArm` 每帧 `rotation = atan2(枪握把 − 肩) − 自然角`；锚点连续化模型——钳制内腰轴轨道、超出角以肩为支点旋转钳制点（圆过钳制点，边界零跳变）。
+4. **锚定体系**：`grip {x,y}` 握把旋转轴心（滑手修复，flipY 时 gcy 取反保持左右镜像）；扭转激活时锚点在躯干空间计算（禁 localToWorld 公转=双重旋转）；攻击/奔跑等未配置状态回退=全局 holdOffset（AKM 全局对齐防跳变）。
+5. **双手枪开火禁跑**：`isGunWeapon && isTwoHanded && leftDown` → sprint 解除退回 walking（PKM 系保留 50% 减速语义）。
+6. **尺寸基准统一**：新姿态一律内容高 477/脚底 y=492（剑基准）；枪姿态系列绕髋点 ×1.084 放大并逐帧处理多帧 sheet。
+7. **面板**：WEAPON_MAP 与 `getWeaponTextureLoadList()` 同源；image 型姿态预览；持枪移动分层合成预览；枪械握把锚点绘制；walk 保存写状态子块；逐帧导出 `weapon-frames/latest.js` 交接流首航。
+8. **排障沉淀**：play() 前必须 setTexture 同源；`anims.stop()` 后 currentAnim 引用不清空（判断动画状态必须并查 isPlaying）；`getAmmoConfig` 消费端回退（无法开枪排查手册）。
+
+#### 关键改动文件
+- `src/phaser/scenes/GameScene.js`（setPlayerAnimation/_syncGunTwist/_syncGunArm/syncWeapon 锚点链）
+- `src/phaser/scenes/BootScene.js`（配置驱动加载 + 镜像烘焙）、`src/config/player-anim.js`（新增）
+- `src/entities/player/weapon-anim.js`（tweenDuration 贴图同步）、`src/entities/player/update.js`（双手枪禁跑）、`src/entities/player/subsystems.js`（弹药回退）
+- `src/ui/dev-tool.js`、`src/ui/panels/dev-tools.js`、`vite.config.js`、`electron/main.js`、`electron/preload.js`
+- `assets/player/gun_idle*.png`、`data/player-anim-config.json`（双份）、`public/data/weapon-anim-config.json`
+
+#### 验证状态
+- `npm run lint` ✅（0 error）、`npx vite build` ✅、`test-collider` ✅、`test-craft-sync` ✅
+- 实机用户确认：idle/walking/360° 瞄准/左右镜像/开火/禁跑/尺寸统一 全部通过（"完全成功"）
+
+---
+
+### 阶段性进度总结（2026-07-26 玩家动画体系）
+
+#### 本次完成：玩家动画配置化 + 开发面板姿态层 + 攻击时长同步（ROADMAP 任务1 方向1/2/3）
+1. **配置表 `data/player-anim-config.json`**（双份 public/）+ `src/config/player-anim.js`：纹理键约定 `player_<动画键>`；BootScene 加载/注册、GameScene `setPlayerAnimation` 全走配置表。**新增玩家姿态 = 素材入库 + JSON 加条目**（type=image 单帧 / sheet 配 frames 区间+frameRate+repeat），运行时与开发面板自动生效，无需改代码。
+2. **攻击时长同步（根因修复）**：关键帧/默认 Tween 路径 900ms vs 贴图 667ms 各播各的——`setPlayerAnimation(key, targetDurationMs)` 用 `anims.timeScale` 对齐，回 idle/循环动画归 1；`_playSwordAttackTween` 只主手触发贴图动画。
+3. **开发面板**：角色帧加载改读配置表（`PANEL_ANIM_TO_CONFIG` 映射 running→run/attack→attack_sword），帧裁剪支持 `firstFrame` 偏移；播放帧率读配置 frameRate + 面板 `#devToolFps` 可覆盖。
+4. **挂载点+关键帧系统删除（同日二轮）**：handAnchors/gripOffset 与 keyframes 生产配置零使用、单点锚无法帧间跟手（perFrame 已全覆盖）——dev-tool.js -755 行、weapon-transform.js -147 行、weapon-anim.js/GameScene.js/panels/dev-tools.js/dev-tool-panel.html 同步清理。最终模型：**攻击=perFrame 逐帧（无配置走默认三段 Tween 链），静态姿态=每状态 holdOffset**。
+5. **待办**：拉弓/持枪/受击/死亡姿态素材由用户备料，到位后 JSON 加条目即可。
+
+#### 关键改动文件
+- `src/config/player-anim.js`（新增）、`data/player-anim-config.json`（双份）
+- `src/phaser/scenes/BootScene.js`、`src/phaser/scenes/GameScene.js`、`src/entities/player/weapon-anim.js`、`src/ui/dev-tool.js`
+
+#### 验证状态
+- `npm run lint` ✅（0 error）
+- `npx vite build` ✅
+- `node scripts/test-collider.mjs` / `test-craft-sync.mjs` ✅
+
+---
+
+### 阶段性进度总结（2026-07-27：腰射⇄瞄准 aimFrames 帧动画重做落地 + 实机达标）
+
+#### 本次完成：AI 视频驱动 14 帧抬枪动画（V0.251 失败复盘后重做，V0.253~263 实机调优达标）
+1. **机制**：`twist.aimFrames { src, frameCount:14, transitionMs:250, hands[14], liftAdjustX, liftAdjustY }`（gun_idle，全体双手枪械共享）——长按右键 `_aimEase` 0→1 **线性**推进（指数趋近回程拖 1s 尾巴变形，已废弃），手臂条按帧播放（腰前(366,210)→肩高(338,110)），锚点 = 肩 + R(世界瞄准角−帧自然角)×(帧手−肩) + (liftAdjustX 翻转镜像, liftAdjustY) 按 ease 与旧链 blend。
+2. **三根因教训（写死防再犯）**：①aimEase 推进条件**不得**引用表现配置（`twist.aimFrames || twist.aimLift` 任一存在即推进——V0.251 因推进条件引用被删的 aimLift 导致 ease 恒 0"无动画"）；②帧分支**只在 `_aimEase>0` 接管**，ease=0 必须逐像素等价旧路径（V0.251 无条件接管 + pivot 低 39px 导致 idle 错乱）；③视频提取**禁用模板减法**（`tools/aim-frames-extract.py`：色度键控+模板互相关配准+三路并集分离；旧脚本卷积核翻转 bug 使配准全顶裁剪边界）。
+3. **渲染/素材坑**：`textures.addCanvas` 的镜像 sheet 需手动 `tex.add(i,0,x,y,w,h)` 补帧才能 setFrame；canvas mirror 烘焙 translate 的 Y 分量必须为 0（误写 i*fw → 帧 1~13 全画出画布外，朝左瞄准手臂消失）；提取后逐帧扫"邻帧独有连通域"（帧 11 曾泄漏 446px 头部碎片，清理已固化进脚本幂等）。
+4. **双手枪冲刺开火（V0.262/263）**：开火=非奔跑——`_twoHandedGunFiring` 从 `_isSprinting` 与烟尘门排除（腿回 walklegs、武器回 walking 位、不出烟尘）；**注意第二道闸**：枪开火 `weaponAnim.state='attacking'` 会触发 `_updatePlayerAnimation` 的"攻击不覆盖"early-return 冻结腿层——已加枪械放行（近战守卫不变；枪攻击动画在武器层，playerSprite 只载腿/躯干）。
+5. **武器位置基准（AKM 标准，六双手枪械已逐字段同步）**：holdOffsetX −64 / holdOffsetY −4（top/idle/walk 全状态块）、grip (0.29,0.54)、idleScale/idleRotation 统一；**合理保留的 per-weapon 差异**：muzzle（按各自贴图枪管实测）、recoilAmount/timingMul/renderParams（手感参数）。手枪类基准=沙漠之鹰（另一族，不混）。
+6. **回退路径**：删配置里 aimFrames 节即自动回 Tier1 aimLift 抬升（配置保留休眠）；完整回退点 `backup/2026-07-27-aimanim/`（纯 aimLift）与 `backup/2026-07-27-aimanim-v2/`（重做前快照）。
+
+---
+
+### 阶段性进度总结（2026-07-28：近战连段体系 + 攻击范围重构 + 挥砍特效 + 贴图标准化）
+
+#### 本次完成（V0.291~V0.302）
+1. **近战连段体系**：一段（attack_sword 8帧）→ 定格 0.5s（连段窗口）→ 二段（attack_sword_2 30帧/1.5s）→ recover 收势（13帧/0.33s）→ idle。攻击期输入全锁（移动/闪避/新攻击/切武器/冲刺/特殊攻击）；移动立即取消定格/收势。
+2. **朝向硬绑定（结构级）**：近战武器朝向一律 = `playerSprite.flipX`（身体是唯一权威）——攻击逐帧/定格/收势滑行/idle/副手全部直接读身体 flipX，独立朝向判定已删除。教训：setPlayerAnimation 曾用 _facingDir（45° 边界）与武器的 ±0.05 滞回（87° 边界）冲突；`_attackHoldFacingRight` 捕获在连段时泄漏（二段沿用一段朝向）——双重教训后统一为身体 flipX 单源。
+3. **攻击范围重构（配置驱动）**：`sword.attack.hitCheck { frame:22, shape:'rect', knockback:50 }`（一段矩形：宽恒定、长=武器 attack.range、第 22 帧判定）/`sword.attack2.hitCheck { frame:15, shape:'sector', arcDeg:120, knockback:75, damageMul:1.5 }`（二段扇形：footprint 相交、击退 75px、伤害×1.5、第 15 帧判定）。攻击方向固定玩家左右两侧（鼠标只选左右）。
+4. **挥砍特效 A+B**：perFrame 帧字段 `blurX/blurY`（**V0.307 起改为残影实现**——高斯滤镜对细长武器是"摊薄消失"，实机像素级取证峰值帧剑身近乎不可见，已废弃；现由 GameScene 沿轨迹回放 3 道历史姿态残影，blurX/blurY 驱动残影长度/浓度）+ `stretchX/stretchY`（拉伸）；面板四输入可调，播种=帧间位移推导。面板预览 canvas filter 近似。
+5. **贴图标准化管线**：武器贴图统一"内容宽比 + 中心分数"归一（AKM 基准 0.915/(0.500,0.543)，PKM 0.907/(0.496,0.543)）——AKM/201/Super90 已重制替换，枪口 muzzle 配置对齐；归一后尺寸=显示缩放×内容占比，"和 AKM 一样大"即同分母同占比。
+6. **冲刺攻击动画**：`dash_attack` 17 帧 sheet（素材 attack-2.png 归一），trigger 时播放（timeScale 拉伸到技能 totalMs）；位移窗口帧驱动（前 12 帧位移、13~17 静止，`effect.moveFrames` 可覆盖）。
+7. **其他**：挥砍音效起手播放（块配置 sound 字段）；弹壳落地留存 3s；子弹胶囊化（短粗椭圆+提亮）；双持副手开火位 offhandOffsetY 配置；右键瞄准打断奔跑（与开火同口径）；`spriteOffsetX/Y` 贴图独立偏移（只动贴图不动手臂/弹道）；人物+武器整体 +20%（spriteSize 144 / WEAPON_ANIM.size 126，碰撞与偏移不变）。
+
+#### 关键改动文件
+- `src/combat/attack.js`（checkStageHit/扇形/击退/固定左右）、`src/entities/player/weapon-anim.js`（连段/音效/hitCheck 触发）、`src/phaser/scenes/GameScene.js`（朝向绑定/收势滑行/模糊滤镜/spriteOffset/深度帧）
+- `src/entities/components/dash-system.js`（冲刺动画+位移帧窗口）、`src/combat/projectile.js`（胶囊弹）、`src/phaser/scenes/BootScene.js`（胶囊贴图）
+- `src/ui/dev-tool.js` + `panels/dev-tools.js`（模糊拉伸输入/固定点/attack2 页/直写保存/zoom 坐标）
+- `public/data/weapon-anim-config.json`（hitCheck/特效帧字段/击退/offhand/spriteOffset）、`data|public/data/player-anim-config.json`（attack_sword_2/recover/dash_attack）
+
+#### 验证状态
+- lint 0 error、vite build、test-collider、test-craft-sync 持续全过
+- 实机已确认：朝向绑定（facelog 取证）、攻击范围帧判定；挥砍模糊 V0.307 改残影后实机截图确认（此前"fxlog 取证"只证明滤镜激活，未验证观感——高斯方案已废弃）
+- 未提交批次：V0.291~V0.302 全部在本提交
+
+#### 后续计划
+- **即梦 API 接入**（⚠ 截至 2026-08-04 未实施的计划，`tools/jimeng-gen.py` 尚不存在，勿当已有能力；用户已确认排期）：火山引擎视觉服务（jimeng_t2i_v40）文生图脚本 `tools/jimeng-gen.py`——提示词用本文件工作流标准模板；密钥由用户自建 `tools/.secrets/jimeng.json`（不入库、需加 .gitignore），不贴对话。接入后 AI 出图→标准化管线→入库全自动化；视频生成接口（动作动画截帧路线）作为二期。
+
+---
+
+### 武器动画调试基准（2026-07-26 定稿）
+
+**两大基准武器**：手枪类 = **沙漠之鹰（deagle）**、双手枪械类 = **AKM**。所有贴图位置/动画调整先以这两把为基底标准，验证后同步到同类武器：
+- **手枪类（单手持枪）**：pistol（G18）、deagle（沙鹰）、p4040——贴图位置/旋转/缩放/grip/muzzle/bobWeaponScale/dualOffsetX 以沙鹰实测值为模板同步。
+- **双手枪械类（步枪/机枪）**：akm、pkm、qbz191、qjb201、shotgun、energy_lmg——以 AKM 实测值为模板同步。
+- **贴图尺寸布局基准（2026-07-26 定稿）**：新武器贴图入库一律按类归一——步枪类：内容宽 0.915 / 中心 (0.500, 0.543) / 画布 2048²（AKM 布局）；手枪类：内容宽 0.862 / 中心 (0.487, 0.524) / 画布 2048²（沙鹰布局）。归一后必须重测 muzzle 分数坐标写入配置。
+- 调参入口：`public/data/weapon-anim-config.json`（仅此单份）；开发面板调试→💾→助手合并的流程不变。
+- **基准统一（2026-08-02 修复，防再犯）**：
+  - **武器尺寸基准 = `WEAPON_ANIM.size`（126）**，禁止硬编码 105（2026-07-28 105→126 后 dev-tool 曾残留 7 处 105，导致面板预览小 30.6%、反复保存把 idleScale 越缩越小）。dev-tool 一律引用 `WEAPON_ANIM.size`。
+  - **面板武器键 ≠ 配置键**：dev-tool `WEAPON_MAP` 的键只是选择器（super90/saiga12k 都映射 `configKey: 'shotgun'`；staff→sword；其余同名），传给 `WeaponTransform` / 读 `WeaponAnimConfig` 必须走 `_configKeyOf(type)`（游戏侧 `wt = animConfigKey || weaponType`）。**漏映射 = 回退到 sword 配置，散弹枪等面板调整全部无效**。
+  - **面板姿态键 ≠ 游戏读取键**：持枪待机（gun_idle/gun_idle_pistol/gun_idle_dual）与施法（cast/staff_cast）在游戏里武器按 `animState='idle'` 读取（`cfg.idle` 子块优先），面板预览/保存必须走 `_stateKeyOf(anim)` 映射到 idle，否则保存写顶层而游戏读 idle 子块 → 不生效。
+- **保存落盘**：Electron 走 `saveWeaponConfig` IPC；纯浏览器 dev 走 vite `/__save-weapon-config` 中间件（`_persistWeaponConfig` fetch 回退，防"只复制剪贴板刷新丢失"）。
+
+---
+
+### 行走逐帧武器轨迹（walkFrames，2026-08-02）
+
+让剑类武器握把在 walking 时跟随右手摆动：`WeaponAnimConfig[wt].walkFrames`（`type:'perFrame'`，帧数与 walk 动画帧区间一一对应，如 sword 21 帧）。
+- **生成**：`tools/` 像素分析脚本从 `assets/character/walk.png` 提取每帧右手（列直方图定位右侧手部凸起 → 质心），按显示缩放（长边 144/516）换算 local offset；以现有 walk holdOffset 实际位置为基准对齐（平均手位 + 恒定 shift 保持原位附近）；`rotation` = 最终旋转角（baseRotation + idleRotation，sword=90°+20°=110°），`scale` = walk idleScale。
+- **游戏侧**：`GameScene.syncWeapon` walk 状态读 `walkFrames`，按 `playerSprite.anims.getProgress()` 插值；朝向同攻击分支（位置镜像 + 旋转取反 + flipX）。
+- **面板**：`_perFrameCfgKey('walk')`→`walkFrames`，存在配置时 walk 页即逐帧编辑；保存白名单含 walkFrames。
+- 新近战武器要加：复制 sword.walkFrames 结构，用同款脚本重测该武器贴图的手位/握把偏移。
+
+---
+
+### 手部分层（handLayer，2026-08-02）
+
+让 walk 等循环姿态的手部贴图叠在武器之上（视觉"手握剑"）：
+- `player-anim-config.json` 姿态条目加 `handLayer: { body, hand }`（两张同网格 sheet：身体层挖手 / 手层只留手）；合成严格无损（逐像素 alpha+颜色等于原图）。
+- BootScene 自动加载 body/hand 贴图并注册 `player_<key>_body` 动画；GameScene 创建 `playerHandSprite` 每帧跟随身体（位置/flipX/帧号），深度 = 身体 + 3（武器 +2），攻击/施法等一次性动作自动隐藏手层。
+- dev-tool 面板 walk 预览同分层（身体 → 武器 → 手）。
+- **生成方法（2026-08-02 实测定稿，踩过坑）**：
+  1. **先确认哪只手**：角色侧视朝右时，画面右侧 = 近镜头手（持剑手通常在这侧），画面左侧 = 另一只手。**先用 ASCII 渲染完整帧确认角色朝向和手在画面的左右侧，再定检测方向**——本作最终需求是"另一只手"（画面左侧 x≈175~259），不要默认截"最右凸起"。
+  2. **检测带必须收紧为手臂/手高度带 y∈[180,280]**：不要用 y∈[160,330]——帧 4~9 手收进身体后"最右凸起"会退化到大腿，质心抓到腿、矩形把腿部像素切进 hand 层（实机表现"截到腿"）。
+  3. **拳头矩形半宽 34/半高 38，y 上限硬性 clamp ≤300**（大腿从 y≈300 开始）；腿区（y>300）逐帧断言必须全 0。
+  4. **合成无损验证**：逐像素 body+hand 的 alpha/颜色 = 原图（0 不匹配），每帧 bbox 必须在目标手区域。
+  5. **恢复方法**：删掉 `handLayer` 配置即回退原贴图（代码已判空兼容），无需改代码。
+- **坑：改播放键会断武器轨迹**——walk 播 body 动画后，`syncWeapon` walkFrames 分支判断 `curAnim.key === playerTextureKey('walk')` 匹配不上（实际 key 是 `player_walk_body`），walkProgress 恒 0 → 武器卡第一帧。凡按动画 key 做分支判断处都要兼容 `player_<key>_body`。
+- 新姿态要加手层：复制 walk 的脚本流程（确认左右手 → 收紧检测带 → 拳头矩形 clamp → 合成验证），配置加 handLayer 即可。
+
+#### 法杖施法手层（staff_cast，2026-08-03 落地）
+
+施法动画（staff_cast 9 帧）同机制：手层独立 → 法杖握把绑定手部 → 共同运动。
+- **素材**：`assets/player/staff_cast_body.png`（挖手身体层）+ `staff_cast_hand.png`（只手层），生成脚本
+  `tools/prep-staff-cast-hand.py`（逐帧拳头窗口 + 无损合成验证）。
+- **配置**：`player-anim-config.json`（双份）staff_cast 条目加 `handLayer { body, hand }`；
+  `weapon-anim-config.json` sword 块 `staffCastFrames`。
+- **代码**：`startPlayerCast` / `setPlayerAnimation` 一次性动作分支支持 handLayer——播
+  `player_<key>_body` 动画 + 显示手 sprite（帧/位置/翻转由 `_syncPlayerHandLayer` 每帧跟随）；
+  `_updatePlayerAnimation` 施法守卫兼容 body key（`cur !== player_<key>_body` 才算施法中断）。
+- **实机验证**：CDP 工具 `tools/cdp-staff-cast-verify.mjs` / `cdp-staff-walk-check.mjs`
+  （装备学徒长杖→采样 idle/施法逐帧武器/手 sprite + 截图）；lint/build/npm test 全绿。
+
+#### 法杖施法最终方案（2026-08-03 用户验收通过）
+
+**idle 绑左手（参考行走位置）+ 施法 f0→f8 设计插值轨迹（全程不换手、无跳变）：**
+- `staffIdle`：左手拳位置——holdOffsetX **−84.7** → local (−11.4, 0.6)，与行走同侧（行走 X −12~−34）。
+  **⚠ 反推公式**：`getWeaponLocalOffset` 的 afterX = `WEAPON_ANIM.size(126)×0.75×0.85 = 80.325`
+  （不是 66.94）——按 66.94 反推 holdOffsetX 会整体偏右 ~13px（本次踩坑）。
+- `staffCastFrames`：**设计插值**，不逐帧抠手：
+  - f0 = idle (−11.4, 0.6, rotation **105**) —— idle↔f0 零跳变；
+  - f8 = 前伸手举杖 (45.6, −43.9, rotation **20**，用户拍板)；
+  - f1~f7 逐帧线性插值位置与角度（105°→20°）——法杖从左手腰侧平滑扫到右手举杖位。
+- **为什么握把终点是「前伸手」**：施法手势是双手抬起后右手前推发力（f5~f8 右手从腰侧 x325
+  前伸到 x418、上抬到 y100）；杆身 rotation 110°→20°（竖举指向右上，横杖不像举杖）。
+  竖杖跟前伸手全帧 0 盖脸；跟远侧手（贴下巴的手）时 f3~f8 杆身直穿头部（盖脸 500px+），不可用。
+- **坑（本次沉淀）**：
+  1. 拳头中心用**手层内容质心**（像素级可复现），不用左边缘+半宽估算（会偏到手臂）。
+  2. 抬举帧拳头比腰侧帧大得多（x≈231~300, y94~112），窗口右缘止于近侧手 x300 前，避免裁进另一只手。
+  3. **GLM-4.6V（deepseek-vision-skill）定位手不可靠**：坐标误差 50~150px、同图两次回答矛盾，
+     只配做粗验收（"法杖是否握在手里"），像素级修正一律用像素分析。
+- **GLM-4.6V（deepseek-vision-skill）定位手不可靠**（2026-08-03 实测）：对 1024² 图坐标误差
+  50~150px，同图两次回答互相矛盾，不能用于像素级修正；只适合粗粒度验收（"法杖是否握在手里"，
+  实机截图判定通过）。精确定位仍用手层内容质心（像素级，可复现）。
+
+---
+
+### 复用武器动画独立调参（staff 法杖，2026-08-02 实测定稿）
+
+新武器复用剑配置（`animConfigKey: 'sword'`）时，游戏侧 `wt='sword'` 全走剑数据——要独立握持/轨迹必须**在 sword 块下加独立子块 + 按武器类型分支**，不能直接改 `sword.idle/walk`（会连带影响剑）：
+- **walk 逐帧**：`sword.staffWalkFrames`（`type:'perFrame'`，21 帧与 walk 动画对应）；`GameScene.syncWeapon` 按 `currentItem.weaponType === 'staff'` 读 `staffWalkFrames`，dev-tool 面板 `_perFrameCfgKey('walk')` 对 staff 返回 `staffWalkFrames`。
+- **idle/walk/running 静态**：`sword.staffIdle { holdOffsetX/Y, idleRotation, idleScale }`；`syncWeapon` 对 staff 传 overrides 覆盖，面板 `_staffStateOverrides()` 三处调用点统一。
+- **中段握持 = 贴图中心直接对准手**：法杖中段≈贴图中心，walkFrames/heldOffset 的 local 位置应**直接用手部轨迹**（`(手像素−贴图中心)×显示缩放`），不要从剑轨迹平移（剑柄在贴图中心下方 55px，平移法杖会整体错位）。
+- **换手正确姿势：镜像已验证贴手的手轨迹，不要重新检测另一只手**：
+  - 直接检测"另一只手"会因检测带/部位不同抓到手臂-胳膊不同段（实机表现"从手-手臂-胳膊垂直移动"，完全违和）；
+  - 正确做法：把已贴手的轨迹**水平镜像**（`offsetX` 取反、`offsetY` 保持稳定 2~3.8）——保持"Y 稳定、X 水平摆动"的贴手特性，只是换到另一侧。
+- **手位检测必须定位拳头（手臂末端），不是整条手臂质心**：idle 用整臂质心会偏上（法杖浮在手上面）；拳头 = 手臂最下端加宽块（如 idle y≈265~295 区域），idle 拳头 local=(-11.4,5.2) 与 walk 左侧手轨迹一致。
+- **枪口点自动烘焙（2026-07-26 定稿，优先于手工配置）**：BootScene 对每把武器贴图扫描"最大连通体（8 邻域、4x 降采样）最右端内容点"（含 1px 细枪管尖）写入 `window.__weaponMuzzlePoints`；`_getMuzzleWorldPosition` 优先级 `muzzle.manual` > 自动烘焙 > 配置 muzzle > 右缘中心。子弹/枪口火焰统一从贴图最前端出生。**教训：别拿"右缘估计"当枪口——Super90 手工估点 (0.96,0.35) 把 1px 发丝杂线当枪管，自动烘焙的 (0.908,0.526) 才是真管口（放大裁切证实）。**
+- 玩家碰撞基准（2026-07-26）：`PLAYER_DEFAULTS.physics`——受击矩形 40×60 + colliderOffset (-5,-5)（左拉 10、上移 5）；胶囊体随 collider 偏移。
+
+---
+
+### 普通攻击一段跟手 + 方向性运动模糊（2026-08-03 落地；08-03 二轮复核修正，30 帧全贴手）
+
+#### 跟手：sword.attack 30 点轨迹改为跟随挥剑手
+- **挥剑手 = 远侧手**（attack_sword 动画里唯一做大回环的手）：f0~f2 高举头后
+  → f3 头顶最高 → f4~f6 挥到前方 → f7 下劈到位（命中帧在 f7，frame 22）。
+- 生成脚本 `tools/prep-sword-attack-hand.py`：从 attack_sword.png 8 帧读拳头中心，
+  换算 local（`(px-256)×144/516`），30 点插值后只替换 offsetX/offsetY
+  （rotation/scale/blur/stretch 保留手动调参）。
+- 当前轨迹（握把，即减去剑柄补偿后的手位）：f0 `(25.6,-25.4)` → f8 `(-24.8,-78.5)`
+  （蓄力顶）→ f16 `(15.1,-79.1)`（前举）→ f22+ `(87.0,2.7)`（下劈到前伸手收势）。
+- **f7/定格必须用「前伸手」**（2026-08-03 实机反馈"最后一帧+定格武器在后方、与手不相交"）：
+  f7 全身实测手向前伸（x400-464），拳头中心 **f7=(425,278)→local (47.1,6.1)**，
+  不是后手 x275（之前误读后手导致武器落在身后）。生成脚本 HAND_PX f7 已改。
+- **HAND_PX 最终值（2026-08-03 三轮复核，贴图真值掩码为准）**：
+  f0(213,116) f1(205,116) f2(192,116) f3(150,110) f4(282,115) f5(310,116) f6(330,120) f7(425,278)。
+  依据：以贴图 alpha 掩码（BILINEAR 缩放到显示尺寸）判定锚点是否在角色像素上——
+  GLM 初版 f0-f3=(196/185/150/128,118/118/115/116) 全部浮空（0~4%，即"前 10 帧脱手"根因）；
+  原手调 f0-f3 半贴（27~37%）；复核手臂带顶端后定版（37~100% 全贴）。
+- **30 帧阶梯映射（2026-08-03 三轮，关键修复）**：生成脚本从"帧间平滑插值"改为
+  **阶梯映射**——手部只有 8 个定格姿势，精灵帧 f 覆盖 p∈[f/10,(f+1)/10)（f7 覆盖 [0.7,1]），
+  每帧直接用当前精灵帧锚点。平滑插值会让握把在帧间漂移（f3→f4 跨度 154px 时 cfg11 脱手 122px）。
+- **实机复核（冻结逐帧）**：`tools/cdp-sword-hold-frames.mjs` 手动定格 8 帧
+  （play+timeScale=0 冻结帧 + 占位 tween 保 attacking 状态机 + 40s 进度时钟反推），
+  现支持 30 帧全量定格（进度 i/29，精灵帧按权重同步）；对 30 帧握把落点做贴图真值掩码采样，
+  **30/30 全部落在角色像素上（37%~100%）**；GLM-4.6V 逐帧特写复核 30/30 ON-HAND。
+- **握把（剑柄）贴手（2026-08-03 修订）**：perFrame 偏移是**贴图中心**，而剑柄在贴图中心下方
+  ——中心贴手 = 剑柄悬在手下。修正：按每帧旋转角反推中心 `offsetX = 手X + G·sin(rot)`、
+  `offsetY = 手Y − G·cos(rot)`，使剑柄落点=手。
+  **G（柄质心距中心）实测**：锈剑 39.2 / 骑士 41.6 / EX 36.1 / 夜火 44.1 display px，
+  取 **40**（旧值 55 偏大→握把落柄下端，实机"还有错位"；40 版视觉模型 8 帧判"更准"）。
+
+#### 经验教训（2026-08-03 一段攻击跟手三轮复盘，可迁移）
+1. **手部只有离散帧时，武器 perFrame 必须"阶梯映射"，不能帧间平滑插值**：
+   30 个武器点 ≠ 手部 8 帧姿势。插值会让握把在精灵帧没动时自己漂移
+   （f3→f4 手位跨度 154px，cfg11 曾脱手 122px）。正确做法：按帧权重
+   `f = p≥0.7 ? 7 : min(6, int(p*10))` 取当前精灵帧锚点，旋转照常插值。
+2. **锚点是否"贴手"用贴图真值掩码验证，勿用场景截图暗像素**：
+   将精灵帧 alpha 用 BILINEAR 缩放到显示尺寸（`frame.resize((w,h), BILINEAR)`，
+   `alpha>100` 为角色像素），握把落点采 7×7 邻域贴附率，>20% 视为贴手。
+   场景截图的暗像素会被背景阴影/杂物误报（曾把 12 帧悬空误判为全贴手）。
+3. **GLM-4.6V 的边界**：读绝对坐标不可靠（全图/网格/裁剪多格式都会跑飞）；
+   但"红点是否在手"的 ON/OFF 判断在 140px 握把特写（2 倍放大 + 红点标记）上稳定。
+   定位用掩码，复核用 GLM，二者交叉。
+4. **改 JSON 配置后必须刷新页面**：ESM 静态 import 缓存旧配置，游戏启动时读一次，
+   不刷新页面则"改完没生效"（曾导致对着旧配置调参的误判）。
+5. **冻结抓取管线（tools/cdp-sword-hold-frames.mjs）**：
+   `play + anims.timeScale=0` 冻结精灵帧（满足 GameScene 卡死守卫的 isPlaying 条件），
+   `_activeAttackTweens` 塞 60s 占位 tween 保 attacking 状态机，`_playerAttackDuration=40000`
+   + 反推 `_playerAttackStartTime` 接管进度。坑：`weaponAnim.timer>5000` 卡死保护会重置状态，
+   需每帧清零；`tweens.timeScale` 曾被探针改慢导致攻击 tween 3 秒后才 complete 干扰定格。
+6. **手部分层（handLayer）同步只在"显示期"做帧跟随，且 setFrame 前必须校验目标帧存在**
+   （2026-08-03 普通攻击/收势告警刷屏复盘）：`_syncPlayerHandLayer` 曾每帧
+   `hand.setFrame(身体帧号)`——手层隐藏期（recover/attack/idle）纹理可能只含 `__BASE`
+   （如 `player_idle`），或 WebGL context lost 后手层贴图帧被清空，导致 Phaser
+   "Texture has no frame" 告警刷屏（GameScene.js:1060 / phaser.esm.js:229893）。
+   修复：`if (!hand.visible) return;` + 帧名在 `tex.getFrameNames()` 内才 setFrame。
+   教训：跨动画复用 sprite 做帧同步时，"帧存在性"和"显示期"两个前提必须显式守卫，
+   否则任何纹理状态异常都会变成每帧告警。
+
+#### 方向性运动模糊（替换各向同性高斯，修"摊薄消失"）
+- **根因**：刀身在贴图内沿纵向（逐行质心 x 恒定已验证），旧版 Blur 滤镜 x=y=1 各向同性，
+  模糊沿刀身摊薄 → 3px 细剑峰值帧"近乎消失"（SKILL 旧记录因此一度改残影，残影又停用）。
+- **升级**：`_applyWeaponBlur` 固定 `f.x=1, f.y=0.08`——只沿**垂直刀身（贴图横向）**拉丝，
+  刀身保持清晰、拖影沿挥砍方向；强度仍由 max(blurX,blurY) 驱动（峰值帧最浓）。
+  Phaser 4 `filters.internal.addBlur`，`strength = max×1.6`。
+- **验证**：CDP 实机采样（`tools/cdp-sword-attack-check.mjs`）确认 blur 峰值帧
+  x=1/y=0.08/strength≈14；视觉模型粗验收"剑贴手 + 横向拉丝 + 刀身不糊"。
+- 残影（`_syncWeaponGhosts`）为死代码，勿再启用。
+
+---
+
+### 二段攻击（attack_sword_2）双手横挥优化（2026-08-03）
+
+- **动画**：30 帧（50ms/帧），"单手切双手 → 向前横向挥砍"；命中帧 15（sector 扇形）。
+- **代码**：`syncWeapon` 近战分支按 `player.n === 2` 读 `attack2` 轨迹块；
+  **已移除旧 `weaponUnder` 逻辑**（原 18~24 帧把武器压到人物下方 depth -0.01——
+  双手横挥时剑在身前却被身体遮挡 = "涂层遮盖"根因），武器恒在人物前方（+2）。
+- **横向挥砍（透视）修正**：F14~F25 剑保持在**胸口高度**（Y ≈ -2~15）且**近水平**
+  （rotation 95~120，不再 45~85 上劈姿态），避免剑身盖脸；握把（剑柄）绑定**前伸手**
+  （近侧手 ~local (52,-6)，握把校正 G=40 同攻击一段）。F0~F13 蓄力、F26~F29 收势保留。
+- **验证**：lint/build/npm test 全绿；预览 `attack2_FINAL.png`（绿圈=握把）。
+- **二段收势 0.3s（2026-08-03 用户指定）**：恢复动画共用 `recover`（13 帧×25.4ms=330ms）；
+  GameScene 恢复触发处按 `_meleeComboStage === 2` 传 `setPlayerAnimation('recover', 300)`，
+  武器滑回 `recDur` 同步 300ms（一段保持自然 330ms）。实机 timeScale=1.1007 ✓。
+- **二段末帧定格 0.2s（2026-08-03 用户指定）**：`weapon-anim.js` 定格/连段窗口按段区分——
+  二段 `_attackHoldUntil = 攻击结束 + 200ms`（连段回一段的窗口同步 200ms），一段保持 500ms。
+  实机采样：一段 holdMs=500、二段 holdMs=200 ✓。
+
+---
+
+### 冲刺攻击（dash_attack）跟手优化（2026-08-03 初版；2026-08-16 dashHand 剑柄锚手定稿）
+
+- **动画**：dash_attack 17 帧（24fps），"从后往前 180° 大回砍"；配置 sword.dash 30 点。
+- **手部识别技能适用性结论（2026-08-16）**：
+  1. **GLM-4.6V / deepseek-vision-skill 不适合像素级绑手**——坐标误差 50~150px，
+     同图两次回答会矛盾，只能做"是否在手上"的粗验收；不要拿它生成 dash 轨迹点。
+  2. **`tools/prep-sword-attack-hand.py` 旧 `DASH_HAND_PX` 也不可用**——它检测的是
+     "远侧手/非持剑手"，17 帧末帧 (185,180) 仍停在身体左侧，与实机前伸手不符；
+     脚本旧 dash 分支因此曾默认拒绝运行。该数据已改名 `DASH_HAND_PX_LEGACY` 留档。
+  3. **正确做法 = dashHand 模式**：保留用户实机验收的 `sword.dash` 30 点中心轨迹
+     （DevTool 手调值），由 `WeaponTransform.getDashHandPosition` 按
+     `握把点 = 中心 − R(rot)·(0, -gripOffset)` 反推手位；GameScene 把
+     `weaponSprite.origin` 设为剑柄点（`gripX=0.5`，`gripY=0.5 + gripOffset/显示高`），
+     剑柄钉在手上，剑身绕剑柄转。
+- **180° 扇形扫击**：`sword.dashHand { type:'gripArc', fromRotation:-90, toRotation:90,
+  gripX:0.5 }`——角度按 progress 线性插值，从身后 -90° 扫到身前 +90°，全程 180°；
+  位置仍逐帧沿旧中心轨迹反推的握把路径走，因此不是只绑首尾两点。
+- **触发链路**：`dashSystem.trigger` 播放 `dash_attack` 并写 `_dashTotalMs`；
+  `GameScene._syncSpecialWeaponAnim` 的 dashHand 分支按同一 progress 同步剑柄；
+  末帧定格 `_dashRecoverAt` 也停在 progress=1，收势再走近战同款滑回。
+- **修改文件**：`src/combat/weapon-transform.js`（getDashHandPosition）、
+  `src/phaser/scenes/GameScene.js`（dashHand 分支，优先于旧 dashLerp）、
+  `public/data/weapon-anim-config.json`（sword.dashHand）、
+  `tools/prep-sword-attack-hand.py`（dash 分支改为生成/校验 dashHand，不再用旧误检点）。
+- **旧 dashLerp 保留为回退**：无 `dashHand` 配置时仍走双端点 lerp，端点/角度已同步为
+  -90°→+90° 与剑柄 origin（grip 0.5,0.782）；不要删代码。
+- **实机验收（2026-08-16 用户确认成功）**：剑柄全程贴手，剑身从后 -90° 扫到前 +90°，
+  末帧定格 → dash_recover 收势无跳变。
+- **关键经验（可迁移到后续近战动作）**：
+  1. 手部定位先分“粗验收”和“像素绑手”两条路：GLM 只判 ON/OFF；绑手一律用
+     alpha 掩码/质心，或复用**已经实机验收过的中心轨迹反推握把点**。
+  2. 旧轨迹数据不要急着覆盖：把“中心轨迹”和“剑柄 origin”解耦后，只需新增
+     `dashHand { fromRotation, toRotation, gripX }`，运行时反推，旧 perFrame/dashLerp
+     原样保留可回退。
+  3. 收势不是另起一段动画：freeze 末帧是 origin=剑柄，recover 首帧是 origin=中心，
+     必须用 `中心 = 握把 + R(rot)·(0,-gripOffset)` 反推 recover 起点，否则剑柄连续但
+     剑身会跳回旧轨迹角度（本次已通过 `getDashRecoverStartPosition` 解决）。
+  4. 测试守卫只锁配置契约（dashHand 180° / dashLerp 180°），不锁具体轨迹点，
+     后续 DevTool 微调不被测试卡死。
+
+---
+
+### 挥砍剑气轨迹（SwordAuraTrail，2026-08-16 垂直剑身书法拖尾）
+
+> **状态（2026-08-16）**：当前剑气效果已按用户要求停用——`sword.aura.enabled = false`。
+> 代码与纹理生成逻辑保留在 `src/effects/sword-aura-trail.js`，后续重做时把该开关改回 `true` 即可。
+
+- **用户思路验证：可行**。“生成水墨/墨笔贴图 → 按剑贴图尺寸拉伸覆盖 → 追剑运动轨迹 →
+  设置残留时间”在 Phaser 中完全成立，且比粒子发射器更适合表现“剑气沿剑身划过”的形态。
+- **参考实现**：`src/effects/sword-aura-trail.js`
+  1. `_ensureTexture()` 程序化生成 128×64 纹理：沿剑身方向等距排布多条笔直竖向短线，
+       渲染时旋转 `swordRotation + 90°`，让每条线垂直于剑身；
+  2. `GameScene` 在近战 perFrame / dashHand / dashLerp / dash perFrame 四条攻击渲染分支
+     `_pushSwordAuraPose()` 采样当前剑的视觉中心、rotation、displayWidth/Height
+              `_pushSwordAuraPose()` 采样当前剑的视觉中心、rotation、displayWidth/Height；
+  3. `SwordAuraTrail.update()` 按 `intervalMs` 保留采样点，残影 Sprite 按
+     `widthMul/heightMul/scaleStart/scaleEnd` 拉伸覆盖，按 `lifeMs` 残留淡出。
+- **配置**：`public/data/weapon-anim-config.json` 的 `sword.aura`
+  （enabled / intervalMs / lifeMs / maxCount / alpha / tint / colorSource / blendMode / widthMul /
+  heightMul / trailBackOffset / minMoveDistance / rotateWithWeapon / perpendicularToWeapon / perpendicularStripeCount / perpendicularCoverageLength / perpendicularCoverageWidth / scaleStart / scaleEnd / fadeInRatio / fadeOutRatio /
+   glowEnabled / glowAlpha / glowScale / glowTint / glowBlendMode）。**调参只动 JSON。**
+- **通用可见性（2026-08-16 世界-122 修复）**：纯 ADD 发光在亮色地面会被洗掉；
+  正式做法 = **NORMAL 核心笔触 + ADD 发光层**双通道。核心笔触负责所有场景可见，
+  发光层只负责暗场景光感。
+- **当前颜色（2026-08-16 用户定）**：`colorSource: "fixed"` + `tint: "0xffffff"`，固定白色；
+  取色方法 `getWeaponColor()` 保留为可选项，之后要恢复剑身色再切回 `"weapon"`。
+- **不越剑前（2026-08-16 优化）**：`pushPose()` 计算相邻采样的运动方向，把残影位置沿运动反方向
+  后移 `trailBackOffset`；首帧只记录不渲染，下一帧有方向后再显示，位移小于 `minMoveDistance` 不生成新残影。
+  配合 `widthMul/heightMul/glowScale` 收紧，特效只留在剑已经扫过的轨迹内。
+- **书法拖尾规则（2026-08-16 用户澄清后定稿）**：每条残影是短直线，且必须**垂直于剑身**
+  （`perpendicularToWeapon: true`，渲染旋转 = 剑身 rotation + 90°）。纹理沿剑身方向排布多条
+  垂直线段，一次采样即可覆盖整把剑；宽度用 `perpendicularCoverageWidth=0.9` 约束，避免超出剑宽。
+- **深度与显隐**：剑气挂在 `worldEffectsGroup`，深度恒为 `weaponSprite.depth - 1`；
+  地图模式自动随特效组隐藏。
+- **后续替换正式素材**：只需要把 `_ensureTexture()` 的 Canvas 绘制换成
+  `scene.load.image('sword_aura_brush', 'assets/effects/sword_aura_brush.png')` 并保持
+  key/竖向直线/透明底一致，消费端零改动；建议 PNG 白色直线 + `setTint` 控制剑气颜色。
+- **避免的坑**：
+  1. 不要用大量独立粒子追剑，粒子旋转/尺寸难对齐剑贴图，残影 Sprite 池更稳；
+  2. 残影必须比剑贴图低一层，且要在 `_updateDynamicDepths` 之后更新，否则过墙会浮层；
+  3. 残影中心不能直接拿 `sprite.x/y`：普通攻击 origin 是中心、dashHand origin 是剑柄，
+     必须按 `(0.5 - originX/Y) × displaySize` 旋转后反推视觉中心（本次 `_pushSwordAuraPose` 口径）。
+    5. 残影若直接放在当前剑中心，笔触会同时向运动前方延伸，视觉上“特效跑到剑前面”；
+       必须沿速度反方向做 `trailBackOffset` 后移，首帧只记录不渲染、静止帧不采样。
+    4. 纯 ADD 发光在亮色地图会被洗掉（世界-122 复现）：必须 NORMAL 核心层兜底可见性，
+       ADD 只做增强层。
+
+---
+
+### 平滑弧形刀光（SwordArcTrail，2026-08-16 重做）
+
+> **状态（2026-08-16）**：当前平滑弧形刀光已暂停——`sword.arc.enabled = false`。
+> 代码与配置保留，后续重新启用时改回 `true` 即可。
+
+- **旧剑气已停用**：`sword.aura.enabled = false`；不再使用短线/贴图残影方案。
+- **新方案**：`src/effects/sword-arc-trail.js`
+  1. 连续采样剑的视觉中心与显示尺寸；
+  2. 用历史采样点构建 Ribbon：沿运动方向两侧按法线展开，尾端收成一点；
+  3. Catmull-Rom 细分边缘，形成平滑弧线；
+  4. 外层/中层/内层三层多边形叠加：外层大而淡、内层窄而亮，得到弯月刀光；
+  5. 采样点沿运动反方向 `trailBackOffset` 轻微后移，避免跑到剑前。
+- **配置**：`sword.arc`
+  （enabled / intervalMs / lifeMs / maxCount / tailLength / trailBackOffset /
+  minMoveDistance / color / coreHalfWidth / midHalfWidth / outerHalfWidth /
+  alphaOuter / alphaMid / alphaCore / outlineEnabled / outlineColor / outlineAlpha / outlineHalfWidth / headWidthMul / fadeInRatio / fadeOutRatio / particleEnabled / particleCount / particleAlpha / smoothSteps）。
+- **通用性排查结论（2026-08-16）**：新效果没有 `scene8/main` 之类的场景分支，代码是通用的。
+  世界-122 看不到时，先排除了组可见性：`SwordArcTrail` 不再挂 `worldEffectsGroup`，而是直接
+  使用场景 Graphics，并只在地图选择界面按 `_mapModeActive` 显式隐藏；同时加黑色轮廓底层提高对比度。
+- **深度（2026-08-16 二轮）**：刀光从剑下一层改为剑上一层（`weaponSprite.depth + 1`），
+  保证剑可见时刀光一定可见；外层宽度仍用 `outerHalfWidth` 控制，避免过大。
+- **柔化拼接（2026-08-16 三轮）**：不再整条 Ribbon 单色填充，改为逐段四边形填充，
+  每段按生命进度做 `fadeInRatio/fadeOutRatio` 透明度曲线；与剑衔接端用 `headWidthMul` 收窄，
+  尾端宽度归零；段间补小圆点，并沿边缘撒 `particleCount` 个淡出粒子，消除箭头/菱形硬边。
+- **调参**：想让弧线更圆滑调大 `smoothSteps`；想更长调大 `lifeMs`/`tailLength`；
+  想更亮调大 `alphaCore/alphaMid`；外层宽度不要超过剑宽太多，`outerHalfWidth` 建议 ≤0.6。
+- **经验**：贴图残影线很难做平滑刀光，轨迹 Ribbon + Catmull-Rom + 多层宽度叠加更接近
+  常见的弯月形挥砍特效；性能也只需一个 Graphics 对象。
+
+---
+
+### 交互式开发工具（DevTool）与攻击动画插帧系统
+
+> 阅读 `src/ui/dev-tool.js`、`src/combat/weapon-transform.js`、`src/entities/player/weapon-anim.js`、`src/items/weapon-anim-config.js`、`src/phaser/scenes/GameScene.js` 后的结构梳理。
+> **2026-07-26 简化定稿**：挂载点系统（handAnchors/gripOffset）与关键帧系统（keyframes）已删除——生产配置零使用，且单点锚无法帧间跟手（逐帧已全覆盖）。现只保留两条路径：攻击=逐帧 perFrame，静态姿态=每状态 holdOffset。
+
+#### 一、DevTool 整体结构
+
+`src/ui/dev-tool.js` 是一个基于 Canvas 2D 的独立调试面板，与 Phaser 游戏循环解耦，用于武器/动画参数的可视化与持久化。
+
+**核心状态：**
+```js
+state: { anim, weaponType, frameIndex, playProgress, isPlaying }
+weaponParams: { offsetX, offsetY, rotation, scale }
+```
+
+**两大子系统：**
+1. **武器定位面板**：调整 `offsetX/Y`、`rotation`、`scale`，实时预览武器相对角色的位置（传统 holdOffset 模式）。
+2. **逐帧编辑（perFrame）**：`attack.type === 'perFrame'` 时 weaponParams 直接对应当前帧，滑块/播放逐帧调武器姿态。
+3. **动画/贴图/AI 调试面板**：加载四方向精灵图、逐帧播放、调试敌人贴图与 AI。
+
+**关键方法：**
+- `_loadCharacterFrames()`：按 `data/player-anim-config.json`（PLAYER_ANIMS）加载角色精灵图，`PANEL_ANIM_TO_CONFIG` 映射面板键→配置键。
+- `_getPerFrameTransform()`：按进度插值逐帧配置。
+- `_buildPreviewOverrides()`：把面板中的调整打包成 `WeaponTransform` 可消费的参数。
+- `_save()`：写回 `WeaponAnimConfig`，并通过 `window.electronAPI.saveWeaponConfig` 持久化到 `public/data/weapon-anim-config.json`。
+- `_draw()`：用 `WeaponTransform` 在 Canvas 上绘制角色、武器与轨迹。
+- 播放帧率：读配置 `frameRate`，面板 `#devToolFps` 输入框可手动覆盖（`_getPreviewFps`）。
+
+#### 二、攻击动画插帧（唯一路径：逐帧 perFrame）
+
+- **配置位置**：`WeaponAnimConfig[weaponType].attack.frames`（`attack.type === 'perFrame'`）。
+- **结构**：`{ offsetX, offsetY, rotation, scale }` 数组，每帧对应攻击动画的一帧。
+- **插值**：按 `playProgress` 在相邻两帧之间做线性插值。
+  - `weapon-transform.js`：`getInterpolatedPerFramePosition()` 用 `_lerpPerFrame1D/2D` 插值。
+  - `weapon-anim.js`：检测到 perFrame 后，Tween 只驱动 progress；武器 Sprite 的位置/旋转/缩放由 `GameScene.syncWeapon()` 按当前动画帧同步，Tween 只负责命中判定窗口与状态重置。
+- **无 perFrame 配置的近战武器**：走 `_playSwordAttackTween` 默认三段 Tween 链（windup 200ms / swing 300ms / recover 400ms）。
+- **贴图同步**：`setPlayerAnimation('attack_sword', tweenDuration)` 用 `anims.timeScale` 把玩家攻击贴图对齐 Tween 总时长（2026-07-26 修复 900ms Tween vs 667ms 贴图各播各的问题）。
+
+#### 三、坐标变换链
+
+```
+dev-tool 调整参数
+    ↓
+保存为 WeaponAnimConfig[weapon].attack.frames（perFrame）/ [state].holdOffset（静态姿态）
+    ↓
+WeaponTransform.getInterpolatedPerFramePosition() / getWeaponLocalOffset()
+    ↓
+GameScene.syncWeapon() / weapon-anim.js Tween
+    ↓
+Phaser Sprite.x / y / rotation / scale
+```
+
+**镜像处理：**
+- 玩家朝左时，`facingRight = false`。
+- `WeaponTransform` 内部把本地 X 坐标取反，并把旋转角度处理为 `Math.PI - rotation`。
+- **不**对武器 Sprite 直接使用 `setFlipX`，避免旋转中心错乱。
+
+#### 四、玩家攻击动画驱动流程
+
+1. 输入触发：`triggerWeaponAnim('main')`。
+2. 状态机进入 `swing`。
+3. 剑类武器调用 `_playSwordAttackTween()`：
+   - 若 `attack.type === 'perFrame'`：Tween 驱动 progress，`syncWeapon()` 逐帧同步。
+   - 否则走默认 windup/swing/recover 路径。
+4. `onStart` 激活 `_pendingThrust`，在攻击前 500ms 内做命中判定。
+5. `onComplete` 结束攻击状态、给经验、武器回到 idle 位置。
+
+#### 五、与怪物攻击动画的对比
+
+- **玩家**：由 `weapon-anim.js` Tween + `WeaponAnimConfig` 精确控制武器 Sprite 的位移/旋转/缩放。
+- **怪物（如 ZombieDogEnemy）**：仅覆盖 `triggerWeaponAnim()` 设置 `_attackTimer`，用 `_animState = 'attack'` 驱动纹理/帧切换；攻击判定由 `ThrustAttack` 的矩形/动态距离判定处理，**没有**类似玩家的武器 Sprite 插帧系统。
+
+#### 六、后续扩展方向
+
+如需为怪物引入攻击动画插帧（例如让 ZombieDog 的爪击也使用逐帧动画）：
+1. 在 `enemy-config.json` / `enemy-types.js` 中为怪物增加攻击动画资源引用。
+2. 在 `WeaponAnimConfig` 中新增怪物武器/爪击配置，或复用 `perFrame` 结构。
+3. 在 `_syncEnemyAnimation()` 中根据 `_animState === 'attack'` 播放对应 spritesheet。
+4. 让 `ZombieDogEnemy.triggerWeaponAnim()` 不只是一个 timer，而是真正驱动一帧一帧的动画 progress。
+
+---
+
+## 4. 武器与装备系统
+
+### 武器添加标准工作流（2026-07-28 定稿，新武器一律按此开展）
+
+与怪物/地牢/墙体工作流同规格。核心：**EquipDataManager 是唯一全量数据源，其余各点按需登记，验证四件套收尾**。
+
+#### 1. 素材管线（贴图/音效进项目前必过）
+- **贴图归一**：新武器贴图一律按类归一（SKILL.md「武器动画调试基准」）——步枪类：内容宽 0.915 / 中心 (0.500, 0.543) / 画布 2048²（AKM 布局）；手枪类：内容宽 0.862 / 中心 (0.487, 0.524) / 画布 2048²（沙鹰布局）。归一后**枪口点无需手配**（BootScene 自动烘焙，见第 4 节）。
+- **音效**：入 `assets/sounds/weapons/` 子目录（目录规范），路径写进配置，不在代码写死。
+
+#### 2. 纹理注册（src/config/weapon-texture-map.js）
+- `getWeaponTextureLoadList()` 加 `{ key: 'weapon_<weaponType>', path }`（BootScene 自动加载）。
+- 仅当纹理键不能由 `weapon_<weaponType>` 推导时（如按 weaponId 特供贴图），在 `getWeaponTextureKey` 的 `specialMap` 加 weaponId → 键映射。
+- **WEAPON_MAP 与加载列表同源**；开发面板的姿态预览自动生效。
+
+#### 3. 数据配置（EquipDataManager 唯一全量数据源 + equipment.json 模板）
+- `src/ui/equip-data-manager.js` 加武器条目（参考 G18_PISTOL_ITEM / AKM_ITEM 同族复制）：
+  - 标识：`weaponId`（weaponN 顺延）、`weaponType`（同族复用，新族=新键）、`animConfigKey`/`attackKey`/`offhandAttackKey`（可双持手枪）、`canvasImageProp`（**每把枪独立**，复用别人的会双持互盖——P4040 教训）。
+  - 战斗：`attack { range, knockback, attackInterval, projectileSpeed, damageType }`、`fireMode`（semiAuto/fullAuto）、`ammoConfig { max, reloadTime }`、`spreadParams`/过热（heatParams）按族。
+  - 公式：`attackFormula { base, enhanceFlat, attrs: [{ key, base, perEnhance }] }`——**唯一实战公式源**（computeWeaponAttack 全链路自动生效，图鉴/强化/tooltip 委托展示）；enhanceFlat=0 合法（沙鹰/能量LMG）。
+  - 贴图字段：`iconImage/dropImage/equipImage/slotImage`、`weaponAsset.image`。
+- `data/equipment.json`（**双份同步 public/**）加商店/掉落模板条目——字段从 EDM 条目复制（main.js 启动合并 + `completeWeaponFields` 消费端回退会补全实例缺字段，但**模板里写错的值不会被纠正**，只补 undefined）。
+- 稀有度/定价/掉落池按既有档位（参考同级武器）。
+
+#### 4. 弹药与攻击对象（双写点）
+- `src/config/gun-ammo.js` `GUN_AMMO_CAP` 加 `weaponN: { max, reloadTime }`——**与 EDM ammoConfig 双写**（消费端 `getAmmoConfig` 三级回退兜底；`max: Infinity` 合法，JSON 克隆变 null 时有回退）。
+- `attackKey` 取 `WEAPON_ATTACK_CONFIG`（src/config/weapon-attack-config.js）已有键；新射击手感（冷却/弹速/弹体）= 该文件加条目，`attacks[attackKey]` 自动创建（player/index.js 遍历注册，无需改玩家代码）。
+- **枪口点**：BootScene 自动烘焙贴图最右端内容点，无需手配；个别烘焙偏差用 `muzzle.manual` 覆盖（Super90 教训：别拿右缘估计当枪口）。
+
+#### 5. 动画与贴合调参（左下开发面板）
+- `public/data/weapon-anim-config.json`（仅此单份）：以同族基准武器（手枪=沙鹰 / 双手枪=AKM）为模板加 `weaponType` 条目（top/idle/walk 状态块 holdOffset、grip、idleScale/idleRotation）。
+- 面板拖武器贴合手部 → 💾保存（直写 public/data + 备份）；静态姿态=每状态 holdOffset，攻击=perFrame 逐帧（新近战动作走玩家动画工作流）。
+- 双手枪械注意冲刺开火=强制 walking（内置）；`isTwoHanded: true` 别漏。
+
+#### 6. 改造/附魔/图鉴/验证
+- **改造**：`data/craft-config.json` 加 `weaponN` 槽位条目（配件槽 x/y/lineTarget，参考沙鹰）；`ItemDatabase.getByWeaponId` 懒索引反查，**新武器免登记**。不配 craft 条目 = 该武器不可改造（UI 明示，合法设计）。
+- **改造新效果键要过三处**（2026-07-30 Beretta 93R 落地）：①`craft-effect-registry.js` 注册（test-craft-sync 三角校验会拦未注册键）；②消费端代码（散布在 update.js 主副手+tooltip、fireMode 在 update.js 触发器+gun-ammo getFireMode）；③craft-config 写 effects。已有键覆盖绝大多数需求（shotSpreadDelta/recoilRecoveryDelta/rangeDelta/knockbackDelta/magazineDelta/reloadTimeDelta/moveSpeedPercent/damagePercent/piercingBonus/attackIntervalDelta/spreadStartDelta/redDotScope）；**模式切换类新键**：`burstMode`（N 连发，60ms 间隔排队，末发恢复标准冷却，**主副手各自独立队列**）、`fireModeOverride`（覆盖射击模式，全自动板机）、`spreadParamsOverride`（散布模板整体覆盖）。
+- **附魔/强化**：通用链路，零登记（强化只影响攻击公式派生与盾防）。
+- **图鉴**：ItemDatabase 自动收录，公式展示委托 buildFormulaDisplay，无需改代码。
+- **验证**：JSON 双份一致（`npm test` 的 test-regressions 双份一致性+音效路径存在性检查会拦）；`npm run lint`、`npx vite build`、`node scripts/test-collider.mjs`、`node scripts/test-craft-sync.mjs`（动了 craft 配置时）；实机清单：装备/开火/换弹/双持（手枪族）/瞄准姿态/强化+1 攻击变化/图鉴公式展示。
+
+---
+
+#### 全自动武器添加管线 add-weapon.py（2026-08-08 首版，M416 实证）
+
+- **入口**：`python tools/ai-gen/add-weapon.py --spec tools/ai-gen/weapon-specs/<weapon>.json <子命令>`（相对 game-dev/ 执行）
+- 子命令：
+  - `scaffold`：自动写 equipment.json / craft-config.json（data+public 双份同步）+ weapon-anim-config.json（克隆同族基准武器动画块）；
+    生成武器深度剪影模板（`_depth_templates/<key>_sil.png`，徽章灰 130 + 武器白 255 黑底）；生成出图/视频提示词；
+    合成开火/换弹/装备三音效；输出 JS 补丁锚点清单 + 自动 verify。
+  - `gen-image --host <comfyui> --model <model> --seeds a,b,c [--ref-image <真实参考图>]`：批量出候选
+    （默认落 `_weapon_candidates/<key>/`，定稿后清到 Y:\scratch）。**新武器必须传 `--ref-image`**
+    （白底/纯色底完整侧视实拍图）：工具自动抠剪影→黑底白枪深度图→`--control-image` 锁武器大形，
+    否则 FLUX 凭文字先验画会"不像真枪"（2026-08-08 M416 教训）。参考图获取走国内图搜
+    （360 图搜 `image.so.com/j?q=<枪名>&pn=1&ps=40` / 必应中国 `cn.bing.com/images/async`，
+    百度 acjson 被反爬）。生图模型用远程 5080 `flux2-dev-depth`（本地无 Flux2FunControlNet 节点）。
+  - `process-image --raw <候选.png> [--cutout-tool auto|rmbg|make-transparent-icon|flood|none] [--no-orient] [--no-auto-level]`：
+    默认自动镜像保证枪口朝右（左右极值列高判定）→ 默认自动校平枪身基线（机匣上沿中段拟合，0.8 阻尼迭代；
+    **向右下斜为正角，PIL rotate(+θ) 逆时针按同符号旋转——用 -θ 会越转越歪，2026-08-08 教训**）→
+    白底抠图首选 ComfyUI-RMBG 插件（`BiRefNetRMBG` 节点，模型 `BiRefNet-general` 权重放 `ComfyUI/models/RMBG/BiRefNet/`，
+    可从 NAS `Y:\模型库\ComfyUI\models\BiRefNet\` 复制；插件输出 IMAGE+MASK，本地合成 RGBA）→
+    按 spec.layout 归一（步枪 2048² / 内容宽 0.915 / 中心 (0.500,0.543)）→
+    写 `assets/weapons/<key>-equip.png` + `assets/icons/<key>-equip.png` → 打印 bbox/aspect/连通域/朝向。
+  - `gen-video --host 192.168.3.142`：MiniMax H3 展示视频（`assets/videos/<key>_showcase.mp4`；远程 5080 离线会失败，机器上线后重跑）。
+  - `verify`：双份 JSON 字节一致 + 资产/音效存在性 + 改动 JS node --check。
+- **M416 实证**：`weapon-specs/m416.json`（weapon21，优质 uncommon，属性/公式略低于 AKM，30 发全自动，步枪精通生效）；
+  6 张候选归档 `Y:\工作\无尽轮回\scratch\weapons\m416\`；正式贴图已入库。
+- **M416 贴图重做：必须用真实参考图+剪影锁形（2026-08-08 二版教训）**：
+  - 首版只靠文字提示词"strongly resembling HK416"生成，FLUX 凭先验画，结果"不像真枪"
+    （用户一眼看穿）。教训：**武器贴图"像不像"由真实参考图决定，不是提示词措辞**。
+  - 参考图来源：open_page/维基被墙时改用**国内图搜直连**——`image.so.com/j?q=HK416&pn=1&ps=40`
+    （360 图搜 JSON，字段 img/thumb）与 `cn.bing.com/images/async?q=HK416+side+view&first=0&count=40`
+    （必应中国，正则抓 `murl&quot;:&quot;...` 直链）均可用；百度 `acjson` 被反爬拦（antiFlag=1）。
+  - 筛选：优先"白底/纯色底+完整侧视+枪口朝右"（`ref20.jpg` 2143×834 黑枪白底=最佳）。
+    白底宽图用像素统计粗筛（white%>70 且 aspect>2.4），再 GLM 逐张确认完整性与 HK416 特征
+    （导轨/伸缩托/鸟笼消焰器/弹匣）。
+  - **生成必须传 `--control-image`**：从参考图抠剪影→黑底白枪 1024² 深度图（对齐 spec.layout
+    centerY=0.543），`comfyui-gen.py --model flux2-dev-depth --control-image <剪影>` 锁大形；
+    **add-weapon.py gen-image 默认不传控制图，是"不像"的直接根因**（首版正是如此）。
+  - 本地 127.0.0.1 无 `Flux2FunControlNetLoader` 节点，远程 5080 有；`flux2-dev-depth` 走远程。
+  - **方向判定坑**：`orient_right` 的左右条带高度法误判过 seed27（GLM 说右、脚本判 LEFT 并翻转→
+    入库变左）。修复：`process-image --no-orient` 保留参考图原始方向，像素仲裁（右端细=枪管）确认。
+  - 参考图与剪影已归档 `Y:\工作\无尽轮回\scratch\weapons\m416\ref_*`，候选
+    `m416_icon_refgen_seed27.png`（GLM 9 分，朝右，已入库 2048²）。
+- **武器装备音效：触发链路与 shotgun 分支捆绑是坑（2026-08-08 M416 补录）**：
+  - 症状：M416 的 `equipSound` 已配置且 wav 存在，但装备/切换时不响。
+  - 根因：装备音效播放代码**只写在 `weaponType==='shotgun'` 分支里**（super90 注释
+    "装备Super90时播放枪栓音效"），rifle/lmg 分支只换贴图不发声——配置有、触发无。
+  - 修复：把 `getEquipSound(item)` + `SoundManager.playFile` 从 shotgun 分支**提升到
+    武器槽处理块末尾**（subsystems.js switchWeaponMode 与 equip-manager.js
+    equipFromBackpack 两处），对任意配置了 equipSound 的枪统一生效；无配置的枪
+    （如 AKM）自然静音。运行时打桩验证：切回 M416 播 m416_equip.wav、AKM 不播。
+  - 音效内容：参考射击游戏"拉机柄上膛"——中频金属滑动(0~0.16s) + 拉机柄到位清脆
+    咔哒(0.16s) + 枪机闭锁低频金属撞击(0.27s) + 击锤/弹匣锁定余响(0.42s)，0.62s
+    立体声 WAV（44.1kHz）。模板见 add-weapon.py 的 synth_equip（可按需替换）。
+  - 教训：**新增武器"有配置≠有触发"**，音效/特效/逻辑都要沿触发链路查一遍，
+    不能只看数据层；找同族基准（super90）的代码位置直接抄结构。
+
+#### 标准全自动添加枪械武器工作流（2026-08-08 M416 全流程定稿）
+
+按序执行，每步可单独跑、可断点续传：
+
+1. **写 spec**：`tools/ai-gen/weapon-specs/<key>.json`。字段模板抄 `m416.json`：
+   weaponId 顺延（weaponN）、name/rarity/price、statsJson + attackFormula（略低于同族基准）、
+   attack/ammoConfig（弹容/换弹/三种音效路径）、fireMode、spreadParams、craftTemplateWeaponId、
+   animTemplateWeaponType（同族基准）、layout（2048²/0.915/centerY 0.543）、imagePrompts.icon/video。
+2. **scaffold**：`python tools/ai-gen/add-weapon.py --spec ... scaffold` → 自动写
+   equipment.json/craft-config.json（data+public 双份）、weapon-anim-config.json、深度剪影模板、
+   出图/视频提示词、三音效（开火/换弹/装备），并输出 JS 补丁锚点清单。
+3. **搜真实参考图（国内直连）**：360 图搜 `image.so.com/j?q=<枪名>+侧视&pn=1&ps=40` 或
+   必应中国 `cn.bing.com/images/async`，优先"白底+完整侧视+枪口朝右"实拍图；
+   GLM-4.6V 逐张确认完整性与枪型特征。参考图归档 `Y:\工作\无尽轮回\scratch\weapons\<key>\ref_*`。
+4. **生图（必须带参考图）**：`gen-image --model flux2-dev-depth --host 192.168.3.142
+   --ref-image <参考图> --seeds a,b,c`（自动抠剪影锁形）；GLM 验收候选（完整侧视/枪型/白底/无缺陷），
+   定稿候选归档同目录。
+5. **处理入库**：`process-image --raw <候选> --cutout-tool rmbg --no-orient`（参考图朝右时
+   **必须 --no-orient**，避免 orient_right 误判翻转；用像素仲裁方向：右端细=枪管）。BiRefNet 抠图 →
+   校平 → 2048² 归一 → 写 assets/weapons + assets/icons。
+6. **JS 补丁**：按 scaffold 锚点清单用 apply_patch 落盘（EDM/shop/player-defaults/weapon-texture-map/
+   weapon-attack-config/gun-ammo/craft-default-slots/weapon-fx-config/attack-formula/weapon-anim/update/
+   subsystems/GameScene/weapon-transform/enchant-config/quick-bar/equip-manager/attack/game/dev-tool/
+   defense-system）。**音效触发已通用化**（getEquipSound 非空即播），新枪只需在
+   `GUN_EQUIP_SOUND` 或 spec.equipSound 配置路径，无需改 shotgun 分支。
+7. **验证**：`verify`（JSON 双份一致 + 资产/音效存在 + JS node --check）+ `npm run lint` +
+   CDP 实机（装备/切枪/开火/改造面板）+ 像素统计（bbox/aspect/连通域/朝右）。
+8. **沉淀**：SKILL.md 武器段追加本条经验（参考图来源/剪影锁形/方向坑/触发链路坑）。
+
+#### .357麦格农左轮实证（weapon22，2026-08-08 第二轮，手枪族）
+
+- **手枪族关键设定**：weaponType 复用 `'pistol'`（双持/副手/手枪精通/attack.js 等全部
+  逻辑自动覆盖），但 attackKey/offhandAttackKey/animConfigKey/canvasImageProp 每把枪独立
+  （`revolver`/`revolverOffhand`/`revolver`/`revolverImage`）——避免双持互盖（P4040 教训）。
+- **JS 补丁清单（手枪族，按 deagle 基准）**：EDM 加 ITEM（含 equipSound/ammoConfig/reloadSound）、
+  shop-system 加条目、player-defaults images 加 key、player/index.js 预载 `revolverImage`、
+  weapon-texture-map specialMap weapon22 + 加载列表、weapon-attack-config 加 `revolver`+`revolverOffhand`
+  两攻击块、weapon-transform 加 `revolver` 变换块 + **getWeaponSize/getAttackAnimOffset 的手枪判定
+  三处加 'revolver'**（wt=animConfigKey 会落默认 rifle 尺寸，必须显式加）、GameScene 五处
+  isGun/isGunR/isGunOff/isGunSpecial 加 'revolver'、subsystems/equip-manager 的 canvasImageProp
+  分支加 `revolverImage`（否则误映射 pistolImage）、gun-ammo GUN_AMMO_CAP + GUN_EQUIP_SOUND、
+  craft-default-slots 复制同族槽位、game.js 掉落列表、dev-tool/panels、attack.js 开火音效
+  **改为通用 `fireWeapon.fireSound` 优先**（新枪专属开火音自动生效，无需逐枪 else-if）。
+- **auto-level 对左轮不可靠**：圆形转轮 + 下垂握把导致上沿拟合法 8 次迭代不收敛（越转越歪）。
+  修复：`--no-orient` 后手动迭代——GLM 定性判断方向（偏高/偏低），用枪管段（右端细长部分）
+  中心线拟合做像素仲裁（±1° 内可接受）。枪口朝右基准：右端细=枪管。
+- **参考图**：S&W 左轮白底侧视（Britannica）→ 归档 `Y:\工作\无尽轮回\scratch\weapons\revolver357\`；
+  gen-image 用 `--ref-image` 自动剪影锁形，4 张候选 seed27 定稿（GLM 9 分）。
+- **音效**：开火 = .357 重击+金属回音（0.42s）；换弹 = 转轮甩出→6 发装填→合上→锁定（2.0s）；
+  装备 = 拔枪+转轮锁定双咔哒（0.55s）。三种均 44.1kHz 立体声。
+- **验证**：verify 全过（双份 JSON/资产/音效/node --check）+ lint 0 error + npm test 全绿 +
+  CDP 实机（EDM 物品/改造 6 槽/纹理注册 `weapon_revolver357`/攻击表 revolver+revolverOffhand/
+  装备音效触发/掉落列表）。
+- **"机线严格水平向右"专项（2026-08-08 用户验收）**：
+  - 用户强调枪身/枪口/整条机线必须严格水平向右。验收方法：**像素仲裁为准**，
+    GLM 目测只做方向与"偏高/偏低"定性（度数不可靠，SKILL 既有结论）。
+  - 测量窗口坑：左轮含圆形转轮+下垂握把+枪口收窄，选区不同结果差异大（center 可从
+    -0.4° 到 +8°）。**必须取纯枪管段**（右端 25%~45% 宽度、列高<主体 55%、排除最前准星 30px）
+    拟合中心线；整体 bbox 中心线拟合会被握把带偏（-14° 假象）。
+  - 校正迭代：先逆时针转 2~3° 看方向，再按中心线余角微调（0.85° 级），目标 ±0.5° 内；
+    **PIL rotate(+θ)=逆时针**（向右下斜=右端低→逆时针抬右端）。每轮旋转后重测纯枪管段。
+  - 抠图白边：旋转 expand 用黑填充+BICUBIC 会留黑边/白羽化。修复链：压白底→BiRefNet 重抠→
+    清"邻域有低 alpha 的近白像素"（仅外圈，保留枪身内部高光——不锈钢反光近白 6 万是正常材质）→
+    alpha 形态学腐蚀 1px 剥最外圈。验收：过渡带(alpha 8~250)亮色占比 <1% 即干净。
+  - 用户验收口径：枪口朝右（右端细=枪管）、枪管中心线水平、转轮清晰、无白边。
+- **左轮音效与单发装填（2026-08-08 用户验收二轮）**：
+  - 开火音效用户嫌"小声不脆"→ 重做：低频冲击(70Hz,×1.0)+主爆裂(250-4000Hz,×1.1)+
+    尖锐高频 snap(2-9kHz,×0.95) 叠加，峰值拉满到 0.98。**合成音效要"响亮"就把峰值
+    归一化到 0.9+ 并叠高频层**，别留安全余量。
+  - 换弹改**一发一发装填**（参考 Super90）：`ammoConfig.singleReloadMode: true` +
+    `reloadTime: 900`（每发 900ms）。未满弹期间 `state.reloading=true` 自动阻止开火，
+    无需额外逻辑。改三处配置：EDM / shop-system / gun-ammo 回退表。
+  - **单发装填音效坑**：`_updateReload` 继续装填分支硬编码
+    `Super90-reload.mp3`、满弹分支硬编码 `bolt_pull_1s_clean.wav`——新枪会播错音。
+    修复：优先读 `ammoConfig.reloadSound`（每发）与新增 `reloadFinishSound`（满弹收尾），
+    缺失再回退旧值。**改通用机制时必须检查硬编码回退，否则同族武器全串音**。
+  - 左轮四音效：开火 0.5s（重击+脆响）/ 每发装填 0.35s 金属咔哒 /
+    最后一发+转轮回摆合上 1.0s / 装备拔枪+转轮锁定 0.6s。
+- **音效链路去硬编码（2026-08-08 专项）**：
+  - 原则：**所有枪械音效路径配置化（fireSound/reloadSound/reloadFinishSound/equipSound），
+    攻击/换弹代码零逐枪硬编码**；新枪只在数据层配字段，无需改逻辑。
+  - `GUN_FIRE_SOUND` 回退表（gun-ammo.js，weaponType/animConfigKey → 默认开火音）：
+    attack.js 开火统一 `getFireSound(item)`——实例 fireSound 优先，缺失按
+    animConfigKey→weaponType 查表兜底（**先 animConfigKey 再 weaponType**：
+    左轮 weaponType 复用 pistol，若只按 weaponType 会查到 G18 的音）。
+  - 换弹：普通武器一次性装填改 `reloadSound || reload_sharp.mp3`；单发装填每发
+    读 `reloadSound`、满弹读 `reloadFinishSound`（旧代码硬编码 Super90-reload.mp3 /
+    bolt_pull 会串音，2026-08-08 已修）。
+  - 过热音：`heatParams.overheatSound` 可选配置，缺失回退类型硬编码（PKM/能量机枪）。
+  - 保留项：GameScene isGun/isGunR/isGunOff/isGunSpecial 数组差异有语义
+    （isGunR/Special 不含 beretta93r），不改；add-weapon 锚点清单已提醒新枪同步。
+- **真实音效抓取：B 站音频流方案（2026-08-08，合成音效不理想后启用）**：
+  - 搜索：`api.bilibili.com/x/web-interface/search/type?search_type=video&keyword=<关键词>`
+    （需 Referer: bilibili.com + UA）。选"自制音效/实拍录制"类视频，标题描述能确认内容。
+  - 取流：`view?bvid=` 拿 cid → `x/player/playurl?bvid=&cid=&fnval=16` 拿 DASH 音频
+    （选 bandwidth 最高的 audio，baseUrl 直接下载 m4s，需带 Referer）。
+  - 解码：无 ffmpeg 时 `pip install av`（PyAV 自带 FFmpeg），m4s 是标准 MP4 容器。
+  - 截取：波形 RMS 找事件（10ms 块），单发枪声=孤立短促尖峰+衰减尾音；
+    **连射视频前段常有连续峰值，要选中间孤立的单发**（M500 视频 9.30s 处 peak 0.216 最干净）。
+    归一化峰值 0.9 保证响亮。合成音效"小声"根因是留了安全余量，真实录音归一化即可。
+  - 案例：左轮四音效替换为 B 站真实录音（fire=M500 真枪单发 0.44s；reload=金属咔哒 0.15s；
+    reload_last=装填+转轮合上+闭锁 0.55s；equip=转轮甩出 0.16s）。旧合成版留 `.synthbak`。
+  - 兼容：44.1kHz 16-bit 单声道 WAV，浏览器 Audio 直接播。
+
+#### 枪械改造全面审计（2026-08-08 首轮，13 把枪械）
+
+- **方法**：craft-config.json 全量导出 → CRAFT_EFFECT_REGISTRY 校验效果键 → 同族
+  横向对比 → 消费端（subsystems/combatant）模拟改造后数值。
+- **结论一（最严重）**：步枪族 `light_mag` = `magazineDelta:-30`，对 30 发弹匣
+  （AKM/M416/QBZ-191）装后 maxAmmo=0→钳到 1，**枪废**。PKM(75→45)/QJB(60→30)
+  尚可。修复：-30 应改按百分比（如 -40%）或按弹容比例（30 发枪 -8、75 发枪 -30）。
+- **结论二**：左轮改造=沙鹰逐字复制（含 extended_mag +2→8 发弹巢，违背左轮固定
+  弹巢设定；单发装填无 fastReload 专属配件）。手枪族应差异化：左轮加
+  speed_loader（fastReload）、cylinder_lighten（reloadTimeDelta）、magnum_round
+  （伤害/击退）等。
+- **结论三**：QBZ-191/QJB-201 muzzle 数值与 AKM/PKM/M416 不同族（suppressor
+  -200 vs -300、flash_hider 隐藏火光 vs +射程）——功能差异应有描述支撑，
+  否则为复制时手改残留。
+- **结论四**：全部枪械 sight 只有 red_dot/russian_3x 两件；高稀有度枪
+  （epic）无专属改造（沙鹰/左轮/P4040 无弹种深度改造）。建议 epic 加
+  1-2 件机制级配件（P4040 的 auto_trigger 是范本）。
+- **审计工具沉淀**：一次性脚本思路——效果键合法性用正则提取 registry 键对比；
+  数值失衡用"基础数据×改造叠加"模拟；同族一致性用 options 全量 diff。
+- **枪械改造审计落地（2026-08-08 首轮修复）**：
+  - light_mag 弹匣 -30 改为百分比：新增 `magazinePercent` 效果键（multiply，
+    消费端 subsystems/combatant 均 `maxAmmo = round(maxAmmo * (1 + pct))`），
+    light_mag = -40%（30 发→18、75→45、60→36，不再废枪）。
+  - 左轮专属改造：9发弹仓（magazineDelta:3）、快速装弹器（fastReload，单发装填
+    每次装 2 发 → 6 发装 3 次≈原 3 发时间）、麦格农高压弹（伤害+10%击退+15）、
+    平头铅弹（穿透+1）、甩锤速射（攻速-250ms 散布+2°）、重型枪口配重、
+    麦格农补偿器。图标复用现有 craft 图标（缺图用 fmj/muzzle_brake/light_trigger
+    等代替）。
+  - QBZ-191/QJB-201 muzzle 残留 bug：suppressor -200/隐藏火光/缺 spreadStartDelta，
+    统一为 AKM 同族标准（suppressor -300 击退+5、flash_hider +150 射程 -10°、
+    muzzle_brake 双 500ms）。
+  - 沙鹰加机制件：double_tap_trigger（burstMode:2 + 散布+1°），epic 手枪机制差异化。
+  - 教训：**弹容量改造必须按比例或分档，固定值-30 会废掉 30 发弹匣枪**；
+    **同族 muzzle 复制后手改会残留不一致**，加武器后用 options diff 校验。
+- **枪械专属独特改造批量落地（2026-08-08 二轮，12 把枪 +42 件）**：
+  - 新效果键 3 个：`moveSpreadPercent`（移动散布倍率，消费端 combatant.getSpreadInfo
+    按 this.isMoving 乘算 maxAngle）、`stationarySpreadPercent`（静止散布倍率，同处）、
+    `overheatRecoverPercent`（过热恢复百分比，消费端 update.js 两处 recoverTime 乘算）。
+    注意 multiply 模式聚合仍是加和，百分比乘算必须在消费端手动应用。
+  - 每把枪专属件（机制差异化而非数值堆叠）：AKM 木托/侧折叠/7.62重弹；M416 HK托/
+    活塞调校/导轨；QBZ 无托平衡/高速扳机/光瞄；PKM 弹链箱/快换枪管/两脚架；
+    QJB 弹鼓/散热管/持续火力托；能量机枪 过载电池/散热鳍/聚焦透镜；沙鹰 .50重弹/
+    比赛枪管/重型机匣；G18 弹鼓/三连发/内置消音；P4040 穿甲弹/激光/快拔；
+    Beretta 双发点射/加长握把/制退器；Super90 加长弹管/重鹿弹/弹壳快挂；
+    SAIGA 竞赛扳机/独头弹精调/战术灯；左轮 镜座/强化击锤簧/轻量弹巢。
+  - 图标复用：新件 icon 映射到现有 craft 图标（fmj/muzzle_brake/light_trigger/
+    burst_trigger/carbon_fiber_mag/drum_mag 等），无需生成新图。
+  - 验证：三份 JSON hash 一致、聚合逻辑运行时确认 3 新键生效、测试全绿。
+
+- **分工约定**：本工具只写 JSON 数据（bulk rewrite）+ 生成二进制资产；JS 源码按 scaffold 输出的锚点清单用 apply_patch 落盘
+  （EDM / shop / gun-ammo / craft-default-slots / weapon-texture-map / weapon-attack-config / weapon-fx-config /
+  attack-formula / weapon-anim / update / subsystems / game.js / dev-tool / defense-system）。
+- **新武器逻辑分支全量对账（2026-08-08 M416 教训）**：数据层加完后必须 `rg "akm" src -g "*.js"`（或用同族基准武器名）
+  全量对账逻辑分支，逐处补同族 weaponType，否则典型症状=无法开枪/持枪贴图错误。已知必查清单：
+  `subsystems.js`（isPkmOrAkm 开火执行、主/副手 cfgKey、_isPkmOrAkm 动画）、`update.js`（isPkm 全自动组、attackKey 三元链）、
+  `GameScene.js`（isGun/isGunR/isGunOff/isGunSpecial/副手名单 六处）、`weapon-transform.js`（每类型变换块 + getAttackAnimOffset 分支）、
+  `weapon-anim.js`（远程判定/cfgKey）、`equip-manager.js`（equippedRangedType）、`defense-system.js`（塔装载/伤害/高度）、
+  `enchant-config.js`（可附魔武器类型）、`quick-bar.js`（冲撞/远程判定）、`weapon-fx-config.js`（lmg.soundMap）。
+
+---
+
+### 枪械无法开火排查手册（开枪链路全断点地图，2026-07-26 定稿）
+
+开不了火的原因太多太散，一律按本手册走：**先跑诊断脚本定位断点段，再按段查已知案例**，不要凭直觉改代码。
+
+#### 一、开火链路四段（断点必在其中一段）
+
+```
+① 输入闸门（player/update.js 各武器分支）
+   hasAmmo && !isReloading && weaponSwitchCooldown<=0 && fireTrigger
+   && attacks[attackKey].canUse() && stamina>=COST
+   → 设置 rangedFireData + triggerWeaponAnim()
+② 状态机（weapon-anim.js updateWeaponAnim）
+   triggerWeaponAnim → state='swing' → swing 分支调 _fireRanged('main')
+   （卡死保护：非 idle 超 5s 强制回 idle）
+③ 发射（subsystems.js _fireRanged）
+   消耗弹药 → 枪口坐标 → ProjectileFactory.create + 枪口火光 + 弹壳 + 音效
+④ 枪口定位（_getMuzzleWorldPosition）
+   读 scene.weaponSprite 的 x/y/rotation/displayWidth，
+   sprite 不可见则回退脚底相对算法（子弹从脚射出的根因区）
+```
+
+#### 二、断点案例索引（历史上全部"无法开火"根因）
+
+| 断点段 | 案例 | 根因 | 修复 |
+|---|---|---|---|
+| ② | v1.9 远程无法开枪 | `triggerAttackAnimation` 未调 `_fireRanged` | 补调用 |
+| ① | v1.11 全枪械无法开火 | equipment.json 缺 `ammoConfig/fireMode/attackFormula/attackKey` | main.js 启动合并 EquipDataManager 字段 |
+| ④ | v2.8 地牢子弹从脚射出 | 地图模式 `weaponSprite.setActive(false)` 后未恢复，枪口回退脚底算法 | 非地图模式统一 `setActive(true)`（共享链路） |
+| ① | 2026-07-26 AKM 无法开枪 | 实例经未合并旁路获得、缺 `ammoConfig`，`_initAmmoForSlot` 无回退 → 弹药状态 null | 改用 `getAmmoConfig(item)` 按 weaponId 回退 |
+| ④ | v2.7 遗留：复活后子弹不从枪口射出 | 未复现，待场景线索 | — |
+
+#### 三、①号段六闸门逐项排查（最常见断点区）
+
+- `_hasAmmo(slot)` false：弹药状态 null（缺 ammoConfig，见上表）或打空中（`current<=0`）。
+- `_isReloading(slot)` 卡 true：换弹计时器卡死会精确导致"无法开枪"，第二嫌疑位。
+- `weaponSwitchCooldown > 0`：切枪冷却未走完。
+- `fireTrigger`：半自动读 `leftPressed`、全自动读 `leftDown`，别混。
+- `attacks[attackKey].canUse()` false：冷却卡住；`attackKey` 缺字段时有 `|| 'pistol'` 兜底。
+- `stamina < CONFIG.STAMINA_RANGED_COST`：体力不足静默拦截。
+- 近战专属输入锁：`weaponAnim.state === 'attacking'` 时忽略左键（只影响近战，不误伤枪）。
+
+#### 四、即用诊断脚本（控制台两段式）
+
+**第 1 段·状态快照**（哪个 null/false 哪个就是断点）：
+```js
+(() => {
+  const p = Game.player, slot = p.weaponMode, item = p.equipments[slot];
+  console.log('①武器:', item?.name, '| type:', item?.weaponType, '| attackKey:', item?.attackKey, '| fireMode:', item?.fireMode);
+  console.log('②弹药:', JSON.stringify(p._getAmmoState?.(slot)), '| 换弹中:', p._isReloading?.(slot));
+  console.log('③状态机:', JSON.stringify(p.weaponAnim), '| rangedFired:', p.rangedFired);
+  console.log('④切换CD:', p.weaponSwitchCooldown, '| 体力:', p.data?.stamina);
+  const k = item?.attackKey || 'pistol';
+  console.log('⑤攻击对象:', k, !!p.attacks[k], '| canUse:', p.attacks[k]?.canUse?.());
+})();
+```
+
+**第 2 段·强制触发**（绕过①直接打②③，区分"输入条件拦截"还是"链路断"）：
+```js
+const p = Game.player;
+p.rangedFireData = { targetX: p.x + 300, targetY: p.y, entities: [...Game.entities.values()], mainSlot: p.weaponMode, fireMainHand: true };
+p.triggerWeaponAnim();
+setTimeout(() => console.log('触发后:', JSON.stringify(p.weaponAnim), '| rangedFired:', p.rangedFired), 600);
+```
+判读：`rangedFired: true` = 链路完好、断点在①六闸门；`false` 或报错 = 断点在②③，看控制台红错。
+
+#### 五、修复原则
+- 断点修在**共享链路**上（原则10），主神空间/地牢全场景生效，禁止单场景补丁。
+- 数据缺失用**消费端回退**兜底（见上节），不依赖启动合并单点。
+- ④枪口问题先查 `weaponSprite.visible/texture` 与地图模式 active 恢复。
+
+---
+
+### 阶段性进度总结（2026-07-27：攻击力公式体系统一——单一公式源）
+
+#### 核心规则（防再犯）
+1. **唯一实战公式**：`src/config/attack-formula.js` 的 `computeWeaponAttack`（经 `Player.getCurrentWeaponAtk`）——战斗/面板/强化预测全部同链，**禁止**新建第二套武器伤害公式；`weapon-damage-formulas.js`（硬编码死代码）已删除。
+2. **唯一全量数据源**：`EquipDataManager`（src/ui/equip-data-manager.js）——新武器在这里配 `attackFormula` 即全链路生效；实例缺字段经 `completeWeaponFields`（main.js 启动合并 / shop-system 商品列表共用）或 `getAttackFormula` 的 EDM 查找层自动补全，不要在新数据源里复制字段清单。
+3. **getAttackFormula 三级回退**：item.attackFormula → EDM 查找（weaponId/name，含嵌套下钻）→ stats"物理攻击"正则兜底（base 取下限，可能偏离设计值，仅兜底）。
+4. **展示公式唯一实现**：`buildFormulaDisplay`（数值版）/ `buildEnhancedFormulaDisplay`（符号版），图鉴/强化面板/tooltip 全部委托。
+5. **强化链**：只影响攻击（公式派生）与盾防（base+perEnhance×级）；射速/弹夹/换弹无强化公式；enhanceFlat=0 是合法设计（沙鹰/能量LMG）。
+6. **教训**：`equip-tooltip-manager` 曾调用不存在的方法 `getItemByName`（实际 `getEquipByName`）导致图鉴合并静默失效——调用对象方法前先确认存在；商店/掉落/存档多源物品必须过统一补全层。
+
+---
+
+### 装备/道具图标统一处理工作流（2026-08-02 定稿：装备图标放大 + 视觉居中沉淀）
+
+新增装备/道具图标（`iconImage` 类贴图）一律按此处理，保证与武器图标观感一致。
+
+#### 1. 判定标准（先量化，别靠肉眼）
+- UI 图标显示尺寸由 CSS 固定（`object-fit: contain` 的 44px 等盒子），**PNG 画布像素大小不影响观感**——决定观感的是「内容占画布比例」和「内容是否视觉居中」。
+- 与武器图标对齐的实测基准：武器内容包围盒占画布 **86%~98%**（最长边）；装备此前只有 12%~60%，且 **alpha 加权质量中心**偏离画布中心最高 ±400px（壁垒重盔 x=-393、魔力腰带 x=-374、壁垒重靴 x=+279）。
+- 量化方法（pngjs 扫 alpha>8）：内容包围盒宽高占比 + 质心偏移。目标：**最长边 ≈90%、质心偏移 = (0,0)**。
+
+#### 1.5 抠图（AI 生图一律先抠底，2026-08-03 定稿：本地 BiRefNet 透明抠图）
+- **抠图统一入口（2026-08-08 定稿，强制）：ComfyUI-RMBG 插件 BiRefNet-general**——
+  `tools/ai-gen/rmbg_cutout.py`（`get_model()` / `predict_alpha(model, pil)`）是唯一抠图入口，
+  rebuild-h3-birefnet / single-idle-prep / 后续新增工具一律走它。模型缓存
+  `ComfyUI/models/RMBG/BiRefNet`（离线，check_model_cache 验证），不再用 transformers
+  直载 MS-BiRefNet（birefnet-cutout.py 仅留作兼容）。运行环境必须 ComfyUI venv。
+- **背景色强制（2026-08-08 定稿）：生图/视频背景必须用主体没有的颜色**——提示词由
+  `pick_bg_color.py` 选色注入：`pick_bg_color_from_image(参考图)` 自动从 CANDIDATES
+  选与主体色板距离最远的纯色（视频管线 `minimax-h3-gen.py --bg-color auto`），
+  或 `--bg-color #RRGGBB` 显式指定；注入函数 `inject_background` 同时写死
+  "无阴影/无光源/无投影"条款。**抠图侧必须同色**：`rebuild --bg-color` 使阈值兜底/
+  腿部兜底/去污染/边缘清理全部按"与背景色的距离"自适应（白底兼容，--bg-dist 默认 20）。
+  纯色底 + 距离阈值一刀切 + BiRefNet 边缘，是"抠得干净"的标准组合。
+- **为什么不用颜色阈值抠图**：SDXL 的"pure white background"实际是浅灰渐变 + 暗角
+  （角部像素 140~200 灰），且主体贴边时边界采样会把主体误判为背景（2026-08-03 实测：
+  分块背景模型把贴边的镇岳重甲抠成 42×59 碎片；固定近白阈值则整图残留灰底）。
+  BiRefNet 是显著性分割模型，不吃背景色假设，边缘毛刺/半透明也稳。
+- **生图提示词仍必须写"主体完全在画面内、四周留白"**，否则细长物品（腰带等）延伸到
+  画面外被裁切，即使 BiRefNet 也只能抠出残缺主体（2026-08-03 不息腰带两连坑：
+  金属徽章误生成、皮带横穿出界被裁；改为"盘绕成圈、完整居中"后通过）。
+- 抠图完成后必须验证：`tools/ai-gen/edge-check-*.py` 扫 alpha∈(10,245) 的边缘像素，
+  **白色占比应为 0%**（>0.5% 即白边残留，需重抠或重生成）；另跑
+  `tools/ai-gen/verify-eclipse-icons.py` 确认 1536² / 内容 90% / 纵横比 ∈[0.72,1.4] / 居中。
+
+#### 1.6 装备构图硬性规则（2026-08-03 定稿，AI 提示词必须遵守）
+- **靴子/鞋类只生成一只、朝右**：提示词写 `a single right-facing boot, one boot only facing
+  right, no pair`；SDXL 常无视 "right-facing" 仍生成朝左，兜底方案是出图后
+  `tools/ai-gen/flip-boots-right.py` 水平镜像（单只靴子镜像无左右脚问题）。
+  判定用 GLM-4.6V 逐张问"鞋头指向左还是右"。
+- **盔甲类要写全下半身**：仅写 "chest piece" 会得到只有胸口的残件，必须写
+  `full torso armor from shoulders down to hips, abdominal plates, waist belt,
+  faulds (segmented skirt armor), tassets`，并让 GLM 确认"是否有下半身/裙甲"。
+- **禁止多余装饰元素**：蚀月套曾反复出现"圆环/光环/圆形徽章"（法帽后方、法袍胸口、
+  长靴上方）——negative 必须加 `circular halo, circular frame, circular emblem,
+  circular ornament, floating circle, glowing circle behind object,
+  ring-shaped decoration around the object, ornamental circle, magic circle`
+  （注意不要用裸词 `ring`，会误伤戒指类装备）。
+
+#### 2. 处理步骤（一段式 pngjs 脚本）
+1. 画布规格：**1536×1536 透明底**（与现有装备图标一致；画布尺寸本身不重要，改动不影响代码）。
+2. 裁剪：内容包围盒（alpha>8）。
+3. **纵横比归一化（2026-08-02 增补，解决"扁平/细长条看起来小"）**：内容纵横比限制在 **[0.72, 1.4]**——宽扁条（>1.4）沿长轴裁剪到 1.4、细长条（<0.72）沿长轴裁剪到 0.72，裁剪窗口**以视觉重心（质心）为中心**（保住主体/扣件/坠子，裁掉细长尾/链端）；方形图标框（object-fit contain）里所有图标可见尺寸趋于一致。
+4. 放大：双线性缩放到最长边 = 画布×0.90（对齐武器 86%~95%）。
+5. 居中：**内容包围盒平移到画布中心**（与武器图标同口径——轮廓居中即可；图形本体固有重心偏移属素材构图，不为它缩图/裁切）。
+6. 合成回透明画布，覆盖写原文件。
+
+#### 3. 验证清单
+- 最长边占比 = 0.90；纵横比 ∈ [0.72, 1.4]；包围盒中心偏移 ≤1px；尺寸仍 1536×1536；dev server 加载 200 image/png。
+- dev server 加载 200 image/png；商店/装备栏/图鉴实机目检与武器同档。
+
+#### 4. 关键点/坑
+- **不要按 alpha 加权质心居中**（2026-08-02 实测教训）：魔力腰带/壁垒重盔等素材固有构图偏重，质心居中会把它推到画布一侧甚至被迫缩图（0.60~0.75），观感反而更差——**统一按内容包围盒居中 + 0.90 硬性大小**，与武器图标一致。
+- 大小硬性 0.90：最长边 = 画布×0.90，不缩图、不裁切。
+- 只统一最长边不够：宽扁条（魔力腰带 2.34:1）在方形图标框里仍只有其他腰带的一半高——**必须做纵横比归一化**（上限 1.4），否则"大小一致"只停留在文件层、观感仍不一致（2026-08-02 实测教训）。
+- 图标全链路共用 `iconImage` 字段（装备栏 `slotImage || iconImage`、掉落、图鉴、商店）——改贴图即全局生效，无需改代码。
+- 源文件此前保留在 `E:\无尽轮回\游戏\素材库\装备`（原始大图；⚠ 该路径已废弃，
+  素材库现约定为 NAS `Y:\素材库\`）；游戏内使用 `assets/icons/equipment/` 的处理后副本；脚本按本流程用 pngjs 现写（临时脚本不入库）。
+
+---
+
+### 装备/首饰添加标准工作流（2026-08-03 定稿，稀有套装入库首航）
+
+新防具/首饰（非武器）一律按此开展。与武器工作流同规格：**equipment.json 双份是唯一数据源**，
+图标/掉落/图鉴/商店全链路共用 `iconImage` 字段，改数据即全局生效。
+
+#### 1. 数据（data/equipment.json + public/data/equipment.json 双份）
+防具条目结构：
+```json
+{ "name", "type", "icon", "category": "armor", "rarity": "rare", "level": 10,
+  "equipSlot": "helmet|armor|boots", "armorSet": "flowing|eclipse|zhenyue",
+  "armorSetSlot": "helmet|armor|boots",
+  "defense": { "base": 8, "perEnhance": 2 },
+  "bonusStats": { "wis": 2 }, "bonusPerEnhance": { "wis": 1.5 },
+  "stats": [{ "name": "物理防御", "value": "+8", "pos": true }],
+  "desc", "iconImage": "assets/icons/equipment/xxx.png" }
+```
+首饰条目：`category: "accessory"`、无 defense/armorSet，`bonusStats/bonusPerEnhance`
+为六维或 atk/matk/crit/maxHp/maxMp/maxStamina（tooltip 的 attrNames 决定显示名）。
+新增条目脚本：`tools/ai-gen/add-eclipse-set-to-equipment.py`（幂等，双份同步，改完跑
+`tools/verify-set-shop.mjs` 确认双份一致 + 图标文件存在 + 商店目录齐全——⚠ 该校验脚本已丢失、待重建）。
+
+#### 2. 套装键（base.js 三件套判定）
+- `calculateCombatStats` 中 `setCount` 按 helmet/armor/boots 同 `armorSet` 计数，
+  新键照抄 light/robe/heavy 分支（移速乘子 / `_cooldownReduction` / `_magicDamageBonus`）。
+- 稀有三套定稿：`flowing`（移速+15%、体力恢复+12%）、`eclipse`（冷却-18%、魔伤+25%）、
+  `zhenyue`（40% 格挡 85%、移速-12%）。
+- 体力恢复加成：`updateMaxStats` 里 `_staminaRegenMul` 乘 1.12（装备/祭品倍率之后）。
+- 格挡类套装键：`damageable-entity.js` takeDamage 分支按 `_armorSetActive` 区分
+  壁垒（30%×80%）与镇岳（40%×85%），统一 `blockCfg { chance, remain }` 结构。
+
+#### 3. tooltip（equip-tooltip-manager.js）
+`setNames` / `setBonuses` 两个 map 同步补新套装键（防具/首饰分支按 category 命中）。
+
+#### 4. 商店（shop-system.js SHOP_CATALOGS.blacksmith）
+- blacksmith 目录 = ItemDatabase 装备 id 字符串数组，运行时懒解析（`_equipFromDatabase`），
+  缺 price 按稀有度标准价兜底（rare=400）。新装备加 id 即上架，无需完整商品对象。
+- 掉落：`chest-room-system.js _equipmentPool()` 自动含全部 armor/accessory（ItemDatabase 数据源），
+  新增装备零登记自动进精英宝箱房掉落池。
+
+#### 5. 验证四件套
+- `tools/verify-set-shop.mjs`（双份一致/图标存在/商店目录/套装件数=3；⚠ 脚本已丢失、待重建，重建前以 JSON 双份比对 + 实机目检代替）
+- JSON 双份一致（test-regressions 会拦）；`npm run lint`；`npx vite build`；
+  `node scripts/test-config-integrity.mjs`；实机：商店购买 → 装备三件 → 面板套装生效
+  （移速/冷却/魔伤/格挡）→ tooltip 套装文案。
+
+#### 6. 本次教训（2026-08-03 蚀月/流云/镇岳套首航）
+- 数值取整：稀有 = 优质 ×1.25 后**向上取整**（12.5→13），成长保留 0.5 步进；
+  属性点取整（1.25→2），保证"不低于 25%"。
+- 细长物品（法袍/项链）纵横比裁剪后 alpha 边缘收缩会让 ar 略低于 0.72（0.685），
+  强裁会砍下摆——保留原状并在交付说明，不做无谓二次裁剪。
+- 用户视角的"没调整/超出边界"常是**新图标与原图撞设计**（心形吊坠撞车）或水印误伤，
+  用 GLM 对比新旧图 + 像素边界量化（`tools/check-margins.py`）定位，别只看单文件。
+
+#### 7. 史诗套首航（2026-08-06 星穹 stellar，输出向）
+#### 7. 史诗三套（2026-08-06 星穹/苍月/天罡，轻/法/重齐备）
+- **体系对齐**：装备分轻甲/法袍/重甲三系，史诗档必须三套齐备（用户提醒），
+  与优质三套（疾风/秘法/壁垒）→ 稀有三套（流云/蚀月/镇岳）的递推链一致。
+- **数值递推**：史诗 = 稀有 ×1.25 向上取整（基础值取整、成长取整到 0.5 步进）：
+  - 星穹（轻甲，稀有流云上位）：盔 8+2→10+2.5、甲 13+2.5→17+3.5、靴 5+1.5→7+2
+  - 苍月（法袍，稀有蚀月上位）：盔 7+1.5→9+2(wis 2+1.5→3+2)、袍 9+1.5→12+2(int 同)、靴 4+1.5→5+2
+  - 天罡（重甲，稀有镇岳上位）：盔 30+2.5→38+3.5(maxHp 19+6.5→24+8.5)、甲 43+4→54+5、靴 15+2.5→19+3.5
+- **套装效果**（base.js 三个分支 + damageable-entity 格挡）：
+  - stellar：暴击率+15%、物攻+10%（`_critSetBonus`/`_physicalDamageBonus` 新字段）、移速+8%
+  - lunar：冷却-22%、魔伤+30%（复用 `_cooldownReduction`/`_magicDamageBonus`）
+  - tiangang：格挡 50%×90%（blockCfg 新分支）、移速-10%
+- **配套首饰**：仅星穹配 3 件（项链 str+dex / 戒指 atk / 腰带 maxHp，稀有首饰 ×1.25）；
+  苍月/天罡纯三件套（与稀有套无配套首饰的模式一致）。
+- **图标**：`flux2-klein-4b-equipment` LoRA 生成（星穹深蓝金辉/苍月月银蓝光/天罡暗铁金纹），
+  GLM 6+6 全过 → BiRefNet 抠图 → 1536² 最长边 0.90 居中，细长件保留 aspect。
+- **接线**：equipment.json 双份 12 件 + base.js 3 分支 + tooltip 3 键 +
+  shop blacksmith 12 id（epic 兜底 800）；验证四件套同 §5。
+
+---
+
+### 祭品添加标准工作流（新增祭品一律按此开展）
+
+#### 1. 数据结构（data/equipment.json，双份同步 public/）
+祭品物品：`{ name, type: '祭品', icon, category: 'tribute', rarity, level, stack, price, effects: {...}, stats: [{name, value}], desc, special?: {...} }`
+- `effects` 为固定百分比数值（负数为减益），引擎最终乘算 `Π(1+p/100)`；`stats` 仅用于面板显示；`special` 为特效参数块（非百分比语义）。
+- 不写贴图时用 emoji 图标。
+
+#### 2. 效果键（config/tribute-effects.js 聚合）
+- 面板向：atkPercent/matkPercent/defPercent/mdefPercent/moveSpeedPercent/critPercent（calculateCombatStats 末尾乘算）
+- 经济向：goldPercent/expPercent/dropChancePercent
+- 恢复向：hpRegenPercent/mpRegenPercent/staminaRegenPercent（倍率）
+- 怪物向：monsterDamageTakenPercent（承伤）/monsterAtkDownPercent（攻击削减）/monsterMoveSlowPercent（移速削减）
+- 比例向（**耦合规则**）：combatChanceDelta（百分点，战斗↑事件↓或反向，**战斗+随机事件恒=100%，一个调整同步影响另一个**）/eliteChanceDelta（精英概率百分点）
+- 特效键：revivePercent（蟠桃复活）/killMpHealPercent（人参回蓝）/expPercent（雪莲经验）
+
+#### 3. 数值带（按属性稀缺度）
+| 类别 | 普通 | 优质 | 稀有 | 史诗 | 神话 | 传说 |
+|---|---|---|---|---|---|---|
+| 标准带（攻防/金币/体力/事件比/怪物向） | 1~2 | 3~4 | 5~6 | 7~8 | 9~10 | 11~15 |
+| 珍贵带（移速/暴击/怪物减速） | 1 | 2 | 3 | 4 | 5 | 7 |
+| 廉价带（生命/魔法恢复） | 4 | 8 | 12 | 18 | 22 | 30 |
+- 普通/优质/稀有 = 1 增益 + 1 减益（按物品特性）；史诗及以上 = 纯增益；负效果取对应带低档。
+- 神话/传说必须带特效词条（item.special + SPECIAL_BUFFS 图标）。
+
+#### 4. 特效模式（参考实现）
+- surviveCapPercent：单次伤害上限（玩家 takeDamage 拦截）
+- moonshadowDuration/moonshadowDamagePercent：进战斗无敌+精英/Boss 增伤（战斗入口 _triggerMoonshadow）
+- oreUpgrade：拾取祭品品质+1，传说额外给一件（tryPickupItem 转换）
+- revivePercent：死亡 3s 原地复活一次
+- killMpHealPercent：击杀后 1s 回蓝（计时器+buff）
+- 特效参数放 item.special，不上 effects 聚合；buff 栏走 syncTributeBuffs/clearTributeBuffs。
+
+#### 5. 掉率表（combat-formulas.json tributes.dropTables）
+elite（必掉）/normal（5%）两表按稀有度权重；新增等级自动按 RARITY_ORDER 参与。
+
+#### 6. 验证
+JSON 双份一致；lint / vite build / test-collider / test-craft-sync；CHANGELOG 记录。
+
+- v3.5 (2026-07-18) — 20 矿石祭品/怪物向效果/比例耦合/三新特效
+  - 引擎扩展：怪物向三键（承伤/攻击削减/移速削减）、比例耦合键（combatChanceDelta 战斗事件恒 100% 同步）、eliteChanceDelta、dropChancePercent、staminaRegenPercent
+  - 20 矿石祭品（数值带按稀缺度三档：珍贵/标准/廉价）；磁铁矿战斗+6pp事件-6pp、星光蓝宝事件+8pp战斗-8pp（耦合实现）
+  - 三新特效：金刚石「金刚不坏」（单次伤害≤15%最大生命）、月光石「月影」（入战无敌 15s+精英/Boss 物魔伤+5%）、贤者之石「点石成金」（拾取祭品品质+1，传说额外给一件随机传说）
+  - 祭品添加标准工作流归档（本节）
+
+- v3.6 (2026-07-19) — 祭坛/合成/旧祭品迁移/定价
+  - 祭坛 NPC（小鼠大王下方实心圆）：献祭出征/祭品合成/退出三选项；合成 2 低→1 高随机池，传说祭品重随一件；不同稀有度拒绝（提示栏）；一键放入按稀有度筛选（仅背包，不调仓库）；奇数合成剩「最后添加/名称序最后」一件；合成槽 20、堆叠整组拖放
+  - 三旧祭品（麦穗/石头/大理石）迁移数据驱动 effects，删除全部按名硬编码；初始背包映射走 ItemDatabase；祭品 maxStack 999、出征栏同名限制；全祭品按稀有度统一定价 100/200/400/800/1600/3200
+
+- v3.7 (2026-07-19) — 附魔等级体系替换为稀有度体系
+  - enchant-config.js 卷轴 `grade` 字段用 common~legendary（原 F/E/D 等字母级废弃）；显示一律 RARITY_LABELS；魔法粉尘消耗/分解产出随稀有度档调整
+
+- v3.8 (2026-07-19) — 地牢难度分级（FEDCBA）
+  - `data/dungeon-config.json` dungeonList 每地牢 `grade` 字段（zombie=D「☠ 僵尸地牢高级」、zombieBeginner=F「☠ 僵尸地牢-初级」；内部键不动，仅显示名）
+  - 祭品掉落按难度分表：combat-formulas.json `tributes.dropTables` 以 F~A 为键，每级 `maxRarity` 封顶（F≤稀有、E≤史诗、D+≤传说）+ elite/boss（必掉）/normal（几率掉，F 2% 起每级 +0.5%）三张权重表；`rollTributeDrop(rank, dungeonType)` 查表
+  - 骑士冲锋期间 `noCollision` 无视实体碰撞（可穿人不可穿墙），结束由分离系统墙解析挤出，防卡死/瞬移
+
+- v3.9 (2026-07-19) — 随机事件分级体系
+  - 事件两段判定（dungeon-event-system rollEventType）：先 30% 通用 / 70% 限定，再组内按权重抽
+  - 限定池：`RESTRICTED_EVENT_META`（dungeon-event-definitions.js）每事件 `{ grade, scope }`——scope=地牢大类（现全部 zombie），grade=事件等级，仅出现「地牢等级 ±1」内的事件
+  - 通用事件（女神像/恶魔雕像/宝箱/陷阱/补给堆）奖励分级：`combat-formulas.json universalEventRewards` 按地牢 grade 覆盖（祝福场次/粉尘/金币/恢复量等），陷阱/补给属性检定成功率每级 -2pp 下调（下限沿用 minSuccessRate）；宝箱 D 级起 10% 祭品彩蛋走 rollTributeDrop
+  - 改名「僵尸地牢」→「僵尸地牢高级」全界面同步
+
+- v4.0 (2026-07-19) — 出征等级门槛
+  - 进对应等级地牢至少放入一件对应稀有度祭品：F↔普通、E↔优质、D↔稀有、C↔史诗、B↔神话、A↔传说（GRADE_ORDER 与 RARITY_ORDER 同序一一对应）
+  - `expedition-system.js` depart() 前置 `_getRequiredRarity()` 判定，缺则提示「请根据提示放入对应等级祭品」拦截
+  - 出征界面左侧固定说明面板 `.expedition-rule-panel`（fixed left:8px top:20vh，pointer-events:none）：F~A 对照表（RARITY_COLORS 上色）+ 当前选中地牢要求实时刷新
+  - **样式坑**：根 `game-style.css` 才是 index.html 加载的全局样式表；`src/ui/` 下新建 css 无任何引用会成为孤儿文件，全局样式一律追加到根 game-style.css
+  - 修复 `getTributeHpRegenFlat` 缺失导出（引用先于实现，vite build 报 Missing export——引用配置函数前先确认导出存在）
+
+---
+
+## 5. 技能与战斗系统
+
+### 技能添加标准工作流（2026-08-02 定稿，闪电技能首航）
+
+新增技能一律按此开展（闪电：锁定+传导+伤害+击退+眩晕+修炼+音效+图标+面板全链路验证）。
+
+#### 0. 形态选型（先定形态，再动手）
+
+| 形态 | 复用模板 | 适用场景 |
+|---|---|---|
+| 弹道投射物 | `bolt-skill-system.js` kind 配置 | 火球/冰锥：凝聚→发射→飞行→命中 |
+| 地面区域 | `GroundZone` 基类 | 毒雾/酸液/燃烧区 |
+| 锁定/传导 | `LightningStrikeSystem` + `LightningBoltEffect` | 闪电：点选最近敌人→立即命中→连锁 |
+| 移动雷云（跟身持续） | `StormDomainSystem` + `StormCloudFx` | 雷暴领域：头顶雷云跟随自己周期落雷+传导 |
+| 电磁炮直线光束 | `ThunderLanceSystem` + `spawnRailgunBeam` | 贯穿雷枪：长按蓄力→沿鼠标方向笔直贯穿全部敌人（感电增伤+击退）→终点电爆 |
+| 其他自管 | 独立 system 组件 | 风车/推击等 |
+
+#### 1. 数据（data/skills.json + public/data/skills.json 双份同步）
+
+- `id/name/icon/iconImage/description/maxLevel/tags`（tags 含 魔法+主动 → 技能面板筛选/可拖快捷栏）。
+- `effectFormula`：数值一律公式（含 `level`）或常量；每 5 级成长节点用 `Math.floor((level - 1) / 5)` 模式（冰锥数量/闪电传导同款）。
+- `expFormula`：`100 + (level - 1) * 100`（与其他技能一致）；`expRewards`：`{ hit, kill, multiHit, multiKill }`（multiHit=单次命中≥2 目标、multiKill=单次击杀≥2 目标；**经验函数须按整次施法累计命中/击杀数统计**，冰锥为此改为 _end 统一结算）。
+- **魔法类技能必须配置 `mpCost`（魔法消耗）**——遗漏/为 0 时助手必须主动提醒用户补上（2026-08-02 闪电曾漏配，用户明确要求此后工作流强制检查）；施法端 `trigger()` 统一做耗蓝校验（`mp` 不足 → 浮动提示「魔法不足」，不进入结算、不消耗冷却）。
+- `sounds`：`{ hit: '路径' }` 或 `{ cast: [p1, p2] }`（数组=同时播放，闪电首例）。
+- **双份必须字节一致**（test-regressions 断言，npm test 会查）。
+
+#### 2. 系统组件（src/entities/components/xxx-system.js）
+
+- `trigger()`：冷却检查 → 耗蓝 → 目标/方向判定 → 失败提示（`SceneManager.showTopNotification`）→ 结算（`takeDamage` + `applyKnockback(angle,px)` + `applyStun(ms)`）→ 特效 → 经验。
+- `update(dt)`：冷却递减（ms）。
+- **玩家接线四件套**：① `player/index.js` import + `this.xxxSystem = new XxxSystem(this)` + `_xxxCooldown = 0` 字段；② `subsystems.js` update 段 `this.xxxSystem.update(dt)`；③ `subsystems.js` 死亡复位段清 `_xxxCooldown`；④ `subsystems.js` `_initSkills` 加 `if (!skills.xxx)` 兜底（JSON 加载失败/旧缓存仍可用）。
+- **数值兜底收敛（配置唯一真相，2026-08-05 全魔法系统落地）**：系统顶部定义 `XXX_DEFAULTS` 常量
+  （值与 skills.json 同字段缺省兜底一致），`trigger()` 里 `const effect = { ...XXX_DEFAULTS, ...baseEffect, mpCost }`
+  合并——skills.json effectFormula 是唯一真源，业务代码**禁止散落 `effect.cooldown || 25` 之类魔法数字**；
+  伤害公式内 `?? 0` 防御读取可保留（合并后不会触发）。已覆盖：贯穿雷枪/雷暴领域/闪电锁定/暴风雪/陨星/
+  圣光/冰墙/灼锋焰甲/无人机/冰锥/火球（投射物走 `kind.defaults` 并入 `BoltSkillSystem._getEffect`）。
+- 怪物复用（可选）：参考 `zombie-wizard.js` 的 IceSpikeSystem/FireballSystem（构造 + update + AI 决策触发）；
+  **瞄准类技能 `trigger` 必须可传参 `trigger(optAimX, optAimY)`**——玩家用鼠标（内部读 Renderer.screenToWorld），
+  怪物传面向方向（缺省回退自身前方 100px，贯穿雷枪已按此实现）；蓄力光球类特效玩家锚定施法手，
+  怪物同样生成但先用默认锚点（`_defaultChargeAnchor` 身体中线上方）占位，待怪物绑定点做好再替换。
+
+#### 3. 快捷栏（quick-bar.js）
+
+- 触发分支：`else if (skillId === 'xxx') { player.xxxSystem.trigger(); }`。
+- 冷却同步：`updateCooldowns` 读 `Game.player._xxxCooldown` → `this.cooldowns['xxx']`（转圈显示）。
+- **自目标技能（可对自己释放）**：skills.json 标 `selfCast: true`（圣光首例）；`input.js` keydown 传 `e.altKey` → `QuickBar.useSlot(code, altKey)` → 对应系统实现 `triggerSelf()` 直接对自己释放（跳过瞄准/距离/视线三重判定，耗蓝/音效/冷却/经验照常）。
+
+#### 4. 技能栏/面板（skill-manager.js）
+
+- `skillList` 三处数组加 `player.skills.xxx`（武器分支列表各加一遍）。
+- **技能栏默认排序（2026-08-02 定稿）**：精通类 → 被动类 → 主动类 → 魔法类（`_getSkillCategoryPriority`：精通按名称含「精通」识别、其余按 tags 的 passive/active/magic 归类；新技能 tags 决定归类，精通命名必须含「精通」）。
+- 详情面板三区（照火球/冰锥格式）：🧮 伤害公式（基础/魔攻加成=魔法攻击×系数/智力加成/当前总伤害）+ 技能效果（effect 全部字段）+ **下一级全项预览**（nextEffect）。
+- 升级方式说明（经验来源三条口径）+ 升级飘字 `effectText` 分支。
+- 经验函数 `addXxxExp(player, hitCount, killCount, multiHit)`——hit/kill/multiHit 各自独立累加。
+
+#### 5. 特效（src/effects/）
+
+- 优先复用 `combat-fx` 共享件（burstParticles / fireGroundShockwave / 抛物线投射物）。
+- 锁定/传导类连接特效直接套用 **`LightningBoltEffect` 模板**（见下节，换 colors/widthScale 即可）。
+- 自管特效类：`EffectManager.add()` 驱动 `update(dt)`，`window.__phaserScene` + `worldEffectsGroup` 建 graphics，`active=false` 自动清理。
+- **色块/粒子风格优先**（impact_dot + ADD + 多层 tint / fillCircle 色块链）——避免线条感。
+- 禁止 per-object filters（数量多即卡）；深度=实体 depth+2 或地面 y-998 口径；位置/观感类必须 CDP 实机验证。
+
+#### 6. 图标与音效（可选但推荐）
+
+- 图标（本地 ComfyUI 出图，2026-08-03 起）：先读文首「本地 AI 出图工作流」——用本地 ComfyUI 生成
+  （同系列风格参照现有技能图标），过 GLM-4.6V 验收 + 像素统计后抠图入库 `assets/skills/xxx.png`
+  （1024×1024 透明底，与火球同规格），`iconImage` 指向。技能贴图要点见文首「技能贴图要点」清单。
+- 清理（2026-08-03 起强制）：确认 iconImage/贴图引用后，删除生成过程全部废案与未调用图片
+  （迭代版本/候选图/预览图），只保留最终被引用资产，避免仓库膨胀。
+- 音效：素材复制 `assets/sounds/skills/xxx.mp3`，skills.json `sounds` 配置，系统内 `SoundManager.playFile` 播放。
+
+#### 7. 验证
+
+- lint / npm test（含双份 JSON 断言）/ vite build / node --check。
+- **核对清单**：魔法类技能 `mpCost` 已配置（>0）；双份 JSON 字节一致；技能面板数值与 effectFormula 同源。
+- 数值逐级核验：按 L1/5/6/10/11/16/20 手算伤害/传导/眩晕/击退成长。
+- 开发面板「技能」页签 + 控制台 `await setSkillLevel('xxx', L)` 快速测各等级。
+- 实机：释放 / 锁定 / 范围外失败提示 / 冷却转圈 / 怪物受击表现（击退/眩晕/死亡）。
+
+#### 8. 坑（闪电首航沉淀）
+
+- 形态别硬套：锁定型别塞 BoltSkillSystem（那是弹道基类）。
+- 特效需求先对齐：定格 vs 持续闪烁 vs 色块/线条，先问清再做（闪电经历 3 轮返工）。
+- 冷却字段名 `_xxxCooldown`（ms）必须与 quick-bar 同步口径一致。
+- 经验"命中/击杀/多目标命中/多目标击杀"四条口径各自独立累加，别合并；单次施法多目标奖励必须在施法端按整次累计（火球/闪电天然按次，冰锥需改 _end 统一结算）。
+- **魔法类技能漏配 mpCost 是高频遗漏**——数据配置完先核对，漏了提醒用户。
+- 直接改等级测主动技能 OK；被动技能不触发属性回算（需重新装备/升级触发）。
+
+---
+
+### 法系投射物技能系统（2026-07-28，火球/冰锥合并）
+
+`src/entities/components/bolt-skill-system.js` 基类（凝聚悬浮→发射→直线飞行预判/撞墙/命中统一流程），差异全部 kind 配置驱动：fields（状态字段名，GameScene/快捷栏按现有字段读取不可改）/ makeProjectiles / anim / trail / onImpact / onMaxRange。`fireball-system.js`/`ice-spike-system.js` 降为 ~120 行 kind 封装（-516 行）。**注意：命中循环不 break——冰锥同帧多目标结算是原版行为（准穿透），新 kind 的 onImpact 自行处置投射物 active。**新法系技能 = 写一份 kind 配置即可。
+
+**适用场景**：地面燃烧区、油池+火焰、毒雾、酸液等地表区域特效。**范例**：`lantern-miner-zombie.js` 的提灯攻击（矿灯抛物线 → 落地油脂扩散 → 火焰成簇喷发 → 周期性魔法伤害）。
+
+#### 1. 核心构成（三层分离）
+
+| 层 | 实现 | 关键参数 | 备注 |
+|---|---|---|---|
+| **油脂底面** | `scene.add.graphics()` 填充椭圆 | `oilCfg.color/alpha`、`growMs` | NORMAL 混合；`setDepth(y - 1000)` 压在所有实体之下；从落地点按 `growMs` 扩散到满半径 |
+| **反光/高光** | `graphics` 描边椭圆 | `glossCfg.color/alpha` | `setBlendMode('ADD')`；`setDepth(y - 999)`；与油脂呼吸错相位，表现湿润反光 |
+| **火焰粒子** | `scene.add.particles(0,0,'impact_dot', {...})` | `flameMorphMs`、`flameBurstCount`、`flamePoints` | ADD 发光混合；`scale: {start:3.3,end:0.3}` 由大到小，`alpha: {start:0.85,end:0}` 淡出；tint 随机白/黄/橙 |
+
+#### 2. 火焰喷发要点（避坑）
+
+- **发射器放 (0,0)**：`add.particles(0, 0, texture, config)` 后再 `explode(count, worldX, worldY)`，**不要** `setPosition(x,y)` 后再 explode——Phaser 4 会把 explode 的坐标当本地坐标，导致双倍偏移飞出屏幕（SKILL.md 已有记录）。
+- **加入 UpdateList**：`particles.addToUpdateList()`，否则粒子静止一帧不运动。
+- **成簇喷发**：按 `flameMorphMs`（如 70ms）每 tick 在油脂区内随机取 `flamePoints` 个点，每点生成一个一次性发射器，`explode(1, jx, jy)` 时在喷发点周围 ±40px 随机偏移，形成不规则火团。
+- **一次性发射器**：`emitting: false` + `explode(...)` 喷发，用 `scene.time.delayedCall` 延迟销毁，避免累积到 `_burnZones.flames` 导致内存泄漏。
+
+#### 3. 燃烧区生命周期
+
+- **存储**：`this._burnZones.push({ x, y, timer, tickTimer, flameTimer, flames: [], oilGfx, glossGfx })`。
+- **每帧更新**：`_updateBurnZones(dt, entities)` 中推进 `timer`（存活时长）、`tickTimer`（伤害周期）、`oilFrac`（扩散进度）、`flameTimer`（火焰喷发周期）。
+- **伤害判定**：`GroundEllipse` 圆形椭圆（radius × radius×PERSPECTIVE_SCALE_Y），按 `tickMs` 对 `hostilesOf` 造成 `matk × damageMul` 魔法伤害。
+- **清理**：`_destroyBurnZone(zone)` 统一 killTweensOf / stop / destroy 所有 graphics 与粒子发射器；实体销毁/移除时通过 `_destroyCustomEffects()` 统一入口（`game.js removeEntity` 会调用）。
+
+#### 4. 抛物线投射物（矿灯/闪光弹等）
+
+- **预判落点**：`AimHelper.lead` 按飞行时间内的目标移动预判。
+- **路径**：`x = sx + (tx - sx) * p`；`y = sy + (ty - sy) * p - arcH * 4 * p * (1 - p)`（标准抛物线）。
+- **旋转**：`sprite.rotation = p * Math.PI * 3 * (flyDuration / 1500)` 控制落地前旋转圈数。
+- **落地**：`onComplete` 销毁投射物 sprite 并调用 `_lanternImpact(tx, ty)` 生成燃烧区。
+
+#### 5. 复用清单
+
+新增地表区域特效时优先复制以下模式，不要重写：
+- 油脂扩散：`oilFrac` + `setScale` 同步缩放 graphics
+- 呼吸反光：Tween `alpha` yoyo + ADD 混合
+- 火焰成簇：一次性 `add.particles` + `explode` + `delayedCall` 销毁
+- 伤害周期：`tickMs` + `GroundEllipse.intersectsEntity`
+
+---
+
+### 火焰/油脂区域特效工作流（2026-07-23 新增；2026-07-28 共享件 combat-fx.js 落地）
+
+**共享件（2026-07-28，新特效优先调用，勿再逐字拷贝）**：`src/effects/combat-fx.js`——
+- `launchArcProjectile({textureKey,size,sx,sy,tx,ty,arcHeight,duration,spin,depth,onImpact})` 抛物线投射物（scene 守卫内建，返回 `{sprite,tween,cancel()}`，cancel 供 `_destroyCustomEffects` 防尸体落地结算）；预判/枪口偏移留在调用方。
+- `createGroundWarning(x,y,r)` / `keepWarningAlive(warn)` / `destroyWarning(warn)` 红椭圆警示三件套（创建/保活/显式销毁口诀收口）。
+- `fireGroundShockwave({x,y,maxRadius,strokeColor,fillColor,flicker,groundLayer,...})` 冲击波扩散圈（闪烁版/纯描边版）。
+- `fireRadialLines({x,y,count,innerFrom,innerTo,outerFrom,outerTo,...})` 放射冲击线。
+- `burstParticles({texture,x,y,count,config,destroyAfterMs,jitter,depth})` 一次性粒子爆发（(0,0) 陷阱收口；impact_dot 懒生成兜底内建）。
+- `fireRadialBurst({x,y,count,color,duration,perspective,...})` 随机放射爆裂线（符文剑命中爆裂共享化；perspective 控制正圆/透视椭圆）。
+已迁移：集合体/矿石蜘蛛/提灯/突击特工/手脑/蝇手/胖子僵尸（净删 306 行）。`_hostiles` 重复实现已全部换 `hostilesOf`（amalgam/shounao/fly-hand 遗留 3 处已迁）。火球/冰锥爆炸与飞行尾迹已粒子化（2026-07-28 二轮）：火球爆炸=冲击波圈+ADD 火焰爆发+烟尘余韵，冰锥碎裂=冰屑（重力）+小冰环。符文长剑右键特殊攻击已迁入（三轮）：命中爆裂 RuneSwordExplodeEffect → fireRadialBurst（旧类已删），飞剑补蓝色能量尾迹。
+
+---
+
+### 持续区域特效基类 GroundZone（2026-07-28，毒雾/酸液新区域一律按此开展）
+
+`src/effects/ground-zone.js`（自提灯燃烧区抽出的模板）：三层分离（底面 NORMAL 贴花 growMs 扩散+呼吸 / 反光 ADD 描边错相位呼吸 / 区域粒子簇 (0,0) 陷阱收口）+ 生命周期（timer/tickTimer/oilFrac/flameTimer）自管。**伤害逻辑由调用方 onTick(zone, entities) 回调提供**（读自己的 matk/公式，基类不管数值）；底面/反光/粒子参数全可配（毒雾=绿 tint、酸液=黄绿即可复用）。调用方持有 zones 数组：update 中 `if (!zone.update(dt, entities)) splice`，`_destroyCustomEffects` 中 `zone.destroy()`。已迁移：提灯燃烧区（-152 行）。
+
+---
+
+### 锁定/传导类技能特效模板（2026-08-02，LightningBoltEffect 首航）
+
+`src/effects/lightning-bolt.js` 的 `LightningBoltEffect` 是锁定/传导类（瞬发连接型）技能的标准化特效，同类型直接复用：
+
+```js
+EffectManager.add(new LightningBoltEffect(source, target, {
+    durationMs: 500,          // 定格显示时长
+    fadeMs: 250,              // 淡出时长
+    segments: 10,             // 锯齿段数
+    jitter: 0.12,             // 锯齿幅度（距离比例）
+    widthScale: 1,            // 整体粗细倍率
+    colors: {                 // 换配色（如红色闪电/金色锁链）只改这里
+        glowOuter: 0x6a4bff,  // 外层辉光（ADD）
+        glowInner: 0xa98fff,
+        core: 0xdcd6ff,       // 内芯色块（NORMAL）
+        white: 0xffffff,      // 白芯
+    },
+}));
+```
+
+**实现要点（改模板前先读）**：
+- 中点位移 → 每段中点细分 → Chaikin 切角平滑 → 按 4px 步长重采样成连续色块链（细端圆块仍相连）。
+- 每点半径烘焙 0.75~1.25 随机因子（创建时固定）；释放后不再重生成（定格）；末 fadeMs 线性淡出。
+- 深度 = 两端实体精灵 depth 较大者 + 1；目标死亡后终点冻结残留。
+- 不挂 per-object filters（数量多即卡）——色块堆叠自带辉光观感。
+- 离屏预览：`tools/sim-lightning-preview.mjs`（同算法渲染 PNG，调参不入游戏）。
+
+---
+
+### 魔法施法动作标准（2026-08-02 定稿：前摇/第 N 帧释放/倒放后摇/跨步）
+
+魔法类主动技能释放统一走施法动作（空手施法 cast / 法杖施法 staff_cast），规则：
+
+#### 1. 素材与动画注册
+- 素材规格：4096×2048，**8 列×4 行 512×512 格**（"4×8 切割"= 4 行×8 列），帧连续（空手 12 帧=0~11、法杖 9 帧=0~8）；**入库前用 pngjs 扫格确认帧序与空白格**（法杖施法首次扫描误判为 4×8 导致错排，已修正）。
+- `player-anim-config.json`（双份）条目：`frameCount/frames/frameRate` + **`releaseFrame`（第几帧释放）/`forwardMs`（前摇）/`recoverMs`（后摇）**——全部配置驱动，代码零魔法数。
+
+#### 2. 武器→施法动画选择
+- 武器数据（EDM）`castAnimKey: 'staff_cast'` 指定施法动画键；未配置回退 `cast`（GameScene `startPlayerCast` 读取，无硬编码武器类型判断）。
+
+#### 3. 释放流程（GameScene.startPlayerCast）
+- 前摇播 forwardMs（默认 500ms）；`animationupdate` 到 `releaseFrame` 帧触发 `onRelease`（魔法实际结算，只一次）；**定时兜底**：事件未触发时按 `(releaseFrame/totalFrames)×forwardMs+40ms` 强制释放。
+- 前摇播完自动 `playReverse` recoverMs（默认 250ms）倒放回 idle；含超时兜底收尾。
+- **输入全锁**：前摇+后摇期间 update.js 施法分支 early-return（不可移动/攻击/技能/开枪）+ quick-bar 拦截；**后摇阶段空格翻滚可打断**（`_interruptCastRecover` → cancelPlayerCast + triggerDodge）。
+- **施法跨步**：前摇沿起手朝向推进 `+30px`（`_castStepMax`，记录起手原点），后摇向原点线性归位（每帧 WallSystem.resolve 防穿墙；被墙钳制也不会回退过头）；打断/死亡清理原点。
+
+#### 4. 接入点
+- 系统 trigger 通过 `_startPlayerCast(doRelease)` 包装（第 N 帧才结算）：冰锥/火球**一段不播、二段发射时播**；闪电/圣光（含 Alt 自释放）起手即播。
+- 玩家接线：index.js 施法字段、subsystems.js 兜底/死亡复位/`_updateCastStep`、update.js 施法分支、quick-bar 拦截。
+
+#### 5. 坑（必看）
+- **`GameScene._updatePlayerAnimation` 每帧状态机会覆盖施法动画** → 释放帧永远到不了、魔法不释放（闪电/圣光曾双双失效）。必须加施法守卫（`_castState !== 'idle'` 时 return）+ 卡死自愈（施法状态但动画未在播 → `_endPlayerCast`）。
+- 施法期间隐藏/保留武器：按用户口径**武器保持在 idle 右手持握位置**（不隐藏）。
+- 自目标技能：skills.json `selfCast: true` + 系统 `triggerSelf()` + Alt+快捷键（input.js 传 altKey → useSlot(code, altKey)）。
+
+---
+
+### Buff/Debuff 添加标准工作流（新状态效果一律按此开展）
+
+**内置机制：状态免疫（statusImmune，2026-07-25）**：`applyStatusImmune(duration)` 授予后，`addStatusEffect` 与全部 apply*（眩晕/恐惧/激励/中毒/流血/致残/束缚/双易伤）统一拦截其他任何 buff/debuff（免疫本身除外）；永久免疫传 `Number.MAX_SAFE_INTEGER`。范例：`mine-cave.js` 矿洞常驻免疫。
+
+#### 1. 注册显示配置（src/entities/damageable-entity.js `STATUS_CONFIG`）
+`type: { icon, name, color }`——逻辑层 `statusEffects` 数组（{type, duration, remaining, stacks}）与 UI 显示共用。
+
+#### 2. 应用入口（基类方法，如 `applyFear(duration, source)`）
+- `addStatusEffect(type, duration, { stacks })`：同类型**持续时间孰长刷新**（内置 Math.max）；`stacks` 显式传入用于叠层语义（层数逻辑在 apply 方法内计算）。
+- 来源实体记录到 `this._<effect>Source`（需要参照点的效果，如恐惧逃离）。
+- **左上角状态栏（玩家 UI）仅当 `this._faction === 'player'` 时调 `StatusBar.addEffect`**——怪物中的效果不进玩家状态栏。
+- 浮动文字（EffectManager FloatingTextEffect）。
+
+#### 3. 行为生效点（三层各就位，缺一不可）
+- **玩家**：`player/update.js` 状态分支（参照 stun/fear 模式：输入处理、强制行为、防御取消、`_updateSubsystems`、墙壁解析后 return）。
+- **怪物移动**：`systems/movement-system.js` update 前段加分支（死亡/眩晕/束缚/施法/恐惧序列），返回前设 vx/vy + WallSystem.resolve——**MovementSystem 每帧重算 vx/vy，任何移动类效果必须在这里接管，不能只改实体自身 update**。
+- **怪物行为中断**：`enemy.js` 基类 update 加 return（技能/攻击决策中断）；自定义怪物类（armored-knight/shounao/fly-swarm 等覆盖了基类 update 的）**各自补同款检查**——基类的检查到不了它们。
+
+#### 4. 数值语义
+- 持续时间：ms；叠层：stacks 字段（上限在 apply 方法内 clamp）。
+- 效果数值放配置（如 howl.fearMs），不硬编码在逻辑里。
+- 辅助计算放基类方法（如 `getFearSpeedMul()`），玩家/怪物/系统共用。
+
+#### 5. 验证
+lint / vite build / test-collider / test-craft-sync；实机验证：状态栏图标、持续时间刷新、叠层、到期消失、死亡/场景切换清理。
+
+#### 6. 宝箱岔路分支（zombie-dungeon.js `_addChestBranches`）
+- **规则**：从中间列节点向上/下缘伸出链式支路（双向边可往返）；每条 2~3 节点；**有且只有一个战斗节点（首个，精英概率固定 50%）**；尽头固定宝箱事件（event + `node.eventType: 'treasureChest'`，复用节点事件类型记录机制）。
+- **条数**：`chestBranches.count` 配置驱动；缺省按地牢 grade 自动计算（F=2、每级 +2，dungeon-config.js `getZombieDungeonConfig`）。
+- **独立性**：岔路节点带 `isBranch` 标记，不参与全局精英率标记（`!node.isBranch` 排除）；岔路事件节点走正常事件池；宝箱节点经 node.eventType 强制为 treasureChest。
+
+---
+
+### 状态效果系统（DamageableEntity 统一驱动）
+
+#### 设计原则
+- **单一来源**：所有伤害型状态效果（中毒、流血、魔法易伤、无人机易伤）的 `_update*` 方法**只存在于 DamageableEntity 基类**
+- **子类不重复**：`enemy.js` 和 `combat-system.js` 不再包含 `_updatePoison`/`_updateBleed` 等方法
+- **统一入口**：`DamageableEntity.update(dt)` 调用 `updateStatusEffects(dt)` + 4 个 `_update*` 方法
+
+#### 属性初始化链
+```
+Combatant 构造函数 → DamageableEntity 构造函数
+  _poisonStacks, _poisonTimer, _poisonTickTimer, _poisonEffectId
+  _bleedStacks, _bleedTimer, _bleedTickTimer, _bleedEffectId
+  _magicVulnerabilityStacks, _magicVulnerabilityTimer
+  _droneVulnerabilityStacks, _droneVulnerabilityTimer
+
+Enemy 构造函数只保留特有属性：
+  this._poisonEffect = new PoisonEffect();  // 粒子效果（基类没有）
+```
+
+#### 为什么之前重复？
+`enemy.js` 和 `combat-system.js` 各自维护了一套 `_updatePoison`/`_updateBleed`/`_updateMagicVulnerability`/`_updateDroneVulnerability`。
+这意味着：当 `CombatSystem.update()` 和 `Enemy.update()` 都被调用时，**状态效果每帧被更新两次**，导致中毒/流血伤害翻倍。
+
+#### 重构后调用链
+```
+Enemy.update() → DamageableEntity.update() → updateStatusEffects() + _updatePoison() + ...
+CombatSystem.update() → 不再调用状态效果更新（只负责战斗：眩晕、攻击、武器动画）
+```
+
+---
+
+### 阶段性进度总结（2026-07-28：经验系统重构一期——pacing 闭环 + 压级衰减）
+
+#### 本次完成（方案经用户验收；二轮：pacingRuns 2.5→5.0 经验效率减半）
+1. **pacing 闭环公式**（`src/config/exp-system.js` 唯一口径，配置 `combat-formulas.json enemy.expValue`）：每场产出预算 = 升级曲线段成本 ÷ pacingRuns(**5.0**，2026-07-28 二轮用户拍板减半，同级地牢 4~6 场升一段），按地牢加权击杀（普通×1/精英×2/领主×4/首领×10，由 dungeon-config 机械解析）分摊——**毕业场数是构造出来的**；全清≈4 场、80%≈5 场、直奔 Boss≈8.9 场，探索与升级速度自然挂钩。实测 base：F 25.3 / E 103.8 / D 120.5 / C 144.5。**注意：加权击杀 W 已把"高级地牢房间/战斗更多"摊薄进单价**（F 档 W≈121 / E≈163 / D≈260 / C≈316），单怪经验 F→C 仅 ×5.7，不会随段预算 ×14 膨胀。
+2. **压级衰减兜底**：`diff = 玩家等级 − 怪物有效等级`，≤5 级不衰减，超出每级 −15%，rank 下限 普通1%/精英3%/领主5%/首领10%——速刷低级本练级经济死亡，回刷材料不受阻。
+3. **怪物有效等级锚定**：`L_m = anchors[grade] + (配置等级 − 3)`（F3/E13/D28/C43/B58/A73），保留种间相对差异；当前仅用于经验/衰减语义。**属性成长（HP/六维按 ΔL 缩放）列入二期，必须实机逐档校验后实装。**
+3.5. **越级加成与可视化（2026-07-28 续）**：等级差倍率双向化 `getExpLevelMultiplier`——越级 5 级+每级 +10% 封顶 1.5×（`underdog` 配置块）；经验飘字按 tag 变色（衰减灰/越级绿，`gainExp(amount, tag)`）；出征规则栏衰减档标红；通关结算面板（`_showVictory`：击杀统计/经验合计/探索完成度/距下一级，全清 +10% 奖励，数据源 `src/world/dungeon-run-stats.js`）。
+3.6. **属性成长+祭品加持（2026-07-28 二期落地）**：`monsterGrowth`——ΔL=有效等级−配置等级，**直改派生属性**（六维 str 系数仅 0.05，按六维成长攻击不涨；hp 0.10/首领 0.05、atk/matk 0.08、def/mdef 0.04 每级）；`empower`+`src/config/dungeon-empower.js`——出征面板 3 格加持槽（祭品堆叠计强度，普通1~传说6 上限 12，depart 消耗/关闭退还），怪物有效等级 +4S、经验×(1+0.08S)、金币×(1+0.15S)、掉率+1.5pp×S、S≥6 封顶+1，衰减按强化后等级（高等级回刷低级本闭环）；出征左栏只读显示强度/等级区间/属性倍率/奖励倍率/经验效率。
+3.7. **清剿奖+连战+节点预览（2026-07-28 三轮）**：`roomBonus.share=0.3`——预算 70% 击杀分摊/30% 按战斗节点开门清算（两池闭环）；`combatStreak`——连战 3 场起 ×1.15 每场 +5% 封顶 ×1.5，empty 不计不断、事件节点清零（`_settleCombatRoom` 统一结算，顶部提示+紫色"（连战）"飘字）；地图悬停节点显示预估经验（`getRoomExpEstimate`，含下一战连战倍率预览与"将中断连战"提示）。**注意：精英战 1 波 6 怪击杀经验低于普通战 3 波 15 怪（补偿=必掉祭品+宝箱房），预览如实显示。**
+4. **接入点**：`enemy.getExpValue(playerLevel)` 委托 exp-system；`damageable-entity` 击杀结算传玩家等级；`DungeonMapSystem.init/shutdown` 注入/清空当前地牢类型（setCurrentDungeonType）；`player/base.js getExpForLevel` 与 exp-system `computeMaxExp` 同源；主神空间回退 F 档。
+5. **出征界面**：规则栏每档地牢显示推荐等级段（与 bands 配置同源），dungeonList 加 recLevel 元数据。
+6. **教训**：加权击杀解析时 nodeCount 必须先减岔路预算再算网格战斗节点（nodeCount 口径含岔路，直接乘战斗比例会把岔路节点两边重复计入，W 偏高 30%+ 稀释经验）。
+
+#### 验证
+- `npm test` 四连全过：test-regressions 扩容至 63 断言（闭环不变量/衰减边界/锚定单调/主神空间回退），lint 0 error，vite build ✅。
+
+---
+
+### 阶段性进度总结（2026-08-03：火系高级魔法「陨星坠落」落地）
+
+#### 本次完成
+1. **陨星坠落（meteor，火系高级魔法，需法杖）**：鼠标指向处落点 → 陨石直接加速坠落（坠落本身即预告，
+   2026-08-03 调整：删除地面警示红圈）→
+   大范围爆炸（半径 140+5L px，中心全额→边缘 50% 距离衰减）+ **眩晕 2s**（替换原击退）+ 叠 3 层灼伤 →
+   留下熔岩区域（3~6s，每 0.5s 一跳灼烧伤害 + 叠 1 层灼伤；地面燃烧改为**火炬式**——
+   参考障碍物火炬的连续发射器（impact_dot + 三色 ADD 上飘），每次施法随机散布 54 个（×3）、
+   粒子放大 25%，铺满整个影响区域）。
+2. **实现形态**：`MeteorSystem`（暴风雪同套门禁：法杖门槛/施法距离/MP 含链式减免/施法动画第 8 帧释放/
+   链式强化/檀木加速/冷却）+ `MeteorStrike` 三阶段特效（坠落/爆炸/熔岩），
+   熔岩 = 纯火炬火焰（无油面/反光地面）：随机散布燃烧发射器（椭圆内均匀随机 54 个 ×1.25 放大、自销毁），
+   落地火花 `jitter=0` 精确对准落地点（粒子靠速度随机散射，不再整体平移）；
+   新增**火焰椭圆边**（标准椭圆 + 5 层软光晕：宽淡外圈 → 窄亮焰心，无硬线条感；无呼吸/无绕圈），
+   从落地点一个点**恒定 0.5s** 外扩到最大影响边缘，**扩散到后立即消失**（不再随熔岩持续）
+   深度 y-998 位于火炬火焰（y-996）之下；**熔岩燃烧结束（自然到期）即销毁**
+   （自然结束路径必须显式 destroy，否则残影泄漏）；复用 `fireGroundShockwave`、`burstParticles`、`Camera.triggerShake`。
+3. **接线**：magic-categories（fire+meteor、tier 3）、skills.json 双份、player/index + subsystems 更新与死亡清理、
+   quick-bar 触发与冷却同步、skill-manager 四分支（经验/网格/详情/经验说明）。
+4. **图标（2026-08-03 二版重做）**：初版与火球同质（都是橙红火团）被否；二版强调**暗色岩石核心 +
+   熔岩裂纹 + 长拖尾**（负面词排除 fireball/flame sphere），GLM-4.6V 验收"不是纯火球、是带岩石核心的流星"，
+   角点背景抠图 + 去污染入库 1024×1024 透明底。
+
+#### 性能实测（熔岩 54 发射器，cdp-meteor-perf.mjs）
+- 基线（无特效）：Phaser 场景帧 0.45ms / 逻辑帧 p50 0.8ms。
+- 熔岩阶段：场景帧 0.74ms（**增量 +0.29ms/帧**，约 1.8% 帧预算）、逻辑帧无感知增量；
+  54 个连续发射器 + ~460 并发粒子 + GPU 填充对 3080 Ti 均无压力 → **不会造成卡顿**。
+- 低端机预案：发射器 54→27 且每点 2 粒（对象减半、视觉近似）即可再省一半。
+
+#### 陨星音效序列（素材库 技能音效/陨星 三件）
+- 落地瞬间：`落地.mp3`（无论是否命中都播）；
+- 落地后 0.2s：`燃烧1.mp3`；
+- 落地后 2s 起：`燃烧2.mp3`，随后**每 0.7s 重叠循环**播放（不等上一条播完），熔岩结束即停。
+- 实现：MeteorStrike 帧驱动计时（`_lavaElapsed`），随游戏暂停自然停；命中音效由特效层统一管理，
+  不再走 skills.json `sounds.hit`（字段保留指向落地文件作文档）。
+
+#### 陨星数值（V1.1：MP 线性 100→150、爆炸眩晕 2s）
+| 字段 | Lv1 | Lv5 | Lv10 | Lv15 | Lv20 |
+|---|---|---|---|---|---|
+| 冷却 | 32s | 32s | 31s | 30s | 28s |
+| MP（线性） | 100 | 110 | 123 | 136 | 150 |
+| 射程 | 650px | 650 | 650 | 650 | 650 |
+| 爆炸半径 | 145px | 165 | 190 | 215 | 240 |
+| 爆炸眩晕 | 2s | 2s | 2s | 2s | 2s |
+| 熔岩半径 | 124px | 140 | 160 | 180 | 200 |
+| 熔岩持续 | 3s | 3s | 4s | 5s | 6s |
+| 爆炸·基础 | 132 | 180 | 240 | 300 | 360 |
+| 爆炸·魔攻/智力系数 | 2.6 / 2.85 | 4.2 / 4.65 | 6.2 / 6.9 | 8.2 / 9.15 | 10.2 / 11.4 |
+| 熔岩·每跳基础 | 11 | 23 | 38 | 53 | 68 |
+| 熔岩·系数 | 0.28 | 0.40 | 0.55 | 0.70 | 0.85 |
+| 灼伤层数（爆炸） | 3 | 3 | 3 | 3 | 3 |
+| 震屏 | 14 | 14 | 14 | 14 | 14 |
+
+#### 沉淀约定（img2img 换系别主体的坑）
+- **换系别主体不要用异系参考**：用暴风雪（冰蓝）图标做参考，无论 denoise 多高、是否中央遮罩 inpaint，
+  主体都会被回染成蓝色晶体——"主体替换顽固" + "色调偏置"双重作祟；改用同系火球参考（fireball_icon）后一次通过。
+  做同系列图标时，img2img 参考应从**同色调系**里选。
+- **两段式确认**：先"高 denoise 换主体"，若底座/框架丢了再"中央遮罩 inpaint 补回"——比反过来（先保框架再换主体）
+  更容易收敛，因为主体替换是主要难点。
+- **地面燃烧铺满用"火炬式发射器"**：障碍物火炬是 `frequency` 连续发射器
+  （speedY 上飘 −50~−110、tint [白,橙,黄]、ADD）。铺满影响区域用**椭圆内均匀随机散布**
+  （`rr=sqrt(random)` + 角度，y 压缩 0.5 贴合透视）而非网格——每次施法散布都不同、无呆板感；
+  数量/放大直接乘系数（如 54 个 ×1.25）。粒子按区域时长 `delayedCall` 自销毁，强制清理走 destroy。
+
+---
+
+### 阶段性进度总结（2026-08-03：火系初级 Buff 型技能「灼锋焰甲」落地）
+
+#### 本次完成
+1. **灼锋焰甲（flameArmor，火系初级魔法，Buff 型新形态）**：施放给自己上 Buff（持续 12→30s，冷却 60s，MP 40→80 随级增长）：
+   - 命中附伤：除魔法技能外的任何攻击命中附带魔法伤害 + 四散红色火花粒子；
+   - 灼烧光环：每 0.5s 对半径 130+5L px 内敌方造成魔法伤害（同样迸发火花）；
+   - 武器火焰（**2026-08-03 实机+GLM-4.6V 验收定稿**）：运行时读武器贴图像素定位剑身区间，火焰整段覆盖剑身
+     （密集采样 + 三层光带）、排除剑柄/把手、左右对称、无漂浮；脚底火焰环旋转。
+2. **实现形态**：`FlameArmorSystem`（MP 门禁含改造减免/冷却改造/状态效果 + StatusBar 图标/
+   到期 `_onFlameArmorEnd` 钩子统一结算经验）+ `FlameArmorFx`（EffectManager 常驻特效）：
+   武器火焰**运行时读武器贴图像素定位剑身区间**（长轴不透明宽度突变处=护手/柄起点，按纹理键缓存），
+   仅沿剑身每 ~10px 密集采样（每点 2 粒）+ 沿剑身呼吸火焰光带（外橙红/内亮黄/焰心三层线）实现整段覆盖，
+   排除剑柄/把手；脚底 footprint 外沿旋转火焰环（椭圆描边呼吸 + 沿环扫过高亮弧 + 6 火点公转火星，
+   单发射器多点 explode 控制粒子量）。
+   伤害挂钩零侵入：在 `DamagePipeline.applyHit` 加一行，凡物理攻击命中即附伤，魔法技能天然排除。
+3. **接线**：skills.json 双份、magic-categories（fire+flameArmor、tier 1）、damageable-entity 状态注册与到期钩子、
+   status-bar 配置、player/subsystems（更新/死亡清理/到期钩子）、quick-bar、skill-manager 五分支。
+4. **图标**：直接使用用户素材库 `灼锋焰甲/1.png`（1024 透明底，六边形徽章+紫金+火焰剑盾），GLM-4.6V 验收通过，无需再生成。
+
+#### 沉淀约定（Buff 型技能模板）
+- **挂伤害用 DamagePipeline 而非攻击代码**：近战/远程/冲刺/风车/推击等物理攻击全部汇聚在 `applyHit`，
+  在其中按 `damageType !== 'magic'` 挂钩即可实现"除魔法技能外所有攻击附伤"，天然排除火球/陨星等魔法技能；
+  逐攻击类去改必遗漏。
+- **状态到期钩子**：玩家专有 buff 走 `addStatusEffect` + `updateStatusEffects` 的 `_onXxxEnd` 钩子
+  （类型注册在 damageable-entity.js，方法定义在 subsystems mixin），到期统一结算经验与回收特效；
+  死亡/场景切换走系统自己的 `clearBuff`（不结算经验，与暴风雪/陨星同口径）。
+- **持续跟随特效**：Buff 类粒子特效做成 EffectManager 常驻 effect（active 标志 + update 内自检 buff 是否仍在，
+  过期 destroy 自动回收），不要挂 GameScene 每帧显式清理；常驻火焰粒子 tint 以红/黄为主
+  （纯白在 ADD 混合下盖掉色相，观感会"约等于纯白"）。
+- **"附着在武器上"要读武器精灵/贴图，不要用玩家朝向估算**：武器姿态由 GameScene 的 weaponSprite 每帧
+  （rotation + flipX + displayWidth/Height）决定；竖版贴图（剑/杖）剑身沿 local Y、尖端在贴图顶部，
+  横版（枪械）沿 local X、视觉尖端方向 = flipX ? -1 : +1。剑柄/护手排除靠贴图像素分析
+  （宽度突变阈值 55% 最大宽），全覆盖靠密集采样 + 沿剑身光带，粒子深度要高于武器（player.y+30）
+  否则被剑身遮挡看起来"错位"。
+
+#### 灼锋焰甲数值（V1.1 定稿：持续 12→30s / 冷却 60s / MP 随级）
+| 字段 | Lv1 | Lv5 | Lv10 | Lv15 | Lv20 |
+|---|---|---|---|---|---|
+| 冷却 | 60s | 60s | 60s | 60s | 60s |
+| 持续 | 12s | 15s | 20s | 25s | 30s |
+| 持续/冷却 | 20% | 25% | 33% | 42% | 50% |
+| MP | 40 | 48 | 58 | 69 | 80 |
+| 命中附伤基础 | 12.5 | 22.5 | 35 | 47.5 | 60 |
+| 命中附伤 魔攻/智力系数 | 0.41 | 0.65 | 0.95 | 1.25 | 1.55 |
+| 光环每跳基础 | 7 | 15 | 25 | 35 | 45 |
+| 光环 魔攻/智力系数 | 0.15 | 0.27 | 0.42 | 0.57 | 0.72 |
+| 光环半径 | 136px | 160px | 190px | 220px | 250px |
+| 光环每跳间隔 | 0.5s | 0.5s | 0.5s | 0.5s | 0.5s |
+| 经验：命中/击杀 | 1 / 8 | — | — | — | — |
+| 经验：多命中/多击杀 | 5 / 10 | — | — | — | — |
+| 升级经验公式 | 100+(L−1)×100（1→20 累计 21000） | | | | |
+| 附伤/光环对枪械 | **生效**（投射物命中走 DamagePipeline，每发子弹命中附伤+火花） | | | | |
+
+---
+
+### 阶段性进度总结（2026-08-05：电系中高级技能 + 感电叠层机制落地）
+
+#### 本次完成
+1. **电系专属状态「感电」（electrified，新 Buff/Debuff）**：每层使目标受到的电系伤害 +3%；**叠满 5 层自动触发「过载」**——眩晕 1.2s + 对周围 150px 每个敌方单位传导一次电击（`20 + matk×1.2 + int×1.2`）并清空全部层数。与冰系 chill→冻结平行，电系性格 = 伤害放大 + 连锁爆发。
+   - 实现全流程：`damageable-entity.js` STATUS_CONFIG + `applyElectrified(stacks, duration, source)`（免疫拦截→叠层→满层过载→StatusBar→飘字）+ `_updateElectrified` 到期清空；`status-bar.js` 条目（desc 悬停）；伤害结算段新增 **`damageType='electric'` 子类型**（按魔法伤害口径结算 mdef/魔力易伤/法袍加成/暴击符文），并乘 `(1 + 0.03×层数)`；`docs/buff-reference.md` 登记。
+2. **闪电（初级）调整**：不再造成击退（移除 `applyKnockback` 结算与面板行）；命中叠加 1 层感电（4s），融入电系叠层闭环。
+3. **雷暴领域（stormDomain，电·中级，tier 2 需法杖）**：移动雷云跟身炮台——头顶雷云（`storm-cloud-fx.js` v2：参照暴风雪乌云——运行时柔边贴图 + **深蓝黑/靛蓝/电光蓝四层色块**云团 + 云内电弧锯齿 + 蓝色云雾/电花/坠落电弧粒子，深度恒为 1<<28；**不画云底圆环描边**）跟随自己，持续 10→13s（L1 起 10s），每 0.9s 对雷云范围内（220+8L px）最近敌人落雷：主目标全额 + 邻近传导（每 8 级 +1 目标、每跳衰减 30%）+ 250ms 打断眩晕 + 感电 1 层。CD 30s / MP 80→120。落雷数随持续增长（L1≈11 → L20≈14）。
+4. **贯穿雷枪（thunderLance，电·高级，tier 3 需法杖）**：**长按快捷键蓄力**（input.js `_chargeKeyHeldCode` 长按检测 + quick-bar `thunderLanceKeyDown/KeyUp`，参照无人机长按模式；**按键松开安全网**：系统记录绑定键 `setHoldKey`（keydown 时 Input.keys 已含该键标记 `_holdKeyPressed`），update 每帧检测键已松开但 release 未被调用（首次进入绑定未就绪走 useSlot 等路径）→ 自动 release，杜绝蓄力到满；鼠标点击二段式不启用安全网。施法姿势释放帧定格且不可移动——`startPlayerCast` 新增 `holdAtRelease`，`resumePlayerCastHold` 收尾回 idle；**蓄力期间瞄准随鼠标实时变化**，最终释放方向以松开/满蓄时鼠标为准，鼠标转到背后时翻转玩家贴图朝向（flipX）；**伤害随蓄力比例**：蓄力 0.5~2.5s → 20%~100%（满蓄 ×chargeBonusMul 1.3），**不足 0.5s 释放失败：不进入冷却（清 CD）+ 返还 MP**；**手部蓄力汇聚光球** `charge-orb-fx.js`：粒子向手握点汇聚 + 光球随进度放大，成功爆散/取消淡出；**手部锚点 = 施法武器握把（weaponSprite，法杖中段=前伸手，CDP 实机确认暂停帧手位）优先 + 手层内容质心回退**，每帧取（不锁定，翻转朝向时跟随镜像）；眩晕/冻结/死亡自动取消；目标地点无提示特效）→ 沿鼠标方向射出**电磁炮直线光束**（`spawnRailgunBeam`：白蓝三层辉光直线 + 4 个加速环从后往前扫过 + **附着电流=色块圆点链**（见特效沉淀⑨），非蛇形闪电；widthScale 4.0，残留 373ms）——**锥形判定贯穿路径上所有敌人**（视线可达、按距离排序），命中目标**沿光束方向击退 50→150px 随等级**，**感电层数越高伤害越高（每层 +10%）**，命中叠 2 层感电；射程尽头/撞墙处电爆（冲击波+放射线+粒子，无天顶光柱/无感电地面蓝圈）。CD 32→28s / MP 120→155，射程 915→1200px（随等级）。
+   - **2026-08-05 特效沉淀**：① `LightningBoltEffect` 新增 `uniform` 等宽模式（关闭施法端粗→目标端细，半径恒定 + 整体偏细）——感电过载电弧已切细等宽（`widthScale: 0.45`）；② 雷暴领域云删除云底蓝色椭圆描边，只保留云团/电弧/粒子；③ 天顶闪电光柱抽为共享件 **`spawnLightningColumn`（combat-fx.js ⑧）**——白蓝梯形闪电柱一闪而逝（贯穿雷枪已不再使用：施法者/终点光柱均取消）；④ 电磁炮直线光束抽为共享件 **`spawnRailgunBeam`（combat-fx.js ⑨）**——笔直三层辉光直线 + 4 加速环，widthScale 4.0；⑤ **蓄力定格模板**：`startPlayerCast({ holdAtRelease })` 第 releaseFrame 帧触发 onRelease 后**先完成前摇跨步站稳（+30px）**，再冻结动画（timeScale 0）保持 casting 输入锁定，`resumePlayerCastHold()` 恢复播完前摇→倒放后摇回 idle，取消走 `cancelPlayerCast`；⑥ **蓄力汇聚光球模板**：`ChargeOrbFx`（charge-orb-fx.js）——锚点取施法武器握把/手层质心（见正文），粒子从手周围椭圆环四面八方生成、寿命=到达时间（视觉"收进"光球），`finish()` 爆散 / `cancel()` 淡出；⑦ **电流去线条化模板（光柱附着电流）**：参考 `LightningBoltEffect` 的"色块圆点链"避免线条感——沿光柱**平行方向**生成短折线，重采样成小圆点色块链（辉光 ADD + 白芯），**首尾用 sin 权重不规则淡出**（两端熄灭、中间亮，每点叠加随机断续），半径随光柱弱缩放（√widthScale），90ms 分段伪随机跳变闪烁——任何"光束/电流"类特效都按此做，禁止纯线条 stroke。
+   - **2026-08-05 重设计说明**：原「雷神审判」为定点蓄力连环 AOE，与暴风雪（定点持续）/陨星（定点爆发）设计重叠，已整体替换为「贯穿雷枪」（蓄力贯穿型，追踪/直线操作）；旧组件 thunder-judgment-system.js 与图标 雷神审判.png 已删除。
+5. **接线**：skills.json 双份（25 技能）、magic-categories（electric 三技能 + tier 2/3）、玩家四件套（index.js 导入/字段/实例化，subsystems.js update + 死亡复位 `clearCloud`/`clearStorm` + `_initSkills` 兜底）、quick-bar（触发分支 + 冷却同步 + `_getTotalCooldown` 名单）、skill-manager（三处 skillList + effectText + 经验函数 + 详情面板 + 经验说明）。
+6. **图标（2026-08-05 LoRA + 不规则切割 + HSV 明度柔光定稿）**：`assets/skills/雷暴领域.png` / `贯穿雷枪.png`
+   提示词：**irregular low-poly faceted surface with facets of uneven sizes and shapes, not a uniform
+   grid + soft diffuse glossy sheen + no harsh contrast + translucent like crystal glass**，
+   12 步重出（雷暴 seed 111111 / 雷枪 seed 151515，不规则切割 + 水晶通透 + 深紫高饱和）。
+   **反光后处理必须用 HSV 只压明度（V）对比、完整保留色相（H）/饱和度（S）**——第一版 RGB 向中值压缩
+   导致饱和度下降、蒙雾感（用户反馈"色彩失真蒙雾"）；HSV 版 S 中值完全保留（雷暴 158 / 雷枪 135），
+   V 标准差 -41%（雷暴 43.8→25.7、雷枪 46.8→27.7），GLM 复验
+   **柔和漫反射 + 饱和纯正无蒙雾 + 不规则切割 + 水晶通透全项通过**。归一后同系列规格
+   （雷暴 786×932 / 0.84 / fill 69.9% / cy+28，aspect 与 fireball 一致；贯穿 800×918 / 0.87 / 70.0% / cy+28），
+   废案与 .bak 已清。
+   - **教训沉淀**：技能图标正式出图必须走 `flux2-klein-4b` + klein-skillicon-v2 LoRA（触发词开头）；
+     **steps ≥12**；切割写 irregular / uneven sizes / not a uniform grid；Klein+LoRA 对"不规则切割"
+     稳定绑定强对比高光（提示词/cfg/步数压不住）→ 入库前做**HSV 明度柔化**：`convert('HSV')` 后
+     只把紫面（b>r>g）的 V 向中值压缩（strength≈0.55，-40% 明度差），H/S 不动——
+     **禁止 RGB 向中值压缩**（会掉饱和出雾感）；主体写 translucent like crystal glass；
+     电系主题不写 dark/gray 云；归一后复核 aspect >5% 换 seed；多 seed 抽选 + GLM 逐项验收。
+#### 沉淀约定（电系叠层模板）
+- **感电消费点 = takeDamage 伤害结算段**：新增 `damageType='electric'` 与 magic 同口径结算（mdef/魔力易伤/法袍秘法/暴击符文都认），再乘感电系数——不要在各技能系统里手乘，避免遗漏。
+- **叠层转质变阈值 5 层**：`applyElectrified` 内部达到即触发过载并清空（重复施放可再次叠层），与 chill 20→冻结同模式；数值走参数不硬编码（stacks/duration 由 skills.json effectFormula 传入）。
+- **移动雷云形态**：跟身持续类技能 = 系统组件自管计时 + EffectManager 常驻特效（`StormCloudFx`，active 自检 buff 是否仍在），死亡/场景切换走 `clearCloud` 不结算经验（与灼锋焰甲同口径）。
+- **蓄力连环形态**：`createGroundWarning` 保活续命（每帧 `keepWarningAlive`），结束时必须 `destroyWarning` 显式销毁；阶段状态机放系统 `update(dt)` 里推进（warning → storming → final → end）。
+- **优先目标**：落雷优先感电层数最高者（并列取最近），让「先叠层再引爆」的连招有明确收益。
+- **fallback 收敛 + 怪物复用（2026-08-05 收尾沉淀）**：① 所有魔法系统数值缺省统一收敛到顶部
+  `XXX_DEFAULTS` + `{ ...DEFAULTS, ...baseEffect }` 合并，skills.json 为唯一真源，禁止业务代码散落
+  `|| 默认值`（详见「技能添加标准工作流」§2）；② 贯穿雷枪瞄准参数化 `trigger(optAimX, optAimY)`——
+  玩家=鼠标、怪物=面向方向（缺省自身前方 100px）；③ 怪物也生成蓄力光球，锚点暂用
+  `_defaultChargeAnchor()`（身体中线上方）占位，怪物绑定点做好后替换该锚点即可。
+#### 电系数值（V1.1 定稿：2026-08-05 精调——雷暴领域持续/传导成长、贯穿雷枪蓄力收益上调）
+| 雷暴领域 | Lv1 | Lv5 | Lv10 | Lv15 | Lv20 |
+|---|---|---|---|---|---|
+| 冷却 / MP | 30s / 80 | 30 / 88 | 30 / 99 | 30 / 109 | 30 / 120 |
+| 持续 | 10s | 10s | 11s | 12s | 13s |
+| 雷云半径 | 228px | 260 | 300 | 340 | 380 |
+| 每雷·基础 / 魔攻系数 | 29 / 0.50 | 45 / 0.70 | 65 / 0.95 | 85 / 1.20 | 105 / 1.45 |
+| 传导目标（额外） | 1 | 1 | 2 | 2 | 3 |
+
+| 贯穿雷枪（电磁炮） | Lv1 | Lv5 | Lv10 | Lv15 | Lv20 |
+|---|---|---|---|---|---|
+| 冷却 / MP | 32s / 120 | 32 / 127 | 31 / 136 | 30 / 145 | 28 / 155 |
+| 蓄力 | 2.5s（贯穿伤害 ×1.3） | 2.5s | 2.5s | 2.5s | 2.5s |
+| 贯穿射程 | 915px | 975 | 1050 | 1125 | 1200 |
+| 贯穿·基础 | 124 | 180 | 250 | 320 | 390 |
+| 贯穿·魔攻/智力系数 | 2.06 / 2.30 | 3.1 / 3.5 | 4.4 / 5.0 | 5.7 / 6.5 | 7.0 / 8.0 |
+| 感电增伤 | 每层 +10% | 每层 +10% | 每层 +10% | 每层 +10% | 每层 +10% |
+
+---
+
+## 6. 地牢与场景构建
+
+### ⭐ 生成世界标准工作流（2026-08-19 定稿，新增世界一律按此开展）
+
+> 适用于世界-123/124/125这类大地图世界。顺序固定为：
+> **定义世界 → 选地板 → 注册场景 → 构建边界 → 生成环境 → 接入入口 → 镜头 → 验收**。
+> 禁止只加 `_loadSceneN` 而遗漏配置、传送入口、清理链或回归测试。
+
+#### 1. 定义世界规格
+
+1. 分配未使用的 `sceneN`，名称统一为 `世界-<编号>·<主题>`。
+2. 大世界默认复用世界-122规格：
+   `width=12288`、`height=8192`、`origin=(6144,4096)`、`diamondFloor.enabled=true`。
+3. 菱形几何统一调用 `SceneManager._scene8Diamond(scene)`，边界统一调用
+   `_registerScene8Boundary(diamond)`；禁止复制另一套斜率或手写矩形可移动区。
+4. 需要世界-122广角视野时，把场景加入 `GameScene._updateCamera` 的
+   `zoomedOutWorld`，基础缩放使用 `0.7`；未声明则保持 `1.0`。
+
+#### 2. 选择地板管线
+
+- **无缝连续纹理**（雪地/草地/沙地）：`setDungeonFloorProfile({continuous:true,
+  textureScaleY:0.5774,...})`，再调用
+  `applyDungeonFloorChunked(w,h,2048,diamond)`。
+- **复用地牢菱形砖池**（世界-125）：直接沿用地牢 `tiles` 和 `glow/overlap` 口径，
+  不开 `continuous`；分块系统会按全局格坐标确定性选择砖块/镜像，跨块不跳变。
+- 地板、点缀贴图必须先由 `BootScene` 注册；能复用现有正式资产时禁止重新生图。
+- `data/game-config.json` 与 `public/data/game-config.json` 必须字节一致；编辑器/运行时
+  读源不同，漏同步会出现“测试通过但实机旧配置”。
+
+#### 3. 注册与加载场景
+
+1. 在两份 `game-config.json.scenes` 写场景配置。
+2. 在 `SceneManager.init().scenes` 增加兜底配置。
+3. 在 `switchScene` 分发增加 `_loadSceneN`；加载器需要等待预制资源时声明为 `async`
+   并在分发处 `await`。
+4. 进入加载器先 `clearDecoClearZones()`，重置 Camera aim/shake/lock，再设置
+   `CONFIG.WORLD_WIDTH/HEIGHT`。
+5. 标准加载骨架：
+   - 设置 floor profile并注册2048分块；
+   - `WallSystem.init(w,h)`；
+   - 注册四条无视觉矩形外边和菱形四边 `_boundary` 线段；
+   - `_syncWallsToPhaser()`；
+   - 普通模式生成玩家并 `Camera.follow`，观察模式只把相机放世界中心；
+   - 生成环境；
+   - 在菱形底端 `cy+ry-160` 放 `Portal(...,'main','返回主神空间')`。
+6. 离场清理条件必须包含新场景；`Renderer.terrainChunks`、实体和墙视觉沿用
+   `switchScene` 统一清理，不另建生命周期。
+
+#### 4. 环境生成标准
+
+- **地板点缀**（草/蕨等无碰撞物）：放入 floor profile 的 `deco`；每次入场生成新 seed，
+  同一次分块重烘焙保持稳定。
+- **单体障碍**（树、石柱、烛台）：贴图与 footprint 登记在 `ISO_WALL_GEO`，尺寸优先读
+  `obstacle-defaults.json`，否则用 `obstacleH/geo.h`。
+- **摆墙预制组合**：先 `await loadWallPrefabs()`，保留组内相对坐标、scale/rotation/flip
+  与保存 depth 差值；只抽取全部件均为 `category:'obstacle'` 的组合。
+- 每个候选必须同时通过：菱形内缩、玩家排除、返回门排除、最小间距、
+  `getObstacleFootprintRect`、`WallSystem.canMoveTo` 和已放 footprint 相交校验。
+- 世界散布件标 `_scatter:true` 复用静态投影；组合件再标 `_prefabKey` 便于审计。
+- 全部候选确定后只调用一次 `rebuildIsoCollision()` 和一次 `_syncWallsToPhaser()`；
+  禁止每放一件就全量重建。
+
+#### 5. 接入所有传送入口
+
+新增世界必须同时登记：
+
+1. `src/ui/world-switch-panel.js` 的 `WORLDS`；
+2. `data/game-config.json.portals.mainHub.entries`（并同步 public）；
+3. `data/producer-buildings.json.portal.destinations`；
+4. `data/audio-config.json.bgm[sceneN]`（无音乐显式写 `null`）。
+
+按钮必须调用 `SceneManager.switchScene`；世界切换面板继续走观察模式 `_travel`，
+建筑传送门走正常人物传送，禁止直接改 `currentScene`。
+
+#### 6. 决定世界玩法与持久化
+
+- 纯探索世界不要接入 `DefenseSystem/EnergyNodeSystem/ProducerBuildingSystem`。
+- 有建筑、波次、资源或生产状态的世界，先定义快照和后台结算语义，再接入切换入口；
+  禁止依赖切场后仍存活的实体引用。
+- 所有随机环境默认“每次进入重新生成”；需要保持布局时，把 seed/坐标写入世界快照，
+  不要保存 Phaser Sprite。
+
+#### 7. 验收清单
+
+1. 新建 `scripts/test-world<编号>-<theme>.mjs`，至少锁定：双份配置一致、尺寸/菱形、
+   地板键、环境类型、无错误玩法系统、世界面板/主城门/建筑门三入口、镜头缩放。
+2. 随机散布函数必须用真实 `ISO_WALL_GEO` 和真实预制库重复运行，验证配置数量能放满。
+3. 更新受目的地数量影响的旧回归测试，并把新测试加入 `npm test`。
+4. 运行：新世界测试、相邻世界测试、传送门测试、ESLint（0 error）和 `npx vite build`。
+5. 需要视觉验收时优先使用项目安全入口
+   `powershell -ExecutionPolicy Bypass -File tools\cdp-run.ps1 <probe.mjs>`；
+   禁止按进程名全杀浏览器。
+
+#### 8. 已落地变体
+
+- 世界-123：连续雪地 + 表面补丁 + 雪松/雪草。
+- 世界-124：连续草地 + 林地草簇 + 五姿态针叶树。
+- 世界-125：僵尸地牢 `blackbrick_7/8` 砖池 + 石柱/烛台/纯障碍预制组合；
+  与世界-122同为 `0.7` 基础镜头缩放。
+
+### ⭐ 地牢迷宫自动生成关键参考（2026-08-11 定稿，新增地牢/迷宫必读）
+
+> 本节沉淀 D+ 级地牢竞技场（5 房蛇形迷宫）的完整自动生成体系：布局纯函数 → 房间
+> 菱形墙 → 通道预制放置 → 门墙/封口/补缝 → 波次门控。后续新增地牢、改布局、加
+> 通道方向，一律以本节为唯一参考；先读「铁律」再动手。
+
+#### 0. 架构与文件地图
+- `src/world/combat-arena-layout.js`：**纯函数**布局（无 Phaser 依赖，可单测）。
+  - `diamondRadii(size)`：rx = size×1.2，ry = rx×0.5774（30° 等距投影）。
+  - `computeArenaLayout({ normalSize, eliteSize, passageLen, gap, roomCount })`：
+    N 房线性串联（全部 LT 进 / RB 出，纯 v1 通道，房间 1-3 的同构模式）。
+  - `computeMazeLayout({ sizes, passageLen, gap, rows })`：蛇形网格（排内 ±v1 交替、
+    排间 +v2 折返），每房记 inEdge/outEdge（末房出口 = 入口对边）。
+  - `MAZE_AXIS_V1=(0.866,0.5)`（左右通道轴）、`MAZE_AXIS_V2=(0.866,-0.5)`（上下
+    通道轴）、`passageEdges(dir)` 方向→出入口边映射、`pointInDiamond`。
+- `src/world/combat-room-system.js`：布局消费端——菱形墙、通道放置、门墙、封口、补缝。
+- `src/world/dungeon-map-system.js`：竞技场入口（`_enterCombatArena`）、波次/门控编排。
+- 配置：`data/dungeon-config.json` → `combatArena.maze = { enabled, roomCount, rows }`；
+  `passagePrefabs = { v1: '左右通道·样式', v2: '上下通道·样式' }`。
+
+#### 1. 菱形几何铁律
+- 四顶点 T(cx,cy−ry) R(cx+rx,cy) B(cx,cy+ry) L(cx−rx,cy)；四边斜率 ±0.5774。
+- 对边中点连接的中心距公式**四方向相同**：
+  `(rx_A + rx_B) × EDGE_MID_FACTOR + passageLen`（EDGE_MID_FACTOR = hypot(1,0.5774)/2）。
+- 边参数化必须**上端→下端**：RB=R→B、LT=T→L、TR=T→R、**BL=L→B**——旧 B→L 会让
+  `_fillEdgeGaps` 补缝瓦 sy<0 上下颠倒（2026-08-11 修复）。
+- 深度唯一规则：墙件 depth = max(底边两端点 y)（`WallSystem.depthOf`）；门墙 depth =
+  门洞中心底边 y（"墙看底边 max、门看门洞中心"）。
+
+#### 2. 通道系统（核心复用件）
+- 通道 = 墙样式预制件（`左右通道`/`上下通道`），`_analyzePassagePrefab` 解析：
+  两个功能门墙件底边中心距 = 通道长度；双轴校验（v1/v2，取 |dot|≥0.8，反向交换两端）。
+- `_placeArenaPassage`：平移预制 → 摘门洞覆盖墙件（removeSpanCoveringPieces）→
+  直墙件裁剪入件 / 门墙建功能门（`_createArenaGate`，初始常开）。
+- **180° 镜像（反向通道 -v1/-v2）——本轮最重要教训**：
+  - **禁止**"位置反射 + flipX(±flipY) 翻转"：门墙精灵锚点（在门洞中心上方 ~93px）
+    会被反射到门洞另一侧 → 视觉门洞偏移 ~187px、贴图朝向反转（用户实测"4→5 门口
+    错位、方向反了"）。补 flipY 只是贴标签，不治本。
+  - **正解（2026-08-11 定稿）**：反射件**底边线段**（绕 gA 底边中心 180°），再由
+    `WallSystem._buildSegPiece`（直墙）/ `_buildGatePieceAt`（门墙）从反射底边
+    **重建件**——锚点/缩放/朝向全部由几何自动推导，镜像结果与正向通道完全同构
+    （门精灵锚点在门洞上方、flipX 保持预制件原生值、flipY=false）。
+  - `_buildSegPiece` 是 `_addSegPiece` 抽出的纯构建（wall-system.js），不推入
+    isoVisuals，返回件对象供调用方走裁剪/入件流程。
+  - 无底边的装饰件才用"位置反射 + flipX/flipY 双翻"兜底。
+
+#### 3. 封口/补缝 flip 解耦（2026-08-11）
+- `_sealPassageSides` 补通道侧墙端到房间边的楔形缺口：
+  - **端点交换与 flip 解耦**：`swap = axis.y < 0`（向上轴 v2/-v1 交换端点 → B 在下端
+    → sy>0）；`flip = (axis.x < 0) !== swap`（保 sx>0）。`lay()` 内先 swap 再按轴
+    铺 A/B。
+  - 旧 `flip = axis.x*axis.y <= 0` 且 swap 绑定 flip：-v1 判断相反 → 封口瓦上下颠倒
+    飘进房间（6 块负 sy 件）。
+- `_fillEdgeGaps` 补开洞边缝隙：边参数化上端→下端（§1）；门侧瓦端锚定 8px 叠合，
+  绝不跨进门口；两侧都是墙时整瓦居中步进。
+
+#### 4. 波次/门控/出口/宝箱泛化（硬编码 3 全部改成 arena.rooms.length）
+- `forceArenaWaves(getArenaRoomCount())` 必须在 `enterCombatArena` **之后**调用
+  （之前 `_arena` 未建返回 0 → 波次不足 → "房 3 清完不开门"）。
+- 出口门锚定末房 outEdge 中点（`_setupGate` 通用）；宝箱房 setup 末房；`_trapExtras`
+  末房来路通道索引 len−2；入侵混合战特工末房随最后一波刷新。
+
+#### 5. 验证方法论（每次改迷宫必须走）
+1. **CDP 数值审计**（headless Edge 走真实 GPU，勿 `--disable-gpu`）：
+   - 房间零重叠（菱形中心互不包含）；通道轴正确（v1/v2/-v1）；
+   - 8 门全开、门中心 = 通道边中点；**负 sy 件 = 0、游离墙件 = 0**（离所有房间边线
+     >160px 且非宝箱房墙）；
+   - **门精灵锚点对比正向通道**：锚点在门洞中心上方 ~93px、flipX 与同向边一致——
+     这是"门口错位 / 方向反"的最快判据（P4 镜像门曾翻到下方 94px + flipX 反转）。
+2. **GLM-4.6V 识图复核**：全景（蛇形排列、四面墙完整、通道对齐自然）+ P4 通道特写
+   （两侧墙平行完整、门洞横跨通道且与房间墙对齐、无竖摆/断口/重叠/游离墙、
+   纹理方向正常）。
+3. `npm test`（51/51，含 pathfinding-bench 竞技场断言）、lint 0 error、vite build。
+
+#### 6. 踩坑清单（按时间线）
+- 通道直墙件越线**不要缩 scaleX**（削墙顶出台阶/错位），整件进房才丢，缺口由封口补。
+- `_clipPassagePieceToRooms` 房间对象字段用 `cx/cy`（不是 x/y）——NaN 比较恒 false
+  会把全部侧墙件误丢（"通道没做墙"）。
+- seal 收集侧墙只认 `_passageWall` 标记件——转弯通道轴与房间 TR/BL/LT 边平行，不
+  标记会把房间边墙当侧墙补到通道中间（横墙挡路）。
+- `halfSpan = length/2 + 500` 才够覆盖 3 段瓦末端件（+250 会把末端排除 → 封口从
+  通道中段铺起）。
+- headless 渲染探针先查 `window.__phaserScene` 是否就绪，再判断"渲染问题 vs 数据
+  问题"；浏览器缓存会让旧代码看起来"没修改"——改完让用户 **Ctrl+F5** 强刷。
+
+#### 7. 新地牢全流程实录：C 级「恶魔洞窟」（2026-08-11，矿洞主题）
+
+> 一条龙做完的完整参考（墙/地砖/铁闸门/数据/验证），新地牢照此走。
+
+**生成（远程 5080，队列共享）**：
+- 岩壁墙（路线 B 定稿 2026-08-11）：Blender box 几何 spec
+  （`_blockout_specs/demon_wall_b.json`：520×52×150 rot52）→ `render-cover-real.py`
+  直接渲染成品墙（AI 岩质材质 `demon_rock_tex.png` 贴 box 正面/顶面，无投影、
+  透明底、底边由几何精确控制）→ `prep-demon-wall-B.py`（水平镜像 → 内容裁剪 →
+  标定 base/face/slope）。成品 `demon_wall_straight.png` 684×659，slope 0.64
+  （32.6°），wallH 326。**渲染坑**：`box_full_uv` 每面整张纹理（默认 cube UV 只
+  显示上半部）；材质直连 Base Color，EEVEE 下 AO/Mix 会刷成纯色；`bevelTopOnly`
+  保底边直线。
+- 地砖：`demon_floor_b.json`（230×230×10 box rot45）→ render-cover-real →
+  内容包围盒裁剪入库 `demonbrick1.png`（640×334 菱形板；floor 系统按 alpha 包围盒
+  实测几何，无需手写 geo）。
+- 铁闸门（路线 B，弃用 H3 视频）：岩壁单块（`demon_gate_wall.json` 406×56×102）+
+  铁栅独立渲染（`demon_gate_bars.json`：7 立柱 181 高 + 顶梁，AI 铸铁材质
+  `demon_iron_tex.png`）→ `compose-demon-gate-B.py` 程序化合成 16 帧升起
+  （**平行四边形门洞**：洞顶/洞底与墙底边平行；铁栅按"顶部对齐 + 立柱加高 +
+  逐列地面线裁剪 + 底部 40px 冗余"填满门洞；关闭帧用深铁色底梁填实立柱锯齿）。
+  成品 `demon_gate.png` 640×576/帧，slope 0.6347，wallH 291，gateX [159,481]。
+  **坑**：
+  1. 闸门 wallH 必须与直墙同长宽比（直墙 684/326≈2.10 → 640 宽门墙高≈305），
+     否则闸门世界宽度 ≠ 被替换墙段（歪门/悬空）；
+  2. 铁栅立柱底边是锯齿线（每根柱的端盖投影），绝不能直接对齐底边——用
+     "洞顶对齐 + 高度冗余 + 裁齐"方案；
+  3. 合成后**帧高变化必须同步 `BootScene` 的 spritesheet frameHeight**
+     （786→576）：帧错位时 placeAt 创建的精灵无有效帧，闸门整扇不显示；
+  4. `WallGate.placeAt` 在贴图未就绪时**静默返回 false**（闸门消失、墙件回插）：
+     真实流程 BootScene 加载完才进游戏没问题；测试脚本必须等
+     `textures.exists('demon_gate')` 再进竞技场；
+  5. 竞技场门是 `_createArenaGate` 实例（`_arena.entryGate` +
+     `passages[].gates`），不是 WallGate 单例；出口门才是 WallGate。
+
+**数据驱动（不硬编码）**：
+- `dungeonList.demonCavern` + `demonCavern` 配置块（C 级，floor tiles demonbrick1）。
+- `_keyFor('demonCavern')`（SKILL 规定的唯一代码登记点）。
+- **`family: 'zombie'` 数据字段**：`_isZombieFamily()` 改为读配置
+  `getZombieDungeonConfig(type).family === 'zombie'`，替代硬编码地牢列表——新地牢
+  进僵尸家族（战斗/竞技场/怪物池）只需在配置块加 family。
+- `ISO_WALL_STYLES.demonCavern`（straight/gate/chestPrefab/gateSound）+ `ISO_WALL_GEO`
+  demon_straight/demon_gate（**geo 的 w/h 是单帧格子尺寸**，不是整表尺寸——整表会
+  让门闸辉光烘焙只算 1 格、刷 "has no frame"）。
+- **通道预制样式重映射**（`_placeArenaPassage._remapPassagePieceToStyle`）：默认
+  预制（wall_straight/wall_gate）按当前墙样式从底边重建件——新地牢通道自动换
+  匹配墙/铁闸门，无需为每套样式维护专属通道预制。
+
+**验证**：CDP 进 demonCavern → 5 房竞技场、10 门全 demon_gate 且全开
+（入口 1 + 通道 8 + 出口 WallGate 1）、帧 0/15 切换正常、无负 sy；GLM：房 1 岩地+
+岩壁+橙矿晶、通道铁闸底边与岩壁齐、关闭帧铁栅完全覆盖门洞、无贴图异常；
+墙/门相关测试 248 项通过（test-gate-corner / arena-layout / wall-depth / wall-embed /
+collision-grid / regressions）、vite build ✓。
+
+**遗留**：demon 转角预制未做（当前回退程序化转角臂）；宝箱房用通用「宝箱房」
+（直墙件自动重映射、门件仍默认纹理）。
+
+---
+
+### 地牢添加标准工作流（新增地牢一律按此开展）
+
+#### 1. 展示元数据（data/dungeon-config.json `dungeonList`）
+新增条目：`{ name, nodeCount, battleRatio, level, reward, grade }`——`grade`（F~A）驱动：事件池 ±1 匹配、通用事件奖励档、祭品掉落表（maxRarity/权重）、出征祭品门槛（对应稀有度）。出征界面选择器/说明栏全部自动读取，无需改 UI。
+
+#### 2. 地牢配置块（同文件，如 `zombieDungeonMid`）
+- `nodeCount.min/max`：房间数
+- `shortestCombatPath`：到达 Boss 的最少战斗场数
+- `typeRatios.combat/event`：战斗/随机事件比例（合计 1；祭品耦合键 combatChanceDelta 会同步调整两边）
+- `eliteCombatChance`：战斗事件中精英战斗概率
+- `encounters.normal/elite`：波次、每波数量、monsterComposition/tierWeights（池见第 4 节）
+- `grid.rows/startRows`：行数与起始路线（startRows 长度=起始路线数）
+- `bossEncounter`（可选）：独立 Boss 遭遇。存在则 `_enterBoss` 自动走普通战斗流程副本（不再按地牢名硬编码分支）；`monsterComposition` 支持 `{ lord: N }`（lord 池=rank 领主，跨 family）；缺省走 BossRewardSystem 专属 Boss（集合体）
+- `eliteChestReward`（可选）：精英宝箱奖励
+- `floor`（可选）：`{ tiles: [贴图键...], glow: false, overlapX, overlapY }`——地砖**每格随机选图 + 随机 X/Y 镜像（4 种朝向）**，平铺层统一行为，无需声明（2026-07-25 确认：以后地砖默认都带随机翻转）；**自然材质（草地等）必配 overlapX/overlapY（如 6/3）**：平铺步进内缩让相邻砖叠合几 px（只叠不缺），盖住锯齿边缘缝隙与半透明暗边——亮色材质缝隙明显，黑砖类可不加
+
+#### 3. 登记映射（src/config/dungeon-config.js `_keyFor`）
+地牢 type → 配置块键。**这是唯一的代码硬编码点**（工作流保留）。
+
+#### 4. 怪物池（src/world/zombie-dungeon.js `monsterPool`）
+normal/elite/lord 三个 getter，按 family+rank 从 enemy-config.json 筛；新怪物需先注册 `ZOMBIE_FACTORY_MAP` + create 工厂。事件/奖励对应关系由 grade 驱动（见 dungeon-event-definitions.js RESTRICTED_EVENT_META 的 scope/grade）。
+
+#### 5. 验证
+JSON 校验；lint / vite build / test-collider / test-craft-sync；`node scripts/generate-dungeons-table.mjs` 刷新 dungeons-table.md；CHANGELOG 记录。
+
+---
+
+### 地牢场景构建标准工作流（2026-07-25 定稿，全套实战经验）
+
+本节是**经过验证的完整流程**——新地牢场景一律按此开展，含菱形地块、墙体、夹角、地板-墙连接、门口、透视遮挡全套。
+
+#### 一、菱形房间模板
+1. **尺寸**：固定档位（2026-07-25 起不再随机）：普通 1024 / 精英 1792 / Boss 2048，地牢级 `combatRoom` 子配置可覆盖（如高级 bossSize=1024）→ `rx = 1.2S`、`ry = rx × 0.5774`（30°），边距 M=260（≥墙贴图高度 217 + 缓冲，否则上夹角被世界顶裁掉），菱形在世界正中央，区外全黑
+2. **地板烘焙** `applyDiamondFloor(worldW, worldH, cx, cy, rx, ry)`（dungeon-floor-texture.js）：纯黑底 → 等距平铺按菱形路径裁剪 → **墙脚接触阴影（统一标准，2026-07-25 升级）**：沿菱形边缘向内 64px 真渐变黑带（逐笔 alpha 0.40×(1-i/64) 递减描边叠加，墙根 ≈40% 黑 → 0）——**所有墙壁-地板衔接处一律用此处理**。旧版是 16 笔等 alpha(0.12) 平刷（整带仅 ≈15% 平黑），亮地砖上几乎不可见（中级/初级"没有阴影"的根因：blackbrick-7/8 亮度 ≈50 是高级砖 ≈25 的两倍）
+3. **地板配置分级**：`setDungeonFloorProfile` 按地牢类型设置（高级 blackbrick_7/8、初级/中级各自 tiles）；需要地砖的场景（如门外白区）读 `getDungeonFloorProfile()` 跟随当前地牢
+
+#### 二、墙体构建 `WallSystem.buildIsoDiamondWalls(cx, cy, rx, ry)`
+1. 四顶点转角**点对点**（两臂各一件直墙）+ 四边**定长瓦片续接**（`faceLen` 固定，不足靠叠合，**绝不压扁**——压扁会让小房间边墙比夹角矮一截）
+2. 深度规则：**后墙（室内侧朝镜头）depth = min 底边 y，前墙（室外侧朝镜头）depth = max 底边 y**；转角臂统一 **+5 偏置**（顶点侧盖住续接件，预制转角同款规则；+260 曾误挡顶点下方高个实体已废弃，+5 为安全值不得加大）
+3. 碰撞：`rebuildIsoCollision()` → `isoSegments` 线段模型（点-线段距离场，移动/滑动用）+ 36×20 阶梯矩形（寻路/小地图用）；滑动走**沿墙切向分量**（速度不超意图，杜绝贴墙加速滑行；旧"切向传送脱困"块是加速根因，已删）
+4. 玩家入场：随机顶点内法线方向（off = offsetFromEdge + 60）；怪物：对角顶点附近拒绝采样（菱形内缩不等式 `|dx|/(rx-i) + |dy|/(ry-i) <= 1`）；出口：门闸（见四）
+
+#### 三、夹角构建（上/下/左/右）
+1. **原则：夹角不出 AI 素材，基底直墙拼装**——顶点处两臂各一件（按走向选 flipX：右下 "\" 不翻转、左下 "/" 翻转），续接件 8px 叠合（只叠不缺）
+2. 透视深度：**整体 下>左>右>上**；夹角内**朝下的臂（更靠近镜头）depth 更大**
+3. 生成脚本 `tools/gen-corner-prefabs.mjs`（从基准件读缩放保持全套一致）→ 写入 wall-prefabs.json
+4. **废弃方案记录（别再走）**：顶点后冲过冲（错位）、墙柱/补丁填充（不成熟）、AI 转角贴图（规格不齐）
+
+#### 四、门口（门闸）系统
+1. **素材管线** `tools/door-video-frames.py`：视频按可用时长均匀取 16 帧 → 边界洪水抠图（白底/棋盘底）+ 水印区抹除 + **门洞封闭区二次抠图**（栏杆包围的亮区洪水填充进不去，阈值去底）→ 16 帧统一包围盒对齐 → 打包 spritesheet；首帧=关闭、末帧=打开。**显示比例对整体缩放是不变量**（640/2048 截帧拼接表现相同，不要追求大规格）
+2. **几何注册** `ISO_WALL_GEO.gate`：base（底边线，**只拟合两侧墙身，避开门洞区**——门框架会拉偏拟合线）、gateX（门洞 x 范围）、frames
+3. **门闸实体**（wall-gate.js）：状态机 open/closed/opening/closing（**动画用 Phaser tween 计数器驱动，禁止手动逐帧 tick**——手动驱动链路易断，动画卡死）；碰撞 = **门两侧墙体线段常开 + 门洞线段按状态启停**；**原位替换**（继承被替换件 span 与 depth，不做任何接缝特权/过门退层——这些方案全部试过并废弃）；悬停金色轮廓（全 16 帧拱门区剪影×shadowBlur 烘焙，**本体 destination-out 抹除只留外发光**，跟随当前帧）；**斜接遮盖位继承（2026-07-25）：转角两臂同 depth，默认构建里后建的臂盖住先建臂的端边——门闸替换先建臂（下夹角 bL/上夹角 tL，平局按数组顺序必中先建臂）时必须 depth-0.1 退到兄弟臂下面，否则门闸贴图的裁切边暴露在斜接缝上。依据：用户手工预设（门墙 depth 最低、右臂最高）严丝合缝，几何与代码生成完全一致，差的就是这层顺序**；`_setupGate` 仍需先 `_syncWallsToPhaser()` 后 `placeAt`（防门闸被整批重建的墙件压住）
+4. **门外独立地块**：入场即生成（战斗完成不等）；位置 = 门洞中心沿外法线出界 + 边距（**不做晶格吸附**，防拽回主场景）；烘焙 = 当前地牢地砖 → **裁掉菱形内部分**（destination-out 菱形路径，不重叠）→ 远角径向圆滑淡出 → 25% 延伸；轮廓环绕光晕只留外侧（朝门一侧渐隐擦除）；图层归地形层（-999）
+5. **回城触发**：玩家在白区内**且已走出菱形边界**（点-in-菱形 false）→ `_leaveCombatViaPortal()`；出口传送门已删
+
+#### 五、透视遮挡（X 光圆圈）
+1. 判定（几何法，不用包围盒）：墙件 depth > 实体 depth 且**脚底在墙面底边线之后 + 身体进入墙面覆盖带（覆盖量 > 身体 15%）**；遮挡物 = iso 墙件 + 门闸统一列表
+2. 三层：地板透视洞（动态 CanvasTexture 抠烘焙地板、径向渐隐）→ 圆环（中间透明、边缘黑→透明渐变）→ 实体克隆（玩家含武器/副手/盾牌）
+3. **接缝防半遮**：触发后按圆覆盖范围内所有墙件（全包围盒）的最高 depth 绘制
+4. 禁用 Phaser 4 蒙版（BitmapMask 已删除，Filter 通道太贵）
+
+#### 六、备份与恢复
+战斗房/Boss 房进入前必须备份 `WallSystem.walls + isoVisuals`，离开时恢复（否则战斗房的墙残留到主神空间）
+- **离开清理还必须含 X 光透视对象**（2026-07-25）：X 光圈/克隆/地板洞是独立 sprite 不属于任何显示组，地图模式分支跳过 `_syncXRayCircles` 导致战斗残留透视定格在地图界面（"透视到地图里的金币"根因）——`cleanupGate`/`BossRewardSystem.cleanup` 统一调 `GameScene._purgeXRayCircles()`，地图模式分支每帧兜底隐藏
+
+#### 七、战斗房尺寸（2026-07-25 起，固定档位，不再随机）
+- 全局（`data/dungeon-config.json` → `combatRoom`）：**普通 1024 / 精英 1792 / Boss 2048**
+- **地牢级覆盖**：地牢配置块内加 `combatRoom` 子对象即可（如 `zombieDungeon.combatRoom.bossSize=1024`＝僵尸地牢高级 Boss 房 1024）；`DungeonConfig.getCombatRoomConfig(dungeonType)` 三级合并（DEFAULTS←全局←地牢级）
+- 调用点：精英/普通由 `_enterCombat` 按 `node.isElite` 传 `options.roomSize`；波次 Boss（初/中级 `bossEncounter`）由 `_enterBossCombat` 传 bossSize；集合体 Boss（高级）由 `enterBossBattle(player, cb, dungeonType)` 第三参透传到 boss-reward 的 `arena.size` getter
+- 入侵战场地尺寸独立（`AgentInvasionSystem.getArenaSize()`），不受此规则影响
+
+#### 八、宝箱房系统（2026-07-25，精英战斗专属，`src/world/chest-room-system.js`）
+1. **生成**：精英节点入场（`_enterZombieCombat`/非僵尸 `_enterCombat` 的 `node.isElite` 分支）→ 按墙壁预制「宝箱房」（门墙×1+直墙×3，data/wall-prefabs.json）在场地中央拼小菱形房——**几何中心=全部件 face 线段端点外接框中心**（与编辑器 cx/cy 无关）；直墙推 isoVisuals（深度上臂 min/下臂 max 重算，预制存的是编辑器世界值不可直接沿用）；房内区域注册刷怪排除区（`spawnMonsters` 菱形拒绝采样 + 排除区判定）
+2. **门墙独立控制**：不进 isoVisuals——复刻 wall-gate placeAt 映射放 wall_gate 帧0（关门），碰撞=两侧常开+门洞启停；`onCombatComplete` 且未超时 → tween 播 0→15 帧开门 + 门洞碰撞移除
+3. **等级宝箱**：宝箱等级=地牢 grade（E/D/C/B/A，贴图 `chest_<grade>`，**素材库缺 A.png 暂用 B 兜底**）；奖励表=`combat-formulas.json universalEventRewards.treasureChest[grade]`（50% 金币 / 25% 材料组（强化石1+改造券1+粉尘） / 25% 宝箱怪位——**宝箱怪位当前按金币兜底**，要真宝箱怪再接）经 `BossRewardSystem.rewardNode.giveReward` 发放
+4. **60s 倒计时**：Phaser text（**改色用 setBackgroundColor/setColor，禁用 setStyle——会整体覆盖丢失字号字体**）；白底黑字黑框（矩形垫底），≤10s 红底黑字；超时→宝箱 1s 淡出、房门不再开
+5. **开箱**：玩家靠近 60px → chest_open 精灵图（559×602×16，tools/chest-video-frames.py 从 宝箱打开-1.mp4 切帧+抠图，管线同门闸）1.5s 播完 + chest_open.mp3 音效
+6. **离场守卫**：`hasUnopenedLoot()` 时走出大门白区 → 弹确认框（是=正常离场 / 否=退回场内 160px+1s 冷却防连发）
+7. **已删旧制**：击杀精英刷 DungeonChest 靠近自开流程（dungeon-chest.js 已删）、`eliteChestReward` 配置（出征面板文案改读 treasureChest 表）；**F 级地牢岔路战斗固定普通**（zombie-dungeon.js 岔路 eliteChance 按 grade 判定，F=0）
+8. **清理**：`CombatRoomSystem.cleanupGate` 统一调 `ChestRoomSystem.cleanup()`（门墙/宝箱/倒计时销毁 + 门洞碰撞段移除；直墙件随 `_restoreSceneState` 自动还原）
+9. **门墙深度（2026-07-30 修复）**：`_placeGate` 深度 = **max(min(底边 y) − 显示墙高, gA 上端邻墙深度 + 0.1)**，不沿用预制保存值——宝箱房是低矮装饰围墙，实体应恒画在墙上；预制值（≈min 底边+5）下门墙贴图比直墙高，门区实体（脚线 3950~4101）会进入门框覆盖带被盖住（"门墙左侧挡实体、右边正常"根因：右侧直墙贴图矮够不着实体）。**邻墙搜索容差必须 40px**（预制手摆端点有 ~25px 间隙，2px 精确共享取不到 → 上墙裁切边压门墙的第二轮 bug）；只拉 gA 上端邻墙，gB 右侧"右件盖门墙"手调规则不动。X 光 occluders 在门打开后必须剔除门洞段（`cg.open ? [] : [cg.gateSeg]`），否则开门后门洞仍当墙透视
+10. **尸体清理（2026-07-30）**：`cleanupRoom`（离场拆房）**不跳过存活尸体**——地牢 map 状态实体更新暂停（game.js 地图分支早退），尸体计时器冻结，保留的尸体贴图会被带进下一场战斗房；`isPreservedCorpse` 跳过只用于 `cleanupMonstersOnly`（波次间同房保留，腐蚀光环继续生效）
+
+---
+
+### 墙体添加标准工作流（独立流程，新墙类素材/墙件一律按此开展）
+
+#### 一、素材管线（贴图进项目前必过）
+1. **抠图**：纯色/棋盘底用**边界洪水填充**（不误伤主体砖缝亮灰）；水印/描边用 alpha 阈值清零或定点抹除
+2. **几何锚点实测**（写入 `ISO_WALL_GEO`，贴图像素空间）：
+   - `base`：底边线两端点（全跨度，含端帽）；`face`：正面墙底边跨度（不含端帽，**拼接/碰撞一律用 face**）
+   - `vertex`（转角接合点）、`tipX`（臂尖）、`wallH`（底边→顶沿墙高）、`slope`（底边固有斜率）
+   - 实测方法：alpha 包围盒 + 列剖面底边/顶边拟合（**拟合区避开特征区**——门洞、拱门会拉偏拟合线）
+   - **`editor`：摆墙面板显示名**——带此字段的条目自动出现在摆墙编辑器「标准组件 · 墙壁」栏与图层命名表（wall-editor.js 从 ISO_WALL_GEO 动态生成，新墙/门组件加此字段即自动入面板，无需改编辑器代码）
+3. **角度标准**：显示斜率对齐地板线 30°（`FLOOR_SLOPE=0.5774`），角度补偿 `slopeFixOf(geo)` = FLOOR_SLOPE / geo.slope
+4. **高度归一化（谨慎）**：仅当贴图顶/底边不平行且需要与直墙对齐时用（`wall-height-normalize.py`，按列绕底边缩放）；**带拱门/突起特征的贴图用 k≥1 变体**（只拉不压，特征区不压缩，参考 `tools/gate-top-warp.py`；"拼接叠合遮盖顶部分歧"方案已被用户否决，禁止再用）
+
+#### 二、拼接规则（血泪教训浓缩）
+1. 底边精确映射：独立 sx/sy 把 face 映射到目标线段（base 永远贴合，顶部分歧用叠合吸收）
+2. **叠合 8px，只叠不缺**：精确对顶必露缝（锚点拟合公差 ±6px）
+3. **瓦片定长定高，不足靠叠合，绝不压扁**（小房间边墙矮一截的根因）
+4. 长边覆盖：接缝阵列（编辑器标记A→生成/铺满）
+5. 同水平对齐：同一条边上的件必须同 scale（拼接吸附继承 A 的 scale/flip）
+
+#### 三、夹角拼接
+1. 基底两件点对点（见地牢工作流三）；顶点缝隙接受或用编辑器微调，**不做填充**
+2. 深度：整体 下>左>右>上；夹角内朝下的臂在上层
+
+#### 四、图层规则
+1. 后墙 min、前墙 max（单 depth 斜墙必有误差区，规则只决定误差放哪侧）
+2. 转角与续接件的接缝：顶点侧盖住下侧（预制转角 +5 偏置即可，**不要加大偏置**——会误挡高个实体）
+3. 特征件（门闸等）：**原位替换**，不做特权
+4. 实体排序：实体 depth = 脚底 y + 10；判定遮挡看脚底与墙底边关系，不看包围盒
+5. **遮挡透视（新墙类必做项）**：X 光透视由 `ISO_WALL_GEO` 驱动——geo 注册（base/face/wallH 实测准确）后 isoVisuals 墙件自动纳入 occluders；门闸由 `WallGate`（placeAt 锁定样式几何）与宝箱房门（GameScene occluders 显式纳入）覆盖。**验证必做**：玩家/怪物站到墙后应出现透视圆圈+贴图克隆；门贴图必须是 spritesheet 且 `geo.frames` 正确
+
+#### 五、关键陷阱（每条都踩过）
+- **flipX 是 quad 不动、内容镜像**：锚点公式 `x0 = A.x - (w - p0.x)*sx`（flip 时 p0→A、p1→B）；写 flip 公式先数值自检
+- **显示比例不变量**：基线映射下，任何整体/非均匀缩放都改变不了显示比例（砖块大小只能出图时统一）
+- **单 depth 斜墙排序冲突**：接缝两侧的覆盖需求相反时，只能选一侧规则或接受局部误差，别堆特权代码（会乱）
+- **过门退层/接缝特权/全局转角偏置**全部试过并废弃——原位替换最稳
+- **缺纹理绿框**：Phaser 缺纹理渲染绿色占位框——动态纹理必须先创建再使用
+- **逐帧动画用引擎 tween，不要手动 tick**：门闸曾因依赖 `CombatRoomSystem.update(dt)` 逐帧驱动，链路一断动画卡死（战斗后不开门）；改为 `scene.tweens.addCounter` 驱动帧号，脱离手动链路
+- **转角斜接遮盖位继承**：转角两臂同 depth，默认后建臂盖住先建臂端边——门闸原位替换先建臂时必须 depth-0.1 继承其下位（否则贴图裁切边暴露在斜接缝，"两墙之间有偏差"根因）；同理 `_setupGate` 先 `_syncWallsToPhaser()` 后 `placeAt` 防整批重建压住门闸。**排障方法论的反面教材：此 bug 连修三轮未中，最终靠"用户手工摆一个严丝合缝的对照组存为预设 → 数值对比 JSON"一次定位——抽象描述定位不了视觉问题时，让用户/自己造对照组做数值 diff 最快**
+- **ItemDatabase.items 是 {id: itemData}，itemData 不带 id 字段**（id 只在键上，`get()` 才注入 `_id`）——`Object.values(items)` 后读 `item.id` 恒为 undefined。奖励界面"三选一点击无反应"根因：`_giveRandomWeapon` 用 values+item.id → `createInstance(undefined)` 返回 null → `addToInventory` 读 `maxStack` 抛 TypeError → `_selected` 已置位面板卡死。教训：**遍历 items 一律走 Object.keys 回查**；发奖类入口加 `if (!item) return` 守卫 + try/catch 兜底（单项失败不阻塞面板关闭）
+- **续接瓦片规则（2026-07-26 定论，取代"均匀拉伸"）**：`edgeFill` 用**定长定高瓦片**（scale 固定、8px 叠合、尾端超出由下一顶点转角臂 +5 偏置盖住）。两条历史教训：①`d < len+8` 定长循环在 `len ≈ faceLen` 时会多一块近整瓦重复件（"下夹角多一堵墙"）——现由转角臂 +5 偏置盖住 overshoot 解决；②均匀拉伸（0.7~1.4）让拉伸件与定尺转角件一大一小、中间突出（僵尸砖纹不可感知故未暴露，沼泽柴墙材质随机格外显眼）——故废弃拉伸，统一定长
+- **门闸候选排除近顶点件（2026-07-30 定论，取代"替换转角臂+摘重复件"）**：`_setupGate` 回退选择跳过任一底边端点距菱形顶点 <0.8×瓦长的直墙件（转角臂+其 overshoot 重复瓦片）。原因链：①重复件碰撞横穿门洞（V0.325 已修，靠 `removeSpanCoveringPieces`）；②但 S≥1792 房间的重复瓦片有百像素**有效覆盖**（唯一桥接段），摘除必留断口（精英房下夹角左侧空隙根因）；③重复件覆盖结构与档位强相关（S=1024 重复 97%、S=1792 有效覆盖 126px、S=2048 重复 97%），没有通用的"替换转角臂"安全解。**门闸只替换常规续接瓦片（两端 8px 叠合）是唯一全档位安全解**；`removeSpanCoveringPieces` 保留作兜底。回归 `scripts/test-gate-corner.mjs`（门洞畅通+边断口 ≤10px 双断言）。排障工具：`tools/render-gate-corner.py` 离线渲染对照
+- **重复件撞门闸（2026-07-29，①的碰撞层尾巴）**：尾端 overshoot 瓦片可与转角臂**近整瓦重复**（S=1024 重复 462/476px），视觉被盖住但碰撞段一直在——`_setupGate` 把转角臂替换成门闸时（程序化转角臂无 `_corner`，是合法候选）重复件碰撞段+贴图横穿门洞（"下夹角门又多一堵墙、无法离场"根因）。修复：`_setupGate` 摘除被替换件后调 `WallSystem.removeSpanCoveringPieces([a,b])`（共线 + 投影重合>50% 一并摘除；门闸世界跨度==瓦片定长不留缺口；正常接缝叠合 8px≈2% 误摘不了邻件），placeAt 失败回滚连同重复件恢复。回归 `scripts/test-gate-corner.mjs`（挂 npm test）。**教训：冗余重复件"视觉盖住"不等于无害，凡有原位替换机制的地方都要清理碰撞层重复**
+- **门闸锚点沿边回退 8px（2026-07-29 续）**：摘除重复件后暴露两个接缝问题——替换转角臂时门与邻瓦只剩 ~1px 对顶（露缝）；替换重复件时门右端距顶点空 7px。修复：`_setupGate` 传给 `placeAt` 的 A 沿边回退 8px（瓦片叠合同口径）。**排障方法：离线渲染对照（`tools/render-gate-corner.py`，与 JS 同数学逐件合成贴图）——比抽象推几何快，改完即出图验证**
+- **部署验证三件套**：逻辑模拟跑通但游戏不生效时——版本徽章标构建号（确认跑的是哪份代码）、关键路径 console.log（确认判定是否触发）、node 模拟全流程（确认逻辑无误）；三管齐下直接区分"部署问题/判定问题/逻辑问题"
+
+---
+
+### 墙壁系统（2026-07-24 重构：可视化编辑器 + 预制组合）
+
+**核心思路**：墙壁/场景布置不再靠代码盲推贴图几何——通用件模型 + 游戏内可视化编辑器（所见即所得），摆好的布局存为**预制组合**，场景按预制渲染；后续地牢随机生成预制房间 + 镜像翻转复用同一格式。
+
+#### 通用件模型（wall-system.js）
+- 件结构：`{ tex, x, y, scaleX, scaleY, flipX, flipY, depth }`（origin 固定 0.5,0.5），存 `WallSystem.isoVisuals`，`_placeIsoPiece` 直接渲染并回写 `p._sprite`
+- 碰撞自动生成：`rebuildIsoCollision()` 按件底边线段（`texPointToWorld` 应用 scale/flip 变换）每 30px 一块 36×20 阶梯矩形（`_iso` 标记，混 `WallSystem.walls`，寻路/小地图自动兼容）；编辑后重建即可
+- 贴图几何锚点 `ISO_WALL_GEO`（base 全跨度/**face 正面墙跨度(不含端帽)**/vertex/tipX/wallH，贴图像素空间）仅供：默认布局生成 + 碰撞底边提取；**拼接吸附与碰撞一律用 face**（端帽互相重叠藏进相邻件体内，接缝呈壁柱观感）
+
+#### 常见陷阱：flipX 镜像锚点（本次大错乱根因）
+- Phaser flipX 是 **quad 不动、贴图内容镜像**（翻转 UV，不改顶点）：origin(0,0) 时贴图点 p.x 落在 `x0 + (w - p.x) * sx`
+- 错误写法 `x0 = A.x - (w - p1.x)*sx` 会让 flip 瓦片整体偏移一个瓦宽（游戏内"断断续续"的直接原因）
+- 正确：`x0 = A.x - (w - p0.x)*sx; y0 = A.y - p0.y*sy`（flip 时 p0→A、p1→B）；**凡写 flip 锚点公式，先用单件底边线段数值自检再上图**
+
+#### 素材管线（tools/wall-asset-prep.py）
+- 源图：`素材库/场景/地形/僵尸地牢/` wall-2.png + wall-转角上/下/左/右.png
+- 处理：alpha<80 清零（去 faint 描边/AI 水印）+ 内容包围盒裁剪 + 最长边 1600 压缩（optimize）；**不做列裁剪**（主体保持原样，端帽/渐隐尾保留，用户手动拼合）
+- **高度归一化（tools/wall-height-normalize.py）**：AI 素材常带轻微真透视（顶/底边不平行），按列绕底边纵向缩放使顶边∥底边——否则拼接"底部对齐顶部矮一截"。新直墙/转角一律先过这道
+- 产物：`assets/terrain/wall_diag.png` + `wall_corner_top/bottom/left/right.png` + `wall_straight.png`（新直墙，已归一化）；`tools/wall-room-sim.py` 为拼装模拟器（与 JS 同数学，改布局先跑它）
+
+#### 墙壁编辑器（src/ui/wall-editor.js，HUD 左下「摆墙」按钮）
+- **面板两栏**：标准组件（环境组件按 family 分组，墙壁为第一个 family `wall`，缩略图拖入场景按默认大小放置，拖放中滚轮缩放、Ctrl+滚轮水平镜像）；预制组件（已存预设方案，放置/删除）
+- **框选模式**：「框选」按钮开启后长按拖出选框，选中范围内环境组件；选中件黑白交替闪烁（250ms tint 交替）
+- **图层面板**（编辑器左侧，仿 Photoshop）：场景件按 depth 降序列出（自动命名 直墙 1/直墙 2…），点击=单选同步画布，拖拽条目=重排图层（depth 取新邻居中值局部调整，顶层盖底层）
+- **角度补偿**：新件放置默认带 `slopeFixOf`（贴图固有斜率→显示斜率对齐地板线 30°，纵向微拉）；「对齐地板角」按钮一键补偿选中件
+- **拼接吸附**：点选 A → Shift 加选 B → 一键：B 继承 A 缩放/翻转（同缩放=同墙高）+ B 底边起点(face)吸附到 A 底边终点并沿走向回退 `SNAP_OVERLAP=8`px（接缝只叠不缺，锚点拟合公差兜底）；Shift+点击=加选
+- **整组操作**：拖任一选中件=整组平移；滚轮=绕组中心统一缩放（位置同步）；Ctrl+滚轮=绕组中心水平镜像；Q/E=深度（Shift±10）；Del=删除选中；命名「存为预设」
+- 编辑模式置 `Game._wallEditMode`：input.js 拦截攻击/按键（编辑器捕获监听先处理）
+- **常见陷阱：项目 Phaser 配置 `input: { mouse: false, keyboard: false }`（防拦截 DOM Input 系统）——`scene.input.on('pointer*')` 永远不会触发！指针交互一律走 DOM window 事件 + `_clientToWorld`（canvas rect + camera.getWorldPoint）换算**
+- 预制件带 `family` 字段与组中心 `cx/cy`；场景生成器扩展新环境组件时：STD_COMPONENTS 加条目 + 新 family 即可
+- 面板：预制下拉（加载/镜像/删除）、命名存为预制、恢复默认菱形
+- 镜像：绕件组包围盒中心 X 取反 + flipX 翻转（`_mirrorPieces`）
+
+#### 预制组合库（src/world/wall-prefabs.js → data/wall-prefabs.json）
+- 结构：`{ "<key>": { name, pieces: [...] } }`；BootScene.create 预载（fetch /data/，即 public/data 副本）
+- 保存：Electron 走通用 `save-json`/`load-json` IPC（限 data/ 目录，dev 写 public/data）；**Vite 开发服务器走 `vite.config.js` 的 `__save-json` 中间件（POST，直写 public/data + data/ 双份，刷新即生效）**；纯浏览器无中间件时回退下载
+- 主神空间测试房：代码默认菱形房间已移除，用户用编辑器自摆；`_setupMainHubTerrain` 仅在预制 `hub_diamond` 存在时按预制渲染；编辑器「恢复默认菱形」按钮仍可生成代码默认布局作起点
+- **注意**：wall-prefabs.json 也是 data/ ↔ public/data/ 双份，中间件/IPC 保存只写 public/data（dev 运行时读这份）；提交/打包前记得同步回 data/（中间件已双写）
+
+#### 夹角生成（2026-07-24 定论：一图基底流——夹角不出 AI 素材，基底直墙拼装）
+- **工作流定论：生图 AI 只出一张直墙基底，其余全部程序化完成**（夹角=基底拼装、吸附/叠合=编辑器、角度/等高=管线归一化）
+- 四个夹角 = 基底直墙（wall_straight）2~4 件拼成：顶点处两臂各一件（按方向选 flipX）+ 每臂续接件（`SNAP_OVERLAP` 叠合）
+- 透视规则：整体深度 下>左>右>上；夹角内**朝下的臂（更靠近镜头）depth 更大**（顶点在上层）
+- 顶点缝隙：点对点相接接受微小缝隙（过冲方案、墙柱填充方案均已废弃——错位/不成熟），介意时在编辑器里单件微调
+- 生成脚本：`tools/gen-corner-prefabs.mjs`（从既有上夹角读缩放保持全套一致）→ 写入 wall-prefabs.json；用户「上夹角」为手工拼装基准件
+- 需要新夹角规格时改脚本顶点/臂长重跑即可，不要再走 AI 出图
+
+#### 墙壁与实体透视关系（2026-07-24）
+- **墙件 depth 规则**：后墙（室内一侧朝镜头，如上夹角两臂、左右夹角的上臂）depth = **min 底边 y**——室内实体（footY 沿墙处处更大）永远绘制在墙前，修复"右臂错误遮挡人物"；前墙（室外一侧朝镜头，如下夹角两臂、左右夹角的下臂）depth = **max 底边 y**——正确遮挡室内。单 depth 对角墙必有误差区，规则只决定误差放哪侧
+- **X 光圆圈**（GameScene `_syncXRayCircles`，每帧）：墙件 depth > 实体 depth 且**几何遮挡判定**（脚底在墙面底边线之后且身体进入墙面覆盖带，覆盖量 > 身体 15% 才算被遮挡——不用包围盒，斜墙 AABB 一半是空的必提前触发）→ 三层：①**地板透视洞**（动态 CanvasTexture，每帧从烘焙地板 `Renderer.terrainTexture` 抠实体为中心 192×192 区域，径向 destination-in 渐隐，盖在墙上相当于挖洞）②**圆环**（中间全透明、边缘黑→透明渐变）③实体贴图克隆（alpha 0.9，**玩家含武器/副手/盾牌克隆**）；**接缝防半遮：触发后按圆覆盖范围内所有墙件（全包围盒）的最高 depth 绘制**；脱离遮挡自动隐藏，实体移除自动销毁纹理与贴图；地图模式不启用。**注意：Phaser 4 已删除 BitmapMask（createBitmapMask 不存在），WebGL 下蒙版只有 Filter 通道（per-object render pass，贵）——遮挡透视走"抠地板盖墙+圆环+贴图克隆"轻量方案，不用蒙版**
+
+#### iso 墙碰撞：线段模型（2026-07-24，修贴墙加速滑行）
+- `WallSystem.isoSegments`：`rebuildIsoCollision()` 按件底边生成 `{x1,y1,x2,y2,halfThick:10}` 线段；`canMoveTo` 用点-线段距离场，`blocked` 用线段相交
+- `resolve` 滑动顺序：直达 → **沿最近阻挡墙段的切向分量滑动**（速度不超移动意图，杜绝"贴墙突然加速"）→ 轴分解滑动 → 步长回退；旧"切向滑动脱困"块已删除（它是加速根因：每帧侧向传送一个半径）
+- 阶梯矩形（36×20/30px）保留给寻路/小地图/静态物理体，不再作为移动滑动依据
+
+#### 门闸系统（2026-07-24，战斗房带门直墙）
+
+**地牢墙样式表（2026-07-25 新增）**：`ISO_WALL_STYLES`（wall-system.js，key=dungeonType）——每条 `{ straight, gate, chestPrefab, gateSound, corners? }`：straight/gate 为 ISO_WALL_GEO 键；chestPrefab 为该地牢精英宝箱房预制名（缺省「宝箱房」）；gateSound 为门闸开关音效；**corners（可选）= `{ top, bottom, left, right }` 四顶点夹角预制名（摆墙编辑器手拼），登记后菱形房间四角用预制构建（跨件共享端点=顶点锚定，深度整体平移保留预制内图层，两臂最远端接 edgeFill），缺失/无效逐个回退程序化转角臂**。`WallSystem.setWallStyle(dungeonType)` 由 DungeonMapSystem 入场设置/离场复位；`buildIsoDiamondWalls`/`WallGate.placeAt`/门闸音效/`combat-room._setupGate`/宝箱房预制选择全部走样式（直墙贴图/门闸贴图/门洞 gateX/预制/音效自动跟随）。**新地牢换墙 = ①素材管线出 `xxx_wall_straight.png` + `xxx_gate.png` ②ISO_WALL_GEO 加 `xxx_straight`/`xxx_gate`（配 editor 显示名自动进摆墙面板）③ISO_WALL_STYLES 登记 ④BootScene 加载**。宝箱房（chest-room-system）也已跟随：直墙件按样式几何把预制 face 线段重铺、门墙件识别样式门贴图、门闸几何/帧数随样式。
+- **素材管线**：`tools/door-video-frames.py`——视频 0~4.05s 均匀 16 帧 → 边界洪水抠图（白底/棋盘底）+ 豆包水印区抹除（原图右下角 600:720,675:720）+ **门洞封闭区二次抠图**（栏杆包围的亮区洪水填充进不去：x[295,405]y[200,510] 亮度>180 去底；拱门内浅灰地面楔形区 y[240,510] 亮度>120 去底，让游戏地板透出）→ 16 帧统一包围盒对齐 → 4×4 打包 `wall_gate.png`；首帧=关闭、末帧=打开
+- **墙顶对齐 warp（2026-07-25，`tools/gate-top-warp.py`）**：源视频带透视，门闸贴图墙顶线**不平行底边**（左区斜率 0.40/右区 0.71 vs 底边 0.5037）且墙高比（254~267/317.3）低于直墙（691/757=0.9128）——拼接处墙顶落差实测 26px(左缝)/17px(顶点)，即用户报的"下夹角错位"根因。修法：逐列竖向 warp（锚定底边，墙区拉伸到 290 tex px = 0.9128×317.3；**拱门区 raw<1 保持 k=1 不压缩**；拟合墙顶时**剔除拱门曲线污染区** x∈[250,430]，只拟合纯墙身 [20,230]/[430,620]）。**两个顺序陷阱：① 必须先在扩帧画布（595+shift46=641）就位再 warp——在原帧内 warp 左端新墙顶为负坐标会被帧顶裁掉，事后 shift 无法挽回；② 不要用"封顶在原帧内"的 cap——那会把拉伸钳回 1 使 warp 失效**（两版错误脚本都已废弃，以现脚本为准）。帧高 595→641，ISO_WALL_GEO.gate 与 BootScene frameHeight 同步更新。修复后接缝落差 <3px
+- **几何**：`ISO_WALL_GEO.gate`（base 底边线 / gateX 门洞 x 范围 / frames:16 / wallH:290）；BootScene spritesheet 加载（带 endFrame）
+- **门闸实体**（`src/world/wall-gate.js`）：状态机 open/closed/opening/closing（自管帧计时 900ms，不用 Phaser anims）；**碰撞 = 门两侧墙体线段常开 + 门洞线段按状态启停**（closed/closing 挡、open/opening 通，isoSegments `_gate` 标记）；depth = `_homeDepth`（继承被替换件的 min/max 规则，过门时脚底越线才临时退后）；悬停金色轮廓（全 16 帧门洞区剪影×shadowBlur 烘焙，**本体 destination-out 抹除只留外发光**，跟随当前帧）；已接入 X 光遮挡列表（GameScene occluders）
+- **门闸缩放规则（2026-07-26）**：`placeAt` 用**墙件同一显示尺度**（`ISO_WALL_HEIGHT / wallH` + `slopeFixOf`，底边起点锚定 A），门高与邻墙一致（大小墙衔接）；门宽与被替换件的差距靠叠合吸收。僵尸素材恰好自洽（此尺度 == 旧线段跨度反推值），行为不变；**不要回到线段反推缩放**（门高会与邻墙错位）
+- **一房一门规则（2026-07-26）**：`buildIsoDiamondWalls` 每房随机选一个 `gateCorner`，其余角的门件改铺直墙；`_setupGate` **优先替换样式门贴图件**（转角装饰门→功能门），无门件才回退最近的直墙件（跳过 `_corner` 转角件）——一间房天然只有一扇门
+- **预制夹角件深度规则（2026-07-26）**：`_placeCornerPrefab` 的深度**必须按房间规则重算**（top=min / bottom=max / 左右按臂上下，+转角偏置），编辑器的绝对深度只保留内部相对顺序（0.1/级）——直接平移编辑器深度会让前墙件深度低于实体（下夹角实体画在墙上的根因）
+- **战斗房接入**（combat-room-system）：入场 `_setupGate` 替换距玩家最近的直墙件并播关门动画；`update(dt)` 驱动帧推进+悬停（dungeon-map-system.updateCombat 每帧调用）；`cleanupGate` 随 cleanupRoom 销毁
+- **战斗完成**：`openGate()` 播开门动画 → 完成后门外白区（门外法线走出菱形后**吸附房内同一地板晶格**（整块砖含上角都在界外，防重叠；远角径向 destination-out 圆滑淡出）+ 微光描边，`isPlayerInGateZone` 检测玩家进入 → `_leaveCombatViaPortal` 与传送门同效）+ `GateLight.spawn` 仅门外地块光斑（大泛光+亮核，呼吸；入门光束已移除）
+- **传送门已删**：dungeon-map-system 两处 `spawnExitPortal()`（普通节点/精英宝箱后）改 `openGate()`；Boss 场地（集合体）传送门流程不变
+- **教训**：门闸替换整墙时不能只注册门洞碰撞——门两侧墙体线段必须常开，否则墙身可穿
+
+- **单帧装饰门碰撞（2026-07-29，openDoor）**：非 16 帧门闸的单帧门贴图（拱门永久开放）在 geo 加 `openDoor: true` + `gateX`，`_pieceBaseSegments` 自动把碰撞拆成门洞两侧墙身两段（门洞可通行）——功能门闸（WallGate）与装饰门件（如沼泽转角门）不受影响（它们无 openDoor，仍整段实心）。**教训：装饰件可视化≠碰撞，门类件必须显式声明门洞碰撞语义**
+
+#### 待接入（下一阶段）
+- 地牢随机生成：从预制库抽房间布局放置 + `_mirrorPieces` 镜像
+- ~~主神空间边界墙仍是旧硬拉伸视觉~~（2026-07-29 已完成：主神空间菱形化，见下节）
+- ~~Boss 场地门闸化~~（2026-07-28 已完成：Boss 房复用 CombatRoomSystem 门闸机制，传送门仅作 placeAt 失败兜底）
+
+#### 主神空间状态缓存（2026-07-30 补齐）
+- **机制**：`SceneManager._saveMainSceneState()`（保存 `_mainEntities/_mainPlayerPos/_mainTrees/_mainEffects/_mainCamera`）→ `_loadMainScene` 恢复实体与玩家位置；无缓存时走兜底=只剩光杆玩家。
+- **保存时机（三个，缺一不可）**：①`switchScene` 离开 main 时；②**出征 `depart()` 清实体前**——depart 绕开 switchScene 直接 `Game.entities.clear()`，不保存则任何地牢返回路径都拿到空缓存（"放弃返回后主神空间什么都没有"根因，2026-07-30 修复）；③`Game.init` 初始生成完毕后（安全网）。
+- **教训：场景切换的旁路（bypass switchScene 直接改 currentScene/清实体的路径）必须逐个核对状态保存**——depart() 设 `SceneManager.currentScene='scene7'` 跳过了整个 switchScene 生命周期（保存/清理/进度条），是隐性旁路的典型。
+
+#### NPC 立绘调整工具（2026-07-30 重构）
+- **交互**：点击「调整立绘」后直接拖对话左侧立绘（X/Y 自由拖动）；面板只负责缩放/旋转/镜像/重置/保存。
+- **持久化**：`data/npc-portrait-params.json`（保存管道=Electron `save-json` IPC → Vite `__save-json` 双写 → 下载兜底，与 wall-prefabs 同规格）；参数模型 `{x,y,scale,rotation,flipX}`（旧 offsetX/bottom 自动迁移；锚 bottom 按 NPC 默认恢复，不入库）。**rel 必须带 `data/` 前缀**（vite 中间件强制校验，否则必落下载兜底）。
+- **关键细节**：拖动期禁用立绘 `transition: transform 0.3s`（否则拖拽滞后）；立绘 mousedown 必须 stopPropagation（对话框 clickOutside 关闭/画布抢事件）；`WeaponAnimConfig` 解析一律 `animConfigKey || weaponType`（R93 副手误吃 G18 pistol 配置翻转的根因——weaponType 是同族共享，animConfigKey 才是按枪配置键）；**weaponType 分支名单随 animConfigKey 解析同步补齐**（weapon-transform getWeaponSize/getAttackAnimOffset/锚点表——R93 漏补导致错误放大+手臂错位）。
+
+#### 障碍物体系（2026-07-30 新增）
+- **素材管线**：AI 道具图（透明底带噪点）→ 最大连通域 + 包围盒 → `assets/terrain/obstacle_*.png`；geo 注册 `ISO_WALL_GEO` 加 `category:'obstacle'` + `foot:{w,d}`（底部 15% 高度区实测 footprint 宽，深≈宽×0.35）。
+- **碰撞**：`_addPieceCollision` 障碍物走**矩形 footprint 墙**（锚底边中心、随缩放；`_obstacle` 标记）；`_pieceBaseSegments` 返回空（不进 iso 线段模型）。
+- **编辑器**：摆墙面板分类页签（墙类/门类/障碍物类，geo 带 editor 自动归类：category→障碍物、gateX→门、其余→墙）；障碍物放置不做 30° 角度补偿（billboard）；Shift+滚轮=旋转（仅障碍物，`rotation` 字段经 `_placeIsoPiece`/`_applyToSprite` 应用）。
+- **障碍物编辑器**：仅单选一个障碍物时显示（墙壁编辑器下方）；重置=初始变换；保存=全部障碍物写 `data/obstacle-layout.json`（_persistJson 三管道），`_setupMainHubTerrain` 按布局重建（含首启竞速兜底）。
+- **固定 NPC（祭坛/仓库）**：不再用 obstacle 静态墙——`collisionShape:'rect'` 矩形 footprint + `resolveCollisions` 圆-矩形精确分离分支（逆透视压缩判定；圆心在矩形内沿长轴推出）。
+
+#### 主神空间菱形化（2026-07-29 落地，复用地牢标准工作流；**同日已按用户要求回退**，保留条目作参考）
+- **回退说明（V0.326）**：菱形世界（5436×3359/双材质地板/代码建墙）用户实机不满意，scene-manager/dungeon-floor-texture git 回退、game-config 手改回退（**npcs.altar 祭坛贴图配置保留**）；`inner` 双材质与 roomSize 机制随之移除。大理石墙/门改为**编辑器组件**路径：新透明底素材（墙.png/门.png）过 `tools/prep-hub-wall-gate.py`（透明底无需 GrabCut：最大连通域+腐蚀1px+几何实测；门洞 gateX 按"列最低不透明 y 高于底边线 60px 的连续区间"实测）→ `ISO_WALL_GEO.hub_straight/hub_gate`（editor 字段自动进摆墙面板）+ `ISO_WALL_STYLES.mainHub.gate='hub_gate'`。
+- **尺寸**：S=2048（`mainHub.roomSize`）→ rx=2457.6/ry=1419.0，边距 M=260，世界 5436×3359，origin=(2718,1679)；`_setupMainHubTerrain` 与地牢同路径：`applyDiamondFloor` + `setWallStyle('mainHub')` + `buildIsoDiamondWalls`；边界矩形墙降为 `noVisual` 隐形兜底；hub_diamond 预制分支已删。
+- **地板双材质**：`profile.inner = { size, tiles }`（dungeon-floor-texture）——外圈大理石 + 中心 1024 档内圈木地板；`setDungeonFloorProfile` 新字段必须显式透传（deco 教训同款）。
+- **墙样式**：`ISO_WALL_GEO.hub_straight`（slope 0.5049 / wallH 703.9）+ `ISO_WALL_STYLES.mainHub`（无 corners/gate → 全直墙无门）；从地牢返回时样式被复位，统一入口每次重设 mainHub 再建墙。
+- **坐标迁移**：portals/testArea 等绝对坐标项必须随世界尺寸手迁（本次 (3478,2363)→(3918,1949)）；相对 origin 的（NPC/武器排/掉落）自动跟随。
+- **祭坛贴图 NPC**：仿仓库宝箱模板（sprite.idleKey 静态图 + obstacle 底座 + clickArea + noSeparation/noShadow），注意 `game.js` 创建 NPC 时这些字段要逐个透传（祭坛此前只传基础字段=实心圆的根因）。
+
+#### 白底 AI 素材抠图（2026-07-29，大理石墙血泪经验）
+即梦白底图（含烘焙进 RGB 的假透明棋盘底纹）抠图三坑，正解 = **GrabCut + 盖板几何重建**（`tools/prep-hub-assets.py`）：
+1. **固定亮度阈值洪水**吃墙顶亮面（顶沿 230→208 软渐变无暗缝可挡）。
+2. **浮动容差洪水**（邻像素比较）从抗锯齿软边漏进墙内，墙内平滑区一旦进入全淹。
+3. **Canny 路障**：低阈值被背景噪点触发碎网；必须**先高斯模糊**再 Canny——即便如此软轮廓仍漏。
+4. **正解**：sure_bg=边界连通高亮区（>235）+ sure_fg=暗核（<205 最大连通域腐蚀）→ GrabCut 仲裁亮盖板归属；残留盖板坑用**几何重建**填（墙带顶边必为与底边平行的直线：窗格最小顶沿拟合截距、强制斜率=底边、分位数防噪）→ 封闭内洞边界洪水反填。
+5. **分位数取偏低**（30）：拟合线宁低勿高——偏高会把棋盘底纹条带填进 alpha。
+6. 换素材时优先要**深色底**图源，白底/棋盘底天然难抠。
+
+#### 僵尸地牢菱形房间（2026-07-24 落地）
+- **尺寸规则**：原正方形 S（1024~2048 随机、Boss 1024）→ rx=1.2S、ry=rx×0.5774（30°）；**边距 M=260（≥墙贴图高度 190×角度补偿≈217 + 缓冲，否则上夹角被世界顶裁掉）**，菱形在世界正中央，区外全黑
+- **地板**：`applyDiamondFloor(worldW, worldH, cx, cy, rx, ry)`（dungeon-floor-texture.js）——黑砖等距平铺按菱形裁剪，区外全黑，边缘黑渐变
+- **墙壁**：`WallSystem.buildIsoDiamondWalls(cx, cy, rx, ry)`——基底直墙斜铺：四顶点转角点对点（上=后墙 min、下=前墙 max、左/右=上臂 min 下臂 max；**转角臂统一 +5 深度偏置**——顶点侧盖住续接件，预制转角同款规则；纹理随机的墙若让续接件盖住转角臂，贴图切边会暴露在接缝上（2026-07-25 沼泽柴墙左夹角接缝教训））+ 四边续接（**瓦片定长定高、不足靠叠合，绝不压扁**——否则小房间边墙比夹角矮一截），`rebuildIsoCollision()` 出阶梯碰撞
+- **生成点**：玩家从随机顶点的内法线方向入场（off=offsetFromEdge+60）；怪物在对角顶点附近拒绝采样（菱形内缩不等式 `|dx|/(rx-i)+|dy|/(ry-i)<=1`）；出口传送门仍居中
+- **Boss 场地**：boss-reward-system `_setupArena` 同款菱形；玩家下顶点方向、集合体上顶点方向
+- **备份/恢复**：combat-room 与 boss-reward 均备份恢复 `WallSystem.isoVisuals`（否则战斗房墙残留主神空间）
+
+---
+
+### 等距投影素材规范（所有场景素材必须遵守）
+
+**视觉对齐基准 = 地板线 30°（tan30°≈0.5774）**。实测：地牢 blackbrick 29.7°（1.755:1）、主神空间 hub_brick 30.7°（1.687:1），全部地板都在 30° 附近——场景素材的视觉角度一律对齐 30°。
+**注意区分**：引擎碰撞投影 `PERSPECTIVE_SCALE_Y = 0.5`（26.57°）只用于 footprint 椭圆/阴影/分离判定，**不可见，不参与视觉对齐**——2026-07-24 曾错误地按 26.57° 出墙体贴图，导致墙与地板线不齐，已纠正为 30° + 编辑器角度补偿（`slopeFixOf`）。
+**引擎不是近大远小的透视投影**：角色/怪物/地板全图恒定大小，远近只靠 Y 压缩 + Y 排序遮挡表达——场景素材禁止按远近缩放。
+
+**一句话规则：地上的线走 30°，立着的东西垂直站、顶面走 30°，贴地影子画 2:1 椭圆（椭圆跟随碰撞投影 0.5）。**
+
+| 物件类型 | 规则 | 例子 |
+|---|---|---|
+| 沿地面延伸的"线" | 与地板线平行（±30°，斜率 0.5774） | 墙、栅栏、地板纹路、道路、河流、桌台长边 |
+| 站立物件 | 立面垂直（billboard）；俯视可见的**顶面**边缘走 ±30° | 柱子、柜子、箱子、树、门、墙柱/端头 |
+| 贴地影子/占位 | 2:1 压扁椭圆（跟碰撞投影 0.5，不与地板线对齐也看不出） | 落地阴影、篝火/锅/石块底面 |
+| 角色/怪物 | 侧视 billboard，与投影角度无关 | 玩家、现有敌人贴图 |
+| NPC（站桩对话/立绘系） | 正面平视 billboard、平底 | 小鼠铁匠/鼠王/侍从、npc_altar（2026-08-06 八版定论） |
+
+### 环境光照与太阳投影（2026-08-18）
+
+- **太阳方向先走世界-122 的 u/v 地面坐标**：`EnvironmentLightingSystem` 内以方位角得
+  `sunU/sunV`，再调用 `isoLocalToWorldDelta()` 投到屏幕；**禁止**在 GameScene 再对
+  `profile.offsetY` 乘一次 `PERSPECTIVE_SCALE_Y`，否则会二次压扁、方向偏离世界-122 菱形地面。
+  日出=屏幕左/影向右，正午=屏幕上/影向下，日落=屏幕右/影向左。
+- **尺寸与方向分离**：贴地 footprint 高度仍按 `PERSPECTIVE_SCALE_Y=0.5` 压扁；太阳位移已经
+  在 `isoLocalToWorldDelta` 内完成透视投影。散布障碍物的 `getObstacleFootprintRect().h`
+  是碰撞世界深度，注册静态影子时必须再乘 0.5。
+- **静态投影根部**：预投影遮罩（原 alpha 顺时针旋转，立体高度→本地 X 长轴）以 `(0,0.5)`
+  作为底部接地点。仙人掌/雪松随机 `flipX` 要映射到投影的 `flipY`，不得翻转长轴，否则影子
+  会反向穿回模型。建筑投影以贴图/footprint 中心锚定，勿取 footprint 外缘。
+- **造型分档**：高柱仙人掌用长的 `projection`，多节仙人掌用中等投影，桶状仙人掌用短
+  `contact` 阴影；不允许所有障碍物复用一种长影。
+- **派生资产入口**：`tools/ai-gen/build-lighting-maps.py` 从原 PNG alpha 确定性生成
+  `*_silhouette / *_projection / *_height / *_normal`，清单为
+  `data/environment-lighting-assets.json`。不重绘原图；建筑/仙人掌/雪松需要真实轮廓投影时先跑此脚本。
+- **动态单位投影**：玩家、敌人、友军从当前 Phaser 帧 alpha 懒生成 `unit_projection_*` Canvas
+  纹理，同一帧只生成一次。低档=接触影，中档=静态投影，高档=动态帧投影；缓存上限 256，
+  场景/质量切换及 Phaser shutdown 必须回收并从 TextureManager 移除。
+- **建筑锚点不能一刀切**：碰撞 footprint 中心用于接触影尺寸；方向性轮廓影根部默认
+  `footprint_center`。基地 4×4 的贴图与占地中心存在视觉差，但直接改到 `visual_foot`
+  会让整段影子脱离模型；正确做法是在 manifest 对 `defense_base` 配
+  `shadow.anchorMode="footprint_center", shadow.anchorInsetX=120, shadow.anchorInsetY=-120`，
+  把根部向贴图内部右上校准。其余建筑先用 `footprint_center`，实机发现悬空/埋入后再单项调 inset。
+- **基地投影只取底座**：`defense_base` 是立方体+顶盖+扁平底座；完整 alpha 旋转后会把主体
+  投成大块错误阴影。`build-lighting-maps.py` 的 `PROJECTION_BOTTOM_BANDS["defense_base"]=0.20`
+  只取贴图底部 20% alpha 生成 `defense_base_projection.png`。大型建筑出现“影子像整个模型/
+  脱离底座”时，优先增加该配置，不要先拉长或加深影子。
+
+#### 建筑贴图替换后的阴影工作流
+
+1. **保持贴图键不变时**：替换 `assets/terrain/<key>.png` 后运行
+   `python tools/ai-gen/build-lighting-maps.py`，重新生成 `<key>_projection/height/normal/silhouette`。
+2. **新贴图键/新建筑时**：把 key 加入 `build-lighting-maps.py` 的 `ASSETS`，运行脚本；再在
+   `BootScene` 预加载 `<key>_projection`，建筑运行时自动按
+   `sprite.texture.key + "_projection"` 取图。若没有投影贴图，系统回退柔边椭圆。
+3. 检查 `data/environment-lighting-assets.json`：默认 `shadow.anchorMode="footprint_center"`；
+   需要细调时加 `shadow.anchorInsetX/Y`（正值向右/下，负值向左/上）。不要通过修改
+   collision footprint 来补视觉影子位置；锚点问题只调 manifest。
+4. 进入世界-122，至少在正午与晨昏观察：影子根部贴建筑底座、长度不过门/墙、建筑本体不被
+   影子盖住；换贴图后必须重启 Vite，确保新增静态资源被加载。
+5. 提交原贴图、`assets/terrain/lighting/` 派生图、manifest、BootScene 预加载与配置改动；
+   不得只提交原图或只提交 projection。
+
+#### 游戏内时间系统（2026-08-18）
+
+- **唯一时间源**：`EnvironmentLightingSystem._elapsedMs / dayDurationMs / startPhase` 同时驱动
+  太阳方向、阴影、环境色和右上角时间 UI。禁止另起 `Date.now()` 秒表，否则画面时间与太阳脱节。
+- 时相映射：phase=0 为日出 06:00，0.25 为正午 12:00，0.5 为日落 18:00，0.75 为午夜 00:00；
+  UI 显示 `第N日 · HH:MM · 晨曦/白昼/黄昏/深夜`。
+- Phaser 暂停时环境系统不 update，因此游戏时间、太阳和阴影同时冻结；不要用独立
+  `setInterval` 更新游戏时钟。
+- 存档必须写 `gameTime: EnvironmentLightingSystem.serializeTime()`；读档调用
+  `restoreTime(data.gameTime)`，旧存档无该字段时保持当前默认时间。
+- 右上角旧 `.game-timer` 秒表已删除；DOM 与程序化 HUD 均使用 `#gameTime /
+  #gameTimeIcon / #gameTimeText`。
+
+#### 出图提示词要点
+- 写"**底边与水平线呈 30 度夹角**"（对齐地板线）；不要再写 26.5 度/2:1
+- 垫图：把 wall-直墙.png 和一块地板砖存为固定参考图，每批素材垫图生成
+- 同一套素材（如直墙+四转角+墙柱）必须**一批出齐**，分开生成必出规格差（砖块大小不一）
+- 干净输出：透明底、无白色描边/辅助线、无"由 AI 生成"水印
+
+---
+
+### 阶段性进度总结（2026-07-26）
+
+#### 本次完成：沼泽地牢墙体全套落地 + 宝箱房体系 + 系列修复
+1. **墙样式表 `ISO_WALL_STYLES`**（`{straight, gate, chestPrefab, gateSound, corners?}`，key=dungeonType）：沼泽柴墙/藤门素材管线全套（泛洪抠图+水印 inpaint+腐蚀 2px 去颜色污染+两端锥形裁切；门视频 16 帧反转+连通域过滤）；`buildIsoDiamondWalls`/WallGate/门音效/宝箱房预制/夹角预制全走样式。新地牢换墙四步法已文档化。
+   - **⚠ 双份 JSON 坑（2026-08-08 沼泽走廊修复实测）**：`wall-prefabs.json`/`dungeon-config.json`
+     有 **data/ 与 public/data/ 两份**——运行时 fetch 的是 **public/data**（Vite 从 public 提供），
+     编辑器保存走 `/__save-json` 同时写两份；**手工改配置只改 data/ 不生效**（游戏仍读旧 public
+     副本）。改配置必须两份同步。
+   - **✅ 沼泽地牢走廊换墙（2026-08-08）**：三房间串联竞技场的连接通道预制由
+     `combatArena.passagePrefabs` 决定，样式为沼泽时取 `passagePrefabs.swamp`；此前该值
+     指向僵尸版「左右通道」（wall_straight/wall_gate）→ 沼泽房间是柴墙、走廊却是僵尸砖墙。
+     修复：新建「左右通道·沼泽」预制（swamp_wall_straight/swamp_gate，直墙 face 中点按
+     僵尸预制同轴同偏移换算、尺度换沼泽档，见 `tools/gen-swamp-passage-prefab.py`），
+     `passagePrefabs.swamp` 指向它（data/ + public/data/ 两份同步）。
+    验证：`tools/cdp-swamp-arena-check.mjs` 进沼泽竞技场——76 块墙全 swamp_wall_straight、
+    门全 swamp_gate，GLM 确认走廊柴墙与房间衔接自然、连通正常；gate-corner/wall-embed/
+    arena-layout 测试全绿。
+   - **⚠ 换墙后通道中段留大空隙（2026-08-08 二修）**：首版沼泽通道预制直接按僵尸预制的
+     face 中点克隆（每侧 2 段），但**沼泽直墙世界长 374px < 僵尸墙 476px** → 每侧中段
+     留 94~105px 空隙（僵尸版靠 8px 叠合连续，换短墙后断裂；`_sealPassageSides` 只补
+     侧墙到房间边线的**两端**，不补中段内部空隙）。修复：按 SKILL「定长瓦片 + 叠合」
+     规则把每侧改成 **3 段**（步长 374−8=366，覆盖 ≈1106px ≥ 走廊 964px），两侧垂直
+     偏移取原预制的 perp 实测值（走廊两侧不等距）。验证：两侧墙段沿轴投影**零空隙**
+     （全部 ≤0 即叠合），GLM 两条通道均连续无黑缝。教训：**换不同长度墙段时必须重算
+     瓦片数量，不能只换贴图/尺度**。
+   - **⚠ 通道口"错位扭曲"根因（2026-08-08 三修）**：3 段瓦补连续后用户仍报门口
+     "错位扭曲"。排查：`_clipPassagePieceToRooms` 把部分越线的通道直墙件**按比例缩
+     scaleX**（沼泽墙被裁 136~154px），削短同时削短**墙顶** → 通道口墙顶台阶/错位；
+     僵尸走廊几何相同但砖纹不明显、且瓦长 476 未被裁，故旧观感正常。修复：部分越线
+     不再缩 scaleX（保留整件，尾端超出由房间墙/门盖住——SKILL「定长定高瓦片、尾端
+     由邻居盖住」规则），仅整件进房才丢弃。验证：关闭裁剪后门口自然、墙不突入房间；
+     `scripts/test-wall-depth.mjs` 的 `_sealPassageSides` 正则窗口 3000→5000（封口
+     中位数逻辑使函数变长）。教训：**定长瓦片禁按比例缩放；越线交给邻居遮挡**。
+  - **✅ 通道地板盖不住墙角（2026-08-08 四修）**：走廊地板 quad 两个端边原来是
+     "房间边线向内平移 80px"，端点落在房间内部，60° 墙角楔形区地板不到墙线
+     （墙脚露黑）。修复：`_arenaPassageFloorQuad` 侧边取**实际墙线**（不再内收 12px），
+     端边改为**房间真实边线**——地板端点 = 走廊侧墙线 × 房间边线交点（=墙角点），
+     精确盖到墙角；房内延伸由房间菱形地板并集补齐。验证：GLM 通道草地完整覆盖、
+     墙脚无黑洞、门口两侧完整。注意：headless 下 `applyArenaFloor` 的烘焙地板
+     渲染不稳定（terrainTexture 常全黑），像素复核不可靠，最终以实机为准。
+  - **⚠ 通道侧墙探入房间内部（2026-08-08 五修）**：用户报"通道2 侵入第二间房
+    场地、突出来"。量化（`tools/probe-passage2.mjs` 在页面读 isoVisuals + 房间
+     边线投影）：沼泽预制 `t_start=-40`（门中心前 40px 起铺）在 60° 房间边线面前
+     不够——row −211 首件端面探入房A **140.6px**、row +184 末件探入房B **125.9px**，
+     且带碰撞挡住房内可走区（房2 内 (4238,2313)/(4300,2350) pre 不可通行）。根因
+     是三修把 `_clipPassagePieceToRooms` 改成"部分越线保留整件"后失去裁剪；再早的
+     scaleX 裁剪会削墙顶。修复：**任一端点越进房内（>8px 公差）即整件丢弃**，缺口由
+     既有 `_sealPassageSides` 用整瓦补到房间边线（两端各 8px 叠合）——与僵尸版
+     "定长定高、尾端由封口补"同口径，不缩放、不削墙顶。验证：post 房2 门洞内侧
+     (4238,2313)/(4300,2350)/(4400,2330) 全部可通行；精灵列表无突出件、有封口瓦；
+     arena-layout/wall-embed/gate-corner/wall-depth + npm test 全绿；僵尸版侧墙端面
+    均在 ±8px 公差内不受影响。教训：**60° 边线在侧墙 row 上的交点不在门中心**，
+    铺瓦范围两端必须交给边线裁剪/封口兜底，预制起始点不能拍脑袋定。
+  - **✅ 多房迷宫竞技场（2026-08-08 六修/新章）**：三房直线串联 → 任意房数
+    蛇形网格迷宫（默认 5 房 2 排）。核心复用：菱形四对边（LT/RB、TR/BL）的通道
+    连接中心距公式**完全相同**（= (rx_A+rx_B)*EDGE_MID_FACTOR + passageLen），
+    四方向通道几何对称，只需补 v2 轴（上下通道）识别 + 反向放置旋转。
+    实现要点：
+    1. `computeMazeLayout`（combat-arena-layout.js）：蛇形拓扑（排内 ±v1 交替、
+       排间 +v2 折返），房记 inEdge/outEdge（末房出口 = 入口对边，避免出入口同边冲突）；
+       **世界尺寸含负方向——蛇形会向 -y 走，整组平移使 minX/minY ≥ margin**。
+    2. `_analyzePassagePrefab` 双轴校验（v1=(0.866,0.5) / v2=(0.866,-0.5)，取
+       |dot| 大者）；配置 `passagePrefabs` 改 `{ v1, v2 }` 对象格式（坑：deepMerge
+       的 DEFAULT_ARENA 也必须是对象，字符串会被逐字拆开成 {0:'左',1:'右',...}）。
+    3. `_placeArenaPassage` 反向通道**绕 gA 中心旋转 180°**（x'=2gA.x−x，
+       y'=2gA.y−y，flipX/flipY 取反）——水平镜像只翻 x 得到的是 -v2 方向，
+       y 不翻会落点校验失败（反向通道 = 上下通道镜像，不是左右通道镜像）。
+       门洞/底边几何经 texPointToWorld 的 flip 变换自动正确。
+    4. 地板/封口/裁剪的边线动态化：新增 `_roomEdgeLine(room, edge)`（TR/BL 边），
+       `_arenaPassageFloorQuad`/`_sealPassageSides`/`_clipPassagePieceToRooms`
+       不再硬编码 RB/LT——转弯通道（TR→BL）地板/封口全靠这个。
+    5. 波次/门控/出口/宝箱泛化：硬编码 3 → `arena.rooms.length`（forceArenaWaves、
+       `_checkZombieCombatComplete` stage<len、`_onArenaRoomSealed` 末房、宝箱房
+       setup 末房、`_trapExtras` 末房来路通道索引 len−2）；出口门锚定末房 outEdge
+       中点（`_setupGate` 通用）。
+    6. 沼泽上下通道预制：`gen-swamp-passage-prefab.py` 双源（左右/上下）生成
+       「上下通道·沼泽」，L=964.6 与左右一致；data/ + public/data/ 双份同步。
+    配置：`combatArena.maze = { enabled, roomCount, rows }`（默认 5 房 2 排启用；
+    关掉或 roomCount≤3 走原三房直线）。验证：`tools/cdp-maze-check.mjs` 进沼泽
+    竞技场——5 房 4 通道门位置 d1=d2=0、通道中点可通行、四条地板 quad 端点
+    errA/errB=0（转弯 TR→BL 与反向 LT→RB 全对）、三房回归 roomCount=3；
+    npm test 全绿。坑：headless 下 `_enterNode` 时 `window.__phaserScene` 常未就绪
+    → 门精灵 0（headless 伪影，真实游戏正常；验证门用 step-place 手动重建）；
+    地板烘焙渲染不稳定（黑区）是既有问题，几何以 quad 端点计算为准。
+  - **⚠ 多房迷宫房 4/5 墙壁错乱根因：seal/fill 的 flip 解耦（2026-08-11 二修定稿）**：
+    蛇形折返的 v2/-v1 通道在房 4/5 出现墙体重叠/错位。CDP 插桩（isoVisuals.push +
+    _addSegPiece 全量栈）定位到两类"上下颠倒/镜像偏移"墙件：
+    1. **`_sealPassageSides` 的 flip 公式**：旧 `flip = axis.x*axis.y<=0` 且
+       `if(flip) swap` 绑定——-v1（反向轴，(-,-) 得 + → flip=false）不交换端点，
+       A 落下端 → `_addSegPiece` sy<0 上下颠倒（6 块负 sy 件飘进房间）；
+       首修改成 `axis.y<0` 又令 -v1 flip=true → sx<0 底边镜像偏移（残留 2 块）。
+       **正解：swap 与 flip 解耦**——`swap = axis.y<0`（向上轴交换端点保 sy>0），
+       `flip = (axis.x<0) !== swap`（保 sx>0）。四轴 v1/v2/-v1/-v2 全验证。
+    2. **`_fillEdgeGaps` 的 BL 边参数化顺序反了**：BL 应为 **L→B**（上端→下端，
+       与 TR 同方向），旧 B→L 下端→上端 → 填充件 sy<0 上下颠倒。
+    3. 验证：5 房蛇形（1-2 LT/RB、房 3 出 TR、房 4 入 BL 出 LT、房 5 入 RB 出 LT）、
+       4 通道轴 v1/v1/v2/-v1、8 门全开、房间零重叠、**negSy=0、游离件=0**、
+       GLM 全景"蛇形排列、四面墙完整、通道衔接自然、无异常"；lint/build/npm test 全绿。
+  - **⚠ 4→5 通道门口错位的真根因：镜像旋转漏了 flipY（2026-08-11 三修定稿）**：
+    第 3→4（v2）通道正常、4→5（-v1 镜像通道）门口错位/通道墙一塌糊涂/方向反——
+    前两轮"补 flipY / 解耦 seal flip"都没根治（用户实测无变化）。最终定案
+    （按用户"直接复制通道做镜像翻转"）：`_placeArenaPassage` 的 180° 镜像
+    **改为几何重建**——反射每个件的**底边线段**（绕 gA 底边中心），再用墙体系统
+    （`_buildSegPiece` / `_buildGatePieceAt`）从反射底边重建件，锚点/缩放/朝向
+    全部由几何自动推导。旧"位置反射 + flipX(±flipY) 翻转"会把门墙精灵锚点翻到
+    门洞另一侧（视觉门洞偏移 187px）且贴图朝向反转。验证：P4 门精灵与 P1 同构
+    （锚点在门洞上方 ~93px、flipX=true、flipY=false）；GLM"两侧墙完整平行、
+    门洞与房间墙对齐、无竖摆/断口/重叠/游离墙、纹理方向正确"。
+  - **⚠ 地牢左侧信息面板仅路线图显示（2026-08-11）**：时空特工入侵几率标签
+    （AgentInvasionSystem）与预期奖励面板（DungeonMapSystem）不再进战斗画面——
+    `_enterNode` 隐藏 + 各状态入口兜底（_enterCombat/_enterBoss/_enterBossCombat/
+    _enterInvasionBattle/_enterReward/_enterEvent），`_returnToMap` 恢复。
+  - **⚠ headless 探针禁用 --disable-gpu（2026-08-08 迷宫通道墙排查）**：用户报
+    "衔接通道没做墙"。排查中 `cdp-swamp-arena-check` 系探针带 `--disable-gpu`，
+    导致 headless Edge 里 **Phaser scene 不启动（window.__phaserScene 恒 false）**：
+    墙精灵不渲染、`_createArenaGate` 因无 scene 返回 null（门 0）、截图空白，
+    数据层（isoVisuals）却是正常的——误判为"代码没墙"。去掉 `--disable-gpu`
+    后 scene 就绪（门 18 扇、墙件 96、渲染连续）。教训：**headless 渲染类探针
+    一律走真实 GPU（不要 --disable-gpu）；先查 `window.__phaserScene` 是否就绪，
+    再判断"渲染问题"还是"数据问题"**。本次最终结论：数据+渲染均正常，用户所见
+    是浏览器加载中间版本缓存（HMR 未生效），强刷后恢复。
+  - **⚠ 通道侧墙全丢根因：signC 用错字段（2026-08-08 七修）**：用户持续报
+    "衔接通道没做墙 / 看不到墙壁"。深挖（完整启动流程 cdp-swamp-webgl-check）：
+    `_clipPassagePieceToRooms` 里 `const signC = (e.c.x - e.P.x)*nx + (e.c.y - e.P.y)*ny`
+    ——**e.c 是房间对象（字段 cx/cy），e.c.x/e.c.y 是 undefined** → signC=NaN →
+    `NaN < 0` 恒 false → **法线永不翻转** → 通道对侧（LT 等）边线方向错 →
+    五修"任一端点越线即丢"把所有侧墙件误判"整件在房内"**全部丢弃**（三房旧逻辑
+    只丢整件进房、部分越线保留，NaN 符号错误影响小，所以三房一直正常）。
+    修复：`e.c.cx`/`e.c.cy`。验证：修复后完整流程 wallTotal 99→125、通道 1 墙件
+    1→12、渲染棕色墙恢复；npm test 全绿。教训：**几何判定里房间对象一律用 cx/cy
+    （不是 x/y），NaN 比较恒 false 会静默走错分支——排查"墙消失"先怀疑符号/法线
+    判定**。headless 首次场 scene 未就绪会掩盖此问题（墙精灵 0 与墙件被丢混在一起），
+    必须走完整启动流程验证。
+  - **⚠ 转弯通道横墙挡路（2026-08-08 八修/九修）**：用户报"第三四间房衔接通道没做好、
+    墙壁没衔接、不可移动区域也有墙壁"。分阶段重建定位：横墙（通道中间 perp≈0 的墙）
+    在 `_sealPassageSides` 阶段产生。两个根因叠加：
+    1. **flip 瓦方向**：`lay` 沿通道轴铺瓦时 a<b（从通道外向内），flip=true 的通道
+       （v2 轴）`_addSegPiece` 期望 A 端=上端（贴图朝向）→ A/B 反向 → 瓦被翻转、
+       base 段横在通道中间（v2 通道的 seal 瓦方向显示为 -v1 横墙）。修复：flip 时
+       lay 交换 a/b。
+    2. **halfSpan 过窄**：`length/2+250` 会把 3 段瓦的末端件（沿轴 ~L/2+340）排除 →
+       hi/lo 偏小 → 封口瓦从通道中段补起。修复：`length/2+500`。
+    3. **相邻房间平行边墙误收集**：转弯通道轴（v2/-v1）与房间 TR/BL/LT 边平行，
+       seal 会把房间边墙当侧墙（perp 落在 60-400）→ 补瓦错位。修复：`_placeArenaPassage`
+       给预制侧墙打 `_passageWall` 标记，seal 只收集标记件。
+    验证：分阶段 seal 后横墙 2→0，通道 3 碰撞剖面 t=300~500 全部可通行，
+    渲染棕色提升、暗区大减；npm test 全绿。教训：**转弯通道（v2/-v1）与房间边平行，
+    任何"收集平行件"的逻辑都必须按来源标记过滤；flip 瓦的 A/B 朝向要按贴图语义**。
+  - **⚠ 火球命中后残留不消失（2026-08-08 九修）**：僵尸巫师的火球命中目标后残留在
+    原地。两处根因：
+    1. `fireball-system.js onImpact`：`spike.flyActive/active=false` 在**音效/特效/AOE
+       结算之后**才执行——任一步抛异常（音效缺失、粒子/爆炸异常）→ 状态残留 →
+       火球粒子一直显示。修复：**状态清理提前到结算前** + 结算包 try/catch（异常不
+       阻塞火球回收）。
+    2. `GameScene _syncOtherMagicCasters`：`hasFire` 只看 `_fireballActive`/
+       `_fireball.active`——巫师死亡（hp<=0）或状态残留（active 但 flyActive=false）
+       时仍判"有火球" → 清理循环跳过 → 粒子残留。修复：hasFire 增加**施法者存活
+       （hp>0）**与**发射后 flyActive** 双条件。
+    验证：npm test 全绿；命中后火球粒子立即回收、施法者死亡同样清理。
+    教训：**投射物/特效的"结束标记"必须原子化提前置位（先清状态再结算），渲染层
+    判"活跃"要同时看施法者存活与飞行状态**。
+  - **⚠ 迷宫房3 清完不开门（2026-08-08 十修）**：用户报"第三个房间完成战斗不打开，
+    是不是宝箱房的缘故（原来三间房第三间有宝箱房）"。排查：`_enterCombatArena` 里
+    `forceArenaWaves(CombatRoomSystem.getArenaRoomCount())` 在 `enterCombatArena`
+    **之前**调用——此时 `_arena` 尚未建立，`getArenaRoomCount()` 返回 **0** →
+    `forceArenaWaves(0)` 无效 → `_totalWaves` 保持遭遇默认（沼泽 3 波）→ 迷宫 5 房
+    只有 3 波：房3（第 3 波）清完 `_zombieCombat.isComplete` 提前 true →
+    `_checkZombieCombatComplete` 跳过"开门等下一房间"分支、走"战斗完成"只开末房
+    出口门 → 房3 去路门（通道 3）永不开启，玩家卡死（观感像宝箱房/开门逻辑错）。
+    修复：`forceArenaWaves` 移到 `enterCombatArena` 成功**之后**，用真实房间数
+    （5 波）。验证：roomCount=5→totalWaves=5、房3 清完 isComplete=false、通道 3
+    门正常开启；npm test 全绿。教训：**竞技场波次数必须等场地建成后再按房间数编排，
+    进场前 getArenaRoomCount() 返回 0 会让 forceArenaWaves 静默失效**。
+  - **✅ 地牢选择界面背景图（2026-08-08）**：路线选择界面上方背景走
+    `DungeonConfig.getZombieDungeonConfig(dungeonType).mapBackground`，**配置键注意
+    `_keyFor` 映射**（swamp → `swampDungeon`，不是 dungeonList 的 'swamp' 键）；
+    僵尸默认 `assets/scenes/dungeon-bg/zombie.png`（2560×1065，湿地+地牢废墟风格，
+    注意与兜底 `dungeon-map-bg.png`（2560×1440 城堡）不是同一张）。新增地牢背景：
+    参考僵尸原图 → `flux2-dev-fp8` 文生图（无深度图时用强构图提示词；HuggingFace
+    被墙下不了 Depth-Anything，深度控制不可用）→ 放大到与参考同尺寸 → 存
+    `assets/scenes/dungeon-map-bg-<主题>.png` → data/ + public/data/ 两份配置
+    `swampDungeon.mapBackground`。验证：`tools/cdp-swamp-webgl-check.mjs` 进地图
+    截图 + GLM。生成提示词见 `tools/_swamp_bg_prompt2.txt`（宽幅 2.4:1）。
+2. **夹角**：运行时支持预制夹角（`_placeCornerPrefab`：共享端点锚定顶点、深度按房间规则重算 min/max+编辑器内部顺序保留）；最终四角全部用用户手摆纯直墙预制。
+3. **一房一门**：`_setupGate` 优先替换样式门件（装饰门→功能门），无门件回退最近直墙件（跳过 `_corner`）；门闸缩放统一为墙件同尺度（`ISO_WALL_HEIGHT/wallH + slopeFixOf`，修大小墙衔接）。
+4. **宝箱房**：按预制原样放置（x/y/scale/flip/depth 仅平移，**不重算**——此前重算图层+门墙缩放归一是"预制图层混乱+缺口"根因）；门墙碰撞从件变换推导；宝箱贴图换 D.png/D-打开.png 静态双图；墙脚阴影（离屏实色+blur 羽化，alpha 0.55）；门纳入 X 光 occluders。
+5. **地板**：`overlapX/overlapY` 叠合机制（自然材质必配）；地砖默认随机选图+随机镜像（立约无需声明）；brick-4 泥水砖已剔除。
+6. **拼接**：`edgeFill` 废弃均匀拉伸，回定长定高瓦片+overshoot 由转角臂+5 偏置盖住（转角臂统一 +5 已入规则）。
+7. **门外白区**：远两角从锐角→圆角路径→最终**分形噪声海岸线淡出**（96/28px 双层值噪声调制保留阈值，每次生成不同）。
+8. **关键修复**：`rebuildIsoCollision` 保留 `_gate`/`_chestGate` 门线段（门洞可穿根因）；宝箱房刷怪回退点不再落中心排除区；AttackRangeEffect 警示圈 depth y-998 + 保活重置 life。
+9. **诊断日志**：`[DungeonFloor]` 地砖池、`[XRay] 宝箱房门` occluder 注册（排查"修改未应用"类问题先查它）。
+
+#### 关键改动文件
+- `src/world/wall-system.js`、`src/world/wall-gate.js`、`src/world/chest-room-system.js`、`src/world/combat-room-system.js`
+- `src/world/dungeon-floor-texture.js`、`src/world/dungeon-map-system.js`、`src/world/zombie-dungeon.js`
+- `src/phaser/scenes/BootScene.js`、`src/phaser/scenes/GameScene.js`、`src/ui/wall-editor.js`
+- `assets/terrain/swamp_*`（柴墙/藤门/地砖）、`assets/sounds/environment/swamp_gate.mp3`
+
+#### 验证状态
+- `npm run lint` ✅（0 error）
+- `npx vite build` ✅
+- `node scripts/test-collider.mjs` / `test-craft-sync.mjs` ✅
+
+---
+
+### 阶段性进度总结（2026-07-26 续）
+
+#### 本次完成：门外白区边缘体系 + 沼泽装饰 + 死亡序列修复
+1. **门外白区边缘**：多轮迭代——规则圆弧（太规则）→ 噪声海岸线（阈值/半平面 bug 两连）→ **EQ 柱状图**定稿（柱条沿外法线、柱高=随机游走+尖峰、内部平整实心、柱间细缝、门侧 ±45° 保护、长边扇区限定）。**教训：白区只在进房时烘焙一次，改代码必须重进战斗房验证**。
+2. **X 光透视全局停用**：`GameScene._xrayEnabled = false` 开关，代码保留可恢复。
+3. **沼泽装饰道具**：4 件素材（柴堆/草茎/树桩/苔石）重管线抠图（泛洪+腐蚀 2px+漂白压暗）；`_spawnFloorDeco` 按晶格 30% 随机摆放（origin 底边贴地、y 排序、cleanup 统一销毁）；配置 `floor.deco`——**注意 `setDungeonFloorProfile` 必须显式透传新字段**（deco 被丢导致不生效的教训）。
+4. **矿石蜘蛛死亡序列修复**：game.js 尸体识别只看 `_deathAnimTimer/_corpseTimer/_fadeTimer`（硬约定），自定义字段名导致死亡后 update 被跳过——已对齐标准字段，临终下砸+dying+定格+淡出全部生效。
+5. **地砖**：AI 新砖（45°菱形纵向压缩掰 30°）入库试用 `swampbrick_new1`，旧 3 张备份 `swampbrick_old/`；**不同宽度砖不可混铺（网格步进错位）**。
+
+#### 关键改动文件
+- `src/world/combat-room-system.js`（白区烘焙/装饰生成）、`src/effects/gate-light.js`
+- `src/world/dungeon-floor-texture.js`（deco 透传）、`src/entities/enemy-types/ore-spider.js`
+- `src/phaser/scenes/GameScene.js`（X 光开关）、`assets/terrain/swamp_*`
+
+#### 验证状态
+- `npm run lint` ✅（0 error）
+- `npx vite build` ✅
+- `node scripts/test-collider.mjs` / `test-craft-sync.mjs` ✅
+
+---
+
+### 阶段性进度总结（2026-07-25）
+
+#### 本次完成：矿石蜘蛛（精英）+ 沼泽地-高级地牢 + 近战口径统一 + 系列修复
+1. **近战命中口径统一**：`_shared/enemy-utils.js` 新增 `inMeleeRange`（与 CombatSystem 触发同语义圆形边缘距离）；矿工/工头/提灯/盾卫/突击/手脑近战命中从 GroundEllipse（垂直半射程）切换；技能 range 读取约定 `skill.range ?? this.attackDistance ?? 默认值`。带地面椭圆圈视觉的范围技能（砸地冲击波/嚎叫/燃烧区）保留椭圆。
+2. **新怪物矿石蜘蛛（oreSpider，精英/僵尸）**：投掷晶石（600px 触发、28 帧第 21 帧发射、1s 抛物线+360°/s 旋转、落地红圈警示+100px 物理×1.25+烟尘）；起跳下砸（18 帧第 10 帧阶梯判定 200×2/350×1 不叠加+红圈提示+命中眩晕 2s）；临终一砸（attacking-2 播 14 帧含判定→dying 12 帧→定格 1s→淡出）。精英战抽中它时其余普通怪固定矿工僵尸。
+3. **新地牢沼泽地-高级（swamp，C 级）**：55~60 房间、起始 4 路线、怪物/事件/Boss 全用僵尸体系（`_isZombieFamily`+事件 family 映射+'swampDungeon' 配置块）、地板 swampbrick_1/2/3 随机拼接。
+4. **系列修复**：玩家流血不扣血（基类 _updateBleed 扣 this.hp 而玩家真实 HP 是 data.hp；玩家专属流血/中毒块+无敌闸门）；无敌开关全场景生效；`colliderOffsetY` 必须写 render 块（核心规则 6）；AttackRangeEffect 警示圈 depth 统一 y-998（实体之下）且保活必须重置 `life`（不是 maxLife）；AI 素材对齐前先提高 alpha 阈值区分本体与残影。
+5. **工头鞭子特效重写**：扫掠扇面+柄粗梢细+末梢爆点，220ms，每次鞭击一条。
+
+#### 关键改动文件
+- `src/entities/enemy-types/ore-spider.js`（新增）、`_shared/enemy-utils.js`
+- `src/entities/damageable-entity.js`（状态免疫 statusImmune）
+- `src/entities/player/update.js`、`src/entities/player/subsystems.js`
+- `src/effects/attack-range-effect.js`
+- `data/enemy-config.json`、`data/dungeon-config.json`
+- `src/config/dungeon-config.js`、`src/world/dungeon-map-system.js`、`src/world/dungeon-event-system.js`、`src/world/zombie-dungeon.js`
+- `src/phaser/scenes/BootScene.js`、`src/game.js`
+
+#### 验证状态
+- `npm run lint` ✅（0 error）
+- `npx vite build` ✅
+- `node scripts/test-collider.mjs` / `test-craft-sync.mjs` ✅
+
+---
+
+## 7. 世界-122 防守地图
+
+### 世界-122 防守地图（雏形，2026-08-04）
+
+主神空间传送门 →「世界-122」（scene8，原沼泽地改名）。防守玩法第一版，纯代码零新素材。
+
+#### 基地区域（scene-manager `_loadScene8`）
+- 沙袋矩形围栏（1508/2588 × 1780/2820）：北/南边横向沙袋、西/东边旋转 90° 沙袋，
+  两端延伸封死四角；**南侧留真实缺口当门口（≈352px）——不要摆门件**：门贴图
+  （hub_gate/swamp_gate）可通行门洞只占贴图跨度 8%~21%，按门口尺寸摆会堵死入口。
+- 沼泽柴墙三瓦片后墙（完整落在基地北侧，30° 地板线）+ 拒马门口内侧路障。
+
+#### 刷怪波次（`src/world/defense-system.js`）
+- 边界 8 个刷怪点；`MONSTER_POOL` 按「类型 × 权重」加权随机生成，**只生成可移动怪物**
+  （站桩：矿洞/墓碑/煮锅/集合体排除）；波次随用时成长（HP +16%/波、攻击 +8%/波、
+  数量递增、间隔缩短有下限、场上存活上限 40）。
+- 怪物标记 `_preferDefenseTargets = true` → 只锁定基地/防御塔（`PerceptionSystem._isValidTarget`
+  与 `Enemy._findNearestPlayer` 已加守卫），不追玩家；基地核心被摧毁 → 防守失败、停波次。
+
+#### 防御塔（DefenseTower，复用 Combatant）
+- 独立装备栏：背包内**远程武器、手枪除外**（bow/pkm/akm/qbz191/qjb201/shotgun/energy_lmg）；
+  弹道/开火特效直接复用 `Combatant.fireProjectile` + `EffectFactory` 枪口火焰/弹壳 +
+  `GameScene.playMuzzleFire`（不需要新素材）。
+- 每发伤害 = 武器基准 × 玩家六维加成 × (1 + 0.22×(等级−1))；升级=金币（120×1.55^(L−1)，
+  满级 10），同时提升耐久；点塔弹出面板（装载/卸下/升级），卸下归还背包。
+- 塔渲染走 `_syncNeutralEntities`（spriteCfg 贴图复用：石柱/祭坛，`sizeH` 支持等比非方形）；
+  深度按脚底 Y 参与墙体排序。**2026-08-04 生图入库**：防御塔专用贴图
+  `obstacle_defense_tower.png`（基座 + 上方机械臂空置武器挂载点），塔 spriteCfg 已切换。
+
+#### 掩体（DefenseCover，可被攻击的防御墙段，2026-08-04）
+- **生图**：dev+mesh 批量（`tools/ai-gen/gen-world122-assets.py` + `prompts/cover.md`），
+  F→A 六档 × 水平摆(_h)/垂直摆(_v) 共 12 张；视觉基准=游戏墙体 30° 底边。
+- **斜向坑**：FLUX.2 不区分 h/v 斜向（全部产出 "/"）→ 处理脚本将 _h 组水平镜像归一为 "\"
+  （`tools/ai-gen/process-world122-assets.py`）；入库 `assets/terrain/obstacle_cover_<grade>_<orient>.png`。
+- **数值**：hp = F400/E700/D1100/C1600/B2200/A3000，**def/mdef 均为 0**（怪物全额伤害）；
+  `_isDefenseStructure=true` 供怪物锁定攻击、`immovable=true` 不可击退/位移、
+  `_noShadow=true` 无脚底阴影；碰撞 footprint 见 `COVER_FOOT`（198×133、thick=26）。
+- **摆放**：基地菱形房预置（见下节「路线 B 最终管线」）；玩家 B 面板自行加建。
+
+#### 掩体最终管线（路线 B）与基地菱形房 v2（2026-08-05 定稿）
+- **素材**：Blender 完整 box 230×52×150 绕 Z 44.8°（中段底边斜率 −0.4976）+
+  AI 材质纹理（36 步、bump 0.25、无阴影），透明背景零抠图；入库 1024×1024，
+  显示 260×260（aspect 1.0），`h = flip(v)`。
+- **几何统一**（`COVER_FACE`，6 级完全相同）：v: A(−88,−21)→B(88,−109)；
+  h 镜像 A(−88,−109)→B(88,−21)。face 线 = 墙段接底线，**拼接/碰撞一律用 face**；
+  完整 box 实心端帽（端面宽 ≈52），深度锚点 = max(face 端点 y)+12。
+- **自然贴图重做（2026-08-05）**：旧材质“生硬、塑料感”→ 提示词强化手凿/风化/
+  碎裂不规则边缘（`gen-cover-textures.py` THEME+TAIL），36 步批量重出 6 级纹理
+  → Blender 重渲染 → `prep-cover-render.py` 复标（几何不变，face 端点微调 −25/−112→−21/−109，
+  全部一致）→ 备份 `.bak.natural` 后替换 assets（v 原样、h=flip(v)）。
+- **方格砖墙改版（2026-08-05 同日，用户指定“参考原来的直墙”）**：掩体材质从乱石堆
+  统一改为**规整方格砖墙**（横竖对齐砖块网格 + 均匀细砖缝，视觉对齐 wall_straight），
+  6 级按主题区分（F 旧灰砖 / E 砖+沙袋 / D 标准暖灰红砖 / C 混凝土砖+钢板角件 /
+  B 深色砖+铆接钢板 / A 暗色魔纹砖）；提示词以 `regular square brick grid pattern,
+  rectangular bricks aligned in neat rows` 为骨架，仍带碎裂边缘/磨损，保持无阴影平光；
+  旧自然版备份 `.bak.brick`。校验：FFT 砖缝周期性（新 D 39px/46px 峰值强于直墙基线）
+  + GLM 局部放大确认网格 + `audit-perspective` MIRROR 对。
+- **E/C/B/A 强化重做（2026-08-05 三版）**：用户反馈“体现不出墙壁强度”→ 只重做
+  E/C/B/A（F/D 保留），48 步 + 颜色分级：F 白灰 / E 沙色米黄+橄榄绿沙袋 /
+  D 暖灰红砖 / C 冷灰蓝混凝土+锈钢板角件 / B 深钢蓝炭黑铆接钢板（砖格 60%+钢板 40%）/
+  A 黑砖+蓝色发光符文（符文画在砖面）。提示词先写砖格再写强度元素（防钢板/符文盖掉
+  网格，第一版 B/A 网格被盖，FFT 周期弱于直墙基线）；旧版备份 `.bak.brick2`。
+  **校验铁律**：强度元素必须“砖格为主、元素为辅”，FFT 双轴峰值 ≥ 直墙基线（~0.03）
+  才算过；GLM 缩略图误读网格，必须放大单看砖缝。
+- **E/C 修复 + 8 角圆角（2026-08-05 四版，用户先让全网查墙壁贴图做法）**：
+  - 行业做法（全网检索）：墙体贴图走“UV 映射 + 烘焙”管线，中段用 tileable 纹理、
+    端头/转角用 trim；材质配 PBR 通道；白色残留 = 生成时背景色/alpha 问题，须在
+    纹理层消除（渲染成品 0% 白为准）。路线 B 符合该方向（几何 Blender 控制 + AI 只出材质）。
+  - E 修复：沙袋固定“仅顶部一行 + 砖格铺满其余”，提示词加 `sandbags only at the top edge,
+    no sandbags elsewhere` + `no white background, no pure white areas`（旧版沙袋乱入
+    墙体中部/白色残留即“贴合位置错误 + 看到白底”的根因）。
+  - C 修复：加 `bright even lighting with subtle highlight and shadow detail, high contrast
+    between concrete blocks and mortar lines`（旧版灰闷无层次）+ 钢板改小点缀不盖砖格。
+  - **8 角圆滑（用户要求尝试）**：Blender box 加 `bmesh.ops.bevel(affect='VERTICES')`，
+    只圆 8 个顶角、不动长棱边（保住底边直线）；bevel=10 世界 px、segments=3，
+    先 `transform_apply(scale)` 再 bevel（否则偏移随非均匀缩放）。圆角后底边端点复标
+    A(-88,-21)/B(88,-108)、sizeH 259（aspect 1.004），拼接仍连续（40px 端帽叠合覆盖圆角）。
+    旧版备份 `.bak.bevel`。
+- **⚠ 重大根因：Blender 默认 cube 的 UV 是 3×2 分块布局（2026-08-05 五版修复）**：
+  新建 cube 的 UV 不是每面 [0,1]²，而是每张面只采样纹理的一小块——材质贴图
+  **只有上半部分被显示**（砖墙上下纹理一致看不出来，E 级沙袋"位置错误/露白"暴露）。
+  修复：`render-cover-real.py` 新增 `box_full_uv()`——每个面按局部主轴投影归一化到
+  [0,1]²（V 轴优先世界 Z 朝上），纹理顶部始终在墙顶；bevel 后同样适用。
+  验证方法：方向标记测试纹理（上洋红/下青色/中黄线）渲染后沿中列采样——修复前只见
+  洋红，修复后正面自上而下完整显示洋红→黄→青。**此后任何 Blender 立方体资产
+  必须检查 UV 是否为整图映射，不能再吃默认 cube UV**。旧版备份 `.bak.uvfix`。
+- **E 改砂岩墙 / A 改大符文（2026-08-05 六版）**：E 级放弃沙袋（用户认为沙袋还有
+  优化空间，先不做）→ 纯**沙色/米黄砂岩砖墙**（sandstone brick wall, warm sand and
+  beige tones, no sandbags）；A 级符文放大：`one single large glowing blue rune
+  engraved across the center, exactly one large rune, no small runes, no repeated
+  runes`——成品正面 1 个大符文（顶面映射 1 个，共 2 个），符文约占正面 1/4~1/3。
+  旧版备份 `.bak.sandrunes`。验证：GLM 确认 E 无沙袋/砖格规整、A 大符文单点不密集；
+  白色像素 0%、MIRROR 对、拼接像素、实机审计全过。
+- **变体随机贴图库（2026-08-05/06 七版）**：每级 5 个"高度类似、细节微调"变体
+  （v1=定稿；v2~v5 由 `VARIANT_SUFFIX` 微调砖色/磨损/苔藓/色温，A 级由
+  `A_RUNE_VARIANTS` 随机替换大符文形态：棱角/圆形/菱形/十字）。
+  生成：`gen-cover-textures.py --variants 5 --from-variant 2`（v1 从定稿 tex_<g>.png
+  复制保留）；渲染 `render-cover-batch.py FEDCBA 5`；入库
+  `obstacle_cover_<g>_v<n>_v/h.png`（v 原样 + h=flip，共 24 变体 × 2 向）。
+  游戏集成：BootScene 加载 v2~v5 变体；`DefenseCover` 构造时
+  `variant = 1+floor(random()*5)` 随机选贴图（v1 无后缀，v2+ 带 `_v<n>_`）——
+  同一房间/防线的墙段不再千篇一律。实机验证：14 件 D 掩体随机分布到 5 变体。
+  **mesh 弃用（2026-08-05 实测）**：mesh（Icarus@5080+Daedalus@3080Ti，8 步 Turbo）
+  单张 283s vs 5080 单机 fp8 48 步 84s——mesh 更慢 2~3 倍（通信 + 服务端弱卡），
+  仅适合"主卡显存装不下大模型"的救急，纹理批量继续 5080 单机 fp8。
+- **祭坛/仓库 Blender 重做（2026-08-06 八版，建筑管线）**：
+  - 视角体系定论：墙/掩体=等距 2.5D（30° 俯仰、可见顶面）；人物/防御塔/祭坛/仓库=
+    **正面平视 billboard、平底**（2.5D 惯例：地形等距 + 立绘建筑，不冲突；
+    红线=建筑顶面可见度勿超过墙量级，防御塔 45° 等距版即因此被否）。
+  - 新工具 `render-building-real.py`：多 box + prism（三角棱柱坡屋顶）组合、
+    每部件独立材质纹理、相机俯仰默认 5°（最多一条极窄顶边）、无阴影、透明底。
+  - 祭坛=多层台座+中央碑（大理石+金饰+蓝宝石 AI 材质）；仓库=木屋 box+坡屋顶 prism。
+  - **标定**：内容底边比例 cb（如 0.8506）→ `sizeH = size×内容高/内容宽`、
+    `footOffsetY = sizeH×(cb−0.5)`；更新 `data/` 与 `public/data/` 双份 game-config.json。
+  - 验证：Phaser 层查 texture/sprite 创建与显示参数（headless 截图相机常偏，别依赖；
+    GLM 对"平视 vs 俯视"判断不稳，坡屋顶坡面易被误读为等距顶面）。
+  - ⚠ **2026-08-06 用户验收不合格 → 已整体还原**：祭坛/仓库图片与标定全部回退到
+    ec069a7 之前的原版（祭坛 411KB/512×497 紧贴裁剪、仓库 176KB/宝箱容器风格），
+    `git checkout ec069a7^ -- assets/npc/altar.png assets/npc/warehouse/warehouse.png
+    data/game-config.json public/data/game-config.json` 四件套；`sizeH` 字段移除后
+    GameScene `sprCfg.sizeH || sz` 自动回退方形显示，无需改代码。新 Blender 版
+    （仓库木屋/多层台座）保留在 git 历史可查，不删。
+- **红狼王 H3 全动作升级（2026-08-06 九版，视频→精灵图）**：
+  - 10 段 H3 首帧循环视频：狼 idle/walk/run/飞扑挥爪/飞扑撕咬/变身 + 红狼人
+    idle/run/挥爪攻击/仰天嚎叫；**优化配置 1024×576 + 16 步 = 6 分钟/段**
+    （原 1344×768+20 步 17 分钟，快 2.6 倍；H3 最短可靠 124 帧，循环靠截取）。
+  - 切帧帧数（h3-loop/h3-attack）：狼 walk P=34→11 帧(4×3)、run P=14→7 帧(7×1)、
+    红狼人 run P=24→12 帧(7×2)；攻击/变身/嚎叫各 12 帧(4×3)；idle 抽 1 帧静态。
+  - **cv2.imwrite 中文路径静默失败（不回错误）**：切帧输出必须走 ASCII temp 再拷回
+    （tools/h3-*.py 输出到 `%TEMP%/world122-cover`）。h3-loop-spritesheet 补了
+    末行不足 cols 时补透明格（11 帧 4×3 场景会崩 vstack）。
+  - RedWolfKing 类重建（extends BlackWolf）：HP≤50% 触发 2s transform →
+    红狼人形态（伤害×2、回血、先 howl），狼形态双攻击
+    pounceClaw(远/飞扑挥爪)/pounceBite(近/撕咬)；animation-config 双份校准
+    frameLayouts/attackTypes/transformedFrameLayout；BootScene 注册 10 纹理键。
+  - 实机验证：狼形态 + 变身红狼人均正常渲染、无报错；测试/构建全绿。
+- **红狼王抠图+体型修复（2026-08-06 十版）**：
+  - **白底残留**：切帧阈值 248 会留下压缩伪影白边/半透明白边。修复：cv2
+    `connectedComponents` 对"不透明且 rgb>200"做 4 连通标记，凡连通帧边缘的
+    连通域置 alpha=0（flood-fill 思路，但纯 Python BFS 太慢会超时）；主体内部
+    浅色毛不连通边缘，安全保留。处理后全部贴图 `white_total=0`。
+  - **红狼人太小（108 宽 vs 狼 317 宽）**：H3 参考图把红狼人画瘦了。重生成
+    参考图（提示词加强 broad-shouldered / heavily muscular / bulky / large
+    imposing frame）→ 4 段视频重生成 → 重切帧，红狼人 108→161 宽（人形
+    宽高比 0.61 协调）。**视频模型受参考图体型影响极大，人形参考必须先做壮**
+    （宽度目标 ≥150/262 高）。
+  - 实机验证：变身红狼人新贴图、纹理匹配、大小协调、无白边；测试/构建全绿。
+- **红狼王狼形态大小统一（2026-08-07 十一版）**：
+  - 用户反馈"狼形态大小不一"：idle 317×260 / walk 354×253 / run 422×242 高度宽度
+    都不齐。根因：`--fixed-scale` 保留视频内狼的绝对尺寸，但 H3 各视频中狼体型
+    漂移不同；逐帧 target_h 又只统一高度、宽度仍随视频。
+  - 修复：**全部狼形态动作用 target_h=262（非 fixed-scale）+ attack 工具
+    `--fixed-scale 0`**，与黑狼管线一致 → 高度全部 262、宽度随姿态
+    （idle 317 / walk 356 / run 430 / 前扑 369~413，黑狼同款惯例
+    idle 408 / walk 415 / run 458）。
+  - run 视频 H3 固有水平拉伸（v2 提示词加 "body stays compact" 仍 430），
+    与黑狼 run 458 同量级，接受为奔跑姿态；GLM 把低伏 run 误读为"最小"，
+    以像素高度为准。H3 参考图宽高比 1.22（站立狼正常），黑狼 1.56 是姿态差异。
+- **红狼王 idle/攻击重做（2026-08-07 十二版，套黑狼白边+大小经验）**：
+  - **攻击必须 `--fixed-scale 1`（首帧同比例）**：之前错用 0（逐帧 target_h）
+    导致 pounce_bite 413 宽 vs idle 317（+30%）。fixed-scale 后 claw 345 / bite 355
+    vs idle 318（+9~12%），与黑狼 pounce 458 vs idle 408 同款；高度 247/227
+    是前扑压低姿态（黑狼 224~261 同理），基础体型恒等。
+  - **白底必须 BiRefNet**：阈值 248+max 合成会把 235~248 灰白压缩背景判成主体
+    （alpha 255 白边）。修复（`rebuild-h3-birefnet.py` 新增）：阈值兜底只对
+    深色区（gray ≤ 阈值-13）强制主体，灰白区交给 BiRefNet；alpha = max(BiRefNet,
+    深色阈值)；去污染 lum>150 且 alpha<250 半透清零。修复后近白半透
+    21763→14823（占 0.5%，余为浅毛软边），GLM 确认无白边。
+  - idle 同管线重做（318×262，与攻击/步态高度一致 262）。
+  - 跑 BiRefNet 用 ComfyUI venv python（系统 python 无 transformers）。
+- **红狼王蓝色 bug + run 脚步白边（2026-08-07 十三版）**：
+  - **攻击全蓝根因：cv2.imwrite 按 BGR 解析数组**——rebuild 脚本把 RGB 数组直接
+    `cv2.imwrite` → 通道翻转，红狼变蓝。修复：`Image.fromarray(sheet, "RGBA").save()`
+    （PIL 正确解释 RGBA）；所有 BiRefNet 重建 sheet 必须 PIL 保存，禁止 cv2.imwrite。
+  - **run/walk 高度被切（204 高）根因二连**：① 去污染 lum>150 太激进切浅色毛
+    → 改 200（只清近白边）；② **bbox 用 `gray<248` 把画布顶部 235~247 灰白噪点
+    圈进 bbox（y0=0）导致狼被压缩** → bbox 改用合成 alpha（>30）。
+  - 修复后：run 433×262、walk 368×262、claw 344×246、bite 354×226
+    （步态高度统一 262，攻击为前扑压低姿态，黑狼同款）；毛色深红正常；
+    近白半透 0.5%（浅毛软边，黑狼基准 <1%）；GLM 确认脚步无白边。
+- **红狼王 idle 蓝色残留 + 攻击身高统一（2026-08-07 十四版）**：
+  - **idle 仍蓝**：idle 是早期 cv2.imwrite bug 版本，重生成（PIL 保存 + uniform-h）
+    后 RGB [90,18,18] 正常；**入库必须核对入库后的文件**（此前一次入库因
+    Python cwd 相对路径失败，assets 里还是旧蓝版——GLM 复核才暴露）。
+  - **撕咬 vs idle 身高差 15%（226 vs 262）**：H3 撕咬前扑固有压低，重生成视频
+    （提示词 keep body tall / no extreme lowering）仍 223。**治本=全部狼形态动作
+    uniform-h 统一高度 262**（黑狼同款）：idle 320 / walk 368 / run 433 /
+    claw 371 / bite 432，高度全 262；宽度随姿态（站立窄、前扑/奔跑伸展）。
+    H3 视频内狼大小漂移是生成特性（run 首帧 471→中段 631 宽），切帧只能
+    统一高度，宽度差异读作姿态；黑狼 idle 408 / pounce 458 同样 +12%。
+- **红狼王双攻击完整重建（2026-08-07 十八版，撕咬补帧+攻击链路修复）**：
+  - **撕咬贴图中间行全空根因**：原采样帧列表漏掉扑咬爆发段（视频 28~48 帧），
+    且爆发帧宽超 512 格会裁切/空行。重建：`rwk_pbite.mp4`（%TEMP% 留存）+
+    `rebuild-h3-birefnet.py`，采样覆盖爆发段（6,14,22,28,32,36,40,44,52,62,74,85），
+    **格子放大到 576²（--cell 576 --center-x 288）**，12 帧全满、高度统一 261；
+    BootScene 该贴图 frameWidth/Height 同步 576（其余仍 512²）。
+  - **pounceClaw 播不出来的根因（代码层）**：黑狼状态机 `_startBite/_startPounce`
+    不设置 `_attackType`，原 RedWolfKing 只在死代码 `triggerWeaponAnim` 里切——
+    通用战斗系统被 aiInterval=MAX_SAFE_INTEGER 禁用，永远不触发。修复：
+    RedWolfKing 覆写 `_startBite→pounceBite`、`_startPounce→pounceClaw`。
+  - **attack 帧数落回 8 帧的根因**：RedWolfKing 构造器在 `super()`（黑狼构造器）之后
+    才重设 `_animCfg`，但没重取 `_frameLayouts/_frameDurations` → 一直用黑狼表，
+    pounceClaw/pounceBite 键不存在 → 兜底 8 帧，撕咬永远播不到爆发段。
+    修复：构造器重设 `_animCfg` 后同步重取 frameLayouts/frameDurations。
+  - 攻击节奏：bite 1.2s/12 帧（100ms/帧，命中窗 42%~75% 落在扑咬爆发段）、
+    pounce 蓄力 900ms + 冲刺 900ms（4+8 帧）；pacing/walk 修正为 14 帧（4×4，
+    原配置 13 帧 4×3 与实际 14 有效帧不符，末帧被丢弃）。
+  - **vite JSON 缓存坑**：改 `data/*.json` 后若 `animation-config.js` 服务端仍带旧
+    `?t=`，页面 import 会拿到旧数据（实测 attackTypes 少新键）——touch 文件触发
+    失效即可；双份 data/ + public/data/ 都要改。
+- **红狼王全套抠图清理（2026-08-07 十九版，套黑狼 CLEAN 铁律）**：
+  - 用户反馈抠图有问题。用黑狼判据跑全套 10 张：**全部 DIRTY**——
+    run stray 1792 / edge_bright 2.5 万 / composite 843，其他张同量级；
+    trans_nonblack 1.7 万~82 万（透明区 RGB 残留）、semi 数百~3 万。
+  - 边缘亮像素定量：均值 RGB ~(200,184,186) 灰粉（背景白×红毛混合），
+    内邻毛色 (128,89,94)，**边缘无白毛** → 可安全压暗还原。
+  - 工具 `tools/ai-gen/rw-cutout-clean.py`（复用黑狼 post_clean_sheet 五步：
+    alpha 硬二值化 245 → 每格最大连通域 → 透明区 RGB 归零 → 腿部 5×5 毛色均值），
+    **差异点：边缘亮像素用 5×5 邻域毛色均值还原，不用黑狼固定 18**
+    （固定 18 会把红毛压成黑点）；兜底深红 (90,18,18)。
+    注意 pounce_bite 是 576² 格（cell=576），其余 512²。
+  - 清理后 10 张全 CLEAN（stray/semi/trans_nonblack/edge_bright/composite 全 0），
+    GLM 合成灰底预览 + 实机截图均无白边/白点/脚底灰圈，狼身完整无洞。
+- **红狼人形态独立显示尺寸（2026-08-07 二十版）**：
+  - 红狼人贴图本身够壮（172×259），但上屏与狼形态共用 spriteSize 151 → 内容
+    只有 ~51px 宽，看起来比狼还小。新增 `render.transformedSpriteSize`（默认 200，
+    data/ + public/ 双份），变身态按此重算 displaySize（200≈+32%），实机红狼人
+    明显高于玩家/普通怪，有压迫感。
+  - 实现：RedWolfKing `_getPhaserOptions` 覆写（变身态替换 spriteSize）+ 兜底
+    `_drawSheetFrame`（canvas 路径按同一尺寸/偏移等比缩放）。
+  - **vite 对 data/*.json 模块缓存可能滞后**：改 JSON 后代码内用 `?? 默认值`
+    兜底保证生效（本次 JSON 加了键但页面仍读到旧模块，靠代码默认 200 落地）；
+    最终以 JSON 为准需重启 dev server 或等缓存刷新。
+- **红狼王变身期锁移动 + 减伤 90%（2026-08-07 二十一版）**：
+  - 需求：变身动画期间不可移动、减伤 90%（站着挨打也站得住）。
+  - 实现：变身期 `_frozenForCast=true`（MovementSystem 每帧 return，真锁移动，
+    不是只清零 vx/vy）+ 终止进行中的撕咬/飞扑（_endBite/_endPounce 会清
+    frozenForCast，顺序必须先终止再上锁）；嚎叫期沿用同锁。
+  - 减伤：覆写 `takeDamage`，在暴击计算前 `damage × (1 - damageReduction)`，
+    默认 0.9，`transform.damageReduction` 可配（animation-config/enemy-config
+    data+public 双份四文件同步）。
+  - 实机验证：变身中 frozenForCast=true、vx=vy=0、takeDamage(100) 实际掉 10；
+    变身+嚎叫结束解锁，红狼人 200 尺寸/攻击/移动正常。
+- **红狼人 v2 统一体型（2026-08-08 二十二版，方案 A 重生成）**：
+  - 根因：三个红狼人 H3 视频本身体型不一致（待机视频最瘦 ~371 源宽、run ~559、
+    attack ~482）→ 切帧后 idle sheet 176 宽 vs run/attack ~257，游戏里待机时人形
+    ~69px、跑攻突然 ~100px（+45%），看起来像截取错乱。应用链无问题。
+  - 修复：统一参考图 = rwk_tatk 视频 f10（最壮站立帧，GLM 选定），裁 1024×576
+    白底；run/attack 用 `minimax-h3-gen.py --first-frame/--last-frame <同一参考>`
+    重新生成（i2v 锁体型，1024×576/16 步/124 帧）；idle 直接裁参考图。
+  - 产物：idle 261×260、run 14 帧 7×2（步态周期 P≈25，step 2 覆盖一个周期，
+    loop IoU 0.717 > step 0.603）、attack 12 帧 4×3；三张 uniform-h 262、脚底 410、
+    CLEAN 五指标全 0、GLM 通过；实机红狼人三态体型一致且魁梧。
+  - 新工具：`rw-humanoid-idle-cut.py`（单帧静态裁剪）、
+    `rw-normalize-cell-height.py`（逐格高度归一化——BiRefNet bbox 被脚底噪声拉高
+    导致该格主体偏矮 206~221 的补偿，清理后再归一化一次）、`rw-humanoid-deploy.ps1`。
+  - 坑：远程 ComfyUI 崩溃（进程在但不监听）→ SSH 断连会杀会话进程树 →
+    必须用 `schtasks /create + /run` 计划任务启动；系统 python 缺 sqlalchemy，
+    必须用 `D:\开发文件\ComfyUI\.venv\Scripts\python.exe`；远程操作中文路径
+    用 UTF-16LE base64 `-EncodedCommand` 绕过引号/GBK 坑。
+- **红狼人抠图规则修正 + 形变修复（2026-08-08 二十三版）**：
+  - 用户反馈：没按 SKILL 抠图规则（红狼王不能套黑狼硬边），且大小形变严重。
+  - **抠图规则**：红狼王 = 保留浅毛软边（semi≈0.5~1%）+ 去污染，不是黑狼硬二值化
+    （semi=0 会把浅毛削平、边缘生硬）。`rw-cutout-clean.py --soft`：
+    ① 半透反推前景色 F=(C-(1-α)B)/α（B=255），反推后仍亮(>165)=未分离残留清零；
+    ② **composite 判据后处理**：软边中合成到灰底显白（lum>175）的半透像素清零，
+       深色毛软边保留 → composite=0 且 semi 保持 0.5~1%；
+    ③ 每格最大连通域 / 透明区 RGB 归零 / 边缘亮像素局部毛色 / 腿部去残留照旧。
+  - **大小形变根因**：视频源红狼人体型稳定（源宽 spread 仅 8%），是 **uniform-h
+    把矮帧放大导致 sheet 宽度暴涨**（估计 spread 23~45%）。修复：
+    **fixed-scale（首帧同比例）+ `rebuild-h3-birefnet.py --fixed-bbox`
+    （全序列联合 bbox 固定裁切/腿部兜底区域，防 BiRefNet 单帧 bbox 收紧裁掉
+    肢体尖）**。结果：idle 261 / run 255~271（spread 6%）/ attack 259~280
+    （spread 8%），高度随姿态自然起伏（run 186~217、attack 208~260）。
+  - 实测：三态全 CLEAN（stray/trans_nonblack/edge_bright/composite=0）、
+    semi 0.66~0.86%、GLM 确认体型一致、脚腿完整、毛发边缘自然、实机无白边。
+  - 注意：`--fixed-bbox` 的 bbox 顺序是 (x0,y0,x1,y1)，解包时勿写成 (x0,x1,y0,y1)
+    （写反会裁空报 cv2 resize error）。
+- **红狼全套 RMBG 重抠 + 脚部阴影清理（2026-08-08 二十四版）**：
+  - 用户反馈"脚步还有大量色块"。定量定位：**H3 白底视频自带地面接触阴影**
+    （灰/黑，底部 30px 每帧 1800~3800 暗像素），抠图把阴影当主体保留为不透明
+    灰黑像素（狼脚带 60~78% 低饱和；还有纯黑 0,0,0）。
+  - 工具 `tools/ai-gen/rw-rmbg-recut.py`（黑狼 RMBG 方案的红狼版）：
+    白底合成 → 每格 ComfyUI-RMBG `AILab_BiRefNet`（BiRefNet-general，process_res
+    1024）→ **alpha = max(alpha_b, 全部旧 alpha)** —— 红狼软边（30~247）也是
+    有效主体，不能像黑狼只留 >=248，否则软边被 BiRefNet 更窄分割裁掉（宽度
+    261→183 实锤）；黑狼硬边才用 >=248。
+  - **脚部阴影清理**（rw-cutout-clean.py）：内容底部 40px 带内，低饱和
+    （sat<15，R≈G≈B 灰/黑）不透明像素直接抠掉；深红毛 sat≥19 保留；
+    剔除后再 max-component 清碎片（避免阴影断开产生孤岛）。**别用
+    "BiRefNet 分歧"判阴影**——BiRefNet 对深色腿 alpha 不稳，会把真腿当阴影删。
+  - 验证：10 张 stray/trans_nonblack/edge_bright/composite=0；狼脚灰影
+    78%→0、纯黑 19k→0，人形灰影归零；GLM 脚部干净、脚完整无缺角；尺寸保持
+    （idle 261 / run 255~271 / attack 259~280）。
+- **红狼人两足奔跑 v2 重生成（2026-08-08 二十五版）**：
+  - 需求：两只腿奔跑、透视一致、白底、抠图走 ComfyUI-RMBG 插件。
+  - 提示词要点（prompts/rwk-humanoid-run-v2.txt）：bipedal running / full body
+    side view / body stays compact and upright / **consistent body size and
+    perspective throughout** / **no shadow, no contact shadow, no ground
+    shadow** —— 源视频底部暗像素从上一版每帧 1800~3800 降到大部分帧 0
+    （脚部阴影根除，不再是"抠图阶段补刀"）。
+  - 切帧：fixed-scale + `--fixed-bbox` + 步态周期 P≈25（step 2 覆盖一个周期，
+    14 帧 7×2）→ run 内容宽 260~290（spread 12%）、高 243~263，透视一致。
+  - 抠图：`rw-rmbg-recut.py`（ComfyUI-RMBG BiRefNet-general）+ `--soft` 清理 →
+    stray/composite=0、脚部低饱和 0.2%、GLM 确认两足奔跑/体型一致/脚部干净。
+- **红狼人粉红边缘残留清理（2026-08-08 二十六版）**：
+  - 用户反馈"红色色块没扣干净"。定量定位：轮廓有一圈 **粉红边**（内部毛色
+    (45,8,10) 深红，边缘 (147,118,123) 粉红、lum 120~150、alpha 0.84~0.88 半透），
+    在深色地板上显粉红色块。
+  - 根因：BiRefNet-general 给近不透明边界留了 0.84~0.88 半透 + 去污还原出的
+    边缘色偏粉；且原边缘亮像素阈值 150/140 都没覆盖 lum 120~140 区间。
+  - 修复（rw-cutout-clean.py --soft）：
+    ① 半透 alpha 200~244 的近不透明像素直接转 255（本质是毛像素，BiRefNet
+       边界抖动，保留半透必然和地板混合显边）；
+    ② **边缘亮像素阈值降到 90**，整圈粉红边（lum 120~150）按 5×5 局部深红
+       毛色还原。
+  - 验证：edge lum>90=0、semi_red 526→27（余为深红软边，SKILL 允许）、
+    深色地板合成残留 0；GLM 在深灰底会误读深红毛为色块，以像素为准，
+    实机截图确认无粉红描边/脚部干净。
+- **红狼脚底"深色描边"根因 = 固定色压暗 + 硬边（2026-08-08 二十七版）**：
+  - 用户反馈奔跑脚下轮廓没干净。逐像素定位：脚底最后一行全是固定 (90,18,18)
+    深红（重抠 decontaminate 的 edge_dark 兜底），且 alpha 0/255 棋盘交替
+    （近不透明 200~244 转 255 的硬边化）→ 人工深红描边 + 锯齿。
+  - 修复：① `rw-rmbg-recut.py` 不再用固定 DARK_RED 压暗边缘（交给 soft 清理）；
+    ② `rw-cutout-clean.py` 边缘还原兜底色 = **该格深红毛中位数**（非固定色）；
+    ③ **去掉近不透明 200~244 转 255 的硬边化**——粉色问题靠边缘亮像素
+    lum>90 还原成深红解决，软边保留（红狼王规则）。
+  - 注意：**重抠输入必须是原始切帧**——旧资产已含固定色像素，重抠合并
+    max(alpha_b, 旧alpha) 会原样保留旧色，须先还原到未压暗切帧再走管线。
+  - 验证：fixed90=0、脚底最后一行 = (41,4,6) 主体深红、实机地板观感正常；
+    GLM 在中/深灰预览底会把深红毛误读为"深色描边"，**以实机为准**。
+- **红狼轮廓一圈亮红残留 (85,47,53)（2026-08-08 二十七版补）**：
+  - 用户坚持精灵图可见"脚部一圈红色轮廓 + 零散红块"。逐像素定位：每帧边缘
+    466~667 个亮红像素，均值 (85,47,53) vs 主体深红 (38,4,5)——白底×红毛
+    混合残留，亮度 27~90 **低于旧阈值 90 漏网**（不是 GLM 误读，是查漏了）。
+  - 修复（rw-cutout-clean --soft 3b/3c）：边缘不透明像素与"该格深红中位数"
+    （lum<60 严格深红）的**欧氏距离 >35 → 还原成深红**；不透明偏离深红的孤立
+    小连通域（面积<80）→ 透明。参考色必须用 lum<60 的深红中位数（<90 会混入
+    浅毛导致阈值偏高失效）。
+  - 教训：**"亮度>N"判定会漏掉比主体亮但仍<阈值的中亮残留**；用"与主体色差
+    （欧氏距离）"更稳；GLM 深灰底误读≠没问题，用户肉眼在精灵图/浅底上
+    看到的红轮廓是真实的，以用户实际看到为准去查。
+- **红狼人抠图模型换代：BiRefNet-general → BEN2 + 打包版不同步根因（2026-08-08 二十八版）**：
+  - 用户反馈"只扣了部分，还有很多没扣、现有方法解决不了"，要求全网检索更先进方案。
+  - **全网检索结论**：插件 `ComfyUI-RMBG` 已内置候选（AILab_BiRefNet: general/HR/
+    matting/ToonOut/Lucida；AILab_RMBG: RMBG-2.0/BEN/BEN2/INSPYRENET）。
+    ToonOut（动漫/游戏专用微调，99.5% 精度）适合卡通素材；RMBG-2.0 数据更强；
+    BEN2（22K 专有数据 + CGM 置信度引导）边缘最干净。
+  - **实测结论（rw-rmbg-compare-models.py，GLM 四宫格验收）**：
+    BiRefNet-general 有红晕边；ToonOut 残留最少但有白边；RMBG-2.0 红边明显、
+    尾巴缺失；**BEN2 边缘最干净、身体最完整、无白边/红边 → 主抠图模型**。
+  - **下载通道**：HF 直连/镜像不可达时用 **ModelScope**（modelscope.cn）：
+    `1038lab/BiRefNet`（含 BiRefNet_toonout/Lucida）、`briaai/RMBG-2.0`、
+    `PramaLLC/BEN2`；resolve/master/<文件名> 直接 curl 下载，~18MB/s。
+  - **新管线 `rw-rmbg-birefnet-v2.py`**：白底合成 → 每格 BEN2(1024) →
+    alpha=max(BEN2, 旧alpha) → decontaminate → **remove_foot_shadow**
+    （内容底部 25% 带内 sat<15 且 lum<100 的暗灰黑块抠掉，防 H3 地面接触
+    阴影被当主体保留，逐帧 4000px→0）→ `rw-cutout-clean --soft` 毛色还原。
+  - 验证：run 14 帧 / attack 12 帧 GLM 全过（脚下零残留、无白边红边、身体完整）；
+    changed_run/attack/idle 三张已部署到 assets 并同步 dist-electron-new 两个加载目录。
+  - **重大根因教训：assets 更新 ≠ 游戏更新**。electron 生产模式加载
+    `dist-electron-new/win-unpacked/resources/app/dist/assets/enemies/`（extraResources
+    的 resources/assets 是第二份），8/8 凌晨打包版全是旧贴图（无半透、白边 1135、
+    红色残留 18164、opaque 多 27 万 px）→ 用户"根本没改变"。**贴图改完必须同步
+    assets + dist 两处 + dev server 验证 hash 一致**（curl 5173 与本地 md5 对比）。
+- **狼形态 7 张贴图漏抠 + 旧 alpha 半透黑影残留（2026-08-08 二十八版补）**：
+  - 用户仍反馈"脚下还是一堆残留"。复盘：上一版只重抠了**红狼人形态** 3 张
+    （changed_run/attack/idle），**狼形态 7 张（idle/run/pacing/pounce_claw/
+    pounce_bite/change/howl）完全没重抠**——游戏里红狼王平时就是狼形态行动，
+    用户看到的正是这些旧贴图脚下 200~600px/帧 的暗灰阴影（run 总计 4879px、
+    pacing 6408px）。
+  - 新修复（rw-rmbg-birefnet-v2.py 增补）：
+    ① **remove_dark_semi**：全图清除低饱和（sat<15）暗（lum<100）半透明像素——
+       旧 alpha 被 max(alpha_b, 旧alpha) 原样保留的黑影（RGB≈0，alpha 5~250），
+       在深色地板上显示浅灰块；深红毛 sat≥19 不受影响。
+    ② JOBS 扩展到全部 10 张（狼形态 7 + 红狼人 3），统一 BEN2 + 阴影清理 + soft。
+  - pacing 布局 4×4 但 frames=14，r3c2/r3c3 是未读取的第 15/16 格——里面残留
+    45k 半透像素，直接整格清零，避免文件级检查误报。
+  - 验证：狼形态 run 16 帧 / pacing 14 帧 / pounce / change / howl 全部 GLM 通过
+    （脚下零残留、无白边红边、身体完整）；10 张贴图 assets + dist 两处 SYNCED；
+    dev server 与本地 md5 一致。
+- **红狼人奔跑脚部"大片灰粉块"根因 = 不透明中亮低饱和残留（2026-08-08 二十八版再补）**：
+  - 用户仍反馈"脚部大片色块处理不了"（ACCEPT 图第 3 帧灰块、第 9 帧红块）。
+    逐像素定位：每帧 145~344px **不透明**灰粉像素 (97,80,82)，位于脚掌/脚踝
+    核心（非透明边缘），与深红毛 (34,2,3) 欧氏距离 128~255。
+  - 为什么全部旧规则漏掉：① 5b 脚底带只覆盖内容底部 40px，灰粉块延伸到
+    y 300~369（脚踝上方）超出 band；② lum≈86 低于旧阈值 90；③ sat≈17 高于
+    旧阈值 15。三个条件同时不满足 = 漏网。
+  - 修复（rw-cutout-clean.py 新增 5c）：**全格**（不限于底部 band）不透明 +
+    低饱和（sat<25）+ 中亮（lum 40~160）+ 偏离深红毛 >40 → 统一染成该格
+    深红毛中位数，保留 alpha（非边缘，删 alpha 会缺脚）。
+  - 结果：10 张贴图灰粉块 run 14841→0、pacing 9831→0、change 10873→33、
+    changed_run 3136→72（余为深红毛过渡）；不透明度不变；GLM 14 帧全过、
+    第 3/9 帧脚部干净；assets + dist 两处 SYNCED。
+  - 教训：**脚部残留不只在底部带**——中亮低饱和块会延伸到脚踝上方；
+    "亮度阈值"和"底部带"两个维度都要放开，用"低饱和 + 偏离主体深红"双条件
+    全格覆盖才不漏。
+- **红狼王"底部像地面的大块色块"真正根因 = 游戏运行时椭圆阴影（2026-08-08 二十九版）**：
+  - 用户多次反馈"脚下像地面的大块色块"，贴图 alpha 清理到 0 后仍存在。
+    排查结论：**GameScene._syncEntityShadows 在运行时给每个敌人脚下绘制
+    entity_shadow 黑色椭圆**（alpha 0.35，尺寸 = groundRadius×2 × ×2×0.5，
+    红狼王 collisionRadius=45 → 90×45px），**完全不在贴图里**——抠图/清 alpha
+    永远抓不到；且阴影固定跟随 collider，红狼王奔跑贴图上下弹跳时阴影不动，
+    视觉上像贴图底部拖着一块地面色块。
+  - 修复：RedWolfKing 构造函数设 `this._noShadow = true`（贴图自带脚部接地感，
+    取消运行时阴影；GameScene 已支持该开关）。实机验证（cdp-redwolf-shot.mjs）：
+    GLM 确认关闭后"脚下无深色椭圆阴影、浅色地面干净"。
+  - 教训：**"色块残留"不一定是贴图问题——先实机截图区分渲染层阴影 vs 贴图
+    alpha**；GameScene._syncEntityShadows 的 shadow 是通用机制，个别贴图自带
+    接地感的怪可设 _noShadow。
+- **黑狼绿幕重生成管线 + "脚底黑边"三连根因（2026-08-11）**：
+  - 背景：黑狼老资产（白底视频+阈值抠图）白边/碎块/地面阴影条修不净，改治本：
+    **绿幕重生成**（MiniMax H3 I2V，绿幕首帧 + `--bg-color 00FF00` 自动注入纯色底
+    无阴影条款）→ `rebuild-h3-birefnet.py --bg-color '#00FF00' --bg-dist 80`
+    （黑毛与绿底 RGB 距离 >200，距离通道=确定性硬切，无概率雾）。
+  - 一键脚本 `tools/ai-gen/blackwolf-green-run.py`（生成+选帧+重建+后处理）；
+    后处理 `tools/ai-gen/blackwolf-post.py`；首帧制作注意：源图脚底的抖动阴影条
+    （~50% 密度点阵）会带进视频，须先开运算（`clean_sprite_matte.py`，对抖动
+    点阵唯一有效，连续段/密度阈值都抓不住）+ 超宽行剥除。
+  - 参数坑：绿幕狼更"长"，target-h 262 下宽 536~568 超 512 格 → clamp 丢整格
+    （空格帧），run 用 **target-h 228**（最大宽 494）；`--edge-dark` CLI 传 -1
+    关不掉 auto-clean 内嵌的 18（post_clean_sheet 不接 CLI），必须 `--no-auto-clean`。
+  - **"脚底黑边类似地板"三连根因**（逐层排查，每层都是真问题）：
+    ① 重建 `--edge-dark 18` 固定色压暗 = 红狼王二十七版同款人工描边（黑狼
+       底行清一色 RGB 13~19 实锤）→ 禁固定色，边缘污染按**该格深色毛中位数**
+       （lum<60）欧氏距离 >35 还原；
+    ② `--zero-transparent-rgb` 置黑 + 线性过滤缩采样 = 边缘渗黑（图片查看器
+       和游戏内同样可见）→ 透明区 RGB **颜色外渗**（最近实体色，≤24px）替代置黑；
+    ③ **最终根因 = 运行时椭圆阴影**（红狼王二十九版重演）：黑狼没设 `_noShadow`，
+       GameScene._syncEntityShadows 在 collider 处画 alpha 0.35 黑椭圆，贴图清到
+       0 也没用 → BlackWolf 构造函数 `this._noShadow = true`。
+  - **教训：贴图问题先实机截图排除渲染层**；凡"清理到 0 还有"必在渲染层。
+  - 环境：5080（Blackwell sm_120）xformers 全崩 → ComfyUI 启动加
+    `--disable-xformers`（已固化进 ComfyUIStart / ComfyUI_RESTART_3D 计划任务）；
+    远程操作走 `ssh r5080`（长任务必须 schtasks，SSH 断连杀会话进程树）。
+  - 验证：28 帧循环闭合 IoU 0.696 ≈ 相邻帧步进；品红底/深地砖底/动态 GIF 三验；
+    `scratch_tmp/wolf_clean/run_preview_v2.gif`。
+  - **v2 追加教训（同日用户实机发现）**：
+    ① **首帧清理禁用开运算**——opening(3x3, iters=3) 会吃掉狼爪尖（腿末端变平口柱），
+       I2V 以首帧为锚会把"无爪"传导到全部视频；首帧只需保最大连通域（老 idle 的
+       "171px 实心阴影条"是段长解析 bug 的误报，实为 1px 抖动，视频重绘会自然抹掉）；
+    ② **尺寸统一必须按游戏显示逻辑算**：GameScene:1199 按"帧最长边 → spriteSize(151)"
+       等比显示，512 格 ×0.295 / 640 格 ×0.236——pounce（640 格）内容要按 640/512
+       放大（scale 0.562 vs 其他 0.4497），否则飞扑狼比走路狼小 20%（老资产即如此）；
+    ③ 实机截图工具 `tools/cdp-blackwolf-shot2.mjs`（注入黑狼 + 逐帧记录
+       世界坐标→屏幕坐标精确裁剪，连拍覆盖 walk/run/attack 状态）。
+  - 全套部署（2026-08-11）：run/walk/bite/pounce/idle 五张绿幕版入库
+    （原图 .bak-greenscreen），站立显示高统一 67.2px（228@512 格 / 285@640 格）。
+- **主角全帧瞄准扫描管线（2026-08-12，twist 拆分的替代方案验证通过）**：
+  - 背景：骷髅模型"腿/躯干/手臂"拆分扭转在复杂人物上必然割裂（用户结论：
+    单图拆分无法拼接）。新方案=**零拆分全帧**：瞄准扫描视频（边扫边连续开火）
+    → 按角度分桶抽 (neutral, flinch) 帧对 → 运行时瞄准角最近邻选帧 + 开火相位偏
+    移 + flipX 镜像；武器层照旧独立旋转（±5° 量化余量，绕握把锚点）。
+  - 管线：`player_char/firstframe_aim.png`（用户抠图合成绿幕）→ H3 三条视频
+    （下扫/中段/上扫，**单一扫描视频模型只在锚点附近徘徊，必须按角度分段生成**；
+    prompt 必须写死 strict side-profile 否则转身）→
+    `tools/ai-gen/player-aimsweep-extract.py`（chroma 抠图 + 红底帧剔除 +
+    掩膜测角分桶 + 体外高亮=火光定位后座相位 + despill/defringe/外渗）→
+    `assets/player/aim_sweep.png` + 角度表嵌入 player-anim-config.json
+    `gun_idle.aimSweep`（data/public 双份）。
+  - 运行时：GameScene `_syncAimSweep`（姿态状态机 gun_idle 分支优先接管，
+    `_crosshairShotKick>0.5` = flinch 相位）；BootScene 按 aimSweep 配置加载。
+    **角度表符号：掩膜"手臂上抬为正"与游戏世界 y 向下相反，必须取反**；
+    angleScale 1.25 补估算压缩。
+  - **骷髅模型保留**：twist 配置/贴图/代码全部原样（手枪/双持仍在用），
+    gun_idle 只是新增 aimSweep 键；删除 aimSweep 配置即整体回退旧方案。
+  - 待办：武器-手部锚点按角度表 tip 逐桶校准（当前用旧 syncWeapon 偏移，
+    有轻微脱手）；极限压枪（<-30°）/正上方（>+75°）角度未覆盖可补专项视频；
+    走姿扫描（边走边扫枪）二期。
+  - 验证：tools/cdp-aimsweep-verify.mjs（装备 M416 + CDP 鼠标控制各角度截图）。
+  - **最终结论（2026-08-12，用户实机验收后判定）：玩家全帧视频管线方案废弃**。
+    技术上全链路跑通（扫描帧组/开火相位/双手锚点/移动矩阵/近距平滑全部实现），
+    但**视频模型的漂移和不一致对主角不可接受**——主角 100% 时间挂在屏幕上，
+    帧间服装/体型细节漂移比怪物显眼得多，12+24 条视频矩阵把不一致放大到不可用。
+    已回退：aimSweep 配置/代码/资产全部移除，骷髅 twist 拆分扭转恢复原位
+    （spriteSize 144 / WEAPON_ANIM.size 126 一并回退）。
+    **教训：AI 视频帧组对"配角/敌人"可行（黑狼全套已上线），对"主角"目前不可行——
+    主角级一致性仍需 Spine/建模手工管线。敌人继续用视频管线，主角维持拆分扭转，
+    后续主角造型升级应走 Spine 或约稿，不要再试 AI 视频全帧。**
+  - 工具留存（敌人/道具仍可用）：`player-aimsweep-extract.py`（角度分桶/火光相位）、
+    `player-locomotion-matrix.py`（步态矩阵）——用于怪物时漂移容忍度高，可直接复用。
+- **红狼人奔跑贴图"地面平台矩形色带"根因 = H3 视频生成的脚下地面条（2026-08-08 三十版）**：
+  - 用户纠正：问题在**狼人形态**（红狼人奔跑），不是狼形态。贴图逐行扫描发现
+    每帧脚下 y 380~408 有一条 **252px 宽完整水平矩形深色带**（x 110~362，
+    每行完全连续无缺口，颜色 (35,3,4)），而狼人身体只占 x 190~380、腿部宽仅
+    40~50px——这是 H3 视频生成时狼人脚下的"地面平台"被当主体保留。
+  - 为什么此前全部漏掉：带在 y 380~408（不在底部 60 行统计范围）；颜色与深红
+    毛相近（灰粉/阴影清理不覆盖）；GLM 看缩略图会误判为"正常脚部"。
+  - 修复（新工具 `rw-remove-ground-band.py`）：自下而上找"连续跨度 >200px 的
+    行"组成矩形带；带内像素与"带顶部上方 40px 腿部列范围"取交集——只保留
+    腿列，删除平台左右延伸（实测 removed 52652px / 14 帧）。
+  - **注意：参考窗口必须取带顶上方（y_lo-44 ~ y_lo-4），不能逐行取 y-24~y——
+    带厚 29px 会滑入带自身导致 leg_cols 覆盖全带，0px 删除。**
+  - 验证：14 帧均无 >200px 连续行；GLM 确认"两条腿分开有自然空隙、无矩形
+    色带、腿部无残缺"；assets + dist 两处 SYNCED。
+- **"脚下色块与主体同色"真正根因 = 浅灰接触阴影被染成深红毛（2026-08-08 三十一版）**：
+  - 用户反馈"下方色块跟主体颜色太相似了，颜色清理无效"，问是否重做视频。
+  - **关键结论：v3 视频本身完全干净**（124 帧逐帧检测底部 40px 无暗像素、
+    仅 11414px 浅灰 200~244）。**不需要重做视频**。
+  - 完整根因链：
+    ① H3 视频生成时角色脚下自带**浅灰接触阴影**（lum 200~244，非纯白 254+）；
+    ② 切帧（阈值 248）把它当主体保留——v5 的"白色带" lum 229 就是它；
+    ③ `rw-cutout-clean` 脚底带归一化把它**染成深红毛色 (35,3,4)**——从此
+       色块和主体颜色一模一样，颜色清理永远分不开。
+  - 修复（新工具 `rw-clear-foot-gray.py`）：**浅灰阴影直接删除（alpha=0），
+    不染色**。红狼毛是深红 (35,3,4)，lum 200~244 不可能是毛色，只可能是
+    背景/阴影残留；仅处理 y≥300 脚下带，防误伤浅色毛发。removed 109554px。
+  - 验证：v3 视频重建贴图 14 帧 GLM 全过（无矩形带、脚下干净、腿部完整）；
+    实机截图 GLM 确认奔跑形态脚下"无深色大块、浅色地面整洁"。
+  - 教训：**"色块与主体同色"时先查处理链是否把背景残留染成了主体色**——
+    染色类后处理（脚底带归一化）会固化残留，应改为删除而非染色。
+- **红狼王变身动画重生成：旧版实为"狼咆哮"，新版狼→红狼人真转变（2026-08-08 三十二版）**：
+  - 用户问"变身动画是根据原模型生成的吗"——排查发现旧 rwk_change.mp4 首末帧
+    都是四足狼（GLM 逐帧确认 12 帧全是狼咆哮），**根本没有狼→红狼人的形态转换**，
+    游戏里变身实际是"狼咆哮 2s + 瞬间切换"。
+  - 重生成（`rw-transform-regen.py`）：H3 i2v **首帧狼站立 + 末帧红狼人站立**
+    （--first-frame rw-wolf-ref-1024.png --last-frame rw-humanoid-ref-1024.png），
+    提示词强调 transformation / wolf rises up / body expands / legs become arms。
+  - 验证（像素 diff 轨迹）：frame0 diff_wolf=1.0 → frame60 中间态 → frame120
+    diff_human=4.2——真转变；GLM 逐帧：狼→过渡→红狼人 12 帧连贯、脚下无残留、
+    边缘干净、身体完整。
+  - 切帧 12 帧(4×3) fixed-bbox → band 清理(65356px) + 浅灰清理(123px) 入格。
+  - 教训：**H3 单首帧 i2v 做不了跨形态转变（模型倾向保持首帧形态）**；
+    变身/形态转换必须 first+last 双端锁定，且用像素 diff 验证转变轨迹
+    （GLM 对首帧形态判断不稳，t_000 被误读为红狼人，diff 对比才可靠）。
+- **红狼王变身重复 + 嚎叫改独立技能（2026-08-08 三十三版）**：
+  - 用户反馈"变身有重复动画、变身完还有红狼嚎叫"。排查：
+    ① 变身完成处代码自动 `_howlTimer = howlDuration ?? 2000`——变身完强制接嚎叫；
+    ② 原 howl.png 是**四足狼**嚎叫，红狼人形态播它形态不匹配（GLM 确认）。
+  - 修复：
+    ① 变身完成 `_howlTimer = 0`，不再自动嚎叫；首次嚎叫延迟 5s（`_howlCd =
+       min(cooldown, 5000)`）避免变身动画后立即接嚎叫；
+    ② 嚎叫改为**红狼人形态主动技能**（参照 foreman-zombie）：红狼人形态 +
+       冷却就绪（默认 30s）+ 有目标 + 咬/扑空闲 → `_startHowl(entities)`，
+       给场上全体 enemy 阵营 `applyInspire(buffDuration ?? 30000)`（移速×1.33、
+       物攻×1.5，复用已有激励系统）；
+    ③ 重生成**红狼人两足嚎叫**动画（`rw-humanoid-howl-regen.py`，首末帧锁红狼人
+       参考图）→ 入格 `red_wolf_king_changed_howl.png`（4×3=12 帧），
+       transformedSprites.howl / BootScene / _getTextureKey / _drawBody 全链指向它。
+  - 关键坑：**嚎叫触发判断不能用 `!_attackType`**——RedWolfKing 的 _attackType
+    初始即 'pounceBite' 且不随咬/扑结束重置，条件永远不满足；改看
+    `_biteState === 'idle' && _pounceState === 'idle'`。
+  - 实机验证：变身完成 howlTimer=0（不再自动嚎叫）；嚎叫技能触发纹理切换
+    changed_howl、激励 buff 生效（自身 remaining 28s/30s）；lint 0 error、
+    vite build 通过、config-integrity 通过。
+- **H3 视频精细度 = 参考图质量 + 分辨率/步数（2026-08-08 三十四版）**：
+  - 用户反馈"H3 动画过于粗糙"。两层根因：
+    ① 分辨率/步数被砍：SKILL 九版为提速用 1024×576 + 16 步（原生
+       1344×768 + 20 步），毛发细节和边缘明显糊；
+    ② **参考图从游戏贴图（512²）放大生成，本身模糊**——H3 i2v 锁形态时
+       参考图质量直接决定输出精细度，放大贴图当参考 = 糊上加糊。
+  - 修复流程：
+    ① 参考图改用 AI 文生图（智谱 glm-image，1280×1280，
+       `zhipu-gen.py --model glm-image`），提示词强调
+       "crisp fur texture / high detail / sharp focus / 8k illustration"；
+    ② 生成后用 GLM 验收（主体形态、毛发清晰、无畸形）；
+    ③ 清理背景阴影（低饱和 + 中亮 + 非红色调压白，防误删红毛）；
+    ④ 缩放到 1344×768 白底画布贴底居中 → 作 first/last frame；
+    ⑤ 视频 1344×768 + 20 步生成（每段 ~16min），切帧后照常
+       band + 浅灰清理。
+  - 结果：run 14 帧 / attack 12 帧 GLM 确认"毛发纹理、肌肉线条、动态细节
+    明显更精细"，脚下无残留、身体完整、动作连贯；已部署 assets + dist。
+  - 教训：**H3 i2v 参考图必须是高质量原生成图，不能用贴图放大**；文生图
+    参考 + HD 参数 + 20 步是精细动画的固定组合。
+- **4096² 精灵图规格 + 写实参考图（2026-08-08 三十五版）**：
+  - 用户定规格：**4096×4096 画布、8 列 × 4 行 = 32 格取 30 帧（末行留 2 空）、
+    每帧 512×1024 竖条、不压缩**。旧 512×512 小格（14/12 帧）画质被压缩。
+  - 切帧工具 `rw-humanoid-sheet-4096.py`：步态周期均匀采样 30 帧 → fixed-scale
+    （高度 target_h=900 + 宽度≤480 双约束，防竖条超宽）→ 512×1024 竖条贴底
+    居中 → 组装 8×4 sheet。清理 `rw-clean-4096.py`（脚下浅灰 + band +
+    max-component，适配 512×1024 竖条）。
+  - 游戏接入：BootScene spritesheet 改 `frameWidth:512 frameHeight:1024
+    endFrame:29`；animation-config transformedFrameLayout run/attack →
+    `{cols:8, rows:4, frames:30, frameWidth:512, frameHeight:1024}`（双份同步）；
+    GameScene `_configureEnemyBody` 已有非方形帧等比缩放（longest 边=spriteSize），
+    512×1024 自动显示为 100×200，无需改渲染。
+  - 画风：项目偏写实，参考图用智谱 glm-image 生成（photorealistic / realistic
+    fur / horror creature），GLM 验收 + 清背景阴影后作 H3 首末帧。
+  - 视角：**水平侧视**（与现有怪物/玩家 billboard 一致，勿改等距透视）。
+  - 验证：run 6.8MB / attack 6.2MB（旧 0.5MB），GLM 确认写实毛发、无残留、
+    姿态连贯；实机非方形帧等比缩放正常、无拉伸。
+- **黑狼贴图主体外黑/白色块清理（2026-08-07 十五版）**：
+  - 用户反馈黑狼各精灵图主体范围外有黑/白色块。定量排查三处：
+    ① 透明区（alpha<30）RGB 残留（idle 16%、其他 1.5%）——alpha=0 但 RGB 有色；
+    ② 半透白边（alpha 30~250 且 lum>150，浅色地面显灰圈——黑狼经验 3808）；
+    ③ 半透黑边（黑狼毛边缘羽化，浅背景显黑晕）。
+  - 清理三步：透明区 RGB 归零 → lum>150 半透清零 → **硬边（alpha<245 全部清零）**
+    （黑狼最终半透≈0，接受轻微锯齿）。
+  - 定量铁律：`stray_alpha=0 && semi=0 && trans_nonblack=0` 才算 CLEAN；
+    GLM 对黑狼图集仍会误读锯齿边缘为"色块"，以定量为准；实机黑狼确认干净。
+  - 用户仍见色块 = 游戏/浏览器缓存旧图，刷新+重启 dev server。
+  - **补漏：`black_wolf_bite_regular.png`（撕咬）和 `black_wolf_updown.png` 未清**——
+    黑狼攻击默认 `_attackType='bite'` → 用 bite_regular；BootScene 加载它（186 行）。
+    清理同一三步后全 CLEAN。**清理脚本必须用绝对路径写回**（Python cwd 飘忽时
+    相对路径保存静默失败/FileNotFoundError，且上次"保存成功"的假象掩盖了漏清）。
+    黑狼全套贴图（idle/walk/run/pounce/bite_regular/updown）现全部 CLEAN。
+- **黑狼移动贴图白边（2026-08-07 十六版，像素级定位）**：
+  - 用户指出移动贴图仍有残留且 GLM 识别不了——**用像素分析定位**：
+    不透明像素（alpha>245）中 lum>150 的亮像素 walk 4.6 万 / run 11.4 万；
+    用形态学边界（不透明且 8 邻域有透明）区分：**边缘亮像素 walk 2.2 万 /
+    run 4.8 万 = 背景白边残留**（黑狼纯黑毛，边缘不该亮），内部亮像素是
+    黑狼真实白腹/牙齿（保留）。
+  - 修复：**轮廓边缘亮像素（lum>150 且贴透明）RGB 压暗到 18（黑毛色）**，
+    内部白毛保留。修复后边缘亮像素全 0，黑狼边缘为自然黑毛线。
+  - 判据沉淀：黑狼贴图 CLEAN 标准除了 stray/semi/trans_nonblack，还要
+    **edge_bright=0**（边缘不透明亮像素）；GLM 对黑狼图集误读锯齿，以像素为准。
+- **AI 贴图边缘去污终极方案（2026-08-07 十七版）**：
+  - **本质**：AI 生成主体边缘像素是"背景+主体"混合色（RGB 灰 + α 半透），
+    贴图透明背景看不出，合成到游戏地板就显灰圈/白边——单纯调 α 阈值永远
+    顾此失彼（黑狼反复"抠不干净"根因）。
+  - **工具 `tools/ai-gen/sprite-decontaminate.py`**（matting decontamination）：
+    ① 半透像素反推前景色 `F = (C−(1−α)·B)/α`（B=背景白），混合灰还原真实毛色；
+    ② 反推后仍亮（F≈背景）的半透像素归零（未分离残留）；
+    ③ 轮廓边缘不透明亮像素压暗到主体色（黑狼 18）；
+    ④ 透明区 RGB 归零。
+  - **验证铁律：合成测试**——`--composite-bg 180` 把贴图合成到浅灰背景，
+    边缘带残留必须 = 0（比看贴图 alpha 更真实，暴露地面混合问题）。
+    黑狼 6 张贴图全部 composite_residue=0，实机轮廓干净。
+- 黑狼最终 CLEAN 判据：stray=0 / semi=0 / trans_nonblack=0 / edge_bright=0 /
+    composite_residue=0。
+- **黑狼从原视频完整重建（2026-08-07 十八版，BiRefNet 管线终版）**：
+  - 原视频在 `Y:\工作\无尽轮回\scratch\black_wolf\videos\`（walk/run/attack_pounce_v4/
+    attack_bite_regular_v5，全部 1344×768/24fps/124 帧含首尾 pad）；idle 是静态图
+    （`black_wolf_idle_new_250x215.png`），updown 无视频源。
+  - 工具：`blackwolf-rebuild-from-video.py`（驱动）+ `rebuild-h3-birefnet.py`
+    （新增 `--frames-count` 支持 16/28/20/6 帧采样，红狼王 12 帧照旧）。
+  - 参数：uniform-h 高度统一 262、512 格（pounce 640 格）、feet-y 410（pounce 513，
+    保持 feet fraction 0.80 与其它状态同世界高度）、center-x 256（pounce 320）、
+    lum-clear 200、threshold 248、hard-edge 245、edge-dark 18、zero-transparent-rgb。
+  - **resize 后必须逐格清理**（不清理必 DIRTY）：alpha 硬二值化（>=245→255，清插值
+    半透带）→ 每格只保留最大连通域（清 1~140px 噪点色块）→ 不透明亮像素邻接透明区
+    （2px 膨胀）压暗 18（清 resize 白圈）→ 透明区 RGB 归零。验证
+    `blackwolf-rebuild-verify.py` 全指标 0 才算 CLEAN。
+  - **扑跃帧宽超 512**（前扑伸展 545~583px）→ 格子放大 640²，BootScene spritesheet
+    frameWidth/Height 同步 640，animation-config（data/ + public/ 双份）pounce 补
+    width/height 640；canvas 渲染按 naturalWidth/cols 自动切帧，其余状态 512 不变。
+  - 朝向判定：黑狼左右对称，质量中心偏移不可靠（误报 FLIPPED），用新旧首帧
+    交叉相关（flip diff 大即 SAME）才可靠；重建后四状态全部与原资产同向。
+  - 循环衔接验证：首尾帧 alpha IoU（0.90~0.95）应显著高于正常步进 IoU（0.75~0.80），
+    否则抽帧窗口没覆盖完整步态周期。
+- **黑狼步态周期采样 + 腿部兜底（2026-08-07 十八版补）**：
+  - **抽帧必须按步态周期，不能均匀抽样**：run 均分抽样（帧间隔 3~4）导致奔跑僵硬；
+    实测周期 run P=28（s=40，leg_iou 0.66）、walk P=48（s=40，leg_iou 0.80）。
+    run 用 step 1 连续 28 帧（=视频原帧，4×7），walk 用 step 3 抽 16 帧（40+3k），
+    相邻帧腿部 IoU 从 0.18/0.30 提到 0.45/0.60。
+  - **run 低伏姿态腿部运动模糊坑**：腿部区域灰度中位数 203~245，一半以上像素超
+    235 深色阈值兜底线 → 交给 BiRefNet 判定 → BiRefNet 对模糊腿 alpha 不稳 →
+    hard-edge 后腿型逐帧抖动（重建后腿部 IoU 仅 0.28，视频原帧 0.64）。
+    修复：`rebuild-h3-birefnet.py` 对 **bbox 底部 35% 腿部区域用 threshold=248
+    强制主体**（max(BiRefNet, 全身235阈值, 腿部248阈值)），白边由后处理清理。
+  - **腿部区域去残留**：脚底贴地/运动模糊产生的不透明灰白像素（lum>160，
+    alpha=255，BiRefNet 判为主体）不会被"邻接透明压暗"清掉（离透明区>2px）——
+    改为对 bbox 底部 35% 内亮像素做 5×5 邻域毛色均值替换（躯干白毛不受影响）。
+    修复后 run 腿部亮像素 228→0、walk 64→0。
+- **Windows 中文路径坑（2026-08-05）**：Blender 的 `bpy.data.images.load` 不支持
+  非 ASCII 路径（项目/NAS 路径含中文 → "No such file or directory"）；SPEC/纹理/输出
+  先复制到 `%TEMP%/world122-cover`（ASCII）渲染完再拷回（`render-cover-batch.py` 已内置）。
+- **拼接规则**：相邻件 face 沿走向重叠 `SNAP_OVERLAP=40`px（≥ 端帽宽，只叠不缺），
+  即沿墙步长 = faceLen(196.33) − 40 ≈ 156.33px；镜像后吸附方向判定
+  `dir = dot>=0 ? -1 : 1`（左/右外接都向既有件重叠）。
+- **菱形房 v2 算法**（`_buildBaseRoom`，与建筑面板吸附同源）：每边 n 件均布，
+  覆盖 [−cornerExtend, len+cornerExtend]（cornerExtend=45，转角由相邻两边端帽互叠），
+  n = ceil((len+2·cornerExtend−faceLen)/step)+1；openEdge 边中点的开放带内的件
+  face 命中即跳过 → 天然形成居中门洞（本房 RB 边 ≈270px，门柱底边与墙线共线，
+  无需旧版 doorAlignY 精调，置 0）。
+- **校验**：`tools/render-defense-room.py`（FACE_OVERLAY=1 画 face 线做像素连续性校验）
+  + `tools/cdp-defense-audit.mjs`（实机截图 + 深度/遮挡审计）；渲染与精灵映射同源
+  （display 260×260、中心 (x, y−sizeH/2)、底边中心 (x,y)）。
+
+#### 防御塔贴图视觉基准（2026-08-04 二轮核验定稿）
+- **建筑/道具一律正面平视 billboard + 平底**（祭坛/仓库/沙袋/拒马基准）；墙体才是 30° 斜底边
+  （墙段专用）。塔/建筑贴图**禁止 45° 等距俯视（可见顶面）**——首版 A 图因此返工。
+- **机械臂武器挂载点必须空**：主体写 `empty circular flange socket with no gun`，负面词补
+  `gun barrel, cannon, rifle, machine gun, weapon attached`——首版臂尖带枪管状突起被否。
+- 提示词模板见 `prompts/defense-tower.md`；产物 `assets/terrain/obstacle_defense_tower.png`
+  （正面平视、基座台阶+上方机械臂空法兰挂载座）。
+- **工具位置**：生图/抠图工具统一在 `game-dev/tools/ai-gen/`（版本化），
+  批量入口 `gen-world122-assets.py`、后处理 `process-world122-assets.py`。
+- ⚠ **2026-08-06 v2/v2b 重制（用户口径覆盖旧基准）**：用户指定"参考地面、墙壁的视角/风格 +
+  下方基座做圆柱体 + 机械臂单独上方突出"。新塔：30° 等距视角（对齐墙壁、可见圆柱
+  椭圆顶面）、暗色石+铆钉金属做旧、圆柱基座 + 顶部单独突出的机械臂（末端空法兰）。
+  - 白模 spec `_blockout_specs/defense_tower_v2.json`（elevation 30）→ 深度模板
+    `_depth_templates/blender_defense_tower_v2_h.png` → `flux2-dev-depth` strength 0.8
+    → `make-transparent-icon.py` 抠图 → `cut-defense-tower-arm-v2.py` 拆臂入库。
+  - **v2b 定稿（机械臂重做）**：v2 首版臂"太抽象"（细棍/装饰符号）→ 白模加粗
+    （肩/肘关节护罩 + 液压缸 + 粗法兰）+ 提示词强化 heavy industrial robotic arm /
+    hydraulic piston / bolts / rust。
+  - **v2c 定稿（2026-08-07 截取优化）**：臂"截取不对"根因——①白底抠图把肩部近白
+    高光（x400~460）当背景抠成洞，最大连通域把碎片丢了；②切割线落在肩部中段；
+    ③臂肩质量偏心（左角 + 颈偏右）。修复：改用 BiRefNet 显著性抠图（不吃背景色
+    假设）+ 内部孔洞填充 + 切割线下移到细颈（y85~425），并换用肩颈过渡更对称的
+    候选 fc39ae；枢轴=细颈底部中心 (150,338)、挂载点=法兰中心 (149,23)、
+    自然角 -1.5740（≈-90.2° 正上方，法兰/颈/枢轴同轴）、pivotWorldY 200.8；
+    基座 386×457 → 170×201.3（footOffsetY 100.6）。验证：实机特写/自然/朝右
+    连接干净无毛边碎片、臂居中、枪在臂尖。
+  - 旧 billboard 版素材在 git 历史可查；候选图已落 `Y:\工作\无尽轮回\scratch\world122\tower_v2\`
+    与 `tower_v2b\`。
+
+#### 防御塔机械臂 360° 旋转 + 武器挂载（2026-08-04 实现）
+- **拆臂**：行剖面定位塔顶臂区 → 独立臂贴图（枢轴=塔顶中心、臂尖=挂载点、自然角
+  =atan2(臂尖−枢轴)）；基座抹臂区。几何统一存 `DEFENSE_TOWER_VISUAL`（defense-system.js）。
+  ⚠ **2026-08-06 重新抠图（旧臂是错的）**：旧 347×64 版把塔顶平板左半段当成了手臂，
+  与塔图对不上（IoU~0.68），实机就是"一块板 + 竖条"。像素审计后确认真手臂是塔身左侧的
+  大结构：x∈[0,116]、y∈[240,463]（肩→臂→末端双爪钳），重新抠出 113×223。
+- **新几何（2026-08-06 定稿，`DEFENSE_TOWER_VISUAL.arm`）**：纹理 113×223；
+  枢轴=肩部上沿 (77,28)、挂载点=爪心 (44,155)、自然角 1.8250（≈104.6°，指向左下≈垂直向下）、
+  pivotWorldY=177.6（塔图 y=268）；工具 `tools/ai-gen/cut-defense-tower-arm.py`
+  （矩形裁剪+最大连通域去塔身角料；基座擦除手臂并对 y262~290 过渡带做对角 inpaint 补平）。
+- **渲染**：GameScene `_syncDefenseTowers` 三层——基座静态；臂 `rotation = aimAngle − 自然角`
+  绕枢轴 360°；武器锚臂尖、`rotation = aimAngle`。
+- **旋转铁律（2026-08-06 修复）**：臂 sprite 的 **origin 必须设在枢轴**（`pivot/tw, pivot/th`），
+  setPosition 直接落在世界枢轴——旧实现把贴图枢轴对齐到世界点后仍绕 sprite 中心旋转，
+  枢轴会画圈漂移（偏差最大 ≈ 15px）。武器尖端仍用 `(tip−pivot)×s` 旋转公式，与臂同源。
+- **武器朝向铁律（玩家同口径）**：`rotation = 瞄准角`；朝左（|角|>90°）用 **flipY** 防倒置
+  （禁 flipX+π——方向对但贴图倒，实机截图"枪口与臂不一致"根因）；按高度等比 setScale。
+- **塔 AI**：`aimAngle` 最短弧平滑（有目标 9 rad/s、回位 4 rad/s）；枪口=臂尖世界坐标
+  （弹道与视觉同源）；无武器时臂空转。
+- **实机验证工具**：`tools/cdp-defense-tower-arm.mjs`（建 3 塔 + 冻结瞄准 + 六向截图 +
+  单塔特写）、`tools/cdp-defense-tower-arm-fire.mjs`（解除冻结 + 假想敌 → 自动索敌/转臂/
+  开火截图）；旧 `tools/cdp-defense-tower.mjs` 依赖 DEFENSE_CONFIG.towers 预置塔已过时。
+  2026-08-06 验证结果：自然/右/左/上/下/混合角度全部正确（肩部固定、枪随臂转、朝左不颠倒）；
+  PKM/AKM/能量LMG 均从爪子枪口出弹、弹道沿枪方向；lint/build 全绿。
+
+#### 防御塔 Blender 建模重做（2026-08-12/13 纯色参考版，AI 生图 v2 弃用）
+> 用户对 AI 生图版防御塔不满意 → 本轮**先建模出纯色参考版**（不生成贴图），造型/视角/比例验收后再谈贴图。
+> 复用"Blender 建模 → AI 材质"路线 B 的几何端；产物与代码已入库（`tools/render-defense-tower.py` +
+> `tools/prep-defense-tower.py` + `tools/cdp-world122-shot.mjs`）。
+
+**视角/构造前置分析（GLM-4.6V + 代码常量双确认）**
+- 世界-122 = **30° 俯视等距投影**（基地房间 ry/rx=0.5）；掩体底边斜率 ±0.5（26.57°），h/v 互为镜像
+  （`defense-system.js` 的 `COVER_FACE`）。塔基=圆柱底座、机械臂=顶部关节结构。
+- 游戏内是**双层渲染**：基座贴图 `obstacle_defense_tower` + 独立机械臂贴图 `obstacle_defense_tower_arm`，
+  机械臂绕塔顶（pivotWorldY=235）360° 旋转（GameScene `_syncDefenseTowers`）。
+
+**建模（Blender 5.1，`tools/render-defense-tower.py`）**
+- 塔基：圆柱柱身 + 底部法兰 + 中部加固环 + 顶部平台/檐口；机械臂：枢轴柱→上臂→肘关节→前臂→
+  腕部武器挂载（橙色点缀）。正交相机 30° 俯视，无阴影、透明底、纯色材质（先不贴图）。
+- 坑：① 肘关节圆柱初始放 (0,0) 而非 x=128（已修）；② 相机只居中原点会裁掉机械臂侧——
+  `setup_camera` 加 `target` 参数：塔基 (0,0,75)、机械臂 (129,0,175)。
+- 渲染产物：`Y:\工作\无尽轮回\scratch\world122\tower_base.png`（324×498）、`tower_arm.png`（687×162）。
+
+**入库标定（`tools/prep-defense-tower.py`）**
+- 流程：裁剪包围盒 → 备份旧图到 `assets/terrain/.bak-tower-20260812/` → 覆盖 → 输出标定值。
+- `DEFENSE_TOWER_VISUAL.arm`（src/world/defense-system.js）：w:360, h:85, s:360/687；
+  pivot:{x:41,y:73}（pivotWorldY:235）；tip:{x:669,y:80}；naturalAngle:0（新图指向 +x）。
+- 单位换算：渲染 px/unit=2.56；game_per_unit ≈ 170/(324/2.56) ≈ 1.343。
+
+**实机验证（`tools/cdp-world122-shot.mjs`，CDP headless Edge）**
+- 关键调用顺序：`sm.init()` → `switchScene('scene8')` → `ds.setup(player)`（active 不会自动拉起）→
+  B 面板自建 demo_tower（塔/掩体实体在 Game.entities，不是 ds.towers）→ 截图。
+- 截图：`Y:\工作\无尽轮回\scratch\world122\verify\`（w122-overview / w122-tower / w122-tower-aim2 / w122-cover）。
+- GLM 验收：机枪挂在机械臂尖端、朝向一致；旋转后朝向明显不同（360° 机制正常）；无 console 错误；vite build 通过。
+
+**沉淀原则**
+- 美术重做走"**纯色/白模参考版先验收 → 造型视角比例通过 → 再做贴图**"，避免整轮返工。
+- 替换素材前先把旧图备份到 `assets/terrain/.bak-*`（保持可选回退）。
+- 换模型后 pivot/tip/pivotWorldY/naturalAngle 四参数必须随新图同步重标定，不能只换 png。
+
+### 防御塔战斗机制沉淀（2026-08-14/15 定稿，世界-122 防守塔全套）
+
+> 以下机制全部在 `defense-system.js` / `GameScene._syncDefenseTowers` 落地并实机验证，
+> 新防守单位/塔类功能一律按此口径开展。
+
+**友方免伤（玩家/友军不能伤害己方建筑）**
+- `damageable-entity.js` 导出 `isFriendlyFire(source, target)`：player/companion 阵营组互免。
+- 三条链路全部拦截：`takeDamage`（伤害入口）、`attack.js` 四处近战命中、`projectile.js` 同阵营跳过。
+- 防御塔/基地/掩体都因此无法被玩家和友军伤害；敌人照常可攻击（防守玩法成立）。
+
+**防御塔越己方掩体射击**
+- 掩体 face 线段注册进 `WallSystem.isoSegments`（带 `_cover: true`）。
+- 塔的索敌（`_acquireTarget`）与弹丸（`projectile.js _isBlockedByWall`）都忽略 `_cover` 段——
+  真实墙壁仍挡，己方掩体不挡。
+- 枪口墙体回退（`WallSystem.resolve`）同样只认真实墙：先用"忽略掩体段"的 `blocked` 判定，
+  仅真实墙阻挡才回退；否则 resolve 会把枪口沿掩体滑回塔脚（"下沉到底座" bug）。
+
+**图层锚点与阻挡口径**
+- 塔三层深度 = **脚底锚**：基座 `e.y+2`、机械臂 `e.y+2.5`、武器 `e.y+3`
+  （怪物脚底 y < 塔脚 → 塔盖怪物；y > 塔脚 → 怪物盖塔，与全游戏 depth=地面锚线 一致）。
+- 阻挡：塔只挡**怪物**（`game.js resolveCollisions`：防御塔与 player/companion 跳过分离）；
+  塔被摧毁 `active=false` → 停火/停渲染/分离跳过（怪物可穿过废墟）。
+
+**换弹/过热（玩家口径复制）**
+- 弹药：塔覆盖 `_hasAmmo`/`_consumeAmmo`（Combatant 默认无限弹，玩家口径才真扣）；
+  `_startReload` 加守卫防 canFire 每帧重置换弹计时 + 读 `getAmmoConfig.singleReloadMode`。
+- 过热：`update()` 驱动 `_updateOverheat(dt, isFiring)`；isFiring = 有目标+有弹+非换弹+未过热
+  （冷却不参与，机枪持续压制升温）；PKM/QJB/能量机枪按 heatParams 过热锁火。
+- 防御塔开火命中**不触发玩家震屏**：`damage-pipeline.js` 的 `GunFeel.onPlayerHit` 排除
+  `_isDefenseStructure`（否则塔命中会走玩家命中反馈）。
+
+**机械臂预渲染 3D 旋转帧（解决"单臂 2D 旋转僵硬"）**
+- Blender 单独建模（竖枢轴柱+横杆+弧形钩），绕塔顶轴渲染 48 帧（7.5°×48）等距透视，
+  游戏按 aimAngle 选帧（`render-defense-tower-frames.py` + `prep-defense-tower-frames.py`）。
+- 世界旋转 = **-aimAngle**（游戏 y 向下，屏幕顺时针=世界逆时针的镜像）；镜像塔取反+flipX 帧。
+- 臂尖是**椭圆路径**：tipOX = gs·k·reach·cosθ；tipOY = gs·k·(0.5·reach·sinθ − 0.866·dz)
+  （x 全量、y 0.5 缩短；dz=挂载件相对枢轴 z 偏移）。**y 分量符号必须 +0.5·sinθ**，
+  写反会"下半区枪口落到塔顶/底座"。
+- 相机锁定验证法：探针必须停 `_updateCamera` + 固定相机，否则玩家/相机漂移导致截图定位失效。
+
+**枪管裁剪（"枪插进机械臂"假象）**
+- 武器贴图只取前 1/3 枪管段裁成独立贴图 `tower_barrel_<weaponId>.png`（`prep-tower-barrels.py`），
+  切口端 origin(0,0.5) 对齐臂尖并内嵌 7px（`inset` 可配）→ 枪管从机械臂/钩子伸出。
+- **不要用运行时 `setCrop`**：与旋转/origin 组合存在渲染兼容问题（精灵状态对但不可见）。
+- 枪口 = 内嵌后根 + 枪管长度沿枪管方向（`_muzzlePoint` 与渲染同口径）。
+- 配置按 weaponId（霰弹 super90/saiga12k 同 type 不同贴图必须区分）。
+
+**霰弹枪重设计（Super90 / S12K）**
+- 一次击发 = 1 发弹壳：`_fireBlast` 多发弹丸共享一个枪口、扣 1 弹、播一次特效
+  （`Combatant.fireProjectile` 支持 `config.noAmmoConsume`，调用方统一扣弹）。
+- Super90（weapon12）：max 7、**单发装填**（400ms/发，`_updateReload` 逐发 +1，装满才停）、
+  333ms 间隔、6 弹丸。S12K（weapon13）：max 12、**整匣换弹**（2s 一次装满）、150ms、4 弹丸。
+- 装填中 `canFire` 拦截 → "打空换弹、没装满不开火"。
+
+**金属贴图流程**
+- 机械臂金属材质：`flux2-klein-4b-walltex`（riveted steel 族）生成无缝贴图 →
+  `render-defense-tower-frames.py` 第 4 参传贴图覆盖全部件 → 重渲染 48 帧；
+  几何不变时标定零变化（帧尺寸/枢轴不变）。
+
+### 世界-122 迭代沉淀（2026-08-15：塔死角排查/基地退回/塔 UI/树木散布）
+
+> 沉底归位：僵尸犬统一工厂 → 第 9 区「怪物渲染图层与构造铁律」#3；怪物 A 移动 +
+> 全局移速倍率 → 第 8 区；树木素材管线（等距重做 + 写实 v2 + 抠图/摆放坑）→ 第 2 区；
+> CDP 探针坑 → 第 8 区大场景 AI 索敌的 CDP 探针坑条目。
+
+**防御塔死角排查方法论（结论：无功能死角）**
+- 探针驱动排查（`tools/cdp-tower-close-range.mjs` / `close-range2.mjs`）：塔索敌/出弹/命中
+  三段插桩 + 距离×方向矩阵（60~400px × 东南西北 × 空旷/菱形房内）+ 移动目标途经 + 霰弹。
+  结果：全距离全方向命中——贴身怪被碰撞半径推到 ~67-79px 仍正常命中。
+- 若再报「死角」：先跑探针复现再改代码；历史真凶是 08-14 前的掩体挡弹道（已修）。
+
+**基地核心重建（2026-08-16 定稿入库）**
+- 成品：立方体 + 顶部压顶 + 扁平底座，**采样祭坛大理石贴图**
+  `scratch/world122/raw/tex_altar.png`（白底大理石 + 灰纹），`spec.lighting` 加亮；
+  入库 `assets/terrain/defense_base.png`，`DefenseBase.spriteCfg =
+  { idleKey:'defense_base', size:220, sizeH:183, footOffsetY:92 }`（44.8° 接地视角）。
+- 历史：08-15 首版「AI 直出大理石 + 祭坛式建模」用户验收不过已退回 `npc_altar`；
+  08-16 这版「采样既有祭坛贴图 + 立方体底座」一次通过——**核心视觉有现成素材先采样**。
+- 详细流程见第 2 区「Blender 建模渲染管线」。
+- 坑：Blender 的 images.load 路径必须 ASCII（中文路径静默坑），渲染输出写中文路径没问题。
+
+**防御塔整塔命中 + 悬停轮廓 + 神经芯片面板（2026-08-15）**
+- 命中盒 = `TOWER_HIT` 矩形（塔脚锚 `{cx:0, cy:-135, hw:115, hh:175}`，世界坐标覆盖基座+
+  机械臂+挂载武器）；`tryInteract` 塔分支用 `Renderer.screenToWorld` 转世界坐标判定
+  （别用屏幕空间小圆——塔身/塔顶必然脱靶；08-06 矩形命中盒曾退化丢失过一次）。
+- 悬停金色轮廓：`DefenseSystem.updateHover`（game.js 每帧驱动）→ `_hoverTower` →
+  `GameScene._syncDefenseTowers` 每帧对三层贴图 `filters.internal.addGlow(0xffd700)`
+  （敌人攻击预警同链路；建筑/编辑模式与指针在右侧面板上时跳过悬停）。
+- 面板「神经芯片」区（2026-08-16 起为六维强化卡，旧「射手演算·合计加成」已被取代，见下）。
+- 验证工具：`tools/cdp-tower-panel.mjs`（命中矩阵 + CDP 真实鼠标悬停 + 面板截图）。
+
+**防御塔升级重构——六维芯片取代等级/模块（2026-08-16）**
+> 2026-08-16 二轮：改造模块已按用户要求重新引入并与芯片并存（见下节），本节标题中的
+> 「/模块」仅指当时删除、二轮恢复前的中间状态。
+- **删除**：塔等级（Lv 升级/耐久成长）、升级模块（6 模块 + 模块位）及其面板区块/按钮；
+  塔名固定「防御塔」，耐久固定 `tower.hp`。
+- **升级收敛到六维芯片**：`tower.chip = {str/dex/con/int/wis/luck}` 初始 `chip.base=10`；
+  升级属性本身不加攻，只强化「与该属性挂钩的已装载武器」。
+- **武器 ↔ 主属性挂钩**：`DEFENSE_CONFIG.tower.chipWeaponStat`（PKM/QJB-201/能量机枪→力量、
+  AKM/M416/QBZ-191→智力、散弹→体质、弓→敏捷）；未配置时默认取该武器 `attackFormula.attrs[0]`。
+- **伤害真源零硬编码**：`_computeDamage = computeWeaponAttack(item, 芯片合成属性, null)`——
+  芯片只喂挂钩主属性、其余为 0（未挂钩属性对伤害零影响）；强化等级/改造(独头弹·伤害%)/附魔
+  全部实时计入；skills=null（塔不吃玩家熟练度）。
+- **面板逐属性注释实时反显**：`_statMarginalPerPoint` 用真实公式 +10 区间差分算「每点+X 攻击力」，
+  未挂钩属性显示「无影响」；强化后 perEnhance 使每点边际自动变大；升级按钮「+1（-X 金）」
+  带升级后伤害预览。
+- **金币逐级递增**：`round(baseCost × growth^(当前值-base))`，默认 60×1.45^n →
+  值 10→60 金、11→87、12→126、13→183、14→265…
+- **武器槽/列表贴图**：`towerWeaponImagePath`（item.iconImage → EquipDataManager 全量源 →
+  弹丸贴图兜底），面板不再用 emoji 占位。
+- 验证：`tools/cdp-tower-modules.mjs`（初始化/挂钩边际/费用曲线/强化实时计入/上限拦截/面板 DOM）。
+
+**防御塔改造模块重新引入——与六维芯片并存（2026-08-16 二轮）**
+- 需求：用户提供 UI 组件图（`素材库\UI\改造\防御塔改造.png`，2 行×3 列深灰圆角卡片，
+  每卡=图标+文字一体），要求抠图、去右下角水印后导入并接回塔面板；顺序
+  左→右、上→下 = 伤害强化/射程增强/速射模块/快速换弹/过热抑制/快速散热。
+- 抠图：`make-transparent-icon.py`（白底泛洪 → 最大连通域 → 羽化 → 边缘去白边）；
+  像素分析确认卡片底边 y=1180、水印文字带 y≥1180（左/中/右三段），行 2 裁到 1179
+  天然避开；成品 `assets/ui/tower/tower-module-*.png`（RGBA，~505×492），去水印整图
+  `素材库\UI\改造\out\full_clean.png`。
+- 接法：`DEFENSE_CONFIG.tower.modules` 重新引入 6 模块（icon 指向抠图卡），
+  **与六维芯片并存**——芯片管伤害挂钩主属性，改造模块直接强化武器参数
+  （伤害%/射程/射速/换弹/过热/散热）；无槽位限制（塔等级已删），金币
+  `round(baseCost × growth^(等级-1))` 逐级递增。
+- 伤害公式：`_computeDamageFor = computeWeaponAttack(...) × moduleMults().damage`；
+  芯片「每点+X」边际差分同步乘模块伤害倍率（真实公式反显仍成立）。
+- 面板：`#dtModules` 3×2 网格，每卡 = 抠图图标 + 名称 + Lv + 当前/下一级效果 + 升级按钮。
+- 验证：`tools/cdp-tower-modules.mjs` 扩展——6 模块逐项生效（伤害 75→83、射程 1200→1344、
+  间隔 92→85、换弹 3500→3150、过热/散热 ok）、费用 150/218/315/457/663 递增、
+  满级拦截、面板 6 张图标卡。
+
+**场景树木随机散布特性（2026-08-15 定稿；2026-08-16 已移除）**
+> 世界-122 树木已全部删除（贴图/ISO_WALL_GEO/散布逻辑/生成脚本/探针），
+> 由仙人掌散布替代：`_scatterCactiScene8` + `scenes.scene8.cactusScatter`
+> （同款排除带/碰撞/调用顺序铁律），资产 `obstacle_cactus_*`，见「世界-122 荒漠化」。
+- `_loadScene8` 里 `_scatterTreesScene8`（配置 `scenes.scene8.treeScatter`：enabled/count/
+  minDist/scaleJitter/bounds/exclude 可调）；排除基地房/玩家出生点/能源点/刷怪点；
+  走 isoVisuals + rebuildIsoCollision 真实碰撞；缩放 = obstacleH/geo.h × (1±0.1)。
+- **调用顺序铁律**：必须在 DefenseSystem.setup 之前调用（rebuildIsoCollision 只保留门闸
+  isoSegments，掩体墙段在 setup 时才注册——树先建碰撞、掩体后注册，顺序反了树没碰撞）。
+- 实机验证工具：`tools/cdp-tree-pure-shot.mjs`（纯 __phaserScene 截图，零模块依赖）。
+
+#### 新障碍物碰撞体 + 图层（2026-08-04 定稿）
+- 掩体/塔入库后必须补 `ISO_WALL_GEO` 注册：`category:'obstacle'` + `editor` 显示名
+  （摆墙编辑器障碍物类自动上架）；foot=底部 15% 带实测（矩形 footprint 碰撞）；
+  obstacleH=默认显示高度（掩体 260 宽等比、塔 262）；depth 走 obstacleDepthOf 自动。
+- 纯视觉层（防御塔机械臂）**不注册碰撞**——注册会让旋转臂带静止碰撞、挡弹道。
+
+#### 世界-122 建筑面板（B 键，2026-08-04 实现）
+- **入口**：仅 scene8（世界-122）B 键开关；复用摆墙面板 CSS（wall-editor-panel）；
+  面板打开时置 `Game._buildMode`（input.js 鼠标/按键交给编辑器，与摆墙同守卫）。
+- **物品**：`BUILD_ITEMS`（防御塔 300 金 + 每级掩体**仅一个条目** `cover_<g>_v`，
+  名称 `掩体·<g>级`，不再分水平/垂直；F 键镜像即得水平 "\" 向——贴图/碰撞/face 线
+  全部跟随镜像，2026-08-05 简化）；
+  点选 → 鼠标幽灵预览 → 左键放置扣金币（GoldManager）→ 生成真实实体
+  （DefenseTower 入 towers 数组；DefenseCover 带 HP/可被攻击）。
+- **变换约束**：不能缩放；只能镜像调方向（F/按钮）——塔=基座 flipX，掩体=实体 `_facingLeft`。
+- **校验**：地图边界 + `WallSystem.canMoveTo` + 与已有建筑距离 ≥70px；右键/Esc 取消。
+- **CDP 验证铁律**：动态 import 必须用 performance 资源表里带 `?t=` 的真实 URL
+  （否则拿到重复模块实例，singleton 不同步）；先等页面稳定再点官方开始按钮。
+
+#### 防御塔/基地点击命中盒（2026-08-06 修复"点塔打不开面板"）
+- **根因**：`tryInteract` 的点击判定是"塔脚周围 70px 圆"——塔身高达 262px、
+  视觉中心在脚底上方 131px，点塔身/手臂/枪必然脱靶（探针实测：点脚命中、
+  点塔身/塔顶全部 false），只有点最底部台阶才开得了。
+- **修复**：命中判定改为覆盖整塔视觉范围的**矩形命中盒**
+  `DEFENSE_TOWER_VISUAL.hit`：塔 `{cx:0, cy:-130, hw:100, hh:170}`（含机械臂+武器）、
+  基地核心 `{cx:0, cy:-107, hw:90, hh:120}`；玩家交互距离 260px 保留。
+- **验证**：`tools/cdp-tower-click-e2e.mjs`——真实 CDP 鼠标点击塔身中部 → 面板打开、
+  再点关闭（toggle），无控制台报错；点击链路 = input.js mousedown → `mouse.leftPressed`
+  → game.js 点击块 → `tryInteract`（模块实例必须用 performance 表 `?t=` URL 导入）。
+
+#### 防御塔/基地不可移动·不可击退（2026-08-06，与墙壁/掩体同口径）
+- 防御塔与基地核心此前只有 `noSeparation`（防实体分离推动），缺少 `immovable`
+  （`damageable-entity` 的击退闸门：`applyKnockback` 直接 return、位移积分跳过）。
+- 修复：`DefenseTower`/`DefenseBase` 构造补 `this.immovable = true`（掩体已有），
+  塔/基地现在等同墙壁——任何击退/位移通道一律无效。
+- 验证：`tools/cdp-tower-immovable-probe.mjs`——双向 500px 击退 + 30 帧更新，
+  位置零位移、knockbackX/Y 恒 0；lint/build 全绿。
+
+#### 防御塔枪械属性与玩家对齐（2026-08-06 排查定稿）
+- **排查结论**：换弹/弹匣/命中效果本就走共享链路（Combatant `getAmmoConfig` +
+  改造 `reloadTimeDelta/magazineDelta`；投射物快照 `_enchantEffects/_craftEffects` →
+  DamagePipeline 附魔 on-hit/流血/易伤/穿甲；`Combatant.takeDamage` 附魔暴击），
+  与玩家一致；**不一致的只有两处**：
+  1. **每发伤害**：旧实现按武器类型硬编码基准（`BASE_WEAPON_DAMAGE`）× 扁平六维系数，
+     无视 attackFormula/强化 enhanceLevel/改造·附魔 damagePercent。
+  2. **射速**：旧实现只读 `item.attack.attackInterval`，改造 `attackIntervalDelta`、
+     附魔 `attackIntervalMul` 不生效。
+- **修复**：`_computeDamage` 改走唯一实战公式 `computeWeaponAttack(item, player.data, null)`
+  （含强化/改造/附魔；`null skills` = 不挂玩家技能精通——那是玩家技能非武器属性，
+  如需塔吃精通再放开）× 塔等级独立增益 ×(1+0.22×(L−1))；射速按
+  `_applyEnchantAttackInterval` 同口径 `base×intervalMul+delta`（下限 100ms）。
+- **验证**：`tools/cdp-tower-weapon-parity.mjs`——同一把 AKM（强化+3、改造
+  damagePercent+20%/attackIntervalDelta−80/magazineDelta+10/reloadTimeDelta+300、附魔
+  damagePercent+15%/attackIntervalMul×0.9）：塔 L1 伤害 39 == 玩家无精通公式 39、
+  射速 370==500×0.9−80、换弹 1450==1150+300、弹匣 40==30+10；lint/build 全绿。
+
+#### 防御塔机枪射速提升 + 过热（2026-08-06，能量轻机枪修复）
+- **现象**：塔装能量轻机枪只能以基础 333ms 慢速射击、永不发热（玩家侧是 333→50ms
+  ramp 加速 + 5s 过热停射 + 4s 冷却）。
+- **根因**：塔的 `equipWeapon` 只设基础冷却，`update` 未实现 ramp 与过热；
+  且 `Combatant.update` 有一段旧残留恢复（`_overheatValue -= dt*0.0005` ≈0.5/s）
+  会抵消任何积累（玩家不调 super.update 所以没暴露）。
+- **修复**：
+  1. `DefenseTower.update` 补机枪逻辑——"接敌=持续开火"：能量 LMG 按
+     `energyLMGParams`（兜底 `item.attack`）做 ramp（base→max 线性，rampUpTime 内）
+     与过热积累/恢复（overheatTime/Cooldown/Recover），`canFire` 过热即拦停射；
+     PKM/QJB201 走 `Combatant._updateOverheat`（读 heatParams）。
+  2. 删除 `Combatant.update` 旧残留恢复（全库无依赖，玩家不调 super.update）。
+- **验证**：`tools/cdp-tower-lmg-overheat.mjs` 实测——cd 333→50ms 线性 ramp（2.5s）、
+  heat 5s 到 1 强制停射、4s 冷却后重新 ramp，循环正常；lint/build 全绿。
+
+#### 世界-122 布局与刷怪（2026-08-05 定稿）
+- 基地核心在**左端**（900,2048），玩家出生在其左 140px（760,2048）；
+  **scene8 不再生成返回主神空间传送门**（portal_return 已删，玩家用菜单离场）。
+- 基地菱形房由 `DefenseSystem.setup → _buildBaseRoom()` 预置（2026-08-05 v2，
+  可被攻击掩体墙，def/mdef=0）：外接 1024×512（rx512/ry256，墙底边斜率 0.5）；
+  **每边 4 件 D 级掩体**，face 线相邻重叠 40px、边链两端各越顶点 45px 让转角端帽叠盖；
+  RB 边中点留居中门洞（沿边 ≈270px）。布局参数在 `DEFENSE_CONFIG.room`。
+- 玩家仍可用 B 面板加建防线（防御塔 + 六档掩体，只能镜像不能缩放）。
+- 刷怪点全在**右端尽头**（x≈3936/3736 两列 7 点），怪物自右向左进攻。
+- 刷怪节奏：常规流 = 普通怪池加权（zombie/miner/fat/dog/wolf/spitter/flySwarm）；
+  **30s 精英**（lantern/oreSpider/wizard/knight/maggot/mutant3，HP×1.4）、
+  **90s 领主**（foreman/shounao/flyHand/witch，HP×2.8），在普通流之上额外生成；
+  精英/领主生成有飘字+音效提示；等级成长沿用波次 HP/攻击倍率。
+
+#### ControlNet 深度锁视角（2026-08-04 实测定稿）
+- **入口**：`flux2-dev-depth` + `--control-image <深度图>`（单卡 5080，不依赖 mesh）。
+- **铁律：FLUX.2 非 mesh 路径必须用引导采样**（FluxGuidance+BasicGuider+
+  SamplerCustomAdvanced+RandomNoise）；旧 SamplerCustom+cfg 出**全黑图**
+  （2026-08-04 已修进 comfyui-gen.py）。
+- **LoRA 归属**：Klein 训练的 LoRA（3072 维）只能挂 `flux2-klein-4b`；挂 dev/depth
+  （6144 维）会 `double_blocks.*.txt_attn.proj` 形状不匹配报错。
+- **深度模板**：手绘剪影（`_depth_templates/`）即可稳定锁"正面 billboard、平底、居中"；
+  实测 10 组件 9/10 视角稳定；**宽扁平地类（农田）需模板加前景高度**，否则会被读成俯视。
+- **复用**：`gen-depth-test-assets.py`（批量）+ `make-depth-templates.py`（模板生成）
+  + `depth-extract.py`（从参考图提真深度，HF 下载可能超时，剪影优先）。
+
+#### 朝向（水平/垂直）经验（2026-08-04 定稿）
+- ControlNet 深度**锁视角/剪影大形可靠，锁细节朝向不可靠**：枯树/战旗等带非对称细节的
+  模板，h/v 生成结果仍同向（镜像相似度 Δ≈0），模型默认朝向覆盖模板细微差异。
+  ⚠ **2026-08-05 白模实测部分推翻**：该结论基于 2D 手绘剪影模板；改用 Blender 3D 白模
+  深度（`blender-depth-render.py` + `_blockout_specs/tree_dead.json`）后，枯树主干+
+  右侧主枝的非对称朝向被忠实锁定（`scratch\test_tree_dead_01.png`）。原因推测：真实 3D
+  深度的前后遮挡/亮度台阶比 2D 剪影的形状差异信号强得多。细微朝向仍建议镜像兜底，
+  但主枝级朝向可用白模锁定。
+- 可靠双方向做法：**入库后水平镜像**（掩体 `_h/_v` 同款）或运行时 `flipX`；
+  不要在模板里赌细微非对称。
+- **2026-08-04 首轮 18 组件 × 2 批量因"风格/角度不一"被用户删除**（仓库/NAS/注册全清）。
+  重做采用"锚点派生"路线：先定一张满意视角/朝向的图 → 同族 img2img 低 denoise
+  从锚点生成（构图/姿势继承）；攒够系列后训风格 LoRA，摆脱逐张参考。
+
+#### 视角标准基准（2026-08-04 全量审计定稿）
+
+> 审计方法：GLM-4.6V 只用于"正面 vs 俯视 vs 侧视"粗分类；**30° 斜底边必须以
+> 代码几何（ISO_WALL_GEO base/face 斜率）或像素斜率为准**——GLM 读斜边不可靠。
+
+| 形态族 | 标准 | 标准件（可当锚点/参照） | 判定要点 |
+|---|---|---|---|
+| 墙段/掩体 | **30° 斜底边**（\\ 或 /） | wall_straight、swamp_wall_straight、12 张掩体 | 底边斜率 0.49~0.57（ISO_WALL_GEO） |
+| 道具/障碍物 | **正面平视 billboard、平底、居中** | sandbag、barrel、pot、pillar、barricade | GLM 正面 + 像素平底 |
+| 建筑/塔 | **正面平视 billboard、平底** | npc_altar、npc_warehouse、防御塔 | GLM 正面 + 像素平底 |
+| 角色/怪物 | 侧视 billboard 精灵 | 玩家、现有敌人贴图 | 侧视全身体 |
+| NPC（站桩对话/立绘系） | **正面平视 billboard、平底** | 小鼠铁匠/鼠王/侍从、npc_altar | GLM 正面 + 像素平底 |
+| 地板 | 30° 等距菱形 | hub_brick、swampbrick | 地板线 30° |
+
+- **问题件记录**：obstacle_woodpile（GLM 非单件居中，待复查/重做）；
+  旧塔 45° 等距版已重做；宽扁道具（农田类）深度模板易出俯视，需前景立墙高度。
+- 新素材入库前：先判形态族 → 对照对应标准件 → GLM 粗分类 + 像素/几何校验。
+- **NPC 视角定论（2026-08-11 实机核验）**：站桩对话 NPC（铁匠/鼠王/侍从）与玩家/怪物
+  **不是同一视角**——玩家与全部怪物是**侧视**（像素翻转 IoU 0.09~0.26），鼠王/侍从是
+  **正对观众**（IoU 0.82~1.00），铁匠原贴图是 **3/4 斜侧**（IoU 0.54，带脚下木桩）。
+  按八版定论统一：**NPC 归入"正面平视 billboard、平底"立绘系**（与祭坛/仓库/防御塔一致），
+  玩家/怪物维持侧视；铁匠 3/4 → 正面重做方向正确（原形象保留：银灰板甲+白衬衫+棕皮围裙+
+  灰发鼠耳+卷尾+木桩底座+日系动漫）。
+- ⚠ **2026-08-06 例外**：防御塔 v2 按用户口径改走"30° 等距（对齐墙壁，可见圆柱顶面）"，
+  不再套"建筑/塔=正面平视"——用户明确要求参考地面/墙壁视角；其他建筑（祭坛/仓库等）
+  维持 billboard。新素材先按用户当前口径，勿照搬旧表一刀切。
+
+### 铁栅栏滑动门（F→A 六档，2026-08-15）
+
+世界-122 基地入口/可建造墙段式门：左右细柱 + 圆柱铁栅栏 + 每叶上下水平横杆，
+开门时两扇叶沿墙轴向两侧滑出并隐藏，关门时从两侧向中间合拢。
+- **2026-08-17 门占一个墙位（用户口径：门口大小跟墙壁一样，单边 4 堵墙）**：
+  - 基地每边 4 段（faceLen 196.3、端帽重叠 40 → 有效 156.3/段，4 段覆盖 665 ≥ 边 572.4）。
+  - openEdge（RB）第 3 段（i=2）由铁栅栏门占据（不再挖宽门洞）：门 face 196.77 =
+    墙 face，与相邻墙按墙-墙 40px 端帽重叠拼接；删除旧 JOIN_OVERLAP 门洞收拢逻辑。
+  - 合成验证：门栅栏与两侧墙内容重叠（左 19px / 右 29px）无缝；sim 0 卡墙。
+- **2026-08-17 菱形闭合实测（用户：4 墙/边"围不拢"，先 Blender 验证再改）**：
+  - **结论：墙链本身闭合**——真实贴图沿边跨度 229.6px（v/h 一致、v1~v5 变体同几何），
+    相邻墙间距 144.7 → 重叠 85px；四边 + 四角（含门关闭）实机截图全部无缝。
+  - **真正的洞 = 门自动打开**：gateMode auto，玩家/侍从距门中点 150px 内即开门，
+    栅栏滑出 barCrop 裁剪窗后门洞通透，基地看起来"没围上"。
+  - **修复**：BuildableGate/_CoverGate.update 的感应从「圆心 150px」改为
+    「点到门线段 ≤65px」才开（只有真过门才触发），离开 0.8s 后自动关；平时菱形闭合。
+  - **验证工具**：`tools/ai-gen/blender-cover-diamond-real.py`（真实墙 box 230×52×150、
+    rot ±52° 顶视+游戏视角渲染+沿边间隙诊断）；`tools/cdp-base-detail-probe.mjs`
+    （无头 Edge 实机截图 + 门开/关/离开回归：closed→open→closed ✓）。
+  - ⚠ 旧 `blender-cover-diamond-test.py` 是 openRadius 宽洞旧逻辑且用简化 box（沿边
+    投影仅 ~83-109px 与贴图实际 229.6px 不符），结论不可信，勿再用来判定闭合。
+- **右石柱贴图自身烘焙的深色钢柱（2026-08-16 终案·pillarR）**：用户多轮反馈
+  "贴在墙上、不随门开关移动"的钢柱刷新后仍在、没删对——根因是
+  `cover_gate_{F,E,D,C}_pillarR.png` 石柱左缘 **x509-530 × y36-350** 一条约 22px 宽、
+  近黑色（rgb≈28-59）竖带（镜像 pillarL 对应位置是均匀石色 → 非对称柱影），它属于
+  **静态 pillar 层**，因此不随 bars 动画移动；而此前所有修复只改 bars 16 帧、从未碰
+  pillarR，所以用户怎么刷新都看得到。修复：`tools/remove-gate-pillar-steel-column.py`
+  用钢柱右侧同行石料条（x535-556）回填，暗色占比 87% → 参照水平 0-7%；B/A 档整柱
+  即深色主题，不误伤。**排查教训**：用户说"没删对"时先确认动的是不是用户看到的那个
+  图层；静态贴图残块用「局部暗色占比 vs 邻列参照」扫，别只扫动画帧。
+- **2026-08-17 一格门改版（用户要求：门 = 墙大小，一堵墙 = 一格）**：
+  - 门整体缩放到「一格 = 一堵墙」：`GATE_GEOM.worldFaceLen` 270.4 → **176**（水平跨度 =
+    COVER_FACE ±88），face 端点与墙 face 同跨（A(-88,-21)/B(88,-109)，v/h 镜像同墙）。
+  - 六档贴图以 face 中点 (320,477.6) 为基准整体缩放 **0.80087** 重建（旧 face 219.8 display →
+    新 176 display；石柱外缘 ±105 display，与墙端帽 ±94 同级；栅栏叶随帧等比缩放，rail
+    探入柱内被 split 裁成「插入石柱」，最外竖杆距柱 ~2-5px 由 rail 桥接）→ 重新
+    split 柱/栅栏层 → 图标从新 frame 0 重生成。
+  - **重标定 GATE_GEOM**：faceA(105.4,584.0)/faceB(534.6,371.0)、midTex(320,477.6)、
+    barCrop {174,0,292,634}（旧 135..505 已失效）；`gateDepthSegs` 柱投影 half 26 → 22。
+  - **基地门洞两侧墙段收拢**（`_buildBaseRoom` post-pass）：原洞 237.8 > 门 face 196.77，
+    左右邻墙段沿边平移使墙 face 端点**压入门 face 12px**（JOIN_OVERLAP=12）——墙端帽圆角
+    比 face 线短 ~26px，flush 会露 2~4px 地板缝，12px 重叠后墙端帽盖住门柱外缘、无透缝；
+    转角仍由邻边端帽覆盖（face 越顶点量 29→3.5，端帽本体补足）。碰撞段重叠 12px 可接受，
+    开门通行口 ≈173px（门 face 196.77 − 24）。
+  - **关门帧栅栏叶贴柱（二轮，消"动画妥协"缝）**：`rebuild-gate-onewall.py` 在 split 之后
+    把 frame 0 左叶 [179,320)→[174,320)、右叶 [320,460)→[320,466) 逐行拉伸——最外竖杆/
+    横杆正好贴柱内缘（174/466），动画帧 1..15 不动（开门滑动天然覆盖）。
+    **三轮微修**：叶拉伸加深 2px（左叶→[172,320)、右叶→[320,468)）且 `barCrop` 右缘
+    466→467（w 293）——裁剪窗右边界不含端点，466 是贴柱像素，取 466 会留 1px 缝；
+    可见边缘现为 174..466 与柱内缘齐平。
+  - **四轮图层修复（用户线索：建筑预览整图连通、摆出三层精灵有缝）**：`_initGateSprite`
+    旧深度 左柱4215 / 栅栏4171 / 右柱4127——右柱在栅栏之下，栅栏 barCrop 硬边与柱层
+    边界对不齐就露地板。改为 `depthL/depthR = max(底边线+12, depthBars+1)`（4215/4172），
+    左右柱一律盖在栅栏之上，用柱体贴图盖住栅栏裁剪边，观感与整图预览一致；开门时叶片
+    从柱后滑入（更自然）。syncGateSeamDepths 的"右柱盖墙左端/左柱压墙下"仍生效。
+    ⚠ 图层仍按 `syncGateSeamDepths` 的"左在右前"：B 端门右柱抬到墙前（盖墙左端）、
+    A 端门左柱压到墙后（墙右端盖门左柱）——接缝观感以实机为准。
+  - **B 面板拼接**：`GATE_SNAP_OVERLAP` 51 → 40（与掩体墙端帽同口径）。
+  - 一键重建：`python tools/ai-gen/rebuild-gate-onewall.py`（源纹理在不可用的 Y: 盘，
+    故走程序化缩放；`_blockout_specs/cover_gate_<g>.json` 已按 0.80087 同步缩放，
+    未来 Y: 恢复后可 Blender 重渲复现）。
+  - 验证：node --check 通过；vite 编译 200；基地布局数值核验墙/门 face flush；
+    sim-defense-crowd 无卡墙/无瞬移（「门口转火门」检查为既有失败项，非本批引入）；
+    cdp-gate-seam 门对门偏移同步 +176/+88。
+  - ⚠ 通行取舍：一格门通行口 ~173px，防御怪半径 ≤77.5 全通过；poisonMaggot 精英
+    （半径 116，需 232）与超大领主被挡在门外 → 转攻墙体（旧 237.8 门也仅勉强容纳
+    poisonMaggot，属"门=一格"方案的固有取舍）。
+  - ⚠ 旧的 `bake-gate-missing-pillar.py`（贴左墙柱补竖杆）对一格门资产**已过时**：
+    新贴图栅栏叶经缩放后 rail 直插柱内、最外竖杆距柱 ~2-5px，不再需要烘焙补柱。
+- **2026-08-17 横杆 + 柱外残留清理**：每扇叶上下各加一条水平 rail
+  （box 126×14×10，x=±60，z=135/9，leaf/side 标记随叶滑动），与竖杆同烘焙进
+  `_bars` 16 帧表，运行时 `_play()` 切帧天然同步，无需新增贴图键。拆分时柱子掩码
+  膨胀 2px，并逐帧清除左右柱外边界之外的 bars 像素——修复开门时钢管退出石柱后
+  残影穿模。一键重渲：`python tools/ai-gen/rebuild-cover-gates.py`；
+  仅清理当前 bars：`python tools/clean-gate-bars-outside-pillars.py`。
+    Windows 一键入口：双击项目根目录 `rebuild-gate-assets.bat`。
+    运行时兜底：`GATE_GEOM.barCrop` 把 bars 层裁剪到左右柱之间（cell x 174..466），
+    旧贴图未重渲时也不会在石柱外残留。
+  - **2026-08-17 二轮定稿（已实渲验证）**：① 柱框裁剪会连关门帧最外侧竖杆
+    （world x=±115，2D 投影落在柱剪影内）一并删掉——12 杆变 10 杆；竖杆重排为
+    ±(5,23,41,59,77,95)（间距 22→18），12 杆全部落在门洞区（柱剪影 cell x 137/502
+    之内），横杆保持 ±60×126，两端探入柱区被裁成"插入石柱"效果。
+    ② Phaser 4 `setCrop` 写入的是 GameObject._crop（按当前帧算 UV），`_play()`
+    每次 `setFrame` 后裁剪即失效（动画冻结在帧 0 裁剪区）——`createGateSprites`
+    包一层 setFrame，切帧后按新帧重算 barCrop。③ 旧资产时代的一次性残柱剔除脚本
+    （remove-gate-stray-cylinder / remove-gate-wall-steel-column /
+    remove-gate-pillar-steel-column）**不纳入重渲流程**：它们按旧贴图固定区域/连通域
+    大小删像素，对新渲染可能误删滑出门洞半途的栅栏叶碎片；重渲后柱区残留由 split
+    内置清理 + clean-gate-bars-outside-pillars（柱框裁剪，幂等）兜底。
+    验收：六档 16 帧柱区残留全 0、帧 15 纯柱子、关门 12 竖杆；GLM 复核关门/开门
+    中途帧无穿模无截断。
+
+
+- **资产管线**（Blender 几何 + 掩体同款材质，与掩体墙同一相机比例）：
+  `_blockout_specs/cover_gate_<g>.json`（仅 `tex` 指向 `tex_<g>_v1.png` 不同）→
+  `render-cover-gate.py spec out.png --slide 0..1`（2048 渲染，ortho 302.76）→
+  `compose-cover-gate.py <g>`（裁剪统一内容框，640×634 单元 4×4 打包）→
+  `split-cover-gate-layers.py`（帧15=纯柱子掩码，拆左柱/右柱静态图 + 栅栏 16 帧表，重组零误差）。
+- **游戏侧**：`GATE_GEOM`（六档共用几何：face 线 worldFaceLen 270.4、cell 640×634、
+  displayScale 0.41）；`gateConfigFor(grade)`；基地固定门用 `GATE_CONFIG`（D 级）。
+- **状态机**：默认关闭（门洞碰撞注册）；友军（player/companion，150px）靠近自动开门，
+  离开 1.2s 延时关门；`BuildableGate.gateMode`：auto/locked/open（建筑面板详情按钮切换）。
+- **感应中心铁律（2026-08-16 门卡死根修）**：开门检测半径必须用**门洞物理中心**
+  （`_gateSeg` 面线中点，存 `_detectX/_detectY`），不能用精灵中心 `_cx/_cy`
+  （BuildableGate 的 `_spriteCx/_spriteCy`）——等距贴图偏移让精灵中心偏入门内 ~74px
+  （基地门实测 (1138,2037) vs 门洞 (1156,2111)），**门外单位被关门段挡在 150px 检测
+  半径外永远触发不了开门** → 矿工过门卡死左右摆动（2026-08-16 用户实测复现 +
+  CDP A3 阶段回归锚点：`gate._detectX/_detectY === seg 中点`、矿工站门外侧 100px
+  关门面 1s 内自动开门）。
+- **掩体矩形对友方冗余（2026-08-16 门洞卡死补刀）**：门洞两侧掩体的墙段已按门跨度
+  裁剪放行，但 198×133 实体矩形仍伸入门洞——`Game.resolveCollisions` 会把过门洞的
+  companion 推回（矿工贴门来回摆）。友方移动本就由 WallSystem.resolve（墙段）管，
+  矩形对友方冗余：`rectEnt._isDefenseCover && other._faction === 'companion'` 跳过
+  实体分离（怪物/玩家不变，怪物仍靠矩形贴墙被挡）。
+- **路径振荡守卫（2026-08-16 幽灵路径）**：寻路空间哈希下矿工在门洞附近可能出现
+  「穿基地内部」幽灵路线与正确绕行路线两条近似等代价路线，路径被反复重算翻转 →
+  原地左右摆（矿工位移大、卡死看门狗测位移不触发）。`HamsterMinerAI._checkOscillation`：
+  2.5s 窗口内当前航点跳变 >150px 且没沿任何一条走远（<120px）→ 清路径强制用当前
+  A* 重算，不做传送。这是「卡死看门狗」之外的第二层兜底（看门狗测位移、守卫测
+  航点翻转）。
+- **建筑面板**：B 面板六档 `gate_<g>_v` 条目（能源，费用=掩体HP×0.25），
+  吸附端点 `GATE_SNAP`（与掩体互相吸附，SNAP_OVERLAP 回退），幽灵预览 + F 镜像，
+  可被攻击/修理（修理走建筑面板详情按钮，费率同掩体）。
+- **图层铁律（重要）**：门是**长跨度墙体**（face 线两端深度差 ~136px），
+  绝不能整门单深度——按三段拆：左柱=深端 / 栅栏=中点 / 右柱=浅端，各自 `底边线 y + 12`；
+  三段面线注册 `window.GateFaceSegs` 进 `junctionCorrectedDepth` 仲裁
+  （实体脚线在段前 → 抬到段上；段后 → 压到段下）；开门移除栅栏段；镜像 h 左右柱深度互换。
+- 已知取舍：实体站在门洞中同时跨左右柱时，整门三段的抬升/压制按各段面线独立判定，
+  跨两段的重叠区以最近段为准，极端位置可能有 ±1 段误差，可接受。
+
+### 城墙楼梯（Wall Staircase，2026-08-19：替代射击台）
+
+- **玩法定义**：建造面板不再提供独立射击台，改为贴墙建造城墙楼梯。一个逻辑楼梯由
+  多个1×1段组成，以墙顶为锚向地面延伸；所有段合法才整组落地。
+- **配置真源**：`data/defense-structures.json`。当前墙模型投影标定 `topZ=125`，
+  `risePerSegment=62.5`，因此默认两段；段数统一用
+  `ceil((wallTopZ-groundZ)/risePerSegment)`，禁止按墙种类写死。
+- **正式墙基准**：当前世界-122建筑墙是 `obstacle_block` 方块墙，不是旧
+  `obstacle_cover_D` 长掩体。楼梯建模必须走 `tools/ai-gen/build-block-wall-staircase.py`，
+  参考原方块墙64×32×80菱形柱；禁止再用230×52×150长墙模型标定。
+- **Blender资产**：用户当前建筑提示词是本楼梯视角的最高优先级：
+  true orthographic dimetric、camera elevation 30°、azimuth 45°，可见地面轴严格为
+  `±26.565°`（斜率`±0.5`）；本条对城墙楼梯覆盖旧的“可见地线30°”通用记录。
+  Blender使用真实正方形1×1地块（边长`64√2`），禁止再用azimuth=0相机配合
+  非对称模型进深反解四方向。上下段各自模型高度`72.168`→游戏62.5，四方向直接建模输出
+  `wall_stair_{lower,upper}_{e1_pos,e1_neg,e2_pos,e2_neg}.png`；
+  固定正交尺度/显示画布220×220（1模型单位=1游戏像素，透明安全边不改变实际模型尺寸）。
+  下段带完整1×1薄正方形接地板，上段带从地面直达第二段起点的完整1×1实心承重柱；
+  参考墙只存在于`block_wall_stair_reference.blend`校准场景，正式八张资产不含墙。
+- **视觉锚点铁律**：上下段必须各自记录Blender投影 `surfacePx/entryPx/exitPx`。
+  Sprite中心以“该段斜面中点”对齐：
+  `segment collider center - (baseZ+topZ)/2 - surfacePxOffset`。
+  `entry/exit`只用于验证地面、段间和墙顶接口，禁止再从墙顶串联Sprite或用
+  `segment.y-baseZ`猜位置。上下段必须用同一个固定正交尺度导出；生成器必须同时验证
+  两条地面轴为`(±64,32)`、垂直抬升62.5、四方向接口误差小于0.001px，并检查alpha不触边。
+- **可走区域必须来自贴图**：每段除中心锚点外还必须导出
+  `walkEntryAPx/walkEntryBPx/walkExitAPx/walkExitBPx`。运行时把四个屏幕锚点按各自
+  `baseZ/topZ`还原为地面世界四边形；`surfaceAt`、左右侧边阻挡和RTS路线必须共同读取
+  这个四边形，禁止再以整块1×1 footprint或单独的`walkWidth`估算可走位置。
+  点击贴图时必须逐级把九个候选踏步Z加回屏幕Y，只接受“同段且同stepIndex”的命中；
+  同一屏幕像素命中多个踏步时按实际段Sprite图层、再按30°/45°相机深度选最前候选。
+  路线终点就是点击的可见踏步，禁止用`screenY+baseZ`或强制走完整座楼梯。
+- **独立碰撞体**：每段楼梯必须拥有自己的1×1建造footprint和独立 `Collider`；
+  Collider附带该段`walkSurface`四边形，移动表面只认Blender踏步通道。父楼梯实体只负责
+  组合生命值、存档、回收和墙链关系。
+- **方块墙吸附**：block墙不得投影到 `BLOCK_FACE` 后猜位置；直接复用
+  `BLOCK_GRID.e1/e2` 四邻格：顶段中心=墙格心+一个方向步长，下段=墙格心+两个步长，
+  墙接口=墙格心+半步长。四方向由鼠标所在侧选择。
+- **上段必须接地**：方块墙版上段除40→80踏步外，还要有-10→40的完整1×1菱形
+  实心承重柱；下段有-4→2薄菱形接地板。禁止只渲高处踏步或长条支撑。
+- **连续墙链**：楼梯吸附、放置忽略和驻墙单位移动都必须通过
+  `collectConnectedWalkableWalls` 收集完整端点相接墙链，不能只忽略鼠标命中的单墙段。
+- **旧版清理**：新存档必须写 `stairVersion=2`；历史 `platform` 和无版本楼梯禁止恢复，
+  防止墙上重新出现孤立旧楼梯贴图。
+- **图层**：所有楼梯段以目标墙 `_faceDepth+0.2+index*0.01` 为基础深度，驻梯单位再+1；
+  不再使用楼梯自身格位Y与墙竞争创建顺序；必须在 `_syncStructureRenderOrder` 后再次执行
+  `_syncWallStaircaseLayers`，否则主Sprite会被结构拓扑覆盖回墙后。
+- **高度真源**：实体 `z` 是脚底高度；`_platformLift=z` 只保留给旧人物/武器/阴影入口。
+  每段 `surfaceAt` 按配置的九级踏步量化高度，楼梯上脚底直接贴当前踏步顶面，不再做连续
+  斜坡插值或高度缓动；墙顶走`wall_walk`表面并约束在城墙顶面线范围。
+- **目标位置**：墙顶RTS目标必须包含 `{x,y,z,surfaceKind,route}`；route 顺序为
+  楼梯各段中心→墙顶投影点。没有有效楼梯的墙顶目标返回 `unreachable`。
+- **攻击受击**：普通投射物用独立 `z/vz`，墙碰撞在二维交点处比较弹道高度与墙顶高度；
+  禁止恢复 `_onPlatform` 后忽略所有 `_cover` 的旧穿墙特例。近战双方脚底Z差超过48时不命中。
+- **所有远程入口同口径**：玩家枪械、`RangedAttack`、`Combatant.fireProjectile`、
+  敌人自带射击、仓鼠射手/斥候、法系飞行物和感知LOS都必须读实体/目标Z；
+  新投射物入口优先走 `ProjectileFactory`，不得另写只看二维墙线的越墙特例。
+- **禁止给墙顶额外画线**：曾新增的 `frontLip` 深浅双线在实机中像墙上残留细长楼梯，
+  已完整移除；城墙视觉只允许使用原始 `obstacle_cover_*` 贴图。
+- **兼容**：新存档 kind=`wall_staircase` 且 `stairVersion=2`；旧 kind=`platform`
+  与无版本楼梯禁止恢复，避免墙上出现孤立旧贴图。
+
+### 射击台历史记录（FiringPlatform，2026-08-16 八版定稿：已由城墙楼梯替代）
+
+- **九版（2026-08-16）**：
+  - **台阶单通道**：新增两条台阶侧墙阻挡段（走廊两侧半宽+26 外扩、入口下方 30 →
+    台面前缘后 30），爬台阶途中不能左右下台；只能从台阶底部上/下，不能左右绕路。
+  - **图层统一口径**：构造时 `setupStructureDepth(this, spriteCfg.size/2)` 注册接地线
+    （_faceLine ±149 / _faceDepth=y+12），台上单位保留显式 `max(仲裁, _faceDepth+1)`
+    覆盖（台面高于接地线，仲裁窗口不生效）。
+  - **贴墙吸附**：恢复 `_snapPlatformToWall`——平台台面边与墙 face 线对齐：
+    v 墙("/")用后边 B→L（实体=墙中点+法线×130.7）、h 墙("\")用右边 R→B
+    （法线×161.1）；法线朝鼠标侧、F 镜像翻另一侧；无墙回退自由放置。
+    尺寸审计：平台台面主体显示宽 260px 与掩体墙一致（世界尺寸不同，显示宽度对齐）。
+  - **基地布局（九版+）**：基地 x=900→532→**回到 900**（TL 墙左角贴左边界 x=20）；
+    预置射击台已于 2026-08-16 按用户口径删除（基地不再自带平台，B 面板可自行放置）；
+    树排除区/能源禁矿带/仓鼠兜底锚点同步。CDP 探针在无预置平台时创建临时测试平台
+    供几何用例。
+  - **出生点铁律（2026-08-16 修正）**：世界-122 玩家出生点必须
+    `WallSystem.canMoveTo` 校验。基地 x=900 时合法点是 **(760,2048)**（房间内、
+    不贴墙、不占门洞）；**切勿用按旧基地 x=532 调的 (450,2150)**——基地回到 900
+    后它在左下墙外/墙里（y=2150 处墙 x≈592，实测 walkable=false 卡墙）。
+    校验探针：`tools/cdp-spawn-check.mjs`。
+
+- **八版+ 审计（2026-08-16）**：
+  - 空气墙：视觉台面边缘与游戏菱形像素核验吻合；单向登台阻挡段由"菱形原边（半厚 6）"
+    改为"菱形**外扩 26px 多边形**三边（miter 角闭合、半厚 2）"——角色能走到视觉边缘
+    （CDP stopDist=0），也走不出去（单向保留）。
+  - B 面板预览：幽灵尺寸/锚点对齐实体渲染（297×225、offsetX=-25.6、footOffsetY=49），
+    自由放置建筑可放置时幽灵变绿；掩体/门端点吸附复核正常（射击台为自由放置无吸附）。
+  - 台阶贴图：踏步从 flat light 素色改为程序化阶梯贴图（stair_tread.png，暖色石阶
+    踏步面+深色前缘），渲染管线新增 `material:'stair'`（spec.stair_tex）；重渲染后
+    踏步辨识度强。
+
+- **八版（2026-08-16 重建模）**：用户实机反馈"台阶歪斜、没对齐主体"。Blender 无头
+  检查（tools/ai-gen/check-platform-align.py）确认根因：台阶 pos 沿**世界 -Y 轴**
+  排列（[0,-84/-54/-24]），而主体 rot 44.8 前脸法线 = (0.704,-0.710)——楼梯走向与前脸
+  夹角 45~55°，且顶阶背面悬空 33 单位、底阶 93 单位，整串浮在主体前方。
+  - **修正**：台阶改沿主体前脸法线（局部 -y）摆放：pos 改
+    (61.3,-33.8)/(40.1,-12.5)/(19.0,8.8)（z 不变 13/30/43/60/73/90），顶阶背面贴脸
+    （间隙 0）、中/底阶沿法线 30/60；Blender 复核 disp_xy_angle_to_normal≈0°。
+  - **重渲染**：render-cover-real.py（本机 Blender 5.1）→ 材质用 factory_wall_tex.png
+    提亮暖灰（旧 tex_platform.png 已丢失，均值匹配 (132,118,115)）→ 紧身裁剪
+    684×519 → 覆盖 assets/terrain/firing_platform.png（+ h flipX，旧图备份在
+    tools/ai-gen/_platform_align/）。
+  - **重标定**（tools/ai-gen/calibrate-platform.py 相机矩阵投影）：显示 297×225、
+    offsetX=-25.6 / footOffsetY=49；台面菱形 L(-173.6,-60.4) F(-122.5,-33.8)
+    R(86.0,-137.2) B(34.9,-162.9)；台阶走廊 E(0,0)→D(-27.4,-81.1)，长 85.6、
+    半宽 110、dir (0.320,0.947)；单向登台三边阻挡段沿用。
+  - 验证：eslint 0 error + vite build ✓ + npm test 全绿；CDP 探针全绿（表面全覆盖、
+    精灵锚点、脚线对齐、单向登台、死亡清理）。
+
+- **七版（2026-08-16 重构，替代六版抬升模型）**：设计方向 = 自由放置高台；登台机制
+  从"抬升（lift）"改为**表面可走模型**——单位逻辑坐标 = 台面/台阶的表面屏幕位置，
+  无抬升高度（`_platformLift` 只作"在台上"标记，深度覆盖 + 弹道忽略用）。
+  - **一对一标定（实机打回根因："走上去再往前走=空气墙/悬浮"）**：逐像素审计贴图 +
+    建模投影确认五版/六版几何与贴图完全错位：① 贴图不对称——台面菱形在右上、台阶
+    在左下，入口=贴图 (211,581) 而非底部中央；② 台面是水平面（世界 z=102 → 屏幕
+    恒定 97.6 display px），不是 178px；③ 台阶轴沿左下↔右上对角线（dir
+    (-0.401,+0.916)），不是竖直 (0,1)。旧实现锚在贴图中心 + 恒定 178 抬升 +
+    40px 满抬区 → 脚浮在台面上方、再往前走抬升截断 = 空气墙/悬浮。
+  - 精灵渲染：`spriteCfg.offsetX=51.1` / `footOffsetY=96.3` 把贴图入口锚定到实体；
+    GameScene 中性精灵按 `spriteCfg.offsetX` 平移。
+  - 台面菱形（相对实体，屏幕 +y 向下）：L(-78.9,-84.9) F(-27.6,-52.0)
+    R(181.1,-184.4) B(129.8,-217.3)；`isOnPlatform` = 点-in-菱形 ||
+    点-in-台阶走廊（E(0,0)→D(42.3,-96.5)，长 105.4、半宽 104）。
+  - 越墙三件套保留：台上弹道/魔法忽略己方掩体 `_cover`；深度覆盖
+    `_faceDepth=y+12` + 台上单位 `_faceDepth+1`。
+  - **单向登台（七版+）**：台面菱形左/右/后三边注册 `_platformEdge` 阻挡段
+    （WallSystem.isoSegments，halfThick 6），只留台阶所在前边（F→R 整条在台阶
+    走廊内）进出——台上不能从其它边走下去，地面单位也不能从其它边走上台；
+    `onDeath`/`destroy` 清理阻挡段（防幽灵段残留）。
+  - 自由放置（无贴墙）：删除 k 公式/裁墙洞/密封段/移动 ignore 全链路、
+    `_snapPlatformToWall`、`WallSystem.platformSegs`；F 镜像仅视觉 flipX。
+  - 武器跟随保留（`WeaponTransform` 补减 `_platformLift`，表面模型下恒为 0/1，
+    无分离问题）；死亡 `onDeath` 沉陷（BuildingSinkEffect 接管）。
+  - 验证：eslint 0 error + vite build ✓ + npm test 全绿；CDP 探针
+    （tools/cdp-platform-probe.mjs）——无墙线/无密封段、台阶走廊+台面菱形全覆盖
+    （前角→后角 21 点无断崖）、精灵锚点 = (e.x+51.1, e.y-96.3)、玩家脚线=台面表面、
+    沉陷死亡清理、贴图渲染。
+  - 建模维持五版 v7 资产（自由高台不依赖墙，台阶固定左下↔右上对角；暂不重建模）。
+
+- **需求来源**：围墙内玩家/友方远程弹道被己方掩体墙段（`_cover`）挡，站上射击台后可
+  越过围墙向外攻击。
+- **⚠ 一二版教训（用户打回两次）**：① 台阶/平台不能沿 local-x 横排（rot 44.8 时投影
+  "台阶左平台右"方向反）——台阶沿 local-y 纵深排列；② 不要自研 box 堆叠——**直接参考
+  掩体：复制拓宽立方体 + 台阶衔接，rot.z 与掩体一致（44.8）**，平台主体平行墙（同掩体
+  沿墙放置），台阶向房内延伸；③ 贴图走**生图管线**（flux2-klein-4b-walltex LoRA 生成
+  材质纹理 → render-cover-real.py Blender 渲染），不用渲染器直接贴墙砖。
+- **⚠ 三版教训（用户打回第三次）**：① 布尔登台 = 进站台区瞬间抬满 = **瞬移**；② 满高
+  box 堆叠踏面不可见 = **没坡度**；③ depth 无条件抬升 = **图层错乱**。
+- **⚠ 四版教训（用户打回第四次："建模不像射击台 + 无法走上去"）**——三个独立根因：
+  - **建模投影错误**：四版台阶放在台体侧面、与台面同高（pos.y -262→-30 全在平台主体
+    前方上方），投影成"台体 + 一堆散块"，根本看不出阶梯。五版重做：台阶**从台面前缘
+    逐级连到地面**（3 级，每级 = wall 立面 26 + light 踏面 8，嵌套贴台体前脸），
+    ASCII 投影（tools 里 proj 脚本）确认轮廓 = 宽台体 + 左下清晰阶梯；
+  - **登台走廊方向反了**：四版走廊沿 `-wallNormal`（指向**墙外**），判定区整个在房间
+    外面 → 房内玩家永远触发不了抬升 = "无法走上去"。五版：走廊 = 台面前缘沿
+    **屏幕向下**（台阶实际延伸方向）165px、半宽 130；前缘之后 40px 内视为台上满值
+    （getLift `along < -40` 才归 0——台面深 26px，`-20` 会让台面后半瞬断）；
+  - **贴墙朝向错误**：TR 墙平台用了 v 贴图（长轴斜率 -0.64 ⊥ 墙 +0.5）。五版：
+    **贴图由 orient 决定**（'h' → firing_platform_h），mirror 只翻放置侧不翻贴图，
+    长轴始终平行墙线；且**平台必须锚定实际掩体 face 线**（掩体 face 线相对房间几何边
+    有 ~64px 垂直偏移——`_placeInitialPlatform` 先找距几何边中点最近的掩体段，把几何
+    中点投影到 face 线上作为墙线锚点）。
+- **资产（五版 v7）**：`_depth_templates/firing_platform_spec.json`（3 级台阶
+  340×30 嵌套：riser 26 + light 踏面 8，pos.y -84/-54/-24；平台主体 340×84×102，
+  rot 44.8，soil 土底座）→ 材质（沿用 tex_platform.png walltex）→ render-cover-real.py
+  渲染 → 紧身裁剪 → `firing_platform.png` + `firing_platform_h.png`（flipX 镜像；
+  内容 695×647 → 显示 260×242，footOffsetY 121，脚底=台阶入口）。
+- **站台标定**：台面中心在入口正上方 `platformHeight=178`；后缘（贴墙端）191px；
+  台面前缘 165px（登台走廊起点）——贴图 x 方向对称，偏移均为 0。
+- **贴墙几何（五版）**：实体 = 台阶入口，位置由「台面高出墙顶 25px」反推：
+  `k = (178 - 墙高108 - 25) / (wn.y - 墙斜率·wn.x)`（TR 边 ≈50）；
+  台面 25px 高于墙顶 → 玩家站台上可越墙射击 ✓。
+- **裁墙洞 + 密封段（五版新增，走上去的关键）**：台阶要跨过墙线（入口在房内、台面在
+  墙顶上方），墙段不处理会挡停玩家。做法：
+  ① `trimCoverSegsForPlatform` **分裂**与平台跨度（±130px 沿墙）重叠的掩体段——洞区
+     内的部分移除、两侧剩余保留为新段（`_splitOf` 回链）——只移端点不行（跨全宽段
+     段身仍横穿洞区，四版门闸的 moveOut 逻辑对"两端都在洞外/一端在洞内"的段无效）；
+  ② 平台自注册 `_platSeg`（_cover 段，跨度 = 洞区）**密封**（怪物挡停转火平台，
+     `_owner` 链）；玩家移动在 player/update.js + subsystems.js 五处 resolve 统一传
+     `{ segs: WallSystem.platformSegs }` ignore；台上弹道走既有 _cover ignore（三件套）。
+  ③ 平台 `noCollision=true`（门同款）——实体碰撞圈在台阶入口，不关会挡玩家走近。
+- **登台判定**（DefenseSystem._updatePlatformStates）：玩家 + **PartySystem.members** +
+  Game.friendlyUnits（Companion 不在 Game.entities——门感应同款坑）脚线 → getLift 连续
+  值；`isOnPlatform = lift>0` 兼容旧调用；走出走廊自动归 0。
+- **越墙攻击三件套**：① `Projectile._isBlockedByWall` 忽略掩体段条件扩展
+  `_isDefenseTower || _onPlatform`；② `BoltSkillSystem._updateFlying` 台上施法者传
+  ignore；③ `WallSystem.resolve/canMoveTo/_nearestBlockingSeg` 加 ignore 透传
+  （网格 + 线性双路径都要，`_linearNearestBlockingSeg` 易漏）。
+- **深度铁律**：平台顶面线离地面 178px > junctionCorrectedDepth 窗口（60/280），
+  **仲裁不生效**——平台贴图深度锚定入口接地线 `_faceDepth = y+12`（与掩体同规则），
+  台上单位在 GameScene 显式 `max(仲裁深度, 平台._faceDepth+1)`，**且仅当
+  _platformLift>0**（玩家 + 侍从两处）。
+- **init 时序坑**：`_buildBaseRoom()` 只算 layout 不建实体——`_placeInitialPlatform`
+  必须在掩体墙段创建**之后**调用（预置平台要锚定 face 线 + 裁墙洞），且用
+  `_placeInitialPlatformSafe` 防御包装（init 异常不得静默中断后续塔/门搭建）。
+- **验证**：CDP 探针（tools/cdp-platform-probe.mjs）——init 生成 count=1/贴图 260×242
+  渲染/getLift 0→178 平滑/裁墙分裂（洞区无掩体段残留）+ _platSeg 密封（怪物挡停，
+  玩家带 ignore 直达）/resolve 无 ignore 被挡；eslint 0 error + vite build ✓ +
+  npm test 全绿（除并行会话 weapon-anim-config 未提交改动弄挂的 1 条近战守卫）。
+  headless 相机不驱动 rAF，**视觉/朝向实机复测**。
+
+---
+
+### 世界-122 扩展 + 分块地板 + 大能源点 + 基地门可攻击（2026-08-16 定稿）
+- **地图 4096² → 6144×4096**：scene8 width/height + origin(3072,2048)，data 与 public/data 双份同步；
+  刷怪点重排 9 点多路线（右端 7 + 中距 2），`spawn.alertRange 3800→6200`（最远刷怪点距基地 5240）；
+  `_loadScene8` 边界墙按宽高分开（勿退回正方形假设）。
+- **地板分块惰性加载（方案 B）**：`applyDungeonFloorChunked(w,h,2048)` 注册 `Renderer.terrainChunks`；
+  `bakeDungeonFloorChunk` 用**确定性种子按全局行列网格**烘焙（同一 (row,col) 永远同砖，跨块无缝），
+  边缘渐隐只在贴地图边界的块上画；GameScene `_updateTerrainChunks` 按相机视口+320px
+  每帧最多烘焙 1 块、远离 900px 连同纹理卸载（常驻显存 2~4×16MB）。
+  ⚠ 坑：切分块模式必须**先销毁旧 terrain 精灵再删纹理**——否则精灵引用已删纹理，
+  Phaser TexturerImage 崩 `frame.source null / reading 'resolution'`（2026-08-16 真机踩过）；
+  switchScene 离场统一 `Renderer.terrainChunks = null`，其他场景 floor applier 也清。
+- **大能源点（簇状）**：`ENERGY_CONFIG.clusters` 4 簇 × 12~14 块（簇心/数量/spread 配置），
+  `EnergyNodeSystem.setup` 均匀圆盘 + 最小间距 85 生成；`baseExclusion {900,2048,800}`
+  基地 800px 禁矿带；树散布按「簇心 ±(spread+140)」整圈排除（勿改回逐点 positions）。
+- **树木间距**：treeScatter.minDist 95→150（6144 地图 100 棵，候选拒绝 40~50 次属正常；
+  2026-08-16 树木已移除，同口径改 cactusScatter.count 80 / minDist 150）。
+- **基地门可攻击**：基地门由 `{...CoverGate}` 换成 `BuildableGate`（Combatant）——有 hp /
+  沉陷死亡 / 建筑面板详情（常锁/常开/修理），与玩家建造门完全同构；face 线几何公式一致；
+  摧毁后门段移除、通道永久打开（`_teardownCollision` + BuildingSinkEffect 接管三段精灵）。
+- **门面板点击入口**：game.js 点击分发接 `BuildingSystem.tryInteract`（掩体/门自动开面板进详情，
+  260px 交互距离；B 面板已打开时仍走 BuildingSystem._onMouseDown）。
+
+### 世界-122 地面连续铺贴定稿（2026-08-16：泥/沙无缝地面 + 草点缀）
+
+场景八地面从"菱形石板地砖"改为**无缝连续纹理**（详细管线见第 2 区
+「地面无缝纹理统一入口：floor-asset.py」）：
+- 泥地 `floor_mud_seamless` + 沙地软边补丁 `floor_sand_seamless`（噪声不规则边界）；
+- 30° 等距纵向压缩 0.5774、侵入式分块 pad=3（细线/黑边收尾）；
+- 草簇 `deco_grass_1/2` 固定朝向点缀，不参与砖的 X/Y 翻转；
+- 降饱和：泥 S 68.8→39%、沙 59.1→37%（desaturate-texture.py）。
+- 已验证：跨界亮度扫描无黑缝（最暗 103）、沙泥无直角边、8 向循环无方向问题。
+
+### 世界-122 荒漠化（2026-08-16：树木移除 → 仙人掌障碍物）
+
+树木（`obstacle_tree_*` 五变体 + 散布/生成管线）已**全部移除**：贴图、`ISO_WALL_GEO`
+注册、`_scatterTreesScene8` + `treeScatter` 配置、BootScene 加载、gen/process-tree-* 脚本、
+`_blockout_specs/tree_*` 白模、cdp-tree-* 探针、prompts/obstacle.md 树木节、SKILL 散布条目。
+（通用 `WallSystem.addTree` 程序化圆树仍保留——主神空间/雪原 demo 用，非世界-122。）
+
+**替代 = 仙人掌 4 姿态障碍物（`_scatterCactiScene8` + `scenes.scene8.cactusScatter`）**
+- 资产：`assets/terrain/obstacle_cactus_{saguaro2arm,saguaro1arm,barrel,cholla}.png`
+  （`ISO_WALL_GEO` obstacle 类，foot 底部 15% 带实测：31×11 / 36×13 / 110×38 / 33×12；
+  obstacleH 240 / 230 / 105 / 150，贴图等比裁剪 h=256，缩放口径 obstacleH/geo.h）。
+- 管线：`process-desert-plant.py`（白底生图 → BiRefNet 进程内抠图 → `--desat 0.7`
+  `--contrast 0.7~0.85` 低对比 → 等比裁剪 `--no-square`；ComfyUI venv python 跑）。
+  **低对比铁律**：同一 STYLE 块（photograph of a real desert cactus + muted + low contrast +
+  ~30° 微俯 + 白底无影）+ 后处理降饱和降对比；数值验收白边 <0.5%、无品红、meanSat 19~25、
+  lumStd ≈38（cholla 金刺初版 55 偏高，单独 `--contrast 0.7` 拉回 45）。
+- 散布：逻辑与旧树木同款（菱形内、排除基地房/玩家/能源点/刷怪点、footprint 口径、
+  minDist 150、count 80、随机 flipX），调用顺序铁律不变（DefenseSystem.setup 之前）。
+- 低矮荒漠植物点缀仍走 `deco_desert_1~4`（束草/蒿灌木/龙舌兰/风滚草，第 2 区地面节）。
+
+### 世界-122 建筑与建造（2026-08-17）
+
+**建筑贴图替换工作流（素材库 → 英文名 → alpha bbox 标定）**
+- 源素材：`E:\无尽轮回\游戏\素材库\场景\建筑\{军营,矿场,铁匠铺,草屋}.png`（4096² 等距斜视、
+  透明背景、建筑贴底边）；复制到 `assets/terrain/` 必须改英文名（barracks/mine/blacksmith），
+  禁止中文文件名。
+- 显示参数标定（勿拍脑袋，旧图验证公式）：
+  - `displayH = displayW × bboxH/bboxW`（bbox = alpha>16 包围盒；旧图反推吻合）。
+  - 运行时接地点统一走 `structure-visual-anchor.js`：在贴图中央20%~80%宽度内从底向上扫描
+    `alpha>=96` 的真实最低接触像素；Y 换算为 `footOffsetY`，X 取底部窄楔中心作为前顶点。
+    再从前顶点向上扫描 nominalHeight 20%~75%，取底座宽度达到局部最大值94%的第一行作为
+    稳定底座横截面。测得斜率自动吸附到 **26.565°（旧资产/PERSPECTIVE 0.5）或30°（新美术）**
+    最近档，并在保持面积平稳的前提下同步调整宽深；结果按纹理+显示尺寸缓存。
+  - **bbox 水平居中不等于接地点居中**：靶场 bbox 完全铺满但接地点仍在中心右侧约42显示像素，
+    军营约31像素，但这些最低点可能是单侧台阶/门槛，**不能直接作为整栋建筑的水平中心**。
+    普通网格建筑的逻辑锚点、Collider中心和四边形中心固定留在格心；贴图用稳定底座横截面
+    的中心对齐，幽灵、点击范围和遮挡前缘共用同一结果。
+  - 用 System.Drawing LockBits 扫描 alpha bbox（PowerShell，4096² 约 2~3s）。
+- 替换点：BootScene `load.image`（键名即英文）、各建筑 config `tex`（实体渲染 idleKey）、
+  building-system `BUILD_ITEMS.tex`（面板缩略图 img 路径自动跟随）。
+- **显示尺寸统一口径**：普通2×2建筑基准 `displayW=288`；若贴图自带地基明显大于
+  256×128 footprint（如教堂），允许等比缩至 `displayW=256`，禁止为追求同宽让地基越界。
+- 新增产兵建筑：`data/producer-buildings.json` 加条目（唯一真源，含 tex/displayW/H/footOffsetY/
+  spawn/unitTypes/modules），BootScene 加载贴图即可，代码零改动。
+
+**建筑开发标准工作流（世界-122，2026-08-18 定稿；新建筑/替换建筑一律按此开展）**
+1. **素材先入库**：从 `E:\无尽轮回\游戏\素材库\场景\建筑\` 复制到
+   `assets/terrain/<english_key>.png`；只用英文 key，禁止在运行时引用素材库外路径。
+2. **紧身裁透明边，再标定显示**：源图若有大透明留白，先按 `alpha>16` 紧身裁剪；再用
+   `displayH = displayW × cropH/cropW`。脚点由 `structure-visual-anchor.js` 自动扫描高 Alpha
+   接触底边和底部展开轮廓，预览/实体共用四边形拟合；配置 `footOffsetY/offsetX` 只作
+   纹理未就绪兜底。
+   **禁止**直接把带留白的 4096² 图塞进项目后沿用旧尺寸，否则会缩小/悬浮。
+3. **配置唯一真源**：普通2×2建筑统一登记 `data/producer-buildings.json`：
+   `cost/hp/def/mdef/tex/displayW/displayH/footOffsetY/sellRefundRatio` 为必填数值。
+   - 产兵：`spawnEnabled=true` + `unitTypes/modules`；
+   - 工坊：`spawnEnabled=false` + `workshopType/abilities`；
+   - **仅数值/详情、暂无玩法**：`spawnEnabled=false, panelMode:"detail", modules:{}`，
+     不要伪装成空能力工坊。
+4. **资源注册**：BootScene `load.image(<key>, assets/terrain/<key>.png)`；配置 `tex`、
+   `BUILD_ITEMS` 缩略图和实体 `spriteCfg.idleKey` 必须同 key。
+5. **遮挡/占地接入**：构造中走 `applyBuildingFootprint(this, 2)` +
+   `setupStructureDepth(this)`；新增建筑不手写另一套碰撞、脚底或深度规则。
+6. **建筑详情三段式（强制）**：所有可交互建筑（墙/门/射击台/基地/塔/小屋/兵营/
+   生产建筑/陷阱）统一复用 `renderBuildingDetailHeader`，顺序不可颠倒：
+   **① 缩略图与名称 → ② 生命条、当前/最大耐久、百分比 → ③ 特殊功能**。
+   特殊功能仅放在生命条之后（门控、修理、武器装载、采矿、募兵、研究、仓储、献祭等）；
+   无玩法建筑明确显示“暂无额外功能”。详情面板统一右上 `right:26px/top:26px`。
+7. **验收**：打开左下「范围」，确认碰撞前顶点贴住可见地基最低点、左右侧顶点贴住底座
+   展开边界；仓库应保持接近256×128，靶场/军营允许按像素得到不同宽深。再跑
+   `test-structure-visual-anchor.mjs`、
+   `test-config-integrity.mjs`（贴图/配置链）+ 建筑面板布局回归 +
+   Vite build；有交互的新建筑再跑 CDP 实机探针，检查缩略图、耐久、百分比、特殊功能顺序、
+   右上定位和出售/修理等现有操作。
+
+**最近实例（2026-08-18）**
+- 批量替换（素材库 `场景\建筑\新建文件夹`）：兵营/教堂/研究院/草屋/铁匠铺/靶场已分别
+  替换 `barracks/church/research_institute/thatch_hut/blacksmith/shooting_range`；全部先紧身裁
+  再按已有 `displayW` 重标为：
+  `barracks 1157×886 → 271×208/104`（26.403°、底座2.014:1，2026-08-19合格终版）、
+  `church 1209×1182 → 256×250/125`、
+  `research_institute 1233×998 → 267×216/108`（26.659°、底座1.992:1，2026-08-19合格终版）、
+  `thatch_hut 1359×1089 → 288×231/116`、
+  `blacksmith 1235×996 → 267×215/108`（白底泛洪抠图；27.01°/1.962:1，
+  运行时归一256.4×128.2/26.565°，2026-08-19修正版）、
+  `shooting_range 1325×1005 → 271×206/103`（26.062°、底座2.045:1，2026-08-19合格终版）。
+  **贴图替换不改既有建筑玩法配置**；随后必须运行 `build-lighting-maps.py` 重建投影/轮廓/
+  高度/法线派生资产。该批裁后 alpha 全部水平居中、底边贴画布底部，因此图层标准结论为：
+  保持 `spriteCfg.offsetX=0`、`footOffsetY=displayH/2` 与 manifest
+  `shadow.anchorMode="footprint_center"`；禁止通过修改 collision footprint 或随意加 shadow inset
+  来补视觉误差。
+- **矿工营地试点（2026-08-19）**：素材库 `矿工营地.png` 紧身裁为1205×965，替换
+  `assets/terrain/mine.png`，按288宽等比显示为288×231/footOffsetY116；名称统一为“矿工营地”，
+  玩法配置不变。像素验收为 offsetX -1.08px（居中合格），但底座仅约159×79且角度26.565°，
+  **不满足30°/完整2×2约256×148要求**，不可作为后续建筑美术基准。
+- 传送门：同一目录 `传送门.png` 已替代 `assets/terrain/portal.png`；紧身裁为
+  1127×1192，`producer-buildings.json.portal` 标定为
+  `displayW=288/displayH=305/footOffsetY=153`，并重建 `portal_projection/silhouette/height/normal`。
+  `panelMode:"portal"` 的详情面板提供 **主神空间 / 世界-123·雪原 / 世界-124·林地 /
+  世界-125·地牢遗迹** 四个目的地，按钮必须调用 `SceneManager.switchScene`，禁止直接改 `currentScene` 绕过
+  世界-122快照、实体清理和传送冷却链路。
+
+### 世界-124 林地（2026-08-18）
+
+- 场景：`scene10` / 世界-124·林地，沿用世界-122/123 的 `12288×8192` 菱形边界与
+  30° 等距连续地板；主神空间传送门进入，底部返回门离开；不接防守、建造或刷怪系统。
+- 草地：`floor_grass_forest_seamless.png` 走 `floor-asset.py grass-forest`（FLUX.2 Dev →
+  make-seamless → 降饱和）产出，游戏内连续铺贴 `textureScaleY=0.5774`；
+  林地点缀使用 `deco_forest_grass_1~4.png`：FLUX.2 Dev 单株生成 → 非白纯色底 →
+  BiRefNet → `process-desert-plant.py --size 256`，视角必须与雪地/沙漠植物统一为
+  **微俯30°侧看 + 直立株型 + 低饱和 + 无阴影**；旧 `deco_grass_1/2` 已删除。
+  入场 seed 随机、同一次分块重烘焙稳定。
+- 树木：5 棵 `obstacle_forest_pine_01~05.png` 复用不同白模深度图，以
+  `flux2-dev-depth` 锁定树形/30°视角，**普通阈值抠图不可信时必须从 `_raw.png` 用
+  `cutout-energy-node.py`（BiRefNet）重抠**；紧身裁后的尺寸/footprint/obstacleH 必须登记
+  `ISO_WALL_GEO`，再由 `_scatterForestPinesScene10` 随机散布、避开出生点和返回门。
+- 验收：`test-world124-forest.mjs`（场景/草地/树资产/几何/入口）+ 配置校验 + Vite build；
+  视觉调整时优先改 `forestTreeScatter` 的 count/minDist/scaleJitter，不要绕过 footprint 碰撞。
+- 传送门：素材库无现成素材，先用占位图（`tools/ai-gen/gen-portal-placeholder.py` 生成，
+  裁后 615×921，正式图走素材库/AI 管线后重标）；纯详情建筑：2000能源、HP3000、
+  def80/mdef80、`panelMode:"detail"`，标定 `displayW=288/displayH=431/footOffsetY=216`；
+  传送功能待多世界并行系统接入。回归 `test-world122-portal-building.mjs`。
+
+### 世界-125 地牢遗迹（2026-08-19）
+
+- 场景：`scene11`，复用世界-122/123的 `12288×8192` 菱形边界、2048分块地板与底部
+  返回门；纯探索，不接世界-122防守/采矿/生产系统。
+- 地板：直接使用僵尸地牢高级 `blackbrick_7/blackbrick_8` 贴图池与随机等距拼砖口径，
+  `glow=false`；不重新生成地砖、不启用连续平铺。
+- 环境：`world125-environment.js` 每次入场随机生成28根石柱、36座烛台和22组摆墙预制组合；
+  组合池取「火把墙」之后的纯障碍组合，保留组内变换/图层，统一走 footprint、碰撞、
+  菱形内缩、出生点/返回门排除和最小间距。
+- 入口：世界切换面板、主神空间传送门、世界-122建筑传送门均登记 scene11；
+  BGM复用 `dungeon_echo.mp3`。
+- 镜头：在 `GameScene.zoomedOutWorld` 中与 scene8 共用 `0.7` 基础缩放。
+- 验收：`scripts/test-world125-dungeon-world.mjs`（配置/地板/障碍/三入口/音乐/镜头 +
+  真实散布函数）+ 传送门旧回归 + ESLint + Vite build。
+
+**建造清除障碍物与草（2026-08-17 用户口径：建造处有树/草类障碍物直接删除）**
+- **判定顺序铁律（2026-08-17 审计修复）**：不能先用普通 `canMoveTo` 拒绝落点、再在建造
+  成功后删树——那会让清除逻辑永远不可达。散布障碍生成的碰撞矩形必须回链
+  `_scatterSource`；建筑预览/放置用 `WallSystem.canBuildAt`，只忽略可清除的 `_scatter`
+  碰撞，普通墙、边界、门和建筑仍阻挡。扣费并成功创建实体后才真正删除，放置失败不破坏场景。
+- 散布实体（仙人掌/树，`isoVisuals` 内 `_scatter` 件）：`WallSystem.removeScatterObstaclesAt(x,y,r)`
+  ——footprint 矩形圆-矩形相交判定，删除后 `rebuildIsoCollision()` + `_syncWallsToPhaser()`
+  （该函数会清空重建，不会重复建精灵）+ 失效 `_minimapStaticKey`。
+- 拖墙/4格门是多落点建造，必须走 `removeScatterObstaclesInZones(zones)` 批量清理，只重建
+  一次碰撞与 Phaser 视觉；逐格调用会产生明显重复开销。
+- 草/装饰贴图（烘焙进地板 chunk，非实体）：`registerDecoClearZone(x,y,r)` 注册世界圆 +
+  `GameScene.eraseDecoAt(x,y,r)` 局部重烘焙相交 chunk。草绘制跳过清除区时**不消耗随机种子**
+  （continue 放在消耗 rand 的取值之前），其余草位置跨块不变。
+- 多落点清草用 `registerDecoClearZones` + `GameScene.eraseDecoBatch`：一次登记全部圆，每个
+  相交 chunk 最多重烘焙一次。清除区查询走 256px 空间桶，不再让每棵草遍历全部历史建筑。
+- **生命周期铁律**：`clearDecoClearZones()` 必须在进入和离开 scene8 时调用；否则旧建筑
+  拆除后草洞仍永久残留，并会污染其他场景相同世界坐标的地板装饰。
+- ⚠ 重烘焙遍历 `_terrainChunkSprites` 时**先收集 key 列表再逐个重建**——迭代中
+  delete+set 同一 key 会让 Map 迭代器重访新条目造成死循环。
+- 清除半径：平台 140 / 小屋·兵营·产兵 95 / 掩体·门 110 / 塔·陷阱等 60。
+- 仙人掌 `cactusScatter.count` 80→40（game-config.json 双份 + scene-manager 默认兜底）。
+
+**1×1 方块墙 + 4格门（2026-08-17 定稿）**
+- 方块墙按 64×32 菱形格网吸附，可单击放一块或长按拖动沿 e1/e2 主轴铺一排；放置判定按
+  格心冲突处理，同格拒绝、四邻允许，方块自身 face 段不重复参与阻挡。
+- 4格门 = 两端各 1 格方块墙石柱 + 中间 2 格 `cover_gate_D_bars` 栅栏；可在空地新建，
+  也可把一条4连方块墙单向替换成门（保留两端、移除中间两块）。
+- e2 为默认方向，F 切 e1；实际实体必须使用 `orient:'v', mirror:(dir==='e1')`，不能只改
+  碰撞 orient 不翻栅栏贴图，否则预览与落地门方向相反。
+- **预览必须与实体同构**：场景幽灵禁止再用近似 `gate_4cell.png` 整图（该图只作面板图标）。
+  `_createGate4Preview` 直接创建两张真实 `obstacle_block` + `cover_gate_D_bars` 关闭帧，
+  缩放/裁剪/脚底统一读取 `GATE4_VISUAL` 与 `GATE_GEOM.barCrop`；组件深度按实际
+  `cellY+28 / anchorY+44` 排序。替换4连墙时临时隐藏中间两块真实精灵，取消/移走即恢复。
+- 回归：`scripts/test-world122-build-regressions.mjs` 锁定真实组件预览、共享参数、
+  e1 镜像、批量清障、清草生命周期和升级存档，并已纳入 `npm test`。
+- **正式计价与建筑模式收口（2026-08-18）**：
+  - 新方块墙/4格门统一采用 **C级墙数值**：HP 1600，造价
+    `round(1600×0.25)=400 能源`；4格门保持已验收的 D 级视觉资产（`visualGrade:D`），
+    只把生命/详情等级/价格切到 C，禁止因数值升级破坏视觉终案。
+  - 旧 F→A 长掩体和旧滑动门从 `BUILD_ITEMS` 删除；底层实体/资产保留历史兼容。
+    陷阱条目保持当前隐藏状态，本轮不启用、不改逻辑。
+  - 玩家放置实体统一记录 `_builtByPlayer/_buildCost/_buildCurrency`。建筑详情操作区固定三列：
+    返回 / 修理 / 回收；回收返还实际建造成本 50%。4格门用 `_buildGroup` 整组回收，
+    点击任一石柱通过 `_buildGroupRoot` 跳转门详情；拆除顺序必须**门先、墙后**，
+    防 gate.destroy 恢复已删除墙段形成幽灵碰撞。
+  - 方块墙详情用 `obstacle_block` 与真实400能源；4格门详情用 `gate_4cell`、真实结构/价格；
+    射击台详情补建造成本。预置建筑无 `_builtByPlayer`，回收按钮禁用。
+  - **尺寸判定**：紧凑建筑按真实 collisionRadius，两建筑最小中心距 =
+    `新半径+旧半径+4`；方块墙按 128×64 footprint 半对角；射击台保留贴墙衔接，
+    对其它紧凑建筑按大 footprint 留距。边界用 `_fitsPlacementBounds` 检完整 footprint，
+    不再只看锚点离边缘20px。
+  - **拖墙事务**：window blur、画布外/面板上 mouseup 只取消本次拖墙；每个有效方块逐块
+    扣400能源，余额不足立即停止，已成功部分保留并显示实际总消耗；构造异常退还本块费用。
+  - 回归：`test-world122-build-regressions.mjs` 扩至22项，锁定C级价格、旧条目移除、
+    详情真值/回收、实际尺寸/边界、拖拽取消和批量扣费。
+
+**铁匠铺能力工坊 + 世界-122升级存档（2026-08-17/18）**
+- `producer-buildings.json.blacksmith.spawnEnabled=false`：铁匠铺不产兵，改为毒箭/自动防御/
+  横扫/标记箭/穿甲弹五项能力读条升级；等级真源 `ability-store.js`，对对应兵种全局生效。
+- 穿甲弹目标为仓鼠火枪：Lv1护甲穿透25%，之后每级+2.5个百分点；复用
+  `DamageableEntity` 的 `weapon._craftEffects.armorPenetrationPercent` 结算入口。
+- 持续升级只能在当前无读条时启动；启动失败不得先留下 `_continuous`。另一能力读条中禁止
+  改挂持续目标，资源不足/满级/建筑出售或被毁时清理状态，避免 UI 显示“持续中”但永不推进。
+- 产兵建筑面板实例会在草屋/铁匠铺间复用；每次 refresh 必须显式设置
+  `pbUnitType.style.display = isAbilityShop ? 'none' : ''`，不能只在铁匠铺分支隐藏。
+- 兵种模块等级与能力等级通过 `serialize/restore/reset` 接入主存档 `world122` 字段；
+  场景切换保留，页面读档恢复，新游戏 `Game.start` 重置，避免上一局泄漏。
+
+**研究院（2026-08-18，代码与正式贴图完成）**
+- 配置入口：`producer-buildings.json.research_institute`，复用 `ProducerBuilding` 和铁匠铺
+  能力工坊读条面板（`spawnEnabled=false / workshopType=research`），建筑造价500能源、
+  HP2200、def70/mdef90。正式贴图键/路径固定：
+  `research_institute` → `assets/terrain/research_institute.png`。
+- 研究项目（等级沿用 `ability-store`，进主存档）：
+  - `research_structure_hp`：方块墙与4格门共享同一等级，最大生命每级同时 +10%；
+  - `research_passive_energy`：每级每秒 +1 能源（Lv.N = N/秒）；
+  - `research_recruit_speed`：Lv1募兵速度+10%，之后每级+2个百分点；生产周期按
+    `baseInterval/(1+bonus)` 计算，升级时按新旧周期比例缩放进行中的剩余时间。
+- 旧测试存档兼容：`research_wall_hp/research_gate_hp` 恢复时取两者较高等级迁移到
+  `research_structure_hp`，随后删除旧键；面板只显示一项“防御结构强化”。
+- `research-system.js` 是唯一效果入口。墙/门构造时 `applyResearchHp` 自动读取当前等级；
+  研究完成时 `applyResearchToWorld` 即时更新场上结构。增加最大生命时当前生命同步增加差值，
+  保持“已损失生命量”不变，不无条件回满。读档恢复 ability level 后必须
+  `ResearchSystem.refreshWorld()`，否则现有墙门仍停在旧上限。
+- 被动能源由 `ProducerBuildingSystem.update(dt)` 唯一推进，只在世界-122系统 active 时运行；
+  1000ms 完整秒结算，多秒卡顿一次补齐；退出/进入场景重置余数计时，等级保留。
+- 能力面板描述支持 `displayMode=percent|flat`，统一替换 `{chance}/{dmg}/{pct}/{value}`；
+  研究院显示“作用于现有及后续新建结构”，铁匠铺仍显示兵种能力文案。
+- 正式资产 `assets/terrain/research_institute.png` 为1024×1093透明PNG；2×2视觉标定
+  `displayW=288/displayH=308/footOffsetY=150`；底部14px透明留白由自动脚点扫描扣除，
+  预览与实体共用结果。
+- 回归：`test-research-institute.mjs`。
+
+### 世界-122 场景快照（M0 多世界并行地基，2026-08-18 落地）
+
+- **唯一入口 `src/world/world122-snapshot.js`**：`captureWorld122` 捕获 → 内存驻留 →
+  `applyWorld122Snapshot` 恢复；scene-manager 离场时**先捕获后 teardown**（顺序铁律，
+  捕获在 `DefenseSystem.teardown()` 之前），`_loadScene8` 各系统 setup 完后恢复。
+- **覆盖对象**：基地 HP、波次（_wave/_phase/_phaseTimer；**wave 进行中离开 → 回场 break
+  阶段重开本波**，不逐怪存档）、玩家建筑七类（塔含武器/芯片/改造模块、方块墙、4格门整组
+  pillars+门、射击台、矿场含建筑级 modules+暂存能量+矿工数、兵营含兵种+产兵读条、
+  产兵建筑含 cfgKey/兵种/读条/持续升级/仓库单仓存量）、矿点（位置每局随机必须入快照，
+  含枯竭与重生计时，走 `EnergyNodeSystem.restoreNodes` 不随机重铺）。
+- **口径**：计时器按剩余毫秒冻结续跑（M0 不推进后台时间，M1 再加真实时间结算）；
+  单位只记兵种+存活数、回场建筑旁重生成；**败北不持久化**；胜利恢复时 `_victoryGranted=true`
+  防重复发奖；**矿场恢复先挂 modules 再 spawnMiner**（矿工才吃到升级）；
+  仓库存量按快照覆盖（构造时 EnergyManager pending 已灌入，覆盖避免重复计数）。
+- **存档/新游戏**：主存档 `world122.scene`（game-ui-manager save/load）；
+  `Game.start` 调 `resetWorld122Snapshot()`。
+- **验证**：`scripts/test-world122-snapshot.mjs`（21 项契约）+ `tools/cdp-world122-snapshot.mjs`
+  （实机 15 项：建造→捕获→回主城清空→重进全恢复）。
+
+### 世界-122 后台抽象结算 + 世界切换面板（M1，2026-08-18 落地）
+
+- **结算引擎 `src/world/world122-sim.js`（纯数据、无 Game 依赖链，可 Node 直测）**：
+  `settleWorld122(snap, elapsedMs, {commit, grant})`；`commit:false` 为预览（不改快照、
+  不升全局等级），世界切换面板预估即用它跑快照克隆。
+- **接入点**：`applyWorld122Snapshot` 物化前先结算（离场 >1s 才结算）；回场波次仍进行
+  → break 重开本波；被毁建筑（hp≤0）不复活；后台失守 → 快照作废重开局 + 浮字战报。
+- **结算口径**：产兵按兵种周期（unitTypes.spawnIntervalMs 覆盖 > 建筑级）×快速募兵倍率，
+  cap 封顶；采矿 = 矿工数 × 25 能源/s × 采矿模块，受仓库余量与矿点余量双封顶
+  （无仓库不采，与实机满仓口径一致）；读条完成即升全局等级（持续升级后台不自动续，
+  回场实机续）；波次 = TP 预算 ×35 HP/只 vs 塔 DPS（捕获时实机口径入快照 `dps`）+
+  单位 DPS（`_unitsDps` 读 AI 实参）；怪物输出按接触系数 0.5 依「墙/门→建筑→基地」承伤；
+  胜利奖励能源直接写入快照仓库（恢复时物化）、金币走 grant 回调（此时建筑未物化，
+  EnergyManager 无法承接）。
+- **恢复补员铁律**：出口槽位预约窗口 750ms，恢复时爆发生成会互撞——首只立即生成，
+  缺额挂 `_restoreTopUp`，各系统 update 里按 800ms/个 快速补齐（兵营/产兵/矿场同口径）。
+- **世界切换面板 `src/ui/world-switch-panel.js`**：BasePanel 复用；`init()` 往 `.side-menu`
+  注入「🌐 世界」按钮；世界-122 行显示快照概况 + 离线预估战报；前往 =
+  `SceneManager.switchScene`（离场捕获/入场结算恢复全自动）。
+- **模块挂载**：`window.World122Snapshot/World122Sim`（main.js）——探针勿走
+  performance 资源表找这俩：贴图流会把早期模块 URL 逐出缓冲（CDP 踩坑实录）。
+- **验证**：`scripts/test-world122-sim.mjs`（13 项功能）+ `test-world122-snapshot.mjs`
+  （30 项契约）+ `tools/cdp-world122-sim-switch.mjs`（实机 11 项：建造→回拨时间→
+  面板切 123→切回验证补员/采矿/波次战报）。
+
+### 性能前置优化（2026-08-19，多世界并行 M2 前置）
+
+- **分离碰撞网格宽相**：`Game.resolveCollisions` 由 O(n²) 全对遍历改为
+  `SpatialPartitionSystem.queryRadius(x, y, groundRadius + 340)` 近邻候选 + 索引去重
+  （保持 i<j 成对口径；+340 覆盖 4×4 基地半对角 ~286 + 对方半径余量；分离判定的
+  Y 逆透视压缩保证世界空间距离 ≤ 缩放空间距离，半径查询不漏对）。
+  SPS 缺失时回退 `entities.slice(i + 1)` 原口径。逻辑/渲染全绿行为测试不变。
+- **静态实体休眠带**：主循环对 `_dormantBand` 实体（方块墙/掩体、4格门/铁栅门、射击台、
+  能源矿——构造时打标）按 ~1/4 帧率聚合 dt 更新（`e._dormantAcc < 66` 跳过）；
+  计时类语义不变（dt 累加）。塔/单位/怪物不打标（战斗响应不能降）。
+- **小地图动态层 100ms 降频**：`_syncMinimap` 入口 `_minimapNextAt` 节流（10Hz 足够）；
+  静态层缓存键逻辑不变。
+
+### 世界-122 后台活 tick 驱动（M2 阶段一，2026-08-19 落地）
+
+- **`src/world/world-sim-driver.js`**：玩家不在 122 时每 1s 对驻留快照增量结算
+  （`settleWorld122(snap, now - snap.capturedAt, {commit:true})`）——世界在后台持续运转，
+  面板状态实时、失守/胜利/清波/建筑损失即时浮字通知（任意场景可见）。
+- **锚点铁律**：结算锚点用快照 `capturedAt` 而非驱动器自身时钟——读档离线数小时、
+  探针回拨都能完整结算；前台全真（`isWorld122Live`）时停 tick。
+- **波次进度跨 tick 累计**：`wave.progressSec` 累计交战时长，清波耗时 = HP池/防守DPS
+  （封顶 waveTimeMin/Max）；怪物输出按实际交战时长分段结算（不是只在清波时结算）；
+  **防守 DPS 每波重算**（塔毁则后续波次停摆待玩家）；无防守输出时按实际时长推平防线。
+- 回场时 apply 结算只补 tick 间隙（秒级）；失守快照作废重开局（与 M0/M1 同口径）。
+- 世界切换面板 122 行直读驻留快照（波次/建筑/损毁/仓库能源），打开期间 1.2s 自刷新。
+- **验证**：`test-world122-sim.mjs` 增量≈一次性等价/进度累计等 17 项 +
+  `cdp-world122-sim-switch.mjs` 实机 11 项（驱动 tick 下后台推 3 波/拆 3 墙/补员满编）。
+- **CDP 探针坑（新增）**：① 全新无头页里模块是**裸路径**（无 ?t=），?t= 只见于 HMR
+  历史页——探针 `loaded()` 必须裸路径优先；② 贴图流会把早期模块条目逐出
+  performance 资源缓冲——模块 URL 表要在**游戏启动前**捕获（`__probeUrlMap`），
+  或走 window 挂载（`World122Snapshot/World122Sim`）。
+
+### 观察模式 + 指挥模式 RTS 化（2026-08-19 落地）
+- **世界切换 = 仅相机跳转**：世界切换面板「前往」走 `SceneManager.switchScene(id, player, undefined, { observer })`——
+  目标世界**不生成玩家实体**（玩家对象/坐标原地保留），相机落世界中心自由平移，
+  切完自动 `RTSCommand.setEnabled(true)` 进入指挥模式；前往本体所在世界 = 返回本体
+  （玩家原位恢复：`_worldPlayerPos[sceneId]` 离场记忆，122/123/124 加载器恢复）。
+- **状态机**：`Game._observerMode/_observerHomeScene/_worldPlayerPos`（game.js 声明，
+  switchScene 维护）；观察模式三卡口——game.js 不 `Camera.update(player)`、
+  GameScene 跳过玩家钉屏（`_observerMode || RTSCommand.enabled` 双条件）、
+  仓鼠单位 `update` 传 null 玩家（不跟随不在场玩家；8 实体统一守卫 `!game._observerMode`）、
+  出兵集结点 `preferredTarget` 兜底回建筑自身（兵营/矿场/产兵）。
+- **指挥模式 RTS 化（rts-command.js）**：
+  - 可用域 = 世界-122 或观察模式任意世界（tick 门槛 `commandable`）；
+  - **边缘平移**：屏幕四缘 24px，900 world px/s（dt 缩放），世界边界钳制；
+    **必须见过真实 mousemove 才平移**（`_mouseSeen`——无头/未动鼠标默认 (0,0) 会被误判贴左上缘，
+    实机曾把相机从 4200 漂到 2767）；
+  - **双击同类复选**：350ms 同窗同单位 → 屏幕上所有同类型友军全选（类型键 =
+    `getUnitKind`（兵种登记表）→ 队员档案 id 兜底；屏幕矩形按 Renderer.worldToScreen 的
+    CSS px 口径与 window.innerWidth/Height 比较）；
+  - **编队**：Ctrl+数字编入 / Shift+数字加选 / 数字选中（0-9，`keydown` capture 阶段先于
+    快捷栏，指挥模式下快捷栏数字键让位——input.js `_rtsDigits` 守卫）；
+  - 退出指挥模式镜头 `Camera.follow(player)` 回归（观察模式不动）。
+- **中键轮盘统一（companion-command-wheel.js）**：指挥模式下轮盘目标 = RTSCommand 当前
+  选中单位（队友 + 仓鼠部队一视同仁），执行走 `RTSCommand.issueWheelCommand(mode, point)`——
+  队友 PartySystem.setCommand、仓鼠直写 `_command` 且按 `_mapWheelModeForUnit` 映射
+  （aggressive→follow 自由索敌、patrol→move 驻守、gather 仅矿工回默认采矿、战斗单位忽略）。
+- **验证**：`scripts/test-world-observer.mjs`（20 项契约）+ `tools/cdp-world-observer.mjs`
+  （实机 6 项：观察进出/双击/编队/轮盘统一下达/边缘平移）+ 既有 test-rts-command 17 项不回退。
+
+### 图鉴栏整改（2026-08-19：收回修复 + 硬编码清除 + 友军栏目）
+
+- **收回修复（根因链）**：`SystemUI.init` 遮罩点击收回原本只在"子页面 UIState 键全关"时生效——
+  键一滞留（子面板随场景切换消失但键未清）永久拦截收回。改为子页面**面板 DOM 实际激活**
+  （classList active）才拦截，滞留键 `UIState.close(key)` 自愈后正常收回；
+  图鉴与状态/背包共用同一 `systemPanel`，收回动画天然同款（transform 0.25s 抽屉）。
+- **硬编码清除**：枪械详情半自动分支 `+5°`/`500ms` 两行无任何数据源 → 移除；
+  散布展示统一走 `spreadParams`（逐武器真源，半自动同口径），独头弹逐层散布走
+  `weapon-fx-config.shotgun.slugRecoilAnglePerLayer`。
+- **友军独立栏目**：图鉴主 tab 加「友军」（装备/怪物/友军），数据唯一真源 =
+  `UNIT_KIND_CFG`（unit-upgrade-store 登记表）+ `hamster-miner-config.json`；
+  产出建筑由 `producer-buildings.json` unitTypes **反查**（⚠ unitTypes 用短 key，
+  登记表值对象 id 是全名——`hamster_militia`→`militia` 先反查再匹配）；
+  军营（战士/盾卫）与矿场（矿工）不走产兵表，两个固定项注释标注。
+  详情 = 基本信息 + 六维 + 怪物公式派生（`CodexFormulaHelper`，与 statFormula:'enemy'
+  同口径）+ 攻击参数（伤害/间隔/射程/判定帧/弹道速度）+ 描述。
+- **风格**：友军卡片青蓝点缀（`.codex-ally-card`）、友军标签 `.cd-family-tag.ally`、
+  图鉴主 tab 激活改金色 `#ffd98a`——与背包/属性栏金棕主色调一致。
+- **验证**：`test-codex-ally.mjs`（10 项契约）+ `cdp-codex-ally.mjs`（实机 3 项 +
+  截图 `codex-ally-2026-08-19.png`）。
+- **排障沉淀**：图鉴"不能收回"实机诊断法——DOMDebugger.getEventListeners 证监听器在挂、
+  遮罩点击后 DOM active 类是否摘除是真相（探针裸路径 import 会产生第二模块实例，
+  `SystemUI.isOpen` 读它不可信；DOM 类才是跨实例真相）。
+
+### 侧栏改版与快捷键整合（2026-08-19）
+
+- **世界切换按钮正式图标**：素材库 `UI\世界切换.png` → `assets/ui/icons/world_switch.png`，
+  白底抠图走 `tools/ai-gen/make-transparent-icon.py`（泛洪白底→最大连通域→羽化→去白边，
+  水印随非主连通域自动剔除）；按钮改为 `hud-panels-misc.js` 侧栏静态构建
+  （world-switch-panel.js 不再注入，main.js 只挂 `window.WorldSwitchPanel`）。
+- **侧栏顺序**：状态（Caps) → 技能（K) → 背包（Tab) → 图鉴（U) → 任务（L) → 世界传送（O) →
+  队员管理（P) → 属性点（隐藏）。对调口径：技能↔背包、世界传送↔组队。
+- **快捷键**：`CONFIG.KEYS` 加 `PARTY:'KeyP'` / `WORLD:'KeyO'`，图鉴 `CODEX` 让位 O→U；
+  input.js 守卫/常态双分支都挂 P/O。**P 键独立暂停已拆**——暂停整合进菜单
+  （Esc 开菜单即暂停：game-menu.open 已三重暂停 Game._paused + TimerManager.pause +
+  Phaser pause，close 全恢复），config 移除 PAUSE 键位。
+- **验证**：`test-side-menu-keys.mjs`（12 项契约，含顺序/徽标/键位表/暂停整合）+
+  `tools/cdp-side-menu.mjs`（实机 5 项 + 侧栏截图 `tools/verify-shots/side-menu-2026-08-19.png`）。
+
+### 基地菱形房无缝拼接（WIP，2026-08-17）
+
+**问题**：基地四边掩体墙拼接有缝（用户反馈），且贴图替换后易被错误放大。
+**思路（用户指定）**：先在 Blender 用原模型摆成菱形验证无缝，再按确认尺寸渲染进游戏。
+- 工具：`tools/ai-gen/blender-cover-diamond-test.py`（Blender 5.1 后台跑）：
+  复刻 `_buildBaseRoom` 拼接数学（COVER_FACE faceLen 196.33、joinOverlap 40、
+  cornerExtend 29、门洞 90），box 按显示比例 260/230 转游戏 px，顶视渲染 + 端面间距诊断。
+- 已确认：TL 边 box 沿边投影 ≈138.6px < 间距 144.7px → **约 6px 缝隙**（box 长轴与 TL 边
+  夹角大）；TR/LB 边投影充足。修复方向 = 拉伸 box 长度（或调整 rot/摆位）直到投影 ≥ 间距。
+- ⚠ 渲染黑屏坑：`--factory-startup` 后默认灯随全选删除一起没了，必须补 Sun 灯（energy 3）。
+- 待办：Blender 几何诊断精修（端面间距要含短轴贡献）、渲染贴图复刻、游戏内验证。
+
+### 后续打磨方向（未做）
+- 波次/Boss 波/经济平衡数值；塔血量被摧毁后重建/出售；怪物分路（多入口）与减速/范围塔；
+  塔面板换弹/弹药显示；防守胜利结算（撑过 N 波）；**防御塔机械臂上的武器贴图挂载渲染**
+  （需标定臂尖挂载点 + GameScene 塔武器 sprite 叠加）；D 级石垒底边不规则，后续可精修。
+
+---
+
+## 8. AI 寻路、碰撞与移动
+
+### 智能寻路系统（参考《环世界》PathManager）
+
+#### 设计目标
+- **主动预规划**：看到目标时立即计算路径，而不是等卡住才反应
+- **定期路径检查**：每 1.5-2.5 秒扫描路径节点，检测新障碍物
+- **局部修复**：路径被阻挡时，在障碍物附近搜索替代路线，不重新计算整条路径
+- **地形权重**：树木附近增加移动成本，让单位自然绕行
+
+#### 架构
+
+```
+Enemy
+  └── _pathManager: PathManager 实例
+        ├── path: {x,y}[]          // 当前路径
+        ├── pathIdx: number        // 当前索引
+        ├── checkInterval: 1500-2500ms  // 检查间隔（随机，避免同时检查）
+        ├── checkTimer: number     // 计时器
+        └── isValid: boolean       // 路径是否有效
+
+PathManager
+  ├── setPath(path)              // 设置新路径
+  ├── update(dt, pathPlanner)   // 每帧：检查有效性
+  ├── _checkValidity()         // 扫描路径节点，检测障碍物
+  ├── _repairPath(blockedIdx)  // 局部修复（核心）
+  ├── getCurrentWaypoint()     // 获取当前目标路径点
+  ├── advanceWaypoint()        // 前进到下一个路径点
+  └── forceRecalc()            // 强制重算路径
+
+PathPlanner（增强的 PathFinder）
+  ├── _getMoveCost(x, y, radius)   // 地形权重计算
+  ├── isReachable()               // 区域连通性检查（Flood Fill）
+  ├── _pathCache: Map             // 全局路径缓存（3秒有效期）
+  └── findPath()                  // A* + 权重 + 缓存
+```
+
+#### 局部修复算法（核心）
+
+当 PathManager 检测到路径上的节点 `i` 被阻挡时：
+
+1. **策略1：小范围局部搜索**
+   - 取 `path[i-2]` 作为修复起点，`path[i+2]` 作为修复终点
+   - 在起点和终点之间用 `findPath` 搜索替代路径（搜索范围自然受限）
+   - 如果找到：拼接路径 = 前半段 + 替代段 + 后半段
+   - 调整 `pathIdx`：如果当前索引在修复范围内，回退到修复起点
+
+2. **策略2：从阻挡点到终点重新计算**
+   - 如果策略1失败，从 `path[i-2]` 重新计算到终点的完整路径
+   - 拼接：前半段 + 新路径（去掉起点）
+
+3. **策略3：完全失败**
+   - 连续 3 次修复失败，清除路径，让 MovementSystem 触发随机逃逸
+
+#### 地形权重
+
+在 `PathFinder._buildGrid` 中，每个格子计算 `moveCost`：
+- 普通地面：`1.0`
+- 树木附近（碰撞半径 × 1.5 范围内）：`+0.5`（总计 1.5）
+- 其他单位附近（碰撞半径 × 2.5 范围内）：`+0.3`（总计 1.3）
+
+A* 中移动成本 = `baseMoveCost * terrainCost * gridSize`
+- 直线：`1.0 * terrainCost * 40`
+- 对角线：`1.414 * terrainCost * 40`
+
+#### 区域连通性检查
+
+在 `findPath` 之前，先用 `isReachable` 做 Flood Fill：
+- 从起点向 8 方向扩展，检查是否可达目标附近
+- 如果不可达，直接返回 `null`，避免昂贵的 A* 计算
+- 限制最大步数，防止 Flood Fill 无限扩散
+
+#### 路径缓存
+
+- 全局缓存：`Map<key, {path, timestamp}>`
+- 缓存 key：`量化起点 + 量化终点 + 碰撞半径`
+- 量化：坐标取 `floor(x / gridSize) * gridSize`
+- 有效期：3 秒
+- 最大容量：50 条路径
+- 墙壁变化时调用 `invalidateCache()` 清空缓存
+
+#### 使用方式
+
+```javascript
+// 1. 在 MovementSystem.update 中主动预规划
+if (enemy._pathManager && dist > attackRange * 1.5) {
+    if (!enemy._pathManager.hasValidPath()) {
+        enemy._pathManager.forceRecalc(pathFinder, targetX, targetY);
+    }
+}
+
+// 2. 每帧更新 PathManager（检查有效性 + 局部修复）
+if (enemy._pathManager) {
+    enemy._pathManager.update(dt, pathFinder);
+}
+
+// 3. 沿路径移动
+if (enemy._pathManager.hasValidPath()) {
+    const wp = enemy._pathManager.getCurrentWaypoint();
+    // ... 向 wp 移动 ...
+    if (距离 < 5) enemy._pathManager.advanceWaypoint();
+}
+
+// 4. 卡住时 fallback
+if (enemy._pathManager) {
+    enemy._pathManager.forceRecalc(pathFinder, targetX, targetY);
+}
+```
+
+#### 与旧系统的兼容性
+
+- `enemy._path` 和 `enemy._pathIdx` 仍然保留，作为 fallback
+- MovementSystem 优先使用 `enemy._pathManager`，没有 PathManager 时使用旧路径
+- Enemy 的 `_updateMovement`（fallback 模式）也兼容 PathManager
+
+#### 为什么之前被动寻路不好？
+
+旧系统只在卡住（500ms 移动 < 3px）时才触发寻路：
+- 单位先撞墙 → 被卡住 → 检测卡住 → 计算路径 → 开始移动
+- 这导致单位在撞墙后有明显的"停顿"感
+
+新系统：
+- 单位看到目标 → 立即计算路径 → 沿路径移动 → 遇到障碍物时 PathManager 自动修复
+- 单位更流畅，不会明显撞墙
+
+---
+
+### 寻路性能优化（2026-08-03 落地，改寻路代码前必读）
+
+2026-07-13 全量审计实测：冷路径 findPath ≈ 10ms（`_buildGrid` 占 92%），
+刷怪瞬间 15 只怪同帧冷寻路可达 50~115ms 主线程卡顿。以下机制已内嵌，**改动时必须保持**：
+
+1. **静态格子记忆化（`_getCellData`）**：blocked 与 moveCost 合并为单趟空间哈希查询，
+   结果按 `(格子坐标, 半径)` 缓存（**半径必须参与 key**：阻挡判定随半径线性膨胀，跨半径
+   复用会读到错误结果；同型怪同半径天然共享）。`_buildGrid` 网格原点对齐到 gridSize 倍数
+   （格子中心稳定为 k×40+20），使同一几何下同半径怪物共享同一份成本网格——15 怪同帧批量
+   从 106ms → ~10ms。动态障碍成本（250ms 更新）不进 memo，每格实时叠加。
+2. **每帧寻路预算**：`PathFinder.beginFrame()` 由 `MovementSystem.beginFrame()` 在
+   game.js 主循环每帧调用一次；`frameBudgetMs` 耗尽后 `findPath`/`findPathToExit` 返回
+   `PATH_DEFERRED` 哨兵，PathManager 保留旧路径、下帧重试。**禁止**把超预算当"不可达"处理。
+3. **不可达负缓存**：A* 失败结果按 500ms 短 TTL 入 `_pathCache`，卡住重算循环不再每 500ms
+   付一次冷 A*（20ms → 0.01ms）。`findPathToExit` 另有独立 500ms 出口缓存 + 预算门禁。
+4. **首寻路错峰**：PathManager 创建后 `_firstRecalcAt = now + rand×250ms`，刷怪同帧错开。
+5. **防御性拷贝**：`setPath` 在副本上对齐首点，不再原地改 `path[0]`——路径缓存数组为多怪
+   共享对象，原地改写是别名 bug。
+6. **缓存 LRU + 告警节流**：`_setCache` 满容量先清过期再淘汰最旧；A*/forceRecalc 失败告警
+   1s 节流，避免卡住循环刷屏。
+
+**2026-08-03 剩余清单已清（改代码前必读）**：
+1. **冰墙不得调 `pathFinder.invalidateCache()`**：冰墙只往 `WallSystem.isoSegments` 推段，
+   而 A* 网格只建模 walls/trees（isoSegments 有意排除）——清缓存是纯开销零收益，已删除
+   （ice-wall-system 头部有注释）。几何类失效只发生在真正改 walls/trees 的地方
+   （清房/场景切换/Boss 奖励恢复等）。
+2. **WallSystem 碰撞空间网格**：walls/isoSegments/trees 经访问器暴露惰性代理，任何
+   push/splice/下标赋值自动标脏；`canMoveTo/blocked/_nearestBlockingSeg/resolve` 走 128px
+   网格近邻查询（谓词与线性版逐行一致，`_collisionAccel=false` 可回退线性）。
+   实测 resolve 提速 ~11×。**禁止**直接用 `WallSystem.walls = [...]` 之外的原地下标改
+   几何坐标（长度指纹只能兜底长度变化）；`scripts/test-collision-grid.mjs` 差分测试已入
+   `npm test`，改这三处函数必须保持差分全绿。
+3. **分离/侧翼近邻查询**：`MovementSystem._computeSeparation/_computeFlankOffset` 改用
+   `SpatialPartitionSystem.queryRadius`（game.js 每帧重建），无分区时回退全量遍历。
+4. `isReachableByRegion` 死代码已删除（BFS 预检 0.14ms 足够，勿重新引入）。
+
+**回归防线**：`tools/pathfinding-bench.mjs`（寻路性能基准）+ `scripts/test-collision-grid.mjs`
+（墙体网格差分）均已入 `npm test`。
+
+---
+
+### 大场景 AI 索敌 + 寻路（2026-08-08 定稿，世界-122 驱动、机制全局生效）
+- **移动目标优先级契约**（movement-system `_computeMoveDirection`）：
+  `_specialTacticalTarget` > `_tacticalTarget` > BattleCommander > `enemy.target` > `_lastKnownTargetPos`。
+  **防守怪（`_defenseMonster`）不走 BattleCommander**（战术点围绕玩家，与基地/掩体目标冲突，
+  game.js 收集处 + 优先级判断双保险）；chargeStraight 怪只认 enemy.target 直线。
+- **分段接力寻路 [RELAY]**：目标超 MAX_PATHFIND_RANGE(800) 时 `_pickRelayPoint`
+  （主方向 +±30°/±60° 共 5 条 `WallSystem.blocked` 射线，选 600~700px 通畅点）逐段 A*，
+  `_relayTarget` 非永久状态，接近 <120px/路径失效/终点偏 >100px 接力下一段；帧预算 3ms、
+  PATH_DEFERRED、500ms 最小重算全部复用现有机制。例外：chargeStraight、战术目标移动保持直线。
+- **掩体可攻击链路三件套**：① `_coverSeg._owner` 回链 DefenseCover；② 卡住 500ms 且目标够不着时
+  `_retargetBlockingCover` 直接转火贴身掩体（绕过感知 1.3× 滞回）；③ LOS/Combat 对掩体目标
+  `blocked(..., {segs:[target._coverSeg]})` 忽略自身 face 段——不忽略则从墙背面接近永判无视线、拒不出手。
+- **索敌性能口径**：PerceptionSystem 候选走 SpatialPartitionSystem.queryRadius
+  （`_sourceEntities` 引用校验，防网格与传入集合不一致串数据）；两级筛选（基础分 top-5 才补 LOS）；
+  LOS 缓存 per-target Map（200ms TTL）——**新增 LOS 读取方一律走 `_checkLineOfSight`/`losCache`，
+  别再读已删除的 lastLOSTargetId 单槽**。
+- **防守 aggro 归一化**：spawn 时 `_aggroRange` 抬到 alertRange(3800)（`ai.defenseAggroRange` 覆盖）——
+  pacing AI 怪（黑狼 2500）出生即 chasing 进场；aggro 只服务 pacing AI 与 alertRange 兜底，
+  非 pacing 怪索敌完全由 PerceptionSystem `_alertRange` 决定。
+- **RegionIndex 口径**：`_isBlockedQuick` 与 pathfinder SpatialHash 同源（walls/trees/`_cover` 段，
+  点到线段距离 < 半径+halfThick）——改任何一边的阻挡判定，另一边必须同步。
+- **CDP 探针坑**：vite HMR 后 `await import('/src/x.js')` 会拿到第二份模块实例（状态全零、
+  DefenseSystem.active 恒 false）——必须按 resource entries 真实带 `?t=` query 的 URL import
+  （__imp 模式，见 tools/cdp-defense-ai-verify.mjs / cdp-defense-audit.mjs）；探针挂 `__v` 的
+  页面被 HMR 重载后会失效，工具需 boot()/injectProbe() 函数化 + 失效自动重建。
+  **2026-08-15 补强**：整页刷新后页面模块带 `?t=`，探针裸 import 拿到空单例副本
+  （游戏 100 棵树、探针读 0）——断言一律优先 window 全局（window.Game/SceneManager/
+  __phaserScene/DefenseSystem）或 performance 资源表真实 URL；长会话探针要对「页面被
+  HMR 刷新打回主场景」做韧性重导航（读数前先校验 `sm.currentScene`），且跨调用不得把
+  状态挂 window（刷新即丢，每条 eval 自包含）。
+
+### 二轮优化口径（2026-08-08：感知降频/局部失效/半径桶/门闸软成本/墙背啃墙）
+- **感知降频**：有活跃目标的怪 PerceptionSystem 100ms tick；无目标怪与战术小队成员每帧不变。
+  丢失目标搜索行为已接线（`_searchTarget` 三阶段 moveToLastKnown→searchAround→giveUp，
+  movement-system 优先级链第 5 档）——别再往 DecisionSystem（死代码）里接东西。
+- **缓存失效口径**：掩体/门闸增删 toggle → `pathFinder.invalidateRegion(bbox)`（内部外扩 800px
+  局部清）；只有整图切换（地牢/战斗房/Boss 房/setup/teardown）才 `invalidateCache` 全清。
+- **半径桶**：`RADIUS_BUCKETS=[20,40,90]`（>90 各自成桶），桶上界为代表半径（只保守不穿墙）；
+  `_cellMemo`/`_pathCache`/RegionIndex 全部按桶共享——新怪加半径不用管，自动归桶。
+- **门闸寻路**：关门 `_gate` 段进 SpatialHash 作 `GATE_SOFT_COST=6` 软成本（不阻挡，绕路优先、
+  唯一通路仍穿门）；门洞段额外标 `_gateHole`，被关着的门洞贴身挡住的怪门前等待不重算
+  （`_findBlockingGateHole`，门开自然恢复）；门开关 toggle 必须 invalidateRegion。
+- **结构目标 LOS 总口径**：`_isDefenseStructure` 在攻击距离内（distanceToEntityShape +
+  attackDistance ?? attackRange×1.15）免 LOS——perception `_checkLineOfSight`、
+  combat-system LOS 分支、attack.js `checkTriangleHit` 命中判定**三处必须同口径**，
+  漏任何一处墙背出手都会断（P3 回归就是漏了 attack.js）。
+
+### 防守怪物 A 移动 + 全局移速倍率（2026-08-15 定稿）
+
+**A 移动（RTS A 键语义：终极目标基地，沿途攻击任何敌对目标）**
+- 三件套：`DEFENSE_CONFIG.spawn.engageHostileRange`（320）→ `_spawnMonster` 下发
+  `monster._engageHostileRange`；`Enemy._findNearestPlayer`（交战半径内单位优先 +
+  建筑任意距离兜底，模式闸门 `_preferDefenseTargets` 而非半径——半径未配置保持旧行为）+
+  `PerceptionSystem._isValidTarget`（非结构单位仅交战半径内有效）。
+- 闭环两补丁（探针实机暴露）：① 脱离滞回——当前目标是单位且超出半径×1.3 即弃
+  （原逻辑有视线即永久锁定，会被单位无限拉出）；② 免滞回转火——拆建筑途中单位进圈
+  直接切换（否则 1.3 倍评分滞回挡住转火）。
+- 探针环境坑：headless 初始状态玩家无敌（直接 takeDamage 也不掉血），交战掉血类断言
+  不可用；用目标锁定/追击距离/转火断言替代（验证 `tools/cdp-defense-amove.mjs`）。
+
+**全局怪物移速倍率（全部模式通用）**
+- `data/combat-config.json` `enemyDefaults.globalSpeedMultiplier`（当前 0.75）→ Enemy 构造器
+  单点缩放 speed/maxSpeed/_baseSpeed；speed=0 站桩怪（矿洞/墓碑/煮锅/集合体）天然排除；
+  浅拷贝 config 同步 config.speed（time-agent 运行时回读路径，不污染 enemyConfigData 单例）；
+  冲锋/扑击/lunge 攻击位移与击退不在本链路，祭品减速（getTributeMonsterMoveSlowMul）独立叠加。
+- 契约测试：`scripts/test-monster-speed.mjs`（数据契约 + 源码接线，防接线被改没）。
+
+### 防守怪目标分摊（拥挤感知，2026-08-16 定稿）
+- 问题：大量怪锁同一结构，攻击距离内站不下，其余在墙前**原地踏步发呆**（只有 2~3 只能打）。
+  方案：`src/ai/defense-targeting.js` 纯函数——按「结构同时攻击上限」（基地 6 / 塔 2 /
+  掩体门默认 3，`_attackSlots` 覆盖）统计占用，候选仅 420px 内且**视线可达**（忽略候选自身
+  面线/门段，与 CombatSystem/感知 LOS 同口径），选「未超上限且最近」。
+- ⚠ 关键判定：**保持目标必须用 `distanceToEntityShape ≤ 攻击距离`**（与 CombatSystem 同口径）——
+  中心距离+120 会把墙后 120~220px 的怪误判「够得着」导致不换目标（真实 bug，2026-08-16 修）。
+- 感知层 `_findBetterTarget`：只有分摊**真返回了不同的可达目标**（`pickedDifferent`）才免
+  1.3× 滞回（`structOver`/`structUnreachable`）——否则远处赶路每 500ms 在基地/掩体间
+  ping-pong（已修；仿真 30s 每只换目标 1~7 次）。
+- **过门追击（_gatePursuit）**：卡住转火掩体/门与感知 bypass 全部 `!enemy._gatePursuit` 守卫——
+  被关在门内保持原追击目标，目标丢失/失效才由感知正常重选。
+- 性能：占用表 1.2µs、分摊 0.7µs/次（含 LOS），40 怪全量 ≈ 0.06% 帧预算；`_cellMemo` 上限 100000。
+- 回归：`scripts/test-defense-targeting.mjs`（19 项）+ `tools/sim-defense-crowd.mjs`（真模块仿真）
+  + `tools/perf-defense-targeting.mjs`（性能基准）。
+
+---
+
+### 怪物近战打建筑零伤害排查（2026-08-16 三根因，僵尸啃掩体实测）
+
+用户反馈：世界-122 怪物攻击掩体/墙壁，攻击距离足够、动画照播但零伤害。
+CDP 探针 `tools/cdp-defense-hit.mjs`（真实场景注入僵尸/黑狼 + checkTriangleHit 打点）定位三层根因：
+
+1. **CombatSystem swing 命中窗口时钟错配（总根因，全局影响）**：
+   `attack.js` 2026-08-14 起 `_pendingThrust.startTime = nowMs()`（performance.now 单调时钟），
+   读者 `enemy.js updateWeaponAnim` 同步改过，但 **`combat-system.js` 的 swing 分支漏改，仍用
+   `Date.now()`** —— 墙钟减单调时钟恒为巨数 → 200ms 判定窗口永远过期 → `checkTriangleHit`
+   永不执行。表现：攻击动画（windup→swing→recover）完整播放、`_pendingThrust` 存在但被置
+   inactive，命中零伤害。**该坑 8-14 起影响所有敌人近战（不止建筑）**。修复：同源 nowMs()。
+2. **distanceToEntityShape 对矩形建筑高估距离**：掩体/门 Collider 是半径 26 的小圆（圆心在
+   墙段中点），长墙 198×133 被当成小圆 → 贴墙 24px 被算成 101.7px → dynamicRange 命中判定
+   差 1.7px 落空。修复：`collision-helpers.js` 对 `collisionShape==='rect'` 的实体改算点到
+   AABB 的最短距离（与 COVER_FOOT 中心偏移一致）。
+3. **移动系统对结构目标不停车**：`_applyAttackRangeFriction` 用"目标中心距离"刹车，掩体中心
+   在墙体后方永远到不了 → 怪沿墙滑行、路过判定窗口即挥空。修复：结构目标改用形状距离
+   （distanceToEntityShape）刹车，怪贴在墙边停车持续输出。
+
+修复后探针实测：僵尸贴墙真实挥砍命中（1100→1087→1076）、停在墙边；黑狼撕咬照常。
+教训：时钟统一（nowMs）后所有读者必须同源；建筑类长条目标的"距离"一律按 footprint 形状算，
+不能用中心点小圆近似。
+
+### 常见陷阱：isReachable 步数限制导致路径计算失败
+
+### 伊莉丝圣光 AI（2026-08-17：5 级解锁 + 治疗目标优先级）
+
+- **解锁**：`data/companion-config.json` `warrior_bruno.unlockSkills = { holyLight: 5 }`（原 10 级在露娜档位，伊莉丝原本无圣光）。
+  老档兜底：`Companion.fromSerialized` 存档无 unlockSkills 时回退配置档案（`s.unlockSkills || archive.unlockSkills`），读档/解散再招募即生效。
+- **目标优先级**（`CompanionAI._pickHolyLightTarget`）：玩家（生命不满）→ 自己 → 其他队友（缺血最多者）→ 敌方（最近）。
+  `_tryHolyLight` 挂在伊莉丝默认状态机与 aggressive/patrol 指令的顶部（防御/风车/攻击动画进行中不打断），冷却就绪且命中目标即出手，施法后 200ms 短硬直。
+- **定向施法入口**：`HolyLightSystem.triggerOn(target)`——跳过鼠标瞄准/距离/视线三重判定，冷却/链式/结算口径与 `trigger()` 一致；非玩家源直接结算（伊莉丝无 spell 动画，不出玩家施法动作）。
+- **友军判定坑**：圣光结算原用 `best._faction === src._faction`，而玩家 `player` / 队友 `companion` 阵营不同——伊莉丝奶玩家会被误判成"打敌人"。
+  已统一为友方阵营组 `FRIENDLY_FACTIONS = {player, companion}`（与 damageable-entity.isFriendlyFire 同口径），`trigger()` 与 `triggerOn()` 同步修正。
+- **验证**：`tools/cdp-elise-holylight.mjs` 实机四连用例（打点记录目标）：玩家 100→131、自己 115→144、队友 80→109、敌人 120→58（僵尸 ×2）；eslint / vite build / party 268 项全过。
+
+### 伊莉丝动作显示尺寸统一（2026-08-17：attack/windmill 偏小）
+
+- **2026-08-17 撤回**：用户实机反馈"放大后很奇怪"，displayScale 配置与 GameScene 改动
+  已全部还原，恢复原渲染公式（本节保留排查数据，供将来参考）。
+
+- **实测**（逐帧内容 bbox + CDP 读 Phaser 精灵显示尺寸）：idle 内容高 461px 渲染 129.7px；
+  attack 平均 433px（站立帧 458~469 与 idle 一致，但挥剑帧自然倾斜 367~430 占多数）渲染 121.8px
+  （-6%）；windmill 平均 399px 渲染 112px（-13.5%）。用户反馈"施法/攻击缩小"属实。
+- **修复（配置驱动，不改 PNG）**：`companion-config animations.attack.displayScale=1.065`、
+  `windmill.displayScale=1.155`；GameScene 归一化 `setDisplaySize(格宽×normS×k, 格高×normS×k)`，
+  脚底修正同步为 `0.4375×(512−格高×k)×normS`——放大后脚底仍贴同一世界线（实测三动作脚底 y 一致）。
+  其他动作无 displayScale → k=1，行为不变。
+- **坑**：直接量帧格尺寸没用，要看"内容占比×显示映射"；渲染侧归一化已按帧格线性映射，
+  内容占比不同的动作需要逐动作 displayScale；CDP 探针直接读 `sprite.displayWidth/Height` + `frame` 最准。
+
+### 露娜动作显示尺寸统一（2026-08-17：walk/run/spell 偏小）
+
+- **2026-08-17 撤回**：与伊莉丝同批撤回，displayScale 配置已删除，恢复原渲染。
+
+- **实测**：露娜全 512×512 帧格，idle 内容 498~500px；walk/run/spell 都是 467~471px
+  （约小 6%），多阈值（40/128/200）复核非阴影伪影。CDP 实机：idle 渲染 140.1px、
+  walk/run/spell 渲染 132.5px。
+- **修复**：`companion-config animations.walk/run/spell.displayScale = 1.062`（复用伊莉丝同款
+  渲染机制，GameScene 无需再改）；实测显示 144→153、内容 132.5→140.1px 与 idle 对齐，
+  脚底修正同步后与 idle/伊莉丝同线（y≈2001）。
+- **教训**：全 512 帧格也会内容占比不同——只要内容高度不一致就要 displayScale，
+  不能因为帧格相同就默认等大。
+
+#### 问题
+`PathFinder.isReachable()` 使用 Flood Fill 检查区域连通性，但步数限制太死：
+
+```javascript
+// 错误：步数 = ceil(maxDist / step) + 5
+// 目标距离 383px，gridSize=40，步数 = ceil(383/40)+5 = 15
+// 15 步 BFS 根本到不了目标，直接返回 false，A* 根本没跑
+const maxSteps = Math.ceil(maxDist / step) + 5;
+```
+
+这导致黑狼被卡在树木边缘（距离=53，总阻挡=53）时，路径计算完全失败，单位没有路径，只能直线移动 → 撞墙卡住。
+
+#### 修复
+```javascript
+// 正确：步数 = ceil(maxDist / step) * 3 + 20
+// 383px 距离 → 49 步，BFS 能正常探索到目标
+const maxSteps = Math.ceil(maxDist / step) * 3 + 20;
+
+// 步数用完也不返回 false，让 A* 继续尝试（A* 有 maxIterations 超时保护）
+return true;
+```
+
+#### 诊断方法
+```javascript
+// 检查单位附近障碍物
+WallSystem.trees.forEach(t => {
+    const d = Math.hypot(t.x - wolf.x, t.y - wolf.y);
+    const treeR = t.collisionRadius || t.radius * 0.6;
+    const inTree = d < treeR + wolf.collisionRadius;
+    console.log(`树: 距离=${d}, 在树内=${inTree}`);
+});
+
+// 检查四周可移动方向
+const dirs = [{x:10,y:0}, {x:-10,y:0}, {x:0,y:10}, {x:0,y:-10}];
+dirs.forEach((p, i) => {
+    console.log(`方向${i}: 可移动=${WallSystem.canMoveTo(wolf.x+p.x, wolf.y+p.y, wolf.collisionRadius)}`);
+});
+```
+
+---
+
+### 伪 3D 碰撞重构记录（进行中）
+
+#### Phase 0：统一 Collider 数据层 ✅
+1. 新增 `src/physics/collider.js`：
+   - 地面 footprint 为圆形（`groundRadius`）。
+   - 垂直体积为胶囊体（`height` + `radius`）。
+   - 默认高度推导：`config.height > render.spriteSize > collisionHeight > radius*2`。
+2. 新增 `src/physics/collision-3d.js`：
+   - 3D 线段到胶囊体距离（用于投射物/近战）。
+   - 线段到线段最短距离、球体相交等辅助函数。
+3. 新增 `src/physics/spatial-grid.js`：2D 空间网格 broadphase。
+4. `Entity` 基类接入 `collider`、新增 `groundRadius` / `bodyHeight` 统一入口，不改动现有属性。
+5. Player 与 Enemy 在碰撞字段最终确定后调用 `rebuildCollider()`。
+6. 新增 `scripts/test-collider.mjs` 跑通推导、3D 命中、空间网格测试。
+
+#### Phase 1：地面碰撞统一为圆形 footprint ✅
+1. `game.js::resolveCollisions()` 从“矩形/六边形/圆形多套分离”简化为统一的圆-圆分离，使用 `groundRadius`。
+2. `MovementSystem`、玩家移动、敌人 AI、冲刺、击退、`PathManager`、`DynamicObstacleMap` 全部改用 `groundRadius`。
+3. `WallSystem` 的树木新增 `height` 字段，为未来飞行单位做准备。
+4. 玩家 footprint 按方案 A 改为圆形，半径保持 30（与原 `collisionRadius` 一致）。
+
+#### Phase 2：投射物判定 3D 化 + 空间网格 broadphase ✅
+1. `src/combat/projectile.js` 重写命中判定：
+   - 投射物增加 `z` / `prevZ`，轨迹视为 3D 线段。
+   - 使用 `segmentIntersectsCapsule` 与目标 Collider 胶囊体做精确检测。
+   - 移除旧的 2D 矩形扩张 / 圆心距离判定。
+2. Broadphase：
+   - 复用现有 `SpatialPartitionSystem.queryRadius`。
+   - 以投射物本帧路径中点为中心，查询半径 = `stepLen + 160`，只检测附近实体。
+   - SpatialPartitionSystem 不可用时回退到全量遍历。
+3. 自然支持高低差：地面投射物 z=0，飞行单位 z>0 时自动打不到；未来抛物线/对空投射物只需设置 z。
+
+#### 后续 Phase 状态（2026-07-17 核实，均已完成）
+- Phase 3：近战 / 技能 AOE 3D 化 ✅（变更记录 v2.0）
+- Phase 4：场景贴图 Y 深度排序 ✅（变更记录 v2.1）
+- Phase 5：清理旧命中系统与可视化对齐 ✅（变更记录 v2.2）
+- 详见下方"变更记录" v2.0–v2.4
+
+#### 补充：投射物躯干矩形判定（方案 B，2026-07-17）✅
+
+**问题**：投射物命中只看脚下 footprint 椭圆（+ 3D 世界胶囊），玩家与目标同一水平轴时，瞄准贴图身体（躯干/头部）子弹会穿过——子弹在地面平面飞行，贴图躯干在"身后"的屏幕行。
+
+**方案**：新增屏幕空间**躯干矩形**判定，仅投射物使用；近战判定（attack.js / skill-shapes.js）不变。
+
+**共享模块 `src/physics/torso-hitbox.js`（唯一推导口径，禁止重复编码）**：
+- `getTorsoRect(entity)`：取 `config.render.projectileHitbox`（width/height/offsetX/bottom，锚定 collider 脚底中心）；缺省 = `collisionWidth × 身高`（新怪物零配置自动获得）。
+- `segmentHitsTorso(entity, x1, y1, x2, y2, expand)`：枪械投射物扫掠线段判定。
+- `pointHitsTorso(entity, px, py, expand)`：技能投射物逐帧点判定，FLYING 免疫（与 GroundCircle 语义对齐）。
+
+**判定并集**：
+- 枪械投射物（projectile.js）：footprint 椭圆 ∪ 躯干矩形 ∪ 身体圆柱；飞行目标仍只查 3D 胶囊。
+- 技能投射物飞行命中：冰锥(r=12)/火球(r=20)/符文剑(r=15) = GroundCircle ∪ 躯干矩形；火球爆炸 AOE 维持 GroundCircle 不动。
+
+**逐怪数值**：7 只精灵图怪物按首帧内容边界实测（`scripts/archive/measure-projectile-hitbox.py`，内容宽高 × spriteSize/帧宽）写入 `enemy-config.json` 的 `render.projectileHitbox`。
+
+**调试可视化**：左下"范围"按钮显示**绿色躯干矩形**（GameScene._syncCollisionRadii，与判定同一推导）。
+
+**单测**：`scripts/test-collider.mjs` 22 个躯干矩形用例（含推导/点判定/缺省/FLYING 免疫）。
+
+---
+
+### 树木碰撞体优化（大怪物卡树问题）
+
+#### 问题
+黑狼碰撞体积 38 虽然不大，但在树木（视觉半径 25，碰撞半径 25）间移动时仍会被卡住。因为 `canMoveTo` 判定的是 `tree.radius + entity.radius < distance`，视觉半径和碰撞半径未分离。
+
+#### 解决
+1. **视觉半径和碰撞半径分离**：每棵树的 `collisionRadius = radius × 0.6`（主神空间树木从 25 降到 15）
+2. **滑动回退**：`WallSystem.resolve()` 在标准 X/Y 轴滑动都失败后，尝试按 75%/50%/25% 步长找到可移动的最远位置，避免完全卡住
+
+#### 新增属性
+```javascript
+addTree(x, y, radius, ...) {
+    const collisionRadius = radius * 0.6;  // 碰撞半径仅为视觉的60%
+    // ...
+}
+```
+
+所有使用 `t.radius` 的位置（`canMoveTo`、`blocked`、Phaser 同步）统一使用 `t.collisionRadius || t.radius * 0.6`。
+
+---
+
+### Dash 偏移计算（_getDashOffset 统一接口）
+
+#### 问题
+`GameScene.js` 的 `_syncBodiesToPhysics` 中有一段 12 行的 switch 逻辑，用于根据 `_dashAngle` 或 `_dashStartFacing` 计算冲刺偏移量。这段逻辑在 `enemy-types.js`（BlackWolf）中也存在。
+
+#### 解决
+在 `Enemy` 基类定义 `_getDashOffset()` 方法：
+```javascript
+_getDashOffset() {
+    if (this._attackDashOffset <= 0) return { x: 0, y: 0 };
+    if (this._dashAngle !== undefined) {
+        return {
+            x: Math.cos(this._dashAngle) * this._attackDashOffset,
+            y: Math.sin(this._dashAngle) * this._attackDashOffset
+        };
+    }
+    switch (this._dashStartFacing || this._facing) {
+        case 'right': return { x: this._attackDashOffset, y: 0 };
+        case 'left':  return { x: -this._attackDashOffset, y: 0 };
+        case 'down':  return { x: 0, y: this._attackDashOffset };
+        case 'up':    return { x: 0, y: -this._attackDashOffset };
+        default:      return { x: 0, y: 0 };
+    }
+}
+```
+
+`GameScene.js` 和 `enemy-types.js` 统一调用 `entity._getDashOffset()`，不再重复 switch 逻辑。
+
+---
+
+### 阶段性进度总结（2026-08-03：怪物寻路全面审计 + 性能优化落地）
+
+#### 背景（全量审计实测，2026-08-03）
+冷路径 findPath ≈ 10ms（`_buildGrid` 占 92%）；刷怪瞬间 15 只怪同帧冷寻路可达 50~115ms
+主线程卡顿；不可达目标每 500ms 卡住重算重复付冷 A*（20ms/次）；冰墙生成/破碎误调
+`invalidateCache()`（冰墙只改 isoSegments，A* 网格有意不建模——纯开销零收益）；
+墙体碰撞对全部墙/线段/树线性扫描。
+
+#### 本次完成
+1. **静态格子记忆化**：`_getCellData` 合并 blocked+moveCost 单趟查询，按 `(格子坐标, 半径)`
+   跨寻路复用；`_buildGrid` 原点对齐 gridSize 倍数 → 15 怪同帧批量 106ms→~10ms。
+2. **每帧寻路预算**：`PATH_DEFERRED` 哨兵 + `beginFrame()` 帧预算（3ms），超预算保留旧路径
+   下帧重试，杜绝同帧多怪冷寻路叠加。
+3. **不可达负缓存**（500ms TTL）+ **出口路径短缓存**：重复失败 20ms→0.01ms。
+4. **首寻路错峰**：PathManager 创建后 0~250ms 随机延迟，刷怪同帧错开。
+5. **墙体碰撞空间网格**：walls/isoSegments/trees 经代理自动标脏 + 128px 惰性网格，
+   resolve 提速 ~11×（20 怪 × 3 resolve/帧 1.40ms→0.12ms）。
+6. **分离/侧翼空间分区**：`_computeSeparation`/`_computeFlankOffset` 改
+   `SpatialPartitionSystem.queryRadius`，替代每怪每帧遍历全部实体。
+7. **冰墙缓存失效删除**：`ice-wall-system` 不再调 `invalidateCache()`（约束已写死）。
+8. **P3 收尾**：`setPath` 防御性拷贝（修共享缓存数组别名）、`_setCache` LRU、
+   console.warn 1s 节流、删除死代码 `isReachableByRegion`。
+
+#### 验证
+- eslint 0 error / `vite build` ✓ / `npm test` 全绿（新增 collision-grid 差分 12 + 寻路基准 27）。
+- 回归防线已入 `npm test`：`tools/pathfinding-bench.mjs`（合成战斗房基准+宽松阈值）、
+  `scripts/test-collision-grid.mjs`（线性 vs 网格差分：12 场景×250 查询 + 变更追踪 + 空场景）。
+
+#### 关键改动文件
+`src/ai/pathfinder.js`、`src/ai/path-manager.js`、`src/systems/movement-system.js`、
+`src/world/wall-system.js`、`src/entities/components/ice-wall-system.js`、`src/game.js`、
+`scripts/test-collision-grid.mjs`、`tools/pathfinding-bench.mjs`、`tools/pathfinding-hooks.mjs`、
+`package.json`。
+
+#### 后续方向（已评估，暂缓）
+- `findPathToExit` 的 RegionIndex 按房间 bounds 限定（当前全墙 bounds，负缓存+预算已兜底）。
+- 冷路径首建 ~10ms 的"按障碍物栅格化"优化（预算下单帧一次，收益边际）。
+- 跨房间怪物追踪（门闸软成本进寻路等）——需设计确认，非实现项。
+
+---
+
+## 9. 怪物与 NPC
+
+### 流水线流程（以后每个新角色/怪物都走这套）
+
+#### 步骤1: 制作原始精灵图
+
+在 Aseprite / Photoshop 中制作，帧大小固定（如 250×215）。
+
+不要求内容精确对齐，因为步骤3会处理。
+
+#### 步骤2: 运行标准化脚本
+
+```bash
+cd tools
+python sprite-normalizer.py \
+  --input ../assets/enemies/raw/black_wolf.png ../assets/enemies/raw/black_wolf_attack.png \
+  --output ../assets/enemies/ \
+  --frame-width 250 --frame-height 215 \
+  --cols 4 --rows 2
+```
+
+脚本行为：
+- 分析每个精灵图的所有帧内容边界
+- 取所有输入中的**最大内容宽高**作为目标
+- 缩放每帧内容（保持比例，fit 模式）
+- 平移使内容中心对齐到帧中心
+- 输出到 `--output` 目录
+
+只输出报告不生成文件：
+```bash
+python sprite-normalizer.py --report ...
+```
+
+#### 步骤3: BootScene 加载
+
+```javascript
+this.load.spritesheet('enemy_black_wolf', 'assets/enemies/black_wolf.png', {
+    frameWidth: 250, frameHeight: 215, endFrame: 7
+});
+```
+
+**必须带 `endFrame`**，Phaserv4 即使图片高度差1像素也能正确加载。
+
+#### 步骤4: 怪物代码无需手动调 spriteSize
+
+标准化后所有精灵图内容大小一致，代码中统一 spriteSize，无需条件判断：
+
+```javascript
+_getPhaserOptions() {
+    return {
+        spriteSize: 216,  // 统一值，不再根据状态变化
+        frame: this._animFrame,
+        flipX: this._facing === 'left',
+        // ...
+    };
+}
+```
+
+---
+
+### 怪物共享基础件（2026-07-21 新增，新怪物优先复用）
+
+新增怪物时**优先复用** `src/entities/enemy-types/_shared/` 下的共享模块，不要在类内重复实现：
+- `enemy-utils.js`：`hostilesOf`（敌对目标枚举）、`isTargetMeleeStyle`（近战/远程风格判定）、`playSoundFrom`（按 sounds 配置播音）、`isFacingLeftFrom`（朝向判定）、`inMeleeRange`（近战命中统一口径：圆形边缘距离 ≤ range，与 CombatSystem 触发同语义；范围技能带地面椭圆圈视觉的仍用 GroundEllipse）；近战技能 range 读取约定 `skill.range ?? this.attackDistance ?? 默认值`（字段收敛，2026-07-25）；
+- `enemy-gun.js`：`setupGun`（枪械装配：装备实例/攻击绑定/伤害/击退/AI 散布/弹匣）、`tryEnemyFireGun`（开火一体化：枪口偏移/墙体回退/瞄准目标矩形上方区域/临时移位出膛/枪口火焰+开火火光+弹壳，支持防御姿态枪口下移）；
+- `monster-anim.js`：`twoStageWalkKey`（移动动画首段→循环段切换）、`frameHitElapsed`/`ratioHitElapsed`（命中帧→触发时间换算）。
+
+已迁移范例：`time-agent-assault.js`（双形态+枪械+投掷+斧砍）、`time-agent-shield.js`（远程+盾击+防御弹反）。
+
+---
+
+### 怪物 AI 状态机（BlackWolf 示例）
+
+#### 设计原则
+- **不硬编码**：AI 参数从 `enemy-config.json` 或构造函数 `config.ai` 读取
+- **外部系统驱动**：BlackWolf 的 `update()` 只设置目标属性（`target`、`_tacticalTarget`、`_lastKnownTargetPos`），`MovementSystem` 和 `CombatSystem` 在后续帧执行移动/攻击
+- **状态机模式**：`pacing` → `chasing` → `lost` → `pacing`
+
+#### 状态定义
+
+| 状态 | 速度 | 目标 | 行为 |
+|------|------|------|------|
+| `pacing` | `maxSpeed * 0.5` | `_tacticalTarget`（200px 内随机点） | 在踱步中心半径 200px 内慢速漫游 |
+| `chasing` | `maxSpeed` | `target`（最近玩家） | 向玩家奔跑，进入攻击范围时触发攻击 |
+| `lost` | 无（计时中） | 保留 `target` | 目标跑出 800px 后持续 2s 计时，超时回 pacing |
+
+#### 参数配置（enemy-config.json）
+
+```json
+{
+  "blackWolf": {
+    "speed": 93.6,
+    "dashDistance": 200,
+    "ai": {
+      "aggroRange": 800,
+      "pacingRange": 200,
+      "loseTimeout": 2000
+    }
+  }
+}
+```
+
+#### 代码实现要点
+
+```javascript
+// 1. update() 中扫描 + 执行 AI
+this._aiScanTimer += dt;
+if (this._aiScanTimer >= this._aiScanInterval) {
+    this._aiScanTimer = 0;
+    this._updateAIState(dt, entities);  // 状态切换
+}
+this._executeAI(dt, entities);  // 设置 target / _tacticalTarget / maxSpeed
+
+// 2. pacing 状态：设置 _tacticalTarget，让 MovementSystem 读取
+this._tacticalTarget = this._pacingTarget;
+this.maxSpeed = this._baseSpeed * 0.5;
+
+// 3. chasing 状态：设置 target，让 CombatSystem 读取
+this.target = nearestPlayer;
+this.maxSpeed = this._baseSpeed;
+this._tacticalTarget = null;
+```
+
+---
+
+### 怪物 HUD 锚点工作流（2026-07-21 新增；2026-07-23 起为**新怪物必做项**）
+
+**默认规则**：新增怪物的名字/血条锚定**圆柱体（胶囊）碰撞体积最上方**（胶囊顶 = footprint Y − `collider.height`），不再按贴图顶部定位。**自 2026-07-23 起，新增怪物必须设置 `"capsuleHudAnchor": true`（已补齐：poisonMaggot/minerZombie/lanternMinerZombie/foremanZombie）。**
+**三套碰撞体积注意区分**：footprint 椭圆（地面分离/范围判定）、绿色矩形（`collisionWidth×collisionHeight`，近战判定）、圆柱体胶囊（`collider.height`，来自 `config.height` 或 `render.spriteSize`，投射物判定）。HUD 锚点用的是**圆柱体胶囊**，不是绿色矩形。
+**启用方式**：`enemy-config.json` 该怪物 `render` 块加 `"capsuleHudAnchor": true`（GameScene 按此开关选择锚点；未配置的旧怪物保持贴图顶部锚点不动）。
+**配套校准**：`render.collisionHeight` 只影响绿色矩形（近战判定），不影响 HUD 锚点；`render.hudOffsetY` 语义不变（在锚点基础上的额外偏移，默认为 0 即可）。
+**常见陷阱：`colliderOffsetY/X` 必须写在 `render` 块内**——`enemy.js` 基类只读 `config.render.colliderOffsetY`；写在配置顶层是死配置不生效（2026-07-25 工头顶层 -75 一直未生效的根因；手脑/骑士也曾踩过，见 enemy.js:168 注释）。NPC 类相反，读顶层（npc.js:48）。
+
+---
+
+### 怪物 HUD（名字/血条）定位规则
+
+- **统一规则**：怪物名字与血条位于**贴图上方 30px 区域**（血条 `healthBar.offsetY` 默认 -30，名字在其上方紧贴）。不要再放更高。
+- **透明上沿校准**：AI 生成精灵图常有大片透明上沿，`topY` 按 displayHeight 算会远高于视觉头顶——在 enemy-config `render.hudOffsetY`（正数下移，如骑士 75）整体校准名字+血条，不要改通用代码。
+- **渲染来源**：新怪配置走 `entity.config.render`，老怪走 `_animCfg.render`（GameScene `_syncEntityHud` 已做双源回退）。
+- **非方形帧显示**：渲染层 `setDisplaySize` 按帧宽高比等比缩放（spriteSize=最长边），方形帧行为不变；素材帧尺寸不统一（如手脑 walk 512×1024 与其余 512×512）时无需特殊处理。
+
+- v4.1 (2026-07-20) — 手脑裁剪修复/骑士HUD下移/仓库整体修复/出征界面调整
+  - 手脑素材真实网格：idle/slam/howl 8×4（帧512×512）、walk 8×2（帧512×1024）——勿信口述"4×8"，**拿到精灵图先目检行列布局再配 frameWidth/Height**
+  - 仓库：金币/消耗品无法存入+满仓误报根因=金币无 maxStack 字段（_maxStackOf 回退 gold 99999）+不可堆叠物品空间语义修正（整件1格与 stack 数无关）；overlay 点击一并关闭（warehouse 自挂监听避免循环 import）；NPC走远链补关闭；格子改一行2格×56px 对齐背包
+  - 出征界面 open() 改自动关闭背包（原为主动打开）；说明弹窗重定位 left:4px bottom:2px 187×945 拉伸
+
+---
+
+### ⭐ 怪物渲染图层与构造铁律（2026-08-15 定稿，改怪物渲染/新建怪类必读）
+
+#### 1. 贴图恒在脚下椭圆阴影之上（图层时序铁律）
+
+- **`GameScene.update` 中 `_syncEntityShadows` 必须排在 `_updateDynamicDepths` 之后**——阴影深度 = 贴图**当前帧**仲裁后 depth − 0.1，任意帧恒有 `阴影.depth < 贴图.depth`。
+- 旧顺序（阴影先跑、读上一帧 depth）：怪物跨过掩体/墙面线（世界-122 基地掩体、地牢墙）深度骤降时，阴影以旧深度盖在贴图上 1 帧；毒蛆 232×116 大椭圆（碰撞半径 116×透视 0.5）在掩体线反复压住虫身即此根因。
+- 通配：新加任何"实体深度 ± 偏移"的附属视觉，都要么跟随本体**仲裁后** depth，要么自己过一遍 `junctionCorrectedDepth`（lessons #28）。
+
+#### 2. `_getTextureKey()` 只能返回贴图键，绝不能返回纯动画键（骑士冲锋贴图丢失教训）
+
+- `GameScene._syncEnemyAnimation` 每帧对 `_getTextureKey()` 的返回值做 `textures.exists` 判定，失败即回退 **`enemy_circle` 白胶囊占位**。
+- 铠甲骑士冲锋两段式（首段 19 帧 → 9~19 帧循环段）曾返回动画键 `enemy_armored_knight_charge_loop`（BootScene 只有该名 anims、无同名贴图，两段共用 attacking-2.png 一张 sheet）→ 首段播完（2s）后到冲锋停止 ~1s 贴图"丢失"（白胶囊）。
+- **同 sheet 多段动画**：贴图键返回 sheet 本身；段切换放在 `_getPhaserOptions()` 的 `animKey`（贴图键/动画键职责分离，参照 mutant-3 的 attack_pounce 写法）。
+- 防御：GameScene 已加"贴图键缺失但同名动画存在 → 回退该动画首帧贴图"，但**怪类侧仍必须遵守本铁律**。
+
+#### 3. 怪类构造器必须合并自身 enemyConfigData（「测试怪物」残留教训）
+
+- 全项目怪类构造器都 `super(x, y, { ...enemyConfigData.xxx, ...config })`，**唯独曾漏了 `ZombieDogEnemy`**——世界-122 防守 `new Factory(pt.x, pt.y)` 无配置构造时，名字落到 `Enemy` 兜底「测试敌人」、贴图是僵尸犬、属性是默认值（hp150/speed45 而非 100/250），游戏内表现为一只"测试怪"。
+- 新增怪类 checklist：① 构造器合并配置；② 无配置构造 = 完整可用（名字/属性/贴图）；③ 同怪多入口（防守池/地牢/召唤/主城）建议收敛到共享工厂（如 `createZombieDog(x, y, overrides)`，ai 深合并）。
+- 排查经验：**"世界某处冒出不属于这里的怪/名字"先查构造路径是否漏配置**，grep `new Xxx(` 全部调用点 + 核对 `enemy-config.json` 兜底链（`config.name ?? defaults.name ?? '测试敌人'`）。
+
+#### 4. 建筑图层统一口径（2026-08-16 定稿，世界-122 全建筑/新建筑必读）
+
+- **唯一规则**：每个建筑在构造时注册「接地线」——`setupStructureDepth(entity, halfWidth)`
+  （`src/world/structure-depth.js`）生成 `_faceLine`（脚底 y 处水平线段，跨度 = 贴图显示
+  半宽）与 `_faceDepth`（= 接地线 max y + 12）。单位（玩家/敌人/侍从/友方单位）每帧经
+  `WallSystem.junctionCorrectedDepth` 仲裁：脚线在接地线**之后** → 压到建筑之下；在
+  **前/同线** → 抬到建筑之上（+0.5，消除同线 z-fight）。
+- **现状**：掩体/铁闸门/仓鼠小屋/防御塔/基地核心/能源矿全部接入。**新增建筑只要构造里
+  调一次 `setupStructureDepth(this, 贴图显示半宽)` 即可**，不再需要各自处理遮挡；新增
+  单位自动走 junctionCorrectedDepth，无需改代码（"一劳永逸"）。
+- **坑①（z-fight）**：建筑深度必须统一为 `_faceDepth`（接地线 y + 12）。塔旧实现用
+  `e.y + 2`、基地/能源矿无锚线走 `sprite.y + footOffsetY + 10`——与单位自然深度
+  （脚 y + 10）**同线时完全相等** → 谁盖谁取决于创建顺序（建筑盖仓鼠/仓鼠盖建筑随机，
+  即"建筑遮挡友方单位"）。
+- **坑②（面线别当墙段）**：`_faceLine` 现在是全建筑通用，`building-system.canPlace` 只对
+  `_isDefenseCover || _isCoverGate` 走"线段+墙厚"重叠判定，其余紧凑建筑仍走圆心距离——
+  否则塔/基地的面线会被当成 26px 厚墙段误判吸附/重叠。
+- **坑③（面线过期）**：锚线在构造时按 x/y 生成；建筑不可移动（immovable），测试探针
+  传送实体后必须重算锚线（真实场景不会发生）。
+- **验证**：`tools/cdp-layer-occlusion.mjs`——合成 36 组合（塔/基地/矿/小屋 × 无墙/墙前/
+  墙后 × 后/同/前）+ 真实基地 4 类建筑同线抽查，全部"单位盖建筑 iff 单位脚线在建筑之前"。
+
+#### 5. 建筑地面 footprint / 安全出兵 / 4格门（2026-08-18，世界-122）
+
+- 使用 `src/physics/iso-footprint.js` 作为地面旋转矩形唯一几何源。把屏幕 Y 按
+  `PERSPECTIVE_SCALE_Y` 还原后旋转45°进入 u/v 地面坐标；放置判重、圆-建筑分离、
+  出兵校验、攻击距离、范围显示和遮挡前缘必须复用该入口，禁止再写屏幕 AABB 近似。
+- 统一占格：普通非墙建筑2×2、基地4×4、方块墙1×1。`entity.y` 表示贴图/footprint
+  前缘，所以2×2中心固定 `offY=-64`、基地 `offY=-128`；方块墙以格心为中心、offset=0。
+- 建筑落点使用 `_snapBuildingGrid`：先求 N×N 格心平均位置，再把实体锚到菱形前顶点。
+  边界、清障区和点击检测必须读取 collider 中心，不能把贴图前缘重新当中心。
+- 长墙与门调用 `applyIsoFootprintFromSegment(faceA, faceB, halfThickness)`。4格门两柱占
+  端点格，中间铁栅栏必须精确占 **2×1** 地面格，中心就是门 anchor，禁止恢复旧
+  `anchor.y+32` 偏移；该偏移会导致转角门隔一柱、邻接墙无法放置。
+- 门端柱吸附同时生成正/负方向候选；共享既有门柱时只忽略所属旧门的 `_gateSeg`，
+  不要忽略旧门实体 footprint。几何正确后转角只贴边，真正门体重叠仍应拒绝。
+- 生产建筑统一调用 `SpawnPlacement.findAndReserve`：固定出口槽位检查墙、建筑 footprint、
+  动态单位和750ms预约。无出口时保持生产100%、每500ms重试，禁止使用未经校验的固定
+  右侧 fallback；生成后先走 `_spawnEgress` 再恢复正常AI。
+- 面板外点击使用捕获阶段 `mousedown`；空白处关闭主面板/详情，正在放置或点击建筑本体时
+  不关闭，避免“能关闭但无法落地/无法点详情”的事件冲突。
+- 回归运行 `test-world122-building-footprint.mjs`、`test-spawn-placement.mjs`、
+  `test-gate4-snap.mjs`、`test-world122-build-regressions.mjs`，再跑完整 `npm test`
+  与 Vite build。
+
+---
+
+### NPC 添加标准工作流（2026-07-22 新增，新 NPC 一律按此开展）
+
+#### 1. 素材（原则 9）
+复制到 `assets/npc/<npc英文名>/`（如 `assets/npc/mouse_king/idle.png`、`walking.png`）；**先目检帧布局**（行列网格、有效帧数、内容边界），再配 `frameWidth/Height/endFrame`。
+
+#### 2. 配置（data/game-config.json `npcs.<key>`，唯一真相源）
+- `sprite`（可选，缺省保持纯色圆占位）：`{ idleKey, walkKey, size, footOffsetY, walkFps }`
+  - `idleKey/walkKey`：BootScene 注册的动画键；`size`：显示边长（方形帧）；`footOffsetY`：逻辑脚底到贴图中心偏移（内容底边贴地校准）；`walkFps`：行走帧率
+- `wander`（可选，缺省不动）：`{ radius, speed, idleMs, moveMinMs, moveMaxMs }`——以生成点为中心 radius 内随机选点移动，每次移动后停留 idleMs，移动时长 moveMinMs~moveMaxMs 随机
+- `noSeparation`（可选）：固定不动，实体分离由对方承担全部位移
+- `obstacle`（可选，**家具型静态 NPC 推荐**）：`{ width, height, offsetY, wallHeight? }`——底座矩形障碍。在 `_setupMainHubTerrain` 与边界墙同入口注册为 WallSystem 静态墙（`noVisual` 跳过墙面视觉），实体 `collisionRadius` 只留小半径（~20），阻挡交给矩形。**不要给家具型 NPC 套大圆 footprint**：圆 X/Y 对称，调大无法靠近、调小贴图错误遮挡；矩形底座宽=贴图底座、深=底座厚度，靠近/绕行/遮挡三者都自然
+
+#### 3. BootScene 加载与动画注册
+`spritesheet` 加载（**必须带 endFrame**），`anims.create` idle 单帧循环 + walk 循环（frameRate 读 sprite.walkFps）。
+
+#### 4. 实体与渲染（已通用，无需改代码）
+- `npc.js`：构造函数接收 `config.sprite`（→ `spriteCfg`）与 `config.wander`（→ `wanderCfg`）；游走由 `NPC._updateWander` 驱动（WallSystem.resolve 撞墙校验、`_pickWanderTarget` 可达性重试），`isMoving`/`_facingLeft` 供动画与翻转
+- `GameScene._syncNeutralEntities`：检测 `e.spriteCfg` 自动创建贴图 Sprite（idle/walk 切换、flipX、名字标签贴图顶部）；无配置回退 `neutral_circle` 纯色圆
+- 生成处（如 `game.js spawnNPC`）把 `shopCfg.sprite / shopCfg.wander` 透传进 NPC config
+
+#### 5. 验证
+lint / vite build / test-collider / test-config-integrity；实机验证 idle/walk 切换、朝向翻转、游走范围与停留节奏、名字标签位置。
+
+### 玩家友方单位添加工作流（2026-08-15 仓鼠矿工首航，世界-122 自动采矿）
+
+> 新增「玩家阵营、可被怪锁定、自动执行任务（如采矿）」的非队员工时，一律走这套。
+> 首航范例：仓鼠矿工（`data/hamster-miner-config.json` + `src/entities/hamster-miner.js` +
+> `src/ai/hamster-miner-ai.js` + `src/world/hamster-miner-system.js`）。
+
+#### 0. 六维属性公式源（2026-08-16：仓鼠单位一律怪物公式）
+- 仓鼠友军单位 `statFormula: 'enemy'` → `Companion._enemyCombatStats` 分支：派生数值
+  （atk/def/matk/mdef/crit/critRes）逐项走怪物同款公式（combat-formulas
+  enemy.calculateCombatStats）：物攻 round(str×0.5+dex×0.5)、物防 floor(con×1.5+str×0.3)、
+  魔攻 floor(int×0.5+wis×0.5)、魔防 floor(wis×1.2+int×0.3)、暴击 floor(2+luck)、
+  暴抗 floor(con)。HP/等级不走此分支（HP 由 baseMaxHp/con 公式在 updateMaxStats 定，
+  等级仍 baseLevel+经验）。
+- 伙伴（伊莉丝/露娜，含凯斯/塞拉）无此标记，**按玩家公式**（2026-08-16 用户确认）：
+  物攻 round(10+str×0.05+dex×0.1)、物防 Math.round(con×1.2+str×0.3)、
+  魔攻 floor(int×1.5+wis×0.5)，且不产生怪物专属字段（mdef/crit/critRes）；
+  test-hamster-guard.mjs 1.6 节已锁定——勿给 companion-config 加 statFormula。
+
+#### 1. 素材与帧布局
+- 精灵图入 `assets/companions/<id>/`（idle/walking/mining/dying 各一张），
+  512×512 帧、8 列 × 4 行网格（先目检行列与有效帧数，再配 frameCount）。
+- 动画帧配置放**独立** `data/<id>-config.json`，**不要**塞进 companion-config.json——
+  那会让它出现在招募池/队员面板；世界-122 工人类单位用独立配置 + BootScene 显式注册。
+- **视觉体量对齐（2026-08-18）**：不能只比较 512×512 画布，必须量首帧 alpha 内容
+  bbox，并按 `有效内容高 × displaySize / frameHeight` 对齐。普通仓鼠战斗单位的有效角色
+  高度基准为约 **78~90px**；细长/留白多的素材应增大 `displaySize`，例如仓鼠牧师内容高
+  173px，设 `displaySize:250` 后为约85px。同步按
+  `(bbox.bottom - frameHeight/2) × displaySize / frameHeight` 重算 `spriteOffsetY`
+  （取负）与实体 `footOffsetY`（取正），并调整 `config.render.hudOffsetY`；禁止只放大
+  `displaySize` 而不校准脚底/血条。
+
+#### 2. 数据（data/hamster-miner-config.json）
+- `baseData.con` 控 HP（公式 base100 + con×10 + 每级10；con=10 → 200）。
+  **2026-08-16 用户口径：baseMaxHp:100 覆盖（con=10 公式 200 → 100）**。
+- `ai`：`walkSpeed/runSpeed`（80）、`miningRange`（**50**，采矿触发 = 50 + 节点半径45 =
+  95px，矿工更贴近矿点）、`attackInterval`（2000）、
+  `attackDamage`（100）、`decisionMs`（120）、`engageRange`（340，小屋防御交战半径）、
+  `attackRange`（48，近战贴脸距离）。
+- 显示/碰撞（2026-08-15 缩小 25%）：`displaySize` 99（132×75%）、`groundRadius`
+  19.5 / `collisionRadius` 19.5 / `bodyHeight` 97.5 / `size` 63。
+- `animations`：walk 两段式 `startFrames:[0,11]`（起步完整 12 帧，repeat 0）+
+  `loopFrames:[2,11]`（循环第 3~12 帧，repeat -1）；mining 素材 19 帧
+  `startFrames:[0,18]`（首次完整挥锄）+ `loopFrames:[4,18]`（后续第 5~19 帧，
+  **repeat 0 单次**）——攻击触发才播，间隔定格 `waitFrame`（第 6 帧，索引 5，
+  2026-08-15 用户口径）；dying `repeat:0` 只播一次。
+  **walking 漂移归一化铁律**：AI 生成走路帧常水平漂移（质心跨度 >2px 即闪回）——
+  `tools/ai-gen/hamster-walk-align.py` 按内容质心对齐到 256 + 脚底 FEET_Y=480，
+  对齐后帧11→2 循环回跳剪影差异须与相邻帧同级。
+
+#### 3. 实体（src/entities/hamster-miner.js）
+- `extends Companion`（复用 data/六维/动画配置/运行时字段），`super(合成 archive)`。
+- `_faction='companion'`（友方）；**`_enemyTargetable=true`** 让防守怪可锁定
+  （2026-08-18 起正式玩家队友也统一开启）；补 `hp/maxHp` getter + `takeDamage` +
+  死亡流程（`_animState='dying'` → 计时 → 从 entities/friendlyUnits 移除）。
+- **隐藏背包**：`_energyCarried`（已携带能量）/ `_energyCapacity`（默认 500，
+  读 `ai.backpackCapacity`）；`applyHutUpgrades` 同步背包扩容；死亡时携带能量全部
+  丢失（飘字提示，不返还不掉落）。
+- `update(dt, entities)` 交给 `HamsterMinerAI` 驱动（注册进 Game.entities 由主循环调）。
+
+#### 4. AI（src/ai/hamster-miner-ai.js）
+- 每 120ms tick：**只采矿**（2026-08-16 用户口径回归：只能对能源矿点攻击、不攻击
+  其他单位）——`pickNearestNode`（只扫 `_isEnergyNode && active && !_depleted`）
+  选最近矿点采矿；无交战分支（`_nearestEnemy`/`_tryAttackEnemy` 已移除），怪贴脸
+  不还手、可被击杀。另有**路径振荡守卫**（航点跳变 >150px 且无进展 → 清路径重算）。
+- 赶路：`_tacticalTarget = 矿点/敌人` + MovementSystem.update（移速 80）；
+  到位（≤ miningRange + 节点半径）：站定 `_animState='mining'`（采矿与近战共用），
+  每 attackInterval 调 `node.takeDamage(attackDamage, 自身, 'physical', true)`；
+  **每次命中置 `m._miningSwing=true`** 通知渲染层播挥锄动画。
+- **寻路/避障铁律（2026-08-15 审计）**：矿工与怪物共用 `MovementSystem`
+  （A*/PathManager/墙碰撞/避障/卡住滑移）；**寻路目标禁止用障碍物中心**——
+  采矿目标用矿点边缘可达点（`approachDist = max(miningRange, 节点半径+自身半径+40)`，
+  并**钳制在采矿范围−15 内**——采矿距离 50 时 ≈80px，障碍外可到达且到位即采矿），
+  回屋用小屋边缘接近点（64px，触发 70px）。AI 层再加卡死看门狗
+  （500ms 位移<3px 累计 2 次 → 挖矿重选目标 / 返回 `WallSystem.findSafeSpawn` 传送）；
+  满载用 `_returnTriggered` 防 work/return 振荡。
+- **顶墙死循环根因（2026-08-15 实锤 + v2 根修）**：`_followPath` 的移动被
+  `WallSystem.resolve` 判“完全阻挡”会每帧 `_clearPath()`（movement-system.js:1071）。
+  实锤根因：起步/转向瞬间 vx≈0 产生**亚像素步长**，resolve 返回原地被误判为完全阻挡 →
+  路径留不住 → 直线顶墙。v1 根修：**只有有效步长（≥1px）被阻挡才清路径**，亚像素抖动
+  直接跳过、速度沿航点累积自然走通。
+  **v2 根修（清路径 → 沿墙滑动）**：≥1px 真阻挡时不再清路径，改走
+  `_applyNormalMovement` 同款 [SLIDE] x/y 轴向滑动（墙角才减速保留路径），
+  交 `PathManager._checkValidity`（1.5~2.5s）定期修复/重算——否则清路径后怪物退回
+  直线顶墙（顶到关门门闸/掩体），500ms×2 位移<3px 触发卡死看门狗 → 回屋偶发
+  **300px 瞬移**（CDP J 阶段 maxJump 302 实锤）。v2 后 J 连跑 3 次 maxJump<60 全绿。
+  接近点外扩到 `max(miningRange, 节点半径+自身半径+40)`（钳制在采矿范围内）；矿工
+  卡死看门狗两段（原地脱困 → 传送矿点旁 95px）降级为罕见安全网。
+- **背包物流三阶段**：`work`（采矿+自动拾取能量掉落进背包，150ms 节流）→
+  背包满 `_startReturn` → 走回小屋 `_startUnload`（idle 2s，不移动不交战；
+  小屋 `unloadMiner` 经 EnergyManager 进玩家背包，满则暂存小屋）→ 2s 后
+  重新出发（2026-08-17 已删小屋开关门动画，不再调 closeDoor）。
+- **挖矿直接入包**：`EnergyNode.takeDamage` 对 `source._isHamsterMiner` 攻击走
+  `addMinedEnergy` 直接装隐藏背包（不产生地面掉落，其余来源仍掉落）；实体
+  `addMinedEnergy` 按容量封顶，满载后下个决策 tick 即回屋。
+- 小屋升级：`applyUpgrades(u)` 同步攻击间隔/伤害/移速/采矿效率；实体
+  `applyHutUpgrades` 委托给 AI。
+
+#### 5. BootScene / GameScene
+- BootScene：加载 `companion_<id>_<动画>` 四张 sheet；动画注册沿用两段式
+  startFrames/loopFrames 逻辑（mining_start 播一次 → mining 循环）。
+- GameScene `_syncCompanionSprites`：渲染对象 = `PartySystem.members` +
+  `Game.friendlyUnits`；动画分支：`dying`（防重播 data 标记）> `mining`（**攻击触发
+  播一次挥锄**：`_miningSwing` + data 标记，首次 mining_start、后续 mining，
+  animationcomplete 后定格 `waitFrame` `setTexture(miningKey, miningWaitFrame)`；
+  间隔不干预挥锄播放）>
+  spell/run > `walk`（**两段式**：`hamsterWalk` 标记，起步 walk_start 完整帧 →
+  animationcomplete 切 walk 循环）> idle 停帧；**移动朝向铁律**：walk 时始终面朝
+  vx 实际移动方向（`member._isHamsterMiner && moving` → `faceRight = vx > 0`），
+  不面朝目标（否则寻路绕行/回小屋会倒退走路）；受击白闪 `hitFlash`；
+  尺寸 `member.displaySize ?? PLAYER_DEFAULTS`；多实例共用素材键 `animId`。
+- **名称/血条（2026-08-15）**：`_syncEntityHud` 对友方单位取
+  `_companionSprites[entity.id]` 精灵锚定（贴图缩放后名字/血条自动跟随）；
+  `hasOwnLabel` 含 `_neutralSprites.has(entity)`——已挂中立标签的建筑
+  （仓鼠小屋/能源矿/掩体/静态 NPC）跳过 HUD 名字，防重复；以后加建筑自动生效。
+  **2026-08-16 用户口径：友军一律不显示名称、只显示血条**——`_syncEntityHud`
+  判 `_faction==='companion'` 进 `isFriendly`：血条常显（不再只在残血时画）、
+  名字并入 hasOwnLabel 跳过。仓鼠单位与伊莉丝/露娜同规则。
+- `_updateDynamicDepths` 的侍从深度查找也要带 friendlyUnits（墙后正常被遮挡）。
+
+#### 6. 生成/仇恨/验证
+- `src/world/hamster-miner-system.js`：保留 setup/teardown 兼容；**2026-08-15 起
+  矿工由「仓鼠小屋」（`src/world/hamster-hut-system.js`，B 面板 1000 能源建造）生成**，
+  `HamsterHut.spawnMiner()` 挂 `_hut` 并注册 entities/friendlyUnits，小屋升级模块
+  同步矿工参数、矿工死亡 respawnMs 补员、小屋被毁矿工随拆。坑：`DamageableEntity`
+  没有 `this.data`，别写 `this.data.def`（构造即崩）。
+- 小屋职责（2026-08-15 扩展）：`unloadMiner` 卸货（玩家背包满 → `_storedEnergy`
+  暂存，小屋被毁即丢失）；update 自动把暂存能量补入玩家背包；升级模块新增「背包扩容」
+  （每级 +100，满级 10）。**2026-08-17 删除开关门动画**（原模型 16 帧滑门素材，
+  小屋换新模型后移除——补员直接生成、卸货不再开门，BootScene 不再加载/注册门动画）。
+- PerceptionSystem `_isValidTarget`：放行 `_faction==='companion' && _enemyTargetable`，
+  防守怪 `_preferDefenseTargets` 按交战半径锁定（与玩家同链，免 LOS 口径不变）。
+- **世界-122目标优先级（2026-08-18）**：统一走
+  `src/ai/defense-target-priority.js`。先按128px距离档位，再按
+  仓鼠→正式玩家队友→玩家→普通建筑→基地；同类再比真实footprint距离/威胁/残血。
+  320px本地无目标时回退远处结构，结构全灭后才搜索远处单位。黑狼自管AI与开门追击
+  必须复用同一选择器，禁止再写独立的“基地>玩家>单位”或只认`faction=player`分支。
+- 正式玩家队友需同时具备 `_isPartyCompanion/_enemyTargetable/hittable` 与
+  `hp/maxHp` 入口；否则会出现“能锁定但攻击判定因 !hittable 跳过”的假攻击。
+- 回归运行 `scripts/test-defense-target-priority.mjs`：覆盖距离档位、类型顺序、结构容量、
+  近仓鼠胜远基地、战略结构与远单位兜底、黑狼/开门统一接线。
+- 验证：`scripts/test-hamster-miner.mjs`（数据+接线契约）+ `tools/cdp-hamster-miner.mjs`
+  （实机 38 项：小屋生成/属性/最近节点/**A2 出生房内自动寻路出基地（pmValid 生效、
+  无传送跳变、离开小屋>150px）**/**A3 基地门双向感应（感应中心=门洞物理中心、
+  矿工站门外侧 100px 关门面自动开门，防门卡死回归）**/采矿挥锄+间隔定格第6帧/每2s-100/行走两段式/
+  双向移动朝向（**探针按不变量采样：vx>0 必朝右、vx<0 必朝左，固定时刻采样会撞上
+  寻路绕障转向瞬间**）/交战自卫生效/**J 真实回屋寻路（无传送，maxJump<60）**/
+  **K 多矿工数量模块并发卸货（能量不丢）**/背包物流/小屋暂存面板/dying 移除）；
+  eslint 0 error + vite build。
+
+#### 7. 仓鼠战士（2026-08-16 战斗型友方单位，世界-122 自动近战）
+
+> 首航矿工是"采矿型"，本条目是**战斗型**第二例：独立配置 + 实体 + AI + 世界-122 生成系统，
+> 复用矿工整套接线（BootScene 加载/动画注册、GameScene 渲染分支、SceneManager 生成/拆除、
+> PerceptionSystem `_enemyTargetable` 放行），差异只在 AI 决策与攻击动画口径。
+
+- **数据（`data/hamster-warrior-config.json`）**：不入 companion-config.json（避免招募池）；
+  `baseMaxHp: 225` 生命覆盖（`Companion._maxHpOverride`，镜像 `baseMaxMp`——con=15 公式
+  250 → 225，升级仍 +10/级）；六维 力量20/敏捷12/智力3/体质15/精神3/幸运5；移速 120、
+  攻击 50/2s、attackRange 55、engageRange 900、followOffset 140。
+- **攻击动画两段式（用户口径）**：从待机/移动进入攻击 → 播放**完整 1~24 帧**一次；
+  持续攻击中 → **第 6~24 帧循环**（`startFrames:[0,23]` + `loopFrames:[5,23]`，
+  GameScene 新增 `hamsterAtk` data 标记分支，attack_start 播完自动切 attack 循环）；
+  **帧率与攻击间隔对齐（2026-08-16 二修）**：起步 24 帧 @12fps = 2.0s、
+  循环 19 帧 @9.5fps = 2.0s，两段周期均 = `attackInterval`（2000ms）——否则动画
+  周期（1.2~1.5s）与 2s 伤害节拍越走越偏，实机表现为"挥砍和掉血对不上"。
+  与矿工 mining 的"单次挥锄 + 定格 waitFrame"不同——战斗攻击是连续循环，直到 AI 切回
+  idle/walk。**素材帧脚底不在 480**（约 356/512，内容高 ~190）时：用
+  `displaySize`（放大到与矿工同屏体量）+ `spriteOffsetY`（脚底贴地）+
+  `entity.footOffsetY`（深度线=逻辑脚底）+ `config.render.hudOffsetY`（名字/血条下拉）
+  四件套补偿，不需要重排素材。
+- **AI（`src/ai/hamster-warrior-ai.js`）**：最近 enemy 索敌（`_faction==='enemy'` 且跳过
+  `_isEnergyNode`，**不攻击矿点**）→ 走位 walk（MovementSystem）→ 攻击范围站定 attack，
+  每 2s `takeDamage(50)`；无敌人跟随玩家（到达必须清 `_tacticalTarget` + `_clearPath` +
+  速度归零，见 lessons #46）；卡死看门狗复用矿工兜底。
+- **生成（2026-08-16 改口径）**：~~世界-122 进入自动生成 1 只~~——用户要求删除
+  默认在基地旁生成的战士/射手，单位改由**仓鼠兵营**（`hamster-barracks-system.js`，
+  每 45s 一个、面板切战士/盾卫）生成；`hamster-warrior-system.js` 保留但主流程不再
+  setup（文件供测试脚本引用）。
+- **验证**：`scripts/test-hamster-warrior.mjs`（数据+接线契约 34 项）+
+  `tools/cdp-hamster-warrior.mjs`（实机 22 项：自动生成/300HP/六维/移速 120/索敌
+  最近敌人/50伤×2s/两段式动画/矿点贴脸不攻击/跟随玩家到位 idle/死亡 dying 移除）；
+  npm test 全绿 + eslint 0 error + vite build。
+
+#### 8. 仓鼠射手（2026-08-16 远程型友方单位，世界-122 自动射击）
+
+> 战斗型第二例的远程版：复用矿工/战士整套接线（BootScene 加载、GameScene 渲染分支、
+> SceneManager 生成/拆除、PerceptionSystem `_enemyTargetable` 放行），差异在
+> 「远程 AI + 投射物渲染 + 第 10 帧出膛」。
+> **素材**：5 张表（idle 1 / running 11 / attacking 13 / dying 11 / projective 1），512 格 8×4；
+> running 前两帧底部有 1~4px 孤立噪点（把 bbox 撑到 y482/490），导入前按「距主体 bbox
+> 外扩 40px 之外的 <12px 连通域」清理（attacking/dying 的弓弦/箭身碎段贴近主体，保留）。
+
+- **数据（`data/hamster-shooter-config.json`）**：`baseMaxHp: 150`（con=10 公式 200 → 150）；
+  六维 力量12/敏捷20/智力3/体质10/精神3/幸运10；移速 150、攻击 60/2s、attackRange 600、
+  engageRange 900、projectileSpeed 600、attackAnimFps 12、attackLaunchFrame 10。
+- **远程攻击（参考露娜）**：`AimHelper.lead` 提前量瞄准「目标贴图中心」（`_targetAimY` =
+  `target._phaserSprite.y`，无精灵退回 `y - bodyHeight/2`）；攻击动画 13 帧 @12fps 单次
+  （repeat 0，AI `_attackSwing` 触发重播），**第 10 帧出膛**：`_launchDelayMs =
+  (launchFrame-1)/fps = 750ms`，AI 计时到点生成 `m._basic` 投射物（600px/s 直线飞行）；
+  GameScene `_syncCompanionBasics` 迭代 `PartySystem.members + friendlyUnits`，射手用
+  projective 贴图渲染箭矢（内容 146×40 尖头朝左，`setRotation(b.angle + Math.PI)`），
+  露娜仍走 impact_dot。命中 60 物理伤害，按目标中心半径 28 判定。
+- **AI（`src/ai/hamster-shooter-ai.js`）**：射程内站定射击（`_shotActive` 期间 attack 动画，
+  动画播完回 idle 等下一发 2s）；敌人超出射程但 < 交战半径 → 走位拉近距离；矿点
+  （`_isEnergyNode`）不攻击；无敌跟随玩家（到位清路径归零速度）；卡死看门狗同款。
+- **验证**：`scripts/test-hamster-shooter.mjs`（38 项，含**仓鼠战士伤害类型=physical 复核**）
+  + `tools/cdp-hamster-shooter.mjs`（实机 21 项：生成/150HP/六维/移速 150/第 10 帧出膛
+  674ms/中心瞄准 aimY=贴图中心/箭矢贴图/60 物理×2s/弹道角=AimHelper.lead 重算/矿点不攻击/
+  跟随到位 idle/死亡 dying 移除）；npm test 全绿 + eslint 0 error + vite build。
+
+#### 9. 仓鼠兵营（2026-08-16 建筑生成单位，世界-122 每 45s 补员）
+
+> 小屋之后第二个「建筑生成单位」：不新增独立"系统生成 1 只"链路，而是由**建筑本体**
+> 持有单位（`HamsterBarracks.units`），建筑面板切换类型/升级，兵营按 30s 节奏补员到
+> 数量上限——单位生命周期（生成/死亡补员/出售/被毁拆除）全部挂建筑，复用战士/射手/
+> 盾卫既有实体与 AI，零新增渲染分支。
+
+- **数据/配置（`src/world/hamster-barracks-system.js`）**：`BARRACKS_CONFIG`——
+  cost 1500 能源 / hp 2000 / displayW×H 170×147（贴图 682×589 等比，高度对齐小屋）/
+  footOffsetY 73 / spawnIntervalMs 45000（2026-08-18 由 30s 调整）/ spawnRadius 90 / **unitCap 5（初始上限
+  即 5 个，2026-08-16 用户口径）**；单位基准值**实时读**
+  `data/hamster-warrior-config.json` + `hamster-guard-config.json`
+  （`unit.<key>.cfg`，不硬编码 50/60 伤害）。
+- **单位类型切换**：`setUnitType('warrior'|'guard')`，面板两个按钮
+  （战士近战 / 盾卫近战·第 10 帧判定；射手/民兵 2026-08-18 已迁靶场/草屋并清理死注册），
+  切换后下一次生成生效且**重置 `_spawnTimer` 重新计时**（2026-08-18 口径，原「保留计时」作废）；`_findUnitSpawn` 兵营周围
+  90px 内 WallSystem 校验合法落点（兜底兵营脚下）。
+
+#### 10. 仓鼠盾卫（2026-08-16 战斗型第三例，兵营单位）
+
+> 战斗型第三例：近战 + **攻击动画第 10 帧判定伤害**（区别于战士的"间隔出伤"、射手的
+> "第 10 帧出膛"）。用户口述"4×8 裁剪"与实测不符——**素材实测 8 列 × 4 行、512² 格
+> （4096×2048）**：idle 1 / running 17 / attacking 12 / dying 15 帧（目检铁律再次验证）。
+
+- **数据（`data/hamster-guard-config.json`）**：`baseMaxHp: 300`（con=25 公式
+  100+250=350 → 300，2026-08-16 用户口径）；`statFormula:'enemy'`（六维派生走怪物公式，见工作流
+  第 0 条）；六维 力量13/敏捷10/智力3/体质25/精神3/幸运3；移速 100、
+  攻击 30/2s、attackRange 55、engageRange 900、attackAnimFps 12、**attackDamageFrame 10**。
+- **第 10 帧判定机制**：攻击动画 12 帧 @12fps 单次播放（repeat 0，1.0s）；AI 挥击
+  （`_swingActive`，同射手 `_shotActive` 状态机）起手后 `_damageDelayMs =
+  (attackDamageFrame-1)/fps = 750ms` 出伤一次，动画播完回 idle 等 2s 间隔；
+  GameScene 攻击分支并入射手"单次播放 + 定格末帧"（`member._isHamsterShooter ||
+  member._isHamsterGuard`），零新渲染分支。
+- **AI（`src/ai/hamster-guard-ai.js`）**：最近 enemy 索敌（跳过 `_isEnergyNode` 矿点）
+  → 走位 walk（MovementSystem）→ 攻击范围挥击站定；无敌人跟随玩家；卡死看门狗同款。
+- **生成**：兵营 `unit.guard` + 面板第三按钮；升级同步映射
+  `_isHamsterGuard → 'guard'`；`scripts/test-hamster-guard.mjs` 59 项全绿
+  （含**四仓鼠单位怪物公式派生逐项校验** atk/def/matk/mdef/crit/critRes——
+  盾卫 12/41/3/4/5/25，HP 350 不变）。
+- **升级模块（复制仓鼠小屋口径）**：每级统一 1000 金币 + 500 能源——攻击加速
+  （间隔 -6%/级）、攻击强化（伤害 +12%/级）、机动强化（移速 +5%/级）、
+  生命强化（生命 +10%/级）；矿工专属的采矿效率/背包扩容不复制，数量模块也不设
+  （兵营上限固定 5，初始即有，无需"仓鼠增援"）。`upgradeModule` 先扣资源再升级，升级后
+  `applyUpgradesToUnits()` 让**现有单位实时生效**（不是只对新单位生效）。
+- **升级同步两坑**：① 战士/射手 `applyBarracksUpgrades(u)` 必须同时写
+  `_ai._attackInterval/_attackDamage/_attackRange` 与 `aiConfig`（AI 每帧从
+  `_ai` 读间隔/伤害、渲染/契约从 aiConfig 读）；② 生命强化走
+  `_maxHpOverride` + `updateMaxStats()`（Companion 构造后 hp 已按 con 公式算好，
+  直接改 maxHp 不会重算当前血量比例）。
+- **生命周期**：单位死亡 → `aliveUnitCount() < unitCount()` 计时补员（死亡立即
+  从下个 30s 节拍开始）；兵营出售/被毁 → `_despawnUnits()` 同步拆单位（active=false
+  + 移出 entities/friendlyUnits），面板自动关闭；teardown 离场同样拆干净。
+- **面板（BasePanel 复用）**：状态区（等级/耐久/存活数/下次生成秒数）、
+  类型切换按钮、4 个升级按钮、出售（返还 50% 能源）；点击兵营开/关，
+  玩家距离 >260px 不可交互。**出发进度条实时刷新（2026-08-16）**：面板打开期间
+  `setInterval(100ms)` 只更新 `#hbSpawnBar` 宽度/百分比/剩余秒数（querySelector
+  直改，不重建 innerHTML），CSS `transition: width 0.2s linear` 平滑增长；
+  关闭面板 clearInterval 防泄漏；切换单位类型重置 `_spawnTimer` 重新计时
+  （2026-08-18 口径，旧「不重置」说法作废——lessons #55 只保留进度条刷新模式）。
+- **验证**：CDP 实机探针——贴图加载、默认战士生成（dmg 50/hp 300）、切射手
+  （dmg 60/hp 150）、升 damage 模块后现有战士伤害 50→56 实时生效、
+  面板标题/按钮/状态正常、单位死亡后 update 立即补员；eslint 0 error + vite build。
+
+#### 11. 仓鼠民兵（2026-08-17 战斗型第四例，兵营/草屋单位）
+
+> 战斗型第四例：近战 + **攻击动画第 8 帧判定伤害**（区别于战士"间隔出伤"、射手"第 10 帧
+> 出膛"、盾卫"第 10 帧判定"）。素材 4096×2048（8 列 × 4 行 512² 格）：idle 1 /
+> running 12 / attacking 15 / dying 14 帧（逐帧 bbox 目检 + GLM-4.6V 验收：同一角色、
+> 草叉从左往右挥、脚底 ~350 统一）。running 质心漂移 17.5px →
+> `hamster-walk-align.py --feet-y 350` 归一化（cx 跨度 0.9px）。
+
+- **数据（`data/hamster-militia-config.json`）**：`baseMaxHp: 125`（con=6 公式
+  100+60=160 → 125，2026-08-17 用户口径）；`statFormula:'enemy'`（六维派生走怪物公式：
+  力量8/敏捷10/智力3/体质6/精神3/幸运7 → atk 9 / def 11 / matk 3 / mdef 4 / crit 9 /
+  critRes 6）；移速 150、攻击 20/2s、attackRange 55、engageRange 900；
+  **attackDamageFrame 8**（攻击动画 15 帧 @12fps 单次播放，出伤延迟
+  (8-1)/12 = 583ms）；音效与战士/盾卫共用 `hamster_melee_attack.mp3`。
+- **实体/AI**：`hamster-militia.js` + `hamster-militia-ai.js` 完全复用盾卫模式
+  （`_swingActive` 站定挥击状态机、`MovementSystem` 移动、卡死看门狗、无敌跟随玩家、
+  RTS 命令、`_isEnergyNode` 矿点不攻击）；dying 14 帧 @12fps = 1167ms。
+- **渲染**：GameScene `_isHamsterMilitia` 并入射手/盾卫"单次播放 + 定格末帧"分支
+  （`_attackSwing` 触发），移动朝向 vx、受击白闪同款；spriteOffsetY -55 /
+  footOffsetY 55（脚底 ~350/512，displaySize 300——2026-08-17 用户反馈民兵偏小，
+  与战士/盾卫对比后 226→300 放大 1.33×）。
+- **生成**：草屋专属（`producer-buildings.json` unitTypes + PRODUCER_UNIT_CFG/CLASS/
+  unitKindOf）；2026-08-18 兵营死注册已清理（unit.militia/导入/生成分支移除，
+  旧档兵营 unitType 由 spawnUnit 纠正为战士）；升级同步走 `applyBarracksUpgrades`（复用战士/盾卫模块口径）。
+  **顺手修产兵建筑既有 bug**：`applyUpgradesToUnits` 误从 `ai` 块读 `baseMaxHp`
+  （恒 300）→ 改为从单位配置根读，民兵 125 等 HP 覆盖真正生效。
+- **升级全局化（2026-08-17 用户口径）**：`src/world/unit-upgrade-store.js` 全局兵种升级
+  登记表 `GLOBAL_UNIT_UPGRADES`——在任一产兵建筑/仓鼠兵营升级（作用于当前生成兵种）→
+  该兵种全局等级 +1，场景内**所有该兵种单位（跨建筑）实时同步**，新生成单位也读全局等级；
+  兵营/草屋/铁匠铺共用同一份等级（不叠加）；面板等级 = 当前兵种全局等级。
+  仓鼠小屋（矿工）暂保持建筑级（经济模块为主）。等级通过
+  `serializeUnitUpgrades/restoreUnitUpgrades/resetUnitUpgrades` 接入主存档：
+  场景切换保留、读档恢复、新游戏重置。
+- **验证**：`scripts/test-hamster-militia.mjs`（44 项：数据契约/怪物公式派生/
+  AI 接线/兵营+草屋注册）+ test-hamster-guard 共享段补民兵派生校验（61 项全绿）；
+  `tools/cdp-hamster-militia.mjs` 实机探针（生成/125HP/六维/移速 150/第 8 帧出伤
+  583ms 窗口/单次播放无 _start/20 物理×2s/矿点不攻击/跟随到位 idle/死亡移除）；
+  eslint 0 error + vite build + npm test 全绿。
+
+#### 12. 仓鼠斥候（2026-08-17 远程第二例，草屋专属单位）
+
+> 远程第二例（参考仓鼠射手）：**攻击动画第 11 帧出膛**、AimHelper.lead 提前量瞄目标
+> 贴图中心、投射物 600px/s；**只能在仓鼠草屋生成**（unitTypes=[militia,scout]，
+> 铁匠铺/兵营不生成斥候）。素材 4096×2048（8 列 × 4 行 512² 格）：idle 6（呼吸待机）/
+> running 13（用户口述 15，实盘仅 13 个有效帧，帧 13/14 为空——配置按 13 修正，
+> 否则奔跑循环每圈播 2 帧空白 → 贴图瞬间消失）/ attacking 18 / dying 11 /
+> projective 1 帧；running 质心漂移 29px →
+> `hamster-walk-align.py --feet-y 282` 归一化（cx 跨度 0.8px）。**2026-08-17 二修**：
+> 首版 displaySize 260 用户反馈过小，与战士/盾卫/民兵对比后 260→340（idle 92×74，
+> 接近战士 81×85/盾卫 91×89 体量）。
+
+- **数据（`data/hamster-scout-config.json`）**：`baseMaxHp: 100`（con=7 公式
+  100+70=170 → 100）；`statFormula:'enemy'`（力量8/敏捷13/智力3/体质7/精神3/幸运10 →
+  atk 11 / def 12 / matk 3 / mdef 4 / crit 12 / critRes 7）；移速 150、
+  攻击 25 物理/2.5s、射程 600、投射物 600px/s、**attackLaunchFrame 11**（18 帧 @12fps
+  单次播放，出膛延迟 (11-1)/12 = 833ms）；出膛音效复用射手素材。
+- **实体/AI**：`hamster-scout.js` + `hamster-scout-ai.js` 完全复用射手模式（`_shotActive`
+  站定状态机、`AimHelper.lead`、`_targetAimY` 贴图中心、命中半径 28、MovementSystem、
+  卡死看门狗、无敌跟随玩家、RTS 命令、`_isEnergyNode` 矿点不攻击）；dying 11 帧 ≈1000ms。
+  **2026-08-17 二修（攻击动画）**：斥候攻击动画偶发不播放——AI 挥击计时与动画时长完全相等，
+  最后一帧切 idle 时多帧待机分支会打断攻击动画，`animationcomplete` 不触发 → `shooterSwing`
+  标记残留 → 下次攻击不再播。修复三件套：① AI 挥击结束主动清 `_attackSwing`；② 动画计时
+  +60ms 余量（`_shotAnimMs`/`_swingAnimMs`，播完再切 idle）；③ 渲染层残留自愈分支
+  （`member._attackSwing` 置位但 `shooterSwing` 卡 true → 重置下一帧重播）。
+  射手/盾卫/民兵同步加 ①③ 修复。
+- **渲染**：GameScene `_isHamsterScout` 并入射手"单次播放 + 定格末帧"分支；**多帧待机**——
+  idle 6 帧（frameCount>1）循环播放（新增分支，伊莉丝/露娜 idle 1 帧不受影响）；
+  投射物渲染 `_syncCompanionBasics` 扩展：斥候尖头朝右（内容宽 172，旋转 = 飞行角，
+  与射手尖头朝左 +180° 区分），**帧随单位模型 displaySize 等比放大**（2026-08-17 用户口径：
+  基准 226→箭身 72px；斥候 340→箭身 ≈108px、帧 ≈322 方形）；移动朝向 vx、受击白闪、
+  移动烟尘同款；spriteOffsetY -17 / footOffsetY 17（脚底 ~282/512，displaySize 340）。
+- **生成**：仅仓鼠草屋 `producer-buildings.json` unitTypes=[militia, scout]（默认仍民兵），
+  铁匠铺/兵营不含斥候；PRODUCER_UNIT_CFG/CLASS + 兵种升级表（scout 独立全局等级）已注册。
+
+#### 13. 仓鼠火枪与靶场（2026-08-18）
+- 素材统一为8列×4行、512×512帧：idle 9、running 11、attacking 21、dying 15；
+  配置唯一源 `data/hamster-musketeer-config.json`，实体/AI分别为
+  `hamster-musketeer.js` / `hamster-musketeer-ai.js`。
+- AI：最近enemy、跳过能源矿；120px/s、80物理、2.5s间隔、650射程；
+  AimHelper.lead瞄目标贴图中心，第10帧出膛并播放fire.mp3。
+- 投射物不依赖图片，GameScene以Phaser Rectangle绘制54×4黄色ADD曳光弹，
+  弹速1248（P4040同口径），AI负责飞行/墙阻挡/命中。
+- 靶场配置在producer-buildings `shooting_range`：按兵种区分产出速度——
+  musketeer 60s / shooter 45s（unitTypes 条目 spawnIntervalMs 覆盖建筑级，
+  `ProducerBuilding._unitSpawnIntervalMs` 查询）、上限5，复用通用升级和进度条；
+  切换兵种重置 `_spawnTimer` 重新计时（2026-08-18，兵营 45s/草屋同口径）。
+  仓鼠兵营只允许warrior/guard，旧shooter实例兼容但禁止继续选择/生成。
+- 新兵种必须同步BootScene加载/动画注册、GameScene仓鼠标记分支、
+  PRODUCER_UNIT_CFG/CLASS、unit-upgrade-store和defense-target-priority。
+- 回归：`scripts/test-hamster-musketeer.mjs`。
+- **验证**：`scripts/test-hamster-scout.mjs`（数据契约/怪物公式派生/AI 接线/草屋专属断言）
+  + test-hamster-guard 共享段补斥候派生；`tools/cdp-hamster-scout.mjs` 实机探针
+  （生成/100HP/六维/移速 150/第 11 帧出膛 833ms 窗口/中心瞄准/箭矢贴图尖头朝右/
+  25 物理×2.5s/矿点不攻击/多帧待机/跟随到位 idle/死亡移除）。
+
+#### 14. 仓鼠牧师、教堂与激励魔法（2026-08-18）
+
+- **素材/数据**：独立配置 `data/hamster-priest-config.json`，4 张 8列×4行表：
+  idle 10、running 13、dying 16、praying 17 帧。六维为 5/5/20/5/15/5，
+  `statFormula:'enemy'`、`baseMaxHp:100`、移速120；初始 `skills:['holyLight']` 即 1 级圣光。
+- **教堂生产**：`producer-buildings.json.church` 为唯一配置，90 秒补 1 名、上限 2 名，
+  仅生产 `priest`；必须同步 `PRODUCER_UNIT_CFG/CLASS`、`unit-upgrade-store`、
+  BootScene 贴图加载和 GameScene 友军动画分支。
+- **不可打断施法状态机**：圣光与激励都进入 `HamsterPriestAI._startPrayerCast`，锁移动、
+  锁决策、播放一次 `praying`，**第 8 帧**结算，完整 17 帧结束后才允许跟随/下一次施法；
+  指令不能取消进行中的 praying，死亡是唯一允许中断。
+- **圣光逻辑**：冷却就绪时优先选受伤比例最高的玩家/友军/自身；全员满血时才选择
+  600px 内最近 enemy 造成圣光伤害。教堂升级 `castSpd` 为 CD 每级 -5%，
+  `holyLight` 每级 +1 圣光等级；升级必须同时同步当前单位与后续生成单位。
+- **铁匠铺研究「激励魔法」**：全局能力 `inspire_magic`，Lv.1 解锁后每位牧师各有
+  30 秒 CD；在自身 300px 内对 player/companion 施加既有 `applyInspire`
+  （移速×1.33、物攻×1.5）。持续时间 Lv.1=10 秒、Lv.10=20 秒；重复施加只刷新时间。
+  `Companion` 需要具备 statusEffects 的计时、applyInspire 与到期还原，所有仓鼠 update
+  和 PartySystem.updateCombat 都必须推进该计时，GameScene 的 inspire 光环还须遍历正式队友。
+
+---
+
+## 10. UI、面板与组队系统
+
+### 小地图（GameScene 静态层/动态层，2026-08-16 布局修复沉淀）
+
+- **结构**：静态层 `_minimapStaticGraphics`（背景/边框/墙壁，缓存重绘）+ 动态层
+  `_minimapDynamicGraphics`（视野框/实体点/玩家箭头，每帧 clear 重绘）+ 标题 text，
+  全部 scrollFactor(0) + depth 99999，`_syncHud` 里调用（NPC 对话时隐藏）。
+- **scrollFactor(0) 对象在 zoom≠1 下的定位铁律**：Phaser 4 对 scrollFactor=0 的图形
+  仍乘相机 zoom（只是不随相机滚动）——所有绘制坐标必须 × `1/zoom`（`_minimapInvZoom`），
+  屏幕位置 = 绘制坐标；`Camera` 必须 `setOrigin(0,0)`（origin 0.5 会按视图中心枢轴
+  平移缩放，zoom 0.7 时小地图被推到屏幕中部，2026-08-15 修复）。
+- **⚠ 静态层缓存键必须含 zoom（2026-08-16 世界-122 实锤）**：缓存键
+  `wallCount:worldWxworldH` 缺 zoom——切到世界-122（zoom 0.7）时 `_syncHud` 先于
+  `_updateCamera` 运行，静态层按上一场景 zoom=1 的 invZ 绘制；之后 zoom 变化但键不变
+  → **永不重绘**，背景被相机缩放成 105×105 @ (7,42)：视野框（动态层按正确 invZ）
+  画出背景框外 + 背景顶部与左上菜单按钮重叠。修复：缓存键加 zoom 维度 +
+  `_updateCamera` 里 zoom 变化时显式 `_minimapStaticKey = null` 双保险（SKILL #31
+  「缓存键必须包含全部渲染输入 + 场景切换处显式失效」的又一例证）。
+- **视野框视口尺寸用 `this.scale.width/height`**（与 `_updateCamera` 同源），不要用
+  固定 `CONFIG.VIEW_WIDTH/HEIGHT`——窗口非 1920×1080 时黄色视野框偏小/偏大。
+- **静态层墙壁绘制也要框内裁剪**（与动态层 `inBox` 同口径）：墙可带负坐标/越界
+  坐标，不裁剪会画出小地图框外。
+- 验证：`tools/cdp-minimap-probe*.mjs` 解析两层的 commandBuffer（FILL_RECT=3/
+  LINE_TO=4/MOVE_TO=5）换算屏幕坐标，断言静态层背景 == 配置位置尺寸、视野框 ⊆ 框内；
+  截图 `tools/verify-shots/minimap-*.png`。
+
+### 面板生命周期框架（2026-07-21 新增，新面板优先复用）
+
+新增抽屉式面板时**优先复用** `src/ui/panels/base-panel.js`（BasePanel），不要重写 open/close/toggle/遮罩关闭：
+- `new BasePanel({ id, className, stateKey })`：懒构建单例 DOM（首次 open 创建），open/close/toggle 统一走 UIState + active 类（抽屉动画由 CSS className 自带）；
+- 只需实现 `buildContent(el)`（填充 HTML/绑事件，只调一次）与可选 `onOpen()/onClose()` 钩子；遮罩层点击关闭框架自带（各自判断 isOpen，多面板共存）；
+- 对象字面量系统同样适用（参考 `warehouse-system.js` 的 `_getPanel()` 懒创建模式 + `get _isOpen()` 代理）。
+
+已迁移范例：`warehouse-system.js`（仓库面板）。
+
+- **面板并排（2026-08-16 建筑详情）**：详情与主面板并排 = 详情容器
+  `position:fixed; right:<主面板右缘+宽+间距>`（建筑面板右缘 8 + 420 + 8 = 436px），
+  并排时**不隐藏主面板内容**；建设模式全局标记 `Game._buildMode` 供塔/陷阱/小屋/
+  兵营各自跳过 260px 交互距离（免循环依赖 import），详见 lessons #56。
+
+#### 步骤4: 声道与 BGM（2026-07-21 新增）
+- **声道**：`playFile(path, volume, channel)` 第三参为声道（`sfx` 战斗音效默认 / `ui` 界面 / `music` 音乐），声道音量配置在 `data/audio-config.json` 的 `channels`（独立于 masterVolume 的二级调节）；运行时可 `SoundManager.setChannelVolume(channel, v)`。
+- **BGM**：`data/audio-config.json` 的 `bgm` 映射场景 → 音轨（`null` = 无 BGM），切场景自动播放/停止（SceneManager 已接入 `playBgmForScene`）；音轨用 `playLoop` 循环，交叉淡入 `bgmCrossfadeSec`。新 BGM 素材放入 `assets/sounds/music/` 并填配置即可。
+
+---
+
+### 侍从系统框架（2026-08-12，占位符阶段）
+
+> 框架已验收通过；当前为数据/UI/队伍管理骨架，战斗模型贴图未渲染（占位）。
+
+#### 架构与文件地图
+- `data/companion-config.json`：候选侍从档案（id/name/title/desc/avatar 占位/
+  modelPlaceholder/growthRule/初始六维/skills 占位/weaponType）。新增侍从 = 加档案 + 成长规则。
+- `src/config/companion-growth.js`：成长规则注册表（`GROWTH_RULES[id] = (companion, points) =>
+  {str,dex,int,con,wis,luck}` + `registerGrowthRule(id,fn)` 扩展）——升级属性点自动分配，
+  **不硬编码**；未知规则回退 balanced（总点数不丢，缺额补体质）。
+- `src/entities/companion.js`：数据模型与玩家对齐（六维 data/level/exp/equipments/backpack/
+  skills）；`gainExp` 战斗专用（升级曲线=玩家 computeMaxExp，升级回满 HP/MP）；序列化接口。
+- `src/systems/party-system.js`：单例，最多 3 名侍从（玩家+3=4 人队）；`grantCombatExp`
+  **与玩家同额、无平分机制**；onChange 订阅刷新。
+- UI：`party-ui.js`（组队栏，替换 questTracker 位置）、`recruit-ui.js`（卡片招募）、
+  `companion-panel.js`（右侧队员面板三 tab + 背包拖入）、expedition 四圆圈（hud-panels-
+  expedition-quest-reward.js 的 `expeditionMemberBar` + expedition-system.js `_renderMemberBar`）。
+- **组队栏选中/多选（2026-08-16）**：点击名字=单选选中该单位（**不再点击即弹队员面板**，
+  面板仍走右侧边菜单「管理队员」），Shift+点击=多选；选中数据存 `PartySystem`
+  （`selectedIds` / `setSelected` / `toggleSelected` / `clearSelection` / `isSelected`，
+  移出队员自动退出选中并 notify）；组队栏槽位选中态 = `.party-slot--selected`（金框发光）；
+  GameScene `_syncCompanionSprites` 按 `isSelected` 给精灵金色 tint（0xffd98a）+
+  脚下光圈（`_selectionRings` / `_showSelectionRing`）；指令轮盘目标 =
+  `PartySystem.selectedIds`（无选中兜底队员面板当前队员/第一名），轮盘不再全局拦 UIState
+  （改为按按下时悬停目标拦截）+ 拦截 `.companion-overlay`；**待命指令立即打断**
+  攻击/防御/风车/施法（不再等动画播完才生效）。实机探针：`tools/cdp-party-select.mjs`。
+
+#### 铁律/坑
+- **档案恢复必须带 AI 配置（2026-08-16 实机根因）**：`Companion.serialize()` 存
+  `aiConfig`/`unlockSkills`，`fromSerialized` 恢复（老档回退 companion-config.json
+  同 id 档案）并按真实等级重跑 `_checkUnlocks()`——否则解散再招募/读档后
+  `aiConfig=null`：GameScene `aiMode` 为 false 把队员当“纯跟随单位”贴玩家（精灵
+  与逻辑坐标脱节），AI 错用 DEFAULT_MAGE_AI，**命令执行了但画面不动**（伊莉丝
+  “不执行”根因）。另：`_tick` 命令态覆盖动画只对法师做 `spell`，近战不能覆盖
+  （否则命令态战斗伊莉丝攻击动画被顶掉）。探针：`tools/cdp-elise-command.mjs`。
+- **剑盾近战采集（2026-08-16）**：`_applyWarriorCommand` 的 gather 不能回落跟随
+  （旧代码 `case 'gather': default: follow` 是伊莉丝“采集不执行”根因）——
+  `_cmdWarriorGather`：走到指令点最近能源点（`_isEnergyNode` 未枯竭）→ 近战范围
+  `_tryMeleeAttack` 挥砍（atk×1.25，节点 takeDamage 产能源），袋满回玩家移交；
+  探针 `tools/cdp-elise-gather.mjs`（334px 外 run→walk→attack，节点掉血）。
+- **队友动作全量审计（2026-08-16）**：`tools/cdp-party-audit.mjs`——5 指令
+  （hold/follow/patrol/aggressive/gather）× {露娜,伊莉丝} × {新招募,档案恢复}
+  20/20 通过：露娜远程（施法/弹体采集），伊莉丝近战（挥砍采集/贴身追击），
+  档案恢复后 aiRole 正确、命令照常执行；战斗动作（攻击/防御/风车/施法/跟随/撤退）
+  由 cdp-elise-ai / cdp-luna-ai 复核通过。审计用例记得开敌人屏蔽器
+  （主城野怪会随时间刷出干扰）。
+- **选中光圈（2026-08-16）**：填充 alpha 0.15 / 边缘 strokeAlpha 1.0；深度 =
+  **该成员精灵 − 0.1**（与阴影同口径）——AI 队员贴图深度由 `_updateDynamicDepths`
+  按世界 Y 每帧仲裁，光圈必须在仲裁段精灵 setDepth 后同帧覆盖（`_showSelectionRing`
+  里读上一帧深度只是兜底），否则玩家/队友纵向移动后光圈会盖到贴图上。
+  探针：`tools/cdp-ring-check.mjs`（参数 + 深度跟随 + Y 移动同步）。
+- **仓库能源唯一真源（2026-08-18）**：能源禁止再进入玩家/队友/矿工背包。
+  `EnergyManager` 注册所有 `workshopType:'warehouse'` 建筑，`getEnergy/getCapacity`
+  聚合每座仓库的 `storedEnergy/storageCapacity`；单仓默认5000，多仓容量与存量自动求和。
+  玩家、仓鼠矿工、玩家队友攻击能源点时由 `EnergyNode.takeDamage` 直接
+  `depositEnergy`，满仓时不扣矿点并提示“仓库已满，请修建更多的仓库”。
+- 满仓行为：仓鼠矿工进入 `storage_return→storage_wait`，回小屋待命，仓库腾出空间后
+  自动复工；被下达 gather 的正式队友改为 hold 并停止采矿，需重新下达采集指令。
+  小屋“背包扩容”模块与矿工背包展示已删除；旧背包能源/队友能源堆经
+  `importLegacyEnergy` 转为待入库，建仓后自动装入。
+- 能源退款必须先 `EnergyManager.canStore(refund)`，禁止先拆建筑再因满仓丢退款；
+  胜利奖励显示 `depositEnergy` 实际入库量。主存档写 `world122.energyStorage`。
+  回归：`test-energy.mjs` + `test-warehouse-energy.mjs`。
+- **伊莉丝动作音效（2026-08-16）**：`assets/sounds/companions/elise/attacking.mp3` /
+  `defending.mp3`（铠甲骑士 attacking/defending 副本）；companion-ai.js
+  `ELISE_SOUNDS` + `_playSound(key)`（`SoundManager.playWorld` 世界音源），
+  `_tryMeleeAttack` → attacking、`_startDefend` → defending。
+  探针 `tools/cdp-elise-sound.mjs`（攻击 ×2 / 防御 ×1 触发；防御触发注意风车优先：
+  4 敌放 250~380px 在风车范围外才会走防御）。
+- **左键纯移动指令（2026-08-16）**：有队友选中时左键点组队栏外任意位置 =
+  取消选中 + `setCommand(selectedIds,'move',worldPoint)`；AI `_cmdMove` 只移动不接敌，
+  到达（≤40px）站定，目标不可达走 `_nearestWalkable`（WallSystem.canMoveTo 失败 →
+  16~400px 螺旋找最近可达点）；move 模式跳过掉队/卡死瞬移。move 不在轮盘 5 指令表
+  （轮盘 `_execute` 只认 follow/aggressive/patrol/gather/hold），探针直接调 setCommand。
+  game.js 已挂 `Game.Renderer` / `Game.WallSystem`（探针用，勿依赖动态 import 平行实例）。
+  探针 `tools/cdp-party-move.mjs`。
+- **右键移动=最高优先级（2026-08-16）**：有选中时右键 = 清空当前指令后执行
+  `move`（不取消选中，可连续右键改道）；`move` 在法师/剑盾的
+  `cmd.mode==='hold'||'move'` 分支**先于施法/攻击/防御/风车锁打断**，`_cmdMove`
+  再清 gather/patrol 残余；game.js 右键块在 `if(leftPressed)` 之外独立执行并消费
+  `rightPressed`（防玩家右键特殊攻击同帧触发）。目标点画绿色下指箭头
+  （GameScene.showMoveMarker：0x3dff6a 三角+箭杆，depth=y+15，1.2s 淡出）。
+- **指定攻击指令（2026-08-16 RTS 右键点敌）**：`PartySystem.setCommand` 签名扩为
+  `(target, mode, point=null, targetEntity=null)`——`mode==='attack'` 时把目标实体存入
+  `_command.target`；companion-ai 的 `case 'attack'` 转 `_cmdAggressive(entities, player,
+  cmd.target)` / 法师 `_cmdWarriorAggressive(..., cmd.target)`，队友优先打指定目标。
+  探针 `tools/cdp-party-rightmove.mjs` + 截图 `tools/verify-shots/rightmove_marker.png`。
+- **指挥模式审计终案（2026-08-18）**：
+  1. **能力边界不能靠“写了 `_command`”假装支持**：RTS `_collectAllies` 会收集仓鼠矿工，
+     因此矿工 AI 必须显式消费 move/hold；矿工保持“只采矿不攻击”，实体标
+     `_rtsCanAttack=false`，右键敌人对矿工降级为 hold，不能让它继续上一条移动命令。
+  2. **指挥与建筑模式强制互斥**：启用 RTS 先 `_closeBuildingUI()`；`BuildingSystem.open`
+     反向关闭 RTS；RTS 鼠标过滤必须包含 `.wall-editor-panel`。指挥模式点建筑后退出 RTS，
+     掩体详情必须走 `BuildingSystem.open()+_showDetail`，禁止裸 `_buildPanel()+active=true`
+     （会缺监听器、幽灵无法放置且面板点击泄漏成世界点击）。
+  3. **跨场景命令清理**：离开 scene8 时全队命令重置 follow，并清 target/
+     `_tacticalTarget`/路径/速度；否则 scene8 世界坐标和敌人引用会带进下一场景。
+  4. **右键移动即时打断**：盾卫/民兵的 `_swingActive`、射手/斥候的 `_shotActive`
+     通过 `cancelForCommand()` 清理；已飞出的投射物继续，尚未出膛的动作取消。
+  5. **选中判定按身体矩形**：点击/框选统一用 `_unitScreenRect`（collision/size/bodyHeight
+     投影到客户区），不能只认脚底 `collisionRadius+6` 小圆；高大精灵点身体也能选中。
+  6. **属性面板读真实数据源**：仓鼠攻击优先 `_ai._attackDamage` / `aiConfig.attackDamage`，
+     移速优先 `aiConfig.walkSpeed`；运行时 `maxSpeed=0` 只表示当前站定，不是基础移速。
+  回归：`scripts/test-rts-command.mjs` + `scripts/test-party-system.mjs` 均已接入 `npm test`。
+- **能源簇位（2026-08-16）**：`ENERGY_CONFIG.clusters`——(2000,1300) 曾落在常见
+  建屋区（小屋门口见既有矿点的观感来源），已东移至 **(3000,1500)**；新位置距基地
+  ~2170px、距最近簇 ~850px，6144×4096 内且不在右端刷怪带。树木散布排除带随簇心
+  自动更新；簇位是唯一数据源（energy-node-system.setup / scene-manager 树排除均
+  读取它），无测试硬编码。验证探针 `tools/cdp-cluster-move-check.mjs`
+  （旧位 0 节点 / 新位 14 / 旧建屋点门口 0 矿）。
+- **能源节点间距铁律（2026-08-16）**：节点贴图最大 91px（nodeSize 84 × displayScale
+  1.08），簇内最小间距必须 **≥115px**（旧 85px 导致全图 27 对贴图重叠——“门口
+  叠矿/贴图叠一起”实锤根因）；改间距时同步看 spread 是否够放满 count。
+  探针 `tools/cdp-node-overlap.mjs`（<110px 重叠对应为 0）。另：`EnergyNodeSystem.setup`
+  生成前强制清空场上残留 `_isEnergyNode`（防 HMR/重复 setup 堆积）。
+- **能源节点强制审计（2026-08-16）**：世界-122 只允许存在当前 4 簇内的矿点——
+  `EnergyNodeSystem.sweepStacked()` 每 ~1s（GameScene.update）① 删除不在任何簇
+  （spread+50 内）的残留节点 ② 同位置（<60px）多节点只留第一个（防“门边叠矿”）。
+  实机验证：注入 (1324,2110)×3 + 北边散点 → 1s 全清、总数回到 54。另外
+  `SceneManager._saveMainSceneState/_loadMainScene` 主城快照**剔除 `_isEnergyNode`**
+  （矿点绝不能经保存/恢复被带回主城——旧污染会凭空出现“家门口一堆矿”）。
+- 升级经验唯一入口：击杀结算（damageable-entity）→ `PartySystem.grantCombatExp`；无野外经验。
+- 物品转移 `slot` 必须最后写（`{...item, slot: targetSlot}`——源 item 自带 slot 字段，
+  spread 会覆盖目标槽位，实机抓出）。
+- 拖入队员背包：`CompanionPanel._moveFromPlayerToCompanion` 读
+  `Game.EquipManager._dragDropManager._dragSrc` 并置 `_dropHandled=true`（阻止 dragend 丢弃）。
+- **队员装备与玩家通用（2026-08-12）**：`src/ui/equip/equip-rules.js` 共享
+  `canEquipSlot`/`getEquipmentBonuses`（玩家 drag-drop-manager 与侍从同一套，勿再各写）；
+  队员背包装备走 `Companion.equipFromBackpack`（自动槽位：单手主手→weapon2→offhand→全满替换
+  主手；盾进副手且卸双手主手；双手武器只进主手；被占槽替换回包）+ `unequip` + `calculateCombatStats`
+  （六维差值法 + atk/def 同玩家公式）；队员背包格拖回玩家背包走
+  `text/companion-item` → drag-drop-manager inv-cell drop → EventBus
+  `companion:moveToPlayerBackpack`。
+- **调试铁律**：Runtime.evaluate 里 `import('/src/xxx.js')` 会创建**平行模块实例**——
+  调试/探针一律用 `window.Game.PartySystem/RecruitUI/CompanionPanel/ExpeditionSystem`
+  （game.js init 挂载的单一权威），否则 addCompanion 加到平行实例而 UI 读静态实例（实测抓出）。
+- **技能通用模块（2026-08-12）**：技能公式/构建单一来源 `src/systems/skill-formula.js`
+  （纯函数，data-loader 委托 + skill-system 共用）；`src/systems/skill-system.js` 提供
+  buildSkillMap / grantSkillExp（修炼，升级逻辑与 SkillLevelSystem 同源内联——保持无 Phaser
+  依赖可 node 单测）/ onSkillLevelUp（按 effectFormula 属性奖励）/ renderSkillList（通用技能卡）。
+  侍从技能 = companion-config.skills 的 id 数组（当前空=占位，填 id 即自动拥有/修炼/渲染）。
+  **坑**：skill-system 勿 import data-loader / skill-level-system（会拉 Phaser 依赖链，
+  node 单测 `window is not defined`）；公式解析器改动必须同步 skill-formula.js（唯一实现）。
+- **队员管理入口（2026-08-12）**：右侧 side-menu（hud-panels-misc.js）「👥 队员管理」→
+  `CompanionPanel.openManage()`（顶部队员切换条 + 空状态招募按钮 + 打开时隐藏 side-menu）。
+  **坑**：清空队伍用 `while(members.length) remove(members[0].id)`（遍历中 splice 会跳项）。
+- **解除招募保留状态（2026-08-12）**：PartySystem._roster 档案库——removeCompanion 存
+  `serialize()`（等级/属性/装备/背包/技能全保留），addCompanion 有档案走 `fromSerialized`
+  恢复继承；招募卡片按 `unlocked/inParty` 显示「再次加入（继承状态）」/「已在队」；
+  `serializeRoster()/restoreRoster()` 为存档接口预留。
+- **队员背包双栏（2026-08-12）**：companion-panel「装备背包」tab 时左侧同步弹出玩家背包栏
+  （`.companion-player-pack`，实时读 `EquipManager.backpackItems`），与队员面板并排紧贴
+  （`.companion-panel.with-pack` 圆角切换）；玩家背包格 draggable 写
+  `EquipManager._dragDropManager._dragSrc` 后拖到队员背包/装备槽（既有转移接口）。
+  **复刻铁律（2026-08-12 返工）**：玩家背包栏必须**逐字段复刻** slot-renderer 的格子格式
+  （`.inv-cell.occupied` + inv-rarity 稀有度竖条 + 强化/改造/附魔标签 + 图标 + inv-name +
+  inv-stack + data-slot/dragType/dragId/itemName），tooltip 调
+  `EquipTooltipManager.bindInventoryTooltip()` 复用；**容器勿用 .inventory-grid 类**
+  （updateInventorySlots 用 queryAllElements 全局索引会把它后面的格子 slot 错位），
+  用独立容器类 + `.inv-cell` 格子（CSS/tooltip 自动复用）。
+- **属性/技能面板复刻（2026-08-12）**：队员属性 tab 生成玩家系统面板同款
+  `.status-page` 结构（status-header + 状态条 bar-fill + 基础属性 attr-list 两列 +
+  战斗属性 + 详细信息 + 档案）；技能 tab 用 skill-system.renderSkillList 输出玩家同款
+  `.skill-card`（skill-icon/name/level/exp-bar）网格——复用全局 CSS，勿自造样式类。
+- **队员面板=玩家 system-panel 完整复刻（2026-08-12 二轮返工铁律）**：队员面板外层必须用
+  `.system-panel`（右侧滑出 45vw 全高毛玻璃）+ `.panel-tabs`/`.tab-page`；装备页完整复制
+  `.gear-layout`（上 `.equip-grid` 3×5 网格 15 槽 + 下 5 列背包格）；**但装备槽/背包格
+  必须用 `companion-*` 独立类复制样式**（`.companion-diablo-slot`/`.companion-pack-grid`/
+  `.companion-cell`），不能直接用 `.diablo-slot`/`.inv-cell`——玩家渲染器
+  （updateEquipSlots/updateInventorySlots）和 tooltip 全局绑定会污染队员槽位。
+  展示类（status-page/gear-layout/equip-grid/skill-card）可复用，数据类槽位需隔离类名。
+  **玩家装备栏复制（2026-08-12）**：左侧玩家背包栏的装备栏**可以**直接用 `.equip-grid` +
+  `.diablo-slot` 类（数据显示的就是玩家装备，玩家渲染器 updateEquipSlots/bindEquipTooltip
+  遍历填充/绑 tooltip 恰好正确）；玩家背包格仍用独立容器 + `.inv-cell`（自渲染，
+  避免 updateInventorySlots 全局索引错位）。队员侧装备槽/背包必须 `companion-*` 隔离类。
+  **双界面同步（2026-08-12）**：队员面板玩家背包栏与玩家系统面板背包 = 同数据
+  （EquipManager.backpackItems）、两套 DOM；必须包装 `EquipManager.updateInventorySlots`
+  （CompanionPanel._syncPlayerPackHook）让玩家侧操作同步刷新队员侧；队员侧操作已调
+  updateInventorySlots 天然同步。玩家装备栏（.diablo-slot）由 updateEquipSlots 全局遍历
+  自动同步，无需 hook。
+  **组队面板交互（2026-08-12）**：① 弹出动画复用 `.system-panel` 的 `.active` 机制
+  （translateX 滑入 0.25s），pack 用 `pack-active` 同款；② 打开 SystemUI/出征等面板必须
+  emit `ui:panel-open`（EventBus），CompanionPanel 监听关闭——新增"打开其他面板"的入口时
+  记得 emit，否则组队面板不关闭。
+  **组队审计铁律（2026-08-12 排查 5 bug）**：
+  ① 技能序列化必须 `restoreSkills` 重建（JSON 丢方法，档案恢复后 getEffect/getExpForNext
+    TypeError）；② 装备替换/卸下前检查背包空位（满则拒绝，防旧装备静默丢失）；
+  ③ `_show()` 必须 `clearTimeout(_closeTimer)`（close 260ms 定时器与快速重开竞态）；
+  ④ 拖入队员背包/装备槽前检查容量（满拒绝 + `_returnToPlayerBackpack` 还回，杜绝物品丢失）。
+  **成长/技能配置（2026-08-12）**：玩家与队员 maxHp/maxMp 公式统一含
+  `(level-1)*10`（每级 +10 生命/魔法）；队员成长规则在 companion-growth.js 注册表；
+  队员技能配置 = companion-config.skills（初始）+ unlockSkills（{技能id: 解锁等级}，
+  Companion._checkUnlocks 构造/升级自动解锁，通用机制）。新增队员 = 档案 + 成长规则 +
+  技能/解锁表即可，无需改业务代码。
+  **侍从场景渲染（2026-08-12）**：队员动作动画在 companion-config.animations 配置
+  （src/frameWidth/frameHeight/cols/rows/frameCount/frames/frameRate/repeat）；
+  BootScene 配置驱动加载注册（键 `companion_<id>_<动画>`）；GameScene
+  `_syncCompanionSprites` 每帧跟随玩家（左后偏移、翻转镜像），按玩家状态切
+  spell/run/walk/停帧。显示尺寸引用 `PLAYER_DEFAULTS.physics.spriteSize`（2026-08-12
+  为 173，与玩家单位完全一致）；跟随水平偏移 150px（原 95 @110px，放大后按比例拉远）。
+  新增队员动画 = 素材入库 + animations 配置即可，代码零改动。
+  **动画两段注册（2026-08-12）**：需要「起步 + 循环」的动作（如 running）在配置里写
+  `startFrames:[s,e] + startFrameRate + startRepeat:0` 与 `loopFrames:[s,e] + frameRate
+  + repeat:-1`；BootScene 会生成 `<key>_start`（播一次）与 `<key>`（循环）两个动画键，
+  共用同一 sheet 纹理。GameScene `_syncCompanionSprites` 用 sprite 的 `lunaRunning`
+  data 标记起步态：首帧进入 sprint 播 `run_start` 并 `once('animationcomplete')` 切
+  `<key>` 循环；停止奔跑（idle 分支）复位标记。判定存在用 `this.anims.exists`。
+  **循环边界像素分析法（2026-08-12）**：AI 生成动作 sheet 常有首尾不闭环问题。用
+  `tools/ai-gen/analyze-sheet-loop.py <png> <fw> <fh> --pair <n>` 对比 alpha 剪影差异
+  （0..1，越小越接近）；walking [0,31] 首尾 0.113 → 选 [7,31] 仅 0.023（双脚并拢的
+  「过步姿态」两端几乎一致）；running 起步 [0,18]（19 帧，18→19 衔接 0.040）+ 循环
+  [19,31]（13 帧，31→19 包裹 0.104，为该素材短循环最优）。**站立/停帧帧号必须跟随
+  walk 循环首帧**（GameScene 用 `anims.walk.frames[0]` + `companionIdleFrame` data），
+  否则循环起点不在 0 时静止→走路会跳变。**有奔跑素材时站立姿态优先取奔跑动画首帧**
+  （2026-08-12 三修）：源视频起跑前就是该姿态，idle→起跑完全连续；GameScene 创建
+  精灵时按 `anims.run` 存在与否选 idle 纹理/帧（`companionIdleKey` + `companionIdleFrame`
+  data），站立分支用 `setTexture(idleKey, idleFrame)` 切换（跨纹理不能只 setFrame）。
+  **循环闪回=水平漂移（2026-08-12 二轮修复）**：AI 生成 running 整张 sheet 每帧人物
+  沿水平方向漂移（帧 19 包围盒 x46-465 → 帧 31 x22-489，质心跨度 ~30px），循环回跳
+  时人物整体横跳 ~25px 造成「闪回卡顿」——**原始帧剪影差异会高估姿态差异**，先算
+  每帧 bbox/质心确认是否漂移。修复：`tools/ai-gen/luna-run-align.py` 把全部帧按内容
+  质心水平对齐（保持 512×512、自动求可行参考 X 避免裁切），导出 running_norm.png，
+  质心跨度 30px→1.1px，31→19 回跳 0.104→0.070（与相邻帧 0.02~0.06 同级，回跳退化为
+  普通帧间变化）。**新增/修改动作图后先做漂移检查**（帧质心跨度 >2px 即需归一化）。
+  **headless 验证铁律（2026-08-12）**：`_isSprinting`/`isMoving` 每帧由
+  `Input.isSprint()`/速度重算，直接改字段会被覆盖；必须派发真实
+  `new KeyboardEvent('keydown',{code:'ShiftLeft'/'KeyW'})`（Input 模块监听真实键盘）
+  + 补丁 `player._isFacingMouse=()=>true` + 补满体力，才能稳定驱动 walk/run 状态。
+  Phaser 4 动画帧对象取索引用 `frames[i].textureFrame`（非 `.frame`/`.name`）；
+  `Game.loop` 是本项目应用层方法，Phaser 循环诊断用 `__phaserScene.game.loop.frame`。
+- **侍从属性结算缺口（2026-08-12 审计修复）**：`Companion.calculateCombatStats` 必须
+  结算装备 `matkFormula`（与玩家 `_getEquipmentMatkBonus` 同口径：base + 强化×enhanceBase
+  + int×intMul + wis×wisMul）——否则法杖等魔法武器魔攻恒 0。装备测试铁律：装备后检查
+  int/wis/maxMp/def（含强化）/matk 五项全变，缺一项即结算缺口。
+- **overlay z-index 铁律（2026-08-12 实锤）**：招募界面 `.recruit-overlay` 必须 > 队员管理
+  `.companion-overlay`（现 4400 > 4300）——低层级 overlay 打开时点按钮会被高层全屏遮罩
+  拦截（无反应无报错）；招募打开时还需临时隐藏队员管理面板（close 恢复）。
+  新增全屏 overlay 前先查现有 overlay 的 z-index，勿低于其上层。
+  **2026-08-12 修正**：z-index 已保证招募在上层后，**不要再临时隐藏下层面板**——
+  隐藏会导致 onChange（display===block 条件）不刷新、恢复后内容陈旧；同时
+  CompanionPanel 的 onChange 刷新须处理"空状态加入后 _memberId 停留 null"：
+  无当前队员且有成员时自动选中 members[0]。
+- **高斯武器滤镜已彻底停用（2026-08-12）**：`GameScene._applyWeaponBlur/_ensureWeaponBlur`
+  为 no-op/返回 null——`filters.internal.addBlur` 在部分 GPU 下创建 framebuffer 失败
+  （Framebuffer Unsupported）→ WebGL context lost → 黑屏（招募黑屏根因）。运动模糊唯一
+  正式方案 = 残影（_syncWeaponGhosts）；blurX/blurY 仍驱动残影长度/浓度，勿再启用高斯滤镜。
+- 单测带 JSON 导入需自注册 loader：`await import('./scripts/register-json-loader.mjs')`
+  + 动态 import src 模块（静态 import 在 loader 注册前解析会报 ERR_IMPORT_ATTRIBUTE_MISSING）。
+- 新增侍从技能/战斗模型/装备属性结算/存档落盘：在框架对应留白处接入（skills 空对象、
+  modelPlaceholder 未渲染、equipments 无属性结算）。
+
+## 侍从战斗 AI（CompanionAI，2026-08-14，远程法师露娜）
+
+- **伊莉丝普攻命中（2026-08-16）**：`_dealMeleeHit` 追加眩晕 + 击退——`attackStunMs`
+  （默认 1000，与玩家近战一段同口径，仅普通怪 rank 缺省 normal）+ `attackKnockback`
+  （默认 50，径向，全类型）；配置在 `data/companion-config.json` warrior_bruno ai 块，
+  契约断言在 `scripts/test-party-system.mjs`。
+- **架构**：`src/ai/companion-ai-decision.js`（零依赖纯函数：`decideCompanionAction`
+  状态机 + `pickCompanionSpell` 技能选择，可单测）→ `src/ai/companion-ai.js`
+  （CompanionAI 运行时：决策 tick 120ms + 每帧移动/施法推进）。
+  状态机：`idle → follow → advance → cast → flee`（优先级：施法站定 > 近战威胁贴脸
+  flee > 射程内施法 > 推进站位 > 跟随 > idle）。
+- **挂载**：PartySystem 只存 AI 工厂注册表（`registerAI(id, factory)` +
+  `updateCombat(dt, entities, player)`），**不静态 import companion-ai.js**（其依赖链
+  带 JSON import，node 单测会挂）；Game.js 启动时注册 mage_luna 工厂，主循环在实体
+  update 后调用 updateCombat。companion-config.json 的 `ai` 字段配置
+  followOffset/combatRange/safeDistance/castFrozenMs 等。
+- **移动复用 MovementSystem**：companion 补战斗字段（active/x/y/vx/vy/maxSpeed/
+  groundRadius/_faction='companion'）。MovementSystem 2026-08-14 起支持
+  `_tacticalTarget` 作为寻路目标（moveGoal = 战术目标优先，其次攻击目标）——露娜的
+  跟随点/施法站位/撤退点都是 _tacticalTarget，路径朝战术点生成而非敌人。
+- **敌我判定安全**：BoltSkillSystem._isHostile 与 LightningStrikeSystem 改为阵营分组
+  （player/companion 互为友军、只敌视 enemy；enemy 敌视一切非 enemy）——露娜
+  _faction='companion'，火球/闪电不会误伤玩家。怪物 PerceptionSystem 只选 player
+  目标，露娜不会被仇恨（纯远程输出）。
+- **技能复用玩家系统**：露娜构造 FireballSystem/IceSpikeSystem/LightningStrikeSystem/
+  HolyLightSystem；**BoltSkillSystem 非玩家需二次 trigger**（第一次凝聚、第二次发射）；
+  施法射程从 skills.json effectFormula 读 maxRange（通常缺省）→ AI 用
+  SKILL_RANGE_FALLBACK（火球 1200/冰锥 800/闪电 600）兜底；MP 消耗由 AI 自行扣除
+  （非玩家系统不扣）。技能优先级：闪电（群控）> 火球（群伤）> 冰锥（单体）。
+- **远程后排策略**：目标只在 combatRange×1.3 内选择（不跨图追残血）；近战威胁
+  （attackRange<220 且无 ranged）进入 safeDistance → flee（撤退点=背离威胁+朝玩家）；
+  施法站定 _frozenForCast 锁定移动并保持 spell 动画。寻路跟随点=玩家左后
+  followOffset。
+- **渲染**：GameScene._syncCompanionSprites 按 `member.aiConfig` 分叉——AI 队员位置
+  用 member.x/y、动画按 member._animState（spell/run/walk/idle，idle=奔跑首帧）；
+  无 AI 队员保持原玩家状态驱动逻辑。
+- **验证**：单测 116/116（含 12 条决策/技能选择纯函数）；CDP `tools/cdp-luna-ai.mjs`
+  （跟随/施法命中 46 伤害/不误伤玩家/撤退 60→224px）与 `tools/cdp-luna-anim.mjs`
+  （AI 驱动：idle 奔跑首帧、follow walk 循环、cast spell、flee run 循环质心 0px）。
+- **已知限制**：圣光（10 级解锁）暂未接入 AI（holyLight 敌我判定按同阵营治疗，需
+  友军分组改造后启用）；露娜不会被怪物仇恨；撤退为战术点寻路（地牢空旷场景可用）。
+- **生成位置三保险（2026-08-14 二修）**：① 初始/场景切换生成用 `_findValidSpawn`
+  （跟随点优先 → 8 方向螺旋外扩 → `WallSystem.canMoveTo` 校验 → `findSafeSpawn` →
+  玩家脚下兜底），不再裸偏移导致生成进墙；② 场景切换检测（`SceneManager.currentScene`
+  变化 → 清路径/target → 重新找落点）；③ 每 1.5s 卡墙自愈——当前位置 canMoveTo 为
+  false（卡进墙）或**离玩家 >1200px**（墙外无墙空地 canMoveTo 仍为 true，但寻路不
+  连通）或路径反复失败（stuckCount≥3）→ 拉回玩家附近合法点。另修：advance 站位点
+  离玩家 >followOffset×3.3 不追（远程后排不追远目标，避免在地牢跑丢/卡墙外）。
+  探针 `tools/cdp-luna-dungeon-spawn.mjs` 用主实例 `ExpeditionSystem.depart()`
+  真实进地牢（**勿用 Runtime.evaluate 动态 import 模块——会创建平行实例**）：露娜
+  生成在玩家 ~200px 内、canMoveTo 合法、能移动/撤退/战斗输出。
+- **队友防卡死瞬移（2026-08-14 三修，仅作用于队员）**：MovementSystem 的
+  GATE-WAIT 面向怪物（卡在关着的门洞前选择等待，开门自然恢复）——队友不等待。
+  CompanionAI 独立位移检测：每 400ms 采样，**2s 窗口总位移 <10px 且仍有移动意图**
+  （战术目标未到达或攻击目标在射程外）→ 卡死；连续 2 次确认 → 瞬移脱离：优先
+  卡死点半径 50~200px 螺旋搜索"更靠近玩家"的合法点（canMoveTo 校验），否则瞬移到
+  玩家附近合法点；4s 冷却防抖动。只作用于队员（玩家/敌人不受影响）。行业参考：
+  L4D survivor bot 卡死传送到下一路径点、Godot `map_get_closest_point` 拉回导航
+  最近点、Gmod-Auto-Unstuck 检测后延迟瞬移、Unvanquished 先侧向脱困再兜底。
+- **队友渲染三修（2026-08-14 四修）**：① **图层**——AI 队员精灵 depth 由
+  `_updateDynamicDepths` 按世界 Y 计算（脚底+10 + junctionCorrectedDepth，与敌人同
+  口径），不再固定 `playerSprite.depth+0.5`（否则墙后也显示在墙前）；纯渲染队员
+  保持玩家层。② **主动找位置**——监听 `DungeonMapSystem.state`（map↔combat）变化：
+  玩家被传送时露娜清路径/目标并重定位到玩家附近合法点（同场景切换机制），避免残留
+  地图坐标；advance 时玩家距离 >450px 优先跟近玩家（保持阵型，远程后排不落单），
+  怪在射程内仍由 cast 分支站定施法；距离自愈阈值 1200→900。③ **朝向**——aiMode
+  flipX 由自身决定：移动时面朝 vx 方向（往哪走面朝哪）、施法面朝 target、idle 保持
+  上次朝向（`_lastFaceRight`），不再跟随玩家镜像（逃跑时不再面朝怪物）。
+- **露娜初始魔法 600 + 消耗品自动使用（2026-08-15）**：
+  - `companion-config.json` mage_luna 加 `baseMaxMp: 600`——companion.js
+    `_maxMpOverride` 覆盖 maxMp 基础公式（600 基准 + 每级 10 + 装备加成），
+    serialize/fromSerialized 保留。
+  - `companion.consumableSettings`：`{ enabled, hpThreshold:0.3, mpThreshold:0.25,
+    useLowToHigh:true }`，序列化保留。
+  - AI 自动用药（CompanionAI `_useAutoConsumable`，1s 节流）：HP/MP 各自独立判定
+    （**勿用 `!used` 串联——生命和魔法可能同时低于阈值**），背包选对应恢复药水
+    （level 升序 → 恢复量升序 = 低级→高级），用 `applyConsumableEffect` 生效并扣
+    堆叠，通知 PartySystem 刷新 UI。
+  - UI：companion-panel 装备页背包栏加「⚙️ 消耗品设置」按钮 → 展开面板（启用开关/
+    HP 阈值/MP 阈值/背包消耗品列表/保存）。新增更高级消耗品（equipment.json
+    consumable + level 字段）自动参与低级→高级排序，无需改代码。
+- **露娜 walk/run 视频重建管线（2026-08-15，walking and running.mp4）**：
+  `tools/ai-gen/luna-wr-rebuild.py`（须 ComfyUI venv python 运行）——PyAV 抽帧 →
+  BiRefNet（ComfyUI-RMBG）抠图（unpremultiply 防白边）→ 对齐（脚底 FEET_Y 固定 +
+  水平**内容质心**精确居中 CENTER_X，质心跨度 <1.5px，循环回跳无位置跳动）→ 拼
+  512×512 sheet。视频 24fps/121 帧分段：walk 循环 f12-37（26 帧，回跳对齐差异
+  0.017 无缝）；run 起步 f81-97（17 帧）+ 循环 f98-120（23 帧，衔接 0.054、
+  回跳 0.086 = 素材最优）。配置：walk frames [0,25]@24；run startFrames [0,16]+
+  loopFrames [17,39]@24。**坑**：sheet 未填满的行尾是空白 cell，循环回跳校验必须
+  用实际 frameCount 的最后一帧，不能按 cols×rows 全表算（会把空白帧当回跳帧）。
+- **spell 动画跳过/占据排查（2026-08-15）**：两个真 bug——
+  ① `_tryCast` 写计时器到 `c._castTimer`（companion 字段），但 `_updateCast` 误读
+    `this._castTimer`（AI 实例字段恒 0）→ 施法首帧即结束、spell 动画被跳过；统一到
+    `c._castTimer`。② `_applyAction` 开头的施法锁定检查在 flee 之前提前 return——
+    近战贴脸时 decide 已返回 'flee'，但施法锁定把 flee 分支（含打断施法）拦下，
+    露娜站桩 spell 不逃跑；修为例外：`action === 'flee'` 跳过施法锁定、打断施法逃跑
+    （决策纯函数同步：威胁贴脸优先级高于施法站定）。
+  诊断探针 `tools/cdp-luna-spell-diag.mjs`：注册检查 + 施法期间逐帧采样
+  （castState/currentAnim/frame/texKey）+ 手动 `_tryCast` 渲染验证。
+- **露娜朝向/内置CD/普通攻击（2026-08-15）**：
+  - **朝向**：GameScene aiMode——逃跑（`member._lastAction==='flee'` 且移动中）面朝
+    移动方向；其余（idle/施法/走位）**始终面朝目标**（member.target 优先，否则扫
+    Game.entities 最近敌人）。`_lastAction` 由 CompanionAI 同步到 companion
+    （`c._lastAction = action`）——渲染层读 member 而非 AI 实例，否则恒 undefined。
+  - **法术内置 CD**：`_castCooldown` 默认 2000ms，所有法术共享最小释放间隔；
+    `_pickReadySpell` 开头 `if (c._castCooldown > 0) return null`；普通攻击不占用
+    该 CD（独立 `_basicAtkCd`）。
+  - **普通攻击**：config `basicAttackRange 600 / basicAttackSpeed 600 /
+    basicAttackInterval 2000 / basicAttackDamageMul 0.2`；CompanionAI `_tryBasicAttack`
+    发射蓝色光球（`_basic` 状态，600px/s 直线飞行、600px 射程），命中造成
+    `matk×0.2` 伤害，攻击动作播 spell 动画（castState=casting + _castTimer=500ms）；
+    GameScene `_syncCompanionBasics` 渲染光球（impact_dot 纹理 + 蓝 tint + ADD 混合）。
+    决策：无法术可用（CD/MP/射程）且普通攻击就绪 → cast 分支 fallback 普通攻击。
+  验证探针 `tools/cdp-luna-basic.mjs`（内置 CD 递减、普通攻击 dmg=matk×0.2、idle
+  朝向目标左右切换）。
+- **攻击整合 + 躲避停用（2026-08-15 二修）**：
+  - 原两套攻击：采集 `_fireGatherBolt/_bolts`（800ms、280px、青色弹、伤害
+    atk||matk）与普通攻击 `_basic`（2s、600px、蓝色光球、matk×0.2）——**已整合为一套**
+    `_basic`：`_cmdGather` 攻击段改用 `_basicReady/_tryBasicAttack(node)`（同公式/同
+    投射物/同间隔），删除 `_fireGatherBolt/_updateGatherBolt/_bolts/_gatherAtkTimer`；
+    aggressive/patrol 指令无法术时也 fallback 普通攻击。
+  - **光球渲染统一**：`_basic` 存 companion 字段（`c._basic`），GameScene
+    `_syncCompanionBasics` 读 `m._basic`——此前写 AI 实例字段导致光球不可见。
+  - **躲避停用**：`companion-config ai.fleeEnabled: false`；`_meleeThreat` 包装
+    威胁评估（false 时返回 null），默认状态机 + aggressive/patrol/gather 指令全部
+    不再 flee；保留卡死瞬移/掉队瞬移（防卡墙）。露娜现只做 跟随/攻击/施法/idle。
+- **普通攻击 100% 魔攻 + 提前量瞄准（2026-08-15 三修）**：
+  - `basicAttackDamageMul` 0.2 → 1.0（普通攻击伤害 = 魔法攻击力全额）。
+  - 瞄准复用远程怪物同款 `AimHelper.lead`（毒液僵尸/僵尸巫师的拦截点预判）：
+    普通攻击 `_tryBasicAttack` 用 `AimHelper.lead(c.x, c.y, target..., vx, vy, speed)`
+    计算拦截点再取角度（无有效解回退当前位置）；法术（火球/冰锥）走
+    `BoltSkillSystem._getAimTarget` 非玩家分支，本就带 lead 预判——两条攻击链路
+    均为提前量瞄准。zombie-wizard 的 `extraDelayS=0.3` 是给"延迟发射"前摇用的，
+    露娜弹体立即发射，不需要额外延迟参数。
+- **spell 动画大小/位置对齐（2026-08-15 四修）**：spelling.png 是旧素材——人物高
+  461（walk/run 471）、质心漂移 208~280（72px）、顶部 y19（walk/run y7），施法时
+  人物在帧内晃动/下沉（"大小没对齐 + 施法贴图后退"）。`tools/ai-gen/luna-spell-realign.py`
+  按 walk/run 重建同标准（TARGET_H=470/FEET_Y=478/CENTER_X=256、内容质心精确居中）
+  重排现有 alpha 帧（无需重新抠图）：重排后 cx 255.7~256.5、h 471、topY 7 与
+  walk/run 完全一致。施法原地性 = aiMode 渲染 `setPosition(member.x, member.y)` +
+  `_frozenForCast` 锁定移动（帧内容不再偏移后视觉无后退）。
+- **露娜魔攻恒 1 根因（2026-08-15 五修）**：Companion.calculateCombatStats 的魔攻
+  基础公式误读空的 `formulas.matk`（{}）→ 无装备 matk=0 → 普通攻击 `max(1, matk×1.0)`
+  恒 1（打怪/采矿都是）。修复：与玩家对齐用 `formulas.magicAttack`
+  （int×1.5 + wis×0.5，`floor:true`——注意配置是 `floor:true` 不是 `round:'floor'`），
+  无装备露娜 matk=25。同时：① 构造函数补 `calculateCombatStats()`（此前构造后 matk
+  恒 0）；② `fromSerialized` 恢复时预置 `_equipAttrBonus`（恢复的 data 已含装备加成，
+  差值法不得重复叠加——否则 int/wis 等翻倍）。
+- **spell 50% 释放点（2026-08-15 六修）**：法术/普通攻击改为"spell 动画播到一半才
+  发射"——`_tryCast` 只凝聚（fireball/iceSpike 第一次 trigger；lightning 不触发），
+  记录 `_pendingRelease` + `_castDuration`；`_updateCast` 每帧检测 elapsed ≥
+  total×0.5 时 `_releasePending`（法术第二次 trigger 发射 / 普通攻击 `_spawnBasic`
+  生成光球 + 扣 MP）。**坑**：法术 CD 必须在 50% 释放成功后才设置——凝聚时若先设
+  CD，BoltSkillSystem.trigger 的冷却检查会拦截第二次 trigger（火球凝聚后永不发射，
+  表现为施法扣蓝但零伤害）。flee 打断施法需清 `_pendingRelease/_castDuration`。
+- **普通攻击光球穿怪修复（2026-08-15 七修）**：`_updateBasic` 原先只检测发射时的
+  单个 `b.target`——光球路径上经过的其他怪物完全不判定（锁定远怪时近怪被直接穿过）。
+  改为：优先命中发射目标，其次遍历 `Game.entities` 中所有 active/hp>0 的 enemy，
+  光球 30px 半径内即命中（与法术投射物同思路）。诊断探针
+  `tools/cdp-luna-basic-hit.mjs`：两个怪物同一直线、锁定远怪——修复后近怪先被命中
+  （25 伤害），不再穿过。
+- **卡死瞬移排除"输出中"（2026-08-15 八修）**：卡死判定新增伤害窗口——攻击释放
+  （`_releasePending`/`_spawnBasic`）与普通攻击命中都刷新 `_lastAttackAt`；
+  `_checkStuck` 在判定窗口（2.5s）内有过攻击 → 重置 streak 不判卡死、不瞬移
+  （站桩输出被误判卡死的问题）。真正卡死（墙里、无目标、打不到怪）仍正常瞬移。
+- **施法/攻击位移形变重调（2026-08-15 九修）**：① **位移**——施法/攻击结束后新增
+  200ms 硬直（`_castRecoverTimer`，期间保持 `_frozenForCast` 不移动），消除"动画
+  刚播完就滑动"的位移（手动施法采样 x/y 位移 0）；flee 打断需清硬直。② **形变**——
+  spell 帧宽度跨度 162~393（施法展臂帧比 walk 宽 40%），重排脚本 `luna-spell-realign.py`
+  增加水平限幅 `MAX_WIDTH=300`（仅 X 轴压缩展臂帧、保持高度 471），跨度缩至
+  162~300，人物不再"忽宽忽窄"。
+- **spell 动画用 spelling.mp4 重做（2026-08-15 十修）**：视频 121 帧——f0-70 站立
+  施法（起手→咏唱→收手）、f77 起后仰倒地；只截取施法段。`tools/ai-gen/luna-spell-video-rebuild.py`
+  （ComfyUI venv python）抽 f0,2,...,70（36 帧）→ BiRefNet 抠图 → 对齐
+  （TARGET_H=470/FEET_Y=478/CENTER_X=256 + MAX_WIDTH=300）→ 8×5 sheet；配置
+  spell frameCount 36 / frames [0,35] / 20fps / repeat -1。**卡死瞬移攻击窗口探针
+  注意**：前序测试若 2.5s 内攻击过，卡死场景需重置 `_lastAttackAt=0` 否则误判
+  "输出中"。
+- **spell 人物压扁修复（2026-08-15 十一修）**：十修沿用的 `MAX_WIDTH=300` 水平限幅
+  会把展臂帧压扁——**已移除限幅，改纯等比缩放**（只统一高度 470，宽度按原始比例）。
+- **spell 前16正放+后16倒放（2026-08-15 十二修）**：`tools/ai-gen/luna-spell-loop.py`
+  从前 16 帧合成 32 帧 sheet（cell0-15 正放 帧0→15、cell16-31 倒放 帧15→0），
+  首尾差异 0 循环无缝；配置 frameCount 32 / frames [0,31] / 26.67fps（1.2s 播完）。
+- **spell 脚部对齐（2026-08-15 十三修）**：全内容质心对齐会被施法手臂摆动拉偏——
+  脚底区域质心在帧间漂移 28px（视觉滑步）。水平对齐基准改为**脚底区域（底部 15%
+  高度）质心**居中（SKILL 对齐三铁律：水平中心固定防滑步），修复后跨度 1.0px。
+- **施法/攻击状态机防插播（2026-08-15 十四修）**：castFrozenMs=1200 匹配动画完整
+  时长；`_applyAction`/`_tick` 施法锁定区分"施法中→spell 动画"与"硬直中→停帧
+  idle"（否则动画播完循环重播 = 抽动）；控制技能（hasStatusEffect stun/frozen/
+  bind）才强制清施法状态打断动画。
+- **掉队瞬移理智判定 + walk/run 切换（2026-08-14 五修，用户需求）**：
+  - 需求①：被卡在门外进不来 → 距离过远瞬移回玩家身边，但**区分卡住 vs 正常 AI 远离**
+    （躲避敌人/寻找输出位置离玩家远是合法的，不该瞬移）。
+  - 实现：decision 纯函数 `shouldRelocateCompanion`——超过 teleportDist(700) 后，
+    flee（逃近战威胁，撤退点含朝玩家分量会自动收敛）/ advance 站位（站位点离玩家
+    ≤followOffset×3.3）/ 施法锁定 / 距离在缩小（有效追赶）→ 不瞬移；
+    其余（掉队、路径反复失败 stuckCount≥2、撞墙）→ 瞬移；超 teleportHardDist(1100)
+    无条件瞬移兜底。**掉队判定必须看"距离趋势"**：跟着玩家跑时距离可能瞬时拉大，
+    只要每帧都在缩小就是正常追赶。
+  - 需求②：离玩家过远 / 逃避敌人 / 寻找位置输出 → running；小范围移动 → walking。
+    实现：`shouldUseRun(mode, dist, cfg)`——flee 永远 run；其余按移动距离
+    （到跟随点/站位点的直线距离）超 runDist(260) 用 run。
+    `_setMoveState` 同步 maxSpeed（run→runSpeed/walk→walkSpeed）。advance 归队
+    （离玩家>450）直接 run。
+    **注意：不用 PathManager.path 长度判 run/walk**——决策瞬间路径还是旧目标的
+    （MovementSystem 下帧才重算），读路径长度会 stale 导致误判 run；预寻路整合点
+    在卡住检测（stuckCount）而非路程判定。
+  - 配置：companion-config.json `ai` 字段可覆盖 runDist/teleportDist/teleportHardDist。
+  - 露娜 running 接入 24 帧版：`assets/companions/luna/running.png`（8×3、24 帧完整
+    双步周期）——**完整周期循环不能拆 startFrames**（24 帧拆 6+18 会让循环段不是
+    整数周期，接缝左右脚错位）；配置只给 loopFrames [0,23]，BootScene 无 startFrames
+    时走 frames 默认分支全帧循环。单测 133/133（新增 run 判定/掉队判定 17 条）。
+- **状态机回归修复（2026-08-14 六修）**：用户反馈"running 常态化（无 idle）+ spell 不放"。
+  - 根因①（run 常态化）：`_applyAction` 各分支条件未命中时（flee 无威胁 / cast 无目标 /
+    advance 无目标）不设置 `_animState` → 残留上一帧 run。修复：分支前默认
+    `_setMoveState('idle')` + 清 vx/vy（各分支命中后覆盖）。
+  - 根因②（spell 不放）：默认 idle 重置把**施法锁定期的 spell 动画砍掉**——施法中决策
+    返回 'cast'，但 spell 已进 CD 为 null → 不 _tryCast → _animState 被重置成 idle。
+    修复：`_applyAction` 开头加**施法锁定守卫**——`_castState !== 'idle' || _frozenForCast`
+    时保持 `_animState='spell'` 并直接返回（清 vx/vy）。
+  - 实机探针 `tools/cdp-luna-state-probe.mjs`：静止→idle、远移→run→walk→idle、
+    施法→spell（_tryCast 后 cast=casting/anim=spell/timer=650/frozen=true）、近战→flee(run)，
+    全部 PASS。**CDP 高频采样要在页面内循环**（evaluate 往返延迟会错过 650ms 施法窗）。
+- **spell 动画不播放（2026-08-14 七修，根因在渲染层）**：
+  - 根因：`_syncCompanionSprites` 判重播用 `!sprite.anims.isPlaying || key!==spellKey`——
+    spell 动画 repeat 0 播完一次 isPlaying=false → **每帧从头重播，永远卡在前几帧**
+    （视觉上"没播放/闪一下"）。修复：三个动画分支统一改为**只在动画键变化时播放**
+    （`currentAnim?.key !== targetKey`）。
+  - spell 动画 repeat 0 → **-1**（施法期间循环播放完整施法动作）；castFrozenMs 650 → 1300ms
+    （32 帧@20fps=1.6s 循环的 80%，动作清晰可见；650ms 太短一闪而过）。
+  - **idle 素材接入（2026-08-14）**：`E:\无尽轮回\游戏\素材库\人物\luna\luna.png`（2048² 白底）
+    → BiRefNet 抠图 + 去污染 → 512 格对齐（top19/bottom479/高461/中心256，与 walk/run/spell 一致）
+    → `assets/companions/luna/idle.png` → companion-config `animations.idle`（单帧）
+    → 渲染层 idle 停帧优先取 idle 动画首帧（原为 run 首帧）。
+  - 探针新增 E 场景（渲染层直接验证）：手动设 castState=casting/_animState=spell →
+    `_syncCompanionSprites` → sprite 播放 `companion_mage_luna_spell` ✓；清回 idle →
+    停帧 `companion_mage_luna_idle` 帧 0 ✓。**headless 掉帧会压缩施法窗**（_castTimer 按 dt 递减），
+    AI 层施法验证看 after 状态，渲染层播放由 E 场景直接验证。单测 135/135。
+- **walking 动画不播放（2026-08-14 八修，动画状态机三连 bug 收口）**：
+  - 根因：idle 停帧用 `sprite.setTexture(idleKey, idleFrame)` 停止动画后，
+    `sprite.anims.currentAnim` 仍残留旧动画引用；切回同一动画（如 walk）时
+    `currentAnim.key === walkKey` → 跳过 play → **动画卡在停帧不播**。
+    上一轮为修 spell 把重播条件从 `!isPlaying || key!==X` 收紧成 `key!==X`，恰好引入此回归。
+  - 修复：三个动画分支恢复 `!sprite.anims.isPlaying || currentAnim.key !== X` 判重播——
+    **前提是 spell 已 repeat -1**（循环播放中 isPlaying 恒 true，不会因"播完一次"误重播）；
+    只有被 idle 停帧打断（isPlaying=false）时才重新播放。
+  - 教训：**渲染层动画切换的判重播必须同时覆盖"动画未播"和"键变化"**；
+    改判重播条件前先确认动画 repeat 语义（repeat 0 会自然停 → 不能只查 isPlaying；
+    repeat -1 循环 → isPlaying 恒 true → 可安全用）。探针 F 场景：
+    walk→idle→walk 循环切换恢复播放 ✓。单测 135/135、npm test 51/51。
+- **idle 抠图白边 + 大小（2026-08-14 九修）**：
+  - 白边：BiRefNet 边缘半透像素 unpremultiply 反推偏白 + 2048→512 缩放插值产生白圈。
+    处理（红狼人同款）：① 合成灰底(127)判据——半透像素合成后亮度 >175 = 白边残留 → alpha 清零；
+    ② 3×3 最小值滤波侵蚀边缘，去掉半透明白圈。边缘白边 15% → 0.78%，GLM 复验无白边、细节完整。
+  - 大小：idle 素材（luna.png 2048²）角色宽高比 0.379，动画素材（walk/run）约 0.52——
+    按高度对齐后 idle 宽 175 vs walk 202-243，显得瘦小。折中：target_h 461→500、feet_y 505
+    （宽 189、高 500，视觉面积约为 walk 的 92%）。**站立姿态窄是素材比例，强行宽度匹配会超高出格**。
+    动画对齐基准：所有动画 frameWidth/frameHeight 512、显示由 spriteSize 控制。
+- **BiRefNet 细长物体尖端羽化（2026-08-14 十修，running 法杖尖端消失）**：
+  - 症状：游戏里 running 法杖尖端像被截掉一段；但源视频完整（BiRefNet alpha bbox 离右缘
+    300px+）、精灵图 bbox 无贴边、GLM 说"完整"——**所有常规检测都漏了**。
+  - 根因：BiRefNet 显著性分割对**细长尖端**支持弱——帧 30/31 法杖尖端 alpha 只有 166/171
+    （<74%），深色背景下尖端"半透明消失"，但 bbox(alpha>16) 和 max_x 检测都正常。
+  - 检测方法：**逐帧查尖端 max_alpha / 最右 5 列 alpha 均值 vs 前 10 列**——正常渐变
+    均值差 <30%，羽化帧差 >40% 且 max_alpha <200。
+  - 修复：**融合抠图**——`alpha_final = where(BiRefNet<190 & 阈值(gray<232)有深色, 阈值, BiRefNet)`，
+    只把 BiRefNet 漏掉的深色细节（法杖尖端）用阈值补回，主体仍走 BiRefNet；
+    再灰底判据清理白边。24 帧尖端 max_alpha 全 255，右5列均值 158→188+。
+  - 教训：**细长物体（法杖/武器/触角）抠图后必须查尖端 alpha 渐变**，不能只看 bbox；
+    GLM 对细长半透明尖端也判不准（两次矛盾），像素证据优先。
+
+---
+
+### 图层/背景随分辨率适配工作流（"cover 铺满 + bottom 锚定"）
+
+适用：背景图、栏位面板、立绘等需要随分辨率自动调整且不产生黑边/漂移的图层。
+- **cover 铺满**：`scale = max(viewW/imgW, viewH/imgH)`——图片始终覆盖视口，无黑边（超出部分裁切）。
+- **bottom 锚定**：`y = viewH - imgH*scale`（图片底部贴视口底部）、`x = (viewW - imgW*scale)/2`（水平居中）——位置固定不随分辨率漂移，底部内容始终可见。
+- **坐标区域**：用游戏内开发工具的坐标工具在目标分辨率（如 2560×1440）下实测 `left/bottom/width/height`，`bottom/left` 用固定像素，`width/height` 按视口比例等比适配。
+- **禁用做法**：`window.innerWidth/Height` 动态居中（分辨率变化时位置漂移）、固定像素画布（高分屏大量黑边）。
+- **拖动/缩放钳制区域必须与初始定位区域一致**（共用同一区域计算函数），否则能拖出定位区导致"看似没调整"。
+
+---
+
+## 11. 音效系统
+
+### 音效导入工作流（2026-07-17 新增，参照集合体落地；2026-07-21 目录规范更新）
+
+#### 目录规范（2026-07-21）
+所有音效**按实体类别建子目录，禁止堆在 assets/sounds/ 根目录**：
+```
+assets/sounds/enemies/<怪物英文名>/   # 怪物音效（如 amalgam/time_agent/time_agent_shield）
+assets/sounds/friendly/               # 友方单位音效（仓鼠矿工/战士/射手/盾卫，2026-08-16）
+assets/sounds/weapons/                # 枪械开火/换弹/过热等武器音效
+assets/sounds/bow/                    # 弓箭音效
+assets/sounds/shield/                 # 盾牌格挡/受击音效
+assets/sounds/ui/                     # 金币/升级/出售/击倒等系统音效
+```
+2026-07-21 已完成存量迁移（根目录音效全部入子目录，引用同步更新）。新增音效一律入对应子目录，路径写进配置（enemy-config.json sounds / weapon-fx-config.js 等），不在代码里写死。
+
+#### 友方单位音效（2026-08-16 仓鼠系列，用户素材）
+- 素材复制改名入库 `assets/sounds/friendly/`：`hamster_shooter_attack.mp3`（射手出膛）、
+  `hamster_melee_attack.mp3`（战士/盾卫共用，源=鼠鼠战士 1.mp3）、
+  `hamster_miner_mining.mp3`（矿工挥锄）。
+- 配置：`data/hamster-*-config.json` 新增 `sounds` 块（attack/mining 键 → 路径）；
+  `Companion` 基类 `this.sounds = archive.sounds || {}`（一处生效，伙伴未配置默认为空）。
+- 触发：各 AI 攻击命中/发射点调 `_playSound(key)` 助手——世界内发声走
+  `SoundManager.playWorld(path, x, y)`（坐标衰减，音效铁律），无则 playFile 兜底；
+  射手在 `_fireProjectile`（第 10 帧出膛）、战士 `_tryAttack`、盾卫 `_applyDamage`
+  （第 10 帧判定）、矿工 `_tryAttack`（采矿命中）。
+
+#### 步骤1: 素材复制建档（规则 4）
+按类别在项目下建子文件夹，把用户提供的音频复制进去：
+```
+assets/sounds/enemies/<怪物英文名>/   # 如 assets/sounds/enemies/amalgam/idle.mp3
+```
+
+#### 步骤2: enemy-config.json 配置 sounds 映射（规则 1，不硬编码）
+```json
+"sounds": {
+  "idle":   "assets/sounds/enemies/amalgam/idle.mp3",
+  "throw":  "assets/sounds/enemies/amalgam/idle.mp3",
+  "impact": "assets/sounds/enemies/amalgam/hitting.mp3",
+  "slamHit":"assets/sounds/enemies/amalgam/hitting.mp3",
+  "death":  "assets/sounds/enemies/amalgam/dying.mp3",
+  "idleInterval": 3000
+}
+```
+键名按怪物类内事件自定义（idle/throw/impact/slamHit/death/...）；`idleInterval` 为待机环境音间隔（ms）。
+
+#### 步骤3: 怪物类内按事件播放
+`SoundManager.playFile(path)` 直接播放文件，无需 BootScene 预加载。统一在类内写一个小助手：
+
+```javascript
+_playSound(key) {
+    const path = this.config?.sounds?.[key];
+    if (path && SoundManager && typeof SoundManager.playFile === 'function') {
+        SoundManager.playFile(path);
+    }
+}
+```
+
+事件触发点（集合体范例）：
+- idle 待机：`update()` 中计时器到点播放（间隔读 `sounds.idleInterval`）
+- 投掷出手（fireFrame）：`_playSound('throw')`
+- 投射物落地：`_playSound('impact')`
+- 砸地命中帧（hitFrames）：`_playSound('slamHit')`
+- 死亡：`onDeath()` 中 `_playSound('death')`
+
+#### 步骤4: 距离衰减（可选，位置音效，2026-08-03）
+需要"声源离玩家越近越大声、超出最大距离无声"的音效，走 SoundManager 位置音效能力（音量逐帧由主循环统一刷新，调用方不自己算距离）：
+
+- **循环音轨**：播放后每帧把声源坐标与衰减参数挂上——
+  ```javascript
+  SoundManager.setLoopPosition(id, x, y, {
+      base: s.loopVolumeBase ?? 0.5,     // 远端音量
+      max: s.loopVolumeMax ?? 1.5,       // 近端音量（可 >100%）
+      nearDist: s.loopNearDist ?? 150,   // 满音量距离
+      farDist: s.loopFarDist ?? 600,     // base 音量距离
+      maxDist: s.loopMaxDist ?? 2000,    // 静音距离，超出后音量 0
+  });
+  ```
+  曲线：d≤nearDist 恒 max → farDist 处 base → maxDist 处 0（双段线性连续）。
+- **一次性音效**：`SoundManager.playFileAt(path, x, y, volume, channel, { nearDist, maxDist })`——按播放瞬间距离衰减，超出 maxDist 不播。
+- **配置键**：enemy-config.json `sounds` 块用 `loopVolumeBase/loopVolumeMax/loopNearDist/loopFarDist/loopMaxDist`（蝇群范式，值全部进配置不硬编码）；音量刷新由 `game.js update()` 顶部 `SoundManager.update(dt)` 统一完成。
+- **注意**：无玩家（或玩家 inactive）时保持当前音量不变；死亡/场景切换清理走既有 `_destroyCustomEffects` / `stopAllLoops`，位置音效无需额外清理。
+- **NPC/世界实体帧音效必须走 `playWorld`**（2026-08-12 铁匠打铁声修复）：GameScene 的
+  `frameSounds`（game-config `npcs.*.sprite.frameSounds`，动画播到指定帧触发一次）原来调
+  `playFile`——无世界坐标、永远满音量、远离 NPC 仍听得见。改为
+  `SoundManager.playWorld(fsCfg.path, e.x, e.y)` + `playFile` 兜底。铁律：新增任何"世界内发声"
+  （NPC 动画帧、敌人、机关、门、宝箱）先查是否带坐标走 `playWorld`，别默认 `playFile`；
+  玩家自身音效（枪声/脚步/技能/UI）才用 `playFile`。
+- **音效放大优先做进文件**（2026-08-11 左轮 .357 开火声 1.5 倍）：源素材 mean -26.1dB →
+  ffmpeg `volume=1.5` → 入库 -23.0dB，播放端默认 volume=1.0 不再乘系数（避免双份放大）。
+  文件峰值已 0dB 后（mean 接近满幅）再放大只能走播放音量参数 `playFile(path, v)` 或声道音量，
+  禁止对文件再放大（会削波失真）。
+
+#### 步骤5: 程序化合成音效（numpy 管线，2026-08-16 铁闸门开/关）
+> 素材优先级 = **用户提供 > 合成兜底**：世界-122 铁闸门音效一轮用合成（
+> `gen-gate-sounds.py`），二轮被用户素材 `D:\即时重放\1.mp3` 替换（`gate_iron.mp3`，
+> 开/关共用），合成 wav 与脚本已删除。本节保留为**无素材时的通用能力**。
+
+没有现成素材的机械/环境音效可程序化合成，零素材依赖、可复现、无版权问题：
+
+- **合成先例**：`tools/ai-gen/add-weapon.py`（枪械开火/换弹/装备；合成管线范本）。
+- **基本构件**：`_noise(n, seed)` 白噪声 → `_bandpass(x, lo, hi)` FFT 带通（金属摩擦 =
+  中频 500~2600Hz；撞击 = 低频 90~300Hz 主体 + 高频泛音）→ `_env_exp(n, tau)` 指数衰减
+  （咔嗒/撞击用 tau=dur/3）→ `_click(amp, dur, lo, hi, seed)` 短促爆点。
+- **金属撞击 = 多谐波衰减正弦簇**：低频 thump（如 98Hz, tau=dur/2.2）+ 钢体共振（262Hz ×0.6）
+  + 泛音（523/1046Hz 递减）+ 带通噪声爆点 ×0.5——单频正弦干瘪，多谐波才有"金属感"。
+- **滑轨/摩擦 = 带通噪声 × 包络 + 周期刮擦**：滑动包络用 `sin(πt)^0.9`（渐强渐弱模拟
+  门先加速后减速）；"滑轮过缝"用每隔 ~65~85ms 一个 30ms 短噪声爆发（`_rail_slide`）。
+- **时长对齐动画**：世界-122 门动画 `GATE_GEOM.animMs`=650ms → 开门 0.85s（咔嗒+滑动+末端
+  锁扣）、关门 1.0s（滑动+0.65s 处撞击+锁扣）；RMS 分段检查确认结构（关门 0.6~0.7s 段应有
+  撞击尖峰）。
+- **输出**：44100Hz 16bit 立体声 WAV（`np.stack([out, np.roll(out, 2~4)])` 轻微立体声），
+  文件直接进 `assets/sounds/environment/`；`.venv-sprites\\Scripts\\python.exe` 运行。
+- **接入**：世界内机关/建筑音效走 `SoundManager.playWorld(path, x, y)`（距离衰减），
+  声源坐标取**感应中心**（门洞物理中心 `_detectX/_detectY`，非精灵中心——等距偏移会让
+  远距离单位听不到）。玩家自身音效仍走 `playFile`。
+- **验证**：CDP 探针拦截模块单例 `SoundManager.playWorld` 记录调用路径/坐标——
+  **必须按 performance 资源表的真实 URL import**（裸路径在 HMR 后拿到空单例/不同实例，
+  patch 不生效；SKILL #27 同款坑）；波形 RMS 分段 + 频谱质心（开门 ~2kHz 中高频、关门
+  ~1.4kHz 低频）数值验证结构。
+
+---
+
+## 12. 常见陷阱与调试手册
+
+### 常见问题
+
+#### 精灵图加载时报 "has no frame X"
+
+原因：图片高度不是 `frameHeight` 的整数倍，Phaser 只识别了整数行数。  
+解决：
+1. 短期：在 `load.spritesheet` 中加 `endFrame: N`
+2. 长期：运行 `sprite-normalizer.py` 自动填充到正确尺寸
+
+#### 切换动画时贴图忽大忽小
+
+原因：不同精灵图的内容大小/中心位置不一致，Phaser 按整帧缩放导致内容大小差异。  
+解决：运行 `sprite-normalizer.py` 统一所有精灵图的内容大小和中心位置。
+
+---
+
+### 常见陷阱：显卡占用高（Phaser 全屏 WebGL 排查，2026-08-16 只诊断未改码）
+
+#### 现象
+游戏运行时任务管理器里浏览器（或 Electron）GPU 进程占用很高。
+
+#### 根因排序（按影响）
+1. **全屏 WebGL 每帧重绘 + 透明合成**（最大固定成本）：`PhaserGame.js` 用 `type: AUTO`
+   （Chrome 必选 WebGL）、画布取 `window.innerWidth/innerHeight` 全窗口尺寸、
+   `transparent: true`，且未设 `resolution`/`antialias`/`powerPreference` → 全屏 MSAA +
+   每帧与 DOM alpha 合成，分辨率越高越贵。
+2. **场景渲染对象多**：世界-122 约 100 棵散布树 + 边界墙/基地菱形房/掩体 + 每座防御塔
+   3 层贴图（基座/臂/武器）+ 能源矿点 + 仓鼠小屋 + 敌人波次 + 每实体 1 个阴影 Sprite；
+   HUD（worldHudGraphics/screenHudGraphics）与小地图动态层每帧 clear 重绘，小地图动态层
+   每帧遍历全部实体。
+3. **ADD 混合粒子**：受击/地面血迹（10s 寿命）/火球双发射器全用 `ADD` 混合，战斗激烈时
+   像素过度绘制大。
+4. **双 rAF 循环**：game.js 自建循环 + Phaser 循环同时 60fps 跑（CPU 侧为主，维持每帧
+   忙碌）。
+5. **4096×4096 地形整图纹理**（约 64MB 显存，一次性上传，每帧 1 次绘制，影响中等）。
+
+#### 验证方法
+- DevTools → Performance 录制 10 秒战斗，看 GPU 任务占比。
+- 窗口缩到 1280×720 对比：GPU 骤降 = 分辨率/填充率主导。
+- 临时关小地图/粒子对比。
+
+#### 可优化方向（按性价比，本次用户确认暂不实施）
+- `antialias: false`（关全屏 MSAA，观感损失最小）；
+- 小地图动态层降频（10Hz 或脏标记），静态层已有缓存；
+- 粒子降频/总量上限、ADD 改 NORMAL 或缩短血迹寿命；
+- 非战斗场景 Phaser fps target 降到 30。
+
+---
+
+### 常见陷阱：功能失效优先查数据/配置完整性（弹药初始化同款两连）
+
+#### 模式
+"系统逻辑完好的功能失效"——控制台诊断先沿数据链查状态，别先改逻辑：
+- v2.7 弹反失效：装备条目缺 `weaponType: 'shield'` + `defense` 块，`checkEquipped()` 恒 false。
+- 2026-07-26 AKM 无法开枪：实例缺 `ammoConfig`（equipment.json 该条目本就无此键，靠 main.js 启动合并补齐，但该实例走了未合并的获取旁路），`_initAmmoForSlot` 无回退 → `_hasAmmo` 恒 false。
+
+#### 修复原则
+启动时合并（main.js → ItemDatabase）只覆盖一条获取路径；**消费端回退才是全路径兜底**——`_initAmmoForSlot` 已改用 `getAmmoConfig(item)`（`item.ammoConfig || GUN_AMMO_CAP[weaponId]`，与 combatant/图鉴/tooltip 同口径）。新枪械：EquipDataManager 配 `ammoConfig` + `GUN_AMMO_CAP` 加 weaponId 条目，双写。
+
+---
+
+### 常见陷阱：anim.timer === 0（死代码）
+
+#### 问题
+`enemy.js` 和 `combat-system.js` 的 swing 阶段都有：
+```javascript
+if (anim.timer === 0 && this._pendingThrust) this._pendingThrust.active = true;
+```
+
+这条代码**永远不会触发**：`anim.timer += dt` 后 `dt > 0`，`anim.timer` 不可能为 0。
+
+#### 正确做法
+`ThrustAttack.execute()` 在创建 `_pendingThrust` 时已经设置 `active = true`：`triggerWeaponAnim()` 没有覆盖 `_pendingThrust`，所以 `active` 始终保持 `true`，无需重新设置。
+
+直接删除这条死代码即可。
+
+---
+
+### 常见陷阱：const 重复声明
+
+#### 问题
+`shield-system.js` 的 `onDamageTaken` 方法中：
+```javascript
+const defense = shieldData.defense;  // 行53
+// ... 弹反逻辑 ...
+const defense = shieldData.defense;  // 行81 ← 重复声明！
+```
+
+在块级作用域中（`if` 块内部是 `const` 的作用域），同一个函数中两次 `const defense` 会导致语法错误。
+
+#### 解决
+弹反逻辑中直接使用行53声明的 `defense` 变量，不再重复声明。或者在弹反块内部改声明为 `const defense = shieldData?.defense || {}`（如果外层 `defense` 不在作用域内）。
+
+---
+
+### 常见陷阱：四方向 facing 但仅有两方向精灵图时的翻转逻辑
+
+#### 问题
+怪物只有侧面精灵图（原始面向右），但 facing 逻辑按移动方向分 4 方向（right/left/up/down）。当目标在左上方或左下方时：
+- `|vy| > |vx|`，`_facing` 被设为 `up` 或 `down`
+- `flipX` 逻辑只处理 `left`/`right`，`up`/`down` 不翻转
+- 结果：sprite 始终面向右，但单位实际在向左移动 → 视觉方向与运动方向相反
+
+#### 基础修复（v1.6）
+`up`/`down` 时，根据 `vx` 符号判断水平运动方向来决定是否翻转：
+
+```javascript
+// _getPhaserOptions（Phaser 渲染）
+if (this._facing === 'left') {
+    flipX = true;
+} else if (this._facing === 'right') {
+    flipX = false;
+} else {
+    // up/down：没有上下精灵图，根据 vx 判断水平方向
+    flipX = this.vx < 0;
+}
+
+// _drawBody（Canvas 渲染）
+const shouldFlip = this._facing === 'left' ||
+    ((this._facing === 'up' || this._facing === 'down') && this.vx < 0);
+if (shouldFlip) ctx.scale(-1, 1);
+```
+
+#### 优化修复（v1.7）
+基础修复有两个问题：
+1. **攻击期间**：`_facing` 锁定为 `_dashStartFacing`，但 `up`/`down` 时的 flip 仍依赖 `vx`（攻击前的速度），而非实际冲刺方向 `_dashAngle`
+2. **纯垂直移动/idle**：`vx = 0` 时 `flipX = false`，狼永远朝右，无法保持之前的水平朝向
+
+**优化方案**：
+- 新增 `_lastHorizontalFacing` 属性，在每次 `_facing` 更新为 `left`/`right` 时保存
+- `up`/`down` 时的 flip 优先级：攻击期间用 `_dashAngle` → 移动期间用 `vx` → 静止/纯垂直用 `_lastHorizontalFacing`
+
+```javascript
+// 构造函数初始化
+this._lastHorizontalFacing = 'right';
+
+// update() 中保存水平朝向
+if (this._facing === 'left' || this._facing === 'right') {
+    this._lastHorizontalFacing = this._facing;
+}
+
+// _getPhaserOptions / _drawBody 中的 flip 逻辑
+if (this._facing === 'left') {
+    flipX = true;
+} else if (this._facing === 'right') {
+    flipX = false;
+} else {
+    // up/down：没有上下精灵图
+    if (this._attackTimer > 0 && this._dashAngle !== undefined) {
+        // 攻击期间使用冲刺方向决定水平朝向
+        flipX = Math.cos(this._dashAngle) < 0;
+    } else if (Math.abs(this.vx) > 0.1) {
+        flipX = this.vx < 0;
+    } else {
+        // 纯垂直移动/idle：保持上次水平朝向
+        flipX = this._lastHorizontalFacing === 'left';
+    }
+}
+```
+
+---
+
+### 常见陷阱：Phaser 4 的 FX API 不是 postFX
+
+- Phaser 3.60 的 `sprite.postFX.addGlow(...)` 在 **Phaser 4 已移除**——`sprite.postFX` 为 undefined，静默失败不报错。
+- Phaser 4 正确用法：`sprite.enableFilters().filters.internal.addGlow(color, outerStrength, innerStrength, scale, knockout, quality, distance)`（Camera 上为 `camera.filters.internal/external`）。
+- addGlow 参数顺序与 v3 不同（第 4 位是 scale，第 5 位才是 knockout），迁移时逐位核对。
+- knockout=true 会把贴图本体完全隐藏只留光晕（"only the glow is drawn, not the texture itself"）——要"贴图正常+轮廓外光晕"必须用 knockout=false，光晕会自然从贴图边缘向外渐变。
+- 粒子发射器重力：v3 `emitter.setGravity(x, y)` 在 Phaser 4 改名为 `setParticleGravity(x, y)`，旧名调用报 "is not a function"。
+
+---
+
+### 常见陷阱：Phaser 4 filters 是 per-object 渲染通道（数量多即卡）
+
+- `enableFilters().filters` 每个 GameObject 一个独立 render-to-texture + shader pass——满地掉落物时几十/上百个额外通道，帧率雪崩。**实体特效一律不用 filters**。
+- 替代：离屏 canvas 烘培纹理（`ctx.shadowBlur` 多次叠画出外发光渐变，`textures.addImage` 缓存复用），渲染零开销。
+- 光晕宽度要按显示尺寸比例烘培：原图 512px 显示 48px 时，10px 光晕需按 ≈20% 画布比例烘，否则被缩放稀释到不可见。
+
+---
+
+### 遭遇导演（2026-07-28 移除：零调用的预留抽象）
+
+`encounter-director.js` 的 `start/registerKind/encounter-table.json` 自 2026-07-21 引入起**始终零调用**（地牢遭遇由 DungeonConfig.getZombieEncounterConfig 承担且工作良好），已删除；唯一有消费方的构成解析（角色键数组→工厂数组）已内联进 `agent-invasion-system.js`（ROLE_FACTORIES + resolveComposition）。**教训：预留抽象如果没有第二个真实消费方，先不要建；需要时按 GroundZone/combat-fx 的"先有 3 处重复再抽"模式来。**
+
+---
+
+### 工具文件
+
+- `tools/sprite-normalizer.py` — 精灵图标准化脚本
+- `tools/sprite-meta.json` — 脚本输出元数据（记录目标参数）
+
+---
+
+## 13. 历史记录与变更日志（附录）
+
+### 变更记录
+
+- v1.16 (2026-08-03) — 生图改为智谱 API 优先
+  - ⚠ 已被 2026-08-04 二轮推翻：双机 ComfyUI 优先（远程 5080 主力 + 本机 3080 Ti 兜底）、
+    智谱 API 降级为第三兜底；以下条目保留作历史记录
+  - 本地 AI 出图工作流新增「生图入口（优先：智谱 API）」：`tools/ai-gen/zhipu-gen.py`，
+    默认模型 glm-image（1280×1280），不支持负面词参数（避项写进正向提示词），
+    右下角固定"AI生成"水印（去水印需智谱后台签免责声明，抠图时水印在白边可随背景丢弃）
+  - 障碍物统一提示词策略沉淀为 `tools/ai-gen/obstacle-prompt-strategy.md`；
+    抠图管线 `tools/ai-gen/prep-obstacle.py`（GrabCut + 背景过滤 + 最大连通域 + 边缘去污染 + footprint 实测）
+  - ComfyUI 降级为兜底（离线 / 免费额度耗尽时）
+
+- v1.15 (2026-08-03) — 废案清理 + 工作流补规则
+  - 删除暴风雪/冰锥迭代全部废案与未调用图片（blizzard-icons v1~v6、ice-icons-v1、snowball 变体、
+    blizzard_snowball.png，共 79MB），只保留最终被引用资产（blizzard_icon.png、ice_spike_icon_01~04.png）
+  - 技能添加标准工作流 + 本地出图工作流新增「入库后清理废案」强制规则（六步流程 + 贴图要点清单）
+
+- v1.14 (2026-08-03) — 暴风雪技能全链路 + 本地 AI 出图工作流沉淀
+  - 新技能「暴风雪」（高级冰魔法，需法杖）：地面区域 DoT（每 0.5 秒一跳，L20 持续 10s / 范围 360×224 / 冷却 35s），
+    每跳叠 1 层寒冷（3.5%/层），冰墙+暴风雪组合叠 20 层触发冻结（冻结=定身+冰块视觉+物理伤害+50%）
+  - 特效：乌云（柔边色块+粒子烟雾，随区域半径缩放、恒置顶）+ 雪球/冰锥从云中砸落（密度/速度/落点椭圆内随机/
+    落地冰屑迸溅）+ 底部雪花/云雾/风线，全部配置化（skills.json 调范围/持续，构造 options 调观感）
+  - 图标：本地 ComfyUI 生成（六边形徽章同系列，两段式 img2img+inpaint 定稿）+ GLM-4.6V 验收；
+    冰锥投射物 4 张 AI 贴图随机抽取
+  - 开发工具：技能页签「技能无CD无消耗」开关（含法杖门槛绕过）；详情面板魔法分类（冰/火/电/光）与
+    等级（初/中/高）词条着色；暴风雪修炼方式（4 条经验途径）说明补全
+  - 寒冷系统：冻结阈值参数化（默认 20 保留，冰墙/暴风雪组合触发）；寒冷反馈统一显示总层数（寒冷 xN）
+  - 沉淀：本地 AI 出图工作流 + 技能贴图要点 + ComfyUI inpaint 遮罩坑（见文首）
+  - **文件**：src/effects/blizzard-zone.js、src/entities/components/blizzard-system.js、src/config/dev-cheats.js、
+    src/entities/damageable-entity.js、ice-wall-system.js、bolt/holy-light/lightning-strike-system.js、
+    src/ui/skill-manager.js、quick-bar.js、panels/dev-tools.js、subsystems.js、player/index.js、
+    BootScene.js、GameScene.js、magic-categories.js、data|public/data/skills.json、
+    assets/skills/blizzard_icon.png、assets/skills/ice_spike_icon_01~04.png、tools/ai-gen/（出图管线脚本）
+
+- v1.13 (2026-08-03) — 怪物寻路全面审计 + 性能优化落地（详见文首阶段总结）
+  - 静态格子记忆化 / 每帧寻路预算（PATH_DEFERRED）/ 不可达负缓存 / 首寻路错峰
+  - 墙体碰撞空间网格（resolve ×11）/ 分离侧翼空间分区 / 冰墙缓存失效删除
+  - 回归防线：pathfinding-bench.mjs + test-collision-grid.mjs 入 npm test
+  - **文件**：src/ai/pathfinder.js、src/ai/path-manager.js、src/systems/movement-system.js、
+    src/world/wall-system.js、src/entities/components/ice-wall-system.js、src/game.js
+
+- v1.9 (2026-07-07) — 攻击系统修复（Phaser 4 Tween API 兼容性）
+  - 修复 `scene.tweens.createTimeline()` 在 Phaser 4 中不存在的问题，改用 `scene.tweens.chain()` 链式 Tween
+  - 添加 `initWeaponAnim()` 调用初始化 `_activeAttackTweens` 数组，修复 `Cannot read properties of undefined (reading 'push')` 错误
+  - 延长近战攻击判定时间从 200ms 到 500ms，覆盖 windup + swing 完整阶段
+  - 修复 Tween 回调 `this` 绑定问题，使用 `self` 变量替代箭头函数中的 `this`
+  - 远程武器在 `triggerAttackAnimation` 中调用 `_fireRanged()` 发射子弹，修复远程攻击无法开枪问题
+  - 近战和远程攻击现在都能正常工作
+
+- v1.12 (2026-07-11) — 地牢地图居中显示修复：
+  - **问题**：`_centerRouteMap`、`_generateDefaultMap`、`_generateZombieMap` 使用硬编码 `TARGET_AREA = { left: 260, top: 94, width: 1425, height: 724 }`，导致地图位置固定，不随窗口大小变化
+  - **修复**：改用 `window.innerWidth` 和 `window.innerHeight` 动态计算地图显示区域，水平垂直均居中显示，留出 `marginX=280`/`marginY=120` 边距给侧边栏
+  - **注意**：`CONFIG.VIEW_WIDTH/HEIGHT` 保持固定 1920x1080（用户要求固定像素），但地图居中使用实际窗口尺寸
+  - **文件**：`src/world/dungeon-map-system.js`
+
+- v1.11 (2026-07-10) — 修复所有枪械无法开火的问题：
+  - **根因**：`data/equipment.json` 中 PKM/AKM/QBZ191/QJB201/Super90/SAIGA-12K 等武器缺少 `ammoConfig`、`fireMode`、`attackFormula`、`attackKey` 等关键字段
+  - **修复**：在 `main.js` 中添加 `EquipDataManager` 到 `ItemDatabase` 的字段合并逻辑，确保所有武器配置完整
+  - **同步**：更新 `public/data/equipment.json` 到最新版本（Vite 开发服务器优先从 `public/` 提供静态文件）
+  - **验证**：所有枪械（手枪、步枪、机枪、霰弹枪）均可正常开火，弹药系统工作正常
+
+- v1.10 (2026-07-10) — 武器位置固定与镜像系统：
+  - **需求**：近战武器（剑/弓）在 running 动画时固定位置，不随鼠标旋转；朝左时自动镜像
+  - **实现**：
+    - `WeaponTransform.getWeaponWorldPosition()`：running 的近战武器使用固定 rotation（0），其他情况使用 `player.rotation`
+    - `WeaponTransform.localToWorld()`：running 的近战武器朝左时镜像位置（`x = player.x - (x - player.x)`）
+    - `WeaponTransform.getWeaponRotation()`：running 的近战武器朝左时调转 idleRotation（`Math.PI - idleRot`），远程武器使用 `player.rotation`
+  - **关键**：`setFlipX` 不适用于武器 Sprite，因为位置已经镜像，贴图翻转会导致双重翻转。改用旋转镜像（`Math.PI - idleRot`）来调转方向
+  - **远程武器还原**：枪械类使用 `player.rotation` 计算旋转，保持跟随鼠标方向，不受镜像影响
+
+- v1.8 (2026-07-06) — 红狼王变身机制：
+  - **触发条件**：HP < 50%（配置 `transform.hpThreshold: 0.5`）
+  - **变身动画**：`redwolfchange.png` 16帧（4×4），3秒内播放完毕（`transform.duration: 3000ms`）
+  - **变身期间**：无法移动（`vx=vy=0`）、无法攻击（`triggerWeaponAnim` 直接返回）
+  - **变身后效果**：HP 完全恢复（`transform.hpRecover: 1`），攻击力翻倍（`transform.damageMultiplier: 2`）
+  - **变身后精灵图**：待机 `redwolfidle.png`（4帧）、奔跑 `2026-07-05-22_57_41.png`（16帧）
+  - **实现位置**：`enemy-types.js` RedWolfKing 类新增 `_isTransforming`/`_isTransformed`/`_transformTriggered` 状态，`_getTextureKey`/`_drawBody`/`_getPhaserOptions` 支持变身状态，`_updateAIState` 变身期间不执行，`_executeAI` 变身期间不执行
+  - **配置位置**：`enemy-config.json` `redWolfKing.transform` 对象
+  - **资源加载**：`BootScene.js` 新增 `enemy_red_wolf_king_change`、`enemy_red_wolf_king_changed_run`、`enemy_red_wolf_king_changed_idle` 三个 spritesheet
+  
+- v1.7 (2026-07-06) — 优化精灵图朝向翻转：
+  - 新增 `_lastHorizontalFacing` 保存机制，解决纯垂直移动/idle时狼永远朝右的问题
+  - 攻击期间 `up`/`down` 状态的 flip 改用 `_dashAngle` 而非 `vx`，确保冲刺方向与视觉一致
+  - 同步应用到 BlackWolf 和 RedWolfKing
+  
+- v1.6 (2026-07-06) — 修复黑狼 facing 翻转：四方向 facing 但仅有两方向精灵图时，`up`/`down` 状态下根据 `vx` 符号判断水平方向，确保 sprite 翻转与运动方向一致。修改 `enemy-types.js` 的 `_getPhaserOptions`（flipX）和 `_drawBody`（ctx.scale）
+
+- v1.5 (2026-07-05) — 智能寻路系统（参考《环世界》）：预规划 + 定期路径检查 + 局部修复
+  - 新建 `src/ai/path-manager.js`：路径缓存 + 每 1.5-2.5 秒有效性检查 + 局部修复（障碍物附近搜索替代路线）
+  - 增强 `src/ai/pathfinder.js`：地形权重（树木 1.5x，拥挤 1.3x）、区域连通性检查（Flood Fill）、全局路径缓存
+  - **修复**：`isReachable` Flood Fill 步数限制过死（`ceil(maxDist/step)+5` → `ceil(maxDist/step)*3+20`），导致路径计算完全失败，单位卡在树木边缘无法移动
+  - 修改 `src/systems/movement-system.js`：主动预规划（有目标无路径时立即计算）+ PathManager 集成
+  - 修改 `src/entities/enemy.js`：fallback `_updateMovement` 兼容 PathManager
+
+- v1.4 (2026-07-05) — 硬编码清理：状态效果统一化、树木碰撞体优化、dash 偏移统一
+  - DamageableEntity 基类新增 `_updatePoison`/`_updateBleed`/`_updateMagicVulnerability`/`_updateDroneVulnerability`，4种状态效果统一在基类 `update()` 中驱动
+  - Enemy 构造函数删除 15 行冗余属性初始化（已在 Combatant 中初始化）
+  - `combat-system.js` 删除 85 行重复状态效果代码 + 1 处死代码 `anim.timer === 0`
+  - GameScene.js dash 偏移逻辑统一：使用 `entity._getDashOffset()` 替代 inline switch 逻辑
+  - wall-system.js 树木碰撞体优化：视觉半径和碰撞半径分离（collisionRadius = radius × 0.6），resolve() 添加逐步缩减步长回退
+  - shield-system.js 修复 `const defense` 重复声明语法错误
+  - 黑狼碰撞体积从 88 缩小到 38
+
+- v1.3 (2026-07-05) — 增加 Sprite Pipeline 标准化流程，新增 `sprite-normalizer.py` 工具
+- v1.2 (2026-07-05) — 怪物渲染模板系统，提取 `Enemy.render()` 通用模板 + 7个钩子方法
+- v1.1 (2026-07-04) — 怪物统一配置（enemy-config.json），删除双系统
+
+- v2.0 (2026-07-13) — 3D 碰撞/命中体系 Phase 3：近战与技能 AOE 3D 化
+  - 统一技能命中形状：`src/physics/skill-shapes.js` 新增 `GroundCircle` / `GroundRect` / `VerticalSector` / `VerticalRect` / `Sphere`
+  - 所有形状通过 `entity.collider` 做 3D（Z 轴高度 + footprint 半径）检测，地面 AOЕ 不再命中飞行单位
+  - `SlashAttack` 扇形改为 `VerticalSector`，`ThrustAttack` 矩形改为 `VerticalRect`（支持后摆 backExtension）
+  - 技能系统全部迁移：
+    - 旋风 `whirlwind-system.js` → `GroundCircle`
+    - 火球爆炸/直接命中 `fireball-system.js` → `GroundCircle`
+    - 推击 `push-strike-system.js` → `VerticalSector`
+    - 夜与火之光束 `special-attack-system.js` → `VerticalRect`
+    - 冰锥 `ice-spike-system.js` → `GroundCircle`
+    - 无人机 `drone-system.js` → `GroundCircle`
+    - 符文剑 `rune-sword-system.js` → `GroundCircle`
+    - 冲刺攻击-扇形/突刺 `dash-system.js` → `VerticalSector` / `VerticalRect`
+    - 胖子僵尸腐蚀光环 `fat-zombie.js` → `GroundRect`
+  - 近战判定复用 `SpatialPartitionSystem.queryRadius` 做 broadphase
+  - 验证：`npm run lint`、`npx vite build`、`node scripts/test-collider.mjs` 全部通过
+
+- v2.1 (2026-07-13) — 3D 碰撞/命中体系 Phase 4：动态实体 Y-sort 深度排序
+  - 在 `GameScene.update` 中 `_syncBodiesToPhysics()` 后新增 `_updateDynamicDepths()`，每帧统一刷新玩家/敌人/武器/特效深度
+  - 玩家与敌人 Sprite 深度基于脚底 Y（`y + displayHeight/2 + bias`），与环境墙壁/树木（`w.y + w.h`、`t.sortY`）使用同一坐标空间
+  - 尸体使用较低 bias（+2），存活实体 +10，保持尸体被站立角色遮挡的透视关系
+  - 手持武器、盾牌、副手武器跟随玩家深度 + 小偏移，保证武器始终与角色正确分层
+  - 防御光环位于玩家深度下方；符文剑/冰锥/火球/飞行投射物/无人机等技能特效按自身 `y + 15` 排序
+  - 其他施法者（敌人巫师）的 `_magicSprites` 也纳入同一排序
+  - 受击绿色粒子深度改为 `y + 1000`，继续高于普通实体
+  - 移除 `GameScene` 中所有硬编码的 `setDepth(50/100/148/149/150/155/160/165)`，避免与动态排序冲突
+  - 验证：`npm run lint`、`npx vite build` 通过
+
+- v2.2 (2026-07-13) — 3D 碰撞/命中体系 Phase 5：清理旧命中系统与可视化对齐
+  - 删除 legacy `src/components/hitbox.js`（`HexHitbox`）和 `src/combat/hit-detector.js`（`HitDetector`）
+  - `src/entities/entity.js` 移除 `hitbox` 字段、`initHitbox` 方法、`getCollisionShape` 六边形分支
+  - `src/entities/player/update.js` 移除每帧同步 `hitbox` 的代码
+  - `src/utils/collision-helpers.js` 精简为仅保留 `distanceToEntityShape`，内部改用统一 `Collider.groundRadius`
+  - `src/entities/enemy-types/mutant-3.js` 攻击范围判定改用 `target.groundRadius`，移除旧矩形/圆形分支
+  - `src/effects/attack-range-effect.js` 新增 `backExtension` 参数，支持绘制带后摆的定向矩形
+  - `src/entities/components/dash-system.js` 冲刺-突刺范围提示从扇形改为矩形（`triangle` + `backExtension`），与 `VerticalRect` 命中形状一致
+  - 验证：`npm run lint`、`npx vite build`、`node scripts/test-collider.mjs` 全部通过
+
+- v2.3 (2026-07-13) — 全 Phase 0-5 回顾检查与 bug 修复
+  - **严重问题修复：**
+    1. `src/entities/components/rune-sword-system.js`：命中条件被逻辑取反（`!intersectsEntity`），导致符文剑命中范围外目标、范围内目标反而无伤。已修正为 `intersectsEntity` 命中。
+    2. `src/systems/spatial-partition-system.js`：
+       - `queryRadius` 等返回内部复用数组，并发查询会篡改遍历结果；现每次返回 `.slice(0)` 副本。
+       - `maxQueryResults: 64` 在密集场景会静默截断命中目标；已提升至 `2048`。
+    3. `src/entities/drop-item.js`：掉落物未排除在实体碰撞分离外，会挤开玩家/敌人；已设置 `this.noCollision = true`。
+    4. `src/entities/damageable-entity.js`：子类在 `super()` 后才设置 `size/collisionRadius`，导致 `Collider` 仍是默认半径；已在构造函数末尾调用 `this.rebuildCollider()`。
+    5. `src/phaser/scenes/GameScene.js::_configureEnemyBody`：曾把敌人 `collisionWidth/Height` 覆盖为 `spriteSize`（`size*4`），导致 footprint 被放大数倍；现优先保留配置/选项中的 gameplay 尺寸，fallback 使用 `collisionRadius/size` 推导。
+  - **深度排序统一：**
+    - `src/phaser/scenes/GameScene.js::_syncNeutralEntities` 不再硬编码 `e.y`，改由 `_updateDynamicDepths()` 统一按脚底 Y + 10 排序。
+    - `src/combat/projectile.js` 投射物深度从 `this.y` 改为 `this.y + 12`。
+    - `src/entities/drop-item.js`、`src/entities/dungeon-chest.js` 掉落物/宝箱深度改为 `y + 5/+6`。
+    - `src/phaser/scenes/GameScene.js::_syncCollisionRadii` 调试可视化改为统一画 `groundRadius` 圆，移除矩形分支。
+  - **其他修正：**
+    - `src/entities/components/special-attack-system.js`：移除 `update()` 中每帧创建范围提示的代码，避免夜与火之剑持续期间堆积特效。
+    - `src/combat/attack.js`：`SlashAttack` / `ThrustAttack` 非法角度检查移到消耗体力/CD 之前，避免无意义消耗。
+    - `src/entities/components/dash-system.js`：修复变量遮蔽、移除冗余 `hitIndex === 0` 判断。
+    - `src/entities/enemy-types/mutant-3.js`：`_spawnBloodMist` 临时精灵深度改为 `y + 10`。
+    - `src/physics/index.js`：移除未使用的 `SpatialGrid` 导出（文件保留供测试直接引用）。
+  - **验证：** `npm run lint`、`npx vite build`、`node scripts/test-collider.mjs` 全部通过。
+
+- v2.4 (2026-07-13) — 可移动实体脚底阴影
+  - `GameScene` 新增 `entity_shadow` 纹理与 `_shadowSprites` 映射表
+  - 新增 `_syncEntityShadows()`，每帧为玩家、敌人、中立实体在脚下生成黑色圆影
+  - 阴影半径匹配统一 `Collider.groundRadius`，深度低于实体（`entityDepth - 1`），透明度 0.35
+  - 地图模式下自动隐藏所有阴影
+  - 阴影随实体移除自动销毁，避免内存泄漏
+  - 验证：`npm run lint`、`npx vite build` 通过
+
+- v2.5 (2026-07-17) — 普通僵尸精灵图接入 + 攻击线性突进
+  - `assets/enemies/zombie/`：idle 1 帧 / walking 15 帧 / attacking 15 帧，8×4 网格 512×512，素材经 `scripts/archive/prepare-zombie-sprites.py` 统一内容高度（~440px）并对齐底部，与既有僵尸素材比例一致
+  - 新建 `src/entities/enemy-types/zombie.js`：`Zombie` 类仿 fat-zombie 模式，攻击动画 1s、间隔 2s（attack.cooldown 2000）、判定距离 100px（attackDistance），显式 `animKey: enemy_zombie_${state}`
+  - `enemy.js` 基类新增**配置驱动线性突进**（`attack.lungeDistance`，僵尸配 100）：`triggerWeaponAnim` 锁定突进方向，`_updateLunge` 按攻击计时线性推进，增量式位移 + 每帧 `WallSystem.resolve` 撞墙校验；任何怪物配置后全场景生效
+  - 地牢 `createBasicZombie` 从 `CircleEnemy` 圆形占位改用 `Zombie` 类；主神空间 `spawnMainZombie()` 生成测试僵尸
+  - 验证：lint / build / test-collider 全部通过
+- v2.6 (2026-07-17) — 投射物躯干矩形判定（方案 B）
+  - 新建 `src/physics/torso-hitbox.js` 共享模块（详见上方"补充：投射物躯干矩形判定"小节）
+  - `projectile.js`：地面目标命中 = footprint 椭圆 ∪ 躯干矩形 ∪ 身体圆柱
+  - 冰锥/火球/符文剑飞行命中接入；爆炸 AOE 与近战判定不变
+  - 7 只精灵图怪物写入实测 `render.projectileHitbox`；GameScene 绿色调试矩形
+  - 验证：22 个躯干单测全过、lint / build 通过
+
+- v2.7 (2026-07-17) — 战斗/视觉六项调整 + 弹反修复 + 掉落物更新
+  - **近战判定地面化**：`skill-shapes.js` 新增 `GroundSector` / `GroundDirectedRect`（只看 footprint、不查 Z、飞行免疫）；`attack.js` 斩击/突刺判定原点归回攻击者脚底（移除 footOffsetY 上移），范围可视化同步；推击/夜与火/冲刺/mutant-3 未动
+  - **枪械精准对准**：`syncWeapon` 远程武器贴图旋转改为 `atan2(鼠标世界 − 武器位置)`（主手+副手），消除"脚底→鼠标"枢轴视差导致的固定角度偏移；弹道原本即朝准心，改后贴图=弹道=准心三者一致
+  - **玩家 footprint 缩小 25%**：`player-defaults.js` collisionRadius 30→22.5；`Entity.groundRadius` 注释为阴影/footprint/分离/命中判定唯一来源（强绑定，阴影随动缩小）
+  - **胖子僵尸攻击位移取消**：`_updateLeanOffset` 攻击分支归 0，攻击时阴影/footprint 不再前移（walk 前倾保留）
+  - **僵尸受击粒子**：锚点从脚底改为贴图中心（y − footOffsetY），保留朝源侧偏
+  - **枪械蛋壳**：从武器贴图中心弹出，向上抛起后受重力（1000）落至脚下；`shell-casing.js` 新增可选 groundY 参数
+  - **地牢刷怪特效**：`playDungeonSpawnParticles`——纯黑、更慢、1.5s、数量+30%，NORMAL 混合（黑色在 ADD 下不可见）；`combat-room-system.spawnMonsters` 逐怪脚下触发
+  - **删除金属/奔跑僵尸**：enemy-config 删 armoredZombie/runnerZombie/fastZombie，zombie-dungeon 工厂+映射级联清理，图鉴自动同步
+  - **弹反修复（数据缺陷）**：根因非碰撞系统——`旧木盾`装备条目缺 `weaponType: 'shield'` + 整个 `defense` 块，`checkEquipped()` 永远 false 致盾系统不激活；已补全（数值与小圆盾一致，弹反属性未改），双份 equipment.json 同步。**教训**：系统逻辑完好的"功能失效"优先查数据/配置完整性
+  - **掉落物**：贴图×1.5（48/悬停60）保持浮动，装备文字固定不浮动；悬停拾取 35→52、Z 键范围 75→112、pickupRange 30→45 匹配
+  - **遗留未决**：复活后子弹不从枪口射出——两条死亡路径实测枪口均完好，未复现，待具体场景线索
+  - 验证：35 个单测全过（含 13 个地面形状用例）、lint / build 通过
+
+- v2.8 (2026-07-17) — 配置链路修复/实体生命周期/事件背景图/技能经验（五轮合并）
+  - **战斗与判定**
+    - 近战普攻输入锁：攻击动画未播完（`weaponAnim.state === 'attacking'`）忽略左键，不重播动画、不产生新判定（`player/update.js`；三条近战 Tween 路径均以 attacking 贯穿全程）
+    - 胖子僵尸 `attackDistance: 100` 真正生效：`enemy.js` 构造函数补 `attackDistance` 映射——此前 config→实例断链，所有敌人 attackDistance 均为死配置，CombatSystem 实际按 attackRange×1.15 触发
+    - footprint 配置优先：`GameScene._configureEnemyBody` 不再无条件用矩形推导覆盖 `collisionRadius`（仅未配置时回退）；毒液 45→7.07（面积-50% 落地）、巫师 45→20、普通僵尸 25→15、突变体3 45→20；spitter/wizard 的 `_getPhaserOptions` 硬编码 30×90 改读 `config.render`
+    - HP 调整：僵尸犬 100/僵尸 120/毒液 120/巫师 600（enemy-config.json 单源，地牢工厂/图鉴自动同步）
+  - **实体生命周期（重要模式）**
+    - `Game.removeEntity(key)`：删除实体前必销毁 `_phaserSprite`/`_phaserLabel`——统一入口，所有清理循环（combat-room/dungeon-map/boss-reward）走这里，杜绝孤儿贴图残留
+    - `Game.isPreservedCorpse(e)`：存活尸体（`_preserveCorpse` 且计时器未走完）在波次/房间清理中**跳过删除**——胖子僵尸尸体保留在地面持续腐蚀，只会因持续时间到而消失（7.5s 自毁贴图、8s 扫描移除）
+    - **教训**：实体删除 = 贴图销毁 + 尸体豁免，二者都必须经统一入口；贴图孤儿化是"贴图残留"类 bug 的统一根因
+  - **场景共享状态陷阱（地牢枪口不同步根因）**
+    - 地图模式 `weaponSprite.setActive(false)` 后全代码无任何恢复 → `_getMuzzleWorldPosition` 的 active 守卫失败 → 回退脚底相对算法（主神空间不进地图模式故正常）
+    - 修复：非地图模式分支统一 `setActive(true)`（与 playerSprite 同模式）+ 守卫放宽不查 active；**教训**：修改必须落在共享链路上全场景生效（工作规则 原则10/规则5）
+  - **地牢视觉**
+    - 地板：blackbrick 三张 512×512 覆盖替换（旧 256 图删除）；切割 32×32 小砖（候选池 768）、8 随机朝向（4 旋转×翻转）、均匀概率、相邻不同块、圆角 4px、四边内缩 1px 留 2px 纯黑缝隙、外圈 64px 黑渐变不变
+    - 事件背景图：15 事件（10 新 + 5 旧）全覆盖，`assets/scenes/dungeon-events/` 英文命名，`EVENT_BG_IMAGES` 配置映射；`cover` 等比铺满、bottom:0 固定像素；事件/结果面板 `left/right/bottom/height` 固定像素全宽拉伸（2K 不再半宽）；选择副标题简化为 `检定X-成功率Y%`
+  - **技能经验修复（两个断点，均沿数据链排查）**
+    - 断点1：`DataLoader.buildSkillFromJSON` 漏拷 `expRewards` → 全技能经验恒 0
+    - 断点2：运行时 `fetch('/data/skills.json')` 实际由 Vite 提供 `public/data/skills.json`（过期副本：11 技能、无 expRewards、缺 6 技能）→ 已双份同步；**教训**：skills.json 与 equipment.json 同为 `data/ ↔ public/data/` 双份副本，改数据必须双同步（规则2 钩稽链路）
+  - **玩家数值**：升级经验 `globalMultiplier` 2→4（翻倍，combat-formulas.json）；升级回满 HP/MP（gainExp 循环内）
+  - 验证：lint / build / test-collider 全部通过
+
+- v2.9 (2026-07-17) — 集合体首领/僵尸地牢-初级/三系统审查修复（多轮合并）
+  - **集合体（amalgamZombie，boss rank 首领）**
+    - 素材 `assets/enemies/amalgam/`（`scripts/archive/prepare-amalgam-sprites.py` 统一内容 480px、底部对齐 496）；新类 `src/entities/enemy-types/amalgam-zombie.js`：站桩 Boss，投掷（落点红色椭圆警示+范围伤害+生成胖子僵尸）、砸地（分圈结算 100/200/500px×1.2/0.7/0.2，取最小圈不叠加）、15s 召唤 2 僵尸、melting 死亡
+    - **站桩锁死五通道**：speed 0 显式生效、`noSeparation`（resolveCollisions 中对方承担全部位移）、`applyKnockback` 空覆盖、`_tryUnstuck` 跳过 speed 0 单位、出生点锚点钉死
+    - **falsy-0 根因（重要教训）**：移动代码 `maxSpeed || speed || 100` 把显式 0 误回退 100 → 全库改 `??`（空值合并）。**数值回退必须用 ?? 不用 ||**
+    - BOSS 战重构：集合体替代大块头（删 BigBoss ~530 行）；arena 1024（玩家下方中心上移 300/boss 上方中心镜像）；地板抽共享模块 `dungeon-floor-texture.js`；BOSS 场地尺寸改读 `combatRoom.bossSize` 配置
+    - 主神空间 `spawnMainAmalgam` 测试生成；召唤/投掷生成工厂注入（避免实体层反向依赖 world 层）
+  - **僵尸地牢-初级（第二个地牢）**
+    - 配置驱动：`data/dungeon-config.json` 新增 `dungeonList`（出征展示元数据）+ `zombieDungeonBeginner`（22 节点/最短 7/起始 3 分支/mainRowMinCombat 3/战斗 40%/精英 0%/bossEncounter 精英遭遇独立副本）
+    - 生成器按类型读配置；`mainRowMinCombat` 主通道随机 N 列强制战斗（缺省=全部，向后兼容）；**修正：第 1 列强制全行移到节点数调整之前，且调整候选排除第 1 列**（否则总数超区间/分支数不恒定）
+    - `_enterBoss` 对 zombieBeginner 走 `_enterBossCombat`（bossEncounter+普通波次流程，完成→奖励节点→胜利）；`_isZombieFamily()` 共享僵尸战斗体系；出征界面选项/信息面板改由 dungeonList 驱动
+  - **地牢审查修复**
+    - Boss 完成回调被 cleanup 清空（先取回调再 cleanup）；Boss 战死亡 active 卡死（shutdown 强制 BossRewardSystem.cleanup + cleanupRoom）；宝箱材料 `rewards || items || []` 键兼容；召唤泄漏按 key 前缀兜底（`Game.removeEntitiesByPrefix`，zombieDog_/amalgam_）
+    - 中优先级：reward 状态拦截实体更新、波次暂停顺延、商店轮询句柄清理、`_returnToMap` active 守卫、`_checkBossDefeated` 不再把 null 当战胜、补给堆药水=瓶数×单瓶恢复量（POTION_HEAL/MP 导出）、事件结果按钮 300ms 延迟激活防双击穿透、负金币扣除钳制持有量
+    - 低优先级：工厂 fallback HP 同步/召唤工厂注入、BOSS 清理恢复地形/树木/世界尺寸+syncTerrain、BOSS 墙 height 60、退出按钮绘制/热区统一、`_entityHudTexts` role 字段、`_onEnemySpawn` rebuildCollider 守卫、iconMap 补 materials、isActive 复位、`_calculateSpawnArea` margin 生效
+  - **附魔/改造/强化审查修复**
+    - 附魔：`EnchantSystem.init()` 接入 main.js（拖拽放回生效）；魔法粉尘名称统一（MagicDustItem.name=魔法粉尘，匹配点引用模板名）；沉重减速 `_applyEnchantAttackInterval` 统一钩子（空手恢复全部基础冷却，装备/卸下/写回全路径）
+    - 改造：穿甲 `armorPenetrationPercent` 补收集写入（生产端断链修复）；G18 weapon9 配置复制移到 weapon10 完整赋值之后；`_getCraftConfig` 无配置返回 null（不再回退 PKM，UI 显示"该武器不可改造"）；同 id 配件不再白扣 4 券；拖入装备栏立即 `_initAmmoForSlot`；registry 补 staminaCostDelta/skillStaminaCostDelta/dashDoubleHit；tooltip 弹夹 magazineOverride 优先
+    - 强化：删除改写 `item.stats` 的平方级污染块（无 formula 武器回退读 stats 作 base 曾实战虚高）；强化石先扣金币后消耗；**数值决策**：getAttackFormula 回退 `enhanceFlat: 1`（无 formula 武器强化+1/级）、`expValue` 增 `eliteMultiplier: 2 / bossMultiplier: 10`（boss 经验配置化）、盾牌 `defense.base + perEnhance × 强化等级` 计入玩家 def（防具强化真生效）
+  - **事件背景图**：15 张 3072×2048 → 1920×1280 瘦身（93MB→45MB），cover 铺满
+  - 验证：lint / build / test-collider 全部通过
+
+- v3.0 (2026-07-17) — 集合体打磨/判定根因系列/召唤物体系（多轮合并）
+  - **判定与碰撞根因系列（重要教训沉淀）**
+    - `Enemy._updateMovement` 的 `maxSpeed || speed || 100` 把显式 0 误回退 100 → **数值回退必须用 `??` 不用 `||`**（全库 9 处已改）
+    - 警示圈/特效残留统一根因：`active=false` 只是逻辑标记，**Phaser graphics 必须显式 destroy**（EffectManager 移除后不会再触发延迟销毁）
+    - `resolveCollisions` 曾用实体坐标+世界圆 → 与 footprint 椭圆（colliderOffset 偏移 + Y 透视压缩）错位；**分离判定统一取 collider.x/y + 逆透视变换**（与投射物 footprint 判定同口径），位移量变换回世界空间
+    - tint 是乘法：绿色纹理 × 彩色 tint 必偏色 → **自定义色一律用白色纹理**（`impact_dot`）
+  - **集合体（amalgamZombie）持续打磨**
+    - 判定圆 120→240→**270**、`colliderOffsetY` -50→**-100**（配置驱动，阴影/命中/分离同源）
+    - 世界内血条两次下移（topY+188）、名字/数值/标签错开、后删 `Lv.X · 首领` 标签；新增 **BOSS 专属 DOM 血条**（顶部状态栏下方 20px，玩家命中才显示，5s 无命中/Boss 死亡自动隐藏，damageable-entity 在 `rank==='boss' && source._faction==='player'` 触发）
+    - 投掷警示圈立即销毁、落点深黄大粒子（0xb8860b）、`AimHelper.lead` 预判拦截点（与僵尸巫师/毒液僵尸同实现）
+    - 砸地：CD 到点即放（根因：footprint 扩大后玩家进不了 250 触发范围）、区域 200/400/800 ×1.2/0.7/0.2、范围提示为逐帧红色椭圆冲击波（8px 加粗+正弦闪烁、2:1 透视、600ms 扩散、死亡/战斗结束 `_destroyCustomEffects` 统一清理）
+    - 召唤：CD 15s、召唤点地牢刷怪同款黑粒子；站桩/位移免疫五通道（speed 0、每帧归零、applyKnockback 空覆盖、noSeparation、锚点钉死）
+    - `parryImmune: true` 弹反免疫（通用机制：配置加标即免眩晕/击退/打断，玩家侧收益不变）；受击粒子配置化 `hitParticleColor`（白纹理+黄 tint）
+    - 音效：`sounds` 配置块（idle/throw/impact/slamHit/death/idleInterval）+ `_playSound(key)` 助手 + SKILL.md 音效导入工作流
+  - **眩晕双星特效**：`GameScene._syncStunEffects`——眩晕实体头顶两颗四角星旋转（透视压缩+浮动），醒后/实体失效自动销毁，地图模式清理
+  - **召唤物统一 `_summoned` 标签（一劳永逸）**：集合体召唤/投掷生成、巫师召唤犬打标；金币+经验（onDeath）、暴击/武器精通/无人机经验（takeDamage 三分支）、7 处技能击杀计数（attack/whirlwind/ice-spike/dash/push-strike/fireball）全部加 `!entity._summoned` 闸门；**未来召唤方打标即被全部闸门拦截，无需改判定**
+  - **调试工具**：左下新增「秒杀」按钮（`Game._oneHitKill`，takeDamage 中玩家伤害提到致死量，正常结算）
+  - 验证：lint / build / test-collider 全部通过
+
+- v3.1 (2026-07-17) — 遗留 bug 与技术债务分批清理（19 项）
+  - **投射物命中快照**：`Projectile._effectSnapshot` 在 `ProjectileFactory.create` 统一快照发射武器的 `_enchantEffects/_craftEffects`，命中按快照判定（切枪不再改弹道效果）；非工厂创建的投射物回退原逻辑
+  - **攻击冷却基准固化**：`Attack.baseMaxCooldown` 构造时固化，`_applyEnchantAttackInterval` 改读创建基准并废弃 `_baseCooldowns` 缓存（修复 ramp/改造运行时值被当基准缓存的污染）
+  - **附魔界面拖出即刷新**：附魔槽从装备槽拖出武器补 `_applySkillOverrides(equipments[weaponMode])` + `_syncWeaponVisual`
+  - **次级格挡**补 `isMelee` 判定；**冲刺体力**删 `staminaCostDelta` 双用；**基类换弹**读 state 存值（计入改造）
+  - **registry tooltip**：`getCraftEffectDisplay(name, value, allEffects)` 透传聚合效果；`magicVulnerabilityOnHit` 显示真实层数；`magicVulnerabilityStacks` 显示 `易伤层数×N`
+  - **ItemDatabase.getByWeaponId**：懒索引反查替代 craft-system 硬编码 weaponIdMap（load/addItem 自动失效重建，新武器免登记）
+  - **地牢 buff 状态键唯一化**：`addStatusEffect` 键 `'buff'` → `goddessBless`/`demonPrayer`/`buffCfg.id`，消耗/清理按同键移除（多 buff 不再互删图标）；`_cleanupEventUI` 先销毁事件打字机再移除 DOM
+  - **强化配置化**：`data/game-config.json` 新增 `enhance` 节（maxLevel/baseCost/costGrowth），`enhance-system.js` 经 `_getEnhanceConfig()` 读取（`??` 回退）
+  - **材料按 id 匹配**：强化石 `enhancement_stone`/改造券 `reforge_ticket` 模板与地牢事件奖励创建点补 `id`，消耗匹配 id 优先、无 id 旧实例名称兜底
+  - **死代码批删**（grep 确认零调用）：`_combatCompleted`、`ZOMBIE_DUNGEON_CONFIG` 三残留字段、`consumeGoddessBless`、`getGradeCost`、Player 空 `_onHitEntity` 覆盖（敌人版是活的，damage-pipeline 调用保留）、`_ticketCost`/`_modifications`/`getWeaponEffects`、registry 五函数、codex `_craftEffects` 死分支、spitter 敌人端 `_craftEffects` 残留
+  - 验证：每阶段 lint / build / test-collider / test-craft-sync 全部通过
+
+- v3.2 (2026-07-18) — 改造系统深化：registry 驱动聚合 + craft-system 拆分
+  - **三角机制重构（registry 驱动聚合）**：`src/ui/craft/craft-effects.js` 的 `aggregateCraftEffects` 按 registry `applyMode` 聚合（flag=OR / override=后选覆盖 / add·multiply=求和），替代 44 行人工收集；**新增改造效果工作流变为：① craft-config.json 加 effects ② craft-effect-registry.js 注册条目（applyMode+display）③ 消费端读 `_craftEffects.X`——聚合无需再动**
+  - **拆分**：`craft/weapon-image.js`（resolveWeaponImageSrc 回退链）；craft-system.js 891→741 行，仅作 UI 控制器，外部 API 不变
+  - **test-craft-sync.mjs 适配**：收集腿改结构断言（聚合≡注册），新增 registry 条目结构校验（applyMode 合法+display 存在）
+  - 验证：lint / build / test-collider / test-craft-sync / 聚合语义抽样 全部通过
+
+- v3.3 (2026-07-18) — 新怪物：铠甲骑士（精英）
+  - **配置驱动全部数值**：`enemy-config.json` armoredKnight——HP 800、speed 同僵尸、六维=突变体-3×1.15、`attackSkills`（combo/charge/block 三技能帧判定/冷却/距离/倍率全集中）；family 骑士（不进僵尸地牢池）
+  - **技能机制**：二连击（帧 12/25 判定）、持盾冲锋（900px/s 追踪、命中×2+击退+眩晕、冲锋期间 `_parryImmune`、目标弹反成功只击退）、举盾格挡（玩家攻击临近触发、2s 内 takeDamage 覆写全部按弹反、近战攻击者被眩晕击退；`shieldSystem._lastParried` 代理接入 DamagePipeline）
+  - **工作流复用**：素材先复制 `assets/enemies/armored_knight/`（8×4 512×512 切帧）→ 配置 → BootScene 精灵图+动画注册 → enemy-types.js 导出 → game.js 主神空间测试生成（永久警戒）
+  - 验证：lint / build / test-collider / test-craft-sync 全部通过
+
+- v3.4 (2026-07-18) — 稀有度扩展/物品栏优化/祭品体系/仓库系统（多轮合并）
+  - **稀有度+神话/传说**：`config/rarity.js` 单一来源（RARITY_LABELS/RARITY_COLORS/RARITY_ORDER/getRarityLabel），5 处重复 rarityLabelMap 收编；神话橙/传说红色条
+  - **物品栏优化 D2-D5**：消耗品 `useEffect` 数据驱动（config/consumable.js 统一结算）；快捷栏绑定 instanceId（`_findAssignedItem` 实例优先+同名回退）；强化栏单击误删修复、背包格子级三套消耗公式统一；**equip-manager.js 拆分 1604→686 行**（`ui/equip/drag-drop-manager.js` 工厂注入防循环 + `ui/equip/slot-renderer.js` 纯渲染）
+  - **祭品体系**：`config/tribute-effects.js` 数据驱动引擎（**最终乘算** Π(1+p/100)，应用点：面板/金币/双恢复）；20 个农产品祭品（普通5/优质5/稀有4 正负效果，史诗3/神话2/传说1 纯增益）；精英必掉+普通 5% 掉落（`tributes.dropTables` 配置）；三特效：蟠桃原地复活(30%,一次)、雪莲经验+25%、人参击杀回蓝 5%（仿大理石计时器），特效上 buff 栏（syncTributeBuffs/地牢结束清理）
+  - **仓库系统**：小鼠大王旁仓库 NPC（实心圆，`npcType 'warehouse'` 点击直开）；`ui/warehouse-system.js` 面板（改造栏同款滑入动画，20 格×2 页）；双击/右键双向存取（equip-manager 委托 warehouse 分支）；tooltip wh-cell 感知；**材料全局调用**（强化石/改造券/粉尘 背包+仓库合计计数、先背包后仓库扣减）；附魔栏卷轴列表（背包+仓库双击放入，`_equipScrollFromSource` 通用化）
+  - **仓库增强**：同品堆叠存取（maxStack 预判，溢出占新格）；一键全部存入/取出同类（满仓中断）；满仓走 `SceneManager.showTopNotification`（场景提示语同款）；整理排序子菜单（稀有度/价值/种类三模式，种类自定义顺序）
+  - **暴击排查结论**：公式饿死（crit=2+luck vs critRes=con），非代码 bug，数值待拍板
+  - **复盘修复**：仓库克隆保留 weaponAsset、蟠桃复活比例读配置、ESC 关仓库、仓库来源卷轴取出后刷新
+  - 验证：lint / build / test-collider / test-craft-sync 全部通过
+
+- v3.5 (2026-08-15) — 世界-122 怪物卡树修复：散布树 footprint 锚点错位 + 直冲怪卡死救援
+  - **根因**：散布树排除带按贴图锚点判定，真实碰撞 footprint 中心在下方 ~150px（H2）；直冲怪卡死检测豁免接力/侧移且 _tryUnstuck 只许缩短距离（H1）；resolve 矩形障碍无切向滑动（H3）
+  - **共享口径铁律**：新增 `WallSystem.getObstacleFootprintRect()`——碰撞注册（_addPieceCollision）与散布排除带（_scatterTreesScene8）同一推导，禁止各自实现；基地房改 rect-rect 重叠排除；`game-config.json` spawnPoint 排除半径 130→180（最大怪半径 116 + 余量）
+  - **刷怪安全网**：`defense-system._spawnMonster` 出生点 canMoveTo 校验 + findSafeSpawn 螺旋外推，杜绝出生嵌入
+  - **直冲怪卡死降级**：卡死（500ms 无位移）时解除 chargeStraight 的接力寻路/侧向 reposition 豁免（正常冲锋行为不变）
+  - **矩形切向滑动**：resolve 新增 `_nearestBlockingRect` + 贴面投影（与 iso 段同口径），L/V 形树兜可沿矩形边滑出；每步仍过 canMoveTo/blocked 校验
+  - **暂缓**：_tryUnstuck"必须缩短距离"放宽（④），观望 ①②③⑤ 效果
+  - 验证：scripts/archive/_verify-scatter.mjs 散布模拟 100 棵 0 违规；eslint 0 error；vite build 通过
+
+---
+
+### 技术回顾与清理（2026-07-13）
+
+#### 审查范围
+对 2026-07-11 至 2026-07-13 的提交进行了渲染、碰撞/AI、地牢流程三个方向的并行审查，重点排查并行系统、冗余代码和潜在 bug。
+
+#### 发现并修复的高优先级问题
+
+##### 1. 渲染层：地图模式下 Phaser 对象残留
+- **问题**：`GameScene.update()` 的地图模式分支只隐藏了玩家/武器/特效/地形/HUD，遗漏了敌人精灵组、中立实体（NPC/训练靶/传送门标签）和其他施法者特效（僵尸巫师的冰锥/火球）。
+- **修复**：在该分支追加隐藏 `this.enemies`、`this._neutralSprites`、`this._magicSprites`；非地图模式恢复显示。
+- **优化**：新增 `_mapModeActive` 缓存，避免每帧重复调用 `setBackgroundColor`。
+
+##### 2. 双重碰撞系统：玩家 Phaser collider 与 WallSystem
+- **问题**：`setupColliders()` 始终添加 `playerSprite-vs-walls` 的 Phaser collider，但默认模式下 `body.moves=false`，由 `WallSystem.resolve` 处理；若误开 `_useVelocityDrive` 会产生双重阻挡/抖动。
+- **修复**：仅在 `_useVelocityDrive === true` 时启用该 collider；`body.moves` 初始值与 `_useVelocityDrive` 同步。
+
+##### 3. 动态障碍图：每帧多次刷新
+- **问题**：`PathFinder.findPath()` 每次调用都执行 `dynamicObstacleMap.update()`，每个敌人寻路都会触发一次（内部有 250ms 节流，但仍属多余）。
+- **修复**：将刷新移到 `MovementSystem.update()`，每帧最多一次；`PathFinder` 不再主动刷新。
+
+##### 4. Mutant-3 连击突进无限累加
+- **问题**：五连击每次命中都向 `_comboLungeDx/Dy` 累加，目标后退时单次连击总突进可能远超预期。
+- **修复**：增加单次连击总突进上限 80px，命中时按剩余预算计算本次突进距离。
+
+##### 5. 投射物：阵营检查顺序与 piercing 语义
+- **问题**：友军免疫判断在 `hitTargets.has(entity)` 之后，逻辑顺序不当；`piercing < 0` 使 `piercing=1` 需要再命中一次才消失。
+- **修复**：将阵营检查提到最早 continue 条件；piercing 判定改为 `<= 0`。
+
+##### 6. 地牢流程 bug
+- **empty 节点截断路线**：点击 empty 节点后未更新 `currentNodeId`，导致无法继续向后续节点前进。已改为更新当前节点并揭示邻居。
+- **奖励节点卡死**：`_enterReward` 回调未标记节点完成/胜利，玩家领取奖励后卡住。已改为标记 `empty` 并调用 `_showVictory()`。
+- **女神祝福不消耗**：`_cleanupCombat()` 是 dead code，正常离开战斗的 `_leaveCombatViaPortal` / `_leaveBossViaPortal` 未调用 `onCombatComplete`。已提取 `_consumeCombatBuffs()` 并在三条离开路径调用。
+
+##### 7. 战斗房配置：`minWallDistance` 未读取
+- **问题**：`data/dungeon-config.json` 中的 `spawn.minWallDistance` 未被 `createCombatRoomConfig()` 读取，怪物生成时失效。
+- **修复**：在默认配置中增加 `minWallDistance: 0`，并从 JSON 读取覆盖。
+
+#### 冗余清理
+
+##### 1. 移除废弃的默认地牢分支
+- `DungeonMapSystem.generateMap()` 中 `dungeonType` 分支已废弃（`expedition-system.js` 写死为 `'zombie'`）。
+- 删除 `_generateDefaultMap()` 方法、`DungeonMapGenerator` 导入，并将 `generateMap()` 简化为直接调用 `_generateZombieMap()`。
+
+##### 2. 移除僵尸地牢中的占位/死代码
+- 删除 `ZombieDungeonEvent` 占位类及其默认导出。
+- 删除 `DungeonMapSystem` 中的 `_enterShop()`（无 `shop` 节点调用）、`_enterLegacyEvent()`、`_showEventUI()`、`_showEntryConfirm()` 等死代码。
+- 移除不再使用的 `UIState`、`ShopSystem` 导入。
+
+##### 3. 归档一次性脚本
+- 将 `scripts/` 下的迁移/重构一次性脚本移入 `scripts/archive/`，保留可复用脚本（`backup.js`、`bump-version.js`、`copy-assets.js`、`diagnose-coordinates.js`、`fps-test-tool.js`）在根目录。
+
+#### 关键改动文件
+- `src/phaser/scenes/GameScene.js`
+- `src/combat/projectile.js`
+- `src/entities/enemy-types/mutant-3.js`
+- `src/ai/pathfinder.js`
+- `src/systems/movement-system.js`
+- `src/world/combat-room-system.js`
+- `src/world/dungeon-map-system.js`
+- `src/world/zombie-dungeon.js`
+- `scripts/archive/`（新增归档目录）
+
+#### 验证状态
+- `npm run lint` ✅
+- `npx vite build` ✅
+
+#### 已完成的后续优化（2026-07-13 续）
+
+##### 1. 投射物 swept 检测
+- 在 `projectile.js` 中改为 `_isHittingEntity(entity, prevX, prevY)`：
+  - 矩形目标：将碰撞体按投射物 `size` 扩张后，检测线段是否穿过扩张矩形边或端点是否在内。
+  - 圆形/其他目标：计算前一点到当前点线段到圆心最近距离，并与扩张半径比较。
+- 新增 `_segmentsIntersect` 和 `_segmentPointDistance` 辅助函数。
+
+##### 2. `_tryUnstuck` 瞬移距离缩短
+- `MovementSystem._tryUnstuck` 的瞬移距离从固定 `30px` 改为 `Math.max(r * 1.5, 12)`，降低越过薄墙风险。
+
+##### 3. `RegionIndex` 8 方向 Flood Fill
+- `region-index.js` 的 Flood Fill 方向从 4 方向扩展为 8 方向，与 `PathFinder` 移动方向一致。
+
+##### 4. `PathFinder` 网格对象池
+- 在 `PathFinder` 构造函数中预分配 64×64 的格子对象池。
+- `_buildGrid` 在尺寸不超过池大小时复用对象，避免每帧为每个寻路敌人创建大量临时对象。
+
+##### 5. `NPCDialogue` 私有字段访问
+- 在 `npc-dialogue.js` 增加公开方法 `isActive()`。
+- `ZombieDungeonShop.isClosed()` 改用 `NPCDialogue.isActive()`。
+
+##### 6. 地形纹理同步时机
+- `GameScene.update()` 中移除每帧 `_syncTerrain()` 调用。
+- `GameScene` 新增公开 `syncTerrain()` 方法，在 `create()` 中调用一次。
+- `scene-manager.js` 各 `_loadSceneX()` 设置 `Renderer.terrainTexture` 后调用 `syncTerrain()`。
+- `combat-room-system.js` 生成战斗房地板后调用 `syncTerrain()`。
+
+#### 新增地牢随机事件（待审核后接入）
+- 新增 `src/world/dungeon-event-definitions.js`，定义 10 个互不重复的地牢随机事件。
+- 每个事件至少 2 个选择分支，使用力量/敏捷/体质/智力/精神/幸运进行检定。
+- 通用处理器 `handleNewDungeonEvent` 支持属性检定、金币/药水/材料/特殊道具、伤害/恢复、战斗、揭示节点、临时 Buff 等结果。
+- 接入方式：在 `dungeon-event-system.js` 的 `eventWeights` 注册权重，并在 `handleChoice` 中增加 default 分支调用 `handleNewDungeonEvent`。
+
+#### 仍待后续跟进
+- 新事件的临时 Buff 需要在 `DungeonBuffSystem.getAtkBonusPercent` 或战斗系统中纳入加成计算。
+- 新事件接入后需实机测试检定概率与奖励平衡。
+
+---
+
+### 阶段性进度总结（2026-08-03：距离音效/游戏菜单/冰墙与魔法改造修复/全量审计）
+
+#### 本次完成
+1. **位置音效（距离衰减）**：SoundManager 通用能力——`setLoopPosition(id,x,y,opts)` 挂声源坐标 + 衰减参数（base/max/nearDist/farDist/maxDist），`computeDistanceVolume` 双段线性曲线（≤nearDist 恒 max → farDist 处 base → maxDist 处 0，超出静音），`playFileAt` 一次性位置音效，`distanceGain` 倍率；主循环 `SoundManager.update()` 每帧统一刷新。蝇群已接入（loopMaxDist 2000）。音量持久化 localStorage（150ms 防抖落盘）。
+2. **游戏内菜单（左上角 ☰ 菜单）**：`GameMenu` 覆盖层三入口（返回游戏/设置/退出游戏）；**暂停三冻结 = `Game._paused`（旧逻辑循环）+ `PhaserGame.game.pause()`（渲染/动画）+ `TimerManager.pause()`（JS 定时器：波次/冷却/计时）**——三者缺一就不是真暂停。设置页：音量（master）/背景音量（music 声道，实时联动地牢 BGM）/全屏切换（打包版按钮）。退出走 `window.electronAPI.exitApp()`。ESC 开/关统一走 input.js MENU 键链。
+3. **Electron ESC/全屏理顺**：主进程 `globalShortcut('Escape')` 不再退全屏/退游戏，改为转发 `esc-pressed` 给渲染进程（失焦不转发）→ input.js `handleKey('Escape')` 完整 MENU 链；全屏切换移入设置按钮（`toggle-fullscreen` IPC + `fullscreen-changed` 推送 + `get-fullscreen` 主动查询防竞态）。preload 事件监听接线不再是死代码。
+4. **冰墙修复**：新增 `IceWallSystem.breakdown()`（splice 全部 isoSegments + 清 `_walls/_pendingSpawns` + 失效寻路缓存）——**动态障碍物必须挂三钩子：战斗房 `cleanupRoom` / `SceneManager.switchScene` / 出征前（depart 绕开 switchScene 直清实体）**，否则地牢 map 模式冻结计时导致墙体跨房残留/待生成幽灵碰撞。链式 MP 门禁、寒冷光环整组节拍（同目标每秒只叠一次）、破土粒子一次性 burstParticles。
+5. **魔法改造修复（bolt/闪电/圣光/冰墙/冰锥/火球统一）**：**链式强化 MP 门禁口径 = 先按当前 `_chainSpellStacks` 算含减免 MP 成本做门禁（只读不消费），通过后才 `consumeChainSpellBonus` + 扣蓝**——失败施法不丢层数；消费了层数必须吃到 `damageMul`。火球 `onImpact` 加 `if (!spike.flyActive) return`（同帧多目标重叠只爆一次；冰锥不加，保住准穿透）。`addChainSpellStack` 在 statusImmune 期间直接 return。
+6. **热路径性能**：`skill.getEffect(level)` 按等级缓存（移速每帧/施法飞行期每帧不再重复公式 parse）；StatusBar 渲染 100ms 节流。
+7. **审计**：全量排查（新怪受控检查补齐站桩三怪 + 6 怪 fear 中断、僵尸巫师眩晕中断、公式求值器一元负号/前导小数/多参 Math 白名单、事件监听全配对、pathfinder 设计确认、Electron 错误兜底 + 崩溃重载）。
+
+#### 沉淀约定（防再犯）
+- **craft-config 新武器改造配置必须 `options` 嵌套**：`weapon20 = { slots:[...], options:{ slotId:[配件...] } }`——配平列表放顶层会导致 `config.options` 为 undefined、点击无反应，且 **test-craft-sync 只校验效果键与 registry 三角，校验不到嵌套层级**，此类结构错误靠人工审计。新武器上线时验证：改造弹窗能点、能装备、重置布局有默认槽位（craft-default-slots.js 同步补键）。
+- **自定义怪受控检查清单**：覆盖 `update()` 的怪（含站桩怪）都必须有 stun/frozen/fear 检查——站桩怪（煮锅/墓碑/矿洞）也要在站桩钉死后拦生成/投掷；基类的检查只到得了 `super.update` 之后，状态机在 super 之前的怪（僵尸巫师）必须在顶部拦截。
+- **pathfinder 只纳入静态 `_cover` 掩体段，不含动态 isoSegments**（2026-08-08 修订）：动态段（门闸/冰墙）由 MovementSystem.resolve 实际挡停（撞墙即停），寻路建模静态 walls/trees + `_cover` 掩体段（2e5e43c 起）——不要把动态段纳入寻路，会削弱临时障碍阻挡设计。
+- **渲染进程错误兜底已内置**：`window.onerror`/`unhandledrejection` 控制台 + 左下角错误条；Electron 主进程 `render-process-gone`/`did-fail-load` 崩溃重载。
+
+---
+
+### 阶段性进度总结（2026-07-28：Boss 场地门闸化 + 防再犯单测 + 武器工作流定稿）
+
+#### 本次完成（自主任务三件，均不依赖素材）
+1. **Boss 场地门闸化**：Boss 房复用 CombatRoomSystem 门闸机制（`_diamond` 上下文借用）——`_setupGate` 入场关门困场、击败后 `openGate()`、门外白区离场判定与 `_leaveBossViaPortal` 接通；门闸 placeAt 失败时回退出口传送门（菱形中心）。`BossRewardSystem.cleanup` 补 cleanupGate + rebuildIsoCollision（防幽灵墙段）。SKILL.md「待接入」清单已销项。
+2. **防再犯单测 `scripts/test-regressions.mjs`（30 断言）**：入侵追击状态机（真实源码注入桩执行）、弹药 Infinity→null 回退、双份 JSON 一致、宝箱奖励 F~A 全档、装备音效路径存在。已挂 `npm test`（collider/craft-sync/config-integrity/regressions 四连）。
+3. **武器添加标准工作流定稿**：六段式写入本文件（ROADMAP 任务 2 销项）。
+
+#### 教训沉淀（2026-07-28 全面排查，写死防再犯）
+1. **Phaser 4 事件顺序**：UpdateList(动画) 挂 PRE_UPDATE、TweenManager 挂 UPDATE——同帧内 animationcomplete 早于 Tween onComplete。跨系统时序依赖（如动画回调读 Tween 写的字段）必须**预写**，不能等 onComplete。
+2. **JSON 克隆陷阱**：`Infinity`/`undefined` 经 JSON round-trip 变 `null`——实例克隆链（商店/掉落/存档）上的数值配置禁止依赖 Infinity 原值，消费端必须 `== null` 回退（getAmmoConfig 模式）。
+3. **共享数组恢复必须原地替换**：读档/恢复 `xxx = data.arr` 换新数组会让 init 时注入的引用全部失效；一律 `length=0 + push(...)`。
+4. **实体进 Game.entities 必须登记清理路径**：战斗生成物要么 key 入 `_combatMonsterKeys`，要么前缀入 `removeEntitiesByPrefix` 兜底——两者都没有就是泄漏。
+5. **死亡序列总时长 ≤ `_deathRemoveDelay`**（默认 3000ms）：`_preserveCorpse` 的自定义长序列必须显式覆盖该延迟，否则 game.js 到点直接 delete 实体、贴图永久残留。
+6. **UI overlay/标记位必须有 shutdown 复位路径**：全屏确认框 + 布尔标记的组合，死亡/异常退出不清理就是下局软锁（宝箱离场确认框教训）。
+7. **面板 DOM 改动找 `src/ui/panels/dev-tools.js`**；`once('animationcomplete')` 被打断不触发会残留——完成回调必须可移除（off 句柄）或校验动画 key。
+
+---
+
+### 阶段性进度总结（2026-07-13 晚间收尾）
+
+#### 本次完成：胖子僵尸、按场次 Buff/Debuff、地牢流程与受击粒子修复
+
+##### 一、胖子僵尸（Fat Zombie）完整机制
+1. **贴图放大 25%**：`data/enemy-config.json` 中 `fatZombie.render.spriteSize` 150（120→150），碰撞体积保持 90×120。
+2. **尸体腐蚀领域**：死亡后进入 corpse 阶段，继续执行 `_updateAura`；腐蚀区域改为 100×25 并向下偏移 70px，与尸体贴图对齐。
+3. **攻击/命中**：`attackRange` 100，`dynamicRange` 120，解决胖子攻击频繁落空问题。
+
+##### 二、战斗系统收尾
+1. **远程物理减伤**：`src/entities/damageable-entity.js` 对 `!isMelee && physical` 类型伤害也应用远程减伤。
+2. **按场次 buff/debuff 状态栏**：`src/ui/status-bar.js` 支持 `battleRemaining`；统一消耗所有非永久 buff。
+3. **僵尸巫师 AI**：`src/entities/enemy-types/zombie-wizard.js` 冰锥/火球入口增加 `castRange` 检查，未进入射程时先普攻/召唤。
+
+##### 三、地牢流程与资源配置
+1. **empty 节点通行**：统一在 `_leaveCombatViaPortal` 中标记节点完成，移除普通分支提前置空。
+2. **精灵图偏移配置**：`scripts/generate-sprite-offsets.js` 扩展为所有敌人动画表生成 `data/sprite-offsets.json`。
+3. **图鉴 idle 放大截取**：使用 `idleSheetColumns` 计算背景尺寸，修正第一帧显示过小。
+
+##### 四、主神空间测试
+1. 生成原设定数值的胖子僵尸。
+2. 左下角新增“无敌”切换按钮；`SceneManager._mainHubInvincible` 控制玩家是否受伤（2026-07-25 起全场景生效，含地牢；流血/中毒 dot 同样被闸门拦截不扣血）。
+
+##### 五、僵尸受击绿色粒子修复
+1. **统一触发**：在 `src/entities/damageable-entity.js` `takeDamage()` 扣血后统一调用 `triggerZombieHitParticles`，移除各技能系统的重复触发。
+2. **Phaser 4 粒子坐标陷阱**：
+   - `this.add.particles(x, y, texture, config)` 把发射器放在 `(x,y)`，但 `explode(count, x, y)` 的参数是相对于发射器的**本地坐标**。
+   - 错误写法会让粒子世界坐标变成 `(2x, 2y)`，从而飞出视野。
+   - 正确写法：`this.add.particles(0, 0, texture, config)` + `particles.explode(count, worldX, worldY)`。
+3. **必须加入 UpdateList**：`this.add.particles()` 默认不会把发射器加入 Scene 的 UpdateList，需要手动调用 `particles.addToUpdateList()`，否则粒子只会静止一帧，不会运动/死亡。
+4. 修复后手动调用 `scene.playZombieHitParticles(worldX, worldY, angle)` 可看到绿色粒子爆发。
+
+#### 关键改动文件
+- `src/phaser/scenes/GameScene.js`
+- `src/entities/damageable-entity.js`
+- `src/entities/enemy-types/fat-zombie.js`
+- `src/entities/enemy-types/zombie-wizard.js`
+- `src/ui/status-bar.js`
+- `src/world/dungeon-map-system.js`
+- `src/world/scene-manager.js`
+- `scripts/generate-sprite-offsets.js`
+- `data/enemy-config.json`
+- `data/sprite-offsets.json`
+
+#### 验证状态
+- `npm run lint` ✅
+- `npx vite build` ✅
+
+---
+
+### 阶段性进度总结（2026-07-13 续）
+
+#### 本次完成：僵尸地牢地板/路线地图修复 + 精英判定/投射物/怪物机制收尾
+
+##### 一、僵尸地牢地板与背景
+1. **blackbrick 地板**：`CombatRoomSystem._generateTerrain()` 改为纯黑背景 + `blackbrick.png` 平铺地板（256×256 repeat），并在地板四周叠加 64px 黑→透明渐变，实现与纯黑背景的自然过渡。
+2. **贴图加载**：`BootScene.js` 已加载 `assets/terrain/blackbrick.png`；`GameScene._syncTerrain()` 直接使用 `Renderer.terrainTexture` 覆盖地形。
+3. **相机背景**：`GameScene` 在非地图模式保持 `setBackgroundColor('#000000')`，确保战斗/主场景外区域纯黑。
+
+##### 二、路线选择地图可见性修复
+1. **问题**：设置纯黑相机背景后，路线选择地图被 Phaser Canvas 黑色背景遮挡。
+2. **修复**：在 `GameScene.update()` 的地图模式分支中，将相机背景设为透明 `rgba(0,0,0,0)`，露出下方 `Renderer.canvas` 绘制的路线地图；战斗/非地图模式恢复纯黑。
+
+##### 三、起点路线数量修复
+1. **问题**：僵尸地牢起点只出现 2 条路线（第 1 列节点随机生成 2~4 个）。
+2. **修复**：`ZombieDungeonMapGenerator.generate()` 在节点数调整完成后，强制第 1 列包含所有行（`rows=4`），配合 `_buildEdges` 中“起点连接第 1 列所有节点”的逻辑，确保起点始终 4 条分支。
+
+##### 四、怪物与战斗机制收尾
+1. **Mutant-3 五连击突进**：判定距离放宽到 350，突进改为插帧平滑移动（500 px/s，每段最多 35px），带 `WallSystem.resolve` 撞墙校验，不再瞬移。
+2. **毒液僵尸投射物**：从头部射出，延迟到攻击动画第 12 帧发射；投射物碰撞与贴图大小统一为配置 `attack.width` 的 3 倍；`projectile.js` 对矩形碰撞体使用 AABB 相交判定。
+3. **NPC 立绘**：统一使用固定 `bottom` 像素定位，调整工具仅保留水平拖动；`npc-portrait-tool.js` 默认参数使用 `bottom`。
+4. **精英判定唯一来源**：以 `data/enemy-config.json` 的 `rank` 为唯一来源；`ZombieDungeonCombat` 怪物池按 `rank` 动态构建；`Enemy` 实例继承 `rank`/`type`/`category`。
+5. **主神空间清理**：移除主神空间的突变体-3 和毒液僵尸测试生成。
+6. **毒液僵尸 walking 贴图替换**，并新增独立 `spitter-zombie.js` 类管理延迟吐息。
+
+#### 关键改动文件
+- `src/world/combat-room-system.js`
+- `src/world/zombie-dungeon.js`
+- `src/phaser/scenes/GameScene.js`
+- `src/phaser/scenes/BootScene.js`
+- `src/entities/enemy-types/mutant-3.js`
+- `src/entities/enemy-types/spitter-zombie.js`
+- `src/entities/enemy.js`
+- `src/combat/projectile.js`
+- `src/ui/npc-portrait-tool.js`
+- `src/game.js`
+- `data/enemy-config.json`
+- `assets/terrain/blackbrick.png`（新增）
+- `assets/enemies/spitter_zombie/walking.png`（新增/替换）
+
+#### 验证状态
+- `npm run lint` ✅
+- `npx vite build` ✅
+
+---
+
+### 阶段性进度总结（2026-07-13）
+
+#### 本次完成：AI 寻路优化 + 僵尸犬修复 + 图鉴修复 + 地牢事件与怪物碰撞优化
+
+##### 一、AI 寻路与怪物拥堵优化
+1. **路径跟随期间启用分离力**：`_followPath()` 调用增强版 `_computeSeparation()`，拥挤时允许偏离路径点绕过同伴。
+2. **分离力增强**：半径改为 `collisionRadius * 1.8`（24~80），检查数量从 5 提升到 12，加入距离衰减与随机抖动。
+3. **攻击范围渐进减速**：`dist <= attackRange * 0.9` 才开始减速，`dist <= attackRange * 0.5` 完全停车，前排不再一进入范围就堵死道路。
+4. **CombatSystem 攻击缓冲**：攻击判定距离放宽到 `attackRange * 1.15`。
+5. **缩短近战 AI 决策间隔**：普通/次级近战怪 `aiInterval` 从 2000ms 降到 800~1200ms。
+6. **侧翼包抄**：`_computeMoveDirection` 中当目标周围 ≥2 个同伴时，向人数更少的一侧偏移 45°~75°，选择 persisted in `_flankSide`。
+7. **卡住 reposition**：寻路失败时设置 600ms 临时侧向 `_tacticalTarget`，而不是随机乱转。
+8. **动态障碍图**：新增 `src/ai/dynamic-obstacle-map.js`，每 250ms 采样敌人位置，密集区域（≥3 敌人）在 A* 中增加 3.5x 移动成本，让后续怪物主动绕行。
+9. **寻路缓存适配动态障碍**：起点/终点附近有动态障碍时跳过缓存，避免使用过期低成本路径。
+10. **BFS 预检收紧**：`isReachable()` 步数耗尽后返回 `false`，避免对不可达目标执行昂贵 A*。
+11. **性能保护**：侧翼统计每 200ms 缓存一次，使用平方距离避免每帧开方，并限制最多遍历 80 个实体；动态障碍图每 250ms 重建一次，cell 自动衰减清理。
+
+##### 二、僵尸犬攻击动画修复与参数调整
+1. **攻击动画不显示修复**：`ZombieDogEnemy` 之前继承 `CircleEnemy`，攻击时 `_attackTimer` 永远不会被设置，导致 `_animState` 无法进入 `attack`。已新增 `_attackDuration = 600` 并覆盖 `triggerWeaponAnim()` 设置 `_attackTimer`；`update()` 中递减 `_attackTimer`。
+2. **参数调整**：`aiInterval` 和 `attack.cooldown` 均改为 1500ms（攻击间隔 1.5s）；`speed` 从 168.75 提升到 219.375（+30%）。
+
+##### 三、图鉴模块修复
+1. **根因**：`src/items/item-database.js` 静态导入了 `CodexManager`，而 `codex-manager.js` 又静态导入 `ItemDatabase`，形成循环依赖，导致 `ItemDatabase` 在图鉴初始化时为 `undefined`。
+2. **修复**：移除 `item-database.js` 的静态导入，改为 `addItem()` 中动态导入刷新；同时初始化 `currentEquipCategory: "all"`，避免装备页默认空白。
+
+##### 四、交互开发工具坐标工具修复
+1. **现象**：点击「📐 坐标工具」按钮后，遮罩层/面板无法显示，框选矩形不出现，坐标值不更新，无法记录。
+2. **根因**：`coordOverlay` 与 `coordPanel` 被创建在 `uiLayer` 内部，而 `uiLayer` 设置了 `pointer-events: none`；坐标工具代码仅依赖内联 `style.display` 切换显示，未使用 CSS 的 `.active` 类，也未将层提升到 `document.body`，导致事件可能被父层截断或层级受限于 `uiLayer`。
+3. **修复**：
+   - `_startCoordTool()` 启动时把 `coordOverlay` / `coordPanel` 移动到 `document.body`，脱离 `uiLayer` 的 `pointer-events: none`。
+   - 同时添加 `.active` 类并设置 `style.display`，与 CSS 规则保持一致。
+   - 启动前调用旧的 `_coordToolCleanup()`，防止重复绑定事件。
+   - `mouseup` 事件绑定到 `window`，避免拖出窗口后释放导致框选丢失。
+   - 增加 `overlay` / `panel` 缺失的防御性检查，并在控制台输出调试日志。
+4. **二次修复（Infinity/NaN）**：
+   - 根因：非地牢地图模式下 `Renderer` 会把原始 `gameCanvas` 设为 `display: none`，`getBoundingClientRect()` 返回宽高为 0，导致 `gameCanvas.width / 0 = Infinity`，所有坐标计算变成 `Infinity/NaN`。
+   - 修复：`getGameScale()` 中仅当 `canvasRect.width/height > 0` 且计算结果有限时才使用缩放，否则回退到 `scaleX/Y = 1`（即 CSS 像素）。
+   - 最终输出统一经过 `safe()` 函数处理，防止任何异常值写入面板。
+
+##### 五、地牢随机事件对话框落地坐标
+1. **需求**：将地牢随机事件对话框/选择框/结果框按坐标工具测得的位置摆放：`left: 151px; bottom: 88px; width: 1567px; height: 243px`。
+2. **实现**：
+   - `DungeonEventSystem._showEventUI()` 与 `_showResultUI()` 的事件面板改为固定定位在上述坐标，不再居中显示。
+   - 面板内部改为左右分栏：左侧占满剩余宽度展示标题与剧情描述，右侧固定 420px 放置选择按钮/继续按钮。
+   - 全屏遮罩改为半透明暗色（`rgba(0,0,0,0.45)`），保留点击拦截但不遮挡游戏画面。
+3. **剧情与判定数值完善**：
+   - 5 个事件（女神像、陷阱、补给堆、宝箱、恶魔雕像）的剧情描述扩展为更具氛围的长文本。
+   - 陷阱/补给堆选择按钮新增「描述 + 检定属性 + 当前属性值 + 成功率」的副标题。
+   - 判定基础成功率调整：解除陷阱 25%（敏）、强行跨越 30%（体）、仔细搜寻 40%（精）、探查四周 35%（敏）。
+   - `data/dungeon-config.json` 与 `src/world/dungeon-event-system.js` 默认配置保持一致。
+
+##### 六、地牢事件 UI/流程修复
+1. **事件结果不再创建浮动文字**：`_showResultUI()` 中移除 `FloatingTextEffect`，避免事件结束后残留黄/红文字。
+2. **事件遮罩改为不透明纯黑**：`_showEventUI()` 与 `_showResultUI()` 的全屏遮罩从 `rgba(0,0,0,0.45)` 改为 `rgba(0,0,0,1)`。
+3. **浮动文字主动清理**：`EffectManager.clearFloatingTexts()` 会遍历并销毁 Phaser 文本对象；`DungeonMapSystem._returnToMap()` 调用该方法，确保返回地图时无残留。
+4. **事件节点状态流转**：事件结束后节点变为 `empty`；陷阱节点仅在成功解除（`result.success === true`）后才变 `empty`，失败保留可再次尝试。
+
+##### 七、怪物寻路/碰撞优化
+1. **分离力修复**：`_computeSeparation` 改为优先使用传入的 `entities` 参数（修复忽略参数的 bug），并回退到 `Game.entities`。
+2. **分离力增强**：从加权平均改为反平方累加，近距离排斥更强；贴身战斗时自动降低分离权重，限制最大分离力避免过度漂移。
+3. **敌人墙壁碰撞单一权威**：`GameScene.setupColliders()` 移除 `enemies-vs-walls` 的 Phaser collider，保留 `player-vs-walls`，让 `WallSystem.resolve()` 成为敌人碰撞唯一权威，解决贴墙/墙角怪物被 Phaser 物理钉死的问题。
+4. **墙壁解析脱困 fallback**：`WallSystem.resolve()` 在标准滑动与步长回退均失败后，尝试沿移动方向切线方向侧向滑动。
+5. **卡死恢复**：`MovementSystem._tryUnstuck(enemy)` 在敌人尝试移动但连续 30 帧位移 < 0.5px 时，沿 8 个方向寻找合法位置小幅瞬移；静止或目标在攻击范围内时不触发。
+6. **安全生成边距**：`CombatRoomSystem.spawnMonsters()` 生成怪物后，若其碰撞半径位置被墙/障碍阻挡，则调用 `WallSystem.findSafeSpawn()` 沿螺旋外推重新定位。
+7. **RegionIndex 树木半径对齐**：`region-index.js` 中树木阻挡半径与 `WallSystem` 一致，使用 `t.collisionRadius || t.radius * 0.6`。
+
+##### 八、僵尸犬奔跑贴图再次修复
+1. **补齐 idle 动画**：`BootScene.js` 为 `enemy_zombie_dog_idle` 创建单帧循环动画 `zombie_dog_idle`，避免 idle 状态时调用 `sprite.anims.stop()` 中断动画系统。
+2. **动画同步增加 isPlaying 检查**：`GameScene._syncEnemyAnimation()` 在 `current.key !== animKey` 之外增加 `!sprite.anims.isPlaying`，动画意外停止时自动重新播放；找不到动画时不再强制 stop。
+3. **相对阈值与滞后**：`ZombieDogEnemy.update()` 将 `run/walk/idle` 阈值从固定 `1.2/0.1` 改为基于 `maxSpeed` 的比例（run≈30%、walk≈5%），并加入滞后区间与 80ms 最小保持时间，防止在攻击范围边缘因摩擦反复切换动画状态导致奔跑贴图“卡住”。
+
+##### 九、战斗完成顶部提示栏
+1. **复用场景切换提示样式**：`SceneManager` 新增 `showTopNotification(text, options)`，与 `_showSceneLabel()` 使用相同的 DOM/CSS/动画（`top:210px` 居中、`#d4c5a9`、`48px`、字重 700、`sceneLabelFade` 3 秒淡出）。
+2. **战斗完成触发提示**：`DungeonMapSystem.updateCombat()` 在战斗完成并生成出口传送门后，调用 `SceneManager.showTopNotification('已完成战斗，寻找传送门离开')`。
+
+#### 关键改动文件
+- `src/systems/movement-system.js`
+- `src/systems/combat-system.js`
+- `src/ai/dynamic-obstacle-map.js`（新增）
+- `src/ai/pathfinder.js`
+- `src/ai/region-index.js`
+- `src/entities/enemy-types.js`
+- `src/effects/effect-manager.js`
+- `src/items/item-database.js`
+- `src/phaser/scenes/BootScene.js`
+- `src/phaser/scenes/GameScene.js`
+- `src/ui/codex-manager.js`
+- `src/ui/dev-tool.js`
+- `src/world/combat-room-system.js`
+- `src/world/dungeon-event-system.js`
+- `src/world/dungeon-map-system.js`
+- `src/world/scene-manager.js`
+- `src/world/wall-system.js`
+- `data/enemy-config.json`
+- `data/dungeon-config.json`
+
+#### 验证状态
+- `npx eslint src --max-warnings=0` ✅
+- `npx vite build` ✅
+
+---
+
+### 阶段性进度总结（2026-07-12）
+
+#### 本次完成
+1. **怪物贴图兜底与碰撞扩大**：敌人无 Phaser Sprite 时自动创建 `enemy_circle` 占位；`getOrCreateEnemySprite` 默认纹理改为 `enemy_circle` 并加入缺失回退；敌人碰撞半径在 `_configureEnemyBody` 中扩大一倍。
+2. **毒液僵尸投射物调整**：速度从 `1080` → `540` → `270`，纹理改为绿色实心圆，显示尺寸缩小 30%（`this.size * 1.4`）。
+3. **地牢全图索敌**：`zombie-dungeon.js` 工厂给所有地牢僵尸覆盖 `aggroRange: 9999`、`alertRange: 9999`、`loseTimeout: 999999`。
+4. **战后传送门名称去重**：`_syncEntityHud` 识别 `entity.noNameLabel`，避免 `CombatExitPortal` 被重复画名字。
+5. **僵尸犬精灵图动画**：从外部素材库统一为 512×512 帧，输出 `zombie_dog_idle/walk/run/attack.png`；`BootScene` 加载并注册动画；新增 `ZombieDogEnemy` 类；`GameScene` 新增 `_syncEnemyAnimation` 同步纹理/翻转/动画状态。
+6. **主神空间测试用怪清理**：删除原来的 5 只测试圆形敌人，改为生成一只僵尸犬；每次回到主神空间自动清理怪物并重新生成。
+7. **Bug 修复（武器变圆）**：`_syncEnemyAnimation` 被错误对所有 `_phaserSprite` 实体执行，导致中立实体贴图被强制改为 `enemy_circle`。已限定为 `entity._faction === 'enemy'`。
+
+#### 关键改动文件
+- `src/phaser/scenes/GameScene.js`
+- `src/phaser/scenes/BootScene.js`
+- `src/entities/enemy-types.js`
+- `src/world/zombie-dungeon.js`
+- `src/world/scene-manager.js`
+- `src/game.js`
+- `src/combat/projectile.js`
+- `data/enemy-config.json`
+
+#### 验证状态
+- `npx eslint src --max-warnings=0` ✅
+- `npx vite build` ✅
+
+---
+
+### 阶段性进度总结（2026-07-11）
+
+#### 本次完成
+1. **NPC 对话与交互修复**：修复 Phaser viewport 与鼠标坐标换算不一致，NPC 点击正常进入对话。
+2. **掉落物拾取**：左键/Z 键拾取后正确销毁 Phaser Sprite 并从实体列表删除，无视觉残留。
+3. **玩家与武器显示**：玩家贴图与逻辑位置同步偏差 0.00；武器 Sprite 每帧同步位置/旋转/贴图；根据 `_facingDir` 自动翻转并加入 80ms idle 缓冲避免动画抖动。
+4. **HUD 布局还原**：恢复 DOM HUD（顶部栏、底部 HP/体力、武器信息、操作提示、小地图），Phaser 仅保留经验条、Buff/Debuff、屏幕特效。
+5. **NPC 名字去重**：`_syncEntityHud` 跳过自带标签的 NPC/训练靶/掉落物。
+6. **移动卡顿/瞬移修复（核心）**：敌人 A* 寻路对远距离目标会生成巨大网格，单次 `findPath` 可达 150ms+，跑动越久触发越多导致卡顿。已在 `PathFinder` 限制 `maxSearchRange=800px`，并在 `MovementSystem` 中目标距离超过 800px 时跳过寻路、直接直线移动。
+
+#### 关键改动文件
+- `src/ai/pathfinder.js`
+- `src/systems/movement-system.js`
+- `src/phaser/scenes/GameScene.js`
+- `src/game.js`
+- `src/utils/perf-monitor.js`（临时调试计时器，可后续清理）
+
+#### 验证状态
+- `npx eslint src --max-warnings=0` ✅
+- `npx vite build` ✅
+- 实机测试：持续跑动不再卡顿

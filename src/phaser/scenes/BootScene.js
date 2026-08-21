@@ -126,6 +126,15 @@ export class BootScene extends Scene {
                 endFrame: (def.frameCount || 1) - 1,
             });
         }
+        const bankerVisual = populationEconomyConfig.bank?.workerVisual;
+        for (const [animKey, def] of Object.entries(bankerVisual?.animations || {})) {
+            if (!def?.src) continue;
+            this.load.spritesheet(`worker_${bankerVisual.id}_${animKey}`, def.src, {
+                frameWidth: def.frameWidth || 512,
+                frameHeight: def.frameHeight || 512,
+                endFrame: (def.frameCount || 1) - 1,
+            });
+        }
 
         // ---- 武器资源 ----
         const weaponTextures = getWeaponTextureLoadList();
@@ -692,6 +701,20 @@ export class BootScene extends Scene {
         for (const [animKey, def] of Object.entries(engineerVisual?.animations || {})) {
             if (!def?.src) continue;
             const key = `worker_${engineerVisual.id}_${animKey}`;
+            if (this.anims.exists(key)) continue;
+            const [start, end] = def.frames || [0, (def.frameCount || 1) - 1];
+            this.anims.create({
+                key,
+                frames: this.anims.generateFrameNumbers(key, { start, end }),
+                frameRate: def.frameRate || 12,
+                repeat: def.repeat !== undefined ? def.repeat : -1,
+            });
+        }
+        // 银行岗位的仓鼠银行家沿用纯视觉 worker_ 管线。
+        const bankerVisual = populationEconomyConfig.bank?.workerVisual;
+        for (const [animKey, def] of Object.entries(bankerVisual?.animations || {})) {
+            if (!def?.src) continue;
+            const key = `worker_${bankerVisual.id}_${animKey}`;
             if (this.anims.exists(key)) continue;
             const [start, end] = def.frames || [0, (def.frameCount || 1) - 1];
             this.anims.create({

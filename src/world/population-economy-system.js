@@ -8,12 +8,20 @@ import { SoundManager } from '../ui/sound-manager.js';
 import { payBuildingUpgradeCost } from './building-upgrade-payment.js';
 import { createGoldItem, routeProducedGold as routeBankGold } from './economy-gold-routing.js';
 import { WorkshopEconomySystem } from './workshop-economy-system.js';
+import { BankEconomySystem } from './bank-economy-system.js';
+import { CrossPlaneResourceSystem } from './cross-plane-resource-system.js';
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 
 function houseLevel(level) {
     const levels = populationEconomyConfig.house?.levels || [];
     return levels.find((entry) => entry.level === level) || levels[0] || null;
+}
+
+function isWithin(source, target, range) {
+    const dx = (Number(target?.x) || 0) - (Number(source?.x) || 0);
+    const dy = (Number(target?.y) || 0) - (Number(source?.y) || 0);
+    return dx * dx + dy * dy <= range * range;
 }
 
 function workforceConfig(type) {
@@ -83,7 +91,7 @@ export const PopulationEconomySystem = {
         } : null;
         if (building._economyType === 'housing') this.applyHouseLevel(building, building._economyLevel);
         const workerCfg = workforceConfig(building._economyType);
-        const slots = workforceSlots(building, workerCfg, saved.workshopModules);
+        const slots = workforceSlots(building, workerCfg, saved.bankModules || saved.workshopModules);
         building._assignedWorkers = workerCfg
             ? clamp(
                 Math.floor(Number(saved.assignedWorkers) || 0),
@@ -258,8 +266,8 @@ export const PopulationEconomySystem = {
 
     consumeFood(amount) {
         const value = Math.max(0, Number(amount) || 0);
-        if (value <= 0 || this.getFoodStored() < value) return false;
-        return !!EnergyManager?.deductFood?.(value);
+        if (value <= 0) return true;
+        return CrossPlaneResourceSystem.pay({ food: value }).ok;
     },
 
     routeProducedGold(amount) {
@@ -284,22 +292,91 @@ export const PopulationEconomySystem = {
         return total * laborEfficiency;
     },
 
-    getBankGoldPerSecond(building = null) {
-        const rate = Math.max(0, Number(populationEconomyConfig.bank?.goldPerWorkerPerSecond) || 0);
-        const laborEfficiency = this.getLaborEfficiency();
-        if (building) {
-            if (building._economyType !== 'bank' || !building.active) return 0;
-            return Math.max(0, Number(building._assignedWorkers) || 0) * rate * laborEfficiency
-                * WorkshopEconomySystem.getEfficiencyMultiplier(building);
+    getBankCoveredHouses(building) {
+        if (building?._economyType !== 'bank' || !building.active) return [];
+        const range = BankEconomySystem.getServiceRange(building);
+        return Array.from(this._buildings).filter((entry) => entry?.active
+            && entry._economyType === 'housing'
+            && !entry._sinking
+            && isWithin(building, entry, range));
+    },
+
+    getBankCoverageCountAt(target) {
+        if (!target?.active || target._sinking) return 0;
+        let count = 0;
+        for (const bank of this._buildings) {
+            if (!bank?.active || bank._sinking || bank._economyType !== 'bank') continue;
+            if (isWithin(bank, target, BankEconomySystem.getServiceRange(bank))) count += 1;
         }
+        return count;
+    },
+
+    getBankOverlapMultiplier(bankCount) {
+        const count = Math.max(0, Math.floor(Number(bankCount) || 0));
+        const zeroAt = Math.max(1,
+            Math.floor(Number(populationEconomyConfig.bank?.overlapZeroAtBankCount) || 3));
+        if (count >= zeroAt) return 0;
+        const penalty = clamp(
+            Number(populationEconomyConfig.bank?.overlapPenaltyPerAdditionalBank) || 0,
+            0,
+            1
+        );
+        return clamp(1 - Math.max(0, count - 1) * penalty, 0, 1);
+    },
+
+    getBankSnapshot(building) {
+        const houses = this.getBankCoveredHouses(building);
+        let servicePopulation = 0;
+        let effectiveServicePopulation = 0;
+        let overlappedHouseCount = 0;
+        let maxBankOverlapCount = 0;
+        for (const house of houses) {
+            const population = Math.max(0,
+                Number(houseLevel(house._economyLevel)?.populationCapacity) || 0);
+            const bankCount = this.getBankCoverageCountAt(house);
+            const overlapMultiplier = this.getBankOverlapMultiplier(bankCount);
+            servicePopulation += population;
+            effectiveServicePopulation += population * overlapMultiplier;
+            if (bankCount > 1) overlappedHouseCount += 1;
+            maxBankOverlapCount = Math.max(maxBankOverlapCount, bankCount);
+        }
+        const assignedWorkers = Math.max(0, Number(building?._assignedWorkers) || 0);
+        const laborEfficiency = this.getLaborEfficiency();
+        const workshopMultiplier = WorkshopEconomySystem.getEfficiencyMultiplier(building);
+        const goldPerPopulation = BankEconomySystem.getGoldPerPopulation(building);
+        const settlementIntervalMs = BankEconomySystem.getSettlementIntervalMs(
+            building,
+            populationEconomyConfig.bank?.settlementIntervalMs
+        );
+        const goldPerSettlement = effectiveServicePopulation * goldPerPopulation * assignedWorkers
+            * laborEfficiency * workshopMultiplier;
+        return {
+            range: BankEconomySystem.getServiceRange(building),
+            coveredHouseCount: houses.length,
+            servicePopulation,
+            effectiveServicePopulation,
+            overlappedHouseCount,
+            maxBankOverlapCount,
+            assignedWorkers,
+            laborEfficiency,
+            workshopMultiplier,
+            settlementSpeed: BankEconomySystem.getSettlementSpeed(building),
+            settlementIntervalMs,
+            goldPerPopulation,
+            goldPerSettlement,
+            goldPerSecond: settlementIntervalMs > 0 ? goldPerSettlement * 1000 / settlementIntervalMs : 0,
+        };
+    },
+
+    getBankGoldPerSecond(building = null) {
+        if (building) return this.getBankSnapshot(building).goldPerSecond;
         let total = 0;
         for (const entry of this._buildings) {
             if (entry?.active && entry._economyType === 'bank') {
-                total += Math.max(0, Number(entry._assignedWorkers) || 0) * rate
-                    * WorkshopEconomySystem.getEfficiencyMultiplier(entry);
+                total += this.getBankSnapshot(entry).goldPerSecond;
             }
         }
-        return total * laborEfficiency;
+        return total;
     },
 
     getMarketPressure(fallbackBuilding = null) {
@@ -318,6 +395,7 @@ export const PopulationEconomySystem = {
 
     getMarketQuote(building) {
         const cfg = populationEconomyConfig.market || {};
+        const baseEnergyPerGold = Math.max(0.01, Number(cfg.baseEnergyPerGold) || 10);
         const effectiveWorkers = Math.max(0, Number(building?._assignedWorkers) || 0)
             * this.getLaborEfficiency()
             * WorkshopEconomySystem.getEfficiencyMultiplier(building);
@@ -327,7 +405,7 @@ export const PopulationEconomySystem = {
             Number(cfg.maxPressure) || 1.5
         );
         const mid = clamp(
-            (Number(cfg.baseEnergyPerGold) || 10) * (1 + pressure),
+            baseEnergyPerGold * (1 + pressure),
             Number(cfg.minEnergyPerGold) || 5,
             Number(cfg.maxEnergyPerGold) || 25
         );
@@ -337,12 +415,22 @@ export const PopulationEconomySystem = {
             Math.max(0, Number(cfg.minSpread) || 0),
             0.49
         );
+        // 市场只提供紧急流动性，不提供套利：无论压力方向与商人数如何，玩家买入
+        // 金币的成本都高于基准价，卖出金币的收入都低于基准价。
+        const minimumTradeLossRate = clamp(
+            Number(cfg.minimumTradeLossRate) || 0,
+            0,
+            0.49
+        );
+        const buyFloor = baseEnergyPerGold * (1 + minimumTradeLossRate);
+        const sellCeiling = baseEnergyPerGold * (1 - minimumTradeLossRate);
         return {
             midEnergyPerGold: mid,
-            buyEnergyPerGold: mid * (1 + spread),
-            sellEnergyPerGold: mid * (1 - spread),
+            buyEnergyPerGold: Math.max(buyFloor, mid * (1 + spread)),
+            sellEnergyPerGold: Math.max(0.01, Math.min(sellCeiling, mid * (1 - spread))),
             pressure,
             spread,
+            minimumTradeLossRate,
             effectiveWorkers,
         };
     },
@@ -406,14 +494,18 @@ export const PopulationEconomySystem = {
     updateBuilding(building, dt) {
         if (!building?._economyType || !building.active) return;
         this._updateHouseUpgrade(building, dt);
-        building._economyTickMs += Math.max(0, Number(dt) || 0);
-        const tickMs = Math.max(100, Number(populationEconomyConfig.tickMs) || 1000);
-        if (building._economyTickMs < tickMs) return;
-        const elapsedMs = building._economyTickMs;
-        building._economyTickMs = 0;
-        const elapsedSeconds = elapsedMs / 1000;
+        const elapsedDt = Math.max(0, Number(dt) || 0);
         if (building._economyType === 'bank') {
-            const total = building._bankGoldRemainder + this.getBankGoldPerSecond(building) * elapsedSeconds;
+            const snapshot = this.getBankSnapshot(building);
+            if (snapshot.goldPerSettlement <= 0) {
+                building._economyTickMs = 0;
+                return;
+            }
+            building._economyTickMs += elapsedDt;
+            if (building._economyTickMs < snapshot.settlementIntervalMs) return;
+            const settlements = Math.floor(building._economyTickMs / snapshot.settlementIntervalMs);
+            building._economyTickMs -= settlements * snapshot.settlementIntervalMs;
+            const total = building._bankGoldRemainder + snapshot.goldPerSettlement * settlements;
             const gold = Math.floor(total);
             building._bankGoldRemainder = total - gold;
             if (gold > 0) {
@@ -422,7 +514,15 @@ export const PopulationEconomySystem = {
                     Game.dropItem(building.x, building.y, createGoldItem(routed.remaining));
                 }
             }
-        } else if (building._economyType === 'windmill') {
+            return;
+        }
+        building._economyTickMs += elapsedDt;
+        const tickMs = Math.max(100, Number(populationEconomyConfig.tickMs) || 1000);
+        if (building._economyTickMs < tickMs) return;
+        const elapsedMs = building._economyTickMs;
+        building._economyTickMs = 0;
+        const elapsedSeconds = elapsedMs / 1000;
+        if (building._economyType === 'windmill') {
             const total = building._workProductionRemainder
                 + this.getWindmillFoodPerSecond(building) * elapsedSeconds;
             const food = Math.floor(total);

@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="128" viewBox="0 0 256 128">
+  <polygon points="0,64 128,0 256,64 128,128" fill="#7d6a32"/>
+  <g stroke="#d9b84f" stroke-width="8" opacity=".95"><path d="M38 65L128 20"/><path d="M70 82L160 37"/><path d="M102 99L192 54"/><path d="M134 112L224 67"/></g>
+  <g stroke="#f0d46c" stroke-width="3"><path d="M30 71L120 26"/><path d="M62 88L152 43"/><path d="M94 105L184 60"/><path d="M126 118L216 73"/></g>
+</svg>

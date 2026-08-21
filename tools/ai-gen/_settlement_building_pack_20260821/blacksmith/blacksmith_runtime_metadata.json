@@ -1,0 +1,33 @@
+{
+  "source": "tools\\ai-gen\\_settlement_building_pack_20260821\\blacksmith\\blacksmith_v2_5080_s48_seed122841_raw.png",
+  "output": "assets\\terrain\\blacksmith.png",
+  "sourceMode": "RGB",
+  "background": [
+    252,
+    243,
+    0
+  ],
+  "maskImage": "tools\\ai-gen\\_settlement_building_pack_20260821\\blacksmith\\blacksmith_v2_preview.png",
+  "maskDilate": 12,
+  "cropBox": [
+    73,
+    137,
+    954,
+    920
+  ],
+  "fileSize": [
+    881,
+    783
+  ],
+  "alphaBBox": [
+    4,
+    4,
+    877,
+    779
+  ],
+  "displayW": 279,
+  "displayH": 248,
+  "footOffsetY": 123,
+  "scaleX": 0.3166855845629966,
+  "scaleY": 0.3167305236270754
+}

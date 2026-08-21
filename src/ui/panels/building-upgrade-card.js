@@ -1,9 +1,12 @@
 // 研究院、铁匠铺与出兵建筑共用的升级项目卡片。
+import { CrossPlaneResourceSystem } from '../../world/cross-plane-resource-system.js';
 
 export function formatBuildingUpgradeRequirement(cost, maxed = false) {
     if (maxed) return '已达到最高等级';
     if (!cost) return '升级资源配置缺失';
-    return `升级需要：${cost.gold ?? 0} 金币 + ${cost.energy ?? 0} 能源`;
+    const quoted = CrossPlaneResourceSystem.quote(cost);
+    const suffix = quoted.remote ? `（跨位面 ×${quoted.multiplier.toFixed(2)}）` : '';
+    return `升级需要：${quoted.gold} 金币 + ${quoted.energy} 能源${suffix}`;
 }
 
 export function renderBuildingUpgradeCard(options = {}) {

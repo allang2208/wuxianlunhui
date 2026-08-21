@@ -31,6 +31,10 @@ import musketeerCfg from '../../data/hamster-musketeer-config.json';
 import priestCfg from '../../data/hamster-priest-config.json';
 import knightCfg from '../../data/hamster-knight-config.json';
 import lightCavalryCfg from '../../data/hamster-light-cavalry-config.json';
+import explorerCfg from '../../data/hamster-explorer-config.json';
+import bountyHunterCfg from '../../data/hamster-bounty-hunter-config.json';
+import jaguarWarriorCfg from '../../data/jaguar-warrior-config.json';
+import junglePriestCfg from '../../data/jungle-priest-config.json';
 import barracksBuildingCfg from '../../data/hamster-barracks-building.json';
 import { MINER_CAMP_CONFIG, getMinerEnergyPerSecond, getMinerEconomyStats } from './miner-economy.js';
 import populationEconomyConfig from '../../data/population-economy.json';
@@ -51,22 +55,66 @@ const UNIT_CFGS = {
     militia: militiaCfg, warrior: warriorCfg, shooter: shooterCfg,
     guard: guardCfg, scout: scoutCfg, musketeer: musketeerCfg, priest: priestCfg,
     knight: knightCfg, light_cavalry: lightCavalryCfg,
+    explorer: explorerCfg, bounty_hunter: bountyHunterCfg,
+    jaguar_warrior: jaguarWarriorCfg, jungle_priest: junglePriestCfg,
 };
 
-function _workshopModuleValue(structure, moduleId) {
-    const module = buildingUpgradesJson.economic_workshop?.modules?.[moduleId];
+function _economyModuleValue(structure, economyType, moduleId) {
+    const buildingCfg = producerBuildingsJson[structure?.cfgKey] || {};
+    const project = buildingUpgradesJson[buildingCfg.upgradeProject];
+    const module = project?.modules?.[moduleId];
     if (!module) return 0;
+    const savedModules = economyType === 'bank'
+        ? structure?.bankModules
+        : structure?.workshopModules;
     const level = Math.max(0, Math.min(
         Number(module.maxLevel) || 0,
-        Math.floor(Number(structure?.workshopModules?.[moduleId]) || 0)
+        Math.floor(Number(savedModules?.[moduleId]) || 0)
     ));
     return (Number(module.base) || 0) + (Number(module.per) || 0) * level;
+}
+
+function _workshopModuleValue(structure, moduleId) {
+    return _economyModuleValue(structure, 'workshop', moduleId);
+}
+
+function _bankModuleValue(structure, moduleId) {
+    return _economyModuleValue(structure, 'bank', moduleId);
+}
+
+function _bankServiceRange(structure) {
+    return Math.max(0, _bankModuleValue(structure, 'bank_service_range'));
+}
+
+function _bankCoverageCountAt(target, economyStructures) {
+    return (economyStructures || []).reduce((count, structure) => {
+        if (producerBuildingsJson[structure?.cfgKey]?.economyType !== 'bank') return count;
+        const range = _bankServiceRange(structure);
+        const distance = Math.hypot(
+            (Number(target?.x) || 0) - (Number(structure?.x) || 0),
+            (Number(target?.y) || 0) - (Number(structure?.y) || 0)
+        );
+        return count + (distance <= range ? 1 : 0);
+    }, 0);
+}
+
+function _bankOverlapMultiplier(bankCount) {
+    const count = Math.max(0, Math.floor(Number(bankCount) || 0));
+    const zeroAt = Math.max(1,
+        Math.floor(Number(populationEconomyConfig.bank?.overlapZeroAtBankCount) || 3));
+    if (count >= zeroAt) return 0;
+    const penalty = Math.max(0, Math.min(1,
+        Number(populationEconomyConfig.bank?.overlapPenaltyPerAdditionalBank) || 0));
+    return Math.max(0, Math.min(1, 1 - Math.max(0, count - 1) * penalty));
 }
 
 function _economyWorkerSlots(structure, economyType) {
     const cfg = populationEconomyConfig[economyType] || {};
     if (cfg.workerSlotsModule) {
-        return Math.max(0, Math.floor(_workshopModuleValue(structure, cfg.workerSlotsModule)));
+        const value = economyType === 'bank'
+            ? _bankModuleValue(structure, cfg.workerSlotsModule)
+            : _workshopModuleValue(structure, cfg.workerSlotsModule);
+        return Math.max(0, Math.floor(value));
     }
     return Math.max(0, Math.floor(Number(cfg.workerSlots) || 0));
 }
@@ -166,6 +214,7 @@ function _levelOf(abilityId, levelOverrides = null) {
 function _unitDps(kind, levelOverrides = null) {
     const cfg = UNIT_CFGS[kind];
     if (!cfg || !cfg.ai) return 0;
+    if (kind === 'explorer') return 0;
     const mults = getUnitUpgradeMults(kind, getUpgradeModulesForUnitKind(kind));
     const dmg = (cfg.ai.attackDamage ?? 20) * mults.attackDamageMult;
     const interval = Math.max(300, (cfg.ai.attackInterval ?? 2000) * mults.attackIntervalMult);
@@ -176,7 +225,7 @@ function _unitDps(kind, levelOverrides = null) {
         dps += dmg * (charge.damageMul ?? 2) * chargeMult
             * 1000 / Math.max(1000, charge.cooldown ?? 15000);
     }
-    if (kind === 'warrior') {
+    if (kind === 'warrior' || kind === 'jaguar_warrior') {
         const ability = getBuildingUpgradeAbility('sweep_aoe');
         const level = _levelOf('sweep_aoe', levelOverrides);
         if (ability && level > 0) {
@@ -315,6 +364,7 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
         energyMined: 0, passiveEnergy: 0, titheEnergy: 0, goldProduced: 0, foodProduced: 0, unitsProduced: 0,
         energySpentOnMiners: 0, foodSpentOnUnits: 0,
         abilitiesCompleted: [], modulesCompleted: [], structuresLost: 0, baseDamage: 0,
+        explorerRewards: [],
     };
     if (!snap || !snap.wave || !(elapsedMs > 0)) return report;
     const target = commit ? snap : JSON.parse(JSON.stringify(snap));
@@ -332,6 +382,25 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
     const completionTimes = {};
     const warehouses = (target.structures || []).filter((s) => s.kind === 'producer'
         && getProducerStorageCap(s) > 0);
+    for (const warehouse of warehouses) {
+        if (!warehouse.warehouseUpgrade) continue;
+        warehouse.warehouseUpgrade.remainMs = Math.max(
+            0,
+            (Number(warehouse.warehouseUpgrade.remainMs) || 0) - elapsedMs
+        );
+        if (warehouse.warehouseUpgrade.remainMs > 0) continue;
+        const moduleId = warehouse.warehouseUpgrade.moduleId;
+        const module = buildingUpgradesJson.warehouse_logistics?.modules?.[moduleId];
+        if (module) {
+            warehouse.warehouseModules = warehouse.warehouseModules || {};
+            warehouse.warehouseModules[moduleId] = Math.min(
+                Number(module.maxLevel) || 0,
+                Math.max(0, Math.floor(Number(warehouse.warehouseModules[moduleId]) || 0)) + 1
+            );
+        }
+        warehouse.warehouseUpgrade = null;
+        warehouse.storageCapacity = getProducerStorageCap(warehouse);
+    }
 
     // v1 快照把粮食挂在位面全局；后台结算开始时先迁入真实仓库，放不下的留作回场迁移。
     const savedEconomy = target.populationEconomy && typeof target.populationEconomy === 'object'
@@ -389,6 +458,24 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
                 structure.workshopUpgrade = null;
             }
         }
+        if (structure.bankUpgrade) {
+            structure.bankUpgrade.remainMs = Math.max(
+                0,
+                (Number(structure.bankUpgrade.remainMs) || 0) - elapsedMs
+            );
+            if (structure.bankUpgrade.remainMs <= 0) {
+                const moduleId = structure.bankUpgrade.moduleId;
+                const module = buildingUpgradesJson.bank_economy?.modules?.[moduleId];
+                if (module) {
+                    structure.bankModules = structure.bankModules || {};
+                    structure.bankModules[moduleId] = Math.min(
+                        Number(module.maxLevel) || 0,
+                        Math.max(0, Math.floor(Number(structure.bankModules[moduleId]) || 0)) + 1
+                    );
+                }
+                structure.bankUpgrade = null;
+            }
+        }
     }
     const houseLevels = populationEconomyConfig.house?.levels || [];
     const populationCapacity = economyStructures.reduce((sum, structure) => {
@@ -414,10 +501,29 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
         const economyType = producerBuildingsJson[structure.cfgKey]?.economyType;
         const assigned = Math.max(0, Number(structure.assignedWorkers) || 0);
         if (economyType === 'bank') {
-            const bankRate = Math.max(0, Number(populationEconomyConfig.bank?.goldPerWorkerPerSecond) || 0);
+            const serviceRange = _bankServiceRange(structure);
+            const effectiveServicePopulation = economyStructures.reduce((sum, house) => {
+                if (producerBuildingsJson[house.cfgKey]?.economyType !== 'housing') return sum;
+                if (Math.hypot((house.x || 0) - (structure.x || 0), (house.y || 0) - (structure.y || 0)) > serviceRange) return sum;
+                const level = Math.max(1, Math.floor(Number(house.economyLevel) || 1));
+                const levelCfg = houseLevels.find((entry) => entry.level === level) || houseLevels[0];
+                const population = Math.max(0, Number(levelCfg?.populationCapacity) || 0);
+                const bankCount = _bankCoverageCountAt(house, economyStructures);
+                return sum + population * _bankOverlapMultiplier(bankCount);
+            }, 0);
+            const settlementSpeed = Math.max(0.01, 1 + _bankModuleValue(structure, 'bank_finance'));
+            const baseIntervalMs = Math.max(100, Number(populationEconomyConfig.bank?.settlementIntervalMs) || 10000);
+            const settlementIntervalMs = Math.max(100, Math.round(baseIntervalMs / settlementSpeed));
+            const goldPerPopulation = Math.max(0, _bankModuleValue(structure, 'bank_mint'));
+            const goldPerSettlement = effectiveServicePopulation * goldPerPopulation * assigned * laborEfficiency
+                * _workshopEfficiencyMultiplier(structure, economyStructures);
+            const tickTotal = goldPerSettlement > 0
+                ? Math.max(0, Number(structure.economyTickMs) || 0) + elapsedMs
+                : 0;
+            const settlements = Math.floor(tickTotal / settlementIntervalMs);
+            structure.economyTickMs = tickTotal - settlements * settlementIntervalMs;
             const total = Math.max(0, Number(structure.bankGoldRemainder) || 0)
-                + assigned * bankRate * laborEfficiency
-                    * _workshopEfficiencyMultiplier(structure, economyStructures) * t;
+                + goldPerSettlement * settlements;
             const produced = Math.floor(total);
             structure.bankGoldRemainder = total - produced;
             report.goldProduced += produced;
@@ -500,12 +606,12 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
     }, 0));
 
     // ---- 采矿与仓储 ----
-    let warehouseFree = warehouses.reduce((sum, w) => sum + _warehouseFree(w), 0);
+    let warehouseFree = _energyStorableInWarehouses(warehouses);
     // 被动能源先入仓
     if (report.passiveEnergy > 0 && warehouseFree > 0) {
         const add = Math.min(report.passiveEnergy, warehouseFree);
         _depositToWarehouses(warehouses, add);
-        warehouseFree -= add;
+        warehouseFree = _energyStorableInWarehouses(warehouses);
         report.passiveEnergy = add; // 满仓截断（与实机满仓口径一致）
     }
     // 教堂什一税：保存每座教堂的周期余数，后台1Hz增量结算也能累计到完整10秒。
@@ -526,7 +632,7 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
             if (ticks <= 0 || warehouseFree <= 0) continue;
             const add = Math.min(warehouseFree, priests * tithePerTick * ticks);
             _depositToWarehouses(warehouses, add);
-            warehouseFree -= add;
+            warehouseFree = _energyStorableInWarehouses(warehouses);
             report.titheEnergy += add;
         }
     }
@@ -535,8 +641,8 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
         if (s.kind !== 'hut' || !(s.storedEnergy > 0) || warehouseFree <= 0) continue;
         const moved = Math.min(s.storedEnergy, warehouseFree);
         s.storedEnergy -= moved;
-        warehouseFree -= moved;
         _depositToWarehouses(warehouses, moved);
+        warehouseFree = _energyStorableInWarehouses(warehouses);
     }
     // 矿点枯竭重生先结算
     for (const n of target.nodes || []) {
@@ -559,7 +665,7 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
             const mined = Math.min(_mineFromNodes(nodes, want), warehouseFree);
             if (mined > 0) {
                 _depositToWarehouses(warehouses, mined);
-                warehouseFree -= mined;
+                warehouseFree = _energyStorableInWarehouses(warehouses);
                 report.energyMined += mined;
             }
         };
@@ -571,7 +677,7 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
                 const cost = miners < freeMinimum ? 0 : spawnCost;
                 if (cost > 0 && !_deductFromWarehouses(warehouses, cost)) break;
                 miners++;
-                warehouseFree += cost;
+                warehouseFree = _energyStorableInWarehouses(warehouses);
                 report.energySpentOnMiners += cost;
             }
             s.miners = miners;
@@ -585,6 +691,62 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
     // ---- 产兵结算（波次前先补员——产出的兵参与后续波次防守）----
     for (const s of target.structures || []) {
         if (s.kind !== 'barracks' && s.kind !== 'producer') continue;
+        const producerCfg = s.kind === 'producer' ? producerBuildingsJson[s.cfgKey] : null;
+        if (producerCfg?.parallelProduction) {
+            const roster = _normalizedRoster(s);
+            s.parallelQueues = s.parallelQueues || {};
+            const segments = _abilityTimeline(
+                initialRecruitLevel, completionTimes, elapsedMs, 'research_recruit_speed'
+            );
+            for (const unitCfg of producerCfg.unitTypes || []) {
+                const kind = unitCfg.key;
+                if (!kind) continue;
+                const queue = s.parallelQueues[kind] || {
+                    recruitMode: RECRUIT_MODE.PAUSED,
+                    timer: Number(unitCfg.spawnIntervalMs) || Number(producerCfg.spawnIntervalMs) || 0,
+                };
+                s.parallelQueues[kind] = queue;
+                const recruitMode = normalizeRecruitMode(queue.recruitMode);
+                if (recruitMode === RECRUIT_MODE.PAUSED) continue;
+                const baseInterval = Math.max(0,
+                    Number(unitCfg.spawnIntervalMs) || Number(producerCfg.spawnIntervalMs) || 0);
+                const cap = Math.max(0, Math.floor(Number(unitCfg.unitCap) || 0));
+                if (!(baseInterval > 0) || cap <= 0) continue;
+                let timer = Math.max(0, Number(queue.timer) || 0);
+                let alive = Math.max(0, Math.floor(Number(roster[kind]) || 0));
+                let previousInterval = baseInterval * _recruitMult(initialRecruitLevel);
+                let stop = false;
+                for (const segment of segments) {
+                    const interval = baseInterval * _recruitMult(segment.level);
+                    if (previousInterval > 0 && interval !== previousInterval) {
+                        timer = Math.max(0, timer * interval / previousInterval);
+                    }
+                    let timeLeft = segment.durationMs;
+                    while (alive < cap) {
+                        if (timeLeft < timer) { timer -= timeLeft; timeLeft = 0; break; }
+                        timeLeft -= timer;
+                        const spawnCost = Math.max(0, Number(unitCfg.spawnFoodCost) || 0);
+                        if (spawnCost > 0 && !_deductFoodFromWarehouses(warehouses, spawnCost)) {
+                            timer = 0; stop = true; queue.foodBlocked = true; break;
+                        }
+                        warehouseFree = _energyStorableInWarehouses(warehouses);
+                        report.foodSpentOnUnits += spawnCost;
+                        alive++; roster[kind] = alive; report.unitsProduced++;
+                        timer = interval;
+                        if (recruitMode === RECRUIT_MODE.SINGLE) {
+                            queue.recruitMode = RECRUIT_MODE.PAUSED; stop = true; break;
+                        }
+                    }
+                    previousInterval = interval;
+                    if (stop || alive >= cap) break;
+                }
+                queue.timer = timer;
+            }
+            s.units = _rosterCount(roster);
+            s.unitRoster = roster;
+            s.unitDps = _rosterDps(roster);
+            continue;
+        }
         if (s.kind === 'producer' && !s.unitType) continue; // 非产兵建筑
         const recruitMode = normalizeRecruitMode(s.recruitMode);
         const roster = _normalizedRoster(s);
@@ -628,7 +790,7 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
                     foodBlocked = true;
                     break;
                 }
-                warehouseFree += spawnCost;
+                warehouseFree = _energyStorableInWarehouses(warehouses);
                 report.foodSpentOnUnits += spawnCost;
                 alive++;
                 roster[s.unitType] = (roster[s.unitType] || 0) + 1;
@@ -652,6 +814,42 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
         s.spawnTimer = timer;
         // 混编部队逐兵种结算，切换生产类型不会把旧兵种整体转换。
         s.unitDps = _rosterDps(roster);
+    }
+
+    // ---- 探险结算：只有收到“探险”指令并被快照记录的探险家才在后台产出。----
+    const tributePools = {
+        scene11: ['philosopherStone', 'marble', 'moonstone'],
+        scene10: ['potato', 'corn', 'carrot', 'cabbage', 'pumpkin', 'apple'],
+        scene8: ['ironOre', 'copperOre', 'coalOre', 'quartz', 'silverOre', 'goldOre'],
+    };
+    for (const s of target.structures || []) {
+        const state = s.explorerState;
+        const pool = tributePools[target.sceneId] || [];
+        if (!state || !pool.length || !(s.hp > 0)) continue;
+        const explorers = Math.min(
+            Math.max(0, Math.floor(Number(state.activeCount) || 0)),
+            Math.max(0, Math.floor(Number(s.unitRoster?.explorer) || 0))
+        );
+        if (explorers <= 0) continue;
+        const interval = 45000;
+        let timer = Math.max(0, Number(state.rewardTimer) || interval);
+        let ticks = 0;
+        if (elapsedMs >= timer) ticks = 1 + Math.floor((elapsedMs - timer) / interval);
+        state.rewardTimer = ticks > 0
+            ? interval - ((elapsedMs - timer) % interval)
+            : timer - elapsedMs;
+        const count = ticks * explorers;
+        if (count <= 0) continue;
+        const tributeCounts = {};
+        let sequence = Math.max(0, Math.floor(Number(state.rewardSequence) || 0));
+        for (let i = 0; i < count; i++) {
+            const key = pool[sequence++ % pool.length];
+            tributeCounts[key] = (tributeCounts[key] || 0) + 1;
+        }
+        state.rewardSequence = sequence;
+        report.explorerRewards.push({
+            structureId: s.id, x: s.x, y: s.y, tributeCounts, gold: count * 26,
+        });
     }
 
     // ---- 波次结算 ----
@@ -728,14 +926,33 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
 
 function getProducerStorageCap(s) {
     const cfg = producerBuildingsJson[s.cfgKey];
-    return cfg && cfg.workshopType === 'warehouse' ? (cfg.storageCapacity ?? 5000) : 0;
+    if (!cfg || cfg.workshopType !== 'warehouse') return 0;
+    const module = buildingUpgradesJson.warehouse_logistics?.modules?.warehouse_capacity;
+    const level = Math.max(0, Math.min(
+        Number(module?.maxLevel) || 10,
+        Math.floor(Number(s.warehouseModules?.warehouse_capacity) || 0)
+    ));
+    return Math.max(0, Math.floor(
+        (Number(module?.base) || Number(cfg.storageCapacity) || 5000)
+            + (Number(module?.per) || 0) * level
+    ));
+}
+
+function _warehouseFactor(warehouse, moduleId) {
+    const module = buildingUpgradesJson.warehouse_logistics?.modules?.[moduleId];
+    const level = Math.max(0, Math.min(
+        Number(module?.maxLevel) || 10,
+        Math.floor(Number(warehouse?.warehouseModules?.[moduleId]) || 0)
+    ));
+    return Math.max(0.1, Math.min(1,
+        1 + (Number(module?.base) || 0) + (Number(module?.per) || 0) * level));
 }
 
 function _depositToWarehouses(warehouses, amount) {
     let left = amount;
     for (const w of warehouses) {
         const free = _warehouseFree(w);
-        const add = Math.min(free, left);
+        const add = Math.min(Math.floor(free / _warehouseFactor(w, 'warehouse_energy_density')), left);
         w.storedEnergy = (w.storedEnergy || 0) + add;
         left -= add;
         if (left <= 0) break;
@@ -748,7 +965,7 @@ function _depositFoodToWarehouses(warehouses, amount) {
     const requested = left;
     for (const w of warehouses) {
         const free = _warehouseFree(w);
-        const add = Math.min(free, left);
+        const add = Math.min(Math.floor(free / _warehouseFactor(w, 'warehouse_food_density')), left);
         w.storedFood = Math.max(0, Number(w.storedFood) || 0) + add;
         left -= add;
         if (left <= 0) break;
@@ -765,8 +982,16 @@ function _warehouseFree(warehouse) {
         0,
         getProducerStorageCap(warehouse)
             - Math.max(0, Number(warehouse.storedEnergy) || 0)
+                * _warehouseFactor(warehouse, 'warehouse_energy_density')
             - Math.max(0, Number(warehouse.storedFood) || 0)
+                * _warehouseFactor(warehouse, 'warehouse_food_density')
     );
+}
+
+function _energyStorableInWarehouses(warehouses) {
+    return warehouses.reduce((sum, warehouse) => sum + Math.floor(
+        _warehouseFree(warehouse) / _warehouseFactor(warehouse, 'warehouse_energy_density')
+    ), 0);
 }
 
 function _deductFromWarehouses(warehouses, amount) {

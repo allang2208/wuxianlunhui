@@ -1,0 +1,164 @@
+{
+  "elevation": 30,
+  "azimuth": 0,
+  "resolution": 1024,
+  "bottom_y": 880,
+  "max_width_frac": 0.8,
+  "top_margin_px": 48,
+  "tex": "Y:/工作/无尽轮回/scratch/world122/raw/hamster_barracks_wall_tex.png",
+  "roof_tex": "Y:/工作/无尽轮回/scratch/world122/raw/hamster_barracks_roof_tex.png",
+  "tex2": "Y:/工作/无尽轮回/scratch/demon_iron_tex.png",
+  "interior_glow": "Y:/工作/无尽轮回/scratch/world122/raw/factory_interior_glow.png",
+  "primitives": [
+    {
+      "type": "box",
+      "size": [
+        260.0,
+        150.25620127359826,
+        90
+      ],
+      "pos": [
+        0.0,
+        0.0,
+        45
+      ],
+      "rot": [
+        0,
+        0,
+        44.8
+      ],
+      "bevel": 6,
+      "material": "wall"
+    },
+    {
+      "type": "prism",
+      "size": [
+        280.0,
+        170.29036144341137,
+        76
+      ],
+      "pos": [
+        0.0,
+        0.0,
+        102
+      ],
+      "rot": [
+        0,
+        0,
+        44.8
+      ],
+      "material": "roof"
+    },
+    {
+      "type": "box",
+      "size": [
+        36.0,
+        36.06148830566359,
+        175
+      ],
+      "pos": [
+        70.5,
+        -68.11614457736455,
+        87.5
+      ],
+      "rot": [
+        0,
+        0,
+        44.8
+      ],
+      "bevel": 4,
+      "material": "wall"
+    },
+    {
+      "type": "box",
+      "size": [
+        36.0,
+        36.06148830566359,
+        190
+      ],
+      "pos": [
+        -18.5,
+        68.11614457736455,
+        95
+      ],
+      "rot": [
+        0,
+        0,
+        44.8
+      ],
+      "bevel": 4,
+      "material": "wall"
+    },
+    {
+      "type": "box",
+      "size": [
+        44.0,
+        4.00683203396262,
+        54
+      ],
+      "pos": [
+        -77.4,
+        -78.1332246622711,
+        27
+      ],
+      "rot": [
+        0,
+        0,
+        44.8
+      ],
+      "material": "interior"
+    },
+    {
+      "type": "box",
+      "size": [
+        26.0,
+        4.00683203396262,
+        24
+      ],
+      "pos": [
+        -128.4,
+        -77.13151665378044,
+        62
+      ],
+      "rot": [
+        0,
+        0,
+        44.8
+      ],
+      "material": "window"
+    },
+    {
+      "type": "box",
+      "size": [
+        26.0,
+        4.00683203396262,
+        24
+      ],
+      "pos": [
+        -24.4,
+        -77.13151665378044,
+        62
+      ],
+      "rot": [
+        0,
+        0,
+        44.8
+      ],
+      "material": "window"
+    }
+  ],
+  "plates": [],
+  "slide": {},
+  "square_footprint_normalization": {
+    "sourceSpan": [
+      318.468,
+      317.925
+    ],
+    "scaleXY": [
+      1.0,
+      1.001708
+    ],
+    "targetSpan": 318.468,
+    "foundation": "building_foundation_2x2"
+  }
+}

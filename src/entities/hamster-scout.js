@@ -37,11 +37,12 @@ export class HamsterScout extends Companion {
         this.size = 64;
         this.hittable = true;
         this.hitFlash = 0;
-        // 素材帧内脚底 ~282/512（非 480），displaySize 340 时脚底距帧中心 17px
-        // （2026-08-17 用户反馈 260 过小，与战士/盾卫/民兵对比后 260→340 放大）：
-        // spriteOffsetY=-17 贴地；footOffsetY=17 让深度线 = 逻辑脚底
-        this.footOffsetY = 17;
-        this.config = { render: { hudOffsetY: 145, footOffsetY: 17 } };
+        // 斥候帧内主体占比明显小于民兵：待机/移动/攻击非透明内容的中位高度约
+        // 119px，民兵约 182px。displaySize 460 后两者游戏内主体高度接近。
+        // 素材脚底约在 282/512，spriteOffsetY=-23 贴地；footOffsetY=23
+        // 让深度线继续等于逻辑脚底，不改变碰撞体与实际坐标。
+        this.footOffsetY = 23;
+        this.config = { render: { hudOffsetY: 145, footOffsetY: 23 } };
         this._dying = false;
         this._deathTimer = 0;
         this._ai = new HamsterScoutAI(this);

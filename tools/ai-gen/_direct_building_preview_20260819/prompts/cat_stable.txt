@@ -1,0 +1,7 @@
+Use case: stylized-concept
+Asset type: World-122 building preview, transparent PNG
+Primary request: A compact fantasy stable redesigned for cats instead of horses: weathered gray-brown stone and dark timber stable walls, a broad low-pitched muted red-brown tiled roof, three integrated open cat sleeping stalls with rounded wooden cat beds, a tall wooden cat climbing frame built into one side, small covered cat-food storage bins and ceramic feeding bowls tucked inside the front bay, no horse, no hay bale, no horse tack, no horse feed, no detached props.
+Style/medium: unified World-122 game building asset, high-detail realistic 3D-rendered PBR surfaces, muted low-saturation palette, restrained weathering, crisp ambient occlusion in joints, clean readable silhouette.
+Composition/framing: strict orthographic isometric camera at 26.565 degrees; fixed rectangular ground footprint exactly 256 by 128 in world proportion, visible top faces form a clean 2:1 diamond; centered full building with generous transparent margin.
+Lighting/mood: soft even diffuse studio light, warm subtle interior light only, no cast shadow, no ground plane.
+Constraints: transparent-background asset; all walls vertical; only the roof and top faces follow isometric perspective; no perspective convergence; no text; no logo; no watermark; no characters; no trees.

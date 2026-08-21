@@ -197,15 +197,16 @@ export const TechnologyTreePanel = {
             const completed = TechnologySystem.isCompleted(node.id);
             const activeNode = TechnologySystem.state.activeTechId === node.id;
             const available = TechnologySystem.isAvailable(node.id);
+            const worldMasked = !TechnologySystem.isWorldRequirementMet(node.id);
             const stateClass = completed ? 'completed' : activeNode ? 'active-tech' : available ? 'available' : 'locked';
             const progress = TechnologySystem.getProgress(node.id);
             const percent = completed ? 100 : Math.min(100, (progress / node.researchCost) * 100);
             const queuedAt = queueIndex.get(node.id);
-            const stateText = completed ? '已完成' : activeNode ? '研发中'
+            const stateText = worldMasked ? '未知位面科技' : completed ? '已完成' : activeNode ? '研发中'
                 : queuedAt ? `队列 ${queuedAt}` : available ? '可研究' : '前置未满足';
             const pathClass = selectedPath.has(node.id) ? ' path-node' : '';
             const targetClass = TechnologySystem.state.targetTechId === node.id ? ' path-target' : '';
-            return `<button type="button" class="technology-card ${stateClass}${this._selectedId === node.id ? ' selected' : ''}${pathClass}${targetClass}"
+            return `<button type="button" class="technology-card ${stateClass}${worldMasked ? ' world-masked' : ''}${this._selectedId === node.id ? ' selected' : ''}${pathClass}${targetClass}"
                 data-tech-id="${escapeHtml(node.id)}" style="left:${pos.x}px;top:${pos.y}px">
                 ${queuedAt ? `<span class="technology-card-queue-index">${queuedAt}</span>` : ''}
                 <span class="technology-card-icon">${node.icon || '◆'}</span>
@@ -235,6 +236,7 @@ export const TechnologyTreePanel = {
             return;
         }
         const completed = TechnologySystem.isCompleted(node.id);
+        const worldMasked = !TechnologySystem.isWorldRequirementMet(node.id);
         const active = TechnologySystem.state.activeTechId === node.id;
         const isTarget = TechnologySystem.state.targetTechId === node.id;
         const progress = TechnologySystem.getProgress(node.id);
@@ -243,6 +245,15 @@ export const TechnologyTreePanel = {
         const instituteCount = TechnologySystem.lastInstituteCount || this._countLiveInstitutes();
         const eta = TechnologySystem.getEstimatedSeconds(plan, instituteCount);
         const planNames = plan.map((id) => TechnologySystem.getNode(id)?.name || id);
+        if (worldMasked) {
+            detail.innerHTML = `
+                <div class="technology-detail-icon">▦</div>
+                <div class="technology-detail-branch">未知位面科技</div>
+                <h3>资料受到位面干扰</h3>
+                <p>完成对应地牢并解锁该位面后，科技项目才会解除马赛克并允许研究。</p>
+                <button class="technology-research-button" type="button" disabled>位面尚未解锁</button>`;
+            return;
+        }
         detail.innerHTML = `
             <div class="technology-detail-icon">${node.icon || '◆'}</div>
             <div class="technology-detail-branch">${escapeHtml(node.branch)}科技</div>

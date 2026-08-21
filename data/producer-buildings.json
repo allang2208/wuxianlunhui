@@ -145,7 +145,8 @@
     "defaultUnitType": "",
     "unitTypes": [],
     "workshopType": "warehouse",
-    "storageCapacity": 15000
+    "storageCapacity": 15000,
+    "upgradeProject": "warehouse_logistics"
   },
   "shooting_range": {
     "id": "shooting_range",
@@ -245,12 +246,14 @@
     "tex": "bank",
     "assetPath": "assets/terrain/bank.png",
     "displayW": 266,
-    "displayH": 258,
-    "footOffsetY": 107,
+    "displayH": 224,
+    "footOffsetY": 111,
     "sellRefundRatio": 0.5,
     "spawnEnabled": false,
     "unitTypes": [],
-    "economyType": "bank"
+    "economyType": "bank",
+    "upgradeProject": "bank_economy",
+    "buildWarning": "银行服务范围重叠会递减收益：每多 1 家银行收益 -33%，3 家银行重叠时无收益。"
   },
   "market": {
     "id": "market",
@@ -271,6 +274,32 @@
     "unitTypes": [],
     "economyType": "market"
   },
+  "explorer_camp": {
+    "id": "explorer_camp", "name": "探险家营地", "cost": 1400, "currency": "gold",
+    "hp": 2300, "radius": 128, "def": 55, "mdef": 45,
+    "tex": "thatch_hut", "displayW": 268, "displayH": 226, "footOffsetY": 113,
+    "sellRefundRatio": 0.5, "allowedSceneIds": ["scene11"], "buildLimit": 3,
+    "featureWorldId": "scene11", "parallelProduction": true,
+    "spawnIntervalMs": 60000, "spawnRadius": 90, "unitCap": 6,
+    "defaultUnitType": "explorer",
+    "unitTypes": [
+      { "key": "explorer", "name": "仓鼠探险家", "unitCap": 3, "spawnIntervalMs": 45000, "spawnFoodCost": 120 },
+      { "key": "bounty_hunter", "name": "仓鼠赏金猎人", "unitCap": 3, "spawnIntervalMs": 75000, "spawnFoodCost": 240 }
+    ]
+  },
+  "jungle_temple": {
+    "id": "jungle_temple", "name": "丛林神庙", "cost": 1600, "currency": "gold",
+    "hp": 2600, "radius": 128, "def": 65, "mdef": 90,
+    "tex": "church", "displayW": 270, "displayH": 300, "footOffsetY": 150,
+    "sellRefundRatio": 0.5, "allowedSceneIds": ["scene10"], "buildLimit": 3,
+    "featureWorldId": "scene10", "parallelProduction": true,
+    "spawnIntervalMs": 60000, "spawnRadius": 90, "unitCap": 6,
+    "defaultUnitType": "jaguar_warrior",
+    "unitTypes": [
+      { "key": "jaguar_warrior", "name": "美洲豹战士", "unitCap": 3, "spawnIntervalMs": 55000, "spawnFoodCost": 220 },
+      { "key": "jungle_priest", "name": "丛林祭司", "unitCap": 3, "spawnIntervalMs": 85000, "spawnFoodCost": 360 }
+    ]
+  },
   "economic_workshop": {
     "id": "economic_workshop",
     "name": "经济工坊",
@@ -283,8 +312,8 @@
     "tex": "economic_workshop",
     "assetPath": "assets/terrain/economic_workshop.png",
     "displayW": 308,
-    "displayH": 304,
-    "footOffsetY": 151,
+    "displayH": 323,
+    "footOffsetY": 160,
     "sellRefundRatio": 0.5,
     "spawnEnabled": false,
     "unitTypes": [],

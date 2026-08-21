@@ -34,10 +34,10 @@
       "constructionEnabled": false,
       "portalSpawn": { "x": 4200, "y": 4096 },
       "coreVisual": {
-        "texture": "defense_base",
+        "texture": "portal",
         "displayW": 440,
-        "displayH": 366,
-        "footOffsetY": 184,
+        "displayH": 439,
+        "footOffsetY": 220,
         "footprintCells": 4,
         "foundation": false
       },
@@ -59,6 +59,7 @@
       "constructionEnabled": true,
       "requirements": { "completedDungeons": ["swampBeginner"] },
       "portalSpawn": { "x": 6144, "y": 4096 },
+      "featureBuilding": { "cfgKey": "jungle_temple", "offsetX": -330, "offsetY": 180 },
       "resetPolicy": { "baseSeed": 124010 }
     },
     "scene11": {
@@ -68,6 +69,7 @@
       "constructionEnabled": true,
       "requirements": { "completedDungeons": ["zombieBeginner"] },
       "portalSpawn": { "x": 6144, "y": 4096 },
+      "featureBuilding": { "cfgKey": "explorer_camp", "offsetX": -330, "offsetY": 180 },
       "resetPolicy": { "baseSeed": 125011 }
     }
   },

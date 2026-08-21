@@ -1,0 +1,8 @@
+Use case: stylized-concept
+Asset type: World-122 hamster thatched cottage game building
+Input image: modular Blender depth control; preserve the cottage footprint, thick gable roof, single chimney, door and window layout, camera and composition.
+Primary request: One compact sturdy hamster cottage with weathered pale fieldstone lower walls, warm lime plaster panels, dark-oak half-timber framing, one heavy wooden door, warm shuttered windows, one small integrated stone chimney and an exceptionally thick layered golden-brown thatch roof. Add readable horizontal thatch courses, uneven straw tips, carved ridge binding, oak pegs, iron hinges and one restrained wall lantern.
+Style/medium: highly detailed handcrafted realistic PBR strategy-game asset, cozy but sober, slightly stylized readable proportions, clean material separation.
+Color palette: low saturation; gray-beige stone, muted plaster, charcoal-brown oak, weathered ochre-brown straw, tiny warm windows.
+Composition: strict 30-degree orthographic World-122 view with 44.8-degree ground orientation; centered single connected cottage; full roof, walls and foundation visible.
+Constraints: exactly one chimney; no second floor, dormer, loose hay, fence, garden, people, animals, text, watermark, second building, perspective camera or shadow outside foundation; plain uniform vivid yellow background.

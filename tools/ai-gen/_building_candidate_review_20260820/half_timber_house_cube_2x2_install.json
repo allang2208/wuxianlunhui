@@ -1,0 +1,32 @@
+{
+  "id": "house_lv1",
+  "installedAt": "2026-08-21",
+  "generationMode": "built-in ImageGen reference edit plus deterministic edge-connected background keying",
+  "sourceCandidate": "tools/ai-gen/_building_candidate_review_20260820/half_timber_house_cube_2x2_details_v2.png",
+  "geometrySpec": "tools/ai-gen/_building_candidate_review_20260820/half_timber_house_cube_2x2_spec.json",
+  "geometryDepth": "tools/ai-gen/_building_candidate_review_20260820/half_timber_house_cube_2x2_depth.png",
+  "installedAsset": "assets/terrain/house_lv1.png",
+  "crop": {
+    "alphaThreshold": 16,
+    "sourceBbox": [186, 106, 1081, 1134],
+    "outputSize": [895, 1028]
+  },
+  "runtime": {
+    "displayW": 256,
+    "displayH": 294,
+    "footOffsetY": 147,
+    "logicalFootprint": [256, 128],
+    "gridSize": [2, 2],
+    "foundationKey": "building_foundation_2x2",
+    "foundationIsSeparateLayer": true
+  },
+  "staticValidation": {
+    "groundAxisDegrees": [26.79, -25.82],
+    "projectedFootprintEdgeRatio": 1.03,
+    "verticalWallDegrees": 90,
+    "rgbaCornersTransparent": true,
+    "detachedPlatform": false
+  },
+  "backup": "Y:/工作/无尽轮回/scratch/backup/house_lv1_before_half_timber_details_20260821.png",
+  "unchangedUpgradeAssets": ["house_lv2", "house_lv3"]
+}

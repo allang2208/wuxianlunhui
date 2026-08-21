@@ -338,6 +338,40 @@
     background: linear-gradient(90deg, #3d9ca6, #8ce1df);
 }
 
+.technology-card.world-masked {
+    overflow: hidden;
+    isolation: isolate;
+    cursor: not-allowed;
+}
+
+.technology-card.world-masked > * {
+    filter: blur(5px) grayscale(1);
+    opacity: .32;
+}
+
+.technology-card.world-masked::after {
+    content: "位面未知";
+    position: absolute;
+    inset: 0;
+    z-index: 8;
+    display: grid;
+    place-items: center;
+    color: rgba(220, 239, 241, .88);
+    font: 700 13px/1 var(--bp-font-ui);
+    letter-spacing: 4px;
+    text-shadow: 0 1px 4px #000;
+    background:
+        repeating-conic-gradient(from var(--mosaic-angle, 0deg), rgba(89, 110, 111, .86) 0 9deg, rgba(22, 31, 33, .92) 9deg 18deg) 0 0 / 18px 18px,
+        rgba(10, 14, 15, .88);
+    animation: technology-mosaic-shift .75s steps(4, end) infinite;
+}
+
+@keyframes technology-mosaic-shift {
+    0% { background-position: 0 0, 0 0; }
+    50% { background-position: 9px -6px, 0 0; }
+    100% { background-position: -7px 9px, 0 0; }
+}
+
 .technology-tree-detail {
     flex: 0 0 330px;
     box-sizing: border-box;

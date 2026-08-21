@@ -75,8 +75,11 @@ export class HamsterGuardAI {
 
         // 挥击中：站定 → 到第 10 帧延迟出伤（一次）→ 动画播完回 idle
         if (this._swingActive) {
-            m.vx = 0;
-            m.vy = 0;
+            // 平滑站定：速度指数衰减（≈0.85/帧），代替瞬时清零的急停
+            const damp = Math.pow(0.85, dt / 16.67);
+            m.vx *= damp;
+            m.vy *= damp;
+            if (Math.abs(m.vx) < 1 && Math.abs(m.vy) < 1) { m.vx = 0; m.vy = 0; }
             m.isMoving = false;
             m.maxSpeed = 0;
             m._animState = 'attack';
@@ -106,6 +109,11 @@ export class HamsterGuardAI {
         // 移动中：交给 MovementSystem 寻路推进
         MovementSystem.update(m, dt, entities);
         this._checkStuck(dt);
+        // 缓停滑行（maxSpeed=0 后速度沿摩擦/加速度渐近归零）期间保持 walk 动画，
+        // 避免站着播 idle 却还在滑行的"滑冰"感
+        if (m._animState === 'idle' && Math.hypot(m.vx || 0, m.vy || 0) > 25) {
+            m._animState = 'walk';
+        }
     }
 
     /** 决策 tick：有敌追击/挥击，无敌跟随玩家 */
@@ -141,10 +149,7 @@ export class HamsterGuardAI {
                     m._animState = 'attack';
                     m._attackSwing = true; // 渲染层播攻击动画
                 } else {
-                    m._animState = 'idle'; // 间隔期待机
-                    m.vx = 0;
-                    m.vy = 0;
-                    m.isMoving = false;
+                    m._animState = 'idle'; // 间隔期待机（速度不清零，交给 MovementSystem 渐近减速）
                 }
                 return;
             }
@@ -164,9 +169,7 @@ export class HamsterGuardAI {
             if (dist <= this._followArriveDist) {
                 m._tacticalTarget = null;
                 m._animState = 'idle';
-                m.vx = 0;
-                m.vy = 0;
-                m.isMoving = false;
+                // 不再瞬时清零速度：由 MovementSystem 摩擦衰减完成缓停
                 m.maxSpeed = 0;
                 if (m._pathManager && typeof m._pathManager._clearPath === 'function') {
                     m._pathManager._clearPath();
@@ -174,14 +177,15 @@ export class HamsterGuardAI {
             } else {
                 m._tacticalTarget = { x: fx, y: fy, _surfaceTarget: player };
                 m._animState = 'walk';
-                m.maxSpeed = this.cfg.walkSpeed ?? 100;
+                // 接近站位点缓出减速（120px 内速度随距离线性衰减，ease-out 到达）
+                const walkSpeed = this.cfg.walkSpeed ?? 100;
+                const slow = Math.min(1, dist / 120);
+                m.maxSpeed = walkSpeed * Math.max(0.3, slow);
             }
         } else {
             m._tacticalTarget = null;
             m._animState = 'idle';
-            m.vx = 0;
-            m.vy = 0;
-            m.isMoving = false;
+            // 速度不清零，由 MovementSystem 摩擦衰减缓停
             m.maxSpeed = 0;
         }
     }
@@ -203,7 +207,7 @@ export class HamsterGuardAI {
                 clearRtsSurfaceRoute(m);
                 m._animState = 'idle';
                 m.maxSpeed = 0;
-                m.vx = 0; m.vy = 0; m.isMoving = false;
+                // 速度不清零，由 MovementSystem 摩擦衰减完成缓停
             }
             return;
         }
@@ -232,8 +236,7 @@ export class HamsterGuardAI {
                     m._animState = 'attack';
                     m._attackSwing = true;
                 } else {
-                    m._animState = 'idle';
-                    m.vx = 0; m.vy = 0; m.isMoving = false;
+                    m._animState = 'idle'; // 间隔期待机（速度不清零，渐近减速）
                 }
             } else {
                 m._tacticalTarget = { x: t.x, y: t.y };
@@ -242,12 +245,11 @@ export class HamsterGuardAI {
             }
             return;
         }
-        // hold / 其它：待命
+        // hold / 其它：待命（速度不清零，由 MovementSystem 摩擦衰减缓停）
         m.target = null;
         m._tacticalTarget = null;
         m._animState = 'idle';
         m.maxSpeed = 0;
-        m.vx = 0; m.vy = 0; m.isMoving = false;
     }
 
     /** 收集最近有效敌人：只认 enemy 阵营且不是能源矿点（engageRange 内） */

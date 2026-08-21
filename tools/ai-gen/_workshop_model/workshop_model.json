@@ -1,0 +1,32 @@
+{
+  "modelName": "World122_Economic_Workshop_Modular",
+  "referenceImage": "../../../assets/terrain/economic_workshop.png",
+  "camera": {
+    "elevation": 30.0,
+    "azimuth": 0.0,
+    "buildingRotationZ": 44.8,
+    "resolution": 1024,
+    "bottomY": 910,
+    "topMargin": 46,
+    "widthMargin": 0.88
+  },
+  "dimensions": {
+    "foundation": [450, 370, 16],
+    "body": [344, 264, 168],
+    "roof": [390, 310, 108],
+    "door": [108, 132],
+    "chimneyPosition": [108, 54],
+    "chimneyHeight": 116
+  },
+  "palette": {
+    "foundation": [0.29, 0.27, 0.23, 1.0],
+    "stone": [0.34, 0.32, 0.28, 1.0],
+    "plaster": [0.56, 0.50, 0.39, 1.0],
+    "timber": [0.16, 0.09, 0.045, 1.0],
+    "roof": [0.34, 0.11, 0.045, 1.0],
+    "iron": [0.075, 0.08, 0.075, 1.0],
+    "brass": [0.43, 0.24, 0.055, 1.0],
+    "glass": [0.44, 0.20, 0.045, 1.0],
+    "glow": [0.95, 0.28, 0.025, 1.0]
+  }
+}

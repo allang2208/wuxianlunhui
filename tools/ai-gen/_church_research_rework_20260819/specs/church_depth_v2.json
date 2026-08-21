@@ -1,0 +1,14 @@
+{
+  "_comment": "Depth-only control guide. This is not final modeling: it locks the World-122 2x2 footprint, elevation 30 and rot.z 44.8 while diffusion supplies all visual detail.",
+  "elevation": 30,
+  "azimuth": 0,
+  "bottom_y": 880,
+  "max_width_frac": 0.8,
+  "top_margin_px": 66,
+  "primitives": [
+    { "type": "box", "size": [256, 128, 82], "pos": [0, 0, 41], "rot": [0, 0, 44.8] },
+    { "type": "box", "size": [64, 64, 154], "pos": [36, 12, 159], "rot": [0, 0, 44.8] },
+    { "type": "cone", "radius1": 42, "radius2": 0, "depth": 86, "pos": [36, 12, 279], "rot": [0, 0, 44.8] },
+    { "type": "box", "size": [76, 46, 102], "pos": [-72, -16, 51], "rot": [0, 0, 44.8] }
+  ]
+}

@@ -1382,7 +1382,7 @@ export const SceneManager = {
             if (r.energyMined > 0) lines.push([`矿工离线采集 +${Math.round(r.energyMined)} 能源`, '#7fd4ff']);
             if (r.passiveEnergy > 0) lines.push([`能源回收矩阵 +${r.passiveEnergy} 能源`, '#7fd4ff']);
             if (r.titheEnergy > 0) lines.push([`牧师什一税 +${r.titheEnergy} 能源`, '#c9a0ff']);
-            if (r.goldProduced > 0) lines.push([`银行职员产出 +${r.goldProduced} 金币`, '#ffd700']);
+            if (r.goldProduced > 0) lines.push([`银行服务结算 +${r.goldProduced} 金币`, '#ffd700']);
             if (r.foodProduced > 0) lines.push([`风车农夫收获 +${r.foodProduced} 粮食`, '#d9b84f']);
             if (r.unitsProduced > 0) lines.push([`新兵报到 +${r.unitsProduced}`, '#8ad0ff']);
             if (r.abilitiesCompleted.length > 0) lines.push([`研究/能力完成 ${r.abilitiesCompleted.length} 项`, '#c9a0ff']);
@@ -1878,8 +1878,8 @@ export const SceneManager = {
 
     /**
      * 位面核心继续使用传送门生命周期，只按世界配置覆盖场景视觉与占地。
-     * 太阳阴影按 sourceSprite.texture.key 查 manifest；idleKey 切到 defense_base 后，
-     * 会自动读取 defense_base 的 shadowSilhouette，不再沿用 portal 轮廓。
+     * 太阳阴影（2026-08-21 简化）：建筑一律只看 footprint 凸包，不再按贴图 key
+     * 查 manifest 剪影——换贴图不再需要同步 shadowSilhouette。
      */
     _applyWorldCoreVisual(sceneId, portal) {
         const visual = WorldProgressionSystem.getWorldConfig(sceneId)?.coreVisual;

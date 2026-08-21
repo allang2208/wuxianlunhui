@@ -75,9 +75,15 @@ class EnergyManagerImpl {
         if (!entity) return false;
         const cap = Math.max(0, Math.floor(Number(capacity) || 0));
         entity.storageCapacity = cap;
-        entity.storedEnergy = Math.max(0, Math.min(cap, Math.floor(Number(entity.storedEnergy) || 0)));
+        const energyFactor = this.getWarehouseEnergyFactor(entity);
+        const foodFactor = this.getWarehouseFoodFactor(entity);
+        entity.storedEnergy = Math.max(0, Math.min(
+            Math.floor(cap / energyFactor),
+            Math.floor(Number(entity.storedEnergy) || 0)
+        ));
+        const remaining = Math.max(0, cap - entity.storedEnergy * energyFactor);
         entity.storedFood = Math.max(0, Math.min(
-            cap - entity.storedEnergy,
+            Math.floor(remaining / foodFactor),
             Math.floor(Number(entity.storedFood) || 0)
         ));
         this._warehouses.set(entity.id || entity, entity);
@@ -137,8 +143,28 @@ class EnergyManagerImpl {
         return this.getWarehouses().reduce((sum, w) => sum + Math.max(0, Number(w.storageCapacity) || 0), 0);
     }
 
+    getWarehouseEnergyFactor(warehouse) {
+        return Math.max(0.1, Math.min(1, Number(warehouse?._energyStorageFactor) || 1));
+    }
+
+    getWarehouseFoodFactor(warehouse) {
+        return Math.max(0.1, Math.min(1, Number(warehouse?._foodStorageFactor) || 1));
+    }
+
+    getWarehouseUsedCapacity(warehouse) {
+        if (!warehouse) return 0;
+        return Math.max(0, Number(warehouse.storedEnergy) || 0) * this.getWarehouseEnergyFactor(warehouse)
+            + Math.max(0, Number(warehouse.storedFood) || 0) * this.getWarehouseFoodFactor(warehouse);
+    }
+
+    getWarehouseFreeCapacity(warehouse) {
+        return Math.max(0,
+            Math.max(0, Number(warehouse?.storageCapacity) || 0) - this.getWarehouseUsedCapacity(warehouse));
+    }
+
     getFreeCapacity() {
-        return Math.max(0, this.getCapacity() - this.getStoredTotal());
+        return this.getWarehouses().reduce((sum, warehouse) =>
+            sum + this.getWarehouseFreeCapacity(warehouse), 0);
     }
 
     hasWarehouse() {
@@ -149,8 +175,28 @@ class EnergyManagerImpl {
         return this.getCapacity() <= 0 || this.getFreeCapacity() <= 0;
     }
 
+    canStoreEnergy(amount) {
+        let left = Math.max(0, Number(amount) || 0);
+        for (const warehouse of this.getWarehouses()) {
+            left -= Math.floor(this.getWarehouseFreeCapacity(warehouse)
+                / this.getWarehouseEnergyFactor(warehouse));
+            if (left <= 0) return true;
+        }
+        return left <= 0;
+    }
+
+    canStoreFood(amount) {
+        let left = Math.max(0, Number(amount) || 0);
+        for (const warehouse of this.getWarehouses()) {
+            left -= Math.floor(this.getWarehouseFreeCapacity(warehouse)
+                / this.getWarehouseFoodFactor(warehouse));
+            if (left <= 0) return true;
+        }
+        return left <= 0;
+    }
+
     canStore(amount) {
-        return amount <= 0 || this.getFreeCapacity() >= amount;
+        return this.canStoreEnergy(amount);
     }
 
     /** 存入能源并返回实际入库量；容量不足时允许部分入库并提示满仓。 */
@@ -159,10 +205,10 @@ class EnergyManagerImpl {
         if (remain <= 0) return 0;
         const requested = remain;
         for (const warehouse of this.getWarehouses()) {
-            const capacity = Math.max(0, warehouse.storageCapacity || 0);
             const current = Math.max(0, warehouse.storedEnergy || 0);
-            const food = Math.max(0, warehouse.storedFood || 0);
-            const take = Math.min(remain, Math.max(0, capacity - current - food));
+            const take = Math.min(remain, Math.floor(
+                this.getWarehouseFreeCapacity(warehouse) / this.getWarehouseEnergyFactor(warehouse)
+            ));
             if (take <= 0) continue;
             warehouse.storedEnergy = current + take;
             remain -= take;
@@ -201,10 +247,10 @@ class EnergyManagerImpl {
         if (remain <= 0) return 0;
         const requested = remain;
         for (const warehouse of this.getWarehouses()) {
-            const capacity = Math.max(0, warehouse.storageCapacity || 0);
-            const energy = Math.max(0, warehouse.storedEnergy || 0);
             const current = Math.max(0, warehouse.storedFood || 0);
-            const take = Math.min(remain, Math.max(0, capacity - energy - current));
+            const take = Math.min(remain, Math.floor(
+                this.getWarehouseFreeCapacity(warehouse) / this.getWarehouseFoodFactor(warehouse)
+            ));
             if (take <= 0) continue;
             warehouse.storedFood = current + take;
             remain -= take;
@@ -255,6 +301,14 @@ class EnergyManagerImpl {
         this._flushPendingFood();
         this._notifyUpdate();
         return value;
+    }
+
+    /** 跨位面支付同步削减旧版待入库能源镜像，避免抵达新仓库后重复装入。 */
+    discardPendingEnergy(amount) {
+        const value = Math.max(0, Math.floor(Number(amount) || 0));
+        const deducted = Math.min(this._pendingEnergy, value);
+        this._pendingEnergy -= deducted;
+        return deducted;
     }
 
     _flushPendingEnergy() {

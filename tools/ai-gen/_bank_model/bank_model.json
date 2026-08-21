@@ -1,0 +1,34 @@
+{
+  "modelName": "World122_Bank",
+  "referenceImage": "../../../assets/terrain/bank.png",
+  "chimneysEnabled": false,
+  "camera": {
+    "elevation": 30.0,
+    "azimuth": 0.0,
+    "buildingRotationZ": 44.8,
+    "resolution": 1024,
+    "bottomY": 900,
+    "topMargin": 52,
+    "widthMargin": 0.88
+  },
+  "dimensions": {
+    "foundation": [460, 380, 16],
+    "lowerBody": [356, 276, 92],
+    "upperBody": [336, 256, 92],
+    "mainRoof": [398, 318, 104],
+    "frontGable": [178, 94, 72],
+    "door": [76, 10, 118],
+    "vaultEmblemRadius": 36
+  },
+  "palette": {
+    "stone": [0.34, 0.32, 0.28, 1.0],
+    "lightStone": [0.58, 0.55, 0.48, 1.0],
+    "plaster": [0.62, 0.58, 0.49, 1.0],
+    "timber": [0.16, 0.105, 0.065, 1.0],
+    "roofSlate": [0.095, 0.115, 0.13, 1.0],
+    "bronze": [0.46, 0.25, 0.07, 1.0],
+    "darkIron": [0.085, 0.09, 0.085, 1.0],
+    "glassBlue": [0.025, 0.16, 0.26, 1.0],
+    "moss": [0.11, 0.22, 0.07, 1.0]
+  }
+}

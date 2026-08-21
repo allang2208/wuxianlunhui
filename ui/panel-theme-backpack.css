@@ -1546,6 +1546,17 @@
     padding-right: 4px;
 }
 
+.build-panel .build-context-warning {
+    margin-bottom: 6px;
+    color: #ff7066;
+    font-weight: 700;
+    line-height: 1.45;
+}
+
+.build-panel .build-context-warning[hidden] {
+    display: none;
+}
+
 /* ===== Building detail: standalone right sidebar column ===== */
 :is(
     .build-structure-detail-panel,
@@ -1734,16 +1745,11 @@
 
 .producer-building-panel.is-economy-building #pbModules > .economy-workforce,
 .producer-building-panel.is-economy-building #pbModules > .economy-panel-heading,
-.producer-building-panel.is-economy-building #pbModules > .economy-panel-note {
+.producer-building-panel.is-economy-building #pbModules > .economy-panel-note,
+.producer-building-panel.is-economy-building #pbModules > .economy-stat-grid,
+.producer-building-panel.is-economy-building #pbModules > .economy-trade-actions,
+.producer-building-panel.is-economy-building #pbModules > .troop-panel-upgrade-button {
     grid-column: 1 / -1;
-}
-
-.producer-building-panel.is-economy-building .building-upgrade-card {
-    min-width: 0;
-    padding: 10px !important;
-    background: var(--bp-ui-surface) !important;
-    border: 1px solid var(--bp-ui-line) !important;
-    border-radius: 5px;
 }
 
 .producer-building-panel.is-economy-building .economy-panel-heading,
@@ -1770,6 +1776,7 @@
     color: var(--bp-ui-text-muted);
     font-size: var(--bp-type-meta);
     line-height: 1.45;
+    font-variant-numeric: tabular-nums;
 }
 
 .producer-building-panel.is-economy-building .economy-panel-badge {
@@ -1812,7 +1819,8 @@
 .producer-building-panel.is-economy-building .economy-stat-grid b {
     color: var(--bp-ui-white);
     font-family: var(--bp-font-number);
-    font-size: var(--bp-type-body);
+    font-size: var(--bp-type-meta);
+    font-variant-numeric: tabular-nums;
 }
 
 .producer-building-panel.is-economy-building .economy-panel-note {
@@ -1820,6 +1828,11 @@
     color: var(--bp-ui-text-muted);
     font-size: var(--bp-type-meta);
     line-height: var(--bp-leading-body);
+}
+
+.producer-building-panel.is-economy-building .economy-panel-note.is-danger {
+    color: #ff7066;
+    font-weight: 700;
 }
 
 .producer-building-panel.is-economy-building .economy-workforce {
@@ -1874,13 +1887,60 @@
     color: #ffad9f;
 }
 
+.producer-building-panel.is-economy-building #pbTitle {
+    color: var(--bp-ui-white) !important;
+    font-size: var(--bp-type-title) !important;
+}
+
+.producer-building-panel.is-economy-building #pbFunctionTitle {
+    color: var(--bp-ui-white) !important;
+    font-size: var(--bp-type-subtitle) !important;
+}
+
+.producer-building-panel.is-economy-building .world122-building-detail-header {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    padding: 10px !important;
+    margin-bottom: 10px !important;
+    border: 1px solid var(--bp-ui-line) !important;
+    border-radius: 8px !important;
+    background: linear-gradient(180deg, rgba(37, 42, 48, 0.78), rgba(21, 25, 30, 0.84)) !important;
+}
+
+.producer-building-panel.is-economy-building .world122-building-detail-header img {
+    width: 82px !important;
+    height: 76px !important;
+    object-fit: contain !important;
+    flex-shrink: 0 !important;
+}
+
+.producer-building-panel.is-economy-building .world122-building-detail-name {
+    margin: 0 !important;
+    font-size: var(--bp-type-subtitle) !important;
+    font-weight: 700 !important;
+    color: var(--bp-ui-white) !important;
+}
+
+.producer-building-panel.is-economy-building .world122-building-detail-status {
+    margin-top: 2px !important;
+    font-size: var(--bp-type-meta) !important;
+    color: var(--bp-ui-text-muted) !important;
+}
+
+.producer-building-panel.is-economy-building .world122-building-detail-durability {
+    margin-top: 6px !important;
+    color: var(--bp-ui-text-muted) !important;
+    font-size: var(--bp-type-meta) !important;
+}
+
 .producer-building-panel.is-economy-building .economy-workforce-actions {
     display: grid;
     grid-template-columns: repeat(3, minmax(44px, auto));
     gap: 6px;
 }
 
-.producer-building-panel.is-economy-building .economy-workforce-actions .troop-panel-unit-button,
+.producer-building-panel.is-economy-building .troop-panel-unit-button,
 .producer-building-panel.is-economy-building .troop-panel-upgrade-button {
     min-height: 36px;
     padding: 7px 10px;
@@ -1902,6 +1962,145 @@
 .producer-building-panel.is-economy-building :is(.troop-panel-unit-button, .troop-panel-upgrade-button):disabled {
     opacity: 0.42;
     cursor: not-allowed;
+}
+
+.producer-building-panel.is-economy-building :is(.troop-panel-unit-button, .troop-panel-upgrade-button):focus-visible {
+    outline: 2px solid var(--bp-ui-accent-bright);
+    outline-offset: 1px;
+}
+
+.producer-building-panel.is-economy-building .economy-trade-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.producer-building-panel.is-economy-building .economy-trade-actions .troop-panel-unit-button {
+    width: 100%;
+}
+
+.producer-building-panel.is-economy-building .economy-unit-gold {
+    color: #ffdd7a !important;
+}
+
+.producer-building-panel.is-economy-building .economy-unit-energy {
+    color: #7fd4ff !important;
+}
+
+.producer-building-panel.is-economy-building .economy-unit-food {
+    color: #d9b84f !important;
+}
+
+.producer-building-panel.is-economy-building :is(.economy-unit-gold, .economy-unit-energy, .economy-unit-food) {
+    font-family: var(--bp-font-number);
+    font-variant-numeric: tabular-nums;
+}
+
+.producer-building-panel.is-economy-building .building-upgrade-card {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 10px !important;
+    gap: 10px !important;
+    background: var(--bp-ui-surface);
+    border: 1px solid var(--bp-ui-line) !important;
+    border-radius: 5px !important;
+    cursor: help;
+    overflow: hidden;
+    min-width: 0 !important;
+}
+
+.producer-building-panel.is-economy-building .building-upgrade-card:hover {
+    background: rgba(197, 219, 228, 0.03);
+}
+
+.producer-building-panel.is-economy-building .building-upgrade-card-name {
+    font-size: var(--bp-type-body) !important;
+    color: var(--bp-ui-white) !important;
+    margin-bottom: 2px !important;
+}
+
+.producer-building-panel.is-economy-building .building-upgrade-card-requirement {
+    font-size: var(--bp-type-meta) !important;
+    color: var(--bp-ui-text-muted) !important;
+    margin-top: 2px !important;
+}
+
+.producer-building-panel.is-economy-building .building-upgrade-card > div:first-child {
+    min-width: 0 !important;
+    flex: 1 !important;
+}
+
+.producer-building-panel.is-economy-building .building-upgrade-card-progress {
+    font-size: var(--bp-type-meta) !important;
+    min-height: 12px !important;
+}
+
+.producer-building-panel.is-economy-building .building-upgrade-card > div:first-child > div:nth-child(3) {
+    position: relative !important;
+    height: 8px !important;
+    width: 100% !important;
+    background: rgba(255, 255, 255, 0.10) !important;
+    border-radius: 4px !important;
+    overflow: hidden !important;
+    margin-top: 4px !important;
+}
+
+.producer-building-panel.is-economy-building .building-upgrade-card > div:first-child > div:nth-child(3) > div {
+    position: absolute !important;
+    inset: 0 auto 0 0 !important;
+    border-radius: 4px !important;
+    transition: width 0.2s linear !important;
+    background: linear-gradient(90deg, #ffd700, #77c8d9) !important;
+}
+
+.producer-building-panel.is-economy-building .building-upgrade-card-actions {
+    flex-shrink: 0 !important;
+}
+
+.producer-building-panel.is-economy-building .building-upgrade-card-actions > span {
+    color: var(--bp-ui-text-muted) !important;
+    font-size: var(--bp-type-meta) !important;
+}
+
+.producer-building-panel.is-economy-building :is(#pbClose, #pbSell) {
+    font-family: var(--bp-font-ui) !important;
+    font-size: var(--bp-type-body) !important;
+    line-height: 1.35 !important;
+    min-width: 72px !important;
+    padding: 5px 12px !important;
+    border-radius: 5px !important;
+    cursor: pointer !important;
+}
+
+.producer-building-panel.is-economy-building #pbClose {
+    color: var(--bp-ui-text-muted) !important;
+    background: linear-gradient(180deg, #39424a, #252c33) !important;
+    border-color: var(--bp-ui-line-strong) !important;
+}
+
+.producer-building-panel.is-economy-building #pbClose:hover {
+    color: var(--bp-ui-white) !important;
+    border-color: var(--bp-ui-line) !important;
+}
+
+.producer-building-panel.is-economy-building #pbClose:focus-visible,
+.producer-building-panel.is-economy-building #pbSell:focus-visible {
+    outline: 2px solid var(--bp-ui-accent-bright) !important;
+    outline-offset: 1px !important;
+}
+
+.producer-building-panel.is-economy-building #pbSell {
+    color: #ffe7e5 !important;
+    background: linear-gradient(180deg, #612f32, #351a1d) !important;
+    border-color: #9b565b !important;
+}
+
+.producer-building-panel.is-economy-building #pbSell:hover {
+    color: #fff !important;
+    background: linear-gradient(180deg, #7c3c41, #4b2226) !important;
+    border-color: #d18489 !important;
 }
 
 @media (max-width: 1100px) {

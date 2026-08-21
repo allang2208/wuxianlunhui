@@ -1,0 +1,9 @@
+Use case: stylized-concept
+Asset type: World-122 game building sprite, medieval fantasy bank
+Primary request: Render one refined medieval fantasy bank from the supplied Blender depth control, preserving its exact silhouette, standard orthographic camera, roof direction, footprint and centered composition.
+Subject: A substantial two-story bank with pale weathered cut-stone lower walls, restrained cream plaster, dark carved oak half-timber framing, a broad desaturated blue-gray slate gable roof, exactly two integrated roof dormers, a reinforced arched bronze-and-dark-iron vault entrance, one prominent circular bank-vault emblem above the entrance, blue stained-glass windows, stone steps and a compact paved foundation.
+Style/medium: highly detailed hand-crafted realistic 3D game asset, crisp readable materials, restrained medieval craftsmanship, suitable for a Phaser isometric building sprite.
+Color palette: low saturation cold gray stone, charcoal oak, blue-gray slate, aged muted bronze, small deep-blue glass accents.
+Materials/textures: individually readable slate tiles, irregular ashlar masonry, worn timber grain, oxidized bronze edges, riveted iron door, subtle moss only in stone seams.
+Composition/framing: preserve the depth control exactly; single coherent building; all geometry connected; full building and complete foundation visible; no cropping.
+Constraints: absolutely no chimney, no smokestack, no chimney cap, no roof tower; keep exactly two dormers; keep the 30-degree orthographic World-122 viewpoint and 44.8-degree ground orientation; no text, no sign letters, no people, no vehicles, no loose props, no surrounding terrain, no extra buildings, no watermark.

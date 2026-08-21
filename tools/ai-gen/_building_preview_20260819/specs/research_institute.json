@@ -1,0 +1,23 @@
+{
+  "elevation": 30,
+  "azimuth": 0,
+  "resolution": 1024,
+  "bottom_y": 880,
+  "max_width_frac": 0.8,
+  "top_margin_px": 70,
+  "tex": "E:/无尽轮回/长期备份/2026-7-13-1/game-dev/tools/ai-gen/_building_preview_20260819/materials/research_institute_wall.png",
+  "roof_tex": "E:/无尽轮回/长期备份/2026-7-13-1/game-dev/tools/ai-gen/_building_preview_20260819/materials/research_institute_roof.png",
+  "lighting": { "ambient": 0.42, "sun": 0.82, "fill": 58, "exposure": 0.08 },
+  "primitives": [
+    { "type": "box", "size": [256, 128, 92], "pos": [0, 0, 46], "rot": [0, 0, 44.8], "bevel": 6, "material": "wall" },
+    { "type": "prism", "size": [278, 152, 72], "pos": [0, 0, 106], "rot": [0, 0, 44.8], "material": "roof" },
+    { "type": "box", "size": [72, 72, 158], "pos": [0, 2, 146], "rot": [0, 0, 44.8], "bevel": 5, "material": "wall" },
+    { "type": "prism", "size": [86, 86, 52], "pos": [0, 2, 238], "rot": [0, 0, 44.8], "material": "roof" },
+    { "type": "box", "size": [56, 4, 58], "pos": [-67, -66, 29], "rot": [0, 0, 44.8], "material": "interior" },
+    { "type": "box", "size": [22, 4, 24], "pos": [-116, -65, 63], "rot": [0, 0, 44.8], "material": "window" },
+    { "type": "box", "size": [22, 4, 24], "pos": [-22, -65, 63], "rot": [0, 0, 44.8], "material": "window" },
+    { "type": "box", "size": [20, 4, 34], "pos": [-29, -35, 161], "rot": [0, 0, 44.8], "material": "window" }
+  ],
+  "plates": [],
+  "slide": {}
+}

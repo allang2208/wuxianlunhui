@@ -80,16 +80,16 @@ export function structureDepthSpan(entity) {
 
 /**
  * 取得 iso 建筑在指定屏幕 X 位置的真实地面前缘 Y。
- * 只采样 footprint 两条前边。sideRange 仅表示移动精灵真实接地/碰撞的横向半径，
- * 不等于显示贴图宽度；当其中心略越过前角、但贴图仍与建筑相交时，仍以端点作为前缘，
- * 不能无限延长线段。
+ * 只采样 footprint 两条前边。sideRange 表示移动精灵当前帧真实 alpha 可见半宽，
+ * 并以接地/碰撞半径兜底；它不等于含透明留白的整帧宽度。当单位中心略越过前角、
+ * 但人物可见像素仍与建筑相交时，仍以端点作为前缘，不能无限延长线段。
  */
 export function structureFrontYAtX(entity, x, sideRange = 0) {
     if (!entity || entity._structureDepthMode !== 'iso_footprint') return null;
     if (!Array.isArray(entity._faceLines) || entity._faceLines.length !== 2) {
         refreshStructureDepth(entity);
     }
-    let frontY = null;
+    let nearest = null;
     for (const line of entity._faceLines || []) {
         const [a, b] = line || [];
         if (!a || !b) continue;
@@ -97,12 +97,20 @@ export function structureFrontYAtX(entity, x, sideRange = 0) {
         const maxX = Math.max(a.x, b.x);
         const lateralReach = Math.max(0, Number(sideRange) || 0);
         if (x < minX - lateralReach || x > maxX + lateralReach) continue;
+        const sampleX = Math.max(minX, Math.min(maxX, x));
+        const lateralDistance = Math.abs(x - sampleX);
         const dx = b.x - a.x;
-        const t = Math.max(0, Math.min(1, (x - a.x) / (Math.abs(dx) > 1e-6 ? dx : 1)));
+        const t = Math.max(0, Math.min(1, (sampleX - a.x) / (Math.abs(dx) > 1e-6 ? dx : 1)));
         const y = a.y + (b.y - a.y) * t;
-        if (frontY === null || y > frontY) frontY = y;
+        // sideRange 只负责让单位身体能触及前缘，不得让菱形另一侧的无关斜边
+        // 通过“扩张后取最大 Y”抢走判定。前角外侧应采样离单位中心最近的那条真实边；
+        // 正前顶点两边距离相同时 Y 相等，取哪条都不会跳变。
+        if (!nearest || lateralDistance < nearest.lateralDistance - 1e-6
+            || (Math.abs(lateralDistance - nearest.lateralDistance) <= 1e-6 && y > nearest.y)) {
+            nearest = { lateralDistance, y };
+        }
     }
-    return frontY;
+    return nearest?.y ?? null;
 }
 
 /** 给 WallSystem 的无分支采样结果：null 表示单位可见横向范围不与该建筑前缘相交。 */

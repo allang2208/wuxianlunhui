@@ -520,6 +520,9 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
 
 ### 环境光照与太阳投影（2026-08-18）
 
+- **单位阴影深浅**（2026-08-21）：`DYNAMIC_SHADOW_OPACITY=0.30078125`（0.240625 再 +25%，
+  部分单位太淡的用户口径）；静态 `STATIC_SHADOW_OPACITY=0.1925` 不变。个体用
+  `shadow.opacity` 覆盖，全局只调 environment-lighting-system.js 顶部两个常量。
 - **太阳方向先走世界-122 的 u/v 地面坐标**：`EnvironmentLightingSystem` 内以方位角得
   `sunU/sunV`，再调用 `isoLocalToWorldDelta()` 投到屏幕；**禁止**在 GameScene 再对
   `profile.offsetY` 乘一次 `PERSPECTIVE_SCALE_Y`，否则会二次压扁、方向偏离世界-122 菱形地面。
@@ -549,6 +552,13 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
   脱离底座”时，优先增加该配置，不要先拉长或加深影子。
 
 #### 静态投影算法（2026-08-19 七轮定稿：footprint 凸包，逐帧纯几何）
+
+> **2026-08-21 简化定稿（覆盖本节"凸包∪剪影"中的建筑部分）**：建筑（ensure 里有
+> entity）阴影一律只用 **footprint 凸包**——`_syncStaticSunShadows` 对 entity 直接把
+> `_silCache` 置 null，不再读 manifest 剪影列。根因：剪影迷航随贴图替换失配，反复出
+> 左/中/右大范围错影（portal 换图即复发），用户口径"干脆退回只看 footprint"。
+> 散布障碍物（树/仙人掌，无 entity）保留凸包∪剪影；楼梯/掩体墙本就走纯凸包，口径不变。
+> **建筑换贴图不再需要为阴影跑 build-lighting-maps.py**；manifest 剪影列仅障碍物消费。
 
 - **唯一做法（建筑 + 散布障碍物）**：**接地四边形凸包 ∪ 剪影轮廓包络合并**
   （2026-08-19 十轮定稿）——实体四边形由 `getSilhouetteFootprintVertices` 从剪影
@@ -630,6 +640,9 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
   （church/research_institute 曾因此错位：旧条目 1239/1126 宽、新图 1039/1051）。
 
 #### 建筑贴图替换后的阴影工作流
+
+> **2026-08-21 起第 1/2 步对建筑阴影不再必需**（建筑不看剪影，见上节简化定稿）；
+> 该脚本仍服务于散布障碍物剪影与 projection/height/normal 派生图留档。
 
 1. **保持贴图键不变时**：替换 `assets/terrain/<key>.png` 后运行
    `python tools/ai-gen/build-lighting-maps.py`，重新生成 `<key>_projection/height/normal/silhouette`

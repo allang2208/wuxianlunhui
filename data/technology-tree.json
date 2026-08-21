@@ -221,20 +221,6 @@
       ]
     },
     {
-      "id": "fortress_projection",
-      "name": "要塞投影",
-      "icon": "🗺️",
-      "branch": "指挥",
-      "column": 2,
-      "lane": 1,
-      "researchCost": 140,
-      "prerequisites": ["engineering_drafting", "tactical_command"],
-      "description": "用战术投影查看建筑与防线的平面布局。",
-      "unlocks": [
-        { "type": "mechanic", "id": "flat_view", "label": "压平视图" }
-      ]
-    },
-    {
       "id": "expedition_logistics",
       "name": "远征后勤",
       "icon": "🌐",
@@ -246,6 +232,24 @@
       "description": "建立跨位面补给体系，使部队能够跨世界增援。",
       "unlocks": [
         { "type": "mechanic", "id": "cross_world_reinforcement", "label": "跨世界增援" }
+      ]
+    },
+    {
+      "id": "dungeon_explorer_corps", "name": "地牢探险团", "icon": "🧭",
+      "branch": "指挥", "column": 4, "lane": 0, "researchCost": 260,
+      "prerequisites": ["expedition_logistics"], "requiredWorldId": "scene11",
+      "description": "掌握僵尸地牢位面的生存路线，允许继续修建探险家营地并训练地牢特色单位。",
+      "unlocks": [
+        { "type": "building", "id": "explorer_camp", "label": "探险家营地与特色单位" }
+      ]
+    },
+    {
+      "id": "jungle_temple_rites", "name": "丛林神庙仪式", "icon": "🌿",
+      "branch": "军事", "column": 4, "lane": 2, "researchCost": 280,
+      "prerequisites": ["field_theology", "expedition_logistics"], "requiredWorldId": "scene10",
+      "description": "掌握沼泽林地的古老仪式，允许继续修建丛林神庙并训练林地特色单位。",
+      "unlocks": [
+        { "type": "building", "id": "jungle_temple", "label": "丛林神庙与特色单位" }
       ]
     }
   ]

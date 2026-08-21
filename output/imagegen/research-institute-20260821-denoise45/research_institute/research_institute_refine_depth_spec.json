@@ -1,0 +1,165 @@
+{
+  "elevation": 30,
+  "azimuth": 0,
+  "resolution": 1024,
+  "bottom_y": 880,
+  "max_width_frac": 0.8,
+  "top_margin_px": 48,
+  "center_on_origin": true,
+  "foundation_fit_scale": 1.42,
+  "primitives": [
+    {
+      "type": "box",
+      "size": [
+        220,
+        220,
+        140
+      ],
+      "pos": [
+        0,
+        0,
+        70
+      ],
+      "rot": [
+        0,
+        0,
+        44.8
+      ]
+    },
+    {
+      "type": "prism",
+      "size": [
+        244,
+        244,
+        88.0
+      ],
+      "pos": [
+        0,
+        0,
+        176.0
+      ],
+      "rot": [
+        0,
+        0,
+        44.8
+      ]
+    },
+    {
+      "type": "box",
+      "size": [
+        62,
+        62,
+        158.0
+      ],
+      "pos": [
+        0,
+        0,
+        261.0
+      ],
+      "rot": [
+        0,
+        0,
+        44.8
+      ]
+    },
+    {
+      "type": "prism",
+      "size": [
+        84,
+        84,
+        62.0
+      ],
+      "pos": [
+        0,
+        0,
+        363.0
+      ],
+      "rot": [
+        0,
+        0,
+        44.8
+      ]
+    },
+    {
+      "type": "box",
+      "size": [
+        46,
+        46,
+        126.0
+      ],
+      "pos": [
+        -70,
+        -42,
+        231.0
+      ],
+      "rot": [
+        0,
+        0,
+        44.8
+      ]
+    },
+    {
+      "type": "prism",
+      "size": [
+        64,
+        64,
+        50.0
+      ],
+      "pos": [
+        -70,
+        -42,
+        311.0
+      ],
+      "rot": [
+        0,
+        0,
+        44.8
+      ]
+    },
+    {
+      "type": "box",
+      "size": [
+        46,
+        46,
+        126.0
+      ],
+      "pos": [
+        70,
+        42,
+        231.0
+      ],
+      "rot": [
+        0,
+        0,
+        44.8
+      ]
+    },
+    {
+      "type": "prism",
+      "size": [
+        64,
+        64,
+        50.0
+      ],
+      "pos": [
+        70,
+        42,
+        311.0
+      ],
+      "rot": [
+        0,
+        0,
+        44.8
+      ]
+    }
+  ],
+  "structural_overlap": {
+    "extendedPrimitiveCount": 7,
+    "overlapZ": 8.0
+  },
+  "square_footprint_normalization": {
+    "squarePrimitiveCount": 0,
+    "foundation": "building_foundation_2x2",
+    "fitScale": 1.42
+  }
+}

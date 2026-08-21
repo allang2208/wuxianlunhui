@@ -33,6 +33,7 @@ import { DefenseTrap, TRAP_CONFIG, TRAP_GRADES, TRAP_SPACING, getTrapDef, Defens
 import { HamsterHut, HamsterHutSystem, HAMSTER_CONFIG } from './hamster-hut-system.js';
 import { HamsterBarracks, HamsterBarracksSystem, BARRACKS_CONFIG } from './hamster-barracks-system.js';
 import { ProducerBuilding, ProducerBuildingSystem, PRODUCER_BUILDINGS } from './producer-building-system.js';
+import { CrossPlaneResourceSystem } from './cross-plane-resource-system.js';
 import {
     applyFittedBuildingFootprint,
     WALL_STAIR_FOOTPRINTS,
@@ -222,6 +223,7 @@ for (const pc of Object.values(PRODUCER_BUILDINGS || {})) {
         assetPath: pc.assetPath,
         kind: 'producer',
         currency: pc.currency === 'gold' ? 'gold' : 'energy',
+        buildWarning: pc.buildWarning || '',
     });
 }
 // 旧 F→A 长掩体与旧滑动门已从建筑清单移除；底层实体/资产保留兼容历史场景。
@@ -385,7 +387,7 @@ export const BuildingSystem = {
 
     // ==================== 面板 ====================
 
-    _effectiveBuildCost(item) {
+    _baseBuildCost(item) {
         if (!item) return 0;
         const cfg = item.kind === 'producer' ? PRODUCER_BUILDINGS[item.id] : null;
         if (cfg?.workshopType === 'warehouse'
@@ -396,11 +398,39 @@ export const BuildingSystem = {
         return Math.max(0, Math.floor(Number(item.cost) || 0));
     },
 
+    _effectiveBuildCost(item) {
+        const base = this._baseBuildCost(item);
+        const currency = item?.currency === 'energy' ? 'energy' : 'gold';
+        return CrossPlaneResourceSystem.quote({ [currency]: base })[currency];
+    },
+
     _economyWarehouseBlockReason(item) {
         const cfg = item?.kind === 'producer' ? PRODUCER_BUILDINGS[item.id] : null;
         return cfg?.economyType && !EnergyManager?.hasWarehouse?.()
             ? '需要先在当前位面修建仓库'
             : '';
+    },
+
+    _featureBuildingBlockReason(item) {
+        const cfg = item?.kind === 'producer' ? PRODUCER_BUILDINGS[item.id] : null;
+        if (!cfg) return '';
+        if (Array.isArray(cfg.allowedSceneIds) && !cfg.allowedSceneIds.includes(SceneManager.currentScene)) {
+            const worldName = cfg.featureWorldId
+                ? (SceneManager.scenes?.[cfg.featureWorldId]?.name || cfg.featureWorldId)
+                : '对应位面';
+            return `只能在${worldName}建造`;
+        }
+        const limit = Math.max(0, Math.floor(Number(cfg.buildLimit) || 0));
+        if (limit > 0) {
+            const count = (ProducerBuildingSystem?.buildings || []).filter((building) =>
+                building?.active !== false && !building?._sinking && building?.cfgKey === item.id).length;
+            if (count >= limit) return `${cfg.name}数量已达上限（${limit}）`;
+        }
+        return '';
+    },
+
+    _buildItemBlockReason(item) {
+        return this._featureBuildingBlockReason(item) || this._economyWarehouseBlockReason(item);
     },
 
     _buildItemGate(item) {
@@ -436,7 +466,7 @@ export const BuildingSystem = {
             .map((item) => renderBuildItemThumb(
                 item,
                 this._effectiveBuildCost(item),
-                this._economyWarehouseBlockReason(item)
+                this._buildItemBlockReason(item)
             ))
             .join('');
     },
@@ -472,14 +502,16 @@ export const BuildingSystem = {
         // build-panel 专属类：右侧主栏目尺寸与响应式建筑网格，不影响摆墙编辑器共享样式。
         el.className = 'wall-editor-panel build-panel';
         const gold = GoldManager ? GoldManager.getGold() : 0;
-        const energy = EnergyManager ? EnergyManager.getEnergy() : 0;
+        const resourceContext = CrossPlaneResourceSystem.getContext();
+        const energy = CrossPlaneResourceSystem.getAvailable('energy');
+        const resourceLabel = resourceContext.remote ? '跨位面可用' : '本位面';
         el.innerHTML = `
             <div class="we-title"><span id="bpTitleText">建筑面板（${SceneManager.scenes?.[SceneManager.currentScene]?.name || '当前世界'}）</span> <span class="we-close" id="bpClose">×</span></div>
             <div class="we-hotkeys" id="bpHotkeys" style="font-size:12px;color:#ffd700;background:rgba(90,70,20,0.25);border:1px solid #6a5a2a;border-radius:4px;padding:4px 8px;margin-bottom:8px;">
                 镜像翻转 <b>F</b>（<span id="bpMirrorState">关</span>）｜ 辅助吸附 <b>G</b>（<span id="bpSnapState">开</span>）｜ 墙吸附 <b>H</b>（<span id="bpWallSnap">外部</span>）
             </div>
             <div class="we-info" id="bpCur">
-                金币：<b style="color:#ffd700;">${gold}</b>&nbsp;&nbsp;能源：<b style="color:#7fd4ff;">${energy}</b>（点击建筑后到场景里放置）
+                金币：<b style="color:#ffd700;">${gold}</b>&nbsp;&nbsp;能源：<b style="color:#7fd4ff;">${energy}</b>（${resourceLabel}；点击建筑后到场景里放置）
             </div>
             <div class="we-row" id="bpSortRow" style="margin:6px 0;justify-content:flex-end;">
                 <button id="bpSortMode" type="button" style="min-width:132px;">排序：解锁顺序</button>
@@ -499,6 +531,7 @@ export const BuildingSystem = {
                 <button id="bpRecycleMode" title="进入回收模式后，左键点击建筑或道路进行回收" style="width:100%;background:#5a3028;color:#ffd7d0;border:1px solid #8a4a3a;">回收建筑</button>
             </div>
             <div class="we-hints" id="bpHints">
+                <div class="build-context-warning" id="bpContextWarning" hidden></div>
                 B=开/关面板 | 点击建筑后移动鼠标预览<br>
                 左键放置（掩体/塔扣能源）| F=镜像（垂直↔水平）| 右键/Esc=取消<br>
                 回收建筑=进入快捷回收，左键可连续回收建筑或道路<br>
@@ -557,7 +590,10 @@ export const BuildingSystem = {
         }
         const el = this._panel.querySelector('#bpCur');
         if (el) {
-            el.innerHTML = `金币：<b style="color:#ffd700;">${GoldManager ? GoldManager.getGold() : 0}</b>&nbsp;&nbsp;能源：<b style="color:#7fd4ff;">${EnergyManager ? EnergyManager.getEnergy() : 0}</b>（点击建筑后到场景里放置）`;
+            const context = CrossPlaneResourceSystem.getContext();
+            const energy = CrossPlaneResourceSystem.getAvailable('energy');
+            const label = context.remote ? `跨位面可用，当前额外消耗 ${Math.round((context.multiplier - 1) * 100)}%` : '本位面';
+            el.innerHTML = `金币：<b style="color:#ffd700;">${GoldManager ? GoldManager.getGold() : 0}</b>&nbsp;&nbsp;能源：<b style="color:#7fd4ff;">${energy}</b>（${label}；点击建筑后到场景里放置）`;
         }
     },
 
@@ -595,9 +631,9 @@ export const BuildingSystem = {
             this._notify('该建筑尚未通过科技解锁', '#ffb35c');
             return;
         }
-        const economyBlock = this._economyWarehouseBlockReason(item);
-        if (economyBlock) {
-            this._notify(economyBlock, '#ffb35c');
+        const buildBlock = this._buildItemBlockReason(item);
+        if (buildBlock) {
+            this._notify(buildBlock, '#ffb35c');
             this._renderBuildGrid();
             return;
         }
@@ -668,6 +704,11 @@ export const BuildingSystem = {
         if (sel) {
             const action = item.kind === 'road' ? '单击或拖动铺设' : '左键放置 / F 镜像';
             sel.textContent = `${item.name}（${this._effectiveBuildCost(item)}${item.currency === 'energy' ? '能' : '金'}）— ${action}`;
+        }
+        const warning = this._panel?.querySelector('#bpContextWarning');
+        if (warning) {
+            warning.textContent = item.buildWarning || '';
+            warning.hidden = !item.buildWarning;
         }
     },
 
@@ -884,6 +925,11 @@ export const BuildingSystem = {
         this._updateMirrorUi();
         const sel = this._panel && this._panel.querySelector('#bpSel');
         if (sel) sel.textContent = '未选择建筑';
+        const warning = this._panel?.querySelector('#bpContextWarning');
+        if (warning) {
+            warning.textContent = '';
+            warning.hidden = true;
+        }
     },
 
     _setRecycleMode(enabled) {
@@ -1878,14 +1924,15 @@ export const BuildingSystem = {
                     id,
                 });
             } catch (err) {
-                if (!free) this._refundBuildCost(item.currency, item.cost);
+                if (!free) this._refundLastBuildPayment();
                 console.error('[BuildingSystem] 方块墙建造失败:', err);
                 break;
             }
             this._markBuiltEntity(cover, item);
             Game.entities.set(id, cover);
             clearZones.push({ x, y, radius: 70 });
-            spent += item.cost;
+            spent += free ? item.cost : (this._lastBuildPayment?.energy ?? item.cost);
+            this._lastBuildPayment = null;
             n++;
         }
         this._clearBuildZones(clearZones);
@@ -1924,11 +1971,12 @@ export const BuildingSystem = {
                 buildCost: free ? 0 : item.cost,
                 buildCurrency: item.currency,
             })) {
-                if (!free) this._refundBuildCost(item.currency, item.cost);
+                if (!free) this._refundLastBuildPayment();
                 continue;
             }
             clearZones.push({ x, y, radius: ONE_CELL_BUILDING_FOOT.clearRadius });
-            spent += item.cost;
+            spent += free ? item.cost : (this._lastBuildPayment?.energy ?? item.cost);
+            this._lastBuildPayment = null;
             n++;
         }
         this._clearBuildZones(clearZones);
@@ -2332,6 +2380,7 @@ export const BuildingSystem = {
     _canPlace(x, y) {
         const item = this._placing && this._placing.item;
         if (!item) return false;
+        if (this._featureBuildingBlockReason(item)) return false;
         if (!isTwoByTwoBuildItem(item) && !this._fitsPlacementBounds(item, x, y)) return false;
         // 方块墙：格子冲突判定（2026-08-17 二修）——单条 face 线段会压住同向邻格，
         // 改为「同格不可放、邻格/更远可放」+ 地形检查（排除方块自身 face 段）
@@ -3006,8 +3055,15 @@ export const BuildingSystem = {
 
     _deductBuildCost(currency, amount) {
         if (!(amount > 0)) return true;
-        if (currency === 'gold') return !!(GoldManager && GoldManager.deductGold(amount));
-        return !!(EnergyManager && EnergyManager.deductEnergy(amount));
+        const payment = CrossPlaneResourceSystem.pay({ [currency === 'gold' ? 'gold' : 'energy']: amount });
+        this._lastBuildPayment = payment.ok ? payment : null;
+        return payment.ok;
+    },
+
+    _refundLastBuildPayment() {
+        if (!this._lastBuildPayment) return;
+        CrossPlaneResourceSystem.refund(this._lastBuildPayment);
+        this._lastBuildPayment = null;
     },
 
     _refundBuildCost(currency, amount) {
@@ -3261,9 +3317,9 @@ export const BuildingSystem = {
             this._cancelPlacement();
             return;
         }
-        const economyBlock = this._economyWarehouseBlockReason(item);
-        if (economyBlock) {
-            this._notify(economyBlock, '#ffb35c');
+        const buildBlock = this._buildItemBlockReason(item);
+        if (buildBlock) {
+            this._notify(buildBlock, '#ffb35c');
             this._cancelPlacement();
             this._renderBuildGrid();
             return;
@@ -3277,7 +3333,7 @@ export const BuildingSystem = {
         const free = !!(Game && Game._devInfiniteResources);
         const currency = item.currency === 'energy' ? 'energy' : 'gold';
         const staircaseSnap = item.kind === 'wall_staircase' ? this._snapped : null;
-        const buildCost = staircaseSnap?.cost ?? this._effectiveBuildCost(item);
+        const buildCost = staircaseSnap?.cost ?? this._baseBuildCost(item);
         const payOk = free || this._deductBuildCost(currency, buildCost);
         if (!payOk) {
             this._notify(currency === 'energy' ? '能源不足（攻击资源点采集）' : '金币不足', '#ff5555');
@@ -3375,17 +3431,19 @@ export const BuildingSystem = {
                 BuildingRoadSystem.attach(placedEntity);
             }
         } catch (err) {
-            if (!free) this._refundBuildCost(currency, buildCost);
+            if (!free) this._refundLastBuildPayment();
             console.error('[BuildingSystem] 建造失败:', err);
             this._notify('建造失败，资源已返还', '#ff5555');
             return;
         }
+        const paidCost = free ? buildCost : (this._lastBuildPayment?.[currency] ?? buildCost);
+        this._lastBuildPayment = null;
         if (SoundManager && typeof SoundManager.playFile === 'function') {
             SoundManager.playFile('assets/sounds/ui/sell.wav');
         }
         const cur = item.currency === 'energy' ? '能' : '金';
         this._notify(
-            free ? `${item.name} 已放置（无限资源）` : `${item.name} 已放置（-${buildCost} ${cur}）`,
+            free ? `${item.name} 已放置（无限资源）` : `${item.name} 已放置（-${paidCost} ${cur}）`,
             item.currency === 'energy' ? '#7fd4ff' : '#ffd700'
         );
         // 清除建造位置重叠的散布障碍物（仙人掌/树等，2026-08-17 用户口径）：

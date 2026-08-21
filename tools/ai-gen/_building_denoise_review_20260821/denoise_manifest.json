@@ -1,0 +1,68 @@
+{
+  "mode": "deterministic-no-regeneration",
+  "levels": [
+    {
+      "level": "lv1",
+      "source": "assets/terrain/house_lv1.png",
+      "output": "tools/ai-gen/_building_denoise_review_20260821/house_lv1_denoised_2x.png",
+      "saturatedOutput": "tools/ai-gen/_building_denoise_review_20260821/house_lv1_denoised_saturated_2x.png",
+      "sourceSize": [
+        895,
+        1028
+      ],
+      "outputSize": [
+        512,
+        588
+      ],
+      "runtimeSize": [
+        256,
+        294
+      ],
+      "sigmaColor": 18.0,
+      "blend": 0.68,
+      "saturationFactor": 1.14
+    },
+    {
+      "level": "lv2",
+      "source": "assets/terrain/house_lv2.png",
+      "output": "tools/ai-gen/_building_denoise_review_20260821/house_lv2_denoised_2x.png",
+      "saturatedOutput": "tools/ai-gen/_building_denoise_review_20260821/house_lv2_denoised_saturated_2x.png",
+      "sourceSize": [
+        978,
+        1118
+      ],
+      "outputSize": [
+        540,
+        618
+      ],
+      "runtimeSize": [
+        270,
+        309
+      ],
+      "sigmaColor": 14.0,
+      "blend": 0.52,
+      "saturationFactor": 1.12
+    },
+    {
+      "level": "lv3",
+      "source": "assets/terrain/house_lv3.png",
+      "output": "tools/ai-gen/_building_denoise_review_20260821/house_lv3_denoised_2x.png",
+      "saturatedOutput": "tools/ai-gen/_building_denoise_review_20260821/house_lv3_denoised_saturated_2x.png",
+      "sourceSize": [
+        1220,
+        1374
+      ],
+      "outputSize": [
+        596,
+        670
+      ],
+      "runtimeSize": [
+        298,
+        335
+      ],
+      "sigmaColor": 16.0,
+      "blend": 0.52,
+      "saturationFactor": 1.1
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+Use case: stylized-concept
+Asset type: World-122 2x2 production building, transparent PNG
+Primary request: Compact fantasy research institute: pale cold-gray ashlar academy, an integrated central square observatory tower, dark muted blue-slate gable roofs, narrow warm-lit mullioned windows, subtle inset copper instruments, iron roof trim, layered stone cornices and finely readable stone courses. No dome and no detached props.
+Style/medium: Match the existing World-122 buildings: high-detail realistic 3D-rendered PBR game asset, muted low-saturation palette, restrained weathering, crisp ambient occlusion, readable silhouette.
+Composition/framing: Strict orthographic isometric camera. The entire building must sit on one visible thin rectangular stone foundation whose top face is a clean 2:1 isometric diamond for the fixed 256×128 World-122 footprint. Foundation left and right edges must be exactly at screen slopes +0.5 and -0.5 (26.565 degrees), with all four diamond corners visible and horizontally centered. Roof ridges and wall bases align to the same two isometric axes. Preserve the geometry and framing imposed by the supplied depth guide.
+Lighting/mood: Soft diffuse studio light, no cast shadow, no ground plane.
+Constraints: Actual transparent background; no terrain, grass, soil, platform, oval base, perspective convergence, text, logo, watermark, people, trees, vehicles or floating props.
