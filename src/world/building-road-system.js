@@ -256,12 +256,15 @@ export const BuildingRoadSystem = {
         this._ensureScene(targetScene);
         this.detach(entity);
 
+        const configuredKind = kind ?? entity._cfg?.perimeterTile ?? 'road';
+        if (configuredKind === 'none') return true;
+
         const layout = buildingRoadLayout(entity.x, entity.y);
         if (!allowOverlap && layout.reservationCells.some((cell) =>
             this.isReservedCell(cell.i, cell.j)
         )) return false;
 
-        const perimeterKind = kind || (entity._cfg?.perimeterTile === 'field' ? 'field' : 'road');
+        const perimeterKind = configuredKind === 'field' ? 'field' : 'road';
         const record = { layout, kind: perimeterKind };
         this._owners.set(entity, record);
         for (const cell of layout.reservationCells) {

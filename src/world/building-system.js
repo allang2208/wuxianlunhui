@@ -141,9 +141,11 @@ function isTwoByTwoBuildItem(item) {
     return !!item && ['tower', 'hamster_hut', 'hamster_barracks', 'producer'].includes(item.kind);
 }
 
-/** 防御塔只占标准 2x2，不预留或生成外围道路。 */
+/** 防御塔与显式关闭外围地块的建筑只占标准 2x2，不预留或生成外围道路。 */
 function usesBuildingRoads(item) {
-    return isTwoByTwoBuildItem(item) && item.kind !== 'tower';
+    if (!isTwoByTwoBuildItem(item) || item.kind === 'tower') return false;
+    return item.kind !== 'producer'
+        || PRODUCER_BUILDINGS[item.id]?.perimeterTile !== 'none';
 }
 
 function buildingPerimeterKind(item) {

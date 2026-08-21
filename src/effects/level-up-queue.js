@@ -1,5 +1,7 @@
 import { queryAllElements } from '../utils/dom-utils.js';
 import { TimerManager } from '../utils/timer-manager.js';
+import { SoundManager } from '../ui/sound-manager.js';
+import audioConfig from '../../data/audio-config.json';
 // 效果队列系统：用于顺序播放升级/技能提升等特效
 // 避免多个特效同时叠加显示
 
@@ -43,6 +45,11 @@ const LevelUpEffectQueue = {
     },
 
     _renderEffect(effect) {
+        if (effect.type === 'playerLevelUp' || effect.type === 'skillLevelUp') {
+            const path = audioConfig.uiCues?.playerUpgrade;
+            if (path) SoundManager.playFile(path, 1, 'ui');
+        }
+
         // 屏幕闪光
         const flash = document.createElement('div');
         flash.className = 'screen-flash';

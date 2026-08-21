@@ -72,10 +72,6 @@ gainExp(amount, expTag = null) {
             },
 
 onLevelUp(level) {
-                // 播放升级音效
-                if (SoundManager && SoundManager.playFile) {
-                    SoundManager.playFile('assets/sounds/ui/levelup_cyber_5s.wav');
-                }
                 // 使用特效队列顺序播放
                 LevelUpEffectQueue.add({
                     type: 'playerLevelUp',

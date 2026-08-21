@@ -101,6 +101,7 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
 - **禁止用全图 Hough 线段判合格**：砖缝、窗框、屋檐或内部墙线常恰好接近 `±26°`，会掩盖真实塔脚回边达到 `+42°/+51°` 的错误；Hough 只能辅助找候选线，不能代替 Alpha 外轮廓验收。
 - **修正边界**：只有整栋建筑两组轴共享同一线性误差时才允许全局仿射；多塔脚各自漂移属于非线性透视，必须重抽、按白模表面投影，或在保持竖线垂直的前提下对实际外轮廓做分段几何映射，然后重新测量每一段。
 - **入库门槛**：背景必须是真实 RGBA；主体紧裁后等比缩放；可见接地范围必须落在固定 `256×128` 地基/碰撞菱形内；`alpha>16` 主体应为单一主连通域且不能触碰画布边界。未确认候选不得覆盖 `assets/terrain/`，只有玩家明确接受的版本才能提升为稳定英文资产键；定稿入库后删除 raw、预览、控制图、遮罩和被否版本。
+- **结构通过后的像素精修**：玩家已接受主体结构后，后续“降噪/提升饱和度”只改当前候选的 RGB，禁止重新生图改变窗户、阳台、底座或视角。处理必须锁住 alpha（输出 alpha 与输入逐像素一致），在主体 mask 内做边缘保护降噪与饱和度调整；每一轮百分比都以当轮输入为基准并保留可回退候选。安装时只覆盖稳定英文资产，逻辑 footprint、碰撞和道路衔接不得随像素处理改变。
 - **本机 3080 Ti 兜底**：`python tools/ai-gen/comfyui-gen.py --host 127.0.0.1 --model sdxl --prompt "..." --out out.png`
 - 客户端：`tools/ai-gen/zhipu-gen.py`（--prompt / --prompt-file / --model / --size / --out）
 - 接口：`POST https://open.bigmodel.cn/api/paas/v4/images/generations`，默认模型 **glm-image**（推荐 1280×1280）

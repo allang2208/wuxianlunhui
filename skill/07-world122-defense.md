@@ -1550,6 +1550,7 @@
 ### 建筑派生道路、独立升级项目与 alpha-ground-fit 闭环（2026-08-19）
 
 - **道路生命周期**：`BuildingRoadSystem.detach(entity, { preserveRoads:true })` 用于建筑沉陷和主动拆除：释放中央 2×2/4×4 预约，同时把外围自动道路转为独立道路；道路不随建筑消失，原位可直接重建。场景 teardown/普通重挂仍走默认 detach，避免遗留预约。
+- **外围格配置例外（2026-08-21）**：配置型建筑用 `producer-buildings.json#perimeterTile` 声明外围格；`"field"` 生成田地，缺省生成道路，`"none"` 只保留中央 2×2。`none` 必须同时关闭建造预览、4×4 预约、实际派生 tile，并由 `BuildingRoadSystem.attach()` 在快照恢复路径再次兜底，禁止只隐藏道路 Sprite 却继续占住外围 12 格。
 - **升级项目唯一源**：`data/building-upgrades.json` 定义项目、费用、模块 `effect` 与能力；建筑只在 `producer-buildings.json` 或固定建筑配置中声明 `upgradeProject`。`building-upgrade-projects.js` 负责解析，`unit-upgrade-store.js` 按 `effect` 生成统一补丁，禁止再按 `attackSpd/damage/moveSpd` 等模块 ID 写分支。
 - **升级支付事务（2026-08-19）**：矿场/兵营/通用产兵与铁匠铺、研究院能力升级统一走
   `payBuildingUpgradeCost()`；升级永远消耗真实金币与能源，`_devInfiniteResources`
@@ -2365,6 +2366,7 @@
 ### 人口经济建筑骨架（2026-08-21）
 
 - **数值真源**：人口、岗位、风车粮食、银行与市场参数统一在 `data/population-economy.json`；建筑注册、造价、贴图和外围格类型仍由 `data/producer-buildings.json` 驱动。禁止把容量、岗位上限、产率或汇率复制到面板代码。
+- **房屋升级反馈**：等级贴图、显示尺寸、脚点与完成音效路径由 `population-economy.json#house` 驱动，完成反馈只挂在 `_updateHouseUpgrade` 的唯一结算点。产品明确要求全局通知时使用 `SoundManager.playFile(..., 'ui')`，不按玩家与房屋距离衰减；烟尘复用 `BuildingSinkEffect` 同源的 footprint 采样和 `DustEffect` 参数，但必须通过非破坏性的 `BuildingFootprintDustEffect` 播放，禁止为升级创建沉陷特效、使实体失效或释放占地。
 - **人口语义**：人口上限只由房屋等级求和；风车、银行、市场和工坊在建筑实例上保存 `assignedWorkers` 数值，通过 `setAssignedWorkers/adjustAssignedWorkers` 占用全位面人口。岗位不是实体，不进入 `Game.entities` / `Game.friendlyUnits`，不寻路、不碰撞、不参与战斗；工坊的工程师升级决定岗位容量，实际分配人口决定上岗人数。
 - **风车农民视觉**：`HamsterFarmerVisualSystem` 只为当前位面、已有岗位的风车维护 Phaser Sprite，显示数不超过 `visualWorkerCap`（当前风车为 4，与 4 个岗位一一对应）。农民在 12 格田地环的相邻格间直线移动，循环 `idle → running → harvesting`；不创建物理体、碰撞体、寻路请求或存档对象。岗位归零、建筑出售/摧毁、位面离场时必须销毁 Sprite，回场按 `assignedWorkers` 重建。
 - **风车田地**：风车中心固定标准 2×2，外围复用 `BuildingRoadSystem` 的 4×4 预约与 12 格生命周期，但 tile kind 为 `field`。田地不算道路、不提供移动加成，并在风车拆除/摧毁时删除，不能转成可退款手铺道路。

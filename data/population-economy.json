@@ -2,14 +2,15 @@
   "_comment": "人口经济唯一数值源。房屋提供容量；风车、银行、市场按数值岗位工作；同一前台位面的市场共享交易压力。",
   "tickMs": 1000,
   "house": {
+    "upgradeCompleteSound": "assets/sounds/ui/house_upgrade_complete.mp3",
     "levels": [
       {
         "level": 1,
         "populationCapacity": 6,
         "tex": "house_lv1",
-        "displayW": 256,
-        "displayH": 294,
-        "footOffsetY": 147
+        "displayW": 270,
+        "displayH": 310,
+        "footOffsetY": 155
       },
       {
         "level": 2,

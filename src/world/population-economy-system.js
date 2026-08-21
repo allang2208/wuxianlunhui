@@ -2,6 +2,9 @@ import populationEconomyConfig from '../../data/population-economy.json';
 import { GoldManager } from '../systems/gold-manager.js';
 import { EnergyManager } from '../systems/energy-manager.js';
 import { Game } from '../game.js';
+import { EffectManager } from '../effects/effect-manager.js';
+import { BuildingFootprintDustEffect } from '../effects/building-sink.js';
+import { SoundManager } from '../ui/sound-manager.js';
 import { payBuildingUpgradeCost } from './building-upgrade-payment.js';
 import { createGoldItem, routeProducedGold as routeBankGold } from './economy-gold-routing.js';
 import { WorkshopEconomySystem } from './workshop-economy-system.js';
@@ -238,6 +241,9 @@ export const PopulationEconomySystem = {
         const targetLevel = building._economyUpgrade.targetLevel;
         building._economyUpgrade = null;
         this.applyHouseLevel(building, targetLevel);
+        EffectManager.add(new BuildingFootprintDustEffect(building));
+        const soundPath = populationEconomyConfig.house?.upgradeCompleteSound;
+        if (soundPath) SoundManager.playFile(soundPath, 1, 'ui');
     },
 
     getFoodStored() {
