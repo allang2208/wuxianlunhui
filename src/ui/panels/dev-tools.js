@@ -509,7 +509,7 @@ export function createDevToolPanel() {
     cheatRow.append(btnCheat, cheatHint);
     skillRow.appendChild(cheatRow);
 
-    // ===== 测试开关：无限资源（建造、产兵、升级项目不消耗能源/金币） =====
+    // ===== 测试开关：无限资源（建造、产兵、升级项目不消耗能源/金币/粮食） =====
     const resourceRow = document.createElement('div');
     resourceRow.style.cssText = 'display:flex;gap:8px;align-items:center;padding:6px 0;border-top:1px solid #3a3a3a;margin-top:6px;';
     const btnResource = document.createElement('button');
@@ -534,7 +534,7 @@ export function createDevToolPanel() {
     });
     syncResourceBtn();
     const resourceHint = document.createElement('span');
-    resourceHint.textContent = '测试用：建造建筑、生成单位、升级项目均不消耗金币和能源';
+    resourceHint.textContent = '测试用：建造建筑、生成单位、升级项目均不消耗金币、能源和粮食';
     resourceHint.style.cssText = 'color:#9aa5b1;font-size:11px;';
     resourceRow.append(btnResource, resourceHint);
     skillRow.appendChild(resourceRow);

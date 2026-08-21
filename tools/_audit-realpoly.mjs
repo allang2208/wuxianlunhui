@@ -10,7 +10,7 @@ const BUILDINGS = {
     thatch_hut: [794, 650, 275, 225],
     blacksmith: [910, 743, 279, 197],
     church: [1039, 1220, 256, 301],
-    research_institute: [1051, 1114, 256, 271],
+    research_institute: [908, 1076, 256, 303],
     warehouse: [1024, 1094, 278, 298],
     shooting_range: [786, 627, 272, 217],
     cavalry_school: [940, 713, 266, 202],

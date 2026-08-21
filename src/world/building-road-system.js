@@ -8,6 +8,10 @@ export const BUILDING_ROAD_DISPLAY_WIDTH = 130;
 export const BUILDING_ROAD_DISPLAY_HEIGHT = 65;
 export const BUILDING_ROAD_DEPTH = -995;
 export const BUILDING_ROAD_SPEED_MULTIPLIER = 1.2;
+export const BUILDING_FIELD_TEXTURE = 'building_field_tiles';
+export const BUILDING_FIELD_DISPLAY_WIDTH = 130;
+export const BUILDING_FIELD_DISPLAY_HEIGHT = 65;
+export const BUILDING_FIELD_DEPTH = -996;
 
 const BUILDING_CELLS = 2;
 const ROAD_PADDING = 1;
@@ -78,6 +82,7 @@ export const BuildingRoadSystem = {
         for (const entity of this._owners.keys()) {
             if (entity?._removeBuildingRoads) delete entity._removeBuildingRoads;
             if (entity?._buildingRoadLayout) delete entity._buildingRoadLayout;
+            if (entity?._buildingPerimeterKind) delete entity._buildingPerimeterKind;
         }
         this._scene = scene;
         this._owners = new Map();
@@ -105,6 +110,10 @@ export const BuildingRoadSystem = {
     },
 
     hasRoadCell(i, j) {
+        return this._roadTiles.get(cellKey(i, j))?.kind === 'road';
+    },
+
+    hasPerimeterCell(i, j) {
         return this._roadTiles.has(cellKey(i, j));
     },
 
@@ -118,28 +127,25 @@ export const BuildingRoadSystem = {
     },
 
     canPlaceManualRoadCell(i, j) {
-        return !this.hasRoadCell(i, j) && !this.isReservedCell(i, j);
+        return !this.hasPerimeterCell(i, j) && !this.isReservedCell(i, j);
     },
 
-    _ensureRoadTile(cell, targetScene) {
+    _ensureRoadTile(cell, targetScene, kind = 'road') {
         let tile = this._roadTiles.get(cell.key);
         if (!tile) {
-            tile = { sprite: null, owners: new Set(), manual: false };
+            tile = { sprite: null, owners: new Set(), manual: false, kind };
             this._roadTiles.set(cell.key, tile);
         }
         if (!tile.sprite && targetScene?.add?.sprite) {
-            tile.sprite = targetScene.add.sprite(
-                cell.x,
-                cell.y,
-                BUILDING_ROAD_TEXTURE,
-                cell.frame
-            );
+            tile.sprite = kind === 'field'
+                ? targetScene.add.sprite(cell.x, cell.y, BUILDING_FIELD_TEXTURE, cell.frame)
+                : targetScene.add.sprite(cell.x, cell.y, BUILDING_ROAD_TEXTURE, cell.frame);
             tile.sprite.setOrigin(0.5, 0.5);
             tile.sprite.setDisplaySize(
-                BUILDING_ROAD_DISPLAY_WIDTH,
-                BUILDING_ROAD_DISPLAY_HEIGHT
+                kind === 'field' ? BUILDING_FIELD_DISPLAY_WIDTH : BUILDING_ROAD_DISPLAY_WIDTH,
+                kind === 'field' ? BUILDING_FIELD_DISPLAY_HEIGHT : BUILDING_ROAD_DISPLAY_HEIGHT
             );
-            tile.sprite.setDepth(BUILDING_ROAD_DEPTH);
+            tile.sprite.setDepth(kind === 'field' ? BUILDING_FIELD_DEPTH : BUILDING_ROAD_DEPTH);
             tile.sprite.setAlpha(0.96);
         }
         return tile;
@@ -159,6 +165,7 @@ export const BuildingRoadSystem = {
         const key = cellKey(i, j);
         const existingTile = this._roadTiles.get(key);
         if (!force && !this.canPlaceManualRoadCell(i, j)) return false;
+        if (existingTile && existingTile.kind !== 'road') return false;
         // 旧快照兼容：自动道路环已占用该格时，手动道路可共享贴图并保留独立持久化标记；
         // 建筑中央预约格没有道路贴图，禁止强制铺入建筑底下。
         if (force && this.isReservedCell(i, j) && !existingTile) return false;
@@ -241,7 +248,7 @@ export const BuildingRoadSystem = {
         );
     },
 
-    attach(entity, { allowOverlap = false, scene = null } = {}) {
+    attach(entity, { allowOverlap = false, scene = null, kind = null } = {}) {
         if (!entity) return false;
         const targetScene = scene || (
             typeof window !== 'undefined' ? window.__phaserScene : null
@@ -254,7 +261,8 @@ export const BuildingRoadSystem = {
             this.isReservedCell(cell.i, cell.j)
         )) return false;
 
-        const record = { layout };
+        const perimeterKind = kind || (entity._cfg?.perimeterTile === 'field' ? 'field' : 'road');
+        const record = { layout, kind: perimeterKind };
         this._owners.set(entity, record);
         for (const cell of layout.reservationCells) {
             let owners = this._cellOwners.get(cell.key);
@@ -266,12 +274,16 @@ export const BuildingRoadSystem = {
         }
 
         for (const cell of layout.roadCells) {
-            const tile = this._ensureRoadTile(cell, targetScene);
+            const tile = this._ensureRoadTile(cell, targetScene, perimeterKind);
             tile.owners.add(entity);
         }
 
         entity._buildingRoadLayout = layout;
-        entity._removeBuildingRoads = (options) => this.detach(entity, options);
+        entity._buildingPerimeterKind = perimeterKind;
+        entity._removeBuildingRoads = (options = {}) => this.detach(entity, {
+            ...options,
+            preserveRoads: perimeterKind === 'road' && options.preserveRoads === true,
+        });
         return true;
     },
 
@@ -293,7 +305,7 @@ export const BuildingRoadSystem = {
             const tile = this._roadTiles.get(cell.key);
             if (!tile) continue;
             tile.owners.delete(entity);
-            if (preserveRoads && tile.owners.size === 0 && !tile.manual) {
+            if (record.kind === 'road' && preserveRoads && tile.owners.size === 0 && !tile.manual) {
                 // 独立道路沿用同一张贴图与持久化口径，避免建筑消失时道路一并消失。
                 this._manualRoadCells.set(cell.key, {
                     i: cell.i,
@@ -317,6 +329,7 @@ export const BuildingRoadSystem = {
         this._owners.delete(entity);
         if (entity?._removeBuildingRoads) delete entity._removeBuildingRoads;
         if (entity?._buildingRoadLayout) delete entity._buildingRoadLayout;
+        if (entity?._buildingPerimeterKind) delete entity._buildingPerimeterKind;
         return true;
     },
 };

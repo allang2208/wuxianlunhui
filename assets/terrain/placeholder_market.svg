@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="552" height="464" viewBox="0 0 552 464">
+  <polygon points="64,326 276,206 488,326 276,446" fill="#62513b" opacity=".75"/>
+  <rect x="116" y="214" width="320" height="152" fill="#7b5739"/><path d="M96 214L456 214L420 144L132 144Z" fill="#d8b65a"/>
+  <path d="M132 144h58l-18 70h-76zM248 144h58v70h-76zM364 144h56l36 70h-74z" fill="#b44c3d"/>
+  <rect x="150" y="254" width="252" height="112" fill="#382b22"/><circle cx="218" cy="306" r="25" fill="#f0cb50"/><path d="M300 286h70v40h-70z" fill="#78b9d3"/>
+  <text x="276" y="90" text-anchor="middle" fill="#fff2b0" font-size="38" font-family="sans-serif">市场</text>
+</svg>

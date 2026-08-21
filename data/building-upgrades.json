@@ -93,5 +93,14 @@
       "research_passive_energy": { "id": "research_passive_energy", "name": "能源回收矩阵", "icon": "⚡", "target": "全局能源", "base": 0, "per": 1, "displayMode": "flat", "maxLevel": 10, "desc": "每秒被动获得 {value} 能源（每级 +1）" },
       "research_recruit_speed": { "id": "research_recruit_speed", "name": "快速募兵", "icon": "🚀", "target": "所有军事产兵建筑", "firstLevel": 0.1, "per": 0.02, "displayMode": "percent", "maxLevel": 10, "desc": "全局募兵速度 +{pct}（Lv.1 为 10%，之后每级 +2%）" }
     }
+  },
+  "economic_workshop": {
+    "moduleUpgrade": { "gold": 500, "energy": 750, "timeBaseMs": 30000, "timeGrowthMs": 5000 },
+    "modules": {
+      "workshop_range": { "name": "影响范围", "icon": "📡", "effect": "workshopRange", "mode": "add", "base": 1200, "per": 100, "maxLevel": 10, "desc": "作用半径 {value}px" },
+      "workshop_efficiency": { "name": "效率增幅", "icon": "⚙️", "effect": "workshopEfficiency", "mode": "add", "base": 0.1, "per": 0.02, "maxLevel": 10, "desc": "满员时经济效率 +{pct}%" },
+      "workshop_repair": { "name": "维修效率", "icon": "🔧", "effect": "workshopRepair", "mode": "add", "base": 0.05, "per": 0.01, "maxLevel": 10, "desc": "每秒恢复目标最大生命 {pct}%" },
+      "workshop_engineers": { "name": "工程师数量", "icon": "🐹", "effect": "workshopEngineerCount", "mode": "add", "base": 2, "per": 1, "maxLevel": 3, "goldByLevel": [900, 1500, 2400], "energyByLevel": [1200, 2000, 3200], "timeByLevel": [45000, 60000, 90000], "desc": "仓鼠工程师 {value} 名" }
+    }
   }
 }

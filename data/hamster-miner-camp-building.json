@@ -12,7 +12,7 @@
   "sellRefundRatio": 0.5,
   "minerSpawnRadius": 70,
   "respawnMs": 60000,
-  "respawnEnergyCost": 100,
+  "respawnEnergyCost": 0,
   "freeMinimumCount": 1,
   "upgradeProject": "miner_economy"
 }

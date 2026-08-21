@@ -948,8 +948,10 @@ export const DungeonEventSystem = {
         const grade = this._currentGrade || 'D';
         const gradeIdx = GRADE_ORDER.indexOf(grade);
         const dungeonType = (this._dungeonMapSystem && this._dungeonMapSystem.dungeonType) || 'zombie';
-        // 僵尸家族地牢统一映射 zombie 事件大类（zombieBeginner/zombieMid/swamp 同族）
-        const family = (dungeonType === 'zombieBeginner' || dungeonType === 'zombieMid' || dungeonType === 'swamp') ? 'zombie' : dungeonType;
+        // 战斗管线 family 与事件题材分离：沼泽三档复用僵尸战斗系统，但只抽 swamp 事件池。
+        const dungeonCfg = DungeonConfig.getZombieDungeonConfig(dungeonType) || {};
+        const family = dungeonCfg.eventScope
+            || ((dungeonType === 'zombieBeginner' || dungeonType === 'zombieMid') ? 'zombie' : dungeonType);
         // 限定池：同一大类 + 事件等级在「地牢等级 ±1」范围内
         const restrictedPool = Object.entries(RESTRICTED_EVENT_META)
             .filter(([type, meta]) => {
@@ -996,6 +998,8 @@ export const DungeonEventSystem = {
         const dungeonType = (dungeonMapSystem && dungeonMapSystem.dungeonType) || null;
         const list = (DungeonConfig.raw && DungeonConfig.raw.dungeonList) || {};
         this._currentGrade = (dungeonType && list[dungeonType] && list[dungeonType].grade) || 'D';
+        // rollEventType 需要当前地牢类型来选择题材事件池，必须先保存引用再抽取。
+        this._dungeonMapSystem = dungeonMapSystem;
         const eventType = forcedType || this.rollEventType();
         const config = this.getEventConfig(eventType);
 

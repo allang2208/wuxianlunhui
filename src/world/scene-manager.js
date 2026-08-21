@@ -46,6 +46,7 @@ import { WorldProgressionSystem } from './world-progression-system.js';
 import { TroopLineSystem } from './troop-line-system.js';
 import loadingScreenConfig from '../../data/loading-screen-config.json';
 import { FogOfWarSystem } from './fog-of-war-system.js';
+import { PopulationEconomySystem } from './population-economy-system.js';
 
 export const SceneManager = {
     currentScene: null,
@@ -63,6 +64,7 @@ export const SceneManager = {
 
     init() {
         this._worldDestructionTransactions.clear();
+        this._dungeonParkedFriendlyUnits = null;
         TroopLineSystem.configure({
             createMilitaryUnit,
             getMilitaryUnitProfile,
@@ -92,6 +94,7 @@ export const SceneManager = {
             EnergyManager,
             ResearchSystem,
             GoldManager,
+            PopulationEconomySystem,
             getWorldEpoch: (sceneId) => WorldProgressionSystem.getWorldEpoch(sceneId),
             canPersistWorld: (sceneId) => WorldProgressionSystem.isPortalConstructed(sceneId),
             getWorldGenerationContext: (sceneId) => WorldProgressionSystem.getWorldGenerationContext(sceneId),
@@ -122,6 +125,35 @@ export const SceneManager = {
                 return image;
             });
         }
+    },
+
+    /** scene7 是地牢运行态；期间外部世界时间、生产、入侵与观察切换统一冻结。 */
+    isDungeonIsolationActive() {
+        return this.currentScene === 'scene7';
+    },
+
+    showDungeonIsolationNotice() {
+        this.showTopNotification('地牢中阻断了与外部世界的联系', {
+            color: '#d8a26a',
+        });
+    },
+
+    /**
+     * 地牢出征只允许 PartySystem 正式队友随行。
+     * Game.friendlyUnits（仓鼠兵种等）按对象引用暂存，离开期间不更新坐标、不进入地牢渲染。
+     */
+    parkFriendlyUnitsForDungeon() {
+        if (Array.isArray(this._dungeonParkedFriendlyUnits)) return;
+        this._dungeonParkedFriendlyUnits = Array.isArray(Game.friendlyUnits)
+            ? [...Game.friendlyUnits]
+            : [];
+        Game.friendlyUnits = [];
+    },
+
+    _restoreFriendlyUnitsAfterDungeon() {
+        if (!Array.isArray(this._dungeonParkedFriendlyUnits)) return;
+        Game.friendlyUnits = [...this._dungeonParkedFriendlyUnits];
+        this._dungeonParkedFriendlyUnits = null;
     },
 
     _resolveLoadingScreen(sceneId, dungeonType) {
@@ -198,6 +230,11 @@ export const SceneManager = {
     async switchScene(sceneId, player, mode, opts = {}) {
         if (this.isLoading) return false;
         if (this.currentScene === sceneId) return true;
+        // 地牢中禁止通过观察模式旁路查看其他世界；正常结算/撤离回城不使用 observer，仍可离场。
+        if (this.isDungeonIsolationActive() && opts.observer) {
+            this.showDungeonIsolationNotice();
+            return false;
+        }
         if (this._isPersistentWorld(sceneId) && !WorldProgressionSystem.isPortalConstructed(sceneId)) {
             this.showTopNotification('该世界位面尚未搭建传送门', { color: '#ff7766' });
             return false;
@@ -852,6 +889,9 @@ export const SceneManager = {
             Camera.y = anchor.y;
         }
 
+        // 地牢期间暂存的仓鼠兵种回到原友军注册表；实体对象来自主神空间快照，坐标保持离场值。
+        this._restoreFriendlyUnitsAfterDungeon();
+
         // 确保关键实体（靶子）存在，如果不存在则重新生成
         if (Game && Game.spawnTargets && Game.spawnEnemy) {
             let hasTargets = false, hasDpsTarget = false;
@@ -1342,6 +1382,8 @@ export const SceneManager = {
             if (r.energyMined > 0) lines.push([`矿工离线采集 +${Math.round(r.energyMined)} 能源`, '#7fd4ff']);
             if (r.passiveEnergy > 0) lines.push([`能源回收矩阵 +${r.passiveEnergy} 能源`, '#7fd4ff']);
             if (r.titheEnergy > 0) lines.push([`牧师什一税 +${r.titheEnergy} 能源`, '#c9a0ff']);
+            if (r.goldProduced > 0) lines.push([`银行职员产出 +${r.goldProduced} 金币`, '#ffd700']);
+            if (r.foodProduced > 0) lines.push([`风车农夫收获 +${r.foodProduced} 粮食`, '#d9b84f']);
             if (r.unitsProduced > 0) lines.push([`新兵报到 +${r.unitsProduced}`, '#8ad0ff']);
             if (r.abilitiesCompleted.length > 0) lines.push([`研究/能力完成 ${r.abilitiesCompleted.length} 项`, '#c9a0ff']);
             if (r.modulesCompleted?.length > 0) lines.push([`兵种升级完成 ${r.modulesCompleted.length} 项`, '#8ad0ff']);

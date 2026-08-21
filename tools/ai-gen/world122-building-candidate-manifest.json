@@ -5,6 +5,18 @@
   "steps": 48,
   "strength": 0.84,
   "variants": 2,
+  "structureSteps": 12,
+  "structureVariants": 10,
+  "structureDepthStrength": 0.78,
+  "structureEdgeStrength": 0.38,
+  "useEdgeControl": false,
+  "refineSteps": 48,
+  "refineVariants": 3,
+  "refineDenoise": 0.3,
+  "refineDepthStrength": 0.75,
+  "refineEdgeStrength": 0.38,
+  "structuralOverlapZ": 8,
+  "maskEdgePad": 16,
   "assets": [
     {
       "id": "church",
@@ -16,12 +28,18 @@
       "id": "research_institute",
       "label": "研究院",
       "primitives": [
-        { "type": "box", "size": [250, 165, 178], "pos": [0, 0, 89], "rot": [0, 0, 44.8] },
-        { "type": "prism", "size": [278, 193, 88], "pos": [0, 0, 222], "rot": [0, 0, 44.8] },
-        { "type": "box", "size": [82, 82, 175], "pos": [38, 24, 252], "rot": [0, 0, 44.8] },
-        { "type": "prism", "size": [103, 103, 62], "pos": [38, 24, 370], "rot": [0, 0, 44.8] }
+        { "type": "box", "size": [220, 220, 140], "pos": [0, 0, 70], "rot": [0, 0, 44.8] },
+        { "type": "prism", "size": [244, 244, 80], "pos": [0, 0, 180], "rot": [0, 0, 44.8] },
+        { "type": "box", "size": [62, 62, 150], "pos": [0, 0, 265], "rot": [0, 0, 44.8] },
+        { "type": "prism", "size": [84, 84, 54], "pos": [0, 0, 367], "rot": [0, 0, 44.8] },
+        { "type": "box", "size": [46, 46, 118], "pos": [-70, -42, 235], "rot": [0, 0, 44.8] },
+        { "type": "prism", "size": [64, 64, 42], "pos": [-70, -42, 315], "rot": [0, 0, 44.8] },
+        { "type": "box", "size": [46, 46, 118], "pos": [70, 42, 235], "rot": [0, 0, 44.8] },
+        { "type": "prism", "size": [64, 64, 42], "pos": [70, 42, 315], "rot": [0, 0, 44.8] }
       ],
-      "primaryRequest": "a compact medieval research institute, pale cold-gray ashlar stone academy with the same ashlar wall material continuing uninterrupted all the way to the ground line, an integrated square observatory tower, muted blue-slate gable roofs, narrow warm-lit mullioned windows, one small copper astrolabe dial and brass lens housing built into the tower walls; no pipes, tubes or plumbing; the bottom edge must be plain ashlar wall, never white marble, never a plinth, never a foundation band"
+      "primaryRequest": "a compact medieval research institute, pale cold-gray ashlar stone academy with the same ashlar wall material continuing uninterrupted all the way to the ground line, an integrated square observatory tower, muted blue-slate gable roofs, narrow warm-lit mullioned windows, one small copper astrolabe dial and brass lens housing built into the tower walls; no pipes, tubes or plumbing; the bottom edge must be plain ashlar wall, never white marble, never a plinth, never a foundation band",
+      "structureRequest": "a compact European Gothic-Renaissance research institute massing, exactly one closed square main hall, exactly one integrated central square observatory tower and exactly two narrower side towers, one continuous steep blue-slate roof system, solid pale ashlar walls continuing directly to the ground line, all three towers visibly and solidly intersecting the main roof, no open wall holes and no separate platform",
+      "detailRequest": "the selected compact European Gothic-Renaissance research institute, preserving its exact main hall and three integrated towers, refined pale cold-gray ashlar masonry, muted blue-slate roof tiles, restrained dark timber framing, warm mullioned windows, built-in bookshelves and scroll cabinets visible only through intact windows, one small brass telescope, one copper armillary sphere and one star-map astrolabe integrated into the tower architecture; no pipes, plumbing or modern equipment"
     },
     {
       "id": "blacksmith",

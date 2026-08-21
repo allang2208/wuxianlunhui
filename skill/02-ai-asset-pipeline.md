@@ -92,13 +92,15 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
 #### 生图入口（优先：双机 ComfyUI；智谱 API 第三兜底，2026-08-04 调整）
 - **远程 5080 主力（默认）**：`python tools/ai-gen/comfyui-gen.py --host 192.168.3.142 --model flux2-dev-fp8 --prompt "..." --out out.png`（命令相对 game-dev/ 仓库根目录执行）
 - **固定视角/方向**：`--model flux2-dev-depth --control-image <深度图> --prompt "..."`（见 WORKFLOW §1.5）
+- **World-122 建筑**：采用“12 步结构粗筛 → 人工选纯绿底结构图 → 48 步低重绘精修”的两阶段管线；两阶段使用 Blender 深度图锁定结构，并派生边缘图辅助检查。远端插件确认支持 Hook 链后才加 `--edge-control` 启用第二路控制。结构提示词只管封闭体块和塔楼数量，细节提示词只管材质与时代组件；命令与参数见 WORKFLOW §1.5.1。
 
 ##### World-122 建筑接地角验收：只测 Alpha 最外轮廓（2026-08-21）
 - **提示词、深度图和边缘图不是验收证据**：ImageGen 仍可能重建透视、改变多塔脚位置，或把“透明背景”画成不透明棋盘格；最终必须检查实际 PNG 像素。
+- **透明先看通道，不看观感**：若整图 alpha 都是 255，棋盘格只是被画进 RGB 的假透明，必须从原 RGB 重新走 BiRefNet/项目抠图器生成 alpha，禁止直接入库。棋盘背景不是恒定白色，边缘去污染应按邻近真实背景色反推前景，再用最近的不透明主体颜色修复软边；只把 alpha 清零会留下亮灰描边。
 - **唯一角度口径**：对真实 Alpha（建议 `alpha >= 128`）取最大外连通域，使用 `findContours(..., RETR_EXTERNAL)` + `approxPolyDP` 提取最下方接地折线；只测这条外轮廓的连续线段。标准 2×2 建筑的地面轴斜率为 `dy/dx = ±0.5`，即屏幕角 `±26.565°`，墙线必须垂直，所有塔脚/门槛必须位于同一地面。
 - **禁止用全图 Hough 线段判合格**：砖缝、窗框、屋檐或内部墙线常恰好接近 `±26°`，会掩盖真实塔脚回边达到 `+42°/+51°` 的错误；Hough 只能辅助找候选线，不能代替 Alpha 外轮廓验收。
 - **修正边界**：只有整栋建筑两组轴共享同一线性误差时才允许全局仿射；多塔脚各自漂移属于非线性透视，必须重抽、按白模表面投影，或在保持竖线垂直的前提下对实际外轮廓做分段几何映射，然后重新测量每一段。
-- **入库门槛**：背景必须是真实 RGBA；主体紧裁后等比缩放；可见接地范围必须落在固定 `256×128` 地基/碰撞菱形内；未确认候选不得覆盖 `assets/terrain/`，定稿入库后删除 raw、预览、控制图和被否版本。
+- **入库门槛**：背景必须是真实 RGBA；主体紧裁后等比缩放；可见接地范围必须落在固定 `256×128` 地基/碰撞菱形内；`alpha>16` 主体应为单一主连通域且不能触碰画布边界。未确认候选不得覆盖 `assets/terrain/`，只有玩家明确接受的版本才能提升为稳定英文资产键；定稿入库后删除 raw、预览、控制图、遮罩和被否版本。
 - **本机 3080 Ti 兜底**：`python tools/ai-gen/comfyui-gen.py --host 127.0.0.1 --model sdxl --prompt "..." --out out.png`
 - 客户端：`tools/ai-gen/zhipu-gen.py`（--prompt / --prompt-file / --model / --size / --out）
 - 接口：`POST https://open.bigmodel.cn/api/paas/v4/images/generations`，默认模型 **glm-image**（推荐 1280×1280）
@@ -113,6 +115,16 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
   **面积最小、最靠角落**的暗色连通域为水印框（y≥78% 区域，面积 >800px 跳过防误伤主体）→
   白底覆盖 → BiRefNet 抠图丢弃。**教训：全右下象限暗像素 bbox 会把戒指底部误当水印
   覆盖出缺口（2026-08-03 星陨之戒两连坑），必须按连通域+面积过滤。**
+
+##### 兜底·ithinkai 中转站 gpt-image-2（2026-08-21 新增）
+- 客户端：`tools/ai-gen/gptimage2-gen.py`（--prompt / --prompt-file / --size / --quality / --out）
+- 接口：`POST https://token.ithinkai.cn/v1/images/generations`（OpenAI 格式），模型 `gpt-image-2`
+- key：环境变量 `ITHINKAI_API_KEY` → `%USERPROFILE%\.ithinkai\config.json`（不落仓库）
+- 定位：双机 ComfyUI 与智谱之外的云端第四途径——无水印、不占本地显卡、按 token 计费
+  （实测单张约 400 tokens）；返回图片 URL 有时效，脚本已立即下载；不传 --out 默认落
+  `Y:\工作\无尽轮回\scratch\gptimage2_<时间戳>.png`；CDN 拒绝 urllib
+  默认 UA（脚本已伪装浏览器）；中文 prompt 经脚本 UTF-8 提交实测正常，curl 直传会乱码，
+  仍建议英文提示词。
 - 障碍物统一提示词策略：`game-dev/tools/ai-gen/prompts/obstacle.md`
   （风格基准块 + 视角块 + 避项，新道具必须同一视角）；抠图走 `tools/ai-gen/prep-obstacle.py`
 
@@ -817,6 +829,23 @@ v4 上撩回斩被否原因：向上挥向空气无目标承接、缺冲击力�
 - **成品**：512 格 8×4、内容高 461、脚底 480（与 walking/spelling 一致）；接缝质心跳变 1.8px、
   接缝帧差 10.89（低于相邻 mean 13.49）。已替换 `assets/companions/luna/running.png`（旧图备份
   `Y:\工作\无尽轮回\scratch\luna-sheets\running_old_20260813.png`）。
+
+#### 8. 伊莉丝重对中与插帧（2026-08-21 定稿）
+- **质心对齐陷阱**：elise-sprite-align v2 的"全内容质心对齐格心"会被四肢/武器带偏
+  （挥剑左伸 → 质心左移 → 身体被推到右侧），实测逐帧 bbox 中心摆动 walk ±36、run ±52。
+  正确锚点（逐带实测选型）：**躯干带（内容高 30%~55% 质心 x）** 用于走/跑/防御/待机硬锁定；
+  **脚底带（底部 12% 质心 x）** 用于攻击类（脚不动躯干动，保前冲趋势，3 帧平滑+步变 ≤40px），
+  且整条曲线首尾站姿帧对齐 idle 站姿脚底锚，跨动作不跳。工具 `tools/ai-gen/elise-recenter.py`。
+- **RIFE 插帧进游戏（rife-ncnn-vulkan v4.6 离线 exe）**：RIFE 不保 alpha——RGB 透明区先做
+  最近色填充（distance_transform 索引，防边缘黑晕），alpha 作灰度图单独过 RIFE 再取亮度回贴。
+  循环动画含尾→首回绕对。插后中间帧脚底会因 alpha 软化上移 2~14px：整像素竖移校准到
+  邻帧底边均值（elise-interp-feet-fix.py）。walk 12→24@28fps、run 循环 12→24@32fps 实装。
+- 审计脚手架：`tools/_audit_elise_sheets.py`（网格匹配/脚底基线/水平中心/空帧/贴边逐帧量化），
+  新角色表入库前先跑它（基准：露娜 bbox 中心 std ≤8、脚基线 std≈0）。
+- 全量版：`tools/_audit_all_companion_sheets.py`（读 companion-config + hamster-*-config 全量审计，
+  按配置帧区间）。判读口径：attack/挖矿/冲锋的 bbox 中心漂移多为武器挥弧固有（看躯干/脚底带锚点
+  才准）；walk 脚基线 std>3 或单帧离群才是真问题（射手帧 0 异源混入、火枪手 dying f7 离群 121px
+  都是这么抓出来的）；修复工具 `tools/ai-gen/hamster-feet-align.py`（底边对齐中位数，保锚定）。
 
 #### 7b. 左右脚交替筛选（2026-08-14 二轮，AI 视频老问题根治）
 用户反馈 v2 仍"左右脚错误替换"：GLM 证实 v2 窗口帧 31（左腿前）→帧 0（右腿前）左右脚互换，

@@ -3,7 +3,7 @@
  * DungeonEventDefinitions — 新增地牢随机事件定义
  * ============================================================
  *
- * 10 个事件按《随机事件表格.xlsx》最终设定实现：
+ * 10 个僵尸事件按《随机事件表格.xlsx》最终设定实现，另含沼泽事件占位：
  * - 每个事件 2~3 个分支，使用不同属性检定
  * - 结果类型：金币、药水、材料、特殊道具、揭示节点、战斗、伤害、恢复、临时 Buff/Debuff
  * - 失败战斗区分「普通战斗」与「精英战斗」
@@ -46,11 +46,12 @@ export const NEW_EVENT_WEIGHTS = {
     blessedFountain: 1,
     lockedArmory: 1,
     phantomMirror: 1,
+    swampEventPlaceholder: 1,
 };
 
 // ============================================================
 // 限定事件元数据：等级(F~A) + 归属大类（scope）
-// 规则：地牢只出现「地牢等级 ±1」范围内的限定事件；当前 10 个新事件全部为僵尸地牢限定。
+// 规则：地牢只出现同 scope 且「地牢等级 ±1」范围内的限定事件；沼泽当前仅保留占位事件。
 // ============================================================
 export const RESTRICTED_EVENT_META = {
     collapsedArchway: { grade: 'F', scope: 'zombie' },
@@ -63,6 +64,7 @@ export const RESTRICTED_EVENT_META = {
     blessedFountain: { grade: 'D', scope: 'zombie' },
     lockedArmory: { grade: 'C', scope: 'zombie' },
     phantomMirror: { grade: 'B', scope: 'zombie' },
+    swampEventPlaceholder: { grade: 'D', scope: 'swamp' },
 };
 
 // 难度等级顺序（事件/地牢共用）
@@ -76,7 +78,7 @@ export const UNIVERSAL_EVENT_CHANCE = 0.30;
 
 // ============================================================
 // 事件背景图（assets/scenes/dungeon-events/，与事件键一一对应）
-// 10 个新事件 + 5 个旧事件（goddessStatue/trap/supplyPile/treasureChest/demonStatue）
+// 10 个僵尸事件 + 5 个通用事件有背景图；沼泽占位事件暂时使用纯黑背景。
 // ============================================================
 
 export const EVENT_BG_IMAGES = {
@@ -103,6 +105,18 @@ export const EVENT_BG_IMAGES = {
 // ============================================================
 
 export const NEW_EVENT_CONFIGS = {
+    swampEventPlaceholder: {
+        title: '沼泽随机事件（占位）',
+        description: '雾气在腐朽树根与积水之间翻涌，一处尚未完成的沼泽事件正在等待补充。当前版本仅保留事件节点与流程占位。',
+        choices: [
+            {
+                id: 'continue',
+                label: '继续前进',
+                description: '暂不触发额外效果，完成该事件节点',
+                outcome: { text: '你谨慎绕过这片异常区域，继续向沼泽深处前进。' },
+            },
+        ],
+    },
     collapsedArchway: {
         title: '坍塌的石拱门',
         description: '前方的通道被一座坍塌的石拱门堵得严严实实。巨大的花岗岩碎块堆叠成小山，缝隙间渗出潮湿的霉味，只有顶部一条狭窄的裂隙透出微弱的光。你可以尝试像推土机一样推开碎石，或者像猫一样从缝隙中挤过去——但两者都需要付出代价。拱门表面的符文已经风化，却依然残留着某种古老的警告：「唯有强者或灵巧者，方能通过此门。」',

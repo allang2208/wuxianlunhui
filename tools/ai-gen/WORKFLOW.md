@@ -5,7 +5,8 @@
 > SKILL.md 文首「本地 AI 出图工作流」为本节的摘要速查，本文档为准。
 >
 > **入口优先级（2026-08-04 二轮调整）**：双机 ComfyUI 自建生图系统（远程 5080 主力 +
-> 本机 3080 Ti 兜底）→ **本地零成本**；智谱 API 降级为第三兜底（双机都不可用/特殊场景）。
+> 本机 3080 Ti 兜底）→ **本地零成本**；智谱 API 降级为第三兜底（双机都不可用/特殊场景）；
+> ithinkai 中转站 gpt-image-2 为云端第四途径（按 token 计费、无水印）。
 
 ## 0. 工作根目录约定
 
@@ -28,6 +29,7 @@
 | **地面无缝纹理（泥/沙）** | floor-asset.py（comfyui-gen → make-seamless → desaturate） | `python tools/ai-gen/floor-asset.py mud --out assets/terrain/floor_mud_seamless.png --seed 9001` |
 | 透明主体素材 | 远程 5080（SDXL 兜底） | `python tools/ai-gen/comfyui-gen.py --host 192.168.3.142 --model flux2-dev-depth --control-image depth.png --transparent --prompt "..." --out out.png`（AI 选纯色底 + 自动抠图，见 §3.7） |
 | 兜底·智谱 API | 智谱 | `python tools/ai-gen/zhipu-gen.py --prompt-file prompt.txt --model glm-image --size 1280x1280 --out ...`（双机不可用/免费额度场景） |
+| 兜底·ithinkai 中转站 | gpt-image-2 | `python tools/ai-gen/gptimage2-gen.py --prompt "..." --out out.png`（OpenAI 格式 API，按 token 计费、无水印；key 不落仓库，见下注） |
 | 同系列模板锁定重抽 | img2img | `python tools/ai-gen/gen-meteor-icon-template.py`（换参考图 + 提示词即可复用） |
 | 批量多图 | 智谱/ComfyUI | 参考 `tools/ai-gen/archive/one-off/` 下归档的一次性批量脚本（如 zhipu-gen-necklaces.py 多 prompt 逐张下载、gen-eclipse-set.py 批量入队轮询），仅作写法参考 |
 
@@ -43,6 +45,12 @@
   ControlNet `FLUX.2-dev-Fun-Controlnet-Union.safetensors`（Depth/Canny/Pose 等单文件多模式）。
 - 智谱 API 注意事项：**不支持负面词参数**（避项写进正向提示词）；出图固定带右下角
   "AI生成"水印（`tools/ai-gen/zhipu-process.py` 按连通域+面积过滤去水印，见 §4.5）。
+- ithinkai 中转站注意事项（2026-08-21 实测）：Base URL `https://token.ithinkai.cn/v1`，
+  模型广场当前仅 `gpt-image-2`；按 token 计费（单张约 400 tokens）；key 走环境变量
+  `ITHINKAI_API_KEY` 或 `%USERPROFILE%\.ithinkai\config.json`；返回图片 URL（webstatic
+  CDN，可能有时效），脚本收到后立即下载落盘（不传 --out 默认落
+  `Y:\工作\无尽轮回\scratch\gptimage2_<时间戳>.png`，与 comfyui-gen 同约定）；**CDN 拒绝 urllib 默认 UA**（脚本已伪装
+  浏览器）；curl 直传中文 prompt 会乱码错图，脚本 UTF-8 提交中文正常，仍建议英文提示词。
 - 远程 5080 开机方式：`tools/ai-gen/start-comfyui-remote.bat`（`--listen 0.0.0.0`，防火墙放行
   8188/专用网络；**机器休眠会断服务，需关休眠**）。本地启动 `start-comfyui.bat`
   （位于备份根目录 `E:\无尽轮回\长期备份\2026-7-13-1\`，不在 game-dev 仓库内）。
@@ -100,6 +108,44 @@ python tools/ai-gen/comfyui-gen.py --host 192.168.3.142 --model flux2-dev-depth 
 两处兼容补丁（`timestep_zero_index` / `multigpu_clones`）与 comfyui-mesh Icarus stub 补丁
 均已部署并重启（备份 + 修复版在 `tools/ai-gen/remote-patch/`），`flux2-dev-fp8` / `flux2-dev-depth` /
 `flux2-dev-mesh` 全部可用。
+
+### 1.5.1 World-122 建筑两阶段工作流（结构粗筛 → 细节精修）
+
+建筑不再用一次 48 步同时赌结构和细节。标准流程拆成两段，并始终保持主体与地基分离：
+
+1. **结构粗筛（12 步，每批 10 张）**：Blender 白模深度图锁定体块和视角；由同一深度图派生边缘图，用于检查屋脊、塔楼接缝和遮挡边界。远端插件确认支持 Hook 链后可加 `--edge-control` 启用第二路 ControlNet；当前默认只提交深度控制，避免旧版 `HooksContainer` 链式报错。提示词只描述主体、塔楼数量和封闭墙体，不生成望远镜、书架等小件。
+2. **人工选结构**：只看视角、底边、主体居中、塔楼数量、屋顶连续性和墙体是否完整。优先选择带纯绿背景的 `_raw.png` 作为精修初始图；透明 PNG 必须先压回纯绿底，避免透明区在 ComfyUI 中变黑。
+3. **细节精修（48 步，低重绘）**：选中的结构图作为 `--init-image`，默认 denoise=0.30，并继续使用同一深度控制。远端插件兼容时可额外启用边缘控制。提示词只添加石材、瓦片、窗户、望远镜、星象仪和书架等细节，不准改变主体轮廓、塔楼数量和底边。
+4. **局部返修**：仅在结构已合格、局部仍有洞口或错误组件时使用 mask；白色区域重绘，黑色区域保留。局部返修不替代结构粗筛。
+
+研究院结构粗筛：
+
+```bash
+python tools/ai-gen/generate-world122-building-candidates.py \
+  --stage structure --only research_institute --variants 10 \
+  --out Y:/工作/无尽轮回/scratch/world122-buildings
+```
+
+选择一张结构合格的纯绿底原图后进行 48 步精修：
+
+```bash
+python tools/ai-gen/generate-world122-building-candidates.py \
+  --stage refine --only research_institute \
+  --init-image Y:/工作/无尽轮回/scratch/world122-buildings/research_institute/research_institute_structure_v03_raw.png \
+  --variants 3 --out Y:/工作/无尽轮回/scratch/world122-buildings
+```
+
+通用客户端也支持重复 ControlNet、img2img 和局部 mask：
+
+```bash
+python tools/ai-gen/comfyui-gen.py --host 192.168.3.142 --model flux2-dev-depth \
+  --control-image depth.png --control-image edge.png \
+  --control-strength 0.75 --control-strength 0.38 \
+  --init-image selected-green.png --mask-image local-fix-mask.png --denoise 0.40 \
+  --prompt-file refine-prompt.txt --out refined.png
+```
+
+默认参数在 `world122-building-candidate-manifest.json`：结构阶段 12 步/10 张、精修阶段 48 步/3 张、精修 denoise 0.30、深度约束 0.75~0.78、边缘约束 0.38。结构不完整时先改白模体块或降低边缘强度，不能靠提高精修步数修复缺墙、断塔或错误屋顶。
 
 ### 1.6 模型选择矩阵（内容 → 首选模型 → 规则，2026-08-04 定稿）
 

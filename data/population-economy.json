@@ -1,0 +1,167 @@
+{
+  "_comment": "人口经济唯一数值源。房屋提供容量；风车、银行、市场按数值岗位工作；同一前台位面的市场共享交易压力。",
+  "tickMs": 1000,
+  "house": {
+    "levels": [
+      {
+        "level": 1,
+        "populationCapacity": 6,
+        "tex": "house_lv1",
+        "displayW": 256,
+        "displayH": 294,
+        "footOffsetY": 147
+      },
+      {
+        "level": 2,
+        "populationCapacity": 10,
+        "tex": "house_lv2",
+        "displayW": 270,
+        "displayH": 309,
+        "footOffsetY": 155,
+        "upgradeCost": { "gold": 250, "energy": 500, "timeMs": 15000 }
+      },
+      {
+        "level": 3,
+        "populationCapacity": 16,
+        "tex": "house_lv3",
+        "displayW": 298,
+        "displayH": 335,
+        "footOffsetY": 166,
+        "upgradeCost": { "gold": 600, "energy": 1200, "timeMs": 30000 }
+      }
+    ]
+  },
+  "windmill": {
+    "workerSlots": 4,
+    "workerLabel": "农夫",
+    "foodPerWorkerPerSecond": 1.5,
+    "visualWorkerCap": 4,
+    "visualMode": "field_harvest",
+    "workerVisual": {
+      "id": "hamster_farmer",
+      "name": "仓鼠农民",
+      "displaySize": 128,
+      "originY": 0.8,
+      "moveSpeed": 52,
+      "fieldJitterX": 32,
+      "fieldJitterY": 12,
+      "idleDurationMs": [600, 1600],
+      "harvestDurationMs": [1800, 3800],
+      "sounds": {
+        "harvesting": {
+          "path": "assets/sounds/friendly/hamster_farmer_harvesting.mp3",
+          "volume": 1,
+          "maxDist": 1400
+        }
+      },
+      "animations": {
+        "idle": {
+          "src": "assets/companions/hamster_farmer/idle.png",
+          "frameWidth": 512,
+          "frameHeight": 512,
+          "frameCount": 1,
+          "frames": [0, 0],
+          "frameRate": 1,
+          "repeat": -1
+        },
+        "running": {
+          "src": "assets/companions/hamster_farmer/running.png",
+          "frameWidth": 512,
+          "frameHeight": 512,
+          "frameCount": 14,
+          "frames": [0, 13],
+          "frameRate": 14,
+          "repeat": -1
+        },
+        "harvesting": {
+          "src": "assets/companions/hamster_farmer/harvesting.png",
+          "frameWidth": 512,
+          "frameHeight": 512,
+          "frameCount": 18,
+          "frames": [0, 17],
+          "frameRate": 12,
+          "repeat": -1
+        }
+      }
+    }
+  },
+  "bank": {
+    "workerSlots": 3,
+    "workerLabel": "职员",
+    "goldPerWorkerPerSecond": 0.1,
+    "visualWorkerCap": 2,
+    "visualMode": "building_work"
+  },
+  "market": {
+    "workerSlots": 2,
+    "workerLabel": "商人",
+    "minWorkersToTrade": 1,
+    "spreadReductionPerWorker": 0.015,
+    "minSpread": 0.02,
+    "pressureDecayMultiplierPerWorker": 0.5,
+    "visualWorkerCap": 2,
+    "visualMode": "building_work",
+    "baseEnergyPerGold": 10,
+    "minEnergyPerGold": 5,
+    "maxEnergyPerGold": 25,
+    "spread": 0.08,
+    "pressureImpactPerGold": 0.002,
+    "pressureDecayPerSecond": 0.025,
+    "minPressure": -0.5,
+    "maxPressure": 1.5,
+    "buyEnergyBatch": 100,
+    "sellGoldBatch": 10
+  },
+  "workshop": {
+    "workerSlots": 5,
+    "workerSlotsModule": "workshop_engineers",
+    "workerLabel": "工程师",
+    "visualWorkerCap": 5,
+    "visualMode": "workshop_repair",
+    "scanIntervalMs": 250,
+    "engineerSpeed": 180,
+    "arrivalDistance": 18,
+    "engineerEfficiencyShare": 0.2,
+    "fullEfficiencyEngineerCount": 5,
+    "auraStackMode": "strongest",
+    "repairRequiresNoEnemies": true,
+    "engineerVisual": {
+      "id": "hamster_engineer",
+      "name": "仓鼠工程师",
+      "displaySize": 128,
+      "originY": 0.82,
+      "wanderRadius": 300,
+      "wanderSpeed": 70,
+      "idleDurationMs": [900, 2200],
+      "animations": {
+        "idle": {
+          "src": "assets/companions/hamster_engineer/idle.png",
+          "frameWidth": 512,
+          "frameHeight": 512,
+          "frameCount": 8,
+          "frames": [0, 7],
+          "frameRate": 8,
+          "repeat": -1
+        },
+        "running": {
+          "src": "assets/companions/hamster_engineer/running.png",
+          "frameWidth": 512,
+          "frameHeight": 512,
+          "frameCount": 12,
+          "frames": [0, 11],
+          "frameRate": 12,
+          "repeat": -1
+        },
+        "fixing": {
+          "src": "assets/companions/hamster_engineer/fixing.png",
+          "frameWidth": 512,
+          "frameHeight": 512,
+          "frameCount": 14,
+          "frames": [0, 13],
+          "frameRate": 14,
+          "repeat": -1
+        }
+      }
+    }
+  }
+}

@@ -42,9 +42,12 @@ check('世界-125只由僵尸初级地牢完成状态解锁',
     config.worlds?.scene11?.constructionEnabled === true
     && config.worlds.scene11.requirements?.completedDungeons?.length === 1
     && config.worlds.scene11.requirements.completedDungeons[0] === 'zombieBeginner');
-check('世界-123/124暂不进入传送门构造候选',
-    config.worlds?.scene9?.constructionEnabled === false
-    && config.worlds?.scene10?.constructionEnabled === false);
+check('世界-124只由沼泽初级地牢完成状态解锁',
+    config.worlds?.scene10?.constructionEnabled === true
+    && config.worlds.scene10.requirements?.completedDungeons?.length === 1
+    && config.worlds.scene10.requirements.completedDungeons[0] === 'swampBeginner');
+check('世界-123暂不进入传送门构造候选',
+    config.worlds?.scene9?.constructionEnabled === false);
 check('五日周期、F-A进度和怪物扩展表均由配置提供',
     config.invasion?.intervalDays === 5
     && JSON.stringify(config.invasion.dungeonProgressByGrade) === JSON.stringify({
@@ -111,6 +114,15 @@ check('世界-125首次构造免费并进入可传送列表',
     firstBuild.ok && firstBuild.firstConstruction
     && WorldProgressionSystem.getTravelWorlds().some((world) => world.sceneId === 'scene11')
     && WorldProgressionSystem.isWorldInvasionProtected('scene11'));
+WorldProgressionSystem.recordDungeonRun('swampBeginner', 'success');
+const forestCandidates = WorldProgressionSystem.getConstructableWorlds();
+check('成功完成沼泽初级地牢后，世界-124林地成为免费首建候选',
+    forestCandidates.length === 1
+    && forestCandidates[0].sceneId === 'scene10'
+    && WorldProgressionSystem.getPortalState('scene10').status === WORLD_LIFECYCLE_STATUS.AVAILABLE
+    && forestCandidates[0].firstConstruction === true
+    && forestCandidates[0].cost.gold === 0
+    && forestCandidates[0].cost.energy === 0);
 const firstBaseSnapshot = getWorldSnapshot('scene11');
 check('传送门构造成功后立即建立可后台结算的基础位面快照',
     firstBaseSnapshot?.initializedByPortal === true
@@ -153,7 +165,9 @@ WorldProgressionSystem.reset();
 WorldProgressionSystem.restore(saved);
 check('地牢完成与传送门状态可序列化恢复',
     WorldProgressionSystem.hasCompletedDungeon('zombieBeginner')
+    && WorldProgressionSystem.hasCompletedDungeon('swampBeginner')
     && WorldProgressionSystem.isPortalConstructed('scene11')
+    && WorldProgressionSystem.getPortalState('scene10').status === WORLD_LIFECYCLE_STATUS.AVAILABLE
     && WorldProgressionSystem.getPortalState('scene11').status === WORLD_LIFECYCLE_STATUS.ACTIVE
     && WorldProgressionSystem.getWorldEpoch('scene11') === 2);
 

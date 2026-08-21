@@ -27,6 +27,7 @@ assets/sounds/ui/                     # 金币/升级/出售/击倒等系统音�
   `SoundManager.playWorld(path, x, y)`（坐标衰减，音效铁律），无则 playFile 兜底；
   射手在 `_fireProjectile`（第 10 帧出膛）、战士 `_tryAttack`、盾卫 `_applyDamage`
   （第 10 帧判定）、矿工 `_tryAttack`（采矿命中）。
+- 纯视觉岗位单位同样遵守配置与位置音效口径：仓鼠农民在 `population-economy.json#windmill.workerVisual.sounds` 声明 `harvesting`，`HamsterFarmerVisualSystem.setState` 只在进入收割状态时调用一次 `SoundManager.playWorld`；禁止在逐帧动画更新中播放或把素材路径硬编码进视觉系统。
 
 #### 步骤1: 素材复制建档（规则 4）
 按类别在项目下建子文件夹，把用户提供的音频复制进去：
@@ -123,4 +124,4 @@ _playSound(key) {
   ~1.4kHz 低频）数值验证结构。
 
 ---
-
+

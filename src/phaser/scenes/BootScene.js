@@ -20,6 +20,7 @@ import hamsterMusketeerConfig from '../../../data/hamster-musketeer-config.json'
 import hamsterPriestConfig from '../../../data/hamster-priest-config.json';
 import hamsterKnightConfig from '../../../data/hamster-knight-config.json';
 import hamsterLightCavalryConfig from '../../../data/hamster-light-cavalry-config.json';
+import populationEconomyConfig from '../../../data/population-economy.json';
 
 export class BootScene extends Scene {
     constructor() {
@@ -104,6 +105,26 @@ export class BootScene extends Scene {
                     endFrame: (def.frameCount || 1) - 1,
                 });
             }
+        }
+
+        // 风车岗位的仓鼠农民只加载 Phaser 视觉资源，不进入友军配置或实体注册链。
+        const farmerVisual = populationEconomyConfig.windmill?.workerVisual;
+        for (const [animKey, def] of Object.entries(farmerVisual?.animations || {})) {
+            if (!def?.src) continue;
+            this.load.spritesheet(`worker_${farmerVisual.id}_${animKey}`, def.src, {
+                frameWidth: def.frameWidth || 512,
+                frameHeight: def.frameHeight || 512,
+                endFrame: (def.frameCount || 1) - 1,
+            });
+        }
+        const engineerVisual = populationEconomyConfig.workshop?.engineerVisual;
+        for (const [animKey, def] of Object.entries(engineerVisual?.animations || {})) {
+            if (!def?.src) continue;
+            this.load.spritesheet(`worker_${engineerVisual.id}_${animKey}`, def.src, {
+                frameWidth: def.frameWidth || 512,
+                frameHeight: def.frameHeight || 512,
+                endFrame: (def.frameCount || 1) - 1,
+            });
         }
 
         // ---- 武器资源 ----
@@ -279,13 +300,22 @@ export class BootScene extends Scene {
         this.load.image('blacksmith', 'assets/terrain/blacksmith.png');
         this.load.image('building_foundation_2x2', 'assets/terrain/building_foundation_2x2.png');
         this.load.image('church', 'assets/terrain/church.png');
-        // 世界-122 研究院（素材库原图裁透明边并缩至 1024 宽）
+        // 世界-122 研究院（确认稿按 alpha>16 紧身裁透明边）
         this.load.image('research_institute', 'assets/terrain/research_institute.png');
         this.load.image('warehouse', 'assets/terrain/warehouse.png');
         this.load.image('shooting_range', 'assets/terrain/shooting_range.png');
         this.load.image('thatch_hut', 'assets/terrain/thatch_hut.png');
         this.load.image('cavalry_school', 'assets/terrain/cavalry_school.png');
-        // 世界-122 传送门（2026-08-18 占位贴图：tools/ai-gen/gen-portal-placeholder.py，正式图走 AI 素材管线）
+        // 人口经济建筑：房屋三级、风车、银行与经济工坊已接入 PNG；市场仍为 SVG 占位符。
+        this.load.image('house_lv1', 'assets/terrain/house_lv1.png');
+        this.load.image('house_lv2', 'assets/terrain/house_lv2.png');
+        this.load.image('house_lv3', 'assets/terrain/house_lv3.png');
+        this.load.image('wheat_windmill', 'assets/terrain/wheat_windmill.png');
+        this.load.image('bank', 'assets/terrain/bank.png');
+        this.load.image('placeholder_market', 'assets/terrain/placeholder_market.svg');
+        this.load.image('economic_workshop', 'assets/terrain/economic_workshop.png');
+        this.load.spritesheet('building_field_tiles', 'assets/terrain/building_field_tiles.png', { frameWidth: 128, frameHeight: 64 });
+        // 世界-122 传送门（半木石哥特门楼，透明主体按 alpha>16 紧身裁剪）
         this.load.image('portal', 'assets/terrain/portal.png');
         // （派生投影/剪影图不再运行时加载：太阳阴影改逐帧纯几何，剪影数据走
         //  data/environment-lighting-assets.json 的 shadowSilhouette 列。）
@@ -641,6 +671,35 @@ export class BootScene extends Scene {
                     });
                 }
             }
+        }
+
+        // 风车装饰农民动画：独立 worker_ 前缀，避免被 Companion/友军单位渲染链误收。
+        const farmerVisual = populationEconomyConfig.windmill?.workerVisual;
+        for (const [animKey, def] of Object.entries(farmerVisual?.animations || {})) {
+            if (!def?.src) continue;
+            const key = `worker_${farmerVisual.id}_${animKey}`;
+            if (this.anims.exists(key)) continue;
+            const [start, end] = def.frames || [0, (def.frameCount || 1) - 1];
+            this.anims.create({
+                key,
+                frames: this.anims.generateFrameNumbers(key, { start, end }),
+                frameRate: def.frameRate || 12,
+                repeat: def.repeat !== undefined ? def.repeat : -1,
+            });
+        }
+        // 工坊岗位的仓鼠工程师同样只注册 worker_ 动画，不进入实体、物理或友军链。
+        const engineerVisual = populationEconomyConfig.workshop?.engineerVisual;
+        for (const [animKey, def] of Object.entries(engineerVisual?.animations || {})) {
+            if (!def?.src) continue;
+            const key = `worker_${engineerVisual.id}_${animKey}`;
+            if (this.anims.exists(key)) continue;
+            const [start, end] = def.frames || [0, (def.frameCount || 1) - 1];
+            this.anims.create({
+                key,
+                frames: this.anims.generateFrameNumbers(key, { start, end }),
+                frameRate: def.frameRate || 12,
+                repeat: def.repeat !== undefined ? def.repeat : -1,
+            });
         }
 
         // 武器枪口点自动烘焙：扫描每把武器贴图，取【最大连通体】（枪身本体，8 邻域）的

@@ -5,9 +5,10 @@ import { isoLocalToWorldDelta } from '../physics/iso-footprint.js';
 const TAU = Math.PI * 2;
 // 2026-08-19：阴影深浅全局统一——颜色统一纯黑，透明度 0.1925
 //（0.55 → −30% → 再 −50%，用户口径），不随仰角变化、不分层叠加。
+// 2026-08-21：单位（动态）阴影加深 25% → 0.240625（用户口径）；静态仍为 0.1925。
 // 个体仍可用 shadow.opacity 覆盖。改深浅只调这两个常量。
 const STATIC_SHADOW_OPACITY = 0.1925;
-const DYNAMIC_SHADOW_OPACITY = 0.1925;
+const DYNAMIC_SHADOW_OPACITY = 0.240625;
 
 const DEFAULTS = Object.freeze({
     enabled: true,

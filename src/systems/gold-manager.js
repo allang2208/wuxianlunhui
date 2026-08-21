@@ -101,41 +101,45 @@ class GoldManagerImpl {
         );
     }
 
-    /**
-     * 增加金币（自动合并到已有堆叠，最大99999）
-     * @param {number} amount — 增加数量
-     * @returns {boolean} — 是否成功
-     */
-    addGold(amount) {
-        if (amount <= 0) return false;
-        const MAX_GOLD_STACK = 99999;
+    /** 市场等事务在扣除另一种资源前，用此值保证金币可以原子入库。 */
+    getRemainingCapacity() {
+        const maxStack = 99999;
+        const bp = this._getBackpack();
+        const partialSpace = this._findGoldItems().reduce(
+            (sum, item) => sum + Math.max(0, maxStack - (Number(item.stack) || 0)),
+            0
+        );
+        const usedSlots = new Set(bp.map((item) => item?.slot).filter((slot) => slot !== undefined));
+        const freeSlots = Math.max(0, this._maxSlots - usedSlots.size);
+        return partialSpace + freeSlots * maxStack;
+    }
 
+    /**
+     * 尽可能把金币存入背包，返回实际入包数量。
+     * 银行被动产出用这个接口计算后续仓库/地面溢出，不弹“背包已满”提示。
+     */
+    depositGold(amount, { notifyFull = false } = {}) {
+        let remaining = Math.max(0, Math.floor(Number(amount) || 0));
+        if (remaining <= 0) return 0;
+        const requested = remaining;
+        const MAX_GOLD_STACK = 99999;
         const bp = this._getBackpack();
 
-        // 优先合并到所有已有的金币堆叠中
         for (const item of bp) {
-            if (item && (item.category === 'gold' || item.name === '金币') && item.stack < MAX_GOLD_STACK) {
-                const space = MAX_GOLD_STACK - item.stack;
-                if (amount <= space) {
-                    item.stack += amount;
-                    this._syncGoldStats(item);
-                    this._notifyUpdate();
-                    return true;
-                }
-                item.stack = MAX_GOLD_STACK;
-                amount -= space;
-                this._syncGoldStats(item);
-            }
+            if (remaining <= 0) break;
+            if (!item || (item.category !== 'gold' && item.name !== '金币')) continue;
+            const current = Math.max(0, Math.floor(Number(item.stack) || 0));
+            const add = Math.min(remaining, Math.max(0, MAX_GOLD_STACK - current));
+            if (add <= 0) continue;
+            item.stack = current + add;
+            remaining -= add;
+            this._syncGoldStats(item);
         }
 
-        // 剩余金币放入新格子
-        while (amount > 0) {
+        while (remaining > 0) {
             const slot = this._getNextFreeSlot();
-            if (slot < 0) {
-                this._notifyFull();
-                return false;
-            }
-            const stack = Math.min(amount, MAX_GOLD_STACK);
+            if (slot < 0) break;
+            const stack = Math.min(remaining, MAX_GOLD_STACK);
             bp.push({
                 slot,
                 name: '金币',
@@ -145,14 +149,27 @@ class GoldManagerImpl {
                 rarity: 'mythic',
                 stats: [{ name: '数量', value: String(stack) }],
                 desc: '金光闪闪的硬币',
-                stack: stack,
-                price: 1
+                stack,
+                price: 1,
             });
-            amount -= stack;
+            remaining -= stack;
         }
 
-        this._notifyUpdate();
-        return true;
+        const added = requested - remaining;
+        if (added > 0) this._notifyUpdate();
+        if (remaining > 0 && notifyFull) this._notifyFull();
+        return added;
+    }
+
+    /**
+     * 增加金币（自动合并到已有堆叠，最大99999）
+     * @param {number} amount — 增加数量
+     * @returns {boolean} — 是否成功
+     */
+    addGold(amount) {
+        const requested = Math.max(0, Math.floor(Number(amount) || 0));
+        if (requested <= 0) return false;
+        return this.depositGold(requested, { notifyFull: true }) === requested;
     }
 
     /**

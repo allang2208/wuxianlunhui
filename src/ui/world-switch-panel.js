@@ -85,10 +85,8 @@ export const WorldSwitchPanel = {
      *  目标 = 本体所在世界 → 返回本体（正常生成玩家 + 世界坐标记忆原位恢复）。 */
     async _travel(target) {
         if (!target || target === SceneManager.currentScene) return true;
-        if (SceneManager.currentScene === 'scene7') {
-            SceneManager.showTopNotification('地牢探险期间无法切换世界，请先正常结束本次探险', {
-                color: '#d8a26a',
-            });
+        if (SceneManager.isDungeonIsolationActive()) {
+            SceneManager.showDungeonIsolationNotice();
             return false;
         }
         if (!SceneManager.scenes?.[target]) {
@@ -123,10 +121,8 @@ export const WorldSwitchPanel = {
 
     /** 入侵支援是明确的本体转移，不沿用世界面板的观察模式。 */
     async supportActiveInvasion() {
-        if (SceneManager.currentScene === 'scene7') {
-            SceneManager.showTopNotification('地牢探险期间入侵已暂停，请先结束本次探险', {
-                color: '#d8a26a',
-            });
+        if (SceneManager.isDungeonIsolationActive()) {
+            SceneManager.showDungeonIsolationNotice();
             return false;
         }
         const active = window.WorldInvasionSystem?.getState?.().active;

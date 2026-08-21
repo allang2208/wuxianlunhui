@@ -1713,6 +1713,212 @@
     box-shadow: inset 3px 0 0 var(--bp-ui-accent-bright), 0 0 0 1px rgba(190, 214, 224, 0.08);
 }
 
+/* ===== 人口经济建筑：冷钢岗位、生产与工坊档案 ===== */
+.producer-building-panel.is-economy-building {
+    color: var(--bp-ui-text) !important;
+    font-family: var(--bp-font-ui) !important;
+}
+
+.producer-building-panel.is-economy-building :is(#pbStatus, #pbModules) {
+    color: var(--bp-ui-text) !important;
+    background: linear-gradient(180deg, rgba(37, 42, 48, 0.92), rgba(21, 25, 30, 0.94)) !important;
+    border: 1px solid var(--bp-ui-line) !important;
+    border-radius: 5px !important;
+}
+
+.producer-building-panel.is-economy-building #pbModules {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.producer-building-panel.is-economy-building #pbModules > .economy-workforce,
+.producer-building-panel.is-economy-building #pbModules > .economy-panel-heading,
+.producer-building-panel.is-economy-building #pbModules > .economy-panel-note {
+    grid-column: 1 / -1;
+}
+
+.producer-building-panel.is-economy-building .building-upgrade-card {
+    min-width: 0;
+    padding: 10px !important;
+    background: var(--bp-ui-surface) !important;
+    border: 1px solid var(--bp-ui-line) !important;
+    border-radius: 5px;
+}
+
+.producer-building-panel.is-economy-building .economy-panel-heading,
+.producer-building-panel.is-economy-building .economy-workforce-label,
+.producer-building-panel.is-economy-building .economy-progress-label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.producer-building-panel.is-economy-building .economy-panel-heading {
+    color: var(--bp-ui-white);
+    font-size: var(--bp-type-subtitle);
+    font-weight: 700;
+    line-height: var(--bp-leading-tight);
+    letter-spacing: var(--bp-tracking-label);
+}
+
+.producer-building-panel.is-economy-building .economy-panel-meta,
+.producer-building-panel.is-economy-building .economy-panel-badge,
+.producer-building-panel.is-economy-building .economy-workforce-note,
+.producer-building-panel.is-economy-building .economy-progress-label {
+    color: var(--bp-ui-text-muted);
+    font-size: var(--bp-type-meta);
+    line-height: 1.45;
+}
+
+.producer-building-panel.is-economy-building .economy-panel-badge {
+    padding: 4px 7px;
+    color: #b9e5c2;
+    background: rgba(68, 124, 82, 0.16);
+    border: 1px solid rgba(115, 180, 129, 0.32);
+    border-radius: 4px;
+}
+
+.producer-building-panel.is-economy-building .economy-panel-badge.is-blocked {
+    color: #ffc0b8;
+    background: rgba(154, 56, 48, 0.18);
+    border-color: rgba(218, 105, 94, 0.42);
+}
+
+.producer-building-panel.is-economy-building .economy-stat-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.producer-building-panel.is-economy-building .economy-stat-grid > div {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+    padding: 9px 10px;
+    background: rgba(14, 18, 22, 0.46);
+    border: 1px solid var(--bp-ui-line);
+    border-radius: 4px;
+}
+
+.producer-building-panel.is-economy-building .economy-stat-grid span {
+    color: var(--bp-ui-text-muted);
+    font-size: var(--bp-type-meta);
+}
+
+.producer-building-panel.is-economy-building .economy-stat-grid b {
+    color: var(--bp-ui-white);
+    font-family: var(--bp-font-number);
+    font-size: var(--bp-type-body);
+}
+
+.producer-building-panel.is-economy-building .economy-panel-note {
+    margin: 9px 0 0;
+    color: var(--bp-ui-text-muted);
+    font-size: var(--bp-type-meta);
+    line-height: var(--bp-leading-body);
+}
+
+.producer-building-panel.is-economy-building .economy-workforce {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 14px;
+    align-items: center;
+}
+
+.producer-building-panel.is-economy-building .economy-workforce-copy {
+    min-width: 0;
+}
+
+.producer-building-panel.is-economy-building .economy-workforce-label {
+    margin-bottom: 8px;
+    color: var(--bp-ui-text);
+    font-size: var(--bp-type-body);
+}
+
+.producer-building-panel.is-economy-building .economy-workforce-label b,
+.producer-building-panel.is-economy-building .economy-progress-label b {
+    color: var(--bp-ui-white);
+    font-family: var(--bp-font-number);
+}
+
+.producer-building-panel.is-economy-building .economy-progress-label {
+    margin: 6px 0 3px;
+}
+
+.producer-building-panel.is-economy-building .economy-progress {
+    position: relative;
+    height: 10px;
+    overflow: hidden;
+    background: var(--bp-ui-black-soft);
+    border: 1px solid var(--bp-ui-line);
+    border-radius: 3px;
+}
+
+.producer-building-panel.is-economy-building .economy-progress > div {
+    position: absolute;
+    inset: 0 auto 0 0;
+    max-width: 100%;
+    background: linear-gradient(90deg, #c65a52 0%, #d59b42 52%, #70bd8a 100%);
+    transition: width 0.18s linear;
+}
+
+.producer-building-panel.is-economy-building .economy-workforce-note {
+    margin-top: 7px;
+}
+
+.producer-building-panel.is-economy-building .economy-workforce-note .is-warning {
+    color: #ffad9f;
+}
+
+.producer-building-panel.is-economy-building .economy-workforce-actions {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(44px, auto));
+    gap: 6px;
+}
+
+.producer-building-panel.is-economy-building .economy-workforce-actions .troop-panel-unit-button,
+.producer-building-panel.is-economy-building .troop-panel-upgrade-button {
+    min-height: 36px;
+    padding: 7px 10px;
+    color: var(--bp-ui-text-muted) !important;
+    background: var(--bp-ui-control) !important;
+    border: 1px solid var(--bp-ui-line-strong) !important;
+    border-radius: 4px !important;
+    font-family: var(--bp-font-ui);
+    font-size: var(--bp-type-body);
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.producer-building-panel.is-economy-building :is(.troop-panel-unit-button, .troop-panel-upgrade-button):hover:not(:disabled) {
+    color: var(--bp-ui-white) !important;
+    border-color: var(--bp-ui-accent-bright) !important;
+}
+
+.producer-building-panel.is-economy-building :is(.troop-panel-unit-button, .troop-panel-upgrade-button):disabled {
+    opacity: 0.42;
+    cursor: not-allowed;
+}
+
+@media (max-width: 1100px) {
+    .producer-building-panel.is-economy-building #pbModules,
+    .producer-building-panel.is-economy-building .economy-stat-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .producer-building-panel.is-economy-building #pbModules > * {
+        grid-column: 1;
+    }
+
+    .producer-building-panel.is-economy-building .economy-workforce {
+        grid-template-columns: 1fr;
+    }
+}
+
 /* ===== 出兵建筑：冷钢档案字体与信息层级 ===== */
 :is(
     .hamster-barracks-panel,
@@ -2301,8 +2507,405 @@
     pointer-events: none;
 }
 
+/* ===== Dungeon expedition workspace =====
+ * One full-screen preparation workspace: rules left, dungeon/loadout center,
+ * player backpack right. The normal party HUD is hidden, never repositioned.
+ */
+:root {
+    --expedition-guide-width: clamp(170px, 16vw, 300px);
+}
+
+body.expedition-preparing #panelOverlay {
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+}
+
+body.expedition-preparing .party-bar {
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+}
+
+body.expedition-preparing #systemPanel .panel-tabs {
+    display: none !important;
+}
+
+body.expedition-preparing #systemPanel .panel-close {
+    display: none !important;
+}
+
+.expedition-overlay {
+    z-index: 3000;
+    background:
+        linear-gradient(90deg, rgba(4, 7, 9, 0.94), rgba(9, 13, 17, 0.78) 45%, rgba(4, 7, 9, 0.9)),
+        url('/assets/ui/expedition-bg.png') center / cover no-repeat;
+    background-blend-mode: multiply;
+    backdrop-filter: blur(3px) saturate(0.5);
+}
+
+.expedition-panel {
+    left: var(--expedition-guide-width) !important;
+    right: 45vw !important;
+    width: auto !important;
+    border-width: 1px !important;
+    border-radius: 0 !important;
+    box-shadow: var(--bp-ui-shadow-float) !important;
+}
+
+.expedition-header {
+    padding: 11px 16px !important;
+}
+
+.expedition-header-copy {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.expedition-eyebrow {
+    color: var(--bp-ui-text-dim);
+    font-family: var(--bp-font-number);
+    font-size: var(--bp-type-caption);
+    line-height: 1.25;
+    letter-spacing: 0.12em;
+}
+
+.expedition-body {
+    gap: 12px !important;
+    padding: 14px 16px 16px !important;
+    scrollbar-color: var(--bp-ui-gray) var(--bp-ui-black-soft);
+}
+
+:is(.expedition-info, .expedition-supplies, .expedition-tribute-stats) {
+    color: var(--bp-ui-text) !important;
+    background: rgba(255, 255, 255, 0.035) !important;
+    border: 1px solid var(--bp-ui-line) !important;
+    border-radius: 6px !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
+}
+
+.expedition-info,
+.expedition-party,
+.expedition-supplies {
+    padding: 12px !important;
+}
+
+.expedition-party {
+    flex: 0 0 auto;
+    color: var(--bp-ui-text) !important;
+    background: rgba(255, 255, 255, 0.035) !important;
+    border: 1px solid var(--bp-ui-line) !important;
+    border-radius: 6px !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
+}
+
+.expedition-party-count {
+    flex: 0 0 auto;
+    color: var(--bp-ui-accent-bright);
+    font-family: var(--bp-font-number);
+    font-size: var(--bp-type-meta);
+    font-variant-numeric: tabular-nums;
+}
+
+.expedition-member-bar {
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px !important;
+    padding: 0 !important;
+}
+
+.expedition-member-circle {
+    width: auto !important;
+    min-width: 0;
+    height: 76px !important;
+    padding: 7px 5px !important;
+    border-width: 1px !important;
+    border-radius: 6px !important;
+    color: var(--bp-ui-text) !important;
+    font-family: var(--bp-font-ui);
+    background: var(--bp-ui-surface) !important;
+    transition: background 0.16s ease, border-color 0.16s ease !important;
+}
+
+.expedition-member-circle:hover {
+    background: var(--bp-ui-surface-hover) !important;
+    border-color: var(--bp-ui-accent-bright) !important;
+}
+
+.expedition-member-circle:focus-visible {
+    outline: 2px solid var(--bp-ui-accent-bright);
+    outline-offset: 2px;
+}
+
+.expedition-member-circle--player {
+    cursor: default !important;
+    border-color: var(--bp-ui-accent) !important;
+    background: var(--bp-ui-accent-muted) !important;
+}
+
+.expedition-member-circle--empty {
+    border-color: var(--bp-ui-line-strong) !important;
+}
+
+.expedition-member-avatar,
+.expedition-member-plus {
+    font-size: 24px !important;
+}
+
+.expedition-member-plus {
+    color: var(--bp-ui-accent-bright) !important;
+}
+
+.expedition-member-name {
+    max-width: 100%;
+    overflow: hidden;
+    color: var(--bp-ui-white) !important;
+    font-size: var(--bp-type-meta) !important;
+    line-height: 1.25;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.expedition-member-level {
+    color: var(--bp-ui-text-muted) !important;
+    font-family: var(--bp-font-number);
+    font-size: var(--bp-type-caption) !important;
+    line-height: 1.2;
+}
+
+.expedition-supplies {
+    min-height: 0;
+    flex: 1 1 auto !important;
+}
+
+.expedition-dungeon-selector {
+    margin-bottom: 10px !important;
+}
+
+.expedition-dungeon-label,
+.expedition-info-label,
+.expedition-hint {
+    color: var(--bp-ui-text-muted) !important;
+    font-size: var(--bp-type-meta) !important;
+}
+
+.expedition-dungeon-label {
+    flex: 0 0 auto;
+}
+
+.expedition-dungeon-select {
+    min-width: 0;
+    min-height: 38px;
+    color: var(--bp-ui-white) !important;
+    background: var(--bp-ui-control) !important;
+    border: 1px solid var(--bp-ui-line-strong) !important;
+    border-radius: 5px !important;
+    font-size: var(--bp-type-body) !important;
+    transition: border-color 0.16s ease, background 0.16s ease;
+}
+
+.expedition-dungeon-select:hover,
+.expedition-dungeon-select:focus {
+    border-color: var(--bp-ui-accent-bright) !important;
+}
+
+.expedition-dungeon-select:focus-visible {
+    outline: 2px solid var(--bp-ui-accent-bright);
+    outline-offset: 2px;
+}
+
+.expedition-dungeon-select option {
+    color: var(--bp-ui-white) !important;
+    background: var(--bp-ui-charcoal) !important;
+}
+
+.expedition-info-row {
+    padding-top: 10px !important;
+    border-top: 1px solid var(--bp-ui-line);
+}
+
+.expedition-info-item {
+    min-width: 0;
+    align-items: baseline !important;
+}
+
+.expedition-info-value {
+    color: var(--bp-ui-text) !important;
+    font-family: var(--bp-font-number);
+    font-size: var(--bp-type-meta) !important;
+}
+
+.expedition-info-value--level {
+    color: var(--bp-ui-accent-bright) !important;
+    font-size: var(--bp-type-body) !important;
+}
+
+.expedition-section-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 10px !important;
+    color: var(--bp-ui-white) !important;
+    font-size: var(--bp-type-subtitle) !important;
+    font-weight: 600;
+    letter-spacing: var(--bp-tracking-label) !important;
+    text-transform: none !important;
+}
+
+.expedition-capacity {
+    flex: 0 0 auto;
+    color: var(--bp-ui-accent-bright);
+    font-family: var(--bp-font-number);
+    font-size: var(--bp-type-meta);
+    font-variant-numeric: tabular-nums;
+}
+
+.expedition-inventory-grid {
+    gap: 6px !important;
+    padding: 0 !important;
+}
+
+.expedition-inv-cell {
+    color: var(--bp-ui-text);
+    background: var(--bp-ui-black-soft) !important;
+    border: 1px solid var(--bp-ui-line) !important;
+    border-radius: 5px !important;
+    transition: background 0.16s ease, border-color 0.16s ease !important;
+}
+
+.expedition-inv-cell:hover {
+    background: var(--bp-ui-surface) !important;
+    border-color: var(--bp-ui-line-strong) !important;
+}
+
+.expedition-inv-cell.drag-over {
+    background: var(--bp-ui-accent-muted) !important;
+    border-color: var(--bp-ui-accent-bright) !important;
+}
+
+.expedition-inv-cell.occupied {
+    background: var(--bp-ui-surface) !important;
+    border-color: var(--bp-ui-accent) !important;
+}
+
+.expedition-inv-cell .inv-name,
+.expedition-inv-cell .inv-stack {
+    color: var(--bp-ui-white) !important;
+}
+
+.expedition-tribute-stats-title {
+    color: var(--bp-ui-white) !important;
+    border-bottom-color: var(--bp-ui-line) !important;
+}
+
+.expedition-tribute-stat-item .stat-label,
+.expedition-tribute-stat-item .stat-source {
+    color: var(--bp-ui-text-muted) !important;
+}
+
+.expedition-actions {
+    justify-content: flex-end !important;
+    gap: 8px !important;
+    padding-top: 12px !important;
+    border-top: 1px solid var(--bp-ui-line);
+}
+
+.expedition-actions .bp-button {
+    padding: 8px 14px !important;
+    border-width: 1px !important;
+    border-color: var(--bp-ui-line-strong) !important;
+    border-radius: 5px !important;
+}
+
+.expedition-actions .expedition-reset-btn,
+.expedition-actions .expedition-back-btn {
+    color: var(--bp-ui-text-muted) !important;
+    background: var(--bp-ui-control) !important;
+}
+
+.expedition-actions .expedition-depart-btn {
+    color: var(--bp-ui-text-dark) !important;
+    background: var(--bp-ui-surface-light) !important;
+    border-color: var(--bp-ui-white) !important;
+}
+
+.expedition-actions .bp-button:hover:not(:disabled) {
+    color: var(--bp-ui-white) !important;
+    background: var(--bp-ui-surface-hover) !important;
+    border-color: var(--bp-ui-accent-bright) !important;
+    transform: none !important;
+}
+
+.expedition-message {
+    color: var(--bp-ui-text-muted) !important;
+    font-size: var(--bp-type-meta) !important;
+}
+
+.expedition-rule-panel {
+    left: 0 !important;
+    top: 0 !important;
+    bottom: 0 !important;
+    width: var(--expedition-guide-width) !important;
+    min-width: 0 !important;
+    max-height: none !important;
+    padding: 18px 16px !important;
+    border-width: 0 1px 0 0 !important;
+    border-radius: 0 !important;
+    color: var(--bp-ui-text) !important;
+    background: var(--bp-ui-shell) !important;
+    scrollbar-color: var(--bp-ui-gray) var(--bp-ui-black-soft);
+}
+
+.expedition-rule-panel .rule-title,
+.expedition-rule-panel .rule-rewards-title {
+    color: var(--bp-ui-white) !important;
+    letter-spacing: var(--bp-tracking-label);
+}
+
+.expedition-rule-panel .rule-title {
+    font-size: var(--bp-type-subtitle) !important;
+    text-align: left !important;
+}
+
+.expedition-rule-panel .rule-desc,
+.expedition-rule-panel .rule-reward-line,
+.expedition-rule-panel .rule-current,
+.expedition-rule-panel .rule-item {
+    font-size: var(--bp-type-meta) !important;
+}
+
+.expedition-rule-panel .rule-item {
+    padding: 5px 0 !important;
+    border-bottom: 1px solid var(--bp-ui-line) !important;
+}
+
+.expedition-rule-panel .rule-current,
+.expedition-rule-panel .rule-rewards {
+    border-color: var(--bp-ui-line) !important;
+    border-radius: 5px;
+    padding: 9px !important;
+}
+
+@media (max-width: 1100px) {
+    .expedition-info-row {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+
+    .expedition-inventory-grid {
+        grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+    }
+
+    .expedition-actions {
+        flex-wrap: wrap;
+    }
+}
+
 @media (prefers-reduced-motion: reduce) {
-    .bp-right-column {
+    .bp-right-column,
+    .expedition-panel {
         transition-duration: 0.01ms !important;
     }
 }

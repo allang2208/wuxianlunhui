@@ -120,6 +120,7 @@ export class GameScene extends Scene {
         this._weaponBlurDisabled = false; // 运动模糊禁用标记（超大贴图 / WebGL context lost 后置位，防 Framebuffer 崩溃）
         this._companionSprites = {}; // 侍从跟随渲染：memberId → Phaser Sprite
         this._selectionRings = {};   // 组队栏选中光圈：memberId → Phaser Ellipse（金色脚下光圈）
+        this._companionGhosts = {};  // 动作切换残影（淡出 110ms）：memberId → Phaser Sprite
         this._moveMarkerGfx = null;  // 右键移动目标标记（绿色下指箭头）
         // WebGL context lost 后禁用模糊：Phaser 会自动恢复渲染器，但失效帧缓冲可能反复触发 Framebuffer Unsupported
         if (this.game && this.game.canvas && typeof window !== 'undefined') {
@@ -205,6 +206,7 @@ export class GameScene extends Scene {
         this._structureShadowLayerOpacity = -1;
         // 世界 HUD：缓存每个贴图帧的可见 alpha 顶部，血条按真实模型而非透明画布定位。
         this._hudVisibleFrameTopCache = new Map();
+        this._footBottomRatioCache = new Map(); // 帧内容可见底边比例缓存（友军阴影脚底基线）
         this._installShadowConsoleTools();
 
         // HUD：世界空间（血条/名字）与屏幕空间（准星/小地图）
@@ -291,15 +293,16 @@ export class GameScene extends Scene {
         // Phaser 自动调用，每帧更新
         // 现有 Game 循环仍然运行，这里只做 Phaser 相关的更新
         // 地牢探险期间统一冻结世界时间：太阳、所有世界后台生产与五日入侵倒计时同停同启。
-        const dungeonTimeFrozen = SceneManager.currentScene === 'scene7'
-            && DungeonMapSystem?.active;
+        const dungeonTimeFrozen = SceneManager.isDungeonIsolationActive();
         const worldClockRunning = Game?.isRunning && !Game._paused && !dungeonTimeFrozen;
         const worldDelta = worldClockRunning ? _delta : 0;
         const worldTimeBefore = EnvironmentLightingSystem.serializeTime().elapsedMs || 0;
         EnvironmentLightingSystem.update(worldDelta);
         const worldTimeAfter = EnvironmentLightingSystem.serializeTime().elapsedMs || 0;
         const invasionDelta = Math.max(0, worldTimeAfter - worldTimeBefore);
-        window.WorldInvasionSystem?.update?.(invasionDelta, SceneManager.currentScene);
+        if (!dungeonTimeFrozen) {
+            window.WorldInvasionSystem?.update?.(invasionDelta, SceneManager.currentScene);
+        }
 
         // 能源节点防叠图自愈（2026-08-16）：世界-122 每 ~1s 清一次同位置堆积节点
         // （旧会话/HMR/历史配置残留会叠出“门边一堆矿”，setup 清理覆盖不到已加载场景）
@@ -1014,6 +1017,11 @@ export class GameScene extends Scene {
             }
             sprite.setFlipX(!faceRight);
             sprite.setDepth(this.playerSprite.depth + 0.5);
+            // 动作切换残影：记录切换前贴图/帧/显示尺寸，本帧末尾若贴图键变了就生成淡出残影
+            const prevTexKey = sprite.texture?.key;
+            const prevFrameName = sprite.frame?.name;
+            const prevDispW = sprite.displayWidth;
+            const prevDispH = sprite.displayHeight;
             // 士兵移动烟尘（2026-08-17）：玩家跑步同款 DustEffect，脚下生成——
             // 军事单位（战士/射手/盾卫/民兵/斥候，不含矿工）移动（walk/run）时按 90ms 间隔出烟
             if (member._isHamsterWarrior || member._isHamsterShooter || member._isHamsterGuard || member._isHamsterMilitia || member._isHamsterScout || member._isHamsterMusketeer || member._isHamsterPriest || member._isHamsterKnight || member._isHamsterLightCavalry) {
@@ -1113,6 +1121,12 @@ export class GameScene extends Scene {
                         if (sprite.texture.key !== spellKey || sprite.frame.name !== spellLast) {
                             sprite.setTexture(spellKey, spellLast);
                         }
+                    } else if (member._prayerCast && sprite.getData('priestPrayer')
+                        && (!sprite.anims.isPlaying || sprite.anims.currentAnim?.key !== spellKey)) {
+                        // 自愈（2026-08-21，照斥候 shooterSwing 同款）：上次祈祷动画被打断
+                        // （未触发 animationcomplete）→ priestPrayer 残留 true 会永久禁播；
+                        // 重置标记，下一帧走播放分支重播
+                        sprite.setData('priestPrayer', false);
                     }
                 } else if (st === 'spell' && anims.spell && this.textures.exists(spellKey)) {
                     // 重播条件 = 动画已停止（被 idle 停帧 setTexture 打断）或键变化。
@@ -1279,7 +1293,7 @@ export class GameScene extends Scene {
                         sprite.play(wmKey, true);
                     }
                 } else if (st === 'run' && anims.run && this.textures.exists(runKey)) {
-                    // idle→running：先播一次完整动画（run_start），仍在奔跑则循环 11~23 帧（run）
+                    // idle→running：先播起步段（run_start，startFrames 一次），仍在奔跑则循环 loopFrames（run）
                     const runStartKey = `${runKey}_start`;
                     if (!sprite.getData('lunaRunning')) {
                         sprite.setData('lunaRunning', true);
@@ -1410,8 +1424,25 @@ export class GameScene extends Scene {
             const normS = size / 512;
             const frameW = (sprite.frame && sprite.frame.width) || 512;
             const frameH = (sprite.frame && sprite.frame.height) || 512;
-            sprite.setDisplaySize(frameW * normS, frameH * normS);
-            const feetCorr = -(frameH - 512) * 0.4375 * normS;
+            // 待机呼吸（2026-08-21 零素材微动）：静止 idle 且未播动画（单帧待机）时，
+            // 纵向 ±1.8% 正弦缩放 + 横向 ∓0.6% 保体积补偿，脚底锚定（修正 displayHeight/2）；
+            // 相位按成员 id 打散，避免全员同步呼吸；多帧 idle 动画（如斥候）与移动/攻击/施法不叠加。
+            const idleStill = (aiMode
+                ? (member._animState || 'idle') === 'idle'
+                : (!isMoving && !isSprinting && !casting))
+                && !sprite.anims.isPlaying;
+            let breatheH = 1, breatheW = 1;
+            if (idleStill) {
+                let phase = 0;
+                const idStr = String(member.id || '');
+                for (let i = 0; i < idStr.length; i++) phase += idStr.charCodeAt(i);
+                const s = Math.sin((this.time.now / 2400) * Math.PI * 2 + phase);
+                breatheH = 1 + 0.018 * s;
+                breatheW = 1 - 0.006 * s;
+            }
+            sprite.setDisplaySize(frameW * normS * breatheW, frameH * normS * breatheH);
+            const feetCorr = -(frameH - 512) * 0.4375 * normS
+                - frameH * normS * (breatheH - 1) / 2;
             if (aiMode) {
                 sprite.setPosition(member.x, member.y + spriteOffY - elevationZ + feetCorr);
             } else {
@@ -1419,6 +1450,11 @@ export class GameScene extends Scene {
                 sprite.setPosition(player.x + offX, player.y + 34 + spriteOffY - elevationZ + feetCorr);
             }
             sprite.setVisible(true);
+            // 动作切换残影（零素材过渡）：贴图键变化 = 动作切换——旧帧残影 110ms 淡出消顿挫
+            if (prevTexKey && sprite.texture?.key !== prevTexKey) {
+                this._spawnCompanionGhost(member.id, prevTexKey, prevFrameName,
+                    prevDispW, prevDispH, sprite);
+            }
             // Tint 优先级：受击白闪 > 选中金色 > 常态。这样任何友军类型都不会因选中状态
             // 覆盖受击反馈；仓鼠矿工仍只用脚下光圈表达选中。
             const selected = PartySystem.isSelected(member.id);
@@ -1447,6 +1483,11 @@ export class GameScene extends Scene {
             if (!activeIds.has(id)) {
                 this._companionSprites[id].destroy();
                 delete this._companionSprites[id];
+                const ghost = this._companionGhosts && this._companionGhosts[id];
+                if (ghost) {
+                    ghost.destroy();
+                    delete this._companionGhosts[id];
+                }
             }
         }
         // 清理已移出队伍的光圈
@@ -1456,6 +1497,35 @@ export class GameScene extends Scene {
                 delete this._selectionRings[id];
             }
         }
+    }
+
+    /**
+     * 动作切换残影（2026-08-21 零素材过渡）：单位贴图键切换瞬间，用旧贴图/旧帧
+     * 在当前位置生成 alpha 0.32 的残影，110ms 淡出销毁——柔化 walk↔run↔idle↔attack
+     * 硬切的顿挫感。每个队员同时至多一个残影（新切换顶掉旧的）；tween 由场景托管，
+     * shutdown 自动清理。
+     */
+    _spawnCompanionGhost(id, texKey, frameName, dispW, dispH, sprite) {
+        if (!texKey || !this.textures.exists(texKey)) return;
+        if (!this._companionGhosts) this._companionGhosts = {};
+        const prev = this._companionGhosts[id];
+        if (prev && prev.active) prev.destroy();
+        const ghost = this.add.sprite(sprite.x, sprite.y, texKey, frameName);
+        ghost.setOrigin(0.5, 0.5);
+        ghost.setDisplaySize(Math.max(1, dispW || 1), Math.max(1, dispH || 1));
+        ghost.setFlipX(sprite.flipX);
+        ghost.setDepth(sprite.depth - 0.05);
+        ghost.setAlpha(0.32);
+        this._companionGhosts[id] = ghost;
+        this.tweens.add({
+            targets: ghost,
+            alpha: 0,
+            duration: 110,
+            onComplete: () => {
+                if (this._companionGhosts[id] === ghost) delete this._companionGhosts[id];
+                ghost.destroy();
+            },
+        });
     }
 
     /** 选中光圈：金色椭圆贴脚（RTS 式选中标记，视角压扁）——填充 15% 透明、边缘 100% */
@@ -1811,7 +1881,12 @@ export class GameScene extends Scene {
                     || (window.Game && Array.isArray(window.Game.friendlyUnits)
                         ? window.Game.friendlyUnits.find(u => u.id === cid) : null);
                 if (!unit || !unit.aiConfig) continue;
-                const footOffsetY = this._getFootOffsetY(unit, sprite);
+                // 与友军阴影同一锚点口径（2026-08-21）：footOffsetY 显式配置优先（仓鼠系），
+                // 无配置实测帧内容底边——v2 管线脚底基线在 0.9375×格高，格底兜底会偏深 ~14px
+                const cfgFootD = unit.footOffsetY ?? unit.config?.render?.footOffsetY;
+                const footOffsetY = (typeof cfgFootD === 'number')
+                    ? cfgFootD
+                    : sprite.displayHeight * (this._getVisibleFrameBottomRatio(sprite) - 0.5);
                 const frontRange = Math.min(280, Math.max(60, footOffsetY + sprite.displayHeight / 2));
                 // 友军同样按真实碰撞半径查询建筑前缘；视觉帧尺寸不参与几何遮挡范围。
                 const sideRange = Math.max(
@@ -2189,6 +2264,52 @@ export class GameScene extends Scene {
     }
 
     /**
+     * 帧内容可见底边比例（alpha>8 的最大可见 y / 帧高），按 纹理+帧 缓存。
+     * 与 _getVisibleSpriteTopY 同源的底部版本：AI 精灵帧底常留透明区（v2 管线脚底基线
+     * 固定在 0.9375×格高），需要真实脚底基线时以此为准，不能用整帧底边。
+     */
+    _getVisibleFrameBottomRatio(sprite) {
+        if (!sprite || !sprite.active || !sprite.frame) return 1;
+        const frame = sprite.frame;
+        const textureKey = sprite.texture?.key || 'unknown';
+        const cutW = frame.cutWidth || frame.realWidth || frame.width || 1;
+        const cutH = frame.cutHeight || frame.realHeight || frame.height || 1;
+        const cacheKey = `${textureKey}:${frame.name ?? 'base'}:${cutW}x${cutH}:bottom`;
+        if (!this._footBottomRatioCache) this._footBottomRatioCache = new Map();
+        let ratio = this._footBottomRatioCache.get(cacheKey);
+        if (ratio === undefined) {
+            ratio = 1;
+            const source = frame.source?.image || sprite.texture?.getSourceImage?.();
+            if (source && source.width && source.height && typeof document !== 'undefined') {
+                try {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = cutW;
+                    canvas.height = cutH;
+                    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+                    if (ctx) {
+                        ctx.drawImage(source, frame.cutX || 0, frame.cutY || 0, cutW, cutH, 0, 0, cutW, cutH);
+                        const pixels = ctx.getImageData(0, 0, cutW, cutH).data;
+                        let maxY = -1;
+                        for (let y = cutH - 1; y >= 0 && maxY < 0; y--) {
+                            for (let x = 0; x < cutW; x++) {
+                                if (pixels[(y * cutW + x) * 4 + 3] > 8) {
+                                    maxY = y;
+                                    break;
+                                }
+                            }
+                        }
+                        if (maxY >= 0) ratio = (maxY + 1) / cutH;
+                    }
+                } catch (_e) {
+                    // Canvas 读取失败时回退整帧底部。
+                }
+            }
+            this._footBottomRatioCache.set(cacheKey, ratio);
+        }
+        return ratio;
+    }
+
+    /**
      * 返回精灵当前帧真实可见 alpha 顶部的世界 Y。
      * AI 精灵常带大片透明上沿，不能用整帧 displayHeight 顶部当作模型头顶。
      */
@@ -2375,13 +2496,18 @@ export class GameScene extends Scene {
             const sprite = this._companionSprites && this._companionSprites[e.id];
             if (!sprite || !sprite.active || !sprite.visible) continue;
             active.add(e);
-            // 友军阴影锚定视觉脚底（sprite.y + footOffsetY，与深度仲裁同一锚点）：
-            // 精灵位置已含 z 抬升与帧格归一化修正，纯跟随队员（无 AI 逻辑坐标）也不会错位；
-            // 尺寸仍随 groundRadius（footprint 唯一真源）。
+            // 友军阴影锚定视觉脚底：footOffsetY 有显式配置用配置（仓鼠系）；
+            // 无配置时实测当前帧内容底边（alpha>8 底行比例，按帧缓存）——v2 管线脚底基线在
+            // 0.9375×格高而非格底，用 displayHeight/2 兜底会把影子掉到脚底下 11~22px。
+            // 精灵位置已含 z 抬升与帧格归一化修正；尺寸仍随 groundRadius（footprint 唯一真源）。
+            const cfgFoot = e.footOffsetY ?? e.config?.render?.footOffsetY;
+            const footY = (typeof cfgFoot === 'number')
+                ? sprite.y + cfgFoot
+                : sprite.y + sprite.displayHeight * (this._getVisibleFrameBottomRatio(sprite) - 0.5);
             const friendlyRadius = Math.max(1, Number(e.groundRadius) || 10);
             const footprint = {
                 x: sprite.x,
-                y: sprite.y + this._getFootOffsetY(e, sprite),
+                y: footY,
                 width: friendlyRadius * 2,
                 height: friendlyRadius * 2 * PERSPECTIVE_SCALE_Y,
             };
@@ -8270,6 +8396,12 @@ export class GameScene extends Scene {
                 // 贴图 NPC：行走/待机动画切换 + 朝向翻转，不做染色（静态贴图无动画则跳过）；
                 // 倒退行走（移动方向与朝向相反）时循环动画倒放
                 const animKey = (e.isMoving && sprCfg.walkKey) ? sprCfg.walkKey : sprCfg.idleKey;
+                // 房屋等级等运行时静态贴图切换：无需销毁实体或重建渲染记录。
+                if (animKey && !this.anims.exists(animKey) && this.textures.exists(animKey)
+                    && sprite.texture?.key !== animKey) {
+                    sprite.setTexture(animKey);
+                }
+                sprite.setDisplaySize(sprCfg.size || 128, sprCfg.sizeH || sprCfg.size || 128);
                 const wantReverse = !!e.isMoving && Math.abs(e.vx) > 0.1 && ((e.vx < 0) !== !!e._facingLeft);
                 if (this.anims.exists(animKey)) {
                     const curKey = sprite.anims.currentAnim?.key;

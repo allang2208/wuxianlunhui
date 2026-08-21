@@ -121,7 +121,10 @@ const dungeonCfg = readJson('data/dungeon-config.json');
 for (const [key, info] of Object.entries(dungeonCfg.dungeonList || {})) {
     if (info.grade && !GRADES.has(info.grade)) err(`dungeonList.${key}: 非法等级 '${info.grade}'`);
 }
-for (const key of ['zombieDungeon', 'zombieDungeonBeginner', 'zombieDungeonMid']) {
+for (const key of [
+    'zombieDungeon', 'zombieDungeonBeginner', 'zombieDungeonMid',
+    'swampDungeonBeginner', 'swampDungeonMid', 'swampDungeon'
+]) {
     const d = dungeonCfg[key];
     if (!d) continue;
     if (d.nodeCount && d.nodeCount.min > d.nodeCount.max) err(`${key}.nodeCount min>max`);
@@ -135,6 +138,12 @@ for (const key of ['zombieDungeon', 'zombieDungeonBeginner', 'zombieDungeonMid']
         const fam = d.bossEncounter.poolFamily;
         const hasFam = Object.values(enemyCfg).some(c => c.family === fam);
         if (!hasFam) err(`${key}.bossEncounter.poolFamily '${fam}' 在 enemy-config.json 中无任何怪物`);
+    }
+    for (const [encounterName, encounter] of Object.entries({ ...(d.encounters || {}), boss: d.bossEncounter })) {
+        for (const monsterKey of encounter?.poolKeys || []) {
+            if (!enemyCfg[monsterKey]) err(`${key}.${encounterName}.poolKeys 怪物不存在：'${monsterKey}'`);
+            if (!factoryKeys.has(monsterKey)) err(`${key}.${encounterName}.poolKeys 工厂未登记：'${monsterKey}'`);
+        }
     }
 }
 

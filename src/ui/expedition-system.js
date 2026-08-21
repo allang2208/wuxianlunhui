@@ -50,21 +50,13 @@ export const ExpeditionSystem = {
         this._updateTributeStats();
         this._updateCapacityDisplay();
 
-        // 打开出征界面时自动打开背包（方便拖入祭品；system-ui overlay 点击已排除 expedition，不会被误关）
+        // 出征使用三栏布局：左侧说明、中部地牢与出征栏、右侧玩家背包。
+        // body 状态只控制显隐和点击层，不改变任何 HUD 的预设坐标。
+        document.body.classList.add('expedition-preparing');
+
+        // 打开出征界面时自动打开背包，供拖入祭品。
         if (SystemUI) {
             SystemUI.open('equip');
-        }
-
-        // 确保系统面板在覆盖层之上，但低于出征面板（DOM 顺序 + z-index）
-        const sp = getElement('systemPanel');
-        const eo = getElement('expeditionOverlay');
-        if (sp && eo) {
-            // 将系统面板移到覆盖层之后（DOM 顺序决定层级）
-            if (sp.nextElementSibling !== eo && eo.parentElement === document.body) {
-                document.body.insertBefore(sp, eo.nextElementSibling);
-            }
-            // 出征面板 z-index 为 4000，系统面板保持在其下方，确保鼠标层正确
-            sp.style.zIndex = '100';
         }
 
         // 显示全黑背景覆盖层
@@ -87,7 +79,6 @@ export const ExpeditionSystem = {
         this._renderInventoryGrid();
 
         // 更新UI
-        // 出征队员界面栏：四圆圈（玩家固定 + PartySystem 侍从）
         this._subscribeParty();
         this._renderMemberBar(player);
         this._setupDragDrop();
@@ -115,6 +106,8 @@ export const ExpeditionSystem = {
         const overlay = getElement('expeditionOverlay');
         if (overlay) overlay.classList.remove('active');
         this._hideRulePanel();
+        document.body.classList.remove('expedition-preparing');
+        if (SystemUI) SystemUI.close();
 
     },
 
@@ -514,47 +507,50 @@ export const ExpeditionSystem = {
         if (maxEl) maxEl.textContent = this.CAPACITY;
     },
 
-    // 订阅队伍变化（打开期间自动刷新四圆圈；防重复订阅）
+    // 出征面板打开期间跟随正式队伍变化刷新；只订阅一次，避免重复监听。
     _subscribeParty() {
         if (this._partyUnsub) return;
         this._partyUnsub = PartySystem.onChange(() => {
-            if (this._isOpen) this._renderMemberBar(window.Game && window.Game.player);
+            if (this._isOpen) this._renderMemberBar(Game.player);
         });
     },
 
-    // 出征队员界面栏：四个圆圈（玩家固定 + 最多 3 名侍从；空槽=加号，有成员=头像/名字/等级）
+    // 玩家固定 + 最多 3 名正式队友。仓鼠兵种不读取 Game.friendlyUnits，因此不会进入此栏。
     _renderMemberBar(player) {
         const bar = getElement('expeditionMemberBar');
         if (!bar) return;
         const members = PartySystem.members;
         const maxSize = PartySystem.maxSize;
+        const count = getElement('expeditionPartyCount');
+        if (count) count.textContent = `${members.length}/${maxSize}`;
+
         let html = `
-            <div class="expedition-member-circle expedition-member-circle--player" title="玩家（主角）">
+            <div class="expedition-member-circle expedition-member-circle--player" title="玩家固定随行">
                 <div class="expedition-member-avatar">🧙</div>
                 <div class="expedition-member-name">主角</div>
                 <div class="expedition-member-level">Lv.${player ? player.data.level : '?'}</div>
             </div>`;
         for (let i = 0; i < maxSize; i++) {
-            const m = members[i];
-            if (m) {
-                html += `<div class="expedition-member-circle expedition-member-circle--member" data-companion="${m.id}" title="${m.name} · ${m.title}">
-                    <div class="expedition-member-avatar">${m.avatar}</div>
-                    <div class="expedition-member-name">${m.name}</div>
-                    <div class="expedition-member-level">Lv.${m.data.level}</div>
-                </div>`;
+            const member = members[i];
+            if (member) {
+                html += `<button type="button" class="expedition-member-circle expedition-member-circle--member" data-companion="${member.id}" title="管理 ${member.name}；移出后可从空位选择替换">
+                    <span class="expedition-member-avatar">${member.avatar}</span>
+                    <span class="expedition-member-name">${member.name}</span>
+                    <span class="expedition-member-level">Lv.${member.data.level}</span>
+                </button>`;
             } else {
-                html += `<div class="expedition-member-circle expedition-member-circle--empty" data-recruit="1" title="添加侍从">
-                    <div class="expedition-member-plus">＋</div>
-                    <div class="expedition-member-name">空位</div>
-                </div>`;
+                html += `<button type="button" class="expedition-member-circle expedition-member-circle--empty" data-recruit="1" title="选择一名正式队友加入出征队伍">
+                    <span class="expedition-member-plus">＋</span>
+                    <span class="expedition-member-name">选择队友</span>
+                </button>`;
             }
         }
         bar.innerHTML = html;
-        bar.querySelectorAll('[data-recruit]').forEach(el => {
-            el.onclick = () => RecruitUI.open();
+        bar.querySelectorAll('[data-recruit]').forEach((element) => {
+            element.onclick = () => RecruitUI.open();
         });
-        bar.querySelectorAll('[data-companion]').forEach(el => {
-            el.onclick = () => CompanionPanel.open(el.dataset.companion);
+        bar.querySelectorAll('[data-companion]').forEach((element) => {
+            element.onclick = () => CompanionPanel.open(element.dataset.companion);
         });
     },
 
@@ -619,9 +615,6 @@ export const ExpeditionSystem = {
         const panel = document.createElement('div');
         panel.id = 'expeditionRulePanel';
         panel.className = 'expedition-rule-panel';
-        // 宽度内联设置（calc(10vw - 4px)，贴出征栏左缘无间隙）——内联样式优先级最高，
-        // 跳过外部 game-style.css 可能被浏览器缓存导致的规则不生效
-        panel.style.width = 'calc(10vw - 4px)';
         const rows = GRADE_ORDER.map((g, i) => {
             const rarity = RARITY_ORDER[i];
             const color = RARITY_COLORS[rarity] || '#c0c0c0';
@@ -767,6 +760,7 @@ export const ExpeditionSystem = {
         if (overlay) overlay.classList.remove('active');
         UIState.close('expedition');
         this._hideRulePanel(); // 出征后左侧条件栏一并隐藏（面板清理完整还原）
+        document.body.classList.remove('expedition-preparing');
 
         // 清空出征数据（物品已确认带走）
         this._carriedItems = new Array(this.CAPACITY).fill(null);
@@ -786,6 +780,11 @@ export const ExpeditionSystem = {
             // "放弃/撤离/通关返回后主神空间什么都没有"的根因）
             if (SceneManager && typeof SceneManager._saveMainSceneState === 'function') {
                 SceneManager._saveMainSceneState();
+            }
+            // 仓鼠兵种及其他场景友军留在主神空间：只从地牢运行态暂存，不销毁、不改坐标。
+            // 正式队友由 PartySystem.members 独立管理，继续随玩家进入地牢。
+            if (SceneManager && typeof SceneManager.parkFriendlyUnitsForDungeon === 'function') {
+                SceneManager.parkFriendlyUnitsForDungeon();
             }
 
             // 清理主神空间实体（传送门/NPC/怪物/掉落物），防止地图模式下小地图泄露残留蓝点

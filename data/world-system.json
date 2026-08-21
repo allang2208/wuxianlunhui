@@ -56,8 +56,8 @@
       "name": "世界-124·林地",
       "icon": "🌲",
       "description": "林地位面",
-      "constructionEnabled": false,
-      "requirements": { "completedDungeons": [] },
+      "constructionEnabled": true,
+      "requirements": { "completedDungeons": ["swampBeginner"] },
       "portalSpawn": { "x": 6144, "y": 4096 },
       "resetPolicy": { "baseSeed": 124010 }
     },

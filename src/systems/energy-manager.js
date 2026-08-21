@@ -1,7 +1,7 @@
 /**
  * EnergyManager — 世界-122 仓库能源唯一真源。
  *
- * - 每座仓库独立保存 storedEnergy / storageCapacity；
+ * - 每座仓库独立保存 storedEnergy / storedFood / storageCapacity；
  * - getEnergy/getCapacity 聚合所有仓库，现有建造/升级/面板调用无需硬编码仓库数量；
  * - 旧背包能源迁移为待入库能量，仓库注册后自动装入；
  * - 仓库满时拒绝继续产出，并触发节流后的“请修建更多仓库”提示。
@@ -28,6 +28,7 @@ class EnergyManagerImpl {
         this._callbacks = { onUpdate: null, onFull: null };
         this._warehouses = new Map();
         this._pendingEnergy = 0;
+        this._pendingFood = 0;
         this._lastFullNoticeAt = 0;
     }
 
@@ -75,20 +76,28 @@ class EnergyManagerImpl {
         const cap = Math.max(0, Math.floor(Number(capacity) || 0));
         entity.storageCapacity = cap;
         entity.storedEnergy = Math.max(0, Math.min(cap, Math.floor(Number(entity.storedEnergy) || 0)));
+        entity.storedFood = Math.max(0, Math.min(
+            cap - entity.storedEnergy,
+            Math.floor(Number(entity.storedFood) || 0)
+        ));
         this._warehouses.set(entity.id || entity, entity);
         this._flushPendingEnergy();
+        this._flushPendingFood();
         this._notifyUpdate();
         return true;
     }
 
     /** preserve=true 用于场景生命周期；摧毁/出售则默认损失该仓库存量。 */
-    unregisterWarehouse(entity, { preserve = false } = {}) {
+    unregisterWarehouse(entity, { preserve = false, preserveFood = preserve } = {}) {
         if (!entity) return 0;
         const key = entity.id || entity;
         const stored = Math.max(0, Math.floor(Number(entity.storedEnergy) || 0));
+        const storedFood = Math.max(0, Math.floor(Number(entity.storedFood) || 0));
         if (!this._warehouses.delete(key)) return 0;
         if (preserve && stored > 0) this._pendingEnergy += stored;
+        if (preserveFood && storedFood > 0) this._pendingFood += storedFood;
         entity.storedEnergy = 0;
+        entity.storedFood = 0;
         this._notifyUpdate();
         return stored;
     }
@@ -96,7 +105,9 @@ class EnergyManagerImpl {
     resetWarehouses({ preserve = false } = {}) {
         for (const warehouse of this._warehouses.values()) {
             if (preserve) this._pendingEnergy += Math.max(0, warehouse.storedEnergy || 0);
+            if (preserve) this._pendingFood += Math.max(0, warehouse.storedFood || 0);
             warehouse.storedEnergy = 0;
+            warehouse.storedFood = 0;
         }
         this._warehouses.clear();
         this._notifyUpdate();
@@ -114,12 +125,20 @@ class EnergyManagerImpl {
         return this.getWarehouses().reduce((sum, w) => sum + Math.max(0, Number(w.storedEnergy) || 0), 0);
     }
 
+    getFood() {
+        return this.getWarehouses().reduce((sum, w) => sum + Math.max(0, Number(w.storedFood) || 0), 0);
+    }
+
+    getStoredTotal() {
+        return this.getEnergy() + this.getFood();
+    }
+
     getCapacity() {
         return this.getWarehouses().reduce((sum, w) => sum + Math.max(0, Number(w.storageCapacity) || 0), 0);
     }
 
     getFreeCapacity() {
-        return Math.max(0, this.getCapacity() - this.getEnergy());
+        return Math.max(0, this.getCapacity() - this.getStoredTotal());
     }
 
     hasWarehouse() {
@@ -142,7 +161,8 @@ class EnergyManagerImpl {
         for (const warehouse of this.getWarehouses()) {
             const capacity = Math.max(0, warehouse.storageCapacity || 0);
             const current = Math.max(0, warehouse.storedEnergy || 0);
-            const take = Math.min(remain, Math.max(0, capacity - current));
+            const food = Math.max(0, warehouse.storedFood || 0);
+            const take = Math.min(remain, Math.max(0, capacity - current - food));
             if (take <= 0) continue;
             warehouse.storedEnergy = current + take;
             remain -= take;
@@ -175,6 +195,42 @@ class EnergyManagerImpl {
         return true;
     }
 
+    /** 存入粮食并返回实际入库量；粮食与能源共享仓库容量。 */
+    depositFood(amount) {
+        let remain = Math.max(0, Math.floor(Number(amount) || 0));
+        if (remain <= 0) return 0;
+        const requested = remain;
+        for (const warehouse of this.getWarehouses()) {
+            const capacity = Math.max(0, warehouse.storageCapacity || 0);
+            const energy = Math.max(0, warehouse.storedEnergy || 0);
+            const current = Math.max(0, warehouse.storedFood || 0);
+            const take = Math.min(remain, Math.max(0, capacity - energy - current));
+            if (take <= 0) continue;
+            warehouse.storedFood = current + take;
+            remain -= take;
+            if (remain <= 0) break;
+        }
+        const added = requested - remain;
+        if (added > 0) this._notifyUpdate();
+        if (remain > 0) this._notifyFull();
+        return added;
+    }
+
+    deductFood(amount) {
+        let remain = Math.max(0, Math.floor(Number(amount) || 0));
+        if (remain <= 0) return true;
+        if (this.getFood() < remain) return false;
+        const warehouses = this.getWarehouses();
+        for (let i = warehouses.length - 1; i >= 0 && remain > 0; i--) {
+            const warehouse = warehouses[i];
+            const take = Math.min(Math.max(0, warehouse.storedFood || 0), remain);
+            warehouse.storedFood -= take;
+            remain -= take;
+        }
+        this._notifyUpdate();
+        return true;
+    }
+
     /** 旧地面能源物品拾取兼容：直接转入仓库。 */
     mergeEnergy(item) {
         if (!item || item.category !== 'energy') return false;
@@ -192,15 +248,31 @@ class EnergyManagerImpl {
         return value;
     }
 
+    importLegacyFood(amount) {
+        const value = Math.max(0, Math.floor(Number(amount) || 0));
+        if (value <= 0) return 0;
+        this._pendingFood += value;
+        this._flushPendingFood();
+        this._notifyUpdate();
+        return value;
+    }
+
     _flushPendingEnergy() {
         if (this._pendingEnergy <= 0 || !this.hasWarehouse()) return;
         const added = this.depositEnergy(this._pendingEnergy);
         this._pendingEnergy = Math.max(0, this._pendingEnergy - added);
     }
 
+    _flushPendingFood() {
+        if (this._pendingFood <= 0 || !this.hasWarehouse()) return;
+        const added = this.depositFood(this._pendingFood);
+        this._pendingFood = Math.max(0, this._pendingFood - added);
+    }
+
     serializeStorage() {
         return {
             total: this.getEnergy() + this._pendingEnergy,
+            foodTotal: this.getFood() + this._pendingFood,
             pending: this._pendingEnergy,
             capacity: this.getCapacity(),
             warehouseCount: this.getWarehouseCount(),
@@ -209,9 +281,15 @@ class EnergyManagerImpl {
 
     restoreStorage(snapshot) {
         const total = Math.max(0, Math.floor(Number(snapshot?.total) || 0));
-        for (const warehouse of this.getWarehouses()) warehouse.storedEnergy = 0;
+        const foodTotal = Math.max(0, Math.floor(Number(snapshot?.foodTotal) || 0));
+        for (const warehouse of this.getWarehouses()) {
+            warehouse.storedEnergy = 0;
+            warehouse.storedFood = 0;
+        }
         this._pendingEnergy = total;
+        this._pendingFood = foodTotal;
         this._flushPendingEnergy();
+        this._flushPendingFood();
         this._notifyUpdate();
     }
 }

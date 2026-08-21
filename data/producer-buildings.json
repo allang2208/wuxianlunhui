@@ -18,8 +18,8 @@
     "unitCap": 5,
     "defaultUnitType": "militia",
     "unitTypes": [
-      { "key": "militia", "name": "仓鼠民兵", "spawnEnergyCost": 50 },
-      { "key": "scout", "name": "仓鼠斥候", "spawnEnergyCost": 75 }
+      { "key": "militia", "name": "仓鼠民兵", "spawnFoodCost": 50 },
+      { "key": "scout", "name": "仓鼠斥候", "spawnFoodCost": 75 }
     ],
     "upgradeProject": "combat_standard"
   },
@@ -64,7 +64,7 @@
     "unitCap": 2,
     "defaultUnitType": "priest",
     "unitTypes": [
-      { "key": "priest", "name": "仓鼠牧师", "spawnEnergyCost": 240 }
+      { "key": "priest", "name": "仓鼠牧师", "spawnFoodCost": 240 }
     ],
     "upgradeProject": "priest_support"
   },
@@ -77,9 +77,9 @@
     "def": 80,
     "mdef": 80,
     "tex": "portal",
-    "displayW": 335,
-    "displayH": 354,
-    "footOffsetY": 177,
+    "displayW": 288,
+    "displayH": 293,
+    "footOffsetY": 147,
     "autoFootprint": false,
     "sellRefundRatio": 0.5,
     "spawnEnabled": false,
@@ -108,9 +108,9 @@
     "tex": "research_institute",
     "foundation": { "key": "building_foundation_2x2", "displayW": 256, "displayH": 128 },
     "displayW": 256,
-    "displayH": 271,
-    "footOffsetY": 136,
-    "assetCutoutHash": "1EAA8A2ED28923B6FBC3436FD98EBFF2EA6D667303A5B494474C9FDE92C86903",
+    "displayH": 303,
+    "footOffsetY": 152,
+    "assetCutoutHash": "AE6633492F5EAFBE8B75A175167C8F56A5DB092E1037E37DF369DA0E1246DF7C",
     "sellRefundRatio": 0.5,
     "spawnEnabled": false,
     "spawnIntervalMs": 10000,
@@ -165,8 +165,8 @@
     "unitCap": 5,
     "defaultUnitType": "musketeer",
     "unitTypes": [
-      { "key": "musketeer", "name": "仓鼠火枪", "spawnIntervalMs": 60000, "spawnEnergyCost": 180 },
-      { "key": "shooter", "name": "仓鼠射手", "spawnIntervalMs": 45000, "spawnEnergyCost": 120 }
+      { "key": "musketeer", "name": "仓鼠火枪", "spawnIntervalMs": 60000, "spawnFoodCost": 180 },
+      { "key": "shooter", "name": "仓鼠射手", "spawnIntervalMs": 45000, "spawnFoodCost": 120 }
     ],
     "upgradeProject": "shooting_range_special"
   },
@@ -188,9 +188,106 @@
     "unitCap": 5,
     "defaultUnitType": "knight",
     "unitTypes": [
-      { "key": "knight", "name": "仓鼠骑士", "spawnIntervalMs": 90000, "spawnEnergyCost": 300 },
-      { "key": "light_cavalry", "name": "仓鼠轻骑", "spawnIntervalMs": 60000, "spawnEnergyCost": 220 }
+      { "key": "knight", "name": "仓鼠骑士", "spawnIntervalMs": 90000, "spawnFoodCost": 300 },
+      { "key": "light_cavalry", "name": "仓鼠轻骑", "spawnIntervalMs": 60000, "spawnFoodCost": 220 }
     ],
     "upgradeProject": "cavalry_charge"
+  },
+  "house": {
+    "id": "house",
+    "name": "房屋",
+    "cost": 300,
+    "currency": "gold",
+    "hp": 1800,
+    "radius": 128,
+    "def": 50,
+    "mdef": 50,
+    "tex": "house_lv1",
+    "assetPath": "assets/terrain/house_lv1.png",
+    "displayW": 256,
+    "displayH": 294,
+    "footOffsetY": 147,
+    "sellRefundRatio": 0.5,
+    "spawnEnabled": false,
+    "unitTypes": [],
+    "economyType": "housing"
+  },
+  "wheat_windmill": {
+    "id": "wheat_windmill",
+    "name": "麦田风车",
+    "cost": 600,
+    "currency": "gold",
+    "hp": 2200,
+    "radius": 128,
+    "def": 55,
+    "mdef": 45,
+    "tex": "wheat_windmill",
+    "assetPath": "assets/terrain/wheat_windmill.png",
+    "displayW": 276,
+    "displayH": 286,
+    "footOffsetY": 143,
+    "sellRefundRatio": 0.5,
+    "spawnEnabled": false,
+    "unitTypes": [],
+    "economyType": "windmill",
+    "perimeterTile": "field"
+  },
+  "bank": {
+    "id": "bank",
+    "name": "银行",
+    "cost": 1000,
+    "currency": "gold",
+    "hp": 2600,
+    "radius": 128,
+    "def": 70,
+    "mdef": 80,
+    "tex": "bank",
+    "assetPath": "assets/terrain/bank.png",
+    "displayW": 266,
+    "displayH": 258,
+    "footOffsetY": 107,
+    "sellRefundRatio": 0.5,
+    "spawnEnabled": false,
+    "unitTypes": [],
+    "economyType": "bank"
+  },
+  "market": {
+    "id": "market",
+    "name": "市场",
+    "cost": 700,
+    "currency": "gold",
+    "hp": 2100,
+    "radius": 128,
+    "def": 50,
+    "mdef": 50,
+    "tex": "placeholder_market",
+    "assetPath": "assets/terrain/placeholder_market.svg",
+    "displayW": 276,
+    "displayH": 232,
+    "footOffsetY": 116,
+    "sellRefundRatio": 0.5,
+    "spawnEnabled": false,
+    "unitTypes": [],
+    "economyType": "market"
+  },
+  "economic_workshop": {
+    "id": "economic_workshop",
+    "name": "经济工坊",
+    "cost": 1200,
+    "currency": "gold",
+    "hp": 2800,
+    "radius": 128,
+    "def": 85,
+    "mdef": 70,
+    "tex": "economic_workshop",
+    "assetPath": "assets/terrain/economic_workshop.png",
+    "displayW": 308,
+    "displayH": 304,
+    "footOffsetY": 151,
+    "sellRefundRatio": 0.5,
+    "spawnEnabled": false,
+    "unitTypes": [],
+    "economyType": "workshop",
+    "upgradeProject": "economic_workshop"
   }
 }

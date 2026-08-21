@@ -107,6 +107,9 @@ export const WarehouseSystem = {
                 if (t && t.name === item.name && (t.stack || 1) < maxStack) {
                     const add = Math.min(maxStack - (t.stack || 1), remaining);
                     t.stack = (t.stack || 1) + add;
+                    if (t.category === 'gold' || t.name === '金币') {
+                        t.stats = [{ name: '数量', value: String(t.stack) }];
+                    }
                     remaining -= add;
                 }
             }
@@ -131,6 +134,51 @@ export const WarehouseSystem = {
     /** 放入一件物品（返回是否成功） */
     addItem(item) {
         return this._applyIntoWarehouse(item);
+    },
+
+    /** 尽可能存入可堆叠物品并返回实际数量，供银行计算金币溢出。 */
+    depositItemAmount(item) {
+        if (!item) return 0;
+        const requested = Math.max(0, Math.floor(Number(item.stack) || 0));
+        if (requested <= 0) return 0;
+        const freeSlots = this.capacity - this.items.length;
+        const accepted = Math.min(requested, this._stackSpaceIn(this.items, item, freeSlots));
+        if (accepted <= 0) return 0;
+        const acceptedItem = { ...item, stack: accepted };
+        if (item.category === 'gold' || item.name === '金币') {
+            acceptedItem.stats = [{ name: '数量', value: String(accepted) }];
+        }
+        this._applyIntoWarehouse(acceptedItem);
+        this._refreshAll();
+        return accepted;
+    },
+
+    serialize() {
+        return {
+            version: 1,
+            pageCount: this.pageCount,
+            items: JSON.parse(JSON.stringify(this.items || [])),
+        };
+    },
+
+    restore(snapshot) {
+        if (!snapshot || !Array.isArray(snapshot.items)) return false;
+        const pageCount = Math.max(1, Math.floor(Number(snapshot.pageCount) || this.pageCount));
+        this.pageCount = pageCount;
+        const used = new Set();
+        this.items = snapshot.items
+            .map((item) => JSON.parse(JSON.stringify(item)))
+            .filter((item) => {
+                const slot = Math.floor(Number(item?.slot));
+                if (!item || !Number.isFinite(slot) || slot < 0 || slot >= this.capacity || used.has(slot)) return false;
+                item.slot = slot;
+                item.stack = Math.max(1, Math.floor(Number(item.stack) || 1));
+                used.add(slot);
+                return true;
+            });
+        this.currentPage = 0;
+        this._refreshAll();
+        return true;
     },
 
     /** 背包 → 仓库（同品堆叠；仓库放不下整件则不动并提示） */

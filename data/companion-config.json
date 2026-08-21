@@ -58,15 +58,15 @@
         },
         "walk": {
           "src": "assets/companions/elise/walking.png",
-          "frameWidth": 640, "frameHeight": 640, "cols": 4, "rows": 3,
-          "frameCount": 12, "frames": [0, 11], "frameRate": 10, "repeat": -1
+          "frameWidth": 640, "frameHeight": 640, "cols": 5, "rows": 5,
+          "frameCount": 24, "frames": [0, 23], "frameRate": 28, "repeat": -1
         },
         "run": {
           "src": "assets/companions/elise/running.png",
-          "frameWidth": 640, "frameHeight": 640, "cols": 5, "rows": 5,
-          "frameCount": 23, "frames": [0, 22],
-          "startFrames": [0, 22], "startFrameRate": 12, "startRepeat": 0,
-          "loopFrames": [10, 21], "frameRate": 12, "repeat": -1
+          "frameWidth": 640, "frameHeight": 640, "cols": 5, "rows": 7,
+          "frameCount": 34, "frames": [0, 33],
+          "startFrames": [0, 9], "startFrameRate": 24, "startRepeat": 0,
+          "loopFrames": [10, 33], "frameRate": 24, "repeat": -1
         },
         "attack": {
           "src": "assets/companions/elise/attacking.png",

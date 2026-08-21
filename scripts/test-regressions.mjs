@@ -210,7 +210,10 @@ console.log('\n[6] 地牢 nodeCount 结构可达性');
     // 网格容量 = 3 + max(scp, minRooms-2, ceil((gridMin-3)/rows))×rows 必须 ≥ gridMin
     const dc = readJson('data/dungeon-config.json');
     const gradeBranches = { F: 2, E: 4, D: 6, C: 8, B: 10, A: 12 };
-    const blocks = { zombie: 'zombieDungeon', zombieBeginner: 'zombieDungeonBeginner', zombieMid: 'zombieDungeonMid', swamp: 'swampDungeon' };
+    const blocks = {
+        zombie: 'zombieDungeon', zombieBeginner: 'zombieDungeonBeginner', zombieMid: 'zombieDungeonMid',
+        swampBeginner: 'swampDungeonBeginner', swampMid: 'swampDungeonMid', swamp: 'swampDungeon'
+    };
     for (const [type, key] of Object.entries(blocks)) {
         const cfg = dc[key];
         if (!cfg) { check(`${type} 配置块存在`, false); continue; }

@@ -583,7 +583,7 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
   `shadow.maxOffset`（42~72）；length 随仰角曲线（正午短、晨昏长）。
 - **胶囊接触影（单位唯一做法，2026-08-19 定稿）**：玩家/怪物/友军/NPC 脚底
   柔边椭圆——长轴沿太阳方向拉伸、宽深随 groundRadius（唯一真源）、随仰角收放、
-  透明度与建筑同口径（0.1925×夜影衰减；0.385 为中间档旧值）、深度跟随本体仲裁后 −0.1（墙体遮挡继承）。
+  透明度 0.240625（2026-08-21 单位影加深 25%；建筑静态仍为 0.1925）×夜影衰减、深度跟随本体仲裁后 −0.1（墙体遮挡继承）。
   单位不做逐列剪影（动画逐帧换形不适用）；帧剪影链（unit_projection）已退役，
   禁止回潮。树木/桶状仙人掌（contact 型）/墙件同此胶囊。
   **几何定稿（2026-08-21 对齐修复）**：椭圆长轴 = footprint 宽 + 影向位移量、随影向旋转
@@ -664,9 +664,12 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
   SVG `<g>` 单针、`refreshGameTime` 内 `rotate(phase×360−90, 24, 24)` 由 `getSun().phase`
   驱动——上=正午、右=日落、下=午夜、左=日出（针=太阳方位）；
   不做精灵图帧（帧数爆炸跳变），刷新与暂停/读档同链，无独立秒表。
-- **地牢冻结与入侵进度（2026-08-20）**：`GameScene.update` 只在游戏运行、未暂停且
-  `scene7 + DungeonMapSystem.active` 不成立时推进 `EnvironmentLightingSystem` 和
-  `WorldInvasionSystem`。地牢成功/失败/安全撤离/主动放弃必须在 `shutdown` 前统一调用
+- **地牢冻结与入侵进度（2026-08-21）**：`SceneManager.isDungeonIsolationActive()` 是
+  `scene7` 地牢隔绝状态的统一判定。成立时 `GameScene.update` 冻结世界时间与五日入侵，
+  `WorldSimDriver` 冻结后台位面结算及科技研究，`Game.update` 冻结生产、补员、出兵、升级和
+  兵线；地牢本地地图、战斗与特工入侵仍正常推进。世界面板和 `switchScene(...,{observer:true})`
+  均禁止观察其他世界，并通过顶部提示“地牢中阻断了与外部世界的联系”。
+  地牢成功/失败/安全撤离/主动放弃必须在 `shutdown` 前统一调用
   `_recordRunResult`，每局只登记一次；F→A 进度比例只读 `world-system.json`，禁止在退出按钮
   分支另写常量。成功结果同时是世界位面解锁条件，失败与放弃只推进入侵、不解锁世界。
 

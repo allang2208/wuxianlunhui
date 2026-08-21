@@ -42,6 +42,7 @@ let EnergyNodeSystem = null;
 let EnergyManager = null;
 let ResearchSystem = null;
 let GoldManager = null;
+let PopulationEconomySystem = null;
 let getWorldEpoch = null;
 let canPersistWorld = null;
 let getWorldGenerationContext = null;
@@ -66,6 +67,7 @@ export function configureWorld122SnapshotRuntime(deps = {}) {
         EnergyManager,
         ResearchSystem,
         GoldManager,
+        PopulationEconomySystem,
         getWorldEpoch,
         canPersistWorld,
         getWorldGenerationContext,
@@ -172,6 +174,7 @@ export function ensureWorldBaseSnapshot(sceneId, {
             // v1 快照迁移：补元数据但不覆盖已有完整建设状态。
             if (!existing.reset) existing.reset = lifecycle.reset;
             if (!existing.generation) existing.generation = lifecycle.generation;
+            if (!existing.populationEconomy) existing.populationEconomy = { storageVersion: 2, foodStored: 0 };
             return existing;
         }
     }
@@ -191,6 +194,7 @@ export function ensureWorldBaseSnapshot(sceneId, {
         ...lifecycle,
         capturedAt,
         capturedGameTimeMs,
+        populationEconomy: { storageVersion: 2, foodStored: 0 },
         config: _snapshotConfig(),
         ...builder({ sceneId, spawn, hp, maxHp, generation: lifecycle.generation }),
     };
@@ -341,7 +345,8 @@ export function captureWorld(sceneId = 'scene8') {
         const unitRoster = p.spawnEnabled ? _unitRoster(p.units) : {};
         const localUnits = Object.values(unitRoster).reduce((sum, count) => sum + count, 0);
         structures.push({
-            kind: 'producer', id: p.id, cfgKey: p.cfgKey, x: p.x, y: p.y, hp: Math.ceil(p.hp), mirror: !!p._facingLeft,
+            kind: 'producer', id: p.id, cfgKey: p.cfgKey, x: p.x, y: p.y,
+            hp: Math.ceil(p.hp), maxHp: Math.ceil(p.maxHp), mirror: !!p._facingLeft,
             troopProducer: !!p._isTroopProducer,
             unitType: p.unitType || '', spawnTimer: p._spawnTimer || 0, recruitMode: normalizeRecruitMode(p._recruitMode),
             units: localUnits,
@@ -352,6 +357,25 @@ export function captureWorld(sceneId = 'scene8') {
             continuous: p._continuous || null,
             titheTimerMs: p.units?.find((unit) => unit?._isHamsterPriest && unit.active !== false)?._ai?._titheTimer || 0,
             storedEnergy: p._isEnergyWarehouse ? (p.storedEnergy || 0) : undefined,
+            storedFood: p._isEnergyWarehouse ? (p.storedFood || 0) : undefined,
+            economyLevel: p._economyLevel || undefined,
+            economyTickMs: p._economyTickMs || 0,
+            economyUpgrade: p._economyUpgrade ? {
+                targetLevel: p._economyUpgrade.targetLevel,
+                totalMs: p._economyUpgrade.totalMs,
+                remainMs: p._economyUpgrade.remainMs,
+            } : null,
+            bankGoldRemainder: p._bankGoldRemainder || 0,
+            pendingGoldDrop: p._pendingGoldDrop || 0,
+            workProductionRemainder: p._workProductionRemainder || 0,
+            assignedWorkers: p._assignedWorkers || 0,
+            marketPressure: p._marketPressure || 0,
+            workshopModules: p._economyType === 'workshop' ? { ...(p.modules || {}) } : undefined,
+            workshopUpgrade: p._workshopUpgrade ? {
+                moduleId: p._workshopUpgrade.moduleId,
+                totalMs: p._workshopUpgrade.totalMs,
+                remainMs: p._workshopUpgrade.remainMs,
+            } : null,
             rally: p._rallyPoint ? { x: p._rallyPoint.x, y: p._rallyPoint.y } : null,
             buildCost: p._buildCost ?? null, buildCurrency: p._buildCurrency ?? null,
         });
@@ -395,6 +419,7 @@ export function captureWorld(sceneId = 'scene8') {
         ..._snapshotLifecycle(sceneId, worldEpoch),
         capturedAt: Date.now(),
         capturedGameTimeMs: EnvironmentLightingSystem.serializeTime().elapsedMs || 0,
+        populationEconomy: PopulationEconomySystem?.serializeState?.() || { storageVersion: 2, foodStored: 0 },
         // 波次/结算参数随快照封存（后台结算与配置同生命周期，防版本间口径漂移）
         config: _snapshotConfig(),
         base,
@@ -729,7 +754,20 @@ function _restoreBarracks(s, sceneId) {
 function _restoreProducer(s, sceneId) {
     const cfg = getProducerConfig(s.cfgKey);
     if (!cfg) return; // 配置已移除的建筑跳过（版本兼容）
-    const producer = new ProducerBuilding(s.x, s.y, { id: s.id || `built_${s.cfgKey}_r${++_seq}`, cfgKey: s.cfgKey });
+    const producer = new ProducerBuilding(s.x, s.y, {
+        id: s.id || `built_${s.cfgKey}_r${++_seq}`,
+        cfgKey: s.cfgKey,
+        economyLevel: s.economyLevel,
+        economyTickMs: s.economyTickMs,
+        economyUpgrade: s.economyUpgrade,
+        bankGoldRemainder: s.bankGoldRemainder,
+        workProductionRemainder: s.workProductionRemainder,
+        assignedWorkers: s.assignedWorkers,
+        marketPressure: s.marketPressure,
+        pendingGoldDrop: s.pendingGoldDrop,
+        workshopModules: s.workshopModules,
+        workshopUpgrade: s.workshopUpgrade,
+    });
     _markRestored(producer, s);
     if ((cfg.unitTypes || []).some((t) => t.key === s.unitType)) producer.unitType = s.unitType;
     producer._spawnTimer = Math.max(0, s.spawnTimer || 0);
@@ -759,9 +797,23 @@ function _restoreProducer(s, sceneId) {
     Game.entities.set(producer.id, producer);
     ProducerBuildingSystem.buildings.push(producer);
     BuildingRoadSystem.attach(producer, { allowOverlap: true });
-    // 仓库：构造时已向 EnergyManager 注册（pending 能源会先行灌入），此处按快照覆盖回本仓原量
-    if (producer._isEnergyWarehouse && s.storedEnergy != null && EnergyManager) {
-        producer.storedEnergy = Math.max(0, Math.min(producer.storageCapacity || 0, Math.floor(s.storedEnergy)));
+    // 构造注册会先消费主存档 pending 能源；随后按快照覆盖本仓精确分量，避免同一库存重复恢复。
+    if (producer._isEnergyWarehouse && EnergyManager) {
+        const capacity = Math.max(0, Number(producer.storageCapacity) || 0);
+        producer.storedEnergy = Math.max(0, Math.min(capacity, Math.floor(Number(s.storedEnergy) || 0)));
+        producer.storedFood = Math.max(0, Math.min(
+            capacity - producer.storedEnergy,
+            Math.floor(Number(s.storedFood) || 0)
+        ));
+    }
+    if (producer._pendingGoldDrop > 0 && Game?.dropItem) {
+        const amount = producer._pendingGoldDrop;
+        producer._pendingGoldDrop = 0;
+        Game.dropItem(producer.x, producer.y, {
+            name: '金币', type: '货币', icon: '💰', category: 'gold', rarity: 'mythic',
+            stats: [{ name: '数量', value: String(amount) }],
+            desc: '金光闪闪的硬币', stack: amount, price: 1,
+        });
     }
     if (producer.spawnEnabled) {
         const roster = s.unitRoster && typeof s.unitRoster === 'object'
@@ -815,8 +867,11 @@ export function applyWorldSnapshot(sceneId = 'scene8', snap = _storedByWorld[sce
             skipWaves: DefenseSystem._managedExternally === true,
             gameTimeMs: nowGame,
             grant: (reward) => {
-                // 金币入全局金库；能源已由结算直接写入快照仓库（建筑尚未物化，EnergyManager 无法承接）
-                if (reward.gold && GoldManager && typeof GoldManager.addGold === 'function') GoldManager.addGold(reward.gold);
+                // 银行金币依次进入背包、主人空间仓库；溢出量由结算记在对应银行，回场后落地。
+                if (reward.gold && PopulationEconomySystem?.routeProducedGold) {
+                    return PopulationEconomySystem.routeProducedGold(reward.gold);
+                }
+                return { remaining: Math.max(0, Number(reward.gold) || 0) };
             },
         });
         if (report.defeated) {
@@ -867,6 +922,8 @@ export function applyWorldSnapshot(sceneId = 'scene8', snap = _storedByWorld[sce
             console.error('[WorldSnapshot] 建筑恢复失败:', sceneId, s.kind, err);
         }
     }
+    // v1 全局粮食必须等仓库实体恢复并注册后再迁移；v2 粮食已逐仓库存档。
+    PopulationEconomySystem?.restoreState?.(snap.populationEconomy || {});
 
     // 手动道路是无碰撞派生地块；建筑先恢复，随后道路与自动道路环共享对应格贴图。
     BuildingRoadSystem.restoreManualRoads(snap.roads);

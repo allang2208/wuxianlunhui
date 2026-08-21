@@ -18,6 +18,10 @@ const KEY_MAP = {
     zombie: 'zombieDungeon',
     zombieBeginner: 'zombieDungeonBeginner',
     zombieMid: 'zombieDungeonMid',
+    swampBeginner: 'swampDungeonBeginner',
+    swampMid: 'swampDungeonMid',
+    swamp: 'swampDungeon',
+    demonCavern: 'demonCavern',
 };
 
 const GRADE_ORDER = ['F', 'E', 'D', 'C', 'B', 'A'];
@@ -60,6 +64,9 @@ function encounterDesc(enc) {
         const parts = Object.entries(enc.tierWeights).filter(([, w]) => w > 0).map(([t, w]) => `${t} ${pct(w)}`);
         comp = parts.length ? `（${parts.join(' / ')}）` : '';
     }
+    if (Array.isArray(enc.poolKeys) && enc.poolKeys.length) {
+        comp += `（仅${enc.poolKeys.join('/')}）`;
+    }
     return `${waves} 波×${per}${comp}`;
 }
 
@@ -69,6 +76,9 @@ function bossDesc(cfg) {
     const parts = Object.entries(comp).map(([tier, n]) => `${tier}×${n}`);
     let desc = parts.length ? `独立遭遇（${parts.join(' + ')}）` : '独立遭遇';
     if (cfg.bossEncounter.poolFamily) desc += `，限定${cfg.bossEncounter.poolFamily}类`;
+    if (Array.isArray(cfg.bossEncounter.poolKeys) && cfg.bossEncounter.poolKeys.length) {
+        desc += `，仅${cfg.bossEncounter.poolKeys.join('/')}`;
+    }
     return desc;
 }
 
@@ -108,11 +118,12 @@ const RARITY_ORDER = ['common', 'uncommon', 'rare', 'epic', 'mythic', 'legendary
 const RARITY_LABELS = { common: '普通', uncommon: '优质', rare: '稀有', epic: '史诗', mythic: '神话', legendary: '传说' };
 
 /** 限定事件池：地牢等级 ±1 内的事件（与 dungeon-event-system rollEventType 同规则） */
-function restrictedPoolDesc(grade) {
+function restrictedPoolDesc(grade, scope) {
     const gi = GRADE_ORDER.indexOf(grade);
     if (gi < 0) return '—';
     const pool = Object.entries(EVENT_META)
         .filter(([, m]) => {
+            if (scope && m.scope !== scope) return false;
             const g = GRADE_ORDER.indexOf(m.grade);
             return g >= gi - 1 && g <= gi + 1;
         })
@@ -162,7 +173,7 @@ lines.push(
     '',
     '## 等级公共要素（按地牢 grade 自动获得）',
     '',
-    '| 等级 | 出征门槛祭品 | 祭品掉落封顶 | 普通怪祭品掉率 | 限定事件池（±1 级） |',
+    '| 等级 | 出征门槛祭品 | 祭品掉落封顶 | 普通怪祭品掉率 | 限定事件池（±1 级，按题材） |',
     '|---|---|---|---|---|',
 );
 const dropTables = FORMULAS.tributes?.dropTables || {};
@@ -172,7 +183,11 @@ for (const g of GRADE_ORDER) {
     const table = dropTables[g];
     const cap = table ? (RARITY_LABELS[table.maxRarity] || table.maxRarity) : '—';
     const chance = table?.normal?.chance !== undefined ? `${Math.round(table.normal.chance * 1000) / 10}%` : '—';
-    lines.push(`| ${g} | ${reqRarity}及以上 | ${cap} | ${chance} | ${restrictedPoolDesc(g)} |`);
+    const eventPools = [
+        `僵尸：${restrictedPoolDesc(g, 'zombie')}`,
+        `沼泽：${restrictedPoolDesc(g, 'swamp')}`,
+    ].join('；');
+    lines.push(`| ${g} | ${reqRarity}及以上 | ${cap} | ${chance} | ${eventPools} |`);
 }
 
 lines.push(
@@ -185,7 +200,7 @@ lines.push(
     '- **到 Boss 最少房间**：minRoomsToBoss，最短路径房间数下限（= 中间列 + 2），不足时扩展中间列。',
     '- **宝箱岔路**：独立于主线，尽头固定宝箱事件；条数缺省按等级 F=2、每级 +2。',
     '- **时空特工入侵**：详见 `data/agent-invasion.json`；仅 D 级及以上触发，追击追上后按节点类型触发三种入侵战斗（4096 场地）。',
-    '- **等级公共要素**：出征门槛（等级↔稀有度一一对应）、祭品掉落（`combat-formulas.json tributes.dropTables`，精英/领主/首领必掉）、限定事件池（`dungeon-event-definitions.js RESTRICTED_EVENT_META`，通用事件 30%/限定 70%，事件等级在地牢等级 ±1 内）。',
+    '- **等级公共要素**：出征门槛（等级↔稀有度一一对应）、祭品掉落（`combat-formulas.json tributes.dropTables`，精英/领主/首领必掉）、限定事件池（`dungeon-event-definitions.js RESTRICTED_EVENT_META`，通用事件 30%/限定 70%，限定事件同时匹配题材 scope 与地牢等级 ±1）。',
 );
 
 fs.writeFileSync(OUT, lines.join('\n') + '\n', 'utf-8');

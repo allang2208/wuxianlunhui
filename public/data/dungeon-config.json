@@ -36,6 +36,24 @@
    "grade": "C",
    "recLevel": "40~55级"
   },
+  "swampBeginner": {
+   "name": "☠ 沼泽地-初级",
+   "nodeCount": "30~35",
+   "battleRatio": "50%",
+   "level": "1级",
+   "reward": "1200金币",
+   "grade": "E",
+   "recLevel": "10~25级"
+  },
+  "swampMid": {
+   "name": "☠ 沼泽地-中级",
+   "nodeCount": "45~50",
+   "battleRatio": "50%",
+   "level": "1级",
+   "reward": "1500金币",
+   "grade": "D",
+   "recLevel": "25~40级"
+  },
   "demonCavern": {
    "name": "☠ 恶魔洞窟",
    "nodeCount": "55~60",
@@ -336,6 +354,9 @@
    "normal": {
     "combatWaves": 3,
     "monstersPerWave": 5,
+    "poolKeys": [
+     "blackWolf"
+    ],
     "tierWeights": {
      "normal": 1,
      "elite": 0
@@ -357,6 +378,256 @@
    "elite": {
     "combatWaves": 3,
     "monstersPerWave": 5,
+    "poolKeys": [
+     "blackWolf"
+    ],
+    "monsterComposition": {
+     "elite": 1,
+     "normal": 5
+    },
+    "tierWeights": {
+     "normal": 0,
+     "elite": 1
+    },
+    "guaranteeAtLeastOneElite": false,
+    "waveComposition": [
+     {
+      "normal": 5
+     },
+     {
+      "normal": 5
+     },
+     {
+      "normal": 4,
+      "lord": 1
+     }
+    ]
+   }
+  },
+  "bossEncounter": {
+   "combatWaves": 3,
+   "monstersPerWave": 5,
+   "poolKeys": [
+    "blackWolf"
+   ],
+   "waveComposition": [
+    {
+     "normal": 5
+    },
+    {
+     "normal": 5
+    },
+    {
+     "normal": 4,
+     "lord": 1
+    }
+   ]
+  },
+  "grid": {
+   "rows": 4,
+   "colSpacing": 160,
+   "rowSpacing": 140,
+   "mainRow": 1
+  },
+  "startRows": [
+   0,
+   1,
+   2,
+   3
+  ],
+  "bossReward": {
+   "bossBeforeLastCol": true,
+   "rewardAfterBoss": true
+  },
+  "nodeDisplay": {
+   "unrevealedIcon": "?",
+   "completedCombatType": "empty"
+  },
+  "minRoomsToBoss": 7,
+  "floor": {
+   "tiles": [
+    "swampbrick_new1"
+   ],
+   "glow": false,
+   "overlapX": 6,
+   "overlapY": 3
+  },
+  "mapBackground": "assets/scenes/dungeon-map-bg-swamp.png",
+  "family": "zombie",
+  "eventScope": "swamp",
+  "wallStyle": "swamp",
+  "combatArena": {
+   "enabled": true
+  }
+ },
+ "swampDungeonBeginner": {
+  "combatRoom": {
+   "bossSize": 1024
+  },
+  "nodeCount": {
+   "min": 30,
+   "max": 35
+  },
+  "shortestCombatPath": 4,
+  "typeRatios": {
+   "combat": 0.5,
+   "event": 0.5
+  },
+  "eliteCombatChance": 0.4,
+  "encounters": {
+   "normal": {
+    "combatWaves": 3,
+    "monstersPerWave": 5,
+    "poolKeys": [
+     "blackWolf"
+    ],
+    "tierWeights": {
+     "normal": 1,
+     "elite": 0
+    },
+    "guaranteeAtLeastOneElite": false,
+    "waveComposition": [
+     {
+      "normal": 5
+     },
+     {
+      "normal": 5
+     },
+     {
+      "normal": 4,
+      "elite": 1
+     }
+    ]
+   },
+   "elite": {
+    "combatWaves": 3,
+    "monstersPerWave": 5,
+    "poolKeys": [
+     "blackWolf"
+    ],
+    "monsterComposition": {
+     "elite": 1,
+     "normal": 5
+    },
+    "tierWeights": {
+     "normal": 0,
+     "elite": 1
+    },
+    "guaranteeAtLeastOneElite": false,
+    "waveComposition": [
+     {
+      "normal": 5
+     },
+     {
+      "normal": 5
+     },
+     {
+      "normal": 4,
+      "lord": 1
+     }
+    ]
+   }
+  },
+  "grid": {
+   "rows": 3,
+   "colSpacing": 160,
+   "rowSpacing": 140,
+   "mainRow": 1
+  },
+  "startRows": [
+   0,
+   1,
+   2
+  ],
+  "bossReward": {
+   "bossBeforeLastCol": true,
+   "rewardAfterBoss": true
+  },
+  "bossEncounter": {
+   "combatWaves": 3,
+   "monstersPerWave": 5,
+   "poolKeys": [
+    "blackWolf"
+   ],
+   "waveComposition": [
+    {
+     "normal": 5
+    },
+    {
+     "normal": 5
+    },
+    {
+     "normal": 4,
+     "lord": 1
+    }
+   ]
+  },
+  "nodeDisplay": {
+   "unrevealedIcon": "?",
+   "completedCombatType": "empty"
+  },
+  "minRoomsToBoss": 6,
+  "floor": {
+   "tiles": [
+    "swampbrick_new1"
+   ],
+   "glow": false,
+   "overlapX": 6,
+   "overlapY": 3
+  },
+  "mapBackground": "assets/scenes/dungeon-map-bg-swamp.png",
+  "family": "zombie",
+  "eventScope": "swamp",
+  "wallStyle": "swamp",
+  "combatArena": {
+   "enabled": true
+  }
+ },
+ "swampDungeonMid": {
+  "combatRoom": {
+   "bossSize": 1024
+  },
+  "nodeCount": {
+   "min": 45,
+   "max": 50
+  },
+  "shortestCombatPath": 5,
+  "typeRatios": {
+   "combat": 0.5,
+   "event": 0.5
+  },
+  "eliteCombatChance": 0.35,
+  "encounters": {
+   "normal": {
+    "combatWaves": 3,
+    "monstersPerWave": 5,
+    "poolKeys": [
+     "blackWolf"
+    ],
+    "tierWeights": {
+     "normal": 1,
+     "elite": 0
+    },
+    "guaranteeAtLeastOneElite": false,
+    "waveComposition": [
+     {
+      "normal": 5
+     },
+     {
+      "normal": 5
+     },
+     {
+      "normal": 4,
+      "elite": 1
+     }
+    ]
+   },
+   "elite": {
+    "combatWaves": 3,
+    "monstersPerWave": 5,
+    "poolKeys": [
+     "blackWolf"
+    ],
     "monsterComposition": {
      "elite": 1,
      "normal": 5
@@ -396,6 +667,25 @@
    "bossBeforeLastCol": true,
    "rewardAfterBoss": true
   },
+  "bossEncounter": {
+   "combatWaves": 3,
+   "monstersPerWave": 5,
+   "poolKeys": [
+    "blackWolf"
+   ],
+   "waveComposition": [
+    {
+     "normal": 5
+    },
+    {
+     "normal": 5
+    },
+    {
+     "normal": 4,
+     "lord": 1
+    }
+   ]
+  },
   "nodeDisplay": {
    "unrevealedIcon": "?",
    "completedCombatType": "empty"
@@ -410,7 +700,12 @@
    "overlapY": 3
   },
   "mapBackground": "assets/scenes/dungeon-map-bg-swamp.png",
-  "family": "zombie"
+  "family": "zombie",
+  "eventScope": "swamp",
+  "wallStyle": "swamp",
+  "combatArena": {
+   "enabled": true
+  }
  },
  "combatRoom": {
   "normalSize": 1024,

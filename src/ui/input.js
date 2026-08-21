@@ -25,7 +25,16 @@ import { TechnologyTreePanel } from './technology-tree-panel.js';
             _droneKeyHeldCode: null, // 正在按住无人机技能键的 keyCode（长按检测）
             _chargeKeyHeldCode: null, // 正在按住雷枪蓄力键的 keyCode（长按蓄力检测）
             init() {
-    window.addEventListener('keydown', e => { this.keys.add(e.code); this.handleKey(e.code, e.altKey); });
+    window.addEventListener('keydown', e => {
+        // 全屏科技树是独占栏目：ESC 由面板的捕获监听关闭，其余按键不得进入
+        // 游戏按键集合或打开其他栏目。
+        if (TechnologyTreePanel.isOpen) {
+            this.keys.delete(e.code);
+            return;
+        }
+        this.keys.add(e.code);
+        this.handleKey(e.code, e.altKey);
+    });
                 window.addEventListener('keyup', e => {
                     this.keys.delete(e.code);
                     // 无人机技能键松开：短按/长按在 QuickBar 侧判定
@@ -73,6 +82,12 @@ import { TechnologyTreePanel } from './technology-tree-panel.js';
                 window.addEventListener('electron-esc', () => this.handleKey(CONFIG.KEYS.MENU));
             },
     handleKey(code, altKey = false) {
+                // Electron ESC 可能直接调用 handleKey；保证科技树开启期间仍只有 ESC 能关闭，
+                // 其他全局快捷键一律不穿透到背包、任务、队伍或世界栏目。
+                if (TechnologyTreePanel.isOpen) {
+                    if (code === CONFIG.KEYS.MENU) TechnologyTreePanel.close();
+                    return;
+                }
                 if (Game._wallEditMode || Game._collisionEditMode || Game._buildMode) return; // 墙壁/碰撞/建筑编辑模式：按键交给编辑器（捕获监听先处理）
                 // 暂停已与菜单整合（Esc 开菜单即暂停，game-menu open/close 双循环+定时器）；P 键让位队员管理（2026-08-19）
                 if (code === CONFIG.KEYS.MENU) {
