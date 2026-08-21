@@ -28,6 +28,9 @@ class PoisonEffect {
         }
     }
 
+    getFogPosition() { return { x: this._x, y: this._y }; }
+    getFogVisuals() { return this._graphics; }
+
     _spawnParticle(x, y) {
         const colors = ['#4a8a3a', '#5a9a4a', '#3d7a2d', '#6aaa5a', '#2a6a1a', '#7aba6a', '#8aca7a', '#a0da8a'];
         const angle = Math.random() * Math.PI * 2;

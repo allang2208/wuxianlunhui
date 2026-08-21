@@ -49,6 +49,14 @@ class LightningBoltEffect {
         this._regenerate();
     }
 
+    getFogEndpoints() {
+        return [this.source, this.target].filter(Boolean);
+    }
+
+    getFogVisuals() {
+        return [this._graphics, this._glowGraphics];
+    }
+
     _createPhaserGraphics() {
         const scene = window.__phaserScene;
         if (!scene) return;

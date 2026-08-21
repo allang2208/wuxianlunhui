@@ -17,6 +17,7 @@ import { pathFinder } from '../ai/pathfinder.js';
 import { TechnologySystem } from '../world/technology-system.js';
 import { isoFootprintVertices } from '../physics/iso-footprint.js';
 import { TechnologyGate } from './technology-gate.js';
+import { FogOfWarSystem } from '../world/fog-of-war-system.js';
 
 const DRAG_THRESHOLD = 6; // 屏幕 px：超过判定为拖框
 const PERSISTENT_WORLDS = new Set(['scene8', 'scene9', 'scene10', 'scene11']);
@@ -406,6 +407,7 @@ export const RTSCommand = {
         this._selection = this._selection.filter((s) => {
             if (!s.ref || !s.ref.active) return false;
             if (s.kind === 'producer') return liveProducers.has(s.ref);
+            if (s.kind === 'enemy' && FogOfWarSystem.shouldHideEntity(this._scene, s.ref)) return false;
             return s.kind === 'ally' ? allies.has(s.ref) : worldEntities.has(s.ref);
         });
         if (before !== this._selection.length) {
@@ -493,6 +495,7 @@ export const RTSCommand = {
             for (const e of g.entities.values()) {
                 if (!e || !e.active) continue;
                 if (e._faction !== 'enemy' && e._faction !== 'agent') continue;
+                if (FogOfWarSystem.shouldHideEntity(this._scene, e)) continue;
                 addCandidate('enemy', e);
             }
         }
@@ -623,6 +626,7 @@ export const RTSCommand = {
             for (const e of g.entities.values()) {
                 if (!e || !e.active) continue;
                 if (e._faction !== 'enemy' && e._faction !== 'agent') continue;
+                if (FogOfWarSystem.shouldHideEntity(this._scene, e)) continue;
                 const r = this._unitScreenRect(e);
                 if (r && r.x1 >= x0 && r.x0 <= x1 && r.y1 >= y0 && r.y0 <= y1) {
                     sel.push({ kind: 'enemy', ref: e });
@@ -927,6 +931,7 @@ export const RTSCommand = {
         for (const entity of entities.values()) {
             if (!entity || !entity.active || entity.hp <= 0 || entity._isEnergyNode) continue;
             if (entity._faction !== 'enemy' && entity._faction !== 'agent') continue;
+            if (FogOfWarSystem.shouldHideEntity(this._scene, entity)) continue;
             const distance = Math.hypot(entity.x - unit.x, entity.y - unit.y);
             if (distance <= nearestDistance) {
                 nearest = entity;

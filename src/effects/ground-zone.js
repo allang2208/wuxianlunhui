@@ -1,5 +1,6 @@
 import { PERSPECTIVE_SCALE_Y } from '../config/perspective-config.js';
 import { surfaceEffectAtPoint } from '../physics/elevation.js';
+import { FogVisualAdapter } from './fog-visual-adapter.js';
 
 /**
  * 地表持续区域特效基类（GroundZone，2026-07-28 自提灯燃烧区抽出的模板）
@@ -69,7 +70,42 @@ export class GroundZone {
             jitterX: 80, jitterY: 40, emitterTtlMs: 700, ...(o.flame || {}),
         };
         this._gfx = []; // 底面/反光图形引用（destroy 统一清理）
+        this._emitters = [];
+        this._fogVisible = true;
+        this.active = true;
         this._build();
+        FogVisualAdapter.register(this);
+        _getScene()?.syncFogVisualEffect?.(this);
+    }
+
+    getFogPosition() {
+        return { x: this.x, y: this.y };
+    }
+
+    getFogVisuals() {
+        return [this._gfx, this._emitters];
+    }
+
+    setFogVisible(visible) {
+        this._fogVisible = visible;
+        for (let i = this._emitters.length - 1; i >= 0; i--) {
+            const emitter = this._emitters[i];
+            if (!emitter?.active) {
+                this._emitters.splice(i, 1);
+            }
+        }
+    }
+
+    _trackEmitter(emitter, ttlMs) {
+        if (!emitter) return null;
+        const scene = _getScene();
+        this._emitters.push(emitter);
+        scene?.time?.delayedCall(ttlMs, () => {
+            const index = this._emitters.indexOf(emitter);
+            if (index >= 0) this._emitters.splice(index, 1);
+            if (emitter.active) emitter.destroy();
+        });
+        return emitter;
     }
 
     _build() {
@@ -111,7 +147,7 @@ export class GroundZone {
     _spawnFlame() {
         const scene = _getScene();
         const F = this._flameCfg;
-        if (!scene || !scene.add || !F) return;
+        if (!scene || !scene.add || !F || !this._fogVisible) return;
         if (!scene.textures.exists(F.texture) && F.texture === 'impact_dot' && typeof scene._ensureImpactDotTexture === 'function') {
             scene._ensureImpactDotTexture();
         }
@@ -130,12 +166,12 @@ export class GroundZone {
         // [Phaser 粒子坐标陷阱] 发射器留 (0,0)，explode 传世界坐标
         em.setDepth(fy - 998); // 实体之下、反光之上
         em.addToUpdateList();
+        this._trackEmitter(em, F.emitterTtlMs ?? 700);
         for (let i = 0; i < F.burstCount; i++) {
             const jx = fx + (Math.random() - 0.5) * (F.jitterX ?? 80);
             const jy = fy + (Math.random() - 0.5) * (F.jitterY ?? 40) * PERSPECTIVE_SCALE_Y;
             em.explode(1, jx, jy);
         }
-        scene.time.delayedCall(F.emitterTtlMs ?? 700, () => { if (em && em.active) em.destroy(); });
     }
 
     /** 每帧驱动（实体 update 中调用；返回 false 表示已到期销毁，调用方从数组移除） */
@@ -169,6 +205,9 @@ export class GroundZone {
 
     /** 统一清理（到期/_destroyCustomEffects 调用；幂等） */
     destroy() {
+        if (!this.active) return;
+        this.active = false;
+        FogVisualAdapter.unregister(this);
         const scene = _getScene();
         for (const g of this._gfx) {
             if (g && g.active) {
@@ -178,6 +217,10 @@ export class GroundZone {
             }
         }
         this._gfx = [];
+        for (const emitter of this._emitters) {
+            if (emitter?.active) emitter.destroy();
+        }
+        this._emitters = [];
         this.oilGfx = null;
         this.glossGfx = null;
     }

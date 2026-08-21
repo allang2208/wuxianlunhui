@@ -33,6 +33,14 @@ class HolyLightEffect {
         this._createPhaser();
     }
 
+    getFogPosition() {
+        return this.target ? { x: this.target.x, y: this.target.y } : null;
+    }
+
+    getFogVisuals() {
+        return [this._graphics, this._glowGraphics, this._emitter];
+    }
+
     _createPhaser() {
         const scene = window.__phaserScene;
         if (!scene) return;

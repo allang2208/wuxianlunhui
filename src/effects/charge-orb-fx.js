@@ -38,6 +38,14 @@ export class ChargeOrbFx {
         this._build();
     }
 
+    getFogPosition() {
+        return this._anchor();
+    }
+
+    getFogVisuals() {
+        return [this._orbGfx, this._glowGfx];
+    }
+
     progress() {
         return Math.min(1, this._elapsed / this.durationMs);
     }

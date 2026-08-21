@@ -59,6 +59,8 @@ class MuzzleFlashEffect {
         }
     }
 
+    getFogVisuals() { return this._sprite; }
+
     update(dt = 16.67) {
         this.life -= dt;
         if (this.life <= 0) {

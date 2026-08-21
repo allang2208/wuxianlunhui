@@ -16,6 +16,14 @@ export class WeaponEffect {
         this._rotation = 0;
     }
 
+    getFogPosition() {
+        return { x: this._hiltX, y: this._hiltY };
+    }
+
+    getFogVisuals() {
+        return this._graphics;
+    }
+
     _ensureGraphics() {
         const scene = window.__phaserScene;
         if (this._graphics || !scene) return;

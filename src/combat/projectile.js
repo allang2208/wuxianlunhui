@@ -40,6 +40,11 @@ class Projectile {
 
         this._createPhaserSprite();
     }
+
+    getFogVisuals() {
+        return this._phaserSprite;
+    }
+
     update(dt = 16.67) {
         const scale = dt / 1000;
         const dx = Math.cos(this.angle) * this.speed * scale, dy = Math.sin(this.angle) * this.speed * scale;

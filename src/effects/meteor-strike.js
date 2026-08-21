@@ -57,6 +57,10 @@ export class MeteorStrike {
         this._startFall();
     }
 
+    getFogVisuals() {
+        return [this._meteor, this._lavaRingGfx, this._lavaEmitters];
+    }
+
     /** 播放技能音效（防御性） */
     _playSound(path) {
         if (SoundManager && typeof SoundManager.playFile === 'function') {

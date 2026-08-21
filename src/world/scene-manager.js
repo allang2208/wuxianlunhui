@@ -45,6 +45,7 @@ import { scatterWorld125Environment } from './world125-environment.js';
 import { WorldProgressionSystem } from './world-progression-system.js';
 import { TroopLineSystem } from './troop-line-system.js';
 import loadingScreenConfig from '../../data/loading-screen-config.json';
+import { FogOfWarSystem } from './fog-of-war-system.js';
 
 export const SceneManager = {
     currentScene: null,
@@ -281,6 +282,9 @@ export const SceneManager = {
                     captureAndStoreWorld(this.currentScene);
                 }
                 DefenseSystem.teardown();
+            }
+            if (this._isPersistentWorld(this.currentScene)) {
+                FogOfWarSystem.deactivateScene(this.currentScene);
             }
             if (this.currentScene === 'scene8' || this.currentScene === 'scene9'
                 || this.currentScene === 'scene10' || this.currentScene === 'scene11') clearDecoClearZones();
@@ -1760,10 +1764,21 @@ export const SceneManager = {
         ProducerBuildingSystem.setup();
         HamsterMinerSystem.setup(player);
 
+        const snapshot = getWorldSnapshot(sceneId);
         let result = null;
-        if (getWorldSnapshot(sceneId)) result = applyWorldSnapshot(sceneId);
+        if (snapshot) result = applyWorldSnapshot(sceneId);
         const portal = this._ensureWorldPortalEntity(sceneId, diamond);
         DefenseSystem.base = portal;
+        const scene = this.scenes[sceneId] || {};
+        FogOfWarSystem.enterScene(sceneId, {
+            worldEpoch: WorldProgressionSystem.getWorldEpoch(sceneId),
+            width: scene.width,
+            height: scene.height,
+            serialized: snapshot?.fogOfWar,
+            // 完整旧档没有迷雾字段时兼容为“全图已探索”；仅传送门基础快照仍从黑图开局。
+            legacyExplored: !!snapshot && !snapshot.initializedByPortal && !snapshot.fogOfWar,
+        });
+        FogOfWarSystem.update(sceneId, Game, Date.now(), { force: true });
         window.WorldInvasionSystem?.onWorldLoaded?.(sceneId, portal, diamond);
         this._announceWorld122Report(player, result);
     },
@@ -1904,6 +1919,7 @@ export const SceneManager = {
     /** 传送门被毁即判定位面毁灭：作废快照、旧坐标，并把仍在该位面的玩家/观察者送回主城。 */
     destroyWorld(sceneId, expectedEpoch = null) {
         if (!WorldProgressionSystem.markPortalDestroyed(sceneId, { expectedEpoch })) return false;
+        FogOfWarSystem.resetScene(sceneId);
         TroopLineSystem.invalidateWorld(sceneId);
         const worldEpoch = WorldProgressionSystem.getWorldEpoch(sceneId);
         const tx = this._beginWorldDestructionTransaction(sceneId, worldEpoch);

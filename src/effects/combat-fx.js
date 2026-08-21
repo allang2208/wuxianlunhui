@@ -1,6 +1,7 @@
 import { AttackRangeEffect } from './attack-range-effect.js';
 import { EffectManager } from './effect-manager.js';
 import { PERSPECTIVE_SCALE_Y } from '../config/perspective-config.js';
+import { FogVisualAdapter } from './fog-visual-adapter.js';
 
 /**
  * 战斗技能特效共享件（ROADMAP 任务3：各怪物技能特效逐字拷贝收口）
@@ -19,6 +20,15 @@ import { PERSPECTIVE_SCALE_Y } from '../config/perspective-config.js';
 /** 渲染场景守卫（无渲染环境一律防御性回退） */
 function getScene() {
     return typeof window !== 'undefined' ? window.__phaserScene : null;
+}
+
+function trackFogVisual(scene, owner, descriptor) {
+    if (typeof scene?.syncFogVisualEffect === 'function') {
+        scene.syncFogVisualEffect(owner, descriptor);
+    } else {
+        FogVisualAdapter.register(owner, descriptor);
+    }
+    return () => FogVisualAdapter.unregister(owner);
 }
 
 function structureVisualDepth(structure) {
@@ -137,6 +147,10 @@ export function launchArcProjectile({ textureKey, size, sx, sy, tx, ty, arcHeigh
     const sprite = scene.add.sprite(sx, sy, textureKey);
     sprite.setDisplaySize(size, size);
     sprite.setDepth(depth ?? (sy + 15));
+    const releaseFogVisual = trackFogVisual(scene, sprite, {
+        position: () => ({ x: sprite.x, y: sprite.y }),
+        visuals: sprite,
+    });
     const totalSpin = spin * (duration / 1000); // 全程总转角（rad）
     const tween = scene.tweens.add({
         targets: { t: 0 },
@@ -150,6 +164,7 @@ export function launchArcProjectile({ textureKey, size, sx, sy, tx, ty, arcHeigh
             if (spin) sprite.rotation = totalSpin * p;
         },
         onComplete() {
+            releaseFogVisual();
             if (sprite.active) sprite.destroy();
             if (onImpact) onImpact(tx, ty);
         }
@@ -162,6 +177,7 @@ export function launchArcProjectile({ textureKey, size, sx, sy, tx, ty, arcHeigh
             if (cancelled) return;
             cancelled = true;
             tween.stop();
+            releaseFogVisual();
             if (sprite.active) sprite.destroy();
         }
     };
@@ -220,6 +236,10 @@ export function fireGroundShockwave({ x, y, maxRadius, strokeColor = 0xff3030, f
     if (!scene || !scene.add || !scene.tweens) return null;
     const g = scene.add.graphics();
     g.setDepth(depth ?? (groundLayer ? y - 998 : y + 50));
+    const releaseFogVisual = trackFogVisual(scene, g, {
+        position: { x, y },
+        visuals: g,
+    });
     const wave = { t: 0 };
     scene.tweens.add({
         targets: wave,
@@ -244,7 +264,10 @@ export function fireGroundShockwave({ x, y, maxRadius, strokeColor = 0xff3030, f
                 g.strokeEllipse(x, y, maxRadius * 2 * t, maxRadius * 2 * PERSPECTIVE_SCALE_Y * t);
             }
         },
-        onComplete() { if (g.active) g.destroy(); }
+        onComplete() {
+            releaseFogVisual();
+            if (g.active) g.destroy();
+        }
     });
     return g;
 }
@@ -260,6 +283,10 @@ export function fireRadialLines({ x, y, count = 8, color = 0xffffff, innerFrom, 
     if (!scene || !scene.add || !scene.tweens) return null;
     const g = scene.add.graphics();
     g.setDepth(y + 50);
+    const releaseFogVisual = trackFogVisual(scene, g, {
+        position: { x, y },
+        visuals: g,
+    });
     const wave = { t: 0 };
     scene.tweens.add({
         targets: wave,
@@ -282,7 +309,10 @@ export function fireRadialLines({ x, y, count = 8, color = 0xffffff, innerFrom, 
                 g.strokePath();
             }
         },
-        onComplete() { if (g.active) g.destroy(); }
+        onComplete() {
+            releaseFogVisual();
+            if (g.active) g.destroy();
+        }
     });
     return g;
 }
@@ -302,6 +332,10 @@ export function fireRadialBurst({ x, y, count = 35, color = 0x3282ff,
     const g = scene.add.graphics();
     g.setDepth(depth ?? (y + 50));
     g.setPosition(x, y);
+    const releaseFogVisual = trackFogVisual(scene, g, {
+        position: { x, y },
+        visuals: g,
+    });
     const lines = [];
     for (let i = 0; i < count; i++) {
         lines.push({
@@ -342,7 +376,10 @@ export function fireRadialBurst({ x, y, count = 35, color = 0x3282ff,
                 g.strokePath();
             }
         },
-        onComplete() { if (g.active) g.destroy(); },
+        onComplete() {
+            releaseFogVisual();
+            if (g.active) g.destroy();
+        },
     });
     return g;
 }
@@ -370,8 +407,20 @@ export function burstParticles({ texture, x, y, count, config, destroyAfterMs, j
     if (depth !== undefined) emitter.setDepth(depth);
     const ex = jitter ? x + (Math.random() * 2 - 1) * jitter : x;
     const ey = jitter ? y + (Math.random() * 2 - 1) * jitter : y;
+    const fogVisual = {
+        position: { x: ex, y: ey },
+        visuals: emitter,
+    };
+    if (typeof scene.syncFogVisualEffect === 'function') {
+        scene.syncFogVisualEffect(emitter, fogVisual);
+    } else {
+        FogVisualAdapter.register(emitter, fogVisual);
+    }
     emitter.explode(count, ex, ey);
-    scene.time.delayedCall(destroyAfterMs, () => { if (emitter && emitter.active) emitter.destroy(); });
+    scene.time.delayedCall(destroyAfterMs, () => {
+        FogVisualAdapter.unregister(emitter);
+        if (emitter && emitter.active) emitter.destroy();
+    });
     return emitter;
 }
 
@@ -388,6 +437,10 @@ export function spawnLightningColumn({ x, y, height = 440, topW = 52, bottomW = 
     const g = scene.add.graphics();
     const glow = scene.add.graphics();
     glow.setBlendMode('ADD');
+    const releaseFogVisual = trackFogVisual(scene, g, {
+        position: { x, y },
+        visuals: [g, glow],
+    });
     if (scene.worldEffectsGroup) {
         scene.worldEffectsGroup.add(g);
         scene.worldEffectsGroup.add(glow);
@@ -420,6 +473,7 @@ export function spawnLightningColumn({ x, y, height = 440, topW = 52, bottomW = 
         ease: 'Quad.easeOut',
         onUpdate: draw,
         onComplete: () => {
+            releaseFogVisual();
             if (g && g.active) g.destroy();
             if (glow && glow.active) glow.destroy();
         },
@@ -443,6 +497,11 @@ export function spawnRailgunBeam({ x, y, endX, endY, duration = 260, widthScale 
     const g = scene.add.graphics();
     const glow = scene.add.graphics();
     glow.setBlendMode('ADD');
+    const releaseFogVisual = trackFogVisual(scene, g, {
+        endpoints: [{ x, y }, { x: endX, y: endY }],
+        checkEndpoints: true,
+        visuals: [g, glow],
+    });
     if (scene.worldEffectsGroup) {
         scene.worldEffectsGroup.add(g);
         scene.worldEffectsGroup.add(glow);
@@ -554,6 +613,7 @@ export function spawnRailgunBeam({ x, y, endX, endY, duration = 260, widthScale 
         ease: 'Quad.easeOut',
         onUpdate: draw,
         onComplete: () => {
+            releaseFogVisual();
             if (g && g.active) g.destroy();
             if (glow && glow.active) glow.destroy();
         },

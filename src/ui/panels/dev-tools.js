@@ -66,6 +66,16 @@ export function createDevToolPanel() {
     tabWorld.textContent = '位面';
     tabs.appendChild(tabWorld);
 
+    const tabFog = document.createElement('div');
+    tabFog.className = 'dev-tool-tab';
+    tabFog.dataset.tab = 'fog';
+    tabFog.addEventListener('click', () => {
+        DevTool.switchTab('fog');
+        renderFogDebug();
+    });
+    tabFog.textContent = '迷雾';
+    tabs.appendChild(tabFog);
+
     root.appendChild(tabs);
 
     // ===== Tab 内容：武器 =====
@@ -695,6 +705,82 @@ export function createDevToolPanel() {
         }
         renderWorldDebug();
     });
+
+    // ===== Tab 内容：战争迷雾调试 =====
+    const contentFog = document.createElement('div');
+    contentFog.className = 'dev-tool-tab-content';
+    contentFog.dataset.tabContent = 'fog';
+    contentFog.style.cssText = 'display:none;';
+    const fogWrap = document.createElement('div');
+    fogWrap.className = 'collision-tab-wrap';
+    fogWrap.innerHTML = `
+        <div class="collision-tab-desc">
+            <p>🌫 战争迷雾调试：显示逻辑格、三态、视野源半径和实时更新开销。</p>
+            <p style="color:#d8a26a;">调试层只影响显示，不修改探索记录、AI、战斗或 RTS 目标门禁。</p>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:10px 0;">
+            <label><input id="devFogEnabled" type="checkbox"> 调试覆盖层</label>
+            <label><input id="devFogStates" type="checkbox" checked> 三态填色</label>
+            <label><input id="devFogGrid" type="checkbox" checked> 网格</label>
+            <label><input id="devFogSources" type="checkbox" checked> 视野源</label>
+            <label><input id="devFogBlockers" type="checkbox" checked> LOS 阻挡格</label>
+            <label><input id="devFogMask" type="checkbox" checked> 主遮罩</label>
+            <button id="devFogRefresh" class="dev-tool-menu-btn">刷新数据</button>
+        </div>
+        <div id="devFogSummary" style="font-size:12px;color:#b8d8ff;line-height:1.7;"></div>
+        <div id="devFogSourcesList" style="margin-top:8px;font-size:11px;color:#aeb6bf;max-height:280px;overflow:auto;"></div>`;
+    contentFog.appendChild(fogWrap);
+    root.appendChild(contentFog);
+
+    const fogControl = (id) => root.querySelector(`#${id}`);
+    const renderFogDebug = () => {
+        const scene = window.__phaserScene;
+        const model = scene?.getFogDebugModel?.();
+        const summary = fogControl('devFogSummary');
+        const list = fogControl('devFogSourcesList');
+        if (!model || !summary || !list) {
+            if (summary) summary.textContent = '当前场景未启用战争迷雾';
+            if (list) list.textContent = '';
+            return;
+        }
+        fogControl('devFogEnabled').checked = !!model.options?.enabled;
+        fogControl('devFogStates').checked = model.options?.showStates !== false;
+        fogControl('devFogGrid').checked = model.options?.showGrid !== false;
+        fogControl('devFogSources').checked = model.options?.showSources !== false;
+        fogControl('devFogBlockers').checked = model.options?.showBlockers !== false;
+        fogControl('devFogMask').checked = model.render?.maskVisible !== false;
+        summary.innerHTML = `${model.sceneId} · ${model.columns}×${model.rows} · revision ${model.revision}<br>`
+            + `可见 ${model.visibleCells} · 已探索 ${model.exploredCells} · 未探索 ${model.unexploredCells}<br>`
+            + `视野源 ${model.update?.sourceCount || 0} · 逻辑 ${(model.update?.durationMs || 0).toFixed(3)}ms`
+            + ` · 变化格 ${model.update?.changedCells || 0} · 新探索 ${model.update?.exploredCells || 0}<br>`
+            + `遮罩 ${(model.render?.durationMs || 0).toFixed(3)}ms · 特效契约 ${model.effects?.explicit || 0}`
+            + ` / 兼容 ${model.effects?.legacy || 0}<br>`
+            + `LOS 阻挡 ${model.occlusion?.blockerCount || 0} · 阻挡格 ${model.occlusion?.blockedCells || 0}`
+            + ` · 最高 ${Math.round(model.occlusion?.maxBlockerHeight || 0)}`
+            + ` · 重建 ${(model.occlusion?.durationMs || 0).toFixed(3)}ms<br>`
+            + `可见性受控 ${model.visibility?.controlledEntities || 0} · 当前隐藏 ${model.visibility?.enforcedHiddenEntities || 0}`
+            + ` · 同步 ${(model.visibility?.durationMs || 0).toFixed(3)}ms`;
+        list.innerHTML = (model.sources || []).map((source) => (
+            `<div>${source.name} · ${source.profile} · R${Math.round(source.radius)}`
+            + ` · (${Math.round(source.x)}, ${Math.round(source.y)})</div>`
+        )).join('') || '当前没有有效视野源';
+    };
+    const applyFogDebug = () => {
+        const scene = window.__phaserScene;
+        scene?.setFogDebugOptions?.({
+            enabled: !!fogControl('devFogEnabled')?.checked,
+            showStates: !!fogControl('devFogStates')?.checked,
+            showGrid: !!fogControl('devFogGrid')?.checked,
+            showSources: !!fogControl('devFogSources')?.checked,
+            showBlockers: !!fogControl('devFogBlockers')?.checked,
+            maskVisible: !!fogControl('devFogMask')?.checked,
+        });
+        renderFogDebug();
+    };
+    for (const id of ['devFogEnabled', 'devFogStates', 'devFogGrid', 'devFogSources', 'devFogBlockers', 'devFogMask']) {
+        fogControl(id).addEventListener('change', applyFogDebug);
+    }
+    fogControl('devFogRefresh').addEventListener('click', renderFogDebug);
 
     // ===== 技能等级调试逻辑 =====
     const fillSkillSelect = () => {

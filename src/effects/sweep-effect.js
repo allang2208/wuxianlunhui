@@ -13,6 +13,10 @@ class SweepEffect {
         this._createPhaserObjects();
     }
 
+    getFogVisuals() {
+        return [this._graphics, this._label];
+    }
+
     _createPhaserObjects() {
         const scene = window.__phaserScene;
         if (!scene) return;

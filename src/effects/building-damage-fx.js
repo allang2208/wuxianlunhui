@@ -51,6 +51,14 @@ export class BuildingDamageFx {
         this._glowKey = `building-damage:${entity.id || entity.name || hashSeed(entity.x)}`;
     }
 
+    getFogPosition() {
+        return this.entity ? { x: this.entity.x, y: this.entity.y } : null;
+    }
+
+    getFogVisuals() {
+        return [this._flames, this._smoke];
+    }
+
     _resolveSprite(scene) {
         if (this.entity._isDefenseTower) {
             return scene._defenseSprites?.get(this.entity)?.base || null;

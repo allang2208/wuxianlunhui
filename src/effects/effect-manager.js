@@ -6,6 +6,7 @@ import { SmokeEffect } from './smoke-effect.js';
 import { BloodHitEffect as HitEffect } from './blood-hit-effect.js';
 import { FloatingTextEffect } from './floating-text.js';
 import { Projectile } from '../combat/projectile.js';
+import { FogVisualAdapter } from './fog-visual-adapter.js';
 const EffectManager = {
     effects: [], critFlash: 0,
     _pools: {},
@@ -32,7 +33,10 @@ const EffectManager = {
         if (!this._pools[type]) this._pools[type] = [];
         this._pools[type].push(obj);
     },
-    add(effect) { this.effects.push(effect); },
+    add(effect) {
+        FogVisualAdapter.register(effect);
+        this.effects.push(effect);
+    },
     /**
      * 清理所有浮动文字效果（事件/场景切换时调用，避免残留）
      */
@@ -42,6 +46,7 @@ const EffectManager = {
             if (e instanceof FloatingTextEffect) {
                 e.active = false;
                 if (e._destroyPhaserText) e._destroyPhaserText();
+                FogVisualAdapter.unregister(e);
                 this.effects.splice(i, 1);
             }
         }
@@ -52,6 +57,7 @@ const EffectManager = {
             const e = this.effects[i];
             e.update(dt);
             if (!e.active) {
+                FogVisualAdapter.unregister(e);
                 if (e._effectType) this._release(e._effectType, e);
                 this.effects.splice(i, 1);
             }

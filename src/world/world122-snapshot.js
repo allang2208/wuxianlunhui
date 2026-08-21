@@ -22,6 +22,7 @@ import worldSystemConfig from '../../data/world-system.json';
 import { EnvironmentLightingSystem } from './environment-lighting-system.js';
 import { createWorldGenerationContext, getWorldResetPolicy } from './world-reset-policy.js';
 import { getBuildingUpgradeProgressKey } from './building-upgrade-projects.js';
+import { FogOfWarSystem } from './fog-of-war-system.js';
 
 let Game = null;
 let DefenseSystem = null;
@@ -186,6 +187,7 @@ export function ensureWorldBaseSnapshot(sceneId, {
         sceneId,
         worldEpoch: epoch,
         initializedByPortal: true,
+        fogOfWar: null,
         ...lifecycle,
         capturedAt,
         capturedGameTimeMs,
@@ -388,6 +390,8 @@ export function captureWorld(sceneId = 'scene8') {
         version: SNAPSHOT_VERSION,
         sceneId,
         worldEpoch,
+        initializedByPortal: false,
+        fogOfWar: FogOfWarSystem.serializeScene(sceneId),
         ..._snapshotLifecycle(sceneId, worldEpoch),
         capturedAt: Date.now(),
         capturedGameTimeMs: EnvironmentLightingSystem.serializeTime().elapsedMs || 0,
@@ -437,14 +441,17 @@ export function isWorldSnapshotCurrent(sceneId, snapshot = _storedByWorld[sceneI
 
 /** 彻底作废单个位面的全部驻留记录；下次建门后按场景基础规则重新生成。 */
 export function resetWorldSnapshot(sceneId) {
-    if (!sceneId || !_storedByWorld[sceneId]) return false;
+    if (!sceneId) return false;
+    const hadSnapshot = !!_storedByWorld[sceneId];
     delete _storedByWorld[sceneId];
-    return true;
+    FogOfWarSystem.resetScene(sceneId);
+    return hadSnapshot;
 }
 
 /** 清空快照（新游戏重置） */
 export function resetWorld122Snapshot() {
     for (const key of Object.keys(_storedByWorld)) delete _storedByWorld[key];
+    for (const sceneId of FogOfWarSystem.config.enabledScenes || []) FogOfWarSystem.resetScene(sceneId);
 }
 
 export const resetWorldSnapshots = resetWorld122Snapshot;
@@ -478,12 +485,14 @@ export function serializeWorldScenes() {
 
 /** 主存档恢复：写入驻留（进入 122 时才真正物化） */
 export function restoreWorld122Scene(data) {
+    FogOfWarSystem.resetScene('scene8');
     if (data && data.version === SNAPSHOT_VERSION) _storedByWorld.scene8 = data;
     else delete _storedByWorld.scene8;
 }
 
 export function restoreWorldScenes(data) {
     for (const key of Object.keys(_storedByWorld)) delete _storedByWorld[key];
+    for (const sceneId of FogOfWarSystem.config.enabledScenes || []) FogOfWarSystem.resetScene(sceneId);
     if (!data || typeof data !== 'object') return;
     // 兼容旧档直接保存单个 scene8 快照。
     if (data.version === SNAPSHOT_VERSION && Array.isArray(data.structures)) {

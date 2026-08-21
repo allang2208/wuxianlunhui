@@ -27,6 +27,10 @@ class NightFlameBeamEffect {
         this._ensureGraphics();
     }
 
+    getFogVisuals() {
+        return this._graphics;
+    }
+
     _ensureGraphics() {
         const scene = window.__phaserScene;
         if (this._graphics || !scene) return;

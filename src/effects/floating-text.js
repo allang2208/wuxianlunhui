@@ -7,6 +7,7 @@
                 this.vy = -0.8;
                 this._createPhaserText();
             }
+            getFogVisuals() { return this._phaserText; }
             update(dt = 16.67) {
                 this.life -= dt;
                 this.y += this.vy * (dt / 1000);

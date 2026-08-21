@@ -19,6 +19,11 @@ import { bakeDungeonFloorChunk, registerDecoClearZones } from '../../world/dunge
 import { WeaponTransform } from '../../combat/weapon-transform.js';
 import { SwordArcTrail } from '../../effects/sword-arc-trail.js';
 import { EffectManager } from '../../effects/effect-manager.js';
+import { FogVisualAdapter } from '../../effects/fog-visual-adapter.js';
+import { FogMaskRenderer } from '../fog/fog-mask-renderer.js';
+import { FogMinimapLayer } from '../fog/fog-minimap-layer.js';
+import { FogDebugOverlay } from '../fog/fog-debug-overlay.js';
+import { FogVisibilityController } from '../fog/fog-visibility-controller.js';
 import {
     BuildingDamageFx,
     buildingDamageFlameCount,
@@ -41,6 +46,7 @@ import { PERSPECTIVE_SCALE_Y } from '../../config/perspective-config.js';
 import { getTorsoRect } from '../../physics/torso-hitbox.js';
 import { entitySurfaceZ, isEntityStrictlyBelow } from '../../physics/elevation.js';
 import SpatialPartitionSystem from '../../systems/spatial-partition-system.js';
+import { FogOfWarSystem } from '../../world/fog-of-war-system.js';
 
 import { DungeonMapSystem } from '../../world/dungeon-map-system.js';
 import { Camera } from '../../world/camera.js';
@@ -178,6 +184,15 @@ export class GameScene extends Scene {
         this._ambientOverlay.setOrigin(0, 0);
         this._ambientOverlay.setScrollFactor(0);
         this._ambientOverlay.setDepth(99990);
+        this._fogMaskRenderer = new FogMaskRenderer(this, FogOfWarSystem);
+        this._fogMinimapLayer = new FogMinimapLayer(this);
+        this._fogDebugOverlay = new FogDebugOverlay(this);
+        this._fogVisibilityController = new FogVisibilityController(
+            this,
+            FogOfWarSystem,
+            FogVisualAdapter,
+            (entity, hidden) => this._setFogEntityHidden(entity, hidden)
+        );
         // 局部亮光：短时（枪火/爆发）与常驻（火把/蓄力火球）分开管理。
         this._transientEnvironmentGlows = [];
         this._persistentEnvironmentGlows = new Map();
@@ -218,7 +233,7 @@ export class GameScene extends Scene {
         this._minimapStaticKey = null;
         // 小地图动态层（实体/相机框/玩家箭头），独立 graphics + 矩形 mask 裁剪（防止画出小地图框外）
         this._minimapDynamicGraphics = this.add.graphics();
-        this._minimapDynamicGraphics.setDepth(99999);
+        this._minimapDynamicGraphics.setDepth(99999.5);
         this._minimapDynamicGraphics.setScrollFactor(0);
         this.minimapTitle = this.add.text(0, 0, '地图', {
             fontFamily: 'SimHei, "Microsoft YaHei", sans-serif',
@@ -300,6 +315,8 @@ export class GameScene extends Scene {
 
         // 地牢模式：隐藏角色及武器贴图
         const _game = window.Game;
+        FogOfWarSystem.update(SceneManager.currentScene, _game, Date.now());
+        this._syncFogOfWar(_delta);
         const _dms = DungeonMapSystem;
         const isMapMode = SceneManager.currentScene === 'scene7' && _dms && _dms.active && _dms.state === 'map';
         this._syncAmbientOverlay(isMapMode);
@@ -353,6 +370,7 @@ export class GameScene extends Scene {
             if (this.screenHudGraphics) this.screenHudGraphics.setVisible(false);
             if (this._minimapStaticGraphics) this._minimapStaticGraphics.setVisible(false);
             if (this._minimapDynamicGraphics) this._minimapDynamicGraphics.setVisible(false);
+            this._fogMinimapLayer?.setVisible(false);
             if (this.minimapTitle) this.minimapTitle.setVisible(false);
             this._entityHudTexts.forEach(t => t.setVisible(false));
             // 地图模式下隐藏敌人/中立实体/其他施法者特效，避免战斗残留覆盖地图
@@ -438,6 +456,7 @@ export class GameScene extends Scene {
             if (this.screenHudGraphics) this.screenHudGraphics.setVisible(true);
             if (this._minimapStaticGraphics) this._minimapStaticGraphics.setVisible(!_dialogueOpen);
             if (this._minimapDynamicGraphics) this._minimapDynamicGraphics.setVisible(!_dialogueOpen);
+            this._fogMinimapLayer?.setVisible(!_dialogueOpen);
             if (this.minimapTitle) this.minimapTitle.setVisible(!_dialogueOpen);
             this._syncHud(_game);
             this._updateBossHpBar(_delta);
@@ -520,7 +539,99 @@ export class GameScene extends Scene {
         // 要塞式压平视图最后接管建筑显示，避免前面的常规同步在同帧重新显示立面。
         // 这里只改 Phaser 可见性/占地投影，不改实体、碰撞、寻路或高度语义。
         FlatViewSystem.sync(this, _game, WallSystem);
+        this._applyFogEntityVisibility(_game);
+        this._syncFogDebug();
         this._updateCamera();
+    }
+
+    _syncFogOfWar(deltaMs = 16.67) {
+        const sceneId = SceneManager.currentScene;
+        const grid = FogOfWarSystem.getGrid(sceneId);
+        this._fogMaskRenderer.update(sceneId, grid, deltaMs);
+        if (!grid?.active) this._fogMinimapLayer.setVisible(false);
+    }
+
+    syncFogVisualEffect(effect, descriptor = null) {
+        FogVisualAdapter.register(effect, descriptor);
+        return FogVisualAdapter.syncEffect(effect, SceneManager.currentScene, FogOfWarSystem);
+    }
+
+    isFogPointVisible(x, y) {
+        const sceneId = SceneManager.currentScene;
+        return !FogOfWarSystem.isEnabled(sceneId) || FogOfWarSystem.isPointVisible(sceneId, x, y);
+    }
+
+    setFogDebugOptions(options = {}) {
+        const next = this._fogDebugOverlay.setOptions(options);
+        if (Object.prototype.hasOwnProperty.call(options, 'maskVisible')) {
+            this._fogMaskRenderer.setVisible(options.maskVisible !== false);
+        }
+        return next;
+    }
+
+    getFogDebugModel() {
+        const sceneId = SceneManager.currentScene;
+        const model = FogOfWarSystem.getDebugModel(sceneId);
+        if (!model) return null;
+        return {
+            ...model,
+            render: {
+                durationMs: this._fogMaskRenderer.lastRenderMs,
+                changedCells: this._fogMaskRenderer.lastChangedCells,
+                maskVisible: this._fogMaskRenderer.enabled,
+            },
+            effects: FogVisualAdapter.getDebugModel(),
+            visibility: this._fogVisibilityController.getDebugModel(),
+            options: { ...this._fogDebugOverlay.options },
+        };
+    }
+
+    _syncFogDebug() {
+        const sceneId = SceneManager.currentScene;
+        this._fogDebugOverlay.update(
+            FogOfWarSystem.getGrid(sceneId),
+            this.getFogDebugModel()
+        );
+    }
+
+    /** 只裁切视觉对象；实体 active、AI、物理、碰撞与寻路状态保持原样。 */
+    _applyFogEntityVisibility(_game) {
+        const sceneId = SceneManager.currentScene;
+        this._fogVisibilityController.sync(sceneId, _game, Date.now());
+        this._fogVisibilityController.enforceHidden();
+    }
+
+    _setFogEntityHidden(entity, hidden) {
+        if (entity?._phaserSprite?.active) FogVisualAdapter.setHidden(entity._phaserSprite, hidden);
+        if (entity?._phaserLabel?.active) FogVisualAdapter.setHidden(entity._phaserLabel, hidden);
+        const shadow = this._shadowSprites?.get(entity);
+        if (shadow?.active) FogVisualAdapter.setHidden(shadow, hidden);
+
+        const neutral = this._neutralSprites?.get(entity);
+        if (neutral) {
+            FogVisualAdapter.setHidden(neutral.sprite, hidden);
+            FogVisualAdapter.setHidden(neutral.label, hidden);
+            FogVisualAdapter.setHidden(neutral.foundationSprite, hidden);
+            FogVisualAdapter.setHidden(neutral.backSprite, hidden);
+            FogVisualAdapter.setHidden(neutral.segmentSprites, hidden);
+        }
+        const tower = this._defenseSprites?.get(entity);
+        if (tower) Object.values(tower).forEach((visual) => FogVisualAdapter.setHidden(visual, hidden));
+        const xray = this._xrayMap?.get(entity);
+        if (xray) Object.values(xray).forEach((visual) => FogVisualAdapter.setHidden(visual, hidden));
+        const magic = this._magicSprites?.get(entity);
+        if (magic) Object.values(magic).forEach((visual) => FogVisualAdapter.setHidden(visual, hidden));
+        FogVisualAdapter.setHidden(this._structureSunShadows?.get(entity), hidden);
+        FogVisualAdapter.setHidden(this._freezeFx?.get(entity)?.block, hidden);
+        FogVisualAdapter.setHidden(this._inspireFx?.get(entity)?.gfx, hidden);
+        FogVisualAdapter.setHidden(this._stunFx?.get(entity), hidden);
+        const damageFx = entity?._buildingDamageFx;
+        if (damageFx) {
+            FogVisualAdapter.setHidden(damageFx._flames, hidden);
+            FogVisualAdapter.setHidden(damageFx._smoke, hidden);
+            if (hidden && damageFx._glowKey) this.unregisterEnvironmentGlow(damageFx._glowKey);
+        }
+        if (hidden) this.unregisterEnvironmentGlow(`fireball:${entity?.id || entity?.name || 'unknown'}`);
     }
 
     /** 左下角“范围”开关：显示墙顶、楼梯、共享缝、Portal 和真实侧轨。 */
@@ -1973,12 +2084,13 @@ export class GameScene extends Scene {
                 continue;
             }
             const life = Math.max(0, glow.remain / glow.duration);
+            const fogVisible = this.isFogPointVisible(glow.x, glow.y);
             glow.sprite.setPosition(glow.x, glow.y);
             glow.sprite.setDisplaySize(glow.radius * 2 * (1.15 - life * 0.15), glow.radius * 2 * (1.15 - life * 0.15));
             glow.sprite.setTint(glow.color);
-            glow.sprite.setAlpha(enabled ? glow.alpha * life * life : 0);
+            glow.sprite.setAlpha(enabled && fogVisible ? glow.alpha * life * life : 0);
             glow.sprite.setDepth(glow.depth);
-            glow.sprite.setVisible(enabled);
+            glow.sprite.setVisible(enabled && fogVisible);
         }
         if (!this._persistentEnvironmentGlows) return;
         for (const [key, glow] of this._persistentEnvironmentGlows.entries()) {
@@ -1987,12 +2099,13 @@ export class GameScene extends Scene {
                 continue;
             }
             const pulse = 1 + Math.sin(now * 0.010 + glow.phase) * glow.flicker;
+            const fogVisible = this.isFogPointVisible(glow.x, glow.y);
             glow.sprite.setPosition(glow.x, glow.y);
             glow.sprite.setDisplaySize(glow.radius * 2 * pulse, glow.radius * 2 * pulse);
             glow.sprite.setTint(glow.color);
-            glow.sprite.setAlpha(enabled ? glow.alpha * pulse : 0);
+            glow.sprite.setAlpha(enabled && fogVisible ? glow.alpha * pulse : 0);
             glow.sprite.setDepth(glow.depth);
-            glow.sprite.setVisible(enabled);
+            glow.sprite.setVisible(enabled && fogVisible);
         }
     }
 
@@ -2410,6 +2523,15 @@ export class GameScene extends Scene {
         }
 
         const check = (e, sprite) => {
+            const cur0 = this._xrayMap.get(e);
+            if (FogOfWarSystem.shouldHideEntity(SceneManager.currentScene, e)) {
+                if (cur0) {
+                    for (const k of ['circle', 'clone', 'hole', 'weaponClone', 'offhandClone', 'shieldClone']) {
+                        if (cur0[k]) cur0[k].setVisible(false);
+                    }
+                }
+                return;
+            }
             if (!e || !sprite || !sprite.active) return;
             // 找遮挡墙（depth 高于实体 + 几何遮挡判定，取最高 depth）
             // 判定：脚底在墙面底边线之后（fy < baseY）且身体进入墙面覆盖带（fy > baseY - 墙高），
@@ -2435,7 +2557,6 @@ export class GameScene extends Scene {
                     }
                 }
             }
-            const cur0 = this._xrayMap.get(e);
             if (wallDepth === -Infinity) {
                 if (cur0) {
                     for (const k of ['circle', 'clone', 'hole', 'weaponClone', 'offhandClone', 'shieldClone']) {
@@ -5919,7 +6040,7 @@ export class GameScene extends Scene {
         if (!this._bossHpBarTarget) return;
         const boss = this._bossHpBarTarget;
         // Boss 死亡/离场立即隐藏
-        if (!boss.active) {
+        if (!boss.active || FogOfWarSystem.shouldHideEntity(SceneManager.currentScene, boss)) {
             this._hideBossHpBar();
             return;
         }
@@ -6175,6 +6296,20 @@ export class GameScene extends Scene {
         for (const entity of _game.entities.values()) {
             if (!entity || !entity.active || entity === _game.player) continue;
             if (typeof entity.x !== 'number' || typeof entity.y !== 'number') continue;
+            const faction = entity._faction || entity.faction;
+            const requiresLiveSight = faction === 'enemy' || faction === 'agent'
+                || !!entity.itemData || !!entity._fogRequiresVisibility;
+            const hiddenByFog = FogOfWarSystem.isEnabled(SceneManager.currentScene) && (
+                requiresLiveSight
+                    ? FogOfWarSystem.shouldHideEntity(SceneManager.currentScene, entity)
+                    : !FogOfWarSystem.isPointVisible(SceneManager.currentScene, entity.x, entity.y)
+            );
+            if (hiddenByFog) {
+                for (const [key, text] of this._entityHudTexts.entries()) {
+                    if (key.entity === entity) text.setVisible(false);
+                }
+                continue;
+            }
             activeEntities.add(entity);
             this._syncEntityHud(entity);
         }
@@ -6224,6 +6359,7 @@ export class GameScene extends Scene {
 
         const drawEntity = (entity) => {
             if (!entity || !entity.active) return;
+            if (FogOfWarSystem.shouldHideEntity(SceneManager.currentScene, entity)) return;
             // 跳过配置了 noFootprint 的实体（如矿洞，保留碰撞判定但不显示脚下椭圆晕影）
             if (entity.config?.noFootprint) return;
             const r = entity.groundRadius || entity.collisionRadius || entity.size * 0.6 || 12;
@@ -6884,9 +7020,10 @@ export class GameScene extends Scene {
         if (!g) return;
         g.clear();
         const invZ = this._minimapInvZoom();
+        const minimapLayout = this._minimapLayout();
         const {
             minimapCfg, minimapW, minimapH, mx, my, worldW, worldH, scale, offX, offY,
-        } = this._minimapLayout();
+        } = minimapLayout;
         const styles = minimapCfg.styles || {};
         const bg = minimapCfg.background || {};
 
@@ -7642,6 +7779,17 @@ export class GameScene extends Scene {
         }
     }
 
+    _syncMinimapFog(fog, layout, invZ) {
+        this._fogMinimapLayer.sync(
+            fog,
+            this._fogMaskRenderer,
+            layout,
+            invZ,
+            this._minimapStaticGraphics?.visible !== false
+            && this._minimapDynamicGraphics?.visible !== false
+        );
+    }
+
     _syncMinimap() {
         const game = window.Game;
         if (!game || !game.player || game._npcDialoguePaused) return;
@@ -7654,9 +7802,10 @@ export class GameScene extends Scene {
         if (!g) return;
         g.clear();
         const invZ = this._minimapInvZoom();
+        const minimapLayout = this._minimapLayout();
         const {
             minimapCfg, minimapW, minimapH, mx, my, worldW, worldH, scale, offX, offY,
-        } = this._minimapLayout();
+        } = minimapLayout;
         const styles = minimapCfg.styles || {};
         const sizes = minimapCfg.sizes || {};
         // 边界检查：只画小地图框内的内容（替代 WebGL 不支持的 geometry mask）
@@ -7678,6 +7827,10 @@ export class GameScene extends Scene {
             this._redrawMinimapStatic();
             this._minimapStaticKey = staticKey;
         }
+
+        // 主画面与小地图共享同一张低分辨率 CanvasTexture，避免逐格提交 Graphics 指令。
+        const fog = FogOfWarSystem.getGrid(SceneManager.currentScene);
+        this._syncMinimapFog(fog, minimapLayout, invZ);
 
         // 相机视野框（与框求交集，超框部分不画）。
         // 2026-08-14：可视世界范围 = VIEW / 相机 zoom——之前无视缩放，世界-122（zoom 0.7）
@@ -7716,6 +7869,7 @@ export class GameScene extends Scene {
             game.entities.forEach(e => {
                 if (!e || e === game.player || !e.active) return;
                 if (typeof e.x !== 'number' || typeof e.y !== 'number' || isNaN(e.x) || isNaN(e.y)) return;
+                if (FogOfWarSystem.shouldHideEntity(SceneManager.currentScene, e)) return;
                 const ex = mx + offX + e.x * scale;
                 const ey = my + offY + e.y * scale;
                 if (!inBox(ex, ey)) return; // 框外实体不画

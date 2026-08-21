@@ -58,6 +58,10 @@ class BuildingSinkEffect {
         this._maskInstallError = null;
     }
 
+    getFogVisuals() {
+        return [this._sprites, this._label, this._seamOccluder];
+    }
+
     /** 主动回收可立即拆碰撞/实体，同时保留已接管精灵继续播放。 */
     start() {
         this._detach(this.entity);
