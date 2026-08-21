@@ -116,6 +116,7 @@ export class BlizzardZone extends GroundZone {
         this._cloudY = this.displayY - this.radiusY * this._cloudCfg.heightMul - this._cloudCfg.liftY;
         this._buildIce();
         this._buildCloud();
+        _getScene()?.syncFogVisualEffect?.(this);
     }
 
     /** 柔边圆纹理：乌云色块的底（边缘羽化，去掉塑料硬边感） */
@@ -186,7 +187,7 @@ export class BlizzardZone extends GroundZone {
         em.addToUpdateList();
         em.setDepth(CLOUD_TOP_DEPTH);
         em.explode(C.puffPerBurst ?? 2, px, py);
-        scene.time.delayedCall((C.puffLifespanMax || 2600) + 200, () => { if (em && em.active) em.destroy(); });
+        this._trackEmitter(em, (C.puffLifespanMax || 2600) + 200);
     }
 
     /** 纯白圆形雪球贴图（运行时生成，避免贴图白边问题） */
@@ -264,7 +265,7 @@ export class BlizzardZone extends GroundZone {
             const fy = this.displayY - Math.random() * this.radiusY * 0.9;
             em.explode(1, fx, fy);
         }
-        scene.time.delayedCall(F.emitterTtlMs ?? 1300, () => { if (em && em.active) em.destroy(); });
+        this._trackEmitter(em, F.emitterTtlMs ?? 1300);
     }
 
     /** 云雾：蓝色大粒子在区域内缓慢弥漫（ADD，低透明度） */
@@ -286,7 +287,7 @@ export class BlizzardZone extends GroundZone {
             const fy = this.displayY + Math.sin(a) * rr * this.radiusY;
             em.explode(1, fx, fy);
         }
-        scene.time.delayedCall(F.emitterTtlMs ?? 2200, () => { if (em && em.active) em.destroy(); });
+        this._trackEmitter(em, F.emitterTtlMs ?? 2200);
     }
 
     /** 风线：白色短线从左向右横扫（线条风暴感） */
@@ -408,7 +409,7 @@ export class BlizzardZone extends GroundZone {
         em.addToUpdateList();
         em.setDepth(f.landY - 996);
         em.explode(f.isSnowball ? I.snowballCount : I.spikeCount, f.landX, f.landY);
-        scene.time.delayedCall((I.lifespanMax || 560) + 100, () => { if (em && em.active) em.destroy(); });
+        this._trackEmitter(em, (I.lifespanMax || 560) + 100);
 
         const g = scene.add.graphics();
         g.lineStyle(I.ringWidth, I.ringColor, I.ringAlpha);
@@ -426,6 +427,8 @@ export class BlizzardZone extends GroundZone {
     update(dt, entities) {
         const alive = super.update(dt, entities);
         if (!alive) return false;
+        // 迷雾只暂停新视觉粒子；伤害 tick 已由 super.update 正常结算。
+        if (!this._fogVisible) return true;
         this.snowTimer -= dt;
         if (this.snowTimer <= 0) {
             this.snowTimer = this._snowCfg.morphMs ?? 90;
@@ -455,6 +458,10 @@ export class BlizzardZone extends GroundZone {
         }
         this._updateFalling(dt);
         return true;
+    }
+
+    getFogVisuals() {
+        return [super.getFogVisuals(), this._streaks, this._falling, this._cloudBlobs];
     }
 
     destroy() {

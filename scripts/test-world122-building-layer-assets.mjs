@@ -25,7 +25,7 @@ function check(name, condition) {
 const items = [
     ['barracks', { displayW: 275, displayH: 231, foot: 116 }],
     ['church', { displayW: 256, displayH: 301, foot: 150 }],
-    ['research_institute', { displayW: 256, displayH: 271, foot: 136 }],
+    ['research_institute', { displayW: 256, displayH: 303, foot: 152 }],
     ['thatch_hut', { displayW: 275, displayH: 225, foot: 113 }],
     ['blacksmith', { displayW: 267, displayH: 218, foot: 109 }],
     ['shooting_range', { displayW: 272, displayH: 217, foot: 109 }],

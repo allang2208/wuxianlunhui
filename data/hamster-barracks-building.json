@@ -15,6 +15,6 @@
   "unitCap": 5,
   "defaultUnitType": "warrior",
   "unitTypes": ["warrior", "guard"],
-  "unitSpawnEnergyCost": { "warrior": 125, "guard": 150 },
+  "unitSpawnFoodCost": { "warrior": 125, "guard": 150 },
   "upgradeProject": "barracks_defense"
 }

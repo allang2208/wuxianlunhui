@@ -217,9 +217,10 @@ export const DungeonMapSystem = {
         // 单局统计（通关结算面板数据源）：击杀/经验/节点清理
         DungeonRunStats.reset();
         // 地板贴图组（按地牢类型配置：随机选图+镜像+发光层开关；离开时恢复默认）
+        const dungeonCfg = DungeonConfig.getZombieDungeonConfig(dungeonType);
         setDungeonFloorProfile(DungeonConfig.getDungeonFloorProfile(dungeonType));
         // 墙样式（按地牢类型：僵尸砖墙 / 沼泽柴墙+藤门；离开时恢复默认）
-        WallSystem.setWallStyle(dungeonType);
+        WallSystem.setWallStyle(dungeonCfg.wallStyle || dungeonType);
         // 墙预制库加载补发（BootScene 已 fire-and-forget 预载；此处幂等补发，
         // 让加载最迟在进地牢时已发起——仍未就绪时 _enterCombatArena 会等加载完成再构建）
         loadWallPrefabs();
@@ -417,7 +418,7 @@ export const DungeonMapSystem = {
         this._generateZombieMap();
     },
 
-    // 僵尸家族地牢（共享僵尸战斗/波次系统）：zombie / zombieBeginner / zombieMid / swamp
+    // 僵尸战斗管线地牢：僵尸三档、沼泽三档等由配置 family='zombie' 统一接入。
     _isZombieFamily() {
         // 数据驱动：地牢配置块 family === 'zombie' 即走僵尸家族管线（战斗/竞技场/怪物池）
         const cfg = DungeonConfig.getZombieDungeonConfig(this.dungeonType);

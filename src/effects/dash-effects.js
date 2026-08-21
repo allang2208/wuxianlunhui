@@ -300,4 +300,10 @@ class DashFireTrailEffect {
 
     }
 
+for (const EffectType of [DashConvergeEffect, DashAuraEffect, GoldenConvergeEffect, DashFireTrailEffect]) {
+    EffectType.prototype.getFogVisuals = function getFogVisuals() {
+        return this._graphics;
+    };
+}
+
 export { DashConvergeEffect, DashAuraEffect, GoldenConvergeEffect, DashFireTrailEffect };

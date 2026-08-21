@@ -54,8 +54,8 @@ check('草屋与研究院贴图已按新素材紧身裁剪并重标',
     && researchPng.width === 1238 && researchPng.height === 1190
     && cfg.research_institute?.displayH === 277 && cfg.research_institute?.footOffsetY === 139);
 check('传送门贴图已按新素材紧身裁剪、重标并重建投影',
-    portalPng.width === 1127 && portalPng.height === 1192
-    && cfg.portal?.displayW === 288 && cfg.portal?.displayH === 305 && cfg.portal?.footOffsetY === 153
+    portalPng.width === 1029 && portalPng.height === 1208
+    && cfg.portal?.displayW === 288 && cfg.portal?.displayH === 293 && cfg.portal?.footOffsetY === 147
     && fs.existsSync(path.join(ROOT, 'assets/terrain/lighting/portal_projection.png')));
 check('传送门建筑配置四个目的地并接入正常场景切换',
     cfg.portal?.panelMode === 'portal'

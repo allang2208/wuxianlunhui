@@ -1,0 +1,42 @@
+{
+  "version": 1,
+  "enabledScenes": ["scene8", "scene9", "scene10", "scene11"],
+  "cellSize": 128,
+  "updateIntervalMs": 100,
+  "visibilitySyncIntervalMs": 100,
+  "occlusion": {
+    "enabled": true,
+    "gateDoorsBlockVision": false,
+    "rebuildIntervalMs": 1000,
+    "cellPaddingRatio": 0.5,
+    "defaultWallHeight": 80,
+    "defaultStructureHeight": 160,
+    "observerEyeHeightRatio": 0.72,
+    "observerEyeHeightFallback": 56,
+    "heightClearance": 16
+  },
+  "overlay": {
+    "depth": 99980,
+    "unexploredColor": "#020406",
+    "unexploredAlpha": 1,
+    "exploredColor": "#07100d",
+    "exploredAlpha": 0.62
+  },
+  "visual": {
+    "edgeSoftness": 0.72,
+    "revealTransitionMs": 180,
+    "concealTransitionMs": 260
+  },
+  "vision": {
+    "wallWalkMultiplier": 2,
+    "stairsMultiplier": 1.2,
+    "player": 1150,
+    "companion": 900,
+    "militaryUnit": 720,
+    "scout": 1450,
+    "cavalry": 950,
+    "portal": 900,
+    "troopProducer": 650,
+    "defenseTower": 1200
+  }
+}

@@ -123,11 +123,20 @@ export const SystemUI = {
             });
         });
     },
-    toggle(tab) { if (tab === 'inventory') tab = 'equip'; if (this.isOpen && this.currentTab === tab) { this.close(); return; } this.open(tab); },
+    toggle(tab) {
+        if (tab === 'inventory') tab = 'equip';
+        // 出征准备期间右栏是固定的物资背包，不允许快捷键将其关闭或切到其他系统页。
+        if (document.body.classList.contains('expedition-preparing')) {
+            if (tab !== 'equip' || (this.isOpen && this.currentTab === 'equip')) return;
+        }
+        if (this.isOpen && this.currentTab === tab) { this.close(); return; }
+        this.open(tab);
+    },
     open(tab) {
         // SoundManager.play('panel_open');
         // 'inventory' 已整合到 'equip' 页面
         if (tab === 'inventory') tab = 'equip';
+        if (document.body.classList.contains('expedition-preparing') && tab !== 'equip') return;
         this.isOpen = true; this.currentTab = tab;
         // 打开背包/其他系统面板时关闭组队面板（companion-panel 监听 'ui:panel-open'）
         EventBus.emit('ui:panel-open', { tab });

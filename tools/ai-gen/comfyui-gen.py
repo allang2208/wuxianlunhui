@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Text-to-image client for the project's ComfyUI backend (local or remote).
+"""Image-generation client for the project's ComfyUI backend (local or remote).
 
 Model switching is driven by tools/models.json: each named model maps to a
 workflow type and default parameters, so you can switch with --model.
@@ -10,6 +10,13 @@ Usage examples:
     python comfyui-gen.py --host 192.168.3.142 --model flux2-klein-4b --prompt "..." --out out.png
     python comfyui-gen.py --host 192.168.3.142 --model flux2-dev-fp8 --prompt "..." --out out.png
     python comfyui-gen.py --host 192.168.3.142 --model flux2-dev-depth --control-image depth.png --prompt "..." --out out.png
+    python comfyui-gen.py --host 192.168.3.142 --model flux2-dev-depth \
+        --control-image depth.png --control-image edges.png \
+        --control-strength 0.75 --control-strength 0.40 \
+        --init-image selected.png --denoise 0.30 --prompt "..." --out refined.png
+    python comfyui-gen.py --host 192.168.3.142 --model flux2-dev-depth \
+        --control-image depth.png --init-image selected.png --mask-image mask.png \
+        --denoise 0.40 --prompt "..." --out inpainted.png
     python comfyui-gen.py --host 192.168.3.142 --model flux2-dev-mesh --prompt "..." --out out.png
     python comfyui-gen.py --host 192.168.3.142 --model flux2-dev-fp8 --transparent \
         --prompt "a white knight armor with gold trim" --out hero.png   # 透明主体：AI 选纯色底 + 自动抠图
@@ -17,7 +24,8 @@ Usage examples:
 
 Defaults (steps/cfg/sampler/scheduler/size/negative) come from models.json,
 and any explicit flag overrides them. flux2 models with a "controlnet" field
-take a --control-image (depth map / pose / edge) to lock viewpoint/composition.
+take one or more --control-image values. FLUX.2 img2img/inpaint uses
+--init-image, --denoise and an optional --mask-image.
 """
 
 import argparse
@@ -139,16 +147,25 @@ def build_checkpoint_workflow(prompt, negative, ckpt, seed, steps, cfg, width, h
 
 
 def build_flux2_workflow(prompt, negative, unet, clip, vae, seed, steps, cfg, width, height,
-                         sampler, prefix, lora=None, controlnet=None, control_image=None,
-                         strength=0.75, guidance=None):
-    """FLUX.2 workflow: UNETLoader + CLIPLoader(flux2) + Flux2Scheduler + SamplerCustom.
+                         sampler, prefix, lora=None, controlnet=None, control_images=None,
+                         control_strengths=None, guidance=None, init_image=None,
+                         denoise=1.0, mask_image=None, mask_channel="red"):
+    """Build a FLUX.2 txt2img, img2img or masked-refinement workflow.
 
-    controlnet: file name under models/controlnet (e.g. FLUX.2-dev-Fun-Controlnet-Union.safetensors).
-    control_image: file name in ComfyUI input dir (uploaded depth/pose/edge map) -> locks viewpoint.
-    strength: ControlNet conditioning strength (0.6~0.8 for depth).
+    ``control_images`` may contain multiple uploaded depth/edge/pose images.
+    Flux2FunControlNetApply explicitly supports chaining, so each image adds a
+    deterministic condition without replacing the previous one.  Img2img uses
+    the selected image's VAE latent plus SplitSigmasDenoise; a mask additionally
+    limits noise to the requested region through SetLatentNoiseMask.
     """
+    control_images = list(control_images or [])
+    control_strengths = list(control_strengths or [])
+    if len(control_images) != len(control_strengths):
+        raise ValueError("control_images and control_strengths must have the same length")
     model_ref = ["1", 0]
     guide_val = guidance if guidance is not None else (cfg if cfg and cfg > 1 else 4.0)
+    latent_ref = ["7", 0]
+    sigmas_ref = ["6", 0]
     nodes = {
         "1": {"class_type": "UNETLoader", "inputs": {"unet_name": unet, "weight_dtype": "default"}},
         "2": {"class_type": "CLIPLoader", "inputs": {"clip_name": clip, "type": "flux2"}},
@@ -171,24 +188,50 @@ def build_flux2_workflow(prompt, negative, unet, clip, vae, seed, steps, cfg, wi
         "13": {"class_type": "VAEDecode", "inputs": {"samples": ["12", 0], "vae": ["3", 0]}},
         "14": {"class_type": "SaveImage", "inputs": {"filename_prefix": prefix, "images": ["13", 0]}},
     }
+
+    if init_image:
+        nodes["30"] = {"class_type": "LoadImage", "inputs": {"image": init_image}}
+        nodes["31"] = {"class_type": "VAEEncode", "inputs": {
+            "pixels": ["30", 0], "vae": ["3", 0]}}
+        nodes["32"] = {"class_type": "SplitSigmasDenoise", "inputs": {
+            "sigmas": ["6", 0], "denoise": denoise}}
+        latent_ref = ["31", 0]
+        sigmas_ref = ["32", 1]
+        if mask_image:
+            nodes["33"] = {"class_type": "LoadImageMask", "inputs": {
+                "image": mask_image, "channel": mask_channel}}
+            nodes["34"] = {"class_type": "SetLatentNoiseMask", "inputs": {
+                "samples": latent_ref, "mask": ["33", 0]}}
+            latent_ref = ["34", 0]
+
+    nodes["12"]["inputs"]["latent_image"] = latent_ref
+    nodes["12"]["inputs"]["sigmas"] = sigmas_ref
+
     if lora:
         lora_entries = lora if isinstance(lora, list) else [lora]
         for idx, item in enumerate(lora_entries):
             name = item.get("name") if isinstance(item, dict) else item
-            strength = item.get("strength", 1.0) if isinstance(item, dict) else 1.0
+            lora_strength = item.get("strength", 1.0) if isinstance(item, dict) else 1.0
             node_id = str(15 + idx)
             nodes[node_id] = {"class_type": "LoraLoaderModelOnly", "inputs": {
-                "model": model_ref, "lora_name": name, "strength_model": strength}}
+                "model": model_ref, "lora_name": name, "strength_model": lora_strength}}
             model_ref = [node_id, 0]
         nodes["10"]["inputs"]["model"] = model_ref
 
-    if controlnet and control_image:
-        nodes["20"] = {"class_type": "LoadImage", "inputs": {"image": control_image}}
-        nodes["21"] = {"class_type": "Flux2FunControlNetLoader", "inputs": {"controlnet_name": controlnet}}
-        nodes["22"] = {"class_type": "Flux2FunControlNetApply", "inputs": {
-            "conditioning": ["4", 0], "controlnet": ["21", 0], "vae": ["3", 0],
-            "strength": strength, "control_image": ["20", 0]}}
-        nodes["9"]["inputs"]["conditioning"] = ["22", 0]
+    if controlnet and control_images:
+        nodes["40"] = {"class_type": "Flux2FunControlNetLoader", "inputs": {
+            "controlnet_name": controlnet}}
+        conditioning_ref = ["4", 0]
+        for index, (control_image, control_strength) in enumerate(
+                zip(control_images, control_strengths)):
+            load_id = str(41 + index * 2)
+            apply_id = str(42 + index * 2)
+            nodes[load_id] = {"class_type": "LoadImage", "inputs": {"image": control_image}}
+            nodes[apply_id] = {"class_type": "Flux2FunControlNetApply", "inputs": {
+                "conditioning": conditioning_ref, "controlnet": ["40", 0], "vae": ["3", 0],
+                "strength": control_strength, "control_image": [load_id, 0]}}
+            conditioning_ref = [apply_id, 0]
+        nodes["9"]["inputs"]["conditioning"] = conditioning_ref
     return nodes, "14"
 
 
@@ -237,8 +280,8 @@ def build_mesh_workflow(prompt, unet, clip, vae, lora, seed, steps, guidance, wi
     return nodes, "14"
 
 
-def upload_image(host, port, path):
-    """Upload a local control image (depth map etc.) into the ComfyUI input dir."""
+def upload_image(host, port, path, *, label="image"):
+    """Upload a local workflow image into the ComfyUI input directory."""
     filename = os.path.basename(path)
     boundary = "----ComfyUIFormBoundary" + str(random.randint(0, 2**31 - 1))
     with open(path, "rb") as fh:
@@ -258,7 +301,7 @@ def upload_image(host, port, path):
     with urllib.request.urlopen(req, timeout=60) as resp:
         j = json.loads(resp.read().decode("utf-8"))
     name = j.get("name") or filename
-    print(f"control image uploaded: {name}", flush=True)
+    print(f"{label} uploaded: {name}", flush=True)
     return name
 
 
@@ -311,11 +354,21 @@ def main():
     ap.add_argument("--host", default="127.0.0.1")
     ap.add_argument("--port", type=int, default=8188)
     ap.add_argument("--timeout", type=int, default=600, help="max seconds to wait for generation")
-    ap.add_argument("--control-image", default=None,
-                    help="local image (depth map / pose / edge) to lock viewpoint via ControlNet "
-                         "(required for flux2 models registered with a controlnet)")
+    ap.add_argument("--control-image", action="append", default=None,
+                    help="repeatable local depth/edge/pose image for ControlNet; "
+                         "required for flux2 models registered with a controlnet")
+    ap.add_argument("--control-strength", action="append", type=float, default=None,
+                    help="repeat once per --control-image for per-control strength")
     ap.add_argument("--strength", type=float, default=None,
-                    help="ControlNet strength (default from models.json, ~0.75)")
+                    help="legacy common ControlNet strength for all control images")
+    ap.add_argument("--init-image", default=None,
+                    help="local initial image for FLUX.2 img2img refinement")
+    ap.add_argument("--denoise", type=float, default=None,
+                    help="FLUX.2 img2img denoise in (0,1]; default 0.35 with --init-image")
+    ap.add_argument("--mask-image", default=None,
+                    help="optional local inpaint mask; white/red=regenerate, black=preserve")
+    ap.add_argument("--mask-channel", choices=("alpha", "red", "green", "blue"), default="red",
+                    help="channel read from --mask-image (default red)")
     ap.add_argument("--transparent", action="store_true",
                     help="透明主体模式：AI 选纯色底写入提示词，出图后自动阈值抠图 + BiRefNet 精修")
     ap.add_argument("--bg-color", default=None,
@@ -335,6 +388,17 @@ def main():
     entry = registry[model_name]
     mtype = entry["type"]
     check_lora_dim(entry, model_name)
+
+    if args.init_image and mtype != "flux2":
+        ap.error("--init-image is currently supported only for flux2 workflows")
+    if args.mask_image and not args.init_image:
+        ap.error("--mask-image requires --init-image")
+    if args.denoise is not None and not args.init_image:
+        ap.error("--denoise requires --init-image")
+    if args.denoise is not None and not 0.0 < args.denoise <= 1.0:
+        ap.error("--denoise must be in (0,1]")
+    if args.strength is not None and args.control_strength:
+        ap.error("use either legacy --strength or repeatable --control-strength, not both")
 
     if args.prompt_file:
         with open(args.prompt_file, "r", encoding="utf-8") as fh:
@@ -388,19 +452,36 @@ def main():
         if args.checkpoint:
             print(f"note: --checkpoint ignored for flux2 model '{model_name}'", file=sys.stderr)
         controlnet = entry.get("controlnet")
-        control_image = None
+        control_images = []
         if controlnet:
             if not args.control_image:
                 ap.error(f"model '{model_name}' uses ControlNet '{controlnet}' — "
                          f"provide --control-image (depth map / pose / edge)")
-            control_image = upload_image(args.host, args.port, args.control_image)
-        strength = args.strength if args.strength is not None else entry.get("control_strength", 0.75)
+            control_images = [
+                upload_image(args.host, args.port, path, label=f"control image {index + 1}")
+                for index, path in enumerate(args.control_image)
+            ]
+        if args.control_strength:
+            if len(args.control_strength) != len(control_images):
+                ap.error("repeat --control-strength exactly once per --control-image")
+            control_strengths = args.control_strength
+        else:
+            common_strength = (args.strength if args.strength is not None
+                               else entry.get("control_strength", 0.75))
+            control_strengths = [common_strength] * len(control_images)
+        init_image = (upload_image(args.host, args.port, args.init_image, label="init image")
+                      if args.init_image else None)
+        mask_image = (upload_image(args.host, args.port, args.mask_image, label="mask image")
+                      if args.mask_image else None)
+        denoise = args.denoise if args.denoise is not None else (0.35 if init_image else 1.0)
         workflow, save_node = build_flux2_workflow(
             prompt, negative, entry.get("unet"), entry.get("clip"), entry.get("vae"),
             seed, steps, cfg, width, height, sampler, args.prefix,
             lora=entry.get("loras", entry.get("lora")),
-            controlnet=controlnet, control_image=control_image, strength=strength,
-            guidance=entry.get("guidance"))
+            controlnet=controlnet, control_images=control_images,
+            control_strengths=control_strengths, guidance=entry.get("guidance"),
+            init_image=init_image, denoise=denoise, mask_image=mask_image,
+            mask_channel=args.mask_channel)
     elif mtype == "mesh":
         if args.checkpoint:
             print(f"note: --checkpoint ignored for mesh model '{model_name}'", file=sys.stderr)

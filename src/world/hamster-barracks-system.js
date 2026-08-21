@@ -45,6 +45,7 @@ import { SceneManager } from './scene-manager.js';
 import { isInfiniteResourcesEnabled } from '../config/dev-cheats.js';
 import { TechnologySystem } from './technology-system.js';
 import { hasBackgroundBuildingUpgrade } from './world122-snapshot.js';
+import { PopulationEconomySystem } from './population-economy-system.js';
 import {
     applyGlobalUpgradesToKind,
     getUpgradeMultsFromLevels,
@@ -154,7 +155,7 @@ export class HamsterBarracks extends DamageableEntity {
         this._baseSpawnIntervalMs = BARRACKS_CONFIG.barracks.spawnIntervalMs;
         this._spawnRetryTimer = 0;
         this._spawnBlocked = false;
-        this._spawnEnergyBlocked = false;
+        this._spawnFoodBlocked = false;
         this.spawnEnabled = true;
         this._isTroopProducer = true;
         this._recruitMode = RECRUIT_MODE.PAUSED;
@@ -192,9 +193,9 @@ export class HamsterBarracks extends DamageableEntity {
         return true;
     }
 
-    _unitSpawnEnergyCost() {
+    _unitSpawnFoodCost() {
         return Math.max(0, Math.floor(Number(
-            BARRACKS_CONFIG.barracks.unitSpawnEnergyCost?.[this.unitType]
+            BARRACKS_CONFIG.barracks.unitSpawnFoodCost?.[this.unitType]
         ) || 0));
     }
 
@@ -202,16 +203,16 @@ export class HamsterBarracks extends DamageableEntity {
         const next = normalizeRecruitMode(mode);
         if (next === RECRUIT_MODE.SINGLE) {
             if (this.aliveUnitCount() >= this.unitCount()) return { ok: false, reason: '单位数量已达上限' };
-            const cost = this._unitSpawnEnergyCost();
+            const cost = this._unitSpawnFoodCost();
             if (cost > 0 && !isInfiniteResourcesEnabled()
-                && (!EnergyManager || EnergyManager.getEnergy() < cost)) {
-                return { ok: false, reason: `能源不足，单次招募需要 ${cost} 能源` };
+                && PopulationEconomySystem.getFoodStored() < cost) {
+                return { ok: false, reason: `粮食不足，单次招募需要 ${cost} 粮食` };
             }
         }
         this._recruitMode = next;
         this._spawnRetryTimer = 0;
         this._spawnBlocked = false;
-        this._spawnEnergyBlocked = false;
+        this._spawnFoodBlocked = false;
         if (next === RECRUIT_MODE.SINGLE || !(this._spawnTimer > 0)) {
             this._spawnTimer = this.recruitIntervalMs();
         } else if (next === RECRUIT_MODE.CONTINUOUS) {
@@ -231,7 +232,7 @@ export class HamsterBarracks extends DamageableEntity {
     }
 
     /** 生成一个军事单位（当前 unitType），应用兵营模块倍率 */
-    spawnUnit(payEnergy = false, options = {}) {
+    spawnUnit(payFood = false, options = {}) {
         if (!Game || !Game.entities) return null;
         if (!(BARRACKS_CONFIG.barracks.unitTypes || []).includes(this.unitType)) {
             this.unitType = BARRACKS_CONFIG.barracks.defaultUnitType || 'warrior';
@@ -243,13 +244,13 @@ export class HamsterBarracks extends DamageableEntity {
         const mults = this.mults();
         const spot = this._findUnitSpawn();
         if (!spot) return null;
-        const spawnCost = this._unitSpawnEnergyCost();
-        if (payEnergy && spawnCost > 0 && !isInfiniteResourcesEnabled()
-            && (!EnergyManager || !EnergyManager.deductEnergy(spawnCost))) {
-            this._spawnEnergyBlocked = true;
+        const spawnCost = this._unitSpawnFoodCost();
+        if (payFood && spawnCost > 0 && !isInfiniteResourcesEnabled()
+            && !PopulationEconomySystem.consumeFood(spawnCost)) {
+            this._spawnFoodBlocked = true;
             return null;
         }
-        this._spawnEnergyBlocked = false;
+        this._spawnFoodBlocked = false;
         const id = `${this.id}_unit_${++this._unitSeq}`;
         const ai = {
             ...baseAi,
@@ -369,18 +370,18 @@ export class HamsterBarracks extends DamageableEntity {
                     if (this._restoreTopUp > 0) this._restoreTopUp--;
                     this._spawnRetryTimer = 0;
                     this._spawnBlocked = false;
-                    this._spawnEnergyBlocked = false;
+                    this._spawnFoodBlocked = false;
                     if (!restoring && this._recruitMode === RECRUIT_MODE.SINGLE) {
                         this._recruitMode = RECRUIT_MODE.PAUSED;
                     }
-                } else if (this._spawnEnergyBlocked) {
+                } else if (this._spawnFoodBlocked) {
                     this._spawnTimer = 0;
                     this._spawnRetryTimer = 1000;
                     this._spawnBlocked = false;
                     if (EffectManager) {
-                        const cost = BARRACKS_CONFIG.barracks.unitSpawnEnergyCost?.[this.unitType] || 0;
+                        const cost = BARRACKS_CONFIG.barracks.unitSpawnFoodCost?.[this.unitType] || 0;
                         EffectManager.add(new FloatingTextEffect(this.x, this.y - 66,
-                            `能源不足，生产暂停（需 ${cost}）`, '#ffcc55'));
+                            `粮食不足，生产暂停（需 ${cost}）`, '#ffcc55'));
                     }
                 } else {
                     this._spawnTimer = 0;
@@ -399,7 +400,7 @@ export class HamsterBarracks extends DamageableEntity {
             this._spawnTimer = this.recruitIntervalMs();
             this._spawnRetryTimer = 0;
             this._spawnBlocked = false;
-            this._spawnEnergyBlocked = false;
+            this._spawnFoodBlocked = false;
         }
     }
 
@@ -563,7 +564,7 @@ class HamsterBarracksPanel extends BasePanel {
         const paused = recruitMode === RECRUIT_MODE.PAUSED;
         const spawnProgress = b._spawnBlocked ? 1 : Math.max(0, Math.min(1, 1 - b._spawnTimer / spawnMs));
         const spawnPct = Math.round(spawnProgress * 100);
-        const spawnBarColor = paused ? '#727981' : (b._spawnEnergyBlocked ? '#ffcc55' : (b._spawnBlocked ? '#ff7755'
+        const spawnBarColor = paused ? '#727981' : (b._spawnFoodBlocked ? '#ffcc55' : (b._spawnBlocked ? '#ff7755'
             : (spawnProgress < 0.5 ? '#ffd700' : (spawnProgress < 0.8 ? '#ff9d45' : '#7fe0c8'))));
         const bar = el.querySelector('#hbSpawnBar');
         const pct = el.querySelector('#hbSpawnPct');
@@ -578,7 +579,7 @@ class HamsterBarracksPanel extends BasePanel {
         }
         if (next) next.textContent = paused
             ? '已暂停'
-            : (b._spawnEnergyBlocked ? '能源不足'
+            : (b._spawnFoodBlocked ? '粮食不足'
                 : (b._spawnBlocked ? '出口阻塞' : `${Math.max(0, Math.ceil(b._spawnTimer / 1000))}s`));
         const modeText = el.querySelector('#hbRecruitMode');
         if (modeText) modeText.textContent = `${recruitModeLabel(recruitMode)} · ${recruitStatusText(b)}`;
@@ -607,6 +608,7 @@ class HamsterBarracksPanel extends BasePanel {
         if (!el || !this.barracks) return;
         const b = this.barracks;
         const energy = EnergyManager ? EnergyManager.getEnergy() : 0;
+        const food = PopulationEconomySystem.getFoodStored();
         const gold = GoldManager ? GoldManager.getGold() : 0;
         const cfg = BARRACKS_CONFIG;
         el.querySelector('#hbTitle').textContent = '建筑详情';
@@ -631,19 +633,19 @@ class HamsterBarracksPanel extends BasePanel {
         // 出发进度 = 已等待时间 / 45s 生成周期（2026-08-18 起切换单位类型重置 _spawnTimer 重新计时）
         const spawnProgress = b._spawnBlocked ? 1 : Math.max(0, Math.min(1, 1 - b._spawnTimer / spawnMs));
         const spawnPct = Math.round(spawnProgress * 100);
-        const spawnBarColor = paused ? '#727981' : (b._spawnEnergyBlocked ? '#ffcc55' : (b._spawnBlocked ? '#ff7755'
+        const spawnBarColor = paused ? '#727981' : (b._spawnFoodBlocked ? '#ffcc55' : (b._spawnBlocked ? '#ff7755'
             : (spawnProgress < 0.5 ? '#ffd700' : (spawnProgress < 0.8 ? '#ff9d45' : '#7fe0c8'))));
         const nextText = paused ? '已暂停'
-            : (b._spawnEnergyBlocked ? '能源不足' : (b._spawnBlocked ? '出口阻塞' : `${nextIn}s`));
+            : (b._spawnFoodBlocked ? '粮食不足' : (b._spawnBlocked ? '出口阻塞' : `${nextIn}s`));
         st.innerHTML = `
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
                 <div><span class="troop-panel-primary-label">等级 ${b.level}</span></div>
-                <div class="troop-panel-resource-summary">金币 <span style="color:#ffd700;">${gold}</span> · 能源 <span style="color:#7fd4ff;">${energy}</span></div>
+                <div class="troop-panel-resource-summary">金币 <span style="color:#ffd700;">${gold}</span> · 能源 <span style="color:#7fd4ff;">${energy}</span> · 粮食 <span style="color:#d9b84f;">${Math.floor(food)}</span></div>
             </div>
             <div class="troop-panel-copy">
                 军事单位 <span style="color:#8ad0ff;">${b.aliveUnitCount()}/${b.unitCount()}</span> ·
                 当前生成 <b style="color:#7fe0c8;">${curType.name || '—'}</b>
-                （每名 ${cfg.barracks.unitSpawnEnergyCost?.[b.unitType] || 0} 能源）<br>
+                （每名 ${cfg.barracks.unitSpawnFoodCost?.[b.unitType] || 0} 粮食）<br>
                 招募状态 <b id="hbRecruitMode" style="color:${paused ? '#aab0b6' : '#7fe0c8'};">${recruitModeLabel(recruitMode)} · ${recruitStatusText(b)}</b> ·
                 下次生成 <b id="hbSpawnNext" style="color:${b._spawnBlocked ? '#ff7755' : '#7fd4ff'};">${nextText}</b>（当前周期 ${(spawnMs / 1000).toFixed(1)}s）<br>
                 攻击间隔/伤害/移速/生命随模块升级
@@ -656,7 +658,7 @@ class HamsterBarracksPanel extends BasePanel {
                 <div style="position:relative;height:10px;background:rgba(255,255,255,0.10);border-radius:5px;overflow:hidden;">
                     <div id="hbSpawnBar" style="position:absolute;left:0;top:0;bottom:0;width:${spawnPct}%;background:linear-gradient(90deg, ${spawnBarColor}, #7fe0c8);border-radius:5px;transition:width 0.2s linear;"></div>
                 </div>
-                <div class="troop-panel-caption" style="margin-top:2px;">默认暂停；单次只完成一名，持续模式在能源和空位满足时循环招募</div>
+                <div class="troop-panel-caption" style="margin-top:2px;">默认暂停；单次只完成一名，持续模式在粮食和空位满足时循环招募</div>
             </div>`;
 
         const ut = el.querySelector('#hbUnitType');
@@ -665,7 +667,7 @@ class HamsterBarracksPanel extends BasePanel {
             const active = b.unitType === key;
             return `<button class="troop-panel-unit-button ${active ? 'is-active' : ''}" data-unit-type="${key}"
                 data-technology-gate-type="unit" data-technology-gate-id="${key}"
-                style="flex:1;padding:7px 0;cursor:pointer;">${u.name}<br><small>${cfg.barracks.unitSpawnEnergyCost?.[key] || 0} 能源</small></button>`;
+                style="flex:1;padding:7px 0;cursor:pointer;">${u.name}<br><small>${cfg.barracks.unitSpawnFoodCost?.[key] || 0} 粮食</small></button>`;
         };
         ut.innerHTML = `
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">

@@ -1,4 +1,7 @@
 import technologyTree from '../../data/technology-tree.json';
+import producerBuildings from '../../data/producer-buildings.json';
+import hamsterBarracks from '../../data/hamster-barracks-building.json';
+import buildingUpgrades from '../../data/building-upgrades.json';
 import { EventBus } from '../core/event-bus.js';
 
 const VERSION = 2;
@@ -6,6 +9,27 @@ const ALLOWED_UNLOCK_TYPES = new Set(['building', 'buildingKind', 'unit', 'upgra
 const nodes = Array.isArray(technologyTree.nodes) ? technologyTree.nodes : [];
 const nodesById = new Map(nodes.map((node) => [node.id, node]));
 const unlockOwners = new Map();
+
+const producerConfigs = Object.values(producerBuildings || {})
+    .filter((config) => config && typeof config === 'object' && config.id);
+const producerUnitIds = producerConfigs.flatMap((config) => (config.unitTypes || [])
+    .map((unit) => typeof unit === 'string' ? unit : unit?.key)
+    .filter(Boolean));
+const upgradeIds = Object.values(buildingUpgrades || {}).flatMap((project) =>
+    Object.values(project?.abilities || {}).map((ability) => ability?.id).filter(Boolean));
+const KNOWN_UNLOCK_TARGETS = Object.freeze({
+    building: new Set([
+        'tower', 'cover_block', 'road', 'gate_4cell', 'hamster_hut', 'hamster_barracks',
+        'wall_staircase', ...producerConfigs.map((config) => config.id),
+    ]),
+    buildingKind: new Set(['trap']),
+    unit: new Set([...(hamsterBarracks.unitTypes || []), ...producerUnitIds]),
+    upgrade: new Set(upgradeIds),
+    mechanic: new Set([
+        'building_recycle', 'rts_command', 'troop_hold', 'troop_rally',
+        'flat_view', 'cross_world_reinforcement',
+    ]),
+});
 
 for (const node of nodes) {
     for (const unlock of node.unlocks || []) {
@@ -68,6 +92,10 @@ function validateTechnologyTreeConfig(config) {
             }
             if (typeof unlock.id !== 'string' || !unlock.id.trim()) {
                 errors.push(`${id} 存在缺少 id 的 ${unlock.type} 解锁项`);
+                continue;
+            }
+            if (!KNOWN_UNLOCK_TARGETS[unlock.type]?.has(unlock.id)) {
+                errors.push(`${id} 引用了不存在的解锁目标：${unlock.type}:${unlock.id}`);
                 continue;
             }
             const key = `${unlock.type}:${unlock.id}`;
@@ -186,6 +214,18 @@ export const TechnologySystem = {
         return owners.some((nodeId) => this.isCompleted(nodeId));
     },
 
+    /** 实际解锁顺序：基础功能为 -1，未解锁为 Infinity，同一目标取最早完成的拥有者。 */
+    getUnlockOrder(type, id) {
+        const owners = unlockOwners.get(`${type}:${id}`);
+        if (!owners?.length) return -1;
+        let order = Number.POSITIVE_INFINITY;
+        for (const nodeId of owners) {
+            const index = this.state.completed.indexOf(nodeId);
+            if (index >= 0) order = Math.min(order, index);
+        }
+        return order;
+    },
+
     getProgress(id) {
         return normalizeProgress(this.state.progressById[id], this.getNode(id)?.researchCost);
     },
@@ -279,22 +319,40 @@ export const TechnologySystem = {
         const count = Math.max(0, Math.floor(Number(instituteCount) || 0));
         this.lastInstituteCount = count;
         if (count <= 0 || deltaMs <= 0) return null;
-
-        if (!this.isAvailable(this.state.activeTechId)) {
-            this._selectNextResearch();
-            if (!this.state.activeTechId) return null;
-        }
-
-        const node = this.getNode(this.state.activeTechId);
         const rate = Math.max(0, Number(technologyTree.pointsPerInstitutePerSecond) || 0) * count;
-        const next = this.getProgress(node.id) + rate * (deltaMs / 1000);
-        this.state.progressById[node.id] = Math.min(node.researchCost, next);
+        let remainingPoints = rate * (deltaMs / 1000);
+        let lastCompletedNode = null;
+        let progressed = false;
+        let safety = nodes.length + 1;
 
-        if (next < node.researchCost) {
-            this._emitChanged('progress');
-            return null;
+        while (remainingPoints > 0 && safety-- > 0) {
+            if (!this.isAvailable(this.state.activeTechId)) {
+                this._selectNextResearch();
+                if (!this.state.activeTechId) break;
+            }
+
+            const node = this.getNode(this.state.activeTechId);
+            const current = this.getProgress(node.id);
+            const needed = Math.max(0, Number(node.researchCost) - current);
+            const applied = Math.min(remainingPoints, needed);
+            const next = current + applied;
+            remainingPoints -= applied;
+            this.state.progressById[node.id] = Math.min(node.researchCost, next);
+
+            if (next < node.researchCost) {
+                progressed = applied > 0;
+                break;
+            }
+
+            this._completeResearch(node);
+            lastCompletedNode = node;
         }
 
+        if (progressed) this._emitChanged('progress');
+        return lastCompletedNode;
+    },
+
+    _completeResearch(node) {
         if (!this.state.completed.includes(node.id)) this.state.completed.push(node.id);
         delete this.state.progressById[node.id];
         this.state.activeTechId = null;
@@ -320,7 +378,6 @@ export const TechnologySystem = {
             `科技研发完成：${node.name}${unlockSummary ? `｜解锁 ${unlockSummary}` : ''}`,
             { color: '#8ee6ff' }
         );
-        return node;
     },
 
     unlockAll({ source = 'dev' } = {}) {

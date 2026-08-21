@@ -34,7 +34,21 @@ export class StormCloudFx {
         this._mistTimer = 0;
         this._fallTimer = 0;
         this._arcTimer = 0;
+        this._fogVisible = true;
         this._build();
+        _getScene()?.syncFogVisualEffect?.(this);
+    }
+
+    getFogPosition() {
+        return { x: this.source?.x, y: this.source?.y };
+    }
+
+    getFogVisuals() {
+        return [this._blobs, this._arcGfx];
+    }
+
+    setFogVisible(visible) {
+        this._fogVisible = visible;
     }
 
     _ensurePuffTexture(scene) {
@@ -227,6 +241,7 @@ export class StormCloudFx {
             return;
         }
         this._syncBlobs();
+        if (!this._fogVisible) return;
         this._sparkTimer -= dt;
         if (this._sparkTimer <= 0) {
             this._sparkTimer = 150;

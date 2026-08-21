@@ -285,10 +285,10 @@ check('研究院抠图贴图已按 2×2 footprint 接入',
     research.assetPending !== true
     && typeof research.assetCutoutHash === 'string'
     && research.displayW === 256
-    && research.displayH === 271
-    && research.footOffsetY === 136
-    && pngW === 1051
-    && pngH === 1114,
+    && research.displayH === 303
+    && research.footOffsetY === 152
+    && pngW === 908
+    && pngH === 1076,
     `${pngW}×${pngH}`);
 
 console.log(`\n结果: ${pass} 通过, ${fail} 失败`);

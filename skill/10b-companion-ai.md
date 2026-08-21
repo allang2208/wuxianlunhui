@@ -290,3 +290,12 @@
 
 ---
 
+
+### 队友渲染微动三件套（2026-08-21 零素材，GameScene._syncCompanionSprites）
+- **待机呼吸**：成员处于 idle 且未播动画（单帧待机）时，纵向 ±1.8% 正弦缩放 + 横向 ∓0.6%
+  保体积补偿，脚底锚定（feetCorr 再减 displayHeight×(breatheH-1)/2）；相位按成员 id 字符和
+  打散。多帧 idle（斥候）与移动/攻击/施法/死亡不叠加（条件：st===idle 且 !anims.isPlaying）。
+- **动作切换残影**：每帧记录切换前贴图/帧/显示尺寸，贴图键变化即生成 alpha 0.32 残影
+  110ms 淡出（_spawnCompanionGhost，成员离队即销毁，tween 场景托管）；同贴图内的停帧
+  （defend hold 等）不触发。深度 = 本体 −0.05。
+- **跑步滑步**：伊莉丝 run 循环 32→26fps（周期 0.92s，每周期位移 166px，贴近自然步幅）。

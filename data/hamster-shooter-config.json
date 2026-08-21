@@ -44,7 +44,7 @@
     "walk": {
       "src": "assets/companions/hamster_shooter/running.png",
       "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 4,
-      "frameCount": 11, "frames": [0, 10], "frameRate": 12, "repeat": -1
+      "frameCount": 11, "frames": [1, 10], "frameRate": 12, "repeat": -1
     },
     "attack": {
       "src": "assets/companions/hamster_shooter/attacking.png",

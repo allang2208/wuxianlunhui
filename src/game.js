@@ -1458,25 +1458,28 @@ CombatSystem.update(e, dt, this.entities);
             PartySystem.updateCombat(dt, this.entities, this.player);
         }
 
-        // 多世界入侵：目标世界加载时由 DefenseSystem 物化波次。
-        if (['scene8', 'scene9', 'scene10', 'scene11'].includes(SceneManager.currentScene)
-            && DefenseSystem && DefenseSystem.active) {
-            DefenseSystem.update(dt);
+        // 地牢隔绝期间外部世界完全停摆：不生产、不补员、不出兵、不升级、不推进兵线。
+        if (!SceneManager.isDungeonIsolationActive()) {
+            // 多世界入侵：目标世界加载时由 DefenseSystem 物化波次。
+            if (['scene8', 'scene9', 'scene10', 'scene11'].includes(SceneManager.currentScene)
+                && DefenseSystem && DefenseSystem.active) {
+                DefenseSystem.update(dt);
+            }
+            // 仓鼠小屋：矿工补员计时（矿工自身 update 由实体主循环驱动）
+            if (HamsterHutSystem && HamsterHutSystem.active) {
+                HamsterHutSystem.update(dt);
+            }
+            // 仓鼠兵营：30s 生成计时
+            if (HamsterBarracksSystem && HamsterBarracksSystem.active) {
+                HamsterBarracksSystem.update(dt);
+            }
+            // 通用产兵建筑：spawnIntervalMs 生成计时（配置驱动）
+            if (ProducerBuildingSystem && ProducerBuildingSystem.active) {
+                ProducerBuildingSystem.update(dt);
+            }
+            // 全局兵线：同位面到点待命、跨位面抵达传送门后转入增援队列。
+            TroopLineSystem.update(SceneManager.currentScene);
         }
-        // 仓鼠小屋：矿工补员计时（矿工自身 update 由实体主循环驱动）
-        if (HamsterHutSystem && HamsterHutSystem.active) {
-            HamsterHutSystem.update(dt);
-        }
-        // 仓鼠兵营：30s 生成计时
-        if (HamsterBarracksSystem && HamsterBarracksSystem.active) {
-            HamsterBarracksSystem.update(dt);
-        }
-        // 通用产兵建筑：spawnIntervalMs 生成计时（配置驱动）
-        if (ProducerBuildingSystem && ProducerBuildingSystem.active) {
-            ProducerBuildingSystem.update(dt);
-        }
-        // 全局兵线：同位面到点待命、跨位面抵达传送门后转入增援队列。
-        TroopLineSystem.update(SceneManager.currentScene);
 
         // ===== 阵型系统更新（必须在实体 update 之后，为下一帧设置 _tacticalTarget）=====
         // 无编队时跳过全表遍历（阵型成员才有 _formationId，空 Map 时逐实体调用纯属空转）

@@ -9,10 +9,11 @@
 // 玩家在世界-122 内（前台全真模拟）时停 tick 并刷新锚点。
 // ============================================================
 import { Game } from '../game.js';
+import { SceneManager } from './scene-manager.js';
 import { TimerManager } from '../utils/timer-manager.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
-import { GoldManager } from '../systems/gold-manager.js';
+import { routeProducedGold } from './economy-gold-routing.js';
 import {
     getWorldSnapshots, isWorldLive, isWorldSnapshotCurrent,
 } from './world122-snapshot.js';
@@ -36,6 +37,8 @@ export const WorldSimDriver = {
 
     _tick() {
         if (!Game || !Game.isRunning) return;
+        // 地牢隔绝期间不推进后台位面快照，也不累计全局科技研究进度。
+        if (SceneManager.isDungeonIsolationActive()) return;
         const nowGame = EnvironmentLightingSystem.serializeTime().elapsedMs || 0;
         const entries = Object.entries(getWorldSnapshots())
             .filter(([sceneId, snapshot]) => isWorldSnapshotCurrent(sceneId, snapshot));
@@ -72,9 +75,8 @@ export const WorldSimDriver = {
                     includePassiveEnergy: sceneId === passiveTarget,
                     gameTimeMs: nowGame,
                     grant: (reward) => {
-                        if (reward.gold && GoldManager && typeof GoldManager.addGold === 'function') {
-                            GoldManager.addGold(reward.gold);
-                        }
+                        if (reward.gold) return routeProducedGold(reward.gold);
+                        return { remaining: 0 };
                     },
                 });
             } catch (err) {
@@ -100,6 +102,8 @@ export const WorldSimDriver = {
         } else {
             if (report.unitsProduced > 0) lines.push([`${sceneId} 新兵 +${report.unitsProduced}`, '#8ad0ff']);
             if (report.energyMined > 0) lines.push([`${sceneId} 采集 +${Math.round(report.energyMined)} 能源`, '#7fd4ff']);
+            if (report.goldProduced > 0) lines.push([`${sceneId} 银行 +${report.goldProduced} 金币`, '#ffd700']);
+            if (report.foodProduced > 0) lines.push([`${sceneId} 风车 +${report.foodProduced} 粮食`, '#d9b84f']);
             if (report.modulesCompleted?.length > 0) lines.push([`${sceneId} 兵种升级完成 ${report.modulesCompleted.length} 项`, '#8ad0ff']);
         }
         if (!lines.length || !player) return;

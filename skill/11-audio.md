@@ -27,6 +27,7 @@ assets/sounds/ui/                     # 金币/升级/出售/击倒等系统音�
   `SoundManager.playWorld(path, x, y)`（坐标衰减，音效铁律），无则 playFile 兜底；
   射手在 `_fireProjectile`（第 10 帧出膛）、战士 `_tryAttack`、盾卫 `_applyDamage`
   （第 10 帧判定）、矿工 `_tryAttack`（采矿命中）。
+- 纯视觉岗位单位同样遵守配置与位置音效口径：仓鼠农民在 `population-economy.json#windmill.workerVisual.sounds` 声明 `harvesting`，`HamsterFarmerVisualSystem.setState` 只在进入收割状态时调用一次 `SoundManager.playWorld`；禁止在逐帧动画更新中播放或把素材路径硬编码进视觉系统。
 
 #### 步骤1: 素材复制建档（规则 4）
 按类别在项目下建子文件夹，把用户提供的音频复制进去：
@@ -94,6 +95,11 @@ _playSound(key) {
   文件峰值已 0dB 后（mean 接近满幅）再放大只能走播放音量参数 `playFile(path, v)` 或声道音量，
   禁止对文件再放大（会削波失真）。
 
+#### 全局升级提示音（2026-08-21）
+- 玩家等级提升与玩家技能升级统一由 `LevelUpEffectQueue._renderEffect()` 在对应提示真正展示时播放，路径读取 `data/audio-config.json#uiCues.playerUpgrade`，使用 `playFile(path, 1, 'ui')`。旧的玩家 `onLevelUp()` 直播放必须移除，避免同一次升级双响；连续技能升级随提示队列逐项播放，声音与画面保持同序。
+- 建筑完工/升级若产品明确要求“无论距离都能听见”，同样属于全局系统提示，可用 `playFile`；房屋的路径放在 `population-economy.json#house.upgradeCompleteSound`。这属于明确的全局通知例外；普通 NPC、门、机关和建筑世界声仍必须走 `playWorld`。
+- 用户素材统一复制为英文稳定名放入 `assets/sounds/ui/`；触发代码只读配置键，不直接引用素材库路径，也不在多个升级入口复制同一 MP3 路径。
+
 #### 步骤5: 程序化合成音效（numpy 管线，2026-08-16 铁闸门开/关）
 > 素材优先级 = **用户提供 > 合成兜底**：世界-122 铁闸门音效一轮用合成（
 > `gen-gate-sounds.py`），二轮被用户素材 `D:\即时重放\1.mp3` 替换（`gate_iron.mp3`，
@@ -123,4 +129,4 @@ _playSound(key) {
   ~1.4kHz 低频）数值验证结构。
 
 ---
-
+

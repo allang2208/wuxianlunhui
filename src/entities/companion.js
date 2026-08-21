@@ -107,7 +107,7 @@ export class Companion {
         this.maxSpeed = 120;
         this.accel = 0.35;
         this.friction = 0.85;
-        this.groundRadius = 26;
+        this.groundRadius = archive.groundRadius ?? archive.collisionRadius ?? 26;
         this.bodyHeight = 130;
         this._faction = 'companion'; // 与 player 互为友军（技能敌我判定按阵营分组）
         this._isPartyCompanion = true;

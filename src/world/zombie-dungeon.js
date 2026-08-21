@@ -8,7 +8,7 @@
  * 事件分布：按配置 typeRatios（默认 combat 70% / event 30%）
  */
 
-import { CircleEnemy, createZombieDog as createZombieDogBase, ZombieWizard, Mutant3, SpitterZombie, FatZombie, Zombie, ArmoredKnight, Shounao, FlySwarm, FlyHand, TimeAgentAssault, TimeAgentShield, PoisonMaggot, MinerZombie, LanternMinerZombie, ForemanZombie, MineCave, Tombstone, OreSpider, Witch, Cauldron } from '../entities/enemy-types.js';
+import { BlackWolf, CircleEnemy, createZombieDog as createZombieDogBase, ZombieWizard, Mutant3, SpitterZombie, FatZombie, Zombie, ArmoredKnight, Shounao, FlySwarm, FlyHand, TimeAgentAssault, TimeAgentShield, PoisonMaggot, MinerZombie, LanternMinerZombie, ForemanZombie, MineCave, Tombstone, OreSpider, Witch, Cauldron } from '../entities/enemy-types.js';
 import { UIState } from '../ui/ui-state.js';
 import { NPCDialogue } from '../ui/npc-dialogue.js';
 
@@ -17,6 +17,18 @@ import { GAME_CONFIG } from '../config/game-config.js';
 import enemyConfigData from '../../data/enemy-config.json';
 
 // ==================== 僵尸工厂（从 enemy-config.json 读取属性） ====================
+export function createBlackWolf(x, y) {
+    return new BlackWolf(x, y, {
+        showWeapon: false,
+        ai: {
+            ...(enemyConfigData.blackWolf?.ai || {}),
+            aggroRange: 9999,
+            loseTimeout: 999999,
+            alertRange: 9999
+        }
+    });
+}
+
 export function createBasicZombie(x, y) {
     const cfg = enemyConfigData.zombie;
     if (!cfg) {
@@ -380,6 +392,7 @@ export function createTimeAgentShield(x, y) {
 // 僵尸配置键 -> 工厂函数映射（用于根据 enemy-config.json 的 rank 自动构建怪物池）
 // 导出供碰撞体积编辑器（src/ui/collision-editor.js）按配置键生成预览怪
 export const ZOMBIE_FACTORY_MAP = {
+    blackWolf: createBlackWolf,
     zombie: createBasicZombie,
     zombieDog: createZombieDog,
     spitterZombie: createSpitterZombie,
@@ -874,11 +887,15 @@ export class ZombieDungeonCombat {
         const composition = waveComp || this._encounter.monsterComposition;
         const classes = [];
 
-        // 怪物池 family 限定（配置 encounter.poolFamily，如中级 Boss 只刷僵尸类领主）；
-        // 无匹配时退回原池兜底，避免空池崩溃
+        // 怪物池白名单优先（配置 encounter.poolKeys，如沼泽占位期只刷黑狼）；
+        // 其次按 family 限定（如中级 Boss 只刷僵尸类领主），无匹配时退回原池兜底。
+        const poolKeys = Array.isArray(this._encounter.poolKeys)
+            ? this._encounter.poolKeys.filter(key => ZOMBIE_FACTORY_MAP[key])
+            : [];
         const poolFamily = this._encounter.poolFamily || null;
         const getPool = (tier) => {
             const pool = monsterPool[tier] || monsterPool.normal;
+            if (poolKeys.length > 0) return poolKeys.map(key => ZOMBIE_FACTORY_MAP[key]);
             if (!poolFamily) return pool;
             const filtered = Object.keys(ZOMBIE_FACTORY_MAP)
                 .filter(key => {

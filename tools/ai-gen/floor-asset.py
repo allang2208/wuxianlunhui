@@ -12,6 +12,7 @@
 用法（相对 game-dev/ 根目录）：
   python tools/ai-gen/floor-asset.py mud   --out assets/terrain/floor_mud_seamless.png  --seed 9001
   python tools/ai-gen/floor-asset.py sand  --out assets/terrain/floor_sand_seamless.png --seed 9101 --desat 0.5
+  python tools/ai-gen/floor-asset.py wheat-field --out <scratch>/wheat_field.png --seed 122331
   # 可选：--no-desat 跳过降饱和；--host/--model 覆盖生图入口
 """
 import argparse
@@ -25,6 +26,7 @@ PROMPT = {
     "mud": os.path.join(DIR, "prompts", "floor-seamless-mud.txt"),
     "sand": os.path.join(DIR, "prompts", "floor-seamless-sand.txt"),
     "road-stone": os.path.join(DIR, "prompts", "floor-seamless-road-stone.txt"),
+    "wheat-field": os.path.join(DIR, "prompts", "floor-seamless-wheat-field.txt"),
     "snow-fresh": os.path.join(DIR, "prompts", "floor-seamless-snow-fresh.txt"),
     "snow-packed": os.path.join(DIR, "prompts", "floor-seamless-snow-packed.txt"),
     "snow-wind": os.path.join(DIR, "prompts", "floor-seamless-snow-wind.txt"),
@@ -34,6 +36,7 @@ DESAT_DEFAULT = {
     "mud": 0.55,
     "sand": 0.5,
     "road-stone": 0.48,
+    "wheat-field": 0.34,
     "snow-fresh": 0.18,
     "snow-packed": 0.28,
     "snow-wind": 0.35,

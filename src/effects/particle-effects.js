@@ -354,5 +354,11 @@ class ZombieBloodPool {
         g.strokeCircle(0, 0, this.radius * 0.8);
     }}
 
+for (const EffectType of [DodgeEffect, DeathEffect, BloodEffect, BloodMistEffect, DustEffect, ZombieBloodPool]) {
+    EffectType.prototype.getFogVisuals = function getFogVisuals() {
+        return this._graphics;
+    };
+}
+
 export { DodgeEffect, DeathEffect, BloodEffect, BloodMistEffect, DustEffect, ZombieBloodPool };
 // RuneSwordExplodeEffect 已共享化为 combat-fx.js 的 fireRadialBurst（2026-07-28），此处删除

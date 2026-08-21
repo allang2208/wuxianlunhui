@@ -17,6 +17,82 @@ import {
     scaleSinkPolygon,
 } from './building-sink-geometry.js';
 
+function randomBuildingFootprintPoint(projection, centerX, span, baseY) {
+    if (!projection) {
+        return {
+            x: centerX + (Math.random() - 0.5) * span,
+            y: baseY,
+        };
+    }
+    const { bounds, vertices, center } = projection;
+    for (let attempt = 0; attempt < 16; attempt++) {
+        const x = bounds.minX + Math.random() * (bounds.maxX - bounds.minX);
+        const y = bounds.minY + Math.random() * (bounds.maxY - bounds.minY);
+        if (pointInSinkPolygon(x, y, vertices)) return { x, y };
+    }
+    return { ...center };
+}
+
+/** 摧毁与升级共用的 footprint 烟尘发射参数，保证两处视觉效果同源。 */
+function spawnBuildingDustPair({ projection, centerX, span, baseY, depth }) {
+    const projectedArea = projection?.area || span * 48;
+    const scale = Math.max(1.65, Math.min(2.6, Math.sqrt(projectedArea) / 82));
+    const intensity = Math.max(1.5, Math.min(2.4, 1.35 + scale * 0.38));
+    const spawned = [];
+    for (let count = 0; count < 2; count++) {
+        const point = randomBuildingFootprintPoint(projection, centerX, span, baseY);
+        spawned.push(EffectFactory.createDustEffect(
+            point.x,
+            point.y - 5,
+            intensity,
+            {
+                scale,
+                lifeMul: 1.5,
+                depth: depth + count * 0.01,
+            }
+        ));
+    }
+    return spawned;
+}
+
+/** 建筑保持原位时，在完整 footprint 上短促播放摧毁同款烟尘。 */
+class BuildingFootprintDustEffect {
+    constructor(entity) {
+        this.active = !!entity;
+        this.duration = 660;
+        this.timer = 0;
+        this._dustTimer = 0;
+        this._projection = buildingSinkFootprintProjection(entity);
+        this._centerX = this._projection?.center.x ?? entity?.x ?? 0;
+        this._span = this._projection
+            ? Math.max(80, this._projection.bounds.maxX - this._projection.bounds.minX)
+            : Math.max(120, Number(entity?.collisionWidth) || Number(entity?.spriteCfg?.size) || 120);
+        this._baseY = buildingSinkGroundLine(entity);
+        const renderDepth = Number.isFinite(entity?._structureRenderDepth)
+            ? entity._structureRenderDepth
+            : ((Number(entity?.y) || 0) + 12);
+        this._depth = renderDepth + 1;
+    }
+
+    update(dt = 16.67) {
+        if (!this.active) return;
+        const elapsed = Math.max(0, Number(dt) || 0);
+        this.timer += elapsed;
+        this._dustTimer -= elapsed;
+        while (this._dustTimer <= 0 && this.timer <= this.duration) {
+            spawnBuildingDustPair({
+                projection: this._projection,
+                centerX: this._centerX,
+                span: this._span,
+                baseY: this._baseY,
+                depth: this._depth,
+            });
+            this._dustTimer += 110;
+        }
+        if (this.timer >= this.duration) this.active = false;
+    }
+}
+
 class BuildingSinkEffect {
     /**
      * @param {object} entity 被摧毁的建筑实体（特效首次 update 即令其失效并接管精灵）
@@ -56,6 +132,10 @@ class BuildingSinkEffect {
         this._clipPolygon = [];
         this._polygonMaskActive = false;
         this._maskInstallError = null;
+    }
+
+    getFogVisuals() {
+        return [this._sprites, this._label, this._seamOccluder];
     }
 
     /** 主动回收可立即拆碰撞/实体，同时保留已接管精灵继续播放。 */
@@ -296,41 +376,14 @@ class BuildingSinkEffect {
 
     _spawnDust(e) {
         if (!Number.isFinite(this.baseY)) return;
-        const projectedArea = this._footprintProjection?.area || this._dustSpan * 48;
-        const scale = Math.max(1.65, Math.min(2.6, Math.sqrt(projectedArea) / 82));
-        const intensity = Math.max(1.5, Math.min(2.4, 1.35 + scale * 0.38));
-        for (let count = 0; count < 2; count++) {
-            const point = this._randomFootprintPoint();
-            const dust = EffectFactory.createDustEffect(
-                point.x,
-                point.y - 5,
-                intensity,
-                {
-                    scale,
-                    lifeMul: 1.5,
-                    depth: this._maskDepth + 0.2 + count * 0.01,
-                }
-            );
-            this._spawnedDust.push(dust);
-            if (this._spawnedDust.length > 6) this._spawnedDust.shift();
-        }
-    }
-
-    _randomFootprintPoint() {
-        const projection = this._footprintProjection;
-        if (!projection) {
-            return {
-                x: this._dustCenterX + (Math.random() - 0.5) * this._dustSpan,
-                y: this.baseY,
-            };
-        }
-        const { bounds, vertices, center } = projection;
-        for (let attempt = 0; attempt < 16; attempt++) {
-            const x = bounds.minX + Math.random() * (bounds.maxX - bounds.minX);
-            const y = bounds.minY + Math.random() * (bounds.maxY - bounds.minY);
-            if (pointInSinkPolygon(x, y, vertices)) return { x, y };
-        }
-        return { ...center };
+        this._spawnedDust.push(...spawnBuildingDustPair({
+            projection: this._footprintProjection,
+            centerX: this._dustCenterX,
+            span: this._dustSpan,
+            baseY: this.baseY,
+            depth: this._maskDepth + 0.2,
+        }));
+        while (this._spawnedDust.length > 6) this._spawnedDust.shift();
     }
 
     /** 接缝遮盖带：位于全部建筑子精灵之上、烟尘粒子之下。 */
@@ -406,6 +459,7 @@ class BuildingSinkEffect {
 }
 
 export {
+    BuildingFootprintDustEffect,
     BuildingSinkEffect,
     buildingSinkCropHeight,
     buildingSinkFootprintProjection,

@@ -66,6 +66,8 @@ export const DungeonConfig = {
     _keyFor(dungeonType) {
         if (dungeonType === 'zombieBeginner') return 'zombieDungeonBeginner';
         if (dungeonType === 'zombieMid') return 'zombieDungeonMid';
+        if (dungeonType === 'swampBeginner') return 'swampDungeonBeginner';
+        if (dungeonType === 'swampMid') return 'swampDungeonMid';
         if (dungeonType === 'swamp') return 'swampDungeon';
         if (dungeonType === 'demonCavern') return 'demonCavern';
         return 'zombieDungeon';
@@ -164,6 +166,10 @@ export const DungeonConfig = {
     /** 该地牢战斗事件是否启用三房间串联竞技场（grade ≥ combatArena.minGrade） */
     isCombatArenaEnabled(dungeonType) {
         const cfg = this.getCombatArenaConfig();
+        const dungeonCfg = dungeonConfigData[this._keyFor(dungeonType)] || {};
+        if (typeof dungeonCfg.combatArena?.enabled === 'boolean') {
+            return dungeonCfg.combatArena.enabled;
+        }
         const gradeIdx = GRADE_ORDER_LOCAL.indexOf(this.getDungeonGrade(dungeonType));
         const minIdx = Math.max(0, GRADE_ORDER_LOCAL.indexOf(cfg.minGrade || 'D'));
         return gradeIdx >= minIdx;

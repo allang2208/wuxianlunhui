@@ -23,6 +23,8 @@ const DUNGEON_BLOCK_KEY = {
     zombie: 'zombieDungeon',
     zombieBeginner: 'zombieDungeonBeginner',
     zombieMid: 'zombieDungeonMid',
+    swampBeginner: 'swampDungeonBeginner',
+    swampMid: 'swampDungeonMid',
     swamp: 'swampDungeon',
 };
 

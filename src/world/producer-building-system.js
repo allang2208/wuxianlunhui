@@ -73,6 +73,9 @@ import { TroopLineSystem } from './troop-line-system.js';
 import { isInfiniteResourcesEnabled } from '../config/dev-cheats.js';
 import { TechnologySystem } from './technology-system.js';
 import { hasBackgroundBuildingUpgrade } from './world122-snapshot.js';
+import { PopulationEconomySystem, populationEconomyConfig } from './population-economy-system.js';
+import { HamsterFarmerVisualSystem } from './hamster-farmer-visual-system.js';
+import { WorkshopEconomySystem } from './workshop-economy-system.js';
 
 const ABILITY_TARGET_NAMES = Object.freeze({
     warrior: '仓鼠战士',
@@ -268,7 +271,7 @@ export class ProducerBuilding extends DamageableEntity {
         this._baseSpawnIntervalMs = cfg.spawnIntervalMs;
         this._spawnRetryTimer = 0;
         this._spawnBlocked = false;
-        this._spawnEnergyBlocked = false;
+        this._spawnFoodBlocked = false;
         this.spawnEnabled = cfg.spawnEnabled !== false; // 铁匠铺等能力建筑不产兵
         this._isTroopProducer = this.spawnEnabled && (cfg.unitTypes || []).some((unit) => !!unit?.key);
         this._recruitMode = RECRUIT_MODE.PAUSED;
@@ -277,8 +280,12 @@ export class ProducerBuilding extends DamageableEntity {
         this._continuous = null;      // 持续升级的能力 id（资源足够自动续升）
         this._isEnergyWarehouse = cfg.workshopType === 'warehouse';
         if (this._isEnergyWarehouse && EnergyManager) {
+            this.storedEnergy = 0;
+            this.storedFood = 0;
             EnergyManager.registerWarehouse(this, cfg.storageCapacity ?? 5000);
         }
+        PopulationEconomySystem.initializeBuilding(this, config);
+        WorkshopEconomySystem.initializeBuilding(this, config);
         this.rebuildCollider();
     }
 
@@ -309,9 +316,9 @@ export class ProducerBuilding extends DamageableEntity {
         return (u && Number.isFinite(u.spawnIntervalMs)) ? u.spawnIntervalMs : this._baseSpawnIntervalMs;
     }
 
-    _unitSpawnEnergyCost() {
+    _unitSpawnFoodCost() {
         const unit = (this._cfg.unitTypes || []).find((entry) => entry.key === this.unitType);
-        return Math.max(0, Math.floor(Number(unit?.spawnEnergyCost) || 0));
+        return Math.max(0, Math.floor(Number(unit?.spawnFoodCost) || 0));
     }
 
     /** 切换生成的单位类型；下一次生成生效（key 必须在配置 unitTypes 里）。
@@ -333,16 +340,16 @@ export class ProducerBuilding extends DamageableEntity {
         const next = normalizeRecruitMode(mode);
         if (next === RECRUIT_MODE.SINGLE) {
             if (this.aliveUnitCount() >= this.unitCount()) return { ok: false, reason: '单位数量已达上限' };
-            const cost = this._unitSpawnEnergyCost();
+            const cost = this._unitSpawnFoodCost();
             if (cost > 0 && !isInfiniteResourcesEnabled()
-                && (!EnergyManager || EnergyManager.getEnergy() < cost)) {
-                return { ok: false, reason: `能源不足，单次招募需要 ${cost} 能源` };
+                && PopulationEconomySystem.getFoodStored() < cost) {
+                return { ok: false, reason: `粮食不足，单次招募需要 ${cost} 粮食` };
             }
         }
         this._recruitMode = next;
         this._spawnRetryTimer = 0;
         this._spawnBlocked = false;
-        this._spawnEnergyBlocked = false;
+        this._spawnFoodBlocked = false;
         if (next === RECRUIT_MODE.SINGLE || !(this._spawnTimer > 0)) {
             this._spawnTimer = this.recruitIntervalMs();
         } else if (next === RECRUIT_MODE.CONTINUOUS) {
@@ -363,7 +370,7 @@ export class ProducerBuilding extends DamageableEntity {
     }
 
     /** 生成一个军事单位（当前 unitType），应用模块倍率 */
-    spawnUnit(payEnergy = false, options = {}) {
+    spawnUnit(payFood = false, options = {}) {
         if (!Game || !Game.entities) return null;
         if (!TechnologySystem.isUnlocked('unit', this.unitType)) return null;
         const unitCfg = PRODUCER_UNIT_CFG[this.unitType];
@@ -374,13 +381,13 @@ export class ProducerBuilding extends DamageableEntity {
         const mults = this.mults();
         const spot = this._findUnitSpawn();
         if (!spot) return null;
-        const spawnCost = this._unitSpawnEnergyCost();
-        if (payEnergy && spawnCost > 0 && !isInfiniteResourcesEnabled()
-            && (!EnergyManager || !EnergyManager.deductEnergy(spawnCost))) {
-            this._spawnEnergyBlocked = true;
+        const spawnCost = this._unitSpawnFoodCost();
+        if (payFood && spawnCost > 0 && !isInfiniteResourcesEnabled()
+            && !PopulationEconomySystem.consumeFood(spawnCost)) {
+            this._spawnFoodBlocked = true;
             return null;
         }
-        this._spawnEnergyBlocked = false;
+        this._spawnFoodBlocked = false;
         const id = `${this.id}_unit_${++this._unitSeq}`;
         const ai = {
             ...baseAi,
@@ -576,6 +583,9 @@ export class ProducerBuilding extends DamageableEntity {
     update(dt) {
         if (!this.active) return;
         this._updateUpgrade(dt);
+        PopulationEconomySystem.updateBuilding(this, dt);
+        HamsterFarmerVisualSystem.updateBuilding(this, dt);
+        WorkshopEconomySystem.updateBuilding(this, dt);
         if (!this.spawnEnabled) return;
         const restoring = (this._restoreRosterQueue?.length || 0) > 0 || this._restoreTopUp > 0;
         if (!restoring && this._recruitMode === RECRUIT_MODE.PAUSED) return;
@@ -600,17 +610,17 @@ export class ProducerBuilding extends DamageableEntity {
                     if (this._restoreTopUp > 0) this._restoreTopUp--;
                     this._spawnRetryTimer = 0;
                     this._spawnBlocked = false;
-                    this._spawnEnergyBlocked = false;
+                    this._spawnFoodBlocked = false;
                     if (!restoring && this._recruitMode === RECRUIT_MODE.SINGLE) {
                         this._recruitMode = RECRUIT_MODE.PAUSED;
                     }
-                } else if (this._spawnEnergyBlocked) {
+                } else if (this._spawnFoodBlocked) {
                     this._spawnTimer = 0;
                     this._spawnRetryTimer = 1000;
                     this._spawnBlocked = false;
                     if (EffectManager) {
                         EffectManager.add(new FloatingTextEffect(this.x, this.y - 66,
-                            `能源不足，生产暂停（需 ${this._unitSpawnEnergyCost()}）`, '#ffcc55'));
+                            `粮食不足，生产暂停（需 ${this._unitSpawnFoodCost()}）`, '#ffcc55'));
                     }
                 } else {
                     this._spawnTimer = 0;
@@ -629,7 +639,7 @@ export class ProducerBuilding extends DamageableEntity {
             this._spawnTimer = this.recruitIntervalMs();
             this._spawnRetryTimer = 0;
             this._spawnBlocked = false;
-            this._spawnEnergyBlocked = false;
+            this._spawnFoodBlocked = false;
         }
     }
 
@@ -647,12 +657,18 @@ export class ProducerBuilding extends DamageableEntity {
     _destroyCleanup() {
         this._upgrade = null;
         this._continuous = null;
+        HamsterFarmerVisualSystem.clearBuilding(this);
+        WorkshopEconomySystem.unregisterBuilding(this);
+        PopulationEconomySystem.unregisterBuilding(this);
         TroopLineSystem.clearProducerRally(this);
         this._despawnUnits();
         if (this._isEnergyWarehouse && EnergyManager) {
+            const lostFood = Math.max(0, Math.floor(Number(this.storedFood) || 0));
             const lost = EnergyManager.unregisterWarehouse(this);
-            if (lost > 0 && EffectManager) {
-                EffectManager.add(new FloatingTextEffect(this.x, this.y - 62, `仓库被毁，损失 ${lost} 能源`, '#ff5555'));
+            if ((lost > 0 || lostFood > 0) && EffectManager) {
+                const losses = [lost > 0 ? `${lost} 能源` : '', lostFood > 0 ? `${lostFood} 粮食` : '']
+                    .filter(Boolean).join('、');
+                EffectManager.add(new FloatingTextEffect(this.x, this.y - 62, `仓库被毁，损失 ${losses}`, '#ff5555'));
             }
         }
         if (ProducerBuildingSystem && ProducerBuildingSystem.buildings) {
@@ -683,8 +699,8 @@ export class ProducerBuilding extends DamageableEntity {
 
     /** 出售：返还 50% 建造能源，单位一并拆除 */
     sell() {
-        if (this._isEnergyWarehouse && (this.storedEnergy || 0) > 0) {
-            return { ok: false, reason: '仓库中仍有能源，无法出售' };
+        if (this._isEnergyWarehouse && ((this.storedEnergy || 0) > 0 || (this.storedFood || 0) > 0)) {
+            return { ok: false, reason: '仓库中仍有能源或粮食，无法出售' };
         }
         const buildCost = Math.max(0, Number(this._buildCost ?? this._cfg.cost) || 0);
         const buildCurrency = this._buildCurrency || (this._cfg.currency === 'gold' ? 'gold' : 'energy');
@@ -697,6 +713,9 @@ export class ProducerBuilding extends DamageableEntity {
         this._sinking = true;
         this._upgrade = null;
         this._continuous = null;
+        HamsterFarmerVisualSystem.clearBuilding(this);
+        WorkshopEconomySystem.unregisterBuilding(this);
+        PopulationEconomySystem.unregisterBuilding(this);
         TroopLineSystem.clearProducerRally(this);
         this._despawnUnits();
         if (this._isEnergyWarehouse && EnergyManager) EnergyManager.unregisterWarehouse(this);
@@ -724,7 +743,7 @@ class ProducerBuildingPanel extends BasePanel {
     constructor() {
         super({
             id: 'producerBuildingPanel',
-            className: 'producer-building-panel',
+            className: 'producer-building-panel bp-right-column',
             stateKey: 'producerBuilding',
             panelGroup: 'buildingDetail',
             closeOnEscape: true,
@@ -748,8 +767,8 @@ class ProducerBuildingPanel extends BasePanel {
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
                 <div id="pbTitle" style="font-size:18px;font-weight:700;color:#ffd700;"></div>
                 <div style="display:flex;gap:8px;">
-                    <button id="pbSell" style="background:#3a2820;color:#ffc9a0;border:1px solid #6a4a2a;border-radius:6px;padding:4px 10px;cursor:pointer;">出售</button>
-                    <button id="pbClose" style="background:#3a3228;color:#d4c5a9;border:1px solid #6a5a3a;border-radius:6px;padding:4px 12px;cursor:pointer;">关闭</button>
+                    <button id="pbSell" type="button" style="background:#3a2820;color:#ffc9a0;border:1px solid #6a4a2a;border-radius:6px;padding:4px 10px;cursor:pointer;">出售</button>
+                    <button id="pbClose" type="button" aria-label="关闭建筑详情" style="background:#3a3228;color:#d4c5a9;border:1px solid #6a5a3a;border-radius:6px;padding:4px 12px;cursor:pointer;">关闭</button>
                 </div>
             </div>
             <div id="pbBuildingDetail"></div>
@@ -765,9 +784,11 @@ class ProducerBuildingPanel extends BasePanel {
     }
 
     openFor(building, player) {
+        WorkshopEconomySystem.hideRange();
         this.building = building;
         this.player = player;
         this.open();
+        if (building?._economyType === 'workshop') WorkshopEconomySystem.showRange(building);
         this.refresh();
         this._startTicking();
     }
@@ -781,6 +802,8 @@ class ProducerBuildingPanel extends BasePanel {
         this._stopTicking();
         this._hideAbilityTip();
         this.el?.classList.remove('is-troop-producer');
+        this.el?.classList.remove('is-economy-building');
+        WorkshopEconomySystem.hideRange();
         this.building = null;
         this.player = null;
     }
@@ -803,18 +826,129 @@ class ProducerBuildingPanel extends BasePanel {
         const el = this.el;
         if (!el || !this.building) return;
         const b = this.building;
+        if (b._economyType) {
+            const population = PopulationEconomySystem.getPopulationSnapshot();
+            const workforce = PopulationEconomySystem.getWorkerSnapshot(b);
+            const populationEl = el.querySelector('#pbEconomyPopulation');
+            const workersEl = el.querySelector('#pbEconomyWorkers');
+            if (populationEl) {
+                populationEl.textContent = `${population.used}/${population.capacity} · 空余 ${population.free}`
+                    + (population.overcrowded > 0 ? ` · 超额 ${population.overcrowded}` : '');
+            }
+            if (workersEl && workforce) {
+                workersEl.textContent = `${workforce.assigned}/${workforce.slots} · 人口效率 ${Math.round(workforce.laborEfficiency * 100)}%`;
+                el.querySelectorAll('[data-worker-delta]').forEach((button) => {
+                    const delta = Number(button.dataset.workerDelta) || 0;
+                    button.disabled = delta < 0
+                        ? workforce.assigned <= 0
+                        : (workforce.freeSlots <= 0 || population.free <= 0);
+                });
+                const maxButton = el.querySelector('[data-worker-max]');
+                if (maxButton) maxButton.disabled = workforce.freeSlots <= 0 || population.free <= 0;
+            }
+            if (workforce) {
+                const workforcePct = workforce.slots > 0
+                    ? Math.round(workforce.assigned / workforce.slots * 100)
+                    : 0;
+                const workforceBar = el.querySelector('#pbEconomyWorkforceBar');
+                const workforcePctEl = el.querySelector('#pbEconomyWorkforcePct');
+                if (workforceBar) workforceBar.style.width = `${workforcePct}%`;
+                if (workforcePctEl) workforcePctEl.textContent = `${workforcePct}%`;
+            }
+            const secondaryProgress = this._getEconomySecondaryProgress(b, workforce);
+            const productionBar = el.querySelector('#pbEconomyProductionBar');
+            const productionPctEl = el.querySelector('#pbEconomyProductionPct');
+            if (productionBar) productionBar.style.width = `${secondaryProgress.pct}%`;
+            if (productionPctEl) productionPctEl.textContent = secondaryProgress.text;
+            if (b._economyType === 'bank') {
+                const output = el.querySelector('#pbEconomyOutput');
+                if (output) output.textContent = `${PopulationEconomySystem.getBankGoldPerSecond(b).toFixed(2)} 金币/秒`;
+            } else if (b._economyType === 'housing') {
+                const upgradeState = el.querySelector('#pbHouseUpgradeState');
+                if (b._economyUpgrade && upgradeState) {
+                    const progress = Math.round((1 - b._economyUpgrade.remainMs / b._economyUpgrade.totalMs) * 100);
+                    upgradeState.textContent = `升级中 ${progress}%（${Math.ceil(b._economyUpgrade.remainMs / 1000)}s）`;
+                } else if (!b._economyUpgrade && upgradeState?.dataset.upgrading === 'true') {
+                    this.refresh();
+                }
+            } else if (b._economyType === 'windmill') {
+                const output = el.querySelector('#pbEconomyOutput');
+                const food = el.querySelector('#pbEconomyFood');
+                if (output) output.textContent = `${PopulationEconomySystem.getWindmillFoodPerSecond(b).toFixed(2)} 粮食/秒`;
+                if (food) food.textContent = Math.floor(PopulationEconomySystem.getFoodStored());
+            } else if (b._economyType === 'market') {
+                const quote = PopulationEconomySystem.getMarketQuote(b);
+                const buyBatch = populationEconomyConfig.market.buyEnergyBatch;
+                const sellBatch = populationEconomyConfig.market.sellGoldBatch;
+                const values = {
+                    pbEconomyMarketMid: quote.midEnergyPerGold.toFixed(2),
+                    pbEconomyMarketBuy: quote.buyEnergyPerGold.toFixed(2),
+                    pbEconomyMarketSell: quote.sellEnergyPerGold.toFixed(2),
+                    pbEconomyMarketPressure: quote.pressure.toFixed(3),
+                    pbEconomyMarketSpread: `${(quote.spread * 100).toFixed(1)}%`,
+                };
+                Object.entries(values).forEach(([id, value]) => {
+                    const node = el.querySelector(`#${id}`);
+                    if (node) node.textContent = value;
+                });
+                const canTrade = PopulationEconomySystem.canMarketTrade(b);
+                const buyButton = el.querySelector('[data-market-buy]');
+                const sellButton = el.querySelector('[data-market-sell]');
+                if (buyButton) {
+                    buyButton.disabled = !canTrade;
+                    buyButton.textContent = `${buyBatch} 能源 → ${Math.floor(buyBatch / quote.buyEnergyPerGold)} 金币`;
+                }
+                if (sellButton) {
+                    sellButton.disabled = !canTrade;
+                    sellButton.textContent = `${sellBatch} 金币 → ${Math.floor(sellBatch * quote.sellEnergyPerGold)} 能源`;
+                }
+            } else if (b._economyType === 'workshop') {
+                const snapshot = WorkshopEconomySystem.getSnapshot(b);
+                const values = {
+                    pbWorkshopRange: `${Math.round(snapshot.range)}px`,
+                    pbWorkshopEfficiency: `+${(snapshot.actualEfficiency * 100).toFixed(1)}%`,
+                    pbWorkshopRepair: `${(snapshot.repairRate * 100).toFixed(1)}%/秒`,
+                    pbWorkshopStaffed: `${snapshot.staffedEngineerCount}/${snapshot.engineerCount}`,
+                    pbWorkshopEngineers: `${snapshot.assignedCount}`,
+                    pbWorkshopRepairing: `${snapshot.repairingCount}`,
+                    pbWorkshopSafety: snapshot.enemyBlocked ? '敌情封锁，维修暂停' : '范围安全，可自动维修',
+                };
+                Object.entries(values).forEach(([id, value]) => {
+                    const node = el.querySelector(`#${id}`);
+                    if (node) node.textContent = value;
+                });
+                const safety = el.querySelector('#pbWorkshopSafety');
+                safety?.classList.toggle('is-blocked', snapshot.enemyBlocked);
+                const upgrade = b._workshopUpgrade;
+                if (upgrade) {
+                    const pct = Math.max(0, Math.min(100,
+                        Math.round((1 - upgrade.remainMs / upgrade.totalMs) * 100)));
+                    const bar = el.querySelector(`#pbUpgradeBar_${upgrade.moduleId}`);
+                    const text = el.querySelector(`#pbUpgradeText_${upgrade.moduleId}`);
+                    if (bar) bar.style.width = `${pct}%`;
+                    if (text) text.textContent = `升级中 ${pct}%（剩余 ${Math.ceil(upgrade.remainMs / 1000)}s）`;
+                } else if (el.querySelector('[data-workshop-upgrading="true"]')) {
+                    this.refresh();
+                }
+            }
+            return;
+        }
         if (b._isEnergyWarehouse) {
-            const own = Math.floor(b.storedEnergy || 0);
+            const ownEnergy = Math.floor(b.storedEnergy || 0);
+            const ownFood = Math.floor(b.storedFood || 0);
+            const own = ownEnergy + ownFood;
             const ownCap = Math.floor(b.storageCapacity || b._cfg.storageCapacity || 5000);
-            const total = EnergyManager ? EnergyManager.getEnergy() : 0;
+            const totalEnergy = EnergyManager ? EnergyManager.getEnergy() : 0;
+            const totalFood = EnergyManager ? EnergyManager.getFood() : 0;
+            const total = totalEnergy + totalFood;
             const totalCap = EnergyManager ? EnergyManager.getCapacity() : 0;
             const pct = ownCap > 0 ? Math.round(own / ownCap * 100) : 0;
             const ownEl = el.querySelector('#pbWarehouseOwn');
             const totalEl = el.querySelector('#pbWarehouseTotal');
             const pctEl = el.querySelector('#pbWarehousePct');
             const barEl = el.querySelector('#pbWarehouseBar');
-            if (ownEl) ownEl.textContent = `${own}/${ownCap}`;
-            if (totalEl) totalEl.textContent = `${total}/${totalCap}`;
+            if (ownEl) ownEl.textContent = `${own}/${ownCap}（能 ${ownEnergy} / 粮 ${ownFood}）`;
+            if (totalEl) totalEl.textContent = `${total}/${totalCap}（能 ${totalEnergy} / 粮 ${totalFood}）`;
             if (pctEl) pctEl.textContent = `${pct}%`;
             if (barEl) barEl.style.width = `${pct}%`;
             return;
@@ -824,7 +958,7 @@ class ProducerBuildingPanel extends BasePanel {
         const paused = recruitMode === RECRUIT_MODE.PAUSED;
         const spawnProgress = b._spawnBlocked ? 1 : Math.max(0, Math.min(1, 1 - b._spawnTimer / spawnMs));
         const spawnPct = Math.round(spawnProgress * 100);
-        const spawnBarColor = paused ? '#727981' : (b._spawnEnergyBlocked ? '#ffcc55' : (b._spawnBlocked ? '#ff7755'
+        const spawnBarColor = paused ? '#727981' : (b._spawnFoodBlocked ? '#ffcc55' : (b._spawnBlocked ? '#ff7755'
             : (spawnProgress < 0.5 ? '#ffd700' : (spawnProgress < 0.8 ? '#ff9d45' : '#7fe0c8'))));
         const bar = el.querySelector('#pbSpawnBar');
         const pct = el.querySelector('#pbSpawnPct');
@@ -839,7 +973,7 @@ class ProducerBuildingPanel extends BasePanel {
         }
         if (next) next.textContent = paused
             ? '已暂停'
-            : (b._spawnEnergyBlocked ? '能源不足'
+            : (b._spawnFoodBlocked ? '粮食不足'
                 : (b._spawnBlocked ? '出口阻塞' : `${Math.max(0, Math.ceil(b._spawnTimer / 1000))}s`));
         const modeText = el.querySelector('#pbRecruitMode');
         if (modeText) modeText.textContent = `${recruitModeLabel(recruitMode)} · ${recruitStatusText(b)}`;
@@ -897,25 +1031,36 @@ class ProducerBuildingPanel extends BasePanel {
         const b = this.building;
         const cfg = b._cfg;
         const energy = EnergyManager ? EnergyManager.getEnergy() : 0;
+        const food = PopulationEconomySystem.getFoodStored();
         const gold = GoldManager ? GoldManager.getGold() : 0;
         const isWarehouse = cfg.workshopType === 'warehouse';
         const isPortal = cfg.panelMode === 'portal';
         const isPassive = cfg.panelMode === 'detail';
-        const isAbilityShop = cfg.spawnEnabled === false && !isWarehouse && !isPassive;
+        const isEconomy = !!cfg.economyType;
+        const isAbilityShop = cfg.spawnEnabled === false && !isWarehouse && !isPassive && !isEconomy;
         el.classList.toggle('is-troop-producer', !!b._isTroopProducer);
-        const applicableModules = Object.entries(cfg.modules || {})
+        el.classList.toggle('is-economy-building', isEconomy);
+        const applicableModules = isEconomy ? [] : Object.entries(cfg.modules || {})
             .filter(([, module]) => moduleAppliesToUnit(module, b.unitType));
         const upgradeSummary = applicableModules.map(([, module]) => module.name).join(' / ') || '无单位升级项目';
         el.querySelector('#pbTitle').textContent = '建筑详情';
         const detail = el.querySelector('#pbBuildingDetail');
         const functionTitle = el.querySelector('#pbFunctionTitle');
+        const economyMode = {
+            housing: '人口容量与房屋升级',
+            bank: '职员产金',
+            market: '商人动态交易',
+            windmill: '农夫粮食生产',
+            workshop: '自动维修与经济增效',
+        }[cfg.economyType];
         const mode = isPortal ? '跨世界传送'
-            : (isPassive ? '基础建筑详情'
+            : (isEconomy ? economyMode
+                : (isPassive ? '基础建筑详情'
                 : (isWarehouse ? '仓储与能源汇总'
-                    : (isAbilityShop ? (cfg.workshopType === 'research' ? '研究与结构强化' : '能力工坊升级') : '募兵与单位生产')));
+                    : (isAbilityShop ? (cfg.workshopType === 'research' ? '研究与结构强化' : '能力工坊升级') : '募兵与单位生产'))));
         if (detail) {
             detail.innerHTML = renderBuildingDetailHeader({
-                texture: cfg.tex,
+                texture: b.spriteCfg?.idleKey || cfg.tex,
                 name: cfg.name,
                 hp: b.hp,
                 maxHp: b.maxHp,
@@ -925,7 +1070,7 @@ class ProducerBuildingPanel extends BasePanel {
         }
         if (functionTitle) functionTitle.textContent = `特殊功能 · ${mode}`;
         const unitTypeEl = el.querySelector('#pbUnitType');
-        if (unitTypeEl) unitTypeEl.style.display = (isAbilityShop || isWarehouse || isPassive || isPortal) ? 'none' : '';
+        if (unitTypeEl) unitTypeEl.style.display = (isAbilityShop || isWarehouse || isPassive || isPortal || isEconomy) ? 'none' : '';
 
         const st = el.querySelector('#pbStatus');
         const curType = b.unitName(b.unitType);
@@ -936,18 +1081,18 @@ class ProducerBuildingPanel extends BasePanel {
         // 出兵进度 = 已等待时间 / 当前兵种生成周期（2026-08-18 起切换单位类型重置 _spawnTimer 重新计时）
         const spawnProgress = b._spawnBlocked ? 1 : Math.max(0, Math.min(1, 1 - b._spawnTimer / spawnMs));
         const spawnPct = Math.round(spawnProgress * 100);
-        const spawnBarColor = paused ? '#727981' : (b._spawnEnergyBlocked ? '#ffcc55' : (b._spawnBlocked ? '#ff7755'
+        const spawnBarColor = paused ? '#727981' : (b._spawnFoodBlocked ? '#ffcc55' : (b._spawnBlocked ? '#ff7755'
             : (spawnProgress < 0.5 ? '#ffd700' : (spawnProgress < 0.8 ? '#ff9d45' : '#7fe0c8'))));
         const nextText = paused ? '已暂停'
-            : (b._spawnEnergyBlocked ? '能源不足' : (b._spawnBlocked ? '出口阻塞' : `${nextIn}s`));
+            : (b._spawnFoodBlocked ? '粮食不足' : (b._spawnBlocked ? '出口阻塞' : `${nextIn}s`));
         st.innerHTML = `
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
                 <div><span class="troop-panel-primary-label">等级 ${b.level}</span></div>
-                <div class="troop-panel-resource-summary">金币 <span style="color:#ffd700;">${gold}</span> · 能源 <span style="color:#7fd4ff;">${energy}</span></div>
+                <div class="troop-panel-resource-summary">金币 <span style="color:#ffd700;">${gold}</span> · 能源 <span style="color:#7fd4ff;">${energy}</span> · 粮食 <span style="color:#d9b84f;">${Math.floor(food)}</span></div>
             </div>
             <div class="troop-panel-copy">
                 军事单位 <span style="color:#8ad0ff;">${b.aliveUnitCount()}/${b.unitCount()}</span> ·
-                当前生成 <b style="color:#7fe0c8;">${curType}</b>（每名 ${b._unitSpawnEnergyCost()} 能源）<br>
+                当前生成 <b style="color:#7fe0c8;">${curType}</b>（每名 ${b._unitSpawnFoodCost()} 粮食）<br>
                 招募状态 <b id="pbRecruitMode" style="color:${paused ? '#aab0b6' : '#7fe0c8'};">${recruitModeLabel(recruitMode)} · ${recruitStatusText(b)}</b> ·
                 下次生成 <b id="pbSpawnNext" style="color:${b._spawnBlocked ? '#ff7755' : '#7fd4ff'};">${nextText}</b>（当前周期 ${(spawnMs / 1000).toFixed(1)}s）<br>
                 ${upgradeSummary}
@@ -960,7 +1105,7 @@ class ProducerBuildingPanel extends BasePanel {
                 <div style="position:relative;height:10px;background:rgba(255,255,255,0.10);border-radius:5px;overflow:hidden;">
                     <div id="pbSpawnBar" style="position:absolute;left:0;top:0;bottom:0;width:${spawnPct}%;background:linear-gradient(90deg, ${spawnBarColor}, #7fe0c8);border-radius:5px;transition:width 0.2s linear;"></div>
                 </div>
-                <div class="troop-panel-caption" style="margin-top:2px;">默认暂停；单次只完成一名，持续模式在能源和空位满足时循环招募</div>
+                <div class="troop-panel-caption" style="margin-top:2px;">默认暂停；单次只完成一名，持续模式在粮食和空位满足时循环招募</div>
             </div>`;
 
         const ut = el.querySelector('#pbUnitType');
@@ -968,7 +1113,7 @@ class ProducerBuildingPanel extends BasePanel {
             const active = b.unitType === u.key;
             return `<button class="troop-panel-unit-button ${active ? 'is-active' : ''}" data-unit-type="${u.key}"
                 data-technology-gate-type="unit" data-technology-gate-id="${u.key}"
-                style="flex:1;padding:7px 0;cursor:pointer;">${u.name}<br><small>${u.spawnEnergyCost || 0} 能源</small></button>`;
+                style="flex:1;padding:7px 0;cursor:pointer;">${u.name}<br><small>${u.spawnFoodCost || 0} 粮食</small></button>`;
         };
         ut.innerHTML = `
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
@@ -1033,40 +1178,149 @@ class ProducerBuildingPanel extends BasePanel {
 
         const sellBtn = el.querySelector('#pbSell');
         if (sellBtn) {
+            sellBtn.style.display = '';
             const durability = Math.max(0, Math.min(1,
                 Number(b.hp) / Math.max(1, Number(b.maxHp) || 1)));
             const refund = Math.floor((b._buildCost ?? cfg.cost)
                 * (cfg.sellRefundRatio ?? 0.5) * durability);
             const refundUnit = (b._buildCurrency || cfg.currency) === 'gold' ? '金币' : '能源';
-            sellBtn.title = `出售返还 ${refund} ${refundUnit}${isAbilityShop || isWarehouse || isPassive || isPortal ? '' : '（军事单位一并拆除）'}`;
+            sellBtn.title = `出售返还 ${refund} ${refundUnit}${isAbilityShop || isWarehouse || isPassive || isPortal || isEconomy ? '' : '（军事单位一并拆除）'}`;
             sellBtn.onclick = () => {
                 const res = b.sell();
                 this._notify(res.ok ? `已出售（+${res.refund} ${refundUnit}）` : (res.reason || '出售失败'), res.ok ? '#ffd700' : '#ff5555');
                 if (res.ok) this.close();
             };
         }
+        if (isEconomy) {
+            const population = PopulationEconomySystem.getPopulationSnapshot();
+            if (cfg.economyType === 'workshop') {
+                const snapshot = WorkshopEconomySystem.getSnapshot(b);
+                st.innerHTML = `
+                    <div class="economy-panel-heading"><span>🔧 自动化经济工坊</span><span class="economy-panel-badge ${snapshot.enemyBlocked ? 'is-blocked' : ''}" id="pbWorkshopSafety">${snapshot.enemyBlocked ? '敌情封锁，维修暂停' : '范围安全，可自动维修'}</span></div>
+                    <div class="economy-stat-grid">
+                        <div><span>影响半径</span><b id="pbWorkshopRange">${Math.round(snapshot.range)}px</b></div>
+                        <div><span>实际增效</span><b id="pbWorkshopEfficiency">+${(snapshot.actualEfficiency * 100).toFixed(1)}%</b></div>
+                        <div><span>维修速度</span><b id="pbWorkshopRepair">${(snapshot.repairRate * 100).toFixed(1)}%/秒</b></div>
+                        <div><span>上岗 / 容量</span><b id="pbWorkshopStaffed">${snapshot.staffedEngineerCount}/${snapshot.engineerCount}</b></div>
+                        <div><span>派遣 / 维修中</span><b><span id="pbWorkshopEngineers">${snapshot.assignedCount}</span> / <span id="pbWorkshopRepairing">${snapshot.repairingCount}</span></b></div>
+                    </div>
+                    <p class="economy-panel-note">范围内存在敌方单位时停止自动维修；只有已安排人口的工程师才会生成并工作，抵达目标后才恢复生命。每名上岗工程师发挥 20% 配置效果，同一建筑只取最强工坊光环。</p>`;
+                const upgrade = b._workshopUpgrade;
+                const rows = Object.entries(cfg.modules || {}).map(([moduleId, module]) => {
+                    const level = WorkshopEconomySystem.getModuleLevel(b, moduleId);
+                    const maxed = level >= module.maxLevel;
+                    const inProgress = upgrade?.moduleId === moduleId;
+                    const progressPct = inProgress
+                        ? Math.round((1 - upgrade.remainMs / upgrade.totalMs) * 100)
+                        : 0;
+                    const actionsHtml = maxed
+                        ? '<span class="troop-panel-caption">已满级</span>'
+                        : `<button class="troop-panel-upgrade-button" data-workshop-upgrade="${moduleId}" ${upgrade ? 'disabled' : ''}>升级</button>`;
+                    return renderBuildingUpgradeCard({
+                        rowAttribute: 'data-workshop-row', projectId: moduleId,
+                        icon: module.icon, name: module.name, level, maxLevel: module.maxLevel,
+                        cost: WorkshopEconomySystem.getUpgradeCost(b, moduleId), maxed,
+                        inProgress, progressPct,
+                        remainMs: inProgress ? upgrade.remainMs : 0,
+                        barId: `pbUpgradeBar_${moduleId}`, textId: `pbUpgradeText_${moduleId}`,
+                        actionsHtml, accent: '#77c8d9',
+                    }).replace('class="building-upgrade-card"',
+                        `class="building-upgrade-card" data-workshop-upgrading="${inProgress}"`);
+                }).join('');
+                modBox.innerHTML = `${this._renderWorkforceControls(b)}
+                    <div class="economy-panel-heading"><span>工坊升级项目</span><span class="economy-panel-meta">持有 ${gold} 金 / ${energy} 能</span></div>${rows}`;
+                this._bindWorkforceControls(modBox);
+                modBox.querySelectorAll('[data-workshop-upgrade]').forEach((button) => {
+                    button.addEventListener('click', () => this._upgradeWorkshop(button.dataset.workshopUpgrade));
+                });
+                modBox.querySelectorAll('[data-workshop-row]').forEach((row) => {
+                    row.addEventListener('mouseenter', (event) => this._showWorkshopTip(row.dataset.workshopRow, event));
+                    row.addEventListener('mousemove', (event) => this._moveAbilityTip(event));
+                    row.addEventListener('mouseleave', () => this._hideAbilityTip());
+                });
+            } else if (cfg.economyType === 'housing') {
+                const current = populationEconomyConfig.house?.levels?.find((entry) => entry.level === b._economyLevel);
+                const next = PopulationEconomySystem.getHouseUpgrade(b);
+                const upgrade = b._economyUpgrade;
+                const progress = upgrade ? Math.round((1 - upgrade.remainMs / upgrade.totalMs) * 100) : 0;
+                st.innerHTML = `
+                    <div style="font-size:13px;font-weight:700;color:#ffe08a;margin-bottom:6px;">🏠 房屋 Lv.${b._economyLevel}</div>
+                    <div style="font-size:12px;color:#c8b98a;line-height:1.8;">
+                        本栋容纳：<b style="color:#ffe08a;">${current?.populationCapacity || 0}</b> 人<br>
+                        位面人口：<b id="pbEconomyPopulation" style="color:#7fe0c8;">${population.used}/${population.capacity} · 空余 ${population.free}${population.overcrowded > 0 ? ` · 超额 ${population.overcrowded}` : ''}</b>
+                    </div>`;
+                modBox.innerHTML = next ? `
+                    <div style="font-size:12px;color:#c8b98a;line-height:1.8;">升级到 Lv.${next.level}：容量 ${current?.populationCapacity || 0} → <b style="color:#7fe0c8;">${next.populationCapacity}</b><br>
+                    费用 ${next.upgradeCost.gold || 0} 金币 + ${next.upgradeCost.energy || 0} 能源 · ${Math.round((next.upgradeCost.timeMs || 0) / 1000)} 秒</div>
+                    ${upgrade ? `<div id="pbHouseUpgradeState" data-upgrading="true" style="margin-top:8px;color:#ffe08a;">升级中 ${progress}%（${Math.ceil(upgrade.remainMs / 1000)}s）</div>`
+                        : '<button data-house-upgrade style="width:100%;margin-top:8px;padding:7px;background:#5c4a25;color:#fff1b3;border:1px solid #a88945;border-radius:6px;cursor:pointer;">升级房屋并更换贴图</button>'}`
+                    : '<div style="font-size:12px;color:#7fe0c8;">房屋已达到当前配置最高等级。</div>';
+                modBox.querySelector('[data-house-upgrade]')?.addEventListener('click', () => this._upgradeHouse());
+            } else if (cfg.economyType === 'bank') {
+                const rate = PopulationEconomySystem.getBankGoldPerSecond(b);
+                st.innerHTML = `<div style="font-size:13px;font-weight:700;color:#ffd700;margin-bottom:6px;">🏦 银行岗位</div>
+                    <div style="font-size:12px;color:#c8b98a;line-height:1.8;">本栋产出：<b id="pbEconomyOutput" style="color:#ffd700;">${rate.toFixed(2)} 金币/秒</b><br>
+                    位面人口：<b id="pbEconomyPopulation" style="color:#7fe0c8;">${population.used}/${population.capacity} · 空余 ${population.free}${population.overcrowded > 0 ? ` · 超额 ${population.overcrowded}` : ''}</b></div>`;
+                modBox.innerHTML = `${this._renderWorkforceControls(b)}
+                    <div style="font-size:11px;color:#8a8a8a;margin-top:7px;">每名职员 ${populationEconomyConfig.bank.goldPerWorkerPerSecond} 金币/秒；每秒低频结算，离场后由位面快照继续结算。</div>`;
+                this._bindWorkforceControls(modBox);
+            } else if (cfg.economyType === 'market') {
+                const quote = PopulationEconomySystem.getMarketQuote(b);
+                const buyBatch = populationEconomyConfig.market.buyEnergyBatch;
+                const sellBatch = populationEconomyConfig.market.sellGoldBatch;
+                const buyGold = Math.floor(buyBatch / quote.buyEnergyPerGold);
+                const sellEnergy = Math.floor(sellBatch * quote.sellEnergyPerGold);
+                st.innerHTML = `<div style="font-size:13px;font-weight:700;color:#7fd4ff;margin-bottom:6px;">⚖ 动态市场</div>
+                    <div style="font-size:12px;color:#c8b98a;line-height:1.8;">市场中间价：<b style="color:#ffe08a;">1 金 = <span id="pbEconomyMarketMid">${quote.midEnergyPerGold.toFixed(2)}</span> 能源</b><br>
+                    买入价 <span id="pbEconomyMarketBuy">${quote.buyEnergyPerGold.toFixed(2)}</span> · 卖出价 <span id="pbEconomyMarketSell">${quote.sellEnergyPerGold.toFixed(2)}</span> · 压力 <span id="pbEconomyMarketPressure">${quote.pressure.toFixed(3)}</span> · 价差 <span id="pbEconomyMarketSpread">${(quote.spread * 100).toFixed(1)}%</span><br>
+                    位面人口：<b id="pbEconomyPopulation" style="color:#7fe0c8;">${population.used}/${population.capacity} · 空余 ${population.free}${population.overcrowded > 0 ? ` · 超额 ${population.overcrowded}` : ''}</b></div>`;
+                const canTrade = PopulationEconomySystem.canMarketTrade(b);
+                modBox.innerHTML = `${this._renderWorkforceControls(b)}
+                    <div style="display:flex;gap:8px;margin-top:8px;">
+                    <button class="troop-panel-unit-button" data-market-buy ${canTrade ? '' : 'disabled'} style="flex:1;padding:8px;cursor:pointer;">${buyBatch} 能源 → ${buyGold} 金币</button>
+                    <button class="troop-panel-unit-button" data-market-sell ${canTrade ? '' : 'disabled'} style="flex:1;padding:8px;cursor:pointer;">${sellBatch} 金币 → ${sellEnergy} 能源</button>
+                    </div><div style="font-size:11px;color:#8a8a8a;margin-top:7px;">至少安排 1 名商人才能交易；更多商人会缩小价差并加快价格回归。</div>`;
+                this._bindWorkforceControls(modBox);
+                modBox.querySelector('[data-market-buy]')?.addEventListener('click', () => this._marketBuy());
+                modBox.querySelector('[data-market-sell]')?.addEventListener('click', () => this._marketSell());
+            } else {
+                const rate = PopulationEconomySystem.getWindmillFoodPerSecond(b);
+                st.innerHTML = `<div style="font-size:13px;font-weight:700;color:#d9b84f;margin-bottom:6px;">🌾 麦田风车</div>
+                    <div style="font-size:12px;color:#c8b98a;line-height:1.8;">本栋产出：<b id="pbEconomyOutput" style="color:#ffe08a;">${rate.toFixed(2)} 粮食/秒</b> · 位面库存 <b id="pbEconomyFood" style="color:#7fe0c8;">${Math.floor(PopulationEconomySystem.getFoodStored())}</b><br>
+                    位面人口：<b id="pbEconomyPopulation" style="color:#7fe0c8;">${population.used}/${population.capacity} · 空余 ${population.free}${population.overcrowded > 0 ? ` · 超额 ${population.overcrowded}` : ''}</b><br>
+                    建筑占地 2×2，外围 12 格为田地占位符，不生成道路。</div>`;
+                modBox.innerHTML = `${this._renderWorkforceControls(b)}
+                    <div style="font-size:11px;color:#8a8a8a;margin-top:7px;">每名农夫 ${populationEconomyConfig.windmill.foodPerWorkerPerSecond} 粮食/秒。岗位有人时最多显示 ${populationEconomyConfig.windmill.visualWorkerCap || 0} 只仓鼠农民；它们只有精灵动画，不创建平民实体。</div>`;
+                this._bindWorkforceControls(modBox);
+            }
+            return;
+        }
         if (isWarehouse) {
-            const own = Math.floor(b.storedEnergy || 0);
+            const ownEnergy = Math.floor(b.storedEnergy || 0);
+            const ownFood = Math.floor(b.storedFood || 0);
+            const own = ownEnergy + ownFood;
             const ownCap = Math.floor(b.storageCapacity || cfg.storageCapacity || 5000);
-            const total = EnergyManager ? EnergyManager.getEnergy() : 0;
+            const totalEnergy = EnergyManager ? EnergyManager.getEnergy() : 0;
+            const totalFood = EnergyManager ? EnergyManager.getFood() : 0;
+            const total = totalEnergy + totalFood;
             const totalCap = EnergyManager ? EnergyManager.getCapacity() : 0;
             const warehouseCount = EnergyManager ? EnergyManager.getWarehouseCount() : 0;
             const pct = ownCap > 0 ? Math.round(own / ownCap * 100) : 0;
             st.innerHTML = `
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-                    <div><span style="color:#ffd700;font-weight:700;">📦 能源仓库</span></div>
+                    <div><span style="color:#ffd700;font-weight:700;">📦 位面仓库</span></div>
                     <div style="font-size:12px;color:#9a9a9a;">仓库数 ${warehouseCount}</div>
                 </div>
                 <div style="font-size:12px;color:#c8b98a;line-height:1.7;">
-                    本仓库：<b id="pbWarehouseOwn" style="color:#7fd4ff;">${own}/${ownCap}</b><br>
-                    全部仓库：<b id="pbWarehouseTotal" style="color:#7fd4ff;">${total}/${totalCap}</b> · 数量 ${warehouseCount}
+                    本仓库：<b id="pbWarehouseOwn" style="color:#7fd4ff;">${own}/${ownCap}（能 ${ownEnergy} / 粮 ${ownFood}）</b><br>
+                    全部仓库：<b id="pbWarehouseTotal" style="color:#7fd4ff;">${total}/${totalCap}（能 ${totalEnergy} / 粮 ${totalFood}）</b> · 数量 ${warehouseCount}
                 </div>`;
             modBox.innerHTML = `
                 <div style="font-size:13px;font-weight:700;color:#7fd4ff;margin-bottom:6px;">仓储容量 <span id="pbWarehousePct">${pct}%</span></div>
                 <div style="height:12px;background:#1b2830;border:1px solid #3a6475;border-radius:6px;overflow:hidden;">
                     <div id="pbWarehouseBar" style="height:100%;width:${pct}%;background:linear-gradient(90deg,#2a8ab8,#7fd4ff);"></div>
                 </div>
-                <div style="font-size:11px;color:#8aa0aa;margin-top:6px;">采矿产出的能源会直接汇总到所有仓库。</div>`;
+                <div style="font-size:11px;color:#8aa0aa;margin-top:6px;">采矿能源与风车粮食共享全部仓库容量。</div>`;
             return;
         }
         if (isPortal) {
@@ -1223,6 +1477,129 @@ class ProducerBuildingPanel extends BasePanel {
         } else {
             this._notify(res.reason, '#ff5555');
         }
+        this.refresh();
+    }
+
+    _getEconomySecondaryProgress(building, workforce) {
+        if (!building || !workforce) return { label: '本轮生产', pct: 0, text: '0%' };
+        if (building._economyType === 'workshop') {
+            const snapshot = WorkshopEconomySystem.getSnapshot(building);
+            const configured = Math.max(0, Number(snapshot.configuredEfficiency) || 0);
+            const actual = Math.max(0, Number(snapshot.actualEfficiency) || 0);
+            const pct = configured > 0
+                ? Math.round(Math.max(0, Math.min(1, actual / configured)) * 100)
+                : 0;
+            return { label: '增效发挥', pct, text: `${pct}% · 实际 +${(actual * 100).toFixed(1)}%` };
+        }
+        if (building._economyType === 'market') {
+            const quote = PopulationEconomySystem.getMarketQuote(building);
+            const pct = workforce.slots > 0
+                ? Math.round(Math.max(0, Math.min(1, quote.effectiveWorkers / workforce.slots)) * 100)
+                : 0;
+            return { label: '交易效率', pct, text: `${pct}% · ${quote.effectiveWorkers.toFixed(2)} 人效` };
+        }
+        const tickMs = Math.max(100, Number(populationEconomyConfig.tickMs) || 1000);
+        const pct = workforce.assigned > 0 && workforce.laborEfficiency > 0
+            ? Math.round(Math.max(0, Math.min(1, building._economyTickMs / tickMs)) * 100)
+            : 0;
+        const label = building._economyType === 'windmill'
+            ? '粮食结算'
+            : (building._economyType === 'bank' ? '金币结算' : '本轮生产');
+        return { label, pct, text: `${pct}%` };
+    }
+
+    _renderWorkforceControls(building) {
+        const workforce = PopulationEconomySystem.getWorkerSnapshot(building);
+        if (!workforce) return '';
+        const population = workforce.population;
+        const workforcePct = workforce.slots > 0 ? Math.round(workforce.assigned / workforce.slots * 100) : 0;
+        const secondaryProgress = this._getEconomySecondaryProgress(building, workforce);
+        return `<div class="economy-workforce">
+            <div class="economy-workforce-copy">
+                <div class="economy-workforce-label"><span>${workforce.label}岗位</span><b id="pbEconomyWorkers">${workforce.assigned}/${workforce.slots} · 人口效率 ${Math.round(workforce.laborEfficiency * 100)}%</b></div>
+                <div class="economy-progress-label"><span>岗位安排</span><b id="pbEconomyWorkforcePct">${workforcePct}%</b></div>
+                <div class="economy-progress"><div id="pbEconomyWorkforceBar" style="width:${workforcePct}%"></div></div>
+                <div class="economy-progress-label"><span>${secondaryProgress.label}</span><b id="pbEconomyProductionPct">${secondaryProgress.text}</b></div>
+                <div class="economy-progress"><div id="pbEconomyProductionBar" style="width:${secondaryProgress.pct}%"></div></div>
+                <div class="economy-workforce-note">${population.overcrowded > 0 ? `<span class="is-warning">人口超额 ${population.overcrowded}，所有岗位按比例降效</span>` : '岗位只占用人口数值，不创建平民实体'}</div>
+            </div>
+            <div class="economy-workforce-actions">
+                <button class="troop-panel-unit-button" data-worker-delta="-1" ${workforce.assigned <= 0 ? 'disabled' : ''}>−1</button>
+                <button class="troop-panel-unit-button" data-worker-delta="1" ${workforce.freeSlots <= 0 || population.free <= 0 ? 'disabled' : ''}>+1</button>
+                <button class="troop-panel-unit-button" data-worker-max ${workforce.freeSlots <= 0 || population.free <= 0 ? 'disabled' : ''}>最大</button>
+            </div>
+        </div>`;
+    }
+
+    _upgradeWorkshop(moduleId) {
+        if (!this.building) return;
+        const result = WorkshopEconomySystem.startUpgrade(this.building, moduleId);
+        const name = this.building._cfg.modules?.[moduleId]?.name || moduleId;
+        this._notify(result.ok ? `${name}开始升级（${Math.round(result.cost.timeMs / 1000)}秒）` : result.reason,
+            result.ok ? '#77c8d9' : '#ff5555');
+        this.refresh();
+    }
+
+    _showWorkshopTip(moduleId, event) {
+        if (!this.building) return;
+        const module = this.building._cfg.modules?.[moduleId];
+        if (!module) return;
+        const level = WorkshopEconomySystem.getModuleLevel(this.building, moduleId);
+        const maxed = level >= module.maxLevel;
+        const valueAt = (atLevel) => (Number(module.base) || 0) + (Number(module.per) || 0) * atLevel;
+        const format = (value) => module.effect === 'workshopRange'
+            ? `${Math.round(value)}px`
+            : (module.effect === 'workshopEngineerCount'
+                ? `${Math.round(value)} 名`
+                : `${(value * 100).toFixed(1)}%`);
+        const cost = WorkshopEconomySystem.getUpgradeCost(this.building, moduleId);
+        showBuildingUpgradeTooltip(`
+            <div style="font-weight:700;font-size:13px;margin-bottom:4px;">${module.icon} ${module.name} <span style="color:#8a5a00;">Lv.${level}/${module.maxLevel}</span></div>
+            <div>${format(valueAt(level))}${maxed ? '' : ` → ${format(valueAt(level + 1))}`}</div>
+            <div style="margin-top:4px;color:#5a4a2a;">本栋工坊独立升级；出售后不保留等级</div>
+            <div style="margin-top:2px;">${maxed ? '已达到最高等级' : `升级费用：${cost.gold} 金币 + ${cost.energy} 能源`}</div>
+            <div>${maxed ? '' : `读条时间：${Math.round(cost.timeMs / 1000)} 秒`}</div>`, event);
+    }
+
+    _bindWorkforceControls(root) {
+        root?.querySelectorAll('[data-worker-delta]').forEach((button) => {
+            button.addEventListener('click', () => this._adjustWorkers(Number(button.dataset.workerDelta) || 0));
+        });
+        root?.querySelector('[data-worker-max]')?.addEventListener('click', () => this._assignMaxWorkers());
+    }
+
+    _adjustWorkers(delta) {
+        if (!this.building) return;
+        const result = PopulationEconomySystem.adjustAssignedWorkers(this.building, delta);
+        this._notify(result.ok ? `岗位人口调整为 ${result.assigned}/${result.slots}` : result.reason, result.ok ? '#7fe0c8' : '#ff5555');
+        this.refresh();
+    }
+
+    _assignMaxWorkers() {
+        if (!this.building) return;
+        const result = PopulationEconomySystem.assignMaxWorkers(this.building);
+        this._notify(result.ok ? `已分配 ${result.assigned}/${result.slots} 人` : result.reason, result.ok ? '#7fe0c8' : '#ff5555');
+        this.refresh();
+    }
+
+    _upgradeHouse() {
+        if (!this.building) return;
+        const result = PopulationEconomySystem.startHouseUpgrade(this.building);
+        this._notify(result.ok ? `房屋开始升级到 Lv.${result.targetLevel}` : result.reason, result.ok ? '#ffe08a' : '#ff5555');
+        this.refresh();
+    }
+
+    _marketBuy() {
+        if (!this.building) return;
+        const result = PopulationEconomySystem.buyGold(this.building);
+        this._notify(result.ok ? `市场成交：-${result.energy} 能源，+${result.gold} 金币` : result.reason, result.ok ? '#7fd4ff' : '#ff5555');
+        this.refresh();
+    }
+
+    _marketSell() {
+        if (!this.building) return;
+        const result = PopulationEconomySystem.sellGold(this.building);
+        this._notify(result.ok ? `市场成交：-${result.gold} 金币，+${result.energy} 能源` : result.reason, result.ok ? '#ffe08a' : '#ff5555');
         this.refresh();
     }
 
@@ -1383,14 +1760,20 @@ export const ProducerBuildingSystem = {
         for (const b of this.buildings) {
             if (b) {
                 if (b._isEnergyWarehouse && EnergyManager) {
-                    EnergyManager.unregisterWarehouse(b, { preserve: true });
+                    // 粮食已逐仓写入位面快照，不能再放入跨场景 pending 队列造成重复/串位面。
+                    EnergyManager.unregisterWarehouse(b, { preserve: true, preserveFood: false });
                 }
                 b.active = false;
+                HamsterFarmerVisualSystem.clearBuilding(b);
+                WorkshopEconomySystem.unregisterBuilding(b);
                 b._despawnUnits();
                 if (Game && Game.entities && b.id) Game.entities.delete(b.id);
             }
         }
         this.buildings = [];
+        HamsterFarmerVisualSystem.reset();
+        WorkshopEconomySystem.reset();
+        PopulationEconomySystem.reset();
         if (this._panel) {
             if (this._panel.isOpen) this._panel.close();
             this._panel.building = null;
@@ -1420,7 +1803,9 @@ export const ProducerBuildingSystem = {
             const pdy = b.y - player.y;
             if (!buildMode && Math.sqrt(pdx * pdx + pdy * pdy) > 260) continue;
             const cfg = b._cfg;
-            const hit = { cx: 0, cy: -Math.round(cfg.displayH * 0.4), hw: Math.round(cfg.displayW / 2), hh: Math.round(cfg.displayH * 0.44) };
+            const displayW = Number(b.spriteCfg?.size) || cfg.displayW;
+            const displayH = Number(b.spriteCfg?.sizeH) || cfg.displayH;
+            const hit = { cx: 0, cy: -Math.round(displayH * 0.4), hw: Math.round(displayW / 2), hh: Math.round(displayH * 0.44) };
             const visualX = b.x + (b._visualFootOffsetX || 0);
             if (mw.x < visualX + hit.cx - hit.hw || mw.x > visualX + hit.cx + hit.hw
                 || mw.y < b.y + hit.cy - hit.hh || mw.y > b.y + hit.cy + hit.hh) continue;

@@ -15,6 +15,8 @@ class SmokeEffect {
         if (scene.worldEffectsGroup) scene.worldEffectsGroup.add(this._graphics);
     }
 
+    getFogVisuals() { return this._graphics; }
+
     update(dt = 16.67) {
         this.life -= dt;
         if (this.life <= 0) {

@@ -37,6 +37,14 @@ export class FlameArmorFx {
         this._bladeGlowGfx = null;
     }
 
+    getFogPosition() {
+        return this.player ? { x: this.player.x, y: this.player.y } : null;
+    }
+
+    getFogVisuals() {
+        return [this._ringGfx, this._bladeGlowGfx];
+    }
+
     _footprintRadius() {
         const p = this.player;
         const base = (p.collider && p.collider.radius) || p.collisionRadius || 22.5;

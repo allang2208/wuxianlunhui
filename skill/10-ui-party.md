@@ -13,6 +13,7 @@
 - **关闭口径**：建筑详情使用 `panelGroup:'buildingDetail' / closeOnEscape:true / closeOnOutsidePointer:true`，外部关闭不得穿透到攻击、移动或场景选择。
 - **字体口径**：display 只用于重大页面；title=一级标题，subtitle=分区标题，body=正文，meta=辅助信息，caption=微型提示，数字/计时使用 `--bp-font-number`。
 - **范围纪律**：单个 UI 需求只改目标面板及必要共享件，不借机全量迁移旧面板；若需要改变本规范，先更新规范和主题真源，再实现业务代码。
+- **人口经济岗位面板（2026-08-21）**：可安排岗位的经济建筑统一用 `.economy-workforce`、`.economy-progress` 与 `.economy-*-label/note`，第一根条固定显示“岗位安排百分比”；第二根条必须按建筑语义取权威数据——风车/银行显示有岗位时的粮食/金币结算周期，市场显示稳定的有效商人人效，工坊显示 `actualEfficiency / configuredEfficiency` 增效发挥率，禁止把共享 `_economyTickMs` 当成市场或工坊的生产进度。进度只以内联 `width` 表达动态值，外观和低→中→高语义渐变必须留在 `panel-theme-backpack.css`；禁止为各建筑复制色板和按钮样式。经济工坊的四项升级继续调用 `renderBuildingUpgradeCard` 与共用 tooltip，状态区用两列数字档案，窄屏退化单列。
 
 ### 小地图（GameScene 静态层/动态层，2026-08-16 布局修复沉淀）
 
@@ -60,6 +61,15 @@
   打开后300ms内忽略外部关闭以防打开事件自身回落。
 
 已迁移范例：`warehouse-system.js`（仓库面板）。
+
+- **地牢出征准备三栏合同（2026-08-21）**：出征状态固定为最左侧条件说明、中部地牢选择、
+  正式队友选择与出征栏、右侧玩家装备背包。队友栏只读写 `PartySystem.members`（点击成员进入
+  管理/移出，点击空位招募替换），禁止把 `Game.friendlyUnits` 中的仓鼠兵种混入。右栏背包打开期间必须关闭
+  `#panelOverlay` 的点击捕获，只保留背包本体交互，否则其统一挂载层会盖住中部地牢选择。
+  `body.expedition-preparing` 仅隐藏常驻 `.party-bar`、侧栏遮罩并在关闭/出征时清理，禁止移动
+  组队栏或其他 HUD 的预设坐标。
+- **地牢友军边界**：确认出征时把 `Game.friendlyUnits` 暂存到 `SceneManager` 并从地牢运行态清空，
+  回到主神空间后按原对象和原坐标恢复；只允许独立注册在 `PartySystem.members` 的正式队友随行。
 
 - **建筑详情独立栏目（2026-08-21 新口径）**：墙/门/楼梯详情和塔、陷阱、小屋、兵营、
   配置型生产建筑、基地核心详情都作为 `#rightSidebarPanelLayer` 下的同级独立栏目，统一
