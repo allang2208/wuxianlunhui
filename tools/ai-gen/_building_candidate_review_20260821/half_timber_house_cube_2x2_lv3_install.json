@@ -1,0 +1,45 @@
+{
+  "id": "house_lv3",
+  "installedAt": "2026-08-21",
+  "generationMode": "built-in ImageGen with Level 2 geometry reference plus deterministic edge-connected background keying",
+  "sourceReference": "assets/terrain/house_lv2.png",
+  "selectedRaw": "tools/ai-gen/_building_candidate_review_20260821/half_timber_house_cube_2x2_lv3_raw.png",
+  "installedAsset": "assets/terrain/house_lv3.png",
+  "details": [
+    "carved oak balcony with ornate balusters",
+    "carved timber rosettes and bronze-gold joint plates",
+    "warm leaded stained-glass windows",
+    "overflowing luxury flower boxes",
+    "ornate brass-and-iron wall lanterns",
+    "non-text heraldic crest and carved doorway",
+    "decorated planter, chest, rolled rug, and wine cask"
+  ],
+  "cutout": {
+    "method": "key-world122-building-body.py",
+    "threshold": 200,
+    "sourceSize": [1172, 1342],
+    "transparentPadding": [24, 24, 24, 8],
+    "outputSize": [1220, 1374],
+    "sha256": "D3EAF4C57497252E14AE94766C2D3A5B037300AF8C7E3C42018C5CDA4802BC81"
+  },
+  "runtime": {
+    "displayW": 298,
+    "displayH": 335,
+    "footOffsetY": 166,
+    "logicalFootprint": [256, 128],
+    "gridSize": [2, 2],
+    "foundationKey": "building_foundation_2x2",
+    "foundationIsSeparateLayer": true
+  },
+  "staticValidation": {
+    "groundAxisDegrees": [33.0, -29.8],
+    "isoEdgeOK": true,
+    "verticalWalls": true,
+    "rgbaCornersTransparent": true,
+    "detachedPlatform": false,
+    "alphaHalo": false
+  },
+  "backup": "Y:/工作/无尽轮回/scratch/backup/house_lv3_before_luxury_half_timber_20260821.png",
+  "backupSha256": "ACA4D7789DDC4C49038C8F4F1AD4AC543C8105EC05ABB141C7051B16A6448B65",
+  "unchangedAssets": ["house_lv1", "house_lv2"]
+}

@@ -3,6 +3,7 @@ import producerBuildings from '../../data/producer-buildings.json';
 import hamsterBarracks from '../../data/hamster-barracks-building.json';
 import buildingUpgrades from '../../data/building-upgrades.json';
 import { EventBus } from '../core/event-bus.js';
+import { WorldProgressionSystem } from './world-progression-system.js';
 
 const VERSION = 2;
 const ALLOWED_UNLOCK_TYPES = new Set(['building', 'buildingKind', 'unit', 'upgrade', 'mechanic']);
@@ -27,7 +28,7 @@ const KNOWN_UNLOCK_TARGETS = Object.freeze({
     upgrade: new Set(upgradeIds),
     mechanic: new Set([
         'building_recycle', 'rts_command', 'troop_hold', 'troop_rally',
-        'flat_view', 'cross_world_reinforcement',
+        'cross_world_reinforcement',
     ]),
 });
 
@@ -198,9 +199,15 @@ export const TechnologySystem = {
         return this.state.completed.includes(id);
     },
 
+    isWorldRequirementMet(id) {
+        const node = this.getNode(id);
+        return !!node && (!node.requiredWorldId
+            || WorldProgressionSystem.isWorldEligible(node.requiredWorldId));
+    },
+
     isAvailable(id) {
         const node = this.getNode(id);
-        return !!node && !this.isCompleted(id)
+        return !!node && this.isWorldRequirementMet(id) && !this.isCompleted(id)
             && (node.prerequisites || []).every((requiredId) => this.isCompleted(requiredId));
     },
 
@@ -249,7 +256,7 @@ export const TechnologySystem = {
     },
 
     getResearchPlan(id) {
-        if (!this.getNode(id) || this.isCompleted(id)) return [];
+        if (!this.getNode(id) || !this.isWorldRequirementMet(id) || this.isCompleted(id)) return [];
         return this.getDependencyPath(id, { includeCompleted: false });
     },
 

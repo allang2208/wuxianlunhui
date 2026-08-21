@@ -1,0 +1,34 @@
+{
+  "source": "tools\\ai-gen\\_settlement_building_pack_20260821\\thatch_hut\\thatch_hut_5080_s48_seed122836_raw.png",
+  "output": "assets\\terrain\\thatch_hut.png",
+  "sourceMode": "RGB",
+  "background": [
+    253,
+    241,
+    4
+  ],
+  "maskImage": "tools\\ai-gen\\_settlement_building_pack_20260821\\thatch_hut\\thatch_hut_preview.png",
+  "maskDilate": 2,
+  "maskAddRects": [],
+  "cropBox": [
+    79,
+    194,
+    957,
+    920
+  ],
+  "fileSize": [
+    878,
+    726
+  ],
+  "alphaBBox": [
+    4,
+    4,
+    874,
+    722
+  ],
+  "displayW": 256,
+  "displayH": 212,
+  "footOffsetY": 105,
+  "scaleX": 0.29157175398633256,
+  "scaleY": 0.29201101928374656
+}

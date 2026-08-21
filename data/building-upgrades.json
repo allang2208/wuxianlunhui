@@ -102,5 +102,14 @@
       "workshop_repair": { "name": "维修效率", "icon": "🔧", "effect": "workshopRepair", "mode": "add", "base": 0.05, "per": 0.01, "maxLevel": 10, "desc": "每秒恢复目标最大生命 {pct}%" },
       "workshop_engineers": { "name": "工程师数量", "icon": "🐹", "effect": "workshopEngineerCount", "mode": "add", "base": 2, "per": 1, "maxLevel": 3, "goldByLevel": [900, 1500, 2400], "energyByLevel": [1200, 2000, 3200], "timeByLevel": [45000, 60000, 90000], "desc": "仓鼠工程师 {value} 名" }
     }
+  },
+  "bank_economy": {
+    "moduleUpgrade": { "gold": 500, "energy": 750, "timeBaseMs": 30000, "timeGrowthMs": 5000 },
+    "modules": {
+      "bank_finance": { "name": "金融工具", "icon": "📈", "effect": "bankSettlementSpeed", "mode": "add", "base": 0, "per": 0.05, "maxLevel": 10, "desc": "金币结算速度 +{pct}%" },
+      "bank_staff": { "name": "扩容人员", "icon": "🐹", "effect": "bankStaffCapacity", "mode": "add", "base": 1, "per": 1, "maxLevel": 2, "desc": "银行职员岗位 {value} 名" },
+      "bank_mint": { "name": "印钞机", "icon": "💵", "effect": "bankGoldPerPopulation", "mode": "add", "base": 0.1, "per": 0.05, "maxLevel": 10, "desc": "每名服务人口每轮产生 {pct}% 金币" },
+      "bank_service_range": { "name": "服务辐射", "icon": "📡", "effect": "bankServiceRange", "mode": "add", "base": 600, "per": 50, "maxLevel": 10, "desc": "服务半径 {value}px" }
+    }
   }
 }

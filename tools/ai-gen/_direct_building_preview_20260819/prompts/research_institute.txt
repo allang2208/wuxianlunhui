@@ -1,0 +1,7 @@
+Use case: stylized-concept
+Asset type: World-122 building preview, transparent PNG
+Primary request: A redesigned compact research institute, pale cold-gray ashlar stone academy with restrained blue-gray mineral variation, a central square observatory tower integrated into the main hall, a dark muted blue-slate gable roof and narrow warm-lit windows; finely carved stone courses, slender mullioned windows, subtle copper research instruments embedded into the tower walls, iron roof trim and small layered stone cornices; no dome and no detached props.
+Style/medium: unified World-122 game building asset, high-detail realistic 3D-rendered PBR surfaces, muted low-saturation palette, restrained weathering, crisp ambient occlusion in joints, clean readable silhouette.
+Composition/framing: strict orthographic isometric camera at 26.565 degrees; fixed rectangular ground footprint exactly 256 by 128 in world proportion, visible top faces form a clean 2:1 diamond; centered full building with generous transparent margin.
+Lighting/mood: soft even diffuse studio light, no cast shadow, no ground plane.
+Constraints: transparent-background asset; all walls vertical; only the roof and top faces follow isometric perspective; no perspective convergence; no text; no logo; no watermark; no characters; no trees.

@@ -80,9 +80,9 @@ export function structureDepthSpan(entity) {
 
 /**
  * 取得 iso 建筑在指定屏幕 X 位置的真实地面前缘 Y。
- * 只采样 footprint 两条前边。sideRange 仅表示移动精灵真实接地/碰撞的横向半径，
- * 不等于显示贴图宽度；当其中心略越过前角、但贴图仍与建筑相交时，仍以端点作为前缘，
- * 不能无限延长线段。
+ * 只采样 footprint 两条前边。sideRange 表示移动精灵当前帧真实 alpha 可见半宽，
+ * 并以接地/碰撞半径兜底；它不等于含透明留白的整帧宽度。当单位中心略越过前角、
+ * 但人物可见像素仍与建筑相交时，仍以端点作为前缘，不能无限延长线段。
  */
 export function structureFrontYAtX(entity, x, sideRange = 0) {
     if (!entity || entity._structureDepthMode !== 'iso_footprint') return null;

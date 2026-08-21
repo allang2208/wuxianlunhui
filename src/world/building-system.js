@@ -222,6 +222,7 @@ for (const pc of Object.values(PRODUCER_BUILDINGS || {})) {
         assetPath: pc.assetPath,
         kind: 'producer',
         currency: pc.currency === 'gold' ? 'gold' : 'energy',
+        buildWarning: pc.buildWarning || '',
     });
 }
 // 旧 F→A 长掩体与旧滑动门已从建筑清单移除；底层实体/资产保留兼容历史场景。
@@ -403,6 +404,28 @@ export const BuildingSystem = {
             : '';
     },
 
+    _featureBuildingBlockReason(item) {
+        const cfg = item?.kind === 'producer' ? PRODUCER_BUILDINGS[item.id] : null;
+        if (!cfg) return '';
+        if (Array.isArray(cfg.allowedSceneIds) && !cfg.allowedSceneIds.includes(SceneManager.currentScene)) {
+            const worldName = cfg.featureWorldId
+                ? (SceneManager.scenes?.[cfg.featureWorldId]?.name || cfg.featureWorldId)
+                : '对应位面';
+            return `只能在${worldName}建造`;
+        }
+        const limit = Math.max(0, Math.floor(Number(cfg.buildLimit) || 0));
+        if (limit > 0) {
+            const count = (ProducerBuildingSystem?.buildings || []).filter((building) =>
+                building?.active !== false && !building?._sinking && building?.cfgKey === item.id).length;
+            if (count >= limit) return `${cfg.name}数量已达上限（${limit}）`;
+        }
+        return '';
+    },
+
+    _buildItemBlockReason(item) {
+        return this._featureBuildingBlockReason(item) || this._economyWarehouseBlockReason(item);
+    },
+
     _buildItemGate(item) {
         return item?.kind === 'trap'
             ? { type: 'buildingKind', id: 'trap' }
@@ -436,7 +459,7 @@ export const BuildingSystem = {
             .map((item) => renderBuildItemThumb(
                 item,
                 this._effectiveBuildCost(item),
-                this._economyWarehouseBlockReason(item)
+                this._buildItemBlockReason(item)
             ))
             .join('');
     },
@@ -499,6 +522,7 @@ export const BuildingSystem = {
                 <button id="bpRecycleMode" title="进入回收模式后，左键点击建筑或道路进行回收" style="width:100%;background:#5a3028;color:#ffd7d0;border:1px solid #8a4a3a;">回收建筑</button>
             </div>
             <div class="we-hints" id="bpHints">
+                <div class="build-context-warning" id="bpContextWarning" hidden></div>
                 B=开/关面板 | 点击建筑后移动鼠标预览<br>
                 左键放置（掩体/塔扣能源）| F=镜像（垂直↔水平）| 右键/Esc=取消<br>
                 回收建筑=进入快捷回收，左键可连续回收建筑或道路<br>
@@ -595,9 +619,9 @@ export const BuildingSystem = {
             this._notify('该建筑尚未通过科技解锁', '#ffb35c');
             return;
         }
-        const economyBlock = this._economyWarehouseBlockReason(item);
-        if (economyBlock) {
-            this._notify(economyBlock, '#ffb35c');
+        const buildBlock = this._buildItemBlockReason(item);
+        if (buildBlock) {
+            this._notify(buildBlock, '#ffb35c');
             this._renderBuildGrid();
             return;
         }
@@ -668,6 +692,11 @@ export const BuildingSystem = {
         if (sel) {
             const action = item.kind === 'road' ? '单击或拖动铺设' : '左键放置 / F 镜像';
             sel.textContent = `${item.name}（${this._effectiveBuildCost(item)}${item.currency === 'energy' ? '能' : '金'}）— ${action}`;
+        }
+        const warning = this._panel?.querySelector('#bpContextWarning');
+        if (warning) {
+            warning.textContent = item.buildWarning || '';
+            warning.hidden = !item.buildWarning;
         }
     },
 
@@ -884,6 +913,11 @@ export const BuildingSystem = {
         this._updateMirrorUi();
         const sel = this._panel && this._panel.querySelector('#bpSel');
         if (sel) sel.textContent = '未选择建筑';
+        const warning = this._panel?.querySelector('#bpContextWarning');
+        if (warning) {
+            warning.textContent = '';
+            warning.hidden = true;
+        }
     },
 
     _setRecycleMode(enabled) {
@@ -2332,6 +2366,7 @@ export const BuildingSystem = {
     _canPlace(x, y) {
         const item = this._placing && this._placing.item;
         if (!item) return false;
+        if (this._featureBuildingBlockReason(item)) return false;
         if (!isTwoByTwoBuildItem(item) && !this._fitsPlacementBounds(item, x, y)) return false;
         // 方块墙：格子冲突判定（2026-08-17 二修）——单条 face 线段会压住同向邻格，
         // 改为「同格不可放、邻格/更远可放」+ 地形检查（排除方块自身 face 段）
@@ -3261,9 +3296,9 @@ export const BuildingSystem = {
             this._cancelPlacement();
             return;
         }
-        const economyBlock = this._economyWarehouseBlockReason(item);
-        if (economyBlock) {
-            this._notify(economyBlock, '#ffb35c');
+        const buildBlock = this._buildItemBlockReason(item);
+        if (buildBlock) {
+            this._notify(buildBlock, '#ffb35c');
             this._cancelPlacement();
             this._renderBuildGrid();
             return;

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="440" viewBox="0 0 512 440">
+  <polygon points="72,290 256,190 440,290 256,396" fill="#62513b" opacity=".75"/>
+  <polygon points="132,228 256,152 380,228 256,304" fill="#a06c3f"/>
+  <polygon points="132,228 256,304 256,376 132,300" fill="#76502f"/>
+  <polygon points="256,304 380,228 380,300 256,376" fill="#5b3d28"/>
+  <polygon points="112,220 256,126 400,220 378,244 256,166 134,244" fill="#d2b15e"/>
+  <rect x="226" y="300" width="60" height="76" fill="#34261e"/>
+  <text x="256" y="86" text-anchor="middle" fill="#fff2b0" font-size="34" font-family="sans-serif">房屋 Lv.1</text>
+</svg>

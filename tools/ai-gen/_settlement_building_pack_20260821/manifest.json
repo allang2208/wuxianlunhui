@@ -1,0 +1,32 @@
+{
+  "camera": {
+    "elevation": 30.0,
+    "azimuth": 0.0,
+    "buildingRotationZ": 44.8,
+    "resolution": 1024,
+    "bottomY": 920,
+    "topMargin": 38,
+    "widthMargin": 0.88
+  },
+  "palette": {
+    "foundation": [0.28, 0.27, 0.24, 1.0],
+    "stone": [0.34, 0.33, 0.29, 1.0],
+    "plaster": [0.56, 0.51, 0.41, 1.0],
+    "timber": [0.16, 0.09, 0.045, 1.0],
+    "roof": [0.31, 0.12, 0.06, 1.0],
+    "thatch": [0.38, 0.25, 0.08, 1.0],
+    "iron": [0.07, 0.075, 0.07, 1.0],
+    "brass": [0.40, 0.23, 0.055, 1.0],
+    "glass": [0.34, 0.17, 0.045, 1.0],
+    "glow": [0.95, 0.28, 0.025, 1.0],
+    "straw": [0.54, 0.38, 0.12, 1.0]
+  },
+  "buildings": {
+    "wheat_windmill": { "dimensions": { "foundation": [334, 294, 16], "body": [214, 184, 370], "roof": [266, 234, 96] } },
+    "warehouse": { "dimensions": { "foundation": [500, 414, 16], "body": [354, 264, 424], "roof": [406, 316, 116] } },
+    "blacksmith": { "dimensions": { "foundation": [430, 350, 16], "body": [316, 228, 150], "roof": [360, 274, 90] } },
+    "shooting_range": { "dimensions": { "foundation": [526, 474, 16], "body": [270, 176, 142], "roof": [310, 220, 82] } },
+    "cavalry_school": { "dimensions": { "foundation": [480, 374, 16], "body": [360, 248, 154], "roof": [406, 300, 104], "tower": [76, 76, 220] } },
+    "thatch_hut": { "dimensions": { "foundation": [420, 340, 16], "body": [318, 236, 136], "roof": [372, 292, 116] } }
+  }
+}

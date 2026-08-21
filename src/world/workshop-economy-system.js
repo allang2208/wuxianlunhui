@@ -3,6 +3,12 @@ import { Game } from '../game.js';
 import { PERSPECTIVE_SCALE_Y } from '../config/perspective-config.js';
 import { getBuildingModuleUpgradeCost } from './building-upgrade-projects.js';
 import { payBuildingUpgradeCost } from './building-upgrade-payment.js';
+import {
+    applyCivilianAnimSize,
+    fadeOutAndDestroyCivilian,
+    registerCivilianVisual,
+    syncCivilianVisualDepth,
+} from './civilian-visual-utils.js';
 
 const HOSTILE_FACTIONS = new Set(['enemy', 'agent']);
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
@@ -35,6 +41,7 @@ function syncWorkerAnimation(worker, force = false) {
     const key = engineerAnimationKey(visualState);
     if (key && worker?.sprite?.active && worker.sprite.scene?.anims?.exists(key)) {
         worker.sprite.play(key, true);
+        applyCivilianAnimSize(worker.sprite, engineerVisualConfig(), visualState);
     }
 }
 
@@ -90,19 +97,28 @@ function repairPoint(target, index) {
     };
 }
 
+// 平滑移动：期望速度按帧率指数渐近（≈0.85/帧），起步/转向/停步不再瞬时；
+// 60px 内期望速度随距离线性衰减（ease-out 到达）
 function moveWorker(worker, target, speed, dt) {
+    const dtMs = Math.max(0, Number(dt) || 0);
     const dx = target.x - worker.x;
     const dy = target.y - worker.y;
     const distance = Math.hypot(dx, dy);
-    const step = Math.max(0, speed) * Math.max(0, dt) / 1000;
-    if (distance <= Math.max(1, step)) {
+    const desired = Math.max(0, speed) * Math.min(1, distance / 60);
+    const wantX = distance > 0 ? dx / distance * desired : 0;
+    const wantY = distance > 0 ? dy / distance * desired : 0;
+    const k = 1 - Math.pow(0.85, dtMs / 16.67);
+    worker.vx = (worker.vx || 0) + (wantX - (worker.vx || 0)) * k;
+    worker.vy = (worker.vy || 0) + (wantY - (worker.vy || 0)) * k;
+    worker.x += worker.vx * dtMs / 1000;
+    worker.y += worker.vy * dtMs / 1000;
+    // 到位判定：距离足够近且速度已衰减，避免高速冲过判定点
+    if (distance <= Math.max(2, speed * dtMs / 1000 * 2) && Math.hypot(worker.vx, worker.vy) < 10) {
         worker.x = target.x;
         worker.y = target.y;
+        worker.vx = 0;
+        worker.vy = 0;
         return true;
-    }
-    if (distance > 0 && step > 0) {
-        worker.x += dx / distance * step;
-        worker.y += dy / distance * step;
     }
     return false;
 }
@@ -111,7 +127,7 @@ function syncWorkerSprite(worker) {
     const sprite = worker?.sprite;
     if (!sprite?.active) return;
     sprite.setPosition(worker.x, worker.y);
-    sprite.setDepth(worker.y + 0.25);
+    syncCivilianVisualDepth(worker);
 }
 
 /**
@@ -272,7 +288,7 @@ export const WorkshopEconomySystem = {
         while (record.engineers.length > count) {
             const worker = record.engineers.pop();
             this._releaseWorker(worker);
-            if (worker.sprite?.active) worker.sprite.destroy();
+            fadeOutAndDestroyCivilian(worker);
         }
         while (record.engineers.length < count) {
             const index = record.engineers.length;
@@ -302,11 +318,12 @@ export const WorkshopEconomySystem = {
         if (!texture || !scene?.add?.sprite || !scene.textures?.exists(texture)) return;
         for (const worker of record.engineers) {
             if (worker.sprite?.active && worker.sprite.scene === scene) continue;
-            if (worker.sprite?.active) worker.sprite.destroy();
+            if (worker.sprite?.active) fadeOutAndDestroyCivilian(worker);
             worker.sprite = scene.add.sprite(worker.x, worker.y, texture, 0);
             worker.sprite.setOrigin(0.5, Number(visual.originY) || 0.82);
             const displaySize = Math.max(1, Number(visual.displaySize) || 128);
             worker.sprite.setDisplaySize(displaySize, displaySize);
+            registerCivilianVisual(worker, 'engineer');
             syncWorkerAnimation(worker, true);
             syncWorkerSprite(worker);
         }
@@ -441,7 +458,7 @@ export const WorkshopEconomySystem = {
         if (!record) return;
         for (const worker of record.engineers) {
             this._releaseWorker(worker);
-            if (worker.sprite?.active) worker.sprite.destroy();
+            fadeOutAndDestroyCivilian(worker);
         }
         this._records.delete(building);
     },

@@ -4,7 +4,6 @@ import {
     worldDeltaToIsoLocal,
 } from '../physics/iso-footprint.js';
 import { UIState } from '../ui/ui-state.js';
-import { TechnologySystem } from './technology-system.js';
 
 const SUPPORTED_SCENES = new Set(['scene8', 'scene9', 'scene10', 'scene11']);
 const FLAT_DEPTH = -994;
@@ -144,8 +143,7 @@ export const FlatViewSystem = {
     isAvailable(game = null) {
         const activeGame = game || (typeof window !== 'undefined' ? window.Game : null);
         const sceneId = typeof window !== 'undefined' ? window.SceneManager?.currentScene : null;
-        return !!(activeGame?.isRunning && SUPPORTED_SCENES.has(sceneId)
-            && TechnologySystem.isUnlocked('mechanic', 'flat_view'));
+        return !!(activeGame?.isRunning && SUPPORTED_SCENES.has(sceneId));
     },
 
     isSpaceAvailable(game = null) {

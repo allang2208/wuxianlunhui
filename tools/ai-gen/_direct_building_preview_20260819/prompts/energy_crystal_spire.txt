@@ -1,0 +1,7 @@
+Use case: stylized-concept
+Asset type: World-122 energy ore preview, transparent PNG
+Primary request: A tall asymmetric cluster of glowing cyan-blue energy crystals emerging directly from a few rough dark mineral rocks, three main faceted crystal spires with smaller shards, realistic PBR mineral faces, subtle internal blue energy glow, no container and no man-made parts.
+Style/medium: unified World-122 game asset, high-detail realistic 3D-rendered PBR surfaces, muted low-saturation dark stone with restrained cyan glow, crisp readable silhouette.
+Composition/framing: strict orthographic isometric camera at 26.565 degrees; compact ground contact footprint in a 256 by 128 world proportion, visible mineral top faces form a clean 2:1 diamond; centered with transparent margin.
+Lighting/mood: soft even diffuse studio light, no cast shadow, no ground plane.
+Constraints: pure transparent background; no square block at the bottom; no pedestal; no plinth; no platform; no base slab; no cube; no text; no logo; no watermark; no characters; no trees.

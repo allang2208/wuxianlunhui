@@ -1,0 +1,84 @@
+{
+  "elevation": 30,
+  "azimuth": 0,
+  "resolution": 1024,
+  "bottom_y": 880,
+  "max_width_frac": 0.8,
+  "top_margin_px": 48,
+  "tex": "Y:/工作/无尽轮回/scratch/world122/raw/tex_altar.png",
+  "tex2": "Y:/工作/无尽轮回/scratch/demon_iron_tex.png",
+  "lighting": {
+    "ambient": 0.66,
+    "sun": 1.45,
+    "fill": 110,
+    "exposure": 0.32
+  },
+  "primitives": [
+    {
+      "type": "box",
+      "size": [
+        170.0,
+        170.0,
+        112
+      ],
+      "pos": [
+        0,
+        0,
+        56
+      ],
+      "rot": [
+        0,
+        0,
+        44.8
+      ],
+      "bevel": 8,
+      "material": "wall"
+    },
+    {
+      "type": "box",
+      "size": [
+        186,
+        166,
+        10
+      ],
+      "pos": [
+        0,
+        0,
+        119
+      ],
+      "rot": [
+        0,
+        0,
+        44.8
+      ],
+      "bevel": 4,
+      "material": "wall"
+    },
+    {
+      "type": "box",
+      "size": [
+        214.0,
+        214.0,
+        18
+      ],
+      "pos": [
+        0,
+        0,
+        9
+      ],
+      "rot": [
+        0,
+        0,
+        44.8
+      ],
+      "bevel": 5,
+      "material": "wall"
+    }
+  ],
+  "plates": [],
+  "slide": {},
+  "square_footprint_normalization": {
+    "squarePrimitiveCount": 2,
+    "foundation": "building_foundation_2x2"
+  }
+}

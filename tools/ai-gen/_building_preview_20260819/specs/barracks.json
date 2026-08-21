@@ -1,0 +1,22 @@
+{
+  "elevation": 30,
+  "azimuth": 0,
+  "resolution": 1024,
+  "bottom_y": 880,
+  "max_width_frac": 0.8,
+  "top_margin_px": 70,
+  "tex": "E:/无尽轮回/长期备份/2026-7-13-1/game-dev/tools/ai-gen/_building_preview_20260819/materials/barracks_wall.png",
+  "roof_tex": "E:/无尽轮回/长期备份/2026-7-13-1/game-dev/tools/ai-gen/_building_preview_20260819/materials/barracks_roof.png",
+  "lighting": { "ambient": 0.31, "sun": 0.70, "fill": 42, "exposure": -0.04 },
+  "primitives": [
+    { "type": "box", "size": [256, 128, 88], "pos": [0, 0, 44], "rot": [0, 0, 44.8], "bevel": 6, "material": "wall" },
+    { "type": "prism", "size": [278, 152, 78], "pos": [0, 0, 104], "rot": [0, 0, 44.8], "material": "roof" },
+    { "type": "box", "size": [38, 38, 166], "pos": [75, -44, 83], "rot": [0, 0, 44.8], "bevel": 4, "material": "wall" },
+    { "type": "box", "size": [38, 38, 176], "pos": [-12, 44, 88], "rot": [0, 0, 44.8], "bevel": 4, "material": "wall" },
+    { "type": "box", "size": [56, 4, 54], "pos": [-66, -66, 27], "rot": [0, 0, 44.8], "material": "interior" },
+    { "type": "box", "size": [24, 4, 23], "pos": [-112, -65, 61], "rot": [0, 0, 44.8], "material": "window" },
+    { "type": "box", "size": [24, 4, 23], "pos": [-20, -65, 61], "rot": [0, 0, 44.8], "material": "window" }
+  ],
+  "plates": [],
+  "slide": {}
+}

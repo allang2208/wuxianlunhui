@@ -2,7 +2,7 @@
  * 队员指挥轮盘（CompanionCommandWheel，2026-08-14）。
  *
  * - 长按鼠标中键 ≥300ms 弹出轮盘（以鼠标为中心）；松开时选中悬停指令，移出轮盘松开 = 取消；
- * - 五指令：跟随（默认）/ 主动攻击 / 巡逻 / 采集 / 待命；
+ * - 六指令：跟随（默认）/ 主动攻击 / 巡逻 / 采集 / 探险 / 待命；
  * - 指令点 = 打开轮盘瞬间的鼠标世界坐标（巡逻圆心 / 采集就近资源点用）；
  * - 目标：组队栏选中的队员（点击=单选、Shift+点击=多选）；无选中时兜底队员面板当前队员 / 第一名；
  * - 挂载：Game 启动时 init()（见 game.js）；DOM overlay，样式随 game-style.css。
@@ -34,6 +34,7 @@ export const CompanionCommandWheel = {
         { id: 'aggressive', name: '主动攻击', icon: '⚔️', color: '#ff9d9d' },
         { id: 'patrol', name: '巡逻', icon: '🚶', color: '#ffd77f' },
         { id: 'gather', name: '采集', icon: '⛏️', color: '#7fd4ff' },
+        { id: 'explore', name: '探险', icon: '🗺️', color: '#c9a0ff' },
         { id: 'hold', name: '待命', icon: '🛑', color: '#c5b89a' },
     ],
 
@@ -160,7 +161,7 @@ export const CompanionCommandWheel = {
         el.innerHTML = `<div class="cw-center">${this._targetLabel}<br><em>移动到指令上松开 · 移出取消</em></div>`;
         const R = 88;
         this.commands.forEach((cmd, i) => {
-            const ang = (-90 + i * 72) * Math.PI / 180;
+            const ang = (-90 + i * (360 / this.commands.length)) * Math.PI / 180;
             const btn = document.createElement('div');
             btn.className = 'cw-item';
             btn.dataset.cmd = cmd.id;

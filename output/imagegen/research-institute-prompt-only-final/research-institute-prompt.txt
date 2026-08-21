@@ -1,0 +1,16 @@
+Use case: stylized-concept
+Asset type: World-122 RTS research institute building sprite
+
+Primary request: exactly one complete late-medieval European research institute and astronomical academy. The building has one broad rectangular two-storey main hall and exactly three complete square observatory towers growing continuously out of the main roof: one taller central tower and two smaller side towers. Every tower must have four continuous solid walls, four visible corner edges, a complete roof connection, and one complete blue-slate pyramidal roof cap. No tower may be cut open, hollow, collapsed, merged, floating, truncated, or missing a wall, corner, roof face, lower section, or rear section.
+
+Research identity: a clearly secular scholarly observatory, not a church. Add one small brass telescope firmly mounted on the central tower, one copper armillary sphere, one wall-mounted astrolabe dial, narrow mullioned study windows, and warm bookcases visible only behind intact glass. These details must be attached to complete architecture and must not replace any wall or roof section.
+
+Camera and projection: strict orthographic 2:1 dimetric isometric game view, camera azimuth exactly 45 degrees and elevation exactly 30 degrees. The two horizontal ground axes project as straight parallel lines at exactly +26.565 degrees and -26.565 degrees. All vertical wall edges are perfectly vertical and parallel. No perspective convergence, no wide-angle lens, no three-quarter perspective, no top-down view, no front elevation.
+
+Bottom-edge contract: show the entire building from roof tips to ground contact with generous transparent-safe margin. The lower wall structure ends cleanly on one shared ground plane. The visible front-left and front-right lower wall edges follow the same +26.565 degree and -26.565 degree directions as the game grid. The building body is centered. Architecture only: absolutely no foundation, plinth, podium, marble slab, floor tile, pavement, courtyard, terrain, stairs, or detached base beneath or around it.
+
+Style and materials: detailed semi-realistic RTS sprite matching World-122 medieval buildings, restrained European Gothic-Renaissance academic architecture, pale cold-gray ashlar stone, muted blue slate roof tiles, restrained dark timber framing, aged brass and copper research instruments, low saturation, moderate contrast, realistic material texture, crisp readable details, neutral soft studio lighting, no cast shadow.
+
+Backdrop: perfectly uniform flat chroma-key green #00FF00 filling every pixel outside the building, no horizon, no gradient, no texture, no scenery.
+
+Avoid: no church, cathedral, chapel, nave, cross, bell tower, altar, religious icon, stained-glass religious imagery, fantasy castle, palace, fortress, modern laboratory, plumbing, water pipes, industrial tubes, antennas, satellite dishes, exposed machinery, futuristic parts, people, animals, signs, text, watermark, cropped roof, cropped bottom, missing components, disconnected geometry, black voids, open wall holes, white protruding platform.

@@ -1,0 +1,86 @@
+{
+  "elevation": 30,
+  "azimuth": 0,
+  "resolution": 1024,
+  "bottom_y": 880,
+  "max_width_frac": 0.8,
+  "top_margin_px": 48,
+  "primitives": [
+    {
+      "type": "box",
+      "size": [
+        285.0,
+        285.0,
+        132
+      ],
+      "pos": [
+        0,
+        0,
+        66
+      ],
+      "rot": [
+        0,
+        0,
+        44.8
+      ]
+    },
+    {
+      "type": "prism",
+      "size": [
+        315,
+        205,
+        98
+      ],
+      "pos": [
+        0,
+        0,
+        181
+      ],
+      "rot": [
+        0,
+        0,
+        44.8
+      ]
+    },
+    {
+      "type": "box",
+      "size": [
+        48,
+        48,
+        190
+      ],
+      "pos": [
+        -96,
+        -45,
+        95
+      ],
+      "rot": [
+        0,
+        0,
+        44.8
+      ]
+    },
+    {
+      "type": "box",
+      "size": [
+        48,
+        48,
+        170
+      ],
+      "pos": [
+        88,
+        38,
+        85
+      ],
+      "rot": [
+        0,
+        0,
+        44.8
+      ]
+    }
+  ],
+  "square_footprint_normalization": {
+    "squarePrimitiveCount": 1,
+    "foundation": "building_foundation_2x2"
+  }
+}

@@ -1,0 +1,73 @@
+{
+  "mode": "deterministic-no-regeneration",
+  "noiseTargetPercent": 15,
+  "saturationFactor": 1.15,
+  "levels": [
+    {
+      "level": "lv1",
+      "source": "tools/ai-gen/_building_denoise_review_20260821/house_lv1_denoised_saturated_2x.png",
+      "output": "tools/ai-gen/_building_refine_v2_review_20260821/house_lv1_final_denoise15_sat15_2x.png",
+      "outputSize": [
+        512,
+        588
+      ],
+      "runtimeSize": [
+        270,
+        310
+      ],
+      "alphaPreservedExactly": true,
+      "saturationMultiplierApplied": 1.1585,
+      "gaussianBlend": 0.4135,
+      "runtimeHighFrequencyBefore": 93.3779,
+      "runtimeHighFrequencyAfter": 79.3705,
+      "noiseReductionPercent": 15.0,
+      "saturationBefore": 132.5547,
+      "saturationAfter": 152.438,
+      "saturationIncreasePercent": 15.0
+    },
+    {
+      "level": "lv2",
+      "source": "tools/ai-gen/_building_denoise_review_20260821/house_lv2_denoised_saturated_2x.png",
+      "output": "tools/ai-gen/_building_refine_v2_review_20260821/house_lv2_final_denoise15_sat15_2x.png",
+      "outputSize": [
+        540,
+        618
+      ],
+      "runtimeSize": [
+        270,
+        309
+      ],
+      "alphaPreservedExactly": true,
+      "saturationMultiplierApplied": 1.1553,
+      "gaussianBlend": 0.3929,
+      "runtimeHighFrequencyBefore": 86.3432,
+      "runtimeHighFrequencyAfter": 73.3303,
+      "noiseReductionPercent": 15.07,
+      "saturationBefore": 140.7301,
+      "saturationAfter": 161.8419,
+      "saturationIncreasePercent": 15.0
+    },
+    {
+      "level": "lv3",
+      "source": "tools/ai-gen/_building_denoise_review_20260821/house_lv3_denoised_saturated_2x.png",
+      "output": "tools/ai-gen/_building_refine_v2_review_20260821/house_lv3_final_denoise15_sat15_2x.png",
+      "outputSize": [
+        596,
+        670
+      ],
+      "runtimeSize": [
+        298,
+        335
+      ],
+      "alphaPreservedExactly": true,
+      "saturationMultiplierApplied": 1.1541,
+      "gaussianBlend": 0.3627,
+      "runtimeHighFrequencyBefore": 91.685,
+      "runtimeHighFrequencyAfter": 77.9322,
+      "noiseReductionPercent": 15.0,
+      "saturationBefore": 151.6892,
+      "saturationAfter": 174.4452,
+      "saturationIncreasePercent": 15.0
+    }
+  ]
+}

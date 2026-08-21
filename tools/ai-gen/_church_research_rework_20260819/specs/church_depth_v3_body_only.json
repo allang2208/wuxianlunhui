@@ -1,0 +1,13 @@
+{
+  "_comment": "Body-only depth control: no footprint, platform, floor, pavement, plinth, steps, or ground geometry. The shared 256x128 marble-paver foundation remains a separate in-game layer.",
+  "elevation": 30,
+  "azimuth": 0,
+  "bottom_y": 880,
+  "max_width_frac": 0.8,
+  "top_margin_px": 66,
+  "primitives": [
+    { "type": "box", "size": [64, 64, 154], "pos": [36, 12, 77], "rot": [0, 0, 44.8] },
+    { "type": "cone", "radius1": 42, "radius2": 0, "depth": 86, "pos": [36, 12, 197], "rot": [0, 0, 44.8] },
+    { "type": "box", "size": [76, 46, 102], "pos": [-72, -16, 51], "rot": [0, 0, 44.8] }
+  ]
+}

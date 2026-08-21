@@ -1,6 +1,10 @@
 {
-  "_comment": "人口经济唯一数值源。房屋提供容量；风车、银行、市场按数值岗位工作；同一前台位面的市场共享交易压力。",
+  "_comment": "人口经济唯一数值源。房屋提供容量；风车和市场按数值岗位工作；银行按范围内房屋人口离散结算；同一前台位面的市场共享交易压力。",
   "tickMs": 1000,
+  "civilianVisual": {
+    "fadeOutDurationMs": 320,
+    "depthSideRange": 18
+  },
   "house": {
     "upgradeCompleteSound": "assets/sounds/ui/house_upgrade_complete.mp3",
     "levels": [
@@ -63,7 +67,9 @@
           "frameCount": 1,
           "frames": [0, 0],
           "frameRate": 1,
-          "repeat": -1
+          "repeat": -1,
+          "scale": 1,
+          "footRatio": 0.7988
         },
         "running": {
           "src": "assets/companions/hamster_farmer/running.png",
@@ -72,7 +78,9 @@
           "frameCount": 14,
           "frames": [0, 13],
           "frameRate": 14,
-          "repeat": -1
+          "repeat": -1,
+          "scale": 0.99,
+          "footRatio": 0.8125
         },
         "harvesting": {
           "src": "assets/companions/hamster_farmer/harvesting.png",
@@ -81,17 +89,67 @@
           "frameCount": 18,
           "frames": [0, 17],
           "frameRate": 12,
-          "repeat": -1
+          "repeat": -1,
+          "scale": 1.02,
+          "footRatio": 0.8047
         }
       }
     }
   },
   "bank": {
-    "workerSlots": 3,
+    "workerSlotsModule": "bank_staff",
     "workerLabel": "职员",
-    "goldPerWorkerPerSecond": 0.1,
-    "visualWorkerCap": 2,
-    "visualMode": "building_work"
+    "settlementIntervalMs": 10000,
+    "overlapPenaltyPerAdditionalBank": 0.33,
+    "overlapZeroAtBankCount": 3,
+    "visualWorkerCap": 3,
+    "visualMode": "building_work",
+    "workerVisual": {
+      "id": "hamster_banker",
+      "name": "仓鼠银行家",
+      "displaySize": 128,
+      "originY": 0.82,
+      "moveSpeed": 90,
+      "wanderRadius": 260,
+      "idleDurationMs": [900, 2200],
+      "speechCooldownMs": [8000, 14000],
+      "speechDistance": [50, 80],
+      "animations": {
+        "idle": {
+          "src": "assets/companions/hamster_banker/idle.png",
+          "frameWidth": 512,
+          "frameHeight": 512,
+          "frameCount": 11,
+          "frames": [0, 10],
+          "frameRate": 8,
+          "repeat": -1,
+          "scale": 1,
+          "footRatio": 0.8711
+        },
+        "running": {
+          "src": "assets/companions/hamster_banker/running.png",
+          "frameWidth": 512,
+          "frameHeight": 512,
+          "frameCount": 18,
+          "frames": [0, 17],
+          "frameRate": 12,
+          "repeat": -1,
+          "scale": 0.904,
+          "footRatio": 0.9102
+        },
+        "speeching": {
+          "src": "assets/companions/hamster_banker/speeching.png",
+          "frameWidth": 512,
+          "frameHeight": 512,
+          "frameCount": 23,
+          "frames": [0, 22],
+          "frameRate": 12,
+          "repeat": 0,
+          "scale": 0.99,
+          "footRatio": 0.873
+        }
+      }
+    }
   },
   "market": {
     "workerSlots": 2,
@@ -142,7 +200,9 @@
           "frameCount": 8,
           "frames": [0, 7],
           "frameRate": 8,
-          "repeat": -1
+          "repeat": -1,
+          "scale": 1,
+          "footRatio": 0.8496
         },
         "running": {
           "src": "assets/companions/hamster_engineer/running.png",
@@ -151,7 +211,9 @@
           "frameCount": 12,
           "frames": [0, 11],
           "frameRate": 12,
-          "repeat": -1
+          "repeat": -1,
+          "scale": 1.01,
+          "footRatio": 0.8477
         },
         "fixing": {
           "src": "assets/companions/hamster_engineer/fixing.png",
@@ -160,7 +222,9 @@
           "frameCount": 14,
           "frames": [0, 13],
           "frameRate": 14,
-          "repeat": -1
+          "repeat": -1,
+          "scale": 1,
+          "footRatio": 0.8477
         }
       }
     }

@@ -433,6 +433,7 @@ export const WorldProgressionSystem = {
             worldEpoch: portal.worldEpoch,
             generation: this.getWorldGenerationContext(sceneId),
             replace: true,
+            includeInitialFeatureBuilding: firstConstruction && !!cfg.featureBuilding,
         });
         setPortalStatus(portal, WORLD_LIFECYCLE_STATUS.ACTIVE);
         return {

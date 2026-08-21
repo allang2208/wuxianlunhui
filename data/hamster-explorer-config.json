@@ -1,0 +1,1 @@
+{"id":"hamster_explorer","name":"仓鼠探险家","role":"explorer","growthRule":"ranger","baseMaxHp":120,"baseData":{"str":5,"dex":18,"int":8,"con":9,"wis":12,"luck":18},"ai":{"walkSpeed":165,"decisionMs":160,"exploreRadius":1100,"exploreArriveDist":55,"rewardIntervalMs":45000,"rewardGoldMin":18,"rewardGoldMax":35}}

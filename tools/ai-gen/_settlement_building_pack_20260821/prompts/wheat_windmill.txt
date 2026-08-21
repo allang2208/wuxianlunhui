@@ -1,0 +1,8 @@
+Use case: stylized-concept
+Asset type: World-122 medieval wheat windmill game building
+Input images: Image 1 is the modular Blender depth control and must define the exact silhouette, footprint, camera and four-sail layout. The local 4096.png reference defines the architectural proportions: a very tall narrow tower, high stone lower storey, timber-and-plaster upper storey and compact gabled machinery roof.
+Primary request: One tall slender medieval wheat windmill closely matching the new reference proportions: a narrow high fieldstone tower base, vertical timber-framed plaster upper storey, compact muted brown gabled roof machinery house, centered wooden hub and exactly four very long open-lattice wooden sails forming one connected diagonal cross. Add a closed arched grain door, restrained warm upper windows, carved hub rings, pegged sail joints and believable wooden machinery housing.
+Style/medium: detailed handcrafted realistic PBR strategy-game asset, slightly stylized readable proportions, structurally believable reusable parts, crisp at game scale.
+Color palette: low-saturation pale stone, soot-dark oak, muted umber shingles, aged dull brass and very small warm window accents.
+Composition: strict 30-degree orthographic World-122 view and 44.8-degree ground orientation; centered single building; complete roof, sails, walls and exact foundation visible; no cropping.
+Constraints: tower must remain visibly tall and narrow, not a broad house; exactly four attached long lattice sails; no fifth blade, duplicate hub, cupola, dormer, chimney, detached props, wheat field, sacks, people, animals, text, watermark or second building; no perspective camera or shadow outside the foundation; plain uniform vivid yellow background.

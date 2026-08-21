@@ -1,0 +1,31 @@
+{
+  "source": "tools\\ai-gen\\_workshop_model\\workshop_v2_two_story_5080_s48_detail_seed122822_raw.png",
+  "output": "tools\\ai-gen\\_workshop_model\\workshop_v2_two_story_5080_s48_detail_seed122822_runtime_tight.png",
+  "sourceMode": "RGB",
+  "background": [
+    254,
+    250,
+    0
+  ],
+  "cropBox": [
+    110,
+    71,
+    921,
+    921
+  ],
+  "fileSize": [
+    811,
+    850
+  ],
+  "alphaBBox": [
+    4,
+    4,
+    807,
+    846
+  ],
+  "displayW": 308,
+  "displayH": 323,
+  "footOffsetY": 160,
+  "scaleX": 0.3797780517879161,
+  "scaleY": 0.38
+}

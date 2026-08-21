@@ -6,9 +6,10 @@ const TAU = Math.PI * 2;
 // 2026-08-19：阴影深浅全局统一——颜色统一纯黑，透明度 0.1925
 //（0.55 → −30% → 再 −50%，用户口径），不随仰角变化、不分层叠加。
 // 2026-08-21：单位（动态）阴影加深 25% → 0.240625（用户口径）；静态仍为 0.1925。
+// 2026-08-21 二轮：单位阴影再加深 25% → 0.30078125（部分仓鼠单位脚下阴影太淡，用户口径）。
 // 个体仍可用 shadow.opacity 覆盖。改深浅只调这两个常量。
 const STATIC_SHADOW_OPACITY = 0.1925;
-const DYNAMIC_SHADOW_OPACITY = 0.240625;
+const DYNAMIC_SHADOW_OPACITY = 0.30078125;
 
 const DEFAULTS = Object.freeze({
     enabled: true,
@@ -191,6 +192,82 @@ export const EnvironmentLightingSystem = {
         }
         if (pts.length < 3) return [];
         return this._convexHull(pts);
+    },
+
+    /**
+     * 建筑分层低模投影：每个部件按 baseZ/topZ 分别平移，再把部件投影合成单一边界。
+     * referenceHeight 与 getStaticShadow 的 height 同源，保证配置高度只分配总影长，
+     * 不改变太阳连续运动、最大长度钳制或共享层单次填充契约。
+     */
+    getLayeredShadowPolygon(parts, profile, referenceHeight) {
+        if (!Array.isArray(parts) || parts.length === 0) return [];
+        const length = Math.max(0, Number(profile?.length) || 0);
+        const theta = Math.atan2(profile?.offsetY || 0, profile?.offsetX || 0);
+        const dirX = Math.cos(theta);
+        const dirY = Math.sin(theta);
+        const refHeight = Math.max(1, Number(referenceHeight) || 1);
+        const polygons = [];
+        for (const part of parts) {
+            if (!Array.isArray(part?.vertices) || part.vertices.length < 3) continue;
+            const baseRatio = clamp((Number(part.baseZ) || 0) / refHeight, 0, 1);
+            const topRatio = clamp((Number(part.topZ) || 0) / refHeight, baseRatio, 1);
+            const baseOffset = length * baseRatio;
+            const topOffset = length * topRatio;
+            const points = [];
+            for (const point of part.vertices) {
+                if (!point || !Number.isFinite(point.x) || !Number.isFinite(point.y)) continue;
+                points.push({
+                    x: point.x + dirX * baseOffset,
+                    y: point.y + dirY * baseOffset,
+                });
+                points.push({
+                    x: point.x + dirX * topOffset,
+                    y: point.y + dirY * topOffset,
+                });
+            }
+            if (points.length >= 3) polygons.push(this._convexHull(points));
+        }
+        if (polygons.length === 0) return [];
+        if (polygons.length === 1) return polygons[0];
+        return this.getUnionOfPolygons(polygons, { theta });
+    },
+
+    /**
+     * 建筑分层低模投影：每个部件按 baseZ/topZ 分别平移，再把部件投影合成单一边界。
+     * referenceHeight 与 getStaticShadow 的 height 同源，保证配置高度只分配总影长，
+     * 不改变太阳连续运动、最大长度钳制或共享层单次填充契约。
+     */
+    getLayeredShadowPolygon(parts, profile, referenceHeight) {
+        if (!Array.isArray(parts) || parts.length === 0) return [];
+        const length = Math.max(0, Number(profile?.length) || 0);
+        const theta = Math.atan2(profile?.offsetY || 0, profile?.offsetX || 0);
+        const dirX = Math.cos(theta);
+        const dirY = Math.sin(theta);
+        const refHeight = Math.max(1, Number(referenceHeight) || 1);
+        const polygons = [];
+        for (const part of parts) {
+            if (!Array.isArray(part?.vertices) || part.vertices.length < 3) continue;
+            const baseRatio = clamp((Number(part.baseZ) || 0) / refHeight, 0, 1);
+            const topRatio = clamp((Number(part.topZ) || 0) / refHeight, baseRatio, 1);
+            const baseOffset = length * baseRatio;
+            const topOffset = length * topRatio;
+            const points = [];
+            for (const point of part.vertices) {
+                if (!point || !Number.isFinite(point.x) || !Number.isFinite(point.y)) continue;
+                points.push({
+                    x: point.x + dirX * baseOffset,
+                    y: point.y + dirY * baseOffset,
+                });
+                points.push({
+                    x: point.x + dirX * topOffset,
+                    y: point.y + dirY * topOffset,
+                });
+            }
+            if (points.length >= 3) polygons.push(this._convexHull(points));
+        }
+        if (polygons.length === 0) return [];
+        if (polygons.length === 1) return polygons[0];
+        return this.getUnionOfPolygons(polygons, { theta });
     },
 
     /**

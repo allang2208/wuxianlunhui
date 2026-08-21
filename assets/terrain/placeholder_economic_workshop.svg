@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="460" viewBox="0 0 512 460">
+  <defs>
+    <linearGradient id="roof" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#6d7780"/><stop offset="1" stop-color="#2f363c"/></linearGradient>
+    <linearGradient id="wall" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#b9b7ad"/><stop offset="1" stop-color="#686a67"/></linearGradient>
+  </defs>
+  <g stroke="#202529" stroke-width="10" stroke-linejoin="round">
+    <path fill="#363d42" d="M54 342 256 226l202 116-202 116z"/>
+    <path fill="url(#wall)" d="M104 180 256 92l152 88v166l-152 88-152-88z"/>
+    <path fill="url(#roof)" d="M68 194 256 84l188 110-56 48-132-76-132 76z"/>
+    <path fill="#3f474d" d="m256 166 132 76v104l-132 76z"/>
+    <path fill="#7f898f" d="M126 258 220 204v102l-94 54z"/>
+    <path fill="#252b30" d="m286 274 66 38v82l-66 38z"/>
+    <circle cx="347" cy="204" r="54" fill="#cad1d4"/>
+    <circle cx="347" cy="204" r="18" fill="#3e474d"/>
+    <path d="m347 134 12 44 42-18-30 34 38 26-47-4 2 47-22-41-36 30 18-43-46-10 46-10-18-43 36 30z" fill="#7c8a91"/>
+    <path d="M150 154v-70h40v48m132-10V52h42v96" fill="#596269"/>
+  </g>
+  <text x="256" y="326" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="34" font-weight="700" fill="#f0f3f4">经济工坊</text>
+</svg>

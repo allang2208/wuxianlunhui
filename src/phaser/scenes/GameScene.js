@@ -81,7 +81,13 @@ import {
     resolveStructureGroundFit,
     shouldAutoAnchorStructure,
 } from '../../world/structure-visual-anchor.js';
+import {
+    getVisibleFrameBounds,
+    getVisibleSpriteTopY,
+    resolveSpriteDepthProfile,
+} from '../../world/sprite-depth-profile.js';
 import { EnvironmentLightingSystem } from '../../world/environment-lighting-system.js';
+import { resolveStructureShadowCaster } from '../../world/structure-shadow-caster.js';
 import lightingAssets from '../../../data/environment-lighting-assets.json';
 
 // 共享结构阴影层：所有建筑/障碍物阴影多边形在同一 Graphics 内 alpha 1 填充、
@@ -205,8 +211,6 @@ export class GameScene extends Scene {
         this._structureShadowJobCount = -1;
         this._structureShadowLayerOpacity = -1;
         // 世界 HUD：缓存每个贴图帧的可见 alpha 顶部，血条按真实模型而非透明画布定位。
-        this._hudVisibleFrameTopCache = new Map();
-        this._footBottomRatioCache = new Map(); // 帧内容可见底边比例缓存（友军阴影脚底基线）
         this._installShadowConsoleTools();
 
         // HUD：世界空间（血条/名字）与屏幕空间（准星/小地图）
@@ -1536,13 +1540,13 @@ export class GameScene extends Scene {
             ring.setStrokeStyle(2, 0xd4af37, 1.0);
             this._selectionRings[id] = ring;
         }
-        // 深度跟随该成员精灵本身（精灵 - 0.1，与阴影同口径）：AI 队员的贴图深度由
+        // 深度跟随该成员精灵本身（精灵 - 0.2，低于精灵 - 0.1 的脚底阴影）：AI 队员的贴图深度由
         // _updateDynamicDepths 按世界 Y 每帧仲裁，这里读到的可能是上一帧仲裁值，
         // 仅作兜底——同帧精确值在 _updateDynamicDepths 2.5 段精灵 setDepth 后覆盖。
         // 此前光圈深度固定 playerSprite.depth + 0.42 只在创建时设一次：玩家/队友
         // 纵向移动后深度仲裁变化，光圈会盖到队友贴图上面（“图层应在贴图之下”实机反馈）。
         const unitSprite = this._companionSprites[id];
-        if (unitSprite && unitSprite.active) ring.setDepth(unitSprite.depth - 0.1);
+        if (unitSprite && unitSprite.active) ring.setDepth(unitSprite.depth - 0.2);
         ring.setPosition(x, y + size * 0.42);
         ring.setSize(size * 1.05, size * 0.42);
         ring.setVisible(true);
@@ -1766,6 +1770,9 @@ export class GameScene extends Scene {
     _updateDynamicDepths() {
         const Game = window.Game;
         if (!Game) return;
+        // 结构候选每帧只从实体表提取一次；此前玩家/每只敌人/每只友军都会各自
+        // 重扫整张 Game.entities，单位和建筑越多，图层仲裁的重复开销越明显。
+        const structureCandidates = WallSystem.collectDynamicStructureDepthEntities(Game.entities);
         const raiseElevatedAboveLowerUnits = (entity, sprite, depth) => {
             if (!entity || !sprite || (Number(entity.z) || 0) <= 1 || !Game.entities) {
                 return depth;
@@ -1795,23 +1802,21 @@ export class GameScene extends Scene {
         let playerNatural = 0, playerCorrected = 0;
         if (this.playerSprite && this.playerSprite.active) {
             const footOffsetY = this._getFootOffsetY(Game.player, this.playerSprite);
-            // 高架单位的自然深度与脚底 z 同步，墙顶面线继续参与仲裁。
-            playerNatural = this.playerSprite.y + footOffsetY + 10;
-            // 衔接处遮挡仲裁（斜墙 flat 深度在衔接处的几何误差修正）；
-            // frontRange = 贴图脚底→头顶高度（封顶 280）：墙前该范围内像素仍与墙重叠时也要抬升。
-            // footOffsetY 语义 = 脚底相对贴图中心的偏移（见 _getFootOffsetY），
-            // 故脚底→头顶 = footOffsetY + displayHeight/2（旧公式 displayHeight − footOffsetY
-            // 把它算成 72，只有真实高度 144 的一半——通道上侧墙"稍远离即被挡"的死带根因）
-            const playerFrontRange = Math.min(280, Math.max(60, footOffsetY + this.playerSprite.displayHeight / 2));
-            // sideRange 只代表单位的真实接地/碰撞横向半径；不能使用 displayWidth/2。
-            // 建筑主体可以是 390~480px 的大贴图，贴图宽度会把建筑前缘查询扩大到单位实际占地之外，
-            // 造成玩家站在建筑侧面或已越过前缘时仍被错误压到建筑后面。
-            const playerSideRange = Math.max(
-                Number(Game.player?.groundRadius) || 0,
-                Number(Game.player?.collisionRadius) || 0
+            const depthProfile = this._getDynamicDepthProfile(
+                Game.player,
+                this.playerSprite,
+                footOffsetY
             );
+            // 高架单位的自然深度与脚底 z 同步，墙顶面线继续参与仲裁。
+            playerNatural = depthProfile.naturalDepth;
             playerCorrected = WallSystem.junctionCorrectedDepth(
-                Game.player.x, Game.player.y, playerNatural, playerFrontRange, playerSideRange);
+                Game.player.x,
+                Game.player.y,
+                playerNatural,
+                depthProfile.frontRange,
+                depthProfile.sideRange,
+                structureCandidates
+            );
             // 楼梯单位最低保证绘制在当前楼梯分段之上。
             const staircase = Game.player._surfaceStaircase;
             if (staircase && staircase._faceDepth != null && Game.player.z > 0) {
@@ -1839,20 +1844,14 @@ export class GameScene extends Scene {
                 const sprite = e._phaserSprite;
                 if (!sprite || !sprite.active) return;
                 const footOffsetY = this._getFootOffsetY(e, sprite);
-                // 衔接处遮挡仲裁（与玩家同口径；frontRange = 贴图脚底→头顶高度 = footOffsetY + displayHeight/2，
-                // 封顶 280——覆盖大型怪（如 fly-hand spriteSize 260）；旧封顶 160 给它们留理论死带）
-                const frontRange = Math.min(280, Math.max(60, footOffsetY + sprite.displayHeight / 2));
-                // 横向查询使用物理接地半径，不使用大尺寸贴图的 displayWidth/2，避免建筑边缘误遮挡。
-                const sideRange = Math.max(
-                    Number(e.groundRadius) || 0,
-                    Number(e.collisionRadius) || 0
-                );
+                const depthProfile = this._getDynamicDepthProfile(e, sprite, footOffsetY);
                 let d = WallSystem.junctionCorrectedDepth(
                     e.x,
                     e.y,
-                    sprite.y + footOffsetY + (isCorpse ? 2 : 10),
-                    frontRange,
-                    sideRange
+                    depthProfile.naturalDepth - (isCorpse ? 8 : 0),
+                    depthProfile.frontRange,
+                    depthProfile.sideRange,
+                    structureCandidates
                 );
                 const surfaceDepth = Number(e._surfaceRenderDepth);
                 if ((e._surfaceKind === 'wall_walk' || e._surfaceKind === 'stairs')
@@ -1887,14 +1886,15 @@ export class GameScene extends Scene {
                 const footOffsetY = (typeof cfgFootD === 'number')
                     ? cfgFootD
                     : sprite.displayHeight * (this._getVisibleFrameBottomRatio(sprite) - 0.5);
-                const frontRange = Math.min(280, Math.max(60, footOffsetY + sprite.displayHeight / 2));
-                // 友军同样按真实碰撞半径查询建筑前缘；视觉帧尺寸不参与几何遮挡范围。
-                const sideRange = Math.max(
-                    Number(unit.groundRadius) || 0,
-                    Number(unit.collisionRadius) || 0
-                );
+                const depthProfile = this._getDynamicDepthProfile(unit, sprite, footOffsetY);
                 let d = WallSystem.junctionCorrectedDepth(
-                    unit.x, unit.y, sprite.y + footOffsetY + 10, frontRange, sideRange);
+                    unit.x,
+                    unit.y,
+                    depthProfile.naturalDepth,
+                    depthProfile.frontRange,
+                    depthProfile.sideRange,
+                    structureCandidates
+                );
                 // 楼梯单位保证绘制在当前楼梯分段之上。
                 const staircase = unit._surfaceStaircase;
                 if (staircase && staircase._faceDepth != null && unit.z > 0) {
@@ -1908,11 +1908,14 @@ export class GameScene extends Scene {
                 }
                 d = raiseElevatedAboveLowerUnits(unit, sprite, d);
                 sprite.setDepth(d);
-                // 选中光圈同帧跟随该队员最终深度（贴图之下 0.1）：
-                // 光圈必须低于该单位所有贴图，且随 Y 排序仲裁一起变化
+                // 选中光圈同帧跟随该队员最终深度（贴图之下 0.2，同时低于阴影）：
+                // 光圈必须低于该单位所有贴图，且随 Y 排序仲裁一起变化。
                 if (this._selectionRings && this._selectionRings[cid]) {
-                    this._selectionRings[cid].setDepth(d - 0.1);
+                    this._selectionRings[cid].setDepth(d - 0.2);
                 }
+                // 非 Party 成员友军的 RTS 黄圈由 rts-command 持有；这里在本体完成
+                // 当帧建筑/墙体仲裁后回写，避免跨越遮挡线时读取上一帧深度。
+                Game.RTSCommand?.syncAllyRingDepth?.(unit, d);
             }
         }
 
@@ -2269,44 +2272,7 @@ export class GameScene extends Scene {
      * 固定在 0.9375×格高），需要真实脚底基线时以此为准，不能用整帧底边。
      */
     _getVisibleFrameBottomRatio(sprite) {
-        if (!sprite || !sprite.active || !sprite.frame) return 1;
-        const frame = sprite.frame;
-        const textureKey = sprite.texture?.key || 'unknown';
-        const cutW = frame.cutWidth || frame.realWidth || frame.width || 1;
-        const cutH = frame.cutHeight || frame.realHeight || frame.height || 1;
-        const cacheKey = `${textureKey}:${frame.name ?? 'base'}:${cutW}x${cutH}:bottom`;
-        if (!this._footBottomRatioCache) this._footBottomRatioCache = new Map();
-        let ratio = this._footBottomRatioCache.get(cacheKey);
-        if (ratio === undefined) {
-            ratio = 1;
-            const source = frame.source?.image || sprite.texture?.getSourceImage?.();
-            if (source && source.width && source.height && typeof document !== 'undefined') {
-                try {
-                    const canvas = document.createElement('canvas');
-                    canvas.width = cutW;
-                    canvas.height = cutH;
-                    const ctx = canvas.getContext('2d', { willReadFrequently: true });
-                    if (ctx) {
-                        ctx.drawImage(source, frame.cutX || 0, frame.cutY || 0, cutW, cutH, 0, 0, cutW, cutH);
-                        const pixels = ctx.getImageData(0, 0, cutW, cutH).data;
-                        let maxY = -1;
-                        for (let y = cutH - 1; y >= 0 && maxY < 0; y--) {
-                            for (let x = 0; x < cutW; x++) {
-                                if (pixels[(y * cutW + x) * 4 + 3] > 8) {
-                                    maxY = y;
-                                    break;
-                                }
-                            }
-                        }
-                        if (maxY >= 0) ratio = (maxY + 1) / cutH;
-                    }
-                } catch (_e) {
-                    // Canvas 读取失败时回退整帧底部。
-                }
-            }
-            this._footBottomRatioCache.set(cacheKey, ratio);
-        }
-        return ratio;
+        return getVisibleFrameBounds(sprite).bottom;
     }
 
     /**
@@ -2314,45 +2280,20 @@ export class GameScene extends Scene {
      * AI 精灵常带大片透明上沿，不能用整帧 displayHeight 顶部当作模型头顶。
      */
     _getVisibleSpriteTopY(sprite) {
-        if (!sprite || !sprite.active || !sprite.frame) {
-            return sprite ? sprite.y - sprite.displayHeight * 0.5 : 0;
-        }
-        const frame = sprite.frame;
-        const textureKey = sprite.texture?.key || 'unknown';
-        const cutW = frame.cutWidth || frame.realWidth || frame.width || 1;
-        const cutH = frame.cutHeight || frame.realHeight || frame.height || 1;
-        const cacheKey = `${textureKey}:${frame.name ?? 'base'}:${cutW}x${cutH}`;
-        let topRatio = this._hudVisibleFrameTopCache.get(cacheKey);
-        if (topRatio === undefined) {
-            topRatio = 0;
-            const source = frame.source?.image || sprite.texture?.getSourceImage?.();
-            if (source && source.width && source.height && typeof document !== 'undefined') {
-                try {
-                    const canvas = document.createElement('canvas');
-                    canvas.width = cutW;
-                    canvas.height = cutH;
-                    const ctx = canvas.getContext('2d', { willReadFrequently: true });
-                    if (ctx) {
-                        ctx.drawImage(source, frame.cutX || 0, frame.cutY || 0, cutW, cutH, 0, 0, cutW, cutH);
-                        const pixels = ctx.getImageData(0, 0, cutW, cutH).data;
-                        let minY = cutH;
-                        for (let y = 0; y < cutH && minY === cutH; y++) {
-                            for (let x = 0; x < cutW; x++) {
-                                if (pixels[(y * cutW + x) * 4 + 3] > 8) {
-                                    minY = y;
-                                    break;
-                                }
-                            }
-                        }
-                        if (minY < cutH) topRatio = minY / cutH;
-                    }
-                } catch (_e) {
-                    // Canvas 读取失败时回退整帧顶部，HUD 不应中断。
-                }
-            }
-            this._hudVisibleFrameTopCache.set(cacheKey, topRatio);
-        }
-        return sprite.y - sprite.displayHeight * 0.5 + sprite.displayHeight * topRatio;
+        return getVisibleSpriteTopY(sprite);
+    }
+
+    /**
+     * 玩家、敌人和友军共用的动态图层几何档案。
+     * 横向范围取当前帧 alpha 内容而不是整帧或固定碰撞半径，避免建筑前角漏仲裁。
+     */
+    _getDynamicDepthProfile(entity, sprite, footOffsetY) {
+        return resolveSpriteDepthProfile(entity, sprite, {
+            footOffsetY,
+            logicalX: entity?.x,
+            minFrontRange: 60,
+            maxFrontRange: 280,
+        });
     }
 
     /**
@@ -7212,6 +7153,16 @@ export class GameScene extends Scene {
                 footprintVertices: Array.isArray(options.footprintVertices)
                     ? options.footprintVertices.map((point) => ({ x: point.x, y: point.y }))
                     : null,
+                shadowCasterParts: Array.isArray(options.shadowCasterParts)
+                    ? options.shadowCasterParts.map((part) => ({
+                        ...part,
+                        vertices: Array.isArray(part.vertices)
+                            ? part.vertices.map((point) => ({ x: point.x, y: point.y }))
+                            : [],
+                    }))
+                    : null,
+                shadowCasterSignature: options.shadowCasterSignature || '',
+                shadowCasterSource: options.shadowCasterSource || null,
                 height: Math.max(0, options.height || 0),
                 maxOffset: options.maxOffset,
                 opacity: options.opacity,
@@ -7405,19 +7356,22 @@ export class GameScene extends Scene {
                 continue;
             }
             if (data.hull) {
-                // 阴影多边形真源（2026-08-19 八轮）：剪影多边形优先（近边=贴图实测
-                // 接地曲线、远边=真实屋顶轮廓），无剪影数据时回退 footprint 凸包——
-                // 两者同为逐帧纯几何，无烘焙无分桶，连续不跳。
+                // 阴影多边形真源（2026-08-21 简化）：建筑（有 entity）= footprint 凸包；
+                // 散布障碍物（无 entity）= 凸包 ∪ 剪影轮廓（剪影多边形近边=贴图实测
+                // 接地曲线、远边=真实屋顶轮廓）——两者同为逐帧纯几何，无烘焙无分桶，连续不跳。
                 if (data._silCache === undefined) {
-                    data._silCache = this._resolveShadowSilhouette(data);
+                    // 建筑阴影简化（2026-08-21 用户定稿）：建筑（有 entity）只用 footprint
+                    // 凸包，不再合并贴图剪影——剪影迷航随贴图失配反复出大范围错影
+                    // （portal 换图即复发）， silhouette 路径仅保留给散布障碍物（无 entity）。
+                    data._silCache = data.entity ? null : this._resolveShadowSilhouette(data);
                 }
                 const theta = Math.atan2(profile.offsetY, profile.offsetX);
                 // 多边形 epsilon 脏检查（2026-08-19 审计性能修复）：太阳角变化 <0.11°
                 // 且延长段变化 <0.5px 且顶点签名不变时复用缓存多边形——子像素级步进
                 // 无可见跳变，把每帧重建几十上百列点列的 GC/CPU 压力降到脏帧一次。
-                const sig = data.footprintVertices
+                const sig = data.shadowCasterSignature || (data.footprintVertices
                     ? data.footprintVertices.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join('|')
-                    : '';
+                    : '');
                 const state = data._polyState;
                 const dirty = !state
                     || Math.abs(state.theta - theta) > 0.002
@@ -7439,9 +7393,15 @@ export class GameScene extends Scene {
                     // （桶状仙人掌）不适用平底截断法，手调 foot 才是正确接地面。
                     const bodyVerts = (data.entity ? data._silCache?.bodyVertices : null)
                         || data.footprintVertices;
-                    const hullBody = bodyVerts
-                        ? EnvironmentLightingSystem.getStaticShadowHull(bodyVerts, profile)
-                        : [];
+                    const hullBody = data.shadowCasterParts?.length
+                        ? EnvironmentLightingSystem.getLayeredShadowPolygon(
+                            data.shadowCasterParts,
+                            profile,
+                            data.height
+                        )
+                        : (bodyVerts
+                            ? EnvironmentLightingSystem.getStaticShadowHull(bodyVerts, profile)
+                            : []);
                     const silPoly = data._silCache
                         ? EnvironmentLightingSystem.getSilhouetteShadowPolygon(data._silCache.columns, {
                             theta,
@@ -7815,7 +7775,7 @@ export class GameScene extends Scene {
                 y: sprite.y + this._getFootOffsetY(entity, sprite),
             });
             const radius = Math.max(18, Math.max(footprint.width, footprint.height) * 0.5);
-            // 建筑采用预投影轮廓；在此前缩短基础上再减少 25%。
+            // 建筑默认高度继续沿用现有视觉比例；shadowCaster 可按建筑覆盖并分层。
             const height = Math.max(radius * 3, sprite.displayHeight * 0.55) * 0.75 * 0.75;
             // footprint 四边形真源（2026-08-19 七轮，回到 footprint 思路）：
             // 与放置/遮挡/范围显示同一组顶点（`_pixelFootprintLocal` 像素拟合优先，
@@ -7835,13 +7795,23 @@ export class GameScene extends Scene {
                     { x: footprint.x - hw, y: footprint.y },
                 ];
             }
-            // 提前解析剪影缓存：拿到实测高度后用它覆盖半径估算（墙/楼梯影长翻倍修复）
-            const silCache = this._resolveShadowSilhouette({
+            const isCover = !!entity._isDefenseCover;
+            // 普通建筑的阴影根部从主体 Sprite 的实际 alpha 接地横截面拟合，
+            // 与建造占格、碰撞和独立 foundation Sprite 完全分离；配置可覆盖并增加分层部件。
+            const caster = isCover ? null : resolveStructureShadowCaster(this, entity, sprite, {
+                fallbackHeight: height,
+                anchorX: footprint.x,
+                anchorY: footprint.y,
+            });
+            if (caster?.contactVertices?.length >= 3) vertices = caster.contactVertices;
+            // 掩体继续只借剪影清单取稳定实测高度；普通建筑不再依赖可能随换图失配的 manifest。
+            const silCache = isCover ? this._resolveShadowSilhouette({
                 entity, sourceSprite: sprite, flipX: !!sprite.flipX,
                 footprintVertices: vertices,
-            });
-            const effectiveHeight = silCache?.measuredHeight || height;
-            const effectiveMaxOffset = Math.max(43, effectiveHeight * 0.5);
+            }) : null;
+            const effectiveHeight = caster?.height || silCache?.measuredHeight || height;
+            const effectiveMaxOffset = caster?.maxOffset
+                ?? Math.max(43, effectiveHeight * 0.5);
             let shadow = this._structureSunShadows.get(entity);
             if (Array.isArray(shadow)) {
                 // 楼梯分段影残留防御（楼梯走 _ensureStairSunShadows，正常不会到这里）
@@ -7852,7 +7822,6 @@ export class GameScene extends Scene {
             // "墙壁阴影基于 footprint 生成"）：墙体贴图内容在画布内偏移大，
             // 剪影实体四边形会比 footprint 宽出近一倍、且沿墙斜向歪轴——
             // 剪影只取实测高度，多边形本体 `_silCache` 置 null 回退凸包。
-            const isCover = !!entity._isDefenseCover;
             const shadowData = {
                 hull: true,
                 entity,
@@ -7861,6 +7830,9 @@ export class GameScene extends Scene {
                 y: footprint.y,
                 radius,
                 footprintVertices: vertices,
+                shadowCasterParts: caster?.parts || null,
+                shadowCasterSignature: caster?.signature || '',
+                shadowCasterSource: caster?.source || (isCover ? 'cover_footprint' : 'placement_fallback'),
                 height: effectiveHeight,
                 maxOffset: effectiveMaxOffset,
                 depth: sprite.depth - 0.1,

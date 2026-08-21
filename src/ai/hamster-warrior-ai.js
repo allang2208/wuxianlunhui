@@ -65,8 +65,11 @@ export class HamsterWarriorAI {
 
         // 攻击中：站定（不调用 MovementSystem），间隔对目标造成伤害
         if (m._animState === 'attack') {
-            m.vx = 0;
-            m.vy = 0;
+            // 平滑站定：速度指数衰减（≈0.85/帧），代替瞬时清零的急停
+            const damp = Math.pow(0.85, dt / 16.67);
+            m.vx *= damp;
+            m.vy *= damp;
+            if (Math.abs(m.vx) < 1 && Math.abs(m.vy) < 1) { m.vx = 0; m.vy = 0; }
             m.isMoving = false;
             m.maxSpeed = 0;
             this._tryAttack();
@@ -76,6 +79,11 @@ export class HamsterWarriorAI {
         // 移动中：交给 MovementSystem 寻路推进
         MovementSystem.update(m, dt, entities);
         this._checkStuck(dt);
+        // 缓停滑行（maxSpeed=0 后速度沿摩擦/加速度渐近归零）期间保持 walk 动画，
+        // 避免站着播 idle 却还在滑行的"滑冰"感
+        if (m._animState === 'idle' && Math.hypot(m.vx || 0, m.vy || 0) > 25) {
+            m._animState = 'walk';
+        }
     }
 
     /** 决策 tick：有敌追击/攻击，无敌跟随玩家 */
@@ -115,12 +123,9 @@ export class HamsterWarriorAI {
             const fy = player.y;
             const dist = Math.hypot(fx - m.x, fy - m.y);
             if (dist <= this._followArriveDist) {
-                // 到达：清战术目标 + 归零速度（防"到达后待机姿态滑行"，见 lessons #46）
+                // 到达：清战术目标，速度不清零（由 MovementSystem 摩擦衰减完成缓停）
                 m._tacticalTarget = null;
                 m._animState = 'idle';
-                m.vx = 0;
-                m.vy = 0;
-                m.isMoving = false;
                 m.maxSpeed = 0;
                 if (m._pathManager && typeof m._pathManager._clearPath === 'function') {
                     m._pathManager._clearPath();
@@ -128,14 +133,15 @@ export class HamsterWarriorAI {
             } else {
                 m._tacticalTarget = { x: fx, y: fy, _surfaceTarget: player };
                 m._animState = 'walk';
-                m.maxSpeed = this.cfg.walkSpeed ?? 120;
+                // 接近站位点缓出减速（120px 内速度随距离线性衰减，ease-out 到达）
+                const walkSpeed = this.cfg.walkSpeed ?? 120;
+                const slow = Math.min(1, dist / 120);
+                m.maxSpeed = walkSpeed * Math.max(0.3, slow);
             }
         } else {
             m._tacticalTarget = null;
             m._animState = 'idle';
-            m.vx = 0;
-            m.vy = 0;
-            m.isMoving = false;
+            // 速度不清零，由 MovementSystem 摩擦衰减缓停
             m.maxSpeed = 0;
         }
     }
@@ -157,7 +163,7 @@ export class HamsterWarriorAI {
                 clearRtsSurfaceRoute(m);
                 m._animState = 'idle';
                 m.maxSpeed = 0;
-                m.vx = 0; m.vy = 0; m.isMoving = false;
+                // 速度不清零，由 MovementSystem 摩擦衰减完成缓停
             }
             return;
         }
@@ -185,12 +191,11 @@ export class HamsterWarriorAI {
             }
             return;
         }
-        // hold / 其它：待命
+        // hold / 其它：待命（速度不清零，由 MovementSystem 摩擦衰减缓停）
         m.target = null;
         m._tacticalTarget = null;
         m._animState = 'idle';
         m.maxSpeed = 0;
-        m.vx = 0; m.vy = 0; m.isMoving = false;
     }
 
     /** 收集最近有效敌人：只认 enemy 阵营且不是能源矿点（engageRange 内） */
@@ -224,6 +229,9 @@ export class HamsterWarriorAI {
         this._attackTimer = this._attackInterval;
         if (typeof e.takeDamage === 'function') {
             e.takeDamage(m.getPhysicalAttackDamage(this._attackDamage, e), m, 'physical', true);
+            if (m._crippleOnHitMs > 0 && typeof e.applyCripple === 'function') {
+                e.applyCripple(m._crippleOnHitMs);
+            }
             this._playSound('attack'); // 攻击音效（2026-08-16 用户素材，与盾卫共用）
             // 铁匠铺能力：横扫（2026-08-17）——普攻附带前方扇形 AOE 额外伤害
             // （参考玩家普攻扇形判定：pointInSector，中心方向 = 攻击朝向 rotation）

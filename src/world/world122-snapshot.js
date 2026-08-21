@@ -19,6 +19,7 @@ import { getUnitKind } from './unit-upgrade-store.js';
 import { normalizeRecruitMode } from './recruit-mode.js';
 import barracksBuildingCfg from '../../data/hamster-barracks-building.json';
 import worldSystemConfig from '../../data/world-system.json';
+import producerBuildingsConfig from '../../data/producer-buildings.json';
 import { EnvironmentLightingSystem } from './environment-lighting-system.js';
 import { createWorldGenerationContext, getWorldResetPolicy } from './world-reset-policy.js';
 import { getBuildingUpgradeProgressKey } from './building-upgrade-projects.js';
@@ -130,20 +131,40 @@ function _snapshotLifecycle(sceneId, worldEpoch, generationOverride = null) {
     };
 }
 
-function _portalOnlyBaseTemplate({ spawn, hp, maxHp }) {
+function _portalOnlyBaseTemplate({ sceneId, spawn, hp, maxHp, includeInitialFeatureBuilding = false }) {
+    const structures = [{
+        kind: 'producer',
+        cfgKey: 'portal',
+        x: Number(spawn.x) || 0,
+        y: Number(spawn.y) || 0,
+        hp,
+        maxHp,
+        buildCost: 0,
+        buildCurrency: 'energy',
+    }];
+    const feature = worldSystemConfig.worlds?.[sceneId]?.featureBuilding;
+    if (includeInitialFeatureBuilding && feature?.cfgKey) {
+        const featureCfg = producerBuildingsConfig[feature.cfgKey] || {};
+        structures.push({
+            kind: 'producer',
+            cfgKey: feature.cfgKey,
+            x: (Number(spawn.x) || 0) + (Number(feature.offsetX) || 0),
+            y: (Number(spawn.y) || 0) + (Number(feature.offsetY) || 0),
+            hp: Math.max(1, Number(featureCfg.hp) || 1),
+            maxHp: Math.max(1, Number(featureCfg.hp) || 1),
+            troopProducer: featureCfg.spawnEnabled !== false,
+            unitType: featureCfg.defaultUnitType || featureCfg.unitTypes?.[0]?.key || '',
+            buildCost: 0,
+            buildCurrency: 'gold',
+            recruitMode: 'paused',
+            parallelQueues: {},
+            unitRoster: {},
+        });
+    }
     return {
         base: { hp },
         wave: { wave: 0, phase: 'prep', phaseTimer: 0, victory: true },
-        structures: [{
-            kind: 'producer',
-            cfgKey: 'portal',
-            x: Number(spawn.x) || 0,
-            y: Number(spawn.y) || 0,
-            hp,
-            maxHp,
-            buildCost: 0,
-            buildCurrency: 'energy',
-        }],
+        structures,
         nodes: [],
         roads: [],
     };
@@ -159,6 +180,7 @@ const BASE_SNAPSHOT_TEMPLATES = Object.freeze({
  */
 export function ensureWorldBaseSnapshot(sceneId, {
     portalHp, worldEpoch, generation = null, replace = false,
+    includeInitialFeatureBuilding = false,
 } = {}) {
     const worldCfg = worldSystemConfig.worlds?.[sceneId];
     if (!worldCfg) return null;
@@ -196,7 +218,10 @@ export function ensureWorldBaseSnapshot(sceneId, {
         capturedGameTimeMs,
         populationEconomy: { storageVersion: 2, foodStored: 0 },
         config: _snapshotConfig(),
-        ...builder({ sceneId, spawn, hp, maxHp, generation: lifecycle.generation }),
+        ...builder({
+            sceneId, spawn, hp, maxHp, generation: lifecycle.generation,
+            includeInitialFeatureBuilding,
+        }),
     };
     _storedByWorld[sceneId] = snapshot;
     return snapshot;
@@ -343,14 +368,29 @@ export function captureWorld(sceneId = 'scene8') {
     for (const p of ProducerBuildingSystem.buildings || []) {
         if (!alive(p)) continue;
         const unitRoster = p.spawnEnabled ? _unitRoster(p.units) : {};
+        const activeExplorers = (p.units || []).filter((unit) => alive(unit)
+            && getUnitKind(unit) === 'explorer' && unit._command?.mode === 'explore');
         const localUnits = Object.values(unitRoster).reduce((sum, count) => sum + count, 0);
         structures.push({
             kind: 'producer', id: p.id, cfgKey: p.cfgKey, x: p.x, y: p.y,
             hp: Math.ceil(p.hp), maxHp: Math.ceil(p.maxHp), mirror: !!p._facingLeft,
             troopProducer: !!p._isTroopProducer,
             unitType: p.unitType || '', spawnTimer: p._spawnTimer || 0, recruitMode: normalizeRecruitMode(p._recruitMode),
+            parallelQueues: p._parallelProduction ? Object.fromEntries(
+                Object.entries(p._parallelQueues || {}).map(([kind, queue]) => [kind, {
+                    recruitMode: normalizeRecruitMode(queue.recruitMode),
+                    timer: Math.max(0, Number(queue.timer) || 0),
+                    blocked: !!queue.blocked,
+                    foodBlocked: !!queue.foodBlocked,
+                }])
+            ) : undefined,
             units: localUnits,
             unitRoster,
+            explorerState: activeExplorers.length ? {
+                activeCount: activeExplorers.length,
+                rewardTimer: Math.max(0, Math.min(...activeExplorers.map((unit) =>
+                    Number(unit._ai?._rewardTimer) || 0))),
+            } : null,
             unitDps: p.spawnEnabled ? _unitsDps(p.units) : 0,
             troopLineDeployed: p.spawnEnabled ? Math.max(0, p.aliveUnitCount() - localUnits) : 0,
             upgrade: _snapshotUpgrade(p._upgrade),
@@ -370,6 +410,12 @@ export function captureWorld(sceneId = 'scene8') {
             workProductionRemainder: p._workProductionRemainder || 0,
             assignedWorkers: p._assignedWorkers || 0,
             marketPressure: p._marketPressure || 0,
+            bankModules: p._economyType === 'bank' ? { ...(p.modules || {}) } : undefined,
+            bankUpgrade: p._bankUpgrade ? {
+                moduleId: p._bankUpgrade.moduleId,
+                totalMs: p._bankUpgrade.totalMs,
+                remainMs: p._bankUpgrade.remainMs,
+            } : null,
             workshopModules: p._economyType === 'workshop' ? { ...(p.modules || {}) } : undefined,
             workshopUpgrade: p._workshopUpgrade ? {
                 moduleId: p._workshopUpgrade.moduleId,
@@ -765,6 +811,8 @@ function _restoreProducer(s, sceneId) {
         assignedWorkers: s.assignedWorkers,
         marketPressure: s.marketPressure,
         pendingGoldDrop: s.pendingGoldDrop,
+        bankModules: s.bankModules,
+        bankUpgrade: s.bankUpgrade,
         workshopModules: s.workshopModules,
         workshopUpgrade: s.workshopUpgrade,
     });
@@ -772,6 +820,16 @@ function _restoreProducer(s, sceneId) {
     if ((cfg.unitTypes || []).some((t) => t.key === s.unitType)) producer.unitType = s.unitType;
     producer._spawnTimer = Math.max(0, s.spawnTimer || 0);
     producer._recruitMode = normalizeRecruitMode(s.recruitMode);
+    if (producer._parallelProduction) {
+        for (const [kind, queue] of Object.entries(producer._parallelQueues || {})) {
+            const savedQueue = s.parallelQueues?.[kind];
+            if (!savedQueue) continue;
+            queue.recruitMode = normalizeRecruitMode(savedQueue.recruitMode);
+            queue.timer = Math.max(0, Number(savedQueue.timer) || 0);
+            queue.blocked = !!savedQueue.blocked;
+            queue.foodBlocked = !!savedQueue.foodBlocked;
+        }
+    }
     producer._restoredTitheTimer = Math.max(0, Number(s.titheTimerMs) || 0);
     if (s.rally) producer._rallyPoint = { x: s.rally.x, y: s.rally.y };
     // 能力/研究与兵种模块读条续跑（等级全局共享，读条属建筑实例）
@@ -815,7 +873,17 @@ function _restoreProducer(s, sceneId) {
             desc: '金光闪闪的硬币', stack: amount, price: 1,
         });
     }
+    if (Array.isArray(s.pendingExplorerDrops) && Game?.dropItem) {
+        for (const item of s.pendingExplorerDrops) {
+            if (item?.stack > 0) Game.dropItem(producer.x, producer.y, _clone(item));
+        }
+        s.pendingExplorerDrops = [];
+    }
     if (producer.spawnEnabled) {
+        producer._restoreExplorerRemaining = Math.max(0,
+            Math.floor(Number(s.explorerState?.activeCount) || 0));
+        producer._restoreExplorerRewardTimer = Math.max(0,
+            Number(s.explorerState?.rewardTimer) || 0);
         const roster = s.unitRoster && typeof s.unitRoster === 'object'
             ? s.unitRoster
             : { [producer.unitType]: s.units || 0 };
@@ -826,7 +894,8 @@ function _restoreProducer(s, sceneId) {
         for (const [kind, rawCount] of Object.entries(roster)) {
             if (!(cfg.unitTypes || []).some((unit) => unit.key === kind)) continue;
             producer.unitType = kind;
-            const count = Math.max(0, Math.min(Math.floor(Number(rawCount) || 0), cap - spawned));
+            const kindCap = producer._parallelProduction ? producer.parallelUnitCap(kind) : cap - spawned;
+            const count = Math.max(0, Math.min(Math.floor(Number(rawCount) || 0), kindCap));
             for (let i = 0; i < count; i++) {
                 if (producer.spawnUnit(false, { restoring: true, sourceSceneId: sceneId })) spawned++;
                 else restoreQueue.push(kind);
@@ -842,6 +911,11 @@ function _restoreProducer(s, sceneId) {
         if (spawned < want) {
             producer._restoreRosterQueue = restoreQueue;
             producer._spawnTimer = 800;
+            if (producer._parallelProduction) {
+                for (const kind of restoreQueue) {
+                    if (producer._parallelQueues[kind]) producer._parallelQueues[kind].timer = 800;
+                }
+            }
         }
     }
 }

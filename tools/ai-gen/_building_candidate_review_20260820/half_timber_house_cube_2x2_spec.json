@@ -1,0 +1,43 @@
+{
+  "_comment": "Temporary review blockout for a compact World-122 2x2 half-timber house. Equal X/Y footprint is intentional: the two projected ground edges must read as equal-length axes, not an elongated rectangular hall.",
+  "elevation": 30,
+  "azimuth": 0,
+  "resolution": 1024,
+  "bottom_y": 880,
+  "max_width_frac": 0.72,
+  "top_margin_px": 82,
+  "primitives": [
+    {
+      "type": "box",
+      "size": [160, 160, 100],
+      "pos": [0, 0, 50],
+      "rot": [0, 0, 45],
+      "bevel": 3
+    },
+    {
+      "type": "prism",
+      "size": [184, 184, 60],
+      "pos": [0, 0, 130],
+      "rot": [0, 0, 45]
+    },
+    {
+      "type": "box",
+      "size": [38, 4, 58],
+      "pos": [-58, -82, 29],
+      "rot": [0, 0, 45]
+    },
+    {
+      "type": "box",
+      "size": [26, 4, 24],
+      "pos": [20, -82, 58],
+      "rot": [0, 0, 45]
+    },
+    {
+      "type": "box",
+      "size": [22, 22, 42],
+      "pos": [30, 18, 164],
+      "rot": [0, 0, 45],
+      "bevel": 2
+    }
+  ]
+}

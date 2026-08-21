@@ -1,0 +1,36 @@
+{
+  "outputRoot": "Y:/工作/无尽轮回/scratch/world122_wheat_windmill_20260821_pass2",
+  "host": "192.168.3.142",
+  "model": "flux2-dev-depth",
+  "steps": 48,
+  "strength": 0.84,
+  "variants": 2,
+  "structureSteps": 12,
+  "structureVariants": 4,
+  "structureDepthStrength": 0.78,
+  "structureEdgeStrength": 0.38,
+  "useEdgeControl": false,
+  "refineSteps": 48,
+  "refineVariants": 2,
+  "refineDenoise": 0.3,
+  "refineDepthStrength": 0.75,
+  "refineEdgeStrength": 0.38,
+  "structuralOverlapZ": 8,
+  "maskEdgePad": 10,
+  "assets": [
+    {
+      "id": "wheat_windmill",
+      "label": "麦田风车",
+      "primitives": [
+        { "type": "box", "size": [210, 210, 180], "pos": [0, 0, 90], "rot": [0, 0, 44.8] },
+        { "type": "prism", "size": [242, 242, 90], "pos": [0, 0, 225], "rot": [0, 0, 44.8] },
+        { "type": "cylinder", "radius": 23, "depth": 34, "pos": [0, -179, 232], "rot": [90, 0, 0] },
+        { "type": "box", "size": [330, 18, 27], "pos": [0, -199, 232], "rot": [0, 45, 0] },
+        { "type": "box", "size": [330, 18, 27], "pos": [0, -199, 232], "rot": [0, -45, 0] }
+      ],
+      "primaryRequest": "a compact low medieval wheat windmill building, one plain square pale-fieldstone and dark-oak mill house, one simple muted golden-brown hipped roof, one centered wooden hub on the front face and exactly four broad wooden lattice sails forming one connected diagonal cross, restrained grain-store details; the building body ends at the ground-contact line",
+      "structureRequest": "exactly one low closed square 2x2 mill house and exactly one simple continuous hipped roof entirely contained inside the supplied control silhouette; no upper tower, no roof tower, no dormer, no cupola and no raised central block; exactly one centered front hub with exactly four broad wooden lattice windmill sails connected directly to it as two diagonal crossing beams; the sails are open lattice sails, not roof panels; solid lower walls continue directly to the ground-contact line; absolutely no base slab, plinth, platform, foundation, field or detached component",
+      "detailRequest": "preserve the exact low square mill house, single simple hipped roof, centered hub, camera, ground-contact edge and exactly four attached open-lattice sails; no upper tower, dormer, cupola, raised roof block, base slab, plinth or platform; refine pale fieldstone masonry, dark weathered oak framing, muted golden-brown shingles, crisp wooden sail latticework, one small closed grain door and warm shallow windows; no loose wheat, sacks or exterior props"
+    }
+  ]
+}

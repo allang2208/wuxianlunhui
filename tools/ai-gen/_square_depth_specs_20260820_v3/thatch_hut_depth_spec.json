@@ -1,0 +1,141 @@
+{
+  "_comment": "茅草屋 thatch_hut（世界-122 建筑口径：elevation 30 + rot.z 44.8，与仓鼠兵营/掩体同口径）。v8 定稿：5080 flux2-dev-fp8 生图（泥墙 raw2 seed4101 / 茅草顶 raw2 seed12212）→ desaturate 0.55/0.65 低饱和 → Blender 渲染；lighting 按兵营暗色调微调。成品 assets/terrain/thatch_hut.png：sat 22.8% vs 兵营 22.0%，亮度 [91,79,69] vs [88,68,61]。",
+  "elevation": 30,
+  "azimuth": 0,
+  "resolution": 1024,
+  "bottom_y": 880,
+  "max_width_frac": 0.8,
+  "top_margin_px": 48,
+  "tex": "E:/无尽轮回/长期备份/2026-7-13-1/game-dev/tools/ai-gen/_thatch_scratch/thatch_wall_tex.png",
+  "roof_tex": "E:/无尽轮回/长期备份/2026-7-13-1/game-dev/tools/ai-gen/_thatch_scratch/thatch_roof_tex.png",
+  "lighting": {
+    "ambient": 0.26,
+    "sun": 0.62,
+    "fill": 36,
+    "exposure": 0
+  },
+  "primitives": [
+    {
+      "type": "box",
+      "size": [
+        190.0,
+        190.0,
+        85
+      ],
+      "pos": [
+        0,
+        0,
+        42.5
+      ],
+      "rot": [
+        0,
+        0,
+        44.8
+      ],
+      "bevel": 6,
+      "material": "wall"
+    },
+    {
+      "type": "prism",
+      "size": [
+        225,
+        170,
+        76
+      ],
+      "pos": [
+        0,
+        0,
+        100
+      ],
+      "rot": [
+        0,
+        0,
+        44.8
+      ],
+      "material": "roof"
+    },
+    {
+      "type": "box",
+      "size": [
+        44,
+        4,
+        58
+      ],
+      "pos": [
+        -55,
+        -68,
+        29
+      ],
+      "rot": [
+        0,
+        0,
+        44.8
+      ],
+      "material": "interior"
+    },
+    {
+      "type": "box",
+      "size": [
+        24,
+        4,
+        22
+      ],
+      "pos": [
+        -108,
+        -67,
+        58
+      ],
+      "rot": [
+        0,
+        0,
+        44.8
+      ],
+      "material": "window"
+    },
+    {
+      "type": "box",
+      "size": [
+        24,
+        4,
+        22
+      ],
+      "pos": [
+        0,
+        -67,
+        58
+      ],
+      "rot": [
+        0,
+        0,
+        44.8
+      ],
+      "material": "window"
+    },
+    {
+      "type": "box",
+      "size": [
+        24,
+        24,
+        48
+      ],
+      "pos": [
+        52,
+        -10,
+        153
+      ],
+      "rot": [
+        0,
+        0,
+        44.8
+      ],
+      "bevel": 2,
+      "material": "wall"
+    }
+  ],
+  "plates": [],
+  "slide": {},
+  "square_footprint_normalization": {
+    "squarePrimitiveCount": 1,
+    "foundation": "building_foundation_2x2"
+  }
+}

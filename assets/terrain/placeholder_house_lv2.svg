@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="540" height="472" viewBox="0 0 540 472">
+  <polygon points="74,316 270,206 466,316 270,430" fill="#62513b" opacity=".75"/>
+  <polygon points="132,230 270,150 408,230 270,314" fill="#b57b48"/>
+  <polygon points="132,230 270,314 270,404 132,320" fill="#805735"/>
+  <polygon points="270,314 408,230 408,320 270,404" fill="#63442f"/>
+  <polygon points="108,222 270,116 432,222 406,250 270,162 134,250" fill="#e0c36c"/>
+  <rect x="236" y="316" width="68" height="88" fill="#34261e"/>
+  <rect x="316" y="286" width="42" height="38" fill="#8bd5e5"/>
+  <text x="270" y="78" text-anchor="middle" fill="#fff2b0" font-size="36" font-family="sans-serif">房屋 Lv.2</text>
+</svg>

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="532" height="476" viewBox="0 0 532 476">
+  <polygon points="64,330 266,216 468,330 266,446" fill="#62513b" opacity=".75"/>
+  <polygon points="116,224 266,138 416,224" fill="#d8c26f"/><rect x="132" y="224" width="268" height="150" fill="#8b7858"/>
+  <g fill="#d9cda8"><rect x="154" y="224" width="34" height="150"/><rect x="232" y="224" width="34" height="150"/><rect x="310" y="224" width="34" height="150"/></g>
+  <rect x="116" y="374" width="300" height="28" fill="#d8c26f"/>
+  <circle cx="266" cy="188" r="28" fill="#f6d45d"/><text x="266" y="199" text-anchor="middle" fill="#6f5220" font-size="32" font-family="sans-serif">$</text>
+  <text x="266" y="82" text-anchor="middle" fill="#fff2b0" font-size="38" font-family="sans-serif">银行</text>
+</svg>

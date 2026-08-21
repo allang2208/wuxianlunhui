@@ -288,6 +288,9 @@ export function isFriendlyFire(source, target) {
                     SoundManager.playFile('assets/sounds/ui/knockdown_1.mp3');
                 }
                 if (source && source.data) source.data.kills++;
+                if (this instanceof Enemy && source && typeof source.onEnemyKilled === 'function') {
+                    source.onEnemyKilled(this);
+                }
                 EffectManager.add(new DeathEffect(this.x, this.y, this.size));
                 if (source) {
                     const angle = Math.atan2(source.y - this.y, source.x - this.x);

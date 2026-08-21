@@ -1,5 +1,11 @@
 import populationEconomyConfig from '../../data/population-economy.json';
 import { SoundManager } from '../ui/sound-manager.js';
+import {
+    applyCivilianAnimSize,
+    fadeOutAndDestroyCivilian,
+    registerCivilianVisual,
+    syncCivilianVisualDepth,
+} from './civilian-visual-utils.js';
 
 function randomRange(range, fallbackMin, fallbackMax) {
     const min = Math.max(0, Number(range?.[0]) || fallbackMin);
@@ -64,7 +70,10 @@ function playStateSound(worker, state) {
 
 function setState(worker, state) {
     const key = animationKey(state);
-    if (key && worker.scene?.anims?.exists(key)) worker.sprite.play(key, true);
+    if (key && worker.scene?.anims?.exists(key)) {
+        worker.sprite.play(key, true);
+        applyCivilianAnimSize(worker.sprite, farmerVisualConfig(), state);
+    }
     worker.state = state;
     if (state === 'harvesting') playStateSound(worker, state);
     const config = farmerVisualConfig();
@@ -78,7 +87,7 @@ function setState(worker, state) {
 }
 
 function updateDepth(worker) {
-    worker.sprite.setDepth(worker.sprite.y + 0.25);
+    syncCivilianVisualDepth(worker);
 }
 
 function createWorker(scene, building, cells) {
@@ -93,7 +102,7 @@ function createWorker(scene, building, cells) {
     const displaySize = Math.max(1, Number(config.displaySize) || 128);
     sprite.setOrigin(0.5, Number(config.originY) || 0.8);
     sprite.setDisplaySize(displaySize, displaySize);
-    const worker = {
+    const worker = registerCivilianVisual({
         scene,
         building,
         sprite,
@@ -103,14 +112,20 @@ function createWorker(scene, building, cells) {
         targetCell: null,
         targetX: point.x,
         targetY: point.y,
-    };
+        // 缓动移动段状态：从 (moveFromX, moveFromY) 到 (targetX, targetY) 的
+        // easeInOutQuad 插值，消除匀速直来直去的机械感
+        moveFromX: point.x,
+        moveFromY: point.y,
+        moveElapsedMs: 0,
+        moveDurationMs: 0,
+    }, 'farmer');
     setState(worker, 'idle');
     updateDepth(worker);
     return worker;
 }
 
 function destroyWorker(worker) {
-    if (worker?.sprite?.active) worker.sprite.destroy();
+    fadeOutAndDestroyCivilian(worker);
 }
 
 function updateWorker(worker, cells, dt) {
@@ -124,23 +139,32 @@ function updateWorker(worker, cells, dt) {
             const target = randomFieldPoint(worker.targetCell, config);
             worker.targetX = target.x;
             worker.targetY = target.y;
+            // 记录移动段起点与时长（时长仍由 moveSpeed 决定，保证平均速度不变）
+            worker.moveFromX = worker.sprite.x;
+            worker.moveFromY = worker.sprite.y;
+            const dist = Math.hypot(target.x - worker.moveFromX, target.y - worker.moveFromY);
+            const speed = Math.max(1, Number(config.moveSpeed) || 1);
+            worker.moveDurationMs = Math.max(120, dist / speed * 1000);
+            worker.moveElapsedMs = 0;
             setState(worker, 'running');
         }
     } else if (worker.state === 'running') {
-        const dx = worker.targetX - worker.sprite.x;
-        const dy = worker.targetY - worker.sprite.y;
-        const distance = Math.hypot(dx, dy);
-        const step = Math.max(0, Number(config.moveSpeed) || 0) * elapsedMs / 1000;
+        // easeInOutQuad 插值：起步缓加速、到位缓减速（p 为位置进度 0→1）
+        worker.moveElapsedMs = (worker.moveElapsedMs || 0) + elapsedMs;
+        const t = Math.min(1, worker.moveElapsedMs / Math.max(1, worker.moveDurationMs || 1));
+        const p = t < 0.5 ? 2 * t * t : 1 - ((-2 * t + 2) ** 2) / 2;
+        const dx = worker.targetX - worker.moveFromX;
+        const dy = worker.targetY - worker.moveFromY;
         worker.sprite.setFlipX(dx < 0);
-        if (distance <= Math.max(2, step)) {
+        if (t >= 1) {
             worker.sprite.setPosition(worker.targetX, worker.targetY);
             worker.currentCell = worker.targetCell;
             worker.targetCell = null;
             setState(worker, 'harvesting');
-        } else if (distance > 0 && step > 0) {
+        } else {
             worker.sprite.setPosition(
-                worker.sprite.x + dx / distance * step,
-                worker.sprite.y + dy / distance * step
+                worker.moveFromX + dx * p,
+                worker.moveFromY + dy * p
             );
         }
     } else {

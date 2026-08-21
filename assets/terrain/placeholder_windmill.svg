@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="552" height="572" viewBox="0 0 552 572">
+  <polygon points="70,404 276,288 482,404 276,522" fill="#62513b" opacity=".75"/>
+  <polygon points="202,250 350,250 326,470 226,470" fill="#d7c08d"/>
+  <polygon points="184,252 276,172 368,252" fill="#8a4b36"/>
+  <circle cx="276" cy="250" r="22" fill="#473222"/>
+  <g stroke="#ead7a6" stroke-width="22" stroke-linecap="round"><path d="M276 250L276 78"/><path d="M276 250L448 250"/><path d="M276 250L276 422"/><path d="M276 250L104 250"/></g>
+  <g stroke="#60452e" stroke-width="5"><path d="M276 250L276 78"/><path d="M276 250L448 250"/><path d="M276 250L276 422"/><path d="M276 250L104 250"/></g>
+  <text x="276" y="54" text-anchor="middle" fill="#fff2b0" font-size="34" font-family="sans-serif">麦田风车</text>
+</svg>

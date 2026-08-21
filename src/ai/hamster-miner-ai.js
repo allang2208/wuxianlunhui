@@ -98,8 +98,11 @@ export class HamsterMinerAI {
             m._tacticalTarget = null;
             m.target = null;
             m._enemyTarget = null;
-            m.vx = 0;
-            m.vy = 0;
+            // 平滑站定：速度指数衰减（≈0.85/帧），代替瞬时清零的急停
+            const damp = Math.pow(0.85, dt / 16.67);
+            m.vx *= damp;
+            m.vy *= damp;
+            if (Math.abs(m.vx) < 1 && Math.abs(m.vy) < 1) { m.vx = 0; m.vy = 0; }
             m.isMoving = false;
             m.maxSpeed = 0;
             if (EnergyManager && !EnergyManager.isFull()) this._phase = 'work';
@@ -113,8 +116,11 @@ export class HamsterMinerAI {
 
         // 采矿中：站定（不调用 MovementSystem 移动），间隔对矿点攻击
         if (m._animState === 'mining') {
-            m.vx = 0;
-            m.vy = 0;
+            // 平滑站定：速度指数衰减（≈0.85/帧），代替瞬时清零的急停
+            const damp = Math.pow(0.85, dt / 16.67);
+            m.vx *= damp;
+            m.vy *= damp;
+            if (Math.abs(m.vx) < 1 && Math.abs(m.vy) < 1) { m.vx = 0; m.vy = 0; }
             m.isMoving = false;
             m.maxSpeed = 0;
             this._tryAttack();
@@ -126,6 +132,11 @@ export class HamsterMinerAI {
         this._checkOscillation(dt);
         // 卡死看门狗：复用怪物避障机制外的兜底（重新规划/传送），避免被障碍卡死找不到目标
         this._checkStuck(dt);
+        // 缓停滑行（maxSpeed=0 后速度沿摩擦/加速度渐近归零）期间保持 walk 动画，
+        // 避免站着播 idle 却还在滑行的"滑冰"感
+        if (m._animState === 'idle' && Math.hypot(m.vx || 0, m.vy || 0) > 25) {
+            m._animState = 'walk';
+        }
     }
 
     /** RTS 移动/待命；attack 对矿工降级为待命，保持“只采矿”规则。 */
@@ -152,9 +163,7 @@ export class HamsterMinerAI {
         if (m._pathManager && typeof m._pathManager._clearPath === 'function') m._pathManager._clearPath();
         m._animState = 'idle';
         m.maxSpeed = 0;
-        m.vx = 0;
-        m.vy = 0;
-        m.isMoving = false;
+        // 速度不清零，由 MovementSystem 摩擦衰减缓停
     }
 
     _nearestCommandPoint(point) {
@@ -257,9 +266,7 @@ export class HamsterMinerAI {
             m.target = null;
             m._tacticalTarget = null;
             m._animState = 'idle';
-            m.vx = 0;
-            m.vy = 0;
-            m.isMoving = false;
+            // 速度不清零，由 MovementSystem 摩擦衰减缓停
             m.maxSpeed = 0;
             return;
         }
@@ -268,9 +275,7 @@ export class HamsterMinerAI {
             m.target = pickNearestNode(nodes, m);
             if (!m.target) {
                 m._animState = 'idle';
-                m.vx = 0;
-                m.vy = 0;
-                m.isMoving = false;
+                // 速度不清零，由 MovementSystem 摩擦衰减缓停
                 m.maxSpeed = 0;
                 return;
             }

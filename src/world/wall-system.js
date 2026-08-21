@@ -960,6 +960,39 @@ const WallSystem = {
      * 生效范围：face 线 ±60px 内（贴近墙面的衔接带）；取最近面线，避免远处墙件拉扯。
      */
     /**
+     * 当前渲染帧的动态建筑遮挡候选。玩家、敌人、友军和平民共用同一份结构数组，
+     * 避免每个移动对象都重新扫描包含大量非建筑单位的 Game.entities。
+     */
+    collectDynamicStructureDepthEntities(entities = null) {
+        const entityStore = entities?.values
+            ? entities
+            : ((typeof window !== 'undefined') ? window.Game?.entities : null);
+        const frame = (typeof window !== 'undefined')
+            ? Number(window.__phaserScene?.game?.loop?.frame)
+            : NaN;
+        const entityCount = Number(entityStore?.size);
+        if (entityStore && Number.isFinite(frame)
+            && this._dynamicStructureDepthFrameCache?.entityStore === entityStore
+            && this._dynamicStructureDepthFrameCache.frame === frame
+            && this._dynamicStructureDepthFrameCache.entityCount === entityCount) {
+            return this._dynamicStructureDepthFrameCache.structures;
+        }
+        const source = entityStore?.values ? entityStore.values() : (entities || []);
+        const structures = [];
+        for (const entity of source || []) {
+            if (!entity?.active || entity._isCoverGate) continue;
+            const hasDepthGeometry = entity._structureDepthMode
+                || (Array.isArray(entity._faceLines) && entity._faceLines.length)
+                || (Array.isArray(entity._faceLine) && entity._faceLine.length === 2);
+            if (hasDepthGeometry) structures.push(entity);
+        }
+        if (entityStore && Number.isFinite(frame)) {
+            this._dynamicStructureDepthFrameCache = { entityStore, entityCount, frame, structures };
+        }
+        return structures;
+    },
+
+    /**
      * 实体级墙体遮挡仲裁（唯一规则）：
      * 对实体脚线 (x, y)，收集墙/门面线分两侧判定：线后窗口 = 60 + 深度亏空；线前窗口 = frontRange（实体贴图脚底→头顶高度，默认 60）——
      * y < yLine（实体在线后）记为遮挡源，y ≥ yLine（在线前）记为前墙。
@@ -967,10 +1000,18 @@ const WallSystem = {
      * 否则有前墙 → 抬到其之上（depth+0.5，修正长瓦浅端过遮挡；旧版窗口固定 60，实体在墙前 60~160px 贴图仍与墙重叠时不抬被盖——通道上墙/墓碑同根因）；
      * 多面线共存的门口/衔接处按"被任一墙遮挡则遮挡"判定——
      * 旧版只取最近一条面线，门洞深端会被错误放行（线上反馈）。
-     * sideRange 必须传移动实体的真实接地/碰撞半径；禁止传 sprite.displayWidth/2，
-     * 否则大尺寸建筑贴图会把前缘查询扩张到实体实际占地之外，产生假遮挡。
+     * sideRange 必须传移动实体当前帧的真实 alpha 可见半宽，并以接地/碰撞半径兜底；
+     * 禁止传整张 sprite.displayWidth/2（透明留白会制造假遮挡），也不能只传碰撞半径
+     * （人物身体已与建筑前角重叠时会漏掉仲裁）。
      */
-    junctionCorrectedDepth(x, y, depth, frontRange = 60, sideRange = 0) {
+    junctionCorrectedDepth(
+        x,
+        y,
+        depth,
+        frontRange = 60,
+        sideRange = 0,
+        structureCandidates = null
+    ) {
         const cache = this._getFaceSegCache();
         let occluderDepth = Infinity, frontDepth = -Infinity;
         const collectRelation = (segDepth, inFront) => {
@@ -1003,29 +1044,27 @@ const WallSystem = {
         // 掩体墙段（DefenseCover）：动态实体（可增删），不进面线缓存，逐帧现取。
         // 与墙件同一套仲裁：实体脚线在掩体底边线（face line）前 → 抬到掩体之上，
         // 在线后 → 压到掩体之下。2026-08-05 实机复现修复（墙前怪被盖）。
-        const G = (typeof window !== 'undefined') ? window.Game : null;
-        if (G && G.entities) {
-            for (const e of G.entities.values()) {
-                if (!e || !e.active) continue;
-                if (e._isCoverGate) continue; // 门的遮挡面线按三段注册在 GateFaceSegs（见下）
-                // 普通建筑按完整 iso footprint 的“当前 X 局部前缘”只判定一次。
-                // sideRange 是移动精灵自身半宽：覆盖“单位在前角、中心略出 footprint，
-                // 但身体仍压在建筑前缘上”的情况；采样仍钳在端点，绝不外推菱形边。
-                // 不能把两条菱形前边分别当墙线收集：前顶点附近会同时得到一前一后，
-                // 建筑放大后还会把错误窗口放大，导致单位已经在建筑前方仍被压住。
-                if (e._structureDepthMode === 'iso_footprint') {
-                    const relation = structureDepthRelationAtPoint(e, x, y, sideRange);
-                    if (relation) collectRelation(relation.depth, relation.inFront);
-                    continue;
-                }
-                const lines = Array.isArray(e._faceLines) && e._faceLines.length
-                    ? e._faceLines
-                    : (e._faceLine && e._faceLine.length === 2 ? [e._faceLine] : []);
-                for (const line of lines) {
-                    const [A, B] = line || [];
-                    if (!A || !B || typeof A.x !== 'number' || typeof B.x !== 'number') continue;
-                    applySeg(A, B, typeof e._faceDepth === 'number' ? e._faceDepth : e.y + 12);
-                }
+        const dynamicStructures = structureCandidates
+            || this.collectDynamicStructureDepthEntities();
+        for (const e of dynamicStructures) {
+            if (!e?.active || e._isCoverGate) continue;
+            // 普通建筑按完整 iso footprint 的“当前 X 局部前缘”只判定一次。
+            // sideRange 是移动精灵当前帧真实 alpha 半宽：覆盖“单位在前角、中心略出 footprint，
+            // 但身体仍压在建筑前缘上”的情况；采样仍钳在端点，绝不外推菱形边。
+            // 不能把两条菱形前边分别当墙线收集：前顶点附近会同时得到一前一后，
+            // 建筑放大后还会把错误窗口放大，导致单位已经在建筑前方仍被压住。
+            if (e._structureDepthMode === 'iso_footprint') {
+                const relation = structureDepthRelationAtPoint(e, x, y, sideRange);
+                if (relation) collectRelation(relation.depth, relation.inFront);
+                continue;
+            }
+            const lines = Array.isArray(e._faceLines) && e._faceLines.length
+                ? e._faceLines
+                : (e._faceLine && e._faceLine.length === 2 ? [e._faceLine] : []);
+            for (const line of lines) {
+                const [A, B] = line || [];
+                if (!A || !B || typeof A.x !== 'number' || typeof B.x !== 'number') continue;
+                applySeg(A, B, typeof e._faceDepth === 'number' ? e._faceDepth : e.y + 12);
             }
         }
         // 铁栅栏门三段面线（左柱/栅栏/右柱，各自深度，2026-08-15）：

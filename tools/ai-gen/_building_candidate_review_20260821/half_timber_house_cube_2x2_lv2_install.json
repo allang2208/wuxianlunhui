@@ -1,0 +1,42 @@
+{
+  "id": "house_lv2",
+  "installedAt": "2026-08-21",
+  "generationMode": "built-in ImageGen with Level 1 geometry reference plus deterministic edge-connected background keying",
+  "sourceReference": "assets/terrain/house_lv1.png",
+  "selectedRaw": "tools/ai-gen/_building_candidate_review_20260821/half_timber_house_cube_2x2_lv2_raw.png",
+  "installedAsset": "assets/terrain/house_lv2.png",
+  "details": [
+    "shallow attached wooden balcony",
+    "window flower boxes",
+    "two wall-mounted hanging lanterns",
+    "barrel, crate, sack, and leaning hand tool at the entrance"
+  ],
+  "cutout": {
+    "method": "key-world122-building-body.py",
+    "threshold": 200,
+    "alphaThreshold": 16,
+    "sourceBbox": [215, 16, 1193, 1134],
+    "outputSize": [978, 1118],
+    "sha256": "FF4BF34A14429D43603139C888A9DD49263A47CBD84BDE1035D1A9B2676DBA12"
+  },
+  "runtime": {
+    "displayW": 270,
+    "displayH": 309,
+    "footOffsetY": 155,
+    "logicalFootprint": [256, 128],
+    "gridSize": [2, 2],
+    "foundationKey": "building_foundation_2x2",
+    "foundationIsSeparateLayer": true
+  },
+  "staticValidation": {
+    "groundAxisDegrees": [28.1, -29.7],
+    "isoEdgeOK": true,
+    "verticalWalls": true,
+    "rgbaCornersTransparent": true,
+    "detachedPlatform": false,
+    "alphaHalo": false
+  },
+  "backup": "Y:/工作/无尽轮回/scratch/backup/house_lv2_before_half_timber_balcony_20260821.png",
+  "backupSha256": "A5F265F39D977A0ADE3C9BF94528933EDFA75482EC19A66DF6CDAD0834EC5DB4",
+  "unchangedAssets": ["house_lv1", "house_lv3"]
+}
