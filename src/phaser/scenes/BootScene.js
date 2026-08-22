@@ -323,8 +323,12 @@ export class BootScene extends Scene {
         this.load.image('house_lv1', 'assets/terrain/house_lv1.png');
         this.load.image('house_lv2', 'assets/terrain/house_lv2.png');
         this.load.image('house_lv3', 'assets/terrain/house_lv3.png');
-        this.load.image('wheat_windmill', 'assets/terrain/wheat_windmill.png');
-        const windmillAnimation = producerBuildingsConfig.wheat_windmill?.animation;
+        const windmillConfig = producerBuildingsConfig.wheat_windmill;
+        this.load.image(windmillConfig?.panelTex || 'wheat_windmill', 'assets/terrain/wheat_windmill.png');
+        if (windmillConfig?.tex && windmillConfig?.assetPath) {
+            this.load.image(windmillConfig.tex, windmillConfig.assetPath);
+        }
+        const windmillAnimation = windmillConfig?.animation;
         if (windmillAnimation?.textureKey && windmillAnimation?.assetPath) {
             this.load.spritesheet(windmillAnimation.textureKey, windmillAnimation.assetPath, {
                 frameWidth: windmillAnimation.frameWidth,
@@ -335,6 +339,18 @@ export class BootScene extends Scene {
         this.load.image('bank', 'assets/terrain/bank.png');
         this.load.image('market', 'assets/terrain/market.png');
         this.load.image('economic_workshop', 'assets/terrain/economic_workshop.png');
+        // 建筑亮窗蒙版与主体保持完全相同的源画布；运行时以 ADD 模式叠加并独立闪烁。
+        const loadedWindowGlowKeys = new Set();
+        for (const buildingCfg of Object.values(producerBuildingsConfig)) {
+            const glowCfg = buildingCfg?.windowGlow;
+            const glowAssets = [glowCfg, ...Object.values(glowCfg?.variants || {})];
+            for (const glowAsset of glowAssets) {
+                if (!glowAsset?.textureKey || !glowAsset?.assetPath
+                    || loadedWindowGlowKeys.has(glowAsset.textureKey)) continue;
+                loadedWindowGlowKeys.add(glowAsset.textureKey);
+                this.load.image(glowAsset.textureKey, glowAsset.assetPath);
+            }
+        }
         this.load.spritesheet('building_field_tiles', 'assets/terrain/building_field_tiles.png', { frameWidth: 128, frameHeight: 64 });
         // 世界-122 传送门（半木石哥特门楼，透明主体按 alpha>16 紧身裁剪）
         this.load.image('portal', 'assets/terrain/portal.png');
@@ -702,7 +718,7 @@ export class BootScene extends Scene {
                 repeat: def.repeat !== undefined ? def.repeat : -1,
             });
         }
-        // 麦田风车主体动画：动画键与纹理键保持一致，复用中立建筑现有自动播放约定。
+        // 麦田风车纯叶片动画：主体保持静态，由中立建筑渲染链创建独立 overlay Sprite 播放。
         const windmillAnimation = producerBuildingsConfig.wheat_windmill?.animation;
         if (windmillAnimation?.textureKey && !this.anims.exists(windmillAnimation.textureKey)) {
             this.anims.create({

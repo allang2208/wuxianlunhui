@@ -292,18 +292,24 @@ export class ProducerBuilding extends DamageableEntity {
         this.mdef = cfg.mdef;
         const animationCfg = cfg.animation;
         this.spriteCfg = {
-            idleKey: animationCfg?.textureKey || cfg.tex,
-            // 动画精灵图不能直接作为面板缩略图；保留原静态建筑贴图用于详情头图。
-            panelKey: animationCfg ? cfg.tex : null,
-            // 动画帧的透明占比可能与静态建筑不同，允许独立校准但不改建造预览与逻辑占格。
-            size: animationCfg?.displayW ?? cfg.displayW,
-            sizeH: animationCfg?.displayH ?? cfg.displayH,
-            footOffsetY: animationCfg?.footOffsetY ?? cfg.footOffsetY,
+            idleKey: cfg.tex,
+            // 主体保持静态；风车叶片等运动部件由独立 overlay Sprite 播放，禁止再用整栋精灵图覆盖主体。
+            overlayAnimation: animationCfg ? { ...animationCfg } : null,
+            // 与主体同画布的窗口发光蒙版；只参与渲染，不改变建筑主体、占格或碰撞。
+            windowGlow: cfg.windowGlow ? {
+                ...cfg.windowGlow,
+                variants: cfg.windowGlow.variants ? { ...cfg.windowGlow.variants } : undefined,
+            } : null,
+            // 面板继续展示原完整建筑缩略图，不显示无叶片运行时主体或纯叶片精灵表。
+            panelKey: cfg.panelTex || null,
+            size: cfg.displayW,
+            sizeH: cfg.displayH,
+            footOffsetY: cfg.footOffsetY,
             // Per-asset correction applied after alpha-ground fitting.  This
             // keeps the logical 2x2 footprint fixed while compensating for a
             // visible plinth thickness or an asymmetric generated canvas.
-            anchorAdjustX: Number(animationCfg?.anchorAdjustX ?? cfg.anchorAdjustX) || 0,
-            anchorAdjustY: Number(animationCfg?.anchorAdjustY ?? cfg.anchorAdjustY) || 0,
+            anchorAdjustX: Number(cfg.anchorAdjustX) || 0,
+            anchorAdjustY: Number(cfg.anchorAdjustY) || 0,
             foundation: cfg.foundation === false ? null : {
                 ...BUILDING_FOUNDATION_CONFIG,
                 ...(cfg.foundation || {}),

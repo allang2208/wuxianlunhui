@@ -400,6 +400,8 @@ export class GameScene extends Scene {
                         data.segmentSprites.forEach((sprite) => sprite?.setVisible(false));
                     }
                     if (data.foundationSprite) data.foundationSprite.setVisible(false);
+                    if (data.overlaySprite) data.overlaySprite.setVisible(false);
+                    if (data.windowGlowSprite) data.windowGlowSprite.setVisible(false);
                     if (data.sprite) data.sprite.setVisible(false);
                     if (data.label) data.label.setVisible(false);
                 }
@@ -448,6 +450,8 @@ export class GameScene extends Scene {
                         data.segmentSprites.forEach((sprite) => sprite?.setVisible(true));
                     }
                     if (data.foundationSprite) data.foundationSprite.setVisible(true);
+                    if (data.overlaySprite) data.overlaySprite.setVisible(true);
+                    if (data.windowGlowSprite) data.windowGlowSprite.setVisible(true);
                     if (data.sprite) data.sprite.setVisible(true);
                     if (data.label) data.label.setVisible(true);
                 }
@@ -634,6 +638,8 @@ export class GameScene extends Scene {
             FogVisualAdapter.setHidden(neutral.sprite, hidden);
             FogVisualAdapter.setHidden(neutral.label, hidden);
             FogVisualAdapter.setHidden(neutral.foundationSprite, hidden);
+            FogVisualAdapter.setHidden(neutral.overlaySprite, hidden);
+            FogVisualAdapter.setHidden(neutral.windowGlowSprite, hidden);
             FogVisualAdapter.setHidden(neutral.backSprite, hidden);
             FogVisualAdapter.setHidden(neutral.segmentSprites, hidden);
         }
@@ -2085,6 +2091,8 @@ export class GameScene extends Scene {
                 const depth = (typeof e._faceDepth === 'number') ? e._faceDepth : data.sprite.y + footOffsetY + 10;
                 const structureDepth = Number.isFinite(e._structureRenderDepth) ? e._structureRenderDepth : depth;
                 data.sprite.setDepth(structureDepth);
+                if (data.windowGlowSprite?.active) data.windowGlowSprite.setDepth(structureDepth + 0.005);
+                if (data.overlaySprite?.active) data.overlaySprite.setDepth(structureDepth + 0.01);
                 if (data.label && data.label.active) {
                     data.label.setDepth((e._structureRenderChannels?.label ?? (structureDepth + 1)));
                 }
@@ -6983,6 +6991,8 @@ export class GameScene extends Scene {
                     if (sprite?.active) sprite.destroy();
                 }
                 if (data.foundationSprite?.active) data.foundationSprite.destroy();
+                if (data.overlaySprite?.active) data.overlaySprite.destroy();
+                if (data.windowGlowSprite?.active) data.windowGlowSprite.destroy();
                 if (data.label && data.label.active) data.label.destroy();
             }
             this._neutralSprites.clear();
@@ -8390,6 +8400,22 @@ export class GameScene extends Scene {
         }
     }
 
+    _resolveBuildingWindowGlowConfig(sprCfg) {
+        const base = sprCfg?.windowGlow;
+        if (!base) return null;
+        const variant = base.variants?.[sprCfg.idleKey];
+        return variant ? { ...base, ...variant, variants: undefined } : base;
+    }
+
+    _buildingWindowGlowPhase(entity) {
+        const value = String(entity?.id || entity?.name || 'building');
+        let hash = 0;
+        for (let index = 0; index < value.length; index++) {
+            hash = ((hash * 31) + value.charCodeAt(index)) >>> 0;
+        }
+        return (hash % 6283) / 1000;
+    }
+
     /**
      * 同步无专属 Phaser Sprite 的实体（训练靶、NPC 等）
      */
@@ -8477,10 +8503,38 @@ export class GameScene extends Scene {
                     );
                     foundationSprite.setDepth(WORLD_RENDER_LAYERS.FOUNDATION);
                 }
-                data = { sprite, label, sprCfg, foundationSprite };
+                let overlaySprite = null;
+                const overlayCfg = sprCfg?.overlayAnimation;
+                if (overlayCfg?.textureKey && this.textures.exists(overlayCfg.textureKey)) {
+                    overlaySprite = this.add.sprite(e.x, e.y, overlayCfg.textureKey);
+                    overlaySprite.setOrigin(0.5, 0.5);
+                    overlaySprite.setDisplaySize(
+                        Number(overlayCfg.displayW) || sprite.displayWidth,
+                        Number(overlayCfg.displayH) || sprite.displayHeight
+                    );
+                    if (this.anims.exists(overlayCfg.textureKey)) overlaySprite.play(overlayCfg.textureKey);
+                }
+                let windowGlowSprite = null;
+                const windowGlowCfg = this._resolveBuildingWindowGlowConfig(sprCfg);
+                if (windowGlowCfg?.textureKey && this.textures.exists(windowGlowCfg.textureKey)) {
+                    windowGlowSprite = this.add.sprite(e.x, e.y, windowGlowCfg.textureKey);
+                    windowGlowSprite.setOrigin(0.5, 0.5);
+                    windowGlowSprite.setDisplaySize(sprite.displayWidth, sprite.displayHeight);
+                    windowGlowSprite.setBlendMode(BlendModes.ADD);
+                }
+                data = {
+                    sprite,
+                    label,
+                    sprCfg,
+                    foundationSprite,
+                    overlaySprite,
+                    windowGlowSprite,
+                    windowGlowPhase: this._buildingWindowGlowPhase(e),
+                };
                 this._neutralSprites.set(e, data);
             }
-            const { sprite, label, sprCfg, foundationSprite } = data;
+            const { sprite, label, sprCfg, foundationSprite, overlaySprite } = data;
+            let windowGlowSprite = data.windowGlowSprite;
             if (this._syncWallStaircaseEntity(e, data)) continue;
             // 从旧“双层裁剪”热更新迁移回完整单贴图，立即销毁遗留后层并解除 crop。
             if (data.backSprite) {
@@ -8501,6 +8555,22 @@ export class GameScene extends Scene {
                 e.x + (e._isWallStaircase && e._facingLeft ? -visualOffsetX : visualOffsetX),
                 e.y - shift
             );
+            if (overlaySprite?.active) {
+                const overlayCfg = sprCfg?.overlayAnimation || {};
+                overlaySprite.setPosition(
+                    sprite.x + (Number(overlayCfg.offsetX) || 0),
+                    sprite.y + (Number(overlayCfg.offsetY) || 0)
+                );
+                overlaySprite.setDisplaySize(
+                    Number(overlayCfg.displayW) || sprite.displayWidth,
+                    Number(overlayCfg.displayH) || sprite.displayHeight
+                );
+                overlaySprite.setFlipX(!!e._facingLeft);
+                if (this.anims.exists(overlayCfg.textureKey)
+                    && (!overlaySprite.anims.isPlaying || overlaySprite.anims.currentAnim?.key !== overlayCfg.textureKey)) {
+                    overlaySprite.play(overlayCfg.textureKey);
+                }
+            }
             if (foundationSprite?.active) {
                 const foundationCfg = sprCfg?.foundation || {};
                 const foundationW = Number(foundationCfg.displayW) || 256;
@@ -8541,6 +8611,43 @@ export class GameScene extends Scene {
                 sprite.setTint(this._parseColor(e.color || '#d4c5a9').color);
             }
 
+            const windowGlowCfg = this._resolveBuildingWindowGlowConfig(sprCfg);
+            if (windowGlowCfg?.textureKey && this.textures.exists(windowGlowCfg.textureKey)) {
+                if (!windowGlowSprite?.active) {
+                    windowGlowSprite = this.add.sprite(sprite.x, sprite.y, windowGlowCfg.textureKey);
+                    windowGlowSprite.setOrigin(0.5, 0.5);
+                    windowGlowSprite.setBlendMode(BlendModes.ADD);
+                    data.windowGlowSprite = windowGlowSprite;
+                } else if (windowGlowSprite.texture?.key !== windowGlowCfg.textureKey) {
+                    windowGlowSprite.setTexture(windowGlowCfg.textureKey);
+                }
+                windowGlowSprite.setPosition(sprite.x, sprite.y);
+                windowGlowSprite.setDisplaySize(sprite.displayWidth, sprite.displayHeight);
+                windowGlowSprite.setFlipX(!!e._facingLeft);
+                windowGlowSprite.setRotation(sprite.rotation || 0);
+
+                const daylight = Math.max(0, Math.min(1,
+                    Number(EnvironmentLightingSystem.getSun()?.daylight ?? 1)));
+                const nightStrength = 0.20 + (1 - daylight) * 0.80;
+                const now = Number(this.time?.now) || 0;
+                const phase = Number(data.windowGlowPhase) || 0;
+                const periodMs = Math.max(500, Number(windowGlowCfg.pulsePeriodMs) || 2300);
+                const pulse = Math.sin((now / periodMs) * Math.PI * 2 + phase)
+                    * (Number(windowGlowCfg.pulseAmount) || 0.10);
+                const irregular = (
+                    Math.sin(now * 0.018 + phase * 1.7) * 0.62
+                    + Math.sin(now * 0.043 + phase * 0.73) * 0.38
+                ) * (Number(windowGlowCfg.flickerAmount) || 0.045);
+                const baseAlpha = Number(windowGlowCfg.baseAlpha) || 0.68;
+                windowGlowSprite.setAlpha(Math.max(0, Math.min(1,
+                    baseAlpha * nightStrength * (1 + pulse + irregular))));
+                windowGlowSprite.setDepth((Number(sprite.depth) || 0) + 0.005);
+            } else if (windowGlowSprite?.active) {
+                windowGlowSprite.destroy();
+                data.windowGlowSprite = null;
+                windowGlowSprite = null;
+            }
+
             let text = e.name || '';
             let color = '#d4c5a9';
             if (e.npcType) {
@@ -8571,6 +8678,8 @@ export class GameScene extends Scene {
                     ? e._structureRenderDepth
                     : ((typeof e._faceDepth === 'number') ? e._faceDepth : e.y + 12);
                 sprite.setDepth(dd);
+                if (windowGlowSprite?.active) windowGlowSprite.setDepth(dd + 0.005);
+                if (overlaySprite?.active) overlaySprite.setDepth(dd + 0.01);
                 label.setDepth(e._structureRenderChannels?.label ?? (dd + 1));
             }
             if (label.text !== text) {
@@ -8580,6 +8689,8 @@ export class GameScene extends Scene {
                 label.setColor(color);
             }
             sprite.setVisible(true);
+            if (windowGlowSprite?.active) windowGlowSprite.setVisible(true);
+            if (overlaySprite?.active) overlaySprite.setVisible(true);
             label.setVisible(true);
               if (e._isDefenseCover) {
                   // 掩体：隐藏名字/血量文字，残血时只显示 _syncEntityHud 的小血条
@@ -8596,6 +8707,8 @@ export class GameScene extends Scene {
                     if (sprite?.active) sprite.destroy();
                 }
                 if (data.foundationSprite?.active) data.foundationSprite.destroy();
+                if (data.overlaySprite?.active) data.overlaySprite.destroy();
+                if (data.windowGlowSprite?.active) data.windowGlowSprite.destroy();
                 if (data.label?.active) data.label.destroy();
                 this._neutralSprites.delete(e);
             }
