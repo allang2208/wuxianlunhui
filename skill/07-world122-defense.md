@@ -8,7 +8,17 @@
 - 仓鼠兵营与配置型出兵建筑使用统一语义类：`troop-panel-section-title`、`troop-panel-copy`、`troop-panel-*-meta/caption`、`troop-panel-unit-button`；升级项目继续复用 `building-upgrade-card-*`。
 - 字号只能走 `ui/panel-theme-backpack.css` 的冷钢令牌，并遵守单面板最多四档：面板标题 20px、栏目/项目标题 16px、正文与按钮 14px、元信息及辅助说明 12px；正文不得再降到 12px，说明不得再使用 10px。
 - 普通说明和标签使用冷白/灰白。金币、能源、危险、成功、实时进度等确有语义的字段才允许使用对应状态色，不得用土黄或土绿表达普通层级。
-- `.producer-building-panel` 会被多个系统复用，出兵专属视觉必须限定在动态类 `.is-troop-producer` 下，避免污染研究院、铁匠铺、仓库、传送门和普通详情模式。
+- `.producer-building-panel` 会被多个系统复用，出兵专属视觉必须限定在动态类 `.is-troop-producer` 下，避免污染研究院、铁匠铺、仓库、传送门、位面祭坛和普通详情模式。
+
+### 位面传送门与献祭建筑拆分（2026-08-22）
+
+- `DefenseSystem.base` 在多位面常驻架构中是入侵目标传送门，只负责耐久、毁灭与入侵胜负；禁止再把它传给 `World122TributeSystem.openFor/setup`，否则 DefenseSystem 的高优先级点击会截走传送门旅行面板。
+- 献祭效果只区分“世界模式”和“地牢模式”：scene8~scene11 都由 `DefenseSystem.managedExternally` 启用同一份世界献祭，跨世界切换继续生效；进入主神空间或地牢模式后由 `DefenseSystem.teardown()` 停用。世界祭品的30分钟只在世界模式累计，离场时把 `expiresAt` 折算为 `remainingMs` 冻结，回到任意世界后恢复倒计时；主存档也只写剩余时长，离线与地牢期间都不得消耗。暂停期间状态栏保留每件世界祝福的“已暂停/剩余时间”常驻条，返回世界后切回正常倒计时。祭品过期、离开世界模式和清空都必须刷新友军 `updateMaxStats()`，避免最大生命倍率残留；刷新入口由 `tribute-effects` 向 store 单向注册，禁止两模块互相导入。
+- 献祭入口是 `producer-buildings.json.plane_altar`（显示名“位面祭坛”）：`panelMode:"tribute"`、仅 scene8、基础解锁、单座上限。它按普通 `ProducerBuilding` 参与建筑面板、2×2 占格、下沉清理和 `cfgKey` 快照恢复，不是防守目标，也不带 `_isWorldPortalCore`。
+- `ProducerBuildingSystem.tryInteract` 是祭坛详情的唯一点击分发入口；出售/被毁必须调用 `World122TributeSystem.detachAltar`，失效实体不得继续献祭。30分钟持续、同名刷新、10种上限、背包扣除、状态栏与主存档仍由既有 tribute store/system 负责。
+- 世界与地牢祭品不得依赖“双方恰好都清空”维持互斥：`tribute-effects` 在地牢 active 时只读携带祭品，否则只读世界 store；`ExpeditionSystem.depart()` 必须显式 teardown 世界献祭。世界蟠桃使用 `_worldPeachReviveUsed`，再次献祭同类祭品才重置，不得复用地牢 `_peachReviveUsed`。
+- 世界核心传送门使用稳定 id `world_portal_${sceneId}`，`portal` 配置单座上限；旧基础快照只允许按“出生点 + 零建造成本”迁移核心。核心及主城枢纽必须同时禁止详情出售和建筑回收旁路，普通 `cfgKey:"portal"` 不得仅凭数组顺序被提升为入侵目标。
+- 祭坛详情沿用 `renderBuildingDetailHeader`，外壳使用 `.world122-altar-panel.bp-right-column` 和通用 `.bp-panel-* / .bp-type-*` 冷钢组件；动态值只允许内联生命条宽度/语义状态色，禁止在业务模板重新硬编码字号和整套色板。
 
 ### 世界-122 防守地图（雏形，2026-08-04）
 
@@ -1062,6 +1072,9 @@
     栅栏滑出 barCrop 裁剪窗后门洞通透，基地看起来"没围上"。
   - **修复**：BuildableGate/_CoverGate.update 的感应从「圆心 150px」改为
     「点到门线段 ≤65px」才开（只有真过门才触发），离开 0.8s 后自动关；平时菱形闭合。
+  - **表面隔离（2026-08-22）**：自动门的友军扫描明确排除 `_surfaceKind==='wall_walk'`；
+    城墙上的单位即使二维投影贴近门线也不能触发地面门洞。不要用 `z>0` 代替表面身份，
+    楼梯与其他合法地面接近仍按既有门线距离协议处理。
   - **验证工具**：`tools/ai-gen/blender-cover-diamond-real.py`（真实墙 box 230×52×150、
     rot ±52° 顶视+游戏视角渲染+沿边间隙诊断）；`tools/cdp-base-detail-probe.mjs`
     （无头 Edge 实机截图 + 门开/关/离开回归：closed→open→closed ✓）。
@@ -1580,7 +1593,7 @@
 - **普通2×2贴图校准**：逻辑 footprint 永远固定 256×128；贴图只允许改 `displayW/displayH/footOffsetY` 和视觉 X 偏移。`node tools/calibrate-building-footprints.mjs --check` 扫真实 alpha、迭代到 256×128 容差，并输出推荐显示尺寸；贴图替换后先跑它，再更新配置。
 - **底部锁定铁律**：实体与建造幽灵必须共用 `resolveStructureGroundFit()` 的 `footOffsetY + visualOffsetX`。禁止实体走 `resolveStructureFootOffset()`、幽灵另走一套最低像素计算，否则预览贴地但落地后跳动。像素四边形物理仍只允许显式 `autoFootprint:true` 的异形建筑使用。
 
-### 世界-122 扩展 + 分块地板 + 大能源点 + 基地门可攻击（2026-08-16 定稿）
+### 世界-122 扩展 + 分块地板 + 能源矿世代布局 + 基地门可攻击（2026-08-16；2026-08-22 更新）
 - **地图 4096² → 6144×4096**：scene8 width/height + origin(3072,2048)，data 与 public/data 双份同步；
   刷怪点重排 9 点多路线（右端 7 + 中距 2），`spawn.alertRange 3800→6200`（最远刷怪点距基地 5240）；
   `_loadScene8` 边界墙按宽高分开（勿退回正方形假设）。
@@ -1591,9 +1604,13 @@
   ⚠ 坑：切分块模式必须**先销毁旧 terrain 精灵再删纹理**——否则精灵引用已删纹理，
   Phaser TexturerImage 崩 `frame.source null / reading 'resolution'`（2026-08-16 真机踩过）；
   switchScene 离场统一 `Renderer.terrainChunks = null`，其他场景 floor applier 也清。
-- **大能源点（簇状）**：`ENERGY_CONFIG.clusters` 4 簇 × 12~14 块（簇心/数量/spread 配置），
-  `EnergyNodeSystem.setup` 均匀圆盘 + 最小间距 85 生成；`baseExclusion {900,2048,800}`
-  基地 800px 禁矿带；树散布按「簇心 ±(spread+140)」整圈排除（勿改回逐点 positions）。
+- **能源矿世代布局（2026-08-22 当前口径）**：`ENERGY_CONFIG.generation` 每个位面世代使用同一随机流生成
+  5 个远距主矿簇（每簇 10~12）和传送门约 3000px 环上的 3 矿保底簇。每矿固定绑定一个
+  128×64 等距格，簇内只沿已成功放置格的四邻格连续扩张；矿体保持零碰撞、允许单位穿行。
+  快照保存 `cellI/cellJ`，同格去重；旧固定散点快照只迁移剩余数量与状态，不把已采矿点补回。
+- **枯竭生命周期**：单矿 5000~8000 储量，普通来源按有效采集伤害 100% 转为能源。采空后保活显示
+  暗灰裂纹态 650ms，再复用 `BuildingSinkEffect` 沉陷并从节点表/实体表永久清除；不再原地重生。
+  空矿数组是权威快照，离场返回不得因 setup 的初始生成结果重新刷矿，只有位面世代重建才重新布局。
 - **树木间距**：treeScatter.minDist 95→150（6144 地图 100 棵，候选拒绝 40~50 次属正常；
   2026-08-16 树木已移除，同口径改 cactusScatter.count 80 / minDist 150）。
 - **基地门可攻击**：基地门由 `{...CoverGate}` 换成 `BuildableGate`（Combatant）——有 hp /
@@ -1694,6 +1711,11 @@
      `civilian-visual-utils` 的目标点投影与分段移动扫掠，使用配置化 `groundRadius` 对普通建筑
      `iso_rect` footprint 做推出/沿边滑行；禁止在业务系统中直接累加坐标穿过建筑后，再用提高
      depth 掩盖空间错误。该轻量占用不注册战斗碰撞、物理体或存档对象。
+   - **固定地表层契约**：道路、服务范围圈、`foundationSprite`、结构阴影、压平投影和贴地装置
+     不随建筑主体做世界 Y 排序，统一读取 `world-render-layers.js`，按
+     `-995 / -994.8 / -994.6 / -994.4 / -994.2 / -994` 严格递增且互不相等；建筑主体继续使用结构拓扑 depth，禁止再写
+     `主体 depth - 偏移` 或 `building.y - 常数`。纯视觉平民的创建与逐帧 depth 只能走
+     `civilian-visual-utils`；建筑拓扑变化时该入口必须把静止平民和既有目的地推出新 footprint。
    - **非墙2×2建筑道路环（2026-08-19）**：实体物理仍是中央2×2，但建造预约统一为4×4；
      `building-road-system.js` 从建筑前顶点锚点反算中央4格，外围12格铺
      `building_road_tiles`。16格逐格检查边界、墙/建筑/障碍与既有预约，禁止用一个放大的
@@ -1713,7 +1735,7 @@
      快照按玩家付费道路兼容恢复。建筑外围12格允许复用手动道路，中央2×2禁止压住手动道路；
      自动建筑拆除后，共享格上的手动道路继续保留。
 6. **建筑详情三段式（强制）**：所有可交互建筑（墙/门/射击台/基地/塔/小屋/兵营/
-   生产建筑/陷阱）统一复用 `renderBuildingDetailHeader`，顺序不可颠倒：
+   生产建筑）统一复用 `renderBuildingDetailHeader`，顺序不可颠倒：
    **① 缩略图与名称 → ② 生命条、当前/最大耐久、百分比 → ③ 特殊功能**。
    特殊功能仅放在生命条之后（门控、修理、武器装载、采矿、募兵、研究、仓储、献祭等）；
    无玩法建筑明确显示“暂无额外功能”。详情面板统一右上 `right:26px/top:26px`。
@@ -1819,7 +1841,7 @@
   拆除后草洞仍永久残留，并会污染其他场景相同世界坐标的地板装饰。
 - ⚠ 重烘焙遍历 `_terrainChunkSprites` 时**先收集 key 列表再逐个重建**——迭代中
   delete+set 同一 key 会让 Map 迭代器重访新条目造成死循环。
-- 清除半径：平台 140 / 小屋·兵营·产兵 95 / 掩体·门 110 / 塔·陷阱等 60。
+- 清除半径：平台 140 / 小屋·兵营·产兵 95 / 掩体·门 110 / 塔等 60。
 - 仙人掌 `cactusScatter.count` 80→40（game-config.json 双份 + scene-manager 默认兜底）。
 
 **1×1 方块墙 + 4格门（2026-08-17 定稿）**
@@ -1840,7 +1862,6 @@
     `round(1600×0.25)=400 能源`；4格门保持已验收的 D 级视觉资产（`visualGrade:D`），
     只把生命/详情等级/价格切到 C，禁止因数值升级破坏视觉终案。
   - 旧 F→A 长掩体和旧滑动门从 `BUILD_ITEMS` 删除；底层实体/资产保留历史兼容。
-    陷阱条目保持当前隐藏状态，本轮不启用、不改逻辑。
   - 玩家放置实体统一记录 `_builtByPlayer/_buildCost/_buildCurrency`。建筑详情操作区固定三列：
     返回 / 修理 / 回收；回收返还实际建造成本 50%。4格门用 `_buildGroup` 整组回收，
     点击任一石柱通过 `_buildGroupRoot` 跳转门详情；拆除顺序必须**门先、墙后**，
@@ -1864,7 +1885,7 @@
 **铁匠铺能力工坊 + 世界-122升级存档（2026-08-17/18）**
 - `producer-buildings.json.blacksmith.spawnEnabled=false`：铁匠铺不产兵，改为毒箭/自动防御/
   横扫/标记箭/穿甲弹五项能力读条升级；等级真源 `ability-store.js`，对对应兵种全局生效。
-- 穿甲弹目标为仓鼠火枪：Lv1护甲穿透25%，之后每级+2.5个百分点；复用
+- 穿甲弹目标为仓鼠火枪与仓鼠赏金猎人：Lv1护甲穿透25%，之后每级+2.5个百分点；两者复用
   `DamageableEntity` 的 `weapon._craftEffects.armorPenetrationPercent` 结算入口。
 - 持续升级只能在当前无读条时启动；启动失败不得先留下 `_continuous`。另一能力读条中禁止
   改挂持续目标，资源不足/满级/建筑出售或被毁时清理状态，避免 UI 显示“持续中”但永不推进。
@@ -1908,8 +1929,8 @@
 - **覆盖对象**：基地 HP、波次（_wave/_phase/_phaseTimer；**wave 进行中离开 → 回场 break
   阶段重开本波**，不逐怪存档）、玩家建筑七类（塔含武器/芯片/改造模块、方块墙、4格门整组
   pillars+门、射击台、矿场含建筑级 modules+暂存能量+矿工数、兵营含兵种+产兵读条、
-  产兵建筑含 cfgKey/兵种/读条/持续升级/仓库单仓存量）、矿点（位置每局随机必须入快照，
-  含枯竭与重生计时，走 `EnergyNodeSystem.restoreNodes` 不随机重铺）。
+  产兵建筑含 cfgKey/兵种/读条/持续升级/仓库单仓存量）、矿点（保存单格坐标、余量与枯竭转场余时；
+  空数组代表已经采空，走 `EnergyNodeSystem.restoreNodes` 覆盖 setup 结果，不得随机补铺）。
 - **口径**：计时器按剩余毫秒冻结续跑（M0 不推进后台时间，M1 再加真实时间结算）；
   单位只记兵种+存活数、回场建筑旁重生成；**败北不持久化**；胜利恢复时 `_victoryGranted=true`
   防重复发奖；**矿场恢复先挂 modules 再 spawnMiner**（矿工才吃到升级）；
@@ -1999,8 +2020,9 @@
   - 退出指挥模式镜头 `Camera.follow(player)` 回归（观察模式不动）。
 - **中键轮盘统一（companion-command-wheel.js）**：指挥模式下轮盘目标 = RTSCommand 当前
   选中单位（队友 + 仓鼠部队一视同仁），执行走 `RTSCommand.issueWheelCommand(mode, point)`——
-  队友 PartySystem.setCommand、仓鼠直写 `_command` 且按 `_mapWheelModeForUnit` 映射
-  （aggressive→900px 内最近敌人的 attack、patrol→move 驻守、gather 仅矿工回默认采矿、战斗单位忽略）。
+  队友 PartySystem.setCommand、仓鼠按统一命令映射；2026-08-22 起移动攻击与巡逻统一交给
+  `RtsTacticalOrderSystem`：前者沿途索敌、战后继续到终点，后者记录下令位置并在两端往返、遇敌战后续巡。
+  左侧通用指令栏与轮盘写入同一高层命令；矿工/探险家只执行移动段，不获得攻击能力。
 - **验证**：`scripts/test-world-observer.mjs`（20 项契约）+ `tools/cdp-world-observer.mjs`
   （实机 6 项：观察进出/双击/编队/轮盘统一下达/边缘平移）+ 既有 test-rts-command 17 项不回退。
 
@@ -2251,7 +2273,8 @@
 ### 能源经济数值审计基线（2026-08-20，已整改）
 
 - **平衡边界**：本轮只审计自动矿工。玩家、露娜、伊莉丝和其他普通队友因技能/武器组合不可稳定量化，
-  不纳入产能基线，也不改其现有采矿规则；它们继续回退 `ENERGY_CONFIG.gatherRatio=0.5`。
+  不纳入产能基线；2026-08-22 起普通来源统一使用 `ENERGY_CONFIG.gatherRatio=1.0`，矿工继续使用
+  `hamster-miner-config.json#energyGatherRatio=0.125` 的专用倍率。
 - **配置分层**：矿工营地结构/补员参数唯一真源为 `data/hamster-miner-camp-building.json`；矿工基础属性与
   专用 `energyGatherRatio=0.125` 在 `data/hamster-miner-config.json`；成长与逐级费用在
   `data/building-upgrades.json#miner_economy`。建筑只通过 `upgradeProject` 关联项目，不得再写项目 ID 或固定费用。
@@ -2294,7 +2317,8 @@
   门、楼梯分段和非障碍墙件，并按 `isoFootprintVertices` 真实占地绘制地面投影；不得修改实体坐标、碰撞、
   路径、射程、弹道或高度。
 - **视觉恢复**：首次接管时保存每个 Phaser 对象原本的 `visible/depth`，退出时精确恢复；现有
-  `foundationSprite` 保留并临时降到固定地表层。建筑太阳影和附着受损特效压平时移除，环境障碍阴影保留。
+  `foundationSprite` 始终保留在共享固定地表层，压平模式不再另设临时地基 depth。建筑太阳影和附着受损
+  特效压平时移除，环境障碍阴影保留。
 - **高低层适配**：见 `docs/flat-view-elevation-interaction-plan-2026-08-20.md`。压平层只读取
   `_surfaceKind/_surfaceWall/z`：墙顶/楼梯单位显示高度环与地面投影线，同点上下层单位连续点击轮换，
   通用弹体撞隐藏墙时显示短时阻挡标记；移动/攻击指令点显示目标承载层，混层编队明确提示各自寻路，
@@ -2327,6 +2351,10 @@
   键盘、`aria-hidden`、`inert` 与解锁事件刷新；业务底层继续调用 `TechnologySystem.isUnlocked`。
   科技配置载入时必须检查重复节点、无效研究量、缺失/自指前置、循环依赖、不可达节点、非法解锁类型、
   不存在的建筑/兵种/升级/机制目标与重复解锁归属，禁止把这些校验散落在各消费面板。
+- **功能退役必须整链删除（2026-08-22）**：移除位面建筑能力时同时清理 `BUILD_ITEMS`、放置与实例化分支、
+  点击/RTS/场景生命周期、BootScene 预载、专用渲染层、科技节点与目标类型、面板样式、回归脚本、生成工具和
+  正式贴图；科技恢复会按当前节点表过滤旧 ID，不为已删除节点另写迁移。名称相近不代表同一系统：位面防守
+  陷阱退役不得删除僵尸地牢 `trap-system.js`、`trap_idle/trap_anim`、地牢事件贴图、音效或配置。
 - **存档兼容**：新存档独立写入顶层 `technologyTree`。旧存档缺少该字段时一次性完成全部现有科技，保证已有
   建筑、兵种和机制不被回锁；新游戏则从零开始。
 - **界面契约**：科技树挂载右侧栏目统一层但覆盖全屏，沿用右滑 0.25 秒动效；正常交互只允许右上角关闭按钮
@@ -2345,6 +2373,9 @@
   出兵建筑 650、防御塔 1200；墙顶乘 2、楼梯乘 1.2。墙、门、道路、仓库及普通建筑无视野。所有有效友军源取并集；
   观察相机不提供视野，观察模式仍只看友军实际控制区域。正式队员只存在于 `PartySystem.members`，不在
   `Game.entities`；必须在玩家实体确实物化于当前位面时额外合入，禁止观察模式借用留存队伍坐标开图。
+- **昼夜倍率**：`EnvironmentLightingSystem` 的 `daylight <= 0.12` 为统一夜晚口径；夜晚所有有效视野源最终半径
+  乘 `vision.nightMultiplier`（默认 0.5），白天恢复 1。仓鼠探险家通过实体级 `fogSightRadius: 2000` 覆盖斥候
+  profile，夜晚因此为 1000；祭品视野倍率与墙顶/楼梯倍率仍在同一 `VisionSourceRegistry.radiusOf()` 链路叠加。
 - **信息门禁**：敌人、入侵特工、掉落物在非 `VISIBLE` 格必须同时隐藏本体、阴影、名字/血条、Boss 条、
   X 光克隆、关联特效/浮字/投射物和小地图标记。RTS 点选、框选、已选目标清理、右键攻击目标及自动寻敌
   同样拒绝隐藏敌人；空地移动、巡逻、集结允许进入未知区域。

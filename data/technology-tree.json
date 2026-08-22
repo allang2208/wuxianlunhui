@@ -35,20 +35,6 @@
       ]
     },
     {
-      "id": "mechanism_engineering",
-      "name": "机关学",
-      "icon": "⚙️",
-      "branch": "工程",
-      "column": 2,
-      "lane": 0,
-      "researchCost": 120,
-      "prerequisites": ["fortification_engineering"],
-      "description": "将机械原理应用于战场，开放陷阱类建筑。",
-      "unlocks": [
-        { "type": "buildingKind", "id": "trap", "label": "陷阱建筑" }
-      ]
-    },
-    {
       "id": "dimensional_engineering",
       "name": "位面工程",
       "icon": "🌀",

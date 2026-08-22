@@ -136,6 +136,7 @@ function _snapshotLifecycle(sceneId, worldEpoch, generationOverride = null) {
 function _portalOnlyBaseTemplate({ sceneId, spawn, hp, maxHp, includeInitialFeatureBuilding = false }) {
     const structures = [{
         kind: 'producer',
+        id: `world_portal_${sceneId}`,
         cfgKey: 'portal',
         x: Number(spawn.x) || 0,
         y: Number(spawn.y) || 0,
@@ -371,7 +372,8 @@ export function captureWorld(sceneId = 'scene8') {
         if (!alive(p)) continue;
         const unitRoster = p.spawnEnabled ? _unitRoster(p.units) : {};
         const activeExplorers = (p.units || []).filter((unit) => alive(unit)
-            && getUnitKind(unit) === 'explorer' && unit._command?.mode === 'explore');
+            && getUnitKind(unit) === 'explorer'
+            && (unit._exploreActive || unit._command?.mode === 'explore'));
         const localUnits = Object.values(unitRoster).reduce((sum, count) => sum + count, 0);
         structures.push({
             kind: 'producer', id: p.id, cfgKey: p.cfgKey, x: p.x, y: p.y,
@@ -390,8 +392,13 @@ export function captureWorld(sceneId = 'scene8') {
             unitRoster,
             explorerState: activeExplorers.length ? {
                 activeCount: activeExplorers.length,
-                rewardTimer: Math.max(0, Math.min(...activeExplorers.map((unit) =>
-                    Number(unit._ai?._rewardTimer) || 0))),
+                runs: activeExplorers.map((unit) => ({
+                    remainingMs: Math.max(0, Number(unit._ai?._remainingMs)
+                        || Number(unit._exploreRemainingMs) || 0),
+                    durationMs: Math.max(1000, Number(unit._ai?._durationMs)
+                        || Number(unit._exploreDurationMs) || 720000),
+                    playerLevel: Math.max(1, Math.floor(Number(unit._explorePlayerLevel) || 1)),
+                })),
             } : null,
             unitDps: p.spawnEnabled ? _unitsDps(p.units) : 0,
             troopLineDeployed: p.spawnEnabled ? Math.max(0, p.aliveUnitCount() - localUnits) : 0,
@@ -457,11 +464,13 @@ export function captureWorld(sceneId = 'scene8') {
         ? { hp: Math.max(1, Math.ceil(DefenseSystem.base.hp)) }
         : null;
 
-    // ---- 能源矿点（位置由位面世代种子生成；余量/枯竭计时必须入快照）----
+    // ---- 能源矿点（位置由位面世代种子生成；余量/枯竭转场计时必须入快照）----
     const nodes = (EnergyNodeSystem.nodes || []).filter(alive).map((n) => ({
         x: n.x, y: n.y, hp: Math.ceil(n.hp), maxHp: n.maxHp,
-        depleted: !!n._depleted, respawnTimer: n._respawnTimer || 0,
+        depleted: !!n._depleted, collapseTimer: n._collapseTimer || 0,
         variant: n._variant || 1,
+        cellI: Number.isInteger(n._gridCellI) ? n._gridCellI : undefined,
+        cellJ: Number.isInteger(n._gridCellJ) ? n._gridCellJ : undefined,
     }));
 
     const worldEpoch = Math.max(0, Math.floor(Number(getWorldEpoch?.(sceneId)) || 0));
@@ -470,6 +479,7 @@ export function captureWorld(sceneId = 'scene8') {
         sceneId,
         worldEpoch,
         initializedByPortal: false,
+        resourceLayoutVersion: EnergyNodeSystem.layoutVersion || 1,
         fogOfWar: FogOfWarSystem.serializeScene(sceneId),
         ..._snapshotLifecycle(sceneId, worldEpoch),
         capturedAt: Date.now(),
@@ -896,10 +906,17 @@ function _restoreProducer(s, sceneId) {
         s.pendingExplorerDrops = [];
     }
     if (producer.spawnEnabled) {
-        producer._restoreExplorerRemaining = Math.max(0,
-            Math.floor(Number(s.explorerState?.activeCount) || 0));
-        producer._restoreExplorerRewardTimer = Math.max(0,
-            Number(s.explorerState?.rewardTimer) || 0);
+        producer._restoreExplorerRuns = Array.isArray(s.explorerState?.runs)
+            ? s.explorerState.runs.map((run) => ({
+                remainingMs: Math.max(0, Number(run?.remainingMs) || 0),
+                durationMs: Math.max(1000, Number(run?.durationMs) || 720000),
+                playerLevel: Math.max(1, Math.floor(Number(run?.playerLevel) || 1)),
+            })).filter((run) => run.remainingMs > 0)
+            : Array.from({ length: Math.max(0, Math.floor(Number(s.explorerState?.activeCount) || 0)) }, () => ({
+                remainingMs: 720000,
+                durationMs: 720000,
+                playerLevel: 1,
+            }));
         const roster = s.unitRoster && typeof s.unitRoster === 'object'
             ? s.unitRoster
             : { [producer.unitType]: s.units || 0 };
@@ -1018,10 +1035,15 @@ export function applyWorldSnapshot(sceneId = 'scene8', snap = _storedByWorld[sce
     // 手动道路是无碰撞派生地块；建筑先恢复，随后道路与自动道路环共享对应格贴图。
     BuildingRoadSystem.restoreManualRoads(snap.roads);
 
-    // 能源矿点（快照含位置，不走随机重铺）
-    if (Array.isArray(snap.nodes) && snap.nodes.length > 0
+    // 仅传送门基础快照的 nodes:[] 表示“资源尚未首次物化”，不能误判为“已经采空”。
+    // 完整快照的空数组才会覆盖 setup 结果，保证全矿采完后重新进图不刷新。
+    if (!snap.initializedByPortal
+        && Array.isArray(snap.nodes)
         && typeof EnergyNodeSystem.restoreNodes === 'function') {
-        EnergyNodeSystem.restoreNodes(snap.nodes);
+        EnergyNodeSystem.restoreNodes(snap.nodes, {
+            migrateLayout: Math.max(1, Number(snap.resourceLayoutVersion) || 1)
+                < (EnergyNodeSystem.layoutVersion || 1),
+        });
         // 不等待 GameScene 的周期巡检：立即剔除旧存档/HMR 遗留的门口、
         // 建筑重叠及重复矿点，避免它们在门打开的透明帧中短暂露出。
         if (typeof EnergyNodeSystem.sweepStacked === 'function') {

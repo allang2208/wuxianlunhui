@@ -19,23 +19,29 @@ import { EquipManager } from '../ui/equip-manager.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
 import { Game } from '../game.js';
+import { PartySystem } from '../systems/party-system.js';
 import { RARITY_ORDER } from './rarity.js';
 import { COMBAT_FORMULAS } from './combat-formulas.js';
-import { getActiveWorld122TributeItems } from '../world/world122-tribute-store.js';
+import {
+    getActiveWorld122TributeItems,
+    setWorld122TributeRefreshHandler,
+} from '../world/world122-tribute-store.js';
 
-function _activeTributeItems() {
+function _dungeonTributeItems() {
     const carried = (DungeonMapSystem && DungeonMapSystem._carriedItems) || [];
-    return [
-        ...carried.map((entry) => entry && entry.item).filter(Boolean),
-        ...getActiveWorld122TributeItems(),
-    ];
+    return carried.map((entry) => entry && entry.item).filter(Boolean);
 }
 
-/** 聚合当前携带祭品的效果：每个键为 Π(1 + p/100) 的乘算倍率（无该键效果时为 1）；
- * 以 Flat 结尾的键为固定值（非百分比），按加和聚合（如 hpRegenFlat 每秒+1） */
-export function getTributeEffects() {
+function _activeTributeItems() {
+    // 模式硬互斥：地牢运行态只读本次携带祭品；其他场景只可能读取已激活的世界祭坛。
+    // 不依赖两边都正确清空，避免异常切换时把两套效果叠加。
+    if (DungeonMapSystem?.active === true) return _dungeonTributeItems();
+    return getActiveWorld122TributeItems();
+}
+
+function _aggregateTributeEffects(items) {
     const total = {};
-    for (const item of _activeTributeItems()) {
+    for (const item of items) {
         const effects = item && item.effects;
         if (!effects) continue;
         for (const [key, value] of Object.entries(effects)) {
@@ -49,6 +55,12 @@ export function getTributeEffects() {
         }
     }
     return total;
+}
+
+/** 聚合当前携带祭品的效果：每个键为 Π(1 + p/100) 的乘算倍率（无该键效果时为 1）；
+ * 以 Flat 结尾的键为固定值（非百分比），按加和聚合（如 hpRegenFlat 每秒+1） */
+export function getTributeEffects() {
+    return _aggregateTributeEffects(_activeTributeItems());
 }
 
 /** 对玩家最终面板应用祭品效果（在 calculateCombatStats 末尾调用，最终乘算） */
@@ -128,6 +140,29 @@ export function getTributeStaminaRegenMul() {
     return getTributeEffects().staminaRegenPercent ?? 1;
 }
 
+// ==================== 友方向效果（工艺品祭品，2026-08-22） ====================
+// 全体友方单位口径：世界-122 生产单位（Game.friendlyUnits）+ 队伍侍从（PartySystem.members）。
+
+/** 友军攻击倍率（Companion.getPhysicalAttackDamage 消费） */
+export function getTributeFriendlyAtkMul() {
+    return getTributeEffects().friendlyAtkPercent ?? 1;
+}
+
+/** 友军生命倍率（Companion.updateMaxStats 消费） */
+export function getTributeFriendlyMaxHpMul() {
+    return getTributeEffects().friendlyMaxHpPercent ?? 1;
+}
+
+/** 友军移速倍率（MovementSystem._getEnemyBaseSpeed 友军分支消费） */
+export function getTributeFriendlyMoveSpeedMul() {
+    return getTributeEffects().friendlyMoveSpeedPercent ?? 1;
+}
+
+/** 基础视野倍率（VisionSourceRegistry.radiusOf 消费；黄金星象仪 visionRangePercent） */
+export function getTributeVisionRangeMul() {
+    return getTributeEffects().visionRangePercent ?? 1;
+}
+
 // ==================== 特效祭品（item.special 块） ====================
 
 function _carriedSpecials(key) {
@@ -160,6 +195,55 @@ export function getMoonshadowConfig() {
 export function hasOreUpgrade() {
     return _carriedSpecials('oreUpgrade').some(v => !!v);
 }
+
+/** 血藤缠杖「血藤寄生」：全体友方单位吸血比例%（多件加和；未携带返回 0） */
+export function getFriendlyLifestealPercent() {
+    return _carriedSpecials('friendlyLifestealPercent')
+        .reduce((sum, v) => sum + (Number(v) || 0), 0);
+}
+
+/** 狼烟图腾旗「狼烟结界」：{ radius, moveSpeedPercent }，取最高档；未携带返回 null */
+export function getFriendlyMoveSpeedAura() {
+    let best = null;
+    for (const item of _activeTributeItems()) {
+        const sp = item && item.special;
+        if (!sp || sp.friendlyAuraMoveSpeedPercent === undefined) continue;
+        const entry = {
+            radius: Math.max(0, Number(sp.friendlyAuraRadius) || 0),
+            moveSpeedPercent: Number(sp.friendlyAuraMoveSpeedPercent) || 0,
+        };
+        if (!best || entry.moveSpeedPercent > best.moveSpeedPercent) best = entry;
+    }
+    return best;
+}
+
+/** 双身翡翠神像「双身」：出兵建筑每次招募数量倍率（取最大；未携带返回 1） */
+export function getRecruitCountMul() {
+    const vals = _carriedSpecials('recruitCountMul');
+    return vals.length ? Math.max(1, ...vals.map((v) => Number(v) || 1)) : 1;
+}
+
+/** 黄金星象仪「风调雨顺」：生产建筑（银行/风车等）资源产出倍率（乘算；未携带返回 1） */
+export function getProductionResourceMul() {
+    return _carriedSpecials('productionResourcePercent')
+        .reduce((mul, v) => mul * (1 + (Number(v) || 0) / 100), 1);
+}
+
+/** 祭品集合变化后刷新全体友军最大生命（friendlyMaxHpPercent 乘区在 updateMaxStats 消费）。
+ * 友军攻/移速乘区为读取时实时聚合，无需刷新。 */
+export function refreshFriendlyTributeStats() {
+    const units = [
+        ...((Game && Array.isArray(Game.friendlyUnits)) ? Game.friendlyUnits : []),
+        ...(PartySystem && Array.isArray(PartySystem.members) ? PartySystem.members : []),
+    ];
+    for (const unit of units) {
+        if (unit && unit.active !== false && typeof unit.updateMaxStats === 'function') {
+            unit.updateMaxStats();
+        }
+    }
+}
+
+setWorld122TributeRefreshHandler(refreshFriendlyTributeStats);
 
 const _RARITY_ORDER_UP = ['common', 'uncommon', 'rare', 'epic', 'mythic', 'legendary'];
 
@@ -299,30 +383,52 @@ const SPECIAL_BUFFS = [
     { key: '_surviveCap', id: 'tributeDiamond', icon: '💎', name: '金刚不坏', color: '#7ab0e0' },
     { key: '_moonshadow', id: 'tributeMoonstone', icon: '🌙', name: '月影庇护', color: '#b0a0e0' },
     { key: '_oreUpgrade', id: 'tributePhilosopher', icon: '🪨', name: '点石成金', color: '#e0c060' },
+    { key: '_friendlyLifesteal', id: 'tributeBloodVine', icon: '🩸', name: '血藤寄生', color: '#d06060' },
+    { key: '_moveAura', id: 'tributeWolfBanner', icon: '🚩', name: '狼烟结界', color: '#c0a060' },
+    { key: '_recruitMul', id: 'tributeJadeTwins', icon: '🗿', name: '双身募兵', color: '#7ad0a0' },
+    { key: '_productionResource', id: 'tributeAstrolabe', icon: '🌟', name: '风调雨顺', color: '#e8d060' },
 ];
 
 /** 同步特效祭品的常驻 buff 图标（携带时显示；蟠桃复活用掉后不再显示） */
 export function syncTributeBuffs(player) {
     if (!player || !StatusBar) return;
-    const e = getTributeEffects();
+    // 地牢状态栏只表达本次出征携带的祭品；世界祭坛有独立的30分钟状态条。
+    const dungeonItems = DungeonMapSystem?.active === true ? _dungeonTributeItems() : [];
+    const e = _aggregateTributeEffects(dungeonItems);
+    const specialValues = (key) => dungeonItems
+        .map((item) => item?.special?.[key])
+        .filter((value) => value !== undefined);
     const actives = {
         expPercent: (e.expPercent ?? 1) > 1,
         killMpHealPercent: (e.killMpHealPercent ?? 1) > 1,
         revivePercent: (e.revivePercent ?? 1) > 1 && !player._peachReviveUsed,
-        _surviveCap: getSurviveCapRatio() > 0,
-        _moonshadow: !!getMoonshadowConfig(),
-        _oreUpgrade: hasOreUpgrade(),
+        _surviveCap: specialValues('surviveCapPercent').some((value) => Number(value) > 0),
+        _moonshadow: specialValues('moonshadowDuration').length > 0,
+        _oreUpgrade: specialValues('oreUpgrade').some(Boolean),
+        _friendlyLifesteal: specialValues('friendlyLifestealPercent').some((value) => Number(value) > 0),
+        _moveAura: specialValues('friendlyAuraMoveSpeedPercent').some((value) => Number(value) > 0),
+        _recruitMul: specialValues('recruitCountMul').some((value) => Number(value) > 1),
+        _productionResource: specialValues('productionResourcePercent').some((value) => Number(value) > 0),
     };
     for (const buff of SPECIAL_BUFFS) {
         const active = actives[buff.key] ?? false;
-        const has = player[`_${buff.id}EffectId`];
+        const storedId = player[`_${buff.id}EffectId`];
+        const has = !!storedId && StatusBar.hasEffect(buff.id);
         if (active && !has) {
-            player[`_${buff.id}EffectId`] = StatusBar.addEffect(buff.id, 999999, { icon: buff.icon, name: buff.name, color: buff.color });
-        } else if (!active && has) {
-            StatusBar.removeEffect(has);
+            player[`_${buff.id}EffectId`] = StatusBar.addEffect(buff.id, 0, {
+                icon: buff.icon,
+                name: buff.name,
+                color: buff.color,
+                persistent: true,
+                durationText: '持续至本次地牢结束',
+            });
+        } else if (!active && storedId) {
+            StatusBar.removeEffect(storedId);
             player[`_${buff.id}EffectId`] = null;
         }
     }
+    // 祭品集合可能刚变化：刷新全体友军最大生命（友好生命乘区在 updateMaxStats 消费）
+    refreshFriendlyTributeStats();
 }
 
 /** 地牢结束时清除特效 buff 图标 */

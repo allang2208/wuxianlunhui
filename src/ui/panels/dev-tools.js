@@ -2,6 +2,8 @@ import DevTool from '../dev-tool.js';
 import { CollisionEditor } from '../collision-editor.js';
 import { QuickBar } from '../quick-bar.js';
 import { TechnologySystem } from '../../world/technology-system.js';
+import { GoldManager } from '../../systems/gold-manager.js';
+import { EnergyManager } from '../../systems/energy-manager.js';
 // src/ui/panels/dev-tools.js
 // 动态创建交互开发工具面板 (dev-tool-panel)
 
@@ -538,6 +540,46 @@ export function createDevToolPanel() {
     resourceHint.style.cssText = 'color:#9aa5b1;font-size:11px;';
     resourceRow.append(btnResource, resourceHint);
     skillRow.appendChild(resourceRow);
+
+    // ===== 测试按钮：一次性增加正式经济资源 =====
+    const grantResourceRow = document.createElement('div');
+    grantResourceRow.style.cssText = 'display:flex;gap:6px;align-items:center;flex-wrap:wrap;padding:6px 0;border-top:1px solid #3a3a3a;';
+    const createGrantButton = (id, label, grant) => {
+        const button = document.createElement('button');
+        button.id = id;
+        button.className = 'dev-tool-menu-btn';
+        button.textContent = label;
+        button.addEventListener('click', () => {
+            if (!window.Game?.isRunning) {
+                DevTool?._showToast?.('❌ 请先进入游戏');
+                return;
+            }
+            grant();
+        });
+        return button;
+    };
+    const grantGoldBtn = createGrantButton('devToolGrantGold', '+10000 金币', () => {
+        const added = GoldManager.depositGold(10000, { notifyFull: true });
+        DevTool?._showToast?.(added === 10000 ? '✅ 金币 +10000' : `⚠️ 背包空间不足，金币 +${added}`);
+    });
+    const grantEnergyBtn = createGrantButton('devToolGrantEnergy', '+10000 能源', () => {
+        const before = EnergyManager.getEnergy();
+        EnergyManager.importLegacyEnergy(10000);
+        const stored = Math.max(0, EnergyManager.getEnergy() - before);
+        DevTool?._showToast?.(stored === 10000
+            ? '✅ 能源 +10000'
+            : `✅ 能源 +10000（${stored} 已入库，其余等待仓库空间）`);
+    });
+    const grantFoodBtn = createGrantButton('devToolGrantFood', '+10000 食物', () => {
+        const before = EnergyManager.getFood();
+        EnergyManager.importLegacyFood(10000);
+        const stored = Math.max(0, EnergyManager.getFood() - before);
+        DevTool?._showToast?.(stored === 10000
+            ? '✅ 食物 +10000'
+            : `✅ 食物 +10000（${stored} 已入库，其余等待仓库空间）`);
+    });
+    grantResourceRow.append(grantGoldBtn, grantEnergyBtn, grantFoodBtn);
+    skillRow.appendChild(grantResourceRow);
 
     // ===== 测试按钮：一次性解锁全部科技与受控功能 =====
     const technologyRow = document.createElement('div');

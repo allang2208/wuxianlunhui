@@ -2,8 +2,8 @@
  * 队员指挥轮盘（CompanionCommandWheel，2026-08-14）。
  *
  * - 长按鼠标中键 ≥300ms 弹出轮盘（以鼠标为中心）；松开时选中悬停指令，移出轮盘松开 = 取消；
- * - 六指令：跟随（默认）/ 主动攻击 / 巡逻 / 采集 / 探险 / 待命；
- * - 指令点 = 打开轮盘瞬间的鼠标世界坐标（巡逻圆心 / 采集就近资源点用）；
+ * - 通用指令：跟随（默认）/ 移动攻击 / 巡逻 / 采集 / 待命；仅选中探险家时追加探险；
+ * - 指令点 = 打开轮盘瞬间的鼠标世界坐标（移动攻击终点 / 巡逻另一端 / 采集就近资源点）；
  * - 目标：组队栏选中的队员（点击=单选、Shift+点击=多选）；无选中时兜底队员面板当前队员 / 第一名；
  * - 挂载：Game 启动时 init()（见 game.js）；DOM overlay，样式随 game-style.css。
  */
@@ -26,12 +26,13 @@ export const CompanionCommandWheel = {
     _openAt: null,
     _hovered: null,
     _targetIds: [],
+    _targetRefs: [],
     _targetLabel: '',
     _inited: false,
 
     commands: [
         { id: 'follow', name: '跟随', icon: '🧭', color: '#9dff9d' },
-        { id: 'aggressive', name: '主动攻击', icon: '⚔️', color: '#ff9d9d' },
+        { id: 'attack_move', name: '移动攻击', icon: '⚔️', color: '#ff9d9d' },
         { id: 'patrol', name: '巡逻', icon: '🚶', color: '#ffd77f' },
         { id: 'gather', name: '采集', icon: '⛏️', color: '#7fd4ff' },
         { id: 'explore', name: '探险', icon: '🗺️', color: '#c9a0ff' },
@@ -115,15 +116,20 @@ export const CompanionCommandWheel = {
     _resolveTargets(all) {
         // 指挥模式：目标 = RTSCommand 当前选中单位（标签只用于轮盘中心显示）
         if (RTSCommand && RTSCommand.enabled && RTSCommand.hasAllySelection && RTSCommand.hasAllySelection()) {
-            const n = RTSCommand._selection.filter((s) => s.kind === 'ally').length;
+            this._targetRefs = RTSCommand._selection
+                .filter((s) => s.kind === 'ally')
+                .map((s) => s.ref)
+                .filter(Boolean);
+            const n = this._targetRefs.length;
             this._targetIds = [];
             this._targetLabel = `选中 ${n} 个单位`;
             return n;
         }
         const members = PartySystem.members;
-        if (!members.length) { this._targetIds = []; this._targetLabel = ''; return 0; }
+        if (!members.length) { this._targetIds = []; this._targetRefs = []; this._targetLabel = ''; return 0; }
         if (all) {
             this._targetIds = members.map((m) => m.id);
+            this._targetRefs = members.slice();
             this._targetLabel = `全队（${members.length} 人）`;
             return this._targetIds.length;
         }
@@ -131,6 +137,7 @@ export const CompanionCommandWheel = {
         const selected = PartySystem.selectedIds;
         if (selected.length) {
             this._targetIds = selected.slice();
+            this._targetRefs = selected.map((id) => PartySystem.getMember(id)).filter(Boolean);
             if (selected.length === 1) {
                 const m = PartySystem.getMember(selected[0]);
                 this._targetLabel = m ? m.name || m.id : selected[0];
@@ -145,6 +152,7 @@ export const CompanionCommandWheel = {
         if (panel && panel._memberId) member = PartySystem.getMember(panel._memberId);
         if (!member) member = members[0];
         this._targetIds = [member.id];
+        this._targetRefs = [member];
         this._targetLabel = member.name || member.id;
         return 1;
     },
@@ -160,8 +168,10 @@ export const CompanionCommandWheel = {
         el.style.top = `${this._openAt.y}px`;
         el.innerHTML = `<div class="cw-center">${this._targetLabel}<br><em>移动到指令上松开 · 移出取消</em></div>`;
         const R = 88;
-        this.commands.forEach((cmd, i) => {
-            const ang = (-90 + i * (360 / this.commands.length)) * Math.PI / 180;
+        const commands = this.commands.filter((cmd) => cmd.id !== 'explore'
+            || this._targetRefs.some((unit) => unit?._isHamsterExplorer));
+        commands.forEach((cmd, i) => {
+            const ang = (-90 + i * (360 / commands.length)) * Math.PI / 180;
             const btn = document.createElement('div');
             btn.className = 'cw-item';
             btn.dataset.cmd = cmd.id;
@@ -181,6 +191,7 @@ export const CompanionCommandWheel = {
     _close() {
         this._open = false;
         this._hovered = null;
+        this._targetRefs = [];
         if (this._el) {
             this._el.remove();
             this._el = null;

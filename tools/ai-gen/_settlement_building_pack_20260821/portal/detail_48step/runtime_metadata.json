@@ -1,0 +1,42 @@
+{
+  "source": "tools\\ai-gen\\_settlement_building_pack_20260821\\portal\\detail_48step\\portal_s48_seed122925_masked.png",
+  "output": "tools\\ai-gen\\_settlement_building_pack_20260821\\portal\\detail_48step\\portal_s48_seed122925_runtime_v4.png",
+  "sourceMode": "RGBA",
+  "background": null,
+  "matteColor": [
+    247,
+    225,
+    18
+  ],
+  "matteEdgeWidth": 8.0,
+  "matteTolerance": 180.0,
+  "maskImage": null,
+  "maskDilate": null,
+  "fillAlphaHoles": false,
+  "fillHoleMatteDistance": null,
+  "removeEnclosedMatte": false,
+  "enclosedMatteChromaDistance": null,
+  "maskAddRects": [],
+  "restoreAlphaRects": [],
+  "cropBox": [
+    71,
+    149,
+    950,
+    920
+  ],
+  "fileSize": [
+    879,
+    771
+  ],
+  "alphaBBox": [
+    4,
+    4,
+    875,
+    767
+  ],
+  "displayW": 288,
+  "displayH": 253,
+  "footOffsetY": 125,
+  "scaleX": 0.32764505119453924,
+  "scaleY": 0.32814526588845655
+}

@@ -121,5 +121,12 @@ check('合格版茅草屋匹配26.565°与256×128占地',
     && Math.abs(thatchFit.visualOffsetX) < 1.5,
     `${thatchFit.collisionWidth.toFixed(2)}×${thatchFit.collisionHeight.toFixed(2)} / ${thatchFit.groundAngleDeg.toFixed(3)}° / offsetX ${thatchFit.visualOffsetX.toFixed(2)}`);
 
+check('建筑阴影接地区保留真实 alpha 下包络而非只返回标准四边形',
+    Array.isArray(thatchFit.contactPolygon)
+    && JSON.stringify(thatchFit.contactPolygon) !== JSON.stringify(thatchFit.localVertices),
+    `${thatchFit.contactPolygon?.length ?? 0} 点`);
+check('真实 alpha 下包络的最低接地点仍锁在逻辑脚点',
+    Math.abs(Math.max(...thatchFit.contactPolygon.map((point) => point.y))) < 0.01);
+
 console.log(`\n结果: ${pass} 通过, ${fail} 失败`);
 process.exit(fail ? 1 : 0);

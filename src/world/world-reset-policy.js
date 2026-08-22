@@ -4,10 +4,10 @@ import worldSystemConfig from '../../data/world-system.json';
 const SAFE_DEFAULTS = Object.freeze({
     policyVersion: 1,
     baseTemplate: 'portal_only_v1',
-    generationVersion: 1,
+    generationVersion: 2,
     seedStrategy: 'per_world_epoch',
     baseSeed: 0,
-    resourceRule: 'energy_clusters_v1',
+    resourceRule: 'energy_clusters_v2',
     preserveOnDestroy: [
         'dungeonProgress', 'globalClock', 'invasionProgress',
         'playerInventory', 'globalUpgrades',

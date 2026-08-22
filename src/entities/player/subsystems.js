@@ -200,11 +200,14 @@ removeDroneVulnerability() {
 onDeath() {
                 this._isDead = true;
                 this._deathTimer = 3000; // 3秒后重生
-                // 蟠桃续命：该次地牢一次——携带蟠桃且未用过，则 3s 后以 30% 最大生命原地复活
-                if (!this._peachReviveUsed && getTributeReviveRatio() > 0) {
-                    this._peachReviveUsed = true;
+                // 蟠桃续命按模式分别记录使用状态，世界献祭与本次地牢互不消耗次数。
+                const dungeonTributeMode = DungeonMapSystem?.active === true;
+                const reviveUsed = dungeonTributeMode ? this._peachReviveUsed : this._worldPeachReviveUsed;
+                if (!reviveUsed && getTributeReviveRatio() > 0) {
+                    if (dungeonTributeMode) this._peachReviveUsed = true;
+                    else this._worldPeachReviveUsed = true;
                     this._peachRevivePending = true;
-                    syncTributeBuffs(this);
+                    if (dungeonTributeMode) syncTributeBuffs(this);
                     EffectManager.add(new FloatingTextEffect(this.x, this.y - 60, '🍑 蟠桃续命生效：3秒后原地复活', '#e8a06a'));
                 }
                 // 显示死亡提示

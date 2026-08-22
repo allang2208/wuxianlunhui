@@ -76,6 +76,7 @@ import { RiftSystem } from './quest/rift-system.js';
 import { QuickBar } from './ui/quick-bar.js';
 import { EquipManager } from './ui/equip-manager.js';
 import { PartySystem } from './systems/party-system.js';
+import { RtsTacticalOrderSystem } from './systems/rts-tactical-order-system.js';
 import { CompanionAI } from './ai/companion-ai.js';
 import { PartyUI } from './ui/party-ui.js';
 import { RecruitUI } from './ui/recruit-ui.js';
@@ -88,7 +89,6 @@ import { UIState } from './ui/ui-state.js';
 import { ExpeditionSystem } from './ui/expedition-system.js';
 import { FusionSystem } from './ui/fusion-system.js';
 import { DefenseSystem } from './world/defense-system.js';
-import { DefenseTrapSystem } from './world/defense-trap-system.js';
 import { HamsterHutSystem } from './world/hamster-hut-system.js';
 import { HamsterBarracksSystem } from './world/hamster-barracks-system.js';
 import { ProducerBuilding, ProducerBuildingSystem } from './world/producer-building-system.js';
@@ -122,7 +122,7 @@ export const Game = {
         PartySystem.registerAI('mage_luna', (companion) => new CompanionAI(companion));
         PartySystem.registerAI('warrior_bruno', (companion) => new CompanionAI(companion));
         PartyUI.init();
-        // 队员指挥轮盘（长按中键五指令：跟随/主动攻击/巡逻/采集/待命）
+        // 队员指挥轮盘（长按中键：跟随/移动攻击/巡逻/采集/探险/待命）
         CompanionCommandWheel.init();
         // RTS 指挥模式（世界-122 组队栏下方按钮；scene8 启用时接管左/右键）
         RTSCommand.init();
@@ -139,7 +139,6 @@ export const Game = {
         this.Input = Input;               // 模式级快捷键隔离只清理按键状态，不绕过 Input 处理流程
         // RTS 建筑点击复用的系统句柄（避免模块循环 import，经 window.Game 惰性访问）
         this.DefenseSystem = DefenseSystem;
-        this.DefenseTrapSystem = DefenseTrapSystem;
         this.HamsterHutSystem = HamsterHutSystem;
         this.HamsterBarracksSystem = HamsterBarracksSystem;
         this.ProducerBuildingSystem = ProducerBuildingSystem;
@@ -1252,7 +1251,6 @@ if (this.player && this.player.droneSystem && this.player.droneSystem.controllin
             if (RTSCommand.hasPanel && RTSCommand.hasPanel()) {
                 const anyBuilding = (BuildingSystem && BuildingSystem.active)
                     || (DefenseSystem && DefenseSystem._panel && DefenseSystem._panel.isOpen)
-                    || (DefenseTrapSystem && DefenseTrapSystem._panel && DefenseTrapSystem._panel.isOpen)
                     || (HamsterHutSystem && HamsterHutSystem._panel && HamsterHutSystem._panel.isOpen)
                     || (HamsterBarracksSystem && HamsterBarracksSystem._panel && HamsterBarracksSystem._panel.isOpen)
                     || (ProducerBuildingSystem && ProducerBuildingSystem._panel && ProducerBuildingSystem._panel.isOpen);
@@ -1322,12 +1320,7 @@ if (Input.mouse.leftPressed) {
                 Input.mouse.leftPressed = false;
                 return;
             }
-            // 世界-122 防守地图：点击防御塔打开芯片强化/装载面板，点击基地核心查看耐久
-            // 陷阱优先于防御塔（陷阱是地面小体积，命中盒更贴近点击处）
-            if (DefenseTrapSystem && DefenseTrapSystem.tryInteract(mx, my, this.player)) {
-                Input.mouse.leftPressed = false;
-                return;
-            }
+            // 世界-122 防守地图：这里只处理防御塔；传送门/位面祭坛由通用配置建筑交互分发。
             if (DefenseSystem && DefenseSystem.active && DefenseSystem.tryInteract(mx, my, this.player)) {
                 Input.mouse.leftPressed = false;
                 return;
@@ -1409,6 +1402,8 @@ if (Input.mouse.leftPressed) {
         if (MovementSystem && typeof MovementSystem.beginFrame === 'function') {
             MovementSystem.beginFrame();
         }
+        // 高层 RTS 命令先翻译为各单位已支持的 move/attack，AI 随后按原战斗真源消费。
+        RtsTacticalOrderSystem.update(this.entities, PartySystem?.members, SceneManager.currentScene);
 this._battleCommanderEnemies = [];
         for (const e of this.entities.values()) {
             const isCorpse = e._preserveCorpse && !e.active && (e._deathAnimTimer > 0 || e._corpseTimer > 0 || e._fadeTimer > 0);

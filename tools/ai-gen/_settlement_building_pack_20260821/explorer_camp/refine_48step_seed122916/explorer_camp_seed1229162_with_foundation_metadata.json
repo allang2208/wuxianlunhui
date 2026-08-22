@@ -1,0 +1,46 @@
+{
+  "source": "tools\\ai-gen\\_settlement_building_pack_20260821\\explorer_camp\\refine_48step_seed122916\\explorer_camp_refine48_from122916_seed1229162_raw.png",
+  "output": "tools\\ai-gen\\_settlement_building_pack_20260821\\explorer_camp\\refine_48step_seed122916\\explorer_camp_seed1229162_with_foundation_runtime.png",
+  "sourceMode": "RGB",
+  "background": [
+    247,
+    218,
+    5
+  ],
+  "matteColor": null,
+  "matteEdgeWidth": 3.0,
+  "matteTolerance": 20.0,
+  "maskImage": null,
+  "maskDilate": null,
+  "fillAlphaHoles": false,
+  "fillHoleMatteDistance": null,
+  "removeEnclosedMatte": true,
+  "enclosedMatteChromaDistance": 0.06,
+  "maskAddRects": [],
+  "restoreAlphaRects": [
+    "276,266,292,284",
+    "311,276,323,291",
+    "682,558,700,576"
+  ],
+  "cropBox": [
+    71,
+    96,
+    952,
+    920
+  ],
+  "fileSize": [
+    881,
+    824
+  ],
+  "alphaBBox": [
+    4,
+    4,
+    877,
+    820
+  ],
+  "displayW": 268,
+  "displayH": 251,
+  "footOffsetY": 124,
+  "scaleX": 0.30419977298524403,
+  "scaleY": 0.30461165048543687
+}

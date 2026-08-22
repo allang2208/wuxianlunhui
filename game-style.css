@@ -253,7 +253,8 @@
         .equip-tooltip .tt-craft-title { font-size: 13px; font-weight: 700; color: #2a2520; border-bottom: 1px solid rgba(0,0,0,0.15); padding-bottom: 4px; margin-bottom: 2px; }
         .equip-tooltip .tt-craft-row { display: flex; justify-content: space-between; align-items: center; padding: 3px 0; }
         .equip-tooltip .tt-craft-left { display: flex; align-items: center; gap: 6px; }
-        .equip-tooltip .tt-craft-icon { font-size: 16px; width: 20px; text-align: center; }
+        .equip-tooltip .tt-craft-icon { font-size: 16px; width: 20px; height: 20px; text-align: center; display: inline-flex; align-items: center; justify-content: center; }
+        .equip-tooltip .tt-craft-icon img { width: 20px; height: 20px; object-fit: contain; }
         .equip-tooltip .tt-craft-name { color: #4a3f35; font-weight: 600; }
         .equip-tooltip .tt-craft-desc { color: #2a2520; text-align: right; font-size: 11px; max-width: 60%; }
         .equip-tooltip .tt-craft-summary { border-top: 1px solid rgba(0,0,0,0.15); margin-top: 6px; padding-top: 6px; }
@@ -265,7 +266,8 @@
         .equip-tooltip .tt-close { position: absolute; top: 6px; right: 8px; width: 24px; height: 24px; background: rgba(200,50,50,0.8); border-radius: 50%; color: #fff; font-size: 16px; line-height: 24px; text-align: center; cursor: pointer; pointer-events: auto; transition: all 0.2s; }
         .equip-tooltip .tt-close:hover { background: rgba(220,70,70,1); transform: scale(1.1); }
         .equip-tooltip .tt-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; padding-right: 24px; }
-        .equip-tooltip .tt-icon { font-size: 28px; }
+        .equip-tooltip .tt-icon { font-size: 28px; width: 44px; height: 44px; flex: 0 0 44px; display: flex; align-items: center; justify-content: center; }
+        .equip-tooltip .tt-icon img { width: 44px; height: 44px; object-fit: contain; display: block; }
         .equip-tooltip .tt-name { color: #2a2520; font-size: 18px; font-weight: 700; margin-bottom: 2px; }
         .equip-tooltip .tt-type { color: #4a3f35; font-size: 12px; margin-bottom: 6px; }
         .equip-tooltip .tt-stat { display: flex; justify-content: space-between; padding: 3px 0; font-size: 13px; border-bottom: 1px solid rgba(0,0,0,0.08); }
@@ -584,7 +586,8 @@
             background: none;
             object-fit: contain;
             object-position: bottom center;
-            z-index: 5001;
+            z-index: 3999;
+            pointer-events: none;
             transition: transform 0.3s, opacity 0.3s;
         }
         .npc-portrait.mouse-attendant {
@@ -3196,7 +3199,6 @@ body.map-mode #weaponInfo {
 .hamster-hut-panel,
 .hamster-barracks-panel,
 .producer-building-panel,
-.defense-trap-panel,
 .world122-base-panel {
   right: 26px !important;
   top: 26px !important;

@@ -19,6 +19,7 @@ import { RecruitUI } from './recruit-ui.js';
 import { CompanionPanel } from './companion-panel.js';
 import { EventBus } from '../core/event-bus.js';
 import { syncTributeBuffs } from '../config/tribute-effects.js';
+import { World122TributeSystem } from '../world/world122-tribute-system.js';
 import { RARITY_ORDER, RARITY_COLORS, RARITY_LABELS } from '../config/rarity.js';
 import { GRADE_ORDER, RESTRICTED_EVENT_META } from '../world/dungeon-event-definitions.js';
 import { COMBAT_FORMULAS } from '../config/combat-formulas.js';
@@ -741,12 +742,13 @@ export const ExpeditionSystem = {
         // 先让浏览器绘制 loading，再执行地牢初始化；最短展示时间由 SceneManager 统一保证。
         if (SceneManager?.delay) await SceneManager.delay(50);
 
+        // depart() 绕过 SceneManager.switchScene：显式停用并冻结世界献祭，确保地牢只读携带祭品。
+        World122TributeSystem.teardown();
+
         // 保存携带物品到 DungeonMapSystem（物品已从背包移出，直接带走）
         if (DungeonMapSystem) {
             DungeonMapSystem._carriedItems = carried;
         }
-        // 特效祭品（雪莲/人参/蟠桃）在 buff 栏显示常驻图标
-        if (Game.player) syncTributeBuffs(Game.player);
 
         this._showMessage('准备出征...', 'success');
 
@@ -810,6 +812,9 @@ export const ExpeditionSystem = {
 
             DungeonMapSystem.init('scene7', player, dungeonType);
             SceneManager.currentScene = 'scene7';
+            // 地牢 active=true 后再切换效果源、重算面板并登记本次地牢常驻祭品图标。
+            if (player?.calculateCombatStats) player.calculateCombatStats();
+            if (player) syncTributeBuffs(player);
             SceneManager.setProgress(90);
             // BGM 场景切换：depart 绕开 switchScene（switchScene 尾部的 playBgmForScene
             // 不会执行）——手动补发；data/audio-config.json bgm.scene7 = 僵尸地牢共用音轨

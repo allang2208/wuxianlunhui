@@ -247,6 +247,15 @@ collision-grid / regressions）、vite build ✓。
 
 ### 地牢添加标准工作流（新增地牢一律按此开展）
 
+#### 地牢祭品生命周期（2026-08-22）
+
+- `ExpeditionSystem.depart()` 把本次携带祭品交给 `DungeonMapSystem._carriedItems`；它们不使用分钟倒计时，整个本次地牢持续生效。
+- `depart()` 是场景切换旁路：必须先 `World122TributeSystem.teardown()` 冻结世界祝福，再写 `_carriedItems`；等 `DungeonMapSystem.init()` 将 `active=true` 后才允许重算玩家属性和同步地牢祭品状态栏。
+- 特殊祭品状态栏必须使用 `StatusBar` 的 `persistent` 来源生命周期语义，并显示“持续至本次地牢结束”，禁止再用 `999999ms` 模拟永续。
+- `DungeonMapSystem.shutdown()` 是唯一结束点：先清空 `_carriedItems`，再 `clearTributeBuffs(player)` 并重算玩家属性；通关、安全撤离、放弃和异常退出都必须收敛到该清理链。
+- 地牢状态栏只读取 `_carriedItems`，不得把世界祭坛的激活祭品混入地牢常驻图标；世界祭坛状态条由 `World122TributeSystem` 独立管理。
+- 聚合器必须以 `DungeonMapSystem.active` 做硬互斥：true 时只返回 `_carriedItems`，否则只返回已激活世界 store。蟠桃使用次数同样分为地牢 `_peachReviveUsed` 与世界 `_worldPeachReviveUsed`，每次地牢 init/shutdown 只重置地牢标记。
+
 #### 1. 展示元数据（data/dungeon-config.json `dungeonList`）
 新增条目：`{ name, nodeCount, battleRatio, level, reward, grade }`——`grade`（F~A）驱动：事件池 ±1 匹配、通用事件奖励档、祭品掉落表（maxRarity/权重）、出征祭品门槛（对应稀有度）。出征界面选择器/说明栏全部自动读取，无需改 UI。
 
@@ -530,9 +539,9 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
 - **尺寸与方向分离**：贴地 footprint 高度仍按 `PERSPECTIVE_SCALE_Y=0.5` 压扁；太阳位移已经
   在 `isoLocalToWorldDelta` 内完成透视投影。散布障碍物的 `getObstacleFootprintRect().h`
   是碰撞世界深度，注册静态影子时必须再乘 0.5。
-- **静态投影根部**：预投影遮罩（原 alpha 顺时针旋转，立体高度→本地 X 长轴）以 `(0,0.5)`
-  作为底部接地点。仙人掌/雪松随机 `flipX` 要映射到投影的 `flipY`，不得翻转长轴，否则影子
-  会反向穿回模型。建筑投影以贴图/footprint 中心锚定，勿取 footprint 外缘。
+- **静态投影根部**：仙人掌/雪松随机 `flipX` 要映射到投影的 `flipY`，不得翻转长轴，否则影子
+  会反向穿回模型。普通建筑由独立 shadow caster 锚到逻辑脚点并拟合主体 alpha 接地区，
+  不再拿建造 footprint（可能包含地基）充当视觉阴影根部。
 - **造型分档**：高柱仙人掌用长的 `projection`，多节仙人掌用中等投影，桶状仙人掌用短
   `contact` 阴影；不允许所有障碍物复用一种长影。
 - **派生资产入口**：`tools/ai-gen/build-lighting-maps.py` 从原 PNG alpha 确定性生成
@@ -541,64 +550,64 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
 - **动态单位投影**：玩家、敌人、友军从当前 Phaser 帧 alpha 懒生成 `unit_projection_*` Canvas
   纹理，同一帧只生成一次。低档=接触影，中档=静态投影，高档=动态帧投影；缓存上限 256，
   场景/质量切换及 Phaser shutdown 必须回收并从 TextureManager 移除。
-- **建筑锚点不能一刀切**：碰撞 footprint 中心用于接触影尺寸；方向性轮廓影根部默认
-  `footprint_center`。基地 4×4 的贴图与占地中心存在视觉差，但直接改到 `visual_foot`
-  会让整段影子脱离模型；正确做法是在 manifest 对 `defense_base` 配
-  `shadow.anchorMode="footprint_center", shadow.anchorInsetX=120, shadow.anchorInsetY=-120`，
-  把根部向贴图内部右上校准。其余建筑先用 `footprint_center`，实机发现悬空/埋入后再单项调 inset。
+- **建筑锚点不能一刀切**：普通建筑默认由 `resolveStructureGroundFit` 扫描当前主体 Sprite
+  的 alpha 底部接触区并锚回逻辑脚点；接地多边形的前半边必须保留稳定底座范围内的真实
+  alpha 下包络，不能把台阶/门槛/不对称底座重新吸附成标准菱形。`anchorAdjustX/Y` 与 `flipX`
+  必须同时作用于 Sprite 和自动阴影轮廓；独立 foundation Sprite、碰撞与建造占格都不参与。
+  个别美术含烘焙底台或异形主体时，在建筑配置写 `shadowCaster.contactPolygon` 覆盖，
+  不要修改 collision footprint 补视觉阴影。
 - **基地投影只取底座**：`defense_base` 是立方体+顶盖+扁平底座；完整 alpha 旋转后会把主体
   投成大块错误阴影。`build-lighting-maps.py` 的 `PROJECTION_BOTTOM_BANDS["defense_base"]=0.20`
   只取贴图底部 20% alpha 生成 `defense_base_projection.png`。大型建筑出现“影子像整个模型/
   脱离底座”时，优先增加该配置，不要先拉长或加深影子。
 
-#### 静态投影算法（2026-08-19 七轮定稿：footprint 凸包，逐帧纯几何）
+#### 静态投影算法（2026-08-21：建筑 shadow caster 与建造 footprint 解耦）
 
-> **2026-08-21 简化定稿（覆盖本节"凸包∪剪影"中的建筑部分）**：建筑（ensure 里有
-> entity）阴影一律只用 **footprint 凸包**——`_syncStaticSunShadows` 对 entity 直接把
-> `_silCache` 置 null，不再读 manifest 剪影列。根因：剪影迷航随贴图替换失配，反复出
-> 左/中/右大范围错影（portal 换图即复发），用户口径"干脆退回只看 footprint"。
-> 散布障碍物（树/仙人掌，无 entity）保留凸包∪剪影；楼梯/掩体墙本就走纯凸包，口径不变。
-> **建筑换贴图不再需要为阴影跑 build-lighting-maps.py**；manifest 剪影列仅障碍物消费。
+> **当前建筑契约**：普通建筑不再读取 manifest 剪影，也不把 placement/collision footprint
+> 当主真源。`resolveStructureShadowCaster` 优先读取显式 `shadowCaster`，否则复用
+> `resolveStructureGroundFit` 从**主体 Sprite 当前 alpha**拟合接地多边形；独立 foundation Sprite
+> 天然排除。仅在配置和 alpha 拟合都不可用时回退 placement footprint，建造与碰撞逻辑完全不改。
+> 散布障碍物继续凸包∪manifest 剪影；掩体墙、门、楼梯继续各自的专用纯几何链。
 
-- **唯一做法（建筑 + 散布障碍物）**：**接地四边形凸包 ∪ 剪影轮廓包络合并**
-  （2026-08-19 十轮定稿）——实体四边形由 `getSilhouetteFootprintVertices` 从剪影
-  接地曲线经 `_contactGroundInfo` 按 iso 坡度（0.75）截断生成（front=最低接地点、
-  两端=截断后的贴地端点、back 按 2:1 镜像；悬空臂/旗帜/挑檐一律排除出 footprint），
-  与 `getSilhouetteShadowPolygon` 轮廓展开**共用同一锚点/比例**（对齐由构造保证；
-  逻辑格网/碰撞 foot/autoFootprint 拟合均退出阴影链，实体锚错即"向光照侧偏出"）。
-  两多边形经 `getUnionShadowPolygon` 在同一 (u,v) 采样线取 u 跨度并集
-  （纯剪影在高差建筑退化成细带，纯凸包无轮廓；合并边界单调无自交、单层无双倍加深）。
-  位移按**列地面线净空**计算（地面线 = `max(贴图底缘, 前顶点 iso 0.5 线)`：
-  平底建筑即 V 形底座本身，球面/手臂/挑檐高于 iso 线时影子落回地面）；
-  实体真源分流——建筑用剪影接地实体，散布障碍物用 geo foot 手调碰撞四边形
-  （球体/异形不适用平底截断法）；
-  归一参考取 **剪影实测代表高度 `measuredHeight`**（iso 地面线以上内容高 75 分位，
-  `data.height` 在结构 ensure 里被它覆盖——footprint 半径估算会让墙/楼梯这类
-  高薄件影长低估一半）；塔尖拉长按 maxOffset 钳制。
-  **抬升结构（楼梯/射击台）阴影锚点 = footprint 四边形前顶点**（地面真源），
-  禁用含 z 抬升的精灵屏幕位置（锚在那里影子浮空）。剪影离线真源 = manifest `shadowSilhouette`
-  逐列 [texX, topY, bottomY]；无剪影数据回退纯凸包。每实体一个 Graphics 逐帧直画 +
-  **共享结构阴影层**（2026-08-19 十三轮）：单个 Graphics、深度 **−994**（地板块 −1000 与道路 −995 之上——道路即地面，阴影压暗路面如压裸地；曾放 −998 被道路完全遮挡，禁止放回道路之下），每帧汇入全部结构阴影多边形——**重叠/相贴的 job 先几何并集再画**（`_mergeShadowJobsIntoClusters` 顶点互含/边相交聚簇 + `getUnionOfPolygons` 太阳帧包络合并：一次填充统一强度、只沿外轮廓单次 lineStyle(6,0.32) 描边软边，簇内无接缝；互不相交保持独立，禁止桥接远处建筑），整层乘统一透明度；树木/散布障碍物的静态胶囊影也并入此层（旋转椭圆 16 边形作为普通 job，跨系统 Sprite 叠加会变深近两倍，精灵仅留作注册键）——移动单位仍用独立胶囊 Sprite。**任何相邻阴影交叠与单影同深**（几何并集从结构上保证，不依赖混合幂等；禁止回到逐实体 Sprite 各自叠加；质心放大淡出环已废弃）；
-  深度 = 本体 − 0.1。**逐帧纯几何、无烘焙无分桶无缓存——连续不跳**；
-  任何"加缓存/分桶"的优化都已证明引入错位/跳动/分割，禁止回潮
+- **普通建筑真源**：优先使用 `shadowCaster.contactPolygon`（相对逻辑脚点的局部坐标），
+  其次主体 alpha 接地拟合，最后才走 placement footprint 兜底。默认高度只取主体 Sprite 视觉高度，
+  不再由 footprint 半径放大。普通建筑默认把真实接地轮廓作为单一棱柱，沿全局唯一太阳向量
+  正交平行扫掠：左右终端边必须是平行线，不能分别追随不同高度的屋檐、塔楼或侧翼。
+  `resolveStructureAlphaShadowSlices` 仅在配置显式写 `shadowCaster.autoParts:true` 时启用；它会对
+  当前 TextureManager 帧做一次最高 384×384 的降采样，按离地高度提取下/中/上横向实体。
+  该模式适合明确需要复杂远端轮廓并经过逐建筑验收的特例，不得再作为所有普通建筑的默认值。
+  alpha 截面 X 坐标必须用 `groundFit.visualOffsetX + 纹理像素相对 Sprite 中心偏移`
+  完整映回逻辑脚点；不能只算 `(pixelX-contactX)×scaleX`，后者会漏掉稳定底座中心校正，
+  典型症状就是右侧远端影角斜率不对。
+  **上层截面只能信任 alpha 的左右边界**：不能再按截面宽度猜对称 iso 菱形纵深，否则
+  人造的前/后顶点会生成额外斜边，把左侧或右侧影角拉歪。自动部件统一使用实测 left/right
+  加最小稳定 Y 厚度的薄横截面；接地纵深仍只由 0~24% 的真实 contact polygon 提供。
+- **覆盖优先级**：配置了 `shadowCaster.parts[]` 就完全使用显式部件，每层写 `polygon`
+  （或 `footprint:'contact'`）与 `baseZ/topZ`；默认是单体平行扫掠，只有显式
+  `shadowCaster.autoParts:true` 才启用自动分层造型。`getLayeredShadowPolygon` 负责把自动或
+  显式部件分层挤出后合成单一边界。
+- **共享结构阴影层**（2026-08-22 根部贴合修复）：单个 Graphics、深度 **−994**（地板块 −1000 与道路 −995 之上——道路即地面，阴影压暗路面如压裸地；曾放 −998 被道路完全遮挡，禁止放回道路之下），每帧汇入全部结构阴影多边形——**重叠/相贴的 job 先几何并集再画**（`_mergeShadowJobsIntoClusters` 顶点互含/边相交聚簇 + `getUnionOfPolygons` 太阳帧包络合并；并集扫描必须额外保留全部输入顶点所在行，不能用固定 2px 步长吞掉接地角），原尺寸一次填充统一强度，簇内无接缝；互不相交保持独立，禁止桥接远处建筑。禁止质心 `1.02×` 放大和居中 `strokePoints` 软边：两者都会越过真实 alpha 接地边。整层乘统一透明度；树木/散布障碍物的静态胶囊影也并入此层（旋转椭圆 16 边形作为普通 job，跨系统 Sprite 叠加会变深近两倍，精灵仅留作注册键）——移动单位仍用独立胶囊 Sprite。**任何相邻阴影交叠与单影同深**（几何并集从结构上保证，不依赖混合幂等；禁止回到逐实体 Sprite 各自叠加；质心放大淡出环已废弃）；
+  深度 = 本体 − 0.1。**运行时纯几何、无烘焙无角度分桶——连续不跳**；只允许下文
+  epsilon 脏检查复用完全相同的结果，任何角度分桶/形变烘焙优化都已证明引入错位/跳动/分割，禁止回潮
   （形变烘焙、旋转矩形、固定画布、contactQuad、垂直剪切五条弯路留档）。
-- **顶点真源**：`isoFootprintVertices(entity)`（`_pixelFootprintLocal`
-  像素拟合优先，与放置/建造幽灵/遮挡/范围显示同一组顶点）；散布障碍物
-  视觉底座矩形四角（foot × visualWidthMul/DepthMul，纵深 ×0.5 压扁）。
-- **深浅与夜影**：`opacity = 0.1925 × clamp((daylight−0.1)/0.2)`（基准 0.55
-  →−30%→再−50%，2026-08-19 用户口径）——daylight≥0.3 白昼全强度，
-  ≤0.1（约 18:35~05:25）归零且 Sprite 隐藏；个体仍可 `shadow.opacity` 覆盖。
-  改深浅调 `STATIC/DYNAMIC_SHADOW_OPACITY`。
+- **顶点真源分流**：普通建筑使用独立 shadow caster；掩体/门/楼梯保留专用
+  iso footprint；散布障碍物使用视觉底座矩形四角（foot × visualWidthMul/DepthMul，纵深 ×0.5 压扁）。
+- **深浅、夜影与地牢环境影**：静态基础透明度 0.1925（基准 0.55
+  →−30%→再−50%，2026-08-19 用户口径）。室外环境系数为
+  `nightShadowStrength + (1−nightShadowStrength) × clamp((daylight−0.1)/0.2)`：
+  默认白昼 100%，深夜保留 40%，黄昏/晨曦平滑过渡。地牢战斗场景不使用被冻结的太阳
+  时间二次衰减，固定为 `dungeonShadowStrength=0.55`；地牢路线地图模式仍隐藏阴影。
+  个体仍可 `shadow.opacity` 覆盖基础透明度。改基础深浅调
+  `STATIC/DYNAMIC_SHADOW_OPACITY`，改环境档位调两个 strength 配置。
 - **延长段上限**：建筑 `maxOffset = max(43, height×0.5)`；障碍物各自
   `shadow.maxOffset`（42~72）；length 随仰角曲线（正午短、晨昏长）。
-- **胶囊接触影（单位唯一做法，2026-08-19 定稿）**：玩家/怪物/友军/NPC 脚底
-  柔边椭圆——长轴沿太阳方向拉伸、宽深随 groundRadius（唯一真源）、随仰角收放、
-  透明度 0.240625（2026-08-21 单位影加深 25%；建筑静态仍为 0.1925）×夜影衰减、深度跟随本体仲裁后 −0.1（墙体遮挡继承）。
-  单位不做逐列剪影（动画逐帧换形不适用）；帧剪影链（unit_projection）已退役，
-  禁止回潮。树木/桶状仙人掌（contact 型）/墙件同此胶囊。
-  **几何定稿（2026-08-21 对齐修复）**：椭圆长轴 = footprint 宽 + 影向位移量、随影向旋转
-  （`atan2(offsetY, offsetX)`），中心只走位移一半——影根始终盖住脚底（旧版整体平移
-  offset 全量、不旋转，小半径单位影子会脱脚）；位移 ≤3px（近正午）不旋转保持 2:1 地面椭圆。
+- **水平接触影（单位唯一默认，2026-08-21 footprint 对齐修复）**：玩家/怪物/友军/NPC
+  阴影中心严格等于视觉脚底/碰撞脚点，宽高严格取 ground footprint，默认 `widthMul=depthMul=1`、
+  `rotation=0`，始终保持屏幕水平 2:1 柔边椭圆。禁止把整个椭圆旋转到太阳影向——影向接近
+  屏幕 Y 轴时会把水平脚底错误立成竖椭圆。普通单位不再产生方向位移或晨昏尺寸膨胀；只有
+  个体显式配置 `shadow.directional=true` 时才启用旧方向尾影。
+  透明度 0.30078125（2026-08-21 单位影再加深 25%；建筑静态仍为 0.1925）×环境强度、
+  深度跟随本体仲裁后 −0.1（墙体遮挡继承）。单位不做逐列剪影；帧剪影链已退役，禁止回潮。
   锚点：玩家/怪/NPC = collider.x/y（footprint 圆心，玩家再 −z）；友军 = 视觉脚底
   `sprite.y + footOffsetY`（精灵已含 z 与帧格归一化，纯跟随队员无逻辑坐标也不错位）。
 - **投影图派生资产仍保留**（silhouette/projection/height/normal 供后续局部光效）；
@@ -641,7 +650,7 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
 
 #### 建筑贴图替换后的阴影工作流
 
-> **2026-08-21 起第 1/2 步对建筑阴影不再必需**（建筑不看剪影，见上节简化定稿）；
+> **2026-08-21 起第 1/2 步对建筑阴影不再必需**（建筑不看 manifest 剪影，见上节 shadow caster 契约）；
 > 该脚本仍服务于散布障碍物剪影与 projection/height/normal 派生图留档。
 
 1. **保持贴图键不变时**：替换 `assets/terrain/<key>.png` 后运行
@@ -652,14 +661,16 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
    PNG 仅磁盘留档，不再预加载）；散布障碍物的 hull+剪影门也直接看 manifest
    有没有剪影列（2026-08-19 唯一性审计：曾用 `textures.exists(key+'_projection')`
    当门，预加载清理后该门永假、仙人掌/雪松静默退化成椭圆——已改 manifest 门复活）。
-   建筑阴影根部自动贴 footprint 四边形，无需任何锚点配置。
+   普通建筑阴影根部自动读取主体当前 alpha 接地拟合，不含独立 foundation；异形美术才需
+   `shadowCaster.contactPolygon`/`parts` 覆盖。
 3. 检查 `data/environment-lighting-assets.json`：`base.centerX/width` 已自动生成；
    `shadow.anchorMode/anchorInsetX/Y` 仅对沿用预投影贴图的散布障碍物有意义，建筑不需要。
    不要通过修改 collision footprint 来补视觉影子位置。
 4. 进入世界-122，至少在正午与晨昏观察（或用 `tools/cdp-sun-shadow-verify.mjs` 冻结三时相）：
    影子根部贴建筑底座四边形、长度不过门/墙、建筑本体不被影子盖住；
    换贴图后必须重启 Vite，确保新增静态资源被加载。
-5. 提交原贴图、`assets/terrain/lighting/` 派生图与 manifest 改动；不得只提交原图。
+5. 普通建筑只需提交原贴图及显式 `shadowCaster` 配置（如有）；只有散布障碍物改图时才同时提交
+   `assets/terrain/lighting/` 派生图与 manifest 改动，不得只提交障碍物原图。
    换贴图后必须重启 Vite，确保新增静态资源被加载。
 
 #### 游戏内时间系统（2026-08-18）

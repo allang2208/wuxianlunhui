@@ -1,6 +1,6 @@
 /**
  * 世界-122建筑详情面板定位回归：
- * 墙/门、基地、防御塔、小屋、兵营、生产建筑、陷阱必须同在右上角顶部基线。
+ * 墙/门、基地、防御塔、小屋、兵营、生产建筑必须同在右上角顶部基线。
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -14,7 +14,6 @@ const panelSources = {
     hut: fs.readFileSync(path.join(ROOT, 'src/world/hamster-hut-system.js'), 'utf8'),
     barracks: fs.readFileSync(path.join(ROOT, 'src/world/hamster-barracks-system.js'), 'utf8'),
     producer: fs.readFileSync(path.join(ROOT, 'src/world/producer-building-system.js'), 'utf8'),
-    trap: fs.readFileSync(path.join(ROOT, 'src/world/defense-trap-system.js'), 'utf8'),
     base: fs.readFileSync(path.join(ROOT, 'src/world/world122-tribute-system.js'), 'utf8'),
     walls: fs.readFileSync(path.join(ROOT, 'src/world/building-system.js'), 'utf8'),
 };
@@ -23,7 +22,6 @@ const classes = [
     'hamster-hut-panel',
     'hamster-barracks-panel',
     'producer-building-panel',
-    'defense-trap-panel',
     'world122-base-panel',
 ];
 let fail = 0;

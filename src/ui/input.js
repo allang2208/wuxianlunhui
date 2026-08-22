@@ -91,7 +91,7 @@ import { TechnologyTreePanel } from './technology-tree-panel.js';
                 if (Game._wallEditMode || Game._collisionEditMode || Game._buildMode) return; // 墙壁/碰撞/建筑编辑模式：按键交给编辑器（捕获监听先处理）
                 // 暂停已与菜单整合（Esc 开菜单即暂停，game-menu open/close 双循环+定时器）；P 键让位队员管理（2026-08-19）
                 if (code === CONFIG.KEYS.MENU) {
-                    // 建筑详情面板（出兵/铁匠铺/研究/塔/陷阱等）Esc 优先关闭，
+                    // 建筑详情面板（出兵/铁匠铺/研究/塔等）Esc 优先关闭，
                     // 不应在同一次按键继续打开暂停菜单；Electron 转发的 ESC 同样走这里。
                     if (closeBasePanels('buildingDetail') > 0) return;
                     // 任务栏打开时按ESC关闭任务栏

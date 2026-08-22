@@ -47,8 +47,11 @@ ASSETS = [
     "warehouse",
     "shooting_range",
     "thatch_hut",
+    "explorer_camp",
+    "jungle_temple",
     "cavalry_school",
     "wheat_windmill",
+    "market",
     "portal",
     # 2026-08-19 墙壁/楼梯/门接入阴影系统
     "obstacle_block",

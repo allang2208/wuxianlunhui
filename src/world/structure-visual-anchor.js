@@ -9,6 +9,12 @@ const LEGACY_GROUND_SLOPE = PERSPECTIVE_SCALE_Y;
 const VISUAL_GROUND_SLOPE_30 = Math.tan(Math.PI / 6);
 const _footRatioCache = new Map();
 const _groundFitCache = new Map();
+const _shadowSliceCache = new Map();
+const AUTO_SHADOW_SLICE_BANDS = Object.freeze([
+    Object.freeze({ id: 'lower', min: 0.18, max: 0.52 }),
+    Object.freeze({ id: 'middle', min: 0.48, max: 0.78 }),
+    Object.freeze({ id: 'upper', min: 0.74, max: 1.00 }),
+]);
 
 /** 纯数学入口：把纹理内真实接触底边换算为 Sprite 中心到脚点的显示偏移。 */
 export function footOffsetFromOpaqueBottom(displayHeight, frameHeight, opaqueBottomY) {
@@ -115,6 +121,95 @@ function _runNearestContact(runs, contactX) {
     }, null);
 }
 
+function _pointLineDistance(point, start, end) {
+    const dx = end.x - start.x;
+    const dy = end.y - start.y;
+    const lengthSq = dx * dx + dy * dy;
+    if (lengthSq <= 1e-9) return Math.hypot(point.x - start.x, point.y - start.y);
+    const t = Math.max(0, Math.min(1,
+        ((point.x - start.x) * dx + (point.y - start.y) * dy) / lengthSq));
+    return Math.hypot(
+        point.x - (start.x + dx * t),
+        point.y - (start.y + dy * t)
+    );
+}
+
+/** Douglas-Peucker：压掉像素阶梯噪声，但保留真实台阶/不对称接地转折。 */
+function _simplifyOpenPolyline(points, tolerance = 1) {
+    if (!Array.isArray(points) || points.length <= 2) return points || [];
+    let maxDistance = 0;
+    let splitIndex = -1;
+    const start = points[0];
+    const end = points[points.length - 1];
+    for (let index = 1; index < points.length - 1; index++) {
+        const distance = _pointLineDistance(points[index], start, end);
+        if (distance > maxDistance) {
+            maxDistance = distance;
+            splitIndex = index;
+        }
+    }
+    if (splitIndex < 0 || maxDistance <= tolerance) return [start, end];
+    const left = _simplifyOpenPolyline(points.slice(0, splitIndex + 1), tolerance);
+    const right = _simplifyOpenPolyline(points.slice(splitIndex), tolerance);
+    return left.slice(0, -1).concat(right);
+}
+
+/**
+ * 提取稳定底座横截面左右端之间的真实 alpha 下包络。
+ * 返回坐标与 Sprite 的自动视觉锚点完全相同：逻辑前脚点为 (0, 0)。
+ */
+function _extractOpaqueLowerEnvelope(
+    measured,
+    getAlpha,
+    threshold,
+    sourceMinX,
+    sourceMaxX,
+    displayWidth,
+    displayHeight,
+    visualOffsetX,
+    footOffsetY
+) {
+    const minX = Math.max(0, Math.floor(sourceMinX));
+    const maxX = Math.min(measured.width - 1, Math.ceil(sourceMaxX));
+    if (maxX <= minX) return [];
+    const sourceStep = Math.max(1, Math.floor(2 * measured.width / displayWidth));
+    const sampleXs = [];
+    for (let x = minX; x <= maxX; x += sourceStep) sampleXs.push(x);
+    if (sampleXs[sampleXs.length - 1] !== maxX) sampleXs.push(maxX);
+    const bottomRun = _runNearestContact(
+        _opaqueRunsAtRow(measured.width, measured.bottomY, getAlpha, threshold),
+        measured.contactX
+    );
+    if (bottomRun) {
+        sampleXs.push(
+            Math.max(minX, Math.min(maxX, bottomRun.minX)),
+            Math.max(minX, Math.min(maxX, bottomRun.maxX)),
+            Math.max(minX, Math.min(maxX, Math.round((bottomRun.minX + bottomRun.maxX) * 0.5)))
+        );
+    }
+    sampleXs.sort((a, b) => a - b);
+    const uniqueSampleXs = sampleXs.filter((value, index) =>
+        index === 0 || value !== sampleXs[index - 1]);
+
+    const points = [];
+    for (const x of uniqueSampleXs) {
+        let bottomY = -1;
+        for (let y = measured.bottomY; y >= 0; y--) {
+            if ((Number(getAlpha(x, y)) || 0) >= threshold) {
+                bottomY = y;
+                break;
+            }
+        }
+        if (bottomY < 0) continue;
+        points.push({
+            x: visualOffsetX + (((x + 0.5) / measured.width) - 0.5) * displayWidth,
+            // 使用像素下边缘，与 footOffsetFromOpaqueBottom 的 bottomY + 1 约定一致。
+            y: -footOffsetY + (((bottomY + 1) / measured.height) - 0.5) * displayHeight,
+        });
+    }
+    return _simplifyOpenPolyline(points, 1.25);
+}
+
 /**
  * 用“最低接地点 + 标准地面侧边高度处的 alpha 横截面”拟合建筑地面四边形。
  * 逻辑占格仍由 nominalWidth/nominalHeight 决定；像素只修正可见底座的左右边界和中心。
@@ -157,7 +252,15 @@ export function fitOpaqueGroundFootprint(
             || right <= nominalWidth * 0.15
             || span < nominalWidth * 0.35
             || span > nominalWidth * 1.20) continue;
-        candidates.push({ rise, sideY: y, leftX: left, rightX: right, span });
+        candidates.push({
+            rise,
+            sideY: y,
+            leftX: left,
+            rightX: right,
+            span,
+            sourceMinX: run.minX,
+            sourceMaxX: run.maxX,
+        });
     }
 
     let sideRise = nominalHeight * 0.5;
@@ -167,12 +270,14 @@ export function fitOpaqueGroundFootprint(
     ));
     let leftX = -nominalWidth * 0.5;
     let rightX = nominalWidth * 0.5;
+    let selectedCandidate = null;
     if (candidates.length) {
         const maxSpan = Math.max(...candidates.map((candidate) => candidate.span));
         // 取底座达到局部最大宽度 94% 的第一行：仓库≈65px、军营≈75px、靶场≈85px。
         // 相比直接取最宽行，可避开更上方屋檐/旗帜造成的横向膨胀。
         const selected = candidates.find((candidate) => candidate.span >= maxSpan * 0.94)
             || candidates[candidates.length - 1];
+        selectedCandidate = selected;
         sideRise = selected.rise;
         sideY = selected.sideY;
         leftX = selected.leftX;
@@ -208,6 +313,28 @@ export function fitOpaqueGroundFootprint(
     const contactOffsetX = visualOffsetXFromOpaqueContact(dw, measured.width, contactX);
     const visualOffsetX = contactOffsetX - measuredSideCenter;
     const footOffsetY = footOffsetFromOpaqueBottom(dh, measured.height, measured.bottomY);
+    const fallbackSourceHalfWidth = measuredHalfWidth / scaleX;
+    const sourceMinX = selectedCandidate?.sourceMinX ?? (contactX - fallbackSourceHalfWidth);
+    const sourceMaxX = selectedCandidate?.sourceMaxX ?? (contactX + fallbackSourceHalfWidth);
+    const lowerEnvelope = _extractOpaqueLowerEnvelope(
+        measured,
+        getAlpha,
+        threshold,
+        sourceMinX,
+        sourceMaxX,
+        dw,
+        dh,
+        visualOffsetX,
+        footOffsetY
+    );
+    // 后角仍由稳定地面深度给出；右→左的前半边改用贴图真实 alpha 下包络。
+    // 这样保留透视面积，同时不再把台阶、门槛和非对称底座强制重画成标准菱形。
+    const contactPolygon = lowerEnvelope.length >= 2
+        ? [
+            { key: 'back', x: backX, y: -sideRise * 2 },
+            ...lowerEnvelope.slice().reverse(),
+        ]
+        : localVertices;
     return {
         visualOffsetX,
         footOffsetY,
@@ -226,6 +353,7 @@ export function fitOpaqueGroundFootprint(
         collisionHeight: sideRise * 2,
         collisionRadius: groundRadius,
         localVertices,
+        contactPolygon,
         frameWidth: measured.width,
         frameHeight: measured.height,
     };
@@ -319,9 +447,185 @@ export function resolveStructureGroundFit(
             x: Math.round(point.x * 2) / 2,
             y: Math.round(point.y * 2) / 2,
         })),
+        contactPolygon: (fit.contactPolygon || fit.localVertices).map((point) => ({
+            ...point,
+            x: Math.round(point.x * 2) / 2,
+            y: Math.round(point.y * 2) / 2,
+        })),
     };
     _groundFitCache.set(cacheKey, rounded);
     return rounded;
+}
+
+function _roundHalf(value) {
+    return Math.round((Number(value) || 0) * 2) / 2;
+}
+
+function _polygonBounds(points) {
+    const xs = points.map((point) => Number(point?.x)).filter(Number.isFinite);
+    const ys = points.map((point) => Number(point?.y)).filter(Number.isFinite);
+    if (!xs.length || !ys.length) return null;
+    return {
+        minX: Math.min(...xs),
+        maxX: Math.max(...xs),
+        minY: Math.min(...ys),
+        maxY: Math.max(...ys),
+    };
+}
+
+function _qualifiedColumnRuns(counts, threshold, maxGap) {
+    const runs = [];
+    let start = -1;
+    let last = -1;
+    let score = 0;
+    const flush = () => {
+        if (start >= 0 && last >= start) runs.push({ start, end: last, score });
+        start = -1;
+        last = -1;
+        score = 0;
+    };
+    for (let index = 0; index < counts.length; index++) {
+        const count = counts[index] || 0;
+        if (count < threshold) continue;
+        if (start < 0) {
+            start = index;
+        } else if (index - last - 1 > maxGap) {
+            flush();
+            start = index;
+        }
+        last = index;
+        score += count;
+    }
+    flush();
+    return runs;
+}
+
+/**
+ * 从当前主体贴图 alpha 自动提取三档高度截面，生成稳定的低模阴影部件。
+ *
+ * 这里只采样当前 TextureManager 帧并按纹理/显示尺寸缓存，不读 manifest；每个高度带
+ * 最多保留两个主要横向实体，窗洞等小缝会合并，旗杆等零碎噪点会被列占用率过滤。
+ * 返回的 polygon 仍是相对逻辑脚点的地面坐标，供 shadow caster 按 baseZ/topZ 挤出。
+ */
+export function resolveStructureAlphaShadowSlices(
+    scene,
+    textureKey,
+    frameName,
+    displayWidth,
+    displayHeight,
+    groundFit,
+    contactLocal,
+    structureHeight
+) {
+    const frame = scene?.textures?.getFrame(textureKey, frameName);
+    const bounds = _polygonBounds(contactLocal || []);
+    if (!frame || !groundFit || !bounds) return [];
+    const width = frame.realWidth || frame.cutWidth || frame.width;
+    const height = frame.realHeight || frame.cutHeight || frame.height;
+    if (!(width > 0) || !(height > 0)) return [];
+
+    const safeDisplayW = Math.max(1, Number(displayWidth) || 1);
+    const safeDisplayH = Math.max(1, Number(displayHeight) || 1);
+    const safeHeight = Math.max(1, Number(structureHeight) || 1);
+    const contactSignature = contactLocal
+        .map((point) => `${_roundHalf(point.x)},${_roundHalf(point.y)}`)
+        .join('|');
+    const cacheKey = [
+        textureKey,
+        String(frameName ?? frame.name),
+        `${width}x${height}`,
+        `${safeDisplayW}x${safeDisplayH}`,
+        safeHeight,
+        _roundHalf(groundFit.visualOffsetX),
+        contactSignature,
+    ].join(':');
+    if (_shadowSliceCache.has(cacheKey)) return _shadowSliceCache.get(cacheKey);
+
+    const threshold = FOOT_ALPHA_THRESHOLD;
+    const stepX = Math.max(1, Math.ceil(width / 384));
+    const stepY = Math.max(1, Math.ceil(height / 384));
+    const bottomY = Math.max(1, Math.min(height - 1, Math.round(groundFit.bottomY)));
+    const sampledRows = [];
+    let topY = bottomY;
+    for (let y = 0; y <= bottomY; y += stepY) {
+        const xs = [];
+        for (let x = 0; x < width; x += stepX) {
+            if ((Number(scene.textures.getPixelAlpha(x, y, textureKey, frameName)) || 0) >= threshold) {
+                xs.push(x);
+            }
+        }
+        if (!xs.length) continue;
+        topY = Math.min(topY, y);
+        sampledRows.push({ y, xs });
+    }
+    const visibleHeight = bottomY - topY;
+    if (!sampledRows.length || visibleHeight < 8) {
+        _shadowSliceCache.set(cacheKey, []);
+        return [];
+    }
+
+    const contactWidth = Math.max(8, bounds.maxX - bounds.minX);
+    const contactHalfDepth = Math.max(4, (bounds.maxY - bounds.minY) * 0.5);
+    const contactCenterY = (bounds.minY + bounds.maxY) * 0.5;
+    const sampleColumns = Math.ceil(width / stepX);
+    const maxGap = Math.max(1, Math.round(width * 0.018 / stepX));
+    const minVisibleSpan = Math.max(7, contactWidth * 0.08);
+    const slices = [];
+
+    for (const band of AUTO_SHADOW_SLICE_BANDS) {
+        const counts = new Uint16Array(sampleColumns);
+        let rowsInBand = 0;
+        for (const row of sampledRows) {
+            const ratio = (bottomY - row.y) / visibleHeight;
+            if (ratio < band.min || ratio > band.max) continue;
+            rowsInBand++;
+            for (const x of row.xs) counts[Math.floor(x / stepX)]++;
+        }
+        if (!rowsInBand) continue;
+        const columnThreshold = Math.max(1, Math.ceil(rowsInBand * 0.06));
+        const runs = _qualifiedColumnRuns(counts, columnThreshold, maxGap)
+            .map((run) => {
+                const leftPx = run.start * stepX;
+                const rightPx = Math.min(width - 1, (run.end + 1) * stepX - 1);
+                // 必须复用 Sprite 真正采用的 visualOffsetX：仅用 (pixelX-contactX)
+                // 会漏掉稳定底座横截面的 measuredSideCenter 校正，误差会集中表现为
+                // 右侧远端影角斜率错误。这里从 Sprite 中心坐标完整映回逻辑脚点。
+                const pixelToLocalX = (pixelX) => Number(groundFit.visualOffsetX || 0)
+                    + (((pixelX + 0.5) / width) - 0.5) * safeDisplayW;
+                return {
+                    ...run,
+                    leftX: pixelToLocalX(leftPx),
+                    rightX: pixelToLocalX(rightPx),
+                };
+            })
+            .filter((run) => run.rightX - run.leftX >= minVisibleSpan)
+            .sort((a, b) => b.score - a.score)
+            .slice(0, 2)
+            .sort((a, b) => a.leftX - b.leftX);
+
+        for (let index = 0; index < runs.length; index++) {
+            const run = runs[index];
+            const halfWidth = Math.max(4, (run.rightX - run.leftX) * 0.5);
+            // 高处 alpha 带只提供可靠的左右轮廓，没有可靠的地面纵深。旧版按宽度
+            // 猜一个对称菱形，会额外制造两条 iso 斜边并拉歪左/右影角；改成薄横截面，
+            // X 两端严格保留贴图实测值，Y 只给凸包运算所需的最小稳定厚度。
+            const halfDepth = Math.max(2, Math.min(contactHalfDepth * 0.18, halfWidth * 0.08));
+            slices.push({
+                id: `auto_${band.id}_${index}`,
+                polygon: [
+                    { x: _roundHalf(run.leftX), y: _roundHalf(contactCenterY - halfDepth) },
+                    { x: _roundHalf(run.rightX), y: _roundHalf(contactCenterY - halfDepth) },
+                    { x: _roundHalf(run.rightX), y: _roundHalf(contactCenterY + halfDepth) },
+                    { x: _roundHalf(run.leftX), y: _roundHalf(contactCenterY + halfDepth) },
+                ],
+                baseZ: _roundHalf(safeHeight * band.min),
+                topZ: _roundHalf(safeHeight * band.max),
+            });
+        }
+    }
+
+    _shadowSliceCache.set(cacheKey, slices);
+    return slices;
 }
 
 export function shouldAutoAnchorStructure(entity) {
@@ -333,11 +637,11 @@ export function shouldAutoAnchorStructure(entity) {
         && !entity._isCoverGate
         && !entity._isDefenseTower
         && !entity._isWallStaircase
-        && !entity._isDefenseTrap
     );
 }
 
 export function clearStructureFootOffsetCache() {
     _footRatioCache.clear();
     _groundFitCache.clear();
+    _shadowSliceCache.clear();
 }

@@ -1,0 +1,42 @@
+{
+  "source": "tools\\ai-gen\\_settlement_building_pack_20260821\\energy_node_4\\energy_node_4_s48_seed1229321_raw.png",
+  "output": "tools\\ai-gen\\_settlement_building_pack_20260821\\energy_node_4\\energy_node_4_runtime.png",
+  "sourceMode": "RGB",
+  "background": [
+    252,
+    246,
+    5
+  ],
+  "matteColor": null,
+  "matteEdgeWidth": 3.0,
+  "matteTolerance": 120.0,
+  "maskImage": "tools\\ai-gen\\_settlement_building_pack_20260821\\energy_node_4\\energy_node_4_depth.png",
+  "maskDilate": 18,
+  "fillAlphaHoles": false,
+  "fillHoleMatteDistance": null,
+  "removeEnclosedMatte": true,
+  "enclosedMatteChromaDistance": 0.16,
+  "maskAddRects": [],
+  "restoreAlphaRects": [],
+  "cropBox": [
+    113,
+    114,
+    912,
+    876
+  ],
+  "fileSize": [
+    799,
+    762
+  ],
+  "alphaBBox": [
+    4,
+    4,
+    795,
+    758
+  ],
+  "displayW": 112,
+  "displayH": 107,
+  "footOffsetY": 53,
+  "scaleX": 0.14017521902377972,
+  "scaleY": 0.14041994750656167
+}

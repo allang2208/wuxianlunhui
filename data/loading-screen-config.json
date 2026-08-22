@@ -15,5 +15,17 @@
       "assets/scenes/loading/zombie-dungeon-2.png",
       "assets/scenes/loading/zombie-dungeon-3.png"
     ]
+  },
+  "swampForest": {
+    "sceneIds": [
+      "scene10"
+    ],
+    "minimumDurationMs": 1000,
+    "title": "沼泽林地加载中...",
+    "backgrounds": [
+      "assets/scenes/loading/swamp-forest-1.png",
+      "assets/scenes/loading/swamp-forest-2.png",
+      "assets/scenes/loading/swamp-forest-3.png"
+    ]
   }
 }

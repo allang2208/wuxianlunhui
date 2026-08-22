@@ -174,8 +174,11 @@ for (const it of parsed.items) {
 }
 // 逐建筑对准截图（相机每帧钉玩家坐标——直接把玩家传送到建筑旁）
 for (const it of parsed.items) {
-    if (!it.sil) continue;
-    await ev(`(() => { const p = window.Game.player; p.x = ${it.sil.anchorX} + 150; p.y = ${it.sil.anchorY} + 80; return 1; })()`);
+    if (!it.poly) continue;
+    const anchor = it.sil
+        ? { x: it.sil.anchorX, y: it.sil.anchorY }
+        : it.entityXY;
+    await ev(`(() => { const p = window.Game.player; p.x = ${anchor.x} + 150; p.y = ${anchor.y} + 80; return 1; })()`);
     await new Promise((r) => setTimeout(r, 500));
     await shot(`_liveshot_${it.id}.png`);
 }

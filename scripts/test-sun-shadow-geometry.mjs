@@ -281,6 +281,51 @@ check('并集：重叠行 y 跨度合并（x=90 处 y −10..40）',
 check('并集：空输入安全返回空',
     EnvironmentLightingSystem.getUnionOfPolygons([], { theta: 0 }).length === 0
     && EnvironmentLightingSystem.getUnionOfPolygons([[{ x: 0, y: 0 }]], { theta: 0 }).length === 0);
+const vertexRowPolygon = [
+    { x: 0, y: 0 }, { x: 30, y: 3.25 }, { x: 24, y: 10 }, { x: 0, y: 10 },
+];
+const vertexRowUnion = EnvironmentLightingSystem.getUnionOfPolygons([vertexRowPolygon], { theta: 0, step: 2 });
+check('并集：固定步长之外仍保留输入顶点所在扫描行',
+    vertexRowUnion.some((point) => Math.abs(point.y - 3.25) < 1e-6));
+
+const parallelTheta = 0.37;
+const parallelDir = { x: Math.cos(parallelTheta), y: Math.sin(parallelTheta) };
+const parallelPerp = { x: -parallelDir.y, y: parallelDir.x };
+const parallelLength = 80;
+const parallelPrism = EnvironmentLightingSystem.getLayeredShadowPolygon([{
+    vertices: [
+        { x: 0, y: -50 }, { x: 90, y: 0 }, { x: 0, y: 50 }, { x: -90, y: 0 },
+    ],
+    baseZ: 0,
+    topZ: 100,
+}], {
+    length: parallelLength,
+    offsetX: parallelDir.x * parallelLength,
+    offsetY: parallelDir.y * parallelLength,
+}, 100);
+const prismUV = parallelPrism.map((point) => ({
+    point,
+    u: point.x * parallelDir.x + point.y * parallelDir.y,
+    v: point.x * parallelPerp.x + point.y * parallelPerp.y,
+}));
+const prismMinV = Math.min(...prismUV.map((point) => point.v));
+const prismMaxV = Math.max(...prismUV.map((point) => point.v));
+const terminalRail = (targetV) => {
+    const row = prismUV.filter((point) => Math.abs(point.v - targetV) < 1e-6)
+        .sort((a, b) => a.u - b.u);
+    if (row.length < 2) return null;
+    const start = row[0].point;
+    const end = row[row.length - 1].point;
+    return { x: end.x - start.x, y: end.y - start.y };
+};
+const leftRail = terminalRail(prismMinV);
+const rightRail = terminalRail(prismMaxV);
+check('单体建筑投影：左右终端边共用唯一太阳方向且互相平行',
+    leftRail && rightRail
+    && Math.abs(leftRail.x * parallelDir.y - leftRail.y * parallelDir.x) < 1e-6
+    && Math.abs(rightRail.x * parallelDir.y - rightRail.y * parallelDir.x) < 1e-6
+    && Math.abs(Math.hypot(leftRail.x, leftRail.y) - parallelLength) < 1e-6
+    && Math.abs(Math.hypot(rightRail.x, rightRail.y) - parallelLength) < 1e-6);
 
 // 深浅统一 + 夜影衰减：白昼恒定 0.55、黄昏转淡、深夜归零
 EnvironmentLightingSystem.configure({ animateSun: false, startPhase: 0.25 });

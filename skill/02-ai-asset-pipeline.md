@@ -1341,30 +1341,6 @@ defend 持盾帧右偏 13px。**结论：武器弧远超身体宽的动作，格
   否则创建时算的一次性 displaySize 会压扁后续贴图；新增贴图先查初始状态
   用的纹理尺寸。
 
-#### 6. 防守陷阱贴图管线（2026-08-07，世界-122 地面陷阱）
-- **范围**：4 类（地刺 spike / 地雷 mine / 减速带 tar / 燃烧区 burn）× F→A 六档 = 24 张，
-  入库 `assets/terrain/trap_<type>_<grade>.png`；显示尺寸 70~92 × 50~68（trap-config.js）。
-- **视角**：等距地面物件——30° 俯视、顶面可见、平贴地面、单件居中（与掩体 30° 底边
-  斜墙同视角体系，但陷阱强调"俯视看到顶面/内部"，不是立墙）。
-- **视角定稿（2026-08-07 用户三轮校正）**：陷阱视角基准 = **游戏掩体墙的 2.5D 等距
-  30° 地板线**（`front face visible, top surface slightly visible and foreshortened`），
-  **不是**障碍物的 2:1 diamond 俯视基准（第一轮错用），也**不是**正俯视/立式桶鼓。
-  各类型差异：地刺/减速带/燃烧区天然有立面感，通用视角块即可；**地雷必须按
-  "平贴地面的扁平圆盘"写**——`flat round mine lying flat on the ground, seen from a
-  30-degree elevated angle, the circular top is a foreshortened ellipse (not a full
-  circle), only a thin low side wall is visible below the top rim, low and flat like a
-  pancake`（写"standing upright drum/side dominant"会被画成油桶，已否）。
-- **提示词模板**：`tools/ai-gen/prompts/trap.md`（风格基准 + 视角块 + 类型×档位主题词 +
-  负面词；材质逐档递进：F 木/铁简陋 → A 符文魔改）。
-- **生成**：`tools/ai-gen/gen-trap-assets.py`（5080 `flux2-dev-fp8`，默认 24 步；
-  支持 `--keys` 小批验证、`--skip-existing` 断点续传、`--timeout` 单张超时）。
-  5080 空闲单张 ~56s；被并行任务占用时 10~20min/张，务必断点续传分批跑。
-- **抠图铁律**：用 `make-transparent-icon.py`（flood fill，半透明残留 ~0.7%）；
-  **不要用 `prep-obstacle.py`（GrabCut）抠陷阱**——白底 AI 出图的浅色主体边缘
-  灰边残留 6~37% 超标（掩体深色材质不受影响，陷阱的浅木/金属/火焰必翻车）。
-- **验收**：GLM 检查视角/主体/无白边；实机放 4 类 D 级陷阱截图，GLM 确认与地面
-  墙壁协调、大小合适、类型可辨识。
-
 #### 8. 掩体墙根土块（Blender 整合建模，2026-08-08 最终定稿）
 - **最终方案（用户反复校正后定稿）**：**土块与墙在同一个 Blender 渲染中整合建模**
   （烘焙进墙贴图），土块沿墙底边精确贴合；独立叠加方案（sprite/贴花）已否——

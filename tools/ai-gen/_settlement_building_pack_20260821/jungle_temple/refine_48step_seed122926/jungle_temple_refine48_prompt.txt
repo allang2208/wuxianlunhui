@@ -1,0 +1,11 @@
+Use case: stylized-concept
+Asset type: World-122 isometric jungle-temple texture refinement
+Input images: the 12-step seed 122926 candidate is the edit target; the Blender depth render is the structure and camera control
+Primary request: refine only the existing temple's surface quality and small architectural details into a polished grand RTS building asset
+Scene/backdrop: preserve the perfectly uniform vivid chroma-key yellow background, with no horizon, terrain, shadow outside the foundation, or scenery
+Subject: preserve exactly the current single monumental jungle temple, its complete square foundation, central stair, three ascending central upper masses, two attached mirrored tower platforms, central doorway, sun medallion, stepped crown and small roof finials
+Style/medium: polished semi-realistic stylized 3D game render, low-saturation ancient olive-gray limestone, restrained Mesoamerican-inspired geometric stone detailing, readable at RTS scale
+Lighting/mood: preserve the neutral studio lighting and restrained warm doorway glow; no bloom, fog or god rays
+Materials/textures: improve stone block courses, shallow erosion, carved cornices, doorway surround, window recesses, platform pillars and restrained attached vines; keep surfaces crisp rather than noisy
+Constraints: preserve the exact silhouette, camera, framing, scale, foundation corners, tower count, tower placement, floor count, doorway position, stair position and yellow background of the edit target; both side tower platforms remain the same height and design; change only material and fine detail; keep all architecture solid and physically connected
+Avoid: structural redesign, extra floors, missing floors, extra towers, detached towers, changed stair direction, additional stairs, asymmetry, enlarged vines, trees, bushes, ruins, broken walls, statues, people, animals, loose props, courtyard, perimeter wall, text, watermark, border, crop, perspective camera, cast shadow outside the foundation

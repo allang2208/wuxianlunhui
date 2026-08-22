@@ -2,25 +2,28 @@
  * 世界-122 能源系统配置（纯数据，无 DOM/Phaser 依赖，可 node 单测）。
  */
 export const ENERGY_CONFIG = {
-    gatherRatio: 0.5,          // 每次攻击按造成伤害的 50% 产出能源
-    respawnMs: 90000,          // 资源点耗尽后刷新时间
-    nodeSize: 84,              // 显示尺寸基准：尖塔晶簇整体缩小 50%
+    gatherRatio: 1.0,          // 每次攻击按造成伤害的 100% 产出能源
+    depletedHoldMs: 650,       // 采空后先显示暗灰裂纹态，再进入建筑同款沉陷
+    footprintCells: 1,        // 每个矿点固定占用一个 128×64 等距格（逻辑占格，不阻挡移动）
+    nodeSize: 112,             // 显示宽度基准：留在 1×1 格宽 128px 内，仍保留少量尺寸抖动
     nodeRadius: 0,             // 物理碰撞半径：能源矿不再阻挡单位
     gatherRadius: 45,          // 采集接近半径（独立于物理碰撞，保证矿工仍可停在合适位置挥锄）
-    nodeSpacing: 115,          // 缩小后矿点最小视觉间距
-    storage: { min: 2000, max: 4000 }, // 单点储量（= hp）
-    // 玩家基地核心周边禁矿带（2026-08-16）：半径内不生成任何能源矿；
-    // 场地翻倍 12288×8192 后基地等比右移（DEFENSE_CONFIG.base = 4200,4096）
-    baseExclusion: { x: 4200, y: 4096, radius: 800 },
-    // 大能源点（2026-08-16）：簇状集中生成，每簇 10~20 块，玩家可集中采集。
-    // 簇心避开基地菱形房（x 3688..4712, y 3840..4352）、玩家出生点与右端刷怪带（x>11200）；
-    // 树木散布按「簇心 ±(spread+140)」整圈排除，防止树压到矿点。
-    // 2026-08-16 v3（场地翻倍）：按旧簇心相对中心 (3072,2048) ×2 等比平移，
-    // 全部落在新菱形内且远离基地/刷怪带；簇间两两距离 ≥ ~1430（>spread 之和 640）。
-    clusters: [
-        { x: 5400, y: 2700, count: 14, spread: 320 },
-        { x: 8000, y: 3300, count: 14, spread: 320 },
-        { x: 8000, y: 4900, count: 14, spread: 320 },
-        { x: 9800, y: 4096, count: 12, spread: 300 },
-    ],
+    storage: { min: 5000, max: 8000 }, // 单点储量（= hp）
+    // 位面世代资源布局 v2：5 个远距主矿簇 + 1 个传送门 3000px 环上的三矿保底簇。
+    // 簇心和每矿储量均使用位面世代随机流；同一世代重复进入由快照保持，重建位面后才换布局。
+    generation: {
+        layoutVersion: 2,
+        majorClusterCount: 5,
+        majorNodeCount: { min: 10, max: 12 },
+        minimumTotalNodes: 54, // 兼容旧四簇最多 54 矿的存量迁移，不因换布局丢失未采矿物
+        majorMinPortalDistance: 3000,
+        majorMinCenterSpacing: 850,
+        fallbackNodeCount: 3,
+        fallbackPortalDistance: 3000,
+        fallbackMinCenterSpacing: 520,
+        clusterSpread: 320,
+        fallbackSpread: 180,
+        diamondInset: 380,
+        candidateAttempts: 720,
+    },
 };

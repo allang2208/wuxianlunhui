@@ -10,6 +10,7 @@ import {
     resolveCivilianVisualPosition,
     sweepCivilianVisualMove,
 } from './civilian-visual-utils.js';
+import { WORLD_RENDER_LAYERS } from './world-render-layers.js';
 
 const HOSTILE_FACTIONS = new Set(['enemy', 'agent']);
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
@@ -337,7 +338,6 @@ export const WorkshopEconomySystem = {
             worker.sprite.setOrigin(0.5, Number(visual.originY) || 0.82);
             const displaySize = Math.max(1, Number(visual.displaySize) || 128);
             worker.sprite.setDisplaySize(displaySize, displaySize);
-            worker.sprite.setDepth(worker.y + 10);
             registerCivilianVisual(worker, 'engineer');
             syncWorkerAnimation(worker, true);
             syncWorkerSprite(worker);
@@ -504,7 +504,7 @@ export const WorkshopEconomySystem = {
         const graphics = this._rangeGraphics;
         graphics.clear();
         graphics.setPosition(building.x, building.y);
-        graphics.setDepth(building.y - 998);
+        graphics.setDepth(WORLD_RENDER_LAYERS.GROUND_RANGE);
         graphics.fillStyle(color, 0.09);
         graphics.lineStyle(3, color, 0.78);
         graphics.fillEllipse(0, 0, range * 2, range * 2 * PERSPECTIVE_SCALE_Y);

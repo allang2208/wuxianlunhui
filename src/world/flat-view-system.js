@@ -4,10 +4,9 @@ import {
     worldDeltaToIsoLocal,
 } from '../physics/iso-footprint.js';
 import { UIState } from '../ui/ui-state.js';
+import { WORLD_RENDER_LAYERS } from './world-render-layers.js';
 
 const SUPPORTED_SCENES = new Set(['scene8', 'scene9', 'scene10', 'scene11']);
-const FLAT_DEPTH = -994;
-const FOUNDATION_DEPTH = FLAT_DEPTH - 0.25;
 
 const STYLE = Object.freeze({
     building: { fill: 0x42576b, line: 0x9fc6df, alpha: 0.28 },
@@ -293,7 +292,7 @@ export const FlatViewSystem = {
         if (this._unitGraphics?.active) this._unitGraphics.destroy();
         this._scene = scene;
         this._graphics = scene.add.graphics();
-        this._graphics.setDepth(FLAT_DEPTH);
+        this._graphics.setDepth(WORLD_RENDER_LAYERS.FLAT_STRUCTURE);
         this._unitGraphics = scene.add.graphics();
         // 只读高度提示覆盖单位，但保持在世界 HUD/屏幕 HUD 下方。
         this._unitGraphics.setDepth(99970);
@@ -321,7 +320,7 @@ export const FlatViewSystem = {
         const saved = this._remember(object);
         if (!saved) return;
         object.setVisible?.(saved.visible);
-        object.setDepth?.(FOUNDATION_DEPTH);
+        object.setDepth?.(WORLD_RENDER_LAYERS.FOUNDATION);
     },
 
     _restoreVisuals() {

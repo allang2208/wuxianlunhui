@@ -5,8 +5,7 @@ import { isoLocalToWorldDelta } from '../physics/iso-footprint.js';
 const TAU = Math.PI * 2;
 // 2026-08-19：阴影深浅全局统一——颜色统一纯黑，透明度 0.1925
 //（0.55 → −30% → 再 −50%，用户口径），不随仰角变化、不分层叠加。
-// 2026-08-21：单位（动态）阴影加深 25% → 0.240625（用户口径）；静态仍为 0.1925。
-// 2026-08-21 二轮：单位阴影再加深 25% → 0.30078125（部分仓鼠单位脚下阴影太淡，用户口径）。
+// 2026-08-21：单位（动态）阴影两轮各加深 25%，最终 0.30078125；静态仍为 0.1925。
 // 个体仍可用 shadow.opacity 覆盖。改深浅只调这两个常量。
 const STATIC_SHADOW_OPACITY = 0.1925;
 const DYNAMIC_SHADOW_OPACITY = 0.30078125;
@@ -22,6 +21,9 @@ const DEFAULTS = Object.freeze({
     startPhase: 0.25,
     dynamicMaxOffset: 16,
     staticMaxOffset: 72,
+    // 环境阴影只衰减强度，不再在无太阳时彻底消失。
+    nightShadowStrength: 0.4,
+    dungeonShadowStrength: 0.55,
 });
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
@@ -86,6 +88,15 @@ export const EnvironmentLightingSystem = {
         };
     },
 
+    /** 玩法视野的统一昼夜倍率；夜晚口径与深夜环境覆盖层共用 daylight 阈值。 */
+    getVisionRangeMultiplier(options = {}) {
+        const configuredMultiplier = Number(options.nightMultiplier);
+        const configuredThreshold = Number(options.nightDaylightThreshold);
+        const nightMultiplier = clamp(Number.isFinite(configuredMultiplier) ? configuredMultiplier : 0.5, 0, 1);
+        const nightThreshold = clamp(Number.isFinite(configuredThreshold) ? configuredThreshold : 0.12, 0, 1);
+        return this._sun.daylight <= nightThreshold ? nightMultiplier : 1;
+    },
+
     getGameTime() {
         const duration = Math.max(1, Number(this._config.dayDurationMs) || DEFAULTS.dayDurationMs);
         const cycles = this._elapsedMs / duration + (this._config.startPhase || 0);
@@ -115,31 +126,60 @@ export const EnvironmentLightingSystem = {
     },
 
     /**
-     * 统一推导单位接触阴影。个体可用 entity.shadow 或 render.shadow 覆盖：
-     * { enabled, height, maxOffset, opacity, widthMul, depthMul }。
+     * 室外随昼夜平滑变化：白天 100%，深夜保留 nightShadowStrength；
+     * 地牢使用固定的低强度环境影，不再受被冻结的世界太阳时间二次衰减。
      */
-    getDynamicShadow(entity, radius) {
+    getShadowStrength(context = {}) {
+        const fallback = context.dungeon === true
+            ? DEFAULTS.dungeonShadowStrength
+            : DEFAULTS.nightShadowStrength;
+        const configured = Number(context.dungeon === true
+            ? this._config.dungeonShadowStrength
+            : this._config.nightShadowStrength);
+        const minimumStrength = clamp(Number.isFinite(configured) ? configured : fallback, 0, 1);
+        if (context.dungeon === true) return minimumStrength;
+
+        const daylightBlend = clamp((this._sun.daylight - 0.1) / 0.2, 0, 1);
+        return minimumStrength + (1 - minimumStrength) * daylightBlend;
+    },
+
+    /**
+     * 统一推导单位接触阴影。普通单位默认严格贴合水平 2:1 ground footprint；
+     * 只有显式 directional=true 的特殊单位才启用太阳方向尾影。
+     * 个体可用 entity.shadow 或 render.shadow 覆盖：
+     * { enabled, directional, height, maxOffset, opacity, widthMul, depthMul }。
+     */
+    getDynamicShadow(entity, radius, context = {}) {
         if (!this._config.enabled) return null;
         const render = entity?.config?.render || {};
         const style = entity?.shadow || render.shadow || {};
         if (style.enabled === false) return null;
 
         const safeRadius = Math.max(1, radius || 10);
+        const directional = style.directional === true;
         const height = Math.max(0, Number(
             style.height ?? entity?.shadowHeight ?? render.shadowHeight ?? entity?.bodyHeight ?? safeRadius * 4
         ) || 0);
         const maxOffset = Math.max(0, Number(style.maxOffset ?? this._config.dynamicMaxOffset) || 0);
-        // 正午短、早晚长；所有移动单位都钳制为短投影，保持战斗画面清晰。
-        const length = clamp(height * 0.12 * (0.28 + (1 - this._sun.elevation) * 1.35), 2, maxOffset);
-        const widthMul = Math.max(0.1, Number(style.widthMul ?? (1.05 + length * 0.012)) || 1);
-        const depthMul = Math.max(0.1, Number(style.depthMul ?? (0.92 + length * 0.008)) || 1);
-        // 深浅统一（2026-08-19）：恒定透明度，不随仰角漂移；
-        // 但随 daylight 衰减（夜影修复）——daylight≥0.3 全强度，黄昏快速转淡，
-        // ≤0.1（约 18:35 后）归零，夜里没有太阳时不残留任何黑影块。
-        const nightFade = clamp((this._sun.daylight - 0.1) / 0.2, 0, 1);
-        const opacity = clamp(Number(style.opacity ?? DYNAMIC_SHADOW_OPACITY) || 0, 0, 1) * nightFade;
+        // 普通单位是接触影，不应随太阳方向把水平 footprint 整体转成竖椭圆。
+        // 显式方向模式仍保持正午短、晨昏长，并钳制为短投影以免干扰战斗画面。
+        const length = directional
+            ? clamp(height * 0.12 * (0.28 + (1 - this._sun.elevation) * 1.35), 2, maxOffset)
+            : 0;
+        const widthMul = Math.max(0.1, Number(
+            style.widthMul ?? (directional ? (1.05 + length * 0.012) : 1)
+        ) || 1);
+        const depthMul = Math.max(0.1, Number(
+            style.depthMul ?? (directional ? (0.92 + length * 0.008) : 1)
+        ) || 1);
+        // 深浅统一（2026-08-19）：基础透明度不随仰角漂移；环境只调整整体强度。
+        // 室外夜间保留低强度接触影，地牢使用固定强度，不与世界昼夜叠乘。
+        const environmentStrength = this.getShadowStrength(context);
+        const opacity = clamp(Number(style.opacity ?? DYNAMIC_SHADOW_OPACITY) || 0, 0, 1)
+            * environmentStrength;
 
         return {
+            directional,
             offsetX: this._sun.shadowX * length,
             offsetY: this._sun.shadowY * length,
             widthMul,
@@ -152,17 +192,17 @@ export const EnvironmentLightingSystem = {
      * 静态物体（树木、后续建筑/Boss）的方向性软投影。
      * 返回的 length 是投影胶囊应额外拉长的长度，offset 为其中心向投影方向移动的距离。
      */
-    getStaticShadow(options = {}) {
+    getStaticShadow(options = {}, context = {}) {
         if (!this._config.enabled || !this._config.staticEnabled
             || this.getShadowQuality() === 'low' || options.enabled === false) return null;
         const height = Math.max(0, Number(options.height) || 0);
         const maxOffset = Math.max(0, Number(options.maxOffset ?? this._config.staticMaxOffset) || 0);
         // 静态物体允许比人物更长的影子：正午收短，早晚伸长。
         const length = clamp(height * 0.5 * (0.20 + (1 - this._sun.elevation) * 1.7), 4, maxOffset);
-        // 深浅统一（2026-08-19）：恒定透明度，不随仰角漂移；
-        // 随 daylight 衰减（夜影修复）——daylight≥0.3 全强度，≤0.1 归零。
-        const nightFade = clamp((this._sun.daylight - 0.1) / 0.2, 0, 1);
-        const opacity = clamp(Number(options.opacity ?? STATIC_SHADOW_OPACITY) || 0, 0, 1) * nightFade;
+        // 与单位阴影共用环境强度：室外夜间仍可见，地牢固定为低强度环境影。
+        const environmentStrength = this.getShadowStrength(context);
+        const opacity = clamp(Number(options.opacity ?? STATIC_SHADOW_OPACITY) || 0, 0, 1)
+            * environmentStrength;
 
         return {
             offsetX: this._sun.shadowX * length * 0.5,
@@ -197,7 +237,9 @@ export const EnvironmentLightingSystem = {
     /**
      * 建筑分层低模投影：每个部件按 baseZ/topZ 分别平移，再把部件投影合成单一边界。
      * referenceHeight 与 getStaticShadow 的 height 同源，保证配置高度只分配总影长，
-     * 不改变太阳连续运动、最大长度钳制或共享层单次填充契约。
+     * 不改变太阳连续运动、最大长度钳制或共享层单次填充契约。普通建筑默认只有一个
+     * contact 部件，因此左右终端边严格是同一轮廓沿唯一太阳向量形成的两条平行轨道；
+     * 多部件只允许由 shadowCaster.parts / autoParts:true 显式启用。
      */
     getLayeredShadowPolygon(parts, profile, referenceHeight) {
         if (!Array.isArray(parts) || parts.length === 0) return [];
@@ -213,57 +255,26 @@ export const EnvironmentLightingSystem = {
             const topRatio = clamp((Number(part.topZ) || 0) / refHeight, baseRatio, 1);
             const baseOffset = length * baseRatio;
             const topOffset = length * topRatio;
-            const points = [];
+            const basePolygon = [];
+            const topPolygon = [];
             for (const point of part.vertices) {
                 if (!point || !Number.isFinite(point.x) || !Number.isFinite(point.y)) continue;
-                points.push({
+                basePolygon.push({
                     x: point.x + dirX * baseOffset,
                     y: point.y + dirY * baseOffset,
                 });
-                points.push({
+                topPolygon.push({
                     x: point.x + dirX * topOffset,
                     y: point.y + dirY * topOffset,
                 });
             }
-            if (points.length >= 3) polygons.push(this._convexHull(points));
-        }
-        if (polygons.length === 0) return [];
-        if (polygons.length === 1) return polygons[0];
-        return this.getUnionOfPolygons(polygons, { theta });
-    },
-
-    /**
-     * 建筑分层低模投影：每个部件按 baseZ/topZ 分别平移，再把部件投影合成单一边界。
-     * referenceHeight 与 getStaticShadow 的 height 同源，保证配置高度只分配总影长，
-     * 不改变太阳连续运动、最大长度钳制或共享层单次填充契约。
-     */
-    getLayeredShadowPolygon(parts, profile, referenceHeight) {
-        if (!Array.isArray(parts) || parts.length === 0) return [];
-        const length = Math.max(0, Number(profile?.length) || 0);
-        const theta = Math.atan2(profile?.offsetY || 0, profile?.offsetX || 0);
-        const dirX = Math.cos(theta);
-        const dirY = Math.sin(theta);
-        const refHeight = Math.max(1, Number(referenceHeight) || 1);
-        const polygons = [];
-        for (const part of parts) {
-            if (!Array.isArray(part?.vertices) || part.vertices.length < 3) continue;
-            const baseRatio = clamp((Number(part.baseZ) || 0) / refHeight, 0, 1);
-            const topRatio = clamp((Number(part.topZ) || 0) / refHeight, baseRatio, 1);
-            const baseOffset = length * baseRatio;
-            const topOffset = length * topRatio;
-            const points = [];
-            for (const point of part.vertices) {
-                if (!point || !Number.isFinite(point.x) || !Number.isFinite(point.y)) continue;
-                points.push({
-                    x: point.x + dirX * baseOffset,
-                    y: point.y + dirY * baseOffset,
-                });
-                points.push({
-                    x: point.x + dirX * topOffset,
-                    y: point.y + dirY * topOffset,
-                });
+            if (basePolygon.length >= 3) {
+                // 一个分层部件的地面投影是“原多边形沿影向平移”的扫掠体。
+                // 旧版把两端所有点直接做凸包，会把真实 alpha 下包络重新拉直；
+                // 改用太阳帧包络，保留输入顶点扫描行和接地侧的非矩形转折。
+                const swept = this.getUnionOfPolygons([basePolygon, topPolygon], { theta });
+                if (swept.length >= 3) polygons.push(swept);
             }
-            if (points.length >= 3) polygons.push(this._convexHull(points));
         }
         if (polygons.length === 0) return [];
         if (polygons.length === 1) return polygons[0];
@@ -407,8 +418,18 @@ export const EnvironmentLightingSystem = {
             }
         }
         const step = Math.max(1.5, Number(options.step) || 2);
+        // 固定步长只负责补充长边采样；每个输入顶点所在的 v 行必须原样保留。
+        // 否则接地角落会被最多一个 step 重采样掉，表现为底边离开建筑或左右角度漂移。
+        const sampleVs = [minV, maxV];
+        for (let v = minV; v <= maxV + 1e-6; v += step) sampleVs.push(v);
+        for (const poly of polys) {
+            for (const point of poly) sampleVs.push(point.v);
+        }
+        sampleVs.sort((a, b) => a - b);
+        const uniqueVs = sampleVs.filter((value, index) =>
+            index === 0 || Math.abs(value - sampleVs[index - 1]) > 1e-5);
         const rows = [];
-        for (let v = minV; v <= maxV + 1e-6; v += step) {
+        for (const v of uniqueVs) {
             let uMin = Infinity;
             let uMax = -Infinity;
             for (const poly of polys) {

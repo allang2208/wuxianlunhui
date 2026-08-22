@@ -8,7 +8,6 @@ import { GAME_CONFIG } from '../../config/game-config.js';
 import { loadWallPrefabs, loadObstacleLayout, loadObstacleDefaults } from '../../world/wall-prefabs.js';
 import { WallSystem } from '../../world/wall-system.js';
 import { PLAYER_ANIMS, playerTextureKey } from '../../config/player-anim.js';
-import { TRAP_CONFIG, TRAP_GRADES } from '../../world/trap-config.js';
 import companionConfigData from '../../../data/companion-config.json';
 import hamsterMinerConfig from '../../../data/hamster-miner-config.json';
 import hamsterWarriorConfig from '../../../data/hamster-warrior-config.json';
@@ -20,6 +19,8 @@ import hamsterMusketeerConfig from '../../../data/hamster-musketeer-config.json'
 import hamsterPriestConfig from '../../../data/hamster-priest-config.json';
 import hamsterKnightConfig from '../../../data/hamster-knight-config.json';
 import hamsterLightCavalryConfig from '../../../data/hamster-light-cavalry-config.json';
+import hamsterExplorerConfig from '../../../data/hamster-explorer-config.json';
+import hamsterBountyHunterConfig from '../../../data/hamster-bounty-hunter-config.json';
 import populationEconomyConfig from '../../../data/population-economy.json';
 
 export class BootScene extends Scene {
@@ -96,7 +97,7 @@ export class BootScene extends Scene {
         }
 
         // ---- 世界-122 友方单位（独立配置，不入招募池）----
-        for (const unitConfig of [hamsterMinerConfig, hamsterWarriorConfig, hamsterShooterConfig, hamsterGuardConfig, hamsterMilitiaConfig, hamsterScoutConfig, hamsterMusketeerConfig, hamsterPriestConfig, hamsterKnightConfig, hamsterLightCavalryConfig]) {
+        for (const unitConfig of [hamsterMinerConfig, hamsterWarriorConfig, hamsterShooterConfig, hamsterGuardConfig, hamsterMilitiaConfig, hamsterScoutConfig, hamsterMusketeerConfig, hamsterPriestConfig, hamsterKnightConfig, hamsterLightCavalryConfig, hamsterExplorerConfig, hamsterBountyHunterConfig]) {
             for (const [animKey, def] of Object.entries(unitConfig.animations || {})) {
                 if (!def || !def.src) continue;
                 this.load.spritesheet(`companion_${unitConfig.id}_${animKey}`, def.src, {
@@ -314,14 +315,16 @@ export class BootScene extends Scene {
         this.load.image('warehouse', 'assets/terrain/warehouse.png');
         this.load.image('shooting_range', 'assets/terrain/shooting_range.png');
         this.load.image('thatch_hut', 'assets/terrain/thatch_hut.png');
+        this.load.image('explorer_camp', 'assets/terrain/explorer_camp.png');
+        this.load.image('jungle_temple', 'assets/terrain/jungle_temple.png');
         this.load.image('cavalry_school', 'assets/terrain/cavalry_school.png');
-        // 人口经济建筑：房屋三级、风车、银行与经济工坊已接入 PNG；市场仍为 SVG 占位符。
+        // 人口经济建筑：房屋三级、风车、银行、市场与经济工坊均接入 PNG。
         this.load.image('house_lv1', 'assets/terrain/house_lv1.png');
         this.load.image('house_lv2', 'assets/terrain/house_lv2.png');
         this.load.image('house_lv3', 'assets/terrain/house_lv3.png');
         this.load.image('wheat_windmill', 'assets/terrain/wheat_windmill.png');
         this.load.image('bank', 'assets/terrain/bank.png');
-        this.load.image('placeholder_market', 'assets/terrain/placeholder_market.svg');
+        this.load.image('market', 'assets/terrain/market.png');
         this.load.image('economic_workshop', 'assets/terrain/economic_workshop.png');
         this.load.spritesheet('building_field_tiles', 'assets/terrain/building_field_tiles.png', { frameWidth: 128, frameHeight: 64 });
         // 世界-122 传送门（半木石哥特门楼，透明主体按 alpha>16 紧身裁剪）
@@ -333,12 +336,6 @@ export class BootScene extends Scene {
         // 防御塔武器枪管（预裁剪独立贴图："枪插进机械臂"假象；2026-08-14）
         for (const wid of ['weapon6', 'weapon7', 'weapon21', 'weapon8', 'weapon11', 'weapon12', 'weapon13', 'weapon15']) {
             this.load.image(`tower_barrel_${wid}`, `assets/terrain/tower_barrel_${wid}.png`);
-        }
-        // 世界-122 陷阱（4 类 × F→A 六档，2026-08-07 新增）
-        for (const type of Object.keys(TRAP_CONFIG)) {
-            for (const grade of TRAP_GRADES) {
-                this.load.image(`trap_${type}_${grade}`, `assets/terrain/trap_${type}_${grade}.png`);
-            }
         }
         // 防御塔挂载弓（玩家弓走箭矢帧，塔用单张弓贴图）
         this.load.image('weapon_bow', 'assets/weapons/bow.png');
@@ -650,7 +647,7 @@ export class BootScene extends Scene {
         // 仓鼠民兵 attack = 15 帧单次（第 8 帧判定伤害由 AI 计时）；
         // 仓鼠斥候 attack = 18 帧单次（第 11 帧出膛由 AI 计时）+ projectile 单帧贴图；
         // 仓鼠牧师 spell = 17 帧单次，第 8 帧由 AI 结算圣光。
-        for (const unitConfig of [hamsterMinerConfig, hamsterWarriorConfig, hamsterShooterConfig, hamsterGuardConfig, hamsterMilitiaConfig, hamsterScoutConfig, hamsterMusketeerConfig, hamsterPriestConfig, hamsterKnightConfig, hamsterLightCavalryConfig]) {
+        for (const unitConfig of [hamsterMinerConfig, hamsterWarriorConfig, hamsterShooterConfig, hamsterGuardConfig, hamsterMilitiaConfig, hamsterScoutConfig, hamsterMusketeerConfig, hamsterPriestConfig, hamsterKnightConfig, hamsterLightCavalryConfig, hamsterExplorerConfig, hamsterBountyHunterConfig]) {
             for (const [animKey, def] of Object.entries(unitConfig.animations || {})) {
                 if (!def || !def.src) continue;
                 const texKey = `companion_${unitConfig.id}_${animKey}`;

@@ -59,7 +59,7 @@ check('每个世界都继承配置化重置策略并声明独立基础种子',
     config.version === 2
     && config.resetPolicyDefaults?.baseTemplate === 'portal_only_v1'
     && config.resetPolicyDefaults?.seedStrategy === 'per_world_epoch'
-    && config.resetPolicyDefaults?.resourceRule === 'energy_clusters_v1'
+    && config.resetPolicyDefaults?.resourceRule === 'energy_clusters_v2'
     && Object.values(config.worlds || {}).every((world) => Number.isInteger(world.resetPolicy?.baseSeed)));
 check('毁灭清除项与全局保留项在配置中明确分层',
     ['snapshot', 'playerPosition', 'structures', 'units', 'drops', 'resourceNodes', 'roads', 'activeInvasion']
@@ -130,7 +130,7 @@ check('传送门构造成功后立即建立可后台结算的基础位面快照'
     && firstBuild.worldEpoch === 1
     && firstBaseSnapshot.worldEpoch === 1
     && firstBaseSnapshot.reset?.baseTemplate === 'portal_only_v1'
-    && firstBaseSnapshot.reset?.resourceRule === 'energy_clusters_v1'
+    && firstBaseSnapshot.reset?.resourceRule === 'energy_clusters_v2'
     && firstBaseSnapshot.generation?.seed === firstBuild.generation?.seed
     && firstBaseSnapshot.structures?.some((entry) => entry.cfgKey === 'portal' && entry.hp > 0));
 

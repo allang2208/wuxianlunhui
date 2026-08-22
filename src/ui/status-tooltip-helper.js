@@ -167,11 +167,11 @@ export const StatusTooltipHelper = {
                     <div class="tt-note">攻速倍率：${fmt(d.aspd || 1)}</div>`;
             }
             case 'moveSpeed': {
-                const speed = player.maxSpeed || d.speed || CONFIG.PLAYER_SPEED || 0;
+                const speed = Number(player.maxSpeed || d.speed || CONFIG.PLAYER_SPEED || 0) || 0;
                 return `<div class="tt-title">移动速度</div>
                     <div class="tt-desc">角色正常移动时的最大速度。</div>
-                    ${formulaLine('帧速度', speed.toFixed(2), 'px/帧')}
-                    ${formulaLine('秒速度', (speed * 60).toFixed(0), 'px/s')}
+                    ${formulaLine('帧速度', speed, 'px/帧')}
+                    ${formulaLine('秒速度', Math.round(speed * 60), 'px/s')}
                     <div class="tt-note">基础：${CONFIG.PLAYER_SPEED || 0} px/帧；冲刺：${CONFIG.PLAYER_SPRINT || 0} px/帧</div>`;
             }
             case 'staminaRegen': {
@@ -204,11 +204,11 @@ export const StatusTooltipHelper = {
                     ${formulaLine('碰撞半径', player.collisionRadius || 10, 'px')}
                     ${formulaLine('碰撞高度', player.collisionHeight || 60, 'px')}`;
             case 'moveSpeedDetail': {
-                const speed = player.maxSpeed || d.speed || CONFIG.PLAYER_SPEED || 0;
+                const speed = Number(player.maxSpeed || d.speed || CONFIG.PLAYER_SPEED || 0) || 0;
                 return `<div class="tt-title">移动速度</div>
                     <div class="tt-desc">受敏捷、地牢buff、祭品影响的实时移动速度。</div>
-                    ${formulaLine('当前帧速度', speed.toFixed(2), 'px/帧')}
-                    ${formulaLine('当前秒速度', (speed * 60).toFixed(0), 'px/s')}
+                    ${formulaLine('当前帧速度', speed, 'px/帧')}
+                    ${formulaLine('当前秒速度', Math.round(speed * 60), 'px/s')}
                     <div class="tt-note">敏捷加成：${d.dex} × ${(formulas.speed?.dexMultiplier || 0.05)}</div>`;
             }
             case 'dodgeCooldown':

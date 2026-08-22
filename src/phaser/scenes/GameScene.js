@@ -78,6 +78,7 @@ import {
     structureIsoBounds,
 } from '../../world/structure-render-order.js';
 import {
+    clearStructureFootOffsetCache,
     resolveStructureGroundFit,
     shouldAutoAnchorStructure,
 } from '../../world/structure-visual-anchor.js';
@@ -89,20 +90,14 @@ import {
 import { syncAllCivilianVisualDepths } from '../../world/civilian-visual-utils.js';
 import { EnvironmentLightingSystem } from '../../world/environment-lighting-system.js';
 import { resolveStructureShadowCaster } from '../../world/structure-shadow-caster.js';
+import { WORLD_RENDER_LAYERS } from '../../world/world-render-layers.js';
 import lightingAssets from '../../../data/environment-lighting-assets.json';
 
 // 共享结构阴影层：所有建筑/障碍物阴影多边形在同一 Graphics 内 alpha 1 填充、
 // 整层统一透明度——相邻阴影交叠与单影同深（杜绝重叠加深）；
-// 层深 −994：地板块 −1000 与道路 −995 之上——道路即地面，阴影压暗路面如压裸地
-// （曾放 −998 被道路完全遮挡；当时的"道路残片"实为交叠加深，已由共享层根治）。
-const STRUCTURE_SHADOW_LAYER_DEPTH = -994;
-// 贴地装置（防御陷阱）位于道路之上、任何可移动单位之下；不用世界 Y 排序，
-// 防止单位走到同一格或其后侧时仍被小型地面贴图错误遮住。
-const GROUND_DEVICE_LAYER_DEPTH = -994;
-// 实体核心环（alpha 1 实心，整层统一透明度）；外圈淡出环（小 alpha 软边）。
-const STRUCTURE_SHADOW_CORE_SCALES = [1.0, 1.02];
-// 2026-08-19：淡出环（×1.045/1.07/1.10 三档 scaled fill）已废弃——相邻阴影的环
-// 互相叠乘变深（0.30+0.30→0.51）。软边改为沿轮廓单次 lineStyle 描边（见共享层）。
+// 深度由 WORLD_RENDER_LAYERS 统一分配：位于地基之上、压平投影之下。
+// 道路即地面，阴影压暗路面如压裸地；同层对象不再依赖显示列表创建顺序。
+// 根部轮廓必须原尺寸单次填充；整体放大或居中描边都会越过主体贴图的 alpha 接地边。
 
 
 export class GameScene extends Scene {
@@ -113,7 +108,8 @@ export class GameScene extends Scene {
     // ---- 生命周期 ----
 
     create() {
-        
+        // 场景重建或同路径贴图热替换后，禁止沿用旧 alpha 扫描结果。
+        clearStructureFootOffsetCache();
 
         // 标记场景就绪，通知外部系统（必须提前，因为后续代码依赖 window.__phaserScene）
         window.__phaserSceneReady = true;
@@ -206,7 +202,7 @@ export class GameScene extends Scene {
         this._persistentEnvironmentGlows = new Map();
         // 动画单位按“贴图键+帧”懒生成预投影遮罩；限制数量避免长时战斗纹理无限增长。
         this._structureShadowLayer = this.add.graphics();
-        this._structureShadowLayer.setDepth(STRUCTURE_SHADOW_LAYER_DEPTH);
+        this._structureShadowLayer.setDepth(WORLD_RENDER_LAYERS.STRUCTURE_SHADOW);
         this._structureShadowJobs = [];
         // 场景重启后新层为空画布：复位脏检查状态，首帧强制重画（防阴影不可见）。
         this._structureShadowJobCount = -1;
@@ -1053,6 +1049,8 @@ export class GameScene extends Scene {
                 const st = member._animState || 'idle';
                 const miningKey = `companion_${animId}_mining`;
                 const dyingKey = `companion_${animId}_dying`;
+                const viewingKey = `companion_${animId}_viewing`;
+                const diggingKey = `companion_${animId}_digging`;
                 // 仓鼠骑士的待机是多帧循环。不能像伊莉丝那样只靠最终 idle 回退分支
                 // 清动作锁，否则 attack → 多帧 idle → attack 后会永久认为“已播过”。
                 if (member._isHamsterKnight) {
@@ -1070,6 +1068,20 @@ export class GameScene extends Scene {
                     if (!sprite.getData('hamsterDying')) {
                         sprite.setData('hamsterDying', true);
                         sprite.play(dyingKey, true);
+                    }
+                } else if (st === 'viewing' && member._isHamsterExplorer
+                    && anims.viewing && this.textures.exists(viewingKey)) {
+                    // 探险途中到点停留：18 帧观察动作只播一次，状态结束后下一段移动会清锁。
+                    if (!sprite.getData('explorerViewing')) {
+                        sprite.setData('explorerViewing', true);
+                        sprite.play(viewingKey, true);
+                    }
+                } else if (st === 'digging' && member._isHamsterExplorer
+                    && anims.digging && this.textures.exists(diggingKey)) {
+                    // 12 分钟探险结束：在最终位置完整播放 13 帧挖掘动作，AI 随后结算奖励。
+                    if (!sprite.getData('explorerDigging')) {
+                        sprite.setData('explorerDigging', true);
+                        sprite.play(diggingKey, true);
                     }
                 } else if (st === 'mining' && anims.mining && this.textures.exists(miningKey)) {
                     // 采矿动画 = 攻击触发时播一次挥锄，其余攻击间隔定格 waitFrame（默认第 6 帧，索引 5）。
@@ -1328,6 +1340,8 @@ export class GameScene extends Scene {
                     // 离开攻击状态必须重置战士攻击标记：attack→walk→attack 再次进入攻击时
                     // 仍播完整 1~24 帧起步（2026-08-16 用户口径：从其他状态进攻击播完整循环）
                     sprite.setData('hamsterAtk', false);
+                    sprite.setData('explorerViewing', false);
+                    sprite.setData('explorerDigging', false);
                     const walkStartKey = `${walkKey}_start`;
                     if (anims.walk.startFrames && this.anims.exists(walkStartKey)) {
                         if (!sprite.getData('hamsterWalk')) {
@@ -1370,6 +1384,8 @@ export class GameScene extends Scene {
                     sprite.setData('knightChargeFinished', false);
                     sprite.setData('wmPlayed', false);
                     sprite.setData('defPhase', null);
+                    sprite.setData('explorerViewing', false);
+                    sprite.setData('explorerDigging', false);
                     if (member._miningSwing) member._miningSwing = false;
                     if (sprite.anims.isPlaying) sprite.anims.stop();
                     const idleKey = sprite.getData('companionIdleKey');
@@ -2034,13 +2050,8 @@ export class GameScene extends Scene {
                 // 不能按“贴图中心 + footOffsetY + 10”（= e.y + 10）覆盖——e.y 是显示框
                 // 底边，比掩体接地线深 22~137px，会把墙前实体错误排到墙后被盖
                 // （2026-08-05 实机复现：怪物 depth 2100 < 掩体 2121）
-                const isGroundDevice = e._structureLayerMode === 'ground';
-                const depth = isGroundDevice
-                    ? GROUND_DEVICE_LAYER_DEPTH
-                    : ((typeof e._faceDepth === 'number') ? e._faceDepth : data.sprite.y + footOffsetY + 10);
-                const structureDepth = isGroundDevice
-                    ? GROUND_DEVICE_LAYER_DEPTH
-                    : (Number.isFinite(e._structureRenderDepth) ? e._structureRenderDepth : depth);
+                const depth = (typeof e._faceDepth === 'number') ? e._faceDepth : data.sprite.y + footOffsetY + 10;
+                const structureDepth = Number.isFinite(e._structureRenderDepth) ? e._structureRenderDepth : depth;
                 data.sprite.setDepth(structureDepth);
                 if (data.label && data.label.active) {
                     data.label.setDepth((e._structureRenderChannels?.label ?? (structureDepth + 1)));
@@ -2354,12 +2365,15 @@ export class GameScene extends Scene {
     _syncEntityShadows(_game) {
         if (!_game) return;
         const dms = DungeonMapSystem;
-        const isMapMode = SceneManager.currentScene === 'scene7' && dms && dms.active && dms.state === 'map';
+        const isDungeon = SceneManager.isDungeonIsolationActive();
+        const isMapMode = isDungeon && dms && dms.active && dms.state === 'map';
         const active = new Set();
 
         const ensureShadow = (key, entity, footprint, depth, visible, _sourceSprite = null) => {
             const shadowRadius = Math.max(1, Math.max(footprint.width, footprint.height) * 0.5);
-            const profile = EnvironmentLightingSystem.getDynamicShadow(entity, shadowRadius);
+            const profile = EnvironmentLightingSystem.getDynamicShadow(entity, shadowRadius, {
+                dungeon: isDungeon,
+            });
             if (!profile) {
                 const existing = this._shadowSprites.get(key);
                 if (existing && existing.active) existing.setVisible(false);
@@ -2370,18 +2384,16 @@ export class GameScene extends Scene {
                 sprite = this.add.sprite(0, 0, 'entity_shadow');
                 this._shadowSprites.set(key, sprite);
             }
-            // 胶囊拉伸椭圆为唯一做法（2026-08-19 单位影简化，用户口径：
-            // 单位不需要精细轮廓）——逐帧 alpha 剪影链（unit_projection）已退役。
+            // 普通单位使用严格水平接触椭圆（ground footprint 唯一真源）；逐帧 alpha
+            // 剪影链（unit_projection）已退役。只有显式 directional=true 才保留方向尾影。
             sprite.setTexture('entity_shadow');
             sprite.setOrigin(0.5, 0.5);
-            // 影向几何（2026-08-21 对齐 footprint 修复）：阴影从脚底 footprint 沿影向拉伸——
-            // 长轴 = footprint 宽 + 影向位移量并旋转到影向，中心只走位移的一半（影根盖住脚底），
-            // 不再整体平移（旧做法在小半径单位上会把整个椭圆推出 footprint 之外）。
-            // 位移过小（近正午）时保持 2:1 地面椭圆不旋转，避免竖直细影。
+            // 不能把整个 2:1 footprint 椭圆旋转到太阳影向：影向接近屏幕 Y 轴时会把
+            // 水平脚底错误地立成竖椭圆。普通路径中心/尺寸/角度全部直接绑定 footprint。
             const offLen = Math.hypot(profile.offsetX, profile.offsetY);
             const baseW = footprint.width * profile.widthMul;
             const baseH = footprint.height * profile.depthMul;
-            if (offLen > 3) {
+            if (profile.directional && offLen > 3) {
                 sprite.setPosition(
                     footprint.x + profile.offsetX * 0.5,
                     footprint.y + profile.offsetY * 0.5
@@ -6680,6 +6692,25 @@ export class GameScene extends Scene {
             this.worldHudGraphics.fillRect(barX, barY, barW * hpPercent, barH);
         }
 
+        // 仓鼠探险家头顶探险进度：12 分钟漫游期间持续增长，最终 digging 阶段保持满格。
+        if (entity._isHamsterExplorer && entity._exploreActive) {
+            const duration = Math.max(1, Number(entity._exploreDurationMs) || 720000);
+            const remaining = Math.max(0, Number(entity._exploreRemainingMs) || 0);
+            const progress = entity._explorePhase === 'digging'
+                ? 1
+                : Math.max(0, Math.min(1, 1 - remaining / duration));
+            const exploreW = 46;
+            const exploreH = 4;
+            const exploreX = x - exploreW / 2;
+            const exploreY = barY === null ? modelTopY - 18 : barY - 9;
+            this.worldHudGraphics.fillStyle(0x090d12, 0.95);
+            this.worldHudGraphics.fillRect(exploreX - 1, exploreY - 1, exploreW + 2, exploreH + 2);
+            this.worldHudGraphics.fillStyle(0x27323b, 1);
+            this.worldHudGraphics.fillRect(exploreX, exploreY, exploreW, exploreH);
+            this.worldHudGraphics.fillStyle(progress < 0.5 ? 0xc7a64f : (progress < 0.8 ? 0x74a7b8 : 0x73c991), 1);
+            this.worldHudGraphics.fillRect(exploreX, exploreY, exploreW * progress, exploreH);
+        }
+
         // 名字标签：掉落物、NPC、训练靶等自带标签，跳过避免重叠
         // 已由 _syncNeutralEntities 挂了名字/血条标签的实体（仓鼠小屋/能源矿/掩体等建筑、
         // 静态 NPC）跳过 HUD 名字，避免重复显示——以后加建筑不用重复加名字（2026-08-15）
@@ -7261,6 +7292,8 @@ export class GameScene extends Scene {
                 x: shadowData.x,
                 y: shadowData.y,
                 hull: !!shadowData.hull,
+                source: shadowData.shadowCasterSource || null,
+                parts: shadowData.shadowCasterParts?.length || 0,
                 vertices: Array.isArray(shadowData.footprintVertices)
                     ? shadowData.footprintVertices.map((p) => ({ x: +p.x.toFixed(1), y: +p.y.toFixed(1) }))
                     : null,
@@ -7351,7 +7384,8 @@ export class GameScene extends Scene {
     _syncStaticSunShadows() {
         if (!this._staticSunShadows) return;
         const dms = DungeonMapSystem;
-        const isMapMode = SceneManager.currentScene === 'scene7' && dms && dms.active && dms.state === 'map';
+        const isDungeon = SceneManager.isDungeonIsolationActive();
+        const isMapMode = isDungeon && dms && dms.active && dms.state === 'map';
         const shadowJobs = this._structureShadowJobs || [];
         shadowJobs.length = 0;
         for (const [sprite, data] of this._staticSunShadows.entries()) {
@@ -7359,19 +7393,20 @@ export class GameScene extends Scene {
                 this._staticSunShadows.delete(sprite);
                 continue;
             }
-            const profile = EnvironmentLightingSystem.getStaticShadow(data);
+            const profile = EnvironmentLightingSystem.getStaticShadow(data, {
+                dungeon: isDungeon,
+            });
             if (!profile) {
                 sprite.setVisible(false);
                 continue;
             }
             if (data.hull) {
-                // 阴影多边形真源（2026-08-21 简化）：建筑（有 entity）= footprint 凸包；
-                // 散布障碍物（无 entity）= 凸包 ∪ 剪影轮廓（剪影多边形近边=贴图实测
-                // 接地曲线、远边=真实屋顶轮廓）——两者同为逐帧纯几何，无烘焙无分桶，连续不跳。
+                // 阴影多边形真源：普通建筑 = 独立 shadow caster（主体 alpha 接地/显式低模）；
+                // 散布障碍物（无 entity）= 凸包 ∪ manifest 剪影轮廓。两者最终都进入
+                // 共享层的纯几何合并，不使用会随贴图换代失配的建筑 manifest 剪影。
                 if (data._silCache === undefined) {
-                    // 建筑阴影简化（2026-08-21 用户定稿）：建筑（有 entity）只用 footprint
-                    // 凸包，不再合并贴图剪影——剪影迷航随贴图失配反复出大范围错影
-                    // （portal 换图即复发）， silhouette 路径仅保留给散布障碍物（无 entity）。
+                    // 普通建筑和专用结构不消费 manifest 剪影；silhouette 路径只保留给
+                    // 散布障碍物，防止建筑换图后旧列数据生成大范围错影。
                     data._silCache = data.entity ? null : this._resolveShadowSilhouette(data);
                 }
                 const theta = Math.atan2(profile.offsetY, profile.offsetX);
@@ -7394,12 +7429,8 @@ export class GameScene extends Scene {
                     cx = state.cx;
                     cy = state.cy;
                 } else {
-                    // 凸包实体 ∪ 剪影轮廓（2026-08-19 九轮）：凸包保证主体、剪影贡献轮廓，
-                    // 包络合并为单一多边形——纯凸包无轮廓、纯剪影在高差建筑上退化成细带。
-                    // 实体四边形真源分流（2026-08-19 十二轮）：
-                    // 建筑（有 entity）用剪影接地曲线实体（与轮廓同一锚点）；
-                    // 散布障碍物（无 entity）用 geo foot 手调碰撞四边形——球体/异形
-                    // （桶状仙人掌）不适用平底截断法，手调 foot 才是正确接地面。
+                    // 普通建筑可把多个低模 part 分层挤出并合成一个边界；无 part 的专用结构
+                    // 继续挤出自身 footprint。散布障碍物再与 manifest 剪影做包络合并。
                     const bodyVerts = (data.entity ? data._silCache?.bodyVertices : null)
                         || data.footprintVertices;
                     const hullBody = data.shadowCasterParts?.length
@@ -7486,8 +7517,8 @@ export class GameScene extends Scene {
                 shadowJobs.push({ hull: capPts, cx: capCx, cy: capCy, opacity: profile.opacity, dirty: capDirty });
             }
         }
-        // 共享结构阴影层（2026-08-19 十三轮）：全部结构阴影多边形在同一 Graphics
-        // 内绘制——核心环 alpha 1 实心、沿并集外轮廓单次描边软边，整层再乘统一透明度。
+        // 共享结构阴影层：全部结构阴影多边形在同一 Graphics 内原尺寸单次填充，
+        // 整层再乘统一透明度；不得用外扩或居中描边破坏真实 alpha 接地边。
         // 层深 −994 = 地板块 −1000、道路 −995 之上——阴影压在道路/地板上（曾被道路遮挡打回）。
         const frameSun = EnvironmentLightingSystem.getSun();
         const frameTheta = Math.atan2(frameSun?.shadowY || 0, frameSun?.shadowX || 0);
@@ -7510,16 +7541,8 @@ export class GameScene extends Scene {
                 // 同一强度"）——不依赖任何混合幂等假设，从结构上杜绝重叠加深。
                 const drawJobs = this._mergeShadowJobsIntoClusters(shadowJobs, frameTheta);
                 for (const job of drawJobs) {
-                    for (const scale of STRUCTURE_SHADOW_CORE_SCALES) {
-                        layer.fillStyle(0x000000, 1);
-                        layer.fillPoints(job.hull.map((p) => ({
-                            x: job.cx + (p.x - job.cx) * scale,
-                            y: job.cy + (p.y - job.cy) * scale,
-                        })), true);
-                    }
-                    // 软边 = 沿并集外轮廓单次描边；簇内接缝完全消失（无内部描边）。
-                    layer.lineStyle(6, 0x000000, 0.32);
-                    layer.strokePoints(job.hull, true);
+                    layer.fillStyle(0x000000, 1);
+                    layer.fillPoints(job.hull, true);
                 }
                 layer.setAlpha(layerOpacity);
                 this._structureShadowJobCount = shadowJobs.length;
@@ -7783,12 +7806,13 @@ export class GameScene extends Scene {
                 x: sprite.x,
                 y: sprite.y + this._getFootOffsetY(entity, sprite),
             });
+            // radius 仅供静态影注册/旧几何兜底使用，不再参与普通建筑的高度计算。
             const radius = Math.max(18, Math.max(footprint.width, footprint.height) * 0.5);
-            // 建筑默认高度继续沿用现有视觉比例；shadowCaster 可按建筑覆盖并分层。
-            const height = Math.max(radius * 3, sprite.displayHeight * 0.55) * 0.75 * 0.75;
-            // footprint 四边形真源（2026-08-19 七轮，回到 footprint 思路）：
-            // 与放置/遮挡/范围显示同一组顶点（`_pixelFootprintLocal` 像素拟合优先，
-            // 否则逻辑 iso 菱形，AABB 兜底）——凸包逐帧挤出，不再吃烘焙/贴图尺。
+            // 默认投影高度只取主体 Sprite 的视觉高度，不再受建造 footprint/地基尺寸影响；
+            // shadowCaster 可按建筑显式覆盖高度并增加分层部件。
+            const height = Math.max(24, sprite.displayHeight * 0.72);
+            // 先保留 placement footprint 作为兼容兜底；普通建筑随后会优先替换成独立
+            // shadow caster 的主体接地多边形，掩体仍沿用专用占地几何。
             let vertices = null;
             if (entity.collisionShape === 'iso_rect') {
                 const v = isoFootprintVertices(entity);
@@ -8076,7 +8100,7 @@ export class GameScene extends Scene {
         };
 
         for (const entity of _game.entities.values()) {
-            if (!entity || !entity.active || entity._isDefenseTrap || entity._isTrap) continue;
+            if (!entity || !entity.active) continue;
             if (entity._isCoverGate) {
                 addGate(entity);
                 continue;
@@ -8341,6 +8365,7 @@ export class GameScene extends Scene {
                         Number(foundationCfg.displayW) || 256,
                         Number(foundationCfg.displayH) || 128
                     );
+                    foundationSprite.setDepth(WORLD_RENDER_LAYERS.FOUNDATION);
                 }
                 data = { sprite, label, sprCfg, foundationSprite };
                 this._neutralSprites.set(e, data);
@@ -8372,6 +8397,8 @@ export class GameScene extends Scene {
                 const foundationH = Number(foundationCfg.displayH) || 128;
                 foundationSprite.setDisplaySize(foundationW, foundationH);
                 foundationSprite.setPosition(e.x, e.y - foundationH * 0.5);
+                // 地基是地面贴花，不是建筑立面；固定在道路与结构阴影之间，永不遮挡单位。
+                foundationSprite.setDepth(WORLD_RENDER_LAYERS.FOUNDATION);
             }
             if (sprCfg) {
                 // 贴图 NPC：行走/待机动画切换 + 朝向翻转，不做染色（静态贴图无动画则跳过）；
@@ -8430,13 +8457,10 @@ export class GameScene extends Scene {
             // 不能用 e.y+12——e.y 是贴图显示框底边，比接地线深 22~137px，会把墙前
             // 实体错误排到墙后被盖（2026-08-05 实机复现）
             if (e._isDefenseStructure) {
-                const dd = e._structureLayerMode === 'ground'
-                    ? GROUND_DEVICE_LAYER_DEPTH
-                    : (Number.isFinite(e._structureRenderDepth)
-                        ? e._structureRenderDepth
-                        : ((typeof e._faceDepth === 'number') ? e._faceDepth : e.y + 12));
+                const dd = Number.isFinite(e._structureRenderDepth)
+                    ? e._structureRenderDepth
+                    : ((typeof e._faceDepth === 'number') ? e._faceDepth : e.y + 12);
                 sprite.setDepth(dd);
-                if (foundationSprite?.active) foundationSprite.setDepth(dd - 0.2);
                 label.setDepth(e._structureRenderChannels?.label ?? (dd + 1));
             }
             if (label.text !== text) {
@@ -8692,7 +8716,7 @@ export class GameScene extends Scene {
         if (!this._terrainSprite) {
             this._terrainSprite = this.add.image(w / 2, h / 2, 'terrain');
             this._terrainSprite.setOrigin(0.5, 0.5);
-            this._terrainSprite.setDepth(-1000);
+            this._terrainSprite.setDepth(WORLD_RENDER_LAYERS.TERRAIN);
         } else {
             this._terrainSprite.setTexture('terrain');
             this._terrainSprite.setPosition(w / 2, h / 2);
@@ -8756,7 +8780,7 @@ export class GameScene extends Scene {
         this.textures.addCanvas(key, canvas);
         const img = this.add.image(ox + chunks.chunkSize / 2, oy + chunks.chunkSize / 2, key);
         img.setOrigin(0.5, 0.5);
-        img.setDepth(-1000);
+        img.setDepth(WORLD_RENDER_LAYERS.TERRAIN);
         this._terrainChunkSprites.set(key, img);
     }
 

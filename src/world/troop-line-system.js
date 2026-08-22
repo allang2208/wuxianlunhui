@@ -13,6 +13,7 @@ const VERSION = 3;
 const MODES = new Set(['follow', 'hold', 'rally']);
 const MILITARY_KINDS = new Set([
     'militia', 'warrior', 'shooter', 'guard', 'scout', 'musketeer', 'priest', 'knight', 'light_cavalry',
+    'bounty_hunter',
 ]);
 const PERSISTENT_WORLDS = new Set(['scene8', 'scene9', 'scene10', 'scene11']);
 const PORTAL_ARRIVE_DISTANCE = 82;

@@ -22,6 +22,8 @@ export function createDragDropManager(EquipManager) {
                     callbacks: {},
                     _dragSrc: null,
                     _dropHandled: false,
+                    _consumableDragPanelRect: null,
+                    _consumablePanelHidden: false,
 
                     init(options) {
                         this.player = options.player || null;
@@ -218,8 +220,64 @@ export function createDragDropManager(EquipManager) {
                             };
                         });
                         document.addEventListener('dragover', function _discardAllowDrop(e) {
-                            if (self._dragSrc) e.preventDefault();
+                            if (self._dragSrc) {
+                                e.preventDefault();
+                                self._maybeHideConsumablePanel(e.clientX, e.clientY);
+                            }
                         });
+                    },
+
+                    _beginConsumablePanelDrag(cell, e) {
+                        // 仓库拖放需要背包与仓库同时可见，不进入快捷栏让位逻辑。
+                        if (UIState?.isOpen?.('warehouse')) return;
+                        const panel = getElement('systemPanel');
+                        if (!panel || !panel.classList.contains('active')) return;
+                        const rect = panel.getBoundingClientRect();
+                        if (rect.width <= 0 || rect.height <= 0) return;
+                        e.dataTransfer.setDragImage(cell, cell.offsetWidth / 2, cell.offsetHeight / 2);
+                        this._consumableDragPanelRect = {
+                            left: rect.left,
+                            right: rect.right,
+                            top: rect.top,
+                            bottom: rect.bottom,
+                        };
+                        this._consumablePanelHidden = false;
+                    },
+
+                    _maybeHideConsumablePanel(clientX, clientY) {
+                        const rect = this._consumableDragPanelRect;
+                        if (!rect || this._consumablePanelHidden || (clientX === 0 && clientY === 0)) return;
+                        const inside = clientX >= rect.left && clientX <= rect.right
+                            && clientY >= rect.top && clientY <= rect.bottom;
+                        if (inside) return;
+                        const panel = getElement('systemPanel');
+                        const overlay = getElement('panelOverlay');
+                        if (panel) {
+                            panel.dataset._wasDisplay = panel.style.display || '';
+                            panel.style.display = 'none';
+                        }
+                        if (overlay) {
+                            overlay.dataset._wasDisplay2 = overlay.style.display || '';
+                            overlay.style.display = 'none';
+                        }
+                        this._consumablePanelHidden = true;
+                    },
+
+                    _restoreConsumablePanel() {
+                        if (this._consumablePanelHidden) {
+                            const panel = getElement('systemPanel');
+                            const overlay = getElement('panelOverlay');
+                            if (panel) {
+                                panel.style.display = panel.dataset._wasDisplay || '';
+                                delete panel.dataset._wasDisplay;
+                            }
+                            if (overlay) {
+                                overlay.style.display = overlay.dataset._wasDisplay2 || '';
+                                delete overlay.dataset._wasDisplay2;
+                            }
+                        }
+                        this._consumableDragPanelRect = null;
+                        this._consumablePanelHidden = false;
                     },
 
                     bindDragToCell(cell) {
@@ -239,29 +297,13 @@ export function createDragDropManager(EquipManager) {
                                 tooltip.classList.remove('visible', 'pinned');
                                 tooltip._pinned = false;
                             }
-                            // 消耗品：设置拖拽图像快照后隐藏面板，方便拖到快捷栏
+                            // 消耗品：记录拖拽图像与面板边界，越界后再隐藏以便投放快捷栏。
                             const draggedItem = cell.classList.contains('inv-cell')
                                 ? self.backpackItems.find(i => i.slot === parseInt(cell.dataset.slot))
                                 : self.player.equipments[cell.dataset.slot];
                             if (draggedItem && draggedItem.category === 'consumable') {
-                                // 仓库打开时不隐藏背包（隐藏设定仅服务于"拖到快捷栏"场景；
-                                // 仓库拖放需要背包/仓库双面板同时可见）
-                                if (typeof UIState !== 'undefined' && UIState.isOpen && UIState.isOpen('warehouse')) return;
-                                // 用当前格子作为拖拽图像（快照，不受后续 DOM 变化影响）
-                                e.dataTransfer.setDragImage(cell, cell.offsetWidth / 2, cell.offsetHeight / 2);
-                                // 延迟隐藏面板，确保快照已捕获
-                                requestAnimationFrame(() => {
-                                    const panel = getElement('systemPanel');
-                                    const overlay = getElement('panelOverlay');
-                                    if (panel) {
-                                        panel.dataset._wasDisplay = panel.style.display || '';
-                                        panel.style.display = 'none';
-                                    }
-                                    if (overlay) {
-                                        overlay.dataset._wasDisplay2 = overlay.style.display || '';
-                                        overlay.style.display = 'none';
-                                    }
-                                });
+                                // 背包范围内保持面板可见；越界后才隐藏，方便投放到下方快捷栏。
+                                self._beginConsumablePanelDrag(cell, e);
                             }
                         };
                         cell.ondragend = function(e) {
@@ -272,17 +314,7 @@ export function createDragDropManager(EquipManager) {
                             }
                             self._dropHandled = false;
                             self._dragSrc = null;
-                            // 恢复面板和覆盖层
-                            const panel = getElement('systemPanel');
-                            const overlay = getElement('panelOverlay');
-                            if (panel) {
-                                panel.style.display = panel.dataset._wasDisplay || '';
-                                delete panel.dataset._wasDisplay;
-                            }
-                            if (overlay) {
-                                overlay.style.display = overlay.dataset._wasDisplay2 || '';
-                                delete overlay.dataset._wasDisplay2;
-                            }
+                            self._restoreConsumablePanel();
                         };
                         cell.ondragover = function(e) {
                             e.preventDefault();

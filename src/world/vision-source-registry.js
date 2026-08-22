@@ -1,3 +1,6 @@
+import { getTributeVisionRangeMul } from '../config/tribute-effects.js';
+import { EnvironmentLightingSystem } from './environment-lighting-system.js';
+
 const FRIENDLY_FACTIONS = new Set(['player', 'companion', 'ally', 'friendly']);
 
 const PROFILE_CONFIG_KEYS = Object.freeze({
@@ -166,6 +169,10 @@ export const VisionSourceRegistry = {
         let radius = positiveNumber(explicitRadius,
             positiveNumber(visionConfig[configKey], PROFILE_DEFAULTS[profile] || 0));
         radius += record?.radiusBonus || 0;
+        // 黄金星象仪（2026-08-22 工艺品祭品）：所有单位基础视野 ×N（visionRangePercent 实时聚合）
+        radius *= getTributeVisionRangeMul();
+        // 夜晚统一减半；使用环境光照的 daylight 真源，避免 UI 时钟与迷雾各自判断昼夜。
+        radius *= EnvironmentLightingSystem.getVisionRangeMultiplier(visionConfig);
         if (radius > 0 && entity._surfaceKind === 'wall_walk') {
             radius *= positiveNumber(visionConfig.wallWalkMultiplier, 2);
         } else if (radius > 0 && entity._surfaceKind === 'stairs') {

@@ -38,7 +38,6 @@ check('低于30%保持8团火焰', buildingDamageFlameCount(building) === 8);
 check('普通建筑允许受损特效', isBuildingDamageFxTarget(building));
 check('墙体明确排除', !isBuildingDamageFxTarget({ ...building, _isDefenseCover: true }));
 check('门明确排除', !isBuildingDamageFxTarget({ ...building, _isCoverGate: true }));
-check('陷阱明确排除', !isBuildingDamageFxTarget({ ...building, _isDefenseTrap: true }));
 
 const oneCell = {
     x: 500,
@@ -173,7 +172,6 @@ const recycleSources = [
     read('src/world/hamster-hut-system.js'),
     read('src/world/hamster-barracks-system.js'),
     read('src/world/producer-building-system.js'),
-    read('src/world/defense-trap-system.js'),
     read('src/world/defense-system.js'),
 ];
 check('主动回收/出售统一进入 BuildingSinkEffect.start 动画',

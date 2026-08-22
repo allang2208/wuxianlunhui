@@ -234,7 +234,7 @@ check('墙、门与普通建筑共用唯一地面前缘深度公式',
     && /structureDepthAtY/.test(buildingSrc)
     && !/this\._depthL = A\.y \+ 12/.test(defenseSrc)
     && !/this\._depthBars = \(A\.y \+ B\.y\) \/ 2 \+ 12/.test(defenseSrc));
-check('所有非墙门陷阱建筑统一吸附2×2格网并走完整footprint判定',
+check('所有非墙门建筑统一吸附2×2格网并走完整footprint判定',
     /function isTwoByTwoBuildItem\(item\)/.test(buildingSrc)
     && /return this\._snapBuildingGrid\(x, y, 2\)/.test(buildingSrc)
     && /return this\._canPlaceBuildingFootprint\(x, y\)/.test(buildingSrc));

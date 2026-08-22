@@ -16,6 +16,7 @@ import { BuildingSinkEffect } from '../effects/building-sink.js';
 import { SoundManager } from '../ui/sound-manager.js';
 import { BasePanel } from '../ui/panels/base-panel.js';
 import { renderBuildingDetailHeader } from '../ui/panels/building-detail-header.js';
+import { renderBuildingUpgradeIcon } from '../ui/panels/building-upgrade-card.js';
 import { mountRightSidebarPanel } from '../ui/right-sidebar-panel-layer.js';
 import {
     ensureBuildingUpgradeTooltip,
@@ -113,7 +114,9 @@ export class HamsterHut extends DamageableEntity {
             size: HAMSTER_CONFIG.hut.displayW,
             sizeH: HAMSTER_CONFIG.hut.displayH,
             footOffsetY: HAMSTER_CONFIG.hut.footOffsetY,
-            foundation: { ...BUILDING_FOUNDATION_CONFIG },
+            foundation: HAMSTER_CONFIG.hut.foundation === false
+                ? null
+                : { ...BUILDING_FOUNDATION_CONFIG },
             autoFootprint: false,
         };
         this.footOffsetY = HAMSTER_CONFIG.hut.footOffsetY;
@@ -532,7 +535,7 @@ class HamsterHutPanel extends BasePanel {
             return `
                 <div data-module-row="${mid}" style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #22303a;gap:8px;cursor:help;">
                     <div style="flex:1;min-width:0;">
-                        <div style="font-size:13px;color:#d4e8ff;">${mod.icon} ${mod.name} <span style="color:#8ad0ff;">Lv.${lv}/${mod.maxLevel}</span></div>
+                        <div class="building-upgrade-card-name" style="font-size:13px;color:#d4e8ff;">${renderBuildingUpgradeIcon(mod.icon, mod.iconImage, 'building-upgrade-card-icon')}<span class="building-upgrade-card-label">${mod.name}</span> <span style="color:#8ad0ff;">Lv.${lv}/${mod.maxLevel}</span></div>
                         <div style="font-size:10px;color:#6a7a6a;margin-top:2px;">（悬停查看说明）</div>
                     </div>
                     <div style="flex-shrink:0;">${btn}</div>
@@ -589,7 +592,7 @@ class HamsterHutPanel extends BasePanel {
         const desc = getHutModuleDesc(moduleId, lv);
         const cost = h.getModuleCost(moduleId);
         showBuildingUpgradeTooltip(`
-            <div style="font-weight:700;font-size:13px;margin-bottom:4px;">${mod.icon} ${mod.name} <span style="color:#8a5a00;">Lv.${lv}/${mod.maxLevel}</span></div>
+            <div class="building-upgrade-tooltip-title">${renderBuildingUpgradeIcon(mod.icon, mod.iconImage, 'building-upgrade-tooltip-icon')}<span>${mod.name}</span> <span style="color:#8a5a00;">Lv.${lv}/${mod.maxLevel}</span></div>
             <div>${maxed ? desc.current : `${desc.current} → ${desc.next}`}</div>
             <div style="margin-top:4px;color:#5a4a2a;">适用单位：仓鼠矿工</div>
             <div style="margin-top:2px;">${maxed ? '已达到最高等级' : `升级费用：${cost.gold} 金币 + ${cost.energy} 能源`}</div>`, ev);

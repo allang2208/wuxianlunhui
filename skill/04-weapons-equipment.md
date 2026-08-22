@@ -505,6 +505,8 @@ setTimeout(() => console.log('触发后:', JSON.stringify(p.weaponAnim), '| rang
 - 怪物向：monsterDamageTakenPercent（承伤）/monsterAtkDownPercent（攻击削减）/monsterMoveSlowPercent（移速削减）
 - 比例向（**耦合规则**）：combatChanceDelta（百分点，战斗↑事件↓或反向，**战斗+随机事件恒=100%，一个调整同步影响另一个**）/eliteChanceDelta（精英概率百分点）
 - 特效键：revivePercent（蟠桃复活）/killMpHealPercent（人参回蓝）/expPercent（雪莲经验）
+- 友方向（2026-08-22 工艺品祭品，全体友方单位=friendlyUnits+PartySystem 侍从）：friendlyAtkPercent（Companion.getPhysicalAttackDamagePreview 乘算）/friendlyMaxHpPercent（updateMaxStats 乘算，祭品变动由 refreshFriendlyTributeStats 刷新）/friendlyMoveSpeedPercent（MovementSystem._getEnemyBaseSpeed 友军分支）/visionRangePercent（VisionSourceRegistry.radiusOf）
+- 特效键（2026-08-22）：friendlyLifestealPercent（全体友方吸血，damageable-entity 扣血点结算）/friendlyAuraRadius+friendlyAuraMoveSpeedPercent（玩家为中心光环，移速乘区同点消费）/recruitCountMul（producer-building spawnUnit 递归倍增，_noRecruitMul 防递归）/productionResourcePercent（银行/风车产出，前台 population-economy-system 与后台 world122-sim 双份乘算）
 
 #### 3. 数值带（按属性稀缺度）
 | 类别 | 普通 | 优质 | 稀有 | 史诗 | 神话 | 传说 |
@@ -561,4 +563,4 @@ JSON 双份一致；lint / vite build / test-collider / test-craft-sync；CHANGE
   - 修复 `getTributeHpRegenFlat` 缺失导出（引用先于实现，vite build 报 Missing export——引用配置函数前先确认导出存在）
 
 ---
-
+

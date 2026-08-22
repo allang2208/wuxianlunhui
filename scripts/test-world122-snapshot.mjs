@@ -97,15 +97,16 @@ check('恢复后刷新研究 HP（ResearchSystem.refreshWorld 兜底）',
 check('胜利状态恢复且不重复发奖（_victoryGranted）',
     /DefenseSystem\.victory = true/.test(snap) && /_victoryGranted = true/.test(snap));
 check('矿点系统提供 restoreNodes（按快照重建，不随机重铺）',
-    /restoreNodes\(list\)/.test(nodeSys) && /node\._respawnTimer = Math\.max\(0, s\.respawnTimer/.test(nodeSys));
+    /restoreNodes\(list, \{ migrateLayout = false \} = \{\}\)/.test(nodeSys)
+    && /node\._collapseTimer = node\._depleted/.test(nodeSys));
 
 // ---- 4. 场景钩子顺序 ----
-check('矿点快照恢复沿用当前矿簇、基地禁区与建筑碰撞约束',
-    /const clusters = \(ENERGY_CONFIG && ENERGY_CONFIG\.clusters\)/.test(nodeSys)
-    && /const baseExclusion = ENERGY_CONFIG && ENERGY_CONFIG\.baseExclusion/.test(nodeSys)
-    && /WallSystem\.canMoveTo\(s\.x, s\.y, ENERGY_CONFIG\.nodeRadius\)/.test(nodeSys));
+check('矿点快照恢复沿用当前世代随机矿簇、菱形与建筑碰撞约束',
+    /const clusters = this\._generatedClusters \|\| \[\]/.test(nodeSys)
+    && /this\._insideGenerationDiamond\(px, py\)/.test(nodeSys)
+    && /WallSystem\.canMoveTo\(px, py, ENERGY_CONFIG\.nodeRadius\)/.test(nodeSys));
 check('矿点快照恢复后立即清理旧坐标，不等待周期巡检',
-    /EnergyNodeSystem\.restoreNodes\(snap\.nodes\);[\s\S]*?EnergyNodeSystem\.sweepStacked\(\)/.test(snap));
+    /EnergyNodeSystem\.restoreNodes\(snap\.nodes, \{[\s\S]*?EnergyNodeSystem\.sweepStacked\(\)/.test(snap));
 
 const invasionLeaveIdx = sceneMgr.indexOf('window.WorldInvasionSystem?.onWorldLeaving?.(this.currentScene);');
 const captureIdx = sceneMgr.indexOf('captureAndStoreWorld(this.currentScene);');

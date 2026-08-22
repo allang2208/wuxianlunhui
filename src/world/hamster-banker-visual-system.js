@@ -166,7 +166,6 @@ export const HamsterBankerVisualSystem = {
         sprite.setOrigin(0.5, Number(config.originY) || 0.82);
         const displaySize = Math.max(1, Number(config.displaySize) || 128);
         sprite.setDisplaySize(displaySize, displaySize);
-        sprite.setDepth(y + 10);
         const worker = registerCivilianVisual({
             building,
             index,

@@ -6,7 +6,7 @@ import { EventBus } from '../core/event-bus.js';
 import { WorldProgressionSystem } from './world-progression-system.js';
 
 const VERSION = 2;
-const ALLOWED_UNLOCK_TYPES = new Set(['building', 'buildingKind', 'unit', 'upgrade', 'mechanic']);
+const ALLOWED_UNLOCK_TYPES = new Set(['building', 'unit', 'upgrade', 'mechanic']);
 const nodes = Array.isArray(technologyTree.nodes) ? technologyTree.nodes : [];
 const nodesById = new Map(nodes.map((node) => [node.id, node]));
 const unlockOwners = new Map();
@@ -23,7 +23,6 @@ const KNOWN_UNLOCK_TARGETS = Object.freeze({
         'tower', 'cover_block', 'road', 'gate_4cell', 'hamster_hut', 'hamster_barracks',
         'wall_staircase', ...producerConfigs.map((config) => config.id),
     ]),
-    buildingKind: new Set(['trap']),
     unit: new Set([...(hamsterBarracks.unitTypes || []), ...producerUnitIds]),
     upgrade: new Set(upgradeIds),
     mechanic: new Set([

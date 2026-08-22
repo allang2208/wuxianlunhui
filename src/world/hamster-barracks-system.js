@@ -20,7 +20,7 @@ import { BuildingSinkEffect } from '../effects/building-sink.js';
 import { SoundManager } from '../ui/sound-manager.js';
 import { BasePanel } from '../ui/panels/base-panel.js';
 import { renderBuildingDetailHeader } from '../ui/panels/building-detail-header.js';
-import { renderBuildingUpgradeCard } from '../ui/panels/building-upgrade-card.js';
+import { renderBuildingUpgradeCard, renderBuildingUpgradeIcon } from '../ui/panels/building-upgrade-card.js';
 import { mountRightSidebarPanel } from '../ui/right-sidebar-panel-layer.js';
 import { TechnologyGate } from '../ui/technology-gate.js';
 import {
@@ -138,7 +138,9 @@ export class HamsterBarracks extends DamageableEntity {
             size: BARRACKS_CONFIG.barracks.displayW,
             sizeH: BARRACKS_CONFIG.barracks.displayH,
             footOffsetY: BARRACKS_CONFIG.barracks.footOffsetY,
-            foundation: { ...BUILDING_FOUNDATION_CONFIG },
+            foundation: BARRACKS_CONFIG.barracks.foundation === false
+                ? null
+                : { ...BUILDING_FOUNDATION_CONFIG },
             autoFootprint: false,
         };
         this.footOffsetY = BARRACKS_CONFIG.barracks.footOffsetY;
@@ -708,7 +710,7 @@ class HamsterBarracksPanel extends BasePanel {
                     : '<span class="troop-panel-caption">🔒 未知模块</span>';
             return renderBuildingUpgradeCard({
                 rowAttribute: 'data-module-row', projectId: mid,
-                icon: mod.icon, name: mod.name, level: lv, maxLevel: mod.maxLevel,
+                icon: mod.icon, iconImage: mod.iconImage, name: mod.name, level: lv, maxLevel: mod.maxLevel,
                 cost, maxed: maxedMod, inProgress, progressPct: progPct,
                 remainMs: inProgress ? b._upgrade.remainMs : 0,
                 barId: `hbUpgradeBar_${mid}`, textId: `hbUpgradeText_${mid}`,
@@ -776,7 +778,7 @@ class HamsterBarracksPanel extends BasePanel {
         const desc = getBarracksModuleDesc(moduleId, lv);
         const cost = b.getModuleCost(moduleId);
         showBuildingUpgradeTooltip(`
-            <div style="font-weight:700;font-size:13px;margin-bottom:4px;">${mod.icon} ${mod.name} <span style="color:#8a5a00;">Lv.${lv}/${mod.maxLevel}</span></div>
+            <div class="building-upgrade-tooltip-title">${renderBuildingUpgradeIcon(mod.icon, mod.iconImage, 'building-upgrade-tooltip-icon')}<span>${mod.name}</span> <span style="color:#8a5a00;">Lv.${lv}/${mod.maxLevel}</span></div>
             <div>${maxed ? desc.current : `${desc.current} → ${desc.next}`}</div>
             <div style="margin-top:4px;color:#5a4a2a;">适用兵种：${BARRACKS_CONFIG.unit[b.unitType]?.name || b.unitType}</div>
             <div style="margin-top:2px;">${maxed ? '已达到最高等级' : `升级费用：${cost.gold} 金币 + ${cost.energy} 能源`}</div>`, ev);

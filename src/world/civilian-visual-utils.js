@@ -6,6 +6,9 @@ import { resolveSpriteDepthProfile } from './sprite-depth-profile.js';
 const activeCivilians = new Set();
 let cachedStructureSource = null;
 let cachedCivilianBuildings = [];
+let lastCivilianTopologySignature = null;
+let nextCivilianBuildingId = 1;
+const civilianBuildingIds = new WeakMap();
 
 export function getCivilianVisualGroundRadius() {
     return Math.max(1, Number(populationEconomyConfig.civilianVisual?.groundRadius) || 18);
@@ -44,6 +47,62 @@ function resolveCivilianAt(x, y, radius, structures) {
     return { x: resolvedX, y: resolvedY, blocked, lastPush };
 }
 
+function civilianBuildingId(entity) {
+    let id = civilianBuildingIds.get(entity);
+    if (!id) {
+        id = nextCivilianBuildingId++;
+        civilianBuildingIds.set(entity, id);
+    }
+    return id;
+}
+
+/** 只在建筑集合/占地发生变化时重新安置静止平民，避免把占用检查扩成逐平民逐帧重复扫描。 */
+function civilianTopologySignature(structures) {
+    return structures.map((entity) => [
+        civilianBuildingId(entity),
+        Number(entity.x) || 0,
+        Number(entity.y) || 0,
+        Number(entity.colliderOffsetX) || 0,
+        Number(entity.colliderOffsetY) || 0,
+        Number(entity.collisionWidth) || 0,
+        Number(entity.collisionHeight) || 0,
+        Number(entity.collisionIsoHalfU) || 0,
+        Number(entity.collisionIsoHalfV) || 0,
+    ].join(':')).join('|');
+}
+
+function setCivilianVisualPosition(worker, x, y) {
+    if (Object.prototype.hasOwnProperty.call(worker, 'x')) worker.x = x;
+    if (Object.prototype.hasOwnProperty.call(worker, 'y')) worker.y = y;
+    worker.sprite?.setPosition?.(x, y);
+}
+
+function reconcileCivilianVisualOccupancy(worker, structures) {
+    const sprite = worker?.sprite;
+    if (!sprite?.active) return;
+    const radius = getCivilianVisualGroundRadius();
+    const x = Number.isFinite(worker.x) ? worker.x : (Number(sprite.x) || 0);
+    const y = Number.isFinite(worker.y) ? worker.y : (Number(sprite.y) || 0);
+    const current = resolveCivilianAt(x, y, radius, structures);
+    if (current.blocked) setCivilianVisualPosition(worker, current.x, current.y);
+
+    // 建筑也可能正好落在已选目标点上；目标一并投影，避免平民被推出后又持续尝试走回楼内。
+    if (Number.isFinite(worker.destination?.x) && Number.isFinite(worker.destination?.y)) {
+        const destination = resolveCivilianAt(
+            worker.destination.x,
+            worker.destination.y,
+            radius,
+            structures
+        );
+        worker.destination = { ...worker.destination, x: destination.x, y: destination.y };
+    }
+    if (Number.isFinite(worker.targetX) && Number.isFinite(worker.targetY)) {
+        const target = resolveCivilianAt(worker.targetX, worker.targetY, radius, structures);
+        worker.targetX = target.x;
+        worker.targetY = target.y;
+    }
+}
+
 /** 把平民目标点投影到所有活动建筑 footprint 之外。 */
 export function resolveCivilianVisualPosition(x, y, options = {}) {
     const radius = Math.max(1, Number(options.radius) || getCivilianVisualGroundRadius());
@@ -67,9 +126,10 @@ export function sweepCivilianVisualMove(worker, targetX, targetY, options = {}) 
     const dx = endX - x;
     const dy = endY - y;
     const distance = Math.hypot(dx, dy);
-    if (distance <= 1e-6 || structures.length === 0) {
+    if (structures.length === 0) {
         return { x: endX, y: endY, blocked: false };
     }
+    if (distance <= 1e-6) return resolveCivilianAt(endX, endY, radius, structures);
 
     const maxStep = Math.max(4, radius * 0.45);
     const steps = Math.min(64, Math.max(1, Math.ceil(distance / maxStep)));
@@ -125,6 +185,8 @@ export function registerCivilianVisual(worker, kind) {
     worker.civilianKind = kind || worker.civilianKind || 'civilian';
     worker._civilianFadeStarted = false;
     activeCivilians.add(worker);
+    // 创建阶段也使用统一仲裁入口，业务系统不再各自写一个临时 depth。
+    syncCivilianVisualDepth(worker);
     return worker;
 }
 
@@ -177,11 +239,16 @@ export function syncCivilianVisualDepth(worker, structureCandidates = null) {
  */
 export function syncAllCivilianVisualDepths(structureCandidates = null) {
     const candidates = structureCandidates || WallSystem.collectDynamicStructureDepthEntities();
+    const buildings = civilianBuildingCandidates(candidates);
+    const topologySignature = civilianTopologySignature(buildings);
+    const topologyChanged = topologySignature !== lastCivilianTopologySignature;
+    lastCivilianTopologySignature = topologySignature;
     for (const worker of activeCivilians) {
         if (!worker?.sprite?.active || worker._civilianFadeStarted) {
             activeCivilians.delete(worker);
             continue;
         }
+        if (topologyChanged) reconcileCivilianVisualOccupancy(worker, buildings);
         syncCivilianVisualDepth(worker, candidates);
     }
 }

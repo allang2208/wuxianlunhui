@@ -22,6 +22,7 @@ import { BuildingRoadSystem } from '../world/building-road-system.js';
 import { verticalRangesOverlap } from '../physics/elevation.js';
 import { ElevatedNavigationController } from '../ai/elevated-navigation-controller.js';
 import { resolveRtsMoveDestination } from '../ai/rts-command-utils.js';
+import { getTributeFriendlyMoveSpeedMul, getFriendlyMoveSpeedAura } from '../config/tribute-effects.js';
 
 /** 超出此距离不再进行 A* 寻路，直接朝目标移动 */
 const MAX_PATHFIND_RANGE = 800;
@@ -581,7 +582,18 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
             && typeof enemy.getMoveSpeedMultiplier === 'function'
             ? enemy.getMoveSpeedMultiplier()
             : 1;
-        return base * chillMul * inspireMul;
+        // 工艺品祭品：友方单位（player/companion 阵营）移速乘区 + 狼烟图腾旗结界光环
+        let friendlyMul = 1;
+        if (enemy && (enemy._faction === 'companion' || enemy._faction === 'player')) {
+            friendlyMul = getTributeFriendlyMoveSpeedMul();
+            const aura = getFriendlyMoveSpeedAura();
+            const player = Game && Game.player;
+            if (aura && player && player.active !== false
+                && Math.hypot(enemy.x - player.x, enemy.y - player.y) <= aura.radius) {
+                friendlyMul *= 1 + aura.moveSpeedPercent / 100;
+            }
+        }
+        return base * chillMul * inspireMul * friendlyMul;
     },
 
     /** 道路加速只在最终移动计算链动态乘算，不修改 maxSpeed，离开道路立即恢复。 */

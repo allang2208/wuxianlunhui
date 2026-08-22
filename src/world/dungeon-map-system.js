@@ -188,6 +188,11 @@ export const DungeonMapSystem = {
         this.player = player;
         this.dungeonType = dungeonType;
         this._runResultRecorded = false;
+        // 每次地牢独立计算蟠桃次数；世界模式使用另一份标记，二者不得互相继承。
+        if (this.player) {
+            this.player._peachReviveUsed = false;
+            this.player._peachRevivePending = false;
+        }
         // 经验系统：注入当前地牢类型（exp-system 计算怪物经验/压级衰减的上下文）
         setCurrentDungeonType(dungeonType);
         const dungeonList = DungeonConfig.getDungeonList();

@@ -15,7 +15,6 @@ import { EffectManager } from '../effects/effect-manager.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
 import { routeProducedGold, createGoldItem } from './economy-gold-routing.js';
 import { WarehouseSystem } from '../ui/warehouse-system.js';
-import equipmentData from '../../data/equipment.json';
 import {
     getWorldSnapshots, isWorldLive, isWorldSnapshotCurrent,
 } from './world122-snapshot.js';
@@ -93,18 +92,16 @@ export const WorldSimDriver = {
                 const structure = (snap.structures || []).find((entry) =>
                     entry.id === reward.structureId || (entry.x === reward.x && entry.y === reward.y));
                 const pending = structure ? (structure.pendingExplorerDrops ||= []) : null;
-                for (const [key, count] of Object.entries(reward.tributeCounts || {})) {
-                    const template = equipmentData.equipment?.[key];
-                    if (!template) continue;
-                    const item = JSON.parse(JSON.stringify(template));
-                    item.stack = count;
+                for (const rewardItem of reward.items || []) {
+                    const item = JSON.parse(JSON.stringify(rewardItem));
+                    const count = Math.max(0, Math.floor(Number(item.stack) || 0));
+                    if (count <= 0) continue;
                     const accepted = WarehouseSystem.depositItemAmount(item);
                     if (pending && accepted < count) pending.push({ ...item, stack: count - accepted });
                 }
                 const gold = Math.max(0, Math.floor(Number(reward.gold) || 0));
-                const acceptedGold = gold > 0
-                    ? WarehouseSystem.depositItemAmount(createGoldItem(gold)) : 0;
-                if (pending && acceptedGold < gold) pending.push(createGoldItem(gold - acceptedGold));
+                const routed = gold > 0 ? routeProducedGold(gold) : { remaining: 0 };
+                if (pending && routed.remaining > 0) pending.push(createGoldItem(routed.remaining));
             }
             TroopLineSystem.onBackgroundProduction(sceneId, snap, productionBaseline);
             this._notify(sceneId, report);
@@ -123,9 +120,8 @@ export const WorldSimDriver = {
             if (report.energyMined > 0) lines.push([`${sceneId} 采集 +${Math.round(report.energyMined)} 能源`, '#7fd4ff']);
             if (report.goldProduced > 0) lines.push([`${sceneId} 银行服务 +${report.goldProduced} 金币`, '#ffd700']);
             if (report.foodProduced > 0) lines.push([`${sceneId} 风车 +${report.foodProduced} 粮食`, '#d9b84f']);
-            const explorerCount = (report.explorerRewards || []).reduce((sum, reward) =>
-                sum + Object.values(reward.tributeCounts || {}).reduce((n, count) => n + count, 0), 0);
-            if (explorerCount > 0) lines.push([`${sceneId} 探险收获 ${explorerCount} 份祭品`, '#c9a0ff']);
+            const explorerCount = (report.explorerRewards || []).length;
+            if (explorerCount > 0) lines.push([`${sceneId} 探险完成 ${explorerCount} 次`, '#c9a0ff']);
             if (report.modulesCompleted?.length > 0) lines.push([`${sceneId} 兵种升级完成 ${report.modulesCompleted.length} 项`, '#8ad0ff']);
         }
         if (!lines.length || !player) return;

@@ -85,7 +85,9 @@ export const StatusBar = {
         const cfg = this.STATUS_CONFIG[effect.type] || {};
         const desc = cfg.desc || '持续生效的状态效果。';
         let timeText;
-        if (effect.battleRemaining !== undefined) {
+        if (effect.persistent) {
+            timeText = effect.durationText || '持续至来源结束';
+        } else if (effect.battleRemaining !== undefined) {
             timeText = `剩余 ${effect.battleRemaining} 场`;
         } else {
             timeText = `剩余 ${Math.ceil(effect.remaining / 1000)} 秒`;
@@ -118,7 +120,7 @@ export const StatusBar = {
      * 添加状态效果
      * @param {string} type - 状态类型，如 'stun', 'poison'
      * @param {number} duration - 持续时间（毫秒）
-     * @param {Object} options - 可选配置：{ icon, name, color } 覆盖默认配置
+     * @param {Object} options - 可选配置：{ icon, name, color, persistent, durationText } 覆盖默认配置
      * @returns {string} effectId - 状态效果唯一ID
      */
     addEffect(type, duration, options = {}) {
@@ -129,13 +131,26 @@ export const StatusBar = {
         // 检查是否已有同类型的状态效果，如果有则更新剩余时间（取较大值）
         const existing = this.effects.find(e => e.type === type);
         const hasBattleRemaining = options.battleRemaining !== undefined;
+        const persistent = options.persistent === true;
         if (existing) {
-            if (hasBattleRemaining) {
+            if (persistent) {
+                existing.persistent = true;
+                existing.durationText = options.durationText || existing.durationText;
+                existing.remaining = Infinity;
+                existing.duration = Infinity;
+                existing.battleRemaining = undefined;
+                if (options.name) existing.name = options.name;
+            } else if (hasBattleRemaining) {
+                existing.persistent = false;
+                existing.durationText = undefined;
                 existing.battleRemaining = options.battleRemaining;
                 existing.remaining = 0;
                 existing.duration = 0;
                 if (options.name) existing.name = options.name;
             } else {
+                existing.persistent = false;
+                existing.durationText = undefined;
+                existing.battleRemaining = undefined;
                 existing.remaining = Math.max(existing.remaining, duration);
                 existing.duration = Math.max(existing.duration, duration);
             }
@@ -158,10 +173,12 @@ export const StatusBar = {
             icon: options.icon || config.icon,
             name: name,
             color: options.color || config.color,
-            duration: duration,
-            remaining: duration,
+            duration: persistent ? Infinity : duration,
+            remaining: persistent ? Infinity : duration,
             stacks: options.stacks,
             battleRemaining: hasBattleRemaining ? options.battleRemaining : undefined,
+            persistent,
+            durationText: options.durationText,
         });
 
         this.render();
@@ -236,8 +253,8 @@ export const StatusBar = {
         let changed = false;
         for (let i = this.effects.length - 1; i >= 0; i--) {
             const effect = this.effects[i];
-            // 按战斗场次持续的效果不参与毫秒倒计时
-            if (effect.battleRemaining !== undefined) {
+            // 按来源生命周期或战斗场次持续的效果不参与毫秒倒计时。
+            if (effect.persistent || effect.battleRemaining !== undefined) {
                 continue;
             }
             effect.remaining -= dt;
@@ -286,7 +303,10 @@ export const StatusBar = {
         for (const effect of this.effects) {
             let timeText;
             let progress = 0;
-            if (effect.battleRemaining !== undefined) {
+            if (effect.persistent) {
+                timeText = effect.durationText || '持续';
+                progress = 1;
+            } else if (effect.battleRemaining !== undefined) {
                 timeText = `${effect.battleRemaining}场`;
             } else {
                 const seconds = Math.ceil(effect.remaining / 1000);

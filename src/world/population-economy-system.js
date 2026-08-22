@@ -6,6 +6,7 @@ import { EffectManager } from '../effects/effect-manager.js';
 import { BuildingFootprintDustEffect } from '../effects/building-sink.js';
 import { SoundManager } from '../ui/sound-manager.js';
 import { payBuildingUpgradeCost } from './building-upgrade-payment.js';
+import { getProductionResourceMul } from '../config/tribute-effects.js';
 import { createGoldItem, routeProducedGold as routeBankGold } from './economy-gold-routing.js';
 import { WorkshopEconomySystem } from './workshop-economy-system.js';
 import { BankEconomySystem } from './bank-economy-system.js';
@@ -505,7 +506,8 @@ export const PopulationEconomySystem = {
             if (building._economyTickMs < snapshot.settlementIntervalMs) return;
             const settlements = Math.floor(building._economyTickMs / snapshot.settlementIntervalMs);
             building._economyTickMs -= settlements * snapshot.settlementIntervalMs;
-            const total = building._bankGoldRemainder + snapshot.goldPerSettlement * settlements;
+            const total = building._bankGoldRemainder
+                + snapshot.goldPerSettlement * settlements * getProductionResourceMul();
             const gold = Math.floor(total);
             building._bankGoldRemainder = total - gold;
             if (gold > 0) {
@@ -524,7 +526,7 @@ export const PopulationEconomySystem = {
         const elapsedSeconds = elapsedMs / 1000;
         if (building._economyType === 'windmill') {
             const total = building._workProductionRemainder
-                + this.getWindmillFoodPerSecond(building) * elapsedSeconds;
+                + this.getWindmillFoodPerSecond(building) * elapsedSeconds * getProductionResourceMul();
             const food = Math.floor(total);
             building._workProductionRemainder = total - food;
             if (food > 0) {
