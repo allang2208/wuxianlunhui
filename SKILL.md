@@ -19,6 +19,7 @@
 | `skill/06-dungeon-scene.md` | 6. 地牢与场景构建 |
 | `skill/07-world122-defense.md` | 7. 世界-122 防守地图 |
 | `skill/08-pathfinding-movement.md` | 8. AI 寻路、碰撞与移动 |
+| `skill/08b-animation-smoothing.md` | 动画平滑化方案（缓动/启停/尺寸统一） |
 | `skill/09-monsters-npc.md` | 9. 怪物与 NPC |
 | `skill/10-ui-party.md` | 10. UI、面板与组队系统 |
 | `skill/10b-companion-ai.md` | 侍从战斗 AI（CompanionAI） |
@@ -132,6 +133,7 @@
 - 后续打磨方向（未做）
 
 **8. AI 寻路、碰撞与移动** → `skill/08-pathfinding-movement.md`
+- ⭐ 动画平滑化方案（2026-08-21 定稿：缓动公式/士兵四件套/平民移动/尺寸统一，新动画优化一律按此开展）
 - 友方单位移动平滑启停（2026-08-21：仓鼠全系 + 纯视觉平民；衰减 0.85/缓出/滑行保持 walk）
 - 智能寻路系统（参考《环世界》PathManager）
 - 寻路性能优化（2026-08-03 落地，改寻路代码前必读）

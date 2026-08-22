@@ -112,6 +112,7 @@
   "portal": {
     "id": "portal",
     "name": "传送门",
+    "playerBuildable": false,
     "cost": 2000,
     "hp": 3000,
     "radius": 128,
@@ -385,6 +386,7 @@
       "textureKey": "explorer_camp_window_glow",
       "assetPath": "assets/terrain/window-glow/explorer_camp.png"
     },
+    "perimeterTile": "none",
     "sellRefundRatio": 0.5, "allowedSceneIds": ["scene11"], "buildLimit": 3,
     "featureWorldId": "scene11", "parallelProduction": true,
     "spawnIntervalMs": 60000, "spawnRadius": 90, "unitCap": 6,
@@ -393,6 +395,34 @@
       { "key": "explorer", "name": "仓鼠探险家", "unitCap": 3, "spawnIntervalMs": 45000, "spawnFoodCost": 120 },
       { "key": "bounty_hunter", "name": "仓鼠赏金猎人", "unitCap": 3, "spawnIntervalMs": 75000, "spawnFoodCost": 240 }
     ]
+  },
+  "dungeon_candle": {
+    "id": "dungeon_candle",
+    "name": "守夜烛台",
+    "cost": 500,
+    "currency": "energy",
+    "hp": 1200,
+    "radius": 36,
+    "def": 35,
+    "mdef": 70,
+    "tex": "obstacle_candle",
+    "assetPath": "assets/terrain/obstacle_candle.png",
+    "thumbnailPath": "assets/terrain/obstacle_candle.png",
+    "foundation": false,
+    "displayW": 89,
+    "displayH": 180,
+    "footOffsetY": 90,
+    "autoFootprint": true,
+    "perimeterTile": "none",
+    "sellRefundRatio": 0.5,
+    "spawnEnabled": false,
+    "unitTypes": [],
+    "panelMode": "candle",
+    "panelDescription": "死寂雾潮中，照明范围内的友军获得烛火庇护；烛台拥有实体与生命值，失守后庇护立即消失。",
+    "allowedSceneIds": ["scene11"],
+    "featureWorldId": "scene11",
+    "fogVisionProfile": "candle",
+    "upgradeProject": "candle_sanctuary"
   },
   "jungle_temple": {
     "id": "jungle_temple", "name": "丛林神庙", "cost": 1600, "currency": "gold",

@@ -19,7 +19,7 @@ export function createHudPanelsMisc() {
         { tab: 'skill', title: '技能 (K)', icon: 'assets/ui/icons/skills.png', alt: '技能', key: 'K', label: '技能栏' },
         { tab: 'equip', title: '装备背包 (Tab)', icon: 'assets/ui/icons/inventory.png', alt: '背包', key: 'Tab', label: '背包' },
         { tab: 'codex', title: '图鉴 (U)', icon: 'assets/ui/icons/codex.png', alt: '图鉴', key: 'U', label: '图鉴栏' },
-        { action: 'QuestSystem.open()', title: '任务 (L)', icon: 'assets/ui/icons/quest.png', alt: '任务', key: 'L', label: '任务栏' },
+        { action: 'QuestSystem.open()', title: '任务档案 (L)', icon: 'assets/ui/icons/quest.png', alt: '任务档案', key: 'L', label: '任务档案' },
         { action: 'WorldSwitchPanel.toggle()', title: '世界传送 (O)', icon: 'assets/ui/icons/world_switch.png', alt: '世界传送', key: 'O', label: '世界传送', id: 'worldSwitchBtn' },
         { action: 'CompanionPanel.openManage()', title: '管理队员 (P)', icon: 'assets/ui/icons/party.png', alt: '队员', key: 'P', label: '队员管理' },
         { action: 'Game.handleAddPoint()', title: '属性点', icon: 'assets/ui/addpoint.png', alt: '属性点', key: null, label: '属性点', id: 'addPointBtn', extraClass: 'addpoint-btn hidden' },
@@ -172,18 +172,20 @@ export function createHudPanelsMisc() {
     resourceBar.setAttribute('role', 'group');
     resourceBar.setAttribute('aria-label', '基础资源总览');
     [
-        { key: 'gold', label: '金币', icon: '💰', valueId: 'resourceGoldTotal' },
-        { key: 'energy', label: '能源', icon: '⚡', valueId: 'resourceEnergyTotal' },
-        { key: 'food', label: '食物', icon: '🌾', valueId: 'resourceFoodTotal' },
+        { key: 'gold', label: '金币', iconSrc: 'assets/ui/resource-icons/gold.png', valueId: 'resourceGoldTotal' },
+        { key: 'energy', label: '能源', iconSrc: 'assets/ui/resource-icons/energy.png', valueId: 'resourceEnergyTotal' },
+        { key: 'food', label: '食物', iconSrc: 'assets/ui/resource-icons/food.png', valueId: 'resourceFoodTotal' },
     ].forEach((resource) => {
         const item = document.createElement('div');
         item.className = `basic-resource-item basic-resource-item--${resource.key}`;
         item.title = `${resource.label}总量`;
 
-        const icon = document.createElement('span');
+        const icon = document.createElement('img');
         icon.className = 'basic-resource-icon';
+        icon.src = resource.iconSrc;
+        icon.alt = '';
+        icon.draggable = false;
         icon.setAttribute('aria-hidden', 'true');
-        icon.textContent = resource.icon;
 
         const label = document.createElement('span');
         label.className = 'basic-resource-label';

@@ -21,13 +21,8 @@
       ]
     },
     {
-      "id": "dimensional_engineering", "name": "位面工程", "icon": "🌀", "branch": "工程", "column": 2, "lane": 0, "researchCost": 160,
-      "prerequisites": ["fortification_engineering"], "description": "稳定跨位面通道，允许建造传送门。",
-      "unlocks": [{ "type": "building", "id": "portal", "label": "传送门" }]
-    },
-    {
-      "id": "defense_tower_engineering", "name": "防御塔工程", "icon": "🗼", "branch": "工程", "column": 3, "lane": 0, "researchCost": 240,
-      "prerequisites": ["dimensional_engineering"], "description": "整合自动索敌、武器挂载和强化基座技术，允许建造高级防御塔。",
+      "id": "defense_tower_engineering", "name": "防御塔工程", "icon": "🗼", "branch": "工程", "column": 2, "lane": 0, "researchCost": 240,
+      "prerequisites": ["fortification_engineering"], "description": "整合自动索敌、武器挂载和强化基座技术，允许建造高级防御塔。",
       "unlocks": [{ "type": "building", "id": "tower", "label": "防御塔" }]
     },
     {
@@ -60,7 +55,7 @@
     },
     {
       "id": "expedition_logistics", "name": "远征后勤", "icon": "🌐", "branch": "军事指挥", "column": 4, "lane": 0, "researchCost": 220,
-      "prerequisites": ["dimensional_engineering", "rally_network"], "description": "建立跨位面补给体系，使部队能够跨世界增援。",
+      "prerequisites": ["rally_network"], "description": "建立跨位面补给体系，使部队能够跨世界增援。",
       "unlocks": [{ "type": "mechanic", "id": "cross_world_reinforcement", "label": "跨世界增援" }]
     },
     {
@@ -129,7 +124,7 @@
     },
     {
       "id": "plane_rituals", "name": "位面祭祀", "icon": "🔱", "branch": "经济与位面", "column": 2, "lane": 3, "researchCost": 180,
-      "prerequisites": ["dimensional_engineering"], "description": "建立与位面意志沟通的仪式规范，允许在世界-122建造位面祭坛。",
+      "prerequisites": ["market_circulation"], "description": "建立与位面意志沟通的仪式规范，允许在世界-122建造位面祭坛。",
       "unlocks": [{ "type": "building", "id": "plane_altar", "label": "位面祭坛" }]
     },
     {
@@ -144,7 +139,7 @@
     },
     {
       "id": "interplane_logistics_protocol", "name": "位面物流协议", "icon": "🌀", "branch": "经济与位面", "column": 4, "lane": 1, "researchCost": 260,
-      "prerequisites": ["economic_engineering", "dimensional_engineering"], "description": "统一跨位面仓储和运输规范，允许升级仓库的跨位面协议。",
+      "prerequisites": ["economic_engineering"], "description": "统一跨位面仓储和运输规范，允许升级仓库的跨位面协议。",
       "unlocks": [{ "type": "upgrade", "id": "warehouse_cross_plane", "label": "仓库跨位面协议" }]
     }
   ],
@@ -154,8 +149,16 @@
       "prerequisites": [], "requiredWorldId": "scene11", "description": "僵尸地牢位面解锁后即可研究；完成后开放探险家营地与该位面特色单位。",
       "unlocks": [
         { "type": "building", "id": "explorer_camp", "label": "探险家营地" },
+        { "type": "building", "id": "dungeon_candle", "label": "守夜烛台" },
         { "type": "unit", "id": "explorer", "label": "仓鼠探险家" },
         { "type": "unit", "id": "bounty_hunter", "label": "仓鼠赏金猎人" }
+      ]
+    },
+    {
+      "id": "dungeon_candle_mastery", "name": "烛火工事学", "icon": "🕯️", "branch": "位面独特科技", "section": "plane", "column": 0, "lane": 1, "researchCost": 220,
+      "prerequisites": ["dungeon_explorer_corps"], "requiredWorldId": "scene11", "description": "强化守夜烛台的灯芯、聚光与防护结构，开放每座烛台的照明范围升级。",
+      "unlocks": [
+        { "type": "upgrade", "id": "candle_light_range", "label": "守夜烛台照明范围升级" }
       ]
     },
     {

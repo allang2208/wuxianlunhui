@@ -179,6 +179,7 @@ python tools/ai-gen/build-lighting-maps.py <building_id>
 - 客户端：`tools/ai-gen/gptimage2-gen.py`（--prompt / --prompt-file / --size / --quality / --out）
 - 接口：`POST https://token.ithinkai.cn/v1/images/generations`（OpenAI 格式），模型 `gpt-image-2`
 - key：环境变量 `ITHINKAI_API_KEY` → `%USERPROFILE%\.ithinkai\config.json`（不落仓库）
+- 透明底退化教训（2026-08-22 骨雕战面）：约 1/20 概率模型不给真透明，而在中央画不透明"背景板"（该例不透明占比 77%）。归一化时按"不透明像素占比 >60% 判为背景板"自动拦截重试；prompt 加 `no backdrop` 可显著降低概率，程序化抠图（边缘泛洪）对奶白底可用但易留马赛克残斑，优先重出。
 - 定位：双机 ComfyUI 与智谱之外的云端第四途径——无水印、不占本地显卡、按 token 计费
   （实测单张约 400 tokens）；返回图片 URL 有时效，脚本已立即下载；不传 --out 默认落
   `Y:\工作\无尽轮回\scratch\gptimage2_<时间戳>.png`；CDN 拒绝 urllib
@@ -874,6 +875,12 @@ v4 上撩回斩被否原因：向上挥向空气无目标承接、缺冲击力�
 - 阈值 mask 把背景暗角算进主体（背景角落 159-236，纯阈值抠图不可靠），统一 BiRefNet。
 - 重采样选帧用"视觉距离"而非"帧号均匀"：`linspace(0,33,32)` 取整会跳帧造成卡顿，
   等视觉距离选帧（相邻 RGB 差均匀）后露娜 walking 接缝从 17.1 → 11.8（落在正常步幅区间）。
+- **带技能结算帧的动作不能只按视觉距离盲采样**（2026-08-22 丛林祭司）：先锁定游戏配置的
+  1-based 释放帧，再把该成品帧显式映射到视频中的爆发关键帧；例如 17 帧 spell 的第 8 帧映射
+  到法杖光芒展开的源 f117，前后段再分别压缩。否则动作看似平滑，弹道/伤害却会落在蓄力或静止帧。
+- **BiRefNet 会删掉半透明魔法光线**：主体 alpha 清理后，可在限定的技能 ROI 内按目标色通道优势
+  （绿色示例 `G-max(R,B)>4`）和白底色差恢复 effect alpha，再做白底反解；ROI 必须避开视频水印，
+  并重新执行空帧、贴边与格宽检查。参考 `tools/ai-gen/jungle-wizard-video-rebuild.py`。
 
 #### 7. 露娜奔跑重生成（2026-08-13，H3 图生视频 + 无漂移验证）
 背景：AI 生成的 running.png 有水平漂移（质心 31px、循环回跳 25px）。改用 H3 i2v 重新生成原地奔跑：

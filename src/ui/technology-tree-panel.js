@@ -235,14 +235,22 @@ export const TechnologyTreePanel = {
             if (!from) return '';
             const a = positionOf(from);
             const b = positionOf(node);
+            const done = TechnologySystem.isCompleted(requiredId) && TechnologySystem.isCompleted(node.id);
+            const selected = selectedPath.has(requiredId) && selectedPath.has(node.id);
+            const linkClass = `technology-link${done ? ' completed' : ''}${selected ? ' selected-path' : ''}`;
+            if ((Number(from.column) || 0) === (Number(node.column) || 0)) {
+                const x = a.x + CARD_W / 2;
+                const targetBelow = b.y >= a.y;
+                const y1 = targetBelow ? a.y + CARD_H : a.y;
+                const y2 = targetBelow ? b.y : b.y + CARD_H;
+                return `<path class="${linkClass}" d="M ${x} ${y1} V ${y2}" />`;
+            }
             const x1 = a.x + CARD_W;
             const y1 = a.y + CARD_H / 2;
             const x2 = b.x;
             const y2 = b.y + CARD_H / 2;
             const mid = (x1 + x2) / 2;
-            const done = TechnologySystem.isCompleted(requiredId) && TechnologySystem.isCompleted(node.id);
-            const selected = selectedPath.has(requiredId) && selectedPath.has(node.id);
-            return `<path class="technology-link${done ? ' completed' : ''}${selected ? ' selected-path' : ''}" d="M ${x1} ${y1} H ${mid} V ${y2} H ${x2}" />`;
+            return `<path class="${linkClass}" d="M ${x1} ${y1} H ${mid} V ${y2} H ${x2}" />`;
         })).join('');
 
         const cards = nodes.map((node) => {

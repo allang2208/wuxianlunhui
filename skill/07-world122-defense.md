@@ -1563,7 +1563,7 @@
 ### 建筑派生道路、独立升级项目与 alpha-ground-fit 闭环（2026-08-19）
 
 - **道路生命周期**：`BuildingRoadSystem.detach(entity, { preserveRoads:true })` 用于建筑沉陷和主动拆除：释放中央 2×2/4×4 预约，同时把外围自动道路转为独立道路；道路不随建筑消失，原位可直接重建。场景 teardown/普通重挂仍走默认 detach，避免遗留预约。
-- **外围格配置例外（2026-08-21）**：配置型建筑用 `producer-buildings.json#perimeterTile` 声明外围格；`"field"` 生成田地，缺省生成道路，`"none"` 只保留中央 2×2。`none` 必须同时关闭建造预览、4×4 预约、实际派生 tile，并由 `BuildingRoadSystem.attach()` 在快照恢复路径再次兜底，禁止只隐藏道路 Sprite 却继续占住外围 12 格。
+- **外围格配置例外（2026-08-21）**：配置型建筑用 `producer-buildings.json#perimeterTile` 声明外围格；`"field"` 生成田地，缺省生成道路，`"none"` 只保留中央 2×2。`none` 必须同时关闭建造预览、4×4 预约、实际派生 tile，并由 `BuildingRoadSystem.attach()` 在快照恢复路径再次兜底，禁止只隐藏道路 Sprite 却继续占住外围 12 格。传送门、房屋及 `explorer_camp`（探险家/侦查营地）使用 `none`，周围不得自动产生道路。
 - **升级项目唯一源**：`data/building-upgrades.json` 定义项目、费用、模块 `effect` 与能力；建筑只在 `producer-buildings.json` 或固定建筑配置中声明 `upgradeProject`。`building-upgrade-projects.js` 负责解析，`unit-upgrade-store.js` 按 `effect` 生成统一补丁，禁止再按 `attackSpd/damage/moveSpd` 等模块 ID 写分支。
 - **升级支付事务（2026-08-19）**：矿场/兵营/通用产兵与铁匠铺、研究院能力升级统一走
   `payBuildingUpgradeCost()`；升级永远消耗真实金币与能源，`_devInfiniteResources`
@@ -1592,6 +1592,12 @@
 - **特殊模块接线**：靶场 `attackRangeBonus`（+15px/级）、兵营 `defenseMult`（+5%/级）、骑兵学校 `chargeDamageMult`（+15%/级）；教堂 `holyLightRangeBonus`（+15px/级）与 `titheEnergyPerTick`（每10s、每牧师、仅有仓库时入库）。补丁必须同时覆盖新生成单位和场上存活单位。
 - **普通2×2贴图校准**：逻辑 footprint 永远固定 256×128；贴图只允许改 `displayW/displayH/footOffsetY` 和视觉 X 偏移。`node tools/calibrate-building-footprints.mjs --check` 扫真实 alpha、迭代到 256×128 容差，并输出推荐显示尺寸；贴图替换后先跑它，再更新配置。
 - **底部锁定铁律**：实体与建造幽灵必须共用 `resolveStructureGroundFit()` 的 `footOffsetY + visualOffsetX`。禁止实体走 `resolveStructureFootOffset()`、幽灵另走一套最低像素计算，否则预览贴地但落地后跳动。像素四边形物理仍只允许显式 `autoFootprint:true` 的异形建筑使用。
+- **接地拟合派生资产（2026-08-22）**：建筑贴图或 `displayW/displayH` 变化后必须运行
+  `node tools/generate-building-preview-assets.mjs`，同步生成 `data/structure-ground-fits.json` 和
+  `assets/ui/building-thumbnails/`。manifest 键包含 texture/frame、源尺寸、显示尺寸和 nominal footprint，
+  只保存完整拟合结果，禁止烘入 `anchorAdjustX/Y` 或镜像。运行时仍只从
+  `resolveStructureGroundFit()` 读取；未命中的新图最多做一次 768px 长边的批量 alpha 读回，禁止恢复
+  `TextureManager#getPixelAlpha` 逐像素循环。
 
 ### 世界-122 扩展 + 分块地板 + 能源矿世代布局 + 基地门可攻击（2026-08-16；2026-08-22 更新）
 - **地图 4096² → 6144×4096**：scene8 width/height + origin(3072,2048)，data 与 public/data 双份同步；
@@ -1686,6 +1692,25 @@
   `SceneManager.scenes` 是 `init()` 时缓存，只可作兜底，否则开发期 JSON 热更新后可能一直读到
   不含 `environmentEffects` 的旧场景对象，表现为两个 emitter 从未创建。
 
+#### 世界-122 沙尘暴特殊天气（2026-08-22）
+
+- **逻辑与视觉分离**：跨场景天气状态唯一归 `World122SandstormSystem`，只用统一游戏时钟的绝对
+  `elapsedMs` 保存 `warning/start/end` 锚点；`WindblownSandSystem` 仍是离开 scene8 即销毁的纯视觉层。
+  存档写入 `worlds.sandstorm`，旧档缺失时从当前游戏时间重新排期，禁止用 `Date.now()`、逐帧概率或
+  把天气塞进位面快照。
+- **状态机与配置**：`clear → warning → active → clear`；每轮平静期只抽一次
+  `intervalDays`，提前 `warningLeadDays` 走顶部提示栏，爆发时只抽一次 `durationDays`。默认间隔
+  3~6 游戏日、提前 0.25 日预警、持续 1~2 游戏日；T 键位面页的 scene8 行按钮直接进入 active。
+- **暴风视觉档位**：激活时以基础扬沙配置合并 `sandstorm.visual`，仅在模式切换时重建两个 emitter，
+  从而安全扩大 `reserve/maxAliveParticles`、范围、尺寸、寿命与速度；不得逐帧合并后触发重建，也不得
+  用 `timeScale > 1` 同时加速粒子死亡。`lockDirection:true` 表示沙尘暴从爆发到消散始终锁定进入暴风时的
+  唯一风向，不执行普通扬沙的周期换向；贴地与前景速度分别为 `640~1040 / 380~640 px/s`，相对首版暴风
+  精确翻倍。普通扬沙仍按 `directionHoldMs` 周期换向，两个档位均禁止单粒子方向抖动。
+- **视野乘算契约**：沙尘暴只对 `player/companion/military/scout/cavalry` 单位视野配置在
+  `VisionSourceRegistry.radiusOf()` 最终半径链增加 scene8 专属 `×0.5`，传送门、塔与出兵建筑不受影响；
+  与夜晚 `×0.5` 乘算后为 `×0.25`。不得修改 AI 感知、仇恨、攻击距离、相机或永久探索记录；
+  战争迷雾会周期重读半径，天气切换无需重建迷雾网格。
+
 ### 世界-122 建筑与建造（2026-08-17）
 
 **建筑贴图替换工作流（素材库 → 英文名 → alpha bbox 标定）**
@@ -1734,6 +1759,13 @@
      新增建筑若提供独立 `icon`，使用透明背景 128×64 PNG，并在该画布内保持原图宽高比；
      未提供时仍可回退 `tex`，由建筑面板等比缩放。该规则只作用于面板缩略图，不得据此修改
      场景实体的 `displayW/displayH`、footprint 或碰撞。
+   - **面板性能口径（2026-08-22）**：正式卡片统一引用上述派生 128×64 缩略图并异步解码，禁止把
+     3K~4K 世界贴图直接放进卡片。金币/能源或场景条件变化只原位更新卡片 class、title 和价格；
+     只有科技折叠或排序变化允许重建网格。鼠标预览每个 `requestAnimationFrame` 最多计算一次，
+     但 `mousedown` 必须用点击坐标同步冲刷，`mouseup` 必须用松开坐标重算拖墙/道路终点，且
+     `_place()` 保留完整 `_canPlace()`、科技、条件和支付复验；禁止跨帧缓存动态合法性。
+     普通幽灵、对齐线和12格外围道路可在同一 Phaser Scene 内隐藏复用，切场/关面板必须销毁并
+     取消待执行 rAF；4格门、楼梯等复合预览继续走专用清理，禁止近似成单张图标。
 5. **遮挡/占地接入**：构造中走 `applyBuildingFootprint(this, 2)` +
    `setupStructureDepth(this)`；新增建筑不手写另一套碰撞、脚底或深度规则。
    - **前角遮挡契约**：动态单位深度必须调用 `WallSystem.junctionCorrectedDepth(...,
@@ -1858,6 +1890,36 @@
 - 镜头：在 `GameScene.zoomedOutWorld` 中与 scene8 共用 `0.7` 基础缩放。
 - 验收：`scripts/test-world125-dungeon-world.mjs`（配置/地板/障碍/三入口/音乐/镜头 +
   真实散布函数）+ 传送门旧回归 + ESLint + Vite build。
+
+#### 世界-125“尸雾遗迹”常驻环境特效（2026-08-22）
+
+- **唯一入口与配置真源**：`GameScene` 持有 `World125AtmosphereSystem`，只读取双份
+  `game-config.json#scenes.scene11.environmentEffects.dungeonAtmosphere`；配置优先取
+  `GAME_CONFIG.scenes.scene11`，`SceneManager.scenes` 只作缓存兜底。环境效果是可丢弃视觉状态，
+  禁止登记为实体、物理、AI、位面快照或后台模拟对象。
+- **分层与战争迷雾**：贴地尸雾复用 `WORLD_RENDER_LAYERS.GROUND_WEATHER=-994.3`；冷色
+  呼吸覆盖为99970，前景腐化尘/烛火火星为99974，均低于战争迷雾99980和昼夜覆盖99990。
+  尸雾/浮尘依靠最终FOW遮罩覆盖未探索区，禁止为找可见格而让发射器长期空转；烛火源点则用
+  `isFogPointVisible` 过滤，常驻光继续复用 `registerEnvironmentGlow` 的FOW门禁。
+- **统一气流与性能**：尸雾和腐化尘同一时段只共享一个 `airflowUv`，经
+  `isoLocalToWorldDelta()` 投影一次；保持 `directionHoldMs` 后整体换向，先 `killAll()`，再调用
+  `setParticleSpeed/setEmitterAngle`，禁止 `updateConfig()` 反复扩池。粒子只在
+  `camera.worldView + viewportMarginPx` 与世界菱形交集内生成，三个发射器均预留池并设置
+  `maxAliveParticles`，不按12288×8192全图铺设。
+- **烛台复用口径**：现有 `obstacle_candle.png` 为317×640三烛台，运行时约89×180，俯视烛盘和
+  底脚符合当前黑砖等距视角，无需重新建模。枚举 `_world125Environment && tex==='obstacle_candle'`
+  同时覆盖36座单体与预制组合；中央/左/右火焰源图点分别为`(158,18)/(42,108)/(278,54)`，
+  必须通过 `WallSystem.texPointToWorld()` 应用缩放与flip。每座烛台只注册一枚呼吸光，全部烛台
+  共用一个手动发射火星的Emitter，禁止逐烛台创建Emitter。
+- **死寂雾潮开发触发态**：T键“位面”页只在scene11世界行展示状态和按钮，UI统一调用
+  `GameScene.getWorld125AtmosphereDebugModel/toggleWorld125FogTide` 公共门面，禁止直接访问
+  `_world125Atmosphere`。按钮仅在玩家当前已进入scene11时允许触发；激活后同一按钮改为结束，离场
+  `reset()` 自动清除。视觉档位以基础 `dungeonAtmosphere` 合并 `fogTide.visual`，只在模式切换时
+  重建三个共享Emitter；尸雾/腐化尘加量加速、冷绿覆盖增强、烛光衰弱，并以
+  `lockDirection:true` 锁定本次雾潮全程唯一气流。当前不随机、不计时、不存档、不修改视野或战斗。
+- **生命周期与玩法边界**：暂停时三个Emitter `timeScale=0` 且统一delta停止；加载、离开scene11或
+  `clearAllEntitySprites()` 时销毁粒子/冷色覆盖并注销所有烛光。常驻氛围不得修改单位视野、AI感知、
+  攻击距离、碰撞或探索记录；死寂雾潮若以后需要视野惩罚，必须另建天气状态与乘算修正链。
 
 **建造清除障碍物与草（2026-08-17 用户口径：建造处有树/草类障碍物直接删除）**
 - **判定顺序铁律（2026-08-17 审计修复）**：不能先用普通 `canMoveTo` 拒绝落点、再在建造
@@ -2246,7 +2308,7 @@
   后台目标直接修改对应 sceneId 快照，承伤顺序为墙/门 → 普通建筑 → 传送门。
 - **四世界同构**：scene8~scene11 都走 `SceneManager._setupPersistentWorld`，共同接入建筑、资源、
   单位、道路、快照和 RTS。`world122-snapshot.js` 旧导出保留兼容，新代码使用按 sceneId 的
-  `capture/apply/serialize/restoreWorldScenes`；后台生产用游戏时间锚点，地牢冻结时自然停止。
+  `capture/apply/serialize/restoreWorldScenes`；后台生产用游戏时间锚点，地牢探险期间也持续结算。
 - **传送门死亡契约**：世界核心传送门标记 `_isWorldPortalCore`，目标分类按 BASE 处理；死亡即判定
   整个位面毁灭，删除该 `sceneId` 的建筑/单位/掉落物/矿点/道路快照和玩家旧坐标，位面内玩家或
   以该位面为本体的观察者强制返回主城。未重建传送门前禁止载入该位面；重建只恢复传送门进度，
@@ -2254,7 +2316,8 @@
   开放“曾经建成过”的传送门应急重建，不能借此首次构造新世界。
 - **入侵响应与调试契约**：传送门耐久按 `world-system.json.invasion.portalWarnings` 的 50%/25%/10%
   分段预警；HUD 显示实时耐久，异世界目标提供“本体支援”并以 `observer:false` 明确转移玩家，10%
-  阶段提示支援或撤离。交互开发工具“位面”页签只调用系统公开调试入口：展示状态/世代/快照/候选池，
+  阶段提示支援或撤离；地牢探险中只允许世界面板观察指挥，玩家本体支援保持禁用。交互开发工具
+  “位面”页签只调用系统公开调试入口：展示状态/世代/快照/候选池，
   推进时间必须同时推进 `EnvironmentLightingSystem` 统一时钟和入侵系统，模拟毁门必须复用正式毁灭事务。
 - **顶部入侵条颜色语义**：条宽继续读取 HUD 模型的 `progress`，但颜色读取归一化“危险度”。等待期
   `danger=progress`，入侵期因 `progress` 表示传送门剩余耐久，必须使用 `danger=1-progress`；危险度按
@@ -2373,16 +2436,17 @@
 - **三线结构（v3）**：主科技树固定分为“工程 / 军事指挥 / 经济与位面”三条主线页；军事和指挥共享同一分支，
   经济页承载住房、农业、市场、银行、经济工坊和位面物流协议。仓库与一级房屋是基础功能，不登记科技拥有权；
   `聚落规划 -> house_level_2`、`住房优化 -> house_level_3`，升级按钮隐藏时保留原槽位且业务层必须二次校验。
-  工程线按 `工程制图 -> 城防工事 -> 位面工程 -> 防御塔工程` 延伸，防御塔属于位面工程之后的高级建筑。
+  工程线按 `工程制图 -> 城防工事 -> 防御塔工程` 延伸；位面打通后，传送门首次构造直接由位面生命周期开放，
+  不登记科技拥有权，也不得在传送门面板额外检查研发状态。可构造列表和最终构造入口仍必须校验对应地牢解锁条件。
 - **新增建筑门禁**：`军营建制 -> hamster_barracks` 接在军事组织之后，盾阵学改以军营建制为前置；
-  `位面祭祀 -> plane_altar` 放入经济与位面页并以位面工程为前置。两类建筑继续复用建筑栏折叠门禁和落地二次校验。
+  `位面祭祀 -> plane_altar` 放入经济与位面页并以市场流通为前置。两类建筑继续复用建筑栏折叠门禁和落地二次校验。
 - **位面专项研究**：随位面解锁才可研究的特色科技必须放入独立 `planeResearch` 配置，不得混入三条主线前置；
   未解锁位面时对应项目仍显示在“位面独特科技”栏目，但卡片内容和详情必须使用动态马赛克遮蔽且禁止研究；
   位面满足资格后原卡片解除遮蔽并进入自动随机池。完成项目必须同时登记特色建筑
   和该建筑全部特色兵种的解锁目标，禁止只锁建筑、让兵种通过恢复或双通道生产绕过门禁。
   科技面板顶部为此提供独立“位面独特科技”栏目；现有地牢探险团和丛林神庙仪式只在该栏目展示。
-  马赛克动画使用双尺度冷钢块、卡片间错相跳动和低频扫描；面板关闭时暂停，并在 `prefers-reduced-motion`
-  环境下退化为静态遮蔽，禁止使用高频明暗闪烁。
+  遮蔽层仅使用可平铺的黑白电视雪花噪点，必须不透明覆盖整张研究卡牌；禁止再叠加马赛克块、扫描线或
+  整卡位移。相邻卡片采用不同噪点相位，面板关闭时暂停，并在 `prefers-reduced-motion` 环境下退化为静态遮蔽。
 - **研究结算**：每座存活研究院线性提供配置化研究速度；`WorldSimDriver` 每秒汇总当前活动建筑与非活动位面
   快照中的研究院，只推进一次全局科技，严禁按世界循环重复结算。没有有效手选项目时，只能从当前满足全部
   前置的未完成科技中随机选择；切换科技保留进度。单次 tick 完成项目后的剩余研究点必须继续投入队列下一项，

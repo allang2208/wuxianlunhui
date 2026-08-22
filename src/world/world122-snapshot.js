@@ -438,6 +438,12 @@ export function captureWorld(sceneId = 'scene8') {
                 totalMs: p._workshopUpgrade.totalMs,
                 remainMs: p._workshopUpgrade.remainMs,
             } : null,
+            candleModules: p._isWorld125Candle ? { ...(p.candleModules || {}) } : undefined,
+            candleUpgrade: p._candleUpgrade ? {
+                moduleId: p._candleUpgrade.moduleId,
+                totalMs: p._candleUpgrade.totalMs,
+                remainMs: p._candleUpgrade.remainMs,
+            } : null,
             rally: p._rallyPoint ? { x: p._rallyPoint.x, y: p._rallyPoint.y } : null,
             buildCost: p._buildCost ?? null, buildCurrency: p._buildCurrency ?? null,
         });
@@ -836,6 +842,8 @@ function _restoreProducer(s, sceneId) {
         workshopUpgrade: s.workshopUpgrade,
         warehouseModules: s.warehouseModules,
         warehouseUpgrade: s.warehouseUpgrade,
+        candleModules: s.candleModules,
+        candleUpgrade: s.candleUpgrade,
     });
     _markRestored(producer, s);
     if ((cfg.unitTypes || []).some((t) => t.key === s.unitType)) producer.unitType = s.unitType;

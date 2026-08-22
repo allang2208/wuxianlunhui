@@ -6,17 +6,21 @@ import { SceneManager } from '../world/scene-manager.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
 import { UIState } from './ui-state.js';
 import { EffectManager } from '../effects/effect-manager.js';
-import { queryAllElements, getElement } from '../utils/dom-utils.js';
+import { queryAllElements } from '../utils/dom-utils.js';
 import { TimerManager } from '../utils/timer-manager.js';
 import { DropItem } from '../entities/drop-item.js';
 import { NPCDialogue } from './npc-dialogue.js';
 import { RewardSystem } from './reward-system.js';
 import { EquipManager } from './equip-manager.js';
 import { GameUIManager } from './game-ui-manager.js';
+import { BasePanel } from './panels/base-panel.js';
+import { mountRightSidebarPanel } from './right-sidebar-panel-layer.js';
+
 export const QuestSystem = {
-    _isOpen: false,
     _selectedQuest: 'explore_rift_1',
     _fromNPC: false, // 标记是否从小鼠侍从NPC打开的任务栏
+    _panel: null,
+    _lastFocusedElement: null,
 
     // 任务数据库
     QUESTS: {
@@ -24,6 +28,8 @@ export const QuestSystem = {
             id: 'explore_rift_1',
             name: '探索时空裂隙',
             type: '主线任务',
+            giver: '小鼠侍从',
+            location: '181号世界 · 雪原裂隙',
             desc: '根据线索，近期发现不同世界中出现了时空乱流和时空不稳定的裂隙，前往最近发生情况的181号世界，找到发生时空裂隙的地方，收集线索调查。',
             objectives: [
                 { id: 'rift_1', text: '完成三个时空裂隙的线索收集', current: 0, target: 3 },
@@ -40,38 +46,62 @@ export const QuestSystem = {
         }
     },
 
+    get _isOpen() { return UIState.isOpen('quest'); },
+
+    _getPanel() {
+        if (this._panel) return this._panel;
+
+        this._panel = new BasePanel({
+            id: 'questPanel',
+            className: 'quest-panel bp-right-column',
+            stateKey: 'quest',
+            mountElement: (el) => mountRightSidebarPanel(el, 'panel', { bringToFront: true }),
+        });
+        this._panel.buildContent = (el) => this._buildPanelContent(el);
+        this._panel.onOpen = () => {
+            this._panel.el?.setAttribute('aria-hidden', 'false');
+            queryAllElements('.side-menu').forEach(menu => menu.classList.add('hidden'));
+            this._render();
+            this._panel.el?.querySelector('.quest-panel-close')?.focus({ preventScroll: true });
+        };
+        this._panel.onClose = () => {
+            const shouldRestoreFocus = !NPCDialogue.active;
+            this._panel.el?.setAttribute('aria-hidden', 'true');
+            queryAllElements('.side-menu').forEach(menu => menu.classList.remove('hidden'));
+            this._fromNPC = false;
+            if (NPCDialogue.active) NPCDialogue.exitCompactMode();
+            if (shouldRestoreFocus
+                && this._lastFocusedElement?.isConnected
+                && typeof this._lastFocusedElement.focus === 'function') {
+                this._lastFocusedElement.focus({ preventScroll: true });
+            }
+            this._lastFocusedElement = null;
+        };
+        return this._panel;
+    },
+
     open() {
-        UIState.open('quest');
-        this._isOpen = true;
-        const panel = getElement('questPanel');
-        if (panel) {
-            panel.classList.add('active');
+        const panel = this._getPanel();
+        if (panel.isOpen) {
+            mountRightSidebarPanel(panel.el, 'panel', { bringToFront: true });
+            this._render();
+            return;
         }
-        // 打开面板时隐藏右侧侧边栏图标
-        queryAllElements('.side-menu').forEach(m => m.classList.add('hidden'));
-        this._render();
+        this._lastFocusedElement = document.activeElement;
+        panel.open();
     },
 
     close() {
-        UIState.close('quest');
-        this._isOpen = false;
-        this._fromNPC = false; // 关闭时重置来源标记
-        const panel = getElement('questPanel');
-        if (panel) {
-            panel.classList.remove('active');
-        }
-        queryAllElements('.side-menu').forEach(m => m.classList.remove('hidden'));
-        if (NPCDialogue.active) {
-            NPCDialogue.exitCompactMode();
-        }
+        if (this._panel) this._panel.close();
     },
 
     toggle() {
-        if (UIState.isOpen('quest')) this.close();
+        if (this._isOpen) this.close();
         else this.open();
     },
 
     selectQuest(questId) {
+        if (!this.QUESTS[questId]) return;
         this._selectedQuest = questId;
         this._render();
     },
@@ -82,6 +112,7 @@ export const QuestSystem = {
         if (quest) {
             quest.accepted = true;
             // 任务栏版本：不传送，仅更新任务状态
+            this._render();
         }
         this.close();
         if (NPCDialogue.active) NPCDialogue.close();
@@ -100,58 +131,218 @@ export const QuestSystem = {
         if (NPCDialogue.active) NPCDialogue.close();
     },
 
+    refresh() {
+        if (this._isOpen) this._render();
+    },
+
+    _buildPanelContent(panel) {
+        panel.setAttribute('role', 'region');
+        panel.setAttribute('aria-labelledby', 'questPanelTitle');
+        panel.setAttribute('aria-hidden', 'true');
+        panel.innerHTML = `
+            <header class="quest-panel-header bp-panel-header">
+                <div class="quest-panel-header-copy bp-panel-header-copy">
+                    <div class="quest-panel-eyebrow bp-type-meta">行动终端 / 任务档案</div>
+                    <h2 class="quest-panel-title bp-type-title" id="questPanelTitle">任务档案</h2>
+                </div>
+                <div class="quest-panel-head-actions">
+                    <span class="quest-panel-count bp-type-meta" id="questPanelCount" aria-live="polite"></span>
+                    <button class="quest-panel-close bp-panel-close" type="button" aria-label="关闭任务档案">✕</button>
+                </div>
+            </header>
+            <div class="quest-panel-body bp-panel-body">
+                <aside class="quest-list-pane" aria-label="任务档案索引">
+                    <div class="quest-pane-heading">
+                        <div>
+                            <div class="quest-section-kicker bp-type-caption">ARCHIVE INDEX</div>
+                            <h3 class="quest-pane-title bp-type-subtitle">任务索引</h3>
+                        </div>
+                        <span class="quest-archive-summary bp-type-meta" id="questArchiveSummary"></span>
+                    </div>
+                    <div class="quest-overview" id="questOverview" aria-label="任务状态统计"></div>
+                    <div class="quest-list-col" id="questListCol" aria-label="任务列表"></div>
+                </aside>
+                <section class="quest-detail-col" id="questDetailCol" aria-live="polite" aria-label="任务详情"></section>
+            </div>`;
+
+        panel.querySelector('.quest-panel-close')?.addEventListener('click', () => this.close());
+        panel.querySelector('#questListCol')?.addEventListener('click', (event) => {
+            const item = event.target.closest('[data-quest-id]');
+            if (item) this.selectQuest(item.dataset.questId);
+        });
+        panel.querySelector('#questDetailCol')?.addEventListener('click', (event) => {
+            if (event.target.closest('[data-quest-action="accept"]')) this.acceptQuest();
+        });
+    },
+
+    _getQuestStatus(quest) {
+        if (quest.completed) return { key: 'completed', text: '已完成' };
+        if (quest.accepted) return { key: 'active', text: '进行中' };
+        return { key: 'available', text: '待领取' };
+    },
+
+    _getQuestProgress(quest) {
+        const objectives = Array.isArray(quest.objectives) ? quest.objectives : [];
+        const total = objectives.reduce((sum, objective) => sum + Math.max(0, Number(objective.target) || 0), 0);
+        const current = objectives.reduce((sum, objective) => {
+            const target = Math.max(0, Number(objective.target) || 0);
+            return sum + Math.min(target, Math.max(0, Number(objective.current) || 0));
+        }, 0);
+        const ratio = quest.completed ? 1 : (total > 0 ? current / total : 0);
+        return {
+            current,
+            total,
+            percent: Math.round(Math.max(0, Math.min(1, ratio)) * 100),
+            completedObjectives: objectives.filter(objective => Number(objective.current) >= Number(objective.target)).length,
+        };
+    },
+
     _render() {
-        const listCol = getElement('questListCol');
-        const detailCol = getElement('questDetailCol');
-        if (!listCol || !detailCol) return;
+        const panel = this._panel?.el;
+        if (!panel) return;
+        const listCol = panel.querySelector('#questListCol');
+        const detailCol = panel.querySelector('#questDetailCol');
+        const overview = panel.querySelector('#questOverview');
+        const panelCount = panel.querySelector('#questPanelCount');
+        const archiveSummary = panel.querySelector('#questArchiveSummary');
+        if (!listCol || !detailCol || !overview) return;
+
+        const quests = Object.values(this.QUESTS);
+        const activeCount = quests.filter(quest => quest.accepted && !quest.completed).length;
+        const completedCount = quests.filter(quest => quest.completed).length;
+        const availableCount = quests.length - activeCount - completedCount;
+        if (panelCount) panelCount.textContent = `${activeCount} 进行中 / ${quests.length} 总计`;
+        if (archiveSummary) archiveSummary.textContent = `${quests.length} 份档案`;
+        overview.innerHTML = `
+            <div class="quest-overview-stat"><span>待领取</span><strong>${availableCount}</strong></div>
+            <div class="quest-overview-stat"><span>进行中</span><strong>${activeCount}</strong></div>
+            <div class="quest-overview-stat"><span>已完成</span><strong>${completedCount}</strong></div>`;
+
+        if (quests.length === 0) {
+            listCol.innerHTML = '<div class="quest-empty-state bp-type-meta">暂无任务档案</div>';
+            detailCol.innerHTML = '<div class="quest-empty-state quest-empty-state--detail"><strong>暂无可查看的任务</strong><span>新的行动档案会在这里归档。</span></div>';
+            return;
+        }
+
+        if (!this.QUESTS[this._selectedQuest]) this._selectedQuest = quests[0].id;
 
         // 渲染任务列表
-        listCol.innerHTML = Object.values(this.QUESTS).map(q => {
-            const isCompleted = q.completed;
-            const isActive = q.id === this._selectedQuest;
-            const checkMark = isCompleted ? '<span class="quest-item-check">✓</span>' : '';
+        listCol.innerHTML = quests.map(quest => {
+            const status = this._getQuestStatus(quest);
+            const progress = this._getQuestProgress(quest);
+            const isCompleted = status.key === 'completed';
+            const isActive = quest.id === this._selectedQuest;
             return `
-                <div class="quest-list-item ${isActive ? 'active' : ''} ${isCompleted ? 'completed' : ''}" data-quest="${q.id}">
-                    <div class="quest-item-name">${q.name}${checkMark}</div>
-                    <div class="quest-item-type">${q.type}</div>
-                </div>
+                <button class="quest-list-item ${isActive ? 'active' : ''} ${isCompleted ? 'completed' : ''} quest-state-${status.key}"
+                    type="button" data-quest-id="${quest.id}" aria-pressed="${isActive}">
+                    <span class="quest-list-item-head">
+                        <span class="quest-item-name">${quest.name}</span>
+                        <span class="quest-item-status">${status.text}</span>
+                    </span>
+                    <span class="quest-item-meta">
+                        <span>${quest.type}</span>
+                        <span>${progress.percent}%</span>
+                    </span>
+                    <span class="quest-list-progress" aria-hidden="true"><span style="width:${progress.percent}%"></span></span>
+                </button>
             `;
         }).join('');
-
-        listCol.querySelectorAll('.quest-list-item').forEach(el => {
-            el.onclick = () => this.selectQuest(el.dataset.quest);
-        });
 
         // 渲染任务详情
         const quest = this.QUESTS[this._selectedQuest];
         if (!quest) {
-            detailCol.innerHTML = '<div class="quest-detail-desc">暂无任务</div>';
+            detailCol.innerHTML = '<div class="quest-empty-state quest-empty-state--detail">暂无任务</div>';
             return;
         }
 
-        const objectivesHtml = quest.objectives.map(obj => {
-            const isDone = obj.current >= obj.target;
-            return `<div class="quest-objective-item ${isDone ? 'completed' : ''}">${obj.text} (${obj.current}/${obj.target})</div>`;
+        const status = this._getQuestStatus(quest);
+        const progress = this._getQuestProgress(quest);
+        const objectivesHtml = quest.objectives.map((objective, index) => {
+            const current = Math.max(0, Number(objective.current) || 0);
+            const target = Math.max(0, Number(objective.target) || 0);
+            const isDone = target > 0 && current >= target;
+            const objectivePercent = target > 0 ? Math.round(Math.min(1, current / target) * 100) : 0;
+            return `
+                <div class="quest-objective-item ${isDone ? 'completed' : ''}">
+                    <div class="quest-objective-row">
+                        <span class="quest-objective-index">${isDone ? '✓' : String(index + 1).padStart(2, '0')}</span>
+                        <span class="quest-objective-copy">${objective.text}</span>
+                        <strong class="quest-objective-value">${current}/${target}</strong>
+                    </div>
+                    <div class="quest-objective-progress" role="progressbar" aria-label="${objective.text}" aria-valuemin="0" aria-valuemax="${target}" aria-valuenow="${current}">
+                        <span style="width:${objectivePercent}%"></span>
+                    </div>
+                </div>`;
         }).join('');
 
-        const rewardsHtml = quest.rewards.map(r => `<div class="quest-reward-item">• ${r.text}</div>`).join('');
+        const rewardTypeLabels = { level: '成长', gold: '货币', weapon: '装备' };
+        const rewardsHtml = quest.rewards.map(reward => `
+            <div class="quest-reward-item">
+                <span>${rewardTypeLabels[reward.type] || '奖励'}</span>
+                <strong>${reward.text}</strong>
+            </div>`).join('');
 
-        const statusText = quest.completed ? '已完成' : (quest.accepted ? '进行中' : '未接受');
-        const statusClass = quest.completed ? 'quest-status-completed' : 'quest-status-active';
+        let actionHtml = '';
+        if (!quest.accepted && !quest.completed) {
+            actionHtml = `
+                <div class="quest-detail-actions bp-panel-actions">
+                    <div class="quest-action-copy">
+                        <strong>档案待确认</strong>
+                        <span>接受后可返回小鼠侍从，选择进入任务世界。</span>
+                    </div>
+                    <button class="quest-btn quest-btn-accept bp-button" type="button" data-quest-action="accept">接受任务</button>
+                </div>`;
+        } else if (quest.completed) {
+            actionHtml = `
+                <div class="quest-action-state quest-action-state--completed">
+                    <strong>任务已完成</strong>
+                    <span>行动记录与奖励已归档。</span>
+                </div>`;
+        } else {
+            const activeHint = QuestState.isInQuest()
+                ? '当前正在任务世界执行行动目标。'
+                : '任务已接受，可返回小鼠侍从进入任务世界。';
+            actionHtml = `
+                <div class="quest-action-state quest-action-state--active">
+                    <strong>行动进行中</strong>
+                    <span>${activeHint}</span>
+                </div>`;
+        }
 
         detailCol.innerHTML = `
-            <div class="quest-detail-title">${quest.name}</div>
-            <div class="quest-detail-desc">${quest.desc}</div>
-            <div class="quest-detail-objectives">
-                <div class="quest-objective-title">具体目标：</div>
-                ${objectivesHtml}
+            <div class="quest-detail-header">
+                <div>
+                    <div class="quest-section-kicker bp-type-caption">${quest.type} / ${quest.id}</div>
+                    <h3 class="quest-detail-title bp-type-title">${quest.name}</h3>
+                </div>
+                <span class="quest-status-chip quest-state-${status.key}">${status.text}</span>
             </div>
-            <div class="quest-detail-rewards">
-                <div class="quest-reward-label">任务奖励：</div>
-                ${rewardsHtml}
+            <div class="quest-detail-meta">
+                <div><span>发布者</span><strong>${quest.giver || '未登记'}</strong></div>
+                <div><span>目标区域</span><strong>${quest.location || quest.scene}</strong></div>
+                <div><span>总体进度</span><strong>${progress.percent}%</strong></div>
             </div>
-            <div class="quest-detail-status ${statusClass}">状态：${statusText}</div>
-            ${!quest.accepted && !quest.completed ? `<div style="margin-top:12px;"><button class="quest-btn quest-btn-accept" onclick="QuestSystem.acceptQuest()">接受任务</button></div>` : ''}
+            <section class="quest-detail-section">
+                <div class="quest-detail-section-heading">
+                    <h4 class="quest-objective-title bp-type-subtitle">行动简报</h4>
+                </div>
+                <p class="quest-detail-desc bp-type-body">${quest.desc}</p>
+            </section>
+            <section class="quest-detail-section">
+                <div class="quest-detail-section-heading">
+                    <h4 class="quest-objective-title bp-type-subtitle">行动目标</h4>
+                    <span>${progress.completedObjectives}/${quest.objectives.length} 完成</span>
+                </div>
+                <div class="quest-objective-list">${objectivesHtml}</div>
+            </section>
+            <section class="quest-detail-section">
+                <div class="quest-detail-section-heading">
+                    <h4 class="quest-reward-label bp-type-subtitle">任务奖励</h4>
+                    <span>${quest.rewards.length} 项</span>
+                </div>
+                <div class="quest-reward-grid">${rewardsHtml}</div>
+            </section>
+            ${actionHtml}
         `;
     }
 };
@@ -182,6 +373,7 @@ export const QuestState = {
             quest.objectives.forEach(obj => obj.current = 0);
             quest.completed = false;
         }
+        QuestSystem.refresh();
         SceneManager.switchScene(sceneId, Game.player, mode);
     },
 
@@ -198,6 +390,7 @@ export const QuestState = {
         this.questCompleted = false;
         this.returnPortalSpawned = false;
         this._questDied = true;
+        QuestSystem.refresh();
     },
 
     // 检查是否在任务中
@@ -214,6 +407,7 @@ export const QuestState = {
             if (QuestSystem.QUESTS['explore_rift_1']) {
                 QuestSystem.QUESTS['explore_rift_1'].objectives[0].current = this.riftCompleted.filter(Boolean).length;
             }
+            QuestSystem.refresh();
         }
     },
 
@@ -223,6 +417,7 @@ export const QuestState = {
         if (QuestSystem.QUESTS['explore_rift_1']) {
             QuestSystem.QUESTS['explore_rift_1'].objectives[1].current = 1;
         }
+        QuestSystem.refresh();
     },
 
     // 完成任务
@@ -231,6 +426,7 @@ export const QuestState = {
         if (QuestSystem.QUESTS['explore_rift_1']) {
             QuestSystem.QUESTS['explore_rift_1'].completed = true;
         }
+        QuestSystem.refresh();
         // 打开奖励结算界面（三选一）
         if (RewardSystem && RewardSystem.open) {
             // 延迟打开，确保场景切换完成

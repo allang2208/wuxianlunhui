@@ -1,0 +1,32 @@
+{
+  "bodySource": "new_body_user.png",
+  "frameWidth": 768,
+  "frameHeight": 768,
+  "frameCount": 32,
+  "columns": 8,
+  "rows": 4,
+  "runtimeHub": {
+    "x": 349,
+    "y": 268
+  },
+  "overlayOffset": {
+    "x": 50.1328125,
+    "y": -27.625
+  },
+  "bodyDisplay": {
+    "width": 276,
+    "height": 340
+  },
+  "rotorDisplay": {
+    "width": 428,
+    "height": 428
+  },
+  "sourceRotorPivot": {
+    "x": 610,
+    "y": 439
+  },
+  "rotorScale": 0.75,
+  "interpolation": "bidirectional half-angle warp plus premultiplied-alpha blend",
+  "rotationDirection": 1.0,
+  "frameRate": 17.4
+}

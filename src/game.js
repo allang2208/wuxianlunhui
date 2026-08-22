@@ -161,12 +161,14 @@ export const Game = {
             FlatViewSystem.reset();
             window.WorldProgressionSystem?.reset?.();
             window.WorldInvasionSystem?.reset?.();
+            window.World122SandstormSystem?.reset?.();
             TroopLineSystem.reset();
             const menuLayer = getElement('menuLayer'); const uiLayer = getElement('uiLayer'); const gameLayer = getElement('gameLayer'); if (menuLayer) menuLayer.classList.add('hidden'); if (uiLayer) uiLayer.style.display = 'block'; if (gameLayer) gameLayer.style.display = 'block';
             // 先初始化场景管理器并标记主场景，保证 Renderer.generateWorld / spawnNPC 用 12288×8192 主神空间尺寸（2026-08-21 菱形化）
             SceneManager.init();
             SceneManager.currentScene = 'main';
             SceneManager._inMainHub = true;
+            SoundManager.playBgmForScene('main');
             Renderer.generateWorld();
             // 初始化 Phaser 渲染系统（渐进式迁移）
             if (PhaserGame && !PhaserGame.isReady) {
@@ -1185,11 +1187,41 @@ export const Game = {
         }
         requestAnimationFrame(t => this.loop(t));
     },
+    _updateWorldTimeSystems(dt) {
+        // 多世界入侵：目标世界加载时由 DefenseSystem 物化波次。
+        if (['scene8', 'scene9', 'scene10', 'scene11'].includes(SceneManager.currentScene)
+            && DefenseSystem && DefenseSystem.active) {
+            DefenseSystem.update(dt);
+        }
+        // 仓鼠小屋：矿工补员计时（矿工自身 update 由实体主循环驱动）
+        if (HamsterHutSystem && HamsterHutSystem.active) {
+            HamsterHutSystem.update(dt);
+        }
+        // 仓鼠兵营：30s 生成计时
+        if (HamsterBarracksSystem && HamsterBarracksSystem.active) {
+            HamsterBarracksSystem.update(dt);
+        }
+        // 通用产兵建筑：spawnIntervalMs 生成计时（配置驱动）
+        if (ProducerBuildingSystem && ProducerBuildingSystem.active) {
+            ProducerBuildingSystem.update(dt);
+        }
+        // 全局兵线：同位面到点待命、跨位面抵达传送门后转入增援队列。
+        TroopLineSystem.update(SceneManager.currentScene);
+    },
     update(dt) {
         // 位置音效：按与玩家距离逐帧刷新音量（蝇群等声源；无位置音效时是廉价空转）
         if (SoundManager && typeof SoundManager.update === 'function') SoundManager.update(dt);
+        const dungeonViewActive = SceneManager.currentScene === 'scene7'
+            && DungeonMapSystem && DungeonMapSystem.active;
+        // 地牢地图/事件界面会在下方提前返回，因此全局生产与兵线必须先推进一次。
+        if (dungeonViewActive) this._updateWorldTimeSystems(dt);
         // ===== 地牢模式：地牢地图系统拦截 =====
-        if (SceneManager.currentScene === 'scene7' && DungeonMapSystem && DungeonMapSystem.active) {
+        if (dungeonViewActive) {
+            // 世界观察切换的加载窗口内冻结地牢现场，避免清场前战斗实体继续推进。
+            if (DungeonMapSystem._observerSuspended) {
+                Input.update();
+                return;
+            }
             if (DungeonMapSystem.state === 'map') {
                 DungeonMapSystem.update(dt);
                 EffectManager.update(dt);
@@ -1453,28 +1485,7 @@ CombatSystem.update(e, dt, this.entities);
             PartySystem.updateCombat(dt, this.entities, this.player);
         }
 
-        // 地牢隔绝期间外部世界完全停摆：不生产、不补员、不出兵、不升级、不推进兵线。
-        if (!SceneManager.isDungeonIsolationActive()) {
-            // 多世界入侵：目标世界加载时由 DefenseSystem 物化波次。
-            if (['scene8', 'scene9', 'scene10', 'scene11'].includes(SceneManager.currentScene)
-                && DefenseSystem && DefenseSystem.active) {
-                DefenseSystem.update(dt);
-            }
-            // 仓鼠小屋：矿工补员计时（矿工自身 update 由实体主循环驱动）
-            if (HamsterHutSystem && HamsterHutSystem.active) {
-                HamsterHutSystem.update(dt);
-            }
-            // 仓鼠兵营：30s 生成计时
-            if (HamsterBarracksSystem && HamsterBarracksSystem.active) {
-                HamsterBarracksSystem.update(dt);
-            }
-            // 通用产兵建筑：spawnIntervalMs 生成计时（配置驱动）
-            if (ProducerBuildingSystem && ProducerBuildingSystem.active) {
-                ProducerBuildingSystem.update(dt);
-            }
-            // 全局兵线：同位面到点待命、跨位面抵达传送门后转入增援队列。
-            TroopLineSystem.update(SceneManager.currentScene);
-        }
+        if (!dungeonViewActive) this._updateWorldTimeSystems(dt);
 
         // ===== 阵型系统更新（必须在实体 update 之后，为下一帧设置 _tacticalTarget）=====
         // 无编队时跳过全表遍历（阵型成员才有 _formationId，空 Map 时逐实体调用纯属空转）

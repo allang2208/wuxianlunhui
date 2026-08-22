@@ -1,0 +1,1741 @@
+{
+  "algorithmVersion": 1,
+  "entries": [
+    {
+      "algorithmVersion": 1,
+      "id": "bank",
+      "textureKey": "bank",
+      "frameName": "__BASE",
+      "sourcePath": "assets/terrain/bank.png",
+      "sourceWidth": 876,
+      "sourceHeight": 738,
+      "displayWidth": 266,
+      "displayHeight": 224,
+      "nominalWidth": 256,
+      "nominalHeight": 128,
+      "fit": {
+        "visualOffsetX": 12,
+        "footOffsetY": 110.5,
+        "contactX": 395.53416361598016,
+        "bottomY": 732,
+        "sideY": 536,
+        "leftX": -118.5,
+        "rightX": 118.5,
+        "centerX": 0,
+        "centerY": -59,
+        "groundSlope": 0.5,
+        "groundAngleDeg": 26.56505117707799,
+        "measuredSideCenter": 0.7487585367000875,
+        "measuredSideRise": 59.6,
+        "collisionWidth": 236.5,
+        "collisionHeight": 118.5,
+        "collisionRadius": 118.5,
+        "localVertices": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -118.5
+          },
+          {
+            "key": "right",
+            "x": 118.5,
+            "y": -59
+          },
+          {
+            "key": "front",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "key": "left",
+            "x": -118.5,
+            "y": -59
+          }
+        ],
+        "contactPolygon": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -118.5
+          },
+          {
+            "x": 117.5,
+            "y": -59.5
+          },
+          {
+            "x": 114,
+            "y": -57.5
+          },
+          {
+            "x": 112,
+            "y": -43.5
+          },
+          {
+            "x": 61,
+            "y": -17.5
+          },
+          {
+            "x": 46.5,
+            "y": -24
+          },
+          {
+            "x": -1.5,
+            "y": 0
+          },
+          {
+            "x": -117.5,
+            "y": -59.5
+          }
+        ],
+        "frameWidth": 876,
+        "frameHeight": 738
+      }
+    },
+    {
+      "algorithmVersion": 1,
+      "id": "hamster_barracks",
+      "textureKey": "barracks",
+      "frameName": "__BASE",
+      "sourcePath": "assets/terrain/barracks.png",
+      "sourceWidth": 887,
+      "sourceHeight": 789,
+      "displayWidth": 275,
+      "displayHeight": 245,
+      "nominalWidth": 256,
+      "nominalHeight": 128,
+      "fit": {
+        "visualOffsetX": 13,
+        "footOffsetY": 120.5,
+        "contactX": 395.4763026740137,
+        "bottomY": 781,
+        "sideY": 589,
+        "leftX": -119.5,
+        "rightX": 119.5,
+        "centerX": 0,
+        "centerY": -60,
+        "groundSlope": 0.5,
+        "groundAngleDeg": 26.56505117707799,
+        "measuredSideCenter": 1.7125329928367847,
+        "measuredSideRise": 59.6,
+        "collisionWidth": 239,
+        "collisionHeight": 119.5,
+        "collisionRadius": 119.5,
+        "localVertices": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -119.5
+          },
+          {
+            "key": "right",
+            "x": 119.5,
+            "y": -60
+          },
+          {
+            "key": "front",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "key": "left",
+            "x": -119.5,
+            "y": -60
+          }
+        ],
+        "contactPolygon": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -119.5
+          },
+          {
+            "x": 120,
+            "y": -59.5
+          },
+          {
+            "x": -2.5,
+            "y": 0
+          },
+          {
+            "x": -120,
+            "y": -59.5
+          }
+        ],
+        "frameWidth": 887,
+        "frameHeight": 789
+      }
+    },
+    {
+      "algorithmVersion": 1,
+      "id": "blacksmith",
+      "textureKey": "blacksmith",
+      "frameName": "__BASE",
+      "sourcePath": "assets/terrain/blacksmith.png",
+      "sourceWidth": 881,
+      "sourceHeight": 783,
+      "displayWidth": 279,
+      "displayHeight": 248,
+      "nominalWidth": 256,
+      "nominalHeight": 128,
+      "fit": {
+        "visualOffsetX": 13.5,
+        "footOffsetY": 122.5,
+        "contactX": 394.70816781194566,
+        "bottomY": 777,
+        "sideY": 579,
+        "leftX": -125,
+        "rightX": 125,
+        "centerX": 0,
+        "centerY": -62.5,
+        "groundSlope": 0.5,
+        "groundAngleDeg": 26.56505117707799,
+        "measuredSideCenter": 1.0424758007572734,
+        "measuredSideRise": 62.6,
+        "collisionWidth": 249.5,
+        "collisionHeight": 125,
+        "collisionRadius": 125,
+        "localVertices": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -125
+          },
+          {
+            "key": "right",
+            "x": 125,
+            "y": -62.5
+          },
+          {
+            "key": "front",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "key": "left",
+            "x": -125,
+            "y": -62.5
+          }
+        ],
+        "contactPolygon": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -125
+          },
+          {
+            "x": 124.5,
+            "y": -62.5
+          },
+          {
+            "x": -1.5,
+            "y": 0
+          },
+          {
+            "x": -124.5,
+            "y": -62.5
+          }
+        ],
+        "frameWidth": 881,
+        "frameHeight": 783
+      }
+    },
+    {
+      "algorithmVersion": 1,
+      "id": "cavalry_school",
+      "textureKey": "cavalry_school",
+      "frameName": "__BASE",
+      "sourcePath": "assets/terrain/cavalry_school.png",
+      "sourceWidth": 3774,
+      "sourceHeight": 3174,
+      "displayWidth": 322,
+      "displayHeight": 271,
+      "nominalWidth": 256,
+      "nominalHeight": 128,
+      "fit": {
+        "visualOffsetX": 5,
+        "footOffsetY": 135,
+        "contactX": 1804.8390436835227,
+        "bottomY": 3169,
+        "sideY": 2412,
+        "leftX": -128.5,
+        "rightX": 128.5,
+        "centerX": 0,
+        "centerY": -64.5,
+        "groundSlope": 0.5,
+        "groundAngleDeg": 26.56505117707799,
+        "measuredSideCenter": 1.8481261086130587,
+        "measuredSideRise": 64.6,
+        "collisionWidth": 257.5,
+        "collisionHeight": 128.5,
+        "collisionRadius": 128.5,
+        "localVertices": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -128.5
+          },
+          {
+            "key": "right",
+            "x": 128.5,
+            "y": -64.5
+          },
+          {
+            "key": "front",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "key": "left",
+            "x": -128.5,
+            "y": -64.5
+          }
+        ],
+        "contactPolygon": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -128.5
+          },
+          {
+            "x": 128,
+            "y": -64.5
+          },
+          {
+            "x": -1.5,
+            "y": 0
+          },
+          {
+            "x": -128,
+            "y": -64.5
+          }
+        ],
+        "frameWidth": 3774,
+        "frameHeight": 3174
+      }
+    },
+    {
+      "algorithmVersion": 1,
+      "id": "church",
+      "textureKey": "church",
+      "frameName": "__BASE",
+      "sourcePath": "assets/terrain/church.png",
+      "sourceWidth": 1024,
+      "sourceHeight": 1024,
+      "displayWidth": 480,
+      "displayHeight": 480,
+      "nominalWidth": 256,
+      "nominalHeight": 128,
+      "fit": {
+        "visualOffsetX": -2,
+        "footOffsetY": 169,
+        "contactX": 502.45440194311004,
+        "bottomY": 872,
+        "sideY": 738,
+        "leftX": -127.5,
+        "rightX": 127.5,
+        "centerX": 0,
+        "centerY": -64,
+        "groundSlope": 0.5,
+        "groundAngleDeg": 26.56505117707799,
+        "measuredSideCenter": 6.349499089167175,
+        "measuredSideRise": 62.6,
+        "collisionWidth": 255,
+        "collisionHeight": 127.5,
+        "collisionRadius": 127.5,
+        "localVertices": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -127.5
+          },
+          {
+            "key": "right",
+            "x": 127.5,
+            "y": -64
+          },
+          {
+            "key": "front",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "key": "left",
+            "x": -127.5,
+            "y": -64
+          }
+        ],
+        "contactPolygon": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -127.5
+          },
+          {
+            "x": 130,
+            "y": -63
+          },
+          {
+            "x": 123.5,
+            "y": -59.5
+          },
+          {
+            "x": 117.5,
+            "y": -62.5
+          },
+          {
+            "x": 112,
+            "y": -60
+          },
+          {
+            "x": 95,
+            "y": -51.5
+          },
+          {
+            "x": 93.5,
+            "y": -45.5
+          },
+          {
+            "x": 89.5,
+            "y": -43.5
+          },
+          {
+            "x": 82,
+            "y": -45
+          },
+          {
+            "x": 63.5,
+            "y": -35.5
+          },
+          {
+            "x": 61.5,
+            "y": -29.5
+          },
+          {
+            "x": 56,
+            "y": -28
+          },
+          {
+            "x": 50,
+            "y": -30
+          },
+          {
+            "x": 31.5,
+            "y": -20.5
+          },
+          {
+            "x": 29.5,
+            "y": -14
+          },
+          {
+            "x": 24,
+            "y": -11
+          },
+          {
+            "x": 16.5,
+            "y": -13.5
+          },
+          {
+            "x": -2.5,
+            "y": -4.5
+          },
+          {
+            "x": -4.5,
+            "y": 0
+          },
+          {
+            "x": -130,
+            "y": -63
+          }
+        ],
+        "frameWidth": 1024,
+        "frameHeight": 1024
+      }
+    },
+    {
+      "algorithmVersion": 1,
+      "id": "plane_altar",
+      "textureKey": "defense_base",
+      "frameName": "__BASE",
+      "sourcePath": "assets/terrain/defense_base.png",
+      "sourceWidth": 688,
+      "sourceHeight": 572,
+      "displayWidth": 276,
+      "displayHeight": 230,
+      "nominalWidth": 256,
+      "nominalHeight": 128,
+      "fit": {
+        "visualOffsetX": 5.5,
+        "footOffsetY": 114,
+        "contactX": 325.7178555451772,
+        "bottomY": 568,
+        "sideY": 410,
+        "leftX": -128,
+        "rightX": 128,
+        "centerX": 0,
+        "centerY": -64,
+        "groundSlope": 0.5,
+        "groundAngleDeg": 26.56505117707799,
+        "measuredSideCenter": 1.5172556243184445,
+        "measuredSideRise": 63.6,
+        "collisionWidth": 256,
+        "collisionHeight": 128,
+        "collisionRadius": 128,
+        "localVertices": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -128
+          },
+          {
+            "key": "right",
+            "x": 128,
+            "y": -64
+          },
+          {
+            "key": "front",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "key": "left",
+            "x": -128,
+            "y": -64
+          }
+        ],
+        "contactPolygon": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -128
+          },
+          {
+            "x": 129,
+            "y": -63.5
+          },
+          {
+            "x": 2.5,
+            "y": -1
+          },
+          {
+            "x": -4,
+            "y": 0
+          },
+          {
+            "x": -129,
+            "y": -63.5
+          }
+        ],
+        "frameWidth": 688,
+        "frameHeight": 572
+      }
+    },
+    {
+      "algorithmVersion": 1,
+      "id": "economic_workshop",
+      "textureKey": "economic_workshop",
+      "frameName": "__BASE",
+      "sourcePath": "assets/terrain/economic_workshop.png",
+      "sourceWidth": 811,
+      "sourceHeight": 850,
+      "displayWidth": 308,
+      "displayHeight": 323,
+      "nominalWidth": 256,
+      "nominalHeight": 128,
+      "fit": {
+        "visualOffsetX": 15,
+        "footOffsetY": 159.5,
+        "contactX": 360.48264716033617,
+        "bottomY": 844,
+        "sideY": 663,
+        "leftX": -136,
+        "rightX": 136,
+        "centerX": 0,
+        "centerY": -68,
+        "groundSlope": 0.5,
+        "groundAngleDeg": 26.56505117707799,
+        "measuredSideCenter": 1.9054804865801032,
+        "measuredSideRise": 68.6,
+        "collisionWidth": 272,
+        "collisionHeight": 136,
+        "collisionRadius": 136,
+        "localVertices": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -136
+          },
+          {
+            "key": "right",
+            "x": 136,
+            "y": -68
+          },
+          {
+            "key": "front",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "key": "left",
+            "x": -136,
+            "y": -68
+          }
+        ],
+        "contactPolygon": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -136
+          },
+          {
+            "x": 135,
+            "y": -69
+          },
+          {
+            "x": -2.5,
+            "y": 0
+          },
+          {
+            "x": -135,
+            "y": -69
+          }
+        ],
+        "frameWidth": 811,
+        "frameHeight": 850
+      }
+    },
+    {
+      "algorithmVersion": 1,
+      "id": "explorer_camp",
+      "textureKey": "explorer_camp",
+      "frameName": "__BASE",
+      "sourcePath": "assets/terrain/explorer_camp.png",
+      "sourceWidth": 881,
+      "sourceHeight": 824,
+      "displayWidth": 268,
+      "displayHeight": 251,
+      "nominalWidth": 256,
+      "nominalHeight": 128,
+      "fit": {
+        "visualOffsetX": 10,
+        "footOffsetY": 123.5,
+        "contactX": 406.023138798722,
+        "bottomY": 817,
+        "sideY": 621,
+        "leftX": -119.5,
+        "rightX": 119.5,
+        "centerX": 0,
+        "centerY": -60,
+        "groundSlope": 0.5,
+        "groundAngleDeg": 26.56505117707799,
+        "measuredSideCenter": 0.14506106917423267,
+        "measuredSideRise": 59.6,
+        "collisionWidth": 239,
+        "collisionHeight": 119.5,
+        "collisionRadius": 119.5,
+        "localVertices": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -119.5
+          },
+          {
+            "key": "right",
+            "x": 119.5,
+            "y": -60
+          },
+          {
+            "key": "front",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "key": "left",
+            "x": -119.5,
+            "y": -60
+          }
+        ],
+        "contactPolygon": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -119.5
+          },
+          {
+            "x": 120,
+            "y": -59.5
+          },
+          {
+            "x": 2.5,
+            "y": -0.5
+          },
+          {
+            "x": -2,
+            "y": 0
+          },
+          {
+            "x": -120,
+            "y": -59.5
+          }
+        ],
+        "frameWidth": 881,
+        "frameHeight": 824
+      }
+    },
+    {
+      "algorithmVersion": 1,
+      "id": "house",
+      "textureKey": "house_lv1",
+      "frameName": "__BASE",
+      "sourcePath": "assets/terrain/house_lv1.png",
+      "sourceWidth": 512,
+      "sourceHeight": 588,
+      "displayWidth": 270,
+      "displayHeight": 310,
+      "nominalWidth": 256,
+      "nominalHeight": 128,
+      "fit": {
+        "visualOffsetX": 1,
+        "footOffsetY": 155,
+        "contactX": 257.2457234395898,
+        "bottomY": 587,
+        "sideY": 483,
+        "leftX": -112.5,
+        "rightX": 112.5,
+        "centerX": 0,
+        "centerY": -56.5,
+        "groundSlope": 0.5,
+        "groundAngleDeg": 26.56505117707799,
+        "measuredSideCenter": -1.9752838450962003,
+        "measuredSideRise": 54.6,
+        "collisionWidth": 225.5,
+        "collisionHeight": 112.5,
+        "collisionRadius": 112.5,
+        "localVertices": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -112.5
+          },
+          {
+            "key": "right",
+            "x": 112.5,
+            "y": -56.5
+          },
+          {
+            "key": "front",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "key": "left",
+            "x": -112.5,
+            "y": -56.5
+          }
+        ],
+        "contactPolygon": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -112.5
+          },
+          {
+            "x": 116.5,
+            "y": -55
+          },
+          {
+            "x": 1,
+            "y": 0
+          },
+          {
+            "x": -56,
+            "y": -29
+          },
+          {
+            "x": -76.5,
+            "y": -20
+          },
+          {
+            "x": -84.5,
+            "y": -18.5
+          },
+          {
+            "x": -89.5,
+            "y": -21
+          },
+          {
+            "x": -91,
+            "y": -42.5
+          },
+          {
+            "x": -116.5,
+            "y": -55
+          }
+        ],
+        "frameWidth": 512,
+        "frameHeight": 588
+      }
+    },
+    {
+      "algorithmVersion": 1,
+      "id": "house_lv2",
+      "textureKey": "house_lv2",
+      "frameName": "__BASE",
+      "sourcePath": "assets/terrain/house_lv2.png",
+      "sourceWidth": 540,
+      "sourceHeight": 618,
+      "displayWidth": 270,
+      "displayHeight": 309,
+      "nominalWidth": 256,
+      "nominalHeight": 128,
+      "fit": {
+        "visualOffsetX": 0.5,
+        "footOffsetY": 154.5,
+        "contactX": 272.44072611573534,
+        "bottomY": 617,
+        "sideY": 514,
+        "leftX": -110,
+        "rightX": 110,
+        "centerX": 0,
+        "centerY": -55,
+        "groundSlope": 0.5,
+        "groundAngleDeg": 26.56505117707799,
+        "measuredSideCenter": -1.9703630578676723,
+        "measuredSideRise": 51.6,
+        "collisionWidth": 220.5,
+        "collisionHeight": 110,
+        "collisionRadius": 110,
+        "localVertices": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -110
+          },
+          {
+            "key": "right",
+            "x": 110,
+            "y": -55
+          },
+          {
+            "key": "front",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "key": "left",
+            "x": -110,
+            "y": -55
+          }
+        ],
+        "contactPolygon": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -110
+          },
+          {
+            "x": 118,
+            "y": -51.5
+          },
+          {
+            "x": 20.5,
+            "y": -4
+          },
+          {
+            "x": 12.5,
+            "y": -5.5
+          },
+          {
+            "x": 0.5,
+            "y": 0
+          },
+          {
+            "x": -7.5,
+            "y": -5
+          },
+          {
+            "x": -15.5,
+            "y": -4.5
+          },
+          {
+            "x": -25.5,
+            "y": -10
+          },
+          {
+            "x": -29.5,
+            "y": -10
+          },
+          {
+            "x": -39.5,
+            "y": -17
+          },
+          {
+            "x": -47.5,
+            "y": -17.5
+          },
+          {
+            "x": -51.5,
+            "y": -19.5
+          },
+          {
+            "x": -55.5,
+            "y": -25.5
+          },
+          {
+            "x": -81.5,
+            "y": -14
+          },
+          {
+            "x": -85.5,
+            "y": -14
+          },
+          {
+            "x": -91.5,
+            "y": -17
+          },
+          {
+            "x": -93.5,
+            "y": -39.5
+          },
+          {
+            "x": -117.5,
+            "y": -51.5
+          }
+        ],
+        "frameWidth": 540,
+        "frameHeight": 618
+      }
+    },
+    {
+      "algorithmVersion": 1,
+      "id": "house_lv3",
+      "textureKey": "house_lv3",
+      "frameName": "__BASE",
+      "sourcePath": "assets/terrain/house_lv3.png",
+      "sourceWidth": 596,
+      "sourceHeight": 670,
+      "displayWidth": 298,
+      "displayHeight": 335,
+      "nominalWidth": 256,
+      "nominalHeight": 128,
+      "fit": {
+        "visualOffsetX": 0,
+        "footOffsetY": 165.5,
+        "contactX": 299.684534588917,
+        "bottomY": 665,
+        "sideY": 552,
+        "leftX": -121,
+        "rightX": 121,
+        "centerX": 0,
+        "centerY": -60.5,
+        "groundSlope": 0.5,
+        "groundAngleDeg": 26.56505117707799,
+        "measuredSideCenter": -1.0922672944585088,
+        "measuredSideRise": 56.6,
+        "collisionWidth": 242.5,
+        "collisionHeight": 121,
+        "collisionRadius": 121,
+        "localVertices": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -121
+          },
+          {
+            "key": "right",
+            "x": 121,
+            "y": -60.5
+          },
+          {
+            "key": "front",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "key": "left",
+            "x": -121,
+            "y": -60.5
+          }
+        ],
+        "contactPolygon": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -121
+          },
+          {
+            "x": 129.5,
+            "y": -56
+          },
+          {
+            "x": 20,
+            "y": -3.5
+          },
+          {
+            "x": 14,
+            "y": -4.5
+          },
+          {
+            "x": 1,
+            "y": 0
+          },
+          {
+            "x": -8,
+            "y": -4.5
+          },
+          {
+            "x": -20,
+            "y": -2.5
+          },
+          {
+            "x": -26,
+            "y": -5
+          },
+          {
+            "x": -34,
+            "y": -4
+          },
+          {
+            "x": -38,
+            "y": -6
+          },
+          {
+            "x": -42,
+            "y": -4
+          },
+          {
+            "x": -66,
+            "y": -16
+          },
+          {
+            "x": -68,
+            "y": -19.5
+          },
+          {
+            "x": -88,
+            "y": -12.5
+          },
+          {
+            "x": -95.5,
+            "y": -17
+          },
+          {
+            "x": -100,
+            "y": -42
+          },
+          {
+            "x": -130,
+            "y": -56.5
+          }
+        ],
+        "frameWidth": 596,
+        "frameHeight": 670
+      }
+    },
+    {
+      "algorithmVersion": 1,
+      "id": "jungle_temple",
+      "textureKey": "jungle_temple",
+      "frameName": "__BASE",
+      "sourcePath": "assets/terrain/jungle_temple.png",
+      "sourceWidth": 755,
+      "sourceHeight": 846,
+      "displayWidth": 288,
+      "displayHeight": 323,
+      "nominalWidth": 256,
+      "nominalHeight": 128,
+      "fit": {
+        "visualOffsetX": 11.5,
+        "footOffsetY": 159,
+        "contactX": 344.7041478391694,
+        "bottomY": 838,
+        "sideY": 666,
+        "leftX": -129.5,
+        "rightX": 129.5,
+        "centerX": 0,
+        "centerY": -64.5,
+        "groundSlope": 0.5,
+        "groundAngleDeg": 26.56505117707799,
+        "measuredSideCenter": 0.8757687712837239,
+        "measuredSideRise": 65.6,
+        "collisionWidth": 258.5,
+        "collisionHeight": 129.5,
+        "collisionRadius": 129.5,
+        "localVertices": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -129.5
+          },
+          {
+            "key": "right",
+            "x": 129.5,
+            "y": -64.5
+          },
+          {
+            "key": "front",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "key": "left",
+            "x": -129.5,
+            "y": -64.5
+          }
+        ],
+        "contactPolygon": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -129.5
+          },
+          {
+            "x": 127.5,
+            "y": -65.5
+          },
+          {
+            "x": -1.5,
+            "y": 0
+          },
+          {
+            "x": -127.5,
+            "y": -65.5
+          }
+        ],
+        "frameWidth": 755,
+        "frameHeight": 846
+      }
+    },
+    {
+      "algorithmVersion": 1,
+      "id": "market",
+      "textureKey": "market",
+      "frameName": "__BASE",
+      "sourcePath": "assets/terrain/market.png",
+      "sourceWidth": 876,
+      "sourceHeight": 653,
+      "displayWidth": 276,
+      "displayHeight": 206,
+      "nominalWidth": 256,
+      "nominalHeight": 128,
+      "fit": {
+        "visualOffsetX": 12.5,
+        "footOffsetY": 101,
+        "contactX": 392.54611228886205,
+        "bottomY": 645,
+        "sideY": 453,
+        "leftX": -121.5,
+        "rightX": 121.5,
+        "centerX": 0,
+        "centerY": -60.5,
+        "groundSlope": 0.5,
+        "groundAngleDeg": 26.56505117707799,
+        "measuredSideCenter": 1.7183481829612717,
+        "measuredSideRise": 60.6,
+        "collisionWidth": 242.5,
+        "collisionHeight": 121.5,
+        "collisionRadius": 121.5,
+        "localVertices": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -121.5
+          },
+          {
+            "key": "right",
+            "x": 121.5,
+            "y": -60.5
+          },
+          {
+            "key": "front",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "key": "left",
+            "x": -121.5,
+            "y": -60.5
+          }
+        ],
+        "contactPolygon": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -121.5
+          },
+          {
+            "x": 121.5,
+            "y": -60.5
+          },
+          {
+            "x": -2,
+            "y": 0
+          },
+          {
+            "x": -44,
+            "y": -22
+          },
+          {
+            "x": -49.5,
+            "y": -21.5
+          },
+          {
+            "x": -51.5,
+            "y": -25.5
+          },
+          {
+            "x": -72,
+            "y": -36
+          },
+          {
+            "x": -78,
+            "y": -35.5
+          },
+          {
+            "x": -79.5,
+            "y": -39.5
+          },
+          {
+            "x": -98.5,
+            "y": -49
+          },
+          {
+            "x": -104.5,
+            "y": -48.5
+          },
+          {
+            "x": -106,
+            "y": -53
+          },
+          {
+            "x": -121.5,
+            "y": -60.5
+          }
+        ],
+        "frameWidth": 876,
+        "frameHeight": 653
+      }
+    },
+    {
+      "algorithmVersion": 1,
+      "id": "hamster_hut",
+      "textureKey": "mine",
+      "frameName": "__BASE",
+      "sourcePath": "assets/terrain/mine.png",
+      "sourceWidth": 882,
+      "sourceHeight": 665,
+      "displayWidth": 277,
+      "displayHeight": 209,
+      "nominalWidth": 256,
+      "nominalHeight": 128,
+      "fit": {
+        "visualOffsetX": 13.5,
+        "footOffsetY": 102.5,
+        "contactX": 396.3795319077194,
+        "bottomY": 657,
+        "sideY": 464,
+        "leftX": -121.5,
+        "rightX": 121.5,
+        "centerX": 0,
+        "centerY": -61,
+        "groundSlope": 0.5,
+        "groundAngleDeg": 26.56505117707799,
+        "measuredSideCenter": 0.5089225187774673,
+        "measuredSideRise": 60.6,
+        "collisionWidth": 243.5,
+        "collisionHeight": 121.5,
+        "collisionRadius": 121.5,
+        "localVertices": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -121.5
+          },
+          {
+            "key": "right",
+            "x": 121.5,
+            "y": -61
+          },
+          {
+            "key": "front",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "key": "left",
+            "x": -121.5,
+            "y": -61
+          }
+        ],
+        "contactPolygon": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -121.5
+          },
+          {
+            "x": 122,
+            "y": -60
+          },
+          {
+            "x": -1.5,
+            "y": 0
+          },
+          {
+            "x": -122,
+            "y": -60.5
+          }
+        ],
+        "frameWidth": 882,
+        "frameHeight": 665
+      }
+    },
+    {
+      "algorithmVersion": 1,
+      "id": "portal",
+      "textureKey": "portal",
+      "frameName": "__BASE",
+      "sourcePath": "assets/terrain/portal.png",
+      "sourceWidth": 879,
+      "sourceHeight": 771,
+      "displayWidth": 288,
+      "displayHeight": 253,
+      "nominalWidth": 256,
+      "nominalHeight": 128,
+      "fit": {
+        "visualOffsetX": 14.5,
+        "footOffsetY": 125,
+        "contactX": 394.1848110158653,
+        "bottomY": 766,
+        "sideY": 572,
+        "leftX": -127,
+        "rightX": 127,
+        "centerX": 0,
+        "centerY": -63.5,
+        "groundSlope": 0.5,
+        "groundAngleDeg": 26.56505117707799,
+        "measuredSideCenter": 0.1032701108427645,
+        "measuredSideRise": 63.6,
+        "collisionWidth": 254,
+        "collisionHeight": 127,
+        "collisionRadius": 127,
+        "localVertices": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -127
+          },
+          {
+            "key": "right",
+            "x": 127,
+            "y": -63.5
+          },
+          {
+            "key": "front",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "key": "left",
+            "x": -127,
+            "y": -63.5
+          }
+        ],
+        "contactPolygon": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -127
+          },
+          {
+            "x": 127,
+            "y": -63.5
+          },
+          {
+            "x": -1,
+            "y": 0
+          },
+          {
+            "x": -127,
+            "y": -63.5
+          }
+        ],
+        "frameWidth": 879,
+        "frameHeight": 771
+      }
+    },
+    {
+      "algorithmVersion": 1,
+      "id": "research_institute",
+      "textureKey": "research_institute",
+      "frameName": "__BASE",
+      "sourcePath": "assets/terrain/research_institute.png",
+      "sourceWidth": 873,
+      "sourceHeight": 798,
+      "displayWidth": 256,
+      "displayHeight": 234,
+      "nominalWidth": 256,
+      "nominalHeight": 128,
+      "fit": {
+        "visualOffsetX": 9.5,
+        "footOffsetY": 115.5,
+        "contactX": 402.4668338934496,
+        "bottomY": 792,
+        "sideY": 592,
+        "leftX": -116.5,
+        "rightX": 116.5,
+        "centerX": 0,
+        "centerY": -58,
+        "groundSlope": 0.5,
+        "groundAngleDeg": 26.56505117707799,
+        "measuredSideCenter": 0.3029673806150157,
+        "measuredSideRise": 58.6,
+        "collisionWidth": 233,
+        "collisionHeight": 116.5,
+        "collisionRadius": 116.5,
+        "localVertices": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -116.5
+          },
+          {
+            "key": "right",
+            "x": 116.5,
+            "y": -58
+          },
+          {
+            "key": "front",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "key": "left",
+            "x": -116.5,
+            "y": -58
+          }
+        ],
+        "contactPolygon": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -116.5
+          },
+          {
+            "x": 115.5,
+            "y": -58.5
+          },
+          {
+            "x": -1,
+            "y": 0
+          },
+          {
+            "x": -115.5,
+            "y": -58.5
+          }
+        ],
+        "frameWidth": 873,
+        "frameHeight": 798
+      }
+    },
+    {
+      "algorithmVersion": 1,
+      "id": "shooting_range",
+      "textureKey": "shooting_range",
+      "frameName": "__BASE",
+      "sourcePath": "assets/terrain/shooting_range.png",
+      "sourceWidth": 868,
+      "sourceHeight": 563,
+      "displayWidth": 272,
+      "displayHeight": 176,
+      "nominalWidth": 256,
+      "nominalHeight": 128,
+      "fit": {
+        "visualOffsetX": 8.5,
+        "footOffsetY": 86.5,
+        "contactX": 404.10880042074217,
+        "bottomY": 557,
+        "sideY": 360,
+        "leftX": -124,
+        "rightX": 124,
+        "centerX": 0,
+        "centerY": -62,
+        "groundSlope": 0.5,
+        "groundAngleDeg": 26.56505117707799,
+        "measuredSideCenter": 0.7493159971867911,
+        "measuredSideRise": 61.6,
+        "collisionWidth": 248,
+        "collisionHeight": 124,
+        "collisionRadius": 124,
+        "localVertices": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -124
+          },
+          {
+            "key": "right",
+            "x": 124,
+            "y": -62
+          },
+          {
+            "key": "front",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "key": "left",
+            "x": -124,
+            "y": -62
+          }
+        ],
+        "contactPolygon": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -124
+          },
+          {
+            "x": 124.5,
+            "y": -61.5
+          },
+          {
+            "x": -1,
+            "y": 0
+          },
+          {
+            "x": -124.5,
+            "y": -61.5
+          }
+        ],
+        "frameWidth": 868,
+        "frameHeight": 563
+      }
+    },
+    {
+      "algorithmVersion": 1,
+      "id": "thatch_hut",
+      "textureKey": "thatch_hut",
+      "frameName": "__BASE",
+      "sourcePath": "assets/terrain/thatch_hut.png",
+      "sourceWidth": 3508,
+      "sourceHeight": 2868,
+      "displayWidth": 256,
+      "displayHeight": 209,
+      "nominalWidth": 256,
+      "nominalHeight": 128,
+      "fit": {
+        "visualOffsetX": 14.5,
+        "footOffsetY": 104,
+        "contactX": 1530.6144507455033,
+        "bottomY": 2862,
+        "sideY": 2085,
+        "leftX": -113,
+        "rightX": 113,
+        "centerX": 0,
+        "centerY": -56.5,
+        "groundSlope": 0.5,
+        "groundAngleDeg": 26.56505117707799,
+        "measuredSideCenter": 1.5971210402369351,
+        "measuredSideRise": 56.6,
+        "collisionWidth": 226,
+        "collisionHeight": 113,
+        "collisionRadius": 113,
+        "localVertices": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -113
+          },
+          {
+            "key": "right",
+            "x": 113,
+            "y": -56.5
+          },
+          {
+            "key": "front",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "key": "left",
+            "x": -113,
+            "y": -56.5
+          }
+        ],
+        "contactPolygon": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -113
+          },
+          {
+            "x": 112.5,
+            "y": -56.5
+          },
+          {
+            "x": -2,
+            "y": 0
+          },
+          {
+            "x": -112.5,
+            "y": -56.5
+          }
+        ],
+        "frameWidth": 3508,
+        "frameHeight": 2868
+      }
+    },
+    {
+      "algorithmVersion": 1,
+      "id": "warehouse",
+      "textureKey": "warehouse",
+      "frameName": "__BASE",
+      "sourcePath": "assets/terrain/warehouse.png",
+      "sourceWidth": 727,
+      "sourceHeight": 811,
+      "displayWidth": 278,
+      "displayHeight": 310,
+      "nominalWidth": 256,
+      "nominalHeight": 128,
+      "fit": {
+        "visualOffsetX": 12,
+        "footOffsetY": 153,
+        "contactX": 328.08810816558395,
+        "bottomY": 805,
+        "sideY": 644,
+        "leftX": -122.5,
+        "rightX": 122.5,
+        "centerX": 0,
+        "centerY": -61.5,
+        "groundSlope": 0.5,
+        "groundAngleDeg": 26.56505117707799,
+        "measuredSideCenter": 1.304684910546996,
+        "measuredSideRise": 61.6,
+        "collisionWidth": 245.5,
+        "collisionHeight": 122.5,
+        "collisionRadius": 122.5,
+        "localVertices": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -122.5
+          },
+          {
+            "key": "right",
+            "x": 122.5,
+            "y": -61.5
+          },
+          {
+            "key": "front",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "key": "left",
+            "x": -122.5,
+            "y": -61.5
+          }
+        ],
+        "contactPolygon": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -122.5
+          },
+          {
+            "x": 122,
+            "y": -61.5
+          },
+          {
+            "x": -2,
+            "y": 0
+          },
+          {
+            "x": -122,
+            "y": -61.5
+          }
+        ],
+        "frameWidth": 727,
+        "frameHeight": 811
+      }
+    },
+    {
+      "algorithmVersion": 1,
+      "id": "wheat_windmill",
+      "textureKey": "wheat_windmill_body",
+      "frameName": "__BASE",
+      "sourcePath": "assets/terrain/wheat_windmill_body.png",
+      "sourceWidth": 512,
+      "sourceHeight": 640,
+      "displayWidth": 276,
+      "displayHeight": 340,
+      "nominalWidth": 256,
+      "nominalHeight": 128,
+      "fit": {
+        "visualOffsetX": 14.5,
+        "footOffsetY": 169,
+        "contactX": 227.23260933306676,
+        "bottomY": 637,
+        "sideY": 525,
+        "leftX": -119.5,
+        "rightX": 119.5,
+        "centerX": 0,
+        "centerY": -60,
+        "groundSlope": 0.5,
+        "groundAngleDeg": 26.56505117707799,
+        "measuredSideCenter": 0.9527340313937032,
+        "measuredSideRise": 59.6,
+        "collisionWidth": 239.5,
+        "collisionHeight": 119.5,
+        "collisionRadius": 119.5,
+        "localVertices": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -119.5
+          },
+          {
+            "key": "right",
+            "x": 119.5,
+            "y": -60
+          },
+          {
+            "key": "front",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "key": "left",
+            "x": -119.5,
+            "y": -60
+          }
+        ],
+        "contactPolygon": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -119.5
+          },
+          {
+            "x": 120,
+            "y": -59.5
+          },
+          {
+            "x": 6,
+            "y": -2
+          },
+          {
+            "x": -3,
+            "y": 0
+          },
+          {
+            "x": -120,
+            "y": -59.5
+          }
+        ],
+        "frameWidth": 512,
+        "frameHeight": 640
+      }
+    }
+  ]
+}

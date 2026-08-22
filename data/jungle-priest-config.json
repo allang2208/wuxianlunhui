@@ -1,1 +1,83 @@
-{"id":"jungle_priest","name":"丛林祭司","role":"jungle_priest","growthRule":"priest","baseMaxHp":115,"baseData":{"str":5,"dex":8,"int":28,"con":7,"wis":22,"luck":8},"skills":["iceSpike","fireball"],"ai":{"walkSpeed":125,"runSpeed":125,"castRange":650,"engageRange":950,"attackInterval":2800,"attackDamage":95,"castAnimFps":12,"castReleaseFrame":8,"followOffset":155,"followArriveDist":40,"decisionMs":110,"teleportDist":999999,"teleportHardDist":9999999}}
+{
+  "id": "jungle_priest",
+  "name": "丛林祭司",
+  "role": "jungle_priest",
+  "growthRule": "priest",
+  "baseMaxHp": 115,
+  "baseData": {
+    "str": 5,
+    "dex": 8,
+    "int": 28,
+    "con": 7,
+    "wis": 22,
+    "luck": 8
+  },
+  "skills": ["iceSpike", "fireball"],
+  "ai": {
+    "walkSpeed": 125,
+    "runSpeed": 125,
+    "castRange": 650,
+    "engageRange": 950,
+    "attackInterval": 2800,
+    "attackDamage": 95,
+    "castAnimFps": 12,
+    "castReleaseFrame": 8,
+    "followOffset": 155,
+    "followArriveDist": 40,
+    "decisionMs": 110,
+    "teleportDist": 999999,
+    "teleportHardDist": 9999999
+  },
+  "displaySize": 250,
+  "spriteOffsetY": -109,
+  "render": {
+    "footOffsetY": 109,
+    "hudOffsetY": 140
+  },
+  "animations": {
+    "idle": {
+      "src": "assets/companions/jungle_priest/idle.png",
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 8,
+      "rows": 4,
+      "frameCount": 32,
+      "frames": [0, 31],
+      "frameRate": 24,
+      "repeat": -1
+    },
+    "walk": {
+      "src": "assets/companions/jungle_priest/running.png",
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 8,
+      "rows": 4,
+      "frameCount": 30,
+      "frames": [0, 29],
+      "frameRate": 24,
+      "repeat": -1
+    },
+    "spell": {
+      "src": "assets/companions/jungle_priest/spelling.png",
+      "frameWidth": 640,
+      "frameHeight": 512,
+      "cols": 8,
+      "rows": 3,
+      "frameCount": 17,
+      "frames": [0, 16],
+      "frameRate": 12,
+      "repeat": 0
+    },
+    "dying": {
+      "src": "assets/companions/jungle_priest/dying.png",
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 8,
+      "rows": 2,
+      "frameCount": 16,
+      "frames": [0, 15],
+      "frameRate": 12,
+      "repeat": 0
+    }
+  }
+}

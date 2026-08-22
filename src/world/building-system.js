@@ -54,6 +54,7 @@ import { TechnologySystem } from './technology-system.js';
 import {
     resolveStructureGroundFit,
 } from './structure-visual-anchor.js';
+import '../config/structure-ground-fit-config.js';
 import {
     BuildingRoadSystem,
     BUILDING_FIELD_DISPLAY_HEIGHT,
@@ -169,24 +170,26 @@ const WALL_STAIR_PANEL_ICON =
     WALL_STAIR_CONFIG.variants.e1_pos?.lower?.texture || 'wall_stair_lower_e1_pos';
 
 export const BUILD_ITEMS = [
-    { id: 'tower', name: '防御塔', cost: 1000, tex: 'obstacle_defense_tower', kind: 'tower', currency: 'energy' },
+    { id: 'tower', name: '防御塔', cost: 1000, tex: 'obstacle_defense_tower', thumbnailPath: 'assets/ui/building-thumbnails/tower.png', kind: 'tower', currency: 'energy' },
     // 1×1 方块墙沿用 C 级数值，但采用独立的单块造价；4 格门仍按 C 级墙造价。
-    { id: 'cover_block', name: '方块墙', cost: BLOCK_WALL_COST, tex: 'obstacle_block', kind: 'block', grade: 'C', orient: 'v', currency: 'energy' },
+    { id: 'cover_block', name: '方块墙', cost: BLOCK_WALL_COST, tex: 'obstacle_block', thumbnailPath: 'assets/ui/building-thumbnails/cover_block.png', kind: 'block', grade: 'C', orient: 'v', currency: 'energy' },
     {
         id: 'road',
         name: '道路',
         cost: 10,
         tex: BUILDING_ROAD_TEXTURE,
         icon: BUILDING_ROAD_ICON,
+        thumbnailPath: 'assets/ui/building-thumbnails/road.png',
         kind: 'road',
         currency: 'energy',
     },
-    { id: 'gate_4cell', name: '4格门', cost: C_GRADE_WALL_COST, tex: 'gate_4cell', icon: 'gate_4cell', kind: 'gate4', grade: 'C', visualGrade: 'D', orient: 'v', currency: 'energy' },
+    { id: 'gate_4cell', name: '4格门', cost: C_GRADE_WALL_COST, tex: 'gate_4cell', icon: 'gate_4cell', thumbnailPath: 'assets/ui/building-thumbnails/gate_4cell.png', kind: 'gate4', grade: 'C', visualGrade: 'D', orient: 'v', currency: 'energy' },
     {
         id: HAMSTER_CONFIG.hut.id,
         name: HAMSTER_CONFIG.hut.name,
         cost: HAMSTER_CONFIG.hut.cost,
         tex: HAMSTER_CONFIG.hut.tex,
+        thumbnailPath: `assets/ui/building-thumbnails/${HAMSTER_CONFIG.hut.id}.png`,
         kind: 'hamster_hut',
         currency: 'energy'
     },
@@ -195,6 +198,7 @@ export const BUILD_ITEMS = [
         name: BARRACKS_CONFIG.barracks.name,
         cost: BARRACKS_CONFIG.barracks.cost,
         tex: BARRACKS_CONFIG.barracks.tex,
+        thumbnailPath: 'assets/ui/building-thumbnails/hamster_barracks.png',
         kind: 'hamster_barracks',
         currency: 'energy'
     },
@@ -205,6 +209,7 @@ export const BUILD_ITEMS = [
         costPerSegment: WALL_STAIR_CONFIG.costPerSegment,
         tex: DEFAULT_WALL_STAIR_TEXTURE,
         icon: WALL_STAIR_PANEL_ICON,
+        thumbnailPath: 'assets/ui/building-thumbnails/wall_staircase.png',
         kind: 'wall_staircase',
         currency: 'energy',
     },
@@ -214,13 +219,15 @@ export const BUILD_ITEMS = [
 for (const pc of Object.values(PRODUCER_BUILDINGS || {})) {
     // 过滤配置表顶层的 _comment 等非建筑条目（否则生成 { id: undefined, name: undefined }
     // 的“undefined”建筑，2026-08-17 用户反馈建筑面板出现 undefined）
-    if (!pc || typeof pc !== 'object' || !pc.id) continue;
+    // 世界核心传送门等配置驱动实体由位面生命周期自动生成，不进入玩家建造面板。
+    if (!pc || typeof pc !== 'object' || !pc.id || pc.playerBuildable === false) continue;
     BUILD_ITEMS.push({
         id: pc.id,
         name: pc.name,
         cost: pc.cost,
         tex: pc.tex,
         assetPath: pc.assetPath,
+        thumbnailPath: pc.thumbnailPath || pc.assetPath || `assets/ui/building-thumbnails/${pc.id}.png`,
         kind: 'producer',
         currency: pc.currency === 'gold' ? 'gold' : 'energy',
         buildWarning: pc.buildWarning || '',
@@ -235,14 +242,17 @@ function isBuildItemTechnologyUnlocked(item) {
 function renderBuildItemThumb(item, cost, lockedReason = '') {
     const currencyLabel = item.currency === 'energy' ? '能' : '金';
     const thumbnail = item.icon || item.tex;
-    const lockedStyle = lockedReason ? 'opacity:0.45;filter:grayscale(0.8);cursor:not-allowed;' : '';
+    const blockedClass = lockedReason ? ' is-build-blocked' : '';
     return `
-        <div class="we-thumb" data-id="${item.id}" data-economy-locked="${lockedReason ? 'true' : 'false'}"
-             title="${lockedReason || `${item.name} — ${cost} ${currencyLabel}`}" style="${lockedStyle}"
+        <div class="we-thumb${blockedClass}" data-id="${item.id}" data-economy-locked="${lockedReason ? 'true' : 'false'}"
+             aria-disabled="${lockedReason ? 'true' : 'false'}"
+             title="${lockedReason || `${item.name} — ${cost} ${currencyLabel}`}"
              data-technology-gate-type="building"
              data-technology-gate-id="${item.id}"
              data-technology-gate-layout="collapse">
-            <img src="${item.assetPath || `assets/terrain/${thumbnail}.png`}" draggable="false" alt="${item.name}">
+            <img src="${item.thumbnailPath || item.assetPath || `assets/terrain/${thumbnail}.png`}"
+                 width="128" height="64" loading="lazy" decoding="async"
+                 draggable="false" alt="${item.name}">
             <span>${item.name}<br><em data-build-cost style="color:${item.currency === 'energy' ? '#7fd4ff' : '#ffd700'};font-style:normal;">${cost}${currencyLabel}</em></span>
         </div>`;
 }
@@ -251,7 +261,7 @@ function renderBuildItemThumb(item, cost, lockedReason = '') {
 
 export const BuildingSystem = {
     active: false,
-    _placing: null,       // { item, mirror }
+    _placing: null,       // { item, mirror, groundFit? }
     _recycleMode: false,  // 建筑面板快捷回收：左键连续回收建筑/道路
     _detail: null,        // 建筑详情视图：当前查看的掩体实体（2026-08-15）
     _ghost: null,
@@ -269,6 +279,7 @@ export const BuildingSystem = {
     _gate4Hover: null,     // 最后一次场景鼠标世界坐标；F切换必须从原始坐标重算，不能用半格锚点
     _panel: null,
     _lastWarehouseAvailability: null,
+    _lastBuildAvailabilitySignature: '',
     _detailPanel: null,
     _panelCloseTimer: null,
     _buildSortMode: 'unlock', // unlock=实际解锁顺序；energy=能源造价升序、金币建筑置后
@@ -276,6 +287,10 @@ export const BuildingSystem = {
     _moveFn: null,
     _keyFn: null,
     _blurFn: null,
+    _moveFrame: null,
+    _moveGeneration: 0,
+    _pendingPointerClient: null,
+    _lastPointerClient: null,
     _seq: 0,
     _refreshTimer: null,
 
@@ -298,7 +313,10 @@ export const BuildingSystem = {
         this._moveFn = (e) => this._onMouseMove(e);
         this._upFn = (e) => this._onMouseUp(e);
         this._keyFn = (e) => this._onKey(e);
-        this._blurFn = () => this._cancelDragPlacement();
+        this._blurFn = () => {
+            this._cancelQueuedMouseMove();
+            this._cancelDragPlacement();
+        };
         window.addEventListener('mousedown', this._downFn, true);
         window.addEventListener('mousemove', this._moveFn);
         window.addEventListener('mouseup', this._upFn);
@@ -318,7 +336,7 @@ export const BuildingSystem = {
         Game._buildMode = false;
         clearInterval(this._refreshTimer);
         this._refreshTimer = null;
-        this._cancelPlacement();
+        this._cancelPlacement({ destroyReusableVisuals: true });
         this._recycleMode = false;
         this._closeDetail();
         for (const panel of this._buildingDetailPanels()) {
@@ -387,6 +405,22 @@ export const BuildingSystem = {
         return CrossPlaneResourceSystem.quote({ [currency]: base })[currency];
     },
 
+    _buildItemResourceBlockReason(item, cost = this._effectiveBuildCost(item)) {
+        if (Game?._devInfiniteResources || !(cost > 0)) return '';
+        const currency = item?.currency === 'energy' ? 'energy' : 'gold';
+        if (CrossPlaneResourceSystem.getAvailable(currency) >= cost) return '';
+        const label = currency === 'energy' ? '能源' : '金币';
+        return `${label}不足（需要 ${cost} ${label}）`;
+    },
+
+    _buildResourceAvailabilitySignature() {
+        return BUILD_ITEMS.map((item) => {
+            const cost = this._effectiveBuildCost(item);
+            const blocked = !!this._buildItemResourceBlockReason(item, cost);
+            return `${item.id}:${cost}:${blocked ? 0 : 1}`;
+        }).join('|');
+    },
+
     _economyWarehouseBlockReason(item) {
         const cfg = item?.kind === 'producer' ? PRODUCER_BUILDINGS[item.id] : null;
         return cfg?.economyType && !EnergyManager?.hasWarehouse?.()
@@ -413,7 +447,13 @@ export const BuildingSystem = {
     },
 
     _buildItemBlockReason(item) {
-        return this._featureBuildingBlockReason(item) || this._economyWarehouseBlockReason(item);
+        return this._featureBuildingBlockReason(item)
+            || this._economyWarehouseBlockReason(item);
+    },
+
+    _buildItemCardBlockReason(item, cost = this._effectiveBuildCost(item)) {
+        return this._buildItemBlockReason(item)
+            || this._buildItemResourceBlockReason(item, cost);
     },
 
     _buildItemGate(item) {
@@ -444,11 +484,10 @@ export const BuildingSystem = {
 
     _buildGridItemsHtml() {
         return this._sortedBuildItems()
-            .map((item) => renderBuildItemThumb(
-                item,
-                this._effectiveBuildCost(item),
-                this._buildItemBlockReason(item)
-            ))
+            .map((item) => {
+                const cost = this._effectiveBuildCost(item);
+                return renderBuildItemThumb(item, cost, this._buildItemCardBlockReason(item, cost));
+            })
             .join('');
     },
 
@@ -471,7 +510,32 @@ export const BuildingSystem = {
         TechnologyGate.bindTree(grid);
         grid.querySelectorAll('.we-thumb[data-id]').forEach((thumb) => this._bindBuildItemThumb(thumb));
         grid.scrollTop = scrollTop;
+        this._lastBuildAvailabilitySignature = this._buildResourceAvailabilitySignature();
         this._updateBuildSortButton();
+    },
+
+    /**
+     * 资源、跨位面倍率和场景建造条件变化只更新现有卡片状态。
+     * 科技解锁或排序变化才重建网格，避免每 500ms 反复解码图片、解绑/重绑事件。
+     */
+    _syncBuildItemCards() {
+        const grid = this._panel?.querySelector('#bpGrid');
+        if (!grid) return;
+        for (const thumb of grid.querySelectorAll('.we-thumb[data-id]')) {
+            const item = BUILD_ITEMS.find((entry) => entry.id === thumb.dataset.id);
+            if (!item) continue;
+            const cost = this._effectiveBuildCost(item);
+            const currencyLabel = item.currency === 'energy' ? '能' : '金';
+            const blockReason = this._buildItemCardBlockReason(item, cost);
+            const blocked = !!blockReason;
+            thumb.dataset.economyLocked = blocked ? 'true' : 'false';
+            thumb.classList.toggle('is-build-blocked', blocked);
+            thumb.setAttribute('aria-disabled', blocked ? 'true' : 'false');
+            thumb.title = blockReason || `${item.name} — ${cost} ${currencyLabel}`;
+            const price = thumb.querySelector('[data-build-cost]');
+            if (price) price.textContent = `${cost}${currencyLabel}`;
+        }
+        this._lastBuildAvailabilitySignature = this._buildResourceAvailabilitySignature();
     },
 
     _buildPanel() {
@@ -560,14 +624,18 @@ export const BuildingSystem = {
         el.querySelectorAll('.we-thumb').forEach((t) => {
             this._bindBuildItemThumb(t);
         });
+        this._lastWarehouseAvailability = !!EnergyManager?.hasWarehouse?.();
+        this._lastBuildAvailabilitySignature = this._buildResourceAvailabilitySignature();
     },
 
     _refreshCurrencies() {
         if (!this._panel) return;
         const hasWarehouse = !!EnergyManager?.hasWarehouse?.();
-        if (this._lastWarehouseAvailability !== hasWarehouse) {
+        const availabilitySignature = this._buildResourceAvailabilitySignature();
+        if (this._lastWarehouseAvailability !== hasWarehouse
+            || this._lastBuildAvailabilitySignature !== availabilitySignature) {
             this._lastWarehouseAvailability = hasWarehouse;
-            this._renderBuildGrid();
+            this._syncBuildItemCards();
         }
         const el = this._panel.querySelector('#bpCur');
         if (el) {
@@ -612,10 +680,10 @@ export const BuildingSystem = {
             this._notify('该建筑尚未通过科技解锁', '#ffb35c');
             return;
         }
-        const buildBlock = this._buildItemBlockReason(item);
+        const buildBlock = this._buildItemCardBlockReason(item);
         if (buildBlock) {
             this._notify(buildBlock, '#ffb35c');
-            this._renderBuildGrid();
+            this._syncBuildItemCards();
             return;
         }
         this._setRecycleMode(false);
@@ -625,31 +693,34 @@ export const BuildingSystem = {
         // 随后的鼠标移动继续复用缓存，不产生逐帧重建开销。
         if (isWallStairBuildItem(item)) DefenseSystem?.invalidateElevatedTopology?.();
         const scene = window.__phaserScene;
+        if (this._ghost && (!this._ghost.active || this._ghost.scene !== scene)) {
+            if (this._ghost.active) this._ghost.destroy();
+            this._ghost = null;
+        }
+        if (this._guide && (!this._guide.active || this._guide.scene !== scene)) {
+            if (this._guide.active) this._guide.destroy();
+            this._guide = null;
+        }
         if (scene && !this._ghost) {
             this._ghost = scene.add.sprite(0, 0, item.tex);
-            this._ghost.setOrigin(0.5, 0.5);
-            this._ghost.setAlpha(0.55);
-            this._ghost.setDepth(999998);
         }
-        for (const thumb of this._panel.querySelectorAll('.we-thumb[data-id]')) {
-            const item = BUILD_ITEMS.find((entry) => entry.id === thumb.dataset.id);
-            if (!item) continue;
-            const cost = this._effectiveBuildCost(item);
-            const cur = item.currency === 'energy' ? '能' : '金';
-            thumb.title = `${item.name} — ${cost} ${cur}`;
-            const price = thumb.querySelector('[data-build-cost]');
-            if (price) price.textContent = `${cost}${cur}`;
-        }
+        this._syncBuildItemCards();
         // 产兵建筑对齐线（2026-08-17）：吸附时画水平/垂直参考线
         if (scene && !this._guide) {
             this._guide = scene.add.graphics();
-            this._guide.setDepth(999997);
-            this._guide.setVisible(false);
         }
         if (this._ghost) {
+            this._ghost.stop?.();
+            this._ghost.setCrop?.();
             this._ghost.setTexture(item.tex);
+            this._ghost.setOrigin(0.5, 0.5);
+            this._ghost.setPosition(0, 0);
+            this._ghost.setRotation(0);
+            this._ghost.setAlpha(0.55);
+            this._ghost.setDepth(999998);
             this._ghost.setVisible(true);
-            this._ghost.setFlipX(false);
+            this._ghost.setFlip(false, false);
+            this._ghost.clearTint();
             // 显示尺寸 = 实体显示尺寸（普通建筑已统一放大到 2×2 视觉尺度）
             if (item.kind === 'tower') {
                 this._ghost.setDisplaySize(DEFENSE_TOWER_VISUAL.base.w, DEFENSE_TOWER_VISUAL.base.h);
@@ -684,6 +755,11 @@ export const BuildingSystem = {
             const action = item.kind === 'road' ? '单击或拖动铺设' : '左键放置 / F 镜像';
             sel.textContent = `${item.name}（${this._effectiveBuildCost(item)}${item.currency === 'energy' ? '能' : '金'}）— ${action}`;
         }
+        if (this._guide) {
+            this._guide.clear();
+            this._guide.setDepth(999997);
+            this._guide.setVisible(false);
+        }
         const warning = this._panel?.querySelector('#bpContextWarning');
         if (warning) {
             warning.textContent = item.buildWarning || '';
@@ -699,6 +775,7 @@ export const BuildingSystem = {
 
     _toggleMirror() {
         if (!this._placing) return;
+        this._flushQueuedMouseMove();
         const previousVisualOffsetX = this._ghostVisualOffsetX();
         this._placing.mirror = !this._placing.mirror;
         if (this._placing.item.kind === 'gate4') {
@@ -729,6 +806,7 @@ export const BuildingSystem = {
             this._updateGuide(this._snapped, this._placing.item, this._ghost.x, this._ghost.y);
         }
         this._updateMirrorUi();
+        this._refreshPlacementPreviewAtLastPointer();
     },
 
     _updateMirrorUi() {
@@ -827,6 +905,7 @@ export const BuildingSystem = {
 
     /** G 键：切换产兵建筑自动吸附（2026-08-17） */
     _toggleSnap() {
+        this._flushQueuedMouseMove();
         this._snapEnabled = !this._snapEnabled;
         this._snapped = null; // 切换后清残留吸附位，避免鼠标不动时点落旧吸附点
         this._clearStairPreview();
@@ -849,10 +928,12 @@ export const BuildingSystem = {
             this._updateStairPreview(next, ok);
         }
         this._updateSnapHint();
+        this._refreshPlacementPreviewAtLastPointer();
     },
 
     /** H 键：切换墙段吸附位置——外部（端到端）↔ 内部（端帽重叠）（2026-08-17） */
     _toggleSnapInside() {
+        this._flushQueuedMouseMove();
         this._snapInside = !this._snapInside;
         this._snapped = null; // 切换后清残留吸附点，让 _onMouseMove 按新模式重算
         if (Game.player) {
@@ -863,6 +944,7 @@ export const BuildingSystem = {
             ));
         }
         this._updateSnapHint();
+        this._refreshPlacementPreviewAtLastPointer();
     },
 
     /** 顶部快捷键提示行：吸附开关 / 墙段吸附位置状态同步（2026-08-17） */
@@ -880,7 +962,8 @@ export const BuildingSystem = {
         }
     },
 
-    _cancelPlacement() {
+    _cancelPlacement({ destroyReusableVisuals = false } = {}) {
+        this._cancelQueuedMouseMove();
         this._snapped = null;
         this._wallDrag = null;
         this._wallRow = [];
@@ -890,16 +973,30 @@ export const BuildingSystem = {
         this._clearWallPreview();
         this._clearStairPreview();
         this._destroyGate4Preview();
-        this._clearRoadPreview();
+        this._clearRoadPreview(destroyReusableVisuals);
         this._roadPlacementStatus = null;
         if (this._ghost) {
-            this._ghost.destroy();
-            this._ghost = null;
+            if (destroyReusableVisuals || !this._ghost.active) {
+                if (this._ghost.active) this._ghost.destroy();
+                this._ghost = null;
+            } else {
+                this._ghost.stop?.();
+                this._ghost.setCrop?.();
+                this._ghost.clearTint();
+                this._ghost.setFlip(false, false);
+                this._ghost.setVisible(false);
+            }
         }
         if (this._guide) {
-            this._guide.destroy();
-            this._guide = null;
+            if (destroyReusableVisuals || !this._guide.active) {
+                if (this._guide.active) this._guide.destroy();
+                this._guide = null;
+            } else {
+                this._guide.clear();
+                this._guide.setVisible(false);
+            }
         }
+        if (destroyReusableVisuals) this._lastPointerClient = null;
         this._placing = null;
         this._updateMirrorUi();
         const sel = this._panel && this._panel.querySelector('#bpSel');
@@ -955,7 +1052,51 @@ export const BuildingSystem = {
         };
     },
 
+    _cancelQueuedMouseMove() {
+        this._moveGeneration++;
+        if (this._moveFrame !== null && typeof window !== 'undefined') {
+            window.cancelAnimationFrame(this._moveFrame);
+        }
+        this._moveFrame = null;
+        this._pendingPointerClient = null;
+    },
+
     _onMouseMove(e) {
+        if (!this._placing || !this._ghost) return;
+        const pointer = { clientX: e.clientX, clientY: e.clientY };
+        this._lastPointerClient = pointer;
+        this._pendingPointerClient = pointer;
+        if (this._moveFrame !== null) return;
+        const generation = this._moveGeneration;
+        const frameHandle = window.requestAnimationFrame(() => {
+            if (generation !== this._moveGeneration || this._moveFrame !== frameHandle) return;
+            this._moveFrame = null;
+            const latest = this._pendingPointerClient;
+            this._pendingPointerClient = null;
+            if (latest) this._applyMouseMove(latest);
+        });
+        this._moveFrame = frameHandle;
+    },
+
+    /** 点击/松开前同步冲刷最后坐标，避免 rAF 尚未执行时沿用旧吸附点或旧拖墙行。 */
+    _flushQueuedMouseMove(pointer = null) {
+        if (pointer && Number.isFinite(pointer.clientX) && Number.isFinite(pointer.clientY)) {
+            const latest = { clientX: pointer.clientX, clientY: pointer.clientY };
+            this._lastPointerClient = latest;
+            this._pendingPointerClient = latest;
+        }
+        const latest = this._pendingPointerClient;
+        this._cancelQueuedMouseMove();
+        if (latest && this._placing && this._ghost) this._applyMouseMove(latest);
+    },
+
+    _refreshPlacementPreviewAtLastPointer() {
+        if (this._lastPointerClient && this._placing && this._ghost) {
+            this._applyMouseMove(this._lastPointerClient);
+        }
+    },
+
+    _applyMouseMove(e) {
         if (!this._placing || !this._ghost) return;
         const p = this._clientToWorld(e);
         if (!p || !p.overCanvas) return;
@@ -1054,9 +1195,10 @@ export const BuildingSystem = {
     _ghostGroundFit() {
         if (!this._placing) return null;
         if (!['hamster_hut', 'hamster_barracks', 'producer'].includes(this._placing.item.kind)) return null;
+        if (this._placing.groundFit) return this._placing.groundFit;
         const scene = typeof window !== 'undefined' ? window.__phaserScene : null;
         if (!scene || !this._ghost?.texture?.key) return null;
-        return resolveStructureGroundFit(
+        const fit = resolveStructureGroundFit(
             scene,
             this._ghost.texture.key,
             this._ghost.frame?.name,
@@ -1067,6 +1209,8 @@ export const BuildingSystem = {
                 nominalHeight: TWO_BY_TWO_BUILDING_FOOT.d,
             }
         );
+        if (fit) this._placing.groundFit = fit;
+        return fit;
     },
 
     _ghostFootOffset() {
@@ -1096,31 +1240,50 @@ export const BuildingSystem = {
             typeof window !== 'undefined' ? window.__phaserScene : null
         );
         if (!targetScene?.add?.sprite) return;
-        if (this._roadPreview.length === 12
-            && this._roadPreview.every((sprite) => sprite?._perimeterKind === kind)) return;
-        this._clearRoadPreview();
-        for (let index = 0; index < 12; index++) {
-            const sprite = kind === 'field'
-                ? targetScene.add.sprite(0, 0, BUILDING_FIELD_TEXTURE, index % 4)
-                : targetScene.add.sprite(0, 0, BUILDING_ROAD_TEXTURE, index % 4);
+        const reusable = this._roadPreview.length === 12
+            && this._roadPreview.every((sprite) => sprite?.active && sprite.scene === targetScene);
+        if (reusable && this._roadPreview.every((sprite) => sprite._perimeterKind === kind)) return;
+        if (!reusable) {
+            this._clearRoadPreview(true);
+            for (let index = 0; index < 12; index++) {
+                this._roadPreview.push(targetScene.add.sprite(0, 0, BUILDING_ROAD_TEXTURE, index % 4));
+            }
+        }
+        const texture = kind === 'field' ? BUILDING_FIELD_TEXTURE : BUILDING_ROAD_TEXTURE;
+        const displayWidth = kind === 'field'
+            ? BUILDING_FIELD_DISPLAY_WIDTH
+            : BUILDING_ROAD_DISPLAY_WIDTH;
+        const displayHeight = kind === 'field'
+            ? BUILDING_FIELD_DISPLAY_HEIGHT
+            : BUILDING_ROAD_DISPLAY_HEIGHT;
+        for (let index = 0; index < this._roadPreview.length; index++) {
+            const sprite = this._roadPreview[index];
+            sprite.stop?.();
+            sprite.setCrop?.();
+            sprite.setTexture(texture, index % 4);
             sprite._perimeterKind = kind;
             sprite.setOrigin(0.5, 0.5);
-            sprite.setDisplaySize(
-                kind === 'field' ? BUILDING_FIELD_DISPLAY_WIDTH : BUILDING_ROAD_DISPLAY_WIDTH,
-                kind === 'field' ? BUILDING_FIELD_DISPLAY_HEIGHT : BUILDING_ROAD_DISPLAY_HEIGHT
-            );
+            sprite.setDisplaySize(displayWidth, displayHeight);
+            sprite.setPosition(0, 0);
+            sprite.setRotation(0);
+            sprite.setFlip(false, false);
             sprite.setDepth(999996);
             sprite.setAlpha(0.62);
+            sprite.clearTint();
             sprite.setVisible(false);
-            this._roadPreview.push(sprite);
         }
     },
 
-    _clearRoadPreview() {
+    _clearRoadPreview(destroy = false) {
         for (const sprite of this._roadPreview) {
-            if (sprite?.active) sprite.destroy();
+            if (!sprite?.active) continue;
+            if (destroy) sprite.destroy();
+            else {
+                sprite.clearTint();
+                sprite.setVisible(false);
+            }
         }
-        this._roadPreview = [];
+        if (destroy) this._roadPreview = [];
     },
 
     _updateRoadPreview(x, y, status, fallbackOk = false) {
@@ -1249,6 +1412,8 @@ export const BuildingSystem = {
         }
         const p = this._clientToWorld(e);
         if (!p || !p.overCanvas) return;
+        // rAF 可能尚未执行；点击坐标必须同步更新预览，再由 _place() 完整复验。
+        this._flushQueuedMouseMove(e);
         // 方块墙/道路：按下开始拖动（帝国时代式：长按拖动沿一条方向铺一排），
         // 松开时才统一放置（普通单击 = 只放起点一块）
         if (this._placing.item.kind === 'block' || this._placing.item.kind === 'road') {
@@ -1298,6 +1463,8 @@ export const BuildingSystem = {
     _onMouseUp(e) {
         if (e.button !== 0) return;
         if (!this._wallDrag) return;
+        // mouseup 的坐标是拖墙/道路最终端点，不能提交上一帧缓存的 _wallRow。
+        this._flushQueuedMouseMove(e);
         const p = this._clientToWorld(e);
         if (!p || !p.overCanvas || (this._panel && e.target && this._panel.contains(e.target))) {
             this._cancelDragPlacement();
@@ -3302,7 +3469,7 @@ export const BuildingSystem = {
         if (buildBlock) {
             this._notify(buildBlock, '#ffb35c');
             this._cancelPlacement();
-            this._renderBuildGrid();
+            this._syncBuildItemCards();
             return;
         }
         if (!this._canPlace(x, y)) {
@@ -3318,6 +3485,7 @@ export const BuildingSystem = {
         const payOk = free || this._deductBuildCost(currency, buildCost);
         if (!payOk) {
             this._notify(currency === 'energy' ? '能源不足（攻击资源点采集）' : '金币不足', '#ff5555');
+            this._syncBuildItemCards();
             return;
         }
         const id = `built_${item.id}_${++this._seq}`;

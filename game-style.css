@@ -2246,6 +2246,7 @@
 .dev-tool-panel {
     position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
     width: 1000px; height: 720px;
+    max-height: calc(100vh - 24px); box-sizing: border-box;
     background: linear-gradient(to bottom, #3d342b, #2a2520);
     border: 2px solid #6b5d4f; border-radius: 12px;
     display: none; flex-direction: column;
@@ -2438,6 +2439,21 @@
 }
 .dev-tool-tab-content.active { display: flex; }
 
+/* 位面页条目较多：固定头部与页签栏，只滚动位面内容区。 */
+.dev-tool-tab-content[data-tab-content="world"] {
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    scrollbar-gutter: stable;
+}
+.dev-tool-tab-content[data-tab-content="world"] > .collision-tab-wrap {
+    flex: 0 0 auto;
+    min-height: 100%;
+    box-sizing: border-box;
+    justify-content: flex-start;
+    align-items: stretch;
+}
+
 /* ===== 坐标工具覆盖层 ===== */
 .coord-overlay {
     position: fixed; inset: 0; z-index: 9998;
@@ -2491,114 +2507,7 @@
 .coord-hint { font-size: 11px; color: #6b5d4f; }
 
 
-/* ===== 任务面板 ===== */
-.quest-panel {
-    position: fixed;
-    top: 0;
-    right: 0;
-    transform: translateX(100%);
-    width: 45vw;
-    height: 100%;
-    background: linear-gradient(135deg, rgba(45,40,35,0.98), rgba(35,30,25,0.99));
-    border-left: 2px solid #7a6a5a;
-    z-index: 10001;
-    display: flex;
-    flex-direction: column;
-    box-shadow: -8px 0 32px rgba(0,0,0,0.6);
-    font-family: SimHei, "Microsoft YaHei", sans-serif;
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.3s;
-    visibility: hidden;
-    pointer-events: none;
-}
-.quest-panel.active {
-    transform: translateX(0);
-    visibility: visible;
-    pointer-events: auto;
-}
-.quest-panel-header {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 12px 20px; border-bottom: 2px solid #5a4d3f; background: rgba(60,50,40,0.5);
-    border-radius: 0;
-}
-.quest-panel-title { font-size: 20px; font-weight: 700; color: #d4c5a9; }
-.quest-panel-close {
-    background: none; border: none; color: #8a7d6b; font-size: 20px; cursor: pointer;
-}
-.quest-panel-close:hover { color: #d4c5a9; }
-.quest-panel-body {
-    display: flex; flex: 1; overflow: hidden;
-}
-.quest-list-col {
-    width: 240px; border-right: 2px solid #5a4d3f; padding: 12px; overflow-y: auto;
-    display: flex; flex-direction: column; gap: 8px;
-}
-.quest-detail-col {
-    flex: 1; display: flex; flex-direction: column; padding: 16px; overflow-y: auto; gap: 12px;
-    background: rgba(40,35,30,0.5);
-}
-.quest-list-item {
-    padding: 10px 14px; border: 2px solid #5a4d3f; border-radius: 8px; cursor: pointer; transition: all 0.2s;
-    background: rgba(45,40,35,0.5); color: #d4c5a9;
-}
-.quest-list-item:hover { border-color: #8a7d6b; background: rgba(55,50,45,0.5); }
-.quest-list-item.active { border-color: #7a9a6a; background: rgba(50,70,40,0.5); box-shadow: 0 0 8px rgba(122,154,106,0.2); }
-.quest-list-item.completed { opacity: 0.6; color: #8a8a8a; }
-.quest-list-item.completed .quest-item-name { text-decoration: line-through; }
-.quest-item-name { font-size: 15px; font-weight: 600; }
-.quest-item-type { font-size: 11px; color: #8a7d6b; margin-top: 2px; }
-.quest-item-check { color: #7a9a6a; font-size: 16px; margin-left: 6px; }
-.quest-detail-title { font-size: 18px; font-weight: 700; color: #d4c5a9; margin-bottom: 8px; }
-.quest-detail-desc { font-size: 14px; color: #c4b5a9; line-height: 1.6; margin-bottom: 12px; }
-.quest-detail-objectives { margin-bottom: 12px; }
-.quest-objective-title { font-size: 14px; font-weight: 700; color: #d4c5a9; margin-bottom: 6px; }
-.quest-objective-item { font-size: 13px; color: #b4a599; padding: 4px 0; border-bottom: 1px solid rgba(90,77,63,0.3); }
-.quest-objective-item.completed { color: #7a9a6a; text-decoration: line-through; }
-.quest-detail-rewards { margin-top: 12px; padding: 10px; background: rgba(60,50,40,0.5); border-radius: 8px; }
-.quest-reward-label { font-size: 13px; font-weight: 700; color: #d4c5a9; }
-.quest-reward-item { font-size: 13px; color: #ffd700; margin-top: 4px; }
-.quest-detail-status { margin-top: 12px; font-size: 13px; }
-.quest-status-active { color: #7a9a6a; }
-.quest-status-completed { color: #8a8a8a; }
-.quest-scene-item {
-    padding: 12px; background: rgba(50,45,40,0.6); border: 1px solid #5a4d3f;
-    border-radius: 8px; cursor: pointer; transition: all 0.2s;
-}
-.quest-scene-item:hover { border-color: #8a7d6b; background: rgba(60,55,50,0.7); }
-.quest-scene-item.active { border-color: #7a9a6a; background: rgba(50,70,40,0.5); box-shadow: 0 0 8px rgba(122,154,106,0.2); }
-.quest-scene-name { font-size: 16px; font-weight: 600; color: #d4c5a9; }
-.quest-scene-label { font-size: 12px; color: #8a7d6b; margin-top: 4px; }
-.quest-right-col {
-    flex: 1; display: flex; flex-direction: column; padding: 16px; gap: 12px;
-}
-.quest-mode-tabs {
-    display: flex; gap: 8px; border-bottom: 1px solid #5a4d3f; padding-bottom: 8px;
-}
-.quest-mode-tab {
-    padding: 8px 20px; background: rgba(50,45,40,0.6); border: 1px solid #5a4d3f;
-    border-radius: 6px; cursor: pointer; color: #8a7d6b; font-size: 14px; transition: all 0.2s;
-}
-.quest-mode-tab:hover { border-color: #8a7d6b; color: #d4c5a9; }
-.quest-mode-tab.active { border-color: #7a9a6a; background: rgba(50,70,40,0.5); color: #d4e8c5; }
-.quest-detail-panel {
-    flex: 1; background: rgba(40,35,30,0.5); border: 1px solid #5a4d3f;
-    border-radius: 8px; padding: 16px; overflow-y: auto;
-}
-.quest-detail-title { font-size: 18px; font-weight: 700; color: #d4c5a9; margin-bottom: 12px; }
-.quest-detail-desc { font-size: 14px; color: #8a7d6b; line-height: 1.6; margin-bottom: 16px; }
-.quest-detail-rewards { font-size: 14px; color: #d4c5a9; margin-bottom: 20px; }
-.quest-reward-label { color: #8a7d6b; }
-.quest-reward-gold { color: #ffd700; font-weight: 600; }
-.quest-reward-weapon { color: #7aba7a; font-weight: 600; }
-.quest-reward-empty { color: #6b5d4f; font-style: italic; }
-.quest-detail-buttons { display: flex; gap: 12px; }
-.quest-btn {
-    padding: 10px 24px; border: none; border-radius: 6px; font-size: 14px;
-    cursor: pointer; font-family: inherit; transition: all 0.2s;
-}
-.quest-btn-accept { background: linear-gradient(to bottom, #5a7a4a, #4a6a3a); color: #d4e8c5; }
-.quest-btn-accept:hover { background: linear-gradient(to bottom, #6a8a5a, #5a7a4a); transform: translateY(-1px); }
-.quest-btn-later { background: linear-gradient(to bottom, #6a5a4a, #5a4a3a); color: #d4c5a9; }
-.quest-btn-later:hover { background: linear-gradient(to bottom, #7a6a5a, #6a5a4a); }
+/* 任务面板已迁移到冷钢档案主题，结构与视觉见 ui/panel-theme-backpack.css。 */
 
 /* ===== 奖励结算面板 ===== */
 .reward-panel {

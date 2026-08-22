@@ -699,11 +699,13 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
   SVG `<g>` 单针、`refreshGameTime` 内 `rotate(phase×360−90, 24, 24)` 由 `getSun().phase`
   驱动——上=正午、右=日落、下=午夜、左=日出（针=太阳方位）；
   不做精灵图帧（帧数爆炸跳变），刷新与暂停/读档同链，无独立秒表。
-- **地牢冻结与入侵进度（2026-08-21）**：`SceneManager.isDungeonIsolationActive()` 是
-  `scene7` 地牢隔绝状态的统一判定。成立时 `GameScene.update` 冻结世界时间与五日入侵，
-  `WorldSimDriver` 冻结后台位面结算及科技研究，`Game.update` 冻结生产、补员、出兵、升级和
-  兵线；地牢本地地图、战斗与特工入侵仍正常推进。世界面板和 `switchScene(...,{observer:true})`
-  均禁止观察其他世界，并通过顶部提示“地牢中阻断了与外部世界的联系”。
+- **地牢时间、世界观察与入侵进度（2026-08-22 修订）**：`EnvironmentLightingSystem` 在
+  `scene7` 地牢探险中继续推进，五日入侵、特殊天气排期、`WorldSimDriver` 后台位面资源/生产/
+  科技结算以及全局兵线均使用同一游戏时间，不再以地牢状态冻结。`isDungeonIsolationActive()`
+  只表示当前画面正在渲染 `scene7`，禁止再将它用作全局计时开关。
+- 地牢进行中允许通过世界面板以 `observer:true` 观察、选择和指挥已建传送门位面；首次切出时
+  暂存地牢实体、特效、墙体、地形、相机与交互 UI，面板增加“返回本体”地牢行，返回后恢复同一
+  探险现场。玩家本体仍属于地牢，入侵“本体支援”继续禁用，不能借观察切换绕过地牢结算。
   地牢成功/失败/安全撤离/主动放弃必须在 `shutdown` 前统一调用
   `_recordRunResult`，每局只登记一次；F→A 进度比例只读 `world-system.json`，禁止在退出按钮
   分支另写常量。成功结果同时是世界位面解锁条件，失败与放弃只推进入侵、不解锁世界。

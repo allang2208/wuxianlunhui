@@ -10,11 +10,140 @@ const VISUAL_GROUND_SLOPE_30 = Math.tan(Math.PI / 6);
 const _footRatioCache = new Map();
 const _groundFitCache = new Map();
 const _shadowSliceCache = new Map();
+const _frameAlphaSamplerCache = new Map();
+const _groundFitManifest = new Map();
+const MAX_ALPHA_SAMPLE_DIMENSION = 768;
 const AUTO_SHADOW_SLICE_BANDS = Object.freeze([
     Object.freeze({ id: 'lower', min: 0.18, max: 0.52 }),
     Object.freeze({ id: 'middle', min: 0.48, max: 0.78 }),
     Object.freeze({ id: 'upper', min: 0.74, max: 1.00 }),
 ]);
+
+function _groundFitKey(
+    textureKey,
+    frameName,
+    width,
+    height,
+    displayWidth,
+    displayHeight,
+    nominalWidth,
+    nominalHeight
+) {
+    const stableDimension = (value) => Math.round((Number(value) || 0) * 1000) / 1000;
+    return [
+        textureKey,
+        String(frameName ?? '__BASE'),
+        `${stableDimension(width)}x${stableDimension(height)}`,
+        `${stableDimension(displayWidth)}x${stableDimension(displayHeight)}`,
+        `${stableDimension(nominalWidth)}x${stableDimension(nominalHeight)}`,
+    ].join(':');
+}
+
+/**
+ * 注册由离线工具从原图 alpha 轮廓标定出的接地结果。
+ * manifest 只保存计算结果，不替代逻辑占格；幽灵、实体和阴影仍统一通过
+ * resolveStructureGroundFit() 读取，避免三套锚点口径漂移。
+ */
+export function registerStructureGroundFitManifest(manifest) {
+    const entries = Array.isArray(manifest?.entries) ? manifest.entries : [];
+    let registered = 0;
+    for (const entry of entries) {
+        if (!entry?.textureKey || !entry?.fit) continue;
+        const key = _groundFitKey(
+            entry.textureKey,
+            entry.frameName,
+            entry.sourceWidth,
+            entry.sourceHeight,
+            entry.displayWidth,
+            entry.displayHeight,
+            entry.nominalWidth,
+            entry.nominalHeight
+        );
+        _groundFitManifest.set(key, entry.fit);
+        registered++;
+    }
+    return registered;
+}
+
+function _makeCanvas(width, height) {
+    if (typeof OffscreenCanvas !== 'undefined') return new OffscreenCanvas(width, height);
+    if (typeof document === 'undefined') return null;
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    return canvas;
+}
+
+/**
+ * 一帧只 drawImage/getImageData 一次，再从紧凑 alpha 数组读取。
+ * Phaser TextureManager#getPixelAlpha 每个像素都会做一次 1x1 draw/getImageData，
+ * 在 3K~4K 建筑图上会同步阻塞主线程；这里最多采样到 768px 长边并按帧缓存。
+ */
+function _frameAlphaSampler(scene, textureKey, frameName) {
+    const frame = scene?.textures?.getFrame(textureKey, frameName);
+    if (!frame) return null;
+    const sourceWidth = frame.realWidth || frame.cutWidth || frame.width;
+    const sourceHeight = frame.realHeight || frame.cutHeight || frame.height;
+    if (!(sourceWidth > 0) || !(sourceHeight > 0)) return null;
+    const cacheKey = `${textureKey}:${String(frameName ?? frame.name)}:${sourceWidth}x${sourceHeight}`;
+    if (_frameAlphaSamplerCache.has(cacheKey)) return _frameAlphaSamplerCache.get(cacheKey);
+
+    const image = frame.source?.image;
+    if (!image) return null;
+    const scale = Math.min(1, MAX_ALPHA_SAMPLE_DIMENSION / Math.max(sourceWidth, sourceHeight));
+    const width = Math.max(1, Math.round(sourceWidth * scale));
+    const height = Math.max(1, Math.round(sourceHeight * scale));
+    const canvas = _makeCanvas(width, height);
+    const context = canvas?.getContext?.('2d', { willReadFrequently: true });
+    if (!context) return null;
+
+    try {
+        context.clearRect(0, 0, width, height);
+        context.imageSmoothingEnabled = true;
+        context.imageSmoothingQuality = 'high';
+        const cut = frame.data?.cut || {};
+        const sourceX = Number.isFinite(cut.x) ? cut.x : (frame.cutX || 0);
+        const sourceY = Number.isFinite(cut.y) ? cut.y : (frame.cutY || 0);
+        const cutWidth = Number.isFinite(cut.w) ? cut.w : (frame.cutWidth || sourceWidth);
+        const cutHeight = Number.isFinite(cut.h) ? cut.h : (frame.cutHeight || sourceHeight);
+        const scaleX = width / sourceWidth;
+        const scaleY = height / sourceHeight;
+        context.drawImage(
+            image,
+            sourceX,
+            sourceY,
+            cutWidth,
+            cutHeight,
+            (Number(frame.x) || 0) * scaleX,
+            (Number(frame.y) || 0) * scaleY,
+            cutWidth * scaleX,
+            cutHeight * scaleY
+        );
+        const rgba = context.getImageData(0, 0, width, height).data;
+        const alpha = new Uint8ClampedArray(width * height);
+        for (let sourceIndex = 3, alphaIndex = 0;
+            sourceIndex < rgba.length;
+            sourceIndex += 4, alphaIndex++) {
+            alpha[alphaIndex] = rgba[sourceIndex];
+        }
+        const sampler = {
+            width,
+            height,
+            sourceWidth,
+            sourceHeight,
+            alphaAt(x, y) {
+                const px = Math.max(0, Math.min(width - 1, Math.floor(Number(x) || 0)));
+                const py = Math.max(0, Math.min(height - 1, Math.floor(Number(y) || 0)));
+                return alpha[py * width + px];
+            },
+        };
+        _frameAlphaSamplerCache.set(cacheKey, sampler);
+        return sampler;
+    } catch (_error) {
+        // 极少数跨域/视频纹理可能禁止读回；保留 Phaser 原接口作为兼容兜底。
+        return null;
+    }
+}
 
 /** 纯数学入口：把纹理内真实接触底边换算为 Sprite 中心到脚点的显示偏移。 */
 export function footOffsetFromOpaqueBottom(displayHeight, frameHeight, opaqueBottomY) {
@@ -368,17 +497,21 @@ function _scanBottom(scene, textureKey, frameName) {
     const cacheKey = `${textureKey}:${String(frameName ?? frame.name)}:${width}x${height}`;
     if (_footRatioCache.has(cacheKey)) return _footRatioCache.get(cacheKey);
 
-    const alphaAt = (x, y) => scene.textures.getPixelAlpha(x, y, textureKey, frameName);
-    const measured = scanOpaqueGroundContact(width, height, alphaAt)
-        || scanOpaqueGroundContact(width, height, alphaAt, { minU: 0, maxU: 1 });
-    const bottom = measured?.bottomY ?? height - 1;
-    const ratio = (bottom + 1) / height;
+    const sampler = _frameAlphaSampler(scene, textureKey, frameName);
+    const scanWidth = sampler?.width || width;
+    const scanHeight = sampler?.height || height;
+    const alphaAt = sampler?.alphaAt
+        || ((x, y) => scene.textures.getPixelAlpha(x, y, textureKey, frameName));
+    const measured = scanOpaqueGroundContact(scanWidth, scanHeight, alphaAt)
+        || scanOpaqueGroundContact(scanWidth, scanHeight, alphaAt, { minU: 0, maxU: 1 });
+    const bottom = measured?.bottomY ?? scanHeight - 1;
+    const ratio = (bottom + 1) / scanHeight;
     const result = {
         ratio,
         bottomY: bottom,
-        contactX: measured?.contactX ?? (width - 1) * 0.5,
-        width,
-        height,
+        contactX: measured?.contactX ?? (scanWidth - 1) * 0.5,
+        width: scanWidth,
+        height: scanHeight,
     };
     _footRatioCache.set(cacheKey, result);
     return result;
@@ -414,18 +547,31 @@ export function resolveStructureGroundFit(
     const width = frame.realWidth || frame.cutWidth || frame.width;
     const height = frame.realHeight || frame.cutHeight || frame.height;
     if (!(width > 0) || !(height > 0)) return null;
-    const cacheKey = [
+    const cacheKey = _groundFitKey(
         textureKey,
-        String(frameName ?? frame.name),
-        `${width}x${height}`,
-        `${Number(displayWidth) || 0}x${Number(displayHeight) || 0}`,
-        `${Number(options.nominalWidth) || 0}x${Number(options.nominalHeight) || 0}`,
-    ].join(':');
-    if (_groundFitCache.has(cacheKey)) return _groundFitCache.get(cacheKey);
-    const fit = fitOpaqueGroundFootprint(
+        frameName ?? frame.name,
         width,
         height,
-        (x, y) => scene.textures.getPixelAlpha(x, y, textureKey, frameName),
+        displayWidth,
+        displayHeight,
+        options.nominalWidth,
+        options.nominalHeight
+    );
+    if (_groundFitCache.has(cacheKey)) return _groundFitCache.get(cacheKey);
+    const precomputed = _groundFitManifest.get(cacheKey);
+    if (precomputed) {
+        _groundFitCache.set(cacheKey, precomputed);
+        return precomputed;
+    }
+    const sampler = _frameAlphaSampler(scene, textureKey, frameName);
+    const scanWidth = sampler?.width || width;
+    const scanHeight = sampler?.height || height;
+    const alphaAt = sampler?.alphaAt
+        || ((x, y) => scene.textures.getPixelAlpha(x, y, textureKey, frameName));
+    const fit = fitOpaqueGroundFootprint(
+        scanWidth,
+        scanHeight,
+        alphaAt,
         displayWidth,
         displayHeight,
         options
@@ -541,16 +687,26 @@ export function resolveStructureAlphaShadowSlices(
     ].join(':');
     if (_shadowSliceCache.has(cacheKey)) return _shadowSliceCache.get(cacheKey);
 
+    const sampler = _frameAlphaSampler(scene, textureKey, frameName);
+    const scanWidth = sampler?.width || width;
+    const scanHeight = sampler?.height || height;
+    const alphaAt = sampler?.alphaAt
+        || ((x, y) => scene.textures.getPixelAlpha(x, y, textureKey, frameName));
     const threshold = FOOT_ALPHA_THRESHOLD;
-    const stepX = Math.max(1, Math.ceil(width / 384));
-    const stepY = Math.max(1, Math.ceil(height / 384));
-    const bottomY = Math.max(1, Math.min(height - 1, Math.round(groundFit.bottomY)));
+    const stepX = Math.max(1, Math.ceil(scanWidth / 384));
+    const stepY = Math.max(1, Math.ceil(scanHeight / 384));
+    const fitFrameHeight = Math.max(1, Number(groundFit.frameHeight) || height);
+    const bottomRatio = (Math.max(0, Number(groundFit.bottomY) || 0) + 1) / fitFrameHeight;
+    const bottomY = Math.max(1, Math.min(
+        scanHeight - 1,
+        Math.round(bottomRatio * scanHeight - 1)
+    ));
     const sampledRows = [];
     let topY = bottomY;
     for (let y = 0; y <= bottomY; y += stepY) {
         const xs = [];
-        for (let x = 0; x < width; x += stepX) {
-            if ((Number(scene.textures.getPixelAlpha(x, y, textureKey, frameName)) || 0) >= threshold) {
+        for (let x = 0; x < scanWidth; x += stepX) {
+            if ((Number(alphaAt(x, y)) || 0) >= threshold) {
                 xs.push(x);
             }
         }
@@ -567,8 +723,8 @@ export function resolveStructureAlphaShadowSlices(
     const contactWidth = Math.max(8, bounds.maxX - bounds.minX);
     const contactHalfDepth = Math.max(4, (bounds.maxY - bounds.minY) * 0.5);
     const contactCenterY = (bounds.minY + bounds.maxY) * 0.5;
-    const sampleColumns = Math.ceil(width / stepX);
-    const maxGap = Math.max(1, Math.round(width * 0.018 / stepX));
+    const sampleColumns = Math.ceil(scanWidth / stepX);
+    const maxGap = Math.max(1, Math.round(scanWidth * 0.018 / stepX));
     const minVisibleSpan = Math.max(7, contactWidth * 0.08);
     const slices = [];
 
@@ -586,12 +742,12 @@ export function resolveStructureAlphaShadowSlices(
         const runs = _qualifiedColumnRuns(counts, columnThreshold, maxGap)
             .map((run) => {
                 const leftPx = run.start * stepX;
-                const rightPx = Math.min(width - 1, (run.end + 1) * stepX - 1);
+                const rightPx = Math.min(scanWidth - 1, (run.end + 1) * stepX - 1);
                 // 必须复用 Sprite 真正采用的 visualOffsetX：仅用 (pixelX-contactX)
                 // 会漏掉稳定底座横截面的 measuredSideCenter 校正，误差会集中表现为
                 // 右侧远端影角斜率错误。这里从 Sprite 中心坐标完整映回逻辑脚点。
                 const pixelToLocalX = (pixelX) => Number(groundFit.visualOffsetX || 0)
-                    + (((pixelX + 0.5) / width) - 0.5) * safeDisplayW;
+                    + (((pixelX + 0.5) / scanWidth) - 0.5) * safeDisplayW;
                 return {
                     ...run,
                     leftX: pixelToLocalX(leftPx),
@@ -644,4 +800,5 @@ export function clearStructureFootOffsetCache() {
     _footRatioCache.clear();
     _groundFitCache.clear();
     _shadowSliceCache.clear();
+    _frameAlphaSamplerCache.clear();
 }

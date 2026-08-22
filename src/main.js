@@ -29,6 +29,7 @@ import * as World122Sim from './world/world122-sim.js';
 import { EnvironmentLightingSystem } from './world/environment-lighting-system.js';
 import { WorldProgressionSystem } from './world/world-progression-system.js';
 import { WorldInvasionSystem } from './world/world-invasion-system.js';
+import { World122SandstormSystem } from './world/world122-sandstorm-system.js';
 import { TroopLineSystem } from './world/troop-line-system.js';
 import { TechnologySystem } from './world/technology-system.js';
 import { TechnologyTreePanel } from './ui/technology-tree-panel.js';
@@ -125,6 +126,7 @@ async function initModules() {
     window.World122Sim = World122Sim;
     window.WorldProgressionSystem = WorldProgressionSystem;
     window.WorldInvasionSystem = WorldInvasionSystem;
+    window.World122SandstormSystem = World122SandstormSystem;
     window.TroopLineSystem = TroopLineSystem;
     window.TechnologySystem = TechnologySystem;
     window.TechnologyTreePanel = TechnologyTreePanel;

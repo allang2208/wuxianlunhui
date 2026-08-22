@@ -5,6 +5,7 @@ import { distanceToEntityShape } from '../utils/collision-helpers.js';
 import { nowMs } from '../entities/player/anim-state.js';
 import { canMeleeShareSurface } from '../combat/melee-surface.js';
 import { hasRangedLineOfSight } from '../combat/ranged-line-of-sight.js';
+import { World125FogTideSystem } from '../world/world125-fog-tide-system.js';
 
 /**
  * CombatSystem — 敌人战斗AI子系统（精简版）
@@ -45,11 +46,14 @@ class CombatSystemImpl {
         // 2. 眩晕状态：不执行战斗行为
         if (enemy.hasStatusEffect && (enemy.hasStatusEffect('stun') || enemy.hasStatusEffect('frozen'))) return;
 
+        // 死寂雾潮只加速僵尸的攻击决策/冷却计时，不缩放动作动画、技能位移或攻击距离。
+        const attackDt = dt * World125FogTideSystem.getZombieAttackTimeScale(enemy);
+
         // 3. 攻击执行（需要目标存在且有视线）
-        this._updateAttack(enemy, dt, entities);
+        this._updateAttack(enemy, attackDt, entities);
 
         // 4. 更新攻击冷却和武器动画
-        this._updateAttacks(enemy, dt);
+        this._updateAttacks(enemy, attackDt);
         this._updateWeaponAnim(enemy, dt);
         this._updateReload(enemy, dt);
 

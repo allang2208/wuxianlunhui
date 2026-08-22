@@ -20,6 +20,9 @@ assets/sounds/ui/                     # 金币/升级/出售/击倒等系统音�
 #### 场景 BGM 映射（2026-08-22）
 - BGM 素材统一存放在 `assets/sounds/music/`，场景映射只写入
   `data/audio-config.json#bgm`，由 `SoundManager.playBgmForScene(sceneId)` 负责循环、音量和切场淡入淡出；禁止在场景类中硬编码音乐路径。
+- `main` 是主神空间，使用用户素材 `罗马庭院.wav`。新游戏启动直接设置 `currentScene='main'`、
+  不经过 `SceneManager.switchScene()`，因此 `Game.start()` 必须在确定主场景后显式调用一次
+  `playBgmForScene('main')`；从其他场景返回时继续由统一切场尾部接管。
 - `scene7` 是普通僵尸地牢（初级/中级/高级共用场景），继续使用
   `dungeon_echo.mp3`；`scene11` 是位面僵尸地牢世界，独立使用用户素材
   `幽洞回声.wav`。两者不可因题材相同而复用映射。
@@ -107,6 +110,14 @@ _playSound(key) {
 - 玩家等级提升与玩家技能升级统一由 `LevelUpEffectQueue._renderEffect()` 在对应提示真正展示时播放，路径读取 `data/audio-config.json#uiCues.playerUpgrade`，使用 `playFile(path, 1, 'ui')`。旧的玩家 `onLevelUp()` 直播放必须移除，避免同一次升级双响；连续技能升级随提示队列逐项播放，声音与画面保持同序。
 - 建筑完工/升级若产品明确要求“无论距离都能听见”，同样属于全局系统提示，可用 `playFile`；房屋的路径放在 `population-economy.json#house.upgradeCompleteSound`。这属于明确的全局通知例外；普通 NPC、门、机关和建筑世界声仍必须走 `playWorld`。
 - 用户素材统一复制为英文稳定名放入 `assets/sounds/ui/`；触发代码只读配置键，不直接引用素材库路径，也不在多个升级入口复制同一 MP3 路径。
+
+#### 全局按钮点击音效（2026-08-22）
+- 用户素材以 `assets/sounds/ui/button_click.mp3` 入库，唯一路径配置在
+  `audio-config.json#uiCues.buttonClick`，使用 `ui` 声道；禁止在各面板按钮处理器中重复播放。
+- `SoundManager.init()` 只注册一次文档捕获阶段 `click` 监听，匹配 `button`、按钮型 `input` 与
+  `[role="button"]`，因此首次启动后动态创建的面板同样生效。`:disabled`、`.disabled`、
+  `aria-disabled="true"`、`data-disabled="true"` 及 `[inert]` 区域内按钮必须静音；
+  普通地图点击、拖拽格子和无按钮语义的卡片不触发。
 
 #### 右侧栏目与火球命中音效（2026-08-22）
 - 右侧栏目开/关共用 `audio-config.json#uiCues.rightSidebarPanel`，由

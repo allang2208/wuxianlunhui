@@ -63,12 +63,10 @@ export function initUIPanels(gameContainer) {
         uiLayer.appendChild(shopPanels.firstChild);
     }
 
-    // 出征/任务/奖励
+    // 出征/奖励（任务面板由 QuestSystem 通过 BasePanel 懒创建并挂到统一右栏）
     const expeditionPanels = createHudPanelsExpeditionQuestReward();
     while (expeditionPanels.firstChild) {
-        const child = expeditionPanels.firstChild;
-        if (child.id === 'questPanel') mountRightSidebarPanel(child, 'panel');
-        else uiLayer.appendChild(child);
+        uiLayer.appendChild(expeditionPanels.firstChild);
     }
 
     // 杂项面板（侧边菜单、快捷栏、经验条、操作提示等）

@@ -403,6 +403,26 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
         warehouse.warehouseUpgrade = null;
         warehouse.storageCapacity = getProducerStorageCap(warehouse);
     }
+    for (const structure of target.structures || []) {
+        if (structure.kind !== 'producer'
+            || producerBuildingsJson[structure.cfgKey]?.panelMode !== 'candle'
+            || !structure.candleUpgrade) continue;
+        structure.candleUpgrade.remainMs = Math.max(
+            0,
+            (Number(structure.candleUpgrade.remainMs) || 0) - elapsedMs
+        );
+        if (structure.candleUpgrade.remainMs > 0) continue;
+        const moduleId = structure.candleUpgrade.moduleId;
+        const module = buildingUpgradesJson.candle_sanctuary?.modules?.[moduleId];
+        if (module) {
+            structure.candleModules = structure.candleModules || {};
+            structure.candleModules[moduleId] = Math.min(
+                Number(module.maxLevel) || 0,
+                Math.max(0, Math.floor(Number(structure.candleModules[moduleId]) || 0)) + 1
+            );
+        }
+        structure.candleUpgrade = null;
+    }
 
     // v1 快照把粮食挂在位面全局；后台结算开始时先迁入真实仓库，放不下的留作回场迁移。
     const savedEconomy = target.populationEconomy && typeof target.populationEconomy === 'object'

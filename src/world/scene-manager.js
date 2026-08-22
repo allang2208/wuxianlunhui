@@ -63,6 +63,7 @@ export const SceneManager = {
     init() {
         this._worldDestructionTransactions.clear();
         this._dungeonParkedFriendlyUnits = null;
+        this._dungeonObservationState = null;
         TroopLineSystem.configure({
             createMilitaryUnit,
             getMilitaryUnitProfile,
@@ -125,15 +126,91 @@ export const SceneManager = {
         }
     },
 
-    /** scene7 是地牢运行态；期间外部世界时间、生产、入侵与观察切换统一冻结。 */
+    /** 当前画面是否正处于 scene7；仅用于地牢渲染分支，不再代表全局时间冻结。 */
     isDungeonIsolationActive() {
         return this.currentScene === 'scene7';
     },
 
+    /** 本次地牢是否仍在进行；观察其他世界时 currentScene 会变化，但探险状态继续保留。 */
+    isDungeonRunActive() {
+        const dungeon = typeof window !== 'undefined' ? window.DungeonMapSystem : null;
+        return !!dungeon?.active;
+    },
+
     showDungeonIsolationNotice() {
-        this.showTopNotification('地牢中阻断了与外部世界的联系', {
+        this.showTopNotification('地牢出征中仅可观察指挥，玩家本体不能转移', {
             color: '#d8a26a',
         });
+    },
+
+    _captureDungeonObservationState() {
+        const dungeon = typeof window !== 'undefined' ? window.DungeonMapSystem : null;
+        if (!dungeon?.active || this.currentScene !== 'scene7') return false;
+        const phaserScene = typeof window !== 'undefined' ? window.__phaserScene : null;
+        // GameScene 自身持有的常驻层会在切场后复用并自行同步；这里只暂存匿名场景对象
+        // （地牢门闸、宝箱、倒计时、竞技场入口等），避免它们覆盖观察中的世界。
+        const persistentSceneObjects = new Set(phaserScene ? Object.values(phaserScene) : []);
+        const phaserVisuals = Array.isArray(phaserScene?.children?.list)
+            ? phaserScene.children.list
+                .filter((object) => !persistentSceneObjects.has(object))
+                .map((object) => ({ object, visible: object.visible !== false }))
+            : [];
+        this._dungeonObservationState = {
+            entities: new Map(Game.entities || []),
+            effects: Array.isArray(EffectManager.effects) ? EffectManager.effects.slice() : [],
+            terrainTexture: Renderer.terrainTexture,
+            terrainChunks: Renderer.terrainChunks,
+            worldWidth: CONFIG.WORLD_WIDTH,
+            worldHeight: CONFIG.WORLD_HEIGHT,
+            walls: [...(WallSystem.walls || [])],
+            isoSegments: [...(WallSystem.isoSegments || [])],
+            isoVisuals: [...(WallSystem.isoVisuals || [])],
+            trees: [...(WallSystem.trees || [])],
+            wallStyleKey: WallSystem._wallStyleKey,
+            camera: {
+                x: Camera.x,
+                y: Camera.y,
+                shakeX: Camera.shakeX,
+                shakeY: Camera.shakeY,
+                shakeIntensity: Camera.shakeIntensity,
+                lockY: Camera.lockY,
+                yLockedValue: Camera.yLockedValue,
+                aimOffsetX: Camera.aimOffsetX,
+                aimOffsetY: Camera.aimOffsetY,
+                follow: Camera.follow,
+            },
+            phaserVisuals,
+        };
+        dungeon.setWorldObservationSuspended?.(true);
+        for (const { object } of phaserVisuals) object?.setVisible?.(false);
+        return true;
+    },
+
+    _restoreDungeonObservationState() {
+        const state = this._dungeonObservationState;
+        const dungeon = typeof window !== 'undefined' ? window.DungeonMapSystem : null;
+        if (!state || !dungeon?.active) return false;
+        Game.entities = new Map(state.entities || []);
+        EffectManager.effects = Array.isArray(state.effects) ? state.effects.slice() : [];
+        Renderer.terrainTexture = state.terrainTexture;
+        Renderer.terrainChunks = state.terrainChunks;
+        CONFIG.WORLD_WIDTH = state.worldWidth;
+        CONFIG.WORLD_HEIGHT = state.worldHeight;
+        WallSystem.walls = [...state.walls];
+        WallSystem.isoSegments = [...state.isoSegments];
+        WallSystem.isoVisuals = [...state.isoVisuals];
+        WallSystem.trees = [...state.trees];
+        WallSystem.setWallStyle(state.wallStyleKey);
+        WallSystem.rebuildIsoCollision?.();
+        WallSystem._syncWallsToPhaser?.();
+        const phaserScene = typeof window !== 'undefined' ? window.__phaserScene : null;
+        phaserScene?.syncTerrain?.();
+        Object.assign(Camera, state.camera || {});
+        for (const { object, visible } of state.phaserVisuals || []) {
+            if (object?.active) object.setVisible?.(visible);
+        }
+        this._dungeonObservationState = null;
+        return true;
     },
 
     /**
@@ -228,11 +305,6 @@ export const SceneManager = {
     async switchScene(sceneId, player, mode, opts = {}) {
         if (this.isLoading) return false;
         if (this.currentScene === sceneId) return true;
-        // 地牢中禁止通过观察模式旁路查看其他世界；正常结算/撤离回城不使用 observer，仍可离场。
-        if (this.isDungeonIsolationActive() && opts.observer) {
-            this.showDungeonIsolationNotice();
-            return false;
-        }
         if (this._isPersistentWorld(sceneId) && !WorldProgressionSystem.isPortalConstructed(sceneId)) {
             this.showTopNotification('该世界位面尚未搭建传送门', { color: '#ff7766' });
             return false;
@@ -244,6 +316,10 @@ export const SceneManager = {
             return false;
         }
         const departingSceneId = this.currentScene;
+        const suspendingDungeonView = departingSceneId === 'scene7' && !!opts.observer
+            && this._captureDungeonObservationState();
+        const resumingDungeonView = sceneId === 'scene7' && !!this._dungeonObservationState
+            && this.isDungeonRunActive();
         const physicalPortalTravel = opts.portalTravel && !Game._observerMode
             && !!player && Game.entities?.get?.('player') === player;
         const portalTravel = physicalPortalTravel
@@ -401,7 +477,9 @@ export const SceneManager = {
             } else if (sceneId === 'scene5') {
                 this._loadScene5(player);
             } else if (sceneId === 'scene7') {
-                this._loadScene7(player, 'zombie');
+                if (!resumingDungeonView || !this._restoreDungeonObservationState()) {
+                    this._loadScene7(player, 'zombie');
+                }
             } else if (sceneId === 'scene8') {
                 this._loadScene8(player);
             } else if (sceneId === 'scene9') {
@@ -420,6 +498,9 @@ export const SceneManager = {
 
             this.currentScene = sceneId;
             this._inMainHub = (sceneId === 'main');
+            if (sceneId === 'scene7' && resumingDungeonView) {
+                window.DungeonMapSystem?.setWorldObservationSuspended?.(false);
+            }
             TroopLineSystem.onSceneEntered(sceneId);
             if (portalTravel) TroopLineSystem.completePortalTravel(portalTravel, sceneId, player);
             // 实体传送门落地后，必须先走出目标场景的门区才能再次触发传送。
@@ -444,6 +525,10 @@ export const SceneManager = {
                 this._rollback(player);
                 if (portalTravel) TroopLineSystem.rollbackPortalTravel(portalTravel);
                 TroopLineSystem.onSceneEntered(departingSceneId);
+                if (suspendingDungeonView) {
+                    this._restoreDungeonObservationState();
+                    window.DungeonMapSystem?.setWorldObservationSuspended?.(false);
+                }
             }
             throw err;
         }

@@ -92,6 +92,8 @@ export const DungeonMapSystem = {
     _mouseDownTime: 0,
     _mouseDownPos: { x: 0, y: 0 },
     _eventListeners: [],
+    _observerSuspended: false,
+    _observerHiddenUi: null,
     _mapAnimT: 0, // 地图动画时钟（ms 累计：流动虚线/呼吸环/脉冲）
 
     // 地图缩放范围与初始倍数（滚轮与 _centerRouteMap 共用，勿再散落硬编码）
@@ -183,6 +185,8 @@ export const DungeonMapSystem = {
 
     init(sceneId, player, dungeonType = 'default') {
         this.active = true;
+        this._observerSuspended = false;
+        this._observerHiddenUi = null;
         this.state = "map";
         this.sceneId = sceneId;
         this.player = player;
@@ -263,6 +267,7 @@ export const DungeonMapSystem = {
     shutdown() {
         if (this.active && !this._runResultRecorded) this._recordRunResult('failed');
         this.active = false;
+        this.setWorldObservationSuspended(false);
         this.state = "idle";
         // 经验系统：离开地牢，回退主神空间口径（F 档）
         setCurrentDungeonType(null);
@@ -327,6 +332,44 @@ export const DungeonMapSystem = {
         }
     },
 
+    /**
+     * 世界面板观察其他位面时只暂停地牢现场的交互与显示，不结束本次探险。
+     * 路线、战斗实体、祭品和本局入侵登记状态由 SceneManager 另行暂存并在返回时恢复。
+     */
+    setWorldObservationSuspended(suspended) {
+        const next = !!suspended;
+        if (next === this._observerSuspended) return;
+        this._observerSuspended = next;
+        if (typeof document === 'undefined') return;
+        if (next) {
+            this.isDragging = false;
+            this.dragStartX = undefined;
+            this.dragStartY = undefined;
+            this._observerHiddenUi = new Map();
+            const selector = '[id^="dungeon"], #abandonButton, #safeEvacButton, #invasionChanceLabel, #chestLeaveConfirm';
+            document.querySelectorAll(selector).forEach((el) => {
+                this._observerHiddenUi.set(el, el.style.display);
+                el.style.display = 'none';
+            });
+            return;
+        }
+        if (this._observerHiddenUi) {
+            for (const [el, display] of this._observerHiddenUi) {
+                if (el?.isConnected) el.style.display = display;
+            }
+        }
+        this._observerHiddenUi = null;
+        if (!this.active) return;
+        if (this.state === 'map') {
+            this._createDungeonRewardPanel();
+            this._createAbandonButton();
+            this._updateSafeEvacButton();
+            this._createDungeonNameLabel();
+            this._createMapStatusBar();
+            this._setMapInfoVisibility(true);
+        }
+    },
+
     /** 每次探险只登记一次；成功/失败/撤离/放弃都推进对应难度的全局入侵进度。 */
     _recordRunResult(outcome) {
         if (this._runResultRecorded || !this.dungeonType) return null;
@@ -343,6 +386,7 @@ export const DungeonMapSystem = {
         if (!canvas) return;
 
         const onMouseDown = (e) => {
+            if (this._observerSuspended || SceneManager.currentScene !== this.sceneId) return;
             // 只有在下方地图选择区域内按下才允许拖动；上方背景图区域不可交互
             if (this.state === "map" && !this._isInMapArea(e.clientX, e.clientY)) return;
             this.isDragging = false;
@@ -356,6 +400,7 @@ export const DungeonMapSystem = {
         };
 
         const onMouseMove = (e) => {
+            if (this._observerSuspended || SceneManager.currentScene !== this.sceneId) return;
             if (this.state !== "map") return;
             if (this.dragStartX === undefined) return;
             // 长按才允许拖动：鼠标键在窗口外松开等情况下强制结束拖动
@@ -379,6 +424,7 @@ export const DungeonMapSystem = {
         };
 
         const onMouseUp = () => {
+            if (this._observerSuspended || SceneManager.currentScene !== this.sceneId) return;
             // 如果发生了拖动，标记本次点击为拖动，避免触发节点选择
             if (this.isDragging) {
                 this._dragMoved = true;
@@ -395,6 +441,7 @@ export const DungeonMapSystem = {
         // 滚轮：节点贴图版禁止缩放（只能拖动调整位置，防止贴图大小随缩放变化）——
         // 仅阻止页面滚动，保留拖动平移
         const onWheel = (e) => {
+            if (this._observerSuspended || SceneManager.currentScene !== this.sceneId) return;
             if (this.state !== "map") return;
             if (!this._isInMapArea(e.clientX, e.clientY)) return;
             e.preventDefault();
@@ -735,7 +782,7 @@ export const DungeonMapSystem = {
     // 更新与交互
     // ───────────────────────────────────────────────
     update(_dt) {
-        if (!this.active || this.state !== "map") return;
+        if (!this.active || this._observerSuspended || this.state !== "map") return;
         this._mapAnimT += _dt;
         this._setMapStatusBarVisible(true);
         this._updateHover();
@@ -753,7 +800,7 @@ export const DungeonMapSystem = {
     },
 
     updateCombat(dt) {
-        if (!this.active || (this.state !== "combat" && this.state !== "boss")) return;
+        if (!this.active || this._observerSuspended || (this.state !== "combat" && this.state !== "boss")) return;
         // 战斗模式隐藏地图状态栏（战斗内使用游戏内 HUD 血条，避免双条重叠）
         this._setMapStatusBarVisible(false);
 
