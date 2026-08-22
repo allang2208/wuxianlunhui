@@ -89,6 +89,7 @@ import {
 } from '../../world/sprite-depth-profile.js';
 import { syncAllCivilianVisualDepths } from '../../world/civilian-visual-utils.js';
 import { EnvironmentLightingSystem } from '../../world/environment-lighting-system.js';
+import { WindblownSandSystem } from '../../world/windblown-sand-system.js';
 import { resolveStructureShadowCaster } from '../../world/structure-shadow-caster.js';
 import { WORLD_RENDER_LAYERS } from '../../world/world-render-layers.js';
 import lightingAssets from '../../../data/environment-lighting-assets.json';
@@ -197,6 +198,7 @@ export class GameScene extends Scene {
             FogVisualAdapter,
             (entity, hidden) => this._setFogEntityHidden(entity, hidden)
         );
+        this._windblownSand = new WindblownSandSystem(this);
         // 局部亮光：短时（枪火/爆发）与常驻（火把/蓄力火球）分开管理。
         this._transientEnvironmentGlows = [];
         this._persistentEnvironmentGlows = new Map();
@@ -546,6 +548,18 @@ export class GameScene extends Scene {
         this._applyFogEntityVisibility(_game);
         this._syncFogDebug();
         this._updateCamera();
+        // 环境效果直接读取配置真源；SceneManager.scenes 是 init 时快照，开发期 JSON 热更新后
+        // 可能仍是不含新增 environmentEffects 的旧对象，导致系统每帧判定为未启用。
+        const currentSceneConfig = GAME_CONFIG.scenes?.[SceneManager.currentScene]
+            || SceneManager.scenes?.[SceneManager.currentScene];
+        this._windblownSand?.update({
+            sceneId: SceneManager.currentScene,
+            sceneConfig: currentSceneConfig,
+            deltaMs: worldDelta,
+            running: worldClockRunning,
+            loading: SceneManager.isLoading,
+            daylight: EnvironmentLightingSystem.getSun()?.daylight ?? 1,
+        });
     }
 
     _syncFogOfWar(deltaMs = 16.67) {
@@ -6273,6 +6287,7 @@ export class GameScene extends Scene {
 
     // 清理所有实体 Sprite（场景切换时调用）
     clearAllEntitySprites() {
+        this._windblownSand?.reset();
         // 销毁 enemies 组中的所有 Sprite
         if (this.enemies) {
             this.enemies.clear(true, true);

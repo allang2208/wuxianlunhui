@@ -1650,6 +1650,42 @@
   minDist 150、count 80、随机 flipX），调用顺序铁律不变（DefenseSystem.setup 之前）。
 - 低矮荒漠植物点缀仍走 `deco_desert_1~4`（束草/蒿灌木/龙舌兰/风滚草，第 2 区地面节）。
 
+### 世界-122 风吹扬沙环境效果（2026-08-22 首版）
+
+- **唯一入口**：`GameScene` 持有 `WindblownSandSystem`，只读取
+  `scenes.scene8.environmentEffects.windblownSand`；不得把环境粒子登记为实体、物理体、AI、
+  快照或后台模拟对象。
+- **双层管线**：系统运行时生成白色软风线 `windblown_sand_streak` 与椭圆软雾
+  `windblown_sand_haze`，再由 ParticleEmitter 统一 tint 为沙色；禁止复用实际仅含 18×4 棕色细条的
+  `smoke_particle`。贴地层登记 `WORLD_RENDER_LAYERS.GROUND_WEATHER=-994.3`（结构阴影之上、
+  压平建筑之下）；前景层固定 depth 99975（战争迷雾 99980、昼夜覆盖 99990 之下）。两层均用
+  `NORMAL` 混合，基础版禁止为每粒沙叠加 Filter/postFX。
+- **地面区分度**：世界-122 米黄沙地与土黄泥地本身接近普通沙色，粒子不能只用同明度浅黄。
+  中档贴地风线固定采用浅奶金/饱和橙沙/深赭阴影三档 tint，alpha `0.72→0.08`；前景沙雾
+  alpha `0.34→0.05`。保留沙尘色相，但必须同时存在高光与暗部轮廓，scene8 在 0.7 zoom 下仍应
+  肉眼可辨；夜间整体 alpha 倍率不得低于 0.7。
+- **风向口径**：配置中的 `windUv` 是等距地面局部轴方向，只允许经
+  `isoLocalToWorldDelta()` 投影一次；贴地风线与前景沙雾在同一时段必须共用唯一方向，只允许速度大小
+  不同，禁止给单粒子增加横风方向偏移。初始方向来自 `windUv`，随后按 `directionHoldMs` 保持一段时间，
+  再随机选择一个在屏幕投影后与上一方向至少相差 `directionChangeMinDegrees` 的新方向；换向时先清空旧方向存活粒子，
+  禁止新旧风向同时出现在画面中。方向计时和阵风相位都只累计 `GameScene` 传入的 `worldDelta`，禁止另起
+  `Date.now()`、`setInterval()` 或独立 Phaser Timer。
+- **Phaser 4 动态换向陷阱**：禁止用 `ParticleEmitter.updateConfig()` 周期换向；它会合并初始配置并再次
+  执行其中的 `reserve`，长期运行会反复扩充 dead 粒子池。正确口径是先 `killAll()`，再分别调用
+  `setParticleSpeed()`、`setEmitterAngle()` 并更新 `particleRotate`，只替换运动参数而不重建粒子池。
+- **性能边界**：粒子只在 `camera.worldView + viewportMarginPx` 与世界菱形的交集内产生；两层
+  深度都低于战争迷雾，未探索区域由迷雾最终遮挡，禁止在发射前用随机点强制命中 `VISIBLE`
+  单元，否则基地遮挡、夜间或观察镜头下可能让两个 emitter 长期保持 0 粒子。两个长生命周期
+  发射器在创建时 `reserve`，并以 `maxAliveParticles` 硬封顶。
+  `quality: low|medium|high` 只缩放频率和池上限，禁止按完整 12288×8192 世界铺粒子，也不得
+  逐帧重烘焙 2048 地板分块。
+- **生命周期**：仅 scene8 且配置启用时创建；暂停时 emitter `timeScale=0` 且停止新发射，
+  `SceneManager.isLoading` 或离开 scene8 时立即 `reset/destroy`。它是可丢弃的纯视觉状态，
+  重进世界从零开始，不写存档。
+- **配置读取**：环境效果必须优先读取 `GAME_CONFIG.scenes.scene8` 真源；
+  `SceneManager.scenes` 是 `init()` 时缓存，只可作兜底，否则开发期 JSON 热更新后可能一直读到
+  不含 `environmentEffects` 的旧场景对象，表现为两个 emitter 从未创建。
+
 ### 世界-122 建筑与建造（2026-08-17）
 
 **建筑贴图替换工作流（素材库 → 英文名 → alpha bbox 标定）**

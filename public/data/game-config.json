@@ -140,6 +140,81 @@
         "x": 6144,
         "y": 4096
       },
+      "environmentEffects": {
+        "windblownSand": {
+          "enabled": true,
+          "quality": "medium",
+          "windUv": {
+            "u": 1,
+            "v": 0.18
+          },
+          "directionHoldMs": {
+            "min": 12000,
+            "max": 20000
+          },
+          "directionChangeMinDegrees": 60,
+          "viewportMarginPx": 180,
+          "gustPeriodMs": 10000,
+          "gustAmplitude": 0.55,
+          "ground": {
+            "frequencyMs": 55,
+            "quantity": 1,
+            "maxAliveParticles": 64,
+            "lifespanMs": {
+              "min": 1400,
+              "max": 2400
+            },
+            "speedPxPerSec": {
+              "min": 140,
+              "max": 230
+            },
+            "scaleX": {
+              "min": 1.1,
+              "max": 2.1
+            },
+            "scaleY": {
+              "min": 0.85,
+              "max": 1.4
+            },
+            "alpha": {
+              "start": 0.72,
+              "end": 0.08
+            },
+            "tints": [
+              "#fff3c4",
+              "#f19a38",
+              "#86431c"
+            ]
+          },
+          "foreground": {
+            "enabled": true,
+            "frequencyMs": 110,
+            "quantity": 1,
+            "maxAliveParticles": 40,
+            "lifespanMs": {
+              "min": 2600,
+              "max": 4000
+            },
+            "speedPxPerSec": {
+              "min": 70,
+              "max": 120
+            },
+            "scale": {
+              "start": 1.05,
+              "end": 2.1
+            },
+            "alpha": {
+              "start": 0.34,
+              "end": 0.05
+            },
+            "tints": [
+              "#ffd27a",
+              "#e07828",
+              "#7a3c18"
+            ]
+          }
+        }
+      },
       "cactusScatter": {
         "enabled": true,
         "count": 40,

@@ -11,5 +11,6 @@ export const WORLD_RENDER_LAYERS = Object.freeze({
     GROUND_RANGE: -994.8,
     FOUNDATION: -994.6,
     STRUCTURE_SHADOW: -994.4,
+    GROUND_WEATHER: -994.3,
     FLAT_STRUCTURE: -994.2,
 });
