@@ -1,36 +1,30 @@
 {
-  "source": "tools\\ai-gen\\_settlement_building_pack_20260821\\cavalry_school\\cavalry_school_5080_s48_seed122835_raw.png",
+  "source": "tools\\ai-gen\\_settlement_building_pack_20260821\\cavalry_school\\cavalry_school_5080_s48_seed122835_cutout.png",
   "output": "assets\\terrain\\cavalry_school.png",
-  "sourceMode": "RGB",
-  "background": [
-    251,
-    243,
-    0
-  ],
-  "maskImage": "tools\\ai-gen\\_settlement_building_pack_20260821\\cavalry_school\\cavalry_school_preview.png",
-  "maskDilate": 3,
-  "maskAddRects": [
-    "110,70,500,530"
-  ],
+  "sourceMode": "RGBA",
+  "background": null,
+  "maskImage": null,
+  "maskDilate": null,
+  "maskAddRects": [],
   "cropBox": [
-    66,
-    118,
-    952,
-    920
+    19,
+    489,
+    3793,
+    3663
   ],
   "fileSize": [
-    886,
-    802
+    3774,
+    3174
   ],
   "alphaBBox": [
     4,
     4,
-    882,
-    798
+    3770,
+    3170
   ],
   "displayW": 266,
-  "displayH": 241,
-  "footOffsetY": 119,
-  "scaleX": 0.3002257336343115,
-  "scaleY": 0.300498753117207
+  "displayH": 224,
+  "footOffsetY": 112,
+  "scaleX": 0.07048224695283518,
+  "scaleY": 0.07057340894770006
 }

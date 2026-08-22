@@ -283,6 +283,11 @@ export class ProducerBuilding extends DamageableEntity {
             size: cfg.displayW,
             sizeH: cfg.displayH,
             footOffsetY: cfg.footOffsetY,
+            // Per-asset correction applied after alpha-ground fitting.  This
+            // keeps the logical 2x2 footprint fixed while compensating for a
+            // visible plinth thickness or an asymmetric generated canvas.
+            anchorAdjustX: Number(cfg.anchorAdjustX) || 0,
+            anchorAdjustY: Number(cfg.anchorAdjustY) || 0,
             foundation: cfg.foundation === false ? null : {
                 ...BUILDING_FOUNDATION_CONFIG,
                 ...(cfg.foundation || {}),

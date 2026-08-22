@@ -27,13 +27,30 @@ def alpha_from_flat_background(rgb):
     background = np.median(border, axis=0)
     distance = np.linalg.norm(rgb - background, axis=2)
 
+    # Flat-color renders often contain a soft cast shadow.  Its darker yellow
+    # pixels can pass the foreground threshold and remain connected to the
+    # foundation.  Flood the background inward through a wider color-distance
+    # band so those border-connected shadow gradients are rejected without
+    # erasing enclosed warm details such as lamps, sacks or straw.
+    background_seed = np.zeros((height, width), dtype=bool)
+    background_seed[0, :] = True
+    background_seed[-1, :] = True
+    background_seed[:, 0] = True
+    background_seed[:, -1] = True
+    background_reachable = ndimage.binary_propagation(
+        background_seed,
+        mask=distance < 150.0,
+    )
+
     labels, count = ndimage.label(distance > 82.0)
     if count == 0:
         raise SystemExit("no foreground component found")
     sizes = ndimage.sum(labels > 0, labels, range(1, count + 1))
-    subject = labels == (1 + int(np.argmax(sizes)))
+    subject = (labels == (1 + int(np.argmax(sizes)))) & ~background_reachable
     subject = ndimage.binary_closing(subject, iterations=2)
-    subject = ndimage.binary_fill_holes(subject)
+    # Do not fill enclosed background-color gaps.  Courtyards, open doors and
+    # concave foundation corners can surround keyed background pixels; filling
+    # them turns the original yellow backdrop into opaque wedges.
     subject = ndimage.binary_erosion(subject, iterations=1)
 
     core = ndimage.binary_erosion(subject, iterations=1)
@@ -50,6 +67,16 @@ def alpha_from_flat_background(rgb):
     return alpha, background
 
 
+def parse_hex_color(value):
+    raw = value.strip().lstrip("#")
+    if len(raw) != 6:
+        raise argparse.ArgumentTypeError("matte color must be #RRGGBB")
+    try:
+        return np.asarray([int(raw[index:index + 2], 16) for index in (0, 2, 4)], dtype=np.float32)
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError("matte color must be #RRGGBB") from exc
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("src")
@@ -57,8 +84,15 @@ def main():
     parser.add_argument("--display-width", type=int, required=True)
     parser.add_argument("--padding", type=int, default=4)
     parser.add_argument("--desaturate", type=float, default=0.0)
+    parser.add_argument("--matte-color", type=parse_hex_color,
+                        help="Remove a known flat-background color from existing RGBA antialiasing without changing alpha")
+    parser.add_argument("--matte-edge-width", type=float, default=0.0,
+                        help="Also repair opaque matte-colored pixels this many source pixels inside the alpha edge")
+    parser.add_argument("--matte-tolerance", type=float, default=110.0,
+                        help="RGB distance from --matte-color treated as contamination in the edge band")
     parser.add_argument("--mask-image", help="Depth/control render used to reject generated shadows outside the modeled silhouette")
-    parser.add_argument("--mask-dilate", type=int, default=10)
+    parser.add_argument("--mask-dilate", type=int, default=10,
+                        help="Positive expands the model mask; negative contracts it to remove generated matte fringes")
     parser.add_argument("--mask-add-rect", action="append", default=[], metavar="X0,Y0,X1,Y1",
                         help="Keep an additional generated detail region that intentionally exceeds the model mask")
     parser.add_argument("--metadata")
@@ -72,6 +106,22 @@ def main():
     background = None
     if has_real_alpha:
         alpha = source_alpha
+        if args.matte_color is not None:
+            a = alpha[..., None]
+            foreground = (rgb - (1.0 - a) * args.matte_color) / np.maximum(a, 1e-3)
+            edge = (alpha > 0.0) & (alpha < 0.999)
+            rgb[edge] = foreground[edge]
+            if args.matte_edge_width > 0:
+                opaque = alpha > 0.02
+                inside_distance = ndimage.distance_transform_edt(opaque)
+                matte_distance = np.linalg.norm(rgb - args.matte_color, axis=2)
+                contaminated = (opaque
+                                & (inside_distance <= float(args.matte_edge_width))
+                                & (matte_distance < float(args.matte_tolerance)))
+                reliable = opaque & ~contaminated & (alpha > 0.5)
+                if np.any(contaminated) and np.any(reliable):
+                    _, nearest = ndimage.distance_transform_edt(~reliable, return_indices=True)
+                    rgb[contaminated] = rgb[nearest[0][contaminated], nearest[1][contaminated]]
     else:
         alpha, background = alpha_from_flat_background(rgb)
 
@@ -86,7 +136,11 @@ def main():
             x0, x1 = sorted((max(0, x0), min(source.width, x1)))
             y0, y1 = sorted((max(0, y0), min(source.height, y1)))
             modeled[y0:y1, x0:x1] = True
-        modeled = ndimage.binary_dilation(modeled, iterations=max(0, int(args.mask_dilate)))
+        mask_adjust = int(args.mask_dilate)
+        if mask_adjust > 0:
+            modeled = ndimage.binary_dilation(modeled, iterations=mask_adjust)
+        elif mask_adjust < 0:
+            modeled = ndimage.binary_erosion(modeled, iterations=-mask_adjust)
         modeled_soft = ndimage.gaussian_filter(modeled.astype(np.float32), sigma=0.7)
         alpha *= np.clip(modeled_soft, 0.0, 1.0)
 
@@ -128,6 +182,9 @@ def main():
         "output": str(destination),
         "sourceMode": source.mode,
         "background": background.astype(int).tolist() if background is not None else None,
+        "matteColor": args.matte_color.astype(int).tolist() if args.matte_color is not None else None,
+        "matteEdgeWidth": float(args.matte_edge_width) if args.matte_color is not None else None,
+        "matteTolerance": float(args.matte_tolerance) if args.matte_color is not None else None,
         "maskImage": str(Path(args.mask_image)) if args.mask_image else None,
         "maskDilate": int(args.mask_dilate) if args.mask_image else None,
         "maskAddRects": args.mask_add_rect if args.mask_image else [],
