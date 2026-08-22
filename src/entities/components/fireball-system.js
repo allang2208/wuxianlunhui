@@ -109,11 +109,6 @@ const FIREBALL_KIND = {
             preferSourceDepth: false,
         });
         try {
-            // 命中音效（skills.json fireball.sounds.hit 配置驱动；命中/撞墙/到射程爆炸同点播放）
-            const hitSound = skillsData.skills?.fireball?.sounds?.hit;
-            if (hitSound && SoundManager && typeof SoundManager.playFile === 'function') {
-                SoundManager.playFile(hitSound);
-            }
             // 爆炸特效：① 冲击波扩散圈 ② ADD 火焰爆发 ③ 烟尘余韵
             fireGroundShockwave({
                 x, y: displayY, maxRadius: radius,
@@ -145,6 +140,11 @@ const FIREBALL_KIND = {
                 destroyAfterMs: 1300, depth: smokeDepth,
             });
             sys._explodeAoE(x, y, damage, radius, entities, skill, surfaceContext);
+            // 爆炸音效覆盖直接命中、撞墙与最大射程空爆；同一颗火球仍由 flyActive 守卫只响一次。
+            const hitSound = skillsData.skills?.fireball?.sounds?.hit;
+            if (hitSound && typeof SoundManager?.playFile === 'function') {
+                SoundManager.playFile(hitSound);
+            }
         } catch (e) {
             // 结算异常不阻塞火球回收（状态已清）
             if (typeof console !== 'undefined') console.error('[Fireball] 命中结算异常（火球已回收）:', e);

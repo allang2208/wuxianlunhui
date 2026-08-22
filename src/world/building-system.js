@@ -162,15 +162,16 @@ function wallStairDir(mirror) {
 }
 
 const C_GRADE_WALL_COST = Math.round((DEFENSE_CONFIG.covers.hp.C ?? 1600) * 0.25);
+const BLOCK_WALL_COST = 50;
 const DEFAULT_WALL_STAIR_TEXTURE =
     WALL_STAIR_CONFIG.variants.e2_pos?.lower?.texture || 'wall_stair_lower_e2_pos';
 const WALL_STAIR_PANEL_ICON =
     WALL_STAIR_CONFIG.variants.e1_pos?.lower?.texture || 'wall_stair_lower_e1_pos';
 
 export const BUILD_ITEMS = [
-    { id: 'tower', name: '防御塔', cost: 300, tex: 'obstacle_defense_tower', kind: 'tower', currency: 'energy' },
-    // 1×1 方块墙 / 4格门统一采用 C 级墙数值与造价（2026-08-18）
-    { id: 'cover_block', name: '方块墙', cost: C_GRADE_WALL_COST, tex: 'obstacle_block', kind: 'block', grade: 'C', orient: 'v', currency: 'energy' },
+    { id: 'tower', name: '防御塔', cost: 1000, tex: 'obstacle_defense_tower', kind: 'tower', currency: 'energy' },
+    // 1×1 方块墙沿用 C 级数值，但采用独立的单块造价；4 格门仍按 C 级墙造价。
+    { id: 'cover_block', name: '方块墙', cost: BLOCK_WALL_COST, tex: 'obstacle_block', kind: 'block', grade: 'C', orient: 'v', currency: 'energy' },
     {
         id: 'road',
         name: '道路',
@@ -367,10 +368,15 @@ export const BuildingSystem = {
     _baseBuildCost(item) {
         if (!item) return 0;
         const cfg = item.kind === 'producer' ? PRODUCER_BUILDINGS[item.id] : null;
-        if (cfg?.workshopType === 'warehouse'
-            && EnergyManager?.getWarehouseCount?.() === 0
-            && Number.isFinite(Number(cfg.firstWhenNoneCost))) {
-            return Math.max(0, Math.floor(Number(cfg.firstWhenNoneCost)));
+        if (Number.isFinite(Number(cfg?.firstWhenNoneCost))) {
+            const hasAny = cfg.workshopType === 'warehouse'
+                ? (EnergyManager?.getWarehouseCount?.() || 0) > 0
+                : (ProducerBuildingSystem?.buildings || []).some((building) => (
+                    building?.active !== false
+                    && !building?._sinking
+                    && building?.cfgKey === item.id
+                ));
+            if (!hasAny) return Math.max(0, Math.floor(Number(cfg.firstWhenNoneCost)));
         }
         return Math.max(0, Math.floor(Number(item.cost) || 0));
     },
@@ -2886,7 +2892,7 @@ export const BuildingSystem = {
     _renderBlockDetail(det, e) {
         const maxHp = e.maxHp || (DEFENSE_CONFIG.covers.hp.C ?? 1600);
         const hp = Math.max(0, Math.ceil(e.hp));
-        const buildCost = e._buildCost ?? C_GRADE_WALL_COST;
+        const buildCost = e._buildCost ?? BLOCK_WALL_COST;
         const repairRate = (DEFENSE_CONFIG.repair && DEFENSE_CONFIG.repair.coverHpPerEnergy) || 2;
         const repairNeed = Math.ceil((maxHp - hp) / repairRate);
         det.innerHTML = `
@@ -3132,6 +3138,9 @@ export const BuildingSystem = {
             this._detail = null;
             this._renderDetail();
             this._refreshCurrencies();
+            if (Number.isFinite(Number(PRODUCER_BUILDINGS[entity.cfgKey]?.firstWhenNoneCost))) {
+                this._renderBuildGrid();
+            }
             const unit = currency === 'gold' ? '金币' : '能源';
             this._notify(`建筑已回收（+${result.refund || 0} ${unit}）`, '#ffd700');
             if (SoundManager && typeof SoundManager.playFile === 'function') {
@@ -3333,7 +3342,11 @@ export const BuildingSystem = {
                 HamsterBarracksSystem.barracks.push(barracks);
                 placedEntity = barracks;
             } else if (item.kind === 'producer') {
-                const producer = this._markBuiltEntity(new ProducerBuilding(x, y, { id, cfgKey: item.id }), item);
+                const producer = this._markBuiltEntity(
+                    new ProducerBuilding(x, y, { id, cfgKey: item.id }),
+                    item,
+                    buildCost
+                );
                 producer._facingLeft = mirror;
                 Game.entities.set(id, producer);
                 ProducerBuildingSystem.buildings.push(producer);
@@ -3440,7 +3453,8 @@ export const BuildingSystem = {
         this._snapped = null;
         this._clearStairPreview();
         this._refreshCurrencies();
-        if (item.kind === 'producer' && PRODUCER_BUILDINGS[item.id]?.workshopType === 'warehouse') {
+        if (item.kind === 'producer'
+            && Number.isFinite(Number(PRODUCER_BUILDINGS[item.id]?.firstWhenNoneCost))) {
             this._renderBuildGrid();
         }
     },

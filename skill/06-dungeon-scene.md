@@ -547,9 +547,9 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
 - **派生资产入口**：`tools/ai-gen/build-lighting-maps.py` 从原 PNG alpha 确定性生成
   `*_silhouette / *_projection / *_height / *_normal`，清单为
   `data/environment-lighting-assets.json`。不重绘原图；建筑/仙人掌/雪松需要真实轮廓投影时先跑此脚本。
-- **动态单位投影**：玩家、敌人、友军从当前 Phaser 帧 alpha 懒生成 `unit_projection_*` Canvas
-  纹理，同一帧只生成一次。低档=接触影，中档=静态投影，高档=动态帧投影；缓存上限 256，
-  场景/质量切换及 Phaser shutdown 必须回收并从 TextureManager 移除。
+- **动态单位投影已退役**：玩家、敌人、友军、NPC 统一使用水平 2:1 接触影，不再从 Phaser
+  当前帧生成 `unit_projection_*`。旧派生纹理与质量分档链不得恢复；显式
+  `shadow.directional=true` 只保留短方向尾影协议。
 - **建筑锚点不能一刀切**：普通建筑默认由 `resolveStructureGroundFit` 扫描当前主体 Sprite
   的 alpha 底部接触区并锚回逻辑脚点；接地多边形的前半边必须保留稳定底座范围内的真实
   alpha 下包络，不能把台阶/门槛/不对称底座重新吸附成标准菱形。`anchorAdjustX/Y` 与 `flipX`
@@ -586,8 +586,14 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
   （或 `footprint:'contact'`）与 `baseZ/topZ`；默认是单体平行扫掠，只有显式
   `shadowCaster.autoParts:true` 才启用自动分层造型。`getLayeredShadowPolygon` 负责把自动或
   显式部件分层挤出后合成单一边界。
-- **共享结构阴影层**（2026-08-22 根部贴合修复）：单个 Graphics、深度 **−994**（地板块 −1000 与道路 −995 之上——道路即地面，阴影压暗路面如压裸地；曾放 −998 被道路完全遮挡，禁止放回道路之下），每帧汇入全部结构阴影多边形——**重叠/相贴的 job 先几何并集再画**（`_mergeShadowJobsIntoClusters` 顶点互含/边相交聚簇 + `getUnionOfPolygons` 太阳帧包络合并；并集扫描必须额外保留全部输入顶点所在行，不能用固定 2px 步长吞掉接地角），原尺寸一次填充统一强度，簇内无接缝；互不相交保持独立，禁止桥接远处建筑。禁止质心 `1.02×` 放大和居中 `strokePoints` 软边：两者都会越过真实 alpha 接地边。整层乘统一透明度；树木/散布障碍物的静态胶囊影也并入此层（旋转椭圆 16 边形作为普通 job，跨系统 Sprite 叠加会变深近两倍，精灵仅留作注册键）——移动单位仍用独立胶囊 Sprite。**任何相邻阴影交叠与单影同深**（几何并集从结构上保证，不依赖混合幂等；禁止回到逐实体 Sprite 各自叠加；质心放大淡出环已废弃）；
-  深度 = 本体 − 0.1。**运行时纯几何、无烘焙无角度分桶——连续不跳**；只允许下文
+- **共享结构阴影层**（2026-08-22 根部贴合修复）：单个 Graphics、深度读取
+  `WORLD_RENDER_LAYERS.STRUCTURE_SHADOW`（当前 −994.4，位于道路和地基之上），每帧汇入全部
+  结构阴影多边形。重叠/相贴的 job 先聚簇并集再画，聚簇判定覆盖顶点互含、普通相交和共线相贴；
+  并集扫描必须额外保留全部输入顶点所在行，不能用固定 2px 步长吞掉接地角。原尺寸单次填充，
+  互不相交的簇可保留自己的 `shadow.opacity`。禁止质心放大和居中描边。树木/接触型散布障碍
+  也并入此层，但几何必须是**水平 2:1 footprint 沿归一化太阳方向的凸扫掠**，不得旋转基础
+  椭圆；注册 Sprite 仅作为生命周期键。战争迷雾必须过滤逐实体 job 并触发 revision 重画，
+  不能隐藏整层。移动单位仍用独立接触影 Sprite。**运行时纯几何、无烘焙无角度分桶——连续不跳**；只允许下文
   epsilon 脏检查复用完全相同的结果，任何角度分桶/形变烘焙优化都已证明引入错位/跳动/分割，禁止回潮
   （形变烘焙、旋转矩形、固定画布、contactQuad、垂直剪切五条弯路留档）。
 - **顶点真源分流**：普通建筑使用独立 shadow caster；掩体/门/楼梯保留专用
@@ -602,14 +608,19 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
 - **延长段上限**：建筑 `maxOffset = max(43, height×0.5)`；障碍物各自
   `shadow.maxOffset`（42~72）；length 随仰角曲线（正午短、晨昏长）。
 - **水平接触影（单位唯一默认，2026-08-21 footprint 对齐修复）**：玩家/怪物/友军/NPC
-  阴影中心严格等于视觉脚底/碰撞脚点，宽高严格取 ground footprint，默认 `widthMul=depthMul=1`、
+  阴影中心严格等于视觉脚底/碰撞脚点，宽高严格取 `resolveUnitGroundFootprint` 返回的
+  `Collider.radius` 水平 2:1 footprint，默认 `widthMul=depthMul=1`、
   `rotation=0`，始终保持屏幕水平 2:1 柔边椭圆。禁止把整个椭圆旋转到太阳影向——影向接近
   屏幕 Y 轴时会把水平脚底错误立成竖椭圆。普通单位不再产生方向位移或晨昏尺寸膨胀；只有
   个体显式配置 `shadow.directional=true` 时才启用旧方向尾影。
   透明度 0.30078125（2026-08-21 单位影再加深 25%；建筑静态仍为 0.1925）×环境强度、
   深度跟随本体仲裁后 −0.1（墙体遮挡继承）。单位不做逐列剪影；帧剪影链已退役，禁止回潮。
+  `collisionShape:'rect'` 与 `collisionWidth/Height` 是玩家、怪物、NPC 的躯干受击矩形，不是
+  地面 footprint，禁止用它们拉伸阴影；“范围”按钮红色 footprint 与单位阴影必须复用同一入口。
   锚点：玩家/怪/NPC = collider.x/y（footprint 圆心，玩家再 −z）；友军 = 视觉脚底
   `sprite.y + footOffsetY`（精灵已含 z 与帧格归一化，纯跟随队员无逻辑坐标也不错位）。
+  `_getUnitRenderFootprint` 是阴影与“范围”红色 footprint 的共同中心入口；范围模式必须把
+  队伍成员和世界友军也纳入绘制。
 - **投影图派生资产仍保留**（silhouette/projection/height/normal 供后续局部光效）；
   生成必须内容紧身裁剪，禁止 PROJECTION_BOTTOM_BANDS 带状采样。
 - **flipX 一次性镜像**（2026-08-19）：镜像实例在 `_resolveShadowSilhouette` 先把

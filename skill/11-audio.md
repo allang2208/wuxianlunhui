@@ -17,16 +17,24 @@ assets/sounds/ui/                     # 金币/升级/出售/击倒等系统音�
 ```
 2026-07-21 已完成存量迁移（根目录音效全部入子目录，引用同步更新）。新增音效一律入对应子目录，路径写进配置（enemy-config.json sounds / weapon-fx-config.js 等），不在代码里写死。
 
+#### 场景 BGM 映射（2026-08-22）
+- BGM 素材统一存放在 `assets/sounds/music/`，场景映射只写入
+  `data/audio-config.json#bgm`，由 `SoundManager.playBgmForScene(sceneId)` 负责循环、音量和切场淡入淡出；禁止在场景类中硬编码音乐路径。
+- `scene7` 是普通僵尸地牢（初级/中级/高级共用场景），继续使用
+  `dungeon_echo.mp3`；`scene11` 是位面僵尸地牢世界，独立使用用户素材
+  `幽洞回声.wav`。两者不可因题材相同而复用映射。
+
 #### 友方单位音效（2026-08-16 仓鼠系列，用户素材）
 - 素材复制改名入库 `assets/sounds/friendly/`：`hamster_shooter_attack.mp3`（射手出膛）、
   `hamster_melee_attack.mp3`（战士/盾卫共用，源=鼠鼠战士 1.mp3）、
-  `hamster_miner_mining.mp3`（矿工挥锄）。
+  `hamster_miner_mining.mp3`（矿工挥锄）、`hamster_bounty_hunter_attack.mp3`（赏金猎人第 9 帧出膛）。
 - 配置：`data/hamster-*-config.json` 新增 `sounds` 块（attack/mining 键 → 路径）；
   `Companion` 基类 `this.sounds = archive.sounds || {}`（一处生效，伙伴未配置默认为空）。
 - 触发：各 AI 攻击命中/发射点调 `_playSound(key)` 助手——世界内发声走
   `SoundManager.playWorld(path, x, y)`（坐标衰减，音效铁律），无则 playFile 兜底；
   射手在 `_fireProjectile`（第 10 帧出膛）、战士 `_tryAttack`、盾卫 `_applyDamage`
-  （第 10 帧判定）、矿工 `_tryAttack`（采矿命中）。
+  （第 10 帧判定）、矿工 `_tryAttack`（采矿命中）；赏金猎人继承火枪 `_fireProjectile`，
+  只在第 9 帧投射物成功创建后播放自身 `sounds.attack`。
 - 纯视觉岗位单位同样遵守配置与位置音效口径：仓鼠农民在 `population-economy.json#windmill.workerVisual.sounds` 声明 `harvesting`，`HamsterFarmerVisualSystem.setState` 只在进入收割状态时调用一次 `SoundManager.playWorld`；禁止在逐帧动画更新中播放或把素材路径硬编码进视觉系统。
 
 #### 步骤1: 素材复制建档（规则 4）
@@ -99,6 +107,14 @@ _playSound(key) {
 - 玩家等级提升与玩家技能升级统一由 `LevelUpEffectQueue._renderEffect()` 在对应提示真正展示时播放，路径读取 `data/audio-config.json#uiCues.playerUpgrade`，使用 `playFile(path, 1, 'ui')`。旧的玩家 `onLevelUp()` 直播放必须移除，避免同一次升级双响；连续技能升级随提示队列逐项播放，声音与画面保持同序。
 - 建筑完工/升级若产品明确要求“无论距离都能听见”，同样属于全局系统提示，可用 `playFile`；房屋的路径放在 `population-economy.json#house.upgradeCompleteSound`。这属于明确的全局通知例外；普通 NPC、门、机关和建筑世界声仍必须走 `playWorld`。
 - 用户素材统一复制为英文稳定名放入 `assets/sounds/ui/`；触发代码只读配置键，不直接引用素材库路径，也不在多个升级入口复制同一 MP3 路径。
+
+#### 右侧栏目与火球命中音效（2026-08-22）
+- 右侧栏目开/关共用 `audio-config.json#uiCues.rightSidebarPanel`，由
+  `right-sidebar-panel-layer.js` 对 role=`panel/modal` 的根元素统一监听 `active/style.display`
+  可见性变化；role=`backdrop` 不监听，避免面板和遮罩同次切换双响。使用 `ui` 声道。
+- 火球命中素材放 `assets/sounds/skills/fireball_hit.mp3`，路径写入双份
+  `skills.json#fireball.sounds.hit`；直接命中、撞墙和最大射程空爆均在爆炸结算后用
+  `playFile` 播放，同一颗火球只响一次。
 
 #### 步骤5: 程序化合成音效（numpy 管线，2026-08-16 铁闸门开/关）
 > 素材优先级 = **用户提供 > 合成兜底**：世界-122 铁闸门音效一轮用合成（

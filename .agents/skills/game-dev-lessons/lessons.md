@@ -317,6 +317,11 @@ this.ai = config.ai || {};
 
 - **武器/盾牌（跟随 playerDepth +N）**：本体压到 `wall-0.5` 后 `+2/+1` 的常规偏移 = `wall+1.5`，必然穿墙。正解（GameScene `_updateDynamicDepths` 第 3 步）：先记录仲裁前 natural depth，`corrected < natural` 判定被压下，跟随件改用 **<0.5 的紧凑偏移**（武器 0.4 / 副手 0.3 / 盾 0.2），保持相对层级又不越过墙；未被压下时用原偏移。仲裁抬高（前墙分支）不算 occluded。
 - **地面阴影（`_syncEntityShadows`）**：别再自己算 `e.y + 9`——直接 `实体 sprite.depth - 0.1`，遮挡/抬升全自动继承。**时序铁律（2026-08-15 修正）：`_syncEntityShadows` 必须排在 `_updateDynamicDepths` 之后**——阴影读当前帧仲裁后 depth，才能保证任意帧 `阴影.depth < 贴图.depth`（贴图永远在阴影之上）。旧版阴影先跑、读上一帧 depth，怪物跨过掩体/墙面线深度骤降时，阴影会以旧深度盖在贴图上 1 帧（世界-122 毒蛆 232×116 大椭圆在基地掩体线反复压住虫身）。
+- **单位阴影 footprint（2026-08-22）**：玩家/怪物/友军/NPC 与“范围”红圈必须共用
+  `resolveUnitGroundFootprint`，尺寸只读 `Collider.radius` 的水平 2:1 椭圆；单位的
+  `collisionShape:'rect'` / `collisionWidth/Height` 是躯干受击矩形，拿它画脚影会让玩家与 NPC
+  阴影被错误拉成长条。GameScene 再由 `_getUnitRenderFootprint` 统一中心：玩家含 z 修正、
+  友军可用插值后的视觉脚点、其余读取 Collider；阴影与“范围”红圈必须消费同一结果。
 - **定点特效（奔跑烟尘 DustEffect 等 graphics）**：生成位置固定，depth 用 `junctionCorrectedDepth(fx.x, fx.y, 自然 depth)` 过一遍仲裁（`window.WallSystem` 已挂载，效果类文件直接用全局引用即可），实体在墙后时烟尘同步压到墙下。
 - 通则：**任何以"实体深度 ± 偏移"或"自身 y + 偏移"赋 depth 的附属视觉，在墙体遮挡场景都要么跟随本体仲裁后 depth，要么自己过一遍仲裁**；新增此类视觉时把这条当 checklist。
 
@@ -1080,3 +1085,13 @@ this.ai = config.ai || {};
 - **地表层必须是唯一注册表**：道路、范围圈、地基、结构阴影、压平投影和贴地装置必须从
   `world-render-layers.js` 读取严格递增且互不相等的 depth，禁止各模块散落 `-994` 或 `y-998`。
   建筑拓扑发生变化时统一把静止平民推出新 footprint，并重投影既有目的地；不能只在移动分支做占用。
+
+## 59. 高 z 挂载层里的遮罩会反向盖住 body 级面板
+
+- `#panelOverlay`（"点击面板外关闭"遮罩）被挂载进 right-sidebar-panel-layer（z=20000）后，
+  active 时盖住仓库/商店等 body 级 4000 面板并吞掉全部点击；遮罩类元素必须始终低于所有面板，
+  留在 uiLayer（z=10）。（2026-08-22 实机探针 elementFromPoint 定位，ui-panels.js 回退挂载）
+- 排查 DOM 图层遮挡用 CDP 探针：`elementFromPoint` 在目标面板区域多点采样命中元素 +
+  枚举全屏 pointer-events!=none 覆盖物，比读代码猜 z-index 快且不会错（tools/cdp-warehouse-layer-audit.mjs）。
+- NPC 立绘（.npc-portrait）默认必须 pointer-events:none 且 z 低于业务面板；
+  调整工具激活时才临时恢复 auto，关闭即收回。

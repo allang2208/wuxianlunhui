@@ -19,6 +19,7 @@
       },
       {
         "level": 2,
+        "technologyUnlockId": "house_level_2",
         "populationCapacity": 10,
         "tex": "house_lv2",
         "displayW": 270,
@@ -28,6 +29,7 @@
       },
       {
         "level": 3,
+        "technologyUnlockId": "house_level_3",
         "populationCapacity": 16,
         "tex": "house_lv3",
         "displayW": 298,

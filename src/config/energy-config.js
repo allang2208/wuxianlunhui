@@ -9,7 +9,7 @@ export const ENERGY_CONFIG = {
     nodeRadius: 0,             // 物理碰撞半径：能源矿不再阻挡单位
     gatherRadius: 45,          // 采集接近半径（独立于物理碰撞，保证矿工仍可停在合适位置挥锄）
     storage: { min: 5000, max: 8000 }, // 单点储量（= hp）
-    // 位面世代资源布局 v2：5 个远距主矿簇 + 1 个传送门 3000px 环上的三矿保底簇。
+    // 位面世代资源布局 v2：5 个远距主矿簇 + 1 个传送门 1200px 环上的三矿保底簇。
     // 簇心和每矿储量均使用位面世代随机流；同一世代重复进入由快照保持，重建位面后才换布局。
     generation: {
         layoutVersion: 2,
@@ -19,7 +19,7 @@ export const ENERGY_CONFIG = {
         majorMinPortalDistance: 3000,
         majorMinCenterSpacing: 850,
         fallbackNodeCount: 3,
-        fallbackPortalDistance: 3000,
+        fallbackPortalDistance: 1200,
         fallbackMinCenterSpacing: 520,
         clusterSpread: 320,
         fallbackSpread: 180,

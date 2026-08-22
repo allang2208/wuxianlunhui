@@ -204,12 +204,38 @@ export const EnvironmentLightingSystem = {
         const opacity = clamp(Number(options.opacity ?? STATIC_SHADOW_OPACITY) || 0, 0, 1)
             * environmentStrength;
 
+        // length 是屏幕空间中的实际投影长度；太阳向量来自 2:1 等距地面投影，
+        // 这里只归一化长度、不改变方向，避免不同方位下中心位移被额外缩短。
+        const shadowMagnitude = Math.hypot(this._sun.shadowX, this._sun.shadowY) || 1;
+        const dirX = this._sun.shadowX / shadowMagnitude;
+        const dirY = this._sun.shadowY / shadowMagnitude;
         return {
-            offsetX: this._sun.shadowX * length * 0.5,
-            offsetY: this._sun.shadowY * length * 0.5,
+            offsetX: dirX * length * 0.5,
+            offsetY: dirY * length * 0.5,
             length,
             opacity,
         };
+    },
+
+    /**
+     * 水平 2:1 接触椭圆沿太阳方向的凸扫掠体。
+     * 起点椭圆保持 footprint 原方向，终点只做平移；禁止旋转基础椭圆。
+     */
+    getStaticShadowCapsule(options = {}, profile = {}) {
+        const cx = Number(options.x) || 0;
+        const cy = Number(options.y) || 0;
+        const rx = Math.max(1, (Number(options.width) || 2) * 0.5);
+        const ry = Math.max(1, (Number(options.height) || 2) * 0.5);
+        const segments = Math.max(12, Math.floor(Number(options.segments) || 20));
+        const base = [];
+        for (let index = 0; index < segments; index++) {
+            const angle = (index / segments) * TAU;
+            base.push({
+                x: cx + Math.cos(angle) * rx,
+                y: cy + Math.sin(angle) * ry,
+            });
+        }
+        return this.getStaticShadowHull(base, profile);
     },
 
     /**

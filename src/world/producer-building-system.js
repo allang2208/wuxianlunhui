@@ -91,6 +91,7 @@ import { WarehouseEconomySystem } from './warehouse-economy-system.js';
 import { CrossPlaneResourceSystem } from './cross-plane-resource-system.js';
 import { World122TributeSystem } from './world122-tribute-system.js';
 import { getRecruitCountMul } from '../config/tribute-effects.js';
+import { getHamsterUnitIcon } from '../config/hamster-unit-icons.js';
 
 const ABILITY_TARGET_NAMES = Object.freeze({
     warrior: '仓鼠战士',
@@ -107,6 +108,13 @@ const ABILITY_TARGET_NAMES = Object.freeze({
     jaguar_warrior: '美洲豹战士',
     jungle_priest: '丛林祭司',
 });
+
+function renderTroopUnitIcon(unitKind, modifier = '') {
+    const iconPath = getHamsterUnitIcon(unitKind);
+    if (!iconPath) return '';
+    const modifierClass = modifier ? ` troop-unit-icon--${modifier}` : '';
+    return `<img class="troop-unit-icon${modifierClass}" src="${iconPath}" alt="" draggable="false">`;
+}
 
 function moduleAppliesToUnit(module, unitType) {
     return !Array.isArray(module?.unitKinds) || module.unitKinds.includes(unitType);
@@ -127,6 +135,7 @@ function cloneProducerRuntimeConfig(cfg) {
                 )),
             })),
         } : undefined,
+        animation: cfg.animation ? { ...cfg.animation } : undefined,
         unitTypes: (cfg.unitTypes || []).map((unit) => ({ ...unit })),
         modules: Object.fromEntries(
             Object.entries(cfg.modules || {}).map(([key, module]) => [key, { ...module }])
@@ -281,16 +290,20 @@ export class ProducerBuilding extends DamageableEntity {
         this._noShadow = true;
         this.def = cfg.def;
         this.mdef = cfg.mdef;
+        const animationCfg = cfg.animation;
         this.spriteCfg = {
-            idleKey: cfg.tex,
-            size: cfg.displayW,
-            sizeH: cfg.displayH,
-            footOffsetY: cfg.footOffsetY,
+            idleKey: animationCfg?.textureKey || cfg.tex,
+            // 动画精灵图不能直接作为面板缩略图；保留原静态建筑贴图用于详情头图。
+            panelKey: animationCfg ? cfg.tex : null,
+            // 动画帧的透明占比可能与静态建筑不同，允许独立校准但不改建造预览与逻辑占格。
+            size: animationCfg?.displayW ?? cfg.displayW,
+            sizeH: animationCfg?.displayH ?? cfg.displayH,
+            footOffsetY: animationCfg?.footOffsetY ?? cfg.footOffsetY,
             // Per-asset correction applied after alpha-ground fitting.  This
             // keeps the logical 2x2 footprint fixed while compensating for a
             // visible plinth thickness or an asymmetric generated canvas.
-            anchorAdjustX: Number(cfg.anchorAdjustX) || 0,
-            anchorAdjustY: Number(cfg.anchorAdjustY) || 0,
+            anchorAdjustX: Number(animationCfg?.anchorAdjustX ?? cfg.anchorAdjustX) || 0,
+            anchorAdjustY: Number(animationCfg?.anchorAdjustY ?? cfg.anchorAdjustY) || 0,
             foundation: cfg.foundation === false ? null : {
                 ...BUILDING_FOUNDATION_CONFIG,
                 ...(cfg.foundation || {}),
@@ -300,7 +313,7 @@ export class ProducerBuilding extends DamageableEntity {
             // 阴影投射体只影响视觉，不参与建造占格、碰撞或寻路。
             shadowCaster: cfg.shadowCaster,
         };
-        this.footOffsetY = cfg.footOffsetY;
+        this.footOffsetY = this.spriteCfg.footOffsetY;
         applyBuildingFootprint(this, 2);
         setupStructureDepth(this);
         this.level = 1;
@@ -438,6 +451,10 @@ export class ProducerBuilding extends DamageableEntity {
     setParallelRecruitMode(kind, mode) {
         const queue = this._parallelQueues?.[kind];
         if (!this._parallelProduction || !queue) return { ok: false, reason: '未知生产通道' };
+        if (!TechnologySystem.isUnlocked('unit', kind)) {
+            const technologyName = TechnologySystem.getUnlockRequirementLabel('unit', kind);
+            return { ok: false, reason: `需要先完成科技：${technologyName || kind}` };
+        }
         const next = normalizeRecruitMode(mode);
         if (next === RECRUIT_MODE.SINGLE) {
             if (this.aliveUnitCount(kind) >= this.parallelUnitCap(kind)) return { ok: false, reason: '该单位数量已达上限' };
@@ -1306,7 +1323,7 @@ class ProducerBuildingPanel extends BasePanel {
                     : (isAbilityShop ? (cfg.workshopType === 'research' ? '研究与结构强化' : '能力工坊升级') : '募兵与单位生产'))));
         if (detail) {
             detail.innerHTML = renderBuildingDetailHeader({
-                texture: b.spriteCfg?.idleKey || cfg.tex,
+                texture: b.spriteCfg?.panelKey || b.spriteCfg?.idleKey || cfg.tex,
                 name: cfg.name,
                 hp: b.hp,
                 maxHp: b.maxHp,
@@ -1333,8 +1350,11 @@ class ProducerBuildingPanel extends BasePanel {
                 const interval = b.recruitIntervalMs(unit.key);
                 const progress = queue.blocked ? 1 : Math.max(0, Math.min(1, 1 - queue.timer / interval));
                 const pct = Math.round(progress * 100);
-                return `<div style="padding:9px 0;border-bottom:1px solid rgba(127,224,200,.18);">
-                    <div style="display:flex;justify-content:space-between;"><b style="color:#7fe0c8;">${unit.name}</b><span>${b.aliveUnitCount(unit.key)}/${b.parallelUnitCap(unit.key)} · ${CrossPlaneResourceSystem.quote({ food: unit.spawnFoodCost || 0 }).food} 粮食</span></div>
+                return `<div data-technology-gate-type="unit" data-technology-gate-id="${unit.key}" style="padding:9px 0;border-bottom:1px solid rgba(127,224,200,.18);">
+                    <div class="troop-panel-unit-summary">
+                        <span class="troop-panel-unit-name">${renderTroopUnitIcon(unit.key)}<b>${unit.name}</b></span>
+                        <span>${b.aliveUnitCount(unit.key)}/${b.parallelUnitCap(unit.key)} · ${CrossPlaneResourceSystem.quote({ food: unit.spawnFoodCost || 0 }).food} 粮食</span>
+                    </div>
                     <div style="display:flex;justify-content:space-between;margin-top:5px;"><span data-parallel-next="${unit.key}">${mode === RECRUIT_MODE.PAUSED ? '已暂停' : `${Math.ceil(queue.timer / 1000)}s`}</span><span data-parallel-pct="${unit.key}">${pct}%</span></div>
                     <div style="height:9px;background:rgba(255,255,255,.1);border-radius:5px;overflow:hidden;"><div data-parallel-bar="${unit.key}" style="height:100%;width:${pct}%;background:linear-gradient(90deg,#ffd700,#7fe0c8);transition:width .2s linear;"></div></div>
                     <div class="recruit-control-row">
@@ -1348,6 +1368,7 @@ class ProducerBuildingPanel extends BasePanel {
                 button.addEventListener('click', () => this._setParallelRecruitMode(
                     button.dataset.parallelKind, button.dataset.parallelMode));
             });
+            TechnologyGate.bindTree(unitTypeEl);
             const modBox = el.querySelector('#pbModules');
             modBox.innerHTML = '<div class="troop-panel-empty">特色单位使用全局科技与铁匠铺能力；本建筑没有额外升级模块。</div>';
             const sellBtn = el.querySelector('#pbSell');
@@ -1384,7 +1405,7 @@ class ProducerBuildingPanel extends BasePanel {
             </div>
             <div class="troop-panel-copy">
                 军事单位 <span style="color:#8ad0ff;">${b.aliveUnitCount()}/${b.unitCount()}</span> ·
-                当前生成 <b style="color:#7fe0c8;">${curType}</b>（每名 ${CrossPlaneResourceSystem.quote({ food: b._unitSpawnFoodCost() }).food} 粮食）<br>
+                当前生成 <span class="troop-panel-inline-unit">${renderTroopUnitIcon(b.unitType, 'inline')}<b>${curType}</b></span>（每名 ${CrossPlaneResourceSystem.quote({ food: b._unitSpawnFoodCost() }).food} 粮食）<br>
                 招募状态 <b id="pbRecruitMode" style="color:${paused ? '#aab0b6' : '#7fe0c8'};">${recruitModeLabel(recruitMode)} · ${recruitStatusText(b)}</b> ·
                 下次生成 <b id="pbSpawnNext" style="color:${b._spawnBlocked ? '#ff7755' : '#7fd4ff'};">${nextText}</b>（当前周期 ${(spawnMs / 1000).toFixed(1)}s）<br>
                 ${upgradeSummary}
@@ -1405,7 +1426,12 @@ class ProducerBuildingPanel extends BasePanel {
             const active = b.unitType === u.key;
             return `<button class="troop-panel-unit-button ${active ? 'is-active' : ''}" data-unit-type="${u.key}"
                 data-technology-gate-type="unit" data-technology-gate-id="${u.key}"
-                style="flex:1;padding:7px 0;cursor:pointer;">${u.name}<br><small>${CrossPlaneResourceSystem.quote({ food: u.spawnFoodCost || 0 }).food} 粮食</small></button>`;
+                style="flex:1;cursor:pointer;">
+                    <span class="troop-panel-unit-button-main">
+                        ${renderTroopUnitIcon(u.key)}
+                        <span class="troop-panel-unit-button-copy"><span>${u.name}</span><small>${CrossPlaneResourceSystem.quote({ food: u.spawnFoodCost || 0 }).food} 粮食</small></span>
+                    </span>
+                </button>`;
         };
         ut.innerHTML = `
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
@@ -1554,9 +1580,10 @@ class ProducerBuildingPanel extends BasePanel {
                     <div><span>升级耗时</span><b>${Math.round((next.upgradeCost.timeMs || 0) / 1000)} 秒</b></div>
                 </div>
                 ${upgrade ? `<div id="pbHouseUpgradeState" class="economy-workforce-note" data-upgrading="true">升级中 ${progress}%（${Math.ceil(upgrade.remainMs / 1000)}s）</div>`
-                        : '<button class="troop-panel-upgrade-button" data-house-upgrade>升级房屋并更换贴图</button>'}`
+                        : `<button class="troop-panel-upgrade-button" data-house-upgrade data-technology-gate-type="upgrade" data-technology-gate-id="${next.technologyUnlockId || ''}">升级房屋并更换贴图</button>`}`
                 : '<div class="economy-panel-note">房屋已达到当前配置最高等级。</div>';
                 modBox.querySelector('[data-house-upgrade]')?.addEventListener('click', () => this._upgradeHouse());
+                TechnologyGate.bindTree(modBox);
             } else if (cfg.economyType === 'bank') {
                 const snapshot = PopulationEconomySystem.getBankSnapshot(b);
                 const effectivePopulation = snapshot.effectiveServicePopulation.toFixed(2);
@@ -1709,6 +1736,7 @@ class ProducerBuildingPanel extends BasePanel {
                     remainMs: inProgress ? upgrade.remainMs : 0,
                     barId: `pbUpgradeBar_${moduleId}`, textId: `pbUpgradeText_${moduleId}`,
                     actionsHtml, accent: '#7fd4ff',
+                    technologyGateType: 'upgrade', technologyGateId: moduleId,
                 }).replace('class="building-upgrade-card"',
                     `class="building-upgrade-card" data-warehouse-upgrading="${inProgress}"`);
             }).join('');
@@ -1721,6 +1749,7 @@ class ProducerBuildingPanel extends BasePanel {
                 row.addEventListener('mousemove', (event) => this._moveAbilityTip(event));
                 row.addEventListener('mouseleave', () => this._hideAbilityTip());
             });
+            TechnologyGate.bindTree(modBox);
             return;
         }
         if (isPortal) {

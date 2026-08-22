@@ -92,6 +92,7 @@ import { EnvironmentLightingSystem } from '../../world/environment-lighting-syst
 import { WindblownSandSystem } from '../../world/windblown-sand-system.js';
 import { resolveStructureShadowCaster } from '../../world/structure-shadow-caster.js';
 import { WORLD_RENDER_LAYERS } from '../../world/world-render-layers.js';
+import { resolveUnitGroundFootprint } from '../../world/unit-ground-footprint.js';
 import lightingAssets from '../../../data/environment-lighting-assets.json';
 
 // 共享结构阴影层：所有建筑/障碍物阴影多边形在同一 Graphics 内 alpha 1 填充、
@@ -155,6 +156,8 @@ export class GameScene extends Scene {
         // 树木同步发生在下方 WallSystem._syncWallsToPhaser 内，注册表必须提前创建。
         this._staticSunShadows = new Map();
         this._structureSunShadows = new Map();
+        this._structureShadowVisibilityRevision = 0;
+        this._structureShadowRenderedVisibilityRevision = -1;
 
         // 同步墙壁到 Phaser（WallSystem.init() 在 PhaserGame.init() 之前调用，所以这里补同步）
         if (WallSystem.walls && WallSystem.walls.length > 0) {
@@ -202,13 +205,14 @@ export class GameScene extends Scene {
         // 局部亮光：短时（枪火/爆发）与常驻（火把/蓄力火球）分开管理。
         this._transientEnvironmentGlows = [];
         this._persistentEnvironmentGlows = new Map();
-        // 动画单位按“贴图键+帧”懒生成预投影遮罩；限制数量避免长时战斗纹理无限增长。
+        // 建筑与静态环境物共用一个地表 Graphics，移动单位仍使用独立接触影 Sprite。
         this._structureShadowLayer = this.add.graphics();
         this._structureShadowLayer.setDepth(WORLD_RENDER_LAYERS.STRUCTURE_SHADOW);
         this._structureShadowJobs = [];
         // 场景重启后新层为空画布：复位脏检查状态，首帧强制重画（防阴影不可见）。
         this._structureShadowJobCount = -1;
         this._structureShadowLayerOpacity = -1;
+        this._structureShadowOpacitySignature = '';
         // 世界 HUD：缓存每个贴图帧的可见 alpha 顶部，血条按真实模型而非透明画布定位。
         this._installShadowConsoleTools();
 
@@ -639,7 +643,21 @@ export class GameScene extends Scene {
         if (xray) Object.values(xray).forEach((visual) => FogVisualAdapter.setHidden(visual, hidden));
         const magic = this._magicSprites?.get(entity);
         if (magic) Object.values(magic).forEach((visual) => FogVisualAdapter.setHidden(visual, hidden));
-        FogVisualAdapter.setHidden(this._structureSunShadows?.get(entity), hidden);
+        const structureShadows = this._structureSunShadows?.get(entity);
+        FogVisualAdapter.setHidden(structureShadows, hidden);
+        // 建筑真正绘制在共享 _structureShadowLayer；上面的 Graphics 只是注册键。
+        // 将雾状态写回逐实体数据，并用 revision 强制共享层重画，不能隐藏整层。
+        let shadowVisibilityChanged = false;
+        const shadowHandles = Array.isArray(structureShadows) ? structureShadows : [structureShadows];
+        for (const handle of shadowHandles) {
+            const shadowData = handle && this._staticSunShadows?.get(handle);
+            if (!shadowData || shadowData.fogHidden === !!hidden) continue;
+            shadowData.fogHidden = !!hidden;
+            shadowVisibilityChanged = true;
+        }
+        if (shadowVisibilityChanged) {
+            this._structureShadowVisibilityRevision = (this._structureShadowVisibilityRevision || 0) + 1;
+        }
         FogVisualAdapter.setHidden(this._freezeFx?.get(entity)?.block, hidden);
         FogVisualAdapter.setHidden(this._inspireFx?.get(entity)?.gfx, hidden);
         FogVisualAdapter.setHidden(this._stunFx?.get(entity), hidden);
@@ -2373,6 +2391,39 @@ export class GameScene extends Scene {
     }
 
     /**
+     * 可移动单位的阴影 footprint 唯一入口。
+     * 单位地面碰撞在全项目统一为 Collider.radius 的水平 2:1 椭圆；collisionShape:'rect'
+     * 描述的是玩家/怪物/NPC 的躯干受击矩形，不能拿来决定脚下阴影尺寸。
+     * 中心按实体类别统一解析：玩家含 z，友军取视觉插值脚点，其余取 Collider；
+     * 阴影与“范围”调试必须同时消费本结果，半径仍严格读取 Collider/groundRadius。
+     */
+    _getUnitRenderFootprint(entity, fallbackRadius = 10, game = null) {
+        const currentGame = game || (typeof window !== 'undefined' ? window.Game : null) || null;
+        const player = currentGame?.player || null;
+        const partyMembers = PartySystem.members || [];
+        const worldFriendlies = Array.isArray(currentGame?.friendlyUnits)
+            ? currentGame.friendlyUnits
+            : [];
+        const isFriendly = entity !== player
+            && (partyMembers.includes(entity) || worldFriendlies.includes(entity));
+        let centerOverride = null;
+        if (isFriendly) {
+            const sprite = this._companionSprites?.[entity?.id];
+            if (sprite?.active) {
+                const cfgFoot = entity.footOffsetY ?? entity.config?.render?.footOffsetY;
+                const footY = (typeof cfgFoot === 'number')
+                    ? sprite.y + cfgFoot
+                    : sprite.y + sprite.displayHeight * (this._getVisibleFrameBottomRatio(sprite) - 0.5);
+                centerOverride = { x: sprite.x, y: footY };
+            }
+        }
+        const footprint = resolveUnitGroundFootprint(entity, fallbackRadius, centerOverride);
+        // 高架玩家的脚点位于实际承载平面；范围调试与阴影必须消费同一修正。
+        if (entity === player) footprint.y -= Number(entity?.z) || 0;
+        return footprint;
+    }
+
+    /**
      * 为可移动实体生成太阳驱动的接触阴影。
      * 阴影服务统一负责太阳方向/高度；本方法只绑定实体脚底、显示深度和对象池。
      */
@@ -2432,9 +2483,7 @@ export class GameScene extends Scene {
             const e = _game.player;
             active.add(e);
             const depth = this.playerSprite.depth - 0.1; // 跟随本体仲裁后 depth（含墙体遮挡压下），始终略低于本体
-            const footprint = this._getGroundShadowFootprint(e, e.groundRadius || 10);
-            // 高架单位的视觉脚底统一使用 z。
-            footprint.y -= e.z || 0;
+            const footprint = this._getUnitRenderFootprint(e, e.groundRadius || 10, _game);
             ensureShadow(e, e, footprint, depth, !isMapMode, this.playerSprite);
         }
 
@@ -2451,7 +2500,7 @@ export class GameScene extends Scene {
                 ensureShadow(
                     e,
                     e,
-                    this._getGroundShadowFootprint(e, e.groundRadius || 10),
+                    this._getUnitRenderFootprint(e, e.groundRadius || 10, _game),
                     depth,
                     !isMapMode,
                     sprite
@@ -2472,21 +2521,8 @@ export class GameScene extends Scene {
             const sprite = this._companionSprites && this._companionSprites[e.id];
             if (!sprite || !sprite.active || !sprite.visible) continue;
             active.add(e);
-            // 友军阴影锚定视觉脚底：footOffsetY 有显式配置用配置（仓鼠系）；
-            // 无配置时实测当前帧内容底边（alpha>8 底行比例，按帧缓存）——v2 管线脚底基线在
-            // 0.9375×格高而非格底，用 displayHeight/2 兜底会把影子掉到脚底下 11~22px。
-            // 精灵位置已含 z 抬升与帧格归一化修正；尺寸仍随 groundRadius（footprint 唯一真源）。
-            const cfgFoot = e.footOffsetY ?? e.config?.render?.footOffsetY;
-            const footY = (typeof cfgFoot === 'number')
-                ? sprite.y + cfgFoot
-                : sprite.y + sprite.displayHeight * (this._getVisibleFrameBottomRatio(sprite) - 0.5);
-            const friendlyRadius = Math.max(1, Number(e.groundRadius) || 10);
-            const footprint = {
-                x: sprite.x,
-                y: footY,
-                width: friendlyRadius * 2,
-                height: friendlyRadius * 2 * PERSPECTIVE_SCALE_Y,
-            };
+            // 友军、玩家及范围调试共用同一渲染脚点；尺寸仍只读 Collider.radius。
+            const footprint = this._getUnitRenderFootprint(e, e.groundRadius || 10, _game);
             ensureShadow(
                 e,
                 e,
@@ -2501,15 +2537,20 @@ export class GameScene extends Scene {
         if (this._neutralSprites) {
             for (const [e, data] of this._neutralSprites.entries()) {
                 if (!e || !e.active || !data.sprite || !data.sprite.active) continue;
+                // 建筑由结构太阳投影链负责，不能再叠一层“单位接触椭圆”。
+                if (e._isDefenseStructure) continue;
                 if (e._noShadow) continue; // 配置跳过阴影（如仓库宝箱，贴图自带底座）
                 active.add(e);
-                const depth = e.y + 9;
+                // NPC/训练靶与玩家、怪物、友军使用同一 Collider footprint；阴影深度读取
+                // 本帧已经完成墙体/建筑遮挡仲裁的 Sprite，禁止回退旧 e.y + 9。
+                const depth = data.sprite.depth - 0.1;
                 ensureShadow(
                     e,
                     e,
-                    this._getGroundShadowFootprint(e, e.groundRadius || 10),
+                    this._getUnitRenderFootprint(e, e.groundRadius || 10, _game),
                     depth,
-                    !isMapMode
+                    !isMapMode,
+                    data.sprite
                 );
             }
         }
@@ -6460,16 +6501,22 @@ export class GameScene extends Scene {
         this._collisionRadiusGraphics.fillStyle(0xff0000, 0.25);
         this._collisionRadiusGraphics.lineStyle(1, 0xff0000, 0.5);
 
+        const drawnEntities = new Set();
         const drawEntity = (entity) => {
-            if (!entity || !entity.active) return;
+            if (!entity || !entity.active || drawnEntities.has(entity)) return;
             if (FogOfWarSystem.shouldHideEntity(SceneManager.currentScene, entity)) return;
             // 跳过配置了 noFootprint 的实体（如矿洞，保留碰撞判定但不显示脚下椭圆晕影）
             if (entity.config?.noFootprint) return;
-            const r = entity.groundRadius || entity.collisionRadius || entity.size * 0.6 || 12;
-
-            // footprint / 圆柱体使用 collider 坐标，支持前倾/攻击时的 footprint 偏移。
-            const cx = entity.collider ? entity.collider.x : entity.x;
-            const cy = entity.collider ? entity.collider.y : entity.y;
+            drawnEntities.add(entity);
+            // 与单位阴影复用同一入口，红色 footprint 与黑色接触影必须完全重合。
+            const footprint = this._getUnitRenderFootprint(
+                entity,
+                entity.groundRadius || entity.collisionRadius || entity.size * 0.6 || 12,
+                _game
+            );
+            const r = footprint.radius;
+            const cx = footprint.x;
+            const cy = footprint.y;
 
             // 1) 地面 footprint：红色半透明椭圆
             this._collisionRadiusGraphics.strokeEllipse(cx, cy, r * 2, r * 2 * PERSPECTIVE_SCALE_Y);
@@ -6528,7 +6575,18 @@ export class GameScene extends Scene {
         // 敌人 + NPC（祭坛/仓库等 ellipse footprint 统一显示；掉落物/传送门不画）
         for (const entity of _game.entities.values()) {
             if (!entity || !entity.active || entity === _game.player) continue;
-            if (entity._faction !== 'enemy' && !entity.npcType) continue;
+            if (entity._faction !== 'enemy' && entity._faction !== 'agent' && !entity.npcType) continue;
+            drawEntity(entity);
+        }
+
+        // 队伍成员与世界友军也使用同一渲染脚点，便于直接核对插值后的阴影中心。
+        const friendlySeen = new Set();
+        for (const entity of [
+            ...(PartySystem.members || []),
+            ...(Array.isArray(_game.friendlyUnits) ? _game.friendlyUnits : []),
+        ]) {
+            if (!entity || friendlySeen.has(entity)) continue;
+            friendlySeen.add(entity);
             drawEntity(entity);
         }
 
@@ -7223,6 +7281,7 @@ export class GameScene extends Scene {
                 opacity: options.opacity,
                 depth: options.depth ?? 0,
                 visible: options.visible !== false,
+                fogHidden: !!options.fogHidden,
                 entity: options.entity || null,
                 sourceSprite: options.sourceSprite || null,
                 flipX: !!options.flipX,
@@ -7250,6 +7309,7 @@ export class GameScene extends Scene {
             opacity: options.opacity,
             depth: options.depth ?? 0,
             visible: options.visible !== false,
+            fogHidden: !!options.fogHidden,
         });
         return sprite;
     }
@@ -7408,6 +7468,15 @@ export class GameScene extends Scene {
                 this._staticSunShadows.delete(sprite);
                 continue;
             }
+            // 共享 Graphics 无法直接隐藏单一建筑；绘制前读取战争迷雾真源，避免新注册
+            // 建筑等待帧末 FogVisibilityController 回调时短暂泄漏一帧阴影。
+            if (data.entity) {
+                const fogHidden = FogOfWarSystem.shouldHideEntity(SceneManager.currentScene, data.entity);
+                if (data.fogHidden !== fogHidden) {
+                    data.fogHidden = fogHidden;
+                    this._structureShadowVisibilityRevision = (this._structureShadowVisibilityRevision || 0) + 1;
+                }
+            }
             const profile = EnvironmentLightingSystem.getStaticShadow(data, {
                 dungeon: isDungeon,
             });
@@ -7485,16 +7554,18 @@ export class GameScene extends Scene {
                     cy /= Math.max(1, hull.length);
                     data._polyState = { theta, length: profile.length, sig, points: hull, cx, cy };
                 }
-                if (hull.length >= 3 && profile.opacity > 0.001 && data.visible !== false) {
+                if (hull.length >= 3 && profile.opacity > 0.001
+                    && data.visible !== false && !data.fogHidden) {
                     shadowJobs.push({ hull, cx, cy, opacity: profile.opacity, dirty });
                 }
                 continue;
             }
             const baseW = data.footprintWidth || data.radius * 2;
             const baseH = data.footprintHeight || data.radius * 2 * PERSPECTIVE_SCALE_Y;
-            // 静态胶囊（树木/桶状仙人掌/墙件）并入共享层（2026-08-19 重叠加深修复）：
+            // 静态胶囊（树木/桶状仙人掌/墙件）并入共享层：
             // 独立 Sprite 会与结构层跨系统叠加变深（0.19×0.19 合成≈0.35，肉眼可见）——
-            // 改为旋转椭圆 16 边形作为普通多边形 job，层内同色同场透明度不叠加。
+            // 基础 footprint 始终是水平 2:1 椭圆，只沿归一化太阳方向平移扫掠；
+            // 禁止旋转基础椭圆，否则纵向影向会再次把脚底立成竖椭圆。
             // 这些注册体全静态（树/散布障碍），epsilon 脏检查与多边形同口径；
             // 精灵仅保留为注册键（注销/回链用），不再直接渲染。
             sprite.setVisible(false);
@@ -7515,26 +7586,23 @@ export class GameScene extends Scene {
             } else {
                 capCx = data.x + profile.offsetX;
                 capCy = data.y + profile.offsetY;
-                const rx = Math.max(2, (baseW + profile.length) / 2);
-                const ry = Math.max(1.5, baseH / 2);
-                const cosT = Math.cos(capTheta);
-                const sinT = Math.sin(capTheta);
-                capPts = [];
-                for (let i = 0; i < 16; i++) {
-                    const ang = (i / 16) * Math.PI * 2;
-                    const ex = Math.cos(ang) * rx;
-                    const ey = Math.sin(ang) * ry;
-                    capPts.push({ x: capCx + ex * cosT - ey * sinT, y: capCy + ex * sinT + ey * cosT });
-                }
+                capPts = EnvironmentLightingSystem.getStaticShadowCapsule({
+                    x: data.x,
+                    y: data.y,
+                    width: baseW,
+                    height: baseH,
+                    segments: 20,
+                }, profile);
                 data._polyState = { theta: capTheta, length: profile.length, sig: capSig, points: capPts, cx: capCx, cy: capCy };
             }
-            if (profile.opacity > 0.001 && data.visible !== false) {
+            if (capPts.length >= 3 && profile.opacity > 0.001
+                && data.visible !== false && !data.fogHidden) {
                 shadowJobs.push({ hull: capPts, cx: capCx, cy: capCy, opacity: profile.opacity, dirty: capDirty });
             }
         }
-        // 共享结构阴影层：全部结构阴影多边形在同一 Graphics 内原尺寸单次填充，
-        // 整层再乘统一透明度；不得用外扩或居中描边破坏真实 alpha 接地边。
-        // 层深 −994 = 地板块 −1000、道路 −995 之上——阴影压在道路/地板上（曾被道路遮挡打回）。
+        // 共享结构阴影层：全部阴影多边形在同一 Graphics 内原尺寸填充；互不相交的簇
+        // 保留各自透明度，相交簇先并集并取最大透明度。不得用外扩或描边破坏 alpha 接地边。
+        // 层深统一读取 WORLD_RENDER_LAYERS.STRUCTURE_SHADOW，禁止散落魔法数。
         const frameSun = EnvironmentLightingSystem.getSun();
         const frameTheta = Math.atan2(frameSun?.shadowY || 0, frameSun?.shadowX || 0);
         const layer = this._structureShadowLayer;
@@ -7548,20 +7616,29 @@ export class GameScene extends Scene {
                 layerOpacity = Math.max(layerOpacity, job.opacity);
                 if (job.dirty) layerDirty = true;
             }
+            const opacitySignature = shadowJobs
+                .map((job) => Math.round(job.opacity * 1000))
+                .join(',');
             if (shadowJobs.length !== (this._structureShadowJobCount ?? -1)) layerDirty = true;
             if (Math.abs(layerOpacity - (this._structureShadowLayerOpacity ?? -1)) > 0.005) layerDirty = true;
+            if (opacitySignature !== (this._structureShadowOpacitySignature || '')) layerDirty = true;
+            if ((this._structureShadowVisibilityRevision || 0)
+                !== (this._structureShadowRenderedVisibilityRevision ?? -1)) layerDirty = true;
             if (layerDirty) {
                 layer.clear();
                 // 相交阴影先几何并集再一次填充（2026-08-19 用户口径"重叠调成一整个、
                 // 同一强度"）——不依赖任何混合幂等假设，从结构上杜绝重叠加深。
                 const drawJobs = this._mergeShadowJobsIntoClusters(shadowJobs, frameTheta);
                 for (const job of drawJobs) {
-                    layer.fillStyle(0x000000, 1);
+                    layer.fillStyle(0x000000, job.opacity);
                     layer.fillPoints(job.hull, true);
                 }
-                layer.setAlpha(layerOpacity);
+                // 各个互不相交的簇可保留自己的透明度；相交簇在合并时取最大值。
+                layer.setAlpha(1);
                 this._structureShadowJobCount = shadowJobs.length;
                 this._structureShadowLayerOpacity = layerOpacity;
+                this._structureShadowOpacitySignature = opacitySignature;
+                this._structureShadowRenderedVisibilityRevision = this._structureShadowVisibilityRevision || 0;
             }
             layer.setVisible(!isMapMode && layerOpacity > 0.001);
         }
@@ -7654,11 +7731,24 @@ export class GameScene extends Scene {
         for (const p of polyA) if (pip(polyB, p)) return true;
         for (const p of polyB) if (pip(polyA, p)) return true;
         const segCross = (a1, a2, b1, b2) => {
-            const d = (a2.x - a1.x) * (b2.y - b1.y) - (a2.y - a1.y) * (b2.x - b1.x);
-            if (Math.abs(d) < 1e-9) return false;
-            const t = ((b1.x - a1.x) * (b2.y - b1.y) - (b1.y - a1.y) * (b2.x - b1.x)) / d;
-            const u = ((b1.x - a1.x) * (a2.y - a1.y) - (b1.y - a1.y) * (a2.x - a1.x)) / d;
-            return t >= 0 && t <= 1 && u >= 0 && u <= 1;
+            const EPSILON = 1e-7;
+            const orient = (p, q, r) =>
+                (q.x - p.x) * (r.y - p.y) - (q.y - p.y) * (r.x - p.x);
+            const onSegment = (p, q, r) =>
+                q.x >= Math.min(p.x, r.x) - EPSILON
+                && q.x <= Math.max(p.x, r.x) + EPSILON
+                && q.y >= Math.min(p.y, r.y) - EPSILON
+                && q.y <= Math.max(p.y, r.y) + EPSILON;
+            const o1 = orient(a1, a2, b1);
+            const o2 = orient(a1, a2, b2);
+            const o3 = orient(b1, b2, a1);
+            const o4 = orient(b1, b2, a2);
+            if (((o1 > EPSILON && o2 < -EPSILON) || (o1 < -EPSILON && o2 > EPSILON))
+                && ((o3 > EPSILON && o4 < -EPSILON) || (o3 < -EPSILON && o4 > EPSILON))) return true;
+            if (Math.abs(o1) <= EPSILON && onSegment(a1, b1, a2)) return true;
+            if (Math.abs(o2) <= EPSILON && onSegment(a1, b2, a2)) return true;
+            if (Math.abs(o3) <= EPSILON && onSegment(b1, a1, b2)) return true;
+            return Math.abs(o4) <= EPSILON && onSegment(b1, a2, b2);
         };
         for (let i = 0; i < polyA.length; i++) {
             const a1 = polyA[i];
@@ -7702,6 +7792,7 @@ export class GameScene extends Scene {
             footprintVertices: verts.map((p) => ({ x: p.x, y: p.y })),
             height: measuredHeight,
             maxOffset: Math.max(43, measuredHeight * 0.5),
+            opacity: entity.shadow?.opacity ?? entity._cfg?.shadow?.opacity,
             depth: (Number(entity._faceDepth) || entity.y) - 0.1,
             visible: true,
         };
@@ -7777,6 +7868,7 @@ export class GameScene extends Scene {
             footprintVertices: allVerts,
             height: effectiveHeight,
             maxOffset: Math.max(43, effectiveHeight * 0.5),
+            opacity: entity.shadow?.opacity ?? entity._cfg?.shadow?.opacity,
             depth: (Number(sp0?.depth) || entity.y) - 0.1,
             visible: sp0 ? sp0.visible : true,
             _silCache: null,
@@ -7883,6 +7975,9 @@ export class GameScene extends Scene {
                 shadowCasterSource: caster?.source || (isCover ? 'cover_footprint' : 'placement_fallback'),
                 height: effectiveHeight,
                 maxOffset: effectiveMaxOffset,
+                opacity: entity.shadow?.opacity
+                    ?? entity.config?.render?.shadow?.opacity
+                    ?? entity._cfg?.shadow?.opacity,
                 depth: sprite.depth - 0.1,
                 visible: sprite.visible,
                 _silCache: isCover ? null : silCache,

@@ -19,6 +19,7 @@ import { isoFootprintVertices } from '../physics/iso-footprint.js';
 import { TechnologyGate } from './technology-gate.js';
 import { FogOfWarSystem } from '../world/fog-of-war-system.js';
 import { canExploreScene } from '../config/explorer-rewards.js';
+import { getHamsterUnitIcon } from '../config/hamster-unit-icons.js';
 
 const DRAG_THRESHOLD = 6; // 屏幕 px：超过判定为拖框
 const PERSISTENT_WORLDS = new Set(['scene8', 'scene9', 'scene10', 'scene11']);
@@ -1570,9 +1571,9 @@ export const RTSCommand = {
                     <span class="rts-up-type">出兵建筑</span>
                 </div>
                 <div class="rts-up-row"><span>HP</span><div class="rts-up-track"><div class="rts-up-fill" data-ref="hpFill" style="background:#e04a3a;"></div></div><span class="rts-up-num" data-ref="hp"></span></div>
-                <div data-ref="unitType" style="margin-top:9px;color:#c7d0dc;font-size:12px;"></div>
-                <div data-ref="rally" style="margin-top:8px;color:#f0cf78;font-size:12px;line-height:1.5;"></div>
-                <div data-ref="hint" style="margin-top:7px;color:#8f9bad;font-size:11px;"></div>`;
+                <div class="rts-up-producer-unit" data-ref="unitType"></div>
+                <div class="rts-up-rally" data-ref="rally"></div>
+                <div class="rts-up-hint" data-ref="hint"></div>`;
             const attr = (key) => this._panel.querySelector(`[data-ref="${key}"]`);
             this._dom = {
                 producer: true,
@@ -1586,19 +1587,34 @@ export const RTSCommand = {
             return;
         }
         if (this._selection.length > 1) {
-            this._panel.innerHTML = `<div class="rts-up-head"><span class="rts-up-name" data-ref="count"></span></div>
-                <div class="rts-up-multi" data-ref="multi"></div>`;
+            this._panel.innerHTML = `
+                <div class="rts-up-head rts-up-head--multi">
+                    <div class="rts-up-heading-copy">
+                        <span class="rts-up-kicker">指挥编组</span>
+                        <span class="rts-up-name">已选单位</span>
+                    </div>
+                    <span class="rts-up-count-badge" data-ref="count"></span>
+                </div>
+                <div class="rts-up-multi" data-ref="multi"></div>
+                <div class="rts-up-surface-summary" data-ref="surface" hidden></div>`;
             this._dom = {
                 count: this._panel.querySelector('[data-ref="count"]'),
                 multi: this._panel.querySelector('[data-ref="multi"]'),
+                surface: this._panel.querySelector('[data-ref="surface"]'),
+                multiSig: '',
             };
             return;
         }
         this._panel.innerHTML = `
-            <div class="rts-up-head">
-                <span class="rts-up-name" data-ref="name"></span>
-                <span class="rts-up-lv" data-ref="lv"></span>
-                <span class="rts-up-type" data-ref="type"></span>
+            <div class="rts-up-head rts-up-head--identity">
+                <img class="rts-up-icon" data-ref="icon" alt="" draggable="false" hidden>
+                <div class="rts-up-heading-copy">
+                    <div class="rts-up-title-line">
+                        <span class="rts-up-name" data-ref="name"></span>
+                        <span class="rts-up-lv" data-ref="lv"></span>
+                    </div>
+                    <span class="rts-up-type" data-ref="type"></span>
+                </div>
             </div>
             <div class="rts-up-row"><span>HP</span><div class="rts-up-track"><div class="rts-up-fill" data-ref="hpFill" style="background:#e04a3a;"></div></div><span class="rts-up-num" data-ref="hp"></span></div>
             <div class="rts-up-row"><span>MP</span><div class="rts-up-track"><div class="rts-up-fill" data-ref="mpFill" style="background:#3a7fe0;"></div></div><span class="rts-up-num" data-ref="mp"></span></div>
@@ -1613,7 +1629,8 @@ export const RTSCommand = {
         const q = (r) => this._panel.querySelector(r);
         const attr = (k) => q(`[data-ref="${k}"]`);
         this._dom = {
-            name: attr('name'), lv: attr('lv'), type: attr('type'),
+            identity: q('.rts-up-head--identity'),
+            icon: attr('icon'), name: attr('name'), lv: attr('lv'), type: attr('type'),
             hpFill: attr('hpFill'), hp: attr('hp'),
             mpFill: attr('mpFill'), mp: attr('mp'),
             stats: {
@@ -1685,7 +1702,33 @@ export const RTSCommand = {
             const unitName = typeof producer.unitName === 'function'
                 ? producer.unitName(producer.unitType)
                 : producer.unitType;
-            this._dom.unitType.textContent = `当前出兵：${unitName || '未配置'}`;
+            const unitTypeKey = `${producer.unitType || ''}:${unitName || ''}`;
+            if (this._dom.unitTypeKey !== unitTypeKey) {
+                const label = document.createElement('span');
+                label.className = 'rts-up-producer-label';
+                label.textContent = '当前出兵';
+                const iconPath = getHamsterUnitIcon(producer.unitType);
+                const name = document.createElement('strong');
+                name.textContent = unitName || '未配置';
+                const children = [label];
+                if (iconPath) {
+                    const icon = document.createElement('img');
+                    icon.className = 'rts-up-producer-icon';
+                    icon.src = iconPath;
+                    icon.alt = '';
+                    icon.draggable = false;
+                    children.push(icon);
+                } else {
+                    const fallback = document.createElement('span');
+                    fallback.className = 'rts-up-producer-icon rts-up-producer-icon--fallback';
+                    fallback.textContent = '◆';
+                    fallback.setAttribute('aria-hidden', 'true');
+                    children.push(fallback);
+                }
+                children.push(name);
+                this._dom.unitType.replaceChildren(...children);
+                this._dom.unitTypeKey = unitTypeKey;
+            }
             this._dom.rally.textContent = rally
                 ? `独立集结：(${Math.round(rally.x)}, ${Math.round(rally.y)}) · 优先于全局兵线`
                 : '独立集结：未设置（沿用左侧兵线控制）';
@@ -1695,19 +1738,60 @@ export const RTSCommand = {
             return;
         }
         if (this._selection.length > 1) {
-            this._dom.count.textContent = `已选择 ${this._selection.length} 个单位`;
+            this._dom.count.textContent = String(this._selection.length);
             // 按单位类型分组统计。
             const groups = new Map();
             for (const s of this._selection) {
                 const e = s.ref;
+                const unitKind = s.kind === 'ally' ? getUnitKind(e) : '';
                 const label = s.kind === 'ally'
                     ? (e.name || e.title || '友军')
                     : (e.name || e.type || '敌人');
-                groups.set(label, (groups.get(label) || 0) + 1);
+                const groupKey = `${s.kind}:${unitKind || label}`;
+                const group = groups.get(groupKey) || {
+                    label,
+                    count: 0,
+                    iconPath: getHamsterUnitIcon(unitKind),
+                    fallback: s.kind === 'enemy' ? '!' : '◆',
+                };
+                group.count += 1;
+                groups.set(groupKey, group);
             }
-            this._dom.multi.textContent = Array.from(groups.entries())
-                .map(([label, n]) => `${label} ×${n}`)
-                .join(' · ');
+            const groupList = Array.from(groups.values());
+            const multiSig = groupList
+                .map((group) => `${group.label}:${group.count}:${group.iconPath}`)
+                .join('|');
+            if (this._dom.multiSig !== multiSig) {
+                const fragment = document.createDocumentFragment();
+                for (const group of groupList) {
+                    const row = document.createElement('div');
+                    row.className = 'rts-up-multi-item';
+                    if (group.iconPath) {
+                        const icon = document.createElement('img');
+                        icon.className = 'rts-up-multi-icon';
+                        icon.src = group.iconPath;
+                        icon.alt = '';
+                        icon.draggable = false;
+                        row.appendChild(icon);
+                    } else {
+                        const fallback = document.createElement('span');
+                        fallback.className = 'rts-up-multi-icon rts-up-multi-icon--fallback';
+                        fallback.textContent = group.fallback;
+                        fallback.setAttribute('aria-hidden', 'true');
+                        row.appendChild(fallback);
+                    }
+                    const name = document.createElement('span');
+                    name.className = 'rts-up-multi-name';
+                    name.textContent = group.label;
+                    const count = document.createElement('strong');
+                    count.className = 'rts-up-multi-count';
+                    count.textContent = `×${group.count}`;
+                    row.append(name, count);
+                    fragment.appendChild(row);
+                }
+                this._dom.multi.replaceChildren(fragment);
+                this._dom.multiSig = multiSig;
+            }
             const surfaceGroups = new Map();
             for (const s of this._selection) {
                 const kind = s.ref?._surfaceKind || ((Number(s.ref?.z) || 0) > 1 ? 'elevated' : 'ground');
@@ -1720,12 +1804,28 @@ export const RTSCommand = {
                 const surfaceText = Array.from(surfaceGroups.entries())
                     .map(([label, n]) => `${label} ×${n}`)
                     .join(' · ');
-                this._dom.multi.textContent += ` · 层级：${surfaceText}`;
+                this._dom.surface.textContent = `所在层级 · ${surfaceText}`;
+                this._dom.surface.hidden = false;
+            } else {
+                this._dom.surface.textContent = '';
+                this._dom.surface.hidden = true;
             }
             return;
         }
-        const st = this._readStats(this._selection[0].ref);
+        const selected = this._selection[0];
+        const st = this._readStats(selected.ref);
         const d = this._dom;
+        const iconPath = selected.kind === 'ally'
+            ? getHamsterUnitIcon(getUnitKind(selected.ref))
+            : '';
+        d.identity.classList.toggle('rts-up-head--no-icon', !iconPath);
+        if (iconPath) {
+            if (d.icon.src !== new URL(iconPath, document.baseURI).href) d.icon.src = iconPath;
+            d.icon.hidden = false;
+        } else {
+            d.icon.hidden = true;
+            d.icon.removeAttribute('src');
+        }
         d.name.textContent = st.name;
         d.lv.textContent = `Lv.${st.level}`;
         d.type.textContent = st.type;

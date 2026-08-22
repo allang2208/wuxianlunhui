@@ -11,6 +11,7 @@ import { createGoldItem, routeProducedGold as routeBankGold } from './economy-go
 import { WorkshopEconomySystem } from './workshop-economy-system.js';
 import { BankEconomySystem } from './bank-economy-system.js';
 import { CrossPlaneResourceSystem } from './cross-plane-resource-system.js';
+import { TechnologySystem } from './technology-system.js';
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 
@@ -230,11 +231,21 @@ export const PopulationEconomySystem = {
             .find((entry) => entry.level === targetLevel) || null;
     },
 
+    getHouseUpgradeLockReason(building) {
+        const next = this.getHouseUpgrade(building);
+        const unlockId = next?.technologyUnlockId;
+        if (!unlockId || TechnologySystem.isUnlocked('upgrade', unlockId)) return '';
+        const technologyName = TechnologySystem.getUnlockRequirementLabel('upgrade', unlockId);
+        return `需要先完成科技：${technologyName || unlockId}`;
+    },
+
     startHouseUpgrade(building) {
         if (building?._economyType !== 'housing') return { ok: false, reason: '该建筑不是房屋' };
         if (building._economyUpgrade) return { ok: false, reason: '房屋正在升级' };
         const next = this.getHouseUpgrade(building);
         if (!next) return { ok: false, reason: '房屋已达到最高等级' };
+        const lockReason = this.getHouseUpgradeLockReason(building);
+        if (lockReason) return { ok: false, reason: lockReason };
         const cost = next.upgradeCost || {};
         const payment = payBuildingUpgradeCost(cost);
         if (!payment.ok) return payment;

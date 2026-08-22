@@ -22,6 +22,7 @@ import hamsterLightCavalryConfig from '../../../data/hamster-light-cavalry-confi
 import hamsterExplorerConfig from '../../../data/hamster-explorer-config.json';
 import hamsterBountyHunterConfig from '../../../data/hamster-bounty-hunter-config.json';
 import populationEconomyConfig from '../../../data/population-economy.json';
+import producerBuildingsConfig from '../../../data/producer-buildings.json';
 
 export class BootScene extends Scene {
     constructor() {
@@ -323,6 +324,14 @@ export class BootScene extends Scene {
         this.load.image('house_lv2', 'assets/terrain/house_lv2.png');
         this.load.image('house_lv3', 'assets/terrain/house_lv3.png');
         this.load.image('wheat_windmill', 'assets/terrain/wheat_windmill.png');
+        const windmillAnimation = producerBuildingsConfig.wheat_windmill?.animation;
+        if (windmillAnimation?.textureKey && windmillAnimation?.assetPath) {
+            this.load.spritesheet(windmillAnimation.textureKey, windmillAnimation.assetPath, {
+                frameWidth: windmillAnimation.frameWidth,
+                frameHeight: windmillAnimation.frameHeight,
+                endFrame: (windmillAnimation.frameCount || 1) - 1,
+            });
+        }
         this.load.image('bank', 'assets/terrain/bank.png');
         this.load.image('market', 'assets/terrain/market.png');
         this.load.image('economic_workshop', 'assets/terrain/economic_workshop.png');
@@ -691,6 +700,19 @@ export class BootScene extends Scene {
                 frames: this.anims.generateFrameNumbers(key, { start, end }),
                 frameRate: def.frameRate || 12,
                 repeat: def.repeat !== undefined ? def.repeat : -1,
+            });
+        }
+        // 麦田风车主体动画：动画键与纹理键保持一致，复用中立建筑现有自动播放约定。
+        const windmillAnimation = producerBuildingsConfig.wheat_windmill?.animation;
+        if (windmillAnimation?.textureKey && !this.anims.exists(windmillAnimation.textureKey)) {
+            this.anims.create({
+                key: windmillAnimation.textureKey,
+                frames: this.anims.generateFrameNumbers(windmillAnimation.textureKey, {
+                    start: 0,
+                    end: (windmillAnimation.frameCount || 1) - 1,
+                }),
+                frameRate: windmillAnimation.frameRate || 8.7,
+                repeat: windmillAnimation.repeat ?? -1,
             });
         }
         // 工坊岗位的仓鼠工程师同样只注册 worker_ 动画，不进入实体、物理或友军链。

@@ -137,6 +137,10 @@
 
 `src/entities/components/bolt-skill-system.js` 基类（凝聚悬浮→发射→直线飞行预判/撞墙/命中统一流程），差异全部 kind 配置驱动：fields（状态字段名，GameScene/快捷栏按现有字段读取不可改）/ makeProjectiles / anim / trail / onImpact / onMaxRange。`fireball-system.js`/`ice-spike-system.js` 降为 ~120 行 kind 封装（-516 行）。**注意：命中循环不 break——冰锥同帧多目标结算是原版行为（准穿透），新 kind 的 onImpact 自行处置投射物 active。**新法系技能 = 写一份 kind 配置即可。
 
+- **火球爆炸音效（2026-08-22）**：路径由双份 `skills.json#fireball.sounds.hit` 配置；
+  在火球 `onImpact` 完成爆炸结算后播放，直接命中、撞墙和达到最大射程的空爆都响。
+  同一颗火球依靠 `flyActive` 守卫只结算并播放一次，禁止提前绑到发射阶段。
+
 #### 高架法系特效深度（2026-08-20，火球/冰锥墙顶遮挡修复）
 
 - **物理坐标与显示坐标分离**：弹体、尾迹和命中特效的显示 Y 可以使用

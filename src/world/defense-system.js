@@ -310,7 +310,7 @@ export const DEFENSE_CONFIG = {
     tower: {
         hp: 1400, radius: TWO_BY_TWO_BUILDING_FOOT.collisionRadius, def: 70, mdef: 70,
         // 摧毁后重建 / 出售（2026-08-14）：重建 = 原建造能源价；出售返还 50% 建造能源
-        rebuildCost: 300,
+        rebuildCost: 1000,
         sellRefundRatio: 0.5,
         // 六维芯片（2026-08-16 重构：取代原塔等级，与改造模块并存）：
         // - 芯片属性初始 base、单项上限 max；升级属性本身不加攻击，
@@ -3054,7 +3054,7 @@ class DefenseTowerPanel extends BasePanel {
             sellBtn.style.display = '';
             const durability = Math.max(0, Math.min(1,
                 Number(t.hp) / Math.max(1, Number(t.maxHp) || 1)));
-            const refund = Math.floor((t._buildCost ?? DEFENSE_CONFIG.tower.rebuildCost ?? 300)
+            const refund = Math.floor((t._buildCost ?? DEFENSE_CONFIG.tower.rebuildCost ?? 1000)
                 * (DEFENSE_CONFIG.tower.sellRefundRatio ?? 0.5) * durability);
             sellBtn.title = `出售返还 ${refund} 能源（武器归还背包）`;
             sellBtn.onclick = () => {
@@ -5705,7 +5705,7 @@ export const DefenseSystem = {
         if (!tower || tower.active === false) return { ok: false, reason: '防御塔已被摧毁' };
         const durability = Math.max(0, Math.min(1,
             Number(tower.hp) / Math.max(1, Number(tower.maxHp) || 1)));
-        const refund = Math.floor((tower._buildCost ?? DEFENSE_CONFIG.tower.rebuildCost ?? 300)
+        const refund = Math.floor((tower._buildCost ?? DEFENSE_CONFIG.tower.rebuildCost ?? 1000)
             * (DEFENSE_CONFIG.tower.sellRefundRatio ?? 0.5) * durability);
         if (!EnergyManager || !EnergyManager.canStore(refund)) {
             return { ok: false, reason: '仓库空间不足，无法接收出售返还能源' };

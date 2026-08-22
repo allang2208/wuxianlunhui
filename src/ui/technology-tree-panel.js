@@ -10,12 +10,14 @@ const CARD_W = 210;
 const CARD_H = 88;
 const COL_GAP = 80;
 const LANE_GAP = 22;
-const BRANCH_BASE = { '工程': 64, '军事': 430, '指挥': 846 };
+const CARD_ORIGIN_X = 52;
+const CARD_ORIGIN_Y = 74;
+const BRANCHES = Object.freeze(['工程', '军事指挥', '经济与位面', '位面独特科技']);
 
 function positionOf(node) {
     return {
-        x: 52 + (Number(node.column) || 0) * (CARD_W + COL_GAP),
-        y: (BRANCH_BASE[node.branch] || 64) + (Number(node.lane) || 0) * (CARD_H + LANE_GAP),
+        x: CARD_ORIGIN_X + (Number(node.column) || 0) * (CARD_W + COL_GAP),
+        y: CARD_ORIGIN_Y + (Number(node.lane) || 0) * (CARD_H + LANE_GAP),
     };
 }
 
@@ -45,6 +47,7 @@ function researchModeLabel(mode) {
 export const TechnologyTreePanel = {
     _el: null,
     _selectedId: null,
+    _selectedBranch: BRANCHES[0],
     _initialized: false,
     _open: false,
     _pausedByPanel: false,
@@ -76,15 +79,16 @@ export const TechnologyTreePanel = {
 
     open() {
         this.init();
-        if (this.isOpen) return;
-        if (!Game?.isRunning) return;
+        if (this.isOpen || !Game?.isRunning) return;
         this._open = true;
         this._ensureElement();
-        this._selectedId = TechnologySystem.state.targetTechId
-            || TechnologySystem.state.activeTechId
-            || TechnologySystem.getAvailableNodes()[0]?.id
-            || TechnologySystem.getNodes()[0]?.id
+        const initial = TechnologySystem.getNode(TechnologySystem.state.targetTechId)
+            || TechnologySystem.getNode(TechnologySystem.state.activeTechId)
+            || TechnologySystem.getAvailableNodes()[0]
+            || TechnologySystem.getTreeNodes()[0]
             || null;
+        this._selectedId = initial?.id || null;
+        this._selectedBranch = BRANCHES.includes(initial?.branch) ? initial.branch : BRANCHES[0];
         this.render();
         this._pausedByPanel = !Game._paused;
         if (this._pausedByPanel) {
@@ -137,6 +141,7 @@ export const TechnologyTreePanel = {
                 <div class="technology-tree-summary" data-role="summary"></div>
                 <button class="technology-tree-close" type="button" aria-label="关闭科技树" title="关闭 (ESC)">×</button>
             </header>
+            <nav class="technology-tree-branch-tabs" data-role="branches" aria-label="科技分支"></nav>
             <div class="technology-tree-body">
                 <div class="technology-tree-viewport">
                     <div class="technology-tree-canvas" data-role="canvas"></div>
@@ -147,9 +152,54 @@ export const TechnologyTreePanel = {
         this._el = mountRightSidebarPanel(panel, 'modal', { bringToFront: true });
     },
 
+    _nodesForBranch(branch) {
+        const baseNodes = TechnologySystem.getTreeNodes().filter((node) => node.branch === branch);
+        if (branch !== '位面独特科技') return baseNodes;
+        return TechnologySystem.getPlaneResearchNodes();
+    },
+
+    _selectBranch(branch) {
+        if (!BRANCHES.includes(branch) || branch === this._selectedBranch) return;
+        this._selectedBranch = branch;
+        const nodes = this._nodesForBranch(branch);
+        const preferred = nodes.find((node) => node.id === TechnologySystem.state.targetTechId)
+            || nodes.find((node) => node.id === TechnologySystem.state.activeTechId)
+            || nodes.find((node) => TechnologySystem.isAvailable(node.id))
+            || nodes[0]
+            || null;
+        this._selectedId = preferred?.id || null;
+        this.render();
+    },
+
+    _renderBranchTabs() {
+        const tabs = this._el?.querySelector('[data-role="branches"]');
+        if (!tabs) return;
+        tabs.innerHTML = BRANCHES.map((branch) => {
+            const nodes = this._nodesForBranch(branch);
+            const completed = nodes.filter((node) => TechnologySystem.isCompleted(node.id)).length;
+            const active = nodes.some((node) => node.id === TechnologySystem.state.activeTechId);
+            return `<button type="button" class="technology-tree-branch-tab${branch === this._selectedBranch ? ' active' : ''}" data-branch="${escapeHtml(branch)}">
+                <span>${escapeHtml(branch)}</span>
+                <small>${completed}/${nodes.length}${active ? ' · 研发中' : ''}</small>
+            </button>`;
+        }).join('');
+        tabs.querySelectorAll('[data-branch]').forEach((button) => {
+            button.addEventListener('click', () => this._selectBranch(button.dataset.branch));
+        });
+    },
+
     render() {
         if (!this._el) return;
-        const nodes = TechnologySystem.getNodes();
+        const nodes = this._nodesForBranch(this._selectedBranch);
+        if (!nodes.some((node) => node.id === this._selectedId)) {
+            this._selectedId = nodes.find((node) => node.id === TechnologySystem.state.targetTechId)?.id
+                || nodes.find((node) => node.id === TechnologySystem.state.activeTechId)?.id
+                || nodes.find((node) => TechnologySystem.isAvailable(node.id))?.id
+                || nodes[0]?.id
+                || null;
+        }
+        this._renderBranchTabs();
+
         const active = TechnologySystem.getNode(TechnologySystem.state.activeTechId);
         const instituteCount = TechnologySystem.lastInstituteCount || this._countLiveInstitutes();
         const rate = instituteCount * (Number(TechnologySystem.config.pointsPerInstitutePerSecond) || 0);
@@ -173,11 +223,14 @@ export const TechnologyTreePanel = {
         if (!canvas) return;
         const selectedPath = new Set(TechnologySystem.getDependencyPath(this._selectedId, { includeCompleted: true }));
         const queueIndex = new Map(queue.map((id, index) => [id, index + 1]));
+        const visibleIds = new Set(nodes.map((node) => node.id));
         const maxColumn = Math.max(0, ...nodes.map((node) => Number(node.column) || 0));
+        const maxLane = Math.max(0, ...nodes.map((node) => Number(node.lane) || 0));
         canvas.style.width = `${100 + (maxColumn + 1) * (CARD_W + COL_GAP)}px`;
-        canvas.style.height = '1230px';
+        canvas.style.height = `${Math.max(420, CARD_ORIGIN_Y + (maxLane + 1) * (CARD_H + LANE_GAP) + 40)}px`;
 
         const lines = nodes.flatMap((node) => (node.prerequisites || []).map((requiredId) => {
+            if (!visibleIds.has(requiredId)) return '';
             const from = TechnologySystem.getNode(requiredId);
             if (!from) return '';
             const a = positionOf(from);
@@ -206,7 +259,8 @@ export const TechnologyTreePanel = {
                 : queuedAt ? `队列 ${queuedAt}` : available ? '可研究' : '前置未满足';
             const pathClass = selectedPath.has(node.id) ? ' path-node' : '';
             const targetClass = TechnologySystem.state.targetTechId === node.id ? ' path-target' : '';
-            return `<button type="button" class="technology-card ${stateClass}${worldMasked ? ' world-masked' : ''}${this._selectedId === node.id ? ' selected' : ''}${pathClass}${targetClass}"
+            const crossPrerequisite = (node.prerequisites || []).some((id) => !visibleIds.has(id));
+            return `<button type="button" class="technology-card ${stateClass}${worldMasked ? ' world-masked' : ''}${node.section === 'plane' ? ' plane-research' : ''}${crossPrerequisite ? ' cross-prerequisite' : ''}${this._selectedId === node.id ? ' selected' : ''}${pathClass}${targetClass}"
                 data-tech-id="${escapeHtml(node.id)}" style="left:${pos.x}px;top:${pos.y}px">
                 ${queuedAt ? `<span class="technology-card-queue-index">${queuedAt}</span>` : ''}
                 <span class="technology-card-icon">${node.icon || '◆'}</span>
@@ -215,9 +269,11 @@ export const TechnologyTreePanel = {
             </button>`;
         }).join('');
 
-        const labels = Object.entries(BRANCH_BASE).map(([branch, top]) =>
-            `<div class="technology-branch-label" style="top:${top - 38}px">${branch}科技</div>`).join('');
-        canvas.innerHTML = `<svg class="technology-links" width="100%" height="100%">${lines}</svg>${labels}${cards}`;
+        const sectionTitle = this._selectedBranch === '位面独特科技'
+            ? this._selectedBranch
+            : `${this._selectedBranch}科技`;
+        const label = `<div class="technology-section-label${this._selectedBranch === '位面独特科技' ? ' plane' : ''}" style="top:28px">${escapeHtml(sectionTitle)}</div>`;
+        canvas.innerHTML = `<svg class="technology-links" width="100%" height="100%">${lines}</svg>${label}${cards}`;
         canvas.querySelectorAll('[data-tech-id]').forEach((card) => {
             card.addEventListener('click', () => {
                 this._selectedId = card.dataset.techId;
@@ -250,18 +306,18 @@ export const TechnologyTreePanel = {
                 <div class="technology-detail-icon">▦</div>
                 <div class="technology-detail-branch">未知位面科技</div>
                 <h3>资料受到位面干扰</h3>
-                <p>完成对应地牢并解锁该位面后，科技项目才会解除马赛克并允许研究。</p>
+                <p>解锁对应位面后，该科技项目才会解除马赛克并允许查看与研究。</p>
                 <button class="technology-research-button" type="button" disabled>位面尚未解锁</button>`;
             return;
         }
         detail.innerHTML = `
             <div class="technology-detail-icon">${node.icon || '◆'}</div>
-            <div class="technology-detail-branch">${escapeHtml(node.branch)}科技</div>
+            <div class="technology-detail-branch">${escapeHtml(node.section === 'plane' ? '位面独特科技' : `${node.branch}科技`)}</div>
             <h3>${escapeHtml(node.name)}</h3>
             <p>${escapeHtml(node.description)}</p>
             <div class="technology-detail-progress"><span><i style="width:${completed ? 100 : (progress / node.researchCost) * 100}%"></i></span><b>${completed ? '已完成' : `${Math.floor(progress)} / ${node.researchCost}`}</b></div>
             <h4>前置科技</h4>
-            <div class="technology-detail-prerequisites">${prerequisiteNames.length ? prerequisiteNames.map(escapeHtml).join('、') : '无'}</div>
+            <div class="technology-detail-prerequisites">${prerequisiteNames.length ? prerequisiteNames.map(escapeHtml).join('、') : (node.section === 'plane' ? '对应位面已解锁' : '无')}</div>
             <h4>解锁内容</h4>
             <ul>${(node.unlocks || []).map((unlock) => `<li>${escapeHtml(unlock.label || unlock.id)}</li>`).join('')}</ul>
             <h4>研究计划</h4>

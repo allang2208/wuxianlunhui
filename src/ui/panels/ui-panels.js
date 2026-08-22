@@ -43,7 +43,10 @@ export function initUIPanels(gameContainer) {
     const systemTabs = createHudPanelsSystemTabs();
     while (systemTabs.firstChild) {
         const child = systemTabs.firstChild;
-        if (child.id === 'panelOverlay') mountRightSidebarPanel(child, 'backdrop');
+        // #panelOverlay 必须留在 uiLayer（z=10）：它是"点击面板外关闭"的遮罩，
+        // 挂到 right-sidebar 层（z=20000）会在 active 时盖住仓库/商店等 body 级 4000 面板
+        // 并吞掉全部点击（2026-08-22 实机探针定位）。
+        if (child.id === 'panelOverlay') uiLayer.appendChild(child);
         else if (child.id === 'systemPanel') mountRightSidebarPanel(child, 'panel');
         else uiLayer.appendChild(child);
     }

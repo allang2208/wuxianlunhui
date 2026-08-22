@@ -229,7 +229,7 @@ export const EnergyNodeSystem = {
                 if (e && e._isEnergyNode) Game.entities.delete(k);
             }
         }
-        // 每世代随机生成 5 个远距密集主簇，并额外生成传送门 3000px 环上的三矿保底簇。
+        // 每世代随机生成 5 个远距密集主簇，并额外生成传送门 1200px 环上的三矿保底簇。
         const layout = this._generateClusterLayout(this._portal, this._diamond);
         this._generatedClusters = layout.map(({ cells: _cells, ...cluster }) => cluster);
         for (const cl of layout) {
@@ -436,7 +436,7 @@ export const EnergyNodeSystem = {
         };
 
         // 保底簇优先占位：角度随机，随后用黄金角遍历整圈，直到找到菱形内可完整放下三矿的位置。
-        const fallbackDistance = Math.max(0, Number(cfg.fallbackPortalDistance) || 3000);
+        const fallbackDistance = Math.max(0, Number(cfg.fallbackPortalDistance) || 1200);
         const fallbackCount = Math.max(1, Math.floor(cfg.fallbackNodeCount || 3));
         const startAngle = random() * Math.PI * 2;
         const goldenAngle = Math.PI * (3 - Math.sqrt(5));
@@ -504,7 +504,7 @@ export const EnergyNodeSystem = {
 
         const fallbackPlaced = accepted.some((cluster) => cluster.kind === 'fallback');
         const majorPlaced = accepted.filter((cluster) => cluster.kind === 'major').length;
-        if (!fallbackPlaced) console.warn('[EnergyNodeSystem] 传送门 3000px 保底矿簇无合法位置');
+        if (!fallbackPlaced) console.warn(`[EnergyNodeSystem] 传送门 ${fallbackDistance}px 保底矿簇无合法位置`);
         if (majorPlaced !== majorCount) {
             console.warn(`[EnergyNodeSystem] 主矿簇仅生成 ${majorPlaced}/${majorCount}`);
         }

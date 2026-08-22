@@ -55,10 +55,10 @@
     "moduleUpgrade": { "gold": 1000, "energy": 500 },
     "modules": {
       "mining": { "name": "采矿效率", "icon": "⛏️", "iconImage": "assets/ui/building-upgrades/mining-efficiency.png", "effect": "miningMult", "per": 0.06, "maxLevel": 10, "energyByLevel": [250, 300, 350, 400, 450, 500, 575, 650, 725, 800], "desc": "采矿攻击力 +{pct}%" },
-      "attackSpd": { "name": "攻击加速", "icon": "⚡", "iconImage": "assets/ui/building-upgrades/attack-speed.png", "effect": "attackIntervalMult", "per": -0.01, "maxLevel": 10, "desc": "攻击间隔 -{pct}%" },
-      "damage": { "name": "攻击强化", "icon": "⚔️", "iconImage": "assets/ui/building-upgrades/attack-damage.png", "effect": "attackDamageMult", "per": 0.015, "maxLevel": 10, "desc": "每次攻击伤害 +{pct}%" },
+      "attackSpd": { "name": "工作加速", "icon": "⚡", "iconImage": "assets/ui/building-upgrades/attack-speed.png", "effect": "attackIntervalMult", "per": -0.01, "maxLevel": 10, "desc": "攻击间隔 -{pct}%" },
+      "damage": { "name": "采矿强化", "icon": "⚔️", "iconImage": "assets/ui/building-upgrades/attack-damage.png", "effect": "attackDamageMult", "per": 0.015, "maxLevel": 10, "desc": "每次攻击伤害 +{pct}%" },
       "moveSpd": { "name": "机动强化", "icon": "👟", "iconImage": "assets/ui/building-upgrades/mobility.png", "effect": "moveSpeedMult", "per": 0.015, "maxLevel": 10, "desc": "移动速度 +{pct}%" },
-      "count": { "name": "仓鼠增援", "icon": "🐹", "iconImage": "assets/ui/building-upgrades/hamster-reinforcement.png", "effect": "count", "mode": "add", "per": 1, "maxLevel": 2, "energyByLevel": [5000, 8000], "onUpgrade": "spawnMiner", "desc": "仓鼠矿工数量 +{value}" }
+      "count": { "name": "矿工增援", "icon": "🐹", "iconImage": "assets/ui/building-upgrades/hamster-reinforcement.png", "effect": "count", "mode": "add", "per": 1, "maxLevel": 2, "energyByLevel": [5000, 8000], "onUpgrade": "spawnMiner", "desc": "仓鼠矿工数量 +{value}" }
     }
   },
   "blacksmith_special": {

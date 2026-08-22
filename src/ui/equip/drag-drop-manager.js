@@ -23,7 +23,7 @@ export function createDragDropManager(EquipManager) {
                     _dragSrc: null,
                     _dropHandled: false,
                     _consumableDragPanelRect: null,
-                    _consumablePanelHidden: false,
+                    _quickBarLayerState: null,
 
                     init(options) {
                         this.player = options.player || null;
@@ -222,7 +222,7 @@ export function createDragDropManager(EquipManager) {
                         document.addEventListener('dragover', function _discardAllowDrop(e) {
                             if (self._dragSrc) {
                                 e.preventDefault();
-                                self._maybeHideConsumablePanel(e.clientX, e.clientY);
+                                self._maybeRaiseQuickBar(e.clientX, e.clientY);
                             }
                         });
                     },
@@ -241,43 +241,48 @@ export function createDragDropManager(EquipManager) {
                             top: rect.top,
                             bottom: rect.bottom,
                         };
-                        this._consumablePanelHidden = false;
+                        this._quickBarLayerState = null;
                     },
 
-                    _maybeHideConsumablePanel(clientX, clientY) {
+                    _maybeRaiseQuickBar(clientX, clientY) {
                         const rect = this._consumableDragPanelRect;
-                        if (!rect || this._consumablePanelHidden || (clientX === 0 && clientY === 0)) return;
+                        if (!rect || this._quickBarLayerState || (clientX === 0 && clientY === 0)) return;
                         const inside = clientX >= rect.left && clientX <= rect.right
                             && clientY >= rect.top && clientY <= rect.bottom;
                         if (inside) return;
-                        const panel = getElement('systemPanel');
-                        const overlay = getElement('panelOverlay');
-                        if (panel) {
-                            panel.dataset._wasDisplay = panel.style.display || '';
-                            panel.style.display = 'none';
-                        }
-                        if (overlay) {
-                            overlay.dataset._wasDisplay2 = overlay.style.display || '';
-                            overlay.style.display = 'none';
-                        }
-                        this._consumablePanelHidden = true;
+                        const quickBar = queryElement('.bottom-bar');
+                        const sidebarLayer = getElement('rightSidebarPanelLayer');
+                        if (!quickBar || !sidebarLayer || !quickBar.parentNode) return;
+                        this._quickBarLayerState = {
+                            element: quickBar,
+                            parent: quickBar.parentNode,
+                            nextSibling: quickBar.nextSibling,
+                            hadLayerItemClass: quickBar.classList.contains('right-sidebar-layer-item'),
+                            hadModalClass: quickBar.classList.contains('right-sidebar-layer-item--modal'),
+                        };
+                        // 快捷栏进入与背包相同的 body 级侧栏层，并使用 modal 子层盖到背包之上；
+                        // 背包与遮罩继续显示，非快捷栏区域仍由原 drop/discard 处理。
+                        quickBar.classList.add('right-sidebar-layer-item', 'right-sidebar-layer-item--modal');
+                        sidebarLayer.appendChild(quickBar);
                     },
 
-                    _restoreConsumablePanel() {
-                        if (this._consumablePanelHidden) {
-                            const panel = getElement('systemPanel');
-                            const overlay = getElement('panelOverlay');
-                            if (panel) {
-                                panel.style.display = panel.dataset._wasDisplay || '';
-                                delete panel.dataset._wasDisplay;
+                    _restoreQuickBarLayer() {
+                        const state = this._quickBarLayerState;
+                        if (state?.element && state.parent) {
+                            if (state.nextSibling?.parentNode === state.parent) {
+                                state.parent.insertBefore(state.element, state.nextSibling);
+                            } else {
+                                state.parent.appendChild(state.element);
                             }
-                            if (overlay) {
-                                overlay.style.display = overlay.dataset._wasDisplay2 || '';
-                                delete overlay.dataset._wasDisplay2;
+                            if (!state.hadLayerItemClass) {
+                                state.element.classList.remove('right-sidebar-layer-item');
+                            }
+                            if (!state.hadModalClass) {
+                                state.element.classList.remove('right-sidebar-layer-item--modal');
                             }
                         }
                         this._consumableDragPanelRect = null;
-                        this._consumablePanelHidden = false;
+                        this._quickBarLayerState = null;
                     },
 
                     bindDragToCell(cell) {
@@ -297,12 +302,12 @@ export function createDragDropManager(EquipManager) {
                                 tooltip.classList.remove('visible', 'pinned');
                                 tooltip._pinned = false;
                             }
-                            // 消耗品：记录拖拽图像与面板边界，越界后再隐藏以便投放快捷栏。
+                            // 消耗品：记录拖拽图像与面板边界，越界后仅抬高快捷栏图层。
                             const draggedItem = cell.classList.contains('inv-cell')
                                 ? self.backpackItems.find(i => i.slot === parseInt(cell.dataset.slot))
                                 : self.player.equipments[cell.dataset.slot];
                             if (draggedItem && draggedItem.category === 'consumable') {
-                                // 背包范围内保持面板可见；越界后才隐藏，方便投放到下方快捷栏。
+                                // 背包始终可见；越界后快捷栏显示在背包上方，方便投放。
                                 self._beginConsumablePanelDrag(cell, e);
                             }
                         };
@@ -314,7 +319,7 @@ export function createDragDropManager(EquipManager) {
                             }
                             self._dropHandled = false;
                             self._dragSrc = null;
-                            self._restoreConsumablePanel();
+                            self._restoreQuickBarLayer();
                         };
                         cell.ondragover = function(e) {
                             e.preventDefault();

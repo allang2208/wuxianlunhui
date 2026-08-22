@@ -21,7 +21,7 @@
   "statFormula": "enemy",
   "skills": [],
   "sounds": {
-    "attack": "assets/companions/hamster_musketeer/fire.mp3"
+    "attack": "assets/sounds/friendly/hamster_bounty_hunter_attack.mp3"
   },
   "ai": {
     "role": "ranged_bounty_hunter",

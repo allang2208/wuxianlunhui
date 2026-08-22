@@ -272,6 +272,9 @@ this._tacticalTarget = null;
 - `npc.js`：构造函数接收 `config.sprite`（→ `spriteCfg`）与 `config.wander`（→ `wanderCfg`）；游走由 `NPC._updateWander` 驱动（WallSystem.resolve 撞墙校验、`_pickWanderTarget` 可达性重试），`isMoving`/`_facingLeft` 供动画与翻转
 - `GameScene._syncNeutralEntities`：检测 `e.spriteCfg` 自动创建贴图 Sprite（idle/walk 切换、flipX、名字标签贴图顶部）；无配置回退 `neutral_circle` 纯色圆
 - 生成处（如 `game.js spawnNPC`）把 `shopCfg.sprite / shopCfg.wander` 透传进 NPC config
+- NPC 接触阴影与玩家/怪物/友军统一读取 `Collider.radius` 的水平 2:1 地面 footprint，并以
+  仲裁后的 NPC Sprite depth−0.1 绘制；`collisionShape:'rect'` 只描述躯干矩形，不能拉伸阴影。
+  `colliderOffsetX/Y` 会通过 Collider 圆心同时作用于范围红圈与阴影。
 
 #### 5. 验证
 lint / vite build / test-collider / test-config-integrity；实机验证 idle/walk 切换、朝向翻转、游走范围与停留节奏、名字标签位置。
@@ -329,6 +332,10 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
   `(bbox.bottom - frameHeight/2) × displaySize / frameHeight` 重算 `spriteOffsetY`
   （取负）与实体 `footOffsetY`（取正），并调整 `config.render.hudOffsetY`；禁止只放大
   `displaySize` 而不校准脚底/血条。
+- **兵种 UI 图标（2026-08-22）**：正式图标统一放在 `assets/ui/unit-icons/`，兵种到路径的
+  单一映射维护在 `src/config/hamster-unit-icons.js`；出兵面板、当前出兵摘要、RTS 编组与单位
+  详情都只调用 `getHamsterUnitIcon(unitKind)`。未登记的特色兵种和敌军保留文字/符号兜底，
+  禁止各面板复制路径表或用动画首帧临时充当图标。
 
 #### 2. 数据（data/hamster-miner-config.json）
 - `baseData.con` 控 HP（公式 base100 + con×10 + 每级10；con=10 → 200）。
@@ -590,9 +597,9 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
   （`_swingActive` 站定挥击状态机、`MovementSystem` 移动、卡死看门狗、无敌跟随玩家、
   RTS 命令、`_isEnergyNode` 矿点不攻击）；dying 14 帧 @12fps = 1167ms。
 - **渲染**：GameScene `_isHamsterMilitia` 并入射手/盾卫"单次播放 + 定格末帧"分支
-  （`_attackSwing` 触发），移动朝向 vx、受击白闪同款；spriteOffsetY -55 /
-  footOffsetY 55（脚底 ~350/512，displaySize 300——2026-08-17 用户反馈民兵偏小，
-  与战士/盾卫对比后 226→300 放大 1.33×）。
+  （`_attackSwing` 触发），移动朝向 vx、受击白闪同款；2026-08-22 按用户口径将
+  `displaySize` 从 300 调整为与当前仓鼠斥候相同的 460，并按脚底 ~350/512 同步使用
+  `spriteOffsetY:-84 / footOffsetY:84 / hudOffsetY:195`。碰撞半径、攻击范围与数值不随贴图放大。
 - **生成**：草屋专属（`producer-buildings.json` unitTypes + PRODUCER_UNIT_CFG/CLASS/
   unitKindOf）；2026-08-18 兵营死注册已清理（unit.militia/导入/生成分支移除，
   旧档兵营 unitType 由 spawnUnit 纠正为战士）；升级同步走 `applyBarracksUpgrades`（复用战士/盾卫模块口径）。
@@ -620,8 +627,9 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
 > 否则奔跑循环每圈播 2 帧空白 → 贴图瞬间消失）/ attacking 18 / dying 11 /
 > projective 1 帧；running 质心漂移 29px →
 > `hamster-walk-align.py --feet-y 282` 归一化（cx 跨度 0.8px）。**2026-08-17 二修**：
-> 首版 displaySize 260 用户反馈过小，与战士/盾卫/民兵对比后 260→340（idle 92×74，
-> 接近战士 81×85/盾卫 91×89 体量）。
+> 首版 displaySize 260 用户反馈过小，与战士/盾卫/民兵对比后先调至 340；当前配置后续已调整为
+> `displaySize:460 / spriteOffsetY:-23 / footOffsetY:23`，同类单位匹配尺寸时必须读取当前配置，
+> 不得继续照搬旧 340 记录。
 
 - **数据（`data/hamster-scout-config.json`）**：`baseMaxHp: 100`（con=7 公式
   100+70=170 → 100）；`statFormula:'enemy'`（力量8/敏捷13/智力3/体质7/精神3/幸运10 →
@@ -677,6 +685,9 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
 - 攻击动画固定 10.4fps，在第 9 帧（约 769ms）出膛；复用火枪 1248px/s 黄色曳光弹，
   但起点按朝向使用枪口偏移 `muzzleOffsetX=76`、`muzzleHeight=76`，墙阻挡与弹道计算也必须
   使用同一个枪口世界坐标。赏金猎人继承火枪武器入口，因此同样消费铁匠铺穿甲弹等级。
+- 专属开火音效由 `sounds.attack` 配置为
+  `assets/sounds/friendly/hamster_bounty_hunter_attack.mp3`；继承的火枪 AI 只在第 9 帧真正创建投射物后播放，
+  并走 `SoundManager.playWorld` 的位置衰减。禁止在攻击起手或逐帧动画同步中重复播放。
 - 击杀金币奖励与怪物本次正常掉落共用同一个随机底数：先算不含祭品加成的默认地牢金币，
   赏金猎人额外给玩家其 2 倍；怪物原本实际掉落及祭品金币倍率保持原结算顺序。
 - 作为正式世界战斗单位，必须登记到 troop-line 军事兵种白名单，保证跨位面编队可序列化和重建。

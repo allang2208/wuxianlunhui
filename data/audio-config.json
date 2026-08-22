@@ -8,14 +8,15 @@
   },
   "uiCues": {
     "comment": "全局系统提示音；使用 playFile + ui 声道，不做世界坐标衰减",
-    "playerUpgrade": "assets/sounds/ui/player_upgrade.mp3"
+    "playerUpgrade": "assets/sounds/ui/player_upgrade.mp3",
+    "rightSidebarPanel": "assets/sounds/ui/right_sidebar_panel.mp3"
   },
   "bgm": {
-    "comment": "场景 → BGM 音轨（循环播放，切换场景自动切换；null = 该场景无 BGM）。scene7=僵尸地牢全部（初级/中级/高级共用场景）；scene8=世界-122（旷野慢风，2026-08-16）",
+    "comment": "场景 → BGM 音轨（循环播放，切换场景自动切换；null = 该场景无 BGM）。scene7=普通僵尸地牢（初级/中级/高级共用场景）；scene8=世界-122（旷野慢风，2026-08-16）；scene11=位面僵尸地牢世界（幽洞回声，2026-08-22）",
     "main": null,
     "scene7": "assets/sounds/music/dungeon_echo.mp3",
     "scene8": "assets/sounds/music/旷野慢风.mp3",
-    "scene11": "assets/sounds/music/dungeon_echo.mp3"
+    "scene11": "assets/sounds/music/幽洞回声.wav"
   },
     "bgmCrossfadeSec": 1.5,
     "distanceAttenuation": {
