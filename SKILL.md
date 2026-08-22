@@ -176,6 +176,7 @@
 - 常见陷阱：功能失效优先查数据/配置完整性（弹药初始化同款两连）
 - 常见陷阱：anim.timer === 0（死代码）
 - 常见陷阱：const 重复声明
+- 常见陷阱：ES Module 循环依赖触发 TDZ（底层实体运行时桥）
 - 常见陷阱：四方向 facing 但仅有两方向精灵图时的翻转逻辑
 - 常见陷阱：Phaser 4 的 FX API 不是 postFX
 - 常见陷阱：Phaser 4 filters 是 per-object 渲染通道（数量多即卡）

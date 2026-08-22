@@ -27,6 +27,9 @@ import { hasRangedLineOfSight } from '../combat/ranged-line-of-sight.js';
                 const size = config.size ?? defaults.size ?? 14;
                 const name = config.name ?? defaults.name ?? '测试敌人';
                 super(x, y, { faction: 'enemy', hp, maxHp, size, collisionRadius: config.collisionRadius, name });
+                // 基类击杀结算不能反向 import Enemy，否则会形成
+                // DamageableEntity → Enemy → Combatant → DamageableEntity 的 TDZ 循环。
+                this._isEnemyEntity = true;
                 // 保存原始配置，供渲染/碰撞体系统读取
                 this.config = config;
                 // DamageableEntity 在 config 赋值前已重建 Collider，这里用完整配置再重建一次，
