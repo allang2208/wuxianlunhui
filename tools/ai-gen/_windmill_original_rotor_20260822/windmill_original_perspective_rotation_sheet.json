@@ -1,0 +1,15 @@
+{
+  "frameWidth": 1024,
+  "frameHeight": 1024,
+  "frameCount": 16,
+  "columns": 4,
+  "rows": 4,
+  "sequence": "left-to-right, top-to-bottom",
+  "sailColorScale": [
+    1.3786407766990292,
+    1.7096774193548387,
+    1.7
+  ],
+  "source": "wheat_windmill_v2_5080_s48_seed122844_raw.png",
+  "base": "windmill_no_sails_inpaint_v4.png"
+}

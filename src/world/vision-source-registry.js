@@ -1,7 +1,10 @@
 import { getTributeVisionRangeMul } from '../config/tribute-effects.js';
 import { EnvironmentLightingSystem } from './environment-lighting-system.js';
+import { World122SandstormSystem } from './world122-sandstorm-system.js';
+import { World125FogTideSystem } from './world125-fog-tide-system.js';
 
 const FRIENDLY_FACTIONS = new Set(['player', 'companion', 'ally', 'friendly']);
+const UNIT_VISION_PROFILES = new Set(['player', 'companion', 'military', 'scout', 'cavalry']);
 
 const PROFILE_CONFIG_KEYS = Object.freeze({
     player: 'player',
@@ -12,6 +15,7 @@ const PROFILE_CONFIG_KEYS = Object.freeze({
     portal: 'portal',
     troopProducer: 'troopProducer',
     defenseTower: 'defenseTower',
+    candle: 'candle',
 });
 
 const PROFILE_DEFAULTS = Object.freeze({
@@ -23,6 +27,7 @@ const PROFILE_DEFAULTS = Object.freeze({
     portal: 900,
     troopProducer: 650,
     defenseTower: 1200,
+    candle: 260,
 });
 
 function positiveNumber(value, fallback) {
@@ -171,8 +176,21 @@ export const VisionSourceRegistry = {
         radius += record?.radiusBonus || 0;
         // 黄金星象仪（2026-08-22 工艺品祭品）：所有单位基础视野 ×N（visionRangePercent 实时聚合）
         radius *= getTributeVisionRangeMul();
-        // 夜晚统一减半；使用环境光照的 daylight 真源，避免 UI 时钟与迷雾各自判断昼夜。
-        radius *= EnvironmentLightingSystem.getVisionRangeMultiplier(visionConfig);
+        // 夜晚单位与普通结构统一减半；守夜烛台自身的照明半径不受黑夜削减。
+        // 烛台范围内的单位仍由死寂雾潮倍率得到指定的夜间 ×0.45。
+        if (profile !== 'candle') {
+            radius *= EnvironmentLightingSystem.getVisionRangeMultiplier(visionConfig);
+        }
+        // 世界122沙尘暴只削减单位视野；传送门、塔和出兵建筑不属于“单位”。
+        // 单位倍率仍与夜晚、祭品和高地倍率处在同一乘算链。
+        if (UNIT_VISION_PROFILES.has(profile)) {
+            radius *= World122SandstormSystem.getVisionRangeMultiplier(this._sceneId);
+            radius *= World125FogTideSystem.getVisionRangeMultiplier(
+                entity,
+                this._sceneId,
+                visionConfig
+            );
+        }
         if (radius > 0 && entity._surfaceKind === 'wall_walk') {
             radius *= positiveNumber(visionConfig.wallWalkMultiplier, 2);
         } else if (radius > 0 && entity._surfaceKind === 'stairs') {

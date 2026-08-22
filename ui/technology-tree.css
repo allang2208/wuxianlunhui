@@ -424,42 +424,32 @@
 }
 
 .technology-card.world-masked {
-    --technology-mosaic-delay: 0s;
-    --technology-scan-delay: 0s;
+    --technology-noise-delay: 0s;
     overflow: hidden;
     isolation: isolate;
     cursor: not-allowed;
 }
 
 .technology-card.world-masked:nth-of-type(2n) {
-    --technology-mosaic-delay: -.43s;
-    --technology-scan-delay: -1.17s;
+    --technology-noise-delay: -.11s;
 }
 
 .technology-card.world-masked > * {
-    filter: blur(4px) grayscale(1);
-    opacity: .26;
+    filter: grayscale(1);
+    opacity: .08;
 }
 
 .technology-card.world-masked::before {
     content: "";
     position: absolute;
-    inset: -16px;
+    inset: -1px;
     z-index: 7;
     pointer-events: none;
-    opacity: .92;
-    background:
-        linear-gradient(135deg,
-            rgba(135, 166, 168, .24) 0 25%, transparent 25% 50%,
-            rgba(48, 67, 70, .34) 50% 75%, transparent 75% 100%) 0 0 / 30px 30px,
-        conic-gradient(from 45deg,
-            rgba(89, 110, 111, .9) 0 25%, rgba(22, 31, 33, .95) 0 50%,
-            rgba(63, 82, 84, .9) 0 75%, rgba(15, 22, 24, .96) 0) 0 0 / 14px 14px,
-        rgba(10, 14, 15, .92);
-    transform: translate3d(0, 0, 0) scale(1.04);
-    animation: technology-mosaic-phase 1.2s steps(6, end) infinite;
-    animation-delay: var(--technology-mosaic-delay);
-    will-change: transform, opacity;
+    opacity: 1;
+    background: #050505 url('/assets/ui/technology-tv-noise.svg') 0 0 / 72px 72px repeat;
+    animation: technology-tv-static .16s steps(1, end) infinite;
+    animation-delay: var(--technology-noise-delay);
+    will-change: background-position;
 }
 
 .technology-card.world-masked::after {
@@ -474,32 +464,17 @@
     font: 700 13px/1 var(--bp-font-ui);
     letter-spacing: 4px;
     text-shadow: 0 1px 4px #000;
-    background: linear-gradient(180deg,
-        transparent 0 42%, rgba(142, 225, 223, .08) 47%,
-        rgba(142, 225, 223, .2) 50%, rgba(142, 225, 223, .06) 54%,
-        transparent 60% 100%);
-    background-size: 100% 260%;
-    box-shadow: inset 0 0 18px rgba(0, 0, 0, .46);
-    animation: technology-mosaic-scan 2.4s linear infinite;
-    animation-delay: var(--technology-scan-delay);
 }
 
-@keyframes technology-mosaic-phase {
-    0%, 100% { transform: translate3d(0, 0, 0) scale(1.04); opacity: .92; }
-    16% { transform: translate3d(-3px, 2px, 0) scale(1.04); opacity: .86; }
-    33% { transform: translate3d(4px, -1px, 0) scale(1.04); opacity: .91; }
-    50% { transform: translate3d(-2px, -3px, 0) scale(1.04); opacity: .88; }
-    67% { transform: translate3d(3px, 3px, 0) scale(1.04); opacity: .93; }
-    84% { transform: translate3d(-4px, 1px, 0) scale(1.04); opacity: .87; }
+@keyframes technology-tv-static {
+    0% { background-position: 0 0; }
+    25% { background-position: -31px 17px; }
+    50% { background-position: 19px -27px; }
+    75% { background-position: -13px -9px; }
+    100% { background-position: 37px 23px; }
 }
 
-@keyframes technology-mosaic-scan {
-    from { background-position: 0 -160%; }
-    to { background-position: 0 160%; }
-}
-
-.technology-tree-panel:not(.active) .technology-card.world-masked::before,
-.technology-tree-panel:not(.active) .technology-card.world-masked::after {
+.technology-tree-panel:not(.active) .technology-card.world-masked::before {
     animation-play-state: paused;
 }
 
@@ -695,17 +670,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .technology-card.world-masked::before,
-    .technology-card.world-masked::after {
-        animation: none;
-    }
-
     .technology-card.world-masked::before {
-        transform: translate3d(0, 0, 0) scale(1.04);
-        opacity: .92;
-    }
-
-    .technology-card.world-masked::after {
-        background-position: 0 50%;
+        animation: none;
+        opacity: 1;
     }
 }

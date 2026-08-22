@@ -274,6 +274,7 @@ export const GameUIManager = {
             this.player.y = data.position.y;
         }
         EnvironmentLightingSystem.restoreTime(data.gameTime);
+        window.World122SandstormSystem?.restore?.(data.worlds?.sandstorm ?? data.world122?.sandstorm);
         // 恢复装备与背包（附魔/强化/改造数据随物品一并恢复）
         if (data.equipments) this.player.equipments = data.equipments;
         restoreUnitUpgrades(data.world122?.unitUpgrades);
@@ -339,6 +340,7 @@ export const GameUIManager = {
                 progression: window.WorldProgressionSystem?.serialize?.() || null,
                 troopLines: TroopLineSystem.serialize(),
                 invasion: window.WorldInvasionSystem?.serialize?.() || null,
+                sandstorm: window.World122SandstormSystem?.serialize?.() || null,
                 scenes: serializeWorldScenes(),
             },
         };

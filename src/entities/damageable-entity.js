@@ -1,24 +1,30 @@
 import { SoundManager } from '../ui/sound-manager.js';
-import { Game } from '../game.js';
 import { WallSystem } from '../world/wall-system.js';
-import { Renderer } from '../world/renderer.js';
 import { StatusBar } from '../ui/status-bar.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
 import { SmokeEffect } from '../effects/smoke-effect.js';
 import { LightningBoltEffect } from '../effects/lightning-bolt.js';
-import { burstParticles } from '../effects/combat-fx.js';
 import { Entity } from './entity.js';
-import { EffectManager } from '../effects/effect-manager.js';
 import { getCurrentDungeonType } from '../config/exp-system.js';
 import { DungeonRunStats } from '../world/dungeon-run-stats.js';
-import { PartySystem } from '../systems/party-system.js';
 import { BloodMistEffect, DeathEffect } from '../effects/particle-effects.js';
 import { isMachineGun, isRifle, isPistolCategory, isShotgunCategory } from '../config/gun-ammo.js';
-import { Enemy } from './enemy.js';
-import { SkillManager } from '../ui/skill-manager.js';
-import { DungeonMapSystem } from '../world/dungeon-map-system.js';
 import { COMBAT_FORMULAS } from '../config/combat-formulas.js';
-import { getTributeGoldMultiplier, getTributeKillMpHealRatio, getTributeKillHpHealRatio, getTributeMonsterDamageTakenMul, getMoonshadowConfig, rollTributeDrop, getFriendlyLifestealPercent } from '../config/tribute-effects.js';
+import {
+    DamageableGame as Game,
+    DamageableRenderer as Renderer,
+    DamageableEffectManager as EffectManager,
+    DamageablePartySystem as PartySystem,
+    DamageableSkillManager as SkillManager,
+    damageableBurstParticles as burstParticles,
+    getTributeGoldMultiplier,
+    getTributeKillMpHealRatio,
+    getTributeKillHpHealRatio,
+    getTributeMonsterDamageTakenMul,
+    getMoonshadowConfig,
+    rollTributeDrop,
+    getFriendlyLifestealPercent,
+} from './damageable-runtime.js';
 import { hasRangedLineOfSight } from '../combat/ranged-line-of-sight.js';
 import { canMeleeShareSurface } from '../combat/melee-surface.js';
 
@@ -305,12 +311,12 @@ export function isFriendlyFire(source, target) {
                 }
                 if (source && source.data) source.data.kills++;
                 const needsKillReward = source && typeof source.onEnemyKilled === 'function';
-                const enemyGoldReward = this instanceof Enemy && !this._summoned
+                const enemyGoldReward = this._isEnemyEntity === true && !this._summoned
                     && (!this._noGoldDrop || needsKillReward)
                     ? rollEnemyGoldReward(this.level, this.rank)
                     : null;
                 if (enemyGoldReward) this._defaultDungeonGoldReward = enemyGoldReward.defaultDungeon;
-                if (this instanceof Enemy && source && typeof source.onEnemyKilled === 'function') {
+                if (this._isEnemyEntity === true && source && typeof source.onEnemyKilled === 'function') {
                     source.onEnemyKilled(this);
                 }
                 EffectManager.add(new DeathEffect(this.x, this.y, this.size));
@@ -319,7 +325,7 @@ export function isFriendlyFire(source, target) {
                     EffectManager.add(new BloodMistEffect(this.x, this.y, angle + Math.PI));
                 }
                 // 掉落金币（不再掉落 G18）；召唤物（_summoned 标签）不掉金币/经验
-                if (this instanceof Enemy && !this._summoned && !this._noGoldDrop) {
+                if (this._isEnemyEntity === true && !this._summoned && !this._noGoldDrop) {
                     const goldAmount = enemyGoldReward?.actualDrop || 0;
 
                     // 祭品效果（数据驱动）：大理石 - 击杀后1秒内恢复最大生命值
@@ -338,7 +344,7 @@ export function isFriendlyFire(source, target) {
                     Game.dropItem(this.x, this.y, goldItem);
 
                     // 祭品掉落：按地牢难度分级掉落表（精英/首领必掉分表，普通怪按概率；稀有度封顶）
-                    const tributeDrop = rollTributeDrop(this.rank, (DungeonMapSystem && DungeonMapSystem.dungeonType) || null);
+                    const tributeDrop = rollTributeDrop(this.rank, getCurrentDungeonType());
                     if (tributeDrop) {
                         Game.dropItem(this.x, this.y, tributeDrop);
                     }
@@ -372,7 +378,7 @@ export function isFriendlyFire(source, target) {
                 }
                 // 防守模式（世界122）：地面金币掉落关闭（金币由 DefenseSystem 结算直接进背包），
                 // 击杀经验按 25% 发放（2026-08-15 用户要求）；侍从队同额
-                else if (this instanceof Enemy && !this._summoned && this._defenseMonster) {
+                else if (this._isEnemyEntity === true && !this._summoned && this._defenseMonster) {
                     const _expSrc = (source && source.gainExp) ? source
                         : ((source && source.source && source.source.gainExp) ? source.source : null);
                     if (_expSrc) {

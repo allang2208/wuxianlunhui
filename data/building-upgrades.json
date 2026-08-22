@@ -125,5 +125,25 @@
       "bank_mint": { "name": "印钞机", "icon": "💵", "iconImage": "assets/ui/building-upgrades/bank-mint.png", "effect": "bankGoldPerPopulation", "mode": "add", "base": 0.1, "per": 0.05, "maxLevel": 10, "desc": "每名服务人口每轮产生 {pct}% 金币" },
       "bank_service_range": { "name": "服务辐射", "icon": "📡", "iconImage": "assets/ui/building-upgrades/cast-range.png", "effect": "bankServiceRange", "mode": "add", "base": 600, "per": 50, "maxLevel": 10, "desc": "服务半径 {value}px" }
     }
+  },
+  "candle_sanctuary": {
+    "moduleUpgrade": {
+      "gold": 0,
+      "energyByLevel": [300, 450, 650, 900, 1200],
+      "timeBaseMs": 30000,
+      "timeGrowthMs": 10000
+    },
+    "modules": {
+      "candle_light_range": {
+        "name": "增幅灯芯",
+        "icon": "🕯️",
+        "effect": "candleLightRange",
+        "mode": "add",
+        "base": 260,
+        "per": 50,
+        "maxLevel": 5,
+        "desc": "本烛台照明与烛火庇护半径 {value}px"
+      }
+    }
   }
 }

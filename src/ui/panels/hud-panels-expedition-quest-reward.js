@@ -1,4 +1,3 @@
-import { QuestSystem } from '../quest-system.js';
 import { ExpeditionSystem } from '../expedition-system.js';
 import { DungeonConfig } from '../../config/dungeon-config.js';
 export function createHudPanelsExpeditionQuestReward() {
@@ -164,35 +163,6 @@ export function createHudPanelsExpeditionQuestReward() {
     expeditionBody.appendChild(expeditionMessage);
     expeditionPanel.appendChild(expeditionBody);
     root.appendChild(expeditionPanel);
-
-    // ===== 任务面板 =====
-    const questPanel = document.createElement('div');
-    questPanel.id = 'questPanel';
-    questPanel.className = 'quest-panel';
-    const questPanelHeader = document.createElement('div');
-    questPanelHeader.className = 'quest-panel-header';
-    const questPanelTitle = document.createElement('span');
-    questPanelTitle.className = 'quest-panel-title';
-    questPanelTitle.textContent = '📜 任务日志';
-    const questPanelClose = document.createElement('button');
-    questPanelClose.className = 'quest-panel-close';
-    questPanelClose.onclick = function() { QuestSystem.close(); };
-    questPanelClose.textContent = '✕';
-    questPanelHeader.appendChild(questPanelTitle);
-    questPanelHeader.appendChild(questPanelClose);
-    questPanel.appendChild(questPanelHeader);
-    const questPanelBody = document.createElement('div');
-    questPanelBody.className = 'quest-panel-body';
-    const questListCol = document.createElement('div');
-    questListCol.className = 'quest-list-col';
-    questListCol.id = 'questListCol';
-    const questDetailCol = document.createElement('div');
-    questDetailCol.className = 'quest-detail-col';
-    questDetailCol.id = 'questDetailCol';
-    questPanelBody.appendChild(questListCol);
-    questPanelBody.appendChild(questDetailCol);
-    questPanel.appendChild(questPanelBody);
-    root.appendChild(questPanel);
 
     // ===== 奖励结算面板 =====
     const rewardPanel = document.createElement('div');

@@ -219,7 +219,7 @@ export const WorldInvasionSystem = {
         const dt = Math.max(0, Number(deltaMs) || 0);
         if (!state.active) {
             state.progressMs += dt;
-            if (state.progressMs >= intervalMs() && currentScene !== 'scene7') this._startNextInvasion();
+            if (state.progressMs >= intervalMs()) this._startNextInvasion();
             return;
         }
         if (!WorldProgressionSystem.isWorldEpochCurrent(state.active.targetWorld, state.active.worldEpoch)) {
@@ -433,7 +433,8 @@ export const WorldInvasionSystem = {
             const warning = portalWarningForRatio(portalHpRatio);
             const currentScene = typeof window !== 'undefined'
                 ? window.SceneManager?.currentScene : null;
-            const dungeonPaused = currentScene === 'scene7';
+            const dungeonRunActive = typeof window !== 'undefined'
+                && !!window.SceneManager?.isDungeonRunActive?.();
             return {
                 active: true,
                 progress: portalHpRatio,
@@ -443,8 +444,9 @@ export const WorldInvasionSystem = {
                 portalMaxHp: maxHp,
                 portalHpRatio,
                 severity: warning?.severity || 'active',
-                detail: `传送门 ${Math.ceil(portalHp)}/${maxHp}${dungeonPaused ? ' · 地牢中已暂停' : ''}`,
-                canSupport: !dungeonPaused && currentScene !== state.active.targetWorld,
+                detail: `传送门 ${Math.ceil(portalHp)}/${maxHp}`,
+                // 地牢出征期间可通过世界面板观察并指挥，但玩家本体仍留在地牢，不能转移支援。
+                canSupport: !dungeonRunActive && currentScene !== state.active.targetWorld,
             };
         }
         const total = intervalMs();

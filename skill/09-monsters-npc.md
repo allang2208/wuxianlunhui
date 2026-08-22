@@ -286,14 +286,9 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
 > `src/ai/hamster-miner-ai.js` + `src/world/hamster-miner-system.js`）。
 
 #### 2026-08-21 纯视觉平民动画尺寸统一（农民/银行家/工程师）
-- 同单位不同动作素材帧内人物大小不一（银行家 running 比 idle 大 10.6%）。排查法：PIL 逐帧
-  alpha bbox 取中位高度与底边比例；姿势性增高（工程师举锤）不是变大，不要缩放。
-- 归一化配置：`population-economy.json` 每个动画加 `scale`（相对 idle 内容高比）与
-  `footRatio`（内容底边/帧高）；`civilian-visual-utils.applyCivilianAnimSize()` 在 play 时
-  按 scale 调 displaySize，并按 `originY = footRatio - (refFoot - baseOriginY)/scale`
-  逐状态修正脚底锚点（ref=idle），换动作大小一致且脚底不漂。
-- 接入点：农民 `setState` / 银行家 `syncAnimation` / 工程师 `syncWorkerAnimation`（创建路径
-  均经这些入口，无需单独处理）。
+- 方案详情见独立分卷 `skill/08b-animation-smoothing.md` 第 4 节（alpha bbox 实测法 /
+  scale+footRatio 归一化 / originY 脚底锚点修正 / 三个 play 接入点）。
+- 关键教训：姿势性增高（工程师举锤）不是变大，不要缩放；以 idle 中位高度为基准。
 
 #### 2026-08-20 友军战斗与生命周期统一
 - **六维必须真实生效**：配置 `attackDamage` 是初始六维下的基准伤害；运行时通过

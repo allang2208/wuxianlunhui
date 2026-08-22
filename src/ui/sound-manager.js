@@ -16,9 +16,11 @@
             _stepTimer: 0,
             _stepInterval: 280,
             _initialized: false,
+            _buttonClickBound: false,
 
             init() {
                 if (this._initialized) return;
+                this._bindButtonClickSound();
                 try {
                     const AudioContext = window.AudioContext || window.webkitAudioContext;
                     if (AudioContext) {
@@ -27,6 +29,26 @@
                         this._loadSavedVolumes();
                     }
                 } catch (e) { console.warn('Web Audio API 不可用:', e); }
+            },
+
+            /**
+             * 全局按钮点击反馈：捕获阶段覆盖动态面板以及会停止冒泡的业务按钮。
+             * 只响应原生按钮语义，禁用按钮不播放；路径与声道统一走 audio-config。
+             */
+            _bindButtonClickSound() {
+                if (this._buttonClickBound || typeof document === 'undefined') return;
+                this._buttonClickBound = true;
+                document.addEventListener('click', (event) => {
+                    const target = event.target;
+                    if (!(target instanceof Element)) return;
+                    const button = target.closest(
+                        'button, input[type="button"], input[type="submit"], input[type="reset"], [role="button"]'
+                    );
+                    if (!button || button.matches(':disabled, .disabled, [aria-disabled="true"], [data-disabled="true"]')
+                        || button.closest('[inert]')) return;
+                    const path = audioConfig.uiCues?.buttonClick;
+                    if (path) this.playFile(path, 1, 'ui');
+                }, true);
             },
 
             /** 读回上次设置的音量（localStorage，主音量/背景音量） */

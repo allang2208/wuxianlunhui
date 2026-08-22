@@ -124,6 +124,8 @@ export class HamsterExplorerAI {
         m.maxSpeed = 0;
         m._animState = 'idle';
         MovementSystem.update(m, dt, entities);
+        // 缓停滑行期保持 walk，防 idle 姿势滑冰
+        if (Math.hypot(m.vx || 0, m.vy || 0) > 25) m._animState = 'walk';
     }
 
     _startExploration() {
@@ -180,7 +182,10 @@ export class HamsterExplorerAI {
 
         if (!this._destination) return;
         m._tacticalTarget = this._destination;
-        m.maxSpeed = Number(this.cfg.walkSpeed) || 120;
+        // 接近目的地缓出减速（120px 内速度随距离线性衰减，ease-out 到达）
+        const walkSpeed = Number(this.cfg.walkSpeed) || 120;
+        const slow = Math.min(1, distance / 120);
+        m.maxSpeed = walkSpeed * Math.max(0.3, slow);
         m._animState = 'walk';
         MovementSystem.update(m, dt, entities);
     }

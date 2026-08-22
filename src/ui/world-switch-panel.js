@@ -85,15 +85,12 @@ export const WorldSwitchPanel = {
      *  目标 = 本体所在世界 → 返回本体（正常生成玩家 + 世界坐标记忆原位恢复）。 */
     async _travel(target) {
         if (!target || target === SceneManager.currentScene) return true;
-        if (SceneManager.isDungeonIsolationActive()) {
-            SceneManager.showDungeonIsolationNotice();
-            return false;
-        }
         if (!SceneManager.scenes?.[target]) {
             SceneManager.showTopNotification('目标世界不存在，无法切换', { color: '#ff7766' });
             return false;
         }
-        if (target !== 'main' && !WorldProgressionSystem.isPortalConstructed(target)) {
+        if (WorldProgressionSystem.getWorldConfig(target)
+            && !WorldProgressionSystem.isPortalConstructed(target)) {
             SceneManager.showTopNotification('该世界位面尚未搭建传送门', { color: '#ff7766' });
             return false;
         }
@@ -121,7 +118,7 @@ export const WorldSwitchPanel = {
 
     /** 入侵支援是明确的本体转移，不沿用世界面板的观察模式。 */
     async supportActiveInvasion() {
-        if (SceneManager.isDungeonIsolationActive()) {
+        if (SceneManager.isDungeonRunActive()) {
             SceneManager.showDungeonIsolationNotice();
             return false;
         }
@@ -162,6 +159,9 @@ export const WorldSwitchPanel = {
     },
 
     _worldName(id) {
+        if (id === 'scene7' && window.DungeonMapSystem?.active) {
+            return window.DungeonMapSystem.dungeonName || SceneManager.scenes?.scene7?.name || id;
+        }
         return SceneManager.scenes?.[id]?.name || id;
     },
 
@@ -221,13 +221,20 @@ export const WorldSwitchPanel = {
         const list = el.querySelector('#wsList');
         const current = SceneManager.currentScene;
         const home = Game._observerMode ? Game._observerHomeScene : current;
-        const visibleWorlds = WORLDS.filter((w) => w.id === 'main'
+        const candidates = SceneManager.isDungeonRunActive()
+            ? [{ id: 'scene7', icon: '🗺️', desc: '当前地牢探险' }, ...WORLDS]
+            : WORLDS;
+        const visibleWorlds = candidates.filter((w) => w.id === 'scene7' || w.id === 'main'
             || w.id === current
             || WorldProgressionSystem.isPortalConstructed(w.id));
         const worldRows = visibleWorlds.map((w) => {
             const isCurrent = current === w.id;
             const isHome = Game._observerMode && home === w.id && !isCurrent;
-            const status = w.id === 'main'
+            const status = w.id === 'scene7'
+                ? (isCurrent
+                    ? '<span class="ws-current">探险进行中</span>'
+                    : '<span class="ws-dim">地牢现场已保留，可随时返回</span>')
+                : w.id === 'main'
                 ? (isCurrent ? '<span class="ws-current">当前所在</span>' : `<span class="ws-dim">${w.desc}</span>`)
                 : this._worldStatus(w.id, isCurrent);
             const head = isCurrent
@@ -236,7 +243,7 @@ export const WorldSwitchPanel = {
                     ? `<button class="ws-go home" data-world="${w.id}">⟲ 返回本体</button>`
                     : `<button class="ws-go" data-world="${w.id}">前往 →</button>`);
             const invasionTarget = window.WorldInvasionSystem?.getState?.().active?.targetWorld === w.id;
-            const support = !isCurrent && invasionTarget
+            const support = !SceneManager.isDungeonRunActive() && !isCurrent && invasionTarget
                 ? `<button class="ws-support" data-support-world="${w.id}" style="margin-left:6px;background:#7a3028;color:#ffe5df;border:1px solid #d85d50;border-radius:5px;padding:5px 8px;cursor:pointer;">⚔ 本体支援</button>`
                 : '';
             return `

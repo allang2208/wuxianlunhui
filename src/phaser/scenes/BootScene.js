@@ -21,6 +21,8 @@ import hamsterKnightConfig from '../../../data/hamster-knight-config.json';
 import hamsterLightCavalryConfig from '../../../data/hamster-light-cavalry-config.json';
 import hamsterExplorerConfig from '../../../data/hamster-explorer-config.json';
 import hamsterBountyHunterConfig from '../../../data/hamster-bounty-hunter-config.json';
+import jaguarWarriorConfig from '../../../data/jaguar-warrior-config.json';
+import junglePriestConfig from '../../../data/jungle-priest-config.json';
 import populationEconomyConfig from '../../../data/population-economy.json';
 import producerBuildingsConfig from '../../../data/producer-buildings.json';
 
@@ -98,7 +100,7 @@ export class BootScene extends Scene {
         }
 
         // ---- 世界-122 友方单位（独立配置，不入招募池）----
-        for (const unitConfig of [hamsterMinerConfig, hamsterWarriorConfig, hamsterShooterConfig, hamsterGuardConfig, hamsterMilitiaConfig, hamsterScoutConfig, hamsterMusketeerConfig, hamsterPriestConfig, hamsterKnightConfig, hamsterLightCavalryConfig, hamsterExplorerConfig, hamsterBountyHunterConfig]) {
+        for (const unitConfig of [hamsterMinerConfig, hamsterWarriorConfig, hamsterShooterConfig, hamsterGuardConfig, hamsterMilitiaConfig, hamsterScoutConfig, hamsterMusketeerConfig, hamsterPriestConfig, hamsterKnightConfig, hamsterLightCavalryConfig, hamsterExplorerConfig, hamsterBountyHunterConfig, jaguarWarriorConfig, junglePriestConfig]) {
             for (const [animKey, def] of Object.entries(unitConfig.animations || {})) {
                 if (!def || !def.src) continue;
                 this.load.spritesheet(`companion_${unitConfig.id}_${animKey}`, def.src, {
@@ -323,8 +325,12 @@ export class BootScene extends Scene {
         this.load.image('house_lv1', 'assets/terrain/house_lv1.png');
         this.load.image('house_lv2', 'assets/terrain/house_lv2.png');
         this.load.image('house_lv3', 'assets/terrain/house_lv3.png');
-        this.load.image('wheat_windmill', 'assets/terrain/wheat_windmill.png');
-        const windmillAnimation = producerBuildingsConfig.wheat_windmill?.animation;
+        const windmillConfig = producerBuildingsConfig.wheat_windmill;
+        this.load.image(windmillConfig?.panelTex || 'wheat_windmill', 'assets/terrain/wheat_windmill.png');
+        if (windmillConfig?.tex && windmillConfig?.assetPath) {
+            this.load.image(windmillConfig.tex, windmillConfig.assetPath);
+        }
+        const windmillAnimation = windmillConfig?.animation;
         if (windmillAnimation?.textureKey && windmillAnimation?.assetPath) {
             this.load.spritesheet(windmillAnimation.textureKey, windmillAnimation.assetPath, {
                 frameWidth: windmillAnimation.frameWidth,
@@ -335,6 +341,18 @@ export class BootScene extends Scene {
         this.load.image('bank', 'assets/terrain/bank.png');
         this.load.image('market', 'assets/terrain/market.png');
         this.load.image('economic_workshop', 'assets/terrain/economic_workshop.png');
+        // 建筑亮窗蒙版与主体保持完全相同的源画布；运行时以 ADD 模式叠加并独立闪烁。
+        const loadedWindowGlowKeys = new Set();
+        for (const buildingCfg of Object.values(producerBuildingsConfig)) {
+            const glowCfg = buildingCfg?.windowGlow;
+            const glowAssets = [glowCfg, ...Object.values(glowCfg?.variants || {})];
+            for (const glowAsset of glowAssets) {
+                if (!glowAsset?.textureKey || !glowAsset?.assetPath
+                    || loadedWindowGlowKeys.has(glowAsset.textureKey)) continue;
+                loadedWindowGlowKeys.add(glowAsset.textureKey);
+                this.load.image(glowAsset.textureKey, glowAsset.assetPath);
+            }
+        }
         this.load.spritesheet('building_field_tiles', 'assets/terrain/building_field_tiles.png', { frameWidth: 128, frameHeight: 64 });
         // 世界-122 传送门（半木石哥特门楼，透明主体按 alpha>16 紧身裁剪）
         this.load.image('portal', 'assets/terrain/portal.png');
@@ -655,8 +673,8 @@ export class BootScene extends Scene {
         // 仓鼠盾卫 attack = 12 帧单次（第 10 帧判定伤害由 AI 计时）；
         // 仓鼠民兵 attack = 15 帧单次（第 8 帧判定伤害由 AI 计时）；
         // 仓鼠斥候 attack = 18 帧单次（第 11 帧出膛由 AI 计时）+ projectile 单帧贴图；
-        // 仓鼠牧师 spell = 17 帧单次，第 8 帧由 AI 结算圣光。
-        for (const unitConfig of [hamsterMinerConfig, hamsterWarriorConfig, hamsterShooterConfig, hamsterGuardConfig, hamsterMilitiaConfig, hamsterScoutConfig, hamsterMusketeerConfig, hamsterPriestConfig, hamsterKnightConfig, hamsterLightCavalryConfig, hamsterExplorerConfig, hamsterBountyHunterConfig]) {
+        // 仓鼠牧师/丛林祭司 spell = 17 帧单次，第 8 帧由 AI 结算法术。
+        for (const unitConfig of [hamsterMinerConfig, hamsterWarriorConfig, hamsterShooterConfig, hamsterGuardConfig, hamsterMilitiaConfig, hamsterScoutConfig, hamsterMusketeerConfig, hamsterPriestConfig, hamsterKnightConfig, hamsterLightCavalryConfig, hamsterExplorerConfig, hamsterBountyHunterConfig, jaguarWarriorConfig, junglePriestConfig]) {
             for (const [animKey, def] of Object.entries(unitConfig.animations || {})) {
                 if (!def || !def.src) continue;
                 const texKey = `companion_${unitConfig.id}_${animKey}`;
@@ -702,7 +720,7 @@ export class BootScene extends Scene {
                 repeat: def.repeat !== undefined ? def.repeat : -1,
             });
         }
-        // 麦田风车主体动画：动画键与纹理键保持一致，复用中立建筑现有自动播放约定。
+        // 麦田风车纯叶片动画：主体保持静态，由中立建筑渲染链创建独立 overlay Sprite 播放。
         const windmillAnimation = producerBuildingsConfig.wheat_windmill?.animation;
         if (windmillAnimation?.textureKey && !this.anims.exists(windmillAnimation.textureKey)) {
             this.anims.create({

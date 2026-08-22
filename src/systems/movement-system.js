@@ -23,6 +23,7 @@ import { verticalRangesOverlap } from '../physics/elevation.js';
 import { ElevatedNavigationController } from '../ai/elevated-navigation-controller.js';
 import { resolveRtsMoveDestination } from '../ai/rts-command-utils.js';
 import { getTributeFriendlyMoveSpeedMul, getFriendlyMoveSpeedAura } from '../config/tribute-effects.js';
+import { World125FogTideSystem } from '../world/world125-fog-tide-system.js';
 
 /** 超出此距离不再进行 A* 寻路，直接朝目标移动 */
 const MAX_PATHFIND_RANGE = 800;
@@ -599,7 +600,8 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
     /** 道路加速只在最终移动计算链动态乘算，不修改 maxSpeed，离开道路立即恢复。 */
     _getEnemyMoveSpeed(enemy) {
         return this._getEnemyBaseSpeed(enemy)
-            * BuildingRoadSystem.movementMultiplierAt(enemy.x, enemy.y);
+            * BuildingRoadSystem.movementMultiplierAt(enemy.x, enemy.y)
+            * World125FogTideSystem.getZombieMoveSpeedMultiplier(enemy);
     },
 
     _applyKnockback(enemy, dt) {

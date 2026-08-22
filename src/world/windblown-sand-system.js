@@ -31,6 +31,17 @@ function parseTints(values, fallback) {
     });
 }
 
+function resolveModeConfig(config, sandstormActive) {
+    const visual = sandstormActive ? config?.sandstorm?.visual : null;
+    if (!visual) return config;
+    return {
+        ...config,
+        ...visual,
+        ground: { ...(config.ground || {}), ...(visual.ground || {}) },
+        foreground: { ...(config.foreground || {}), ...(visual.foreground || {}) },
+    };
+}
+
 function resolveDiamond(sceneConfig) {
     const width = Math.max(1, Number(sceneConfig?.width) || 1);
     const height = Math.max(1, Number(sceneConfig?.height) || 1);
@@ -83,6 +94,8 @@ export class WindblownSandSystem {
         this._groundEmitter = null;
         this._foregroundEmitter = null;
         this._activeConfig = null;
+        this._modeConfig = null;
+        this._sandstormActive = false;
         this._sceneConfig = null;
         this._diamond = null;
         this._qualityMultiplier = 1;
@@ -95,15 +108,27 @@ export class WindblownSandSystem {
         this._foregroundAccumulatorMs = 0;
     }
 
-    update({ sceneId, sceneConfig, deltaMs = 0, running = true, loading = false, daylight = 1 } = {}) {
+    update({
+        sceneId,
+        sceneConfig,
+        deltaMs = 0,
+        running = true,
+        loading = false,
+        daylight = 1,
+        sandstormActive = false,
+    } = {}) {
         const config = sceneConfig?.environmentEffects?.windblownSand;
         if (loading || sceneId !== 'scene8' || !config?.enabled) {
             this.reset();
             return;
         }
 
-        if (this._activeConfig !== config) this._activate(config, sceneConfig);
+        const stormMode = !!sandstormActive && config.sandstorm?.enabled !== false;
+        if (this._activeConfig !== config || this._sandstormActive !== stormMode) {
+            this._activate(config, sceneConfig, stormMode);
+        }
         if (!this._groundEmitter && !this._foregroundEmitter) return;
+        const modeConfig = this._modeConfig || config;
 
         const isRunning = running && deltaMs > 0;
         this._setEmitterTimeScale(isRunning ? 1 : 0);
@@ -111,10 +136,10 @@ export class WindblownSandSystem {
 
         const stepMs = Math.max(0, Number(deltaMs) || 0);
         this._elapsedMs += stepMs;
-        this._advanceWindDirection(config, stepMs);
+        this._advanceWindDirection(modeConfig, stepMs);
 
-        const periodMs = Math.max(1000, Number(config.gustPeriodMs) || 10000);
-        const amplitude = clamp(Number(config.gustAmplitude) || 0, 0, 1);
+        const periodMs = Math.max(1000, Number(modeConfig.gustPeriodMs) || 10000);
+        const amplitude = clamp(Number(modeConfig.gustAmplitude) || 0, 0, 1);
         const wave = (Math.sin((this._elapsedMs / periodMs) * Math.PI * 2) + 1) * 0.5;
         const gustPulse = wave * wave * wave;
         const gustIntensity = 1 + amplitude * gustPulse;
@@ -124,8 +149,8 @@ export class WindblownSandSystem {
         this._groundEmitter?.setAlpha(lightFactor * gustAlpha);
         this._foregroundEmitter?.setAlpha(lightFactor * gustAlpha);
 
-        this._advanceLayer('ground', this._groundEmitter, config.ground, stepMs, gustIntensity);
-        this._advanceLayer('foreground', this._foregroundEmitter, config.foreground, stepMs, gustIntensity);
+        this._advanceLayer('ground', this._groundEmitter, modeConfig.ground, stepMs, gustIntensity);
+        this._advanceLayer('foreground', this._foregroundEmitter, modeConfig.foreground, stepMs, gustIntensity);
     }
 
     reset() {
@@ -134,6 +159,8 @@ export class WindblownSandSystem {
         this._groundEmitter = null;
         this._foregroundEmitter = null;
         this._activeConfig = null;
+        this._modeConfig = null;
+        this._sandstormActive = false;
         this._sceneConfig = null;
         this._diamond = null;
         this._windUvAngle = 0;
@@ -149,30 +176,33 @@ export class WindblownSandSystem {
         this.scene = null;
     }
 
-    _activate(config, sceneConfig) {
+    _activate(config, sceneConfig, sandstormActive = false) {
         this.reset();
         this._activeConfig = config;
+        this._sandstormActive = sandstormActive;
+        this._modeConfig = resolveModeConfig(config, sandstormActive);
         this._sceneConfig = sceneConfig;
         this._diamond = resolveDiamond(sceneConfig);
-        this._qualityMultiplier = QUALITY_MULTIPLIERS[config.quality] || QUALITY_MULTIPLIERS.medium;
+        const modeConfig = this._modeConfig;
+        this._qualityMultiplier = QUALITY_MULTIPLIERS[modeConfig.quality] || QUALITY_MULTIPLIERS.medium;
 
-        this._setWindDirectionUv(config.windUv?.u, config.windUv?.v);
-        this._directionHoldMs = this._pickDirectionHoldMs(config);
+        this._setWindDirectionUv(modeConfig.windUv?.u, modeConfig.windUv?.v);
+        this._directionHoldMs = this._pickDirectionHoldMs(modeConfig);
 
         const hasStreakTexture = ensureSoftEllipseTexture(this.scene, SAND_STREAK_TEXTURE, 64, 8, 0.35);
         const hasHazeTexture = ensureSoftEllipseTexture(this.scene, SAND_HAZE_TEXTURE, 96, 48, 0.28);
-        if (config.ground?.enabled !== false && hasStreakTexture) {
+        if (modeConfig.ground?.enabled !== false && hasStreakTexture) {
             this._groundEmitter = this._createEmitter(
                 SAND_STREAK_TEXTURE,
-                config.ground || {},
+                modeConfig.ground || {},
                 WORLD_RENDER_LAYERS.GROUND_WEATHER,
                 false
             );
         }
-        if (config.foreground?.enabled !== false && hasHazeTexture) {
+        if (modeConfig.foreground?.enabled !== false && hasHazeTexture) {
             this._foregroundEmitter = this._createEmitter(
                 SAND_HAZE_TEXTURE,
-                config.foreground || {},
+                modeConfig.foreground || {},
                 FOREGROUND_WEATHER_DEPTH,
                 true
             );
@@ -276,6 +306,7 @@ export class WindblownSandSystem {
     }
 
     _advanceWindDirection(config, deltaMs) {
+        if (config?.lockDirection === true) return;
         this._directionElapsedMs += deltaMs;
         if (this._directionElapsedMs < this._directionHoldMs) return;
 
@@ -340,7 +371,7 @@ export class WindblownSandSystem {
     _pickSpawnPoint() {
         const view = this.scene?.cameras?.main?.worldView;
         if (!view || !this._diamond) return null;
-        const margin = Math.max(0, Number(this._activeConfig?.viewportMarginPx) || 0);
+        const margin = Math.max(0, Number(this._modeConfig?.viewportMarginPx) || 0);
         const x0 = view.x - margin;
         const y0 = view.y - margin;
         const width = view.width + margin * 2;

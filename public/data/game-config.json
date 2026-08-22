@@ -156,6 +156,71 @@
           "viewportMarginPx": 180,
           "gustPeriodMs": 10000,
           "gustAmplitude": 0.55,
+          "sandstorm": {
+            "enabled": true,
+            "visionMultiplier": 0.5,
+            "intervalDays": {
+              "min": 3,
+              "max": 6
+            },
+            "warningLeadDays": 0.25,
+            "durationDays": {
+              "min": 1,
+              "max": 2
+            },
+            "visual": {
+              "lockDirection": true,
+              "viewportMarginPx": 420,
+              "gustPeriodMs": 5000,
+              "gustAmplitude": 0.95,
+              "ground": {
+                "frequencyMs": 22,
+                "quantity": 2,
+                "maxAliveParticles": 144,
+                "lifespanMs": {
+                  "min": 2800,
+                  "max": 4400
+                },
+                "speedPxPerSec": {
+                  "min": 640,
+                  "max": 1040
+                },
+                "scaleX": {
+                  "min": 2,
+                  "max": 3.8
+                },
+                "scaleY": {
+                  "min": 1.25,
+                  "max": 2.35
+                },
+                "alpha": {
+                  "start": 0.92,
+                  "end": 0.16
+                }
+              },
+              "foreground": {
+                "frequencyMs": 45,
+                "quantity": 1,
+                "maxAliveParticles": 88,
+                "lifespanMs": {
+                  "min": 4600,
+                  "max": 6800
+                },
+                "speedPxPerSec": {
+                  "min": 380,
+                  "max": 640
+                },
+                "scale": {
+                  "start": 1.8,
+                  "end": 3.7
+                },
+                "alpha": {
+                  "start": 0.58,
+                  "end": 0.1
+                }
+              }
+            }
+          },
           "ground": {
             "frequencyMs": 55,
             "quantity": 1,
@@ -305,6 +370,187 @@
         "playerExclusion": 520,
         "portalExclusion": 420,
         "scaleJitter": 0.08
+      },
+      "environmentEffects": {
+        "dungeonAtmosphere": {
+          "enabled": true,
+          "quality": "medium",
+          "viewportMarginPx": 260,
+          "airflowUv": {
+            "u": 0.75,
+            "v": -0.35
+          },
+          "directionHoldMs": {
+            "min": 18000,
+            "max": 32000
+          },
+          "directionChangeMinDegrees": 55,
+          "pulsePeriodMs": 9000,
+          "groundFog": {
+            "enabled": true,
+            "frequencyMs": 95,
+            "quantity": 1,
+            "maxAliveParticles": 72,
+            "lifespanMs": {
+              "min": 5200,
+              "max": 8200
+            },
+            "speedPxPerSec": {
+              "min": 18,
+              "max": 34
+            },
+            "scale": {
+              "start": 0.9,
+              "end": 2.25
+            },
+            "alpha": {
+              "start": 0.28,
+              "end": 0.02
+            },
+            "tints": ["#b4c7cd", "#70878d", "#3f555b"]
+          },
+          "corruptionDust": {
+            "enabled": true,
+            "frequencyMs": 145,
+            "quantity": 1,
+            "maxAliveParticles": 44,
+            "lifespanMs": {
+              "min": 3200,
+              "max": 5200
+            },
+            "speedPxPerSec": {
+              "min": 30,
+              "max": 54
+            },
+            "scale": {
+              "start": 1.05,
+              "end": 0.18
+            },
+            "alpha": {
+              "start": 0.62,
+              "end": 0.04
+            },
+            "tints": ["#d0ddd0", "#86a18c", "#4e6858"]
+          },
+          "candles": {
+            "enabled": true,
+            "textureKey": "obstacle_candle",
+            "flamePoints": [
+              { "x": 158, "y": 18 },
+              { "x": 42, "y": 108 },
+              { "x": 278, "y": 54 }
+            ],
+            "glowPoint": { "x": 158, "y": 60 },
+            "glowRadius": 96,
+            "glowColor": "#ff9d3d",
+            "glowAlpha": 0.24,
+            "glowFlicker": 0.12,
+            "glowPulsePeriodMs": 2400,
+            "emberFrequencyMs": 75,
+            "emberQuantity": 1,
+            "maxAliveEmbers": 42,
+            "emberLifespanMs": {
+              "min": 520,
+              "max": 880
+            },
+            "emberSpeedX": {
+              "min": -10,
+              "max": 10
+            },
+            "emberSpeedY": {
+              "min": -95,
+              "max": -48
+            },
+            "emberScaleStart": 0.92,
+            "emberAlphaStart": 0.9,
+            "emberTints": ["#fff2b0", "#ffb342", "#e85f22"]
+          },
+          "coldOverlay": {
+            "enabled": true,
+            "color": "#0d1b20",
+            "alpha": {
+              "min": 0.04,
+              "max": 0.085
+            },
+            "pulsePeriodMs": 12000
+          },
+          "fogTide": {
+            "enabled": true,
+            "gameplay": {
+              "unitVisionMultiplier": 0.6,
+              "shelteredDayWeatherMultiplier": 1,
+              "shelteredNightWeatherMultiplier": 0.9,
+              "zombieMoveSpeedMultiplier": 1.2,
+              "zombieAttackIntervalMultiplier": 0.85
+            },
+            "visual": {
+              "lockDirection": true,
+              "viewportMarginPx": 420,
+              "pulsePeriodMs": 4500,
+              "groundFog": {
+                "frequencyMs": 38,
+                "quantity": 2,
+                "maxAliveParticles": 140,
+                "lifespanMs": {
+                  "min": 7600,
+                  "max": 11600
+                },
+                "speedPxPerSec": {
+                  "min": 42,
+                  "max": 72
+                },
+                "scale": {
+                  "start": 1.35,
+                  "end": 3.6
+                },
+                "alpha": {
+                  "start": 0.56,
+                  "end": 0.08
+                },
+                "tints": ["#c1d5ca", "#708f7d", "#324f43"]
+              },
+              "corruptionDust": {
+                "frequencyMs": 60,
+                "quantity": 1,
+                "maxAliveParticles": 96,
+                "lifespanMs": {
+                  "min": 4500,
+                  "max": 7200
+                },
+                "speedPxPerSec": {
+                  "min": 65,
+                  "max": 110
+                },
+                "scale": {
+                  "start": 1.55,
+                  "end": 0.28
+                },
+                "alpha": {
+                  "start": 0.86,
+                  "end": 0.09
+                },
+                "tints": ["#d7e6d9", "#8fb69a", "#426a54"]
+              },
+              "candles": {
+                "glowRadius": 78,
+                "glowAlpha": 0.08,
+                "glowFlicker": 0.05,
+                "glowPulsePeriodMs": 4200,
+                "emberFrequencyMs": 190,
+                "maxAliveEmbers": 24,
+                "emberAlphaStart": 0.52
+              },
+              "coldOverlay": {
+                "color": "#10261d",
+                "alpha": {
+                  "min": 0.1,
+                  "max": 0.18
+                },
+                "pulsePeriodMs": 5200
+              }
+            }
+          }
+        }
       },
       "origin": {
         "x": 6144,

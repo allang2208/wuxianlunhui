@@ -12,6 +12,21 @@ import { completeWeaponFields } from './ui/equip-data-manager.js';
 
 import { Game } from './game.js';
 import { PhaserGame } from './phaser/PhaserGame.js';
+import { Renderer } from './world/renderer.js';
+import { EffectManager } from './effects/effect-manager.js';
+import { PartySystem } from './systems/party-system.js';
+import { SkillManager } from './ui/skill-manager.js';
+import { burstParticles } from './effects/combat-fx.js';
+import {
+    getTributeGoldMultiplier,
+    getTributeKillMpHealRatio,
+    getTributeKillHpHealRatio,
+    getTributeMonsterDamageTakenMul,
+    getMoonshadowConfig,
+    rollTributeDrop,
+    getFriendlyLifestealPercent,
+} from './config/tribute-effects.js';
+import { configureDamageableRuntime } from './entities/damageable-runtime.js';
 
 import { initUIPanels } from './ui/panels/ui-panels.js';
 import { NPCDialogue } from './ui/npc-dialogue.js';
@@ -29,11 +44,32 @@ import * as World122Sim from './world/world122-sim.js';
 import { EnvironmentLightingSystem } from './world/environment-lighting-system.js';
 import { WorldProgressionSystem } from './world/world-progression-system.js';
 import { WorldInvasionSystem } from './world/world-invasion-system.js';
+import { World122SandstormSystem } from './world/world122-sandstorm-system.js';
 import { TroopLineSystem } from './world/troop-line-system.js';
 import { TechnologySystem } from './world/technology-system.js';
 import { TechnologyTreePanel } from './ui/technology-tree-panel.js';
 
 import { getElement } from './utils/dom-utils.js';
+
+// DamageableEntity 是 Combatant/Enemy 的底层基类；高层服务统一由入口注入，
+// 防止实体继承链在 ES module 初始化阶段形成 TDZ 循环。
+configureDamageableRuntime({
+    game: Game,
+    renderer: Renderer,
+    effectManager: EffectManager,
+    partySystem: PartySystem,
+    skillManager: SkillManager,
+    burstParticles,
+    tribute: {
+        getTributeGoldMultiplier,
+        getTributeKillMpHealRatio,
+        getTributeKillHpHealRatio,
+        getTributeMonsterDamageTakenMul,
+        getMoonshadowConfig,
+        rollTributeDrop,
+        getFriendlyLifestealPercent,
+    },
+});
 
 // ===== 全局错误兜底：运行时异常不静默（控制台 + 屏幕小提示，崩溃现场可复现） =====
 let _errorToast = null;
@@ -125,6 +161,7 @@ async function initModules() {
     window.World122Sim = World122Sim;
     window.WorldProgressionSystem = WorldProgressionSystem;
     window.WorldInvasionSystem = WorldInvasionSystem;
+    window.World122SandstormSystem = World122SandstormSystem;
     window.TroopLineSystem = TroopLineSystem;
     window.TechnologySystem = TechnologySystem;
     window.TechnologyTreePanel = TechnologyTreePanel;

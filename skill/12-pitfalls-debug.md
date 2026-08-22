@@ -98,6 +98,25 @@ const defense = shieldData.defense;  // 行81 ← 重复声明！
 
 ---
 
+### 常见陷阱：ES Module 循环依赖触发 TDZ（`Cannot access ... before initialization`）
+
+- **报错行不等于根因**：错误常落在 `class Combatant extends DamageableEntity`，实际闭环可能跨越
+  `Game / SceneManager / UI / EffectManager / PartySystem / DungeonMapSystem` 多层模块。必须从尚未初始化的
+  binding 出发，沿全部静态 `import` 画出完整回路；只看最后两三个文件会漏掉第二条回边。
+- **禁止用顺序掩盖**：恢复无调用的 import、调整 import 排序或让某个子类“碰巧先初始化”，只能暂时改变
+  ESM 求值顺序，后续删除死代码就会复发，不能作为修复。
+- **两种标准断环**：共享判定/常量抽到无反向依赖的叶子模块；底层基类确实需要高层服务时，使用无任何
+  import 的运行时桥，由 `main.js` 组合根在模块完成求值后注入真实服务。门面转发对象方法时必须保留
+  `this` 和返回值，不能把方法解构成裸函数。
+- **继承链方向不可反转**：`DamageableEntity` 这类底层基类不得为了 `instanceof Enemy` 反向 import 子类；
+  改由子类在构造期声明稳定契约标记（当前为 `_isEnemyEntity`），基类只消费该契约。伤害、掉落、经验和
+  状态结算仍留在基类统一入口，不因断环拆散业务语义。
+- **当前实现**：`src/entities/damageable-runtime.js` 是 import-free 叶子桥；`src/main.js` 注入掉落、渲染、
+  特效、队伍、技能与祭品服务；地牢类型读取已有叶子状态 `getCurrentDungeonType()`。静态复核应确认
+  `DamageableEntity` 的每个直接依赖都无法再到达 `Game / Enemy / Combatant`。
+
+---
+
 ### 常见陷阱：四方向 facing 但仅有两方向精灵图时的翻转逻辑
 
 #### 问题

@@ -654,7 +654,7 @@ export function createDevToolPanel() {
     worldWrap.innerHTML = `
         <div class="collision-tab-desc">
             <p>🌐 位面生命周期调试：查看状态、世代、快照和真实入侵候选池。</p>
-            <p style="color:#d8a26a;">打通位面会按正式成功结算补齐地牢前置；推进时间会修改统一游戏时钟；模拟毁门会执行正式毁灭事务。</p>
+            <p style="color:#d8a26a;">打通位面会按正式成功结算补齐地牢前置；推进时间会修改统一游戏时钟；模拟毁门会执行正式毁灭事务；荒漠位面可触发沙尘暴，僵尸地牢位面可触发死寂雾潮。</p>
         </div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin:8px 0;">
             <button id="devWorldRefresh" class="dev-tool-menu-btn">刷新</button>
@@ -701,6 +701,39 @@ export function createDevToolPanel() {
                 ? `epoch ${world.snapshot.worldEpoch} · 建筑 ${world.snapshot.structures} · 单位 ${world.snapshot.units}`
                     + ` · 资源点 ${world.snapshot.resourceNodes} · 道路 ${world.snapshot.roads}`
                 : '无快照';
+            const sandstorm = world.sceneId === 'scene8'
+                ? window.World122SandstormSystem?.getDebugModel?.()
+                : null;
+            let sandstormHtml = '';
+            if (sandstorm) {
+                const remainingDays = sandstorm.remainingMs === null
+                    ? null : sandstorm.remainingMs / Math.max(1, sandstorm.dayDurationMs);
+                const statusText = sandstorm.phase === 'active'
+                    ? `进行中 · 剩余 ${remainingDays?.toFixed(2) ?? '--'} 天 · 视野 ×${sandstorm.visionMultiplier}`
+                    : (sandstorm.phase === 'warning'
+                        ? `预警中 · ${remainingDays?.toFixed(2) ?? '--'} 天后爆发`
+                        : (remainingDays === null ? '平静 · 尚未排期' : `平静 · ${remainingDays.toFixed(2)} 天后预警`));
+                sandstormHtml = `<div style="display:flex;align-items:center;gap:8px;margin-top:6px;padding-top:6px;border-top:1px solid #4a4238;">
+                    <span style="font-size:11px;color:#f0b56b;flex:1;">🌪 沙尘暴：${statusText}</span>
+                    <button type="button" class="dev-tool-menu-btn" data-dev-world-action="sandstorm" data-scene-id="scene8"
+                        style="border-color:#b66a2c;color:#ffd09a;">触发沙尘暴</button>
+                </div>`;
+            }
+            const fogTide = world.sceneId === 'scene11'
+                ? window.__phaserScene?.getWorld125AtmosphereDebugModel?.()
+                : null;
+            let fogTideHtml = '';
+            if (fogTide) {
+                const statusText = fogTide.active
+                    ? `进行中 · 视野 ×${fogTide.unitVisionMultiplier} · 僵尸移速 ×${fogTide.zombieMoveSpeedMultiplier} / 攻击间隔 ×${fogTide.zombieAttackIntervalMultiplier}`
+                    : (fogTide.available ? `待命 · 可用守夜烛台 ${fogTide.candleCount || 0} 座` : '待命 · 请先进入世界-125');
+                const actionText = fogTide.active ? '结束死寂雾潮' : '触发死寂雾潮';
+                fogTideHtml = `<div style="display:flex;align-items:center;gap:8px;margin-top:6px;padding-top:6px;border-top:1px solid #3e5147;">
+                    <span style="font-size:11px;color:#9ec6ad;flex:1;">☣ 死寂雾潮：${statusText}</span>
+                    <button type="button" class="dev-tool-menu-btn" data-dev-world-action="fog-tide" data-scene-id="scene11"
+                        ${fogTide.enabled ? '' : 'disabled'} style="border-color:#557d68;color:#b9e4c8;">${actionText}</button>
+                </div>`;
+            }
             return `<div style="padding:8px;border:1px solid ${world.candidate ? '#5f9d77' : '#4a4238'};border-radius:6px;background:rgba(24,22,20,.72);">
                 <div><b>${world.name}</b> · ${world.status} · epoch ${world.worldEpoch} · HP ${Math.ceil(world.hp)}</div>
                 <div style="font-size:11px;color:#aeb6bf;margin-top:3px;">
@@ -709,17 +742,42 @@ export function createDevToolPanel() {
                 </div>
                 <div style="font-size:11px;color:#b9d7a8;margin-top:2px;">地牢前置：${requirementText} · 首次构造：${world.constructionEnabled ? '开放' : '配置关闭'}</div>
                 <div style="font-size:11px;color:#8fc2d2;margin-top:2px;">快照：${snapshot}</div>
+                ${sandstormHtml}
+                ${fogTideHtml}
             </div>`;
         }).join('');
     };
 
     root.querySelector('#devWorldRefresh').addEventListener('click', renderWorldDebug);
+    root.querySelector('#devWorldRows').addEventListener('click', (event) => {
+        const button = event.target?.closest?.('[data-dev-world-action]');
+        if (!button) return;
+        const action = button.dataset.devWorldAction;
+        if (action === 'sandstorm' && button.dataset.sceneId === 'scene8') {
+            const result = window.World122SandstormSystem?.debugTriggerNow?.();
+            if (DevTool && typeof DevTool._showToast === 'function') {
+                DevTool._showToast(result?.ok
+                    ? '🌪 世界122沙尘暴已触发'
+                    : `✕ ${result?.reason || '沙尘暴系统尚未初始化'}`);
+            }
+        } else if (action === 'fog-tide' && button.dataset.sceneId === 'scene11') {
+            const result = window.__phaserScene?.toggleWorld125FogTide?.();
+            if (DevTool && typeof DevTool._showToast === 'function') {
+                DevTool._showToast(result?.ok
+                    ? (result.model?.active ? '☣ 世界125死寂雾潮已触发' : '✓ 世界125死寂雾潮已结束')
+                    : `✕ ${result?.reason || '死寂雾潮系统尚未初始化'}`);
+            }
+        }
+        renderWorldDebug();
+    });
     root.querySelector('#devWorldAdvance1').addEventListener('click', () => {
         window.WorldInvasionSystem?.debugAdvanceDays?.(1);
+        window.World122SandstormSystem?.syncToCurrentTime?.({ notifyPlayer: false });
         renderWorldDebug();
     });
     root.querySelector('#devWorldAdvance5').addEventListener('click', () => {
         window.WorldInvasionSystem?.debugAdvanceDays?.(5);
+        window.World122SandstormSystem?.syncToCurrentTime?.({ notifyPlayer: false });
         renderWorldDebug();
     });
     root.querySelector('#devWorldUnlock').addEventListener('click', () => {

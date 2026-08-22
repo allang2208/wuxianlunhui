@@ -90,10 +90,14 @@ import {
 import { syncAllCivilianVisualDepths } from '../../world/civilian-visual-utils.js';
 import { EnvironmentLightingSystem } from '../../world/environment-lighting-system.js';
 import { WindblownSandSystem } from '../../world/windblown-sand-system.js';
+import { World122SandstormSystem } from '../../world/world122-sandstorm-system.js';
+import { World125AtmosphereSystem } from '../../world/world125-atmosphere-system.js';
+import { World125FogTideSystem } from '../../world/world125-fog-tide-system.js';
 import { resolveStructureShadowCaster } from '../../world/structure-shadow-caster.js';
 import { WORLD_RENDER_LAYERS } from '../../world/world-render-layers.js';
 import { resolveUnitGroundFootprint } from '../../world/unit-ground-footprint.js';
 import lightingAssets from '../../../data/environment-lighting-assets.json';
+import '../../config/structure-ground-fit-config.js';
 
 // 共享结构阴影层：所有建筑/障碍物阴影多边形在同一 Graphics 内 alpha 1 填充、
 // 整层统一透明度——相邻阴影交叠与单影同深（杜绝重叠加深）；
@@ -110,7 +114,7 @@ export class GameScene extends Scene {
     // ---- 生命周期 ----
 
     create() {
-        // 场景重建或同路径贴图热替换后，禁止沿用旧 alpha 扫描结果。
+        // 场景重建时清运行时 alpha 缓存；同路径替换建筑原图后还必须重新生成 ground-fit manifest。
         clearStructureFootOffsetCache();
 
         // 标记场景就绪，通知外部系统（必须提前，因为后续代码依赖 window.__phaserScene）
@@ -202,6 +206,7 @@ export class GameScene extends Scene {
             (entity, hidden) => this._setFogEntityHidden(entity, hidden)
         );
         this._windblownSand = new WindblownSandSystem(this);
+        this._world125Atmosphere = new World125AtmosphereSystem(this);
         // 局部亮光：短时（枪火/爆发）与常驻（火把/蓄力火球）分开管理。
         this._transientEnvironmentGlows = [];
         this._persistentEnvironmentGlows = new Map();
@@ -299,17 +304,15 @@ export class GameScene extends Scene {
     update(_time, _delta) {
         // Phaser 自动调用，每帧更新
         // 现有 Game 循环仍然运行，这里只做 Phaser 相关的更新
-        // 地牢探险期间统一冻结世界时间：太阳、所有世界后台生产与五日入侵倒计时同停同启。
-        const dungeonTimeFrozen = SceneManager.isDungeonIsolationActive();
-        const worldClockRunning = Game?.isRunning && !Game._paused && !dungeonTimeFrozen;
+        // 世界时间是跨场景统一时钟：地牢探险与观察切换期间也持续推进；只受游戏暂停控制。
+        const worldClockRunning = Game?.isRunning && !Game._paused;
         const worldDelta = worldClockRunning ? _delta : 0;
         const worldTimeBefore = EnvironmentLightingSystem.serializeTime().elapsedMs || 0;
         EnvironmentLightingSystem.update(worldDelta);
         const worldTimeAfter = EnvironmentLightingSystem.serializeTime().elapsedMs || 0;
         const invasionDelta = Math.max(0, worldTimeAfter - worldTimeBefore);
-        if (!dungeonTimeFrozen) {
-            window.WorldInvasionSystem?.update?.(invasionDelta, SceneManager.currentScene);
-        }
+        World122SandstormSystem.update(worldTimeAfter);
+        window.WorldInvasionSystem?.update?.(invasionDelta, SceneManager.currentScene);
 
         // 能源节点防叠图自愈（2026-08-16）：世界-122 每 ~1s 清一次同位置堆积节点
         // （旧会话/HMR/历史配置残留会叠出“门边一堆矿”，setup 清理覆盖不到已加载场景）
@@ -400,6 +403,8 @@ export class GameScene extends Scene {
                         data.segmentSprites.forEach((sprite) => sprite?.setVisible(false));
                     }
                     if (data.foundationSprite) data.foundationSprite.setVisible(false);
+                    if (data.overlaySprite) data.overlaySprite.setVisible(false);
+                    if (data.windowGlowSprite) data.windowGlowSprite.setVisible(false);
                     if (data.sprite) data.sprite.setVisible(false);
                     if (data.label) data.label.setVisible(false);
                 }
@@ -448,6 +453,8 @@ export class GameScene extends Scene {
                         data.segmentSprites.forEach((sprite) => sprite?.setVisible(true));
                     }
                     if (data.foundationSprite) data.foundationSprite.setVisible(true);
+                    if (data.overlaySprite) data.overlaySprite.setVisible(true);
+                    if (data.windowGlowSprite) data.windowGlowSprite.setVisible(true);
                     if (data.sprite) data.sprite.setVisible(true);
                     if (data.label) data.label.setVisible(true);
                 }
@@ -563,6 +570,16 @@ export class GameScene extends Scene {
             running: worldClockRunning,
             loading: SceneManager.isLoading,
             daylight: EnvironmentLightingSystem.getSun()?.daylight ?? 1,
+            sandstormActive: World122SandstormSystem.isActive(SceneManager.currentScene),
+        });
+        World125FogTideSystem.syncScene(SceneManager.currentScene);
+        this._world125Atmosphere?.update({
+            sceneId: SceneManager.currentScene,
+            sceneConfig: currentSceneConfig,
+            deltaMs: worldDelta,
+            running: worldClockRunning,
+            loading: SceneManager.isLoading,
+            fogTideActive: World125FogTideSystem.isActive(SceneManager.currentScene),
         });
     }
 
@@ -581,6 +598,34 @@ export class GameScene extends Scene {
     isFogPointVisible(x, y) {
         const sceneId = SceneManager.currentScene;
         return !FogOfWarSystem.isEnabled(sceneId) || FogOfWarSystem.isPointVisible(sceneId, x, y);
+    }
+
+    getWorld125AtmosphereDebugModel() {
+        const sceneId = SceneManager.currentScene;
+        const sceneConfig = GAME_CONFIG.scenes?.scene11 || SceneManager.scenes?.scene11;
+        const atmosphereConfig = sceneConfig?.environmentEffects?.dungeonAtmosphere;
+        const gameplayModel = World125FogTideSystem.getDebugModel(sceneId);
+        const visualModel = this._world125Atmosphere?.getFogTideVisualModel(atmosphereConfig) || {
+            enabled: false,
+            visualModeActive: false,
+            targetSceneId: 'scene11',
+            visualOnly: true,
+        };
+        return {
+            ...gameplayModel,
+            visualModeActive: visualModel.visualModeActive,
+            available: sceneId === 'scene11' && !SceneManager.isLoading,
+            currentSceneId: sceneId,
+        };
+    }
+
+    toggleWorld125FogTide() {
+        const current = this.getWorld125AtmosphereDebugModel();
+        if (!current.available) {
+            return { ok: false, reason: '请先进入世界-125·地牢遗迹', model: current };
+        }
+        const result = World125FogTideSystem.debugToggle(SceneManager.currentScene);
+        return { ...result, model: this.getWorld125AtmosphereDebugModel() };
     }
 
     setFogDebugOptions(options = {}) {
@@ -634,6 +679,8 @@ export class GameScene extends Scene {
             FogVisualAdapter.setHidden(neutral.sprite, hidden);
             FogVisualAdapter.setHidden(neutral.label, hidden);
             FogVisualAdapter.setHidden(neutral.foundationSprite, hidden);
+            FogVisualAdapter.setHidden(neutral.overlaySprite, hidden);
+            FogVisualAdapter.setHidden(neutral.windowGlowSprite, hidden);
             FogVisualAdapter.setHidden(neutral.backSprite, hidden);
             FogVisualAdapter.setHidden(neutral.segmentSprites, hidden);
         }
@@ -1480,27 +1527,36 @@ export class GameScene extends Scene {
             // 待机呼吸（2026-08-21 零素材微动）：静止 idle 且未播动画（单帧待机）时，
             // 纵向 ±1.8% 正弦缩放 + 横向 ∓0.6% 保体积补偿，脚底锚定（修正 displayHeight/2）；
             // 相位按成员 id 打散，避免全员同步呼吸；多帧 idle 动画（如斥候）与移动/攻击/施法不叠加。
-            const idleStill = (aiMode
+            const idleState = aiMode
                 ? (member._animState || 'idle') === 'idle'
-                : (!isMoving && !isSprinting && !casting))
-                && !sprite.anims.isPlaying;
+                : (!isMoving && !isSprinting && !casting);
+            const idleStill = idleState && !sprite.anims.isPlaying;
+            // 可选 render.idleSwayX：多帧待机也可做纯渲染水平微动，不改变实体/碰撞坐标。
+            const renderConfig = member.config?.render || {};
+            const idleSwayX = Math.max(0, Number(renderConfig.idleSwayX) || 0);
+            const idleSwayPeriodMs = Math.max(250, Number(renderConfig.idleSwayPeriodMs) || 2400);
+            let idlePhase = 0;
+            if (idleStill || (idleState && idleSwayX > 0)) {
+                const idStr = String(member.id || '');
+                for (let i = 0; i < idStr.length; i++) idlePhase += idStr.charCodeAt(i);
+            }
             let breatheH = 1, breatheW = 1;
             if (idleStill) {
-                let phase = 0;
-                const idStr = String(member.id || '');
-                for (let i = 0; i < idStr.length; i++) phase += idStr.charCodeAt(i);
-                const s = Math.sin((this.time.now / 2400) * Math.PI * 2 + phase);
+                const s = Math.sin((this.time.now / 2400) * Math.PI * 2 + idlePhase);
                 breatheH = 1 + 0.018 * s;
                 breatheW = 1 - 0.006 * s;
             }
+            const idleOffsetX = idleState && idleSwayX > 0
+                ? Math.sin((this.time.now / idleSwayPeriodMs) * Math.PI * 2 + idlePhase) * idleSwayX
+                : 0;
             sprite.setDisplaySize(frameW * normS * breatheW, frameH * normS * breatheH);
             const feetCorr = -(frameH - 512) * 0.4375 * normS
                 - frameH * normS * (breatheH - 1) / 2;
             if (aiMode) {
-                sprite.setPosition(member.x, member.y + spriteOffY - elevationZ + feetCorr);
+                sprite.setPosition(member.x + idleOffsetX, member.y + spriteOffY - elevationZ + feetCorr);
             } else {
                 const offX = facingRight ? -150 : 150;
-                sprite.setPosition(player.x + offX, player.y + 34 + spriteOffY - elevationZ + feetCorr);
+                sprite.setPosition(player.x + offX + idleOffsetX, player.y + 34 + spriteOffY - elevationZ + feetCorr);
             }
             sprite.setVisible(true);
             // 动作切换残影（零素材过渡）：贴图键变化 = 动作切换——旧帧残影 110ms 淡出消顿挫
@@ -2085,6 +2141,8 @@ export class GameScene extends Scene {
                 const depth = (typeof e._faceDepth === 'number') ? e._faceDepth : data.sprite.y + footOffsetY + 10;
                 const structureDepth = Number.isFinite(e._structureRenderDepth) ? e._structureRenderDepth : depth;
                 data.sprite.setDepth(structureDepth);
+                if (data.windowGlowSprite?.active) data.windowGlowSprite.setDepth(structureDepth + 0.005);
+                if (data.overlaySprite?.active) data.overlaySprite.setDepth(structureDepth + 0.01);
                 if (data.label && data.label.active) {
                     data.label.setDepth((e._structureRenderChannels?.label ?? (structureDepth + 1)));
                 }
@@ -2186,6 +2244,9 @@ export class GameScene extends Scene {
             alpha: options.alpha ?? record.alpha ?? 0.16,
             depth: options.depth ?? record.depth ?? y + 30,
             flicker: options.flicker ?? record.flicker ?? 0.12,
+            pulseSpeed: Number(options.pulsePeriodMs) > 0
+                ? (Math.PI * 2) / Number(options.pulsePeriodMs)
+                : (record.pulseSpeed ?? 0.010),
         });
         return record.sprite;
     }
@@ -2223,7 +2284,7 @@ export class GameScene extends Scene {
                 this._persistentEnvironmentGlows.delete(key);
                 continue;
             }
-            const pulse = 1 + Math.sin(now * 0.010 + glow.phase) * glow.flicker;
+            const pulse = 1 + Math.sin(now * (glow.pulseSpeed ?? 0.010) + glow.phase) * glow.flicker;
             const fogVisible = this.isFogPointVisible(glow.x, glow.y);
             glow.sprite.setPosition(glow.x, glow.y);
             glow.sprite.setDisplaySize(glow.radius * 2 * pulse, glow.radius * 2 * pulse);
@@ -6329,6 +6390,7 @@ export class GameScene extends Scene {
     // 清理所有实体 Sprite（场景切换时调用）
     clearAllEntitySprites() {
         this._windblownSand?.reset();
+        this._world125Atmosphere?.reset();
         // 销毁 enemies 组中的所有 Sprite
         if (this.enemies) {
             this.enemies.clear(true, true);
@@ -6983,6 +7045,8 @@ export class GameScene extends Scene {
                     if (sprite?.active) sprite.destroy();
                 }
                 if (data.foundationSprite?.active) data.foundationSprite.destroy();
+                if (data.overlaySprite?.active) data.overlaySprite.destroy();
+                if (data.windowGlowSprite?.active) data.windowGlowSprite.destroy();
                 if (data.label && data.label.active) data.label.destroy();
             }
             this._neutralSprites.clear();
@@ -8390,6 +8454,22 @@ export class GameScene extends Scene {
         }
     }
 
+    _resolveBuildingWindowGlowConfig(sprCfg) {
+        const base = sprCfg?.windowGlow;
+        if (!base) return null;
+        const variant = base.variants?.[sprCfg.idleKey];
+        return variant ? { ...base, ...variant, variants: undefined } : base;
+    }
+
+    _buildingWindowGlowPhase(entity) {
+        const value = String(entity?.id || entity?.name || 'building');
+        let hash = 0;
+        for (let index = 0; index < value.length; index++) {
+            hash = ((hash * 31) + value.charCodeAt(index)) >>> 0;
+        }
+        return (hash % 6283) / 1000;
+    }
+
     /**
      * 同步无专属 Phaser Sprite 的实体（训练靶、NPC 等）
      */
@@ -8477,10 +8557,38 @@ export class GameScene extends Scene {
                     );
                     foundationSprite.setDepth(WORLD_RENDER_LAYERS.FOUNDATION);
                 }
-                data = { sprite, label, sprCfg, foundationSprite };
+                let overlaySprite = null;
+                const overlayCfg = sprCfg?.overlayAnimation;
+                if (overlayCfg?.textureKey && this.textures.exists(overlayCfg.textureKey)) {
+                    overlaySprite = this.add.sprite(e.x, e.y, overlayCfg.textureKey);
+                    overlaySprite.setOrigin(0.5, 0.5);
+                    overlaySprite.setDisplaySize(
+                        Number(overlayCfg.displayW) || sprite.displayWidth,
+                        Number(overlayCfg.displayH) || sprite.displayHeight
+                    );
+                    if (this.anims.exists(overlayCfg.textureKey)) overlaySprite.play(overlayCfg.textureKey);
+                }
+                let windowGlowSprite = null;
+                const windowGlowCfg = this._resolveBuildingWindowGlowConfig(sprCfg);
+                if (windowGlowCfg?.textureKey && this.textures.exists(windowGlowCfg.textureKey)) {
+                    windowGlowSprite = this.add.sprite(e.x, e.y, windowGlowCfg.textureKey);
+                    windowGlowSprite.setOrigin(0.5, 0.5);
+                    windowGlowSprite.setDisplaySize(sprite.displayWidth, sprite.displayHeight);
+                    windowGlowSprite.setBlendMode(BlendModes.ADD);
+                }
+                data = {
+                    sprite,
+                    label,
+                    sprCfg,
+                    foundationSprite,
+                    overlaySprite,
+                    windowGlowSprite,
+                    windowGlowPhase: this._buildingWindowGlowPhase(e),
+                };
                 this._neutralSprites.set(e, data);
             }
-            const { sprite, label, sprCfg, foundationSprite } = data;
+            const { sprite, label, sprCfg, foundationSprite, overlaySprite } = data;
+            let windowGlowSprite = data.windowGlowSprite;
             if (this._syncWallStaircaseEntity(e, data)) continue;
             // 从旧“双层裁剪”热更新迁移回完整单贴图，立即销毁遗留后层并解除 crop。
             if (data.backSprite) {
@@ -8501,6 +8609,22 @@ export class GameScene extends Scene {
                 e.x + (e._isWallStaircase && e._facingLeft ? -visualOffsetX : visualOffsetX),
                 e.y - shift
             );
+            if (overlaySprite?.active) {
+                const overlayCfg = sprCfg?.overlayAnimation || {};
+                overlaySprite.setPosition(
+                    sprite.x + (Number(overlayCfg.offsetX) || 0),
+                    sprite.y + (Number(overlayCfg.offsetY) || 0)
+                );
+                overlaySprite.setDisplaySize(
+                    Number(overlayCfg.displayW) || sprite.displayWidth,
+                    Number(overlayCfg.displayH) || sprite.displayHeight
+                );
+                overlaySprite.setFlipX(!!e._facingLeft);
+                if (this.anims.exists(overlayCfg.textureKey)
+                    && (!overlaySprite.anims.isPlaying || overlaySprite.anims.currentAnim?.key !== overlayCfg.textureKey)) {
+                    overlaySprite.play(overlayCfg.textureKey);
+                }
+            }
             if (foundationSprite?.active) {
                 const foundationCfg = sprCfg?.foundation || {};
                 const foundationW = Number(foundationCfg.displayW) || 256;
@@ -8541,6 +8665,43 @@ export class GameScene extends Scene {
                 sprite.setTint(this._parseColor(e.color || '#d4c5a9').color);
             }
 
+            const windowGlowCfg = this._resolveBuildingWindowGlowConfig(sprCfg);
+            if (windowGlowCfg?.textureKey && this.textures.exists(windowGlowCfg.textureKey)) {
+                if (!windowGlowSprite?.active) {
+                    windowGlowSprite = this.add.sprite(sprite.x, sprite.y, windowGlowCfg.textureKey);
+                    windowGlowSprite.setOrigin(0.5, 0.5);
+                    windowGlowSprite.setBlendMode(BlendModes.ADD);
+                    data.windowGlowSprite = windowGlowSprite;
+                } else if (windowGlowSprite.texture?.key !== windowGlowCfg.textureKey) {
+                    windowGlowSprite.setTexture(windowGlowCfg.textureKey);
+                }
+                windowGlowSprite.setPosition(sprite.x, sprite.y);
+                windowGlowSprite.setDisplaySize(sprite.displayWidth, sprite.displayHeight);
+                windowGlowSprite.setFlipX(!!e._facingLeft);
+                windowGlowSprite.setRotation(sprite.rotation || 0);
+
+                const daylight = Math.max(0, Math.min(1,
+                    Number(EnvironmentLightingSystem.getSun()?.daylight ?? 1)));
+                const nightStrength = 0.20 + (1 - daylight) * 0.80;
+                const now = Number(this.time?.now) || 0;
+                const phase = Number(data.windowGlowPhase) || 0;
+                const periodMs = Math.max(500, Number(windowGlowCfg.pulsePeriodMs) || 2300);
+                const pulse = Math.sin((now / periodMs) * Math.PI * 2 + phase)
+                    * (Number(windowGlowCfg.pulseAmount) || 0.10);
+                const irregular = (
+                    Math.sin(now * 0.018 + phase * 1.7) * 0.62
+                    + Math.sin(now * 0.043 + phase * 0.73) * 0.38
+                ) * (Number(windowGlowCfg.flickerAmount) || 0.045);
+                const baseAlpha = Number(windowGlowCfg.baseAlpha) || 0.68;
+                windowGlowSprite.setAlpha(Math.max(0, Math.min(1,
+                    baseAlpha * nightStrength * (1 + pulse + irregular))));
+                windowGlowSprite.setDepth((Number(sprite.depth) || 0) + 0.005);
+            } else if (windowGlowSprite?.active) {
+                windowGlowSprite.destroy();
+                data.windowGlowSprite = null;
+                windowGlowSprite = null;
+            }
+
             let text = e.name || '';
             let color = '#d4c5a9';
             if (e.npcType) {
@@ -8571,6 +8732,8 @@ export class GameScene extends Scene {
                     ? e._structureRenderDepth
                     : ((typeof e._faceDepth === 'number') ? e._faceDepth : e.y + 12);
                 sprite.setDepth(dd);
+                if (windowGlowSprite?.active) windowGlowSprite.setDepth(dd + 0.005);
+                if (overlaySprite?.active) overlaySprite.setDepth(dd + 0.01);
                 label.setDepth(e._structureRenderChannels?.label ?? (dd + 1));
             }
             if (label.text !== text) {
@@ -8580,6 +8743,8 @@ export class GameScene extends Scene {
                 label.setColor(color);
             }
             sprite.setVisible(true);
+            if (windowGlowSprite?.active) windowGlowSprite.setVisible(true);
+            if (overlaySprite?.active) overlaySprite.setVisible(true);
             label.setVisible(true);
               if (e._isDefenseCover) {
                   // 掩体：隐藏名字/血量文字，残血时只显示 _syncEntityHud 的小血条
@@ -8596,6 +8761,8 @@ export class GameScene extends Scene {
                     if (sprite?.active) sprite.destroy();
                 }
                 if (data.foundationSprite?.active) data.foundationSprite.destroy();
+                if (data.overlaySprite?.active) data.overlaySprite.destroy();
+                if (data.windowGlowSprite?.active) data.windowGlowSprite.destroy();
                 if (data.label?.active) data.label.destroy();
                 this._neutralSprites.delete(e);
             }

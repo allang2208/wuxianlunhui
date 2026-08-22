@@ -24,8 +24,10 @@ const producerConfigs = Object.values(producerBuildings || {})
 const producerUnitIds = producerConfigs.flatMap((config) => (config.unitTypes || [])
     .map((unit) => typeof unit === 'string' ? unit : unit?.key)
     .filter(Boolean));
-const upgradeIds = Object.values(buildingUpgrades || {}).flatMap((project) =>
-    Object.values(project?.abilities || {}).map((ability) => ability?.id).filter(Boolean));
+const upgradeIds = Object.values(buildingUpgrades || {}).flatMap((project) => [
+    ...Object.values(project?.abilities || {}).map((ability) => ability?.id).filter(Boolean),
+    ...Object.keys(project?.modules || {}),
+]);
 const houseUpgradeIds = (populationEconomy.house?.levels || [])
     .map((level) => level?.technologyUnlockId)
     .filter(Boolean);

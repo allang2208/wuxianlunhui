@@ -1,0 +1,37 @@
+{
+  "frameWidth": 1024,
+  "frameHeight": 1024,
+  "frameCount": 16,
+  "columns": 4,
+  "rows": 4,
+  "sequence": "left-to-right, top-to-bottom",
+  "sailOffset": {
+    "x": 22,
+    "y": 5
+  },
+  "hub": {
+    "x": 632,
+    "y": 444,
+    "radiusX": 43,
+    "radiusY": 54
+  },
+  "colorMatch": {
+    "hueShift": 0.015188686636914743,
+    "saturationScale": 0.7861833464670344,
+    "valueScale": 1.45,
+    "target": {
+      "hue": 0.06890537415492268,
+      "saturation": 0.5815602836879432,
+      "value": 0.4745098039215686,
+      "samples": 49973
+    },
+    "current": {
+      "hue": 0.053716687518007934,
+      "saturation": 0.7397260273972602,
+      "value": 0.2823529411764706,
+      "samples": 52192
+    }
+  },
+  "source": "wheat_windmill_v2_5080_s48_seed122844_raw.png",
+  "base": "windmill_no_sails_inpaint_v4.png"
+}

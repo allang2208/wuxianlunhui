@@ -88,6 +88,10 @@ import { HamsterBankerVisualSystem } from './hamster-banker-visual-system.js';
 import { WorkshopEconomySystem } from './workshop-economy-system.js';
 import { BankEconomySystem } from './bank-economy-system.js';
 import { WarehouseEconomySystem } from './warehouse-economy-system.js';
+import {
+    CandleSanctuarySystem,
+    WORLD125_CANDLE_RANGE_MODULE_ID,
+} from './candle-sanctuary-system.js';
 import { CrossPlaneResourceSystem } from './cross-plane-resource-system.js';
 import { World122TributeSystem } from './world122-tribute-system.js';
 import { getRecruitCountMul } from '../config/tribute-effects.js';
@@ -292,18 +296,24 @@ export class ProducerBuilding extends DamageableEntity {
         this.mdef = cfg.mdef;
         const animationCfg = cfg.animation;
         this.spriteCfg = {
-            idleKey: animationCfg?.textureKey || cfg.tex,
-            // 动画精灵图不能直接作为面板缩略图；保留原静态建筑贴图用于详情头图。
-            panelKey: animationCfg ? cfg.tex : null,
-            // 动画帧的透明占比可能与静态建筑不同，允许独立校准但不改建造预览与逻辑占格。
-            size: animationCfg?.displayW ?? cfg.displayW,
-            sizeH: animationCfg?.displayH ?? cfg.displayH,
-            footOffsetY: animationCfg?.footOffsetY ?? cfg.footOffsetY,
+            idleKey: cfg.tex,
+            // 主体保持静态；风车叶片等运动部件由独立 overlay Sprite 播放，禁止再用整栋精灵图覆盖主体。
+            overlayAnimation: animationCfg ? { ...animationCfg } : null,
+            // 与主体同画布的窗口发光蒙版；只参与渲染，不改变建筑主体、占格或碰撞。
+            windowGlow: cfg.windowGlow ? {
+                ...cfg.windowGlow,
+                variants: cfg.windowGlow.variants ? { ...cfg.windowGlow.variants } : undefined,
+            } : null,
+            // 面板继续展示原完整建筑缩略图，不显示无叶片运行时主体或纯叶片精灵表。
+            panelKey: cfg.panelTex || null,
+            size: cfg.displayW,
+            sizeH: cfg.displayH,
+            footOffsetY: cfg.footOffsetY,
             // Per-asset correction applied after alpha-ground fitting.  This
             // keeps the logical 2x2 footprint fixed while compensating for a
             // visible plinth thickness or an asymmetric generated canvas.
-            anchorAdjustX: Number(animationCfg?.anchorAdjustX ?? cfg.anchorAdjustX) || 0,
-            anchorAdjustY: Number(animationCfg?.anchorAdjustY ?? cfg.anchorAdjustY) || 0,
+            anchorAdjustX: Number(cfg.anchorAdjustX) || 0,
+            anchorAdjustY: Number(cfg.anchorAdjustY) || 0,
             foundation: cfg.foundation === false ? null : {
                 ...BUILDING_FOUNDATION_CONFIG,
                 ...(cfg.foundation || {}),
@@ -363,6 +373,7 @@ export class ProducerBuilding extends DamageableEntity {
         PopulationEconomySystem.initializeBuilding(this, config);
         BankEconomySystem.initializeBuilding(this, config);
         WorkshopEconomySystem.initializeBuilding(this, config);
+        CandleSanctuarySystem.initializeBuilding(this, config);
         this.rebuildCollider();
     }
 
@@ -724,6 +735,7 @@ export class ProducerBuilding extends DamageableEntity {
         HamsterFarmerVisualSystem.updateBuilding(this, dt);
         WorkshopEconomySystem.updateBuilding(this, dt);
         HamsterBankerVisualSystem.updateBuilding(this, dt);
+        CandleSanctuarySystem.updateBuilding(this, dt);
         if (!this.spawnEnabled) return;
         if (this._parallelProduction) {
             this._updateParallelProduction(dt);
@@ -840,6 +852,7 @@ export class ProducerBuilding extends DamageableEntity {
         WorkshopEconomySystem.unregisterBuilding(this);
         WarehouseEconomySystem.unregisterBuilding(this);
         PopulationEconomySystem.unregisterBuilding(this);
+        CandleSanctuarySystem.unregisterBuilding(this);
         TroopLineSystem.clearProducerRally(this);
         World122TributeSystem.detachAltar(this);
         this._despawnUnits();
@@ -903,6 +916,7 @@ export class ProducerBuilding extends DamageableEntity {
         WorkshopEconomySystem.unregisterBuilding(this);
         WarehouseEconomySystem.unregisterBuilding(this);
         PopulationEconomySystem.unregisterBuilding(this);
+        CandleSanctuarySystem.unregisterBuilding(this);
         TroopLineSystem.clearProducerRally(this);
         World122TributeSystem.detachAltar(this);
         this._despawnUnits();
@@ -974,11 +988,13 @@ class ProducerBuildingPanel extends BasePanel {
     openFor(building, player) {
         BankEconomySystem.hideRange();
         WorkshopEconomySystem.hideRange();
+        CandleSanctuarySystem.hideRange();
         this.building = building;
         this.player = player;
         this.open();
         if (building?._economyType === 'bank') BankEconomySystem.showRange(building);
         if (building?._economyType === 'workshop') WorkshopEconomySystem.showRange(building);
+        if (building?._isWorld125Candle) CandleSanctuarySystem.showRange(building);
         this.refresh();
         this._startTicking();
     }
@@ -995,6 +1011,7 @@ class ProducerBuildingPanel extends BasePanel {
         this.el?.classList.remove('is-economy-building');
         BankEconomySystem.hideRange();
         WorkshopEconomySystem.hideRange();
+        CandleSanctuarySystem.hideRange();
         this.building = null;
         this.player = null;
     }
@@ -1017,6 +1034,23 @@ class ProducerBuildingPanel extends BasePanel {
         const el = this.el;
         if (!el || !this.building) return;
         const b = this.building;
+        if (b._isWorld125Candle) {
+            const range = CandleSanctuarySystem.getLightRange(b);
+            const rangeEl = el.querySelector('#pbCandleRange');
+            if (rangeEl) rangeEl.textContent = `${Math.round(range)}px`;
+            const upgrade = b._candleUpgrade;
+            if (upgrade) {
+                const pct = Math.max(0, Math.min(100,
+                    Math.round((1 - upgrade.remainMs / upgrade.totalMs) * 100)));
+                const bar = el.querySelector(`#pbUpgradeBar_${upgrade.moduleId}`);
+                const text = el.querySelector(`#pbUpgradeText_${upgrade.moduleId}`);
+                if (bar) bar.style.width = `${pct}%`;
+                if (text) text.textContent = `升级中 ${pct}%（剩余 ${Math.ceil(upgrade.remainMs / 1000)}s）`;
+            } else if (el.querySelector('[data-candle-upgrading="true"]')) {
+                this.refresh();
+            }
+            return;
+        }
         if (b._economyType) {
             const population = PopulationEconomySystem.getPopulationSnapshot();
             const workforce = PopulationEconomySystem.getWorkerSnapshot(b);
@@ -1299,8 +1333,10 @@ class ProducerBuildingPanel extends BasePanel {
         const isWarehouse = cfg.workshopType === 'warehouse';
         const isPortal = cfg.panelMode === 'portal';
         const isPassive = cfg.panelMode === 'detail';
+        const isCandle = cfg.panelMode === 'candle';
         const isEconomy = !!cfg.economyType;
-        const isAbilityShop = cfg.spawnEnabled === false && !isWarehouse && !isPassive && !isEconomy;
+        const isAbilityShop = cfg.spawnEnabled === false
+            && !isWarehouse && !isPassive && !isCandle && !isEconomy;
         el.classList.toggle('is-troop-producer', !!b._isTroopProducer);
         el.classList.toggle('is-economy-building', isEconomy || isWarehouse);
         const applicableModules = isEconomy ? [] : Object.entries(cfg.modules || {})
@@ -1318,24 +1354,94 @@ class ProducerBuildingPanel extends BasePanel {
         }[cfg.economyType];
         const mode = isPortal ? '跨世界传送'
             : (isEconomy ? economyMode
+                : (isCandle ? '烛火庇护与照明'
                 : (isPassive ? '基础建筑详情'
                 : (isWarehouse ? '仓储与能源汇总'
-                    : (isAbilityShop ? (cfg.workshopType === 'research' ? '研究与结构强化' : '能力工坊升级') : '募兵与单位生产'))));
+                    : (isAbilityShop ? (cfg.workshopType === 'research' ? '研究与结构强化' : '能力工坊升级') : '募兵与单位生产')))));
         if (detail) {
             detail.innerHTML = renderBuildingDetailHeader({
                 texture: b.spriteCfg?.panelKey || b.spriteCfg?.idleKey || cfg.tex,
                 name: cfg.name,
                 hp: b.hp,
                 maxHp: b.maxHp,
-                accent: isWarehouse ? '#7fd4ff' : (isAbilityShop ? '#c9a0ff' : '#7fe0c8'),
+                accent: isCandle ? '#ffc66d'
+                    : (isWarehouse ? '#7fd4ff' : (isAbilityShop ? '#c9a0ff' : '#7fe0c8')),
                 status: mode,
             });
         }
         if (functionTitle) functionTitle.textContent = `特殊功能 · ${mode}`;
         const unitTypeEl = el.querySelector('#pbUnitType');
-        if (unitTypeEl) unitTypeEl.style.display = (isAbilityShop || isWarehouse || isPassive || isPortal || isEconomy) ? 'none' : '';
+        if (unitTypeEl) unitTypeEl.style.display = (isAbilityShop || isWarehouse || isPassive
+            || isCandle || isPortal || isEconomy) ? 'none' : '';
 
         const st = el.querySelector('#pbStatus');
+        if (isCandle) {
+            const range = CandleSanctuarySystem.getLightRange(b);
+            st.innerHTML = `
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                    <span style="color:#ffc66d;font-weight:700;">🕯 烛火庇护</span>
+                    <span class="troop-panel-resource-summary">能源 <span style="color:#7fd4ff;">${energy}</span></span>
+                </div>
+                <div class="troop-panel-copy">
+                    照明与庇护半径 <b id="pbCandleRange" style="color:#ffd18a;">${Math.round(range)}px</b><br>
+                    死寂雾潮：范围外友军视野 ×0.6，范围内恢复 ×1；夜晚分别为 ×0.3 / ×0.45。<br>
+                    ${cfg.panelDescription || ''}
+                </div>`;
+            const modBox = el.querySelector('#pbModules');
+            const moduleId = WORLD125_CANDLE_RANGE_MODULE_ID;
+            const module = cfg.modules?.[moduleId];
+            const level = CandleSanctuarySystem.getModuleLevel(b, moduleId);
+            const maxed = level >= Math.max(0, Number(module?.maxLevel) || 0);
+            const unlocked = TechnologySystem.isUnlocked('upgrade', moduleId);
+            const upgrade = b._candleUpgrade;
+            const inProgress = upgrade?.moduleId === moduleId;
+            const progress = inProgress
+                ? Math.round((1 - upgrade.remainMs / upgrade.totalMs) * 100)
+                : 0;
+            const cost = CandleSanctuarySystem.getUpgradeCost(b, moduleId);
+            const actionHtml = maxed
+                ? '<span style="color:#8a8a8a;font-size:12px;">已满级</span>'
+                : `<button class="troop-panel-upgrade-button" data-candle-upgrade="${moduleId}"
+                    data-technology-gate-type="upgrade" data-technology-gate-id="${moduleId}"
+                    ${upgrade || !unlocked ? 'disabled' : ''}>${unlocked ? '升级' : '科技未解锁'}</button>`;
+            modBox.innerHTML = `
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                    <span class="troop-panel-section-title">✨ 单体烛台升级</span>
+                    <span class="troop-panel-section-meta">每座烛台独立生效</span>
+                </div>
+                ${module ? renderBuildingUpgradeCard({
+                    rowAttribute: 'data-candle-module-row', projectId: moduleId,
+                    icon: module.icon, iconImage: module.iconImage, name: module.name,
+                    level, maxLevel: module.maxLevel, cost, maxed, inProgress, progressPct: progress,
+                    remainMs: inProgress ? upgrade.remainMs : 0,
+                    barId: `pbUpgradeBar_${moduleId}`, textId: `pbUpgradeText_${moduleId}`,
+                    actionsHtml: actionHtml, accent: '#ffc66d',
+                }).replace('class="building-upgrade-card"',
+                    `class="building-upgrade-card" data-candle-upgrading="${inProgress}"`)
+                    : '<div class="troop-panel-empty">烛台升级配置缺失</div>'}
+                <div class="troop-panel-caption" style="margin-top:8px;">每级照明与庇护半径 +50px；烛台被摧毁时，其照明和庇护立即失效。</div>`;
+            TechnologyGate.bindTree(modBox);
+            modBox.querySelector('[data-candle-upgrade]')?.addEventListener('click', (event) => {
+                this._upgradeCandle(event.currentTarget.dataset.candleUpgrade);
+            });
+            const sellBtn = el.querySelector('#pbSell');
+            if (sellBtn) {
+                const durability = Math.max(0, Math.min(1,
+                    Number(b.hp) / Math.max(1, Number(b.maxHp) || 1)));
+                const refund = Math.floor((b._buildCost ?? cfg.cost)
+                    * (cfg.sellRefundRatio ?? 0.5) * durability);
+                const refundUnit = (b._buildCurrency || cfg.currency) === 'gold' ? '金币' : '能源';
+                sellBtn.style.display = '';
+                sellBtn.title = `出售返还 ${refund} ${refundUnit}`;
+                sellBtn.onclick = () => {
+                    const result = b.sell();
+                    this._notify(result.ok ? `已出售（+${result.refund} ${refundUnit}）`
+                        : (result.reason || '出售失败'), result.ok ? '#ffd700' : '#ff5555');
+                    if (result.ok) this.close();
+                };
+            }
+            return;
+        }
         if (b._parallelProduction) {
             st.innerHTML = `
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
@@ -1502,7 +1608,7 @@ class ProducerBuildingPanel extends BasePanel {
             const refund = Math.floor((b._buildCost ?? cfg.cost)
                 * (cfg.sellRefundRatio ?? 0.5) * durability);
             const refundUnit = (b._buildCurrency || cfg.currency) === 'gold' ? '金币' : '能源';
-            sellBtn.title = `出售返还 ${refund} ${refundUnit}${isAbilityShop || isWarehouse || isPassive || isPortal || isEconomy ? '' : '（军事单位一并拆除）'}`;
+            sellBtn.title = `出售返还 ${refund} ${refundUnit}${isAbilityShop || isWarehouse || isPassive || isCandle || isPortal || isEconomy ? '' : '（军事单位一并拆除）'}`;
             sellBtn.onclick = () => {
                 const res = b.sell();
                 this._notify(res.ok ? `已出售（+${res.refund} ${refundUnit}）` : (res.reason || '出售失败'), res.ok ? '#ffd700' : '#ff5555');
@@ -1918,6 +2024,47 @@ class ProducerBuildingPanel extends BasePanel {
         this.refresh();
     }
 
+    _upgradeCandle(moduleId) {
+        if (!this.building) return;
+        const building = this.building;
+        const module = building._cfg?.modules?.[moduleId];
+        let result;
+        if (!building._isWorld125Candle || !module) {
+            result = { ok: false, reason: '未知烛台升级项目' };
+        } else if (!TechnologySystem.isUnlocked('upgrade', moduleId)) {
+            const technologyName = TechnologySystem.getUnlockRequirementLabel('upgrade', moduleId);
+            result = { ok: false, reason: `需要先完成科技：${technologyName || moduleId}` };
+        } else if (CandleSanctuarySystem.getModuleLevel(building, moduleId)
+            >= Math.max(0, Number(module.maxLevel) || 0)) {
+            result = { ok: false, reason: '照明范围已满级' };
+        } else if (building._candleUpgrade) {
+            result = { ok: false, reason: '已有烛台项目正在升级' };
+        } else {
+            const cost = CandleSanctuarySystem.getUpgradeCost(building, moduleId);
+            if (!cost) {
+                result = { ok: false, reason: '升级费用配置缺失' };
+            } else {
+                const payment = payBuildingUpgradeCost(cost);
+                if (!payment.ok) {
+                    result = payment;
+                } else {
+                    building._candleUpgrade = {
+                        moduleId,
+                        totalMs: Math.max(1, Number(cost.timeMs) || 1),
+                        remainMs: Math.max(1, Number(cost.timeMs) || 1),
+                    };
+                    result = { ok: true, cost, moduleId };
+                }
+            }
+        }
+        if (result.ok) {
+            this._notify(`增幅灯芯开始升级（${Math.round(result.cost.timeMs / 1000)}s）`, '#ffc66d');
+        } else {
+            this._notify(result.reason || '烛台升级失败', '#ff5555');
+        }
+        this.refresh();
+    }
+
     _getEconomySecondaryProgress(building, workforce) {
         if (!building || !workforce) return { label: '本轮生产', pct: 0, text: '0%' };
         if (building._economyType === 'workshop') {
@@ -2185,10 +2332,6 @@ class ProducerBuildingPanel extends BasePanel {
     }
 
     _constructPortal(sceneId) {
-        if (!TechnologySystem.isUnlocked('building', 'portal')) {
-            this._notify('需要先研发位面工程', '#ffb35c');
-            return;
-        }
         const result = WorldProgressionSystem.constructPortal(sceneId);
         if (!result.ok) {
             this._notify(result.reason || '传送门构造失败', '#ff5555');
@@ -2293,6 +2436,7 @@ export const ProducerBuildingSystem = {
                 BankEconomySystem.unregisterBuilding(b);
                 WorkshopEconomySystem.unregisterBuilding(b);
                 WarehouseEconomySystem.unregisterBuilding(b);
+                CandleSanctuarySystem.unregisterBuilding(b);
                 b._despawnUnits();
                 if (Game && Game.entities && b.id) Game.entities.delete(b.id);
             }
@@ -2303,6 +2447,7 @@ export const ProducerBuildingSystem = {
         BankEconomySystem.reset();
         WorkshopEconomySystem.reset();
         WarehouseEconomySystem.reset();
+        CandleSanctuarySystem.reset();
         PopulationEconomySystem.reset();
         if (this._panel) {
             if (this._panel.isOpen) this._panel.close();

@@ -14,6 +14,10 @@
     "footOffsetY": 104,
     "anchorAdjustX": -15,
     "anchorAdjustY": -10,
+    "windowGlow": {
+      "textureKey": "thatch_hut_window_glow",
+      "assetPath": "assets/terrain/window-glow/thatch_hut.png"
+    },
     "sellRefundRatio": 0.5,
     "spawnIntervalMs": 10000,
     "spawnRadius": 90,
@@ -37,6 +41,10 @@
     "displayW": 279,
     "displayH": 248,
     "footOffsetY": 123,
+    "windowGlow": {
+      "textureKey": "blacksmith_window_glow",
+      "assetPath": "assets/terrain/window-glow/blacksmith.png"
+    },
     "sellRefundRatio": 0.5,
     "spawnEnabled": false,
     "spawnIntervalMs": 10000,
@@ -59,6 +67,10 @@
     "displayW": 480,
     "displayH": 480,
     "footOffsetY": 167,
+    "windowGlow": {
+      "textureKey": "church_window_glow",
+      "assetPath": "assets/terrain/window-glow/church.png"
+    },
     "assetCutoutHash": "24DA4936515AA9D84DCF6578A9C893A02278168B789BCEAC4CE4374DF2F367E7",
     "sellRefundRatio": 0.5,
     "spawnIntervalMs": 90000,
@@ -100,6 +112,7 @@
   "portal": {
     "id": "portal",
     "name": "传送门",
+    "playerBuildable": false,
     "cost": 2000,
     "hp": 3000,
     "radius": 128,
@@ -141,6 +154,10 @@
     "displayW": 256,
     "displayH": 234,
     "footOffsetY": 116,
+    "windowGlow": {
+      "textureKey": "research_institute_window_glow",
+      "assetPath": "assets/terrain/window-glow/research_institute.png"
+    },
     "assetCutoutHash": "40C5CFB468830C813C76BC963E3BB182C0B1506E85496FA09FFBEE5ACEF99689",
     "sellRefundRatio": 0.5,
     "spawnEnabled": false,
@@ -215,6 +232,10 @@
     "displayH": 271,
     "footOffsetY": 135,
     "anchorAdjustY": -10,
+    "windowGlow": {
+      "textureKey": "cavalry_school_window_glow",
+      "assetPath": "assets/terrain/window-glow/cavalry_school.png"
+    },
     "sellRefundRatio": 0.5,
     "spawnIntervalMs": 90000,
     "spawnRadius": 90,
@@ -241,6 +262,22 @@
     "displayW": 270,
     "displayH": 310,
     "footOffsetY": 155,
+    "windowGlow": {
+      "variants": {
+        "house_lv1": {
+          "textureKey": "house_lv1_window_glow",
+          "assetPath": "assets/terrain/window-glow/house_lv1.png"
+        },
+        "house_lv2": {
+          "textureKey": "house_lv2_window_glow",
+          "assetPath": "assets/terrain/window-glow/house_lv2.png"
+        },
+        "house_lv3": {
+          "textureKey": "house_lv3_window_glow",
+          "assetPath": "assets/terrain/window-glow/house_lv3.png"
+        }
+      }
+    },
     "perimeterTile": "none",
     "sellRefundRatio": 0.5,
     "spawnEnabled": false,
@@ -256,24 +293,33 @@
     "radius": 128,
     "def": 55,
     "mdef": 45,
-    "tex": "wheat_windmill",
-    "assetPath": "assets/terrain/wheat_windmill.png",
+    "tex": "wheat_windmill_body",
+    "assetPath": "assets/terrain/wheat_windmill_body.png",
+    "panelTex": "wheat_windmill",
     "animation": {
-      "textureKey": "wheat_windmill_rotation",
-      "assetPath": "assets/terrain/wheat_windmill_rotation.png",
-      "frameWidth": 512,
-      "frameHeight": 640,
-      "frameCount": 16,
-      "displayW": 330,
-      "displayH": 407,
-      "anchorAdjustX": 19,
-      "anchorAdjustY": -9,
-      "frameRate": 8.7,
+      "textureKey": "wheat_windmill_rotor",
+      "assetPath": "assets/terrain/wheat_windmill_rotor.png",
+      "frameWidth": 768,
+      "frameHeight": 768,
+      "frameCount": 32,
+      "displayW": 428,
+      "displayH": 428,
+      "offsetX": 50.1328125,
+      "offsetY": -27.625,
+      "frameRate": 17.4,
       "repeat": -1
     },
     "displayW": 276,
     "displayH": 340,
     "footOffsetY": 170,
+    "anchorAdjustX": -5,
+    "anchorAdjustY": 5,
+    "windowGlow": {
+      "textureKey": "wheat_windmill_body_window_glow",
+      "assetPath": "assets/terrain/window-glow/wheat_windmill_body.png",
+      "baseAlpha": 0.72,
+      "pulsePeriodMs": 2600
+    },
     "sellRefundRatio": 0.5,
     "spawnEnabled": false,
     "unitTypes": [],
@@ -294,6 +340,11 @@
     "displayW": 266,
     "displayH": 224,
     "footOffsetY": 111,
+    "windowGlow": {
+      "textureKey": "bank_window_glow",
+      "assetPath": "assets/terrain/window-glow/bank.png",
+      "baseAlpha": 0.62
+    },
     "sellRefundRatio": 0.5,
     "spawnEnabled": false,
     "unitTypes": [],
@@ -316,6 +367,10 @@
     "displayW": 276,
     "displayH": 206,
     "footOffsetY": 101,
+    "windowGlow": {
+      "textureKey": "market_window_glow",
+      "assetPath": "assets/terrain/window-glow/market.png"
+    },
     "assetCutoutHash": "1D5732EB75CCB3365BA54FCC0C0C48A57D95615658D9E490F1D3C77CFA6E1113",
     "sellRefundRatio": 0.5,
     "spawnEnabled": false,
@@ -327,6 +382,11 @@
     "hp": 2300, "radius": 128, "def": 55, "mdef": 45,
     "tex": "explorer_camp", "foundation": false,
     "displayW": 268, "displayH": 251, "footOffsetY": 124,
+    "windowGlow": {
+      "textureKey": "explorer_camp_window_glow",
+      "assetPath": "assets/terrain/window-glow/explorer_camp.png"
+    },
+    "perimeterTile": "none",
     "sellRefundRatio": 0.5, "allowedSceneIds": ["scene11"], "buildLimit": 3,
     "featureWorldId": "scene11", "parallelProduction": true,
     "spawnIntervalMs": 60000, "spawnRadius": 90, "unitCap": 6,
@@ -335,6 +395,34 @@
       { "key": "explorer", "name": "仓鼠探险家", "unitCap": 3, "spawnIntervalMs": 45000, "spawnFoodCost": 120 },
       { "key": "bounty_hunter", "name": "仓鼠赏金猎人", "unitCap": 3, "spawnIntervalMs": 75000, "spawnFoodCost": 240 }
     ]
+  },
+  "dungeon_candle": {
+    "id": "dungeon_candle",
+    "name": "守夜烛台",
+    "cost": 500,
+    "currency": "energy",
+    "hp": 1200,
+    "radius": 36,
+    "def": 35,
+    "mdef": 70,
+    "tex": "obstacle_candle",
+    "assetPath": "assets/terrain/obstacle_candle.png",
+    "thumbnailPath": "assets/terrain/obstacle_candle.png",
+    "foundation": false,
+    "displayW": 89,
+    "displayH": 180,
+    "footOffsetY": 90,
+    "autoFootprint": true,
+    "perimeterTile": "none",
+    "sellRefundRatio": 0.5,
+    "spawnEnabled": false,
+    "unitTypes": [],
+    "panelMode": "candle",
+    "panelDescription": "死寂雾潮中，照明范围内的友军获得烛火庇护；烛台拥有实体与生命值，失守后庇护立即消失。",
+    "allowedSceneIds": ["scene11"],
+    "featureWorldId": "scene11",
+    "fogVisionProfile": "candle",
+    "upgradeProject": "candle_sanctuary"
   },
   "jungle_temple": {
     "id": "jungle_temple", "name": "丛林神庙", "cost": 1600, "currency": "gold",
@@ -365,6 +453,10 @@
     "displayW": 308,
     "displayH": 323,
     "footOffsetY": 160,
+    "windowGlow": {
+      "textureKey": "economic_workshop_window_glow",
+      "assetPath": "assets/terrain/window-glow/economic_workshop.png"
+    },
     "sellRefundRatio": 0.5,
     "spawnEnabled": false,
     "unitTypes": [],

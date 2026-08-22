@@ -9,7 +9,6 @@
 // 玩家在世界-122 内（前台全真模拟）时停 tick 并刷新锚点。
 // ============================================================
 import { Game } from '../game.js';
-import { SceneManager } from './scene-manager.js';
 import { TimerManager } from '../utils/timer-manager.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
@@ -38,8 +37,7 @@ export const WorldSimDriver = {
 
     _tick() {
         if (!Game || !Game.isRunning) return;
-        // 地牢隔绝期间不推进后台位面快照，也不累计全局科技研究进度。
-        if (SceneManager.isDungeonIsolationActive()) return;
+        // 地牢探险仍使用同一世界时钟：后台位面、资源生产与全局科技继续结算。
         const nowGame = EnvironmentLightingSystem.serializeTime().elapsedMs || 0;
         const entries = Object.entries(getWorldSnapshots())
             .filter(([sceneId, snapshot]) => isWorldSnapshotCurrent(sceneId, snapshot));
