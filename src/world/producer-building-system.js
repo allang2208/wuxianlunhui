@@ -29,7 +29,7 @@ import { BuildingSinkEffect } from '../effects/building-sink.js';
 import { SoundManager } from '../ui/sound-manager.js';
 import { BasePanel } from '../ui/panels/base-panel.js';
 import { renderBuildingDetailHeader } from '../ui/panels/building-detail-header.js';
-import { renderBuildingUpgradeCard } from '../ui/panels/building-upgrade-card.js';
+import { renderBuildingUpgradeCard, renderBuildingUpgradeIcon } from '../ui/panels/building-upgrade-card.js';
 import { mountRightSidebarPanel } from '../ui/right-sidebar-panel-layer.js';
 import { TechnologyGate } from '../ui/technology-gate.js';
 import {
@@ -89,6 +89,9 @@ import { WorkshopEconomySystem } from './workshop-economy-system.js';
 import { BankEconomySystem } from './bank-economy-system.js';
 import { WarehouseEconomySystem } from './warehouse-economy-system.js';
 import { CrossPlaneResourceSystem } from './cross-plane-resource-system.js';
+import { World122TributeSystem } from './world122-tribute-system.js';
+import { getRecruitCountMul } from '../config/tribute-effects.js';
+import { getHamsterUnitIcon } from '../config/hamster-unit-icons.js';
 
 const ABILITY_TARGET_NAMES = Object.freeze({
     warrior: '仓鼠战士',
@@ -105,6 +108,13 @@ const ABILITY_TARGET_NAMES = Object.freeze({
     jaguar_warrior: '美洲豹战士',
     jungle_priest: '丛林祭司',
 });
+
+function renderTroopUnitIcon(unitKind, modifier = '') {
+    const iconPath = getHamsterUnitIcon(unitKind);
+    if (!iconPath) return '';
+    const modifierClass = modifier ? ` troop-unit-icon--${modifier}` : '';
+    return `<img class="troop-unit-icon${modifierClass}" src="${iconPath}" alt="" draggable="false">`;
+}
 
 function moduleAppliesToUnit(module, unitType) {
     return !Array.isArray(module?.unitKinds) || module.unitKinds.includes(unitType);
@@ -125,6 +135,7 @@ function cloneProducerRuntimeConfig(cfg) {
                 )),
             })),
         } : undefined,
+        animation: cfg.animation ? { ...cfg.animation } : undefined,
         unitTypes: (cfg.unitTypes || []).map((unit) => ({ ...unit })),
         modules: Object.fromEntries(
             Object.entries(cfg.modules || {}).map(([key, module]) => [key, { ...module }])
@@ -272,22 +283,27 @@ export class ProducerBuilding extends DamageableEntity {
         this._cfg = cfg;
         this.id = config.id || `${cfg.id}_${Math.random().toString(36).slice(2, 8)}`;
         this._isProducerBuilding = true;
+        this._isWorld122TributeAltar = cfg.panelMode === 'tribute';
         this._isDefenseStructure = true;
         this.noSeparation = true;
         this.immovable = true;
         this._noShadow = true;
         this.def = cfg.def;
         this.mdef = cfg.mdef;
+        const animationCfg = cfg.animation;
         this.spriteCfg = {
-            idleKey: cfg.tex,
-            size: cfg.displayW,
-            sizeH: cfg.displayH,
-            footOffsetY: cfg.footOffsetY,
+            idleKey: animationCfg?.textureKey || cfg.tex,
+            // 动画精灵图不能直接作为面板缩略图；保留原静态建筑贴图用于详情头图。
+            panelKey: animationCfg ? cfg.tex : null,
+            // 动画帧的透明占比可能与静态建筑不同，允许独立校准但不改建造预览与逻辑占格。
+            size: animationCfg?.displayW ?? cfg.displayW,
+            sizeH: animationCfg?.displayH ?? cfg.displayH,
+            footOffsetY: animationCfg?.footOffsetY ?? cfg.footOffsetY,
             // Per-asset correction applied after alpha-ground fitting.  This
             // keeps the logical 2x2 footprint fixed while compensating for a
             // visible plinth thickness or an asymmetric generated canvas.
-            anchorAdjustX: Number(cfg.anchorAdjustX) || 0,
-            anchorAdjustY: Number(cfg.anchorAdjustY) || 0,
+            anchorAdjustX: Number(animationCfg?.anchorAdjustX ?? cfg.anchorAdjustX) || 0,
+            anchorAdjustY: Number(animationCfg?.anchorAdjustY ?? cfg.anchorAdjustY) || 0,
             foundation: cfg.foundation === false ? null : {
                 ...BUILDING_FOUNDATION_CONFIG,
                 ...(cfg.foundation || {}),
@@ -297,7 +313,7 @@ export class ProducerBuilding extends DamageableEntity {
             // 阴影投射体只影响视觉，不参与建造占格、碰撞或寻路。
             shadowCaster: cfg.shadowCaster,
         };
-        this.footOffsetY = cfg.footOffsetY;
+        this.footOffsetY = this.spriteCfg.footOffsetY;
         applyBuildingFootprint(this, 2);
         setupStructureDepth(this);
         this.level = 1;
@@ -435,6 +451,10 @@ export class ProducerBuilding extends DamageableEntity {
     setParallelRecruitMode(kind, mode) {
         const queue = this._parallelQueues?.[kind];
         if (!this._parallelProduction || !queue) return { ok: false, reason: '未知生产通道' };
+        if (!TechnologySystem.isUnlocked('unit', kind)) {
+            const technologyName = TechnologySystem.getUnlockRequirementLabel('unit', kind);
+            return { ok: false, reason: `需要先完成科技：${technologyName || kind}` };
+        }
         const next = normalizeRecruitMode(mode);
         if (next === RECRUIT_MODE.SINGLE) {
             if (this.aliveUnitCount(kind) >= this.parallelUnitCap(kind)) return { ok: false, reason: '该单位数量已达上限' };
@@ -506,12 +526,11 @@ export class ProducerBuilding extends DamageableEntity {
             unit._ai._titheTimer = Math.max(0, this._restoredTitheTimer);
         }
         applyUnitUpgradePatch(unit, getUnitUpgradePatch(this.unitType, this._cfg.modules));
-        if (this.unitType === 'explorer' && this._restoreExplorerRemaining > 0) {
+        if (this.unitType === 'explorer' && Array.isArray(this._restoreExplorerRuns)
+            && this._restoreExplorerRuns.length > 0) {
+            const run = this._restoreExplorerRuns.shift();
             unit._command = { mode: 'explore' };
-            if (unit._ai && Number.isFinite(this._restoreExplorerRewardTimer)) {
-                unit._ai._rewardTimer = this._restoreExplorerRewardTimer;
-            }
-            this._restoreExplorerRemaining--;
+            unit._ai?.restoreExploration?.(run);
         }
         unit._barracks = this;
         unit._spawnEgress = { x: spot.egressX, y: spot.egressY };
@@ -524,6 +543,13 @@ export class ProducerBuilding extends DamageableEntity {
             options.sourceSceneId || SceneManager.currentScene,
             options
         );
+        // 双身翡翠神像「双身」（2026-08-22 工艺品祭品）：每次出兵数量 ×N，额外单位不再收取食物
+        if (!options._noRecruitMul) {
+            const recruitMul = Math.max(1, Math.floor(getRecruitCountMul()));
+            for (let extra = 1; extra < recruitMul; extra++) {
+                this.spawnUnit(false, { ...options, _noRecruitMul: true });
+            }
+        }
         return unit;
     }
 
@@ -815,6 +841,7 @@ export class ProducerBuilding extends DamageableEntity {
         WarehouseEconomySystem.unregisterBuilding(this);
         PopulationEconomySystem.unregisterBuilding(this);
         TroopLineSystem.clearProducerRally(this);
+        World122TributeSystem.detachAltar(this);
         this._despawnUnits();
         if (this._isEnergyWarehouse && EnergyManager) {
             const lostFood = Math.max(0, Math.floor(Number(this.storedFood) || 0));
@@ -853,6 +880,9 @@ export class ProducerBuilding extends DamageableEntity {
 
     /** 出售：返还 50% 建造能源，单位一并拆除 */
     sell() {
+        if (this._isWorldPortalCore || this._isMainHubPortalBuilding) {
+            return { ok: false, reason: '世界核心传送门不可出售' };
+        }
         if (this._isEnergyWarehouse && ((this.storedEnergy || 0) > 0 || (this.storedFood || 0) > 0)) {
             return { ok: false, reason: '仓库中仍有能源或粮食，无法出售' };
         }
@@ -874,6 +904,7 @@ export class ProducerBuilding extends DamageableEntity {
         WarehouseEconomySystem.unregisterBuilding(this);
         PopulationEconomySystem.unregisterBuilding(this);
         TroopLineSystem.clearProducerRally(this);
+        World122TributeSystem.detachAltar(this);
         this._despawnUnits();
         if (this._isEnergyWarehouse && EnergyManager) EnergyManager.unregisterWarehouse(this);
         if (ProducerBuildingSystem && ProducerBuildingSystem.buildings) {
@@ -1292,7 +1323,7 @@ class ProducerBuildingPanel extends BasePanel {
                     : (isAbilityShop ? (cfg.workshopType === 'research' ? '研究与结构强化' : '能力工坊升级') : '募兵与单位生产'))));
         if (detail) {
             detail.innerHTML = renderBuildingDetailHeader({
-                texture: b.spriteCfg?.idleKey || cfg.tex,
+                texture: b.spriteCfg?.panelKey || b.spriteCfg?.idleKey || cfg.tex,
                 name: cfg.name,
                 hp: b.hp,
                 maxHp: b.maxHp,
@@ -1319,8 +1350,11 @@ class ProducerBuildingPanel extends BasePanel {
                 const interval = b.recruitIntervalMs(unit.key);
                 const progress = queue.blocked ? 1 : Math.max(0, Math.min(1, 1 - queue.timer / interval));
                 const pct = Math.round(progress * 100);
-                return `<div style="padding:9px 0;border-bottom:1px solid rgba(127,224,200,.18);">
-                    <div style="display:flex;justify-content:space-between;"><b style="color:#7fe0c8;">${unit.name}</b><span>${b.aliveUnitCount(unit.key)}/${b.parallelUnitCap(unit.key)} · ${CrossPlaneResourceSystem.quote({ food: unit.spawnFoodCost || 0 }).food} 粮食</span></div>
+                return `<div data-technology-gate-type="unit" data-technology-gate-id="${unit.key}" style="padding:9px 0;border-bottom:1px solid rgba(127,224,200,.18);">
+                    <div class="troop-panel-unit-summary">
+                        <span class="troop-panel-unit-name">${renderTroopUnitIcon(unit.key)}<b>${unit.name}</b></span>
+                        <span>${b.aliveUnitCount(unit.key)}/${b.parallelUnitCap(unit.key)} · ${CrossPlaneResourceSystem.quote({ food: unit.spawnFoodCost || 0 }).food} 粮食</span>
+                    </div>
                     <div style="display:flex;justify-content:space-between;margin-top:5px;"><span data-parallel-next="${unit.key}">${mode === RECRUIT_MODE.PAUSED ? '已暂停' : `${Math.ceil(queue.timer / 1000)}s`}</span><span data-parallel-pct="${unit.key}">${pct}%</span></div>
                     <div style="height:9px;background:rgba(255,255,255,.1);border-radius:5px;overflow:hidden;"><div data-parallel-bar="${unit.key}" style="height:100%;width:${pct}%;background:linear-gradient(90deg,#ffd700,#7fe0c8);transition:width .2s linear;"></div></div>
                     <div class="recruit-control-row">
@@ -1334,6 +1368,7 @@ class ProducerBuildingPanel extends BasePanel {
                 button.addEventListener('click', () => this._setParallelRecruitMode(
                     button.dataset.parallelKind, button.dataset.parallelMode));
             });
+            TechnologyGate.bindTree(unitTypeEl);
             const modBox = el.querySelector('#pbModules');
             modBox.innerHTML = '<div class="troop-panel-empty">特色单位使用全局科技与铁匠铺能力；本建筑没有额外升级模块。</div>';
             const sellBtn = el.querySelector('#pbSell');
@@ -1370,7 +1405,7 @@ class ProducerBuildingPanel extends BasePanel {
             </div>
             <div class="troop-panel-copy">
                 军事单位 <span style="color:#8ad0ff;">${b.aliveUnitCount()}/${b.unitCount()}</span> ·
-                当前生成 <b style="color:#7fe0c8;">${curType}</b>（每名 ${CrossPlaneResourceSystem.quote({ food: b._unitSpawnFoodCost() }).food} 粮食）<br>
+                当前生成 <span class="troop-panel-inline-unit">${renderTroopUnitIcon(b.unitType, 'inline')}<b>${curType}</b></span>（每名 ${CrossPlaneResourceSystem.quote({ food: b._unitSpawnFoodCost() }).food} 粮食）<br>
                 招募状态 <b id="pbRecruitMode" style="color:${paused ? '#aab0b6' : '#7fe0c8'};">${recruitModeLabel(recruitMode)} · ${recruitStatusText(b)}</b> ·
                 下次生成 <b id="pbSpawnNext" style="color:${b._spawnBlocked ? '#ff7755' : '#7fd4ff'};">${nextText}</b>（当前周期 ${(spawnMs / 1000).toFixed(1)}s）<br>
                 ${upgradeSummary}
@@ -1391,7 +1426,12 @@ class ProducerBuildingPanel extends BasePanel {
             const active = b.unitType === u.key;
             return `<button class="troop-panel-unit-button ${active ? 'is-active' : ''}" data-unit-type="${u.key}"
                 data-technology-gate-type="unit" data-technology-gate-id="${u.key}"
-                style="flex:1;padding:7px 0;cursor:pointer;">${u.name}<br><small>${CrossPlaneResourceSystem.quote({ food: u.spawnFoodCost || 0 }).food} 粮食</small></button>`;
+                style="flex:1;cursor:pointer;">
+                    <span class="troop-panel-unit-button-main">
+                        ${renderTroopUnitIcon(u.key)}
+                        <span class="troop-panel-unit-button-copy"><span>${u.name}</span><small>${CrossPlaneResourceSystem.quote({ food: u.spawnFoodCost || 0 }).food} 粮食</small></span>
+                    </span>
+                </button>`;
         };
         ut.innerHTML = `
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
@@ -1431,7 +1471,7 @@ class ProducerBuildingPanel extends BasePanel {
                     : '<span class="troop-panel-caption">🔒 未知模块</span>';
             return renderBuildingUpgradeCard({
                 rowAttribute: 'data-module-row', projectId: mid,
-                icon: mod.icon, name: mod.name, level: lv, maxLevel: mod.maxLevel,
+                icon: mod.icon, iconImage: mod.iconImage, name: mod.name, level: lv, maxLevel: mod.maxLevel,
                 cost, maxed: maxedMod, inProgress, progressPct: progPct,
                 remainMs: inProgress ? b._upgrade.remainMs : 0,
                 barId: `pbUpgradeBar_${mid}`, textId: `pbUpgradeText_${mid}`,
@@ -1496,7 +1536,7 @@ class ProducerBuildingPanel extends BasePanel {
                         : `<button class="troop-panel-upgrade-button" data-workshop-upgrade="${moduleId}" ${upgrade ? 'disabled' : ''}>升级</button>`;
                     return renderBuildingUpgradeCard({
                         rowAttribute: 'data-workshop-row', projectId: moduleId,
-                        icon: module.icon, name: module.name, level, maxLevel: module.maxLevel,
+                        icon: module.icon, iconImage: module.iconImage, name: module.name, level, maxLevel: module.maxLevel,
                         cost: WorkshopEconomySystem.getUpgradeCost(b, moduleId), maxed,
                         inProgress, progressPct,
                         remainMs: inProgress ? upgrade.remainMs : 0,
@@ -1540,9 +1580,10 @@ class ProducerBuildingPanel extends BasePanel {
                     <div><span>升级耗时</span><b>${Math.round((next.upgradeCost.timeMs || 0) / 1000)} 秒</b></div>
                 </div>
                 ${upgrade ? `<div id="pbHouseUpgradeState" class="economy-workforce-note" data-upgrading="true">升级中 ${progress}%（${Math.ceil(upgrade.remainMs / 1000)}s）</div>`
-                        : '<button class="troop-panel-upgrade-button" data-house-upgrade>升级房屋并更换贴图</button>'}`
+                        : `<button class="troop-panel-upgrade-button" data-house-upgrade data-technology-gate-type="upgrade" data-technology-gate-id="${next.technologyUnlockId || ''}">升级房屋并更换贴图</button>`}`
                 : '<div class="economy-panel-note">房屋已达到当前配置最高等级。</div>';
                 modBox.querySelector('[data-house-upgrade]')?.addEventListener('click', () => this._upgradeHouse());
+                TechnologyGate.bindTree(modBox);
             } else if (cfg.economyType === 'bank') {
                 const snapshot = PopulationEconomySystem.getBankSnapshot(b);
                 const effectivePopulation = snapshot.effectiveServicePopulation.toFixed(2);
@@ -1579,7 +1620,7 @@ class ProducerBuildingPanel extends BasePanel {
                         : `<button class="troop-panel-upgrade-button" data-bank-upgrade="${moduleId}" ${upgrade ? 'disabled' : ''}>升级</button>`;
                     return renderBuildingUpgradeCard({
                         rowAttribute: 'data-bank-row', projectId: moduleId,
-                        icon: module.icon, name: module.name, level, maxLevel: module.maxLevel,
+                        icon: module.icon, iconImage: module.iconImage, name: module.name, level, maxLevel: module.maxLevel,
                         cost: BankEconomySystem.getUpgradeCost(b, moduleId), maxed,
                         inProgress, progressPct,
                         remainMs: inProgress ? upgrade.remainMs : 0,
@@ -1689,12 +1730,13 @@ class ProducerBuildingPanel extends BasePanel {
                     : `<button class="troop-panel-upgrade-button" data-warehouse-upgrade="${moduleId}" ${upgrade ? 'disabled' : ''}>升级</button>`;
                 return renderBuildingUpgradeCard({
                     rowAttribute: 'data-warehouse-row', projectId: moduleId,
-                    icon: module.icon, name: module.name, level, maxLevel: module.maxLevel,
+                    icon: module.icon, iconImage: module.iconImage, name: module.name, level, maxLevel: module.maxLevel,
                     cost: WarehouseEconomySystem.getUpgradeCost(b, moduleId), maxed,
                     inProgress, progressPct,
                     remainMs: inProgress ? upgrade.remainMs : 0,
                     barId: `pbUpgradeBar_${moduleId}`, textId: `pbUpgradeText_${moduleId}`,
                     actionsHtml, accent: '#7fd4ff',
+                    technologyGateType: 'upgrade', technologyGateId: moduleId,
                 }).replace('class="building-upgrade-card"',
                     `class="building-upgrade-card" data-warehouse-upgrading="${inProgress}"`);
             }).join('');
@@ -1707,6 +1749,7 @@ class ProducerBuildingPanel extends BasePanel {
                 row.addEventListener('mousemove', (event) => this._moveAbilityTip(event));
                 row.addEventListener('mouseleave', () => this._hideAbilityTip());
             });
+            TechnologyGate.bindTree(modBox);
             return;
         }
         if (isPortal) {
@@ -1805,7 +1848,7 @@ class ProducerBuildingPanel extends BasePanel {
                     </div>`;
                 return renderBuildingUpgradeCard({
                     rowAttribute: 'data-ability-row', projectId: aid,
-                    icon: a.icon, name: a.name, level: lv, maxLevel: a.maxLevel ?? 10,
+                    icon: a.icon, iconImage: a.iconImage, name: a.name, level: lv, maxLevel: a.maxLevel ?? 10,
                     cost, maxed, inProgress, progressPct: progPct,
                     remainMs: inProgress ? b._upgrade.remainMs : 0,
                     barId: `pbUpgradeBar_${aid}`, textId: `pbUpgradeText_${aid}`,
@@ -1969,7 +2012,7 @@ class ProducerBuildingPanel extends BasePanel {
                 : `${(value * 100).toFixed(1)}%`);
         const cost = WorkshopEconomySystem.getUpgradeCost(this.building, moduleId);
         showBuildingUpgradeTooltip(`
-            <div style="font-weight:700;font-size:13px;margin-bottom:4px;">${module.icon} ${module.name} <span style="color:#8a5a00;">Lv.${level}/${module.maxLevel}</span></div>
+            <div class="building-upgrade-tooltip-title">${renderBuildingUpgradeIcon(module.icon, module.iconImage, 'building-upgrade-tooltip-icon')}<span>${module.name}</span> <span style="color:#8a5a00;">Lv.${level}/${module.maxLevel}</span></div>
             <div>${format(valueAt(level))}${maxed ? '' : ` → ${format(valueAt(level + 1))}`}</div>
             <div style="margin-top:4px;color:#5a4a2a;">本栋工坊独立升级；出售后不保留等级</div>
             <div style="margin-top:2px;">${maxed ? '已达到最高等级' : `升级费用：${cost.gold} 金币 + ${cost.energy} 能源`}</div>
@@ -2003,7 +2046,7 @@ class ProducerBuildingPanel extends BasePanel {
         };
         const cost = BankEconomySystem.getUpgradeCost(this.building, moduleId);
         showBuildingUpgradeTooltip(`
-            <div style="font-weight:700;font-size:13px;margin-bottom:4px;">${module.icon} ${module.name} <span style="color:#8a5a00;">Lv.${level}/${module.maxLevel}</span></div>
+            <div class="building-upgrade-tooltip-title">${renderBuildingUpgradeIcon(module.icon, module.iconImage, 'building-upgrade-tooltip-icon')}<span>${module.name}</span> <span style="color:#8a5a00;">Lv.${level}/${module.maxLevel}</span></div>
             <div>${format(valueAt(level))}${maxed ? '' : ` → ${format(valueAt(level + 1))}`}</div>
             <div style="margin-top:4px;color:#5a4a2a;">本栋银行独立升级；出售后不保留等级</div>
             <div style="margin-top:2px;">${maxed ? '已达到最高等级' : `升级费用：${cost.gold} 金币 + ${cost.energy} 能源`}</div>
@@ -2035,7 +2078,7 @@ class ProducerBuildingPanel extends BasePanel {
         };
         const cost = WarehouseEconomySystem.getUpgradeCost(this.building, moduleId);
         showBuildingUpgradeTooltip(`
-            <div style="font-weight:700;font-size:13px;margin-bottom:4px;">${module.icon} ${module.name} <span style="color:#8a5a00;">Lv.${level}/${module.maxLevel}</span></div>
+            <div class="building-upgrade-tooltip-title">${renderBuildingUpgradeIcon(module.icon, module.iconImage, 'building-upgrade-tooltip-icon')}<span>${module.name}</span> <span style="color:#8a5a00;">Lv.${level}/${module.maxLevel}</span></div>
             <div>${format(valueAt(level))}${maxed ? '' : ` → ${format(valueAt(level + 1))}`}</div>
             <div style="margin-top:4px;color:#5a4a2a;">本栋仓库独立升级；出售或被毁后不保留等级</div>
             <div style="margin-top:2px;">${maxed ? '已达到最高等级' : `升级费用：${cost.gold} 金币 + ${cost.energy} 能源`}</div>
@@ -2170,7 +2213,7 @@ class ProducerBuildingPanel extends BasePanel {
         const desc = getProducerModuleDesc(b._cfg, moduleId, lv);
         const cost = b.getModuleCost(moduleId);
         showBuildingUpgradeTooltip(`
-            <div style="font-weight:700;font-size:13px;margin-bottom:4px;">${mod.icon} ${mod.name} <span style="color:#8a5a00;">Lv.${lv}/${mod.maxLevel}</span></div>
+            <div class="building-upgrade-tooltip-title">${renderBuildingUpgradeIcon(mod.icon, mod.iconImage, 'building-upgrade-tooltip-icon')}<span>${mod.name}</span> <span style="color:#8a5a00;">Lv.${lv}/${mod.maxLevel}</span></div>
             <div>${maxed ? desc.current : `${desc.current} → ${desc.next}`}</div>
             <div style="margin-top:4px;color:#5a4a2a;">适用兵种：${b.unitName(b.unitType)}</div>
             <div style="margin-top:2px;">${maxed ? '已达到最高等级' : `升级费用：${cost.gold} 金币 + ${cost.energy} 能源`}</div>`, ev);
@@ -2189,7 +2232,7 @@ class ProducerBuildingPanel extends BasePanel {
         const targetLabel = isResearch ? '目标效果' : '目标兵种';
         const targetText = isResearch ? (a.target || '—') : this._abilityTargetText(a.target);
         showBuildingUpgradeTooltip(`
-            <div style="font-weight:700;font-size:13px;margin-bottom:4px;">${a.icon} ${a.name} <span style="color:#8a5a00;">Lv.${lv}/${a.maxLevel ?? 10}</span></div>
+            <div class="building-upgrade-tooltip-title">${renderBuildingUpgradeIcon(a.icon, a.iconImage, 'building-upgrade-tooltip-icon')}<span>${a.name}</span> <span style="color:#8a5a00;">Lv.${lv}/${a.maxLevel ?? 10}</span></div>
             <div>${maxed ? this._fillAbilityDesc(a, lv) : `${this._fillAbilityDesc(a, lv)} → ${this._fillAbilityDesc(a, lv + 1)}`}</div>
             <div style="margin-top:4px;color:#5a4a2a;">${targetLabel}：${targetText}</div>
             <div style="margin-top:2px;">升级费用：${cost.gold} 金币 + ${cost.energy} 能源</div>
@@ -2279,7 +2322,6 @@ export const ProducerBuildingSystem = {
     /** 点击产兵建筑 → 打开面板（再次点击关闭） */
     tryInteract(mx, my, player) {
         if (!this.active || !player) return false;
-        const panel = this._ensurePanel();
         const mw = Renderer.screenToWorld(mx, my);
         const buildMode = !!(Game && Game._buildMode);   // 建设模式无视距离
         let picked = null;
@@ -2307,6 +2349,12 @@ export const ProducerBuildingSystem = {
             }
         }
         if (!picked) return false;
+        if (picked._cfg?.panelMode === 'tribute') {
+            if (World122TributeSystem.isOpenFor(picked)) World122TributeSystem.closePanel();
+            else World122TributeSystem.openFor(picked, player);
+            return true;
+        }
+        const panel = this._ensurePanel();
         if (panel.isOpen && panel.building === picked) panel.close();
         else panel.openFor(picked, player);
         return true;

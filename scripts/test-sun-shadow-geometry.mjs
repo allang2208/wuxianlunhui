@@ -1,8 +1,8 @@
 // 静态太阳投影几何契约（2026-08-19 七轮定稿：回到 footprint 凸包）。
 // 建筑与散布障碍物统一：footprint 四边形 ∪ 四边形沿影向平移 length 的凸包
 // （getStaticShadowHull，逐帧纯几何、无烘焙无分桶、连续不跳）；
-// 树木/桶状仙人掌/墙件/单位为柔边椭圆胶囊接触影。
-// 透明度 0.55 × clamp((daylight−0.1)/0.2)：白昼恒定、黄昏转淡、深夜归零。
+// 树木/桶状仙人掌/墙件为水平 2:1 椭圆沿归一化影向的凸扫掠体；单位为水平接触影。
+// 静态/动态透明度独立，室外深夜保留 40%，地牢固定保留 55%。
 import { createRequire } from 'node:module';
 import fs from 'node:fs';
 import { EnvironmentLightingSystem } from '../src/world/environment-lighting-system.js';
@@ -136,6 +136,19 @@ check('凸包：黄昏垂直跨度保持 204（不随影长变化）',
     Math.abs((Math.max(...hullDusk.map((p) => p.y)) - Math.min(...hullDusk.map((p) => p.y))) - 204) < 0.01);
 check('凸包：顶点不足 3 时安全返回空',
     EnvironmentLightingSystem.getStaticShadowHull([{ x: 0, y: 0 }], { offsetX: 0, offsetY: 1, length: 10 }).length === 0);
+
+// ===== 静态接触物：水平 footprint 扫掠，不旋转基础椭圆 =====
+const verticalCapsule = EnvironmentLightingSystem.getStaticShadowCapsule({
+    x: 0, y: 0, width: 32, height: 16, segments: 20,
+}, { offsetX: 0, offsetY: 20, length: 40 });
+const capMinX = Math.min(...verticalCapsule.map((point) => point.x));
+const capMaxX = Math.max(...verticalCapsule.map((point) => point.x));
+const capMinY = Math.min(...verticalCapsule.map((point) => point.y));
+const capMaxY = Math.max(...verticalCapsule.map((point) => point.y));
+check('静态胶囊：纵向影向仍保留水平 footprint 宽 32',
+    Math.abs((capMaxX - capMinX) - 32) < 0.1);
+check('静态胶囊：根部从原椭圆 y=−8 开始，远端到 y=48',
+    Math.abs(capMinY - (-8)) < 0.1 && Math.abs(capMaxY - 48) < 0.1);
 
 // ===== 八轮：逐帧剪影多边形（getSilhouetteShadowPolygon）=====
 // 简单三列"门形"：左柱高 40、中柱高 100、右柱高 40（tex 像素）
@@ -281,11 +294,59 @@ check('并集：重叠行 y 跨度合并（x=90 处 y −10..40）',
 check('并集：空输入安全返回空',
     EnvironmentLightingSystem.getUnionOfPolygons([], { theta: 0 }).length === 0
     && EnvironmentLightingSystem.getUnionOfPolygons([[{ x: 0, y: 0 }]], { theta: 0 }).length === 0);
+const vertexRowPolygon = [
+    { x: 0, y: 0 }, { x: 30, y: 3.25 }, { x: 24, y: 10 }, { x: 0, y: 10 },
+];
+const vertexRowUnion = EnvironmentLightingSystem.getUnionOfPolygons([vertexRowPolygon], { theta: 0, step: 2 });
+check('并集：固定步长之外仍保留输入顶点所在扫描行',
+    vertexRowUnion.some((point) => Math.abs(point.y - 3.25) < 1e-6));
 
-// 深浅统一 + 夜影衰减：白昼恒定 0.55、黄昏转淡、深夜归零
+const parallelTheta = 0.37;
+const parallelDir = { x: Math.cos(parallelTheta), y: Math.sin(parallelTheta) };
+const parallelPerp = { x: -parallelDir.y, y: parallelDir.x };
+const parallelLength = 80;
+const parallelPrism = EnvironmentLightingSystem.getLayeredShadowPolygon([{
+    vertices: [
+        { x: 0, y: -50 }, { x: 90, y: 0 }, { x: 0, y: 50 }, { x: -90, y: 0 },
+    ],
+    baseZ: 0,
+    topZ: 100,
+}], {
+    length: parallelLength,
+    offsetX: parallelDir.x * parallelLength,
+    offsetY: parallelDir.y * parallelLength,
+}, 100);
+const prismUV = parallelPrism.map((point) => ({
+    point,
+    u: point.x * parallelDir.x + point.y * parallelDir.y,
+    v: point.x * parallelPerp.x + point.y * parallelPerp.y,
+}));
+const prismMinV = Math.min(...prismUV.map((point) => point.v));
+const prismMaxV = Math.max(...prismUV.map((point) => point.v));
+const terminalRail = (targetV) => {
+    const row = prismUV.filter((point) => Math.abs(point.v - targetV) < 1e-6)
+        .sort((a, b) => a.u - b.u);
+    if (row.length < 2) return null;
+    const start = row[0].point;
+    const end = row[row.length - 1].point;
+    return { x: end.x - start.x, y: end.y - start.y };
+};
+const leftRail = terminalRail(prismMinV);
+const rightRail = terminalRail(prismMaxV);
+check('单体建筑投影：左右终端边共用唯一太阳方向且互相平行',
+    leftRail && rightRail
+    && Math.abs(leftRail.x * parallelDir.y - leftRail.y * parallelDir.x) < 1e-6
+    && Math.abs(rightRail.x * parallelDir.y - rightRail.y * parallelDir.x) < 1e-6
+    && Math.abs(Math.hypot(leftRail.x, leftRail.y) - parallelLength) < 1e-6
+    && Math.abs(Math.hypot(rightRail.x, rightRail.y) - parallelLength) < 1e-6);
+
+// 静态/动态独立深浅 + 夜间/地牢保留
 EnvironmentLightingSystem.configure({ animateSun: false, startPhase: 0.25 });
-const opacityNoon = EnvironmentLightingSystem.getStaticShadow({}).opacity;
+const noonProfile = EnvironmentLightingSystem.getStaticShadow({ height: 100, maxOffset: 100 });
+const opacityNoon = noonProfile.opacity;
 const dynNoon = EnvironmentLightingSystem.getDynamicShadow({}, 10).opacity;
+check('静态位移：offset 恰好是归一化影长的一半',
+    Math.abs(Math.hypot(noonProfile.offsetX, noonProfile.offsetY) * 2 - noonProfile.length) < 1e-9);
 EnvironmentLightingSystem.configure({ animateSun: false, startPhase: 0.5 });
 const duskDaylight = EnvironmentLightingSystem.getSun().daylight;
 const opacityDusk = EnvironmentLightingSystem.getStaticShadow({}).opacity;
@@ -293,16 +354,23 @@ const dynDusk = EnvironmentLightingSystem.getDynamicShadow({}, 10).opacity;
 EnvironmentLightingSystem.configure({ animateSun: false, startPhase: 0.75 });
 const opacityMidnight = EnvironmentLightingSystem.getStaticShadow({}).opacity;
 const dynMidnight = EnvironmentLightingSystem.getDynamicShadow({}, 10).opacity;
-check('透明度：正午静态/动态同为 0.1925（再 −50%）',
-    Math.abs(opacityNoon - 0.1925) < 1e-9 && Math.abs(dynNoon - 0.1925) < 1e-9,
+const staticDungeon = EnvironmentLightingSystem.getStaticShadow({}, { dungeon: true }).opacity;
+const dynamicDungeon = EnvironmentLightingSystem.getDynamicShadow({}, 10, { dungeon: true }).opacity;
+check('透明度：正午静态 0.1925、动态 0.30078125',
+    Math.abs(opacityNoon - 0.1925) < 1e-9 && Math.abs(dynNoon - 0.30078125) < 1e-9,
     `noon=${opacityNoon}/${dynNoon}`);
-check('透明度：黄昏随 daylight 转淡（0.1925 × clamp((daylight−0.1)/0.2)）',
-    Math.abs(opacityDusk - 0.1925 * Math.max(0, Math.min(1, (duskDaylight - 0.1) / 0.2))) < 0.01
-    && Math.abs(dynDusk - opacityDusk) < 1e-9,
+const duskStrength = 0.4 + 0.6 * Math.max(0, Math.min(1, (duskDaylight - 0.1) / 0.2));
+check('透明度：黄昏从夜间 40% 向白昼平滑过渡',
+    Math.abs(opacityDusk - 0.1925 * duskStrength) < 0.01
+    && Math.abs(dynDusk - 0.30078125 * duskStrength) < 0.01,
     `dusk=${opacityDusk.toFixed(3)} (daylight=${duskDaylight.toFixed(3)})`);
-check('透明度：深夜静态/动态阴影均归零（夜影修复）',
-    opacityMidnight === 0 && dynMidnight === 0,
+check('透明度：深夜静态/动态分别保留基础强度的 40%',
+    Math.abs(opacityMidnight - 0.1925 * 0.4) < 1e-9
+    && Math.abs(dynMidnight - 0.30078125 * 0.4) < 1e-9,
     `midnight=${opacityMidnight}/${dynMidnight}`);
+check('透明度：地牢固定为基础强度的 55%，不受午夜时间二次衰减',
+    Math.abs(staticDungeon - 0.1925 * 0.55) < 1e-9
+    && Math.abs(dynamicDungeon - 0.30078125 * 0.55) < 1e-9);
 EnvironmentLightingSystem.configure({ animateSun: true, startPhase: 0.25 });
 
 console.log(`\n${pass} passed, ${fail} failed`);

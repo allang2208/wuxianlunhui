@@ -12,12 +12,14 @@ import { getUnitKind } from '../world/unit-upgrade-store.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
 import { TroopLineSystem } from '../world/troop-line-system.js';
-import { RTS_DEFAULT_ACQUIRE_RANGE } from '../ai/rts-command-utils.js';
+import { RtsTacticalOrderSystem } from '../systems/rts-tactical-order-system.js';
 import { pathFinder } from '../ai/pathfinder.js';
 import { TechnologySystem } from '../world/technology-system.js';
 import { isoFootprintVertices } from '../physics/iso-footprint.js';
 import { TechnologyGate } from './technology-gate.js';
 import { FogOfWarSystem } from '../world/fog-of-war-system.js';
+import { canExploreScene } from '../config/explorer-rewards.js';
+import { getHamsterUnitIcon } from '../config/hamster-unit-icons.js';
 
 const DRAG_THRESHOLD = 6; // 屏幕 px：超过判定为拖框
 const PERSISTENT_WORLDS = new Set(['scene8', 'scene9', 'scene10', 'scene11']);
@@ -60,6 +62,9 @@ export const RTSCommand = {
     _pendingRightClick: null, // RTS 自己捕获右键，避免依赖 Input 边沿标志而漏命令
     _troopLinePanel: null,
     _commandBar: null,
+    _commandBarSig: '',
+    _commandPicking: null,
+    _consumeNormalCommandPointer: false,
     _rallyPicking: false,
     _troopLineRevision: -1,
 
@@ -95,9 +100,17 @@ export const RTSCommand = {
         if (this._troopLinePanel) this._troopLinePanel.style.display = (commandable && this.enabled) ? '' : 'none';
         if (leavingWorld && !observer) this._resetPartyCommandsForSceneExit();
         if (!commandable && this.enabled) this.setEnabled(false);
+        // 普通模式也要随组队栏选中状态刷新左下指令框。
+        this._syncCommandBarVisibility();
+        if (this._consumeNormalCommandPointer && Input?.mouse) {
+            Input.mouse.leftDown = false;
+            Input.mouse.rightDown = false;
+            Input.mouse.leftPressed = false;
+            Input.mouse.rightPressed = false;
+            this._consumeNormalCommandPointer = false;
+        }
         if (!this.enabled) return;
         this._pruneSelection();
-        this._syncCommandBarVisibility();
         this._edgePan(dt, Input);
         const input = Input || this._input();
         const pendingRightClick = this._pendingRightClick;
@@ -135,6 +148,7 @@ export const RTSCommand = {
         this._syncCommandBarVisibility();
         if (!this.enabled) {
             this._rallyPicking = false;
+            this._commandPicking = null;
             this._pendingRightClick = null;
             this._flatHitCycle = null;
             this._clearSelection();
@@ -156,6 +170,7 @@ export const RTSCommand = {
         if (!PartySystem) return;
         for (const m of PartySystem.members) {
             if (!m) continue;
+            PartySystem.setCommand(m.id, 'follow');
             m.target = null;
             m._tacticalTarget = null;
             m.vx = 0;
@@ -246,6 +261,7 @@ export const RTSCommand = {
             }
             button.addEventListener('click', () => {
                 const mode = button.dataset.mode;
+                this._cancelCommandPick();
                 if (mode === 'rally') {
                     if (!TechnologySystem.isUnlocked('mechanic', 'troop_rally')) return;
                     if (this._rallyPicking) {
@@ -313,9 +329,99 @@ export const RTSCommand = {
 
     _syncCommandBarVisibility() {
         if (!this._commandBar) return;
-        const show = this.enabled && this._selection.some((entry) => entry.kind !== 'producer');
+        const show = this._commandBarAllies().length > 0;
         this._commandBar.style.display = show ? '' : 'none';
-        if (show) this._placeCommandBar();
+        if (show) {
+            this._refreshCommandBar();
+            this._placeCommandBar();
+        } else {
+            this._commandPicking = null;
+            this._commandBarSig = '';
+            this._commandBar.replaceChildren();
+        }
+    },
+
+    _refreshCommandBar() {
+        if (!this._commandBar) return;
+        const allies = this._commandBarAllies();
+        if (!allies.length) return;
+        const explorers = allies.filter((unit) => unit?._isHamsterExplorer);
+        const active = explorers.filter((unit) => unit._exploreActive || unit._command?.mode === 'explore');
+        const idleCount = explorers.length - active.length;
+        const commandableCount = allies.filter((unit) => !this._isExplorationLocked(unit)).length;
+        const eligible = canExploreScene(this._scene);
+        const remainingSec = active.length
+            ? Math.max(0, Math.ceil(Math.min(...active.map((unit) =>
+                Number(unit._exploreRemainingMs) || 0)) / 1000))
+            : 0;
+        const stopping = active.length > 0;
+        const signature = `${allies.length}|${explorers.length}|${active.length}|${idleCount}|${eligible}|${remainingSec}|${stopping}|${commandableCount}|${this._commandPicking || ''}`;
+        if (signature === this._commandBarSig) return;
+        this._commandBarSig = signature;
+        this._commandBar.classList.toggle('has-explorer', explorers.length > 0);
+
+        const minutes = Math.floor(remainingSec / 60);
+        const seconds = String(remainingSec % 60).padStart(2, '0');
+        const pickingLabel = this._commandPicking === 'attack_move'
+            ? '移动攻击：左键地图确认 · 右键/Esc取消'
+            : (this._commandPicking === 'patrol' ? '巡逻：左键地图确认 · 右键/Esc取消' : null);
+        this._commandBar.innerHTML = `
+            <div class="rts-command-bar__title">单位指令 · ${allies.length}</div>
+            <button type="button" class="rts-command-bar__order${this._commandPicking === 'attack_move' ? ' is-active' : ''}" data-order="attack_move" ${commandableCount <= 0 ? 'disabled' : ''}>⚔ 移动攻击</button>
+            <button type="button" class="rts-command-bar__order${this._commandPicking === 'patrol' ? ' is-active' : ''}" data-order="patrol" ${commandableCount <= 0 ? 'disabled' : ''}>↔ 巡逻</button>
+            <div class="rts-command-bar__status">${pickingLabel || (commandableCount > 0
+                ? '点击按钮后在地图指定目标点'
+                : '探险中，仅可停止探险')}</div>
+            ${explorers.length ? `
+                <button type="button" class="rts-command-bar__explore${stopping ? ' is-stop' : ''}" ${!stopping && (!eligible || idleCount <= 0) ? 'disabled' : ''}>
+                    ${stopping ? '⏹ 停止探险' : '🧭 开始探险'}
+                </button>
+                <div class="rts-command-bar__explore-status">${eligible
+                    ? (stopping ? `剩余 ${minutes}:${seconds} · 探险中 ${active.length}` : '耗时 12:00 · 完成后结算一次')
+                    : '当前位面没有对应祭品池'}</div>
+            ` : ''}
+        `;
+        for (const button of this._commandBar.querySelectorAll('[data-order]')) {
+            button.addEventListener('click', (event) => {
+                event.currentTarget.blur();
+                this._beginCommandPick(event.currentTarget.dataset.order);
+            });
+        }
+        this._commandBar.querySelector('.rts-command-bar__explore')?.addEventListener('click', (event) => {
+            event.currentTarget.blur();
+            this._commandPicking = null;
+            if (stopping) this.stopSelectedExplorers();
+            else this.issueWheelCommand('explore');
+            this._commandBarSig = '';
+            this._refreshCommandBar();
+        });
+    },
+
+    _beginCommandPick(mode) {
+        if (mode !== 'attack_move' && mode !== 'patrol') return;
+        if (this._rallyPicking) this._cancelRallyPick();
+        this._commandPicking = this._commandPicking === mode ? null : mode;
+        this._commandBarSig = '';
+        this._refreshCommandBar();
+    },
+
+    _cancelCommandPick() {
+        if (!this._commandPicking) return;
+        this._commandPicking = null;
+        this._commandBarSig = '';
+        this._refreshCommandBar();
+    },
+
+    /** 左下指令框目标：指挥模式读 RTS 选中；普通模式读组队栏选中的正式队友。 */
+    _commandBarAllies() {
+        if (this.enabled) {
+            return this._selection
+                .filter((entry) => entry.kind === 'ally' && entry.ref?.active !== false)
+                .map((entry) => entry.ref);
+        }
+        return PartySystem.selectedIds
+            .map((id) => PartySystem.getMember(id))
+            .filter((member) => member && member.active !== false);
     },
 
     _placeUnitPanel() {
@@ -390,7 +496,6 @@ export const RTSCommand = {
             if (sys && sys._panel && sys._panel.isOpen && typeof sys._panel.close === 'function') sys._panel.close();
         };
         closeIfOpen(g.DefenseSystem);
-        closeIfOpen(g.DefenseTrapSystem);
         closeIfOpen(g.HamsterHutSystem);
         closeIfOpen(g.HamsterBarracksSystem);
         closeIfOpen(g.ProducerBuildingSystem);
@@ -644,7 +749,6 @@ export const RTSCommand = {
         const prevBuild = g._buildMode;
         g._buildMode = true;
         try {
-            if (g.DefenseTrapSystem && g.DefenseTrapSystem.tryInteract && g.DefenseTrapSystem.tryInteract(sx, sy, p)) { this.setEnabled(false); return true; }
             if (g.DefenseSystem && g.DefenseSystem.active && g.DefenseSystem.tryInteract && g.DefenseSystem.tryInteract(sx, sy, p)) { this.setEnabled(false); return true; }
             if (g.HamsterHutSystem && g.HamsterHutSystem.active && g.HamsterHutSystem.tryInteract && g.HamsterHutSystem.tryInteract(sx, sy, p)) { this.setEnabled(false); return true; }
             if (g.HamsterBarracksSystem && g.HamsterBarracksSystem.active && g.HamsterBarracksSystem.tryInteract && g.HamsterBarracksSystem.tryInteract(sx, sy, p)) { this.setEnabled(false); return true; }
@@ -680,8 +784,25 @@ export const RTSCommand = {
     },
 
     _onMouseDown(e) {
-        if (!this.enabled || !this._isCommandable()) return;
+        const normalCommandPick = !this.enabled && this._commandPicking
+            && this._commandBarAllies().length > 0;
+        if ((!this.enabled || !this._isCommandable()) && !normalCommandPick) return;
         if (this._isPointerBlocked(e)) return;
+        if (this._commandPicking && e.button === 2) {
+            this._cancelCommandPick();
+            if (normalCommandPick) this._consumeNormalCommandPointer = true;
+            e.preventDefault();
+            return;
+        }
+        if (this._commandPicking && e.button === 0) {
+            this._down = true;
+            this._downX = e.clientX;
+            this._downY = e.clientY;
+            this._dragging = false;
+            if (normalCommandPick) this._consumeNormalCommandPointer = true;
+            e.preventDefault();
+            return;
+        }
         if (e.button === 0 && this._tryMinimapCameraJump(e.clientX, e.clientY)) {
             e.preventDefault();
             e.stopImmediatePropagation();
@@ -712,7 +833,9 @@ export const RTSCommand = {
 
     _onMouseMove(e) {
         this._pointerOverUi = this._isPointerBlocked(e);
-        if (!this.enabled || !this._isCommandable() || !this._down) return;
+        const normalCommandPick = !this.enabled && this._commandPicking
+            && this._commandBarAllies().length > 0;
+        if (((!this.enabled || !this._isCommandable()) && !normalCommandPick) || !this._down) return;
         if (!this._dragging && Math.hypot(e.clientX - this._downX, e.clientY - this._downY) > DRAG_THRESHOLD) {
             this._dragging = true;
         }
@@ -724,9 +847,22 @@ export const RTSCommand = {
     },
 
     _onMouseUp(e) {
-        if (!this.enabled || !this._isCommandable() || !this._down) return;
+        const normalCommandPick = !this.enabled && this._commandPicking
+            && this._commandBarAllies().length > 0;
+        if (((!this.enabled || !this._isCommandable()) && !normalCommandPick) || !this._down) return;
         this._down = false;
         if (e.button !== 0) return;
+        if (this._commandPicking) {
+            const mode = this._commandPicking;
+            this._commandPicking = null;
+            if (!this._dragging) this._issuePickedCommand(mode, e.clientX, e.clientY);
+            if (normalCommandPick) this._consumeNormalCommandPointer = true;
+            this._clearDrag();
+            this._commandBarSig = '';
+            this._refreshCommandBar();
+            e.preventDefault();
+            return;
+        }
         if (this._dragging) {
             this._setSelection(this._selectInRect(this._downX, this._downY, e.clientX, e.clientY));
         } else {
@@ -756,6 +892,36 @@ export const RTSCommand = {
             }
         }
         this._clearDrag();
+    },
+
+    _issuePickedCommand(mode, sx, sy) {
+        const world = Renderer.screenToWorld(sx, sy);
+        if (!world) return 0;
+        const defenseSystem = _game()?.DefenseSystem;
+        const point = defenseSystem?.resolveSurfaceTarget
+            ? defenseSystem.resolveSurfaceTarget(world.x, world.y)
+            : { x: world.x, y: world.y, z: 0, surfaceKind: 'ground', route: [] };
+        if (point.unreachable) {
+            EffectManager.add(new FloatingTextEffect(
+                point.x,
+                point.y - (point.z || 0),
+                point.reason || '目标不可达',
+                '#ff8855'
+            ));
+            return 0;
+        }
+        const commanded = this.issueWheelCommand(mode, point);
+        if (commanded > 0) {
+            _scene()?.showMoveMarker?.(point.x, point.y - (Number(point.z) || 0));
+            const label = mode === 'patrol' ? '巡逻' : '移动攻击';
+            EffectManager.add(new FloatingTextEffect(
+                point.x,
+                point.y - (Number(point.z) || 0) - 36,
+                `${label}（${commanded} 单位）`,
+                mode === 'patrol' ? '#ffd77f' : '#ff9d9d'
+            ));
+        }
+        return commanded;
     },
 
     _clearDrag() {
@@ -793,11 +959,19 @@ export const RTSCommand = {
 
     /** 编队键：Ctrl+数字编队，Shift+数字追加，数字选中。 */
     _onKeyDown(e) {
-        if (!this.enabled) return;
+        if (!this.enabled) {
+            if (this._commandPicking && e.code === 'Escape') {
+                this._cancelCommandPick();
+                e.preventDefault();
+                e.stopImmediatePropagation();
+            }
+            return;
+        }
         const g = _game();
         if (!g || !(g._observerMode || PERSISTENT_WORLDS.has(this._scene))) return;
-        if (this._rallyPicking && e.code === 'Escape') {
-            this._cancelRallyPick();
+        if ((this._rallyPicking || this._commandPicking) && e.code === 'Escape') {
+            if (this._rallyPicking) this._cancelRallyPick();
+            if (this._commandPicking) this._cancelCommandPick();
             e.preventDefault();
             e.stopImmediatePropagation();
             return;
@@ -877,28 +1051,44 @@ export const RTSCommand = {
     issueWheelCommand(mode, point) {
         const members = [];
         const direct = [];
-        for (const s of this._selection) {
+        const selected = this.enabled
+            ? this._selection
+            : this._commandBarAllies().map((ref) => ({ kind: 'ally', ref }));
+        for (const s of selected) {
             if (s.kind !== 'ally') continue;
             if (PartySystem.members.includes(s.ref)) members.push(s.ref);
             else direct.push(s.ref);
         }
         let n = 0;
-        if (mode === 'aggressive') {
+        const tacticalMode = mode === 'aggressive' ? 'attack_move' : mode;
+        if (RtsTacticalOrderSystem.isOrderMode(tacticalMode)) {
             for (const member of members) {
-                const target = this._nearestCommandEnemy(member);
-                n += PartySystem.setCommand(
-                    [member.id],
-                    target ? 'attack' : 'hold',
-                    null,
-                    target
-                );
+                const commandPoint = this._movePointForUnit(member, point);
+                if (!commandPoint?.unreachable) {
+                    n += PartySystem.setCommand(member.id, tacticalMode, commandPoint);
+                }
             }
-        } else if (members.length) {
+            for (const unit of direct) {
+                if (this._isExplorationLocked(unit)) continue;
+                const commandPoint = this._movePointForUnit(unit, point);
+                if (commandPoint?.unreachable) continue;
+                unit._ai?.cancelForCommand?.();
+                if (RtsTacticalOrderSystem.issue(unit, tacticalMode, commandPoint)) {
+                    delete unit._troopLineTransit;
+                    delete unit._troopLineRally;
+                    n++;
+                }
+            }
+            return n;
+        }
+        if (members.length) {
             n += PartySystem.setCommand(members.map((member) => member.id), mode, point);
         }
         for (const u of direct) {
+            if (this._isExplorationLocked(u)) continue;
             const mapped = this._mapWheelModeForUnit(u, mode, point);
             if (!mapped) continue;
+            RtsTacticalOrderSystem.clear(u);
             if (u._ai && typeof u._ai.cancelForCommand === 'function') u._ai.cancelForCommand();
             delete u._troopLineTransit;
             delete u._troopLineRally;
@@ -908,38 +1098,35 @@ export const RTSCommand = {
         return n;
     },
 
+    /** 探险锁定状态的唯一人工退出入口。 */
+    stopSelectedExplorers() {
+        let stopped = 0;
+        for (const selected of this._selection) {
+            const unit = selected.kind === 'ally' ? selected.ref : null;
+            if (!this._isExplorationLocked(unit)) continue;
+            RtsTacticalOrderSystem.clear(unit);
+            if (unit._ai?.stopExploration?.()) stopped++;
+        }
+        return stopped;
+    },
+
+    _isExplorationLocked(unit) {
+        return !!(unit?._isHamsterExplorer
+            && (unit._exploreActive || unit._command?.mode === 'explore'));
+    },
+
     /** 将轮盘指令映射为仓鼠单位支持的 move/attack/hold/follow 指令。 */
     _mapWheelModeForUnit(u, mode, point) {
         if (mode === 'follow') return { mode: 'follow' };
-        if (mode === 'aggressive') {
-            const target = this._nearestCommandEnemy(u);
-            return target
-                ? { mode: 'attack', point: null, target }
-                : { mode: 'hold', point: null, target: null };
-        }
         if (mode === 'hold') return { mode: 'hold', point: null, target: null };
-        if (mode === 'patrol') return { mode: 'move', point: point ? { x: point.x, y: point.y } : null, target: null };
         if (mode === 'gather') return u._isHamsterMiner ? { mode: 'follow' } : null;
-        if (mode === 'explore') return u._isHamsterExplorer ? { mode: 'explore' } : null;
-        return null;
-    },
-
-    _nearestCommandEnemy(unit) {
-        const entities = _game()?.entities;
-        if (!unit || !entities) return null;
-        let nearest = null;
-        let nearestDistance = RTS_DEFAULT_ACQUIRE_RANGE;
-        for (const entity of entities.values()) {
-            if (!entity || !entity.active || entity.hp <= 0 || entity._isEnergyNode) continue;
-            if (entity._faction !== 'enemy' && entity._faction !== 'agent') continue;
-            if (FogOfWarSystem.shouldHideEntity(this._scene, entity)) continue;
-            const distance = Math.hypot(entity.x - unit.x, entity.y - unit.y);
-            if (distance <= nearestDistance) {
-                nearest = entity;
-                nearestDistance = distance;
-            }
+        if (mode === 'explore') {
+            return u._isHamsterExplorer && !u._exploreActive && u._command?.mode !== 'explore'
+                && canExploreScene(this._scene)
+                ? { mode: 'explore' }
+                : null;
         }
-        return nearest;
+        return null;
     },
 
     /** 右键空地移动选中友军，右键敌方目标发起进攻。 */
@@ -1025,7 +1212,12 @@ export const RTSCommand = {
                         phaser.showMoveMarker(hit.ref.x, hit.ref.y - (Number(hit.ref.z) || 0));
                     }
                 } else {
-                    EffectManager.add(new FloatingTextEffect(hit.ref.x, hit.ref.y - (Number(hit.ref.z) || 0), '选中单位无法攻击', '#ff8855'));
+                    EffectManager.add(new FloatingTextEffect(
+                        hit.ref.x,
+                        hit.ref.y - (Number(hit.ref.z) || 0),
+                        this._lastCommandRejectReason || '选中单位无法攻击',
+                        '#ff8855'
+                    ));
                 }
             } else {
                 // 无友军选中时，右键敌人仅选中并查看属性。
@@ -1088,6 +1280,11 @@ export const RTSCommand = {
             commanded += PartySystem.setCommand(memberId, mode, commandPoint, target);
         }
         for (const u of directUnits) {
+            if (this._isExplorationLocked(u)) {
+                this._lastCommandRejectReason ||= '探险中，仅可使用停止探险指令';
+                continue;
+            }
+            RtsTacticalOrderSystem.clear(u);
             if (mode === 'attack' && u._rtsCanAttack === false) {
                 if (u._ai && typeof u._ai.cancelForCommand === 'function') u._ai.cancelForCommand();
                 delete u._troopLineTransit;
@@ -1374,9 +1571,9 @@ export const RTSCommand = {
                     <span class="rts-up-type">出兵建筑</span>
                 </div>
                 <div class="rts-up-row"><span>HP</span><div class="rts-up-track"><div class="rts-up-fill" data-ref="hpFill" style="background:#e04a3a;"></div></div><span class="rts-up-num" data-ref="hp"></span></div>
-                <div data-ref="unitType" style="margin-top:9px;color:#c7d0dc;font-size:12px;"></div>
-                <div data-ref="rally" style="margin-top:8px;color:#f0cf78;font-size:12px;line-height:1.5;"></div>
-                <div data-ref="hint" style="margin-top:7px;color:#8f9bad;font-size:11px;"></div>`;
+                <div class="rts-up-producer-unit" data-ref="unitType"></div>
+                <div class="rts-up-rally" data-ref="rally"></div>
+                <div class="rts-up-hint" data-ref="hint"></div>`;
             const attr = (key) => this._panel.querySelector(`[data-ref="${key}"]`);
             this._dom = {
                 producer: true,
@@ -1390,19 +1587,34 @@ export const RTSCommand = {
             return;
         }
         if (this._selection.length > 1) {
-            this._panel.innerHTML = `<div class="rts-up-head"><span class="rts-up-name" data-ref="count"></span></div>
-                <div class="rts-up-multi" data-ref="multi"></div>`;
+            this._panel.innerHTML = `
+                <div class="rts-up-head rts-up-head--multi">
+                    <div class="rts-up-heading-copy">
+                        <span class="rts-up-kicker">指挥编组</span>
+                        <span class="rts-up-name">已选单位</span>
+                    </div>
+                    <span class="rts-up-count-badge" data-ref="count"></span>
+                </div>
+                <div class="rts-up-multi" data-ref="multi"></div>
+                <div class="rts-up-surface-summary" data-ref="surface" hidden></div>`;
             this._dom = {
                 count: this._panel.querySelector('[data-ref="count"]'),
                 multi: this._panel.querySelector('[data-ref="multi"]'),
+                surface: this._panel.querySelector('[data-ref="surface"]'),
+                multiSig: '',
             };
             return;
         }
         this._panel.innerHTML = `
-            <div class="rts-up-head">
-                <span class="rts-up-name" data-ref="name"></span>
-                <span class="rts-up-lv" data-ref="lv"></span>
-                <span class="rts-up-type" data-ref="type"></span>
+            <div class="rts-up-head rts-up-head--identity">
+                <img class="rts-up-icon" data-ref="icon" alt="" draggable="false" hidden>
+                <div class="rts-up-heading-copy">
+                    <div class="rts-up-title-line">
+                        <span class="rts-up-name" data-ref="name"></span>
+                        <span class="rts-up-lv" data-ref="lv"></span>
+                    </div>
+                    <span class="rts-up-type" data-ref="type"></span>
+                </div>
             </div>
             <div class="rts-up-row"><span>HP</span><div class="rts-up-track"><div class="rts-up-fill" data-ref="hpFill" style="background:#e04a3a;"></div></div><span class="rts-up-num" data-ref="hp"></span></div>
             <div class="rts-up-row"><span>MP</span><div class="rts-up-track"><div class="rts-up-fill" data-ref="mpFill" style="background:#3a7fe0;"></div></div><span class="rts-up-num" data-ref="mp"></span></div>
@@ -1417,7 +1629,8 @@ export const RTSCommand = {
         const q = (r) => this._panel.querySelector(r);
         const attr = (k) => q(`[data-ref="${k}"]`);
         this._dom = {
-            name: attr('name'), lv: attr('lv'), type: attr('type'),
+            identity: q('.rts-up-head--identity'),
+            icon: attr('icon'), name: attr('name'), lv: attr('lv'), type: attr('type'),
             hpFill: attr('hpFill'), hp: attr('hp'),
             mpFill: attr('mpFill'), mp: attr('mp'),
             stats: {
@@ -1489,7 +1702,33 @@ export const RTSCommand = {
             const unitName = typeof producer.unitName === 'function'
                 ? producer.unitName(producer.unitType)
                 : producer.unitType;
-            this._dom.unitType.textContent = `当前出兵：${unitName || '未配置'}`;
+            const unitTypeKey = `${producer.unitType || ''}:${unitName || ''}`;
+            if (this._dom.unitTypeKey !== unitTypeKey) {
+                const label = document.createElement('span');
+                label.className = 'rts-up-producer-label';
+                label.textContent = '当前出兵';
+                const iconPath = getHamsterUnitIcon(producer.unitType);
+                const name = document.createElement('strong');
+                name.textContent = unitName || '未配置';
+                const children = [label];
+                if (iconPath) {
+                    const icon = document.createElement('img');
+                    icon.className = 'rts-up-producer-icon';
+                    icon.src = iconPath;
+                    icon.alt = '';
+                    icon.draggable = false;
+                    children.push(icon);
+                } else {
+                    const fallback = document.createElement('span');
+                    fallback.className = 'rts-up-producer-icon rts-up-producer-icon--fallback';
+                    fallback.textContent = '◆';
+                    fallback.setAttribute('aria-hidden', 'true');
+                    children.push(fallback);
+                }
+                children.push(name);
+                this._dom.unitType.replaceChildren(...children);
+                this._dom.unitTypeKey = unitTypeKey;
+            }
             this._dom.rally.textContent = rally
                 ? `独立集结：(${Math.round(rally.x)}, ${Math.round(rally.y)}) · 优先于全局兵线`
                 : '独立集结：未设置（沿用左侧兵线控制）';
@@ -1499,19 +1738,60 @@ export const RTSCommand = {
             return;
         }
         if (this._selection.length > 1) {
-            this._dom.count.textContent = `已选择 ${this._selection.length} 个单位`;
+            this._dom.count.textContent = String(this._selection.length);
             // 按单位类型分组统计。
             const groups = new Map();
             for (const s of this._selection) {
                 const e = s.ref;
+                const unitKind = s.kind === 'ally' ? getUnitKind(e) : '';
                 const label = s.kind === 'ally'
                     ? (e.name || e.title || '友军')
                     : (e.name || e.type || '敌人');
-                groups.set(label, (groups.get(label) || 0) + 1);
+                const groupKey = `${s.kind}:${unitKind || label}`;
+                const group = groups.get(groupKey) || {
+                    label,
+                    count: 0,
+                    iconPath: getHamsterUnitIcon(unitKind),
+                    fallback: s.kind === 'enemy' ? '!' : '◆',
+                };
+                group.count += 1;
+                groups.set(groupKey, group);
             }
-            this._dom.multi.textContent = Array.from(groups.entries())
-                .map(([label, n]) => `${label} ×${n}`)
-                .join(' · ');
+            const groupList = Array.from(groups.values());
+            const multiSig = groupList
+                .map((group) => `${group.label}:${group.count}:${group.iconPath}`)
+                .join('|');
+            if (this._dom.multiSig !== multiSig) {
+                const fragment = document.createDocumentFragment();
+                for (const group of groupList) {
+                    const row = document.createElement('div');
+                    row.className = 'rts-up-multi-item';
+                    if (group.iconPath) {
+                        const icon = document.createElement('img');
+                        icon.className = 'rts-up-multi-icon';
+                        icon.src = group.iconPath;
+                        icon.alt = '';
+                        icon.draggable = false;
+                        row.appendChild(icon);
+                    } else {
+                        const fallback = document.createElement('span');
+                        fallback.className = 'rts-up-multi-icon rts-up-multi-icon--fallback';
+                        fallback.textContent = group.fallback;
+                        fallback.setAttribute('aria-hidden', 'true');
+                        row.appendChild(fallback);
+                    }
+                    const name = document.createElement('span');
+                    name.className = 'rts-up-multi-name';
+                    name.textContent = group.label;
+                    const count = document.createElement('strong');
+                    count.className = 'rts-up-multi-count';
+                    count.textContent = `×${group.count}`;
+                    row.append(name, count);
+                    fragment.appendChild(row);
+                }
+                this._dom.multi.replaceChildren(fragment);
+                this._dom.multiSig = multiSig;
+            }
             const surfaceGroups = new Map();
             for (const s of this._selection) {
                 const kind = s.ref?._surfaceKind || ((Number(s.ref?.z) || 0) > 1 ? 'elevated' : 'ground');
@@ -1524,12 +1804,28 @@ export const RTSCommand = {
                 const surfaceText = Array.from(surfaceGroups.entries())
                     .map(([label, n]) => `${label} ×${n}`)
                     .join(' · ');
-                this._dom.multi.textContent += ` · 层级：${surfaceText}`;
+                this._dom.surface.textContent = `所在层级 · ${surfaceText}`;
+                this._dom.surface.hidden = false;
+            } else {
+                this._dom.surface.textContent = '';
+                this._dom.surface.hidden = true;
             }
             return;
         }
-        const st = this._readStats(this._selection[0].ref);
+        const selected = this._selection[0];
+        const st = this._readStats(selected.ref);
         const d = this._dom;
+        const iconPath = selected.kind === 'ally'
+            ? getHamsterUnitIcon(getUnitKind(selected.ref))
+            : '';
+        d.identity.classList.toggle('rts-up-head--no-icon', !iconPath);
+        if (iconPath) {
+            if (d.icon.src !== new URL(iconPath, document.baseURI).href) d.icon.src = iconPath;
+            d.icon.hidden = false;
+        } else {
+            d.icon.hidden = true;
+            d.icon.removeAttribute('src');
+        }
         d.name.textContent = st.name;
         d.lv.textContent = `Lv.${st.level}`;
         d.type.textContent = st.type;

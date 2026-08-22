@@ -4,61 +4,61 @@
     "unitKinds": ["militia", "scout"],
     "moduleUpgrade": { "gold": 1000, "energy": 500, "timeBaseMs": 60000, "timeGrowthMs": 0 },
     "modules": {
-      "attackSpd": { "name": "攻击加速", "icon": "⚡", "effect": "attackIntervalMult", "per": -0.025, "maxLevel": 10, "desc": "攻击间隔 -{pct}%" },
-      "damage": { "name": "攻击强化", "icon": "⚔️", "effect": "attackDamageMult", "per": 0.025, "maxLevel": 10, "desc": "每次攻击伤害 +{pct}%" },
-      "moveSpd": { "name": "机动强化", "icon": "👟", "effect": "moveSpeedMult", "per": 0.015, "maxLevel": 10, "desc": "移动速度 +{pct}%" },
-      "hp": { "name": "生命强化", "icon": "❤️", "effect": "hpMult", "per": 0.05, "maxLevel": 10, "desc": "单位生命 +{pct}%" }
+      "attackSpd": { "name": "攻击加速", "icon": "⚡", "iconImage": "assets/ui/building-upgrades/attack-speed.png", "effect": "attackIntervalMult", "per": -0.025, "maxLevel": 10, "desc": "攻击间隔 -{pct}%" },
+      "damage": { "name": "攻击强化", "icon": "⚔️", "iconImage": "assets/ui/building-upgrades/attack-damage.png", "effect": "attackDamageMult", "per": 0.025, "maxLevel": 10, "desc": "每次攻击伤害 +{pct}%" },
+      "moveSpd": { "name": "机动强化", "icon": "👟", "iconImage": "assets/ui/building-upgrades/mobility.png", "effect": "moveSpeedMult", "per": 0.015, "maxLevel": 10, "desc": "移动速度 +{pct}%" },
+      "hp": { "name": "生命强化", "icon": "❤️", "iconImage": "assets/ui/building-upgrades/health.png", "effect": "hpMult", "per": 0.05, "maxLevel": 10, "desc": "单位生命 +{pct}%" }
     }
   },
   "priest_support": {
     "unitKinds": ["priest"],
     "moduleUpgrade": { "gold": 1000, "energy": 500, "timeBaseMs": 60000, "timeGrowthMs": 0 },
     "modules": {
-      "castSpd": { "name": "施法加速", "icon": "⚡", "effect": "holyLightCooldownMult", "per": -0.05, "maxLevel": 10, "desc": "圣光冷却 -{pct}%" },
-      "holyLight": { "name": "圣光强化", "icon": "✨", "effect": "holyLightLevel", "mode": "add", "per": 1, "base": 1, "maxLevel": 10, "desc": "圣光等级 Lv.{level}" },
-      "castRange": { "name": "远程施法", "icon": "📡", "effect": "holyLightRangeBonus", "mode": "add", "per": 15, "maxLevel": 10, "desc": "圣光施法距离 +{value}px" },
-      "tithe": { "name": "什一税", "icon": "⚡", "effect": "titheEnergyPerTick", "mode": "add", "per": 1, "maxLevel": 10, "tickMs": 10000, "desc": "每 {tickSeconds}s 每名牧师提供 {value} 点能源（需仓库）" }
+      "castSpd": { "name": "施法加速", "icon": "⚡", "iconImage": "assets/ui/building-upgrades/cast-speed.png", "effect": "holyLightCooldownMult", "per": -0.05, "maxLevel": 10, "desc": "圣光冷却 -{pct}%" },
+      "holyLight": { "name": "圣光强化", "icon": "✨", "iconImage": "assets/ui/building-upgrades/holy-light.png", "effect": "holyLightLevel", "mode": "add", "per": 1, "base": 1, "maxLevel": 10, "desc": "圣光等级 Lv.{level}" },
+      "castRange": { "name": "远程施法", "icon": "📡", "iconImage": "assets/ui/building-upgrades/cast-range.png", "effect": "holyLightRangeBonus", "mode": "add", "per": 15, "maxLevel": 10, "desc": "圣光施法距离 +{value}px" },
+      "tithe": { "name": "什一税", "icon": "⚡", "iconImage": "assets/ui/building-upgrades/tithe-energy.png", "effect": "titheEnergyPerTick", "mode": "add", "per": 1, "maxLevel": 10, "tickMs": 10000, "desc": "每 {tickSeconds}s 每名牧师提供 {value} 点能源（需仓库）" }
     }
   },
   "cavalry_charge": {
     "unitKinds": ["knight", "light_cavalry"],
     "moduleUpgrade": { "gold": 1000, "energy": 500, "timeBaseMs": 60000, "timeGrowthMs": 0 },
     "modules": {
-      "attackSpd": { "name": "攻击加速", "icon": "⚡", "effect": "attackIntervalMult", "per": -0.025, "maxLevel": 10, "desc": "攻击间隔 -{pct}%" },
-      "damage": { "name": "攻击强化", "icon": "⚔️", "effect": "attackDamageMult", "per": 0.025, "maxLevel": 10, "desc": "每次攻击伤害 +{pct}%" },
-      "chargeDamage": { "name": "冲锋强化", "icon": "🛡️", "effect": "chargeDamageMult", "per": 0.15, "maxLevel": 10, "unitKinds": ["knight"], "desc": "冲锋伤害 +{pct}%" },
-      "moveSpd": { "name": "轻骑机动", "icon": "🐎", "effect": "moveSpeedMult", "per": 0.015, "maxLevel": 10, "unitKinds": ["light_cavalry"], "desc": "移动速度 +{pct}%" },
-      "hp": { "name": "生命强化", "icon": "❤️", "effect": "hpMult", "per": 0.05, "maxLevel": 10, "desc": "单位生命 +{pct}%" }
+      "attackSpd": { "name": "攻击加速", "icon": "⚡", "iconImage": "assets/ui/building-upgrades/attack-speed.png", "effect": "attackIntervalMult", "per": -0.025, "maxLevel": 10, "desc": "攻击间隔 -{pct}%" },
+      "damage": { "name": "攻击强化", "icon": "⚔️", "iconImage": "assets/ui/building-upgrades/attack-damage.png", "effect": "attackDamageMult", "per": 0.025, "maxLevel": 10, "desc": "每次攻击伤害 +{pct}%" },
+      "chargeDamage": { "name": "冲锋强化", "icon": "🛡️", "iconImage": "assets/ui/building-upgrades/charge-damage.png", "effect": "chargeDamageMult", "per": 0.15, "maxLevel": 10, "unitKinds": ["knight"], "desc": "冲锋伤害 +{pct}%" },
+      "moveSpd": { "name": "轻骑机动", "icon": "🐎", "iconImage": "assets/ui/building-upgrades/light-cavalry-mobility.png", "effect": "moveSpeedMult", "per": 0.015, "maxLevel": 10, "unitKinds": ["light_cavalry"], "desc": "移动速度 +{pct}%" },
+      "hp": { "name": "生命强化", "icon": "❤️", "iconImage": "assets/ui/building-upgrades/health.png", "effect": "hpMult", "per": 0.05, "maxLevel": 10, "desc": "单位生命 +{pct}%" }
     }
   },
   "shooting_range_special": {
     "unitKinds": ["musketeer", "shooter"],
     "moduleUpgrade": { "gold": 1000, "energy": 500, "timeBaseMs": 60000, "timeGrowthMs": 0 },
     "modules": {
-      "attackSpd": { "name": "攻击加速", "icon": "⚡", "effect": "attackIntervalMult", "per": -0.025, "maxLevel": 10, "desc": "攻击间隔 -{pct}%" },
-      "damage": { "name": "攻击强化", "icon": "⚔️", "effect": "attackDamageMult", "per": 0.025, "maxLevel": 10, "desc": "每次攻击伤害 +{pct}%" },
-      "attackRange": { "name": "射程强化", "icon": "🎯", "effect": "attackRangeBonus", "mode": "add", "per": 15, "maxLevel": 10, "desc": "攻击射程 +{value}px" },
-      "hp": { "name": "生命强化", "icon": "❤️", "effect": "hpMult", "per": 0.05, "maxLevel": 10, "desc": "单位生命 +{pct}%" }
+      "attackSpd": { "name": "攻击加速", "icon": "⚡", "iconImage": "assets/ui/building-upgrades/attack-speed.png", "effect": "attackIntervalMult", "per": -0.025, "maxLevel": 10, "desc": "攻击间隔 -{pct}%" },
+      "damage": { "name": "攻击强化", "icon": "⚔️", "iconImage": "assets/ui/building-upgrades/attack-damage.png", "effect": "attackDamageMult", "per": 0.025, "maxLevel": 10, "desc": "每次攻击伤害 +{pct}%" },
+      "attackRange": { "name": "射程强化", "icon": "🎯", "iconImage": "assets/ui/building-upgrades/attack-range.png", "effect": "attackRangeBonus", "mode": "add", "per": 15, "maxLevel": 10, "desc": "攻击射程 +{value}px" },
+      "hp": { "name": "生命强化", "icon": "❤️", "iconImage": "assets/ui/building-upgrades/health.png", "effect": "hpMult", "per": 0.05, "maxLevel": 10, "desc": "单位生命 +{pct}%" }
     }
   },
   "barracks_defense": {
     "unitKinds": ["warrior", "guard"],
     "moduleUpgrade": { "gold": 1000, "energy": 500, "timeBaseMs": 60000, "timeGrowthMs": 0 },
     "modules": {
-      "attackSpd": { "name": "攻击加速", "icon": "⚡", "effect": "attackIntervalMult", "per": -0.025, "maxLevel": 10, "desc": "攻击间隔 -{pct}%" },
-      "damage": { "name": "攻击强化", "icon": "⚔️", "effect": "attackDamageMult", "per": 0.025, "maxLevel": 10, "desc": "每次攻击伤害 +{pct}%" },
-      "defense": { "name": "防御增强", "icon": "🛡️", "effect": "defenseMult", "per": 0.05, "maxLevel": 10, "desc": "防御力 +{pct}%" },
-      "hp": { "name": "生命强化", "icon": "❤️", "effect": "hpMult", "per": 0.05, "maxLevel": 10, "desc": "单位生命 +{pct}%" }
+      "attackSpd": { "name": "攻击加速", "icon": "⚡", "iconImage": "assets/ui/building-upgrades/attack-speed.png", "effect": "attackIntervalMult", "per": -0.025, "maxLevel": 10, "desc": "攻击间隔 -{pct}%" },
+      "damage": { "name": "攻击强化", "icon": "⚔️", "iconImage": "assets/ui/building-upgrades/attack-damage.png", "effect": "attackDamageMult", "per": 0.025, "maxLevel": 10, "desc": "每次攻击伤害 +{pct}%" },
+      "defense": { "name": "防御增强", "icon": "🛡️", "iconImage": "assets/ui/building-upgrades/defense.png", "effect": "defenseMult", "per": 0.05, "maxLevel": 10, "desc": "防御力 +{pct}%" },
+      "hp": { "name": "生命强化", "icon": "❤️", "iconImage": "assets/ui/building-upgrades/health.png", "effect": "hpMult", "per": 0.05, "maxLevel": 10, "desc": "单位生命 +{pct}%" }
     }
   },
   "miner_economy": {
     "moduleUpgrade": { "gold": 1000, "energy": 500 },
     "modules": {
-      "mining": { "name": "采矿效率", "icon": "⛏️", "effect": "miningMult", "per": 0.06, "maxLevel": 10, "energyByLevel": [250, 300, 350, 400, 450, 500, 575, 650, 725, 800], "desc": "采矿攻击力 +{pct}%" },
-      "attackSpd": { "name": "攻击加速", "icon": "⚡", "effect": "attackIntervalMult", "per": -0.01, "maxLevel": 10, "desc": "攻击间隔 -{pct}%" },
-      "damage": { "name": "攻击强化", "icon": "⚔️", "effect": "attackDamageMult", "per": 0.015, "maxLevel": 10, "desc": "每次攻击伤害 +{pct}%" },
-      "moveSpd": { "name": "机动强化", "icon": "👟", "effect": "moveSpeedMult", "per": 0.015, "maxLevel": 10, "desc": "移动速度 +{pct}%" },
-      "count": { "name": "仓鼠增援", "icon": "🐹", "effect": "count", "mode": "add", "per": 1, "maxLevel": 2, "energyByLevel": [5000, 8000], "onUpgrade": "spawnMiner", "desc": "仓鼠矿工数量 +{value}" }
+      "mining": { "name": "采矿效率", "icon": "⛏️", "iconImage": "assets/ui/building-upgrades/mining-efficiency.png", "effect": "miningMult", "per": 0.06, "maxLevel": 10, "energyByLevel": [250, 300, 350, 400, 450, 500, 575, 650, 725, 800], "desc": "采矿攻击力 +{pct}%" },
+      "attackSpd": { "name": "工作加速", "icon": "⚡", "iconImage": "assets/ui/building-upgrades/attack-speed.png", "effect": "attackIntervalMult", "per": -0.01, "maxLevel": 10, "desc": "攻击间隔 -{pct}%" },
+      "damage": { "name": "采矿强化", "icon": "⚔️", "iconImage": "assets/ui/building-upgrades/attack-damage.png", "effect": "attackDamageMult", "per": 0.015, "maxLevel": 10, "desc": "每次攻击伤害 +{pct}%" },
+      "moveSpd": { "name": "机动强化", "icon": "👟", "iconImage": "assets/ui/building-upgrades/mobility.png", "effect": "moveSpeedMult", "per": 0.015, "maxLevel": 10, "desc": "移动速度 +{pct}%" },
+      "count": { "name": "矿工增援", "icon": "🐹", "iconImage": "assets/ui/building-upgrades/hamster-reinforcement.png", "effect": "count", "mode": "add", "per": 1, "maxLevel": 2, "energyByLevel": [5000, 8000], "onUpgrade": "spawnMiner", "desc": "仓鼠矿工数量 +{value}" }
     }
   },
   "blacksmith_special": {
@@ -71,12 +71,12 @@
       "timeGrowthMs": 0
     },
     "abilities": {
-      "poison_arrow": { "id": "poison_arrow", "name": "毒箭", "icon": "☠️", "target": "shooter", "base": 0.2, "per": 0.05, "maxLevel": 10, "desc": "仓鼠射手命中 {chance}% 概率叠加一层中毒（每级 +5%）" },
-      "auto_guard": { "id": "auto_guard", "name": "自动防御", "icon": "🛡️", "target": "guard", "base": 0.25, "per": 0.05, "maxLevel": 10, "damageReduction": 0.5, "desc": "仓鼠盾卫受击 {chance}% 概率触发，减免 50% 伤害（每级 +5%）" },
-      "sweep_aoe": { "id": "sweep_aoe", "name": "横扫", "icon": "💥", "target": "warrior", "base": 0.2, "per": 0.05, "maxLevel": 10, "rangeBonus": 30, "arcDegrees": 120, "desc": "仓鼠战士普攻附带前方扇形 AOE，造成 {dmg}% 额外伤害（每级 +5%）" },
-      "mark_arrow": { "id": "mark_arrow", "name": "标记箭", "icon": "🎯", "target": "scout", "base": 0.25, "per": 0.05, "maxLevel": 10, "durationMs": 3000, "damageAmplify": 0.15, "desc": "仓鼠斥候命中 {chance}% 概率标记目标 3 秒，期间目标受所有伤害 +15%（每级 +5% 概率）" },
-      "armor_piercing_round": { "id": "armor_piercing_round", "name": "穿甲弹", "icon": "🔩", "target": "musketeer", "firstLevel": 0.25, "per": 0.025, "maxLevel": 10, "desc": "仓鼠火枪获得 {pct} 护甲穿透（Lv.1 为 25%，之后每级 +2.5%）" },
-      "inspire_magic": { "id": "inspire_magic", "name": "激励魔法", "icon": "📣", "target": "priest", "firstLevel": 10000, "per": 1111.111111111111, "displayMode": "seconds", "maxLevel": 10, "radius": 300, "cooldownMs": 30000, "speedMul": 1.33, "atkMul": 1.5, "desc": "仓鼠牧师每 {cooldown}s 为 {radius}px 内友军施加激励：移速 +33%、物攻 +50%，持续 {value}" }
+      "poison_arrow": { "id": "poison_arrow", "name": "毒箭", "icon": "☠️", "iconImage": "assets/ui/building-upgrades/poison-arrow.png", "target": "shooter", "base": 0.2, "per": 0.05, "maxLevel": 10, "desc": "仓鼠射手命中 {chance}% 概率叠加一层中毒（每级 +5%）" },
+      "auto_guard": { "id": "auto_guard", "name": "自动防御", "icon": "🛡️", "iconImage": "assets/ui/building-upgrades/auto-guard.png", "target": "guard", "base": 0.25, "per": 0.05, "maxLevel": 10, "damageReduction": 0.5, "desc": "仓鼠盾卫受击 {chance}% 概率触发，减免 50% 伤害（每级 +5%）" },
+      "sweep_aoe": { "id": "sweep_aoe", "name": "横扫", "icon": "💥", "iconImage": "assets/ui/building-upgrades/sweep-aoe.png", "target": "warrior", "base": 0.2, "per": 0.05, "maxLevel": 10, "rangeBonus": 30, "arcDegrees": 120, "desc": "仓鼠战士普攻附带前方扇形 AOE，造成 {dmg}% 额外伤害（每级 +5%）" },
+      "mark_arrow": { "id": "mark_arrow", "name": "标记箭", "icon": "🎯", "iconImage": "assets/ui/building-upgrades/mark-arrow.png", "target": "scout", "base": 0.25, "per": 0.05, "maxLevel": 10, "durationMs": 3000, "damageAmplify": 0.15, "desc": "仓鼠斥候命中 {chance}% 概率标记目标 3 秒，期间目标受所有伤害 +15%（每级 +5% 概率）" },
+      "armor_piercing_round": { "id": "armor_piercing_round", "name": "穿甲弹", "icon": "🔩", "iconImage": "assets/ui/building-upgrades/armor-piercing-round.png", "target": "仓鼠火枪、仓鼠赏金猎人", "firstLevel": 0.25, "per": 0.025, "maxLevel": 10, "desc": "仓鼠火枪与赏金猎人获得 {pct} 护甲穿透（Lv.1 为 25%，之后每级 +2.5%）" },
+      "inspire_magic": { "id": "inspire_magic", "name": "激励魔法", "icon": "📣", "iconImage": "assets/ui/building-upgrades/inspire-magic.png", "target": "priest", "firstLevel": 10000, "per": 1111.111111111111, "displayMode": "seconds", "maxLevel": 10, "radius": 300, "cooldownMs": 30000, "speedMul": 1.33, "atkMul": 1.5, "desc": "仓鼠牧师每 {cooldown}s 为 {radius}px 内友军施加激励：移速 +33%、物攻 +50%，持续 {value}" }
     }
   },
   "research_standard": {
@@ -89,9 +89,9 @@
       "timeGrowthMs": 0
     },
     "abilities": {
-      "research_structure_hp": { "id": "research_structure_hp", "name": "防御结构强化", "icon": "🧱", "target": "方块墙与4格门", "base": 0, "per": 0.1, "displayMode": "percent", "maxLevel": 10, "desc": "方块墙与4格门最大生命 +{pct}%（每级 +10%）" },
-      "research_passive_energy": { "id": "research_passive_energy", "name": "能源回收矩阵", "icon": "⚡", "target": "全局能源", "base": 0, "per": 1, "displayMode": "flat", "maxLevel": 10, "desc": "每秒被动获得 {value} 能源（每级 +1）" },
-      "research_recruit_speed": { "id": "research_recruit_speed", "name": "快速募兵", "icon": "🚀", "target": "所有军事产兵建筑", "firstLevel": 0.1, "per": 0.02, "displayMode": "percent", "maxLevel": 10, "desc": "全局募兵速度 +{pct}（Lv.1 为 10%，之后每级 +2%）" }
+      "research_structure_hp": { "id": "research_structure_hp", "name": "防御结构强化", "icon": "🧱", "iconImage": "assets/ui/building-upgrades/structure-hp.png", "target": "方块墙与4格门", "base": 0, "per": 0.1, "displayMode": "percent", "maxLevel": 10, "desc": "方块墙与4格门最大生命 +{pct}%（每级 +10%）" },
+      "research_passive_energy": { "id": "research_passive_energy", "name": "能源回收矩阵", "icon": "⚡", "iconImage": "assets/ui/building-upgrades/passive-energy.png", "target": "全局能源", "base": 0, "per": 1, "displayMode": "flat", "maxLevel": 10, "desc": "每秒被动获得 {value} 能源（每级 +1）" },
+      "research_recruit_speed": { "id": "research_recruit_speed", "name": "快速募兵", "icon": "🚀", "iconImage": "assets/ui/building-upgrades/recruit-speed.png", "target": "所有军事产兵建筑", "firstLevel": 0.1, "per": 0.02, "displayMode": "percent", "maxLevel": 10, "desc": "全局募兵速度 +{pct}（Lv.1 为 10%，之后每级 +2%）" }
     }
   },
   "warehouse_logistics": {
@@ -102,28 +102,28 @@
       "timeGrowthMs": 5000
     },
     "modules": {
-      "warehouse_capacity": { "name": "立体货架", "icon": "📦", "effect": "warehouseCapacity", "mode": "add", "base": 15000, "per": 5000, "maxLevel": 10, "desc": "本仓库容量 {value}" },
-      "warehouse_energy_density": { "name": "晶格压缩舱", "icon": "⚡", "effect": "warehouseEnergyDensity", "mode": "add", "base": 0, "per": -0.03, "maxLevel": 10, "desc": "能源占用容量 -{pct}%" },
-      "warehouse_food_density": { "name": "密封谷仓", "icon": "🌾", "effect": "warehouseFoodDensity", "mode": "add", "base": 0, "per": -0.03, "maxLevel": 10, "desc": "粮食占用容量 -{pct}%" },
-      "warehouse_cross_plane": { "name": "跨位面协议", "icon": "🌀", "effect": "warehouseCrossPlaneSurcharge", "mode": "add", "base": 0.5, "per": -0.05, "maxLevel": 10, "desc": "跨位面建造、出兵与升级额外消耗 {pct}%" }
+      "warehouse_capacity": { "name": "立体货架", "icon": "📦", "iconImage": "assets/ui/building-upgrades/warehouse-capacity.png", "effect": "warehouseCapacity", "mode": "add", "base": 15000, "per": 5000, "maxLevel": 10, "desc": "本仓库容量 {value}" },
+      "warehouse_energy_density": { "name": "晶格压缩舱", "icon": "⚡", "iconImage": "assets/ui/building-upgrades/energy-density.png", "effect": "warehouseEnergyDensity", "mode": "add", "base": 0, "per": -0.03, "maxLevel": 10, "desc": "能源占用容量 -{pct}%" },
+      "warehouse_food_density": { "name": "密封谷仓", "icon": "🌾", "iconImage": "assets/ui/building-upgrades/food-density.png", "effect": "warehouseFoodDensity", "mode": "add", "base": 0, "per": -0.03, "maxLevel": 10, "desc": "粮食占用容量 -{pct}%" },
+      "warehouse_cross_plane": { "name": "跨位面协议", "icon": "🌀", "iconImage": "assets/ui/building-upgrades/cross-plane.png", "effect": "warehouseCrossPlaneSurcharge", "mode": "add", "base": 0.5, "per": -0.05, "maxLevel": 10, "desc": "跨位面建造、出兵与升级额外消耗 {pct}%" }
     }
   },
   "economic_workshop": {
     "moduleUpgrade": { "gold": 500, "energy": 750, "timeBaseMs": 30000, "timeGrowthMs": 5000 },
     "modules": {
-      "workshop_range": { "name": "影响范围", "icon": "📡", "effect": "workshopRange", "mode": "add", "base": 1200, "per": 100, "maxLevel": 10, "desc": "作用半径 {value}px" },
-      "workshop_efficiency": { "name": "效率增幅", "icon": "⚙️", "effect": "workshopEfficiency", "mode": "add", "base": 0.1, "per": 0.02, "maxLevel": 10, "desc": "满员时经济效率 +{pct}%" },
-      "workshop_repair": { "name": "维修效率", "icon": "🔧", "effect": "workshopRepair", "mode": "add", "base": 0.05, "per": 0.01, "maxLevel": 10, "desc": "每秒恢复目标最大生命 {pct}%" },
-      "workshop_engineers": { "name": "工程师数量", "icon": "🐹", "effect": "workshopEngineerCount", "mode": "add", "base": 2, "per": 1, "maxLevel": 3, "goldByLevel": [900, 1500, 2400], "energyByLevel": [1200, 2000, 3200], "timeByLevel": [45000, 60000, 90000], "desc": "仓鼠工程师 {value} 名" }
+      "workshop_range": { "name": "影响范围", "icon": "📡", "iconImage": "assets/ui/building-upgrades/workshop-range.png", "effect": "workshopRange", "mode": "add", "base": 1200, "per": 100, "maxLevel": 10, "desc": "作用半径 {value}px" },
+      "workshop_efficiency": { "name": "效率增幅", "icon": "⚙️", "iconImage": "assets/ui/building-upgrades/workshop-efficiency.png", "effect": "workshopEfficiency", "mode": "add", "base": 0.1, "per": 0.02, "maxLevel": 10, "desc": "满员时经济效率 +{pct}%" },
+      "workshop_repair": { "name": "维修效率", "icon": "🔧", "iconImage": "assets/ui/building-upgrades/workshop-repair.png", "effect": "workshopRepair", "mode": "add", "base": 0.05, "per": 0.01, "maxLevel": 10, "desc": "每秒恢复目标最大生命 {pct}%" },
+      "workshop_engineers": { "name": "工程师数量", "icon": "🐹", "iconImage": "assets/ui/building-upgrades/workshop-engineers.png", "effect": "workshopEngineerCount", "mode": "add", "base": 2, "per": 1, "maxLevel": 3, "goldByLevel": [900, 1500, 2400], "energyByLevel": [1200, 2000, 3200], "timeByLevel": [45000, 60000, 90000], "desc": "仓鼠工程师 {value} 名" }
     }
   },
   "bank_economy": {
     "moduleUpgrade": { "gold": 500, "energy": 750, "timeBaseMs": 30000, "timeGrowthMs": 5000 },
     "modules": {
-      "bank_finance": { "name": "金融工具", "icon": "📈", "effect": "bankSettlementSpeed", "mode": "add", "base": 0, "per": 0.05, "maxLevel": 10, "desc": "金币结算速度 +{pct}%" },
-      "bank_staff": { "name": "扩容人员", "icon": "🐹", "effect": "bankStaffCapacity", "mode": "add", "base": 1, "per": 1, "maxLevel": 2, "desc": "银行职员岗位 {value} 名" },
-      "bank_mint": { "name": "印钞机", "icon": "💵", "effect": "bankGoldPerPopulation", "mode": "add", "base": 0.1, "per": 0.05, "maxLevel": 10, "desc": "每名服务人口每轮产生 {pct}% 金币" },
-      "bank_service_range": { "name": "服务辐射", "icon": "📡", "effect": "bankServiceRange", "mode": "add", "base": 600, "per": 50, "maxLevel": 10, "desc": "服务半径 {value}px" }
+      "bank_finance": { "name": "金融工具", "icon": "📈", "iconImage": "assets/ui/building-upgrades/bank-finance.png", "effect": "bankSettlementSpeed", "mode": "add", "base": 0, "per": 0.05, "maxLevel": 10, "desc": "金币结算速度 +{pct}%" },
+      "bank_staff": { "name": "扩容人员", "icon": "🐹", "iconImage": "assets/ui/building-upgrades/bank-staff.png", "effect": "bankStaffCapacity", "mode": "add", "base": 1, "per": 1, "maxLevel": 2, "desc": "银行职员岗位 {value} 名" },
+      "bank_mint": { "name": "印钞机", "icon": "💵", "iconImage": "assets/ui/building-upgrades/bank-mint.png", "effect": "bankGoldPerPopulation", "mode": "add", "base": 0.1, "per": 0.05, "maxLevel": 10, "desc": "每名服务人口每轮产生 {pct}% 金币" },
+      "bank_service_range": { "name": "服务辐射", "icon": "📡", "iconImage": "assets/ui/building-upgrades/cast-range.png", "effect": "bankServiceRange", "mode": "add", "base": 600, "per": 50, "maxLevel": 10, "desc": "服务半径 {value}px" }
     }
   }
 }

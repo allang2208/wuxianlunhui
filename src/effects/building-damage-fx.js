@@ -6,8 +6,6 @@ export function isBuildingDamageFxTarget(entity) {
         && entity._isDefenseStructure
         && !entity._isDefenseCover
         && !entity._isCoverGate
-        && !entity._isDefenseTrap
-        && !entity._isTrap
     );
 }
 

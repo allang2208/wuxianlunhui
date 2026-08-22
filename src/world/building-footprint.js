@@ -34,7 +34,7 @@ export const ONE_CELL_BUILDING_FOOT = Object.freeze(standardGridFootprint(1, {
     clearRadius: 70,
 }));
 
-/** 除墙、门、陷阱外的普通建筑统一占 2×2。 */
+/** 除墙、门外的普通建筑统一占 2×2。 */
 export const TWO_BY_TWO_BUILDING_FOOT = Object.freeze(standardGridFootprint(2, {
     clearRadius: 150,
 }));

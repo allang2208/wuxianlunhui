@@ -44,12 +44,14 @@ export const NpcPortraitTool = {
         this._loadParams();
 
         // 立绘自由拖动（mousedown 在立绘上，move/up 在 document——可拖出立绘框）
+        // 默认 pointer-events:none 穿透点击（立绘 z 层高于仓库/商店面板，常开可点会挡住
+        // 面板操作）；仅在调整立绘工具激活时由 show() 恢复为 auto，hide() 收回。
         const portrait = getElement('npcPortrait');
         if (portrait) {
             this._boundDragMove = this._onDragMove.bind(this);
             this._boundDragUp = this._onDragUp.bind(this);
             portrait.addEventListener('mousedown', (e) => this._onPortraitMouseDown(e));
-            portrait.style.pointerEvents = 'auto';
+            portrait.style.pointerEvents = 'none';
         }
 
         // 缩放滑动条
@@ -201,10 +203,12 @@ export const NpcPortraitTool = {
             this._panel.classList.add('active');
         }
         // 立绘进入可拖状态（拖动期间禁用 transform 过渡，否则 0.3s transition 拖拽滞后）
+        // 工具激活期间恢复可点（默认 none 穿透，见 init 注释）
         const portrait = getElement('npcPortrait');
         if (portrait) {
             portrait.style.cursor = 'grab';
             portrait.style.transition = 'none';
+            portrait.style.pointerEvents = 'auto';
         }
 
         // 应用当前参数到 DOM 立绘
@@ -221,6 +225,7 @@ export const NpcPortraitTool = {
         if (portrait) {
             portrait.style.cursor = '';
             portrait.style.transition = '';
+            portrait.style.pointerEvents = 'none'; // 收回可点状态，恢复穿透
         }
         this._drag.active = false;
         this._removeDragListeners();

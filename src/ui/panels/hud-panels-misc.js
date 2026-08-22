@@ -162,7 +162,43 @@ export function createHudPanelsMisc() {
     });
     root.appendChild(wallEditorToggle);
 
-    // ===== 游戏内时间（与 EnvironmentLightingSystem 昼夜相位同源） =====
+    // ===== 右上角基础资源与游戏时间 =====
+    const topRightHud = document.createElement('div');
+    topRightHud.className = 'top-right-hud';
+
+    const resourceBar = document.createElement('div');
+    resourceBar.id = 'basicResourceBar';
+    resourceBar.className = 'basic-resource-bar';
+    resourceBar.setAttribute('role', 'group');
+    resourceBar.setAttribute('aria-label', '基础资源总览');
+    [
+        { key: 'gold', label: '金币', icon: '💰', valueId: 'resourceGoldTotal' },
+        { key: 'energy', label: '能源', icon: '⚡', valueId: 'resourceEnergyTotal' },
+        { key: 'food', label: '食物', icon: '🌾', valueId: 'resourceFoodTotal' },
+    ].forEach((resource) => {
+        const item = document.createElement('div');
+        item.className = `basic-resource-item basic-resource-item--${resource.key}`;
+        item.title = `${resource.label}总量`;
+
+        const icon = document.createElement('span');
+        icon.className = 'basic-resource-icon';
+        icon.setAttribute('aria-hidden', 'true');
+        icon.textContent = resource.icon;
+
+        const label = document.createElement('span');
+        label.className = 'basic-resource-label';
+        label.textContent = resource.label;
+
+        const value = document.createElement('strong');
+        value.id = resource.valueId;
+        value.className = 'basic-resource-value';
+        value.textContent = '0';
+
+        item.append(icon, label, value);
+        resourceBar.appendChild(item);
+    });
+
+    // 游戏内时间与 EnvironmentLightingSystem 昼夜相位同源。
     const gameTime = document.createElement('div');
     gameTime.id = 'gameTime';
     gameTime.className = 'game-time';
@@ -206,7 +242,8 @@ export function createHudPanelsMisc() {
     timeText.className = 'time-text';
     timeText.textContent = '第1日 · 12:00 · 白昼';
     gameTime.append(dial, timeIcon, timeText);
-    root.appendChild(gameTime);
+    topRightHud.append(resourceBar, gameTime);
+    root.appendChild(topRightHud);
 
     const invasionHud = document.createElement('div');
     invasionHud.id = 'worldInvasionHud';

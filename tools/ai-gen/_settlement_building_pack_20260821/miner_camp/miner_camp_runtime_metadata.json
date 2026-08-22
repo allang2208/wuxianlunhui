@@ -1,0 +1,42 @@
+{
+  "source": "tools\\ai-gen\\_settlement_building_pack_20260821\\miner_camp\\miner_camp_s48_seed1229222_raw.png",
+  "output": "tools\\ai-gen\\_settlement_building_pack_20260821\\miner_camp\\miner_camp_s48_seed1229222_cutout.png",
+  "sourceMode": "RGB",
+  "background": [
+    255,
+    244,
+    1
+  ],
+  "matteColor": null,
+  "matteEdgeWidth": 5.0,
+  "matteTolerance": 200.0,
+  "maskImage": "tools\\ai-gen\\_settlement_building_pack_20260821\\miner_camp\\miner_camp_depth.png",
+  "maskDilate": 6,
+  "fillAlphaHoles": false,
+  "fillHoleMatteDistance": null,
+  "removeEnclosedMatte": true,
+  "enclosedMatteChromaDistance": 0.08,
+  "maskAddRects": [],
+  "restoreAlphaRects": [],
+  "cropBox": [
+    72,
+    257,
+    954,
+    922
+  ],
+  "fileSize": [
+    882,
+    665
+  ],
+  "alphaBBox": [
+    6,
+    6,
+    876,
+    659
+  ],
+  "displayW": 277,
+  "displayH": 209,
+  "footOffsetY": 103,
+  "scaleX": 0.31405895691609975,
+  "scaleY": 0.3142857142857143
+}

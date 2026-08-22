@@ -67,7 +67,7 @@
                 {
                     "id": "light_blade",
                     "name": "轻量化剑刃",
-                    "icon": "assets/icons/craft/light_blade.png",
+                    "icon": "assets/icons/craft-cold-steel/light_blade.png",
                     "desc": "减少攻击间隔 50ms",
                     "effects": {
                         "attackIntervalDelta": -50
@@ -76,7 +76,7 @@
                 {
                     "id": "hardened_edge",
                     "name": "淬火硬化刃口",
-                    "icon": "assets/icons/craft/hardened_edge.png",
+                    "icon": "assets/icons/craft-cold-steel/hardened_edge.png",
                     "desc": "增加 10% 暴击率",
                     "effects": {
                         "critChancePercent": 0.1
@@ -85,7 +85,7 @@
                 {
                     "id": "heavy_blunt",
                     "name": "厚重钝化",
-                    "icon": "assets/icons/craft/heavy_blunt.png",
+                    "icon": "assets/icons/craft-cold-steel/heavy_blunt.png",
                     "desc": "增加 20% 防御穿透",
                     "effects": {
                         "armorPenetrationPercent": 0.2
@@ -94,7 +94,7 @@
                 {
                     "id": "sharpened_edge",
                     "name": "精细研磨开锋",
-                    "icon": "assets/icons/craft/sharpened_edge.png",
+                    "icon": "assets/icons/craft-cold-steel/sharpened_edge.png",
                     "desc": "增加 5% 伤害",
                     "effects": {
                         "damagePercent": 0.05
@@ -105,7 +105,7 @@
                 {
                     "id": "small_disc_guard",
                     "name": "小型圆盘护手",
-                    "icon": "assets/icons/craft/small_disc_guard.png",
+                    "icon": "assets/icons/craft-cold-steel/small_disc_guard.png",
                     "desc": "减少攻击间隔 50ms",
                     "effects": {
                         "attackIntervalDelta": -50
@@ -114,7 +114,7 @@
                 {
                     "id": "wide_cross_guard",
                     "name": "宽十字护手",
-                    "icon": "assets/icons/craft/wide_cross_guard.png",
+                    "icon": "assets/icons/craft-cold-steel/wide_cross_guard.png",
                     "desc": "装备时获得次级格挡效果：受到近战攻击有 50% 概率减少 50% 伤害",
                     "effects": {
                         "secondaryBlock": true
@@ -123,7 +123,7 @@
                 {
                     "id": "no_guard",
                     "name": "无护手",
-                    "icon": "assets/icons/craft/no_guard.png",
+                    "icon": "assets/icons/craft-cold-steel/no_guard.png",
                     "desc": "减少攻击间隔 100ms，减少 5 点攻击体力消耗，防御力减少 25%",
                     "effects": {
                         "attackIntervalDelta": -100,
@@ -136,7 +136,7 @@
                 {
                     "id": "wrapped_long_grip",
                     "name": "缠绳附加长柄",
-                    "icon": "assets/icons/craft/wrapped_long_grip.png",
+                    "icon": "assets/icons/craft-cold-steel/wrapped_long_grip.png",
                     "desc": "减少 5 点攻击和技能体力消耗",
                     "effects": {
                         "staminaCostDelta": -5,
@@ -146,7 +146,7 @@
                 {
                     "id": "short_compact_grip",
                     "name": "短柄紧凑型握把",
-                    "icon": "assets/icons/craft/short_compact_grip.png",
+                    "icon": "assets/icons/craft-cold-steel/short_compact_grip.png",
                     "desc": "减少攻击间隔 50ms",
                     "effects": {
                         "attackIntervalDelta": -50
@@ -157,7 +157,7 @@
                 {
                     "id": "damascus_steel",
                     "name": "大马士革钢",
-                    "icon": "assets/icons/craft/damascus_steel.png",
+                    "icon": "assets/icons/craft-cold-steel/damascus_steel.png",
                     "desc": "冲刺突刺多造成一次伤害",
                     "effects": {
                         "dashDoubleHit": true
@@ -166,7 +166,7 @@
                 {
                     "id": "quench_hardened",
                     "name": "淬火硬化",
-                    "icon": "assets/icons/craft/quench_hardened.png",
+                    "icon": "assets/icons/craft-cold-steel/quench_hardened.png",
                     "desc": "防御穿透 +20%",
                     "effects": {
                         "armorPenetrationPercent": 0.2
@@ -175,7 +175,7 @@
                 {
                     "id": "extended_blade",
                     "name": "延长剑身",
-                    "icon": "assets/icons/craft/extended_blade.png",
+                    "icon": "assets/icons/craft-cold-steel/extended_blade.png",
                     "desc": "攻击距离 +25px（包括技能）",
                     "effects": {
                         "rangeDelta": 25
@@ -184,7 +184,7 @@
                 {
                     "id": "light_blade_body",
                     "name": "轻量化剑身",
-                    "icon": "assets/icons/craft/light_blade_body.png",
+                    "icon": "assets/icons/craft-cold-steel/light_blade_body.png",
                     "desc": "减少攻击间隔 50ms",
                     "effects": {
                         "attackIntervalDelta": -50
@@ -193,7 +193,7 @@
                 {
                     "id": "hollow_blade",
                     "name": "镂空",
-                    "icon": "assets/icons/craft/hollow_blade.png",
+                    "icon": "assets/icons/craft-cold-steel/hollow_blade.png",
                     "desc": "攻击敌人时附加流血效果：每秒受到当前生命值 10% 的物理伤害",
                     "effects": {
                         "bleedingOnHit": true
@@ -204,7 +204,7 @@
                 {
                     "id": "damascus_steel",
                     "name": "大马士革钢",
-                    "icon": "assets/icons/craft/damascus_steel.png",
+                    "icon": "assets/icons/craft-cold-steel/damascus_steel.png",
                     "desc": "冲刺突刺多造成一次伤害",
                     "effects": {
                         "dashDoubleHit": true
@@ -213,7 +213,7 @@
                 {
                     "id": "quench_hardened",
                     "name": "淬火硬化",
-                    "icon": "assets/icons/craft/quench_hardened.png",
+                    "icon": "assets/icons/craft-cold-steel/quench_hardened.png",
                     "desc": "防御穿透 +20%",
                     "effects": {
                         "armorPenetrationPercent": 0.2
@@ -222,7 +222,7 @@
                 {
                     "id": "extended_blade",
                     "name": "延长剑身",
-                    "icon": "assets/icons/craft/extended_blade.png",
+                    "icon": "assets/icons/craft-cold-steel/extended_blade.png",
                     "desc": "攻击距离 +25px（包括技能）",
                     "effects": {
                         "rangeDelta": 25
@@ -231,7 +231,7 @@
                 {
                     "id": "light_blade_body",
                     "name": "轻量化剑身",
-                    "icon": "assets/icons/craft/light_blade_body.png",
+                    "icon": "assets/icons/craft-cold-steel/light_blade_body.png",
                     "desc": "减少攻击间隔 50ms",
                     "effects": {
                         "attackIntervalDelta": -50
@@ -240,7 +240,7 @@
                 {
                     "id": "hollow_blade",
                     "name": "镂空",
-                    "icon": "assets/icons/craft/hollow_blade.png",
+                    "icon": "assets/icons/craft-cold-steel/hollow_blade.png",
                     "desc": "攻击敌人时附加流血效果：每秒受到当前生命值 10% 的物理伤害",
                     "effects": {
                         "bleedingOnHit": true
@@ -251,7 +251,7 @@
                 {
                     "id": "weighted_pommel",
                     "name": "配重锤增重",
-                    "icon": "assets/icons/craft/weighted_pommel.png",
+                    "icon": "assets/icons/craft-cold-steel/weighted_pommel.png",
                     "desc": "增加 5 点攻击体力消耗，攻击 +8%",
                     "effects": {
                         "staminaCostDelta": 5,
@@ -261,7 +261,7 @@
                 {
                     "id": "hollow_orb",
                     "name": "镂空小球",
-                    "icon": "assets/icons/craft/hollow_orb.png",
+                    "icon": "assets/icons/craft-cold-steel/hollow_orb.png",
                     "desc": "减少 5 点攻击体力消耗",
                     "effects": {
                         "staminaCostDelta": -5
@@ -338,7 +338,7 @@
                 {
                     "id": "light_blade",
                     "name": "轻量化剑刃",
-                    "icon": "assets/icons/craft/light_blade.png",
+                    "icon": "assets/icons/craft-cold-steel/light_blade.png",
                     "desc": "减少攻击间隔 50ms",
                     "effects": {
                         "attackIntervalDelta": -50
@@ -347,7 +347,7 @@
                 {
                     "id": "hardened_edge",
                     "name": "淬火硬化刃口",
-                    "icon": "assets/icons/craft/hardened_edge.png",
+                    "icon": "assets/icons/craft-cold-steel/hardened_edge.png",
                     "desc": "增加 10% 暴击率",
                     "effects": {
                         "critChancePercent": 0.1
@@ -356,7 +356,7 @@
                 {
                     "id": "heavy_blunt",
                     "name": "厚重钝化",
-                    "icon": "assets/icons/craft/heavy_blunt.png",
+                    "icon": "assets/icons/craft-cold-steel/heavy_blunt.png",
                     "desc": "增加 20% 防御穿透",
                     "effects": {
                         "armorPenetrationPercent": 0.2
@@ -365,7 +365,7 @@
                 {
                     "id": "magic_blade",
                     "name": "魔力刀刃",
-                    "icon": "assets/icons/craft/magic_blade.png",
+                    "icon": "assets/icons/craft-cold-steel/magic_blade.png",
                     "desc": "攻击时给目标添加1层魔力易伤，持续5秒",
                     "effects": {
                         "magicVulnerabilityOnHit": true,
@@ -377,7 +377,7 @@
                 {
                     "id": "small_disc_guard",
                     "name": "小型圆盘护手",
-                    "icon": "assets/icons/craft/small_disc_guard.png",
+                    "icon": "assets/icons/craft-cold-steel/small_disc_guard.png",
                     "desc": "减少攻击间隔 50ms",
                     "effects": {
                         "attackIntervalDelta": -50
@@ -386,7 +386,7 @@
                 {
                     "id": "wide_cross_guard",
                     "name": "宽十字护手",
-                    "icon": "assets/icons/craft/wide_cross_guard.png",
+                    "icon": "assets/icons/craft-cold-steel/wide_cross_guard.png",
                     "desc": "装备时获得次级格挡效果：受到近战攻击有 50% 概率减少 50% 伤害",
                     "effects": {
                         "secondaryBlock": true
@@ -395,7 +395,7 @@
                 {
                     "id": "no_guard",
                     "name": "无护手",
-                    "icon": "assets/icons/craft/no_guard.png",
+                    "icon": "assets/icons/craft-cold-steel/no_guard.png",
                     "desc": "减少攻击间隔 100ms，减少 5 点攻击体力消耗，防御力减少 25%",
                     "effects": {
                         "attackIntervalDelta": -100,
@@ -408,7 +408,7 @@
                 {
                     "id": "wrapped_long_grip",
                     "name": "缠绳附加长柄",
-                    "icon": "assets/icons/craft/wrapped_long_grip.png",
+                    "icon": "assets/icons/craft-cold-steel/wrapped_long_grip.png",
                     "desc": "减少 5 点攻击和技能体力消耗",
                     "effects": {
                         "staminaCostDelta": -5,
@@ -418,7 +418,7 @@
                 {
                     "id": "short_compact_grip",
                     "name": "短柄紧凑型握把",
-                    "icon": "assets/icons/craft/short_compact_grip.png",
+                    "icon": "assets/icons/craft-cold-steel/short_compact_grip.png",
                     "desc": "减少攻击间隔 50ms",
                     "effects": {
                         "attackIntervalDelta": -50
@@ -429,7 +429,7 @@
                 {
                     "id": "rune_restructure",
                     "name": "符文重构",
-                    "icon": "assets/icons/craft/rune_restructure.png",
+                    "icon": "assets/icons/craft-cold-steel/rune_restructure.png",
                     "desc": "右键特殊攻击额外生成2把魔法剑，依次向外40px",
                     "effects": {
                         "runeRestructureCount": 2
@@ -438,7 +438,7 @@
                 {
                     "id": "sharp_rune",
                     "name": "锐利符文",
-                    "icon": "assets/icons/craft/sharp_rune.png",
+                    "icon": "assets/icons/craft-cold-steel/sharp_rune.png",
                     "desc": "魔法防御穿透+20%",
                     "effects": {
                         "magicPenetrationPercent": 0.2
@@ -447,7 +447,7 @@
                 {
                     "id": "eagle_eye_rune",
                     "name": "鹰眼符文",
-                    "icon": "assets/icons/craft/eagle_eye_rune.png",
+                    "icon": "assets/icons/craft-cold-steel/eagle_eye_rune.png",
                     "desc": "右键特殊攻击魔法剑攻击距离+150px",
                     "effects": {
                         "specialRangeDelta": 150
@@ -456,7 +456,7 @@
                 {
                     "id": "destruction_rune",
                     "name": "毁灭符文",
-                    "icon": "assets/icons/craft/destruction_rune.png",
+                    "icon": "assets/icons/craft-cold-steel/destruction_rune.png",
                     "desc": "右键特殊攻击魔法剑击中后给敌人附加2层魔力易伤",
                     "effects": {
                         "magicVulnerabilityOnHit": true,
@@ -468,7 +468,7 @@
                 {
                     "id": "rune_restructure",
                     "name": "符文重构",
-                    "icon": "assets/icons/craft/rune_restructure.png",
+                    "icon": "assets/icons/craft-cold-steel/rune_restructure.png",
                     "desc": "右键特殊攻击额外生成2把魔法剑，依次向外40px",
                     "effects": {
                         "runeRestructureCount": 2
@@ -477,7 +477,7 @@
                 {
                     "id": "sharp_rune",
                     "name": "锐利符文",
-                    "icon": "assets/icons/craft/sharp_rune.png",
+                    "icon": "assets/icons/craft-cold-steel/sharp_rune.png",
                     "desc": "魔法防御穿透+20%",
                     "effects": {
                         "magicPenetrationPercent": 0.2
@@ -486,7 +486,7 @@
                 {
                     "id": "eagle_eye_rune",
                     "name": "鹰眼符文",
-                    "icon": "assets/icons/craft/eagle_eye_rune.png",
+                    "icon": "assets/icons/craft-cold-steel/eagle_eye_rune.png",
                     "desc": "右键特殊攻击魔法剑攻击距离+150px",
                     "effects": {
                         "specialRangeDelta": 150
@@ -495,7 +495,7 @@
                 {
                     "id": "destruction_rune",
                     "name": "毁灭符文",
-                    "icon": "assets/icons/craft/destruction_rune.png",
+                    "icon": "assets/icons/craft-cold-steel/destruction_rune.png",
                     "desc": "右键特殊攻击魔法剑击中后给敌人附加2层魔力易伤",
                     "effects": {
                         "magicVulnerabilityOnHit": true,
@@ -507,7 +507,7 @@
                 {
                     "id": "light_pommel",
                     "name": "轻量化剑身",
-                    "icon": "assets/icons/craft/light_blade_body.png",
+                    "icon": "assets/icons/craft-cold-steel/light_blade_body.png",
                     "desc": "减少攻击间隔 50ms",
                     "effects": {
                         "attackIntervalDelta": -50
@@ -516,7 +516,7 @@
                 {
                     "id": "weighted_pommel",
                     "name": "配重锤增重",
-                    "icon": "assets/icons/craft/weighted_pommel.png",
+                    "icon": "assets/icons/craft-cold-steel/weighted_pommel.png",
                     "desc": "增加 5 点攻击体力消耗，攻击+8%",
                     "effects": {
                         "staminaCostDelta": 5,
@@ -526,7 +526,7 @@
                 {
                     "id": "hollow_orb",
                     "name": "镂空小球",
-                    "icon": "assets/icons/craft/hollow_orb.png",
+                    "icon": "assets/icons/craft-cold-steel/hollow_orb.png",
                     "desc": "减少 5 点攻击体力消耗",
                     "effects": {
                         "staminaCostDelta": -5
@@ -603,7 +603,7 @@
                 {
                     "id": "light_blade",
                     "name": "轻量化剑刃",
-                    "icon": "assets/icons/craft/light_blade.png",
+                    "icon": "assets/icons/craft-cold-steel/light_blade.png",
                     "desc": "减少攻击间隔 50ms",
                     "effects": {
                         "attackIntervalDelta": -50
@@ -612,7 +612,7 @@
                 {
                     "id": "hardened_edge",
                     "name": "淬火硬化刃口",
-                    "icon": "assets/icons/craft/hardened_edge.png",
+                    "icon": "assets/icons/craft-cold-steel/hardened_edge.png",
                     "desc": "增加 10% 暴击率",
                     "effects": {
                         "critChancePercent": 0.1
@@ -621,7 +621,7 @@
                 {
                     "id": "heavy_blunt",
                     "name": "厚重钝化",
-                    "icon": "assets/icons/craft/heavy_blunt.png",
+                    "icon": "assets/icons/craft-cold-steel/heavy_blunt.png",
                     "desc": "增加 20% 防御穿透",
                     "effects": {
                         "armorPenetrationPercent": 0.2
@@ -630,7 +630,7 @@
                 {
                     "id": "vulnerability_blade",
                     "name": "易伤刀刃",
-                    "icon": "assets/icons/craft/vulnerability_blade.png",
+                    "icon": "assets/icons/craft-cold-steel/vulnerability_blade.png",
                     "desc": "攻击时给目标添加1层魔力易伤，持续5秒",
                     "effects": {
                         "magicVulnerabilityOnHit": true,
@@ -640,7 +640,7 @@
                 {
                     "id": "enchanted_blade",
                     "name": "附魔刀刃",
-                    "icon": "assets/icons/craft/enchanted_blade.png",
+                    "icon": "assets/icons/craft-cold-steel/enchanted_blade.png",
                     "desc": "每次攻击命中时附加一次武器攻击力的魔法伤害",
                     "effects": {
                         "enchantedBlade": true
@@ -651,7 +651,7 @@
                 {
                     "id": "small_disc_guard",
                     "name": "小型圆盘护手",
-                    "icon": "assets/icons/craft/small_disc_guard.png",
+                    "icon": "assets/icons/craft-cold-steel/small_disc_guard.png",
                     "desc": "减少攻击间隔 50ms",
                     "effects": {
                         "attackIntervalDelta": -50
@@ -660,7 +660,7 @@
                 {
                     "id": "wide_cross_guard",
                     "name": "宽十字护手",
-                    "icon": "assets/icons/craft/wide_cross_guard.png",
+                    "icon": "assets/icons/craft-cold-steel/wide_cross_guard.png",
                     "desc": "装备时获得次级格挡效果：受到近战攻击有 50% 概率减少 50% 伤害",
                     "effects": {
                         "secondaryBlock": true
@@ -669,7 +669,7 @@
                 {
                     "id": "no_guard",
                     "name": "无护手",
-                    "icon": "assets/icons/craft/no_guard.png",
+                    "icon": "assets/icons/craft-cold-steel/no_guard.png",
                     "desc": "减少攻击间隔 100ms，减少 5 点攻击体力消耗，防御力减少 25%",
                     "effects": {
                         "attackIntervalDelta": -100,
@@ -682,7 +682,7 @@
                 {
                     "id": "wrapped_long_grip",
                     "name": "缠绳附加长柄",
-                    "icon": "assets/icons/craft/wrapped_long_grip.png",
+                    "icon": "assets/icons/craft-cold-steel/wrapped_long_grip.png",
                     "desc": "减少 5 点攻击和技能体力消耗",
                     "effects": {
                         "staminaCostDelta": -5,
@@ -692,7 +692,7 @@
                 {
                     "id": "short_compact_grip",
                     "name": "短柄紧凑型握把",
-                    "icon": "assets/icons/craft/short_compact_grip.png",
+                    "icon": "assets/icons/craft-cold-steel/short_compact_grip.png",
                     "desc": "减少攻击间隔 50ms",
                     "effects": {
                         "attackIntervalDelta": -50
@@ -703,7 +703,7 @@
                 {
                     "id": "rune_restructure",
                     "name": "符文重构",
-                    "icon": "assets/icons/craft/rune_restructure.png",
+                    "icon": "assets/icons/craft-cold-steel/rune_restructure.png",
                     "desc": "右键特殊攻击持续时间+0.5s，期间持续计算伤害",
                     "effects": {
                         "specialDurationDelta": 500
@@ -712,7 +712,7 @@
                 {
                     "id": "sharp_rune",
                     "name": "锐利符文",
-                    "icon": "assets/icons/craft/sharp_rune.png",
+                    "icon": "assets/icons/craft-cold-steel/sharp_rune.png",
                     "desc": "魔法防御穿透+20%",
                     "effects": {
                         "magicPenetrationPercent": 0.2
@@ -721,7 +721,7 @@
                 {
                     "id": "eagle_eye_rune",
                     "name": "鹰眼符文",
-                    "icon": "assets/icons/craft/eagle_eye_rune.png",
+                    "icon": "assets/icons/craft-cold-steel/eagle_eye_rune.png",
                     "desc": "右键特殊攻击攻击距离+200px",
                     "effects": {
                         "specialRangeDelta": 200
@@ -730,7 +730,7 @@
                 {
                     "id": "destruction_rune",
                     "name": "毁灭符文",
-                    "icon": "assets/icons/craft/destruction_rune.png",
+                    "icon": "assets/icons/craft-cold-steel/destruction_rune.png",
                     "desc": "右键特殊攻击每次击中后给敌人附加2层魔力易伤",
                     "effects": {
                         "magicVulnerabilityOnHit": true,
@@ -742,7 +742,7 @@
                 {
                     "id": "rune_restructure",
                     "name": "符文重构",
-                    "icon": "assets/icons/craft/rune_restructure.png",
+                    "icon": "assets/icons/craft-cold-steel/rune_restructure.png",
                     "desc": "右键特殊攻击持续时间+0.5s，期间持续计算伤害",
                     "effects": {
                         "specialDurationDelta": 500
@@ -751,7 +751,7 @@
                 {
                     "id": "sharp_rune",
                     "name": "锐利符文",
-                    "icon": "assets/icons/craft/sharp_rune.png",
+                    "icon": "assets/icons/craft-cold-steel/sharp_rune.png",
                     "desc": "魔法防御穿透+20%",
                     "effects": {
                         "magicPenetrationPercent": 0.2
@@ -760,7 +760,7 @@
                 {
                     "id": "eagle_eye_rune",
                     "name": "鹰眼符文",
-                    "icon": "assets/icons/craft/eagle_eye_rune.png",
+                    "icon": "assets/icons/craft-cold-steel/eagle_eye_rune.png",
                     "desc": "右键特殊攻击攻击距离+200px",
                     "effects": {
                         "specialRangeDelta": 200
@@ -769,7 +769,7 @@
                 {
                     "id": "destruction_rune",
                     "name": "毁灭符文",
-                    "icon": "assets/icons/craft/destruction_rune.png",
+                    "icon": "assets/icons/craft-cold-steel/destruction_rune.png",
                     "desc": "右键特殊攻击每次击中后给敌人附加2层魔力易伤",
                     "effects": {
                         "magicVulnerabilityOnHit": true,
@@ -781,7 +781,7 @@
                 {
                     "id": "light_pommel",
                     "name": "轻量化剑身",
-                    "icon": "assets/icons/craft/light_blade_body.png",
+                    "icon": "assets/icons/craft-cold-steel/light_blade_body.png",
                     "desc": "减少攻击间隔 50ms",
                     "effects": {
                         "attackIntervalDelta": -50
@@ -790,7 +790,7 @@
                 {
                     "id": "weighted_pommel",
                     "name": "配重锤增重",
-                    "icon": "assets/icons/craft/weighted_pommel.png",
+                    "icon": "assets/icons/craft-cold-steel/weighted_pommel.png",
                     "desc": "增加 5 点攻击体力消耗，攻击+8%",
                     "effects": {
                         "staminaCostDelta": 5,
@@ -800,7 +800,7 @@
                 {
                     "id": "hollow_orb",
                     "name": "镂空小球",
-                    "icon": "assets/icons/craft/hollow_orb.png",
+                    "icon": "assets/icons/craft-cold-steel/hollow_orb.png",
                     "desc": "减少 5 点攻击体力消耗",
                     "effects": {
                         "staminaCostDelta": -5
@@ -887,7 +887,7 @@
                 {
                     "id": "suppressor",
                     "name": "消音器",
-                    "icon": "assets/icons/craft/suppressor.png",
+                    "icon": "assets/icons/craft-cold-steel/suppressor.png",
                     "desc": "射程 -300px，击退 +5px",
                     "effects": {
                         "rangeDelta": -300,
@@ -897,7 +897,7 @@
                 {
                     "id": "flash_hider",
                     "name": "鸟笼消焰器",
-                    "icon": "assets/icons/craft/flash_hider.png",
+                    "icon": "assets/icons/craft-cold-steel/flash_hider.png",
                     "desc": "射程 +150px，最大散布角度 -10°",
                     "effects": {
                         "rangeDelta": 150,
@@ -907,7 +907,7 @@
                 {
                     "id": "muzzle_brake",
                     "name": "DTK制退器",
-                    "icon": "assets/icons/craft/muzzle_brake.png",
+                    "icon": "assets/icons/craft-cold-steel/muzzle_brake.png",
                     "desc": "散布开始 +0.5秒，最大散布时间 +0.5秒",
                     "effects": {
                         "spreadStartDelta": 500,
@@ -919,7 +919,7 @@
                 {
                     "id": "long_barrel",
                     "name": "长枪管",
-                    "icon": "assets/icons/craft/long_barrel.png",
+                    "icon": "assets/icons/craft-cold-steel/long_barrel.png",
                     "desc": "射程 +200px，子弹速度 +20%，散布开始 +1秒，最大散布 +1秒",
                     "effects": {
                         "rangeDelta": 200,
@@ -931,7 +931,7 @@
                 {
                     "id": "short_barrel",
                     "name": "短枪管",
-                    "icon": "assets/icons/craft/short_barrel.png",
+                    "icon": "assets/icons/craft-cold-steel/short_barrel.png",
                     "desc": "射程 -200px，散布开始 +0.5秒，移动速度+5%",
                     "effects": {
                         "rangeDelta": -200,
@@ -942,7 +942,7 @@
                 {
                     "id": "quick_change_barrel",
                     "name": "快速换枪管",
-                    "icon": "assets/icons/craft/long_barrel.png",
+                    "icon": "assets/icons/craft-cold-steel/quick_change_barrel.png",
                     "desc": "换弹时间-1500ms，过热时间-500ms",
                     "effects": {
                         "reloadTimeDelta": -1500,
@@ -954,7 +954,7 @@
                 {
                     "id": "light_mag",
                     "name": "轻型弹夹",
-                    "icon": "assets/icons/craft/light_mag.png",
+                    "icon": "assets/icons/craft-cold-steel/light_mag.png",
                     "desc": "换弹时间-1.5秒，弹容量-40%，移动速度+10%",
                     "effects": {
                         "reloadTimeDelta": -1500,
@@ -965,7 +965,7 @@
                 {
                     "id": "extended_mag",
                     "name": "扩容弹箱",
-                    "icon": "assets/icons/craft/extended_mag.png",
+                    "icon": "assets/icons/craft-cold-steel/extended_mag.png",
                     "desc": "弹夹 +25发，移动速度减少10%，换弹时间 +0.5秒",
                     "effects": {
                         "magazineDelta": 25,
@@ -976,7 +976,7 @@
                 {
                     "id": "belt_box",
                     "name": "弹链供弹箱",
-                    "icon": "assets/icons/craft/extended_mag.png",
+                    "icon": "assets/icons/craft-cold-steel/belt_box.png",
                     "desc": "弹夹+50发，移动速度-8%",
                     "effects": {
                         "magazineDelta": 50,
@@ -988,7 +988,7 @@
                 {
                     "id": "ap_ammo",
                     "name": "钢芯穿甲弹",
-                    "icon": "assets/icons/craft/ap_ammo.png",
+                    "icon": "assets/icons/craft-cold-steel/ap_ammo.png",
                     "desc": "攻击时无视目标35%防御力",
                     "effects": {
                         "armorPenetrationPercent": 0.35
@@ -997,7 +997,7 @@
                 {
                     "id": "sniper_ammo",
                     "name": "高精度狙击弹",
-                    "icon": "assets/icons/craft/sniper_ammo.png",
+                    "icon": "assets/icons/craft-cold-steel/sniper_ammo.png",
                     "desc": "射程+200px，散布达到最大时间+0.5秒",
                     "effects": {
                         "rangeDelta": 200,
@@ -1009,7 +1009,7 @@
                 {
                     "id": "skeleton_stock",
                     "name": "骨架枪托",
-                    "icon": "assets/icons/craft/skeleton_stock.png",
+                    "icon": "assets/icons/craft-cold-steel/skeleton_stock.png",
                     "desc": "移动速度+5%，散布开始 +0.5秒，最大散布 -1秒",
                     "effects": {
                         "moveSpeedPercent": 0.05,
@@ -1020,7 +1020,7 @@
                 {
                     "id": "solid_core_stock",
                     "name": "稳固核心枪托",
-                    "icon": "assets/icons/craft/solid_core_stock.png",
+                    "icon": "assets/icons/craft-cold-steel/solid_core_stock.png",
                     "desc": "散布开始 +0.5秒，最大散布 +1秒",
                     "effects": {
                         "spreadStartDelta": 500,
@@ -1032,7 +1032,7 @@
                 {
                     "id": "light_grip",
                     "name": "轻型后握",
-                    "icon": "assets/icons/craft/light_grip.png",
+                    "icon": "assets/icons/craft-cold-steel/light_grip.png",
                     "desc": "移动速度 +10%，最大散布角度 +10°",
                     "effects": {
                         "moveSpeedPercent": 0.1,
@@ -1042,7 +1042,7 @@
                 {
                     "id": "heavy_grip",
                     "name": "重型后握",
-                    "icon": "assets/icons/craft/heavy_grip.png",
+                    "icon": "assets/icons/craft-cold-steel/heavy_grip.png",
                     "desc": "散布开始 +0.25秒，最大散布角度 -5°",
                     "effects": {
                         "spreadStartDelta": 250,
@@ -1052,7 +1052,7 @@
                 {
                     "id": "bipod",
                     "name": "两脚架",
-                    "icon": "assets/icons/craft/angled_grip.png",
+                    "icon": "assets/icons/craft-cold-steel/bipod.png",
                     "desc": "静止散布-25%",
                     "effects": {
                         "stationarySpreadPercent": -0.25
@@ -1063,7 +1063,7 @@
                 {
                     "id": "red_dot",
                     "name": "全景红点瞄具",
-                    "icon": "assets/icons/craft/red_dot.png",
+                    "icon": "assets/icons/craft-cold-steel/red_dot.png",
                     "desc": "散布开始 +1秒，单倍瞄准模式",
                     "effects": {
                         "spreadStartDelta": 1000,
@@ -1073,7 +1073,7 @@
                 {
                     "id": "russian_3x_scope",
                     "name": "俄制三倍镜",
-                    "icon": "assets/icons/craft/russian_3x_scope.png",
+                    "icon": "assets/icons/craft-cold-steel/russian_3x_scope.png",
                     "desc": "散布开始 +1秒，高倍镜瞄准模式",
                     "effects": {
                         "spreadStartDelta": 1000,
@@ -1161,7 +1161,7 @@
                 {
                     "id": "suppressor",
                     "name": "消音器",
-                    "icon": "assets/icons/craft/suppressor.png",
+                    "icon": "assets/icons/craft-cold-steel/suppressor.png",
                     "desc": "射程 -300px，击退 +5px",
                     "effects": {
                         "rangeDelta": -300,
@@ -1171,7 +1171,7 @@
                 {
                     "id": "flash_hider",
                     "name": "鸟笼消焰器",
-                    "icon": "assets/icons/craft/flash_hider.png",
+                    "icon": "assets/icons/craft-cold-steel/flash_hider.png",
                     "desc": "射程 +150px，最大散布角度 -10°",
                     "effects": {
                         "rangeDelta": 150,
@@ -1181,7 +1181,7 @@
                 {
                     "id": "muzzle_brake",
                     "name": "DTK制退器",
-                    "icon": "assets/icons/craft/muzzle_brake.png",
+                    "icon": "assets/icons/craft-cold-steel/muzzle_brake.png",
                     "desc": "散布开始 +0.5秒，最大散布时间 +0.5秒",
                     "effects": {
                         "spreadStartDelta": 500,
@@ -1193,7 +1193,7 @@
                 {
                     "id": "long_barrel",
                     "name": "长枪管",
-                    "icon": "assets/icons/craft/long_barrel.png",
+                    "icon": "assets/icons/craft-cold-steel/long_barrel.png",
                     "desc": "射程 +200px，子弹速度 +20%，散布开始 +1秒，最大散布 +1秒",
                     "effects": {
                         "rangeDelta": 200,
@@ -1205,7 +1205,7 @@
                 {
                     "id": "short_barrel",
                     "name": "短枪管",
-                    "icon": "assets/icons/craft/short_barrel.png",
+                    "icon": "assets/icons/craft-cold-steel/short_barrel.png",
                     "desc": "射程 -200px，散布开始 +0.5秒，移动速度+5%",
                     "effects": {
                         "rangeDelta": -200,
@@ -1218,7 +1218,7 @@
                 {
                     "id": "light_mag",
                     "name": "轻型弹夹",
-                    "icon": "assets/icons/craft/light_mag.png",
+                    "icon": "assets/icons/craft-cold-steel/light_mag.png",
                     "desc": "换弹时间-1.5秒，弹容量-40%，移动速度+10%",
                     "effects": {
                         "reloadTimeDelta": -1500,
@@ -1229,7 +1229,7 @@
                 {
                     "id": "extended_mag",
                     "name": "扩容弹箱",
-                    "icon": "assets/icons/craft/extended_mag.png",
+                    "icon": "assets/icons/craft-cold-steel/extended_mag.png",
                     "desc": "弹夹 +25发，移动速度减少10%，换弹时间 +0.5秒",
                     "effects": {
                         "magazineDelta": 25,
@@ -1242,7 +1242,7 @@
                 {
                     "id": "ap_ammo",
                     "name": "钢芯穿甲弹",
-                    "icon": "assets/icons/craft/ap_ammo.png",
+                    "icon": "assets/icons/craft-cold-steel/ap_ammo.png",
                     "desc": "攻击时无视目标35%防御力",
                     "effects": {
                         "armorPenetrationPercent": 0.35
@@ -1251,7 +1251,7 @@
                 {
                     "id": "sniper_ammo",
                     "name": "高精度狙击弹",
-                    "icon": "assets/icons/craft/sniper_ammo.png",
+                    "icon": "assets/icons/craft-cold-steel/sniper_ammo.png",
                     "desc": "射程+200px，散布达到最大时间+0.5秒",
                     "effects": {
                         "rangeDelta": 200,
@@ -1261,7 +1261,7 @@
                 {
                     "id": "heavy_762",
                     "name": "7.62重弹",
-                    "icon": "assets/icons/craft/ap_ammo.png",
+                    "icon": "assets/icons/craft-cold-steel/heavy_762.png",
                     "desc": "伤害+12%，攻击间隔+20ms，击退+5px",
                     "effects": {
                         "damagePercent": 0.12,
@@ -1274,7 +1274,7 @@
                 {
                     "id": "skeleton_stock",
                     "name": "骨架枪托",
-                    "icon": "assets/icons/craft/skeleton_stock.png",
+                    "icon": "assets/icons/craft-cold-steel/skeleton_stock.png",
                     "desc": "移动速度+5%，散布开始 +0.5秒，最大散布 -1秒",
                     "effects": {
                         "moveSpeedPercent": 0.05,
@@ -1285,7 +1285,7 @@
                 {
                     "id": "solid_core_stock",
                     "name": "稳固核心枪托",
-                    "icon": "assets/icons/craft/solid_core_stock.png",
+                    "icon": "assets/icons/craft-cold-steel/solid_core_stock.png",
                     "desc": "散布开始 +0.5秒，最大散布 +1秒",
                     "effects": {
                         "spreadStartDelta": 500,
@@ -1295,7 +1295,7 @@
                 {
                     "id": "wood_furniture",
                     "name": "AKM木托",
-                    "icon": "assets/icons/craft/skeleton_stock.png",
+                    "icon": "assets/icons/craft-cold-steel/wood_furniture.png",
                     "desc": "后坐力恢复时间-150ms，移动速度-5%",
                     "effects": {
                         "recoilRecoveryDelta": -150,
@@ -1305,7 +1305,7 @@
                 {
                     "id": "side_folding_stock",
                     "name": "侧折叠枪托",
-                    "icon": "assets/icons/craft/ar_folding.png",
+                    "icon": "assets/icons/craft-cold-steel/side_folding_stock.png",
                     "desc": "移动速度+8%，散布开始-0.25秒",
                     "effects": {
                         "moveSpeedPercent": 0.08,
@@ -1317,7 +1317,7 @@
                 {
                     "id": "light_grip",
                     "name": "轻型后握",
-                    "icon": "assets/icons/craft/light_grip.png",
+                    "icon": "assets/icons/craft-cold-steel/light_grip.png",
                     "desc": "移动速度 +10%，最大散布角度 +10°",
                     "effects": {
                         "moveSpeedPercent": 0.1,
@@ -1327,7 +1327,7 @@
                 {
                     "id": "heavy_grip",
                     "name": "重型后握",
-                    "icon": "assets/icons/craft/heavy_grip.png",
+                    "icon": "assets/icons/craft-cold-steel/heavy_grip.png",
                     "desc": "散布开始 +0.25秒，最大散布角度 -5°",
                     "effects": {
                         "spreadStartDelta": 250,
@@ -1339,7 +1339,7 @@
                 {
                     "id": "red_dot",
                     "name": "全景红点瞄具",
-                    "icon": "assets/icons/craft/red_dot.png",
+                    "icon": "assets/icons/craft-cold-steel/red_dot.png",
                     "desc": "散布开始 +1秒，单倍瞄准模式",
                     "effects": {
                         "spreadStartDelta": 1000,
@@ -1349,7 +1349,7 @@
                 {
                     "id": "russian_3x_scope",
                     "name": "俄制三倍镜",
-                    "icon": "assets/icons/craft/russian_3x_scope.png",
+                    "icon": "assets/icons/craft-cold-steel/russian_3x_scope.png",
                     "desc": "散布开始 +1秒，高倍镜瞄准模式",
                     "effects": {
                         "spreadStartDelta": 1000,
@@ -1437,7 +1437,7 @@
                 {
                     "id": "suppressor",
                     "name": "消音器",
-                    "icon": "assets/icons/craft/suppressor.png",
+                    "icon": "assets/icons/craft-cold-steel/suppressor.png",
                     "desc": "射程 -300px，击退 +5px",
                     "effects": {
                         "rangeDelta": -300,
@@ -1447,7 +1447,7 @@
                 {
                     "id": "flash_hider",
                     "name": "鸟笼消焰器",
-                    "icon": "assets/icons/craft/flash_hider.png",
+                    "icon": "assets/icons/craft-cold-steel/flash_hider.png",
                     "desc": "射程 +150px，最大散布角度 -10°",
                     "effects": {
                         "rangeDelta": 150,
@@ -1457,7 +1457,7 @@
                 {
                     "id": "muzzle_brake",
                     "name": "DTK制退器",
-                    "icon": "assets/icons/craft/muzzle_brake.png",
+                    "icon": "assets/icons/craft-cold-steel/muzzle_brake.png",
                     "desc": "散布开始 +0.5秒，最大散布时间 +0.5秒",
                     "effects": {
                         "spreadStartDelta": 500,
@@ -1469,7 +1469,7 @@
                 {
                     "id": "long_barrel",
                     "name": "长枪管",
-                    "icon": "assets/icons/craft/long_barrel.png",
+                    "icon": "assets/icons/craft-cold-steel/long_barrel.png",
                     "desc": "射程 +200px，子弹速度 +20%，散布开始 +1秒，最大散布 +1秒",
                     "effects": {
                         "rangeDelta": 200,
@@ -1481,7 +1481,7 @@
                 {
                     "id": "short_barrel",
                     "name": "短枪管",
-                    "icon": "assets/icons/craft/short_barrel.png",
+                    "icon": "assets/icons/craft-cold-steel/short_barrel.png",
                     "desc": "射程 -200px，散布开始 +0.5秒，移动速度+5%",
                     "effects": {
                         "rangeDelta": -200,
@@ -1492,7 +1492,7 @@
                 {
                     "id": "piston_tuning",
                     "name": "活塞调校",
-                    "icon": "assets/icons/craft/long_barrel.png",
+                    "icon": "assets/icons/craft-cold-steel/piston_tuning.png",
                     "desc": "攻击间隔-20ms，后坐力恢复时间-100ms",
                     "effects": {
                         "attackIntervalDelta": -20,
@@ -1504,7 +1504,7 @@
                 {
                     "id": "light_mag",
                     "name": "轻型弹夹",
-                    "icon": "assets/icons/craft/light_mag.png",
+                    "icon": "assets/icons/craft-cold-steel/light_mag.png",
                     "desc": "换弹时间-1.5秒，弹容量-40%，移动速度+10%",
                     "effects": {
                         "reloadTimeDelta": -1500,
@@ -1515,7 +1515,7 @@
                 {
                     "id": "extended_mag",
                     "name": "扩容弹箱",
-                    "icon": "assets/icons/craft/extended_mag.png",
+                    "icon": "assets/icons/craft-cold-steel/extended_mag.png",
                     "desc": "弹夹 +25发，移动速度减少10%，换弹时间 +0.5秒",
                     "effects": {
                         "magazineDelta": 25,
@@ -1528,7 +1528,7 @@
                 {
                     "id": "ap_ammo",
                     "name": "钢芯穿甲弹",
-                    "icon": "assets/icons/craft/ap_ammo.png",
+                    "icon": "assets/icons/craft-cold-steel/ap_ammo.png",
                     "desc": "攻击时无视目标35%防御力",
                     "effects": {
                         "armorPenetrationPercent": 0.35
@@ -1537,7 +1537,7 @@
                 {
                     "id": "sniper_ammo",
                     "name": "高精度狙击弹",
-                    "icon": "assets/icons/craft/sniper_ammo.png",
+                    "icon": "assets/icons/craft-cold-steel/sniper_ammo.png",
                     "desc": "射程+200px，散布达到最大时间+0.5秒",
                     "effects": {
                         "rangeDelta": 200,
@@ -1549,7 +1549,7 @@
                 {
                     "id": "skeleton_stock",
                     "name": "骨架枪托",
-                    "icon": "assets/icons/craft/skeleton_stock.png",
+                    "icon": "assets/icons/craft-cold-steel/skeleton_stock.png",
                     "desc": "移动速度+5%，散布开始 +0.5秒，最大散布 -1秒",
                     "effects": {
                         "moveSpeedPercent": 0.05,
@@ -1560,7 +1560,7 @@
                 {
                     "id": "solid_core_stock",
                     "name": "稳固核心枪托",
-                    "icon": "assets/icons/craft/solid_core_stock.png",
+                    "icon": "assets/icons/craft-cold-steel/solid_core_stock.png",
                     "desc": "散布开始 +0.5秒，最大散布 +1秒",
                     "effects": {
                         "spreadStartDelta": 500,
@@ -1570,7 +1570,7 @@
                 {
                     "id": "hk_stock",
                     "name": "HK枪托",
-                    "icon": "assets/icons/craft/ar_folding.png",
+                    "icon": "assets/icons/craft-cold-steel/hk_stock.png",
                     "desc": "移动速度+5%，换弹时间-200ms",
                     "effects": {
                         "moveSpeedPercent": 0.05,
@@ -1582,7 +1582,7 @@
                 {
                     "id": "light_grip",
                     "name": "轻型后握",
-                    "icon": "assets/icons/craft/light_grip.png",
+                    "icon": "assets/icons/craft-cold-steel/light_grip.png",
                     "desc": "移动速度 +10%，最大散布角度 +10°",
                     "effects": {
                         "moveSpeedPercent": 0.1,
@@ -1592,7 +1592,7 @@
                 {
                     "id": "heavy_grip",
                     "name": "重型后握",
-                    "icon": "assets/icons/craft/heavy_grip.png",
+                    "icon": "assets/icons/craft-cold-steel/heavy_grip.png",
                     "desc": "散布开始 +0.25秒，最大散布角度 -5°",
                     "effects": {
                         "spreadStartDelta": 250,
@@ -1604,7 +1604,7 @@
                 {
                     "id": "red_dot",
                     "name": "全景红点瞄具",
-                    "icon": "assets/icons/craft/red_dot.png",
+                    "icon": "assets/icons/craft-cold-steel/red_dot.png",
                     "desc": "散布开始 +1秒，单倍瞄准模式",
                     "effects": {
                         "spreadStartDelta": 1000,
@@ -1614,7 +1614,7 @@
                 {
                     "id": "russian_3x_scope",
                     "name": "俄制三倍镜",
-                    "icon": "assets/icons/craft/russian_3x_scope.png",
+                    "icon": "assets/icons/craft-cold-steel/russian_3x_scope.png",
                     "desc": "散布开始 +1秒，高倍镜瞄准模式",
                     "effects": {
                         "spreadStartDelta": 1000,
@@ -1624,7 +1624,7 @@
                 {
                     "id": "picatinny_rail",
                     "name": "皮卡汀尼导轨",
-                    "icon": "assets/icons/craft/red_dot.png",
+                    "icon": "assets/icons/craft-cold-steel/picatinny_rail.png",
                     "desc": "散布开始+0.5秒，最大散布角度-5°，高倍镜瞄准模式",
                     "effects": {
                         "spreadStartDelta": 500,
@@ -1703,7 +1703,7 @@
                 {
                     "id": "multi_chamber_brake",
                     "name": "多室枪口制退器",
-                    "icon": "assets/icons/craft/multi_chamber_brake.png",
+                    "icon": "assets/icons/craft-cold-steel/multi_chamber_brake.png",
                     "desc": "后坐力恢复时间-200ms，每次射击扩散角度-2°",
                     "effects": {
                         "recoilRecoveryDelta": -200,
@@ -1713,7 +1713,7 @@
                 {
                     "id": "large_caliber_suppressor",
                     "name": "大口径消音器",
-                    "icon": "assets/icons/craft/large_caliber_suppressor.png",
+                    "icon": "assets/icons/craft-cold-steel/large_caliber_suppressor.png",
                     "desc": "后坐力恢复时间-100ms，射程-200px，击退+30px",
                     "effects": {
                         "recoilRecoveryDelta": -100,
@@ -1724,7 +1724,7 @@
                 {
                     "id": "integrated_suppressor",
                     "name": "一体式消音器",
-                    "icon": "assets/icons/craft/pistol_suppressor.png",
+                    "icon": "assets/icons/craft-cold-steel/integrated_suppressor.png",
                     "desc": "射程-150px，隐藏枪口火焰，每次射击散布-1°",
                     "effects": {
                         "rangeDelta": -150,
@@ -1737,7 +1737,7 @@
                 {
                     "id": "competition_barrel",
                     "name": "加长竞赛枪管",
-                    "icon": "assets/icons/craft/competition_barrel.png",
+                    "icon": "assets/icons/craft-cold-steel/competition_barrel.png",
                     "desc": "射程+300px，后坐力恢复时间-100ms",
                     "effects": {
                         "rangeDelta": 300,
@@ -1747,7 +1747,7 @@
                 {
                     "id": "lightweight_barrel",
                     "name": "轻量化短枪管",
-                    "icon": "assets/icons/craft/lightweight_barrel.png",
+                    "icon": "assets/icons/craft-cold-steel/lightweight_barrel.png",
                     "desc": "移动速度+5%，后坐力恢复时间+50ms",
                     "effects": {
                         "moveSpeedPercent": 0.05,
@@ -1759,7 +1759,7 @@
                 {
                     "id": "fmj_ammo",
                     "name": "FMJ钢芯弹",
-                    "icon": "assets/icons/craft/fmj_ammo.png",
+                    "icon": "assets/icons/craft-cold-steel/fmj_ammo.png",
                     "desc": "穿透目标+1，伤害+5%",
                     "effects": {
                         "piercingBonus": 1,
@@ -1769,7 +1769,7 @@
                 {
                     "id": "hollow_point",
                     "name": "空尖弹",
-                    "icon": "assets/icons/craft/hollow_point.png",
+                    "icon": "assets/icons/craft-cold-steel/hollow_point.png",
                     "desc": "击退+30px，伤害+5%",
                     "effects": {
                         "knockbackDelta": 30,
@@ -1781,7 +1781,7 @@
                 {
                     "id": "light_trigger",
                     "name": "轻量化击发组件",
-                    "icon": "assets/icons/craft/light_trigger.png",
+                    "icon": "assets/icons/craft-cold-steel/light_trigger.png",
                     "desc": "射击间隔-300ms",
                     "effects": {
                         "attackIntervalDelta": -300
@@ -1790,7 +1790,7 @@
                 {
                     "id": "curved_trigger",
                     "name": "弧形竞技扳机片",
-                    "icon": "assets/icons/craft/curved_trigger.png",
+                    "icon": "assets/icons/craft-cold-steel/curved_trigger.png",
                     "desc": "后坐力恢复时间-100ms",
                     "effects": {
                         "recoilRecoveryDelta": -100
@@ -1799,7 +1799,7 @@
                 {
                     "id": "burst_conversion",
                     "name": "三连发组件",
-                    "icon": "assets/icons/craft/burst_trigger.png",
+                    "icon": "assets/icons/craft-cold-steel/burst_conversion.png",
                     "desc": "切换为三连发模式，一次扳机发射三发子弹，每次射击散布+2°",
                     "effects": {
                         "burstMode": 3,
@@ -1809,7 +1809,7 @@
                 {
                     "id": "stabilized_grip",
                     "name": "稳定握把",
-                    "icon": "assets/icons/craft/curved_trigger.png",
+                    "icon": "assets/icons/craft-cold-steel/stabilized_grip.png",
                     "desc": "后坐力恢复时间-150ms，每次射击散布-1°",
                     "effects": {
                         "recoilRecoveryDelta": -150,
@@ -1821,7 +1821,7 @@
                 {
                     "id": "extended_mag",
                     "name": "扩容弹夹",
-                    "icon": "assets/icons/craft/extended_mag.png",
+                    "icon": "assets/icons/craft-cold-steel/extended_mag.png",
                     "desc": "备弹+2",
                     "effects": {
                         "magazineDelta": 2
@@ -1830,7 +1830,7 @@
                 {
                     "id": "carbon_fiber_mag",
                     "name": "碳纤维快速弹夹",
-                    "icon": "assets/icons/craft/carbon_fiber_mag.png",
+                    "icon": "assets/icons/craft-cold-steel/carbon_fiber_mag.png",
                     "desc": "换弹时间-500ms",
                     "effects": {
                         "reloadTimeDelta": -500
@@ -1839,7 +1839,7 @@
                 {
                     "id": "drum_mag",
                     "name": "33发弹鼓",
-                    "icon": "assets/icons/craft/drum_mag.png",
+                    "icon": "assets/icons/craft-cold-steel/drum_mag.png",
                     "desc": "弹容量→33，换弹时间+1500ms，移动速度-5%",
                     "effects": {
                         "magazineOverride": 33,
@@ -1850,7 +1850,7 @@
                 {
                     "id": "quick_mag_holster",
                     "name": "快拔弹匣套",
-                    "icon": "assets/icons/craft/carbon_fiber_mag.png",
+                    "icon": "assets/icons/craft-cold-steel/quick_mag_holster.png",
                     "desc": "换弹时间-400ms，移动速度+5%",
                     "effects": {
                         "reloadTimeDelta": -400,
@@ -1862,7 +1862,7 @@
                 {
                     "id": "red_dot",
                     "name": "全景红点瞄具",
-                    "icon": "assets/icons/craft/red_dot.png",
+                    "icon": "assets/icons/craft-cold-steel/red_dot.png",
                     "desc": "散布开始 +1秒，单倍瞄准模式",
                     "effects": {
                         "spreadStartDelta": 1000,
@@ -1872,7 +1872,7 @@
                 {
                     "id": "russian_3x_scope",
                     "name": "俄制三倍镜",
-                    "icon": "assets/icons/craft/russian_3x_scope.png",
+                    "icon": "assets/icons/craft-cold-steel/russian_3x_scope.png",
                     "desc": "散布开始 +1秒，高倍镜瞄准模式",
                     "effects": {
                         "spreadStartDelta": 1000,
@@ -1950,7 +1950,7 @@
                 {
                     "id": "multi_chamber_brake",
                     "name": "多室枪口制退器",
-                    "icon": "assets/icons/craft/multi_chamber_brake.png",
+                    "icon": "assets/icons/craft-cold-steel/multi_chamber_brake.png",
                     "desc": "后坐力恢复时间-200ms，每次射击扩散角度-2°",
                     "effects": {
                         "recoilRecoveryDelta": -200,
@@ -1960,7 +1960,7 @@
                 {
                     "id": "large_caliber_suppressor",
                     "name": "大口径消音器",
-                    "icon": "assets/icons/craft/large_caliber_suppressor.png",
+                    "icon": "assets/icons/craft-cold-steel/large_caliber_suppressor.png",
                     "desc": "后坐力恢复时间-100ms，射程-200px，击退+30px",
                     "effects": {
                         "recoilRecoveryDelta": -100,
@@ -1973,7 +1973,7 @@
                 {
                     "id": "competition_barrel",
                     "name": "加长竞赛枪管",
-                    "icon": "assets/icons/craft/competition_barrel.png",
+                    "icon": "assets/icons/craft-cold-steel/competition_barrel.png",
                     "desc": "射程+300px，后坐力恢复时间-100ms",
                     "effects": {
                         "rangeDelta": 300,
@@ -1983,7 +1983,7 @@
                 {
                     "id": "lightweight_barrel",
                     "name": "轻量化短枪管",
-                    "icon": "assets/icons/craft/lightweight_barrel.png",
+                    "icon": "assets/icons/craft-cold-steel/lightweight_barrel.png",
                     "desc": "移动速度+5%，后坐力恢复时间+50ms",
                     "effects": {
                         "moveSpeedPercent": 0.05,
@@ -1993,7 +1993,7 @@
                 {
                     "id": "match_barrel",
                     "name": "比赛级枪管",
-                    "icon": "assets/icons/craft/competition_barrel.png",
+                    "icon": "assets/icons/craft-cold-steel/match_barrel.png",
                     "desc": "射程+100px，每次射击散布-2°，攻击间隔+100ms",
                     "effects": {
                         "rangeDelta": 100,
@@ -2006,7 +2006,7 @@
                 {
                     "id": "fmj_ammo",
                     "name": "FMJ钢芯弹",
-                    "icon": "assets/icons/craft/fmj_ammo.png",
+                    "icon": "assets/icons/craft-cold-steel/fmj_ammo.png",
                     "desc": "穿透目标+1，伤害+5%",
                     "effects": {
                         "piercingBonus": 1,
@@ -2016,7 +2016,7 @@
                 {
                     "id": "hollow_point",
                     "name": "空尖弹",
-                    "icon": "assets/icons/craft/hollow_point.png",
+                    "icon": "assets/icons/craft-cold-steel/hollow_point.png",
                     "desc": "击退+30px，伤害+5%",
                     "effects": {
                         "knockbackDelta": 30,
@@ -2026,7 +2026,7 @@
                 {
                     "id": "magnum_load",
                     "name": ".50马格南弹药",
-                    "icon": "assets/icons/craft/fmj_ammo.png",
+                    "icon": "assets/icons/craft-cold-steel/magnum_load.png",
                     "desc": "伤害+20%，击退+15px，后坐力恢复时间+150ms",
                     "effects": {
                         "damagePercent": 0.2,
@@ -2039,7 +2039,7 @@
                 {
                     "id": "double_tap_trigger",
                     "name": "双发扳机",
-                    "icon": "assets/icons/craft/burst_trigger.png",
+                    "icon": "assets/icons/craft-cold-steel/double_tap_trigger.png",
                     "desc": "切换为二连发模式，一次扳机发射两发子弹，每次射击散布+1°",
                     "effects": {
                         "burstMode": 2,
@@ -2049,7 +2049,7 @@
                 {
                     "id": "light_trigger",
                     "name": "轻量化击发组件",
-                    "icon": "assets/icons/craft/light_trigger.png",
+                    "icon": "assets/icons/craft-cold-steel/light_trigger.png",
                     "desc": "射击间隔-300ms",
                     "effects": {
                         "attackIntervalDelta": -300
@@ -2058,7 +2058,7 @@
                 {
                     "id": "curved_trigger",
                     "name": "弧形竞技扳机片",
-                    "icon": "assets/icons/craft/curved_trigger.png",
+                    "icon": "assets/icons/craft-cold-steel/curved_trigger.png",
                     "desc": "后坐力恢复时间-100ms",
                     "effects": {
                         "recoilRecoveryDelta": -100
@@ -2069,7 +2069,7 @@
                 {
                     "id": "extended_mag",
                     "name": "扩容弹夹",
-                    "icon": "assets/icons/craft/extended_mag.png",
+                    "icon": "assets/icons/craft-cold-steel/extended_mag.png",
                     "desc": "备弹+2",
                     "effects": {
                         "magazineDelta": 2
@@ -2078,7 +2078,7 @@
                 {
                     "id": "carbon_fiber_mag",
                     "name": "碳纤维快速弹夹",
-                    "icon": "assets/icons/craft/carbon_fiber_mag.png",
+                    "icon": "assets/icons/craft-cold-steel/carbon_fiber_mag.png",
                     "desc": "换弹时间-500ms",
                     "effects": {
                         "reloadTimeDelta": -500
@@ -2089,7 +2089,7 @@
                 {
                     "id": "red_dot",
                     "name": "全景红点瞄具",
-                    "icon": "assets/icons/craft/red_dot.png",
+                    "icon": "assets/icons/craft-cold-steel/red_dot.png",
                     "desc": "散布开始 +1秒，单倍瞄准模式",
                     "effects": {
                         "spreadStartDelta": 1000,
@@ -2099,7 +2099,7 @@
                 {
                     "id": "russian_3x_scope",
                     "name": "俄制三倍镜",
-                    "icon": "assets/icons/craft/russian_3x_scope.png",
+                    "icon": "assets/icons/craft-cold-steel/russian_3x_scope.png",
                     "desc": "散布开始 +1秒，高倍镜瞄准模式",
                     "effects": {
                         "spreadStartDelta": 1000,
@@ -2111,7 +2111,7 @@
                 {
                     "id": "heavy_frame",
                     "name": "重型握把",
-                    "icon": "assets/icons/craft/curved_trigger.png",
+                    "icon": "assets/icons/craft-cold-steel/heavy_frame.png",
                     "desc": "后坐力恢复时间-250ms，移动速度-8%",
                     "effects": {
                         "recoilRecoveryDelta": -250,
@@ -2189,7 +2189,7 @@
                 {
                     "id": "heavy_muzzle",
                     "name": "重型枪口制退器",
-                    "icon": "assets/icons/craft/muzzle_brake.png",
+                    "icon": "assets/icons/craft-cold-steel/heavy_muzzle.png",
                     "desc": "后坐力恢复时间-200ms，每次射击散布-2°",
                     "effects": {
                         "recoilRecoveryDelta": -200,
@@ -2199,7 +2199,7 @@
                 {
                     "id": "compensator",
                     "name": "枪口补偿器",
-                    "icon": "assets/icons/craft/muzzle_brake.png",
+                    "icon": "assets/icons/craft-cold-steel/compensator.png",
                     "desc": "射程+200px，后坐力恢复时间-100ms",
                     "effects": {
                         "rangeDelta": 200,
@@ -2211,7 +2211,7 @@
                 {
                     "id": "long_barrel",
                     "name": "长枪管",
-                    "icon": "assets/icons/craft/long_barrel.png",
+                    "icon": "assets/icons/craft-cold-steel/long_barrel.png",
                     "desc": "射程+300px，子弹速度+20%",
                     "effects": {
                         "rangeDelta": 300,
@@ -2221,7 +2221,7 @@
                 {
                     "id": "snub_barrel",
                     "name": "短枪管",
-                    "icon": "assets/icons/craft/short_barrel.png",
+                    "icon": "assets/icons/craft-cold-steel/snub_barrel.png",
                     "desc": "射程-150px，移动速度+5%",
                     "effects": {
                         "rangeDelta": -150,
@@ -2233,7 +2233,7 @@
                 {
                     "id": "magnum_round",
                     "name": "马格南重弹",
-                    "icon": "assets/icons/craft/fmj_ammo.png",
+                    "icon": "assets/icons/craft-cold-steel/magnum_round.png",
                     "desc": "伤害+10%，击退+15px",
                     "effects": {
                         "damagePercent": 0.1,
@@ -2243,7 +2243,7 @@
                 {
                     "id": "wadcutter_round",
                     "name": "平头弹",
-                    "icon": "assets/icons/craft/hollow_point.png",
+                    "icon": "assets/icons/craft-cold-steel/wadcutter_round.png",
                     "desc": "穿透+1，伤害+3%",
                     "effects": {
                         "piercingBonus": 1,
@@ -2253,7 +2253,7 @@
                 {
                     "id": "hollow_point",
                     "name": "空尖弹",
-                    "icon": "assets/icons/craft/hollow_point.png",
+                    "icon": "assets/icons/craft-cold-steel/hollow_point.png",
                     "desc": "击退+30px，伤害+5%",
                     "effects": {
                         "knockbackDelta": 30,
@@ -2265,7 +2265,7 @@
                 {
                     "id": "fanning_hammer",
                     "name": "扇击击锤",
-                    "icon": "assets/icons/craft/light_trigger.png",
+                    "icon": "assets/icons/craft-cold-steel/fanning_hammer.png",
                     "desc": "攻击间隔-250ms，每次射击散布+2°",
                     "effects": {
                         "attackIntervalDelta": -250,
@@ -2275,7 +2275,7 @@
                 {
                     "id": "light_trigger",
                     "name": "轻量化击发组件",
-                    "icon": "assets/icons/craft/light_trigger.png",
+                    "icon": "assets/icons/craft-cold-steel/light_trigger.png",
                     "desc": "射击间隔-300ms",
                     "effects": {
                         "attackIntervalDelta": -300
@@ -2284,7 +2284,7 @@
                 {
                     "id": "hammer_spring",
                     "name": "强化击锤簧",
-                    "icon": "assets/icons/craft/light_trigger.png",
+                    "icon": "assets/icons/craft-cold-steel/hammer_spring.png",
                     "desc": "攻击间隔-150ms，后坐力恢复时间-100ms",
                     "effects": {
                         "attackIntervalDelta": -150,
@@ -2296,7 +2296,7 @@
                 {
                     "id": "nine_round_cylinder",
                     "name": "9发弹巢",
-                    "icon": "assets/icons/craft/extended_mag.png",
+                    "icon": "assets/icons/craft-cold-steel/nine_round_cylinder.png",
                     "desc": "弹容量+3",
                     "effects": {
                         "magazineDelta": 3
@@ -2305,7 +2305,7 @@
                 {
                     "id": "speed_loader",
                     "name": "快速装弹器",
-                    "icon": "assets/icons/craft/carbon_fiber_mag.png",
+                    "icon": "assets/icons/craft-cold-steel/speed_loader.png",
                     "desc": "每次装填2发弹药",
                     "effects": {
                         "fastReload": true
@@ -2314,7 +2314,7 @@
                 {
                     "id": "cylinder_lighten",
                     "name": "轻量化弹巢",
-                    "icon": "assets/icons/craft/carbon_fiber_mag.png",
+                    "icon": "assets/icons/craft-cold-steel/cylinder_lighten.png",
                     "desc": "换弹时间-300ms，移动速度+3%",
                     "effects": {
                         "reloadTimeDelta": -300,
@@ -2326,7 +2326,7 @@
                 {
                     "id": "red_dot",
                     "name": "全景红点瞄具",
-                    "icon": "assets/icons/craft/red_dot.png",
+                    "icon": "assets/icons/craft-cold-steel/red_dot.png",
                     "desc": "散布开始 +1秒，单倍瞄准模式",
                     "effects": {
                         "spreadStartDelta": 1000,
@@ -2336,7 +2336,7 @@
                 {
                     "id": "russian_3x_scope",
                     "name": "俄制三倍镜",
-                    "icon": "assets/icons/craft/russian_3x_scope.png",
+                    "icon": "assets/icons/craft-cold-steel/russian_3x_scope.png",
                     "desc": "散布开始 +1秒，高倍镜瞄准模式",
                     "effects": {
                         "spreadStartDelta": 1000,
@@ -2346,7 +2346,7 @@
                 {
                     "id": "scope_mount",
                     "name": "瞄准镜座",
-                    "icon": "assets/icons/craft/russian_3x_scope.png",
+                    "icon": "assets/icons/craft-cold-steel/scope_mount.png",
                     "desc": "射程+150px，高倍镜瞄准模式，攻击间隔+100ms",
                     "effects": {
                         "rangeDelta": 150,
@@ -2425,7 +2425,7 @@
                 {
                     "id": "elite_brake",
                     "name": "精英制退器",
-                    "icon": "assets/icons/craft/elite_brake.png",
+                    "icon": "assets/icons/craft-cold-steel/elite_brake.png",
                     "desc": "每次射击散布-2°，后坐力恢复时间-150ms",
                     "effects": {
                         "shotSpreadDelta": -2,
@@ -2435,7 +2435,7 @@
                 {
                     "id": "pistol_suppressor",
                     "name": "手枪消音器",
-                    "icon": "assets/icons/craft/pistol_suppressor.png",
+                    "icon": "assets/icons/craft-cold-steel/pistol_suppressor.png",
                     "desc": "后坐力恢复时间-100ms，射程-200px，击退+35px",
                     "effects": {
                         "recoilRecoveryDelta": -100,
@@ -2446,7 +2446,7 @@
                 {
                     "id": "compensator",
                     "name": "制退器",
-                    "icon": "assets/icons/craft/muzzle_brake.png",
+                    "icon": "assets/icons/craft-cold-steel/compensator.png",
                     "desc": "后坐力恢复时间-150ms，每次射击散布-1°",
                     "effects": {
                         "recoilRecoveryDelta": -150,
@@ -2458,7 +2458,7 @@
                 {
                     "id": "longshot_barrel",
                     "name": "远射枪管",
-                    "icon": "assets/icons/craft/longshot_barrel.png",
+                    "icon": "assets/icons/craft-cold-steel/longshot_barrel.png",
                     "desc": "射程+300px，每次射击散布-1°，后坐力恢复时间-50ms",
                     "effects": {
                         "rangeDelta": 300,
@@ -2469,7 +2469,7 @@
                 {
                     "id": "cqb_barrel",
                     "name": "近战短管",
-                    "icon": "assets/icons/craft/cqb_barrel.png",
+                    "icon": "assets/icons/craft-cold-steel/cqb_barrel.png",
                     "desc": "移动速度+5%，每次射击散布+1°，后坐力恢复时间+100ms",
                     "effects": {
                         "moveSpeedPercent": 0.05,
@@ -2482,7 +2482,7 @@
                 {
                     "id": "red_dot",
                     "name": "全景红点瞄具",
-                    "icon": "assets/icons/craft/red_dot.png",
+                    "icon": "assets/icons/craft-cold-steel/red_dot.png",
                     "desc": "散布开始 +1秒，单倍瞄准模式",
                     "effects": {
                         "spreadStartDelta": 1000,
@@ -2494,7 +2494,7 @@
                 {
                     "id": "extended_mag",
                     "name": "扩容弹夹",
-                    "icon": "assets/icons/craft/extended_mag.png",
+                    "icon": "assets/icons/craft-cold-steel/extended_mag.png",
                     "desc": "备弹+3",
                     "effects": {
                         "magazineDelta": 3
@@ -2503,7 +2503,7 @@
                 {
                     "id": "long_extended_mag",
                     "name": "长扩容弹夹",
-                    "icon": "assets/icons/craft/long_extended_mag.png",
+                    "icon": "assets/icons/craft-cold-steel/long_extended_mag.png",
                     "desc": "备弹+9，换弹时间+500ms",
                     "effects": {
                         "magazineDelta": 9,
@@ -2513,7 +2513,7 @@
                 {
                     "id": "extended_grip",
                     "name": "加长弹匣",
-                    "icon": "assets/icons/craft/long_extended_mag.png",
+                    "icon": "assets/icons/craft-cold-steel/extended_grip.png",
                     "desc": "备弹+9，换弹时间+300ms",
                     "effects": {
                         "magazineDelta": 9,
@@ -2525,7 +2525,7 @@
                 {
                     "id": "subsonic_hp",
                     "name": "亚音速空尖弹",
-                    "icon": "assets/icons/craft/subsonic_hp.png",
+                    "icon": "assets/icons/craft-cold-steel/subsonic_hp.png",
                     "desc": "击退+35px，伤害+3%",
                     "effects": {
                         "knockbackDelta": 35,
@@ -2535,7 +2535,7 @@
                 {
                     "id": "subsonic_fmj",
                     "name": "亚音速全金属被甲弹",
-                    "icon": "assets/icons/craft/subsonic_fmj.png",
+                    "icon": "assets/icons/craft-cold-steel/subsonic_fmj.png",
                     "desc": "目标穿透+1，伤害+3%",
                     "effects": {
                         "piercingBonus": 1,
@@ -2547,7 +2547,7 @@
                 {
                     "id": "burst_trigger",
                     "name": "爆发板机",
-                    "icon": "assets/icons/craft/burst_trigger.png",
+                    "icon": "assets/icons/craft-cold-steel/burst_trigger.png",
                     "desc": "切换为三连发模式，一次扳机发射三发子弹，每次射击散布+2°",
                     "effects": {
                         "burstMode": 3,
@@ -2557,7 +2557,7 @@
                 {
                     "id": "auto_trigger",
                     "name": "全自动板机",
-                    "icon": "assets/icons/craft/auto_trigger.png",
+                    "icon": "assets/icons/craft-cold-steel/auto_trigger.png",
                     "desc": "切换为全自动射击模式，射击间隔-75ms；散布开始1s、3s达最大、最大散布±15°",
                     "effects": {
                         "fireModeOverride": "fullAuto",
@@ -2572,7 +2572,7 @@
                 {
                     "id": "double_tap",
                     "name": "双发点射扳机",
-                    "icon": "assets/icons/craft/burst_trigger.png",
+                    "icon": "assets/icons/craft-cold-steel/double_tap.png",
                     "desc": "切换为二连发模式，一次扳机发射两发子弹，每次射击散布-1°",
                     "effects": {
                         "burstMode": 2,
@@ -2660,7 +2660,7 @@
                 {
                     "id": "suppressor",
                     "name": "消音器",
-                    "icon": "assets/icons/craft/suppressor.png",
+                    "icon": "assets/icons/craft-cold-steel/suppressor.png",
                     "desc": "射程 -300px，击退 +5px",
                     "effects": {
                         "rangeDelta": -300,
@@ -2670,7 +2670,7 @@
                 {
                     "id": "flash_hider",
                     "name": "鸟笼消焰器",
-                    "icon": "assets/icons/craft/flash_hider.png",
+                    "icon": "assets/icons/craft-cold-steel/flash_hider.png",
                     "desc": "射程 +150px，最大散布角度 -10°",
                     "effects": {
                         "rangeDelta": 150,
@@ -2680,7 +2680,7 @@
                 {
                     "id": "muzzle_brake",
                     "name": "DTK制退器",
-                    "icon": "assets/icons/craft/muzzle_brake.png",
+                    "icon": "assets/icons/craft-cold-steel/muzzle_brake.png",
                     "desc": "散布开始 +0.5秒，最大散布时间 +0.5秒",
                     "effects": {
                         "spreadStartDelta": 500,
@@ -2692,7 +2692,7 @@
                 {
                     "id": "long_barrel",
                     "name": "长枪管",
-                    "icon": "assets/icons/craft/long_barrel.png",
+                    "icon": "assets/icons/craft-cold-steel/long_barrel.png",
                     "desc": "射程 +200px，子弹速度 +20%，散布开始 +1秒，最大散布 +1秒",
                     "effects": {
                         "rangeDelta": 200,
@@ -2704,7 +2704,7 @@
                 {
                     "id": "short_barrel",
                     "name": "短枪管",
-                    "icon": "assets/icons/craft/short_barrel.png",
+                    "icon": "assets/icons/craft-cold-steel/short_barrel.png",
                     "desc": "射程 -200px，散布开始 +0.5秒，移动速度+5%",
                     "effects": {
                         "rangeDelta": -200,
@@ -2715,7 +2715,7 @@
                 {
                     "id": "cooling_barrel",
                     "name": "散热枪管",
-                    "icon": "assets/icons/craft/long_barrel.png",
+                    "icon": "assets/icons/craft-cold-steel/cooling_barrel.png",
                     "desc": "过热恢复-20%",
                     "effects": {
                         "overheatRecoverPercent": -0.2
@@ -2726,7 +2726,7 @@
                 {
                     "id": "light_mag",
                     "name": "轻型弹夹",
-                    "icon": "assets/icons/craft/light_mag.png",
+                    "icon": "assets/icons/craft-cold-steel/light_mag.png",
                     "desc": "换弹时间-1.5秒，弹容量-40%，移动速度+10%",
                     "effects": {
                         "reloadTimeDelta": -1500,
@@ -2737,7 +2737,7 @@
                 {
                     "id": "extended_mag",
                     "name": "扩容弹箱",
-                    "icon": "assets/icons/craft/extended_mag.png",
+                    "icon": "assets/icons/craft-cold-steel/extended_mag.png",
                     "desc": "弹夹 +25发，移动速度减少10%，换弹时间 +0.5秒",
                     "effects": {
                         "magazineDelta": 25,
@@ -2748,7 +2748,7 @@
                 {
                     "id": "drum_belt",
                     "name": "弹鼓",
-                    "icon": "assets/icons/craft/drum_mag.png",
+                    "icon": "assets/icons/craft-cold-steel/drum_belt.png",
                     "desc": "弹夹+30发，换弹时间+800ms",
                     "effects": {
                         "magazineDelta": 30,
@@ -2760,7 +2760,7 @@
                 {
                     "id": "ap_ammo",
                     "name": "钢芯穿甲弹",
-                    "icon": "assets/icons/craft/ap_ammo.png",
+                    "icon": "assets/icons/craft-cold-steel/ap_ammo.png",
                     "desc": "攻击时无视目标35%防御力",
                     "effects": {
                         "armorPenetrationPercent": 0.35
@@ -2769,7 +2769,7 @@
                 {
                     "id": "sniper_ammo",
                     "name": "高精度狙击弹",
-                    "icon": "assets/icons/craft/sniper_ammo.png",
+                    "icon": "assets/icons/craft-cold-steel/sniper_ammo.png",
                     "desc": "射程+200px，散布达到最大时间+0.5秒",
                     "effects": {
                         "rangeDelta": 200,
@@ -2781,7 +2781,7 @@
                 {
                     "id": "skeleton_stock",
                     "name": "骨架枪托",
-                    "icon": "assets/icons/craft/skeleton_stock.png",
+                    "icon": "assets/icons/craft-cold-steel/skeleton_stock.png",
                     "desc": "移动速度+5%，散布开始 +0.5秒，最大散布 -1秒",
                     "effects": {
                         "moveSpeedPercent": 0.05,
@@ -2792,7 +2792,7 @@
                 {
                     "id": "solid_core_stock",
                     "name": "稳固核心枪托",
-                    "icon": "assets/icons/craft/solid_core_stock.png",
+                    "icon": "assets/icons/craft-cold-steel/solid_core_stock.png",
                     "desc": "散布开始 +0.5秒，最大散布 +1秒",
                     "effects": {
                         "spreadStartDelta": 500,
@@ -2802,7 +2802,7 @@
                 {
                     "id": "sustained_fire",
                     "name": "持续射击托",
-                    "icon": "assets/icons/craft/solid_core_stock.png",
+                    "icon": "assets/icons/craft-cold-steel/sustained_fire.png",
                     "desc": "后坐力恢复时间-200ms，最大散布角度-3°",
                     "effects": {
                         "recoilRecoveryDelta": -200,
@@ -2814,7 +2814,7 @@
                 {
                     "id": "light_grip",
                     "name": "轻型后握",
-                    "icon": "assets/icons/craft/light_grip.png",
+                    "icon": "assets/icons/craft-cold-steel/light_grip.png",
                     "desc": "移动速度 +10%，最大散布角度 +10°",
                     "effects": {
                         "moveSpeedPercent": 0.1,
@@ -2824,7 +2824,7 @@
                 {
                     "id": "heavy_grip",
                     "name": "重型后握",
-                    "icon": "assets/icons/craft/heavy_grip.png",
+                    "icon": "assets/icons/craft-cold-steel/heavy_grip.png",
                     "desc": "散布开始 +0.25秒，最大散布角度 -5°",
                     "effects": {
                         "spreadStartDelta": 250,
@@ -2836,7 +2836,7 @@
                 {
                     "id": "red_dot",
                     "name": "全景红点瞄具",
-                    "icon": "assets/icons/craft/red_dot.png",
+                    "icon": "assets/icons/craft-cold-steel/red_dot.png",
                     "desc": "散布开始 +1秒，单倍瞄准模式",
                     "effects": {
                         "spreadStartDelta": 1000,
@@ -2846,7 +2846,7 @@
                 {
                     "id": "russian_3x_scope",
                     "name": "俄制三倍镜",
-                    "icon": "assets/icons/craft/russian_3x_scope.png",
+                    "icon": "assets/icons/craft-cold-steel/russian_3x_scope.png",
                     "desc": "散布开始 +1秒，高倍镜瞄准模式",
                     "effects": {
                         "spreadStartDelta": 1000,
@@ -2934,7 +2934,7 @@
                 {
                     "id": "suppressor",
                     "name": "消音器",
-                    "icon": "assets/icons/craft/suppressor.png",
+                    "icon": "assets/icons/craft-cold-steel/suppressor.png",
                     "desc": "射程 -300px，击退 +5px",
                     "effects": {
                         "rangeDelta": -300,
@@ -2944,7 +2944,7 @@
                 {
                     "id": "flash_hider",
                     "name": "鸟笼消焰器",
-                    "icon": "assets/icons/craft/flash_hider.png",
+                    "icon": "assets/icons/craft-cold-steel/flash_hider.png",
                     "desc": "射程 +150px，最大散布角度 -10°",
                     "effects": {
                         "rangeDelta": 150,
@@ -2954,7 +2954,7 @@
                 {
                     "id": "muzzle_brake",
                     "name": "DTK制退器",
-                    "icon": "assets/icons/craft/muzzle_brake.png",
+                    "icon": "assets/icons/craft-cold-steel/muzzle_brake.png",
                     "desc": "散布开始 +0.5秒，最大散布时间 +0.5秒",
                     "effects": {
                         "spreadStartDelta": 500,
@@ -2966,7 +2966,7 @@
                 {
                     "id": "long_barrel",
                     "name": "长枪管",
-                    "icon": "assets/icons/craft/long_barrel.png",
+                    "icon": "assets/icons/craft-cold-steel/long_barrel.png",
                     "desc": "射程 +200px，子弹速度 +20%，散布开始 +1秒，最大散布 +1秒",
                     "effects": {
                         "rangeDelta": 200,
@@ -2978,7 +2978,7 @@
                 {
                     "id": "short_barrel",
                     "name": "短枪管",
-                    "icon": "assets/icons/craft/short_barrel.png",
+                    "icon": "assets/icons/craft-cold-steel/short_barrel.png",
                     "desc": "射程 -200px，散布开始 +0.5秒，移动速度+5%",
                     "effects": {
                         "rangeDelta": -200,
@@ -2991,7 +2991,7 @@
                 {
                     "id": "light_mag",
                     "name": "轻型弹夹",
-                    "icon": "assets/icons/craft/light_mag.png",
+                    "icon": "assets/icons/craft-cold-steel/light_mag.png",
                     "desc": "换弹时间-1.5秒，弹容量-40%，移动速度+10%",
                     "effects": {
                         "reloadTimeDelta": -1500,
@@ -3002,7 +3002,7 @@
                 {
                     "id": "extended_mag",
                     "name": "扩容弹箱",
-                    "icon": "assets/icons/craft/extended_mag.png",
+                    "icon": "assets/icons/craft-cold-steel/extended_mag.png",
                     "desc": "弹夹 +25发，移动速度减少10%，换弹时间 +0.5秒",
                     "effects": {
                         "magazineDelta": 25,
@@ -3015,7 +3015,7 @@
                 {
                     "id": "ap_ammo",
                     "name": "钢芯穿甲弹",
-                    "icon": "assets/icons/craft/ap_ammo.png",
+                    "icon": "assets/icons/craft-cold-steel/ap_ammo.png",
                     "desc": "攻击时无视目标35%防御力",
                     "effects": {
                         "armorPenetrationPercent": 0.35
@@ -3024,7 +3024,7 @@
                 {
                     "id": "sniper_ammo",
                     "name": "高���度狙击弹",
-                    "icon": "assets/icons/craft/sniper_ammo.png",
+                    "icon": "assets/icons/craft-cold-steel/sniper_ammo.png",
                     "desc": "射程+200px，散布达到最大时间+0.5秒",
                     "effects": {
                         "rangeDelta": 200,
@@ -3036,7 +3036,7 @@
                 {
                     "id": "skeleton_stock",
                     "name": "骨架枪托",
-                    "icon": "assets/icons/craft/skeleton_stock.png",
+                    "icon": "assets/icons/craft-cold-steel/skeleton_stock.png",
                     "desc": "移动速度+5%，散布开始 +0.5秒，最大散布 -1秒",
                     "effects": {
                         "moveSpeedPercent": 0.05,
@@ -3047,7 +3047,7 @@
                 {
                     "id": "solid_core_stock",
                     "name": "稳固核心枪托",
-                    "icon": "assets/icons/craft/solid_core_stock.png",
+                    "icon": "assets/icons/craft-cold-steel/solid_core_stock.png",
                     "desc": "散布开始 +0.5秒，最大散布 +1秒",
                     "effects": {
                         "spreadStartDelta": 500,
@@ -3059,7 +3059,7 @@
                 {
                     "id": "light_grip",
                     "name": "轻型后握",
-                    "icon": "assets/icons/craft/light_grip.png",
+                    "icon": "assets/icons/craft-cold-steel/light_grip.png",
                     "desc": "移动速度 +10%，最大散布角度 +10°",
                     "effects": {
                         "moveSpeedPercent": 0.1,
@@ -3069,7 +3069,7 @@
                 {
                     "id": "heavy_grip",
                     "name": "重型后握",
-                    "icon": "assets/icons/craft/heavy_grip.png",
+                    "icon": "assets/icons/craft-cold-steel/heavy_grip.png",
                     "desc": "散布开始 +0.25秒，最大散布角度 -5°",
                     "effects": {
                         "spreadStartDelta": 250,
@@ -3079,7 +3079,7 @@
                 {
                     "id": "bullpup_balance",
                     "name": "无托平衡改造",
-                    "icon": "assets/icons/craft/angled_grip.png",
+                    "icon": "assets/icons/craft-cold-steel/bullpup_balance.png",
                     "desc": "移动散布-15%",
                     "effects": {
                         "moveSpreadPercent": -0.15
@@ -3090,7 +3090,7 @@
                 {
                     "id": "red_dot",
                     "name": "全景红点瞄具",
-                    "icon": "assets/icons/craft/red_dot.png",
+                    "icon": "assets/icons/craft-cold-steel/red_dot.png",
                     "desc": "散布开始 +1秒，单倍瞄准模式",
                     "effects": {
                         "spreadStartDelta": 1000,
@@ -3100,7 +3100,7 @@
                 {
                     "id": "russian_3x_scope",
                     "name": "俄制三倍镜",
-                    "icon": "assets/icons/craft/russian_3x_scope.png",
+                    "icon": "assets/icons/craft-cold-steel/russian_3x_scope.png",
                     "desc": "散布开始 +1秒，高倍镜瞄准模式",
                     "effects": {
                         "spreadStartDelta": 1000,
@@ -3110,7 +3110,7 @@
                 {
                     "id": "qbz_scope",
                     "name": "无托战术瞄具",
-                    "icon": "assets/icons/craft/red_dot.png",
+                    "icon": "assets/icons/craft-cold-steel/qbz_scope.png",
                     "desc": "散布开始+0.75秒，单倍瞄准模式，射程+50px",
                     "effects": {
                         "spreadStartDelta": 750,
@@ -3123,7 +3123,7 @@
                 {
                     "id": "rapid_trigger",
                     "name": "高速扳机",
-                    "icon": "assets/icons/craft/light_trigger.png",
+                    "icon": "assets/icons/craft-cold-steel/rapid_trigger.png",
                     "desc": "攻击间隔-15ms，每次射击散布+1°",
                     "effects": {
                         "attackIntervalDelta": -15,
@@ -3211,7 +3211,7 @@
                 {
                     "id": "choke",
                     "name": "收束器",
-                    "icon": "assets/icons/craft/choke.png",
+                    "icon": "assets/icons/craft-cold-steel/choke.png",
                     "desc": "散布角度 -5°",
                     "effects": {
                         "maxSpreadAngleDelta": -5
@@ -3220,7 +3220,7 @@
                 {
                     "id": "shotgun_suppressor",
                     "name": "消音器",
-                    "icon": "assets/icons/craft/suppressor.png",
+                    "icon": "assets/icons/craft-cold-steel/suppressor.png",
                     "desc": "射程 -300px，击退 +5px，隐藏枪口火焰",
                     "effects": {
                         "rangeDelta": -300,
@@ -3233,7 +3233,7 @@
                 {
                     "id": "long_barrel",
                     "name": "标准长枪管",
-                    "icon": "assets/icons/craft/long_barrel.png",
+                    "icon": "assets/icons/craft-cold-steel/long_barrel.png",
                     "desc": "射程 +150px，伤害 +5%",
                     "effects": {
                         "rangeDelta": 150,
@@ -3243,7 +3243,7 @@
                 {
                     "id": "short_barrel",
                     "name": "短枪管",
-                    "icon": "assets/icons/craft/short_barrel.png",
+                    "icon": "assets/icons/craft-cold-steel/short_barrel.png",
                     "desc": "备弹 5/5，移动速度 +10%，暴击率 +10%",
                     "effects": {
                         "magazineOverride": 5,
@@ -3256,7 +3256,7 @@
                 {
                     "id": "slug",
                     "name": "独头弹",
-                    "icon": "assets/icons/craft/slug.png",
+                    "icon": "assets/icons/craft-cold-steel/slug.png",
                     "desc": "单发弹丸，基础散布为零，连续射击增加散布，射程 +225px，攻击力公式修改",
                     "effects": {
                         "slugMode": true,
@@ -3266,7 +3266,7 @@
                 {
                     "id": "flechette",
                     "name": "箭型弹",
-                    "icon": "assets/icons/craft/flechette.png",
+                    "icon": "assets/icons/craft-cold-steel/flechette.png",
                     "desc": "伤害 -10%，穿透目标 +1",
                     "effects": {
                         "flechetteMode": true,
@@ -3277,7 +3277,7 @@
                 {
                     "id": "buckshot_heavy",
                     "name": "重鹿弹",
-                    "icon": "assets/icons/craft/flechette.png",
+                    "icon": "assets/icons/craft-cold-steel/buckshot_heavy.png",
                     "desc": "伤害+10%，最大散布角度+3°，击退+8px",
                     "effects": {
                         "damagePercent": 0.1,
@@ -3290,7 +3290,7 @@
                 {
                     "id": "fast_loader",
                     "name": "快速装填器",
-                    "icon": "assets/icons/craft/fast_loader.png",
+                    "icon": "assets/icons/craft-cold-steel/fast_loader.png",
                     "desc": "每次装填2发弹药",
                     "effects": {
                         "fastReload": true
@@ -3299,7 +3299,7 @@
                 {
                     "id": "extended_tube",
                     "name": "加长弹管",
-                    "icon": "assets/icons/craft/extended_mag.png",
+                    "icon": "assets/icons/craft-cold-steel/extended_tube.png",
                     "desc": "备弹+2，移动速度-3%",
                     "effects": {
                         "magazineDelta": 2,
@@ -3309,7 +3309,7 @@
                 {
                     "id": "shell_caddy",
                     "name": "快速弹托",
-                    "icon": "assets/icons/craft/fast_loader.png",
+                    "icon": "assets/icons/craft-cold-steel/shell_caddy.png",
                     "desc": "换弹时间-150ms，每次装填2发弹药",
                     "effects": {
                         "reloadTimeDelta": -150,
@@ -3321,7 +3321,7 @@
                 {
                     "id": "ar_folding",
                     "name": "AR式折叠套件",
-                    "icon": "assets/icons/craft/ar_folding.png",
+                    "icon": "assets/icons/craft-cold-steel/ar_folding.png",
                     "desc": "移动速度 +10%，独头弹模式下后坐力恢复时间 -100ms",
                     "effects": {
                         "moveSpeedPercent": 0.1,
@@ -3331,7 +3331,7 @@
                 {
                     "id": "tactical_stock",
                     "name": "一体化战术枪托",
-                    "icon": "assets/icons/craft/tactical_stock.png",
+                    "icon": "assets/icons/craft-cold-steel/tactical_stock.png",
                     "desc": "散布角度 -5°，独头弹模式下后坐力恢复时间 -200ms",
                     "effects": {
                         "maxSpreadAngleDelta": -5,
@@ -3341,7 +3341,7 @@
                 {
                     "id": "bullpup",
                     "name": "无托改造",
-                    "icon": "assets/icons/craft/bullpup.png",
+                    "icon": "assets/icons/craft-cold-steel/bullpup.png",
                     "desc": "移动速度 +20%，散布角度 +5°",
                     "effects": {
                         "moveSpeedPercent": 0.2,
@@ -3353,7 +3353,7 @@
                 {
                     "id": "angled_grip",
                     "name": "战术斜握把",
-                    "icon": "assets/icons/craft/angled_grip.png",
+                    "icon": "assets/icons/craft-cold-steel/angled_grip.png",
                     "desc": "射击散布 -5°",
                     "effects": {
                         "maxSpreadAngleDelta": -5
@@ -3362,7 +3362,7 @@
                 {
                     "id": "pistol_grip",
                     "name": "分离式手枪握把",
-                    "icon": "assets/icons/craft/pistol_grip.png",
+                    "icon": "assets/icons/craft-cold-steel/pistol_grip.png",
                     "desc": "移动速度 +10%，射击散布 +5°",
                     "effects": {
                         "moveSpeedPercent": 0.1,
@@ -3374,7 +3374,7 @@
                 {
                     "id": "red_dot",
                     "name": "全景红点瞄具",
-                    "icon": "assets/icons/craft/red_dot.png",
+                    "icon": "assets/icons/craft-cold-steel/red_dot.png",
                     "desc": "散布开始 +1秒，单倍瞄准模式",
                     "effects": {
                         "spreadStartDelta": 1000,
@@ -3384,7 +3384,7 @@
                 {
                     "id": "russian_3x_scope",
                     "name": "俄制三倍镜",
-                    "icon": "assets/icons/craft/russian_3x_scope.png",
+                    "icon": "assets/icons/craft-cold-steel/russian_3x_scope.png",
                     "desc": "散布开始 +1秒，高倍镜瞄准模式",
                     "effects": {
                         "spreadStartDelta": 1000,
@@ -3472,7 +3472,7 @@
                 {
                     "id": "choke",
                     "name": "收束器",
-                    "icon": "assets/icons/craft/choke.png",
+                    "icon": "assets/icons/craft-cold-steel/choke.png",
                     "desc": "散布角度 -5°",
                     "effects": {
                         "maxSpreadAngleDelta": -5
@@ -3481,7 +3481,7 @@
                 {
                     "id": "shotgun_suppressor",
                     "name": "消音器",
-                    "icon": "assets/icons/craft/suppressor.png",
+                    "icon": "assets/icons/craft-cold-steel/suppressor.png",
                     "desc": "射程 -300px，击退 +5px，隐藏枪口火焰",
                     "effects": {
                         "rangeDelta": -300,
@@ -3494,7 +3494,7 @@
                 {
                     "id": "long_barrel",
                     "name": "标准长枪管",
-                    "icon": "assets/icons/craft/long_barrel.png",
+                    "icon": "assets/icons/craft-cold-steel/long_barrel.png",
                     "desc": "射程 +150px，伤害 +5%",
                     "effects": {
                         "rangeDelta": 150,
@@ -3504,7 +3504,7 @@
                 {
                     "id": "short_barrel",
                     "name": "短枪管",
-                    "icon": "assets/icons/craft/short_barrel.png",
+                    "icon": "assets/icons/craft-cold-steel/short_barrel.png",
                     "desc": "移动速度 +10%，暴击率 +10%，散布 +5°",
                     "effects": {
                         "moveSpeedPercent": 0.1,
@@ -3515,7 +3515,7 @@
                 {
                     "id": "slug_precision",
                     "name": "独头弹精调",
-                    "icon": "assets/icons/craft/long_barrel.png",
+                    "icon": "assets/icons/craft-cold-steel/slug_precision.png",
                     "desc": "独头弹模式下后坐力恢复时间-200ms，射程+100px，每次射击散布-2°",
                     "effects": {
                         "slugRecoilRecovery": -200,
@@ -3528,7 +3528,7 @@
                 {
                     "id": "slug",
                     "name": "独头弹",
-                    "icon": "assets/icons/craft/slug.png",
+                    "icon": "assets/icons/craft-cold-steel/slug.png",
                     "desc": "单发弹丸，基础散布为零，连续射击增加散布，射程 +225px，攻击力公式修改",
                     "effects": {
                         "slugMode": true,
@@ -3538,7 +3538,7 @@
                 {
                     "id": "flechette",
                     "name": "箭型弹",
-                    "icon": "assets/icons/craft/flechette.png",
+                    "icon": "assets/icons/craft-cold-steel/flechette.png",
                     "desc": "伤害 -10%，穿透目标 +1",
                     "effects": {
                         "flechetteMode": true,
@@ -3551,7 +3551,7 @@
                 {
                     "id": "drum_mag",
                     "name": "大弹鼓",
-                    "icon": "assets/icons/craft/drum_mag.png",
+                    "icon": "assets/icons/craft-cold-steel/drum_mag.png",
                     "desc": "备弹数 +8，换弹时间 +500ms",
                     "effects": {
                         "magazineDelta": 8,
@@ -3561,7 +3561,7 @@
                 {
                     "id": "light_extended",
                     "name": "轻型扩容弹夹",
-                    "icon": "assets/icons/craft/light_extended.png",
+                    "icon": "assets/icons/craft-cold-steel/light_extended.png",
                     "desc": "移动速度 +10%，换弹时间 -500ms",
                     "effects": {
                         "moveSpeedPercent": 0.1,
@@ -3573,7 +3573,7 @@
                 {
                     "id": "ar_folding",
                     "name": "AR式折叠套件",
-                    "icon": "assets/icons/craft/ar_folding.png",
+                    "icon": "assets/icons/craft-cold-steel/ar_folding.png",
                     "desc": "移动速度 +10%，独头弹模式下后坐力恢复时间 -100ms",
                     "effects": {
                         "moveSpeedPercent": 0.1,
@@ -3583,7 +3583,7 @@
                 {
                     "id": "tactical_stock",
                     "name": "一体化战术枪托",
-                    "icon": "assets/icons/craft/tactical_stock.png",
+                    "icon": "assets/icons/craft-cold-steel/tactical_stock.png",
                     "desc": "散布角度 -5°，独头弹模式下后坐力恢复时间 -200ms",
                     "effects": {
                         "maxSpreadAngleDelta": -5,
@@ -3593,7 +3593,7 @@
                 {
                     "id": "bullpup",
                     "name": "无托改造",
-                    "icon": "assets/icons/craft/bullpup.png",
+                    "icon": "assets/icons/craft-cold-steel/bullpup.png",
                     "desc": "移动速度 +20%，散布角度 +5°",
                     "effects": {
                         "moveSpeedPercent": 0.2,
@@ -3605,7 +3605,7 @@
                 {
                     "id": "angled_grip",
                     "name": "战术斜握把",
-                    "icon": "assets/icons/craft/angled_grip.png",
+                    "icon": "assets/icons/craft-cold-steel/angled_grip.png",
                     "desc": "射击散布 -5°",
                     "effects": {
                         "maxSpreadAngleDelta": -5
@@ -3614,7 +3614,7 @@
                 {
                     "id": "pistol_grip",
                     "name": "分离式手枪握把",
-                    "icon": "assets/icons/craft/pistol_grip.png",
+                    "icon": "assets/icons/craft-cold-steel/pistol_grip.png",
                     "desc": "移动速度 +10%，射击散布 +5°",
                     "effects": {
                         "moveSpeedPercent": 0.1,
@@ -3624,7 +3624,7 @@
                 {
                     "id": "tactical_light",
                     "name": "战术灯",
-                    "icon": "assets/icons/craft/angled_grip.png",
+                    "icon": "assets/icons/craft-cold-steel/tactical_light.png",
                     "desc": "散布开始-0.25秒，单倍瞄准模式",
                     "effects": {
                         "spreadStartDelta": -250,
@@ -3636,7 +3636,7 @@
                 {
                     "id": "red_dot",
                     "name": "全景红点瞄具",
-                    "icon": "assets/icons/craft/red_dot.png",
+                    "icon": "assets/icons/craft-cold-steel/red_dot.png",
                     "desc": "散布开始 +1秒，单倍瞄准模式",
                     "effects": {
                         "spreadStartDelta": 1000,
@@ -3646,7 +3646,7 @@
                 {
                     "id": "russian_3x_scope",
                     "name": "俄制三倍镜",
-                    "icon": "assets/icons/craft/russian_3x_scope.png",
+                    "icon": "assets/icons/craft-cold-steel/russian_3x_scope.png",
                     "desc": "散布开始 +1秒，高倍镜瞄准模式",
                     "effects": {
                         "spreadStartDelta": 1000,
@@ -3658,7 +3658,7 @@
                 {
                     "id": "race_trigger",
                     "name": "竞赛扳机",
-                    "icon": "assets/icons/craft/light_trigger.png",
+                    "icon": "assets/icons/craft-cold-steel/race_trigger.png",
                     "desc": "攻击间隔-40ms，每次射击散布+2°",
                     "effects": {
                         "attackIntervalDelta": -40,
@@ -3746,7 +3746,7 @@
                 {
                     "id": "special_brake",
                     "name": "特制制退器",
-                    "icon": "assets/icons/craft/special_brake.png",
+                    "icon": "assets/icons/craft-cold-steel/special_brake.png",
                     "desc": "最大散布时间 +0.5秒，最大散布角度 -10°",
                     "effects": {
                         "spreadTimeDelta": 500,
@@ -3756,7 +3756,7 @@
                 {
                     "id": "border_radiator",
                     "name": "边境散热器",
-                    "icon": "assets/icons/craft/border_radiator.png",
+                    "icon": "assets/icons/craft-cold-steel/border_radiator.png",
                     "desc": "达到过热时间 +1秒",
                     "effects": {
                         "overheatTimeDelta": 1000
@@ -3767,7 +3767,7 @@
                 {
                     "id": "long_barrel",
                     "name": "长枪管",
-                    "icon": "assets/icons/craft/long_barrel.png",
+                    "icon": "assets/icons/craft-cold-steel/long_barrel.png",
                     "desc": "射程 +200px，子弹速度 +20%，散布开始 +1秒，最大散布 +1秒",
                     "effects": {
                         "rangeDelta": 200,
@@ -3779,7 +3779,7 @@
                 {
                     "id": "short_barrel",
                     "name": "短枪管",
-                    "icon": "assets/icons/craft/short_barrel.png",
+                    "icon": "assets/icons/craft-cold-steel/short_barrel.png",
                     "desc": "射程 -200px，散布开始 +0.5秒，移动速度 +10%",
                     "effects": {
                         "rangeDelta": -200,
@@ -3792,7 +3792,7 @@
                 {
                     "id": "energy_extended",
                     "name": "能量扩容弹箱",
-                    "icon": "assets/icons/craft/energy_extended.png",
+                    "icon": "assets/icons/craft-cold-steel/energy_extended.png",
                     "desc": "过热时间 +2秒，移动速度 -10%",
                     "effects": {
                         "overheatTimeDelta": 2000,
@@ -3802,7 +3802,7 @@
                 {
                     "id": "energy_fast",
                     "name": "快速能量弹夹",
-                    "icon": "assets/icons/craft/energy_fast.png",
+                    "icon": "assets/icons/craft-cold-steel/energy_fast.png",
                     "desc": "过热时间 -1秒，移动速度 +10%",
                     "effects": {
                         "overheatTimeDelta": -1000,
@@ -3812,7 +3812,7 @@
                 {
                     "id": "overload_cell",
                     "name": "过载能量电池",
-                    "icon": "assets/icons/craft/energy_extended.png",
+                    "icon": "assets/icons/craft-cold-steel/overload_cell.png",
                     "desc": "伤害+15%，过热时间-1.5秒",
                     "effects": {
                         "damagePercent": 0.15,
@@ -3822,7 +3822,7 @@
                 {
                     "id": "cooling_fin",
                     "name": "散热鳍片",
-                    "icon": "assets/icons/craft/energy_fast.png",
+                    "icon": "assets/icons/craft-cold-steel/cooling_fin.png",
                     "desc": "过热恢复-2000ms，移动速度-3%",
                     "effects": {
                         "overheatRecoverDelta": -2000,
@@ -3834,7 +3834,7 @@
                 {
                     "id": "high_energy",
                     "name": "高能量子弹",
-                    "icon": "assets/icons/craft/high_energy.png",
+                    "icon": "assets/icons/craft-cold-steel/high_energy.png",
                     "desc": "射程 +200px，伤害 +5%，散布开始 -0.5秒",
                     "effects": {
                         "rangeDelta": 200,
@@ -3845,7 +3845,7 @@
                 {
                     "id": "piercing_ammo",
                     "name": "强穿透子弹",
-                    "icon": "assets/icons/craft/piercing_ammo.png",
+                    "icon": "assets/icons/craft-cold-steel/piercing_ammo.png",
                     "desc": "穿透目标 +2",
                     "effects": {
                         "piercingBonus": 2
@@ -3854,7 +3854,7 @@
                 {
                     "id": "focus_lens",
                     "name": "聚焦镜片",
-                    "icon": "assets/icons/craft/high_energy.png",
+                    "icon": "assets/icons/craft-cold-steel/focus_lens.png",
                     "desc": "最大散布角度-5°，散布开始+0.5秒，伤害+5%",
                     "effects": {
                         "maxSpreadAngleDelta": -5,
@@ -3867,7 +3867,7 @@
                 {
                     "id": "skeleton_stock",
                     "name": "骨架枪托",
-                    "icon": "assets/icons/craft/skeleton_stock.png",
+                    "icon": "assets/icons/craft-cold-steel/skeleton_stock.png",
                     "desc": "移动速度+5%，散布开始 +0.5秒，最大散布 -1秒",
                     "effects": {
                         "moveSpeedPercent": 0.05,
@@ -3878,7 +3878,7 @@
                 {
                     "id": "solid_core_stock",
                     "name": "稳固核心枪托",
-                    "icon": "assets/icons/craft/solid_core_stock.png",
+                    "icon": "assets/icons/craft-cold-steel/solid_core_stock.png",
                     "desc": "散布开始 +0.5秒，最大散布 +1秒",
                     "effects": {
                         "spreadStartDelta": 500,
@@ -3890,7 +3890,7 @@
                 {
                     "id": "light_grip",
                     "name": "轻型后握",
-                    "icon": "assets/icons/craft/light_grip.png",
+                    "icon": "assets/icons/craft-cold-steel/light_grip.png",
                     "desc": "移动速度 +10%，最大散布角度 +10°",
                     "effects": {
                         "moveSpeedPercent": 0.1,
@@ -3900,7 +3900,7 @@
                 {
                     "id": "heavy_grip",
                     "name": "重型后握",
-                    "icon": "assets/icons/craft/heavy_grip.png",
+                    "icon": "assets/icons/craft-cold-steel/heavy_grip.png",
                     "desc": "散布开始 +0.25秒，最大散布角度 -5°",
                     "effects": {
                         "spreadStartDelta": 250,
@@ -3912,7 +3912,7 @@
                 {
                     "id": "red_dot",
                     "name": "全景红点瞄具",
-                    "icon": "assets/icons/craft/red_dot.png",
+                    "icon": "assets/icons/craft-cold-steel/red_dot.png",
                     "desc": "散布开始 +1秒，单倍瞄准模式",
                     "effects": {
                         "spreadStartDelta": 1000,
@@ -3922,7 +3922,7 @@
                 {
                     "id": "russian_3x_scope",
                     "name": "俄制三倍镜",
-                    "icon": "assets/icons/craft/russian_3x_scope.png",
+                    "icon": "assets/icons/craft-cold-steel/russian_3x_scope.png",
                     "desc": "散布开始 +1秒，高倍镜瞄准模式",
                     "effects": {
                         "spreadStartDelta": 1000,
@@ -4000,7 +4000,7 @@
                 {
                     "id": "elite_brake",
                     "name": "精英制退器",
-                    "icon": "assets/icons/craft/elite_brake.png",
+                    "icon": "assets/icons/craft-cold-steel/elite_brake.png",
                     "desc": "每次射击散布-2°，后坐力恢复时间-150ms；全自动模式下散布开始/达到最大+0.5s，最大散布角度-5°",
                     "effects": {
                         "shotSpreadDelta": -2,
@@ -4013,7 +4013,7 @@
                 {
                     "id": "pistol_suppressor",
                     "name": "手枪消音器",
-                    "icon": "assets/icons/craft/pistol_suppressor.png",
+                    "icon": "assets/icons/craft-cold-steel/pistol_suppressor.png",
                     "desc": "后坐力恢复时间-100ms，射程-200px，击退+35px；全自动模式下散布开始/达到最大+0.25s",
                     "effects": {
                         "recoilRecoveryDelta": -100,
@@ -4028,7 +4028,7 @@
                 {
                     "id": "longshot_barrel",
                     "name": "远射枪管",
-                    "icon": "assets/icons/craft/longshot_barrel.png",
+                    "icon": "assets/icons/craft-cold-steel/longshot_barrel.png",
                     "desc": "射程+300px，每次射击散布-1°，后坐力恢复时间-50ms；全自动模式下散布开始/达到最大+0.25s，最大散布角度-5°",
                     "effects": {
                         "rangeDelta": 300,
@@ -4042,7 +4042,7 @@
                 {
                     "id": "cqb_barrel",
                     "name": "近战短管",
-                    "icon": "assets/icons/craft/cqb_barrel.png",
+                    "icon": "assets/icons/craft-cold-steel/cqb_barrel.png",
                     "desc": "移动速度+5%，每次射击散布+1°，后坐力恢复时间+100ms；全自动模式下散布开始/达到最大-0.25s",
                     "effects": {
                         "moveSpeedPercent": 0.05,
@@ -4057,7 +4057,7 @@
                 {
                     "id": "red_dot",
                     "name": "全景红点瞄具",
-                    "icon": "assets/icons/craft/red_dot.png",
+                    "icon": "assets/icons/craft-cold-steel/red_dot.png",
                     "desc": "散布开始 +1秒，单倍瞄准模式",
                     "effects": {
                         "spreadStartDelta": 1000,
@@ -4069,7 +4069,7 @@
                 {
                     "id": "light_extended_mag",
                     "name": "轻型扩容弹夹",
-                    "icon": "assets/icons/craft/light_extended.png",
+                    "icon": "assets/icons/craft-cold-steel/light_extended.png",
                     "desc": "备弹+6",
                     "effects": {
                         "magazineDelta": 6
@@ -4078,7 +4078,7 @@
                 {
                     "id": "long_extended_mag",
                     "name": "长扩容弹夹",
-                    "icon": "assets/icons/craft/long_extended_mag.png",
+                    "icon": "assets/icons/craft-cold-steel/long_extended_mag.png",
                     "desc": "备弹+12，换弹时间+300ms",
                     "effects": {
                         "magazineDelta": 12,
@@ -4088,7 +4088,7 @@
                 {
                     "id": "quick_mag",
                     "name": "快拔弹匣",
-                    "icon": "assets/icons/craft/carbon_fiber_mag.png",
+                    "icon": "assets/icons/craft-cold-steel/quick_mag.png",
                     "desc": "换弹时间-500ms，移动速度+3%",
                     "effects": {
                         "reloadTimeDelta": -500,
@@ -4100,7 +4100,7 @@
                 {
                     "id": "hammer_point",
                     "name": "锤击点弹药",
-                    "icon": "assets/icons/craft/hammer_point.png",
+                    "icon": "assets/icons/craft-cold-steel/hammer_point.png",
                     "desc": "防御穿透+15%，目标穿透+1，射击音效替换为沉重锤击声",
                     "effects": {
                         "armorPenetrationPercent": 0.15,
@@ -4111,7 +4111,7 @@
                 {
                     "id": "border_light_ammo",
                     "name": "边境轻型弹药",
-                    "icon": "assets/icons/craft/border_light_ammo.png",
+                    "icon": "assets/icons/craft-cold-steel/border_light_ammo.png",
                     "desc": "备弹数+6，换弹时间-300ms",
                     "effects": {
                         "magazineDelta": 6,
@@ -4121,7 +4121,7 @@
                 {
                     "id": "ap_round",
                     "name": "穿甲弹",
-                    "icon": "assets/icons/craft/hammer_point.png",
+                    "icon": "assets/icons/craft-cold-steel/ap_round.png",
                     "desc": "防御穿透+30%，目标穿透+1，伤害-3%",
                     "effects": {
                         "armorPenetrationPercent": 0.3,
@@ -4134,7 +4134,7 @@
                 {
                     "id": "auto_trigger",
                     "name": "全自动板机",
-                    "icon": "assets/icons/craft/auto_trigger.png",
+                    "icon": "assets/icons/craft-cold-steel/auto_trigger.png",
                     "desc": "切换为全自动射击模式，射击间隔-100ms；散布开始0.75s、2s达最大、最大散布±15°",
                     "effects": {
                         "fireModeOverride": "fullAuto",
@@ -4149,7 +4149,7 @@
                 {
                     "id": "lightweight_trigger",
                     "name": "轻量化快速板机",
-                    "icon": "assets/icons/craft/lightweight_trigger.png",
+                    "icon": "assets/icons/craft-cold-steel/lightweight_trigger.png",
                     "desc": "攻击间隔-100ms，换弹时间-500ms；每次射击击中目标获得2s加速buff（移动速度+10%）",
                     "effects": {
                         "attackIntervalDelta": -100,
@@ -4165,7 +4165,7 @@
                 {
                     "id": "tactical_laser",
                     "name": "战术激光",
-                    "icon": "assets/icons/craft/curved_trigger.png",
+                    "icon": "assets/icons/craft-cold-steel/tactical_laser.png",
                     "desc": "散布开始-0.25秒，每次射击散布-1°",
                     "effects": {
                         "spreadStartDelta": -250,
@@ -4243,7 +4243,7 @@
                 {
                     "id": "frozen_crystal",
                     "name": "永冻冰晶",
-                    "icon": "assets/icons/craft/frozen_crystal.png",
+                    "icon": "assets/icons/craft-cold-steel/frozen_crystal.png",
                     "desc": "杖头嵌入永不融化的冰晶，冰锥技能生成的冰锥+1",
                     "effects": {
                         "staffSpecialty": "ice",
@@ -4253,7 +4253,7 @@
                 {
                     "id": "magma_core",
                     "name": "熔岩晶核",
-                    "icon": "assets/icons/craft/magma_core.png",
+                    "icon": "assets/icons/craft-cold-steel/magma_core.png",
                     "desc": "杖头封存一滴熔岩精华，火球爆炸范围（判定范围）+50%",
                     "effects": {
                         "staffSpecialty": "fire",
@@ -4263,7 +4263,7 @@
                 {
                     "id": "jade_spirit_crystal",
                     "name": "翠灵水晶",
-                    "icon": "assets/icons/craft/jade_spirit_crystal.png",
+                    "icon": "assets/icons/craft-cold-steel/jade_spirit_crystal.png",
                     "desc": "杖头镶嵌蕴含生命脉动的翠灵水晶，圣光释放后给目标添加持续3秒的续疗buff，每秒恢复最大生命值1%",
                     "effects": {
                         "staffSpecialty": "light",
@@ -4274,7 +4274,7 @@
                 {
                     "id": "storm_core",
                     "name": "风暴核心",
-                    "icon": "assets/icons/craft/storm_core.png",
+                    "icon": "assets/icons/craft-cold-steel/storm_core.png",
                     "desc": "杖头束缚一团微型雷云，闪电传导目标数+1",
                     "effects": {
                         "staffSpecialty": "electric",
@@ -4286,7 +4286,7 @@
                 {
                     "id": "spike_crown",
                     "name": "尖刺",
-                    "icon": "assets/icons/craft/spike_crown.png",
+                    "icon": "assets/icons/craft-cold-steel/spike_crown.png",
                     "desc": "杖冠缠绕冰刺，当杖头为冰系专精时冰魔法伤害+25%",
                     "effects": {
                         "iceDamagePercent": 0.25
@@ -4295,7 +4295,7 @@
                 {
                     "id": "current_crown",
                     "name": "电流",
-                    "icon": "assets/icons/craft/current_crown.png",
+                    "icon": "assets/icons/craft-cold-steel/current_crown.png",
                     "desc": "杖冠带电，当杖头为电系专精时电魔法伤害+25%",
                     "effects": {
                         "electricDamagePercent": 0.25
@@ -4304,7 +4304,7 @@
                 {
                     "id": "wreath_crown",
                     "name": "花环",
-                    "icon": "assets/icons/craft/wreath_crown.png",
+                    "icon": "assets/icons/craft-cold-steel/wreath_crown.png",
                     "desc": "杖冠编织圣光花环，当杖头为光系专精时光魔法的生命恢复量+25%",
                     "effects": {
                         "lightHealPercent": 0.25
@@ -4313,7 +4313,7 @@
                 {
                     "id": "heat_crown",
                     "name": "热浪",
-                    "icon": "assets/icons/craft/heat_crown.png",
+                    "icon": "assets/icons/craft-cold-steel/heat_crown.png",
                     "desc": "杖冠散发灼热气息，当杖头为火系专精时火魔法伤害+25%",
                     "effects": {
                         "fireDamagePercent": 0.25
@@ -4324,7 +4324,7 @@
                 {
                     "id": "eagle_eye_rune",
                     "name": "鹰眼符文",
-                    "icon": "assets/icons/craft/eagle_eye_rune.png",
+                    "icon": "assets/icons/craft-cold-steel/eagle_eye_rune.png",
                     "desc": "杖身铭刻鹰眼符文，所有魔法的释放距离+25%，MP消耗+25%",
                     "effects": {
                         "magicRangePercent": 0.25,
@@ -4334,7 +4334,7 @@
                 {
                     "id": "crit_rune",
                     "name": "暴击符文",
-                    "icon": "assets/icons/craft/crit_rune.png",
+                    "icon": "assets/icons/craft-cold-steel/crit_rune.png",
                     "desc": "杖身铭刻暴击符文，魔法的暴击率+25%，MP消耗+25%",
                     "effects": {
                         "magicCritPercent": 0.25,
@@ -4344,7 +4344,7 @@
                 {
                     "id": "storm_rune",
                     "name": "风暴符文",
-                    "icon": "assets/icons/craft/storm_rune.png",
+                    "icon": "assets/icons/craft-cold-steel/storm_rune.png",
                     "desc": "杖身铭刻风暴符文，魔法的冷却时间-25%，MP消耗+25%",
                     "effects": {
                         "magicCooldownPercent": 0.25,
@@ -4356,7 +4356,7 @@
                 {
                     "id": "alloy_grip",
                     "name": "合金",
-                    "icon": "assets/icons/craft/alloy_grip.png",
+                    "icon": "assets/icons/craft-cold-steel/alloy_grip.png",
                     "desc": "合金握柄缩短施法前摇25%，所有魔法的MP消耗+5%",
                     "effects": {
                         "castSpeedPercent": 0.25,
@@ -4366,7 +4366,7 @@
                 {
                     "id": "pine_grip",
                     "name": "松木",
-                    "icon": "assets/icons/craft/pine_grip.png",
+                    "icon": "assets/icons/craft-cold-steel/pine_grip.png",
                     "desc": "松木握柄在施法任意魔法后获得持续10秒的链式强化buff，可叠加，下次施法伤害+2%×层数，MP消耗+5%×层数",
                     "effects": {
                         "chainSpellDamagePercent": 0.02,
@@ -4376,7 +4376,7 @@
                 {
                     "id": "sandalwood_grip",
                     "name": "檀木",
-                    "icon": "assets/icons/craft/sandalwood_grip.png",
+                    "icon": "assets/icons/craft-cold-steel/sandalwood_grip.png",
                     "desc": "檀木握柄在施法任意魔法后给自身添加5秒1层加速效果，所有魔法的MP消耗+5%",
                     "effects": {
                         "castHasteDuration": 5000,
@@ -4389,7 +4389,7 @@
                 {
                     "id": "ice_soul_pendant",
                     "name": "冰魄吊坠",
-                    "icon": "assets/icons/craft/ice_soul_pendant.png",
+                    "icon": "assets/icons/craft-cold-steel/ice_soul_pendant.png",
                     "desc": "冰系魔法造成伤害时给目标添加一层持续3秒的寒冷，每层降低5%移动速度",
                     "effects": {
                         "iceChillSlowPercent": 0.05,
@@ -4399,7 +4399,7 @@
                 {
                     "id": "thunder_bell",
                     "name": "爆鸣雷铃",
-                    "icon": "assets/icons/craft/thunder_bell.png",
+                    "icon": "assets/icons/craft-cold-steel/thunder_bell.png",
                     "desc": "电系魔法造成伤害时附加0.25秒眩晕，若目标已有眩晕则延长0.25秒",
                     "effects": {
                         "electricStunExtendMs": 250
@@ -4408,7 +4408,7 @@
                 {
                     "id": "purification_vine",
                     "name": "净厄藤坠",
-                    "icon": "assets/icons/craft/purification_vine.png",
+                    "icon": "assets/icons/craft-cold-steel/purification_vine.png",
                     "desc": "光系魔法对友方造成治疗时给目标添加持续5秒的2层加速buff",
                     "effects": {
                         "lightHasteStacks": 2,
@@ -4418,7 +4418,7 @@
                 {
                     "id": "flame_pendant",
                     "name": "烈焰吊坠",
-                    "icon": "assets/icons/craft/flame_pendant.png",
+                    "icon": "assets/icons/craft-cold-steel/flame_pendant.png",
                     "desc": "火系魔法造成伤害时给目标添加持续3秒的灼伤，每0.5秒造成施法者魔法伤害×0.5的伤害",
                     "effects": {
                         "fireBurnDamageMul": 0.5,
@@ -4431,7 +4431,7 @@
                 {
                     "id": "chain_mana",
                     "name": "链式",
-                    "icon": "assets/icons/craft/chain_mana.png",
+                    "icon": "assets/icons/craft-cold-steel/chain_mana.png",
                     "desc": "导魔管线采用链式传导，所有魔法伤害+10%，MP消耗+15%",
                     "effects": {
                         "magicDamagePercent": 0.1,
@@ -4441,7 +4441,7 @@
                 {
                     "id": "direct_mana",
                     "name": "直流",
-                    "icon": "assets/icons/craft/direct_mana.png",
+                    "icon": "assets/icons/craft-cold-steel/direct_mana.png",
                     "desc": "导魔管线采用直流通道，所有魔法的MP消耗-30%",
                     "effects": {
                         "magicMpCostPercent": -0.3

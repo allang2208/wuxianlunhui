@@ -310,7 +310,7 @@ export const DEFENSE_CONFIG = {
     tower: {
         hp: 1400, radius: TWO_BY_TWO_BUILDING_FOOT.collisionRadius, def: 70, mdef: 70,
         // 摧毁后重建 / 出售（2026-08-14）：重建 = 原建造能源价；出售返还 50% 建造能源
-        rebuildCost: 300,
+        rebuildCost: 1000,
         sellRefundRatio: 0.5,
         // 六维芯片（2026-08-16 重构：取代原塔等级，与改造模块并存）：
         // - 芯片属性初始 base、单项上限 max；升级属性本身不加攻击，
@@ -3054,7 +3054,7 @@ class DefenseTowerPanel extends BasePanel {
             sellBtn.style.display = '';
             const durability = Math.max(0, Math.min(1,
                 Number(t.hp) / Math.max(1, Number(t.maxHp) || 1)));
-            const refund = Math.floor((t._buildCost ?? DEFENSE_CONFIG.tower.rebuildCost ?? 300)
+            const refund = Math.floor((t._buildCost ?? DEFENSE_CONFIG.tower.rebuildCost ?? 1000)
                 * (DEFENSE_CONFIG.tower.sellRefundRatio ?? 0.5) * durability);
             sellBtn.title = `出售返还 ${refund} 能源（武器归还背包）`;
             sellBtn.onclick = () => {
@@ -3134,7 +3134,8 @@ export const DefenseSystem = {
         this.staircases = [];
         this.base = options.targetEntity || null;
         if (this._managedExternally) {
-            World122TributeSystem.setup(player, this.base);
+            // scene8~scene11 共用“世界模式”献祭 Buff；离开常驻世界后由 teardown 停用。
+            World122TributeSystem.setup(player);
             return;
         }
         this._buildBaseRoom();
@@ -3143,7 +3144,7 @@ export const DefenseSystem = {
         const core = new DefenseBase(baseCfg.x, baseCfg.y, { onDestroyed: () => this._onBaseDestroyed() });
         Game.entities.set('defense_base', core);
         this.base = core;
-        World122TributeSystem.setup(player, core);
+        World122TributeSystem.setup(player);
 
         this.towers = [];
         this.gates = []; // 建筑面板放置的铁栅栏门
@@ -5704,7 +5705,7 @@ export const DefenseSystem = {
         if (!tower || tower.active === false) return { ok: false, reason: '防御塔已被摧毁' };
         const durability = Math.max(0, Math.min(1,
             Number(tower.hp) / Math.max(1, Number(tower.maxHp) || 1)));
-        const refund = Math.floor((tower._buildCost ?? DEFENSE_CONFIG.tower.rebuildCost ?? 300)
+        const refund = Math.floor((tower._buildCost ?? DEFENSE_CONFIG.tower.rebuildCost ?? 1000)
             * (DEFENSE_CONFIG.tower.sellRefundRatio ?? 0.5) * durability);
         if (!EnergyManager || !EnergyManager.canStore(refund)) {
             return { ok: false, reason: '仓库空间不足，无法接收出售返还能源' };
@@ -5814,7 +5815,9 @@ export const DefenseSystem = {
     },
 
     /**
-     * 点击交互：点防御塔打开面板（再次点击关闭）；点基地核心显示剩余耐久
+     * 点击交互：点防御塔打开面板（再次点击关闭）。
+     * 位面传送门与位面祭坛均由 ProducerBuildingSystem 按各自 panelMode 分发，
+     * 不能在这里继续把 DefenseSystem.base 误当成献祭建筑。
      * @param {number} mx 屏幕 X
      * @param {number} my 屏幕 Y
      * @param {object} player 玩家
@@ -5850,7 +5853,6 @@ export const DefenseSystem = {
             }
             return true;
         }
-        if (this.base && this.base.active && inReach(this.base, 220)) return World122TributeSystem.openFor(this.base, player);
         return false;
     },
 };
@@ -5867,6 +5869,8 @@ function nearbyFriendlyUnit(cx, cy) {
         if (!e || !e.active) return;
         if (e._isDefenseStructure || e._isDefenseTower || e._isDefenseCover) return;
         if (e._faction !== 'player' && e._faction !== 'companion') return;
+        // 墙顶与门洞分属不同移动表面，墙上单位不能隔着高度触发地面城门。
+        if (e._surfaceKind === 'wall_walk') return;
         const d = Math.hypot(e.x - cx, e.y - cy);
         if (d < bestD) { bestD = d; best = e; }
     };

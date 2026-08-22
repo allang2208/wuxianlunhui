@@ -42,7 +42,7 @@ const HOLY_LIGHT_DEFAULTS = {
  *  （2026-08-17：伊莉丝 AI 给玩家施法被误判成"打敌人"的根因）。 */
 const FRIENDLY_FACTIONS = new Set(['player', 'companion']);
 
-/** 世界-122 的建筑、墙门、塔和陷阱统一标记为防御结构，不能成为圣光目标。 */
+/** 世界-122 的建筑、墙门和塔统一标记为防御结构，不能成为圣光目标。 */
 function isHolyLightBuilding(target) {
     return !!target?._isDefenseStructure;
 }

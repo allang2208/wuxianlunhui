@@ -32,7 +32,8 @@ export class HamsterMusketeerAI {
         const fps = this.cfg.attackAnimFps ?? anim.frameRate ?? 12;
         const launchFrame = this.cfg.attackLaunchFrame ?? 10;
         this._launchDelayMs = (launchFrame - 1) / fps * 1000;
-        this._shotAnimMs = (anim.frameCount || 21) / fps * 1000 + 60;
+        this._shotAnimMs = this.cfg.attackAnimDurationMs
+            ?? ((anim.frameCount || 21) / fps * 1000 + 60);
         this._shotActive = false;
         this._shotTimer = 0;
         this._shotAnimLeft = 0;
@@ -207,27 +208,33 @@ export class HamsterMusketeerAI {
         const t = m.target;
         if (!t?.active || t.hp <= 0) return;
         if (!this._canShootTarget(t)) return;
-        const startZ = projectileSourceZ(m);
+        const faceSign = t.x >= m.x ? 1 : -1;
+        const startX = m.x + faceSign * (Number(this.cfg.muzzleOffsetX) || 0);
+        const startY = m.y + (Number(this.cfg.muzzleOffsetY) || 0);
+        const configuredMuzzleHeight = Number(this.cfg.muzzleHeight);
+        const startZ = Number.isFinite(configuredMuzzleHeight)
+            ? (Number(m.z) || 0) + configuredMuzzleHeight
+            : projectileSourceZ(m);
         const targetZ = projectileTargetZ(t);
         const lead = AimHelper.lead(
-            m.x,
-            m.y,
+            startX,
+            startY,
             t.x,
             t.y,
             t.vx || 0,
             t.vy || 0,
             this._projectileSpeed
         );
-        const angle = Math.atan2(lead.y - m.y, lead.x - m.x);
-        const targetDist = Math.max(1, Math.hypot(lead.x - m.x, lead.y - m.y));
+        const angle = Math.atan2(lead.y - startY, lead.x - startX);
+        const targetDist = Math.max(1, Math.hypot(lead.x - startX, lead.y - startY));
         const visualAngle = Math.atan2(
-            (lead.y - targetZ) - (m.y - startZ),
-            lead.x - m.x
+            (lead.y - targetZ) - (startY - startZ),
+            lead.x - startX
         );
         m._basic = {
             active: true,
-            x: m.x,
-            y: m.y,
+            x: startX,
+            y: startY,
             z: startZ,
             vz: (targetZ - startZ)
                 / Math.max(0.001, targetDist / this._projectileSpeed),
@@ -235,7 +242,7 @@ export class HamsterMusketeerAI {
             visualAngle,
             dist: 0,
             maxDist: applyElevatedRangedRange(m, this._attackRange + 180),
-            wallContext: projectileWallContext(m),
+            wallContext: projectileWallContext(m, null, { x: startX, y: startY, z: startZ }),
             target: t,
             musketTracer: true,
         };

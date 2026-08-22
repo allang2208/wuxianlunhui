@@ -15,7 +15,7 @@ import { WarehouseSystem } from './warehouse-system.js';
 import { RARITY_LABELS } from '../config/rarity.js';
 
 /** 改造选项图标：emoji 直接显示；图片路径渲染为 <img>（武器改造预案图片替换 2026-08-05） */
-function renderCraftIcon(icon, fallback = '🔧') {
+export function renderCraftIcon(icon, fallback = '🔧') {
     if (typeof icon === 'string' && /^(assets\/|data:|https?:)/.test(icon)) {
         return `<img src="${icon}" alt="" draggable="false">`;
     }

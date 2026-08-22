@@ -116,9 +116,18 @@ const audit = await evalJs(`(async () => {
     for (const e of window.Game.entities.values()) {
         if (e && e._isEnergyNode) nodes.push({ x: e.x, y: e.y });
     }
-    const clusters = (await import('/src/config/energy-config.js')).ENERGY_CONFIG.clusters;
+    const energySystem = (await import('/src/world/energy-node-system.js')).EnergyNodeSystem;
+    const clusters = energySystem._generatedClusters || [];
     const nearest = nodes.map((n) => Math.min(...clusters.map((c) => Math.hypot(n.x - c.x, n.y - c.y))));
-    out.energy = { count: nodes.length, clusters: clusters.length, maxDistToCluster: Math.round(Math.max(...nearest)) };
+    const portal = energySystem._portal || { x: 0, y: 0 };
+    out.energy = {
+        count: nodes.length,
+        clusters: clusters.length,
+        majorClusters: clusters.filter((c) => c.kind === 'major').length,
+        fallbackClusters: clusters.filter((c) => c.kind === 'fallback').length,
+        minPortalDistance: Math.round(Math.min(...nodes.map((n) => Math.hypot(n.x - portal.x, n.y - portal.y)))),
+        maxDistToCluster: Math.round(Math.max(...nearest)),
+    };
     // D. 树距
     const trees = (window.WallSystem && window.WallSystem.trees) || [];
     let minTreeDist = Infinity;

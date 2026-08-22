@@ -1,0 +1,42 @@
+{
+  "source": "tools\\ai-gen\\_settlement_building_pack_20260821\\jungle_temple\\refine_48step_seed122926\\jungle_temple_refine48_from122926_seed1229263_raw.png",
+  "output": "tools\\ai-gen\\_settlement_building_pack_20260821\\jungle_temple\\refine_48step_seed122926\\jungle_temple_seed1229263_cutout_v2.png",
+  "sourceMode": "RGB",
+  "background": [
+    251,
+    245,
+    1
+  ],
+  "matteColor": null,
+  "matteEdgeWidth": 5.0,
+  "matteTolerance": 200.0,
+  "maskImage": "tools\\ai-gen\\_settlement_building_pack_20260821\\jungle_temple\\jungle_temple_depth.png",
+  "maskDilate": 6,
+  "fillAlphaHoles": true,
+  "fillHoleMatteDistance": 24.0,
+  "removeEnclosedMatte": true,
+  "enclosedMatteChromaDistance": 0.08,
+  "maskAddRects": [],
+  "restoreAlphaRects": [],
+  "cropBox": [
+    133,
+    77,
+    890,
+    926
+  ],
+  "fileSize": [
+    757,
+    849
+  ],
+  "alphaBBox": [
+    6,
+    6,
+    751,
+    843
+  ],
+  "displayW": 288,
+  "displayH": 323,
+  "footOffsetY": 159,
+  "scaleX": 0.380449141347424,
+  "scaleY": 0.38044758539458184
+}

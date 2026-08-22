@@ -28,6 +28,8 @@
     "concealTransitionMs": 260
   },
   "vision": {
+    "nightMultiplier": 0.5,
+    "nightDaylightThreshold": 0.12,
     "wallWalkMultiplier": 2,
     "stairsMultiplier": 1.2,
     "player": 1150,

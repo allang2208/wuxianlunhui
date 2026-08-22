@@ -117,7 +117,6 @@ function createWorker(scene, building, cells) {
         moveDurationMs: 0,
     }, 'farmer');
     setState(worker, 'idle');
-    sprite.setDepth(point.y + 10);
     return worker;
 }
 

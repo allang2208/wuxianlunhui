@@ -1,6 +1,7 @@
 import { PERSPECTIVE_SCALE_Y } from '../config/perspective-config.js';
 import { getBuildingModuleUpgradeCost } from './building-upgrade-projects.js';
 import { payBuildingUpgradeCost } from './building-upgrade-payment.js';
+import { WORLD_RENDER_LAYERS } from './world-render-layers.js';
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 
@@ -150,7 +151,7 @@ export const BankEconomySystem = {
         const graphics = this._rangeGraphics;
         graphics.clear();
         graphics.setPosition(building.x, building.y);
-        graphics.setDepth(building.y - 998);
+        graphics.setDepth(WORLD_RENDER_LAYERS.GROUND_RANGE);
         graphics.fillStyle(0xe4bd55, 0.09);
         graphics.lineStyle(3, 0xe4bd55, 0.82);
         graphics.fillEllipse(0, 0, range * 2, range * 2 * PERSPECTIVE_SCALE_Y);

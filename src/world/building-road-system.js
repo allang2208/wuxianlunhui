@@ -1,4 +1,5 @@
 import { blockCellCenter, blockCellOf } from './gate4-grid.js';
+import { WORLD_RENDER_LAYERS } from './world-render-layers.js';
 
 export const BUILDING_ROAD_TEXTURE = 'building_road_tiles';
 export const BUILDING_ROAD_ICON = 'building_road';
@@ -6,12 +7,12 @@ export const BUILDING_ROAD_FRAME_WIDTH = 128;
 export const BUILDING_ROAD_FRAME_HEIGHT = 64;
 export const BUILDING_ROAD_DISPLAY_WIDTH = 130;
 export const BUILDING_ROAD_DISPLAY_HEIGHT = 65;
-export const BUILDING_ROAD_DEPTH = -995;
+export const BUILDING_ROAD_DEPTH = WORLD_RENDER_LAYERS.ROAD;
 export const BUILDING_ROAD_SPEED_MULTIPLIER = 1.2;
 export const BUILDING_FIELD_TEXTURE = 'building_field_tiles';
 export const BUILDING_FIELD_DISPLAY_WIDTH = 130;
 export const BUILDING_FIELD_DISPLAY_HEIGHT = 65;
-export const BUILDING_FIELD_DEPTH = -996;
+export const BUILDING_FIELD_DEPTH = WORLD_RENDER_LAYERS.FIELD;
 
 const BUILDING_CELLS = 2;
 const ROAD_PADDING = 1;

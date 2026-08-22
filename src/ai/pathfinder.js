@@ -590,7 +590,9 @@ class PathFinder {
                 queue.push({ x: nx, y: ny });
             }
         }
-        // 步数用完仍未到达目标附近，让 A* 自己判断（避免 BFS 预算不足导致误判）
+        // 队列耗尽说明起点所在连通区已完整搜索，目标确实不可达。
+        if (queue.length === 0) return false;
+        // 只有步数预算用完时才让 A* 自己判断，避免 BFS 预算不足导致误判。
         return true;
     }
 

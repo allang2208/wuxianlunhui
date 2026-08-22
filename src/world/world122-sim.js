@@ -17,6 +17,7 @@
 import { getAbilityLevel, getAbilityValue, raiseAbilityLevel } from './ability-store.js';
 import { getUnitUpgradeMults, raiseUnitUpgradeLevel } from './unit-upgrade-store.js';
 import { RECRUIT_MODE, normalizeRecruitMode } from './recruit-mode.js';
+import { getProductionResourceMul } from '../config/tribute-effects.js';
 import {
     getBuildingUpgradeAbility,
     getUpgradeModulesForUnitKind,
@@ -39,6 +40,7 @@ import barracksBuildingCfg from '../../data/hamster-barracks-building.json';
 import { MINER_CAMP_CONFIG, getMinerEnergyPerSecond, getMinerEconomyStats } from './miner-economy.js';
 import populationEconomyConfig from '../../data/population-economy.json';
 import buildingUpgradesJson from '../../data/building-upgrades.json';
+import { createExplorerReward } from '../config/explorer-rewards.js';
 
 /** 抽象结算估算常量（调整平衡只改这里） */
 export const WORLD122_SIM = {
@@ -523,7 +525,7 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
             const settlements = Math.floor(tickTotal / settlementIntervalMs);
             structure.economyTickMs = tickTotal - settlements * settlementIntervalMs;
             const total = Math.max(0, Number(structure.bankGoldRemainder) || 0)
-                + goldPerSettlement * settlements;
+                + goldPerSettlement * settlements * getProductionResourceMul();
             const produced = Math.floor(total);
             structure.bankGoldRemainder = total - produced;
             report.goldProduced += produced;
@@ -538,7 +540,8 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
             const foodRate = Math.max(0, Number(populationEconomyConfig.windmill?.foodPerWorkerPerSecond) || 0);
             const total = Math.max(0, Number(structure.workProductionRemainder) || 0)
                 + assigned * foodRate * laborEfficiency
-                    * _workshopEfficiencyMultiplier(structure, economyStructures) * t;
+                    * _workshopEfficiencyMultiplier(structure, economyStructures) * t
+                    * getProductionResourceMul();
             const produced = Math.floor(total);
             structure.workProductionRemainder = total - produced;
             const stored = _depositFoodToWarehouses(warehouses, produced);
@@ -816,40 +819,45 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
         s.unitDps = _rosterDps(roster);
     }
 
-    // ---- 探险结算：只有收到“探险”指令并被快照记录的探险家才在后台产出。----
-    const tributePools = {
-        scene11: ['philosopherStone', 'marble', 'moonstone'],
-        scene10: ['potato', 'corn', 'carrot', 'cabbage', 'pumpkin', 'apple'],
-        scene8: ['ironOre', 'copperOre', 'coalOre', 'quartz', 'silverOre', 'goldOre'],
-    };
+    // ---- 探险结算：12 分钟一次性任务；离场后只推进剩余时间，完成后不再循环产出。----
     for (const s of target.structures || []) {
         const state = s.explorerState;
-        const pool = tributePools[target.sceneId] || [];
-        if (!state || !pool.length || !(s.hp > 0)) continue;
-        const explorers = Math.min(
-            Math.max(0, Math.floor(Number(state.activeCount) || 0)),
-            Math.max(0, Math.floor(Number(s.unitRoster?.explorer) || 0))
-        );
-        if (explorers <= 0) continue;
-        const interval = 45000;
-        let timer = Math.max(0, Number(state.rewardTimer) || interval);
-        let ticks = 0;
-        if (elapsedMs >= timer) ticks = 1 + Math.floor((elapsedMs - timer) / interval);
-        state.rewardTimer = ticks > 0
-            ? interval - ((elapsedMs - timer) % interval)
-            : timer - elapsedMs;
-        const count = ticks * explorers;
-        if (count <= 0) continue;
-        const tributeCounts = {};
+        if (!state || !(s.hp > 0)) continue;
+        const rosterCount = Math.max(0, Math.floor(Number(s.unitRoster?.explorer) || 0));
+        const legacyCount = Math.min(
+            Math.max(0, Math.floor(Number(state.activeCount) || 0)), rosterCount);
+        const runs = (Array.isArray(state.runs) ? state.runs : Array.from({ length: legacyCount }, () => ({
+            remainingMs: 720000, durationMs: 720000, playerLevel: 1,
+        }))).slice(0, rosterCount);
+        if (!runs.length) continue;
+
+        const pendingRuns = [];
         let sequence = Math.max(0, Math.floor(Number(state.rewardSequence) || 0));
-        for (let i = 0; i < count; i++) {
-            const key = pool[sequence++ % pool.length];
-            tributeCounts[key] = (tributeCounts[key] || 0) + 1;
+        for (const run of runs) {
+            const remainingMs = Math.max(0, Number(run?.remainingMs) || 0) - elapsedMs;
+            if (remainingMs > 0) {
+                pendingRuns.push({
+                    remainingMs,
+                    durationMs: Math.max(1000, Number(run?.durationMs) || 720000),
+                    playerLevel: Math.max(1, Math.floor(Number(run?.playerLevel) || 1)),
+                });
+                continue;
+            }
+            // 四步序列严格形成 50/25/25；祭品池索引用黄金分割小数错开，避免总取同一件。
+            const rewardRoll = ((sequence % 4) + 0.5) / 4;
+            const poolRoll = (sequence * 0.61803398875) % 1;
+            const reward = createExplorerReward(target.sceneId,
+                Math.max(1, Math.floor(Number(run?.playerLevel) || 1)), rewardRoll, poolRoll);
+            sequence++;
+            report.explorerRewards.push({
+                structureId: s.id, x: s.x, y: s.y,
+                kind: reward.kind, label: reward.label,
+                items: reward.items || [], gold: reward.gold || 0,
+            });
         }
+        state.runs = pendingRuns;
+        state.activeCount = pendingRuns.length;
         state.rewardSequence = sequence;
-        report.explorerRewards.push({
-            structureId: s.id, x: s.x, y: s.y, tributeCounts, gold: count * 26,
-        });
     }
 
     // ---- 波次结算 ----

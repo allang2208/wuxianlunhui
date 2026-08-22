@@ -13,7 +13,12 @@
 - **关闭口径**：建筑详情使用 `panelGroup:'buildingDetail' / closeOnEscape:true / closeOnOutsidePointer:true`，外部关闭不得穿透到攻击、移动或场景选择。
 - **字体口径**：display 只用于重大页面；title=一级标题，subtitle=分区标题，body=正文，meta=辅助信息，caption=微型提示，数字/计时使用 `--bp-font-number`。
 - **范围纪律**：单个 UI 需求只改目标面板及必要共享件，不借机全量迁移旧面板；若需要改变本规范，先更新规范和主题真源，再实现业务代码。
+- **Tooltip 数值边界（2026-08-22）**：`status-tooltip-helper.js` 的 `formulaLine()` 接收原始数字并统一交给
+  `fmt()`；禁止先调用 `toFixed()` 生成字符串后再送入数字格式器，否则 `isFinite()` 会先隐式通过、随后在
+  字符串上调用 `toFixed()` 崩溃。需要整数展示时传 `Math.round(number)`；可能来自配置或存档的速度值先在
+  对应 Tooltip 分支局部 `Number(...) || 0`，不要为单项显示改动全局格式器或实际玩法数值。
 - **人口经济岗位面板（2026-08-21）**：可安排岗位的经济建筑统一用 `.economy-workforce`、`.economy-progress` 与 `.economy-*-label/note`，第一根条固定显示“岗位安排百分比”；第二根条必须按建筑语义取权威数据——风车显示实际/基础产量，市场显示稳定的有效商人人效，工坊显示 `actualEfficiency / configuredEfficiency` 增效发挥率，银行显示本栋离散结算周期、剩余时间与本轮金币，禁止把共享 `_economyTickMs` 当成市场或工坊的生产进度。仓库不套岗位条语义：第一根“仓储容量”只显示当前仓库的压缩后物理占用率，紧随其后的“位面总容量”显示全部活动仓库聚合占用率，两条均从同一容量服务读取并随面板 tick 刷新。进度只以内联 `width` 表达动态值，外观和低→中→高语义渐变必须留在 `panel-theme-backpack.css`；禁止为各建筑复制色板和按钮样式。市场档案必须同时显示买价、卖价、压力、动态价差和固定交易损耗，按钮文案显示真实扣款/所得而非批次预算。经济工坊与银行的四项本栋升级继续调用 `renderBuildingUpgradeCard` 与共用 tooltip，状态区用两列数字档案，窄屏退化单列；选中对应建筑时覆盖圈必须同步显示并随范围升级刷新。带有布局惩罚等关键副作用的建筑，建造配置应提供 `buildWarning`，选择建筑后在 `#bpHints` 的 `.build-context-warning` 以危险红色显示，取消选择时清空，禁止把警告混进普通快捷键文案。
+- **右上基础资源栏（2026-08-22）**：资源栏与 `.game-time` 必须同挂在 `.top-right-hud` 弹性容器，资源栏在前、时间在后，禁止按时间文本宽度硬编码 `right` 偏移；容器与顶部状态栏共享 `top:12px` 基线并使用 `align-items:flex-start` 顶边对齐，资源栏固定为与顶部状态栏一致的 50px 高度，不跟随时间栏拉伸。金币读取 `GoldManager.getGold()`，能源和食物读取 `EnergyManager.getEnergy()/getFood()`；沿用 HUD 刷新入口，但只有数值变化时才改写 DOM。已初始化数值发生变化时，只重播对应数字的单次金色辉光动画，首次载入不触发；数值使用数字字体与资源语义色，外壳继续读取冷钢主题变量，并尊重 `prefers-reduced-motion`。
 
 ### 小地图（GameScene 静态层/动态层，2026-08-16 布局修复沉淀）
 
@@ -45,6 +50,11 @@
 - `new BasePanel({ id, className, stateKey })`：懒构建单例 DOM（首次 open 创建），open/close/toggle 统一走 UIState + active 类（抽屉动画由 CSS className 自带）；
 - 只需实现 `buildContent(el)`（填充 HTML/绑事件，只调一次）与可选 `onOpen()/onClose()` 钩子；遮罩层点击关闭框架自带（各自判断 isOpen，多面板共存）；
 - 对象字面量系统同样适用（参考 `warehouse-system.js` 的 `_getPanel()` 懒创建模式 + `get _isOpen()` 代理）。
+- **消耗品拖拽与快捷栏层级（2026-08-22）**：从玩家背包拖动消耗品时，先快照
+  `systemPanel.getBoundingClientRect()`；指针仍在该范围内保持既有层级，允许交换背包格位置。
+  第一次越过启动时边界后，背包和 `panelOverlay` 均继续显示，只把 `.bottom-bar` 临时挂到
+  `#rightSidebarPanelLayer` 的 modal 子层，使快捷栏盖在背包之上；`dragend` 必须恢复快捷栏原父节点
+  与顺序。快捷栏以外区域继续走原丢弃规则；仓库打开时保持双面板拖放，不进入该让位逻辑。
 - **右侧栏目层级（2026-08-20）**：状态/装备背包/技能/图鉴、任务、位面与队员管理统一用
   `mountRightSidebarPanel` 挂到 `#rightSidebarPanelLayer`，禁止继续分别挂在 `#uiLayer`、
   `#gameContainer` 或 `body` 后只调子元素 z-index。普通右栏面板 role=`panel`，遮罩=`backdrop`，
@@ -71,11 +81,11 @@
 - **地牢友军边界**：确认出征时把 `Game.friendlyUnits` 暂存到 `SceneManager` 并从地牢运行态清空，
   回到主神空间后按原对象和原坐标恢复；只允许独立注册在 `PartySystem.members` 的正式队友随行。
 
-- **建筑详情独立栏目（2026-08-21 新口径）**：墙/门/楼梯详情和塔、陷阱、小屋、兵营、
+- **建筑详情独立栏目（2026-08-21 新口径）**：墙/门/楼梯详情和塔、小屋、兵营、
   配置型生产建筑、基地核心详情都作为 `#rightSidebarPanelLayer` 下的同级独立栏目，统一
   `45vw × 100%`、右侧滑入/收回和建筑详情关闭分组。禁止把详情 DOM 嵌入建筑主面板或通过
   `.detail-active` 切成父子二级页；打开详情时用 `bringToFront:true` 置前，关闭后自然露出仍在下层的
-  建筑主栏目。建设模式全局标记 `Game._buildMode` 仍供塔/陷阱/小屋/兵营跳过 260px 交互距离。
+  建筑主栏目。建设模式全局标记 `Game._buildMode` 仍供塔/小屋/兵营跳过 260px 交互距离。
 
 ### 模式级快捷键与角色输入隔离
 
@@ -140,6 +150,14 @@
   档案恢复后 aiRole 正确、命令照常执行；战斗动作（攻击/防御/风车/施法/跟随/撤退）
   由 cdp-elise-ai / cdp-luna-ai 复核通过。审计用例记得开敌人屏蔽器
   （主城野怪会随时间刷出干扰）。
+- **移动攻击/两点巡逻统一（2026-08-22）**：轮盘 `attack_move/patrol` 与 RTS 左侧通用按钮
+  都写入 `RtsTacticalOrderSystem`；高层命令逐帧翻译为 AI 已支持的 `move/attack`。移动攻击在
+  900px 统一感知范围内接敌，击杀后恢复原终点；巡逻以单位下令时位置为起点、指令点为另一端，
+  两端往返并在战斗结束后续巡。显式右键移动、指定攻击、跟随、待命等新命令必须先清高层命令。
+- **指令入口能力过滤与普通模式复用（2026-08-22）**：中键轮盘只在实际目标中存在仓鼠探险家时
+  渲染“探险”，普通队友与其他仓鼠单位不显示无效按钮。左下指令框在 RTS 模式读取
+  `RTSCommand._selection`，普通模式读取 `PartySystem.selectedIds`；普通模式地图选点必须在
+  mousedown 当帧开始消费玩家输入边沿，避免既下达巡逻/移动攻击又被旧左键纯移动覆盖。
 - **选中光圈（2026-08-16）**：填充 alpha 0.15 / 边缘 strokeAlpha 1.0；深度 =
   **该成员精灵 − 0.1**（与阴影同口径）——AI 队员贴图深度由 `_updateDynamicDepths`
   按世界 Y 每帧仲裁，光圈必须在仲裁段精灵 setDepth 后同帧覆盖（`_showSelectionRing`

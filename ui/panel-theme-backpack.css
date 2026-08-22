@@ -69,7 +69,6 @@
     .recruit-panel,
     .wall-editor-panel,
     .defense-tower-panel,
-    .defense-trap-panel,
     .hamster-hut-panel,
     .hamster-barracks-panel,
     .producer-building-panel,
@@ -564,7 +563,6 @@
    without replacing semantic resource, health or warning colors. */
 :is(
     .defense-tower-panel,
-    .defense-trap-panel,
     .hamster-hut-panel,
     .hamster-barracks-panel,
     .producer-building-panel,
@@ -576,7 +574,6 @@
 
 :is(
     .defense-tower-panel,
-    .defense-trap-panel,
     .hamster-hut-panel,
     .hamster-barracks-panel,
     .producer-building-panel,
@@ -604,7 +601,6 @@
 
 :is(
     .defense-tower-panel,
-    .defense-trap-panel,
     .hamster-hut-panel,
     .hamster-barracks-panel,
     .producer-building-panel,
@@ -617,7 +613,6 @@
 
 :is(
     .defense-tower-panel,
-    .defense-trap-panel,
     .hamster-hut-panel,
     .hamster-barracks-panel,
     .producer-building-panel,
@@ -634,7 +629,6 @@
 
 :is(
     .defense-tower-panel,
-    .defense-trap-panel,
     .hamster-hut-panel,
     .hamster-barracks-panel,
     .producer-building-panel,
@@ -738,7 +732,6 @@
     .recruit-panel,
     .wall-editor-panel,
     .defense-tower-panel,
-    .defense-trap-panel,
     .hamster-hut-panel,
     .hamster-barracks-panel,
     .producer-building-panel,
@@ -869,7 +862,6 @@
     .companion-overlay,
     .wall-editor-panel,
     .defense-tower-panel,
-    .defense-trap-panel,
     .hamster-hut-panel,
     .hamster-barracks-panel,
     .producer-building-panel,
@@ -1099,6 +1091,7 @@
     .side-menu,
     .party-bar,
     .rts-command-btn,
+    .basic-resource-bar,
     .game-time,
     .world-invasion-hud,
     #weaponInfo,
@@ -1108,7 +1101,7 @@
     font-family: var(--bp-font-ui) !important;
 }
 
-:is(.top-bar, .party-bar, .game-time, .world-invasion-hud, #weaponInfo, .controls-hint-left) {
+:is(.top-bar, .party-bar, .basic-resource-bar, .game-time, .world-invasion-hud, #weaponInfo, .controls-hint-left) {
     color: var(--bp-ui-text) !important;
     background: linear-gradient(145deg, rgba(23, 29, 35, 0.95), rgba(8, 11, 14, 0.96)) !important;
     border-color: var(--bp-ui-line-accent) !important;
@@ -1385,7 +1378,95 @@
     font-variant-numeric: tabular-nums;
 }
 
-/* Right-top world clock: archive instrument, day/night colors stay semantic. */
+/* Right-top resource ledger and world clock: shared archive instruments. */
+.basic-resource-bar {
+    gap: 0;
+    height: 50px;
+    min-height: 0;
+    box-sizing: border-box;
+    padding: 5px 7px;
+    border: 1px solid var(--bp-ui-line-accent);
+    border-radius: 10px;
+}
+
+.basic-resource-item {
+    min-width: 88px;
+    padding: 3px 10px;
+    column-gap: 7px;
+    border-right: 1px solid var(--bp-ui-line);
+}
+
+.basic-resource-item:last-child {
+    border-right: 0;
+}
+
+.basic-resource-icon {
+    font-size: 18px;
+    line-height: 1;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.72));
+}
+
+.basic-resource-label {
+    color: var(--bp-ui-text-muted);
+    font-size: var(--bp-type-caption);
+    line-height: 1.2;
+}
+
+.basic-resource-value {
+    display: inline-block;
+    min-width: 4ch;
+    color: var(--bp-ui-white);
+    font-family: var(--bp-font-number);
+    font-size: var(--bp-type-body);
+    line-height: 1.25;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+}
+
+.basic-resource-item--gold .basic-resource-value { color: #f1c45f; }
+.basic-resource-item--energy .basic-resource-value { color: #7fd4ff; }
+.basic-resource-item--food .basic-resource-value { color: #a9d36e; }
+
+.basic-resource-value.is-resource-changing {
+    animation: basic-resource-value-gold-flash 620ms cubic-bezier(0.2, 0.78, 0.22, 1);
+}
+
+@keyframes basic-resource-value-gold-flash {
+    0% {
+        transform: scale(1);
+        filter: brightness(1);
+        text-shadow: none;
+    }
+    24% {
+        transform: scale(1.16);
+        color: #fff8cf;
+        filter: brightness(1.45);
+        text-shadow:
+            0 0 4px #fff4b0,
+            0 0 11px #ffd35a,
+            0 0 22px rgba(255, 188, 45, 0.92);
+    }
+    58% {
+        transform: scale(1.05);
+        color: #ffe58b;
+        filter: brightness(1.18);
+        text-shadow:
+            0 0 4px rgba(255, 240, 168, 0.9),
+            0 0 12px rgba(255, 190, 54, 0.68);
+    }
+    100% {
+        transform: scale(1);
+        filter: brightness(1);
+        text-shadow: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .basic-resource-value.is-resource-changing {
+        animation: none;
+    }
+}
+
 .game-time {
     gap: 10px;
     padding: 6px 12px;
@@ -1561,7 +1642,6 @@
 :is(
     .build-structure-detail-panel,
     .defense-tower-panel,
-    .defense-trap-panel,
     .hamster-hut-panel,
     .hamster-barracks-panel,
     .producer-building-panel,
@@ -1596,7 +1676,6 @@
 :is(
     .build-structure-detail-panel,
     .defense-tower-panel,
-    .defense-trap-panel,
     .hamster-hut-panel,
     .hamster-barracks-panel,
     .producer-building-panel,
@@ -1640,7 +1719,6 @@
 :is(
     .build-structure-detail-panel,
     .defense-tower-panel,
-    .defense-trap-panel,
     .hamster-hut-panel,
     .hamster-barracks-panel,
     .producer-building-panel,
@@ -1657,7 +1735,6 @@
 :is(
     .build-structure-detail-panel,
     .defense-tower-panel,
-    .defense-trap-panel,
     .hamster-hut-panel,
     .hamster-barracks-panel,
     .producer-building-panel,
@@ -2021,6 +2098,47 @@
     margin-bottom: 2px !important;
 }
 
+.building-upgrade-card-name,
+.building-upgrade-tooltip-title {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.building-upgrade-tooltip-title {
+    margin-bottom: 4px;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.building-upgrade-card-label {
+    min-width: 0;
+}
+
+.building-upgrade-card-icon,
+.building-upgrade-tooltip-icon {
+    flex: 0 0 auto;
+    object-fit: contain;
+}
+
+.building-upgrade-card-icon {
+    width: 34px;
+    height: 34px;
+}
+
+.building-upgrade-tooltip-icon {
+    width: 30px;
+    height: 30px;
+}
+
+.building-upgrade-card-icon.is-fallback,
+.building-upgrade-tooltip-icon.is-fallback {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+}
+
 .producer-building-panel.is-economy-building .building-upgrade-card-requirement {
     font-size: var(--bp-type-meta) !important;
     color: var(--bp-ui-text-muted) !important;
@@ -2247,18 +2365,355 @@
     box-shadow: inset 3px 0 0 var(--bp-ui-accent-bright);
 }
 
+:is(
+    .hamster-barracks-panel,
+    .producer-building-panel.is-troop-producer
+) .troop-panel-unit-summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+:is(
+    .hamster-barracks-panel,
+    .producer-building-panel.is-troop-producer
+) .troop-panel-unit-name,
+:is(
+    .hamster-barracks-panel,
+    .producer-building-panel.is-troop-producer
+) .troop-panel-inline-unit {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    min-width: 0;
+}
+
+:is(
+    .hamster-barracks-panel,
+    .producer-building-panel.is-troop-producer
+) .troop-panel-unit-name b,
+:is(
+    .hamster-barracks-panel,
+    .producer-building-panel.is-troop-producer
+) .troop-panel-inline-unit b {
+    color: var(--bp-ui-white);
+}
+
+.troop-unit-icon {
+    width: 34px;
+    height: 34px;
+    flex: 0 0 34px;
+    box-sizing: border-box;
+    object-fit: cover;
+    border: 1px solid var(--bp-ui-line-strong);
+    border-radius: 4px;
+    background: var(--bp-ui-black-soft);
+    box-shadow: inset 0 0 0 1px rgba(228, 238, 242, 0.04);
+}
+
+.troop-unit-icon--inline {
+    width: 22px;
+    height: 22px;
+    flex-basis: 22px;
+    vertical-align: middle;
+}
+
+:is(
+    .hamster-barracks-panel,
+    .producer-building-panel.is-troop-producer
+) .troop-panel-unit-button {
+    padding: 7px 9px !important;
+    text-align: left;
+}
+
+.troop-panel-unit-button-main {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+}
+
+.troop-panel-unit-button-copy {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+}
+
+.troop-panel-unit-button-copy > span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
 .rts-unit-panel {
     right: 100px;
-    width: 252px;
+    width: 284px;
     box-sizing: border-box;
     border-width: 1px !important;
+    padding: 12px !important;
+}
+
+.rts-unit-panel .rts-up-head {
+    min-width: 0;
+    margin-bottom: 10px;
+}
+
+.rts-unit-panel .rts-up-head--identity {
+    display: grid;
+    grid-template-columns: 46px minmax(0, 1fr);
+    gap: 10px;
+    align-items: center;
+}
+
+.rts-unit-panel .rts-up-icon {
+    width: 46px;
+    height: 46px;
+    box-sizing: border-box;
+    object-fit: cover;
+    border: 1px solid var(--bp-ui-line-strong);
+    border-radius: 5px;
+    background: var(--bp-ui-black-soft);
+    box-shadow: inset 0 0 0 1px rgba(228, 238, 242, 0.05);
+}
+
+.rts-unit-panel .rts-up-icon[hidden] {
+    display: none;
+}
+
+.rts-unit-panel .rts-up-head--identity.rts-up-head--no-icon {
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.rts-unit-panel .rts-up-heading-copy {
+    display: grid;
+    gap: 3px;
+    min-width: 0;
+}
+
+.rts-unit-panel .rts-up-title-line {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    min-width: 0;
+}
+
+.rts-unit-panel .rts-up-name {
+    min-width: 0;
+    color: var(--bp-ui-white) !important;
+    font-size: var(--bp-type-subtitle);
+    line-height: 1.25;
+}
+
+.rts-unit-panel .rts-up-lv {
+    flex: 0 0 auto;
+    font-size: var(--bp-type-meta);
+}
+
+.rts-unit-panel .rts-up-type {
+    overflow: hidden;
+    font-size: var(--bp-type-meta);
+    line-height: 1.35;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.rts-unit-panel .rts-up-row {
+    gap: 7px;
+    margin-bottom: 6px;
+    font-size: var(--bp-type-meta);
+}
+
+.rts-unit-panel .rts-up-track {
+    height: 8px;
+    border-radius: 2px;
+}
+
+.rts-unit-panel .rts-up-fill {
+    border-radius: 2px;
+}
+
+.rts-unit-panel .rts-up-grid {
+    gap: 4px 12px;
+    margin: 10px 0 0;
+    padding: 9px 0;
+    font-size: var(--bp-type-meta);
+    border-top-color: var(--bp-ui-line);
+    border-bottom: 1px solid var(--bp-ui-line);
+}
+
+.rts-unit-panel .rts-up-stats {
+    padding-top: 8px;
+    color: var(--bp-ui-text-muted) !important;
+    font-size: var(--bp-type-meta);
+    line-height: 1.45;
+    border-top: 0;
+}
+
+.rts-unit-panel .rts-up-head--multi {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding-bottom: 9px;
+    border-bottom: 1px solid var(--bp-ui-line);
+}
+
+.rts-unit-panel .rts-up-kicker {
+    color: var(--bp-ui-text-dim);
+    font-size: var(--bp-type-caption);
+    line-height: 1;
+    letter-spacing: 0.08em;
+}
+
+.rts-unit-panel .rts-up-count-badge {
+    display: grid;
+    min-width: 36px;
+    height: 32px;
+    padding: 0 8px;
+    place-items: center;
+    box-sizing: border-box;
+    color: var(--bp-ui-white);
+    background: var(--bp-ui-control);
+    border: 1px solid var(--bp-ui-line-strong);
+    border-radius: 4px;
+    font-family: var(--bp-font-number);
+    font-size: var(--bp-type-subtitle);
+    font-variant-numeric: tabular-nums;
+}
+
+.rts-unit-panel .rts-up-multi {
+    display: grid;
+    gap: 6px;
+}
+
+.rts-unit-panel .rts-up-multi-item {
+    display: grid;
+    grid-template-columns: 30px minmax(0, 1fr) auto;
+    gap: 8px;
+    align-items: center;
+    min-height: 34px;
+    padding: 4px 7px 4px 4px;
+    color: var(--bp-ui-text);
+    background: var(--bp-ui-surface);
+    border: 1px solid var(--bp-ui-line);
+    border-radius: 4px;
+}
+
+.rts-unit-panel .rts-up-multi-icon {
+    display: grid;
+    width: 30px;
+    height: 30px;
+    box-sizing: border-box;
+    object-fit: cover;
+    place-items: center;
+    color: var(--bp-ui-text-muted);
+    background: var(--bp-ui-black-soft);
+    border: 1px solid var(--bp-ui-line-strong);
+    border-radius: 3px;
+}
+
+.rts-unit-panel .rts-up-multi-icon--fallback {
+    font-family: var(--bp-font-number);
+    font-size: var(--bp-type-meta);
+}
+
+.rts-unit-panel .rts-up-multi-name {
+    overflow: hidden;
+    color: var(--bp-ui-text);
+    font-size: var(--bp-type-body);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.rts-unit-panel .rts-up-multi-count {
+    color: var(--bp-ui-white);
+    font-family: var(--bp-font-number);
+    font-size: var(--bp-type-body);
+    font-variant-numeric: tabular-nums;
+}
+
+.rts-unit-panel .rts-up-surface-summary {
+    margin-top: 8px;
+    padding-top: 8px;
+    color: var(--bp-ui-text-muted);
+    font-size: var(--bp-type-meta);
+    line-height: 1.4;
+    border-top: 1px solid var(--bp-ui-line);
+}
+
+.rts-unit-panel .rts-up-surface-summary[hidden] {
+    display: none;
+}
+
+.rts-unit-panel .rts-up-producer-unit {
+    display: grid;
+    grid-template-columns: auto 30px minmax(0, 1fr);
+    gap: 8px;
+    align-items: center;
+    margin-top: 10px;
+    padding: 6px;
+    background: var(--bp-ui-surface);
+    border: 1px solid var(--bp-ui-line);
+    border-radius: 4px;
+}
+
+.rts-unit-panel .rts-up-producer-label,
+.rts-unit-panel .rts-up-rally,
+.rts-unit-panel .rts-up-hint {
+    color: var(--bp-ui-text-muted);
+    font-size: var(--bp-type-meta);
+    line-height: 1.45;
+}
+
+.rts-unit-panel .rts-up-producer-icon {
+    display: grid;
+    width: 30px;
+    height: 30px;
+    box-sizing: border-box;
+    object-fit: cover;
+    place-items: center;
+    color: var(--bp-ui-text-muted);
+    background: var(--bp-ui-black-soft);
+    border: 1px solid var(--bp-ui-line-strong);
+    border-radius: 3px;
+}
+
+.rts-unit-panel .rts-up-producer-icon--fallback {
+    font-family: var(--bp-font-number);
+    font-size: var(--bp-type-meta);
+}
+
+.rts-unit-panel .rts-up-producer-unit strong {
+    overflow: hidden;
+    color: var(--bp-ui-white);
+    font-size: var(--bp-type-body);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.rts-unit-panel .rts-up-rally {
+    margin-top: 8px;
+}
+
+.rts-unit-panel .rts-up-hint {
+    margin-top: 6px;
+    color: var(--bp-ui-text-dim);
+    font-size: var(--bp-type-caption);
+}
+
+@media (max-width: 720px) {
+    .rts-unit-panel {
+        right: 8px;
+        width: min(284px, calc(100vw - 16px));
+    }
 }
 
 .rts-command-bar {
     position: fixed;
     left: 10px;
     width: var(--bp-left-hud-width, 252px);
-    height: 72px;
+    height: 88px;
     z-index: 4700;
     box-sizing: border-box;
     pointer-events: auto;
@@ -2268,6 +2723,95 @@
     border-radius: 8px;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.46), inset 0 1px 0 rgba(220, 234, 240, 0.055);
     backdrop-filter: blur(12px) saturate(0.58);
+}
+
+.rts-command-bar.has-explorer {
+    height: 132px;
+}
+
+.rts-command-bar__title {
+    position: absolute;
+    left: 10px;
+    top: 7px;
+    color: var(--bp-ui-accent-bright);
+    font: 700 12px/1 var(--bp-font-ui);
+    letter-spacing: 0.08em;
+}
+
+.rts-command-bar__order,
+.rts-command-bar__explore {
+    position: absolute;
+    top: 25px;
+    width: 112px;
+    height: 36px;
+    border: 1px solid var(--bp-ui-line-accent);
+    border-radius: 5px;
+    color: var(--bp-ui-white);
+    background: linear-gradient(180deg, #43515a, #222b31);
+    font: 700 12px/1 var(--bp-font-ui);
+    cursor: pointer;
+}
+
+.rts-command-bar__order[data-order="attack_move"] {
+    left: 10px;
+}
+
+.rts-command-bar__order[data-order="patrol"] {
+    left: 130px;
+}
+
+.rts-command-bar__order:hover:not(:disabled),
+.rts-command-bar__explore:hover:not(:disabled) {
+    border-color: var(--bp-ui-accent-bright);
+    background: linear-gradient(180deg, #56666f, #2d3940);
+}
+
+.rts-command-bar__order.is-active {
+    color: #fff4d2;
+    border-color: #e8c878;
+    background: linear-gradient(180deg, #665739, #38301f);
+    box-shadow: inset 0 0 0 1px rgba(232, 200, 120, 0.24);
+}
+
+.rts-command-bar__explore {
+    left: 10px;
+    top: 88px;
+}
+
+.rts-command-bar__explore.is-stop {
+    border-color: rgba(214, 112, 96, 0.82);
+    background: linear-gradient(180deg, #6a3d39, #3d2321);
+}
+
+.rts-command-bar__explore.is-stop:hover:not(:disabled) {
+    border-color: #f08d7e;
+    background: linear-gradient(180deg, #815049, #4b2c29);
+}
+
+.rts-command-bar__order:disabled,
+.rts-command-bar__explore:disabled {
+    color: var(--bp-ui-text-muted);
+    border-color: var(--bp-ui-line);
+    background: #1b2227;
+    cursor: default;
+}
+
+.rts-command-bar__status {
+    position: absolute;
+    left: 10px;
+    right: 10px;
+    top: 65px;
+    color: var(--bp-ui-text-muted);
+    font: 11px/1.35 var(--bp-font-ui);
+}
+
+.rts-command-bar__explore-status {
+    position: absolute;
+    left: 132px;
+    right: 8px;
+    top: 88px;
+    color: var(--bp-ui-text-muted);
+    font: 12px/1.45 var(--bp-font-ui);
 }
 
 #weaponInfo {
@@ -2704,6 +3248,235 @@
     opacity: 0.42;
     cursor: not-allowed;
     pointer-events: none;
+}
+
+/* ===== 世界-122 位面祭坛：独立冷钢建筑详情 ===== */
+.world122-altar-panel {
+    top: 0 !important;
+    right: 0 !important;
+    padding: 0 !important;
+    gap: 0 !important;
+    overflow: hidden !important;
+    font-family: var(--bp-font-ui) !important;
+}
+
+.world122-altar-panel.active {
+    transform: translateX(0) !important;
+}
+
+.world122-altar-panel .altar-panel-header {
+    padding: 12px 16px !important;
+    margin: 0 !important;
+}
+
+.world122-altar-panel .altar-panel-header h2,
+.world122-altar-panel .bp-panel-section-title,
+.world122-altar-panel .altar-panel-copy {
+    margin: 0;
+}
+
+.world122-altar-panel .altar-panel-eyebrow {
+    margin-bottom: 2px;
+    color: var(--bp-ui-text-dim);
+    font-family: var(--bp-font-number) !important;
+    letter-spacing: 0.12em;
+}
+
+.world122-altar-panel .altar-panel-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.world122-altar-panel .altar-panel-sell {
+    min-height: 32px;
+    padding: 5px 11px;
+    color: #ffe7e5;
+    background: linear-gradient(180deg, #612f32, #351a1d);
+    border-color: #9b565b;
+}
+
+.world122-altar-panel .altar-panel-sell:hover {
+    color: var(--bp-ui-white);
+    background: linear-gradient(180deg, #7c3c41, #4b2226);
+    border-color: #d18489;
+}
+
+.world122-altar-panel .altar-panel-body {
+    gap: 12px;
+    padding: 14px 16px 18px !important;
+}
+
+.world122-altar-panel .world122-building-detail-header {
+    margin: 0 !important;
+    padding: 10px !important;
+    color: var(--bp-ui-text) !important;
+    background: linear-gradient(180deg, rgba(37, 42, 48, 0.78), rgba(21, 25, 30, 0.84)) !important;
+    border-color: var(--bp-ui-line) !important;
+    border-radius: 6px !important;
+}
+
+.world122-altar-panel .world122-building-detail-name {
+    color: var(--bp-ui-white) !important;
+    font-family: var(--bp-font-ui) !important;
+    font-size: var(--bp-type-subtitle) !important;
+    line-height: 1.4 !important;
+}
+
+.world122-altar-panel :is(.world122-building-detail-status, .world122-building-detail-durability) {
+    font-family: var(--bp-font-number) !important;
+    font-size: var(--bp-type-meta) !important;
+    line-height: 1.45 !important;
+}
+
+.world122-altar-panel .world122-building-detail-durability {
+    color: var(--bp-ui-text-muted) !important;
+}
+
+.world122-altar-panel .altar-panel-properties {
+    margin-top: 10px;
+}
+
+.world122-altar-panel .altar-panel-stat-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.world122-altar-panel .altar-panel-stat-grid > div {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+    padding: 8px 9px;
+    background: var(--bp-ui-black-soft);
+    border: 1px solid var(--bp-ui-line);
+    border-radius: 4px;
+}
+
+.world122-altar-panel .altar-panel-stat-grid span,
+.world122-altar-panel .altar-panel-meta,
+.world122-altar-panel .altar-panel-empty,
+.world122-altar-panel .altar-panel-entry-effect,
+.world122-altar-panel .altar-panel-item-effect {
+    color: var(--bp-ui-text-muted);
+}
+
+.world122-altar-panel .altar-panel-stat-grid b {
+    overflow: hidden;
+    color: var(--bp-ui-white);
+    font-family: var(--bp-font-number);
+    font-variant-numeric: tabular-nums;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.world122-altar-panel .altar-panel-stat-grid .is-operational,
+.world122-altar-panel .altar-panel-count,
+.world122-altar-panel .altar-panel-entry-title span {
+    color: #7fe0c8;
+}
+
+.world122-altar-panel .altar-panel-copy {
+    color: var(--bp-ui-text);
+}
+
+.world122-altar-panel .altar-panel-section-heading,
+.world122-altar-panel .altar-panel-entry-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.world122-altar-panel .altar-panel-section-heading {
+    margin-bottom: 8px;
+}
+
+.world122-altar-panel .altar-panel-section-heading .bp-panel-section-title {
+    margin-bottom: 0;
+}
+
+.world122-altar-panel .altar-panel-count,
+.world122-altar-panel .altar-panel-entry-title span {
+    flex: 0 0 auto;
+    font-family: var(--bp-font-number);
+    font-variant-numeric: tabular-nums;
+}
+
+.world122-altar-panel .altar-panel-entry {
+    padding: 9px 0;
+    border-top: 1px solid var(--bp-ui-line);
+}
+
+.world122-altar-panel .altar-panel-entry:first-child {
+    padding-top: 0;
+    border-top: 0;
+}
+
+.world122-altar-panel .altar-panel-entry-effect {
+    margin-top: 4px;
+}
+
+.world122-altar-panel .altar-panel-item {
+    display: grid;
+    grid-template-columns: 36px minmax(0, 1fr) auto;
+    gap: 10px;
+    align-items: center;
+    padding: 9px 0;
+    border-top: 1px solid var(--bp-ui-line);
+}
+
+.world122-altar-panel .altar-panel-item:first-child {
+    padding-top: 0;
+    border-top: 0;
+}
+
+.world122-altar-panel .altar-panel-item-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    background: var(--bp-ui-black-soft);
+    border: 1px solid var(--bp-ui-line);
+    border-radius: 4px;
+    font-size: 22px;
+}
+
+.world122-altar-panel .altar-panel-item-copy {
+    min-width: 0;
+}
+
+.world122-altar-panel .altar-panel-item-name,
+.world122-altar-panel .altar-panel-item-effect {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.world122-altar-panel .altar-panel-item-name {
+    color: var(--bp-ui-white);
+    font-weight: 700;
+}
+
+.world122-altar-panel .altar-panel-sacrifice {
+    min-width: 68px;
+    color: #d5ffff;
+    background: linear-gradient(180deg, #315761, #1f363d);
+    border-color: #4f7d87;
+}
+
+.world122-altar-panel .altar-panel-sacrifice:hover {
+    color: var(--bp-ui-white);
+    background: linear-gradient(180deg, #3d6b76, #294951);
+    border-color: var(--bp-ui-accent-bright);
+}
+
+@media (max-width: 1100px) {
+    .world122-altar-panel .altar-panel-stat-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 /* ===== Dungeon expedition workspace =====

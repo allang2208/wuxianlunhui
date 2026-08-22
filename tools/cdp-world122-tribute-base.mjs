@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/* 世界-122基地献祭运行时探针：进入地图、点基地、献祭隔离测试祭品并验证30分钟效果。 */
+/* 世界-122位面祭坛运行时探针：进入地图、放置独立祭坛、献祭测试祭品并验证30分钟效果。 */
 import { spawn } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -79,7 +79,6 @@ try {
         };
         const { SceneManager } = await import(loaded('/src/world/scene-manager.js'));
         await SceneManager.switchScene('scene8', window.Game.player);
-        const { DefenseSystem } = await import(loaded('/src/world/defense-system.js'));
         const { World122TributeSystem } = await import(loaded('/src/world/world122-tribute-system.js'));
         const { EquipManager } = await import(loaded('/src/ui/equip-manager.js'));
         const { ProducerBuilding, ProducerBuildingSystem } = await import(loaded('/src/world/producer-building-system.js'));
@@ -96,8 +95,13 @@ try {
             effects: { atkPercent: 10 },
             stats: [{ name: '攻击力', value: '+10%' }],
         });
-        const screen = Renderer.worldToScreen(DefenseSystem.base.x, DefenseSystem.base.y);
-        const clicked = DefenseSystem.tryInteract(screen.x, screen.y, window.Game.player);
+        const altar = new ProducerBuilding(window.Game.player.x + 80, window.Game.player.y, {
+            cfgKey: 'plane_altar', id: 'plane_altar_probe',
+        });
+        window.Game.entities.set(altar.id, altar);
+        ProducerBuildingSystem.buildings.push(altar);
+        const screen = Renderer.worldToScreen(altar.x, altar.y);
+        const clicked = ProducerBuildingSystem.tryInteract(screen.x, screen.y, window.Game.player);
         World122TributeSystem._sacrifice(slot);
         const entry = World122TributeSystem.serialize()[0];
         const panelStyle = getComputedStyle(document.getElementById('world122BasePanel'));
@@ -105,7 +109,7 @@ try {
         const church = new ProducerBuilding(5300, 4096, { cfgKey: 'church', id: 'church_probe' });
         ProducerBuildingSystem._ensurePanel().openFor(church, window.Game.player);
         const churchText = document.getElementById('producerBuildingPanel').textContent;
-        const baseSnapshot = {
+        const altarSnapshot = {
             scene: SceneManager.currentScene,
             clicked,
             panelOpen: World122TributeSystem._panel?.isOpen,
@@ -114,10 +118,11 @@ try {
             atkMul: getTributeEffects().atkPercent,
             panelPosition: { top: panelStyle.top, right: panelStyle.right, transform: panelStyle.transform },
             panelText,
-            base: { hp: DefenseSystem.base.hp, maxHp: DefenseSystem.base.maxHp },
+            altar: { hp: altar.hp, maxHp: altar.maxHp },
         };
         return {
-            baseSnapshot,
+            altarSnapshot,
+            altarInBuildMenu: BUILD_ITEMS.some((item) => item.id === 'plane_altar'),
             church: {
                 inBuildMenu: BUILD_ITEMS.some((item) => item.id === 'church'),
                 spawnEnabled: church.spawnEnabled,
@@ -127,30 +132,31 @@ try {
     })()`);
     ws.close();
 
-    const base = data.baseSnapshot;
-    const okay = base.scene === 'scene8'
-        && base.clicked === true
-        && base.panelOpen === true
-        && base.entries === 1
-        && base.expiresInMs > 1790000
-        && base.expiresInMs <= 1800000
-        && base.atkMul === 1.1
-        && base.panelPosition.top === '26px'
-        && base.panelPosition.right === '26px'
-        && base.panelPosition.transform === 'none'
-        && base.panelText.includes('耐久')
-        && base.panelText.includes('物理防御')
-        && base.panelText.includes('魔法防御')
-        && base.panelText.includes('4×4 菱形格')
+    const altar = data.altarSnapshot;
+    const okay = altar.scene === 'scene8'
+        && altar.clicked === true
+        && altar.panelOpen === true
+        && altar.entries === 1
+        && altar.expiresInMs > 1790000
+        && altar.expiresInMs <= 1800000
+        && altar.atkMul === 1.1
+        && altar.panelPosition.top === '0px'
+        && altar.panelPosition.right === '0px'
+        && altar.panelText.includes('位面祭坛')
+        && altar.panelText.includes('耐久')
+        && altar.panelText.includes('物理防御')
+        && altar.panelText.includes('魔法防御')
+        && altar.panelText.includes('2×2 菱形格')
+        && data.altarInBuildMenu
         && data.church.inBuildMenu
         && data.church.text.includes('教堂')
         && data.church.text.includes('耐久 2500 / 2500（100%）')
         && data.church.text.includes('仓鼠牧师')
-        && base.base.hp > 0
+        && altar.altar.hp > 0
         && errors.length === 0;
     console.log(JSON.stringify({ data, errors }, null, 2));
-    if (!okay) throw new Error('世界-122基地献祭运行时断言失败');
-    console.log('世界-122基地献祭运行时探针通过');
+    if (!okay) throw new Error('世界-122位面祭坛献祭运行时断言失败');
+    console.log('世界-122位面祭坛献祭运行时探针通过');
 } finally {
     edge.kill();
 }

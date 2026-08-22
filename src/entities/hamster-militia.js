@@ -37,11 +37,11 @@ export class HamsterMilitia extends Companion {
         this.size = 64;
         this.hittable = true;
         this.hitFlash = 0;
-        // 素材帧内脚底在 ~350/512（非 480），displaySize 300 时脚底距帧中心 55px
-        // （2026-08-17 用户反馈民兵偏小，与战士/盾卫对比后 226→300 放大 1.33×）：
-        // spriteOffsetY=-55 把脚底贴到逻辑落地点；footOffsetY=55 让深度线 = 逻辑脚底
-        this.footOffsetY = 55;
-        this.config = { render: { hudOffsetY: 127, footOffsetY: 55 } };
+        // 素材帧内脚底在 ~350/512（非 480）；displaySize 与仓鼠斥候统一为 460 后，
+        // 脚底距帧中心约 84px。spriteOffsetY=-84 负责贴地，footOffsetY=84 保持深度线
+        // 等于逻辑脚底；HUD 偏移同步放大，避免名字/血条压到增大的角色贴图。
+        this.footOffsetY = 84;
+        this.config = { render: { hudOffsetY: 195, footOffsetY: 84 } };
         this._dying = false;
         this._deathTimer = 0;
         this._ai = new HamsterMilitiaAI(this);

@@ -1,0 +1,39 @@
+{
+  "source": "tools\\ai-gen\\_settlement_building_pack_20260821\\hamster_barracks\\hamster_barracks_s48_seed1228632_raw.png",
+  "output": "tools\\ai-gen\\_settlement_building_pack_20260821\\hamster_barracks\\hamster_barracks_s48_seed1228632_platform_cutout.png",
+  "sourceMode": "RGB",
+  "background": [
+    249,
+    244,
+    2
+  ],
+  "matteColor": null,
+  "matteEdgeWidth": 3.0,
+  "matteTolerance": 130.0,
+  "maskImage": "tools\\ai-gen\\_settlement_building_pack_20260821\\hamster_barracks\\hamster_barracks_depth.png",
+  "maskDilate": 6,
+  "fillAlphaHoles": true,
+  "fillHoleMatteDistance": 24.0,
+  "maskAddRects": [],
+  "cropBox": [
+    68,
+    132,
+    955,
+    921
+  ],
+  "fileSize": [
+    887,
+    789
+  ],
+  "alphaBBox": [
+    6,
+    6,
+    881,
+    783
+  ],
+  "displayW": 275,
+  "displayH": 245,
+  "footOffsetY": 120,
+  "scaleX": 0.3100338218714769,
+  "scaleY": 0.3105196451204056
+}

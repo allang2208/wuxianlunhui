@@ -15,7 +15,6 @@ const hut = read('src/world/hamster-hut-system.js');
 const basePanel = read('src/ui/panels/base-panel.js');
 const input = read('src/ui/input.js');
 const tower = read('src/world/defense-system.js');
-const trap = read('src/world/defense-trap-system.js');
 
 let pass = 0;
 let fail = 0;
@@ -62,7 +61,6 @@ for (const [name, source] of [
     ['兵营', barracks],
     ['矿场', hut],
     ['防御塔', tower],
-    ['陷阱', trap],
 ]) {
     check(`${name}详情启用统一关闭策略`,
         /panelGroup: 'buildingDetail'/.test(source)

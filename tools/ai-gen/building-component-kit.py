@@ -92,6 +92,62 @@ def cylinder(collection, parent, name, radius, depth, location, mat,
     return obj
 
 
+def rough_boulder(collection, parent, name, size, location, mat,
+                  rotation=(0, 0, 0), subdivisions=2):
+    """Low-poly editable boulder for natural foundations and resource piles."""
+    bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=subdivisions, radius=1)
+    obj = bpy.context.object
+    obj.name = name
+    obj.dimensions = tuple(float(value) for value in size)
+    bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
+    obj.parent = parent
+    obj.location = location
+    obj.rotation_euler = tuple(math.radians(value) for value in rotation)
+    obj.data.materials.append(mat)
+    move_to_collection(obj, collection)
+    return obj
+
+
+def faceted_crystal_prism(collection, parent, name, height, radius, location, mat,
+                          highlight_mat=None, lean=(0, 0), sides=6,
+                          depth_scale=0.78, rotation_z=0):
+    """Pointed faceted crystal with an embedded flat base and editable side faces."""
+    count = max(4, int(sides))
+    shoulder_z = float(height) * 0.78
+    lean_x, lean_y = (float(value) for value in lean)
+    rot = math.radians(float(rotation_z))
+    vertices = []
+    for z, offset_x, offset_y in ((0.0, 0.0, 0.0),
+                                  (shoulder_z, lean_x * 0.78, lean_y * 0.78)):
+        for index in range(count):
+            angle = math.tau * index / count + rot
+            vertices.append((
+                math.cos(angle) * radius + offset_x,
+                math.sin(angle) * radius * depth_scale + offset_y,
+                z,
+            ))
+    apex_index = len(vertices)
+    vertices.append((lean_x, lean_y, float(height)))
+    faces = [tuple(reversed(range(count)))]
+    for index in range(count):
+        nxt = (index + 1) % count
+        faces.append((index, nxt, count + nxt, count + index))
+        faces.append((count + index, count + nxt, apex_index))
+    mesh = bpy.data.meshes.new(name + "_Mesh")
+    mesh.from_pydata(vertices, [], faces)
+    mesh.materials.append(mat)
+    if highlight_mat is not None:
+        mesh.materials.append(highlight_mat)
+        for index, polygon in enumerate(mesh.polygons[1:], 1):
+            polygon.material_index = 1 if index % 3 == 1 else 0
+    obj = bpy.data.objects.new(name, mesh)
+    collection.objects.link(obj)
+    obj.parent = parent
+    obj.location = location
+    bevel(obj, max(0.7, float(radius) * 0.025), 2)
+    return obj
+
+
 def gabled_prism(collection, parent, name, length, width, roof_height, location,
                   gable_mat, roof_mat):
     half_l, half_w = length / 2, width / 2

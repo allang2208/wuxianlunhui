@@ -12,6 +12,7 @@ import { completeWeaponFields } from './equip-data-manager.js';
 import { serializeUnitUpgrades, restoreUnitUpgrades } from '../world/unit-upgrade-store.js';
 import { serializeAbilityLevels, restoreAbilityLevels } from '../world/ability-store.js';
 import { ResearchSystem } from '../world/research-system.js';
+import { GoldManager } from '../systems/gold-manager.js';
 import { EnergyManager } from '../systems/energy-manager.js';
 import { World122TributeSystem } from '../world/world122-tribute-system.js';
 import {
@@ -344,7 +345,29 @@ export const GameUIManager = {
         try { localStorage.setItem('infiniteLoop_save', JSON.stringify(saveData)); alert('已保存至主神空间'); } catch (e) { console.error('Save failed:', e); alert('存档失败: 存储空间不足'); }
     },
     showHelp() { alert('WASD移动 | 鼠标瞄准 | 左键攻击 | F切换武器\nC打开装备栏 | 空格闪避 | Shift冲刺'); },
+    refreshBasicResources() {
+        const totals = {
+            resourceGoldTotal: GoldManager?.getGold?.() || 0,
+            resourceEnergyTotal: EnergyManager?.getEnergy?.() || 0,
+            resourceFoodTotal: EnergyManager?.getFood?.() || 0,
+        };
+        for (const [id, rawValue] of Object.entries(totals)) {
+            const el = getElementIfExists(id);
+            if (!el) continue;
+            const value = Math.max(0, Math.floor(Number(rawValue) || 0));
+            if (el.dataset.value === String(value)) continue;
+            const initialized = el.dataset.value !== undefined;
+            el.dataset.value = String(value);
+            el.textContent = value.toLocaleString('zh-CN');
+            if (initialized) {
+                el.classList.remove('is-resource-changing');
+                void el.offsetWidth;
+                el.classList.add('is-resource-changing');
+            }
+        }
+    },
     refreshGameTime() {
+        this.refreshBasicResources();
         const gameTime = EnvironmentLightingSystem.getGameTime();
         const icon = getElementIfExists('gameTimeIcon');
         const text = getElementIfExists('gameTimeText');

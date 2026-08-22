@@ -116,10 +116,10 @@ check('世界-122升级写入主存档并可读回',
     && /abilityLevels: serializeAbilityLevels\(\)/.test(saveSrc)
     && /restoreUnitUpgrades\(data\.world122\?\.unitUpgrades\)/.test(saveSrc)
     && /restoreAbilityLevels\(data\.world122\?\.abilityLevels\)/.test(saveSrc));
-check('新方块墙与4格门统一使用C级数值/400能源',
-    /C_GRADE_WALL_COST/.test(buildingSrc)
-    && /kind: 'block', grade: 'C'/.test(buildingSrc)
-    && /kind: 'gate4', grade: 'C'/.test(buildingSrc));
+check('新方块墙使用C级数值/50能源，4格门保留C级墙造价',
+    /const BLOCK_WALL_COST = 50/.test(buildingSrc)
+    && /cost: BLOCK_WALL_COST[^\n]+kind: 'block', grade: 'C'/.test(buildingSrc)
+    && /cost: C_GRADE_WALL_COST[^\n]+kind: 'gate4', grade: 'C'/.test(buildingSrc));
 check('旧F-A长墙与旧门已从建筑清单移除',
     !/id: `cover_\$\{grade\}_v`/.test(buildingSrc)
     && !/id: `gate_\$\{grade\}_v`/.test(buildingSrc));

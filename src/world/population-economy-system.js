@@ -6,10 +6,12 @@ import { EffectManager } from '../effects/effect-manager.js';
 import { BuildingFootprintDustEffect } from '../effects/building-sink.js';
 import { SoundManager } from '../ui/sound-manager.js';
 import { payBuildingUpgradeCost } from './building-upgrade-payment.js';
+import { getProductionResourceMul } from '../config/tribute-effects.js';
 import { createGoldItem, routeProducedGold as routeBankGold } from './economy-gold-routing.js';
 import { WorkshopEconomySystem } from './workshop-economy-system.js';
 import { BankEconomySystem } from './bank-economy-system.js';
 import { CrossPlaneResourceSystem } from './cross-plane-resource-system.js';
+import { TechnologySystem } from './technology-system.js';
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 
@@ -229,11 +231,21 @@ export const PopulationEconomySystem = {
             .find((entry) => entry.level === targetLevel) || null;
     },
 
+    getHouseUpgradeLockReason(building) {
+        const next = this.getHouseUpgrade(building);
+        const unlockId = next?.technologyUnlockId;
+        if (!unlockId || TechnologySystem.isUnlocked('upgrade', unlockId)) return '';
+        const technologyName = TechnologySystem.getUnlockRequirementLabel('upgrade', unlockId);
+        return `需要先完成科技：${technologyName || unlockId}`;
+    },
+
     startHouseUpgrade(building) {
         if (building?._economyType !== 'housing') return { ok: false, reason: '该建筑不是房屋' };
         if (building._economyUpgrade) return { ok: false, reason: '房屋正在升级' };
         const next = this.getHouseUpgrade(building);
         if (!next) return { ok: false, reason: '房屋已达到最高等级' };
+        const lockReason = this.getHouseUpgradeLockReason(building);
+        if (lockReason) return { ok: false, reason: lockReason };
         const cost = next.upgradeCost || {};
         const payment = payBuildingUpgradeCost(cost);
         if (!payment.ok) return payment;
@@ -505,7 +517,8 @@ export const PopulationEconomySystem = {
             if (building._economyTickMs < snapshot.settlementIntervalMs) return;
             const settlements = Math.floor(building._economyTickMs / snapshot.settlementIntervalMs);
             building._economyTickMs -= settlements * snapshot.settlementIntervalMs;
-            const total = building._bankGoldRemainder + snapshot.goldPerSettlement * settlements;
+            const total = building._bankGoldRemainder
+                + snapshot.goldPerSettlement * settlements * getProductionResourceMul();
             const gold = Math.floor(total);
             building._bankGoldRemainder = total - gold;
             if (gold > 0) {
@@ -524,7 +537,7 @@ export const PopulationEconomySystem = {
         const elapsedSeconds = elapsedMs / 1000;
         if (building._economyType === 'windmill') {
             const total = building._workProductionRemainder
-                + this.getWindmillFoodPerSecond(building) * elapsedSeconds;
+                + this.getWindmillFoodPerSecond(building) * elapsedSeconds * getProductionResourceMul();
             const food = Math.floor(total);
             building._workProductionRemainder = total - food;
             if (food > 0) {

@@ -24,7 +24,6 @@ import {
     DefenseSystem, DEFENSE_CONFIG, DefenseTower, DefenseCover, BuildableGate, WallStaircase,
 } from './defense-system.js';
 import { EnergyNodeSystem } from './energy-node-system.js';
-import { ENERGY_CONFIG } from '../config/energy-config.js';
 import { HamsterMinerSystem } from './hamster-miner-system.js';
 import { HamsterHutSystem, HamsterHut } from './hamster-hut-system.js';
 import { HamsterBarracksSystem, HamsterBarracks } from './hamster-barracks-system.js';
@@ -34,7 +33,6 @@ import {
 import { BuildingSystem } from './building-system.js';
 import { BuildingRoadSystem } from './building-road-system.js';
 import { applyBuildingFootprint } from './building-footprint.js';
-import { DefenseTrapSystem } from './defense-trap-system.js';
 import {
     captureAndStoreWorld, applyWorldSnapshot, getWorldSnapshot,
     configureWorld122SnapshotRuntime, resetWorldSnapshot,
@@ -329,9 +327,6 @@ export const SceneManager = {
             if (BuildingSystem && BuildingSystem.active) {
                 BuildingSystem.close();
             }
-            if (DefenseTrapSystem && typeof DefenseTrapSystem.teardown === 'function') {
-                DefenseTrapSystem.teardown();
-            }
             // 世界-122 能源资源点随场景离场拆除（实体由下方 Game.entities.clear 统一清理）
             if (EnergyNodeSystem && EnergyNodeSystem.active) {
                 EnergyNodeSystem.teardown();
@@ -474,7 +469,6 @@ export const SceneManager = {
         phaserScene?.clearCombatView?.();
         phaserScene?.clearAllEntitySprites?.();
         BuildingSystem?.close?.();
-        DefenseTrapSystem?.teardown?.();
         DefenseSystem?.teardown?.();
         EnergyNodeSystem?.teardown?.();
         HamsterMinerSystem?.teardown?.();
@@ -1420,7 +1414,7 @@ export const SceneManager = {
      * 加载时把 4 姿态仙人掌（同风格低对比）撒满全图，走 isoVisuals + rebuildIsoCollision
      * （footprint 碰撞生效）+ _syncWallsToPhaser 渲染；
      * - 缩放 = obstacleH/geo.h（摆墙编辑器口径）× (1±scaleJitter)，随机 flipX；
-     * - 排除带：基地房矩形外扩 / 玩家 / 能源点 / 刷怪点；间距 minDist（允许适度成林）；
+     * - 排除带：基地房矩形外扩 / 玩家 / 刷怪点；能源矿后生成并用真实墙体碰撞避开仙人掌；
      * - 调用顺序约束：必须在 DefenseSystem.setup 之前（见 _loadScene8 注释）。
      * 配置：data/game-config.json scenes.scene8.cactusScatter（enabled=false 关闭）。
      */
@@ -1445,14 +1439,12 @@ export const SceneManager = {
             DEFENSE_CONFIG.base.y + DEFENSE_CONFIG.room.ry,
         ];
         const rPlayer = ex.player ?? 160;
-        const rNode = ex.energyNode ?? 140;
         const rSpawn = ex.spawnPoint ?? 180;
         const variants = ['saguaro2arm', 'saguaro1arm', 'barrel', 'cholla'];
         // 菱形地块（与 _loadScene8 同口径，_scene8Diamond v2 边斜率 0.5 与视角平行）：
         // 仙人掌只撒在菱形内，避免长在区外黑地里
         const dFloor = this._scene8Diamond(scene);
         const inDiamond = (x, y) => !dFloor || (Math.abs(x - dFloor.cx) / dFloor.rx + Math.abs(y - dFloor.cy) / dFloor.ry <= 1);
-        const nodeClusters = (ENERGY_CONFIG && ENERGY_CONFIG.clusters) || [];
         const spawnPts = DEFENSE_CONFIG.spawnPoints || [];
         const pieces = [];
         let guard = 0;
@@ -1475,7 +1467,6 @@ export const SceneManager = {
                 if (fp.x < room[2] && fp.x + fp.w > room[0] && fp.y < room[3] && fp.y + fp.h > room[1]) continue;
             } else if (x > room[0] && x < room[2] && y > room[1] && y < room[3]) continue;
             if (player && Math.hypot(fx - player.x, fy - player.y) < rPlayer) continue;
-            if (nodeClusters.some((c) => Math.hypot(fx - c.x, fy - c.y) < (c.spread ?? 150) + rNode)) continue;
             if (spawnPts.some((n) => Math.hypot(fx - n.x, fy - n.y) < rSpawn)) continue;
             if (pieces.some((q) => Math.hypot(x - q.x, y - q.y) < minDist)) continue;
             const fr = Math.max(20, (geo.foot ? geo.foot.w / 2 : 40) * s);
@@ -1798,9 +1789,15 @@ export const SceneManager = {
         DefenseSystem.setup(player, { managedExternally: true, worldId: sceneId });
         const generation = WorldProgressionSystem.getWorldGenerationContext(sceneId);
         if (generation.resourceRule === 'none') EnergyNodeSystem.teardown();
-        else EnergyNodeSystem.setup({
-            random: WorldProgressionSystem.createWorldRandom(sceneId, `resources:${generation.resourceRule}`),
-        });
+        else {
+            const portalSpawn = WorldProgressionSystem.getWorldConfig(sceneId)?.portalSpawn
+                || { x: diamond?.cx || CONFIG.WORLD_WIDTH / 2, y: diamond?.cy || CONFIG.WORLD_HEIGHT / 2 };
+            EnergyNodeSystem.setup({
+                random: WorldProgressionSystem.createWorldRandom(sceneId, `resources:${generation.resourceRule}`),
+                portal: portalSpawn,
+                diamond,
+            });
+        }
         HamsterHutSystem.setup();
         HamsterBarracksSystem.setup();
         ProducerBuildingSystem.setup();
@@ -1828,12 +1825,19 @@ export const SceneManager = {
     _ensureWorldPortalEntity(sceneId, diamond) {
         const portalState = WorldProgressionSystem.getPortalState(sceneId);
         if (!portalState.everConstructed) return null;
-        let portal = (ProducerBuildingSystem.buildings || []).find((building) => building?.cfgKey === 'portal');
+        const worldCfg = WorldProgressionSystem.getWorldConfig(sceneId) || {};
+        const spawn = worldCfg.portalSpawn || { x: diamond?.cx || CONFIG.WORLD_WIDTH / 2, y: diamond?.cy || CONFIG.WORLD_HEIGHT / 2 };
+        const coreId = `world_portal_${sceneId}`;
+        const portals = (ProducerBuildingSystem.buildings || [])
+            .filter((building) => building?.cfgKey === 'portal');
+        let portal = portals.find((building) => building.id === coreId)
+            || portals.find((building) => building._isWorldPortalCore && building._worldId === sceneId)
+            // 兼容旧 portal_only_v1 快照：旧核心无稳定 id，但坐标固定且建造成本为 0。
+            || portals.find((building) => Number(building._buildCost) === 0
+                && Math.hypot(building.x - spawn.x, building.y - spawn.y) <= 1);
         if (!portal) {
-            const worldCfg = WorldProgressionSystem.getWorldConfig(sceneId) || {};
-            const spawn = worldCfg.portalSpawn || { x: diamond?.cx || CONFIG.WORLD_WIDTH / 2, y: diamond?.cy || CONFIG.WORLD_HEIGHT / 2 };
             portal = new ProducerBuilding(spawn.x, spawn.y, {
-                id: `world_portal_${sceneId}`,
+                id: coreId,
                 cfgKey: 'portal',
                 hp: WorldProgressionSystem.config.portal?.maxHp || 5000,
             });
@@ -1843,6 +1847,13 @@ export const SceneManager = {
             Game.entities.set(portal.id, portal);
             ProducerBuildingSystem.buildings.push(portal);
             BuildingRoadSystem.attach(portal, { allowOverlap: true });
+        }
+        if (portal.id !== coreId) {
+            for (const [key, entity] of Game.entities) {
+                if (entity === portal) Game.entities.delete(key);
+            }
+            portal.id = coreId;
+            Game.entities.set(coreId, portal);
         }
         portal._isWorldPortalCore = true;
         portal._worldId = sceneId;
@@ -1878,8 +1889,8 @@ export const SceneManager = {
 
     /**
      * 位面核心继续使用传送门生命周期，只按世界配置覆盖场景视觉与占地。
-     * 太阳阴影（2026-08-21 简化）：建筑一律只看 footprint 凸包，不再按贴图 key
-     * 查 manifest 剪影——换贴图不再需要同步 shadowSilhouette。
+     * 太阳阴影：普通建筑由主体 Sprite 当前 alpha 接地拟合生成独立 shadow caster，
+     * 不查 manifest 剪影，也不把可能包含地基的 placement footprint 当视觉真源。
      */
     _applyWorldCoreVisual(sceneId, portal) {
         const visual = WorldProgressionSystem.getWorldConfig(sceneId)?.coreVisual;

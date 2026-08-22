@@ -1,0 +1,3037 @@
+{
+  "generatedAt": "2026-08-22",
+  "style": "cold-steel tactical module plate",
+  "optionCount": 301,
+  "canonicalIconCount": 143,
+  "mergeMap": {
+    "shotgun_suppressor": "suppressor",
+    "light_extended_mag": "light_extended",
+    "light_pommel": "light_blade_body"
+  },
+  "entries": [
+    {
+      "index": 1,
+      "key": "light_blade",
+      "sourceAtlas": 1,
+      "row": 1,
+      "column": 1,
+      "names": [
+        "轻量化剑刃"
+      ],
+      "ids": [
+        "light_blade"
+      ],
+      "slots": [
+        "blade"
+      ],
+      "weapons": [
+        "weapon2 骑士长剑",
+        "weapon4 符文长剑",
+        "weapon5 夜与火之剑"
+      ],
+      "uses": 3
+    },
+    {
+      "index": 2,
+      "key": "hardened_edge",
+      "sourceAtlas": 1,
+      "row": 1,
+      "column": 2,
+      "names": [
+        "淬火硬化刃口"
+      ],
+      "ids": [
+        "hardened_edge"
+      ],
+      "slots": [
+        "blade"
+      ],
+      "weapons": [
+        "weapon2 骑士长剑",
+        "weapon4 符文长剑",
+        "weapon5 夜与火之剑"
+      ],
+      "uses": 3
+    },
+    {
+      "index": 3,
+      "key": "heavy_blunt",
+      "sourceAtlas": 1,
+      "row": 1,
+      "column": 3,
+      "names": [
+        "厚重钝化"
+      ],
+      "ids": [
+        "heavy_blunt"
+      ],
+      "slots": [
+        "blade"
+      ],
+      "weapons": [
+        "weapon2 骑士长剑",
+        "weapon4 符文长剑",
+        "weapon5 夜与火之剑"
+      ],
+      "uses": 3
+    },
+    {
+      "index": 4,
+      "key": "sharpened_edge",
+      "sourceAtlas": 1,
+      "row": 1,
+      "column": 4,
+      "names": [
+        "精细研磨开锋"
+      ],
+      "ids": [
+        "sharpened_edge"
+      ],
+      "slots": [
+        "blade"
+      ],
+      "weapons": [
+        "weapon2 骑士长剑"
+      ],
+      "uses": 1
+    },
+    {
+      "index": 5,
+      "key": "small_disc_guard",
+      "sourceAtlas": 1,
+      "row": 1,
+      "column": 5,
+      "names": [
+        "小型圆盘护手"
+      ],
+      "ids": [
+        "small_disc_guard"
+      ],
+      "slots": [
+        "guard"
+      ],
+      "weapons": [
+        "weapon2 骑士长剑",
+        "weapon4 符文长剑",
+        "weapon5 夜与火之剑"
+      ],
+      "uses": 3
+    },
+    {
+      "index": 6,
+      "key": "wide_cross_guard",
+      "sourceAtlas": 1,
+      "row": 1,
+      "column": 6,
+      "names": [
+        "宽十字护手"
+      ],
+      "ids": [
+        "wide_cross_guard"
+      ],
+      "slots": [
+        "guard"
+      ],
+      "weapons": [
+        "weapon2 骑士长剑",
+        "weapon4 符文长剑",
+        "weapon5 夜与火之剑"
+      ],
+      "uses": 3
+    },
+    {
+      "index": 7,
+      "key": "no_guard",
+      "sourceAtlas": 1,
+      "row": 2,
+      "column": 1,
+      "names": [
+        "无护手"
+      ],
+      "ids": [
+        "no_guard"
+      ],
+      "slots": [
+        "guard"
+      ],
+      "weapons": [
+        "weapon2 骑士长剑",
+        "weapon4 符文长剑",
+        "weapon5 夜与火之剑"
+      ],
+      "uses": 3
+    },
+    {
+      "index": 8,
+      "key": "wrapped_long_grip",
+      "sourceAtlas": 1,
+      "row": 2,
+      "column": 2,
+      "names": [
+        "缠绳附加长柄"
+      ],
+      "ids": [
+        "wrapped_long_grip"
+      ],
+      "slots": [
+        "grip"
+      ],
+      "weapons": [
+        "weapon2 骑士长剑",
+        "weapon4 符文长剑",
+        "weapon5 夜与火之剑"
+      ],
+      "uses": 3
+    },
+    {
+      "index": 9,
+      "key": "short_compact_grip",
+      "sourceAtlas": 1,
+      "row": 2,
+      "column": 3,
+      "names": [
+        "短柄紧凑型握把"
+      ],
+      "ids": [
+        "short_compact_grip"
+      ],
+      "slots": [
+        "grip"
+      ],
+      "weapons": [
+        "weapon2 骑士长剑",
+        "weapon4 符文长剑",
+        "weapon5 夜与火之剑"
+      ],
+      "uses": 3
+    },
+    {
+      "index": 10,
+      "key": "damascus_steel",
+      "sourceAtlas": 1,
+      "row": 2,
+      "column": 4,
+      "names": [
+        "大马士革钢"
+      ],
+      "ids": [
+        "damascus_steel"
+      ],
+      "slots": [
+        "blade_body_1",
+        "blade_body_2"
+      ],
+      "weapons": [
+        "weapon2 骑士长剑"
+      ],
+      "uses": 2
+    },
+    {
+      "index": 11,
+      "key": "quench_hardened",
+      "sourceAtlas": 1,
+      "row": 2,
+      "column": 5,
+      "names": [
+        "淬火硬化"
+      ],
+      "ids": [
+        "quench_hardened"
+      ],
+      "slots": [
+        "blade_body_1",
+        "blade_body_2"
+      ],
+      "weapons": [
+        "weapon2 骑士长剑"
+      ],
+      "uses": 2
+    },
+    {
+      "index": 12,
+      "key": "extended_blade",
+      "sourceAtlas": 1,
+      "row": 2,
+      "column": 6,
+      "names": [
+        "延长剑身"
+      ],
+      "ids": [
+        "extended_blade"
+      ],
+      "slots": [
+        "blade_body_1",
+        "blade_body_2"
+      ],
+      "weapons": [
+        "weapon2 骑士长剑"
+      ],
+      "uses": 2
+    },
+    {
+      "index": 13,
+      "key": "light_blade_body",
+      "sourceAtlas": 1,
+      "row": 3,
+      "column": 1,
+      "names": [
+        "轻量化剑身"
+      ],
+      "ids": [
+        "light_blade_body",
+        "light_pommel"
+      ],
+      "slots": [
+        "blade_body_1",
+        "blade_body_2",
+        "pommel"
+      ],
+      "weapons": [
+        "weapon2 骑士长剑",
+        "weapon4 符文长剑",
+        "weapon5 夜与火之剑"
+      ],
+      "uses": 4
+    },
+    {
+      "index": 14,
+      "key": "hollow_blade",
+      "sourceAtlas": 1,
+      "row": 3,
+      "column": 2,
+      "names": [
+        "镂空"
+      ],
+      "ids": [
+        "hollow_blade"
+      ],
+      "slots": [
+        "blade_body_1",
+        "blade_body_2"
+      ],
+      "weapons": [
+        "weapon2 骑士长剑"
+      ],
+      "uses": 2
+    },
+    {
+      "index": 15,
+      "key": "weighted_pommel",
+      "sourceAtlas": 1,
+      "row": 3,
+      "column": 3,
+      "names": [
+        "配重锤增重"
+      ],
+      "ids": [
+        "weighted_pommel"
+      ],
+      "slots": [
+        "pommel"
+      ],
+      "weapons": [
+        "weapon2 骑士长剑",
+        "weapon4 符文长剑",
+        "weapon5 夜与火之剑"
+      ],
+      "uses": 3
+    },
+    {
+      "index": 16,
+      "key": "hollow_orb",
+      "sourceAtlas": 1,
+      "row": 3,
+      "column": 4,
+      "names": [
+        "镂空小球"
+      ],
+      "ids": [
+        "hollow_orb"
+      ],
+      "slots": [
+        "pommel"
+      ],
+      "weapons": [
+        "weapon2 骑士长剑",
+        "weapon4 符文长剑",
+        "weapon5 夜与火之剑"
+      ],
+      "uses": 3
+    },
+    {
+      "index": 17,
+      "key": "magic_blade",
+      "sourceAtlas": 1,
+      "row": 3,
+      "column": 5,
+      "names": [
+        "魔力刀刃"
+      ],
+      "ids": [
+        "magic_blade"
+      ],
+      "slots": [
+        "blade"
+      ],
+      "weapons": [
+        "weapon4 符文长剑"
+      ],
+      "uses": 1
+    },
+    {
+      "index": 18,
+      "key": "rune_restructure",
+      "sourceAtlas": 1,
+      "row": 3,
+      "column": 6,
+      "names": [
+        "符文重构"
+      ],
+      "ids": [
+        "rune_restructure"
+      ],
+      "slots": [
+        "blade_body_1",
+        "blade_body_2"
+      ],
+      "weapons": [
+        "weapon4 符文长剑",
+        "weapon5 夜与火之剑"
+      ],
+      "uses": 4
+    },
+    {
+      "index": 19,
+      "key": "sharp_rune",
+      "sourceAtlas": 1,
+      "row": 4,
+      "column": 1,
+      "names": [
+        "锐利符文"
+      ],
+      "ids": [
+        "sharp_rune"
+      ],
+      "slots": [
+        "blade_body_1",
+        "blade_body_2"
+      ],
+      "weapons": [
+        "weapon4 符文长剑",
+        "weapon5 夜与火之剑"
+      ],
+      "uses": 4
+    },
+    {
+      "index": 20,
+      "key": "eagle_eye_rune",
+      "sourceAtlas": 1,
+      "row": 4,
+      "column": 2,
+      "names": [
+        "鹰眼符文"
+      ],
+      "ids": [
+        "eagle_eye_rune"
+      ],
+      "slots": [
+        "blade_body_1",
+        "blade_body_2",
+        "shaft_rune"
+      ],
+      "weapons": [
+        "weapon4 符文长剑",
+        "weapon5 夜与火之剑",
+        "weapon20 学徒长杖"
+      ],
+      "uses": 5
+    },
+    {
+      "index": 21,
+      "key": "destruction_rune",
+      "sourceAtlas": 1,
+      "row": 4,
+      "column": 3,
+      "names": [
+        "毁灭符文"
+      ],
+      "ids": [
+        "destruction_rune"
+      ],
+      "slots": [
+        "blade_body_1",
+        "blade_body_2"
+      ],
+      "weapons": [
+        "weapon4 符文长剑",
+        "weapon5 夜与火之剑"
+      ],
+      "uses": 4
+    },
+    {
+      "index": 22,
+      "key": "vulnerability_blade",
+      "sourceAtlas": 1,
+      "row": 4,
+      "column": 4,
+      "names": [
+        "易伤刀刃"
+      ],
+      "ids": [
+        "vulnerability_blade"
+      ],
+      "slots": [
+        "blade"
+      ],
+      "weapons": [
+        "weapon5 夜与火之剑"
+      ],
+      "uses": 1
+    },
+    {
+      "index": 23,
+      "key": "enchanted_blade",
+      "sourceAtlas": 1,
+      "row": 4,
+      "column": 5,
+      "names": [
+        "附魔刀刃"
+      ],
+      "ids": [
+        "enchanted_blade"
+      ],
+      "slots": [
+        "blade"
+      ],
+      "weapons": [
+        "weapon5 夜与火之剑"
+      ],
+      "uses": 1
+    },
+    {
+      "index": 24,
+      "key": "frozen_crystal",
+      "sourceAtlas": 1,
+      "row": 4,
+      "column": 6,
+      "names": [
+        "永冻冰晶"
+      ],
+      "ids": [
+        "frozen_crystal"
+      ],
+      "slots": [
+        "head_crystal"
+      ],
+      "weapons": [
+        "weapon20 学徒长杖"
+      ],
+      "uses": 1
+    },
+    {
+      "index": 25,
+      "key": "magma_core",
+      "sourceAtlas": 1,
+      "row": 5,
+      "column": 1,
+      "names": [
+        "熔岩晶核"
+      ],
+      "ids": [
+        "magma_core"
+      ],
+      "slots": [
+        "head_crystal"
+      ],
+      "weapons": [
+        "weapon20 学徒长杖"
+      ],
+      "uses": 1
+    },
+    {
+      "index": 26,
+      "key": "jade_spirit_crystal",
+      "sourceAtlas": 1,
+      "row": 5,
+      "column": 2,
+      "names": [
+        "翠灵水晶"
+      ],
+      "ids": [
+        "jade_spirit_crystal"
+      ],
+      "slots": [
+        "head_crystal"
+      ],
+      "weapons": [
+        "weapon20 学徒长杖"
+      ],
+      "uses": 1
+    },
+    {
+      "index": 27,
+      "key": "storm_core",
+      "sourceAtlas": 1,
+      "row": 5,
+      "column": 3,
+      "names": [
+        "风暴核心"
+      ],
+      "ids": [
+        "storm_core"
+      ],
+      "slots": [
+        "head_crystal"
+      ],
+      "weapons": [
+        "weapon20 学徒长杖"
+      ],
+      "uses": 1
+    },
+    {
+      "index": 28,
+      "key": "spike_crown",
+      "sourceAtlas": 1,
+      "row": 5,
+      "column": 4,
+      "names": [
+        "尖刺"
+      ],
+      "ids": [
+        "spike_crown"
+      ],
+      "slots": [
+        "crown"
+      ],
+      "weapons": [
+        "weapon20 学徒长杖"
+      ],
+      "uses": 1
+    },
+    {
+      "index": 29,
+      "key": "current_crown",
+      "sourceAtlas": 1,
+      "row": 5,
+      "column": 5,
+      "names": [
+        "电流"
+      ],
+      "ids": [
+        "current_crown"
+      ],
+      "slots": [
+        "crown"
+      ],
+      "weapons": [
+        "weapon20 学徒长杖"
+      ],
+      "uses": 1
+    },
+    {
+      "index": 30,
+      "key": "wreath_crown",
+      "sourceAtlas": 1,
+      "row": 5,
+      "column": 6,
+      "names": [
+        "花环"
+      ],
+      "ids": [
+        "wreath_crown"
+      ],
+      "slots": [
+        "crown"
+      ],
+      "weapons": [
+        "weapon20 学徒长杖"
+      ],
+      "uses": 1
+    },
+    {
+      "index": 31,
+      "key": "heat_crown",
+      "sourceAtlas": 1,
+      "row": 6,
+      "column": 1,
+      "names": [
+        "热浪"
+      ],
+      "ids": [
+        "heat_crown"
+      ],
+      "slots": [
+        "crown"
+      ],
+      "weapons": [
+        "weapon20 学徒长杖"
+      ],
+      "uses": 1
+    },
+    {
+      "index": 32,
+      "key": "crit_rune",
+      "sourceAtlas": 1,
+      "row": 6,
+      "column": 2,
+      "names": [
+        "暴击符文"
+      ],
+      "ids": [
+        "crit_rune"
+      ],
+      "slots": [
+        "shaft_rune"
+      ],
+      "weapons": [
+        "weapon20 学徒长杖"
+      ],
+      "uses": 1
+    },
+    {
+      "index": 33,
+      "key": "storm_rune",
+      "sourceAtlas": 1,
+      "row": 6,
+      "column": 3,
+      "names": [
+        "风暴符文"
+      ],
+      "ids": [
+        "storm_rune"
+      ],
+      "slots": [
+        "shaft_rune"
+      ],
+      "weapons": [
+        "weapon20 学徒长杖"
+      ],
+      "uses": 1
+    },
+    {
+      "index": 34,
+      "key": "alloy_grip",
+      "sourceAtlas": 1,
+      "row": 6,
+      "column": 4,
+      "names": [
+        "合金"
+      ],
+      "ids": [
+        "alloy_grip"
+      ],
+      "slots": [
+        "grip_lining"
+      ],
+      "weapons": [
+        "weapon20 学徒长杖"
+      ],
+      "uses": 1
+    },
+    {
+      "index": 35,
+      "key": "pine_grip",
+      "sourceAtlas": 1,
+      "row": 6,
+      "column": 5,
+      "names": [
+        "松木"
+      ],
+      "ids": [
+        "pine_grip"
+      ],
+      "slots": [
+        "grip_lining"
+      ],
+      "weapons": [
+        "weapon20 学徒长杖"
+      ],
+      "uses": 1
+    },
+    {
+      "index": 36,
+      "key": "sandalwood_grip",
+      "sourceAtlas": 1,
+      "row": 6,
+      "column": 6,
+      "names": [
+        "檀木"
+      ],
+      "ids": [
+        "sandalwood_grip"
+      ],
+      "slots": [
+        "grip_lining"
+      ],
+      "weapons": [
+        "weapon20 学徒长杖"
+      ],
+      "uses": 1
+    },
+    {
+      "index": 37,
+      "key": "ice_soul_pendant",
+      "sourceAtlas": 2,
+      "row": 1,
+      "column": 1,
+      "names": [
+        "冰魄吊坠"
+      ],
+      "ids": [
+        "ice_soul_pendant"
+      ],
+      "slots": [
+        "tail_charm"
+      ],
+      "weapons": [
+        "weapon20 学徒长杖"
+      ],
+      "uses": 1
+    },
+    {
+      "index": 38,
+      "key": "thunder_bell",
+      "sourceAtlas": 2,
+      "row": 1,
+      "column": 2,
+      "names": [
+        "爆鸣雷铃"
+      ],
+      "ids": [
+        "thunder_bell"
+      ],
+      "slots": [
+        "tail_charm"
+      ],
+      "weapons": [
+        "weapon20 学徒长杖"
+      ],
+      "uses": 1
+    },
+    {
+      "index": 39,
+      "key": "purification_vine",
+      "sourceAtlas": 2,
+      "row": 1,
+      "column": 3,
+      "names": [
+        "净厄藤坠"
+      ],
+      "ids": [
+        "purification_vine"
+      ],
+      "slots": [
+        "tail_charm"
+      ],
+      "weapons": [
+        "weapon20 学徒长杖"
+      ],
+      "uses": 1
+    },
+    {
+      "index": 40,
+      "key": "flame_pendant",
+      "sourceAtlas": 2,
+      "row": 1,
+      "column": 4,
+      "names": [
+        "烈焰吊坠"
+      ],
+      "ids": [
+        "flame_pendant"
+      ],
+      "slots": [
+        "tail_charm"
+      ],
+      "weapons": [
+        "weapon20 学徒长杖"
+      ],
+      "uses": 1
+    },
+    {
+      "index": 41,
+      "key": "chain_mana",
+      "sourceAtlas": 2,
+      "row": 1,
+      "column": 5,
+      "names": [
+        "链式"
+      ],
+      "ids": [
+        "chain_mana"
+      ],
+      "slots": [
+        "mana_line"
+      ],
+      "weapons": [
+        "weapon20 学徒长杖"
+      ],
+      "uses": 1
+    },
+    {
+      "index": 42,
+      "key": "direct_mana",
+      "sourceAtlas": 2,
+      "row": 1,
+      "column": 6,
+      "names": [
+        "直流"
+      ],
+      "ids": [
+        "direct_mana"
+      ],
+      "slots": [
+        "mana_line"
+      ],
+      "weapons": [
+        "weapon20 学徒长杖"
+      ],
+      "uses": 1
+    },
+    {
+      "index": 43,
+      "key": "suppressor",
+      "sourceAtlas": 2,
+      "row": 2,
+      "column": 1,
+      "names": [
+        "消音器"
+      ],
+      "ids": [
+        "suppressor",
+        "shotgun_suppressor"
+      ],
+      "slots": [
+        "muzzle"
+      ],
+      "weapons": [
+        "weapon6 PKM",
+        "weapon7 AKM",
+        "weapon21 M416",
+        "weapon11 QJB-201",
+        "weapon8 QBZ-191",
+        "weapon12 Super90",
+        "weapon13 SAIGA-12K"
+      ],
+      "uses": 7
+    },
+    {
+      "index": 44,
+      "key": "flash_hider",
+      "sourceAtlas": 2,
+      "row": 2,
+      "column": 2,
+      "names": [
+        "鸟笼消焰器"
+      ],
+      "ids": [
+        "flash_hider"
+      ],
+      "slots": [
+        "muzzle"
+      ],
+      "weapons": [
+        "weapon6 PKM",
+        "weapon7 AKM",
+        "weapon21 M416",
+        "weapon11 QJB-201",
+        "weapon8 QBZ-191"
+      ],
+      "uses": 5
+    },
+    {
+      "index": 45,
+      "key": "muzzle_brake",
+      "sourceAtlas": 2,
+      "row": 2,
+      "column": 3,
+      "names": [
+        "DTK制退器"
+      ],
+      "ids": [
+        "muzzle_brake"
+      ],
+      "slots": [
+        "muzzle"
+      ],
+      "weapons": [
+        "weapon6 PKM",
+        "weapon7 AKM",
+        "weapon21 M416",
+        "weapon11 QJB-201",
+        "weapon8 QBZ-191"
+      ],
+      "uses": 5
+    },
+    {
+      "index": 46,
+      "key": "long_barrel",
+      "sourceAtlas": 2,
+      "row": 2,
+      "column": 4,
+      "names": [
+        "长枪管",
+        "标准长枪管"
+      ],
+      "ids": [
+        "long_barrel"
+      ],
+      "slots": [
+        "barrel"
+      ],
+      "weapons": [
+        "weapon6 PKM",
+        "weapon7 AKM",
+        "weapon21 M416",
+        "weapon22 .357麦格农左轮",
+        "weapon11 QJB-201",
+        "weapon8 QBZ-191",
+        "weapon12 Super90",
+        "weapon13 SAIGA-12K",
+        "weapon15 能量轻机枪"
+      ],
+      "uses": 9
+    },
+    {
+      "index": 47,
+      "key": "short_barrel",
+      "sourceAtlas": 2,
+      "row": 2,
+      "column": 5,
+      "names": [
+        "短枪管"
+      ],
+      "ids": [
+        "short_barrel"
+      ],
+      "slots": [
+        "barrel"
+      ],
+      "weapons": [
+        "weapon6 PKM",
+        "weapon7 AKM",
+        "weapon21 M416",
+        "weapon11 QJB-201",
+        "weapon8 QBZ-191",
+        "weapon12 Super90",
+        "weapon13 SAIGA-12K",
+        "weapon15 能量轻机枪"
+      ],
+      "uses": 8
+    },
+    {
+      "index": 48,
+      "key": "quick_change_barrel",
+      "sourceAtlas": 2,
+      "row": 2,
+      "column": 6,
+      "names": [
+        "快速换枪管"
+      ],
+      "ids": [
+        "quick_change_barrel"
+      ],
+      "slots": [
+        "barrel"
+      ],
+      "weapons": [
+        "weapon6 PKM"
+      ],
+      "uses": 1
+    },
+    {
+      "index": 49,
+      "key": "light_mag",
+      "sourceAtlas": 2,
+      "row": 3,
+      "column": 1,
+      "names": [
+        "轻型弹夹"
+      ],
+      "ids": [
+        "light_mag"
+      ],
+      "slots": [
+        "magazine"
+      ],
+      "weapons": [
+        "weapon6 PKM",
+        "weapon7 AKM",
+        "weapon21 M416",
+        "weapon11 QJB-201",
+        "weapon8 QBZ-191"
+      ],
+      "uses": 5
+    },
+    {
+      "index": 50,
+      "key": "extended_mag",
+      "sourceAtlas": 2,
+      "row": 3,
+      "column": 2,
+      "names": [
+        "扩容弹箱",
+        "扩容弹夹"
+      ],
+      "ids": [
+        "extended_mag"
+      ],
+      "slots": [
+        "magazine"
+      ],
+      "weapons": [
+        "weapon6 PKM",
+        "weapon7 AKM",
+        "weapon21 M416",
+        "weapon9 G18",
+        "weapon10 沙漠之鹰",
+        "weapon19 Beretta 93R",
+        "weapon11 QJB-201",
+        "weapon8 QBZ-191"
+      ],
+      "uses": 8
+    },
+    {
+      "index": 51,
+      "key": "belt_box",
+      "sourceAtlas": 2,
+      "row": 3,
+      "column": 3,
+      "names": [
+        "弹链供弹箱"
+      ],
+      "ids": [
+        "belt_box"
+      ],
+      "slots": [
+        "magazine"
+      ],
+      "weapons": [
+        "weapon6 PKM"
+      ],
+      "uses": 1
+    },
+    {
+      "index": 52,
+      "key": "ap_ammo",
+      "sourceAtlas": 2,
+      "row": 3,
+      "column": 4,
+      "names": [
+        "钢芯穿甲弹"
+      ],
+      "ids": [
+        "ap_ammo"
+      ],
+      "slots": [
+        "bullet"
+      ],
+      "weapons": [
+        "weapon6 PKM",
+        "weapon7 AKM",
+        "weapon21 M416",
+        "weapon11 QJB-201",
+        "weapon8 QBZ-191"
+      ],
+      "uses": 5
+    },
+    {
+      "index": 53,
+      "key": "sniper_ammo",
+      "sourceAtlas": 2,
+      "row": 3,
+      "column": 5,
+      "names": [
+        "高精度狙击弹",
+        "高���度狙击弹"
+      ],
+      "ids": [
+        "sniper_ammo"
+      ],
+      "slots": [
+        "bullet"
+      ],
+      "weapons": [
+        "weapon6 PKM",
+        "weapon7 AKM",
+        "weapon21 M416",
+        "weapon11 QJB-201",
+        "weapon8 QBZ-191"
+      ],
+      "uses": 5
+    },
+    {
+      "index": 54,
+      "key": "skeleton_stock",
+      "sourceAtlas": 2,
+      "row": 3,
+      "column": 6,
+      "names": [
+        "骨架枪托"
+      ],
+      "ids": [
+        "skeleton_stock"
+      ],
+      "slots": [
+        "stock"
+      ],
+      "weapons": [
+        "weapon6 PKM",
+        "weapon7 AKM",
+        "weapon21 M416",
+        "weapon11 QJB-201",
+        "weapon8 QBZ-191",
+        "weapon15 能量轻机枪"
+      ],
+      "uses": 6
+    },
+    {
+      "index": 55,
+      "key": "solid_core_stock",
+      "sourceAtlas": 2,
+      "row": 4,
+      "column": 1,
+      "names": [
+        "稳固核心枪托"
+      ],
+      "ids": [
+        "solid_core_stock"
+      ],
+      "slots": [
+        "stock"
+      ],
+      "weapons": [
+        "weapon6 PKM",
+        "weapon7 AKM",
+        "weapon21 M416",
+        "weapon11 QJB-201",
+        "weapon8 QBZ-191",
+        "weapon15 能量轻机枪"
+      ],
+      "uses": 6
+    },
+    {
+      "index": 56,
+      "key": "light_grip",
+      "sourceAtlas": 2,
+      "row": 4,
+      "column": 2,
+      "names": [
+        "轻型后握"
+      ],
+      "ids": [
+        "light_grip"
+      ],
+      "slots": [
+        "grip"
+      ],
+      "weapons": [
+        "weapon6 PKM",
+        "weapon7 AKM",
+        "weapon21 M416",
+        "weapon11 QJB-201",
+        "weapon8 QBZ-191",
+        "weapon15 能量轻机枪"
+      ],
+      "uses": 6
+    },
+    {
+      "index": 57,
+      "key": "heavy_grip",
+      "sourceAtlas": 2,
+      "row": 4,
+      "column": 3,
+      "names": [
+        "重型后握"
+      ],
+      "ids": [
+        "heavy_grip"
+      ],
+      "slots": [
+        "grip"
+      ],
+      "weapons": [
+        "weapon6 PKM",
+        "weapon7 AKM",
+        "weapon21 M416",
+        "weapon11 QJB-201",
+        "weapon8 QBZ-191",
+        "weapon15 能量轻机枪"
+      ],
+      "uses": 6
+    },
+    {
+      "index": 58,
+      "key": "bipod",
+      "sourceAtlas": 2,
+      "row": 4,
+      "column": 4,
+      "names": [
+        "两脚架"
+      ],
+      "ids": [
+        "bipod"
+      ],
+      "slots": [
+        "grip"
+      ],
+      "weapons": [
+        "weapon6 PKM"
+      ],
+      "uses": 1
+    },
+    {
+      "index": 59,
+      "key": "red_dot",
+      "sourceAtlas": 2,
+      "row": 4,
+      "column": 5,
+      "names": [
+        "全景红点瞄具"
+      ],
+      "ids": [
+        "red_dot"
+      ],
+      "slots": [
+        "sight"
+      ],
+      "weapons": [
+        "weapon6 PKM",
+        "weapon7 AKM",
+        "weapon21 M416",
+        "weapon9 G18",
+        "weapon10 沙漠之鹰",
+        "weapon22 .357麦格农左轮",
+        "weapon19 Beretta 93R",
+        "weapon11 QJB-201",
+        "weapon8 QBZ-191",
+        "weapon12 Super90",
+        "weapon13 SAIGA-12K",
+        "weapon15 能量轻机枪",
+        "weapon18 P4040"
+      ],
+      "uses": 13
+    },
+    {
+      "index": 60,
+      "key": "russian_3x_scope",
+      "sourceAtlas": 2,
+      "row": 4,
+      "column": 6,
+      "names": [
+        "俄制三倍镜"
+      ],
+      "ids": [
+        "russian_3x_scope"
+      ],
+      "slots": [
+        "sight"
+      ],
+      "weapons": [
+        "weapon6 PKM",
+        "weapon7 AKM",
+        "weapon21 M416",
+        "weapon9 G18",
+        "weapon10 沙漠之鹰",
+        "weapon22 .357麦格农左轮",
+        "weapon11 QJB-201",
+        "weapon8 QBZ-191",
+        "weapon12 Super90",
+        "weapon13 SAIGA-12K",
+        "weapon15 能量轻机枪"
+      ],
+      "uses": 11
+    },
+    {
+      "index": 61,
+      "key": "heavy_762",
+      "sourceAtlas": 2,
+      "row": 5,
+      "column": 1,
+      "names": [
+        "7.62重弹"
+      ],
+      "ids": [
+        "heavy_762"
+      ],
+      "slots": [
+        "bullet"
+      ],
+      "weapons": [
+        "weapon7 AKM"
+      ],
+      "uses": 1
+    },
+    {
+      "index": 62,
+      "key": "wood_furniture",
+      "sourceAtlas": 2,
+      "row": 5,
+      "column": 2,
+      "names": [
+        "AKM木托"
+      ],
+      "ids": [
+        "wood_furniture"
+      ],
+      "slots": [
+        "stock"
+      ],
+      "weapons": [
+        "weapon7 AKM"
+      ],
+      "uses": 1
+    },
+    {
+      "index": 63,
+      "key": "side_folding_stock",
+      "sourceAtlas": 2,
+      "row": 5,
+      "column": 3,
+      "names": [
+        "侧折叠枪托"
+      ],
+      "ids": [
+        "side_folding_stock"
+      ],
+      "slots": [
+        "stock"
+      ],
+      "weapons": [
+        "weapon7 AKM"
+      ],
+      "uses": 1
+    },
+    {
+      "index": 64,
+      "key": "piston_tuning",
+      "sourceAtlas": 2,
+      "row": 5,
+      "column": 4,
+      "names": [
+        "活塞调校"
+      ],
+      "ids": [
+        "piston_tuning"
+      ],
+      "slots": [
+        "barrel"
+      ],
+      "weapons": [
+        "weapon21 M416"
+      ],
+      "uses": 1
+    },
+    {
+      "index": 65,
+      "key": "hk_stock",
+      "sourceAtlas": 2,
+      "row": 5,
+      "column": 5,
+      "names": [
+        "HK枪托"
+      ],
+      "ids": [
+        "hk_stock"
+      ],
+      "slots": [
+        "stock"
+      ],
+      "weapons": [
+        "weapon21 M416"
+      ],
+      "uses": 1
+    },
+    {
+      "index": 66,
+      "key": "picatinny_rail",
+      "sourceAtlas": 2,
+      "row": 5,
+      "column": 6,
+      "names": [
+        "皮卡汀尼导轨"
+      ],
+      "ids": [
+        "picatinny_rail"
+      ],
+      "slots": [
+        "sight"
+      ],
+      "weapons": [
+        "weapon21 M416"
+      ],
+      "uses": 1
+    },
+    {
+      "index": 67,
+      "key": "multi_chamber_brake",
+      "sourceAtlas": 2,
+      "row": 6,
+      "column": 1,
+      "names": [
+        "多室枪口制退器"
+      ],
+      "ids": [
+        "multi_chamber_brake"
+      ],
+      "slots": [
+        "muzzle"
+      ],
+      "weapons": [
+        "weapon9 G18",
+        "weapon10 沙漠之鹰"
+      ],
+      "uses": 2
+    },
+    {
+      "index": 68,
+      "key": "large_caliber_suppressor",
+      "sourceAtlas": 2,
+      "row": 6,
+      "column": 2,
+      "names": [
+        "大口径消音器"
+      ],
+      "ids": [
+        "large_caliber_suppressor"
+      ],
+      "slots": [
+        "muzzle"
+      ],
+      "weapons": [
+        "weapon9 G18",
+        "weapon10 沙漠之鹰"
+      ],
+      "uses": 2
+    },
+    {
+      "index": 69,
+      "key": "integrated_suppressor",
+      "sourceAtlas": 2,
+      "row": 6,
+      "column": 3,
+      "names": [
+        "一体式消音器"
+      ],
+      "ids": [
+        "integrated_suppressor"
+      ],
+      "slots": [
+        "muzzle"
+      ],
+      "weapons": [
+        "weapon9 G18"
+      ],
+      "uses": 1
+    },
+    {
+      "index": 70,
+      "key": "competition_barrel",
+      "sourceAtlas": 2,
+      "row": 6,
+      "column": 4,
+      "names": [
+        "加长竞赛枪管"
+      ],
+      "ids": [
+        "competition_barrel"
+      ],
+      "slots": [
+        "barrel"
+      ],
+      "weapons": [
+        "weapon9 G18",
+        "weapon10 沙漠之鹰"
+      ],
+      "uses": 2
+    },
+    {
+      "index": 71,
+      "key": "lightweight_barrel",
+      "sourceAtlas": 2,
+      "row": 6,
+      "column": 5,
+      "names": [
+        "轻量化短枪管"
+      ],
+      "ids": [
+        "lightweight_barrel"
+      ],
+      "slots": [
+        "barrel"
+      ],
+      "weapons": [
+        "weapon9 G18",
+        "weapon10 沙漠之鹰"
+      ],
+      "uses": 2
+    },
+    {
+      "index": 72,
+      "key": "fmj_ammo",
+      "sourceAtlas": 2,
+      "row": 6,
+      "column": 6,
+      "names": [
+        "FMJ钢芯弹"
+      ],
+      "ids": [
+        "fmj_ammo"
+      ],
+      "slots": [
+        "bullet"
+      ],
+      "weapons": [
+        "weapon9 G18",
+        "weapon10 沙漠之鹰"
+      ],
+      "uses": 2
+    },
+    {
+      "index": 73,
+      "key": "hollow_point",
+      "sourceAtlas": 3,
+      "row": 1,
+      "column": 1,
+      "names": [
+        "空尖弹"
+      ],
+      "ids": [
+        "hollow_point"
+      ],
+      "slots": [
+        "bullet"
+      ],
+      "weapons": [
+        "weapon9 G18",
+        "weapon10 沙漠之鹰",
+        "weapon22 .357麦格农左轮"
+      ],
+      "uses": 3
+    },
+    {
+      "index": 74,
+      "key": "light_trigger",
+      "sourceAtlas": 3,
+      "row": 1,
+      "column": 2,
+      "names": [
+        "轻量化击发组件"
+      ],
+      "ids": [
+        "light_trigger"
+      ],
+      "slots": [
+        "trigger"
+      ],
+      "weapons": [
+        "weapon9 G18",
+        "weapon10 沙漠之鹰",
+        "weapon22 .357麦格农左轮"
+      ],
+      "uses": 3
+    },
+    {
+      "index": 75,
+      "key": "curved_trigger",
+      "sourceAtlas": 3,
+      "row": 1,
+      "column": 3,
+      "names": [
+        "弧形竞技扳机片"
+      ],
+      "ids": [
+        "curved_trigger"
+      ],
+      "slots": [
+        "trigger"
+      ],
+      "weapons": [
+        "weapon9 G18",
+        "weapon10 沙漠之鹰"
+      ],
+      "uses": 2
+    },
+    {
+      "index": 76,
+      "key": "burst_conversion",
+      "sourceAtlas": 3,
+      "row": 1,
+      "column": 4,
+      "names": [
+        "三连发组件"
+      ],
+      "ids": [
+        "burst_conversion"
+      ],
+      "slots": [
+        "trigger"
+      ],
+      "weapons": [
+        "weapon9 G18"
+      ],
+      "uses": 1
+    },
+    {
+      "index": 77,
+      "key": "stabilized_grip",
+      "sourceAtlas": 3,
+      "row": 1,
+      "column": 5,
+      "names": [
+        "稳定握把"
+      ],
+      "ids": [
+        "stabilized_grip"
+      ],
+      "slots": [
+        "trigger"
+      ],
+      "weapons": [
+        "weapon9 G18"
+      ],
+      "uses": 1
+    },
+    {
+      "index": 78,
+      "key": "carbon_fiber_mag",
+      "sourceAtlas": 3,
+      "row": 1,
+      "column": 6,
+      "names": [
+        "碳纤维快速弹夹"
+      ],
+      "ids": [
+        "carbon_fiber_mag"
+      ],
+      "slots": [
+        "magazine"
+      ],
+      "weapons": [
+        "weapon9 G18",
+        "weapon10 沙漠之鹰"
+      ],
+      "uses": 2
+    },
+    {
+      "index": 79,
+      "key": "drum_mag",
+      "sourceAtlas": 3,
+      "row": 2,
+      "column": 1,
+      "names": [
+        "33发弹鼓",
+        "大弹鼓"
+      ],
+      "ids": [
+        "drum_mag"
+      ],
+      "slots": [
+        "magazine"
+      ],
+      "weapons": [
+        "weapon9 G18",
+        "weapon13 SAIGA-12K"
+      ],
+      "uses": 2
+    },
+    {
+      "index": 80,
+      "key": "quick_mag_holster",
+      "sourceAtlas": 3,
+      "row": 2,
+      "column": 2,
+      "names": [
+        "快拔弹匣套"
+      ],
+      "ids": [
+        "quick_mag_holster"
+      ],
+      "slots": [
+        "magazine"
+      ],
+      "weapons": [
+        "weapon9 G18"
+      ],
+      "uses": 1
+    },
+    {
+      "index": 81,
+      "key": "match_barrel",
+      "sourceAtlas": 3,
+      "row": 2,
+      "column": 3,
+      "names": [
+        "比赛级枪管"
+      ],
+      "ids": [
+        "match_barrel"
+      ],
+      "slots": [
+        "barrel"
+      ],
+      "weapons": [
+        "weapon10 沙漠之鹰"
+      ],
+      "uses": 1
+    },
+    {
+      "index": 82,
+      "key": "magnum_load",
+      "sourceAtlas": 3,
+      "row": 2,
+      "column": 4,
+      "names": [
+        ".50马格南弹药"
+      ],
+      "ids": [
+        "magnum_load"
+      ],
+      "slots": [
+        "bullet"
+      ],
+      "weapons": [
+        "weapon10 沙漠之鹰"
+      ],
+      "uses": 1
+    },
+    {
+      "index": 83,
+      "key": "double_tap_trigger",
+      "sourceAtlas": 3,
+      "row": 2,
+      "column": 5,
+      "names": [
+        "双发扳机"
+      ],
+      "ids": [
+        "double_tap_trigger"
+      ],
+      "slots": [
+        "trigger"
+      ],
+      "weapons": [
+        "weapon10 沙漠之鹰"
+      ],
+      "uses": 1
+    },
+    {
+      "index": 84,
+      "key": "heavy_frame",
+      "sourceAtlas": 3,
+      "row": 2,
+      "column": 6,
+      "names": [
+        "重型握把"
+      ],
+      "ids": [
+        "heavy_frame"
+      ],
+      "slots": [
+        "grip"
+      ],
+      "weapons": [
+        "weapon10 沙漠之鹰"
+      ],
+      "uses": 1
+    },
+    {
+      "index": 85,
+      "key": "heavy_muzzle",
+      "sourceAtlas": 3,
+      "row": 3,
+      "column": 1,
+      "names": [
+        "重型枪口制退器"
+      ],
+      "ids": [
+        "heavy_muzzle"
+      ],
+      "slots": [
+        "muzzle"
+      ],
+      "weapons": [
+        "weapon22 .357麦格农左轮"
+      ],
+      "uses": 1
+    },
+    {
+      "index": 86,
+      "key": "compensator",
+      "sourceAtlas": 3,
+      "row": 3,
+      "column": 2,
+      "names": [
+        "枪口补偿器",
+        "制退器"
+      ],
+      "ids": [
+        "compensator"
+      ],
+      "slots": [
+        "muzzle"
+      ],
+      "weapons": [
+        "weapon22 .357麦格农左轮",
+        "weapon19 Beretta 93R"
+      ],
+      "uses": 2
+    },
+    {
+      "index": 87,
+      "key": "snub_barrel",
+      "sourceAtlas": 3,
+      "row": 3,
+      "column": 3,
+      "names": [
+        "短枪管"
+      ],
+      "ids": [
+        "snub_barrel"
+      ],
+      "slots": [
+        "barrel"
+      ],
+      "weapons": [
+        "weapon22 .357麦格农左轮"
+      ],
+      "uses": 1
+    },
+    {
+      "index": 88,
+      "key": "magnum_round",
+      "sourceAtlas": 3,
+      "row": 3,
+      "column": 4,
+      "names": [
+        "马格南重弹"
+      ],
+      "ids": [
+        "magnum_round"
+      ],
+      "slots": [
+        "bullet"
+      ],
+      "weapons": [
+        "weapon22 .357麦格农左轮"
+      ],
+      "uses": 1
+    },
+    {
+      "index": 89,
+      "key": "wadcutter_round",
+      "sourceAtlas": 3,
+      "row": 3,
+      "column": 5,
+      "names": [
+        "平头弹"
+      ],
+      "ids": [
+        "wadcutter_round"
+      ],
+      "slots": [
+        "bullet"
+      ],
+      "weapons": [
+        "weapon22 .357麦格农左轮"
+      ],
+      "uses": 1
+    },
+    {
+      "index": 90,
+      "key": "fanning_hammer",
+      "sourceAtlas": 3,
+      "row": 3,
+      "column": 6,
+      "names": [
+        "扇击击锤"
+      ],
+      "ids": [
+        "fanning_hammer"
+      ],
+      "slots": [
+        "trigger"
+      ],
+      "weapons": [
+        "weapon22 .357麦格农左轮"
+      ],
+      "uses": 1
+    },
+    {
+      "index": 91,
+      "key": "hammer_spring",
+      "sourceAtlas": 3,
+      "row": 4,
+      "column": 1,
+      "names": [
+        "强化击锤簧"
+      ],
+      "ids": [
+        "hammer_spring"
+      ],
+      "slots": [
+        "trigger"
+      ],
+      "weapons": [
+        "weapon22 .357麦格农左轮"
+      ],
+      "uses": 1
+    },
+    {
+      "index": 92,
+      "key": "nine_round_cylinder",
+      "sourceAtlas": 3,
+      "row": 4,
+      "column": 2,
+      "names": [
+        "9发弹巢"
+      ],
+      "ids": [
+        "nine_round_cylinder"
+      ],
+      "slots": [
+        "magazine"
+      ],
+      "weapons": [
+        "weapon22 .357麦格农左轮"
+      ],
+      "uses": 1
+    },
+    {
+      "index": 93,
+      "key": "speed_loader",
+      "sourceAtlas": 3,
+      "row": 4,
+      "column": 3,
+      "names": [
+        "快速装弹器"
+      ],
+      "ids": [
+        "speed_loader"
+      ],
+      "slots": [
+        "magazine"
+      ],
+      "weapons": [
+        "weapon22 .357麦格农左轮"
+      ],
+      "uses": 1
+    },
+    {
+      "index": 94,
+      "key": "cylinder_lighten",
+      "sourceAtlas": 3,
+      "row": 4,
+      "column": 4,
+      "names": [
+        "轻量化弹巢"
+      ],
+      "ids": [
+        "cylinder_lighten"
+      ],
+      "slots": [
+        "magazine"
+      ],
+      "weapons": [
+        "weapon22 .357麦格农左轮"
+      ],
+      "uses": 1
+    },
+    {
+      "index": 95,
+      "key": "scope_mount",
+      "sourceAtlas": 3,
+      "row": 4,
+      "column": 5,
+      "names": [
+        "瞄准镜座"
+      ],
+      "ids": [
+        "scope_mount"
+      ],
+      "slots": [
+        "sight"
+      ],
+      "weapons": [
+        "weapon22 .357麦格农左轮"
+      ],
+      "uses": 1
+    },
+    {
+      "index": 96,
+      "key": "elite_brake",
+      "sourceAtlas": 3,
+      "row": 4,
+      "column": 6,
+      "names": [
+        "精英制退器"
+      ],
+      "ids": [
+        "elite_brake"
+      ],
+      "slots": [
+        "muzzle"
+      ],
+      "weapons": [
+        "weapon19 Beretta 93R",
+        "weapon18 P4040"
+      ],
+      "uses": 2
+    },
+    {
+      "index": 97,
+      "key": "pistol_suppressor",
+      "sourceAtlas": 3,
+      "row": 5,
+      "column": 1,
+      "names": [
+        "手枪消音器"
+      ],
+      "ids": [
+        "pistol_suppressor"
+      ],
+      "slots": [
+        "muzzle"
+      ],
+      "weapons": [
+        "weapon19 Beretta 93R",
+        "weapon18 P4040"
+      ],
+      "uses": 2
+    },
+    {
+      "index": 98,
+      "key": "longshot_barrel",
+      "sourceAtlas": 3,
+      "row": 5,
+      "column": 2,
+      "names": [
+        "远射枪管"
+      ],
+      "ids": [
+        "longshot_barrel"
+      ],
+      "slots": [
+        "barrel"
+      ],
+      "weapons": [
+        "weapon19 Beretta 93R",
+        "weapon18 P4040"
+      ],
+      "uses": 2
+    },
+    {
+      "index": 99,
+      "key": "cqb_barrel",
+      "sourceAtlas": 3,
+      "row": 5,
+      "column": 3,
+      "names": [
+        "近战短管"
+      ],
+      "ids": [
+        "cqb_barrel"
+      ],
+      "slots": [
+        "barrel"
+      ],
+      "weapons": [
+        "weapon19 Beretta 93R",
+        "weapon18 P4040"
+      ],
+      "uses": 2
+    },
+    {
+      "index": 100,
+      "key": "long_extended_mag",
+      "sourceAtlas": 3,
+      "row": 5,
+      "column": 4,
+      "names": [
+        "长扩容弹夹"
+      ],
+      "ids": [
+        "long_extended_mag"
+      ],
+      "slots": [
+        "magazine"
+      ],
+      "weapons": [
+        "weapon19 Beretta 93R",
+        "weapon18 P4040"
+      ],
+      "uses": 2
+    },
+    {
+      "index": 101,
+      "key": "extended_grip",
+      "sourceAtlas": 3,
+      "row": 5,
+      "column": 5,
+      "names": [
+        "加长弹匣"
+      ],
+      "ids": [
+        "extended_grip"
+      ],
+      "slots": [
+        "magazine"
+      ],
+      "weapons": [
+        "weapon19 Beretta 93R"
+      ],
+      "uses": 1
+    },
+    {
+      "index": 102,
+      "key": "subsonic_hp",
+      "sourceAtlas": 3,
+      "row": 5,
+      "column": 6,
+      "names": [
+        "亚音速空尖弹"
+      ],
+      "ids": [
+        "subsonic_hp"
+      ],
+      "slots": [
+        "bullet"
+      ],
+      "weapons": [
+        "weapon19 Beretta 93R"
+      ],
+      "uses": 1
+    },
+    {
+      "index": 103,
+      "key": "subsonic_fmj",
+      "sourceAtlas": 3,
+      "row": 6,
+      "column": 1,
+      "names": [
+        "亚音速全金属被甲弹"
+      ],
+      "ids": [
+        "subsonic_fmj"
+      ],
+      "slots": [
+        "bullet"
+      ],
+      "weapons": [
+        "weapon19 Beretta 93R"
+      ],
+      "uses": 1
+    },
+    {
+      "index": 104,
+      "key": "burst_trigger",
+      "sourceAtlas": 3,
+      "row": 6,
+      "column": 2,
+      "names": [
+        "爆发板机"
+      ],
+      "ids": [
+        "burst_trigger"
+      ],
+      "slots": [
+        "trigger"
+      ],
+      "weapons": [
+        "weapon19 Beretta 93R"
+      ],
+      "uses": 1
+    },
+    {
+      "index": 105,
+      "key": "auto_trigger",
+      "sourceAtlas": 3,
+      "row": 6,
+      "column": 3,
+      "names": [
+        "全自动板机"
+      ],
+      "ids": [
+        "auto_trigger"
+      ],
+      "slots": [
+        "trigger"
+      ],
+      "weapons": [
+        "weapon19 Beretta 93R",
+        "weapon18 P4040"
+      ],
+      "uses": 2
+    },
+    {
+      "index": 106,
+      "key": "double_tap",
+      "sourceAtlas": 3,
+      "row": 6,
+      "column": 4,
+      "names": [
+        "双发点射扳机"
+      ],
+      "ids": [
+        "double_tap"
+      ],
+      "slots": [
+        "trigger"
+      ],
+      "weapons": [
+        "weapon19 Beretta 93R"
+      ],
+      "uses": 1
+    },
+    {
+      "index": 107,
+      "key": "cooling_barrel",
+      "sourceAtlas": 3,
+      "row": 6,
+      "column": 5,
+      "names": [
+        "散热枪管"
+      ],
+      "ids": [
+        "cooling_barrel"
+      ],
+      "slots": [
+        "barrel"
+      ],
+      "weapons": [
+        "weapon11 QJB-201"
+      ],
+      "uses": 1
+    },
+    {
+      "index": 108,
+      "key": "drum_belt",
+      "sourceAtlas": 3,
+      "row": 6,
+      "column": 6,
+      "names": [
+        "弹鼓"
+      ],
+      "ids": [
+        "drum_belt"
+      ],
+      "slots": [
+        "magazine"
+      ],
+      "weapons": [
+        "weapon11 QJB-201"
+      ],
+      "uses": 1
+    },
+    {
+      "index": 109,
+      "key": "sustained_fire",
+      "sourceAtlas": 4,
+      "row": 1,
+      "column": 1,
+      "names": [
+        "持续射击托"
+      ],
+      "ids": [
+        "sustained_fire"
+      ],
+      "slots": [
+        "stock"
+      ],
+      "weapons": [
+        "weapon11 QJB-201"
+      ],
+      "uses": 1
+    },
+    {
+      "index": 110,
+      "key": "bullpup_balance",
+      "sourceAtlas": 4,
+      "row": 1,
+      "column": 2,
+      "names": [
+        "无托平衡改造"
+      ],
+      "ids": [
+        "bullpup_balance"
+      ],
+      "slots": [
+        "grip"
+      ],
+      "weapons": [
+        "weapon8 QBZ-191"
+      ],
+      "uses": 1
+    },
+    {
+      "index": 111,
+      "key": "qbz_scope",
+      "sourceAtlas": 4,
+      "row": 1,
+      "column": 3,
+      "names": [
+        "无托战术瞄具"
+      ],
+      "ids": [
+        "qbz_scope"
+      ],
+      "slots": [
+        "sight"
+      ],
+      "weapons": [
+        "weapon8 QBZ-191"
+      ],
+      "uses": 1
+    },
+    {
+      "index": 112,
+      "key": "rapid_trigger",
+      "sourceAtlas": 4,
+      "row": 1,
+      "column": 4,
+      "names": [
+        "高速扳机"
+      ],
+      "ids": [
+        "rapid_trigger"
+      ],
+      "slots": [
+        "trigger"
+      ],
+      "weapons": [
+        "weapon8 QBZ-191"
+      ],
+      "uses": 1
+    },
+    {
+      "index": 113,
+      "key": "choke",
+      "sourceAtlas": 4,
+      "row": 1,
+      "column": 5,
+      "names": [
+        "收束器"
+      ],
+      "ids": [
+        "choke"
+      ],
+      "slots": [
+        "muzzle"
+      ],
+      "weapons": [
+        "weapon12 Super90",
+        "weapon13 SAIGA-12K"
+      ],
+      "uses": 2
+    },
+    {
+      "index": 114,
+      "key": "slug",
+      "sourceAtlas": 4,
+      "row": 1,
+      "column": 6,
+      "names": [
+        "独头弹"
+      ],
+      "ids": [
+        "slug"
+      ],
+      "slots": [
+        "bullet"
+      ],
+      "weapons": [
+        "weapon12 Super90",
+        "weapon13 SAIGA-12K"
+      ],
+      "uses": 2
+    },
+    {
+      "index": 115,
+      "key": "flechette",
+      "sourceAtlas": 4,
+      "row": 2,
+      "column": 1,
+      "names": [
+        "箭型弹"
+      ],
+      "ids": [
+        "flechette"
+      ],
+      "slots": [
+        "bullet"
+      ],
+      "weapons": [
+        "weapon12 Super90",
+        "weapon13 SAIGA-12K"
+      ],
+      "uses": 2
+    },
+    {
+      "index": 116,
+      "key": "buckshot_heavy",
+      "sourceAtlas": 4,
+      "row": 2,
+      "column": 2,
+      "names": [
+        "重鹿弹"
+      ],
+      "ids": [
+        "buckshot_heavy"
+      ],
+      "slots": [
+        "bullet"
+      ],
+      "weapons": [
+        "weapon12 Super90"
+      ],
+      "uses": 1
+    },
+    {
+      "index": 117,
+      "key": "fast_loader",
+      "sourceAtlas": 4,
+      "row": 2,
+      "column": 3,
+      "names": [
+        "快速装填器"
+      ],
+      "ids": [
+        "fast_loader"
+      ],
+      "slots": [
+        "magazine"
+      ],
+      "weapons": [
+        "weapon12 Super90"
+      ],
+      "uses": 1
+    },
+    {
+      "index": 118,
+      "key": "extended_tube",
+      "sourceAtlas": 4,
+      "row": 2,
+      "column": 4,
+      "names": [
+        "加长弹管"
+      ],
+      "ids": [
+        "extended_tube"
+      ],
+      "slots": [
+        "magazine"
+      ],
+      "weapons": [
+        "weapon12 Super90"
+      ],
+      "uses": 1
+    },
+    {
+      "index": 119,
+      "key": "shell_caddy",
+      "sourceAtlas": 4,
+      "row": 2,
+      "column": 5,
+      "names": [
+        "快速弹托"
+      ],
+      "ids": [
+        "shell_caddy"
+      ],
+      "slots": [
+        "magazine"
+      ],
+      "weapons": [
+        "weapon12 Super90"
+      ],
+      "uses": 1
+    },
+    {
+      "index": 120,
+      "key": "ar_folding",
+      "sourceAtlas": 4,
+      "row": 2,
+      "column": 6,
+      "names": [
+        "AR式折叠套件"
+      ],
+      "ids": [
+        "ar_folding"
+      ],
+      "slots": [
+        "stock"
+      ],
+      "weapons": [
+        "weapon12 Super90",
+        "weapon13 SAIGA-12K"
+      ],
+      "uses": 2
+    },
+    {
+      "index": 121,
+      "key": "tactical_stock",
+      "sourceAtlas": 4,
+      "row": 3,
+      "column": 1,
+      "names": [
+        "一体化战术枪托"
+      ],
+      "ids": [
+        "tactical_stock"
+      ],
+      "slots": [
+        "stock"
+      ],
+      "weapons": [
+        "weapon12 Super90",
+        "weapon13 SAIGA-12K"
+      ],
+      "uses": 2
+    },
+    {
+      "index": 122,
+      "key": "bullpup",
+      "sourceAtlas": 4,
+      "row": 3,
+      "column": 2,
+      "names": [
+        "无托改造"
+      ],
+      "ids": [
+        "bullpup"
+      ],
+      "slots": [
+        "stock"
+      ],
+      "weapons": [
+        "weapon12 Super90",
+        "weapon13 SAIGA-12K"
+      ],
+      "uses": 2
+    },
+    {
+      "index": 123,
+      "key": "angled_grip",
+      "sourceAtlas": 4,
+      "row": 3,
+      "column": 3,
+      "names": [
+        "战术斜握把"
+      ],
+      "ids": [
+        "angled_grip"
+      ],
+      "slots": [
+        "grip"
+      ],
+      "weapons": [
+        "weapon12 Super90",
+        "weapon13 SAIGA-12K"
+      ],
+      "uses": 2
+    },
+    {
+      "index": 124,
+      "key": "pistol_grip",
+      "sourceAtlas": 4,
+      "row": 3,
+      "column": 4,
+      "names": [
+        "分离式手枪握把"
+      ],
+      "ids": [
+        "pistol_grip"
+      ],
+      "slots": [
+        "grip"
+      ],
+      "weapons": [
+        "weapon12 Super90",
+        "weapon13 SAIGA-12K"
+      ],
+      "uses": 2
+    },
+    {
+      "index": 125,
+      "key": "slug_precision",
+      "sourceAtlas": 4,
+      "row": 3,
+      "column": 5,
+      "names": [
+        "独头弹精调"
+      ],
+      "ids": [
+        "slug_precision"
+      ],
+      "slots": [
+        "barrel"
+      ],
+      "weapons": [
+        "weapon13 SAIGA-12K"
+      ],
+      "uses": 1
+    },
+    {
+      "index": 126,
+      "key": "light_extended",
+      "sourceAtlas": 4,
+      "row": 3,
+      "column": 6,
+      "names": [
+        "轻型扩容弹夹"
+      ],
+      "ids": [
+        "light_extended",
+        "light_extended_mag"
+      ],
+      "slots": [
+        "magazine"
+      ],
+      "weapons": [
+        "weapon13 SAIGA-12K",
+        "weapon18 P4040"
+      ],
+      "uses": 2
+    },
+    {
+      "index": 127,
+      "key": "tactical_light",
+      "sourceAtlas": 4,
+      "row": 4,
+      "column": 1,
+      "names": [
+        "战术灯"
+      ],
+      "ids": [
+        "tactical_light"
+      ],
+      "slots": [
+        "grip"
+      ],
+      "weapons": [
+        "weapon13 SAIGA-12K"
+      ],
+      "uses": 1
+    },
+    {
+      "index": 128,
+      "key": "race_trigger",
+      "sourceAtlas": 4,
+      "row": 4,
+      "column": 2,
+      "names": [
+        "竞赛扳机"
+      ],
+      "ids": [
+        "race_trigger"
+      ],
+      "slots": [
+        "trigger"
+      ],
+      "weapons": [
+        "weapon13 SAIGA-12K"
+      ],
+      "uses": 1
+    },
+    {
+      "index": 129,
+      "key": "special_brake",
+      "sourceAtlas": 4,
+      "row": 4,
+      "column": 3,
+      "names": [
+        "特制制退器"
+      ],
+      "ids": [
+        "special_brake"
+      ],
+      "slots": [
+        "muzzle"
+      ],
+      "weapons": [
+        "weapon15 能量轻机枪"
+      ],
+      "uses": 1
+    },
+    {
+      "index": 130,
+      "key": "border_radiator",
+      "sourceAtlas": 4,
+      "row": 4,
+      "column": 4,
+      "names": [
+        "边境散热器"
+      ],
+      "ids": [
+        "border_radiator"
+      ],
+      "slots": [
+        "muzzle"
+      ],
+      "weapons": [
+        "weapon15 能量轻机枪"
+      ],
+      "uses": 1
+    },
+    {
+      "index": 131,
+      "key": "energy_extended",
+      "sourceAtlas": 4,
+      "row": 4,
+      "column": 5,
+      "names": [
+        "能量扩容弹箱"
+      ],
+      "ids": [
+        "energy_extended"
+      ],
+      "slots": [
+        "magazine"
+      ],
+      "weapons": [
+        "weapon15 能量轻机枪"
+      ],
+      "uses": 1
+    },
+    {
+      "index": 132,
+      "key": "energy_fast",
+      "sourceAtlas": 4,
+      "row": 4,
+      "column": 6,
+      "names": [
+        "快速能量弹夹"
+      ],
+      "ids": [
+        "energy_fast"
+      ],
+      "slots": [
+        "magazine"
+      ],
+      "weapons": [
+        "weapon15 能量轻机枪"
+      ],
+      "uses": 1
+    },
+    {
+      "index": 133,
+      "key": "overload_cell",
+      "sourceAtlas": 4,
+      "row": 5,
+      "column": 1,
+      "names": [
+        "过载能量电池"
+      ],
+      "ids": [
+        "overload_cell"
+      ],
+      "slots": [
+        "magazine"
+      ],
+      "weapons": [
+        "weapon15 能量轻机枪"
+      ],
+      "uses": 1
+    },
+    {
+      "index": 134,
+      "key": "cooling_fin",
+      "sourceAtlas": 4,
+      "row": 5,
+      "column": 2,
+      "names": [
+        "散热鳍片"
+      ],
+      "ids": [
+        "cooling_fin"
+      ],
+      "slots": [
+        "magazine"
+      ],
+      "weapons": [
+        "weapon15 能量轻机枪"
+      ],
+      "uses": 1
+    },
+    {
+      "index": 135,
+      "key": "high_energy",
+      "sourceAtlas": 4,
+      "row": 5,
+      "column": 3,
+      "names": [
+        "高能量子弹"
+      ],
+      "ids": [
+        "high_energy"
+      ],
+      "slots": [
+        "bullet"
+      ],
+      "weapons": [
+        "weapon15 能量轻机枪"
+      ],
+      "uses": 1
+    },
+    {
+      "index": 136,
+      "key": "piercing_ammo",
+      "sourceAtlas": 4,
+      "row": 5,
+      "column": 4,
+      "names": [
+        "强穿透子弹"
+      ],
+      "ids": [
+        "piercing_ammo"
+      ],
+      "slots": [
+        "bullet"
+      ],
+      "weapons": [
+        "weapon15 能量轻机枪"
+      ],
+      "uses": 1
+    },
+    {
+      "index": 137,
+      "key": "focus_lens",
+      "sourceAtlas": 4,
+      "row": 5,
+      "column": 5,
+      "names": [
+        "聚焦镜片"
+      ],
+      "ids": [
+        "focus_lens"
+      ],
+      "slots": [
+        "bullet"
+      ],
+      "weapons": [
+        "weapon15 能量轻机枪"
+      ],
+      "uses": 1
+    },
+    {
+      "index": 138,
+      "key": "quick_mag",
+      "sourceAtlas": 4,
+      "row": 5,
+      "column": 6,
+      "names": [
+        "快拔弹匣"
+      ],
+      "ids": [
+        "quick_mag"
+      ],
+      "slots": [
+        "magazine"
+      ],
+      "weapons": [
+        "weapon18 P4040"
+      ],
+      "uses": 1
+    },
+    {
+      "index": 139,
+      "key": "hammer_point",
+      "sourceAtlas": 4,
+      "row": 6,
+      "column": 1,
+      "names": [
+        "锤击点弹药"
+      ],
+      "ids": [
+        "hammer_point"
+      ],
+      "slots": [
+        "bullet"
+      ],
+      "weapons": [
+        "weapon18 P4040"
+      ],
+      "uses": 1
+    },
+    {
+      "index": 140,
+      "key": "border_light_ammo",
+      "sourceAtlas": 4,
+      "row": 6,
+      "column": 2,
+      "names": [
+        "边境轻型弹药"
+      ],
+      "ids": [
+        "border_light_ammo"
+      ],
+      "slots": [
+        "bullet"
+      ],
+      "weapons": [
+        "weapon18 P4040"
+      ],
+      "uses": 1
+    },
+    {
+      "index": 141,
+      "key": "ap_round",
+      "sourceAtlas": 4,
+      "row": 6,
+      "column": 3,
+      "names": [
+        "穿甲弹"
+      ],
+      "ids": [
+        "ap_round"
+      ],
+      "slots": [
+        "bullet"
+      ],
+      "weapons": [
+        "weapon18 P4040"
+      ],
+      "uses": 1
+    },
+    {
+      "index": 142,
+      "key": "lightweight_trigger",
+      "sourceAtlas": 4,
+      "row": 6,
+      "column": 4,
+      "names": [
+        "轻量化快速板机"
+      ],
+      "ids": [
+        "lightweight_trigger"
+      ],
+      "slots": [
+        "trigger"
+      ],
+      "weapons": [
+        "weapon18 P4040"
+      ],
+      "uses": 1
+    },
+    {
+      "index": 143,
+      "key": "tactical_laser",
+      "sourceAtlas": 4,
+      "row": 6,
+      "column": 5,
+      "names": [
+        "战术激光"
+      ],
+      "ids": [
+        "tactical_laser"
+      ],
+      "slots": [
+        "grip"
+      ],
+      "weapons": [
+        "weapon18 P4040"
+      ],
+      "uses": 1
+    }
+  ]
+}

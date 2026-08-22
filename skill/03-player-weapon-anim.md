@@ -576,5 +576,15 @@ Phaser Sprite.x / y / rotation / scale
 3. 在 `_syncEnemyAnimation()` 中根据 `_animState === 'attack'` 播放对应 spritesheet。
 4. 让 `ZombieDogEnemy.triggerWeaponAnim()` 不只是一个 timer，而是真正驱动一帧一帧的动画 progress。
 
+#### 七、技能页资源调试入口（2026-08-22）
+
+- T 交互开发面板由 `src/ui/panels/dev-tools.js#createDevToolPanel()` 动态创建；一次性经济调试按钮放在
+  `data-tab-content="skill"` 的技能页，不要另建第二套开发面板或绕过现有 T 键生命周期。
+- 金币必须调用 `GoldManager.depositGold()`，让堆叠上限、背包槽位、满包提示和背包刷新保持一致；
+  能源/食物必须调用 `EnergyManager` 的仓库协议，容量不足的部分进入待入库队列，禁止直接写 HUD 数字或
+  把能源物品重新塞回背包。
+- 新游戏初始物品的唯一模板是 `EquipDataManager.TEST_BACKPACK_ITEMS`。删除模板中的金币只影响新建背包；
+  不得在 `EquipManager.init()` 里过滤金币，否则会误删旧存档与正常拾取所得金币。
+
 ---
-
+

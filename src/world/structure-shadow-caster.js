@@ -1,5 +1,6 @@
 import { getBuildingFootprint } from './building-footprint.js';
 import {
+    resolveStructureAlphaShadowSlices,
     resolveStructureGroundFit,
     shouldAutoAnchorStructure,
 } from './structure-visual-anchor.js';
@@ -24,6 +25,22 @@ function normalizeLocalPolygon(points, mirrorSign = 1) {
         out.push({ x: Number(x) * mirrorSign, y: Number(y) });
     }
     return out.length >= 3 ? out : null;
+}
+
+/** 把从主体贴图提取的局部轮廓应用到 Sprite 实际采用的锚点与镜像坐标。 */
+function transformVisualLocalPolygon(points, mirrorSign, adjustX, adjustY) {
+    if (!Array.isArray(points) || points.length < 3) return null;
+    const normalized = [];
+    for (const point of points) {
+        const x = Array.isArray(point) ? point[0] : point?.x;
+        const y = Array.isArray(point) ? point[1] : point?.y;
+        if (!Number.isFinite(Number(x)) || !Number.isFinite(Number(y))) continue;
+        normalized.push({
+            x: (Number(x) + adjustX) * mirrorSign,
+            y: Number(y) - adjustY,
+        });
+    }
+    return normalized.length >= 3 ? normalized : null;
 }
 
 function toWorldPolygon(points, anchorX, anchorY) {
@@ -53,13 +70,17 @@ export function resolveStructureShadowCaster(scene, entity, sprite, options = {}
     const anchorX = Number.isFinite(entity.x) ? entity.x : finite(options.anchorX, sprite.x);
     const anchorY = Number.isFinite(entity.y) ? entity.y : finite(options.anchorY, sprite.y);
     const mirrorSign = entity._facingLeft || sprite.flipX ? -1 : 1;
+    const anchorAdjustX = finite(entity.spriteCfg?.anchorAdjustX, 0);
+    const anchorAdjustY = finite(entity.spriteCfg?.anchorAdjustY, 0);
     let contactLocal = normalizeLocalPolygon(config.contactPolygon, mirrorSign);
+    let sliceBasisLocal = normalizeLocalPolygon(config.contactPolygon, 1);
     let source = contactLocal ? 'config' : null;
+    let groundFit = null;
 
     // 只有普通独立建筑走主体 alpha 接地拟合。塔、墙、门、楼梯继续使用各自专用几何。
-    if (!contactLocal && config.contactSource !== 'placement' && shouldAutoAnchorStructure(entity)) {
+    if (config.contactSource !== 'placement' && shouldAutoAnchorStructure(entity)) {
         const nominal = getBuildingFootprint(entity._buildingFootprintCells || 2);
-        const fit = resolveStructureGroundFit(
+        groundFit = resolveStructureGroundFit(
             scene,
             sprite.texture?.key,
             sprite.frame?.name,
@@ -67,9 +88,16 @@ export function resolveStructureShadowCaster(scene, entity, sprite, options = {}
             sprite.displayHeight,
             { nominalWidth: nominal.w, nominalHeight: nominal.d }
         );
-        if (fit?.localVertices?.length >= 3) {
-            // fit.localVertices 已以逻辑前脚点为原点，且本身左右对称；镜像无需重复处理。
-            contactLocal = fit.localVertices.map((point) => ({ x: point.x, y: point.y }));
+        const alphaContact = groundFit?.contactPolygon || groundFit?.localVertices;
+        if (!contactLocal && alphaContact?.length >= 3) {
+            // alpha 轮廓必须复用 Sprite 的 anchorAdjustX/Y 与镜像，否则贴图已移动、阴影仍留在逻辑格心。
+            sliceBasisLocal = normalizeLocalPolygon(alphaContact, 1);
+            contactLocal = transformVisualLocalPolygon(
+                alphaContact,
+                mirrorSign,
+                anchorAdjustX,
+                anchorAdjustY
+            );
             source = 'body_alpha';
         }
     }
@@ -97,7 +125,47 @@ export function resolveStructureShadowCaster(scene, entity, sprite, options = {}
         });
     }
 
-    // 无分层配置时，主体接地面自身就是一个从地面延伸到建筑高度的低模投射体。
+    // 分层 alpha 低模改为显式 opt-in。默认自动分层会让左右边分别被不同宽度/高度的
+    // 屋檐、塔楼或侧翼接管，虽然每个点都沿同一太阳向量移动，最终包络的两条侧边却
+    // 不再平行。普通建筑默认走下方单体棱柱：真实 contact polygon 沿唯一影向平行扫掠。
+    if (parts.length === 0 && config.autoParts === true && groundFit) {
+        const slices = resolveStructureAlphaShadowSlices(
+            scene,
+            sprite.texture?.key,
+            sprite.frame?.name,
+            sprite.displayWidth,
+            sprite.displayHeight,
+            groundFit,
+            sliceBasisLocal || contactLocal,
+            configuredHeight
+        );
+        if (slices.length > 0) {
+            parts.push({
+                id: 'contact_root',
+                vertices: contactVertices,
+                baseZ: 0,
+                topZ: configuredHeight * 0.24,
+            });
+            for (const slice of slices) {
+                const local = transformVisualLocalPolygon(
+                    slice.polygon,
+                    mirrorSign,
+                    anchorAdjustX,
+                    anchorAdjustY
+                );
+                if (!local) continue;
+                parts.push({
+                    id: slice.id,
+                    vertices: toWorldPolygon(local, anchorX, anchorY),
+                    baseZ: slice.baseZ,
+                    topZ: slice.topZ,
+                });
+            }
+            source = source === 'config' ? 'config_alpha_layers' : 'body_alpha_layers';
+        }
+    }
+
+    // 贴图无法形成稳定分层时，回退为单体低模，确保任何建筑都不会丢失阴影。
     if (parts.length === 0) {
         parts.push({
             id: 'body',
@@ -123,4 +191,3 @@ export function resolveStructureShadowCaster(scene, entity, sprite, options = {}
         signature,
     };
 }
-

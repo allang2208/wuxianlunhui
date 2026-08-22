@@ -2,14 +2,22 @@ import technologyTree from '../../data/technology-tree.json';
 import producerBuildings from '../../data/producer-buildings.json';
 import hamsterBarracks from '../../data/hamster-barracks-building.json';
 import buildingUpgrades from '../../data/building-upgrades.json';
+import populationEconomy from '../../data/population-economy.json';
 import { EventBus } from '../core/event-bus.js';
 import { WorldProgressionSystem } from './world-progression-system.js';
 
-const VERSION = 2;
-const ALLOWED_UNLOCK_TYPES = new Set(['building', 'buildingKind', 'unit', 'upgrade', 'mechanic']);
-const nodes = Array.isArray(technologyTree.nodes) ? technologyTree.nodes : [];
+const VERSION = 3;
+const ALLOWED_UNLOCK_TYPES = new Set(['building', 'unit', 'upgrade', 'mechanic']);
+const treeNodes = Array.isArray(technologyTree.nodes) ? technologyTree.nodes : [];
+const planeResearchNodes = Array.isArray(technologyTree.planeResearch) ? technologyTree.planeResearch : [];
+const nodes = [...treeNodes, ...planeResearchNodes];
 const nodesById = new Map(nodes.map((node) => [node.id, node]));
 const unlockOwners = new Map();
+const ECONOMY_TECH_IDS = Object.freeze([
+    'settlement_planning', 'housing_optimization', 'agricultural_division',
+    'market_circulation', 'credit_finance', 'economic_engineering',
+    'interplane_logistics_protocol',
+]);
 
 const producerConfigs = Object.values(producerBuildings || {})
     .filter((config) => config && typeof config === 'object' && config.id);
@@ -18,14 +26,16 @@ const producerUnitIds = producerConfigs.flatMap((config) => (config.unitTypes ||
     .filter(Boolean));
 const upgradeIds = Object.values(buildingUpgrades || {}).flatMap((project) =>
     Object.values(project?.abilities || {}).map((ability) => ability?.id).filter(Boolean));
+const houseUpgradeIds = (populationEconomy.house?.levels || [])
+    .map((level) => level?.technologyUnlockId)
+    .filter(Boolean);
 const KNOWN_UNLOCK_TARGETS = Object.freeze({
     building: new Set([
         'tower', 'cover_block', 'road', 'gate_4cell', 'hamster_hut', 'hamster_barracks',
         'wall_staircase', ...producerConfigs.map((config) => config.id),
     ]),
-    buildingKind: new Set(['trap']),
     unit: new Set([...(hamsterBarracks.unitTypes || []), ...producerUnitIds]),
-    upgrade: new Set(upgradeIds),
+    upgrade: new Set([...upgradeIds, ...houseUpgradeIds]),
     mechanic: new Set([
         'building_recycle', 'rts_command', 'troop_hold', 'troop_rally',
         'cross_world_reinforcement',
@@ -61,11 +71,15 @@ function normalizeProgress(value, cost) {
 function validateTechnologyTreeConfig(config) {
     const errors = [];
     const warnings = [];
-    const sourceNodes = Array.isArray(config?.nodes) ? config.nodes : [];
+    const sourceNodes = [
+        ...(Array.isArray(config?.nodes) ? config.nodes : []),
+        ...(Array.isArray(config?.planeResearch) ? config.planeResearch : []),
+    ];
     const ids = new Set();
     const unlocks = new Map();
 
     if (!Array.isArray(config?.nodes)) errors.push('nodes 必须是数组');
+    if (!Array.isArray(config?.planeResearch)) errors.push('planeResearch 必须是数组');
     if (!(Number(config?.pointsPerInstitutePerSecond) > 0)) {
         errors.push('pointsPerInstitutePerSecond 必须大于 0');
     }
@@ -191,6 +205,14 @@ export const TechnologySystem = {
         return nodes;
     },
 
+    getTreeNodes() {
+        return treeNodes;
+    },
+
+    getPlaneResearchNodes() {
+        return planeResearchNodes;
+    },
+
     getNode(id) {
         return nodesById.get(id) || null;
     },
@@ -219,6 +241,13 @@ export const TechnologySystem = {
         const owners = unlockOwners.get(`${type}:${id}`);
         if (!owners?.length) return true;
         return owners.some((nodeId) => this.isCompleted(nodeId));
+    },
+
+    getUnlockRequirementLabel(type, id) {
+        return (unlockOwners.get(`${type}:${id}`) || [])
+            .map((nodeId) => this.getNode(nodeId)?.name)
+            .filter(Boolean)
+            .join(' / ');
     },
 
     /** 实际解锁顺序：基础功能为 -1，未解锁为 Infinity，同一目标取最早完成的拥有者。 */
@@ -423,6 +452,11 @@ export const TechnologySystem = {
         const completed = Array.isArray(saved.completed)
             ? [...new Set(saved.completed.filter((id) => nodesById.has(id)))]
             : [];
+        if (Number(saved.version) < VERSION) {
+            for (const id of ECONOMY_TECH_IDS) {
+                if (nodesById.has(id) && !completed.includes(id)) completed.push(id);
+            }
+        }
         const progressById = {};
         for (const [id, value] of Object.entries(saved.progressById || {})) {
             const node = this.getNode(id);
@@ -443,7 +477,7 @@ export const TechnologySystem = {
             if (this.state.researchQueue.includes(saved.activeTechId) && this.isAvailable(saved.activeTechId)) {
                 this.state.activeTechId = saved.activeTechId;
             }
-        } else if (Number(saved.version) < VERSION
+        } else if (Number(saved.version) < 2
             && this.getNode(saved.activeTechId)
             && this.isAvailable(saved.activeTechId)) {
             // v1 的手选项目迁移为同名研究目标，已有进度不丢失。

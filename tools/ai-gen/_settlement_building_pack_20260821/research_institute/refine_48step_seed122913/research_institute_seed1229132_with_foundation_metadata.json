@@ -1,0 +1,39 @@
+{
+  "source": "tools\\ai-gen\\_settlement_building_pack_20260821\\research_institute\\refine_48step_seed122913\\research_institute_refine48_from122913_seed1229132_raw.png",
+  "output": "tools\\ai-gen\\_settlement_building_pack_20260821\\research_institute\\refine_48step_seed122913\\research_institute_seed1229132_with_foundation_runtime.png",
+  "sourceMode": "RGB",
+  "background": [
+    252,
+    236,
+    1
+  ],
+  "matteColor": null,
+  "matteEdgeWidth": 3.0,
+  "matteTolerance": 20.0,
+  "maskImage": "tools\\ai-gen\\_settlement_building_pack_20260821\\research_institute\\research_institute_depth.png",
+  "maskDilate": 10,
+  "fillAlphaHoles": true,
+  "fillHoleMatteDistance": 24.0,
+  "maskAddRects": [],
+  "cropBox": [
+    77,
+    124,
+    950,
+    922
+  ],
+  "fileSize": [
+    873,
+    798
+  ],
+  "alphaBBox": [
+    4,
+    4,
+    869,
+    794
+  ],
+  "displayW": 256,
+  "displayH": 234,
+  "footOffsetY": 116,
+  "scaleX": 0.293241695303551,
+  "scaleY": 0.2932330827067669
+}

@@ -9,11 +9,20 @@ export function formatBuildingUpgradeRequirement(cost, maxed = false) {
     return `升级需要：${quoted.gold} 金币 + ${quoted.energy} 能源${suffix}`;
 }
 
+export function renderBuildingUpgradeIcon(icon = '', iconImage = '', className = 'building-upgrade-inline-icon') {
+    const imagePath = String(iconImage || '').trim();
+    if (imagePath) {
+        return `<img class="${className}" src="${imagePath}" alt="" aria-hidden="true" draggable="false">`;
+    }
+    return `<span class="${className} is-fallback" aria-hidden="true">${icon || ''}</span>`;
+}
+
 export function renderBuildingUpgradeCard(options = {}) {
     const {
         rowAttribute,
         projectId,
         icon = '',
+        iconImage = '',
         name = projectId || '',
         level = 0,
         maxLevel = 10,
@@ -38,12 +47,13 @@ export function renderBuildingUpgradeCard(options = {}) {
     const gateAttributes = hasTechnologyGate
         ? `data-technology-gate-type="${technologyGateType}" data-technology-gate-id="${technologyGateId}"`
         : '';
+    const iconHtml = renderBuildingUpgradeIcon(icon, iconImage, 'building-upgrade-card-icon');
     return `
         <div class="building-upgrade-card" ${rowAttribute}="${projectId}" ${gateAttributes}
              aria-hidden="${hasTechnologyGate ? 'false' : (unlocked ? 'false' : 'true')}"
              style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #22303a;gap:8px;cursor:help;${hasTechnologyGate || unlocked ? '' : 'visibility:hidden;pointer-events:none;'}">
             <div style="flex:1;min-width:0;">
-                <div class="building-upgrade-card-name" style="font-size:13px;color:#d4e8ff;">${icon} ${name} <span class="building-upgrade-card-level" style="color:#8ad0ff;">Lv.${level}/${maxLevel}</span></div>
+                <div class="building-upgrade-card-name" style="font-size:13px;color:#d4e8ff;">${iconHtml}<span class="building-upgrade-card-label">${name}</span> <span class="building-upgrade-card-level" style="color:#8ad0ff;">Lv.${level}/${maxLevel}</span></div>
                 <div class="building-upgrade-card-requirement" style="font-size:10px;color:#b8aa82;margin-top:2px;">${formatBuildingUpgradeRequirement(cost, maxed)}</div>
                 <div style="position:relative;height:8px;background:rgba(255,255,255,0.10);border-radius:4px;overflow:hidden;margin-top:4px;">
                     <div id="${barId}" style="position:absolute;left:0;top:0;bottom:0;width:${pct}%;background:linear-gradient(90deg,#ffd700,${accent});border-radius:4px;transition:width 0.2s linear;"></div>

@@ -1,1 +1,71 @@
-{"id":"hamster_bounty_hunter","name":"仓鼠赏金猎人","role":"bounty_hunter","growthRule":"ranger","baseMaxHp":145,"baseData":{"str":9,"dex":34,"int":4,"con":11,"wis":4,"luck":20},"ai":{"walkSpeed":180,"runSpeed":180,"attackInterval":2100,"attackDamage":88,"attackRange":680,"engageRange":980,"projectileSpeed":1320,"attackAnimFps":12,"attackLaunchFrame":10,"followOffset":170,"followArriveDist":40,"decisionMs":100,"teleportDist":999999,"teleportHardDist":9999999},"bountyGoldMin":8,"bountyGoldMax":16}
+{
+  "id": "hamster_bounty_hunter",
+  "name": "仓鼠赏金猎人",
+  "title": "荒野追猎与悬赏射手",
+  "desc": "使用左轮远程支援玩家；击杀敌人时额外获得该怪物默认地牢击杀金币的两倍。",
+  "role": "bounty_hunter",
+  "growthRule": "ranger",
+  "avatar": "🐹🤠",
+  "weaponType": "musket",
+  "baseLevel": 1,
+  "baseExp": 0,
+  "baseMaxHp": 150,
+  "baseData": {
+    "str": 5,
+    "dex": 25,
+    "int": 3,
+    "con": 12,
+    "wis": 3,
+    "luck": 30
+  },
+  "statFormula": "enemy",
+  "skills": [],
+  "sounds": {
+    "attack": "assets/sounds/friendly/hamster_bounty_hunter_attack.mp3"
+  },
+  "ai": {
+    "role": "ranged_bounty_hunter",
+    "walkSpeed": 160,
+    "runSpeed": 160,
+    "attackInterval": 1250,
+    "attackDamage": 88,
+    "attackRange": 600,
+    "engageRange": 900,
+    "projectileSpeed": 1248,
+    "attackAnimFps": 10.4,
+    "attackAnimDurationMs": 1250,
+    "attackLaunchFrame": 9,
+    "muzzleOffsetX": 76,
+    "muzzleHeight": 76,
+    "followOffset": 170,
+    "followArriveDist": 40,
+    "decisionMs": 100,
+    "teleportDist": 999999,
+    "teleportHardDist": 9999999
+  },
+  "bountyGoldMultiplier": 2,
+  "displaySize": 226,
+  "spriteOffsetY": -36,
+  "animations": {
+    "idle": {
+      "src": "assets/companions/hamster_bounty_hunter/idle.png",
+      "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 4,
+      "frameCount": 8, "frames": [0, 7], "frameRate": 8, "repeat": -1
+    },
+    "walk": {
+      "src": "assets/companions/hamster_bounty_hunter/running.png",
+      "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 4,
+      "frameCount": 13, "frames": [0, 12], "frameRate": 12, "repeat": -1
+    },
+    "attack": {
+      "src": "assets/companions/hamster_bounty_hunter/attacking.png",
+      "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 4,
+      "frameCount": 13, "frames": [0, 12], "frameRate": 10.4, "repeat": 0
+    },
+    "dying": {
+      "src": "assets/companions/hamster_bounty_hunter/dying.png",
+      "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 4,
+      "frameCount": 11, "frames": [0, 10], "frameRate": 12, "repeat": 0
+    }
+  }
+}

@@ -20,8 +20,7 @@ export const EquipDataManager = {
     },
     TEST_BACKPACK_ITEMS: [
         { slot: 0, name: '治疗药水', type: '消耗品', icon: '🧪', iconImage: 'assets/items/health_potion.png', dropImage: 'assets/items/health_potion.png', category: 'consumable', stats: [{ name: '恢复生命', value: '+30' }], desc: '一瓶红色的药水，味道有点甜', stack: 5 },
-        { slot: 1, name: '魔力药水', type: '消耗品', icon: '💧', iconImage: 'assets/items/mana_potion.png', dropImage: 'assets/items/mana_potion.png', category: 'consumable', stats: [{ name: '恢复魔法', value: '+25' }], desc: '一瓶蓝色的药水，冒着冷气', stack: 3 },
-        { slot: 2, name: '金币', type: '货币', icon: '💰', category: 'gold', rarity: 'mythic', stats: [{ name: '数量', value: '10000' }], desc: '金光闪闪的硬币', stack: 10000, price: 1 }
+        { slot: 1, name: '魔力药水', type: '消耗品', icon: '💧', iconImage: 'assets/items/mana_potion.png', dropImage: 'assets/items/mana_potion.png', category: 'consumable', stats: [{ name: '恢复魔法', value: '+25' }], desc: '一瓶蓝色的药水，冒着冷气', stack: 3 }
     ],
     G18_PISTOL_ITEM: {
         weaponId: 'weapon9',

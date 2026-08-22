@@ -18,7 +18,7 @@ import { Enemy } from './enemy.js';
 import { SkillManager } from '../ui/skill-manager.js';
 import { DungeonMapSystem } from '../world/dungeon-map-system.js';
 import { COMBAT_FORMULAS } from '../config/combat-formulas.js';
-import { getTributeGoldMultiplier, getTributeKillMpHealRatio, getTributeKillHpHealRatio, getTributeMonsterDamageTakenMul, getMoonshadowConfig, rollTributeDrop } from '../config/tribute-effects.js';
+import { getTributeGoldMultiplier, getTributeKillMpHealRatio, getTributeKillHpHealRatio, getTributeMonsterDamageTakenMul, getMoonshadowConfig, rollTributeDrop, getFriendlyLifestealPercent } from '../config/tribute-effects.js';
 import { hasRangedLineOfSight } from '../combat/ranged-line-of-sight.js';
 import { canMeleeShareSurface } from '../combat/melee-surface.js';
 
@@ -34,28 +34,30 @@ export function isFriendlyFire(source, target) {
     return !!(source && target && FRIENDLY_FACTIONS.has(source._faction) && FRIENDLY_FACTIONS.has(target._faction));
 }
 
-        /**
-         * 根据配置计算怪物金币掉落
-         * @param {number} level - 怪物等级
-         * @param {Object} _source - 击杀来源（保留参数签名，当前未消费）
-         * @returns {number} 金币数量
-         */
-        function getEnemyGoldDrop(level, _source) {
+        /** 同一次击杀共用一个随机底数，分别得到默认地牢金币与当前祭品加成后的实际掉落。 */
+        function rollEnemyGoldReward(level, rank) {
             const cfg = COMBAT_FORMULAS.enemy?.goldDrop || {};
             const base = cfg.base ?? 0;
             const levelMul = cfg.levelMultiplier ?? 4;
             const randomMin = cfg.randomMin ?? 1;
             const randomMax = cfg.randomMax ?? 10;
-            let amount = base + (level || 1) * levelMul + Math.floor(Math.random() * (randomMax - randomMin + 1)) + randomMin;
+            let baseAmount = base + (level || 1) * levelMul
+                + Math.floor(Math.random() * (randomMax - randomMin + 1)) + randomMin;
 
             // 全局倍率
             const globalMul = cfg.globalMultiplier ?? 1;
-            amount = Math.floor(amount * globalMul);
+            baseAmount = Math.floor(baseAmount * globalMul);
+
+            // rank 金币倍率配置驱动（goldDrop.rankMultipliers，如 elite ×2 / lord ×3）
+            const rankMultiplier = (cfg.rankMultipliers || {})[rank] || 1;
+            const defaultDungeon = Math.max(0, Math.floor(baseAmount * rankMultiplier));
 
             // 祭品效果（数据驱动）：携带祭品的金币掉落百分比加成
-            amount = Math.floor(amount * getTributeGoldMultiplier());
+            const actualDrop = Math.max(0, Math.floor(
+                Math.floor(baseAmount * getTributeGoldMultiplier()) * rankMultiplier
+            ));
 
-            return Math.max(0, amount);
+            return { defaultDungeon, actualDrop };
         }
 
         class DamageableEntity extends Entity {
@@ -232,6 +234,20 @@ export function isFriendlyFire(source, target) {
                 }
                 // 扣血
                 this.hp -= baseDamage;
+                // 血藤缠杖「血藤寄生」（2026-08-22 工艺品祭品）：全体友方单位
+                // （玩家/侍从/仓鼠士兵）造成伤害的百分比转化为自身生命
+                if (baseDamage > 0 && source && source !== this
+                    && (source._faction === 'player' || source._faction === 'companion')) {
+                    const lifestealPct = getFriendlyLifestealPercent();
+                    if (lifestealPct > 0) {
+                        const heal = baseDamage * lifestealPct / 100;
+                        if (source.data && Number.isFinite(source.data.hp)) {
+                            source.data.hp = Math.min(Number(source.data.maxHp) || source.data.hp, source.data.hp + heal);
+                        } else if (Number.isFinite(source.hp)) {
+                            source.hp = Math.min(Number(source.maxHp) || source.hp, source.hp + heal);
+                        }
+                    }
+                }
                 this.hitFlash = this.hitFlashDuration;
                 // 僵尸类怪物受击绿色粒子（统一入口，确保所有伤害路径都会触发）
                 const scene = typeof window !== 'undefined' && window.__phaserScene;
@@ -288,6 +304,12 @@ export function isFriendlyFire(source, target) {
                     SoundManager.playFile('assets/sounds/ui/knockdown_1.mp3');
                 }
                 if (source && source.data) source.data.kills++;
+                const needsKillReward = source && typeof source.onEnemyKilled === 'function';
+                const enemyGoldReward = this instanceof Enemy && !this._summoned
+                    && (!this._noGoldDrop || needsKillReward)
+                    ? rollEnemyGoldReward(this.level, this.rank)
+                    : null;
+                if (enemyGoldReward) this._defaultDungeonGoldReward = enemyGoldReward.defaultDungeon;
                 if (this instanceof Enemy && source && typeof source.onEnemyKilled === 'function') {
                     source.onEnemyKilled(this);
                 }
@@ -298,11 +320,7 @@ export function isFriendlyFire(source, target) {
                 }
                 // 掉落金币（不再掉落 G18）；召唤物（_summoned 标签）不掉金币/经验
                 if (this instanceof Enemy && !this._summoned && !this._noGoldDrop) {
-                    let goldAmount = getEnemyGoldDrop(this.level, source);
-                    // rank 金币倍率配置驱动（goldDrop.rankMultipliers，如 elite ×2 / lord ×3）
-                    const rankGoldMul = (COMBAT_FORMULAS.enemy?.goldDrop?.rankMultipliers || {})[this.rank];
-                    if (rankGoldMul) goldAmount *= rankGoldMul;
-                    goldAmount = Math.floor(goldAmount);
+                    const goldAmount = enemyGoldReward?.actualDrop || 0;
 
                     // 祭品效果（数据驱动）：大理石 - 击杀后1秒内恢复最大生命值
                     const marbleRatio = getTributeKillHpHealRatio();

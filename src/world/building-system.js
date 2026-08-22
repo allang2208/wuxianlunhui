@@ -29,7 +29,6 @@ import {
     DEFENSE_TOWER_VISUAL, WALL_STAIR_VISUAL, WALL_STAIR_CONFIG,
     getWallStairVariant, wallStairAnchorOffset, collectConnectedWalkableWalls,
 } from './defense-system.js';
-import { DefenseTrap, TRAP_CONFIG, TRAP_GRADES, TRAP_SPACING, getTrapDef, DefenseTrapSystem } from './defense-trap-system.js';
 import { HamsterHut, HamsterHutSystem, HAMSTER_CONFIG } from './hamster-hut-system.js';
 import { HamsterBarracks, HamsterBarracksSystem, BARRACKS_CONFIG } from './hamster-barracks-system.js';
 import { ProducerBuilding, ProducerBuildingSystem, PRODUCER_BUILDINGS } from './producer-building-system.js';
@@ -137,7 +136,7 @@ function isProducerEntity(e) {
     return e && e.active && (e._isHamsterHut || e._isHamsterBarracks || e._isProducerBuilding);
 }
 
-/** 除墙、门、陷阱外的玩家可建造建筑统一占 2×2。 */
+/** 除墙、门外的玩家可建造建筑统一占 2×2。 */
 function isTwoByTwoBuildItem(item) {
     return !!item && ['tower', 'hamster_hut', 'hamster_barracks', 'producer'].includes(item.kind);
 }
@@ -163,15 +162,16 @@ function wallStairDir(mirror) {
 }
 
 const C_GRADE_WALL_COST = Math.round((DEFENSE_CONFIG.covers.hp.C ?? 1600) * 0.25);
+const BLOCK_WALL_COST = 50;
 const DEFAULT_WALL_STAIR_TEXTURE =
     WALL_STAIR_CONFIG.variants.e2_pos?.lower?.texture || 'wall_stair_lower_e2_pos';
 const WALL_STAIR_PANEL_ICON =
     WALL_STAIR_CONFIG.variants.e1_pos?.lower?.texture || 'wall_stair_lower_e1_pos';
 
 export const BUILD_ITEMS = [
-    { id: 'tower', name: '防御塔', cost: 300, tex: 'obstacle_defense_tower', kind: 'tower', currency: 'energy' },
-    // 1×1 方块墙 / 4格门统一采用 C 级墙数值与造价（2026-08-18）
-    { id: 'cover_block', name: '方块墙', cost: C_GRADE_WALL_COST, tex: 'obstacle_block', kind: 'block', grade: 'C', orient: 'v', currency: 'energy' },
+    { id: 'tower', name: '防御塔', cost: 1000, tex: 'obstacle_defense_tower', kind: 'tower', currency: 'energy' },
+    // 1×1 方块墙沿用 C 级数值，但采用独立的单块造价；4 格门仍按 C 级墙造价。
+    { id: 'cover_block', name: '方块墙', cost: BLOCK_WALL_COST, tex: 'obstacle_block', kind: 'block', grade: 'C', orient: 'v', currency: 'energy' },
     {
         id: 'road',
         name: '道路',
@@ -227,30 +227,8 @@ for (const pc of Object.values(PRODUCER_BUILDINGS || {})) {
     });
 }
 // 旧 F→A 长掩体与旧滑动门已从建筑清单移除；底层实体/资产保留兼容历史场景。
-// 陷阱：4 类 × F~A 六档（数据源 TRAP_CONFIG，唯一真源）——陷阱维持金币购买
-for (const type of Object.keys(TRAP_CONFIG)) {
-    const t = TRAP_CONFIG[type];
-    for (const grade of TRAP_GRADES) {
-        const d = getTrapDef(type, grade);
-        if (!d) continue;
-        BUILD_ITEMS.push({
-            id: `trap_${type}_${grade}`,
-            name: `${t.displayName}·${grade}级`,
-            grade,
-            trapType: type,
-            kind: 'trap',
-            cost: d.gradeCfg.cost,
-            tex: t.tex,
-            trapW: t.w,
-            trapH: t.h,
-            currency: 'gold',
-        });
-    }
-}
-
 function isBuildItemTechnologyUnlocked(item) {
     if (!item) return false;
-    if (item.kind === 'trap') return TechnologySystem.isUnlocked('buildingKind', 'trap');
     return TechnologySystem.isUnlocked('building', item.id);
 }
 
@@ -261,8 +239,8 @@ function renderBuildItemThumb(item, cost, lockedReason = '') {
     return `
         <div class="we-thumb" data-id="${item.id}" data-economy-locked="${lockedReason ? 'true' : 'false'}"
              title="${lockedReason || `${item.name} — ${cost} ${currencyLabel}`}" style="${lockedStyle}"
-             data-technology-gate-type="${item.kind === 'trap' ? 'buildingKind' : 'building'}"
-             data-technology-gate-id="${item.kind === 'trap' ? 'trap' : item.id}"
+             data-technology-gate-type="building"
+             data-technology-gate-id="${item.id}"
              data-technology-gate-layout="collapse">
             <img src="${item.assetPath || `assets/terrain/${thumbnail}.png`}" draggable="false" alt="${item.name}">
             <span>${item.name}<br><em data-build-cost style="color:${item.currency === 'energy' ? '#7fd4ff' : '#ffd700'};font-style:normal;">${cost}${currencyLabel}</em></span>
@@ -390,10 +368,15 @@ export const BuildingSystem = {
     _baseBuildCost(item) {
         if (!item) return 0;
         const cfg = item.kind === 'producer' ? PRODUCER_BUILDINGS[item.id] : null;
-        if (cfg?.workshopType === 'warehouse'
-            && EnergyManager?.getWarehouseCount?.() === 0
-            && Number.isFinite(Number(cfg.firstWhenNoneCost))) {
-            return Math.max(0, Math.floor(Number(cfg.firstWhenNoneCost)));
+        if (Number.isFinite(Number(cfg?.firstWhenNoneCost))) {
+            const hasAny = cfg.workshopType === 'warehouse'
+                ? (EnergyManager?.getWarehouseCount?.() || 0) > 0
+                : (ProducerBuildingSystem?.buildings || []).some((building) => (
+                    building?.active !== false
+                    && !building?._sinking
+                    && building?.cfgKey === item.id
+                ));
+            if (!hasAny) return Math.max(0, Math.floor(Number(cfg.firstWhenNoneCost)));
         }
         return Math.max(0, Math.floor(Number(item.cost) || 0));
     },
@@ -434,9 +417,7 @@ export const BuildingSystem = {
     },
 
     _buildItemGate(item) {
-        return item?.kind === 'trap'
-            ? { type: 'buildingKind', id: 'trap' }
-            : { type: 'building', id: item?.id };
+        return { type: 'building', id: item?.id };
     },
 
     _sortedBuildItems() {
@@ -681,8 +662,6 @@ export const BuildingSystem = {
                 this._ghost.setDisplaySize(pc.displayW, pc.displayH);
             } else if (item.kind === 'road') {
                 this._ghost.setDisplaySize(BUILDING_ROAD_DISPLAY_WIDTH, BUILDING_ROAD_DISPLAY_HEIGHT);
-            } else if (item.kind === 'trap') {
-                this._ghost.setDisplaySize(item.trapW || 72, item.trapH || 52);
             } else if (item.kind === 'gate') {
                 this._ghost.setDisplaySize(GATE_GEOM.cellW * GATE_GEOM.displayScale, GATE_GEOM.cellH * GATE_GEOM.displayScale);
             } else if (item.kind === 'gate4') {
@@ -1168,7 +1147,6 @@ export const BuildingSystem = {
     _buildingDetailPanels() {
         return [
             DefenseSystem?._panel,
-            DefenseTrapSystem?._panel,
             HamsterHutSystem?._panel,
             HamsterBarracksSystem?._panel,
             ProducerBuildingSystem?._panel,
@@ -1261,7 +1239,7 @@ export const BuildingSystem = {
             return;
         }
         // 非放置状态：点击已建掩体 → 详情视图（2026-08-15；
-        // 防御塔/陷阱维持原有各自面板，由 game.js 点击分发处理，不在此拦截）
+        // 防御塔维持原有独立面板，由 game.js 点击分发处理，不在此拦截）
         if (!this._placing) {
             const p = this._clientToWorld(e);
             if (!p || !p.overCanvas) return;
@@ -1374,7 +1352,7 @@ export const BuildingSystem = {
     /**
      * 掩体端点吸附：找最近的一个既有掩体墙端锚点，把新件对应端贴上去。
      * 掩体/铁栅栏门参与吸附（防御塔不拼接）；同向（v-v / h-h）优先，跨向（v-h 转角）次之。
-     * 除墙/门/陷阱外的可建造建筑吸附到 2×2 格网中心。
+     * 除墙/门外的可建造建筑吸附到 2×2 格网中心。
      * @returns {null|{x:number,y:number,e:object}}
      */
     _snapPosition(x, y) {
@@ -2246,7 +2224,6 @@ export const BuildingSystem = {
         if (isTwoByTwoBuildItem(item)) {
             return Math.hypot(TWO_BY_TWO_BUILDING_FOOT.w / 2, TWO_BY_TWO_BUILDING_FOOT.d / 2);
         }
-        if (item.kind === 'trap') return TRAP_SPACING;
         return 28;
     },
 
@@ -2458,16 +2435,6 @@ export const BuildingSystem = {
                     const dy = e.y - y;
                     if (dx * dx + dy * dy < 70 * 70) return false;
                 }
-            }
-            return true;
-        }
-        if (this._placing.item.kind === 'trap') {
-            // 陷阱：放路上（不参与掩体墙段判定），但不得压塔/基座/其他陷阱
-            for (const e of Game.entities.values()) {
-                if (!e || !e.active) continue;
-                const dx = e.x - x;
-                const dy = e.y - y;
-                if (dx * dx + dy * dy < TRAP_SPACING * TRAP_SPACING) return false;
             }
             return true;
         }
@@ -2925,7 +2892,7 @@ export const BuildingSystem = {
     _renderBlockDetail(det, e) {
         const maxHp = e.maxHp || (DEFENSE_CONFIG.covers.hp.C ?? 1600);
         const hp = Math.max(0, Math.ceil(e.hp));
-        const buildCost = e._buildCost ?? C_GRADE_WALL_COST;
+        const buildCost = e._buildCost ?? BLOCK_WALL_COST;
         const repairRate = (DEFENSE_CONFIG.repair && DEFENSE_CONFIG.repair.coverHpPerEnergy) || 2;
         const repairNeed = Math.ceil((maxHp - hp) / repairRate);
         det.innerHTML = `
@@ -3102,7 +3069,9 @@ export const BuildingSystem = {
 
     _recycleInfo(entity) {
         const targets = this._recycleTargets(entity);
-        const recyclable = targets.length > 0 && targets.every((e) => e._builtByPlayer);
+        const hasProtectedWorldCore = targets.some((e) => e._isWorldPortalCore || e._isMainHubPortalBuilding);
+        const recyclable = targets.length > 0 && !hasProtectedWorldCore
+            && targets.every((e) => e._builtByPlayer);
         const currency = targets.find((e) => e._buildCurrency)?._buildCurrency || 'energy';
         const totalCost = targets.reduce((sum, e) => sum + (Number(e._buildCost) || 0), 0);
         const refund = targets.reduce((sum, e) => {
@@ -3169,6 +3138,9 @@ export const BuildingSystem = {
             this._detail = null;
             this._renderDetail();
             this._refreshCurrencies();
+            if (Number.isFinite(Number(PRODUCER_BUILDINGS[entity.cfgKey]?.firstWhenNoneCost))) {
+                this._renderBuildGrid();
+            }
             const unit = currency === 'gold' ? '金币' : '能源';
             this._notify(`建筑已回收（+${result.refund || 0} ${unit}）`, '#ffd700');
             if (SoundManager && typeof SoundManager.playFile === 'function') {
@@ -3337,7 +3309,7 @@ export const BuildingSystem = {
             this._notify('该位置无法放置', '#ff5555');
             return;
         }
-        // 货币扣费：掩体/防御塔扣能源（世界-122 采集所得），陷阱扣金币。
+        // 货币扣费由建筑条目的 currency 决定。
         // 开发工具「无限资源」开启时建造不消耗能源/金币（2026-08-15）
         const free = !!(Game && Game._devInfiniteResources);
         const currency = item.currency === 'energy' ? 'energy' : 'gold';
@@ -3370,18 +3342,15 @@ export const BuildingSystem = {
                 HamsterBarracksSystem.barracks.push(barracks);
                 placedEntity = barracks;
             } else if (item.kind === 'producer') {
-                const producer = this._markBuiltEntity(new ProducerBuilding(x, y, { id, cfgKey: item.id }), item);
+                const producer = this._markBuiltEntity(
+                    new ProducerBuilding(x, y, { id, cfgKey: item.id }),
+                    item,
+                    buildCost
+                );
                 producer._facingLeft = mirror;
                 Game.entities.set(id, producer);
                 ProducerBuildingSystem.buildings.push(producer);
                 placedEntity = producer;
-            } else if (item.kind === 'trap') {
-                const trap = new DefenseTrap(x, y, {
-                    type: item.trapType,
-                    grade: item.grade,
-                    id,
-                });
-                Game.entities.set(id, trap);
             } else if (item.kind === 'gate') {
                 const gate = this._markBuiltEntity(new BuildableGate(x, y, {
                     grade: item.grade,
@@ -3484,7 +3453,8 @@ export const BuildingSystem = {
         this._snapped = null;
         this._clearStairPreview();
         this._refreshCurrencies();
-        if (item.kind === 'producer' && PRODUCER_BUILDINGS[item.id]?.workshopType === 'warehouse') {
+        if (item.kind === 'producer'
+            && Number.isFinite(Number(PRODUCER_BUILDINGS[item.id]?.firstWhenNoneCost))) {
             this._renderBuildGrid();
         }
     },

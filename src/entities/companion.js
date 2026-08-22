@@ -12,6 +12,7 @@ import { buildSkillMap, restoreSkills, grantCompanionSkillExp } from '../systems
 import COMBAT_FORMULAS from '../../data/combat-formulas.json';
 import companionConfigData from '../../data/companion-config.json';
 import { EnergyManager } from '../systems/energy-manager.js';
+import { getTributeFriendlyAtkMul, getTributeFriendlyMaxHpMul } from '../config/tribute-effects.js';
 import { canMeleeShareSurface } from '../combat/melee-surface.js';
 
 const ATTR_KEYS = ['str', 'dex', 'int', 'con', 'wis', 'luck'];
@@ -205,7 +206,9 @@ export class Companion {
         const currentAtk = Math.max(1, Number(this.data?.atk) || this._formulaBaseAtk || 1);
         const baseAtk = Math.max(1, Number(this._formulaBaseAtk) || currentAtk);
         const inspireMul = Math.max(0, Number(this._inspireMul?.atkMul) || 1);
-        return Math.max(1, Math.round(baseDamage * currentAtk / baseAtk * inspireMul));
+        // 工艺品祭品：全体友方单位攻击乘区（friendlyAtkPercent，实时聚合）
+        const tributeMul = getTributeFriendlyAtkMul();
+        return Math.max(1, Math.round(baseDamage * currentAtk / baseAtk * inspireMul * tributeMul));
     }
 
     getPhysicalAttackDamage(configuredDamage, target = null) {
@@ -302,6 +305,9 @@ export class Companion {
         } else {
             d.maxMp = (mpF.base || 100) + d.wis * (mpF.wisMultiplier || 10) + d.int * (mpF.intMultiplier || 5) + (eq.maxMp || 0) + lvlMp;
         }
+        // 工艺品祭品：全体友方单位生命乘区（friendlyMaxHpPercent，实时聚合）
+        const friendlyHpMul = getTributeFriendlyMaxHpMul();
+        if (friendlyHpMul !== 1) d.maxHp = Math.max(1, Math.round(d.maxHp * friendlyHpMul));
         if (oldMaxHp > 0) d.hp = Math.min(d.maxHp, d.hp + (d.maxHp - oldMaxHp));
         else d.hp = d.maxHp;
         if (oldMaxMp > 0) d.mp = Math.min(d.maxMp, d.mp + (d.maxMp - oldMaxMp));

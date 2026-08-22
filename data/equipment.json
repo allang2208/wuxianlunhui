@@ -4146,6 +4146,595 @@
             ],
             "desc": "圣辉三件套（轻盔/轻甲/轻靴）之一。三件齐穿激活：暴击率+20%、物理攻击+15%、移动速度+10%。",
             "iconImage": "assets/icons/equipment/圣辉轻靴.png"
+        },
+        "craft_salt_jar": {
+                "name": "粗陶盐罐",
+                "type": "祭品",
+                "icon": "🧂",
+                "category": "tribute",
+                "rarity": "common",
+                "level": 1,
+                "stack": 1,
+                "price": 100,
+                "effects": {
+                        "goldPercent": 1,
+                        "mpRegenPercent": -4
+                },
+                "stats": [
+                        {
+                                "name": "金币掉落",
+                                "value": "+1%"
+                        },
+                        {
+                                "name": "魔法恢复",
+                                "value": "-4%"
+                        }
+                ],
+                "desc": "手捏粗陶，绳纹沿口。盐即是财，攥紧了口袋却干了喉咙。",
+                "maxStack": 999,
+                "iconImage": "assets/items/tributes/crafts/粗陶盐罐.png",
+                "dropImage": "assets/items/tributes/crafts/粗陶盐罐.png"
+        },
+        "craft_vine_anklet": {
+                "name": "藤编足环",
+                "type": "祭品",
+                "icon": "🦶",
+                "category": "tribute",
+                "rarity": "common",
+                "level": 1,
+                "stack": 1,
+                "price": 100,
+                "effects": {
+                        "moveSpeedPercent": 1,
+                        "hpRegenPercent": -4
+                },
+                "stats": [
+                        {
+                                "name": "移动速度",
+                                "value": "+1%"
+                        },
+                        {
+                                "name": "生命恢复",
+                                "value": "-4%"
+                        }
+                ],
+                "desc": "青藤三股绞编而成。赤足轻健，藤刺硌肉。",
+                "maxStack": 999,
+                "iconImage": "assets/items/tributes/crafts/藤编足环.png",
+                "dropImage": "assets/items/tributes/crafts/藤编足环.png"
+        },
+        "craft_grass_nest": {
+                "name": "草编仓鼠窝",
+                "type": "祭品",
+                "icon": "🧺",
+                "category": "tribute",
+                "rarity": "common",
+                "level": 1,
+                "stack": 1,
+                "price": 100,
+                "effects": {
+                        "friendlyMaxHpPercent": 2,
+                        "moveSpeedPercent": -1
+                },
+                "stats": [
+                        {
+                                "name": "友方单位生命",
+                                "value": "+2%"
+                        },
+                        {
+                                "name": "移动速度",
+                                "value": "-1%"
+                        }
+                ],
+                "desc": "给士兵们编的安乐窝，软乎保暖，就是背着沉。",
+                "maxStack": 999,
+                "iconImage": "assets/items/tributes/crafts/草编仓鼠窝.png",
+                "dropImage": "assets/items/tributes/crafts/草编仓鼠窝.png"
+        },
+        "craft_rune_plaque": {
+                "name": "木刻符牌",
+                "type": "祭品",
+                "icon": "🪵",
+                "category": "tribute",
+                "rarity": "common",
+                "level": 1,
+                "stack": 1,
+                "price": 100,
+                "effects": {
+                        "monsterAtkDownPercent": 1,
+                        "critPercent": -1
+                },
+                "stats": [
+                        {
+                                "name": "怪物攻击",
+                                "value": "-1%"
+                        },
+                        {
+                                "name": "暴击率",
+                                "value": "-1%"
+                        }
+                ],
+                "desc": "刻着歪斜符咒的木牌。符咒慑敌，也分了持牌人的心。",
+                "maxStack": 999,
+                "iconImage": "assets/items/tributes/crafts/木刻符牌.png",
+                "dropImage": "assets/items/tributes/crafts/木刻符牌.png"
+        },
+        "craft_soup_bowl": {
+                "name": "彩绘汤钵",
+                "type": "祭品",
+                "icon": "🥣",
+                "category": "tribute",
+                "rarity": "uncommon",
+                "level": 1,
+                "stack": 1,
+                "price": 200,
+                "effects": {
+                        "hpRegenPercent": 8,
+                        "goldPercent": -2
+                },
+                "stats": [
+                        {
+                                "name": "生命恢复",
+                                "value": "+8%"
+                        },
+                        {
+                                "name": "金币掉落",
+                                "value": "-2%"
+                        }
+                ],
+                "desc": "赭红底彩绘蛙纹。吃得滋补，宴席费钱。",
+                "maxStack": 999,
+                "iconImage": "assets/items/tributes/crafts/彩绘汤钵.png",
+                "dropImage": "assets/items/tributes/crafts/彩绘汤钵.png"
+        },
+        "craft_bone_mask": {
+                "name": "骨雕战面",
+                "type": "祭品",
+                "icon": "🎭",
+                "category": "tribute",
+                "rarity": "uncommon",
+                "level": 1,
+                "stack": 1,
+                "price": 200,
+                "effects": {
+                        "monsterDamageTakenPercent": 4,
+                        "mpRegenPercent": -2
+                },
+                "stats": [
+                        {
+                                "name": "怪物承伤",
+                                "value": "+4%"
+                        },
+                        {
+                                "name": "魔法恢复",
+                                "value": "-2%"
+                        }
+                ],
+                "desc": "獠牙怒目的半脸骨面具。未战，先怯敌三分。",
+                "maxStack": 999,
+                "iconImage": "assets/items/tributes/crafts/骨雕战面.png",
+                "dropImage": "assets/items/tributes/crafts/骨雕战面.png"
+        },
+        "craft_wax_candle": {
+                "name": "蜂蜡烛台",
+                "type": "祭品",
+                "icon": "🕯️",
+                "category": "tribute",
+                "rarity": "uncommon",
+                "level": 1,
+                "stack": 1,
+                "price": 200,
+                "effects": {
+                        "staminaRegenPercent": 4,
+                        "moveSpeedPercent": -1
+                },
+                "stats": [
+                        {
+                                "name": "体力恢复",
+                                "value": "+4%"
+                        },
+                        {
+                                "name": "移动速度",
+                                "value": "-1%"
+                        }
+                ],
+                "desc": "烛照夜路，蜂蜡沉手。",
+                "maxStack": 999,
+                "iconImage": "assets/items/tributes/crafts/蜂蜡烛台.png",
+                "dropImage": "assets/items/tributes/crafts/蜂蜡烛台.png"
+        },
+        "craft_march_drum": {
+                "name": "仓鼠行军鼓",
+                "type": "祭品",
+                "icon": "🥁",
+                "category": "tribute",
+                "rarity": "uncommon",
+                "level": 1,
+                "stack": 1,
+                "price": 200,
+                "effects": {
+                        "friendlyAtkPercent": 3,
+                        "hpRegenPercent": -4
+                },
+                "stats": [
+                        {
+                                "name": "友方单位攻击",
+                                "value": "+3%"
+                        },
+                        {
+                                "name": "生命恢复",
+                                "value": "-4%"
+                        }
+                ],
+                "desc": "鼓面绘着仓鼠爪印。鼓点催征，闻者忘餐。",
+                "maxStack": 999,
+                "iconImage": "assets/items/tributes/crafts/仓鼠行军鼓.png",
+                "dropImage": "assets/items/tributes/crafts/仓鼠行军鼓.png"
+        },
+        "craft_jade_mantis": {
+                "name": "翡翠螳螂雕",
+                "type": "祭品",
+                "icon": "🦗",
+                "category": "tribute",
+                "rarity": "rare",
+                "level": 1,
+                "stack": 1,
+                "price": 400,
+                "effects": {
+                        "critPercent": 3,
+                        "defPercent": -3
+                },
+                "stats": [
+                        {
+                                "name": "暴击率",
+                                "value": "+3%"
+                        },
+                        {
+                                "name": "物理防御",
+                                "value": "-3%"
+                        }
+                ],
+                "desc": "薄翼刀锋，攻其不备，自守亦薄。",
+                "maxStack": 999,
+                "iconImage": "assets/items/tributes/crafts/翡翠螳螂雕.png",
+                "dropImage": "assets/items/tributes/crafts/翡翠螳螂雕.png"
+        },
+        "craft_twin_dolls": {
+                "name": "双人陶偶",
+                "type": "祭品",
+                "icon": "🎎",
+                "category": "tribute",
+                "rarity": "rare",
+                "level": 1,
+                "stack": 1,
+                "price": 400,
+                "effects": {
+                        "mpRegenPercent": 12,
+                        "moveSpeedPercent": -2
+                },
+                "stats": [
+                        {
+                                "name": "魔法恢复",
+                                "value": "+12%"
+                        },
+                        {
+                                "name": "移动速度",
+                                "value": "-2%"
+                        }
+                ],
+                "desc": "成对供奉才灵验。背负双偶，行路自沉。",
+                "maxStack": 999,
+                "iconImage": "assets/items/tributes/crafts/双人陶偶.png",
+                "dropImage": "assets/items/tributes/crafts/双人陶偶.png"
+        },
+        "craft_flint_striker": {
+                "name": "燧石打火镰",
+                "type": "祭品",
+                "icon": "🔥",
+                "category": "tribute",
+                "rarity": "rare",
+                "level": 1,
+                "stack": 1,
+                "price": 400,
+                "effects": {
+                        "monsterDamageTakenPercent": 5,
+                        "mdefPercent": -3
+                },
+                "stats": [
+                        {
+                                "name": "怪物承伤",
+                                "value": "+5%"
+                        },
+                        {
+                                "name": "魔法防御",
+                                "value": "-3%"
+                        }
+                ],
+                "desc": "火种燎原，玩火者自灼。",
+                "maxStack": 999,
+                "iconImage": "assets/items/tributes/crafts/燧石打火镰.png",
+                "dropImage": "assets/items/tributes/crafts/燧石打火镰.png"
+        },
+        "craft_general_figurine": {
+                "name": "将校泥塑",
+                "type": "祭品",
+                "icon": "🎖️",
+                "category": "tribute",
+                "rarity": "rare",
+                "level": 1,
+                "stack": 1,
+                "price": 400,
+                "effects": {
+                        "friendlyMaxHpPercent": 6,
+                        "atkPercent": -2
+                },
+                "stats": [
+                        {
+                                "name": "友方单位生命",
+                                "value": "+6%"
+                        },
+                        {
+                                "name": "物理攻击",
+                                "value": "-2%"
+                        }
+                ],
+                "desc": "泥塑的将校偶兵列阵持旗，替主分忧。",
+                "maxStack": 999,
+                "iconImage": "assets/items/tributes/crafts/将校泥塑.png",
+                "dropImage": "assets/items/tributes/crafts/将校泥塑.png"
+        },
+        "craft_gilded_pitcher": {
+                "name": "鎏金狩猎壶",
+                "type": "祭品",
+                "icon": "🏺",
+                "category": "tribute",
+                "rarity": "epic",
+                "level": 1,
+                "stack": 1,
+                "price": 800,
+                "effects": {
+                        "goldPercent": 8,
+                        "dropChancePercent": 7
+                },
+                "stats": [
+                        {
+                                "name": "金币掉落",
+                                "value": "+8%"
+                        },
+                        {
+                                "name": "祭品掉落",
+                                "value": "+7%"
+                        }
+                ],
+                "desc": "壶身绘猎获满载图，讨个丰收口彩。",
+                "maxStack": 999,
+                "iconImage": "assets/items/tributes/crafts/鎏金狩猎壶.png",
+                "dropImage": "assets/items/tributes/crafts/鎏金狩猎壶.png"
+        },
+        "craft_bear_skull": {
+                "name": "熊头骨壁挂",
+                "type": "祭品",
+                "icon": "🐻",
+                "category": "tribute",
+                "rarity": "epic",
+                "level": 1,
+                "stack": 1,
+                "price": 800,
+                "effects": {
+                        "atkPercent": 8,
+                        "killHpHealPercent": 2
+                },
+                "stats": [
+                        {
+                                "name": "物理攻击",
+                                "value": "+8%"
+                        },
+                        {
+                                "name": "击杀回血",
+                                "value": "+2%"
+                        }
+                ],
+                "desc": "猎人的勋章。浴血，更勇。",
+                "maxStack": 999,
+                "iconImage": "assets/items/tributes/crafts/熊头骨壁挂.png",
+                "dropImage": "assets/items/tributes/crafts/熊头骨壁挂.png"
+        },
+        "craft_vine_harp": {
+                "name": "藤月竖琴",
+                "type": "祭品",
+                "icon": "🎻",
+                "category": "tribute",
+                "rarity": "epic",
+                "level": 1,
+                "stack": 1,
+                "price": 800,
+                "effects": {
+                        "mpRegenPercent": 18,
+                        "expPercent": 7
+                },
+                "stats": [
+                        {
+                                "name": "魔法恢复",
+                                "value": "+18%"
+                        },
+                        {
+                                "name": "经验获取",
+                                "value": "+7%"
+                        }
+                ],
+                "desc": "月下抚琴，心有所悟。",
+                "maxStack": 999,
+                "iconImage": "assets/items/tributes/crafts/藤月竖琴.png",
+                "dropImage": "assets/items/tributes/crafts/藤月竖琴.png"
+        },
+        "craft_command_podium": {
+                "name": "点将台微雕",
+                "type": "祭品",
+                "icon": "🏟️",
+                "category": "tribute",
+                "rarity": "epic",
+                "level": 1,
+                "stack": 1,
+                "price": 800,
+                "effects": {
+                        "friendlyAtkPercent": 7,
+                        "friendlyMoveSpeedPercent": 4
+                },
+                "stats": [
+                        {
+                                "name": "友方单位攻击",
+                                "value": "+7%"
+                        },
+                        {
+                                "name": "友方单位移速",
+                                "value": "+4%"
+                        }
+                ],
+                "desc": "掌上阅兵，号令三军。",
+                "maxStack": 999,
+                "iconImage": "assets/items/tributes/crafts/点将台微雕.png",
+                "dropImage": "assets/items/tributes/crafts/点将台微雕.png"
+        },
+        "craft_wolf_banner": {
+                "name": "狼烟图腾旗",
+                "type": "祭品",
+                "icon": "🚩",
+                "category": "tribute",
+                "rarity": "mythic",
+                "level": 1,
+                "stack": 1,
+                "price": 1600,
+                "effects": {
+                        "friendlyAtkPercent": 10,
+                        "atkPercent": 9
+                },
+                "stats": [
+                        {
+                                "name": "友方单位攻击",
+                                "value": "+10%"
+                        },
+                        {
+                                "name": "物理攻击",
+                                "value": "+9%"
+                        },
+                        {
+                                "name": "狼烟结界",
+                                "value": "光环"
+                        }
+                ],
+                "desc": "旗面绘奔狼，猎猎如有狼烟升起。",
+                "maxStack": 999,
+                "iconImage": "assets/items/tributes/crafts/狼烟图腾旗.png",
+                "dropImage": "assets/items/tributes/crafts/狼烟图腾旗.png",
+                "special": {
+                        "friendlyAuraRadius": 1200,
+                        "friendlyAuraMoveSpeedPercent": 10
+                }
+        },
+        "craft_bloodvine_staff": {
+                "name": "血藤缠杖",
+                "type": "祭品",
+                "icon": "🩸",
+                "category": "tribute",
+                "rarity": "mythic",
+                "level": 1,
+                "stack": 1,
+                "price": 1600,
+                "effects": {
+                        "matkPercent": 10,
+                        "hpRegenPercent": 22
+                },
+                "stats": [
+                        {
+                                "name": "魔法攻击",
+                                "value": "+10%"
+                        },
+                        {
+                                "name": "生命恢复",
+                                "value": "+22%"
+                        },
+                        {
+                                "name": "血藤寄生",
+                                "value": "吸血"
+                        }
+                ],
+                "desc": "血藤缠杖而生，饮血反哺。",
+                "maxStack": 999,
+                "iconImage": "assets/items/tributes/crafts/血藤缠杖.png",
+                "dropImage": "assets/items/tributes/crafts/血藤缠杖.png",
+                "special": {
+                        "friendlyLifestealPercent": 10
+                }
+        },
+        "craft_jade_twins": {
+                "name": "双身翡翠神像",
+                "type": "祭品",
+                "icon": "🗿",
+                "category": "tribute",
+                "rarity": "legendary",
+                "level": 1,
+                "stack": 1,
+                "price": 3200,
+                "effects": {
+                        "hpRegenPercent": 30,
+                        "defPercent": 12
+                },
+                "stats": [
+                        {
+                                "name": "生命恢复",
+                                "value": "+30%"
+                        },
+                        {
+                                "name": "物理防御",
+                                "value": "+12%"
+                        },
+                        {
+                                "name": "双身",
+                                "value": "募兵×2"
+                        }
+                ],
+                "desc": "背对背的翡翠双身像，一个看家，一个招兵。",
+                "maxStack": 999,
+                "iconImage": "assets/items/tributes/crafts/双身翡翠神像.png",
+                "dropImage": "assets/items/tributes/crafts/双身翡翠神像.png",
+                "special": {
+                        "recruitCountMul": 2
+                }
+        },
+        "craft_gold_astrolabe": {
+                "name": "黄金星象仪",
+                "type": "祭品",
+                "icon": "🌟",
+                "category": "tribute",
+                "rarity": "legendary",
+                "level": 1,
+                "stack": 1,
+                "price": 3200,
+                "effects": {
+                        "visionRangePercent": 100,
+                        "expPercent": 13
+                },
+                "stats": [
+                        {
+                                "name": "基础视野",
+                                "value": "+100%"
+                        },
+                        {
+                                "name": "经验获取",
+                                "value": "+13%"
+                        },
+                        {
+                                "name": "风调雨顺",
+                                "value": "产出×1.5"
+                        }
+                ],
+                "desc": "黄铜环圈咬合星图。观星知天时，风调雨顺。",
+                "maxStack": 999,
+                "iconImage": "assets/items/tributes/crafts/黄金星象仪.png",
+                "dropImage": "assets/items/tributes/crafts/黄金星象仪.png",
+                "special": {
+                        "productionResourcePercent": 50
+                }
         }
     }
 }

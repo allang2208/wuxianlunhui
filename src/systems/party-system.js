@@ -9,6 +9,7 @@
 
 import { Companion } from '../entities/companion.js';
 import companionConfigData from '../../data/companion-config.json';
+import { RtsTacticalOrderSystem } from './rts-tactical-order-system.js';
 
 export const PartySystem = {
     _members: [],       // Companion[]
@@ -149,11 +150,11 @@ export const PartySystem = {
     /**
      * 队员指令（2026-08-14 指挥轮盘）：写在队员对象上，CompanionAI 每 tick 读取。
      * @param {string|string[]|'all'} target 队员 id / id 数组 / 'all'
-     * @param {'follow'|'aggressive'|'patrol'|'gather'|'hold'} mode
-     * @param {{x:number,y:number}|null} point 指令点（巡逻圆心/采集目标附近，世界坐标）
+     * @param {'follow'|'attack_move'|'aggressive'|'patrol'|'gather'|'hold'} mode
+     * @param {{x:number,y:number}|null} point 指令点（移动攻击/巡逻终点/采集目标附近，世界坐标）
      * @returns {number} 生效的队员数
      */
-    /** 下发指挥指令：move/hold/aggressive/patrol/gather/attack。
+    /** 下发指挥指令：move/hold/attack_move/patrol/gather/attack。
      *  attack 模式带 targetEntity（右键点敌方目标 → 指定攻击目标，2026-08-16 RTS 指挥模式）。 */
     setCommand(target, mode, point = null, targetEntity = null) {
         const ids = target === 'all'
@@ -162,6 +163,11 @@ export const PartySystem = {
         let n = 0;
         for (const m of this._members) {
             if (!ids.includes(m.id)) continue;
+            if (RtsTacticalOrderSystem.isOrderMode(mode)) {
+                if (RtsTacticalOrderSystem.issue(m, mode, point)) n++;
+                continue;
+            }
+            RtsTacticalOrderSystem.clear(m);
             m._command = {
                 mode,
                 point: point ? {

@@ -4,7 +4,7 @@ import { Game } from '../game.js';
 // Pure functions for rendering and managing equipment tooltips
 
 import { FloatingTextEffect } from '../effects/floating-text.js';
-import { CraftSystem } from './craft-system.js';
+import { CraftSystem, renderCraftIcon } from './craft-system.js';
 import { EnhanceSystem } from './enhance-system.js';
 import { UIState } from './ui-state.js';
 import { getAmmoConfig, getFireMode } from '../config/gun-ammo.js';
@@ -86,6 +86,15 @@ export const EquipTooltipManager = {
         const rarityColor = RARITY_COLORS[rarityKey] || '#ffffff';
         ttName.innerHTML = fullItem.name + ((fullItem.enhanceLevel || 0) > 0 ? `<span class="tt-enhanced-badge">已强化 +${fullItem.enhanceLevel}</span>` : '');
         ttType.innerHTML = fullItem.type + (fullItem.rarity ? ` | <span class="tt-outline" style="color:${rarityColor};font-weight:700;">${rarityLabel}</span>` : '') + (fullItem.level ? ` | Lv.${fullItem.level}` : '');
+        // 头部图标：有贴图用贴图（加载失败回退 emoji），无贴图用 emoji 图标
+        const ttIcon = getElement('ttIcon');
+        if (ttIcon) {
+            if (fullItem.iconImage) {
+                ttIcon.innerHTML = `<img src="${fullItem.iconImage}" alt="" onerror="this.style.display='none';this.parentElement.textContent='${fullItem.icon || '⚔'}';">`;
+            } else {
+                ttIcon.textContent = fullItem.icon || '⚔';
+            }
+        }
         // 属性列表
         let statsHtml = '';
         if (fullItem.stats && fullItem.stats.length > 0) {
@@ -391,7 +400,7 @@ export const EquipTooltipManager = {
                     if (slotOpts) {
                         const opt = slotOpts.find(o => o.id === modId);
                         if (opt) {
-                            craftHtml += `<div class="tt-craft-row"><div class="tt-craft-left"><span class="tt-craft-icon">${opt.icon}</span><span class="tt-craft-name">${opt.name}</span></div><span class="tt-craft-desc">${opt.desc || ''}</span></div>`;
+                            craftHtml += `<div class="tt-craft-row"><div class="tt-craft-left"><span class="tt-craft-icon">${renderCraftIcon(opt.icon)}</span><span class="tt-craft-name">${opt.name}</span></div><span class="tt-craft-desc">${opt.desc || ''}</span></div>`;
                         }
                     }
                 }
