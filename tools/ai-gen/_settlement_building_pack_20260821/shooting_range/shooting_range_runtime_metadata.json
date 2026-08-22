@@ -1,0 +1,34 @@
+{
+  "source": "tools\\ai-gen\\_settlement_building_pack_20260821\\shooting_range\\shooting_range_v4_5080_s48_seed122853_raw.png",
+  "output": "assets\\terrain\\shooting_range.png",
+  "sourceMode": "RGB",
+  "background": [
+    239,
+    233,
+    5
+  ],
+  "maskImage": "tools\\ai-gen\\_settlement_building_pack_20260821\\shooting_range\\shooting_range_v4_5080_s48_seed122853_cutout.png",
+  "maskDilate": -4,
+  "maskAddRects": [],
+  "cropBox": [
+    79,
+    354,
+    947,
+    917
+  ],
+  "fileSize": [
+    868,
+    563
+  ],
+  "alphaBBox": [
+    4,
+    4,
+    864,
+    559
+  ],
+  "displayW": 272,
+  "displayH": 176,
+  "footOffsetY": 87,
+  "scaleX": 0.31336405529953915,
+  "scaleY": 0.31261101243339257
+}

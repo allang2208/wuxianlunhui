@@ -94,6 +94,49 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
 - **固定视角/方向**：`--model flux2-dev-depth --control-image <深度图> --prompt "..."`（见 WORKFLOW §1.5）
 - **World-122 建筑**：采用“12 步结构粗筛 → 人工选纯绿底结构图 → 48 步低重绘精修”的两阶段管线；两阶段使用 Blender 深度图锁定结构，并派生边缘图辅助检查。远端插件确认支持 Hook 链后才加 `--edge-control` 启用第二路控制。结构提示词只管封闭体块和塔楼数量，细节提示词只管材质与时代组件；命令与参数见 WORKFLOW §1.5.1。
 
+##### World-122 建筑最高优先级管线：组件化白模 → 12 步 → 48 步
+
+这是新建、重做或大幅调整 World-122 建筑的**第一选择**。只要目标是可放置建筑，就先检查组件库并搭 Blender 白模，不先用纯提示词盲抽，也不把手绘轮廓当正式结构真源。纯提示词/ImageGen 只用于概念探索；未经 Blender Depth 锁定的图不能直接提升为正式建筑资产。
+
+组件实现、登记与复用规则见 [World-122 建筑组件登记表](references/world122-building-components.md)。开始建模前必须先读该表，优先复用现有组件；新增可复用组件时，代码和登记表必须在同一次修改中更新。
+
+**真源分工**：
+
+- `tools/ai-gen/building-component-kit.py`：跨建筑复用的参数化组件、材质、相机和 Depth 渲染函数，是组件实现真源。
+- `tools/ai-gen/settlement-building-pack-blender.py`：建筑组合与楼层/院落/阳台等装配逻辑；已出现第二次复用的组合件应提升到组件库，禁止复制粘贴两套坐标。
+- `tools/ai-gen/_settlement_building_pack_20260821/manifest.json`：相机、低饱和调色板、各建筑 foundation/body/roof/tower 尺寸真源。
+- `tools/ai-gen/_settlement_building_pack_20260821/prompts/<building>.txt`：每栋建筑的结构、细节和禁止项；提示词不能替代白模几何。
+- `tools/ai-gen/_settlement_building_pack_20260821/<building>/`：该建筑的 `.blend`、preview、depth、12/48 步候选和入库元数据。
+
+**强制顺序**：
+
+1. **拆需求并查组件表**：把建筑拆成主体壳、屋顶、门窗、楼层、阳台/院墙和功能道具。能由现有组件组合的不得重写；仅当前建筑使用的复杂组合先留在 builder，第二次出现时提升为公共组件。
+2. **更新 manifest 与白模**：尺寸、相机、调色板写 manifest；几何写 Blender builder。所有对象保留有意义的英文名并保持独立可编辑，禁止为了省事把门窗、阳台、杂物全部 join 成不可拆网格。
+3. **先渲染 preview + depth**：固定正交相机、`elevation=30°`、建筑根节点 `rot.z=44.8°`、1024²、完整 foundation 可见。preview 用于人工查组件位置；depth 是 5080 ControlNet 的结构真源。若 preview 中楼层、门、院墙、靶子或阳台位置不对，必须先改模型，不能靠提示词赌修正。
+4. **提交 5080 12 步结构候选**：使用 `flux2-dev-depth`、同一 depth、`control-strength≈0.88`、CFG 3.5、Euler；提示词明确结构数量、组件归属和禁止项。先提交生图任务，等待时可以处理互不依赖的建模/配置工作，不空等。
+5. **12 步只验结构**：核对视角、完整地基、楼层数、屋顶是否连续、门窗/院落/阳台/功能组件的位置、组件是否离开主体，以及是否凭空增加物件。任何结构错位都回 Blender 改白模后重新 12 步，禁止直接用 48 步掩盖。
+6. **玩家确认后才进 48 步**：以通过的 12 步图作为 `--init-image`，继续使用同一 depth，默认 `denoise=0.30`、48 步低重绘。精修提示词只增加材质、磨损、小型杂物和灯光，不改变主体轮廓、层数、院落、屋顶或组件位置。局部错误用 mask 返修，不整图重抽。
+7. **真透明与 footprint 验收**：先查 RGBA、最大连通域、黄色/绿色残边、孤立像素和投影阴影；抠图不干净就暂停入库并向玩家汇报。正式图必须紧裁且等比缩放，`scaleX≈scaleY`；不能用固定宽高强拉。alpha 自动锚点若仍让贴图偏出地基，使用资产级 `anchorAdjustX/anchorAdjustY`，并保证建造幽灵与实体同源，禁止改全局 footprint 迁就一张贴图。
+8. **正式入库**：只有玩家明确接受的 48 步版本才能覆盖 `assets/terrain/<building>.png`。同步 `data/producer-buildings.json` 的 `displayW/displayH/footOffsetY` 和必要的 anchor 调整，并只重建该建筑的 lighting maps。未通过的 12 步候选不得导入。
+
+**标准命令骨架**：
+
+```powershell
+& 'E:\Program Files\Blender Foundation\Blender 5.1\blender.exe' `
+  --background --factory-startup `
+  --python tools\ai-gen\settlement-building-pack-blender.py -- `
+  tools\ai-gen\_settlement_building_pack_20260821\manifest.json `
+  <building_id> <model.blend> <preview.png> <depth.png>
+
+& 'E:\无尽轮回\长期备份\2026-7-13-1\ComfyUI\.venv\Scripts\python.exe' `
+  tools\ai-gen\comfyui-gen.py `
+  --host 192.168.3.142 --model flux2-dev-depth `
+  --prompt-file <prompt.txt> --control-image <depth.png> `
+  --control-strength 0.88 --steps 12 --seed <seed> --out <s12_raw.png>
+```
+
+48 步在第二条命令上增加 `--init-image <accepted_s12_raw.png> --denoise 0.30` 并改为 `--steps 48`。若 5080 请求在沙箱内报 `WinError 10013`，这是网络权限问题，不代表 5080 离线；按授权流程重试，不擅自改用另一模型或绕过 Depth。
+
 ##### World-122 建筑接地角验收：只测 Alpha 最外轮廓（2026-08-21）
 - **提示词、深度图和边缘图不是验收证据**：ImageGen 仍可能重建透视、改变多塔脚位置，或把“透明背景”画成不透明棋盘格；最终必须检查实际 PNG 像素。
 - **透明先看通道，不看观感**：若整图 alpha 都是 255，棋盘格只是被画进 RGB 的假透明，必须从原 RGB 重新走 BiRefNet/项目抠图器生成 alpha，禁止直接入库。棋盘背景不是恒定白色，边缘去污染应按邻近真实背景色反推前景，再用最近的不透明主体颜色修复软边；只把 alpha 清零会留下亮灰描边。
@@ -102,6 +145,21 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
 - **修正边界**：只有整栋建筑两组轴共享同一线性误差时才允许全局仿射；多塔脚各自漂移属于非线性透视，必须重抽、按白模表面投影，或在保持竖线垂直的前提下对实际外轮廓做分段几何映射，然后重新测量每一段。
 - **入库门槛**：背景必须是真实 RGBA；主体紧裁后等比缩放；可见接地范围必须落在固定 `256×128` 地基/碰撞菱形内；`alpha>16` 主体应为单一主连通域且不能触碰画布边界。未确认候选不得覆盖 `assets/terrain/`，只有玩家明确接受的版本才能提升为稳定英文资产键；定稿入库后删除 raw、预览、控制图、遮罩和被否版本。
 - **结构通过后的像素精修**：玩家已接受主体结构后，后续“降噪/提升饱和度”只改当前候选的 RGB，禁止重新生图改变窗户、阳台、底座或视角。处理必须锁住 alpha（输出 alpha 与输入逐像素一致），在主体 mask 内做边缘保护降噪与饱和度调整；每一轮百分比都以当轮输入为基准并保留可回退候选。安装时只覆盖稳定英文资产，逻辑 footprint、碰撞和道路衔接不得随像素处理改变。
+- **人工 RGBA 抠图优先保真**：玩家交回已经清理的 RGBA 时，先检查模式、alpha 范围和主体 bbox；alpha 合格就直接进入 `finalize-building-runtime.py`，禁止再次自动分割。若软边仍混有已知底色，用 `--matte-color '#RRGGBB'` 反推半透明边缘 RGB；若 alpha 内侧还有不透明底色细线，再增加 `--matte-edge-width <源图像素>` 与 `--matte-tolerance <RGB 距离>`，只修复污染 RGB，不改玩家 alpha。
+- **等比入库元数据契约**：`displayW` 由逻辑 footprint 和画面占比确定；`displayH` 必须按最终紧裁画布宽高比反算，`footOffsetY` 再从最终画布接地点计算。替换贴图时禁止沿用旧 `displayH` 强拉新图。alpha 自动拟合后若仍因厚地基或非对称画布偏移，才设置资产级 `anchorAdjustX/anchorAdjustY`；建造幽灵与正式实体必须同时消费这两个值。
+- **单建筑光照图增量更新**：新稳定资产键先登记到 `build-lighting-maps.py` 的 `ASSETS`，再运行 `python tools/ai-gen/build-lighting-maps.py <building_id>`。指定资产模式必须保留 manifest 中其他条目，仅更新该建筑的 silhouette/projection/height/normal 四张图和对应记录；禁止为换一栋建筑重建、改写整批无关光照资产。
+
+正式入库命令骨架：
+
+```powershell
+python tools/ai-gen/finalize-building-runtime.py `
+  <accepted_cutout.png> assets/terrain/<building_id>.png `
+  --display-width <displayW> --matte-color '#RRGGBB' `
+  --matte-edge-width <source_px> --matte-tolerance <distance> `
+  --metadata <runtime_metadata.json>
+
+python tools/ai-gen/build-lighting-maps.py <building_id>
+```
 - **本机 3080 Ti 兜底**：`python tools/ai-gen/comfyui-gen.py --host 127.0.0.1 --model sdxl --prompt "..." --out out.png`
 - 客户端：`tools/ai-gen/zhipu-gen.py`（--prompt / --prompt-file / --model / --size / --out）
 - 接口：`POST https://open.bigmodel.cn/api/paas/v4/images/generations`，默认模型 **glm-image**（推荐 1280×1280）

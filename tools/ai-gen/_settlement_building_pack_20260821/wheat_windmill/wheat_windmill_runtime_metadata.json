@@ -1,0 +1,37 @@
+{
+  "source": "tools\\ai-gen\\_settlement_building_pack_20260821\\wheat_windmill\\wheat_windmill_v2_5080_s48_seed122844_cutout.png",
+  "output": "assets\\terrain\\wheat_windmill.png",
+  "sourceMode": "RGBA",
+  "background": null,
+  "matteColor": [
+    253,
+    244,
+    7
+  ],
+  "matteEdgeWidth": 10.0,
+  "matteTolerance": 200.0,
+  "maskImage": null,
+  "maskDilate": null,
+  "maskAddRects": [],
+  "cropBox": [
+    749,
+    412,
+    3388,
+    3662
+  ],
+  "fileSize": [
+    2639,
+    3250
+  ],
+  "alphaBBox": [
+    4,
+    4,
+    2635,
+    3246
+  ],
+  "displayW": 276,
+  "displayH": 340,
+  "footOffsetY": 170,
+  "scaleX": 0.10458507010231148,
+  "scaleY": 0.10461538461538461
+}

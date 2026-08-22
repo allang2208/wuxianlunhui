@@ -315,7 +315,10 @@ def build_shooting_range(spec):
         kit.box(collection, root, f"Range_Yard_FrontPost_{int(x)}", (11, 11, 82),
                 (x, yard_front, fh + 41), mats["timber"], bevel_width=1.5)
     for index, x in enumerate((-92, 0, 92)):
-        target_y = yard_back - 32
+        # Targets belong to the perimeter firing line, not against the house.
+        # Keep them just inside the front fence so the yard reads as a real
+        # training cell with a clear safety gap before the armory wall.
+        target_y = yard_front + 38
         kit.box(collection, root, f"Range_TargetPost_{index}", (10, 10, 86),
                 (x, target_y + 8, fh + 43), mats["timber"], bevel_width=1)
         kit.box(collection, root, f"Range_TargetFoot_{index}", (58, 28, 8),
@@ -325,6 +328,14 @@ def build_shooting_range(spec):
         kit.cylinder(collection, root, f"Range_Target_{index}_Center", 9, 11,
                      (x, target_y - 6, fh + 73), mats["iron"], rotation=(90, 0, 0), vertices=32)
     armory_y = house_front - 15
+    # A solid wall rack keeps the weapon silhouettes below the eaves.  The
+    # diffusion pass must read these as organized wall storage, never as roof
+    # ornaments.
+    kit.box(collection, root, "Range_Armory_Rack_Back", (176, 10, 104),
+            (-50, armory_y + 3, fh + 66), mats["timber"], bevel_width=2)
+    for z in (fh + 35, fh + 92):
+        kit.box(collection, root, f"Range_Armory_Rack_Rail_{int(z)}", (184, 14, 8),
+                (-50, armory_y - 3, z), mats["iron"], bevel_width=1)
     for index, x in enumerate((-112, -92)):
         kit.box(collection, root, f"Range_Visible_Bow_{index}_Upper", (5, 7, 50),
                 (x, armory_y, fh + 80), mats["timber"], rotation=(0, -18 if index == 0 else 18, 0), bevel_width=1)
@@ -332,9 +343,11 @@ def build_shooting_range(spec):
                 (x + 10, armory_y - 1, fh + 41), mats["timber"], rotation=(0, 18 if index == 0 else -18, 0), bevel_width=1)
     for index, x in enumerate((-58, -34)):
         kit.box(collection, root, f"Range_Visible_GunStock_{index}", (14, 8, 34),
-                (x, armory_y, fh + 37), mats["timber"], rotation=(0, -8, 0), bevel_width=2)
-        kit.box(collection, root, f"Range_Visible_GunBarrel_{index}", (6, 7, 76),
-                (x - 5, armory_y - 1, fh + 87), mats["iron"], rotation=(0, -8, 0), bevel_width=1)
+                (x, armory_y - 5, fh + 34), mats["timber"], rotation=(0, -8, 0), bevel_width=2)
+        kit.box(collection, root, f"Range_Visible_GunBarrel_{index}", (6, 7, 58),
+                (x - 4, armory_y - 6, fh + 75), mats["iron"], rotation=(0, -8, 0), bevel_width=1)
+    kit.box(collection, root, "Range_Powder_Shelf", (92, 24, 8),
+            (24, armory_y - 8, fh + 24), mats["timber"], bevel_width=1.5)
     for index, x in enumerate((-4, 18, 40)):
         kit.box(collection, root, f"Range_PowderBag_{index}", (20, 10, 25),
                 (x, armory_y - 1, fh + 34 + (index % 2) * 8), mats["straw"], rotation=(0, 0, index * 7 - 7), bevel_width=7)

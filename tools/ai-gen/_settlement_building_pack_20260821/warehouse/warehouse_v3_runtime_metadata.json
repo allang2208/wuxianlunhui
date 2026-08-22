@@ -1,0 +1,34 @@
+{
+  "source": "tools\\ai-gen\\_settlement_building_pack_20260821\\warehouse\\warehouse_v3_5080_s12_seed122852_raw.png",
+  "output": "assets\\terrain\\warehouse.png",
+  "sourceMode": "RGB",
+  "background": [
+    251,
+    235,
+    2
+  ],
+  "maskImage": "tools\\ai-gen\\_settlement_building_pack_20260821\\warehouse\\warehouse_v3_depth.png",
+  "maskDilate": 6,
+  "maskAddRects": [],
+  "cropBox": [
+    148,
+    111,
+    875,
+    922
+  ],
+  "fileSize": [
+    727,
+    811
+  ],
+  "alphaBBox": [
+    4,
+    4,
+    723,
+    807
+  ],
+  "displayW": 278,
+  "displayH": 310,
+  "footOffsetY": 154,
+  "scaleX": 0.38239339752407153,
+  "scaleY": 0.38224414303329224
+}

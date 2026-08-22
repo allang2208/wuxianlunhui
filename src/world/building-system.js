@@ -1064,7 +1064,11 @@ export const BuildingSystem = {
     },
 
     _ghostVisualOffsetX() {
-        const offsetX = this._ghostGroundFit()?.visualOffsetX || 0;
+        const fitOffsetX = this._ghostGroundFit()?.visualOffsetX || 0;
+        const producerCfg = this._placing?.item.kind === 'producer'
+            ? PRODUCER_BUILDINGS[this._placing.item.id]
+            : null;
+        const offsetX = fitOffsetX + (Number(producerCfg?.anchorAdjustX) || 0);
         return this._placing?.mirror ? -offsetX : offsetX;
     },
 
@@ -1090,7 +1094,12 @@ export const BuildingSystem = {
         if (!this._placing) return 0;
         if (this._placing.item.kind === 'tower') return DEFENSE_TOWER_VISUAL.base.footOffsetY;
         const fit = this._ghostGroundFit();
-        if (fit) return fit.footOffsetY;
+        if (fit) {
+            const producerCfg = this._placing.item.kind === 'producer'
+                ? PRODUCER_BUILDINGS[this._placing.item.id]
+                : null;
+            return fit.footOffsetY + (Number(producerCfg?.anchorAdjustY) || 0);
+        }
         if (this._placing.item.kind === 'hamster_hut') return HAMSTER_CONFIG.hut.footOffsetY;
         if (this._placing.item.kind === 'hamster_barracks') return BARRACKS_CONFIG.barracks.footOffsetY;
         if (this._placing.item.kind === 'producer') {

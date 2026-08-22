@@ -2210,8 +2210,10 @@ export class GameScene extends Scene {
                 { nominalWidth: nominal.w, nominalHeight: nominal.d }
             );
             if (fit) {
-                entity._visualFootOffsetY = fit.footOffsetY;
-                return fit.footOffsetY;
+                const adjusted = fit.footOffsetY
+                    + (Number(entity.spriteCfg?.anchorAdjustY) || 0);
+                entity._visualFootOffsetY = adjusted;
+                return adjusted;
             }
         }
         if (typeof configured === 'number') return configured;
@@ -2255,7 +2257,10 @@ export class GameScene extends Scene {
                     if (typeof entity.rebuildCollider === 'function') entity.rebuildCollider();
                     entity._visualGroundFitKey = fitKey;
                 }
-                const visualOffsetX = fit.visualOffsetX * mirrorSign;
+                const visualOffsetX = (
+                    fit.visualOffsetX
+                    + (Number(entity.spriteCfg?.anchorAdjustX) || 0)
+                ) * mirrorSign;
                 entity._visualFootOffsetX = visualOffsetX;
                 return visualOffsetX;
             }

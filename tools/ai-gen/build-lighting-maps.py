@@ -14,6 +14,7 @@
 
 from __future__ import annotations
 
+import argparse
 import json
 from pathlib import Path
 
@@ -47,6 +48,7 @@ ASSETS = [
     "shooting_range",
     "thatch_hut",
     "cavalry_school",
+    "wheat_windmill",
     "portal",
     # 2026-08-19 墙壁/楼梯/门接入阴影系统
     "obstacle_block",
@@ -241,6 +243,9 @@ def build_asset(name: str, previous: dict | None = None) -> dict:
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("assets", nargs="*", help="Optional asset names; omit to rebuild the full manifest")
+    args = parser.parse_args()
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     previous = {}
     if MANIFEST.exists():
@@ -248,13 +253,19 @@ def main() -> None:
             previous = json.loads(MANIFEST.read_text(encoding="utf-8")).get("assets") or {}
         except json.JSONDecodeError:
             previous = {}
-    generated = {name: build_asset(name, previous.get(name)) for name in ASSETS}
+    targets = args.assets or ASSETS
+    unknown = [name for name in targets if name not in ASSETS]
+    if unknown:
+        raise SystemExit(f"unknown lighting assets: {', '.join(unknown)}")
+    generated = dict(previous) if args.assets else {}
+    for name in targets:
+        generated[name] = build_asset(name, previous.get(name))
     MANIFEST.write_text(json.dumps({
         "version": 1,
         "comment": "透明贴图 alpha 提取的轮廓/高度/伪法线；footprint 仍由 ISO_WALL_GEO.foot 定义。",
         "assets": generated,
     }, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    print(f"generated {len(generated)} lighting map sets in {OUT_DIR}")
+    print(f"generated {len(targets)} lighting map sets in {OUT_DIR}")
 
 
 if __name__ == "__main__":
