@@ -453,9 +453,12 @@ export const EnergyNodeSystem = {
                 kind: 'fallback',
                 portal,
                 diamond,
-                minPortalDistance: 0,
+                minPortalDistance: fallbackDistance,
             };
-            if (acceptCluster(cluster, fallbackCount)) break;
+            if (acceptCluster(cluster, fallbackCount, (cells) => cells.every(([i, j]) => {
+                const [x, y] = blockCellCenter(i, j);
+                return Math.hypot(x - portal.x, y - portal.y) >= fallbackDistance;
+            }))) break;
         }
 
         const majorCount = Math.max(0, Math.floor(cfg.majorClusterCount || 5));

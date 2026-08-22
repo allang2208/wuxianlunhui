@@ -84,7 +84,7 @@ check('新游戏仅世界-122传送门已构造，世界-125不可构造',
     && !WorldProgressionSystem.isPortalConstructed('scene11')
     && WorldProgressionSystem.getConstructableWorlds().length === 0);
 check('同一世界世代与用途盐会复现相同生成随机流',
-    initialGeneration.generationVersion === 1
+    initialGeneration.generationVersion === 2
     && initialGeneration.seed > 0
     && [initialRandomA(), initialRandomA(), initialRandomA()].join(',')
         === [initialRandomB(), initialRandomB(), initialRandomB()].join(','));
@@ -182,7 +182,7 @@ WorldProgressionSystem.restore({
 check('v1布尔位面存档会迁移为状态机并获得初始世代号',
     WorldProgressionSystem.getPortalState('scene8').status === WORLD_LIFECYCLE_STATUS.ACTIVE
     && WorldProgressionSystem.getWorldEpoch('scene8') === 1
-    && WorldProgressionSystem.getPortalState('scene8').generationVersion === 1
+    && WorldProgressionSystem.getPortalState('scene8').generationVersion === 2
     && WorldProgressionSystem.getPortalState('scene8').generationSeed > 0
     && WorldProgressionSystem.getPortalState('scene11').status === WORLD_LIFECYCLE_STATUS.DESTROYED
     && WorldProgressionSystem.getWorldEpoch('scene11') === 1);
