@@ -24,7 +24,7 @@ export function createHudPanelsMisc() {
         { action: 'CompanionPanel.openManage()', title: '管理队员 (P)', icon: 'assets/ui/icons/party.png', alt: '队员', key: 'P', label: '队员管理' },
         { action: 'Game.handleAddPoint()', title: '属性点', icon: 'assets/ui/addpoint.png', alt: '属性点', key: null, label: '属性点', id: 'addPointBtn', extraClass: 'addpoint-btn hidden' },
         // 新入口追加在全部既有栏目之后，避免改变任何原按钮的预设序号。
-        { action: 'TechnologyTreePanel.open()', title: '科技树 (Y)', emoji: '🔬', alt: '科技树', key: 'Y', label: '科技树', id: 'technologyTreeBtn' }
+        { action: 'TechnologyTreePanel.open()', title: '科技树 (Y)', icon: 'assets/ui/icons/technology_tree.png', alt: '科技树', key: 'Y', label: '科技树', id: 'technologyTreeBtn' }
     ];
     sideMenuItems.forEach(item => {
         const btn = document.createElement('div');

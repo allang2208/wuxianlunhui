@@ -8,6 +8,7 @@
 - **权威规范**：`docs/ui-cold-steel-design-system.md`。新增面板、修改面板、HUD 调整、字体调整和主题色调整开始前必须先读对应章节，并按文末检查表交付。
 - **视觉真源**：`ui/panel-theme-backpack.css`。灰、白、黑基础色、六档字体、边框、阴影、动画和通用 `.bp-*` 组件类只在此维护；禁止在业务文件复制“近似冷钢”色板。
 - **标准模板**：`docs/templates/cold-steel-panel-template.js`。新右侧栏目从模板复制，保留业务根类 + `.bp-right-column`，生命周期统一使用 `BasePanel`。
+- **右侧常驻入口图标合同（2026-08-23）**：`hud-panels-misc.js` 的 `sideMenuItems` 是人物状态、技能、背包、图鉴、任务、世界传送、队员管理、属性点与科技树入口的单一映射；正式图统一使用冷钢六边形母版、完整外框安全边距和真实 RGBA 透明底，科技树也使用稳定 PNG 路径而非 emoji。候选必须由玩家确认后才能覆盖 `assets/ui/icons/`（属性点沿用 `assets/ui/addpoint.png`）；换图不得改变既有 74×74 槽位、按钮顺序、快捷键或点击行为。
 - **执行顺序**：修改前备份 → 判定面板类型 → 选择同类参考 → 接 BasePanel/右侧挂载层 → 使用主题变量和字体档位 → 核对关闭与输入 → 查看本轮 diff → 交由用户运行验证。
 - **统一口径**：右侧主栏目和建筑详情默认 `45vw × 100%`，滑入/收回为 `0.25s cubic-bezier(0.4, 0, 0.2, 1)`；建筑详情是主栏目的同级独立栏目，不做父子嵌套页面。
 - **关闭口径**：建筑详情使用 `panelGroup:'buildingDetail' / closeOnEscape:true / closeOnOutsidePointer:true`，外部关闭不得穿透到攻击、移动或场景选择。
