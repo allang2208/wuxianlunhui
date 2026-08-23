@@ -211,14 +211,18 @@ export const WorldWeatherSystem = {
             events.push({
                 id: `weather:${sceneId}:${entry.cycle}`,
                 type: 'weather',
+                typeLabel: '天气',
                 icon: iconForIntensity(entry.intensityId),
                 iconPath: iconPathForIntensity(entry.intensityId),
                 label: `${worldName(sceneId)} · ${intensityName(entry.intensityId)}`,
                 atGameTimeMs: active ? now : entry.startAtGameTimeMs,
+                startsAtGameTimeMs: entry.startAtGameTimeMs,
                 endsAtGameTimeMs: entry.endAtGameTimeMs,
                 status: active ? 'active' : 'upcoming',
                 sceneId,
+                worldName: worldName(sceneId),
                 intensityId: entry.intensityId,
+                intensityName: intensityName(entry.intensityId),
             });
         }
         return events;

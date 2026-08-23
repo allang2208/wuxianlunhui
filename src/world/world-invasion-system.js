@@ -461,27 +461,17 @@ export const WorldInvasionSystem = {
         };
     },
 
-    /** 顶部通用时间轴的五日袭击周期框架。 */
+    /** 顶部通用时间轴从“现在”向未来展开的五日滑动窗口。 */
     getTimelineFrame() {
         const nowGameTimeMs = Math.max(0,
             Number(EnvironmentLightingSystem.serializeTime().elapsedMs) || 0);
         const total = intervalMs();
-        if (state.active) {
-            return {
-                nowGameTimeMs,
-                startAtGameTimeMs: Math.max(0, nowGameTimeMs - total),
-                endAtGameTimeMs: nowGameTimeMs,
-                durationMs: total,
-                progress: 1,
-            };
-        }
-        const progressMs = Math.max(0, Math.min(total, state.progressMs));
         return {
             nowGameTimeMs,
-            startAtGameTimeMs: Math.max(0, nowGameTimeMs - progressMs),
-            endAtGameTimeMs: nowGameTimeMs + Math.max(0, total - progressMs),
+            startAtGameTimeMs: nowGameTimeMs,
+            endAtGameTimeMs: nowGameTimeMs + total,
             durationMs: total,
-            progress: Math.max(0, Math.min(1, progressMs / total)),
+            progress: 0,
         };
     },
 
@@ -492,6 +482,7 @@ export const WorldInvasionSystem = {
             return [{
                 id: state.active.id,
                 type: 'invasion',
+                typeLabel: '袭击',
                 icon: '⚔',
                 iconPath: 'assets/ui/event-icons/invasion.png',
                 label: `${worldName(state.active.targetWorld)} · 入侵`,
@@ -500,13 +491,15 @@ export const WorldInvasionSystem = {
                 sceneId: state.active.targetWorld,
             }];
         }
+        const remainingMs = Math.max(0, intervalMs() - Math.max(0, state.progressMs));
         return [{
             id: `invasion:next:${state.cycle + 1}`,
             type: 'invasion',
+            typeLabel: '袭击',
             icon: '⚔',
             iconPath: 'assets/ui/event-icons/invasion.png',
             label: '位面袭击',
-            atGameTimeMs: frame.endAtGameTimeMs,
+            atGameTimeMs: frame.nowGameTimeMs + remainingMs,
             status: 'upcoming',
         }];
     },
