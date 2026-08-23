@@ -1450,15 +1450,36 @@
             top: 76px;
             left: 50%;
             transform: translateX(-50%);
-            width: min(480px, calc(100vw - 24px));
+            width: min(560px, calc(100vw - 24px));
             padding: 6px 10px 8px;
-            border: 1px solid rgba(196, 128, 72, 0.72);
+            border: 1px solid var(--bp-ui-line-strong, rgba(197, 219, 228, 0.38));
             border-radius: 8px;
-            background: rgba(22, 15, 18, 0.88);
-            color: #f1c59d;
+            background: var(--bp-ui-shell, rgba(16, 20, 25, 0.94));
+            color: var(--bp-ui-text, #eef3f5);
+            font-family: var(--bp-font-ui, sans-serif);
             z-index: 155;
             pointer-events: none;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.45);
+        }
+        .world-timeline-heading {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 2px;
+            padding-bottom: 3px;
+            border-bottom: 1px solid var(--bp-ui-line, rgba(181, 205, 217, 0.18));
+        }
+        .world-timeline-title {
+            color: var(--bp-ui-text, #eef3f5);
+            font-size: var(--bp-type-meta, 12px);
+            font-weight: 700;
+            letter-spacing: 0.08em;
+        }
+        .world-timeline-window {
+            color: var(--bp-ui-text-muted, #9ca8b1);
+            font-family: var(--bp-font-number, monospace);
+            font-size: var(--bp-type-caption, 11px);
         }
         .world-invasion-hud.active {
             border-color: #ff5b4f;
@@ -1509,7 +1530,7 @@
         }
         .world-invasion-track {
             position: relative;
-            height: 40px;
+            height: 44px;
             margin: 7px 5px 14px;
             overflow: visible;
             border-radius: 5px;
@@ -1534,7 +1555,7 @@
         .world-timeline-event {
             --timeline-event-lane: 0;
             position: absolute;
-            top: calc(2px + var(--timeline-event-lane) * 15px);
+            top: calc(2px + var(--timeline-event-lane) * 18px);
             display: flex;
             align-items: center;
             gap: 2px;
@@ -1542,6 +1563,19 @@
             white-space: nowrap;
             color: #dbe7ef;
             text-shadow: 0 1px 3px #000;
+            pointer-events: auto;
+            cursor: help;
+            border-radius: 4px;
+            transition: background-color 0.16s ease, outline-color 0.16s ease;
+        }
+        .world-timeline-event.at-start-edge { transform: translateX(-8%); }
+        .world-timeline-event.at-end-edge { transform: translateX(-92%); }
+        .world-timeline-event:hover,
+        .world-timeline-event:focus-visible {
+            z-index: 4;
+            background: rgba(9, 12, 15, 0.9);
+            outline: 1px solid var(--bp-ui-line-accent, rgba(162, 188, 200, 0.56));
+            outline-offset: 2px;
         }
         .world-timeline-event-icon {
             display: inline-flex;
@@ -1563,6 +1597,7 @@
         }
         .world-timeline-event-time {
             font-size: 9px;
+            font-family: var(--bp-font-number, monospace);
             color: rgba(231, 239, 244, .8);
         }
         .world-timeline-event.is-invasion { color: #ff9b85; }
@@ -1588,6 +1623,17 @@
             color: #c8d0d5;
             font-size: 9px;
             line-height: 1;
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .world-invasion-hud.evacuation,
+            .world-timeline-event.active .world-timeline-event-icon {
+                animation: none;
+            }
+            .world-invasion-bar,
+            .world-timeline-cursor,
+            .world-timeline-event {
+                transition: none;
+            }
         }
         /* ===== 已强化标签样式 ===== */
         .equip-grid .diablo-slot .slot-crafted {

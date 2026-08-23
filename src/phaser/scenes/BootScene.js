@@ -272,6 +272,7 @@ export class BootScene extends Scene {
         // 冰封世界初级地牢：长墙沿用既有冰墙；竞技场单格墙严格复用世界方块墙几何并替换冰材质。
         this.load.image('frozen_wall_straight', 'assets/terrain/frozen_wall_straight.png');
         this.load.image('frozen_wall_block', 'assets/terrain/frozen_wall_block.png');
+        this.load.spritesheet('frozen_gate', 'assets/terrain/frozen_gate.png', { frameWidth: 640, frameHeight: 640, endFrame: 15 });
         // 主神空间地板砖（等距菱形贴图，运行时按 alpha 包围盒实测几何）
         this.load.image('hub_brick', 'assets/terrain/hub_brick.png');
         // 主神空间大理石直墙 + 大理石门（摆墙编辑器组件，tools/prep-hub-wall-gate.py 产出，几何见 ISO_WALL_GEO）

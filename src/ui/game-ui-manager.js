@@ -31,23 +31,35 @@ import { MilitaryPopulationSystem } from '../world/military-population-system.js
 // Game UI Manager - Extracted from Game.js
 // Handles UI updates, save/load, timers, and menu operations
 
-const INVASION_DANGER_COLORS = [
+const TIMELINE_PROGRESS_COLORS = [
     { at: 0, rgb: [61, 196, 91] },
     { at: 1 / 3, rgb: [65, 139, 231] },
     { at: 2 / 3, rgb: [241, 193, 63] },
     { at: 1, rgb: [229, 65, 62] },
 ];
 
-function invasionDangerColor(value) {
+function timelineProgressColor(value) {
     const progress = Math.max(0, Math.min(1, Number(value) || 0));
-    const upperIndex = INVASION_DANGER_COLORS.findIndex((stop) => progress <= stop.at);
-    const upper = INVASION_DANGER_COLORS[Math.max(1, upperIndex)];
-    const lower = INVASION_DANGER_COLORS[Math.max(0, upperIndex - 1)];
+    const upperIndex = TIMELINE_PROGRESS_COLORS.findIndex((stop) => progress <= stop.at);
+    const upper = TIMELINE_PROGRESS_COLORS[Math.max(1, upperIndex)];
+    const lower = TIMELINE_PROGRESS_COLORS[Math.max(0, upperIndex - 1)];
     const span = Math.max(Number.EPSILON, upper.at - lower.at);
     const t = Math.max(0, Math.min(1, (progress - lower.at) / span));
     const rgb = lower.rgb.map((channel, index) =>
         Math.round(channel + (upper.rgb[index] - channel) * t));
     return `rgb(${rgb.join(', ')})`;
+}
+
+function assignTimelineEventLanes(events, minimumGap = 0.14) {
+    const lastPositionByLane = [-Infinity, -Infinity];
+    return events.map((event) => {
+        const position = Math.max(0, Math.min(1, Number(event.position) || 0));
+        let lane = lastPositionByLane.findIndex((lastPosition) =>
+            position - lastPosition >= minimumGap);
+        if (lane < 0) lane = lastPositionByLane[0] <= lastPositionByLane[1] ? 0 : 1;
+        lastPositionByLane[lane] = position;
+        return lane;
+    });
 }
 
 export const GameUIManager = {
@@ -442,6 +454,7 @@ export const GameUIManager = {
         const invasionBar = getElementIfExists('worldInvasionBar');
         const timelineEvents = getElementIfExists('worldTimelineEvents');
         const timelineCursor = getElementIfExists('worldTimelineCursor');
+        const timelineWindow = getElementIfExists('worldTimelineWindow');
         const timeline = window.WorldEventTimelineSystem?.getHudModel?.();
         if (invasionHud && invasion) {
             invasionHud.classList.toggle('active', !!invasion.active);
@@ -460,45 +473,72 @@ export const GameUIManager = {
         if (invasionBar && timeline) {
             const progress = Math.max(0, Math.min(1, Number(timeline.progress) || 0));
             invasionBar.style.width = `${Math.round(progress * 100)}%`;
-            invasionBar.style.setProperty('--invasion-gradient-start', invasionDangerColor(progress - 0.08));
-            invasionBar.style.setProperty('--invasion-gradient-end', invasionDangerColor(progress + 0.08));
+            invasionBar.style.setProperty('--invasion-gradient-start', timelineProgressColor(progress - 0.08));
+            invasionBar.style.setProperty('--invasion-gradient-end', timelineProgressColor(progress + 0.08));
         }
         if (timelineCursor && timeline) {
             timelineCursor.style.left = `${Math.round(timeline.progress * 10000) / 100}%`;
         }
+        if (timelineWindow && timeline) {
+            const durationDays = Math.max(0, Number(timeline.durationDays) || 0);
+            const durationLabel = Number.isInteger(durationDays)
+                ? String(durationDays)
+                : durationDays.toFixed(1);
+            const summary = `${durationLabel}日周期 · ${timeline.events.length}个事件`;
+            if (timelineWindow.textContent !== summary) timelineWindow.textContent = summary;
+        }
         if (timelineEvents && timeline) {
-            timelineEvents.replaceChildren();
-            timeline.events.forEach((event, index) => {
-                const marker = document.createElement('span');
-                marker.className = `world-timeline-event is-${event.type || 'generic'}${event.status === 'active' ? ' active' : ''}`;
-                marker.style.left = `${Math.round(event.position * 10000) / 100}%`;
-                marker.style.setProperty('--timeline-event-lane', String(index % 2));
-                marker.setAttribute('role', 'img');
-                marker.setAttribute('aria-label', `${event.label}，${event.timeLabel}`);
-                marker.title = `${event.label} · ${event.timeLabel}`;
-                const icon = document.createElement('span');
-                icon.className = 'world-timeline-event-icon';
-                const fallbackIcon = event.icon || '◆';
-                if (event.iconPath) {
-                    const image = document.createElement('img');
-                    image.src = event.iconPath;
-                    image.alt = '';
-                    image.draggable = false;
-                    image.decoding = 'async';
-                    image.addEventListener('error', () => {
-                        image.remove();
+            const lanes = assignTimelineEventLanes(timeline.events);
+            const renderSignature = JSON.stringify(timeline.events.map((event, index) => [
+                event.id,
+                event.type,
+                event.status,
+                event.label,
+                event.timeLabel,
+                event.icon,
+                event.iconPath,
+                Math.round((Number(event.position) || 0) * 10000),
+                lanes[index],
+            ]));
+            if (timelineEvents.dataset.renderSignature !== renderSignature) {
+                timelineEvents.dataset.renderSignature = renderSignature;
+                timelineEvents.replaceChildren();
+                timeline.events.forEach((event, index) => {
+                    const position = Math.max(0, Math.min(1, Number(event.position) || 0));
+                    const marker = document.createElement('span');
+                    marker.className = `world-timeline-event is-${event.type || 'generic'}${event.status === 'active' ? ' active' : ''}`;
+                    if (position <= 0.08) marker.classList.add('at-start-edge');
+                    if (position >= 0.92) marker.classList.add('at-end-edge');
+                    marker.style.left = `${Math.round(position * 10000) / 100}%`;
+                    marker.style.setProperty('--timeline-event-lane', String(lanes[index]));
+                    marker.setAttribute('role', 'img');
+                    marker.setAttribute('aria-label', `${event.label}，${event.timeLabel}`);
+                    marker.tabIndex = 0;
+                    marker.title = `${event.label} · ${event.timeLabel}`;
+                    const icon = document.createElement('span');
+                    icon.className = 'world-timeline-event-icon';
+                    const fallbackIcon = event.icon || '◆';
+                    if (event.iconPath) {
+                        const image = document.createElement('img');
+                        image.src = event.iconPath;
+                        image.alt = '';
+                        image.draggable = false;
+                        image.decoding = 'async';
+                        image.addEventListener('error', () => {
+                            image.remove();
+                            icon.textContent = fallbackIcon;
+                        }, { once: true });
+                        icon.appendChild(image);
+                    } else {
                         icon.textContent = fallbackIcon;
-                    }, { once: true });
-                    icon.appendChild(image);
-                } else {
-                    icon.textContent = fallbackIcon;
-                }
-                const time = document.createElement('span');
-                time.className = 'world-timeline-event-time';
-                time.textContent = event.timeLabel;
-                marker.append(icon, time);
-                timelineEvents.appendChild(marker);
-            });
+                    }
+                    const time = document.createElement('span');
+                    time.className = 'world-timeline-event-time';
+                    time.textContent = event.timeLabel;
+                    marker.append(icon, time);
+                    timelineEvents.appendChild(marker);
+                });
+            }
         }
     },
     setupWeaponSwitchButtons() {

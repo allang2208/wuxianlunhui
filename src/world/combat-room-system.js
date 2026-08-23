@@ -188,8 +188,9 @@ export const CombatRoomSystem = {
         this._roomConstruction = roomProfile.wallConstruction || 'continuous';
         const worldBlockRoom = this._roomConstruction === 'worldBlock1x1';
         this._gridGateCells = Math.max(2, Math.round(roomProfile.gateCells || 6));
+        const gridEdgeRadius = Math.max(6, Math.round((roomSize * 1.2) / ONE_CELL_BUILDING_FOOT.w));
         this._gridEdgeCells = worldBlockRoom
-            ? Math.max(12, Math.round((roomSize * 1.2) / ONE_CELL_BUILDING_FOOT.w) * 2)
+            ? gridEdgeRadius * 2 + 1
             : 0;
         const rx = worldBlockRoom
             ? this._gridEdgeCells * ONE_CELL_BUILDING_FOOT.w / 2
@@ -2034,22 +2035,26 @@ export const CombatRoomSystem = {
 
     /**
      * 雪原初级竞技场：以世界位面 1×1 墙块为唯一模块沿四边铺成闭合墙环。
-     * 每块携带自己的边界线段与 depth，避免整条长墙用单一深度错误遮挡单位。
+     * 墙块中心严格落在 128×64 菱形网格点；四个转角各只复用一个墙块。
+     * 每块携带自己的边界线段与 depth，转角块以两条半边闭合碰撞边界。
      * entranceEdge 对应 TR/RB/BL/LT 四条边；中央 gateCells 格在源几何中直接留空。
      */
     _generateWorldBlockWalls(d) {
         const geo = ISO_WALL_GEO.frozen_block;
         if (!geo) return;
-        const edgeCells = Math.max(12, this._gridEdgeCells || 20);
-        let gateCells = Math.min(this._gridGateCells || 6, edgeCells - 4);
-        if ((edgeCells - gateCells) % 2 !== 0) gateCells = Math.max(2, gateCells - 1);
-        const gapStart = (edgeCells - gateCells) / 2;
+        const edgeCells = Math.max(13, this._gridEdgeCells || 21);
+        const gateCells = Math.min(this._gridGateCells || 6, edgeCells - 5);
+        const gapStart = Math.ceil((edgeCells - gateCells) / 2);
         const gapEnd = gapStart + gateCells;
         const T = { x: d.cx, y: d.cy - d.ry };
         const R = { x: d.cx + d.rx, y: d.cy };
         const B = { x: d.cx, y: d.cy + d.ry };
         const L = { x: d.cx - d.rx, y: d.cy };
         const edges = [[T, R], [R, B], [B, L], [L, T]];
+        const edgeSteps = edges.map(([P, Q]) => ({
+            x: (Q.x - P.x) / edgeCells,
+            y: (Q.y - P.y) / edgeCells,
+        }));
         const scaleX = (geo.displayW || geo.displaySize || 260) / geo.w;
         const scaleY = (geo.displayH || geo.displaySize || 260) / geo.h;
         const ground = geo.groundCenter || [geo.w / 2, geo.h * 0.74];
@@ -2057,8 +2062,8 @@ export const CombatRoomSystem = {
         let gateA = null;
         let gateB = null;
 
-        const makePiece = (A, B0) => {
-            const center = { x: (A.x + B0.x) / 2, y: (A.y + B0.y) / 2 };
+        const makePiece = (center, baseSegments) => {
+            const baseDepth = Math.max(...baseSegments.flat().map((point) => point.y));
             return {
                 tex: geo.tex,
                 x: center.x - (ground[0] - geo.w / 2) * scaleX,
@@ -2067,23 +2072,38 @@ export const CombatRoomSystem = {
                 scaleY,
                 flipX: false,
                 flipY: false,
-                depth: Math.max(A.y, B0.y) + 4,
+                depth: baseDepth + 4,
                 _gridBlockWall: true,
-                _baseSegments: [[{ x: A.x, y: A.y }, { x: B0.x, y: B0.y }]],
+                _baseSegments: baseSegments,
             };
         };
 
-        edges.forEach(([P, Q], edgeIndex) => {
-            const stepX = (Q.x - P.x) / edgeCells;
-            const stepY = (Q.y - P.y) / edgeCells;
+        edges.forEach(([P], edgeIndex) => {
+            const step = edgeSteps[edgeIndex];
+            const incomingStep = edgeSteps[(edgeIndex + edges.length - 1) % edges.length];
             for (let i = 0; i < edgeCells; i++) {
-                const A = { x: P.x + stepX * i, y: P.y + stepY * i };
-                const B0 = { x: A.x + stepX, y: A.y + stepY };
-                const piece = makePiece(A, B0);
+                const center = { x: P.x + step.x * i, y: P.y + step.y * i };
+                const baseSegments = i === 0
+                    ? [
+                        [
+                            { x: center.x - incomingStep.x / 2, y: center.y - incomingStep.y / 2 },
+                            { x: center.x, y: center.y },
+                        ],
+                        [
+                            { x: center.x, y: center.y },
+                            { x: center.x + step.x / 2, y: center.y + step.y / 2 },
+                        ],
+                    ]
+                    : [[
+                        { x: center.x - step.x / 2, y: center.y - step.y / 2 },
+                        { x: center.x + step.x / 2, y: center.y + step.y / 2 },
+                    ]];
+                const piece = makePiece(center, baseSegments);
                 const gateCell = edgeIndex === this._entranceEdge && i >= gapStart && i < gapEnd;
                 if (gateCell) {
-                    if (!gateA) gateA = { x: A.x, y: A.y };
-                    gateB = { x: B0.x, y: B0.y };
+                    const gateSegment = baseSegments[0];
+                    if (!gateA) gateA = { x: gateSegment[0].x, y: gateSegment[0].y };
+                    gateB = { x: gateSegment[1].x, y: gateSegment[1].y };
                     fillPieces.push(piece);
                 } else {
                     WallSystem.isoVisuals.push(piece);

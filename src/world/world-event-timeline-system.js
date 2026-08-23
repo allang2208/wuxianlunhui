@@ -24,7 +24,9 @@ function defaultFrame() {
 function eventTimeLabel(event, nowGameTimeMs) {
     if (event.status === 'active') return '进行中';
     const days = Math.max(0, Number(event.atGameTimeMs) - nowGameTimeMs) / dayDurationMs();
-    return `${days.toFixed(days < 1 ? 2 : 1)} 天后`;
+    if (days < 1 / 24) return '即将发生';
+    if (days < 1) return `${Math.max(1, Math.ceil(days * 24))} 小时后`;
+    return `${days.toFixed(1)} 天后`;
 }
 
 function finiteOr(value, fallback) {
@@ -82,6 +84,7 @@ export const WorldEventTimelineSystem = {
             startAtGameTimeMs: start,
             endAtGameTimeMs: end,
             nowGameTimeMs: now,
+            durationDays: (end - start) / dayDurationMs(),
             events,
         };
     },

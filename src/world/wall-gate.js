@@ -108,7 +108,7 @@ export const WallGate = {
         this._wallSegs = [
             { x1: gA.x, y1: gA.y, x2: g1.x, y2: g1.y, halfThick: ht, _gate: true },
             { x1: g2.x, y1: g2.y, x2: gB.x, y2: gB.y, halfThick: ht, _gate: true },
-        ];
+        ].filter((seg) => Math.hypot(seg.x2 - seg.x1, seg.y2 - seg.y1) > 1);
         // [GATE-WAIT] _gateHole 标记：区分门洞段与两侧门墙段（均 _gate）。
         // MovementSystem 卡住检测只认门洞段做"门前等待"——门墙段是永久墙，不在此列
         this._gateSeg = { x1: g1.x, y1: g1.y, x2: g2.x, y2: g2.y, halfThick: ht, _gate: true, _gateHole: true };

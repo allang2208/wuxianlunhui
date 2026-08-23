@@ -316,6 +316,14 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
 3. **门闸实体**（wall-gate.js）：状态机 open/closed/opening/closing（**动画用 Phaser tween 计数器驱动，禁止手动逐帧 tick**——手动驱动链路易断，动画卡死）；碰撞 = **门两侧墙体线段常开 + 门洞线段按状态启停**；**原位替换**（继承被替换件 span 与 depth，不做任何接缝特权/过门退层——这些方案全部试过并废弃）；悬停金色轮廓（全 16 帧拱门区剪影×shadowBlur 烘焙，**本体 destination-out 抹除只留外发光**，跟随当前帧）；**斜接遮盖位继承（2026-07-25）：转角两臂同 depth，默认构建里后建的臂盖住先建臂的端边——门闸替换先建臂（下夹角 bL/上夹角 tL，平局按数组顺序必中先建臂）时必须 depth-0.1 退到兄弟臂下面，否则门闸贴图的裁切边暴露在斜接缝上。依据：用户手工预设（门墙 depth 最低、右臂最高）严丝合缝，几何与代码生成完全一致，差的就是这层顺序**；`_setupGate` 仍需先 `_syncWallsToPhaser()` 后 `placeAt`（防门闸被整批重建的墙件压住）
 4. **门外独立地块**：入场即生成（战斗完成不等）；位置 = 门洞中心沿外法线出界 + 边距（**不做晶格吸附**，防拽回主场景）；烘焙 = 当前地牢地砖 → **裁掉菱形内部分**（destination-out 菱形路径，不重叠）→ 远角径向圆滑淡出 → 25% 延伸；轮廓环绕光晕只留外侧（朝门一侧渐隐擦除）；图层归地形层（-999）
 5. **回城触发**：玩家在白区内**且已走出菱形边界**（点-in-菱形 false）→ `_leaveCombatViaPortal()`；出口传送门已删
+6. **雪原单格墙与冰锥门（2026-08-23）**：`combatRoom.wallConstruction:"worldBlock1x1"` 使用
+   `2 × gridEdgeRadius + 1` 个网格中心覆盖每条边，四个顶点各只生成一块墙；转角块以入边、出边两条
+   半段闭合碰撞，其余墙块以中心两侧半格组成完整线段，禁止四边各自重复端点墙。中央门洞固定跳过连续
+   6 格，并用这些缺口段的真实首尾点交给 `WallGate.placeAt()`。`frozen_gate` 是 4×4、单帧
+   640×640 的16帧冰锥门，帧0完全升起、帧15沉入地面；`ISO_WALL_GEO.frozen_gate` 的 `base/gateX`
+   必须与 `tools/ai-gen/frozen-icicle-gate-geometry.json` 一致，正式贴图由
+   `tools/ai-gen/build-frozen-icicle-gate.py` 确定性重建。该样式只替换冰封竞技场门体与音效，其他地牢
+   继续使用各自 `ISO_WALL_STYLES`，不得横向拉伸普通拱门填满6格门洞。
 
 #### 五、透视遮挡（X 光圆圈）
 1. 判定（几何法，不用包围盒）：墙件 depth > 实体 depth 且**脚底在墙面底边线之后 + 身体进入墙面覆盖带（覆盖量 > 身体 15%）**；遮挡物 = iso 墙件 + 门闸统一列表

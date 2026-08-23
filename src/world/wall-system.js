@@ -26,6 +26,9 @@ const ISO_WALL_GEO = {
     // 冰封初级竞技场单格墙：严格复用世界 1×1 方块墙的轮廓、砖块比例与显示几何。
     // obstacle_block 显示为 260×259、脚线偏移 61px；换算回 1024 源图得到 groundCenter.y=753.1737。
     frozen_block: { tex: 'frozen_wall_block', w: 1024, h: 1024, groundCenter: [512, 753.1737], displayW: 260, displayH: 259, wallH: 132, halfThick: 13, editor: '冰封单格墙' },
+    // 冰封竞技场功能门：整段门洞由13枚冰锥构成，帧0完全升起、帧15沉入地面。
+    // base 与 gateX 同跨度，开门后整段6格门洞放行；不附带会被横向拉伸的门框/砖墙。
+    frozen_gate: { tex: 'frozen_gate', w: 640, h: 640, frames: 16, base: [[32, 300], [608, 588]], face: [[32, 300], [608, 588]], gateX: [32, 608], wallH: 288, slope: 0.5, halfThick: 13, editor: '冰封冰锥门', states: { open: { hole: [32, 608] }, closed: { hole: null } } },
     // 恶魔洞窟铁闸门（路线 B：岩壁单块 + 铁栅独立渲染 → 程序化 16 帧升起；compose-demon-gate-B.py 标定：
     // 门洞平行四边形，底边与墙同斜率 0.6347，wallH 291；gateX = 门洞 [159,481]）
     demon_gate: { tex: 'demon_gate', w: 640, h: 576, frames: 16, base: [[0, 228], [639, 634]], face: [[77, 277], [563, 586]], gateX: [159, 481], wallH: 291, slope: 0.6347, editor: '恶魔铁闸', states: { open: { hole: [159, 481] }, closed: { hole: null } } },
@@ -103,10 +106,10 @@ const ISO_WALL_STYLES = {
         straight: 'demon_straight', gate: 'demon_gate', chestPrefab: '宝箱房',
         gateSound: 'assets/sounds/environment/gate.mp3',
     },
-    // 冰封世界初级：直墙使用冰块墙；功能门暂复用现有门闸，四角由直墙程序化拼合。
+    // 冰封世界初级：单格冰墙环 + 全门洞冰锥升降门。
     frozen: {
-        straight: 'frozen_straight', gate: 'gate', chestPrefab: '宝箱房',
-        gateSound: 'assets/sounds/environment/gate.mp3',
+        straight: 'frozen_straight', gate: 'frozen_gate', chestPrefab: '宝箱房',
+        gateSound: 'assets/sounds/skills/icewall.mp3',
     },
     // 主神空间：大理石直墙 + 大理石门（不登记 corners → 程序化转角臂）
     mainHub: { straight: 'hub_straight', gate: 'hub_gate', chestPrefab: '宝箱房', gateSound: 'assets/sounds/environment/gate.mp3' },

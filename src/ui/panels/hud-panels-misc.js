@@ -254,12 +254,20 @@ export function createHudPanelsMisc() {
 
     const invasionHud = document.createElement('div');
     invasionHud.id = 'worldInvasionHud';
+    // ID/class 保留兼容旧调用；玩家可见名称统一为“时间进度栏”。
     invasionHud.className = 'world-invasion-hud';
+    invasionHud.dataset.panelName = '时间进度栏';
+    invasionHud.setAttribute('role', 'region');
+    invasionHud.setAttribute('aria-labelledby', 'worldTimelineTitle');
     invasionHud.innerHTML = `
-        <div class="world-invasion-label"><span>⚠</span><span id="worldInvasionText">距离入侵 5.0 天</span></div>
+        <div class="world-timeline-heading">
+            <span id="worldTimelineTitle" class="world-timeline-title">时间进度栏</span>
+            <span id="worldTimelineWindow" class="world-timeline-window">5日周期</span>
+        </div>
+        <div class="world-invasion-label"><span>⚔</span><span id="worldInvasionText">距离入侵 5.0 天</span></div>
         <div id="worldInvasionDetail" class="world-invasion-detail"></div>
         <button id="worldInvasionSupport" class="world-invasion-support" type="button">⚔ 前往支援</button>
-        <div class="world-invasion-track" role="img" aria-label="未来时间事件轴">
+        <div class="world-invasion-track" role="img" aria-label="时间进度栏：未来5日事件">
             <div id="worldInvasionBar" class="world-invasion-bar"></div>
             <div id="worldTimelineEvents" class="world-timeline-events"></div>
             <div id="worldTimelineCursor" class="world-timeline-cursor"><span>现在</span></div>

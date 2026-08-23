@@ -1,0 +1,25 @@
+{
+  "asset": "assets/terrain/frozen_gate.png",
+  "sheet": {
+    "columns": 4,
+    "rows": 4,
+    "frames": 16
+  },
+  "cell": {
+    "width": 640,
+    "height": 640
+  },
+  "states": {
+    "closedFrame": 0,
+    "openFrame": 15
+  },
+  "base": [
+    [32, 300],
+    [608, 588]
+  ],
+  "gateX": [32, 608],
+  "slope": 0.5,
+  "halfThick": 13,
+  "spikeCount": 13,
+  "generator": "tools/ai-gen/build-frozen-icicle-gate.py"
+}
