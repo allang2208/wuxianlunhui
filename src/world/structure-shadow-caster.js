@@ -1,5 +1,6 @@
 import { getBuildingFootprint } from './building-footprint.js';
 import {
+    resolveConfiguredVisualFootprint,
     resolveStructureAlphaShadowSlices,
     resolveStructureGroundFit,
     shouldAutoAnchorStructure,
@@ -59,8 +60,8 @@ function polygonSignature(points) {
  *
  * 坐标约定：contactPolygon / parts[].polygon 都是相对建筑逻辑前脚点
  * (entity.x, entity.y) 的屏幕地面坐标；X 会随建筑镜像，Y 不镜像。
- * 普通建筑未配置 contactPolygon 时，从主体 Sprite 的 alpha 接地横截面拟合，
- * 因此独立 foundation Sprite、建造占格和碰撞 footprint 都不会污染阴影根部。
+ * 普通建筑未配置 contactPolygon 时，复用主体 Sprite 的视觉拟合：标准格网建筑取现有
+ * 碰撞棱柱底面，显式异形建筑取 alpha 接地轮廓，保证阴影根部与实际渲染同源。
  */
 export function resolveStructureShadowCaster(scene, entity, sprite, options = {}) {
     if (!entity || !sprite) return null;
@@ -77,17 +78,39 @@ export function resolveStructureShadowCaster(scene, entity, sprite, options = {}
     let source = contactLocal ? 'config' : null;
     let groundFit = null;
 
-    // 只有普通独立建筑走主体 alpha 接地拟合。塔、墙、门、楼梯继续使用各自专用几何。
+    // 只有普通独立建筑走统一视觉拟合。塔、墙、门、楼梯继续使用各自专用几何。
     if (config.contactSource !== 'placement' && shouldAutoAnchorStructure(entity)) {
-        const nominal = getBuildingFootprint(entity._buildingFootprintCells || 2);
-        groundFit = resolveStructureGroundFit(
+        const fallbackFoot = getBuildingFootprint(entity._buildingFootprintCells || 2);
+        const constrainToPrism = entity.spriteCfg?.autoFootprint !== true;
+        const nominal = {
+            w: constrainToPrism
+                ? Math.max(8, Number(entity.collisionWidth) || fallbackFoot.w)
+                : fallbackFoot.w,
+            d: constrainToPrism
+                ? Math.max(4, Number(entity.collisionHeight) || fallbackFoot.d)
+                : fallbackFoot.d,
+        };
+        groundFit = entity._structureVisualFit || resolveStructureGroundFit(
             scene,
             sprite.texture?.key,
             sprite.frame?.name,
             sprite.displayWidth,
             sprite.displayHeight,
-            { nominalWidth: nominal.w, nominalHeight: nominal.d }
+            {
+                nominalWidth: nominal.w,
+                nominalHeight: nominal.d,
+                constrainToPrism,
+                centerAdjustX: constrainToPrism
+                    ? (Number(entity.spriteCfg?.anchorAdjustX) || 0) : 0,
+                centerAdjustY: constrainToPrism
+                    ? (Number(entity.spriteCfg?.anchorAdjustY) || 0) : 0,
+                visualFootprint: constrainToPrism
+                    ? resolveConfiguredVisualFootprint(entity.spriteCfg, nominal.w, nominal.d)
+                    : null,
+            }
         );
+        const fitAdjustX = groundFit?.prismConstrained ? 0 : anchorAdjustX;
+        const fitAdjustY = groundFit?.prismConstrained ? 0 : anchorAdjustY;
         const alphaContact = groundFit?.contactPolygon || groundFit?.localVertices;
         if (!contactLocal && alphaContact?.length >= 3) {
             // alpha 轮廓必须复用 Sprite 的 anchorAdjustX/Y 与镜像，否则贴图已移动、阴影仍留在逻辑格心。
@@ -95,8 +118,8 @@ export function resolveStructureShadowCaster(scene, entity, sprite, options = {}
             contactLocal = transformVisualLocalPolygon(
                 alphaContact,
                 mirrorSign,
-                anchorAdjustX,
-                anchorAdjustY
+                fitAdjustX,
+                fitAdjustY
             );
             source = 'body_alpha';
         }
@@ -150,8 +173,8 @@ export function resolveStructureShadowCaster(scene, entity, sprite, options = {}
                 const local = transformVisualLocalPolygon(
                     slice.polygon,
                     mirrorSign,
-                    anchorAdjustX,
-                    anchorAdjustY
+                    groundFit.prismConstrained ? 0 : anchorAdjustX,
+                    groundFit.prismConstrained ? 0 : anchorAdjustY
                 );
                 if (!local) continue;
                 parts.push({

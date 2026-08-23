@@ -222,6 +222,8 @@ export const PopulationEconomySystem = {
         building.spriteCfg.size = cfg.displayW;
         building.spriteCfg.sizeH = cfg.displayH;
         building.spriteCfg.footOffsetY = cfg.footOffsetY;
+        building.spriteCfg.visualFootprint = cfg.visualFootprint
+            ? { ...cfg.visualFootprint } : null;
         building.footOffsetY = cfg.footOffsetY;
         building.size = cfg.displayW;
         return cfg;

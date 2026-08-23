@@ -146,6 +146,8 @@ export class HamsterBarracks extends DamageableEntity {
             size: BARRACKS_CONFIG.barracks.displayW,
             sizeH: BARRACKS_CONFIG.barracks.displayH,
             footOffsetY: BARRACKS_CONFIG.barracks.footOffsetY,
+            visualFootprint: BARRACKS_CONFIG.barracks.visualFootprint
+                ? { ...BARRACKS_CONFIG.barracks.visualFootprint } : null,
             foundation: BARRACKS_CONFIG.barracks.foundation === false
                 ? null
                 : { ...BUILDING_FOUNDATION_CONFIG },

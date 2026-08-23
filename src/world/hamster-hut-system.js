@@ -116,6 +116,8 @@ export class HamsterHut extends DamageableEntity {
             size: HAMSTER_CONFIG.hut.displayW,
             sizeH: HAMSTER_CONFIG.hut.displayH,
             footOffsetY: HAMSTER_CONFIG.hut.footOffsetY,
+            visualFootprint: HAMSTER_CONFIG.hut.visualFootprint
+                ? { ...HAMSTER_CONFIG.hut.visualFootprint } : null,
             foundation: HAMSTER_CONFIG.hut.foundation === false
                 ? null
                 : { ...BUILDING_FOUNDATION_CONFIG },

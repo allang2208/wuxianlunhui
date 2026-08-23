@@ -354,6 +354,8 @@ export class ProducerBuilding extends DamageableEntity {
             // visible plinth thickness or an asymmetric generated canvas.
             anchorAdjustX: Number(cfg.anchorAdjustX) || 0,
             anchorAdjustY: Number(cfg.anchorAdjustY) || 0,
+            visualFootprint: cfg.visualFootprint
+                ? { ...cfg.visualFootprint } : null,
             foundation: cfg.foundation === false ? null : {
                 ...BUILDING_FOUNDATION_CONFIG,
                 ...(cfg.foundation || {}),

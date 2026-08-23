@@ -1593,12 +1593,24 @@
   缺员可走800ms快速物化；出售按实体 `_buildCost/_buildCurrency` 返还，禁止读取当前版本
   配置价格篡改旧存档的实际成本。
 - **特殊模块接线**：靶场 `attackRangeBonus`（+15px/级）、兵营 `defenseMult`（+5%/级）、骑兵学校 `chargeDamageMult`（+15%/级）；教堂 `holyLightRangeBonus`（+15px/级）与 `titheEnergyPerTick`（每10s、每牧师、仅有仓库时入库）。补丁必须同时覆盖新生成单位和场上存活单位。
-- **普通2×2贴图校准**：逻辑 footprint 永远固定 256×128；贴图只允许改 `displayW/displayH/footOffsetY` 和视觉 X 偏移。`node tools/calibrate-building-footprints.mjs --check` 扫真实 alpha、迭代到 256×128 容差，并输出推荐显示尺寸；贴图替换后先跑它，再更新配置。
+- **普通格网建筑视觉 footprint（2026-08-23）**：逻辑 footprint/Collider 永远是几何真源，普通2×2为
+  `256×128`、基地4×4为`512×256`。配置可提供归一化 `visualFootprint`：
+  `centerXRatio/centerYRatio/widthRatio/depthRatio/scaleMode`；若缺省，`resolveConfiguredVisualFootprint()`
+  必须从 `displayW/displayH/footOffsetY` 确定性派生同结构标定，禁止直接退回 alpha 猜中心。运行时将标定中心直接映射到逻辑 footprint
+  中心（普通建筑的 `entity.y - nominalHeight/2`），并在 `strict` 模式分别求 X/Y 比例，使标定宽深
+  精确映射到 nominal 宽深；这四项是代数约束，不允许再由屋檐、台阶、门槛或 alpha bbox 猜中心。
+  旧 `anchorAdjustX/Y` 相对修正已移除；显式标定只以绝对中心为真源，新建筑禁止同时维护相对偏移。实体、建造幽灵、亮窗、
+  运动 overlay 与结构阴影必须共用这一结果；非等比缩放时 overlay 的位置与尺寸分别消费 X/Y 比例。
+  独立道路补片仍由 `BuildingRoadSystem` 维护，视觉标定不得反写碰撞、占格或寻路。
+  只有显式标定和显示配置派生都不可用时，才允许临时回退 alpha 自动识别；回退结果只作初始建议，不能作为正式验收。
+  `node tools/calibrate-building-footprints.mjs --check` 必须覆盖生产建筑、矿工营地、仓鼠兵营、全部房屋等级
+  和4×4基地，并验证标定中心及映射宽深；素材或标定变化后运行
+  `node tools/generate-building-preview-assets.mjs` 更新清单。算法版本8以前的派生清单不得注册。
 - **底部锁定铁律**：实体与建造幽灵必须共用 `resolveStructureGroundFit()` 的 `footOffsetY + visualOffsetX`。禁止实体走 `resolveStructureFootOffset()`、幽灵另走一套最低像素计算，否则预览贴地但落地后跳动。像素四边形物理仍只允许显式 `autoFootprint:true` 的异形建筑使用。
 - **接地拟合派生资产（2026-08-22）**：建筑贴图或 `displayW/displayH` 变化后必须运行
   `node tools/generate-building-preview-assets.mjs`，同步生成 `data/structure-ground-fits.json` 和
-  `assets/ui/building-thumbnails/`。manifest 键包含 texture/frame、源尺寸、显示尺寸和 nominal footprint，
-  只保存完整拟合结果，禁止烘入 `anchorAdjustX/Y` 或镜像。运行时仍只从
+  `assets/ui/building-thumbnails/`。manifest 键包含 texture/frame、源尺寸、显示尺寸、nominal footprint
+  和完整 `visualFootprint` 标定，禁止烘入镜像或拟合后的额外平移。运行时仍只从
   `resolveStructureGroundFit()` 读取；未命中的新图最多做一次 768px 长边的批量 alpha 读回，禁止恢复
   `TextureManager#getPixelAlpha` 逐像素循环。
 
@@ -1716,40 +1728,33 @@
 
 ### 世界-122 建筑与建造（2026-08-17）
 
-**建筑贴图替换工作流（素材库 → 英文名 → alpha bbox 标定）**
+**建筑贴图替换工作流（素材库 → 英文名 → 显式 visualFootprint 标定）**
 - 源素材：`E:\无尽轮回\游戏\素材库\场景\建筑\{军营,矿场,铁匠铺,草屋}.png`（4096² 等距斜视、
   透明背景、建筑贴底边）；复制到 `assets/terrain/` 必须改英文名（barracks/mine/blacksmith），
   禁止中文文件名。
-- 显示参数标定（勿拍脑袋，旧图验证公式）：
-  - `displayH = displayW × bboxH/bboxW`（bbox = alpha>16 包围盒；旧图反推吻合）。
-  - 运行时接地点统一走 `structure-visual-anchor.js`：在贴图中央20%~80%宽度内从底向上扫描
-    `alpha>=96` 的真实最低接触像素；Y 换算为 `footOffsetY`，X 取底部窄楔中心作为前顶点。
-    再从前顶点向上扫描 nominalHeight 20%~75%，取底座宽度达到局部最大值94%的第一行作为
-    稳定底座横截面。测量结果只用于视觉X/Y锚点和资产验收；**2026-08-19起普通格网建筑
-    的物理footprint固定走1×1/2×2/4×4标准公式，不再由像素改变宽深或中心**。
-    `autoFootprint:true` 仅供未来明确的异形建筑选择性启用。
-  - **bbox 水平居中不等于接地点居中**：靶场 bbox 完全铺满但接地点仍在中心右侧约42显示像素，
-    军营约31像素，但这些最低点可能是单侧台阶/门槛，**不能直接作为整栋建筑的水平中心**。
-    普通网格建筑的逻辑锚点、Collider中心和四边形中心固定留在格心；贴图用稳定底座横截面
-    的中心对齐，幽灵、点击范围和遮挡前缘共用同一结果。
-  - 用 System.Drawing LockBits 扫描 alpha bbox（PowerShell，4096² 约 2~3s）。
+- 显示参数标定（勿拍脑袋）：生成/换图/调尺寸时至少同步维护 `displayW/displayH/footOffsetY`，运行时和
+  离线生成器会自动派生严格视觉 footprint；需要精调素材语义中心时，再填写归一化 `visualFootprint`
+  覆盖派生值。`strict` 模式映射到256×128（基地512×256）；禁止用 alpha 最低点、稳定横截面或 bbox
+  作为正式中心，也禁止追加 `anchorAdjustX/Y`。`autoFootprint:true` 仅供明确异形建筑启用。
 - 替换点：BootScene `load.image`（键名即英文）、各建筑 config `tex`（实体渲染 idleKey）、
   building-system `BUILD_ITEMS.tex`（面板缩略图 img 路径自动跟随）。
-- **显示尺寸统一口径**：普通2×2建筑基准 `displayW=288`；若贴图自带地基明显大于
-  256×128 footprint（如教堂），允许等比缩至 `displayW=256`，禁止为追求同宽让地基越界。
+- **显示尺寸统一口径（2026-08-23）**：`displayW/displayH/footOffsetY` 是首批标定迁移来源；运行时正式
+  结果由 `visualFootprint` 映射计算。普通2×2严格落到256×128，4×4基地严格落到512×256。
 - 新增产兵建筑：`data/producer-buildings.json` 加条目（唯一真源，含 tex/displayW/H/footOffsetY/
   spawn/unitTypes/modules），BootScene 加载贴图即可，代码零改动。
 
 **建筑开发标准工作流（世界-122，2026-08-18 定稿；新建筑/替换建筑一律按此开展）**
 1. **素材先入库**：从 `E:\无尽轮回\游戏\素材库\场景\建筑\` 复制到
    `assets/terrain/<english_key>.png`；只用英文 key，禁止在运行时引用素材库外路径。
-2. **紧身裁透明边，再标定显示**：源图若有大透明留白，先按 `alpha>16` 紧身裁剪；再用
-   `displayH = displayW × cropH/cropW`。脚点由 `structure-visual-anchor.js` 自动扫描高 Alpha
-   接触底边和底部展开轮廓，预览/实体共用四边形拟合；配置 `footOffsetY/offsetX` 只作
-   纹理未就绪兜底。
+2. **紧身裁透明边，再标定视觉 footprint**：源图若有大透明留白，先按 `alpha>16` 紧身裁剪；随后
+   更新 `displayW/displayH/footOffsetY`，统一 helper 会自动派生中心、宽度和纵深。只有自动结果仍需
+   素材级精调时才写显式 `visualFootprint`。预览、实体、overlay与阴影共用同一标定；alpha扫描只可
+   给出初始建议，不能直接成为正式中心。
    **禁止**直接把带留白的 4096² 图塞进项目后沿用旧尺寸，否则会缩小/悬浮。
 3. **配置唯一真源**：普通2×2建筑统一登记 `data/producer-buildings.json`：
    `cost/hp/def/mdef/tex/displayW/displayH/footOffsetY/sellRefundRatio` 为必填数值。
+   `visualFootprint` 为可选精调覆盖；禁止与 `anchorAdjustX/Y` 并存。配置或贴图变化后必须运行
+   `node tools/generate-building-preview-assets.mjs`，让新标定进入版本化 manifest。
    - 产兵：`spawnEnabled=true` + `unitTypes/modules`；
    - 工坊：`spawnEnabled=false` + `workshopType/abilities`；
    - **仅数值/详情、暂无玩法**：`spawnEnabled=false, panelMode:"detail", modules:{}`，

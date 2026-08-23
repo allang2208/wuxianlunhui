@@ -79,6 +79,7 @@ import {
 } from '../../world/structure-render-order.js';
 import {
     clearStructureFootOffsetCache,
+    resolveConfiguredVisualFootprint,
     resolveStructureGroundFit,
     shouldAutoAnchorStructure,
 } from '../../world/structure-visual-anchor.js';
@@ -2308,18 +2309,10 @@ export class GameScene extends Scene {
         if (!sprite) return 0;
         const configured = entity.footOffsetY ?? entity.config?.render?.footOffsetY;
         if (shouldAutoAnchorStructure(entity) && sprite.texture?.key) {
-            const nominal = getBuildingFootprint(entity._buildingFootprintCells || 2);
-            const fit = resolveStructureGroundFit(
-                this,
-                sprite.texture.key,
-                sprite.frame?.name,
-                sprite.displayWidth,
-                sprite.displayHeight,
-                { nominalWidth: nominal.w, nominalHeight: nominal.d }
-            );
+            const fit = this._resolveStructureVisualFit(entity, sprite);
             if (fit) {
                 const adjusted = fit.footOffsetY
-                    + (Number(entity.spriteCfg?.anchorAdjustY) || 0);
+                    + (fit.prismConstrained ? 0 : (Number(entity.spriteCfg?.anchorAdjustY) || 0));
                 entity._visualFootOffsetY = adjusted;
                 return adjusted;
             }
@@ -2329,24 +2322,93 @@ export class GameScene extends Scene {
     }
 
     /**
-     * 让贴图稳定底座横截面与逻辑 iso footprint 中央重合。
-     * 最低像素可能是台阶/门槛，不能让它把整栋建筑拖离 2×2/4×4 格心。
+     * 普通格网建筑的视觉变换唯一入口。棱柱拟合只读现有 footprint，绝不反写碰撞体；
+     * 显式 autoFootprint 异形建筑继续保留旧 alpha-ground-fit 行为。
      */
+    _resolveStructureVisualFit(entity, sprite) {
+        if (!shouldAutoAnchorStructure(entity) || !sprite?.texture?.key) return null;
+        // 拟合输入只允许是建筑主体纹理；建筑底部铺装由 BuildingRoadSystem 独立维护。
+        const fallbackFoot = getBuildingFootprint(entity._buildingFootprintCells || 2);
+        const constrainToPrism = entity.spriteCfg?.autoFootprint !== true;
+        const nominal = {
+            w: constrainToPrism
+                ? Math.max(8, Number(entity.collisionWidth) || fallbackFoot.w)
+                : fallbackFoot.w,
+            d: constrainToPrism
+                ? Math.max(4, Number(entity.collisionHeight) || fallbackFoot.d)
+                : fallbackFoot.d,
+        };
+        const configuredWidth = Math.max(1,
+            Number(entity.spriteCfg?.size) || Number(sprite.displayWidth) || 1);
+        const configuredHeight = Math.max(1,
+            Number(entity.spriteCfg?.sizeH) || Number(sprite.displayHeight) || configuredWidth);
+        const centerAdjustX = Number(entity.spriteCfg?.anchorAdjustX) || 0;
+        const centerAdjustY = Number(entity.spriteCfg?.anchorAdjustY) || 0;
+        const visualFootprint = constrainToPrism
+            ? resolveConfiguredVisualFootprint(entity.spriteCfg, nominal.w, nominal.d)
+            : null;
+        const fitKey = [
+            sprite.texture.key,
+            String(sprite.frame?.name ?? ''),
+            configuredWidth,
+            configuredHeight,
+            nominal.w,
+            nominal.d,
+            constrainToPrism ? 'prism-body' : 'ground',
+            centerAdjustX,
+            centerAdjustY,
+            visualFootprint ? JSON.stringify(visualFootprint) : '',
+        ].join(':');
+        if (entity._structureVisualFitKey === fitKey) return entity._structureVisualFit || null;
+        const fit = resolveStructureGroundFit(
+            this,
+            sprite.texture.key,
+            sprite.frame?.name,
+            configuredWidth,
+            configuredHeight,
+            {
+                nominalWidth: nominal.w,
+                nominalHeight: nominal.d,
+                constrainToPrism,
+                centerAdjustX: constrainToPrism ? centerAdjustX : 0,
+                centerAdjustY: constrainToPrism ? centerAdjustY : 0,
+                visualFootprint: constrainToPrism ? visualFootprint : null,
+            }
+        );
+        entity._structureVisualFitKey = fitKey;
+        entity._structureVisualFit = fit;
+        return fit;
+    }
+
+    /** 普通建筑优先消费显式 visualFootprint；未标定素材才回退 alpha 自动拟合。 */
+    _applyStructureVisualSize(entity, sprite) {
+        if (!sprite || !entity?.spriteCfg) return null;
+        const configuredWidth = Math.max(1, Number(entity.spriteCfg.size) || 128);
+        const configuredHeight = Math.max(1,
+            Number(entity.spriteCfg.sizeH) || configuredWidth);
+        sprite.setDisplaySize(configuredWidth, configuredHeight);
+        const fit = this._resolveStructureVisualFit(entity, sprite);
+        if (fit?.prismConstrained && fit.displayWidth > 0 && fit.displayHeight > 0) {
+            sprite.setDisplaySize(fit.displayWidth, fit.displayHeight);
+            entity._structureVisualScaleX = fit.displayWidth / configuredWidth;
+            entity._structureVisualScaleY = fit.displayHeight / configuredHeight;
+            entity._structureVisualScale = entity._structureVisualScaleX;
+        } else {
+            entity._structureVisualScaleX = 1;
+            entity._structureVisualScaleY = 1;
+            entity._structureVisualScale = 1;
+        }
+        return fit;
+    }
+
+    /** 普通建筑按显式标定中心对齐 footprint；底部道路补片不参与，异形建筑保留旧校正。 */
     _getVisualOffsetX(entity, sprite) {
         if (!sprite) return 0;
         const configured = entity.spriteCfg?.offsetX ?? entity.config?.render?.offsetX ?? 0;
         const autoAnchor = shouldAutoAnchorStructure(entity);
         const mirrorSign = autoAnchor && entity._facingLeft ? -1 : 1;
         if (autoAnchor && sprite.texture?.key) {
-            const nominal = getBuildingFootprint(entity._buildingFootprintCells || 2);
-            const fit = resolveStructureGroundFit(
-                this,
-                sprite.texture.key,
-                sprite.frame?.name,
-                sprite.displayWidth,
-                sprite.displayHeight,
-                { nominalWidth: nominal.w, nominalHeight: nominal.d }
-            );
+            const fit = this._resolveStructureVisualFit(entity, sprite);
             if (fit) {
                 const fitKey = [
                     sprite.texture.key,
@@ -2361,13 +2423,13 @@ export class GameScene extends Scene {
                     // 其余建筑物理保持标准格网，只取视觉锚点偏移。
                     if (entity.spriteCfg?.autoFootprint === true) {
                         applyFittedBuildingFootprint(entity, fit);
+                        if (typeof entity.rebuildCollider === 'function') entity.rebuildCollider();
                     }
-                    if (typeof entity.rebuildCollider === 'function') entity.rebuildCollider();
                     entity._visualGroundFitKey = fitKey;
                 }
                 const visualOffsetX = (
                     fit.visualOffsetX
-                    + (Number(entity.spriteCfg?.anchorAdjustX) || 0)
+                    + (fit.prismConstrained ? 0 : (Number(entity.spriteCfg?.anchorAdjustX) || 0))
                 ) * mirrorSign;
                 entity._visualFootOffsetX = visualOffsetX;
                 return visualOffsetX;
@@ -8608,8 +8670,22 @@ export class GameScene extends Scene {
                   label.setFontSize(labelFontSize);
               }
             const size = e.size || 16;
+            const animKey = sprCfg
+                ? ((e.isMoving && sprCfg.walkKey) ? sprCfg.walkKey : sprCfg.idleKey)
+                : null;
+            // 先切换当前建筑贴图，再按该帧真实 alpha 等比装入现有碰撞棱柱；
+            // foot/X 锚点必须消费最终尺寸，不能先用错误配置尺寸定位后又二次缩放。
+            if (sprCfg) {
+                if (animKey && !this.anims.exists(animKey) && this.textures.exists(animKey)
+                    && sprite.texture?.key !== animKey) {
+                    sprite.setTexture(animKey);
+                    delete e._structureVisualFitKey;
+                    delete e._structureVisualFit;
+                }
+                this._applyStructureVisualSize(e, sprite);
+            }
             const shift = this._getFootOffsetY(e, sprite);
-            // 普通 iso 建筑由 alpha 接地前顶点自动校正 X；楼梯保留显式方向偏移。
+            // 普通 iso 建筑由 visualFootprint 直接锁定中心；未标定素材才回退 alpha。
             const visualOffsetX = this._getVisualOffsetX(e, sprite);
             sprite.setPosition(
                 e.x + (e._isWallStaircase && e._facingLeft ? -visualOffsetX : visualOffsetX),
@@ -8617,13 +8693,21 @@ export class GameScene extends Scene {
             );
             if (overlaySprite?.active) {
                 const overlayCfg = sprCfg?.overlayAnimation || {};
+                const visualScaleX = Math.max(0.01,
+                    Number(e._structureVisualScaleX ?? e._structureVisualScale) || 1);
+                const visualScaleY = Math.max(0.01,
+                    Number(e._structureVisualScaleY ?? e._structureVisualScale) || 1);
                 overlaySprite.setPosition(
-                    sprite.x + (Number(overlayCfg.offsetX) || 0),
-                    sprite.y + (Number(overlayCfg.offsetY) || 0)
+                    sprite.x + (Number(overlayCfg.offsetX) || 0) * visualScaleX,
+                    sprite.y + (Number(overlayCfg.offsetY) || 0) * visualScaleY
                 );
                 overlaySprite.setDisplaySize(
-                    Number(overlayCfg.displayW) || sprite.displayWidth,
-                    Number(overlayCfg.displayH) || sprite.displayHeight
+                    Number(overlayCfg.displayW) > 0
+                        ? Number(overlayCfg.displayW) * visualScaleX
+                        : sprite.displayWidth,
+                    Number(overlayCfg.displayH) > 0
+                        ? Number(overlayCfg.displayH) * visualScaleY
+                        : sprite.displayHeight
                 );
                 overlaySprite.setFlipX(!!e._facingLeft);
                 if (this.anims.exists(overlayCfg.textureKey)
@@ -8643,13 +8727,6 @@ export class GameScene extends Scene {
             if (sprCfg) {
                 // 贴图 NPC：行走/待机动画切换 + 朝向翻转，不做染色（静态贴图无动画则跳过）；
                 // 倒退行走（移动方向与朝向相反）时循环动画倒放
-                const animKey = (e.isMoving && sprCfg.walkKey) ? sprCfg.walkKey : sprCfg.idleKey;
-                // 房屋等级等运行时静态贴图切换：无需销毁实体或重建渲染记录。
-                if (animKey && !this.anims.exists(animKey) && this.textures.exists(animKey)
-                    && sprite.texture?.key !== animKey) {
-                    sprite.setTexture(animKey);
-                }
-                sprite.setDisplaySize(sprCfg.size || 128, sprCfg.sizeH || sprCfg.size || 128);
                 const wantReverse = !!e.isMoving && Math.abs(e.vx) > 0.1 && ((e.vx < 0) !== !!e._facingLeft);
                 if (this.anims.exists(animKey)) {
                     const curKey = sprite.anims.currentAnim?.key;
