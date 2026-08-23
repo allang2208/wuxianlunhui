@@ -26,7 +26,7 @@ function createLegacyQuestView(definition) {
             Object.defineProperty(objectiveView, 'current', {
                 enumerable: true,
                 get: () => QuestStore.getObjectiveProgress(definition.id, objective.id),
-                set: (value) => QuestStore.setObjectiveProgress(definition.id, objective.id, value),
+                set: (value) => { QuestStore.setObjectiveProgress(definition.id, objective.id, value); },
             });
             return objectiveView;
         }),
@@ -36,12 +36,12 @@ function createLegacyQuestView(definition) {
         accepted: {
             enumerable: true,
             get: () => QuestStore.getStatus(definition.id) !== 'available',
-            set: (value) => QuestStore.setQuestAccepted(definition.id, value),
+            set: (value) => { QuestStore.setQuestAccepted(definition.id, value); },
         },
         completed: {
             enumerable: true,
             get: () => QuestStore.getStatus(definition.id) === 'completed',
-            set: (value) => QuestStore.setQuestCompleted(definition.id, value),
+            set: (value) => { QuestStore.setQuestCompleted(definition.id, value); },
         },
     });
     return view;
@@ -69,6 +69,8 @@ export const QuestSystem = {
             id: 'questPanel',
             className: 'quest-panel bp-right-column',
             stateKey: 'quest',
+            panelGroup: 'rightSidebar',
+            closeOnEscape: true,
             mountElement: (el) => mountRightSidebarPanel(el, 'panel', { bringToFront: true }),
         });
         this._panel.buildContent = (el) => this._buildPanelContent(el);

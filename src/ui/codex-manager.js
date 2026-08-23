@@ -13,6 +13,7 @@ import { UNIT_KIND_CFG } from '../world/unit-upgrade-store.js';
 import hamsterMinerCfg from '../../data/hamster-miner-config.json';
 import producerBuildingsJson from '../../data/producer-buildings.json';
 import { buildFormulaDisplay, buildEnhancedFormulaDisplay } from '../config/attack-formula.js';
+import { getEnemyFamilies, hasEnemyFamily } from '../config/enemy-family.js';
 
 const CodexManager = {
     // 当前主分类: 'equipment' | 'monster'
@@ -140,7 +141,7 @@ const CodexManager = {
         const families = new Set();
         if (ENEMY_DATA) {
             Object.values(ENEMY_DATA).forEach(e => {
-                if (e.family) families.add(e.family);
+                for (const family of getEnemyFamilies(e)) families.add(family);
             });
         }
         const categories = [{ key: 'all', label: '全部' }];
@@ -181,7 +182,7 @@ const CodexManager = {
     getMonsterByCategory(cat) {
         const items = Object.values(this.monsterDatabase);
         if (cat === 'all') return items;
-        return items.filter(i => i.family === cat);
+        return items.filter(i => hasEnemyFamily(i, cat));
     },
 
     getEquipByCategory(cat) {
@@ -579,11 +580,13 @@ const CodexManager = {
         let html = '';
         const iconHtml = this._renderCodexIcon(d, 64);
         // 家族标签
-        const familyTag = d.family ? `<span class="cd-family-tag">${d.family}类</span>` : '';
+        const familyTags = getEnemyFamilies(d)
+            .map(family => `<span class="cd-family-tag">${family}类</span>`)
+            .join('');
         html += `<div class="cd-hero">
             <div class="cd-hero-icon">${iconHtml}</div>
             <div class="cd-hero-info">
-                <div class="cd-hero-name">${d.name || '-'}${familyTag}</div>
+                <div class="cd-hero-name">${d.name || '-'}${familyTags}</div>
                 <div class="cd-hero-type">${d.type || '怪物'} · ${d.category === 'monster' ? '怪物' : '敌人'}</div>
                 <span class="cd-hero-rarity common">${d.type || '普通'}</span>
             </div>
@@ -651,7 +654,13 @@ const CodexManager = {
             const parts = [];
             if (t.hpThreshold) parts.push(`生命值低于 ${Math.round(t.hpThreshold * 100)}% 时变身`);
             if (t.damageMultiplier) parts.push(`伤害提升 ${Math.round((t.damageMultiplier - 1) * 100)}%`);
+            if (t.statMultiplier) parts.push(`全属性提升 ${Math.round((t.statMultiplier - 1) * 100)}%`);
             if (t.hpRecover) parts.push('恢复生命值');
+            if (t.healToFull) parts.push('恢复至满生命值');
+            if (t.damageReduction) parts.push(`变身期间减伤 ${Math.round(t.damageReduction * 100)}%`);
+            if (t.criticalChance && t.criticalDamageMultiplier) {
+                parts.push(`${Math.round(t.criticalChance * 100)}% 暴击造成 ${t.criticalDamageMultiplier} 倍伤害`);
+            }
             if (t.howlDuration) parts.push(`嚎叫持续 ${t.howlDuration / 1000} 秒`);
             mechanics.push({ name: '变身', desc: parts.join('；') });
         }

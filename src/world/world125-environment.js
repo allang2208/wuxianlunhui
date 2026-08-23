@@ -139,6 +139,8 @@ function _placeSingles(scene, diamond, player, portalY, cfg, geoKey, wanted, pla
             _scatter: true,
             _world125Environment: true,
         };
+        piece.depth = WallSystem.obstacleFootprintDepthOf(piece);
+        piece.depthManual = true;
         const rects = [_pieceRect(piece)];
         if (!_candidateAllowed(rects, placedRects, anchors, cfg, diamond, player, portalY)) continue;
         _commitPieces([piece], placedRects, anchors);
@@ -154,36 +156,28 @@ function _stagePrefab(prefab, key, anchor) {
         bx = prefab.pieces.reduce((sum, piece) => sum + piece.x, 0) / prefab.pieces.length;
         by = prefab.pieces.reduce((sum, piece) => sum + piece.y, 0) / prefab.pieces.length;
     }
-    const minDepth = Math.min(...prefab.pieces.map((piece) => piece.depth ?? piece.y));
-    const first = prefab.pieces.reduce((best, piece) =>
-        ((piece.depth ?? piece.y) < (best.depth ?? best.y) ? piece : best), prefab.pieces[0]);
-    const basePiece = {
-        tex: first.tex,
-        x: anchor.x + first.x - bx,
-        y: anchor.y + first.y - by,
-        scaleX: first.scaleX ?? 1,
-        scaleY: first.scaleY ?? first.scaleX ?? 1,
-        rotation: first.rotation || 0,
-        flipX: !!first.flipX,
-        flipY: !!first.flipY,
-    };
-    const baseDepth = WallSystem.obstacleDepthOf(basePiece);
-    return prefab.pieces.map((source) => ({
-        tex: source.tex,
-        x: anchor.x + source.x - bx,
-        y: anchor.y + source.y - by,
-        scaleX: source.scaleX ?? 1,
-        scaleY: source.scaleY ?? source.scaleX ?? 1,
-        rotation: source.rotation || 0,
-        flipX: !!source.flipX,
-        flipY: !!source.flipY,
-        depth: baseDepth + ((source.depth ?? source.y) - minDepth),
-        depthManual: true,
-        _scatter: true,
-        _world125Environment: true,
-        _prefabKey: key,
-        _compAnchor: { x: anchor.x, y: anchor.y },
-    }));
+    const savedOrder = [...prefab.pieces].sort((a, b) =>
+        (a.depth ?? a.y) - (b.depth ?? b.y));
+    const orderBias = new Map(savedOrder.map((piece, index) => [piece, index * 0.01]));
+    return prefab.pieces.map((source) => {
+        const piece = {
+            tex: source.tex,
+            x: anchor.x + source.x - bx,
+            y: anchor.y + source.y - by,
+            scaleX: source.scaleX ?? 1,
+            scaleY: source.scaleY ?? source.scaleX ?? 1,
+            rotation: source.rotation || 0,
+            flipX: !!source.flipX,
+            flipY: !!source.flipY,
+            _scatter: true,
+            _world125Environment: true,
+            _prefabKey: key,
+            _compAnchor: { x: anchor.x, y: anchor.y },
+        };
+        piece.depth = WallSystem.obstacleFootprintDepthOf(piece) + (orderBias.get(source) || 0);
+        piece.depthManual = true;
+        return piece;
+    });
 }
 
 function _placePrefabs(scene, diamond, player, portalY, cfg, placedRects, anchors, random) {

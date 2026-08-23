@@ -431,7 +431,7 @@ export class HamsterShooterAI {
         }
     }
 
-    /** 卡死看门狗：行走 500ms 位移 <3px 累计 2 次 → 重选目标/传送到合法点（同款兜底） */
+    /** 卡死看门狗：只清理旧路径，坐标位移统一交给 MovementSystem/WallSystem。 */
     _checkStuck(dt) {
         const m = this.m;
         if (m._surfaceNavWaiting || m._surfaceRouteActive
@@ -461,16 +461,6 @@ export class HamsterShooterAI {
         this._stuckStreak++;
         if (this._stuckStreak < 2) return;
         this._stuckStreak = 0;
-        if (WallSystem && typeof WallSystem.findSafeSpawn === 'function') {
-            const sp = WallSystem.findSafeSpawn(m.x, m.y, m.groundRadius || 20);
-            if (sp && Number.isFinite(sp.x) && Number.isFinite(sp.y)
-                && Math.hypot(sp.x - m.x, sp.y - m.y) > 5) {
-                m.x = sp.x;
-                m.y = sp.y;
-            }
-        }
-        m.target = null;
-        m._tacticalTarget = null;
         if (m._pathManager && typeof m._pathManager._clearPath === 'function') {
             m._pathManager._clearPath();
         }

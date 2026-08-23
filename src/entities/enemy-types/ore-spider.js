@@ -354,7 +354,8 @@ export class OreSpider extends Enemy {
                 if (!canMeleeShareSurface(this, e)) continue;
                 e.takeDamage(Math.max(1, Math.round(atk * (z.damageMul ?? 1))), this, 'physical', true);
                 // 命中眩晕（配置 stunMs；状态免疫目标由 applyStun 内部拦截）
-                if (cfg.stunMs && typeof e.applyStun === 'function') e.applyStun(cfg.stunMs);
+                const parried = e.shieldSystem && e.shieldSystem._lastParried;
+                if (!parried && cfg.stunMs && typeof e.applyStun === 'function') e.applyStun(cfg.stunMs);
                 break;
             }
         }

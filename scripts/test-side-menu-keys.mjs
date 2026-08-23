@@ -34,8 +34,8 @@ check('图标文件存在且为 RGBA 透明底', fs.existsSync(path.join(ROOT, '
 const idx = (needle) => misc.indexOf(needle);
 check('技能在背包前（对调后）', idx("tab: 'skill'") > idx("tab: 'status'") && idx("tab: 'skill'") < idx("tab: 'equip'"));
 check('世界传送在任务后、队员管理前（对调后）',
-    idx("WorldSwitchPanel.toggle()") > idx("QuestSystem.open()")
-    && idx("WorldSwitchPanel.toggle()") < idx("CompanionPanel.openManage()"));
+    idx("WorldSwitchPanel.toggle()") > idx("QuestSystem.toggle()")
+    && idx("WorldSwitchPanel.toggle()") < idx("CompanionPanel.toggleManage()"));
 check('侧栏按钮携带 worldSwitchBtn id（探针锚点）', /id: 'worldSwitchBtn'/.test(misc));
 
 // ---- 3. 快捷键徽标同款同位置 ----

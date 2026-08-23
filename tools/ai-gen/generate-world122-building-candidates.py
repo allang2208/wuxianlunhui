@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate review-only World-122 building-body candidates through the fixed-foundation pipeline.
+"""Generate review-only World-122 building-body candidates for the road-fill pipeline.
 
 Outputs only to the manifest scratch directory. It never copies a candidate into assets/terrain.
 Jobs are resumable: a fully produced preview is skipped on the next run.
@@ -17,7 +17,7 @@ REPO = Path(__file__).resolve().parents[2]
 DEFAULT_MANIFEST = REPO / "tools/ai-gen/world122-building-candidate-manifest.json"
 COMFY_PY = REPO.parent / "ComfyUI/.venv/Scripts/python.exe"
 BLENDER = Path("E:/Program Files/Blender Foundation/Blender 5.1/blender.exe")
-FOUNDATION_FIT_SCALE = 1.42
+FOOTPRINT_FIT_SCALE = 1.42
 
 
 def run(command: list[str], *, label: str) -> None:
@@ -46,14 +46,14 @@ Detail budget: improve only materials, masonry courses, roof tiles, windows and 
         stage_contract = """Generation stage: single-pass legacy candidate
 Structure contract: preserve every major component indicated by the control silhouette; do not omit, merge, flatten or replace any supplied component"""
     return f"""Use case: stylized-concept
-Asset type: World-122 RTS building body, to be composited above an immutable separate marble foundation
+Asset type: World-122 RTS building body, previewed above the runtime 2x2 road-tile fill
 Primary request: exactly one {request}
 {stage_contract}
 Style/medium: detailed but sober semi-realistic RTS building sprite matching the existing World-122 barracks; low-saturation realistic PBR materials; crisp readable roof tiles, stone courses and timber grain; no exaggerated fantasy ornament
 Composition/framing: strictly follow the supplied depth-control silhouette and its orthographic 2.5D isometric view; centered; architecture ends exactly at the supplied ground line; all walls remain vertical; no perspective convergence
 Lighting/mood: evenly lit neutral studio lighting; no bloom; no cast shadow
 Scene/backdrop: perfectly uniform flat chroma-key green #00FF00 background filling the entire canvas; no horizon; no texture; no scenery
-Negative constraints: no plumbing, pipes, water tubes, steam pipes, laboratory tubing, modern utilities, contemporary fixtures, industrial conduits, antennas, satellite dishes, exposed machinery, futuristic parts; no flat rooftop terrace, elevated deck, raised square platform, roof plaza, or detached upper block; the upper tower must sit directly on the supplied roof mass; one building only; building body only; absolutely no foundation; no plinth; no raised stone slab; no floor; no paving; no terrain; no grass; no trees; no stairs; no fence; no props outside the architecture; no people; no animals; no flags; no text; no watermark; at the ground line the lower wall material must continue unchanged to the bottom edge; render architecture only with transparent pixels outside the supplied silhouette; absolutely no platform, pavement, steps, curb, pedestal, foundation slab, floor tile, white marble skirt, pale stone band, or contrasting base strip (the fixed marble foundation is added only by the separate review composite)
+Negative constraints: no plumbing, pipes, water tubes, steam pipes, laboratory tubing, modern utilities, contemporary fixtures, industrial conduits, antennas, satellite dishes, exposed machinery, futuristic parts; no flat rooftop terrace, elevated deck, raised square platform, roof plaza, or detached upper block; the upper tower must sit directly on the supplied roof mass; one building only; building body only; absolutely no separate foundation; no plinth; no raised stone slab; no floor; no baked paving; no terrain; no grass; no trees; no stairs; no fence; no props outside the architecture; no people; no animals; no flags; no text; no watermark; at the ground line the lower wall material must continue unchanged to the bottom edge; render architecture only with transparent pixels outside the supplied silhouette; absolutely no platform, pavement, steps, curb, pedestal, foundation slab, floor tile, white marble skirt, pale stone band, or contrasting base strip (runtime road tiles are added only by the separate review composite)
 """
 
 
@@ -71,7 +71,7 @@ def load_spec(asset: dict, destination: Path) -> None:
         "max_width_frac": 0.80,
         "top_margin_px": 48,
         "center_on_origin": True,
-        "foundation_fit_scale": FOUNDATION_FIT_SCALE,
+        "footprint_fit_scale": FOOTPRINT_FIT_SCALE,
     })
     if asset.get("primitives"):
         data["primitives"] = json.loads(json.dumps(asset["primitives"]))
@@ -132,7 +132,7 @@ def _primitive_xy_bounds(primitive: dict) -> tuple[float, float, float, float] |
 def _normalize_square_footprint(data: dict) -> None:
     """Make the control whitebox square in world XY before Blender renders it.
 
-    The runtime foundation is a fixed 2x2 square. A rectangular main hall
+    The runtime collision footprint is a fixed 2x2 square. A rectangular main hall
     cannot be repaired by a sprite translation, so make every ground-contacting
     architectural box/prism square in XY while leaving upper roofs, windows,
     doors, braces and decorative props untouched. This only changes the derived
@@ -149,20 +149,19 @@ def _normalize_square_footprint(data: dict) -> None:
         # Only geometry that actually touches z=0 defines the placement
         # footprint.  Upper roofs and trim may stay rectangular; ground-level
         # wings and annexes must be square too, otherwise they still protrude
-        # beyond the fixed 2x2 foundation after sprite masking.
+        # beyond the fixed 2x2 footprint after sprite masking.
         pos = primitive.get("pos") or [0, 0, 0]
         bottom_z = float(pos[2]) - float(size[2]) * 0.5
         if bottom_z > 2.0 or min(float(size[0]), float(size[1])) < 32:
             continue
-        side = max(float(size[0]), float(size[1])) * float(data.get("foundation_fit_scale", FOUNDATION_FIT_SCALE))
+        side = max(float(size[0]), float(size[1])) * float(data.get("footprint_fit_scale", FOOTPRINT_FIT_SCALE))
         if abs(float(size[0]) - float(size[1])) > 0.5:
             size[0] = side
             size[1] = side
             changed += 1
     data["square_footprint_normalization"] = {
         "squarePrimitiveCount": changed,
-        "foundation": "building_foundation_2x2",
-        "fitScale": float(data.get("foundation_fit_scale", FOUNDATION_FIT_SCALE)),
+        "fitScale": float(data.get("footprint_fit_scale", FOOTPRINT_FIT_SCALE)),
     }
 
 

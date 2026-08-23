@@ -12,6 +12,10 @@
   "baseMaxHp": 150,
   "baseData": { "str": 12, "dex": 20, "int": 3, "con": 10, "wis": 3, "luck": 10 },
   "statFormula": "enemy",
+  "groundRadius": 20,
+  "collisionRadius": 20,
+  "bodyHeight": 100,
+  "size": 64,
   "skills": [],
   "sounds": {
     "attack": "assets/sounds/friendly/hamster_shooter_attack.mp3"
@@ -33,8 +37,14 @@
     "teleportDist": 999999,
     "teleportHardDist": 9999999
   },
-  "displaySize": 226,
-  "spriteOffsetY": -36,
+  "displaySize": 234.848485,
+  "spriteOffsetY": -36.236387,
+  "render": {
+    "footOffsetY": 36.236387,
+    "hudOffsetY": 119,
+    "collisionWidth": 40,
+    "collisionHeight": 100
+  },
   "animations": {
     "idle": {
       "src": "assets/companions/hamster_shooter/idle.png",

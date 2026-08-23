@@ -26,6 +26,7 @@ import { TroopLineSystem } from '../world/troop-line-system.js';
 import { TechnologySystem } from '../world/technology-system.js';
 import { WarehouseSystem } from './warehouse-system.js';
 import { QuestStore } from '../quest/quest-store.js';
+import { MilitaryPopulationSystem } from '../world/military-population-system.js';
 
 // Game UI Manager - Extracted from Game.js
 // Handles UI updates, save/load, timers, and menu operations
@@ -395,6 +396,21 @@ export const GameUIManager = {
                 el.classList.remove('is-resource-changing');
                 void el.offsetWidth;
                 el.classList.add('is-resource-changing');
+            }
+        }
+        const military = MilitaryPopulationSystem.getSnapshot();
+        const militaryEl = getElementIfExists('resourceMilitaryPopulation');
+        if (militaryEl) {
+            const value = `${military.used}/${military.capacity}`;
+            if (militaryEl.dataset.value !== value) {
+                const initialized = militaryEl.dataset.value !== undefined;
+                militaryEl.dataset.value = value;
+                militaryEl.textContent = value;
+                if (initialized) {
+                    militaryEl.classList.remove('is-resource-changing');
+                    void militaryEl.offsetWidth;
+                    militaryEl.classList.add('is-resource-changing');
+                }
             }
         }
     },

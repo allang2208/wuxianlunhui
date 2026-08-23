@@ -23,37 +23,24 @@ import { PartySystem } from '../systems/party-system.js';
 import { RARITY_ORDER } from './rarity.js';
 import { COMBAT_FORMULAS } from './combat-formulas.js';
 import {
+    getTributeEffects,
+    getTributeFriendlyAtkMul,
+    getTributeFriendlyMaxHpMul,
+    getTributeVisionRangeMul,
+    aggregateTributeEffects,
+} from './tribute-math.js';
+import {
     getActiveWorld122TributeItems,
     setWorld122TributeRefreshHandler,
 } from '../world/world122-tribute-store.js';
 
+// 聚合核与友军乘率已抽到 tribute-math.js（纯模块，Node 契约测试可直测）；
+// 此处转导保持既有消费方（companion.js 以外的调用方）无需改动。
+export { getTributeEffects, getTributeFriendlyAtkMul, getTributeFriendlyMaxHpMul, getTributeVisionRangeMul };
+
 function _activeTributeItems() {
     // 位面祭坛是唯一效果源：主神空间、世界和地牢共同读取同一份30分钟状态。
     return getActiveWorld122TributeItems();
-}
-
-function _aggregateTributeEffects(items) {
-    const total = {};
-    for (const item of items) {
-        const effects = item && item.effects;
-        if (!effects) continue;
-        for (const [key, value] of Object.entries(effects)) {
-            if (typeof value === 'number' && Number.isFinite(value)) {
-                if (key.endsWith('Flat')) {
-                    total[key] = (total[key] || 0) + value;
-                } else {
-                    total[key] = (total[key] ?? 1) * (1 + value / 100);
-                }
-            }
-        }
-    }
-    return total;
-}
-
-/** 聚合当前携带祭品的效果：每个键为 Π(1 + p/100) 的乘算倍率（无该键效果时为 1）；
- * 以 Flat 结尾的键为固定值（非百分比），按加和聚合（如 hpRegenFlat 每秒+1） */
-export function getTributeEffects() {
-    return _aggregateTributeEffects(_activeTributeItems());
 }
 
 /** 对玩家最终面板应用祭品效果（在 calculateCombatStats 末尾调用，最终乘算） */
@@ -136,25 +123,14 @@ export function getTributeStaminaRegenMul() {
 // ==================== 友方向效果（工艺品祭品，2026-08-22） ====================
 // 全体友方单位口径：世界-122 生产单位（Game.friendlyUnits）+ 队伍侍从（PartySystem.members）。
 
-/** 友军攻击倍率（Companion.getPhysicalAttackDamage 消费） */
-export function getTributeFriendlyAtkMul() {
-    return getTributeEffects().friendlyAtkPercent ?? 1;
-}
-
-/** 友军生命倍率（Companion.updateMaxStats 消费） */
-export function getTributeFriendlyMaxHpMul() {
-    return getTributeEffects().friendlyMaxHpPercent ?? 1;
-}
+/** 友军攻击/生命倍率定义已移入 tribute-math.js 并由顶部转导（2026-08-23） */
 
 /** 友军移速倍率（MovementSystem._getEnemyBaseSpeed 友军分支消费） */
 export function getTributeFriendlyMoveSpeedMul() {
     return getTributeEffects().friendlyMoveSpeedPercent ?? 1;
 }
 
-/** 基础视野倍率（VisionSourceRegistry.radiusOf 消费；黄金星象仪 visionRangePercent） */
-export function getTributeVisionRangeMul() {
-    return getTributeEffects().visionRangePercent ?? 1;
-}
+/** 基础视野倍率定义已移入 tribute-math.js 并由顶部转导（2026-08-23，VisionSourceRegistry 改从纯模块直引） */
 
 // ==================== 特效祭品（item.special 块） ====================
 
@@ -386,7 +362,7 @@ const SPECIAL_BUFFS = [
 export function syncTributeBuffs(player) {
     if (!player || !StatusBar) return;
     const dungeonItems = DungeonMapSystem?.active === true ? _activeTributeItems() : [];
-    const e = _aggregateTributeEffects(dungeonItems);
+    const e = aggregateTributeEffects(dungeonItems);
     const specialValues = (key) => dungeonItems
         .map((item) => item?.special?.[key])
         .filter((value) => value !== undefined);

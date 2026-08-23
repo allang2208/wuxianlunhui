@@ -4,6 +4,7 @@ import aiConfigData from '../../data/ai-config.json';
 import { GAME_CONFIG as gameConfigData } from '../config/game-config.js';
 import { COMBAT_FORMULAS as combatFormulasData } from '../config/combat-formulas.js';
 import { COMBAT_CONFIG as combatConfigData } from '../config/combat-config.js';
+import { getEnemyFamilies } from '../config/enemy-family.js';
 import { parseSkillFormula, parseSkillExpFormula, buildSkillFromJSON } from './skill-formula.js';
 
 // data-loader.js — 异步加载 JSON 配置数据
@@ -66,12 +67,14 @@ const DataLoader = {
         const enemies = {};
         const rankMap = { normal: '普通', elite: '精英', boss: '首领' };
         for (const [id, data] of Object.entries(config)) {
+            const families = getEnemyFamilies(data);
             enemies[id] = {
                 id,
                 name: data.name,
                 type: data.type || rankMap[data.rank] || '普通',
                 category: data.category || 'monster',
-                family: data.family,
+                family: data.family ?? families[0] ?? null,
+                families,
                 color: data.color,
                 size: data.size,
                 collisionRadius: data.collisionRadius,

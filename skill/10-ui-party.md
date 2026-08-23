@@ -8,7 +8,10 @@
 - **权威规范**：`docs/ui-cold-steel-design-system.md`。新增面板、修改面板、HUD 调整、字体调整和主题色调整开始前必须先读对应章节，并按文末检查表交付。
 - **视觉真源**：`ui/panel-theme-backpack.css`。灰、白、黑基础色、六档字体、边框、阴影、动画和通用 `.bp-*` 组件类只在此维护；禁止在业务文件复制“近似冷钢”色板。
 - **标准模板**：`docs/templates/cold-steel-panel-template.js`。新右侧栏目从模板复制，保留业务根类 + `.bp-right-column`，生命周期统一使用 `BasePanel`。
-- **右侧常驻入口图标合同（2026-08-23）**：`hud-panels-misc.js` 的 `sideMenuItems` 是人物状态、技能、背包、图鉴、任务、世界传送、队员管理、属性点与科技树入口的单一映射；正式图统一使用冷钢六边形母版、完整外框安全边距和真实 RGBA 透明底，科技树也使用稳定 PNG 路径而非 emoji。候选必须由玩家确认后才能覆盖 `assets/ui/icons/`（属性点沿用 `assets/ui/addpoint.png`）；换图不得改变既有 74×74 槽位、按钮顺序、快捷键或点击行为。
+- **右侧常驻入口图标合同（2026-08-23）**：`hud-panels-misc.js` 的 `sideMenuItems` 是人物状态、技能、背包、图鉴、任务、世界传送、队员管理、科技树与属性点入口的单一映射；属性点是条件提示入口，显示时固定在科技树下方最末位。正式图统一使用冷钢六边形母版、完整外框安全边距和真实 RGBA 透明底，科技树也使用稳定 PNG 路径而非 emoji。候选必须由玩家确认后才能覆盖 `assets/ui/icons/`（属性点沿用 `assets/ui/addpoint.png`）；换图不得改变既有 74×74 槽位、其余按钮顺序、快捷键或点击行为。图标源画布允许非正方形，但显示必须使用统一 68×68 内框和 `object-fit:contain` 保持比例；悬停放大由侧栏及按钮开放视觉溢出并提升当前按钮层级，禁止通过扩大点击槽位解决裁剪。
+- **HUD 状态栏挂载与安全区合同（2026-08-23）**：`hud-core.js#createHudCore()` 必须创建稳定的 `#statusBarContainer.status-bar-container`；`StatusBar` 可以在 HUD 尚未构建时静默等待，但 render 时必须重新获取容器并补绑悬停说明。状态逻辑仍可在无 DOM 时运行，不能因暂时不显示图标而删除挂载点。图标区固定使用 `252px` HUD 宽度，锚在正常 `150px` 小地图右侧（`left:172px`）、菜单下方、`top:225px` 组队栏上方，四列紧凑排列并最多显示三行后局部滚动；卡内只保留图标、层数、时间，名称和详情进入悬停浮窗。`body.map-mode` 与 `body.expedition-preparing` 必须隐藏该栏，禁止与路线信息栈或出征全屏面板争夺左上区域。
+- **右侧常驻栏目关闭合同（2026-08-23）**：人物状态/技能/背包/图鉴、任务、世界传送、队员管理与科技树都必须支持 ESC 关闭，且再次按各自入口快捷键（CapsLock/K/Tab/U/L/O/P/Y）等价于关闭；浏览器 `keydown` 与 Electron `electron-esc` 必须进入相同的实际 `close()` 生命周期，禁止只隐藏 DOM 或让 ESC 穿透后同时打开暂停菜单。
+- **玩家技能右栏滚动合同（2026-08-23）**：`#systemPanel` 的标题栏与主 Tab 必须保持固定；`#tab-skill.active` 以 `flex:1 / min-height:0` 接收剩余高度，`.skill-filter-bar` 固定、`.skill-grid` 单独纵向滚动，禁止让活动 Tab 使用 `height:100%` 后叠加头部导致底部被根面板 `overflow:hidden` 裁切。技能详情 `.skill-detail` 必须限制在技能页内并保留独立滚动；滚动容器需可键盘聚焦并使用冷钢滚动条。
 - **执行顺序**：修改前备份 → 判定面板类型 → 选择同类参考 → 接 BasePanel/右侧挂载层 → 使用主题变量和字体档位 → 核对关闭与输入 → 查看本轮 diff → 交由用户运行验证。
 - **统一口径**：右侧主栏目和建筑详情默认 `45vw × 100%`，滑入/收回为 `0.25s cubic-bezier(0.4, 0, 0.2, 1)`；建筑详情是主栏目的同级独立栏目，不做父子嵌套页面。
 - **关闭口径**：建筑详情使用 `panelGroup:'buildingDetail' / closeOnEscape:true / closeOnOutsidePointer:true`，外部关闭不得穿透到攻击、移动或场景选择。
@@ -18,8 +21,8 @@
   `fmt()`；禁止先调用 `toFixed()` 生成字符串后再送入数字格式器，否则 `isFinite()` 会先隐式通过、随后在
   字符串上调用 `toFixed()` 崩溃。需要整数展示时传 `Math.round(number)`；可能来自配置或存档的速度值先在
   对应 Tooltip 分支局部 `Number(...) || 0`，不要为单项显示改动全局格式器或实际玩法数值。
-- **人口经济岗位面板（2026-08-21）**：可安排岗位的经济建筑统一用 `.economy-workforce`、`.economy-progress` 与 `.economy-*-label/note`，第一根条固定显示“岗位安排百分比”；第二根条必须按建筑语义取权威数据——风车显示实际/基础产量，市场显示稳定的有效商人人效，工坊显示 `actualEfficiency / configuredEfficiency` 增效发挥率，银行显示本栋离散结算周期、剩余时间与本轮金币，禁止把共享 `_economyTickMs` 当成市场或工坊的生产进度。仓库不套岗位条语义：第一根“仓储容量”只显示当前仓库的压缩后物理占用率，紧随其后的“位面总容量”显示全部活动仓库聚合占用率，两条均从同一容量服务读取并随面板 tick 刷新。进度只以内联 `width` 表达动态值，外观和低→中→高语义渐变必须留在 `panel-theme-backpack.css`；禁止为各建筑复制色板和按钮样式。市场档案必须同时显示买价、卖价、压力、动态价差和固定交易损耗，按钮文案显示真实扣款/所得而非批次预算。经济工坊与银行的四项本栋升级继续调用 `renderBuildingUpgradeCard` 与共用 tooltip，状态区用两列数字档案，窄屏退化单列；选中对应建筑时覆盖圈必须同步显示并随范围升级刷新。带有布局惩罚等关键副作用的建筑，建造配置应提供 `buildWarning`，选择建筑后在 `#bpHints` 的 `.build-context-warning` 以危险红色显示，取消选择时清空，禁止把警告混进普通快捷键文案。
-- **右上基础资源栏（2026-08-22）**：资源栏与 `.game-time` 必须同挂在 `.top-right-hud` 弹性容器，资源栏在前、时间在后，禁止按时间文本宽度硬编码 `right` 偏移；容器与顶部状态栏共享 `top:12px` 基线并使用 `align-items:flex-start` 顶边对齐，资源栏固定为与顶部状态栏一致的 50px 高度，不跟随时间栏拉伸。金币读取 `GoldManager.getGold()`，能源和食物读取 `EnergyManager.getEnergy()/getFood()`；沿用 HUD 刷新入口，但只有数值变化时才改写 DOM。已初始化数值发生变化时，只重播对应数字的单次金色辉光动画，首次载入不触发；数值使用数字字体与资源语义色，外壳继续读取冷钢主题变量，并尊重 `prefers-reduced-motion`。
+- **人口经济岗位面板（2026-08-21，2026-08-23 升级卡统一）**：可安排岗位的经济建筑统一用 `.economy-workforce`、`.economy-progress` 与 `.economy-*-label/note`，第一根条固定显示“岗位安排百分比”；第二根条必须按建筑语义取权威数据——风车显示实际/基础产量，市场显示稳定的有效商人人效，工坊显示 `actualEfficiency / configuredEfficiency` 增效发挥率，银行显示本栋离散结算周期、剩余时间与本轮金币，矿工营地显示存活矿工/已分配岗位的就绪率；禁止把共享 `_economyTickMs` 当成市场或工坊的生产进度。仓库不套岗位条语义：第一根“仓储容量”只显示当前仓库的压缩后物理占用率，紧随其后的“位面总容量”显示全部活动仓库聚合占用率，两条均从同一容量服务读取并随面板 tick 刷新。进度只以内联 `width` 表达动态值，外观和低→中→高语义渐变必须留在 `panel-theme-backpack.css`；禁止为各建筑复制色板和按钮样式。市场档案必须同时显示买价、卖价、压力、动态价差和固定交易损耗，按钮文案显示真实扣款/所得而非批次预算。有升级项目的矿工营地、房屋、经济工坊、银行和仓库统一调用 `renderBuildingUpgradeCard` 与共用 tooltip，开始时扣费、卡内显示读条、完成后才生效；状态区用两列数字档案，窄屏退化单列。选中工坊或银行时覆盖圈必须同步显示并随范围升级刷新。带有布局惩罚等关键副作用的建筑，建造配置应提供 `buildWarning`，选择建筑后在 `#bpHints` 的 `.build-context-warning` 以危险红色显示，取消选择时清空，禁止把警告混进普通快捷键文案。
+- **右上经济面板（2026-08-22，2026-08-23 军事人口/时钟等高）**：金币、能源、食物和兵力所在栏统一称为“经济面板”；与 `.game-time` 同挂在 `.top-right-hud` 弹性容器，经济面板在前、时间在后，二者必须读取 `--top-right-instrument-height` 保持74px等高，禁止按时间文本宽度硬编码 `right` 偏移；容器与顶部状态栏共享 `top:12px` 基线并使用 `align-items:flex-start` 顶边对齐。金币/能源/食物保持首行三列，第二行横跨三列显示“兵力 已出兵/房屋容量”；首行图标24px、兵力图标18px，标签使用caption、数字使用meta数字字体，禁止增高面板后留下松散留白。军事人口读取 `MilitaryPopulationSystem`，不能用经济岗位 `used`，两条线路只共享容量。金币读取 `GoldManager.getGold()`，能源和食物读取 `EnergyManager.getEnergy()/getFood()`；沿用 HUD 刷新入口，但只有数值变化时才改写 DOM。已初始化数值发生变化时，只重播对应数字的单次金色辉光动画，首次载入不触发；保留资源语义色，外壳继续读取冷钢主题变量，并尊重 `prefers-reduced-motion`。
 
 ### 任务系统数据与瞬态场景合同（2026-08-22）
 
@@ -34,6 +37,7 @@
 - **结构**：静态层 `_minimapStaticGraphics`（背景/边框/墙壁，缓存重绘）+ 动态层
   `_minimapDynamicGraphics`（视野框/实体点/玩家箭头，每帧 clear 重绘）+ 标题 text，
   全部 scrollFactor(0) + depth 99999，`_syncHud` 里调用（NPC 对话时隐藏）。
+- **地牢布局规格（2026-08-23）**：全局小地图允许使用宽版 HUD 尺寸，但 `scene7` 地牢战斗必须读取双份 `game-config.json#minimap.dungeon`，保持 `150×150 @ (10,60)`；绘制、战争迷雾、点击和拖动一律继续消费 `_minimapLayout()`，禁止各自判断地牢并复制尺寸。静态缓存键除 zoom、世界尺寸、墙数量外还必须包含最终宽高与锚点，确保场景切换后的规格变化触发重绘。
 - **scrollFactor(0) 对象在 zoom≠1 下的定位铁律**：Phaser 4 对 scrollFactor=0 的图形
   仍乘相机 zoom（只是不随相机滚动）——所有绘制坐标必须 × `1/zoom`（`_minimapInvZoom`），
   屏幕位置 = 绘制坐标；`Camera` 必须 `setOrigin(0,0)`（origin 0.5 会按视图中心枢轴
@@ -91,11 +95,19 @@
   `game-style.css` 与 `ui/panel-theme-backpack.css` 必须继续共用该路径及 `center / cover no-repeat`，替换背景时直接覆盖此唯一资源，禁止再引入并行旧图或分叉路径。
 - **出征/路线双 Canvas 层级合同（2026-08-23）**：地牢路线背景、连线和节点由下层
   `#gameCanvas` 绘制，Phaser 主画布平时位于其上。进入 `body.map-mode` 后必须通过专用
-  `.phaser-game-canvas` 类显式隐藏上层画布，不能只依赖相机 `rgba(0,0,0,0)`；相机/渲染器
+  `.phaser-game-canvas` 类显式隐藏上层画布，选择器不得假设它是 `#gameContainer` 的直接子元素
+  （实际挂在 `#gameLayer` 内）；不能只依赖相机 `rgba(0,0,0,0)`。相机/渲染器
   的黑色清屏一旦未正确清除，会把已正常绘制的路线页整体遮成纯黑。路线模式同时兜底隐藏
   `.expedition-overlay/.expedition-panel/.expedition-rule-panel`，退出路线模式移除 body class 后
   Phaser 画布自然恢复。出征左侧说明栏与中部面板必须共享同一个宽度变量并都用
   `box-sizing:border-box`，否则说明栏的 padding/border 会越过约定边界遮挡钥匙提示。
+- **路线选择 HUD 冷钢合同（2026-08-23）**：预期奖励、特工入侵概率与“当前地牢”统一放进
+  `#dungeonRouteInfoStack`，固定按“奖励 → 入侵 → 当前地牢”在上方背景图 contain 后的左黑幕内上下排列，并按信息栈真实宽度居中；
+  栈顶固定在安全区、栈底必须停在 `.party-bar` 上缘之前，禁止两个系统各写 fixed/top 内联坐标。
+  右侧安全撤离/放弃按钮使用原生 `<button>` + `.bp-button`，不得再以整板图片承担按钮文字与状态；
+  路线标题、状态栏和奖励卡只在 `panel-theme-backpack.css` 消费冷钢变量，业务代码只写动态数值。
+- **主神空间祭坛占地（2026-08-23）**：祭坛仍保留 `npcType:'altar'` 与既有对话/出征入口，
+  但实体创建后必须使用 `applyBuildingFootprint(..., 2)` 和重建 Collider，统一为标准 2×2 建筑占地。
 - **地牢友军边界**：确认出征时把 `Game.friendlyUnits` 暂存到 `SceneManager` 并从地牢运行态清空，
   回到主神空间后按原对象和原坐标恢复；只允许独立注册在 `PartySystem.members` 的正式队友随行。
 
@@ -117,6 +129,7 @@
 - 模式快捷键只改变显示或指令状态，不能进入伤害、碰撞、寻路等逻辑真源。
 - **玩家纳入 RTS 时必须切换控制源（2026-08-23）**：F1 只负责模式状态与输入锁，玩家移动/普通攻击由专用控制器产生命令意图，再交给既有玩家速度、墙体、高架、武器和弹药链消费；禁止伪造 `Input.mouse`，也禁止把玩家塞进友军 `_command` 后交给单位 AI。玩家编组使用稳定保留键，PartySystem 选中同步仍只写正式队友 ID。
 - **指挥奔跑是表现态，不是冲刺态**：统一显示谓词可合并 `_isSprinting || _rtsRunVisual`，但耐力消耗、冲刺速度、冲刺攻击、尘土与双手枪打断仍只读取真实 `_isSprinting`。逐发装填枪在指挥攻击中不得走手动打断入口，保持 `reloading` 到满弹，再由持续攻击命令自动续射。
+- **普通模式世界指针必须走游戏表面白名单（2026-08-23）**：攻击、右键特殊攻击、中键指令轮盘及普通模式的移动攻击/巡逻选点统一调用 `gameplay-pointer-boundary.js`，只有 `#gameContainer`、游戏层或游戏 Canvas 才能产生世界输入；任何 DOM 栏目默认隔离，禁止继续维护易漏项的面板 class 黑名单。`leftDown/rightDown` 与 Pressed 边沿必须一起拦截；地图选点按下和松开都要位于游戏表面，从画面拖到栏目后松开只取消本次指针过程并保留待选指令。
 
 #### 步骤4: 声道与 BGM（2026-07-21 新增）
 - **声道**：`playFile(path, volume, channel)` 第三参为声道（`sfx` 战斗音效默认 / `ui` 界面 / `music` 音乐），声道音量配置在 `data/audio-config.json` 的 `channels`（独立于 masterVolume 的二级调节）；运行时可 `SoundManager.setChannelVolume(channel, v)`。
@@ -223,10 +236,12 @@
   1. **能力边界不能靠“写了 `_command`”假装支持**：经济矿工标记
      `_rtsSelectable=false / _rtsCanAttack=false`，RTS 收集、点选、框选和编队入口必须统一过滤；
      矿工 AI 还要清理旧档遗留命令，保证玩家不能用历史 `_command` 打断自动采矿物流。
-  2. **指挥与建筑模式强制互斥**：启用 RTS 先 `_closeBuildingUI()`；`BuildingSystem.open`
-     反向关闭 RTS；RTS 鼠标过滤必须包含 `.wall-editor-panel`。指挥模式点建筑后退出 RTS，
-     掩体详情必须走 `BuildingSystem.open()+_showDetail`，禁止裸 `_buildPanel()+active=true`
-     （会缺监听器、幽灵无法放置且面板点击泄漏成世界点击）。
+  2. **指挥与建设输入态互斥、建筑详情可共存（2026-08-23 新口径）**：启用 RTS 先关闭
+     `BuildingSystem` 主建筑栏目；`BuildingSystem.open` 仍反向关闭 RTS，禁止让放置/回收监听器与
+     指挥输入并存。指挥模式远程点建筑只打开既有详情栏目，不退出 RTS、也不启用建设模式；
+     掩体/门/楼梯走 `BuildingSystem.showRemoteDetail` 的详情专用入口，禁止裸
+     `_buildPanel()+active=true`。RTS 鼠标过滤必须包含 `.wall-editor-panel` 与
+     `.build-structure-detail-panel`，避免详情按钮点击穿透到世界。
   3. **跨场景命令清理**：离开 scene8 时全队命令重置 follow，并清 target/
      `_tacticalTarget`/路径/速度；否则 scene8 世界坐标和敌人引用会带进下一场景。
   4. **右键移动即时打断**：盾卫/民兵的 `_swingActive`、射手/斥候的 `_shotActive`

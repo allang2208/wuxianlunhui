@@ -1,5 +1,5 @@
 {
-  "_comment": "产兵建筑配置表：building-system.js 据此生成可建条目，producer-building-system.js 据此驱动出兵。升级项目统一由 building-upgrades.json 维护，建筑通过 upgradeProject 关联；出兵时间=spawnIntervalMs，出品种类=unitTypes/defaultUnitType。",
+  "_comment": "产兵建筑配置表：building-system.js 据此生成可建条目，producer-building-system.js 据此驱动出兵。普通出兵建筑不配置 unitCap，只受房屋容量派生的全局军事人口限制；带 featureWorldId 的位面特色出兵建筑同时保留建筑/兵种 unitCap。升级项目统一由 building-upgrades.json 维护，建筑通过 upgradeProject 关联；每栋出兵建筑常显一组升级卡，通用模块同步应用其全部 unitTypes，特殊模块用 unitKinds 限定；出兵时间=spawnIntervalMs，出品种类=unitTypes/defaultUnitType。",
   "thatch_hut": {
     "id": "thatch_hut",
     "name": "仓鼠草屋",
@@ -12,8 +12,7 @@
     "displayW": 256,
     "displayH": 209,
     "footOffsetY": 104,
-    "anchorAdjustX": -15,
-    "anchorAdjustY": -10,
+    "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.691388, "widthRatio": 1, "depthRatio": 0.61244, "scaleMode": "strict" },
     "windowGlow": {
       "textureKey": "thatch_hut_window_glow",
       "assetPath": "assets/terrain/window-glow/thatch_hut.png"
@@ -21,13 +20,35 @@
     "sellRefundRatio": 0.5,
     "spawnIntervalMs": 10000,
     "spawnRadius": 90,
-    "unitCap": 5,
     "defaultUnitType": "militia",
     "unitTypes": [
       { "key": "militia", "name": "仓鼠民兵", "spawnFoodCost": 50 },
       { "key": "scout", "name": "仓鼠斥候", "spawnFoodCost": 75 }
     ],
     "upgradeProject": "combat_standard"
+  },
+  "hamster_barracks": {
+    "id": "hamster_barracks",
+    "name": "仓鼠军营",
+    "cost": 1500,
+    "hp": 2000,
+    "radius": 128,
+    "def": 60,
+    "mdef": 60,
+    "tex": "barracks",
+    "displayW": 275,
+    "displayH": 245,
+    "footOffsetY": 120,
+    "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.728571, "widthRatio": 0.930909, "depthRatio": 0.522449, "scaleMode": "strict" },
+    "sellRefundRatio": 0.5,
+    "spawnIntervalMs": 45000,
+    "spawnRadius": 90,
+    "defaultUnitType": "warrior",
+    "unitTypes": [
+      { "key": "warrior", "name": "仓鼠战士", "spawnFoodCost": 125 },
+      { "key": "guard", "name": "仓鼠盾卫", "spawnFoodCost": 150 }
+    ],
+    "upgradeProject": "barracks_defense"
   },
   "blacksmith": {
     "id": "blacksmith",
@@ -41,6 +62,7 @@
     "displayW": 279,
     "displayH": 248,
     "footOffsetY": 123,
+    "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.737903, "widthRatio": 0.917563, "depthRatio": 0.516129, "scaleMode": "strict" },
     "windowGlow": {
       "textureKey": "blacksmith_window_glow",
       "assetPath": "assets/terrain/window-glow/blacksmith.png"
@@ -63,19 +85,18 @@
     "def": 80,
     "mdef": 120,
     "tex": "church",
-    "foundation": false,
-    "displayW": 480,
-    "displayH": 480,
-    "footOffsetY": 167,
+    "displayW": 293,
+    "displayH": 283,
+    "footOffsetY": 140,
+    "visualFootprint": { "centerXRatio": 0.495911, "centerYRatio": 0.76844, "widthRatio": 0.872664, "depthRatio": 0.452237, "scaleMode": "strict" },
     "windowGlow": {
       "textureKey": "church_window_glow",
       "assetPath": "assets/terrain/window-glow/church.png"
     },
-    "assetCutoutHash": "24DA4936515AA9D84DCF6578A9C893A02278168B789BCEAC4CE4374DF2F367E7",
+    "assetCutoutHash": "00D69ADA8926DAC40C83221408CBC8812DA6325B100A9CC18D0678F2BD96DA37",
     "sellRefundRatio": 0.5,
     "spawnIntervalMs": 90000,
     "spawnRadius": 90,
-    "unitCap": 2,
     "defaultUnitType": "priest",
     "unitTypes": [
       { "key": "priest", "name": "仓鼠牧师", "spawnFoodCost": 240 }
@@ -91,10 +112,10 @@
     "def": 90,
     "mdef": 90,
     "tex": "defense_base",
-    "foundation": false,
     "displayW": 276,
     "displayH": 230,
     "footOffsetY": 114,
+    "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.717391, "widthRatio": 0.927536, "depthRatio": 0.556522, "scaleMode": "strict" },
     "sellRefundRatio": 0,
     "spawnEnabled": false,
     "spawnIntervalMs": 10000,
@@ -122,6 +143,7 @@
     "displayW": 288,
     "displayH": 253,
     "footOffsetY": 125,
+    "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.741107, "widthRatio": 0.888889, "depthRatio": 0.505929, "scaleMode": "strict" },
     "autoFootprint": false,
     "perimeterTile": "none",
     "sellRefundRatio": 0.5,
@@ -141,6 +163,42 @@
       { "sceneId": "scene11", "label": "世界-125·地牢遗迹", "icon": "🕯️" }
     ]
   },
+  "snow_castle": {
+    "id": "snow_castle",
+    "name": "学院城堡",
+    "playerBuildable": false,
+    "cost": 0,
+    "currency": "gold",
+    "hp": 4000,
+    "radius": 128,
+    "def": 90,
+    "mdef": 130,
+    "tex": "snow_castle",
+    "assetPath": "assets/terrain/snow_castle.png",
+    "displayW": 288,
+    "displayH": 325,
+    "footOffsetY": 161,
+    "visualFootprint": {
+      "centerXRatio": 0.5,
+      "centerYRatio": 0.798462,
+      "widthRatio": 0.888889,
+      "depthRatio": 0.393846,
+      "scaleMode": "strict"
+    },
+    "assetCutoutHash": "D37A274CF4BD6ED7C2A7E5BAD8E2FD37BEF6B598E33E69444FEDFF386CBF371F",
+    "perimeterTile": "none",
+    "sellRefundRatio": 0,
+    "allowedSceneIds": ["scene9"],
+    "featureWorldId": "scene9",
+    "buildLimit": 1,
+    "spawnEnabled": false,
+    "spawnIntervalMs": 10000,
+    "spawnRadius": 90,
+    "unitCap": 0,
+    "defaultUnitType": "",
+    "unitTypes": [],
+    "panelDescription": "世界-123雪原的学院城堡。随位面首次接通建立，作为后续雪原特色研究与单位体系的核心建筑。"
+  },
   "research_institute": {
     "id": "research_institute",
     "name": "研究院",
@@ -150,10 +208,10 @@
     "def": 70,
     "mdef": 90,
     "tex": "research_institute",
-    "foundation": false,
     "displayW": 256,
     "displayH": 234,
     "footOffsetY": 116,
+    "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.722222, "widthRatio": 1, "depthRatio": 0.547009, "scaleMode": "strict" },
     "windowGlow": {
       "textureKey": "research_institute_window_glow",
       "assetPath": "assets/terrain/window-glow/research_institute.png"
@@ -184,6 +242,7 @@
     "displayW": 278,
     "displayH": 310,
     "footOffsetY": 154,
+    "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.790323, "widthRatio": 0.920863, "depthRatio": 0.412903, "scaleMode": "strict" },
     "sellRefundRatio": 0.5,
     "firstWhenNoneCost": 0,
     "spawnEnabled": false,
@@ -208,10 +267,10 @@
     "displayW": 272,
     "displayH": 176,
     "footOffsetY": 87,
+    "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.630682, "widthRatio": 0.941176, "depthRatio": 0.727273, "scaleMode": "strict" },
     "sellRefundRatio": 0.5,
     "spawnIntervalMs": 60000,
     "spawnRadius": 90,
-    "unitCap": 5,
     "defaultUnitType": "musketeer",
     "unitTypes": [
       { "key": "musketeer", "name": "仓鼠火枪", "spawnIntervalMs": 60000, "spawnFoodCost": 180 },
@@ -231,7 +290,7 @@
     "displayW": 322,
     "displayH": 271,
     "footOffsetY": 135,
-    "anchorAdjustY": -10,
+    "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.761993, "widthRatio": 0.795031, "depthRatio": 0.472325, "scaleMode": "strict" },
     "windowGlow": {
       "textureKey": "cavalry_school_window_glow",
       "assetPath": "assets/terrain/window-glow/cavalry_school.png"
@@ -239,7 +298,6 @@
     "sellRefundRatio": 0.5,
     "spawnIntervalMs": 90000,
     "spawnRadius": 90,
-    "unitCap": 5,
     "defaultUnitType": "knight",
     "unitTypes": [
       { "key": "knight", "name": "仓鼠骑士", "spawnIntervalMs": 90000, "spawnFoodCost": 300 },
@@ -259,9 +317,11 @@
     "mdef": 50,
     "tex": "house_lv1",
     "assetPath": "assets/terrain/house_lv1.png",
+    "thumbnailPath": "assets/ui/building-thumbnails/house_lv1.png",
     "displayW": 270,
-    "displayH": 310,
-    "footOffsetY": 155,
+    "displayH": 260,
+    "footOffsetY": 129,
+    "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.75, "widthRatio": 0.948148, "depthRatio": 0.492308, "scaleMode": "strict" },
     "windowGlow": {
       "variants": {
         "house_lv1": {
@@ -312,12 +372,11 @@
     "displayW": 276,
     "displayH": 340,
     "footOffsetY": 170,
-    "anchorAdjustX": -5,
-    "anchorAdjustY": 5,
+    "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.811765, "widthRatio": 0.927536, "depthRatio": 0.376471, "scaleMode": "strict" },
     "windowGlow": {
       "textureKey": "wheat_windmill_body_window_glow",
       "assetPath": "assets/terrain/window-glow/wheat_windmill_body.png",
-      "baseAlpha": 0.72,
+      "baseAlpha": 0.9,
       "pulsePeriodMs": 2600
     },
     "sellRefundRatio": 0.5,
@@ -340,10 +399,11 @@
     "displayW": 266,
     "displayH": 224,
     "footOffsetY": 111,
+    "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.709821, "widthRatio": 0.962406, "depthRatio": 0.571429, "scaleMode": "strict" },
     "windowGlow": {
       "textureKey": "bank_window_glow",
       "assetPath": "assets/terrain/window-glow/bank.png",
-      "baseAlpha": 0.62
+      "baseAlpha": 0.86
     },
     "sellRefundRatio": 0.5,
     "spawnEnabled": false,
@@ -363,10 +423,10 @@
     "mdef": 50,
     "tex": "market",
     "assetPath": "assets/terrain/market.png",
-    "foundation": false,
     "displayW": 276,
     "displayH": 206,
     "footOffsetY": 101,
+    "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.679612, "widthRatio": 0.927536, "depthRatio": 0.621359, "scaleMode": "strict" },
     "windowGlow": {
       "textureKey": "market_window_glow",
       "assetPath": "assets/terrain/window-glow/market.png"
@@ -380,8 +440,9 @@
   "explorer_camp": {
     "id": "explorer_camp", "name": "探险家营地", "cost": 1400, "currency": "gold",
     "hp": 2300, "radius": 128, "def": 55, "mdef": 45,
-    "tex": "explorer_camp", "foundation": false,
+    "tex": "explorer_camp",
     "displayW": 268, "displayH": 251, "footOffsetY": 124,
+    "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.739044, "widthRatio": 0.955224, "depthRatio": 0.50996, "scaleMode": "strict" },
     "windowGlow": {
       "textureKey": "explorer_camp_window_glow",
       "assetPath": "assets/terrain/window-glow/explorer_camp.png"
@@ -410,7 +471,6 @@
     "tex": "obstacle_candle",
     "assetPath": "assets/terrain/obstacle_candle.png",
     "thumbnailPath": "assets/terrain/obstacle_candle.png",
-    "foundation": false,
     "displayW": 89,
     "displayH": 180,
     "footOffsetY": 90,
@@ -429,8 +489,9 @@
   "jungle_temple": {
     "id": "jungle_temple", "name": "丛林神庙", "cost": 1600, "currency": "gold",
     "hp": 2600, "radius": 128, "def": 65, "mdef": 90,
-    "tex": "jungle_temple", "assetPath": "assets/terrain/jungle_temple.png", "foundation": false,
+    "tex": "jungle_temple", "assetPath": "assets/terrain/jungle_temple.png",
     "displayW": 288, "displayH": 323, "footOffsetY": 159,
+    "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.794118, "widthRatio": 0.888889, "depthRatio": 0.396285, "scaleMode": "strict" },
     "assetCutoutHash": "C4BE66EE9707ED888C0D3C590AE58352D45CA3CE8B589A779CBC59A878258B23",
     "perimeterTile": "none",
     "sellRefundRatio": 0.5, "allowedSceneIds": ["scene10"], "buildLimit": 3,
@@ -459,6 +520,7 @@
     "displayW": 288,
     "displayH": 286,
     "footOffsetY": 142,
+    "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.772727, "widthRatio": 0.888889, "depthRatio": 0.447552, "scaleMode": "strict" },
     "assetCutoutHash": "1DC02F0C7ED8CA84D14FBB87D76F962F3F18BC8EC6E9266837533F30779164EC",
     "perimeterTile": "none",
     "sellRefundRatio": 0.5,
@@ -472,7 +534,8 @@
     "unitCap": 5,
     "defaultUnitType": "camel_cavalry",
     "unitTypes": [
-      { "key": "camel_cavalry", "name": "骆驼骑兵", "spawnIntervalMs": 90000, "spawnFoodCost": 300 }
+      { "key": "camel_cavalry", "name": "骆驼骑兵", "spawnIntervalMs": 90000, "spawnFoodCost": 300 },
+      { "key": "desert_priest", "name": "沙漠祭司", "spawnIntervalMs": 85000, "spawnFoodCost": 360 }
     ]
   },
   "economic_workshop": {
@@ -489,6 +552,7 @@
     "displayW": 308,
     "displayH": 323,
     "footOffsetY": 160,
+    "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.797214, "widthRatio": 0.831169, "depthRatio": 0.396285, "scaleMode": "strict" },
     "windowGlow": {
       "textureKey": "economic_workshop_window_glow",
       "assetPath": "assets/terrain/window-glow/economic_workshop.png"
@@ -498,5 +562,48 @@
     "unitTypes": [],
     "economyType": "workshop",
     "upgradeProject": "economic_workshop"
+  },
+  "armory": {
+    "id": "armory",
+    "name": "军械库",
+    "cost": 1400,
+    "currency": "gold",
+    "hp": 3000,
+    "radius": 128,
+    "def": 95,
+    "mdef": 65,
+    "tex": "armory",
+    "assetPath": "assets/terrain/armory.png",
+    "thumbnailPath": "assets/ui/building-thumbnails/armory.png",
+    "displayW": 288,
+    "displayH": 245,
+    "footOffsetY": 121,
+    "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.732653, "widthRatio": 0.888889, "depthRatio": 0.522449, "scaleMode": "strict" },
+    "sellRefundRatio": 0.5,
+    "spawnEnabled": false,
+    "unitTypes": [],
+    "economyType": "armory",
+    "upgradeProject": "armory_economy"
+  },
+  "bakery": {
+    "id": "bakery",
+    "name": "面包屋",
+    "cost": 900,
+    "currency": "gold",
+    "hp": 2300,
+    "radius": 128,
+    "def": 55,
+    "mdef": 60,
+    "tex": "bakery",
+    "assetPath": "assets/terrain/bakery.png",
+    "displayW": 288,
+    "displayH": 245,
+    "footOffsetY": 121,
+    "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.732653, "widthRatio": 0.888889, "depthRatio": 0.522449, "scaleMode": "strict" },
+    "sellRefundRatio": 0.5,
+    "spawnEnabled": false,
+    "unitTypes": [],
+    "economyType": "bakery",
+    "upgradeProject": "bakery_economy"
   }
 }

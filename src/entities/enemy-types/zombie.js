@@ -16,6 +16,7 @@ export class Zombie extends Enemy {
         });
         this._useStickFigure = false;
         this._usePacingAI = false;
+        this._usesDirectedBasicMelee = true;
 
         // 动画状态：idle | walk | attack
         this._animState = 'idle';

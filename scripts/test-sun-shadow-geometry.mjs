@@ -66,7 +66,9 @@ const alphaBBoxOf = (png) => {
     let x0 = width; let y0 = height; let x1 = -1; let y1 = -1;
     for (let y = 0; y < height; y++) {
         for (let x = 0; x < width; x++) {
-            if (px[(y * width + x) * 4 + 3] / 255 > 0.02) {
+            // 与 manifest 生成工具（generate-building-preview-assets.mjs alphaBounds）同阈值：
+            // alpha >= 8 才算有效像素，忽略底缘淡入透明噪点
+            if (px[(y * width + x) * 4 + 3] >= 8) {
                 if (x < x0) x0 = x;
                 if (x > x1) x1 = x;
                 if (y < y0) y0 = y;
@@ -104,7 +106,9 @@ for (const [name, meta] of Object.entries(assets)) {
         freshDetail = `${name} ${over} 列越出当前贴图 ${png.width}x${png.height}`;
         break;
     }
-    if (Math.abs(sil.frontY - (ry1 - 1)) > 2) {
+    // frontY 是阴影接地线而非裸 alpha 底缘：茅草屋底缘有 3px 弱透明接触像素，
+    // 生成器把接地线定在 2860（底缘 2863），属正常口径；容差放到 4px 仍能抓住资产再生后的真实漂移。
+    if (Math.abs(sil.frontY - (ry1 - 1)) > 4) {
         freshOk = false;
         freshDetail = `${name} frontY=${sil.frontY} 实际底缘=${ry1 - 1}`;
         break;

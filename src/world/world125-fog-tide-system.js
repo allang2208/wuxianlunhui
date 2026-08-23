@@ -1,4 +1,5 @@
 import { GAME_CONFIG } from '../config/game-config.js';
+import { hasEnemyFamily } from '../config/enemy-family.js';
 import { CandleSanctuarySystem } from './candle-sanctuary-system.js';
 import { EnvironmentLightingSystem } from './environment-lighting-system.js';
 
@@ -92,7 +93,7 @@ export const World125FogTideSystem = {
 
     isZombie(entity) {
         return entity?._faction === 'enemy'
-            && String(entity?.config?.family ?? entity?.family ?? '') === '僵尸';
+            && hasEnemyFamily(entity, '僵尸');
     },
 
     getVisionRangeMultiplier(entity, sceneId, visionConfig = {}) {

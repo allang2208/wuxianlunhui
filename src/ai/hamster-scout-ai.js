@@ -14,8 +14,7 @@ import { AimHelper } from '../utils/aim-helper.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
 import { SoundManager } from '../ui/sound-manager.js';
-import { getAbilityLevel, getAbilityValue } from '../world/ability-store.js';
-import { getBuildingUpgradeAbility } from '../world/building-upgrade-projects.js';
+import { tryApplyMarkArrow } from '../combat/mark-arrow-effect.js';
 import {
     applyProjectileWallImpact,
     applyElevatedRangedRange,
@@ -413,24 +412,7 @@ export class HamsterScoutAI {
             if (typeof hit.takeDamage === 'function') {
                 hit.takeDamage(m.getPhysicalAttackDamage(this._attackDamage, hit), m, 'physical', false);
             }
-            // 铁匠铺能力：标记箭（2026-08-17）——命中 25%+5%/级 概率标记 3s，
-            // 走标准 Buff 工作流（addStatusEffect 统一入口，STATUS_CONFIG 已注册 'marked'）
-            const markLv = getAbilityLevel('mark_arrow');
-            const markAbility = getBuildingUpgradeAbility('mark_arrow');
-            if (markLv > 0 && markAbility && Math.random() < getAbilityValue(markAbility, markLv)) {
-                if (typeof hit.addStatusEffect === 'function') {
-                    // value=0.15：同类型标记刷新时数值取最大（较强效果生效）
-                    hit.addStatusEffect('marked', markAbility.durationMs, {
-                        name: '标记',
-                        icon: '🎯',
-                        color: '#ffd700',
-                        value: markAbility.damageAmplify,
-                    });
-                }
-                if (EffectManager) {
-                    EffectManager.add(new FloatingTextEffect(hit.x, hit.y - 44, '🎯 标记', '#ffd700'));
-                }
-            }
+            tryApplyMarkArrow(hit);
             if (EffectManager) {
                 EffectManager.add(new FloatingTextEffect(hit.x, hit.y - 30, `-${this._attackDamage}`, '#ffd27a'));
             }
@@ -440,7 +422,7 @@ export class HamsterScoutAI {
         }
     }
 
-    /** 卡死看门狗：行走 500ms 位移 <3px 累计 2 次 → 重选目标/传送到合法点（同款兜底） */
+    /** 卡死看门狗：只清理旧路径，坐标位移统一交给 MovementSystem/WallSystem。 */
     _checkStuck(dt) {
         const m = this.m;
         if (m._surfaceNavWaiting || m._surfaceRouteActive
@@ -470,16 +452,6 @@ export class HamsterScoutAI {
         this._stuckStreak++;
         if (this._stuckStreak < 2) return;
         this._stuckStreak = 0;
-        if (WallSystem && typeof WallSystem.findSafeSpawn === 'function') {
-            const sp = WallSystem.findSafeSpawn(m.x, m.y, m.groundRadius || 20);
-            if (sp && Number.isFinite(sp.x) && Number.isFinite(sp.y)
-                && Math.hypot(sp.x - m.x, sp.y - m.y) > 5) {
-                m.x = sp.x;
-                m.y = sp.y;
-            }
-        }
-        m.target = null;
-        m._tacticalTarget = null;
         if (m._pathManager && typeof m._pathManager._clearPath === 'function') {
             m._pathManager._clearPath();
         }

@@ -92,8 +92,7 @@ function _rescaleActiveRecruitTimers(newLevel) {
     let count = 0;
     for (const entity of game.entities.values()) {
         if (!entity || !entity.active) continue;
-        const isRecruiter = entity._isHamsterBarracks
-            || (entity._isProducerBuilding && entity.spawnEnabled);
+        const isRecruiter = entity._isProducerBuilding && entity.spawnEnabled;
         const base = entity._baseSpawnIntervalMs;
         if (!isRecruiter || !(base > 0) || !Number.isFinite(entity._spawnTimer)) continue;
         const oldInterval = getRecruitIntervalMs(base, oldLevel);

@@ -43,31 +43,31 @@ const wheelSrc = fs.readFileSync(path.join(ROOT, 'src/ui/companion-command-wheel
 const gameSceneSrc = fs.readFileSync(path.join(ROOT, 'src/phaser/scenes/GameScene.js'), 'utf8');
 
 check('指挥模式启用时关闭建筑界面',
-    /setEnabled\(on\)[\s\S]{0,120}if \(on\) this\._closeBuildingUI\(\)/.test(rtsSrc));
+    /setEnabled\(on\)[\s\S]{0,260}if \(on\) this\._closeBuildingUI\(\)/.test(rtsSrc));
 check('建筑模式开启时关闭指挥模式',
     /Game\.RTSCommand && Game\.RTSCommand\.enabled[\s\S]{0,80}setEnabled\(false\)/.test(buildingSrc));
 check('RTS 鼠标过滤建筑面板',
     /wall-editor-panel/.test(rtsSrc)
     && /world-switch-panel/.test(rtsSrc)
     && /producer-building-panel/.test(rtsSrc));
-check('掩体详情走 BuildingSystem.open，不再手动 active+裸建面板',
-    /if \(!bs\.active && typeof bs\.open === 'function'\) bs\.open\(\)/.test(rtsSrc)
+check('掩体详情走专用入口 showRemoteDetail，不启动建设/放置/回收监听',
+    /typeof bs\.showRemoteDetail === 'function'\) bs\.showRemoteDetail\(hit\)/.test(rtsSrc)
     && !/bs\.active = true/.test(rtsSrc));
 check('离开任一持久世界时重置全队命令/目标/路径',
     /leavingWorld[\s\S]{0,180}_resetPartyCommandsForSceneExit/.test(rtsSrc)
-    && /PartySystem\.setCommand\('all', 'follow'\)/.test(rtsSrc)
+    && /PartySystem\.setCommand\(m\.id, 'follow'\)/.test(rtsSrc)
     && /m\._pathManager\._clearPath\(\)/.test(rtsSrc));
-check('矿工 AI 每帧优先消费非 follow 指令',
-    /const cmd = m\._command[\s\S]{0,160}this\._applyCommand\(cmd\)/.test(minerAiSrc));
+check('矿工被排除出 RTS 指令体系（非 follow 遗留指令一律清理为 follow，2026-08-23）',
+    /m\._command\?\.mode && m\._command\.mode !== 'follow'\) m\._command = \{ mode: 'follow' \}/.test(minerAiSrc));
 check('移动/待命下发前取消直接单位攻击动作',
     /u\._ai\.cancelForCommand\(\)/.test(rtsSrc));
 check('四类攻击仓鼠均提供 cancelForCommand',
     [guardSrc, militiaSrc, shooterSrc, scoutSrc].every((s) => /cancelForCommand\(\)/.test(s)));
-check('矿工攻击命令降级为 hold',
-    /mode === 'attack' && u\._rtsCanAttack === false[\s\S]{0,180}mode: 'hold'/.test(rtsSrc));
+check('不可攻击兵种攻击命令降级为 hold',
+    /mode === 'attack' && u\._rtsCanAttack === false[\s\S]{0,260}mode: 'hold'/.test(rtsSrc));
 check('矿工声明不可执行攻击指令', /this\._rtsCanAttack = false/.test(minerEntitySrc));
-check('矿工 move 设置战术目标并进入 walk',
-    /if \(cmd\.mode === 'move'\)[\s\S]{0,520}m\._tacticalTarget = dest[\s\S]{0,120}m\._animState = 'walk'/.test(minerAiSrc));
+check('矿工 AI 无 RTS move 消费分支（已排除出指挥体系，挖矿逻辑不受指令干扰）',
+    !/if \(cmd\.mode === 'move'\)/.test(minerAiSrc));
 check('矿工 hold/attack 清目标并站定',
     /m\._tacticalTarget = null[\s\S]{0,180}m\._animState = 'idle'[\s\S]{0,100}m\.maxSpeed = 0/.test(minerAiSrc));
 check('点击与框选使用身体屏幕矩形',
@@ -99,26 +99,26 @@ check('右键表面解析通过 window.Game 惰性句柄且无未声明 g',
     /const defenseSystem = _game\(\)\?\.DefenseSystem/.test(rtsSrc)
     && /defenseSystem\?\.resolveSurfaceTarget/.test(rtsSrc));
 check('观察世界不收集本体世界 Party 幽灵单位',
-    /if \(!g\?\._observerMode\)[\s\S]{0,180}PartySystem\.members/.test(rtsSrc));
+    /if \(!g\?\._observerMode\)[\s\S]{0,260}PartySystem\.members/.test(rtsSrc));
 check('高架单位选中圈使用视觉脚底 y-z',
     (rtsSrc.match(/ring\.setPosition\(e\.x, e\.y - \(Number\(e\.z\) \|\| 0\)\)/g) || []).length === 2);
 check('牧师消费 move/attack/hold 指令',
     /const command = m\._command/.test(priestSrc)
     && /_applyCommand\(command\)/.test(priestSrc)
     && /command\.mode === 'attack'/.test(priestSrc));
-check('所有可选仓鼠兵种支持墙顶 route 航点',
-    [minerAiSrc, guardSrc, militiaSrc, shooterSrc, scoutSrc, warriorSrc, musketeerSrc, priestSrc, knightSrc]
+check('所有可选仓鼠战斗兵种支持墙顶 route 航点（矿工已排除出指挥体系）',
+    [guardSrc, militiaSrc, shooterSrc, scoutSrc, warriorSrc, musketeerSrc, priestSrc, knightSrc]
         .every((source) => /resolveRtsMoveDestination|point\?\.route/.test(source)));
 check('跨世界选择与编队召回按当前世界可选对象清理',
     /const allies = new Set\(this\._collectAllies\(\)\)/.test(rtsSrc)
-    && /const selectable = new Set\(this\._collectAllies\(\)\)/.test(rtsSrc));
+    && /_resolveGroupUnits\(entries\)[\s\S]{0,140}new Map\(this\._collectAllies\(\)/.test(rtsSrc));
 check('鼠标停在 UI 边缘时禁止相机边缘平移',
     /this\._pointerOverUi = this\._isPointerBlocked\(e\)/.test(rtsSrc)
     && /if \(this\._pointerOverUi\) return/.test(rtsSrc));
 check('墙顶单位右键地面会生成反向下楼路线',
     /routeSurfaceMoveForUnit\(unit, target\)/.test(defenseSrc)
     && /staircase\.routePoints\(\).*reverse\(\)/s.test(defenseSrc)
-    && /defenseSystem\.routeSurfaceMoveForUnit\(unit, point\)/.test(rtsSrc));
+    && /defenseSystem\.routeSurfaceMoveForUnit\(unit, resolvedPoint\)/.test(rtsSrc));
 check('指挥模式左键小地图跳转镜头并阻止世界点击穿透',
     /e\.button === 0 && this\._tryMinimapCameraJump\(e\.clientX, e\.clientY\)/.test(rtsSrc)
     && /Camera\.x = point\.x[\s\S]{0,80}Camera\.y = point\.y/.test(rtsSrc)
@@ -126,7 +126,7 @@ check('指挥模式左键小地图跳转镜头并阻止世界点击穿透',
 check('小地图绘制与点击反算共享同一布局真源',
     /_minimapLayout\(\)/.test(gameSceneSrc)
     && /minimapClientRect\(\)/.test(gameSceneSrc)
-    && /minimapWorldPointAt\(clientX, clientY\)/.test(gameSceneSrc)
+    && /minimapWorldPointAt\(clientX, clientY/.test(gameSceneSrc)
     && /nx \* layout\.worldW/.test(gameSceneSrc)
     && /ny \* layout\.worldH/.test(gameSceneSrc));
 check('RTS 中键轮盘按实际选中数量打开',

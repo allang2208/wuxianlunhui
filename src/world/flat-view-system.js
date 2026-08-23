@@ -242,6 +242,16 @@ export const FlatViewSystem = {
         this._updateIndicator(structures.length + wallCount, elevatedCount);
     },
 
+    /** 常规渲染与战争迷雾同步后再次压住全部建筑装饰特效，避免后置可见性恢复把它们点亮。 */
+    suppressBuildingEffects(scene, game) {
+        if (!this.enabled || !scene?._neutralSprites) return;
+        for (const entity of this._collectStructures(game)) {
+            const neutral = scene._neutralSprites.get(entity);
+            neutral?.overlaySprite?.setVisible?.(false);
+            neutral?.windowGlowSprite?.setVisible?.(false);
+        }
+    },
+
     _clearSpaceKey(game = null) {
         const activeGame = game || (typeof window !== 'undefined' ? window.Game : null);
         activeGame?.Input?.keys?.delete?.('Space');
@@ -316,13 +326,6 @@ export const FlatViewSystem = {
         object.setVisible?.(false);
     },
 
-    _keepFoundation(object) {
-        const saved = this._remember(object);
-        if (!saved) return;
-        object.setVisible?.(saved.visible);
-        object.setDepth?.(WORLD_RENDER_LAYERS.FOUNDATION);
-    },
-
     _restoreVisuals() {
         for (const [object, saved] of this._savedObjects.entries()) {
             if (!object?.active) continue;
@@ -366,7 +369,6 @@ export const FlatViewSystem = {
             entity._phaserSprite,
         ])) this._hide(object);
         this._hide(neutral?.label);
-        this._keepFoundation(neutral?.foundationSprite);
     },
 
     _drawStructure(graphics, entity) {

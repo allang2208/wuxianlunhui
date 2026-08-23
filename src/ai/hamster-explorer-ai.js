@@ -22,7 +22,8 @@ export class HamsterExplorerAI {
         this._remainingMs = 0;
         this._phaseTimer = 0;
         this._progressCheckTimer = 0;
-        this._lastDestinationDistance = Number.POSITIVE_INFINITY;
+        this._lastProgressX = explorer.x;
+        this._lastProgressY = explorer.y;
         this._playerLevel = 1;
     }
 
@@ -61,6 +62,7 @@ export class HamsterExplorerAI {
         this._durationMs = Math.max(remaining, Number(run.durationMs) || this._durationMs);
         this._remainingMs = remaining;
         this._playerLevel = Math.max(1, Math.floor(Number(run.playerLevel) || 1));
+        this._resetProgressWatch();
         this._syncProgressFields();
         return true;
     }
@@ -142,6 +144,7 @@ export class HamsterExplorerAI {
         this._destination = null;
         this._remainingMs = this._durationMs;
         this._playerLevel = Math.max(1, Math.floor(Number(game?.player?.data?.level) || 1));
+        this._resetProgressWatch();
         this._syncProgressFields();
         return true;
     }
@@ -150,8 +153,7 @@ export class HamsterExplorerAI {
         this._phase = 'moving';
         this._phaseTimer = 0;
         this._destination = null;
-        this._progressCheckTimer = 0;
-        this._lastDestinationDistance = Number.POSITIVE_INFINITY;
+        this._resetProgressWatch();
         this.m._animState = 'walk';
     }
 
@@ -162,7 +164,7 @@ export class HamsterExplorerAI {
             this._startViewing();
             return;
         }
-        const distance = Math.hypot(this._destination.x - m.x, this._destination.y - m.y);
+        let distance = Math.hypot(this._destination.x - m.x, this._destination.y - m.y);
         if (distance <= (Number(this.cfg.exploreArriveDist) || 55)) {
             this._startViewing();
             return;
@@ -170,13 +172,18 @@ export class HamsterExplorerAI {
 
         this._progressCheckTimer -= dt;
         if (this._progressCheckTimer <= 0) {
-            if (Number.isFinite(this._lastDestinationDistance)
-                && this._lastDestinationDistance - distance < 12) {
+            // 绕开建筑时到终点的直线距离可能暂时不降，不能据此判定卡死。
+            // 只在实体坐标确实没有推进时重置路线，避免反复换点后沿用旧中继路径原地踏步。
+            const moved = Math.hypot(m.x - this._lastProgressX, m.y - this._lastProgressY);
+            if (moved < 12) {
+                this._clearPath();
                 this._destination = this._pickDestination();
+                distance = this._destination
+                    ? Math.hypot(this._destination.x - m.x, this._destination.y - m.y)
+                    : Number.POSITIVE_INFINITY;
             }
-            this._lastDestinationDistance = this._destination
-                ? Math.hypot(this._destination.x - m.x, this._destination.y - m.y)
-                : Number.POSITIVE_INFINITY;
+            this._lastProgressX = m.x;
+            this._lastProgressY = m.y;
             this._progressCheckTimer = 5000;
         }
 
@@ -295,7 +302,14 @@ export class HamsterExplorerAI {
 
     _clearPath() {
         this.m._tacticalTarget = null;
+        this.m._relayTarget = null;
         if (typeof this.m._pathManager?._clearPath === 'function') this.m._pathManager._clearPath();
+    }
+
+    _resetProgressWatch() {
+        this._progressCheckTimer = 5000;
+        this._lastProgressX = this.m.x;
+        this._lastProgressY = this.m.y;
     }
 
     _syncProgressFields() {

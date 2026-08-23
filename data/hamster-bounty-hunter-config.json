@@ -2,7 +2,7 @@
   "id": "hamster_bounty_hunter",
   "name": "仓鼠赏金猎人",
   "title": "荒野追猎与悬赏射手",
-  "desc": "使用左轮远程支援玩家；击杀敌人时额外获得该怪物默认地牢击杀金币的两倍。",
+  "desc": "使用左轮远程支援玩家；铁匠铺“标记”可强化命中，探险家营地赏金升级可增加击杀金币。",
   "role": "bounty_hunter",
   "growthRule": "ranger",
   "avatar": "🐹🤠",
@@ -19,6 +19,10 @@
     "luck": 30
   },
   "statFormula": "enemy",
+  "groundRadius": 20,
+  "collisionRadius": 20,
+  "bodyHeight": 100,
+  "size": 64,
   "skills": [],
   "sounds": {
     "attack": "assets/sounds/friendly/hamster_bounty_hunter_attack.mp3"
@@ -43,9 +47,15 @@
     "teleportDist": 999999,
     "teleportHardDist": 9999999
   },
-  "bountyGoldMultiplier": 2,
-  "displaySize": 226,
-  "spriteOffsetY": -36,
+  "bountyGoldMultiplier": 0,
+  "displaySize": 103.058511,
+  "spriteOffsetY": -38.445655,
+  "render": {
+    "footOffsetY": 38.445655,
+    "hudOffsetY": 119,
+    "collisionWidth": 40,
+    "collisionHeight": 100
+  },
   "animations": {
     "idle": {
       "src": "assets/companions/hamster_bounty_hunter/idle.png",

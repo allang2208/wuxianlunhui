@@ -19,12 +19,14 @@ import { GameMenu } from './game-menu.js';
 import DevTool from './dev-tool.js';
 import { closeBasePanels } from './panels/base-panel.js';
 import { TechnologyTreePanel } from './technology-tree-panel.js';
+import { isGameplayPointerEvent } from './gameplay-pointer-boundary.js';
         export const Input = {
             keys: new Set(),
             mouse: { x: 0, y: 0, leftDown: false, rightDown: false, leftPressed: false, rightPressed: false },
             _playerControlLocked: false,
             _droneKeyHeldCode: null, // 正在按住无人机技能键的 keyCode（长按检测）
             _chargeKeyHeldCode: null, // 正在按住雷枪蓄力键的 keyCode（长按蓄力检测）
+            _holyChargeKeyHeldCode: null, // 正在按住圣光审判蓄力键的 keyCode（长按蓄力检测）
             init() {
     window.addEventListener('keydown', e => {
         // 全屏科技树是独占栏目：ESC 由面板的捕获监听关闭，其余按键不得进入
@@ -53,6 +55,15 @@ import { TechnologyTreePanel } from './technology-tree-panel.js';
                     if (this._chargeKeyHeldCode === e.code) {
                         this._chargeKeyHeldCode = null;
                         QuickBar.thunderLanceKeyUp(e.code);
+                    } else if (this._holyChargeKeyHeldCode === e.code) {
+                        this._holyChargeKeyHeldCode = null;
+                        QuickBar.holyJudgmentKeyUp(e.code);
+                    } else if (QuickBar.isHolyJudgmentKey(e.code)) {
+                        // 兜底：绑定未就绪时 keydown 走了 useSlot，松开只要正在蓄力一律释放
+                        const _hp = window.Game && window.Game.player;
+                        if (_hp && _hp.holyJudgmentSystem && _hp.holyJudgmentSystem.isCharging()) {
+                            _hp.holyJudgmentSystem.release();
+                        }
                     } else if (QuickBar.isThunderLanceKey(e.code)) {
                         // 兜底：第一次进入游戏时绑定可能尚未就绪（keydown 走了 useSlot 未记录长按键），
                         // 松开时只要该键已绑定雷枪且正在蓄力，一律释放，避免蓄力到满
@@ -70,6 +81,11 @@ import { TechnologyTreePanel } from './technology-tree-panel.js';
                         this._chargeKeyHeldCode = null;
                         QuickBar.thunderLanceKeyUp(code);
                     }
+                    if (this._holyChargeKeyHeldCode) {
+                        const hcode = this._holyChargeKeyHeldCode;
+                        this._holyChargeKeyHeldCode = null;
+                        QuickBar.holyJudgmentKeyUp(hcode);
+                    }
                 });
                 window.addEventListener('mousemove', e => { this.mouse.x = e.clientX; this.mouse.y = e.clientY; });
                 window.addEventListener('mousedown', e => {
@@ -77,11 +93,27 @@ import { TechnologyTreePanel } from './technology-tree-panel.js';
                     this.mouse.y = e.clientY;
                     if (this._playerControlLocked) return;
                     if (Game._wallEditMode || Game._collisionEditMode || Game._buildMode) return; // 墙壁/碰撞/建筑编辑模式：鼠标交给编辑器，不触发攻击
-                    // DOM 覆盖层点击不进入世界点击（组队栏/队员面板/招募界面等）：
-                    // 并行新增 BuildingSystem.tryInteract 后，漏拦截会误开建筑面板
-                    const isSystemUI = !!e.target?.closest?.('.system-panel, .panel-overlay, .side-menu, .back-menu-btn, .menu-btn, .party-bar, .companion-overlay, .recruit-overlay, .rts-command-btn, .rts-unit-panel, .rts-command-bar, .wall-editor-panel, .world-switch-panel, .technology-tree-panel, .hamster-hut-panel, .hamster-barracks-panel, .producer-building-panel');
-                    if (e.button === 0) { this.mouse.leftDown = true; if (!isSystemUI) this.mouse.leftPressed = true; }
-                    if (e.button === 2) { this.mouse.rightDown = true; if (!isSystemUI) this.mouse.rightPressed = true; }
+                    // 普通模式的角色攻击只接受真实游戏表面。DOM 栏目不再依赖不断补充的
+                    // class 黑名单；按住态与点击边沿同时隔离，避免全自动武器在栏目上持续开火。
+                    if (!isGameplayPointerEvent(e)) {
+                        if (e.button === 0) {
+                            this.mouse.leftDown = false;
+                            this.mouse.leftPressed = false;
+                        }
+                        if (e.button === 2) {
+                            this.mouse.rightDown = false;
+                            this.mouse.rightPressed = false;
+                        }
+                        return;
+                    }
+                    if (e.button === 0) {
+                        this.mouse.leftDown = true;
+                        this.mouse.leftPressed = true;
+                    }
+                    if (e.button === 2) {
+                        this.mouse.rightDown = true;
+                        this.mouse.rightPressed = true;
+                    }
                 });
                 window.addEventListener('mouseup', e => { if (e.button === 0) this.mouse.leftDown = false; if (e.button === 2) this.mouse.rightDown = false; });
                 window.addEventListener('contextmenu', e => e.preventDefault());
@@ -117,6 +149,7 @@ import { TechnologyTreePanel } from './technology-tree-panel.js';
 
                 this._droneKeyHeldCode = null;
                 this._chargeKeyHeldCode = null;
+                this._holyChargeKeyHeldCode = null;
                 QuickBar._droneKeyCode = null;
                 const player = Game.player;
                 if (player) {
@@ -137,7 +170,7 @@ import { TechnologyTreePanel } from './technology-tree-panel.js';
                 // Electron ESC 可能直接调用 handleKey；保证科技树开启期间仍只有 ESC 能关闭，
                 // 其他全局快捷键一律不穿透到背包、任务、队伍或世界栏目。
                 if (TechnologyTreePanel.isOpen) {
-                    if (code === CONFIG.KEYS.MENU) TechnologyTreePanel.close();
+                    if (code === CONFIG.KEYS.MENU || code === CONFIG.KEYS.TECHNOLOGY) TechnologyTreePanel.close();
                     return;
                 }
                 if (Game._wallEditMode || Game._collisionEditMode || Game._buildMode) return; // 墙壁/碰撞/建筑编辑模式：按键交给编辑器（捕获监听先处理）
@@ -146,6 +179,12 @@ import { TechnologyTreePanel } from './technology-tree-panel.js';
                     // 建筑详情面板（出兵/铁匠铺/研究/塔等）Esc 优先关闭，
                     // 不应在同一次按键继续打开暂停菜单；Electron 转发的 ESC 同样走这里。
                     if (closeBasePanels('buildingDetail') > 0) return;
+                    // 右侧常驻栏目统一先关闭：BasePanel 分组覆盖任务/世界栏，
+                    // 组队栏保留自身的滑出与侧栏恢复生命周期。
+                    const closedRightSidebar = closeBasePanels('rightSidebar');
+                    const companionWasOpen = CompanionPanel.isOpen;
+                    if (companionWasOpen) CompanionPanel.close();
+                    if (closedRightSidebar > 0 || companionWasOpen) return;
                     // 任务栏打开时按ESC关闭任务栏
                     if (UIState.isOpen('quest')) {
                         QuestSystem.close();
@@ -186,9 +225,9 @@ import { TechnologyTreePanel } from './technology-tree-panel.js';
                     if (code === CONFIG.KEYS.STATUS) { SystemUI.toggle('status'); return; }
                     if (code === CONFIG.KEYS.SKILL) { SystemUI.toggle('skill'); return; }
                     if (code === CONFIG.KEYS.CODEX) { SystemUI.toggle('codex'); return; }
-                    if (code === CONFIG.KEYS.TECHNOLOGY) { TechnologyTreePanel.open(); return; }
+                    if (code === CONFIG.KEYS.TECHNOLOGY) { TechnologyTreePanel.toggle(); return; }
                     if (code === CONFIG.KEYS.QUEST) { if (QuestSystem) QuestSystem.toggle(); return; }
-                    if (code === CONFIG.KEYS.PARTY) { CompanionPanel.openManage(); return; }
+                    if (code === CONFIG.KEYS.PARTY) { CompanionPanel.toggleManage(); return; }
                     if (code === CONFIG.KEYS.WORLD) { if (typeof window !== 'undefined' && window.WorldSwitchPanel) window.WorldSwitchPanel.toggle(); return; }
                     if (code === 'KeyF' && Game.player) { Game.player.switchWeaponMode(); return; }
                     if (code === 'KeyZ' && Game.isRunning) { Game._pickupNearbyFlag = true; return; }
@@ -198,9 +237,9 @@ import { TechnologyTreePanel } from './technology-tree-panel.js';
                 if (code === CONFIG.KEYS.STATUS) SystemUI.toggle('status');
                 if (code === CONFIG.KEYS.SKILL) SystemUI.toggle('skill');
                 if (code === CONFIG.KEYS.CODEX) SystemUI.toggle('codex');
-                if (code === CONFIG.KEYS.TECHNOLOGY) TechnologyTreePanel.open();
+                if (code === CONFIG.KEYS.TECHNOLOGY) TechnologyTreePanel.toggle();
                 if (code === CONFIG.KEYS.QUEST) { if (QuestSystem) QuestSystem.toggle(); }
-                if (code === CONFIG.KEYS.PARTY) { CompanionPanel.openManage(); }
+                if (code === CONFIG.KEYS.PARTY) { CompanionPanel.toggleManage(); }
                 if (code === CONFIG.KEYS.WORLD) { if (typeof window !== 'undefined' && window.WorldSwitchPanel) window.WorldSwitchPanel.toggle(); }
                 if (code === CONFIG.KEYS.SKILL_Q || code === CONFIG.KEYS.SKILL_E || code === CONFIG.KEYS.SKILL_R || code === CONFIG.KEYS.SKILL_C) {
                     // 雷枪蓄力键：按下即开始蓄力，松开/满蓄释放（<0.5s 失败不进 CD）
@@ -208,6 +247,11 @@ import { TechnologyTreePanel } from './technology-tree-panel.js';
                         if (!this._chargeKeyHeldCode) {
                             this._chargeKeyHeldCode = code;
                             QuickBar.thunderLanceKeyDown(code);
+                        }
+                    } else if (QuickBar.isHolyJudgmentKey(code)) {
+                        if (!this._holyChargeKeyHeldCode) {
+                            this._holyChargeKeyHeldCode = code;
+                            QuickBar.holyJudgmentKeyDown(code);
                         }
                     } else if (QuickBar.isDroneSkillKey(code)) {
                         // 无人机技能键：按下只记录，松开时按持有时长区分短按(toggle)/长按(指挥飞行)

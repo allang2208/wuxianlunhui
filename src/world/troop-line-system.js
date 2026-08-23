@@ -8,13 +8,18 @@ import { getUnitKind } from './unit-upgrade-store.js';
 import { isSpawnPositionFree } from './spawn-placement.js';
 import { WallSystem } from './wall-system.js';
 import { TechnologySystem } from './technology-system.js';
+import { MilitaryPopulationSystem } from './military-population-system.js';
 
 const VERSION = 3;
 const MODES = new Set(['follow', 'hold', 'rally']);
 const MILITARY_KINDS = new Set([
     'militia', 'warrior', 'shooter', 'guard', 'scout', 'musketeer', 'priest', 'knight', 'light_cavalry',
     'camel_cavalry',
+    'explorer',
     'bounty_hunter',
+    'jaguar_warrior',
+    'jungle_priest',
+    'desert_priest',
 ]);
 const PERSISTENT_WORLDS = new Set(['scene8', 'scene9', 'scene10', 'scene11']);
 const PORTAL_ARRIVE_DISTANCE = 82;
@@ -41,8 +46,9 @@ function currentEpoch(sceneId) {
     return PERSISTENT_WORLDS.has(sceneId) ? WorldProgressionSystem.getWorldEpoch(sceneId) : 0;
 }
 
-function aliveLocalCount(producer) {
-    return (producer?.units || []).filter((unit) => aliveMilitaryUnit(unit)).length;
+function aliveLocalCount(producer, kind = null) {
+    return (producer?.units || []).filter((unit) => aliveMilitaryUnit(unit)
+        && (!kind || getUnitKind(unit) === kind)).length;
 }
 
 function normalizeTarget(target) {
@@ -133,12 +139,12 @@ export const TroopLineSystem = {
                 else garrisoned++;
             }
         }
-        const producers = this.getLiveProducers();
+        const militaryPopulation = MilitaryPopulationSystem.getSnapshot();
         return {
             transit,
             garrisoned: garrisoned + Array.from(this._liveDetached).filter(aliveMilitaryUnit).length,
-            assigned: producers.reduce((sum, producer) => sum + this.countAssignedToProducer(producer), 0),
-            capacity: producers.reduce((sum, producer) => sum + Math.max(0, producer.unitCount?.() || 0), 0),
+            assigned: militaryPopulation.used,
+            capacity: militaryPopulation.capacity,
         };
     },
 
@@ -267,28 +273,28 @@ export const TroopLineSystem = {
     getLiveProducers() {
         const g = game();
         if (!g) return [];
-        return [
-            ...(g.HamsterBarracksSystem?.barracks || []),
-            ...(g.ProducerBuildingSystem?.buildings || []),
-        ].filter((building) => this.isTroopProducer(building) && building.active !== false);
+        return (g.ProducerBuildingSystem?.buildings || [])
+            .filter((building) => this.isTroopProducer(building) && building.active !== false);
     },
 
-    countAssignedToProducer(producer) {
-        if (!producer?.id) return aliveLocalCount(producer);
+    countAssignedToProducer(producer, kind = null) {
+        if (!producer?.id) return aliveLocalCount(producer, kind);
         const originSceneId = sceneManager()?.currentScene || null;
-        return aliveLocalCount(producer) + this.countDeployedForProducer(
+        return aliveLocalCount(producer, kind) + this.countDeployedForProducer(
             producer.id,
             originSceneId,
-            currentEpoch(originSceneId)
+            currentEpoch(originSceneId),
+            kind
         );
     },
 
-    countDeployedForProducer(producerId, originSceneId = null, originWorldEpoch = null) {
+    countDeployedForProducer(producerId, originSceneId = null, originWorldEpoch = null, kind = null) {
         if (!producerId) return 0;
         const matchesOrigin = (record) => record?.originProducerId === producerId
             && (!originSceneId || record.originSceneId === originSceneId)
             && (originWorldEpoch === null || originWorldEpoch === undefined
-                || Number(record.originWorldEpoch) === Number(originWorldEpoch));
+                || Number(record.originWorldEpoch) === Number(originWorldEpoch))
+            && (!kind || record.kind === kind);
         let count = 0;
         for (const records of Object.values(this._pendingByWorld)) {
             count += (records || []).filter(matchesOrigin).length;
@@ -301,6 +307,7 @@ export const TroopLineSystem = {
                 originProducerId: unit._troopLineOriginProducerId,
                 originSceneId: unit._troopLineOriginSceneId,
                 originWorldEpoch: unit._troopLineOriginWorldEpoch,
+                kind: getUnitKind(unit),
             })) count++;
         }
         return count;
@@ -587,9 +594,18 @@ export const TroopLineSystem = {
         const worldEpoch = Number(snapshot?.worldEpoch) || currentEpoch(sceneId);
         for (const structure of snapshot?.structures || []) {
             if (!this._snapshotIsTroopProducer(structure)) continue;
-            structure.troopLineDeployed = structure.id
-                ? this.countDeployedForProducer(structure.id, sceneId, worldEpoch)
-                : Math.max(0, Number(structure.troopLineDeployed) || 0);
+            if (!structure.id) {
+                structure.troopLineDeployed = Math.max(0, Number(structure.troopLineDeployed) || 0);
+                continue;
+            }
+            const deployedRoster = Object.fromEntries(Array.from(MILITARY_KINDS)
+                .map((kind) => [kind, this.countDeployedForProducer(
+                    structure.id, sceneId, worldEpoch, kind
+                )])
+                .filter(([, count]) => count > 0));
+            structure.troopLineDeployedRoster = deployedRoster;
+            structure.troopLineDeployed = Object.values(deployedRoster)
+                .reduce((sum, count) => sum + count, 0);
         }
     },
 
@@ -609,6 +625,7 @@ export const TroopLineSystem = {
             )) continue;
             let movedForStructure = 0;
             const roster = { ...(structure.unitRoster || {}) };
+            const deployedRoster = { ...(structure.troopLineDeployedRoster || {}) };
             const afterCount = Object.values(roster).reduce((sum, value) => sum + Math.max(0, Number(value) || 0), 0);
             for (const [kind, rawAfter] of Object.entries(roster)) {
                 const delta = Math.max(0, Math.floor(Number(rawAfter) || 0)
@@ -631,11 +648,13 @@ export const TroopLineSystem = {
                 }
                 moved += delta;
                 movedForStructure += delta;
+                deployedRoster[kind] = Math.max(0, Math.floor(Number(deployedRoster[kind]) || 0)) + delta;
             }
             const remaining = Object.values(roster).reduce((sum, value) => sum + Math.max(0, Number(value) || 0), 0);
             structure.unitRoster = roster;
             structure.units = remaining;
             structure.troopLineDeployed = Math.max(0, Number(structure.troopLineDeployed) || 0) + movedForStructure;
+            structure.troopLineDeployedRoster = deployedRoster;
             if (afterCount > 0 && Number.isFinite(structure.unitDps)) {
                 structure.unitDps = Math.round(structure.unitDps * remaining / afterCount);
             }

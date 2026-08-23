@@ -121,15 +121,25 @@
    "attack": "assets/enemies/red_wolf_king/attack.png",
    "pounce": "assets/enemies/red_wolf_king/pounce.png",
    "dying": "assets/enemies/red_wolf_king/dying.png",
-   "howl": "assets/enemies/red_wolf_king/howl.png"
+   "howl": "assets/enemies/red_wolf_king/howl.png",
+   "transform": "assets/enemies/red_wolf_king/transform.png",
+   "werewolfIdle": "assets/enemies/red_wolf_king/werewolf_idle.png",
+   "werewolfRun": "assets/enemies/red_wolf_king/werewolf_running.png",
+   "werewolfAttack": "assets/enemies/red_wolf_king/werewolf_attacking.png",
+   "werewolfHowl": "assets/enemies/red_wolf_king/werewolf_howling.png",
+   "werewolfDying": "assets/enemies/red_wolf_king/werewolf_dying.png"
   },
   "transform": {
    "hpThreshold": 0.5,
    "duration": 2000,
    "howlDuration": 2000,
-   "damageMultiplier": 2,
-   "hpRecover": 1,
-   "damageReduction": 0.9
+   "statMultiplier": 1.5,
+   "healToFull": true,
+   "damageReduction": 0.9,
+   "criticalChance": 0.5,
+   "criticalDamageMultiplier": 2.5,
+   "werewolfVisualScale": 1.25,
+   "werewolfCollisionScale": 1.25
   },
   "animation": {
    "frameLayout": {
@@ -140,9 +150,15 @@
     "idle": 400,
     "walk": 80,
     "run": 42,
-    "attack": 100,
-    "bite": 100,
-    "pacing": 100
+    "attack": 50,
+   "bite": 50,
+   "pacing": 100
+   },
+   "transformedFrameDurations": {
+    "idle": 90,
+    "walk": 124.583333,
+    "run": 115,
+    "pacing": 153.333333
    },
    "speedThresholds": {
     "run": 1.2,
@@ -187,7 +203,7 @@
     "pounce": {
      "prepareMs": 900,
      "chargeMs": 900,
-     "prepareFrames": 4
+     "prepareFrames": 8
     }
    },
    "frameLayouts": {
@@ -224,17 +240,17 @@
      "footY": 410
     },
     "attack": {
-     "cols": 4,
-     "rows": 3,
-     "frames": 12,
+     "cols": 5,
+     "rows": 5,
+     "frames": 21,
      "frameWidth": 640,
      "frameHeight": 640,
      "footY": 512
     },
     "pounce": {
-     "cols": 4,
-     "rows": 3,
-     "frames": 12,
+     "cols": 5,
+     "rows": 5,
+     "frames": 23,
      "frameWidth": 640,
      "frameHeight": 640,
      "footY": 513,
@@ -255,6 +271,54 @@
      "frameWidth": 512,
      "frameHeight": 512,
      "footY": 410
+    },
+    "transform": {
+     "cols": 5,
+     "rows": 4,
+     "frames": 20,
+     "frameWidth": 640,
+     "frameHeight": 640,
+     "footY": 590
+    },
+    "werewolfIdle": {
+     "cols": 5,
+     "rows": 4,
+     "frames": 20,
+     "frameWidth": 640,
+     "frameHeight": 640,
+     "footY": 590
+    },
+    "werewolfRun": {
+     "cols": 8,
+     "rows": 6,
+     "frames": 12,
+     "frameWidth": 640,
+     "frameHeight": 640,
+     "footY": 606
+    },
+    "werewolfAttack": {
+     "cols": 6,
+     "rows": 4,
+     "frames": 21,
+     "frameWidth": 640,
+     "frameHeight": 640,
+     "footY": 590
+    },
+    "werewolfHowl": {
+     "cols": 5,
+     "rows": 4,
+     "frames": 20,
+     "frameWidth": 640,
+     "frameHeight": 640,
+     "footY": 590
+    },
+    "werewolfDying": {
+     "cols": 5,
+     "rows": 4,
+     "frames": 20,
+     "frameWidth": 640,
+     "frameHeight": 640,
+     "footY": 590
     }
    }
   },

@@ -54,6 +54,7 @@ class EnergyNode extends DamageableEntity {
         this.immovable = true;      // 不可击退/位移
         this.noSeparation = true;   // 不参与实体分离
         this.noCollision = true;    // 不阻挡单位移动（节点仍可被攻击/采集）
+        this._civilianBlocksVisuals = false; // 纯视觉平民保持同样的可穿行语义
         this.collisionRadius = 0;
         if (this.collider) {
             this.collider.radius = 0;

@@ -15,7 +15,7 @@ import { BuildingSinkEffect } from '../effects/building-sink.js';
 import { SoundManager } from '../ui/sound-manager.js';
 import { BasePanel } from '../ui/panels/base-panel.js';
 import { renderBuildingDetailHeader } from '../ui/panels/building-detail-header.js';
-import { renderBuildingUpgradeIcon } from '../ui/panels/building-upgrade-card.js';
+import { renderBuildingUpgradeCard, renderBuildingUpgradeIcon } from '../ui/panels/building-upgrade-card.js';
 import { mountRightSidebarPanel } from '../ui/right-sidebar-panel-layer.js';
 import {
     ensureBuildingUpgradeTooltip,
@@ -26,7 +26,7 @@ import {
 import { WallSystem } from './wall-system.js';
 import { setupStructureDepth } from './structure-depth.js';
 import { Renderer } from './renderer.js';
-import { BUILDING_FOUNDATION_CONFIG, TWO_BY_TWO_BUILDING_FOOT, applyBuildingFootprint } from './building-footprint.js';
+import { TWO_BY_TWO_BUILDING_FOOT, applyBuildingFootprint } from './building-footprint.js';
 import { SpawnPlacement } from './spawn-placement.js';
 import { getBuildingModuleUpgradeCost } from './building-upgrade-projects.js';
 import { payBuildingUpgradeCost } from './building-upgrade-payment.js';
@@ -118,9 +118,6 @@ export class HamsterHut extends DamageableEntity {
             footOffsetY: HAMSTER_CONFIG.hut.footOffsetY,
             visualFootprint: HAMSTER_CONFIG.hut.visualFootprint
                 ? { ...HAMSTER_CONFIG.hut.visualFootprint } : null,
-            foundation: HAMSTER_CONFIG.hut.foundation === false
-                ? null
-                : { ...BUILDING_FOUNDATION_CONFIG },
             autoFootprint: false,
         };
         this.footOffsetY = HAMSTER_CONFIG.hut.footOffsetY;
@@ -132,6 +129,11 @@ export class HamsterHut extends DamageableEntity {
         this.level = 1;
         this.maxLevel = HAMSTER_CONFIG.hut.maxLevel;
         this.modules = { ...(config.modules || {}) }; // { moduleId: level }
+        this._upgrade = config.upgrade ? {
+            moduleId: config.upgrade.moduleId,
+            totalMs: Math.max(1, Number(config.upgrade.totalMs) || 1),
+            remainMs: Math.max(0, Number(config.upgrade.remainMs) || 0),
+        } : null;
         this.miners = [];             // 本小屋拥有的仓鼠矿工
         this._minerSeq = 0;
         this._respawnTimer = 0;
@@ -282,22 +284,43 @@ export class HamsterHut extends DamageableEntity {
         return getHutModuleCost(moduleId, this.modules[moduleId] || 0);
     }
 
-    /** 玩家支付 1000 金币 + 500 能源升级模块；数量模块升级时多生成一只仓鼠 */
-    upgradeModule(moduleId, _player) {
+    /** 升级开始时扣费，读条完成后才提升本栋营地等级。 */
+    startModuleUpgrade(moduleId) {
         const mod = HAMSTER_CONFIG.modules?.[moduleId];
         if (!mod) return { ok: false, reason: '未知模块' };
         if (!this.canUpgradeModule(moduleId)) return { ok: false, reason: '模块已满级' };
+        if (this._upgrade) return { ok: false, reason: '已有营地项目正在升级' };
         const cost = this.getModuleCost(moduleId);
         if (!cost) return { ok: false, reason: '升级费用配置缺失' };
         const payment = payBuildingUpgradeCost(cost);
         if (!payment.ok) return payment;
-        this.modules[moduleId] = (this.modules[moduleId] || 0) + 1;
-        // “矿工增援”现在只增加人口岗位容量；玩家分配人口后才会生成矿工。
-        this.applyUpgradesToMiners();
+        const timeMs = Math.max(1, Number(cost.timeMs) || 1);
+        this._upgrade = { moduleId, totalMs: timeMs, remainMs: timeMs };
         if (SoundManager && typeof SoundManager.playFile === 'function') {
             SoundManager.playFile('assets/sounds/ui/sell.wav');
         }
-        return { ok: true, cost, moduleId, level: this.modules[moduleId] };
+        return { ok: true, cost, moduleId };
+    }
+
+    upgradeModule(moduleId) {
+        return this.startModuleUpgrade(moduleId);
+    }
+
+    _updateUpgrade(dt) {
+        if (!this._upgrade) return;
+        this._upgrade.remainMs -= Math.max(0, Number(dt) || 0);
+        if (this._upgrade.remainMs > 0) return;
+        const moduleId = this._upgrade.moduleId;
+        const mod = HAMSTER_CONFIG.modules?.[moduleId];
+        if (mod) {
+            this.modules[moduleId] = Math.min(
+                Math.max(0, Math.floor(Number(mod.maxLevel) || 0)),
+                Math.max(0, Math.floor(Number(this.modules[moduleId]) || 0)) + 1
+            );
+            // “矿工增援”只增加人口岗位容量；玩家分配人口后才会生成矿工。
+            this.applyUpgradesToMiners();
+        }
+        this._upgrade = null;
     }
 
     /** 把当前模块倍率同步给所有存活矿工 */
@@ -319,6 +342,7 @@ export class HamsterHut extends DamageableEntity {
 
     /** 矿工死亡补员（小屋存活且数量不足时） */
     update(dt) {
+        this._updateUpgrade(dt);
         this._syncMinerWorkforce();
         if (this.active && this.aliveMinerCount() < this.minerCount()) {
             this._respawnTimer = Math.max(0, this._respawnTimer - dt);
@@ -455,7 +479,7 @@ class HamsterHutPanel extends BasePanel {
     constructor() {
         super({
             id: 'hamsterHutPanel',
-            className: 'hamster-hut-panel',
+            className: 'hamster-hut-panel bp-right-column is-economy-building',
             stateKey: 'hamsterHut',
             panelGroup: 'buildingDetail',
             closeOnEscape: true,
@@ -465,28 +489,22 @@ class HamsterHutPanel extends BasePanel {
         this.hut = null;
         this.player = null;
         this._refreshTimer = null; // 面板打开期间 500ms 实时刷新（暂存能量/矿工背包）
+        this._progressTimer = null;
     }
 
     buildContent(el) {
-        el.style.cssText = [
-            'position:fixed;right:26px;top:50%;transform:translateY(-50%);width:400px;',
-            'max-height:88vh;overflow-y:auto;',
-            'background:rgba(16,15,13,0.97);border:2px solid #6a5a3a;border-radius:10px;',
-            'padding:16px 18px;color:#d4c5a9;font-family:SimHei,"Microsoft YaHei",sans-serif;',
-            'box-shadow:0 8px 30px rgba(0,0,0,0.65);z-index:9000;',
-        ].join('');
         el.innerHTML = `
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-                <div id="hhTitle" style="font-size:18px;font-weight:700;color:#ffd700;"></div>
-                <div style="display:flex;gap:8px;">
-                    <button id="hhSell" style="background:#3a2820;color:#ffc9a0;border:1px solid #6a4a2a;border-radius:6px;padding:4px 10px;cursor:pointer;">出售</button>
-                    <button id="hhClose" style="background:#3a3228;color:#d4c5a9;border:1px solid #6a5a3a;border-radius:6px;padding:4px 12px;cursor:pointer;">关闭</button>
+            <div class="economy-detail-toolbar">
+                <div id="hhTitle"></div>
+                <div class="economy-detail-toolbar-actions">
+                    <button id="hhSell" type="button">出售</button>
+                    <button id="hhClose" type="button" aria-label="关闭矿工营地详情">关闭</button>
                 </div>
             </div>
             <div id="hhBuildingDetail"></div>
-            <div style="font-size:13px;font-weight:700;color:#8ad0ff;margin:2px 0 6px;">经济功能 · 人口岗位与采矿物流</div>
-            <div id="hhStatus" style="border:1px solid #4a4a2a;border-radius:8px;padding:10px;margin-bottom:12px;background:rgba(60,50,20,0.18);"></div>
-            <div id="hhModules" style="border:1px solid #3a4a5a;border-radius:8px;padding:10px;background:rgba(20,40,60,0.18);"></div>
+            <div id="hhFunctionTitle" class="troop-panel-section-title">经济功能 · 人口岗位与采矿物流</div>
+            <div id="hhStatus"></div>
+            <div id="hhModules"></div>
         `;
         ensureBuildingUpgradeTooltip();
         el.querySelector('#hhClose').addEventListener('click', () => this.close());
@@ -506,6 +524,8 @@ class HamsterHutPanel extends BasePanel {
                 this._refreshTimer = null;
             }
         }, 500);
+        if (this._progressTimer) clearInterval(this._progressTimer);
+        this._progressTimer = setInterval(() => this._tickProgress(), 100);
     }
 
     onOpen() {
@@ -517,9 +537,30 @@ class HamsterHutPanel extends BasePanel {
             clearInterval(this._refreshTimer);
             this._refreshTimer = null;
         }
+        if (this._progressTimer) {
+            clearInterval(this._progressTimer);
+            this._progressTimer = null;
+        }
         hideBuildingUpgradeTooltip();
         this.hut = null;
         this.player = null;
+    }
+
+    _tickProgress() {
+        const el = this.el;
+        const h = this.hut;
+        if (!el || !h) return;
+        const upgrade = h._upgrade;
+        if (upgrade) {
+            const pct = Math.max(0, Math.min(100,
+                Math.round((1 - upgrade.remainMs / upgrade.totalMs) * 100)));
+            const bar = el.querySelector(`#hhUpgradeBar_${upgrade.moduleId}`);
+            const text = el.querySelector(`#hhUpgradeText_${upgrade.moduleId}`);
+            if (bar) bar.style.width = `${pct}%`;
+            if (text) text.textContent = `升级中 ${pct}%（剩余 ${Math.ceil(upgrade.remainMs / 1000)}s）`;
+        } else if (el.querySelector('[data-miner-upgrading="true"]')) {
+            this.refresh();
+        }
     }
 
     _notify(text, color) {
@@ -555,28 +596,41 @@ class HamsterHutPanel extends BasePanel {
             + Math.max(0, Number(h._pendingMinerEnergy) || 0);
         const gold = GoldManager ? GoldManager.getGold() : 0;
         const storageCapacity = EnergyManager ? EnergyManager.getCapacity() : 0;
+        const workforcePct = workforce?.slots > 0
+            ? Math.round((workforce.assigned || 0) / workforce.slots * 100)
+            : 0;
+        const readyPct = workforce?.assigned > 0
+            ? Math.round(h.aliveMinerCount() / workforce.assigned * 100)
+            : 0;
         st.innerHTML = `
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-                <div><span style="color:#ffd700;font-weight:700;">等级 ${h.level}</span></div>
-                <div style="font-size:12px;color:#9a9a9a;">金币 <span style="color:#ffd700;">${gold}</span> · 能源 <span style="color:#7fd4ff;">${energy}</span></div>
+            <div class="economy-panel-heading">
+                <span>⛏️ 采矿物流档案</span>
+                <span class="economy-panel-badge${h._spawnBlocked ? ' is-blocked' : ''}">${h._spawnBlocked ? '出口阻塞' : `在岗 ${h.aliveMinerCount()}/${h.minerCount()}`}</span>
             </div>
-            <div style="font-size:12px;color:#c8b98a;line-height:1.7;">
-                仓鼠矿工 <span style="color:#8ad0ff;">${h.aliveMinerCount()}/${h.minerCount()}</span> ·
-                岗位 <b style="color:#8ad0ff;">${workforce?.assigned || 0}/${workforce?.slots || 0}</b> ·
-                空闲人口 <b style="color:#7fe0c8;">${population.free}</b><br>
-                基础采矿伤害 <b style="color:#ff9d7a;">${mults.attackDamage}</b> ·
-                采矿攻击力 <b style="color:#ff9d7a;">${Math.round(mults.attackDamage * mults.miningMult)}</b>（含效率 +${Math.round((mults.miningMult - 1) * 100)}%）<br>
-                攻击间隔 <b style="color:#ff9d7a;">${mults.attackInterval}ms</b> ·
-                移动速度 <b style="color:#ff9d7a;">${mults.walkSpeed}</b> ·
-                单人背包 <b style="color:#d9b7ff;">${mults.backpackCapacity}</b> ·
-                携带中 <b style="color:#d9b7ff;">${carried}</b><br>
-                仓库能源 <b style="color:#8ad0ff;">${energy}/${storageCapacity}</b>（仅返营提交后增加）<br>
-                ${h._spawnBlocked ? '<span style="color:#ff7755;">⚠ 出口阻塞，缺员将在出口腾空后自动补充</span><br>' : ''}
+            <div class="economy-stat-grid">
+                <div><span>采矿攻击力</span><b>${Math.round(mults.attackDamage * mults.miningMult)}</b></div>
+                <div><span>基础伤害 / 效率</span><b>${mults.attackDamage} / +${Math.round((mults.miningMult - 1) * 100)}%</b></div>
+                <div><span>攻击间隔</span><b>${mults.attackInterval}ms</b></div>
+                <div><span>移动速度</span><b>${mults.walkSpeed}</b></div>
+                <div><span>单人背包</span><b>${mults.backpackCapacity}</b></div>
+                <div><span>携带中</span><b>${carried}</b></div>
+                <div><span>仓库能源</span><b class="economy-unit-energy">${energy}/${storageCapacity}</b></div>
+                <div><span>空闲人口</span><b>${population.free}</b></div>
             </div>
-            <div class="economy-workforce-actions" style="display:flex;gap:6px;margin-top:8px;">
-                <button class="troop-panel-unit-button" data-hh-worker="-1" ${!workforce || workforce.assigned <= 0 ? 'disabled' : ''}>−1 矿工</button>
-                <button class="troop-panel-unit-button" data-hh-worker="1" ${!workforce || workforce.freeSlots <= 0 || population.free <= 0 ? 'disabled' : ''}>+1 矿工</button>
-                <button class="troop-panel-unit-button" data-hh-worker-max ${!workforce || workforce.freeSlots <= 0 || population.free <= 0 ? 'disabled' : ''}>分配最大</button>
+            <div class="economy-workforce">
+                <div class="economy-workforce-copy">
+                    <div class="economy-workforce-label"><span>矿工岗位</span><b>${workforce?.assigned || 0}/${workforce?.slots || 0} · 人口效率 ${Math.round((workforce?.laborEfficiency || 0) * 100)}%</b></div>
+                    <div class="economy-progress-label"><span>岗位安排</span><b>${workforcePct}%</b></div>
+                    <div class="economy-progress"><div style="width:${workforcePct}%"></div></div>
+                    <div class="economy-progress-label"><span>矿工就绪</span><b>${Math.min(100, readyPct)}%</b></div>
+                    <div class="economy-progress"><div style="width:${Math.min(100, readyPct)}%"></div></div>
+                    <div class="economy-workforce-note">能源只在矿工返营提交后进入仓库。${h._spawnBlocked ? '<span class="is-warning">出口腾空后会自动补员。</span>' : ''}</div>
+                </div>
+                <div class="economy-workforce-actions">
+                    <button class="troop-panel-unit-button" data-hh-worker="-1" ${!workforce || workforce.assigned <= 0 ? 'disabled' : ''}>−1</button>
+                    <button class="troop-panel-unit-button" data-hh-worker="1" ${!workforce || workforce.freeSlots <= 0 || population.free <= 0 ? 'disabled' : ''}>+1</button>
+                    <button class="troop-panel-unit-button" data-hh-worker-max ${!workforce || workforce.freeSlots <= 0 || population.free <= 0 ? 'disabled' : ''}>最大</button>
+                </div>
             </div>
             `;
         st.querySelectorAll('[data-hh-worker]').forEach((button) => {
@@ -595,29 +649,32 @@ class HamsterHutPanel extends BasePanel {
         });
 
         const modBox = el.querySelector('#hhModules');
+        const upgrade = h._upgrade;
         const rows = Object.entries(HAMSTER_CONFIG.modules || {}).map(([mid, mod]) => {
             const lv = h.modules[mid] || 0;
             const maxedMod = lv >= mod.maxLevel;
-            const canBuy = h.canUpgradeModule(mid);
             const cost = h.getModuleCost(mid);
-            const btn = maxedMod
-                ? '<span style="color:#8a8a8a;font-size:12px;">已满级</span>'
-                : canBuy
-                    ? `<button data-mod="${mid}" style="background:#4a5a2a;color:#e8ffc8;border:1px solid #7a9a4a;border-radius:6px;padding:3px 10px;cursor:pointer;">升级 ${cost.gold}金+${cost.energy}能</button>`
-                    : '<span style="color:#7a6a5a;font-size:11px;">🔒 未知模块</span>';
-            return `
-                <div data-module-row="${mid}" style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #22303a;gap:8px;cursor:help;">
-                    <div style="flex:1;min-width:0;">
-                        <div class="building-upgrade-card-name" style="font-size:13px;color:#d4e8ff;">${renderBuildingUpgradeIcon(mod.icon, mod.iconImage, 'building-upgrade-card-icon')}<span class="building-upgrade-card-label">${mod.name}</span> <span style="color:#8ad0ff;">Lv.${lv}/${mod.maxLevel}</span></div>
-                        <div style="font-size:10px;color:#6a7a6a;margin-top:2px;">（悬停查看说明）</div>
-                    </div>
-                    <div style="flex-shrink:0;">${btn}</div>
-                </div>`;
+            const inProgress = upgrade?.moduleId === mid;
+            const progressPct = inProgress
+                ? Math.round((1 - upgrade.remainMs / upgrade.totalMs) * 100)
+                : 0;
+            const actionsHtml = maxedMod
+                ? '<span class="troop-panel-caption">已满级</span>'
+                : `<button class="troop-panel-upgrade-button" data-mod="${mid}" ${upgrade ? 'disabled' : ''}>升级</button>`;
+            return renderBuildingUpgradeCard({
+                rowAttribute: 'data-module-row', projectId: mid,
+                icon: mod.icon, iconImage: mod.iconImage, name: mod.name,
+                level: lv, maxLevel: mod.maxLevel, cost, maxed: maxedMod,
+                inProgress, progressPct, remainMs: inProgress ? upgrade.remainMs : 0,
+                barId: `hhUpgradeBar_${mid}`, textId: `hhUpgradeText_${mid}`,
+                actionsHtml, accent: '#7fd4ff',
+            }).replace('class="building-upgrade-card"',
+                `class="building-upgrade-card" data-miner-upgrading="${inProgress}"`);
         }).join('');
         modBox.innerHTML = `
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-                <span style="font-size:13px;font-weight:700;color:#8ad0ff;">升级（费用按项目与等级配置）</span>
-                <span style="font-size:12px;color:#9a9a9a;">持有 ${gold} 金 / ${energy} 能</span>
+            <div class="economy-panel-heading">
+                <span>矿工营地升级项目</span>
+                <span class="economy-panel-meta">持有 <span class="economy-unit-gold">${gold} 金</span> / <span class="economy-unit-energy">${energy} 能</span></span>
             </div>
             ${rows || '<div style="font-size:12px;color:#8a8a8a;">暂无模块</div>'}`;
         modBox.querySelectorAll('[data-mod]').forEach((btn) => {
@@ -646,9 +703,9 @@ class HamsterHutPanel extends BasePanel {
 
     _upgrade(moduleId) {
         if (!this.hut) return;
-        const res = this.hut.upgradeModule(moduleId, this.player);
+        const res = this.hut.startModuleUpgrade(moduleId);
         if (res.ok) {
-            this._notify(`已升级：${HAMSTER_CONFIG.modules[moduleId].name} Lv.${res.level}`, '#8ad0ff');
+            this._notify(`${HAMSTER_CONFIG.modules[moduleId].name}开始升级（${Math.round(res.cost.timeMs / 1000)}秒）`, '#8ad0ff');
         } else {
             this._notify(res.reason, '#ff5555');
         }
@@ -668,7 +725,8 @@ class HamsterHutPanel extends BasePanel {
             <div class="building-upgrade-tooltip-title">${renderBuildingUpgradeIcon(mod.icon, mod.iconImage, 'building-upgrade-tooltip-icon')}<span>${mod.name}</span> <span style="color:#8a5a00;">Lv.${lv}/${mod.maxLevel}</span></div>
             <div>${maxed ? desc.current : `${desc.current} → ${desc.next}`}</div>
             <div style="margin-top:4px;color:#5a4a2a;">适用单位：仓鼠矿工</div>
-            <div style="margin-top:2px;">${maxed ? '已达到最高等级' : `升级费用：${cost.gold} 金币 + ${cost.energy} 能源`}</div>`, ev);
+            <div style="margin-top:2px;">${maxed ? '已达到最高等级' : `升级费用：${cost.gold} 金币 + ${cost.energy} 能源`}</div>
+            <div>${maxed ? '' : `读条时间：${Math.round(cost.timeMs / 1000)} 秒`}</div>`, ev);
     }
 }
 

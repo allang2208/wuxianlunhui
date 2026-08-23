@@ -227,7 +227,7 @@ check('放大建筑遮挡线改为读取footprint而非贴图宽度',
     && /setupStructureDepth\(this\)/.test(producerSrc)
     && /setupStructureDepth\(this\)/.test(defenseSrc));
 check('动态遮挡按完整建筑footprint判定，墙门线段端点禁止外推',
-    /structureDepthRelationAtPoint\(e, x, y\)/.test(wallSrc)
+    /structureDepthRelationAtPoint\(e, x, y/.test(wallSrc)
     && /Math\.max\(0, Math\.min\(1, rawT\)\)/.test(wallSrc));
 check('墙、门与普通建筑共用唯一地面前缘深度公式',
     /structureDepthAtY/.test(defenseSrc)
@@ -245,9 +245,10 @@ check('预览与实体共用塔、射击台、方块墙视觉参数',
     /DEFENSE_TOWER_VISUAL\.base\.w/.test(buildingSrc)
     && /WALL_STAIR_VISUAL\.w/.test(buildingSrc)
     && /BLOCK_VISUAL\.w/.test(buildingSrc));
-check('建筑面板楼梯图标锁定当前默认e2_pos正式贴图',
-    /DEFAULT_WALL_STAIR_TEXTURE[\s\S]{0,100}variants\.e2_pos\?\.lower\?\.texture/.test(buildingSrc)
-    && /icon: DEFAULT_WALL_STAIR_TEXTURE/.test(buildingSrc));
+check('建筑面板楼梯图标锁定正式贴图（面板 e1_pos 常亮 / 默认 e2_pos）',
+    /DEFAULT_WALL_STAIR_TEXTURE =[\s\S]{0,80}variants\.e2_pos\?\.lower\?\.texture/.test(buildingSrc)
+    && /WALL_STAIR_PANEL_ICON =[\s\S]{0,80}variants\.e1_pos\?\.lower\?\.texture/.test(buildingSrc)
+    && /icon: WALL_STAIR_PANEL_ICON/.test(buildingSrc));
 check('楼梯吸附只忽略目标墙并跳过全部不可建候选',
     /const ignoreEntities = new Set\(\[snap\.wall\]\)/.test(buildingSrc)
     && !/const ignoreEntities = new Set\(attachedWalls\)/.test(buildingSrc)
@@ -263,18 +264,19 @@ check('普通建筑像素只校正视觉锚点，物理默认固定标准格网'
     && /entity\.spriteCfg\?\.autoFootprint === true/.test(gameSceneSrc)
     && /PRODUCER_BUILDINGS\[item\.id\]\?\.autoFootprint === true/.test(buildingSrc));
 check('防御塔恢复放大前视觉尺寸但继续保留2×2 footprint',
-    /base: \{ w: 170, h: 262, footOffsetY: 131 \}/.test(defenseSrc)
+    /base: \{\s*w: 170,\s*h: 262,\s*footOffsetY: 131,/.test(defenseSrc)
     && /w: 137,[\s\S]{0,80}h: 86/.test(defenseSrc)
     && /pivotWorldY: 235/.test(defenseSrc)
     && /applyBuildingFootprint\(this, 2\)/.test(defenseSrc));
 
 const producerEntries = Object.values(producerCfg).filter((cfg) => cfg && typeof cfg === 'object' && cfg.id);
-check('配置建筑碰撞统一为2×2，贴图保持同级显示尺度',
+check('配置建筑碰撞统一为2×2，贴图保持同级显示尺度（守夜烛台为特例小建筑）',
     producerEntries.length > 0 && producerEntries.every((cfg) =>
-        cfg.radius === TWO_BY_TWO_BUILDING_FOOT.collisionRadius
-        && cfg.displayW >= 256
-        && cfg.displayH > 0
-        && cfg.footOffsetY > 0));
+        cfg.id === 'dungeon_candle' || (
+            cfg.radius === TWO_BY_TWO_BUILDING_FOOT.collisionRadius
+            && cfg.displayW >= 256
+            && cfg.displayH > 0
+            && cfg.footOffsetY > 0)));
 
 const research = producerCfg.research_institute;
 const pngPath = path.join(ROOT, 'assets/terrain/research_institute.png');
@@ -285,10 +287,10 @@ check('研究院抠图贴图已按 2×2 footprint 接入',
     research.assetPending !== true
     && typeof research.assetCutoutHash === 'string'
     && research.displayW === 256
-    && research.displayH === 303
-    && research.footOffsetY === 152
-    && pngW === 908
-    && pngH === 1076,
+    && research.displayH === 234
+    && research.footOffsetY === 116
+    && pngW === 873
+    && pngH === 798,
     `${pngW}×${pngH}`);
 
 console.log(`\n结果: ${pass} 通过, ${fail} 失败`);

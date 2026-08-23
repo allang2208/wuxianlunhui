@@ -53,6 +53,7 @@ export class HamsterMiner extends Companion {
         this._deathTimer = 0;
         this._ai = new HamsterMinerAI(this);
         this._animState = 'idle';
+        this.configureCollisionFromArchive(archive);
     }
 
     get hp() { return this.data.hp; }
@@ -76,13 +77,12 @@ export class HamsterMiner extends Companion {
      * 死亡 → 播 dying 动画，结束后由 update 自清理。
      */
     takeDamage(damage, source, _damageType = 'physical', _isMelee = true) {
-        if (this._dying || this.data.hp <= 0) return 0;
-        const before = this.data.hp;
-        super.takeDamage(damage, source, _damageType, _isMelee);
+        if (this._dying || this.data.hp <= 0) return { damage: 0, parried: false, critical: false };
+        const result = super.takeDamage(damage, source, _damageType, _isMelee);
         if (this.data.hp <= 0) {
             this._startDying();
         }
-        return before - this.data.hp;
+        return result;
     }
 
     _startDying() {

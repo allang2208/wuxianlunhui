@@ -713,11 +713,10 @@
       },
       "name": "祭坛",
       "size": 24,
-      "collisionRadius": 110,
+      "footprintCells": 2,
       "color": "#6a4a8a",
       "npcType": "altar",
       "noSeparation": true,
-      "colliderOffsetY": -69,
       "sprite": {
         "comment": "与世界位面祭坛共用 defense_base 贴图及显示尺寸",
         "idleKey": "defense_base",
@@ -730,7 +729,6 @@
         "width": 200,
         "height": 190
       },
-      "colliderOffsetX": -3.5,
       "height": 107.5
     },
     "mouseBlacksmith": {
@@ -827,6 +825,12 @@
     "height": 150,
     "padding": 10,
     "offsetY": 50,
+    "dungeon": {
+      "width": 150,
+      "height": 150,
+      "padding": 10,
+      "offsetY": 50
+    },
     "title": {
       "text": "地图",
       "color": "#c4d3dacc",

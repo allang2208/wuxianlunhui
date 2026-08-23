@@ -13,6 +13,7 @@ export class HamsterMusketeer extends Companion {
             ...overrides,
             ai: { ...(configData.ai || {}), ...(overrides.ai || {}) },
             animations: { ...(configData.animations || {}), ...(overrides.animations || {}) },
+            render: { ...(configData.render || {}), ...(overrides.render || {}) },
         };
         super(archive);
         this._isHamsterMusketeer = true;
@@ -21,20 +22,28 @@ export class HamsterMusketeer extends Companion {
         this._enemyTargetable = true;
         this.x = x;
         this.y = y;
-        this.groundRadius = 20;
-        this.collisionRadius = 20;
-        this.bodyHeight = 100;
-        this.size = 64;
+        this.groundRadius = Number(archive.groundRadius) || 20;
+        this.collisionRadius = Number(archive.collisionRadius) || this.groundRadius;
+        this.bodyHeight = Number(archive.bodyHeight) || 100;
+        this.size = Number(archive.size) || 64;
         this.hittable = true;
         this.hitFlash = 0;
-        // 图层/阴影脚线必须与贴图中心偏移成对：spriteOffsetY=-36 时脚底偏移为 36。
-        // 赏金猎人继承本类并沿用同一贴地规格，禁止再回到旧的 17px 错配。
-        this.footOffsetY = Math.max(0, -(Number(this.spriteOffsetY) || 0));
-        this.config = { render: { hudOffsetY: 145, footOffsetY: this.footOffsetY } };
+        // 图层/阴影脚线与当前素材的 alpha 底线成对；派生兵种可配置自己的换算结果。
+        const renderConfig = archive.render || {};
+        this.footOffsetY = Math.max(0,
+            Number(renderConfig.footOffsetY) || -(Number(this.spriteOffsetY) || 0));
+        this.config = {
+            render: {
+                ...renderConfig,
+                hudOffsetY: Math.max(0, Number(renderConfig.hudOffsetY) || 119),
+                footOffsetY: this.footOffsetY,
+            },
+        };
         this._dying = false;
         this._deathTimer = 0;
         this._ai = new HamsterMusketeerAI(this);
         this._animState = 'idle';
+        this.configureCollisionFromArchive(archive);
     }
 
     /** 复用 DamageableEntity 现有武器穿甲入口，不另建一套伤害公式。 */
@@ -49,11 +58,10 @@ export class HamsterMusketeer extends Companion {
     }
 
     takeDamage(damage, source, _damageType = 'physical', _isMelee = true) {
-        if (this._dying || this.data.hp <= 0) return 0;
-        const before = this.data.hp;
-        super.takeDamage(damage, source, _damageType, _isMelee);
+        if (this._dying || this.data.hp <= 0) return { damage: 0, parried: false, critical: false };
+        const result = super.takeDamage(damage, source, _damageType, _isMelee);
         if (this.data.hp <= 0) this._startDying();
-        return before - this.data.hp;
+        return result;
     }
 
     _startDying() {

@@ -12,6 +12,10 @@
   "baseMaxHp": 150,
   "baseData": { "str": 8, "dex": 30, "int": 3, "con": 12, "wis": 3, "luck": 16 },
   "statFormula": "enemy",
+  "groundRadius": 20,
+  "collisionRadius": 20,
+  "bodyHeight": 100,
+  "size": 64,
   "skills": [],
   "sounds": {
     "attack": "assets/companions/hamster_musketeer/fire.mp3"
@@ -33,8 +37,14 @@
     "teleportDist": 999999,
     "teleportHardDist": 9999999
   },
-  "displaySize": 226,
-  "spriteOffsetY": -36,
+  "displaySize": 205.026455,
+  "spriteOffsetY": -40.845114,
+  "render": {
+    "footOffsetY": 40.845114,
+    "hudOffsetY": 119,
+    "collisionWidth": 40,
+    "collisionHeight": 100
+  },
   "animations": {
     "idle": {
       "src": "assets/companions/hamster_musketeer/idle.png",

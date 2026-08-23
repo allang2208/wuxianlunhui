@@ -1,5 +1,11 @@
 import { Enemy } from '../enemy.js';
 import { canMeleeShareSurface } from '../../combat/melee-surface.js';
+import {
+    canImpactBasicMelee,
+    canStartBasicMelee,
+    createBasicMeleeSnapshot,
+    rebaseBasicMeleeSnapshot,
+} from '../../combat/melee-attack-resolver.js';
 import { EffectManager } from '../../effects/effect-manager.js';
 import { FloatingTextEffect } from '../../effects/floating-text.js';
 import { WallSystem } from '../../world/wall-system.js';
@@ -41,6 +47,7 @@ export class Mutant3 extends Enemy {
         this._comboTimer = 0;
         this._comboCooldown = 0;
         this._comboTarget = null;
+        this._comboSnapshot = null;
         this._comboHitMask = 0;
         this._attackAnimPhase = null; // null | normal
 
@@ -83,7 +90,7 @@ export class Mutant3 extends Enemy {
         if (this._pounceState === 'idle') {
             // 尝试开始 5 连击（贴身直接发动；突进只发生在连击命中后，见 _dealComboHit）
             if (this._comboState === 'idle' && this._comboCooldown <= 0 && this.target && this.target.active) {
-                if (this._isTargetInRange(this.target, this._getAttackStartDistance())) {
+                if (this._canStartCombo(this.target)) {
                     this._tryAttackTelegraph(() => this._startCombo());
                     return;
                 }
@@ -169,16 +176,47 @@ export class Mutant3 extends Enemy {
     }
 
     // ===== 5 连击 =====
+    _getComboWidth() {
+        return this.config?.comboWidth
+            ?? this.config?.attack?.width
+            ?? 22;
+    }
+
+    _getComboStartConfig() {
+        return {
+            range: this._getAttackStartDistance(),
+            width: this._getComboWidth(),
+        };
+    }
+
+    _getComboImpactConfig() {
+        return {
+            range: this._getComboAttackDistance(),
+            width: this._getComboWidth(),
+        };
+    }
+
+    getBasicMeleeApproachConfig() {
+        return this._getComboStartConfig();
+    }
+
+    _canStartCombo(target) {
+        return canStartBasicMelee(this, target, this._getComboStartConfig());
+    }
+
     _startCombo() {
         const t = this.target;
         this._comboTarget = t;
 
         // 目标已逃出连击最大范围或不可攻击：直接取消，避免播放空挥连击
-        if (!t || !t.active || !t.hittable || !this._isTargetInRange(t, this._getComboAttackDistance())) {
+        if (!this._canStartCombo(t)) {
             this._comboTarget = null;
+            this._comboSnapshot = null;
             this._comboCooldown = 0; // 立即允许下次尝试
-            return;
+            return false;
         }
+
+        this._comboSnapshot = createBasicMeleeSnapshot(this, t, this._getComboImpactConfig());
 
         this._comboState = 'attacking';
         this._comboTimer = 1500;
@@ -197,8 +235,10 @@ export class Mutant3 extends Enemy {
         this.vx = 0;
         this.vy = 0;
         this.isMoving = false;
+        this.rotation = this._comboSnapshot.worldAngle;
 
         EffectManager.add(new FloatingTextEffect(this.x, this.y - 30, '💢 连击！', '#8a4a2a'));
+        return true;
     }
 
     _updateCombo(dt, entities) {
@@ -223,27 +263,32 @@ export class Mutant3 extends Enemy {
             this._comboLungeRemaining -= step;
         }
 
-        // 始终面向目标
-        if (this._comboTarget && this._comboTarget.active) {
-            this.rotation = Math.atan2(this._comboTarget.y - this.y, this._comboTarget.x - this.x);
-        }
+        // 连击整段锁定起手方向；小幅命中突进只重锚判定原点，不重新追踪绕后目标。
+        if (this._comboSnapshot) this.rotation = this._comboSnapshot.worldAngle;
 
         const elapsed = 1500 - this._comboTimer;
         // 22 帧 / 1500ms ≈ 68.18ms/帧；伤害触发在第 6/11/13/16/18 帧
-        // 使用 ±0.5 帧的窗口判定，避免单帧错过导致不触发
+        // 跨过命中时间点即结算一次，不再要求落进 ±0.5 帧窄窗；低帧率下也不会漏段。
         const frameDur = 1500 / 22;
-        const windows = [
-            { start: 5.5 * frameDur, end: 6.5 * frameDur },
-            { start: 10.5 * frameDur, end: 11.5 * frameDur },
-            { start: 12.5 * frameDur, end: 13.5 * frameDur },
-            { start: 15.5 * frameDur, end: 16.5 * frameDur },
-            { start: 17.5 * frameDur, end: 18.5 * frameDur },
+        const hitTimes = [
+            5.5 * frameDur,
+            10.5 * frameDur,
+            12.5 * frameDur,
+            15.5 * frameDur,
+            17.5 * frameDur,
         ];
         for (let i = 0; i < 5; i++) {
             const bit = 1 << i;
-            if ((this._comboHitMask & bit) === 0 && elapsed >= windows[i].start && elapsed <= windows[i].end) {
+            if ((this._comboHitMask & bit) === 0 && elapsed >= hitTimes[i]) {
                 this._comboHitMask |= bit;
                 this._dealComboHit(i, entities);
+                // 大帧可能一次跨过多个命中点；首段若被弹反打断，不能在同一帧
+                // 继续把后续段全部结算出去。
+                if (this.hasStatusEffect
+                    && (this.hasStatusEffect('stun') || this.hasStatusEffect('frozen'))) {
+                    this._endCombo();
+                    return;
+                }
             }
         }
 
@@ -254,10 +299,9 @@ export class Mutant3 extends Enemy {
 
     _dealComboHit(_hitIndex, _entities) {
         const target = this._comboTarget;
-        if (!target || !target.active || !target.hittable) return;
-
-        if (!this._isTargetInRange(target, this._getComboAttackDistance())) return;
-        if (!canMeleeShareSurface(this, target)) return;
+        const impactSnapshot = rebaseBasicMeleeSnapshot(this, this._comboSnapshot);
+        if (!target || !impactSnapshot
+            || !canImpactBasicMelee(this, target, impactSnapshot)) return;
 
         const attack = this.attacks && this.attacks.melee;
         const dmgCfg = attack && attack.config && attack.config.damage;
@@ -344,6 +388,7 @@ export class Mutant3 extends Enemy {
         this._comboState = 'idle';
         this._comboTimer = 0;
         this._comboTarget = null;
+        this._comboSnapshot = null;
         this._comboHitMask = 0;
         this._attackAnimPhase = null;
         this._frozenForCast = false;

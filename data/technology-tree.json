@@ -1,5 +1,5 @@
 {
-  "version": 2,
+  "version": 5,
   "pointsPerInstitutePerSecond": 1,
   "nodes": [
     {
@@ -37,6 +37,21 @@
       "id": "barracks_establishment", "name": "军营建制", "icon": "⛺", "branch": "军事指挥", "column": 1, "lane": 2, "researchCost": 90,
       "prerequisites": ["military_organization"], "description": "建立常备军训练、驻扎和补给制度，允许建造仓鼠军营。",
       "unlocks": [{ "type": "building", "id": "hamster_barracks", "label": "仓鼠军营" }]
+    },
+    {
+      "id": "armory_logistics", "name": "军械保障", "icon": "🗡️", "branch": "军事指挥", "column": 2, "lane": 6, "researchCost": 150,
+      "prerequisites": ["barracks_establishment"], "description": "建立军械保养、归档与前线补给制度，允许建造军械库并安排维护师岗位。",
+      "unlocks": [{ "type": "building", "id": "armory", "label": "军械库" }]
+    },
+    {
+      "id": "armory_standardization", "name": "军需标准化", "icon": "⚙️", "branch": "军事指挥", "column": 3, "lane": 6, "researchCost": 220,
+      "prerequisites": ["armory_logistics"], "description": "统一装备护理、服务半径、物资整理与维护编制，开放军械库的四项专属升级。",
+      "unlocks": [
+        { "type": "upgrade", "id": "armory_equipment_care", "label": "装备护理" },
+        { "type": "upgrade", "id": "armory_service_range", "label": "服务范围" },
+        { "type": "upgrade", "id": "armory_resource_sorting", "label": "资源整理" },
+        { "type": "upgrade", "id": "armory_staff", "label": "增加人员" }
+      ]
     },
     {
       "id": "tactical_command", "name": "战术指挥", "icon": "🎯", "branch": "军事指挥", "column": 1, "lane": 0, "researchCost": 70,
@@ -118,6 +133,21 @@
       "unlocks": [{ "type": "building", "id": "wheat_windmill", "label": "小麦风车" }]
     },
     {
+      "id": "bakery_baking", "name": "面包烘焙", "icon": "🍞", "branch": "经济与位面", "column": 2, "lane": 1, "researchCost": 130,
+      "prerequisites": ["agricultural_division"], "description": "把稳定粮源转化为专业烘焙产业，允许建造面包屋并安排仓鼠面包师。",
+      "unlocks": [{ "type": "building", "id": "bakery", "label": "面包屋" }]
+    },
+    {
+      "id": "bakery_craft", "name": "烘焙工艺", "icon": "🥐", "branch": "经济与位面", "column": 3, "lane": 1, "researchCost": 180,
+      "prerequisites": ["bakery_baking"], "description": "标准化火候、配方、食材处理和短途搬运，开放面包屋的四项专属升级。",
+      "unlocks": [
+        { "type": "upgrade", "id": "bakery_quick_cooking", "label": "快速烹饪" },
+        { "type": "upgrade", "id": "bakery_gourmet", "label": "美食家" },
+        { "type": "upgrade", "id": "bakery_ingredient_processing", "label": "食材处理" },
+        { "type": "upgrade", "id": "bakery_quick_steps", "label": "小步快跑" }
+      ]
+    },
+    {
       "id": "market_circulation", "name": "市场流通", "icon": "⚖️", "branch": "经济与位面", "column": 1, "lane": 2, "researchCost": 110,
       "prerequisites": ["settlement_planning"], "description": "建立能源与金币的定价、交换和流通规则。",
       "unlocks": [{ "type": "building", "id": "market", "label": "市场" }]
@@ -133,12 +163,12 @@
       "unlocks": [{ "type": "building", "id": "bank", "label": "银行" }]
     },
     {
-      "id": "economic_engineering", "name": "经济工程", "icon": "🛠️", "branch": "经济与位面", "column": 3, "lane": 1, "researchCost": 210,
+      "id": "economic_engineering", "name": "经济工程", "icon": "🛠️", "branch": "经济与位面", "column": 4, "lane": 1, "researchCost": 210,
       "prerequisites": ["agricultural_division", "credit_finance"], "description": "用工程化管理提高生产建筑、岗位和维修体系的协同效率。",
       "unlocks": [{ "type": "building", "id": "economic_workshop", "label": "经济工坊" }]
     },
     {
-      "id": "interplane_logistics_protocol", "name": "位面物流协议", "icon": "🌀", "branch": "经济与位面", "column": 4, "lane": 1, "researchCost": 260,
+      "id": "interplane_logistics_protocol", "name": "位面物流协议", "icon": "🌀", "branch": "经济与位面", "column": 5, "lane": 1, "researchCost": 260,
       "prerequisites": ["economic_engineering"], "description": "统一跨位面仓储和运输规范，允许升级仓库的跨位面协议。",
       "unlocks": [{ "type": "upgrade", "id": "warehouse_cross_plane", "label": "仓库跨位面协议" }]
     }
@@ -172,9 +202,10 @@
     },
     {
       "id": "desert_mansion_charter", "name": "沙漠官邸营造术", "icon": "🏛️", "branch": "位面独特科技", "section": "plane", "column": 3, "lane": 0, "researchCost": 240,
-      "prerequisites": [], "requiredWorldId": "scene8", "description": "研究荒漠官邸的砂岩承重、穹顶与火炬塔营造规范，完成后可在世界-122追加建造沙漠官邸。",
+      "prerequisites": [], "requiredWorldId": "scene8", "description": "研究荒漠官邸的砂岩承重、穹顶与祭祀传统，完成后可在世界-122追加建造沙漠官邸并训练沙漠祭司。",
       "unlocks": [
-        { "type": "building", "id": "desert_mansion", "label": "沙漠官邸" }
+        { "type": "building", "id": "desert_mansion", "label": "沙漠官邸" },
+        { "type": "unit", "id": "desert_priest", "label": "沙漠祭司" }
       ]
     }
   ]

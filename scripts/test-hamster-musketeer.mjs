@@ -6,6 +6,8 @@ import { fileURLToPath } from 'node:url';
 
 const { default: cfg } = await import('../data/hamster-musketeer-config.json');
 const { default: producerCfg } = await import('../data/producer-buildings.json');
+const { default: buildingUpgradesCfg } = await import('../data/building-upgrades.json');
+const { default: barracksBuildingCfg } = await import('../data/hamster-barracks-building.json');
 const { Companion } = await import('../src/entities/companion.js');
 const { getAbilityValue } = await import('../src/world/ability-store.js');
 
@@ -30,11 +32,13 @@ check('动画帧数9/11/21/15',
     cfg.animations.idle.frameCount === 9 && cfg.animations.walk.frameCount === 11
     && cfg.animations.attack.frameCount === 21 && cfg.animations.dying.frameCount === 15);
 check('火枪音效路径正确', cfg.sounds.attack === 'assets/companions/hamster_musketeer/fire.mp3');
-check('火枪模型尺寸与射手统一', cfg.displaySize === 226 && cfg.spriteOffsetY === -36);
+check('火枪模型按仓鼠牧师 Alpha 实体高度标定',
+    Math.abs(cfg.displaySize - 205.026455) < 1e-6
+    && Math.abs(cfg.render.footOffsetY + cfg.spriteOffsetY) < 1e-6);
 
-const piercing = producerCfg.blacksmith?.abilities?.armor_piercing_round;
-check('铁匠铺穿甲弹：Lv1 25%，之后每级 +2.5%',
-    piercing?.target === 'musketeer'
+const piercing = buildingUpgradesCfg.blacksmith_special?.abilities?.armor_piercing_round;
+check('铁匠铺穿甲弹：Lv1 25%，之后每级 +2.5%（覆盖火枪与赏金猎人）',
+    piercing?.unitKinds?.includes('musketeer') && piercing?.unitKinds?.includes('bounty_hunter')
     && piercing.firstLevel === 0.25
     && piercing.per === 0.025
     && getAbilityValue(piercing, 0) === 0
@@ -66,8 +70,9 @@ check('实体受击死亡与升级接线', /_isHamsterMusketeer = true/.test(ent
     && /takeDamage\(/.test(entSrc) && /applyBarracksUpgrades/.test(entSrc));
 check('火枪穿甲复用现有武器改造机制且远程伤害标记正确',
     /getCurrentWeapon\(\)/.test(entSrc)
-    && /armorPenetrationPercent: 0\.25 \+ 0\.025 \* \(level - 1\)/.test(entSrc)
-    && /takeDamage\?\.\(this\._attackDamage, m, 'physical', false\)/.test(aiSrc));
+    && /getAbilityLevel\('armor_piercing_round'\)/.test(entSrc)
+    && /armorPenetrationPercent: getAbilityValue\(getBuildingUpgradeAbility\('armor_piercing_round'\), level\)/.test(entSrc)
+    && /hit\.takeDamage\?\.\(m\.getPhysicalAttackDamage\(this\._attackDamage, hit\), m, 'physical', false\)/.test(aiSrc));
 check('BootScene加载并注册火枪动画', /hamsterMusketeerConfig/.test(bootSrc));
 check('靶场生成火枪和射手并带升级进度',
     producerCfg.shooting_range?.defaultUnitType === 'musketeer'
@@ -85,8 +90,9 @@ check('产兵系统注册火枪配置与实体', /musketeer: musketeerCfg/.test(
     && /musketeer: HamsterMusketeer/.test(producerSrc));
 check('全局升级识别火枪', /musketeer: musketeerCfg/.test(storeSrc)
     && /_isHamsterMusketeer/.test(storeSrc));
-check('兵营不再允许生成射手', !/\$\{btn\('shooter'\)\}/.test(barracksSrc)
-    && /!\['warrior', 'guard'\]\.includes\(this\.unitType\)/.test(barracksSrc));
+check('兵营不再允许生成射手（unitTypes 配置收口为战士/盾卫）',
+    JSON.stringify(barracksBuildingCfg.unitTypes) === JSON.stringify(['warrior', 'guard'])
+    && /!\(BARRACKS_CONFIG\.barracks\.unitTypes \|\| \[\]\)\.includes\(type\)/.test(barracksSrc));
 
 console.log(`\n结果: ${pass} 通过, ${fail} 失败`);
 process.exit(fail ? 1 : 0);

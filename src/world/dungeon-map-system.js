@@ -39,8 +39,6 @@ const MAP_AREA_SPEC = { left: 0, bottom: 0, width: 1920, height: 648 };
 // 地图内容（节点/连线）限定在此窗口内，居中于下方区域
 const MAP_VIEW_SPEC = { left: 572, bottom: 112, width: 1391, height: 579 };
 // 地牢等级 → 稀有度档（与出征祭品门槛同序：F=普通、E=优质、D=稀有、C=史诗、B=神话、A=传说）
-const DUNGEON_GRADES = ['F', 'E', 'D', 'C', 'B', 'A'];
-const GRADE_RARITY = ['common', 'uncommon', 'rare', 'epic', 'mythic', 'legendary'];
 import { clearTributeBuffs, getMoonshadowConfig } from '../config/tribute-effects.js';
 import { DungeonFogOfWar } from './dungeon-map-generator.js';
 import { CombatRoomSystem } from './combat-room-system.js';
@@ -2352,63 +2350,68 @@ export const DungeonMapSystem = {
 
     /**
      * 地牢路线选择界面奖励面板（数据驱动，随地牢类型显示）：
-     * - 预期通关奖励：dungeonList[type].reward
-     * - 预期装备稀有度范围：精英宝箱房装备掉落（grade−1 档）~ Boss 奖励武器稀有度
-     * - 预期祭品稀有度范围：tributes.dropTables[grade].maxRarity
-     * 原小鼠商店按钮位置让给了 AgentInvasionSystem 的入侵几率标签（左上），本面板在标签下方。
+     * - 首领金币：BossRewardSystem 实际发放区间
+     * - 精英宝箱装备：ChestRoomSystem 实际档位与概率
+     * - 祭品范围：当前地牢 grade 的真实掉落权重范围
+     * 与入侵概率卡共挂左侧信息栈，在上方背景图左黑幕内纵向排列。
      */
     _createDungeonRewardPanel() {
-        if (getElement('dungeonRewardPanel')) return;
+        const stack = this._ensureMapInfoStack();
+        const existing = getElement('dungeonRewardPanel');
+        if (existing) {
+            stack.prepend(existing);
+            return;
+        }
         const el = document.createElement('div');
         el.id = 'dungeonRewardPanel';
-        el.style.cssText = `
-            position: fixed;
-            left: 20px;
-            top: calc(20vh + 45px);
-            width: 250px;
-            box-sizing: border-box;
-            z-index: 9001;
-            pointer-events: none;
-            user-select: none;
-            font-family: SimHei, "Microsoft YaHei", "黑体", sans-serif;
-            color: #d4c5a9;
-            font-size: 13px;
-            line-height: 1.9;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.85);
-            background: rgba(20, 20, 20, 0.55);
-            border: 1px solid rgba(120, 110, 90, 0.5);
-            border-radius: 8px;
-            padding: 8px 12px;
-        `;
+        el.className = 'dungeon-route-reward-panel';
         const g = (DungeonConfig.getDungeonList() || {})[this.dungeonType] || {};
         const grade = g.grade || 'D';
-        const gradeIdx = DUNGEON_GRADES.indexOf(grade);
-        // 装备范围：精英宝箱房装备（grade−1，F 钳制 common）~ Boss 奖励武器
-        const chestTier = GRADE_RARITY[Math.max(0, gradeIdx < 0 ? 2 : gradeIdx - 1)];
-        let bossRarity = 'epic';
-        try {
-            const cards = (BOSS_REWARD_CONFIG.reward && BOSS_REWARD_CONFIG.reward.bonusCards) || [];
-            const w = cards.flatMap(c => c.rewards || []).find(r => r && r.type === 'weapon');
-            if (w && w.rarity) bossRarity = w.rarity;
-            } catch (_e) { /* 配置缺失兜底 epic */ }
-        const ci = Math.max(0, RARITY_ORDER.indexOf(chestTier));
-        const bi = Math.max(0, RARITY_ORDER.indexOf(bossRarity));
-        const equipLo = RARITY_ORDER[Math.min(ci, bi)] || 'common';
-        const equipHi = RARITY_ORDER[Math.max(ci, bi)] || 'legendary';
-        // 祭品范围：普通 ~ 本档封顶（dropTables.maxRarity）
-        const tributeCap = (((COMBAT_FORMULAS.tributes || {}).dropTables || {})[grade] || {}).maxRarity || 'legendary';
+        const chestPreview = ChestRoomSystem.getRewardPreview(this.dungeonType);
+        const bossBase = Math.max(0, Math.floor(Number(BOSS_REWARD_CONFIG.reward?.baseGold) || 0));
+        const bossVariance = Math.max(0, Math.floor(Number(BOSS_REWARD_CONFIG.reward?.goldVariance) || 0));
+        const bossMax = bossBase + Math.max(0, bossVariance - 1);
+        const tributeTable = ((COMBAT_FORMULAS.tributes || {}).dropTables || {})[grade] || {};
+        const tributeCapIndex = RARITY_ORDER.indexOf(tributeTable.maxRarity);
+        const tributeRarities = ['normal', 'elite', 'lord', 'boss']
+            .flatMap(rank => tributeTable[rank]?.weights || [])
+            .filter(([, weight]) => Number(weight) > 0)
+            .map(([rarity]) => rarity)
+            .filter((rarity) => {
+                const rarityIndex = RARITY_ORDER.indexOf(rarity);
+                return rarityIndex >= 0 && (tributeCapIndex < 0 || rarityIndex <= tributeCapIndex);
+            });
+        const tributeIndexes = tributeRarities.map(rarity => RARITY_ORDER.indexOf(rarity));
+        const tributeLo = tributeIndexes.length ? RARITY_ORDER[Math.min(...tributeIndexes)] : 'common';
+        const tributeHi = tributeIndexes.length ? RARITY_ORDER[Math.max(...tributeIndexes)] : (tributeTable.maxRarity || 'legendary');
+        const fmt = value => Math.max(0, Math.floor(Number(value) || 0)).toLocaleString('zh-CN');
         el.innerHTML = `
-            <div style="font-weight:700;color:#e8d5a0;margin-bottom:4px;">预期奖励</div>
-            <div>通关奖励：${g.reward || '—'}</div>
-            <div>装备稀有度：${getRarityLabel(equipLo)} ~ ${getRarityLabel(equipHi)}</div>
-            <div>祭品稀有度：${getRarityLabel('common')} ~ ${getRarityLabel(tributeCap)}</div>
+            <div class="dungeon-route-panel-kicker">${g.name || this.dungeonName || '当前地牢'} · ${grade}级</div>
+            <div class="dungeon-route-panel-title">预期奖励</div>
+            <div class="dungeon-route-reward-row"><span>首领金币</span><strong>${fmt(bossBase)} ~ ${fmt(bossMax)}</strong></div>
+            <div class="dungeon-route-reward-row"><span>精英宝箱</span><strong>${getRarityLabel(chestPreview.equipmentRarity)}装备 · ${Math.round(chestPreview.equipmentChance * 100)}%</strong></div>
+            <div class="dungeon-route-reward-row"><span>祭品范围</span><strong>${getRarityLabel(tributeLo)} ~ ${getRarityLabel(tributeHi)}</strong></div>
         `;
-        document.body.appendChild(el);
+        stack.prepend(el);
+        const invasion = getElementIfExists('invasionChanceLabel');
+        if (invasion) stack.appendChild(invasion);
+    },
+
+    _ensureMapInfoStack() {
+        let stack = getElementIfExists('dungeonRouteInfoStack');
+        if (stack) return stack;
+        stack = document.createElement('div');
+        stack.id = 'dungeonRouteInfoStack';
+        stack.className = 'dungeon-route-info-stack';
+        document.body.appendChild(stack);
+        return stack;
     },
 
     _removeDungeonRewardPanel() {
         const el = getElement('dungeonRewardPanel');
         if (el) el.remove();
+        const stack = getElementIfExists('dungeonRouteInfoStack');
+        if (stack && !stack.children.length) stack.remove();
     },
 
     /**
@@ -2417,6 +2420,11 @@ export const DungeonMapSystem = {
      * 返回地图时恢复（2026-08-11 用户要求：不进游戏画面）。
      */
     _setMapInfoVisibility(visible) {
+        const stack = getElementIfExists('dungeonRouteInfoStack');
+        if (stack) {
+            stack.style.display = visible ? '' : 'none';
+            return;
+        }
         for (const id of ['invasionChanceLabel', 'dungeonRewardPanel']) {
             const el = getElementIfExists(id);
             if (el) el.style.display = visible ? '' : 'none';
@@ -2425,28 +2433,14 @@ export const DungeonMapSystem = {
 
     _createAbandonButton() {
         if (getElement('abandonButton')) return;
-        // 挂 document.body：bottom-bar 在地图模式被 body.map-mode 隐藏，不能作为父容器
-        // 位置：背景图右侧黑幕内、安全撤离按钮下方（右列从上到下：安全撤离 → 放弃并返回）
-        // 背景直接用原图 1536²：371%×1038% 整板显示并填满按钮框（板心 762,774）
-        const btn = document.createElement('div');
+        // 挂 document.body：bottom-bar 在地图模式被 body.map-mode 隐藏，不能作为父容器。
+        // 使用冷钢通用按钮，不再依赖旧的整板按钮图片。
+        const btn = document.createElement('button');
         btn.id = 'abandonButton';
-        btn.style.cssText = `
-            position: fixed;
-            right: 20px;
-            top: calc(20vh + 8px);
-            width: 164px;
-            height: 66px;
-            background-image: url('assets/ui/dungeon-map/btn_abandon.png');
-            background-size: 371% 1038%;
-            background-repeat: no-repeat;
-            background-position: 50% 50%;
-            animation: dungeonBtnGlow 2s ease infinite; /* 辉光按贴图 alpha 形状附着（drop-shadow） */
-            border: none;
-            cursor: pointer;
-            z-index: 9000;
-            pointer-events: auto;
-            user-select: none;
-        `;
+        btn.type = 'button';
+        btn.className = 'bp-button bp-button--muted dungeon-route-action dungeon-route-action--abandon';
+        btn.setAttribute('aria-label', '放弃本次地牢并返回');
+        btn.innerHTML = '<strong>放弃并返回</strong><span>结束本次探险</span>';
         btn.addEventListener('click', () => {
             if (this.active && this.state === 'map') {
                 this._showExitConfirm();
@@ -2463,7 +2457,7 @@ export const DungeonMapSystem = {
         this._removeSafeEvacButton();
     },
 
-    /** 安全撤离按钮：仅在当前位于起始点时显示（右列顶部，放弃按钮上方，绿色），撤离不丢背包物品 */
+    /** 安全撤离按钮：仅在当前位于起始点时显示（右列顶部，放弃按钮上方），撤离不丢背包物品 */
     _updateSafeEvacButton() {
         const current = this.getCurrentNode();
         const atStart = !!(current && current.type === 'start');
@@ -2473,25 +2467,12 @@ export const DungeonMapSystem = {
             return;
         }
         if (existing) return;
-        const btn = document.createElement('div');
+        const btn = document.createElement('button');
         btn.id = 'safeEvacButton';
-        btn.style.cssText = `
-            position: fixed;
-            right: 20px;
-            top: calc(20vh - 74px);
-            width: 164px;
-            height: 66px;
-            background-image: url('assets/ui/dungeon-map/btn_safe_evac.png');
-            background-size: 371% 1038%;
-            background-repeat: no-repeat;
-            background-position: 50% 50%;
-            animation: dungeonBtnGlow 2s ease infinite; /* 辉光按贴图 alpha 形状附着（drop-shadow） */
-            border: none;
-            cursor: pointer;
-            z-index: 9000;
-            pointer-events: auto;
-            user-select: none;
-        `;
+        btn.type = 'button';
+        btn.className = 'bp-button dungeon-route-action dungeon-route-action--evacuate';
+        btn.setAttribute('aria-label', '安全撤离并保留当前战利品');
+        btn.innerHTML = '<strong>安全撤离</strong><span>保留当前战利品</span>';
         btn.addEventListener('click', () => {
             if (this.active && this.state === 'map') {
                 this._safeEvacuate();
@@ -2501,26 +2482,27 @@ export const DungeonMapSystem = {
     },
 
     /**
-     * 三个操作按钮水平居中到各自黑幕（背景图 contain 等比例缩小后左右留黑区）：
-     * 黑幕宽 = (视口宽 − 图片显示宽) / 2，按钮中心对齐黑幕中心；
-     * 黑幕窄于按钮时兜底贴边（≥8px）。图片未就绪时跳过，render 每帧就绪后自动校正（幂等）。
+     * 左右路线 HUD 水平居中到背景图 contain 后留下的黑幕：
+     * 黑幕宽 = (视口宽 − 图片显示宽) / 2；右按钮按固定宽度、左信息栈按真实宽度分别居中。
+     * 黑幕过窄时兜底贴边（≥8px）。图片未就绪时跳过，render 每帧就绪后自动校正（幂等）。
      * @param {number} viewW 视口宽（画布像素）
      * @param {number} imgDispW 背景图 contain 后的显示宽度
      */
     _positionMapButtons(viewW, imgDispW) {
         if (!imgDispW || imgDispW >= viewW) return;
         const barW = (viewW - imgDispW) / 2;
-        const BTN_W = 164;
+        const BTN_W = 184;
         const offset = Math.max(8, Math.round(barW / 2 - BTN_W / 2));
         const evac = getElement('safeEvacButton');
         const abandon = getElement('abandonButton');
         if (evac) evac.style.right = offset + 'px';
         if (abandon) abandon.style.right = offset + 'px';
-        // 入侵几率标签与奖励面板跟随原小鼠商店按钮位置（左侧黑幕水平居中）
-        const inv = getElement('invasionChanceLabel');
-        const reward = getElement('dungeonRewardPanel');
-        if (inv) inv.style.left = offset + 'px';
-        if (reward) reward.style.left = offset + 'px';
+        // 左侧信息栈按自身真实宽度居中到黑幕，避免按右侧按钮宽度计算后偏向背景图。
+        const infoStack = getElementIfExists('dungeonRouteInfoStack');
+        if (infoStack) {
+            const infoW = infoStack.offsetWidth || 268;
+            infoStack.style.left = Math.max(8, Math.round(barW / 2 - infoW / 2)) + 'px';
+        }
     },
 
     _removeSafeEvacButton() {
@@ -2529,30 +2511,17 @@ export const DungeonMapSystem = {
     },
 
     _createDungeonNameLabel() {
-        if (getElement('dungeonMapNameLabel')) return;
+        const stack = this._ensureMapInfoStack();
+        const existing = getElement('dungeonMapNameLabel');
+        if (existing) {
+            stack.appendChild(existing);
+            return;
+        }
         const el = document.createElement('div');
         el.id = 'dungeonMapNameLabel';
-        el.style.cssText = `
-            position: fixed;
-            left: 1031px;
-            bottom: 1174px;
-            width: 505px;
-            height: 64px;
-            z-index: 9002;
-            pointer-events: none;
-            user-select: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            font-family: SimHei, "Microsoft YaHei", sans-serif;
-            color: #d4c5a9;
-            font-size: 18px;
-            font-weight: 700;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
-        `;
+        el.className = 'dungeon-route-title';
         el.textContent = `当前地牢：${this.dungeonName || '未知地牢'}`;
-        document.body.appendChild(el);
+        stack.appendChild(el);
     },
 
     _removeDungeonNameLabel() {
@@ -2565,27 +2534,7 @@ export const DungeonMapSystem = {
         if (getElement('dungeonMapStatusBar')) return;
         const el = document.createElement('div');
         el.id = 'dungeonMapStatusBar';
-        el.style.cssText = `
-            position: fixed;
-            top: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 9002;
-            pointer-events: none;
-            user-select: none;
-            display: flex;
-            align-items: center;
-            gap: 18px;
-            padding: 8px 20px;
-            background: rgba(20, 16, 12, 0.75);
-            border: 1px solid #5a4a3a;
-            border-radius: 8px;
-            font-family: SimHei, "Microsoft YaHei", sans-serif;
-            color: #d4c5a9;
-            font-size: 15px;
-            font-weight: 700;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.8);
-        `;
+        el.className = 'dungeon-route-status';
         document.body.appendChild(el);
         this._updateMapStatusBar();
     },
@@ -2598,14 +2547,14 @@ export const DungeonMapSystem = {
         const d = player.data;
         const hpPct = Math.max(0, Math.min(100, (d.hp / Math.max(1, d.maxHp)) * 100));
         const mpPct = Math.max(0, Math.min(100, (d.mp / Math.max(1, d.maxMp)) * 100));
-        const bar = (pct, color) => `
-            <span style="display:inline-block;width:110px;height:12px;background:rgba(0,0,0,0.6);border:1px solid #3a3028;border-radius:3px;overflow:hidden;vertical-align:middle;margin-left:6px;">
-                <span style="display:block;width:${pct}%;height:100%;background:${color};"></span>
+        const bar = (pct, kind) => `
+            <span class="dungeon-route-meter">
+                <span class="dungeon-route-meter-fill dungeon-route-meter-fill--${kind}" style="width:${pct}%;"></span>
             </span>`;
         el.innerHTML = `
-            <span style="color:#e8c878;">Lv.${d.level ?? 1}</span>
-            <span>生命 ${Math.ceil(d.hp)}/${d.maxHp}${bar(hpPct, 'linear-gradient(90deg,#b03030,#d05050)')}</span>
-            <span>魔法 ${Math.ceil(d.mp)}/${d.maxMp}${bar(mpPct, 'linear-gradient(90deg,#3060b0,#5090d0)')}</span>
+            <span class="dungeon-route-level">Lv.${d.level ?? 1}</span>
+            <span class="dungeon-route-status-item"><span>生命</span><strong>${Math.ceil(d.hp)}/${d.maxHp}</strong>${bar(hpPct, 'hp')}</span>
+            <span class="dungeon-route-status-item"><span>魔法</span><strong>${Math.ceil(d.mp)}/${d.maxMp}</strong>${bar(mpPct, 'mp')}</span>
         `;
     },
 

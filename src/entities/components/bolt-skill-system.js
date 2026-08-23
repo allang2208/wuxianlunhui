@@ -102,6 +102,8 @@ export class BoltSkillSystem {
         // 冷却
         const cdMul = getMagicCooldownMultiplier(this.source, ce);
         if (effect.cooldown) effect.cooldown *= cdMul;
+        const sourceCdMul = Number(this.source?.getSkillCooldownMultiplier?.(this.kind.skillKey));
+        if (effect.cooldown && Number.isFinite(sourceCdMul)) effect.cooldown *= Math.max(0, sourceCdMul);
 
         // 距离
         const rangeMul = getMagicRangeMultiplier(this.source, ce);

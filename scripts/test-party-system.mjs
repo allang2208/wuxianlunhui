@@ -356,18 +356,18 @@ check('伊莉丝禁装备轻甲（light）→armor', elise.canEquip(eliseLightAr
 check('伊莉丝禁装备法袍（robe）→armor', elise.canEquip(eliseRobeArmor, 'armor') === false);
 check('伊莉丝首饰不受限（accessory）', elise.canEquip(eliseRing, 'ring1') === true);
 check('露娜首饰同样不受限（accessory）', lunaC.canEquip(eliseRing, 'ring1') === true);
-// 动画配置：walk 14（起步全播→循环 3~14 帧，半速 10fps）/ run 23（起步全播→循环 11~23 帧，半速 12fps）
+// 动画配置（2026-08 素材重做后口径）：walk 24（[0,23] 整循环 @28fps）/ run 34（起步 0~9 @24fps → 循环 10~33 @24fps）
 // attack 28 / defend 19（enter/hold/exit 三段）
-check('伊莉丝 walk 动画 12 帧循环（前两帧前摇已从素材删除，半速 10fps）', elise.animations.walk
-    && elise.animations.walk.frameCount === 12
-    && elise.animations.walk.frames[0] === 0 && elise.animations.walk.frames[1] === 11
+check('伊莉丝 walk 动画 24 帧循环（[0,23] @28fps）', elise.animations.walk
+    && elise.animations.walk.frameCount === 24
+    && elise.animations.walk.frames[0] === 0 && elise.animations.walk.frames[1] === 23
     && !elise.animations.walk.startFrames && !elise.animations.walk.loopFrames
-    && elise.animations.walk.frameRate === 10 && elise.animations.walk.repeat === -1);
-check('伊莉丝 run 动画 23 帧（起步全播 → 循环 11~22，删末帧防同相闪回，半速 12fps）', elise.animations.run
-    && elise.animations.run.frameCount === 23
-    && elise.animations.run.startFrames[0] === 0 && elise.animations.run.startFrames[1] === 22
-    && elise.animations.run.loopFrames[0] === 10 && elise.animations.run.loopFrames[1] === 21
-    && elise.animations.run.startFrameRate === 12 && elise.animations.run.frameRate === 12);
+    && elise.animations.walk.frameRate === 28 && elise.animations.walk.repeat === -1);
+check('伊莉丝 run 动画 34 帧（起步 0~9 全播 → 循环 10~33，@24fps）', elise.animations.run
+    && elise.animations.run.frameCount === 34
+    && elise.animations.run.startFrames[0] === 0 && elise.animations.run.startFrames[1] === 9
+    && elise.animations.run.loopFrames[0] === 10 && elise.animations.run.loopFrames[1] === 33
+    && elise.animations.run.startFrameRate === 24 && elise.animations.run.frameRate === 24);
 check('伊莉丝 attack 动画 28 帧（1.5s 播完）', elise.animations.attack
     && elise.animations.attack.frameCount === 28 && elise.animations.attack.repeat === 0
     && Math.abs(elise.animations.attack.frameRate - 28 / 1.5) < 0.01);
@@ -482,12 +482,13 @@ eliseDef.data.hp = 100;
 eliseDef._defending = true; // hold 期由 CompanionAI 置位
 const meleeAttacker = { _faction: 'enemy', _attackTimer: 100, x: 0, y: 50, applyStun() {}, applyKnockback() {} };
 const defHit = eliseDef.takeDamage(50, meleeAttacker, 'physical', true);
-check('防御中承伤 50%（damageReduction 0.5）', Math.abs(defHit.damage - 25) < 1e-9 && defHit.parried === true);
+// 承伤口径（2026-08 起）：先按 def/(def+60) 物防减伤（布鲁诺 def 20 → 50→37），防御 hold 再乘 damageReduction 0.5 → 18.5
+check('防御中承伤 = 物防减伤后再减半（37 × 0.5 = 18.5）', Math.abs(defHit.damage - 18.5) < 1e-9 && defHit.parried === true);
 check('防御中常态弹反：打断敌方攻击', meleeAttacker._attackTimer === 0);
 const eliseDef2 = new Companion(eliseArchive);
 eliseDef2.data.hp = 100;
 const plainHit = eliseDef2.takeDamage(50, null);
-check('未防御照常承伤', plainHit.damage === 50 && plainHit.parried === false);
+check('未防御按物防减伤承伤（50 → 37）', plainHit.damage === 37 && plainHit.parried === false);
 
 // --- 伊莉丝技能：剑精通 + 持盾防御（配置已挂载，修炼/升级链路） ---
 check('伊莉丝已配置剑精通', !!elise.skills.swordMastery && elise.skills.swordMastery.name === '剑精通');

@@ -5,8 +5,8 @@
 export const isSkillCheatEnabled = () => !!(typeof window !== 'undefined' && window.Game && window.Game._devNoSkillCost);
 
 /**
- * 统一经济调试开关：建筑放置、单位生产和建筑升级项目均不消耗金币/能源。
- * 人口上限、生产计时、出口碰撞和升级读条仍按正式规则执行。
+ * 统一经济调试开关：默认经济事务可免金币/能源。
+ * 军事招募会显式关闭免单并继续消耗粮食；人口、计时和出口碰撞仍按正式规则执行。
  */
 export const isInfiniteResourcesEnabled = () => !!(
     typeof window !== 'undefined' && window.Game && window.Game._devInfiniteResources

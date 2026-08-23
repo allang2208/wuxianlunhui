@@ -22,6 +22,7 @@ export class HamsterScout extends Companion {
             ...overrides,
             ai: { ...(hamsterScoutConfig.ai || {}), ...(overrides.ai || {}) },
             animations: { ...(hamsterScoutConfig.animations || {}), ...(overrides.animations || {}) },
+            render: { ...(hamsterScoutConfig.render || {}), ...(overrides.render || {}) },
         };
         super(archive);
 
@@ -31,22 +32,26 @@ export class HamsterScout extends Companion {
         this._enemyTargetable = true;     // 防守怪可锁定（与矿工/战士/射手同口径）
         this.x = x;
         this.y = y;
-        this.groundRadius = 20;
-        this.collisionRadius = 20;
-        this.bodyHeight = 100;
-        this.size = 64;
+        this.groundRadius = Number(archive.groundRadius) || 20;
+        this.collisionRadius = Number(archive.collisionRadius) || this.groundRadius;
+        this.bodyHeight = Number(archive.bodyHeight) || 100;
+        this.size = Number(archive.size) || 64;
         this.hittable = true;
         this.hitFlash = 0;
-        // 斥候帧内主体占比明显小于民兵：待机/移动/攻击非透明内容的中位高度约
-        // 119px，民兵约 182px。displaySize 460 后两者游戏内主体高度接近。
-        // 素材脚底约在 282/512，spriteOffsetY=-23 贴地；footOffsetY=23
-        // 让深度线继续等于逻辑脚底，不改变碰撞体与实际坐标。
-        this.footOffsetY = 23;
-        this.config = { render: { hudOffsetY: 145, footOffsetY: 23 } };
+        const renderConfig = archive.render || {};
+        this.footOffsetY = Math.max(0, Number(renderConfig.footOffsetY) || 23);
+        this.config = {
+            render: {
+                ...renderConfig,
+                hudOffsetY: Math.max(0, Number(renderConfig.hudOffsetY) || 119),
+                footOffsetY: this.footOffsetY,
+            },
+        };
         this._dying = false;
         this._deathTimer = 0;
         this._ai = new HamsterScoutAI(this);
         this._animState = 'idle';
+        this.configureCollisionFromArchive(archive);
     }
 
     get hp() { return this.data.hp; }
@@ -57,13 +62,12 @@ export class HamsterScout extends Companion {
      * 死亡 → 播 dying 动画，结束后由 update 自清理。
      */
     takeDamage(damage, source, _damageType = 'physical', _isMelee = true) {
-        if (this._dying || this.data.hp <= 0) return 0;
-        const before = this.data.hp;
-        super.takeDamage(damage, source, _damageType, _isMelee);
+        if (this._dying || this.data.hp <= 0) return { damage: 0, parried: false, critical: false };
+        const result = super.takeDamage(damage, source, _damageType, _isMelee);
         if (this.data.hp <= 0) {
             this._startDying();
         }
-        return before - this.data.hp;
+        return result;
     }
 
     _startDying() {

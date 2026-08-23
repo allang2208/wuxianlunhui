@@ -3,9 +3,11 @@ import enemyConfigData from '../../../data/enemy-config.json';
 import { PERSPECTIVE_SCALE_Y } from '../../config/perspective-config.js';
 import { AgentLinkSystem } from '../../world/agent-link-system.js';
 import { setupGun, tryEnemyFireGun } from './_shared/enemy-gun.js';
-import { hostilesOf, nearestHostileOf, isTargetMeleeStyle, playSoundFrom, inMeleeRange } from './_shared/enemy-utils.js';
+import { hostilesOf, nearestHostileOf, isTargetMeleeStyle, playSoundFrom } from './_shared/enemy-utils.js';
 import { twoStageWalkKey, ratioHitElapsed } from './_shared/monster-anim.js';
 import { canMeleeShareSurface } from '../../combat/melee-surface.js';
+import { GroundDirectedRect } from '../../physics/skill-shapes.js';
+import { surfaceEffectFromEntity } from '../../physics/elevation.js';
 
 /**
  * 用线段近似绘制二次贝塞尔曲线（Phaser Graphics 无内置 quadraticCurveTo）
@@ -43,7 +45,7 @@ function _drawQuadraticBezier(g, x0, y0, x1, y1, x2, y2, segments = 12) {
  * - toRanged / ranged：idle→远程 0.5s 正放 switch 8 帧，第 8 帧（结束）开火；
  *   远程形态可移动射击（沙漠之鹰数据，命中不击退），静止持枪姿态 = switch 第 8 帧；
  *   目标脱离 disengageRange 后 0.5s 倒放 switch 回 idle
- * - push：盾击（仅远程形态，200px 内）——push 17 帧 1.5s，第 7 帧判定物攻×1.5 + 眩晕 2s，不可移动，CD 10s
+ * - push：盾击（仅远程形态，前方200×160px）——push 17 帧 0.75s，第 7 帧判定物攻×1.5 + 眩晕 2s，不可移动，CD 10s
  * - defendIn / defendHold / defendOut：防御（参考铠甲骑士格挡）——目标攻击临近时触发，
  *   0.75s 正放 defending 10 帧进入 → 第 10 帧持续 4s（弹反状态，可正常开火）→ 0.75s 倒放退出
  *
@@ -68,6 +70,7 @@ export class TimeAgentShield extends Enemy {
         // 技能冷却
         this._bashCd = 0;
         this._bashHitDone = false;
+        this._bashAngle = 0;
         this._defendCd = 0;
         this._walkSoundTimer = 0;
 
@@ -119,8 +122,8 @@ export class TimeAgentShield extends Enemy {
         const t = this.target && this.target.active ? this.target : null;
         const dist = t ? Math.hypot(t.x - this.x, t.y - this.y) : Infinity;
 
-        // 朝向目标
-        if (t) this.rotation = Math.atan2(t.y - this.y, t.x - this.x);
+        // 盾击起手后锁定方向；其他状态继续朝向当前目标。
+        if (t && this._formState !== 'push') this.rotation = Math.atan2(t.y - this.y, t.x - this.x);
 
         // 状态机
         const ACTION_STATES = ['toRanged', 'toIdle', 'push', 'defendIn', 'defendHold', 'defendOut'];
@@ -274,6 +277,10 @@ export class TimeAgentShield extends Enemy {
 
     _startBash() {
         const B = this._getSkillConfigs().bash;
+        if (this.target && this.target.active) {
+            this.rotation = Math.atan2(this.target.y - this.y, this.target.x - this.x);
+        }
+        this._bashAngle = this.rotation ?? 0;
         this._formState = 'push';
         this._stateTimer = B.duration ?? 1500;
         this._bashHitDone = false;
@@ -291,7 +298,7 @@ export class TimeAgentShield extends Enemy {
         if (!scene || !scene.add || !scene.tweens) return;
         const g = scene.add.graphics();
         g.setDepth(this.y + 50);
-        const facing = (typeof this.rotation === 'number') ? this.rotation : 0;
+        const facing = this._bashAngle ?? this.rotation ?? 0;
         const wave = { t: 0 };
         const self = this;
         scene.tweens.add({
@@ -314,10 +321,16 @@ export class TimeAgentShield extends Enemy {
                     for (let i = 0; i < lines; i++) {
                         const arcT = (i / (lines - 1)) * 2 - 1; // -1 ~ 1，沿盾轮廓分布
                         // 盾前缘起点：以 facing 为法向的弧面
-                        const sideAngle = facing + Math.PI / 2 + arcT * shieldHalfArc;
-                        const arcRadius = shieldFrontDist * Math.cos(arcT * 0.55);
-                        const sx = self.x + Math.cos(sideAngle) * arcRadius;
-                        const sy = self.y + Math.sin(sideAngle) * arcRadius * PERSPECTIVE_SCALE_Y;
+                        const arcAngle = arcT * shieldHalfArc;
+                        const front = Math.cos(arcAngle) * shieldFrontDist;
+                        const side = Math.sin(arcAngle) * shieldFrontDist;
+                        const sx = self.x
+                            + Math.cos(facing) * front
+                            + Math.cos(facing + Math.PI / 2) * side;
+                        const sy = self.y + (
+                            Math.sin(facing) * front
+                            + Math.sin(facing + Math.PI / 2) * side
+                        ) * PERSPECTIVE_SCALE_Y;
 
                         // 向后延伸方向：带弧度，越靠盾轮廓外侧弧线越明显
                         const backAngle = facing + Math.PI + arcT * (shieldHalfArc * 0.55);
@@ -400,18 +413,61 @@ export class TimeAgentShield extends Enemy {
     _dealBashHit(entities) {
         const B = this._getSkillConfigs().bash;
         const range = B.range ?? this.attackDistance ?? 200;
+        const width = B.width ?? 160;
         const atk = this.data?.atk || 0;
         // 盾击判定音效（hitting.mp3，判定时播放）
         playSoundFrom(this, 'bash');
-        // 统一口径：圆形边缘距离（与 CombatSystem 触发同语义，inMeleeRange）
+        this._fireBashImpactArea(range, width);
+        // 正面盾推范围：与锁定起手方向和白色盾缘尾迹同向，不再360°命中身后单位。
+        const shape = new GroundDirectedRect(
+            this.x,
+            this.y,
+            this._bashAngle ?? this.rotation ?? 0,
+            range,
+            width,
+            0,
+            surfaceEffectFromEntity(this)
+        );
         for (const e of hostilesOf(this, entities)) {
-            if (!inMeleeRange(this, e, range)) continue;
+            if (!shape.intersectsEntity(e)) continue;
             if (!canMeleeShareSurface(this, e)) continue;
             e.takeDamage(Math.max(1, Math.round(atk * (B.damageMul ?? 1.5))), this, 'physical', true);
-            if (B.stunMs && typeof e.applyStun === 'function') {
+            const parried = e.shieldSystem && e.shieldSystem._lastParried;
+            if (!parried && B.stunMs && typeof e.applyStun === 'function') {
                 e.applyStun(B.stunMs);
             }
         }
+    }
+
+    /** 命中帧显示与 GroundDirectedRect 完全同形的地面四边形，明确前方生效区。 */
+    _fireBashImpactArea(range, width) {
+        const scene = typeof window !== 'undefined' ? window.__phaserScene : null;
+        if (!scene?.add || !scene?.tweens) return;
+        const angle = this._bashAngle ?? this.rotation ?? 0;
+        const halfW = width * 0.5;
+        const toWorld = (lx, ly) => ({
+            x: this.x + Math.cos(angle) * lx - Math.sin(angle) * ly,
+            y: this.y + (Math.sin(angle) * lx + Math.cos(angle) * ly) * PERSPECTIVE_SCALE_Y,
+        });
+        const points = [
+            toWorld(0, -halfW),
+            toWorld(range, -halfW),
+            toWorld(range, halfW),
+            toWorld(0, halfW),
+        ];
+        const g = scene.add.graphics();
+        g.setDepth(this.y - 998);
+        g.fillStyle(0xffffff, 0.12);
+        g.fillPoints(points, true);
+        g.lineStyle(3, 0xffffff, 0.85);
+        g.strokePoints(points, true);
+        scene.tweens.add({
+            targets: g,
+            alpha: 0,
+            duration: 320,
+            ease: 'Quad.easeOut',
+            onComplete: () => { if (g.active) g.destroy(); },
+        });
     }
 
     // ========== 远程射击（沙漠之鹰） ==========

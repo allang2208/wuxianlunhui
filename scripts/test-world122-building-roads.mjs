@@ -56,7 +56,7 @@ const first = { id: 'road_owner_a', ...anchor };
 const overlap = { id: 'road_owner_overlap', x: anchor.x + 128, y: anchor.y + 64 };
 const separate = { id: 'road_owner_separate', x: anchor.x + 256, y: anchor.y + 128 };
 check('首个建筑可登记4×4道路占地', BuildingRoadSystem.attach(first, { scene }) === true);
-check('登记后生成12个道路精灵', BuildingRoadSystem._roadTiles.size === 12);
+check('登记后生成16个道路精灵（12 外围 + 4 中央视觉补片）', BuildingRoadSystem._roadTiles.size === 16);
 check('登记后保留16格预约', BuildingRoadSystem._cellOwners.size === 16);
 check('重叠4×4预约会被拒绝', BuildingRoadSystem.attach(overlap, { scene }) === false);
 check('相邻不重叠4×4预约可登记', BuildingRoadSystem.attach(separate, { scene }) === true);
@@ -71,7 +71,11 @@ check('手动道路可登记空闲格', BuildingRoadSystem.addManualRoad(manualI
 check('同格道路不会重复铺设', BuildingRoadSystem.addManualRoad(manualI, manualJ, { scene }) === false);
 check('道路格移动倍率为1.2', BuildingRoadSystem.movementMultiplierAt(manualX, manualY) === 1.2);
 check('非道路格移动倍率为1', BuildingRoadSystem.movementMultiplierAt(manualX + 512, manualY) === 1);
-check('手动道路可捕获进快照', JSON.stringify(BuildingRoadSystem.captureManualRoads()) === JSON.stringify([{ i: manualI, j: manualJ }]));
+check('手动道路可捕获进快照（含退款/费用信息）', (() => {
+    const captured = BuildingRoadSystem.captureManualRoads();
+    return captured.length === 1 && captured[0].i === manualI && captured[0].j === manualJ
+        && captured[0].refundable === false && captured[0].buildCurrency === 'energy';
+})());
 BuildingRoadSystem.reset();
 check('手动道路可从快照恢复', BuildingRoadSystem.restoreManualRoads([{ i: manualI, j: manualJ }], { scene }) === 1
     && BuildingRoadSystem.isManualRoadCell(manualI, manualJ));
@@ -101,15 +105,16 @@ check('BootScene注册4帧道路精灵表',
     && boot.includes('frameWidth: 128')
     && boot.includes('frameHeight: 64'));
 check('建筑放置逐格计算4×4状态',
-    building.includes('_buildingRoadPlacementStatus(x, y)')
+    building.includes('_buildingRoadPlacementStatus(x, y, {')
     && building.includes('layout.reservationCells'));
 check('外围12格预览按格显示红绿状态',
     building.includes('_updateRoadPreview(x, y, status')
     && building.includes('valid ? 0x9dff9d : 0xff5555'));
 check('建造完成自动登记道路环',
     building.includes('BuildingRoadSystem.attach(placedEntity)'));
-check('快照恢复重建道路环',
-    snapshot.includes('BuildingRoadSystem.attach(tower, { allowOverlap: true })')
+check('快照恢复重建道路环（小屋/军营/产兵建筑；防御塔按契约不占外围道路）',
+    snapshot.includes('BuildingRoadSystem.attach(hut, { allowOverlap: true })')
+    && snapshot.includes('BuildingRoadSystem.attach(barracks, { allowOverlap: true })')
     && snapshot.includes('BuildingRoadSystem.attach(producer, { allowOverlap: true })'));
 check('建筑沉陷时释放道路环',
     sink.includes("typeof e._removeBuildingRoads === 'function'"));
@@ -122,7 +127,7 @@ check('建筑面板提供10能源道路并复用拖墙手势',
     && building.includes('_placeRoadRow(cells)'));
 check('手动道路按新增格逐块扣费',
     building.includes('_deductBuildCost(item.currency, item.cost)')
-    && building.includes('BuildingRoadSystem.addManualRoad(i, j)'));
+    && building.includes('BuildingRoadSystem.addManualRoad(i, j, {'));
 check('道路可贴方块墙两侧而墙所在格仍由 footprint 拦截',
     building.includes('仅忽略方块墙的线段阻挡')
     && building.includes('e?.active && e._isBlockCover && e._coverSeg')

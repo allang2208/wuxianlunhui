@@ -100,9 +100,9 @@ check('静态/攻击脚底与 running 基线统一',
 
 const aiSrc = fs.readFileSync(path.join(ROOT, 'src/ai/hamster-knight-ai.js'), 'utf-8');
 check('AI 仅攻击 enemy 且跳过矿点', /_faction === 'enemy'/.test(aiSrc) && /!entity\._isEnergyNode/.test(aiSrc));
-check('普攻延迟按第 16 帧计算且走物理近战伤害',
+check('普攻延迟按第 16 帧计算且走物理近战伤害（经六维属性换算）',
     /_attackHitDelay = Math\.max\(0, \(attackFrame - 1\) \/ attackFps \* 1000\)/.test(aiSrc)
-    && /target\.takeDamage\(this\._attackDamage, m, 'physical', true\)/.test(aiSrc));
+    && /target\.takeDamage\(m\.getPhysicalAttackDamage\(this\._attackDamage, target\), m, 'physical', true\)/.test(aiSrc));
 check('冲刺只在第 15~22 帧窗口结算一次双倍伤害',
     /hitStartFrame/.test(aiSrc) && /hitEndFrame/.test(aiSrc)
     && /this\._chargeDamaged = true/.test(aiSrc)

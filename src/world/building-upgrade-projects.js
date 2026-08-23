@@ -62,15 +62,86 @@ export function getBuildingUpgradeProgressKey(upgrade) {
     return null;
 }
 
+/**
+ * 一个共享模块读条可能同时覆盖多个兵种；占用判断必须覆盖全部目标键，
+ * 避免另一栋建筑从共享组中的第二个兵种旁路启动同一项目。
+ */
+export function getBuildingUpgradeProgressKeys(upgrade) {
+    if (!upgrade) return [];
+    if (upgrade.abilityId) return [`ability:${upgrade.abilityId}`];
+    if (!upgrade.moduleId) return [];
+    const kinds = Array.isArray(upgrade.unitTypes) && upgrade.unitTypes.length
+        ? upgrade.unitTypes
+        : [upgrade.unitType];
+    return [...new Set(kinds.filter(Boolean)
+        .map((kind) => `module:${kind}:${upgrade.moduleId}`))];
+}
+
 /** 当前场景是否已有另一栋建筑在推进同一个全局升级项目。 */
 export function isBuildingUpgradeProgressOccupied(owner, upgrade, entities = null) {
-    const key = getBuildingUpgradeProgressKey(upgrade);
-    if (!key) return false;
+    const keys = new Set(getBuildingUpgradeProgressKeys(upgrade));
+    if (!keys.size) return false;
     const activeEntities = entities || ((typeof window !== 'undefined' && window.Game?.entities) || null);
     if (!activeEntities || typeof activeEntities.values !== 'function') return false;
     for (const entity of activeEntities.values()) {
         if (!entity || entity === owner || entity.active === false) continue;
-        if (getBuildingUpgradeProgressKey(entity._upgrade) === key) return true;
+        if (getBuildingUpgradeProgressKeys(entity._upgrade).some((key) => keys.has(key))) return true;
+    }
+    return false;
+}
+
+/** 兼容旧档 string 能力目标，并规范化模块/能力持续升级描述。 */
+export function normalizeBuildingContinuousTarget(target) {
+    if (typeof target === 'string' && target) {
+        return { kind: 'ability', abilityId: target };
+    }
+    if (!target || typeof target !== 'object') return null;
+    if (target.kind === 'ability' && target.abilityId) {
+        return { kind: 'ability', abilityId: target.abilityId };
+    }
+    if (target.kind === 'module' && target.moduleId) {
+        const unitTypes = Array.isArray(target.unitTypes)
+            ? [...new Set(target.unitTypes.filter(Boolean))]
+            : [];
+        const unitType = target.unitType || unitTypes[0] || null;
+        return {
+            kind: 'module',
+            moduleId: target.moduleId,
+            unitType,
+            unitTypes: unitTypes.length ? unitTypes : (unitType ? [unitType] : []),
+        };
+    }
+    return null;
+}
+
+export function buildingContinuousTargetMatches(target, kind, projectId, unitType = null) {
+    const normalized = normalizeBuildingContinuousTarget(target);
+    if (!normalized || normalized.kind !== kind) return false;
+    if (kind === 'ability') return normalized.abilityId === projectId;
+    if (normalized.moduleId !== projectId) return false;
+    return !unitType || normalized.unitTypes.includes(unitType) || normalized.unitType === unitType;
+}
+
+/** 同类别建筑共享一个持续升级占用槽；普通一次性升级不占这个槽。 */
+export function getBuildingContinuousCategory(building) {
+    if (!building) return null;
+    if (building._continuousUpgradeCategory) return building._continuousUpgradeCategory;
+    // 旧存档的 barracks 也归入迁移后的通用出兵建筑升级互斥域。
+    if (building._isHamsterBarracks || building.kind === 'barracks') return 'producer:hamster_barracks';
+    if (building._isProducerBuilding || building.kind === 'producer') {
+        return building.cfgKey ? `producer:${building.cfgKey}` : null;
+    }
+    return null;
+}
+
+export function isBuildingContinuousUpgradeOccupied(owner, entities = null) {
+    const category = getBuildingContinuousCategory(owner);
+    if (!category) return false;
+    const activeEntities = entities || ((typeof window !== 'undefined' && window.Game?.entities) || null);
+    if (!activeEntities || typeof activeEntities.values !== 'function') return false;
+    for (const entity of activeEntities.values()) {
+        if (!entity || entity === owner || entity.active === false || !entity._continuous) continue;
+        if (getBuildingContinuousCategory(entity) === category) return true;
     }
     return false;
 }

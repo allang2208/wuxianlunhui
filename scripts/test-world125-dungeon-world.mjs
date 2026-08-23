@@ -41,24 +41,23 @@ check('世界-125与世界-122/123同尺寸',
 check('世界-125启用同规格菱形地块',
     scene?.diamondFloor?.enabled === true
     && scene.origin?.x === 6144 && scene.origin?.y === 4096);
-check('场景十一复用僵尸地牢高级地砖池并使用2048分块',
+check('场景十一使用遗迹大石板地砖池并使用2048分块',
     /async _loadScene11\(player\)/.test(sceneSrc)
-    && /tiles: \['blackbrick_7', 'blackbrick_8'\]/.test(sceneSrc)
+    && /tiles: \['ruinslab_1', 'ruinslab_2'\]/.test(sceneSrc)
     && /applyDungeonFloorChunked\(w, h, 2048, diamond\)/.test(sceneSrc)
-    && bootSrc.includes("this.load.image('blackbrick_7'")
-    && bootSrc.includes("this.load.image('blackbrick_8'"));
+    && bootSrc.includes("this.load.image('ruinslab_1'")
+    && bootSrc.includes("this.load.image('ruinslab_2'"));
 check('世界-125接入 scene8~scene11 共用建筑、采矿、生产与入侵运行时',
     /this\._setupPersistentWorld\('scene11', player, diamond\)/.test(sceneSrc)
     && /_setupPersistentWorld\(sceneId, player, diamond\)/.test(sceneSrc)
     && /DefenseSystem\.setup\(player, \{ managedExternally: true, worldId: sceneId \}\)/.test(sceneSrc)
     && /window\.WorldInvasionSystem\?\.onWorldLoaded/.test(sceneSrc));
-check('环境散布配置包含石柱、烛台和预制组合',
+check('环境散布配置包含石柱和预制组合（装饰烛台已移除，2026-08-22 守夜烛台玩法化）',
     scene?.dungeonObstacleScatter?.enabled === true
     && scene.dungeonObstacleScatter.pillarCount > 0
-    && scene.dungeonObstacleScatter.candleCount > 0
+    && scene.dungeonObstacleScatter.candleCount === 0
     && scene.dungeonObstacleScatter.prefabCount > 0
     && /_placeSingles\([\s\S]*?'pillar'/.test(envSrc)
-    && /_placeSingles\([\s\S]*?'candle'/.test(envSrc)
     && /const PREFAB_POOL_START = '火把墙'/.test(envSrc));
 check('障碍物沿用摆墙 footprint、碰撞和图层数据',
     /WallSystem\.getObstacleFootprintRect/.test(envSrc)
@@ -80,8 +79,8 @@ check('建筑传送门已添加世界-125按钮',
 check('世界-125构造资格由僵尸初级地牢完成状态解锁',
     worldSystem.worlds?.scene11?.constructionEnabled === true
     && worldSystem.worlds.scene11.requirements?.completedDungeons?.includes('zombieBeginner'));
-check('世界-125复用僵尸地牢环境音乐',
-    audio.bgm?.scene11 === 'assets/sounds/music/dungeon_echo.mp3');
+check('世界-125使用幽洞回声环境音乐',
+    audio.bgm?.scene11 === 'assets/sounds/music/幽洞回声.wav');
 check('世界-125镜头缩放与世界-122一致为70%',
     /SceneManager\.currentScene === 'scene8' \|\| SceneManager\.currentScene === 'scene11'/.test(gameSceneSrc)
     && /const sceneBaseZoom = zoomedOutWorld \? 0\.7 : 1/.test(gameSceneSrc));
@@ -120,12 +119,12 @@ const simulated = scatterWorld125Environment({
         scaleJitter: 0,
     },
 }, { cx: 6144, cy: 4096, rx: 6144, ry: 3072 });
-check('环境散布函数实际生成石柱、烛台和两组预制',
+check('环境散布函数实际生成石柱和两组预制（烛台不再由散布生成）',
     simulated.pillars === 3
-    && simulated.candles === 4
+    && simulated.candles === 0
     && simulated.prefabs === 2
     && WallSystem.isoVisuals.some((piece) => piece.tex === 'obstacle_pillar')
-    && WallSystem.isoVisuals.some((piece) => piece.tex === 'obstacle_candle')
+    && !WallSystem.isoVisuals.some((piece) => piece.tex === 'obstacle_candle')
     && WallSystem.isoVisuals.some((piece) => piece._prefabKey));
 Object.assign(WallSystem, {
     isoVisuals: oldState.isoVisuals,

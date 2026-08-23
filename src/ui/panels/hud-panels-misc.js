@@ -19,12 +19,12 @@ export function createHudPanelsMisc() {
         { tab: 'skill', title: '技能 (K)', icon: 'assets/ui/icons/skills.png', alt: '技能', key: 'K', label: '技能栏' },
         { tab: 'equip', title: '装备背包 (Tab)', icon: 'assets/ui/icons/inventory.png', alt: '背包', key: 'Tab', label: '背包' },
         { tab: 'codex', title: '图鉴 (U)', icon: 'assets/ui/icons/codex.png', alt: '图鉴', key: 'U', label: '图鉴栏' },
-        { action: 'QuestSystem.open()', title: '任务档案 (L)', icon: 'assets/ui/icons/quest.png', alt: '任务档案', key: 'L', label: '任务档案' },
+        { action: 'QuestSystem.toggle()', title: '任务档案 (L)', icon: 'assets/ui/icons/quest.png', alt: '任务档案', key: 'L', label: '任务档案' },
         { action: 'WorldSwitchPanel.toggle()', title: '世界传送 (O)', icon: 'assets/ui/icons/world_switch.png', alt: '世界传送', key: 'O', label: '世界传送', id: 'worldSwitchBtn' },
-        { action: 'CompanionPanel.openManage()', title: '管理队员 (P)', icon: 'assets/ui/icons/party.png', alt: '队员', key: 'P', label: '队员管理' },
-        { action: 'Game.handleAddPoint()', title: '属性点', icon: 'assets/ui/addpoint.png', alt: '属性点', key: null, label: '属性点', id: 'addPointBtn', extraClass: 'addpoint-btn hidden' },
-        // 新入口追加在全部既有栏目之后，避免改变任何原按钮的预设序号。
-        { action: 'TechnologyTreePanel.open()', title: '科技树 (Y)', icon: 'assets/ui/icons/technology_tree.png', alt: '科技树', key: 'Y', label: '科技树', id: 'technologyTreeBtn' }
+        { action: 'CompanionPanel.toggleManage()', title: '管理队员 (P)', icon: 'assets/ui/icons/party.png', alt: '队员', key: 'P', label: '队员管理' },
+        { action: 'TechnologyTreePanel.toggle()', title: '科技树 (Y)', icon: 'assets/ui/icons/technology_tree.png', alt: '科技树', key: 'Y', label: '科技树', id: 'technologyTreeBtn' },
+        // 可用属性点是条件提示入口，固定放在常驻科技树下方的最末位。
+        { action: 'Game.handleAddPoint()', title: '属性点', icon: 'assets/ui/addpoint.png', alt: '属性点', key: null, label: '属性点', id: 'addPointBtn', extraClass: 'addpoint-btn hidden' }
     ];
     sideMenuItems.forEach(item => {
         const btn = document.createElement('div');
@@ -36,10 +36,10 @@ export function createHudPanelsMisc() {
         } else if (item.action) {
             const action = item.action;
             btn.onclick = function() {
-                if (action === 'QuestSystem.open()') QuestSystem.open();
-                else if (action === 'TechnologyTreePanel.open()') TechnologyTreePanel.open();
+                if (action === 'QuestSystem.toggle()') QuestSystem.toggle();
+                else if (action === 'TechnologyTreePanel.toggle()') TechnologyTreePanel.toggle();
                 else if (action === 'Game.handleAddPoint()') Game.handleAddPoint();
-                else if (action === 'CompanionPanel.openManage()') CompanionPanel.openManage();
+                else if (action === 'CompanionPanel.toggleManage()') CompanionPanel.toggleManage();
                 else if (action === 'WorldSwitchPanel.toggle()') WorldSwitchPanel.toggle();
             };
         }
@@ -162,23 +162,28 @@ export function createHudPanelsMisc() {
     });
     root.appendChild(wallEditorToggle);
 
-    // ===== 右上角基础资源与游戏时间 =====
+    // ===== 右上角经济面板与游戏时间 =====
     const topRightHud = document.createElement('div');
     topRightHud.className = 'top-right-hud';
 
     const resourceBar = document.createElement('div');
     resourceBar.id = 'basicResourceBar';
-    resourceBar.className = 'basic-resource-bar';
+    // basic-resource-bar 保留为既有兼容类；玩家可见命名统一为“经济面板”。
+    resourceBar.className = 'basic-resource-bar economy-panel';
+    resourceBar.dataset.panelName = '经济面板';
     resourceBar.setAttribute('role', 'group');
-    resourceBar.setAttribute('aria-label', '基础资源总览');
+    resourceBar.setAttribute('aria-label', '经济面板');
     [
         { key: 'gold', label: '金币', iconSrc: 'assets/ui/resource-icons/gold.png', valueId: 'resourceGoldTotal' },
         { key: 'energy', label: '能源', iconSrc: 'assets/ui/resource-icons/energy.png', valueId: 'resourceEnergyTotal' },
         { key: 'food', label: '食物', iconSrc: 'assets/ui/resource-icons/food.png', valueId: 'resourceFoodTotal' },
+        { key: 'military-population', label: '兵力', iconSrc: 'assets/ui/unit-icons/hamster-warrior.png', valueId: 'resourceMilitaryPopulation' },
     ].forEach((resource) => {
         const item = document.createElement('div');
         item.className = `basic-resource-item basic-resource-item--${resource.key}`;
-        item.title = `${resource.label}总量`;
+        item.title = resource.key === 'military-population'
+            ? '军事人口：已出兵数 / 房屋提供的人口上限（不占用经济岗位人口）'
+            : `${resource.label}总量`;
 
         const icon = document.createElement('img');
         icon.className = 'basic-resource-icon';
@@ -194,7 +199,7 @@ export function createHudPanelsMisc() {
         const value = document.createElement('strong');
         value.id = resource.valueId;
         value.className = 'basic-resource-value';
-        value.textContent = '0';
+        value.textContent = resource.key === 'military-population' ? '0/0' : '0';
 
         item.append(icon, label, value);
         resourceBar.appendChild(item);

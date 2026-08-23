@@ -77,7 +77,7 @@ console.log('[test-energy] 存档恢复');
 console.log('[test-energy] 采集换算与旧物品兼容');
 {
     const ratio = ENERGY_CONFIG.gatherRatio;
-    check('100伤害→50能源', Math.floor(100 * ratio) === 50);
+    check('100伤害→100能源（gatherRatio 1.0，2026-08-22 口径）', Math.floor(100 * ratio) === 100);
     check('ENERGY_ITEM仅保留旧存档兼容', ENERGY_ITEM.category === 'energy' && ENERGY_ITEM.maxStack === 999);
 }
 

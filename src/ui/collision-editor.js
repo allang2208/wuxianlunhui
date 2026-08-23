@@ -4,11 +4,11 @@
  * 入口：交互开发工具（T 键）→「碰撞」页签 →「打开碰撞体积编辑器」。
  *
  * 功能：
- * - 列表导入 data/enemy-config.json 全部怪物 + data/game-config.json npcs 全部 NPC，
+ * - 列表导入全部怪物、可生产友军 + NPC，
  *   选中后在主神空间玩家右侧生成一只冻结的预览体（_editorFrozen：主循环整帧跳过
- *   update/感知/移动/战斗/分离，自管技能的怪也动不了）。「🧪 测试怪物」按钮可解冻
- *   恢复正常行动（备份字段还原），随时测试怪物，再点重新冻结。
- * - 🟩 绿色矩形（怪物=躯干判定 projectileHitbox；NPC=矩形 footprint）：四角+边中八点拖拽。
+ *   update/感知/移动/战斗/分离）。测试按钮会保留纸面预览体，并在同一位置另生成一只
+ *   对应的正式怪物/友军，便于连续验证当前碰撞参数。
+ * - 🟩 绿色矩形（怪物/友军=躯干判定 projectileHitbox；NPC=矩形 footprint）：四角+边中八点拖拽。
  * - 🟧 橙色圆柱体：底部椭圆右缘手柄等比缩放半径（rx/ry 统一），顶缘手柄调节高矮。
  * - ✥ 在矩形或底部椭圆内按住拖动：整体平移碰撞体（colliderOffsetX/Y）对齐贴图。
  * - 墙/门/障碍物（ISO_WALL_GEO 按类型编辑，2026-07-30 整合）：
@@ -25,13 +25,16 @@
  * （与 wall-editor.js 相同套路，_clientToWorld 换算世界坐标）。
  */
 import enemyConfigData from '../../data/enemy-config.json';
+import minerConfig from '../../data/hamster-miner-config.json';
 import { GAME_CONFIG } from '../config/game-config.js';
 import { PERSPECTIVE_SCALE_Y } from '../config/perspective-config.js';
 import { getTorsoRect } from '../physics/torso-hitbox.js';
 import { Enemy } from '../entities/enemy.js';
 import { NPC } from '../entities/npc.js';
+import { HamsterMiner } from '../entities/hamster-miner.js';
 import { BlackWolf, RedWolfKing, AmalgamZombie } from '../entities/enemy-types.js';
 import { ZOMBIE_FACTORY_MAP } from '../world/zombie-dungeon.js';
+import { createMilitaryUnit, getMilitaryUnitEditorCatalog } from '../world/producer-building-system.js';
 import { WallSystem, ISO_WALL_GEO, ISO_WALL_HEIGHT, slopeFixOf, isoGateHole, isoHalfThick } from '../world/wall-system.js';
 import { getWallGeoOverrides, saveWallGeoOverrides } from '../world/wall-prefabs.js';
 import { DungeonConfig } from '../config/dungeon-config.js';
@@ -42,6 +45,21 @@ const EXTRA_CLASS_MAP = {
     redWolfKing: RedWolfKing,
     amalgamZombie: AmalgamZombie,
 };
+
+const FRIENDLY_UNIT_ENTRIES = [
+    {
+        key: 'miner',
+        name: minerConfig.name || '仓鼠矿工',
+        config: minerConfig,
+        configPath: 'data/hamster-miner-config.json',
+        create: (x, y, id) => new HamsterMiner(x, y, { id }),
+    },
+    ...getMilitaryUnitEditorCatalog().map((entry) => ({
+        ...entry,
+        create: (x, y, id) => createMilitaryUnit(entry.key, x, y, { id }),
+    })),
+];
+const FRIENDLY_UNIT_MAP = Object.fromEntries(FRIENDLY_UNIT_ENTRIES.map((entry) => [entry.key, entry]));
 
 // ===== 墙/门/障碍物类型清单（ISO_WALL_GEO 按规则归类；新增类型自动进列表）=====
 // 墙类：有 face 底边线且非门非障碍物；门类：带门洞（gateX/states）；障碍物：category==='obstacle'
@@ -85,9 +103,9 @@ export const CollisionEditor = {
     _toastEl: null,
     _toastTimer: 0,
 
-    _kind: null,         // 'enemy' | 'npc' | 'wall' | 'gate' | 'obstacle' | 'trap'
+    _kind: null,         // 'enemy' | 'friendly' | 'npc' | 'wall' | 'gate' | 'obstacle' | 'trap'
     _key: null,          // 配置键（实体=配置键；墙/门/障碍物=ISO_WALL_GEO 键；陷阱='zombieDungeon'）
-    _entity: null,       // 预览实体（怪物/NPC）
+    _entity: null,       // 纸面预览实体（怪物/友军/NPC）
     _edit: null,         // 当前编辑值（实体：{radius,height,offsetX,offsetY,rect}；geo 类见 _initEditFromGeo）
     _baseline: null,     // 选中时的配置快照（重置用）
     _defaultHeight: 0,   // 选中时 collider 推导高度（决定保存时是否落 height 键）
@@ -98,9 +116,9 @@ export const CollisionEditor = {
     _stateRowEl: null,   // 门状态切换行
     _inputsEl: null,     // 数值输入区（陷阱）
     _hintEl: null,       // 操作提示区
-    _testMode: false,    // 测试模式：true=预览怪解冻恢复正常行动（仅 enemy）
-    _testRowEl: null,    // 测试怪物按钮行
+    _testRowEl: null,    // 测试怪物/友军按钮行
     _testBtnEl: null,
+    _testSpawnSeq: 0,
 
     _drag: null,         // 拖拽状态 {mode:'rect'|'radius'|'height'|'move', handle, startPt, startEdit, anchor}
     _editMode: 'both',   // 调整范围：both=矩形+圆柱同步调整（默认） | cylinder=只调圆柱 | rect=只调矩形
@@ -155,7 +173,6 @@ export const CollisionEditor = {
         this._selectEl = this._infoEl = this._toastEl = null;
         this._stateRowEl = this._inputsEl = this._hintEl = null;
         this._testRowEl = this._testBtnEl = null;
-        this._testMode = false;
         this._gateState = 'open';
         this._drag = this._edit = this._baseline = null;
         clearTimeout(this._toastTimer);
@@ -164,6 +181,10 @@ export const CollisionEditor = {
     /** 是否为 geo 类编辑（墙/门/障碍物/陷阱，非实体预览） */
     _isGeoKind() {
         return this._kind === 'wall' || this._kind === 'gate' || this._kind === 'obstacle' || this._kind === 'trap';
+    },
+
+    _isCombatEntityKind() {
+        return this._kind === 'enemy' || this._kind === 'friendly';
     },
 
     // ==================== 面板 DOM ====================
@@ -183,7 +204,7 @@ export const CollisionEditor = {
         title.appendChild(closeBtn);
         panel.appendChild(title);
 
-        // 实体列表（怪物 / NPC 分组）
+        // 实体列表（怪物 / 友军 / NPC 分组）
         const select = document.createElement('select');
         select.className = 'ce-select';
         const grpEnemy = document.createElement('optgroup');
@@ -195,6 +216,15 @@ export const CollisionEditor = {
             grpEnemy.appendChild(opt);
         }
         select.appendChild(grpEnemy);
+        const grpFriendly = document.createElement('optgroup');
+        grpFriendly.label = '友军单位';
+        for (const entry of FRIENDLY_UNIT_ENTRIES) {
+            const opt = document.createElement('option');
+            opt.value = `friendly:${entry.key}`;
+            opt.textContent = `${entry.name}（${entry.key}）`;
+            grpFriendly.appendChild(opt);
+        }
+        select.appendChild(grpFriendly);
         const grpNpc = document.createElement('optgroup');
         grpNpc.label = 'NPC';
         for (const [key, cfg] of Object.entries(GAME_CONFIG.npcs || {})) {
@@ -267,7 +297,7 @@ export const CollisionEditor = {
         const saveBtn = document.createElement('button');
         saveBtn.className = 'ce-btn ce-btn-save';
         saveBtn.textContent = '💾 保存';
-        saveBtn.title = '写入 data/enemy-config.json / data/game-config.json（刷新仍生效）';
+        saveBtn.title = '写入对应怪物、友军兵种或 NPC 配置文件（刷新仍生效）';
         saveBtn.addEventListener('click', () => this._save());
         btns.appendChild(saveBtn);
         panel.appendChild(btns);
@@ -293,15 +323,15 @@ export const CollisionEditor = {
         panel.appendChild(modeBtns);
         this._modeBtnsEl = modeBtns;
 
-        // 第三按钮行：测试怪物（解冻预览体恢复正常行动；仅选中怪物时显示）
+        // 第三按钮行：在纸面预览位置另生成一只正式怪物/友军
         const testRow = document.createElement('div');
         testRow.className = 'ce-btns';
         testRow.style.display = 'none';
         const testBtn = document.createElement('button');
         testBtn.className = 'ce-btn ce-mode-btn';
         testBtn.textContent = '🧪 测试怪物';
-        testBtn.title = '解冻预览怪物，恢复正常移动/攻击（会索敌玩家）；再点重新冻结';
-        testBtn.addEventListener('click', () => this._toggleTestMode());
+        testBtn.title = '保留当前纸面预览，在预览位置另生成一只对应的正式测试单位';
+        testBtn.addEventListener('click', () => this._spawnTestEntity());
         testRow.appendChild(testBtn);
         panel.appendChild(testRow);
         this._testRowEl = testRow;
@@ -343,7 +373,7 @@ export const CollisionEditor = {
         if (!this._infoEl || !this._edit) return;
         const s = this._edit;
         const r1 = (v) => Math.round(v * 10) / 10;
-        if (this._kind === 'enemy' || this._kind === 'npc') {
+        if (this._kind === 'enemy' || this._kind === 'friendly' || this._kind === 'npc') {
             this._infoEl.innerHTML = `<div>圆柱半径: ${r1(s.radius)} 高: ${r1(s.height)}</div>`
                 + `<div>矩形: ${r1(s.rect.width)} × ${r1(s.rect.height)}</div>`
                 + `<div>偏移: X ${r1(s.offsetX)} / Y ${r1(s.offsetY)}</div>`
@@ -430,7 +460,7 @@ export const CollisionEditor = {
             entity: '<div>🟩 绿矩形：八点拖拽改宽高</div>'
                 + '<div>🟧 圆柱：右缘点=缩放半径，顶缘点=调高矮</div>'
                 + '<div>✥ 矩形/椭圆内拖动：整体平移对齐贴图</div>'
-                + '<div>🧪 测试怪物：解冻恢复正常行动，再点冻结</div>'
+                + '<div>🧪 测试：在纸面预览位置另生成一只正式单位</div>'
                 + '<div>Esc 关闭编辑器</div>',
             wall: '<div>🟩 绿线段：拖两端点改墙碰撞跨度（face）</div>'
                 + '<div>🟧 橙点：拖离墙线距离=碰撞厚度</div>'
@@ -447,7 +477,7 @@ export const CollisionEditor = {
                 + '<div>面板数值：数量/伤害/冷却</div>'
                 + '<div>Esc 关闭编辑器</div>',
         };
-        const k = (this._kind === 'enemy' || this._kind === 'npc') ? 'entity' : this._kind;
+        const k = (this._kind === 'enemy' || this._kind === 'friendly' || this._kind === 'npc') ? 'entity' : this._kind;
         this._hintEl.innerHTML = HINTS[k] || HINTS.entity;
     },
 
@@ -459,7 +489,6 @@ export const CollisionEditor = {
         this._key = key;
         this._gateState = 'open';
         this._editMode = 'both'; // 切换对象时恢复同步调整
-        this._testMode = false;  // 切换对象时恢复冻结（测试模式不跨对象保留）
         this._syncModeButtons();
         this._syncTestButton();
         this._snapshotBaseline();
@@ -484,23 +513,9 @@ export const CollisionEditor = {
         const py = Game.player.y;
         let e;
         if (this._kind === 'enemy') {
-            const factory = ZOMBIE_FACTORY_MAP[this._key];
-            if (factory) {
-                e = factory(px, py);
-            } else {
-                // 无地牢工厂的怪：专属类或通用 Enemy 圆形占位（碰撞编辑不受影响）
-                const cfg = JSON.parse(JSON.stringify(enemyConfigData[this._key] || {}));
-                const Cls = EXTRA_CLASS_MAP[this._key] || Enemy;
-                e = new Cls(px, py, cfg);
-            }
-            // 冻结预览体：备份原值后压死行动字段 + _editorFrozen 标记（game.js 主循环
-            // 整帧跳过 update/感知/移动/战斗/分离——蝇手等自管技能的怪靠字段冻结防不住）
-            e._editorFreezeBackup = {
-                speed: e.speed, maxSpeed: e.maxSpeed, hittable: e.hittable,
-                alertRange: e._alertRange, aggroRange: e._aggroRange, frozenForCast: e._frozenForCast,
-            };
-            e._collisionPreview = true;
-            this._applyEditorFreeze(e, true);
+            e = this._createEnemy(px, py);
+        } else if (this._kind === 'friendly') {
+            e = this._createFriendly(px, py, PREVIEW_KEY);
         } else {
             const cfg = JSON.parse(JSON.stringify(GAME_CONFIG.npcs[this._key] || {}));
             delete cfg.wander;      // 预览体不游走
@@ -511,11 +526,36 @@ export const CollisionEditor = {
             e.npcType = null;        // 预览体不响应「左键对话」
             e._collisionPreview = true;
         }
+        if (!e) return;
+        if (this._isCombatEntityKind()) {
+            // 冻结纸面预览体：真实测试单位另行生成，调参对象永远留在原位。
+            e._editorFreezeBackup = {
+                speed: e.speed, maxSpeed: e.maxSpeed, hittable: e.hittable,
+                alertRange: e._alertRange, aggroRange: e._aggroRange, frozenForCast: e._frozenForCast,
+            };
+            e._collisionPreview = true;
+            this._applyEditorFreeze(e, true);
+        }
         Game.entities.set(PREVIEW_KEY, e);
+        if (this._kind === 'friendly' && !Game.friendlyUnits.includes(e)) Game.friendlyUnits.push(e);
         this._entity = e;
     },
 
-    /** 冻结/解冻预览怪物：冻结=主循环整帧跳过；解冻=恢复备份字段正常行动（测试用） */
+    _createEnemy(x, y) {
+        const factory = ZOMBIE_FACTORY_MAP[this._key];
+        if (factory) return factory(x, y);
+        // 无地牢工厂的怪：专属类或通用 Enemy 圆形占位（碰撞编辑不受影响）
+        const cfg = JSON.parse(JSON.stringify(enemyConfigData[this._key] || {}));
+        const Cls = EXTRA_CLASS_MAP[this._key] || Enemy;
+        return new Cls(x, y, cfg);
+    },
+
+    _createFriendly(x, y, id) {
+        const entry = FRIENDLY_UNIT_MAP[this._key];
+        return entry ? entry.create(x, y, id) : null;
+    },
+
+    /** 冻结纸面预览体；主循环对 _editorFrozen 整帧跳过。 */
     _applyEditorFreeze(e, frozen) {
         if (!e) return;
         if (frozen) {
@@ -541,19 +581,35 @@ export const CollisionEditor = {
         }
     },
 
-    /** 测试怪物按钮：解冻预览体恢复正常移动/攻击（再点重新冻结） */
-    _toggleTestMode() {
-        if (this._kind !== 'enemy' || !this._entity) return;
-        this._testMode = !this._testMode;
-        this._applyEditorFreeze(this._entity, !this._testMode);
-        this._syncTestButton();
-        this._toast(this._testMode ? '🧪 已解冻：怪物恢复正常行动（会移动/攻击）' : '❄️ 已重新冻结');
+    /** 保留冻结纸面预览，在其逻辑位置另生成一只正式测试单位。 */
+    _spawnTestEntity() {
+        const Game = window.Game;
+        if (!Game || !this._entity || !this._isCombatEntityKind()) return;
+        const id = `collision_test_${this._kind}_${this._key}_${Date.now()}_${++this._testSpawnSeq}`;
+        const e = this._kind === 'enemy'
+            ? this._createEnemy(this._entity.x, this._entity.y)
+            : this._createFriendly(this._entity.x, this._entity.y, id);
+        if (!e) {
+            this._toast('⚠️ 无法创建对应测试单位');
+            return;
+        }
+        e.id = id;
+        e._collisionEditorTest = true;
+        this._applyEdit(e, false);
+        Game.entities.set(id, e);
+        if (this._kind === 'friendly' && !Game.friendlyUnits.includes(e)) Game.friendlyUnits.push(e);
+        const label = this._kind === 'friendly' ? '友军' : '怪物';
+        this._toast(`🧪 已在纸面预览位置生成${label}：${e.name || this._key}`);
     },
 
-    /** 测试按钮高亮态 + 仅怪物选中时可见 */
+    /** 仅怪物/友军选中时显示，并切换对应按钮文案。 */
     _syncTestButton() {
-        if (this._testRowEl) this._testRowEl.style.display = this._kind === 'enemy' ? 'flex' : 'none';
-        if (this._testBtnEl) this._testBtnEl.classList.toggle('active', !!this._testMode);
+        const visible = this._isCombatEntityKind();
+        if (this._testRowEl) this._testRowEl.style.display = visible ? 'flex' : 'none';
+        if (this._testBtnEl) {
+            this._testBtnEl.classList.remove('active');
+            this._testBtnEl.textContent = this._kind === 'friendly' ? '🧪 测试友军' : '🧪 测试怪物';
+        }
     },
 
     _removePreview() {
@@ -561,13 +617,29 @@ export const CollisionEditor = {
         const e = this._entity;
         if (e) {
             e.active = false;
-            if (e._phaserSprite) { e._phaserSprite.destroy(); e._phaserSprite = null; }
+            const sp = this._getEntitySprite(e);
+            if (sp) sp.destroy();
+            e._phaserSprite = null;
+            const scene = window.__phaserScene;
+            if (scene?._companionSprites?.[e.id]) delete scene._companionSprites[e.id];
         }
-        if (Game) Game.entities.delete(PREVIEW_KEY);
+        if (Game) {
+            Game.entities.delete(PREVIEW_KEY);
+            if (Array.isArray(Game.friendlyUnits) && e) {
+                Game.friendlyUnits = Game.friendlyUnits.filter((unit) => unit !== e);
+            }
+        }
         this._entity = null;
         // 墙/门/障碍物/陷阱的预览贴图
         if (this._previewSprite) { this._previewSprite.destroy(); this._previewSprite = null; }
         this._previewPiece = null;
+    },
+
+    _getEntitySprite(e) {
+        if (!e) return null;
+        if (e._phaserSprite) return e._phaserSprite;
+        const scene = window.__phaserScene;
+        return scene?._companionSprites?.[e.id] || null;
     },
 
     // ==================== 墙/门/障碍物/陷阱：预览与编辑值 ====================
@@ -788,7 +860,7 @@ export const CollisionEditor = {
         this._defaultHeight = c.height;
         let rect;
         let isRect = false;
-        if (this._kind === 'enemy') {
+        if (this._isCombatEntityKind()) {
             // 绿色矩形 = 躯干判定（getTorsoRect 同一口径：projectileHitbox 或缺省回退）
             const t = getTorsoRect(e);
             rect = t
@@ -802,10 +874,12 @@ export const CollisionEditor = {
                 ? { width: e.collisionWidth, height: e.collisionHeight, offsetX: 0, bottom: 0 }
                 : { width: c.radius * 2, height: c.height, offsetX: 0, bottom: 0 };
         }
-        // 贴图尺寸（调整贴图大小模式用）：enemy=render.spriteSize（最长边 px）；NPC spriteCfg=size；纯色圆=size
+        // 贴图尺寸：怪物=render.spriteSize；友军=displaySize；NPC=sprite.size/size
         let spriteSize;
         if (this._kind === 'enemy') {
             spriteSize = (e.config && e.config.render && e.config.render.spriteSize) || (e.size || 14) * 4;
+        } else if (this._kind === 'friendly') {
+            spriteSize = e.displaySize || 128;
         } else if (e.spriteCfg) {
             spriteSize = e.spriteCfg.size || 128;
         } else {
@@ -823,16 +897,20 @@ export const CollisionEditor = {
     },
 
     /** 把编辑值应用到预览实体（立即生效）并同步运行时配置对象 */
-    _applyEdit() {
-        const e = this._entity;
+    _applyEdit(e = this._entity, syncConfig = true) {
         const s = this._edit;
         if (!e || !s) return;
         e.collisionRadius = s.radius;
+        if (this._kind === 'friendly') {
+            e.groundRadius = s.radius;
+            e.bodyHeight = s.height;
+        }
         e.colliderOffsetX = s.offsetX;
         e.colliderOffsetY = s.offsetY;
         // Collider._deriveHeight 最高优先级读 cfg.height，圆柱高矮由此驱动
         if (e.config) e.config.height = s.height;
-        if (this._kind === 'enemy') {
+        if (this._isCombatEntityKind()) {
+            e.config = e.config || {};
             e.config.render = e.config.render || {};
             e.config.render.projectileHitbox = {
                 width: s.rect.width, height: s.rect.height,
@@ -857,11 +935,14 @@ export const CollisionEditor = {
         e.rebuildCollider();
         // 贴图尺寸（调整贴图大小模式）：应用到预览精灵
         if (s.spriteSize > 0) {
-            const sp = e._phaserSprite;
+            const sp = this._getEntitySprite(e);
             if (this._kind === 'enemy') {
                 e.config.render.spriteSize = s.spriteSize;
                 const scene = (typeof window !== 'undefined') ? window.__phaserScene : null;
                 if (scene && sp && typeof scene._configureEnemyBody === 'function') scene._configureEnemyBody(sp, e);
+            } else if (this._kind === 'friendly') {
+                e.displaySize = s.spriteSize;
+                if (sp) sp.setDisplaySize(s.spriteSize, s.spriteSize);
             } else if (e.spriteCfg) {
                 e.spriteCfg.size = s.spriteSize;
                 if (sp) sp.setDisplaySize(s.spriteSize, s.spriteSize);
@@ -870,21 +951,26 @@ export const CollisionEditor = {
                 if (sp) sp.setDisplaySize(s.spriteSize * 2, s.spriteSize * 2);
             }
         }
-        this._syncConfig();
-        this._updateInfo();
+        if (syncConfig) {
+            this._syncConfig();
+            this._updateInfo();
+        }
     },
 
-    /** 编辑值同步到运行时配置对象（enemyConfigData / GAME_CONFIG.npcs，保存即落盘这份） */
+    /** 编辑值同步到对应怪物、友军或 NPC 配置对象，保存时直接落盘。 */
     _syncConfig() {
         const s = this._edit;
         if (!s) return;
         const r1 = (v) => Math.round(v * 10) / 10;
-        if (this._kind === 'enemy') {
-            const cfg = enemyConfigData[this._key];
+        if (this._isCombatEntityKind()) {
+            const cfg = this._kind === 'enemy'
+                ? enemyConfigData[this._key]
+                : FRIENDLY_UNIT_MAP[this._key]?.config;
             if (!cfg) return;
             cfg.collisionRadius = r1(s.radius);
             // 高度与默认推导值（spriteSize 等）一致时不落 height 键，保持配置简洁
-            if (Math.abs(s.height - this._defaultHeight) > 0.5) cfg.height = r1(s.height);
+            const hadExplicitHeight = this._baseline?.height !== undefined && this._baseline?.height !== null;
+            if (hadExplicitHeight || Math.abs(s.height - this._defaultHeight) > 0.5) cfg.height = r1(s.height);
             else delete cfg.height;
             cfg.render = cfg.render || {};
             cfg.render.colliderOffsetX = r1(s.offsetX);
@@ -898,7 +984,10 @@ export const CollisionEditor = {
             cfg.render.collisionWidth = r1(s.rect.width);
             cfg.render.collisionHeight = r1(s.rect.height);
             // 贴图尺寸（调整贴图大小模式；与显示同口径最长边 px）
-            if (s.spriteSize > 0) cfg.render.spriteSize = r1(s.spriteSize);
+            if (s.spriteSize > 0) {
+                if (this._kind === 'enemy') cfg.render.spriteSize = r1(s.spriteSize);
+                else cfg.displaySize = r1(s.spriteSize);
+            }
         } else {
             const n = (GAME_CONFIG.npcs || {})[this._key];
             if (!n) return;
@@ -928,20 +1017,24 @@ export const CollisionEditor = {
 
     /** 选中时快照相关配置字段（重置回退用） */
     _snapshotBaseline() {
-        if (this._kind === 'enemy') {
-            const cfg = enemyConfigData[this._key] || {};
+        if (this._isCombatEntityKind()) {
+            const cfg = this._kind === 'enemy'
+                ? (enemyConfigData[this._key] || {})
+                : (FRIENDLY_UNIT_MAP[this._key]?.config || {});
             const r = cfg.render || {};
+            const keepMissing = (value) => value === undefined ? null : value;
             this._baseline = JSON.parse(JSON.stringify({
-                collisionRadius: cfg.collisionRadius,
-                height: cfg.height,
+                collisionRadius: keepMissing(cfg.collisionRadius),
+                height: keepMissing(cfg.height),
                 render: {
-                    collisionWidth: r.collisionWidth,
-                    collisionHeight: r.collisionHeight,
-                    colliderOffsetX: r.colliderOffsetX,
-                    colliderOffsetY: r.colliderOffsetY,
-                    projectileHitbox: r.projectileHitbox,
-                    spriteSize: r.spriteSize,
+                    collisionWidth: keepMissing(r.collisionWidth),
+                    collisionHeight: keepMissing(r.collisionHeight),
+                    colliderOffsetX: keepMissing(r.colliderOffsetX),
+                    colliderOffsetY: keepMissing(r.colliderOffsetY),
+                    projectileHitbox: keepMissing(r.projectileHitbox),
+                    spriteSize: keepMissing(r.spriteSize),
                 },
+                displaySize: keepMissing(cfg.displaySize),
             }));
         } else if (this._kind === 'npc') {
             const n = (GAME_CONFIG.npcs || {})[this._key] || {};
@@ -1004,14 +1097,20 @@ export const CollisionEditor = {
             this._toast('🔄 已重置为配置值');
             return;
         }
-        if (this._kind === 'enemy') {
-            const cfg = enemyConfigData[this._key];
+        if (this._isCombatEntityKind()) {
+            const cfg = this._kind === 'enemy'
+                ? enemyConfigData[this._key]
+                : FRIENDLY_UNIT_MAP[this._key]?.config;
             if (cfg) {
                 cfg.render = cfg.render || {};
                 this._restoreFields(cfg.render, this._baseline.render);
-                this._restoreFields(cfg, { collisionRadius: this._baseline.collisionRadius, height: this._baseline.height });
+                this._restoreFields(cfg, {
+                    collisionRadius: this._baseline.collisionRadius,
+                    height: this._baseline.height,
+                    displaySize: this._baseline.displaySize,
+                });
             }
-        } else {
+        } else if (this._kind === 'npc') {
             const n = (GAME_CONFIG.npcs || {})[this._key];
             if (n) {
                 this._restoreFields(n, this._baseline);
@@ -1056,8 +1155,13 @@ export const CollisionEditor = {
             return;
         }
         this._syncConfig();
-        const rel = this._kind === 'enemy' ? 'data/enemy-config.json' : 'data/game-config.json';
-        const data = this._kind === 'enemy' ? enemyConfigData : GAME_CONFIG;
+        const friendlyEntry = this._kind === 'friendly' ? FRIENDLY_UNIT_MAP[this._key] : null;
+        const rel = this._kind === 'enemy'
+            ? 'data/enemy-config.json'
+            : (friendlyEntry?.configPath || 'data/game-config.json');
+        const data = this._kind === 'enemy'
+            ? enemyConfigData
+            : (friendlyEntry?.config || GAME_CONFIG);
         const ok = await this._persistJson(rel, data);
         // 保存成功后基线推进到当前值（再重置即回到本次保存点）
         this._snapshotBaseline();
@@ -1066,9 +1170,14 @@ export const CollisionEditor = {
 
     /** 保存管道：Electron IPC → Vite __save-json 中间件 → 下载兜底（与 wall-prefabs._persistJson 同规格） */
     async _persistJson(rel, data) {
+        let saved = false;
         if (typeof window !== 'undefined' && window.electronAPI && window.electronAPI.saveJson) {
-            await window.electronAPI.saveJson(rel, data);
-            return true;
+            try {
+                await window.electronAPI.saveJson(rel, data);
+                saved = true;
+            } catch {
+                // 开发模式继续尝试 Vite 双写；两条路径都失败才下载兜底。
+            }
         }
         try {
             const r = await fetch('/__save-json', {
@@ -1076,10 +1185,11 @@ export const CollisionEditor = {
                 headers: { 'content-type': 'application/json' },
                 body: JSON.stringify({ rel, data }),
             });
-            if (r.ok) return true;
+            if (r.ok) saved = true;
         } catch {
             // 落到下载兜底
         }
+        if (saved) return true;
         const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
@@ -1118,7 +1228,7 @@ export const CollisionEditor = {
     _rectGeom() {
         const c = this._entity.collider;
         const r = this._edit.rect;
-        if (this._kind === 'enemy') {
+        if (this._isCombatEntityKind()) {
             const cx = c.x + r.offsetX;
             const by = c.y - r.bottom;
             return { left: cx - r.width / 2, right: cx + r.width / 2, top: by - r.height, bottom: by };
@@ -1169,7 +1279,7 @@ export const CollisionEditor = {
 
         // 调整贴图大小模式：按住预览贴图拖拽等比缩放（上拖放大、下拖缩小）
         if (this._editMode === 'sprite') {
-            const sp = this._entity._phaserSprite;
+            const sp = this._getEntitySprite(this._entity);
             if (sp && sp.getBounds().contains(pt.x, pt.y)) {
                 this._drag = { mode: 'spriteScale', startY: pt.y, startSize: this._edit.spriteSize };
             }
@@ -1302,7 +1412,7 @@ export const CollisionEditor = {
             if (d.handle.includes('s')) bottom = Math.max(pt.y, top + MIN_RECT);
             s.rect.width = right - left;
             s.rect.height = bottom - top;
-            if (this._kind === 'enemy') {
+            if (this._isCombatEntityKind()) {
                 s.rect.offsetX = (left + right) / 2 - c.x;
                 s.rect.bottom = c.y - bottom;
             } else {
@@ -1322,8 +1432,8 @@ export const CollisionEditor = {
             const dx = pt.x - d.startPt.x, dy = pt.y - d.startPt.y;
             s.offsetX = d.startOffset.x + dx;
             s.offsetY = d.startOffset.y + dy;
-            if (this._editMode === 'cylinder' && d.startRect && this._kind === 'enemy') {
-                // 敌人：圆柱单独移动，反向补偿绿色受击矩形，使其视觉上保持原位
+            if (this._editMode === 'cylinder' && d.startRect && this._isCombatEntityKind()) {
+                // 战斗单位：圆柱单独移动，反向补偿绿色受击矩形，使其视觉上保持原位
                 s.rect.offsetX = d.startRect.offsetX - dx;
                 s.rect.bottom = d.startRect.bottom + dy;
             }
@@ -1336,9 +1446,9 @@ export const CollisionEditor = {
             s.spriteSize = Math.max(8, Math.min(1200, d.startSize * factor));
             this._applyEdit();
         } else if (d.mode === 'rectMove') {
-            // 只动矩形位置（enemy：rect.offsetX/bottom；NPC：矩形与圆柱共用 footprint，移动圆柱）
+            // 只动矩形位置（战斗单位：rect.offsetX/bottom；NPC：矩形与圆柱共用 footprint，移动圆柱）
             const dx = pt.x - d.startPt.x, dy = pt.y - d.startPt.y;
-            if (this._kind === 'enemy') {
+            if (this._isCombatEntityKind()) {
                 s.rect.offsetX = d.startRect.offsetX + dx;
                 s.rect.bottom = d.startRect.bottom - dy;
             } else {

@@ -1,4 +1,4 @@
-import { getTributeVisionRangeMul } from '../config/tribute-effects.js';
+import { getTributeVisionRangeMul } from '../config/tribute-math.js';
 import { EnvironmentLightingSystem } from './environment-lighting-system.js';
 import { World122SandstormSystem } from './world122-sandstorm-system.js';
 import { World125FogTideSystem } from './world125-fog-tide-system.js';
@@ -45,8 +45,7 @@ function inferProfile(entity, game) {
     if (entity === game?.player) return 'player';
     if (entity._isWorldPortalCore || entity._isMainHubPortalBuilding) return 'portal';
     if (entity._isDefenseTower) return 'defenseTower';
-    if (entity._isTroopProducer || entity._isProducerBuilding
-        || entity._isHamsterBarracks || entity._isHamsterHut) return 'troopProducer';
+    if (entity._isTroopProducer || entity._isProducerBuilding || entity._isHamsterHut) return 'troopProducer';
     if (entity._isHamsterScout) return 'scout';
     if (entity._isHamsterKnight || entity._isHamsterLightCavalry) return 'cavalry';
     if (entity._isFriendlyUnit || entity._isHamsterWarrior || entity._isHamsterShooter
@@ -171,20 +170,22 @@ export const VisionSourceRegistry = {
         if (!profile) return 0;
         const explicitRadius = Number(entity.fogSightRadius ?? entity.config?.fogSightRadius);
         const configKey = PROFILE_CONFIG_KEYS[profile] || profile;
+        const ignoresVisionDebuffs = entity.fogSightDebuffImmune === true
+            || entity.config?.fogSightDebuffImmune === true;
         let radius = positiveNumber(explicitRadius,
             positiveNumber(visionConfig[configKey], PROFILE_DEFAULTS[profile] || 0));
         radius += record?.radiusBonus || 0;
         // 黄金星象仪只强化友方单位视野；建筑/传送门/守夜烛台保持自身配置半径。
         // 这样烛台实际开雾、庇护判定与面板范围圈始终同源。
         if (UNIT_VISION_PROFILES.has(profile)) radius *= getTributeVisionRangeMul();
-        // 夜晚单位与普通结构统一减半；守夜烛台自身的照明半径不受黑夜削减。
-        // 烛台范围内的单位仍由死寂雾潮倍率得到指定的夜间 ×0.45。
-        if (profile !== 'candle') {
+        // 夜晚单位与普通结构统一减半；守夜烛台和显式免疫视野减益的探险家跳过黑夜削减。
+        // 非免疫单位在烛台范围内仍由死寂雾潮倍率得到指定的夜间 ×0.45。
+        if (profile !== 'candle' && !ignoresVisionDebuffs) {
             radius *= EnvironmentLightingSystem.getVisionRangeMultiplier(visionConfig);
         }
         // 世界122沙尘暴只削减单位视野；传送门、塔和出兵建筑不属于“单位”。
         // 单位倍率仍与夜晚、祭品和高地倍率处在同一乘算链。
-        if (UNIT_VISION_PROFILES.has(profile)) {
+        if (UNIT_VISION_PROFILES.has(profile) && !ignoresVisionDebuffs) {
             radius *= World122SandstormSystem.getVisionRangeMultiplier(this._sceneId);
             radius *= World125FogTideSystem.getVisionRangeMultiplier(
                 entity,

@@ -39,8 +39,7 @@ export const StatusBar = {
         if (this.initialized) return;
         this.container = getElementIfExists('statusBarContainer');
         if (!this.container) {
-            // 2026-08-15：左上角状态栏已按用户要求删除（hud-core 不再创建容器）；
-            // 效果逻辑照常追踪，仅不渲染图标行——静默降级，不再告警。
+            // HUD 可能尚未完成构建；render() 会在容器就绪后重新获取并补绑悬停事件。
         }
         this._initTooltip();
         this.initialized = true;
@@ -313,10 +312,12 @@ export const StatusBar = {
                 timeText = `${seconds}s`;
                 progress = effect.duration > 0 ? (effect.remaining / effect.duration) : 0;
             }
+            const stackText = effect.stacks !== undefined ? `×${effect.stacks}` : '';
             html += `
                 <div class="status-effect-item" data-effect-type="${effect.type}" style="--effect-color: ${effect.color};">
                     <span class="status-effect-icon">${effect.icon}</span>
                     <span class="status-effect-name">${effect.name}</span>
+                    <span class="status-effect-stacks">${stackText}</span>
                     <span class="status-effect-time">${timeText}</span>
                     <div class="status-effect-progress" style="width: ${progress * 100}%;"></div>
                 </div>

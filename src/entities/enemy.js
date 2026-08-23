@@ -4,7 +4,6 @@ import { WallSystem } from '../world/wall-system.js';
 import { Combatant } from './combatant.js';
 import { ThrustAttack, RangedAttack } from '../combat/attack.js';
 import { Player } from './player.js';
-import { nowMs } from './player/anim-state.js';
 import { PoisonEffect } from '../effects/poison-effect.js';
 import { EnemyFSM } from '../ai/enemy-fsm.js';
 import { pickDefensePriorityTarget } from '../ai/defense-target-priority.js';
@@ -66,6 +65,11 @@ import { World125FogTideSystem } from '../world/world125-fog-tide-system.js';
                 // 保存原始属性，供 FSM 阶段切换时计算倍率
                 this._baseSpeed = this.maxSpeed;
                 this.animTime = 0; this.isMoving = false; this.rotation = 0;
+                // 第一阶段只让直接使用 Enemy 的基础测试怪与显式 opt-in 的子类接入。
+                // 历史 Boss/自定义状态机必须逐类审阅后再开启，避免把技能型范围伤害
+                // 悄然迁移成基础普攻。
+                this._usesDirectedBasicMelee = new.target === Enemy
+                    || config.basicMeleeResolver === true;
                 // 使用 COMBAT_CONFIG.thrustAttack.enemy 默认配置，config.attack 可覆盖
                 const thrustCfg = COMBAT_CONFIG.thrustAttack?.enemy || {};
                 const attackConfig = config.attack || {};
@@ -262,8 +266,6 @@ import { World125FogTideSystem } from '../world/world125-fog-tide-system.js';
             }
             updateWeaponAnim(dt) {
                 const wa = WEAPON_ANIM, anim = this.weaponAnim;
-                const weaponAnimCfg = COMBAT_CONFIG.weaponAnim?.enemy || {};
-                const pendingThrustHitWindowMs = weaponAnimCfg.pendingThrustHitWindowMs ?? 200;
                 switch (anim.state) {
                     case 'idle': anim.angle = wa.idleAngle + Math.sin(Date.now() / 400) * 0.06; break;
                     case 'windup':
@@ -274,11 +276,9 @@ import { World125FogTideSystem } from '../world/world125-fog-tide-system.js';
                     case 'swing':
                         anim.timer += dt;
                         if (this._pendingThrust && this._pendingThrust.active) {
-                            if (nowMs() - this._pendingThrust.startTime <= pendingThrustHitWindowMs) {
-                                this.attacks.melee.checkTriangleHit(this);
-                            } else {
-                                this._pendingThrust.active = false;
-                            }
+                            // 与主 CombatSystem 同口径：有效期由 ThrustAttack.hitDurationMs
+                            // 单点管理，避免前摇后只剩十余毫秒的帧率敏感命中窗口。
+                            this.attacks.melee.checkTriangleHit(this);
                         }
                         if (anim.timer >= wa.swingMs) {
                             anim.state = 'recover';

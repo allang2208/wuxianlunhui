@@ -5,8 +5,14 @@ import { surfaceEffectFromEntity } from '../../physics/elevation.js';
 import { EffectFactory } from '../../utils/effect-factory.js';
 import { SoundManager } from '../../ui/sound-manager.js';
 import enemyConfigData from '../../../data/enemy-config.json';
-import { inMeleeRange, hostilesOf } from './_shared/enemy-utils.js';
-import { fireGroundShockwave, fireRadialLines } from '../../effects/combat-fx.js';
+import { hostilesOf } from './_shared/enemy-utils.js';
+import {
+    createGroundWarning,
+    destroyWarning,
+    fireGroundShockwave,
+    fireRadialLines,
+    keepWarningAlive,
+} from '../../effects/combat-fx.js';
 import { canMeleeShareSurface } from '../../combat/melee-surface.js';
 
 /**
@@ -32,6 +38,7 @@ export class Shounao extends Enemy {
         this._slamTimer = 0;
         this._slamCooldown = 0;
         this._slamHitsDone = new Set();
+        this._slamWarning = null;
 
         // 嚎叫状态
         this._howlTimer = 0;
@@ -146,6 +153,9 @@ export class Shounao extends Enemy {
         if (this.target && this.target.active) {
             this.rotation = Math.atan2(this.target.y - this.y, this.target.x - this.x);
         }
+        const anchor = this._slamFxAnchor();
+        this._slamWarning = destroyWarning(this._slamWarning);
+        this._slamWarning = createGroundWarning(anchor.x, anchor.y, cfg.range ?? 300);
     }
 
     _updateSlam(dt, entities) {
@@ -154,6 +164,7 @@ export class Shounao extends Enemy {
         this.vx = 0;
         this.vy = 0;
         this.isMoving = false;
+        if (!keepWarningAlive(this._slamWarning)) this._slamWarning = null;
 
         // 命中帧时点判定（hitFrames 为 1 起始帧号，对齐动画进度）
         const duration = cfg.duration ?? 2000;
@@ -175,14 +186,35 @@ export class Shounao extends Enemy {
         const cfg = this._getSkillConfigs().slam;
         const range = cfg.range ?? this.attackDistance ?? 300;
         const atk = this.data?.atk || 0;
+        const anchor = this._slamFxAnchor();
+        this._slamWarning = destroyWarning(this._slamWarning);
         // 砸地判定伤害时播放 hitting
         this._playSound('slam');
-        // 砸地落点特效：烟尘四周扩散轻微上浮 + 白色放射冲击线
-        this._fireSlamDust();
-        this._fireSlamImpactLines();
-        // 统一口径：圆形边缘距离（与 CombatSystem 触发同语义，inMeleeRange）
+        // 伤害、烟尘与冲击圈统一使用触手实际落点；2:1 椭圆与地面透视一致。
+        this._fireSlamDust(anchor);
+        this._fireSlamImpactLines(anchor, range);
+        const shockwave = fireGroundShockwave({
+            x: anchor.x,
+            y: anchor.y,
+            maxRadius: range,
+            strokeColor: 0xffffff,
+            fillColor: 0x8a4a5a,
+            lineWidth: 4,
+            duration: 420,
+            flicker: false,
+            strokeAlpha: 0.9,
+            fillAlpha: 0.08,
+        });
+        if (shockwave) this._slamGraphics.push(shockwave);
+        const shape = new GroundEllipse(
+            anchor.x,
+            anchor.y,
+            range,
+            range * PERSPECTIVE_SCALE_Y,
+            surfaceEffectFromEntity(this)
+        );
         for (const e of hostilesOf(this, entities)) {
-            if (!inMeleeRange(this, e, range)) continue;
+            if (!shape.intersectsEntity(e)) continue;
             if (!canMeleeShareSurface(this, e)) continue;
             e.takeDamage(Math.max(1, Math.round(atk * (cfg.damageMul ?? 2))), this, 'physical', true);
         }
@@ -195,8 +227,7 @@ export class Shounao extends Enemy {
     }
 
     /** 砸地烟尘：绕落点四周扩散生成（粒子自带轻微上浮分量） */
-    _fireSlamDust() {
-        const a = this._slamFxAnchor();
+    _fireSlamDust(a = this._slamFxAnchor()) {
         const count = 8;
         for (let i = 0; i < count; i++) {
             const angle = (Math.PI * 2 * i) / count;
@@ -207,12 +238,14 @@ export class Shounao extends Enemy {
     }
 
     /** 砸地冲击白线：落点向外放射的白色线条，快速扩散淡出（共享件；长度延长 50% 已折算进 inner/outer） */
-    _fireSlamImpactLines() {
-        const a = this._slamFxAnchor();
-        // 原公式 inner=(20+t*50)*1.5 / outer=(50+t*90)*1.5，折算为起止值
+    _fireSlamImpactLines(a = this._slamFxAnchor(), range = 300) {
+        // 放射线外沿与真实判定半径一致，避免只画到210px却伤到300px。
         const g = fireRadialLines({
             x: a.x, y: a.y, count: 8,
-            innerFrom: 30, innerTo: 105, outerFrom: 75, outerTo: 210,
+            innerFrom: range * 0.1,
+            innerTo: range * 0.35,
+            outerFrom: range * 0.25,
+            outerTo: range,
         });
         if (g) this._slamGraphics.push(g);
     }
@@ -222,6 +255,7 @@ export class Shounao extends Enemy {
         this._slamTimer = 0;
         this._slamHitsDone = new Set();
         this._attackAnimTimer = 0;
+        this._slamWarning = destroyWarning(this._slamWarning);
     }
 
     // ========== 嚎叫 ==========
@@ -264,6 +298,7 @@ export class Shounao extends Enemy {
             if (g && g.active) g.destroy();
         }
         this._slamGraphics = [];
+        this._slamWarning = destroyWarning(this._slamWarning);
     }
 
     _updateHowl(dt, entities) {

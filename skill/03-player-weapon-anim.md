@@ -511,10 +511,11 @@ state: { anim, weaponType, frameIndex, playProgress, isPlaying }
 weaponParams: { offsetX, offsetY, rotation, scale }
 ```
 
-**两大子系统：**
+**主要子系统：**
 1. **武器定位面板**：调整 `offsetX/Y`、`rotation`、`scale`，实时预览武器相对角色的位置（传统 holdOffset 模式）。
 2. **逐帧编辑（perFrame）**：`attack.type === 'perFrame'` 时 weaponParams 直接对应当前帧，滑块/播放逐帧调武器姿态。
 3. **动画/贴图/AI 调试面板**：加载四方向精灵图、逐帧播放、调试敌人贴图与 AI。
+4. **碰撞体积编辑器**：怪物、友军和 NPC 使用冻结纸面预览调参；怪物/友军的测试按钮只在纸面预览位置另生成正式单位，不解冻或复用预览体。友军配置按兵种保存回各自 `data/*-config.json`，正式构造器与编辑器读取同一组半径、高度、躯干矩形和偏移字段。
 
 **关键方法：**
 - `_loadCharacterFrames()`：按 `data/player-anim-config.json`（PLAYER_ANIMS）加载角色精灵图，`PANEL_ANIM_TO_CONFIG` 映射面板键→配置键。

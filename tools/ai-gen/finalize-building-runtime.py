@@ -90,6 +90,10 @@ def main():
                         help="Also repair opaque matte-colored pixels this many source pixels inside the alpha edge")
     parser.add_argument("--matte-tolerance", type=float, default=110.0,
                         help="RGB distance from --matte-color treated as contamination in the edge band")
+    parser.add_argument("--nearest-opaque-edge-rgb", action="store_true",
+                        help="Preserve alpha but replace every semi-transparent edge RGB pixel with the nearest opaque subject color")
+    parser.add_argument("--nearest-opaque-alpha", type=float, default=0.98,
+                        help="Minimum normalized alpha used as a reliable RGB source for --nearest-opaque-edge-rgb")
     parser.add_argument("--mask-image", help="Depth/control render used to reject generated shadows outside the modeled silhouette")
     parser.add_argument("--mask-dilate", type=int, default=10,
                         help="Positive expands the model mask; negative contracts it to remove generated matte fringes")
@@ -105,6 +109,8 @@ def main():
                         help="Keep an additional generated detail region that intentionally exceeds the model mask")
     parser.add_argument("--restore-alpha-rect", action="append", default=[], metavar="X0,Y0,X1,Y1",
                         help="Restore source opacity in a tightly bounded detail lost during flat-background extraction")
+    parser.add_argument("--remove-matte-rect", action="append", default=[], metavar="X0,Y0,X1,Y1",
+                        help="Within a bounded source rect, clear alpha where RGB remains close to --matte-color")
     parser.add_argument("--metadata")
     args = parser.parse_args()
 
@@ -191,6 +197,17 @@ def main():
         y0, y1 = sorted((max(0, y0), min(source.height, y1)))
         alpha[y0:y1, x0:x1] = source_alpha[y0:y1, x0:x1]
 
+    if args.remove_matte_rect:
+        if args.matte_color is None:
+            raise SystemExit("--remove-matte-rect requires --matte-color")
+        matte_distance = np.linalg.norm(rgb - args.matte_color, axis=2)
+        for raw_rect in args.remove_matte_rect:
+            x0, y0, x1, y1 = (int(value) for value in raw_rect.split(","))
+            x0, x1 = sorted((max(0, x0), min(source.width, x1)))
+            y0, y1 = sorted((max(0, y0), min(source.height, y1)))
+            local_alpha = alpha[y0:y1, x0:x1]
+            local_alpha[matte_distance[y0:y1, x0:x1] < float(args.matte_tolerance)] = 0.0
+
     # Flat-color RGB generations can contain a fully opaque one-pixel matte
     # rim that survives the soft alpha estimate.  Repair only the outer alpha
     # edge after optional hole filling so warm window interiors stay intact.
@@ -206,6 +223,14 @@ def main():
         if np.any(contaminated) and np.any(reliable):
             _, nearest = ndimage.distance_transform_edt(~reliable, return_indices=True)
             rgb[contaminated] = rgb[nearest[0][contaminated], nearest[1][contaminated]]
+
+    if args.nearest_opaque_edge_rgb:
+        source_alpha_threshold = float(np.clip(args.nearest_opaque_alpha, 0.01, 1.0))
+        edge = (alpha > 0.0) & (alpha < 0.999)
+        reliable = alpha >= source_alpha_threshold
+        if np.any(edge) and np.any(reliable):
+            _, nearest = ndimage.distance_transform_edt(~reliable, return_indices=True)
+            rgb[edge] = rgb[nearest[0][edge], nearest[1][edge]]
 
     if args.desaturate:
         amount = float(np.clip(args.desaturate, 0.0, 1.0))
@@ -248,6 +273,8 @@ def main():
         "matteColor": args.matte_color.astype(int).tolist() if args.matte_color is not None else None,
         "matteEdgeWidth": float(args.matte_edge_width) if (args.matte_color is not None or background is not None) else None,
         "matteTolerance": float(args.matte_tolerance) if (args.matte_color is not None or background is not None) else None,
+        "nearestOpaqueEdgeRgb": bool(args.nearest_opaque_edge_rgb),
+        "nearestOpaqueAlpha": float(args.nearest_opaque_alpha) if args.nearest_opaque_edge_rgb else None,
         "maskImage": str(Path(args.mask_image)) if args.mask_image else None,
         "maskDilate": int(args.mask_dilate) if args.mask_image else None,
         "fillAlphaHoles": bool(args.fill_alpha_holes),
@@ -256,6 +283,7 @@ def main():
         "enclosedMatteChromaDistance": float(args.enclosed_matte_chroma_distance) if args.remove_enclosed_matte else None,
         "maskAddRects": args.mask_add_rect if args.mask_image else [],
         "restoreAlphaRects": args.restore_alpha_rect,
+        "removeMatteRects": args.remove_matte_rect,
         "cropBox": [x0, y0, x1, y1],
         "fileSize": [final_w, final_h],
         "alphaBBox": [int(local_xs.min()), int(local_ys.min()),

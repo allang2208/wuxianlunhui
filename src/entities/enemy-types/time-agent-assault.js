@@ -9,10 +9,14 @@ import { pathFinder } from '../../ai/pathfinder.js';
 import { AgentLinkSystem } from '../../world/agent-link-system.js';
 import { EffectFactory } from '../../utils/effect-factory.js';
 import { setupGun, tryEnemyFireGun } from './_shared/enemy-gun.js';
-import { hostilesOf, nearestHostileOf, isTargetMeleeStyle, playSoundFrom, inMeleeRange } from './_shared/enemy-utils.js';
+import { hostilesOf, nearestHostileOf, isTargetMeleeStyle, playSoundFrom } from './_shared/enemy-utils.js';
 import { twoStageWalkKey, frameHitElapsed, ratioHitElapsed } from './_shared/monster-anim.js';
 import { launchArcProjectile, createGroundWarning, keepWarningAlive, destroyWarning, fireRadialLines } from '../../effects/combat-fx.js';
-import { canMeleeShareSurface } from '../../combat/melee-surface.js';
+import {
+    canImpactBasicMelee,
+    canStartBasicMelee,
+    createBasicMeleeSnapshot,
+} from '../../combat/melee-attack-resolver.js';
 
 /**
  * 时空特工(突击)-F（领主，特工 family）——首个双形态切换怪物
@@ -60,6 +64,8 @@ export class TimeAgentAssault extends Enemy {
         this._axeCd = 0;
         // 单次动作判定标记
         this._axeHitDone = false;
+        this._axeTarget = null;
+        this._axeSnapshot = null;
         this._flashFired = false;
 
         // 闪光弹投掷状态
@@ -143,7 +149,9 @@ export class TimeAgentAssault extends Enemy {
 
         // 朝向目标（ MovementSystem 驱动移动时方向一致；动作期锁定）；
         // 联动回拉期间调转方向朝撤退方向（不持续面对目标倒退）
-        if (t) {
+        if ((this._formState === 'axeIntro' || this._formState === 'axeAttack') && this._axeSnapshot) {
+            this.rotation = this._axeSnapshot.worldAngle;
+        } else if (t) {
             this.rotation = this._linkRetreating
                 ? Math.atan2(this.y - t.y, this.x - t.x)
                 : Math.atan2(t.y - this.y, t.x - this.x);
@@ -153,7 +161,7 @@ export class TimeAgentAssault extends Enemy {
         const ACTION_STATES = ['toRanged', 'toIdle', 'toRangedSwitch', 'axeIntro', 'axeAttack', 'flashThrow'];
         if (ACTION_STATES.includes(this._formState)) {
             this._stateTimer -= dt;
-            this._updateActionStates(dt, entities, t, dist);
+            this._updateActionStates(dt, t, dist);
             this._attackAnimTimer = 100; // MovementSystem 锁定
         } else {
             // 远程形态移动完全自驱（寻位/环绕/寻路），MovementSystem 全程锁定；
@@ -217,7 +225,7 @@ export class TimeAgentAssault extends Enemy {
 
         if (this._formState === 'idle') {
             // 斧砍条件优先：近战风格目标贴身 → 直接首次劈砍进入近战形态
-            if (t && this._formSwitchCd <= 0 && isTargetMeleeStyle(t) && dist <= (F.meleeCheckRange ?? 150)) {
+            if (t && this._formSwitchCd <= 0 && isTargetMeleeStyle(t) && this._canStartAxe(t, true)) {
                 this._tryAttackTelegraph(() => this._startAxeIntro());
                 return;
             }
@@ -350,7 +358,7 @@ export class TimeAgentAssault extends Enemy {
                 }
             }
             // 近战劈砍：贴身且 CD 就绪
-            if (t && this._axeCd <= 0 && dist <= (skills.axe.judgeRange ?? 100)) {
+            if (t && this._axeCd <= 0 && this._canStartAxe(t, false)) {
                 this._tryAttackTelegraph(() => this._startAxeAttack());
             }
         }
@@ -358,7 +366,7 @@ export class TimeAgentAssault extends Enemy {
 
     // ========== 动作推进（锁移动状态） ==========
 
-    _updateActionStates(dt, entities, t, _dist) {
+    _updateActionStates(dt, t, _dist) {
         const skills = this._getSkillConfigs();
         const A = skills.axe;
 
@@ -380,7 +388,7 @@ export class TimeAgentAssault extends Enemy {
             }
             if (!this._axeHitDone && elapsed >= frameHitElapsed(hitFrame, startFrame, fps)) {
                 this._axeHitDone = true;
-                this._dealAxeHit(entities);
+                this._dealAxeHit();
             }
         }
 
@@ -423,6 +431,8 @@ export class TimeAgentAssault extends Enemy {
     _enterForm(state) {
         const F = this._getSkillConfigs().forms;
         this._formState = state;
+        this._axeTarget = null;
+        this._axeSnapshot = null;
         this._formSwitchCd = F.formSwitchCooldown ?? 1000;
         this._walkElapsed = 0;
         this._farHoldTimer = 0;
@@ -443,20 +453,24 @@ export class TimeAgentAssault extends Enemy {
 
     _startAxeIntro() {
         const A = this._getSkillConfigs().axe;
+        if (!this._beginAxeAttack(true)) return false;
         this._formState = 'axeIntro';
         this._stateTimer = A.introDuration ?? 2000;
         this._axeHitDone = false;
         this._axeIntroSoundDone = false;
         this._linkRetreating = false; // 进入斧砍动作：退出回拉朝向（否则背身劈砍）
+        return true;
     }
 
     _startAxeAttack() {
+        if (!this._beginAxeAttack(false)) return false;
         this._formState = 'axeAttack';
         this._stateTimer = this._axeAttackDuration();
         this._axeHitDone = false;
         this._linkRetreating = false; // 进入斧砍动作：退出回拉朝向（否则背身劈砍）
         // 近战攻击斧音（axe.mp3，立即播放）
         playSoundFrom(this, 'axe');
+        return true;
     }
 
     _startFlashThrow() {
@@ -613,23 +627,61 @@ export class TimeAgentAssault extends Enemy {
 
     // ========== 斧头劈砍 ==========
 
-    _dealAxeHit(entities) {
+    _getAxeWidth() {
         const A = this._getSkillConfigs().axe;
-        const range = A.judgeRange ?? this.attackDistance ?? 100;
+        return A.width ?? this.config?.render?.collisionWidth ?? 20;
+    }
+
+    _getAxeStartConfig(isIntro = false) {
+        const skills = this._getSkillConfigs();
+        return {
+            range: isIntro
+                ? (skills.forms.meleeCheckRange ?? 150)
+                : (skills.axe.judgeRange ?? 100),
+            width: this._getAxeWidth(),
+        };
+    }
+
+    _getAxeImpactConfig() {
+        const A = this._getSkillConfigs().axe;
+        return {
+            range: A.judgeRange ?? this.attackDistance ?? 100,
+            width: this._getAxeWidth(),
+        };
+    }
+
+    getBasicMeleeApproachConfig() {
+        return this._formState === 'melee' ? this._getAxeStartConfig(false) : null;
+    }
+
+    _canStartAxe(target, isIntro) {
+        return canStartBasicMelee(this, target, this._getAxeStartConfig(isIntro));
+    }
+
+    _beginAxeAttack(isIntro) {
+        const target = this.target;
+        if (!this._canStartAxe(target, isIntro)) return false;
+        this._axeTarget = target;
+        this._axeSnapshot = createBasicMeleeSnapshot(this, target, this._getAxeImpactConfig());
+        this.rotation = this._axeSnapshot.worldAngle;
+        return true;
+    }
+
+    _dealAxeHit() {
+        const A = this._getSkillConfigs().axe;
+        const target = this._axeTarget;
+        if (!canImpactBasicMelee(this, target, this._axeSnapshot)) return;
         const atk = this.data?.atk || 0;
-        // 统一口径：圆形边缘距离（与 CombatSystem 触发同语义，inMeleeRange）
-        for (const e of hostilesOf(this, entities)) {
-            if (!inMeleeRange(this, e, range)) continue;
-            if (!canMeleeShareSurface(this, e)) continue;
-            e.takeDamage(Math.max(1, Math.round(atk * (A.damageMul ?? 2))), this, 'physical', true);
-            if (A.crippleMs && typeof e.applyCripple === 'function') {
-                e.applyCripple(A.crippleMs);
-            }
-            // 命中红色粒子下浮（从目标绿色矩形上方 15% 区域生成，落到目标 footprint 最下方消失）
-            const fxScene = typeof window !== 'undefined' ? window.__phaserScene : null;
-            if (fxScene && typeof fxScene.playRedFallParticles === 'function') {
-                fxScene.playRedFallParticles(e.x, e.y, e);
-            }
+        target.takeDamage(Math.max(1, Math.round(atk * (A.damageMul ?? 2))), this, 'physical', true);
+        const parried = target.shieldSystem && target.shieldSystem._lastParried;
+        if (parried) return;
+        if (A.crippleMs && typeof target.applyCripple === 'function') {
+            target.applyCripple(A.crippleMs);
+        }
+        // 命中红色粒子下浮（从目标绿色矩形上方 15% 区域生成，落到目标 footprint 最下方消失）
+        const fxScene = typeof window !== 'undefined' ? window.__phaserScene : null;
+        if (fxScene && typeof fxScene.playRedFallParticles === 'function') {
+            fxScene.playRedFallParticles(target.x, target.y, target);
         }
     }
 

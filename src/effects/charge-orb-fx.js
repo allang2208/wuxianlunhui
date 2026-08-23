@@ -24,11 +24,18 @@ export class ChargeOrbFx {
      * @param {number} opts.durationMs - 蓄力总时长（决定放大进度）
      * @param {number} opts.radiusMax - 满蓄时光球半径
      */
-    constructor(source, { anchorFn, durationMs = 2500, radiusMax = 38 } = {}) {
+    constructor(source, { anchorFn, durationMs = 2500, radiusMax = 38, palette = null } = {}) {
         this.source = source;
         this.anchorFn = anchorFn || null;
         this.durationMs = durationMs;
         this.radiusMax = radiusMax;
+        // 配色板（默认电系蓝；光系等可传金色系覆盖）
+        this._palette = palette || {
+            tints: [0xffffff, 0xbcdcff, 0x7fb8ff, 0x4b6fff],
+            glowOuter: 0x4b6fff,
+            glowInner: 0x9fc6ff,
+            core: 0x9fc6ff,
+        };
         this.active = true;
         this._elapsed = 0;
         this._spawnTimer = 0;
@@ -114,7 +121,7 @@ export class ChargeOrbFx {
                     scale: { start: 1.8 + p * 2.0, end: 0.1 },
                     alpha: { start: 0.95, end: 0 },
                     lifespan: { min: life, max: life + 60 },
-                    tint: [0xffffff, 0xbcdcff, 0x7fb8ff, 0x4b6fff],
+                    tint: this._palette.tints,
                     blendMode: 'ADD',
                 },
                 destroyAfterMs: life + 130,
@@ -137,14 +144,14 @@ export class ChargeOrbFx {
         orb.setDepth(depth);
         glow.setDepth(depth);
         // ADD 蓝辉光：外层先随进度铺开（积蓄感）
-        glow.fillStyle(0x4b6fff, (0.18 + 0.14 * p) * breathe * alphaMul);
+        glow.fillStyle(this._palette.glowOuter, (0.18 + 0.14 * p) * breathe * alphaMul);
         glow.fillCircle(a.x, a.y, r * (1.5 + p * 0.8));
-        glow.fillStyle(0x9fc6ff, 0.30 * breathe * alphaMul);
+        glow.fillStyle(this._palette.glowInner, 0.30 * breathe * alphaMul);
         glow.fillCircle(a.x, a.y, r * 1.1);
         // NORMAL 白蓝芯：蓄力过半后浮现并随进度变亮（逐步变大的手部能量团）
         if (p > 0.35) {
             const coreA = (p - 0.35) / 0.65;
-            orb.fillStyle(0x9fc6ff, 0.40 * coreA * alphaMul);
+            orb.fillStyle(this._palette.core, 0.40 * coreA * alphaMul);
             orb.fillCircle(a.x, a.y, r * 0.9);
             orb.fillStyle(0xffffff, Math.min(0.85, coreA * 1.8) * alphaMul);
             orb.fillCircle(a.x, a.y, r * 0.52);
@@ -168,7 +175,7 @@ export class ChargeOrbFx {
                 scale: { start: 2.4 + p * 1.6, end: 0.15 },
                 alpha: { start: 1.0, end: 0 },
                 lifespan: { min: 320, max: 680 },
-                tint: [0xffffff, 0xbcdcff, 0x7fb8ff, 0x4b6fff],
+                tint: this._palette.tints,
                 blendMode: 'ADD',
             },
             destroyAfterMs: 800,

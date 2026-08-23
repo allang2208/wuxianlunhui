@@ -12,6 +12,10 @@
     "wis": 4,
     "luck": 8
   },
+  "groundRadius": 20,
+  "collisionRadius": 20,
+  "bodyHeight": 100,
+  "size": 64,
   "ai": {
     "walkSpeed": 185,
     "runSpeed": 185,
@@ -26,11 +30,13 @@
     "teleportHardDist": 9999999
   },
   "crippleDurationMs": 3000,
-  "displaySize": 224,
-  "spriteOffsetY": -98,
+  "displaySize": 165.952891,
+  "spriteOffsetY": -72.280263,
   "render": {
-    "footOffsetY": 98,
-    "hudOffsetY": 132,
+    "footOffsetY": 72.280263,
+    "hudOffsetY": 119,
+    "collisionWidth": 40,
+    "collisionHeight": 100,
     "idleSwayX": 2,
     "idleSwayPeriodMs": 2000
   },

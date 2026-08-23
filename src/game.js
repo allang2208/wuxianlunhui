@@ -13,6 +13,8 @@ import { LevelUpEffectQueue } from './effects/level-up-queue.js';
 import { SweepEffect } from './effects/sweep-effect.js';
 import { WallSystem } from './world/wall-system.js';
 import { BuildingSystem } from './world/building-system.js';
+import { applyBuildingFootprint } from './world/building-footprint.js';
+import { setupStructureDepth } from './world/structure-depth.js';
 import { FlatViewSystem } from './world/flat-view-system.js';
 import { EnergyManager } from './systems/energy-manager.js';
 import { PERSPECTIVE_SCALE_Y } from './config/perspective-config.js';
@@ -92,7 +94,6 @@ import { FusionSystem } from './ui/fusion-system.js';
 import { DefenseSystem } from './world/defense-system.js';
 import { World122TributeSystem } from './world/world122-tribute-system.js';
 import { HamsterHutSystem } from './world/hamster-hut-system.js';
-import { HamsterBarracksSystem } from './world/hamster-barracks-system.js';
 import { ProducerBuilding, ProducerBuildingSystem } from './world/producer-building-system.js';
 import { resetUnitUpgrades } from './world/unit-upgrade-store.js';
 import { resetAbilityLevels } from './world/ability-store.js';
@@ -143,7 +144,6 @@ export const Game = {
         // RTS 建筑点击复用的系统句柄（避免模块循环 import，经 window.Game 惰性访问）
         this.DefenseSystem = DefenseSystem;
         this.HamsterHutSystem = HamsterHutSystem;
-        this.HamsterBarracksSystem = HamsterBarracksSystem;
         this.ProducerBuildingSystem = ProducerBuildingSystem;
         this.BuildingSystem = BuildingSystem;
         this.TechnologySystem = TechnologySystem;
@@ -451,6 +451,11 @@ export const Game = {
             clickArea: altarCfg.clickArea,
             greetings: ['祭坛的低语在空气中回荡，献上祭品，开启你的征程。']
         });
+        // 主神空间祭坛保留 NPC 点击/对话身份，但占地与建筑统一走标准 2×2 菱形 footprint。
+        applyBuildingFootprint(altarNpc, Number(altarCfg.footprintCells) || 2);
+        // 图层也必须走建筑结构深度；不能把祭坛标成 _isDefenseStructure，避免进入敌方建筑索敌链。
+        setupStructureDepth(altarNpc);
+        altarNpc.rebuildCollider();
         this.entities.set('npc_altar', altarNpc);
         // 小鼠铁匠 NPC（小鼠大王右下方，idle 30 帧循环；对话提供强化/附魔/改造）
         const bsCfg = npcCfg.mouseBlacksmith || { relativeTo: 'shopMouseKing', offset: { x: 460, y: -80 }, name: '小鼠铁匠', size: 20, collisionRadius: 60, color: '#8a6a4a', portrait: 'assets/npc/mouse_blacksmith/portrait.png', npcType: 'blacksmith', noSeparation: true };
@@ -1201,10 +1206,6 @@ export const Game = {
         if (HamsterHutSystem && HamsterHutSystem.active) {
             HamsterHutSystem.update(dt);
         }
-        // 仓鼠兵营：30s 生成计时
-        if (HamsterBarracksSystem && HamsterBarracksSystem.active) {
-            HamsterBarracksSystem.update(dt);
-        }
         // 通用产兵建筑：spawnIntervalMs 生成计时（配置驱动）
         if (ProducerBuildingSystem && ProducerBuildingSystem.active) {
             ProducerBuildingSystem.update(dt);
@@ -1290,7 +1291,6 @@ if (this.player && this.player.droneSystem && this.player.droneSystem.controllin
                 const anyBuilding = (BuildingSystem && BuildingSystem.active)
                     || (DefenseSystem && DefenseSystem._panel && DefenseSystem._panel.isOpen)
                     || (HamsterHutSystem && HamsterHutSystem._panel && HamsterHutSystem._panel.isOpen)
-                    || (HamsterBarracksSystem && HamsterBarracksSystem._panel && HamsterBarracksSystem._panel.isOpen)
                     || (ProducerBuildingSystem && ProducerBuildingSystem._panel && ProducerBuildingSystem._panel.isOpen);
                 if (anyBuilding) RTSCommand.closePanel();
             }
@@ -1373,12 +1373,7 @@ if (Input.mouse.leftPressed) {
                 Input.mouse.leftPressed = false;
                 return;
             }
-            // 仓鼠兵营：点击兵营打开单位类型/升级面板（2026-08-16）
-            if (HamsterBarracksSystem && HamsterBarracksSystem.active && HamsterBarracksSystem.tryInteract(mx, my, this.player)) {
-                Input.mouse.leftPressed = false;
-                return;
-            }
-            // 通用产兵建筑（草屋等，配置驱动）：点击打开单位类型/升级面板（2026-08-17）
+            // 通用产兵建筑（仓鼠军营、草屋等，配置驱动）
             if (ProducerBuildingSystem && ProducerBuildingSystem.active && ProducerBuildingSystem.tryInteract(mx, my, this.player)) {
                 Input.mouse.leftPressed = false;
                 return;
@@ -1917,12 +1912,9 @@ EffectManager.update(dt);
                     : ((b.collisionShape === 'iso_rect' && b.collisionWidth > 0) ? b : null);
                 if (isoEnt) {
                     const other = isoEnt === a ? b : a;
-                    const supportedByIsoWall = isoEnt._isDefenseCover
-                        && (Number(other.z) || 0) > 1
-                        && Array.isArray(other._surfaceWalls)
-                        && other._surfaceWalls.includes(isoEnt);
-                    if (supportedByIsoWall) continue;
-                    if (isoEnt._isDefenseCover && other._faction === 'companion') continue;
+                    // 防御墙体的权威碰撞是同几何生成的 WallSystem._coverSeg；所有阵营都
+                    // 只走该通道，避免实体 footprint 二次推出门洞或产生玩家/友军口径差异。
+                    if (isoEnt._isDefenseCover) continue;
                     const immIso = !!isoEnt.noSeparation;
                     const immOther = !!other.noSeparation;
                     if (!(immIso && immOther)) {
@@ -1968,11 +1960,9 @@ EffectManager.update(dt);
                 const rectEnt = (a.collisionShape === 'rect' && a.collisionWidth > 0) ? a : ((b.collisionShape === 'rect' && b.collisionWidth > 0) ? b : null);
                 if (rectEnt) {
                     const other = rectEnt === a ? b : a;
-                    // 掩体矩形只挡怪物/玩家，不推友方单位（2026-08-16 仓鼠矿工卡门根修）：
-                    // 基地门洞两侧掩体的墙段已按门跨度裁剪放行，但 198×133 实体矩形仍
-                    // 伸入门洞——友方单位过门洞被矩形推出卡死（矿工贴门来回摆动+寻路
-                    // 重算）。友方移动本由 WallSystem.resolve（墙段）管，矩形对友方冗余。
-                    if (rectEnt._isDefenseCover && other._faction === 'companion') continue;
+                    // 矩形墙体同样由 _coverSeg 统一阻挡；不再为 companion 保留单独豁免，
+                    // 也不让重复实体矩形把任何阵营从已裁剪放行的门洞中推出。
+                    if (rectEnt._isDefenseCover) continue;
                     const otherR = other.groundRadius;
                     const rcx = rectEnt.collider ? rectEnt.collider.x : rectEnt.x;
                     const rcy = rectEnt.collider ? rectEnt.collider.y : rectEnt.y;

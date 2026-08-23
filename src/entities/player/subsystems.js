@@ -93,7 +93,7 @@ onLevelUp(level) {
                 });
             },
 
-takeDamage(damage, source, _damageType = 'physical', isMelee = false) {
+takeDamage(damage, source, damageType = 'physical', isMelee = false) {
                 // 近战最终保险：跨 ground/stairs/wall_walk 平面的直伤、弹反和附带状态全部拒绝。
                 if (isMelee && source && !canMeleeShareSurface(source, this)) return 0;
                 // 闪避无敌期间不受伤害
@@ -120,7 +120,9 @@ takeDamage(damage, source, _damageType = 'physical', isMelee = false) {
                     }
                 }
                 const finalCritRate = Math.max(0, critRate + enchantCritBonus - critRes);
-                const isCrit = Math.random() * 100 < finalCritRate;
+                const isCrit = typeof source?._forcedHitCritical === 'boolean'
+                    ? source._forcedHitCritical
+                    : Math.random() * 100 < finalCritRate;
                 // 应用暴击伤害加成
                 // 次级格挡：装备宽十字护手时，受到近战攻击有50%概率减少50%伤害
                 if (isMelee && this.equipments && this.weaponMode) {
@@ -172,6 +174,12 @@ takeDamage(damage, source, _damageType = 'physical', isMelee = false) {
                     d.hp = 0;
                 }
                 this.hitFlash = this.hitFlashDuration;
+                if (finalDamage > 0) {
+                    const scene = (typeof window !== 'undefined') ? window.__phaserScene : null;
+                    if (scene && typeof scene.playPlayerHitAttachedFx === 'function') {
+                        scene.playPlayerHitAttachedFx(this, source, damageType);
+                    }
+                }
                 EffectManager.createDamageText(this.x, this.y - this.size, finalDamage, isCrit);
                 if (isCrit) EffectManager.triggerCritEffects();
                 const isKill = d.hp <= 0;
@@ -346,6 +354,16 @@ respawn() {
                 this._thunderLanceCooldown = 0;
                 if (this.thunderLanceSystem && typeof this.thunderLanceSystem.clearLance === 'function') {
                     this.thunderLanceSystem.clearLance();
+                }
+                // 清除圣辉领域状态（含圣辉环）
+                this._sanctuaryDomainCooldown = 0;
+                if (this.sanctuaryDomainSystem && typeof this.sanctuaryDomainSystem.clearDomain === 'function') {
+                    this.sanctuaryDomainSystem.clearDomain();
+                }
+                // 清除圣光审判状态（含蓄力光球）
+                this._holyJudgmentCooldown = 0;
+                if (this.holyJudgmentSystem && typeof this.holyJudgmentSystem.clearJudgment === 'function') {
+                    this.holyJudgmentSystem.clearJudgment();
                 }
                 // 清除施法状态（死亡/复活复位）
                 this._castState = 'idle';
@@ -569,6 +587,29 @@ applyPoison(stacks) {
                             level: 1, maxLevel: 20, exp: 0, maxExp: getDefaultSkillMaxExp(),
                             tags: [{ name: '魔法', type: 'magic' }, { name: '主动', type: 'active' }],
                             getEffect(level) { return { cooldown: 10 - Math.floor((level - 1) / 5), mpCost: 30, aimRadius: 200, maxRange: 600, duration: 2, fadeMs: 400, beamTopWidth: 60, beamBottomWidth: 110, beamHeight: 1400, dissolveRatio: 0.28, healBase: 5 + level * 5, magicMul: 0.25 + level * 0.25, intMul: 1 + level * 0.5, wisMul: 1 + level * 0.5, zombieDamageMul: 2 }; },
+                            getExpForNext: getDefaultSkillExpForNext,
+                        };
+                    }
+                    // 兜底：确保圣辉领域技能始终存在（光系中级，需法杖）
+                    if (!skills.sanctuaryDomain) {
+                        skills.sanctuaryDomain = {
+                            id: 'sanctuaryDomain', name: '圣辉领域', icon: '🌟', iconImage: 'assets/skills/圣辉领域.png',
+                            description: '中级光魔法：以自身为中心展开圣辉领域并跟随移动，持续期内友军每 0.5 秒回复生命、每 2 秒净化 1 个负面状态；领域内敌方每 0.5 秒受光系魔法伤害（僵尸类 2.5 倍）',
+                            level: 1, maxLevel: 20, exp: 0, maxExp: getDefaultSkillMaxExp(),
+                            tags: [{ name: '魔法', type: 'magic' }, { name: '主动', type: 'active' }],
+                            getEffect(level) { return { cooldown: 26 - Math.floor((level - 1) * 4 / 19), mpCost: 60 + Math.floor((level - 1) * 40 / 19), duration: 8 + Math.floor((level - 1) * 4 / 19), radius: 230 + level * 10, tickMs: 500, healBase: 3 + level * 2, healWisMul: 0.3 + level * 0.1, damageBase: 6 + level * 2, damageMagicMul: 0.2 + level * 0.05, damageIntMul: 0.2 + level * 0.05, zombieDamageMul: 2.5, cleanseIntervalMs: 2000 }; },
+                            getExpForNext: getDefaultSkillExpForNext,
+                        };
+                    }
+                    // 兜底：确保圣光审判技能始终存在（光系高级，需法杖）
+                    if (!skills.holyJudgment) {
+                        skills.holyJudgment = {
+                            id: 'holyJudgment', name: '圣光审判', icon: '☀️', iconImage: 'assets/skills/圣光审判.png',
+                            selfCast: true,
+                            description: '高级光魔法：长按蓄力（可随鼠标移动选点），松开或蓄满 2.5 秒后在目标点降下巨型圣柱——范围内敌方受光系伤害（僵尸类 3 倍），血量过低的非 Boss 不死单位被直接净化；友方大额回复并立即清除全部负面状态',
+                            level: 1, maxLevel: 20, exp: 0, maxExp: getDefaultSkillMaxExp(),
+                            tags: [{ name: '魔法', type: 'magic' }, { name: '主动', type: 'active' }],
+                            getEffect(level) { return { cooldown: 40 - Math.floor((level - 1) * 4 / 19), mpCost: 130 + Math.floor((level - 1) * 40 / 19), maxRange: 700, delayMs: 2500, minChargeMs: 500, radiusMin: 280, radiusMax: 520, damageBase: 60 + level * 8, damageMagicMul: 1.5 + level * 0.25, damageIntMul: 1.0 + level * 0.2, damageWisMul: 1.0 + level * 0.2, zombieDamageMul: 3, purifyThreshold: 0.12 + level * 0.004, healBase: 20 + level * 12, healWisMul: 1 + level * 0.5, shakeIntensity: 12 }; },
                             getExpForNext: getDefaultSkillExpForNext,
                         };
                     }
@@ -2532,6 +2573,14 @@ _updateSubsystems(dt, entities) {
                 // ===== 贯穿雷枪技能更新（蓄力/感电地面与冷却由系统自管） =====
                 if (this.thunderLanceSystem) {
                     this.thunderLanceSystem.update(dt, entities);
+                }
+                // ===== 圣辉领域技能更新（圣辉环与冷却由系统自管） =====
+                if (this.sanctuaryDomainSystem) {
+                    this.sanctuaryDomainSystem.update(dt, entities);
+                }
+                // ===== 圣光审判技能更新（蓄力与冷却由系统自管） =====
+                if (this.holyJudgmentSystem) {
+                    this.holyJudgmentSystem.update(dt, entities);
                 }
                 // ===== 无人机技能更新 =====
                 if (this.droneSystem && this.droneSystem.active) {

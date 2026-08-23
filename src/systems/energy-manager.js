@@ -123,6 +123,13 @@ class EnergyManagerImpl {
         return Array.from(this._warehouses.values()).filter((w) => w && w.active !== false);
     }
 
+    getWarehouseById(id) {
+        if (id == null) return null;
+        const direct = this._warehouses.get(id);
+        if (direct?.active !== false) return direct;
+        return this.getWarehouses().find((warehouse) => warehouse?.id === id) || null;
+    }
+
     getWarehouseCount() {
         return this.getWarehouses().length;
     }
@@ -262,6 +269,38 @@ class EnergyManagerImpl {
         return added;
     }
 
+    /** 面包师等显式搬运岗位向指定仓库交货，返回实际入库粮食。 */
+    depositFoodToWarehouse(warehouseOrId, amount) {
+        const warehouse = typeof warehouseOrId === 'object'
+            ? warehouseOrId
+            : this.getWarehouseById(warehouseOrId);
+        if (!warehouse || warehouse.active === false) return 0;
+        const requested = Math.max(0, Math.floor(Number(amount) || 0));
+        if (requested <= 0) return 0;
+        const accepted = Math.min(requested, Math.floor(
+            this.getWarehouseFreeCapacity(warehouse) / this.getWarehouseFoodFactor(warehouse)
+        ));
+        if (accepted <= 0) return 0;
+        warehouse.storedFood = Math.max(0, Math.floor(Number(warehouse.storedFood) || 0)) + accepted;
+        this._notifyUpdate();
+        return accepted;
+    }
+
+    /** 面包师等显式搬运岗位只从到达的仓库取粮，库存不足时不产生部分扣除。 */
+    deductFoodFromWarehouse(warehouseOrId, amount) {
+        const warehouse = typeof warehouseOrId === 'object'
+            ? warehouseOrId
+            : this.getWarehouseById(warehouseOrId);
+        if (!warehouse || warehouse.active === false) return false;
+        const requested = Math.max(0, Math.floor(Number(amount) || 0));
+        if (requested <= 0) return true;
+        const stored = Math.max(0, Math.floor(Number(warehouse.storedFood) || 0));
+        if (stored < requested) return false;
+        warehouse.storedFood = stored - requested;
+        this._notifyUpdate();
+        return true;
+    }
+
     deductFood(amount) {
         let remain = Math.max(0, Math.floor(Number(amount) || 0));
         if (remain <= 0) return true;
@@ -301,6 +340,11 @@ class EnergyManagerImpl {
         this._flushPendingFood();
         this._notifyUpdate();
         return value;
+    }
+
+    /** 暂存无法立即回仓的生产粮食，待任意仓库出现空位时自动装入。 */
+    queueFoodForStorage(amount) {
+        return this.importLegacyFood(amount);
     }
 
     /** 跨位面支付同步削减旧版待入库能源镜像，避免抵达新仓库后重复装入。 */

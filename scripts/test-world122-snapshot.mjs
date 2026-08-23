@@ -42,15 +42,16 @@ check('快照模块 API 齐备',
     && /export function isWorldSnapshotCurrent\(sceneId/.test(snap));
 check('完整快照和基础快照都写入 worldEpoch',
     /worldEpoch: epoch/.test(snap)
-    && /worldEpoch: Math\.max\(0, Math\.floor\(Number\(getWorldEpoch\?\.\(sceneId\)\)/.test(snap));
+    && /const worldEpoch = Math\.max\(0, Math\.floor\(Number\(getWorldEpoch\?\.\(sceneId\)\)/.test(snap)
+    && /^\s+worldEpoch,$/m.test(snap));
 check('基础与完整快照都封存重置模板、资源规则和生成世代元数据',
     /BASE_SNAPSHOT_TEMPLATES/.test(snap)
     && /baseTemplate: templateKey/.test(snap)
     && /resourceRule: generation\.resourceRule \|\| policy\.resourceRule/.test(snap)
     && /\.\.\._snapshotLifecycle\(sceneId, worldEpoch\)/.test(snap));
-check('显式旧世代快照不能恢复或写入主存档',
-    /if \(!isWorldSnapshotCurrent\(sceneId, snap\)\)/.test(snap)
-    && /if \(!isWorldSnapshotCurrent\(sceneId, snapshot\)\) delete _storedByWorld\[sceneId\]/.test(snap));
+check('显式旧世代快照不能被读取恢复（读取入口按世代守卫返回 null）',
+    /return isWorldSnapshotCurrent\('scene8', snapshot\) \? snapshot : null/.test(snap)
+    && /return isWorldSnapshotCurrent\(sceneId, snapshot\) \? snapshot : null/.test(snap));
 check('已毁位面不能被离场捕获或保存过程重新写回',
     /if \(canPersistWorld && !canPersistWorld\(sceneId\)\) return null/.test(snap)
     && /else if \(canPersistWorld && !canPersistWorld\(sceneId\)\) delete _storedByWorld\[sceneId\]/.test(snap)
@@ -70,16 +71,17 @@ check('塔快照含武器/芯片/改造模块',
     /weaponItem: e\.weaponItem/.test(snap) && /chip:/.test(snap) && /modules:/.test(snap));
 check('4格门整组存（ pillars + 门主体 ）', /pillars/.test(snap) && /_buildGroupRoot === e/.test(snap));
 check('产兵建筑快照含读条与持续升级',
-    /upgrade: p\._upgrade/.test(snap) && /continuous: p\._continuous/.test(snap));
+    /upgrade: _snapshotUpgrade\(p\._upgrade\)/.test(snap) && /continuous: p\._continuous \|\| null/.test(snap));
 check('兵营与产兵建筑按兵种保存混编 roster',
-    /unitRoster: _unitRoster\(b\.units\)/.test(snap)
-    && /unitRoster: p\.spawnEnabled \? _unitRoster\(p\.units\)/.test(snap));
+    /const unitRoster = _unitRoster\(b\.units\)/.test(snap)
+    && /const unitRoster = p\.spawnEnabled \? _unitRoster\(p\.units\) : \{\}/.test(snap));
 check('仓库快照含本仓存量',
     /storedEnergy: p\._isEnergyWarehouse/.test(snap));
 check('波次进行中离开 → 回场 break 阶段重开本波',
     /wave\.phase === 'wave'/.test(snap) && /phase: 'break'/.test(snap));
-check('矿点快照含位置/余量/枯竭计时（位置每局随机必须入快照）',
-    /depleted: !!n\._depleted/.test(snap) && /respawnTimer: n\._respawnTimer/.test(snap));
+check('矿点快照含位置/余量/枯竭计时（枯竭转坍缩计时，位置每局随机必须入快照）',
+    /depleted: !!n\._depleted, collapseTimer: n\._collapseTimer \|\| 0/.test(snap)
+    && /cellI: Number\.isInteger/.test(snap));
 check('手动道路随世界122快照捕获与恢复',
     /roads: BuildingRoadSystem\.captureManualRoads\(\)/.test(snap)
     && /BuildingRoadSystem\.restoreManualRoads\(snap\.roads\)/.test(snap));
@@ -88,7 +90,7 @@ check('手动道路随世界122快照捕获与恢复',
 check('矿场恢复先挂模块再补员（矿工吃到升级）',
     snap.indexOf('hut.modules = ') < snap.indexOf('hut.spawnMiner()'));
 check('仓库恢复按快照覆盖本仓存量（防 pending 灌入重复计数）',
-    /producer\.storedEnergy = Math\.max\(0, Math\.min\(producer\.storageCapacity/.test(snap));
+    /producer\.storedEnergy = Math\.max\(0, Math\.min\([\s\S]*?Math\.floor\(Number\(s\.storedEnergy\)/.test(snap));
 check('兵营旧档兵种按配置表纠偏',
     /barracksBuildingCfg\.unitTypes/.test(snap)
     && /barracksBuildingCfg\.defaultUnitType/.test(snap));
@@ -128,7 +130,8 @@ check('新游戏重置快照', /resetWorld122Snapshot\(\)/.test(gameSrc));
 // ---- 6. M1 后台结算接线 ----
 check('塔 DPS 实机口径入快照（后台结算唯一 DPS 真源）', /dps: _towerDps\(e\)/.test(snap));
 check('军事单位合计 DPS 入快照（兵营/产兵）', /unitDps: _unitsDps/.test(snap));
-check('波次/结算参数随快照封存（config 块）', /config: \{[\s\S]*?waveBudgetBase/.test(snap));
+check('波次/结算参数随快照封存（config 块）', /config: _snapshotConfig\(\)/.test(snap)
+    && /waveBudgetBase: spawnCfg\.waveBudgetBase \?\? 26/.test(snap));
 check('回场先结算后物化（settleWorld122 commit 模式）',
     /settleWorld122\(snap, elapsed, \{[\s\S]*?commit: true/.test(snap));
 check('后台失守快照按世界作废重开',
@@ -145,7 +148,7 @@ check('世界切换面板挂侧边菜单按钮并注册全局',
     && /window\.WorldSwitchPanel = WorldSwitchPanel/.test(mainSrc));
 check('传送走 SceneManager.switchScene（观察模式口径，2026-08-19）',
     /SceneManager\.switchScene\(target, Game\.player, undefined, \{ observer \}\)/.test(switchPanel)
-    && /RTSCommand\.setEnabled\(observer\)/.test(switchPanel));
+    && /RTSCommand\.setEnabled\(!!Game\._observerMode\)/.test(switchPanel));
 check('面板打开期间自动刷新（后台 tick 实况）', /setInterval\(.*1200\)/.test(switchPanel)
     && /onClose.*_clearRefresh|_clearRefresh\(\)/.test(switchPanel));
 

@@ -9,7 +9,6 @@
 // - 动画状态：walk（移动）/ mining（采矿或近战）/ idle（待机）。
 // ============================================================
 import { MovementSystem } from '../systems/movement-system.js';
-import { WallSystem } from '../world/wall-system.js';
 import { pickNearestNode } from './companion-ai-decision.js';
 import { SoundManager } from '../ui/sound-manager.js';
 
@@ -25,12 +24,11 @@ export class HamsterMinerAI {
         this.miningMult = this.cfg.miningMult ?? 1;        // 采矿效率倍率（小屋升级）
         // 物流：矿点产出先装个人背包；背包满或岗位撤销后返回营地提交。
         this._phase = 'work';          // 'work' | 'unload_return' | 'storage_wait'
-        // 卡死看门狗（2026-08-15）：走路长时间位移≈0 → 重新选点/传送到目标附近
+        // 卡死看门狗：走路长时间位移≈0 → 清旧路径并重新规划。
         this._stuckTimer = 0;
         this._lastPosX = 0;
         this._lastPosY = 0;
         this._stuckStreak = 0;
-        this._stuckEscalation = 0; // 连续卡死升级：先原地脱困，再直接传送到目标附近
         // 路径振荡守卫（2026-08-16）：走路但航点被反复重算成另一条路线（幽灵路径/
         // 双路线翻转）→ 2.5s 窗口内当前航点跳变 >150px 且矿工没沿任何一条走远 →
         // 清路径强制用当前 A* 重算（正确绕行路线），不做传送。
@@ -122,7 +120,7 @@ export class HamsterMinerAI {
         // 移动中：交给 MovementSystem 寻路推进
         MovementSystem.update(m, dt, entities);
         this._checkOscillation(dt);
-        // 卡死看门狗：复用怪物避障机制外的兜底（重新规划/传送），避免被障碍卡死找不到目标
+        // 卡死看门狗：只请求重新规划，运行中不直接改写坐标。
         this._checkStuck(dt);
         // 缓停滑行（maxSpeed=0 后速度沿摩擦/加速度渐近归零）期间保持 walk 动画，
         // 避免站着播 idle 却还在滑行的"滑冰"感
@@ -260,7 +258,7 @@ export class HamsterMinerAI {
         m.maxSpeed = this.cfg.walkSpeed ?? 80;
     }
 
-    /** 卡死看门狗（2026-08-15）：走路 500ms 位移 <3px 累计 2 次 → 重新规划/传送 */
+    /** 卡死看门狗：走路 500ms 位移 <3px 累计 2 次 → 清旧路径并重新规划。 */
     _checkStuck(dt) {
         const m = this.m;
         if (m._surfaceNavWaiting || m._surfaceRouteActive
@@ -285,54 +283,13 @@ export class HamsterMinerAI {
         this._lastPosY = m.y;
         if (moved > 3) {
             this._stuckStreak = 0;
-            this._stuckEscalation = 0;
             return;
         }
         this._stuckStreak++;
         if (this._stuckStreak < 2) return;
         this._stuckStreak = 0;
-        if (this._phase === 'work') {
-            // 卡死脱困：可能卡进墙体死区（MovementSystem resolve 反复 clear 路径）。
-            // 第一次先原地脱离 + 重选矿点；连续卡死（升级）→ 直接传送到矿点附近合法点，
-            // 终结「顶墙 → 清路径 → 直线顶墙」死循环（与 CompanionAI 卡死瞬移同款兜底）
-            this._stuckEscalation++;
-            const near = this._stuckEscalation >= 2 ? (m.target || null) : null;
-            const anchor = near && near.active ? near : m;
-            if (WallSystem && typeof WallSystem.findSafeSpawn === 'function') {
-                let sp = null;
-                if (near && near.active) {
-                    // 传送到矿点旁 95px 合法点（避免落在矿点中心/障碍上）
-                    for (let i = 0; i < 8; i++) {
-                        const a = (i / 8) * Math.PI * 2 + Math.random() * 0.5;
-                        const px = near.x + Math.cos(a) * 95;
-                        const py = near.y + Math.sin(a) * 95;
-                        if (!WallSystem.canMoveTo || WallSystem.canMoveTo(px, py, m.groundRadius || 24)) {
-                            sp = { x: px, y: py };
-                            break;
-                        }
-                    }
-                }
-                if (!sp) sp = WallSystem.findSafeSpawn(anchor.x, anchor.y, m.groundRadius || 24);
-                if (sp && Number.isFinite(sp.x) && Number.isFinite(sp.y)
-                    && Math.hypot(sp.x - m.x, sp.y - m.y) > 5) {
-                    m.x = sp.x;
-                    m.y = sp.y;
-                }
-            }
-            if (near) this._stuckEscalation = 0;
-            m.target = null;
-            m._tacticalTarget = null;
-            if (m._pathManager) m._pathManager._clearPath();
-        } else if (this._phase === 'unload_return' && m._hut && m._hut.active) {
-            // 传送到小屋附近合法点
-            if (WallSystem && typeof WallSystem.findSafeSpawn === 'function') {
-                const sp = WallSystem.findSafeSpawn(m._hut.x, m._hut.y, m.groundRadius || 24);
-                if (sp && Number.isFinite(sp.x) && Number.isFinite(sp.y)) {
-                    m.x = sp.x;
-                    m.y = sp.y;
-                }
-            }
-        }
+        // 保留当前矿点/返营目标，下一帧由 MovementSystem 的 PathManager 重新计算合法路线。
+        if (m._pathManager) m._pathManager._clearPath();
     }
 
     /** 采矿攻击：间隔到点对矿点造成伤害；采矿效率（miningMult）直接乘在攻击力上 */

@@ -105,12 +105,12 @@ check('建筑面板门图标来自实际关闭帧+真实两端方块墙',
     && /cover_gate_D_bars\.png/.test(gateIconToolSrc)
     && /obstacle_block\.png/.test(gateIconToolSrc)
     && /后柱 → 关闭栅栏 → 前柱/.test(gateIconToolSrc));
-check('生产建筑面板按能力/仓库/被动模式显式切换单位选择区',
-    /unitTypeEl\.style\.display = \(isAbilityShop \|\| isWarehouse \|\| isPassive \|\| isPortal\) \? 'none' : ''/.test(producerSrc));
+check('生产建筑面板按能力/仓库/被动等模式显式隐藏单位选择区',
+    /unitTypeEl\.style\.display = \(isAbilityShop \|\| isWarehouse \|\| isPassive[\s\S]{0,90}\) \? 'none' : ''/.test(producerSrc));
 check('持续升级不在启动前预置 _continuous',
-    !/b\._continuous = abilityId;\s*this\._notify\([^]*if \(!b\._upgrade\)/.test(producerSrc)
+    !/b\._continuous = abilityId;\s*this\._notify[\s\S]*?if \(!b\._upgrade\)/.test(producerSrc)
     && /if \(b\._upgrade\)/.test(producerSrc)
-    && /const res = b\.startAbilityUpgrade\(abilityId, true\)/.test(producerSrc));
+    && /const res = b\.startAbilityUpgrade\(abilityId, false\)/.test(producerSrc));
 check('世界-122升级写入主存档并可读回',
     /unitUpgrades: serializeUnitUpgrades\(\)/.test(saveSrc)
     && /abilityLevels: serializeAbilityLevels\(\)/.test(saveSrc)
@@ -127,19 +127,19 @@ check('详情面板提供真实方块/4格门信息与半价回收',
     /_renderBlockDetail\(det, e\)/.test(buildingSrc)
     && /4格门（C级数值）/.test(buildingSrc)
     && /_recycleBuilding\(\)/.test(buildingSrc)
-    && /Math\.floor\(totalCost \* 0\.5\)/.test(buildingSrc)
+    && /\* 0\.5 \* durability\)/.test(buildingSrc)
     && /part\._buildGroupRoot = gate/.test(buildingSrc)
     && /grid-template-columns:repeat\(3/.test(buildingSrc));
 check('面板外左键或右键关闭墙门及全部独立建筑详情',
-    /_closeBuildingDetailsFromOutside\(e\)/.test(buildingSrc)
+    /_closeBuildingPanelsFromOutside\(e\)/.test(buildingSrc)
     && /e\.button !== 0 && e\.button !== 2/.test(buildingSrc)
     && /DefenseSystem\?\._panel/.test(buildingSrc)
-    && /HamsterBarracksSystem\?\._panel/.test(buildingSrc)
+    && /HamsterHutSystem\?\._panel/.test(buildingSrc)
     && /ProducerBuildingSystem\?\._panel/.test(buildingSrc)
     && /panel\.isOpen && typeof panel\.close === 'function'/.test(buildingSrc));
 check('空白场景点击关闭主建筑面板，建筑点击与放置操作不被误关',
     /window\.addEventListener\('mousedown', this\._downFn, true\)/.test(buildingSrc)
-    && /!this\._placing && !this\._eventHitsBuilding\(e\)/.test(buildingSrc)
+    && /if \(this\._placing \|\| this\._recycleMode\) return false/.test(buildingSrc)
     && /this\.close\(\)/.test(buildingSrc)
     && /pointInIsoFootprint/.test(buildingSrc));
 check('铁匠铺能力目标显示中文，研究院改用目标效果标签',

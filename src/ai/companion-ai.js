@@ -44,8 +44,7 @@ import {
 } from '../combat/elevated-ranged.js';
 import { hasRangedLineOfSight } from '../combat/ranged-line-of-sight.js';
 import {
-    DEFAULT_MAGE_AI, decideCompanionAction, pickCompanionSpell,
-    shouldRelocateCompanion, shouldUseRun,
+    DEFAULT_MAGE_AI, decideCompanionAction, pickCompanionSpell, shouldUseRun,
     shouldWarriorDefend, shouldWarriorWhirlwind, pickPatrolPoint, pickNearestNode,
 } from './companion-ai-decision.js';
 
@@ -72,14 +71,13 @@ export class CompanionAI {
         this._castTimer = 0;
         this._initPos = false;
         this._lastAction = 'idle';
-        this._relocateTimer = 0;
         this._lastScene = null;
         this._lastDmsState = null;
         this._followCache = null;
         this._stuckSampleTimer = 0;
         this._stuckSamples = [];
         this._stuckStreak = 0;
-        this._teleportCd = 0;
+        this._repathCd = 0;
         this._consumableTimer = 0;
         this._basicAtkCd = 0;   // 普通攻击间隔 CD（ms）
         // ===== 剑盾近战（伊莉丝，2026-08-15）=====
@@ -97,7 +95,6 @@ export class CompanionAI {
         this._castDuration = 0;      // 施法/攻击动作总时长（算 50% 释放点）
         this._castRecoverTimer = 0;  // 施法/攻击结束硬直（防动画刚完就滑动）
         this._lastAttackAt = 0;      // 最近一次攻击释放/命中时间戳（判定窗口内输出中不算卡死）
-        this._lastPlayerDist = null; // 掉队判定：记录上一帧与玩家距离，检测是否在有效追赶
         // 指挥轮盘指令状态（2026-08-14）
         this._patrolTarget = null;  // 巡逻随机目标点
         this._patrolTimer = 0;      // 巡逻换点计时
@@ -228,29 +225,9 @@ export class CompanionAI {
             c.y = sp.y;
             this._initPos = true;
         }
-        // 掉队瞬移（理智版，2026-08-14）：区分"被卡住/卡门外导致的距离过远"（瞬移）
-        // 与"正常 AI 运作（躲避敌人/战斗站位/追赶中）导致的距离过远"（不瞬移）。
-        // 卡住证据 = 距离超阈值 + PathManager stuckCount / 撞墙；正常远离 = flee/站位/施法/距离在缩小。
-        // 指挥指令（巡逻/采集/主动攻击）允许远离玩家：这些模式跳过掉队瞬移（指令自带寻路重试）。
+        // 运行中不再因掉队直接改坐标；场景初始化/房间切换的合法落点同步仍保留。
+        // 卡住时由下方位移采样触发精确重算，避免长距离绕墙时被定时清掉正确路径。
         const cmdMode = c._command && c._command.mode;
-        const onElevatedSurface = c._surfaceRouteActive
-            || c._surfaceKind === 'stairs'
-            || c._surfaceKind === 'wall_walk';
-        this._relocateTimer -= dt;
-        if (this._relocateTimer <= 0
-            && !onElevatedSurface
-            && (!cmdMode || cmdMode === 'follow')) {
-            this._relocateTimer = 1500;
-            if (this._evaluateRelocate(player)) {
-                const sp = this._findValidSpawn(player);
-                c.x = sp.x;
-                c.y = sp.y;
-                if (c._pathManager) c._pathManager._clearPath();
-                c._tacticalTarget = null;
-                this._stuckSamples.length = 0;
-                this._stuckStreak = 0;
-            }
-        }
 
         // 冷却推进（火球/冰锥由 AI 推进；闪电/圣光由各自 system.update 推进）
         if (c._fireballCooldown > 0) c._fireballCooldown = Math.max(0, c._fireballCooldown - dt);
@@ -315,10 +292,9 @@ export class CompanionAI {
         // 移动（MovementSystem：寻路跟随/撤退/站位，施法锁定自动停步）
         MovementSystem.update(c, dt, entities);
 
-        // 队友防卡死：位移型卡死检测 + 瞬移脱离（只作用于队员，不影响玩家/敌人；
-        // 门闸等动态障碍 MovementSystem 的 GATE-WAIT 面向怪物选择等待，队友直接瞬移跟上）
-        // 指挥指令（巡逻/采集/主动攻击）跳过：瞬移回玩家会打断采集/巡逻，指令层自带重新寻路
-        this._teleportCd = Math.max(0, this._teleportCd - dt);
+        // 队友防卡死只清理旧路径并重新规划；实际位移继续统一交给 MovementSystem.resolve。
+        // 指挥指令（巡逻/采集/主动攻击）由各自命令层负责重新寻路。
+        this._repathCd = Math.max(0, this._repathCd - dt);
         if (!cmdMode || cmdMode === 'follow') {
             this._checkStuck(dt, player);
         }
@@ -349,44 +325,8 @@ export class CompanionAI {
     }
 
     /**
-     * 理智判定"是否掉队需要瞬移回玩家身边"（2026-08-14 用户需求）：
-     * 区分 被卡住/卡门外导致的距离过远（瞬移） 与 正常 AI 运作导致的距离过远（不瞬移）。
-     * 正常远离（合法）：①flee 逃离近战威胁（retreat 点含朝玩家分量，会自动收敛）
-     *                  ②advance 去战斗站位输出（站位点离玩家在 maxFollow 允许范围）
-     *                  ③施法锁定中（瞬移会打断施法）④正在有效追赶（距离在缩小）
-     * 掉队证据（瞬移）：①距离超 teleportHardDist（无条件兜底，彻底跑丢）
-     *                  ②距离超 teleportDist 且非上述合法状态
-     *                  ③撞墙（canMoveTo false）④PathManager stuckCount ≥ 2（路径反复失败/局部修复无效）
-     */
-    _evaluateRelocate(player) {
-        const c = this.c;
-        const cfg = this.cfg;
-        const dist = Math.hypot(c.x - player.x, c.y - player.y);
-        const wallIgnore = WallSystem?.ignoreForEntity ? WallSystem.ignoreForEntity(c) : null;
-        const inWall = !!(WallSystem && typeof WallSystem.canMoveTo === 'function'
-            && !WallSystem.canMoveTo(c.x, c.y, (c.groundRadius || 26) * 0.8, wallIgnore));
-        const relocate = shouldRelocateCompanion({
-            dist,
-            teleportDist: cfg.teleportDist ?? 700,
-            teleportHardDist: cfg.teleportHardDist ?? 1100,
-            lastAction: this._lastAction,
-            tacticalTarget: c._tacticalTarget,
-            player,
-            followOffset: cfg.followOffset || 150,
-            lastPlayerDist: this._lastPlayerDist,
-            casting: c._castState !== 'idle' || c._frozenForCast,
-            inWall,
-            pathStuck: !!(c._pathManager && c._pathManager.stuckCount >= 2),
-        });
-        this._lastPlayerDist = dist;
-        return relocate;
-    }
-
-    /**
-     * 位移型卡死检测：2s 窗口内总位移 < 10px 且仍有移动意图 → 卡死。
-     * 连续确认后瞬移脱离（局部搜索更近玩家的合法点，兜底玩家附近），4s 冷却防抖动。
-     * 参考行业共识：短时位移≈0 + 有移动意图即卡死；多次尝试后兜底瞬移到可达点
-     * （L4D 传送下一路径点 / Godot 取导航最近点 / Gmod-Auto-Unstuck）。
+     * 位移型卡死检测：2s 窗口内总位移 < 10px 且仍有移动意图 → 清理旧路径，
+     * 交由统一 PathManager/MovementSystem 重新规划，不做任何坐标传送。
      */
     _checkStuck(dt, player) {
         const c = this.c;
@@ -403,7 +343,7 @@ export class CompanionAI {
             this._stuckStreak = 0;
             return;
         }
-        // 判定窗口内（2.5s）有过攻击释放/命中 → 正在正常输出，不算卡死，不触发瞬移
+        // 判定窗口内（2.5s）有过攻击释放/命中 → 正在正常输出，不算卡死
         if (this._lastAttackAt && Date.now() - this._lastAttackAt < 2500) {
             this._stuckStreak = 0;
             return;
@@ -428,49 +368,24 @@ export class CompanionAI {
         }
 
         this._stuckStreak++;
-        if (this._stuckStreak >= 2 && this._teleportCd <= 0) {
-            this._teleportStuck(player);
+        if (this._stuckStreak >= 2 && this._repathCd <= 0) {
+            this._recoverStuckPath(player);
             this._stuckStreak = 0;
         }
     }
 
-    /** 瞬移脱离卡死位置：优先卡死点附近"更靠近玩家"的合法点，否则玩家附近合法点 */
-    _teleportStuck(player) {
+    /** 卡死恢复：保留当前位置，只刷新朝玩家的合法寻路目标。 */
+    _recoverStuckPath(player) {
         const c = this.c;
         if (c._surfaceNavWaiting
             || c._surfaceRouteActive
             || c._surfaceKind === 'stairs'
             || c._surfaceKind === 'wall_walk') return;
-        this._teleportCd = 4000;
-        const radius = (c.groundRadius || 26) * 0.8;
-        const curDist = Math.hypot(c.x - player.x, c.y - player.y);
-        let local = null;
-        if (WallSystem && typeof WallSystem.canMoveTo === 'function') {
-            outer:
-            for (const dist of [50, 90, 140, 200]) {
-                for (let i = 0; i < 8; i++) {
-                    const angle = (i / 8) * Math.PI * 2;
-                    const px = c.x + Math.cos(angle) * dist;
-                    const py = c.y + Math.sin(angle) * dist;
-                    if (!WallSystem.canMoveTo(px, py, radius, WallSystem.ignoreForEntity?.(c) || null)) continue;
-                    if (Math.hypot(px - player.x, py - player.y) < curDist - 10) {
-                        local = { x: px, y: py };
-                        break outer;
-                    }
-                }
-            }
-        }
-        const sp = local || this._findValidSpawn(player);
-        c.x = sp.x;
-        c.y = sp.y;
+        this._repathCd = 4000;
         if (c._pathManager) c._pathManager._clearPath();
-        c._tacticalTarget = null;
+        c._tacticalTarget = this._followPoint(player);
         c._stuckSamples.length = 0;
         this._stuckStreak = 0;
-        // 瞬移后立即同步一次逻辑位置（渲染下一帧生效）
-        if (typeof console !== 'undefined') {
-            console.log(`[CompanionAI] ${c.id || c.name} 卡死瞬移: (${Math.round(c.x)},${Math.round(c.y)})`);
-        }
     }
 
     /** 施法锁定：站定播 spell 动画，时长结束恢复 */

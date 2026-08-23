@@ -15,6 +15,7 @@ export class HamsterPriest extends Companion {
             ...overrides,
             ai: { ...(configData.ai || {}), ...(overrides.ai || {}) },
             animations: { ...(configData.animations || {}), ...(overrides.animations || {}) },
+            render: { ...(configData.render || {}), ...(overrides.render || {}) },
         };
         super(archive);
         // 新生成单位也要继承教堂已经完成的全局圣光强化等级。
@@ -27,28 +28,35 @@ export class HamsterPriest extends Companion {
         this._enemyTargetable = true;
         this.x = x;
         this.y = y;
-        this.groundRadius = 20;
-        this.collisionRadius = 20;
-        this.bodyHeight = 100;
-        this.size = 64;
+        this.groundRadius = Number(archive.groundRadius) || 20;
+        this.collisionRadius = Number(archive.collisionRadius) || this.groundRadius;
+        this.bodyHeight = Number(archive.bodyHeight) || 100;
+        this.size = Number(archive.size) || 64;
         this.hittable = true;
         this.hitFlash = 0;
-        // 素材脚底约在 y=350/512；displaySize=250 后与其他仓鼠的有效角色高度对齐，
-        // 相对逻辑脚底约 45px。
-        this.footOffsetY = 45;
-        this.config = { render: { hudOffsetY: 119, footOffsetY: 45 } };
+        // 仓鼠牧师是步兵/施法单位视觉与碰撞基准；其它同类单位按 alpha 内容高度
+        // 换算 displaySize，不能机械照抄 250。
+        const renderConfig = archive.render || {};
+        this.footOffsetY = Math.max(0, Number(renderConfig.footOffsetY) || 45);
+        this.config = {
+            render: {
+                ...renderConfig,
+                hudOffsetY: Math.max(0, Number(renderConfig.hudOffsetY) || 119),
+                footOffsetY: this.footOffsetY,
+            },
+        };
         this._dying = false;
         this._deathTimer = 0;
         this._ai = new HamsterPriestAI(this);
         this._animState = 'idle';
+        this.configureCollisionFromArchive(archive);
     }
 
     takeDamage(damage, _source, _damageType = 'physical', _isMelee = true) {
-        if (this._dying || this.data.hp <= 0) return 0;
-        const before = this.data.hp;
-        super.takeDamage(damage, _source, _damageType, _isMelee);
+        if (this._dying || this.data.hp <= 0) return { damage: 0, parried: false, critical: false };
+        const result = super.takeDamage(damage, _source, _damageType, _isMelee);
         if (this.data.hp <= 0) this._startDying();
-        return before - this.data.hp;
+        return result;
     }
 
     _startDying() {

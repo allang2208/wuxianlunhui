@@ -143,8 +143,9 @@ check('实体跳过中立兜底圆（_skipNeutralSprite）', /_skipNeutralSprite
 check('实体提供 takeDamage 并触发死亡流程', /takeDamage\(damage, source/.test(entSrc)
     && /_startDying\(\)/.test(entSrc));
 check('死亡状态 = dying', /_animState = 'dying'/.test(entSrc));
-check('实体脚底/深度补偿（spriteOffsetY ↔ footOffsetY）', /footOffsetY = 44/.test(entSrc)
-    && /spriteOffsetY/.test(entSrc));
+check('实体脚底/深度补偿读取配置（spriteOffsetY ↔ footOffsetY）',
+    Math.abs(guardCfg.render.footOffsetY + guardCfg.spriteOffsetY) < 1e-6
+    && /renderConfig/.test(entSrc));
 check('死亡动画时长 = 15 帧 @12fps = 1250ms', /DYING_DURATION_MS = 1250/.test(entSrc));
 
 // ---- 4. 源码接线：渲染 / 加载 / 兵营生成 ----
@@ -153,9 +154,8 @@ check('GameScene 渲染友方单位（friendlyUnits）', /_game\.friendlyUnits/.
 check('GameScene 盾卫攻击单次播放（_isHamsterGuard 并入射手分支）',
     /member\._isHamsterGuard/.test(gsSrc) && /_attackSwing/.test(gsSrc));
 check('GameScene 盾卫移动朝向 vx（不倒退走路）',
-    /member\._isHamsterGuard/.test(gsSrc)
-    && /member\._isHamsterMusketeer \|\| member\._isHamsterPriest\) && moving/.test(gsSrc)
-    && /faceRight = member\.vx > 0/.test(gsSrc));
+    /member\._isHamsterGuard \|\|/.test(gsSrc)
+    && /&& moving\) \{\s*faceRight = member\.vx > 0/.test(gsSrc));
 check('GameScene 盾卫受击白闪', /member\._isHamsterGuard/.test(gsSrc)
     && /member\.hitFlash > 0/.test(gsSrc));
 
@@ -172,7 +172,9 @@ check('兵营注册盾卫单位（unit.guard + 导入）',
 check('兵营升级走全局兵种表（applyGlobalUpgradesToKind + 面板读全局等级）',
     /applyGlobalUpgradesToKind\(this\.unitType, BARRACKS_CONFIG\.modules\)/.test(barSrc)
     && /getUnitUpgradeLevel\(b\.unitType, mid\)/.test(barSrc));
-check('兵营面板生成单位类型按钮含盾卫', /\$\{btn\('guard'\)\}/.test(barSrc));
+check('兵营面板按配置生成单位类型按钮且含盾卫',
+    (barracksBuildingCfg.unitTypes || []).includes('guard')
+    && /\$\{\(BARRACKS_CONFIG\.barracks\.unitTypes \|\| \[\]\)\.map\(btn\)\.join/.test(barSrc));
 check('兵营产出速度 45s（配置真源）', barracksBuildingCfg.spawnIntervalMs === 45000);
 check('兵营切换兵种重新计时（重置 _spawnTimer，2026-08-18）',
     /if \(type === this\.unitType\) return false;/.test(barSrc)

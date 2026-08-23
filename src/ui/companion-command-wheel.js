@@ -14,6 +14,7 @@ import { RTSCommand } from './rts-command.js';
 import { Camera } from '../world/camera.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
+import { isGameplayPointerEvent } from './gameplay-pointer-boundary.js';
 
 export const CompanionCommandWheel = {
     LONG_PRESS_MS: 300,
@@ -70,11 +71,9 @@ export const CompanionCommandWheel = {
         // 指挥模式统一（2026-08-19）：指挥模式下选中单位（仓鼠部队/队友）即可下达，不再只限队友
         const rtsActive = !!(RTSCommand && RTSCommand.enabled && RTSCommand.hasAllySelection && RTSCommand.hasAllySelection());
         if (!rtsActive && (!PartySystem || !PartySystem.members.length)) return false;
-        // 不再做全局“任一系统面板打开即禁用”：面板状态残留会永久卡死轮盘。
-        // 改为按按下时鼠标悬停的目标拦截（下一条 closest 判断），面板开着但不
-        // 悬停在面板上时仍可下达指令。
-        if (e.target && typeof e.target.closest === 'function'
-            && e.target.closest('.system-panel, .panel-overlay, .side-menu, .menu-btn, .back-menu-btn, .wall-editor-panel, .rts-command-bar, .companion-panel-wrap, .companion-overlay')) return false;
+        // 面板可保持打开，但中键起点必须是真实游戏表面；所有 DOM 栏目默认隔离，
+        // 避免新栏目未补 class 黑名单时在其上打开轮盘并输入移动攻击。
+        if (!isGameplayPointerEvent(e)) return false;
         return true;
     },
 

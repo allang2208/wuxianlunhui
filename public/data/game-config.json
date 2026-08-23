@@ -28,6 +28,9 @@
   "camera": {
     "smooth": 0.12
   },
+  "rtsCommand": {
+    "defaultAcquireRange": 900
+  },
   "grid": {
     "size": 60,
     "strokeStyle": "rgba(90, 77, 63, 0.15)",
@@ -710,11 +713,10 @@
       },
       "name": "祭坛",
       "size": 24,
-      "collisionRadius": 110,
+      "footprintCells": 2,
       "color": "#6a4a8a",
       "npcType": "altar",
       "noSeparation": true,
-      "colliderOffsetY": -69,
       "sprite": {
         "comment": "与世界位面祭坛共用 defense_base 贴图及显示尺寸",
         "idleKey": "defense_base",
@@ -727,7 +729,6 @@
         "width": 200,
         "height": 190
       },
-      "colliderOffsetX": -3.5,
       "height": 107.5
     },
     "mouseBlacksmith": {
@@ -820,13 +821,27 @@
     "skillLongPressMs": 1500
   },
   "minimap": {
-    "width": 220,
+    "width": 252,
     "height": 150,
     "padding": 10,
     "offsetY": 50,
-    "title": "地图",
-    "background": "rgba(0, 0, 0, 0.6)",
-    "border": "rgba(255, 255, 255, 0.4)",
+    "dungeon": {
+      "width": 150,
+      "height": 150,
+      "padding": 10,
+      "offsetY": 50
+    },
+    "title": {
+      "text": "地图",
+      "color": "#c4d3dacc",
+      "offsetX": 8,
+      "offsetY": -2
+    },
+    "background": {
+      "fill": "rgba(9, 12, 15, 0.78)",
+      "border": "rgba(162, 188, 200, 0.82)",
+      "lineWidth": 2
+    },
     "styles": {
       "wall": "rgba(80, 80, 80, 0.5)",
       "viewFrame": "rgba(255, 200, 0, 0.6)",

@@ -50,8 +50,8 @@ check('第 10 帧出膛：延迟 = (10-1)/12fps = 750ms < 2s 间隔',
         - 750) < 1e-6);
 check('idle 动画 = 1 帧', shooterCfg.animations.idle.frameCount === 1
     && shooterCfg.animations.idle.frames[0] === 0);
-check('walk（移动）动画 = 11 帧 [0,10] 循环', shooterCfg.animations.walk.frameCount === 11
-    && shooterCfg.animations.walk.frames[0] === 0 && shooterCfg.animations.walk.frames[1] === 10
+check('walk（移动）动画 = 11 帧 [1,10] 循环', shooterCfg.animations.walk.frameCount === 11
+    && shooterCfg.animations.walk.frames[0] === 1 && shooterCfg.animations.walk.frames[1] === 10
     && shooterCfg.animations.walk.repeat === -1);
 check('attack 动画 = 13 帧 [0,12] 单次 @12fps',
     shooterCfg.animations.attack.frameCount === 13
@@ -94,8 +94,9 @@ check('实体提供 takeDamage 并触发死亡流程', /takeDamage\(damage, sour
     && /_startDying\(\)/.test(entSrc));
 check('死亡状态 = dying + 清飞行投射物', /_animState = 'dying'/.test(entSrc)
     && /_basic = null/.test(entSrc));
-check('实体脚底/深度补偿（spriteOffsetY ↔ footOffsetY）', /footOffsetY = 36/.test(entSrc)
-    && /spriteOffsetY/.test(entSrc));
+check('实体脚底/深度补偿读取配置（spriteOffsetY ↔ footOffsetY）',
+    Math.abs(shooterCfg.render.footOffsetY + shooterCfg.spriteOffsetY) < 1e-6
+    && /renderConfig/.test(entSrc));
 
 // ---- 4. 源码接线：渲染 / 加载 / 生成 / 仇恨 ----
 const gsSrc = fs.readFileSync(path.join(ROOT, 'src/phaser/scenes/GameScene.js'), 'utf-8');
@@ -107,7 +108,8 @@ check('GameScene 箭矢渲染（projective 贴图 + 旋转）',
     /_syncCompanionBasics/.test(gsSrc) && /companion_\$\{m\.animId \|\| m\.id\}_projectile/.test(gsSrc)
     && /setRotation\(\(b\.visualAngle \?\? b\.angle\) \+ \(tipLeft \? Math\.PI : 0\)\)/.test(gsSrc));
 check('GameScene 射手移动朝向 vx（不倒退走路）',
-    /member\._isHamsterShooter\) && moving/.test(gsSrc) && /faceRight = member\.vx > 0/.test(gsSrc));
+    /member\._isHamsterShooter \|\|/.test(gsSrc)
+    && /&& moving\) \{\s*faceRight = member\.vx > 0/.test(gsSrc));
 check('GameScene 射手受击白闪', /member\._isHamsterShooter/.test(gsSrc)
     && /member\.hitFlash > 0/.test(gsSrc));
 

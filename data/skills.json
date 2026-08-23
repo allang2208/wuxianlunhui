@@ -787,6 +787,101 @@
         "kill": 10
       }
     },
+    "sanctuaryDomain": {
+      "id": "sanctuaryDomain",
+      "name": "圣辉领域",
+      "icon": "🌟",
+      "iconImage": "assets/skills/圣辉领域.png",
+      "description": "中级光魔法：以自身为中心展开圣辉领域并跟随移动，持续期内友军每 0.5 秒回复生命、每 2 秒净化 1 个负面状态；领域内敌方每 0.5 秒受光系魔法伤害（僵尸类 2.5 倍）",
+      "sounds": {
+        "cast": [
+          "assets/sounds/skills/holy-light-1.mp3"
+        ]
+      },
+      "maxLevel": 20,
+      "tags": [
+        {
+          "name": "魔法",
+          "type": "magic"
+        },
+        {
+          "name": "主动",
+          "type": "active"
+        }
+      ],
+      "effectFormula": {
+        "cooldown": "26 - Math.floor((level - 1) * 4 / 19)",
+        "mpCost": "60 + Math.floor((level - 1) * 40 / 19)",
+        "duration": "8 + Math.floor((level - 1) * 4 / 19)",
+        "radius": "230 + level * 10",
+        "tickMs": 500,
+        "healBase": "3 + level * 2",
+        "healWisMul": "0.3 + level * 0.1",
+        "damageBase": "6 + level * 2",
+        "damageMagicMul": "0.2 + level * 0.05",
+        "damageIntMul": "0.2 + level * 0.05",
+        "zombieDamageMul": 2.5,
+        "cleanseIntervalMs": 2000
+      },
+      "expFormula": "100 + (level - 1) * 100",
+      "expRewards": {
+        "hit": 1,
+        "kill": 6,
+        "heal": 1,
+        "multiHit": 5,
+        "multiKill": 10
+      }
+    },
+    "holyJudgment": {
+      "id": "holyJudgment",
+      "name": "圣光审判",
+      "icon": "☀️",
+      "iconImage": "assets/skills/圣光审判.png",
+      "selfCast": true,
+      "description": "高级光魔法：长按蓄力（可随鼠标移动选点），松开或蓄满 2.5 秒后在目标点降下巨型圣柱——范围内敌方受光系伤害（僵尸类 3 倍），血量过低的非 Boss 不死单位被直接净化；友方大额回复并立即清除全部负面状态。蓄力 0.5~2.5 秒按时间比例 30%~100% 生效，不足 0.5 秒释放失败且不进入冷却不耗魔",
+      "sounds": {
+        "cast": [
+          "assets/sounds/skills/holy-light-1.mp3"
+        ]
+      },
+      "maxLevel": 20,
+      "tags": [
+        {
+          "name": "魔法",
+          "type": "magic"
+        },
+        {
+          "name": "主动",
+          "type": "active"
+        }
+      ],
+      "effectFormula": {
+        "cooldown": "40 - Math.floor((level - 1) * 4 / 19)",
+        "mpCost": "130 + Math.floor((level - 1) * 40 / 19)",
+        "maxRange": 700,
+        "delayMs": 2500,
+        "minChargeMs": 500,
+        "radiusMin": 280,
+        "radiusMax": 520,
+        "damageBase": "60 + level * 8",
+        "damageMagicMul": "1.5 + level * 0.25",
+        "damageIntMul": "1.0 + level * 0.2",
+        "damageWisMul": "1.0 + level * 0.2",
+        "zombieDamageMul": 3,
+        "purifyThreshold": "0.12 + level * 0.004",
+        "healBase": "20 + level * 12",
+        "healWisMul": "1 + level * 0.5",
+        "shakeIntensity": 12
+      },
+      "expFormula": "100 + (level - 1) * 100",
+      "expRewards": {
+        "hit": 2,
+        "kill": 10,
+        "heal": 1,
+        "multiHit": 8,
+        "multiKill": 10
+      }
+    },
     "iceWall": {
       "id": "iceWall",
       "name": "冰墙",

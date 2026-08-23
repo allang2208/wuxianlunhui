@@ -28,6 +28,10 @@ import { ElevatedNavigationController } from '../ai/elevated-navigation-controll
 import { resolveRtsMoveDestination } from '../ai/rts-command-utils.js';
 import { getTributeFriendlyMoveSpeedMul, getFriendlyMoveSpeedAura } from '../config/tribute-effects.js';
 import { World125FogTideSystem } from '../world/world125-fog-tide-system.js';
+import {
+    basicMeleeApproachRange,
+    distanceToMeleeTarget,
+} from '../combat/melee-attack-resolver.js';
 
 /** 超出此距离不再进行 A* 寻路，直接朝目标移动 */
 const MAX_PATHFIND_RANGE = 800;
@@ -1285,12 +1289,27 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
 
     /**
      * [ENHANCE] 攻击范围渐进摩擦
-     * - dist <= attackRange * 0.5：完全摩擦（停车攻击）
-     * - dist <= attackRange * 0.9：线性递增摩擦
-     * - dist > attackRange * 0.9：不额外摩擦，继续冲锋到更近位置
+     * - dist <= effectiveRange * 0.5：完全摩擦（停车攻击）
+     * - dist <= effectiveRange * 0.9：线性递增摩擦
+     * - dist > effectiveRange * 0.9：不额外摩擦，继续冲锋到更近位置
      */
     _applyAttackRangeFriction(enemy, dist) {
-        const range = enemy.attackRange || 70;
+        const customApproachConfig = typeof enemy.getBasicMeleeApproachConfig === 'function'
+            ? enemy.getBasicMeleeApproachConfig()
+            : null;
+        const directedAttackConfig = customApproachConfig
+            || (enemy._usesDirectedBasicMelee !== false && enemy.attacks?.melee
+                ? (enemy.attacks.melee.config || {})
+                : null);
+        const usesDirectedBasicMelee = !!directedAttackConfig;
+        const range = usesDirectedBasicMelee
+            ? basicMeleeApproachRange(enemy, directedAttackConfig)
+            : (enemy.attackRange || 70);
+        // 已迁移的普通近战与起手/命中统一读取目标真实 footprint 边缘距离；
+        // 不再让 MovementSystem 单独按中心距离停车。
+        if (usesDirectedBasicMelee && enemy.target?.active) {
+            dist = distanceToMeleeTarget(enemy, enemy.target);
+        }
         // 结构目标（掩体/门/基地/塔）：刹车距离改用真实 footprint 形状距离（AABB/圆边距），
         // 中心距离落在墙体后方永远到不了 → 怪沿墙滑行不停车，攻击判定窗口滑过即挥空
         // （2026-08-16 世界-122 实机复现：僵尸啃掩体动画照播但零伤害）
