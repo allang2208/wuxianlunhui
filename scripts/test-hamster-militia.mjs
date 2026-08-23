@@ -80,8 +80,8 @@ check('AI 不攻击能源矿点（_isEnergyNode 跳过，用户口径）',
 check('AI 攻击动画第 8 帧判定伤害（damageDelayMs=(frame-1)/fps×1000）',
     /_damageDelayMs = Math\.max\(0, \(damageFrame - 1\) \/ fps \* 1000\)/.test(aiSrc)
     && /_applyDamage\(\)/.test(aiSrc));
-check('AI 挥击出伤走 takeDamage(attackDamage, m, physical)',
-    /e\.takeDamage\(this\._attackDamage, m, 'physical', true\)/.test(aiSrc));
+check('AI 挥击出伤走 takeDamage（经六维属性换算 getPhysicalAttackDamage）',
+    /e\.takeDamage\(m\.getPhysicalAttackDamage\(this\._attackDamage, e\), m, 'physical', true\)/.test(aiSrc));
 check('AI 移动复用 MovementSystem、挥击站定', /MovementSystem\.update\(m, dt, entities\)/.test(aiSrc)
     && /_swingActive/.test(aiSrc));
 check('AI 无敌跟随玩家 + 到达清路径归零速度', /_followOffset/.test(aiSrc)
@@ -95,8 +95,9 @@ check('实体跳过中立兜底圆（_skipNeutralSprite）', /_skipNeutralSprite
 check('实体提供 takeDamage 并触发死亡流程', /takeDamage\(damage, source/.test(entSrc)
     && /_startDying\(\)/.test(entSrc));
 check('死亡状态 = dying', /_animState = 'dying'/.test(entSrc));
-check('实体脚底/深度补偿（spriteOffsetY ↔ footOffsetY）', /footOffsetY = 55/.test(entSrc)
-    && /spriteOffsetY/.test(entSrc));
+check('实体脚底/深度补偿读取配置（spriteOffsetY ↔ footOffsetY）',
+    Math.abs(militiaCfg.render.footOffsetY + militiaCfg.spriteOffsetY) < 1e-6
+    && /renderConfig/.test(entSrc));
 check('死亡动画时长 = 14 帧 @12fps = 1167ms', /DYING_DURATION_MS = 1167/.test(entSrc));
 
 // ---- 4. 源码接线：渲染 / 加载 / 兵营生成 / 产兵建筑 ----
@@ -105,8 +106,8 @@ check('GameScene 渲染友方单位（friendlyUnits）', /_game\.friendlyUnits/.
 check('GameScene 民兵攻击单次播放（_isHamsterMilitia 并入射手/盾卫分支）',
     /member\._isHamsterMilitia/.test(gsSrc) && /_attackSwing/.test(gsSrc));
 check('GameScene 民兵移动朝向 vx（不倒退走路）',
-    /member\._isHamsterMusketeer \|\| member\._isHamsterPriest\) && moving/.test(gsSrc)
-    && /faceRight = member\.vx > 0/.test(gsSrc));
+    /member\._isHamsterMilitia \|\|/.test(gsSrc)
+    && /&& moving\) \{\s*faceRight = member\.vx > 0/.test(gsSrc));
 check('GameScene 民兵受击白闪', /member\._isHamsterMilitia/.test(gsSrc)
     && /member\.hitFlash > 0/.test(gsSrc));
 

@@ -1,19 +1,18 @@
 import technologyTree from '../../data/technology-tree.json';
 import producerBuildings from '../../data/producer-buildings.json';
-import hamsterBarracks from '../../data/hamster-barracks-building.json';
 import buildingUpgrades from '../../data/building-upgrades.json';
 import populationEconomy from '../../data/population-economy.json';
 import { EventBus } from '../core/event-bus.js';
 import { WorldProgressionSystem } from './world-progression-system.js';
 
-const VERSION = 3;
+const VERSION = 5;
 const ALLOWED_UNLOCK_TYPES = new Set(['building', 'unit', 'upgrade', 'mechanic']);
 const treeNodes = Array.isArray(technologyTree.nodes) ? technologyTree.nodes : [];
 const planeResearchNodes = Array.isArray(technologyTree.planeResearch) ? technologyTree.planeResearch : [];
 const nodes = [...treeNodes, ...planeResearchNodes];
 const nodesById = new Map(nodes.map((node) => [node.id, node]));
 const unlockOwners = new Map();
-const ECONOMY_TECH_IDS = Object.freeze([
+const V3_ECONOMY_MIGRATION_TECH_IDS = Object.freeze([
     'settlement_planning', 'housing_optimization', 'agricultural_division',
     'market_circulation', 'credit_finance', 'economic_engineering',
     'interplane_logistics_protocol',
@@ -33,10 +32,10 @@ const houseUpgradeIds = (populationEconomy.house?.levels || [])
     .filter(Boolean);
 const KNOWN_UNLOCK_TARGETS = Object.freeze({
     building: new Set([
-        'tower', 'cover_block', 'road', 'gate_4cell', 'hamster_hut', 'hamster_barracks',
+        'tower', 'cover_block', 'road', 'gate_4cell', 'hamster_hut',
         'wall_staircase', ...producerConfigs.map((config) => config.id),
     ]),
-    unit: new Set([...(hamsterBarracks.unitTypes || []), ...producerUnitIds]),
+    unit: new Set(producerUnitIds),
     upgrade: new Set([...upgradeIds, ...houseUpgradeIds]),
     mechanic: new Set([
         'building_recycle', 'rts_command', 'troop_hold', 'troop_rally',
@@ -454,8 +453,8 @@ export const TechnologySystem = {
         const completed = Array.isArray(saved.completed)
             ? [...new Set(saved.completed.filter((id) => nodesById.has(id)))]
             : [];
-        if (Number(saved.version) < VERSION) {
-            for (const id of ECONOMY_TECH_IDS) {
+        if (Number(saved.version) < 3) {
+            for (const id of V3_ECONOMY_MIGRATION_TECH_IDS) {
                 if (nodesById.has(id) && !completed.includes(id)) completed.push(id);
             }
         }
@@ -547,7 +546,6 @@ export const TechnologySystem = {
         const game = typeof window !== 'undefined' ? window.Game : null;
         game?.BuildingSystem?.refreshTechnologyUnlocks?.();
         game?.ProducerBuildingSystem?._panel?.refresh?.();
-        game?.HamsterBarracksSystem?._panel?.refresh?.();
         game?.RTSCommand?._refreshTroopLinePanel?.(true);
     },
 };

@@ -3,13 +3,6 @@ import { PERSPECTIVE_SCALE_Y } from '../config/perspective-config.js';
 /** 世界-122 格网 footprint 公式真源：单格宽128，屏幕Y按0.5投影。 */
 export const BUILDING_GRID_CELL_WIDTH = 128;
 
-/** World-122 standard 2x2 foundation layer; body art stays a separate sprite. */
-export const BUILDING_FOUNDATION_CONFIG = Object.freeze({
-    key: 'building_foundation_2x2',
-    displayW: 256,
-    displayH: 128,
-});
-
 function standardGridFootprint(cells, { frontAnchored = true, clearRadius }) {
     const count = Math.max(1, Number(cells) || 1);
     const w = BUILDING_GRID_CELL_WIDTH * count;
@@ -81,6 +74,7 @@ export function applyBuildingFootprint(entity, cells = 2) {
     if (!entity) return entity;
     const foot = getBuildingFootprint(cells);
     entity._isGridBuilding = true;
+    if (entity._civilianBlocksVisuals === undefined) entity._civilianBlocksVisuals = true;
     entity._buildingFootprintCells = cells;
     entity._isOneCellBuilding = cells === 1;
     entity._isTwoByTwoBuilding = cells === 2;
@@ -128,6 +122,7 @@ export function applyWallStairFootprint(entity, dir = 'e2') {
     if (!entity) return entity;
     const foot = WALL_STAIR_FOOTPRINTS[dir] || WALL_STAIR_FOOTPRINTS.e2;
     entity._isGridBuilding = true;
+    if (entity._civilianBlocksVisuals === undefined) entity._civilianBlocksVisuals = true;
     entity._buildingFootprintCells = 1;
     entity._isOneCellBuilding = true;
     entity._isTwoByTwoBuilding = false;

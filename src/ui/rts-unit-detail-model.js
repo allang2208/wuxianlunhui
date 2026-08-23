@@ -69,6 +69,12 @@ function moduleEffectText(module, level) {
         case 'attackRangeBonus': return `攻击射程 +${compactNumber(amount)}px`;
         case 'holyLightCooldownMult': return `圣光冷却 ${signedPercent(amount)}`;
         case 'holyLightLevel': return `圣光等级 Lv.${compactNumber(finite(module.base, 1) + amount, 0)}`;
+        case 'jungleMagicLevel': return `全部魔法等级 +${compactNumber(amount, 0)}`;
+        case 'jungleSpellCooldownMult': {
+            if (level <= 0) return '全部魔法冷却 -0%';
+            const multiplier = finite(module.firstLevel, 1) + finite(module.per) * Math.max(0, level - 1);
+            return `全部魔法冷却 -${compactNumber(Math.max(0, 1 - multiplier) * 100)}%`;
+        }
         case 'holyLightRangeBonus': return `施法距离 +${compactNumber(amount)}px`;
         case 'titheEnergyPerTick': {
             const seconds = finite(module.tickMs) / 1000;

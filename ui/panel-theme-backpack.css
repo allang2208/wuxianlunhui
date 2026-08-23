@@ -470,6 +470,80 @@
     background: #f5f5f6;
 }
 
+/* 技能页只滚动内容区：修正 100% tab 高度叠加标题/页签后被面板底部裁切。 */
+#systemPanel > .panel-header,
+#systemPanel > .panel-tabs {
+    flex: 0 0 auto;
+}
+
+#tab-skill.active {
+    flex: 1 1 auto;
+    min-height: 0;
+    height: auto;
+    overflow: hidden;
+}
+
+#tab-skill .skill-page {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-height: 0;
+    height: auto;
+    overflow: hidden;
+}
+
+#tab-skill .skill-filter-bar {
+    flex: 0 0 auto;
+}
+
+#tab-skill .skill-grid {
+    flex: 1 1 auto;
+    min-height: 0;
+    align-content: start;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+    scrollbar-color: var(--bp-ui-gray) var(--bp-ui-black-soft);
+    -webkit-overflow-scrolling: touch;
+}
+
+#tab-skill .skill-detail {
+    inset: 0;
+    width: auto;
+    height: auto;
+    overscroll-behavior: contain;
+    scrollbar-color: var(--bp-ui-gray) #e5e5e7;
+    -webkit-overflow-scrolling: touch;
+}
+
+#tab-skill :is(.skill-grid, .skill-detail)::-webkit-scrollbar {
+    width: 8px;
+}
+
+#tab-skill :is(.skill-grid, .skill-detail)::-webkit-scrollbar-track {
+    background: var(--bp-ui-black-soft);
+}
+
+#tab-skill :is(.skill-grid, .skill-detail)::-webkit-scrollbar-thumb {
+    background: var(--bp-ui-gray);
+    border: 1px solid var(--bp-ui-black-soft);
+    border-radius: 4px;
+}
+
+#tab-skill .skill-detail::-webkit-scrollbar-track {
+    background: #e5e5e7;
+}
+
+#tab-skill .skill-detail::-webkit-scrollbar-thumb {
+    border-color: #e5e5e7;
+}
+
+#tab-skill :is(.skill-grid, .skill-detail):focus-visible {
+    outline: 2px solid var(--bp-ui-accent-bright);
+    outline-offset: -3px;
+}
+
 #tab-codex :is(.codex-main-tab, .codex-cat-tab, .codex-card, .codex-ally-card) {
     color: var(--bp-ui-text-muted);
     background: var(--bp-ui-surface) !important;
@@ -1284,7 +1358,25 @@
     line-height: 1.65;
 }
 
+.side-menu {
+    overflow: visible;
+}
+
+.side-menu-btn {
+    overflow: visible;
+    isolation: isolate;
+}
+
+.side-menu-btn img {
+    width: 68px;
+    height: 68px;
+    object-fit: contain;
+    object-position: center;
+    transform-origin: center;
+}
+
 .side-menu-btn:hover {
+    z-index: 2;
     box-shadow: 0 0 0 1px var(--bp-ui-line-accent), 0 0 14px rgba(142, 166, 178, 0.32) !important;
 }
 
@@ -1378,10 +1470,10 @@
     font-variant-numeric: tabular-nums;
 }
 
-/* Right-top resource ledger and world clock: shared archive instruments. */
+/* Right-top economy panel and world clock: shared archive instruments. */
 .basic-resource-bar {
     gap: 0;
-    height: 50px;
+    height: var(--top-right-instrument-height, 74px);
     min-height: 0;
     box-sizing: border-box;
     padding: 5px 7px;
@@ -1390,9 +1482,9 @@
 }
 
 .basic-resource-item {
-    min-width: 88px;
-    padding: 3px 10px;
-    column-gap: 7px;
+    min-width: 82px;
+    padding: 2px 8px;
+    column-gap: 6px;
     border-right: 1px solid var(--bp-ui-line);
 }
 
@@ -1400,10 +1492,37 @@
     border-right: 0;
 }
 
+.basic-resource-item--food {
+    border-right: 0;
+}
+
+.basic-resource-item--military-population {
+    min-width: 0;
+    padding: 1px 8px;
+    column-gap: 6px;
+    border-top: 1px solid var(--bp-ui-line);
+    border-right: 0;
+}
+
+.basic-resource-item--military-population .basic-resource-icon {
+    width: 18px;
+    height: 18px;
+}
+
+.basic-resource-item--military-population .basic-resource-label {
+    align-self: center;
+}
+
+.basic-resource-item--military-population .basic-resource-value {
+    align-self: center;
+    min-width: 7ch;
+    color: #c7a7ff;
+}
+
 .basic-resource-icon {
     display: block;
-    width: 28px;
-    height: 28px;
+    width: 24px;
+    height: 24px;
     object-fit: contain;
     object-position: center;
     pointer-events: none;
@@ -1423,7 +1542,7 @@
     min-width: 4ch;
     color: var(--bp-ui-white);
     font-family: var(--bp-font-number);
-    font-size: var(--bp-type-body);
+    font-size: var(--bp-type-meta);
     line-height: 1.25;
     font-variant-numeric: tabular-nums;
     text-align: right;
@@ -1474,6 +1593,8 @@
 }
 
 .game-time {
+    height: var(--top-right-instrument-height, 74px);
+    box-sizing: border-box;
     gap: 10px;
     padding: 6px 12px;
     border-width: 1px !important;
@@ -1776,6 +1897,28 @@
     grid-column: 1 / -1;
 }
 
+.producer-building-panel.is-troop-producer .troop-upgrade-panel-heading {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 3px 10px;
+    min-width: 0;
+    margin-bottom: 3px;
+}
+
+.producer-building-panel.is-troop-producer .troop-upgrade-panel-note {
+    flex: 1 1 260px;
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.producer-building-panel.is-troop-producer .troop-upgrade-panel-resources {
+    flex: 0 0 auto;
+    margin-left: auto;
+    white-space: nowrap;
+}
+
 :is(.hamster-barracks-panel, .producer-building-panel) [data-module-row] {
     padding: 9px !important;
     border: 1px solid var(--bp-ui-line) !important;
@@ -1822,43 +1965,69 @@
 }
 
 /* ===== 人口经济建筑：冷钢岗位、生产与工坊档案 ===== */
-.producer-building-panel.is-economy-building {
+:is(.producer-building-panel, .hamster-hut-panel).is-economy-building {
     color: var(--bp-ui-text) !important;
     font-family: var(--bp-font-ui) !important;
 }
 
-.producer-building-panel.is-economy-building :is(#pbStatus, #pbModules) {
+:is(.producer-building-panel, .hamster-hut-panel).is-economy-building :is(#pbStatus, #pbModules, #hhStatus, #hhModules) {
     color: var(--bp-ui-text) !important;
     background: linear-gradient(180deg, rgba(37, 42, 48, 0.92), rgba(21, 25, 30, 0.94)) !important;
     border: 1px solid var(--bp-ui-line) !important;
     border-radius: 5px !important;
 }
 
-.producer-building-panel.is-economy-building #pbModules {
+:is(.producer-building-panel, .hamster-hut-panel).is-economy-building :is(#hhStatus, #hhModules) {
+    padding: 10px;
+}
+
+:is(.producer-building-panel, .hamster-hut-panel).is-economy-building #hhStatus {
+    margin-bottom: 12px;
+}
+
+:is(.producer-building-panel, .hamster-hut-panel).is-economy-building :is(#pbModules, #hhModules) {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 8px;
 }
 
-.producer-building-panel.is-economy-building #pbModules > .economy-workforce,
-.producer-building-panel.is-economy-building #pbModules > .economy-panel-heading,
-.producer-building-panel.is-economy-building #pbModules > .economy-panel-note,
-.producer-building-panel.is-economy-building #pbModules > .economy-stat-grid,
-.producer-building-panel.is-economy-building #pbModules > .economy-trade-actions,
-.producer-building-panel.is-economy-building #pbModules > .troop-panel-upgrade-button {
+:is(.producer-building-panel, .hamster-hut-panel).is-economy-building #pbModules > .economy-workforce,
+:is(.producer-building-panel, .hamster-hut-panel).is-economy-building #pbModules > .economy-panel-heading,
+:is(.producer-building-panel, .hamster-hut-panel).is-economy-building #pbModules > .economy-panel-note,
+:is(.producer-building-panel, .hamster-hut-panel).is-economy-building #pbModules > .economy-stat-grid,
+:is(.producer-building-panel, .hamster-hut-panel).is-economy-building #pbModules > .economy-trade-actions,
+:is(.producer-building-panel, .hamster-hut-panel).is-economy-building #pbModules > .troop-panel-upgrade-button {
     grid-column: 1 / -1;
 }
 
-.producer-building-panel.is-economy-building .economy-panel-heading,
-.producer-building-panel.is-economy-building .economy-workforce-label,
-.producer-building-panel.is-economy-building .economy-progress-label {
+:is(.producer-building-panel, .hamster-hut-panel).is-economy-building #hhModules > .economy-panel-heading {
+    grid-column: 1 / -1;
+}
+
+:is(.producer-building-panel, .hamster-hut-panel).is-economy-building .economy-detail-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 2px 4px 10px;
+    border-bottom: 1px solid var(--bp-ui-line-strong);
+}
+
+:is(.producer-building-panel, .hamster-hut-panel).is-economy-building .economy-detail-toolbar-actions {
+    display: flex;
+    gap: 8px;
+}
+
+:is(.producer-building-panel, .hamster-hut-panel).is-economy-building .economy-panel-heading,
+:is(.producer-building-panel, .hamster-hut-panel).is-economy-building .economy-workforce-label,
+:is(.producer-building-panel, .hamster-hut-panel).is-economy-building .economy-progress-label {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 10px;
 }
 
-.producer-building-panel.is-economy-building .economy-panel-heading {
+:is(.producer-building-panel, .hamster-hut-panel).is-economy-building .economy-panel-heading {
     color: var(--bp-ui-white);
     font-size: var(--bp-type-subtitle);
     font-weight: 700;
@@ -1866,17 +2035,17 @@
     letter-spacing: var(--bp-tracking-label);
 }
 
-.producer-building-panel.is-economy-building .economy-panel-meta,
-.producer-building-panel.is-economy-building .economy-panel-badge,
-.producer-building-panel.is-economy-building .economy-workforce-note,
-.producer-building-panel.is-economy-building .economy-progress-label {
+:is(.producer-building-panel, .hamster-hut-panel).is-economy-building .economy-panel-meta,
+:is(.producer-building-panel, .hamster-hut-panel).is-economy-building .economy-panel-badge,
+:is(.producer-building-panel, .hamster-hut-panel).is-economy-building .economy-workforce-note,
+:is(.producer-building-panel, .hamster-hut-panel).is-economy-building .economy-progress-label {
     color: var(--bp-ui-text-muted);
     font-size: var(--bp-type-meta);
     line-height: 1.45;
     font-variant-numeric: tabular-nums;
 }
 
-.producer-building-panel.is-economy-building .economy-panel-badge {
+:is(.producer-building-panel, .hamster-hut-panel).is-economy-building .economy-panel-badge {
     padding: 4px 7px;
     color: #b9e5c2;
     background: rgba(68, 124, 82, 0.16);
@@ -1884,20 +2053,20 @@
     border-radius: 4px;
 }
 
-.producer-building-panel.is-economy-building .economy-panel-badge.is-blocked {
+:is(.producer-building-panel, .hamster-hut-panel).is-economy-building .economy-panel-badge.is-blocked {
     color: #ffc0b8;
     background: rgba(154, 56, 48, 0.18);
     border-color: rgba(218, 105, 94, 0.42);
 }
 
-.producer-building-panel.is-economy-building .economy-stat-grid {
+:is(.producer-building-panel, .hamster-hut-panel).is-economy-building .economy-stat-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 8px;
     margin-top: 10px;
 }
 
-.producer-building-panel.is-economy-building .economy-stat-grid > div {
+:is(.producer-building-panel, .hamster-hut-panel).is-economy-building .economy-stat-grid > div {
     display: flex;
     flex-direction: column;
     gap: 4px;
@@ -1908,58 +2077,58 @@
     border-radius: 4px;
 }
 
-.producer-building-panel.is-economy-building .economy-stat-grid span {
+:is(.producer-building-panel, .hamster-hut-panel).is-economy-building .economy-stat-grid span {
     color: var(--bp-ui-text-muted);
     font-size: var(--bp-type-meta);
 }
 
-.producer-building-panel.is-economy-building .economy-stat-grid b {
+:is(.producer-building-panel, .hamster-hut-panel).is-economy-building .economy-stat-grid b {
     color: var(--bp-ui-white);
     font-family: var(--bp-font-number);
     font-size: var(--bp-type-meta);
     font-variant-numeric: tabular-nums;
 }
 
-.producer-building-panel.is-economy-building .economy-panel-note {
+:is(.producer-building-panel, .hamster-hut-panel).is-economy-building .economy-panel-note {
     margin: 9px 0 0;
     color: var(--bp-ui-text-muted);
     font-size: var(--bp-type-meta);
     line-height: var(--bp-leading-body);
 }
 
-.producer-building-panel.is-economy-building .economy-panel-note.is-danger {
+:is(.producer-building-panel, .hamster-hut-panel).is-economy-building .economy-panel-note.is-danger {
     color: #ff7066;
     font-weight: 700;
 }
 
-.producer-building-panel.is-economy-building .economy-workforce {
+:is(.producer-building-panel, .hamster-hut-panel).is-economy-building .economy-workforce {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
     gap: 14px;
     align-items: center;
 }
 
-.producer-building-panel.is-economy-building .economy-workforce-copy {
+:is(.producer-building-panel, .hamster-hut-panel).is-economy-building .economy-workforce-copy {
     min-width: 0;
 }
 
-.producer-building-panel.is-economy-building .economy-workforce-label {
+:is(.producer-building-panel, .hamster-hut-panel).is-economy-building .economy-workforce-label {
     margin-bottom: 8px;
     color: var(--bp-ui-text);
     font-size: var(--bp-type-body);
 }
 
-.producer-building-panel.is-economy-building .economy-workforce-label b,
-.producer-building-panel.is-economy-building .economy-progress-label b {
+:is(.producer-building-panel, .hamster-hut-panel).is-economy-building .economy-workforce-label b,
+:is(.producer-building-panel, .hamster-hut-panel).is-economy-building .economy-progress-label b {
     color: var(--bp-ui-white);
     font-family: var(--bp-font-number);
 }
 
-.producer-building-panel.is-economy-building .economy-progress-label {
+:is(.producer-building-panel, .hamster-hut-panel).is-economy-building .economy-progress-label {
     margin: 6px 0 3px;
 }
 
-.producer-building-panel.is-economy-building .economy-progress {
+:is(.producer-building-panel, .hamster-hut-panel).is-economy-building .economy-progress {
     position: relative;
     height: 10px;
     overflow: hidden;
@@ -1968,7 +2137,7 @@
     border-radius: 3px;
 }
 
-.producer-building-panel.is-economy-building .economy-progress > div {
+:is(.producer-building-panel, .hamster-hut-panel).is-economy-building .economy-progress > div {
     position: absolute;
     inset: 0 auto 0 0;
     max-width: 100%;
@@ -1976,25 +2145,29 @@
     transition: width 0.18s linear;
 }
 
-.producer-building-panel.is-economy-building .economy-workforce-note {
+:is(.producer-building-panel, .hamster-hut-panel).is-economy-building .economy-workforce-note {
     margin-top: 7px;
 }
 
-.producer-building-panel.is-economy-building .economy-workforce-note .is-warning {
+:is(.producer-building-panel, .hamster-hut-panel).is-economy-building .economy-workforce-note .is-warning {
     color: #ffad9f;
 }
 
-.producer-building-panel.is-economy-building #pbTitle {
+:is(.producer-building-panel, .hamster-hut-panel).is-economy-building :is(#pbTitle, #hhTitle) {
     color: var(--bp-ui-white) !important;
     font-size: var(--bp-type-title) !important;
 }
 
-.producer-building-panel.is-economy-building #pbFunctionTitle {
+:is(.producer-building-panel, .hamster-hut-panel).is-economy-building :is(#pbFunctionTitle, #hhFunctionTitle) {
     color: var(--bp-ui-white) !important;
     font-size: var(--bp-type-subtitle) !important;
 }
 
-.producer-building-panel.is-economy-building .world122-building-detail-header {
+:is(.producer-building-panel, .hamster-hut-panel).is-economy-building #hhFunctionTitle {
+    margin: 2px 0 6px;
+}
+
+:is(.producer-building-panel, .hamster-hut-panel).is-economy-building .world122-building-detail-header {
     display: flex !important;
     align-items: center !important;
     gap: 10px !important;
@@ -2005,40 +2178,40 @@
     background: linear-gradient(180deg, rgba(37, 42, 48, 0.78), rgba(21, 25, 30, 0.84)) !important;
 }
 
-.producer-building-panel.is-economy-building .world122-building-detail-header img {
+:is(.producer-building-panel, .hamster-hut-panel).is-economy-building .world122-building-detail-header img {
     width: 82px !important;
     height: 76px !important;
     object-fit: contain !important;
     flex-shrink: 0 !important;
 }
 
-.producer-building-panel.is-economy-building .world122-building-detail-name {
+:is(.producer-building-panel, .hamster-hut-panel).is-economy-building .world122-building-detail-name {
     margin: 0 !important;
     font-size: var(--bp-type-subtitle) !important;
     font-weight: 700 !important;
     color: var(--bp-ui-white) !important;
 }
 
-.producer-building-panel.is-economy-building .world122-building-detail-status {
+:is(.producer-building-panel, .hamster-hut-panel).is-economy-building .world122-building-detail-status {
     margin-top: 2px !important;
     font-size: var(--bp-type-meta) !important;
     color: var(--bp-ui-text-muted) !important;
 }
 
-.producer-building-panel.is-economy-building .world122-building-detail-durability {
+:is(.producer-building-panel, .hamster-hut-panel).is-economy-building .world122-building-detail-durability {
     margin-top: 6px !important;
     color: var(--bp-ui-text-muted) !important;
     font-size: var(--bp-type-meta) !important;
 }
 
-.producer-building-panel.is-economy-building .economy-workforce-actions {
+:is(.producer-building-panel, .hamster-hut-panel).is-economy-building .economy-workforce-actions {
     display: grid;
     grid-template-columns: repeat(3, minmax(44px, auto));
     gap: 6px;
 }
 
-.producer-building-panel.is-economy-building .troop-panel-unit-button,
-.producer-building-panel.is-economy-building .troop-panel-upgrade-button {
+:is(.producer-building-panel, .hamster-hut-panel).is-economy-building .troop-panel-unit-button,
+:is(.producer-building-panel, .hamster-hut-panel).is-economy-building .troop-panel-upgrade-button {
     min-height: 36px;
     padding: 7px 10px;
     color: var(--bp-ui-text-muted) !important;
@@ -2051,50 +2224,50 @@
     cursor: pointer;
 }
 
-.producer-building-panel.is-economy-building :is(.troop-panel-unit-button, .troop-panel-upgrade-button):hover:not(:disabled) {
+:is(.producer-building-panel, .hamster-hut-panel).is-economy-building :is(.troop-panel-unit-button, .troop-panel-upgrade-button):hover:not(:disabled) {
     color: var(--bp-ui-white) !important;
     border-color: var(--bp-ui-accent-bright) !important;
 }
 
-.producer-building-panel.is-economy-building :is(.troop-panel-unit-button, .troop-panel-upgrade-button):disabled {
+:is(.producer-building-panel, .hamster-hut-panel).is-economy-building :is(.troop-panel-unit-button, .troop-panel-upgrade-button):disabled {
     opacity: 0.42;
     cursor: not-allowed;
 }
 
-.producer-building-panel.is-economy-building :is(.troop-panel-unit-button, .troop-panel-upgrade-button):focus-visible {
+:is(.producer-building-panel, .hamster-hut-panel).is-economy-building :is(.troop-panel-unit-button, .troop-panel-upgrade-button):focus-visible {
     outline: 2px solid var(--bp-ui-accent-bright);
     outline-offset: 1px;
 }
 
-.producer-building-panel.is-economy-building .economy-trade-actions {
+:is(.producer-building-panel, .hamster-hut-panel).is-economy-building .economy-trade-actions {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 8px;
     margin-top: 8px;
 }
 
-.producer-building-panel.is-economy-building .economy-trade-actions .troop-panel-unit-button {
+:is(.producer-building-panel, .hamster-hut-panel).is-economy-building .economy-trade-actions .troop-panel-unit-button {
     width: 100%;
 }
 
-.producer-building-panel.is-economy-building .economy-unit-gold {
+:is(.producer-building-panel, .hamster-hut-panel).is-economy-building .economy-unit-gold {
     color: #ffdd7a !important;
 }
 
-.producer-building-panel.is-economy-building .economy-unit-energy {
+:is(.producer-building-panel, .hamster-hut-panel).is-economy-building .economy-unit-energy {
     color: #7fd4ff !important;
 }
 
-.producer-building-panel.is-economy-building .economy-unit-food {
+:is(.producer-building-panel, .hamster-hut-panel).is-economy-building .economy-unit-food {
     color: #d9b84f !important;
 }
 
-.producer-building-panel.is-economy-building :is(.economy-unit-gold, .economy-unit-energy, .economy-unit-food) {
+:is(.producer-building-panel, .hamster-hut-panel).is-economy-building :is(.economy-unit-gold, .economy-unit-energy, .economy-unit-food) {
     font-family: var(--bp-font-number);
     font-variant-numeric: tabular-nums;
 }
 
-.producer-building-panel.is-economy-building .building-upgrade-card {
+:is(.producer-building-panel, .hamster-hut-panel).is-economy-building .building-upgrade-card {
     display: flex !important;
     justify-content: space-between !important;
     align-items: center !important;
@@ -2108,11 +2281,11 @@
     min-width: 0 !important;
 }
 
-.producer-building-panel.is-economy-building .building-upgrade-card:hover {
+:is(.producer-building-panel, .hamster-hut-panel).is-economy-building .building-upgrade-card:hover {
     background: rgba(197, 219, 228, 0.03);
 }
 
-.producer-building-panel.is-economy-building .building-upgrade-card-name {
+:is(.producer-building-panel, .hamster-hut-panel).is-economy-building .building-upgrade-card-name {
     font-size: var(--bp-type-body) !important;
     color: var(--bp-ui-white) !important;
     margin-bottom: 2px !important;
@@ -2159,23 +2332,23 @@
     font-size: 20px;
 }
 
-.producer-building-panel.is-economy-building .building-upgrade-card-requirement {
+:is(.producer-building-panel, .hamster-hut-panel).is-economy-building .building-upgrade-card-requirement {
     font-size: var(--bp-type-meta) !important;
     color: var(--bp-ui-text-muted) !important;
     margin-top: 2px !important;
 }
 
-.producer-building-panel.is-economy-building .building-upgrade-card > div:first-child {
+:is(.producer-building-panel, .hamster-hut-panel).is-economy-building .building-upgrade-card > div:first-child {
     min-width: 0 !important;
     flex: 1 !important;
 }
 
-.producer-building-panel.is-economy-building .building-upgrade-card-progress {
+:is(.producer-building-panel, .hamster-hut-panel).is-economy-building .building-upgrade-card-progress {
     font-size: var(--bp-type-meta) !important;
     min-height: 12px !important;
 }
 
-.producer-building-panel.is-economy-building .building-upgrade-card > div:first-child > div:nth-child(3) {
+:is(.producer-building-panel, .hamster-hut-panel).is-economy-building .building-upgrade-card > div:first-child > div:nth-child(3) {
     position: relative !important;
     height: 8px !important;
     width: 100% !important;
@@ -2185,7 +2358,7 @@
     margin-top: 4px !important;
 }
 
-.producer-building-panel.is-economy-building .building-upgrade-card > div:first-child > div:nth-child(3) > div {
+:is(.producer-building-panel, .hamster-hut-panel).is-economy-building .building-upgrade-card > div:first-child > div:nth-child(3) > div {
     position: absolute !important;
     inset: 0 auto 0 0 !important;
     border-radius: 4px !important;
@@ -2193,16 +2366,16 @@
     background: linear-gradient(90deg, #ffd700, #77c8d9) !important;
 }
 
-.producer-building-panel.is-economy-building .building-upgrade-card-actions {
+:is(.producer-building-panel, .hamster-hut-panel).is-economy-building .building-upgrade-card-actions {
     flex-shrink: 0 !important;
 }
 
-.producer-building-panel.is-economy-building .building-upgrade-card-actions > span {
+:is(.producer-building-panel, .hamster-hut-panel).is-economy-building .building-upgrade-card-actions > span {
     color: var(--bp-ui-text-muted) !important;
     font-size: var(--bp-type-meta) !important;
 }
 
-.producer-building-panel.is-economy-building :is(#pbClose, #pbSell) {
+:is(.producer-building-panel, .hamster-hut-panel).is-economy-building :is(#pbClose, #pbSell, #hhClose, #hhSell) {
     font-family: var(--bp-font-ui) !important;
     font-size: var(--bp-type-body) !important;
     line-height: 1.35 !important;
@@ -2212,46 +2385,48 @@
     cursor: pointer !important;
 }
 
-.producer-building-panel.is-economy-building #pbClose {
+:is(.producer-building-panel, .hamster-hut-panel).is-economy-building :is(#pbClose, #hhClose) {
     color: var(--bp-ui-text-muted) !important;
     background: linear-gradient(180deg, #39424a, #252c33) !important;
     border-color: var(--bp-ui-line-strong) !important;
 }
 
-.producer-building-panel.is-economy-building #pbClose:hover {
+:is(.producer-building-panel, .hamster-hut-panel).is-economy-building :is(#pbClose, #hhClose):hover {
     color: var(--bp-ui-white) !important;
     border-color: var(--bp-ui-line) !important;
 }
 
-.producer-building-panel.is-economy-building #pbClose:focus-visible,
-.producer-building-panel.is-economy-building #pbSell:focus-visible {
+:is(.producer-building-panel, .hamster-hut-panel).is-economy-building #pbClose:focus-visible,
+:is(.producer-building-panel, .hamster-hut-panel).is-economy-building #pbSell:focus-visible,
+:is(.producer-building-panel, .hamster-hut-panel).is-economy-building #hhClose:focus-visible,
+:is(.producer-building-panel, .hamster-hut-panel).is-economy-building #hhSell:focus-visible {
     outline: 2px solid var(--bp-ui-accent-bright) !important;
     outline-offset: 1px !important;
 }
 
-.producer-building-panel.is-economy-building #pbSell {
+:is(.producer-building-panel, .hamster-hut-panel).is-economy-building :is(#pbSell, #hhSell) {
     color: #ffe7e5 !important;
     background: linear-gradient(180deg, #612f32, #351a1d) !important;
     border-color: #9b565b !important;
 }
 
-.producer-building-panel.is-economy-building #pbSell:hover {
+:is(.producer-building-panel, .hamster-hut-panel).is-economy-building :is(#pbSell, #hhSell):hover {
     color: #fff !important;
     background: linear-gradient(180deg, #7c3c41, #4b2226) !important;
     border-color: #d18489 !important;
 }
 
 @media (max-width: 1100px) {
-    .producer-building-panel.is-economy-building #pbModules,
-    .producer-building-panel.is-economy-building .economy-stat-grid {
+    :is(.producer-building-panel, .hamster-hut-panel).is-economy-building :is(#pbModules, #hhModules),
+    :is(.producer-building-panel, .hamster-hut-panel).is-economy-building .economy-stat-grid {
         grid-template-columns: 1fr;
     }
 
-    .producer-building-panel.is-economy-building #pbModules > * {
+    :is(.producer-building-panel, .hamster-hut-panel).is-economy-building :is(#pbModules, #hhModules) > * {
         grid-column: 1;
     }
 
-    .producer-building-panel.is-economy-building .economy-workforce {
+    :is(.producer-building-panel, .hamster-hut-panel).is-economy-building .economy-workforce {
         grid-template-columns: 1fr;
     }
 }
@@ -2345,6 +2520,105 @@
 :is(
     .hamster-barracks-panel,
     .producer-building-panel.is-troop-producer
+) .building-upgrade-card {
+    width: 100%;
+    min-width: 0 !important;
+    box-sizing: border-box;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+    padding: 10px !important;
+    border-color: var(--bp-ui-line) !important;
+    overflow: hidden;
+}
+
+:is(
+    .hamster-barracks-panel,
+    .producer-building-panel.is-troop-producer
+) .building-upgrade-card > div:first-child {
+    width: 100%;
+    min-width: 0 !important;
+    flex: 0 1 auto !important;
+}
+
+:is(
+    .hamster-barracks-panel,
+    .producer-building-panel.is-troop-producer
+) .building-upgrade-card-actions {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    flex: 0 0 auto !important;
+}
+
+.building-upgrade-action-group {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+    width: min(176px, 46vw);
+}
+
+:is(
+    .hamster-barracks-panel,
+    .producer-building-panel.is-troop-producer
+) .building-upgrade-action-group {
+    grid-template-columns: minmax(0, 0.78fr) minmax(0, 1.22fr);
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+.building-upgrade-action-group .troop-panel-upgrade-button {
+    width: auto !important;
+    min-width: 0;
+    min-height: 36px;
+    padding: 7px 8px !important;
+    color: var(--bp-ui-text-muted) !important;
+    background: linear-gradient(180deg, #323840, #1d2228) !important;
+    border: 1px solid var(--bp-ui-line-strong) !important;
+    border-radius: 4px !important;
+    font-family: var(--bp-font-ui) !important;
+    font-size: var(--bp-type-body) !important;
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.building-upgrade-action-group .troop-panel-upgrade-button:hover:not(:disabled) {
+    color: var(--bp-ui-white) !important;
+    border-color: var(--bp-ui-accent-bright) !important;
+}
+
+.building-upgrade-action-group .building-upgrade-continuous-button.is-active {
+    color: var(--bp-ui-white) !important;
+    background: linear-gradient(180deg, #425761, #25343b) !important;
+    border-color: var(--bp-ui-accent-bright) !important;
+    box-shadow: inset 3px 0 0 var(--bp-ui-accent-bright);
+}
+
+.building-upgrade-action-group .troop-panel-upgrade-button:disabled {
+    opacity: 0.42;
+    cursor: not-allowed;
+}
+
+.building-upgrade-action-group .troop-panel-upgrade-button:focus-visible {
+    outline: 2px solid var(--bp-ui-accent-bright);
+    outline-offset: 2px;
+}
+
+.troop-upgrade-unit-group {
+    margin-top: 10px;
+}
+
+.troop-upgrade-unit-group > .troop-panel-unit-summary {
+    margin-bottom: 2px;
+}
+
+:is(
+    .hamster-barracks-panel,
+    .producer-building-panel.is-troop-producer
 ) :is(.troop-panel-unit-button, .troop-panel-upgrade-button) {
     min-height: 38px;
     color: var(--bp-ui-text-muted) !important;
@@ -2370,7 +2644,7 @@
 :is(
     .hamster-barracks-panel,
     .producer-building-panel.is-troop-producer
-) :is(.troop-panel-unit-button, .troop-panel-upgrade-button):hover {
+) :is(.troop-panel-unit-button, .troop-panel-upgrade-button):hover:not(:disabled) {
     color: var(--bp-ui-white) !important;
     border-color: var(--bp-ui-accent-bright) !important;
 }
@@ -2464,6 +2738,129 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+/* 出兵建筑详情：集结部署与生产、兵种、升级共用同一冷钢信息流。 */
+:is(
+    .hamster-barracks-panel,
+    .producer-building-panel.is-troop-producer
+) .producer-rally-section {
+    margin: 0 0 12px;
+    padding: 12px !important;
+    background: var(--bp-ui-surface) !important;
+    border-color: var(--bp-ui-line-strong) !important;
+    border-radius: 5px !important;
+    box-shadow: inset 3px 0 0 var(--bp-ui-line-accent);
+}
+
+:is(
+    .hamster-barracks-panel,
+    .producer-building-panel.is-troop-producer
+) .producer-rally-section[hidden] {
+    display: none;
+}
+
+.producer-rally-section__head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 10px;
+}
+
+.producer-rally-section__meta,
+.producer-rally-section__badge,
+.producer-rally-route__node > span,
+.producer-rally-route__node > small,
+.producer-rally-section__hint {
+    color: var(--bp-ui-text-muted);
+    font-size: var(--bp-type-meta);
+    line-height: 1.45;
+}
+
+.producer-rally-section__badge {
+    flex: 0 0 auto;
+    padding: 3px 7px;
+    color: var(--bp-ui-text);
+    background: var(--bp-ui-control);
+    border: 1px solid var(--bp-ui-line-strong);
+    border-radius: 3px;
+    letter-spacing: var(--bp-tracking-label);
+}
+
+.producer-rally-section.is-independent {
+    border-color: var(--bp-ui-line-accent) !important;
+    box-shadow: inset 3px 0 0 var(--bp-ui-accent-bright);
+}
+
+.producer-rally-section.is-independent .producer-rally-section__badge {
+    color: var(--bp-ui-white);
+    border-color: var(--bp-ui-accent-bright);
+}
+
+.producer-rally-section.is-locked .producer-rally-section__badge {
+    color: var(--bp-ui-text-dim);
+    border-color: var(--bp-ui-line);
+}
+
+.producer-rally-route {
+    display: grid;
+    grid-template-columns: minmax(112px, 0.78fr) auto minmax(0, 1.4fr);
+    align-items: center;
+    gap: 10px;
+    padding: 9px 10px;
+    background: var(--bp-ui-black-soft);
+    border: 1px solid var(--bp-ui-line);
+    border-radius: 4px;
+}
+
+.producer-rally-route__node {
+    display: grid;
+    gap: 3px;
+    min-width: 0;
+}
+
+.producer-rally-route__node > strong {
+    overflow: hidden;
+    color: var(--bp-ui-white);
+    font-size: var(--bp-type-body);
+    line-height: 1.45;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.producer-rally-route__node--target > small {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.producer-rally-route__arrow {
+    color: var(--bp-ui-accent-bright);
+    font-family: var(--bp-font-number);
+    font-size: var(--bp-type-subtitle);
+}
+
+.producer-rally-section__global {
+    margin-top: 9px;
+    color: var(--bp-ui-text);
+    font-size: var(--bp-type-body);
+    line-height: 1.5;
+}
+
+.producer-rally-section__hint {
+    margin-top: 4px;
+    color: var(--bp-ui-text-dim);
+}
+
+@media (max-width: 860px) {
+    .producer-rally-route {
+        grid-template-columns: 1fr;
+    }
+
+    .producer-rally-route__arrow {
+        display: none;
+    }
 }
 
 .rts-unit-panel {
@@ -2907,62 +3304,6 @@
 
 .rts-unit-panel .rts-up-surface-summary[hidden] {
     display: none;
-}
-
-.rts-unit-panel .rts-up-producer-unit {
-    display: grid;
-    grid-template-columns: auto 30px minmax(0, 1fr);
-    gap: 8px;
-    align-items: center;
-    margin-top: 10px;
-    padding: 6px;
-    background: var(--bp-ui-surface);
-    border: 1px solid var(--bp-ui-line);
-    border-radius: 4px;
-}
-
-.rts-unit-panel .rts-up-producer-label,
-.rts-unit-panel .rts-up-rally,
-.rts-unit-panel .rts-up-hint {
-    color: var(--bp-ui-text-muted);
-    font-size: var(--bp-type-meta);
-    line-height: 1.45;
-}
-
-.rts-unit-panel .rts-up-producer-icon {
-    display: grid;
-    width: 30px;
-    height: 30px;
-    box-sizing: border-box;
-    object-fit: cover;
-    place-items: center;
-    color: var(--bp-ui-text-muted);
-    background: var(--bp-ui-black-soft);
-    border: 1px solid var(--bp-ui-line-strong);
-    border-radius: 3px;
-}
-
-.rts-unit-panel .rts-up-producer-icon--fallback {
-    font-family: var(--bp-font-number);
-    font-size: var(--bp-type-meta);
-}
-
-.rts-unit-panel .rts-up-producer-unit strong {
-    overflow: hidden;
-    color: var(--bp-ui-white);
-    font-size: var(--bp-type-body);
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.rts-unit-panel .rts-up-rally {
-    margin-top: 8px;
-}
-
-.rts-unit-panel .rts-up-hint {
-    margin-top: 6px;
-    color: var(--bp-ui-text-dim);
-    font-size: var(--bp-type-caption);
 }
 
 @media (max-width: 720px) {
@@ -3510,6 +3851,59 @@
 
 .bp-button--muted {
     color: var(--bp-ui-text-muted);
+}
+
+/* 传送门详情：存在首次构造/重建候选时，用克制的金色脉冲提示主要操作。 */
+.producer-building-panel .portal-construct-toggle {
+    position: relative;
+    min-height: 32px;
+    padding: 5px 10px;
+    isolation: isolate;
+    white-space: nowrap;
+}
+
+.producer-building-panel .portal-construct-toggle.is-available {
+    color: #fff3cf;
+    border-color: rgba(255, 207, 92, 0.88);
+    animation: portal-construct-gold-pulse 1.7s ease-in-out infinite;
+}
+
+.producer-building-panel .portal-construct-toggle.is-available::after {
+    content: "";
+    position: absolute;
+    inset: -4px;
+    z-index: 0;
+    border: 1px solid rgba(255, 210, 104, 0.72);
+    border-radius: 8px;
+    pointer-events: none;
+    animation: portal-construct-gold-halo 1.7s ease-out infinite;
+}
+
+@keyframes portal-construct-gold-pulse {
+    0%, 100% {
+        background: linear-gradient(180deg, #3b4146, #22282d);
+        box-shadow: inset 0 0 0 1px rgba(255, 218, 126, 0.08), 0 0 5px rgba(255, 197, 69, 0.28);
+        text-shadow: 0 0 3px rgba(255, 221, 139, 0.35);
+    }
+    50% {
+        background: linear-gradient(180deg, #665126, #332a1d);
+        box-shadow: inset 0 0 10px rgba(255, 218, 126, 0.2), 0 0 12px rgba(255, 197, 69, 0.82), 0 0 24px rgba(255, 176, 42, 0.38);
+        text-shadow: 0 0 8px rgba(255, 230, 166, 0.9);
+    }
+}
+
+@keyframes portal-construct-gold-halo {
+    0% {
+        opacity: 0;
+        transform: scale(0.94);
+    }
+    38% {
+        opacity: 0.82;
+    }
+    100% {
+        opacity: 0;
+        transform: scale(1.1);
+    }
 }
 
 :is(.bp-panel-close, .bp-button):focus-visible {
@@ -4137,6 +4531,263 @@ body.expedition-preparing #systemPanel .panel-close {
     padding: 9px !important;
 }
 
+/* ===== Dungeon route selection HUD ===== */
+.dungeon-route-info-stack {
+    position: fixed;
+    top: 12px;
+    left: 12px;
+    width: clamp(220px, 14vw, 268px);
+    z-index: 9001;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    pointer-events: none;
+    user-select: none;
+}
+
+.dungeon-route-reward-panel {
+    position: relative;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 10px 12px;
+    color: var(--bp-ui-text);
+    background: var(--bp-ui-shell);
+    border: 1px solid var(--bp-ui-line-accent);
+    border-radius: 8px;
+    box-shadow: var(--bp-ui-shadow-float);
+    font-family: var(--bp-font-ui);
+}
+
+.dungeon-route-panel-kicker {
+    margin-bottom: 2px;
+    overflow: hidden;
+    color: var(--bp-ui-text-dim);
+    font-size: var(--bp-type-caption);
+    letter-spacing: var(--bp-tracking-label);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.dungeon-route-panel-title {
+    margin-bottom: 6px;
+    color: var(--bp-ui-white);
+    font-size: var(--bp-type-subtitle);
+    font-weight: 700;
+    letter-spacing: var(--bp-tracking-title);
+}
+
+.dungeon-route-reward-row {
+    display: grid;
+    grid-template-columns: minmax(70px, auto) minmax(0, 1fr);
+    gap: 8px;
+    align-items: center;
+    padding: 4px 0;
+    border-top: 1px solid var(--bp-ui-line);
+    font-size: var(--bp-type-meta);
+    line-height: 1.45;
+}
+
+.dungeon-route-reward-row span {
+    color: var(--bp-ui-text-muted);
+}
+
+.dungeon-route-reward-row strong {
+    min-width: 0;
+    color: var(--bp-ui-white-soft);
+    font-weight: 700;
+    text-align: right;
+    overflow-wrap: anywhere;
+}
+
+.dungeon-route-invasion-panel {
+    width: 100%;
+    min-height: 54px;
+    box-sizing: border-box;
+    padding: 8px 12px;
+    color: var(--bp-ui-text);
+    background: var(--bp-ui-shell);
+    border: 1px solid var(--dungeon-invasion-color, var(--bp-ui-line-accent));
+    border-radius: 8px;
+    box-shadow: var(--bp-ui-shadow-float);
+    font-family: var(--bp-font-ui);
+}
+
+.dungeon-route-invasion-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+    color: var(--bp-ui-text-muted);
+    font-size: var(--bp-type-meta);
+    line-height: 1.35;
+}
+
+.dungeon-route-invasion-row strong {
+    flex: 0 0 auto;
+    color: var(--dungeon-invasion-color, var(--bp-ui-accent-bright));
+    font-family: var(--bp-font-number);
+    font-size: var(--bp-type-body);
+    font-variant-numeric: tabular-nums;
+}
+
+.dungeon-route-invasion-note {
+    margin-top: 2px;
+    overflow: hidden;
+    color: var(--bp-ui-text-dim);
+    font-size: var(--bp-type-caption);
+    line-height: 1.3;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.dungeon-route-action {
+    position: fixed;
+    right: 20px;
+    width: 184px;
+    min-height: 58px;
+    z-index: 9000;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 2px;
+    padding: 9px 14px;
+    text-align: left;
+    box-shadow: var(--bp-ui-shadow-float);
+    user-select: none;
+}
+
+.dungeon-route-action strong {
+    color: var(--bp-ui-white);
+    font-size: var(--bp-type-body);
+    letter-spacing: var(--bp-tracking-label);
+}
+
+.dungeon-route-action span {
+    color: var(--bp-ui-text-muted);
+    font-size: var(--bp-type-caption);
+    font-weight: 400;
+}
+
+.dungeon-route-action--evacuate {
+    top: max(92px, calc(20vh - 76px));
+}
+
+.dungeon-route-action--abandon {
+    top: max(160px, calc(20vh - 8px));
+    border-color: rgba(205, 116, 116, 0.5);
+}
+
+.dungeon-route-action--abandon:hover {
+    border-color: rgba(230, 150, 150, 0.82);
+}
+
+.dungeon-route-title {
+    position: relative;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 7px 12px;
+    color: var(--bp-ui-white);
+    background: rgba(9, 12, 15, 0.88);
+    border: 1px solid var(--bp-ui-line-strong);
+    border-radius: 5px;
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.48);
+    font-family: var(--bp-font-ui);
+    font-size: var(--bp-type-subtitle);
+    font-weight: 700;
+    letter-spacing: var(--bp-tracking-title);
+    text-align: left;
+    pointer-events: none;
+    user-select: none;
+    white-space: nowrap;
+}
+
+.dungeon-route-status {
+    position: fixed;
+    top: 10px;
+    left: 50%;
+    z-index: 9002;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    transform: translateX(-50%);
+    padding: 9px 16px;
+    color: var(--bp-ui-text);
+    background: var(--bp-ui-shell);
+    border: 1px solid var(--bp-ui-line-accent);
+    border-radius: 7px;
+    box-shadow: var(--bp-ui-shadow-float);
+    font-family: var(--bp-font-ui);
+    font-size: var(--bp-type-meta);
+    pointer-events: none;
+    user-select: none;
+}
+
+.dungeon-route-level,
+.dungeon-route-status-item strong {
+    color: var(--bp-ui-white);
+    font-family: var(--bp-font-number);
+}
+
+.dungeon-route-status-item {
+    display: grid;
+    grid-template-columns: auto auto 110px;
+    gap: 7px;
+    align-items: center;
+    color: var(--bp-ui-text-muted);
+}
+
+.dungeon-route-meter {
+    display: block;
+    width: 110px;
+    height: 8px;
+    overflow: hidden;
+    background: var(--bp-ui-black);
+    border: 1px solid var(--bp-ui-line);
+    border-radius: 2px;
+}
+
+.dungeon-route-meter-fill {
+    display: block;
+    height: 100%;
+}
+
+.dungeon-route-meter-fill--hp {
+    background: linear-gradient(90deg, #8f3434, #c76262);
+}
+
+.dungeon-route-meter-fill--mp {
+    background: linear-gradient(90deg, #365c88, #6f9dcc);
+}
+
+@media (max-width: 900px) {
+    .dungeon-route-info-stack {
+        top: 10px;
+        width: 220px;
+    }
+
+    .dungeon-route-reward-panel {
+        padding: 9px 10px;
+    }
+
+    .dungeon-route-status {
+        top: auto;
+        right: 12px;
+        bottom: 12px;
+        left: auto;
+        gap: 8px;
+        transform: none;
+    }
+
+    .dungeon-route-status-item {
+        grid-template-columns: auto auto;
+    }
+
+    .dungeon-route-meter {
+        display: none;
+    }
+}
+
 /* ===== Quest archive panel ===== */
 .quest-panel {
     overflow: hidden;
@@ -4645,5 +5296,14 @@ body.expedition-preparing #systemPanel .panel-close {
     .quest-list-progress > span,
     .quest-objective-progress > span {
         transition-duration: 0.01ms;
+    }
+
+    .producer-building-panel .portal-construct-toggle.is-available,
+    .producer-building-panel .portal-construct-toggle.is-available::after {
+        animation: none;
+    }
+
+    .producer-building-panel .portal-construct-toggle.is-available {
+        box-shadow: inset 0 0 8px rgba(255, 218, 126, 0.16), 0 0 10px rgba(255, 197, 69, 0.56);
     }
 }

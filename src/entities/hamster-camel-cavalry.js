@@ -18,7 +18,7 @@ export class HamsterCamelCavalry extends HamsterLightCavalry {
         this._isHamsterCamelCavalry = true;
         this.animId = configData.id;
         this.name = configData.name;
-        this.footOffsetY = Math.max(0, Number(archive.render?.footOffsetY) || 170);
+        this.footOffsetY = Math.max(0, Number(archive.render?.footOffsetY) || 129.7);
         this.config = {
             render: {
                 ...(this.config?.render || {}),

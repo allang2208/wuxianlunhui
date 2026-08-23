@@ -1,5 +1,6 @@
 // ============================================================
-// 仓鼠兵营（世界-122 建筑，2026-08-16）
+// 仓鼠兵营旧兼容模块（游戏运行时已于2026-08-23迁入 ProducerBuildingSystem）
+// 仅供历史诊断脚本继续导入；主流程禁止重新 setup 或创建本类。
 // - B 建筑面板放置，价格 1500 能源；每 45 秒自动生成一个仓鼠军事单位（2026-08-18 由 30s 调整为 45s）；
 // - 单位类型可在面板切换：仓鼠战士（近战）/ 仓鼠盾卫（近战·第 10 帧判定）
 //   （2026-08-18 收口：射手迁靶场、民兵迁草屋，兵营只保留战士/盾卫；切换兵种重新计时）；
@@ -24,6 +25,10 @@ import { renderBuildingUpgradeCard, renderBuildingUpgradeIcon } from '../ui/pane
 import { mountRightSidebarPanel } from '../ui/right-sidebar-panel-layer.js';
 import { TechnologyGate } from '../ui/technology-gate.js';
 import {
+    refreshProducerRallySection,
+    renderProducerRallySection,
+} from '../ui/panels/producer-rally-section.js';
+import {
     ensureBuildingUpgradeTooltip,
     hideBuildingUpgradeTooltip,
     moveBuildingUpgradeTooltip,
@@ -35,16 +40,15 @@ import { Renderer } from './renderer.js';
 import warriorCfg from '../../data/hamster-warrior-config.json';
 import guardCfg from '../../data/hamster-guard-config.json';
 import barracksBuildingCfg from '../../data/hamster-barracks-building.json';
-import { BUILDING_FOUNDATION_CONFIG, TWO_BY_TWO_BUILDING_FOOT, applyBuildingFootprint } from './building-footprint.js';
+import { TWO_BY_TWO_BUILDING_FOOT, applyBuildingFootprint } from './building-footprint.js';
 import { ResearchSystem } from './research-system.js';
 import { SpawnPlacement } from './spawn-placement.js';
 import { RECRUIT_MODE, normalizeRecruitMode, recruitModeLabel, recruitStatusText } from './recruit-mode.js';
 import { payBuildingUpgradeCost } from './building-upgrade-payment.js';
 import { TroopLineSystem } from './troop-line-system.js';
 import { SceneManager } from './scene-manager.js';
-import { isInfiniteResourcesEnabled } from '../config/dev-cheats.js';
 import { TechnologySystem } from './technology-system.js';
-import { hasBackgroundBuildingUpgrade } from './world122-snapshot.js';
+import { hasBackgroundBuildingUpgrade, hasBackgroundContinuousUpgrade } from './world122-snapshot.js';
 import { PopulationEconomySystem } from './population-economy-system.js';
 import { CrossPlaneResourceSystem } from './cross-plane-resource-system.js';
 import {
@@ -55,9 +59,13 @@ import {
     raiseUnitUpgradeLevel,
 } from './unit-upgrade-store.js';
 import {
+    buildingContinuousTargetMatches,
+    getBuildingContinuousCategory,
     getBuildingModuleUpgradeCost,
     getBuildingUpgradeProject,
+    isBuildingContinuousUpgradeOccupied,
     isBuildingUpgradeProgressOccupied,
+    normalizeBuildingContinuousTarget,
 } from './building-upgrade-projects.js';
 import { getHamsterUnitIcon } from '../config/hamster-unit-icons.js';
 
@@ -87,6 +95,16 @@ function renderTroopUnitIcon(unitKind, modifier = '') {
     if (!iconPath) return '';
     const modifierClass = modifier ? ` troop-unit-icon--${modifier}` : '';
     return `<img class="troop-unit-icon${modifierClass}" src="${iconPath}" alt="" draggable="false">`;
+}
+
+function renderBarracksUpgradeActions(options = {}) {
+    const { moduleId, maxed, inProgress, continuous, upgradeBusy } = options;
+    if (maxed) return '<span class="troop-panel-caption">已满级</span>';
+    return `<div class="building-upgrade-action-group">
+        <button class="troop-panel-upgrade-button" data-mod="${moduleId}" ${upgradeBusy || inProgress ? 'disabled' : ''}>升级</button>
+        <button class="troop-panel-upgrade-button building-upgrade-continuous-button ${continuous ? 'is-active' : ''}"
+            data-module-cont="${moduleId}" ${upgradeBusy && !continuous ? 'disabled' : ''}>${continuous ? '持续中' : '持续升级'}</button>
+    </div>`;
 }
 
 /** 模块升级费用（统一）：1000 金币 + 500 能源 */
@@ -148,9 +166,6 @@ export class HamsterBarracks extends DamageableEntity {
             footOffsetY: BARRACKS_CONFIG.barracks.footOffsetY,
             visualFootprint: BARRACKS_CONFIG.barracks.visualFootprint
                 ? { ...BARRACKS_CONFIG.barracks.visualFootprint } : null,
-            foundation: BARRACKS_CONFIG.barracks.foundation === false
-                ? null
-                : { ...BUILDING_FOUNDATION_CONFIG },
             autoFootprint: false,
         };
         this.footOffsetY = BARRACKS_CONFIG.barracks.footOffsetY;
@@ -174,6 +189,9 @@ export class HamsterBarracks extends DamageableEntity {
         this._recruitMode = RECRUIT_MODE.PAUSED;
         this._spawnTimer = this.recruitIntervalMs();
         this._upgrade = null;         // 模块升级读条：unitType + moduleId
+        this._continuous = null;
+        this._continuousRetryMs = 0;
+        this._continuousUpgradeCategory = 'producer:hamster_barracks';
         this.rebuildCollider();
     }
 
@@ -217,8 +235,7 @@ export class HamsterBarracks extends DamageableEntity {
         if (next === RECRUIT_MODE.SINGLE) {
             if (this.aliveUnitCount() >= this.unitCount()) return { ok: false, reason: '单位数量已达上限' };
             const cost = CrossPlaneResourceSystem.quote({ food: this._unitSpawnFoodCost() }).food;
-            if (cost > 0 && !isInfiniteResourcesEnabled()
-                && CrossPlaneResourceSystem.getAvailable('food') < cost) {
+            if (cost > 0 && CrossPlaneResourceSystem.getAvailable('food') < cost) {
                 return { ok: false, reason: `粮食不足，单次招募需要 ${cost} 粮食` };
             }
         }
@@ -258,8 +275,7 @@ export class HamsterBarracks extends DamageableEntity {
         const spot = this._findUnitSpawn();
         if (!spot) return null;
         const spawnCost = this._unitSpawnFoodCost();
-        if (payFood && spawnCost > 0 && !isInfiniteResourcesEnabled()
-            && !PopulationEconomySystem.consumeFood(spawnCost)) {
+        if (payFood && spawnCost > 0 && !PopulationEconomySystem.consumeFood(spawnCost)) {
             this._spawnFoodBlocked = true;
             return null;
         }
@@ -306,12 +322,78 @@ export class HamsterBarracks extends DamageableEntity {
         return getBarracksModuleCost(moduleId, getUnitUpgradeLevel(this.unitType, moduleId));
     }
 
+    isContinuousUpgrade(moduleId, unitType = this.unitType) {
+        return buildingContinuousTargetMatches(this._continuous, 'module', moduleId, unitType);
+    }
+
+    setContinuousUpgrade(moduleId) {
+        const target = normalizeBuildingContinuousTarget({
+            kind: 'module', moduleId, unitType: this.unitType, unitTypes: [this.unitType],
+        });
+        if (!target || !BARRACKS_CONFIG.modules?.[moduleId]) {
+            return { ok: false, reason: '未知持续升级项目' };
+        }
+        if (this.isContinuousUpgrade(moduleId, this.unitType)) {
+            this._continuous = null;
+            this._continuousRetryMs = 0;
+            return { ok: true, stopped: true };
+        }
+        if (this._upgrade) return { ok: false, reason: '当前项目完成后才能切换持续升级' };
+        if (isBuildingContinuousUpgradeOccupied(this, Game?.entities)
+            || hasBackgroundContinuousUpgrade(getBuildingContinuousCategory(this))) {
+            return { ok: false, reason: '同类别建筑已有一个持续升级项目' };
+        }
+        if (!this.canUpgradeModule(moduleId)) return { ok: false, reason: '模块已满级' };
+        this._continuous = target;
+        this._continuousRetryMs = 0;
+        const result = this._tryStartContinuousUpgrade();
+        return result.ok ? { ...result, continuous: true } : {
+            ok: true, continuous: true, waiting: true, waitReason: result.reason,
+        };
+    }
+
+    _tryStartContinuousUpgrade() {
+        const target = normalizeBuildingContinuousTarget(this._continuous);
+        if (!target || target.kind !== 'module' || !BARRACKS_CONFIG.modules?.[target.moduleId]) {
+            return { ok: false, reason: '持续升级目标已失效', permanent: true };
+        }
+        const selected = this.unitType;
+        this.unitType = target.unitType;
+        const canUpgrade = this.canUpgradeModule(target.moduleId);
+        const result = canUpgrade
+            ? this.startModuleUpgrade(target.moduleId, { fromContinuous: true })
+            : { ok: false, reason: '模块已满级', permanent: true };
+        this.unitType = selected;
+        return result;
+    }
+
+    _updateContinuousUpgrade(dt) {
+        if (!this._continuous || this._upgrade) return;
+        this._continuousRetryMs = Math.max(0, (Number(this._continuousRetryMs) || 0) - dt);
+        if (this._continuousRetryMs > 0) return;
+        const result = this._tryStartContinuousUpgrade();
+        if (result.permanent) {
+            this._continuous = null;
+            this._continuousRetryMs = 0;
+        } else if (!result.ok) {
+            this._continuousRetryMs = 1000;
+        }
+        if ((result.ok || result.permanent) && HamsterBarracksSystem?._panel?.isOpen
+            && HamsterBarracksSystem._panel.barracks === this) {
+            HamsterBarracksSystem._panel.refresh();
+        }
+    }
+
     /** 开始模块升级：开始时扣资源，读条完成后才提升等级并同步单位。 */
-    startModuleUpgrade(moduleId) {
+    startModuleUpgrade(moduleId, options = {}) {
         const mod = BARRACKS_CONFIG.modules?.[moduleId];
         if (!mod) return { ok: false, reason: '未知模块' };
         if (!this.canUpgradeModule(moduleId)) return { ok: false, reason: '模块已满级' };
         if (this._upgrade) return { ok: false, reason: '已有升级在读条中' };
+        if (!options.fromContinuous && this._continuous
+            && !this.isContinuousUpgrade(moduleId, this.unitType)) {
+            return { ok: false, reason: '请先停止当前持续升级项目' };
+        }
         const cost = this.getModuleCost(moduleId);
         if (!cost) return { ok: false, reason: '升级费用配置缺失' };
         const pending = { kind: 'module', moduleId, unitType: this.unitType };
@@ -333,7 +415,10 @@ export class HamsterBarracks extends DamageableEntity {
     }
 
     _updateUpgrade(dt) {
-        if (!this._upgrade) return;
+        if (!this._upgrade) {
+            this._updateContinuousUpgrade(dt);
+            return;
+        }
         this._upgrade.remainMs -= dt;
         if (this._upgrade.remainMs > 0) return;
         const { moduleId, unitType } = this._upgrade;
@@ -348,6 +433,8 @@ export class HamsterBarracks extends DamageableEntity {
             && HamsterBarracksSystem._panel.barracks === this) {
             HamsterBarracksSystem._panel.refresh();
         }
+        this._continuousRetryMs = 0;
+        this._updateContinuousUpgrade(0);
     }
 
     /** 主循环：每 45s 生成一个军事单位（存活数低于上限时） */
@@ -435,6 +522,7 @@ export class HamsterBarracks extends DamageableEntity {
     /** 兵营专属清理（单位/列表/面板）；实体失效与移除由 BuildingSinkEffect 负责 */
     _destroyBarracksCleanup() {
         this._upgrade = null;
+        this._continuous = null;
         TroopLineSystem.clearProducerRally(this);
         this._despawnUnits();
         if (HamsterBarracksSystem && HamsterBarracksSystem.barracks) {
@@ -474,6 +562,7 @@ export class HamsterBarracks extends DamageableEntity {
         this.hittable = false;
         this._sinking = true;
         this._upgrade = null;
+        this._continuous = null;
         TroopLineSystem.clearProducerRally(this);
         this._despawnUnits();
         if (HamsterBarracksSystem && HamsterBarracksSystem.barracks) {
@@ -527,6 +616,7 @@ class HamsterBarracksPanel extends BasePanel {
             <div id="hbBuildingDetail"></div>
             <div class="troop-panel-section-title" style="margin:2px 0 6px;">特殊功能 · 募兵与兵种训练</div>
             <div id="hbStatus" style="border:1px solid #4a4a2a;border-radius:8px;padding:10px;margin-bottom:12px;background:rgba(60,50,20,0.18);"></div>
+            ${renderProducerRallySection()}
             <div id="hbUnitType" style="border:1px solid #3a6a5a;border-radius:8px;padding:10px;margin-bottom:12px;background:rgba(20,50,40,0.18);"></div>
             <div id="hbModules" style="border:1px solid #3a4a5a;border-radius:8px;padding:10px;background:rgba(20,40,60,0.18);"></div>
         `;
@@ -572,6 +662,7 @@ class HamsterBarracksPanel extends BasePanel {
         const el = this.el;
         if (!el || !this.barracks) return;
         const b = this.barracks;
+        refreshProducerRallySection(el, b, SceneManager.currentScene);
         const spawnMs = b.recruitIntervalMs();
         const recruitMode = normalizeRecruitMode(b._recruitMode);
         const paused = recruitMode === RECRUIT_MODE.PAUSED;
@@ -624,6 +715,7 @@ class HamsterBarracksPanel extends BasePanel {
         const food = CrossPlaneResourceSystem.getAvailable('food');
         const gold = GoldManager ? GoldManager.getGold() : 0;
         const cfg = BARRACKS_CONFIG;
+        refreshProducerRallySection(el, b, SceneManager.currentScene);
         el.querySelector('#hbTitle').textContent = '建筑详情';
         const detail = el.querySelector('#hbBuildingDetail');
         if (detail) {
@@ -715,19 +807,22 @@ class HamsterBarracksPanel extends BasePanel {
             const inProgress = !!(b._upgrade
                 && b._upgrade.moduleId === mid
                 && b._upgrade.unitType === b.unitType);
+            const continuous = b.isContinuousUpgrade(mid, b.unitType);
             const progPct = inProgress
                 ? Math.round((1 - b._upgrade.remainMs / b._upgrade.totalMs) * 100)
                 : 0;
-            const btn = maxedMod
-                ? '<span style="color:#8a8a8a;font-size:12px;">已满级</span>'
-                : canBuy
-                    ? `<button class="troop-panel-upgrade-button" data-mod="${mid}" style="width:86px;white-space:nowrap;padding:3px 0;cursor:pointer;">升级</button>`
-                    : '<span class="troop-panel-caption">🔒 未知模块</span>';
+            const btn = canBuy || maxedMod
+                ? renderBarracksUpgradeActions({
+                    moduleId: mid, maxed: maxedMod, inProgress,
+                    continuous, upgradeBusy: !!b._upgrade,
+                })
+                : '<span class="troop-panel-caption">🔒 未知模块</span>';
             return renderBuildingUpgradeCard({
                 rowAttribute: 'data-module-row', projectId: mid,
                 icon: mod.icon, iconImage: mod.iconImage, name: mod.name, level: lv, maxLevel: mod.maxLevel,
                 cost, maxed: maxedMod, inProgress, progressPct: progPct,
                 remainMs: inProgress ? b._upgrade.remainMs : 0,
+                statusText: continuous && !inProgress ? '持续升级已开启 · 等待条件与资源' : '',
                 barId: `hbUpgradeBar_${mid}`, textId: `hbUpgradeText_${mid}`,
                 actionsHtml: btn, accent: '#8ad0ff',
             });
@@ -740,6 +835,9 @@ class HamsterBarracksPanel extends BasePanel {
             ${rows || '<div class="troop-panel-empty">暂无模块</div>'}`;
         modBox.querySelectorAll('[data-mod]').forEach((btnEl) => {
             btnEl.addEventListener('click', () => this._upgrade(btnEl.dataset.mod));
+        });
+        modBox.querySelectorAll('[data-module-cont]').forEach((btnEl) => {
+            btnEl.addEventListener('click', () => this._toggleModuleContinuous(btnEl.dataset.moduleCont));
         });
         modBox.querySelectorAll('[data-module-row]').forEach((rowEl) => {
             const moduleId = rowEl.dataset.moduleRow;
@@ -807,6 +905,18 @@ class HamsterBarracksPanel extends BasePanel {
         } else {
             this._notify(res.reason, '#ff5555');
         }
+        this.refresh();
+    }
+
+    _toggleModuleContinuous(moduleId) {
+        if (!this.barracks) return;
+        const wasActive = this.barracks.isContinuousUpgrade(moduleId, this.barracks.unitType);
+        const result = this.barracks.setContinuousUpgrade(moduleId);
+        const name = BARRACKS_CONFIG.modules[moduleId]?.name || moduleId;
+        if (!result.ok) this._notify(result.reason, '#ff5555');
+        else if (wasActive || result.stopped) this._notify(`${name} 停止持续升级`, '#ffd700');
+        else if (result.waiting) this._notify(`${name} 持续升级已开启，等待条件与资源`, '#c9a0ff');
+        else this._notify(`${name} 持续升级已开启`, '#c9a0ff');
         this.refresh();
     }
 }

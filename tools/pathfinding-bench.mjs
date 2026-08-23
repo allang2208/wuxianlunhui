@@ -23,6 +23,9 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
 // 1) JSON 导入钩子（源码按 Vite 约定裸导 .json）
 await import('../scripts/register-json-loader.mjs');
+// 1.5) 最小 DOM 桩（MovementSystem 链除 game.js 外还有携带 Phaser 依赖的模块，
+//      桩让 Phaser 的 import 期探测在 Node 下通过；不模拟真实渲染）
+await import('../scripts/node-dom-stub.mjs');
 // 2) src/game.js 桩（Phaser 链无法在 Node 加载）
 register(pathToFileURL(path.join(ROOT, 'tools/pathfinding-hooks.mjs')).href, pathToFileURL(ROOT + path.sep).href);
 

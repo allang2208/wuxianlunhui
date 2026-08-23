@@ -394,10 +394,16 @@ export function createHudPanelsSystemTabs() {
     const skillGrid = document.createElement('div');
     skillGrid.className = 'skill-grid';
     skillGrid.id = 'skillGrid';
+    skillGrid.tabIndex = 0;
+    skillGrid.setAttribute('role', 'region');
+    skillGrid.setAttribute('aria-label', '技能列表，可上下滚动');
     skillPage.appendChild(skillGrid);
     const skillDetail = document.createElement('div');
     skillDetail.className = 'skill-detail';
     skillDetail.id = 'skillDetail';
+    skillDetail.tabIndex = 0;
+    skillDetail.setAttribute('role', 'region');
+    skillDetail.setAttribute('aria-label', '技能详情，可上下滚动');
     skillDetail.style.display = 'none';
     const sdHeader = document.createElement('div');
     sdHeader.className = 'sd-header';

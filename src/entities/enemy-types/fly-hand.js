@@ -9,6 +9,11 @@ import { hostilesOf } from './_shared/enemy-utils.js';
 import { summonMonster } from './_shared/summon-helper.js';
 import { fireGroundShockwave } from '../../effects/combat-fx.js';
 import { canMeleeShareSurface } from '../../combat/melee-surface.js';
+import {
+    canImpactBasicMelee,
+    canStartBasicMelee,
+    createBasicMeleeSnapshot,
+} from '../../combat/melee-attack-resolver.js';
 /**
  * 蝇手（领主 lord，僵尸 family）
  * 无默认普攻（aiInterval=MAX），三技能（数值全部由 enemy-config.json attackSkills 驱动）：
@@ -32,6 +37,8 @@ export class FlyHand extends Enemy {
 
         this._actionTimer = 0;
         this._actionHitsDone = new Set();
+        this._hammerTarget = null;
+        this._hammerSnapshot = null;
         this._cooldowns = { hammer: 0, slam: 0, grandSlam: 0 };
         // 砸地冲击波 graphics（红圈扩散特效，统一清理用）
         this._slamGraphics = [];
@@ -112,7 +119,7 @@ export class FlyHand extends Enemy {
             return;
         }
         // 锤击：100px 近身且 CD 就绪（精英预警后再启动）
-        if (this._cooldowns.hammer <= 0 && cfg.hammer && this._isTargetInRange(t, cfg.hammer.triggerRange ?? 100)) {
+        if (this._cooldowns.hammer <= 0 && cfg.hammer && this._canStartHammer(t)) {
             this._tryAttackTelegraph(() => this._startAction('hammer'));
         }
     }
@@ -121,6 +128,9 @@ export class FlyHand extends Enemy {
 
     _startAction(kind) {
         const cfg = this._getSkillConfigs()[kind];
+        const actionTarget = this.target;
+        if (kind === 'hammer' && !this._canStartHammer(actionTarget)) return false;
+
         this._animState = kind;
         this._actionTimer = cfg.duration ?? 2000;
         this._attackAnimTimer = cfg.duration ?? 2000; // 锁定 MovementSystem，攻击时不可移动
@@ -130,10 +140,23 @@ export class FlyHand extends Enemy {
         this.vx = 0;
         this.vy = 0;
         this.isMoving = false;
-        // 面向目标
-        if (this.target && this.target.active) {
-            this.rotation = Math.atan2(this.target.y - this.y, this.target.x - this.x);
+        if (kind === 'hammer') {
+            this._hammerTarget = actionTarget;
+            this._hammerSnapshot = createBasicMeleeSnapshot(
+                this,
+                actionTarget,
+                this._getHammerImpactConfig()
+            );
+            this.rotation = this._hammerSnapshot.worldAngle;
+        } else {
+            this._hammerTarget = null;
+            this._hammerSnapshot = null;
+            // 范围技能只需面向当前目标，不改变其既有圆形命中合同。
+            if (actionTarget && actionTarget.active) {
+                this.rotation = Math.atan2(actionTarget.y - this.y, actionTarget.x - this.x);
+            }
         }
+        return true;
     }
 
     _updateAction(dt, entities) {
@@ -172,14 +195,13 @@ export class FlyHand extends Enemy {
             this._summonFlySwarms(cfg.summon);
         }
         if (kind === 'hammer') {
-            // 单体近战：目标在判定距离内才结算
-            const t = this.target;
-            if (t && t.active && t.hittable && this._isTargetInRange(t, range)
-                && canMeleeShareSurface(this, t)) {
+            // 普通单体锤击：只结算起手锁定目标，并在命中帧复查方向、墙体与承载面。
+            const t = this._hammerTarget;
+            if (canImpactBasicMelee(this, t, this._hammerSnapshot)) {
                 t.takeDamage(damage, this, cfg.damageType || 'physical', true);
-                if (cfg.knockback && t.applyKnockback) {
-                    const angle = Math.atan2(t.y - this.y, t.x - this.x);
-                    t.applyKnockback(angle, cfg.knockback);
+                const parried = t.shieldSystem && t.shieldSystem._lastParried;
+                if (!parried && cfg.knockback && t.applyKnockback) {
+                    t.applyKnockback(this._hammerSnapshot.worldAngle, cfg.knockback);
                 }
             }
             return;
@@ -198,7 +220,8 @@ export class FlyHand extends Enemy {
             if (!shape.intersectsEntity(e)) continue;
             if (!canMeleeShareSurface(this, e)) continue;
             e.takeDamage(damage, this, cfg.damageType || 'physical', true);
-            if (cfg.stunMs && typeof e.applyStun === 'function') e.applyStun(cfg.stunMs);
+            const parried = e.shieldSystem && e.shieldSystem._lastParried;
+            if (!parried && cfg.stunMs && typeof e.applyStun === 'function') e.applyStun(cfg.stunMs);
         }
     }
 
@@ -240,10 +263,41 @@ export class FlyHand extends Enemy {
         }
         this._actionTimer = 0;
         this._actionHitsDone = new Set();
+        this._hammerTarget = null;
+        this._hammerSnapshot = null;
         this._attackAnimTimer = 0;
     }
 
     // ========== 工具 ==========
+
+    _getHammerWidth() {
+        const cfg = this._getSkillConfigs().hammer || {};
+        return cfg.width ?? this.config?.render?.collisionWidth ?? 20;
+    }
+
+    _getHammerStartConfig() {
+        const cfg = this._getSkillConfigs().hammer || {};
+        return {
+            range: cfg.triggerRange ?? 100,
+            width: this._getHammerWidth(),
+        };
+    }
+
+    _getHammerImpactConfig() {
+        const cfg = this._getSkillConfigs().hammer || {};
+        return {
+            range: cfg.range ?? 100,
+            width: this._getHammerWidth(),
+        };
+    }
+
+    getBasicMeleeApproachConfig() {
+        return this._getHammerStartConfig();
+    }
+
+    _canStartHammer(target) {
+        return canStartBasicMelee(this, target, this._getHammerStartConfig());
+    }
 
     /** 判定目标是否在指定范围内（统一使用 Collider 地面 footprint 半径） */
     _isTargetInRange(target, range) {

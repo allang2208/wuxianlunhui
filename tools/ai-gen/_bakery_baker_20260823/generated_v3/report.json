@@ -1,0 +1,156 @@
+{
+  "source": "E:\\无尽轮回\\游戏\\素材库\\人物\\面包师\\1.mp4",
+  "sourceFrameCount": 145,
+  "sourceFrameRate": 24.0,
+  "sizeReference": "assets\\companions\\hamster_farmer\\idle.png",
+  "targetReferenceHeight": 312,
+  "sourceScale": 0.527027027027027,
+  "sourceActionRanges": {
+    "idle": [
+      [
+        0,
+        20
+      ],
+      [
+        70,
+        89
+      ],
+      [
+        139,
+        144
+      ]
+    ],
+    "empty_running": [
+      26,
+      67
+    ],
+    "loaded_running": [
+      90,
+      138
+    ]
+  },
+  "actions": {
+    "idle": {
+      "output": "idle.png",
+      "sourceIndices": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        6,
+        5,
+        4,
+        3
+      ],
+      "frameCount": 10,
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 8,
+      "rows": 2,
+      "frameRate": 12.0,
+      "repeat": -1,
+      "anchor": "torso",
+      "footRatio": 0.935547,
+      "validation": {
+        "alphaPixelsMin": 43387,
+        "alphaPixelsMax": 43617,
+        "emptyFrames": [],
+        "touchingFrames": [],
+        "feetMin": 479,
+        "feetMax": 479,
+        "adjacentDeltaMean": 5.4342917866177025,
+        "loopSeamDelta": 8.530778884887695
+      }
+    },
+    "empty_running": {
+      "output": "empty_running.png",
+      "sourceIndices": [
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50,
+        51,
+        52,
+        53,
+        54,
+        55,
+        56,
+        57,
+        58,
+        59,
+        60,
+        61
+      ],
+      "frameCount": 20,
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 8,
+      "rows": 3,
+      "frameRate": 16.0,
+      "repeat": -1,
+      "anchor": "torso",
+      "footRatio": 0.935547,
+      "validation": {
+        "alphaPixelsMin": 41693,
+        "alphaPixelsMax": 46311,
+        "emptyFrames": [],
+        "touchingFrames": [],
+        "feetMin": 479,
+        "feetMax": 479,
+        "adjacentDeltaMean": 31.411551927265368,
+        "loopSeamDelta": 39.15496826171875
+      }
+    },
+    "loaded_running": {
+      "output": "loaded_running.png",
+      "sourceIndices": [
+        114,
+        115,
+        116,
+        117,
+        118,
+        119,
+        120,
+        121,
+        122,
+        123,
+        124,
+        125,
+        126,
+        127,
+        128,
+        129,
+        130,
+        131,
+        132,
+        133
+      ],
+      "frameCount": 20,
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 8,
+      "rows": 3,
+      "frameRate": 16.0,
+      "repeat": -1,
+      "anchor": "torso",
+      "footRatio": 0.935547,
+      "validation": {
+        "alphaPixelsMin": 45005,
+        "alphaPixelsMax": 49057,
+        "emptyFrames": [],
+        "touchingFrames": [],
+        "feetMin": 479,
+        "feetMax": 479,
+        "adjacentDeltaMean": 24.463689352336683,
+        "loopSeamDelta": 32.217323303222656
+      }
+    }
+  }
+}

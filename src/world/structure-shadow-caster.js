@@ -111,17 +111,18 @@ export function resolveStructureShadowCaster(scene, entity, sprite, options = {}
         );
         const fitAdjustX = groundFit?.prismConstrained ? 0 : anchorAdjustX;
         const fitAdjustY = groundFit?.prismConstrained ? 0 : anchorAdjustY;
-        const alphaContact = groundFit?.contactPolygon || groundFit?.localVertices;
-        if (!contactLocal && alphaContact?.length >= 3) {
-            // alpha 轮廓必须复用 Sprite 的 anchorAdjustX/Y 与镜像，否则贴图已移动、阴影仍留在逻辑格心。
-            sliceBasisLocal = normalizeLocalPolygon(alphaContact, 1);
+        const fittedContact = groundFit?.contactPolygon || groundFit?.localVertices;
+        if (!contactLocal && fittedContact?.length >= 3) {
+            // 标准格网建筑直接消费 visualFootprint 映射结果；只有异形/缺配置素材才会落到 alpha 轮廓。
+            // 非棱柱兜底仍须复用 Sprite 的旧偏移与镜像，避免贴图和阴影分离。
+            sliceBasisLocal = normalizeLocalPolygon(fittedContact, 1);
             contactLocal = transformVisualLocalPolygon(
-                alphaContact,
+                fittedContact,
                 mirrorSign,
                 fitAdjustX,
                 fitAdjustY
             );
-            source = 'body_alpha';
+            source = groundFit.explicitCalibration ? 'visual_footprint' : 'body_alpha';
         }
     }
 
@@ -184,7 +185,11 @@ export function resolveStructureShadowCaster(scene, entity, sprite, options = {}
                     topZ: slice.topZ,
                 });
             }
-            source = source === 'config' ? 'config_alpha_layers' : 'body_alpha_layers';
+            source = source === 'config'
+                ? 'config_alpha_layers'
+                : (source === 'visual_footprint'
+                    ? 'visual_footprint_alpha_layers'
+                    : 'body_alpha_layers');
         }
     }
 

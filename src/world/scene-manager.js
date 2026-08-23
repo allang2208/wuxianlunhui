@@ -24,7 +24,6 @@ import {
 import { EnergyNodeSystem } from './energy-node-system.js';
 import { HamsterMinerSystem } from './hamster-miner-system.js';
 import { HamsterHutSystem, HamsterHut } from './hamster-hut-system.js';
-import { HamsterBarracksSystem, HamsterBarracks } from './hamster-barracks-system.js';
 import {
     ProducerBuildingSystem, ProducerBuilding, getProducerConfig, createMilitaryUnit, getMilitaryUnitProfile,
 } from './producer-building-system.js';
@@ -87,8 +86,6 @@ export const SceneManager = {
             DEFENSE_CONFIG,
             HamsterHutSystem,
             HamsterHut,
-            HamsterBarracksSystem,
-            HamsterBarracks,
             ProducerBuildingSystem,
             ProducerBuilding,
             getProducerConfig,
@@ -423,9 +420,6 @@ export const SceneManager = {
             if (HamsterHutSystem && HamsterHutSystem.active) {
                 HamsterHutSystem.teardown();
             }
-            if (HamsterBarracksSystem && HamsterBarracksSystem.active) {
-                HamsterBarracksSystem.teardown();
-            }
             if (ProducerBuildingSystem && ProducerBuildingSystem.active) {
                 ProducerBuildingSystem.teardown();
             }
@@ -568,7 +562,6 @@ export const SceneManager = {
         EnergyNodeSystem?.teardown?.();
         HamsterMinerSystem?.teardown?.();
         HamsterHutSystem?.teardown?.();
-        HamsterBarracksSystem?.teardown?.();
         ProducerBuildingSystem?.teardown?.();
         BuildingRoadSystem?.reset?.();
         WallSystem?.init?.(0, 0);
@@ -1384,9 +1377,9 @@ export const SceneManager = {
         CONFIG.WORLD_HEIGHT = h;
         const diamond = this._scene8Diamond(scene);
 
-        // 与僵尸地牢高级完全相同的地砖池和随机等距拼铺方式，只改为大世界分块烘焙。
+        // 世界-125 专用遗迹大石板地砖：2:1 菱形、砖缝与建筑底边同口径，混铺砖缝全场连通。
         setDungeonFloorProfile({
-            tiles: ['blackbrick_7', 'blackbrick_8'],
+            tiles: ['ruinslab_1', 'ruinslab_2'],
             glow: false,
             backgroundColor: scene.background || '#050505',
         });
@@ -1449,7 +1442,6 @@ export const SceneManager = {
             });
         }
         HamsterHutSystem.setup();
-        HamsterBarracksSystem.setup();
         ProducerBuildingSystem.setup();
         HamsterMinerSystem.setup(player);
 
@@ -1558,7 +1550,6 @@ export const SceneManager = {
             sizeH: displayH,
             footOffsetY,
             autoFootprint: false,
-            foundation: visual.foundation === false ? null : portal.spriteCfg?.foundation,
         };
         portal.footOffsetY = footOffsetY;
         if (portal._cfg) {
@@ -1567,7 +1558,6 @@ export const SceneManager = {
             portal._cfg.displayH = displayH;
             portal._cfg.footOffsetY = footOffsetY;
             portal._cfg.autoFootprint = false;
-            if (visual.foundation === false) portal._cfg.foundation = false;
         }
         applyBuildingFootprint(portal, Number(visual.footprintCells) || 2);
         if (typeof portal.rebuildCollider === 'function') portal.rebuildCollider();

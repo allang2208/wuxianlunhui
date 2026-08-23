@@ -211,6 +211,16 @@ export const SkillManager = {
             const d = Game.player ? Game.player.data : { matk: 0, int: 10, wis: 0 };
             const totalAmount = effect.healBase + Math.floor(d.matk * effect.magicMul) + Math.floor(d.int * effect.intMul) + Math.floor((d.wis || 0) * effect.wisMul);
             effectText = `圣光${totalAmount}（敌伤/友疗）  僵尸×${effect.zombieDamageMul || 2}  冷却${effect.cooldown}秒  魔法消耗${effect.mpCost}MP`;
+        } else if (skill.id === 'sanctuaryDomain') {
+            const sd = Game.player ? Game.player.data : { matk: 0, int: 10, wis: 0 };
+            const tickDmg = Math.floor(effect.damageBase + sd.matk * effect.damageMagicMul + sd.int * effect.damageIntMul);
+            const tickHeal = Math.floor(effect.healBase + (sd.wis || 0) * effect.healWisMul);
+            effectText = `每跳伤害${tickDmg}（僵尸×${effect.zombieDamageMul}）  每跳治疗${tickHeal}  持续${effect.duration}秒  范围${effect.radius}px  冷却${effect.cooldown}秒  魔法消耗${effect.mpCost}MP`;
+        } else if (skill.id === 'holyJudgment') {
+            const jd = Game.player ? Game.player.data : { matk: 0, int: 10, wis: 0 };
+            const judgeDmg = Math.floor(effect.damageBase + jd.matk * effect.damageMagicMul + jd.int * effect.damageIntMul + (jd.wis || 0) * effect.damageWisMul);
+            const judgeHeal = Math.floor(effect.healBase + (jd.wis || 0) * effect.healWisMul);
+            effectText = `审判伤害${judgeDmg}（满蓄，僵尸×${effect.zombieDamageMul}）  治疗${judgeHeal}  半径${effect.radiusMin}→${effect.radiusMax}px  冷却${effect.cooldown}秒  魔法消耗${effect.mpCost}MP`;
         } else if (skill.id === 'iceWall') {
             const d = Game.player ? Game.player.data : { int: 10, wis: 10 };
             const totalDamage = effect.damageBase + Math.floor((d.int || 0) * effect.damageIntMul) + Math.floor((d.wis || 0) * effect.damageWisMul);
@@ -417,6 +427,26 @@ export const SkillManager = {
         const gained = hitCount * (rw.hit || 0) + killCount * (rw.kill || 0);
         this._addSkillExp(player, sk, gained);
     },
+    addSanctuaryDomainExp(player, hitCount, killCount, healCount, multiHit) {
+        if (!player || !player.skills) return;
+        const sk = player.skills.sanctuaryDomain;
+        if (!sk || sk.level >= sk.maxLevel) return;
+        const rw = sk.expRewards || {};
+        let gained = hitCount * (rw.hit || 0) + killCount * (rw.kill || 0) + (healCount || 0) * (rw.heal || 0);
+        if (multiHit) gained += rw.multiHit || 0;
+        if (killCount >= 2) gained += rw.multiKill || 0;
+        this._addSkillExp(player, sk, gained);
+    },
+    addHolyJudgmentExp(player, hitCount, killCount, healCount, multiHit) {
+        if (!player || !player.skills) return;
+        const sk = player.skills.holyJudgment;
+        if (!sk || sk.level >= sk.maxLevel) return;
+        const rw = sk.expRewards || {};
+        let gained = hitCount * (rw.hit || 0) + killCount * (rw.kill || 0) + (healCount || 0) * (rw.heal || 0);
+        if (multiHit) gained += rw.multiHit || 0;
+        if (killCount >= 2) gained += rw.multiKill || 0;
+        this._addSkillExp(player, sk, gained);
+    },
     addShieldDefenseExp(player, isMelee, isParry) {
         if (!player || !player.skills) return;
         const sd = player.skills.shieldDefense;
@@ -506,11 +536,11 @@ export const SkillManager = {
         const hasThrustSkill = (player._skillOverrides && player._skillOverrides.dashAttackThrust) || (currentWeapon && currentWeapon.skillOverrides && currentWeapon.skillOverrides.dashAttackThrust);
         let skillList;
         if (hasFireSkill && player.skills.dashAttackFire) {
-            skillList = [player.skills.swordMastery, player.skills.dashAttackFire, player.skills.whirlwind, player.skills.pushStrike, player.skills.criticalStrike, player.skills.machineGunMastery, player.skills.rifleMastery, player.skills.pistolMastery, player.skills.shotgunMastery, player.skills.bowMastery, player.skills.droneSkill, player.skills.iceSpike, player.skills.lightningStrike, player.skills.stormDomain, player.skills.thunderLance, player.skills.holyLight, player.skills.shieldDefense, player.skills.fireball, player.skills.iceWall, player.skills.blizzard, player.skills.meteor, player.skills.flameArmor];
+            skillList = [player.skills.swordMastery, player.skills.dashAttackFire, player.skills.whirlwind, player.skills.pushStrike, player.skills.criticalStrike, player.skills.machineGunMastery, player.skills.rifleMastery, player.skills.pistolMastery, player.skills.shotgunMastery, player.skills.bowMastery, player.skills.droneSkill, player.skills.iceSpike, player.skills.lightningStrike, player.skills.stormDomain, player.skills.thunderLance, player.skills.holyLight, player.skills.shieldDefense, player.skills.fireball, player.skills.iceWall, player.skills.blizzard, player.skills.meteor, player.skills.flameArmor, player.skills.sanctuaryDomain, player.skills.holyJudgment];
         } else if (hasThrustSkill && player.skills.dashAttackThrust) {
-            skillList = [player.skills.swordMastery, player.skills.dashAttackThrust, player.skills.whirlwind, player.skills.pushStrike, player.skills.criticalStrike, player.skills.machineGunMastery, player.skills.rifleMastery, player.skills.pistolMastery, player.skills.shotgunMastery, player.skills.bowMastery, player.skills.droneSkill, player.skills.iceSpike, player.skills.lightningStrike, player.skills.stormDomain, player.skills.thunderLance, player.skills.holyLight, player.skills.shieldDefense, player.skills.fireball, player.skills.iceWall, player.skills.blizzard, player.skills.meteor, player.skills.flameArmor];
+            skillList = [player.skills.swordMastery, player.skills.dashAttackThrust, player.skills.whirlwind, player.skills.pushStrike, player.skills.criticalStrike, player.skills.machineGunMastery, player.skills.rifleMastery, player.skills.pistolMastery, player.skills.shotgunMastery, player.skills.bowMastery, player.skills.droneSkill, player.skills.iceSpike, player.skills.lightningStrike, player.skills.stormDomain, player.skills.thunderLance, player.skills.holyLight, player.skills.shieldDefense, player.skills.fireball, player.skills.iceWall, player.skills.blizzard, player.skills.meteor, player.skills.flameArmor, player.skills.sanctuaryDomain, player.skills.holyJudgment];
         } else {
-            skillList = [player.skills.swordMastery, player.skills.dashAttack, player.skills.whirlwind, player.skills.pushStrike, player.skills.criticalStrike, player.skills.machineGunMastery, player.skills.rifleMastery, player.skills.pistolMastery, player.skills.shotgunMastery, player.skills.bowMastery, player.skills.droneSkill, player.skills.iceSpike, player.skills.lightningStrike, player.skills.stormDomain, player.skills.thunderLance, player.skills.holyLight, player.skills.shieldDefense, player.skills.fireball, player.skills.iceWall, player.skills.blizzard, player.skills.meteor, player.skills.flameArmor];
+            skillList = [player.skills.swordMastery, player.skills.dashAttack, player.skills.whirlwind, player.skills.pushStrike, player.skills.criticalStrike, player.skills.machineGunMastery, player.skills.rifleMastery, player.skills.pistolMastery, player.skills.shotgunMastery, player.skills.bowMastery, player.skills.droneSkill, player.skills.iceSpike, player.skills.lightningStrike, player.skills.stormDomain, player.skills.thunderLance, player.skills.holyLight, player.skills.shieldDefense, player.skills.fireball, player.skills.iceWall, player.skills.blizzard, player.skills.meteor, player.skills.flameArmor, player.skills.sanctuaryDomain, player.skills.holyJudgment];
         }
         // 筛选
         if (this._currentFilter !== 'all') {
@@ -1116,6 +1146,61 @@ export const SkillManager = {
                 html += `<div class="sd-stat-row"><span class="sd-stat-name">下一级冷却时间</span><span class="sd-stat-val pos">${nextEffect.cooldown}秒</span></div>`;
             }
             html += `</div>`;
+        } else if (skill.id === 'sanctuaryDomain') {
+            const d = Game.player ? Game.player.data : { matk: 0, int: 10, wis: 0 };
+            const tickDmg = Math.floor(effect.damageBase + d.matk * effect.damageMagicMul + d.int * effect.damageIntMul);
+            const tickHeal = Math.floor(effect.healBase + (d.wis || 0) * effect.healWisMul);
+            html += `<div class="sd-section"><h4>🧮 每跳公式</h4>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">每跳伤害</span><span class="sd-stat-val pos">${tickDmg}（基础${effect.damageBase} + 魔攻×${effect.damageMagicMul.toFixed(2)} + 智力×${effect.damageIntMul.toFixed(2)}）</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">每跳治疗</span><span class="sd-stat-val pos">${tickHeal}（基础${effect.healBase} + 精神×${effect.healWisMul.toFixed(2)}）</span></div>`;
+            html += `</div>`;
+            html += `<div class="sd-section"><h4>技能效果</h4>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">形态</span><span class="sd-stat-val pos">圣辉环以自身为中心，跟随移动</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">持续</span><span class="sd-stat-val pos">${effect.duration}秒</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">半径</span><span class="sd-stat-val pos">${effect.radius}px</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">僵尸类伤害</span><span class="sd-stat-val pos">×${effect.zombieDamageMul}</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">净化</span><span class="sd-stat-val pos">每${(effect.cleanseIntervalMs / 1000).toFixed(0)}秒为领域内友军移除 1 个负面状态</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">魔法等级</span><span class="sd-stat-val pos">中级魔法（需装备法杖）</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">冷却时间</span><span class="sd-stat-val pos">${effect.cooldown}秒</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">魔法消耗</span><span class="sd-stat-val pos">${effect.mpCost} MP</span></div>`;
+            if (nextEffect) {
+                const nextDmg = Math.floor(nextEffect.damageBase + d.matk * nextEffect.damageMagicMul + d.int * nextEffect.damageIntMul);
+                const nextHeal = Math.floor(nextEffect.healBase + (d.wis || 0) * nextEffect.healWisMul);
+                html += `<div class="sd-stat-row" style="margin-top:8px;border-top:1px solid rgba(255,210,122,0.2);padding-top:8px;"><span class="sd-stat-name">下一级每跳伤害/治疗</span><span class="sd-stat-val pos">${nextDmg} / ${nextHeal}</span></div>`;
+                html += `<div class="sd-stat-row"><span class="sd-stat-name">下一级持续</span><span class="sd-stat-val pos">${nextEffect.duration}秒</span></div>`;
+                html += `<div class="sd-stat-row"><span class="sd-stat-name">下一级半径</span><span class="sd-stat-val pos">${nextEffect.radius}px</span></div>`;
+                html += `<div class="sd-stat-row"><span class="sd-stat-name">下一级冷却时间</span><span class="sd-stat-val pos">${nextEffect.cooldown}秒</span></div>`;
+            }
+            html += `</div>`;
+        } else if (skill.id === 'holyJudgment') {
+            const d = Game.player ? Game.player.data : { matk: 0, int: 10, wis: 0 };
+            const judgeDmg = Math.floor(effect.damageBase + d.matk * effect.damageMagicMul + d.int * effect.damageIntMul + (d.wis || 0) * effect.damageWisMul);
+            const judgeHeal = Math.floor(effect.healBase + (d.wis || 0) * effect.healWisMul);
+            html += `<div class="sd-section"><h4>🧮 审判公式（满蓄）</h4>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">审判伤害</span><span class="sd-stat-val pos">${judgeDmg}（基础${effect.damageBase} + 魔攻×${effect.damageMagicMul.toFixed(2)} + 智力×${effect.damageIntMul.toFixed(2)} + 精神×${effect.damageWisMul.toFixed(2)}）</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">治疗</span><span class="sd-stat-val pos">${judgeHeal}（基础${effect.healBase} + 精神×${effect.healWisMul.toFixed(2)}）</span></div>`;
+            html += `</div>`;
+            html += `<div class="sd-section"><h4>技能效果</h4>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">形态</span><span class="sd-stat-val pos">蓄力后目标点降下巨型圣柱</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">蓄力方式</span><span class="sd-stat-val pos">长按快捷键蓄力，目标点随鼠标移动；松开或蓄满 ${((effect.delayMs || 2500) / 1000).toFixed(1)}秒 落柱</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">蓄力效果</span><span class="sd-stat-val pos">蓄力 0.5~2.5 秒按时间比例 30%~100%；不足 0.5 秒释放失败且不进入冷却</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">审判半径</span><span class="sd-stat-val pos">${effect.radiusMin}→${effect.radiusMax}px（随蓄力）</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">选点射程</span><span class="sd-stat-val pos">${effect.maxRange}px</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">僵尸类伤害</span><span class="sd-stat-val pos">×${effect.zombieDamageMul}</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">净化斩杀</span><span class="sd-stat-val pos">非 Boss 不死单位血量 ≤ ${(effect.purifyThreshold * 100).toFixed(1)}% 直接净化即死</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">友方效果</span><span class="sd-stat-val pos">范围内大额回血 + 立即清除全部负面状态</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">自释放</span><span class="sd-stat-val pos">Alt+快捷键 落点锁定自身脚下</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">魔法等级</span><span class="sd-stat-val pos">高级魔法（需装备法杖）</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">冷却时间</span><span class="sd-stat-val pos">${effect.cooldown}秒</span></div>`;
+            html += `<div class="sd-stat-row"><span class="sd-stat-name">魔法消耗</span><span class="sd-stat-val pos">${effect.mpCost} MP</span></div>`;
+            if (nextEffect) {
+                const nextDmg = Math.floor(nextEffect.damageBase + d.matk * nextEffect.damageMagicMul + d.int * nextEffect.damageIntMul + (d.wis || 0) * nextEffect.damageWisMul);
+                const nextHeal = Math.floor(nextEffect.healBase + (d.wis || 0) * nextEffect.healWisMul);
+                html += `<div class="sd-stat-row" style="margin-top:8px;border-top:1px solid rgba(255,210,122,0.2);padding-top:8px;"><span class="sd-stat-name">下一级审判伤害/治疗</span><span class="sd-stat-val pos">${nextDmg} / ${nextHeal}</span></div>`;
+                html += `<div class="sd-stat-row"><span class="sd-stat-name">下一级净化斩杀线</span><span class="sd-stat-val pos">${(nextEffect.purifyThreshold * 100).toFixed(1)}%</span></div>`;
+                html += `<div class="sd-stat-row"><span class="sd-stat-name">下一级冷却时间</span><span class="sd-stat-val pos">${nextEffect.cooldown}秒</span></div>`;
+            }
+            html += `</div>`;
         } else if (skill.id === 'iceWall') {
             const d = Game.player ? Game.player.data : { int: 10, wis: 10 };
             const baseDamage = effect.damageBase;
@@ -1258,6 +1343,20 @@ export const SkillManager = {
             html += `<p>• 圣光命中一个目标增加 5 点经验</p>`;
             html += `<p>• 击杀目标增加 10 点经验</p>`;
             html += `<p style="margin-top:6px;color:#a0907a;font-size:12px;">主动技能：拖入快捷栏后按 Q/E 释放（Alt+快捷键直接对自己释放），敌方=伤害（僵尸翻倍）、友方=回复生命</p>`;
+        } else if (skill.id === 'sanctuaryDomain') {
+            html += `<p>• 圣辉领域每击中一个目标增加 1 点经验</p>`;
+            html += `<p>• 每跳治疗一个友军增加 1 点经验</p>`;
+            html += `<p>• 单跳命中 2 个及以上目标，额外获得 5 点经验</p>`;
+            html += `<p>• 一次击杀 2 个及以上目标，额外获得 10 点经验</p>`;
+            html += `<p>• 圣辉领域击杀一个目标增加 6 点经验</p>`;
+            html += `<p style="margin-top:6px;color:#a0907a;font-size:12px;">中级魔法：需装备法杖才能释放。拖入快捷栏后按 Q/E 释放，圣辉环跟随自己：友军持续回血+净化负面，敌方持续受光系伤害（僵尸 2.5 倍）</p>`;
+        } else if (skill.id === 'holyJudgment') {
+            html += `<p>• 圣光审判每击中一个目标增加 2 点经验</p>`;
+            html += `<p>• 每治疗一个友军增加 1 点经验</p>`;
+            html += `<p>• 单次命中 2 个及以上目标，额外获得 8 点经验</p>`;
+            html += `<p>• 一次击杀 2 个及以上目标，额外获得 10 点经验</p>`;
+            html += `<p>• 圣光审判击杀一个目标增加 10 点经验</p>`;
+            html += `<p style="margin-top:6px;color:#a0907a;font-size:12px;">高级魔法：需装备法杖才能释放。拖入快捷栏后按住 Q/E 蓄力（目标点随鼠标，Alt+快捷键落点锁定自身），松开或蓄满 2.5 秒落柱：敌方光系伤害（僵尸 3 倍）+ 低血不死净化即死，友方大额回血+清除全部负面</p>`;
         } else if (skill.id === 'iceWall') {
             html += `<p>• 冰墙命中一个目标增加 3 点经验</p>`;
             html += `<p>• 同时命中 2 个及以上目标，额外获得 10 点经验</p>`;
@@ -1290,6 +1389,7 @@ export const SkillManager = {
         }
         html += `</div>`;
         body.innerHTML = html;
+        detail.scrollTop = 0;
         detail.style.display = 'block';
         const backBtn = getElement('sdBackBtn');
         if (backBtn) {

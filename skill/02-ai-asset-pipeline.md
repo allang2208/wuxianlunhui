@@ -28,7 +28,8 @@ python tools/ai-gen/ai-asset.py icon transparent --src <白底图> --dst <out.pn
 python tools/ai-gen/ai-asset.py icon normalize   --src <png> --dst <out.png>
 python tools/ai-gen/ai-asset.py icon pipeline    [--keys k1,k2]
 python tools/ai-gen/ai-asset.py icon check
-# 人形怪/工头动画（h3-loop / h3-attack 抽帧）
+# 人形怪/工头动画（H3生成 + h3-loop / h3-attack 抽帧）
+python tools/ai-gen/ai-asset.py humanoid video  --name <X> --kind idle|run|attack|howl|die --ref <纯色底首帧> [--one-way]
 python tools/ai-gen/ai-asset.py humanoid loop   --video <loop.mp4> --out walking.png [--period 48,48]
 python tools/ai-gen/ai-asset.py humanoid attack --video <attack.mp4> --out attack.png
 # LoRA 训练（5080）
@@ -143,9 +144,9 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
 - **唯一角度口径**：对真实 Alpha（建议 `alpha >= 128`）取最大外连通域，使用 `findContours(..., RETR_EXTERNAL)` + `approxPolyDP` 提取最下方接地折线；只测这条外轮廓的连续线段。标准 2×2 建筑的地面轴斜率为 `dy/dx = ±0.5`，即屏幕角 `±26.565°`，墙线必须垂直，所有塔脚/门槛必须位于同一地面。
 - **禁止用全图 Hough 线段判合格**：砖缝、窗框、屋檐或内部墙线常恰好接近 `±26°`，会掩盖真实塔脚回边达到 `+42°/+51°` 的错误；Hough 只能辅助找候选线，不能代替 Alpha 外轮廓验收。
 - **修正边界**：只有整栋建筑两组轴共享同一线性误差时才允许全局仿射；多塔脚各自漂移属于非线性透视，必须重抽、按白模表面投影，或在保持竖线垂直的前提下对实际外轮廓做分段几何映射，然后重新测量每一段。
-- **入库门槛**：背景必须是真实 RGBA；主体紧裁后等比缩放；可见接地范围必须落在固定 `256×128` 地基/碰撞菱形内；`alpha>16` 主体应为单一主连通域且不能触碰画布边界。未确认候选不得覆盖 `assets/terrain/`，只有玩家明确接受的版本才能提升为稳定英文资产键；定稿入库后删除 raw、预览、控制图、遮罩和被否版本。
+- **入库门槛**：背景必须是真实 RGBA；主体紧裁后等比缩放；稳定底座接地中心必须对齐固定 `256×128` footprint 中心，可见底边仅允许运行时契约规定的小范围外伸；`alpha>16` 主体应为单一主连通域且不能触碰画布边界。未确认候选不得覆盖 `assets/terrain/`，只有玩家明确接受的版本才能提升为稳定英文资产键；定稿入库后删除 raw、预览、控制图、遮罩和被否版本。
 - **结构通过后的像素精修**：玩家已接受主体结构后，后续“降噪/提升饱和度”只改当前候选的 RGB，禁止重新生图改变窗户、阳台、底座或视角。处理必须锁住 alpha（输出 alpha 与输入逐像素一致），在主体 mask 内做边缘保护降噪与饱和度调整；每一轮百分比都以当轮输入为基准并保留可回退候选。安装时只覆盖稳定英文资产，逻辑 footprint、碰撞和道路衔接不得随像素处理改变。
-- **人工 RGBA 抠图优先保真**：玩家交回已经清理的 RGBA 时，先检查模式、alpha 范围和主体 bbox；alpha 合格就直接进入 `finalize-building-runtime.py`，禁止再次自动分割。若软边仍混有已知底色，用 `--matte-color '#RRGGBB'` 反推半透明边缘 RGB；若 alpha 内侧还有不透明底色细线，再增加 `--matte-edge-width <源图像素>` 与 `--matte-tolerance <RGB 距离>`，只修复污染 RGB，不改玩家 alpha。
+- **人工 RGBA 抠图优先保真**：玩家交回已经清理的 RGBA 时，先检查模式、alpha 范围和主体 bbox；alpha 合格就直接进入 `finalize-building-runtime.py`，禁止再次自动分割。若软边仍混有已知底色，用 `--matte-color '#RRGGBB'` 反推半透明边缘 RGB；若 alpha 内侧还有不透明底色细线，再增加 `--matte-edge-width <源图像素>` 与 `--matte-tolerance <RGB 距离>`。若半透明边缘 RGB 已被选择工具替换成纯蓝/纯色标记、无法按正常 matte 反推，则改用 `--nearest-opaque-edge-rgb`，以最近可靠不透明主体色修边；两种方式都只修 RGB，不改玩家 alpha。
 - **等比入库元数据契约**：`displayW` 由逻辑 footprint 和画面占比确定；`displayH` 必须按最终紧裁画布宽高比反算，`footOffsetY` 再从最终画布接地点计算。替换贴图时禁止沿用旧 `displayH` 强拉新图。alpha 自动拟合后若仍因厚地基或非对称画布偏移，才设置资产级 `anchorAdjustX/anchorAdjustY`；建造幽灵与正式实体必须同时消费这两个值。
 - **单建筑光照图增量更新**：新稳定资产键先登记到 `build-lighting-maps.py` 的 `ASSETS`，再运行 `python tools/ai-gen/build-lighting-maps.py <building_id>`。指定资产模式必须保留 manifest 中其他条目，仅更新该建筑的 silhouette/projection/height/normal 四张图和对应记录；禁止为换一栋建筑重建、改写整批无关光照资产。
 
@@ -1039,10 +1040,11 @@ defend 持盾帧右偏 13px。**结论：武器弧远超身体宽的动作，格
 
 #### 红狼王母版六动作现行规格（2026-08-23，覆盖下方旧红狼参数）
 
-- 红狼王运行时只保留同一母版生成的六套狼形序列：idle 12帧、running 16帧、attack 12帧、pounce 12帧、howl 12帧、dying 12帧；旧 pacing 独立图、变身图和人形图已全部退出运行时。
+- 红狼王狼形运行时保留同一母版生成的六套序列：idle 12帧、running 16帧、attack 21帧、pounce 23帧、howl 12帧、dying 12帧；旧 pacing 独立图、旧变身图和旧人形图已全部退出运行时。2026-08-23 以当前狼形母版和新生成的红狼人母版作为 H3 首尾帧，新增 transform 20帧（5×4、640格、footY 590）：从视频有效形变段0~91帧均匀取样，末格强制取真实第123帧，固定比例/水平中心/脚底对齐。变身后的狼人现已补齐 idle 20帧、running 12帧、attacking 21帧、howling 20帧、dying 20帧，全部640格、与 transform 末帧同尺度；idle/attack/howl/dying沿用footY 590，running经躯干稳定后独立使用footY 606。running 当前以用户微调并移除背景后的同名8×6画布为正式资源，只注册前12个连续有效格。此前23帧抽样原表和46帧RIFE循环插帧表仅保留为可回退的生成历史，不再作为运行时帧数。飞扑玩法暂复用 attacking 并继续保留白色拖尾。attack/pounce 先由原 12 帧通过 RIFE v4.6 相邻帧 RGB/Alpha 分通道插帧为 23 帧，一次性动作禁止做末帧→首帧回绕插值；中间帧脚底按相邻原帧底边均值校准。普通攻击再删除末段2张慢闭嘴帧，仅保留1张快速咬合过渡和1张完全闭嘴帧，最终为21帧。
 - idle/running/howl/dying 为512格；attack/pounce 为640格。640格不能直接沿用151显示框，运行时必须按 `cell/referenceCell` 放大完整画布，再用每状态 `footY` 对齐逻辑脚底；pounce 因安全边距缩放另加 `contentScale:1.15`。
-- running 取自连续原视频帧，按约42ms/帧播放；walk/pacing 共用同一表但用80/100ms降速。攻击12帧按100ms完整播放，命中窗口约第5~9帧；飞扑0~3蓄力、4~11冲锋。
-- 半血二阶段只保留原数值强化，以狼形 howl 表现，不再切人形视觉；dying 接 `_preserveCorpse`，约2秒播放后末帧保留1秒。新视频已包含身体起伏，禁止再叠旧程序化 bounce/stretch。
+- 狼形 running 取自连续原视频帧，按约42ms/帧播放；walk/pacing 共用同一表但用80/100ms降速。狼人二阶段当前12帧追捕跑恢复到整体减速33%之前的约1.38秒/圈，按115ms/帧播放；walk/pacing仍为124.583333/153.333333ms。BootScene只注册0~11，8×6画布余下空格不进入循环。用户透明12帧先以alpha底边y=590完成粗对齐，随后针对低Alpha边缘“触线但实心脚掌悬空”和躯干起伏做第二轮无重采样整像素校准：中央躯干质心压入405~411px窄带，逐帧Y位移为`+16/0/0/-2/-3/0/+3/0/0/-3/-2/+6`，running专属`footY=606`，使所有帧不沉地且游戏内躯干波动由约9.51px降至2.50px。禁止通过运行时bounce补偿脚线抖动。攻击21帧按50ms推进到闭嘴末帧，再定格到1.2秒结束；命中窗口约第10~18帧，最后第19/20帧快速咬合。飞扑0~7蓄力、8~22冲锋，prepare/charge 仍各900ms，动作和玩法总时长不变。
+- 狼人形态视觉和碰撞统一使用1.25目标倍率：640格按512参考换算后的显示边长由188.75px增至235.9375px；当前半径45、90×90碰撞基准增至半径56.25、112.5×112.5，胶囊高度同倍率增长。2秒transform期间按线性进度从1.00插值到1.25，Phaser同纹理内每帧同步displaySize，碰撞矩形/footprint/胶囊同步增长；`footOffsetY`随显示尺寸和当前表的`footY`重算，transform等表用590、running用606，各自锚定同一逻辑脚线。若变身中死亡，碰撞恢复狼形基准。
+- 半血二阶段播放 transform 后进入狼人五动作状态机；idle/run/attack 按真实 AI 状态推进，主动嚎叫和死亡各用独立狼人表，dying 继续接 `_preserveCorpse`，约2秒播放后末帧保留1秒。新视频已包含身体起伏，禁止再叠旧程序化 bounce/stretch。
 
 适用范围：黑狼/红狼王等四足狼系怪物，H3 视频 → 精灵图 → 游戏入库。
 管线段：视频生成 → 周期/窗口检测 → 抽帧 → BiRefNet 抠图 → 缩放摆放 →
@@ -1574,7 +1576,7 @@ perChunk:6, size:760}, deco:{textures:['deco_grass_1','deco_grass_2'], perChunk:
 `comfyui-gen.py --model flux2-dev-depth --steps 48 --control-image <depth> --bg-color #00FF00`
 生成**仅建筑主体**。随后依次运行 `key-world122-building-body.py`（从画布边缘抠除绿色背景）、
 `mask-world122-building-body.py`（以白模轮廓裁掉模型擅自添加的地台/投影），最后用
-`compose-world122-building-preview.py` 将主体与既有固定大理石地基合成审批预览。
+`compose-world122-building-preview.py` 将主体与当前2×2道路中央补片合成审批预览；运行时不再存在独立通用地基。
 
 地基永远是独立运行时图层，不能烘焙进主体 PNG；审批前拒绝含 AI 地台、地形、投影、地平线或
 超出白模轮廓的候选。通过预览确认后才将透明主体导入 `assets/terrain/`。

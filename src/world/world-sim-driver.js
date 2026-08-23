@@ -23,6 +23,8 @@ import { TroopLineSystem } from './troop-line-system.js';
 import { TechnologySystem } from './technology-system.js';
 import { applyGlobalUpgradesToKind } from './unit-upgrade-store.js';
 import { getUpgradeModulesForUnitKind } from './building-upgrade-projects.js';
+import { routeBakeryPlantTributes } from './bakery-tribute-routing.js';
+import { routeArmoryEnhancementStones } from './armory-reward-routing.js';
 
 const TICK_MS = 1000;
 
@@ -75,6 +77,14 @@ export const WorldSimDriver = {
                     gameTimeMs: nowGame,
                     grant: (reward) => {
                         if (reward.gold) return routeProducedGold(reward.gold);
+                        if (reward.tributeItemIds?.length) {
+                            const routed = routeBakeryPlantTributes(reward.tributeItemIds);
+                            return { acceptedTributes: routed.accepted };
+                        }
+                        if (reward.enhancementStones > 0) {
+                            const routed = routeArmoryEnhancementStones(reward.enhancementStones);
+                            return { acceptedEnhancementStones: routed.accepted };
+                        }
                         return { remaining: 0 };
                     },
                 });
@@ -118,6 +128,9 @@ export const WorldSimDriver = {
             if (report.energyMined > 0) lines.push([`${sceneId} 采集 +${Math.round(report.energyMined)} 能源`, '#7fd4ff']);
             if (report.goldProduced > 0) lines.push([`${sceneId} 银行服务 +${report.goldProduced} 金币`, '#ffd700']);
             if (report.foodProduced > 0) lines.push([`${sceneId} 风车 +${report.foodProduced} 粮食`, '#d9b84f']);
+            if (report.enhancementStonesProduced > 0) {
+                lines.push([`${sceneId} 军械整理 +${report.enhancementStonesProduced} 强化石`, '#d8ad62']);
+            }
             const explorerCount = (report.explorerRewards || []).length;
             if (explorerCount > 0) lines.push([`${sceneId} 探险完成 ${explorerCount} 次`, '#c9a0ff']);
             if (report.modulesCompleted?.length > 0) lines.push([`${sceneId} 兵种升级完成 ${report.modulesCompleted.length} 项`, '#8ad0ff']);

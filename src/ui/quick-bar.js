@@ -517,6 +517,25 @@ export const QuickBar = {
                     }
                 }
                 // 冷却时间由 ThunderLanceSystem 内部管理，通过 updateCooldowns 同步
+            } else if (skillId === 'sanctuaryDomain') {
+                // 圣辉领域技能（跟身圣辉环：治疗/净化/压制不死）
+                if (player.sanctuaryDomainSystem) {
+                    player.sanctuaryDomainSystem.trigger();
+                }
+                // 冷却时间由 SanctuaryDomainSystem 内部管理，通过 updateCooldowns 同步
+            } else if (skillId === 'holyJudgment') {
+                // 圣光审判技能（长按蓄力；点击快捷栏=二段式：无蓄力→开始蓄力，蓄力中→释放；Alt=落点锁定自身）
+                if (player.holyJudgmentSystem) {
+                    player.holyJudgmentSystem.setHoldKey(keyCode);
+                    if (player.holyJudgmentSystem.isCharging()) {
+                        player.holyJudgmentSystem.release();
+                    } else if (altKey) {
+                        player.holyJudgmentSystem.triggerSelf();
+                    } else {
+                        player.holyJudgmentSystem.trigger();
+                    }
+                }
+                // 冷却时间由 HolyJudgmentSystem 内部管理，通过 updateCooldowns 同步
             }
             slot.element.style.transform = 'scale(0.95)';
             TimerManager.setTimeout(() => slot.element.style.transform = '', 100);
@@ -589,6 +608,21 @@ export const QuickBar = {
         const player = Game.player;
         if (!player || !player.thunderLanceSystem) return;
         player.thunderLanceSystem.release(); // 蓄力时长满足则释放，不足则失败
+    },
+    // ===== 圣光审判蓄力键：长按开始蓄力（选点随鼠标），松开/满蓄落柱（<0.5s 失败不进 CD） =====
+    isHolyJudgmentKey(keyCode) {
+        return !!(this.skillAssignments && this.skillAssignments[keyCode] === 'holyJudgment');
+    },
+    holyJudgmentKeyDown(_keyCode) {
+        const player = Game.player;
+        if (!player || !player.holyJudgmentSystem) return;
+        player.holyJudgmentSystem.setHoldKey(_keyCode);
+        player.holyJudgmentSystem.trigger(); // 开始蓄力（内部完成冷却/法杖/MP 门禁）
+    },
+    holyJudgmentKeyUp(_keyCode) {
+        const player = Game.player;
+        if (!player || !player.holyJudgmentSystem) return;
+        player.holyJudgmentSystem.release(); // 蓄力时长满足则落柱，不足则失败
     },
     // 长按：命令无人机飞往鼠标指针位置（未部署则先部署，部署等同施放受冷却限制）
     _droneMoveCommand() {
@@ -711,6 +745,16 @@ export const QuickBar = {
             } else if (Game.player && Game.player._thunderLanceCooldown === 0) {
                 this.cooldowns['thunderLance'] = 0;
             }
+            if (Game.player && Game.player._sanctuaryDomainCooldown > 0) {
+                this.cooldowns['sanctuaryDomain'] = Game.player._sanctuaryDomainCooldown;
+            } else if (Game.player && Game.player._sanctuaryDomainCooldown === 0) {
+                this.cooldowns['sanctuaryDomain'] = 0;
+            }
+            if (Game.player && Game.player._holyJudgmentCooldown > 0) {
+                this.cooldowns['holyJudgment'] = Game.player._holyJudgmentCooldown;
+            } else if (Game.player && Game.player._holyJudgmentCooldown === 0) {
+                this.cooldowns['holyJudgment'] = 0;
+            }
         this._renderCooldownOverlays();
         this._renderSkillRequirements();
     },
@@ -741,7 +785,7 @@ export const QuickBar = {
      */
     _getTotalCooldown(skillId, skill, effect) {
         const baseMs = (effect.cooldown || 0) * 1000;
-        if (!['iceSpike', 'fireball', 'lightningStrike', 'holyLight', 'iceWall', 'stormDomain', 'thunderLance'].includes(skillId)) return baseMs;
+        if (!['iceSpike', 'fireball', 'lightningStrike', 'holyLight', 'iceWall', 'stormDomain', 'thunderLance', 'sanctuaryDomain', 'holyJudgment'].includes(skillId)) return baseMs;
         const player = Game.player;
         if (!player) return baseMs;
         const currentWpn = player.equipments && player.equipments[player.weaponMode];

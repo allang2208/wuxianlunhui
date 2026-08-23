@@ -27,7 +27,7 @@
   },
   "worlds": {
     "scene8": {
-      "name": "世界-122",
+      "name": "世界-122-沙漠",
       "icon": "🏜️",
       "description": "荒漠防线",
       "initialPortal": true,
@@ -39,8 +39,7 @@
         "displayW": 440,
         "displayH": 439,
         "footOffsetY": 220,
-        "footprintCells": 4,
-        "foundation": false
+        "footprintCells": 4
       },
       "resetPolicy": { "baseSeed": 122008 }
     },
@@ -51,6 +50,12 @@
       "constructionEnabled": true,
       "requirements": { "completedDungeons": ["frozenBeginner"] },
       "portalSpawn": { "x": 6144, "y": 4096 },
+      "featureBuilding": {
+        "cfgKey": "snow_castle",
+        "offsetX": -330,
+        "offsetY": 180,
+        "migrationId": "scene9_snow_castle_initial_v1"
+      },
       "resetPolicy": { "baseSeed": 123009 }
     },
     "scene10": {

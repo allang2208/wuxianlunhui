@@ -20,7 +20,7 @@ function resolveComposition(comp) {
  * - 仅 D 级及以上难度地牢触发（minGrade）；
  * - 回合制：玩家每进入一个节点 = 1 回合；
  * - 达到"达到 Boss 房间最少房间数"（minRoomsToBoss）回合后开始判定：
- *   初始 25%，每 2 回合 +5%（地图左侧小鼠商店上方显示，浅绿→深红渐变）；
+ *   初始 25%，每 2 回合 +5%（路线页左侧信息栈显示，浅绿→深红渐变）；
  * - 判定成功：特工出现在起始点，沿最短路线追击（默认 2 格/回合，不触发沿途事件）；
  * - 特工与玩家节点重叠（追上）后，玩家进入的下一节点触发入侵战斗：
  *   情况1 随机事件节点 → 先强制特工战（4096 场地，仅特工），胜利后进入原事件；
@@ -68,6 +68,13 @@ export const AgentInvasionSystem = {
     reset() {
         this.active = false;
         this.eligible = false;
+        this.turnCount = 0;
+        this.chance = 0;
+        this.triggered = false;
+        this.caught = false;
+        this.invasionsUsed = 0;
+        this.agentNodeId = null;
+        this.defeated = false;
         this._dms = null;
         this._removeLabel();
     },
@@ -82,6 +89,14 @@ export const AgentInvasionSystem = {
     onPlayerEnterNode(_node) {
         if (!this.active || !this.eligible) return;
         this.turnCount++;
+        const maxInvasions = invasionConfig.maxInvasionsPerRun ?? 1;
+        // 捕获消费后 triggered 会复位；若本轮次数已用尽，必须先保持 0%，
+        // 不能先按回合重新算出一个永远不会参与判定的假概率。
+        if (!this.triggered && this.invasionsUsed >= maxInvasions) {
+            this.chance = 0;
+            this._updateLabel();
+            return;
+        }
         const startTurns = this._getStartTurns();
         if (this.turnCount < startTurns) {
             // 判定未开始：几率保持 0%，但标签从进地牢起就展示（不删除）
@@ -99,11 +114,13 @@ export const AgentInvasionSystem = {
             // 入侵次数上限只拦截"新入侵"的触发判定，不能挡住已触发特工的追击
             // （此前写在外层：触发当回合 invasionsUsed 即 +1，之后每回合提前 return，
             //  特工永远不走位、caught 永远 false → 入侵战斗永不发生）
-            if (this.invasionsUsed >= (invasionConfig.maxInvasionsPerRun ?? 1)) return;
+            if (this.invasionsUsed >= maxInvasions) return;
             // 每回合判定入侵
             if (Math.random() < this.chance) {
                 this.triggered = true;
                 this.invasionsUsed++;
+                // 入侵已经成立后不再保留上一轮判定概率；UI 继续显示“已入侵”状态。
+                this.chance = 0;
                 const startNode = this._dms.nodes.find(n => n.type === 'start');
                 this.agentNodeId = startNode ? startNode.id : this._dms.currentNodeId;
                 this._updateLabel();
@@ -132,6 +149,7 @@ export const AgentInvasionSystem = {
     consumeCatch() {
         this.caught = false;
         this.agentNodeId = null;
+        this.chance = 0;
         // 复位触发标记：maxInvasionsPerRun > 1 时允许下一轮入侵重新判定
         //（上限由 onPlayerEnterNode 的 invasionsUsed 闸门拦截，max=1 时行为不变）
         this.triggered = false;
@@ -216,7 +234,7 @@ export const AgentInvasionSystem = {
         return path;
     },
 
-    // ========== 几率显示（地图左侧，小鼠商店上方） ==========
+    // ========== 几率显示（路线页左侧信息栈） ==========
 
     _lerpColor(t) {
         const hex = (s) => {
@@ -238,42 +256,40 @@ export const AgentInvasionSystem = {
         if (!this._label) {
             const el = document.createElement('div');
             el.id = 'invasionChanceLabel';
-            el.style.cssText = `
-                position: fixed;
-                left: ${d.left ?? 20}px;
-                ${d.topCss ? `top: ${d.topCss};` : `bottom: ${d.bottomCss || 'calc(18.84vh + 85px)'};`}
-                width: 164px;
-                height: 66px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                text-align: center;
-                box-sizing: border-box;
-                background: rgba(20, 20, 20, 0.55);
-                border: 1px solid rgba(120, 110, 90, 0.5);
-                border-radius: 8px;
-                z-index: 9000;
-                pointer-events: none;
-                user-select: none;
-                font-family: SimHei, "Microsoft YaHei", "黑体", sans-serif;
-                font-size: 16px;
-                font-weight: 700;
-                text-shadow: 0 2px 4px rgba(0,0,0,0.8);
-            `;
-            document.body.appendChild(el);
+            el.className = 'dungeon-route-invasion-panel';
+            const host = document.getElementById('dungeonRouteInfoStack') || document.body;
+            // 信息栈固定顺序：奖励 → 入侵 → 当前地牢；入侵标签被消费后重建时
+            // 也必须插回标题之前，不能简单 append 到栈底。
+            const dungeonTitle = host.querySelector?.('#dungeonMapNameLabel');
+            if (dungeonTitle) host.insertBefore(el, dungeonTitle);
+            else host.appendChild(el);
             this._label = el;
         }
         const initial = invasionConfig.initialChance ?? 0.25;
-        const t = Math.max(0, Math.min(1, (this.chance - initial) / (1 - initial)));
-        this._label.style.color = this._lerpColor(t);
+        const t = this.triggered ? 1 : Math.max(0, Math.min(1, (this.chance - initial) / (1 - initial)));
+        this._label.style.setProperty('--dungeon-invasion-color', this._lerpColor(t));
         const pct = Math.round(this.chance * 100);
-        this._label.textContent = this.triggered
-            ? `${d.label || '时空特工入侵几率'}：已入侵！`
-            : `${d.label || '时空特工入侵几率'}：${pct}%`;
+        const startTurns = this._getStartTurns();
+        const pendingTurns = Math.max(0, startTurns - this.turnCount);
+        const exhausted = !this.triggered
+            && this.invasionsUsed >= (invasionConfig.maxInvasionsPerRun ?? 1);
+        const status = this.triggered ? '已入侵' : `${pct}%`;
+        const note = this.triggered
+            ? '特工已进入路线 · 概率归零'
+            : (exhausted
+                ? '本轮入侵次数已用尽'
+                : (pendingTurns > 0 ? `再前进 ${pendingTurns} 个节点开始判定` : '每次进入节点进行判定'));
+        this._label.innerHTML = `
+            <div class="dungeon-route-invasion-row">
+                <span>${d.label || '时空特工入侵几率'}</span>
+                <strong>${status}</strong>
+            </div>
+            <div class="dungeon-route-invasion-note">${note}</div>`;
     },
 
     /** 入侵战斗胜利：删除左侧几率标签并标记已击败（本次地牢不再显示） */
     onInvasionDefeated() {
+        this.chance = 0;
         this.defeated = true;
         this._removeLabel();
     },
@@ -283,5 +299,7 @@ export const AgentInvasionSystem = {
             this._label.remove();
             this._label = null;
         }
+        const host = document.getElementById('dungeonRouteInfoStack');
+        if (host && !host.children.length) host.remove();
     },
 };

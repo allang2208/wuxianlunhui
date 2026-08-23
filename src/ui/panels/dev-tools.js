@@ -511,7 +511,7 @@ export function createDevToolPanel() {
     cheatRow.append(btnCheat, cheatHint);
     skillRow.appendChild(cheatRow);
 
-    // ===== 测试开关：无限资源（建造、产兵、升级项目不消耗能源/金币/粮食） =====
+    // ===== 测试开关：无限资源（军事招募仍按正式规则消耗粮食） =====
     const resourceRow = document.createElement('div');
     resourceRow.style.cssText = 'display:flex;gap:8px;align-items:center;padding:6px 0;border-top:1px solid #3a3a3a;margin-top:6px;';
     const btnResource = document.createElement('button');
@@ -531,12 +531,12 @@ export function createDevToolPanel() {
         window.Game._devInfiniteResources = next;
         syncResourceBtn();
         if (DevTool && typeof DevTool._showToast === 'function') {
-            DevTool._showToast(next ? '✅ 无限资源 已开启（建造、产兵、升级项目免费）' : '无限资源 已关闭');
+            DevTool._showToast(next ? '✅ 无限资源 已开启（军事招募仍消耗粮食）' : '无限资源 已关闭');
         }
     });
     syncResourceBtn();
     const resourceHint = document.createElement('span');
-    resourceHint.textContent = '测试用：建造建筑、生成单位、升级项目均不消耗金币、能源和粮食';
+    resourceHint.textContent = '测试用：经济事务免金币/能源；军事招募仍消耗粮食';
     resourceHint.style.cssText = 'color:#9aa5b1;font-size:11px;';
     resourceRow.append(btnResource, resourceHint);
     skillRow.appendChild(resourceRow);
@@ -600,11 +600,13 @@ export function createDevToolPanel() {
         }
         const unlocked = TechnologySystem.unlockAll({ source: 'dev' });
         syncTechnologyBtn();
-        DevTool?._showToast?.(unlocked > 0 ? `✅ 已解锁全部科技（新增 ${unlocked} 项）` : '全部科技已经解锁');
+        DevTool?._showToast?.(unlocked > 0
+            ? `✅ 已解锁全部科技（新增 ${unlocked} 项，含未开放位面的专项科技）`
+            : '全部科技已经解锁（含位面专项科技）');
     });
     syncTechnologyBtn();
     const technologyHint = document.createElement('span');
-    technologyHint.textContent = '测试用：立即显示并启用全部科技门禁功能';
+    technologyHint.textContent = '测试用：立即启用全部科技，未开放位面的专项科技也会直接完成';
     technologyHint.style.cssText = 'color:#9aa5b1;font-size:11px;';
     technologyRow.append(unlockTechnologyBtn, technologyHint);
     skillRow.appendChild(technologyRow);

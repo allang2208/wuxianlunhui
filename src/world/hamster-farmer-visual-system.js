@@ -103,6 +103,8 @@ function createWorker(scene, building, cells) {
         scene,
         building,
         sprite,
+        x: point.x,
+        y: point.y,
         state: '',
         stateRemainMs: 0,
         currentCell: startCell,
@@ -155,7 +157,9 @@ function updateWorker(worker, cells, dt) {
         const desiredX = worker.moveFromX + dx * p;
         const desiredY = worker.moveFromY + dy * p;
         const move = sweepCivilianVisualMove(worker, desiredX, desiredY);
-        worker.sprite.setPosition(move.x, move.y);
+        worker.x = move.x;
+        worker.y = move.y;
+        worker.sprite.setPosition(worker.x, worker.y);
         if (t >= 1 && Math.hypot(move.x - worker.targetX, move.y - worker.targetY) <= 2) {
             worker.currentCell = worker.targetCell;
             worker.targetCell = null;

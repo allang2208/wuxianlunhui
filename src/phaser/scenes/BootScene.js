@@ -23,6 +23,7 @@ import hamsterExplorerConfig from '../../../data/hamster-explorer-config.json';
 import hamsterBountyHunterConfig from '../../../data/hamster-bounty-hunter-config.json';
 import jaguarWarriorConfig from '../../../data/jaguar-warrior-config.json';
 import junglePriestConfig from '../../../data/jungle-priest-config.json';
+import desertPriestConfig from '../../../data/desert-priest-config.json';
 import hamsterCamelCavalryConfig from '../../../data/hamster-camel-cavalry-config.json';
 import populationEconomyConfig from '../../../data/population-economy.json';
 import producerBuildingsConfig from '../../../data/producer-buildings.json';
@@ -101,7 +102,7 @@ export class BootScene extends Scene {
         }
 
         // ---- 世界-122 友方单位（独立配置，不入招募池）----
-        for (const unitConfig of [hamsterMinerConfig, hamsterWarriorConfig, hamsterShooterConfig, hamsterGuardConfig, hamsterMilitiaConfig, hamsterScoutConfig, hamsterMusketeerConfig, hamsterPriestConfig, hamsterKnightConfig, hamsterLightCavalryConfig, hamsterExplorerConfig, hamsterBountyHunterConfig, jaguarWarriorConfig, junglePriestConfig, hamsterCamelCavalryConfig]) {
+        for (const unitConfig of [hamsterMinerConfig, hamsterWarriorConfig, hamsterShooterConfig, hamsterGuardConfig, hamsterMilitiaConfig, hamsterScoutConfig, hamsterMusketeerConfig, hamsterPriestConfig, hamsterKnightConfig, hamsterLightCavalryConfig, hamsterExplorerConfig, hamsterBountyHunterConfig, jaguarWarriorConfig, junglePriestConfig, desertPriestConfig, hamsterCamelCavalryConfig]) {
             for (const [animKey, def] of Object.entries(unitConfig.animations || {})) {
                 if (!def || !def.src) continue;
                 this.load.spritesheet(`companion_${unitConfig.id}_${animKey}`, def.src, {
@@ -135,6 +136,24 @@ export class BootScene extends Scene {
         for (const [animKey, def] of Object.entries(bankerVisual?.animations || {})) {
             if (!def?.src) continue;
             this.load.spritesheet(`worker_${bankerVisual.id}_${animKey}`, def.src, {
+                frameWidth: def.frameWidth || 512,
+                frameHeight: def.frameHeight || 512,
+                endFrame: (def.frameCount || 1) - 1,
+            });
+        }
+        const bakerVisual = populationEconomyConfig.bakery?.workerVisual;
+        for (const [animKey, def] of Object.entries(bakerVisual?.animations || {})) {
+            if (!def?.src) continue;
+            this.load.spritesheet(`worker_${bakerVisual.id}_${animKey}`, def.src, {
+                frameWidth: def.frameWidth || 512,
+                frameHeight: def.frameHeight || 512,
+                endFrame: (def.frameCount || 1) - 1,
+            });
+        }
+        const maintainerVisual = populationEconomyConfig.armory?.workerVisual;
+        for (const [animKey, def] of Object.entries(maintainerVisual?.animations || {})) {
+            if (!def?.src) continue;
+            this.load.spritesheet(`worker_${maintainerVisual.id}_${animKey}`, def.src, {
                 frameWidth: def.frameWidth || 512,
                 frameHeight: def.frameHeight || 512,
                 endFrame: (def.frameCount || 1) - 1,
@@ -178,6 +197,9 @@ export class BootScene extends Scene {
         this.load.image('blackbrick6', 'assets/terrain/blackbrick6.png');
         this.load.image('blackbrick_7', 'assets/terrain/blackbrick-7.png');
         this.load.image('blackbrick_8', 'assets/terrain/blackbrick-8.png');
+        // 世界-125 遗迹大石板地砖（2:1 菱形，砖缝与建筑底边同口径）
+        this.load.image('ruinslab_1', 'assets/terrain/ruinslab-1.png');
+        this.load.image('ruinslab_2', 'assets/terrain/ruinslab-2.png');
         // 沼泽地装饰道具（柴堆/草茎/树桩/苔石，战斗房地块随机点缀）
         this.load.image('swamp_deco_3', 'assets/terrain/swamp_deco_3.png');
         this.load.image('swamp_deco_4', 'assets/terrain/swamp_deco_4.png');
@@ -314,7 +336,6 @@ export class BootScene extends Scene {
         this.load.image('barracks', 'assets/terrain/barracks.png');
         this.load.image('mine', 'assets/terrain/mine.png');
         this.load.image('blacksmith', 'assets/terrain/blacksmith.png');
-        this.load.image('building_foundation_2x2', 'assets/terrain/building_foundation_2x2.png');
         this.load.image('church', 'assets/terrain/church.png');
         // 世界-122 研究院（确认稿按 alpha>16 紧身裁透明边）
         this.load.image('research_institute', 'assets/terrain/research_institute.png');
@@ -324,8 +345,9 @@ export class BootScene extends Scene {
         this.load.image('desert_mansion', 'assets/terrain/desert_mansion.png');
         this.load.image('explorer_camp', 'assets/terrain/explorer_camp.png');
         this.load.image('jungle_temple', 'assets/terrain/jungle_temple.png');
+        this.load.image('snow_castle', 'assets/terrain/snow_castle.png');
         this.load.image('cavalry_school', 'assets/terrain/cavalry_school.png');
-        // 人口经济建筑：房屋三级、风车、银行、市场与经济工坊均接入 PNG。
+        // 人口经济建筑：房屋三级、风车、银行、市场、经济工坊、军械库与面包屋均接入 PNG。
         this.load.image('house_lv1', 'assets/terrain/house_lv1.png');
         this.load.image('house_lv2', 'assets/terrain/house_lv2.png');
         this.load.image('house_lv3', 'assets/terrain/house_lv3.png');
@@ -345,6 +367,8 @@ export class BootScene extends Scene {
         this.load.image('bank', 'assets/terrain/bank.png');
         this.load.image('market', 'assets/terrain/market.png');
         this.load.image('economic_workshop', 'assets/terrain/economic_workshop.png');
+        this.load.image('armory', 'assets/terrain/armory.png');
+        this.load.image('bakery', 'assets/terrain/bakery.png');
         // 建筑亮窗蒙版与主体保持完全相同的源画布；运行时以 ADD 模式叠加并独立闪烁。
         const loadedWindowGlowKeys = new Set();
         for (const buildingCfg of Object.values(producerBuildingsConfig)) {
@@ -383,13 +407,19 @@ export class BootScene extends Scene {
         this.load.spritesheet('enemy_black_wolf_walk', 'assets/enemies/black_wolf_walk.png', { frameWidth: 512, frameHeight: 512, endFrame: 15 });
         this.load.spritesheet('enemy_black_wolf_run', 'assets/enemies/black_wolf_run.png', { frameWidth: 512, frameHeight: 512, endFrame: 27 });
         this.load.spritesheet('enemy_black_wolf_bite', 'assets/enemies/black_wolf_bite_regular.png', { frameWidth: 512, frameHeight: 512, endFrame: 11 });
-        // 红狼王母版六动作（2026-08-23）：唯一狼形态渲染源，手动 setFrame 路径。
+        // 红狼王狼形六动作 + 变身 + 狼人五动作（2026-08-23），手动 setFrame 路径。
         this.load.spritesheet('enemy_red_wolf_king_idle', 'assets/enemies/red_wolf_king/idle.png', { frameWidth: 512, frameHeight: 512, endFrame: 11 });
         this.load.spritesheet('enemy_red_wolf_king_run', 'assets/enemies/red_wolf_king/running.png', { frameWidth: 512, frameHeight: 512, endFrame: 15 });
-        this.load.spritesheet('enemy_red_wolf_king_attack', 'assets/enemies/red_wolf_king/attack.png', { frameWidth: 640, frameHeight: 640, endFrame: 11 });
-        this.load.spritesheet('enemy_red_wolf_king_pounce', 'assets/enemies/red_wolf_king/pounce.png', { frameWidth: 640, frameHeight: 640, endFrame: 11 });
+        this.load.spritesheet('enemy_red_wolf_king_attack', 'assets/enemies/red_wolf_king/attack.png', { frameWidth: 640, frameHeight: 640, endFrame: 20 });
+        this.load.spritesheet('enemy_red_wolf_king_pounce', 'assets/enemies/red_wolf_king/pounce.png', { frameWidth: 640, frameHeight: 640, endFrame: 22 });
         this.load.spritesheet('enemy_red_wolf_king_dying', 'assets/enemies/red_wolf_king/dying.png', { frameWidth: 512, frameHeight: 512, endFrame: 11 });
         this.load.spritesheet('enemy_red_wolf_king_howl', 'assets/enemies/red_wolf_king/howl.png', { frameWidth: 512, frameHeight: 512, endFrame: 11 });
+        this.load.spritesheet('enemy_red_wolf_king_transform', 'assets/enemies/red_wolf_king/transform.png', { frameWidth: 640, frameHeight: 640, endFrame: 19 });
+        this.load.spritesheet('enemy_red_wolf_king_werewolf_idle', 'assets/enemies/red_wolf_king/werewolf_idle.png', { frameWidth: 640, frameHeight: 640, endFrame: 19 });
+        this.load.spritesheet('enemy_red_wolf_king_werewolf_run', 'assets/enemies/red_wolf_king/werewolf_running.png', { frameWidth: 640, frameHeight: 640, endFrame: 11 });
+        this.load.spritesheet('enemy_red_wolf_king_werewolf_attack', 'assets/enemies/red_wolf_king/werewolf_attacking.png', { frameWidth: 640, frameHeight: 640, endFrame: 20 });
+        this.load.spritesheet('enemy_red_wolf_king_werewolf_howl', 'assets/enemies/red_wolf_king/werewolf_howling.png', { frameWidth: 640, frameHeight: 640, endFrame: 19 });
+        this.load.spritesheet('enemy_red_wolf_king_werewolf_dying', 'assets/enemies/red_wolf_king/werewolf_dying.png', { frameWidth: 640, frameHeight: 640, endFrame: 19 });
 
         // 僵尸犬精灵图动画
         this.load.image('enemy_zombie_dog_idle', 'assets/enemies/zombie_dog_idle.png');
@@ -670,7 +700,7 @@ export class BootScene extends Scene {
         // 仓鼠民兵 attack = 15 帧单次（第 8 帧判定伤害由 AI 计时）；
         // 仓鼠斥候 attack = 18 帧单次（第 11 帧出膛由 AI 计时）+ projectile 单帧贴图；
         // 仓鼠牧师/丛林祭司 spell = 17 帧单次，第 8 帧由 AI 结算法术。
-        for (const unitConfig of [hamsterMinerConfig, hamsterWarriorConfig, hamsterShooterConfig, hamsterGuardConfig, hamsterMilitiaConfig, hamsterScoutConfig, hamsterMusketeerConfig, hamsterPriestConfig, hamsterKnightConfig, hamsterLightCavalryConfig, hamsterExplorerConfig, hamsterBountyHunterConfig, jaguarWarriorConfig, junglePriestConfig, hamsterCamelCavalryConfig]) {
+        for (const unitConfig of [hamsterMinerConfig, hamsterWarriorConfig, hamsterShooterConfig, hamsterGuardConfig, hamsterMilitiaConfig, hamsterScoutConfig, hamsterMusketeerConfig, hamsterPriestConfig, hamsterKnightConfig, hamsterLightCavalryConfig, hamsterExplorerConfig, hamsterBountyHunterConfig, jaguarWarriorConfig, junglePriestConfig, desertPriestConfig, hamsterCamelCavalryConfig]) {
             for (const [animKey, def] of Object.entries(unitConfig.animations || {})) {
                 if (!def || !def.src) continue;
                 const texKey = `companion_${unitConfig.id}_${animKey}`;
@@ -748,6 +778,34 @@ export class BootScene extends Scene {
         for (const [animKey, def] of Object.entries(bankerVisual?.animations || {})) {
             if (!def?.src) continue;
             const key = `worker_${bankerVisual.id}_${animKey}`;
+            if (this.anims.exists(key)) continue;
+            const [start, end] = def.frames || [0, (def.frameCount || 1) - 1];
+            this.anims.create({
+                key,
+                frames: this.anims.generateFrameNumbers(key, { start, end }),
+                frameRate: def.frameRate || 12,
+                repeat: def.repeat !== undefined ? def.repeat : -1,
+            });
+        }
+        // 面包师沿用纯视觉 worker_ 管线，物流阶段由 BakeryEconomySystem 状态映射。
+        const bakerVisual = populationEconomyConfig.bakery?.workerVisual;
+        for (const [animKey, def] of Object.entries(bakerVisual?.animations || {})) {
+            if (!def?.src) continue;
+            const key = `worker_${bakerVisual.id}_${animKey}`;
+            if (this.anims.exists(key)) continue;
+            const [start, end] = def.frames || [0, (def.frameCount || 1) - 1];
+            this.anims.create({
+                key,
+                frames: this.anims.generateFrameNumbers(key, { start, end }),
+                frameRate: def.frameRate || 12,
+                repeat: def.repeat !== undefined ? def.repeat : -1,
+            });
+        }
+        // 军械库维护师沿用纯视觉 worker_ 管线，只巡检建筑，不进入实体或维修数值链。
+        const maintainerVisual = populationEconomyConfig.armory?.workerVisual;
+        for (const [animKey, def] of Object.entries(maintainerVisual?.animations || {})) {
+            if (!def?.src) continue;
+            const key = `worker_${maintainerVisual.id}_${animKey}`;
             if (this.anims.exists(key)) continue;
             const [start, end] = def.frames || [0, (def.frameCount || 1) - 1];
             this.anims.create({

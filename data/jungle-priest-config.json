@@ -12,7 +12,11 @@
     "wis": 22,
     "luck": 8
   },
-  "skills": ["iceSpike", "fireball"],
+  "groundRadius": 20,
+  "collisionRadius": 20,
+  "bodyHeight": 100,
+  "size": 64,
+  "skills": ["lightningStrike", "iceSpike", "fireball"],
   "ai": {
     "walkSpeed": 125,
     "runSpeed": 125,
@@ -28,11 +32,13 @@
     "teleportDist": 999999,
     "teleportHardDist": 9999999
   },
-  "displaySize": 250,
-  "spriteOffsetY": -109,
+  "displaySize": 190.8867,
+  "spriteOffsetY": -83.140105,
   "render": {
-    "footOffsetY": 109,
-    "hudOffsetY": 140
+    "footOffsetY": 83.140105,
+    "hudOffsetY": 119,
+    "collisionWidth": 40,
+    "collisionHeight": 100
   },
   "animations": {
     "idle": {

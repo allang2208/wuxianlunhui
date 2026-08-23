@@ -15,9 +15,12 @@ export function createHudCore() {
     backMenuBtn.title = '游戏菜单';
     root.appendChild(backMenuBtn);
 
-    // ===== 玩家状态栏（Buff 图标行）——2026-08-15 用户要求删除左上角状态栏：不再创建容器；
-    // StatusBar 仍追踪效果逻辑（中毒/眩晕结算），仅不再渲染顶部图标行 =====
-    // （原 statusBarContainer 创建已移除）
+    // ===== 玩家状态栏（Buff / Debuff 图标行） =====
+    // StatusBar 的逻辑状态与渲染容器解耦；HUD 重建时必须保留这个稳定挂载点。
+    const statusBarContainer = document.createElement('div');
+    statusBarContainer.className = 'status-bar-container';
+    statusBarContainer.id = 'statusBarContainer';
+    root.appendChild(statusBarContainer);
 
     // ===== 顶部状态栏 =====
     const topBar = document.createElement('div');

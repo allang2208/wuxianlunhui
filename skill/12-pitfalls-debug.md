@@ -220,3 +220,11 @@ if (this._facing === 'left') {
   （elise-sprite-align / luna 系）脚底基线钉在 **0.9375×格高**——兜底会把锚点（阴影/深度）
   掉到真实脚底下 6.25%×显示高。需要真实脚底时：显式配置 footOffsetY，或用
   `GameScene._getVisibleFrameBottomRatio(sprite)` 实测帧内容底边（按帧缓存）。
+
+---
+
+## 常见陷阱：Edit 工具写 CRLF 文件时 `\r` 变字面量（2026-08-23）
+- 对混合行尾文件用 Edit 插入多行文本时，在 new_string 里写 `\r` 会被写成**字面反斜杠+r 字符**
+  （浏览器报非法 token）。安全做法：new_string 不写任何 `\r`，单行锚定替换让工具自己保留行尾；
+  若已中招，按字节码修复：`bytes([0x5C,0x72,0x0A])` → `bytes([0x0D,0x0A])`，并全量排查本轮
+  所有改过的文件（本次 BootScene.js 与 CHANGELOG.md 同时中招）。

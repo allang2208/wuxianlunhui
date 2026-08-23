@@ -147,6 +147,9 @@ const WallSystem = {
     _treesProxy: null,
     _collisionGrid: null,
     _collisionGridDirty: true,
+    // 墙段/门段/边界增删的轻量拓扑版本。纯视觉平民等非实体对象据此只在变化时
+    // 重做静止占用投影，不需要每帧序列化全部墙段坐标。
+    _collisionRevision: 0,
     _collisionAccel: true,
     get walls() { return this._trackedArray('walls'); },
     set walls(v) { this._setTrackedArray('walls', v); },
@@ -210,6 +213,7 @@ const WallSystem = {
 
     _markCollisionDirty() {
         this._collisionGridDirty = true;
+        this._collisionRevision = (Number(this._collisionRevision) || 0) + 1;
     },
 
     /** 取空间网格（脏/缺失/长度指纹变化时重建）。长度指纹兜底捕获"整体赋值后再直接改原数组"的绕过场景 */
@@ -360,6 +364,17 @@ const WallSystem = {
             }
         }
         return maxY + bias;
+    },
+
+    /**
+     * 地牢障碍物按建筑占地排序时使用的 footprint 前缘；缺少 footprint 时回退
+     * obstacleDepthOf。调用方应把结果写入 depth 并标记 depthManual，避免影响墙编辑器
+     * 与既有场景中明确手调的障碍物图层。
+     */
+    obstacleFootprintDepthOf(piece) {
+        const foot = this.getObstacleFootprintRect(piece);
+        if (foot) return foot.y + foot.h;
+        return this.obstacleDepthOf(piece);
     },
 
     /**

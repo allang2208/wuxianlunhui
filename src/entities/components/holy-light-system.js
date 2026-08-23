@@ -21,6 +21,7 @@ import skillsData from '../../../data/skills.json';
 import { isSkillCheatEnabled } from '../../config/dev-cheats.js';
 import { hasRangedLineOfSight } from '../../combat/ranged-line-of-sight.js';
 import { entitySurfaceZ } from '../../physics/elevation.js';
+import { hasEnemyFamily } from '../../config/enemy-family.js';
 
 /** 圣光数值默认（配置唯一真相：skills.json effectFormula 必有；缺省兜底统一收敛于此） */
 const HOLY_LIGHT_DEFAULTS = {
@@ -188,7 +189,7 @@ export class HolyLightSystem {
                 }
             } else {
                 let dmg = amount;
-                if (best.config && best.config.family === '僵尸') {
+                if (hasEnemyFamily(best, '僵尸')) {
                     dmg = Math.floor(dmg * effect.zombieDamageMul);
                 }
                 const wasAlive = best.hp > 0;
@@ -364,7 +365,7 @@ export class HolyLightSystem {
                 }
             } else {
                 let dmg = amount;
-                if (best.config && best.config.family === '僵尸') {
+                if (hasEnemyFamily(best, '僵尸')) {
                     dmg = Math.floor(dmg * effect.zombieDamageMul);
                 }
                 const wasAlive = best.hp > 0;

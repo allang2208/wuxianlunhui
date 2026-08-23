@@ -20,6 +20,7 @@ export class FatZombie extends Enemy {
         });
         this._useStickFigure = false;
         this._usePacingAI = false;
+        this._usesDirectedBasicMelee = true;
 
         // 动画状态：idle | walk | attack | death
         this._animState = 'idle';

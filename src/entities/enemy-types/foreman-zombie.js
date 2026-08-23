@@ -1,11 +1,15 @@
 import { Enemy } from '../enemy.js';
 import enemyConfigData from '../../../data/enemy-config.json';
-import { hostilesOf, playSoundFrom, inMeleeRange } from './_shared/enemy-utils.js';
-import { canMeleeShareSurface } from '../../combat/melee-surface.js';
+import { playSoundFrom } from './_shared/enemy-utils.js';
+import {
+    canImpactBasicMelee,
+    canStartBasicMelee,
+    createBasicMeleeSnapshot,
+} from '../../combat/melee-attack-resolver.js';
 
 /**
  * 僵尸工头（领主，僵尸 family）
- * - 鞭击：距离判定 320px，1.5s 播放 31 帧（第 18 帧伤害判定，物理 ×2 + 1 层流血），
+ * - 鞭击：方向性单目标判定 320px，1.5s 播放 31 帧（第 18 帧伤害判定，物理 ×2 + 1 层流血），
  *   深棕色弧线抽向目标（鞭子观感），冷却 4.5s，攻击时不可移动
  * - 号召：3s 播放 24 帧，释放后场上全体僵尸方怪物获得激励（移速 ×1.33、物攻 ×1.5，15s），冷却 30s
  * - 死亡：dying 14 帧 → 定格 1s → 淡出；死亡音效第 8 帧
@@ -35,6 +39,9 @@ export class ForemanZombie extends Enemy {
         this._soundDone = false;
         this._whipCd = 0;
         this._howlCd = 0;
+        this._whipTarget = null;
+        this._whipSnapshot = null;
+        this._whipAimPoint = null;
 
         // 移动音效计时
         this._walkSoundTimer = 0;
@@ -76,6 +83,7 @@ export class ForemanZombie extends Enemy {
             this._attackType = null;
             this._attackTimer = 0;
             this._attackAnimTimer = 0;
+            this._clearWhipLock();
             this.vx = 0; this.vy = 0; this.isMoving = false;
             return;
         }
@@ -87,7 +95,7 @@ export class ForemanZombie extends Enemy {
 
         // 攻击帧推进
         if (this._attackType) {
-            this._updateAttack(dt, entities);
+            this._updateAttack(dt);
         } else {
             this._attackAnimTimer = 0;
         }
@@ -111,7 +119,9 @@ export class ForemanZombie extends Enemy {
 
         // 朝向
         const t = this.target && this.target.active ? this.target : null;
-        if (this._attackType && t) {
+        if (this._attackType === 'whip' && this._whipSnapshot) {
+            this.rotation = this._whipSnapshot.worldAngle;
+        } else if (this._attackType && t) {
             this.rotation = Math.atan2(t.y - this.y, t.x - this.x);
         } else if (speed > 0.1) {
             this.rotation = Math.atan2(this.vy, this.vx);
@@ -128,11 +138,11 @@ export class ForemanZombie extends Enemy {
             this._walkSoundTimer = 0;
         }
 
-        // 攻击决策：号召（冷却就绪且有敌对目标）优先，其次鞭击（统一口径：圆形边缘距离 ≤ range）
+        // 攻击决策：号召（冷却就绪且有敌对目标）优先，其次单目标方向性鞭击。
         if (!this._attackType && t) {
             if (this._howlCd <= 0) {
                 this._tryAttackTelegraph(() => this._startHowl(entities));
-            } else if (this._whipCd <= 0 && inMeleeRange(this, t, this._getWhipConfig().range ?? this.attackDistance ?? 320)) {
+            } else if (this._whipCd <= 0 && this._canStartWhip(t)) {
                 this._tryAttackTelegraph(() => this._startAttack('whip'));
             }
         }
@@ -142,6 +152,8 @@ export class ForemanZombie extends Enemy {
 
     _startAttack(type) {
         const cfg = this._getWhipConfig();
+        const target = this.target;
+        if (type === 'whip' && !this._canStartWhip(target)) return false;
         const duration = cfg.duration ?? 1500;
         this._attackType = type;
         this._attackTimer = duration;
@@ -152,12 +164,17 @@ export class ForemanZombie extends Enemy {
         this._animStateTimer = 0;
         this.vx = 0; this.vy = 0; this.isMoving = false;
         this._whipCd = cfg.cooldown ?? 4500;
-        if (this.target && this.target.active) {
-            this.rotation = Math.atan2(this.target.y - this.y, this.target.x - this.x);
-        }
+        this._whipTarget = target;
+        this._whipSnapshot = createBasicMeleeSnapshot(this, target, this._getWhipAttackConfig());
+        this._whipAimPoint = {
+            x: target.collider?.x ?? target.x,
+            y: target.collider?.y ?? target.y,
+        };
+        this.rotation = this._whipSnapshot.worldAngle;
+        return true;
     }
 
-    _updateAttack(dt, entities) {
+    _updateAttack(dt) {
         this._attackTimer -= dt;
         this._attackAnimTimer = Math.max(0, this._attackTimer);
         this.vx = 0; this.vy = 0; this.isMoving = false;
@@ -166,6 +183,7 @@ export class ForemanZombie extends Enemy {
             if (this._attackTimer <= 0) {
                 this._attackTimer = 0;
                 this._attackType = null;
+                this._clearWhipLock();
             }
             return;
         }
@@ -185,31 +203,53 @@ export class ForemanZombie extends Enemy {
         // 第 hitFrame 帧伤害判定
         if (!this._hitDone && elapsed >= ((cfg.hitFrame ?? 18) / frames) * duration) {
             this._hitDone = true;
-            this._dealWhipHit(entities);
+            this._dealWhipHit();
         }
 
         if (this._attackTimer <= 0) {
             this._attackTimer = 0;
             this._attackType = null;
+            this._clearWhipLock();
         }
     }
 
-    /** 鞭击：统一口径圆形边缘距离判定，物理 ×damageMul + 流血，深棕色弧线抽向目标 */
-    _dealWhipHit(entities) {
+    _getWhipAttackConfig() {
         const cfg = this._getWhipConfig();
-        const range = cfg.range ?? this.attackDistance ?? 320;
+        return {
+            range: cfg.range ?? this.attackDistance ?? 320,
+            width: cfg.width ?? this.config?.attack?.width ?? 26,
+        };
+    }
+
+    getBasicMeleeApproachConfig() {
+        return this._getWhipAttackConfig();
+    }
+
+    _canStartWhip(target) {
+        return canStartBasicMelee(this, target, this._getWhipAttackConfig());
+    }
+
+    _clearWhipLock() {
+        this._whipTarget = null;
+        this._whipSnapshot = null;
+        this._whipAimPoint = null;
+    }
+
+    /** 鞭击：只结算起手锁定目标，物理 ×damageMul + 流血，深棕色弧线抽向目标 */
+    _dealWhipHit() {
+        const cfg = this._getWhipConfig();
+        const target = this._whipTarget;
         const atk = this.data?.atk || 0;
         const bleedStacks = cfg.bleedStacks ?? 1;
-        for (const e of hostilesOf(this, entities)) {
-            if (!inMeleeRange(this, e, range)) continue;
-            if (!canMeleeShareSurface(this, e)) continue;
-            e.takeDamage(Math.max(1, Math.round(atk * (cfg.damageMul ?? 2))), this, 'physical', true);
-            if (typeof e.applyBleeding === 'function') {
-                e.applyBleeding(bleedStacks);
+        if (canImpactBasicMelee(this, target, this._whipSnapshot)) {
+            target.takeDamage(Math.max(1, Math.round(atk * (cfg.damageMul ?? 2))), this, 'physical', true);
+            const parried = target.shieldSystem && target.shieldSystem._lastParried;
+            if (!parried && typeof target.applyBleeding === 'function') {
+                target.applyBleeding(bleedStacks);
             }
         }
-        // 鞭子扫掠特效：每次鞭击只出一条（以主目标为方向），不再按命中目标数叠加
-        if (this.target && this.target.active) this._fireWhipArc(this.target);
+        // 鞭子视觉也使用起手锁定点，避免伤害方向不追踪但鞭梢仍追着移动目标转向。
+        if (this._whipAimPoint) this._fireWhipArc(this._whipAimPoint);
     }
 
     /**
@@ -288,6 +328,7 @@ export class ForemanZombie extends Enemy {
 
     _startHowl(entities) {
         const cfg = this._getHowlConfig();
+        this._clearWhipLock();
         const duration = cfg.duration ?? 3000;
         this._attackType = 'howl';
         this._attackTimer = duration;
@@ -362,6 +403,7 @@ export class ForemanZombie extends Enemy {
         this.active = false;
         this._animState = 'death';
         this._attackType = null;
+        this._clearWhipLock();
         this._deathAnimTimer = this._getDeathConfig().animMs ?? 1400;
         this._corpseTimer = 0;
         this._fadeTimer = 0;

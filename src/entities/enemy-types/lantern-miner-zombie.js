@@ -2,15 +2,19 @@ import { Enemy } from '../enemy.js';
 import enemyConfigData from '../../../data/enemy-config.json';
 import { GroundEllipse } from '../../physics/skill-shapes.js';
 import { PERSPECTIVE_SCALE_Y } from '../../config/perspective-config.js';
-import { hostilesOf, playSoundFrom, inMeleeRange } from './_shared/enemy-utils.js';
+import { hostilesOf, playSoundFrom } from './_shared/enemy-utils.js';
 import { launchArcProjectile } from '../../effects/combat-fx.js';
 import { GroundZone } from '../../effects/ground-zone.js';
 import { surfaceEffectFromEntity } from '../../physics/elevation.js';
-import { canMeleeShareSurface } from '../../combat/melee-surface.js';
+import {
+    canImpactBasicMelee,
+    canStartBasicMelee,
+    createBasicMeleeSnapshot,
+} from '../../combat/melee-attack-resolver.js';
 
 /**
  * 矿工提灯僵尸（精英，僵尸 family）
- * - 砸击：距离判定 120px，1.5s 播放 30 帧（第 16 帧伤害判定，物理 ×1.5），冷却 4.5s，攻击时不可移动
+ * - 砸击：方向性单目标判定 120px，1.5s 播放 30 帧（第 16 帧伤害判定，物理 ×1.5），冷却 4.5s，攻击时不可移动
  * - 提灯攻击：1.5s 播放 22 帧（第 11 帧掷出矿灯），矿灯 1.5s 抛物线落地（每秒 360° 旋转），
  *   落点 300px 椭圆持续燃烧 4s（枪口火焰特效填满），每 0.5s 魔法伤害 ×0.75，冷却 8s
  * - 死亡：dying 15 帧 → 定格 1s → 淡出消失；死亡音效在第 8 帧播放
@@ -40,6 +44,8 @@ export class LanternMinerZombie extends Enemy {
         this._soundDone = false;    // 攻击音效
         this._slamCd = 0;
         this._lanternCd = 0;
+        this._slamTarget = null;
+        this._slamSnapshot = null;
 
         // 提灯投射物与燃烧区
         this._lanternSprite = null;
@@ -86,6 +92,7 @@ export class LanternMinerZombie extends Enemy {
             this._attackType = null;
             this._attackTimer = 0;
             this._attackAnimTimer = 0;
+            this._clearSlamLock();
             this.vx = 0; this.vy = 0; this.isMoving = false;
             this._updateBurnZones(dt, entities);
             return;
@@ -98,7 +105,7 @@ export class LanternMinerZombie extends Enemy {
 
         // 攻击帧推进（砸击判定 / 提灯出手 / 攻击音效帧）
         if (this._attackType) {
-            this._updateAttack(dt, entities);
+            this._updateAttack(dt);
         } else {
             this._attackAnimTimer = 0;
         }
@@ -122,7 +129,9 @@ export class LanternMinerZombie extends Enemy {
 
         // 朝向
         const t = this.target && this.target.active ? this.target : null;
-        if (this._attackType && t) {
+        if (this._attackType === 'slam' && this._slamSnapshot) {
+            this.rotation = this._slamSnapshot.worldAngle;
+        } else if (this._attackType && t) {
             this.rotation = Math.atan2(t.y - this.y, t.x - this.x);
         } else if (speed > 0.1) {
             this.rotation = Math.atan2(this.vy, this.vx);
@@ -144,7 +153,7 @@ export class LanternMinerZombie extends Enemy {
             const dist = Math.hypot(t.x - this.x, t.y - this.y);
             const slam = this._getSlamConfig();
             const lantern = this._getLanternConfig();
-            if (this._slamCd <= 0 && dist <= (slam.range ?? 120)) {
+            if (this._slamCd <= 0 && this._canStartSlam(t)) {
                 this._tryAttackTelegraph(() => this._startAttack('slam'));
             } else if (this._lanternCd <= 0 && dist <= (lantern.throwRange ?? 600)) {
                 this._tryAttackTelegraph(() => this._startAttack('lantern'));
@@ -159,6 +168,8 @@ export class LanternMinerZombie extends Enemy {
 
     _startAttack(type) {
         const cfg = type === 'slam' ? this._getSlamConfig() : this._getLanternConfig();
+        const target = this.target;
+        if (type === 'slam' && !this._canStartSlam(target)) return false;
         const duration = cfg.duration ?? 1500;
         this._attackType = type;
         this._attackTimer = duration;
@@ -170,15 +181,20 @@ export class LanternMinerZombie extends Enemy {
         this.vx = 0; this.vy = 0; this.isMoving = false;
         if (type === 'slam') {
             this._slamCd = cfg.cooldown ?? 4500;
+            this._slamTarget = target;
+            this._slamSnapshot = createBasicMeleeSnapshot(this, target, this._getSlamAttackConfig());
+            this.rotation = this._slamSnapshot.worldAngle;
         } else {
             this._lanternCd = cfg.cooldown ?? 8000;
+            this._clearSlamLock();
+            if (target && target.active) {
+                this.rotation = Math.atan2(target.y - this.y, target.x - this.x);
+            }
         }
-        if (this.target && this.target.active) {
-            this.rotation = Math.atan2(this.target.y - this.y, this.target.x - this.x);
-        }
+        return true;
     }
 
-    _updateAttack(dt, entities) {
+    _updateAttack(dt) {
         this._attackTimer -= dt;
         this._attackAnimTimer = Math.max(0, this._attackTimer);
         this.vx = 0; this.vy = 0; this.isMoving = false;
@@ -200,31 +216,50 @@ export class LanternMinerZombie extends Enemy {
         const eventFrame = isSlam ? (cfg.hitFrame ?? 16) : (cfg.fireFrame ?? 11);
         if (!this._hitDone && elapsed >= (eventFrame / frames) * duration) {
             this._hitDone = true;
-            if (isSlam) this._dealSlamHit(entities);
-            else this._throwLantern(entities);
+            if (isSlam) this._dealSlamHit();
+            else this._throwLantern();
         }
 
         if (this._attackTimer <= 0) {
             this._attackTimer = 0;
             this._attackType = null;
+            this._clearSlamLock();
         }
     }
 
-    /** 砸击：统一口径圆形边缘距离判定，物理 ×damageMul */
-    _dealSlamHit(entities) {
+    _getSlamAttackConfig() {
         const slam = this._getSlamConfig();
-        const range = slam.range ?? this.attackDistance ?? 120;
+        return {
+            range: slam.range ?? this.attackDistance ?? 120,
+            width: slam.width ?? this.config?.attack?.width ?? 22,
+        };
+    }
+
+    getBasicMeleeApproachConfig() {
+        return this._getSlamAttackConfig();
+    }
+
+    _canStartSlam(target) {
+        return canStartBasicMelee(this, target, this._getSlamAttackConfig());
+    }
+
+    _clearSlamLock() {
+        this._slamTarget = null;
+        this._slamSnapshot = null;
+    }
+
+    /** 砸击：只结算起手锁定目标，物理 ×damageMul */
+    _dealSlamHit() {
+        const slam = this._getSlamConfig();
+        const target = this._slamTarget;
+        if (!canImpactBasicMelee(this, target, this._slamSnapshot)) return;
         const atk = this.data?.atk || 0;
-        for (const e of hostilesOf(this, entities)) {
-            if (!inMeleeRange(this, e, range)) continue;
-            if (!canMeleeShareSurface(this, e)) continue;
-            e.takeDamage(Math.max(1, Math.round(atk * (slam.damageMul ?? 1.5))), this, 'physical', true);
-        }
+        target.takeDamage(Math.max(1, Math.round(atk * (slam.damageMul ?? 1.5))), this, 'physical', true);
     }
 
     // ========== 提灯攻击（参考突击特工闪光弹：抛物线 + 落地判定） ==========
 
-    _throwLantern(_entities) {
+    _throwLantern() {
         const L = this._getLanternConfig();
         const t = this.target && this.target.active ? this.target : null;
         // 预判落点：抛物线固定飞行时间 flyS，直接线性外推目标在 flyS 秒后的位置。
@@ -375,6 +410,7 @@ export class LanternMinerZombie extends Enemy {
         this.active = false;
         this._animState = 'death';
         this._attackType = null;
+        this._clearSlamLock();
         this._deathAnimTimer = this._getDeathConfig().animMs ?? 1500;
         this._corpseTimer = 0;
         this._fadeTimer = 0;

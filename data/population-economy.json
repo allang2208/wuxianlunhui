@@ -14,8 +14,9 @@
         "populationCapacity": 6,
         "tex": "house_lv1",
         "displayW": 270,
-        "displayH": 310,
-        "footOffsetY": 155
+        "displayH": 260,
+        "footOffsetY": 129,
+        "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.75, "widthRatio": 0.948148, "depthRatio": 0.492308, "scaleMode": "strict" }
       },
       {
         "level": 2,
@@ -23,8 +24,9 @@
         "populationCapacity": 10,
         "tex": "house_lv2",
         "displayW": 270,
-        "displayH": 309,
-        "footOffsetY": 155,
+        "displayH": 267,
+        "footOffsetY": 132,
+        "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.754682, "widthRatio": 0.948148, "depthRatio": 0.479401, "scaleMode": "strict" },
         "upgradeCost": { "gold": 250, "energy": 500, "timeMs": 15000 }
       },
       {
@@ -33,8 +35,9 @@
         "populationCapacity": 16,
         "tex": "house_lv3",
         "displayW": 298,
-        "displayH": 335,
-        "footOffsetY": 166,
+        "displayH": 298,
+        "footOffsetY": 148,
+        "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.781879, "widthRatio": 0.85906, "depthRatio": 0.42953, "scaleMode": "strict" },
         "upgradeCost": { "gold": 600, "energy": 1200, "timeMs": 30000 }
       }
     ]
@@ -238,5 +241,127 @@
         }
       }
     }
+  },
+  "armory": {
+    "workerSlots": 5,
+    "workerSlotsModule": "armory_staff",
+    "workerLabel": "维护师",
+    "visualWorkerCap": 5,
+    "visualMode": "armory_maintenance",
+    "staffEfficiencyShare": 0.2,
+    "fullEfficiencyStaffCount": 5,
+    "auraStackMode": "strongest",
+    "resourceSortIntervalMs": 60000,
+    "workerVisual": {
+      "id": "armory_maintainer",
+      "name": "维护师",
+      "displaySize": 128,
+      "originY": 0.935547,
+      "visualWorkerCap": 5,
+      "scanIntervalMs": 500,
+      "moveSpeed": 90,
+      "wanderSpeed": 70,
+      "wanderRangeFactor": 0.82,
+      "maintenanceDistance": 34,
+      "idleDurationMs": [900, 2200],
+      "maintenanceDurationMs": [1800, 3600],
+      "jobCooldownMs": [800, 2200],
+      "animations": {
+        "idle": {
+          "src": "assets/companions/armory_maintainer/idle.png",
+          "frameWidth": 512,
+          "frameHeight": 512,
+          "frameCount": 14,
+          "frames": [0, 13],
+          "frameRate": 12,
+          "repeat": -1,
+          "scale": 1,
+          "footRatio": 0.935547
+        },
+        "walking": {
+          "src": "assets/companions/armory_maintainer/walking.png",
+          "frameWidth": 512,
+          "frameHeight": 512,
+          "frameCount": 17,
+          "frames": [0, 16],
+          "frameRate": 17,
+          "repeat": -1,
+          "scale": 1,
+          "footRatio": 0.935547
+        },
+        "maintenance": {
+          "src": "assets/companions/armory_maintainer/maintenance.png",
+          "frameWidth": 512,
+          "frameHeight": 512,
+          "frameCount": 16,
+          "frames": [0, 15],
+          "frameRate": 16,
+          "repeat": -1,
+          "scale": 1,
+          "footRatio": 0.935547
+        }
+      }
+    }
+  },
+  "bakery": {
+    "workerSlots": 1,
+    "workerLabel": "面包师",
+    "visualWorkerCap": 1,
+    "visualMode": "bakery_logistics",
+    "inputFoodPerBatch": 50,
+    "baseProcessTimeMs": 10000,
+    "baseOutputMultiplier": 5,
+    "baseMoveSpeed": 80,
+    "arrivalDistance": 40,
+    "bakeryServiceRadius": 200,
+    "warehouseServiceRadius": 180,
+    "moveGraceMs": 5000,
+    "workerVisual": {
+      "id": "hamster_baker",
+      "name": "仓鼠面包师",
+      "displaySize": 128,
+      "originY": 0.935547,
+      "animations": {
+        "idle": {
+          "src": "assets/companions/hamster_baker/idle.png",
+          "frameWidth": 512,
+          "frameHeight": 512,
+          "frameCount": 10,
+          "frames": [0, 9],
+          "frameRate": 12,
+          "repeat": -1,
+          "scale": 1,
+          "footRatio": 0.935547
+        },
+        "empty_running": {
+          "src": "assets/companions/hamster_baker/empty_running.png",
+          "frameWidth": 512,
+          "frameHeight": 512,
+          "frameCount": 20,
+          "frames": [0, 19],
+          "frameRate": 16,
+          "repeat": -1,
+          "scale": 1,
+          "footRatio": 0.935547
+        },
+        "loaded_running": {
+          "src": "assets/companions/hamster_baker/loaded_running.png",
+          "frameWidth": 512,
+          "frameHeight": 512,
+          "frameCount": 20,
+          "frames": [0, 19],
+          "frameRate": 16,
+          "repeat": -1,
+          "scale": 1,
+          "footRatio": 0.935547
+        }
+      }
+    },
+    "plantTributeItemIds": [
+      "potato", "corn", "carrot", "cabbage", "pumpkin",
+      "tomato", "cucumber", "onion", "garlic", "apple",
+      "strawberry", "grape", "watermelon", "chili", "matsutake",
+      "blueberry", "dragonFruit", "snowLotus", "ginseng", "flatPeach"
+    ]
   }
 }

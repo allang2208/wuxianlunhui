@@ -22,16 +22,10 @@ import { canExploreScene } from '../config/explorer-rewards.js';
 import { getHamsterUnitIcon } from '../config/hamster-unit-icons.js';
 import { getHamsterUnitCategoryLabel } from '../config/hamster-unit-categories.js';
 import { getUnitStatusRows, getUnitUpgradeRows } from './rts-unit-detail-model.js';
+import { isGameplayPointerEvent } from './gameplay-pointer-boundary.js';
 
 const DRAG_THRESHOLD = 6; // 屏幕 px：超过判定为拖框
 const PERSISTENT_WORLDS = new Set(['scene8', 'scene9', 'scene10', 'scene11']);
-const POINTER_BLOCK_SELECTOR = [
-    '.system-panel', '.panel-overlay', '.side-menu', '.back-menu-btn', '.menu-btn',
-    '.party-bar', '.rts-unit-panel', '.rts-command-btn', '.companion-overlay',
-    '.recruit-overlay', '.wall-editor-panel', '.world-switch-panel', '.technology-tree-panel',
-    '.hamster-hut-panel', '.hamster-barracks-panel', '.producer-building-panel',
-    '.troop-line-panel', '.rts-command-bar',
-].join(', ');
 
 const _game = () => (typeof window !== 'undefined' ? window.Game : null);
 const _scene = () => (typeof window !== 'undefined' ? window.__phaserScene : null);
@@ -46,6 +40,7 @@ export const RTSCommand = {
     _downX: 0,
     _downY: 0,
     _dragging: false,
+    _minimapDragging: false,
     _dragX: 0,
     _dragY: 0,
     _boxG: null,           // 拖框 graphics（世界空间，盖在单位之上）
@@ -81,6 +76,10 @@ export const RTSCommand = {
         window.addEventListener('mousedown', (e) => this._onMouseDown(e));
         window.addEventListener('mousemove', (e) => this._onMouseMove(e));
         window.addEventListener('mouseup', (e) => this._onMouseUp(e));
+        window.addEventListener('blur', () => {
+            this._minimapDragging = false;
+            this._clearDrag();
+        });
         window.addEventListener('keydown', (e) => this._onKeyDown(e), true); // capture：先于快捷栏数字键
         window.addEventListener('mousemove', () => { this._mouseSeen = true; }, { passive: true });
         this._groups = new Map();
@@ -153,6 +152,7 @@ export const RTSCommand = {
             this._commandPicking = null;
             this._pendingRightClick = null;
             this._flatHitCycle = null;
+            this._minimapDragging = false;
             this._clearSelection();
             this._hidePanel();
             this._clearDrag();
@@ -494,15 +494,16 @@ export const RTSCommand = {
     _closeBuildingUI() {
         const g = _game();
         if (!g) return;
-        if (g.BuildingSystem && g.BuildingSystem.active && typeof g.BuildingSystem.close === 'function') {
+        if (g.BuildingSystem?.active && typeof g.BuildingSystem.close === 'function') {
             g.BuildingSystem.close();
+        } else if (g.BuildingSystem?._detail && typeof g.BuildingSystem._closeDetail === 'function') {
+            g.BuildingSystem._closeDetail();
         }
         const closeIfOpen = (sys) => {
             if (sys && sys._panel && sys._panel.isOpen && typeof sys._panel.close === 'function') sys._panel.close();
         };
         closeIfOpen(g.DefenseSystem);
         closeIfOpen(g.HamsterHutSystem);
-        closeIfOpen(g.HamsterBarracksSystem);
         closeIfOpen(g.ProducerBuildingSystem);
     },
 
@@ -677,14 +678,12 @@ export const RTSCommand = {
             const cfg = producer._cfg || producer.spriteCfg || {};
             const displayW = Number(cfg.displayW ?? cfg.size) || 170;
             const displayH = Number(cfg.displayH ?? cfg.sizeH) || 147;
-            const hit = producer._isHamsterBarracks
-                ? { cx: 0, cy: -60, hw: 85, hh: 65 }
-                : {
-                    cx: 0,
-                    cy: -Math.round(displayH * 0.4),
-                    hw: Math.round(displayW / 2),
-                    hh: Math.round(displayH * 0.44),
-                };
+            const hit = {
+                cx: 0,
+                cy: -Math.round(displayH * 0.4),
+                hw: Math.round(displayW / 2),
+                hh: Math.round(displayH * 0.44),
+            };
             if (point.x < visualX + hit.cx - hit.hw || point.x > visualX + hit.cx + hit.hw
                 || point.y < producer.y + hit.cy - hit.hh || point.y > producer.y + hit.cy + hit.hh) continue;
             const dx = (point.x - (visualX + hit.cx)) / Math.max(1, hit.hw);
@@ -764,18 +763,19 @@ export const RTSCommand = {
         return sel;
     },
 
-    /** 建筑点击在指挥模式下忽略交互距离，并复用既有详情面板。 */
+    /** 建筑点击在指挥模式下忽略交互距离，并复用既有详情面板；保持指挥态与当前选择。 */
     _tryBuildingClick(sx, sy) {
         const g = _game();
         const p = g ? g.player : null;
         if (!g) return false;
+        // 每次只保留一个建筑详情；建筑系统面板本身仍负责刷新/按钮逻辑。
+        this._closeBuildingUI();
         const prevBuild = g._buildMode;
         g._buildMode = true;
         try {
-            if (g.DefenseSystem && g.DefenseSystem.active && g.DefenseSystem.tryInteract && g.DefenseSystem.tryInteract(sx, sy, p)) { this.setEnabled(false); return true; }
-            if (g.HamsterHutSystem && g.HamsterHutSystem.active && g.HamsterHutSystem.tryInteract && g.HamsterHutSystem.tryInteract(sx, sy, p)) { this.setEnabled(false); return true; }
-            if (g.HamsterBarracksSystem && g.HamsterBarracksSystem.active && g.HamsterBarracksSystem.tryInteract && g.HamsterBarracksSystem.tryInteract(sx, sy, p)) { this.setEnabled(false); return true; }
-            if (g.ProducerBuildingSystem && g.ProducerBuildingSystem.active && g.ProducerBuildingSystem.tryInteract && g.ProducerBuildingSystem.tryInteract(sx, sy, p)) { this.setEnabled(false); return true; }
+            if (g.DefenseSystem && g.DefenseSystem.active && g.DefenseSystem.tryInteract && g.DefenseSystem.tryInteract(sx, sy, p)) return true;
+            if (g.HamsterHutSystem && g.HamsterHutSystem.active && g.HamsterHutSystem.tryInteract && g.HamsterHutSystem.tryInteract(sx, sy, p)) return true;
+            if (g.ProducerBuildingSystem && g.ProducerBuildingSystem.active && g.ProducerBuildingSystem.tryInteract && g.ProducerBuildingSystem.tryInteract(sx, sy, p)) return true;
         } finally {
             g._buildMode = prevBuild;
         }
@@ -785,9 +785,8 @@ export const RTSCommand = {
         if (bs && mw && typeof bs._hitTestCover === 'function' && typeof bs._showDetail === 'function') {
             const hit = bs._hitTestCover(mw.x, mw.y);
             if (hit) {
-                this.setEnabled(false);
-                if (!bs.active && typeof bs.open === 'function') bs.open();
-                bs._showDetail(hit);
+                if (typeof bs.showRemoteDetail === 'function') bs.showRemoteDetail(hit);
+                else bs._showDetail(hit);
                 return true;
             }
         }
@@ -803,7 +802,7 @@ export const RTSCommand = {
     },
 
     _isPointerBlocked(e) {
-        return !!(e?.target?.closest && e.target.closest(POINTER_BLOCK_SELECTOR));
+        return !isGameplayPointerEvent(e);
     },
 
     _onMouseDown(e) {
@@ -827,6 +826,7 @@ export const RTSCommand = {
             return;
         }
         if (e.button === 0 && this._tryMinimapCameraJump(e.clientX, e.clientY)) {
+            this._minimapDragging = true;
             e.preventDefault();
             e.stopImmediatePropagation();
             this._clearDrag();
@@ -843,10 +843,10 @@ export const RTSCommand = {
         this._dragging = false;
     },
 
-    _tryMinimapCameraJump(clientX, clientY) {
+    _tryMinimapCameraJump(clientX, clientY, { clampToContent = false } = {}) {
         const scene = _scene();
         if (!scene || typeof scene.minimapWorldPointAt !== 'function') return false;
-        const point = scene.minimapWorldPointAt(clientX, clientY);
+        const point = scene.minimapWorldPointAt(clientX, clientY, { clampToContent });
         if (!point) return false;
         Camera.x = point.x;
         Camera.y = point.y;
@@ -856,6 +856,12 @@ export const RTSCommand = {
 
     _onMouseMove(e) {
         this._pointerOverUi = this._isPointerBlocked(e);
+        if (this._minimapDragging) {
+            this._tryMinimapCameraJump(e.clientX, e.clientY, { clampToContent: true });
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            return;
+        }
         const normalCommandPick = !this.enabled && this._commandPicking
             && this._commandBarAllies().length > 0;
         if (((!this.enabled || !this._isCommandable()) && !normalCommandPick) || !this._down) return;
@@ -870,11 +876,25 @@ export const RTSCommand = {
     },
 
     _onMouseUp(e) {
+        if (this._minimapDragging) {
+            if (e.button === 0) this._tryMinimapCameraJump(e.clientX, e.clientY, { clampToContent: true });
+            this._minimapDragging = false;
+            this._clearDrag();
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            return;
+        }
         const normalCommandPick = !this.enabled && this._commandPicking
             && this._commandBarAllies().length > 0;
         if (((!this.enabled || !this._isCommandable()) && !normalCommandPick) || !this._down) return;
         this._down = false;
         if (e.button !== 0) return;
+        // 指令必须在游戏画面内完成。若从画面拖到任意 DOM 栏目后松开，取消本次
+        // 指针过程但保留待选指令，避免把栏目坐标转换成世界攻击/巡逻目标。
+        if (this._isPointerBlocked(e)) {
+            this._clearDrag();
+            return;
+        }
         if (this._commandPicking) {
             const mode = this._commandPicking;
             this._commandPicking = null;
@@ -905,10 +925,12 @@ export const RTSCommand = {
                 if (producer) {
                     this._lastClick = null;
                     this._setSelection([producer]);
+                    this._tryBuildingClick(e.clientX, e.clientY);
                 } else if (this._tryBuildingClick(e.clientX, e.clientY)) {
                     // 打开非产兵建筑界面时关闭单位/复数面板，保留选择。
                     this._hidePanel();
                 } else {
+                    this._closeBuildingUI();
                     this._clearSelection();
                     this._hidePanel();
                 }
@@ -957,6 +979,7 @@ export const RTSCommand = {
 
     /** 边缘平移：鼠标贴近屏幕四缘时平移相机。 */
     _edgePan(dt, Input) {
+        if (this._minimapDragging) return;
         const input = Input || this._input();
         const m = input && input.mouse;
         if (!this._mouseSeen) return;
@@ -1686,6 +1709,10 @@ export const RTSCommand = {
     _refreshPanel() {
         if (!this._panel) return;
         if (!this._selection.length) { this._hidePanel(); return; }
+        if (this._selection.length === 1 && this._selection[0].kind === 'producer') {
+            this._hidePanel();
+            return;
+        }
         const sig = this._selection.length > 1
             ? 'multi'
             : `one:${this._selection[0].kind}:${this._selection[0].ref.id ?? this._selection[0].ref.name}`;
@@ -1701,33 +1728,10 @@ export const RTSCommand = {
         if (!this._panel) return;
         this._panel.classList.remove(
             'rts-unit-panel--single',
-            'rts-unit-panel--multi',
-            'rts-unit-panel--producer'
+            'rts-unit-panel--multi'
         );
-        if (this._selection.length === 1 && this._selection[0].kind === 'producer') {
-            this._panel.classList.add('rts-unit-panel--producer');
-            this._panel.innerHTML = `
-                <div class="rts-up-head">
-                    <span class="rts-up-name" data-ref="name"></span>
-                    <span class="rts-up-type">出兵建筑</span>
-                </div>
-                <div class="rts-up-row"><span>HP</span><div class="rts-up-track"><div class="rts-up-fill" data-ref="hpFill" style="background:#e04a3a;"></div></div><span class="rts-up-num" data-ref="hp"></span></div>
-                <div class="rts-up-producer-unit" data-ref="unitType"></div>
-                <div class="rts-up-rally" data-ref="rally"></div>
-                <div class="rts-up-hint" data-ref="hint"></div>`;
-            const attr = (key) => this._panel.querySelector(`[data-ref="${key}"]`);
-            this._dom = {
-                producer: true,
-                name: attr('name'),
-                hpFill: attr('hpFill'),
-                hp: attr('hp'),
-                unitType: attr('unitType'),
-                rally: attr('rally'),
-                hint: attr('hint'),
-            };
-            return;
-        }
         if (this._selection.length > 1) {
+            this._placeUnitPanel();
             this._panel.classList.add('rts-unit-panel--multi');
             this._panel.innerHTML = `
                 <div class="rts-up-head rts-up-head--multi">
@@ -1748,6 +1752,7 @@ export const RTSCommand = {
             return;
         }
         this._panel.classList.add('rts-unit-panel--single');
+        this._placeUnitPanel();
         this._panel.innerHTML = `
             <header class="rts-up-head rts-up-head--identity">
                 <img class="rts-up-icon" data-ref="icon" alt="" draggable="false" hidden>
@@ -1873,52 +1878,6 @@ export const RTSCommand = {
 
     _updatePanelValues() {
         if (!this._dom || !this._panel) return;
-        if (this._selection.length === 1 && this._selection[0].kind === 'producer') {
-            const producer = this._selection[0].ref;
-            const hp = Math.max(0, Math.round(producer.hp ?? producer.data?.hp ?? 0));
-            const maxHp = Math.max(1, Math.round(producer.maxHp ?? producer.data?.maxHp ?? hp));
-            const rally = TroopLineSystem.getProducerRally(producer, this._scene);
-            this._dom.name.textContent = producer.name || producer._cfg?.name || '出兵建筑';
-            this._dom.hpFill.style.width = `${Math.max(0, Math.min(100, Math.round(hp / maxHp * 100)))}%`;
-            this._dom.hp.textContent = `${hp}/${maxHp}`;
-            const unitName = typeof producer.unitName === 'function'
-                ? producer.unitName(producer.unitType)
-                : producer.unitType;
-            const unitTypeKey = `${producer.unitType || ''}:${unitName || ''}`;
-            if (this._dom.unitTypeKey !== unitTypeKey) {
-                const label = document.createElement('span');
-                label.className = 'rts-up-producer-label';
-                label.textContent = '当前出兵';
-                const iconPath = getHamsterUnitIcon(producer.unitType);
-                const name = document.createElement('strong');
-                name.textContent = unitName || '未配置';
-                const children = [label];
-                if (iconPath) {
-                    const icon = document.createElement('img');
-                    icon.className = 'rts-up-producer-icon';
-                    icon.src = iconPath;
-                    icon.alt = '';
-                    icon.draggable = false;
-                    children.push(icon);
-                } else {
-                    const fallback = document.createElement('span');
-                    fallback.className = 'rts-up-producer-icon rts-up-producer-icon--fallback';
-                    fallback.textContent = '◆';
-                    fallback.setAttribute('aria-hidden', 'true');
-                    children.push(fallback);
-                }
-                children.push(name);
-                this._dom.unitType.replaceChildren(...children);
-                this._dom.unitTypeKey = unitTypeKey;
-            }
-            this._dom.rally.textContent = rally
-                ? `独立集结：(${Math.round(rally.x)}, ${Math.round(rally.y)}) · 优先于全局兵线`
-                : '独立集结：未设置（沿用左侧兵线控制）';
-            this._dom.hint.textContent = TechnologySystem.isUnlocked('mechanic', 'troop_rally')
-                ? '右键可达位置设置本建筑独立集结点'
-                : '需要先研发集结战术';
-            return;
-        }
         if (this._selection.length > 1) {
             this._dom.count.textContent = String(this._selection.length);
             // 按单位类型分组统计。

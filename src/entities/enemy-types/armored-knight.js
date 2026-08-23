@@ -6,6 +6,12 @@ import { WallSystem } from '../../world/wall-system.js';
 import { SoundManager } from '../../ui/sound-manager.js';
 import enemyConfigData from '../../../data/enemy-config.json';
 import { canMeleeShareSurface } from '../../combat/melee-surface.js';
+import {
+    canImpactBasicMelee,
+    canStartBasicMelee,
+    createBasicMeleeSnapshot,
+    rebaseBasicMeleeSnapshot,
+} from '../../combat/melee-attack-resolver.js';
 
 /**
  * 铠甲骑士（精英）
@@ -36,6 +42,7 @@ export class ArmoredKnight extends Enemy {
         this._comboCooldown = 0;
         this._comboHitsDone = new Set();
         this._comboTarget = null;
+        this._comboSnapshot = null;
 
         // 冲锋状态
         this._chargeTarget = null;
@@ -268,7 +275,7 @@ export class ArmoredKnight extends Enemy {
 
         // 连击：近身才发动（triggerRange 比伤害判定 range 小，避免空挥；精英预警后再启动）
         if (this._comboCooldown <= 0 && cfg.combo.duration) {
-            if (this._isTargetInRange(t, cfg.combo.triggerRange ?? 75)) {
+            if (this._canStartCombo(t)) {
                 this._tryAttackTelegraph(() => this._startCombo());
             }
         }
@@ -276,21 +283,58 @@ export class ArmoredKnight extends Enemy {
 
     // ========== 二连击挥砍 ==========
 
+    _getComboWidth() {
+        return this.config?.comboWidth
+            ?? this.config?.attack?.width
+            ?? 24;
+    }
+
+    _getComboStartConfig() {
+        const cfg = this._getSkillConfigs().combo;
+        return {
+            range: cfg.triggerRange ?? 75,
+            width: this._getComboWidth(),
+        };
+    }
+
+    _getComboImpactConfig() {
+        const cfg = this._getSkillConfigs().combo;
+        return {
+            range: cfg.range ?? 125,
+            width: this._getComboWidth(),
+        };
+    }
+
+    getBasicMeleeApproachConfig() {
+        return this._getComboStartConfig();
+    }
+
+    _canStartCombo(target) {
+        return canStartBasicMelee(this, target, this._getComboStartConfig());
+    }
+
     _startCombo() {
         const cfg = this._getSkillConfigs().combo;
+        const comboTarget = this.target;
+        // 精英预警期间目标可能退离或绕后；真正起手时重新验证，失败不消耗冷却。
+        if (!this._canStartCombo(comboTarget)) return false;
         this._animState = 'combo';
         this._comboTimer = cfg.duration ?? 2000;
         this._attackAnimTimer = cfg.duration ?? 2000; // 锁定 MovementSystem，二连击期间不可移动
         this._comboCooldown = cfg.cooldown ?? 4000;
         this._comboHitsDone = new Set();
         this._comboSoundsDone = new Set();
-        this._comboTarget = this.target;
+        this._comboTarget = comboTarget;
+        this._comboSnapshot = createBasicMeleeSnapshot(
+            this,
+            comboTarget,
+            this._getComboImpactConfig()
+        );
         this.vx = 0;
         this.vy = 0;
         this.isMoving = false;
-        if (this.target && this.target.active) {
-            this.rotation = Math.atan2(this.target.y - this.y, this.target.x - this.x);
-        }
+        this.rotation = this._comboSnapshot.worldAngle;
+        return true;
     }
 
     _updateCombo(dt) {
@@ -300,9 +344,8 @@ export class ArmoredKnight extends Enemy {
         this.vy = 0;
         this.isMoving = false;
 
-        if (this._comboTarget && this._comboTarget.active) {
-            this.rotation = Math.atan2(this._comboTarget.y - this.y, this._comboTarget.x - this.x);
-        }
+        // 二连击锁定起手方向，目标绕后时不让整张挥砍动画跟着180°转身。
+        if (this._comboSnapshot) this.rotation = this._comboSnapshot.worldAngle;
         const elapsed = (cfg.duration || 0) - this._comboTimer;
         const frames = cfg.frames || 1;
         // 挥砍音效帧（独立于伤害帧，互不干扰）
@@ -322,6 +365,11 @@ export class ArmoredKnight extends Enemy {
             if (elapsed >= t) {
                 this._comboHitsDone.add(i);
                 this._dealComboHit();
+                if (this.hasStatusEffect
+                    && (this.hasStatusEffect('stun') || this.hasStatusEffect('frozen'))) {
+                    this._endCombo();
+                    return;
+                }
             }
         }
         if (this._comboTimer <= 0) this._endCombo();
@@ -330,9 +378,8 @@ export class ArmoredKnight extends Enemy {
     _dealComboHit() {
         const cfg = this._getSkillConfigs().combo;
         const t = this._comboTarget;
-        if (!t || !t.active || !t.hittable) return;
-        if (!this._isTargetInRange(t, cfg.range ?? 125)) return;
-        if (!canMeleeShareSurface(this, t)) return;
+        const impactSnapshot = rebaseBasicMeleeSnapshot(this, this._comboSnapshot);
+        if (!t || !impactSnapshot || !canImpactBasicMelee(this, t, impactSnapshot)) return;
         const atk = this.data?.atk || 0;
         t.takeDamage(Math.max(1, Math.round(atk * (cfg.damageMul ?? 1))), this, 'physical', true);
     }
@@ -341,6 +388,7 @@ export class ArmoredKnight extends Enemy {
         if (this._animState === 'combo') this._animState = 'idle';
         this._comboTimer = 0;
         this._comboTarget = null;
+        this._comboSnapshot = null;
         this._comboHitsDone = new Set();
         this._attackAnimTimer = 0;
     }

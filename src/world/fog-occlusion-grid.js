@@ -198,7 +198,6 @@ function isStructureBlocker(entity) {
         || entity._isDefenseTower
         || entity._isProducerBuilding
         || entity._isHamsterHut
-        || entity._isHamsterBarracks
         || entity._isWorldPortalCore
         || entity._isMainHubPortalBuilding
     );

@@ -21,6 +21,7 @@ export class HamsterWarrior extends Companion {
             ...overrides,
             ai: { ...(hamsterWarriorConfig.ai || {}), ...(overrides.ai || {}) },
             animations: { ...(hamsterWarriorConfig.animations || {}), ...(overrides.animations || {}) },
+            render: { ...(hamsterWarriorConfig.render || {}), ...(overrides.render || {}) },
         };
         super(archive);
 
@@ -30,21 +31,27 @@ export class HamsterWarrior extends Companion {
         this._enemyTargetable = true;     // 防守怪可锁定（与仓鼠矿工同口径）
         this.x = x;
         this.y = y;
-        // 碰撞/体积：与仓鼠矿工同量级（世界-122 门洞/掩体间通行顺畅）
-        this.groundRadius = 20;
-        this.collisionRadius = 20;
-        this.bodyHeight = 100;
-        this.size = 64;
+        // 步兵默认与仓鼠牧师共用 20×100 碰撞标准。
+        this.groundRadius = Number(archive.groundRadius) || 20;
+        this.collisionRadius = Number(archive.collisionRadius) || this.groundRadius;
+        this.bodyHeight = Number(archive.bodyHeight) || 100;
+        this.size = Number(archive.size) || 64;
         this.hittable = true;
         this.hitFlash = 0;
-        // 素材帧内脚底在 ~356/512（非 480），displaySize 226 时脚底距帧中心 44px：
-        // spriteOffsetY=-44 把脚底贴到逻辑落地点；footOffsetY=44 让深度线 = 逻辑脚底
-        this.footOffsetY = 44;
-        this.config = { render: { hudOffsetY: 108, footOffsetY: 44 } };
+        const renderConfig = archive.render || {};
+        this.footOffsetY = Math.max(0, Number(renderConfig.footOffsetY) || 41.395999);
+        this.config = {
+            render: {
+                ...renderConfig,
+                hudOffsetY: Math.max(0, Number(renderConfig.hudOffsetY) || 119),
+                footOffsetY: this.footOffsetY,
+            },
+        };
         this._dying = false;
         this._deathTimer = 0;
         this._ai = new HamsterWarriorAI(this);
         this._animState = 'idle';
+        this.configureCollisionFromArchive(archive);
     }
 
     get hp() { return this.data.hp; }
@@ -55,13 +62,12 @@ export class HamsterWarrior extends Companion {
      * 死亡 → 播 dying 动画，结束后由 update 自清理。
      */
     takeDamage(damage, source, _damageType = 'physical', _isMelee = true) {
-        if (this._dying || this.data.hp <= 0) return 0;
-        const before = this.data.hp;
-        super.takeDamage(damage, source, _damageType, _isMelee);
+        if (this._dying || this.data.hp <= 0) return { damage: 0, parried: false, critical: false };
+        const result = super.takeDamage(damage, source, _damageType, _isMelee);
         if (this.data.hp <= 0) {
             this._startDying();
         }
-        return before - this.data.hp;
+        return result;
     }
 
     _startDying() {

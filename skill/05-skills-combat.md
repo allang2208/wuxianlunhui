@@ -137,6 +137,10 @@
 
 `src/entities/components/bolt-skill-system.js` 基类（凝聚悬浮→发射→直线飞行预判/撞墙/命中统一流程），差异全部 kind 配置驱动：fields（状态字段名，GameScene/快捷栏按现有字段读取不可改）/ makeProjectiles / anim / trail / onImpact / onMaxRange。`fireball-system.js`/`ice-spike-system.js` 降为 ~120 行 kind 封装（-516 行）。**注意：命中循环不 break——冰锥同帧多目标结算是原版行为（准穿透），新 kind 的 onImpact 自行处置投射物 active。**新法系技能 = 写一份 kind 配置即可。
 
+- **施法者专属冷却倍率（2026-08-23）**：投射物技能在通用改造冷却之后，可读取施法者的
+  `getSkillCooldownMultiplier(skillKey)` 再乘一次。该入口用于丛林祭司“灵动加速”等单位固有升级，
+  禁止复用或覆盖装备系统的 `_cooldownReduction`；升级生效时还要同步缩放已在倒计时的组件冷却。
+
 - **火球爆炸音效（2026-08-22）**：路径由双份 `skills.json#fireball.sounds.hit` 配置；
   在火球 `onImpact` 完成爆炸结算后播放，直接命中、撞墙和达到最大射程的空爆都响。
   同一颗火球依靠 `flyActive` 守卫只结算并播放一次，禁止提前绑到发射阶段。
@@ -530,3 +534,24 @@ CombatSystem.update() → 不再调用状态效果更新（只负责战斗：眩
 | 感电增伤 | 每层 +10% | 每层 +10% | 每层 +10% | 每层 +10% | 每层 +10% |
 
 ---
+
+### 阶段性进度总结（2026-08-23：光魔法中级「圣辉领域」+ 高级「圣光审判」落地）
+
+- **光系三段补齐**：holyLight(初级定点) → sanctuaryDomain(中级跟身光环：友疗+净化+僵尸压制) →
+  holyJudgment(高级蓄力天降巨柱：蓄力比例伤害/半径、不死净化斩杀、友方清全部负面)。
+  设计纪律：中级=跟身持续辅助域（错开雷暴跟身炮台），高级=蓄力大圈审判（错开陨星瞬发定点、雷枪蓄力直线）。
+- **数值/接线模板沿用**：skills.json 双份 effectFormula 公式串 + magic-categories tier 法杖门槛 +
+  玩家四件套（index 导入/字段/实例化 + subsystems 死亡复位/_initSkills 兜底/update）+ quick-bar
+  （触发分支/长按键组/冷却同步/_getTotalCooldown 名单）+ skill-manager（三列表/升级提示/经验函数/
+  详情/训练说明五处）。新增技能照此清单逐处对账，漏一处即静默失效。
+- **ChargeOrbFx 配色板**：新增可选 palette 参数（tints/glowOuter/glowInner/core），默认电系蓝不变；
+  非电系蓄力技能传自己的色系（圣光审判=金色 HOLY_PALETTE）。
+- **净化实现口径**：遍历 statusEffects 按 CLEANSE_TYPES 清单 removeStatusEffect，感电另清
+  `_electrifiedStacks`；领域每 2s 每人移除 1 个，审判落柱全清。Boss/领主经 `rank==='boss'/'lord'`
+  豁免净化即死；净化致死用 `takeDamage(hp×10, 'magic')` 保证穿防击杀。
+- **图标教训**：normalize-skill-icon.py 的全图纯白键控会把发光白芯抠穿成洞——发光系（光柱/圣环）
+  图标入库必须走无白键归一（scratch normalize_icon_nokey.py）或先验证中心 alpha；
+  check-icon-sizes.py 只量 bbox 不查中心空洞。
+- **实机验证探针**：tools/cdp-holy-magic-verify.mjs（领域激活/治疗/净化/僵尸每跳致死 +
+  审判法杖门禁/蓄力不足返还/满蓄击杀/净化斩杀鉴别）。探针注意：MinerZombie 等敌人真实 hp 在
+  `e.hp`，`e.data.hp` 是静态配置副本，读错字段会误判「没掉血」。

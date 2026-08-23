@@ -19,6 +19,7 @@ import explorerCfg from '../../data/hamster-explorer-config.json';
 import bountyHunterCfg from '../../data/hamster-bounty-hunter-config.json';
 import jaguarWarriorCfg from '../../data/jaguar-warrior-config.json';
 import junglePriestCfg from '../../data/jungle-priest-config.json';
+import desertPriestCfg from '../../data/desert-priest-config.json';
 import { getUpgradeModulesForUnitKind } from './building-upgrade-projects.js';
 
 /** 全局升级等级：{ [kind]: { [moduleId]: level } }（满级由建筑模块配置 maxLevel 控制） */
@@ -53,7 +54,7 @@ export function restoreUnitUpgrades(data) {
     }
 }
 
-/** 兵种 key → 基准配置（与 BARRACKS_CONFIG.unit / PRODUCER_UNIT_CFG 同源） */
+/** 兵种 key → 基准配置（与 ProducerBuilding 通用单位工厂同源） */
 export const UNIT_KIND_CFG = {
     militia: militiaCfg,
     warrior: warriorCfg,
@@ -69,6 +70,7 @@ export const UNIT_KIND_CFG = {
     bounty_hunter: bountyHunterCfg,
     jaguar_warrior: jaguarWarriorCfg,
     jungle_priest: junglePriestCfg,
+    desert_priest: desertPriestCfg,
 };
 
 /** 实体识别兵种 key（非战斗兵种返回 null） */
@@ -79,6 +81,7 @@ export function getUnitKind(unit) {
     if (unit._isHamsterBountyHunter) return 'bounty_hunter';
     if (unit._isJaguarWarrior) return 'jaguar_warrior';
     if (unit._isJunglePriest) return 'jungle_priest';
+    if (unit._isDesertPriest) return 'desert_priest';
     if (unit._isHamsterWarrior) return 'warrior';
     if (unit._isHamsterShooter) return 'shooter';
     if (unit._isHamsterGuard) return 'guard';
@@ -105,21 +108,64 @@ export function raiseUnitUpgradeLevel(kind, moduleId) {
     return GLOBAL_UNIT_UPGRADES[kind][moduleId];
 }
 
+/** 共享升级组当前等级：取全部适用兵种的最高已有等级，旧档分叉时不损失已购买等级。 */
+export function getSharedUnitUpgradeLevel(kinds, moduleId) {
+    return [...new Set((kinds || []).filter(Boolean))].reduce(
+        (level, kind) => Math.max(level, getUnitUpgradeLevel(kind, moduleId)), 0
+    );
+}
+
+export function syncSharedUnitUpgradeLevel(kinds, moduleId, maxLevel = Infinity) {
+    const targets = [...new Set((kinds || []).filter((kind) => UNIT_KIND_CFG[kind]))];
+    if (!targets.length || !moduleId) return 0;
+    const cap = Number.isFinite(maxLevel) ? Math.max(0, Math.floor(maxLevel)) : Infinity;
+    const level = Math.min(cap, getSharedUnitUpgradeLevel(targets, moduleId));
+    for (const kind of targets) {
+        if (!GLOBAL_UNIT_UPGRADES[kind]) GLOBAL_UNIT_UPGRADES[kind] = {};
+        if (level > 0) GLOBAL_UNIT_UPGRADES[kind][moduleId] = level;
+        else delete GLOBAL_UNIT_UPGRADES[kind][moduleId];
+    }
+    return level;
+}
+
+/**
+ * 共享升级组统一提升一级，并把旧档中较低的适用兵种同步到同一等级。
+ * maxLevel 由模块配置传入，避免持续升级越过上限。
+ */
+export function raiseSharedUnitUpgradeLevel(kinds, moduleId, maxLevel = Infinity) {
+    const targets = [...new Set((kinds || []).filter((kind) => UNIT_KIND_CFG[kind]))];
+    if (!targets.length || !moduleId) return 0;
+    const current = syncSharedUnitUpgradeLevel(targets, moduleId, maxLevel);
+    const cap = Number.isFinite(maxLevel) ? Math.max(0, Math.floor(maxLevel)) : Infinity;
+    const next = Math.min(cap, current + 1);
+    for (const kind of targets) {
+        if (!GLOBAL_UNIT_UPGRADES[kind]) GLOBAL_UNIT_UPGRADES[kind] = {};
+        if (next > 0) GLOBAL_UNIT_UPGRADES[kind][moduleId] = next;
+        else delete GLOBAL_UNIT_UPGRADES[kind][moduleId];
+    }
+    return next;
+}
+
 /** 按模块 effect 字段与等级计算通用属性补丁；不依赖特定建筑或模块 ID。 */
 export function getUpgradeMultsFromLevels(modulesCfg, levels = {}, kind = null) {
     const out = {
         attackIntervalMult: 1,
         attackDamageMult: 1,
+        attackDamageBonus: 0,
         moveSpeedMult: 1,
         count: 1,
         hpMult: 1,
         holyLightCooldownMult: 1,
         holyLightLevel: 1,
+        jungleMagicLevel: 1,
+        jungleSpellCooldownMult: 1,
         chargeDamageMult: 1,
         miningMult: 1,
         attackRangeBonus: 0,
         defenseMult: 1,
         camelFrightReduction: 0,
+        bountyGoldMultiplier: 0,
+        fogSightRadiusBonus: 0,
         holyLightRangeBonus: 0,
         titheEnergyPerTick: 0,
     };
@@ -140,7 +186,23 @@ export function getUpgradeMultsFromLevels(modulesCfg, levels = {}, kind = null) 
         }
         else out[effect] = 1 + per * level;
     }
+    out.attackDamageMult *= Math.max(0, 1 + out.attackDamageBonus);
     return out;
+}
+
+/** 当前兵种已激活的目标 family 伤害倍率；同 family 多来源取最高值，避免重复叠乘。 */
+function getUnitFamilyDamageMultipliers(kind, modulesCfg) {
+    const levels = (kind && GLOBAL_UNIT_UPGRADES[kind]) || {};
+    const multipliers = {};
+    for (const [moduleId, module] of Object.entries(modulesCfg || {})) {
+        if (Array.isArray(module?.unitKinds) && !module.unitKinds.includes(kind)) continue;
+        const level = Math.max(0, Math.floor(Number(levels[moduleId]) || 0));
+        const family = String(module?.targetFamily || '').trim();
+        const multiplier = Number(module?.targetFamilyDamageMultiplier);
+        if (level <= 0 || !family || !Number.isFinite(multiplier) || multiplier <= 0) continue;
+        multipliers[family] = Math.max(Number(multipliers[family]) || 1, multiplier);
+    }
+    return multipliers;
 }
 
 /** 按兵种全局等级 + 建筑模块配置计算倍率。 */
@@ -159,17 +221,23 @@ export function getUnitUpgradePatch(kind, modulesCfg) {
     return {
         attackInterval: Math.max(300, Math.round((baseAi.attackInterval ?? 2000) * mults.attackIntervalMult)),
         attackDamage: Math.max(1, Math.round((baseAi.attackDamage ?? 50) * mults.attackDamageMult)),
+        attackDamageMult: mults.attackDamageMult,
         attackRange: Math.max(0, Math.round((baseAi.attackRange ?? 0) + mults.attackRangeBonus)),
         walkSpeed: Math.max(20, Math.round((baseAi.walkSpeed ?? 120) * mults.moveSpeedMult)),
         baseMaxHp: Math.max(1, Math.round((base.baseMaxHp ?? 300) * mults.hpMult)),
         holyLightCooldownMult: mults.holyLightCooldownMult,
         holyLightLevel: mults.holyLightLevel,
+        jungleMagicLevel: mults.jungleMagicLevel,
+        jungleSpellCooldownMult: mults.jungleSpellCooldownMult,
         chargeDamageMult: mults.chargeDamageMult,
         attackRangeBonus: mults.attackRangeBonus,
         defenseMult: mults.defenseMult,
         camelFrightReduction: mults.camelFrightReduction,
+        bountyGoldMultiplier: mults.bountyGoldMultiplier,
+        fogSightRadiusBonus: mults.fogSightRadiusBonus,
         holyLightRangeBonus: mults.holyLightRangeBonus,
         titheEnergyPerTick: mults.titheEnergyPerTick,
+        familyDamageMultipliers: getUnitFamilyDamageMultipliers(kind, modulesCfg),
         castRange: Math.max(0, Math.round((baseAi.castRange ?? 0) + mults.holyLightRangeBonus)),
         titheIntervalMs: Number(titheModule?.tickMs) || 0,
     };

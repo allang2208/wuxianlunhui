@@ -49,8 +49,12 @@
       "hitEndFrame": 22
     }
   },
-  "displaySize": 390,
-  "spriteOffsetY": -74,
+  "displaySize": 393.333333,
+  "spriteOffsetY": -74.5,
+  "render": {
+    "footOffsetY": 74.5,
+    "hudOffsetY": 190
+  },
   "animations": {
     "idle": {
       "src": "assets/companions/hamster_knight/idle.png",

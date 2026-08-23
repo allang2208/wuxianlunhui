@@ -12,6 +12,7 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const { default: producerCfg } = await import('../data/producer-buildings.json');
+const { default: buildingUpgradesCfg } = await import('../data/building-upgrades.json');
 const abilityStore = await import('../src/world/ability-store.js');
 const {
     ResearchSystem, RESEARCH_IDS, applyResearchHp, migrateLegacyResearchLevels,
@@ -36,16 +37,18 @@ check('研究院配置存在且为能力工坊', cfg && cfg.spawnEnabled === fal
 check('研究院正式贴图已接入', cfg.tex === 'research_institute'
     && cfg.assetPending !== true
     && fs.existsSync(path.join(ROOT, 'assets/terrain/research_institute.png')));
-check('研究项目齐全', cfg.abilities?.[RESEARCH_IDS.STRUCTURE_HP]
-    && cfg.abilities?.[RESEARCH_IDS.PASSIVE_ENERGY]
-    && cfg.abilities?.[RESEARCH_IDS.RECRUIT_SPEED]);
+// 研究能力配置真源：building-upgrades.json 的 research_standard 项目（2026-08 从建筑配置迁出）
+const researchAbilities = buildingUpgradesCfg.research_standard?.abilities || {};
+check('研究项目齐全', researchAbilities[RESEARCH_IDS.STRUCTURE_HP]
+    && researchAbilities[RESEARCH_IDS.PASSIVE_ENERGY]
+    && researchAbilities[RESEARCH_IDS.RECRUIT_SPEED]);
 check('墙门生命合并为同一研究且每级 +10%',
-    cfg.abilities[RESEARCH_IDS.STRUCTURE_HP].per === 0.1
-    && cfg.abilities[RESEARCH_IDS.STRUCTURE_HP].target === '方块墙与4格门'
-    && !cfg.abilities[RESEARCH_IDS.LEGACY_WALL_HP]
-    && !cfg.abilities[RESEARCH_IDS.LEGACY_GATE_HP]);
-check('被动能源每级每秒 +1', cfg.abilities[RESEARCH_IDS.PASSIVE_ENERGY].per === 1);
-const recruit = cfg.abilities[RESEARCH_IDS.RECRUIT_SPEED];
+    researchAbilities[RESEARCH_IDS.STRUCTURE_HP].per === 0.1
+    && researchAbilities[RESEARCH_IDS.STRUCTURE_HP].target === '方块墙与4格门'
+    && !researchAbilities[RESEARCH_IDS.LEGACY_WALL_HP]
+    && !researchAbilities[RESEARCH_IDS.LEGACY_GATE_HP]);
+check('被动能源每级每秒 +1', researchAbilities[RESEARCH_IDS.PASSIVE_ENERGY].per === 1);
+const recruit = researchAbilities[RESEARCH_IDS.RECRUIT_SPEED];
 check('快速募兵：Lv1 +10%，之后每级 +2%',
     recruit.firstLevel === 0.1
     && recruit.per === 0.02

@@ -30,7 +30,9 @@ export function buildingRoadFrame(i, j) {
 /**
  * A 2x2 building uses cells [baseI..baseI+1] x [baseJ..baseJ+1].
  * The road reservation adds one cell on every side, producing a 4x4 area:
- * 12 visible road cells plus the central 4 building cells.
+ * 12 perimeter cells plus the central 4 building cells. The central cells may
+ * receive visual-only surface fillers so the building art joins the perimeter
+ * without turning its occupied footprint into walkable road.
  */
 export function buildingRoadLayout(x, y) {
     const [baseI, baseJ] = blockCellOf(x, y - BUILDING_FRONT_OFFSET_Y);
@@ -138,15 +140,16 @@ export const BuildingRoadSystem = {
             this._roadTiles.set(cell.key, tile);
         }
         if (!tile.sprite && targetScene?.add?.sprite) {
-            tile.sprite = kind === 'field'
+            const usesFieldTexture = kind === 'field' || kind === 'field_fill';
+            tile.sprite = usesFieldTexture
                 ? targetScene.add.sprite(cell.x, cell.y, BUILDING_FIELD_TEXTURE, cell.frame)
                 : targetScene.add.sprite(cell.x, cell.y, BUILDING_ROAD_TEXTURE, cell.frame);
             tile.sprite.setOrigin(0.5, 0.5);
             tile.sprite.setDisplaySize(
-                kind === 'field' ? BUILDING_FIELD_DISPLAY_WIDTH : BUILDING_ROAD_DISPLAY_WIDTH,
-                kind === 'field' ? BUILDING_FIELD_DISPLAY_HEIGHT : BUILDING_ROAD_DISPLAY_HEIGHT
+                usesFieldTexture ? BUILDING_FIELD_DISPLAY_WIDTH : BUILDING_ROAD_DISPLAY_WIDTH,
+                usesFieldTexture ? BUILDING_FIELD_DISPLAY_HEIGHT : BUILDING_ROAD_DISPLAY_HEIGHT
             );
-            tile.sprite.setDepth(kind === 'field' ? BUILDING_FIELD_DEPTH : BUILDING_ROAD_DEPTH);
+            tile.sprite.setDepth(usesFieldTexture ? BUILDING_FIELD_DEPTH : BUILDING_ROAD_DEPTH);
             tile.sprite.setAlpha(0.96);
         }
         return tile;
@@ -281,6 +284,13 @@ export const BuildingRoadSystem = {
             const tile = this._ensureRoadTile(cell, targetScene, perimeterKind);
             tile.owners.add(entity);
         }
+        // 删除独立地基后，用外围地块同源纹理补齐主体透明处下方的中央4格。
+        // *_fill 不属于道路/田地玩法格：不提供移速、不写手铺道路快照，也不可退款。
+        const fillKind = perimeterKind === 'field' ? 'field_fill' : 'road_fill';
+        for (const cell of layout.buildingCells) {
+            const tile = this._ensureRoadTile(cell, targetScene, fillKind);
+            tile.owners.add(entity);
+        }
 
         entity._buildingRoadLayout = layout;
         entity._buildingPerimeterKind = perimeterKind;
@@ -324,6 +334,16 @@ export const BuildingRoadSystem = {
                 });
                 tile.manual = true;
             }
+            if (tile.owners.size === 0 && !tile.manual) {
+                if (tile.sprite?.active) tile.sprite.destroy();
+                this._roadTiles.delete(cell.key);
+            }
+        }
+        // 中央补片只服务当前建筑，不能随 preserveRoads 转为手动/可退款道路。
+        for (const cell of record.layout.buildingCells) {
+            const tile = this._roadTiles.get(cell.key);
+            if (!tile) continue;
+            tile.owners.delete(entity);
             if (tile.owners.size === 0 && !tile.manual) {
                 if (tile.sprite?.active) tile.sprite.destroy();
                 this._roadTiles.delete(cell.key);

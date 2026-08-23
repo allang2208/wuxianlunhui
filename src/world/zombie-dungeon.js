@@ -14,6 +14,7 @@ import { NPCDialogue } from '../ui/npc-dialogue.js';
 
 import { DungeonConfig } from '../config/dungeon-config.js';
 import { GAME_CONFIG } from '../config/game-config.js';
+import { hasEnemyFamily } from '../config/enemy-family.js';
 import enemyConfigData from '../../data/enemy-config.json';
 
 // ==================== 僵尸工厂（从 enemy-config.json 读取属性） ====================
@@ -428,12 +429,12 @@ const ZOMBIE_DUNGEON_CONFIG = {
     monsterPool: {
         get normal() {
             return Object.entries(enemyConfigData)
-                .filter(([key, cfg]) => cfg.family === '僵尸' && !cfg.noPool && cfg.rank !== 'elite' && cfg.rank !== 'lord' && cfg.rank !== 'boss' && ZOMBIE_FACTORY_MAP[key])
+                .filter(([key, cfg]) => hasEnemyFamily(cfg, '僵尸') && !cfg.noPool && cfg.rank !== 'elite' && cfg.rank !== 'lord' && cfg.rank !== 'boss' && ZOMBIE_FACTORY_MAP[key])
                 .map(([key]) => ZOMBIE_FACTORY_MAP[key]);
         },
         get elite() {
             return Object.entries(enemyConfigData)
-                .filter(([key, cfg]) => cfg.family === '僵尸' && !cfg.noPool && cfg.rank === 'elite' && ZOMBIE_FACTORY_MAP[key])
+                .filter(([key, cfg]) => hasEnemyFamily(cfg, '僵尸') && !cfg.noPool && cfg.rank === 'elite' && ZOMBIE_FACTORY_MAP[key])
                 .map(([key]) => ZOMBIE_FACTORY_MAP[key]);
         },
         // lord 领主池：僵尸 family 限定（2026-07-29 修复——此前跨 family 按 rank 抽取，
@@ -441,7 +442,7 @@ const ZOMBIE_DUNGEON_CONFIG = {
         // 特工只走 AgentInvasionSystem 入侵机制，不进怪物池）
         get lord() {
             return Object.entries(enemyConfigData)
-                .filter(([key, cfg]) => cfg.family === '僵尸' && !cfg.noPool && cfg.rank === 'lord' && ZOMBIE_FACTORY_MAP[key])
+                .filter(([key, cfg]) => hasEnemyFamily(cfg, '僵尸') && !cfg.noPool && cfg.rank === 'lord' && ZOMBIE_FACTORY_MAP[key])
                 .map(([key]) => ZOMBIE_FACTORY_MAP[key]);
         }
     },
@@ -901,7 +902,7 @@ export class ZombieDungeonCombat {
                 .filter(key => {
                     const cfg = enemyConfigData[key];
                     // noPool（如墓碑）即使 family/rank 满足也不进任何刷怪池
-                    if (!cfg || cfg.noPool || cfg.family !== poolFamily) return false;
+                    if (!cfg || cfg.noPool || !hasEnemyFamily(cfg, poolFamily)) return false;
                     if (tier === 'elite' || tier === 'lord' || tier === 'boss') return cfg.rank === tier;
                     return cfg.rank !== 'elite' && cfg.rank !== 'lord' && cfg.rank !== 'boss';
                 })

@@ -178,11 +178,15 @@ _onHasteEnd() { this._hasteStacks = 0; }
 - `_frozenForCast`
 - 玩家额外：施法 `_castState`、特殊攻击、换弹、无人机操控等
 
-## 12. 攻击判定改为距离判定
+## 12. 普通近战与技能攻击分开建模
 
-- 在 `enemy-config.json` 中用 `attackDistance` 表示纯距离判定（不再乘 1.15、不再做扇形/矩形范围判定），例如 `"attackDistance": 200`。
-- `CombatSystem._updateAttack` 优先读取 `enemy.attackDistance`，未配置时回退到 `enemy.attackRange * 1.15`。
-- 特殊攻击（如飞扑、连击）内部也统一调用 `_getAttackDistance()`，只判断 `dist <= attackDistance`，不再做朝向、视线、碰撞体积判定。
+- 已迁移的敌人普通近战统一走 `src/combat/melee-attack-resolver.js`：起手锁定主目标和攻击方向，命中帧复用同一矩形快照，并重新检查承载面与墙体；默认单目标，不再用 360° 纯距离伤害。
+- `attack.range` 表示从攻击者逻辑中心量出的总前伸距离；解析器按攻击者 footprint 拆出前缘起点。`CombatSystem` 起手、`MovementSystem` 刹车和 `ThrustAttack` 命中必须读取同一 profile，禁止各自硬编码范围。
+- 自管动画帧但语义仍是“单目标普通攻击”的怪物也应复用解析器：起手 profile 与命中 profile 可分别保留配置容差，但必须锁定同一目标与方向，并让移动刹车通过 `getBasicMeleeApproachConfig()` 读取起手 profile。黑狼/红狼王撕咬、蝇手锤击、时空突击特工斧砍、僵尸工头鞭击和提灯矿工砸击均属于这一类；长鞭等视觉轨迹也必须使用起手锁定点，不能出现伤害方向锁定但特效继续追踪转向。
+- 多段连击整段锁定起手方向；若攻击者有命中突进，用 `rebaseBasicMeleeSnapshot()` 只把判定原点移到当前脚点，不得重新瞄准绕后目标。命中时序用“elapsed 已跨过命中点且该段未结算”，禁止依赖窄帧时间窗；同一大帧跨过多段时，首段被弹反/冻结必须立即中断后续段。
+- 借用通用 `Attack/ThrustAttack` 冷却和起手调度、但由自定义动画帧结算伤害的混合怪物，必须复用 `_pendingThrust.primaryTarget/basicMeleeSnapshot`，并在启动自定义动画时立即关闭该 pending 的通用命中；否则启用方向解析器会让通用突刺与自定义命中帧重复伤害。矿工僵尸第17帧砸击采用此模式，唯一伤害源仍是第17帧。
+- 未审阅的历史 Boss、自管动画命中帧及所有范围技/位移技不得自动迁移；它们继续使用各自的 `attackDistance` / `_getAttackDistance()` 或专用形状，逐类审阅后显式 opt-in。尤其不能只因代码调用 `takeDamage(..., true)` 就认定为普通单体近战：时空盾卫盾击、蝇手砸地/灭世重砸会枚举多个敌对单位，必须保留专用范围合同。
+- 自管普通近战在 `takeDamage(..., true)` 后还要读取目标盾牌的 `_lastParried`：弹反成功时不得继续施加流血、致残、普通击退或命中特效。伤害门禁和附加效果门禁是同一次命中的两个步骤，不能只迁移几何判定。
 
 ## 13. 直冲型 AI（`chargeStraight`）
 
@@ -225,7 +229,7 @@ this.ai = config.ai || {};
 - 修复方式：
   1. **怪物**：在 `GameScene._configureEnemyBody()` 中把 `collisionShape` 设为 `'rect'`，`collisionWidth/Height` 设为 sprite 显示尺寸，`collisionRadius` 设为半宽作为圆形回退；Phaser 物理体也改为矩形。
   2. **玩家**：在 `_onPlayerSpawn()` 中通过 `_getFrameVisibleBounds()` 扫描 `player_idle` 帧的不透明像素，得到人物本体的包围盒，再按 sprite scale 换算成世界坐标。这样受击矩形只覆盖人物本体，而不是整个 512×512 的帧。
-  3. 自定义攻击（如 Mutant-3 连击/飞扑）使用 `_isTargetInRange(target, range)`：目标是矩形时做“攻击范围圆 vs 目标矩形”相交判定；目标是圆形时回退到 `中心距 + 碰撞半径`。
+  3. 已审阅的单目标原地攻击/连击（如 Mutant-3 五连击、铠甲骑士二连击）走 `melee-attack-resolver.js` 的方向矩形；飞扑、冲锋、范围砸击等位移/范围技能仍使用自己的 `_isTargetInRange(target, range)` 或专用形状，不能机械替换。
 - 左下角“范围”开关会同时画玩家和怪物的矩形/圆，保证可视化与实际受击体积一致。
 
 ## 17. 自定义近战攻击也要走盾牌弹反
@@ -1079,10 +1083,18 @@ this.ai = config.ai || {};
   被法线抵消时沿更接近目标的切向滑行。出生、游荡、交谈、维修和田间移动必须共用同一入口。
 - **职责边界**：移动解析只保证脚点不进入建筑；`GameScene` 仍在建筑拓扑深度落定后统一处理前后
   遮挡。不要为纯视觉单位创建战斗碰撞体、受击体、AI实体或独立存档，也不要让业务系统重新写 depth。
-- **贴地视觉与建筑立面分层**：独立地基、道路、田地和陷阱不是建筑立面，不能继承建筑主体的世界 Y
-  depth。地基统一使用道路之上、结构阴影之下的固定地表层；主体才参与前后遮挡。否则平民即使没有进入
-  footprint，仍会被随主体抬高的整张地基贴图盖住。正常视图和压平视图必须消费同一个地基深度常量。
-- **地表层必须是唯一注册表**：道路、范围圈、地基、结构阴影、压平投影和贴地装置必须从
+- **阻挡真源必须完整**：普通建筑读取 `iso_rect` footprint，关闭门、普通墙和楼梯侧边读取
+  `WallSystem.isoSegments` 当前有效段；开门时门洞段从数组移除，纯视觉平民应自然放行。已有完整 footprint
+  的掩体必须排除重复墙段。平民统一维护逻辑 `x/y`，拓扑推出缓动对象时同步平移当前移动段起点。
+- **拓扑失效用 revision**：建筑 Collider/异形 footprint 重建递增 `_structureFootprintRevision`，墙门段
+  push/splice 递增 `WallSystem._collisionRevision`；只在版本变化时重投影静止平民，不要每帧序列化全部墙段。
+- **纯视觉岗位不要把精确脚点当业务门禁**：无寻路的搬运岗位可以朝建筑外缘解析点移动，但取货、加工、
+  交货应以建筑中心加 footprint 半径的宽松服务范围判定；移动超过直线路程和固定宽限后，从当前位置完成
+  该次业务交互。事务层仍需在到达时重新校验资源与容量，避免一次碰撞死角永久锁死整条生产链。
+- **贴地视觉与建筑立面分层**：道路、田地、建筑中央铺装补片和陷阱不是建筑立面，不能继承建筑主体的世界 Y
+  depth。2026-08-23 起删除独立通用地基，建筑中央透明处改由外围道路/田地同源纹理补齐；主体才参与前后
+  遮挡。中央补片必须保持纯视觉，不得提供道路移速、进入手铺道路快照或随拆除转成退款道路。
+- **地表层必须是唯一注册表**：道路、范围圈、结构阴影、压平投影和贴地装置必须从
   `world-render-layers.js` 读取严格递增且互不相等的 depth，禁止各模块散落 `-994` 或 `y-998`。
   建筑拓扑发生变化时统一把静止平民推出新 footprint，并重投影既有目的地；不能只在移动分支做占用。
 

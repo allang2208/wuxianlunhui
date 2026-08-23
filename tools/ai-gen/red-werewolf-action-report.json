@@ -1,0 +1,1994 @@
+{
+  "idle": {
+    "video": "assets\\videos\\red_wolf_king_werewolf_idle_h3.mp4",
+    "output": "assets\\enemies\\red_wolf_king\\werewolf_idle.png",
+    "preview": "tools\\ai-gen\\red-werewolf-previews\\red-werewolf-idle.gif",
+    "sourceFrameCount": 124,
+    "sampleIndexes": [
+      0,
+      6,
+      12,
+      18,
+      25,
+      31,
+      37,
+      43,
+      49,
+      55,
+      62,
+      68,
+      74,
+      80,
+      86,
+      92,
+      99,
+      105,
+      111,
+      117
+    ],
+    "layout": {
+      "cols": 5,
+      "rows": 4,
+      "frames": 20,
+      "frameWidth": 640,
+      "frameHeight": 640,
+      "footY": 590
+    },
+    "fixedScale": 0.8227091633466136,
+    "anchor": "torso",
+    "nonemptyCells": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19
+    ],
+    "touchingCells": 0,
+    "transparentNonzeroRgb": 0,
+    "placements": [
+      {
+        "cell": 0,
+        "sourceFrame": 0,
+        "sourceBox": [
+          328,
+          51,
+          695,
+          553
+        ],
+        "placedBox": [
+          122,
+          178,
+          424,
+          591
+        ]
+      },
+      {
+        "cell": 1,
+        "sourceFrame": 6,
+        "sourceBox": [
+          329,
+          51,
+          695,
+          553
+        ],
+        "placedBox": [
+          123,
+          178,
+          424,
+          591
+        ]
+      },
+      {
+        "cell": 2,
+        "sourceFrame": 12,
+        "sourceBox": [
+          331,
+          49,
+          691,
+          553
+        ],
+        "placedBox": [
+          125,
+          176,
+          421,
+          591
+        ]
+      },
+      {
+        "cell": 3,
+        "sourceFrame": 18,
+        "sourceBox": [
+          335,
+          47,
+          689,
+          553
+        ],
+        "placedBox": [
+          129,
+          175,
+          420,
+          591
+        ]
+      },
+      {
+        "cell": 4,
+        "sourceFrame": 25,
+        "sourceBox": [
+          335,
+          45,
+          691,
+          553
+        ],
+        "placedBox": [
+          129,
+          173,
+          422,
+          591
+        ]
+      },
+      {
+        "cell": 5,
+        "sourceFrame": 31,
+        "sourceBox": [
+          331,
+          43,
+          697,
+          553
+        ],
+        "placedBox": [
+          125,
+          171,
+          426,
+          591
+        ]
+      },
+      {
+        "cell": 6,
+        "sourceFrame": 37,
+        "sourceBox": [
+          319,
+          43,
+          703,
+          553
+        ],
+        "placedBox": [
+          114,
+          171,
+          430,
+          591
+        ]
+      },
+      {
+        "cell": 7,
+        "sourceFrame": 43,
+        "sourceBox": [
+          301,
+          47,
+          705,
+          553
+        ],
+        "placedBox": [
+          100,
+          175,
+          432,
+          591
+        ]
+      },
+      {
+        "cell": 8,
+        "sourceFrame": 49,
+        "sourceBox": [
+          297,
+          49,
+          703,
+          553
+        ],
+        "placedBox": [
+          96,
+          176,
+          430,
+          591
+        ]
+      },
+      {
+        "cell": 9,
+        "sourceFrame": 55,
+        "sourceBox": [
+          314,
+          51,
+          699,
+          553
+        ],
+        "placedBox": [
+          110,
+          178,
+          427,
+          591
+        ]
+      },
+      {
+        "cell": 10,
+        "sourceFrame": 62,
+        "sourceBox": [
+          327,
+          51,
+          695,
+          553
+        ],
+        "placedBox": [
+          121,
+          178,
+          424,
+          591
+        ]
+      },
+      {
+        "cell": 11,
+        "sourceFrame": 68,
+        "sourceBox": [
+          331,
+          51,
+          692,
+          553
+        ],
+        "placedBox": [
+          125,
+          178,
+          422,
+          591
+        ]
+      },
+      {
+        "cell": 12,
+        "sourceFrame": 74,
+        "sourceBox": [
+          333,
+          47,
+          689,
+          553
+        ],
+        "placedBox": [
+          127,
+          175,
+          420,
+          591
+        ]
+      },
+      {
+        "cell": 13,
+        "sourceFrame": 80,
+        "sourceBox": [
+          333,
+          45,
+          689,
+          553
+        ],
+        "placedBox": [
+          128,
+          173,
+          421,
+          591
+        ]
+      },
+      {
+        "cell": 14,
+        "sourceFrame": 86,
+        "sourceBox": [
+          331,
+          43,
+          695,
+          553
+        ],
+        "placedBox": [
+          125,
+          171,
+          424,
+          591
+        ]
+      },
+      {
+        "cell": 15,
+        "sourceFrame": 92,
+        "sourceBox": [
+          324,
+          43,
+          699,
+          553
+        ],
+        "placedBox": [
+          119,
+          171,
+          428,
+          591
+        ]
+      },
+      {
+        "cell": 16,
+        "sourceFrame": 99,
+        "sourceBox": [
+          304,
+          47,
+          704,
+          553
+        ],
+        "placedBox": [
+          102,
+          175,
+          431,
+          591
+        ]
+      },
+      {
+        "cell": 17,
+        "sourceFrame": 105,
+        "sourceBox": [
+          295,
+          49,
+          703,
+          553
+        ],
+        "placedBox": [
+          95,
+          176,
+          431,
+          591
+        ]
+      },
+      {
+        "cell": 18,
+        "sourceFrame": 111,
+        "sourceBox": [
+          310,
+          51,
+          699,
+          553
+        ],
+        "placedBox": [
+          107,
+          178,
+          427,
+          591
+        ]
+      },
+      {
+        "cell": 19,
+        "sourceFrame": 117,
+        "sourceBox": [
+          325,
+          51,
+          697,
+          553
+        ],
+        "placedBox": [
+          119,
+          178,
+          425,
+          591
+        ]
+      }
+    ]
+  },
+  "running": {
+    "video": "assets\\videos\\red_wolf_king_werewolf_running_chase_h3.mp4",
+    "output": "assets\\enemies\\red_wolf_king\\werewolf_running.png",
+    "preview": "tools\\ai-gen\\red-werewolf-previews\\red-werewolf-running.gif",
+    "sourceFrameCount": 124,
+    "sampleIndexes": [
+      34,
+      37,
+      40,
+      43,
+      46,
+      49,
+      52,
+      55,
+      58,
+      61,
+      64,
+      67,
+      70,
+      73,
+      76,
+      79,
+      82,
+      85,
+      88,
+      91,
+      94,
+      97,
+      100
+    ],
+    "layout": {
+      "cols": 6,
+      "rows": 4,
+      "frames": 23,
+      "frameWidth": 640,
+      "frameHeight": 640,
+      "footY": 590
+    },
+    "fixedScale": 0.8227091633466136,
+    "anchor": "torso",
+    "nonemptyCells": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22
+    ],
+    "touchingCells": 0,
+    "transparentNonzeroRgb": 0,
+    "placements": [
+      {
+        "cell": 0,
+        "sourceFrame": 34,
+        "sourceBox": [
+          351,
+          165,
+          848,
+          563
+        ],
+        "placedBox": [
+          143,
+          264,
+          552,
+          591
+        ]
+      },
+      {
+        "cell": 1,
+        "sourceFrame": 37,
+        "sourceBox": [
+          337,
+          167,
+          835,
+          545
+        ],
+        "placedBox": [
+          132,
+          280,
+          542,
+          591
+        ]
+      },
+      {
+        "cell": 2,
+        "sourceFrame": 40,
+        "sourceBox": [
+          337,
+          157,
+          809,
+          522
+        ],
+        "placedBox": [
+          127,
+          291,
+          515,
+          591
+        ]
+      },
+      {
+        "cell": 3,
+        "sourceFrame": 43,
+        "sourceBox": [
+          383,
+          169,
+          811,
+          549
+        ],
+        "placedBox": [
+          161,
+          278,
+          513,
+          591
+        ]
+      },
+      {
+        "cell": 4,
+        "sourceFrame": 46,
+        "sourceBox": [
+          373,
+          165,
+          837,
+          538
+        ],
+        "placedBox": [
+          153,
+          284,
+          535,
+          591
+        ]
+      },
+      {
+        "cell": 5,
+        "sourceFrame": 49,
+        "sourceBox": [
+          355,
+          153,
+          849,
+          522
+        ],
+        "placedBox": [
+          139,
+          287,
+          545,
+          591
+        ]
+      },
+      {
+        "cell": 6,
+        "sourceFrame": 52,
+        "sourceBox": [
+          353,
+          171,
+          847,
+          557
+        ],
+        "placedBox": [
+          146,
+          273,
+          552,
+          591
+        ]
+      },
+      {
+        "cell": 7,
+        "sourceFrame": 55,
+        "sourceBox": [
+          330,
+          161,
+          825,
+          541
+        ],
+        "placedBox": [
+          125,
+          278,
+          532,
+          591
+        ]
+      },
+      {
+        "cell": 8,
+        "sourceFrame": 58,
+        "sourceBox": [
+          353,
+          159,
+          805,
+          519
+        ],
+        "placedBox": [
+          139,
+          295,
+          511,
+          591
+        ]
+      },
+      {
+        "cell": 9,
+        "sourceFrame": 61,
+        "sourceBox": [
+          387,
+          171,
+          819,
+          547
+        ],
+        "placedBox": [
+          162,
+          282,
+          517,
+          591
+        ]
+      },
+      {
+        "cell": 10,
+        "sourceFrame": 64,
+        "sourceBox": [
+          365,
+          157,
+          845,
+          531
+        ],
+        "placedBox": [
+          146,
+          283,
+          541,
+          591
+        ]
+      },
+      {
+        "cell": 11,
+        "sourceFrame": 67,
+        "sourceBox": [
+          353,
+          155,
+          849,
+          543
+        ],
+        "placedBox": [
+          141,
+          272,
+          549,
+          591
+        ]
+      },
+      {
+        "cell": 12,
+        "sourceFrame": 70,
+        "sourceBox": [
+          352,
+          171,
+          841,
+          551
+        ],
+        "placedBox": [
+          146,
+          278,
+          548,
+          591
+        ]
+      },
+      {
+        "cell": 13,
+        "sourceFrame": 73,
+        "sourceBox": [
+          330,
+          159,
+          817,
+          529
+        ],
+        "placedBox": [
+          123,
+          287,
+          524,
+          591
+        ]
+      },
+      {
+        "cell": 14,
+        "sourceFrame": 76,
+        "sourceBox": [
+          369,
+          163,
+          805,
+          538
+        ],
+        "placedBox": [
+          153,
+          282,
+          512,
+          591
+        ]
+      },
+      {
+        "cell": 15,
+        "sourceFrame": 79,
+        "sourceBox": [
+          381,
+          169,
+          829,
+          541
+        ],
+        "placedBox": [
+          159,
+          285,
+          528,
+          591
+        ]
+      },
+      {
+        "cell": 16,
+        "sourceFrame": 82,
+        "sourceBox": [
+          359,
+          153,
+          847,
+          523
+        ],
+        "placedBox": [
+          141,
+          287,
+          542,
+          591
+        ]
+      },
+      {
+        "cell": 17,
+        "sourceFrame": 85,
+        "sourceBox": [
+          351,
+          165,
+          849,
+          562
+        ],
+        "placedBox": [
+          142,
+          264,
+          552,
+          591
+        ]
+      },
+      {
+        "cell": 18,
+        "sourceFrame": 88,
+        "sourceBox": [
+          337,
+          167,
+          833,
+          545
+        ],
+        "placedBox": [
+          132,
+          280,
+          540,
+          591
+        ]
+      },
+      {
+        "cell": 19,
+        "sourceFrame": 91,
+        "sourceBox": [
+          335,
+          157,
+          809,
+          526
+        ],
+        "placedBox": [
+          126,
+          287,
+          516,
+          591
+        ]
+      },
+      {
+        "cell": 20,
+        "sourceFrame": 94,
+        "sourceBox": [
+          385,
+          170,
+          811,
+          549
+        ],
+        "placedBox": [
+          162,
+          279,
+          512,
+          591
+        ]
+      },
+      {
+        "cell": 21,
+        "sourceFrame": 97,
+        "sourceBox": [
+          373,
+          165,
+          837,
+          537
+        ],
+        "placedBox": [
+          152,
+          285,
+          534,
+          591
+        ]
+      },
+      {
+        "cell": 22,
+        "sourceFrame": 100,
+        "sourceBox": [
+          355,
+          153,
+          849,
+          523
+        ],
+        "placedBox": [
+          139,
+          287,
+          545,
+          591
+        ]
+      }
+    ]
+  },
+  "attacking": {
+    "video": "assets\\videos\\red_wolf_king_werewolf_attacking_h3.mp4",
+    "output": "assets\\enemies\\red_wolf_king\\werewolf_attacking.png",
+    "preview": "tools\\ai-gen\\red-werewolf-previews\\red-werewolf-attacking.gif",
+    "sourceFrameCount": 124,
+    "sampleIndexes": [
+      0,
+      6,
+      11,
+      16,
+      21,
+      26,
+      31,
+      34,
+      37,
+      40,
+      43,
+      46,
+      49,
+      52,
+      55,
+      58,
+      61,
+      65,
+      70,
+      76,
+      84
+    ],
+    "layout": {
+      "cols": 6,
+      "rows": 4,
+      "frames": 21,
+      "frameWidth": 640,
+      "frameHeight": 640,
+      "footY": 590
+    },
+    "fixedScale": 0.8227091633466136,
+    "anchor": "torso",
+    "nonemptyCells": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20
+    ],
+    "touchingCells": 0,
+    "transparentNonzeroRgb": 0,
+    "placements": [
+      {
+        "cell": 0,
+        "sourceFrame": 0,
+        "sourceBox": [
+          328,
+          51,
+          695,
+          553
+        ],
+        "placedBox": [
+          122,
+          178,
+          424,
+          591
+        ]
+      },
+      {
+        "cell": 1,
+        "sourceFrame": 6,
+        "sourceBox": [
+          335,
+          61,
+          699,
+          553
+        ],
+        "placedBox": [
+          127,
+          186,
+          426,
+          591
+        ]
+      },
+      {
+        "cell": 2,
+        "sourceFrame": 11,
+        "sourceBox": [
+          351,
+          87,
+          705,
+          556
+        ],
+        "placedBox": [
+          152,
+          205,
+          443,
+          591
+        ]
+      },
+      {
+        "cell": 3,
+        "sourceFrame": 16,
+        "sourceBox": [
+          348,
+          111,
+          697,
+          549
+        ],
+        "placedBox": [
+          179,
+          231,
+          466,
+          591
+        ]
+      },
+      {
+        "cell": 4,
+        "sourceFrame": 21,
+        "sourceBox": [
+          353,
+          115,
+          673,
+          549
+        ],
+        "placedBox": [
+          192,
+          234,
+          455,
+          591
+        ]
+      },
+      {
+        "cell": 5,
+        "sourceFrame": 26,
+        "sourceBox": [
+          365,
+          119,
+          733,
+          551
+        ],
+        "placedBox": [
+          189,
+          236,
+          492,
+          591
+        ]
+      },
+      {
+        "cell": 6,
+        "sourceFrame": 31,
+        "sourceBox": [
+          383,
+          91,
+          743,
+          552
+        ],
+        "placedBox": [
+          165,
+          212,
+          461,
+          591
+        ]
+      },
+      {
+        "cell": 7,
+        "sourceFrame": 34,
+        "sourceBox": [
+          351,
+          101,
+          865,
+          561
+        ],
+        "placedBox": [
+          126,
+          213,
+          549,
+          591
+        ]
+      },
+      {
+        "cell": 8,
+        "sourceFrame": 37,
+        "sourceBox": [
+          295,
+          107,
+          759,
+          561
+        ],
+        "placedBox": [
+          90,
+          217,
+          472,
+          591
+        ]
+      },
+      {
+        "cell": 9,
+        "sourceFrame": 40,
+        "sourceBox": [
+          259,
+          110,
+          747,
+          561
+        ],
+        "placedBox": [
+          58,
+          220,
+          459,
+          591
+        ]
+      },
+      {
+        "cell": 10,
+        "sourceFrame": 43,
+        "sourceBox": [
+          208,
+          113,
+          745,
+          561
+        ],
+        "placedBox": [
+          10,
+          222,
+          452,
+          591
+        ]
+      },
+      {
+        "cell": 11,
+        "sourceFrame": 46,
+        "sourceBox": [
+          185,
+          115,
+          745,
+          561
+        ],
+        "placedBox": [
+          4,
+          224,
+          465,
+          591
+        ]
+      },
+      {
+        "cell": 12,
+        "sourceFrame": 49,
+        "sourceBox": [
+          238,
+          121,
+          761,
+          562
+        ],
+        "placedBox": [
+          37,
+          228,
+          467,
+          591
+        ]
+      },
+      {
+        "cell": 13,
+        "sourceFrame": 52,
+        "sourceBox": [
+          303,
+          122,
+          829,
+          562
+        ],
+        "placedBox": [
+          111,
+          229,
+          544,
+          591
+        ]
+      },
+      {
+        "cell": 14,
+        "sourceFrame": 55,
+        "sourceBox": [
+          259,
+          107,
+          781,
+          563
+        ],
+        "placedBox": [
+          118,
+          216,
+          547,
+          591
+        ]
+      },
+      {
+        "cell": 15,
+        "sourceFrame": 58,
+        "sourceBox": [
+          295,
+          101,
+          743,
+          563
+        ],
+        "placedBox": [
+          132,
+          211,
+          501,
+          591
+        ]
+      },
+      {
+        "cell": 16,
+        "sourceFrame": 61,
+        "sourceBox": [
+          297,
+          99,
+          735,
+          563
+        ],
+        "placedBox": [
+          133,
+          209,
+          493,
+          591
+        ]
+      },
+      {
+        "cell": 17,
+        "sourceFrame": 65,
+        "sourceBox": [
+          299,
+          99,
+          701,
+          563
+        ],
+        "placedBox": [
+          137,
+          209,
+          468,
+          591
+        ]
+      },
+      {
+        "cell": 18,
+        "sourceFrame": 70,
+        "sourceBox": [
+          345,
+          107,
+          715,
+          563
+        ],
+        "placedBox": [
+          169,
+          216,
+          473,
+          591
+        ]
+      },
+      {
+        "cell": 19,
+        "sourceFrame": 76,
+        "sourceBox": [
+          350,
+          87,
+          741,
+          557
+        ],
+        "placedBox": [
+          151,
+          204,
+          473,
+          591
+        ]
+      },
+      {
+        "cell": 20,
+        "sourceFrame": 84,
+        "sourceBox": [
+          319,
+          55,
+          699,
+          553
+        ],
+        "placedBox": [
+          114,
+          181,
+          427,
+          591
+        ]
+      }
+    ]
+  },
+  "howling": {
+    "video": "assets\\videos\\red_wolf_king_werewolf_howling_h3.mp4",
+    "output": "assets\\enemies\\red_wolf_king\\werewolf_howling.png",
+    "preview": "tools\\ai-gen\\red-werewolf-previews\\red-werewolf-howling.gif",
+    "sourceFrameCount": 124,
+    "sampleIndexes": [
+      0,
+      7,
+      14,
+      21,
+      28,
+      34,
+      40,
+      46,
+      52,
+      58,
+      64,
+      70,
+      76,
+      82,
+      88,
+      94,
+      100,
+      108,
+      116,
+      123
+    ],
+    "layout": {
+      "cols": 5,
+      "rows": 4,
+      "frames": 20,
+      "frameWidth": 640,
+      "frameHeight": 640,
+      "footY": 590
+    },
+    "fixedScale": 0.8227091633466136,
+    "anchor": "torso",
+    "nonemptyCells": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19
+    ],
+    "touchingCells": 0,
+    "transparentNonzeroRgb": 0,
+    "placements": [
+      {
+        "cell": 0,
+        "sourceFrame": 0,
+        "sourceBox": [
+          328,
+          51,
+          695,
+          553
+        ],
+        "placedBox": [
+          122,
+          178,
+          424,
+          591
+        ]
+      },
+      {
+        "cell": 1,
+        "sourceFrame": 7,
+        "sourceBox": [
+          327,
+          53,
+          695,
+          553
+        ],
+        "placedBox": [
+          121,
+          180,
+          424,
+          591
+        ]
+      },
+      {
+        "cell": 2,
+        "sourceFrame": 14,
+        "sourceBox": [
+          311,
+          75,
+          701,
+          553
+        ],
+        "placedBox": [
+          110,
+          198,
+          431,
+          591
+        ]
+      },
+      {
+        "cell": 3,
+        "sourceFrame": 21,
+        "sourceBox": [
+          347,
+          73,
+          703,
+          553
+        ],
+        "placedBox": [
+          141,
+          196,
+          434,
+          591
+        ]
+      },
+      {
+        "cell": 4,
+        "sourceFrame": 28,
+        "sourceBox": [
+          327,
+          41,
+          708,
+          553
+        ],
+        "placedBox": [
+          124,
+          170,
+          437,
+          591
+        ]
+      },
+      {
+        "cell": 5,
+        "sourceFrame": 34,
+        "sourceBox": [
+          320,
+          29,
+          725,
+          553
+        ],
+        "placedBox": [
+          119,
+          160,
+          452,
+          591
+        ]
+      },
+      {
+        "cell": 6,
+        "sourceFrame": 40,
+        "sourceBox": [
+          379,
+          23,
+          735,
+          553
+        ],
+        "placedBox": [
+          166,
+          155,
+          459,
+          591
+        ]
+      },
+      {
+        "cell": 7,
+        "sourceFrame": 46,
+        "sourceBox": [
+          339,
+          20,
+          737,
+          553
+        ],
+        "placedBox": [
+          131,
+          152,
+          458,
+          591
+        ]
+      },
+      {
+        "cell": 8,
+        "sourceFrame": 52,
+        "sourceBox": [
+          293,
+          17,
+          736,
+          553
+        ],
+        "placedBox": [
+          95,
+          150,
+          459,
+          591
+        ]
+      },
+      {
+        "cell": 9,
+        "sourceFrame": 58,
+        "sourceBox": [
+          309,
+          17,
+          732,
+          553
+        ],
+        "placedBox": [
+          111,
+          150,
+          459,
+          591
+        ]
+      },
+      {
+        "cell": 10,
+        "sourceFrame": 64,
+        "sourceBox": [
+          361,
+          17,
+          728,
+          553
+        ],
+        "placedBox": [
+          152,
+          150,
+          454,
+          591
+        ]
+      },
+      {
+        "cell": 11,
+        "sourceFrame": 70,
+        "sourceBox": [
+          349,
+          21,
+          727,
+          553
+        ],
+        "placedBox": [
+          139,
+          153,
+          450,
+          591
+        ]
+      },
+      {
+        "cell": 12,
+        "sourceFrame": 76,
+        "sourceBox": [
+          307,
+          33,
+          729,
+          553
+        ],
+        "placedBox": [
+          103,
+          163,
+          450,
+          591
+        ]
+      },
+      {
+        "cell": 13,
+        "sourceFrame": 82,
+        "sourceBox": [
+          308,
+          55,
+          725,
+          553
+        ],
+        "placedBox": [
+          104,
+          181,
+          447,
+          591
+        ]
+      },
+      {
+        "cell": 14,
+        "sourceFrame": 88,
+        "sourceBox": [
+          324,
+          51,
+          709,
+          553
+        ],
+        "placedBox": [
+          118,
+          178,
+          435,
+          591
+        ]
+      },
+      {
+        "cell": 15,
+        "sourceFrame": 94,
+        "sourceBox": [
+          328,
+          51,
+          699,
+          553
+        ],
+        "placedBox": [
+          123,
+          178,
+          428,
+          591
+        ]
+      },
+      {
+        "cell": 16,
+        "sourceFrame": 100,
+        "sourceBox": [
+          328,
+          51,
+          695,
+          553
+        ],
+        "placedBox": [
+          122,
+          178,
+          424,
+          591
+        ]
+      },
+      {
+        "cell": 17,
+        "sourceFrame": 108,
+        "sourceBox": [
+          328,
+          51,
+          695,
+          553
+        ],
+        "placedBox": [
+          122,
+          178,
+          424,
+          591
+        ]
+      },
+      {
+        "cell": 18,
+        "sourceFrame": 116,
+        "sourceBox": [
+          328,
+          51,
+          695,
+          553
+        ],
+        "placedBox": [
+          122,
+          178,
+          424,
+          591
+        ]
+      },
+      {
+        "cell": 19,
+        "sourceFrame": 123,
+        "sourceBox": [
+          328,
+          51,
+          695,
+          553
+        ],
+        "placedBox": [
+          122,
+          178,
+          424,
+          591
+        ]
+      }
+    ]
+  },
+  "dying": {
+    "video": "assets\\videos\\red_wolf_king_werewolf_dying_h3.mp4",
+    "output": "assets\\enemies\\red_wolf_king\\werewolf_dying.png",
+    "preview": "tools\\ai-gen\\red-werewolf-previews\\red-werewolf-dying.gif",
+    "sourceFrameCount": 124,
+    "sampleIndexes": [
+      0,
+      4,
+      8,
+      12,
+      16,
+      20,
+      24,
+      28,
+      32,
+      36,
+      40,
+      44,
+      48,
+      52,
+      56,
+      60,
+      64,
+      68,
+      74,
+      82
+    ],
+    "layout": {
+      "cols": 5,
+      "rows": 4,
+      "frames": 20,
+      "frameWidth": 640,
+      "frameHeight": 640,
+      "footY": 590
+    },
+    "fixedScale": 0.8227091633466136,
+    "anchor": "source",
+    "nonemptyCells": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19
+    ],
+    "touchingCells": 0,
+    "transparentNonzeroRgb": 0,
+    "placements": [
+      {
+        "cell": 0,
+        "sourceFrame": 0,
+        "sourceBox": [
+          328,
+          51,
+          695,
+          553
+        ],
+        "placedBox": [
+          122,
+          178,
+          424,
+          591
+        ]
+      },
+      {
+        "cell": 1,
+        "sourceFrame": 4,
+        "sourceBox": [
+          371,
+          49,
+          691,
+          553
+        ],
+        "placedBox": [
+          157,
+          176,
+          420,
+          591
+        ]
+      },
+      {
+        "cell": 2,
+        "sourceFrame": 8,
+        "sourceBox": [
+          397,
+          54,
+          689,
+          553
+        ],
+        "placedBox": [
+          178,
+          180,
+          418,
+          591
+        ]
+      },
+      {
+        "cell": 3,
+        "sourceFrame": 12,
+        "sourceBox": [
+          405,
+          65,
+          688,
+          553
+        ],
+        "placedBox": [
+          185,
+          190,
+          418,
+          591
+        ]
+      },
+      {
+        "cell": 4,
+        "sourceFrame": 16,
+        "sourceBox": [
+          407,
+          93,
+          705,
+          553
+        ],
+        "placedBox": [
+          187,
+          213,
+          432,
+          591
+        ]
+      },
+      {
+        "cell": 5,
+        "sourceFrame": 20,
+        "sourceBox": [
+          415,
+          147,
+          719,
+          553
+        ],
+        "placedBox": [
+          193,
+          257,
+          443,
+          591
+        ]
+      },
+      {
+        "cell": 6,
+        "sourceFrame": 24,
+        "sourceBox": [
+          431,
+          159,
+          713,
+          553
+        ],
+        "placedBox": [
+          206,
+          267,
+          438,
+          591
+        ]
+      },
+      {
+        "cell": 7,
+        "sourceFrame": 28,
+        "sourceBox": [
+          415,
+          161,
+          705,
+          553
+        ],
+        "placedBox": [
+          193,
+          268,
+          432,
+          591
+        ]
+      },
+      {
+        "cell": 8,
+        "sourceFrame": 32,
+        "sourceBox": [
+          372,
+          177,
+          691,
+          557
+        ],
+        "placedBox": [
+          158,
+          278,
+          420,
+          591
+        ]
+      },
+      {
+        "cell": 9,
+        "sourceFrame": 36,
+        "sourceBox": [
+          351,
+          221,
+          702,
+          569
+        ],
+        "placedBox": [
+          141,
+          305,
+          430,
+          591
+        ]
+      },
+      {
+        "cell": 10,
+        "sourceFrame": 40,
+        "sourceBox": [
+          335,
+          296,
+          754,
+          571
+        ],
+        "placedBox": [
+          127,
+          365,
+          472,
+          591
+        ]
+      },
+      {
+        "cell": 11,
+        "sourceFrame": 44,
+        "sourceBox": [
+          291,
+          335,
+          728,
+          571
+        ],
+        "placedBox": [
+          91,
+          397,
+          451,
+          591
+        ]
+      },
+      {
+        "cell": 12,
+        "sourceFrame": 48,
+        "sourceBox": [
+          248,
+          361,
+          738,
+          567
+        ],
+        "placedBox": [
+          56,
+          422,
+          459,
+          591
+        ]
+      },
+      {
+        "cell": 13,
+        "sourceFrame": 52,
+        "sourceBox": [
+          245,
+          375,
+          749,
+          567
+        ],
+        "placedBox": [
+          53,
+          433,
+          468,
+          591
+        ]
+      },
+      {
+        "cell": 14,
+        "sourceFrame": 56,
+        "sourceBox": [
+          239,
+          401,
+          755,
+          566
+        ],
+        "placedBox": [
+          49,
+          455,
+          474,
+          591
+        ]
+      },
+      {
+        "cell": 15,
+        "sourceFrame": 60,
+        "sourceBox": [
+          239,
+          413,
+          761,
+          565
+        ],
+        "placedBox": [
+          49,
+          466,
+          478,
+          591
+        ]
+      },
+      {
+        "cell": 16,
+        "sourceFrame": 64,
+        "sourceBox": [
+          241,
+          417,
+          765,
+          571
+        ],
+        "placedBox": [
+          50,
+          464,
+          481,
+          591
+        ]
+      },
+      {
+        "cell": 17,
+        "sourceFrame": 68,
+        "sourceBox": [
+          241,
+          419,
+          766,
+          571
+        ],
+        "placedBox": [
+          50,
+          466,
+          482,
+          591
+        ]
+      },
+      {
+        "cell": 18,
+        "sourceFrame": 74,
+        "sourceBox": [
+          241,
+          419,
+          765,
+          571
+        ],
+        "placedBox": [
+          50,
+          466,
+          481,
+          591
+        ]
+      },
+      {
+        "cell": 19,
+        "sourceFrame": 82,
+        "sourceBox": [
+          241,
+          419,
+          765,
+          571
+        ],
+        "placedBox": [
+          50,
+          466,
+          481,
+          591
+        ]
+      }
+    ]
+  }
+}

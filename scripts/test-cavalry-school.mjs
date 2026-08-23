@@ -21,7 +21,7 @@ function check(name, condition, detail = '') {
 
 check('骑兵学校配置为 2×2 能源产兵建筑',
     school?.cost === 1500 && school.hp === 2000 && school.radius === 128
-    && school.spawnIntervalMs === 90000 && school.unitCap === 5);
+    && school.spawnIntervalMs === 90000 && school.unitCap == null);
 check('骑兵学校生产仓鼠骑士与仓鼠轻骑',
     school?.defaultUnitType === 'knight'
     && school.unitTypes?.some((unit) => unit.key === 'knight' && unit.spawnIntervalMs === 90000)

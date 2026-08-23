@@ -6,7 +6,11 @@ import { IceSpikeSystem } from '../entities/components/ice-spike-system.js';
 import { FireballSystem } from '../entities/components/fireball-system.js';
 import { hasRangedLineOfSight } from '../combat/ranged-line-of-sight.js';
 import { getMagicRangeMultiplier } from '../utils/magic-craft-helper.js';
-import { finishRtsCommandAtHold } from './rts-command-utils.js';
+import {
+    clearRtsSurfaceRoute,
+    finishRtsCommandAtHold,
+    resolveRtsMoveDestination,
+} from './rts-command-utils.js';
 
 export class JunglePriestAI {
     constructor(priest) {
@@ -23,12 +27,33 @@ export class JunglePriestAI {
         this._releaseLeft = 0;
         this._castAnimLeft = 0;
     }
-    cancelForCommand() { return !this._castActive; }
+    cancelForCommand() {
+        // 施法动作保持不可打断；新命令已经写在实体上，当前施法结束后立即接管。
+        if (this._castActive) return false;
+        const m = this.m;
+        m.target = null;
+        m._tacticalTarget = null;
+        m._prayerCast = false;
+        m._animState = 'idle';
+        m._castState = 'idle';
+        m.vx = 0;
+        m.vy = 0;
+        m.isMoving = false;
+        m._pathManager?._clearPath?.();
+        return true;
+    }
     applyUpgrades(patch = {}) {
         if (patch.attackDamage) this.cfg.attackDamage = patch.attackDamage;
+        if (Number.isFinite(patch.attackDamageMult)) this.cfg.attackDamageMult = patch.attackDamageMult;
         if (patch.attackInterval) this.cfg.attackInterval = patch.attackInterval;
         if (patch.castRange) this.cfg.castRange = patch.castRange;
         if (patch.walkSpeed) this.cfg.walkSpeed = patch.walkSpeed;
+        if (Number.isFinite(patch.jungleSpellCooldownMult)) {
+            const previous = Math.max(0.01, Number(this.cfg.jungleSpellCooldownMult) || 1);
+            const next = Math.max(0, patch.jungleSpellCooldownMult);
+            if (this._cooldown > 0) this._cooldown *= next / previous;
+            this.cfg.jungleSpellCooldownMult = next;
+        }
     }
     update(dt, entities, player) {
         const m = this.m;
@@ -40,13 +65,11 @@ export class JunglePriestAI {
             return;
         }
         const command = m._command;
-        if (command?.mode === 'hold') { this._stop(dt); return; }
-        if (command?.mode === 'attack' && !this._isValidTarget(command.target)) {
-            finishRtsCommandAtHold(m);
-            this._stop(dt);
+        if (command?.mode && command.mode !== 'follow') {
+            this._applyCommand(command, dt, entities);
             return;
         }
-        const target = command?.mode === 'attack' ? command.target : this._nearestEnemy(entities);
+        const target = this._nearestEnemy(entities);
         if (target) {
             if (this._cooldown <= 0 && this._canCastAt(target)) {
                 this._startCast(target, dt); return;
@@ -67,6 +90,51 @@ export class JunglePriestAI {
                 m._animState = 'walk'; MovementSystem.update(m, dt, entities); return;
             }
         }
+        this._stop(dt);
+    }
+    /** RTS 指令与仓鼠牧师同口径：移动到点转待命，指定攻击只锁定目标，不回退自动跟随。 */
+    _applyCommand(command, dt, entities) {
+        const m = this.m;
+        if (command.mode !== 'move' && !m._surfaceNavCommand) clearRtsSurfaceRoute(m);
+        if (command.mode === 'move') {
+            m.target = null;
+            const move = resolveRtsMoveDestination(m, command);
+            if (move.arrived) {
+                finishRtsCommandAtHold(m);
+                clearRtsSurfaceRoute(m);
+                this._stop(dt);
+                return;
+            }
+            m._tacticalTarget = move.destination;
+            m.maxSpeed = this.cfg.walkSpeed || 125;
+            m._animState = 'walk';
+            MovementSystem.update(m, dt, entities);
+            return;
+        }
+        if (command.mode === 'attack') {
+            const target = command.target;
+            if (!this._isValidTarget(target)) {
+                finishRtsCommandAtHold(m);
+                this._stop(dt);
+                return;
+            }
+            if (this._cooldown <= 0 && this._canCastAt(target)) {
+                this._startCast(target, dt);
+                return;
+            }
+            if (!this._canCastAt(target)) {
+                m.target = target;
+                m._tacticalTarget = { x: target.x, y: target.y, _surfaceTarget: target };
+                m.maxSpeed = this.cfg.walkSpeed || 125;
+                m._animState = 'walk';
+                MovementSystem.update(m, dt, entities);
+                return;
+            }
+            m.target = target;
+            this._stop(dt);
+            return;
+        }
+        m.target = null;
         this._stop(dt);
     }
     _nearestEnemy(entities) {
@@ -111,7 +179,8 @@ export class JunglePriestAI {
         this._pendingSpell = this._spellIndex++ % 3;
         this._releaseLeft = (releaseFrame - 1) / fps * 1000;
         this._castAnimLeft = frameCount / fps * 1000 + 60;
-        this._cooldown = Math.max(500, Number(this.cfg.attackInterval) || 2800);
+        const cooldownMult = Math.max(0, Number(this.cfg.jungleSpellCooldownMult) || 1);
+        this._cooldown = Math.max(500, (Number(this.cfg.attackInterval) || 2800) * cooldownMult);
         m.target = target;
         m._tacticalTarget = null;
         m.maxSpeed = 0;
@@ -158,8 +227,27 @@ export class JunglePriestAI {
         if (!this._canCastAt(target)) return;
 
         m.target = target;
-        const damage = Math.max(1, Math.round((this.cfg.attackDamage || 95) + (m.data?.matk || 0)));
+        const desertDamageMult = m._isDesertPriest
+            ? Math.max(0, Number(this.cfg.attackDamageMult) || 1)
+            : 1;
+        const attackDamageBase = m._isDesertPriest
+            ? (Number(this.cfg.baseAttackDamage) || 95)
+            : (Number(this.cfg.attackDamage) || 95);
+        let damage = Math.max(1, Math.round(
+            (attackDamageBase + (m.data?.matk || 0)) * desertDamageMult
+        ));
         if (this._pendingSpell === 0) {
+            const lightning = m.skills?.lightningStrike;
+            if (lightning && typeof lightning.getEffect === 'function') {
+                const powerAt = (level) => {
+                    const effect = lightning.getEffect(level);
+                    return Math.max(1,
+                        (Number(effect.damageBase) || 0)
+                        + (Number(m.data?.matk) || 0) * (Number(effect.magicMul) || 0)
+                        + (Number(m.data?.int) || 0) * (Number(effect.intMul) || 0));
+                };
+                damage = Math.max(1, Math.round(damage * powerAt(lightning.level) / powerAt(1)));
+            }
             EffectManager.add(new LightningBoltEffect(m, target));
             target.applyElectrified?.(1, 4000, m);
             target.takeDamage?.(damage, m, 'electric', false);
@@ -167,10 +255,22 @@ export class JunglePriestAI {
         } else if (this._pendingSpell === 1) {
             // 组件契约：第一次 trigger 创建冰锥，第二次 trigger 发射。
             this._iceSpike.trigger();
+            if (m._isDesertPriest) {
+                this._iceSpike._magicDamageMul = Math.max(
+                    0,
+                    Number(this._iceSpike._magicDamageMul) || 1
+                ) * desertDamageMult;
+            }
             this._iceSpike.trigger();
         } else {
             // 组件契约：第一次 trigger 创建火球，第二次 trigger 发射。
             this._fireball.trigger();
+            if (m._isDesertPriest) {
+                this._fireball._magicDamageMul = Math.max(
+                    0,
+                    Number(this._fireball._magicDamageMul) || 1
+                ) * desertDamageMult;
+            }
             this._fireball.trigger();
         }
     }
@@ -183,6 +283,8 @@ export class JunglePriestAI {
         if (Math.hypot(m.vx, m.vy) < 1) { m.vx = 0; m.vy = 0; }
         m.maxSpeed = 0;
         m.isMoving = false;
+        m._tacticalTarget = null;
+        m._pathManager?._clearPath?.();
         // 缓停滑行期保持 walk，防 idle 姿势滑冰
         m._animState = Math.hypot(m.vx || 0, m.vy || 0) > 25 ? 'walk' : 'idle';
         m._prayerCast = false;

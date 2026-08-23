@@ -12,6 +12,10 @@
   "baseMaxHp": 100,
   "baseData": { "str": 5, "dex": 5, "int": 20, "con": 5, "wis": 15, "luck": 5 },
   "statFormula": "enemy",
+  "groundRadius": 20,
+  "collisionRadius": 20,
+  "bodyHeight": 100,
+  "size": 64,
   "skills": ["holyLight"],
   "ai": {
     "role": "holy_priest",
@@ -29,6 +33,12 @@
   },
   "displaySize": 250,
   "spriteOffsetY": -45,
+  "render": {
+    "footOffsetY": 45,
+    "hudOffsetY": 119,
+    "collisionWidth": 40,
+    "collisionHeight": 100
+  },
   "animations": {
     "idle": {
       "src": "assets/companions/hamster_priest/idle.png",

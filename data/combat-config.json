@@ -98,11 +98,6 @@
     },
     "globalSpeedMultiplier": 0.75
   },
-  "weaponAnim": {
-    "enemy": {
-      "pendingThrustHitWindowMs": 200
-    }
-  },
   "energyLMG": {
     "baseCooldown": 333,
     "maxCooldown": 50,

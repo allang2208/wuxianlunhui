@@ -1,0 +1,143 @@
+{
+  "source": "E:\\无尽轮回\\游戏\\素材库\\人物\\维护师\\1.mp4",
+  "sourceFrameCount": 145,
+  "sourceFrameRate": 24.0,
+  "sizeReference": "assets\\companions\\hamster_farmer\\idle.png",
+  "targetReferenceHeight": 312,
+  "sourceScale": 0.538860103626943,
+  "sourceActionRanges": {
+    "idle": [
+      0,
+      43
+    ],
+    "walking": [
+      45,
+      93
+    ],
+    "maintenance": [
+      95,
+      143
+    ]
+  },
+  "actions": {
+    "idle": {
+      "output": "idle.png",
+      "sourceIndices": [
+        2,
+        4,
+        6,
+        8,
+        10,
+        12,
+        14,
+        16,
+        14,
+        12,
+        10,
+        8,
+        6,
+        4
+      ],
+      "frameCount": 14,
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 8,
+      "rows": 2,
+      "frameRate": 12.0,
+      "repeat": -1,
+      "anchor": "torso",
+      "footRatio": 0.935547,
+      "validation": {
+        "alphaPixelsMin": 41037,
+        "alphaPixelsMax": 41260,
+        "emptyFrames": [],
+        "touchingFrames": [],
+        "feetMin": 479,
+        "feetMax": 479,
+        "adjacentDeltaMean": 5.41569786805373,
+        "loopSeamDelta": 5.212823390960693
+      }
+    },
+    "walking": {
+      "output": "walking.png",
+      "sourceIndices": [
+        62,
+        63,
+        64,
+        65,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71,
+        72,
+        73,
+        74,
+        75,
+        76,
+        77,
+        78
+      ],
+      "frameCount": 17,
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 8,
+      "rows": 3,
+      "frameRate": 17.0,
+      "repeat": -1,
+      "anchor": "torso",
+      "footRatio": 0.935547,
+      "validation": {
+        "alphaPixelsMin": 40695,
+        "alphaPixelsMax": 42302,
+        "emptyFrames": [],
+        "touchingFrames": [],
+        "feetMin": 479,
+        "feetMax": 479,
+        "adjacentDeltaMean": 18.541066884994507,
+        "loopSeamDelta": 14.703387260437012
+      }
+    },
+    "maintenance": {
+      "output": "maintenance.png",
+      "sourceIndices": [
+        114,
+        115,
+        116,
+        117,
+        118,
+        119,
+        120,
+        121,
+        122,
+        123,
+        124,
+        125,
+        126,
+        127,
+        128,
+        129
+      ],
+      "frameCount": 16,
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 8,
+      "rows": 2,
+      "frameRate": 16.0,
+      "repeat": -1,
+      "anchor": "torso",
+      "footRatio": 0.935547,
+      "validation": {
+        "alphaPixelsMin": 39489,
+        "alphaPixelsMax": 40415,
+        "emptyFrames": [],
+        "touchingFrames": [],
+        "feetMin": 479,
+        "feetMax": 479,
+        "adjacentDeltaMean": 9.790917650858562,
+        "loopSeamDelta": 9.392293930053711
+      }
+    }
+  }
+}

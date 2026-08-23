@@ -75,54 +75,83 @@
 
         .status-bar-container {
             position: absolute;
-            top: 12px;
-            left: 130px;
+            top: 66px;
+            left: 172px;
+            width: 252px;
+            max-width: 252px;
+            max-height: 147px;
             display: flex;
             flex-direction: row;
             flex-wrap: wrap;
+            justify-content: space-between;
             gap: 6px;
-            align-items: center;
+            align-content: flex-start;
+            align-items: flex-start;
+            overflow-x: hidden;
+            overflow-y: auto;
             z-index: 11;
             pointer-events: none;
-            max-width: calc(100vw - 150px);
+            scrollbar-width: thin;
+            scrollbar-color: rgba(142, 166, 178, 0.45) transparent;
         }
         .status-effect-item {
             position: relative;
             display: flex;
             align-items: center;
-            gap: 4px;
-            padding: 4px 10px 4px 8px;
+            justify-content: center;
+            flex: 0 0 54px;
+            width: 54px;
+            height: 44px;
+            min-width: 0;
+            min-height: 44px;
+            padding: 3px;
             background: rgba(42, 37, 32, 0.85);
             border: 2px solid var(--effect-color, #5a4d3f);
-            border-radius: 8px;
+            border-radius: 7px;
             color: #d4c5a9;
             font-size: 12px;
             font-family: SimHei, "Microsoft YaHei", "黑体", sans-serif;
             overflow: hidden;
-            min-height: 32px;
-            flex-shrink: 0;
             box-sizing: border-box;
             transition: all 0.2s ease;
             pointer-events: auto; /* 悬停显示效果浮窗（容器为 none，条目单独放开） */
         }
+        .status-effect-item:hover {
+            border-color: #c4d3da;
+            background: rgba(35, 42, 48, 0.96);
+            box-shadow: 0 0 10px rgba(142, 166, 178, 0.34);
+        }
         .status-effect-item .status-effect-icon {
-            font-size: 16px;
+            font-size: 22px;
+            line-height: 1;
             flex-shrink: 0;
         }
         .status-effect-item .status-effect-name {
-            font-weight: 600;
-            font-size: 12px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            display: none;
+        }
+        .status-effect-item .status-effect-stacks {
+            position: absolute;
+            bottom: 2px;
+            left: 4px;
+            color: #f0f4f6;
+            font-family: monospace;
+            font-size: 9px;
+            font-weight: 700;
+            line-height: 1;
+            text-shadow: 0 1px 2px #000;
         }
         .status-effect-item .status-effect-time {
-            margin-left: auto;
-            font-size: 11px;
-            color: #8a7d6b;
+            position: absolute;
+            right: 3px;
+            bottom: 2px;
+            margin: 0;
+            min-width: 0;
+            color: #c3cdd2;
             font-family: monospace;
-            min-width: 22px;
+            font-size: 9px;
+            line-height: 1;
             text-align: right;
+            text-shadow: 0 1px 2px #000;
         }
         .status-effect-item .status-effect-progress {
             position: absolute;
@@ -132,6 +161,12 @@
             background: var(--effect-color, #5a4d3f);
             opacity: 0.7;
             transition: width 0.1s linear;
+        }
+
+        /* 全屏流程有自己的左上信息区，状态图标只在实际游戏/战斗 HUD 中显示。 */
+        body.map-mode .status-bar-container,
+        body.expedition-preparing .status-bar-container {
+            display: none !important;
         }
 
         .back-menu-btn { position: absolute; top: 12px; left: 12px; padding: 8px 16px; background: rgba(42, 37, 32, 0.85); border: 2px solid #5a4d3f; border-radius: 8px; color: #d4c5a9; cursor: pointer; pointer-events: auto; font-family: inherit; font-size: 13px; transition: all 0.2s; }
@@ -1295,8 +1330,9 @@
             overflow-y: auto;
             padding: 16px;
         }
-        /* ===== 右上角基础资源与游戏内时间 ===== */
+        /* ===== 右上角经济面板与游戏内时间 ===== */
         .top-right-hud {
+            --top-right-instrument-height: 74px;
             position: fixed;
             top: 12px;
             right: 100px;
@@ -1308,9 +1344,12 @@
             pointer-events: none;
         }
         .basic-resource-bar {
-            display: flex;
+            display: grid;
+            grid-template-columns: repeat(3, minmax(82px, 1fr));
+            grid-template-rows: 38px 24px;
             align-items: stretch;
             flex: 0 0 auto;
+            height: var(--top-right-instrument-height);
         }
         .basic-resource-item {
             display: grid;
@@ -1323,11 +1362,18 @@
         .basic-resource-icon { grid-area: icon; }
         .basic-resource-label { grid-area: label; }
         .basic-resource-value { grid-area: value; }
+        .basic-resource-item--military-population {
+            grid-column: 1 / -1;
+            grid-template-columns: auto 1fr auto;
+            grid-template-areas: "icon label value";
+        }
         .game-time {
             position: static;
             display: flex;
             align-items: center;
             flex: 0 0 auto;
+            height: var(--top-right-instrument-height);
+            box-sizing: border-box;
             gap: 8px;
             padding: 6px 14px;
             background: linear-gradient(135deg, rgba(45, 40, 35, 0.9) 0%, rgba(35, 30, 25, 0.95) 100%);
@@ -3097,9 +3143,9 @@ body.map-mode #weaponInfo {
   display: none !important;
 }
 
-/* 路线图由下层 #gameCanvas 独占绘制。Phaser 画布即使相机背景透明状态失效，
-   也不能在地图模式用黑色清屏覆盖路线、节点和地牢背景。 */
-body.map-mode #gameContainer > .phaser-game-canvas {
+/* 路线图由下层 #gameCanvas 独占绘制。Phaser Canvas 实际挂在 #gameLayer 内，
+   不能假设它是 #gameContainer 的直接子元素，否则黑色清屏仍会盖住路线图。 */
+body.map-mode .phaser-game-canvas {
   visibility: hidden !important;
 }
 
@@ -3109,16 +3155,6 @@ body.map-mode :is(.expedition-overlay, .expedition-panel, .expedition-rule-panel
   visibility: hidden !important;
   opacity: 0 !important;
   pointer-events: none !important;
-}
-
-/* 地牢路线界面操作按钮：金色辉光直接附着在按钮贴图（图案）上——
-   filter: drop-shadow 按贴图 alpha 形状发光（跟随圆角/异形边缘），
-   不用 box-shadow（矩形框辉光会与贴图边缘之间露出缝隙/黑边）。
-   颜色全部用暖金（避免暗红叠加黑底变成"黑边"）。 */
-@keyframes dungeonBtnGlow {
-  0%   { filter: drop-shadow(0 0 5px rgba(255, 200, 60, 0.55)) drop-shadow(0 0 14px rgba(255, 170, 30, 0.20)); }
-  50%  { filter: drop-shadow(0 0 9px rgba(255, 215, 80, 0.85)) drop-shadow(0 0 24px rgba(255, 180, 40, 0.32)); }
-  100% { filter: drop-shadow(0 0 5px rgba(255, 200, 60, 0.55)) drop-shadow(0 0 14px rgba(255, 170, 30, 0.20)); }
 }
 
 /* ===== 墙壁编辑器面板（摆墙模式） ===== */

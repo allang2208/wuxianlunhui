@@ -41,9 +41,9 @@ check('传送门带目的地列表（主神空间/123/124/125）',
 check('传送门贴图已注册（BootScene load + 投影清单）',
     /this\.load\.image\('portal', 'assets\/terrain\/portal\.png'\)/.test(boot)
     && lightingAssets.assets?.portal?.source === 'assets/terrain/portal.png');
-check('传送门贴图紧身裁剪尺寸正确', portalPng.width === 1029 && portalPng.height === 1208);
+check('传送门贴图紧身裁剪尺寸正确', portalPng.width === 879 && portalPng.height === 771);
 check('传送门贴图按标准2×2底座拟合并保持脚点',
-    portal.displayW === 288 && portal.displayH === 293 && portal.footOffsetY === 147);
+    portal.displayW === 288 && portal.displayH === 253 && portal.footOffsetY === 125);
 check('传送门固定使用标准2×2 footprint，不被能量结构缩小',
     portal.autoFootprint === false
     && /autoFootprint: cfg\.autoFootprint === true/.test(producer)

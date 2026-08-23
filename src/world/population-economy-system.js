@@ -12,6 +12,7 @@ import { WorkshopEconomySystem } from './workshop-economy-system.js';
 import { BankEconomySystem } from './bank-economy-system.js';
 import { CrossPlaneResourceSystem } from './cross-plane-resource-system.js';
 import { TechnologySystem } from './technology-system.js';
+import { MilitaryPopulationSystem } from './military-population-system.js';
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 
@@ -59,6 +60,7 @@ export const PopulationEconomySystem = {
     reset() {
         this._buildings.clear();
         this._populationReservations.clear();
+        MilitaryPopulationSystem.reset();
     },
 
     serializeState() {
@@ -93,7 +95,8 @@ export const PopulationEconomySystem = {
         } : null;
         if (building._economyType === 'housing') this.applyHouseLevel(building, building._economyLevel);
         const workerCfg = workforceConfig(building._economyType);
-        const slots = workforceSlots(building, workerCfg, saved.bankModules || saved.workshopModules);
+        const slots = workforceSlots(building, workerCfg,
+            saved.bankModules || saved.workshopModules || saved.armoryModules);
         building._assignedWorkers = workerCfg
             ? clamp(
                 Math.floor(Number(saved.assignedWorkers) || 0),
@@ -107,6 +110,19 @@ export const PopulationEconomySystem = {
     unregisterBuilding(building) {
         this._buildings.delete(building);
         this.releasePopulation(building);
+        MilitaryPopulationSystem.unregisterProducer(building);
+    },
+
+    registerMilitaryProducer(building) {
+        MilitaryPopulationSystem.registerProducer(building);
+    },
+
+    getMilitaryPopulationSnapshot() {
+        return MilitaryPopulationSystem.getSnapshot();
+    },
+
+    canRecruitMilitary(amount = 1) {
+        return MilitaryPopulationSystem.canRecruit(amount);
     },
 
     getPopulationCapacity() {
@@ -284,7 +300,10 @@ export const PopulationEconomySystem = {
     consumeFood(amount) {
         const value = Math.max(0, Number(amount) || 0);
         if (value <= 0) return true;
-        return CrossPlaneResourceSystem.pay({ food: value }).ok;
+        return CrossPlaneResourceSystem.pay(
+            { food: value },
+            { allowDevFree: false }
+        ).ok;
     },
 
     routeProducedGold(amount) {
@@ -512,6 +531,7 @@ export const PopulationEconomySystem = {
         if (!building?._economyType || !building.active) return;
         this._updateHouseUpgrade(building, dt);
         const elapsedDt = Math.max(0, Number(dt) || 0);
+        if (building._economyType === 'bakery') return;
         if (building._economyType === 'bank') {
             const snapshot = this.getBankSnapshot(building);
             if (snapshot.goldPerSettlement <= 0) {
@@ -563,5 +583,8 @@ export const PopulationEconomySystem = {
         }
     },
 };
+
+// 军事人口与经济人口只共享房屋容量；岗位占用和军事单位占用彼此独立。
+MilitaryPopulationSystem.setCapacityProvider(() => PopulationEconomySystem.getPopulationCapacity());
 
 export { populationEconomyConfig };

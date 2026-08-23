@@ -13,7 +13,10 @@ const path = require('path');
 const { PNG } = require('pngjs');
 
 const THRESHOLD = 10;
-const OUTPUT = path.join(__dirname, '..', 'data', 'sprite-offsets.json');
+const OUTPUTS = [
+    path.join(__dirname, '..', 'data', 'sprite-offsets.json'),
+    path.join(__dirname, '..', 'public', 'data', 'sprite-offsets.json'),
+];
 
 // 需要生成偏移表的动画配置；按行主序排列帧
 const SHEETS = [
@@ -26,6 +29,8 @@ const SHEETS = [
     { key: 'enemy_black_wolf',        file: 'assets/enemies/black_wolf.png',          frameWidth: 250, frameHeight: 215, endFrame: 7 },
     { key: 'enemy_black_wolf_pacing', file: 'assets/enemies/black_wolf_pacing.png',   frameWidth: 250, frameHeight: 215, endFrame: 7 },
     { key: 'enemy_black_wolf_attack', file: 'assets/enemies/black_wolf_attack.png',   frameWidth: 250, frameHeight: 215, endFrame: 7 },
+    // 红狼王普通攻击只校正水平重心；纵向起伏属于动作表现，必须保留。
+    { key: 'enemy_red_wolf_king_attack', file: 'assets/enemies/red_wolf_king/attack.png', frameWidth: 640, frameHeight: 640, endFrame: 20, horizontalOnly: true },
     // 僵尸犬
     { key: 'enemy_zombie_dog_walk',   file: 'assets/enemies/zombie_dog_walk.png',    frameWidth: 512, frameHeight: 512, endFrame: 7 },
     { key: 'enemy_zombie_dog_run',    file: 'assets/enemies/zombie_dog_run.png',     frameWidth: 512, frameHeight: 512, endFrame: 4 },
@@ -73,7 +78,7 @@ function analyzeFrame(png, col, row, frameW, frameH) {
                 hasContent = true;
                 if (x < minX) minX = x;
                 if (x > maxX) maxX = x;
-                if (y < minY) minY = minY = y;
+                if (y < minY) minY = y;
                 if (y > maxY) maxY = y;
             }
         }
@@ -119,7 +124,10 @@ function analyzeSheet(sheet) {
         const row = Math.floor(i / cols);
         const info = analyzeFrame(png, col, row, sheet.frameWidth, sheet.frameHeight);
         if (info) {
-            result[i] = { x: Math.round(info.offsetX), y: Math.round(info.offsetY) };
+            result[i] = {
+                x: Math.round(info.offsetX),
+                y: sheet.horizontalOnly ? 0 : Math.round(info.offsetY)
+            };
         }
     }
 
@@ -127,15 +135,33 @@ function analyzeSheet(sheet) {
 }
 
 function main() {
-    const offsets = {};
+    const printKeyIndex = process.argv.indexOf('--print-key');
+    if (printKeyIndex >= 0) {
+        const key = process.argv[printKeyIndex + 1];
+        const sheet = SHEETS.find((item) => item.key === key);
+        if (!sheet) throw new Error(`unknown sheet key: ${key}`);
+        console.log(JSON.stringify({ [key]: analyzeSheet(sheet) }, null, 2));
+        return;
+    }
+    // 旧美术资产可能已经按项目要求删除；缺失表保留现有偏移，不阻断其余现行素材重算。
+    const offsets = fs.existsSync(OUTPUTS[0])
+        ? JSON.parse(fs.readFileSync(OUTPUTS[0], 'utf8'))
+        : {};
     for (const sheet of SHEETS) {
+        const pngPath = path.join(__dirname, '..', sheet.file);
+        if (!fs.existsSync(pngPath)) {
+            console.warn(`[Offsets] ${sheet.key}: source missing, kept existing entry (${sheet.file})`);
+            continue;
+        }
         offsets[sheet.key] = analyzeSheet(sheet);
         console.log(`[Offsets] ${sheet.key}: generated ${Object.keys(offsets[sheet.key]).length} frames`);
     }
 
-    fs.mkdirSync(path.dirname(OUTPUT), { recursive: true });
-    fs.writeFileSync(OUTPUT, JSON.stringify(offsets, null, 2));
-    console.log(`[Offsets] saved: ${OUTPUT}`);
+    for (const output of OUTPUTS) {
+        fs.mkdirSync(path.dirname(output), { recursive: true });
+        fs.writeFileSync(output, JSON.stringify(offsets, null, 2));
+        console.log(`[Offsets] saved: ${output}`);
+    }
 }
 
 main();

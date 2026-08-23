@@ -13,6 +13,7 @@ import {
     wallHitSupportsTarget,
 } from '../combat/elevated-ranged.js';
 import { hasRangedLineOfSight } from '../combat/ranged-line-of-sight.js';
+import { tryApplyMarkArrow } from '../combat/mark-arrow-effect.js';
 
 const HIT_RADIUS = 28;
 
@@ -295,6 +296,7 @@ export class HamsterMusketeerAI {
         }
         if (hit) {
             hit.takeDamage?.(m.getPhysicalAttackDamage(this._attackDamage, hit), m, 'physical', false);
+            if (m._isHamsterBountyHunter) tryApplyMarkArrow(hit);
             m._basic = null;
         } else if (b.dist >= b.maxDist) {
             m._basic = null;

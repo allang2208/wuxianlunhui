@@ -2,10 +2,13 @@ import { WEAPON_ANIM } from '../config/math-utils.js';
 import { WallSystem } from '../world/wall-system.js';
 import { Easing } from '../config/math-utils.js';
 import { distanceToEntityShape } from '../utils/collision-helpers.js';
-import { nowMs } from '../entities/player/anim-state.js';
 import { canMeleeShareSurface } from '../combat/melee-surface.js';
 import { hasRangedLineOfSight } from '../combat/ranged-line-of-sight.js';
 import { World125FogTideSystem } from '../world/world125-fog-tide-system.js';
+import {
+    basicMeleeApproachRange,
+    canStartBasicMelee,
+} from '../combat/melee-attack-resolver.js';
 
 /**
  * CombatSystem — 敌人战斗AI子系统（精简版）
@@ -93,13 +96,21 @@ class CombatSystemImpl {
         }
         const targetX = enemy.target.x;
         const targetY = enemy.target.y;
-        // [ENHANCE] 距离检查：使用目标碰撞形状计算最短距离，增加 15% 攻击缓冲
-        // 优先使用新的攻击距离字段；若未配置则回退到 attackRange
-        const effectiveRange = enemy.attackDistance !== undefined ? enemy.attackDistance : enemy.attackRange * 1.15;
-        if (distanceToEntityShape(enemy.target, enemy.x, enemy.y) > effectiveRange) {
-            return;
-        }
         const wantsRanged = !!enemy._isHumanoid || !!enemy.attacks?.ranged;
+        const usesDirectedBasicMelee = !wantsRanged
+            && enemy._usesDirectedBasicMelee !== false
+            && !!enemy.attacks?.melee;
+        // 通用普通近战用与命中阶段相同的方向形状决定能否起手；尚未迁移的
+        // 自定义攻击继续沿用 attackDistance / attackRange * 1.15 的旧合同。
+        let effectiveRange;
+        if (usesDirectedBasicMelee) {
+            const attackConfig = enemy.attacks.melee.config || {};
+            effectiveRange = basicMeleeApproachRange(enemy, attackConfig);
+            if (!canStartBasicMelee(enemy, enemy.target, attackConfig)) return;
+        } else {
+            effectiveRange = enemy.attackDistance !== undefined ? enemy.attackDistance : enemy.attackRange * 1.15;
+            if (distanceToEntityShape(enemy.target, enemy.x, enemy.y) > effectiveRange) return;
+        }
         if (!wantsRanged && !canMeleeShareSurface(enemy, enemy.target)) return;
         // === REFACTOR[combat-system]: 复用 PerceptionSystem LOS 缓存，减少 WallSystem.blocked 调用 ===
         // [FIX-LOS] 防守结构（掩体/基地）贴身免 LOS：footprint 距离在 effectiveRange 内即代表贴身，
@@ -202,18 +213,12 @@ class CombatSystemImpl {
                     anim.angle = wa.idleAngle + (wa.windupAngle - wa.idleAngle) * Easing.easeInQuad(anim.timer / wa.windupMs);
                 }
                 break;
-                    case 'swing':
-                        anim.timer += dt;
-                        if (enemy._pendingThrust && enemy._pendingThrust.active) {
-                            // [FIX] startTime 已统一为单调时钟 nowMs()（2026-08-14 Phase 3），
-                            // 这里必须同源——用 Date.now() 减 performance.now() 恒为巨数，
-                            // 判定窗口永远过期 → checkTriangleHit 永不执行（动画照播、命中零伤害，
-                            // 2026-08-16 世界-122 实机复现：僵尸啃掩体/门不出伤害）
-                            if (nowMs() - enemy._pendingThrust.startTime <= 200) {
-                                if (enemy.attacks.melee) enemy.attacks.melee.checkTriangleHit(enemy);
-                            } else {
-                                enemy._pendingThrust.active = false;
-                    }
+            case 'swing':
+                anim.timer += dt;
+                if (enemy._pendingThrust && enemy._pendingThrust.active) {
+                    // 命中有效期由 ThrustAttack.hitDurationMs 单点管理；这里不再额外
+                    // 套 200ms 窗口。188ms 前摇后只剩约 12ms 的旧窗口会随帧率漏判。
+                    if (enemy.attacks.melee) enemy.attacks.melee.checkTriangleHit(enemy);
                 }
                 if (anim.timer >= wa.swingMs) {
                     anim.state = 'recover';

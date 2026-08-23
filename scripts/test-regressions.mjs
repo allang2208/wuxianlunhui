@@ -51,7 +51,8 @@ console.log('\n[1] 时空特工追击状态机');
 
     // _updateLabel 需要 document
     globalThis.document = {
-        createElement: () => ({ style: {}, textContent: '', remove() {} }),
+        createElement: () => ({ style: { setProperty() {} }, textContent: '', remove() {} }),
+        getElementById: () => null,
         body: { appendChild() {} },
     };
 

@@ -12,8 +12,9 @@ import { GoldManager } from '../systems/gold-manager.js';
 import { EnergyManager } from '../systems/energy-manager.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
-import { BuildingSinkEffect } from '../effects/building-sink.js';
+import { BuildingFootprintDustEffect, BuildingSinkEffect } from '../effects/building-sink.js';
 import { SoundManager } from '../ui/sound-manager.js';
+import populationEconomyConfig from '../../data/population-economy.json';
 import { UIState } from '../ui/ui-state.js';
 import { renderBuildingDetailHeader } from '../ui/panels/building-detail-header.js';
 import { mountRightSidebarPanel } from '../ui/right-sidebar-panel-layer.js';
@@ -30,7 +31,6 @@ import {
     getWallStairVariant, wallStairAnchorOffset, collectConnectedWalkableWalls,
 } from './defense-system.js';
 import { HamsterHut, HamsterHutSystem, HAMSTER_CONFIG } from './hamster-hut-system.js';
-import { HamsterBarracks, HamsterBarracksSystem, BARRACKS_CONFIG } from './hamster-barracks-system.js';
 import { ProducerBuilding, ProducerBuildingSystem, PRODUCER_BUILDINGS } from './producer-building-system.js';
 import { CrossPlaneResourceSystem } from './cross-plane-resource-system.js';
 import {
@@ -128,19 +128,19 @@ function effOrient(itemOrOrient, mirror) {
     return mirror ? (o === 'v' ? 'h' : 'v') : o;
 }
 
-/** 产兵建筑可建项判定（小屋/兵营/通用产兵建筑：草屋、铁匠铺等） */
+/** 建筑型生产设施判定：矿工营地保留经济专用类，军事/功能建筑统一走 ProducerBuilding。 */
 function isProducerKind(item) {
-    return item && (item.kind === 'hamster_hut' || item.kind === 'hamster_barracks' || item.kind === 'producer');
+    return item && (item.kind === 'hamster_hut' || item.kind === 'producer');
 }
 
-/** 产兵建筑实体判定（已放置的小屋/兵营/草屋/铁匠铺等） */
+/** 建筑型生产设施实体判定。 */
 function isProducerEntity(e) {
-    return e && e.active && (e._isHamsterHut || e._isHamsterBarracks || e._isProducerBuilding);
+    return e && e.active && (e._isHamsterHut || e._isProducerBuilding);
 }
 
 /** 除墙、门外的玩家可建造建筑统一占 2×2。 */
 function isTwoByTwoBuildItem(item) {
-    return !!item && ['tower', 'hamster_hut', 'hamster_barracks', 'producer'].includes(item.kind);
+    return !!item && ['tower', 'hamster_hut', 'producer'].includes(item.kind);
 }
 
 /** 防御塔与显式关闭外围地块的建筑只占标准 2x2，不预留或生成外围道路。 */
@@ -193,15 +193,6 @@ export const BUILD_ITEMS = [
         thumbnailPath: `assets/ui/building-thumbnails/${HAMSTER_CONFIG.hut.id}.png`,
         kind: 'hamster_hut',
         economyType: HAMSTER_CONFIG.hut.economyType,
-        currency: 'energy'
-    },
-    {
-        id: 'hamster_barracks',
-        name: BARRACKS_CONFIG.barracks.name,
-        cost: BARRACKS_CONFIG.barracks.cost,
-        tex: BARRACKS_CONFIG.barracks.tex,
-        thumbnailPath: 'assets/ui/building-thumbnails/hamster_barracks.png',
-        kind: 'hamster_barracks',
         currency: 'energy'
     },
     {
@@ -273,7 +264,7 @@ export const BuildingSystem = {
     _snapped: null,        // 当前吸附到的放置坐标 { x, y, e }（无吸附为 null）
     _wallDrag: null,       // 方块墙拖墙状态 { si, sj }（2026-08-17 帝国时代式拖墙）
     _rowPreview: [],       // 拖墙预览精灵（主幽灵之外的行内方块）
-    _roadPreview: [],      // 2×2 建筑外围 12 格道路预览
+    _roadPreview: [],      // 2×2 建筑4×4铺装预览：外围12格 + 中央4格视觉补片
     _roadPlacementStatus: null,
     _gatePreviewParts: null, // 4格门实际组件预览 { pillars:[Sprite], bars:Sprite }
     _gatePreviewHiddenBlocks: [], // 替换4连墙时临时隐藏的中间两块实际精灵
@@ -593,17 +584,7 @@ export const BuildingSystem = {
         TechnologyGate.bindTree(el);
         mountRightSidebarPanel(el, 'panel');
         this._panel = el;
-        const detailPanel = document.createElement('div');
-        detailPanel.className = 'build-structure-detail-panel';
-        detailPanel.innerHTML = `
-            <div class="building-detail-column-header">
-                <span id="bpDetailTitle">建筑详情</span>
-                <button id="bpDetailClose" type="button" aria-label="关闭建筑详情">×</button>
-            </div>
-            <div id="bpDetail" class="building-detail-column-body"></div>`;
-        mountRightSidebarPanel(detailPanel, 'panel');
-        this._detailPanel = detailPanel;
-        detailPanel.querySelector('#bpDetailClose').addEventListener('click', () => this._closeDetail());
+        this._ensureStructureDetailPanel();
         document.querySelectorAll('.side-menu').forEach((menu) => menu.classList.add('hidden'));
         // 先提交收起态，再切 active，复用右侧主栏目同款滑入动画。
         void el.offsetWidth;
@@ -730,8 +711,6 @@ export const BuildingSystem = {
                 this._ghost.setDisplaySize(DEFENSE_TOWER_VISUAL.base.w, DEFENSE_TOWER_VISUAL.base.h);
             } else if (item.kind === 'hamster_hut') {
                 this._ghost.setDisplaySize(HAMSTER_CONFIG.hut.displayW, HAMSTER_CONFIG.hut.displayH);
-            } else if (item.kind === 'hamster_barracks') {
-                this._ghost.setDisplaySize(BARRACKS_CONFIG.barracks.displayW, BARRACKS_CONFIG.barracks.displayH);
             } else if (item.kind === 'producer') {
                 const pc = PRODUCER_BUILDINGS[item.id];
                 this._ghost.setDisplaySize(pc.displayW, pc.displayH);
@@ -750,7 +729,7 @@ export const BuildingSystem = {
             } else {
                 this._ghost.setDisplaySize(260, Math.round(260 / (this._coverAspect(item) || 1)));
             }
-            if (['hamster_hut', 'hamster_barracks', 'producer'].includes(item.kind)) {
+            if (['hamster_hut', 'producer'].includes(item.kind)) {
                 const fit = this._ghostGroundFit();
                 if (fit?.prismConstrained && fit.displayWidth > 0 && fit.displayHeight > 0) {
                     this._ghost.setDisplaySize(fit.displayWidth, fit.displayHeight);
@@ -1206,7 +1185,7 @@ export const BuildingSystem = {
 
     _ghostGroundFit() {
         if (!this._placing) return null;
-        if (!['hamster_hut', 'hamster_barracks', 'producer'].includes(this._placing.item.kind)) return null;
+        if (!['hamster_hut', 'producer'].includes(this._placing.item.kind)) return null;
         if (this._placing.groundFit) return this._placing.groundFit;
         const scene = typeof window !== 'undefined' ? window.__phaserScene : null;
         if (!scene || !this._ghost?.texture?.key) return null;
@@ -1214,10 +1193,7 @@ export const BuildingSystem = {
             ? PRODUCER_BUILDINGS[this._placing.item.id]
             : null;
         const structureCfg = producerCfg || (
-            this._placing.item.kind === 'hamster_hut'
-                ? HAMSTER_CONFIG.hut
-                : (this._placing.item.kind === 'hamster_barracks'
-                    ? BARRACKS_CONFIG.barracks : null)
+            this._placing.item.kind === 'hamster_hut' ? HAMSTER_CONFIG.hut : null
         );
         const visualFootprint = resolveConfiguredVisualFootprint(
             structureCfg,
@@ -1259,7 +1235,6 @@ export const BuildingSystem = {
                 + (fit.prismConstrained ? 0 : (Number(producerCfg?.anchorAdjustY) || 0));
         }
         if (this._placing.item.kind === 'hamster_hut') return HAMSTER_CONFIG.hut.footOffsetY;
-        if (this._placing.item.kind === 'hamster_barracks') return BARRACKS_CONFIG.barracks.footOffsetY;
         if (this._placing.item.kind === 'producer') {
             const pc = PRODUCER_BUILDINGS[this._placing.item.id];
             return pc.footOffsetY;
@@ -1275,12 +1250,12 @@ export const BuildingSystem = {
             typeof window !== 'undefined' ? window.__phaserScene : null
         );
         if (!targetScene?.add?.sprite) return;
-        const reusable = this._roadPreview.length === 12
+        const reusable = this._roadPreview.length === 16
             && this._roadPreview.every((sprite) => sprite?.active && sprite.scene === targetScene);
         if (reusable && this._roadPreview.every((sprite) => sprite._perimeterKind === kind)) return;
         if (!reusable) {
             this._clearRoadPreview(true);
-            for (let index = 0; index < 12; index++) {
+            for (let index = 0; index < 16; index++) {
                 this._roadPreview.push(targetScene.add.sprite(0, 0, BUILDING_ROAD_TEXTURE, index % 4));
             }
         }
@@ -1329,7 +1304,7 @@ export const BuildingSystem = {
         const validByKey = status?.validByKey || new Map();
         for (let index = 0; index < this._roadPreview.length; index++) {
             const sprite = this._roadPreview[index];
-            const cell = layout.roadCells[index];
+            const cell = layout.reservationCells[index];
             if (!sprite || !cell) {
                 if (sprite) sprite.setVisible(false);
                 continue;
@@ -1346,7 +1321,6 @@ export const BuildingSystem = {
         return [
             DefenseSystem?._panel,
             HamsterHutSystem?._panel,
-            HamsterBarracksSystem?._panel,
             ProducerBuildingSystem?._panel,
             World122TributeSystem?._panel,
         ].filter(Boolean);
@@ -2095,6 +2069,7 @@ export const BuildingSystem = {
         let spent = 0;
         let insufficient = false;
         const clearZones = [];
+        const placedEntities = [];
         const free = !!(Game && Game._devInfiniteResources);
         for (const [x, y] of cells) {
             if (!this._canPlace(x, y)) continue;
@@ -2119,6 +2094,7 @@ export const BuildingSystem = {
             }
             this._markBuiltEntity(cover, item);
             Game.entities.set(id, cover);
+            placedEntities.push(cover);
             clearZones.push({ x, y, radius: 70 });
             spent += free ? item.cost : (this._lastBuildPayment?.energy ?? item.cost);
             this._lastBuildPayment = null;
@@ -2128,9 +2104,7 @@ export const BuildingSystem = {
         // 方块墙统一走拖墙/单击行放置入口，不会进入 _place() 的 block 分支。
         // 整批完成后只失效一次高架拓扑，确保楼梯吸附能立即识别新墙，同时避免逐块重建。
         if (n > 0) DefenseSystem?.invalidateElevatedTopology?.();
-        if (n > 0 && SoundManager && typeof SoundManager.playFile === 'function') {
-            SoundManager.playFile('assets/sounds/ui/sell.wav');
-        }
+        if (n > 0) this._playBuildingPlacedFeedback(placedEntities);
         const suffix = free ? '（无限资源）' : `（-${spent} 能）`;
         const text = n > 0
             ? `${item.name} 已放置 ${n} 块${suffix}${insufficient ? '，资源不足已停止' : ''}`
@@ -2294,7 +2268,6 @@ export const BuildingSystem = {
                 this._removeWallBlock(this._blockAt(cx, cy));
             }
         }
-        let n = 0;
         const group = [];
         // 石柱：k=0, k=3
         for (const k of [0, 3]) {
@@ -2317,7 +2290,6 @@ export const BuildingSystem = {
             this._markBuiltEntity(cover, item, 0); // 新建门的石柱成本计入门主体，避免重复退款
             Game.entities.set(id, cover);
             group.push(cover);
-            n++;
         }
         // 门实体：栅栏跨中间 2 格
         const gid = `built_${item.id}_${++this._seq}`;
@@ -2341,17 +2313,14 @@ export const BuildingSystem = {
             part._buildGroup = group;
             part._buildGroupRoot = gate;
         }
-        n++;
         // 新建门柱或四墙替门都会改变方块墙集合；楼梯外墙资格必须在下一次查询前刷新。
         DefenseSystem?.invalidateElevatedTopology?.();
         this._clearBuildZones(cells.map(([cx, cy]) => ({ x: cx, y: cy, radius: 70 })));
-        if (n > 0 && SoundManager && typeof SoundManager.playFile === 'function') {
-            SoundManager.playFile('assets/sounds/ui/sell.wav');
-        }
         const placedText = isReplace
             ? `${item.name} 已替换（4 墙 → 门）`
             : (endpointAttach ? `${item.name} 已吸附端柱` : `${item.name} 已放置`);
         this._notify(placedText, '#7fd4ff');
+        return group;
     },
 
     /** 新掩体的墙段底边线段（face line，世界坐标）——按级别 + 有效朝向 */
@@ -3032,6 +3001,30 @@ export const BuildingSystem = {
         this._renderDetail();
     },
 
+    /** 指挥模式只打开掩体/门/楼梯详情，不启动建设模式或放置监听器。 */
+    showRemoteDetail(entity) {
+        if (!entity?.active) return false;
+        this._ensureStructureDetailPanel();
+        this._showDetail(entity);
+        return true;
+    },
+
+    _ensureStructureDetailPanel() {
+        if (this._detailPanel?.isConnected) return this._detailPanel;
+        const detailPanel = document.createElement('div');
+        detailPanel.className = 'build-structure-detail-panel';
+        detailPanel.innerHTML = `
+            <div class="building-detail-column-header">
+                <span id="bpDetailTitle">建筑详情</span>
+                <button id="bpDetailClose" type="button" aria-label="关闭建筑详情">×</button>
+            </div>
+            <div id="bpDetail" class="building-detail-column-body"></div>`;
+        mountRightSidebarPanel(detailPanel, 'panel');
+        this._detailPanel = detailPanel;
+        detailPanel.querySelector('#bpDetailClose').addEventListener('click', () => this._closeDetail());
+        return detailPanel;
+    },
+
     _detailPanelTitle(e) {
         if (e?._isCoverGate) return `${e._isGate4 ? '4格门' : (e.name || `铁栅栏门·${e.grade || 'D'}级`)} · 建筑详情`;
         if (e?._isWallStaircase) return `${WALL_STAIR_CONFIG.name} · 建筑详情`;
@@ -3330,7 +3323,7 @@ export const BuildingSystem = {
             ? entity._buildGroupRoot
             : entity;
         if (entity && typeof entity.sell === 'function'
-            && (entity._isHamsterHut || entity._isHamsterBarracks || entity._isProducerBuilding)) {
+            && (entity._isHamsterHut || entity._isProducerBuilding)) {
             const currency = entity._buildCurrency === 'gold' ? 'gold' : 'energy';
             const result = entity.sell();
             if (!result?.ok) {
@@ -3493,6 +3486,20 @@ export const BuildingSystem = {
         }
     },
 
+    /** 建筑成功落地：复用房屋升级完成音效与同源 footprint 烟尘。 */
+    _playBuildingPlacedFeedback(entities) {
+        const list = Array.isArray(entities) ? entities : [entities];
+        const unique = [...new Set(list.filter((entity) => entity && entity.active !== false))];
+        if (!unique.length) return;
+        for (const entity of unique) {
+            EffectManager.add(new BuildingFootprintDustEffect(entity));
+        }
+        const soundPath = populationEconomyConfig.house?.upgradeCompleteSound;
+        if (soundPath && SoundManager && typeof SoundManager.playFile === 'function') {
+            SoundManager.playFile(soundPath, 1, 'ui');
+        }
+    },
+
     _place(x, y) {
         const { item, mirror } = this._placing;
         if (!isBuildItemTechnologyUnlocked(item)) {
@@ -3538,12 +3545,6 @@ export const BuildingSystem = {
                 Game.entities.set(id, hut);
                 HamsterHutSystem.huts.push(hut);
                 placedEntity = hut;
-            } else if (item.kind === 'hamster_barracks') {
-                const barracks = this._markBuiltEntity(new HamsterBarracks(x, y, { id }), item);
-                barracks._facingLeft = mirror;
-                Game.entities.set(id, barracks);
-                HamsterBarracksSystem.barracks.push(barracks);
-                placedEntity = barracks;
             } else if (item.kind === 'producer') {
                 const producer = this._markBuiltEntity(
                     new ProducerBuilding(x, y, { id, cfgKey: item.id }),
@@ -3563,6 +3564,7 @@ export const BuildingSystem = {
                 }), item);
                 Game.entities.set(id, gate);
                 if (DefenseSystem && DefenseSystem.gates) DefenseSystem.gates.push(gate);
+                placedEntity = gate;
             } else if (item.kind === 'wall_staircase') {
                 const snap = staircaseSnap;
                 if (!snap || !snap.wall || !snap.segments?.length) {
@@ -3586,10 +3588,11 @@ export const BuildingSystem = {
                     DefenseSystem.rebuildWallStairGroups?.();
                     DefenseSystem.invalidateElevatedTopology?.();
                 }
+                placedEntity = staircase;
             } else if (item.kind === 'gate4') {
                 // 4 格门（2026-08-17）：2 石柱 + 2 格铁栅栏宽门
                 const dir = (this._snapped && this._snapped.dir) || 'e2';
-                this._placeGate4(x, y, dir);
+                placedEntity = this._placeGate4(x, y, dir);
             } else {
                 const cover = this._markBuiltEntity(new DefenseCover(x, y, {
                     grade: item.grade,
@@ -3607,8 +3610,9 @@ export const BuildingSystem = {
                     // 左臂（v 向 "/"、TL 边）盖右臂（h 向 "\"、TR 边）——左墙在右墙之上
                     this._fixCoverCornerDepth(cover);
                 }
+                placedEntity = cover;
             }
-            if (placedEntity && usesBuildingRoads(item)) {
+            if (placedEntity && !Array.isArray(placedEntity) && usesBuildingRoads(item)) {
                 BuildingRoadSystem.attach(placedEntity);
             }
         } catch (err) {
@@ -3619,9 +3623,7 @@ export const BuildingSystem = {
         }
         const paidCost = free ? buildCost : (this._lastBuildPayment?.[currency] ?? buildCost);
         this._lastBuildPayment = null;
-        if (SoundManager && typeof SoundManager.playFile === 'function') {
-            SoundManager.playFile('assets/sounds/ui/sell.wav');
-        }
+        this._playBuildingPlacedFeedback(placedEntity);
         const cur = item.currency === 'energy' ? '能' : '金';
         this._notify(
             free ? `${item.name} 已放置（无限资源）` : `${item.name} 已放置（-${paidCost} ${cur}）`,

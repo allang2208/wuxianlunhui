@@ -11,10 +11,9 @@
  *    scale 走 obstacle-defaults.json 编辑器预设。
  * 2) 后墙预制组合（_spawnPrefabCompositions）：只贴左上（LT）/右上（RT）后墙附近，
  *    左下/右下前墙一侧不放；每次从预制库「火把墙」之后的组合随机抽一组整体平移
- *    （相对布局/scale/rotation/flip 保留）。depth 逐件重算 = max(obstacleDepthOf,
- *    400px 内最近墙件 depth + 0.1) 并打 depthManual——静态件不走实体
- *    junctionCorrectedDepth 仲裁，不抬深度会被 flat depth 更深的后墙后画盖住
- *    （贴后墙的小件本来就该画在墙前/房内一侧，抬到墙上是正确语义）。
+ *    （相对布局/scale/rotation/flip 保留）。depth 逐件按自身 footprint 前缘重算，
+ *    只用极小偏置保留同层件的编辑器顺序；禁止把整组强抬到墙体之上或沿用绝对
+ *    保存深度差，否则会脱离玩家/建筑的世界 Y 排序并错误遮挡玩家。
  *    数量按房间配置 countByRoom（房间 1/2 各 3 组、房间 3 八组，
  *    无 roomIndex 的单房间路径按房间 1 取值）；烛台不再单独生成
  *    （「烛台+铁链」等含烛台的预制组合仍在池内可抽中）。
@@ -114,7 +113,8 @@ export const ObstacleSpawnSystem = {
             scaleX: scale, scaleY: scale,
             rotation: 0, flipX: false, flipY: false,
         };
-        piece.depth = WallSystem.obstacleDepthOf(piece);
+        piece.depth = WallSystem.obstacleFootprintDepthOf(piece);
+        piece.depthManual = true;
         this._placeObstacle(ctx, piece);
     },
 
@@ -122,9 +122,7 @@ export const ObstacleSpawnSystem = {
      * 后墙预制组合障碍物（只贴左上 LT / 右上 RT 后墙附近，左下/右下前墙一侧不放）：
      * 每个槽位从预制库「火把墙」之后的组合里随机抽一组，以预制 cx/cy 为基准整体平移
      * （组合内相对布局、各件 scale/rotation/flip 保留；prefab 里的旧 depth 是主神空间
-     * 坐标不可用，逐件重算 = max(obstacleDepthOf, 400px 内最近墙件 depth + 0.1)，
-     * depthManual 一律打上——静态件不走实体 junctionCorrectedDepth 仲裁，不抬深度
-     * 会被 flat depth 更深的后墙后画盖住）。
+     * 坐标不可用，逐件按当前落点 footprint 前缘重算；只保留同层排序偏置）。
      * 同房间不重复：本房已抽过的预制 key 不再抽（ctx.usedPrefabs 逐房重置；
      * 池子剩余不足时放实际数量，不报错）。
      * 组合间最小间隔（组合视作整体）：整体包围半径 r = 各件（锚距 + 旋转 AABB 半对角）
@@ -197,17 +195,10 @@ export const ObstacleSpawnSystem = {
                 staged.push({ it, pt });
             }
             if (!ok) continue;
-            // 组内图层顺序：以「保存深度最小（最靠后）」的一件为基准，抬到附近墙件之上，
-            // 其余各件按保存深度差值递增——完整保留编辑器里手调的遮挡关系
-            // （旧实现逐件 _liftDepthAboveWalls(piece, obstacleDepthOf(piece)) 按世界 Y
-            // 独立重算，桶*3+瓶等 8/10 组合的保存图层被丢弃/错层）
-            const minItem = items.reduce((m, it) => (it.savedDepth < m.savedDepth ? it : m), items[0]);
-            const basePiece = {
-                tex: minItem.tex, x: anchor.x + minItem.dx, y: anchor.y + minItem.dy,
-                scaleX: minItem.scaleX, scaleY: minItem.scaleY,
-                rotation: minItem.rotation, flipX: minItem.flipX, flipY: minItem.flipY,
-            };
-            const baseDepth = _liftDepthAboveWalls(basePiece, WallSystem.obstacleDepthOf(basePiece));
+            // 组内只保留稳定的同层顺序：绝对深度仍由每件当前 footprint 前缘决定，
+            // 与玩家脚线和建筑占地处于同一世界 Y 空间。
+            const savedOrder = [...items].sort((a, b) => a.savedDepth - b.savedDepth);
+            const orderBias = new Map(savedOrder.map((it, index) => [it, index * 0.01]));
             for (const { it, pt } of staged) {
                 const piece = {
                     tex: it.tex, x: pt.x, y: pt.y,
@@ -216,9 +207,8 @@ export const ObstacleSpawnSystem = {
                     // 组合来源标记（CDP/调试 dump 用；渲染/碰撞忽略下划线扩展字段）
                     _prefabKey: key, _compAnchor: { x: anchor.x, y: anchor.y }, _compR: compR,
                 };
-                // 组内相对深度 = 基准深度 + 保存差值（保存顺序完整保留；整体已抬到墙件之上）
-                piece.depth = baseDepth + (it.savedDepth - minItem.savedDepth);
-                piece.depthManual = true; // 手调深度：_placeIsoPiece 渲染尊重 p.depth
+                piece.depth = WallSystem.obstacleFootprintDepthOf(piece) + (orderBias.get(it) || 0);
+                piece.depthManual = true;
                 this._placeObstacle(ctx, piece);
             }
             ctx.usedPrefabs.add(key);
@@ -551,39 +541,4 @@ function _pieceHalfDiag(tex, scaleX, scaleY, rot = 0) {
         hw = nw;
     }
     return Math.hypot(hw, hd);
-}
-
-/** 点到线段的最短距离 */
-function _ptSegDist(P, A, B) {
-    const dx = B.x - A.x, dy = B.y - A.y;
-    const len2 = dx * dx + dy * dy || 1;
-    let t = ((P.x - A.x) * dx + (P.y - A.y) * dy) / len2;
-    t = Math.max(0, Math.min(1, t));
-    return Math.hypot(P.x - (A.x + dx * t), P.y - (A.y + dy * t));
-}
-
-/**
- * 障碍物 depth 抬升（预制组合贴后墙件用）：
- * 静态件不走实体 junctionCorrectedDepth 仲裁——墙的 flat depth = 整条瓦最深端 y，
- * 比障碍物底边深时墙会后画盖住障碍物。找 400px 内最近的非 obstacle 墙件
- * （距离按到底边线段的最近距离算，无墙段的门件回退锚点距离），
- * 返回 max(baseDepth, 最近墙 depth + 0.1)；找不到附近墙件返回 baseDepth（不报错）。
- */
-function _liftDepthAboveWalls(piece, baseDepth) {
-    let best = null, bestDist = 400;
-    for (const q of WallSystem.isoVisuals) {
-        const gq = WallSystem._geoForTex(q.tex);
-        if (!gq || gq.category === 'obstacle') continue;
-        const segs = WallSystem._pieceBaseSegments(q);
-        let d;
-        if (segs.length) {
-            d = Infinity;
-            for (const [A, B] of segs) d = Math.min(d, _ptSegDist(piece, A, B));
-        } else {
-            d = Math.hypot(piece.x - q.x, piece.y - q.y);
-        }
-        if (d < bestDist) { bestDist = d; best = q; }
-    }
-    if (!best) return baseDepth;
-    return Math.max(baseDepth, (best.depth ?? best.y) + 0.1);
 }

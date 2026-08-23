@@ -14,6 +14,7 @@ export class HamsterKnight extends Companion {
             ...configData,
             ...overrides,
             ai: { ...(configData.ai || {}), ...(overrides.ai || {}) },
+            render: { ...(configData.render || {}), ...(overrides.render || {}) },
             animations: { ...(configData.animations || {}), ...(overrides.animations || {}) },
         };
         super(archive);
@@ -29,20 +30,26 @@ export class HamsterKnight extends Companion {
         this.size = 72;
         this.hittable = true;
         this.hitFlash = 0;
-        this.footOffsetY = 74;
-        this.config = { render: { hudOffsetY: 180, footOffsetY: 74 } };
+        this.footOffsetY = Math.max(0, Number(archive.render?.footOffsetY) || 74.5);
+        this.config = {
+            render: {
+                ...(archive.render || {}),
+                hudOffsetY: Number(archive.render?.hudOffsetY) || 190,
+                footOffsetY: this.footOffsetY,
+            },
+        };
         this._dying = false;
         this._deathTimer = 0;
         this._ai = new HamsterKnightAI(this);
         this._animState = 'idle';
+        this.configureCollisionFromArchive(archive);
     }
 
     takeDamage(damage, _source, _damageType = 'physical', _isMelee = true) {
-        if (this._dying || this.data.hp <= 0) return 0;
-        const before = this.data.hp;
-        super.takeDamage(damage, _source, _damageType, _isMelee);
+        if (this._dying || this.data.hp <= 0) return { damage: 0, parried: false, critical: false };
+        const result = super.takeDamage(damage, _source, _damageType, _isMelee);
         if (this.data.hp <= 0) this._startDying();
-        return before - this.data.hp;
+        return result;
     }
 
     _startDying() {

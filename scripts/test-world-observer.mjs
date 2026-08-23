@@ -67,8 +67,9 @@ check('面板只在切换成功且目标一致后同步 RTS，并拦截重复加
     /const switched = await SceneManager\.switchScene/.test(panel)
     && /!switched \|\| SceneManager\.currentScene !== target/.test(panel)
     && /if \(SceneManager\.isLoading\)/.test(panel));
-check('地牢中禁止通过世界栏目绕过探险结算',
-    /SceneManager\.currentScene === 'scene7'[\s\S]*?地牢探险期间无法切换世界/.test(panel));
+check('地牢中可通过世界栏目观察切换且现场保留（2026-08-22 恢复观察切换）',
+    /\{ id: 'scene7', icon: '🗺️', desc: '当前地牢探险' \}/.test(panel)
+    && /地牢现场已保留，可随时返回/.test(panel));
 check('面板标记本体所在世界并给返回入口',
     /_observerHomeScene/.test(panel) && /返回本体/.test(panel) && /ws-home-badge/.test(panel));
 
@@ -98,7 +99,7 @@ check('轮盘指挥模式走统一出口 issueWheelCommand',
     /RTSCommand\.issueWheelCommand\(cmd\.id, this\._worldPoint\)/.test(wheel));
 check('统一出口：队友 PartySystem + 非成员直写 _command + 模式映射',
     /issueWheelCommand\(mode, point\)/.test(rts)
-    && /PartySystem\.setCommand\(memberIds, mode, point\)/.test(rts)
+    && /PartySystem\.setCommand\(members\.map\(\(member\) => member\.id\), mode, point\)/.test(rts)
     && /_mapWheelModeForUnit/.test(rts)
     && /mode === 'gather'\) return u\._isHamsterMiner/.test(rts));
 
@@ -106,9 +107,10 @@ check('统一出口：队友 PartySystem + 非成员直写 _command + 模式映�
 check('仓鼠单位观察模式不跟随不在场玩家（8 实体）',
     ['warrior', 'guard', 'militia', 'shooter', 'scout', 'musketeer', 'miner', 'priest']
         .every((k) => /!game\._observerMode/.test(read(`src/entities/hamster-${k}.js`))));
-check('出兵集结点观察模式兜底回建筑自身（兵营/矿场/产兵）',
-    ['hamster-barracks-system.js', 'hamster-hut-system.js', 'producer-building-system.js']
-        .every((f) => /Game\._observerMode \? \{ x: this\.x, y: this\.y \}/.test(read(`src/world/${f}`))));
+check('出兵集结点统一走兵线系统并兜底回建筑自身（兵营/产兵），小屋保留观察模式兜底',
+    ['hamster-barracks-system.js', 'producer-building-system.js']
+        .every((f) => /TroopLineSystem\.getSpawnDirectionTarget\(/.test(read(`src/world/${f}`)))
+    && /Game && Game\._observerMode \? \{ x: this\.x, y: this\.y \}/.test(read('src/world/hamster-hut-system.js')));
 
 console.log(`\n结果: ${pass} 通过, ${fail} 失败`);
 process.exit(fail ? 1 : 0);

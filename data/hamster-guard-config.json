@@ -12,6 +12,10 @@
   "baseMaxHp": 300,
   "baseData": { "str": 13, "dex": 10, "int": 3, "con": 25, "wis": 3, "luck": 3 },
   "statFormula": "enemy",
+  "groundRadius": 20,
+  "collisionRadius": 20,
+  "bodyHeight": 100,
+  "size": 64,
   "skills": [],
   "sounds": {
     "attack": "assets/sounds/friendly/hamster_melee_attack.mp3"
@@ -32,8 +36,14 @@
     "teleportDist": 999999,
     "teleportHardDist": 9999999
   },
-  "displaySize": 226,
-  "spriteOffsetY": -44,
+  "displaySize": 220.170455,
+  "spriteOffsetY": -43.862083,
+  "render": {
+    "footOffsetY": 43.862083,
+    "hudOffsetY": 119,
+    "collisionWidth": 40,
+    "collisionHeight": 100
+  },
   "animations": {
     "idle": {
       "src": "assets/companions/hamster_guard/idle.png",

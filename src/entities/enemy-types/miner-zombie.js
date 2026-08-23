@@ -1,14 +1,18 @@
 import { Enemy } from '../enemy.js';
 import enemyConfigData from '../../../data/enemy-config.json';
-import { hostilesOf, playSoundFrom, inMeleeRange } from './_shared/enemy-utils.js';
-import { canMeleeShareSurface } from '../../combat/melee-surface.js';
+import { playSoundFrom } from './_shared/enemy-utils.js';
+import {
+    canImpactBasicMelee,
+    canStartBasicMelee,
+    createBasicMeleeSnapshot,
+} from '../../combat/melee-attack-resolver.js';
 
 /**
  * 矿工僵尸（普通，僵尸 family）
- * - 近战砸击：距离判定 130px，1.5s 播放 24 帧（第 17 帧伤害判定），命中击退 75px
+ * - 近战砸击：方向性单目标判定 160px，1.5s 播放 24 帧（第 17 帧伤害判定），命中击退 75px
  * - 冷却 4s（attack.cooldown），攻击时不可移动
  * - 死亡播放 dying 13 帧一次性动画后销毁
- * 所有数值均来自 enemy-config.json minerZombie.attackSkills.slam，类内不硬编码
+ * 所有数值均来自 enemy-config.json 的 minerZombie 配置，类内不硬编码
  */
 export class MinerZombie extends Enemy {
     constructor(x, y, config = {}) {
@@ -19,6 +23,9 @@ export class MinerZombie extends Enemy {
         });
         this._useStickFigure = false;
         this._usePacingAI = false;
+        // 继续借用通用 Attack 的冷却/预警/起手调度，但真正伤害只由第17帧砸击结算。
+        // ThrustAttack 只负责创建锁定主目标和方向的快照，triggerWeaponAnim 会关闭其通用命中。
+        this._usesDirectedBasicMelee = true;
 
         // 动画状态：idle | walk | attack | death
         this._animState = 'idle';
@@ -29,6 +36,8 @@ export class MinerZombie extends Enemy {
         this._attackAnimTimer = 0;
         this._slamHitDone = false;
         this._slamSoundDone = false;
+        this._slamTarget = null;
+        this._slamSnapshot = null;
 
         // 移动音效计时
         this._walkSoundTimer = 0;
@@ -86,6 +95,7 @@ export class MinerZombie extends Enemy {
         if (this.hasStatusEffect && (this.hasStatusEffect('stun') || this.hasStatusEffect('frozen'))) {
             this._attackTimer = 0;
             this._attackAnimTimer = 0;
+            this._clearSlamLock();
             this.vx = 0; this.vy = 0; this.isMoving = false;
             return;
         }
@@ -93,7 +103,10 @@ export class MinerZombie extends Enemy {
         // 更新计时器
         if (this._attackTimer > 0) {
             this._attackTimer -= dt;
-            if (this._attackTimer < 0) this._attackTimer = 0;
+            if (this._attackTimer <= 0) {
+                this._attackTimer = 0;
+                this._clearSlamLock();
+            }
         }
         if (this._attackAnimTimer > 0) {
             this._attackAnimTimer -= dt;
@@ -113,7 +126,7 @@ export class MinerZombie extends Enemy {
             }
             if (!this._slamHitDone && elapsed >= ((slam.hitFrame ?? 17) / frames) * duration) {
                 this._slamHitDone = true;
-                this._dealSlamHit(entities);
+                this._dealSlamHit();
             }
         }
 
@@ -149,8 +162,8 @@ export class MinerZombie extends Enemy {
         }
 
         // 朝向
-        if (this._attackTimer > 0 && this.target && this.target.active) {
-            this.rotation = Math.atan2(this.target.y - this.y, this.target.x - this.x);
+        if (this._attackTimer > 0 && this._slamSnapshot) {
+            this.rotation = this._slamSnapshot.worldAngle;
         } else if (speed > 0.1) {
             this.rotation = Math.atan2(this.vy, this.vx);
         }
@@ -158,41 +171,56 @@ export class MinerZombie extends Enemy {
 
     triggerWeaponAnim() {
         // 正在攻击时不插队
-        if (this._attackTimer > 0) return;
+        if (this._attackTimer > 0) return false;
+        const pending = this._pendingThrust?.active ? this._pendingThrust : null;
+        let target = pending?.primaryTarget;
+        let snapshot = pending?.basicMeleeSnapshot;
+        const attackConfig = this.attacks?.melee?.config || this._getSlamConfig();
+        if (!target || !snapshot) {
+            target = this.target;
+            if (!canStartBasicMelee(this, target, attackConfig)) return false;
+            snapshot = createBasicMeleeSnapshot(this, target, attackConfig);
+        }
+        // 通用 Attack 只提供冷却和锁定快照；伤害由自定义第17帧唯一结算，防止双伤。
+        if (pending) pending.active = false;
         const slam = this._getSlamConfig();
         const duration = slam.duration ?? 1500;
         this._attackTimer = duration;
         this._attackAnimTimer = duration; // MovementSystem 锁定（攻击时不可移动）
         this._slamHitDone = false;
         this._slamSoundDone = false;
+        this._slamTarget = target;
+        this._slamSnapshot = snapshot;
         this._animState = 'attack';
         this._animStateTimer = 0;
-        if (this.target && this.target.active) {
-            this.rotation = Math.atan2(this.target.y - this.y, this.target.x - this.x);
-        }
+        this.rotation = snapshot.worldAngle;
         // 不走 super.triggerWeaponAnim()：砸击为自定义帧判定，不由通用突刺结算
+        return true;
     }
 
-    /** 砸击伤害判定：统一口径圆形边缘距离（与 CombatSystem 触发同语义），命中物理伤害 + 击退 */
-    _dealSlamHit(entities) {
+    _clearSlamLock() {
+        this._slamTarget = null;
+        this._slamSnapshot = null;
+    }
+
+    /** 砸击伤害判定：只结算起手锁定目标，命中物理伤害 + 击退 */
+    _dealSlamHit() {
         const slam = this._getSlamConfig();
-        const range = slam.range ?? this.attackDistance ?? 130;
+        const target = this._slamTarget;
+        if (!canImpactBasicMelee(this, target, this._slamSnapshot)) return;
         const atk = this.data?.atk || 0;
-        for (const e of hostilesOf(this, entities)) {
-            if (!inMeleeRange(this, e, range)) continue;
-            if (!canMeleeShareSurface(this, e)) continue;
-            e.takeDamage(Math.max(1, Math.round(atk)), this, 'physical', true);
-            const knockback = slam.knockback ?? 75;
-            if (knockback > 0 && typeof e.applyKnockback === 'function') {
-                const angle = Math.atan2(e.y - this.y, e.x - this.x);
-                e.applyKnockback(angle, knockback);
-            }
+        target.takeDamage(Math.max(1, Math.round(atk)), this, 'physical', true);
+        const parried = target.shieldSystem && target.shieldSystem._lastParried;
+        const knockback = slam.knockback ?? 75;
+        if (!parried && knockback > 0 && typeof target.applyKnockback === 'function') {
+            target.applyKnockback(this._slamSnapshot.worldAngle, knockback);
         }
     }
 
     onDeath(source) {
         this.active = false;
         this._animState = 'death';
+        this._clearSlamLock();
         // 死亡三段式：动画 animMs（与 BootScene duration 对齐）→ 定格 holdMs → 淡出 fadeMs
         this._deathAnimTimer = this._getDeathConfig().animMs ?? 1300;
         this._corpseTimer = 0;
@@ -216,8 +244,8 @@ export class MinerZombie extends Enemy {
     _getPhaserOptions() {
         // 原始素材面向右，目标/移动方向朝左时翻转
         let flipX = false;
-        if (this._attackTimer > 0 && this.target && this.target.active) {
-            flipX = this.target.x < this.x;
+        if (this._attackTimer > 0 && this._slamSnapshot) {
+            flipX = Math.cos(this._slamSnapshot.worldAngle) < 0;
         } else if (this.isMoving && Math.abs(this.vx) > 0.1) {
             flipX = this.vx < 0;
         } else if (this.rotation !== undefined) {

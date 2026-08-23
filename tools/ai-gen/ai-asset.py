@@ -230,6 +230,25 @@ def humanoid_attack(args):
     run(cmd, args.dry_run)
 
 
+def humanoid_video(args):
+    """Generate a humanoid H3 action clip through the shared asset entrypoint."""
+    out_dir = os.path.join(SCRATCH, f"{args.name}_anim")
+    ensure_dir(out_dir)
+    prompt = args.prompt or tool(f"prompts/{args.name}-{args.kind}.txt")
+    out = args.out or os.path.join(out_dir, f"{args.name}_{args.kind}.mp4")
+    cmd = ["PY", tool("minimax-h3-gen.py"), "--host", HOST,
+           "--first-frame", args.ref, "--prompt-file", prompt,
+           "--duration", str(args.duration), "--size", args.size,
+           "--steps", str(args.steps), "--out", out,
+           "--timeout", str(args.timeout)]
+    if not args.one_way:
+        cmd += ["--last-frame", args.ref]
+    if args.seed is not None:
+        cmd += ["--seed", str(args.seed)]
+    run(cmd, args.dry_run)
+    print(f"[ai-asset] humanoid video -> {out}", flush=True)
+
+
 def lora_prep(args):
     run(["PY", tool("prep-lora-dataset.py")], args.dry_run)
 
@@ -390,6 +409,21 @@ def main():
     # ===== humanoid 大类（人形怪/工头动画：h3-loop / h3-attack）=====
     hm = sub.add_parser("humanoid", parents=[common], help="人形怪动画精灵图（h3-loop/h3-attack 抽帧）")
     hmsub = hm.add_subparsers(dest="action", required=True)
+
+    hp = hmsub.add_parser("video", parents=[common], help="生成双足角色 H3 动作视频")
+    hp.add_argument("--name", required=True)
+    hp.add_argument("--kind", choices=["idle", "run", "attack", "howl", "die"], required=True)
+    hp.add_argument("--ref", required=True, help="纯色背景首帧；循环/回位动作也作为尾帧")
+    hp.add_argument("--prompt", default=None, help="提示词文件；缺省 prompts/<name>-<kind>.txt")
+    hp.add_argument("--out", default=None)
+    hp.add_argument("--duration", type=float, default=5.17)
+    hp.add_argument("--size", default="1024x576")
+    hp.add_argument("--steps", type=int, default=16)
+    hp.add_argument("--seed", type=int, default=None)
+    hp.add_argument("--timeout", type=int, default=1800)
+    hp.add_argument("--one-way", action="store_true",
+                    help="仅锁首帧，不回到参考站姿（死亡等不可逆动作）")
+    hp.set_defaults(func=humanoid_video)
 
     hp = hmsub.add_parser("loop", parents=[common], help="循环动画抽帧（无缝循环 sheet）")
     hp.add_argument("--video", required=True)

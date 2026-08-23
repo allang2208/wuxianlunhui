@@ -26,6 +26,10 @@ export const CompanionPanel = {
     _memberId: null,
     _currentTab: 'status',
 
+    get isOpen() {
+        return !!this._overlay?.querySelector('.companion-system-panel')?.classList.contains('active');
+    },
+
     open(companionId) {
         this._memberId = companionId;
         this._ensureElement();
@@ -42,6 +46,11 @@ export const CompanionPanel = {
         this._render();
         this._show();
         this._hideSideMenu();
+    },
+
+    toggleManage() {
+        if (this.isOpen) this.close();
+        else this.openManage();
     },
 
     close() {

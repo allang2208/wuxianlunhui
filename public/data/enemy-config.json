@@ -37,7 +37,7 @@
     },
     "type": "普通",
     "category": "monster",
-    "family": null,
+    "family": "动物",
     "description": "",
     "skills": [],
     "attackType": "撕咬",
@@ -63,33 +63,34 @@
   "redWolfKing": {
     "id": "redWolfKing",
     "name": "红狼王",
-    "hp": 240,
-    "maxHp": 240,
+    "hp": 750,
+    "maxHp": 750,
     "size": 20,
     "collisionRadius": 45,
-    "speed": 420,
-    "level": 8,
+    "speed": 200,
+    "level": 9,
     "color": "#8a1a1a",
     "highlightColor": "rgba(180, 40, 40, 0.3)",
-    "str": 35,
-    "dex": 45,
-    "con": 35,
-    "int": 9,
-    "wis": 9,
-    "luck": 15,
+    "str": 50,
+    "dex": 30,
+    "con": 40,
+    "int": 5,
+    "wis": 10,
+    "luck": 6,
     "rank": "elite",
+    "family": "动物",
     "attackRange": 210,
-    "aiInterval": 2000,
+    "aiInterval": 1000,
     "dashDistance": 300,
     "biteRange": 180,
-    "biteCooldown": 1500,
+    "biteCooldown": 1000,
     "biteHitDistance": 185,
     "pounceCooldown": 12000,
     "pounceRange": 400,
     "pounceHitDistance": 130,
+    "pounceDamageMultiplier": 2,
     "pounceCrippleMs": 3000,
     "pounceMaxDist": 1000,
-    "pounceOvershoot": 200,
     "ai": {
       "aggroRange": 2500,
       "pacingRange": 200,
@@ -97,14 +98,14 @@
     },
  "attack": {
   "type": "thrust",
-  "cooldown": 2000,
-  "dynamicRange": 240,
+  "cooldown": 1000,
+  "dynamicRange": 100,
   "width": 22,
-  "knockback": 20
+  "knockback": 25
  },
  "attackSkills": {
   "howl": {
-   "comment": "红狼王二阶段嚎叫技能：3s 狼形动画，释放后场上全体敌方怪物获得激励（移速×speedMul、物攻×atkMul，持续 buffDuration）",
+   "comment": "红狼王二阶段嚎叫技能：3s 狼人动画，释放后场上全体敌方怪物获得激励（移速×speedMul、物攻×atkMul，持续 buffDuration）",
    "duration": 3000,
    "frames": 12,
    "buffDuration": 30000,
@@ -113,6 +114,25 @@
    "cooldown": 30000
   }
  },
+ "description": "以突变体-3为基础数值基准的两阶段精英：狼形撕咬并锁定目标位置飞扑，半血变身红狼人后回满生命并全面强化。",
+ "skills": [
+  {
+   "name": "血烟飞扑",
+   "desc": "狼形蓄力后锁定目标当时的位置飞扑，造成物理攻击×2伤害并致残3秒；位移轨迹弥漫红色烟雾，冷却12秒。"
+  },
+  {
+   "name": "血月变身",
+   "desc": "生命值不高于50%时开始变身；变身期间受到的伤害减少90%，完成后恢复至满生命，最大生命、六维、攻防与移动属性提升50%。"
+  },
+  {
+   "name": "狼人暴击",
+   "desc": "变身后每次普通攻击有50%概率暴击，造成2.5倍伤害。"
+  },
+  {
+   "name": "猩红嚎叫",
+   "desc": "变身后嚎叫3秒，使场上全体敌方怪物的移动速度提升33%、物理攻击提升50%，持续30秒，冷却30秒。"
+  }
+ ],
  "sounds": {
   "howl": "assets/sounds/enemies/red_wolf_king/howling.mp3"
  },
@@ -125,9 +145,11 @@
   "hpThreshold": 0.5,
   "duration": 2000,
   "howlDuration": 2000,
-      "damageMultiplier": 2,
-      "hpRecover": 1,
-      "damageReduction": 0.9
+      "statMultiplier": 1.5,
+      "healToFull": true,
+      "damageReduction": 0.9,
+      "criticalChance": 0.5,
+      "criticalDamageMultiplier": 2.5
     }
   },
   "fatZombie": {
@@ -227,6 +249,7 @@
     "attack": {
       "type": "thrust",
       "cooldown": 4000,
+      "range": 160,
       "dynamicRange": 160,
       "width": 22,
       "knockback": 75
@@ -847,6 +870,7 @@
     "type": "普通",
     "category": "monster",
     "family": "僵尸",
+    "families": ["僵尸", "动物"],
     "description": "被亡灵复活的犬类骨骼，行动迅速，利齿中带有致残毒素。",
     "skills": [
       {
@@ -1775,7 +1799,7 @@
     "skills": [
       {
         "name": "砸地",
-        "desc": "周围 300px 有目标即触发：2s 内播放 26 帧动画，第 14 帧判定，造成物理攻击 ×2 单次伤害（命中点烟尘+白色冲击线），冷却 6s；攻击时不可移动"
+        "desc": "周围 300px 有目标即触发：锁定朝向后在触手前方落点显示 2:1 椭圆预警，2s 内播放 26 帧动画，第 14 帧按同一落点与 300px 椭圆范围造成物理攻击 ×2 单次伤害（烟尘+白色冲击线），冷却 6s；攻击时不可移动"
       },
       {
         "name": "嚎叫",
@@ -2291,6 +2315,7 @@
         "frames": 17,
         "hitFrame": 7,
         "range": 200,
+        "width": 160,
         "damageMul": 1.5,
         "stunMs": 2000
       },
@@ -2334,7 +2359,7 @@
       },
       {
         "name": "盾击",
-        "desc": "仅远程形态、目标 200px 内：0.75s 播放 17 帧动画（第 7 帧判定），造成物理攻击 ×1.5 伤害并眩晕 2s，冷却 10s；攻击时不可移动，盾后白色冲击线条"
+        "desc": "仅远程形态、目标 200px 内：锁定起手方向，0.75s 播放 17 帧动画（第 7 帧判定），对前方 200×160px 范围造成物理攻击 ×1.5 伤害并眩晕 2s，冷却 10s；攻击时不可移动，盾后白色冲击线条"
       },
       {
         "name": "举盾防御",

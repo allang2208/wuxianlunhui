@@ -24,6 +24,7 @@ export const HAMSTER_UNIT_CATEGORIES = Object.freeze({
     light_cavalry: HAMSTER_UNIT_CATEGORY.CAVALRY,
     camel_cavalry: HAMSTER_UNIT_CATEGORY.CAVALRY,
     priest: HAMSTER_UNIT_CATEGORY.MAGIC,
+    desert_priest: HAMSTER_UNIT_CATEGORY.MAGIC,
 });
 
 export function getHamsterUnitCategory(unitKind) {

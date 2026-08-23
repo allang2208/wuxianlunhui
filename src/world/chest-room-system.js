@@ -47,6 +47,12 @@ function _equipmentPool() {
     );
 }
 
+function _equipmentRarityForGrade(grade) {
+    const gradeIdx = GRADES.indexOf(grade);
+    const tierIdx = Math.max(0, (gradeIdx < 0 ? 2 : gradeIdx) - EQUIP_RARITY_DROP_STEP);
+    return RARITY_BY_GRADE[tierIdx] || 'common';
+}
+
 /**
  * 精英宝箱房额外装备掉落：稀有度 = 地牢等级稀有度 − 1 级（F 钳制到 common）。
  * 优先抽同稀有度条目（池子未来扩充后自然按档出装）；无匹配条目时整池随机，
@@ -55,9 +61,7 @@ function _equipmentPool() {
 function _rollEquipmentDrop(grade) {
     const pool = _equipmentPool();
     if (!pool.length) return null;
-    const gradeIdx = GRADES.indexOf(grade);
-    const tierIdx = Math.max(0, (gradeIdx < 0 ? 2 : gradeIdx) - EQUIP_RARITY_DROP_STEP);
-    const tier = RARITY_BY_GRADE[tierIdx] || 'common';
+    const tier = _equipmentRarityForGrade(grade);
     const sameTier = pool.filter(it => (it.rarity || 'common') === tier);
     const src = sameTier.length ? sameTier : pool;
     const item = src[Math.floor(Math.random() * src.length)];
@@ -82,6 +86,21 @@ export const ChestRoomSystem = {
         const list = DungeonConfig.getDungeonList() || {};
         const g = (list[dungeonType] && list[dungeonType].grade) || 'D';
         return GRADES.includes(g) ? g : 'D';
+    },
+
+    /** 路线页收益预览与真实开箱逻辑共用的数据源。 */
+    getRewardPreview(dungeonType) {
+        const grade = this._gradeFor(dungeonType);
+        const table = ((COMBAT_FORMULAS.universalEventRewards || {}).treasureChest || {})[grade] || {};
+        return {
+            grade,
+            gold: Math.max(0, Number(table.gold) || 0),
+            materialDust: Math.max(0, Number(table.materialDust) || 0),
+            enhancementStone: Math.max(0, Number(table.enhancementStone) || 0),
+            reforgeTicket: Math.max(0, Number(table.reforgeTicket) || 0),
+            equipmentRarity: _equipmentRarityForGrade(grade),
+            equipmentChance: EQUIP_DROP_CHANCE,
+        };
     },
 
     /**

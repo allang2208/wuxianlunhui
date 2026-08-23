@@ -13,13 +13,13 @@ function check(name, cond, detail = '') {
 }
 
 const cfg = producerCfg.warehouse;
-check('仓库配置：500金币、5000容量、2×2建筑',
-    cfg?.currency === 'gold' && cfg.cost === 500 && cfg.storageCapacity === 5000
+check('仓库配置：500金币、15000容量、2×2建筑',
+    cfg?.currency === 'gold' && cfg.cost === 500 && cfg.storageCapacity === 15000
     && cfg.radius === 128 && cfg.workshopType === 'warehouse');
 
 const png = fs.readFileSync(path.join(ROOT, 'assets/terrain/warehouse.png'));
 check('仓库正式贴图已裁边接入',
-    png.readUInt32BE(16) === 1024 && png.readUInt32BE(20) === 1094);
+    png.readUInt32BE(16) === 727 && png.readUInt32BE(20) === 811);
 
 const bootSrc = fs.readFileSync(path.join(ROOT, 'src/phaser/scenes/BootScene.js'), 'utf8');
 const producerSrc = fs.readFileSync(path.join(ROOT, 'src/world/producer-building-system.js'), 'utf8');
@@ -38,9 +38,9 @@ check('BootScene加载仓库贴图', /warehouse', 'assets\/terrain\/warehouse\.p
 check('仓库建造货币由配置驱动为金币',
     /currency: pc\.currency === 'gold' \? 'gold' : 'energy'/.test(buildingSrc));
 check('仓库实体注册/销毁/场景离场接入EnergyManager',
-    /EnergyManager\.registerWarehouse\(this, cfg\.storageCapacity \?\? 5000\)/.test(producerSrc)
+    /EnergyManager\.registerWarehouse\(this, this\.storageCapacity \?\? cfg\.storageCapacity \?\? 5000\)/.test(producerSrc)
     && /EnergyManager\.unregisterWarehouse\(this\)/.test(producerSrc)
-    && /unregisterWarehouse\(b, \{ preserve: true \}\)/.test(producerSrc));
+    && /unregisterWarehouse\(b, \{ preserve: true/.test(producerSrc));
 check('仓库面板显示本仓和全部仓库聚合',
     /pbWarehouseOwn/.test(producerSrc)
     && /pbWarehouseTotal/.test(producerSrc)
@@ -61,10 +61,10 @@ check('玩家队友采矿不再写背包，满仓切待命',
     && !/ENERGY_ITEM/.test(companionAiSrc)
     && /_stopGatherForFullStorage\(\)/.test(companionAiSrc)
     && /c\._command = \{ mode: 'hold'/.test(companionAiSrc));
-check('仓鼠矿工满仓返回小屋待命',
-    /_phase = 'storage_return'/.test(minerAiSrc)
+check('仓鼠矿工满包返回营地提交，仓库满则停在营地等待',
+    /_phase = 'unload_return'/.test(minerAiSrc)
     && /_phase = 'storage_wait'/.test(minerAiSrc)
-    && /仓库已满，返回小屋待命/.test(minerAiSrc));
+    && /_tryUnloadAtHut\(\)/.test(minerAiSrc));
 check('旧地面能源拾取也直接入仓',
     /EnergyManager\.depositEnergy\(amount\)/.test(gameSrc)
     && /item\.category === 'energy' && EnergyManager/.test(equipSrc)

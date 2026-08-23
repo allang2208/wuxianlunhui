@@ -87,8 +87,8 @@ check('AI 第 11 帧出膛（launchDelayMs=(launchFrame-1)/fps×1000）',
     && /_fireProjectile\(\)/.test(aiSrc));
 check('AI 用 AimHelper.lead 提前量瞄目标贴图中心', /AimHelper\.lead/.test(aiSrc)
     && /_targetAimY/.test(aiSrc));
-check('投射物命中走 takeDamage(attackDamage, m, physical)',
-    /hit\.takeDamage\(this\._attackDamage, m, 'physical'\)/.test(aiSrc));
+check('投射物命中走 takeDamage（经六维属性换算 getPhysicalAttackDamage）',
+    /hit\.takeDamage\(m\.getPhysicalAttackDamage\(this\._attackDamage, hit\), m, 'physical', false\)/.test(aiSrc));
 check('AI 移动复用 MovementSystem、射击站定', /MovementSystem\.update\(m, dt, entities\)/.test(aiSrc)
     && /_shotActive/.test(aiSrc));
 check('AI 无敌跟随玩家 + 到达清路径归零速度', /_followOffset/.test(aiSrc)
@@ -102,8 +102,9 @@ check('实体跳过中立兜底圆（_skipNeutralSprite）', /_skipNeutralSprite
 check('实体提供 takeDamage 并触发死亡流程', /takeDamage\(damage, source/.test(entSrc)
     && /_startDying\(\)/.test(entSrc));
 check('死亡状态 = dying 且清投射物', /_animState = 'dying'/.test(entSrc) && /_basic = null/.test(entSrc));
-check('实体脚底/深度补偿（spriteOffsetY ↔ footOffsetY）', /footOffsetY = 17/.test(entSrc)
-    && /spriteOffsetY/.test(entSrc));
+check('实体脚底/深度补偿读取配置（spriteOffsetY ↔ footOffsetY）',
+    Math.abs(scoutCfg.render.footOffsetY + scoutCfg.spriteOffsetY) < 1e-6
+    && /renderConfig/.test(entSrc));
 check('死亡动画时长 = 11 帧 @12fps ≈ 1000ms', /DYING_DURATION_MS = 1000/.test(entSrc));
 
 // ---- 4. 源码接线：渲染 / 加载 / 草屋生成 ----
@@ -116,8 +117,8 @@ check('GameScene 斥候投射物渲染（尖头朝右、内容宽 172）',
     && /tipLeft = m\._isHamsterShooter/.test(gsSrc)
     && /projContentW = m\._isHamsterShooter \? 146 : 172/.test(gsSrc));
 check('GameScene 斥候移动朝向 vx（不倒退走路）',
-    /member\._isHamsterMusketeer \|\| member\._isHamsterPriest\) && moving/.test(gsSrc)
-    && /faceRight = member\.vx > 0/.test(gsSrc));
+    /member\._isHamsterScout \|\|/.test(gsSrc)
+    && /&& moving\) \{\s*faceRight = member\.vx > 0/.test(gsSrc));
 check('GameScene 斥候受击白闪', /member\._isHamsterScout/.test(gsSrc)
     && /member\.hitFlash > 0/.test(gsSrc));
 check('GameScene 多帧待机分支（斥候 6 帧呼吸待机）',

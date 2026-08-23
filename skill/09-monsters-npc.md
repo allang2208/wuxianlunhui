@@ -64,9 +64,15 @@ _getPhaserOptions() {
 ### 怪物共享基础件（2026-07-21 新增，新怪物优先复用）
 
 新增怪物时**优先复用** `src/entities/enemy-types/_shared/` 下的共享模块，不要在类内重复实现：
-- `enemy-utils.js`：`hostilesOf`（敌对目标枚举）、`isTargetMeleeStyle`（近战/远程风格判定）、`playSoundFrom`（按 sounds 配置播音）、`isFacingLeftFrom`（朝向判定）、`inMeleeRange`（近战命中统一口径：圆形边缘距离 ≤ range，与 CombatSystem 触发同语义；范围技能带地面椭圆圈视觉的仍用 GroundEllipse）；近战技能 range 读取约定 `skill.range ?? this.attackDistance ?? 默认值`（字段收敛，2026-07-25）；
+- `enemy-utils.js`：`hostilesOf`（敌对目标枚举）、`isTargetMeleeStyle`（近战/远程风格判定）、`playSoundFrom`（按 sounds 配置播音）、`isFacingLeftFrom`（朝向判定）、`inMeleeRange`（历史自定义近战技能的圆形边缘距离工具；范围技能带地面椭圆圈视觉的仍用 GroundEllipse）。通用敌人普通近战改走 `src/combat/melee-attack-resolver.js` 的锁定方向单目标矩形；自定义近战技能 range 仍按 `skill.range ?? this.attackDistance ?? 默认值` 读取，逐类迁移，禁止把二者混为同一合同；
 - `enemy-gun.js`：`setupGun`（枪械装配：装备实例/攻击绑定/伤害/击退/AI 散布/弹匣）、`tryEnemyFireGun`（开火一体化：枪口偏移/墙体回退/瞄准目标矩形上方区域/临时移位出膛/枪口火焰+开火火光+弹壳，支持防御姿态枪口下移）；
 - `monster-anim.js`：`twoStageWalkKey`（移动动画首段→循环段切换）、`frameHitElapsed`/`ratioHitElapsed`（命中帧→触发时间换算）。
+
+自管单体普通攻击同样复用 `melee-attack-resolver.js`：起手锁定主目标与方向，命中帧只复查该目标。已迁移范例包括黑狼/红狼王撕咬、蝇手锤击、时空突击特工斧砍、僵尸工头鞭击、提灯矿工砸击和矿工僵尸第17帧砸击；其中原先遍历近身所有敌对单位的斧砍、鞭击和砸击均恢复单体语义。鞭击特效也锁定起手点；弹反成功后禁止继续附加流血、致残、普通击退和命中特效。时空盾卫盾击、蝇手砸地/灭世重砸仍是范围技能，不纳入普通近战解析器。
+
+借用通用 `Attack/ThrustAttack` 的冷却与起手调度、但由自定义动画帧结算伤害的混合怪物，必须复用 `_pendingThrust` 内的 `primaryTarget/basicMeleeSnapshot`，并在启动自定义动画时立即关闭该 pending 的通用命中。这样只保留自定义命中帧这一处伤害源，避免“通用突刺 + 自定义砸击”双重结算；矿工僵尸是该模式范例。
+
+自管多段普通连击也复用 `melee-attack-resolver.js`：整段锁定主目标与起手方向；攻击者存在小幅突进时用 `rebaseBasicMeleeSnapshot()` 随脚点重锚，禁止重新瞄准绕后目标。命中时序按“跨过配置帧即补结算一次”处理，并在弹反/冻结后立即终止同帧剩余段。已迁移范例：Mutant-3 五连击、铠甲骑士二连击；它们的飞扑、持盾冲锋和格挡仍保持专用状态机。
 
 已迁移范例：`time-agent-assault.js`（双形态+枪械+投掷+斧砍）、`time-agent-shield.js`（远程+盾击+防御弹反）。
 
@@ -78,6 +84,7 @@ _getPhaserOptions() {
 - **不硬编码**：AI 参数从 `enemy-config.json` 或构造函数 `config.ai` 读取
 - **外部系统驱动**：BlackWolf 的 `update()` 只设置目标属性（`target`、`_tacticalTarget`、`_lastKnownTargetPos`），`MovementSystem` 和 `CombatSystem` 在后续帧执行移动/攻击
 - **状态机模式**：`pacing` → `chasing` → `lost` → `pacing`
+- **普通撕咬判定**：黑狼与红狼王的自管动画仍通过 `melee-attack-resolver.js` 锁定起手目标和方向；`biteRange` 控制起手，`biteHitDistance` 控制命中容差，命中帧复查方向矩形、承载面与墙体。飞扑是位移技能，继续保留独立轨迹判定。
 
 #### 状态定义
 
@@ -236,6 +243,7 @@ this._tacticalTarget = null;
 - **冲锋伤害**：`chargeDamage` 模块的 `effect:'chargeDamageMult'` 每级 +15%；`getUnitUpgradePatch`、新单位 spawn、`applyBarracksUpgrades` 和 `_dealChargeHit` 必须贯通。只改配置展示而漏接 `_dealChargeHit` 会造成“面板升级但伤害不变”。
 - **渲染状态机**：骑士不能落入伊莉丝通用 `atkPlayed` 分支——多帧 idle 会让该锁无法复位。GameScene 必须有独立 attack/charge 分支：动作首次播放，正常结束定格末帧；离开状态清锁；异常打断未触发 `animationcomplete` 时下帧自愈重播。
 - **精灵图量化**：所有动作保持 8×4、512 格；入场脚底统一，死亡动作额外按不透明面积（非仅 bbox 高度）缩到 running 基线，否则横向倒地姿势会视觉放大。使用 `tools/ai-gen/normalize-hamster-knight-sheets.py`；逐帧验证有效帧数、脚底线与 alpha 面积，再替换项目 asset。
+- **轻骑体量对齐（2026-08-23）**：running 主体中位高度234px、脚底中位线353px，按轻骑基准换算为 `displaySize:393.333333`、`spriteOffsetY:-74.5`、`footOffsetY:74.5`；只校正不足1%的视觉差，不修改碰撞和战斗参数。
 
 #### 16. 仓鼠轻骑（2026-08-19，高速近战友军）
 
@@ -243,6 +251,12 @@ this._tacticalTarget = null;
   idle 8 帧、running 11 帧、attacking 12 帧、dying 11 帧。有效内容高约236px，
   与仓鼠骑士同屏体量取 `displaySize:390`；脚底约 y=375，配
   `spriteOffsetY:-91`、实体 `footOffsetY:91`、`hudOffsetY:190`。
+- **骑兵默认视觉基准（2026-08-23）**：用户未特殊指定时，所有骑兵以仓鼠轻骑的
+  running 主体屏幕高度为准，即 `236×390/512=179.765625px`。新骑兵先对移动表有效帧
+  扫 `alpha>10` 的主体中位高度 `H` 与脚底中位线 `F`，再取
+  `displaySize=179.765625×frameHeight/H`、
+  `spriteOffsetY=-(F-frameHeight/2)×displaySize/frameHeight`，实体 `footOffsetY`
+  取其相反数。禁止机械照抄 `displaySize:390`，也不得因此联动修改碰撞、属性或移速。
 - **配置/六维**：`hamster-light-cavalry-config.json`，`statFormula:'enemy'`；
   力20/敏15/智3/体20/精3/幸5，派生物攻18/物防36/魔攻3/魔防4/暴击7/暴抗20，
   `baseMaxHp:250` 覆盖生命，移动速度230。
@@ -291,6 +305,29 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
   scale+footRatio 归一化 / originY 脚底锚点修正 / 三个 play 接入点）。
 - 关键教训：姿势性增高（工程师举锤）不是变大，不要缩放；以 idle 中位高度为基准。
 
+#### 2026-08-23 步兵与施法友军默认体量（仓鼠牧师基准）
+- **适用范围**：没有用户特殊说明时，所有非骑乘的军事友军都视为步兵，包括近战、远程、
+  侦察/探险支援单位；所有地面施法友军同样适用。经济岗位单位（矿工）与骑兵不进入本标准：
+  矿工保留岗位体量，骑兵继续使用仓鼠轻骑独立基准。
+- **视觉真值不是 `displaySize:250`**：仓鼠牧师 running 有效帧的 Alpha 内容中位高度为
+  155px，`155×250/512 = 75.684px` 才是游戏内目标可见高度。新素材必须用
+  `tools/ai-gen/measure-friendly-unit-visuals.py` 量 running 全部有效帧，按
+  `目标可见高度×frameHeight/本单位Alpha中位高度` 反算 `displaySize` 作为首轮候选；禁止机械照抄250。
+- **全 Alpha 高度的例外**：长柄武器、竖向法杖、旗帜会把武器长度算进身高，低伏/前倾奔跑又会
+  把姿态压缩误判成矮个；这两类素材必须按头部—躯干—脚部主体轮廓与基准同屏比较，已经由用户确认
+  的人工体量优先，Alpha 工具只用于脚线和异常帧诊断。仓鼠民兵的草叉与仓鼠斥候的前倾跑姿属于
+  明确例外，不能再用整框中位高度覆盖其 `displaySize:460`。
+- **脚线同步**：`footOffsetY = (Alpha中位底线-frameHeight/2)×displaySize/frameHeight`，
+  `spriteOffsetY = -footOffsetY`。`render.hudOffsetY` 默认119；换尺寸时三项必须同批修改，
+  禁止只缩贴图造成脚底、深度线和血条分离。
+- **碰撞标准**：默认 `groundRadius=20`、`collisionRadius=20`、`bodyHeight=100`、`size=64`，
+  且 `render.collisionWidth=40`、`render.collisionHeight=100`。配置是碰撞编辑器与运行时真源，
+  实体构造器必须从 archive/render 读取，不能在子类另留一套不一致硬编码。
+- **当前基准覆盖**：战士、盾卫、射手、火枪手、探险家、赏金猎人、
+  美洲豹战士、仓鼠牧师、丛林祭司、沙漠祭司均按本规则标定。新增同类单位若确需更大/更小，
+  必须由用户或设计配置明确声明特殊体型，并仍重新量化脚线与碰撞，不能隐式偏离；民兵、斥候
+  按上一条主体轮廓例外处理，但碰撞继续使用同一20×100标准。
+
 #### 2026-08-20 友军战斗与生命周期统一
 - **六维必须真实生效**：配置 `attackDamage` 是初始六维下的基准伤害；运行时通过
   `Companion.getPhysicalAttackDamage()` 按“当前物攻/初始物攻”缩放，并结算
@@ -321,10 +358,11 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
   512×512 帧、8 列 × 4 行网格（先目检行列与有效帧数，再配 frameCount）。
 - 动画帧配置放**独立** `data/<id>-config.json`，**不要**塞进 companion-config.json——
   那会让它出现在招募池/队员面板；世界-122 工人类单位用独立配置 + BootScene 显式注册。
-- **视觉体量对齐（2026-08-18）**：不能只比较 512×512 画布，必须量首帧 alpha 内容
-  bbox，并按 `有效内容高 × displaySize / frameHeight` 对齐。普通仓鼠战斗单位的有效角色
-  高度基准为约 **78~90px**；细长/留白多的素材应增大 `displaySize`，例如仓鼠牧师内容高
-  173px，设 `displaySize:250` 后为约85px。同步按
+- **视觉体量对齐（2026-08-23 统一）**：不能只比较 512×512 画布；先量 running 全部有效帧
+  的 Alpha 内容，并用 `Alpha中位高度 × displaySize / frameHeight` 生成首轮候选。没有特殊说明且
+  姿态直立、无突出长装备的步兵/施法友军，使用上文仓鼠牧师 **75.684px** 可见高度基准；长武器、
+  旗帜、低伏或前倾素材必须按上文主体轮廓例外人工复核，不能直接采用整框 Alpha 候选，也不能
+  机械照抄仓鼠牧师的250。确定 `displaySize` 后同步按
   `(bbox.bottom - frameHeight/2) × displaySize / frameHeight` 重算 `spriteOffsetY`
   （取负）与实体 `footOffsetY`（取正），并调整 `config.render.hudOffsetY`；禁止只放大
   `displaySize` 而不校准脚底/血条。
@@ -512,19 +550,19 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
   674ms/中心瞄准 aimY=贴图中心/箭矢贴图/60 物理×2s/弹道角=AimHelper.lead 重算/矿点不攻击/
   跟随到位 idle/死亡 dying 移除）；npm test 全绿 + eslint 0 error + vite build。
 
-#### 9. 仓鼠兵营（2026-08-16 建筑生成单位，世界-122 每 45s 补员）
+#### 9. 仓鼠军营（2026-08-23 已迁入通用出兵建筑，世界-122 每 45s 补员）
 
-> 小屋之后第二个「建筑生成单位」：不新增独立"系统生成 1 只"链路，而是由**建筑本体**
-> 持有单位（`HamsterBarracks.units`），建筑面板切换类型/升级，兵营按 30s 节奏补员到
-> 数量上限——单位生命周期（生成/死亡补员/出售/被毁拆除）全部挂建筑，复用战士/射手/
-> 盾卫既有实体与 AI，零新增渲染分支。
+> 仓鼠军营不再拥有独立运行时类和系统；建造、生产、面板、升级、集结、快照及后台结算
+> 全部走 `ProducerBuilding` / `ProducerBuildingSystem`。建筑实例持有自己的 `units`，复用战士、
+> 盾卫既有实体与 AI。`HamsterHut` 是矿工营地/经济建筑，保持独立，不属于军事出兵建筑。
 
-- **数据/配置（`src/world/hamster-barracks-system.js`）**：`BARRACKS_CONFIG`——
-  cost 1500 能源 / hp 2000 / displayW×H 170×147（贴图 682×589 等比，高度对齐小屋）/
-  footOffsetY 73 / spawnIntervalMs 45000（2026-08-18 由 30s 调整）/ spawnRadius 90 / **unitCap 5（初始上限
-  即 5 个，2026-08-16 用户口径）**；单位基准值**实时读**
+- **数据/配置（`data/producer-buildings.json#hamster_barracks`）**：
+  cost 1500 能源 / hp 2000 / displayW×H 275×245 / footOffsetY 120 /
+  spawnIntervalMs 45000 / spawnRadius 90；2026-08-23 起普通出兵建筑不再配置独立 `unitCap`，
+  只受房屋容量派生的全局军事人口限制；单位基准值**实时读**
   `data/hamster-warrior-config.json` + `hamster-guard-config.json`
-  （`unit.<key>.cfg`，不硬编码 50/60 伤害）。
+  （通用单位工厂映射，不硬编码 50/60 伤害）。旧 `data/hamster-barracks-building.json`
+  与 `hamster-barracks-system.js` 只供遗留诊断工具兼容，不得再由游戏运行时导入。
 - **单位类型切换**：`setUnitType('warrior'|'guard')`，面板两个按钮
   （战士近战 / 盾卫近战·第 10 帧判定；射手/民兵 2026-08-18 已迁靶场/草屋并清理死注册），
   切换后下一次生成生效且**重置 `_spawnTimer` 重新计时**（2026-08-18 口径，原「保留计时」作废）；`_findUnitSpawn` 兵营周围
@@ -561,10 +599,10 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
   `_ai` 读间隔/伤害、渲染/契约从 aiConfig 读）；② 生命强化走
   `_maxHpOverride` + `updateMaxStats()`（Companion 构造后 hp 已按 con 公式算好，
   直接改 maxHp 不会重算当前血量比例）。
-- **生命周期**：单位死亡 → `aliveUnitCount() < unitCount()` 计时补员（死亡立即
-  从下个 30s 节拍开始）；兵营出售/被毁 → `_despawnUnits()` 同步拆单位（active=false
+- **生命周期**：单位死亡 → `aliveUnitCount() < unitCount()` 计时补员（死亡后
+  从下个 45s 节拍开始）；军营出售/被毁 → `_despawnUnits()` 同步拆单位（active=false
   + 移出 entities/friendlyUnits），面板自动关闭；teardown 离场同样拆干净。
-- **面板（BasePanel 复用）**：状态区（等级/耐久/存活数/下次生成秒数）、
+- **面板（`ProducerBuildingPanel`）**：状态区（等级/耐久/存活数/下次生成秒数）、
   类型切换按钮、4 个升级按钮、出售（返还 50% 能源）；点击兵营开/关，
   玩家距离 >260px 不可交互。**出发进度条实时刷新（2026-08-16）**：面板打开期间
   `setInterval(100ms)` 只更新 `#hbSpawnBar` 宽度/百分比/剩余秒数（querySelector
@@ -593,9 +631,9 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
   （`_swingActive` 站定挥击状态机、`MovementSystem` 移动、卡死看门狗、无敌跟随玩家、
   RTS 命令、`_isEnergyNode` 矿点不攻击）；dying 14 帧 @12fps = 1167ms。
 - **渲染**：GameScene `_isHamsterMilitia` 并入射手/盾卫"单次播放 + 定格末帧"分支
-  （`_attackSwing` 触发），移动朝向 vx、受击白闪同款；2026-08-22 按用户口径将
-  `displaySize` 从 300 调整为与当前仓鼠斥候相同的 460，并按脚底 ~350/512 同步使用
-  `spriteOffsetY:-84 / footOffsetY:84 / hudOffsetY:195`。碰撞半径、攻击范围与数值不随贴图放大。
+  （`_attackSwing` 触发），移动朝向 vx、受击白闪同款；草叉显著拉高整框 Alpha，不能按整框
+  身高归一，当前恢复主体轮廓确认过的 `displaySize:460 / spriteOffsetY:-84 /
+  footOffsetY:84 / hudOffsetY:119`。碰撞统一为20×100，攻击范围与数值不随贴图缩放。
 - **生成**：草屋专属（`producer-buildings.json` unitTypes + PRODUCER_UNIT_CFG/CLASS/
   unitKindOf）；2026-08-18 兵营死注册已清理（unit.militia/导入/生成分支移除，
   旧档兵营 unitType 由 spawnUnit 纠正为战士）；升级同步走 `applyBarracksUpgrades`（复用战士/盾卫模块口径）。
@@ -623,9 +661,10 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
 > 否则奔跑循环每圈播 2 帧空白 → 贴图瞬间消失）/ attacking 18 / dying 11 /
 > projective 1 帧；running 质心漂移 29px →
 > `hamster-walk-align.py --feet-y 282` 归一化（cx 跨度 0.8px）。**2026-08-17 二修**：
-> 首版 displaySize 260 用户反馈过小，与战士/盾卫/民兵对比后先调至 340；当前配置后续已调整为
-> `displaySize:460 / spriteOffsetY:-23 / footOffsetY:23`，同类单位匹配尺寸时必须读取当前配置，
-> 不得继续照搬旧 340 记录。
+> 首版 displaySize 260 用户反馈过小，与战士/盾卫/民兵对比后先调至340，后又调至460；
+> 2026-08-23 复查确认其前倾横向跑姿不适合按整框 Alpha 身高归一，恢复用户此前确认的
+> `displaySize:460 / spriteOffsetY:-23 / footOffsetY:23 / hudOffsetY:119`；后续必须按主体轮廓
+> 比较，不能再用 Alpha 高度候选 `315.04065` 覆盖。
 
 - **数据（`data/hamster-scout-config.json`）**：`baseMaxHp: 100`（con=7 公式
   100+70=170 → 100）；`statFormula:'enemy'`（力量8/敏捷13/智力3/体质7/精神3/幸运10 →
@@ -644,9 +683,9 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
 - **渲染**：GameScene `_isHamsterScout` 并入射手"单次播放 + 定格末帧"分支；**多帧待机**——
   idle 6 帧（frameCount>1）循环播放（新增分支，伊莉丝/露娜 idle 1 帧不受影响）；
   投射物渲染 `_syncCompanionBasics` 扩展：斥候尖头朝右（内容宽 172，旋转 = 飞行角，
-  与射手尖头朝左 +180° 区分），**帧随单位模型 displaySize 等比放大**（2026-08-17 用户口径：
-  基准 226→箭身 72px；斥候 340→箭身 ≈108px、帧 ≈322 方形）；移动朝向 vx、受击白闪、
-  移动烟尘同款；spriteOffsetY -17 / footOffsetY 17（脚底 ~282/512，displaySize 340）。
+  与射手尖头朝左 +180° 区分），**帧随单位模型 displaySize 等比放大**；当前单位模型为
+  `displaySize:460`，投射物继续读取当前模型比例，不能另存尺寸常量。移动朝向 vx、受击白闪、
+  移动烟尘同款；`spriteOffsetY:-23 / footOffsetY:23 / hudOffsetY:119`。
 - **生成**：仅仓鼠草屋 `producer-buildings.json` unitTypes=[militia, scout]（默认仍民兵），
   铁匠铺/兵营不含斥候；PRODUCER_UNIT_CFG/CLASS + 兵种升级表（scout 独立全局等级）已注册。
 
@@ -678,14 +717,19 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
   预载和注册，不能继续借用仓鼠火枪动画。
 - 六维力量/敏捷/智力/体质/精神/幸运为 5/25/3/12/3/30，采用怪物属性公式，
   基础生命 150、移速 160、射程 600、攻击间隔 1.25 秒。
+- 正式素材的 alpha 主体高度接近整张512px帧格，不能沿用主体仅约200px高的普通火枪素材尺寸；
+  2026-08-23 已按仓鼠牧师 Alpha 实体高度基准重标为 `displaySize:103.058511 /
+  spriteOffsetY:-38.445655 / footOffsetY:38.445655 / hudOffsetY:119`。
 - 攻击动画固定 10.4fps，在第 9 帧（约 769ms）出膛；复用火枪 1248px/s 黄色曳光弹，
   但起点按朝向使用枪口偏移 `muzzleOffsetX=76`、`muzzleHeight=76`，墙阻挡与弹道计算也必须
-  使用同一个枪口世界坐标。赏金猎人继承火枪武器入口，因此同样消费铁匠铺穿甲弹等级。
+  使用同一个枪口世界坐标。赏金猎人继承火枪武器入口，因此同样消费铁匠铺穿甲弹等级；命中后还与
+  仓鼠斥候共用铁匠铺“标记”能力的概率、持续时间和 +15% 受伤标记效果。
 - 专属开火音效由 `sounds.attack` 配置为
   `assets/sounds/friendly/hamster_bounty_hunter_attack.mp3`；继承的火枪 AI 只在第 9 帧真正创建投射物后播放，
   并走 `SoundManager.playWorld` 的位置衰减。禁止在攻击起手或逐帧动画同步中重复播放。
-- 击杀金币奖励与怪物本次正常掉落共用同一个随机底数：先算不含祭品加成的默认地牢金币，
-  赏金猎人额外给玩家其 2 倍；怪物原本实际掉落及祭品金币倍率保持原结算顺序。
+- 击杀金币奖励与怪物本次正常掉落共用同一个随机底数：先算不含祭品加成的默认地牢金币；探险家营地
+  专属“赏金”升级 Lv.1 额外获得该底数的 1.25 倍，之后每级 +0.15，Lv.6 为 2 倍。Lv.0 不提供额外金币，
+  怪物原本实际掉落及祭品金币倍率保持原结算顺序。
 - 作为正式世界战斗单位，必须登记到 troop-line 军事兵种白名单，保证跨位面编队可序列化和重建。
 
 #### 13.2 仓鼠兵种三分类与骆驼骑兵（2026-08-23）
@@ -694,7 +738,30 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
 - 只完成素材阶段的新单位使用独立 `data/<id>-visual.json`，允许 BootScene 预载并注册动画，但不得进入 `UNIT_KIND_CFG`、`PRODUCER_UNIT_CLASS`、生产建筑、后台模拟或存档兵种白名单；这些入口意味着已经存在属性和生命周期契约。
 - 骆驼骑兵正式兵种键为 `camel_cavalry`，配置真源为 `data/hamster-camel-cavalry-config.json`，实体为 `HamsterCamelCavalry`。待机24帧、行走16帧、攻击16帧、死亡16帧，均为8列、512×512帧格；复现脚本与源帧索引保存在 `tools/ai-gen/camel-cavalry-video-rebuild.py` 和成品目录 `report.json`。
 - 骆驼骑兵以仓鼠骑士为基准提高生命、伤害和物防15%：690生命、115普攻、45基础物防；基础移速按后续口径与仓鼠骑士保持一致为210。攻击间隔2秒，第9帧伤害结算；视频没有冲锋动作，所以复用轻骑的普通近战状态机但不登记骑士冲锋。
+- 骆驼移动表主体中位高度310.5px、脚底中位线480px；按仓鼠轻骑默认体量换算为 `displaySize:296.425121`、`spriteOffsetY:-129.7`、`footOffsetY:129.7`，使实际屏幕主体高度同为约179.77px。碰撞、属性、移速和动画节拍保持不变。
 - `desert_mansion` 是其唯一生产建筑，90秒/名、300粮食、上限5；独立升级项目 `desert_cavalry_standard` 提供伤害、生命、移速、防御四项通用倍率，并提供专属“骆驼惊吓”：600px持续光环，Lv.1降低敌方伤害输出10%，每级+2%，Lv.6为20%，同类不叠加。正式化时必须同步 BootScene、`PRODUCER_UNIT_CFG/CLASS/CONFIG_PATH`、`UNIT_KIND_CFG/getUnitKind`、troop-line 与世界后台模拟，避免出现前台可见但存档或离场结算丢失的半成品单位。
+
+#### 13.3 美洲豹战士“丛林之王”（2026-08-23）
+
+- `feature_unit_standard.jungleKing` 是美洲豹战士专属升级：Lv.1 伤害 +10%，之后每级 +2%，Lv.6
+  为 +20%。通用伤害增幅继续折入 `attackDamageMult`，现存和后续单位消费同一升级补丁。
+- 升级至少 1 级时，`JaguarWarrior.getPhysicalAttackDamage()` 通过 `getEnemyFamilies()` 读取目标全部
+  分类标签；任一标签为“动物”时，最终物理伤害乘 2。黑狼、红狼王登记为动物，僵尸犬同时登记为
+  “僵尸”和“动物”，因此既参与僵尸机制也承受动物特攻。
+- **怪物多分类协议（2026-08-23）**：保留 `family` 作为主分类以兼容旧数据，新增可选 `families:string[]`
+  表达多个归属；统一通过 `getEnemyFamilies/hasEnemyFamily` 查询，禁止新增 `config.family === ...` 单值判定。
+  图鉴分类页和详情标签也必须消费完整标签集。同一机制命中多个 family 倍率时取最高值，不重复叠乘。
+
+#### 13.4 丛林祭司专属魔法升级（2026-08-23）
+
+- `feature_unit_standard.junglePower` 只覆盖丛林祭司：模块 Lv.1~6 映射三种技能实际等级 Lv.2~7，
+  即相对基础 Lv.1 分别 +1~+6。闪电、冰锥、火球必须全部登记在祭司 `skills`，升级完成时同步技能对象；
+  闪电保留旧基础伤害，只按 `lightningStrike` 配置公式相对 Lv.1 的成长比例放大，避免升级接入改变 Lv.0 基线。
+- `feature_unit_standard.nimbleHaste` 只覆盖丛林祭司：冷却倍率依次为 0.90/0.85/0.80/0.75/0.70/0.65。
+  倍率同时进入祭司轮换间隔与 `BoltSkillSystem` 冰锥/火球冷却；升级中已有剩余冷却按新旧倍率比例即时缩短。
+  后台战斗按三种真实技能公式的平均等级成长比例和同一冷却倍率估算，禁止仅改前台施法。
+- 两张卡使用独立 209×209 透明冷钢图标 `jungle-power.png`、`nimble-haste.png`，并遵守同类建筑
+  唯一持续升级槽、全局等级存档与现存/后续单位实时同步协议。
 
 #### 14. 仓鼠牧师、教堂与激励魔法（2026-08-18）
 

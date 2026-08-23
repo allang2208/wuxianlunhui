@@ -12,7 +12,7 @@ import { buildSkillMap, restoreSkills, grantCompanionSkillExp } from '../systems
 import COMBAT_FORMULAS from '../../data/combat-formulas.json';
 import companionConfigData from '../../data/companion-config.json';
 import { EnergyManager } from '../systems/energy-manager.js';
-import { getTributeFriendlyAtkMul, getTributeFriendlyMaxHpMul } from '../config/tribute-effects.js';
+import { getTributeFriendlyAtkMul, getTributeFriendlyMaxHpMul } from '../config/tribute-math.js';
 import { canMeleeShareSurface } from '../combat/melee-surface.js';
 import { applyOutgoingDamageModifiers } from '../combat/outgoing-damage-modifiers.js';
 import { Collider } from '../physics/collider.js';
@@ -408,8 +408,12 @@ export class Companion {
             0,
             (Number(attacker?.data?.crit) || 0) - (Number(d.critRes) || 0)
         );
-        const critical = Math.random() * 100 < finalCritRate;
-        if (critical) raw *= 1.5;
+        const attackerResolvedCritical = typeof attacker?._forcedHitCritical === 'boolean';
+        const critical = attackerResolvedCritical
+            ? attacker._forcedHitCritical
+            : Math.random() * 100 < finalCritRate;
+        // 专属攻击已在攻击者侧结算暴击倍率；普通攻击仍沿用友军入口的旧 1.5 倍规则。
+        if (critical && !attackerResolvedCritical) raw *= 1.5;
         const defense = damageType === 'magic' || damageType === 'electric'
             ? Math.max(0, Number(d.mdef) || 0)
             : Math.max(0, Number(d.def) || 0);

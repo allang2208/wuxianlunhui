@@ -11,7 +11,7 @@ export const MAGIC_CATEGORIES = {
     ice:      { key: 'ice',      name: '冰魔法', skills: ['iceSpike', 'iceWall', 'blizzard'] },
     fire:     { key: 'fire',     name: '火魔法', skills: ['fireball', 'meteor', 'flameArmor'] },
     electric: { key: 'electric', name: '电魔法', skills: ['lightningStrike', 'stormDomain', 'thunderLance'] },
-    light:    { key: 'light',    name: '光魔法', skills: ['holyLight'] },
+    light:    { key: 'light',    name: '光魔法', skills: ['holyLight', 'sanctuaryDomain', 'holyJudgment'] },
 };
 
 /** 魔法等级：1=初级 2=中级 3=高级（未登记的默认初级） */
@@ -23,6 +23,8 @@ export const MAGIC_SKILL_TIERS = {
     stormDomain: 2,
     thunderLance: 3,
     holyLight: 1,
+    sanctuaryDomain: 2,
+    holyJudgment: 3,
     iceWall: 2,
     meteor: 3,
     flameArmor: 1,

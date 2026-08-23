@@ -19,8 +19,13 @@
     "luck": 30
   },
   "statFormula": "enemy",
+  "groundRadius": 20,
+  "collisionRadius": 20,
+  "bodyHeight": 100,
+  "size": 64,
   "fogVisionProfile": "scout",
-  "fogSightRadius": 2000,
+  "fogSightRadius": 1600,
+  "fogSightDebuffImmune": true,
   "skills": [],
   "ai": {
     "role": "plane_explorer",
@@ -62,8 +67,14 @@
       ]
     }
   },
-  "displaySize": 112,
-  "spriteOffsetY": -43,
+  "displaySize": 95.797281,
+  "spriteOffsetY": -36.859501,
+  "render": {
+    "footOffsetY": 36.859501,
+    "hudOffsetY": 119,
+    "collisionWidth": 40,
+    "collisionHeight": 100
+  },
   "animations": {
     "idle": {
       "src": "assets/companions/hamster_explorer/idle.png",

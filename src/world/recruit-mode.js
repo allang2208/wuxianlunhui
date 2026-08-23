@@ -20,9 +20,11 @@ export function recruitModeLabel(value) {
 export function recruitStatusText(producer) {
     const mode = normalizeRecruitMode(producer?._recruitMode);
     if (mode === RECRUIT_MODE.PAUSED) return '已暂停';
+    if (producer?._spawnPopulationBlocked) return '军事人口已满';
     if (producer?._spawnFoodBlocked) return '粮食不足';
     if (producer?._spawnEnergyBlocked) return '能源不足';
     if (producer?._spawnBlocked) return '出口阻塞';
-    if (producer?.aliveUnitCount?.() >= producer?.unitCount?.()) return '单位已满';
+    if (producer?._hasIndividualUnitCap
+        && producer?.aliveUnitCount?.() >= producer?.unitCount?.()) return '特色编制已满';
     return mode === RECRUIT_MODE.SINGLE ? '单次招募中' : '持续招募中';
 }

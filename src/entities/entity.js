@@ -50,6 +50,12 @@ class Entity {
     rebuildCollider() {
         this.collider = Collider.fromEntity(this);
         this.collider.attach(this);
+        // 静态结构的 footprint 发生重建时递增版本。纯视觉平民不进入实体/物理链，
+        // 只能依靠这个轻量 revision 在建筑放置、换级、异形拟合或占地重建后重新安置。
+        if (this._isGridBuilding || this._isDefenseStructure || this._structureDepthMode) {
+            this._structureFootprintRevision =
+                (Number(this._structureFootprintRevision) || 0) + 1;
+        }
         if (typeof this._refreshStructureDepth === 'function') {
             this._refreshStructureDepth();
         }

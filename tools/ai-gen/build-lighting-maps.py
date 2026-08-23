@@ -52,6 +52,7 @@ ASSETS = [
     "cavalry_school",
     "wheat_windmill",
     "market",
+    "bakery",
     "portal",
     # 2026-08-19 墙壁/楼梯/门接入阴影系统
     "obstacle_block",

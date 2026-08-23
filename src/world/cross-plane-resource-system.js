@@ -140,9 +140,12 @@ export const CrossPlaneResourceSystem = {
         return context.warehouses.reduce((sum, warehouse) => sum + amount(warehouse[field]), 0);
     },
 
-    pay(cost = {}) {
+    pay(cost = {}, options = {}) {
         const quoted = this.quote(cost);
-        if (isInfiniteResourcesEnabled()) return { ok: true, ...quoted, free: true };
+        // 军事招募等强制消耗可显式关闭开发免单；报价、库存检查与实际扣除仍走同一事务。
+        if (options.allowDevFree !== false && isInfiniteResourcesEnabled()) {
+            return { ok: true, ...quoted, free: true };
+        }
         const context = this.getContext();
         if ((GoldManager?.getGold?.() || 0) < quoted.gold) {
             return { ok: false, reason: `金币不足（需 ${quoted.gold} 金币）`, ...quoted };

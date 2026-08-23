@@ -206,7 +206,11 @@ export function isFriendlyFire(source, target) {
                     }
                     const critRes = this.data.critRes || 0;
                     const finalCritRate = Math.max(0, critRate - critRes);
-                    isCrit = Math.random() * 100 < finalCritRate;
+                    // 专属攻击可在攻击者侧完成倍率结算，并把同一次结果交给统一飘字入口。
+                    // 目前红狼人二阶段使用该标记实现精确 50% / 2.5 倍，不重复随机或重复乘伤。
+                    isCrit = typeof source._forcedHitCritical === 'boolean'
+                        ? source._forcedHitCritical
+                        : Math.random() * 100 < finalCritRate;
                     if (isCrit && !this._summoned && source && source.skills && source.skills.criticalStrike) {
                         SkillManager.addCriticalStrikeExp(source, isCrit, false); // isKill 在下面计算
                     }
@@ -233,7 +237,7 @@ export function isFriendlyFire(source, target) {
                         EffectManager.createDamageText(this.x, this.y - this.size - 15, '格挡!', '#9ab8c8');
                     }
                 }
-                // 铁匠铺能力：标记箭（2026-08-17）——被标记目标受所有伤害增加
+                // 铁匠铺能力：标记（2026-08-17）——被标记目标受所有伤害增加
                 // （标准 Buff 工作流：addStatusEffect('marked') 注册 + effect.value 携带数值，
                 //   同类型刷新取最大 value；updateStatusEffects 计时清除）
                 if (this.hasStatusEffect('marked')) {

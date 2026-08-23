@@ -213,6 +213,10 @@ function thumbnailTargets() {
             sourcePath: cfg.panelTex
                 ? terrainPath(panelTexture)
                 : (cfg.assetPath || terrainPath(panelTexture)),
+            outputPath: typeof cfg.thumbnailPath === 'string'
+                && cfg.thumbnailPath.replaceAll('\\', '/').startsWith('assets/ui/building-thumbnails/')
+                ? cfg.thumbnailPath.replaceAll('\\', '/')
+                : null,
         });
     }
     return targets;
@@ -392,7 +396,9 @@ for (const target of thumbnailTargets()) {
     const source = existingSource(target.sourcePath, target.id);
     const png = PNG.sync.read(fs.readFileSync(source.absolute));
     const thumbnail = createThumbnail(png);
-    const outputPath = path.join(thumbnailDirectory, `${target.id}.png`);
+    const outputPath = target.outputPath
+        ? path.join(ROOT, target.outputPath)
+        : path.join(thumbnailDirectory, `${target.id}.png`);
     if (writeIfChanged(outputPath, PNG.sync.write(thumbnail))) changedThumbnails++;
 }
 

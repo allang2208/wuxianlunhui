@@ -106,6 +106,11 @@ export const TechnologyTreePanel = {
         });
     },
 
+    toggle() {
+        if (this.isOpen) this.close();
+        else this.open();
+    },
+
     close() {
         if (!this.isOpen) return;
         this._open = false;
@@ -258,7 +263,9 @@ export const TechnologyTreePanel = {
             const completed = TechnologySystem.isCompleted(node.id);
             const activeNode = TechnologySystem.state.activeTechId === node.id;
             const available = TechnologySystem.isAvailable(node.id);
-            const worldMasked = !TechnologySystem.isWorldRequirementMet(node.id);
+            // 已完成状态优先于位面遮蔽：开发工具/旧档可以在位面尚未开放时
+            // 合法写入位面专项科技完成项，不能再被 UI 伪装成“未知科技”。
+            const worldMasked = !completed && !TechnologySystem.isWorldRequirementMet(node.id);
             const stateClass = completed ? 'completed' : activeNode ? 'active-tech' : available ? 'available' : 'locked';
             const progress = TechnologySystem.getProgress(node.id);
             const percent = completed ? 100 : Math.min(100, (progress / node.researchCost) * 100);
@@ -300,7 +307,8 @@ export const TechnologyTreePanel = {
             return;
         }
         const completed = TechnologySystem.isCompleted(node.id);
-        const worldMasked = !TechnologySystem.isWorldRequirementMet(node.id);
+        // 与卡片保持同一口径；已完成的位面科技必须显示真实详情与解锁内容。
+        const worldMasked = !completed && !TechnologySystem.isWorldRequirementMet(node.id);
         const active = TechnologySystem.state.activeTechId === node.id;
         const isTarget = TechnologySystem.state.targetTechId === node.id;
         const progress = TechnologySystem.getProgress(node.id);

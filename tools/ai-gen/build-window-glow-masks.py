@@ -5,6 +5,7 @@ hand-reviewed window regions can enter the mask, so roof, trim and foundations
 cannot be brightened by the runtime additive blend.
 """
 
+import argparse
 from pathlib import Path
 
 import numpy as np
@@ -31,8 +32,17 @@ MASKS = {
     },
     "church": {
         "source": "church.png",
-        "mode": "warm",
-        "boxes": [(0.07, 0.31, 0.93, 0.88)],
+        "mode": "stained",
+        "boxes": [
+            (0.22, 0.40, 0.29, 0.50),
+            (0.23, 0.60, 0.30, 0.82),
+            (0.36, 0.67, 0.43, 0.87),
+            (0.47, 0.72, 0.54, 0.87),
+            (0.71, 0.68, 0.79, 0.87),
+            (0.80, 0.62, 0.90, 0.74),
+            (0.79, 0.74, 0.85, 0.87),
+            (0.85, 0.72, 0.92, 0.87),
+        ],
     },
     "research_institute": {
         "source": "research_institute.png",
@@ -144,6 +154,24 @@ def select_emissive_pixels(rgba, mode, allowed):
             & (r + g + b >= 185)
         )
         strength = np.clip((b - r + b - g + b - 80) / 260.0, 0.18, 1.0)
+    elif mode == "stained":
+        warm = (
+            (r >= 145)
+            & (g >= 50)
+            & (r - g >= 18)
+            & (g - b >= 12)
+            & (r - b >= 60)
+        )
+        cool = (
+            (b >= 82)
+            & (b - r >= 12)
+            & (b - g >= 3)
+        )
+        selected = (warm | cool) & (r + g + b >= 180)
+        channel_max = np.maximum(np.maximum(r, g), b)
+        channel_min = np.minimum(np.minimum(r, g), b)
+        chroma = channel_max - channel_min
+        strength = np.clip((channel_max + chroma * 1.25 - 110) / 260.0, 0.18, 1.0)
     else:
         selected = (
             (r >= 150)
@@ -189,9 +217,18 @@ def build_mask(spec):
 
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("assets", nargs="*", help="Optional mask names; omit to rebuild every mask")
+    args = parser.parse_args()
+    targets = args.assets or list(MASKS)
+    unknown = [key for key in targets if key not in MASKS]
+    if unknown:
+        raise SystemExit(f"unknown window-glow masks: {', '.join(unknown)}")
+
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     previews = []
-    for key, spec in MASKS.items():
+    for key in targets:
+        spec = MASKS[key]
         output = OUTPUT_DIR / f"{key}.png"
         mask = build_mask(spec)
         mask.save(output, optimize=True)
@@ -200,6 +237,9 @@ def main():
         preview.thumbnail((280, 220), Image.Resampling.LANCZOS)
         previews.append((key, preview))
         print(output.relative_to(ROOT))
+
+    if args.assets:
+        return
 
     sheet = Image.new("RGB", (1200, ((len(previews) + 3) // 4) * 260), (23, 27, 31))
     for index, (key, preview) in enumerate(previews):

@@ -3,6 +3,12 @@ import { Enemy } from './enemy.js';
 import { distanceToEntityShape } from '../utils/collision-helpers.js';
 import { canMeleeShareSurface } from '../combat/melee-surface.js';
 import {
+    canImpactBasicMelee,
+    canStartBasicMelee,
+    createBasicMeleeSnapshot,
+} from '../combat/melee-attack-resolver.js';
+import { burstParticles } from '../effects/combat-fx.js';
+import {
     hasRangedLineOfSight,
     rangedLineOfSightCacheToken,
 } from '../combat/ranged-line-of-sight.js';
@@ -79,6 +85,7 @@ class BlackWolf extends Enemy {
         this._biteTimer = 0;
         this._biteCooldown = 0;
         this._biteTarget = null;
+        this._biteSnapshot = null;
         this._biteDamaged = false;
         // 只保留撕咬：关闭通用 CombatSystem 攻击决策，撕咬由本类状态机自主触发
         this.aiInterval = Number.MAX_SAFE_INTEGER;
@@ -164,10 +171,9 @@ class BlackWolf extends Enemy {
             if (this.target && this.target.active) {
                 const hasLOS = this._hasLOSTo(this.target);
                 const dist = Math.hypot(this.target.x - this.x, this.target.y - this.y);
-                // bite 触发与命中同口径（边缘距 ≤ biteRange），避免"触发严格于命中"的空窗
-                if (this._biteCooldown <= 0 && hasLOS && this._isTargetInRange(this.target, this.config?.biteRange ?? 150)) {
-                    this._startBite();
-                    return;
+                // 普通撕咬使用方向性单目标合同；飞扑仍保留位移技能自己的距离语义。
+                if (this._biteCooldown <= 0 && hasLOS && this._canStartBite(this.target)) {
+                    if (this._startBite()) return;
                 }
                 // pounce 触发保持技能射程语义（中心距 ≤ pounceRange，与 mutant-3 一致）
                 if (this._usesPounce && this._pounceCooldown <= 0 && hasLOS && dist <= (this.config?.pounceRange ?? 500)) {
@@ -215,7 +221,7 @@ class BlackWolf extends Enemy {
         }
     }
 
-    // 飞扑冲锋阶段：锁方向位移 + 命中检测 + 残影（红狼王共享，参照 mutant-3）
+    // 飞扑冲锋阶段：锁定发动时目标坐标 + 命中检测 + 红烟轨迹。
     _updatePounceCharge(dt) {
         const dtSec = dt / 1000;
         this._facing = this._pounceDir.x >= 0 ? 'right' : 'left';
@@ -223,7 +229,7 @@ class BlackWolf extends Enemy {
         this._facingDir = this._facing;
         this._animState = 'attack';
 
-        // 向终点移动（穿过目标 overshoot 或最远 maxDist），冲锋阶段固定 1 秒
+        // 向锁定终点移动，最远不超过 maxDist。
         const distToEnd = this._pounceTargetPos
             ? Math.hypot(this._pounceTargetPos.x - this.x, this._pounceTargetPos.y - this.y)
             : 0;
@@ -241,7 +247,7 @@ class BlackWolf extends Enemy {
         if (!this._pounceDamaged && hitTarget && hitTarget.active && hitTarget.hittable) {
             if (this._isTargetInRange(hitTarget, this.config?.pounceHitDistance ?? 100)
                 && canMeleeShareSurface(this, hitTarget)) {
-                hitTarget.takeDamage(this._getPounceDamage(), this, 'physical', true);
+                this._dealPhysicalHit(hitTarget, this._getPounceDamage());
                 this._pounceDamaged = true;
                 // 盾牌弹反：不再眩晕，弹反本身已处理（参照 mutant-3）
                 const parried = hitTarget.shieldSystem && hitTarget.shieldSystem._lastParried;
@@ -258,11 +264,11 @@ class BlackWolf extends Enemy {
             }
         }
 
-        // 冲锋速度线条（色块链风格，参考 LightningBoltEffect；替代残影）
-        this._pounceGhostTimer -= dt;
-        if (this._pounceGhostTimer <= 0) {
-            this._spawnSpeedLine();
-            this._pounceGhostTimer = 80;
+        // 沿实际位移点连续散布红烟，终点和方向都自然跟随飞扑轨迹。
+        this._pounceTrailTimer -= dt;
+        if (this._pounceTrailTimer <= 0) {
+            this._spawnPounceSmoke();
+            this._pounceTrailTimer = 65;
         }
 
         this._pounceTimer -= dt;
@@ -277,7 +283,7 @@ class BlackWolf extends Enemy {
         this._animTimer += dt;
         if (this._animState === 'attack') {
             if (this._biteState === 'attacking') {
-                // 普通撕咬：6 帧匀速推进（100ms/帧）
+                // 普通撕咬：按配置帧时长推进；红狼王快咬合版为 21 帧 @50ms。
                 const frameDuration = this._frameDurations.bite || 100;
                 if (this._animTimer >= frameDuration) {
                     this._animTimer = 0;
@@ -313,21 +319,64 @@ class BlackWolf extends Enemy {
     }
 
     // ===== 普通撕咬（近距离常态化攻击，小幅度、无突进）=====
+    _getBiteWidth() {
+        return this.config?.biteWidth
+            ?? this.config?.attack?.width
+            ?? 20;
+    }
+
+    _getBiteStartConfig() {
+        return {
+            range: this.config?.biteRange ?? 150,
+            width: this._getBiteWidth(),
+        };
+    }
+
+    _getBiteImpactConfig() {
+        return {
+            range: this.config?.biteHitDistance ?? 90,
+            width: this._getBiteWidth(),
+        };
+    }
+
+    getBasicMeleeApproachConfig() {
+        return this._getBiteStartConfig();
+    }
+
+    _canStartBite(target) {
+        return canStartBasicMelee(this, target, this._getBiteStartConfig());
+    }
+
     _startBite() {
-        if (this._biteState !== 'idle') return;
+        if (this._biteState !== 'idle' || !this._canStartBite(this.target)) return false;
+        const biteTarget = this.target;
         this._biteState = 'attacking';
         this._animState = 'attack';
         this._frozenForCast = true; // 攻击期间锁定移动（防边攻击边漂移）
         this._biteTimer = this._attackTypes?.bite?.durationMs ?? 600;
         this._biteCooldown = this.config?.biteCooldown ?? 1200;
-        this._biteTarget = this.target;
+        this._biteTarget = biteTarget;
+        this._biteSnapshot = createBasicMeleeSnapshot(
+            this,
+            biteTarget,
+            this._getBiteImpactConfig()
+        );
         this._biteDamaged = false;
         this._animFrame = 0;
         this._animTimer = 0;
-        if (this.target && this.target.active) {
-            this._facing = this.target.x >= this.x ? 'right' : 'left';
+        if (biteTarget && biteTarget.active) {
+            this._facing = biteTarget.x >= this.x ? 'right' : 'left';
             this._lastHorizontalFacing = this._facing;
         }
+        return true;
+    }
+
+    _tryBiteImpact() {
+        if (this._biteDamaged || !this._biteTarget || !this._biteSnapshot) return false;
+        if (!canImpactBasicMelee(this, this._biteTarget, this._biteSnapshot)) return false;
+        this._dealPhysicalHit(this._biteTarget, this._getBiteDamage());
+        this._biteDamaged = true;
+        return true;
     }
 
     _updateBite(dt) {
@@ -344,13 +393,7 @@ class BlackWolf extends Enemy {
         // 动画中段（约 200~450ms）命中一次
         const elapsed = (this._attackTypes?.bite?.durationMs ?? 600) - this._biteTimer;
         if (!this._biteDamaged && elapsed >= 200 && elapsed <= 450) {
-            const t = this._biteTarget && this._biteTarget.active ? this._biteTarget : this.target;
-            if (t && t.active && t.hittable
-                && this._isTargetInRange(t, this.config?.biteHitDistance ?? 90)
-                && canMeleeShareSurface(this, t)) {
-                t.takeDamage(this._getBiteDamage(), this, 'physical', true);
-                this._biteDamaged = true;
-            }
+            this._tryBiteImpact();
         }
         if (this._biteTimer <= 0) {
             this._endBite();
@@ -362,6 +405,7 @@ class BlackWolf extends Enemy {
         this._frozenForCast = false;
         this._biteTimer = 0;
         this._biteTarget = null;
+        this._biteSnapshot = null;
         this._biteDamaged = false;
         this._animState = 'idle';
         this._animFrame = 0;
@@ -370,6 +414,10 @@ class BlackWolf extends Enemy {
     _getBiteDamage() {
         // 普通撕咬：物理攻击基础伤害（无致残/眩晕附加）
         return this.data.atk || this.data.str || 20;
+    }
+
+    _dealPhysicalHit(target, damage) {
+        return target.takeDamage(damage, this, 'physical', true);
     }
 
     // ===== 飞扑状态机（红狼王共享实现；黑狼只保留撕咬，不触发）=====
@@ -395,11 +443,10 @@ class BlackWolf extends Enemy {
         this._pounceState = 'charge';
         this._pounceAnimPhase = 'charge';
         this._frozenForCast = false;
-        this._pounceGhostTimer = 0;
+        this._pounceTrailTimer = 0;
         this._pounceDamaged = false;
 
         const maxDist = this.config?.pounceMaxDist ?? 1000;
-        const overshoot = this.config?.pounceOvershoot ?? 200;
         const target = this._pounceTarget && this._pounceTarget.active ? this._pounceTarget : this.target;
         if (target && target.active) {
             const dx = target.x - this.x;
@@ -407,21 +454,20 @@ class BlackWolf extends Enemy {
             const dist = Math.hypot(dx, dy);
             if (dist > 0) {
                 this._pounceDir = { x: dx / dist, y: dy / dist };
-                const clamped = Math.min(dist + overshoot, maxDist);
+                // 飞扑位移在冲锋开始时快照目标位置，不再穿过目标或动态追踪。
+                const clamped = Math.min(dist, maxDist);
                 this._pounceTargetPos = {
                     x: this.x + this._pounceDir.x * clamped,
                     y: this.y + this._pounceDir.y * clamped
                 };
                 this._pounceChargeDistance = clamped;
             } else {
-                this._pounceDir = { x: 1, y: 0 };
-                this._pounceTargetPos = { x: this.x + Math.min(overshoot, maxDist), y: this.y };
-                this._pounceChargeDistance = Math.min(overshoot, maxDist);
+                this._endPounce();
+                return;
             }
         } else {
-            this._pounceDir = { x: 1, y: 0 };
-            this._pounceTargetPos = { x: this.x + Math.min(overshoot, maxDist), y: this.y };
-            this._pounceChargeDistance = Math.min(overshoot, maxDist);
+            this._endPounce();
+            return;
         }
 
         // 冲锋时长由配置驱动（chargeMs），速度 = 距离/时长（当前 1250ms = 比原 1s 慢 25%）
@@ -441,7 +487,7 @@ class BlackWolf extends Enemy {
         this._frozenForCast = false;
         this._attackAnimTimer = 0;
         this._pounceTimer = 0;
-        this._pounceGhostTimer = 0;
+        this._pounceTrailTimer = 0;
         this._pounceTargetPos = null;
         this._pounceDamaged = false;
         this._pounceTarget = null;
@@ -450,7 +496,7 @@ class BlackWolf extends Enemy {
     }
 
     _getPounceDamage() {
-        // 飞扑只造成一次等于物理攻击的伤害（参照 mutant-3）
+        // 基类默认 1 倍；红狼王覆盖为 2 倍。
         return this.data.atk || this.data.str || 20;
     }
 
@@ -473,45 +519,28 @@ class BlackWolf extends Enemy {
         return hasRangedLineOfSight(this, target, 8, ignore);
     }
 
-    // 冲锋速度线条：狼身后沿反方向拖出短色块链（参考 LightningBoltEffect 的
-    // 圆块辉光风格——线条感强于纯粒子、柔于纯线条，折中方案）
-    _spawnSpeedLine() {
-        const scene = window.__phaserScene;
-        if (!scene || !this._pounceDir) return;
-        const dirX = -this._pounceDir.x; // 反方向 = 狼身后
-        const dirY = -this._pounceDir.y;
-        const len = 55 + Math.random() * 35;
-        const perp = Math.random() < 0.5 ? -1 : 1; // 上下随机偏移，避免整齐呆板
-        const off = 6 + Math.random() * 10;
-        const sx = this.x + dirX * 25 + (-dirY * perp * off);
-        const sy = this.y + dirY * 25 + (dirX * perp * off);
-        const n = 6;
-        const life = { t: 0, max: 170 };
-        const g = scene.add.graphics();
-        g.setBlendMode('ADD');
-        const spriteDepth = this._phaserSprite ? this._phaserSprite.depth : 0;
-        g.setDepth(spriteDepth + 1);
-        if (scene.worldEffectsGroup) scene.worldEffectsGroup.add(g);
-        const onUpdate = () => {
-            life.t += 16;
-            const p = Math.max(0, 1 - life.t / life.max);
-            g.clear();
-            for (let i = 0; i < n; i++) {
-                const f = i / (n - 1);
-                const x = sx + dirX * len * f;
-                const y = sy + dirY * len * f;
-                const r = Math.max(1, (4.5 - 2 * f) * p);
-                g.fillStyle(0xffffff, 0.65 * p);
-                g.fillCircle(x, y, r + 2); // 外层辉光
-                g.fillStyle(0x9fd4ff, 0.85 * p);
-                g.fillCircle(x, y, r); // 内芯
-            }
-            if (life.t >= life.max) {
-                g.destroy();
-                scene.events.off('update', onUpdate);
-            }
-        };
-        scene.events.on('update', onUpdate);
+    // 飞扑轨迹红烟：每个采样点生成短寿命烟团，使用 NORMAL 混合避免白色发光线。
+    _spawnPounceSmoke() {
+        const depth = this._phaserSprite ? this._phaserSprite.depth - 1 : this.y + 999;
+        const groundRadius = Number(this.groundRadius) || 0;
+        burstParticles({
+            texture: 'smoke_particle',
+            x: this.x - this._pounceDir.x * 16,
+            y: this.y - this._pounceDir.y * 16 + groundRadius * 0.2,
+            count: 4,
+            jitter: 12,
+            config: {
+                speed: { min: 12, max: 48 },
+                angle: { min: 0, max: 360 },
+                scale: { start: 0.65, end: 1.9 },
+                alpha: { start: 0.58, end: 0 },
+                lifespan: { min: 460, max: 760 },
+                tint: [0x3b070b, 0x7d0d16, 0xb51c26, 0xd6403f],
+                blendMode: 'NORMAL',
+            },
+            destroyAfterMs: 850,
+            depth,
+        });
     }
 
     _getTextureKey() {
@@ -700,9 +729,9 @@ class BlackWolf extends Enemy {
 }
 
 /**
- * 红狼王（elite，2026-08-23 母版六动作重构）：
- * - 唯一视觉形态：idle / running / bite / pounce / howl / dying；
- * - HP ≤ 阈值仍触发二阶段数值强化，但以狼形嚎叫呈现，不再切换旧人形贴图；
+ * 红狼王（elite，2026-08-23 母版六动作 + 狼人变身）：
+ * - 狼形使用 idle / running / bite / pounce / howl / dying 六套母版；
+ * - HP ≤ 阈值播放新 H3 狼→狼人变身，完成后保持狼人末帧承接二阶段；
  * - 攻击与飞扑使用 640 格，运行时按 512 基准归一化显示尺寸与脚底；
  * - 动画继续走 Phaser setFrame 帧索引路径，死亡接入保尸生命周期。
  */
@@ -732,7 +761,8 @@ class RedWolfKing extends BlackWolf {
             attack: 100,
             pacing: 160
         };
-        // 六套母版狼形贴图；walk/pacing 共用 running，不再保留独立旧巡游素材。
+        // 六套母版狼形贴图；walk/pacing 共用 running。transform 是本轮新 H3
+        // 首尾帧视频导出的 20 帧序列，不复用已经退出运行时的旧狼人资产。
         const runningSprite = loadImage(spritePaths.run || spritePaths.side || 'assets/enemies/red_wolf_king/running.png');
         this._wolfSprites = {
             side: runningSprite,
@@ -746,10 +776,28 @@ class RedWolfKing extends BlackWolf {
             pounce: loadImage(spritePaths.pounce || 'assets/enemies/red_wolf_king/pounce.png'),
             dying: loadImage(spritePaths.dying || 'assets/enemies/red_wolf_king/dying.png'),
             howl: loadImage(spritePaths.howl || 'assets/enemies/red_wolf_king/howl.png'),
+            transform: loadImage(spritePaths.transform || 'assets/enemies/red_wolf_king/transform.png'),
+        };
+        this._werewolfSprites = {
+            idle: loadImage(spritePaths.werewolfIdle || 'assets/enemies/red_wolf_king/werewolf_idle.png'),
+            run: loadImage(spritePaths.werewolfRun || 'assets/enemies/red_wolf_king/werewolf_running.png'),
+            attack: loadImage(spritePaths.werewolfAttack || 'assets/enemies/red_wolf_king/werewolf_attacking.png'),
+            howl: loadImage(spritePaths.werewolfHowl || 'assets/enemies/red_wolf_king/werewolf_howling.png'),
+            dying: loadImage(spritePaths.werewolfDying || 'assets/enemies/red_wolf_king/werewolf_dying.png'),
         };
         this._sprites = this._wolfSprites;
-        // 二阶段配置：保留原数值强化和减伤窗口，视觉始终为狼形。
+        // 二阶段配置：全属性强化、变身减伤和专属暴击，完成后切入狼人五动作。
         this._transformCfg = this._animCfg.transform || {};
+        this._werewolfVisualScaleTarget = this._transformCfg.werewolfVisualScale ?? 1.25;
+        this._werewolfCollisionScaleTarget = this._transformCfg.werewolfCollisionScale ?? 1.25;
+        this._werewolfCollisionBase = null;
+        this._appliedWerewolfCollisionScale = 1;
+        this._transformedFrameDurations = anim.transformedFrameDurations || {
+            idle: 90,
+            walk: 124.583333,
+            run: 115,
+            pacing: 153.333333,
+        };
         this._isTransforming = false;
         this._isTransformed = false;
         this._transformTriggered = false;
@@ -769,7 +817,7 @@ class RedWolfKing extends BlackWolf {
         this._pounceDir = { x: 0, y: 0 };
         this._pounceSpeed = 0;
         this._pounceDamaged = false;
-        this._pounceGhostTimer = 0;
+        this._pounceTrailTimer = 0;
         // 二阶段主动嚎叫，给场上全体怪物激励 30s。
         this._howlCd = 0;
         // 死亡动画与短暂保尸；Game/GameScene 已识别同名计时字段。
@@ -788,11 +836,12 @@ class RedWolfKing extends BlackWolf {
             return;
         }
 
-        // 半血阶段强化：仍保留原数值契约，视觉改为狼形嚎叫，不再切换人形。
+        // 半血阶段强化：保留原数值契约，同时播放狼→狼人变身序列。
         if (!this._transformTriggered && this.maxHp > 0 && this.hp / this.maxHp <= (this._transformCfg.hpThreshold ?? 0.5)) {
             this._transformTriggered = true;
             this._isTransforming = true;
             this._transformTimer = this._transformCfg.duration ?? 2000;
+            this._captureWerewolfCollisionBase();
             this._animFrame = 0;
             this._animTimer = 0;
         }
@@ -815,6 +864,9 @@ class RedWolfKing extends BlackWolf {
                 this._howlCd = Math.min(this._getHowlConfig().cooldown ?? 30000, 5000);
             }
         }
+        if (this._isTransforming || this._isTransformed) {
+            this._syncWerewolfCollisionScale();
+        }
         if (this._howlTimer > 0) {
             this._howlTimer -= dt;
             this.vx = 0;
@@ -835,17 +887,21 @@ class RedWolfKing extends BlackWolf {
             && !this._isTransforming && this._howlTimer <= 0) {
             this._startHowl(entities);
         }
-        // 阶段切换和主动嚎叫都完整使用同一套狼形 howl 12 帧。
+        // 变身期完整播放20帧；完成后保留 BlackWolf 的真实 idle/run/attack 状态，
+        // 仅在主动嚎叫期间强制切到狼人 howl。
         if (this._isTransforming) {
-            this._animState = 'howl';
-            this._animFrame = this._timerFrame(this._transformTimer, this._transformCfg.duration ?? 2000);
+            this._animState = 'transform';
         } else if (this._howlTimer > 0) {
             this._animState = 'howl';
+        }
+        this._sprites = this._isTransformed ? this._werewolfSprites : this._wolfSprites;
+        this._syncVisualState();
+        if (this._isTransforming) {
+            this._animFrame = this._timerFrame(this._transformTimer, this._transformCfg.duration ?? 2000);
+        } else if (this._howlTimer > 0) {
             const howlTotal = this._getHowlConfig().duration ?? 3000;
             this._animFrame = this._timerFrame(this._howlTimer, howlTotal);
         }
-        this._sprites = this._wolfSprites;
-        this._syncVisualState();
         this._syncVisualFrameMetrics();
     }
 
@@ -893,20 +949,86 @@ class RedWolfKing extends BlackWolf {
         return Math.max(0, Math.min(n - 1, Math.floor(progress * n)));
     }
 
+    _getTransformProgress() {
+        if (this._isTransformed) return 1;
+        if (!this._isTransforming) return 0;
+        const duration = this._transformCfg.duration ?? 2000;
+        return Math.max(0, Math.min(1, 1 - this._transformTimer / Math.max(1, duration)));
+    }
+
+    _getWerewolfScale(targetScale) {
+        return 1 + (Math.max(1, targetScale) - 1) * this._getTransformProgress();
+    }
+
+    _captureWerewolfCollisionBase() {
+        if (this._werewolfCollisionBase) return;
+        const radius = this.collisionRadius > 0 ? this.collisionRadius : (this.size || 20) * 0.6;
+        const width = this.collisionWidth > 0 ? this.collisionWidth : radius * 2;
+        const height = this.collisionHeight > 0 ? this.collisionHeight : radius * 2;
+        const bodyHeight = this.collider?.height > 0 ? this.collider.height : height;
+        this._werewolfCollisionBase = { radius, width, height, bodyHeight };
+    }
+
+    _applyWerewolfCollisionScale(scale) {
+        this._captureWerewolfCollisionBase();
+        const base = this._werewolfCollisionBase;
+        if (!base) return;
+        const safeScale = Math.max(1, scale);
+        if (Math.abs(safeScale - this._appliedWerewolfCollisionScale) < 0.0001) return;
+        this.collisionRadius = base.radius * safeScale;
+        this.collisionWidth = base.width * safeScale;
+        this.collisionHeight = base.height * safeScale;
+        if (this.collider) {
+            this.collider.radius = this.collisionRadius;
+            this.collider.height = base.bodyHeight * safeScale;
+            this.collider.syncPosition();
+        }
+        const body = this._phaserSprite?.body;
+        if (body && typeof body.setSize === 'function') {
+            body.setSize(this.collisionWidth, this.collisionHeight);
+        }
+        this._appliedWerewolfCollisionScale = safeScale;
+    }
+
+    _syncWerewolfCollisionScale() {
+        const scale = this._getWerewolfScale(this._werewolfCollisionScaleTarget);
+        this._applyWerewolfCollisionScale(scale);
+    }
+
+    _updateAnimFrame(dt) {
+        if (!this._isTransformed) {
+            super._updateAnimFrame(dt);
+            return;
+        }
+        const normalDurations = this._frameDurations;
+        this._frameDurations = { ...normalDurations, ...this._transformedFrameDurations };
+        try {
+            super._updateAnimFrame(dt);
+        } finally {
+            this._frameDurations = normalDurations;
+        }
+    }
+
     _applyTransform() {
-        // 伤害 ×2（transform.damageMultiplier）
-        const atk = this.attacks && this.attacks.melee;
-        if (atk && atk.config && atk.config.damage) {
-            const d = atk.config.damage;
-            atk.config.damage = typeof d === 'object'
-                ? { min: (d.min || 0) * 2, max: (d.max || 0) * 2 }
-                : (typeof d === 'number' ? d * 2 : d);
+        const multiplier = this._transformCfg.statMultiplier ?? 1.5;
+        // 一次性强化六维与派生战斗属性；技能范围、冷却和碰撞几何不属于属性倍率。
+        for (const key of ['str', 'dex', 'con', 'int', 'wis', 'luck', 'atk', 'def', 'matk', 'mdef', 'crit', 'critRes']) {
+            if (typeof this.data?.[key] === 'number') {
+                this.data[key] = Math.round(this.data[key] * multiplier);
+            }
         }
-        // 回血（hpRecover 比例，1=回满）
-        const recover = this._transformCfg.hpRecover ?? 0;
-        if (recover && this.maxHp) {
-            this.hp = Math.min(this.maxHp, this.hp + this.maxHp * recover);
+        this.maxHp = Math.max(1, Math.round(this.maxHp * multiplier));
+        this.data.maxHp = this.maxHp;
+        if (this._transformCfg.healToFull !== false) this.hp = this.maxHp;
+        this.data.hp = this.hp;
+        for (const key of ['speed', 'maxSpeed', '_baseSpeed']) {
+            if (typeof this[key] === 'number' && this[key] > 0) this[key] *= multiplier;
         }
+        // 二阶段只使用狼人普通攻击与嚎叫；狼人没有飞扑母版，也不再进入狼形飞扑状态。
+        this._usesPounce = false;
+        this._pounceCooldown = 0;
+        // 运行时面板同步显示二阶段的真实暴击率；伤害倍率在专属命中入口结算。
+        this.data.crit = (this._transformCfg.criticalChance ?? 0.5) * 100;
     }
 
     // 变身期减伤（默认 90%，transform.damageReduction 可配）：
@@ -921,15 +1043,38 @@ class RedWolfKing extends BlackWolf {
 
     // 双攻击绑定：近距离撕咬和中距离飞扑分别选择独立母版 sheet。
     _startBite() {
-        if (!this.active || this._deathStarted || this._isTransforming || this._howlTimer > 0) return;
+        if (!this.active || this._deathStarted || this._isTransforming || this._howlTimer > 0) return false;
         this._attackType = 'bite';
-        super._startBite();
+        if (!super._startBite()) return false;
+        // 出手瞬间锁定水平朝向，避免目标穿过中心线时整张攻击贴图逐帧左右翻转。
+        this._biteFacing = this._facing;
+        return true;
     }
 
     _startPounce() {
-        if (!this.active || this._deathStarted || this._isTransforming || this._howlTimer > 0) return;
+        if (!this.active || this._deathStarted || this._isTransforming || this._isTransformed || this._howlTimer > 0) return;
         this._attackType = 'pounce';
         super._startPounce();
+    }
+
+    _getPounceDamage() {
+        const baseDamage = super._getPounceDamage();
+        return baseDamage * (this.config?.pounceDamageMultiplier ?? 2);
+    }
+
+    _dealPhysicalHit(target, damage) {
+        if (!this._isTransformed) return super._dealPhysicalHit(target, damage);
+        const isCritical = Math.random() < (this._transformCfg.criticalChance ?? 0.5);
+        const finalDamage = isCritical
+            ? damage * (this._transformCfg.criticalDamageMultiplier ?? 2.5)
+            : damage;
+        // 伤害已在攻击者侧结算；该一次性标记只让统一受击入口显示同一次暴击结果。
+        this._forcedHitCritical = isCritical;
+        try {
+            return super._dealPhysicalHit(target, finalDamage);
+        } finally {
+            delete this._forcedHitCritical;
+        }
     }
 
     _startCharge() {
@@ -941,16 +1086,16 @@ class RedWolfKing extends BlackWolf {
         this._animTimer = 0;
     }
 
-    // 撕咬 1.2s（12 帧 @100ms/帧），伤害判定落在扑咬爆发段（约 42%~75% 时长，对应帧 5~9），
-    // 避免命中落在蓄力前段。
+    // 撕咬 1.2s（21 帧 @50ms/帧，末帧闭嘴定格），伤害判定落在扑咬爆发段
+    //（约 42%~75% 时长，对应帧 10~18），最后两帧快速完成咬合。
     _updateBite(dt) {
         this._biteTimer -= dt;
         this.vx = 0;
         this.vy = 0;
         this.isMoving = false;
         this._animState = 'attack';
-        if (this._biteTarget && this._biteTarget.active) {
-            this._facing = this._biteTarget.x >= this.x ? 'right' : 'left';
+        if (this._biteFacing === 'left' || this._biteFacing === 'right') {
+            this._facing = this._biteFacing;
             this._lastHorizontalFacing = this._facing;
         }
         const duration = this._attackTypes?.bite?.durationMs ?? 600;
@@ -958,13 +1103,7 @@ class RedWolfKing extends BlackWolf {
         const hitStart = Math.round(duration * 0.42);
         const hitEnd = Math.round(duration * 0.75);
         if (!this._biteDamaged && elapsed >= hitStart && elapsed <= hitEnd) {
-            const t = this._biteTarget && this._biteTarget.active ? this._biteTarget : this.target;
-            if (t && t.active && t.hittable
-                && this._isTargetInRange(t, this.config?.biteHitDistance ?? 100)
-                && canMeleeShareSurface(this, t)) {
-                t.takeDamage(this._getBiteDamage(), this, 'physical', true);
-                this._biteDamaged = true;
-            }
+            this._tryBiteImpact();
         }
         if (this._biteTimer <= 0) {
             this._endBite();
@@ -977,6 +1116,7 @@ class RedWolfKing extends BlackWolf {
 
     onDeath(source) {
         if (this._deathStarted) return;
+        const diedDuringTransform = this._isTransforming && !this._isTransformed;
         if (this._biteState === 'attacking') this._endBite();
         if (this._pounceState !== 'idle') this._endPounce();
         this._deathStarted = true;
@@ -1000,6 +1140,7 @@ class RedWolfKing extends BlackWolf {
         this._corpseTimer = 0;
         this._preserveCorpse = true;
         this._deathRemoveDelay = duration + holdMs + 500;
+        if (diedDuringTransform) this._applyWerewolfCollisionScale(1);
         this._syncVisualFrameMetrics();
         super.onDeath(source);
     }
@@ -1009,7 +1150,9 @@ class RedWolfKing extends BlackWolf {
         const death = this._getDeathConfig();
         const duration = death.duration ?? 2000;
         const holdMs = death.holdMs ?? 1000;
-        const layout = this._frameLayouts?.dying || { cols: 4, rows: 3, frames: 12 };
+        const layout = this._isTransformed
+            ? (this._frameLayouts?.werewolfDying || { cols: 5, rows: 4, frames: 20 })
+            : (this._frameLayouts?.dying || { cols: 4, rows: 3, frames: 12 });
         const lastFrame = Math.min(layout.frames - 1, death.lastFrame ?? (layout.frames - 1));
         this._animState = 'death';
         if (this._deathAnimTimer > 0) {
@@ -1036,9 +1179,22 @@ class RedWolfKing extends BlackWolf {
     }
 
     _getTextureKey() {
-        if (this._deathStarted) return 'enemy_red_wolf_king_dying';
+        if (this._deathStarted) return this._isTransformed
+            ? 'enemy_red_wolf_king_werewolf_dying'
+            : 'enemy_red_wolf_king_dying';
+        if (this._isTransforming) return 'enemy_red_wolf_king_transform';
+        if (this._isTransformed) {
+            if (this._isAnimationFrozen() || this._animState === 'idle') {
+                return 'enemy_red_wolf_king_werewolf_idle';
+            }
+            if (this._howlTimer > 0 || this._animState === 'howl') {
+                return 'enemy_red_wolf_king_werewolf_howl';
+            }
+            if (this._animState === 'attack') return 'enemy_red_wolf_king_werewolf_attack';
+            return 'enemy_red_wolf_king_werewolf_run';
+        }
         if (this._isAnimationFrozen()) return 'enemy_red_wolf_king_idle';
-        if (this._isTransforming || this._howlTimer > 0 || this._animState === 'howl') {
+        if (this._howlTimer > 0 || this._animState === 'howl') {
             return 'enemy_red_wolf_king_howl';
         }
         if (this._animState === 'attack') {
@@ -1052,9 +1208,26 @@ class RedWolfKing extends BlackWolf {
 
     _getFrameLayout(state) {
         const layouts = this._frameLayouts || {};
-        if (this._deathStarted || state === 'death') return layouts.dying || { cols: 4, rows: 3, frames: 12 };
+        if (this._deathStarted || state === 'death') return this._isTransformed
+            ? (layouts.werewolfDying || { cols: 5, rows: 4, frames: 20, frameWidth: 640, frameHeight: 640, footY: 590 })
+            : (layouts.dying || { cols: 4, rows: 3, frames: 12 });
+        if (this._isTransforming || state === 'transform') {
+            return layouts.transform || { cols: 5, rows: 4, frames: 20, frameWidth: 640, frameHeight: 640, footY: 590 };
+        }
+        if (this._isTransformed) {
+            if (this._isAnimationFrozen() || state === 'idle' || this._animState === 'idle') {
+                return layouts.werewolfIdle || { cols: 5, rows: 4, frames: 20, frameWidth: 640, frameHeight: 640, footY: 590 };
+            }
+            if (this._howlTimer > 0 || state === 'howl' || this._animState === 'howl') {
+                return layouts.werewolfHowl || { cols: 5, rows: 4, frames: 20, frameWidth: 640, frameHeight: 640, footY: 590 };
+            }
+            if (this._animState === 'attack') {
+                return layouts.werewolfAttack || { cols: 6, rows: 4, frames: 21, frameWidth: 640, frameHeight: 640, footY: 590 };
+            }
+            return layouts.werewolfRun || { cols: 8, rows: 6, frames: 12, frameWidth: 640, frameHeight: 640, footY: 606 };
+        }
         if (this._isAnimationFrozen()) return layouts.idle || { cols: 4, rows: 3, frames: 12 };
-        if (this._isTransforming || this._howlTimer > 0 || this._animState === 'howl') {
+        if (this._howlTimer > 0 || this._animState === 'howl') {
             return layouts.howl || { cols: 4, rows: 3, frames: 12 };
         }
         if (this._animState === 'attack') {
@@ -1071,8 +1244,16 @@ class RedWolfKing extends BlackWolf {
 
     _getVisualStateKey() {
         if (this._deathStarted) return 'death';
+        if (this._isTransforming) return 'transform';
+        if (this._isTransformed) {
+            if (this._isAnimationFrozen()) return 'werewolf:idle';
+            if (this._howlTimer > 0 || this._animState === 'howl') return 'werewolf:howl';
+            if (this._animState === 'attack') return `werewolf:attack:${this._attackType}`;
+            if (this._animState === 'idle') return 'werewolf:idle';
+            return 'werewolf:locomotion';
+        }
         if (this._isAnimationFrozen()) return 'idle';
-        if (this._isTransforming || this._howlTimer > 0 || this._animState === 'howl') return 'howl';
+        if (this._howlTimer > 0 || this._animState === 'howl') return 'howl';
         if (this._animState === 'attack') return `attack:${this._attackType}`;
         if (this._animState === 'idle') return 'idle';
         return 'locomotion';
@@ -1092,8 +1273,9 @@ class RedWolfKing extends BlackWolf {
         const referenceCell = render.referenceCell ?? 512;
         const frameW = layout.frameWidth ?? referenceCell;
         const frameH = layout.frameHeight ?? referenceCell;
+        const formScale = this._getWerewolfScale(this._werewolfVisualScaleTarget);
         const spriteSize = (render.spriteSize ?? 151) * Math.max(frameW, frameH) / referenceCell
-            * (layout.contentScale ?? 1);
+            * (layout.contentScale ?? 1) * formScale;
         const footY = layout.footY ?? frameH;
         this._currentSpriteDisplaySize = spriteSize;
         this.footOffsetY = (footY / frameH - 0.5) * spriteSize;
@@ -1103,8 +1285,17 @@ class RedWolfKing extends BlackWolf {
         this._syncVisualFrameMetrics();
         const opts = super._getPhaserOptions();
         opts.spriteSize = this._currentSpriteDisplaySize;
+        opts.dynamicSpriteSize = this._isTransforming;
         // 死亡后状态效果不再更新；若死前处于眩晕/冻结，不能让遗留状态把 dying 永久钉在第 0 帧。
-        opts.frame = (!this._deathStarted && this._isAnimationFrozen()) ? 0 : this._animFrame;
+        // 该规则只适用于未变身狼形；狼人冻结改走独立 werewolf idle，不得闪回四足狼。
+        const freezeWolfFrame = !this._deathStarted && !this._isTransforming && !this._isTransformed
+            && this._isAnimationFrozen();
+        opts.frame = freezeWolfFrame ? 0 : this._animFrame;
+        // 普通攻击素材各帧水平内容中心漂移较大；只在咬击阶段启用逐帧 X 校正。
+        // 飞扑保留真实位移与素材自身动态，不复用这组偏移。
+        if (!this._isTransformed && this._animState === 'attack' && this._attackType === 'bite') {
+            opts.frameOffsetKey = 'enemy_red_wolf_king_attack';
+        }
         return opts;
     }
 
@@ -1114,10 +1305,29 @@ class RedWolfKing extends BlackWolf {
     }
 
     _drawBody(ctx) {
+        if (this._isTransformed) {
+            let werewolf = this._werewolfSprites.run;
+            if (this._deathStarted) werewolf = this._werewolfSprites.dying;
+            else if (this._isAnimationFrozen() || this._animState === 'idle') werewolf = this._werewolfSprites.idle;
+            else if (this._howlTimer > 0 || this._animState === 'howl') werewolf = this._werewolfSprites.howl;
+            else if (this._animState === 'attack') werewolf = this._werewolfSprites.attack;
+            const layout = this._getFrameLayout(this._animState);
+            const shouldFlip = this._facing === 'left' ||
+                ((this._facing === 'up' || this._facing === 'down') && (
+                    (Math.abs(this.vx) > 0.1 && this.vx < 0) ||
+                    (Math.abs(this.vx) <= 0.1 && this._lastHorizontalFacing === 'left')
+                ));
+            ctx.save();
+            if (shouldFlip) ctx.scale(-1, 1);
+            this._drawSheetFrame(ctx, werewolf, layout);
+            ctx.restore();
+            return;
+        }
         let sprite = this._wolfSprites.run;
         if (this._deathStarted) sprite = this._wolfSprites.dying;
+        else if (this._isTransforming || this._isTransformed) sprite = this._wolfSprites.transform;
         else if (this._isAnimationFrozen() || this._animState === 'idle') sprite = this._wolfSprites.idle;
-        else if (this._isTransforming || this._howlTimer > 0 || this._animState === 'howl') sprite = this._wolfSprites.howl;
+        else if (this._howlTimer > 0 || this._animState === 'howl') sprite = this._wolfSprites.howl;
         else if (this._animState === 'attack') sprite = this._attackType === 'pounce'
             ? this._wolfSprites.pounce
             : this._wolfSprites.bite;
@@ -1147,8 +1357,9 @@ class RedWolfKing extends BlackWolf {
         const row = Math.floor(frame / lay.cols);
         const render = this._animCfg?.render || {};
         const referenceCell = render.referenceCell ?? 512;
+        const formScale = this._getWerewolfScale(this._werewolfVisualScaleTarget);
         const spriteSize = (render.spriteSize ?? 151) * Math.max(frameW, frameH) / referenceCell
-            * (lay.contentScale ?? 1);
+            * (lay.contentScale ?? 1) * formScale;
         const footY = lay.footY ?? frameH;
         const drawX = -spriteSize * 0.5;
         const drawY = -spriteSize * footY / frameH;
@@ -1169,6 +1380,7 @@ class CircleEnemy extends Enemy {
             ...config
         });
         this._useStickFigure = false;
+        this._usesDirectedBasicMelee = true;
         this._circleColor = config.color || this._color || '#8a8a4a';
     }
 

@@ -1,4 +1,4 @@
-// 研究院、铁匠铺与出兵建筑共用的升级项目卡片。
+// 经济建筑、研究院、铁匠铺与出兵建筑共用的升级项目卡片。
 import { CrossPlaneResourceSystem } from '../../world/cross-plane-resource-system.js';
 
 export function formatBuildingUpgradeRequirement(cost, maxed = false) {
@@ -32,6 +32,7 @@ export function renderBuildingUpgradeCard(options = {}) {
         inProgress = false,
         progressPct = 0,
         remainMs = 0,
+        statusText = '',
         barId,
         textId,
         actionsHtml = '',
@@ -42,7 +43,7 @@ export function renderBuildingUpgradeCard(options = {}) {
     const pct = Math.max(0, Math.min(100, Math.round(Number(progressPct) || 0)));
     const progressText = inProgress
         ? `升级中 ${pct}%（剩余 ${Math.max(0, Math.ceil((Number(remainMs) || 0) / 1000))}s）`
-        : '';
+        : statusText;
     const hasTechnologyGate = !!(technologyGateType && technologyGateId);
     const gateAttributes = hasTechnologyGate
         ? `data-technology-gate-type="${technologyGateType}" data-technology-gate-id="${technologyGateId}"`

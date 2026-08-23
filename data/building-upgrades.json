@@ -1,5 +1,5 @@
 {
-  "_comment": "世界-122 建筑升级项目库。建筑仅通过 producer-buildings.json / BARRACKS_CONFIG 的 upgradeProject 引用本文件；模块 effect 决定通用属性补丁，避免在建筑或 AI 中按模块名硬编码。",
+  "_comment": "世界-122 建筑升级项目库。建筑通过 producer-buildings.json 或独立经济建筑配置的 upgradeProject 引用本文件；出兵模块未声明 unitKinds 时覆盖引用建筑的全部兵种，声明后只覆盖列出的特殊兵种；模块 effect 决定通用属性补丁，避免在建筑或 AI 中按模块名硬编码。",
   "combat_standard": {
     "unitKinds": ["militia", "scout"],
     "moduleUpgrade": { "gold": 1000, "energy": 500, "timeBaseMs": 60000, "timeGrowthMs": 0 },
@@ -32,14 +32,14 @@
     }
   },
   "desert_cavalry_standard": {
-    "unitKinds": ["camel_cavalry"],
+    "unitKinds": ["camel_cavalry", "desert_priest"],
     "moduleUpgrade": { "gold": 1000, "energy": 500, "timeBaseMs": 60000, "timeGrowthMs": 0 },
     "modules": {
       "damage": { "name": "攻击强化", "icon": "⚔️", "iconImage": "assets/ui/building-upgrades/attack-damage.png", "effect": "attackDamageMult", "per": 0.025, "maxLevel": 10, "desc": "每次攻击伤害 +{pct}%" },
       "hp": { "name": "生命强化", "icon": "❤️", "iconImage": "assets/ui/building-upgrades/health.png", "effect": "hpMult", "per": 0.05, "maxLevel": 10, "desc": "单位生命 +{pct}%" },
       "moveSpd": { "name": "机动强化", "icon": "👟", "iconImage": "assets/ui/building-upgrades/mobility.png", "effect": "moveSpeedMult", "per": 0.015, "maxLevel": 10, "desc": "移动速度 +{pct}%" },
       "defense": { "name": "防御增强", "icon": "🛡️", "iconImage": "assets/ui/building-upgrades/defense.png", "effect": "defenseMult", "per": 0.05, "maxLevel": 10, "desc": "防御力 +{pct}%" },
-      "camelFright": { "name": "骆驼惊吓", "icon": "🐪", "iconImage": "assets/ui/building-upgrades/camel-fright.png", "effect": "camelFrightReduction", "mode": "add", "firstLevel": 0.1, "per": 0.02, "maxLevel": 6, "desc": "周围600px敌方伤害输出 -{pct}%" }
+      "camelFright": { "name": "骆驼惊吓", "icon": "🐪", "iconImage": "assets/ui/building-upgrades/camel-fright.png", "effect": "camelFrightReduction", "mode": "add", "firstLevel": 0.1, "per": 0.02, "maxLevel": 6, "unitKinds": ["camel_cavalry"], "desc": "周围600px敌方伤害输出 -{pct}%" }
     }
   },
   "shooting_range_special": {
@@ -67,8 +67,13 @@
     "moduleUpgrade": { "gold": 1000, "energy": 500, "timeBaseMs": 60000, "timeGrowthMs": 0 },
     "modules": {
       "damage": { "name": "攻击强化", "icon": "⚔️", "iconImage": "assets/ui/building-upgrades/attack-damage.png", "effect": "attackDamageMult", "per": 0.025, "maxLevel": 10, "unitKinds": ["bounty_hunter", "jaguar_warrior"], "desc": "每次攻击伤害 +{pct}%" },
+      "jungleKing": { "name": "丛林之王", "icon": "🐆", "iconImage": "assets/ui/building-upgrades/jungle-king.png", "effect": "attackDamageBonus", "mode": "add", "firstLevel": 0.1, "per": 0.02, "maxLevel": 6, "unitKinds": ["jaguar_warrior"], "targetFamily": "动物", "targetFamilyDamageMultiplier": 2, "desc": "伤害 +{pct}%；升级激活后，对动物类怪物造成 2 倍伤害" },
+      "junglePower": { "name": "丛林之力", "icon": "🌿", "iconImage": "assets/ui/building-upgrades/jungle-power.png", "effect": "jungleMagicLevel", "mode": "add", "per": 1, "base": 1, "maxLevel": 6, "unitKinds": ["jungle_priest"], "desc": "丛林祭司使用的全部魔法等级 +{value}" },
+      "nimbleHaste": { "name": "灵动加速", "icon": "⌛", "iconImage": "assets/ui/building-upgrades/nimble-haste.png", "effect": "jungleSpellCooldownMult", "mode": "add", "firstLevel": 0.9, "per": -0.05, "maxLevel": 6, "unitKinds": ["jungle_priest"], "desc": "丛林祭司全部魔法冷却时间 -{pct}%" },
       "moveSpd": { "name": "机动强化", "icon": "👟", "iconImage": "assets/ui/building-upgrades/mobility.png", "effect": "moveSpeedMult", "per": 0.015, "maxLevel": 10, "desc": "移动速度 +{pct}%" },
-      "hp": { "name": "生命强化", "icon": "❤️", "iconImage": "assets/ui/building-upgrades/health.png", "effect": "hpMult", "per": 0.05, "maxLevel": 10, "desc": "单位生命 +{pct}%" }
+      "hp": { "name": "生命强化", "icon": "❤️", "iconImage": "assets/ui/building-upgrades/health.png", "effect": "hpMult", "per": 0.05, "maxLevel": 10, "desc": "单位生命 +{pct}%" },
+      "bounty": { "name": "赏金", "icon": "💰", "iconImage": "assets/ui/building-upgrades/bounty.png", "effect": "bountyGoldMultiplier", "mode": "add", "firstLevel": 1.25, "per": 0.15, "maxLevel": 6, "unitKinds": ["bounty_hunter"], "desc": "击杀敌人时额外获得其默认地牢金币的 {multiplier} 倍" },
+      "scoutVision": { "name": "侦察视野", "icon": "🔭", "iconImage": "assets/ui/building-upgrades/scout-vision.png", "effect": "fogSightRadiusBonus", "mode": "add", "per": 200, "maxLevel": 6, "unitKinds": ["explorer"], "desc": "仓鼠探险家视野 +{value}px；不受昼夜与特殊天气减益" }
     }
   },
   "miner_economy": {
@@ -95,7 +100,7 @@
       "poison_arrow": { "id": "poison_arrow", "name": "毒箭", "icon": "☠️", "iconImage": "assets/ui/building-upgrades/poison-arrow.png", "target": "shooter", "unitKinds": ["shooter"], "base": 0.2, "per": 0.05, "maxLevel": 10, "desc": "仓鼠射手命中 {chance}% 概率叠加一层中毒（每级 +5%）" },
       "auto_guard": { "id": "auto_guard", "name": "自动防御", "icon": "🛡️", "iconImage": "assets/ui/building-upgrades/auto-guard.png", "target": "guard", "unitKinds": ["guard"], "base": 0.25, "per": 0.05, "maxLevel": 10, "damageReduction": 0.5, "desc": "仓鼠盾卫受击 {chance}% 概率触发，减免 50% 伤害（每级 +5%）" },
       "sweep_aoe": { "id": "sweep_aoe", "name": "横扫", "icon": "💥", "iconImage": "assets/ui/building-upgrades/sweep-aoe.png", "target": "warrior", "unitKinds": ["warrior"], "base": 0.2, "per": 0.05, "maxLevel": 10, "rangeBonus": 30, "arcDegrees": 120, "desc": "仓鼠战士普攻附带前方扇形 AOE，造成 {dmg}% 额外伤害（每级 +5%）" },
-      "mark_arrow": { "id": "mark_arrow", "name": "标记箭", "icon": "🎯", "iconImage": "assets/ui/building-upgrades/mark-arrow.png", "target": "scout", "unitKinds": ["scout"], "base": 0.25, "per": 0.05, "maxLevel": 10, "durationMs": 3000, "damageAmplify": 0.15, "desc": "仓鼠斥候命中 {chance}% 概率标记目标 3 秒，期间目标受所有伤害 +15%（每级 +5% 概率）" },
+      "mark_arrow": { "id": "mark_arrow", "name": "标记", "icon": "🎯", "iconImage": "assets/ui/building-upgrades/mark-arrow.png", "target": "仓鼠斥候、仓鼠赏金猎人", "unitKinds": ["scout", "bounty_hunter"], "base": 0.25, "per": 0.05, "maxLevel": 10, "durationMs": 3000, "damageAmplify": 0.15, "desc": "仓鼠斥候与赏金猎人命中 {chance}% 概率标记目标 3 秒，期间目标受所有伤害 +15%（每级 +5% 概率）" },
       "armor_piercing_round": { "id": "armor_piercing_round", "name": "穿甲弹", "icon": "🔩", "iconImage": "assets/ui/building-upgrades/armor-piercing-round.png", "target": "仓鼠火枪、仓鼠赏金猎人", "unitKinds": ["musketeer", "bounty_hunter"], "firstLevel": 0.25, "per": 0.025, "maxLevel": 10, "desc": "仓鼠火枪与赏金猎人获得 {pct} 护甲穿透（Lv.1 为 25%，之后每级 +2.5%）" },
       "inspire_magic": { "id": "inspire_magic", "name": "激励魔法", "icon": "📣", "iconImage": "assets/ui/building-upgrades/inspire-magic.png", "target": "priest", "unitKinds": ["priest"], "firstLevel": 10000, "per": 1111.111111111111, "displayMode": "seconds", "maxLevel": 10, "radius": 300, "cooldownMs": 30000, "speedMul": 1.33, "atkMul": 1.5, "desc": "仓鼠牧师每 {cooldown}s 为 {radius}px 内友军施加激励：移速 +33%、物攻 +50%，持续 {value}" }
     }
@@ -138,6 +143,15 @@
       "workshop_engineers": { "name": "工程师数量", "icon": "🐹", "iconImage": "assets/ui/building-upgrades/workshop-engineers.png", "effect": "workshopEngineerCount", "mode": "add", "base": 2, "per": 1, "maxLevel": 3, "goldByLevel": [900, 1500, 2400], "energyByLevel": [1200, 2000, 3200], "timeByLevel": [45000, 60000, 90000], "desc": "仓鼠工程师 {value} 名" }
     }
   },
+  "armory_economy": {
+    "moduleUpgrade": { "gold": 500, "energy": 750, "timeBaseMs": 30000, "timeGrowthMs": 5000 },
+    "modules": {
+      "armory_equipment_care": { "name": "装备护理", "icon": "🔧", "iconImage": "assets/ui/building-upgrades/workshop-repair.png", "effect": "armoryResourceCostReduction", "mode": "add", "base": 0.1, "per": 0.02, "maxLevel": 10, "desc": "满员时范围内出兵资源消耗 -{pct}%" },
+      "armory_service_range": { "name": "服务范围", "icon": "📡", "iconImage": "assets/ui/building-upgrades/workshop-range.png", "effect": "armoryServiceRange", "mode": "add", "base": 600, "per": 100, "maxLevel": 10, "desc": "服务半径 {value}px" },
+      "armory_resource_sorting": { "name": "资源整理", "icon": "💎", "iconImage": "assets/items/enhance_stone.png", "effect": "armoryEnhancementStoneChance", "mode": "add", "base": 0.01, "per": 0.01, "maxLevel": 9, "desc": "初始每分钟1%，每级 +1%，满员满级时每分钟10%概率获得强化石" },
+      "armory_staff": { "name": "增加人员", "icon": "🐹", "iconImage": "assets/ui/building-upgrades/workshop-engineers.png", "effect": "armoryStaffCapacity", "mode": "add", "base": 2, "per": 1, "maxLevel": 3, "goldByLevel": [900, 1500, 2400], "energyByLevel": [1200, 2000, 3200], "timeByLevel": [45000, 60000, 90000], "desc": "维护师岗位 {value} 名" }
+    }
+  },
   "bank_economy": {
     "moduleUpgrade": { "gold": 500, "energy": 750, "timeBaseMs": 30000, "timeGrowthMs": 5000 },
     "modules": {
@@ -145,6 +159,15 @@
       "bank_staff": { "name": "扩容人员", "icon": "🐹", "iconImage": "assets/ui/building-upgrades/bank-staff.png", "effect": "bankStaffCapacity", "mode": "add", "base": 1, "per": 1, "maxLevel": 2, "desc": "银行职员岗位 {value} 名" },
       "bank_mint": { "name": "印钞机", "icon": "💵", "iconImage": "assets/ui/building-upgrades/bank-mint.png", "effect": "bankGoldPerPopulation", "mode": "add", "base": 0.1, "per": 0.05, "maxLevel": 10, "desc": "每名服务人口每轮产生 {pct}% 金币" },
       "bank_service_range": { "name": "服务辐射", "icon": "📡", "iconImage": "assets/ui/building-upgrades/cast-range.png", "effect": "bankServiceRange", "mode": "add", "base": 600, "per": 50, "maxLevel": 10, "desc": "服务半径 {value}px" }
+    }
+  },
+  "bakery_economy": {
+    "moduleUpgrade": { "gold": 400, "energy": 600, "timeBaseMs": 30000, "timeGrowthMs": 5000 },
+    "modules": {
+      "bakery_quick_cooking": { "name": "快速烹饪", "icon": "🔥", "effect": "bakeryProcessTimeMs", "mode": "add", "base": 10000, "per": -500, "maxLevel": 10, "desc": "每批处理时间 {seconds} 秒（每级 -0.5 秒）" },
+      "bakery_gourmet": { "name": "美食家", "icon": "🥐", "effect": "bakeryOutputMultiplier", "mode": "add", "base": 5, "per": 0.5, "maxLevel": 10, "desc": "每批产出为投入粮食的 {multiplier} 倍（每级 +0.5 倍）" },
+      "bakery_ingredient_processing": { "name": "食材处理", "icon": "🌿", "effect": "bakeryPlantTributeChance", "mode": "add", "base": 0.01, "per": 0.002, "maxLevel": 10, "desc": "每批完成有 {chance}% 概率获得植物类祭品（每级 +0.2%）" },
+      "bakery_quick_steps": { "name": "小步快跑", "icon": "👟", "effect": "bakeryMoveSpeedMultiplier", "mode": "add", "base": 1, "per": 0.05, "maxLevel": 10, "desc": "面包师移动速度 +{pct}%（每级 +5%）" }
     }
   },
   "candle_sanctuary": {

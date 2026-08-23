@@ -19,6 +19,11 @@ import { distanceToEntityShape } from '../utils/collision-helpers.js';
 import { GroundSector, GroundDirectedRect } from '../physics/skill-shapes.js';
 import { effectElevationIntersectsEntity, surfaceEffectFromEntity } from '../physics/elevation.js';
 import SpatialPartitionSystem from '../systems/spatial-partition-system.js';
+import {
+    canImpactBasicMelee,
+    canStartBasicMelee,
+    createBasicMeleeSnapshot,
+} from './melee-attack-resolver.js';
 
 // ===== 通用附魔命中效果系统 =====
 // 遍历武器 _enchantEffects，自动应用所有 onHit 类型效果
@@ -165,8 +170,24 @@ function applyEnchantOnHit(weapon, target, source) {
             }
             execute(source, targetX, targetY, entities) {
                 const currentWeapon = source.getCurrentWeapon ? source.getCurrentWeapon() : (source.equipments && source.weaponMode ? source.equipments[source.weaponMode] : null);
-                // 近战攻击范围固定为玩家左右两侧（鼠标只选左右方向，不朝鼠标点攻击）——2026-07-28 用户设定
-                const attackAngle = (targetX >= source.x) ? 0 : Math.PI;
+                // 玩家继续遵守“只按左右出刀”的既有合同；通用敌人普通近战锁定
+                // 目标的真实二维方向，避免朝一侧播放却命中上下/身后的目标。
+                const usesDirectedBasicMelee = source?._faction === 'enemy'
+                    && source?._usesDirectedBasicMelee !== false;
+                const primaryTarget = usesDirectedBasicMelee && source.target?.active
+                    ? source.target
+                    : null;
+                // 预警延迟期间目标可能死亡、换位或离开范围；真正起手时必须再次
+                // 通过同一合同。已迁移敌人绝不能因目标失效而回退到旧360°判定。
+                if (usesDirectedBasicMelee
+                    && (!primaryTarget || !canStartBasicMelee(source, primaryTarget, this.config))) {
+                    return false;
+                }
+                const basicMeleeSnapshot = primaryTarget
+                    ? createBasicMeleeSnapshot(source, primaryTarget, this.config)
+                    : null;
+                const attackAngle = basicMeleeSnapshot?.angle
+                    ?? ((targetX >= source.x) ? 0 : Math.PI);
                 let staminaCost = CONFIG.STAMINA_MELEE_COST;
                 if (currentWeapon && currentWeapon._craftEffects) {
                     const ce = currentWeapon._craftEffects;
@@ -200,11 +221,15 @@ function applyEnchantOnHit(weapon, target, source) {
                 if (currentWeapon && currentWeapon._craftEffects && currentWeapon._craftEffects.rangeDelta) {
                     effectiveRange += currentWeapon._craftEffects.rangeDelta;
                 }
-                const effectiveWidth = isSword ? hitBox.width * 2 : this.config.width; // hitBox.width 是半宽，显示用全宽
+                if (basicMeleeSnapshot) effectiveRange = basicMeleeSnapshot.length;
+                const effectiveWidth = basicMeleeSnapshot?.width
+                    ?? (isSword ? hitBox.width * 2 : this.config.width); // hitBox.width 是半宽，显示用全宽
                 // 攻击范围起始位置：从攻击者脚下 footprint 发出，平铺地面判定（2026-07-17 调整）
                 const weaponOffset = COMBAT_CONFIG.attack?.defaults?.weaponOffset || 0;
-                const originX = source.x + Math.cos(attackAngle) * weaponOffset;
-                const originY = source.y + Math.sin(attackAngle) * weaponOffset;
+                const originX = basicMeleeSnapshot?.originX
+                    ?? (source.x + Math.cos(attackAngle) * weaponOffset);
+                const originY = basicMeleeSnapshot?.originY
+                    ?? (source.y + Math.sin(attackAngle) * weaponOffset);
                 // 白色攻击范围可视化：使用统一 hitBox 配置
                 // perFrame 剑类（一段矩形/二段扇形）的可视化推迟到 checkStageHit 按实际形状绘制
                 const swordPerFrame = isSword && WeaponAnimConfig.sword.attack && WeaponAnimConfig.sword.attack.type === 'perFrame';
@@ -229,7 +254,11 @@ function applyEnchantOnHit(weapon, target, source) {
                     startTime: nowMs(),         // 判定开始时间（Phase 3：墙钟→单调时钟，写者/读者同口径）
                     totalHitCount: 0,              // 整个攻击累计命中数
                     totalKillCount: 0,           // 整个攻击累计击杀数
-                    dynamicRange: this.config.dynamicRange || 0,
+                    // 通用敌人普通攻击使用锁定方向的单目标矩形；玩家与尚未迁移的
+                    // 自定义攻击继续保留原 dynamicRange 行为。
+                    dynamicRange: basicMeleeSnapshot ? 0 : (this.config.dynamicRange || 0),
+                    basicMeleeSnapshot,
+                    primaryTarget,
                     expGiven: false                // 是否已发放经验
                 };
                 return true;
@@ -246,6 +275,32 @@ function applyEnchantOnHit(weapon, target, source) {
                 let hitCount = 0, killCount = 0;
                 // 获取当前武器，检查是否为剑类武器
                 const currentWeapon = source.getCurrentWeapon ? source.getCurrentWeapon() : (source.equipments && source.weaponMode ? source.equipments[source.weaponMode] : null);
+                // 通用敌人普通近战：只结算起手锁定的主目标，并在命中帧重新检查
+                // 方向形状、承载面和墙体。普通攻击默认不再是 360° 多目标半径伤害。
+                if (pt.basicMeleeSnapshot) {
+                    const entity = pt.primaryTarget;
+                    if (!entity || pt.hitSet.has(entity)
+                        || !canImpactBasicMelee(source, entity, pt.basicMeleeSnapshot)) return;
+                    if (isFriendlyFire(source, entity)
+                        || (source._faction === 'enemy' && entity._faction === 'enemy')) return;
+                    const baseDamage = Math.floor((pt.damage.min + pt.damage.max) / 2);
+                    const { hit, killed } = DamagePipeline.applyHit(source, entity, {
+                        damage: baseDamage + pt.damageBonus,
+                        damageType: pt.damageType || 'physical',
+                        knockback: pt.knockback,
+                        angle: pt.basicMeleeSnapshot.worldAngle,
+                        currentWeapon,
+                        isMelee: true,
+                    });
+                    if (!hit) return;
+                    pt.hitSet.add(entity);
+                    if (this.config.crippleDuration && entity.applyCripple) {
+                        entity.applyCripple(this.config.crippleDuration);
+                    }
+                    pt.totalHitCount += 1;
+                    if (killed && !entity._summoned) pt.totalKillCount += 1;
+                    return;
+                }
                 const isSword = currentWeapon && (currentWeapon.weaponType === 'sword' || currentWeapon.category === 'weapon_melee');
                 // 剑类武器攻击范围：使用 WeaponAnimConfig.sword.hitBox 统一配置
                 const hitBox = WeaponAnimConfig.sword.hitBox;

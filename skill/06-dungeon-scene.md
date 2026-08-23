@@ -98,8 +98,18 @@
 
 - 世界-123：连续雪地 + 表面补丁 + 雪松/雪草。
 - 世界-124：连续草地 + 林地草簇 + 五姿态针叶树。
-- 世界-125：僵尸地牢 `blackbrick_7/8` 砖池 + 石柱/烛台/纯障碍预制组合；
+- 世界-125：遗迹大石板 `ruinslab_1/2` 砖池（2026-08-23 起，见下条）+ 石柱/烛台/纯障碍预制组合；
   与世界-122同为 `0.7` 基础镜头缩放。
+
+#### 世界-125 遗迹大石板地砖（2026-08-23）
+- 旧 `blackbrick_7/8` 内部砖缝实测约 ±37°，与建筑底边 2:1（0.5）口径不符，scene11 已换
+  `ruinslab_1/2`；blackbrick-7/8 仍归僵尸地牢中/高级使用，勿动。
+- 管线：AI 只出轴对齐大板无缝材质（prompts/floor-seamless-dungeon-slab.txt，4×4 大板、
+  接缝差<2、desat 0.35/lighten 0.92 对齐旧砖亮度 ~53），`tools/ai-gen/build-dungeon-slab-tiles.py`
+  逆等距映射切菱形砖：`--width 512 --slope 0.5 --slabs 2 --variants 2`；砖缝严格平行菱形边，
+  变体按整砖周期（0.25 纹理单位）错相，混铺砖缝全场连通。
+- 角度口径：世界位面建筑地基/道路/底边是 2:1（0.5），地牢房间/墙体是 30°（0.5774）——
+  世界地板跟 0.5，地牢地板跟 0.5774，别混。
 
 ### ⭐ 地牢迷宫自动生成关键参考（2026-08-11 定稿，新增地牢/迷宫必读）
 
@@ -475,6 +485,7 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
 #### 障碍物体系（2026-07-30 新增）
 - **素材管线**：AI 道具图（透明底带噪点）→ 最大连通域 + 包围盒 → `assets/terrain/obstacle_*.png`；geo 注册 `ISO_WALL_GEO` 加 `category:'obstacle'` + `foot:{w,d}`（底部 15% 高度区实测 footprint 宽，深≈宽×0.35）。
 - **碰撞**：`_addPieceCollision` 障碍物走**矩形 footprint 墙**（锚底边中心、随缩放；`_obstacle` 标记）；`_pieceBaseSegments` 返回空（不进 iso 线段模型）。
+- **图层**：障碍物 `depth` 必须取 `getObstacleFootprintRect()` 的前缘，与玩家脚线和建筑占地处于同一世界 Y 空间；旋转件禁止按整张贴图 AABB 最低点排序。地牢预制组合只能用 `0.01` 级偏置稳定同层件顺序，禁止把整组强抬到附近墙体之上，也禁止把编辑器保存的绝对 depth 差平移到新场景——两者都会让障碍物脱离占地位置并错误遮挡玩家。
 - **编辑器**：摆墙面板分类页签（墙类/门类/障碍物类，geo 带 editor 自动归类：category→障碍物、gateX→门、其余→墙）；障碍物放置不做 30° 角度补偿（billboard）；Shift+滚轮=旋转（仅障碍物，`rotation` 字段经 `_placeIsoPiece`/`_applyToSprite` 应用）。
 - **障碍物编辑器**：仅单选一个障碍物时显示（墙壁编辑器下方）；重置=初始变换；保存=全部障碍物写 `data/obstacle-layout.json`（_persistJson 三管道），`_setupMainHubTerrain` 按布局重建（含首启竞速兜底）。
 - **固定 NPC（祭坛/仓库）**：不再用 obstacle 静态墙——`collisionShape:'rect'` 矩形 footprint + `resolveCollisions` 圆-矩形精确分离分支（逆透视压缩判定；圆心在矩形内沿长轴推出）。
@@ -485,7 +496,10 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
 - **地板双材质**：`profile.inner = { size, tiles }`（dungeon-floor-texture）——外圈大理石 + 中心 1024 档内圈木地板；`setDungeonFloorProfile` 新字段必须显式透传（deco 教训同款）。
 - **墙样式**：`ISO_WALL_GEO.hub_straight`（slope 0.5049 / wallH 703.9）+ `ISO_WALL_STYLES.mainHub`（无 corners/gate → 全直墙无门）；从地牢返回时样式被复位，统一入口每次重设 mainHub 再建墙。
 - **坐标迁移**：portals/testArea 等绝对坐标项必须随世界尺寸手迁（本次 (3478,2363)→(3918,1949)）；相对 origin 的（NPC/武器排/掉落）自动跟随。
-- **祭坛贴图 NPC**：仿仓库宝箱模板（sprite.idleKey 静态图 + obstacle 底座 + clickArea + noSeparation/noShadow），注意 `game.js` 创建 NPC 时这些字段要逐个透传（祭坛此前只传基础字段=实心圆的根因）。
+- **祭坛贴图 NPC**：保留 `npcType:'altar'` 的点击/对话身份，但占地与图层按建筑处理：
+  `applyBuildingFootprint(..., 2) + setupStructureDepth()` 接入标准2×2菱形 footprint 和结构拓扑排序；
+  禁止为进入建筑图层伪造 `_isDefenseStructure`，否则会错误进入敌方建筑索敌链。`sprite/clickArea/noSeparation`
+  等字段仍需由 `game.js` 逐项透传（祭坛此前只传基础字段=实心圆的根因）。
 - **2026-08-21 重新菱形化（用户明确要求，对齐世界-122）**：主神空间 4096×4096 方形 → 12288×8192 菱形；
   复用 `_scene8Diamond`/`_registerScene8Boundary` 同一真源，分块地板菱形裁剪区外全黑，硬边界墙改 noVisual 兜底；
   hub_brick 砖池与相机 1.0 保留；坐标统一平移 (+4096,+2048)，`_loadMainScene` 带菱形落点守卫。详见 CHANGELOG 当日条目。
@@ -538,8 +552,8 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
   在 `isoLocalToWorldDelta` 内完成透视投影。散布障碍物的 `getObstacleFootprintRect().h`
   是碰撞世界深度，注册静态影子时必须再乘 0.5。
 - **静态投影根部**：仙人掌/雪松随机 `flipX` 要映射到投影的 `flipY`，不得翻转长轴，否则影子
-  会反向穿回模型。普通建筑由独立 shadow caster 锚到逻辑脚点并拟合主体 alpha 接地区，
-  不再拿建造 footprint（可能包含地基）充当视觉阴影根部。
+  会反向穿回模型。普通建筑由独立 shadow caster 锚到逻辑脚点并复用最终 `visualFootprint`
+  接触面；只有异形/缺配置素材回退主体 alpha，不再让独立道路或地面铺装污染阴影根部。
 - **造型分档**：高柱仙人掌用长的 `projection`，多节仙人掌用中等投影，桶状仙人掌用短
   `contact` 阴影；不允许所有障碍物复用一种长影。
 - **派生资产入口**：`tools/ai-gen/build-lighting-maps.py` 从原 PNG alpha 确定性生成
@@ -548,12 +562,13 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
 - **动态单位投影已退役**：玩家、敌人、友军、NPC 统一使用水平 2:1 接触影，不再从 Phaser
   当前帧生成 `unit_projection_*`。旧派生纹理与质量分档链不得恢复；显式
   `shadow.directional=true` 只保留短方向尾影协议。
-- **建筑锚点不能一刀切**：普通建筑默认由 `resolveStructureGroundFit` 扫描当前主体 Sprite
-  的 alpha 底部接触区并锚回逻辑脚点；接地多边形的前半边必须保留稳定底座范围内的真实
-  alpha 下包络，不能把台阶/门槛/不对称底座重新吸附成标准菱形。`anchorAdjustX/Y` 与 `flipX`
-  必须同时作用于 Sprite 和自动阴影轮廓；独立 foundation Sprite、碰撞与建造占格都不参与。
-  个别美术含烘焙底台或异形主体时，在建筑配置写 `shadowCaster.contactPolygon` 覆盖，
-  不要修改 collision footprint 补视觉阴影。
+- **建筑锚点不能一刀切（2026-08-23 更新）**：普通格网建筑默认复用
+  `resolveStructureGroundFit` 的最终 `visualFootprint` 映射，阴影接触面与实体、建造幽灵、overlay
+  共用同一中心和宽深；显式标定优先，缺省时从 `displayW/displayH/footOffsetY` 确定性派生。
+  `anchorAdjustX/Y` 不得再进入严格棱柱路径；`flipX` 只镜像最终局部轮廓。只有
+  `autoFootprint:true` 异形建筑或显示配置不完整的临时素材才回退主体 alpha 接地区。
+  独立道路/地面铺装、碰撞与建造占格不参与阴影采样。个别美术需要独立阴影根部时，在建筑配置写
+  `shadowCaster.contactPolygon` 覆盖，不要修改 collision footprint 补视觉阴影。
 - **基地投影只取底座**：`defense_base` 是立方体+顶盖+扁平底座；完整 alpha 旋转后会把主体
   投成大块错误阴影。`build-lighting-maps.py` 的 `PROJECTION_BOTTOM_BANDS["defense_base"]=0.20`
   只取贴图底部 20% alpha 生成 `defense_base_projection.png`。大型建筑出现“影子像整个模型/
@@ -561,14 +576,15 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
 
 #### 静态投影算法（2026-08-21：建筑 shadow caster 与建造 footprint 解耦）
 
-> **当前建筑契约**：普通建筑不再读取 manifest 剪影，也不把 placement/collision footprint
-> 当主真源。`resolveStructureShadowCaster` 优先读取显式 `shadowCaster`，否则复用
-> `resolveStructureGroundFit` 从**主体 Sprite 当前 alpha**拟合接地多边形；独立 foundation Sprite
-> 天然排除。仅在配置和 alpha 拟合都不可用时回退 placement footprint，建造与碰撞逻辑完全不改。
+> **当前建筑契约（2026-08-23 更新）**：普通建筑不再读取 manifest 剪影，也不把独立道路/地面铺装
+> 当阴影真源。`resolveStructureShadowCaster` 优先读取显式 `shadowCaster`，否则复用实体已经采用的
+> `visualFootprint` 拟合结果；缺省标定由显示尺寸和脚线确定性派生。只有异形或配置不完整的素材才扫描
+> 主体 Sprite 当前 alpha，所有视觉拟合都不可用时才回退 placement footprint；建造与碰撞逻辑完全不改。
 > 散布障碍物继续凸包∪manifest 剪影；掩体墙、门、楼梯继续各自的专用纯几何链。
 
 - **普通建筑真源**：优先使用 `shadowCaster.contactPolygon`（相对逻辑脚点的局部坐标），
-  其次主体 alpha 接地拟合，最后才走 placement footprint 兜底。默认高度只取主体 Sprite 视觉高度，
+  其次复用 `visualFootprint` 映射接触面，再次才是主体 alpha 接地拟合，最后走 placement footprint
+  兜底。默认高度只取主体 Sprite 最终显示高度，
   不再由 footprint 半径放大。普通建筑默认把真实接地轮廓作为单一棱柱，沿全局唯一太阳向量
   正交平行扫掠：左右终端边必须是平行线，不能分别追随不同高度的屋檐、塔楼或侧翼。
   `resolveStructureAlphaShadowSlices` 仅在配置显式写 `shadowCaster.autoParts:true` 时启用；它会对
@@ -670,7 +686,8 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
    PNG 仅磁盘留档，不再预加载）；散布障碍物的 hull+剪影门也直接看 manifest
    有没有剪影列（2026-08-19 唯一性审计：曾用 `textures.exists(key+'_projection')`
    当门，预加载清理后该门永假、仙人掌/雪松静默退化成椭圆——已改 manifest 门复活）。
-   普通建筑阴影根部自动读取主体当前 alpha 接地拟合，不含独立 foundation；异形美术才需
+   普通建筑阴影根部自动复用最终 `visualFootprint` 接触面，不含独立道路/地面铺装；仅异形或
+   配置不完整素材回退主体当前 alpha，确需独立阴影低模时才写
    `shadowCaster.contactPolygon`/`parts` 覆盖。
 3. 检查 `data/environment-lighting-assets.json`：`base.centerX/width` 已自动生成；
    `shadow.anchorMode/anchorInsetX/Y` 仅对沿用预投影贴图的散布障碍物有意义，建筑不需要。
@@ -828,6 +845,11 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
     （AgentInvasionSystem）与预期奖励面板（DungeonMapSystem）不再进战斗画面——
     `_enterNode` 隐藏 + 各状态入口兜底（_enterCombat/_enterBoss/_enterBossCombat/
     _enterInvasionBattle/_enterReward/_enterEvent），`_returnToMap` 恢复。
+    两栏统一挂到 `#dungeonRouteInfoStack`，按上方背景图 contain 后的左黑幕真实宽度居中并纵向排列，
+    总高度必须止于 `.party-bar` 上缘之前。收益预览只读实际发奖真源：首领金币读
+    `BOSS_REWARD_CONFIG.reward`，精英宝箱装备档位/概率读 `ChestRoomSystem.getRewardPreview()`，
+    祭品范围读当前 grade 的有效掉落权重；禁止使用仅供出征说明的 `dungeonList.reward` 或未启用的
+    Boss 奖励卡推导。特工概率显示值与当回合 RNG 共用 `chance`，入侵触发、捕获消费和战胜后都归零。
   - **⚠ headless 探针禁用 --disable-gpu（2026-08-08 迷宫通道墙排查）**：用户报
     "衔接通道没做墙"。排查中 `cdp-swamp-arena-check` 系探针带 `--disable-gpu`，
     导致 headless Edge 里 **Phaser scene 不启动（window.__phaserScene 恒 false）**：

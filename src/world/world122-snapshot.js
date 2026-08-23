@@ -17,12 +17,15 @@ import { settleWorld122 } from './world122-sim.js'; // 纯数据结算（无 Gam
 import { BuildingRoadSystem } from './building-road-system.js';
 import { getUnitKind } from './unit-upgrade-store.js';
 import { normalizeRecruitMode } from './recruit-mode.js';
-import barracksBuildingCfg from '../../data/hamster-barracks-building.json';
 import worldSystemConfig from '../../data/world-system.json';
 import producerBuildingsConfig from '../../data/producer-buildings.json';
 import { EnvironmentLightingSystem } from './environment-lighting-system.js';
 import { createWorldGenerationContext, getWorldResetPolicy } from './world-reset-policy.js';
-import { getBuildingUpgradeProgressKey } from './building-upgrade-projects.js';
+import {
+    getBuildingContinuousCategory,
+    getBuildingUpgradeProgressKeys,
+    normalizeBuildingContinuousTarget,
+} from './building-upgrade-projects.js';
 import { FogOfWarSystem } from './fog-of-war-system.js';
 import { setCrossPlaneSnapshotProvider } from './cross-plane-resource-system.js';
 
@@ -35,8 +38,6 @@ let WallStaircase = null;
 let DEFENSE_CONFIG = null;
 let HamsterHutSystem = null;
 let HamsterHut = null;
-let HamsterBarracksSystem = null;
-let HamsterBarracks = null;
 let ProducerBuildingSystem = null;
 let ProducerBuilding = null;
 let getProducerConfig = null;
@@ -60,8 +61,6 @@ export function configureWorld122SnapshotRuntime(deps = {}) {
         DEFENSE_CONFIG,
         HamsterHutSystem,
         HamsterHut,
-        HamsterBarracksSystem,
-        HamsterBarracks,
         ProducerBuildingSystem,
         ProducerBuilding,
         getProducerConfig,
@@ -94,7 +93,15 @@ function _snapshotUpgrade(upgrade) {
     if (upgrade.abilityId) out.abilityId = upgrade.abilityId;
     if (upgrade.moduleId) out.moduleId = upgrade.moduleId;
     if (upgrade.unitType) out.unitType = upgrade.unitType;
+    if (Array.isArray(upgrade.unitTypes) && upgrade.unitTypes.length) {
+        out.unitTypes = [...new Set(upgrade.unitTypes.filter(Boolean))];
+    }
     return out;
+}
+
+function _snapshotContinuous(target) {
+    const normalized = normalizeBuildingContinuousTarget(target);
+    return normalized ? _clone(normalized) : null;
 }
 
 function _snapshotConfig() {
@@ -133,6 +140,44 @@ function _snapshotLifecycle(sceneId, worldEpoch, generationOverride = null) {
     };
 }
 
+function _initialFeatureStructure(spawn, feature) {
+    if (!feature?.cfgKey) return null;
+    const featureCfg = producerBuildingsConfig[feature.cfgKey] || {};
+    return {
+        kind: 'producer',
+        cfgKey: feature.cfgKey,
+        x: (Number(spawn.x) || 0) + (Number(feature.offsetX) || 0),
+        y: (Number(spawn.y) || 0) + (Number(feature.offsetY) || 0),
+        hp: Math.max(1, Number(featureCfg.hp) || 1),
+        maxHp: Math.max(1, Number(featureCfg.hp) || 1),
+        troopProducer: featureCfg.spawnEnabled !== false,
+        unitType: featureCfg.defaultUnitType || featureCfg.unitTypes?.[0]?.key || '',
+        buildCost: 0,
+        buildCurrency: 'gold',
+        recruitMode: 'paused',
+        parallelQueues: {},
+        unitRoster: {},
+    };
+}
+
+function _ensureInitialFeatureBuilding(snapshot, sceneId, includeInitialFeatureBuilding) {
+    const feature = worldSystemConfig.worlds?.[sceneId]?.featureBuilding;
+    const migrationId = feature?.migrationId;
+    if (!includeInitialFeatureBuilding || !feature?.cfgKey || !migrationId || !snapshot) return snapshot;
+    if (!snapshot.featureBuildingMigrations || typeof snapshot.featureBuildingMigrations !== 'object') {
+        snapshot.featureBuildingMigrations = {};
+    }
+    if (snapshot.featureBuildingMigrations[migrationId]) return snapshot;
+    if (!Array.isArray(snapshot.structures)) snapshot.structures = [];
+    if (!snapshot.structures.some((structure) => structure?.cfgKey === feature.cfgKey)) {
+        const spawn = worldSystemConfig.worlds?.[sceneId]?.portalSpawn || { x: 0, y: 0 };
+        const structure = _initialFeatureStructure(spawn, feature);
+        if (structure) snapshot.structures.push(structure);
+    }
+    snapshot.featureBuildingMigrations[migrationId] = true;
+    return snapshot;
+}
+
 function _portalOnlyBaseTemplate({ sceneId, spawn, hp, maxHp, includeInitialFeatureBuilding = false }) {
     const structures = [{
         kind: 'producer',
@@ -147,27 +192,15 @@ function _portalOnlyBaseTemplate({ sceneId, spawn, hp, maxHp, includeInitialFeat
     }];
     const feature = worldSystemConfig.worlds?.[sceneId]?.featureBuilding;
     if (includeInitialFeatureBuilding && feature?.cfgKey) {
-        const featureCfg = producerBuildingsConfig[feature.cfgKey] || {};
-        structures.push({
-            kind: 'producer',
-            cfgKey: feature.cfgKey,
-            x: (Number(spawn.x) || 0) + (Number(feature.offsetX) || 0),
-            y: (Number(spawn.y) || 0) + (Number(feature.offsetY) || 0),
-            hp: Math.max(1, Number(featureCfg.hp) || 1),
-            maxHp: Math.max(1, Number(featureCfg.hp) || 1),
-            troopProducer: featureCfg.spawnEnabled !== false,
-            unitType: featureCfg.defaultUnitType || featureCfg.unitTypes?.[0]?.key || '',
-            buildCost: 0,
-            buildCurrency: 'gold',
-            recruitMode: 'paused',
-            parallelQueues: {},
-            unitRoster: {},
-        });
+        const structure = _initialFeatureStructure(spawn, feature);
+        if (structure) structures.push(structure);
     }
+    const migrationId = includeInitialFeatureBuilding ? feature?.migrationId : null;
     return {
         base: { hp },
         wave: { wave: 0, phase: 'prep', phaseTimer: 0, victory: true },
         structures,
+        featureBuildingMigrations: migrationId ? { [migrationId]: true } : {},
         nodes: [],
         roads: [],
     };
@@ -200,6 +233,7 @@ export function ensureWorldBaseSnapshot(sceneId, {
             if (!existing.reset) existing.reset = lifecycle.reset;
             if (!existing.generation) existing.generation = lifecycle.generation;
             if (!existing.populationEconomy) existing.populationEconomy = { storageVersion: 2, foodStored: 0 };
+            _ensureInitialFeatureBuilding(existing, sceneId, includeInitialFeatureBuilding);
             return existing;
         }
     }
@@ -268,10 +302,9 @@ export function captureWorld(sceneId = 'scene8') {
     if (canPersistWorld && !canPersistWorld(sceneId)) return null;
     if (!DefenseSystem._managedExternally && DefenseSystem.defeated) return null;
 
-    // 系统持有的建筑（小屋/兵营/产兵）单独遍历，实体表扫描时跳过防双计
+    // 系统持有的建筑（矿工营地/通用出兵建筑）单独遍历，实体表扫描时跳过防双计
     const systemOwned = new Set();
     for (const h of HamsterHutSystem.huts || []) systemOwned.add(h);
-    for (const b of HamsterBarracksSystem.barracks || []) systemOwned.add(b);
     for (const p of ProducerBuildingSystem.buildings || []) systemOwned.add(p);
 
     const structures = [];
@@ -342,6 +375,11 @@ export function captureWorld(sceneId = 'scene8') {
         structures.push({
             kind: 'hut', x: h.x, y: h.y, hp: Math.ceil(h.hp), mirror: !!h._facingLeft,
             modules: { ...(h.modules || {}) },
+            upgrade: h._upgrade ? {
+                moduleId: h._upgrade.moduleId,
+                totalMs: h._upgrade.totalMs,
+                remainMs: h._upgrade.remainMs,
+            } : null,
             storedEnergy: h._storedEnergy || 0,
             carriedEnergy: (h.miners || []).reduce((sum, miner) =>
                 sum + Math.max(0, Number(miner?._energyCarried) || 0), 0)
@@ -354,24 +392,7 @@ export function captureWorld(sceneId = 'scene8') {
         });
     }
 
-    // ---- 仓鼠军营 ----
-    for (const b of HamsterBarracksSystem.barracks || []) {
-        if (!alive(b)) continue;
-        const unitRoster = _unitRoster(b.units);
-        const localUnits = Object.values(unitRoster).reduce((sum, count) => sum + count, 0);
-        structures.push({
-            kind: 'barracks', id: b.id, x: b.x, y: b.y, hp: Math.ceil(b.hp), mirror: !!b._facingLeft,
-            troopProducer: true,
-            unitType: b.unitType, spawnTimer: b._spawnTimer, recruitMode: normalizeRecruitMode(b._recruitMode),
-            units: localUnits, unitRoster, unitDps: _unitsDps(b.units),
-            troopLineDeployed: Math.max(0, b.aliveUnitCount() - localUnits),
-            upgrade: _snapshotUpgrade(b._upgrade),
-            rally: b._rallyPoint ? { x: b._rallyPoint.x, y: b._rallyPoint.y } : null,
-            buildCost: b._buildCost ?? null, buildCurrency: b._buildCurrency ?? null,
-        });
-    }
-
-    // ---- 配置产兵/功能建筑（草屋/靶场/铁匠铺/研究院/仓库/教堂/传送门…）----
+    // ---- 配置产兵/功能建筑（军营/草屋/靶场/铁匠铺/研究院/仓库/教堂/传送门…）----
     for (const p of ProducerBuildingSystem.buildings || []) {
         if (!alive(p)) continue;
         const unitRoster = p.spawnEnabled ? _unitRoster(p.units) : {};
@@ -379,17 +400,26 @@ export function captureWorld(sceneId = 'scene8') {
             && getUnitKind(unit) === 'explorer'
             && (unit._exploreActive || unit._command?.mode === 'explore'));
         const localUnits = Object.values(unitRoster).reduce((sum, count) => sum + count, 0);
+        const troopLineDeployedRoster = p.spawnEnabled ? Object.fromEntries(
+            (p._cfg.unitTypes || []).map((unit) => {
+                const kind = unit?.key;
+                const local = Math.max(0, Math.floor(Number(unitRoster[kind]) || 0));
+                return [kind, Math.max(0, p.aliveUnitCount(kind) - local)];
+            }).filter(([kind, count]) => kind && count > 0)
+        ) : {};
         structures.push({
             kind: 'producer', id: p.id, cfgKey: p.cfgKey, x: p.x, y: p.y,
             hp: Math.ceil(p.hp), maxHp: Math.ceil(p.maxHp), mirror: !!p._facingLeft,
             troopProducer: !!p._isTroopProducer,
             unitType: p.unitType || '', spawnTimer: p._spawnTimer || 0, recruitMode: normalizeRecruitMode(p._recruitMode),
+            populationBlocked: !!p._spawnPopulationBlocked,
             parallelQueues: p._parallelProduction ? Object.fromEntries(
                 Object.entries(p._parallelQueues || {}).map(([kind, queue]) => [kind, {
                     recruitMode: normalizeRecruitMode(queue.recruitMode),
                     timer: Math.max(0, Number(queue.timer) || 0),
                     blocked: !!queue.blocked,
                     foodBlocked: !!queue.foodBlocked,
+                    populationBlocked: !!queue.populationBlocked,
                 }])
             ) : undefined,
             units: localUnits,
@@ -406,8 +436,9 @@ export function captureWorld(sceneId = 'scene8') {
             } : null,
             unitDps: p.spawnEnabled ? _unitsDps(p.units) : 0,
             troopLineDeployed: p.spawnEnabled ? Math.max(0, p.aliveUnitCount() - localUnits) : 0,
+            troopLineDeployedRoster,
             upgrade: _snapshotUpgrade(p._upgrade),
-            continuous: p._continuous || null,
+            continuous: _snapshotContinuous(p._continuous),
             titheTimerMs: p.units?.find((unit) => unit?._isHamsterPriest && unit.active !== false)?._ai?._titheTimer || 0,
             storedEnergy: p._isEnergyWarehouse ? (p.storedEnergy || 0) : undefined,
             storedFood: p._isEnergyWarehouse ? (p.storedFood || 0) : undefined,
@@ -442,6 +473,38 @@ export function captureWorld(sceneId = 'scene8') {
                 totalMs: p._workshopUpgrade.totalMs,
                 remainMs: p._workshopUpgrade.remainMs,
             } : null,
+            armoryModules: p._economyType === 'armory' ? { ...(p.modules || {}) } : undefined,
+            armoryUpgrade: p._armoryUpgrade ? {
+                moduleId: p._armoryUpgrade.moduleId,
+                totalMs: p._armoryUpgrade.totalMs,
+                remainMs: p._armoryUpgrade.remainMs,
+            } : null,
+            armorySortElapsedMs: p._economyType === 'armory'
+                ? Math.max(0, Number(p._armorySortElapsedMs) || 0) : undefined,
+            armoryPendingStones: p._economyType === 'armory'
+                ? Math.max(0, Math.floor(Number(p._armoryPendingStones) || 0)) : undefined,
+            bakeryModules: p._economyType === 'bakery' ? { ...(p.modules || {}) } : undefined,
+            bakeryUpgrade: p._bakeryUpgrade ? {
+                moduleId: p._bakeryUpgrade.moduleId,
+                totalMs: p._bakeryUpgrade.totalMs,
+                remainMs: p._bakeryUpgrade.remainMs,
+            } : null,
+            bakeryJob: p._economyType === 'bakery' ? {
+                phase: p._bakeryJob?.phase,
+                x: p._bakeryJob?.x,
+                y: p._bakeryJob?.y,
+                targetWarehouseId: p._bakeryJob?.targetWarehouseId ?? null,
+                cargoFood: p._bakeryJob?.cargoFood || 0,
+                pendingFood: p._bakeryJob?.pendingFood || 0,
+                processRemainMs: p._bakeryJob?.processRemainMs || 0,
+                processTotalMs: p._bakeryJob?.processTotalMs || 0,
+                phaseRemainMs: p._bakeryJob?.phaseRemainMs || 0,
+                phaseTotalMs: p._bakeryJob?.phaseTotalMs || 0,
+                completedBatches: p._bakeryJob?.completedBatches || 0,
+                offlineProgressMs: p._bakeryJob?.offlineProgressMs || 0,
+            } : undefined,
+            bakeryPendingTributeIds: p._economyType === 'bakery'
+                ? [...(p._bakeryPendingTributeIds || [])] : undefined,
             candleModules: p._isWorld125Candle ? { ...(p.candleModules || {}) } : undefined,
             candleUpgrade: p._candleUpgrade ? {
                 moduleId: p._candleUpgrade.moduleId,
@@ -494,6 +557,7 @@ export function captureWorld(sceneId = 'scene8') {
         ..._snapshotLifecycle(sceneId, worldEpoch),
         capturedAt: Date.now(),
         capturedGameTimeMs: EnvironmentLightingSystem.serializeTime().elapsedMs || 0,
+        featureBuildingMigrations: _clone(_storedByWorld[sceneId]?.featureBuildingMigrations || {}),
         populationEconomy: PopulationEconomySystem?.serializeState?.() || { storageVersion: 2, foodStored: 0 },
         // 波次/结算参数随快照封存（后台结算与配置同生命周期，防版本间口径漂移）
         config: _snapshotConfig(),
@@ -615,12 +679,24 @@ export function isWorldLive(sceneId) {
 
 /** 其他后台位面是否正在推进同一个全局能力/兵种模块项目。 */
 export function hasBackgroundBuildingUpgrade(upgrade) {
-    const key = getBuildingUpgradeProgressKey(upgrade);
-    if (!key) return false;
+    const keys = new Set(getBuildingUpgradeProgressKeys(upgrade));
+    if (!keys.size) return false;
     for (const [sceneId, snapshot] of Object.entries(_storedByWorld)) {
         if (isWorldLive(sceneId) || !isWorldSnapshotCurrent(sceneId, snapshot)) continue;
-        if ((snapshot.structures || []).some((structure) =>
-            getBuildingUpgradeProgressKey(structure?.upgrade) === key)) return true;
+        if ((snapshot.structures || []).some((structure) => Number(structure?.hp ?? 1) > 0
+            && getBuildingUpgradeProgressKeys(structure?.upgrade).some((key) => keys.has(key)))) return true;
+    }
+    return false;
+}
+
+
+/** 其他后台位面是否已有同类别建筑持有持续升级目标。 */
+export function hasBackgroundContinuousUpgrade(category, excludeSceneId = null) {
+    if (!category) return false;
+    for (const [sceneId, snapshot] of Object.entries(_storedByWorld)) {
+        if (sceneId === excludeSceneId || isWorldLive(sceneId) || !isWorldSnapshotCurrent(sceneId, snapshot)) continue;
+        if ((snapshot.structures || []).some((structure) => Number(structure?.hp ?? 1) > 0
+            && structure?.continuous && getBuildingContinuousCategory(structure) === category)) return true;
     }
     return false;
 }
@@ -760,6 +836,7 @@ function _restoreHut(s) {
         id: s.id || `built_hut_r${++_seq}`,
         skipInitialSpawn: true,
         modules: s.modules,
+        upgrade: s.upgrade,
         storedEnergy: s.storedEnergy,
         pendingMinerEnergy: s.carriedEnergy,
         assignedWorkers,
@@ -781,57 +858,14 @@ function _restoreHut(s) {
     if (hut.aliveMinerCount() < hut.minerCount()) hut._respawnTimer = Math.max(0, s.respawnTimer || 0);
 }
 
-function _restoreBarracks(s, sceneId) {
-    const barracks = new HamsterBarracks(s.x, s.y, { id: s.id || `built_barracks_r${++_seq}` });
-    _markRestored(barracks, s);
-    if (!(barracksBuildingCfg.unitTypes || []).includes(s.unitType)) {
-        s.unitType = barracksBuildingCfg.defaultUnitType || 'warrior';
-    }
-    barracks.unitType = s.unitType;
-    barracks._spawnTimer = Math.max(0, s.spawnTimer || 0);
-    barracks._recruitMode = normalizeRecruitMode(s.recruitMode);
-    if (s.upgrade?.moduleId) {
-        barracks._upgrade = {
-            kind: 'module',
-            moduleId: s.upgrade.moduleId,
-            unitType: (barracksBuildingCfg.unitTypes || []).includes(s.upgrade.unitType)
-                ? s.upgrade.unitType
-                : barracks.unitType,
-            totalMs: Math.max(1, Number(s.upgrade.totalMs) || 1),
-            remainMs: Math.max(0, Number(s.upgrade.remainMs) || 0),
-        };
-    }
-    if (s.rally) barracks._rallyPoint = { x: s.rally.x, y: s.rally.y };
-    Game.entities.set(barracks.id, barracks);
-    HamsterBarracksSystem.barracks.push(barracks);
-    BuildingRoadSystem.attach(barracks, { allowOverlap: true });
-    const roster = s.unitRoster && typeof s.unitRoster === 'object'
-        ? s.unitRoster
-        : { [barracks.unitType]: s.units || 0 };
-    const selectedType = barracks.unitType;
-    let spawned = 0;
-    const restoreQueue = [];
-    const cap = barracks.unitCount();
-    for (const [kind, rawCount] of Object.entries(roster)) {
-        if (!(barracksBuildingCfg.unitTypes || []).includes(kind)) continue;
-        barracks.unitType = kind;
-        const count = Math.max(0, Math.min(Math.floor(Number(rawCount) || 0), cap - spawned));
-        for (let i = 0; i < count; i++) {
-            if (barracks.spawnUnit(false, { restoring: true, sourceSceneId: sceneId })) spawned++;
-            else restoreQueue.push(kind);
-        }
-        if (spawned >= cap) break;
-    }
-    barracks.unitType = selectedType;
-    const want = Math.max(0, Math.min(
-        Object.values(roster).reduce((sum, count) => sum + Math.max(0, Number(count) || 0), 0),
-        cap
-    ));
-    // 出口槽位预约窗口 750ms，爆发生成会互撞——缺额走 _restoreTopUp 加速补齐（立即启动 800ms 节拍）
-    if (spawned < want) {
-        barracks._restoreRosterQueue = restoreQueue;
-        barracks._spawnTimer = 800;
-    }
+function _restoreLegacyBarracks(s, sceneId) {
+    // v1 旧档兼容：不再创建 HamsterBarracks，直接迁入通用 ProducerBuilding。
+    _restoreProducer({
+        ...s,
+        kind: 'producer',
+        cfgKey: 'hamster_barracks',
+        troopProducer: true,
+    }, sceneId);
 }
 
 function _restoreProducer(s, sceneId) {
@@ -852,6 +886,14 @@ function _restoreProducer(s, sceneId) {
         bankUpgrade: s.bankUpgrade,
         workshopModules: s.workshopModules,
         workshopUpgrade: s.workshopUpgrade,
+        armoryModules: s.armoryModules,
+        armoryUpgrade: s.armoryUpgrade,
+        armorySortElapsedMs: s.armorySortElapsedMs,
+        armoryPendingStones: s.armoryPendingStones,
+        bakeryModules: s.bakeryModules,
+        bakeryUpgrade: s.bakeryUpgrade,
+        bakeryJob: s.bakeryJob,
+        bakeryPendingTributeIds: s.bakeryPendingTributeIds,
         warehouseModules: s.warehouseModules,
         warehouseUpgrade: s.warehouseUpgrade,
         candleModules: s.candleModules,
@@ -861,6 +903,7 @@ function _restoreProducer(s, sceneId) {
     if ((cfg.unitTypes || []).some((t) => t.key === s.unitType)) producer.unitType = s.unitType;
     producer._spawnTimer = Math.max(0, s.spawnTimer || 0);
     producer._recruitMode = normalizeRecruitMode(s.recruitMode);
+    producer._spawnPopulationBlocked = !!s.populationBlocked;
     if (producer._parallelProduction) {
         for (const [kind, queue] of Object.entries(producer._parallelQueues || {})) {
             const savedQueue = s.parallelQueues?.[kind];
@@ -869,6 +912,7 @@ function _restoreProducer(s, sceneId) {
             queue.timer = Math.max(0, Number(savedQueue.timer) || 0);
             queue.blocked = !!savedQueue.blocked;
             queue.foodBlocked = !!savedQueue.foodBlocked;
+            queue.populationBlocked = !!savedQueue.populationBlocked;
         }
     }
     producer._restoredTitheTimer = Math.max(0, Number(s.titheTimerMs) || 0);
@@ -881,17 +925,36 @@ function _restoreProducer(s, sceneId) {
             totalMs: Math.max(1, s.upgrade.totalMs || 1),
             remainMs: Math.max(0, s.upgrade.remainMs || 0),
         };
-        producer._continuous = s.continuous && cfg.abilities[s.continuous] ? s.continuous : null;
     } else if (s.upgrade?.moduleId && cfg.modules?.[s.upgrade.moduleId]) {
+        const currentKinds = producer.moduleUnitTypes(s.upgrade.moduleId, s.upgrade.unitType);
+        const savedKinds = Array.isArray(s.upgrade.unitTypes)
+            ? s.upgrade.unitTypes.filter((kind) => currentKinds.includes(kind))
+            : [];
+        const targetKinds = producer._sharedUnitUpgrades ? currentKinds : savedKinds;
         producer._upgrade = {
             kind: 'module',
             moduleId: s.upgrade.moduleId,
-            unitType: (cfg.unitTypes || []).some((unit) => unit.key === s.upgrade.unitType)
-                ? s.upgrade.unitType
-                : producer.unitType,
+            unitType: targetKinds[0] || currentKinds[0] || producer.unitType,
+            unitTypes: targetKinds.length ? targetKinds : undefined,
             totalMs: Math.max(1, Number(s.upgrade.totalMs) || 1),
             remainMs: Math.max(0, Number(s.upgrade.remainMs) || 0),
         };
+    }
+    // 持续目标独立于当前读条恢复：后台完成一档后读条为空，回场仍需继续轮询资源。
+    const continuous = normalizeBuildingContinuousTarget(s.continuous);
+    const categoryBusy = (ProducerBuildingSystem.buildings || []).some((other) =>
+        other?.cfgKey === producer.cfgKey && !!other._continuous)
+        || hasBackgroundContinuousUpgrade(getBuildingContinuousCategory(producer), sceneId);
+    if (!categoryBusy && continuous?.kind === 'ability' && cfg.abilities?.[continuous.abilityId]) {
+        producer._continuous = continuous;
+    } else if (!categoryBusy && continuous?.kind === 'module' && cfg.modules?.[continuous.moduleId]) {
+        const kinds = producer.moduleUnitTypes(continuous.moduleId, continuous.unitType);
+        if (kinds.length) {
+            producer._continuous = {
+                kind: 'module', moduleId: continuous.moduleId,
+                unitType: kinds[0], unitTypes: kinds,
+            };
+        }
     }
     Game.entities.set(producer.id, producer);
     ProducerBuildingSystem.buildings.push(producer);
@@ -1041,7 +1104,7 @@ export function applyWorldSnapshot(sceneId = 'scene8', snap = _storedByWorld[sce
             // 旧射击台/旧单块楼梯不再迁移，防止在城墙上自动恢复出孤立贴图。
             else if (s.kind === 'wall_staircase' && (s.stairVersion || 0) >= 2) _restoreWallStaircase(s);
             else if (s.kind === 'hut') _restoreHut(s);
-            else if (s.kind === 'barracks') _restoreBarracks(s, sceneId);
+            else if (s.kind === 'barracks') _restoreLegacyBarracks(s, sceneId);
             else if (s.kind === 'producer') _restoreProducer(s, sceneId);
             else continue;
             restored++;

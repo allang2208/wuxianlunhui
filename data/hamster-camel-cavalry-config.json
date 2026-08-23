@@ -36,11 +36,11 @@
     "teleportDist": 999999,
     "teleportHardDist": 9999999
   },
-  "displaySize": 390,
-  "spriteOffsetY": -170,
+  "displaySize": 296.425121,
+  "spriteOffsetY": -129.7,
   "render": {
-    "footOffsetY": 170,
-    "hudOffsetY": 250
+    "footOffsetY": 129.7,
+    "hudOffsetY": 190
   },
   "animations": {
     "idle": {

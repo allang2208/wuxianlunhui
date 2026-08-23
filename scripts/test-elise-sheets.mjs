@@ -22,11 +22,11 @@ const cfg = (await import('../data/companion-config.json')).default;
 const elise = (cfg.companions || []).find((c) => c.id === 'warrior_bruno');
 check(!!elise, '存在 warrior_bruno（伊莉丝）配置');
 
-// 统一尺度口径锁定（v2 定稿）：[frameWidth, frameHeight, cols, rows, frameCount]
+// 统一尺度口径锁定（v2 定稿；2026-08 素材重做后更新）：[frameWidth, frameHeight, cols, rows, frameCount]
 const CELL_SPEC = {
     idle: [512, 512, 1, 1, 1],
-    walk: [640, 640, 4, 3, 12],
-    run: [640, 640, 5, 5, 23],
+    walk: [640, 640, 5, 5, 24],
+    run: [640, 640, 5, 7, 34],
     attack: [960, 1024, 5, 6, 28],
     windmill: [896, 640, 5, 5, 23],
     defend: [640, 640, 4, 5, 19],

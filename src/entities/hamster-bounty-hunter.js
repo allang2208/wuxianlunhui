@@ -4,17 +4,35 @@ import { routeProducedGold, createGoldItem } from '../world/economy-gold-routing
 
 export class HamsterBountyHunter extends HamsterMusketeer {
     constructor(x, y, overrides = {}) {
-        super(x, y, { ...configData, ...overrides, ai: { ...configData.ai, ...(overrides.ai || {}) } });
+        super(x, y, {
+            ...configData,
+            ...overrides,
+            ai: { ...configData.ai, ...(overrides.ai || {}) },
+            render: { ...(configData.render || {}), ...(overrides.render || {}) },
+        });
         this._isHamsterBountyHunter = true;
+        this._bountyGoldMultiplier = Math.max(0, Number(configData.bountyGoldMultiplier) || 0);
         this.name = configData.name;
         this.animId = configData.id;
+        this.configureCollisionFromArchive({
+            ...configData,
+            ...overrides,
+            render: { ...(configData.render || {}), ...(overrides.render || {}) },
+        });
+    }
+
+    applyBarracksUpgrades(upgrades = {}) {
+        super.applyBarracksUpgrades(upgrades);
+        if (Number.isFinite(upgrades.bountyGoldMultiplier)) {
+            this._bountyGoldMultiplier = Math.max(0, upgrades.bountyGoldMultiplier);
+        }
     }
 
     onEnemyKilled(target) {
         if (!target || target._summoned || target._bountyRewarded) return;
         target._bountyRewarded = true;
         const defaultGold = Math.max(0, Math.floor(Number(target._defaultDungeonGoldReward) || 0));
-        const amount = Math.floor(defaultGold * Math.max(0, Number(configData.bountyGoldMultiplier) || 2));
+        const amount = Math.floor(defaultGold * this._bountyGoldMultiplier);
         if (amount <= 0) return;
         const routed = routeProducedGold(amount);
         const game = typeof window !== 'undefined' ? window.Game : null;
