@@ -264,7 +264,11 @@
  "frozenDungeonBeginner": {
   "combatRoom": {
    "wallConstruction": "worldBlock1x1",
-   "gateCells": 6
+   "gateCells": 6,
+   "passageCells": 12
+  },
+  "combatArena": {
+   "enabled": true
   },
   "nodeCount": {
    "min": 22,

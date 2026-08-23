@@ -2182,6 +2182,119 @@
     },
     {
       "algorithmVersion": 8,
+      "id": "planar_resonator",
+      "textureKey": "planar_resonator",
+      "frameName": "__BASE",
+      "sourcePath": "assets/terrain/planar_resonator.png",
+      "sourceWidth": 877,
+      "sourceHeight": 702,
+      "displayWidth": 278,
+      "displayHeight": 223,
+      "nominalWidth": 256,
+      "nominalHeight": 128,
+      "centerAdjustX": 0,
+      "centerAdjustY": 0,
+      "visualFootprint": {
+        "centerXRatio": 0.5,
+        "centerYRatio": 0.706278,
+        "widthRatio": 0.920863,
+        "depthRatio": 0.573991,
+        "scaleMode": "strict"
+      },
+      "fit": {
+        "prismConstrained": true,
+        "sourceRole": "structure-body",
+        "explicitCalibration": true,
+        "displayWidth": 278,
+        "displayHeight": 223,
+        "scaleX": 0.3169898442310791,
+        "scaleY": 0.3176638350360586,
+        "uniformScale": 0.3169898442310791,
+        "nonUniformScale": true,
+        "visualOffsetX": 0,
+        "footOffsetY": 110,
+        "alignmentMode": "explicit-footprint-center",
+        "centerLocked": true,
+        "sizeMatchedToFootprint": true,
+        "sourceFootprintCenterX": 438.5,
+        "sourceFootprintCenterY": 496,
+        "sourceFootprintFrontY": 697.5,
+        "sourceFootprintHalfDepth": 201.5,
+        "sourceFootprintWidth": 807.5,
+        "sourceFootprintDepth": 403,
+        "mappedFootprintWidth": 256,
+        "mappedFootprintDepth": 128,
+        "centerAdjustX": 0,
+        "centerAdjustY": 0,
+        "groundCenterSourceX": 438.5,
+        "groundCenterSourceY": 496,
+        "groundSectionWidth": 807.5,
+        "scaleLimitedByOuterBounds": false,
+        "scaleLimitedByBottom": false,
+        "contactX": 438,
+        "bottomY": 696.2779969999999,
+        "sideY": 495.80715599999996,
+        "leftX": -128,
+        "rightX": 128,
+        "centerX": 0,
+        "centerY": -64,
+        "groundSlope": 0.5,
+        "groundAngleDeg": 26.56505117707799,
+        "measuredSideCenter": 0,
+        "measuredSideRise": 64,
+        "collisionWidth": 256,
+        "collisionHeight": 128,
+        "collisionRadius": 128,
+        "localVertices": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -128
+          },
+          {
+            "key": "right",
+            "x": 128,
+            "y": -64
+          },
+          {
+            "key": "front",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "key": "left",
+            "x": -128,
+            "y": -64
+          }
+        ],
+        "contactPolygon": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -128
+          },
+          {
+            "key": "right",
+            "x": 128,
+            "y": -64
+          },
+          {
+            "key": "front",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "key": "left",
+            "x": -128,
+            "y": -64
+          }
+        ],
+        "frameWidth": 877,
+        "frameHeight": 702
+      }
+    },
+    {
+      "algorithmVersion": 8,
       "id": "portal",
       "textureKey": "portal",
       "frameName": "__BASE",
@@ -2291,6 +2404,119 @@
         ],
         "frameWidth": 879,
         "frameHeight": 771
+      }
+    },
+    {
+      "algorithmVersion": 8,
+      "id": "weather_forecast_tower",
+      "textureKey": "research_institute",
+      "frameName": "__BASE",
+      "sourcePath": "assets/terrain/research_institute.png",
+      "sourceWidth": 873,
+      "sourceHeight": 798,
+      "displayWidth": 224,
+      "displayHeight": 205,
+      "nominalWidth": 256,
+      "nominalHeight": 128,
+      "centerAdjustX": 0,
+      "centerAdjustY": 0,
+      "visualFootprint": {
+        "centerXRatio": 0.5,
+        "centerYRatio": 0.722222,
+        "widthRatio": 1,
+        "depthRatio": 0.547009,
+        "scaleMode": "strict"
+      },
+      "fit": {
+        "prismConstrained": true,
+        "sourceRole": "structure-body",
+        "explicitCalibration": true,
+        "displayWidth": 256,
+        "displayHeight": 234,
+        "scaleX": 0.293241695303551,
+        "scaleY": 0.29323283987332144,
+        "uniformScale": 0.293241695303551,
+        "nonUniformScale": true,
+        "visualOffsetX": 0,
+        "footOffsetY": 116,
+        "alignmentMode": "explicit-footprint-center",
+        "centerLocked": true,
+        "sizeMatchedToFootprint": true,
+        "sourceFootprintCenterX": 436.5,
+        "sourceFootprintCenterY": 576.5,
+        "sourceFootprintFrontY": 794.5,
+        "sourceFootprintHalfDepth": 218.5,
+        "sourceFootprintWidth": 873,
+        "sourceFootprintDepth": 436.5,
+        "mappedFootprintWidth": 256,
+        "mappedFootprintDepth": 128,
+        "centerAdjustX": 0,
+        "centerAdjustY": 0,
+        "groundCenterSourceX": 436.5,
+        "groundCenterSourceY": 576.5,
+        "groundSectionWidth": 873,
+        "scaleLimitedByOuterBounds": false,
+        "scaleLimitedByBottom": false,
+        "contactX": 436,
+        "bottomY": 793.589747,
+        "sideY": 576.333156,
+        "leftX": -128,
+        "rightX": 128,
+        "centerX": 0,
+        "centerY": -64,
+        "groundSlope": 0.5,
+        "groundAngleDeg": 26.56505117707799,
+        "measuredSideCenter": 0,
+        "measuredSideRise": 64,
+        "collisionWidth": 256,
+        "collisionHeight": 128,
+        "collisionRadius": 128,
+        "localVertices": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -128
+          },
+          {
+            "key": "right",
+            "x": 128,
+            "y": -64
+          },
+          {
+            "key": "front",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "key": "left",
+            "x": -128,
+            "y": -64
+          }
+        ],
+        "contactPolygon": [
+          {
+            "key": "back",
+            "x": 0,
+            "y": -128
+          },
+          {
+            "key": "right",
+            "x": 128,
+            "y": -64
+          },
+          {
+            "key": "front",
+            "x": 0,
+            "y": 0
+          },
+          {
+            "key": "left",
+            "x": -128,
+            "y": -64
+          }
+        ],
+        "frameWidth": 873,
+        "frameHeight": 798
       }
     },
     {

@@ -372,6 +372,7 @@ export class BootScene extends Scene {
         this.load.image('economic_workshop', 'assets/terrain/economic_workshop.png');
         this.load.image('armory', 'assets/terrain/armory.png');
         this.load.image('bakery', 'assets/terrain/bakery.png');
+        this.load.image('planar_resonator', 'assets/terrain/planar_resonator.png');
         // 建筑亮窗蒙版与主体保持完全相同的源画布；运行时以 ADD 模式叠加并独立闪烁。
         const loadedWindowGlowKeys = new Set();
         for (const buildingCfg of Object.values(producerBuildingsConfig)) {
@@ -534,8 +535,11 @@ export class BootScene extends Scene {
         // 小鼠大王：8列×4行 512×512 切帧（idle 1 帧 / walking 19 帧）
         this.load.spritesheet('npc_mouse_king_idle', 'assets/npc/mouse_king/idle.png',    { frameWidth: 512, frameHeight: 512, endFrame: 0 });
         this.load.spritesheet('npc_mouse_king_walk', 'assets/npc/mouse_king/walking.png', { frameWidth: 512, frameHeight: 512, endFrame: 18 });
+        // 小鼠侍从：与小鼠大王同帧规格、同脚线的静态世界贴图
+        this.load.image('npc_mouse_attendant_idle', 'assets/npc/mouse_attendant/idle.png');
         // 仓库：静态贴图（宝箱）
         this.load.image('npc_warehouse', 'assets/npc/warehouse/warehouse.png');
+        this.load.image('npc_warehouse_open', 'assets/npc/warehouse/warehouse_open.png');
         // 祭坛：静态贴图（大理石祭坛，tools/prep-hub-assets.py 抠图）
         this.load.image('npc_altar', 'assets/npc/altar.png');
         // 小鼠铁匠：8列×8行 512×512 切帧（idle 29 帧，泛洪抠图去白底）

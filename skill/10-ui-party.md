@@ -55,6 +55,13 @@
   固定 `CONFIG.VIEW_WIDTH/HEIGHT`——窗口非 1920×1080 时黄色视野框偏小/偏大。
 - **静态层墙壁绘制也要框内裁剪**（与动态层 `inBox` 同口径）：墙可带负坐标/越界
   坐标，不裁剪会画出小地图框外。
+- **附属层恢复必须同时检查当前场景资格**：`GameScene` 会跨逻辑场景常驻，位面战争迷雾的小地图
+  Image 因而会保留上一场景纹理。退出地图模式、关闭对话等通用 HUD 恢复不能只调用
+  `setVisible(true)`，还必须确认当前 `FogOfWarSystem` grid 为 active；否则返回无迷雾场景后，
+  每帧 HUD 恢复会与 100ms 降频同步的隐藏互相打架，表现为旧黑图持续频闪。
+- **场景提交后必须在揭开加载层前原子刷新**：`switchScene` 提交新 `currentScene` 后调用
+  `refreshMinimapForSceneTransition()`，先让相机应用目标场景 zoom，再清静态键、清 100ms 节流并
+  重画；禁止让按离场 zoom 绘制的常驻 Graphics 在新相机缩放下暴露一帧或等待下个 10Hz tick。
 - 验证：`tools/cdp-minimap-probe*.mjs` 解析两层的 commandBuffer（FILL_RECT=3/
   LINE_TO=4/MOVE_TO=5）换算屏幕坐标，断言静态层背景 == 配置位置尺寸、视野框 ⊆ 框内；
   截图 `tools/verify-shots/minimap-*.png`。

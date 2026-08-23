@@ -89,6 +89,8 @@
 | 仓鼠军营 | `Barracks_WeaponRack_*` / `Barracks_ShieldCrest` / `Barracks_GateLantern_*` | 附墙长矛架、盾徽与门灯；维持克制的军事识别，不生成独立院落 | `build_hamster_barracks()` |
 | 研究院 | `Research_CentralTower_*` / `Research_LeftTower_*` / `Research_RightTower_*` | 一座高中央塔与两座低侧塔；石砌塔身、半木图书室、暖窗和陡峭四坡顶 | `build_research_institute()` / `add_research_tower()` |
 | 研究院 | `Research_WingRoof_*` / `Research_Main*` / `Research_Astrolabe_*` | 两翼连续坡屋顶、连接式主厅与附墙星盘标识；保持三塔为单体建筑 | `build_research_institute()` / `research_pyramid_roof()` |
+| 研究院 LV2 | `Research_*Buttress*` / `Research_*AcademicCornice*` / `Research_*RoofFinial*` | 沿用 LV1 三塔单体与 2×2 基座，增加更高塔身、附墙扶壁、双层檐口、门灯和黄铜尖顶 | `build_research_institute_lv2()` / `build_research_institute_level(..., 2)` |
+| 研究院 LV3 | `Research_*ObservationGallery*` / `Research_Level3*` / `Research_*GiltPier*` | 终级高塔学府；在既有三塔上添加观测回廊、鎏金立柱、门廊、天文钟与翼顶饰件，不增加第四塔 | `build_research_institute_lv3()` / `build_research_institute_level(..., 3)` |
 | 教堂 | `Church_MainHall` / `Church_MainRoof*` / `Church_Narthex*` | 紧凑2×2石砌礼拜堂、连续深蓝双坡屋顶与中央入口门厅；承重墙直接落地，不生成独立地基或铺装 | `build_church()` |
 | 教堂 | `Church_BellTower_0` / `Church_Bell_0_*` / `Church_BelfryOpening_0_*` / `Church_Parapet*` | 仅保留画面左侧的一座相连平顶垛口钟塔，两可见钟室面内含独立铜钟几何；右侧必须维持完整礼拜堂屋顶，不生成第二塔、尖顶或塔基残留 | `build_church()` |
 | 教堂 | `Church_*Window*` / `Church_RoseWindow*` / `Church_*Buttress*` | 蓝色与琥珀色组合的侧墙琉璃窗、入口玫瑰窗和附墙石扶壁；所有窗与结构细节保持建筑内嵌 | `build_church()` |

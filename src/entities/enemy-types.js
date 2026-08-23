@@ -1522,7 +1522,8 @@ class ZombieDogEnemy extends CircleEnemy {
     }
 
     _getPhaserOptions() {
-        const spriteSize = 90;
+        const renderCfg = this.config?.render || {};
+        const spriteSize = renderCfg.spriteSize || 90;
         return {
             spriteSize,
             textOffsetY: -spriteSize / 2 - 10,

@@ -13,11 +13,21 @@ import { BankEconomySystem } from './bank-economy-system.js';
 import { CrossPlaneResourceSystem } from './cross-plane-resource-system.js';
 import { TechnologySystem } from './technology-system.js';
 import { MilitaryPopulationSystem } from './military-population-system.js';
+import { getAbilityLevel, getAbilityValue } from './ability-store.js';
+import {
+    getBuildingModuleUpgradeCost,
+    getBuildingUpgradeAbility,
+} from './building-upgrade-projects.js';
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 
 function houseLevel(level) {
     const levels = populationEconomyConfig.house?.levels || [];
+    return levels.find((entry) => entry.level === level) || levels[0] || null;
+}
+
+function researchLevel(level) {
+    const levels = populationEconomyConfig.research?.levels || [];
     return levels.find((entry) => entry.level === level) || levels[0] || null;
 }
 
@@ -31,10 +41,20 @@ function workforceConfig(type) {
     if (!type || type === 'housing') return null;
     const cfg = populationEconomyConfig[type];
     return cfg && (Math.max(0, Math.floor(Number(cfg.workerSlots) || 0)) > 0
-        || !!cfg.workerSlotsModule) ? cfg : null;
+        || !!cfg.workerSlotsModule || !!cfg.workerSlotsAbilityId) ? cfg : null;
 }
 
 function workforceSlots(building, cfg, savedModules = null) {
+    const abilityId = cfg?.workerSlotsAbilityId;
+    if (abilityId) {
+        const ability = getBuildingUpgradeAbility(abilityId);
+        if (ability) {
+            return Math.max(0, Math.floor(getAbilityValue(
+                ability,
+                getAbilityLevel(abilityId)
+            )));
+        }
+    }
     const moduleId = cfg?.workerSlotsModule;
     const module = moduleId ? building?._cfg?.modules?.[moduleId] : null;
     if (module) {
@@ -47,6 +67,17 @@ function workforceSlots(building, cfg, savedModules = null) {
         return Math.max(0, Math.floor((Number(module.base) || 0) + (Number(module.per) || 0) * level));
     }
     return Math.max(0, Math.floor(Number(cfg?.workerSlots) || 0));
+}
+
+function economyModuleValue(building, moduleId) {
+    const module = building?._cfg?.modules?.[moduleId];
+    if (!module) return 0;
+    const level = clamp(
+        Math.floor(Number(building?.modules?.[moduleId]) || 0),
+        0,
+        Math.max(0, Math.floor(Number(module.maxLevel) || 0))
+    );
+    return (Number(module.base) || 0) + (Number(module.per) || 0) * level;
 }
 
 /**
@@ -93,10 +124,27 @@ export const PopulationEconomySystem = {
             totalMs: Math.max(1, Number(saved.economyUpgrade.totalMs) || 1),
             remainMs: Math.max(0, Number(saved.economyUpgrade.remainMs) || 0),
         } : null;
+        if (building._economyType === 'planar_resonator') {
+            building.modules = { ...(saved.resonatorModules || saved.modules || {}) };
+            for (const [moduleId, module] of Object.entries(building._cfg.modules || {})) {
+                building.modules[moduleId] = clamp(
+                    Math.floor(Number(building.modules[moduleId]) || 0),
+                    0,
+                    Math.max(0, Math.floor(Number(module.maxLevel) || 0))
+                );
+            }
+            building._resonatorUpgrade = saved.resonatorUpgrade ? {
+                moduleId: saved.resonatorUpgrade.moduleId,
+                totalMs: Math.max(1, Number(saved.resonatorUpgrade.totalMs) || 1),
+                remainMs: Math.max(0, Number(saved.resonatorUpgrade.remainMs) || 0),
+            } : null;
+        }
         if (building._economyType === 'housing') this.applyHouseLevel(building, building._economyLevel);
+        if (building._economyType === 'research') this.applyResearchLevel(building, building._economyLevel);
         const workerCfg = workforceConfig(building._economyType);
         const slots = workforceSlots(building, workerCfg,
-            saved.bankModules || saved.workshopModules || saved.armoryModules);
+            saved.bankModules || saved.workshopModules || saved.armoryModules
+                || saved.resonatorModules);
         building._assignedWorkers = workerCfg
             ? clamp(
                 Math.floor(Number(saved.assignedWorkers) || 0),
@@ -275,15 +323,117 @@ export const PopulationEconomySystem = {
         return { ok: true, cost, targetLevel: next.level };
     },
 
-    _updateHouseUpgrade(building, dt) {
+    applyResearchLevel(building, requestedLevel) {
+        const levels = populationEconomyConfig.research?.levels || [];
+        if (!building || levels.length === 0) return null;
+        const maxLevel = Math.max(1, ...levels.map((entry) => Math.max(1,
+            Math.floor(Number(entry.level) || 1))));
+        const level = clamp(Math.floor(Number(requestedLevel) || 1), 1, maxLevel);
+        const cfg = researchLevel(level);
+        building._economyLevel = level;
+        building.spriteCfg.idleKey = cfg.tex;
+        building.spriteCfg.size = cfg.displayW;
+        building.spriteCfg.sizeH = cfg.displayH;
+        building.spriteCfg.footOffsetY = cfg.footOffsetY;
+        building.spriteCfg.visualFootprint = cfg.visualFootprint
+            ? { ...cfg.visualFootprint } : null;
+        building.footOffsetY = cfg.footOffsetY;
+        building.size = cfg.displayW;
+        return cfg;
+    },
+
+    getResearchUpgrade(building) {
+        if (building?._economyType !== 'research') return null;
+        const targetLevel = (building._economyLevel || 1) + 1;
+        return (populationEconomyConfig.research?.levels || [])
+            .find((entry) => entry.level === targetLevel) || null;
+    },
+
+    getResearchUpgradeLockReason(building) {
+        const next = this.getResearchUpgrade(building);
+        const unlockId = next?.technologyUnlockId;
+        if (!unlockId || TechnologySystem.isUnlocked('upgrade', unlockId)) return '';
+        const technologyName = TechnologySystem.getUnlockRequirementLabel('upgrade', unlockId);
+        return `需要先完成科技：${technologyName || unlockId}`;
+    },
+
+    startResearchUpgrade(building) {
+        if (building?._economyType !== 'research') return { ok: false, reason: '该建筑不是研究院' };
+        if (building._economyUpgrade) return { ok: false, reason: '研究院正在升级' };
+        const next = this.getResearchUpgrade(building);
+        if (!next) return { ok: false, reason: '研究院已达到最高等级' };
+        const lockReason = this.getResearchUpgradeLockReason(building);
+        if (lockReason) return { ok: false, reason: lockReason };
+        const cost = next.upgradeCost || {};
+        const payment = payBuildingUpgradeCost(cost);
+        if (!payment.ok) return payment;
+        const timeMs = Math.max(1, Number(cost.timeMs) || 1);
+        building._economyUpgrade = { targetLevel: next.level, totalMs: timeMs, remainMs: timeMs };
+        return { ok: true, cost, targetLevel: next.level };
+    },
+
+    getResearchSnapshot(building) {
+        const cfg = populationEconomyConfig.research || {};
+        const levelCfg = researchLevel(building?._economyLevel || 1) || {};
+        const baseAbilityId = cfg.baseResearchAbilityId;
+        const baseBonus = baseAbilityId
+            ? Math.max(0, getAbilityValue(
+                getBuildingUpgradeAbility(baseAbilityId),
+                getAbilityLevel(baseAbilityId)
+            ))
+            : 0;
+        const levelBaseResearchPoints = Math.max(0,
+            Number(levelCfg.baseResearchPointsPerSecond) || 0);
+        const configuredResearchPointsPerSecond = levelBaseResearchPoints + baseBonus;
+        const staffCapacity = workforceSlots(building, cfg);
+        const staffedCount = Math.min(
+            staffCapacity,
+            Math.max(0, Math.floor(Number(building?._assignedWorkers) || 0))
+        );
+        const workerEfficiencyShare = Math.max(0, Number(cfg.workerEfficiencyShare) || 0.2);
+        const staffFactor = clamp(staffedCount * workerEfficiencyShare, 0, 1);
+        const laborEfficiency = this.getLaborEfficiency();
+        const workshopMultiplier = WorkshopEconomySystem.getEfficiencyMultiplier(building);
+        return {
+            level: Math.max(1, Math.floor(Number(building?._economyLevel) || 1)),
+            levelBaseResearchPoints,
+            baseBonus,
+            configuredResearchPointsPerSecond,
+            staffCapacity,
+            staffedCount,
+            workerEfficiencyShare,
+            staffFactor,
+            laborEfficiency,
+            workshopMultiplier,
+            actualResearchPointsPerSecond: configuredResearchPointsPerSecond
+                * staffFactor * laborEfficiency * workshopMultiplier,
+        };
+    },
+
+    getLiveResearchSummary(buildings = null) {
+        const source = buildings || this._buildings;
+        let count = 0;
+        let rate = 0;
+        for (const building of source || []) {
+            if (!building?.active || building._sinking || building._economyType !== 'research') continue;
+            if (Number(building?.hp ?? building?.data?.hp ?? 1) <= 0) continue;
+            count += 1;
+            rate += this.getResearchSnapshot(building).actualResearchPointsPerSecond;
+        }
+        return { count, rate };
+    },
+
+    _updateEconomyLevelUpgrade(building, dt) {
         if (!building._economyUpgrade) return;
         building._economyUpgrade.remainMs -= dt;
         if (building._economyUpgrade.remainMs > 0) return;
         const targetLevel = building._economyUpgrade.targetLevel;
         building._economyUpgrade = null;
-        this.applyHouseLevel(building, targetLevel);
+        if (building._economyType === 'housing') this.applyHouseLevel(building, targetLevel);
+        else if (building._economyType === 'research') this.applyResearchLevel(building, targetLevel);
+        else return;
         EffectManager.add(new BuildingFootprintDustEffect(building));
-        const soundPath = populationEconomyConfig.house?.upgradeCompleteSound;
+        const soundPath = populationEconomyConfig[building._economyType]?.upgradeCompleteSound;
         if (soundPath) SoundManager.playFile(soundPath, 1, 'ui');
     },
 
@@ -527,10 +677,127 @@ export const PopulationEconomySystem = {
         return { ok: true, gold, energy, quote: this.getMarketQuote(building) };
     },
 
+    getResonatorModuleLevel(building, moduleId) {
+        return Math.max(0, Math.floor(Number(building?.modules?.[moduleId]) || 0));
+    },
+
+    getResonatorUpgradeCost(building, moduleId) {
+        return getBuildingModuleUpgradeCost(
+            building?._cfg,
+            moduleId,
+            this.getResonatorModuleLevel(building, moduleId)
+        );
+    },
+
+    startResonatorUpgrade(building, moduleId) {
+        if (building?._economyType !== 'planar_resonator') {
+            return { ok: false, reason: '该建筑不是位面谐振塔' };
+        }
+        const module = building._cfg.modules?.[moduleId];
+        if (!module) return { ok: false, reason: '未知升级项目' };
+        if (!TechnologySystem.isUnlocked('upgrade', moduleId)) {
+            const technologyName = TechnologySystem.getUnlockRequirementLabel('upgrade', moduleId);
+            return { ok: false, reason: `需要先完成科技：${technologyName || moduleId}` };
+        }
+        const level = this.getResonatorModuleLevel(building, moduleId);
+        if (level >= (module.maxLevel || 0)) return { ok: false, reason: '升级项目已满级' };
+        if (building._resonatorUpgrade) return { ok: false, reason: '已有谐振项目正在升级' };
+        const cost = this.getResonatorUpgradeCost(building, moduleId);
+        const payment = payBuildingUpgradeCost(cost);
+        if (!payment.ok) return payment;
+        building._resonatorUpgrade = {
+            moduleId,
+            totalMs: Math.max(1, Number(cost.timeMs) || 1),
+            remainMs: Math.max(1, Number(cost.timeMs) || 1),
+        };
+        return { ok: true, cost, moduleId };
+    },
+
+    _updateResonatorUpgrade(building, dt) {
+        const upgrade = building?._resonatorUpgrade;
+        if (!upgrade) return;
+        upgrade.remainMs -= Math.max(0, Number(dt) || 0);
+        if (upgrade.remainMs > 0) return;
+        const module = building._cfg.modules?.[upgrade.moduleId];
+        if (module) {
+            building.modules[upgrade.moduleId] = clamp(
+                this.getResonatorModuleLevel(building, upgrade.moduleId) + 1,
+                0,
+                Math.max(0, Math.floor(Number(module.maxLevel) || 0))
+            );
+        }
+        building._resonatorUpgrade = null;
+    },
+
+    getPlanarResonatorSnapshot(building) {
+        const cfg = populationEconomyConfig.planar_resonator || {};
+        const cycleMs = Math.max(100, economyModuleValue(building, 'resonator_frequency') || 10000);
+        const energyPerCycle = Math.max(0,
+            economyModuleValue(building, 'resonator_crystal_output'));
+        const conversionRate = clamp(
+            economyModuleValue(building, 'resonator_conversion'), 0, 1);
+        const staffCapacity = Math.max(0,
+            Math.floor(economyModuleValue(building, 'resonator_staff')));
+        const staffedCount = Math.min(
+            staffCapacity,
+            Math.max(0, Math.floor(Number(building?._assignedWorkers) || 0))
+        );
+        const workerEfficiencyShare = Math.max(0,
+            Number(cfg.workerEfficiencyShare) || 0.2);
+        const staffFactor = clamp(staffedCount * workerEfficiencyShare, 0, 1);
+        const laborEfficiency = this.getLaborEfficiency();
+        const workshopMultiplier = WorkshopEconomySystem.getEfficiencyMultiplier(building);
+        const configuredEnergyPerSecond = cycleMs > 0
+            ? energyPerCycle * conversionRate * 1000 / cycleMs
+            : 0;
+        const actualEnergyPerSecond = configuredEnergyPerSecond * staffFactor
+            * laborEfficiency * workshopMultiplier;
+        return {
+            cycleMs,
+            energyPerCycle,
+            conversionRate,
+            staffCapacity,
+            staffedCount,
+            workerEfficiencyShare,
+            staffFactor,
+            laborEfficiency,
+            workshopMultiplier,
+            configuredEnergyPerSecond,
+            actualEnergyPerSecond,
+            pendingEnergy: Math.max(0,
+                Math.floor(Number(building?._workProductionRemainder) || 0)),
+        };
+    },
+
     updateBuilding(building, dt) {
         if (!building?._economyType || !building.active) return;
-        this._updateHouseUpgrade(building, dt);
+        this._updateEconomyLevelUpgrade(building, dt);
         const elapsedDt = Math.max(0, Number(dt) || 0);
+        // 科研点由 WorldSimDriver 汇总所有前后台位面后统一写入科技树；本栋只维护等级读条。
+        if (building._economyType === 'research') return;
+        if (building._economyType === 'planar_resonator') {
+            this._updateResonatorUpgrade(building, elapsedDt);
+            const snapshot = this.getPlanarResonatorSnapshot(building);
+            if (snapshot.actualEnergyPerSecond <= 0) {
+                building._economyTickMs = 0;
+                return;
+            }
+            building._economyTickMs += elapsedDt;
+            if (building._economyTickMs < snapshot.cycleMs) return;
+            const cycles = Math.floor(building._economyTickMs / snapshot.cycleMs);
+            building._economyTickMs -= cycles * snapshot.cycleMs;
+            const total = Math.max(0, Number(building._workProductionRemainder) || 0)
+                + snapshot.energyPerCycle * snapshot.conversionRate
+                    * snapshot.staffFactor * snapshot.laborEfficiency
+                    * snapshot.workshopMultiplier * cycles * getProductionResourceMul();
+            const energy = Math.floor(total);
+            building._workProductionRemainder = total - energy;
+            if (energy > 0) {
+                const stored = EnergyManager?.depositEnergy?.(energy) || 0;
+                building._workProductionRemainder += Math.max(0, energy - stored);
+            }
+            return;
+        }
         if (building._economyType === 'bakery') return;
         if (building._economyType === 'bank') {
             const snapshot = this.getBankSnapshot(building);

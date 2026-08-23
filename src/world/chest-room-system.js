@@ -108,19 +108,31 @@ export const ChestRoomSystem = {
      * @param {string} dungeonType 地牢类型（决定宝箱等级与奖励表）
      * @param {Object} bounds CombatRoomSystem._roomBounds（场地中心）
      * @param {Object} [opts]
-     * @param {boolean} [opts.deferCountdown] 延迟倒计时（三房间竞技场：入场即 setup，
-     *   但 60s 倒计时等玩家进入第三房间 startCountdown() 后才走字）
+     * @param {boolean} [opts.deferCountdown] 延迟倒计时（多房竞技场入场即 setup，
+     *   但 60s 倒计时等玩家进入末房 startCountdown() 后才走字）
+     * @param {boolean} [opts.openArena] 开放式竞技场宝箱点：不套旧预制墙，
+     *   仅保留刷怪排除区、宝箱、倒计时与奖励生命周期
      */
     setup(dungeonType, bounds, opts = {}) {
         const scene = (typeof window !== 'undefined') ? window.__phaserScene : null;
         this._isElite = !!opts.isElite; // 精英战斗宝箱房：额外 50% 非武器装备掉落
+        if (!scene || !bounds) {
+            console.warn('[ChestRoomSystem] setup 失败：场景或房间边界未就绪', { hasScene: !!scene, hasBounds: !!bounds });
+            return false;
+        }
+        // 世界单格冰墙竞技场已经由房间外墙完整围合；若再放历史「宝箱房」预制，
+        // 会在末房中央混入 frozen_straight 连续墙。开放式宝箱点保留完整事件逻辑，
+        // 但不制造第二套围墙/门/阴影。
+        if (opts.openArena) {
+            return this._setupOpenArenaChest(scene, dungeonType, bounds, opts);
+        }
         // 宝箱房预制按墙样式选择（样式表 chestPrefab，缺失回退「宝箱房」）
         const wallStyle = WallSystem.getWallStyle ? WallSystem.getWallStyle() : { chestPrefab: '宝箱房', straight: 'straight', gate: 'gate' };
         const prefabName = wallStyle.chestPrefab || '宝箱房';
         const prefabLib = getWallPrefabLibrary();
         const prefab = prefabLib[prefabName] || prefabLib['宝箱房'];
-        if (!scene || !prefab || !Array.isArray(prefab.pieces) || !bounds) {
-            console.warn('[ChestRoomSystem] setup 失败：预制缺失或场景未就绪', { prefabName, hasPrefab: !!prefab, hasScene: !!scene, hasBounds: !!bounds });
+        if (!prefab || !Array.isArray(prefab.pieces)) {
+            console.warn('[ChestRoomSystem] setup 失败：预制缺失', { prefabName, hasPrefab: !!prefab });
             return false;
         }
 
@@ -254,6 +266,40 @@ export const ChestRoomSystem = {
     },
 
     /**
+     * 世界单格竞技场的开放式宝箱点。末房本身就是封闭战斗空间，因此不重复生成
+     * 历史宝箱房墙；战斗完成前仍不能开箱，超时、奖励和离场守卫均复用原状态机。
+     */
+    _setupOpenArenaChest(scene, dungeonType, bounds, opts) {
+        this._pieces = [];
+        this._gate = null;
+        this._shadowGfx = null;
+        this._exclusion = { cx: bounds.cx, cy: bounds.cy, rx: 260, ry: 150 };
+
+        const grade = this._gradeFor(dungeonType);
+        const chestX = bounds.cx, chestY = bounds.cy;
+        const chestTex = scene.textures.exists('chest_open_anim') ? 'chest_open_anim' : 'chest_closed';
+        const sprite = scene.add.sprite(chestX, chestY, chestTex, 0);
+        sprite.setOrigin(0.5, 0.75);
+        sprite.setDisplaySize(192, 192 * (sprite.height / sprite.width));
+        sprite.setDepth(chestY);
+        this._chest = { sprite, x: chestX, y: chestY, opened: false, grade };
+
+        this._timeLeft = COUNTDOWN_SEC;
+        this._countdownArmed = !opts.deferCountdown;
+        this._timerText = scene.add.text(chestX, chestY - 130, `${COUNTDOWN_SEC}`, {
+            fontFamily: 'SimHei, "Microsoft YaHei", "黑体", sans-serif',
+            fontSize: '26px', fontStyle: 'bold', color: '#ffffff',
+            stroke: '#000000', strokeThickness: 4,
+            padding: { x: 10, y: 4 },
+        }).setOrigin(0.5, 0.5).setDepth(chestY + 801);
+
+        this.active = true;
+        this._combatDone = false;
+        this._failed = false;
+        return true;
+    },
+
+    /**
      * 门墙放置：按预制件保存的变换（x/y/scale/flip）原样放置，初始关门。
      * 碰撞从件自身变换推导（_pieceBaseSegments + gateX 映射），与 wall-gate 同模型。
      * 图层：门墙 depth = 门洞中心底边 y（"墙看底边 max、门看门洞中心"定案）——
@@ -313,7 +359,7 @@ export const ChestRoomSystem = {
         }
     },
 
-    /** 启动倒计时（竞技场第三房间进入时调用；deferCountdown 未用时本已 armed，幂等） */
+    /** 启动倒计时（竞技场末房进入时调用；deferCountdown 未用时本已 armed，幂等） */
     startCountdown() {
         if (!this.active) return;
         this._countdownArmed = true;

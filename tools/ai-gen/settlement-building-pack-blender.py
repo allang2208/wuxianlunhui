@@ -269,7 +269,7 @@ def research_pyramid_roof(collection, parent, name, length, width, height, locat
 
 def add_research_tower(collection, root, mats, name, location, shaft_size,
                        shaft_height, chamber_size, chamber_height, roof_size,
-                       roof_height):
+                       roof_height, detail_level=1):
     """Research-institute tower: stone shaft, half-timber library chamber and steep cap."""
     x, y, base_z = location
     shaft_w, shaft_d = shaft_size
@@ -285,6 +285,26 @@ def add_research_tower(collection, root, mats, name, location, shaft_size,
             (x, y, shaft_top - 3), mats["foundation"], bevel_width=3)
     kit.box(collection, root, name + "_LibraryChamber", (chamber_w, chamber_d, chamber_height),
             (x, y, shaft_top + chamber_height / 2), mats["plaster"], bevel_width=3)
+
+    if detail_level >= 2:
+        # LV2 keeps the same three-tower identity but strengthens every visible
+        # corner with attached buttresses and a two-step academic cornice.
+        buttress_h = shaft_height * 0.72
+        for index, offset in enumerate((-0.38, 0.38)):
+            kit.box(collection, root, f"{name}_FrontButtress_{index}",
+                    (14, 16, buttress_h),
+                    (x + shaft_w * offset, y - shaft_d / 2 - 5,
+                     base_z + buttress_h / 2), mats["foundation"], bevel_width=2)
+            kit.box(collection, root, f"{name}_SideButtress_{index}",
+                    (16, 14, buttress_h),
+                    (x - shaft_w / 2 - 5, y + shaft_d * offset,
+                     base_z + buttress_h / 2), mats["foundation"], bevel_width=2)
+        kit.box(collection, root, name + "_LowerAcademicCornice",
+                (shaft_w + 22, shaft_d + 22, 11),
+                (x, y, base_z + shaft_height * 0.43), mats["foundation"], bevel_width=2)
+        kit.box(collection, root, name + "_UpperAcademicCornice",
+                (shaft_w + 28, shaft_d + 28, 12),
+                (x, y, shaft_top - 18), mats["brass"], bevel_width=1.5)
 
     front_y = y - chamber_d / 2 - 4
     side_x = x - chamber_w / 2 - 4
@@ -320,6 +340,44 @@ def add_research_tower(collection, root, mats, name, location, shaft_size,
     research_pyramid_roof(collection, root, name + "_SteepSlateRoof", roof_w, roof_d,
                           roof_height, (x, y, chamber_top - 2), mats["roof"])
 
+    roof_apex_z = chamber_top - 2 + roof_height
+    if detail_level >= 2:
+        kit.cylinder(collection, root, name + "_RoofFinialBase", 8, 13,
+                     (x, y, roof_apex_z + 6), mats["brass"],
+                     vertices=20, bevel_width=1)
+        cone(collection, root, name + "_RoofFinial", 9, 28,
+             (x, y, roof_apex_z + 26), mats["brass"], vertices=20)
+
+    if detail_level >= 3:
+        # LV3 adds a shallow observation gallery to each library chamber.  The
+        # central tower receives a deeper, gilded gallery but no extra tower or
+        # detached observatory, preserving the accepted silhouette contract.
+        central = "Central" in name
+        gallery_extra = 30 if central else 20
+        gallery_z = shaft_top + 11
+        kit.box(collection, root, name + "_ObservationGalleryDeck",
+                (chamber_w + gallery_extra, chamber_d + gallery_extra, 9),
+                (x, y, gallery_z), mats["foundation"], bevel_width=2)
+        rail_h = 26 if central else 20
+        rail_z = gallery_z + rail_h / 2 + 5
+        kit.box(collection, root, name + "_GalleryFrontRail",
+                (chamber_w + gallery_extra, 7, rail_h),
+                (x, y - (chamber_d + gallery_extra) / 2, rail_z),
+                mats["brass"], bevel_width=1)
+        kit.box(collection, root, name + "_GallerySideRail",
+                (7, chamber_d + gallery_extra, rail_h),
+                (x - (chamber_w + gallery_extra) / 2, y, rail_z),
+                mats["brass"], bevel_width=1)
+        for index, offset in enumerate((-0.38, 0.0, 0.38)):
+            kit.box(collection, root, f"{name}_FrontGiltPier_{index}",
+                    (5, 8, chamber_height * 0.78),
+                    (x + chamber_w * offset, y - chamber_d / 2 - 8,
+                     shaft_top + chamber_height * 0.53), mats["brass"], bevel_width=0.8)
+            kit.box(collection, root, f"{name}_SideGiltPier_{index}",
+                    (8, 5, chamber_height * 0.78),
+                    (x - chamber_w / 2 - 8, y + chamber_d * offset,
+                     shaft_top + chamber_height * 0.53), mats["brass"], bevel_width=0.8)
+
     # Two tall stone-window recesses keep the tower readable below the chamber.
     for level, ratio in enumerate((0.30, 0.62)):
         z = base_z + shaft_height * ratio
@@ -329,8 +387,8 @@ def add_research_tower(collection, root, mats, name, location, shaft_size,
     return chamber_top + roof_height
 
 
-def build_research_institute(spec):
-    collection, root, mats = common_context("research_institute", spec)
+def build_research_institute_level(building_id, spec, level):
+    collection, root, mats = common_context(building_id, spec)
     fw, fd, fh = spec["dimensions"]["foundation"]
     bw, bd, bh = spec["dimensions"]["body"]
     rw, rd, rh = spec["dimensions"]["roof"]
@@ -379,16 +437,19 @@ def build_research_institute(spec):
     # screen edges instead of collapsing into roof turrets.
     add_research_tower(collection, root, mats, "Research_LeftTower",
                        (-156, 92, fh), tuple(side[0:2]), side[2],
-                       tuple(side[3:5]), side[5], tuple(side[6:8]), side[8])
+                       tuple(side[3:5]), side[5], tuple(side[6:8]), side[8],
+                       detail_level=level)
     add_research_tower(collection, root, mats, "Research_RightTower",
                        (92, -156, fh), tuple(side[0:2]), side[2],
-                       tuple(side[3:5]), side[5], tuple(side[6:8]), side[8])
+                       tuple(side[3:5]), side[5], tuple(side[6:8]), side[8],
+                       detail_level=level)
     # The central tower is pulled toward the camera so its stone shaft remains
     # visible in front of the split roofs.  Matching x/y offsets compensate the
     # 44.8-degree root rotation and keep it centered on screen.
     add_research_tower(collection, root, mats, "Research_CentralTower",
                        (-48, -48, fh), tuple(center[0:2]), center[2],
-                       tuple(center[3:5]), center[5], tuple(center[6:8]), center[8])
+                       tuple(center[3:5]), center[5], tuple(center[6:8]), center[8],
+                       detail_level=level)
 
     # Restrained observatory emblem on the front wall; later AI detail may turn
     # this into an astrolabe, but it remains attached to the building.
@@ -398,7 +459,75 @@ def build_research_institute(spec):
     kit.cylinder(collection, root, "Research_Astrolabe_Hub", 8, 10,
                  (58, -bd / 2 - 15, upper_base + upper_h * 0.57), mats["iron"],
                  rotation=(90, 0, 0), vertices=28, bevel_width=0.8)
+
+    if level >= 2:
+        # Academic expansion: a stronger dressed-stone base, carved lintels,
+        # warm entrance lamps and attached facade buttresses add richness while
+        # the bearing footprint remains the exact LV1 2x2 foundation.
+        kit.box(collection, root, "Research_Level2FrontCornice", (bw + 22, 14, 16),
+                (0, -bd / 2 - 3, upper_base - 6), mats["foundation"], bevel_width=2)
+        kit.box(collection, root, "Research_Level2SideCornice", (14, bd + 22, 16),
+                (-bw / 2 - 3, 0, upper_base - 6), mats["foundation"], bevel_width=2)
+        for index, x in enumerate((-bw * 0.43, bw * 0.43)):
+            kit.box(collection, root, f"Research_Level2FrontButtress_{index}",
+                    (24, 30, bh * 0.66),
+                    (x, -bd / 2 - 8, fh + bh * 0.33), mats["foundation"], bevel_width=3)
+        for index, y in enumerate((-bd * 0.38, bd * 0.38)):
+            kit.box(collection, root, f"Research_Level2SideButtress_{index}",
+                    (30, 24, bh * 0.66),
+                    (-bw / 2 - 8, y, fh + bh * 0.33), mats["foundation"], bevel_width=3)
+        for index, x in enumerate((-132, -58, 32)):
+            kit.box(collection, root, f"Research_Level2WindowLintel_{index}",
+                    (48, 12, 11), (x, -bd / 2 - 9, fh + 111),
+                    mats["brass"], bevel_width=1.5)
+        kit.lantern(collection, root, "Research_Level2DoorLantern_Left",
+                    (-160, -bd / 2 - 21, fh + 78), mats["iron"], mats["glow"])
+        kit.lantern(collection, root, "Research_Level2DoorLantern_Right",
+                    (-60, -bd / 2 - 21, fh + 78), mats["iron"], mats["glow"])
+
+    if level >= 3:
+        # High academy treatment: gilded facade courses, an ornate canopy and a
+        # larger attached astronomical clock make LV3 unmistakable without
+        # introducing a fourth tower or any detached prop.
+        for index, z in enumerate((upper_base + 12, fh + bh - 18)):
+            kit.box(collection, root, f"Research_Level3GiltFrontBand_{index}",
+                    (bw + 26, 8, 8), (0, -bd / 2 - 11, z),
+                    mats["brass"], bevel_width=1)
+            kit.box(collection, root, f"Research_Level3GiltSideBand_{index}",
+                    (8, bd + 26, 8), (-bw / 2 - 11, 0, z),
+                    mats["brass"], bevel_width=1)
+        kit.gabled_prism(collection, root, "Research_Level3EntranceCanopy",
+                         132, 62, 36, (-110, -bd / 2 - 38, fh + 112),
+                         mats["timber"], mats["roof"])
+        for index, x in enumerate((-164, -56)):
+            kit.box(collection, root, f"Research_Level3CanopyPost_{index}",
+                    (10, 10, 104), (x, -bd / 2 - 64, fh + 52),
+                    mats["brass"], bevel_width=1.5)
+        kit.gear(collection, root, "Research_Level3AstronomicalClockRing", 34,
+                 (58, -bd / 2 - 18, upper_base + upper_h * 0.57),
+                 mats["brass"], axis="Y", teeth=18)
+        kit.cylinder(collection, root, "Research_Level3AstronomicalClockFace", 21, 12,
+                     (58, -bd / 2 - 23, upper_base + upper_h * 0.57),
+                     mats["glass"], rotation=(90, 0, 0), vertices=36, bevel_width=1)
+        for index, x in enumerate((-rw * 0.40, rw * 0.40)):
+            kit.cylinder(collection, root, f"Research_Level3WingFinialBase_{index}",
+                         7, 12, (x, 0, roof_base + rh + 5), mats["brass"],
+                         vertices=18, bevel_width=0.8)
+            cone(collection, root, f"Research_Level3WingFinial_{index}", 8, 24,
+                 (x, 0, roof_base + rh + 23), mats["brass"], vertices=20)
     return root
+
+
+def build_research_institute(spec):
+    return build_research_institute_level("research_institute", spec, 1)
+
+
+def build_research_institute_lv2(spec):
+    return build_research_institute_level("research_institute_lv2", spec, 2)
+
+
+def build_research_institute_lv3(spec):
+    return build_research_institute_level("research_institute_lv3", spec, 3)
 
 
 def build_church(spec):
@@ -2766,6 +2895,8 @@ BUILDERS = {
     "main_space_warehouse": build_main_space_warehouse,
     "main_space_warehouse_open": build_main_space_warehouse_open,
     "research_institute": build_research_institute,
+    "research_institute_lv2": build_research_institute_lv2,
+    "research_institute_lv3": build_research_institute_lv3,
     "church": build_church,
     "blacksmith": build_blacksmith,
     "armory": build_armory,
@@ -2813,7 +2944,7 @@ def main():
     kit.render_depth(bpy.context.scene, root, camera, depth_path, building_id)
     if body_depth_path:
         excluded_names = spec.get("bodyDepthExclude")
-        if excluded_names is None and building_id == "research_institute":
+        if excluded_names is None and building_id.startswith("research_institute"):
             excluded_names = ["Research_Foundation"]
         if not excluded_names:
             raise SystemExit(f"body-depth output requires bodyDepthExclude for {building_id}")

@@ -274,6 +274,160 @@ export function computeMazeLayout({ sizes, passageLen, gap = 0, rows = 0 }) {
     return { rooms, passages, worldW, worldH, maze: true };
 }
 
+// ============================================================
+// 世界 1×1 墙块竞技场布局（2:1 格心，冰封初级专用）
+// ============================================================
+
+/**
+ * 计算严格落在 128×64 世界格上的多房蛇形布局。
+ * 房间边长取偶数格，使偶数宽门洞的两个端点都落在墙块格心；通道长度也取整数格，
+ * 从而房墙门端、通道侧墙与下一房门端可共享同一组格心，不需要缩放或补缝瓦。
+ */
+export function computeGridMazeLayout({
+    sizes,
+    corridorCells = 12,
+    rows = 0,
+    cellW = 128,
+    cellD = 64,
+    margin = 300,
+}) {
+    const n = sizes.length;
+    const R = rows > 0 ? Math.max(1, Math.min(rows, n)) : Math.max(1, Math.ceil(Math.sqrt(n)));
+    const cols = Math.ceil(n / R);
+    const passageCells = Math.max(4, Math.round(corridorCells));
+    const stepV1 = { x: cellW / 2, y: cellD / 2 };
+    const stepV2 = { x: cellW / 2, y: -cellD / 2 };
+    const roomGeo = (size) => {
+        const radiusCells = Math.max(6, Math.round((size * 1.2) / cellW));
+        const edgeCells = radiusCells * 2;
+        return {
+            edgeCells,
+            rx: edgeCells * cellW / 2,
+            ry: edgeCells * cellD / 2,
+        };
+    };
+    const stepFor = (a, b) => (a.edgeCells + b.edgeCells) / 2 + passageCells;
+    const dirForRow = (row) => row % 2 === 0
+        ? { ...stepV1 }
+        : { x: -stepV1.x, y: -stepV1.y };
+
+    const rooms = [];
+    let cur = { x: margin, y: margin };
+    let prevRoom = null;
+    let placed = 0;
+    let lastDir = null;
+    for (let r = 0; r < R && placed < n; r++) {
+        const dirStep = dirForRow(r);
+        const dir = { x: Math.sign(dirStep.x), y: Math.sign(dirStep.y) };
+        const inThisRow = Math.min(cols, n - placed);
+        for (let c = 0; c < inThisRow; c++) {
+            const geo = roomGeo(sizes[placed]);
+            const inEdge = placed > 0 ? passageEdges(lastDir).in : 'LT';
+            const isLast = placed === n - 1;
+            const isRowEnd = c === inThisRow - 1 && !isLast;
+            const outDir = isRowEnd ? { x: 1, y: -1 } : dir;
+            const outEdge = isLast
+                ? (OPPOSITE_EDGE[inEdge] || 'RB')
+                : passageEdges(outDir).out;
+            const room = {
+                index: placed + 1,
+                size: sizes[placed],
+                cx: cur.x,
+                cy: cur.y,
+                rx: geo.rx,
+                ry: geo.ry,
+                edgeCells: geo.edgeCells,
+                inEdge,
+                outEdge,
+                bounds: {
+                    minX: cur.x - geo.rx,
+                    maxX: cur.x + geo.rx,
+                    minY: cur.y - geo.ry,
+                    maxY: cur.y + geo.ry,
+                    cx: cur.x,
+                    cy: cur.y,
+                    diamond: true,
+                    rx: geo.rx,
+                    ry: geo.ry,
+                },
+            };
+            rooms.push(room);
+            prevRoom = room;
+            placed++;
+            lastDir = isLast ? lastDir : isRowEnd ? { x: 1, y: -1 } : dir;
+            if (c < inThisRow - 1 && !isLast) {
+                const nextGeo = roomGeo(sizes[placed]);
+                const cells = stepFor(room, nextGeo);
+                cur = { x: cur.x + dirStep.x * cells, y: cur.y + dirStep.y * cells };
+            }
+        }
+        if (placed < n) {
+            const nextGeo = roomGeo(sizes[placed]);
+            const cells = stepFor(prevRoom, nextGeo);
+            cur = { x: cur.x + stepV2.x * cells, y: cur.y + stepV2.y * cells };
+        }
+    }
+
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    for (const room of rooms) {
+        minX = Math.min(minX, room.cx - room.rx);
+        minY = Math.min(minY, room.cy - room.ry);
+        maxX = Math.max(maxX, room.cx + room.rx);
+        maxY = Math.max(maxY, room.cy + room.ry);
+    }
+    const dx = margin - minX;
+    const dy = margin - minY;
+    for (const room of rooms) {
+        room.cx += dx;
+        room.cy += dy;
+        room.bounds.cx += dx;
+        room.bounds.cy += dy;
+        room.bounds.minX += dx;
+        room.bounds.maxX += dx;
+        room.bounds.minY += dy;
+        room.bounds.maxY += dy;
+    }
+
+    const midOf = (room, edge) => {
+        switch (edge) {
+            case 'LT': return { x: room.cx - room.rx / 2, y: room.cy - room.ry / 2 };
+            case 'TR': return { x: room.cx + room.rx / 2, y: room.cy - room.ry / 2 };
+            case 'RB': return { x: room.cx + room.rx / 2, y: room.cy + room.ry / 2 };
+            case 'BL': return { x: room.cx - room.rx / 2, y: room.cy + room.ry / 2 };
+            default: return { x: room.cx, y: room.cy };
+        }
+    };
+    const passages = [];
+    for (let i = 0; i < n - 1; i++) {
+        const a = rooms[i], b = rooms[i + 1];
+        const mid1 = midOf(a, a.outEdge);
+        const mid2 = midOf(b, b.inEdge);
+        const vx = mid2.x - mid1.x, vy = mid2.y - mid1.y;
+        const length = Math.hypot(vx, vy);
+        passages.push({
+            index: i + 1,
+            mid1,
+            mid2,
+            center: { x: (mid1.x + mid2.x) / 2, y: (mid1.y + mid2.y) / 2 },
+            axis: { x: vx / length, y: vy / length },
+            gridStep: { x: vx / passageCells, y: vy / passageCells },
+            corridorCells: passageCells,
+            length,
+            outEdge: a.outEdge,
+            inEdge: b.inEdge,
+        });
+    }
+
+    return {
+        rooms,
+        passages,
+        worldW: Math.ceil(maxX + dx + margin),
+        worldH: Math.ceil(maxY + dy + margin),
+        maze: true,
+        grid: true,
+    };
+}
+
 /** 点是否在菱形房间内（|x-cx|/rx + |y-cy|/ry <= 1，含边界） */
 export function pointInDiamond(x, y, room) {
     return Math.abs(x - room.cx) / room.rx + Math.abs(y - room.cy) / room.ry <= 1;

@@ -25,7 +25,10 @@
     ],
     "minimumDurationMs": 1000,
     "title": "冰封世界加载中...",
-    "backgrounds": []
+    "backgrounds": [
+      "assets/scenes/loading/snowfield-1.png",
+      "assets/scenes/loading/snowfield-2.png"
+    ]
   },
   "desertWorld": {
     "sceneIds": [

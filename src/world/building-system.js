@@ -51,6 +51,8 @@ import {
 } from '../physics/iso-footprint.js';
 import { structureDepthAtY } from './structure-depth.js';
 import { TechnologySystem } from './technology-system.js';
+import { getAbilityLevel, getAbilityValue } from './ability-store.js';
+import { getBuildingUpgradeAbility } from './building-upgrade-projects.js';
 import {
     resolveConfiguredVisualFootprint,
     resolveStructureGroundFit,
@@ -240,7 +242,7 @@ const BUILD_CATEGORIES = Object.freeze([
  * - 墙、门、塔和墙体通行设施归防御；
  * - economyType / 仓库与矿工营地归经济；
  * - 实际启用出兵且配置了兵种的建筑归募兵；
- * - 道路、研究/强化设施、祭坛与位面功能物归其他。
+ * - 研究院通过 economyType 归经济；道路、纯强化设施、祭坛与位面功能物归其他。
  */
 function getBuildItemCategory(item) {
     if (!item) return 'other';
@@ -467,7 +469,15 @@ export const BuildingSystem = {
                 : '对应位面';
             return `只能在${worldName}建造`;
         }
-        const limit = Math.max(0, Math.floor(Number(cfg.buildLimit) || 0));
+        let limit = Math.max(0, Math.floor(Number(cfg.buildLimit) || 0));
+        if (cfg.buildLimitAbilityId) {
+            const ability = getBuildingUpgradeAbility(cfg.buildLimitAbilityId);
+            const abilityLimit = Math.max(0, Math.floor(getAbilityValue(
+                ability,
+                getAbilityLevel(cfg.buildLimitAbilityId)
+            )));
+            limit = Math.max(limit, abilityLimit);
+        }
         if (limit > 0) {
             const count = (ProducerBuildingSystem?.buildings || []).filter((building) =>
                 building?.active !== false && !building?._sinking && building?.cfgKey === item.id).length;

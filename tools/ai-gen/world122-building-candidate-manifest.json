@@ -42,6 +42,24 @@
       "detailRequest": "the selected compact European Gothic-Renaissance research institute, preserving its exact main hall and three integrated towers, refined pale cold-gray ashlar masonry, muted blue-slate roof tiles, restrained dark timber framing, warm mullioned windows, built-in bookshelves and scroll cabinets visible only through intact windows, one small brass telescope, one copper armillary sphere and one star-map astrolabe integrated into the tower architecture; no pipes, plumbing or modern equipment"
     },
     {
+      "id": "research_institute_lv2",
+      "label": "研究院 LV2",
+      "controlImage": "tools/ai-gen/_settlement_building_pack_20260821/research_institute_lv2/research_institute_lv2_body_depth.png",
+      "paletteConstraint": "match the current level-1 research institute: every roof plane and every tower cap uses faded low-saturation weathered steel-blue and blue-gray slate tiles, dusty cool mid-blue around #4C7188 with darker desaturated navy-blue shadow faces; the roof must look muted and aged under neutral light, never vivid cobalt, electric blue, royal blue, cyan, neon, glossy, red, terracotta, orange, brown, copper or purple; use pale warm-gray stone, dark chestnut timber and strong amber window light",
+      "primaryRequest": "an upgraded fortified late-medieval research institute, exactly three integrated square towers on one connected academic hall, with a taller central tower, two matching lower side towers, attached stone buttresses, layered academic cornices, continuous muted blue-slate wing roofs and a richer but disciplined scholarly silhouette",
+      "structureRequest": "an upgraded level-2 European Gothic-Renaissance research institute massing, exactly one connected main hall, exactly one taller central square tower and exactly two matching lower square side towers, all roof surfaces covered in muted weathered low-saturation steel-blue and blue-gray slate tiles matching the current level-1 institute, continuous steep wing roofs, solid attached buttresses and layered cornice bands, all tower walls intersecting the hall with no fourth tower or detached mass",
+      "detailRequest": "the selected level-2 research institute preserving its exact three-tower silhouette, refined pale weathered ashlar stone, warm muted plaster, dense dark-walnut framing, deep blue-gray slate tiles, carved window lintels, closed amber mullioned windows, attached entrance lanterns and restrained aged-brass roof finials"
+    },
+    {
+      "id": "research_institute_lv3",
+      "label": "研究院 LV3",
+      "controlImage": "tools/ai-gen/_settlement_building_pack_20260821/research_institute_lv3/research_institute_lv3_body_depth.png",
+      "paletteConstraint": "match the current level-1 research institute: every roof plane and every tower cap uses faded low-saturation weathered steel-blue and blue-gray slate tiles, dusty cool mid-blue around #4C7188 with darker desaturated navy-blue shadow faces; the roof must look muted and aged under neutral light, never vivid cobalt, electric blue, royal blue, cyan, neon, glossy, red, terracotta, orange, brown, copper or purple; use pale warm-gray stone, dark chestnut timber, aged brass accents and strong amber window light",
+      "primaryRequest": "a grand final-level fortified late-medieval research institute, exactly three integrated square towers on one connected academic hall, with a dramatically taller central tower, two ornate lower side towers, attached enclosed observation-gallery bands, layered buttresses, a covered entrance and the richest scholarly silhouette of the upgrade line",
+      "structureRequest": "a grand level-3 European Gothic-Renaissance research institute massing, exactly one connected main hall, exactly one dramatically taller central square tower and exactly two ornate lower square side towers, all roof surfaces covered in muted weathered low-saturation steel-blue and blue-gray slate tiles matching the current level-1 institute, attached enclosed observation-gallery bands around the existing tower chambers, continuous wing roofs, layered buttresses and one attached covered entrance, with no fourth tower, dome, detached observatory or open roof deck",
+      "detailRequest": "the selected level-3 research institute preserving its exact three-tower silhouette and attached galleries, finely dressed pale stone, near-black walnut framing, deep blue-gray slate, elaborate closed amber mullioned windows, elegant aged-gold facade courses, an attached brass astronomical clock, ornate covered entrance and tall refined brass finials"
+    },
+    {
       "id": "blacksmith",
       "label": "铁匠铺",
       "primitives": [

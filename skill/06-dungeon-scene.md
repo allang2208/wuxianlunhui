@@ -38,7 +38,10 @@
    并在分发处 `await`。
 4. 进入加载器先 `clearDecoClearZones()`，重置 Camera aim/shake/lock，再设置
    `CONFIG.WORLD_WIDTH/HEIGHT`。
-5. 标准加载骨架：
+5. `switchScene` 会先执行目标加载器、在收尾阶段才提交 `currentScene`；加载器内凡是会按场景
+   选择世界尺寸的初始化器必须显式接收目标场景（如回城调用 `Renderer.generateWorld('main')`），
+   禁止从尚未更新的 `currentScene` 反推目标，否则会把目标尺寸覆盖成离场场景的默认尺寸。
+6. 标准加载骨架：
    - 设置 floor profile并注册2048分块；
    - `WallSystem.init(w,h)`；
    - 注册四条无视觉矩形外边和菱形四边 `_boundary` 线段；
@@ -46,7 +49,7 @@
    - 普通模式生成玩家并 `Camera.follow`，观察模式只把相机放世界中心；
    - 生成环境；
    - 在菱形底端 `cy+ry-160` 放 `Portal(...,'main','返回主神空间')`。
-6. 离场清理条件必须包含新场景；`Renderer.terrainChunks`、实体和墙视觉沿用
+7. 离场清理条件必须包含新场景；`Renderer.terrainChunks`、实体和墙视觉沿用
    `switchScene` 统一清理，不另建生命周期。
 
 #### 4. 环境生成标准
@@ -96,8 +99,8 @@
 
 #### 8. 已落地变体
 
-- 世界-123：连续雪地 + 表面补丁 + 雪松/雪草。
-- 世界-124：连续草地 + 林地草簇 + 五姿态针叶树。
+- 世界-123：连续雪地 + 表面补丁 + 雪松/雪草；与世界-122同为 `0.7` 基础镜头缩放。
+- 世界-124：连续草地 + 林地草簇 + 五姿态针叶树；与世界-122同为 `0.7` 基础镜头缩放。
 - 世界-125：遗迹大石板 `ruinslab_1/2` 砖池（2026-08-23 起，见下条）+ 石柱/烛台/纯障碍预制组合；
   与世界-122同为 `0.7` 基础镜头缩放。
 
@@ -316,14 +319,20 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
 3. **门闸实体**（wall-gate.js）：状态机 open/closed/opening/closing（**动画用 Phaser tween 计数器驱动，禁止手动逐帧 tick**——手动驱动链路易断，动画卡死）；碰撞 = **门两侧墙体线段常开 + 门洞线段按状态启停**；**原位替换**（继承被替换件 span 与 depth，不做任何接缝特权/过门退层——这些方案全部试过并废弃）；悬停金色轮廓（全 16 帧拱门区剪影×shadowBlur 烘焙，**本体 destination-out 抹除只留外发光**，跟随当前帧）；**斜接遮盖位继承（2026-07-25）：转角两臂同 depth，默认构建里后建的臂盖住先建臂的端边——门闸替换先建臂（下夹角 bL/上夹角 tL，平局按数组顺序必中先建臂）时必须 depth-0.1 退到兄弟臂下面，否则门闸贴图的裁切边暴露在斜接缝上。依据：用户手工预设（门墙 depth 最低、右臂最高）严丝合缝，几何与代码生成完全一致，差的就是这层顺序**；`_setupGate` 仍需先 `_syncWallsToPhaser()` 后 `placeAt`（防门闸被整批重建的墙件压住）
 4. **门外独立地块**：入场即生成（战斗完成不等）；位置 = 门洞中心沿外法线出界 + 边距（**不做晶格吸附**，防拽回主场景）；烘焙 = 当前地牢地砖 → **裁掉菱形内部分**（destination-out 菱形路径，不重叠）→ 远角径向圆滑淡出 → 25% 延伸；轮廓环绕光晕只留外侧（朝门一侧渐隐擦除）；图层归地形层（-999）
 5. **回城触发**：玩家在白区内**且已走出菱形边界**（点-in-菱形 false）→ `_leaveCombatViaPortal()`；出口传送门已删
-6. **雪原单格墙与冰锥门（2026-08-23）**：`combatRoom.wallConstruction:"worldBlock1x1"` 使用
-   `2 × gridEdgeRadius + 1` 个网格中心覆盖每条边，四个顶点各只生成一块墙；转角块以入边、出边两条
-   半段闭合碰撞，其余墙块以中心两侧半格组成完整线段，禁止四边各自重复端点墙。中央门洞固定跳过连续
-   6 格，并用这些缺口段的真实首尾点交给 `WallGate.placeAt()`。`frozen_gate` 是 4×4、单帧
+6. **雪原单格墙、格心通道与冰锥门（2026-08-23）**：`combatRoom.wallConstruction:"worldBlock1x1"`
+   使用 `2 × gridEdgeRadius` 个网格中心覆盖每条边，四个顶点各只生成一块墙；偶数边长让中央6格门洞
+   的两个端点也落在格心。门端墙块只保留朝实体墙一侧的半段碰撞，多房通道首末格与这两个门端墙块
+   共享，中间按整数个128×64格心铺墙，禁止半格错位、缩短墙块或另加封口瓦。通道地板四角直接取
+   两端门洞端点，与房间菱形地板在真实边线上做并集；每条通道两端各建一扇同跨度功能门。
+   `frozen_gate` 是 4×4、单帧
    640×640 的16帧冰锥门，帧0完全升起、帧15沉入地面；`ISO_WALL_GEO.frozen_gate` 的 `base/gateX`
    必须与 `tools/ai-gen/frozen-icicle-gate-geometry.json` 一致，正式贴图由
-   `tools/ai-gen/build-frozen-icicle-gate.py` 确定性重建。该样式只替换冰封竞技场门体与音效，其他地牢
+   `tools/ai-gen/build-frozen-icicle-gate.py` 确定性重建。该长门运行时必须把同一帧按门线等分裁成
+   浅/中/深三段，各自以段底边 `maxY+3.9` 排序（同线冰墙为 `maxY+4`），遮挡面线缓存也按三段注册；
+   禁止恢复整门单一中心 depth，否则浅端冰锥会覆盖相邻墙块。该样式只替换冰封竞技场门体与音效，其他地牢
    继续使用各自 `ISO_WALL_STYLES`，不得横向拉伸普通拱门填满6格门洞。
+   布局必须走 `computeGridMazeLayout`，`passageCells` 是门边到门边的整数格心距离；末房宝箱事件传
+   `openArena:true`，只生成宝箱、倒计时和排除区，禁止再套用含 `frozen_straight` 的历史宝箱房预制。
 
 #### 五、透视遮挡（X 光圆圈）
 1. 判定（几何法，不用包围盒）：墙件 depth > 实体 depth 且**脚底在墙面底边线之后 + 身体进入墙面覆盖带（覆盖量 > 身体 15%）**；遮挡物 = iso 墙件 + 门闸统一列表
@@ -611,8 +620,10 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
 - **共享结构阴影层**（2026-08-22 根部贴合修复）：单个 Graphics、深度读取
   `WORLD_RENDER_LAYERS.STRUCTURE_SHADOW`（当前 −994.4，位于道路和地基之上），每帧汇入全部
   结构阴影多边形。重叠/相贴的 job 先聚簇并集再画，聚簇判定覆盖顶点互含、普通相交和共线相贴；
-  并集扫描必须额外保留全部输入顶点所在行，不能用固定 2px 步长吞掉接地角。原尺寸单次填充，
-  互不相交的簇可保留自己的 `shadow.opacity`。禁止质心放大和居中描边。树木/接触型散布障碍
+  并集扫描必须额外保留全部输入顶点所在行，不能用固定 2px 步长吞掉接地角。并集完成后统一调用
+  `getShadowFeatherLayers()`：最外层严格保留原尺寸，默认 8px/5 层只向轮廓内部收缩，累计透明度按
+  source-over 反解，保证内部仍精确达到原 `shadow.opacity`、边缘平滑淡出且不越过接地边。
+  互不相交的簇可保留自己的透明度；禁止质心外扩和居中描边。树木/接触型散布障碍
   也并入此层，但几何必须是**水平 2:1 footprint 沿归一化太阳方向的凸扫掠**，不得旋转基础
   椭圆；注册 Sprite 仅作为生命周期键。战争迷雾必须过滤逐实体 job 并触发 revision 重画，
   不能隐藏整层。移动单位仍用独立接触影 Sprite。**运行时纯几何、无烘焙无角度分桶——连续不跳**；只允许下文
@@ -632,7 +643,9 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
 - **水平接触影（单位唯一默认，2026-08-21 footprint 对齐修复）**：玩家/怪物/友军/NPC
   阴影中心严格等于视觉脚底/碰撞脚点，宽高严格取 `resolveUnitGroundFootprint` 返回的
   `Collider.radius` 水平 2:1 footprint，默认 `widthMul=depthMul=1`、
-  `rotation=0`，始终保持屏幕水平 2:1 柔边椭圆。禁止把整个椭圆旋转到太阳影向——影向接近
+  `rotation=0`，始终保持屏幕水平 2:1 柔边椭圆。`entity_shadow` 的径向透明度采样点必须由
+  `getContactShadowGradientStops()` 统一生成，并用同一 `smoothstep` 曲线在外缘降到 0；禁止为个别单位
+  另画硬边纹理。禁止把整个椭圆旋转到太阳影向——影向接近
   屏幕 Y 轴时会把水平脚底错误立成竖椭圆。普通单位不再产生方向位移或晨昏尺寸膨胀；只有
   个体显式配置 `shadow.directional=true` 时才启用旧方向尾影。
   透明度 0.30078125（2026-08-21 单位影再加深 25%；建筑静态仍为 0.1925）×环境强度、

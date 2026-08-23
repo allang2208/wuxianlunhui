@@ -169,6 +169,24 @@
             display: none !important;
         }
 
+        /* NPC 对话期间隐藏全部左侧 HUD；移除状态类后恢复各栏原有显示状态。 */
+        body.npc-dialogue-active :is(
+            .back-menu-btn,
+            .status-bar-container,
+            .attack-indicator-left,
+            .controls-hint-left,
+            .attack-range-toggle,
+            .dev-tool-trigger,
+            .invincible-toggle,
+            .party-bar,
+            #weaponInfo,
+            .rts-command-btn,
+            .troop-line-panel,
+            .rts-command-bar
+        ) {
+            display: none !important;
+        }
+
         .back-menu-btn { position: absolute; top: 12px; left: 12px; padding: 8px 16px; background: rgba(42, 37, 32, 0.85); border: 2px solid #5a4d3f; border-radius: 8px; color: #d4c5a9; cursor: pointer; pointer-events: auto; font-family: inherit; font-size: 13px; transition: all 0.2s; }
         .back-menu-btn:hover { background: rgba(90, 77, 63, 0.9); border-color: #8a7d6b; }
         .back-menu-btn.active { border-color: #c9a227; color: #ffe9a8; box-shadow: 0 0 8px rgba(201, 162, 39, 0.4); }
@@ -626,8 +644,8 @@
             transition: transform 0.3s, opacity 0.3s;
         }
         .npc-portrait.mouse-attendant {
-            width: 1191px;
-            bottom: 200px;
+            width: 397px;
+            bottom: 220px;
             left: 50%;
             object-fit: contain;
         }

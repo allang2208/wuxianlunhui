@@ -5,7 +5,7 @@ import populationEconomy from '../../data/population-economy.json';
 import { EventBus } from '../core/event-bus.js';
 import { WorldProgressionSystem } from './world-progression-system.js';
 
-const VERSION = 6;
+const VERSION = 7;
 const ALLOWED_UNLOCK_TYPES = new Set(['building', 'unit', 'upgrade', 'mechanic']);
 const treeNodes = Array.isArray(technologyTree.nodes) ? technologyTree.nodes : [];
 const planeResearchNodes = Array.isArray(technologyTree.planeResearch) ? technologyTree.planeResearch : [];
@@ -27,16 +27,17 @@ const upgradeIds = Object.values(buildingUpgrades || {}).flatMap((project) => [
     ...Object.values(project?.abilities || {}).map((ability) => ability?.id).filter(Boolean),
     ...Object.keys(project?.modules || {}),
 ]);
-const houseUpgradeIds = (populationEconomy.house?.levels || [])
-    .map((level) => level?.technologyUnlockId)
-    .filter(Boolean);
+const economyLevelUpgradeIds = Object.values(populationEconomy || {}).flatMap((config) =>
+    (Array.isArray(config?.levels) ? config.levels : [])
+        .map((level) => level?.technologyUnlockId)
+        .filter(Boolean));
 const KNOWN_UNLOCK_TARGETS = Object.freeze({
     building: new Set([
         'tower', 'cover_block', 'road', 'gate_4cell', 'hamster_hut',
         'wall_staircase', ...producerConfigs.map((config) => config.id),
     ]),
     unit: new Set(producerUnitIds),
-    upgrade: new Set([...upgradeIds, ...houseUpgradeIds]),
+    upgrade: new Set([...upgradeIds, ...economyLevelUpgradeIds]),
     mechanic: new Set([
         'building_recycle', 'building_relocation', 'rts_command', 'troop_hold', 'troop_rally',
         'cross_world_reinforcement',
@@ -191,10 +192,12 @@ export const TechnologySystem = {
     validation: CONFIG_VALIDATION,
     state: emptyState(),
     lastInstituteCount: 0,
+    lastResearchRate: 0,
 
     reset() {
         this.state = emptyState();
         this.lastInstituteCount = 0;
+        this.lastResearchRate = 0;
         this._emitChanged('reset');
     },
 
@@ -313,9 +316,8 @@ export const TechnologySystem = {
         }, 0);
     },
 
-    getEstimatedSeconds(ids = null, instituteCount = this.lastInstituteCount) {
-        const rate = Math.max(0, Number(this.config.pointsPerInstitutePerSecond) || 0)
-            * Math.max(0, Math.floor(Number(instituteCount) || 0));
+    getEstimatedSeconds(ids = null, researchRate = this.lastResearchRate) {
+        const rate = Math.max(0, Number(researchRate) || 0);
         if (!(rate > 0)) return null;
         return this.getRemainingResearchPoints(ids) / rate;
     },
@@ -352,11 +354,14 @@ export const TechnologySystem = {
         return this.clearResearchTarget({ source: 'clear' });
     },
 
-    update(deltaMs, instituteCount = 0) {
+    update(deltaMs, instituteCount = 0, actualResearchRate = null) {
         const count = Math.max(0, Math.floor(Number(instituteCount) || 0));
+        const rate = actualResearchRate == null
+            ? Math.max(0, Number(technologyTree.pointsPerInstitutePerSecond) || 0) * count
+            : Math.max(0, Number(actualResearchRate) || 0);
         this.lastInstituteCount = count;
-        if (count <= 0 || deltaMs <= 0) return null;
-        const rate = Math.max(0, Number(technologyTree.pointsPerInstitutePerSecond) || 0) * count;
+        this.lastResearchRate = rate;
+        if (!(rate > 0) || deltaMs <= 0) return null;
         let remainingPoints = rate * (deltaMs / 1000);
         let lastCompletedNode = null;
         let progressed = false;

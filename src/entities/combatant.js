@@ -546,11 +546,14 @@ class Combatant extends DamageableEntity {
         this.triggerWeaponAnim();
 
         // 播放开火音效
-        if (SoundManager) {
+        if (!config.suppressFireSound && SoundManager) {
             const fireSound = item.fireSound;
             if (fireSound) {
                 if (fireSound.startsWith('assets/')) {
-                    SoundManager.playFile(fireSound);
+                    if (this._faction !== 'player' && SoundManager.playGunshotAt) {
+                        SoundManager.playGunshotAt(fireSound, this.x, this.y);
+                    } else if (SoundManager.playGunshot) SoundManager.playGunshot(fireSound);
+                    else SoundManager.playFile(fireSound);
                 } else {
                     SoundManager.play(fireSound);
                 }

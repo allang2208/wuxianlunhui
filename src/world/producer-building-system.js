@@ -1371,7 +1371,88 @@ class ProducerBuildingPanel extends BasePanel {
             const productionPctEl = el.querySelector('#pbEconomyProductionPct');
             if (productionBar) productionBar.style.width = `${secondaryProgress.pct}%`;
             if (productionPctEl) productionPctEl.textContent = secondaryProgress.text;
-            if (b._economyType === 'bakery') {
+            if (b._economyType === 'research') {
+                const snapshot = PopulationEconomySystem.getResearchSnapshot(b);
+                const operating = snapshot.actualResearchPointsPerSecond > 0;
+                const values = {
+                    pbResearchStatus: operating
+                        ? '正在积累科研点'
+                        : (snapshot.staffedCount <= 0 ? '等待研究员上岗' : '人口容量不足'),
+                    pbResearchLevelBase: `${snapshot.levelBaseResearchPoints.toFixed(2)} 点/秒`,
+                    pbResearchGlobalBonus: `+${snapshot.baseBonus.toFixed(2)} 点/秒`,
+                    pbResearchStaffed: `${snapshot.staffedCount}/${snapshot.staffCapacity}`,
+                    pbResearchConfigured: `${snapshot.configuredResearchPointsPerSecond.toFixed(2)} 点/秒`,
+                    pbResearchActual: `${snapshot.actualResearchPointsPerSecond.toFixed(2)} 点/秒`,
+                    pbResearchWorkshop: `+${((snapshot.workshopMultiplier - 1) * 100).toFixed(1)}%`,
+                };
+                Object.entries(values).forEach(([id, value]) => {
+                    const node = el.querySelector(`#${id}`);
+                    if (node) node.textContent = value;
+                });
+                el.querySelector('#pbResearchStatus')?.classList.toggle('is-blocked', !operating);
+                const levelUpgrade = b._economyUpgrade;
+                if (levelUpgrade) {
+                    const pct = Math.max(0, Math.min(100,
+                        Math.round((1 - levelUpgrade.remainMs / levelUpgrade.totalMs) * 100)));
+                    const bar = el.querySelector('#pbUpgradeBar_research_institute_level');
+                    const text = el.querySelector('#pbUpgradeText_research_institute_level');
+                    if (bar) bar.style.width = `${pct}%`;
+                    if (text) text.textContent = `升级中 ${pct}%（剩余 ${Math.ceil(levelUpgrade.remainMs / 1000)}s）`;
+                } else if (el.querySelector('[data-research-level-upgrading="true"]')) {
+                    this.refresh();
+                }
+                if (b._upgrade) {
+                    const pct = Math.max(0, Math.min(100,
+                        Math.round((1 - b._upgrade.remainMs / b._upgrade.totalMs) * 100)));
+                    const projectId = b._upgrade.abilityId || b._upgrade.moduleId;
+                    const bar = el.querySelector(`#pbUpgradeBar_${projectId}`);
+                    const text = el.querySelector(`#pbUpgradeText_${projectId}`);
+                    if (bar) bar.style.width = `${pct}%`;
+                    if (text) text.textContent = `升级中 ${pct}%（剩余 ${Math.ceil(b._upgrade.remainMs / 1000)}s）`;
+                }
+            } else if (b._economyType === 'planar_resonator') {
+                const snapshot = PopulationEconomySystem.getPlanarResonatorSnapshot(b);
+                const hasWarehouse = !!EnergyManager?.hasWarehouse?.();
+                const warehouseFull = !!EnergyManager?.isFull?.();
+                const operating = snapshot.actualEnergyPerSecond > 0 && hasWarehouse && !warehouseFull;
+                const values = {
+                    pbResonatorStatus: operating
+                        ? '稳定发电'
+                        : (snapshot.staffedCount <= 0
+                            ? '等待技师上岗'
+                            : (snapshot.laborEfficiency <= 0
+                                ? '人口容量不足'
+                                : (hasWarehouse && !warehouseFull ? '等待谐振' : '等待仓库空间'))),
+                    pbResonatorCycle: `${(snapshot.cycleMs / 1000).toFixed(1)} 秒`,
+                    pbResonatorPerCycle: `${snapshot.energyPerCycle.toFixed(0)} 能源`,
+                    pbResonatorConversion: `${(snapshot.conversionRate * 100).toFixed(0)}%`,
+                    pbResonatorStaffed: `${snapshot.staffedCount}/${snapshot.staffCapacity}`,
+                    pbResonatorConfiguredOutput: `${snapshot.configuredEnergyPerSecond.toFixed(2)} 能源/秒`,
+                    pbEconomyOutput: `${snapshot.actualEnergyPerSecond.toFixed(2)} 能源/秒`,
+                    pbResonatorWorkshop: `${((snapshot.workshopMultiplier - 1) * 100).toFixed(1)}%`,
+                    pbResonatorPending: `${snapshot.pendingEnergy}`,
+                    pbResonatorStorage: `${Math.floor(EnergyManager?.getEnergy?.() || 0)}/${Math.floor(EnergyManager?.getCapacity?.() || 0)}`,
+                };
+                Object.entries(values).forEach(([id, value]) => {
+                    const node = el.querySelector(`#${id}`);
+                    if (node) node.textContent = value;
+                });
+                const status = el.querySelector('#pbResonatorStatus');
+                status?.classList.toggle('is-blocked', !operating);
+                const upgrade = b._resonatorUpgrade;
+                if (upgrade) {
+                    const pct = Math.max(0, Math.min(100,
+                        Math.round((1 - upgrade.remainMs / upgrade.totalMs) * 100)));
+                    const bar = el.querySelector(`#pbUpgradeBar_${upgrade.moduleId}`);
+                    const progressText = el.querySelector(`#pbUpgradeText_${upgrade.moduleId}`);
+                    if (bar) bar.style.width = `${pct}%`;
+                    if (progressText) {
+                        progressText.textContent = `升级中 ${pct}%（剩余 ${Math.ceil(upgrade.remainMs / 1000)}s）`;
+                    }
+                } else if (el.querySelector('[data-resonator-upgrading="true"]')) {
+                    this.refresh();
+                }
+            } else if (b._economyType === 'bakery') {
                 const snapshot = BakeryEconomySystem.getSnapshot(b);
                 const values = {
                     pbBakeryStatus: snapshot.status,
@@ -1673,6 +1754,9 @@ class ProducerBuildingPanel extends BasePanel {
             const seconds = value / 1000;
             return `${Number.isInteger(seconds) ? seconds : seconds.toFixed(1)}秒`;
         }
+        if (ability.displayMode === 'decimal') {
+            return Number(value.toFixed(2)).toString();
+        }
         return ability.displayMode === 'flat'
             ? String(Math.round(value))
             : `${Math.round(value * 1000) / 10}%`;
@@ -1741,6 +1825,8 @@ class ProducerBuildingPanel extends BasePanel {
             workshop: '自动维修与经济增效',
             armory: '军械维护与募兵减耗',
             bakery: '面包师粮食加工与返仓',
+            research: '岗位科研、科技树与全局研究强化',
+            planar_resonator: '岗位驱动的位面能源生产',
         }[cfg.economyType];
         const mode = isPortal ? '跨世界传送'
             : (isEconomy ? economyMode
@@ -1755,7 +1841,8 @@ class ProducerBuildingPanel extends BasePanel {
                 hp: b.hp,
                 maxHp: b.maxHp,
                 accent: isCandle ? '#ffc66d'
-                    : (isWarehouse ? '#7fd4ff' : (isAbilityShop ? '#c9a0ff' : '#7fe0c8')),
+                    : (isWarehouse ? '#7fd4ff'
+                        : (isAbilityShop || cfg.economyType === 'research' ? '#c9a0ff' : '#7fe0c8')),
                 status: mode,
             });
         }
@@ -2126,7 +2213,168 @@ class ProducerBuildingPanel extends BasePanel {
         }
         if (isEconomy) {
             const population = PopulationEconomySystem.getPopulationSnapshot();
-            if (cfg.economyType === 'armory') {
+            if (cfg.economyType === 'research') {
+                const snapshot = PopulationEconomySystem.getResearchSnapshot(b);
+                const operating = snapshot.actualResearchPointsPerSecond > 0;
+                st.innerHTML = `
+                    <div class="economy-panel-heading"><span>🔬 研究院科研档案</span><span class="economy-panel-badge ${operating ? '' : 'is-blocked'}" id="pbResearchStatus">${operating ? '正在积累科研点' : (snapshot.staffedCount <= 0 ? '等待研究员上岗' : '人口容量不足')}</span></div>
+                    <div class="economy-stat-grid">
+                        <div><span>建筑等级</span><b>Lv.${snapshot.level}</b></div>
+                        <div><span>本级基础科研</span><b id="pbResearchLevelBase">${snapshot.levelBaseResearchPoints.toFixed(2)} 点/秒</b></div>
+                        <div><span>全局设备加成</span><b id="pbResearchGlobalBonus">+${snapshot.baseBonus.toFixed(2)} 点/秒</b></div>
+                        <div><span>上岗 / 容量</span><b id="pbResearchStaffed">${snapshot.staffedCount}/${snapshot.staffCapacity}</b></div>
+                        <div><span>满岗位配置科研</span><b id="pbResearchConfigured">${snapshot.configuredResearchPointsPerSecond.toFixed(2)} 点/秒</b></div>
+                        <div><span>实际科研速度</span><b id="pbResearchActual">${snapshot.actualResearchPointsPerSecond.toFixed(2)} 点/秒</b></div>
+                        <div><span>工坊额外增效</span><b id="pbResearchWorkshop">+${((snapshot.workshopMultiplier - 1) * 100).toFixed(1)}%</b></div>
+                        <div><span>位面人口</span><b id="pbEconomyPopulation">${population.used}/${population.capacity} · 空余 ${population.free}${population.overcrowded > 0 ? ` · 超额 ${population.overcrowded}` : ''}</b></div>
+                    </div>
+                    <p class="economy-panel-note">每名上岗研究员提供 20% 科研效率；初始 3 个岗位只能发挥 60%，扩编到 5 人后满效。未安排研究员时不会积累任何科研点。</p>
+                    <p class="economy-panel-note">科研点由所有位面的研究院共同累积并推进科技树；本栋等级提高基础科研，精密设备提供全局基础加成，经济工坊范围增效照常生效。</p>`;
+
+                const nextLevel = PopulationEconomySystem.getResearchUpgrade(b);
+                const levelUpgrade = b._economyUpgrade;
+                const levelProgress = levelUpgrade
+                    ? Math.round((1 - levelUpgrade.remainMs / levelUpgrade.totalMs) * 100)
+                    : 0;
+                const maxResearchLevel = Math.max(1,
+                    ...(populationEconomyConfig.research?.levels || [])
+                        .map((entry) => Math.max(1, Math.floor(Number(entry.level) || 1))));
+                const levelActions = nextLevel
+                    ? `<button class="troop-panel-upgrade-button" data-research-level-upgrade
+                        data-technology-gate-type="upgrade" data-technology-gate-id="${nextLevel.technologyUnlockId || ''}"
+                        ${levelUpgrade ? 'disabled' : ''}>升级到 Lv.${nextLevel.level}</button>`
+                    : '<span class="troop-panel-caption">已满级</span>';
+                const levelCard = renderBuildingUpgradeCard({
+                    rowAttribute: 'data-research-level-row', projectId: 'research_institute_level',
+                    icon: '🏛️', name: '研究院塔楼扩建', level: snapshot.level,
+                    maxLevel: maxResearchLevel, cost: nextLevel?.upgradeCost || null,
+                    maxed: !nextLevel, inProgress: !!levelUpgrade,
+                    progressPct: levelProgress, remainMs: levelUpgrade?.remainMs || 0,
+                    barId: 'pbUpgradeBar_research_institute_level',
+                    textId: 'pbUpgradeText_research_institute_level',
+                    actionsHtml: levelActions, accent: '#d7b7ff',
+                }).replace('class="building-upgrade-card"',
+                    `class="building-upgrade-card" data-research-level-upgrading="${!!levelUpgrade}"`);
+
+                const abilityRows = Object.entries(cfg.abilities || {}).map(([abilityId, ability]) => {
+                    const level = b.abilityLevel(abilityId);
+                    const maxed = level >= (ability.maxLevel ?? 10);
+                    const inProgress = !!(b._upgrade && b._upgrade.abilityId === abilityId);
+                    const progressPct = inProgress
+                        ? Math.round((1 - b._upgrade.remainMs / b._upgrade.totalMs) * 100)
+                        : 0;
+                    const continuous = b.isContinuousUpgrade('ability', abilityId);
+                    const actionsHtml = renderContinuousUpgradeActions({
+                        maxed,
+                        inProgress,
+                        continuous,
+                        upgradeBusy: !!b._upgrade,
+                        manualAttributes: `data-ability-up="${abilityId}"`,
+                        continuousAttributes: `data-ability-cont="${abilityId}"`,
+                    });
+                    return renderBuildingUpgradeCard({
+                        rowAttribute: 'data-research-ability-row', projectId: abilityId,
+                        icon: ability.icon, iconImage: ability.iconImage, name: ability.name,
+                        level, maxLevel: ability.maxLevel ?? 10,
+                        cost: b.getAbilityCost(abilityId), maxed, inProgress, progressPct,
+                        remainMs: inProgress ? b._upgrade.remainMs : 0,
+                        statusText: continuous && !inProgress
+                            ? '持续升级已开启 · 等待条件与资源' : '',
+                        barId: `pbUpgradeBar_${abilityId}`,
+                        textId: `pbUpgradeText_${abilityId}`,
+                        actionsHtml, accent: '#c9a0ff',
+                        technologyGateType: 'upgrade', technologyGateId: abilityId,
+                    });
+                }).join('');
+                modBox.innerHTML = `${this._renderWorkforceControls(b)}
+                    <div class="economy-panel-heading"><span>研究院等级</span><span class="economy-panel-meta">科技解锁 Lv.2 / Lv.3</span></div>
+                    ${levelCard}
+                    <div class="economy-panel-heading" style="margin-top:10px;"><span>全局研究升级</span><span class="economy-panel-meta">保留原有强化并新增科研设施升级</span></div>
+                    ${abilityRows || '<div class="troop-panel-empty">暂无研究项目</div>'}`;
+                this._bindWorkforceControls(modBox);
+                modBox.querySelector('[data-research-level-upgrade]')?.addEventListener('click', () => this._upgradeResearchLevel());
+                modBox.querySelector('[data-research-level-row]')?.addEventListener('mouseenter', (event) => this._showResearchLevelTip(event));
+                modBox.querySelector('[data-research-level-row]')?.addEventListener('mousemove', (event) => this._moveAbilityTip(event));
+                modBox.querySelector('[data-research-level-row]')?.addEventListener('mouseleave', () => this._hideAbilityTip());
+                modBox.querySelectorAll('[data-ability-up]').forEach((button) => {
+                    button.addEventListener('click', () => this._upgradeAbility(button.dataset.abilityUp, false));
+                });
+                modBox.querySelectorAll('[data-ability-cont]').forEach((button) => {
+                    button.addEventListener('click', () => this._upgradeAbility(button.dataset.abilityCont, true));
+                });
+                modBox.querySelectorAll('[data-research-ability-row]').forEach((row) => {
+                    row.addEventListener('mouseenter', (event) => this._showAbilityTip(row.dataset.researchAbilityRow, event));
+                    row.addEventListener('mousemove', (event) => this._moveAbilityTip(event));
+                    row.addEventListener('mouseleave', () => this._hideAbilityTip());
+                });
+                TechnologyGate.bindTree(modBox);
+            } else if (cfg.economyType === 'planar_resonator') {
+                const snapshot = PopulationEconomySystem.getPlanarResonatorSnapshot(b);
+                const hasWarehouse = !!EnergyManager?.hasWarehouse?.();
+                const warehouseFull = !!EnergyManager?.isFull?.();
+                const operating = snapshot.actualEnergyPerSecond > 0 && hasWarehouse && !warehouseFull;
+                const status = operating
+                    ? '稳定发电'
+                    : (snapshot.staffedCount <= 0
+                        ? '等待技师上岗'
+                        : (snapshot.laborEfficiency <= 0
+                            ? '人口容量不足'
+                            : (hasWarehouse && !warehouseFull ? '等待谐振' : '等待仓库空间')));
+                st.innerHTML = `
+                    <div class="economy-panel-heading"><span>🔮 位面谐振发电</span><span class="economy-panel-badge ${operating ? '' : 'is-blocked'}" id="pbResonatorStatus">${status}</span></div>
+                    <div class="economy-stat-grid">
+                        <div><span>谐振周期</span><b id="pbResonatorCycle">${(snapshot.cycleMs / 1000).toFixed(1)} 秒</b></div>
+                        <div><span>晶核单轮产能</span><b id="pbResonatorPerCycle">${snapshot.energyPerCycle.toFixed(0)} 能源</b></div>
+                        <div><span>导能回收率</span><b id="pbResonatorConversion">${(snapshot.conversionRate * 100).toFixed(0)}%</b></div>
+                        <div><span>上岗 / 容量</span><b id="pbResonatorStaffed">${snapshot.staffedCount}/${snapshot.staffCapacity}</b></div>
+                        <div><span>满员配置产量</span><b id="pbResonatorConfiguredOutput">${snapshot.configuredEnergyPerSecond.toFixed(2)} 能源/秒</b></div>
+                        <div><span>实际产量</span><b id="pbEconomyOutput">${snapshot.actualEnergyPerSecond.toFixed(2)} 能源/秒</b></div>
+                        <div><span>工坊额外增效</span><b id="pbResonatorWorkshop">${((snapshot.workshopMultiplier - 1) * 100).toFixed(1)}%</b></div>
+                        <div><span>待入库能源</span><b id="pbResonatorPending">${snapshot.pendingEnergy}</b></div>
+                        <div><span>仓库能源 / 容量</span><b id="pbResonatorStorage">${Math.floor(EnergyManager?.getEnergy?.() || 0)}/${Math.floor(EnergyManager?.getCapacity?.() || 0)}</b></div>
+                        <div><span>位面人口</span><b id="pbEconomyPopulation">${population.used}/${population.capacity} · 空余 ${population.free}${population.overcrowded > 0 ? ` · 超额 ${population.overcrowded}` : ''}</b></div>
+                    </div>
+                    <p class="economy-panel-note">每名上岗谐振技师发挥 20% 配置产能，5 名满效；人口超额会按全局人口效率降产，经济工坊的范围增效同样生效。</p>
+                    <p class="economy-panel-note">产出的能源直接写入本位面真实仓库；仓库满时暂存在本栋结算余量，出现空间后继续入库，不会凭空丢失。</p>`;
+                const upgrade = b._resonatorUpgrade;
+                const rows = Object.entries(cfg.modules || {}).map(([moduleId, module]) => {
+                    const level = PopulationEconomySystem.getResonatorModuleLevel(b, moduleId);
+                    const maxed = level >= module.maxLevel;
+                    const inProgress = upgrade?.moduleId === moduleId;
+                    const progressPct = inProgress
+                        ? Math.round((1 - upgrade.remainMs / upgrade.totalMs) * 100)
+                        : 0;
+                    const unlocked = TechnologySystem.isUnlocked('upgrade', moduleId);
+                    const actionsHtml = maxed
+                        ? '<span class="troop-panel-caption">已满级</span>'
+                        : `<button class="troop-panel-upgrade-button" data-resonator-upgrade="${moduleId}"
+                            data-technology-gate-type="upgrade" data-technology-gate-id="${moduleId}"
+                            ${upgrade || !unlocked ? 'disabled' : ''}>${unlocked ? '升级' : '科技未解锁'}</button>`;
+                    return renderBuildingUpgradeCard({
+                        rowAttribute: 'data-resonator-row', projectId: moduleId,
+                        icon: module.icon, iconImage: module.iconImage, name: module.name,
+                        level, maxLevel: module.maxLevel,
+                        cost: PopulationEconomySystem.getResonatorUpgradeCost(b, moduleId), maxed,
+                        inProgress, progressPct,
+                        remainMs: inProgress ? upgrade.remainMs : 0,
+                        barId: `pbUpgradeBar_${moduleId}`, textId: `pbUpgradeText_${moduleId}`,
+                        actionsHtml, accent: '#a892ff',
+                    }).replace('class="building-upgrade-card"',
+                        `class="building-upgrade-card" data-resonator-upgrading="${inProgress}"`);
+                }).join('');
+                modBox.innerHTML = `${this._renderWorkforceControls(b)}
+                    <div class="economy-panel-heading"><span>谐振塔升级项目</span><span class="economy-panel-meta">需要科技“谐振校准”</span></div>${rows}`;
+                this._bindWorkforceControls(modBox);
+                modBox.querySelectorAll('[data-resonator-upgrade]').forEach((button) => {
+                    button.addEventListener('click', () => this._upgradeResonator(button.dataset.resonatorUpgrade));
+                });
+                modBox.querySelectorAll('[data-resonator-row]').forEach((row) => {
+                    row.addEventListener('mouseenter', (event) => this._showResonatorTip(row.dataset.resonatorRow, event));
+                    row.addEventListener('mousemove', (event) => this._moveAbilityTip(event));
+                    row.addEventListener('mouseleave', () => this._hideAbilityTip());
+                });
+                TechnologyGate.bindTree(modBox);
+            } else if (cfg.economyType === 'armory') {
                 const snapshot = ArmoryEconomySystem.getSnapshot(b);
                 const operating = snapshot.staffedCount > 0;
                 st.innerHTML = `
@@ -2736,6 +2984,26 @@ class ProducerBuildingPanel extends BasePanel {
 
     _getEconomySecondaryProgress(building, workforce) {
         if (!building || !workforce) return { label: '本轮生产', pct: 0, text: '0%' };
+        if (building._economyType === 'research') {
+            const snapshot = PopulationEconomySystem.getResearchSnapshot(building);
+            const configured = Math.max(0,
+                Number(snapshot.configuredResearchPointsPerSecond) || 0);
+            const actual = Math.max(0,
+                Number(snapshot.actualResearchPointsPerSecond) || 0);
+            const pct = configured > 0
+                ? Math.round(Math.max(0, Math.min(1, actual / configured)) * 100)
+                : 0;
+            return { label: '科研效率', pct, text: `${pct}% · ${actual.toFixed(2)} 科研点/秒` };
+        }
+        if (building._economyType === 'planar_resonator') {
+            const snapshot = PopulationEconomySystem.getPlanarResonatorSnapshot(building);
+            const configured = Math.max(0, Number(snapshot.configuredEnergyPerSecond) || 0);
+            const actual = Math.max(0, Number(snapshot.actualEnergyPerSecond) || 0);
+            const pct = configured > 0
+                ? Math.round(Math.max(0, Math.min(1, actual / configured)) * 100)
+                : 0;
+            return { label: '能源产量', pct, text: `${pct}% · ${actual.toFixed(2)} 能源/秒` };
+        }
         if (building._economyType === 'armory') {
             const snapshot = ArmoryEconomySystem.getSnapshot(building);
             const pct = Math.round(snapshot.staffFactor * 100);
@@ -2821,6 +3089,41 @@ class ProducerBuildingPanel extends BasePanel {
                 <button class="troop-panel-unit-button" data-worker-max ${workforce.freeSlots <= 0 || population.free <= 0 ? 'disabled' : ''}>最大</button>
             </div>
         </div>`;
+    }
+
+    _upgradeResonator(moduleId) {
+        if (!this.building) return;
+        const result = PopulationEconomySystem.startResonatorUpgrade(this.building, moduleId);
+        const name = this.building._cfg.modules?.[moduleId]?.name || moduleId;
+        this._notify(result.ok ? `${name}开始升级（${Math.round(result.cost.timeMs / 1000)}秒）` : result.reason,
+            result.ok ? '#a892ff' : '#ff5555');
+        this.refresh();
+    }
+
+    _showResonatorTip(moduleId, event) {
+        if (!this.building) return;
+        const module = this.building._cfg.modules?.[moduleId];
+        if (!module) return;
+        const level = PopulationEconomySystem.getResonatorModuleLevel(this.building, moduleId);
+        const maxed = level >= module.maxLevel;
+        const valueAt = (atLevel) => (Number(module.base) || 0)
+            + (Number(module.per) || 0) * atLevel;
+        const format = (value) => {
+            if (module.effect === 'resonatorCycleMs') return `${(value / 1000).toFixed(1)} 秒/轮`;
+            if (module.effect === 'resonatorEnergyPerCycle') return `${Math.round(value)} 能源/轮`;
+            if (module.effect === 'resonatorConversionRate') return `${(value * 100).toFixed(0)}%`;
+            if (module.effect === 'resonatorStaffCapacity') return `${Math.round(value)} 名`;
+            return `${value}`;
+        };
+        const cost = PopulationEconomySystem.getResonatorUpgradeCost(this.building, moduleId);
+        const unlocked = TechnologySystem.isUnlocked('upgrade', moduleId);
+        const technologyName = TechnologySystem.getUnlockRequirementLabel('upgrade', moduleId);
+        showBuildingUpgradeTooltip(`
+            <div class="building-upgrade-tooltip-title">${renderBuildingUpgradeIcon(module.icon, module.iconImage, 'building-upgrade-tooltip-icon')}<span>${module.name}</span> <span style="color:#8a5a00;">Lv.${level}/${module.maxLevel}</span></div>
+            <div>${format(valueAt(level))}${maxed ? '' : ` → ${format(valueAt(level + 1))}`}</div>
+            <div style="margin-top:4px;color:#5a4a2a;">本栋谐振塔独立升级；每名上岗技师发挥 20%，5 名满效</div>
+            <div style="margin-top:2px;">${unlocked ? (maxed ? '已达到最高等级' : `升级费用：${cost.gold} 金币 + ${cost.energy} 能源`) : `需要科技：${technologyName || '谐振校准'}`}</div>
+            <div>${!unlocked || maxed ? '' : `读条时间：${Math.round(cost.timeMs / 1000)} 秒`}</div>`, event);
     }
 
     _upgradeWorkshop(moduleId) {
@@ -3010,6 +3313,35 @@ class ProducerBuildingPanel extends BasePanel {
         const result = PopulationEconomySystem.assignMaxWorkers(this.building);
         this._notify(result.ok ? `已分配 ${result.assigned}/${result.slots} 人` : result.reason, result.ok ? '#7fe0c8' : '#ff5555');
         this.refresh();
+    }
+
+    _upgradeResearchLevel() {
+        if (!this.building) return;
+        const result = PopulationEconomySystem.startResearchUpgrade(this.building);
+        this._notify(
+            result.ok ? `研究院开始升级到 Lv.${result.targetLevel}` : result.reason,
+            result.ok ? '#c9a0ff' : '#ff5555'
+        );
+        this.refresh();
+    }
+
+    _showResearchLevelTip(event) {
+        const building = this.building;
+        if (!building || building._economyType !== 'research') return;
+        const levels = populationEconomyConfig.research?.levels || [];
+        const current = levels.find((entry) => entry.level === building._economyLevel);
+        const next = PopulationEconomySystem.getResearchUpgrade(building);
+        const maxLevel = Math.max(1, ...levels.map((entry) => entry.level || 1));
+        const requirement = next?.technologyUnlockId
+            ? TechnologySystem.getUnlockRequirementLabel('upgrade', next.technologyUnlockId)
+            : '';
+        showBuildingUpgradeTooltip(`
+            <div class="building-upgrade-tooltip-title">${renderBuildingUpgradeIcon('🏛️', '', 'building-upgrade-tooltip-icon')}<span>研究院塔楼扩建</span> <span style="color:#8a5a00;">Lv.${building._economyLevel}/${maxLevel}</span></div>
+            <div>基础科研 ${Number(current?.baseResearchPointsPerSecond || 0).toFixed(2)} 点/秒${next ? ` → ${Number(next.baseResearchPointsPerSecond || 0).toFixed(2)} 点/秒` : ''}</div>
+            <div style="margin-top:4px;color:#5a4a2a;">本栋独立升级；岗位与全局科研强化保持不变</div>
+            <div style="margin-top:2px;">${next ? `需要科技：${requirement || next.technologyUnlockId}` : '已达到最高等级'}</div>
+            <div>${next ? `升级费用：${next.upgradeCost?.gold || 0} 金币 + ${next.upgradeCost?.energy || 0} 能源` : ''}</div>
+            <div>${next ? `读条时间：${Math.round((next.upgradeCost?.timeMs || 0) / 1000)} 秒` : ''}</div>`, event);
     }
 
     _upgradeHouse() {

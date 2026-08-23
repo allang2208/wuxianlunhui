@@ -676,7 +676,19 @@
       "collisionRadius": 14,
       "color": "#c4a35a",
       "portrait": "assets/npc/mouse_attendant.png",
-      "npcType": "quest"
+      "npcType": "quest",
+      "sprite": {
+        "comment": "静态世界贴图：与小鼠大王同为512方形帧、主体高390px、脚线y=454",
+        "idleKey": "npc_mouse_attendant_idle",
+        "walkKey": "npc_mouse_attendant_idle",
+        "size": 250,
+        "footOffsetY": 98
+      },
+      "clickArea": {
+        "comment": "按贴图实际主体约190×390/512×size250收窄，避免与小鼠大王点击区重叠",
+        "width": 93,
+        "height": 190
+      }
     },
     "warehouse": {
       "relativeTo": "shopMouseKing",
@@ -695,7 +707,28 @@
         "idleKey": "npc_warehouse",
         "size": 180,
         "sizeH": 167,
-        "footOffsetY": 83
+        "footOffsetY": 83,
+        "visualFootprint": {
+          "comment": "按关闭态Depth量取宝箱真实底座，并严格映射到标准1×1建筑棱柱",
+          "centerXRatio": 0.485,
+          "centerYRatio": 0.751,
+          "widthRatio": 0.931,
+          "depthRatio": 0.465,
+          "scaleMode": "strict"
+        },
+        "openKey": "npc_warehouse_open",
+        "openSize": 180,
+        "openSizeH": 181,
+        "openFootOffsetY": 90,
+        "openClickHeight": 181,
+        "openVisualFootprint": {
+          "comment": "打开态按同一箱体四角重新量取，避免箱盖构图改变底座锚点",
+          "centerXRatio": 0.502,
+          "centerYRatio": 0.724,
+          "widthRatio": 0.955,
+          "depthRatio": 0.469,
+          "scaleMode": "strict"
+        }
       },
       "clickArea": {
         "comment": "紧裁宝箱的完整可见范围；碰撞仍由footprintCells独立控制",

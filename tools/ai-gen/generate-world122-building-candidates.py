@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -45,11 +46,14 @@ Detail budget: improve only materials, masonry courses, roof tiles, windows and 
     else:
         stage_contract = """Generation stage: single-pass legacy candidate
 Structure contract: preserve every major component indicated by the control silhouette; do not omit, merge, flatten or replace any supplied component"""
+    palette_contract = ""
+    if asset.get("paletteConstraint"):
+        palette_contract = f"Palette lock: {asset['paletteConstraint']}\n"
     return f"""Use case: stylized-concept
 Asset type: World-122 RTS building body, previewed above the runtime 2x2 road-tile fill
 Primary request: exactly one {request}
 {stage_contract}
-Style/medium: detailed but sober semi-realistic RTS building sprite matching the existing World-122 barracks; low-saturation realistic PBR materials; crisp readable roof tiles, stone courses and timber grain; no exaggerated fantasy ornament
+{palette_contract}Style/medium: detailed but sober semi-realistic RTS building sprite matching the existing World-122 barracks; low-saturation realistic PBR materials; crisp readable roof tiles, stone courses and timber grain; no exaggerated fantasy ornament
 Composition/framing: strictly follow the supplied depth-control silhouette and its orthographic 2.5D isometric view; centered; architecture ends exactly at the supplied ground line; all walls remain vertical; no perspective convergence
 Lighting/mood: evenly lit neutral studio lighting; no bloom; no cast shadow
 Scene/backdrop: perfectly uniform flat chroma-key green #00FF00 background filling the entire canvas; no horizon; no texture; no scenery
@@ -182,7 +186,16 @@ def generate_asset(asset: dict, manifest: dict, output_root: Path, variants: int
     prompt = asset_dir / f"{asset['id']}{prompt_suffix}_prompt.txt"
     load_spec(asset, spec)
     prompt.write_text(prompt_for(asset, stage), encoding="utf-8")
-    if not depth.exists():
+    if asset.get("controlImage"):
+        source_depth = Path(asset["controlImage"])
+        if not source_depth.is_absolute():
+            source_depth = REPO / source_depth
+        if not source_depth.is_file():
+            raise FileNotFoundError(f"control image missing: {source_depth}")
+        if source_depth.resolve() != depth.resolve():
+            shutil.copy2(source_depth, depth)
+        print(f"[{asset['id']} depth] using authored control {source_depth}", flush=True)
+    elif not depth.exists():
         run([
             str(BLENDER), "--background", "--factory-startup", "--python",
             str(REPO / "tools/ai-gen/blender-depth-render.py"), "--", str(spec), str(depth),

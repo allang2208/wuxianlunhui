@@ -38,7 +38,7 @@ function renderTechnologyIcon(node, className) {
 }
 
 function formatEta(seconds) {
-    if (seconds == null || !Number.isFinite(seconds)) return '无研究院';
+    if (seconds == null || !Number.isFinite(seconds)) return '无科研产出';
     const total = Math.max(0, Math.ceil(seconds));
     if (total < 60) return `${total}秒`;
     const minutes = Math.floor(total / 60);
@@ -159,7 +159,7 @@ export const TechnologyTreePanel = {
             // 避免 WorldSimDriver 停止后进度条看似实时、实际数值却不动。
             if (this._pausedByPanel) {
                 const instituteCount = TechnologySystem.lastInstituteCount || this._countLiveInstitutes();
-                TechnologySystem.update(elapsedMs, instituteCount);
+                TechnologySystem.update(elapsedMs, instituteCount, TechnologySystem.lastResearchRate);
             }
             this._refreshLiveProgress();
         }, 100);
@@ -182,10 +182,10 @@ export const TechnologyTreePanel = {
             return;
         }
         const instituteCount = TechnologySystem.lastInstituteCount || this._countLiveInstitutes();
-        const rate = instituteCount * (Number(TechnologySystem.config.pointsPerInstitutePerSecond) || 0);
+        const rate = Math.max(0, Number(TechnologySystem.lastResearchRate) || 0);
         const queue = TechnologySystem.getResearchQueue();
         const etaIds = queue.length ? queue : (active ? [active.id] : []);
-        const eta = TechnologySystem.getEstimatedSeconds(etaIds, instituteCount);
+        const eta = TechnologySystem.getEstimatedSeconds(etaIds, rate);
         const setText = (role, value) => {
             const element = this._el.querySelector(`[data-live-role="${role}"]`);
             if (element) element.textContent = value;
@@ -210,7 +210,7 @@ export const TechnologyTreePanel = {
             const detailBar = this._el.querySelector('[data-live-role="detail-progress-bar"]');
             if (detailBar) detailBar.style.width = `${percent}%`;
             setText('detail-progress-text', `${Math.floor(progress)} / ${selected.researchCost}`);
-            setText('detail-eta', `预计 ${formatEta(TechnologySystem.getEstimatedSeconds(TechnologySystem.getResearchPlan(selected.id), instituteCount))}`);
+            setText('detail-eta', `预计 ${formatEta(TechnologySystem.getEstimatedSeconds(TechnologySystem.getResearchPlan(selected.id), rate))}`);
         }
     },
 
@@ -361,11 +361,11 @@ export const TechnologyTreePanel = {
 
         const active = TechnologySystem.getNode(TechnologySystem.state.activeTechId);
         const instituteCount = TechnologySystem.lastInstituteCount || this._countLiveInstitutes();
-        const rate = instituteCount * (Number(TechnologySystem.config.pointsPerInstitutePerSecond) || 0);
+        const rate = Math.max(0, Number(TechnologySystem.lastResearchRate) || 0);
         const queue = TechnologySystem.getResearchQueue();
         const mode = TechnologySystem.getResearchMode();
         const etaIds = queue.length ? queue : (active ? [active.id] : []);
-        const eta = TechnologySystem.getEstimatedSeconds(etaIds, instituteCount);
+        const eta = TechnologySystem.getEstimatedSeconds(etaIds, rate);
         const summary = this._el.querySelector('[data-role="summary"]');
         if (summary) {
             const current = active
@@ -468,8 +468,7 @@ export const TechnologyTreePanel = {
         const progress = TechnologySystem.getProgress(node.id);
         const prerequisiteNames = (node.prerequisites || []).map((id) => TechnologySystem.getNode(id)?.name || id);
         const plan = completed ? [] : TechnologySystem.getResearchPlan(node.id);
-        const instituteCount = TechnologySystem.lastInstituteCount || this._countLiveInstitutes();
-        const eta = TechnologySystem.getEstimatedSeconds(plan, instituteCount);
+        const eta = TechnologySystem.getEstimatedSeconds(plan, TechnologySystem.lastResearchRate);
         const planNames = plan.map((id) => TechnologySystem.getNode(id)?.name || id);
         if (worldMasked) {
             detail.innerHTML = `

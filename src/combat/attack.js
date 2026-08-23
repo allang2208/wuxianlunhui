@@ -533,9 +533,14 @@ function applyEnchantOnHit(weapon, target, source) {
                     // 世界音效（2026-08-11 距离衰减）：敌人远程开火按声源位置衰减；
                     // 玩家开火声源=玩家自身，全局响
                     if (source && source._faction === 'enemy' && SoundManager.playWorld) {
-                        SoundManager.playWorld(fireSound, source.x, source.y);
+                        if (SoundManager.playGunshotAt) {
+                            SoundManager.playGunshotAt(fireSound, source.x, source.y);
+                        } else {
+                            SoundManager.playWorld(fireSound, source.x, source.y);
+                        }
                     } else {
-                        SoundManager.playFile(fireSound);
+                        if (SoundManager.playGunshot) SoundManager.playGunshot(fireSound);
+                        else SoundManager.playFile(fireSound);
                     }
                 } else if (wType === 'pistol') {
                     SoundManager.play('gun_fire');

@@ -249,7 +249,8 @@ export class HamsterMusketeerAI {
             musketTracer: true,
         };
         const sound = m.sounds?.attack;
-        if (sound && SoundManager?.playWorld) SoundManager.playWorld(sound, m.x, m.y);
+        if (sound && SoundManager?.playGunshotAt) SoundManager.playGunshotAt(sound, m.x, m.y);
+        else if (sound && SoundManager?.playWorld) SoundManager.playWorld(sound, m.x, m.y);
         else if (sound && SoundManager?.playFile) SoundManager.playFile(sound);
     }
 

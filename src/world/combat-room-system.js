@@ -32,8 +32,8 @@ import { createMineCave } from './zombie-dungeon.js';
 import { getWallPrefabLibrary } from './wall-prefabs.js';
 import { SoundManager } from '../ui/sound-manager.js';
 import {
-    computeArenaLayout, computeMazeLayout,
-    pointInDiamond, ARENA_AXIS, MAZE_AXIS_V1, MAZE_AXIS_V2,
+    computeArenaLayout, computeMazeLayout, computeGridMazeLayout,
+    pointInDiamond, MAZE_AXIS_V1, MAZE_AXIS_V2,
 } from './combat-arena-layout.js';
 import { ObstacleSpawnSystem } from './obstacle-spawn-system.js';
 import { ONE_CELL_BUILDING_FOOT } from './building-footprint.js';
@@ -143,7 +143,7 @@ export const CombatRoomSystem = {
     _combatMonsterKeys: [],
     _player: null,
 
-    // 三房间串联竞技场（D 级及以上战斗事件；null = 单房间模式）
+    // 多房间串联竞技场（null = 单房间模式）
     _arena: null,
     _roomConstruction: 'continuous',
     _gridEdgeCells: 0,
@@ -190,7 +190,7 @@ export const CombatRoomSystem = {
         this._gridGateCells = Math.max(2, Math.round(roomProfile.gateCells || 6));
         const gridEdgeRadius = Math.max(6, Math.round((roomSize * 1.2) / ONE_CELL_BUILDING_FOOT.w));
         this._gridEdgeCells = worldBlockRoom
-            ? gridEdgeRadius * 2 + 1
+            ? gridEdgeRadius * 2
             : 0;
         const rx = worldBlockRoom
             ? this._gridEdgeCells * ONE_CELL_BUILDING_FOOT.w / 2
@@ -997,19 +997,19 @@ export const CombatRoomSystem = {
     },
 
     // ============================================================
-    // 三房间串联竞技场（D 级及以上战斗事件）
+    // 多房间串联竞技场
     // ============================================================
     //
-    // 布局：3 个菱形房间沿左上→右下斜轴串联（combat-arena-layout.js 纯函数计算），
-    // 房间 1/2 = normalSize，房间 3 = eliteSize（含宝箱房）；相邻房间在"右下/左上墙壁中段"
+    // 布局：N 个菱形房间按配置直线或蛇形串联（combat-arena-layout.js 纯函数计算），
+    // 末房 = eliteSize（含宝箱事件）；相邻房间在对应出/入边的墙壁中段
     // 开洞，用摆墙编辑器的通道预制（「上下通道」/「左右通道」镜像套）连接；
     // 预制的门墙件建成可开闭功能门（_arenaGate 碰撞段，初始常开），
-    // 房间 3 右下墙中段的 WallGate 单例 + 门外白区作为清完后的退出区域。
+    // 末房出口边中段的 WallGate 单例 + 门外白区作为清完后的退出区域。
     //
     // 波次编排（dungeon-map-system）：进入房间 N 才关门刷第 N 波，清完开门。
 
     /**
-     * 进入三房间串联竞技场
+     * 进入多房间串联竞技场
      * @param {Object} player 玩家实体
      * @param {Object} options { normalSize, eliteSize }
      * @returns {Object|false} 场地信息 { rooms, worldW, worldH }；预制缺失/轴向不符返回 false（调用方回退单房间）
@@ -1020,15 +1020,20 @@ export const CombatRoomSystem = {
             return false;
         }
 
-        // 1. 解析通道预制（墙样式键 → default 回退；两门墙件底边中心距 = 通道长度）
+        const roomProfile = DungeonConfig.getCombatRoomConfig(options.dungeonType);
+        const worldBlockArena = roomProfile.wallConstruction === 'worldBlock1x1';
+        this._roomConstruction = roomProfile.wallConstruction || 'continuous';
+        this._gridGateCells = Math.max(2, Math.round(roomProfile.gateCells || 6));
+
+        // 1. 连续墙竞技场解析通道预制；世界单格冰墙竞技场直接使用整数格几何。
         const arenaCfg = DungeonConfig.getCombatArenaConfig();
-        const analysisV1 = this._resolvePassagePrefab(arenaCfg, MAZE_AXIS_V1);
-        if (!analysisV1) {
+        const analysisV1 = worldBlockArena ? null : this._resolvePassagePrefab(arenaCfg, MAZE_AXIS_V1);
+        if (!worldBlockArena && !analysisV1) {
             console.warn('[CombatRoomSystem] 竞技场：无可用通道预制（combatArena.passagePrefabs），回退单房间');
             return false;
         }
         // 迷宫折返用 v2（上下通道）预制；缺失则迷宫降级为三房直线
-        const analysisV2 = this._resolvePassagePrefab(arenaCfg, MAZE_AXIS_V2);
+        const analysisV2 = worldBlockArena ? null : this._resolvePassagePrefab(arenaCfg, MAZE_AXIS_V2);
         const analysisFor = (axis) => {
             const isV2 = Math.abs(axis.x * MAZE_AXIS_V2.x + axis.y * MAZE_AXIS_V2.y) > 0.8;
             return isV2 && analysisV2 ? analysisV2 : analysisV1;
@@ -1040,7 +1045,17 @@ export const CombatRoomSystem = {
         const mazeEnabled = mazeCfg.enabled !== false;
         const roomCount = mazeEnabled ? (mazeCfg.roomCount || 3) : 3;
         let layout;
-        if (roomCount <= 3 || !analysisV2) {
+        if (worldBlockArena) {
+            const sizes = [];
+            for (let i = 0; i < roomCount; i++) sizes.push(i === roomCount - 1 ? eliteSize : normalSize);
+            layout = computeGridMazeLayout({
+                sizes,
+                corridorCells: roomProfile.passageCells || 12,
+                rows: mazeEnabled ? (mazeCfg.rows || 0) : 1,
+                cellW: ONE_CELL_BUILDING_FOOT.w,
+                cellD: ONE_CELL_BUILDING_FOOT.d,
+            });
+        } else if (roomCount <= 3 || !analysisV2) {
             // 三房直线串联（历史行为）：房间 1/2 normal、房间 3 elite
             layout = computeArenaLayout({
                 normalSize, eliteSize,
@@ -1066,12 +1081,22 @@ export const CombatRoomSystem = {
         // 2. 备份场景（离场时 cleanupRoom → _restoreSceneState 一次性恢复）
         this._backupSceneState();
 
-        // 3. 地形：三房地板 + 通道精确平行四边形（并集裁剪）+ 连续墙脚阴影
+        // 3. 地形：N 房地板 + 通道精确平行四边形（并集裁剪）+ 连续墙脚阴影
         //    （E/F 同口径：菱形整圈渐变含门口；走廊只描两条长边），并同步世界尺寸
         const corridors = [];
         const patches = [];
+        if (worldBlockArena) {
+            for (const room of layout.rooms) {
+                room._gridOpenings = {};
+                for (const edge of new Set([room.inEdge, room.outEdge])) {
+                    room._gridOpenings[edge] = this._worldBlockOpeningGeometry(room, edge);
+                }
+            }
+        }
         for (let i = 0; i < layout.passages.length; i++) {
-            corridors.push(this._arenaPassageFloorQuad(analysisFor(layout.passages[i].axis), layout.passages[i], layout.rooms[i], layout.rooms[i + 1]));
+            corridors.push(worldBlockArena
+                ? this._worldBlockPassageFloorQuad(layout.passages[i], layout.rooms[i], layout.rooms[i + 1])
+                : this._arenaPassageFloorQuad(analysisFor(layout.passages[i].axis), layout.passages[i], layout.rooms[i], layout.rooms[i + 1]));
         }
         applyArenaFloor(layout.worldW, layout.worldH,
             layout.rooms.map(r => ({ cx: r.cx, cy: r.cy, rx: r.rx, ry: r.ry })),
@@ -1082,13 +1107,19 @@ export const CombatRoomSystem = {
         WallSystem.trees = [];
         WallSystem.isoVisuals = [];
         for (const r of layout.rooms) {
-            WallSystem.buildIsoDiamondWalls(r.cx, r.cy, r.rx, r.ry);
+            if (worldBlockArena) {
+                r._gridOpenings = this._appendWorldBlockRoomWalls(r, [r.inEdge, r.outEdge]);
+            } else {
+                WallSystem.buildIsoDiamondWalls(r.cx, r.cy, r.rx, r.ry);
+            }
         }
 
         // 5. 通道：平移预制 → 摘门洞覆盖的墙件（"移除对应大小的墙"）→ 直墙入件 / 门墙建功能门
         const passageRecs = [];
         for (let i = 0; i < layout.passages.length; i++) {
-            const rec = this._placeArenaPassage(analysisFor(layout.passages[i].axis), layout.passages[i], layout.rooms[i], layout.rooms[i + 1]);
+            const rec = worldBlockArena
+                ? this._placeWorldBlockPassage(layout.passages[i], layout.rooms[i], layout.rooms[i + 1])
+                : this._placeArenaPassage(analysisFor(layout.passages[i].axis), layout.passages[i], layout.rooms[i], layout.rooms[i + 1]);
             if (!rec) {
                 console.warn('[CombatRoomSystem] 竞技场：通道放置失败，回退单房间');
                 // 已放好的通道门（如前一条通道）手动销毁——_arena 尚未建立，_cleanupArenaGates 管不到
@@ -1100,7 +1131,9 @@ export const CombatRoomSystem = {
                                 if (si >= 0) WallSystem.isoSegments.splice(si, 1);
                             }
                         }
-                        if (inst.sprite && inst.sprite.scene) inst.sprite.destroy();
+                        for (const gateSprite of inst.sprites || [inst.sprite]) {
+                            if (gateSprite && gateSprite.scene) gateSprite.destroy();
+                        }
                     }
                 }
                 this._restoreSceneState();
@@ -1114,8 +1147,10 @@ export const CombatRoomSystem = {
 
         // 5.5 通道侧墙封口：预制侧墙比门到门跨度短，且与房间墙成 60° 相接，
         //     两侧各留一个楔形缺口（可见黑三角/可走出世界）——沿侧墙延长线补瓦到房间边线
-        for (let i = 0; i < layout.passages.length; i++) {
-            this._sealPassageSides(analysisFor(layout.passages[i].axis), layout.passages[i], layout.rooms[i], layout.rooms[i + 1]);
+        if (!worldBlockArena) {
+            for (let i = 0; i < layout.passages.length; i++) {
+                this._sealPassageSides(analysisFor(layout.passages[i].axis), layout.passages[i], layout.rooms[i], layout.rooms[i + 1]);
+            }
         }
 
         WallSystem.rebuildIsoCollision();
@@ -1138,10 +1173,19 @@ export const CombatRoomSystem = {
             RB: { x: rLast.cx + rLast.rx / 2, y: rLast.cy + rLast.ry / 2 },
             BL: { x: rLast.cx - rLast.rx / 2, y: rLast.cy + rLast.ry / 2 },
         }[rLast.outEdge || 'RB'];
+        this._gridGateSpan = worldBlockArena ? rLast._gridOpenings[rLast.outEdge] : null;
         this._setupGate(outMid, { straightOnly: true });
 
         // 8.1 入场门：房间 1 左上墙（LT 边）中段直墙件原位替换为门墙（初始常开）+ 门外入场地块
-        const entryGate = this._setupEntryGate(layout.rooms[0]);
+        const firstRoom = layout.rooms[0];
+        const entrySpan = worldBlockArena ? firstRoom._gridOpenings[firstRoom.inEdge] : null;
+        const entryGate = worldBlockArena
+            ? this._createArenaGate(this._buildGatePieceAt(
+                entrySpan.a, entrySpan.b, entrySpan.flip, entrySpan.depth, { fitSpan: true }))
+            : this._setupEntryGate(firstRoom);
+        if (worldBlockArena && !entryGate && entrySpan) {
+            WallSystem.isoVisuals.push(...entrySpan.fillPieces);
+        }
         let entryZone = null;
         if (entryGate) {
             const r1d = layout.rooms[0];
@@ -1158,17 +1202,19 @@ export const CombatRoomSystem = {
 
         // 8.6 开洞边缝隙填充：沿房间边线投影补瓦（只叠不缺，edgeFill 同口径）——
         //     动态边集合：每房来路/去路通道边 + 房1 LT（入场门）+ 末房 RB（出口门）
-        const allGateSegs = passageRecs.flatMap(rec => rec.gates.map(g => [g.baseA, g.baseB]));
-        if (WallGate._seg) allGateSegs.push(WallGate._seg);
-        if (entryGate) allGateSegs.push([entryGate.baseA, entryGate.baseB]);
         const lastIdx = layout.rooms.length;
-        for (const r of layout.rooms) {
-            const edges = new Set();
-            if (r.index === 1) edges.add('LT');                 // 入场门
-            if (r.index === lastIdx) edges.add('RB');           // 出口门
-            if (r.index < lastIdx) edges.add(r.outEdge);        // 去路通道
-            if (r.index > 1) edges.add(r.inEdge);               // 来路通道
-            for (const e of edges) this._fillEdgeGaps(r, e, allGateSegs);
+        if (!worldBlockArena) {
+            const allGateSegs = passageRecs.flatMap(rec => rec.gates.map(g => [g.baseA, g.baseB]));
+            if (WallGate._seg) allGateSegs.push(WallGate._seg);
+            if (entryGate) allGateSegs.push([entryGate.baseA, entryGate.baseB]);
+            for (const r of layout.rooms) {
+                const edges = new Set();
+                if (r.index === 1) edges.add('LT');                 // 入场门
+                if (r.index === lastIdx) edges.add('RB');           // 出口门
+                if (r.index < lastIdx) edges.add(r.outEdge);        // 去路通道
+                if (r.index > 1) edges.add(r.inEdge);               // 来路通道
+                for (const e of edges) this._fillEdgeGaps(r, e, allGateSegs);
+            }
         }
 
         // 8.5 障碍物：每房独立一套（墙面火把贴墙无碰撞；房间 1/2 中央石柱；
@@ -1204,7 +1250,7 @@ export const CombatRoomSystem = {
                 avoid.push({ x: c.x, y: c.y, r: 220 });
             }
             // 出口门
-            if (r.index === 3 && exitInfo && exitInfo.center) {
+            if (r.index === lastIdx && exitInfo && exitInfo.center) {
                 avoid.push({ x: exitInfo.center.x, y: exitInfo.center.y, r: 220 });
             }
             ObstacleSpawnSystem.spawnForRoom(r.bounds, {
@@ -1495,6 +1541,148 @@ export const CombatRoomSystem = {
         };
     },
 
+    /** 世界单格房指定边的中央门洞：门宽按格间距计，两个端点都落在墙块格心。 */
+    _worldBlockOpeningGeometry(room, edge) {
+        const edgeCells = Math.max(12, room.edgeCells || this._gridEdgeCells || 20);
+        let gateCells = Math.min(this._gridGateCells || 6, edgeCells - 4);
+        if ((edgeCells - gateCells) % 2 !== 0) gateCells = Math.max(2, gateCells - 1);
+        const startIndex = (edgeCells - gateCells) / 2;
+        const endIndex = startIndex + gateCells;
+        const T = { x: room.cx, y: room.cy - room.ry };
+        const R = { x: room.cx + room.rx, y: room.cy };
+        const B = { x: room.cx, y: room.cy + room.ry };
+        const L = { x: room.cx - room.rx, y: room.cy };
+        const namedEdges = {
+            TR: [T, R], RB: [R, B], BL: [B, L], LT: [L, T],
+        };
+        const pair = namedEdges[edge];
+        if (!pair) return null;
+        const [P, Q] = pair;
+        const step = { x: (Q.x - P.x) / edgeCells, y: (Q.y - P.y) / edgeCells };
+        const rawA = { x: P.x + step.x * startIndex, y: P.y + step.y * startIndex };
+        const rawB = { x: P.x + step.x * endIndex, y: P.y + step.y * endIndex };
+        let a = { ...rawA }, b = { ...rawB };
+        if (a.y > b.y) [a, b] = [b, a];
+        return {
+            edge,
+            edgeCells,
+            gateCells,
+            startIndex,
+            endIndex,
+            step,
+            rawA,
+            rawB,
+            a,
+            b,
+            flip: b.x < a.x,
+            depth: Math.max(a.y, b.y) + 4,
+            fillPieces: [],
+            endpointPieces: [],
+        };
+    },
+
+    /** 把两个门洞端点按最短的两条通道侧边配对。 */
+    _pairWorldBlockOpeningSides(openingA, openingB) {
+        const a = [openingA.rawA, openingA.rawB];
+        const b = [openingB.rawA, openingB.rawB];
+        const dist = (p, q) => Math.hypot(q.x - p.x, q.y - p.y);
+        const direct = dist(a[0], b[0]) + dist(a[1], b[1]);
+        const crossed = dist(a[0], b[1]) + dist(a[1], b[0]);
+        return direct <= crossed
+            ? [{ start: a[0], end: b[0] }, { start: a[1], end: b[1] }]
+            : [{ start: a[0], end: b[1] }, { start: a[1], end: b[0] }];
+    },
+
+    /** 冰封格心通道地板：四个角就是两端门洞端点，和房间地板在真实边线上并集。 */
+    _worldBlockPassageFloorQuad(passage, roomA, roomB) {
+        const openingA = roomA._gridOpenings[roomA.outEdge];
+        const openingB = roomB._gridOpenings[roomB.inEdge];
+        const sides = this._pairWorldBlockOpeningSides(openingA, openingB);
+        return {
+            points: [
+                { ...sides[0].start },
+                { ...sides[0].end },
+                { ...sides[1].end },
+                { ...sides[1].start },
+            ],
+        };
+    },
+
+    /** 取门洞端点上复用的房墙块。 */
+    _worldBlockEndpointPiece(opening, point) {
+        return opening.endpointPieces.find((entry) =>
+            Math.abs(entry.point.x - point.x) < 0.01 && Math.abs(entry.point.y - point.y) < 0.01)?.piece || null;
+    },
+
+    /**
+     * 冰封房间间通道：两侧墙按整数个 128×64 格心铺设；首末格与房墙门端共享，
+     * 只补各自朝通道方向的半段碰撞，中间格保持完整一格，边界因此连续且无重叠墙块。
+     */
+    _placeWorldBlockPassage(passage, roomA, roomB) {
+        const openingA = roomA._gridOpenings[roomA.outEdge];
+        const openingB = roomB._gridOpenings[roomB.inEdge];
+        if (!openingA || !openingB) return null;
+        const sides = this._pairWorldBlockOpeningSides(openingA, openingB);
+        const corridorCells = Math.max(4, passage.corridorCells || 12);
+
+        for (const side of sides) {
+            const step = {
+                x: (side.end.x - side.start.x) / corridorCells,
+                y: (side.end.y - side.start.y) / corridorCells,
+            };
+            const startPiece = this._worldBlockEndpointPiece(openingA, side.start);
+            const endPiece = this._worldBlockEndpointPiece(openingB, side.end);
+            if (!startPiece || !endPiece) return null;
+            startPiece._baseSegments.push([
+                { x: side.start.x, y: side.start.y },
+                { x: side.start.x + step.x / 2, y: side.start.y + step.y / 2 },
+            ]);
+            endPiece._baseSegments.push([
+                { x: side.end.x - step.x / 2, y: side.end.y - step.y / 2 },
+                { x: side.end.x, y: side.end.y },
+            ]);
+            startPiece.depth = WallSystem.depthOf(startPiece, 4);
+            endPiece.depth = WallSystem.depthOf(endPiece, 4);
+
+            for (let i = 1; i < corridorCells; i++) {
+                const center = { x: side.start.x + step.x * i, y: side.start.y + step.y * i };
+                WallSystem.isoVisuals.push(this._makeWorldBlockPiece(center, [[
+                    { x: center.x - step.x / 2, y: center.y - step.y / 2 },
+                    { x: center.x + step.x / 2, y: center.y + step.y / 2 },
+                ]], { _passageWall: true }));
+            }
+        }
+
+        const gates = [];
+        for (const opening of [openingA, openingB]) {
+            const piece = this._buildGatePieceAt(
+                opening.a, opening.b, opening.flip, opening.depth, { fitSpan: true });
+            const inst = this._createArenaGate(piece);
+            if (inst) gates.push(inst);
+        }
+        if (gates.length !== 2) {
+            for (const inst of gates) {
+                for (const gateSprite of inst.sprites || [inst.sprite]) {
+                    if (gateSprite && gateSprite.scene) gateSprite.destroy();
+                }
+                if (WallSystem.isoSegments) {
+                    for (const seg of [...inst.wallSegs, inst.gateSeg]) {
+                        const index = WallSystem.isoSegments.indexOf(seg);
+                        if (index >= 0) WallSystem.isoSegments.splice(index, 1);
+                    }
+                }
+            }
+            return null;
+        }
+        return {
+            index: passage.index,
+            mid1: passage.mid1,
+            mid2: passage.mid2,
+            center: passage.center,
+            gates,
+        };
+    },
+
     /**
      * 建通道功能门（碰撞模型同宝箱房门：两侧墙身常开 + 门洞段按开关启停）
      * 初始常开（帧 = 末帧，门洞段不入碰撞）；碰撞段标 _arenaGate（rebuildIsoCollision 保留）
@@ -1502,36 +1690,69 @@ export const CombatRoomSystem = {
      */
     _createArenaGate(piece) {
         const scene = (typeof window !== 'undefined') ? window.__phaserScene : null;
-        if (!scene || !scene.textures.exists(piece.tex)) {
-            console.warn('[CombatRoomSystem] _createArenaGate 失败：贴图未就绪', piece.tex);
+        if (!piece || !scene || !scene.textures.exists(piece.tex)) {
+            console.warn('[CombatRoomSystem] _createArenaGate 失败：贴图未就绪', piece?.tex);
             return null;
         }
         const g = WallSystem._geoForTex(piece.tex) || ISO_WALL_GEO.gate;
         const frames = g.frames || 16;
-        const sprite = scene.add.sprite(piece.x, piece.y, piece.tex, frames - 1);
-        sprite.setOrigin(0.5, 0.5);
-        sprite.setScale(piece.scaleX ?? 1, piece.scaleY ?? piece.scaleX ?? 1);
-        sprite.setFlipX(!!piece.flipX);
-        sprite.setFlipY(!!piece.flipY);
-
         const baseSegs = WallSystem._pieceBaseSegments(piece);
-        if (!baseSegs.length) { sprite.destroy(); console.warn('[CombatRoomSystem] _createArenaGate 失败：无底线段', piece.tex); return null; }
+        if (!baseSegs.length) { console.warn('[CombatRoomSystem] _createArenaGate 失败：无底线段', piece.tex); return null; }
         const [gA, gB] = baseSegs[0];
         const hole = isoGateHole(g);
-        if (!hole) { sprite.destroy(); console.warn('[CombatRoomSystem] _createArenaGate 失败：无门洞几何', piece.tex); return null; }
+        if (!hole) { console.warn('[CombatRoomSystem] _createArenaGate 失败：无门洞几何', piece.tex); return null; }
         const ht = isoHalfThick(g);
         const baseAt = (tx) => WallSystem.texPointToWorld(piece, tx, g.base[0][1] + (tx - g.base[0][0]) * g.slope);
         const g1 = baseAt(hole[0]), g2 = baseAt(hole[1]);
-        // 门墙 depth = 门洞中心底边 y（"墙看底边 max、门看门洞中心"定案）：
-        // 单位脚线 y < 门洞中心 → 被门遮挡（墙后/走廊侧）；
-        // 单位脚线 y > 门洞中心 → 完整显现（已过半场/进入房间）。
-        // 旧规则取底边 max 端：单位在门洞浅端内侧仍被门压（过遮挡），穿门全程隐形（显形过晚）
-        sprite.setDepth((g1.y + g2.y) / 2);
+        const isFrozenSpikeGate = piece.tex === ISO_WALL_GEO.frozen_gate.tex;
+        const sprites = [];
+        const depthSegments = [];
+        const makeSprite = (crop = null, depth = (g1.y + g2.y) / 2) => {
+            const gateSprite = scene.add.sprite(piece.x, piece.y, piece.tex, frames - 1);
+            gateSprite.setOrigin(0.5, 0.5);
+            gateSprite.setScale(piece.scaleX ?? 1, piece.scaleY ?? piece.scaleX ?? 1);
+            gateSprite.setFlipX(!!piece.flipX);
+            gateSprite.setFlipY(!!piece.flipY);
+            gateSprite.setDepth(depth);
+            if (crop && typeof gateSprite.setCrop === 'function') {
+                const applyCrop = () => gateSprite.setCrop(crop.x, 0, crop.w, g.h);
+                // Phaser 4 切 spritesheet 帧后仍保留上一帧 crop UV，必须按新帧重算。
+                const originalSetFrame = gateSprite.setFrame.bind(gateSprite);
+                gateSprite.setFrame = (frame, updateSize, updateOrigin) => {
+                    const result = originalSetFrame(frame, updateSize, updateOrigin);
+                    applyCrop();
+                    return result;
+                };
+                applyCrop();
+            }
+            sprites.push(gateSprite);
+            return gateSprite;
+        };
+
+        if (isFrozenSpikeGate) {
+            // 冰锥门横跨六格，整图单 depth 会让浅端压在相邻冰墙之上。按长门三段
+            // 合同拆成浅/中/深三块：每段随自己的底边排序，并比同线墙块的 +4 偏置
+            // 低 0.1，保证门体收在墙后；三块仍共用同一帧和同一世界变换，接缝零位移。
+            const span = hole[1] - hole[0];
+            for (let index = 0; index < 3; index++) {
+                const tx0 = hole[0] + span * index / 3;
+                const tx1 = hole[0] + span * (index + 1) / 3;
+                const sA = baseAt(tx0);
+                const sB = baseAt(tx1);
+                const depth = Math.max(sA.y, sB.y) + 3.9;
+                makeSprite({ x: Math.floor(tx0), w: Math.ceil(tx1) - Math.floor(tx0) }, depth);
+                depthSegments.push({ A: sA, B: sB, depth });
+            }
+        } else {
+            // 普通门继续使用门洞中心深度，保持既有穿门显隐手感。
+            makeSprite(null, (g1.y + g2.y) / 2);
+        }
+        const sprite = sprites[0];
 
         const wallSegs = [
             { x1: gA.x, y1: gA.y, x2: g1.x, y2: g1.y, halfThick: ht, _arenaGate: true },
             { x1: g2.x, y1: g2.y, x2: gB.x, y2: gB.y, halfThick: ht, _arenaGate: true },
-        ];
+        ].filter((seg) => Math.hypot(seg.x2 - seg.x1, seg.y2 - seg.y1) > 1);
         const gateSeg = { x1: g1.x, y1: g1.y, x2: g2.x, y2: g2.y, halfThick: ht, _arenaGate: true };
         if (WallSystem.isoSegments) {
             for (const s of wallSegs) WallSystem.isoSegments.push(s);
@@ -1539,7 +1760,11 @@ export const CombatRoomSystem = {
         }
         // 门洞中心（世界）：障碍物/陷阱的门口排除与可达性校验用
         const center = { x: (g1.x + g2.x) / 2, y: (g1.y + g2.y) / 2 };
-        return { sprite, wallSegs, gateSeg, center, baseA: gA, baseB: gB, open: true, frames, _animCounter: null };
+        return {
+            sprite, sprites, depthSegments,
+            wallSegs, gateSeg, center, baseA: gA, baseB: gB,
+            open: true, frames, _animCounter: null,
+        };
     },
 
     /**
@@ -1742,12 +1967,18 @@ export const CombatRoomSystem = {
     },
 
     /** 由底边线段构造门墙件（WallGate.placeAt 同款变换数学，供 _createArenaGate 使用） */
-    _buildGatePieceAt(A, B, flip, depth) {
+    _buildGatePieceAt(A, B, flip, depth, options = {}) {
         const geoKey = WallSystem.getWallStyleGeos ? WallSystem.getWallStyleGeos().gate : 'gate';
         const g = ISO_WALL_GEO[geoKey] || ISO_WALL_GEO.gate;
         const p0 = g.base[0];
         const s = ISO_WALL_HEIGHT / g.wallH;
-        const sx = s, sy = s * slopeFixOf(g);
+        const fitSpan = options.fitSpan === true;
+        const sx = fitSpan
+            ? Math.abs(B.x - A.x) / Math.max(1, Math.abs(g.base[1][0] - g.base[0][0]))
+            : s;
+        const sy = fitSpan
+            ? Math.abs(B.y - A.y) / Math.max(1, Math.abs(g.base[1][1] - g.base[0][1]))
+            : s * slopeFixOf(g);
         let x0, y0;
         if (!flip) {
             x0 = A.x - p0[0] * sx;
@@ -1868,30 +2099,82 @@ export const CombatRoomSystem = {
         }
     },
 
-    /** 通道门开闭（open=true 开门）：门洞碰撞段增删 + 16 帧动画 + 门闸音效 */
-    _setArenaGateOpen(inst, open) {
-        if (!inst || inst.open === open) return;
-        inst.open = open;
-        if (WallSystem.isoSegments) {
-            const i = WallSystem.isoSegments.indexOf(inst.gateSeg);
-            if (!open && i < 0) WallSystem.isoSegments.push(inst.gateSeg);
-            else if (open && i >= 0) WallSystem.isoSegments.splice(i, 1);
+    /**
+     * 按门洞真实线段清理残留碰撞。单格冰墙重建时，门段可能与同线墙段/阶梯矩形并存；
+     * 只按 gateSeg 对象引用 splice 会留下视觉已开、物理仍挡的空气墙。
+     */
+    _clearArenaGateOpeningCollision(inst) {
+        if (!inst?.gateSeg || !WallSystem.isoSegments) return false;
+        const gate = inst.gateSeg;
+        const vx = gate.x2 - gate.x1, vy = gate.y2 - gate.y1;
+        const len = Math.hypot(vx, vy);
+        if (len < 1) return false;
+        const ux = vx / len, uy = vy / len;
+        const blockers = new Set();
+        const projection = (x, y) => (x - gate.x1) * ux + (y - gate.y1) * uy;
+        const lineDistance = (x, y) => Math.abs((x - gate.x1) * uy - (y - gate.y1) * ux);
+        for (const seg of WallSystem.isoSegments) {
+            if (seg === gate) {
+                blockers.add(seg);
+                continue;
+            }
+            // 只清门洞同一直线且实际覆盖门洞内部的段；通道两侧墙只在端点相接，不会被误删。
+            if (lineDistance(seg.x1, seg.y1) > 1 || lineDistance(seg.x2, seg.y2) > 1) continue;
+            const lo = Math.max(0, Math.min(projection(seg.x1, seg.y1), projection(seg.x2, seg.y2)));
+            const hi = Math.min(len, Math.max(projection(seg.x1, seg.y1), projection(seg.x2, seg.y2)));
+            if (hi - lo > 2) blockers.add(seg);
         }
+        if (!blockers.size) return false;
+        WallSystem.isoSegments = WallSystem.isoSegments.filter(seg => !blockers.has(seg));
+        const beforeWalls = WallSystem.walls ? WallSystem.walls.length : 0;
+        if (WallSystem.walls) {
+            WallSystem.walls = WallSystem.walls.filter(wall => !blockers.has(wall._isoSourceSegment));
+        }
+        return beforeWalls !== (WallSystem.walls ? WallSystem.walls.length : 0);
+    },
+
+    /** 通道门开闭（open=true 开门）：门洞碰撞幂等同步 + 16 帧动画 + 门闸音效 */
+    _setArenaGateOpen(inst, open) {
+        if (!inst) return;
+        const stateChanged = inst.open !== open;
+        inst.open = open;
+        const removedSteppedWalls = this._clearArenaGateOpeningCollision(inst);
+        if (!open && WallSystem.isoSegments) {
+            WallSystem.isoSegments.push(inst.gateSeg);
+        }
+        if (removedSteppedWalls && WallSystem._syncWallsToPhaser) {
+            WallSystem._syncWallsToPhaser();
+        }
+        if (pathFinder && pathFinder.invalidateCache) {
+            pathFinder.invalidateCache();
+        }
+        if (!stateChanged) return;
         const style = WallSystem.getWallStyle ? WallSystem.getWallStyle() : null;
         if (SoundManager && typeof SoundManager.playFile === 'function') {
             SoundManager.playFile((style && style.gateSound) || 'assets/sounds/environment/gate.mp3');
         }
         const scene = (typeof window !== 'undefined') ? window.__phaserScene : null;
         const from = open ? 0 : inst.frames - 1, to = open ? inst.frames - 1 : 0;
-        if (!scene) { inst.sprite.setFrame(to); return; }
+        const sprites = inst.sprites || [inst.sprite];
+        if (!scene) {
+            for (const gateSprite of sprites) {
+                if (gateSprite && gateSprite.active) gateSprite.setFrame(to);
+            }
+            return;
+        }
         if (inst._animCounter) inst._animCounter.stop();
         inst._animCounter = scene.tweens.addCounter({
             from, to, duration: 900, ease: 'Linear',
-            onUpdate: (tw) => { if (inst.sprite && inst.sprite.active) inst.sprite.setFrame(Math.round(tw.getValue())); },
+            onUpdate: (tw) => {
+                const frame = Math.round(tw.getValue());
+                for (const gateSprite of sprites) {
+                    if (gateSprite && gateSprite.active) gateSprite.setFrame(frame);
+                }
+            },
         });
     },
 
-    /** 点在哪个竞技场房间（1~3；不在任何房间返回 0，如通道内） */
+    /** 点在哪个竞技场房间（1~N；不在任何房间返回 0，如通道内） */
     arenaRoomContaining(x, y) {
         if (!this._arena) return 0;
         for (const r of this._arena.rooms) {
@@ -1900,7 +2183,7 @@ export const CombatRoomSystem = {
         return 0;
     },
 
-    /** 房间 N 的相邻通道门统一开/关（来路 + 去路；房间 1 含入场门、房间 3 无去路） */
+    /** 房间 N 的相邻通道门统一开/关（来路 + 去路；房间 1 含入场门、末房无去路） */
     setArenaRoomGates(roomIdx, open) {
         const a = this._arena;
         if (!a) return;
@@ -1924,7 +2207,7 @@ export const CombatRoomSystem = {
         this._roomBounds = a.rooms[roomIdx - 1].bounds;
     },
 
-    /** 取竞技场房间 bounds（1~3；宝箱房 setup 用房间 3） */
+    /** 取竞技场房间 bounds（1~N；宝箱事件 setup 使用末房） */
     getArenaRoomBounds(roomIdx) {
         const a = this._arena;
         return a && a.rooms[roomIdx - 1] ? a.rooms[roomIdx - 1].bounds : null;
@@ -1948,7 +2231,9 @@ export const CombatRoomSystem = {
                     if (i >= 0) WallSystem.isoSegments.splice(i, 1);
                 }
             }
-            if (inst.sprite && inst.sprite.scene) inst.sprite.destroy();
+            for (const gateSprite of inst.sprites || [inst.sprite]) {
+                if (gateSprite && gateSprite.scene) gateSprite.destroy();
+            }
         }
         // 入场地块贴砖销毁
         if (this._arena.entryZone && this._arena.entryZone._sprites) {
@@ -2036,55 +2321,91 @@ export const CombatRoomSystem = {
     /**
      * 雪原初级竞技场：以世界位面 1×1 墙块为唯一模块沿四边铺成闭合墙环。
      * 墙块中心严格落在 128×64 菱形网格点；四个转角各只复用一个墙块。
-     * 每块携带自己的边界线段与 depth，转角块以两条半边闭合碰撞边界。
-     * entranceEdge 对应 TR/RB/BL/LT 四条边；中央 gateCells 格在源几何中直接留空。
+     * 偶数格边让中央六格门洞端点同样落在格心，门端墙块只保留朝墙外侧的半段碰撞。
      */
     _generateWorldBlockWalls(d) {
+        const edgeNames = ['TR', 'RB', 'BL', 'LT'];
+        const openingEdge = edgeNames[this._entranceEdge];
+        const openings = this._appendWorldBlockRoomWalls(
+            { ...d, edgeCells: this._gridEdgeCells }, [openingEdge]);
+        this._gridGateSpan = openings[openingEdge] || null;
+    },
+
+    /** 单格冰墙视觉件：贴图锚、碰撞面线与 depth 只在这里计算。 */
+    _makeWorldBlockPiece(center, baseSegments, extra = {}) {
         const geo = ISO_WALL_GEO.frozen_block;
-        if (!geo) return;
-        const edgeCells = Math.max(13, this._gridEdgeCells || 21);
-        const gateCells = Math.min(this._gridGateCells || 6, edgeCells - 5);
-        const gapStart = Math.ceil((edgeCells - gateCells) / 2);
-        const gapEnd = gapStart + gateCells;
-        const T = { x: d.cx, y: d.cy - d.ry };
-        const R = { x: d.cx + d.rx, y: d.cy };
-        const B = { x: d.cx, y: d.cy + d.ry };
-        const L = { x: d.cx - d.rx, y: d.cy };
+        if (!geo) return null;
+        const scaleX = (geo.displayW || geo.displaySize || 260) / geo.w;
+        const scaleY = (geo.displayH || geo.displaySize || 260) / geo.h;
+        const ground = geo.groundCenter || [geo.w / 2, geo.h * 0.74];
+        const baseDepth = Math.max(...baseSegments.flat().map((point) => point.y));
+        return {
+            tex: geo.tex,
+            x: center.x - (ground[0] - geo.w / 2) * scaleX,
+            y: center.y - (ground[1] - geo.h / 2) * scaleY,
+            scaleX,
+            scaleY,
+            flipX: false,
+            flipY: false,
+            depth: baseDepth + 4,
+            _gridBlockWall: true,
+            _baseSegments: baseSegments,
+            ...extra,
+        };
+    },
+
+    /**
+     * 向当前墙列表追加一间单格冰墙房；openingEdges 的门洞使用“端点墙块 + 中间空格”结构。
+     * 返回每个门洞的精确跨度、失败回填件及两个端点共享墙块。
+     */
+    _appendWorldBlockRoomWalls(room, openingEdges = []) {
+        const edgeCells = Math.max(12, room.edgeCells || this._gridEdgeCells || 20);
+        const T = { x: room.cx, y: room.cy - room.ry };
+        const R = { x: room.cx + room.rx, y: room.cy };
+        const B = { x: room.cx, y: room.cy + room.ry };
+        const L = { x: room.cx - room.rx, y: room.cy };
+        const edgeNames = ['TR', 'RB', 'BL', 'LT'];
         const edges = [[T, R], [R, B], [B, L], [L, T]];
         const edgeSteps = edges.map(([P, Q]) => ({
             x: (Q.x - P.x) / edgeCells,
             y: (Q.y - P.y) / edgeCells,
         }));
-        const scaleX = (geo.displayW || geo.displaySize || 260) / geo.w;
-        const scaleY = (geo.displayH || geo.displaySize || 260) / geo.h;
-        const ground = geo.groundCenter || [geo.w / 2, geo.h * 0.74];
-        const fillPieces = [];
-        let gateA = null;
-        let gateB = null;
-
-        const makePiece = (center, baseSegments) => {
-            const baseDepth = Math.max(...baseSegments.flat().map((point) => point.y));
-            return {
-                tex: geo.tex,
-                x: center.x - (ground[0] - geo.w / 2) * scaleX,
-                y: center.y - (ground[1] - geo.h / 2) * scaleY,
-                scaleX,
-                scaleY,
-                flipX: false,
-                flipY: false,
-                depth: baseDepth + 4,
-                _gridBlockWall: true,
-                _baseSegments: baseSegments,
-            };
-        };
+        const openings = {};
+        for (const edge of new Set(openingEdges.filter(Boolean))) {
+            const opening = this._worldBlockOpeningGeometry({ ...room, edgeCells }, edge);
+            if (opening) openings[edge] = opening;
+        }
 
         edges.forEach(([P], edgeIndex) => {
+            const edgeName = edgeNames[edgeIndex];
             const step = edgeSteps[edgeIndex];
             const incomingStep = edgeSteps[(edgeIndex + edges.length - 1) % edges.length];
+            const opening = openings[edgeName] || null;
             for (let i = 0; i < edgeCells; i++) {
                 const center = { x: P.x + step.x * i, y: P.y + step.y * i };
-                const baseSegments = i === 0
-                    ? [
+                const insideOpening = opening && i > opening.startIndex && i < opening.endIndex;
+                if (insideOpening) {
+                    let A = { x: center.x - step.x / 2, y: center.y - step.y / 2 };
+                    let B0 = { x: center.x + step.x / 2, y: center.y + step.y / 2 };
+                    if (i === opening.startIndex + 1) A = { ...opening.rawA };
+                    if (i === opening.endIndex - 1) B0 = { ...opening.rawB };
+                    opening.fillPieces.push(this._makeWorldBlockPiece(center, [[A, B0]]));
+                    continue;
+                }
+
+                let baseSegments;
+                if (opening && i === opening.startIndex) {
+                    baseSegments = [[
+                        { x: center.x - step.x / 2, y: center.y - step.y / 2 },
+                        { x: center.x, y: center.y },
+                    ]];
+                } else if (opening && i === opening.endIndex) {
+                    baseSegments = [[
+                        { x: center.x, y: center.y },
+                        { x: center.x + step.x / 2, y: center.y + step.y / 2 },
+                    ]];
+                } else if (i === 0) {
+                    baseSegments = [
                         [
                             { x: center.x - incomingStep.x / 2, y: center.y - incomingStep.y / 2 },
                             { x: center.x, y: center.y },
@@ -2093,40 +2414,21 @@ export const CombatRoomSystem = {
                             { x: center.x, y: center.y },
                             { x: center.x + step.x / 2, y: center.y + step.y / 2 },
                         ],
-                    ]
-                    : [[
+                    ];
+                } else {
+                    baseSegments = [[
                         { x: center.x - step.x / 2, y: center.y - step.y / 2 },
                         { x: center.x + step.x / 2, y: center.y + step.y / 2 },
                     ]];
-                const piece = makePiece(center, baseSegments);
-                const gateCell = edgeIndex === this._entranceEdge && i >= gapStart && i < gapEnd;
-                if (gateCell) {
-                    const gateSegment = baseSegments[0];
-                    if (!gateA) gateA = { x: gateSegment[0].x, y: gateSegment[0].y };
-                    gateB = { x: gateSegment[1].x, y: gateSegment[1].y };
-                    fillPieces.push(piece);
-                } else {
-                    WallSystem.isoVisuals.push(piece);
+                }
+                const piece = this._makeWorldBlockPiece(center, baseSegments);
+                WallSystem.isoVisuals.push(piece);
+                if (opening && (i === opening.startIndex || i === opening.endIndex)) {
+                    opening.endpointPieces.push({ point: { ...center }, piece });
                 }
             }
         });
-
-        if (!gateA || !gateB) {
-            this._gridGateSpan = null;
-            WallSystem.isoVisuals.push(...fillPieces);
-            return;
-        }
-        // WallGate 的贴图基线统一要求 A 为较高端、B 为较低端。
-        let a = gateA;
-        let b = gateB;
-        if (a.y > b.y) [a, b] = [b, a];
-        this._gridGateSpan = {
-            a,
-            b,
-            flip: b.x < a.x,
-            depth: Math.max(a.y, b.y) + 4,
-            fillPieces,
-        };
+        return openings;
     },
 
     _spawnPlayer(player, edge, roomSize) {

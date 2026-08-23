@@ -15,6 +15,27 @@
   "performance": {
     "fileVoiceLimit": 24,
     "perPathVoiceLimit": 4,
+    "rapidFireVoiceLimit": 32,
+    "rapidFirePerPathVoiceLimit": 24,
+    "rapidFireRepeatGuardMs": 0,
+    "gunshotPreloadPaths": [
+      "assets/sounds/weapons/akm_burst.mp3",
+      "assets/sounds/weapons/apex_shot_600ms.wav",
+      "assets/sounds/weapons/apex2_shot_1s.wav",
+      "assets/sounds/weapons/beretta93r_fire.mp3",
+      "assets/sounds/weapons/cs_deagle_35_80.wav",
+      "assets/sounds/weapons/gunshot_600ms_clean.wav",
+      "assets/sounds/weapons/gunshot_600ms_open.wav",
+      "assets/sounds/weapons/m416_fire.wav",
+      "assets/sounds/weapons/p4040_hammer_fire.mp3",
+      "assets/sounds/weapons/pkm_half_sec.wav",
+      "assets/sounds/weapons/qbz191_shot6_valley.mp3",
+      "assets/sounds/weapons/qjb201_single_600ms.wav",
+      "assets/sounds/weapons/revolver357_fire.mp3",
+      "assets/sounds/enemies/time_agent_shield/gunshot.mp3",
+      "assets/companions/hamster_musketeer/fire.mp3",
+      "assets/sounds/friendly/hamster_bounty_hunter_attack.mp3"
+    ],
     "cachedPathLimit": 64,
     "repeatGuardMs": 35
   },

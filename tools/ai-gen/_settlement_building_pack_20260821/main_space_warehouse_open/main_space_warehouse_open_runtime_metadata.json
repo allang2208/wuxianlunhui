@@ -1,0 +1,41 @@
+{
+  "source": "tools\\ai-gen\\_settlement_building_pack_20260821\\main_space_warehouse_open\\main_space_warehouse_open_from_closed_5080_s48_seed122862_birefnet.png",
+  "output": "assets\\npc\\warehouse\\warehouse_open.png",
+  "sourceMode": "RGBA",
+  "background": null,
+  "matteColor": null,
+  "matteEdgeWidth": null,
+  "matteTolerance": null,
+  "nearestOpaqueEdgeRgb": true,
+  "nearestOpaqueAlpha": 0.92,
+  "maskImage": null,
+  "maskDilate": null,
+  "fillAlphaHoles": false,
+  "fillHoleMatteDistance": null,
+  "removeEnclosedMatte": false,
+  "enclosedMatteChromaDistance": null,
+  "maskAddRects": [],
+  "restoreAlphaRects": [],
+  "removeMatteRects": [],
+  "cropBox": [
+    97,
+    104,
+    1148,
+    1158
+  ],
+  "fileSize": [
+    1051,
+    1054
+  ],
+  "alphaBBox": [
+    4,
+    4,
+    1047,
+    1050
+  ],
+  "displayW": 180,
+  "displayH": 181,
+  "footOffsetY": 90,
+  "scaleX": 0.17126546146527116,
+  "scaleY": 0.17172675521821631
+}

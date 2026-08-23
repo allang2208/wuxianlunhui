@@ -11,7 +11,7 @@ const Renderer = {
     terrainTexture: null,
     init() { if (!this.canvas) this.canvas = getElement('gameCanvas'); if (!this.canvas) { console.error('gameCanvas not found'); return; } this.ctx = this.canvas.getContext('2d'); this.resize(); window.addEventListener('resize', () => this.resize()); },
     resize() { if (!this.canvas || !this.ctx) return; const defaultRes = GAME_CONFIG.display?.defaultResolution || { width: 1920, height: 1080 }; const w = window.innerWidth || defaultRes.width || 1920, h = window.innerHeight || defaultRes.height || 1080; if (w > 0 && h > 0) { this.canvas.width = w; this.canvas.height = h; } },
-    generateWorld() {
+    generateWorld(targetSceneId = null) {
         if (!this.canvas || !this.ctx) return;
         const displayCfg = GAME_CONFIG.display || {};
         const viewW = displayCfg.viewWidth || 1920;
@@ -24,7 +24,10 @@ const Renderer = {
         CONFIG.VIEW_HEIGHT = viewH;
         const worldCfg = GAME_CONFIG.world || {};
         const sm = (SceneManager) ? SceneManager : ((typeof window !== 'undefined' && window.SceneManager) ? window.SceneManager : null);
-        if (sm && sm.currentScene === 'main') {
+        // 场景切换加载阶段 currentScene 仍指向离场场景；调用方可显式传入目标场景，
+        // 避免回主神空间时先写入 main 尺寸、又被旧场景判定覆盖成 default 尺寸。
+        const sceneId = targetSceneId || (sm && sm.currentScene);
+        if (sceneId === 'main') {
             CONFIG.WORLD_WIDTH = (worldCfg.main && worldCfg.main.width) || 7650;
             CONFIG.WORLD_HEIGHT = (worldCfg.main && worldCfg.main.height) || 3800;
         } else {

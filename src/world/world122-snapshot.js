@@ -505,6 +505,13 @@ export function captureWorld(sceneId = 'scene8') {
             } : undefined,
             bakeryPendingTributeIds: p._economyType === 'bakery'
                 ? [...(p._bakeryPendingTributeIds || [])] : undefined,
+            resonatorModules: p._economyType === 'planar_resonator'
+                ? { ...(p.modules || {}) } : undefined,
+            resonatorUpgrade: p._resonatorUpgrade ? {
+                moduleId: p._resonatorUpgrade.moduleId,
+                totalMs: p._resonatorUpgrade.totalMs,
+                remainMs: p._resonatorUpgrade.remainMs,
+            } : null,
             candleModules: p._isWorld125Candle ? { ...(p.candleModules || {}) } : undefined,
             candleUpgrade: p._candleUpgrade ? {
                 moduleId: p._candleUpgrade.moduleId,
@@ -894,6 +901,8 @@ function _restoreProducer(s, sceneId) {
         bakeryUpgrade: s.bakeryUpgrade,
         bakeryJob: s.bakeryJob,
         bakeryPendingTributeIds: s.bakeryPendingTributeIds,
+        resonatorModules: s.resonatorModules,
+        resonatorUpgrade: s.resonatorUpgrade,
         warehouseModules: s.warehouseModules,
         warehouseUpgrade: s.warehouseUpgrade,
         candleModules: s.candleModules,

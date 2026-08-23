@@ -1128,7 +1128,14 @@ const WallSystem = {
             const gates = [...CRS._arena.passages.flatMap(r => r.gates)];
             if (CRS._arena.entryGate) gates.push(CRS._arena.entryGate);
             for (const g of gates) {
-                if (g && g.sprite) out.push({ segs: [[g.baseA, g.baseB]], depth: g.sprite.depth });
+                if (!g || !g.sprite) continue;
+                if (Array.isArray(g.depthSegments) && g.depthSegments.length) {
+                    for (const segment of g.depthSegments) {
+                        out.push({ segs: [[segment.A, segment.B]], depth: segment.depth });
+                    }
+                } else {
+                    out.push({ segs: [[g.baseA, g.baseB]], depth: g.sprite.depth });
+                }
             }
         }
         const WG = (typeof window !== 'undefined') ? window.WallGate : null;
@@ -1395,11 +1402,16 @@ const WallSystem = {
         for (const [a, b] of this._pieceBaseSegments(p)) {
             const len = Math.hypot(b.x - a.x, b.y - a.y);
             if (len < 10) continue;
-            this.isoSegments.push({ x1: a.x, y1: a.y, x2: b.x, y2: b.y, halfThick: isoHalfThick(geo) });
+            const sourceSegment = { x1: a.x, y1: a.y, x2: b.x, y2: b.y, halfThick: isoHalfThick(geo) };
+            this.isoSegments.push(sourceSegment);
             const ux = (b.x - a.x) / len, uy = (b.y - a.y) / len;
             for (let d = 15; d < len; d += 30) {
                 const px = a.x + ux * d, py = a.y + uy * d;
-                this.walls.push({ x: px - 18, y: py - 10, w: 36, h: 20, height: 60, noVisual: true, _iso: true });
+                this.walls.push({
+                    x: px - 18, y: py - 10, w: 36, h: 20,
+                    height: 60, noVisual: true, _iso: true,
+                    _isoSourceSegment: sourceSegment,
+                });
             }
         }
     },

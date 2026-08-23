@@ -1,5 +1,5 @@
 {
-  "version": 6,
+  "version": 7,
   "pointsPerInstitutePerSecond": 1,
   "nodes": [
     {
@@ -24,6 +24,21 @@
       "id": "weather_forecasting", "name": "天气预测", "icon": "🌦", "branch": "工程", "column": 1, "lane": 1, "researchCost": 120,
       "prerequisites": ["engineering_drafting"], "description": "建立跨位面气象观测与演算体系，允许建造天气预测塔并提前获知降雨。",
       "unlocks": [{ "type": "building", "id": "weather_forecast_tower", "label": "天气预测塔" }]
+    },
+    {
+      "id": "institutional_research", "name": "制度化科研", "icon": "📚", "branch": "工程", "column": 1, "lane": 2, "researchCost": 150,
+      "prerequisites": ["engineering_drafting"], "description": "建立标准研究岗位、精密仪器与跨位面分院制度，开放二级研究院及三项科研设施强化。",
+      "unlocks": [
+        { "type": "upgrade", "id": "research_institute_level_2", "label": "二级研究院" },
+        { "type": "upgrade", "id": "research_staff", "label": "扩编研究员" },
+        { "type": "upgrade", "id": "research_base_points", "label": "精密研究设备" },
+        { "type": "upgrade", "id": "research_institute_capacity", "label": "学术分院网络" }
+      ]
+    },
+    {
+      "id": "advanced_academia", "name": "高塔学府", "icon": "🏛️", "branch": "工程", "column": 2, "lane": 2, "researchCost": 300,
+      "prerequisites": ["institutional_research"], "description": "把研究院扩建为拥有华丽塔楼、分科档案与高阶观测设备的学术中心，开放三级研究院。",
+      "unlocks": [{ "type": "upgrade", "id": "research_institute_level_3", "label": "三级研究院" }]
     },
     {
       "id": "defense_tower_engineering", "name": "防御塔工程", "icon": "🗼", "iconPath": "assets/ui/technology-icons/defense_tower_engineering.png", "branch": "工程", "column": 2, "lane": 0, "researchCost": 240,
@@ -181,6 +196,21 @@
       "id": "interplane_logistics_protocol", "name": "位面物流协议", "icon": "🌀", "iconPath": "assets/ui/technology-icons/interplane_logistics_protocol.png", "branch": "经济与位面", "column": 5, "lane": 1, "researchCost": 260,
       "prerequisites": ["economic_engineering"], "description": "统一跨位面仓储和运输规范，允许升级仓库的跨位面协议。",
       "unlocks": [{ "type": "upgrade", "id": "warehouse_cross_plane", "label": "仓库跨位面协议" }]
+    },
+    {
+      "id": "planar_resonance", "name": "位面谐振", "icon": "🔮", "branch": "经济与位面", "column": 5, "lane": 0, "researchCost": 280,
+      "prerequisites": ["economic_engineering"], "description": "把晶核的位面脉冲稳定转换为聚落能源，允许建造位面谐振塔并安排谐振技师。",
+      "unlocks": [{ "type": "building", "id": "planar_resonator", "label": "位面谐振塔" }]
+    },
+    {
+      "id": "resonance_calibration", "name": "谐振校准", "icon": "🎛️", "branch": "经济与位面", "column": 6, "lane": 0, "researchCost": 360,
+      "prerequisites": ["planar_resonance"], "description": "建立频率、晶核、导能与技师编制的标准调校流程，开放位面谐振塔的四项专属升级。",
+      "unlocks": [
+        { "type": "upgrade", "id": "resonator_frequency", "label": "谐振频率" },
+        { "type": "upgrade", "id": "resonator_crystal_output", "label": "晶核增幅" },
+        { "type": "upgrade", "id": "resonator_conversion", "label": "导能回收" },
+        { "type": "upgrade", "id": "resonator_staff", "label": "谐振技师" }
+      ]
     }
   ],
   "planeResearch": [

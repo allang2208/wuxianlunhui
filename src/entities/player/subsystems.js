@@ -1562,13 +1562,14 @@ _getEffectivePiercing(basePiercing, item) {
                 return result;
             },
 
-_playFireSound(item, defaultSound = 'gun_fire') {
+_playFireSound(item, defaultSound = 'gun_fire', branchSound = null) {
                 // 改造音效覆盖（如 P4040 锤击点弹药）优先于武器自带 fireSound
                 const sound = (item && item._craftEffects && item._craftEffects.fireSoundOverride)
-                    || (item && item.fireSound) || defaultSound;
+                    || branchSound || (item && item.fireSound) || defaultSound;
                 if (!SoundManager) return;
                 if (sound.startsWith('assets/')) {
-                    SoundManager.playFile(sound);
+                    if (SoundManager.playGunshot) SoundManager.playGunshot(sound);
+                    else SoundManager.playFile(sound);
                 } else {
                     SoundManager.play(sound);
                 }
@@ -1877,11 +1878,9 @@ _fireRanged(hand = 'main') {
                         // 屏幕抖动
                         Camera.triggerShake(isEnergyLMG ? lmgCfg.cameraShakeEnergy : lmgCfg.cameraShake);
 
-                        // 音效播放
-                        if (SoundManager) {
-                            const lmgSound = lmgCfg.soundMap[attackKey];
-                            if (lmgSound) SoundManager.playFile(lmgSound);
-                        }
+                        // 机枪分支历史上绕开 _playFireSound 直调 playFile，导致高射速枪仍被普通
+                        // 4 voice 池吞声。统一进入逐发枪声入口，同时保留能量轻机枪等分支专用音色。
+                        this._playFireSound(currentItem, lmgCfg.defaultSound, lmgCfg.soundMap[attackKey]);
 
                         // 应用改造效果
                         let effectiveRange = pc.projectileRange;

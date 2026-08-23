@@ -28,6 +28,7 @@ const NPCDialogue = {
     open(npc) {
         this._active = true;
         this._currentNPC = npc;
+        document.body.classList.add('npc-dialogue-active');
 
         const dialogueBox = getElement('npcDialogueBox');
         const dialogueText = getElement('npcDialogueText');
@@ -64,7 +65,7 @@ const NPCDialogue = {
                     npcPortrait.style.transform = 'translateX(-50%)';
                     npcPortrait.style.bottom = '220px';
                 }
-                // 小鼠侍从立绘放大300%
+                // 小鼠侍从已归一到小鼠大王立绘画布；保留类名仅用于同基准样式
                 if (npc.portrait.includes('mouse_attendant')) {
                     npcPortrait.classList.add('mouse-attendant');
                 } else {
@@ -91,10 +92,6 @@ const NPCDialogue = {
                 this._updateDialogueButtons(npc);
             }
         }
-
-        // 隐藏小地图、返回主菜单按钮
-        const backMenuBtn = getElement('backMenuBtn');
-        if (backMenuBtn) backMenuBtn.style.display = 'none';
 
         // 暂停游戏（可选）
         if (Game && Game.isRunning) {
@@ -201,6 +198,7 @@ const NPCDialogue = {
     close(keepBackpack = false) {
         this._active = false;
         this._currentNPC = null;
+        document.body.classList.remove('npc-dialogue-active');
         if (this._typewriter) {
             this._typewriter.destroy();
             this._typewriter = null;
@@ -229,10 +227,6 @@ const NPCDialogue = {
             npcPortrait.src = ''; // 重置 src，防止下次打开对话框时闪现旧立绘
             npcPortrait.style.transform = ''; // 清除变换，避免影响下次对话
         }
-
-        // 恢复小地图、返回主菜单按钮
-        const backMenuBtn = getElement('backMenuBtn');
-        if (backMenuBtn) backMenuBtn.style.display = 'block';
 
         // 恢复游戏
         if (Game) Game._npcDialoguePaused = false;
