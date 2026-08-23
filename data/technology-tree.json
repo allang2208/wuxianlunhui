@@ -169,6 +169,13 @@
         { "type": "unit", "id": "jaguar_warrior", "label": "美洲豹战士" },
         { "type": "unit", "id": "jungle_priest", "label": "丛林祭司" }
       ]
+    },
+    {
+      "id": "desert_mansion_charter", "name": "沙漠官邸营造术", "icon": "🏛️", "branch": "位面独特科技", "section": "plane", "column": 3, "lane": 0, "researchCost": 240,
+      "prerequisites": [], "requiredWorldId": "scene8", "description": "研究荒漠官邸的砂岩承重、穹顶与火炬塔营造规范，完成后可在世界-122追加建造沙漠官邸。",
+      "unlocks": [
+        { "type": "building", "id": "desert_mansion", "label": "沙漠官邸" }
+      ]
     }
   ]
 }

@@ -31,6 +31,17 @@
       "hp": { "name": "生命强化", "icon": "❤️", "iconImage": "assets/ui/building-upgrades/health.png", "effect": "hpMult", "per": 0.05, "maxLevel": 10, "desc": "单位生命 +{pct}%" }
     }
   },
+  "desert_cavalry_standard": {
+    "unitKinds": ["camel_cavalry"],
+    "moduleUpgrade": { "gold": 1000, "energy": 500, "timeBaseMs": 60000, "timeGrowthMs": 0 },
+    "modules": {
+      "damage": { "name": "攻击强化", "icon": "⚔️", "iconImage": "assets/ui/building-upgrades/attack-damage.png", "effect": "attackDamageMult", "per": 0.025, "maxLevel": 10, "desc": "每次攻击伤害 +{pct}%" },
+      "hp": { "name": "生命强化", "icon": "❤️", "iconImage": "assets/ui/building-upgrades/health.png", "effect": "hpMult", "per": 0.05, "maxLevel": 10, "desc": "单位生命 +{pct}%" },
+      "moveSpd": { "name": "机动强化", "icon": "👟", "iconImage": "assets/ui/building-upgrades/mobility.png", "effect": "moveSpeedMult", "per": 0.015, "maxLevel": 10, "desc": "移动速度 +{pct}%" },
+      "defense": { "name": "防御增强", "icon": "🛡️", "iconImage": "assets/ui/building-upgrades/defense.png", "effect": "defenseMult", "per": 0.05, "maxLevel": 10, "desc": "防御力 +{pct}%" },
+      "camelFright": { "name": "骆驼惊吓", "icon": "🐪", "iconImage": "assets/ui/building-upgrades/camel-fright.png", "effect": "camelFrightReduction", "mode": "add", "firstLevel": 0.1, "per": 0.02, "maxLevel": 6, "desc": "周围600px敌方伤害输出 -{pct}%" }
+    }
+  },
   "shooting_range_special": {
     "unitKinds": ["musketeer", "shooter"],
     "moduleUpgrade": { "gold": 1000, "energy": 500, "timeBaseMs": 60000, "timeGrowthMs": 0 },

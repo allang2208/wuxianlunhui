@@ -21,6 +21,7 @@ import { Easing } from '../../config/math-utils.js';
 import { EffectManager } from '../../effects/effect-manager.js';
 import { GunFeel } from '../../effects/gunfeel.js';
 import { canMeleeShareSurface } from '../../combat/melee-surface.js';
+import { applyOutgoingDamageModifiers } from '../../combat/outgoing-damage-modifiers.js';
 import { getElement } from '../../utils/dom-utils.js';
 import { TimerManager } from '../../utils/timer-manager.js';
 import { CONFIG } from '../../config/config.js';
@@ -158,6 +159,7 @@ takeDamage(damage, source, _damageType = 'physical', isMelee = false) {
                 if (source && source._faction === 'enemy') {
                     finalDamage = Math.floor(finalDamage * getTributeMonsterAtkDownMul());
                 }
+                finalDamage = applyOutgoingDamageModifiers(finalDamage, source);
                 // 金刚石「金刚不坏」：单次伤害不超过最大生命值的配置比例
                 const surviveCap = getSurviveCapRatio();
                 if (surviveCap > 0 && this.data) {

@@ -1564,7 +1564,7 @@
 
 - **道路生命周期**：`BuildingRoadSystem.detach(entity, { preserveRoads:true })` 用于建筑沉陷和主动拆除：释放中央 2×2/4×4 预约，同时把外围自动道路转为独立道路；道路不随建筑消失，原位可直接重建。场景 teardown/普通重挂仍走默认 detach，避免遗留预约。
 - **外围格配置例外（2026-08-21）**：配置型建筑用 `producer-buildings.json#perimeterTile` 声明外围格；`"field"` 生成田地，缺省生成道路，`"none"` 只保留中央 2×2。`none` 必须同时关闭建造预览、4×4 预约、实际派生 tile，并由 `BuildingRoadSystem.attach()` 在快照恢复路径再次兜底，禁止只隐藏道路 Sprite 却继续占住外围 12 格。传送门、房屋及 `explorer_camp`（探险家/侦查营地）使用 `none`，周围不得自动产生道路。
-- **升级项目唯一源**：`data/building-upgrades.json` 定义项目、费用、模块 `effect` 与能力；建筑只在 `producer-buildings.json` 或固定建筑配置中声明 `upgradeProject`。`building-upgrade-projects.js` 负责解析，`unit-upgrade-store.js` 按 `effect` 生成统一补丁，禁止再按 `attackSpd/damage/moveSpd` 等模块 ID 写分支。
+- **升级项目唯一源**：`data/building-upgrades.json` 定义项目、费用、模块 `effect` 与能力；建筑只在 `producer-buildings.json` 或固定建筑配置中声明 `upgradeProject`。`building-upgrade-projects.js` 负责解析，`unit-upgrade-store.js` 按 `effect` 生成统一补丁，禁止再按 `attackSpd/damage/moveSpd` 等模块 ID 写分支。模块首级效果与后续增量不同时使用 `firstLevel + per × (level-1)`，面板当前/下一级预览与实际补丁必须消费同一口径。
 - **升级支付事务（2026-08-19）**：矿场/兵营/通用产兵与铁匠铺、研究院能力升级统一走
   `payBuildingUpgradeCost()`；升级永远消耗真实金币与能源，`_devInfiniteResources`
   只允许建筑放置免费。支付顺序为余额预检→扣金币→扣能源，能源扣除失败必须退还金币。

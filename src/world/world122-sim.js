@@ -32,6 +32,7 @@ import musketeerCfg from '../../data/hamster-musketeer-config.json';
 import priestCfg from '../../data/hamster-priest-config.json';
 import knightCfg from '../../data/hamster-knight-config.json';
 import lightCavalryCfg from '../../data/hamster-light-cavalry-config.json';
+import camelCavalryCfg from '../../data/hamster-camel-cavalry-config.json';
 import explorerCfg from '../../data/hamster-explorer-config.json';
 import bountyHunterCfg from '../../data/hamster-bounty-hunter-config.json';
 import jaguarWarriorCfg from '../../data/jaguar-warrior-config.json';
@@ -57,6 +58,7 @@ const UNIT_CFGS = {
     militia: militiaCfg, warrior: warriorCfg, shooter: shooterCfg,
     guard: guardCfg, scout: scoutCfg, musketeer: musketeerCfg, priest: priestCfg,
     knight: knightCfg, light_cavalry: lightCavalryCfg,
+    camel_cavalry: camelCavalryCfg,
     explorer: explorerCfg, bounty_hunter: bountyHunterCfg,
     jaguar_warrior: jaguarWarriorCfg, jungle_priest: junglePriestCfg,
 };
@@ -262,6 +264,18 @@ function _rosterDps(roster, levelOverrides = null) {
             + Math.max(0, Number(count) || 0) * _unitDps(kind, levelOverrides),
         0
     );
+}
+
+/** 后台无逐实体坐标：至少一名存活骆驼骑兵参战时，按当前惊吓等级折算怪群输出。 */
+function _camelFrightReduction(target) {
+    const hasCamel = (target.structures || []).some((structure) => (
+        structure?.hp > 0
+        && (structure.kind === 'barracks' || structure.kind === 'producer')
+        && (_normalizedRoster(structure).camel_cavalry || 0) > 0
+    ));
+    if (!hasCamel) return 0;
+    const mults = getUnitUpgradeMults('camel_cavalry', getUpgradeModulesForUnitKind('camel_cavalry'));
+    return Math.max(0, Math.min(0.9, Number(mults.camelFrightReduction) || 0));
 }
 
 /** 快速募兵倍率（与 research-system.getRecruitIntervalMs 同口径，读结算开始时的等级） */
@@ -1123,6 +1137,7 @@ function _settleWaves(target, cfg, defenseDps, timeSec, report) {
         }
         if (wave.phase === 'wave') {
             const pool = _wavePool(wave.wave, cfg);
+            const monsterDamageMul = 1 - _camelFrightReduction(target);
             // 防守 DPS 每波重算（结算过程中建筑可能被摧毁）
             const dps = (target.structures || []).reduce((sum, s) => {
                 if (!(s.hp > 0)) return sum;
@@ -1132,7 +1147,7 @@ function _settleWaves(target, cfg, defenseDps, timeSec, report) {
             }, 0);
             if (dps <= 0) {
                 // 无防守输出：怪群按实际时长推平防线与基地
-                _applyStructureDamage(target, pool.dps * WORLD122_SIM.contactFraction * t, report);
+                _applyStructureDamage(target, pool.dps * WORLD122_SIM.contactFraction * monsterDamageMul * t, report);
                 if ((target.base?.hp ?? 0) <= 0) { report.defeated = true; return; }
                 return; // 波次卡住（回场重打）
             }
@@ -1143,7 +1158,7 @@ function _settleWaves(target, cfg, defenseDps, timeSec, report) {
             wave.progressSec = (wave.progressSec || 0) + step;
             t -= step;
             // 怪物输出按本段交战时长结算（墙/门 → 建筑 → 基地）
-            _applyStructureDamage(target, pool.dps * WORLD122_SIM.contactFraction * step, report);
+            _applyStructureDamage(target, pool.dps * WORLD122_SIM.contactFraction * monsterDamageMul * step, report);
             if ((target.base?.hp ?? 0) <= 0) { report.defeated = true; return; }
             if (wave.progressSec < clearTime) return; // 波次仍在进行（时间用尽）
             // 清波

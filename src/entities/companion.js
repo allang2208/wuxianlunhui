@@ -14,6 +14,8 @@ import companionConfigData from '../../data/companion-config.json';
 import { EnergyManager } from '../systems/energy-manager.js';
 import { getTributeFriendlyAtkMul, getTributeFriendlyMaxHpMul } from '../config/tribute-effects.js';
 import { canMeleeShareSurface } from '../combat/melee-surface.js';
+import { applyOutgoingDamageModifiers } from '../combat/outgoing-damage-modifiers.js';
+import { Collider } from '../physics/collider.js';
 
 const ATTR_KEYS = ['str', 'dex', 'int', 'con', 'wis', 'luck'];
 
@@ -136,6 +138,52 @@ export class Companion {
         this.updateMaxStats();
         this.data.hp = this.data.maxHp;
         this.data.mp = this.data.maxMp;
+    }
+
+    /**
+     * 给 Game.friendlyUnits 使用的统一碰撞配置入口。
+     * 子类先保留各自现有半径/高度作为默认值，再由配置文件中的编辑器字段覆盖；
+     * 正式单位和碰撞编辑器预览因此读取同一份数据。
+     */
+    configureCollisionFromArchive(archive = {}) {
+        const positive = (value, fallback) => {
+            const n = Number(value);
+            return Number.isFinite(n) && n > 0 ? n : fallback;
+        };
+        const render = archive.render || {};
+        const radius = positive(
+            archive.collisionRadius ?? archive.groundRadius,
+            positive(this.collisionRadius ?? this.groundRadius, 26)
+        );
+        const height = positive(
+            archive.height ?? archive.bodyHeight,
+            positive(this.bodyHeight, radius * 2)
+        );
+        const hitbox = render.projectileHitbox || this.config?.render?.projectileHitbox || null;
+
+        this.groundRadius = radius;
+        this.collisionRadius = radius;
+        this.bodyHeight = height;
+        this.collisionShape = 'circle';
+        this.collisionWidth = positive(render.collisionWidth ?? hitbox?.width, radius * 2);
+        this.collisionHeight = positive(render.collisionHeight ?? hitbox?.height, height);
+        this.colliderOffsetX = Number(render.colliderOffsetX ?? archive.colliderOffsetX) || 0;
+        this.colliderOffsetY = Number(render.colliderOffsetY ?? archive.colliderOffsetY) || 0;
+        this.config = {
+            ...(this.config || {}),
+            height,
+            render: {
+                ...(render || {}),
+                ...(this.config?.render || {}),
+                ...(hitbox ? { projectileHitbox: { ...hitbox } } : {}),
+            },
+        };
+        this.rebuildCollider();
+    }
+
+    rebuildCollider() {
+        this.collider = Collider.fromEntity(this);
+        this.collider.attach(this);
     }
 
     get level() { return this.data.level; }
@@ -368,6 +416,7 @@ export class Companion {
         const reduction = defense / (defense + 60);
         const minimum = Math.floor(raw * 0.1);
         const mitigated = Math.max(minimum, Math.floor(raw * (1 - reduction)));
+        const outgoingAdjusted = applyOutgoingDamageModifiers(mitigated, attacker);
         if (this._defending) {
             const shieldData = this._getShieldData();
             const defense = (shieldData && shieldData.defense) || {};
@@ -390,14 +439,14 @@ export class Companion {
                     grantCompanionSkillExp(this, 'shieldDefense', rw.parry || 10);
                 }
             }
-            const dealt = mitigated * remainingRatio;
+            const dealt = outgoingAdjusted * remainingRatio;
             d.hp = Math.max(0, d.hp - dealt);
             if (dealt > 0) this.hitFlash = this.hitFlashDuration;
             return { damage: dealt, parried: true, critical };
         }
-        d.hp = Math.max(0, d.hp - mitigated);
-        if (mitigated > 0) this.hitFlash = this.hitFlashDuration;
-        return { damage: mitigated, parried: false, critical };
+        d.hp = Math.max(0, d.hp - outgoingAdjusted);
+        if (outgoingAdjusted > 0) this.hitFlash = this.hitFlashDuration;
+        return { damage: outgoingAdjusted, parried: false, critical };
     }
 
     /** 当前装备的盾（副手优先，ring2 兜底；无盾返回 null） */

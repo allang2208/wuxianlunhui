@@ -27,6 +27,12 @@
 | `droneVulnerability` | 无人机易伤 | 🛸 | 每层使受到的所有伤害 +10%（基础），并 +10% 被暴击率；受无人机技能等级加成 | 无人机技能标记 | `damageable-entity.js:applyDroneVulnerability`<br>`player/subsystems.js` / `enemy.js` |
 | `electrified` | 感电 | ⚡ | 每层使受到的电系伤害 +3%；**叠满 5 层触发过载**：眩晕 1.2s + 对周围 150px 敌方单位传导一次电击并清空全部层数 | 闪电、雷暴领域、雷神审判 | `damageable-entity.js:applyElectrified`<br>`damageable-entity.js` 伤害结算段 |
 
+## 三点五、伤害输出 Debuff
+
+| 类型键 | 名称 | 图标 | 效果 | 典型来源 | 关键代码位置 |
+|--------|------|------|------|----------|--------------|
+| `camelFright` | 骆驼惊吓 | 🐪 | 处于骆驼骑兵600px光环内时降低最终伤害输出；Lv.1为-10%，之后每级-2%，Lv.6为-20%；同类光环不叠加 | 沙漠官邸“骆驼惊吓”升级 | `hamster-camel-cavalry.js`<br>`combat/outgoing-damage-modifiers.js` |
+
 ## 四、增益 Buff
 
 | 类型键 | 名称 | 图标 | 效果 | 典型来源 | 关键代码位置 |
@@ -87,6 +93,7 @@
 | 魔力易伤 | 每层 +5% 魔法伤害 | `magicVulnerability` |
 | 无人机易伤 | 每层 +10% 全伤害、+10% 被暴击率 | `droneVulnerability` |
 | 感电 | 每层 +3% 电系伤害；叠满 5 层过载（眩晕 1.2s + 周围 150px 电弧传导） | `electrified` |
+| 骆驼惊吓 | 600px内敌方伤害输出 -10%~-20%，同类不叠加 | `camelFright` |
 | 激励 | 移速 ×1.33、物攻 ×1.5 | `inspire` |
 | 加速 | 每层 +10% 移速，可叠加；到期全部层数清空 | `haste` |
 | 圣光续疗 | 每秒恢复最大生命 1%×层数 | `holyRenewal` |
@@ -99,4 +106,4 @@
 
 ---
 
-*最后更新：2026-08-05（新增感电叠层→过载机制；闪电不再造成击退）*
+*最后更新：2026-08-23（新增骆驼惊吓伤害输出减益）*

@@ -23,6 +23,7 @@ import hamsterExplorerConfig from '../../../data/hamster-explorer-config.json';
 import hamsterBountyHunterConfig from '../../../data/hamster-bounty-hunter-config.json';
 import jaguarWarriorConfig from '../../../data/jaguar-warrior-config.json';
 import junglePriestConfig from '../../../data/jungle-priest-config.json';
+import hamsterCamelCavalryConfig from '../../../data/hamster-camel-cavalry-config.json';
 import populationEconomyConfig from '../../../data/population-economy.json';
 import producerBuildingsConfig from '../../../data/producer-buildings.json';
 
@@ -100,7 +101,7 @@ export class BootScene extends Scene {
         }
 
         // ---- 世界-122 友方单位（独立配置，不入招募池）----
-        for (const unitConfig of [hamsterMinerConfig, hamsterWarriorConfig, hamsterShooterConfig, hamsterGuardConfig, hamsterMilitiaConfig, hamsterScoutConfig, hamsterMusketeerConfig, hamsterPriestConfig, hamsterKnightConfig, hamsterLightCavalryConfig, hamsterExplorerConfig, hamsterBountyHunterConfig, jaguarWarriorConfig, junglePriestConfig]) {
+        for (const unitConfig of [hamsterMinerConfig, hamsterWarriorConfig, hamsterShooterConfig, hamsterGuardConfig, hamsterMilitiaConfig, hamsterScoutConfig, hamsterMusketeerConfig, hamsterPriestConfig, hamsterKnightConfig, hamsterLightCavalryConfig, hamsterExplorerConfig, hamsterBountyHunterConfig, jaguarWarriorConfig, junglePriestConfig, hamsterCamelCavalryConfig]) {
             for (const [animKey, def] of Object.entries(unitConfig.animations || {})) {
                 if (!def || !def.src) continue;
                 this.load.spritesheet(`companion_${unitConfig.id}_${animKey}`, def.src, {
@@ -320,6 +321,7 @@ export class BootScene extends Scene {
         this.load.image('warehouse', 'assets/terrain/warehouse.png');
         this.load.image('shooting_range', 'assets/terrain/shooting_range.png');
         this.load.image('thatch_hut', 'assets/terrain/thatch_hut.png');
+        this.load.image('desert_mansion', 'assets/terrain/desert_mansion.png');
         this.load.image('explorer_camp', 'assets/terrain/explorer_camp.png');
         this.load.image('jungle_temple', 'assets/terrain/jungle_temple.png');
         this.load.image('cavalry_school', 'assets/terrain/cavalry_school.png');
@@ -668,7 +670,7 @@ export class BootScene extends Scene {
         // 仓鼠民兵 attack = 15 帧单次（第 8 帧判定伤害由 AI 计时）；
         // 仓鼠斥候 attack = 18 帧单次（第 11 帧出膛由 AI 计时）+ projectile 单帧贴图；
         // 仓鼠牧师/丛林祭司 spell = 17 帧单次，第 8 帧由 AI 结算法术。
-        for (const unitConfig of [hamsterMinerConfig, hamsterWarriorConfig, hamsterShooterConfig, hamsterGuardConfig, hamsterMilitiaConfig, hamsterScoutConfig, hamsterMusketeerConfig, hamsterPriestConfig, hamsterKnightConfig, hamsterLightCavalryConfig, hamsterExplorerConfig, hamsterBountyHunterConfig, jaguarWarriorConfig, junglePriestConfig]) {
+        for (const unitConfig of [hamsterMinerConfig, hamsterWarriorConfig, hamsterShooterConfig, hamsterGuardConfig, hamsterMilitiaConfig, hamsterScoutConfig, hamsterMusketeerConfig, hamsterPriestConfig, hamsterKnightConfig, hamsterLightCavalryConfig, hamsterExplorerConfig, hamsterBountyHunterConfig, jaguarWarriorConfig, junglePriestConfig, hamsterCamelCavalryConfig]) {
             for (const [animKey, def] of Object.entries(unitConfig.animations || {})) {
                 if (!def || !def.src) continue;
                 const texKey = `companion_${unitConfig.id}_${animKey}`;

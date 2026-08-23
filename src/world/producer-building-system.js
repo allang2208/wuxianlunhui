@@ -17,6 +17,7 @@ import { HamsterMusketeer } from '../entities/hamster-musketeer.js';
 import { HamsterPriest } from '../entities/hamster-priest.js';
 import { HamsterKnight } from '../entities/hamster-knight.js';
 import { HamsterLightCavalry } from '../entities/hamster-light-cavalry.js';
+import { HamsterCamelCavalry } from '../entities/hamster-camel-cavalry.js';
 import { HamsterExplorer } from '../entities/hamster-explorer.js';
 import { HamsterBountyHunter } from '../entities/hamster-bounty-hunter.js';
 import { JaguarWarrior } from '../entities/jaguar-warrior.js';
@@ -54,6 +55,7 @@ import musketeerCfg from '../../data/hamster-musketeer-config.json';
 import priestCfg from '../../data/hamster-priest-config.json';
 import knightCfg from '../../data/hamster-knight-config.json';
 import lightCavalryCfg from '../../data/hamster-light-cavalry-config.json';
+import camelCavalryCfg from '../../data/hamster-camel-cavalry-config.json';
 import explorerCfg from '../../data/hamster-explorer-config.json';
 import bountyHunterCfg from '../../data/hamster-bounty-hunter-config.json';
 import jaguarWarriorCfg from '../../data/jaguar-warrior-config.json';
@@ -107,6 +109,7 @@ const ABILITY_TARGET_NAMES = Object.freeze({
     priest: '仓鼠牧师',
     knight: '仓鼠骑士',
     light_cavalry: '仓鼠轻骑',
+    camel_cavalry: '骆驼骑兵',
     explorer: '仓鼠探险家',
     bounty_hunter: '仓鼠赏金猎人',
     jaguar_warrior: '美洲豹战士',
@@ -167,6 +170,7 @@ const PRODUCER_UNIT_CFG = {
     priest: priestCfg,
     knight: knightCfg,
     light_cavalry: lightCavalryCfg,
+    camel_cavalry: camelCavalryCfg,
     explorer: explorerCfg,
     bounty_hunter: bountyHunterCfg,
     jaguar_warrior: jaguarWarriorCfg,
@@ -184,11 +188,39 @@ const PRODUCER_UNIT_CLASS = {
     priest: HamsterPriest,
     knight: HamsterKnight,
     light_cavalry: HamsterLightCavalry,
+    camel_cavalry: HamsterCamelCavalry,
     explorer: HamsterExplorer,
     bounty_hunter: HamsterBountyHunter,
     jaguar_warrior: JaguarWarrior,
     jungle_priest: JunglePriest,
 };
+
+const PRODUCER_UNIT_CONFIG_PATH = Object.freeze({
+    warrior: 'data/hamster-warrior-config.json',
+    shooter: 'data/hamster-shooter-config.json',
+    guard: 'data/hamster-guard-config.json',
+    militia: 'data/hamster-militia-config.json',
+    scout: 'data/hamster-scout-config.json',
+    musketeer: 'data/hamster-musketeer-config.json',
+    priest: 'data/hamster-priest-config.json',
+    knight: 'data/hamster-knight-config.json',
+    light_cavalry: 'data/hamster-light-cavalry-config.json',
+    camel_cavalry: 'data/hamster-camel-cavalry-config.json',
+    explorer: 'data/hamster-explorer-config.json',
+    bounty_hunter: 'data/hamster-bounty-hunter-config.json',
+    jaguar_warrior: 'data/jaguar-warrior-config.json',
+    jungle_priest: 'data/jungle-priest-config.json',
+});
+
+/** 碰撞体积编辑器使用的友军目录；配置对象保持引用，便于编辑后立即影响新生成单位。 */
+export function getMilitaryUnitEditorCatalog() {
+    return Object.entries(PRODUCER_UNIT_CFG).map(([key, config]) => ({
+        key,
+        name: config.name || ABILITY_TARGET_NAMES[key] || key,
+        config,
+        configPath: PRODUCER_UNIT_CONFIG_PATH[key],
+    }));
+}
 
 /** 跨位面增援的统一军事单位工厂；不归属任何当地生产建筑。 */
 export function createMilitaryUnit(kind, x, y, options = {}) {
@@ -248,11 +280,19 @@ export function getProducerModuleCost(cfg, moduleId, _currentLevel) {
 export function getProducerModuleDesc(cfg, moduleId, level) {
     const mod = cfg?.modules?.[moduleId];
     if (!mod) return '';
-    const pct = Math.abs(mod.per) * 100;
-    const pctAt = (atLevel) => Number((pct * atLevel).toFixed(1)).toString();
+    const valueAt = (atLevel) => {
+        const normalizedLevel = Math.max(0, Math.floor(Number(atLevel) || 0));
+        if (normalizedLevel <= 0) return 0;
+        const firstLevel = Number(mod.firstLevel);
+        return Number.isFinite(firstLevel)
+            ? firstLevel + Number(mod.per) * (normalizedLevel - 1)
+            : Number(mod.per) * normalizedLevel;
+    };
+    const pctAt = (atLevel) => Number((Math.abs(valueAt(atLevel)) * 100).toFixed(1)).toString();
     const fill = (atLevel) => (mod.desc || '')
         .replace('{pct}', pctAt(atLevel))
-        .replace('{value}', `${Math.round(mod.per * atLevel)}`)
+        .replace('{value}', `${Math.round(valueAt(atLevel))}`)
+        .replace('{multiplier}', Number(valueAt(atLevel).toFixed(2)).toString())
         .replace('{level}', `${(mod.base ?? 0) + Math.round(mod.per * atLevel)}`)
         .replace('{tickSeconds}', `${Math.round((mod.tickMs ?? 0) / 1000)}`);
     return {

@@ -20,6 +20,7 @@ import { TechnologyGate } from './technology-gate.js';
 import { FogOfWarSystem } from '../world/fog-of-war-system.js';
 import { canExploreScene } from '../config/explorer-rewards.js';
 import { getHamsterUnitIcon } from '../config/hamster-unit-icons.js';
+import { getHamsterUnitCategoryLabel } from '../config/hamster-unit-categories.js';
 import { getUnitStatusRows, getUnitUpgradeRows } from './rts-unit-detail-model.js';
 
 const DRAG_THRESHOLD = 6; // 屏幕 px：超过判定为拖框
@@ -1850,11 +1851,13 @@ export const RTSCommand = {
         const configuredSpeed = e.aiConfig?.walkSpeed ?? e.ai?.walkSpeed ?? e.aiConfig?.runSpeed;
         const speed = Math.round(configuredSpeed ?? e.maxSpeed ?? e.speed ?? 0) || '—';
         const baseType = isEnemy ? (e.type || '敌人') : (e.title || '友军');
+        const categoryLabel = isEnemy ? '' : getHamsterUnitCategoryLabel(getUnitKind(e));
+        const classifiedType = categoryLabel ? `${baseType} · ${categoryLabel}` : baseType;
         const surface = this._surfaceLabel(e);
         return {
             name: e.name || d.name || (isEnemy ? '敌人' : '友军'),
             level: e.level ?? d.level ?? 1,
-            type: surface ? `${baseType} · ${surface}` : baseType,
+            type: surface ? `${classifiedType} · ${surface}` : classifiedType,
             hp, maxHp, mp, maxMp,
             str: num('str'), dex: num('dex'), int: num('int'),
             con: num('con'), wis: num('wis'), luck: num('luck'),

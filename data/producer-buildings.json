@@ -444,6 +444,37 @@
       { "key": "jungle_priest", "name": "丛林祭司", "unitCap": 3, "spawnIntervalMs": 85000, "spawnFoodCost": 360 }
     ]
   },
+  "desert_mansion": {
+    "id": "desert_mansion",
+    "name": "沙漠官邸",
+    "cost": 1800,
+    "currency": "gold",
+    "hp": 3000,
+    "radius": 128,
+    "def": 75,
+    "mdef": 85,
+    "tex": "desert_mansion",
+    "assetPath": "assets/terrain/desert_mansion.png",
+    "thumbnailPath": "assets/ui/building-thumbnails/desert_mansion.png",
+    "displayW": 288,
+    "displayH": 286,
+    "footOffsetY": 142,
+    "assetCutoutHash": "1DC02F0C7ED8CA84D14FBB87D76F962F3F18BC8EC6E9266837533F30779164EC",
+    "perimeterTile": "none",
+    "sellRefundRatio": 0.5,
+    "allowedSceneIds": ["scene8"],
+    "buildLimit": 3,
+    "featureWorldId": "scene8",
+    "spawnEnabled": true,
+    "upgradeProject": "desert_cavalry_standard",
+    "spawnIntervalMs": 90000,
+    "spawnRadius": 90,
+    "unitCap": 5,
+    "defaultUnitType": "camel_cavalry",
+    "unitTypes": [
+      { "key": "camel_cavalry", "name": "骆驼骑兵", "spawnIntervalMs": 90000, "spawnFoodCost": 300 }
+    ]
+  },
   "economic_workshop": {
     "id": "economic_workshop",
     "name": "经济工坊",
