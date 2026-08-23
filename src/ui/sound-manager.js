@@ -3,6 +3,68 @@
 
         // 音量持久化防抖句柄（滑块 input 高频触发时合并写入）
         let _volumeSaveTimer = null;
+        const FILE_AUDIO_PERF = audioConfig.performance || {};
+        const FILE_AUDIO_MAX_VOICES = Math.max(1, Number(FILE_AUDIO_PERF.fileVoiceLimit) || 24);
+        const FILE_AUDIO_MAX_PER_PATH = Math.max(1, Number(FILE_AUDIO_PERF.perPathVoiceLimit) || 4);
+        const FILE_AUDIO_MAX_CACHED_PATHS = Math.max(1, Number(FILE_AUDIO_PERF.cachedPathLimit) || 64);
+        const FILE_AUDIO_REPEAT_GUARD_MS = Math.max(0, Number(FILE_AUDIO_PERF.repeatGuardMs) || 35);
+
+        // 三种程序合成滚雷：近雷短促、连续滚雷、远雷低沉。每次闪电随机选择一种。
+        const THUNDER_VARIANTS = Object.freeze([
+            Object.freeze({
+                duration: 2.2,
+                brownStep: 0.16,
+                cutoffStart: 620,
+                cutoffEnd: 120,
+                noiseAttack: 0.025,
+                noisePeak: 0.82,
+                noiseShoulderTime: 0.42,
+                noiseShoulder: 0.15,
+                rumbleStart: 72,
+                rumbleEnd: 34,
+                rumbleAttack: 0.018,
+                rumblePeak: 0.48,
+                rumbleDuration: 1.45,
+            }),
+            Object.freeze({
+                duration: 3.6,
+                brownStep: 0.11,
+                cutoffStart: 300,
+                cutoffEnd: 74,
+                noiseAttack: 0.085,
+                noisePeak: 0.7,
+                noiseShoulderTime: 1.35,
+                noiseShoulder: 0.22,
+                rumbleStart: 54,
+                rumbleEnd: 25,
+                rumbleAttack: 0.05,
+                rumblePeak: 0.42,
+                rumbleDuration: 2.45,
+                echoDelay: 0.72,
+                echoStart: 43,
+                echoEnd: 22,
+                echoPeak: 0.2,
+            }),
+            Object.freeze({
+                duration: 4.4,
+                brownStep: 0.075,
+                cutoffStart: 185,
+                cutoffEnd: 52,
+                noiseAttack: 0.18,
+                noisePeak: 0.52,
+                noiseShoulderTime: 2.1,
+                noiseShoulder: 0.2,
+                rumbleStart: 41,
+                rumbleEnd: 19,
+                rumbleAttack: 0.12,
+                rumblePeak: 0.34,
+                rumbleDuration: 3.4,
+                echoDelay: 1.35,
+                echoStart: 34,
+                echoEnd: 17,
+                echoPeak: 0.16,
+            }),
+        ]);
 
         export const SoundManager = {
             ctx: null,
@@ -17,6 +79,9 @@
             _stepInterval: 280,
             _initialized: false,
             _buttonClickBound: false,
+            _filePools: new Map(),
+            _fileLastPlayedAt: new Map(),
+            _activeFileVoices: 0,
 
             init() {
                 if (this._initialized) return;
@@ -114,14 +179,156 @@
 
             // 播放外部音频文件（.mp3, .wav 等）；channel 走声道音量（默认 sfx）
             playFile(path, volume = 1.0, channel = 'sfx') {
-                if (!this.enabled) return;
+                if (!this.enabled || !path) return;
                 const chVol = this.channelVolumes[channel] ?? this.channelVolumes.sfx ?? 1;
+                const finalVolume = Math.max(0, Math.min(1, volume * chVol * this.masterVolume));
+                if (finalVolume <= 0) return;
                 try {
-                    const audio = new Audio(path);
-                    audio.volume = Math.max(0, Math.min(1, volume * chVol * this.masterVolume));
-                    audio.play().catch(e => console.warn('SoundManager.playFile failed:', path, e.message));
+                    const now = performance.now();
+                    const lastPlayedAt = this._fileLastPlayedAt.get(path);
+                    if ((Number.isFinite(lastPlayedAt) && now - lastPlayedAt < FILE_AUDIO_REPEAT_GUARD_MS)
+                        || this._activeFileVoices >= FILE_AUDIO_MAX_VOICES) return;
+
+                    let pool = this._filePools.get(path);
+                    if (!pool) {
+                        this._trimFilePools();
+                        if (this._filePools.size >= FILE_AUDIO_MAX_CACHED_PATHS) return;
+                        pool = { voices: [], lastUsedAt: now };
+                        this._filePools.set(path, pool);
+                    }
+                    pool.lastUsedAt = now;
+                    let audio = pool.voices.find((voice) => !voice._smBusy);
+                    if (!audio && pool.voices.length < FILE_AUDIO_MAX_PER_PATH) {
+                        audio = new Audio(path);
+                        audio.preload = 'auto';
+                        audio._smBusy = false;
+                        const release = () => {
+                            if (!audio._smBusy) return;
+                            audio._smBusy = false;
+                            this._activeFileVoices = Math.max(0, this._activeFileVoices - 1);
+                        };
+                        audio.addEventListener('ended', release);
+                        audio.addEventListener('error', release);
+                        pool.voices.push(audio);
+                    }
+                    if (!audio) return;
+
+                    // 部分浏览器在媒体元数据尚未就绪时会拒绝 seek；首播从0开始，无需因此占住声道。
+                    try { audio.currentTime = 0; } catch (_e) { /* 未加载时保持默认播放头 */ }
+                    audio._smBusy = true;
+                    this._activeFileVoices++;
+                    this._fileLastPlayedAt.set(path, now);
+                    audio.volume = finalVolume;
+                    audio.play().catch((e) => {
+                        if (audio._smBusy) {
+                            audio._smBusy = false;
+                            this._activeFileVoices = Math.max(0, this._activeFileVoices - 1);
+                        }
+                        console.warn('SoundManager.playFile failed:', path, e.message);
+                    });
                 } catch (e) {
                     console.warn('SoundManager.playFile error:', path, e);
+                }
+            },
+
+            _trimFilePools() {
+                if (this._filePools.size < FILE_AUDIO_MAX_CACHED_PATHS) return;
+                let oldestPath = null;
+                let oldestAt = Infinity;
+                for (const [cachedPath, pool] of this._filePools) {
+                    if (pool.voices.some((voice) => voice._smBusy)) continue;
+                    if (pool.lastUsedAt < oldestAt) {
+                        oldestAt = pool.lastUsedAt;
+                        oldestPath = cachedPath;
+                    }
+                }
+                if (!oldestPath) return;
+                const pool = this._filePools.get(oldestPath);
+                for (const voice of pool?.voices || []) {
+                    voice.removeAttribute('src');
+                    voice.load();
+                }
+                this._filePools.delete(oldestPath);
+                this._fileLastPlayedAt.delete(oldestPath);
+            },
+
+            /**
+             * 暴风雨雷声：随机合成近雷、连续滚雷或远雷，不复用闪电技能的高频电击音。
+             * 低通棕噪声提供雷云质感，低频正弦提供雷压；统一走 sfx/master 音量。
+             */
+            playThunder(volume = 0.7) {
+                if (!this.enabled || !this._ensureCtx()) return;
+                const t = this._now();
+                const variant = THUNDER_VARIANTS[Math.floor(Math.random() * THUNDER_VARIANTS.length)];
+                const duration = variant.duration;
+                const channelVolume = this.channelVolumes.sfx ?? 1;
+                const finalVolume = Math.max(0, Math.min(1,
+                    Number(volume) * channelVolume * this.masterVolume));
+                if (finalVolume <= 0) return;
+
+                const noise = this.ctx.createBufferSource();
+                const buffer = this.ctx.createBuffer(1, Math.ceil(this.ctx.sampleRate * duration), this.ctx.sampleRate);
+                const data = buffer.getChannelData(0);
+                let brown = 0;
+                for (let i = 0; i < data.length; i++) {
+                    brown = (brown + (Math.random() * 2 - 1) * variant.brownStep) / 1.055;
+                    const decay = 1 - i / data.length;
+                    data[i] = brown * decay;
+                }
+                noise.buffer = buffer;
+
+                const lowpass = this.ctx.createBiquadFilter();
+                lowpass.type = 'lowpass';
+                lowpass.frequency.setValueAtTime(variant.cutoffStart, t);
+                lowpass.frequency.exponentialRampToValueAtTime(variant.cutoffEnd, t + duration);
+                lowpass.Q.setValueAtTime(0.7, t);
+
+                const noiseGain = this.ctx.createGain();
+                noiseGain.gain.setValueAtTime(0.001, t);
+                noiseGain.gain.linearRampToValueAtTime(variant.noisePeak * finalVolume, t + variant.noiseAttack);
+                noiseGain.gain.exponentialRampToValueAtTime(
+                    variant.noiseShoulder * finalVolume,
+                    t + variant.noiseShoulderTime
+                );
+                noiseGain.gain.exponentialRampToValueAtTime(0.001, t + duration);
+                noise.connect(lowpass).connect(noiseGain).connect(this.ctx.destination);
+
+                const rumble = this.ctx.createOscillator();
+                rumble.type = 'sine';
+                rumble.frequency.setValueAtTime(variant.rumbleStart, t);
+                rumble.frequency.exponentialRampToValueAtTime(variant.rumbleEnd, t + variant.rumbleDuration);
+                const rumbleGain = this.ctx.createGain();
+                rumbleGain.gain.setValueAtTime(0.001, t);
+                rumbleGain.gain.linearRampToValueAtTime(
+                    variant.rumblePeak * finalVolume,
+                    t + variant.rumbleAttack
+                );
+                rumbleGain.gain.exponentialRampToValueAtTime(0.001, t + variant.rumbleDuration);
+                rumble.connect(rumbleGain).connect(this.ctx.destination);
+
+                let echo = null;
+                if (variant.echoDelay) {
+                    echo = this.ctx.createOscillator();
+                    echo.type = 'sine';
+                    echo.frequency.setValueAtTime(variant.echoStart, t + variant.echoDelay);
+                    echo.frequency.exponentialRampToValueAtTime(variant.echoEnd, t + duration);
+                    const echoGain = this.ctx.createGain();
+                    echoGain.gain.setValueAtTime(0.001, t + variant.echoDelay);
+                    echoGain.gain.linearRampToValueAtTime(
+                        variant.echoPeak * finalVolume,
+                        t + variant.echoDelay + 0.12
+                    );
+                    echoGain.gain.exponentialRampToValueAtTime(0.001, t + duration);
+                    echo.connect(echoGain).connect(this.ctx.destination);
+                }
+
+                noise.start(t);
+                noise.stop(t + duration);
+                rumble.start(t);
+                rumble.stop(t + variant.rumbleDuration);
+                if (echo) {
+                    echo.start(t + variant.echoDelay);
+                    echo.stop(t + duration);
                 }
             },
 

@@ -228,3 +228,12 @@ if (this._facing === 'left') {
   （浏览器报非法 token）。安全做法：new_string 不写任何 `\r`，单行锚定替换让工具自己保留行尾；
   若已中招，按字节码修复：`bytes([0x5C,0x72,0x0A])` → `bytes([0x0D,0x0A])`，并全量排查本轮
   所有改过的文件（本次 BootScene.js 与 CHANGELOG.md 同时中招）。
+
+---
+
+## Electron portable 打包排错（2026-08-23）
+
+- **资源只进入安装包一次**：本项目先由 `scripts/copy-assets.js` 把根 `assets/` 复制到 `dist/assets/`，Electron 生产入口再加载 `dist/index.html`。若 `electron-builder.json#files` 已包含 `dist/**/*`，不要同时用 `extraResources` 再复制同一份根资源；修改前仍须确认运行时代码没有依赖 `process.resourcesPath/assets`。重复打包会让 `win-unpacked` 和 NSIS 临时归档近乎翻倍。
+- **`failed creating mmap` 先查归档体积**：portable 阶段在生成 `.nsis.7z` 时失败且归档逼近或超过 2GB，优先分别量 `dist`、`dist/assets`、`win-unpacked` 与临时 `.nsis.7z`；若 `win-unpacked` 明显约为 `dist` 的两倍，先消除重复 payload，不要先归因于中文输出路径。
+- **删除旧入口后同步收口复制脚本**：若根 `legacy.js` 已删除且全项目没有运行时引用，`copy-assets.js` 不应再因缺少它而退出 1；先用全局引用检索确认旧入口确实废弃，再移除或降级该复制检查，不能用空占位文件掩盖断链。
+- **Windows 构建脚本不要覆盖坏 PATH**：`cross-env PATH="...;%PATH%"` 在 npm 脚本的 Windows 解析链中可能让后续 `node` 无法解析。优先继承当前 PATH；确需固定运行时时，用明确的 Node/CLI 入口并保留原 PATH。打包前应让 Vite、资产复制和 electron-builder 三段可以独立失败与复跑，避免版本递增后只能整链重来。

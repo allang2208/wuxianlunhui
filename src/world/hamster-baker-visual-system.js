@@ -62,7 +62,8 @@ function createWorker(scene, building) {
     const job = building?._bakeryJob;
     const point = resolveCivilianVisualPosition(
         Number.isFinite(Number(job?.x)) ? Number(job.x) : (Number(building?.x) || 0),
-        Number.isFinite(Number(job?.y)) ? Number(job.y) : (Number(building?.y) || 0)
+        Number.isFinite(Number(job?.y)) ? Number(job.y) : (Number(building?.y) || 0),
+        { structures: [] }
     );
     if (job) {
         job.x = point.x;
@@ -78,6 +79,7 @@ function createWorker(scene, building) {
         sprite,
         x: point.x,
         y: point.y,
+        civilianCollisionMode: 'walls_only',
         hidden: false,
         visualState: '',
     }, 'baker');

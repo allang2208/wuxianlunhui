@@ -38,6 +38,18 @@ import { createMilitaryUnit, getMilitaryUnitEditorCatalog } from '../world/produ
 import { WallSystem, ISO_WALL_GEO, ISO_WALL_HEIGHT, slopeFixOf, isoGateHole, isoHalfThick } from '../world/wall-system.js';
 import { getWallGeoOverrides, saveWallGeoOverrides } from '../world/wall-prefabs.js';
 import { DungeonConfig } from '../config/dungeon-config.js';
+import {
+    clearMotionMeleeDebugTraces,
+    getMotionMeleeDebugTraces,
+    MOTION_MELEE_DEBUG_TRACE_TTL_MS,
+    setMotionMeleeDebugEnabled,
+} from '../combat/motion-melee-sweep.js';
+import {
+    BASIC_MELEE_DEBUG_TRACE_TTL_MS,
+    clearBasicMeleeDebugTraces,
+    getBasicMeleeDebugTraces,
+    setBasicMeleeDebugEnabled,
+} from '../combat/melee-attack-resolver.js';
 
 // 无地牢工厂但有专属类的怪物：补充类映射（其余老怪走通用 Enemy 圆形占位预览）
 const EXTRA_CLASS_MAP = {
@@ -119,6 +131,10 @@ export const CollisionEditor = {
     _testRowEl: null,    // 测试怪物/友军按钮行
     _testBtnEl: null,
     _testSpawnSeq: 0,
+    _motionDebugBtnEl: null,
+    _motionDebugInfoEl: null,
+    _motionDebugEnabled: true,
+    _motionDebugSourceId: null,
 
     _drag: null,         // 拖拽状态 {mode:'rect'|'radius'|'height'|'move', handle, startPt, startEdit, anchor}
     _editMode: 'both',   // 调整范围：both=矩形+圆柱同步调整（默认） | cylinder=只调圆柱 | rect=只调矩形
@@ -169,10 +185,16 @@ export const CollisionEditor = {
         }
         if (this._keyFn) { window.removeEventListener('keydown', this._keyFn, true); this._keyFn = null; }
         if (this._gfx) { this._gfx.destroy(); this._gfx = null; }
+        setMotionMeleeDebugEnabled(false);
+        setBasicMeleeDebugEnabled(false);
+        clearMotionMeleeDebugTraces();
+        clearBasicMeleeDebugTraces();
         if (this._panel) { this._panel.remove(); this._panel = null; }
         this._selectEl = this._infoEl = this._toastEl = null;
         this._stateRowEl = this._inputsEl = this._hintEl = null;
         this._testRowEl = this._testBtnEl = null;
+        this._motionDebugBtnEl = this._motionDebugInfoEl = null;
+        this._motionDebugSourceId = null;
         this._gateState = 'open';
         this._drag = this._edit = this._baseline = null;
         clearTimeout(this._toastTimer);
@@ -333,9 +355,25 @@ export const CollisionEditor = {
         testBtn.title = '保留当前纸面预览，在预览位置另生成一只对应的正式测试单位';
         testBtn.addEventListener('click', () => this._spawnTestEntity());
         testRow.appendChild(testBtn);
+        const motionDebugBtn = document.createElement('button');
+        motionDebugBtn.className = 'ce-btn ce-mode-btn active';
+        motionDebugBtn.textContent = '⚔️ 近战判定：开';
+        motionDebugBtn.title = '显示普通近战起手框/命中复查，以及位移近战实际扫掠轨迹';
+        motionDebugBtn.addEventListener('click', () => {
+            this._motionDebugEnabled = !this._motionDebugEnabled;
+            this._syncMotionDebugButton();
+        });
+        testRow.appendChild(motionDebugBtn);
         panel.appendChild(testRow);
         this._testRowEl = testRow;
         this._testBtnEl = testBtn;
+        this._motionDebugBtnEl = motionDebugBtn;
+
+        const motionDebugInfo = document.createElement('div');
+        motionDebugInfo.className = 'ce-info';
+        motionDebugInfo.style.display = 'none';
+        panel.appendChild(motionDebugInfo);
+        this._motionDebugInfoEl = motionDebugInfo;
 
         // 操作提示（按选中类型动态切换，见 _refreshHint）
         const hint = document.createElement('div');
@@ -359,6 +397,26 @@ export const CollisionEditor = {
         if (!this._modeBtnsEl) return;
         for (const b of this._modeBtnsEl.querySelectorAll('.ce-mode-btn')) {
             b.classList.toggle('active', this._editMode === b.dataset.mode);
+        }
+    },
+
+    _syncMotionDebugButton() {
+        const visible = this._kind === 'enemy';
+        const enabled = visible && this._motionDebugEnabled;
+        setMotionMeleeDebugEnabled(enabled, this._motionDebugSourceId);
+        setBasicMeleeDebugEnabled(enabled, this._motionDebugSourceId);
+        if (!enabled) {
+            clearMotionMeleeDebugTraces();
+            clearBasicMeleeDebugTraces();
+        }
+        if (this._motionDebugBtnEl) {
+            this._motionDebugBtnEl.style.display = visible ? '' : 'none';
+            this._motionDebugBtnEl.classList.toggle('active', enabled);
+            this._motionDebugBtnEl.textContent = enabled ? '⚔️ 近战判定：开' : '⚔️ 近战判定：关';
+        }
+        if (this._motionDebugInfoEl) {
+            this._motionDebugInfoEl.style.display = visible ? 'block' : 'none';
+            if (!enabled) this._motionDebugInfoEl.textContent = '近战判定显示已关闭';
         }
     },
 
@@ -461,6 +519,7 @@ export const CollisionEditor = {
                 + '<div>🟧 圆柱：右缘点=缩放半径，顶缘点=调高矮</div>'
                 + '<div>✥ 矩形/椭圆内拖动：整体平移对齐贴图</div>'
                 + '<div>🧪 测试：在纸面预览位置另生成一只正式单位</div>'
+                + '<div>⚔️ 判定：黄=普通起手框，红=复查通过，橙=复查失败；蓝/紫=位移扫掠/目标</div>'
                 + '<div>Esc 关闭编辑器</div>',
             wall: '<div>🟩 绿线段：拖两端点改墙碰撞跨度（face）</div>'
                 + '<div>🟧 橙点：拖离墙线距离=碰撞厚度</div>'
@@ -487,10 +546,14 @@ export const CollisionEditor = {
         this._removePreview();
         this._kind = kind;
         this._key = key;
+        this._motionDebugSourceId = null;
+        clearMotionMeleeDebugTraces();
+        clearBasicMeleeDebugTraces();
         this._gateState = 'open';
         this._editMode = 'both'; // 切换对象时恢复同步调整
         this._syncModeButtons();
         this._syncTestButton();
+        this._syncMotionDebugButton();
         this._snapshotBaseline();
         if (this._isGeoKind()) {
             this._spawnGeoPreview();
@@ -595,6 +658,11 @@ export const CollisionEditor = {
         }
         e.id = id;
         e._collisionEditorTest = true;
+        this._motionDebugSourceId = id;
+        clearMotionMeleeDebugTraces();
+        clearBasicMeleeDebugTraces();
+        setMotionMeleeDebugEnabled(this._kind === 'enemy' && this._motionDebugEnabled, id);
+        setBasicMeleeDebugEnabled(this._kind === 'enemy' && this._motionDebugEnabled, id);
         this._applyEdit(e, false);
         Game.entities.set(id, e);
         if (this._kind === 'friendly' && !Game.friendlyUnits.includes(e)) Game.friendlyUnits.push(e);
@@ -610,6 +678,25 @@ export const CollisionEditor = {
             this._testBtnEl.classList.remove('active');
             this._testBtnEl.textContent = this._kind === 'friendly' ? '🧪 测试友军' : '🧪 测试怪物';
         }
+    },
+
+    _updateMotionDebugInfo(motionTraces, basicTraces) {
+        if (!this._motionDebugInfoEl || !this._motionDebugEnabled) return;
+        const orderedTraces = [...motionTraces, ...basicTraces].sort((a, b) => a.time - b.time);
+        const trace = orderedTraces[orderedTraces.length - 1];
+        if (!trace) {
+            this._motionDebugInfoEl.textContent = '等待当前测试怪发动普通攻击或位移近战…';
+            return;
+        }
+        if (trace.phase) {
+            const phase = trace.phase === 'start' ? '普通攻击起手' : '普通攻击命中帧';
+            this._motionDebugInfoEl.innerHTML = `<div>${phase}：${trace.reason}</div>`
+                + `<div>锁定：${trace.targetName}　总前伸：${Math.round(trace.snapshot.reach * 10) / 10}px</div>`;
+            return;
+        }
+        const result = trace.hit ? '命中' : trace.reason;
+        this._motionDebugInfoEl.innerHTML = `<div>${trace.skill}：${result}</div>`
+            + `<div>锁定：${trace.targetName}　判定余量：${Math.round(trace.reach * 10) / 10}px</div>`;
     },
 
     _removePreview() {
@@ -1597,6 +1684,145 @@ export const CollisionEditor = {
             g.fillRect(hh.x - hs / 2, hh.y - hs / 2, hs, hs);
             g.strokeRect(hh.x - hs / 2, hh.y - hs / 2, hs, hs);
         }
+        this._redrawMotionMeleeDebug(g, zoom);
+    },
+
+    _redrawMotionMeleeDebug(g, zoom) {
+        if (!this._motionDebugEnabled || this._kind !== 'enemy') return;
+        const motionTraces = this._motionDebugSourceId
+            ? getMotionMeleeDebugTraces().filter((trace) => trace.sourceId === this._motionDebugSourceId)
+            : [];
+        const basicTraces = this._motionDebugSourceId
+            ? getBasicMeleeDebugTraces().filter((trace) => trace.sourceId === this._motionDebugSourceId)
+            : [];
+        this._updateMotionDebugInfo(motionTraces, basicTraces);
+        if (!motionTraces.length && !basicTraces.length) return;
+
+        const now = typeof performance !== 'undefined' ? performance.now() : Date.now();
+        const latestBySource = new Map();
+        for (const trace of motionTraces) {
+            const age = Math.max(0, now - trace.time);
+            const alpha = Math.max(0.12, 0.9 * (1 - age / MOTION_MELEE_DEBUG_TRACE_TTL_MS));
+            const color = trace.hit ? 0xff3b30 : (trace.blocked ? 0xff9f0a : 0x28b8ff);
+            if (trace.reach > 0) {
+                g.lineStyle(Math.max(1 / zoom, trace.reach * 2), color, alpha * 0.08);
+                g.beginPath();
+                g.moveTo(trace.fromX, trace.fromY);
+                g.lineTo(trace.toX, trace.toY);
+                g.strokePath();
+            }
+            g.lineStyle((trace.hit ? 4 : 2.5) / zoom, color, alpha);
+            g.beginPath();
+            g.moveTo(trace.fromX, trace.fromY);
+            g.lineTo(trace.toX, trace.toY);
+            g.strokePath();
+
+            if (trace.hit) {
+                g.fillStyle(0xff3b30, alpha);
+                g.fillCircle(trace.impactX, trace.impactY, 5 / zoom);
+            }
+            if (trace.blocked) {
+                const size = 8 / zoom;
+                g.lineStyle(2 / zoom, 0xff9f0a, alpha);
+                g.beginPath();
+                g.moveTo(trace.toX - size, trace.toY - size);
+                g.lineTo(trace.toX + size, trace.toY + size);
+                g.moveTo(trace.toX + size, trace.toY - size);
+                g.lineTo(trace.toX - size, trace.toY + size);
+                g.strokePath();
+            }
+            latestBySource.set(trace.sourceId, trace);
+        }
+
+        for (const trace of latestBySource.values()) {
+            const shape = trace.targetShape;
+            if (!shape?.center) continue;
+            const c = shape.center;
+            this._drawMeleeDebugTargetShape(g, shape, 0xc77dff, 0.95, zoom);
+            const marker = 7 / zoom;
+            g.lineStyle(1.5 / zoom, 0xc77dff, 0.9);
+            g.beginPath();
+            g.moveTo(trace.impactX, trace.impactY);
+            g.lineTo(c.x, c.y);
+            g.moveTo(c.x - marker, c.y);
+            g.lineTo(c.x + marker, c.y);
+            g.moveTo(c.x, c.y - marker);
+            g.lineTo(c.x, c.y + marker);
+            g.strokePath();
+        }
+
+        const latestBasicByPhase = new Map();
+        for (const trace of basicTraces) latestBasicByPhase.set(trace.phase, trace);
+        for (const trace of latestBasicByPhase.values()) {
+            this._drawBasicMeleeDebugTrace(g, trace, now, zoom);
+        }
+    },
+
+    _drawMeleeDebugTargetShape(g, shape, color, alpha, zoom) {
+        if (!shape?.center) return;
+        const c = shape.center;
+        g.lineStyle(2 / zoom, color, alpha);
+        if (shape.kind === 'circle') {
+            g.strokeEllipse(c.x, c.y, shape.radius * 2, shape.radius * 2 * PERSPECTIVE_SCALE_Y);
+        } else if (shape.kind === 'rect') {
+            g.strokeRect(c.x - shape.width / 2, c.y - shape.height / 2, shape.width, shape.height);
+        } else if (shape.vertices?.length) {
+            g.beginPath();
+            g.moveTo(shape.vertices[0].x, shape.vertices[0].y);
+            for (let i = 1; i < shape.vertices.length; i++) {
+                g.lineTo(shape.vertices[i].x, shape.vertices[i].y);
+            }
+            g.closePath();
+            g.strokePath();
+        }
+    },
+
+    _drawBasicMeleeDebugTrace(g, trace, now, zoom) {
+        const s = trace.snapshot;
+        if (!s) return;
+        const age = Math.max(0, now - trace.time);
+        const alpha = Math.max(0.18, 0.88 * (1 - age / BASIC_MELEE_DEBUG_TRACE_TTL_MS));
+        const color = trace.phase === 'start' ? 0xffd60a : (trace.hit ? 0xff3b30 : 0xff9f0a);
+        const cos = Math.cos(s.angle);
+        const sin = Math.sin(s.angle);
+        const toWorld = (localX, localY) => ({
+            x: s.originX + cos * localX - sin * localY,
+            y: s.originY + (sin * localX + cos * localY) * PERSPECTIVE_SCALE_Y,
+        });
+        const corners = [
+            toWorld(-s.backExtension, -s.width / 2),
+            toWorld(s.length, -s.width / 2),
+            toWorld(s.length, s.width / 2),
+            toWorld(-s.backExtension, s.width / 2),
+        ];
+        g.fillStyle(color, alpha * 0.12);
+        g.lineStyle((trace.phase === 'impact' ? 3 : 2) / zoom, color, alpha);
+        g.beginPath();
+        g.moveTo(corners[0].x, corners[0].y);
+        for (let i = 1; i < corners.length; i++) g.lineTo(corners[i].x, corners[i].y);
+        g.closePath();
+        g.fillPath();
+        g.strokePath();
+
+        const front = toWorld(s.length, 0);
+        const directionAngle = Math.atan2(front.y - s.sourceY, front.x - s.sourceX);
+        const arrowSize = 8 / zoom;
+        g.lineStyle(1.5 / zoom, color, alpha);
+        g.beginPath();
+        g.moveTo(s.sourceX, s.sourceY);
+        g.lineTo(front.x, front.y);
+        g.moveTo(front.x, front.y);
+        g.lineTo(
+            front.x - Math.cos(directionAngle - Math.PI / 6) * arrowSize,
+            front.y - Math.sin(directionAngle - Math.PI / 6) * arrowSize
+        );
+        g.moveTo(front.x, front.y);
+        g.lineTo(
+            front.x - Math.cos(directionAngle + Math.PI / 6) * arrowSize,
+            front.y - Math.sin(directionAngle + Math.PI / 6) * arrowSize
+        );
+        g.strokePath();
+        this._drawMeleeDebugTargetShape(g, trace.targetShape, color, alpha, zoom);
     },
 
     /** 墙/门/障碍物/陷阱覆盖层绘制（绿=碰撞区、金=门洞可通行区、橙=厚度/半径手柄） */

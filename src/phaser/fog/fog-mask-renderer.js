@@ -29,12 +29,15 @@ export class FogMaskRenderer {
         this.rows = 0;
         this.visualAlpha = null;
         this.targetAlpha = null;
+        this.blurTemp = null;
+        this.blurredAlpha = null;
         this.imageData = null;
         this.visualReady = false;
         this.transitioning = false;
         this.enabled = true;
         this.lastRenderMs = 0;
         this.lastChangedCells = 0;
+        this.pendingDeltaMs = 0;
     }
 
     setVisible(visible) {
@@ -59,9 +62,12 @@ export class FogMaskRenderer {
         this.revision = -1;
         this.visualAlpha = new Float32Array(grid.columns * grid.rows);
         this.targetAlpha = new Float32Array(grid.columns * grid.rows);
+        this.blurTemp = new Float32Array(grid.columns * grid.rows);
+        this.blurredAlpha = new Float32Array(grid.columns * grid.rows);
         this.imageData = this.texture.getContext().createImageData(grid.columns, grid.rows);
         this.visualReady = false;
         this.transitioning = false;
+        this.pendingDeltaMs = 0;
         this.sprite = this.scene.add.image(0, 0, this.textureKey);
         this.sprite.setOrigin(0, 0);
         this.sprite.setDepth(Number(this.fogSystem.config.overlay?.depth) || 99980);
@@ -91,6 +97,7 @@ export class FogMaskRenderer {
         const exploredAlpha = clampAlpha(overlay.exploredAlpha, 0.62);
         let dirty = false;
         let changedCells = 0;
+        const wasVisualReady = this.visualReady;
 
         if (this.revision !== grid.revision) {
             for (let i = 0; i < grid.visible.length; i += 1) {
@@ -109,13 +116,23 @@ export class FogMaskRenderer {
             dirty = true;
         }
 
+        this.pendingDeltaMs += Math.max(0, Number(deltaMs) || 0);
+        const uploadIntervalMs = Math.max(16, Number(visual.maskUploadIntervalMs) || 66);
+        if (wasVisualReady && this.pendingDeltaMs < uploadIntervalMs) {
+            this.lastChangedCells = changedCells;
+            this.lastRenderMs = nowMs() - startedAt;
+            return false;
+        }
+
         if (!dirty && !this.transitioning) {
+            this.pendingDeltaMs = Math.min(this.pendingDeltaMs, 100);
             this.lastChangedCells = 0;
             this.lastRenderMs = nowMs() - startedAt;
             return false;
         }
 
-        const dt = Math.max(0, Math.min(100, Number(deltaMs) || 0));
+        const dt = Math.max(0, Math.min(100, this.pendingDeltaMs));
+        this.pendingDeltaMs = 0;
         const revealMs = Math.max(1, Number(visual.revealTransitionMs) || 180);
         const concealMs = Math.max(1, Number(visual.concealTransitionMs) || 260);
         let stillTransitioning = false;
@@ -144,28 +161,38 @@ export class FogMaskRenderer {
 
         const softness = Math.max(0, Math.min(1, Number(visual.edgeSoftness) || 0));
         const pixels = this.imageData;
+        if (softness > 0) {
+            // 原 3×3 权重核等价于可分离 [1,2,1]×[1,2,1]；两次线性遍历
+            // 代替每格九邻域嵌套，并保持中心4/十字2/对角1的原视觉权重。
+            for (let row = 0; row < grid.rows; row += 1) {
+                const rowOffset = row * grid.columns;
+                for (let column = 0; column < grid.columns; column += 1) {
+                    const i = rowOffset + column;
+                    let sum = this.visualAlpha[i] * 2;
+                    let weight = 2;
+                    if (column > 0) { sum += this.visualAlpha[i - 1]; weight += 1; }
+                    if (column + 1 < grid.columns) { sum += this.visualAlpha[i + 1]; weight += 1; }
+                    this.blurTemp[i] = sum / weight;
+                }
+            }
+            for (let row = 0; row < grid.rows; row += 1) {
+                const rowOffset = row * grid.columns;
+                for (let column = 0; column < grid.columns; column += 1) {
+                    const i = rowOffset + column;
+                    let sum = this.blurTemp[i] * 2;
+                    let weight = 2;
+                    if (row > 0) { sum += this.blurTemp[i - grid.columns]; weight += 1; }
+                    if (row + 1 < grid.rows) { sum += this.blurTemp[i + grid.columns]; weight += 1; }
+                    this.blurredAlpha[i] = sum / weight;
+                }
+            }
+        }
         for (let i = 0; i < grid.visible.length; i += 1) {
             const explored = grid.explored[i] !== 0;
             const color = explored ? exploredColor : unexploredColor;
             let alpha = this.visualAlpha[i];
             if (softness > 0) {
-                const row = Math.floor(i / grid.columns);
-                const column = i - row * grid.columns;
-                let sum = alpha * 4;
-                let weight = 4;
-                for (let dy = -1; dy <= 1; dy += 1) {
-                    const sy = row + dy;
-                    if (sy < 0 || sy >= grid.rows) continue;
-                    for (let dx = -1; dx <= 1; dx += 1) {
-                        if (dx === 0 && dy === 0) continue;
-                        const sx = column + dx;
-                        if (sx < 0 || sx >= grid.columns) continue;
-                        const sampleWeight = dx === 0 || dy === 0 ? 2 : 1;
-                        sum += this.visualAlpha[sy * grid.columns + sx] * sampleWeight;
-                        weight += sampleWeight;
-                    }
-                }
-                alpha += (sum / weight - alpha) * softness;
+                alpha += (this.blurredAlpha[i] - alpha) * softness;
             }
             const offset = i * 4;
             pixels.data[offset] = (color >> 16) & 0xff;

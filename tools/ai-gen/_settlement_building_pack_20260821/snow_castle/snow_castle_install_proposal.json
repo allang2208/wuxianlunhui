@@ -1,0 +1,61 @@
+{
+  "id": "snow_castle",
+  "status": "runtime_installed",
+  "intendedSceneId": "scene9",
+  "selectedRefine": "tools/ai-gen/_settlement_building_pack_20260821/snow_castle/refine_48step_seed123141/snow_castle_refine48_from123141_seed1231412_raw.png",
+  "runtimeCandidate": "tools/ai-gen/_settlement_building_pack_20260821/snow_castle/snow_castle_seed1231412_runtime_candidate_v3.png",
+  "assetSha256": "D37A274CF4BD6ED7C2A7E5BAD8E2FD37BEF6B598E33E69444FEDFF386CBF371F",
+  "cutout": {
+    "method": "finalize-building-runtime.py flat-background extraction",
+    "sourceSize": [1024, 1024],
+    "background": [53, 232, 5],
+    "cropBox": [133, 69, 888, 922],
+    "outputSize": [755, 853],
+    "alphaBBox": [4, 4, 751, 849],
+    "matteEdgeWidth": 20,
+    "matteTolerance": 150,
+    "removeEnclosedMatte": true
+  },
+  "runtime": {
+    "displayW": 288,
+    "displayH": 325,
+    "footOffsetY": 161,
+    "logicalFootprint": [256, 128],
+    "gridSize": [2, 2],
+    "visualOffsetX": 0,
+    "visualFootprint": {
+      "centerXRatio": 0.5,
+      "centerYRatio": 0.798462,
+      "widthRatio": 0.888889,
+      "depthRatio": 0.393846,
+      "scaleMode": "strict"
+    },
+    "derivedFit": {
+      "displaySize": [288, 325],
+      "scaleX": 0.38145695364238413,
+      "scaleY": 0.3810082063305979,
+      "mappedFootprint": [256, 128],
+      "footOffsetY": 161,
+      "visualOffsetX": 0
+    }
+  },
+  "staticValidation": {
+    "alphaComponentsAbove16": 1,
+    "alphaPixelsAbove16": 300186,
+    "semiTransparentPixels": 6719,
+    "visibleGreenResidualPixels": 9,
+    "rgbaCornersTransparent": true,
+    "fullFoundationPresent": true,
+    "footprintCenterLocked": true,
+    "mappedFootprintExact": true
+  },
+  "installed": [
+    "assets/terrain/snow_castle.png",
+    "data/producer-buildings.json",
+    "BootScene texture registration",
+    "scene9 generation and placement"
+  ],
+  "notInstalled": [
+    "lighting maps"
+  ]
+}

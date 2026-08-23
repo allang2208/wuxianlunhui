@@ -18,6 +18,7 @@ import {
 } from './rts-command-utils.js';
 import { getMagicRangeMultiplier } from '../utils/magic-craft-helper.js';
 import { hasRangedLineOfSight } from '../combat/ranged-line-of-sight.js';
+import { queryNearbyEntities, stableAiPhase } from './friendly-spatial-query.js';
 
 const INSPIRE_MAGIC = getBuildingUpgradeAbility('inspire_magic') || {};
 
@@ -27,7 +28,7 @@ export class HamsterPriestAI {
         this.cfg = priest.aiConfig || {};
         this._engageRange = RTS_DEFAULT_ACQUIRE_RANGE;
         this._holyLight = new HolyLightSystem(priest);
-        this._decisionTimer = 0;
+        this._decisionTimer = stableAiPhase(priest, this.cfg.decisionMs ?? 120);
         this._castActive = false;
         this._castKind = null;
         this._releaseDone = false;
@@ -294,8 +295,7 @@ export class HamsterPriestAI {
         const game = typeof window !== 'undefined' ? window.Game : null;
         for (const friend of game?.friendlyUnits || []) friends.add(friend);
         for (const friend of game?.PartySystem?.members || []) friends.add(friend);
-        const allEntities = [...(entities?.values ? entities.values() : entities || [])];
-        for (const entity of allEntities) {
+        for (const entity of queryNearbyEntities(entities, m, radius)) {
             if (entity?._faction === 'player' || entity?._faction === 'companion') friends.add(entity);
         }
         let affected = 0;
@@ -324,15 +324,15 @@ export class HamsterPriestAI {
         const game = typeof window !== 'undefined' ? window.Game : null;
         for (const friend of game?.friendlyUnits || []) friends.add(friend);
         for (const friend of game?.PartySystem?.members || []) friends.add(friend);
-        const allEntities = [...(entities?.values ? entities.values() : entities || [])];
-        for (const entity of allEntities) {
+        const castRange = this._castRange();
+        const nearby = [...queryNearbyEntities(entities, m, Math.max(castRange, this._engageRange))];
+        for (const entity of nearby) {
             if (entity?._faction === 'player' || entity?._faction === 'companion') friends.add(entity);
         }
 
         let bestFriend = null;
         let bestRatio = 0;
         let bestMissing = 0;
-        const castRange = this._castRange();
         for (const friend of friends) {
             if (!friend || friend.active === false) continue;
             if (friend._faction !== 'player' && friend._faction !== 'companion') continue;
@@ -353,7 +353,7 @@ export class HamsterPriestAI {
 
         let nearestEnemy = null;
         let nearestDist = Infinity;
-        for (const entity of allEntities) {
+        for (const entity of nearby) {
             if (!entity || !entity.active || entity.hp <= 0) continue;
             if (entity._faction !== 'enemy' || entity._isEnergyNode) continue;
             const dist = Math.hypot(entity.x - m.x, entity.y - m.y);

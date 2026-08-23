@@ -44,6 +44,8 @@ class EnergyNode extends DamageableEntity {
             name: cfg.name ?? '能源矿',
         });
         this._isEnergyNode = true;
+        // 能源矿是采集资源点，不是战斗训练目标：命中/暴击/击杀均不提供技能修炼经验。
+        this._grantsSkillTrainingExp = false;
         const cell = Array.isArray(cfg.cell) ? cfg.cell : blockCellOf(x, y);
         this._gridCellI = Math.round(cell[0]);
         this._gridCellJ = Math.round(cell[1]);

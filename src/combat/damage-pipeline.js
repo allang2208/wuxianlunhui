@@ -23,7 +23,7 @@ class DamagePipeline {
      * @param {{value:number}} [options.hitCountRef] 命中计数引用
      * @param {{value:number}} [options.killCountRef] 击杀计数引用
      * @param {boolean} [options.isMelee=true] 是否为近战攻击（影响盾牌弹反效果）
-     * @returns {{hit:boolean,killed:boolean}}
+     * @returns {{hit:boolean,killed:boolean,skillExpEligible:boolean}}
      */
     static applyHit(source, target, options = {}) {
         const {
@@ -37,7 +37,7 @@ class DamagePipeline {
             isMelee = true
         } = options;
         if (isMelee && !canMeleeShareSurface(source, target)) {
-            return { hit: false, killed: false };
+            return { hit: false, killed: false, skillExpEligible: false };
         }
 
         const weapon = currentWeapon !== undefined
@@ -53,6 +53,7 @@ class DamagePipeline {
         }
 
         const wasAlive = target.hp > 0;
+        const skillExpEligible = target._grantsSkillTrainingExp !== false;
         target.takeDamage(damage, source, damageType, isMelee);
         const killed = wasAlive && target.hp <= 0;
 
@@ -73,10 +74,10 @@ class DamagePipeline {
         // 盾牌弹反成功后，不应再对持盾者施加击退、 craft 特效等后续效果
         const parried = target.shieldSystem && target.shieldSystem._lastParried;
 
-        if (hitCountRef && typeof hitCountRef.value === 'number') {
+        if (skillExpEligible && hitCountRef && typeof hitCountRef.value === 'number') {
             hitCountRef.value++;
         }
-        if (killed && killCountRef && typeof killCountRef.value === 'number') {
+        if (skillExpEligible && killed && killCountRef && typeof killCountRef.value === 'number') {
             killCountRef.value++;
         }
 
@@ -118,7 +119,7 @@ class DamagePipeline {
             source._triggerRuneSwordCooldownReduction();
         }
 
-        return { hit: true, killed };
+        return { hit: true, killed, skillExpEligible };
     }
 }
 

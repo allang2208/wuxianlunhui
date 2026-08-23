@@ -1,0 +1,60 @@
+{
+  "id": "bakery",
+  "status": "runtime_asset_installed",
+  "selectedRefine": "tools/ai-gen/_settlement_building_pack_20260821/bakery/bakery_s48_1231512_raw.png",
+  "manualRgba": "tools/ai-gen/_settlement_building_pack_20260821/bakery/bakery_seed1231512_manual_rgba.png",
+  "runtimeCandidate": "tools/ai-gen/_settlement_building_pack_20260821/bakery/bakery_seed1231512_runtime_final_v3.png",
+  "runtimeAsset": "assets/terrain/bakery.png",
+  "assetSha256": "B970B1E467DA72D4856C9B75E3B204C25C4FCC74A9292DF8411820525EA0D6BE",
+  "cutout": {
+    "method": "manual RGBA alpha preserved; nearest opaque subject RGB repaired the synthetic blue semi-transparent edge",
+    "sourceSize": [1024, 1024],
+    "manualAlphaBBox": [80, 176, 947, 914],
+    "cropBox": [75, 172, 951, 918],
+    "outputSize": [876, 746],
+    "alphaBBox": [4, 4, 872, 742],
+    "nearestOpaqueAlpha": 0.98
+  },
+  "runtime": {
+    "displayW": 288,
+    "displayH": 245,
+    "footOffsetY": 121,
+    "logicalFootprint": [256, 128],
+    "gridSize": [2, 2],
+    "visualOffsetX": 0,
+    "visualFootprint": {
+      "centerXRatio": 0.5,
+      "centerYRatio": 0.732653,
+      "widthRatio": 0.888889,
+      "depthRatio": 0.522449,
+      "scaleMode": "strict"
+    },
+    "derivedFit": {
+      "displaySize": [288, 245],
+      "scaleX": 0.3287671232876712,
+      "scaleY": 0.3284182305630027,
+      "mappedFootprint": [256, 128],
+      "footOffsetY": 121,
+      "visualOffsetX": 0
+    }
+  },
+  "staticValidation": {
+    "alphaComponentsAbove16": 1,
+    "alphaPixelsAbove16": 378141,
+    "semiTransparentPixels": 2221,
+    "transparentDirtyRgbPixels": 0,
+    "visibleYellowResidualPixels": 0,
+    "rgbaCornersTransparent": true,
+    "touchesCanvas": false,
+    "fullFoundationPresent": true,
+    "footprintCenterLocked": true,
+    "mappedFootprintExact": true
+  },
+  "notInstalled": [
+    "data/producer-buildings.json economy configuration",
+    "public/data/producer-buildings.json economy configuration",
+    "BootScene texture registration",
+    "building-panel card and thumbnail manifest",
+    "population-economy behavior and values"
+  ]
+}

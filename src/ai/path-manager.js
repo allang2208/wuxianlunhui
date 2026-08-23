@@ -77,17 +77,39 @@ class PathManager {
      * @param {number} dt - 时间间隔 ms
      * @param {PathFinder} pathPlanner - 路径规划器实例
      */
-    update(dt, pathPlanner) {
+    update(dt, pathPlanner, scheduler = null, priority = 0) {
         if (!this.path || !this.isValid) return;
         const topologyChanged = pathPlanner?.getTopologyVersion
             && pathPlanner.getTopologyVersion() !== this.topologyVersion;
         this.checkTimer -= dt;
         if (!topologyChanged && this.checkTimer > 0) return;
+        if (scheduler?.enqueueValidation) {
+            scheduler.enqueueValidation(this, pathPlanner, priority);
+            return;
+        }
         this.checkTimer = this.checkInterval;
-        this._checkValidity(pathPlanner);
+        const result = this._checkValidity(pathPlanner);
+        if (result === PATH_DEFERRED) {
+            this.checkTimer = 0;
+            return;
+        }
         if (this.path && this.isValid) {
             this.topologyVersion = pathPlanner?.getTopologyVersion?.() ?? this.topologyVersion;
         }
+    }
+
+    runScheduledValidation(pathPlanner) {
+        if (!this.path || !this.isValid) return false;
+        this.checkTimer = this.checkInterval;
+        const result = this._checkValidity(pathPlanner);
+        if (result === PATH_DEFERRED) {
+            this.checkTimer = 0;
+            return PATH_DEFERRED;
+        }
+        if (this.path && this.isValid) {
+            this.topologyVersion = pathPlanner?.getTopologyVersion?.() ?? this.topologyVersion;
+        }
+        return result;
     }
 
     /**
@@ -95,8 +117,8 @@ class PathManager {
      * 只检查当前索引之后的节点（已走过的节点不检查）
      */
     _checkValidity(pathPlanner) {
-        if (!pathPlanner || !pathPlanner.isPointBlocked) return;
-        if (this.enemy._spawnEgress) return;
+        if (!pathPlanner || !pathPlanner.isPointBlocked) return false;
+        if (this.enemy._spawnEgress) return false;
         const radius = this.enemy.groundRadius;
         // 每次只预读前方最多 8 段走廊，控制多单位检查成本；拓扑版本变化时立即执行。
         // 出兵离场阶段起点可能仍在来源建筑 footprint 内，先让既有 egress 契约把单位带出。
@@ -106,11 +128,11 @@ class PathManager {
             const node = this.path[i];
             const corridorBlocked = pathPlanner.isSegmentBlocked?.(prev.x, prev.y, node.x, node.y, radius);
             if (pathPlanner.isPointBlocked(node.x, node.y, radius) || corridorBlocked) {
-                this._repairPath(i, pathPlanner);
-                return;
+                return this._repairPath(i, pathPlanner);
             }
             prev = node;
         }
+        return true;
     }
 
     // ==================== 局部修复（核心） ====================
@@ -141,7 +163,7 @@ class PathManager {
         }
 
         // 帧预算不足：保留旧路径，下帧 _checkValidity 会重试
-        if (altPath === PATH_DEFERRED) return;
+        if (altPath === PATH_DEFERRED) return PATH_DEFERRED;
 
         if (altPath && altPath.length > 1) {
             // 新路径 = 替代段（altPath[0]≈当前位置，从下一节点开始跟随） + 阻挡点之后的路径段
@@ -150,7 +172,7 @@ class PathManager {
             this.isValid = true;
             this.stuckCount = 0;
             this.topologyVersion = pathPlanner?.getTopologyVersion?.() ?? this.topologyVersion;
-            return;
+            return true;
         }
 
         // 策略2：从怪物当前位置重新计算到终点的完整路径（同样不回退）
@@ -162,7 +184,7 @@ class PathManager {
             this._warn('[PathManager] full recalc failed: ' + e.message);
         }
 
-        if (newPath === PATH_DEFERRED) return;
+        if (newPath === PATH_DEFERRED) return PATH_DEFERRED;
 
         if (newPath && newPath.length > 1) {
             this.path = newPath;
@@ -170,7 +192,7 @@ class PathManager {
             this.isValid = true;
             this.stuckCount = 0;
             this.topologyVersion = pathPlanner?.getTopologyVersion?.() ?? this.topologyVersion;
-            return;
+            return true;
         }
 
         // 所有修复策略都失败
@@ -179,6 +201,7 @@ class PathManager {
             // 连续 3 次修复失败，标记路径无效，让 MovementSystem 触发随机逃逸
             this._clearPath();
         }
+        return false;
     }
 
     // ==================== 路径跟随 API ====================
@@ -237,10 +260,10 @@ class PathManager {
     forceRecalc(pathPlanner, targetX, targetY, bypassLimit = false) {
         const minRecalcInterval = 500; // 500ms 最小重算间隔
         if (!bypassLimit && Date.now() - this.lastRecalcTime < minRecalcInterval) {
-            return; // 间隔不足，跳过
+            return false; // 间隔不足，跳过
         }
         // [PERF-2026-08-03] 首寻路错峰（含卡住 bypass）：刷怪同帧错开，冷路径不集中在同一帧
-        if (Date.now() < this._firstRecalcAt) return;
+        if (Date.now() < this._firstRecalcAt) return false;
         const radius = this.enemy.groundRadius;
         let path = null;
         try {
@@ -249,28 +272,29 @@ class PathManager {
             this._warn('[PathManager] forceRecalc failed: ' + e.message);
         }
         // 帧预算不足：保留旧路径，下一帧 MovementSystem 的 shouldRecalc 会再次尝试
-        if (path === PATH_DEFERRED) return;
+        if (path === PATH_DEFERRED) return PATH_DEFERRED;
         if (path) {
             this.setPath(path, pathPlanner);
             this._isExitPath = false;
-            return;
+            return true;
         }
 
         // [NEW] A* 失败：尝试 RegionIndex 找最近出口
         // 只在封闭空间（如地牢战斗房间）使用，开放地图不适用
         const exitResult = pathPlanner.findPathToExit(this.enemy.x, this.enemy.y, targetX, targetY, radius);
-        if (exitResult === PATH_DEFERRED) return;
+        if (exitResult === PATH_DEFERRED) return PATH_DEFERRED;
         if (exitResult && exitResult.path) {
             this.setPath(exitResult.path, pathPlanner);
             this._isExitPath = true;
             this._exitTargetX = targetX;
             this._exitTargetY = targetY;
-            return;
+            return true;
         }
 
         // 完全无法移动
         this._clearPath();
         this._isExitPath = false;
+        return false;
     }
 
     _warn(msg) {

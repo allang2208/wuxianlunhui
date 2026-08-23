@@ -27,6 +27,7 @@ import desertPriestConfig from '../../../data/desert-priest-config.json';
 import hamsterCamelCavalryConfig from '../../../data/hamster-camel-cavalry-config.json';
 import populationEconomyConfig from '../../../data/population-economy.json';
 import producerBuildingsConfig from '../../../data/producer-buildings.json';
+import enemyConfigData from '../../../data/enemy-config.json';
 
 export class BootScene extends Scene {
     constructor() {
@@ -268,8 +269,10 @@ export class BootScene extends Scene {
         this.load.image('demonbrick1', 'assets/terrain/demonbrick1.png');
         this.load.image('demon_wall_straight', 'assets/terrain/demon_wall_straight.png');
         this.load.spritesheet('demon_gate', 'assets/terrain/demon_gate.png', { frameWidth: 640, frameHeight: 576, endFrame: 15 });
-        // 冰封世界初级地牢：现有城墙段几何 + 冰块砌体材质渲染成品。
+        // 冰封世界初级地牢：长墙沿用既有冰墙；竞技场单格墙严格复用世界方块墙几何并替换冰材质。
         this.load.image('frozen_wall_straight', 'assets/terrain/frozen_wall_straight.png');
+        this.load.image('frozen_wall_block', 'assets/terrain/frozen_wall_block.png');
+        this.load.spritesheet('frozen_gate', 'assets/terrain/frozen_gate.png', { frameWidth: 640, frameHeight: 640, endFrame: 15 });
         // 主神空间地板砖（等距菱形贴图，运行时按 alpha 包围盒实测几何）
         this.load.image('hub_brick', 'assets/terrain/hub_brick.png');
         // 主神空间大理石直墙 + 大理石门（摆墙编辑器组件，tools/prep-hub-wall-gate.py 产出，几何见 ISO_WALL_GEO）
@@ -439,10 +442,21 @@ export class BootScene extends Scene {
         this.load.spritesheet('enemy_mutant3_attack', 'assets/enemies/mutant3/attacking.png', { frameWidth: 512, frameHeight: 512, endFrame: 20 });
         this.load.spritesheet('enemy_mutant3_attack_normal', 'assets/enemies/mutant3/attacking-2.png', { frameWidth: 512, frameHeight: 512, endFrame: 21 });
 
-        // 毒液僵尸精灵图动画（3×8 网格）
-        this.load.spritesheet('enemy_spitter_zombie_idle', 'assets/enemies/spitter_zombie/idle.png', { frameWidth: 512, frameHeight: 512, endFrame: 23 });
-        this.load.spritesheet('enemy_spitter_zombie_walk', 'assets/enemies/spitter_zombie/walking.png', { frameWidth: 512, frameHeight: 512, endFrame: 12 });
-        this.load.spritesheet('enemy_spitter_zombie_attack', 'assets/enemies/spitter_zombie/attacking.png', { frameWidth: 512, frameHeight: 512, endFrame: 21 });
+        // 毒液僵尸 H3 四动作母版：路径、帧格和有效帧数统一读取 enemy-config。
+        const spitterTextures = enemyConfigData.spitterZombie?.textures || {};
+        const spitterLayouts = spitterTextures.frameLayouts || {};
+        const loadSpitterSheet = (state, textureKey, fallbackPath, fallbackCell = 512) => {
+            const layout = spitterLayouts[state] || {};
+            this.load.spritesheet(textureKey, spitterTextures[state] || fallbackPath, {
+                frameWidth: layout.frameWidth || fallbackCell,
+                frameHeight: layout.frameHeight || fallbackCell,
+                endFrame: Math.max(0, (layout.frameCount || 1) - 1),
+            });
+        };
+        loadSpitterSheet('idle', 'enemy_spitter_zombie_idle', 'assets/enemies/spitter_zombie/v2/idle.png');
+        loadSpitterSheet('walk', 'enemy_spitter_zombie_walk', 'assets/enemies/spitter_zombie/v2/walking.png');
+        loadSpitterSheet('attack', 'enemy_spitter_zombie_attack', 'assets/enemies/spitter_zombie/v2/attacking.png', 1152);
+        loadSpitterSheet('death', 'enemy_spitter_zombie_death', 'assets/enemies/spitter_zombie/v2/dying.png', 640);
         this.load.image('projectile_poison', 'assets/enemies/spitter_zombie/project.png');
 
         // 胖子僵尸精灵图动画（实际尺寸：idle 4096x2048 / walking 4100x1536 / attacking 4100x1536 / melting 4096x2048，均按 512x512 切帧）
@@ -451,10 +465,21 @@ export class BootScene extends Scene {
         this.load.spritesheet('enemy_fat_zombie_attack', 'assets/enemies/fat_zombie/attacking.png',{ frameWidth: 512, frameHeight: 512, endFrame: 13 });
         this.load.spritesheet('enemy_fat_zombie_melt',   'assets/enemies/fat_zombie/melting.png',  { frameWidth: 512, frameHeight: 512, endFrame: 20 });
 
-        // 普通僵尸精灵图动画（8×4 网格 512×512 切帧：idle 1 帧 / walking 15 帧 / attacking 15 帧）
-        this.load.spritesheet('enemy_zombie_idle',   'assets/enemies/zombie/idle.png',     { frameWidth: 512, frameHeight: 512, endFrame: 0 });
-        this.load.spritesheet('enemy_zombie_walk',   'assets/enemies/zombie/walking.png',  { frameWidth: 512, frameHeight: 512, endFrame: 14 });
-        this.load.spritesheet('enemy_zombie_attack', 'assets/enemies/zombie/attacking.png',{ frameWidth: 512, frameHeight: 512, endFrame: 14 });
+        // 普通僵尸 H3 四动作母版：路径、帧格和有效帧数统一读取 enemy-config。
+        const zombieTextures = enemyConfigData.zombie?.textures || {};
+        const zombieLayouts = zombieTextures.frameLayouts || {};
+        const loadZombieSheet = (state, textureKey, fallbackPath, fallbackCell = 512) => {
+            const layout = zombieLayouts[state] || {};
+            this.load.spritesheet(textureKey, zombieTextures[state] || fallbackPath, {
+                frameWidth: layout.frameWidth || fallbackCell,
+                frameHeight: layout.frameHeight || 512,
+                endFrame: Math.max(0, (layout.frameCount || 1) - 1),
+            });
+        };
+        loadZombieSheet('idle', 'enemy_zombie_idle', 'assets/enemies/zombie/v2/idle.png');
+        loadZombieSheet('walk', 'enemy_zombie_walk', 'assets/enemies/zombie/v2/walking.png');
+        loadZombieSheet('attack', 'enemy_zombie_attack', 'assets/enemies/zombie/v2/attacking.png', 768);
+        loadZombieSheet('death', 'enemy_zombie_death', 'assets/enemies/zombie/v2/dying.png');
 
         // 集合体（首领）精灵图动画（8×4 网格 512×512 切帧：idle 14 帧 / 砸地 32 帧 / 投掷 25 帧 / 死亡 28 帧）
         this.load.spritesheet('enemy_amalgam_idle',         'assets/enemies/amalgam/idle.png',         { frameWidth: 512, frameHeight: 512, endFrame: 13 });
@@ -1045,27 +1070,25 @@ export class BootScene extends Scene {
             repeat: 0,
         });
 
-        // 毒液僵尸动画（1 帧待机 / 13 帧行走 / 22 帧攻击）
-        // 注意：idle.png 仅帧 0 有内容（4×8 切割其余 23 格全空），曾按 0..23 注册导致
-        // 待机时 23/24 时间播放空白帧 = 贴图"时常消失"，故只注册帧 0（胖子僵尸同款处理）
-        this.anims.create({
-            key: 'enemy_spitter_zombie_idle',
-            frames: this.anims.generateFrameNumbers('enemy_spitter_zombie_idle', { start: 0, end: 0 }),
-            frameRate: 1,
-            repeat: -1,
-        });
-        this.anims.create({
-            key: 'enemy_spitter_zombie_walk',
-            frames: this.anims.generateFrameNumbers('enemy_spitter_zombie_walk', { start: 0, end: 12 }),
-            frameRate: 10,
-            repeat: -1,
-        });
-        this.anims.create({
-            key: 'enemy_spitter_zombie_attack',
-            frames: this.anims.generateFrameNumbers('enemy_spitter_zombie_attack', { start: 0, end: 21 }),
-            duration: 1000,
-            repeat: 0,
-        });
+        // 毒液僵尸动画：idle/walk 循环，attack/death 只播一次。
+        const spitterLayouts = enemyConfigData.spitterZombie?.textures?.frameLayouts || {};
+        const createSpitterAnim = (state, textureKey, animKey) => {
+            const layout = spitterLayouts[state] || {};
+            const frameCount = layout.frameCount || 1;
+            const animation = {
+                key: animKey,
+                frames: this.anims.generateFrameNumbers(textureKey, { start: 0, end: frameCount - 1 }),
+                repeat: layout.repeat ?? (state === 'idle' || state === 'walk' ? -1 : 0),
+            };
+            if (layout.duration) animation.duration = layout.duration;
+            else animation.frameRate = layout.frameRate || 8;
+            this.anims.create(animation);
+        };
+        // 动画键使用 v2 后缀，避免旧素材专用 sprite-offsets 被误套到已对齐的新母版。
+        createSpitterAnim('idle', 'enemy_spitter_zombie_idle', 'enemy_spitter_zombie_idle_v2');
+        createSpitterAnim('walk', 'enemy_spitter_zombie_walk', 'enemy_spitter_zombie_walk_v2');
+        createSpitterAnim('attack', 'enemy_spitter_zombie_attack', 'enemy_spitter_zombie_attack_v2');
+        createSpitterAnim('death', 'enemy_spitter_zombie_death', 'enemy_spitter_zombie_death_v2');
 
         // 胖子僵尸动画
         this.anims.create({
@@ -1093,25 +1116,24 @@ export class BootScene extends Scene {
             repeat: 0,
         });
 
-        // 普通僵尸动画（攻击动画固定 1 秒）
-        this.anims.create({
-            key: 'enemy_zombie_idle',
-            frames: this.anims.generateFrameNumbers('enemy_zombie_idle', { start: 0, end: 0 }),
-            frameRate: 1,
-            repeat: -1,
-        });
-        this.anims.create({
-            key: 'enemy_zombie_walk',
-            frames: this.anims.generateFrameNumbers('enemy_zombie_walk', { start: 0, end: 14 }),
-            frameRate: 15,
-            repeat: -1,
-        });
-        this.anims.create({
-            key: 'enemy_zombie_attack',
-            frames: this.anims.generateFrameNumbers('enemy_zombie_attack', { start: 0, end: 14 }),
-            duration: 1000,
-            repeat: 0,
-        });
+        // 普通僵尸动画：idle/walk 循环，attack/death 只播一次。
+        const zombieLayouts = enemyConfigData.zombie?.textures?.frameLayouts || {};
+        const createZombieAnim = (state, textureKey) => {
+            const layout = zombieLayouts[state] || {};
+            const frameCount = layout.frameCount || 1;
+            const animation = {
+                key: `enemy_zombie_${state}_v2`,
+                frames: this.anims.generateFrameNumbers(textureKey, { start: 0, end: frameCount - 1 }),
+                repeat: layout.repeat ?? (state === 'idle' || state === 'walk' ? -1 : 0),
+            };
+            if (layout.duration) animation.duration = layout.duration;
+            else animation.frameRate = layout.frameRate || 8;
+            this.anims.create(animation);
+        };
+        createZombieAnim('idle', 'enemy_zombie_idle');
+        createZombieAnim('walk', 'enemy_zombie_walk');
+        createZombieAnim('attack', 'enemy_zombie_attack');
+        createZombieAnim('death', 'enemy_zombie_death');
 
         // 集合体（首领）动画
         this.anims.create({

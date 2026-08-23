@@ -254,14 +254,66 @@ export function createHudPanelsMisc() {
 
     const invasionHud = document.createElement('div');
     invasionHud.id = 'worldInvasionHud';
-    invasionHud.className = 'world-invasion-hud';
+    // ID/class 保留兼容旧调用；玩家可见名称统一为“时间进度栏”。
+    invasionHud.className = 'world-invasion-hud is-compact';
+    invasionHud.dataset.panelName = '时间进度栏';
+    invasionHud.setAttribute('role', 'region');
+    invasionHud.setAttribute('aria-label', '时间进度栏');
     invasionHud.innerHTML = `
-        <div class="world-invasion-label"><span>⚠</span><span id="worldInvasionText">距离入侵 5.0 天</span></div>
-        <div id="worldInvasionDetail" class="world-invasion-detail"></div>
-        <button id="worldInvasionSupport" class="world-invasion-support" type="button">⚔ 前往支援</button>
-        <div class="world-invasion-track"><div id="worldInvasionBar" class="world-invasion-bar"></div></div>`;
+        <div id="worldTimelineExpandedDetails" class="world-timeline-expanded-details">
+            <div class="world-timeline-heading">
+                <span id="worldTimelineTitle" class="world-timeline-title">时间进度栏</span>
+                <span id="worldTimelineWindow" class="world-timeline-window">未来5日</span>
+            </div>
+            <div id="worldTimelineFilters" class="world-timeline-filters" role="group" aria-label="事件类型筛选"></div>
+            <div class="world-invasion-label"><span>⚔</span><span id="worldInvasionText">距离入侵 5.0 天</span></div>
+            <div id="worldInvasionDetail" class="world-invasion-detail"></div>
+            <button id="worldInvasionSupport" class="world-invasion-support" type="button">⚔ 前往支援</button>
+        </div>
+        <div class="world-invasion-track" role="img" aria-label="时间进度栏：未来5日事件">
+            <div id="worldInvasionBar" class="world-invasion-bar"></div>
+            <div id="worldTimelineEvents" class="world-timeline-events"></div>
+            <div id="worldTimelineCursor" class="world-timeline-cursor"><span>现在</span></div>
+        </div>
+        <button id="worldTimelineModeToggle" class="world-timeline-mode-toggle" type="button"
+            aria-controls="worldTimelineExpandedDetails" aria-expanded="false" aria-label="展开时间进度栏详情">
+            <span aria-hidden="true">⌄</span>
+        </button>
+        <section id="worldTimelinePopover" class="world-timeline-popover" aria-labelledby="worldTimelinePopoverTitle" hidden>
+            <div class="world-timeline-popover-heading">
+                <span id="worldTimelinePopoverTitle">事件详情</span>
+                <button id="worldTimelinePopoverClose" type="button" aria-label="关闭事件详情">×</button>
+            </div>
+            <div id="worldTimelinePopoverContent" class="world-timeline-popover-content"></div>
+        </section>`;
     invasionHud.querySelector('#worldInvasionSupport')?.addEventListener('click', () => {
         WorldSwitchPanel.supportActiveInvasion();
+    });
+    const closeTimelinePopover = () => {
+        const popover = invasionHud.querySelector('#worldTimelinePopover');
+        if (popover) {
+            popover.hidden = true;
+            popover.removeAttribute('data-source-id');
+        }
+    };
+    const timelineModeToggle = invasionHud.querySelector('#worldTimelineModeToggle');
+    timelineModeToggle?.addEventListener('click', () => {
+        const compact = !invasionHud.classList.contains('is-compact');
+        invasionHud.classList.toggle('is-compact', compact);
+        timelineModeToggle.setAttribute('aria-expanded', String(!compact));
+        timelineModeToggle.setAttribute('aria-label', compact ? '展开时间进度栏详情' : '收起时间进度栏详情');
+        timelineModeToggle.title = compact ? '展开详细时间进度栏' : '收起为简化时间进度栏';
+        if (compact) closeTimelinePopover();
+        timelineModeToggle.blur();
+    });
+    if (timelineModeToggle) timelineModeToggle.title = '展开详细时间进度栏';
+    invasionHud.querySelector('#worldTimelinePopoverClose')?.addEventListener('click', closeTimelinePopover);
+    invasionHud.addEventListener('keydown', (event) => {
+        const popover = invasionHud.querySelector('#worldTimelinePopover');
+        if (event.key !== 'Escape' || !popover || popover.hidden) return;
+        event.preventDefault();
+        event.stopPropagation();
+        closeTimelinePopover();
     });
     root.appendChild(invasionHud);
 

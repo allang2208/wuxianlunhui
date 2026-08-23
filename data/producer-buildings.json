@@ -3,7 +3,7 @@
   "thatch_hut": {
     "id": "thatch_hut",
     "name": "仓鼠草屋",
-    "cost": 500,
+    "cost": 700,
     "hp": 2000,
     "radius": 128,
     "def": 60,
@@ -30,7 +30,7 @@
   "hamster_barracks": {
     "id": "hamster_barracks",
     "name": "仓鼠军营",
-    "cost": 1500,
+    "cost": 1600,
     "hp": 2000,
     "radius": 128,
     "def": 60,
@@ -53,7 +53,7 @@
   "blacksmith": {
     "id": "blacksmith",
     "name": "仓鼠铁匠铺",
-    "cost": 250,
+    "cost": 800,
     "hp": 2000,
     "radius": 128,
     "def": 60,
@@ -79,7 +79,7 @@
   "church": {
     "id": "church",
     "name": "教堂",
-    "cost": 600,
+    "cost": 2000,
     "hp": 2500,
     "radius": 128,
     "def": 80,
@@ -106,7 +106,7 @@
   "plane_altar": {
     "id": "plane_altar",
     "name": "位面祭坛",
-    "cost": 0,
+    "cost": 2600,
     "hp": 5000,
     "radius": 128,
     "def": 90,
@@ -168,7 +168,7 @@
     "name": "学院城堡",
     "playerBuildable": false,
     "cost": 0,
-    "currency": "gold",
+    "currency": "energy",
     "hp": 4000,
     "radius": 128,
     "def": 90,
@@ -201,8 +201,9 @@
   },
   "research_institute": {
     "id": "research_institute",
+    "buildLimit": 3,
     "name": "研究院",
-    "cost": 500,
+    "cost": 1000,
     "hp": 2200,
     "radius": 128,
     "def": 70,
@@ -228,6 +229,32 @@
     "workshopTitle": "🔬 研究院",
     "workshopDesc": "研究成果全局强化世界-122的防御结构、能源产出与募兵速度",
     "upgradeProject": "research_standard"
+  },
+  "weather_forecast_tower": {
+    "id": "weather_forecast_tower",
+    "buildLimit": 1,
+    "name": "天气预测塔（占位）",
+    "cost": 800,
+    "hp": 1800,
+    "radius": 128,
+    "def": 45,
+    "mdef": 70,
+    "tex": "research_institute",
+    "assetPath": "assets/terrain/research_institute.png",
+    "thumbnailPath": "assets/terrain/research_institute.png",
+    "displayW": 224,
+    "displayH": 205,
+    "footOffsetY": 102,
+    "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.722222, "widthRatio": 1, "depthRatio": 0.547009, "scaleMode": "strict" },
+    "sellRefundRatio": 0.5,
+    "spawnEnabled": false,
+    "spawnIntervalMs": 10000,
+    "spawnRadius": 90,
+    "unitCap": 0,
+    "defaultUnitType": "",
+    "unitTypes": [],
+    "panelMode": "detail",
+    "panelDescription": "占位建筑：观测当前位面的天气排期，并把预测到的降雨显示在顶部时间事件轴。"
   },
   "warehouse": {
     "id": "warehouse",
@@ -258,7 +285,7 @@
   "shooting_range": {
     "id": "shooting_range",
     "name": "靶场",
-    "cost": 1200,
+    "cost": 1800,
     "hp": 2200,
     "radius": 128,
     "def": 60,
@@ -281,7 +308,7 @@
   "cavalry_school": {
     "id": "cavalry_school",
     "name": "骑兵学校",
-    "cost": 1500,
+    "cost": 2200,
     "hp": 2000,
     "radius": 128,
     "def": 60,
@@ -308,8 +335,8 @@
   "house": {
     "id": "house",
     "name": "房屋",
-    "cost": 300,
-    "currency": "gold",
+    "cost": 600,
+    "currency": "energy",
     "firstWhenNoneCost": 0,
     "hp": 1800,
     "radius": 128,
@@ -347,8 +374,8 @@
   "wheat_windmill": {
     "id": "wheat_windmill",
     "name": "麦田风车",
-    "cost": 600,
-    "currency": "gold",
+    "cost": 1400,
+    "currency": "energy",
     "hp": 2200,
     "radius": 128,
     "def": 55,
@@ -388,8 +415,8 @@
   "bank": {
     "id": "bank",
     "name": "银行",
-    "cost": 1000,
-    "currency": "gold",
+    "cost": 3000,
+    "currency": "energy",
     "hp": 2600,
     "radius": 128,
     "def": 70,
@@ -415,8 +442,8 @@
   "market": {
     "id": "market",
     "name": "市场",
-    "cost": 700,
-    "currency": "gold",
+    "cost": 1600,
+    "currency": "energy",
     "hp": 2100,
     "radius": 128,
     "def": 50,
@@ -438,7 +465,7 @@
     "economyType": "market"
   },
   "explorer_camp": {
-    "id": "explorer_camp", "name": "探险家营地", "cost": 1400, "currency": "gold",
+    "id": "explorer_camp", "name": "探险家营地", "cost": 3600, "currency": "energy",
     "hp": 2300, "radius": 128, "def": 55, "mdef": 45,
     "tex": "explorer_camp",
     "displayW": 268, "displayH": 251, "footOffsetY": 124,
@@ -462,7 +489,7 @@
   "dungeon_candle": {
     "id": "dungeon_candle",
     "name": "守夜烛台",
-    "cost": 500,
+    "cost": 800,
     "currency": "energy",
     "hp": 1200,
     "radius": 36,
@@ -487,7 +514,7 @@
     "upgradeProject": "candle_sanctuary"
   },
   "jungle_temple": {
-    "id": "jungle_temple", "name": "丛林神庙", "cost": 1600, "currency": "gold",
+    "id": "jungle_temple", "name": "丛林神庙", "cost": 3800, "currency": "energy",
     "hp": 2600, "radius": 128, "def": 65, "mdef": 90,
     "tex": "jungle_temple", "assetPath": "assets/terrain/jungle_temple.png",
     "displayW": 288, "displayH": 323, "footOffsetY": 159,
@@ -508,8 +535,8 @@
   "desert_mansion": {
     "id": "desert_mansion",
     "name": "沙漠官邸",
-    "cost": 1800,
-    "currency": "gold",
+    "cost": 3400,
+    "currency": "energy",
     "hp": 3000,
     "radius": 128,
     "def": 75,
@@ -541,8 +568,8 @@
   "economic_workshop": {
     "id": "economic_workshop",
     "name": "经济工坊",
-    "cost": 1200,
-    "currency": "gold",
+    "cost": 4200,
+    "currency": "energy",
     "hp": 2800,
     "radius": 128,
     "def": 85,
@@ -566,8 +593,8 @@
   "armory": {
     "id": "armory",
     "name": "军械库",
-    "cost": 1400,
-    "currency": "gold",
+    "cost": 2800,
+    "currency": "energy",
     "hp": 3000,
     "radius": 128,
     "def": 95,
@@ -588,8 +615,8 @@
   "bakery": {
     "id": "bakery",
     "name": "面包屋",
-    "cost": 900,
-    "currency": "gold",
+    "cost": 2400,
+    "currency": "energy",
     "hp": 2300,
     "radius": 128,
     "def": 55,

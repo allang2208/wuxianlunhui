@@ -3592,6 +3592,8 @@ export const DefenseSystem = {
         if (clearMonsters && Game?.entities) {
             for (const [key, entity] of Array.from(Game.entities.entries())) {
                 if (!entity?._defenseMonster) continue;
+                // 位面毁灭挑战与五日入侵并行；结束普通入侵不能清掉无尽挑战怪潮。
+                if (entity._destructionChallengeMonster) continue;
                 entity.active = false;
                 entity._destroyPhaserSprite?.();
                 Game.entities.delete(key);
@@ -4252,6 +4254,23 @@ export const DefenseSystem = {
     routeSurfaceMoveForUnit(unit, target) {
         if (!unit || !target) return target;
         const Game = (typeof window !== 'undefined') ? window.Game : null;
+        const fitGroundPortalsToUnit = (route) => (route || []).map((step) => {
+            if (step?.surfaceKind !== 'ground' || !step.staircaseId) return { ...step };
+            const staircase = (this.staircases || []).find((entry) => entry?.id === step.staircaseId);
+            const portal = staircase?.groundPortal?.();
+            if (!staircase || !portal?.entry) return { ...step };
+            const unitRadius = Math.max(
+                0,
+                Number(unit.groundRadius) || Number(unit.collisionRadius) || 0
+            );
+            const safePoint = stairGroupGroundPoint(
+                staircase,
+                portal.entry,
+                Math.max(8, Number(WALL_WALK_CONFIG.surfaceNavigation.portalEntryRadius) || 14)
+                    + unitRadius + 4
+            );
+            return safePoint ? { ...step, x: safePoint.x, y: safePoint.y } : { ...step };
+        });
         // 地面单位上墙时按“每个单位”选择最近的可用楼梯。resolveSurfaceTarget 只负责确定
         // 被点击的墙顶；若所有选中单位复用它碰到的第一座楼梯，远处单位很容易从错误一侧
         // 直冲墙体，多个楼梯并存时也无法利用更近入口。
@@ -4277,7 +4296,7 @@ export const DefenseSystem = {
                 if (!chosen || score < chosen.score) chosen = { staircase, stairRoute, score };
             }
             if (chosen) {
-                const route = chosen.stairRoute.map((step) => ({ ...step }));
+                const route = fitGroundPortalsToUnit(chosen.stairRoute);
                 const wallPath = blockWallTopRoute(
                     chosen.staircase.wall,
                     targetWall,
@@ -4314,7 +4333,7 @@ export const DefenseSystem = {
             const startWall = unit._surfaceWall || currentStaircase?.wall || null;
             const wallPath = blockWallTopRoute(startWall, targetWall, Game?.entities);
             if (targetWall && startWall && wallPath.length) {
-                const route = currentStaircase?.routePoints?.().map((step) => ({ ...step })) || [];
+                const route = fitGroundPortalsToUnit(currentStaircase?.routePoints?.() || []);
                 appendWallTopRoutePoints(route, wallPath, target.z);
                 appendUniqueRouteTarget(route, {
                     x: target.x,
@@ -4357,7 +4376,7 @@ export const DefenseSystem = {
                 if (!ascent || score < ascent.score) ascent = { staircase, stairRoute, score };
             }
             if (descent && ascent) {
-                const route = descentRoute.map((step) => ({ ...step })).reverse();
+                const route = fitGroundPortalsToUnit(descentRoute).reverse();
                 const ascentEntry = ascent.stairRoute[0];
                 route.push({
                     x: ascentEntry.x,
@@ -4380,11 +4399,12 @@ export const DefenseSystem = {
                     surfaceKind: 'wall_walk',
                     wallId: target.wallId,
                 });
-                finalizeSurfaceRoute(route);
+                const fittedRoute = fitGroundPortalsToUnit(route);
+                finalizeSurfaceRoute(fittedRoute);
                 return {
                     ...target,
                     staircaseId: descent.staircase.id,
-                    route,
+                    route: fittedRoute,
                     unreachable: false,
                     reason: null,
                     routeRevision: this.elevatedNavigationRevision(),
@@ -4400,7 +4420,11 @@ export const DefenseSystem = {
         }
         const route = Array.isArray(target.route) ? target.route : [];
         if (route.length || target.surfaceKind !== 'ground') {
-            return { ...target, routeRevision: this.elevatedNavigationRevision() };
+            return {
+                ...target,
+                route: fitGroundPortalsToUnit(route),
+                routeRevision: this.elevatedNavigationRevision(),
+            };
         }
         if (unit._surfaceKind !== 'wall_walk' && unit._surfaceKind !== 'stairs') return target;
 
@@ -4443,11 +4467,12 @@ export const DefenseSystem = {
             appendUniqueRouteTarget(downRoute, step);
         }
         downRoute.push({ x: target.x, y: target.y, z: 0, surfaceKind: 'ground' });
-        finalizeSurfaceRoute(downRoute);
+        const fittedDownRoute = fitGroundPortalsToUnit(downRoute);
+        finalizeSurfaceRoute(fittedDownRoute);
         return {
             ...target,
             staircaseId: staircase.id,
-            route: downRoute,
+            route: fittedDownRoute,
             routeRevision: this.elevatedNavigationRevision(),
         };
     },
@@ -5551,7 +5576,8 @@ export const DefenseSystem = {
         }
         let n = 0;
         for (const e of Game.entities.values()) {
-            if (e && e._defenseMonster && e.active && e.hp > 0) n++;
+            if (e && e._defenseMonster && !e._destructionChallengeMonster
+                && e.active && e.hp > 0) n++;
         }
         this._aliveCountCache = n;
         this._aliveCountTime = now;
@@ -5569,7 +5595,7 @@ export const DefenseSystem = {
         const wave = this._wave || 1;
         let grantedThisFrame = 0;
         for (const e of Game.entities.values()) {
-            if (!e || !e._defenseMonster || !e._noGoldDrop) continue;
+            if (!e || !e._defenseMonster || e._destructionChallengeMonster || !e._noGoldDrop) continue;
             if (e.hp > 0 || e.active) continue;
             if (this._goldGranted.has(e.id)) continue;
             this._goldGranted.add(e.id);
@@ -5593,13 +5619,15 @@ export const DefenseSystem = {
         }
     },
 
-    _spawnMonster(wave, pool, hpMulExtra = 1, forceType = null) {
+    _spawnMonster(wave, pool, hpMulExtra = 1, forceType = null, options = {}) {
         const type = forceType || this._pickMonsterType(pool);
         const Factory = MONSTER_FACTORY[type];
         if (!Factory) return;
-        const spawnPoints = this._managedConfig?.spawnPoints?.length
-            ? this._managedConfig.spawnPoints
-            : DEFENSE_CONFIG.spawnPoints;
+        const spawnPoints = options.spawnPoints?.length
+            ? options.spawnPoints
+            : (this._managedConfig?.spawnPoints?.length
+                ? this._managedConfig.spawnPoints
+                : DEFENSE_CONFIG.spawnPoints);
         const pt = spawnPoints[Math.floor(Math.random() * spawnPoints.length)];
         const monster = new Factory(pt.x, pt.y);
         // [FIX] 刷怪点可能被散布树 footprint 压住：先校验，必要时沿螺旋外推到合法位置，
@@ -5624,6 +5652,13 @@ export const DefenseSystem = {
             }
         }
         monster._defenseMonster = true;
+        if (options.destructionChallenge) {
+            monster._destructionChallengeMonster = true;
+            monster._destructionChallengeWorldId = options.sceneId || this._worldId;
+            monster._destructionChallengeEpoch = Math.max(0,
+                Math.floor(Number(options.worldEpoch) || 0));
+            monster._destructionChallengeTier = options.destructionTier || 'normal';
+        }
         monster._elevatedNavigationMode = WALL_WALK_CONFIG.surfaceNavigation
             .enemyArchetypes?.[type] || null;
         // 防守击杀金币：不走地面掉落物，由 DefenseSystem 结算直接进背包
@@ -5639,11 +5674,19 @@ export const DefenseSystem = {
         if (monster._aggroRange && monster._aggroRange < defAggro) {
             monster._aggroRange = defAggro;
         }
+        // 出生即持有战略推进目标，避免整批怪物以“无目标”状态在首帧反复执行全量感知。
+        // 局部交战单位与更合适的防御结构仍由 PerceptionSystem 后续切换。
+        if (this.base?.active !== false && !this.base?._portalDestroyed && this.base?.hp > 0) {
+            monster.target = this.base;
+            monster._lastKnownTargetPos = { x: this.base.x, y: this.base.y };
+        }
         // 波次成长：HP/攻击随波次提升
-        const hpPerWave = this._managedConfig?.hpPerWave ?? DEFENSE_CONFIG.spawn.hpPerWave;
-        const atkPerWave = this._managedConfig?.atkPerWave ?? DEFENSE_CONFIG.spawn.atkPerWave;
-        const cycleHpMul = this._managedConfig?.cycleHpMul ?? 1;
-        const cycleAtkMul = this._managedConfig?.cycleAtkMul ?? 1;
+        const hpPerWave = options.ignoreManagedScaling
+            ? 0 : (this._managedConfig?.hpPerWave ?? DEFENSE_CONFIG.spawn.hpPerWave);
+        const atkPerWave = options.ignoreManagedScaling
+            ? 0 : (this._managedConfig?.atkPerWave ?? DEFENSE_CONFIG.spawn.atkPerWave);
+        const cycleHpMul = options.ignoreManagedScaling ? 1 : (this._managedConfig?.cycleHpMul ?? 1);
+        const cycleAtkMul = options.ignoreManagedScaling ? 1 : (this._managedConfig?.cycleAtkMul ?? 1);
         const hpMul = (1 + (wave - 1) * hpPerWave) * hpMulExtra * cycleHpMul;
         const atkMul = (1 + (wave - 1) * atkPerWave) * cycleAtkMul;
         monster.maxHp = Math.max(1, Math.round(monster.maxHp * hpMul));
@@ -5656,6 +5699,57 @@ export const DefenseSystem = {
         }
         Game.entities.set(`defense_monster_${++this._seq}`, monster);
         this._aliveCountCache = undefined;
+        return monster;
+    },
+
+    /** 位面毁灭挑战复用正式防守怪工厂，但不参与五日入侵的清波/胜利计数。 */
+    spawnDestructionChallengeMonster({
+        tier = 'normal', spawnPoints = null, sceneId = null, worldEpoch = 0,
+    } = {}) {
+        if (!this.active || !this._managedExternally || !this.base || this.base._portalDestroyed
+            || this.base.active === false || this.base.hp <= 0) return null;
+        if (sceneId && this._worldId !== sceneId) return null;
+        const pool = tier === 'lord' ? LORD_POOL : (tier === 'elite' ? ELITE_POOL : NORMAL_POOL);
+        return this._spawnMonster(1, pool, 1, null, {
+            spawnPoints,
+            destructionChallenge: true,
+            destructionTier: tier,
+            sceneId: sceneId || this._worldId,
+            worldEpoch,
+            ignoreManagedScaling: true,
+        });
+    },
+
+    /** 毁灭挑战活体计数：供软/硬上限背压使用，尸体和待清理对象不计入。 */
+    countDestructionChallengeMonsters(sceneId = this._worldId, worldEpoch = null, tier = null) {
+        if (!Game?.entities) return 0;
+        let count = 0;
+        for (const entity of Game.entities.values()) {
+            if (!entity?._destructionChallengeMonster || entity.active === false
+                || entity._isDead || entity._dying || !(entity.hp > 0)) continue;
+            if (sceneId && entity._destructionChallengeWorldId !== sceneId) continue;
+            if (worldEpoch !== null
+                && Number(entity._destructionChallengeEpoch) !== Number(worldEpoch)) continue;
+            if (tier && entity._destructionChallengeTier !== tier) continue;
+            count++;
+        }
+        return count;
+    },
+
+    clearDestructionChallengeMonsters(sceneId = null, worldEpoch = null) {
+        if (!Game?.entities) return 0;
+        let removed = 0;
+        for (const [key, entity] of Array.from(Game.entities.entries())) {
+            if (!entity?._destructionChallengeMonster) continue;
+            if (sceneId && entity._destructionChallengeWorldId !== sceneId) continue;
+            if (worldEpoch !== null && Number(entity._destructionChallengeEpoch) !== Number(worldEpoch)) continue;
+            entity.active = false;
+            entity._destroyPhaserSprite?.();
+            Game.entities.delete(key);
+            removed++;
+        }
+        this._aliveCountCache = undefined;
+        return removed;
     },
 
     _spawnElite(hpMul) {

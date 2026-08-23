@@ -46,6 +46,19 @@ const LOS_TOP_K = 5;
 
 /** [PERF] 降频 tick 间隔（ms）：有有效目标的怪按此节奏跑完整 update 逻辑 */
 const PERCEPTION_TICK_INTERVAL = 100;
+const DEFENSE_LOCAL_SCAN_MIN = 512;
+const DEFENSE_STRUCTURE_CACHE_MS = 250;
+const DEFENSE_OCCUPANCY_CACHE_MS = 100;
+
+function stablePhase(value, modulo) {
+    const text = String(value ?? 'enemy');
+    let hash = 2166136261;
+    for (let i = 0; i < text.length; i++) {
+        hash ^= text.charCodeAt(i);
+        hash = Math.imul(hash, 16777619);
+    }
+    return Math.abs(hash >>> 0) % Math.max(1, Math.floor(modulo));
+}
 
 /** 默认感知参数 */
 const DEFAULT_PERCEPTION = {
@@ -59,6 +72,16 @@ const DEFAULT_PERCEPTION = {
 
 class PerceptionSystemImpl {
     constructor() {
+        this._defenseStructureCache = {
+            entities: null,
+            builtAt: 0,
+            structures: [],
+        };
+        this._defenseOccupancyCache = {
+            entities: null,
+            builtAt: 0,
+            occupancy: new Map(),
+        };
     }
 
     /**
@@ -84,6 +107,14 @@ class PerceptionSystemImpl {
             if (p.tickTimer < PERCEPTION_TICK_INTERVAL) return;
             dt = p.tickTimer;
             p.tickTimer = 0;
+        } else if (enemy._preferDefenseTargets && !enemy._tacticalRole) {
+            // 防守怪即使目标暂时失效也只按 50ms 节奏重选；出生时由 DefenseSystem 预置基地目标，
+            // 该兜底用于目标刚被摧毁的切换帧，避免整群无目标怪每渲染帧同时全扫。
+            const p = enemy._perception;
+            p.acquireTimer += dt;
+            if (p.acquireTimer < 50) return;
+            dt = p.acquireTimer;
+            p.acquireTimer = 0;
         }
 
         // 1. 更新目标状态
@@ -106,7 +137,9 @@ class PerceptionSystemImpl {
         const p = enemy._perception;
         const currentTarget = enemy.target;
         // 拥挤感知（2026-08-16）：防守怪按结构占用表分摊第二目标，仅防守模式计算
-        const structOcc = enemy._preferDefenseTargets ? computeStructureOccupancy(entities) : null;
+        const structOcc = enemy._preferDefenseTargets
+            ? this._getDefenseStructureOccupancy(entities)
+            : null;
 
         // 当前目标是否仍然有效
         const isTargetValid = currentTarget && currentTarget.active;
@@ -123,7 +156,7 @@ class PerceptionSystemImpl {
                 }
             }
             // 检测视线
-            const hasLOS = this._checkLineOfSight(enemy, currentTarget);
+            const hasLOS = this._hasRelevantLineOfSight(enemy, currentTarget);
 
             if (hasLOS) {
                 // 有视线：更新记忆位置，重置遗忘计时器
@@ -217,15 +250,68 @@ class PerceptionSystemImpl {
         }
     }
 
+    _getDefenseStructures(entities) {
+        const now = Date.now();
+        const cache = this._defenseStructureCache;
+        if (cache.entities === entities && now - cache.builtAt < DEFENSE_STRUCTURE_CACHE_MS) {
+            return cache.structures;
+        }
+        const structures = [];
+        const source = entities?.values ? entities.values() : (entities || []);
+        for (const entity of source) {
+            if (!entity?._isDefenseStructure || entity.active === false || entity.hittable === false) continue;
+            structures.push(entity);
+        }
+        cache.entities = entities;
+        cache.builtAt = now;
+        cache.structures = structures;
+        return structures;
+    }
+
+    _getDefenseStructureOccupancy(entities) {
+        const now = Date.now();
+        const cache = this._defenseOccupancyCache;
+        if (cache.entities === entities && now - cache.builtAt < DEFENSE_OCCUPANCY_CACHE_MS) {
+            return cache.occupancy;
+        }
+        cache.entities = entities;
+        cache.builtAt = now;
+        cache.occupancy = computeStructureOccupancy(entities);
+        return cache.occupancy;
+    }
+
     /**
-     * [PERF] 收集警戒范围内的候选实体：优先走空间分区网格粗筛（queryRadius 按
-     * bbox 格迭代，支持防守模式 3800 大半径），网格未重建或来源集合不匹配时
-     * 回退原全表扫描
-     * @private
-     * @returns {Array} 候选实体数组
+     * [PERF] 普通敌人仍按警戒半径查网格；防守怪只在局部交战圈查动态单位，
+     * 战略建筑从共享注册快照追加。禁止把 9000px 战略范围直接变成约 2 万格/次的空间查询。
      */
     _collectCandidates(enemy, entities, alertRange) {
         const sps = SpatialPartitionSystem;
+        if (enemy._preferDefenseTargets) {
+            const localRadius = Math.max(DEFENSE_LOCAL_SCAN_MIN,
+                (Number(enemy._engageHostileRange) || 0) * 1.5);
+            let local = [];
+            if (sps?.cells?.size > 0 && sps._sourceEntities === entities) {
+                local = sps.queryRadius(enemy.x, enemy.y, localRadius, enemy);
+            } else {
+                const source = entities?.values ? entities.values() : (entities || []);
+                const radiusSq = localRadius * localRadius;
+                for (const entity of source) {
+                    if (!entity || entity === enemy || entity.active === false) continue;
+                    const dx = entity.x - enemy.x;
+                    const dy = entity.y - enemy.y;
+                    if (dx * dx + dy * dy <= radiusSq) local.push(entity);
+                }
+            }
+            const out = [];
+            const seen = new Set();
+            for (const entity of local) {
+                if (!seen.has(entity)) { seen.add(entity); out.push(entity); }
+            }
+            for (const structure of this._getDefenseStructures(entities)) {
+                if (!seen.has(structure)) { seen.add(structure); out.push(structure); }
+            }
+            return out;
+        }
         // 仅当网格存在且就是由本次传入的 entities 重建时才可信，
         // 避免用到其他场景/上一帧的陈旧网格
         if (sps && sps.cells && sps.cells.size > 0 && sps._sourceEntities === entities) {
@@ -245,7 +331,7 @@ class PerceptionSystemImpl {
         if (enemy._preferDefenseTargets) {
             const pick = pickDefensePriorityTarget(enemy, candidates, {
                 occupancy: structOcc,
-                isReachable: (target) => this._checkLineOfSight(enemy, target),
+                isReachable: (target) => this._hasRelevantLineOfSight(enemy, target),
             });
             return pick ? pick.target : null;
         }
@@ -294,7 +380,7 @@ class PerceptionSystemImpl {
                 exclude: enemy.target,
                 occupancy: structOcc,
                 allowFarUnitFallback: !enemy.target?._isDefenseStructure,
-                isReachable: (target) => this._checkLineOfSight(enemy, target),
+                isReachable: (target) => this._hasRelevantLineOfSight(enemy, target),
             });
             if (!priority) return null;
             const picked = priority.target._isDefenseStructure ? priority : null;
@@ -383,6 +469,19 @@ class PerceptionSystemImpl {
     }
 
     // ==================== 视线检测 ====================
+
+    _hasRelevantLineOfSight(enemy, target) {
+        if (!target) return false;
+        if (enemy._preferDefenseTargets && target._isDefenseStructure) {
+            const attackReach = Number(enemy.attackDistance)
+                || (Number(enemy.attackRange) > 0 ? Number(enemy.attackRange) * 1.15 : 120);
+            // 远距离建筑只是战略导航锚点，不需要每 100~500ms 横穿整张地图做射线。
+            // 进入攻击准备区后恢复精确 LOS，保持墙体、自身掩体与高架攻击契约。
+            const preciseRange = Math.max(DEFENSE_LOCAL_SCAN_MIN, attackReach * 1.5);
+            if (distanceToEntityShape(target, enemy.x, enemy.y) > preciseRange) return true;
+        }
+        return this._checkLineOfSight(enemy, target);
+    }
 
     /**
      * 检查与目标之间是否有视线
@@ -651,8 +750,9 @@ class PerceptionSystemImpl {
             searchDuration: perceptionCfg.searchDuration || DEFAULT_PERCEPTION.searchDuration,
             scanInterval: perceptionCfg.scanInterval || DEFAULT_PERCEPTION.scanInterval,
             losCache: new Map(),   // [PERF] per-target LOS 缓存: targetId -> {result, time}
-            scanTimer: 0,
-            tickTimer: 0,          // [PERF] 降频累加器：有有效目标的怪攒够 100ms 才 tick
+            scanTimer: stablePhase(enemy.id || enemy.name, perceptionCfg.scanInterval || DEFAULT_PERCEPTION.scanInterval),
+            tickTimer: stablePhase(enemy.id || enemy.name, PERCEPTION_TICK_INTERVAL),
+            acquireTimer: stablePhase(enemy.id || enemy.name, 50),
             lastSeenTime: 0
         };
 

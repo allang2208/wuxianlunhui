@@ -1,5 +1,8 @@
 import { Enemy } from '../enemy.js';
-import { canMeleeShareSurface } from '../../combat/melee-surface.js';
+import {
+    straightMotionWasBlocked,
+    sweptMotionMeleeHits,
+} from '../../combat/motion-melee-sweep.js';
 import {
     canImpactBasicMelee,
     canStartBasicMelee,
@@ -114,8 +117,9 @@ export class Mutant3 extends Enemy {
             this.vy = 0;
             this.isMoving = false;
             // 朝向目标
-            if (this.target && this.target.active) {
-                this.rotation = Math.atan2(this.target.y - this.y, this.target.x - this.x);
+            const pounceTarget = this._pounceTarget;
+            if (pounceTarget && pounceTarget.active) {
+                this.rotation = Math.atan2(pounceTarget.y - this.y, pounceTarget.x - this.x);
             }
             if (this._pounceTimer <= 0) {
                 this._startCharge();
@@ -128,21 +132,36 @@ export class Mutant3 extends Enemy {
 
             // 向终点移动（穿过目标 300px 或最远距离 1200px），冲锋阶段固定 1 秒
             const distToEnd = this._pounceTargetPos ? Math.hypot(this._pounceTargetPos.x - this.x, this._pounceTargetPos.y - this.y) : 0;
+            const fromX = this.x;
+            const fromY = this.y;
+            let intendedX = fromX;
+            let intendedY = fromY;
             if (distToEnd > 10 && this._pounceSpeed > 0) {
                 const step = Math.min(this._pounceSpeed * dtSec, distToEnd);
-                const nextX = this.x + this._pounceDir.x * step;
-                const nextY = this.y + this._pounceDir.y * step;
-                const resolved = WallSystem.resolve(this.x, this.y, nextX, nextY, this.groundRadius);
+                intendedX = fromX + this._pounceDir.x * step;
+                intendedY = fromY + this._pounceDir.y * step;
+                const resolved = WallSystem.resolve(fromX, fromY, intendedX, intendedY, this.groundRadius);
                 this.x = resolved.x;
                 this.y = resolved.y;
             }
+            const motionBlocked = straightMotionWasBlocked(
+                fromX, fromY, intendedX, intendedY, this.x, this.y
+            );
 
             // 命中检测（飞扑专用判定距离 pounceHitDistance，与连击/普攻判定距离独立）；
             // 命中并眩晕目标 → 中断飞扑动作、退出飞扑状态；未命中保持原样
-            const hitTarget = this._pounceTarget && this._pounceTarget.active ? this._pounceTarget : this.target;
+            const hitTarget = this._pounceTarget;
             if (!this._pounceDamaged && hitTarget && hitTarget.active && hitTarget.hittable) {
-                if (this._isTargetInRange(hitTarget, this._getPounceHitDistance())
-                    && canMeleeShareSurface(this, hitTarget)) {
+                if (sweptMotionMeleeHits(
+                    this,
+                    hitTarget,
+                    fromX,
+                    fromY,
+                    this.x,
+                    this.y,
+                    this._getPounceHitDistance(),
+                    { blocked: motionBlocked, skill: '突变体-3飞扑' }
+                )) {
                     hitTarget.takeDamage(this._getPounceDamage(), this, 'physical', true);
                     this._pounceDamaged = true;
                     // 若被盾牌弹反，不再眩晕玩家；弹反本身已通过 ShieldSystem 眩晕/击退突变体
@@ -165,6 +184,11 @@ export class Mutant3 extends Enemy {
             if (this._pounceGhostTimer <= 0) {
                 this._spawnPounceGhost();
                 this._pounceGhostTimer = 60;
+            }
+
+            if (motionBlocked || !hitTarget || !hitTarget.active || hitTarget._isDead) {
+                this._endPounce();
+                return;
             }
 
             this._pounceTimer -= dt;
@@ -428,9 +452,10 @@ export class Mutant3 extends Enemy {
 
         const maxDist = 1200;
         const overshoot = 300;
-        const target = this._pounceTarget && this._pounceTarget.active ? this._pounceTarget : this.target;
+        const target = this._pounceTarget;
 
-        if (target && target.active) {
+        if (target && target.active && !target._isDead
+            && (!Number.isFinite(target.hp) || target.hp > 0)) {
             const dx = target.x - this.x;
             const dy = target.y - this.y;
             const dist = Math.hypot(dx, dy);
@@ -452,12 +477,8 @@ export class Mutant3 extends Enemy {
                 this._pounceChargeDistance = Math.min(overshoot, maxDist);
             }
         } else {
-            this._pounceDir = { x: Math.cos(this.rotation || 0), y: Math.sin(this.rotation || 0) };
-            this._pounceTargetPos = {
-                x: this.x + this._pounceDir.x * Math.min(overshoot, maxDist),
-                y: this.y + this._pounceDir.y * Math.min(overshoot, maxDist)
-            };
-            this._pounceChargeDistance = Math.min(overshoot, maxDist);
+            this._endPounce();
+            return;
         }
 
         // 冲锋阶段固定 1 秒，速度按距离自动调整，确保正好停在终点

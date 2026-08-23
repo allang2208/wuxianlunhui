@@ -161,7 +161,18 @@
     min-width: 0;
     flex: 1;
     overflow: auto;
+    cursor: grab;
+    overscroll-behavior: contain;
     background-color: var(--bp-ui-black-soft);
+}
+
+.technology-tree-viewport.is-panning {
+    cursor: grabbing;
+    user-select: none;
+}
+
+.technology-tree-viewport.is-panning * {
+    cursor: grabbing !important;
 }
 
 .technology-tree-canvas {
@@ -345,15 +356,35 @@
 }
 
 .technology-card-icon {
-    flex: 0 0 40px;
-    height: 40px;
+    position: relative;
+    flex: 0 0 48px;
+    height: 48px;
     display: grid;
     place-items: center;
+    overflow: hidden;
     font-size: 28px;
     text-align: center;
     background: var(--bp-ui-black-soft);
     border: 1px solid var(--bp-ui-line);
     border-radius: 3px;
+}
+
+.technology-card-icon img,
+.technology-detail-icon img {
+    position: absolute;
+    z-index: 1;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: contain;
+}
+
+.technology-icon-fallback {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
 }
 
 .technology-card.available .technology-card-icon,
@@ -496,13 +527,22 @@
 }
 
 .technology-detail-icon {
-    width: 58px;
-    height: 58px;
+    position: relative;
+    width: 72px;
+    height: 72px;
     display: grid;
     place-items: center;
+    overflow: hidden;
     font-size: 42px;
     background: var(--bp-ui-control);
     border: 1px solid var(--bp-ui-line-strong);
+}
+
+.technology-card .technology-card-icon.has-image,
+.technology-detail-icon.has-image {
+    background: none;
+    border: 0;
+    box-shadow: none;
 }
 
 .technology-detail-branch {

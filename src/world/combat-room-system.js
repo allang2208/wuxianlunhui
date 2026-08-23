@@ -36,6 +36,7 @@ import {
     pointInDiamond, ARENA_AXIS, MAZE_AXIS_V1, MAZE_AXIS_V2,
 } from './combat-arena-layout.js';
 import { ObstacleSpawnSystem } from './obstacle-spawn-system.js';
+import { ONE_CELL_BUILDING_FOOT } from './building-footprint.js';
 
 const gameRef = () => (typeof window !== 'undefined' ? window.Game : null);
 
@@ -144,6 +145,10 @@ export const CombatRoomSystem = {
 
     // 三房间串联竞技场（D 级及以上战斗事件；null = 单房间模式）
     _arena: null,
+    _roomConstruction: 'continuous',
+    _gridEdgeCells: 0,
+    _gridGateCells: 6,
+    _gridGateSpan: null,
 
     // 配置引用（从 data/dungeon-config.json 加载）
     config: createCombatRoomConfig(),
@@ -175,13 +180,26 @@ export const CombatRoomSystem = {
         // 1. 保存当前场景状态
         this._backupSceneState();
 
-        // 2. 确定场地大小（菱形：rx=1.2S、ry=rx×0.5774，区外全黑）
+        // 2. 确定场地大小。雪原初级专用 worldBlock1x1 严格复用世界单格
+        // 128×64 footprint；其他地牢继续沿用原 30° 视觉菱形。
         const roomSize = options.roomSize || this._rollRoomSize(isBoss);
         this._roomSize = roomSize;
-        const rx = Math.round(roomSize * 1.2);
-        const ry = Math.round(rx * 0.5774);
+        const roomProfile = DungeonConfig.getCombatRoomConfig(options.dungeonType);
+        this._roomConstruction = roomProfile.wallConstruction || 'continuous';
+        const worldBlockRoom = this._roomConstruction === 'worldBlock1x1';
+        this._gridGateCells = Math.max(2, Math.round(roomProfile.gateCells || 6));
+        const gridEdgeRadius = Math.max(6, Math.round((roomSize * 1.2) / ONE_CELL_BUILDING_FOOT.w));
+        this._gridEdgeCells = worldBlockRoom
+            ? gridEdgeRadius * 2 + 1
+            : 0;
+        const rx = worldBlockRoom
+            ? this._gridEdgeCells * ONE_CELL_BUILDING_FOOT.w / 2
+            : Math.round(roomSize * 1.2);
+        const ry = worldBlockRoom
+            ? this._gridEdgeCells * ONE_CELL_BUILDING_FOOT.d / 2
+            : Math.round(rx * 0.5774);
         // 边距必须 ≥ 墙体贴图高度（190×角度补偿≈217）+ 缓冲，否则上夹角被世界顶裁掉
-        const M = 260;
+        const M = worldBlockRoom ? 300 : 260;
         this._diamond = {
             rx, ry,
             worldW: 2 * (rx + M),
@@ -193,13 +211,21 @@ export const CombatRoomSystem = {
         // 3. 生成场地地形（菱形地板）
         this._generateTerrain(roomSize);
 
-        // 4. 生成边界墙壁（菱形斜墙 + 四角转角）
+        // 单格墙环必须在铺墙前知道入口边，才能从几何源头留出连续门洞。
+        if (worldBlockRoom) {
+            this._entranceEdge = this._rollEntranceEdge();
+            this._oppositeEdge = (this._entranceEdge + 2) % 4;
+        }
+
+        // 4. 生成边界墙壁（普通样式为连续斜墙；雪原初级为世界单格墙环）
         this._generateWalls(roomSize);
 
         // 6. 确定玩家生成边并放置玩家
-        const entranceEdge = this._rollEntranceEdge();
-        this._entranceEdge = entranceEdge;
-        this._oppositeEdge = (entranceEdge + 2) % 4;
+        const entranceEdge = worldBlockRoom ? this._entranceEdge : this._rollEntranceEdge();
+        if (!worldBlockRoom) {
+            this._entranceEdge = entranceEdge;
+            this._oppositeEdge = (entranceEdge + 2) % 4;
+        }
         this._spawnPlayer(player, entranceEdge, roomSize);
 
         // 7. 计算战斗区域边界
@@ -475,6 +501,24 @@ export const CombatRoomSystem = {
      */
     _setupGate(target, opts = {}) {
         if (!this._diamond || !WallSystem.isoVisuals) return;
+        // 世界单格墙环在构建时已留出完整门洞，不再从墙件中事后猜测/拆除。
+        // 六格跨度让现有功能门保持接近原始高度与门洞宽度，同时两端仍落在格点上。
+        if (this._gridGateSpan) {
+            const span = this._gridGateSpan;
+            if (WallGate.placeAt(span.a, span.b, span.flip, span.depth, { fitSpan: true })) {
+                WallGate.state = 'open';
+                WallGate._frame = 15;
+                if (WallGate.sprite) WallGate.sprite.setFrame(15);
+                WallGate.playClose();
+                this._spawnGateExitZone();
+            } else {
+                // 贴图加载失败时恢复预留区墙块，保证场地仍是闭合边界。
+                WallSystem.isoVisuals.push(...span.fillPieces);
+                WallSystem.rebuildIsoCollision();
+                if (WallSystem._syncWallsToPhaser) WallSystem._syncWallsToPhaser();
+            }
+            return;
+        }
         // 被替换件候选：①优先样式门贴图件（转角装饰门→功能门，一间房天然只有一扇门）；
         // ②无门件时回退到距目标点最近的直墙件（跳过转角预制件）
         const styleGeos = WallSystem.getWallStyleGeos ? WallSystem.getWallStyleGeos() : { straight: 'straight', gate: 'gate' };
@@ -814,6 +858,10 @@ export const CombatRoomSystem = {
         this._roomBounds = null;
         this._entranceEdge = null;
         this._oppositeEdge = null;
+        this._roomConstruction = 'continuous';
+        this._gridEdgeCells = 0;
+        this._gridGateCells = 6;
+        this._gridGateSpan = null;
         this._player = null;
 
         
@@ -1949,7 +1997,12 @@ export const CombatRoomSystem = {
             WallSystem.walls = [];
             WallSystem.trees = [];
             WallSystem.isoVisuals = [];
-            WallSystem.buildIsoDiamondWalls(d.cx, d.cy, d.rx, d.ry);
+            if (this._roomConstruction === 'worldBlock1x1') {
+                this._generateWorldBlockWalls(d);
+            } else {
+                this._gridGateSpan = null;
+                WallSystem.buildIsoDiamondWalls(d.cx, d.cy, d.rx, d.ry);
+            }
             WallSystem.rebuildIsoCollision();
             if (WallSystem._syncWallsToPhaser) {
                 WallSystem._syncWallsToPhaser();
@@ -1980,23 +2033,127 @@ export const CombatRoomSystem = {
         }
     },
 
+    /**
+     * 雪原初级竞技场：以世界位面 1×1 墙块为唯一模块沿四边铺成闭合墙环。
+     * 墙块中心严格落在 128×64 菱形网格点；四个转角各只复用一个墙块。
+     * 每块携带自己的边界线段与 depth，转角块以两条半边闭合碰撞边界。
+     * entranceEdge 对应 TR/RB/BL/LT 四条边；中央 gateCells 格在源几何中直接留空。
+     */
+    _generateWorldBlockWalls(d) {
+        const geo = ISO_WALL_GEO.frozen_block;
+        if (!geo) return;
+        const edgeCells = Math.max(13, this._gridEdgeCells || 21);
+        const gateCells = Math.min(this._gridGateCells || 6, edgeCells - 5);
+        const gapStart = Math.ceil((edgeCells - gateCells) / 2);
+        const gapEnd = gapStart + gateCells;
+        const T = { x: d.cx, y: d.cy - d.ry };
+        const R = { x: d.cx + d.rx, y: d.cy };
+        const B = { x: d.cx, y: d.cy + d.ry };
+        const L = { x: d.cx - d.rx, y: d.cy };
+        const edges = [[T, R], [R, B], [B, L], [L, T]];
+        const edgeSteps = edges.map(([P, Q]) => ({
+            x: (Q.x - P.x) / edgeCells,
+            y: (Q.y - P.y) / edgeCells,
+        }));
+        const scaleX = (geo.displayW || geo.displaySize || 260) / geo.w;
+        const scaleY = (geo.displayH || geo.displaySize || 260) / geo.h;
+        const ground = geo.groundCenter || [geo.w / 2, geo.h * 0.74];
+        const fillPieces = [];
+        let gateA = null;
+        let gateB = null;
+
+        const makePiece = (center, baseSegments) => {
+            const baseDepth = Math.max(...baseSegments.flat().map((point) => point.y));
+            return {
+                tex: geo.tex,
+                x: center.x - (ground[0] - geo.w / 2) * scaleX,
+                y: center.y - (ground[1] - geo.h / 2) * scaleY,
+                scaleX,
+                scaleY,
+                flipX: false,
+                flipY: false,
+                depth: baseDepth + 4,
+                _gridBlockWall: true,
+                _baseSegments: baseSegments,
+            };
+        };
+
+        edges.forEach(([P], edgeIndex) => {
+            const step = edgeSteps[edgeIndex];
+            const incomingStep = edgeSteps[(edgeIndex + edges.length - 1) % edges.length];
+            for (let i = 0; i < edgeCells; i++) {
+                const center = { x: P.x + step.x * i, y: P.y + step.y * i };
+                const baseSegments = i === 0
+                    ? [
+                        [
+                            { x: center.x - incomingStep.x / 2, y: center.y - incomingStep.y / 2 },
+                            { x: center.x, y: center.y },
+                        ],
+                        [
+                            { x: center.x, y: center.y },
+                            { x: center.x + step.x / 2, y: center.y + step.y / 2 },
+                        ],
+                    ]
+                    : [[
+                        { x: center.x - step.x / 2, y: center.y - step.y / 2 },
+                        { x: center.x + step.x / 2, y: center.y + step.y / 2 },
+                    ]];
+                const piece = makePiece(center, baseSegments);
+                const gateCell = edgeIndex === this._entranceEdge && i >= gapStart && i < gapEnd;
+                if (gateCell) {
+                    const gateSegment = baseSegments[0];
+                    if (!gateA) gateA = { x: gateSegment[0].x, y: gateSegment[0].y };
+                    gateB = { x: gateSegment[1].x, y: gateSegment[1].y };
+                    fillPieces.push(piece);
+                } else {
+                    WallSystem.isoVisuals.push(piece);
+                }
+            }
+        });
+
+        if (!gateA || !gateB) {
+            this._gridGateSpan = null;
+            WallSystem.isoVisuals.push(...fillPieces);
+            return;
+        }
+        // WallGate 的贴图基线统一要求 A 为较高端、B 为较低端。
+        let a = gateA;
+        let b = gateB;
+        if (a.y > b.y) [a, b] = [b, a];
+        this._gridGateSpan = {
+            a,
+            b,
+            flip: b.x < a.x,
+            depth: Math.max(a.y, b.y) + 4,
+            fillPieces,
+        };
+    },
+
     _spawnPlayer(player, edge, roomSize) {
         if (!player) return;
 
-        // 菱形房：从顶点的内法线方向入场（0=T 1=R 2=B 3=L），角部加大内缩
+        // 菱形房：连续墙沿用顶点入场；单格墙环从实际开门边中点沿内法线入场。
         if (this._diamond) {
             const d = this._diamond;
             const off = this.config.playerSpawn.offsetFromEdge + 60;
-            const V = [
-                { x: d.cx, y: d.cy - d.ry },
-                { x: d.cx + d.rx, y: d.cy },
-                { x: d.cx, y: d.cy + d.ry },
-                { x: d.cx - d.rx, y: d.cy },
-            ][edge] || { x: d.cx, y: d.cy + d.ry };
-            const dx = d.cx - V.x, dy = d.cy - V.y;
+            const V = this._roomConstruction === 'worldBlock1x1'
+                ? [
+                    { x: d.cx + d.rx / 2, y: d.cy - d.ry / 2 }, // TR 边中点
+                    { x: d.cx + d.rx / 2, y: d.cy + d.ry / 2 }, // RB
+                    { x: d.cx - d.rx / 2, y: d.cy + d.ry / 2 }, // BL
+                    { x: d.cx - d.rx / 2, y: d.cy - d.ry / 2 }, // LT
+                ][edge]
+                : [
+                    { x: d.cx, y: d.cy - d.ry },
+                    { x: d.cx + d.rx, y: d.cy },
+                    { x: d.cx, y: d.cy + d.ry },
+                    { x: d.cx - d.rx, y: d.cy },
+                ][edge];
+            const spawnAnchor = V || { x: d.cx, y: d.cy + d.ry };
+            const dx = d.cx - spawnAnchor.x, dy = d.cy - spawnAnchor.y;
             const len = Math.hypot(dx, dy) || 1;
-            player.x = V.x + dx / len * off;
-            player.y = V.y + dy / len * off;
+            player.x = spawnAnchor.x + dx / len * off;
+            player.y = spawnAnchor.y + dy / len * off;
             const Game0 = gameRef();
             if (Game0 && Game0.entities) {
                 Game0.entities.set('player', player);
@@ -2073,18 +2230,26 @@ export const CombatRoomSystem = {
     _calculateSpawnArea(bounds, oppositeEdge, margin, spawnDepth, minWallDistance = 0) {
         // 菱形房：生成区 = 对角顶点附近区域（采样时按菱形内缩裁剪）
         if (bounds.diamond) {
-            const V = [
-                { x: bounds.cx, y: bounds.cy - bounds.ry },
-                { x: bounds.cx + bounds.rx, y: bounds.cy },
-                { x: bounds.cx, y: bounds.cy + bounds.ry },
-                { x: bounds.cx - bounds.rx, y: bounds.cy },
-            ][oppositeEdge] || { x: bounds.cx, y: bounds.cy };
+            const V = this._roomConstruction === 'worldBlock1x1'
+                ? [
+                    { x: bounds.cx + bounds.rx / 2, y: bounds.cy - bounds.ry / 2 },
+                    { x: bounds.cx + bounds.rx / 2, y: bounds.cy + bounds.ry / 2 },
+                    { x: bounds.cx - bounds.rx / 2, y: bounds.cy + bounds.ry / 2 },
+                    { x: bounds.cx - bounds.rx / 2, y: bounds.cy - bounds.ry / 2 },
+                ][oppositeEdge]
+                : [
+                    { x: bounds.cx, y: bounds.cy - bounds.ry },
+                    { x: bounds.cx + bounds.rx, y: bounds.cy },
+                    { x: bounds.cx, y: bounds.cy + bounds.ry },
+                    { x: bounds.cx - bounds.rx, y: bounds.cy },
+                ][oppositeEdge];
+            const spawnAnchor = V || { x: bounds.cx, y: bounds.cy };
             const depth = Math.max(spawnDepth * 2, 320);
             return {
-                minX: V.x - depth,
-                maxX: V.x + depth,
-                minY: V.y - depth,
-                maxY: V.y + depth,
+                minX: spawnAnchor.x - depth,
+                maxX: spawnAnchor.x + depth,
+                minY: spawnAnchor.y - depth,
+                maxY: spawnAnchor.y + depth,
                 _diamondClip: bounds,
             };
         }

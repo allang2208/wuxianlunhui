@@ -4,10 +4,125 @@ import { canMeleeShareSurface } from './melee-surface.js';
 import { distanceToEntityShape } from '../utils/collision-helpers.js';
 import { WallSystem } from '../world/wall-system.js';
 import { PERSPECTIVE_SCALE_Y } from '../config/perspective-config.js';
-import { distanceToIsoFootprint } from '../physics/iso-footprint.js';
+import { distanceToIsoFootprint, isoFootprintVertices } from '../physics/iso-footprint.js';
+
+export const BASIC_MELEE_DEBUG_TRACE_TTL_MS = 1800;
+const BASIC_MELEE_DEBUG_TRACE_LIMIT = 80;
+let basicMeleeDebugEnabled = false;
+let basicMeleeDebugSourceId = null;
+let basicMeleeDebugTraces = [];
+const basicMeleeDebugLastSignatures = new Map();
 
 function finiteNumber(value, fallback) {
     return typeof value === 'number' && Number.isFinite(value) ? value : fallback;
+}
+
+function debugNow() {
+    return typeof performance !== 'undefined' && typeof performance.now === 'function'
+        ? performance.now()
+        : Date.now();
+}
+
+function debugTargetCenter(target) {
+    return {
+        x: finiteNumber(target?.x, 0) + finiteNumber(target?.colliderOffsetX, 0),
+        y: finiteNumber(target?.y, 0) + finiteNumber(target?.colliderOffsetY, 0),
+    };
+}
+
+function debugTargetShapeSnapshot(target) {
+    const center = debugTargetCenter(target);
+    if (target?.collisionShape === 'iso_rect') {
+        return { kind: 'iso_rect', center, vertices: isoFootprintVertices(target) };
+    }
+    if (target?.collisionShape === 'rect'
+        && finiteNumber(target.collisionWidth, 0) > 0
+        && finiteNumber(target.collisionHeight, 0) > 0) {
+        return {
+            kind: 'rect',
+            center,
+            width: target.collisionWidth,
+            height: target.collisionHeight,
+        };
+    }
+    return {
+        kind: 'circle',
+        center,
+        radius: Math.max(0, finiteNumber(
+            target?.collider?.radius,
+            finiteNumber(target?.groundRadius, finiteNumber(target?.collisionRadius, 0))
+        )),
+    };
+}
+
+function recordBasicMeleeDebugTrace(source, target, snapshot, phase, hit, reason) {
+    if (!basicMeleeDebugEnabled
+        || !basicMeleeDebugSourceId
+        || source?.id !== basicMeleeDebugSourceId
+        || !snapshot) return;
+    const now = debugNow();
+    const signature = [
+        source.id,
+        phase,
+        target?.id || target?.name || 'unknown-target',
+        Math.round(snapshot.originX),
+        Math.round(snapshot.originY),
+        hit ? 1 : 0,
+        reason,
+    ].join(':');
+    const previous = basicMeleeDebugLastSignatures.get(signature);
+    if (previous !== undefined && now - previous < 80) return;
+    basicMeleeDebugLastSignatures.set(signature, now);
+    basicMeleeDebugTraces.push({
+        time: now,
+        phase,
+        hit,
+        reason,
+        sourceId: source.id,
+        sourceName: source.name || source.id || '未知攻击者',
+        sourceIsEditorTest: !!source._collisionEditorTest,
+        targetId: target?.id || target?.name || 'unknown-target',
+        targetName: target?.name || target?.id || '未知目标',
+        targetShape: target ? debugTargetShapeSnapshot(target) : null,
+        snapshot: {
+            originX: snapshot.originX,
+            originY: snapshot.originY,
+            sourceX: snapshot.sourceX,
+            sourceY: snapshot.sourceY,
+            angle: snapshot.angle,
+            worldAngle: snapshot.worldAngle,
+            length: snapshot.length,
+            width: snapshot.width,
+            backExtension: snapshot.backExtension,
+            reach: snapshot.reach,
+            forwardOffset: snapshot.forwardOffset,
+        },
+    });
+    if (basicMeleeDebugTraces.length > BASIC_MELEE_DEBUG_TRACE_LIMIT) {
+        basicMeleeDebugTraces.splice(
+            0,
+            basicMeleeDebugTraces.length - BASIC_MELEE_DEBUG_TRACE_LIMIT
+        );
+    }
+}
+
+export function setBasicMeleeDebugEnabled(enabled, sourceId = null) {
+    basicMeleeDebugEnabled = !!enabled;
+    basicMeleeDebugSourceId = basicMeleeDebugEnabled ? sourceId : null;
+    if (!basicMeleeDebugEnabled || !basicMeleeDebugSourceId) clearBasicMeleeDebugTraces();
+}
+
+export function clearBasicMeleeDebugTraces() {
+    basicMeleeDebugTraces = [];
+    basicMeleeDebugLastSignatures.clear();
+}
+
+export function getBasicMeleeDebugTraces() {
+    const cutoff = debugNow() - BASIC_MELEE_DEBUG_TRACE_TTL_MS;
+    if (basicMeleeDebugTraces.length && basicMeleeDebugTraces[0].time < cutoff) {
+        basicMeleeDebugTraces = basicMeleeDebugTraces.filter((trace) => trace.time >= cutoff);
+    }
+    return basicMeleeDebugTraces.slice();
 }
 
 function targetPoint(target) {
@@ -131,14 +246,27 @@ export function canStartBasicMelee(source, target, attackConfig = {}) {
     if (!source || !target || !target.active || !target.hittable) return false;
     const snapshot = createBasicMeleeSnapshot(source, target, attackConfig);
     if (snapshot.requiresSameSurface && !canMeleeShareSurface(source, target)) return false;
-    return shapeIntersectsTarget(source, target, snapshot);
+    const hit = shapeIntersectsTarget(source, target, snapshot);
+    // 起手轮询只保留真正触发攻击的锁定框，避免追击阶段持续刷屏。
+    if (hit) recordBasicMeleeDebugTrace(source, target, snapshot, 'start', true, '起手锁定');
+    return hit;
 }
 
 export function canImpactBasicMelee(source, target, snapshot) {
-    if (!source || !target || !snapshot || !target.active || !target.hittable) return false;
-    if (snapshot.requiresSameSurface && !canMeleeShareSurface(source, target)) return false;
-    if (!hasImpactLineOfSight(source, target, snapshot)) return false;
-    return shapeIntersectsTarget(source, target, snapshot);
+    if (!source || !target || !snapshot) return false;
+    const finish = (hit, reason) => {
+        recordBasicMeleeDebugTrace(source, target, snapshot, 'impact', hit, reason);
+        return hit;
+    };
+    if (!target.active || !target.hittable) return finish(false, '锁定目标失效');
+    if (snapshot.requiresSameSurface && !canMeleeShareSurface(source, target)) {
+        return finish(false, '承载面不一致');
+    }
+    if (!hasImpactLineOfSight(source, target, snapshot)) return finish(false, '目标隔墙');
+    if (!shapeIntersectsTarget(source, target, snapshot)) {
+        return finish(false, '目标离开锁定矩形');
+    }
+    return finish(true, '命中帧复查通过');
 }
 
 export function basicMeleeApproachRange(source, attackConfig = {}) {

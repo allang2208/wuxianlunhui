@@ -163,7 +163,7 @@ function wallStairDir(mirror) {
     return mirror ? 'e1' : 'e2';
 }
 
-const C_GRADE_WALL_COST = Math.round((DEFENSE_CONFIG.covers.hp.C ?? 1600) * 0.25);
+const FOUR_CELL_GATE_COST = 600;
 const BLOCK_WALL_COST = 50;
 const DEFAULT_WALL_STAIR_TEXTURE =
     WALL_STAIR_CONFIG.variants.e2_pos?.lower?.texture || 'wall_stair_lower_e2_pos';
@@ -171,8 +171,8 @@ const WALL_STAIR_PANEL_ICON =
     WALL_STAIR_CONFIG.variants.e1_pos?.lower?.texture || 'wall_stair_lower_e1_pos';
 
 export const BUILD_ITEMS = [
-    { id: 'tower', name: '防御塔', cost: 1000, tex: 'obstacle_defense_tower', thumbnailPath: 'assets/ui/building-thumbnails/tower.png', kind: 'tower', currency: 'energy' },
-    // 1×1 方块墙沿用 C 级数值，但采用独立的单块造价；4 格门仍按 C 级墙造价。
+    { id: 'tower', name: '防御塔', cost: 2400, tex: 'obstacle_defense_tower', thumbnailPath: 'assets/ui/building-thumbnails/tower.png', kind: 'tower', currency: 'energy' },
+    // 1×1 方块墙沿用 C 级数值；4 格门使用独立造价，避免生命值调整意外改动经济平衡。
     { id: 'cover_block', name: '方块墙', cost: BLOCK_WALL_COST, tex: 'obstacle_block', thumbnailPath: 'assets/ui/building-thumbnails/cover_block.png', kind: 'block', grade: 'C', orient: 'v', currency: 'energy' },
     {
         id: 'road',
@@ -184,7 +184,7 @@ export const BUILD_ITEMS = [
         kind: 'road',
         currency: 'energy',
     },
-    { id: 'gate_4cell', name: '4格门', cost: C_GRADE_WALL_COST, tex: 'gate_4cell', icon: 'gate_4cell', thumbnailPath: 'assets/ui/building-thumbnails/gate_4cell.png', kind: 'gate4', grade: 'C', visualGrade: 'D', orient: 'v', currency: 'energy' },
+    { id: 'gate_4cell', name: '4格门', cost: FOUR_CELL_GATE_COST, tex: 'gate_4cell', icon: 'gate_4cell', thumbnailPath: 'assets/ui/building-thumbnails/gate_4cell.png', kind: 'gate4', grade: 'C', visualGrade: 'D', orient: 'v', currency: 'energy' },
     {
         id: HAMSTER_CONFIG.hut.id,
         name: HAMSTER_CONFIG.hut.name,
@@ -227,6 +227,37 @@ for (const pc of Object.values(PRODUCER_BUILDINGS || {})) {
     });
 }
 // 旧 F→A 长掩体与旧滑动门已从建筑清单移除；底层实体/资产保留兼容历史场景。
+
+const BUILD_CATEGORIES = Object.freeze([
+    { id: 'defense', label: '防御建筑' },
+    { id: 'economy', label: '经济建筑' },
+    { id: 'recruitment', label: '募兵建筑' },
+    { id: 'other', label: '其他建筑' },
+]);
+
+/**
+ * 建筑分页只解释现有配置语义，不维护另一份建筑 id 名单：
+ * - 墙、门、塔和墙体通行设施归防御；
+ * - economyType / 仓库与矿工营地归经济；
+ * - 实际启用出兵且配置了兵种的建筑归募兵；
+ * - 道路、研究/强化设施、祭坛与位面功能物归其他。
+ */
+function getBuildItemCategory(item) {
+    if (!item) return 'other';
+    if (['tower', 'block', 'cover', 'gate', 'gate4', 'wall_staircase'].includes(item.kind)) {
+        return 'defense';
+    }
+    if (item.kind === 'hamster_hut' || item.economyType) return 'economy';
+    if (item.kind === 'producer') {
+        const cfg = PRODUCER_BUILDINGS[item.id];
+        if (cfg?.economyType || cfg?.workshopType === 'warehouse') return 'economy';
+        const canRecruit = cfg?.spawnEnabled !== false
+            && (Array.isArray(cfg?.unitTypes) ? cfg.unitTypes.length > 0 : !!cfg?.defaultUnitType);
+        if (canRecruit) return 'recruitment';
+    }
+    return 'other';
+}
+
 function isBuildItemTechnologyUnlocked(item) {
     if (!item) return false;
     return TechnologySystem.isUnlocked('building', item.id);
@@ -273,8 +304,10 @@ export const BuildingSystem = {
     _panel: null,
     _lastWarehouseAvailability: null,
     _lastBuildAvailabilitySignature: '',
+    _packedRebuildSource: null,
     _detailPanel: null,
     _panelCloseTimer: null,
+    _buildCategory: 'defense',
     _buildSortMode: 'unlock', // unlock=实际解锁顺序；energy=能源造价升序、金币建筑置后
     _downFn: null,
     _moveFn: null,
@@ -393,6 +426,8 @@ export const BuildingSystem = {
     },
 
     _effectiveBuildCost(item) {
+        if (this._packedRebuildSource
+            && (this._packedRebuildSource._buildItemId || this._packedRebuildSource.cfgKey) === item?.id) return 0;
         const base = this._baseBuildCost(item);
         const currency = item?.currency === 'energy' ? 'energy' : 'gold';
         return CrossPlaneResourceSystem.quote({ [currency]: base })[currency];
@@ -442,6 +477,8 @@ export const BuildingSystem = {
     },
 
     _buildItemBlockReason(item) {
+        if (this._packedRebuildSource
+            && (this._packedRebuildSource._buildItemId || this._packedRebuildSource.cfgKey) === item?.id) return '';
         return this._featureBuildingBlockReason(item)
             || this._economyWarehouseBlockReason(item);
     },
@@ -479,11 +516,69 @@ export const BuildingSystem = {
 
     _buildGridItemsHtml() {
         return this._sortedBuildItems()
+            .filter((item) => getBuildItemCategory(item) === this._buildCategory)
             .map((item) => {
                 const cost = this._effectiveBuildCost(item);
                 return renderBuildItemThumb(item, cost, this._buildItemCardBlockReason(item, cost));
             })
             .join('');
+    },
+
+    _buildCategoryTabsHtml() {
+        return BUILD_CATEGORIES.map((category) => {
+            const active = category.id === this._buildCategory;
+            return `
+                <button class="build-category-tab${active ? ' active' : ''}"
+                        id="bpCategory-${category.id}"
+                        type="button"
+                        role="tab"
+                        aria-selected="${active ? 'true' : 'false'}"
+                        aria-controls="bpGrid"
+                        tabindex="${active ? '0' : '-1'}"
+                        data-build-category="${category.id}">${category.label}</button>`;
+        }).join('');
+    },
+
+    _updateBuildCategoryTabs() {
+        if (!this._panel) return;
+        for (const button of this._panel.querySelectorAll('[data-build-category]')) {
+            const active = button.dataset.buildCategory === this._buildCategory;
+            button.classList.toggle('active', active);
+            button.setAttribute('aria-selected', active ? 'true' : 'false');
+            button.tabIndex = active ? 0 : -1;
+        }
+        const grid = this._panel.querySelector('#bpGrid');
+        if (grid) grid.setAttribute('aria-labelledby', `bpCategory-${this._buildCategory}`);
+    },
+
+    _setBuildCategory(categoryId, { focus = false } = {}) {
+        if (!BUILD_CATEGORIES.some((category) => category.id === categoryId)) return;
+        if (this._buildCategory !== categoryId) {
+            this._buildCategory = categoryId;
+            if (this._placing && getBuildItemCategory(this._placing.item) !== categoryId) {
+                this._cancelPlacement();
+            }
+            this._renderBuildGrid({ preserveScroll: false });
+        } else {
+            this._updateBuildCategoryTabs();
+        }
+        if (focus) this._panel?.querySelector(`#bpCategory-${categoryId}`)?.focus();
+    },
+
+    _onBuildCategoryKeydown(event) {
+        const currentIndex = BUILD_CATEGORIES.findIndex(
+            (category) => category.id === event.currentTarget?.dataset?.buildCategory
+        );
+        if (currentIndex < 0) return;
+        let nextIndex = currentIndex;
+        if (event.key === 'ArrowLeft') nextIndex = (currentIndex - 1 + BUILD_CATEGORIES.length) % BUILD_CATEGORIES.length;
+        else if (event.key === 'ArrowRight') nextIndex = (currentIndex + 1) % BUILD_CATEGORIES.length;
+        else if (event.key === 'Home') nextIndex = 0;
+        else if (event.key === 'End') nextIndex = BUILD_CATEGORIES.length - 1;
+        else return;
+        event.preventDefault();
+        event.stopPropagation();
+        this._setBuildCategory(BUILD_CATEGORIES[nextIndex].id, { focus: true });
     },
 
     _updateBuildSortButton() {
@@ -496,10 +591,10 @@ export const BuildingSystem = {
             : '当前按实际解锁时间排列；点击切换为能源消耗顺序';
     },
 
-    _renderBuildGrid() {
+    _renderBuildGrid({ preserveScroll = true } = {}) {
         const grid = this._panel?.querySelector('#bpGrid');
         if (!grid) return;
-        const scrollTop = grid.scrollTop;
+        const scrollTop = preserveScroll ? grid.scrollTop : 0;
         grid.querySelectorAll('.we-thumb[data-id]').forEach((thumb) => TechnologyGate.unbind(thumb));
         grid.innerHTML = this._buildGridItemsHtml();
         TechnologyGate.bindTree(grid);
@@ -507,6 +602,7 @@ export const BuildingSystem = {
         grid.scrollTop = scrollTop;
         this._lastBuildAvailabilitySignature = this._buildResourceAvailabilitySignature();
         this._updateBuildSortButton();
+        this._updateBuildCategoryTabs();
     },
 
     /**
@@ -553,10 +649,14 @@ export const BuildingSystem = {
             <div class="we-info" id="bpCur">
                 金币：<b style="color:#ffd700;">${gold}</b>&nbsp;&nbsp;能源：<b style="color:#7fd4ff;">${energy}</b>（${resourceLabel}；点击建筑后到场景里放置）
             </div>
+            <div class="build-category-tabs" role="tablist" aria-label="建筑分类">
+                ${this._buildCategoryTabsHtml()}
+            </div>
             <div class="we-row" id="bpSortRow" style="margin:6px 0;justify-content:flex-end;">
                 <button id="bpSortMode" type="button" style="min-width:132px;">排序：解锁顺序</button>
             </div>
-            <div class="we-grid we-std-scroll" id="bpGrid" style="max-height:62vh;overflow-y:auto;">
+            <div class="we-grid we-std-scroll" id="bpGrid" role="tabpanel"
+                 aria-labelledby="bpCategory-${this._buildCategory}" style="max-height:62vh;overflow-y:auto;">
                 ${this._buildGridItemsHtml()}
             </div>
             <div class="we-row" id="bpRow">
@@ -595,6 +695,10 @@ export const BuildingSystem = {
             this._buildSortMode = this._buildSortMode === 'unlock' ? 'energy' : 'unlock';
             this._renderBuildGrid();
         });
+        el.querySelectorAll('[data-build-category]').forEach((button) => {
+            button.addEventListener('click', () => this._setBuildCategory(button.dataset.buildCategory));
+            button.addEventListener('keydown', (event) => this._onBuildCategoryKeydown(event));
+        });
         el.querySelector('#bpCancel').addEventListener('click', () => {
             this._cancelPlacement();
             this._setRecycleMode(false);
@@ -606,6 +710,7 @@ export const BuildingSystem = {
         this._updateSnapHint();
         this._updateMirrorUi();
         this._updateBuildSortButton();
+        this._updateBuildCategoryTabs();
         el.querySelectorAll('.we-thumb').forEach((t) => {
             this._bindBuildItemThumb(t);
         });
@@ -651,6 +756,28 @@ export const BuildingSystem = {
         this._renderBuildGrid();
     },
 
+    /** 从建筑详情进入一次性免费迁移；原实体在合法落点确认前保持原位与完整状态。 */
+    beginPackedRebuild(entity) {
+        if (!TechnologySystem.isUnlocked('mechanic', 'building_relocation')) {
+            return { ok: false, reason: '需要先研发“打包重建”科技' };
+        }
+        if (!entity?.active || entity._sinking) return { ok: false, reason: '建筑当前不可重建' };
+        if (entity._isWorldPortalCore || entity._isMainHubPortalBuilding) {
+            return { ok: false, reason: '位面核心建筑不能打包重建' };
+        }
+        const itemId = entity._buildItemId || entity.cfgKey;
+        const item = BUILD_ITEMS.find((entry) => entry.id === itemId && entry.kind === 'producer');
+        if (!item) return { ok: false, reason: '该建筑尚未接入标准化重建流程' };
+        if (!this.active) this.open();
+        if (!this.active) return { ok: false, reason: '当前无法打开建筑放置界面' };
+        this._selectItem(item, { packedRebuildSource: entity });
+        if (this._packedRebuildSource !== entity || this._placing?.item !== item) {
+            return { ok: false, reason: '该建筑当前不满足重建条件' };
+        }
+        this._notify('建筑已打包：请选择新的合法位置，右键或 Esc 取消', '#9dff9d');
+        return { ok: true };
+    },
+
     _bindBuildItemThumb(thumb) {
         if (!thumb || thumb.dataset.buildItemBound === 'true') return;
         thumb.dataset.buildItemBound = 'true';
@@ -660,19 +787,23 @@ export const BuildingSystem = {
         });
     },
 
-    _selectItem(item) {
+    _selectItem(item, { packedRebuildSource = null } = {}) {
         if (!isBuildItemTechnologyUnlocked(item)) {
             this._notify('该建筑尚未通过科技解锁', '#ffb35c');
             return;
         }
+        const previousPackedSource = this._packedRebuildSource;
+        this._packedRebuildSource = packedRebuildSource;
         const buildBlock = this._buildItemCardBlockReason(item);
         if (buildBlock) {
+            this._packedRebuildSource = previousPackedSource;
             this._notify(buildBlock, '#ffb35c');
             this._syncBuildItemCards();
             return;
         }
         this._setRecycleMode(false);
         this._cancelPlacement();
+        this._packedRebuildSource = packedRebuildSource;
         this._placing = { item, mirror: false };
         // 兼容修复前已经建成但未触发拓扑失效的方块墙：点选楼梯时只刷新一次，
         // 随后的鼠标移动继续复用缓存，不产生逐帧重建开销。
@@ -741,8 +872,11 @@ export const BuildingSystem = {
         else this._clearRoadPreview();
         const sel = this._panel && this._panel.querySelector('#bpSel');
         if (sel) {
+            const packed = !!this._packedRebuildSource;
             const action = item.kind === 'road' ? '单击或拖动铺设' : '左键放置 / F 镜像';
-            sel.textContent = `${item.name}（${this._effectiveBuildCost(item)}${item.currency === 'energy' ? '能' : '金'}）— ${action}`;
+            sel.textContent = packed
+                ? `${item.name}（打包重建 · 免费）— ${action}`
+                : `${item.name}（${this._effectiveBuildCost(item)}${item.currency === 'energy' ? '能' : '金'}）— ${action}`;
         }
         if (this._guide) {
             this._guide.clear();
@@ -987,6 +1121,7 @@ export const BuildingSystem = {
         }
         if (destroyReusableVisuals) this._lastPointerClient = null;
         this._placing = null;
+        this._packedRebuildSource = null;
         this._updateMirrorUi();
         const sel = this._panel && this._panel.querySelector('#bpSel');
         if (sel) sel.textContent = '未选择建筑';
@@ -2627,13 +2762,17 @@ export const BuildingSystem = {
             this._roadPlacementStatus = null;
             return false;
         }
+        const ignoreEntity = this._packedRebuildSource;
         const status = this._buildingRoadPlacementStatus(x, y, {
             includeRoadRing: usesBuildingRoads(item),
             perimeterKind: buildingPerimeterKind(item),
+            ignoreEntity,
         });
         this._roadPlacementStatus = status;
         if (!this._fitsPlacementBounds(item, x, y)) return false;
-        if (!this._canPlaceIsoBuildingFootprint(this._buildingFootprintProbe(x, y))) return false;
+        if (!this._canPlaceIsoBuildingFootprint(this._buildingFootprintProbe(x, y), {
+            ignoreEntities: ignoreEntity ? new Set([ignoreEntity]) : new Set(),
+        })) return false;
         return status.ok;
     },
 
@@ -2684,18 +2823,23 @@ export const BuildingSystem = {
         );
     },
 
-    _buildingRoadPlacementStatus(x, y, { includeRoadRing = true, perimeterKind = 'road' } = {}) {
+    _buildingRoadPlacementStatus(x, y, {
+        includeRoadRing = true,
+        perimeterKind = 'road',
+        ignoreEntity = null,
+    } = {}) {
         const layout = buildingRoadLayout(x, y);
         const validByKey = new Map();
         const checkedCells = includeRoadRing ? layout.reservationCells : layout.buildingCells;
         for (const cell of checkedCells) {
             const canShareManualRoad = cell.road && perimeterKind === 'road';
-            const valid = !BuildingRoadSystem.isReservedCell(cell.i, cell.j)
+            const valid = !BuildingRoadSystem.isReservedCell(cell.i, cell.j, ignoreEntity)
                 && (canShareManualRoad || !BuildingRoadSystem.isManualRoadCell(cell.i, cell.j))
                 && this._roadCellFitsBounds(cell)
                 && this._canPlaceIsoBuildingFootprint(this._roadCellProbe(cell), {
                     centerSampleRadius: 4,
                     edgeSampleRadius: 0,
+                    ignoreEntities: ignoreEntity ? new Set([ignoreEntity]) : new Set(),
                 });
             validByKey.set(cell.key, valid);
         }
@@ -3257,6 +3401,72 @@ export const BuildingSystem = {
         return entity;
     },
 
+    _placePackedRebuild(x, y, item, mirror) {
+        const source = this._packedRebuildSource;
+        if (!source?.active) {
+            this._notify('原建筑已失效，重建已取消', '#ff5555');
+            this._cancelPlacement();
+            return;
+        }
+        const previous = {
+            x: source.x,
+            y: source.y,
+            facingLeft: source._facingLeft,
+            rallyPoint: source._rallyPoint ? { ...source._rallyPoint } : null,
+            hadRoadAttachment: !!source._buildingRoadLayout,
+        };
+        const dx = x - source.x;
+        const dy = y - source.y;
+        BuildingRoadSystem.detach(source);
+        try {
+            source.x = x;
+            source.y = y;
+            source._facingLeft = !!mirror;
+            if (source._rallyPoint) {
+                const rallyX = Number(source._rallyPoint.x);
+                const rallyY = Number(source._rallyPoint.y);
+                source._rallyPoint = {
+                    ...source._rallyPoint,
+                    x: (Number.isFinite(rallyX) ? rallyX : previous.x) + dx,
+                    y: (Number.isFinite(rallyY) ? rallyY : previous.y) + dy,
+                };
+            }
+            source.rebuildCollider?.();
+            source.collider?.syncPosition?.();
+            source._structureTopologyBaseDepth = source._structureFrontDepth;
+            delete source._structureTopologyAppliedDepth;
+            if (usesBuildingRoads(item) && !BuildingRoadSystem.attach(source)) {
+                throw new Error('新位置的附属道路预约失败');
+            }
+        } catch (error) {
+            BuildingRoadSystem.detach(source);
+            source.x = previous.x;
+            source.y = previous.y;
+            source._facingLeft = previous.facingLeft;
+            source._rallyPoint = previous.rallyPoint;
+            source.rebuildCollider?.();
+            source.collider?.syncPosition?.();
+            source._structureTopologyBaseDepth = source._structureFrontDepth;
+            delete source._structureTopologyAppliedDepth;
+            if (previous.hadRoadAttachment) BuildingRoadSystem.attach(source, { allowOverlap: true });
+            console.error('[BuildingSystem] 打包重建失败:', error);
+            this._notify('重建失败，原建筑已恢复', '#ff5555');
+            return;
+        }
+        DefenseSystem?.invalidateElevatedTopology?.();
+        const layout = source._buildingRoadLayout || buildingRoadLayout(x, y);
+        const clearCells = usesBuildingRoads(item) ? layout.reservationCells : layout.buildingCells;
+        this._clearBuildZones(clearCells.map((cell) => ({
+            x: cell.x,
+            y: cell.y,
+            radius: ONE_CELL_BUILDING_FOOT.clearRadius,
+        })));
+        this._playBuildingPlacedFeedback(source);
+        this._notify(`${item.name} 已在新位置重建（免费）`, '#9dff9d');
+        this._cancelPlacement();
+        this._refreshCurrencies();
+    },
+
     _recycleTargets(entity) {
         const raw = Array.isArray(entity && entity._buildGroup) ? entity._buildGroup : [entity];
         return Array.from(new Set(raw.filter((e) => e && e.active)));
@@ -3516,6 +3726,10 @@ export const BuildingSystem = {
         }
         if (!this._canPlace(x, y)) {
             this._notify('该位置无法放置', '#ff5555');
+            return;
+        }
+        if (this._packedRebuildSource) {
+            this._placePackedRebuild(x, y, item, mirror);
             return;
         }
         // 货币扣费由建筑条目的 currency 决定。

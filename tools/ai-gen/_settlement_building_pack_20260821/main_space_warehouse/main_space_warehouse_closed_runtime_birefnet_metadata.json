@@ -1,0 +1,41 @@
+{
+  "source": "tools\\ai-gen\\_settlement_building_pack_20260821\\main_space_warehouse\\main_space_warehouse_chest_v2_5080_s48_seed122862_birefnet.png",
+  "output": "tools\\ai-gen\\_settlement_building_pack_20260821\\main_space_warehouse\\main_space_warehouse_closed_runtime_birefnet.png",
+  "sourceMode": "RGBA",
+  "background": null,
+  "matteColor": null,
+  "matteEdgeWidth": null,
+  "matteTolerance": null,
+  "nearestOpaqueEdgeRgb": true,
+  "nearestOpaqueAlpha": 0.92,
+  "maskImage": "tools\\ai-gen\\_settlement_building_pack_20260821\\main_space_warehouse\\main_space_warehouse_chest_v2_depth.png",
+  "maskDilate": 3,
+  "fillAlphaHoles": false,
+  "fillHoleMatteDistance": null,
+  "removeEnclosedMatte": false,
+  "enclosedMatteChromaDistance": null,
+  "maskAddRects": [],
+  "restoreAlphaRects": [],
+  "removeMatteRects": [],
+  "cropBox": [
+    85,
+    128,
+    938,
+    919
+  ],
+  "fileSize": [
+    853,
+    791
+  ],
+  "alphaBBox": [
+    4,
+    4,
+    849,
+    787
+  ],
+  "displayW": 180,
+  "displayH": 167,
+  "footOffsetY": 83,
+  "scaleX": 0.21101992966002345,
+  "scaleY": 0.2111251580278129
+}

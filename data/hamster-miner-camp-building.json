@@ -1,7 +1,7 @@
 {
   "id": "hamster_hut",
   "name": "矿工营地",
-  "cost": 500,
+  "cost": 800,
   "hp": 1500,
   "def": 60,
   "mdef": 60,

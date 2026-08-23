@@ -233,9 +233,10 @@ def humanoid_attack(args):
 def humanoid_video(args):
     """Generate a humanoid H3 action clip through the shared asset entrypoint."""
     out_dir = os.path.join(SCRATCH, f"{args.name}_anim")
-    ensure_dir(out_dir)
     prompt = args.prompt or tool(f"prompts/{args.name}-{args.kind}.txt")
     out = args.out or os.path.join(out_dir, f"{args.name}_{args.kind}.mp4")
+    # Explicit project-local outputs must not depend on the optional Y: scratch drive.
+    ensure_dir(os.path.dirname(os.path.abspath(out)))
     cmd = ["PY", tool("minimax-h3-gen.py"), "--host", HOST,
            "--first-frame", args.ref, "--prompt-file", prompt,
            "--duration", str(args.duration), "--size", args.size,

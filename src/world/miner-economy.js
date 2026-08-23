@@ -6,23 +6,34 @@ import { getUpgradeMultsFromLevels } from './unit-upgrade-store.js';
 
 export const MINER_CAMP_CONFIG = resolveBuildingUpgradeProject(minerCampCfg);
 
+function resolveModuleLevel(module, moduleId, levels) {
+    if (!module || !moduleId) return 0;
+    return Math.max(0, Math.min(
+        Math.floor(Number(module.maxLevel) || 0),
+        Math.floor(Number(levels[moduleId]) || 0)
+    ));
+}
+
 export function getMinerEconomyStats(levels = {}, minerCountOverride = null) {
     const ai = minerCfg.ai || {};
     const mults = getUpgradeMultsFromLevels(MINER_CAMP_CONFIG.modules || {}, levels);
+    const countEntry = Object.entries(MINER_CAMP_CONFIG.modules || {})
+        .find(([, module]) => module?.effect === 'count');
+    const countModuleId = countEntry?.[0];
+    const countModule = countEntry?.[1];
+    const countLevel = resolveModuleLevel(countModule, countModuleId, levels);
     const backpackEntry = Object.entries(MINER_CAMP_CONFIG.modules || {})
         .find(([, module]) => module?.effect === 'backpackCapacityBonus');
     const backpackModuleId = backpackEntry?.[0];
     const backpackModule = backpackEntry?.[1];
-    const backpackLevel = backpackModule
-        ? Math.max(0, Math.min(
-            Math.floor(Number(backpackModule.maxLevel) || 0),
-            Math.floor(Number(levels[backpackModuleId]) || 0)
-        ))
-        : 0;
+    const backpackLevel = resolveModuleLevel(backpackModule, backpackModuleId, levels);
     const backpackCapacity = Math.max(0, Number(ai.backpackCapacity) || 0)
         + Math.max(0, Number(backpackModule?.per) || 0) * backpackLevel;
+    const configuredCount = countModule
+        ? (Number(countModule.base) || 0) + (Number(countModule.per) || 0) * countLevel
+        : mults.count;
     const count = minerCountOverride == null
-        ? Math.max(1, Math.floor(mults.count))
+        ? Math.max(1, Math.floor(Number(configuredCount) || 0))
         : Math.max(0, Math.floor(Number(minerCountOverride) || 0));
     return {
         count,

@@ -31,18 +31,18 @@ import { MilitaryPopulationSystem } from '../world/military-population-system.js
 // Game UI Manager - Extracted from Game.js
 // Handles UI updates, save/load, timers, and menu operations
 
-const INVASION_DANGER_COLORS = [
+const TIMELINE_PROGRESS_COLORS = [
     { at: 0, rgb: [61, 196, 91] },
     { at: 1 / 3, rgb: [65, 139, 231] },
     { at: 2 / 3, rgb: [241, 193, 63] },
     { at: 1, rgb: [229, 65, 62] },
 ];
 
-function invasionDangerColor(value) {
+function timelineProgressColor(value) {
     const progress = Math.max(0, Math.min(1, Number(value) || 0));
-    const upperIndex = INVASION_DANGER_COLORS.findIndex((stop) => progress <= stop.at);
-    const upper = INVASION_DANGER_COLORS[Math.max(1, upperIndex)];
-    const lower = INVASION_DANGER_COLORS[Math.max(0, upperIndex - 1)];
+    const upperIndex = TIMELINE_PROGRESS_COLORS.findIndex((stop) => progress <= stop.at);
+    const upper = TIMELINE_PROGRESS_COLORS[Math.max(1, upperIndex)];
+    const lower = TIMELINE_PROGRESS_COLORS[Math.max(0, upperIndex - 1)];
     const span = Math.max(Number.EPSILON, upper.at - lower.at);
     const t = Math.max(0, Math.min(1, (progress - lower.at) / span));
     const rgb = lower.rgb.map((channel, index) =>
@@ -50,9 +50,201 @@ function invasionDangerColor(value) {
     return `rgb(${rgb.join(', ')})`;
 }
 
+function assignTimelineEventLanes(events, minimumGap = 0.14) {
+    const lastPositionByLane = [-Infinity, -Infinity];
+    return events.map((event) => {
+        const position = Math.max(0, Math.min(1, Number(event.position) || 0));
+        let lane = lastPositionByLane.findIndex((lastPosition) =>
+            position - lastPosition >= minimumGap);
+        if (lane < 0) lane = lastPositionByLane[0] <= lastPositionByLane[1] ? 0 : 1;
+        lastPositionByLane[lane] = position;
+        return lane;
+    });
+}
+
+function clusterTimelineEvents(events, maximumPositionGap = 0.08) {
+    const groups = [];
+    for (const event of events) {
+        const position = Math.max(0, Math.min(1, Number(event.position) || 0));
+        const current = groups[groups.length - 1];
+        if (!current || position - current.anchorPosition > maximumPositionGap) {
+            groups.push({ anchorPosition: position, events: [event] });
+        } else {
+            current.events.push(event);
+        }
+    }
+    return groups.flatMap((group) => {
+        if (group.events.length <= 2) return group.events;
+        const ids = group.events.map((event) => event.id).sort();
+        const position = group.events.reduce((sum, event) =>
+            sum + Math.max(0, Math.min(1, Number(event.position) || 0)), 0) / group.events.length;
+        const timeLabels = new Set(group.events.map((event) => event.timeLabel));
+        return [{
+            id: `cluster:${ids.join('|')}`,
+            type: 'cluster',
+            typeLabel: '事件簇',
+            label: `${group.events.length}个同期事件`,
+            timeLabel: timeLabels.size === 1 ? group.events[0].timeLabel : '同一时段',
+            position,
+            status: group.events.some((event) => event.status === 'active') ? 'active' : 'upcoming',
+            clusterEvents: group.events,
+        }];
+    });
+}
+
+function closeTimelinePopover() {
+    const popover = getElementIfExists('worldTimelinePopover');
+    if (!popover) return;
+    popover.hidden = true;
+    popover.removeAttribute('data-source-id');
+}
+
+function prepareTimelinePopover(sourceId, title) {
+    const popover = getElementIfExists('worldTimelinePopover');
+    const heading = getElementIfExists('worldTimelinePopoverTitle');
+    const content = getElementIfExists('worldTimelinePopoverContent');
+    if (!popover || !heading || !content) return null;
+    if (!popover.hidden && popover.dataset.sourceId === sourceId) {
+        closeTimelinePopover();
+        return null;
+    }
+    popover.dataset.sourceId = sourceId;
+    heading.textContent = title;
+    content.replaceChildren();
+    popover.hidden = false;
+    return content;
+}
+
+function appendTimelineEventIcon(container, event) {
+    const icon = document.createElement('span');
+    icon.className = 'world-timeline-list-icon';
+    if (event.iconPath) {
+        const image = document.createElement('img');
+        image.src = event.iconPath;
+        image.alt = '';
+        image.draggable = false;
+        image.addEventListener('error', () => {
+            image.remove();
+            icon.textContent = event.icon || '◆';
+        }, { once: true });
+        icon.appendChild(image);
+    } else {
+        icon.textContent = event.icon || '◆';
+    }
+    container.appendChild(icon);
+}
+
+function appendTimelineDetailRow(container, label, value) {
+    const row = document.createElement('div');
+    row.className = 'world-timeline-detail-row';
+    const name = document.createElement('span');
+    name.textContent = label;
+    const detail = document.createElement('strong');
+    detail.textContent = value || '—';
+    row.append(name, detail);
+    container.appendChild(row);
+}
+
+function timelineEventHoverCopy(event) {
+    const activeLabel = event.status === 'active' ? '正在发生' : '即将发生';
+    if (Array.isArray(event.clusterEvents)) {
+        const typeLabels = [...new Set(event.clusterEvents.map((child) =>
+            child.typeLabel || child.type || '事件'))];
+        return {
+            title: event.label,
+            meta: `${event.clusterEvents.length}个事件 · ${typeLabels.join(' / ')}`,
+            timing: event.timeLabel,
+            hint: '点击展开完整事件列表',
+        };
+    }
+    if (event.type === 'weather') {
+        const timing = event.startsAtLabel && event.endsAtLabel
+            ? `${event.startsAtLabel} 至 ${event.endsAtLabel}`
+            : event.timeLabel;
+        return {
+            title: event.label,
+            meta: `${event.worldName || event.sceneId || '未知位面'} · ${event.intensityName || event.intensityId || '降雨'}`,
+            timing,
+            hint: `${activeLabel} · 点击查看完整预报`,
+        };
+    }
+    return {
+        title: event.label,
+        meta: `${event.typeLabel || event.type || '事件'} · ${activeLabel}`,
+        timing: event.timeLabel,
+        hint: event.status === 'active' ? '事件已经触发' : '当前游标抵达竖线时触发',
+    };
+}
+
+function appendTimelineHoverTooltip(marker, copy) {
+    const tooltip = document.createElement('span');
+    tooltip.className = 'world-timeline-event-tooltip';
+    tooltip.setAttribute('role', 'tooltip');
+    tooltip.setAttribute('aria-hidden', 'true');
+    const title = document.createElement('strong');
+    title.textContent = copy.title;
+    const meta = document.createElement('span');
+    meta.className = 'world-timeline-event-tooltip-meta';
+    meta.textContent = copy.meta;
+    const timing = document.createElement('span');
+    timing.textContent = copy.timing;
+    const hint = document.createElement('small');
+    hint.textContent = copy.hint;
+    tooltip.append(title, meta, timing, hint);
+    marker.appendChild(tooltip);
+}
+
+function openWeatherTimelineDetail(event) {
+    const content = prepareTimelinePopover(`weather:${event.id}`, '天气预报详情');
+    if (!content) return;
+    const summary = document.createElement('div');
+    summary.className = 'world-timeline-detail-summary';
+    appendTimelineEventIcon(summary, event);
+    const summaryText = document.createElement('span');
+    summaryText.textContent = event.label;
+    summary.appendChild(summaryText);
+    content.appendChild(summary);
+    const rows = document.createElement('div');
+    rows.className = 'world-timeline-detail-grid';
+    appendTimelineDetailRow(rows, '位面', event.worldName || event.sceneId || '未知位面');
+    appendTimelineDetailRow(rows, '强度', event.intensityName || event.intensityId || '降雨');
+    appendTimelineDetailRow(rows, '开始', event.startsAtLabel);
+    appendTimelineDetailRow(rows, '结束', event.endsAtLabel);
+    appendTimelineDetailRow(rows, '状态', event.status === 'active' ? '正在发生' : '预测中');
+    content.appendChild(rows);
+}
+
+function openTimelineCluster(cluster) {
+    const content = prepareTimelinePopover(cluster.id, `${cluster.clusterEvents.length}个同期事件`);
+    if (!content) return;
+    const list = document.createElement('div');
+    list.className = 'world-timeline-cluster-list';
+    cluster.clusterEvents.forEach((event) => {
+        const interactive = event.type === 'weather';
+        const item = document.createElement(interactive ? 'button' : 'div');
+        item.className = `world-timeline-cluster-item is-${event.type || 'generic'}`;
+        if (interactive) {
+            item.type = 'button';
+            item.addEventListener('click', () => openWeatherTimelineDetail(event));
+        }
+        appendTimelineEventIcon(item, event);
+        const text = document.createElement('span');
+        text.className = 'world-timeline-cluster-item-text';
+        const label = document.createElement('strong');
+        label.textContent = event.label;
+        const time = document.createElement('small');
+        time.textContent = `${event.typeLabel} · ${event.timeLabel}`;
+        text.append(label, time);
+        item.appendChild(text);
+        list.appendChild(item);
+    });
+    content.appendChild(list);
+}
+
 export const GameUIManager = {
     player: null,
     showAttackRange: false,
+    _timelineFilterType: 'all',
 
     init(player) {
         this.player = player;
@@ -278,6 +470,7 @@ export const GameUIManager = {
         }
         EnvironmentLightingSystem.restoreTime(data.gameTime);
         window.World122SandstormSystem?.restore?.(data.worlds?.sandstorm ?? data.world122?.sandstorm);
+        window.WorldWeatherSystem?.restore?.(data.worlds?.weather);
         // 恢复装备与背包（附魔/强化/改造数据随物品一并恢复）
         if (data.equipments) this.player.equipments = data.equipments;
         restoreUnitUpgrades(data.world122?.unitUpgrades);
@@ -293,6 +486,7 @@ export const GameUIManager = {
         window.WorldProgressionSystem?.restore?.(data.worlds?.progression);
         TroopLineSystem.restore(data.worlds?.troopLines);
         window.WorldInvasionSystem?.restore?.(data.worlds?.invasion);
+        window.WorldDestructionChallengeSystem?.restore?.(data.worlds?.destructionChallenges);
         if (Array.isArray(data.backpack) && typeof EquipManager !== 'undefined') {
             // 原地替换内容而非换数组：init 时旧数组引用已注入 EquipTooltipManager/
             // GoldManager/BackpackDialogManager/dragDropManager，换数组会让这些引用失效
@@ -372,6 +566,8 @@ export const GameUIManager = {
                 troopLines: TroopLineSystem.serialize(),
                 invasion: window.WorldInvasionSystem?.serialize?.() || null,
                 sandstorm: window.World122SandstormSystem?.serialize?.() || null,
+                weather: window.WorldWeatherSystem?.serialize?.() || null,
+                destructionChallenges: window.WorldDestructionChallengeSystem?.serialize?.() || null,
                 scenes: serializeWorldScenes(),
             },
         };
@@ -436,6 +632,13 @@ export const GameUIManager = {
         const invasionDetail = getElementIfExists('worldInvasionDetail');
         const invasionSupport = getElementIfExists('worldInvasionSupport');
         const invasionBar = getElementIfExists('worldInvasionBar');
+        const timelineEvents = getElementIfExists('worldTimelineEvents');
+        const timelineCursor = getElementIfExists('worldTimelineCursor');
+        const timelineWindow = getElementIfExists('worldTimelineWindow');
+        const timelineFilters = getElementIfExists('worldTimelineFilters');
+        const timeline = window.WorldEventTimelineSystem?.getHudModel?.();
+        const allTimelineEvents = Array.isArray(timeline?.events) ? timeline.events : [];
+        let visibleTimelineEvents = allTimelineEvents;
         if (invasionHud && invasion) {
             invasionHud.classList.toggle('active', !!invasion.active);
             for (const severity of ['warning', 'critical', 'evacuation']) {
@@ -450,13 +653,172 @@ export const GameUIManager = {
         if (invasionSupport && invasion) {
             invasionSupport.style.display = invasion.active && invasion.canSupport ? '' : 'none';
         }
-        if (invasionBar && invasion) {
-            const progress = Math.max(0, Math.min(1, Number(invasion.progress) || 0));
-            // 倒计时越满越危险；入侵发生后 progress 改表示传送门剩余耐久，危险度方向相反。
-            const danger = invasion.active ? 1 - progress : progress;
-            invasionBar.style.width = `${Math.round(progress * 100)}%`;
-            invasionBar.style.setProperty('--invasion-gradient-start', invasionDangerColor(danger - 0.08));
-            invasionBar.style.setProperty('--invasion-gradient-end', invasionDangerColor(danger + 0.08));
+        if (invasionBar && timeline) {
+            invasionBar.style.width = '100%';
+            invasionBar.style.setProperty('--invasion-gradient-start', timelineProgressColor(1));
+            invasionBar.style.setProperty('--invasion-gradient-end', timelineProgressColor(0));
+        }
+        if (timelineCursor && timeline) {
+            const nowPosition = Math.max(0, Math.min(1, Number(timeline.nowPosition) || 0));
+            timelineCursor.style.left = `${Math.round(nowPosition * 10000) / 100}%`;
+        }
+        if (timelineFilters && timeline) {
+            const typeMap = new Map();
+            allTimelineEvents.forEach((event) => {
+                const type = event.type || 'generic';
+                if (!typeMap.has(type)) typeMap.set(type, {
+                    type,
+                    label: event.typeLabel || type,
+                    count: 0,
+                });
+                typeMap.get(type).count++;
+            });
+            if (this._timelineFilterType !== 'all' && !typeMap.has(this._timelineFilterType)) {
+                this._timelineFilterType = 'all';
+            }
+            const filterOptions = [
+                { type: 'all', label: '全部', count: allTimelineEvents.length },
+                ...typeMap.values(),
+            ];
+            const filterSignature = JSON.stringify([
+                this._timelineFilterType,
+                ...filterOptions.map((option) => [option.type, option.label, option.count]),
+            ]);
+            if (timelineFilters.dataset.renderSignature !== filterSignature) {
+                timelineFilters.dataset.renderSignature = filterSignature;
+                timelineFilters.replaceChildren();
+                filterOptions.forEach((option) => {
+                    const button = document.createElement('button');
+                    const active = this._timelineFilterType === option.type;
+                    button.type = 'button';
+                    button.className = `world-timeline-filter${active ? ' active' : ''}`;
+                    button.textContent = `${option.label} ${option.count}`;
+                    button.dataset.eventType = option.type;
+                    button.setAttribute('aria-pressed', String(active));
+                    button.addEventListener('click', () => {
+                        if (this._timelineFilterType === option.type) return;
+                        this._timelineFilterType = option.type;
+                        closeTimelinePopover();
+                        if (timelineEvents) delete timelineEvents.dataset.renderSignature;
+                        this.refreshGameTime();
+                    });
+                    timelineFilters.appendChild(button);
+                });
+            }
+            if (this._timelineFilterType !== 'all') {
+                visibleTimelineEvents = allTimelineEvents.filter((event) =>
+                    (event.type || 'generic') === this._timelineFilterType);
+            }
+        }
+        if (timelineWindow && timeline) {
+            const durationDays = Math.max(0, Number(timeline.durationDays) || 0);
+            const durationLabel = Number.isInteger(durationDays)
+                ? String(durationDays)
+                : durationDays.toFixed(1);
+            const countLabel = this._timelineFilterType === 'all'
+                ? `${allTimelineEvents.length}个事件`
+                : `显示${visibleTimelineEvents.length}/${allTimelineEvents.length}个事件`;
+            const summary = `未来${durationLabel}日 · ${countLabel}`;
+            if (timelineWindow.textContent !== summary) timelineWindow.textContent = summary;
+        }
+        if (timelineEvents && timeline) {
+            const displayEvents = clusterTimelineEvents(visibleTimelineEvents);
+            const lanes = assignTimelineEventLanes(displayEvents);
+            const renderSignature = JSON.stringify(displayEvents.map((event, index) => [
+                event.id,
+                event.type,
+                event.status,
+                event.label,
+                event.timeLabel,
+                event.icon,
+                event.iconPath,
+                event.typeLabel,
+                event.worldName,
+                event.intensityName,
+                event.startsAtLabel,
+                event.endsAtLabel,
+                lanes[index],
+                event.clusterEvents?.map((child) => [child.id, child.type, child.typeLabel, child.status, child.timeLabel]),
+            ]));
+            if (timelineEvents.dataset.renderSignature !== renderSignature) {
+                timelineEvents.dataset.renderSignature = renderSignature;
+                timelineEvents.replaceChildren();
+                displayEvents.forEach((event, index) => {
+                    const position = Math.max(0, Math.min(1, Number(event.position) || 0));
+                    const isCluster = Array.isArray(event.clusterEvents);
+                    const isWeather = event.type === 'weather';
+                    const pulseType = isCluster
+                        ? (event.clusterEvents.some((child) => child.type === 'invasion')
+                            ? 'invasion'
+                            : (event.clusterEvents.some((child) => child.type === 'weather') ? 'weather' : 'generic'))
+                        : (event.type || 'generic');
+                    const interactive = isCluster || isWeather;
+                    const marker = document.createElement(interactive ? 'button' : 'span');
+                    if (interactive) marker.type = 'button';
+                    marker.className = `world-timeline-event is-${event.type || 'generic'} pulse-${pulseType}${event.status === 'active' ? ' active' : ''}${interactive ? ' is-clickable' : ''}`;
+                    if (position <= 0.08) marker.classList.add('at-start-edge');
+                    if (position >= 0.92) marker.classList.add('at-end-edge');
+                    marker.style.left = `${Math.round(position * 10000) / 100}%`;
+                    marker.style.setProperty('--timeline-event-lane', String(lanes[index]));
+                    if (!interactive) {
+                        marker.setAttribute('role', 'img');
+                        marker.tabIndex = 0;
+                    }
+                    const actionLabel = isCluster ? '，点击展开事件簇'
+                        : (isWeather ? '，点击查看天气预报详情' : '');
+                    const hoverCopy = timelineEventHoverCopy(event);
+                    marker.setAttribute('aria-label', `${hoverCopy.title}，${hoverCopy.meta}，${hoverCopy.timing}${actionLabel}`);
+                    const icon = document.createElement('span');
+                    icon.className = 'world-timeline-event-icon';
+                    const fallbackIcon = event.icon || (isCluster ? `+${event.clusterEvents.length}` : '◆');
+                    if (isCluster) {
+                        icon.classList.add('is-cluster-count');
+                        icon.textContent = `+${event.clusterEvents.length}`;
+                    } else if (event.iconPath) {
+                        const image = document.createElement('img');
+                        image.src = event.iconPath;
+                        image.alt = '';
+                        image.draggable = false;
+                        image.decoding = 'async';
+                        image.addEventListener('error', () => {
+                            image.remove();
+                            icon.textContent = fallbackIcon;
+                        }, { once: true });
+                        icon.appendChild(image);
+                    } else {
+                        icon.textContent = fallbackIcon;
+                    }
+                    const time = document.createElement('span');
+                    time.className = 'world-timeline-event-time';
+                    time.textContent = event.timeLabel;
+                    marker.append(icon, time);
+                    appendTimelineHoverTooltip(marker, hoverCopy);
+                    const progressLine = document.createElement('span');
+                    progressLine.className = `world-timeline-event-line pulse-${pulseType}${event.status === 'active' ? ' active' : ''}`;
+                    progressLine.style.left = `${Math.round(position * 10000) / 100}%`;
+                    progressLine.setAttribute('aria-hidden', 'true');
+                    if (isCluster) {
+                        marker.addEventListener('click', () => openTimelineCluster(event));
+                    } else if (isWeather) {
+                        marker.addEventListener('click', () => openWeatherTimelineDetail(event));
+                    }
+                    timelineEvents.append(progressLine, marker);
+                });
+            }
+            const markers = timelineEvents.getElementsByClassName('world-timeline-event');
+            const progressLines = timelineEvents.getElementsByClassName('world-timeline-event-line');
+            displayEvents.forEach((event, index) => {
+                const position = Math.max(0, Math.min(1, Number(event.position) || 0));
+                const left = `${Math.round(position * 10000) / 100}%`;
+                const marker = markers[index];
+                const progressLine = progressLines[index];
+                if (marker) {
+                    marker.style.left = left;
+                    marker.classList.toggle('at-start-edge', position <= 0.08);
+                    marker.classList.toggle('at-end-edge', position >= 0.92);
+                }
+                if (progressLine) progressLine.style.left = left;
+            });
         }
     },
     setupWeaponSwitchButtons() {

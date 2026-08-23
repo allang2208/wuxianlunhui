@@ -267,15 +267,28 @@ export const FogOfWarSystem = {
             config: fogConfig.occlusion || {},
         });
         const sources = VisionSourceRegistry.getSources(game, now, { force: options.force });
-        let sourceCount = 0;
+        // 逻辑网格只能分辨到 cellSize；同格多个友军分别做一次遮挡扩散不会增加精度，
+        // 只保留该格半径最大的来源，避免成团部队把迷雾成本线性放大。
+        const uniqueSources = new Map();
+        let rawSourceCount = 0;
         for (const entity of sources) {
             const radius = VisionSourceRegistry.radiusOf(entity, fogConfig.vision || {}, game);
             const position = radius > 0 ? entityPosition(entity) : null;
             if (position) {
-                sourceCount += 1;
-                revealWithOcclusion(state, nextVisible, entity, radius, occlusion);
+                rawSourceCount += 1;
+                const column = Math.floor(position.x / state.cellSize);
+                const row = Math.floor(position.y / state.cellSize);
+                const key = column + row * state.columns;
+                const existing = uniqueSources.get(key);
+                if (!existing || radius > existing.radius) {
+                    uniqueSources.set(key, { entity, radius });
+                }
             }
         }
+        for (const source of uniqueSources.values()) {
+            revealWithOcclusion(state, nextVisible, source.entity, source.radius, occlusion);
+        }
+        const sourceCount = uniqueSources.size;
 
         let changed = false;
         let changedCells = 0;
@@ -300,6 +313,7 @@ export const FogOfWarSystem = {
         state.lastUpdateStats = {
             durationMs: endedAt - startedAt,
             sourceCount,
+            rawSourceCount,
             changedCells,
             exploredCells,
             occlusionRevision: occlusion?.revision || 0,

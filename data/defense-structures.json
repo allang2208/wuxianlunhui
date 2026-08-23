@@ -3,7 +3,7 @@
   "wallStaircase": {
     "id": "wall_staircase",
     "name": "城墙楼梯",
-    "costPerSegment": 200,
+    "costPerSegment": 250,
     "hpPerSegment": 400,
     "footprintCellsPerSegment": 1,
     "risePerSegment": 62.5,

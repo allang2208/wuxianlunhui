@@ -669,6 +669,151 @@ def build_warehouse(spec):
     return root
 
 
+def _build_main_space_warehouse_chest(spec, open_lid=False):
+    """Shared closed/open marble treasure chest for the warehouse NPC."""
+    asset_id = "main_space_warehouse_open" if open_lid else "main_space_warehouse"
+    collection, root, mats = common_context(asset_id, spec)
+    dims = spec["dimensions"]
+    bw, bd, bh = dims["body"]
+    lw, ld, lh = dims["lid"]
+    fw, fd, fh = dims["feet"]
+    body_base = fh - 2
+    body_top = body_base + bh
+    front_y = -bd / 2 - 4
+    side_x = -bw / 2 - 4
+
+    def filigree(name, points, bevel_depth=2.2):
+        curve_data = bpy.data.curves.new(name + "_Curve", type="CURVE")
+        curve_data.dimensions = "3D"
+        curve_data.resolution_u = 3
+        curve_data.bevel_depth = bevel_depth
+        curve_data.bevel_resolution = 3
+        curve_data.use_fill_caps = True
+        spline = curve_data.splines.new("BEZIER")
+        spline.bezier_points.add(len(points) - 1)
+        for point, (x, z) in zip(spline.bezier_points, points):
+            point.co = (x, front_y - 8, z)
+            point.handle_left_type = "AUTO"
+            point.handle_right_type = "AUTO"
+        obj = bpy.data.objects.new(name, curve_data)
+        collection.objects.link(obj)
+        obj.parent = root
+        obj.data.materials.append(mats["brass"])
+        return obj
+
+    def sapphire(name, location, size):
+        bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=2, radius=1)
+        gem = bpy.context.object
+        gem.name = name
+        gem.dimensions = size
+        bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
+        gem.parent = root
+        gem.location = location
+        gem.data.materials.append(mats["glow"])
+        kit.move_to_collection(gem, collection)
+        return gem
+
+    # Four separate feet and a squat body keep the silhouette unmistakably chest-like.
+    for index, (x, y) in enumerate(((-bw / 2 + 17, -bd / 2 + 15),
+                                    (bw / 2 - 17, -bd / 2 + 15),
+                                    (-bw / 2 + 17, bd / 2 - 15),
+                                    (bw / 2 - 17, bd / 2 - 15))):
+        kit.box(collection, root, f"WarehouseChest_GoldFoot_{index}", (fw, fd, fh),
+                (x, y, fh / 2), mats["brass"], bevel_width=5)
+    kit.box(collection, root, "WarehouseChest_MarbleBody", (bw, bd, bh),
+            (0, 0, body_base + bh / 2), mats["plaster"], bevel_width=8)
+
+    # Gold frame, corner guards and the strong lid seam are physical chest hardware.
+    for index, z in enumerate((body_base + 8, body_top - 8)):
+        kit.box(collection, root, f"WarehouseChest_FrontBand_{index}",
+                (bw + 12, 9, 10), (0, front_y, z), mats["brass"], bevel_width=2)
+        kit.box(collection, root, f"WarehouseChest_SideBand_{index}",
+                (9, bd + 12, 10), (side_x, 0, z), mats["brass"], bevel_width=2)
+    for x in (-bw / 2 - 2, bw / 2 + 2):
+        kit.box(collection, root, f"WarehouseChest_FrontCorner_{int(x)}",
+                (11, 10, bh + 4), (x, front_y, body_base + bh / 2),
+                mats["brass"], bevel_width=2.5)
+    for y in (-bd / 2 - 2, bd / 2 + 2):
+        kit.box(collection, root, f"WarehouseChest_SideCorner_{int(y)}",
+                (10, 11, bh + 4), (side_x, y, body_base + bh / 2),
+                mats["brass"], bevel_width=2.5)
+    kit.box(collection, root, "WarehouseChest_LidSeam", (lw + 10, ld + 10, 12),
+            (0, 0, body_top + 2), mats["brass"], bevel_width=3)
+
+    # One domed lid is parented to its rear hinge, so the open state changes only
+    # that assembly and preserves the exact body, gems and filigree.
+    lid_base = body_top + 7
+    lid_pivot = bpy.data.objects.new("WarehouseChest_RearHingePivot", None)
+    collection.objects.link(lid_pivot)
+    lid_pivot.parent = root
+    lid_pivot.location = (0, ld / 2, lid_base)
+    lid_pivot.rotation_euler.x = math.radians(-float(spec.get("lidOpenDegrees", 0)) if open_lid else 0)
+    kit.barrel_vault(collection, lid_pivot, "WarehouseChest_DomedLid", lw, ld, lh,
+                     (0, -ld / 2, 0), mats["plaster"], mats["roof"], segments=32)
+    for index, x in enumerate((-lw * 0.42, 0, lw * 0.42)):
+        rib_width = 11 if index == 1 else 9
+        kit.barrel_vault(collection, lid_pivot, f"WarehouseChest_GoldLidRib_{index}",
+                         rib_width, ld + 8, lh + 4, (x, -ld / 2, -1),
+                         mats["brass"], mats["brass"], segments=28)
+    kit.box(collection, lid_pivot, "WarehouseChest_LidLatch", (18, 10, 48),
+            (0, -ld - 1, -9), mats["brass"], bevel_width=4)
+
+    if open_lid:
+        # Dark lining under the raised lid and one empty magical storage cavity.
+        # No loose treasure is modeled, so the result remains the warehouse prop.
+        kit.box(collection, lid_pivot, "WarehouseChest_InnerLidLining",
+                (lw - 24, ld - 20, 6), (0, -ld / 2, -5),
+                mats["iron"], bevel_width=5)
+        kit.box(collection, root, "WarehouseChest_OpenInterior",
+                (bw - 24, bd - 24, 7), (0, 0, body_top + 9),
+                mats["iron"], bevel_width=6)
+        kit.box(collection, root, "WarehouseChest_OpenInteriorBlueGlow",
+                (bw - 42, bd - 42, 4), (0, -2, body_top + 13),
+                mats["glow"], bevel_width=7)
+        for index, x in enumerate((-lw * 0.31, lw * 0.31)):
+            kit.cylinder(collection, root, f"WarehouseChest_GoldHinge_{index}",
+                         8, 44, (x, bd / 2 + 3, body_top + 8), mats["brass"],
+                         rotation=(0, 90, 0), vertices=24, bevel_width=1.5)
+
+    # Central sapphire lock with a deep gold sunburst frame.
+    lock_z = body_base + bh * 0.56
+    kit.gear(collection, root, "WarehouseChest_GoldLockRosette", 27,
+             (0, front_y - 10, lock_z), mats["brass"], axis="Y", teeth=16)
+    sapphire("WarehouseChest_MainSapphire",
+             (0, front_y - 17, lock_z), (31, 11, 42))
+
+    # Raised symmetrical scrollwork makes the gold carving readable in Depth.
+    scroll_z = body_base + bh * 0.50
+    left_scroll = [(-27, scroll_z), (-40, scroll_z + 17), (-62, scroll_z + 20),
+                   (-76, scroll_z + 8), (-67, scroll_z - 2), (-52, scroll_z + 3)]
+    lower_left = [(-28, scroll_z - 7), (-43, scroll_z - 22), (-67, scroll_z - 20),
+                  (-78, scroll_z - 7), (-64, scroll_z - 3)]
+    filigree("WarehouseChest_Filigree_LeftUpper", left_scroll, 2.6)
+    filigree("WarehouseChest_Filigree_LeftLower", lower_left, 2.3)
+    filigree("WarehouseChest_Filigree_RightUpper", [(-x, z) for x, z in left_scroll], 2.6)
+    filigree("WarehouseChest_Filigree_RightLower", [(-x, z) for x, z in lower_left], 2.3)
+    for index, x in enumerate((-78, -50, 50, 78)):
+        sapphire(f"WarehouseChest_SapphireInlay_{index}",
+                 (x, front_y - 13, body_base + 23), (12, 7, 15))
+
+    # One decorated side panel reinforces that this is a portable container, not a house.
+    kit.gear(collection, root, "WarehouseChest_SideGoldRosette", 23,
+             (side_x - 9, 12, body_base + bh * 0.50), mats["brass"], axis="X", teeth=14)
+    side_gem = kit.cylinder(collection, root, "WarehouseChest_SideSapphire", 12, 8,
+                            (side_x - 14, 12, body_base + bh * 0.50), mats["glow"],
+                            rotation=(0, 90, 0), vertices=8, bevel_width=1)
+    side_gem.scale.z = 1.25
+    return root
+
+
+def build_main_space_warehouse(spec):
+    return _build_main_space_warehouse_chest(spec, open_lid=False)
+
+
+def build_main_space_warehouse_open(spec):
+    return _build_main_space_warehouse_chest(spec, open_lid=True)
+
+
 def build_blacksmith(spec):
     collection, root, mats = common_context("blacksmith", spec)
     g = standard_shell(collection, root, mats, spec["dimensions"], bays=3)
@@ -1540,6 +1685,145 @@ def build_portal(spec):
             bevel_width=4)
     kit.box(collection, root, "Portal_ThresholdInlay", (inner_radius * 1.82, 10, 8),
             (0, -frame_depth / 2 - 3, base_z + 8), mats["brass"], bevel_width=2)
+    return root
+
+
+def resonator_torus_ring(collection, root, name, major_radius, minor_radius,
+                         location, rotation, mat):
+    """One complete editable gyroscopic ring for the planar resonator."""
+    bpy.ops.mesh.primitive_torus_add(
+        major_radius=float(major_radius), minor_radius=float(minor_radius),
+        major_segments=64, minor_segments=12)
+    ring = bpy.context.object
+    ring.name = name
+    ring.parent = root
+    ring.location = location
+    ring.rotation_euler = tuple(math.radians(value) for value in rotation)
+    ring.data.materials.append(mat)
+    for polygon in ring.data.polygons:
+        polygon.use_smooth = True
+    kit.move_to_collection(ring, collection)
+    return ring
+
+
+def build_planar_resonator(spec):
+    """Connected 2x2 armillary generator with one hovering energy crystal."""
+    collection, root, mats = common_context("planar_resonator", spec)
+    dims = spec["dimensions"]
+    fw, fd, fh = dims["foundation"]
+    lower_w, lower_d, lower_h = dims["lowerPlinth"]
+    upper_w, upper_d, upper_h = dims["upperPlinth"]
+    pedestal_radius, pedestal_height = dims["pedestal"]
+    ring_center_z = float(dims["ringCenterZ"])
+
+    # A complete two-tier 2x2 platform keeps every mechanical component on one
+    # footprint and gives the future runtime sprite an unambiguous ground line.
+    kit.box(collection, root, "PlanarResonator_Foundation", (fw, fd, fh),
+            (0, 0, fh / 2), mats["foundation"], bevel_width=4)
+    lower_z = fh
+    kit.box(collection, root, "PlanarResonator_LowerPlinth",
+            (lower_w, lower_d, lower_h),
+            (0, 0, lower_z + lower_h / 2), mats["stone"], bevel_width=4)
+    upper_z = lower_z + lower_h
+    kit.box(collection, root, "PlanarResonator_UpperPlinth",
+            (upper_w, upper_d, upper_h),
+            (0, 0, upper_z + upper_h / 2), mats["plaster"], bevel_width=4)
+    platform_top = upper_z + upper_h
+
+    # Cross-shaped conductor rails visibly route the four bearing pylons into
+    # the central emitter. Narrow glow inlays stay attached to the platform.
+    conductor_z = platform_top + 3
+    kit.box(collection, root, "PlanarResonator_Conductor_X",
+            (upper_w - 34, 16, 6), (0, 0, conductor_z),
+            mats["brass"], bevel_width=1.5)
+    kit.box(collection, root, "PlanarResonator_Conductor_Y",
+            (16, upper_d - 34, 6), (0, 0, conductor_z),
+            mats["brass"], bevel_width=1.5)
+    kit.box(collection, root, "PlanarResonator_ConductorGlow_X",
+            (upper_w - 54, 5, 3), (0, 0, conductor_z + 4),
+            mats["glow"], bevel_width=0.8)
+    kit.box(collection, root, "PlanarResonator_ConductorGlow_Y",
+            (5, upper_d - 54, 3), (0, 0, conductor_z + 4),
+            mats["glow"], bevel_width=0.8)
+
+    # The pedestal is a compact layered machine rather than a second building.
+    pedestal_base_z = platform_top
+    kit.cylinder(collection, root, "PlanarResonator_PedestalBase",
+                 pedestal_radius, 20,
+                 (0, 0, pedestal_base_z + 10), mats["foundation"],
+                 vertices=16, bevel_width=3)
+    core_height = pedestal_height - 20
+    kit.cylinder(collection, root, "PlanarResonator_CorePedestal",
+                 pedestal_radius * 0.68, core_height,
+                 (0, 0, pedestal_base_z + 20 + core_height / 2),
+                 mats["iron"], vertices=16, bevel_width=2)
+    kit.cylinder(collection, root, "PlanarResonator_PedestalIronBand_Lower",
+                 pedestal_radius * 0.79, 10,
+                 (0, 0, pedestal_base_z + 28), mats["brass"],
+                 vertices=16, bevel_width=1.5)
+    pedestal_top = pedestal_base_z + pedestal_height
+    kit.cylinder(collection, root, "PlanarResonator_PedestalIronBand_Upper",
+                 pedestal_radius * 0.82, 12,
+                 (0, 0, pedestal_top - 6), mats["brass"],
+                 vertices=16, bevel_width=1.5)
+    kit.cylinder(collection, root, "PlanarResonator_CoreEmitter",
+                 pedestal_radius * 0.54, 9,
+                 (0, 0, pedestal_top + 10), mats["glow"],
+                 vertices=32, bevel_width=1.5)
+
+    rings = dims["rings"]
+    ring_by_name = {entry[0]: entry for entry in rings}
+    outer_radius = float(ring_by_name["Outer"][1])
+    middle_radius = float(ring_by_name["Middle"][1])
+
+    # Four narrow bearing pylons make the armillary rings read as a real
+    # generator rather than unrelated floating hoops. They remain independent
+    # editable objects and stay inside the fixed foundation.
+    pylon_bottom = platform_top
+    pylon_top = ring_center_z - 12
+    pylon_height = pylon_top - pylon_bottom
+    pylon_specs = (
+        ("OuterBearing_Left", -outer_radius, 0, 20, 28, "X"),
+        ("OuterBearing_Right", outer_radius, 0, 20, 28, "X"),
+        ("MiddleBearing_Front", 0, -middle_radius, 28, 20, "Y"),
+        ("MiddleBearing_Back", 0, middle_radius, 28, 20, "Y"),
+    )
+    for name, x, y, width, depth, axis in pylon_specs:
+        kit.box(collection, root, f"PlanarResonator_{name}_Foot",
+                (width + 24, depth + 24, 16),
+                (x, y, pylon_bottom + 8), mats["foundation"], bevel_width=3)
+        kit.box(collection, root, f"PlanarResonator_{name}_Pylon",
+                (width, depth, pylon_height),
+                (x, y, pylon_bottom + pylon_height / 2),
+                mats["iron"], bevel_width=2)
+        kit.box(collection, root, f"PlanarResonator_{name}_BrassSpine",
+                (6 if axis == "X" else width + 4,
+                 depth + 4 if axis == "X" else 6,
+                 pylon_height - 24),
+                (x, y, pylon_bottom + pylon_height / 2),
+                mats["brass"], bevel_width=1)
+        bearing_rotation = (0, 90, 0) if axis == "X" else (90, 0, 0)
+        kit.cylinder(collection, root, f"PlanarResonator_{name}_Pivot",
+                     16, 30, (x, y, ring_center_z), mats["brass"],
+                     rotation=bearing_rotation, vertices=24, bevel_width=1.5)
+        kit.cylinder(collection, root, f"PlanarResonator_{name}_Core",
+                     8, 34, (x, y, ring_center_z), mats["glow"],
+                     rotation=bearing_rotation, vertices=20, bevel_width=1)
+
+    # Exactly three complete rings: two perpendicular meridians and one
+    # equatorial ring. Separate objects preserve future animation options.
+    for ring_name, major_radius, minor_radius, rotation in rings:
+        resonator_torus_ring(
+            collection, root, f"PlanarResonator_BrassRing_{ring_name}",
+            major_radius, minor_radius, (0, 0, ring_center_z),
+            rotation, mats["brass"])
+
+    crystal_height, crystal_radius, crystal_base_z = dims["crystal"]
+    kit.faceted_crystal_prism(
+        collection, root, "PlanarResonator_CoreCrystal",
+        crystal_height, crystal_radius, (0, 0, crystal_base_z),
+        mats["crystal"], highlight_mat=mats["crystalHighlight"],
+        lean=(7, -4), sides=6, depth_scale=0.78, rotation_z=8)
     return root
 
 
@@ -2479,6 +2763,8 @@ def build_thatch_hut(spec):
 BUILDERS = {
     "wheat_windmill": build_windmill,
     "warehouse": build_warehouse,
+    "main_space_warehouse": build_main_space_warehouse,
+    "main_space_warehouse_open": build_main_space_warehouse_open,
     "research_institute": build_research_institute,
     "church": build_church,
     "blacksmith": build_blacksmith,
@@ -2491,6 +2777,7 @@ BUILDERS = {
     "market": build_market,
     "bakery": build_bakery,
     "portal": build_portal,
+    "planar_resonator": build_planar_resonator,
     "jungle_temple": build_jungle_temple,
     "snow_castle": build_snow_castle,
     "desert_mansion": build_desert_mansion,

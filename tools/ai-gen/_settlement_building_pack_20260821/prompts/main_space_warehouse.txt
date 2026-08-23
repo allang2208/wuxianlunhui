@@ -1,0 +1,8 @@
+Use case: stylized-concept
+Asset type: main-space interactive warehouse treasure chest for an isometric action RPG
+Input images: Blender depth control is the exact geometry source for a closed treasure chest.
+Primary request: One luxurious closed treasure chest with a squat rectangular white-marble body, one continuous domed lid, a clear lid seam, four ornamental feet, extensive raised golden filigree carvings, gold corner guards and lid ribs. The central lock is a large faceted royal-blue sapphire in an elaborate gold sunburst frame, with several smaller sapphire inlays across the front and one sapphire ornament on the visible side.
+Style/medium: highly detailed handcrafted realistic PBR strategy-game prop, ornate fantasy craftsmanship, slightly stylized readable proportions.
+Color palette: cool pearlescent white marble with subtle gray veining, rich polished gold, vivid royal-blue sapphire and restrained blue magical glow.
+Composition: strict 30-degree orthographic view with 44.8-degree ground orientation; centered single closed treasure chest; entire chest and all four feet visible.
+Constraints: preserve the exact chest silhouette and component positions from the depth model; plain uniform vivid yellow background for later clean cutout; no checkerboard, building, house, door, window, room, loose treasure, open lid, people, text, watermark, extra object, landscape, external cast shadow or perspective camera.

@@ -5,7 +5,7 @@ import populationEconomy from '../../data/population-economy.json';
 import { EventBus } from '../core/event-bus.js';
 import { WorldProgressionSystem } from './world-progression-system.js';
 
-const VERSION = 5;
+const VERSION = 6;
 const ALLOWED_UNLOCK_TYPES = new Set(['building', 'unit', 'upgrade', 'mechanic']);
 const treeNodes = Array.isArray(technologyTree.nodes) ? technologyTree.nodes : [];
 const planeResearchNodes = Array.isArray(technologyTree.planeResearch) ? technologyTree.planeResearch : [];
@@ -38,7 +38,7 @@ const KNOWN_UNLOCK_TARGETS = Object.freeze({
     unit: new Set(producerUnitIds),
     upgrade: new Set([...upgradeIds, ...houseUpgradeIds]),
     mechanic: new Set([
-        'building_recycle', 'rts_command', 'troop_hold', 'troop_rally',
+        'building_recycle', 'building_relocation', 'rts_command', 'troop_hold', 'troop_rally',
         'cross_world_reinforcement',
     ]),
 });

@@ -7,6 +7,8 @@ import { BloodHitEffect as HitEffect } from './blood-hit-effect.js';
 import { FloatingTextEffect } from './floating-text.js';
 import { Projectile } from '../combat/projectile.js';
 import { FogVisualAdapter } from './fog-visual-adapter.js';
+const MAX_FLOATING_TEXTS = 48;
+const FLOATING_TEXT_VIEW_PADDING = 160;
 const EffectManager = {
     effects: [], critFlash: 0,
     _pools: {},
@@ -34,6 +36,30 @@ const EffectManager = {
         this._pools[type].push(obj);
     },
     add(effect) {
+        if (effect instanceof FloatingTextEffect) {
+            const scene = typeof window !== 'undefined' ? window.__phaserScene : null;
+            const view = scene?.cameras?.main?.worldView;
+            if (view && (effect.x < view.x - FLOATING_TEXT_VIEW_PADDING
+                || effect.x > view.right + FLOATING_TEXT_VIEW_PADDING
+                || effect.y < view.y - FLOATING_TEXT_VIEW_PADDING
+                || effect.y > view.bottom + FLOATING_TEXT_VIEW_PADDING)) {
+                effect.active = false;
+                effect._destroyPhaserText?.();
+                return;
+            }
+            let floatingCount = 0;
+            for (let i = this.effects.length - 1; i >= 0; i--) {
+                if (!(this.effects[i] instanceof FloatingTextEffect)) continue;
+                floatingCount++;
+                if (floatingCount < MAX_FLOATING_TEXTS) continue;
+                const oldest = this.effects[i];
+                oldest.active = false;
+                oldest._destroyPhaserText?.();
+                FogVisualAdapter.unregister(oldest);
+                this.effects.splice(i, 1);
+                break;
+            }
+        }
         FogVisualAdapter.register(effect);
         this.effects.push(effect);
     },
@@ -65,11 +91,24 @@ const EffectManager = {
         if (this.critFlash > 0) { this.critFlash -= 4.992 * (dt / 1000); if (this.critFlash < 0) this.critFlash = 0; }
     },
     createDamageText(x, y, damage, isCrit) {
+        const numericDamage = Math.max(0, Number(damage) || 0);
+        for (let i = this.effects.length - 1, checked = 0; i >= 0 && checked < 12; i--, checked++) {
+            const current = this.effects[i];
+            if (!(current instanceof FloatingTextEffect) || current._damageCrit !== !!isCrit) continue;
+            if (current.maxLife - current.life > 100 || Math.hypot(current.x - x, current.y - (y - 20)) > 32) continue;
+            current._damageValue = (current._damageValue || 0) + numericDamage;
+            current.setText(isCrit ? `暴击! ${current._damageValue}` : `${current._damageValue}`);
+            current.life = current.maxLife;
+            return;
+        }
         // 使用 FloatingTextEffect 替代 DOM 伤害数字，统一走 Phaser 渲染管线
-        const text = isCrit ? `暴击! ${damage}` : `${damage}`;
+        const text = isCrit ? `暴击! ${numericDamage}` : `${numericDamage}`;
         const color = isCrit ? '#ffaa44' : '#ff6666';
         const fontSize = isCrit ? 22 : 18;
-        this.add(new FloatingTextEffect(x, y - 20, text, color, fontSize));
+        const effect = new FloatingTextEffect(x, y - 20, text, color, fontSize);
+        effect._damageValue = numericDamage;
+        effect._damageCrit = !!isCrit;
+        this.add(effect);
     },
     triggerCritEffects() { this.critFlash = 1.0; Camera.triggerShake(12); }
 };

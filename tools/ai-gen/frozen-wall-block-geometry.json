@@ -1,0 +1,23 @@
+{
+  "referenceAsset": "assets/terrain/obstacle_block.png",
+  "sourceSize": {
+    "width": 1024,
+    "height": 1024
+  },
+  "display": {
+    "width": 260,
+    "height": 259,
+    "footOffsetY": 61
+  },
+  "groundCenter": [
+    512,
+    753.1737
+  ],
+  "footprint": {
+    "width": 128,
+    "depth": 64
+  },
+  "halfThick": 13,
+  "materialSource": "tools/ai-gen/_frozen_arena_block_20260823/ice_block_img2img_raw.png",
+  "alphaSource": "assets/terrain/obstacle_block.png"
+}

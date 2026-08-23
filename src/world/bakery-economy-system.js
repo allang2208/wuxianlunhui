@@ -267,11 +267,11 @@ export const BakeryEconomySystem = {
     },
 
     _warehousePoint(warehouse) {
-        return resolveCivilianVisualPosition(warehouse?.x || 0, warehouse?.y || 0);
+        return resolveCivilianVisualPosition(warehouse?.x || 0, warehouse?.y || 0, { structures: [] });
     },
 
     _bakeryPoint(building) {
-        return resolveCivilianVisualPosition(building?.x || 0, building?.y || 0);
+        return resolveCivilianVisualPosition(building?.x || 0, building?.y || 0, { structures: [] });
     },
 
     _warehouseServiceRadius(warehouse) {
@@ -321,7 +321,8 @@ export const BakeryEconomySystem = {
         if (step <= 0) return false;
         const rawX = job.x + dx / distance * step;
         const rawY = job.y + dy / distance * step;
-        const resolved = sweepCivilianVisualMove(job, rawX, rawY);
+        // 面包师无视建筑与普通障碍，只保留 WallSystem 的墙/门段碰撞。
+        const resolved = sweepCivilianVisualMove(job, rawX, rawY, { structures: [] });
         job.x = resolved.x;
         job.y = resolved.y;
         job.phaseRemainMs = Math.max(0, job.phaseRemainMs - elapsed);

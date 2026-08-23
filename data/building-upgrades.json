@@ -83,7 +83,7 @@
       "attackSpd": { "name": "工作加速", "icon": "⚡", "iconImage": "assets/ui/building-upgrades/attack-speed.png", "effect": "attackIntervalMult", "per": -0.01, "maxLevel": 10, "desc": "攻击间隔 -{pct}%" },
       "damage": { "name": "采矿强化", "icon": "⚔️", "iconImage": "assets/ui/building-upgrades/attack-damage.png", "effect": "attackDamageMult", "per": 0.015, "maxLevel": 10, "desc": "每次攻击伤害 +{pct}%" },
       "moveSpd": { "name": "机动强化", "icon": "👟", "iconImage": "assets/ui/building-upgrades/mobility.png", "effect": "moveSpeedMult", "per": 0.015, "maxLevel": 10, "desc": "移动速度 +{pct}%" },
-      "count": { "name": "矿工增援", "icon": "🐹", "iconImage": "assets/ui/building-upgrades/hamster-reinforcement.png", "effect": "count", "mode": "add", "base": 1, "per": 1, "maxLevel": 2, "energyByLevel": [5000, 8000], "desc": "矿工人口岗位 +{value}" },
+      "count": { "name": "矿工增援", "icon": "🐹", "iconImage": "assets/ui/building-upgrades/hamster-reinforcement.png", "effect": "count", "mode": "add", "base": 4, "per": 1, "maxLevel": 2, "energyByLevel": [5000, 8000], "desc": "矿工人口岗位 {value}" },
       "backpack": { "name": "背包扩容", "icon": "🎒", "effect": "backpackCapacityBonus", "mode": "add", "per": 100, "maxLevel": 5, "desc": "每名矿工背包容量 +{value}" }
     }
   },

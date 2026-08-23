@@ -1,0 +1,9 @@
+Use case: stylized-concept
+Asset type: 48-step low-denoise refinement of the selected World-122 church texture
+Primary request: refine the supplied seed 122960 church image without changing its architecture, silhouette, camera or ground-contact geometry
+Structure invariants: preserve exactly one compact connected church; preserve the screen-left square flat-top crenellated bell tower, its existing open belfry faces and visible bronze bells; preserve the complete uninterrupted screen-right chapel roof, the entrance volumes, all buttresses, rose windows and every blue or amber stained-glass window in their current positions; do not add, remove, move, merge or resize any major mass
+Detail refinement: improve only limestone block definition, mortar depth, dark navy slate shingles, dark oak doors, bronze bell material, carved stone window frames and the clarity of cobalt-blue and amber stained glass; keep details readable at RTS game scale and avoid noisy microtexture
+Composition/framing: preserve the supplied orthographic 2.5D isometric camera, scale, center and complete silhouette; keep all walls vertical and the entire building within the existing canvas
+Lighting/mood: preserve neutral studio lighting and restrained warm window illumination; no bloom and no cast shadow
+Scene/backdrop: preserve a perfectly uniform flat chroma-key green #00FF00 background
+Negative constraints: no architectural redesign, no pointed tower roof, no cross on the tower, no right-side tower, no second tower, no extra floor, no extra belfry level, no detached annex, no new door, no new window, no terrain, no paving, no separate foundation slab, no people, no animals, no text, no watermark, no shadow

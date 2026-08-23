@@ -923,7 +923,7 @@
       "spriteSize": 181.6,
       "collisionWidth": 53,
       "collisionHeight": 151,
-      "footOffsetY": 56,
+      "footOffsetY": 82.64,
       "projectileHitbox": {
         "width": 53,
         "height": 151,
@@ -933,14 +933,66 @@
       "colliderOffsetX": -4,
       "colliderOffsetY": 19
     },
+    "deathAnim": {
+      "duration": 2000,
+      "holdMs": 1000
+    },
+    "sounds": {
+      "idle": "assets/sounds/enemies/zombie/idle.mp3",
+      "idleInterval": 4800
+    },
     "textures": {
-      "idle": "assets/enemies/zombie/idle.png",
-      "walk": "assets/enemies/zombie/walking.png",
-      "attack": "assets/enemies/zombie/attacking.png",
+      "idle": "assets/enemies/zombie/v2/idle.png",
+      "walk": "assets/enemies/zombie/v2/walking.png",
+      "attack": "assets/enemies/zombie/v2/attacking.png",
+      "death": "assets/enemies/zombie/v2/dying.png",
+      "referenceCell": 512,
+      "frameLayouts": {
+        "idle": {
+          "columns": 6,
+          "rows": 4,
+          "frameWidth": 512,
+          "frameHeight": 512,
+          "frameCount": 24,
+          "footY": 489,
+          "frameRate": 5,
+          "repeat": -1
+        },
+        "walk": {
+          "columns": 6,
+          "rows": 5,
+          "frameWidth": 512,
+          "frameHeight": 512,
+          "frameCount": 27,
+          "footY": 489,
+          "frameRate": 12,
+          "repeat": -1
+        },
+        "attack": {
+          "columns": 6,
+          "rows": 4,
+          "frameWidth": 768,
+          "frameHeight": 512,
+          "frameCount": 24,
+          "footY": 489,
+          "duration": 1000,
+          "repeat": 0
+        },
+        "death": {
+          "columns": 6,
+          "rows": 4,
+          "frameWidth": 512,
+          "frameHeight": 512,
+          "frameCount": 24,
+          "footY": 489,
+          "duration": 2000,
+          "repeat": 0
+        }
+      },
       "idleFrameWidth": 512,
       "idleFrameHeight": 512,
-      "idleFrameCount": 1,
-      "idleSheetColumns": 8
+      "idleFrameCount": 24,
+      "idleSheetColumns": 6
     },
     "attack": {
       "type": "thrust",
@@ -1012,22 +1064,79 @@
       "spriteSize": 180.5,
       "collisionWidth": 61.2,
       "collisionHeight": 160,
-      "footOffsetY": 51.25,
+      "footOffsetY": 82.14,
       "projectileHitbox": {
         "width": 61.2,
         "height": 160,
-        "offsetX": 0.4,
-        "bottom": -6
+        "offsetX": 0,
+        "bottom": 0
       },
-      "colliderOffsetX": -12,
-      "colliderOffsetY": 23
+      "colliderOffsetX": 0,
+      "colliderOffsetY": 0
+    },
+    "deathAnim": {
+      "duration": 2000,
+      "holdMs": 1000
     },
     "textures": {
-      "idle": "assets/enemies/spitter_zombie/idle.png",
+      "idle": "assets/enemies/spitter_zombie/v2/idle.png",
+      "walk": "assets/enemies/spitter_zombie/v2/walking.png",
+      "attack": "assets/enemies/spitter_zombie/v2/attacking.png",
+      "death": "assets/enemies/spitter_zombie/v2/dying.png",
+      "referenceCell": 512,
+      "frameLayouts": {
+        "idle": {
+          "columns": 6,
+          "rows": 4,
+          "frameWidth": 512,
+          "frameHeight": 512,
+          "frameCount": 24,
+          "footY": 489,
+          "frameRate": 6,
+          "repeat": -1
+        },
+        "walk": {
+          "columns": 6,
+          "rows": 4,
+          "frameWidth": 512,
+          "frameHeight": 512,
+          "frameCount": 24,
+          "footY": 489,
+          "frameRate": 8,
+          "repeat": -1
+        },
+        "attack": {
+          "columns": 6,
+          "rows": 4,
+          "frameWidth": 1152,
+          "frameHeight": 640,
+          "frameCount": 24,
+          "footY": 617,
+          "duration": 1000,
+          "spitFireFrame": 8,
+          "spitOrigin": {
+            "source": "purpleVenom",
+            "frame": 8,
+            "x": 692.5,
+            "y": 190
+          },
+          "repeat": 0
+        },
+        "death": {
+          "columns": 6,
+          "rows": 4,
+          "frameWidth": 640,
+          "frameHeight": 640,
+          "frameCount": 24,
+          "footY": 617,
+          "duration": 2000,
+          "repeat": 0
+        }
+      },
       "idleFrameWidth": 512,
       "idleFrameHeight": 512,
       "idleFrameCount": 24,
-      "idleSheetColumns": 8
+      "idleSheetColumns": 6
     },
     "height": 146
   },

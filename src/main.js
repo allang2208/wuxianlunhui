@@ -45,11 +45,18 @@ import { EnvironmentLightingSystem } from './world/environment-lighting-system.j
 import { WorldProgressionSystem } from './world/world-progression-system.js';
 import { WorldInvasionSystem } from './world/world-invasion-system.js';
 import { World122SandstormSystem } from './world/world122-sandstorm-system.js';
+import { WorldWeatherSystem } from './world/world-weather-system.js';
+import { WorldEventTimelineSystem } from './world/world-event-timeline-system.js';
+import { WorldDestructionChallengeSystem } from './world/world-destruction-challenge-system.js';
 import { TroopLineSystem } from './world/troop-line-system.js';
 import { TechnologySystem } from './world/technology-system.js';
 import { TechnologyTreePanel } from './ui/technology-tree-panel.js';
 
 import { getElement } from './utils/dom-utils.js';
+
+WorldEventTimelineSystem.setFrameProvider(() => WorldInvasionSystem.getTimelineFrame());
+WorldEventTimelineSystem.registerProvider('invasion', () => WorldInvasionSystem.getTimelineEvents());
+WorldEventTimelineSystem.registerProvider('weather', () => WorldWeatherSystem.getForecastEvents());
 
 // DamageableEntity 是 Combatant/Enemy 的底层基类；高层服务统一由入口注入，
 // 防止实体继承链在 ES module 初始化阶段形成 TDZ 循环。
@@ -162,6 +169,9 @@ async function initModules() {
     window.WorldProgressionSystem = WorldProgressionSystem;
     window.WorldInvasionSystem = WorldInvasionSystem;
     window.World122SandstormSystem = World122SandstormSystem;
+    window.WorldWeatherSystem = WorldWeatherSystem;
+    window.WorldEventTimelineSystem = WorldEventTimelineSystem;
+    window.WorldDestructionChallengeSystem = WorldDestructionChallengeSystem;
     window.TroopLineSystem = TroopLineSystem;
     window.TechnologySystem = TechnologySystem;
     window.TechnologyTreePanel = TechnologyTreePanel;

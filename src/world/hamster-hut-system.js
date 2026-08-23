@@ -65,9 +65,12 @@ export function getHutModuleDesc(moduleId, level) {
     if (!mod) return '';
     const pct = Math.abs(mod.per) * 100;
     const pctAt = (atLevel) => Number((pct * atLevel).toFixed(1)).toString();
+    const valueAt = (atLevel) => Math.round(
+        (Number(mod.base) || 0) + (Number(mod.per) || 0) * atLevel
+    );
     const fill = (atLevel) => (mod.desc || '')
         .replace('{pct}', pctAt(atLevel))
-        .replace('{value}', `${Math.round((mod.per || 0) * atLevel)}`);
+        .replace('{value}', `${valueAt(atLevel)}`);
     return {
         current: fill(level),
         next: fill(level + 1),
@@ -159,7 +162,7 @@ export class HamsterHut extends DamageableEntity {
         return PopulationEconomySystem.getWorkerSnapshot(this)?.assigned || 0;
     }
 
-    /** 当前岗位容量 = 基础 1 + “矿工增援”等级。 */
+    /** 当前岗位容量由配置基础值与“矿工增援”等级共同决定。 */
     minerCapacity() {
         return PopulationEconomySystem.getWorkerSnapshot(this)?.slots || this.mults().count;
     }
@@ -169,7 +172,7 @@ export class HamsterHut extends DamageableEntity {
         return this.miners.filter((m) => m && m.active && !m._dying && m.data.hp > 0).length;
     }
 
-    /** 建造时生成初始矿工（1 只） */
+    /** 建造时按已分配岗位生成矿工；新营地默认不自动占用人口。 */
     _spawnInitialMiners() {
         for (let i = 0; i < this.minerCount(); i++) {
             if (!this.spawnMiner()) break;

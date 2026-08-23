@@ -262,6 +262,10 @@
   "family": "zombie"
  },
  "frozenDungeonBeginner": {
+  "combatRoom": {
+   "wallConstruction": "worldBlock1x1",
+   "gateCells": 6
+  },
   "nodeCount": {
    "min": 22,
    "max": 27

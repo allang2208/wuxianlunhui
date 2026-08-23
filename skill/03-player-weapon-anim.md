@@ -52,6 +52,7 @@
 - **面板登记（2026-08-02 补充）**：新增姿态**不是完全自动**——除 JSON 加条目外，还必须在开发面板登记三处：`src/ui/panels/dev-tools.js` 的 `animOptions`（下拉显示名）+ `src/ui/dev-tool.js` 的 `ANIM_NAME`（状态名）与 `PANEL_ANIM_TO_CONFIG`（面板键→配置键映射）；新增武器同理登记 `weaponOptions` + `WEAPON_MAP`（贴图路径读 `weapon-texture-map.js` 加载清单同源）。漏登记 = 面板看不到该姿态/武器（V0.375 施法动画首漏，已补）。
 
 #### 5. 运行时姿态切换
+- **玩家受击附着反馈（2026-08-23）**：有效扣血后由 `Player.takeDamage()` 调用 `GameScene.playPlayerHitAttachedFx()`，在主体贴图上叠加短寿命冲击光、裂痕和火花；颜色按物理/魔法/电系区分，容器每帧跟随 `playerSprite` 的位置与动态深度，同时最多保留 6 组。闪避、无敌、成功弹反和最终伤害为 0 时不得触发，避免把防御成功表现成真实受伤。
 - **近战攻击（模板已内置）**：`_playSwordAttackTween` → `setPlayerAnimation('attack_sword', tweenDuration)`（timeScale 贴图-Tween 时长同步）；repeat 0 动作播完自动回 idle（配置表通用处理）。
 - **持枪姿态（已实现，2026-07-26）**：`GameScene._updatePlayerAnimation`——当前武器为枪械（`isGunWeapon`）且站立时姿态键切 `gun_idle`，移动沿用 walk/run；配置缺失自动回退 idle。首版 `gun_idle` 为低持/腰射单帧（素材库 shooting/2.png 抠底标准化，`tools/archive/prep-gun-idle.py`）；斜上/斜下角度分区姿态与 `gun_fire` 待素材。
 - **近距角度平滑（2026-07-27，取代瞄准死区/可调锥）**：死区已废除（冻结手感差）。`twist.aimSmoothRadius`（默认 160 世界 px，0=全距离精准零平滑）+ `aimSmoothTau`（默认 120ms）——任何距离用真实瞄准方向（弹道零误差）；准心进半径后对瞄准角做短弧 EMA，tau×(1−dist/R)（边缘零延迟→中心最强，dt 归一化帧率无关）。姿态/贴图/锚点/**弹道**统一走 `_effectiveAim`（`_frozenAimActive` 标记沿用=平滑激活）。"枪械近战弱"改为用 tau 体现（加大 tau 如 250 更"肉"）。
@@ -515,7 +516,7 @@ weaponParams: { offsetX, offsetY, rotation, scale }
 1. **武器定位面板**：调整 `offsetX/Y`、`rotation`、`scale`，实时预览武器相对角色的位置（传统 holdOffset 模式）。
 2. **逐帧编辑（perFrame）**：`attack.type === 'perFrame'` 时 weaponParams 直接对应当前帧，滑块/播放逐帧调武器姿态。
 3. **动画/贴图/AI 调试面板**：加载四方向精灵图、逐帧播放、调试敌人贴图与 AI。
-4. **碰撞体积编辑器**：怪物、友军和 NPC 使用冻结纸面预览调参；怪物/友军的测试按钮只在纸面预览位置另生成正式单位，不解冻或复用预览体。友军配置按兵种保存回各自 `data/*-config.json`，正式构造器与编辑器读取同一组半径、高度、躯干矩形和偏移字段。
+4. **碰撞体积编辑器**：怪物、友军和 NPC 使用冻结纸面预览调参；怪物/友军的测试按钮只在纸面预览位置另生成正式单位，不解冻或复用预览体。友军配置按兵种保存回各自 `data/*-config.json`，正式构造器与编辑器读取同一组半径、高度、躯干矩形和偏移字段。怪物页的“近战判定”开关只采样当前正式测试怪：普通近战显示黄色起手锁定矩形、红色命中帧通过或橙色复查失败矩形，位移近战显示最近1.8秒的实际扫掠线、锁定目标 footprint、命中点与撞墙截断点；切换对象或再次生成测试怪会清空旧记录，编辑器关闭即停止采样，不能在正式运行中常驻记录。
 
 **关键方法：**
 - `_loadCharacterFrames()`：按 `data/player-anim-config.json`（PLAYER_ANIMS）加载角色精灵图，`PANEL_ANIM_TO_CONFIG` 映射面板键→配置键。
