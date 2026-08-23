@@ -9,6 +9,18 @@ export const MINER_CAMP_CONFIG = resolveBuildingUpgradeProject(minerCampCfg);
 export function getMinerEconomyStats(levels = {}, minerCountOverride = null) {
     const ai = minerCfg.ai || {};
     const mults = getUpgradeMultsFromLevels(MINER_CAMP_CONFIG.modules || {}, levels);
+    const backpackEntry = Object.entries(MINER_CAMP_CONFIG.modules || {})
+        .find(([, module]) => module?.effect === 'backpackCapacityBonus');
+    const backpackModuleId = backpackEntry?.[0];
+    const backpackModule = backpackEntry?.[1];
+    const backpackLevel = backpackModule
+        ? Math.max(0, Math.min(
+            Math.floor(Number(backpackModule.maxLevel) || 0),
+            Math.floor(Number(levels[backpackModuleId]) || 0)
+        ))
+        : 0;
+    const backpackCapacity = Math.max(0, Number(ai.backpackCapacity) || 0)
+        + Math.max(0, Number(backpackModule?.per) || 0) * backpackLevel;
     const count = minerCountOverride == null
         ? Math.max(1, Math.floor(mults.count))
         : Math.max(0, Math.floor(Number(minerCountOverride) || 0));
@@ -18,7 +30,7 @@ export function getMinerEconomyStats(levels = {}, minerCountOverride = null) {
         attackInterval: Math.max(300, Math.round((ai.attackInterval ?? 2000) * mults.attackIntervalMult)),
         walkSpeed: Math.max(20, Math.round((ai.walkSpeed ?? 80) * mults.moveSpeedMult)),
         miningMult: mults.miningMult,
-        backpackCapacity: Math.max(0, Number(ai.backpackCapacity) || 0),
+        backpackCapacity,
         gatherRatio: Math.max(0, Number(ai.energyGatherRatio) || 0),
         expectedCritChance: Math.max(0, Math.min(1, Number(ai.expectedCritChance) || 0)),
     };

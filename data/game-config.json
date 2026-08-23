@@ -68,54 +68,6 @@
         "y": 4096
       }
     },
-    "scene2": {
-      "name": "雪地",
-      "type": "instance",
-      "label": "场景二",
-      "width": 9000,
-      "height": 9000,
-      "background": "#b8c0c8",
-      "origin": {
-        "x": 4500,
-        "y": 4500
-      }
-    },
-    "scene3": {
-      "name": "列车上",
-      "type": "instance",
-      "label": "场景三",
-      "width": 3000,
-      "height": 1200,
-      "background": "#4a4538",
-      "origin": {
-        "x": 1500,
-        "y": 600
-      }
-    },
-    "scene4": {
-      "name": "古堡",
-      "type": "instance",
-      "label": "场景四",
-      "width": 9000,
-      "height": 9000,
-      "background": "#000000",
-      "origin": {
-        "x": 4500,
-        "y": 4500
-      }
-    },
-    "scene5": {
-      "name": "AI测试场",
-      "type": "instance",
-      "label": "场景五",
-      "width": 6120,
-      "height": 3040,
-      "background": "#3a3a3a",
-      "origin": {
-        "x": 3060,
-        "y": 1520
-      }
-    },
     "scene7": {
       "name": "僵尸地牢",
       "type": "dungeon",
@@ -366,7 +318,7 @@
       "dungeonObstacleScatter": {
         "enabled": true,
         "pillarCount": 28,
-        "candleCount": 36,
+        "candleCount": 0,
         "prefabCount": 22,
         "minDist": 220,
         "edgeInset": 180,
@@ -767,10 +719,11 @@
       "noSeparation": true,
       "colliderOffsetY": -69,
       "sprite": {
-        "comment": "静态贴图（大理石祭坛 assets/npc/altar.png 512×497 紧贴裁剪）：footOffsetY≈size×497/512/2",
-        "idleKey": "npc_altar",
-        "size": 220,
-        "footOffsetY": 107
+        "comment": "与世界位面祭坛共用 defense_base 贴图及显示尺寸",
+        "idleKey": "defense_base",
+        "size": 276,
+        "sizeH": 230,
+        "footOffsetY": 114
       },
       "clickArea": {
         "comment": "点击交互区域（祭坛本体，锚定脚底）",
@@ -868,47 +821,6 @@
   },
   "input": {
     "skillLongPressMs": 1500
-  },
-  "scene2": {
-    "spawning": {
-      "freeExplore": {
-        "interval": 5000,
-        "count": 3,
-        "radius": 2000,
-        "monsterType": "BlackWolf"
-      },
-      "quest": {
-        "firstDelay": 40000,
-        "interval": 40000,
-        "count": 3,
-        "radius": 1500,
-        "monsterType": "BlackWolf"
-      }
-    }
-  },
-  "scene3": {
-    "scrollSpeed": 500,
-    "trainBackground": {
-      "interiorHeight": 300,
-      "skyColor": "#1a2518",
-      "groundColor": "#2a3520",
-      "railColor": "#5a5a4a",
-      "railLineWidth": 2,
-      "railGap": 6,
-      "sleeperSpacing": 60,
-      "sleeperWidth": 5,
-      "sleeperHeight": 10,
-      "sleeperColor": "#4a4a3a"
-    },
-    "groundVegetation": {
-      "spacing": 150,
-      "treeOffsetMax": 150,
-      "minTreeSize": 8,
-      "maxTreeSize": 20,
-      "topOffsetY": -95,
-      "bottomOffsetY": 95,
-      "color": "#1a2a0a"
-    }
   },
   "minimap": {
     "width": 252,

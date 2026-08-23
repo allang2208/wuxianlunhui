@@ -20,7 +20,7 @@ export function createHudPanelsExpeditionQuestReward() {
     expeditionHeaderCopy.className = 'expedition-header-copy';
     const expeditionEyebrow = document.createElement('span');
     expeditionEyebrow.className = 'expedition-eyebrow';
-    expeditionEyebrow.textContent = '地牢终端 / 祭品配置';
+    expeditionEyebrow.textContent = '地牢终端 / 钥匙验证';
     const expeditionTitle = document.createElement('span');
     expeditionTitle.className = 'expedition-title';
     expeditionTitle.textContent = '⚔ 出征准备';
@@ -104,42 +104,9 @@ export function createHudPanelsExpeditionQuestReward() {
     expeditionMemberBar.setAttribute('aria-label', '出征队友选择');
     expeditionParty.appendChild(expeditionMemberBar);
     expeditionBody.appendChild(expeditionParty);
-    // 祭品栏
-    const expeditionSupplies = document.createElement('div');
-    expeditionSupplies.className = 'expedition-supplies';
-    const suppliesTitle = document.createElement('div');
-    suppliesTitle.className = 'expedition-section-title';
-    suppliesTitle.innerHTML = `
-        <span>出征栏 <span class="expedition-hint">从右侧背包拖入祭品</span></span>
-        <span class="expedition-capacity"><span id="expeditionCapacityUsed">0</span>/<span id="expeditionCapacityMax">10</span></span>`;
-    expeditionSupplies.appendChild(suppliesTitle);
-    const expeditionInventoryGrid = document.createElement('div');
-    expeditionInventoryGrid.className = 'expedition-inventory-grid';
-    expeditionInventoryGrid.id = 'expeditionInventoryGrid';
-    expeditionSupplies.appendChild(expeditionInventoryGrid);
-    const expeditionTributeStats = document.createElement('div');
-    expeditionTributeStats.className = 'expedition-tribute-stats';
-    expeditionTributeStats.id = 'expeditionTributeStats';
-    expeditionTributeStats.style.display = 'none';
-    const tributeStatsTitle = document.createElement('div');
-    tributeStatsTitle.className = 'expedition-tribute-stats-title';
-    tributeStatsTitle.textContent = '祭品效果统计';
-    const tributeStatsList = document.createElement('div');
-    tributeStatsList.className = 'expedition-tribute-stats-list';
-    tributeStatsList.id = 'expeditionTributeStatsList';
-    expeditionTributeStats.appendChild(tributeStatsTitle);
-    expeditionTributeStats.appendChild(tributeStatsList);
-    expeditionSupplies.appendChild(expeditionTributeStats);
-    expeditionBody.appendChild(expeditionSupplies);
     // 操作按钮
     const expeditionActions = document.createElement('div');
     expeditionActions.className = 'expedition-actions';
-    const expeditionResetBtn = document.createElement('button');
-    expeditionResetBtn.className = 'expedition-reset-btn bp-button bp-button--muted';
-    expeditionResetBtn.type = 'button';
-    expeditionResetBtn.id = 'expeditionResetBtn';
-    expeditionResetBtn.onclick = function() { ExpeditionSystem.reset(); };
-    expeditionResetBtn.textContent = '🔄 重置';
     const expeditionBackBtn = document.createElement('button');
     expeditionBackBtn.className = 'expedition-back-btn bp-button bp-button--muted';
     expeditionBackBtn.type = 'button';
@@ -152,7 +119,6 @@ export function createHudPanelsExpeditionQuestReward() {
     expeditionDepartBtn.id = 'expeditionDepartBtn';
     expeditionDepartBtn.onclick = function() { ExpeditionSystem.depart(); };
     expeditionDepartBtn.textContent = '🗡 确认出征';
-    expeditionActions.appendChild(expeditionResetBtn);
     expeditionActions.appendChild(expeditionBackBtn);
     expeditionActions.appendChild(expeditionDepartBtn);
     expeditionBody.appendChild(expeditionActions);

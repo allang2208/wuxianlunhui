@@ -35,11 +35,11 @@
 
 **仍保留的 Canvas 路径**：
 - `DungeonMapSystem.render(ctx)`：地牢地图模式节点/连线绘制。
-- `Renderer.terrainTexture` 覆盖：战斗场地、BOSS、雪地/火车等特殊场景临时地形仍用 Canvas 生成，由 `GameScene._syncTerrain()` 通过 `addCanvas` 接入 Phaser。
+- `Renderer.terrainTexture` 覆盖：战斗场地、BOSS 等程序化临时地形仍用 Canvas 生成，由 `GameScene._syncTerrain()` 通过 `addCanvas` 接入 Phaser。
 
 **已知遗留**：
 - `FloatingTextEffect` 等部分特效只剩 `update`、没有渲染，需后续 Phaser 化或删除。
-- `scene3` 火车背景已删除 Canvas 实现，待后续重新设计。
+- `scene2`~`scene5` 内嵌场景废案及其 Canvas 地形已删除，不再列入迁移或重设计计划。
 
 ---
 

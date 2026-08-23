@@ -191,6 +191,7 @@ export const BUILD_ITEMS = [
         tex: HAMSTER_CONFIG.hut.tex,
         thumbnailPath: `assets/ui/building-thumbnails/${HAMSTER_CONFIG.hut.id}.png`,
         kind: 'hamster_hut',
+        economyType: HAMSTER_CONFIG.hut.economyType,
         currency: 'energy'
     },
     {
@@ -422,8 +423,10 @@ export const BuildingSystem = {
     },
 
     _economyWarehouseBlockReason(item) {
-        const cfg = item?.kind === 'producer' ? PRODUCER_BUILDINGS[item.id] : null;
-        return cfg?.economyType && !EnergyManager?.hasWarehouse?.()
+        const economyType = item?.kind === 'producer'
+            ? PRODUCER_BUILDINGS[item.id]?.economyType
+            : item?.economyType;
+        return economyType && !EnergyManager?.hasWarehouse?.()
             ? '需要先在当前位面修建仓库'
             : '';
     },

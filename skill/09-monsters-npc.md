@@ -192,8 +192,9 @@ this._tacticalTarget = null;
   传送实体后必须重算锚线（真实场景不会发生）。
 - **坑④（友军脚线被贴图配置污染）**：移动单位参与建筑仲裁的自然深度应来自逻辑脚底
   `entity.y - entity.z + 10`；`spriteOffsetY`、跨动作 `feetCorr` 和贴图中心只负责显示，
-  不应成为排序真源。旧路径若仍用 `sprite.y + footOffsetY + 10`，必须锁定
-  `sprite.y + footOffsetY === entity.y - entity.z`；新增仓鼠兵种同时校验
+  不应成为排序真源。`GameScene._getDynamicDepthProfile()` 必须把 `logicalFootY = entity.y - entity.z`
+  显式传给 `sprite-depth-profile`，后者的 alpha 扫描只负责可见宽高；禁止恢复
+  `sprite.y + footOffsetY + 10` 作为自然 depth。新增仓鼠兵种同时校验
   `spriteOffsetY + footOffsetY === 0`，避免火枪手这类配置不配对造成建筑边缘错层。
 - **验证**：`tools/cdp-layer-occlusion.mjs`——合成 36 组合（塔/基地/矿/小屋 × 无墙/墙前/
   墙后 × 后/同/前）+ 真实基地 4 类建筑同线抽查。新增/修改友军时不能只测单一射手和建筑

@@ -97,8 +97,9 @@ export class OreSpider extends Enemy {
             this._attackAnimTimer -= dt;
             if (this._attackAnimTimer < 0) this._attackAnimTimer = 0;
         }
-        if (this._throwCd > 0) this._throwCd -= dt;
-        if (this._slamCd > 0) this._slamCd -= dt;
+        const attackDt = this.getAttackIntervalDelta(dt);
+        if (this._throwCd > 0) this._throwCd -= attackDt;
+        if (this._slamCd > 0) this._slamCd -= attackDt;
 
         // 落点/范围警示圈保活（共享件：EffectManager 生命周期短，每帧重置 life 续命；
         // 注意是重置 life 不是 maxLife——只刷 maxLife 会在 100ms 后自然消亡）

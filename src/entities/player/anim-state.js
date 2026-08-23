@@ -32,6 +32,11 @@ export function nowMs() {
     return performance.now();
 }
 
+/** 指挥移动只复用奔跑表现，不等同于冲刺速度、耐力或冲刺攻击状态。 */
+export function isPlayerRunVisual(player) {
+    return !!(player && (player._isSprinting || player._rtsRunVisual));
+}
+
 // 持枪姿态解析（原 GameScene._updatePlayerAnimation 内联闭包 _resolveGunPose，逐字搬入模块以便谓词复用）：
 // 双持手枪（副手为手枪）→ gun_idle_dual；单持手枪 → gun_idle_pistol；
 // 其余枪械 → gun_idle；配置缺失逐级回退

@@ -61,8 +61,9 @@ export class Shounao extends Enemy {
     }
 
     update(dt, entities) {
-        if (this._slamCooldown > 0) this._slamCooldown -= dt;
-        if (this._howlCooldown > 0) this._howlCooldown -= dt;
+        const attackDt = this.getAttackIntervalDelta(dt);
+        if (this._slamCooldown > 0) this._slamCooldown -= attackDt;
+        if (this._howlCooldown > 0) this._howlCooldown -= attackDt;
         if (this._attackAnimTimer > 0) this._attackAnimTimer = Math.max(0, this._attackAnimTimer - dt);
 
         // 基类链统一推进状态效果/受击反馈（每帧一次）；

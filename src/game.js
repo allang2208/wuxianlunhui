@@ -27,7 +27,7 @@ import { SynergySystem, DEFAULT_SYNERGY_RULES } from './ai/synergy-system.js';
 import { BattleCommander } from './ai/battle-commander.js';
 import { Enemy } from './entities/enemy.js';
 import SpatialPartitionSystem from './systems/spatial-partition-system.js';
-import { verticalRangesOverlap } from './physics/elevation.js';
+import { shouldIgnoreFriendlyElevatedSeparation, verticalRangesOverlap } from './physics/elevation.js';
 import FormationSystem from './systems/formation-system.js';
 import { TacticalSquadRoleSwitch } from './systems/tactical-squad-role-switch.js';
 import { DungeonMapSystem } from './world/dungeon-map-system.js';
@@ -72,6 +72,7 @@ import { NPC } from './entities/npc.js';
 import { ShopSystem } from './ui/shop-system.js';
 import { EnhanceSystem } from './ui/enhance-system.js';
 import { QuestState } from './ui/quest-system.js';
+import { QuestStore } from './quest/quest-store.js';
 import { RiftSystem } from './quest/rift-system.js';
 import { QuickBar } from './ui/quick-bar.js';
 import { EquipManager } from './ui/equip-manager.js';
@@ -89,6 +90,7 @@ import { UIState } from './ui/ui-state.js';
 import { ExpeditionSystem } from './ui/expedition-system.js';
 import { FusionSystem } from './ui/fusion-system.js';
 import { DefenseSystem } from './world/defense-system.js';
+import { World122TributeSystem } from './world/world122-tribute-system.js';
 import { HamsterHutSystem } from './world/hamster-hut-system.js';
 import { HamsterBarracksSystem } from './world/hamster-barracks-system.js';
 import { ProducerBuilding, ProducerBuildingSystem } from './world/producer-building-system.js';
@@ -108,6 +110,7 @@ export const Game = {
     _gameStartTime: null, // 游戏开始时间戳
     // _timerInterval 已弃用：由 GameUIManager 统一管理秒表定时器
     _portalCooldown: 0, // 传送门冷却时间戳
+    _questReturnPending: false,
     _portalArrivalLock: false, // 传送落地后须先离开门区，防止恢复坐标仍在门内时立即回跳
     init() {
         if (!SoundManager || !Input || !Renderer || !SystemUI || !QuickBar || !GameUIManager) {
@@ -158,6 +161,7 @@ export const Game = {
             resetAbilityLevels();
             resetWorld122Snapshot();
             TechnologySystem.reset();
+            QuestStore.reset();
             FlatViewSystem.reset();
             window.WorldProgressionSystem?.reset?.();
             window.WorldInvasionSystem?.reset?.();
@@ -1211,6 +1215,8 @@ export const Game = {
     update(dt) {
         // 位置音效：按与玩家距离逐帧刷新音量（蝇群等声源；无位置音效时是廉价空转）
         if (SoundManager && typeof SoundManager.update === 'function') SoundManager.update(dt);
+        // 位面献祭是全场景30分钟状态；必须在地牢地图/事件分支提前返回前推进到期结算。
+        World122TributeSystem.update(this.player);
         const dungeonViewActive = SceneManager.currentScene === 'scene7'
             && DungeonMapSystem && DungeonMapSystem.active;
         // 地牢地图/事件界面会在下方提前返回，因此全局生产与兵线必须先推进一次。
@@ -1674,11 +1680,21 @@ const pickupCfg = GAME_CONFIG.pickup || {};
                             this._showDungeonEntryConfirm(entity);
                         } else {
                             if (entity._isQuestReturn) {
-                                QuestState.completeEvacuation();
-                                QuestState.finishQuest();
-                                SceneManager.switchScene(entity.targetScene, this.player, undefined, {
+                                if (this._questReturnPending) continue;
+                                this._questReturnPending = true;
+                                Promise.resolve(SceneManager.switchScene(entity.targetScene, this.player, undefined, {
                                     portalTravel: entity.targetScene === 'main'
                                         || ['scene8', 'scene9', 'scene10', 'scene11'].includes(entity.targetScene),
+                                })).then((switched) => {
+                                    // 只有确认回城后才结算；切场失败时保留任务会话和返回门供重试。
+                                    if (switched === true) {
+                                        QuestState.completeEvacuation();
+                                        QuestState.finishQuest();
+                                    }
+                                }).catch((err) => {
+                                    console.error('[quest return] switchScene error:', err);
+                                }).finally(() => {
+                                    this._questReturnPending = false;
                                 });
                             } else {
                                 SceneManager.switchScene(entity.targetScene, this.player, undefined, {
@@ -1707,8 +1723,11 @@ EffectManager.update(dt);
         if (StatusBar) {
             StatusBar.update(dt);
         }
-        // 裂隙系统更新（仅在任务模式的雪地场景）
-        if (SceneManager.currentScene === 'scene2' && QuestState && QuestState.isInQuest() && RiftSystem) {
+        // 裂隙系统只在世界-123的瞬态任务实例运行，不污染普通持久世界。
+        if (!SceneManager.isLoading
+            && SceneManager.isQuestInstance('scene9')
+            && QuestState?.isInQuest()
+            && RiftSystem) {
             RiftSystem.update(dt, this.player);
         }
         QuickBar.updateCooldowns(dt);
@@ -1722,55 +1741,55 @@ EffectManager.update(dt);
                 this.entities.delete(key);
             }
         }
-
-
-        // 列车场景滚动背景
-if (SceneManager.currentScene === 'scene3') {
-            if (!this._trainScrollOffset) this._trainScrollOffset = 0;
-            const scene3Cfg = GAME_CONFIG.scene3 || { scrollSpeed: 500 };
-            this._trainScrollOffset += scene3Cfg.scrollSpeed * (dt / 1000);
-        }
-        // 雪地场景怪物定时生成
-        if (SceneManager.currentScene === 'scene2') {
-            const scene2Cfg = GAME_CONFIG.scene2?.spawning || {};
-            const questCfg = scene2Cfg.quest || { firstDelay: 40000, interval: 40000, count: 3, radius: 1500 };
-            const freeCfg = scene2Cfg.freeExplore || { interval: 5000, count: 3, radius: 2000 };
-            // 任务模式：特殊怪物生成规则
-            if (QuestState && QuestState.isInQuest()) {
-                if (!this._questSpawnTimer) this._questSpawnTimer = 0;
-                this._questSpawnTimer += dt;
-                const firstDelay = this._questFirstSpawnDelay || questCfg.firstDelay;
-                const interval = questCfg.interval;
-                const count = questCfg.count;
-                if (this._questSpawnTimer >= firstDelay) {
+        // 世界-123任务遭遇：节奏随任务定义保存，出生点必须通过当前菱形边界/障碍校验。
+        if (!SceneManager.isLoading
+            && SceneManager.isQuestInstance('scene9')
+            && QuestState?.isInQuest()
+            && this.player) {
+            const quest = QuestState.getActiveDefinition();
+            const encounter = quest?.runtime?.encounter || {};
+            const createQuestEnemy = encounter.monsterType === 'BlackWolf'
+                ? (x, y) => new BlackWolf(x, y)
+                : null;
+            if (createQuestEnemy) {
+                const questScene = SceneManager.scenes?.scene9;
+                const questDiamond = SceneManager._scene8Diamond?.(questScene);
+                this._questSpawnTimer = Math.max(0, Number(this._questSpawnTimer) || 0) + dt;
+                const firstDelay = Math.max(0, Number(encounter.firstDelay) || 40000);
+                const interval = Math.max(1000, Number(encounter.interval) || 40000);
+                const triggerDelay = this._questFirstSpawnDelay ?? firstDelay;
+                if (this._questSpawnTimer >= triggerDelay) {
                     this._questSpawnTimer = 0;
-                    this._questFirstSpawnDelay = interval; // 首次之后使用间隔
+                    this._questFirstSpawnDelay = interval;
+                    const count = Math.max(0, Math.floor(Number(encounter.count) || 3));
+                    const radius = Math.max(200, Number(encounter.radius) || 1500);
                     for (let i = 0; i < count; i++) {
-                        const angle = Math.random() * Math.PI * 2;
-                        const radius = questCfg.radius;
-                        const sx = this.player.x + Math.cos(angle) * radius;
-                        const sy = this.player.y + Math.sin(angle) * radius;
-                        const mx = Math.max(100, Math.min(CONFIG.WORLD_WIDTH - 100, sx));
-                        const my = Math.max(100, Math.min(CONFIG.WORLD_HEIGHT - 100, sy));
-                        const monster = new BlackWolf(mx, my);
-                        Game.entities.set(`scene2_quest_${Date.now()}_${i}_${Math.random()}`, monster);
-                    }
-                }
-            } else {
-                // 自由探索模式：原有逻辑
-                if (!this._scene2SpawnTimer) this._scene2SpawnTimer = 0;
-                this._scene2SpawnTimer += dt;
-                if (this._scene2SpawnTimer >= freeCfg.interval) {
-                    this._scene2SpawnTimer = 0;
-                    for (let i = 0; i < freeCfg.count; i++) {
-                        const angle = Math.random() * Math.PI * 2;
-                        const dist = freeCfg.radius;
-                        const sx = this.player.x + Math.cos(angle) * dist;
-                        const sy = this.player.y + Math.sin(angle) * dist;
-                        const mx = Math.max(100, Math.min(CONFIG.WORLD_WIDTH - 100, sx));
-                        const my = Math.max(100, Math.min(CONFIG.WORLD_HEIGHT - 100, sy));
-                        const monster = new BlackWolf(mx, my);
-                        Game.entities.set(`scene2_monster_${Date.now()}_${i}_${Math.random()}`, monster);
+                        let spawn = null;
+                        for (let attempt = 0; attempt < 24; attempt++) {
+                            const angle = Math.random() * Math.PI * 2;
+                            const distance = radius * (0.75 + Math.random() * 0.5);
+                            const x = Math.max(100, Math.min(
+                                CONFIG.WORLD_WIDTH - 100,
+                                this.player.x + Math.cos(angle) * distance
+                            ));
+                            const y = Math.max(100, Math.min(
+                                CONFIG.WORLD_HEIGHT - 100,
+                                this.player.y + Math.sin(angle) * distance
+                            ));
+                            const insideDiamond = !questDiamond
+                                || Math.abs(x - questDiamond.cx) / questDiamond.rx
+                                    + Math.abs(y - questDiamond.cy) / questDiamond.ry <= 0.94;
+                            if (insideDiamond && WallSystem.canMoveTo?.(x, y, 40) !== false) {
+                                spawn = { x, y };
+                                break;
+                            }
+                        }
+                        if (!spawn) continue;
+                        const monster = createQuestEnemy(spawn.x, spawn.y);
+                        Game.entities.set(
+                            `quest_${quest?.id || 'rift'}_${Date.now()}_${i}_${Math.random()}`,
+                            monster
+                        );
                     }
                 }
             }
@@ -1856,6 +1875,9 @@ if (SceneManager.currentScene === 'scene3') {
                 const j = indexOf.get(bRaw);
                 if (j === undefined || j <= i) continue;
                 const b = bRaw;
+                // 友方单位真正取得楼梯/城墙表面身份后互相穿行；这里只关闭单位间分离，
+                // 墙体、防坠线、建筑碰撞和入口 Portal 排队仍由各自系统继续约束。
+                if (shouldIgnoreFriendlyElevatedSeparation(a, b)) continue;
                 // 墙梯接口/楼梯共享缝属于统一高架桥面，短暂关闭单位分离，
                 // 防止surface提交后又被同层单位推离桥面。
                 if (a._elevatedNavigationBridge || b._elevatedNavigationBridge) continue;

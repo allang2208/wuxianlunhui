@@ -1,0 +1,53 @@
+{
+  "version": 1,
+  "quests": [
+    {
+      "id": "explore_rift_1",
+      "name": "探索时空裂隙",
+      "type": "主线任务",
+      "giver": "小鼠侍从",
+      "location": "世界-123 · 雪原裂隙",
+      "desc": "根据线索，世界-123 的雪原出现了持续扩大的时空乱流。前往雪原调查三处不稳定裂隙，收集线索后安全撤离。",
+      "scene": "scene9",
+      "mode": "quest",
+      "objectives": [
+        {
+          "id": "rift_1",
+          "text": "完成三个时空裂隙的线索收集",
+          "target": 3
+        },
+        {
+          "id": "evacuate",
+          "text": "成功从世界-123撤离",
+          "target": 1
+        }
+      ],
+      "rewards": [
+        {
+          "type": "level",
+          "text": "提升一级"
+        },
+        {
+          "type": "gold",
+          "text": "500 金币"
+        },
+        {
+          "type": "weapon",
+          "text": "随机优质武器"
+        }
+      ],
+      "runtime": {
+        "riftCount": 3,
+        "investigateMs": 10000,
+        "riftClearRadius": 240,
+        "encounter": {
+          "monsterType": "BlackWolf",
+          "firstDelay": 40000,
+          "interval": 40000,
+          "count": 3,
+          "radius": 1500
+        }
+      }
+    }
+  ]
+}

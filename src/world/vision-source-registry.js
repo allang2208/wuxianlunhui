@@ -174,8 +174,9 @@ export const VisionSourceRegistry = {
         let radius = positiveNumber(explicitRadius,
             positiveNumber(visionConfig[configKey], PROFILE_DEFAULTS[profile] || 0));
         radius += record?.radiusBonus || 0;
-        // 黄金星象仪（2026-08-22 工艺品祭品）：所有单位基础视野 ×N（visionRangePercent 实时聚合）
-        radius *= getTributeVisionRangeMul();
+        // 黄金星象仪只强化友方单位视野；建筑/传送门/守夜烛台保持自身配置半径。
+        // 这样烛台实际开雾、庇护判定与面板范围圈始终同源。
+        if (UNIT_VISION_PROFILES.has(profile)) radius *= getTributeVisionRangeMul();
         // 夜晚单位与普通结构统一减半；守夜烛台自身的照明半径不受黑夜削减。
         // 烛台范围内的单位仍由死寂雾潮倍率得到指定的夜间 ×0.45。
         if (profile !== 'candle') {

@@ -119,9 +119,15 @@ export function resolveSpriteDepthProfile(entity, sprite, options = {}) {
     );
     const visibleTopY = sprite.y + (bounds.top - originY) * sprite.displayHeight;
     const visibleFootY = sprite.y + footOffsetY;
+    // 移动实体的排序脚线属于逻辑世界坐标，不能被 spriteOffsetY、跨动作 feetCorr、
+    // 待机呼吸或贴图脚底标定污染。调用方提供 logicalFootY 时，alpha 扫描只负责
+    // 可见宽高，基础 depth 始终锚定逻辑脚底；纯视觉对象仍回退当前精灵脚点。
+    const logicalFootY = Number.isFinite(options.logicalFootY)
+        ? options.logicalFootY
+        : visibleFootY;
     const minFrontRange = Math.max(0, Number(options.minFrontRange) || 60);
     const maxFrontRange = Math.max(minFrontRange, Number(options.maxFrontRange) || 280);
-    const frontRange = clamp(visibleFootY - visibleTopY, minFrontRange, maxFrontRange);
+    const frontRange = clamp(logicalFootY - visibleTopY, minFrontRange, maxFrontRange);
     const naturalDepthOffset = Number.isFinite(options.naturalDepthOffset)
         ? options.naturalDepthOffset
         : 10;
@@ -133,6 +139,7 @@ export function resolveSpriteDepthProfile(entity, sprite, options = {}) {
         sideRange,
         visibleTopY,
         visibleFootY,
-        naturalDepth: visibleFootY + naturalDepthOffset,
+        logicalFootY,
+        naturalDepth: logicalFootY + naturalDepthOffset,
     };
 }

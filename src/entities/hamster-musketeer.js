@@ -27,8 +27,10 @@ export class HamsterMusketeer extends Companion {
         this.size = 64;
         this.hittable = true;
         this.hitFlash = 0;
-        this.footOffsetY = 17;
-        this.config = { render: { hudOffsetY: 145, footOffsetY: 17 } };
+        // 图层/阴影脚线必须与贴图中心偏移成对：spriteOffsetY=-36 时脚底偏移为 36。
+        // 赏金猎人继承本类并沿用同一贴地规格，禁止再回到旧的 17px 错配。
+        this.footOffsetY = Math.max(0, -(Number(this.spriteOffsetY) || 0));
+        this.config = { render: { hudOffsetY: 145, footOffsetY: this.footOffsetY } };
         this._dying = false;
         this._deathTimer = 0;
         this._ai = new HamsterMusketeerAI(this);

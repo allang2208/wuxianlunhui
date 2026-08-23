@@ -97,12 +97,14 @@ class EnergyNode extends DamageableEntity {
     }
 
     /**
-     * 采集入口：只对玩家/队员生效；按实际伤害 × 50% 产能源掉落。
+     * 采集入口：玩家/普通队友直接入仓；经济矿工先进入个人背包。
      */
     takeDamage(damage, source, damageType = 'physical', isMelee = true) {
         if (this._depleted) return 0;
         if (source && source._faction === 'enemy') return 0; // 资源点对怪物免疫
-        const directToWarehouse = !!(source && (source._faction === 'player' || source._faction === 'companion'));
+        const minerBackpack = !!(source?._isHamsterMiner && typeof source.addMinedEnergy === 'function');
+        const directToWarehouse = !!(source && !minerBackpack
+            && (source._faction === 'player' || source._faction === 'companion'));
         if (directToWarehouse && EnergyManager && EnergyManager.isFull()) {
             EnergyManager.depositEnergy(1); // 触发节流后的满仓提示，不改变存量
             return 0;
@@ -112,7 +114,11 @@ class EnergyNode extends DamageableEntity {
             ? configuredRatio
             : ENERGY_CONFIG.gatherRatio;
         let appliedDamage = damage;
-        if (directToWarehouse && EnergyManager) {
+        if (minerBackpack) {
+            const free = Math.max(0, Number(source.getMinedEnergyFreeCapacity?.()) || 0);
+            if (free <= 0) return 0;
+            if (gatherRatio > 0) appliedDamage = Math.min(damage, Math.ceil(free / gatherRatio));
+        } else if (directToWarehouse && EnergyManager) {
             const free = EnergyManager.getFreeCapacity();
             if (gatherRatio > 0) appliedDamage = Math.min(damage, Math.ceil(free / gatherRatio));
         }
@@ -122,7 +128,9 @@ class EnergyNode extends DamageableEntity {
         if (dealt <= 0) return dealt;
         const energy = Math.floor(dealt * gatherRatio);
         if (energy > 0) {
-            if (directToWarehouse && EnergyManager) {
+            if (minerBackpack) {
+                source.addMinedEnergy(energy);
+            } else if (directToWarehouse && EnergyManager) {
                 EnergyManager.depositEnergy(energy);
             } else if (Game && typeof Game.dropItem === 'function') {
                 const ang = Math.random() * Math.PI * 2;

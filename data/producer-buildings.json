@@ -389,6 +389,8 @@
     "perimeterTile": "none",
     "sellRefundRatio": 0.5, "allowedSceneIds": ["scene11"], "buildLimit": 3,
     "featureWorldId": "scene11", "parallelProduction": true,
+    "spawnEnabled": true,
+    "upgradeProject": "feature_unit_standard",
     "spawnIntervalMs": 60000, "spawnRadius": 90, "unitCap": 6,
     "defaultUnitType": "explorer",
     "unitTypes": [
@@ -430,8 +432,11 @@
     "tex": "jungle_temple", "assetPath": "assets/terrain/jungle_temple.png", "foundation": false,
     "displayW": 288, "displayH": 323, "footOffsetY": 159,
     "assetCutoutHash": "C4BE66EE9707ED888C0D3C590AE58352D45CA3CE8B589A779CBC59A878258B23",
+    "perimeterTile": "none",
     "sellRefundRatio": 0.5, "allowedSceneIds": ["scene10"], "buildLimit": 3,
     "featureWorldId": "scene10", "parallelProduction": true,
+    "spawnEnabled": true,
+    "upgradeProject": "feature_unit_standard",
     "spawnIntervalMs": 60000, "spawnRadius": 90, "unitCap": 6,
     "defaultUnitType": "jaguar_warrior",
     "unitTypes": [

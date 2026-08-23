@@ -25,6 +25,7 @@ class PathManager {
         this.isValid = false;        // 路径是否有效
         this.lastRecalcTime = 0;     // 上次重算时间
         this.stuckCount = 0;         // 连续修复失败次数
+        this.topologyVersion = -1;   // 当前路径生成时的障碍拓扑版本
         // [PERF-2026-08-03] 首寻路错峰：创建后随机延迟 0~250ms，避免刷怪瞬间多只怪同帧冷寻路
         this._firstRecalcAt = Date.now() + Math.random() * 250;
         this._lastWarnAt = 0;        // console.warn 节流
@@ -36,7 +37,7 @@ class PathManager {
      * 设置新路径
      * @param {Array<{x,y}>} path - 路径节点数组
      */
-    setPath(path) {
+    setPath(path, pathPlanner = null) {
         if (!path || path.length === 0) {
             this._clearPath();
             return;
@@ -55,6 +56,7 @@ class PathManager {
         this.checkTimer = this.checkInterval;
         this.stuckCount = 0;
         this.lastRecalcTime = Date.now();
+        this.topologyVersion = pathPlanner?.getTopologyVersion?.() ?? this.topologyVersion;
     }
 
     /**
@@ -65,6 +67,7 @@ class PathManager {
         this.pathIdx = 0;
         this.isValid = false;
         this.stuckCount = 0;
+        this.topologyVersion = -1;
     }
 
     // ==================== 每帧更新：有效性检查 ====================
@@ -76,10 +79,15 @@ class PathManager {
      */
     update(dt, pathPlanner) {
         if (!this.path || !this.isValid) return;
+        const topologyChanged = pathPlanner?.getTopologyVersion
+            && pathPlanner.getTopologyVersion() !== this.topologyVersion;
         this.checkTimer -= dt;
-        if (this.checkTimer > 0) return;
+        if (!topologyChanged && this.checkTimer > 0) return;
         this.checkTimer = this.checkInterval;
         this._checkValidity(pathPlanner);
+        if (this.path && this.isValid) {
+            this.topologyVersion = pathPlanner?.getTopologyVersion?.() ?? this.topologyVersion;
+        }
     }
 
     /**
@@ -87,15 +95,21 @@ class PathManager {
      * 只检查当前索引之后的节点（已走过的节点不检查）
      */
     _checkValidity(pathPlanner) {
-        if (!pathPlanner || !pathPlanner._isBlocked) return;
+        if (!pathPlanner || !pathPlanner.isPointBlocked) return;
+        if (this.enemy._spawnEgress) return;
         const radius = this.enemy.groundRadius;
-        // 从当前索引+1开始检查（当前节点可能正在移动中，不需要严格检查）
-        for (let i = this.pathIdx + 1; i < this.path.length; i++) {
+        // 每次只预读前方最多 8 段走廊，控制多单位检查成本；拓扑版本变化时立即执行。
+        // 出兵离场阶段起点可能仍在来源建筑 footprint 内，先让既有 egress 契约把单位带出。
+        const endIdx = Math.min(this.path.length - 1, this.pathIdx + 8);
+        let prev = { x: this.enemy.x, y: this.enemy.y };
+        for (let i = this.pathIdx; i <= endIdx; i++) {
             const node = this.path[i];
-            if (pathPlanner._isBlocked(node.x, node.y, radius)) {
+            const corridorBlocked = pathPlanner.isSegmentBlocked?.(prev.x, prev.y, node.x, node.y, radius);
+            if (pathPlanner.isPointBlocked(node.x, node.y, radius) || corridorBlocked) {
                 this._repairPath(i, pathPlanner);
                 return;
             }
+            prev = node;
         }
     }
 
@@ -135,6 +149,7 @@ class PathManager {
             this.pathIdx = 1;
             this.isValid = true;
             this.stuckCount = 0;
+            this.topologyVersion = pathPlanner?.getTopologyVersion?.() ?? this.topologyVersion;
             return;
         }
 
@@ -154,6 +169,7 @@ class PathManager {
             this.pathIdx = 1; // newPath[0]≈当前位置，从下一节点开始跟随
             this.isValid = true;
             this.stuckCount = 0;
+            this.topologyVersion = pathPlanner?.getTopologyVersion?.() ?? this.topologyVersion;
             return;
         }
 
@@ -235,7 +251,7 @@ class PathManager {
         // 帧预算不足：保留旧路径，下一帧 MovementSystem 的 shouldRecalc 会再次尝试
         if (path === PATH_DEFERRED) return;
         if (path) {
-            this.setPath(path);
+            this.setPath(path, pathPlanner);
             this._isExitPath = false;
             return;
         }
@@ -245,7 +261,7 @@ class PathManager {
         const exitResult = pathPlanner.findPathToExit(this.enemy.x, this.enemy.y, targetX, targetY, radius);
         if (exitResult === PATH_DEFERRED) return;
         if (exitResult && exitResult.path) {
-            this.setPath(exitResult.path);
+            this.setPath(exitResult.path, pathPlanner);
             this._isExitPath = true;
             this._exitTargetX = targetX;
             this._exitTargetY = targetY;

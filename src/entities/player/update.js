@@ -19,6 +19,8 @@ import { BuildingRoadSystem } from '../../world/building-road-system.js';
 
 const updateMixin = {
 update(dt, entities) {
+                // 每帧先清表现标志，防止死亡、眩晕、施法等提前返回时残留奔跑姿态。
+                this._rtsRunVisual = false;
                 // 墙顶/楼梯是窄通道：浏览器偶发长帧不能把约100ms一次积分成数十像素瞬移。
                 // 计时器仍使用真实dt，仅位置积分限制为最多约两帧。
                 const elevatedMoveDt = this._surfaceKind === 'wall_walk'
@@ -35,6 +37,7 @@ update(dt, entities) {
                 if (typeof this._updateDroneVulnerability === 'function') this._updateDroneVulnerability(dt);
                 // 死亡状态处理
                 if (this._isDead) {
+                    this._rtsController?.hold?.();
                     this._deathTimer -= dt;
                     if (this._deathTimer <= 0) {
                         // 蟠桃续命：该次地牢一次，3s 后以 30% 最大生命原地复活
@@ -226,7 +229,28 @@ update(dt, entities) {
                 // 更新弹药显示UI
                 this._updateAmmoDisplay();
 
-                const move = Input.getMovement();
+                const rtsEnabled = !!(typeof window !== 'undefined'
+                    && window.Game?.RTSCommand?.enabled
+                    && !window.Game?._observerMode);
+                const rtsIntent = this._rtsController?.update?.(dt, entities, rtsEnabled) || {
+                    move: { x: 0, y: 0 },
+                    aimWorld: null,
+                    primaryDown: false,
+                    primaryPressed: false,
+                    runVisual: false,
+                };
+                const move = rtsEnabled ? rtsIntent.move : Input.getMovement();
+                let primaryDown = rtsEnabled ? !!rtsIntent.primaryDown : Input.mouse.leftDown;
+                let primaryPressed = rtsEnabled ? !!rtsIntent.primaryPressed : Input.mouse.leftPressed;
+                let secondaryDown = rtsEnabled ? false : Input.mouse.rightDown;
+                let secondaryPressed = rtsEnabled ? false : Input.mouse.rightPressed;
+                const directMouseWorld = Renderer.screenToWorld(Input.mouse.x, Input.mouse.y);
+                const controlAimWorld = rtsEnabled
+                    ? (rtsIntent.aimWorld || {
+                        x: this.x + Math.cos(this.rotation || 0) * 100,
+                        y: this.y + Math.sin(this.rotation || 0) * 100,
+                    })
+                    : directMouseWorld;
                 this._surfaceInputIntent = this.isDodging
                     ? { x: this.dodgeDirection.x, y: this.dodgeDirection.y }
                     : { x: move.x, y: move.y };
@@ -315,7 +339,7 @@ update(dt, entities) {
                     // 双手枪械开火/瞄准时禁止 Shift 奔跑（开火或右键瞄准即中断奔跑退回 walking，
                     // _isSprinting 解除后姿态回 walk，武器位置同步为 walking 配置）
                     const isTwoHandedGun = isGunWeapon(currentEquip) && isTwoHanded(currentEquip);
-                    if (sprint && isTwoHandedGun && (Input.mouse.leftDown || Input.mouse.rightDown)) {
+                    if (sprint && isTwoHandedGun && (primaryDown || secondaryDown)) {
                         sprint = false;
                         // PKM 系保留原 50% 减速语义，其他双手枪退回普通走速
                         if (isPkmEquipped) {
@@ -393,7 +417,9 @@ update(dt, entities) {
                         this.triggerDodge(moveInput);
                     }
                 }
-                const screenPos = Renderer.worldToScreen(this.x, this.y), dx = Input.mouse.x - screenPos.x, dy = Input.mouse.y - screenPos.y;
+                const screenPos = Renderer.worldToScreen(this.x, this.y);
+                const aimScreenPos = Renderer.worldToScreen(controlAimWorld.x, controlAimWorld.y);
+                const dx = aimScreenPos.x - screenPos.x, dy = aimScreenPos.y - screenPos.y;
                 if (isMeleeAttacking) {
                     // 近战攻击期间锁定朝向，动画结束后再恢复跟随鼠标
                 } else if (this._isDashing || this._dashRecoverAt || this._dashResetAnim) {
@@ -420,9 +446,10 @@ update(dt, entities) {
                 // 此前只把局部 sprint 置 false（减速生效），_isSprinting 未同步导致腿层仍播 runlegs
                 const _thGunEquip = this.equipments[this.weaponMode];
                 const _twoHandedGunCombat = !!(_thGunEquip && isGunWeapon(_thGunEquip) && isTwoHanded(_thGunEquip)
-                    && (Input.mouse.leftDown || Input.mouse.rightDown)); // 左键开火或右键瞄准
+                    && (primaryDown || secondaryDown)); // 左键开火或右键瞄准
                 const _sprintActive = Input.isSprint() && this.data.stamina > 0 && this._isFacingMouse() && !_twoHandedGunCombat;
                 this._isSprinting = _sprintActive; // 保存供render使用
+                this._rtsRunVisual = !!(rtsEnabled && rtsIntent.runVisual && this.isMoving);
                 // ===== 行走/奔跑动画已由 Phaser 处理 =====
                 // Phaser 在 GameScene.update() 中自动播放 walk/run/idle 动画
                 if (this.isMoving && !this.isDodging) {
@@ -550,7 +577,7 @@ update(dt, entities) {
                 const _offItem = this.equipments[_offSlot];
                 const _isDual = _offItem && _offItem.name && !_offItem.isTwoHanded;
                 // 主手散布计时：左键按下时主手武器累计散布
-                if (_isGun && Input.mouse.leftDown) {
+                if (_isGun && primaryDown) {
                     this._gunSpreadTimer += dt;
                     this._gunSpreadWeapon = _currentWep2.weaponType;
                 } else {
@@ -559,7 +586,7 @@ update(dt, entities) {
                 }
                 // 副手散布计时：双持时右键按下且副手为枪械时累计散布
                 const _offIsGun = _offItem && isGunWeapon(_offItem);
-                if (_isDual && _offIsGun && Input.mouse.rightDown) {
+                if (_isDual && _offIsGun && secondaryDown) {
                     this._gunSpreadTimerOff += dt;
                     this._gunSpreadWeaponOff = _offItem.weaponType;
                 } else {
@@ -692,7 +719,7 @@ update(dt, entities) {
                 if (_currentWep2 && _currentWep2.weaponType === 'shotgun') {
                     const ce = _currentWep2._craftEffects;
                     if (ce && ce.slugMode) {
-                        if (Input.mouse.leftDown) {
+                        if (primaryDown) {
                             // 射击时：重置恢复计时器
                             this._slugRecoilTimer = 0;
                         } else {
@@ -737,7 +764,7 @@ update(dt, entities) {
                             this._overheatValue = 0;
                             this._overheatActive = false;
                         }
-                    } else if (Input.mouse.leftDown && !this._isReloading(this.weaponMode)) {
+                    } else if (primaryDown && !this._isReloading(this.weaponMode)) {
                         // 持续开火
                         this._overheatActive = true;
                         let overheatTime = _currentWep2.weaponType === 'energy_lmg'
@@ -801,7 +828,7 @@ update(dt, entities) {
                 }
                 this.updateWeaponAnim(dt);
                 this._updateSubsystems(dt, entities);
-                const mouseWorld = Renderer.screenToWorld(Input.mouse.x, Input.mouse.y);
+                const mouseWorld = controlAimWorld;
                 // 左键拾取地面物品已取消 — 现在仅在鼠标悬停触发金色特效时自动拾取
                 // （逻辑移至 Game.update() 的悬停检测中）
                 if (!this.isDodging && !this._isDashing && !this._isWhirlwind && !this._isPushStrike && !this._specialAttackActive && !this._isDead) {
@@ -815,7 +842,7 @@ update(dt, entities) {
                         this.shieldSystem.exitDefense();
                     }
                     if (this.shieldSystem && this.shieldSystem.checkEquipped() && !_isMainNonPistolGun) {
-                        if (Input.mouse.rightDown) {
+                        if (secondaryDown) {
                             if (!this.shieldSystem.defending) {
                                 this.shieldSystem.enterDefense();
                             }
@@ -831,6 +858,8 @@ update(dt, entities) {
                         if (this.gameStartCooldown > 0) {
                             Input.mouse.leftPressed = false;
                             Input.mouse.leftDown = false;
+                            primaryPressed = false;
+                            primaryDown = false;
                         }
                     }
                     // 防御状态下：跳过所有攻击输入处理（手枪+盾时允许手枪攻击）
@@ -844,6 +873,7 @@ update(dt, entities) {
                     // 防止用户在面板中装备武器时，因之前按住左键导致自动攻击
                     if (SystemUI.isOpen) {
                         Input.mouse.leftPressed = false;
+                        primaryPressed = false;
                         // 注意：不重置 leftDown，避免面板关闭后立即攻击
                         return;
                     }
@@ -851,6 +881,8 @@ update(dt, entities) {
                     if (this.gameStartCooldown > 0) {
                         Input.mouse.leftPressed = false;
                         Input.mouse.leftDown = false;
+                        primaryPressed = false;
+                        primaryDown = false;
                         return;
                     }
                     // 新设计：根据当前武器栏的实际装备类型决定攻击方式
@@ -878,7 +910,7 @@ update(dt, entities) {
                     // ===== 边境长弓蓄力攻击逻辑 =====
                     const isBorderBow = effectiveItem && effectiveItem.chargeAttack;
                     if (isBorderBow) {
-                        if (Input.mouse.leftDown) {
+                        if (primaryDown) {
                             if (this._chargeState === 'idle') {
                                 this._chargeState = 'charging';
                                 this._chargeTimer = 0;
@@ -915,7 +947,10 @@ update(dt, entities) {
                             }
                         }
                         // 边境长弓消费掉 leftPressed，防止进入下方的点击攻击逻辑
-                        if (Input.mouse.leftPressed) Input.mouse.leftPressed = false;
+                        if (primaryPressed) {
+                            Input.mouse.leftPressed = false;
+                            primaryPressed = false;
+                        }
                     }
                     // 判断当前有效武器的类型
                     const isPistol = effectiveItem && (effectiveItem.weaponType === 'pistol' || effectiveItem.rangedType === 'pistol');
@@ -931,7 +966,7 @@ update(dt, entities) {
                     const isDualWield = offhandItem && offhandItem.name && !offhandItem.isTwoHanded;
 
                     // ===== 瞄准模式：所有枪械都可以进行瞄准（双持手枪除外） =====
-                    if (isGun && Input.mouse.rightDown && !(isPistol && isDualWield)) {
+                    if (isGun && secondaryDown && !(isPistol && isDualWield)) {
                         this._aimModeActive = true;
                         const craftEffects = effectiveItem && effectiveItem._craftEffects;
                         const scopeType = craftEffects && (craftEffects.highPowerScope ? '3x' : (craftEffects.redDotScope ? '1x' : null));
@@ -972,7 +1007,7 @@ update(dt, entities) {
                         // 根据 fireMode 选择触发器：semiAuto = 单击射击，fullAuto = 按住持续射击
                         // （全自动板机改造 fireModeOverride 优先于武器固有 fireMode）
                         const mainFireMode = (effectiveItem._craftEffects && effectiveItem._craftEffects.fireModeOverride) || effectiveItem.fireMode || 'fullAuto';
-                        const mainFireTrigger = mainFireMode === 'semiAuto' ? Input.mouse.leftPressed : Input.mouse.leftDown;
+                        const mainFireTrigger = mainFireMode === 'semiAuto' ? primaryPressed : primaryDown;
                         // 左键：主手射击
                         if (mainHasAmmo && !mainReloading && this.weaponSwitchCooldown <= 0 && mainFireTrigger && this.attacks[attackKey].canUse() && this.data.stamina >= CONFIG.STAMINA_RANGED_COST) {
                             this.rangedFireData = { ...this.rangedFireData, targetX: mouseWorld.x, targetY: mouseWorld.y, entities: entities, mainSlot: effectiveSlot, fireMainHand: true };
@@ -981,6 +1016,7 @@ update(dt, entities) {
                             // 半自动武器：消费掉点击事件，防止持续射击
                             if (mainFireMode === 'semiAuto') {
                                 Input.mouse.leftPressed = false;
+                                primaryPressed = false;
                                 // 爆发板机（craft burstMode=N）：一次扳机 N 连发，首发后按 60ms 间隔排队
                                 const _burstN = (effectiveItem._craftEffects && effectiveItem._craftEffects.burstMode) || 0;
                                 if (_burstN > 1) {
@@ -1013,7 +1049,7 @@ update(dt, entities) {
                         }
                         // 右键：副手射击（双持时）
                         const offhandFireMode = (offhandItem && offhandItem._craftEffects && offhandItem._craftEffects.fireModeOverride) || (offhandItem && offhandItem.fireMode) || 'fullAuto';
-                        const offhandFireTrigger = offhandFireMode === 'semiAuto' ? Input.mouse.rightPressed : Input.mouse.rightDown;
+                        const offhandFireTrigger = offhandFireMode === 'semiAuto' ? secondaryPressed : secondaryDown;
                         if (isDualWield && offhandHasAmmo && !offhandReloading && this.weaponSwitchCooldown <= 0 && offhandFireTrigger && this.attacks[offhandAttackKey].canUse() && this.data.stamina >= CONFIG.STAMINA_RANGED_COST) {
                             this.rangedFireData = { ...this.rangedFireData, targetX: mouseWorld.x, targetY: mouseWorld.y, entities: entities, offhandSlot: offhandSlot, fireOffhand: true };
                             this.attacks[offhandAttackKey].cooldown = this.attacks[offhandAttackKey].maxCooldown;
@@ -1021,6 +1057,7 @@ update(dt, entities) {
                             // 半自动副手：消费掉点击事件
                             if (offhandFireMode === 'semiAuto') {
                                 Input.mouse.rightPressed = false;
+                                secondaryPressed = false;
                                 // 爆发板机（craft burstMode=N）：副手同样生效——一次扳机 N 连发，60ms 间隔排队
                                 const _burstNOff = (offhandItem && offhandItem._craftEffects && offhandItem._craftEffects.burstMode) || 0;
                                 if (_burstNOff > 1) {
@@ -1065,7 +1102,7 @@ update(dt, entities) {
                         const isOverheated = this._overheatOverheated && this._overheatWeaponType === effectiveItem.weaponType;
                         if (isOverheated) {
                             // 过热中，禁止开火
-                        } else if (hasAmmo && !isReloading && this.weaponSwitchCooldown <= 0 && Input.mouse.leftDown && this.attacks[attackKey].canUse() && this.data.stamina >= CONFIG.STAMINA_RANGED_COST) {
+                        } else if (hasAmmo && !isReloading && this.weaponSwitchCooldown <= 0 && primaryDown && this.attacks[attackKey].canUse() && this.data.stamina >= CONFIG.STAMINA_RANGED_COST) {
                             this.rangedFireData = { targetX: mouseWorld.x, targetY: mouseWorld.y, entities: entities, mainSlot: effectiveSlot, fireMainHand: true };
                             this.attacks[attackKey].cooldown = this.attacks[attackKey].maxCooldown;
                             this.triggerWeaponAnim();
@@ -1074,7 +1111,7 @@ update(dt, entities) {
                         // 能量轻机枪：更新射速提升状态
                         if (isEnergyLMG) {
                             const elp = this._getEnergyLMGParams();
-                            if (Input.mouse.leftDown && !this._overheatOverheated) {
+                            if (primaryDown && !this._overheatOverheated) {
                                 // 持续开火：累积开火时间
                                 if (!this._energyLMGIsFiring) {
                                     this._energyLMGIsFiring = true;
@@ -1104,7 +1141,7 @@ update(dt, entities) {
                                 if (offhandAttackKey && this.attacks[offhandAttackKey]) {
                                     const offhandHasAmmo = this._hasAmmo(offhandSlot);
                                     const offhandReloading = this._isReloading(offhandSlot);
-                                    if (offhandHasAmmo && !offhandReloading && this.weaponSwitchCooldown <= 0 && Input.mouse.rightDown && this.attacks[offhandAttackKey].canUse() && this.data.stamina >= CONFIG.STAMINA_RANGED_COST) {
+                                    if (offhandHasAmmo && !offhandReloading && this.weaponSwitchCooldown <= 0 && secondaryDown && this.attacks[offhandAttackKey].canUse() && this.data.stamina >= CONFIG.STAMINA_RANGED_COST) {
                                         this.rangedFireData = { ...this.rangedFireData, targetX: mouseWorld.x, targetY: mouseWorld.y, entities: entities, offhandSlot: offhandSlot, fireOffhand: true };
                                         this.attacks[offhandAttackKey].cooldown = this.attacks[offhandAttackKey].maxCooldown;
                                         this.triggerOffhandWeaponAnim();
@@ -1118,30 +1155,32 @@ update(dt, entities) {
                         const hasAmmo = this._hasAmmo(effectiveSlot);
                         const isReloading = this._isReloading(effectiveSlot);
                         // 打断单发装填：左键按下时打断换弹（仅Super90）
-                        if (!isSaiga12k && isReloading && Input.mouse.leftPressed) {
+                        if (!rtsEnabled && !isSaiga12k && isReloading && primaryPressed) {
                             this._interruptReload(effectiveSlot);
                         }
                         // 打断换弹：SAIGA-12K按住左键时也打断换弹
-                        if (isSaiga12k && isReloading && Input.mouse.leftDown) {
+                        if (!rtsEnabled && isSaiga12k && isReloading && primaryDown) {
                             this._interruptReload(effectiveSlot);
                         }
                         // Super90: 单次点击开火(leftPressed)；SAIGA-12K: 按住左键持续开火(leftDown)
-                        const fireTrigger = isSaiga12k ? Input.mouse.leftDown : Input.mouse.leftPressed;
+                        const fireTrigger = isSaiga12k ? primaryDown : primaryPressed;
                         if (hasAmmo && !isReloading && this.weaponSwitchCooldown <= 0 && fireTrigger && this.attacks[attackKey].canUse() && this.data.stamina >= CONFIG.STAMINA_RANGED_COST) {
                             this.rangedFireData = { targetX: mouseWorld.x, targetY: mouseWorld.y, entities: entities, mainSlot: effectiveSlot, fireMainHand: true };
                             this.attacks[attackKey].cooldown = this.attacks[attackKey].maxCooldown;
                             this.triggerWeaponAnim();
                             if (!isSaiga12k) {
                                 Input.mouse.leftPressed = false; // Super90消费掉点击事件
+                                primaryPressed = false;
                             }
                         }
                         // 子弹打空时，点击开火键也触发换弹（自动换弹）
                         const ammoState = this._getAmmoState(effectiveSlot);
-                        if (!hasAmmo && !isReloading && Input.mouse.leftPressed && ammoState && ammoState.current <= 0) {
+                        if (!hasAmmo && !isReloading && primaryPressed && ammoState && ammoState.current <= 0) {
                             this._startReload(effectiveSlot);
                             Input.mouse.leftPressed = false;
+                            primaryPressed = false;
                         }
-                    } else if (Input.mouse.leftPressed) {
+                    } else if (primaryPressed) {
                         // 计算冲刺攻击触发时间：基础333ms，每级减少3%
                         const activeDashSkill = this._getActiveDashSkillId();
                         const dashLevel = (this.skills && this.skills[activeDashSkill] && this.skills[activeDashSkill].level) || 1;
@@ -1181,10 +1220,11 @@ update(dt, entities) {
                             }
                         }
                         Input.mouse.leftPressed = false;
+                        primaryPressed = false;
                     }
                     // ===== 右键特殊攻击：夜与火之剑 / 符文长剑 =====
                     // 攻击动画锁定：任何一段攻击未播完前不触发
-                    if (Input.mouse.rightPressed && isMelee && !(this.weaponAnim && this.weaponAnim.isAttacking)) {
+                    if (secondaryPressed && isMelee && !(this.weaponAnim && this.weaponAnim.isAttacking)) {
                         
                         if (effectiveItem && effectiveItem.specialAttackType === 'nightFlame') {
                             // 夜与火之剑
@@ -1204,6 +1244,7 @@ update(dt, entities) {
                             }
                         }
                         Input.mouse.rightPressed = false;
+                        secondaryPressed = false;
                     }
                 }
             }

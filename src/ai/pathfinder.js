@@ -1,6 +1,7 @@
 import { WallSystem } from '../world/wall-system.js';
 import { regionIndex } from './region-index.js';
 import { dynamicObstacleMap } from './dynamic-obstacle-map.js';
+import { circleIntersectsIsoFootprint, isoFootprintVertices } from '../physics/iso-footprint.js';
 
 /** 寻路帧预算耗尽时的哨兵返回值：调用方应保留旧路径、下一帧重试，而非当作"不可达" */
 export const PATH_DEFERRED = Symbol('PATH_DEFERRED');
@@ -172,10 +173,11 @@ class SpatialHash {
         // 圆形树木
         if (WallSystem.trees) {
             for (const t of WallSystem.trees) {
-                const minCX = Math.floor((t.x - t.radius) / this.cellSize);
-                const maxCX = Math.floor((t.x + t.radius) / this.cellSize);
-                const minCY = Math.floor((t.y - t.radius) / this.cellSize);
-                const maxCY = Math.floor((t.y + t.radius) / this.cellSize);
+                const treeR = t.collisionRadius || t.radius * 0.6;
+                const minCX = Math.floor((t.x - treeR) / this.cellSize);
+                const maxCX = Math.floor((t.x + treeR) / this.cellSize);
+                const minCY = Math.floor((t.y - treeR) / this.cellSize);
+                const maxCY = Math.floor((t.y + treeR) / this.cellSize);
                 for (let cx = minCX; cx <= maxCX; cx++) {
                     for (let cy = minCY; cy <= maxCY; cy++) {
                         const key = this._getKey(cx, cy);
@@ -229,7 +231,8 @@ class SpatialHash {
                     } else if (item.type === 'tree') {
                         const t = item.obj;
                         const ddx = x - t.x, ddy = y - t.y;
-                        if (Math.sqrt(ddx * ddx + ddy * ddy) < t.radius + radius) {
+                        const treeR = t.collisionRadius || t.radius * 0.6;
+                        if (Math.sqrt(ddx * ddx + ddy * ddy) < treeR + radius) {
                             return true;
                         }
                     } else if (item.type === 'seg') {
@@ -284,10 +287,16 @@ class PathFinder {
         this._frameUsedMs = 0;
         // 出口路径短时缓存（A* 失败后卡住重算每 500ms 都会走到这里，原来每次都全量重建 RegionIndex）
         this._exitCache = new Map(); // key -> { result, timestamp }
+        // 与完整 A* 分离的短时连通性预读取。同一拓扑版本、同一半径桶与相近端点
+        // 复用一次 Flood Fill 结论，避免多选单位/卡死重算在同帧重复扫描连通区。
+        this._reachabilityCache = new Map();
         this._lastWarnAt = 0;        // console.warn 节流（卡住重算循环曾刷屏）
           // 世界-122 能源矿等“非墙体实体圆障碍”：只给寻路用，不写进 WallSystem，
           // 避免影响塔弹道/墙体碰撞语义。EnergyNodeSystem.setup/teardown 负责登记。
           this._entityCircleObstacles = [];
+          this._entityFootprintObstacles = [];
+          this._entityFootprintSignature = '';
+          this._lastEntityFootprintSyncAt = 0;
           this._hasEntityObstacles = false;
     }
 
@@ -312,6 +321,7 @@ class PathFinder {
         this._maxTreeRadius = 0;
         this._pathCache.clear();
         this._exitCache.clear();
+        this._reachabilityCache.clear();
         // [PERF-2026-08-03] 几何变化：递增版本并清空格子记忆化
         this._geometryVersion++;
         this._cellMemo.clear();
@@ -329,9 +339,11 @@ class PathFinder {
           this._entityCircleObstacles = Array.isArray(obstacles)
               ? obstacles.map(o => ({ x: o.x, y: o.y, radius: o.radius || o.groundRadius || 20 }))
               : [];
-          this._hasEntityObstacles = this._entityCircleObstacles.length > 0;
+          this._hasEntityObstacles = this._entityCircleObstacles.length > 0
+              || this._entityFootprintObstacles.length > 0;
           this._pathCache.clear();
           this._exitCache.clear();
+          this._reachabilityCache.clear();
           this._cellMemo.clear();
           this._geometryVersion++;
           regionIndex.markDirty();
@@ -345,7 +357,90 @@ class PathFinder {
               const dx = x - o.x, dy = y - o.y;
               if (dx * dx + dy * dy < rr * rr) return true;
           }
+          for (const o of this._entityFootprintObstacles) {
+              if (x + radius < o.minX || x - radius > o.maxX
+                  || y + radius < o.minY || y - radius > o.maxY) continue;
+              if (circleIntersectsIsoFootprint(x, y, radius, o.entity)) return true;
+          }
           return false;
+      }
+
+      /**
+       * 把普通静态建筑的真实 iso footprint 同步为寻路硬障碍。
+       * 墙、门、高架楼梯继续由 WallSystem/高架导航拥有；防御塔保留“友军可穿过”的既有契约。
+       * 方法由 MovementSystem 高频调用，内部 250ms 节流且仅在签名变化时失效缓存。
+       */
+      syncEntityFootprintObstacles(entities, now = Date.now()) {
+          if (now - this._lastEntityFootprintSyncAt < 250) return false;
+          this._lastEntityFootprintSyncAt = now;
+          let source = [];
+          if (entities instanceof Map) source = entities.values();
+          else if (Array.isArray(entities)) source = entities;
+          else if (entities && typeof entities.values === 'function') source = entities.values();
+          else if (entities && typeof entities[Symbol.iterator] === 'function') source = entities;
+
+          const next = [];
+          const signatureParts = [];
+          for (const entity of source) {
+              if (!entity || entity.active === false || entity.noCollision === true) continue;
+              if (entity.collisionShape !== 'iso_rect') continue;
+              if (!(entity.immovable || entity.noSeparation || entity._isBuilding || entity._isDefenseStructure)) continue;
+              if (entity._isDefenseTower || entity._isDefenseCover || entity._isCoverGate || entity._isWallStaircase) continue;
+              const vertices = isoFootprintVertices(entity);
+              if (!vertices.length) continue;
+              let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+              for (const p of vertices) {
+                  minX = Math.min(minX, p.x); maxX = Math.max(maxX, p.x);
+                  minY = Math.min(minY, p.y); maxY = Math.max(maxY, p.y);
+              }
+              next.push({ entity, minX, minY, maxX, maxY });
+              signatureParts.push([
+                  entity.id || entity._navObstacleId || entity.constructor?.name || 'building',
+                  Math.round(entity.x || 0), Math.round(entity.y || 0),
+                  Math.round(minX), Math.round(minY), Math.round(maxX), Math.round(maxY),
+              ].join(':'));
+          }
+          signatureParts.sort();
+          const signature = signatureParts.join('|');
+          if (signature === this._entityFootprintSignature) return false;
+          this._entityFootprintSignature = signature;
+          this._entityFootprintObstacles = next;
+          this._hasEntityObstacles = this._entityCircleObstacles.length > 0 || next.length > 0;
+          this._pathCache.clear();
+          this._exitCache.clear();
+          this._reachabilityCache.clear();
+          this._geometryVersion++;
+          regionIndex.markDirty();
+          return true;
+      }
+
+      getTopologyVersion() {
+          return this._geometryVersion;
+      }
+
+      isPointBlocked(x, y, radius = 20) {
+          return this._isBlocked(x, y, this._bucketRadius(radius));
+      }
+
+      isSegmentBlocked(x1, y1, x2, y2, radius = 20) {
+          return this._raycastBlocked(x1, y1, x2, y2, this._bucketRadius(radius));
+      }
+
+      /** 给 RTS 点击点/编队槽位寻找最近合法落点，不改变高架目标语义。 */
+      findNearestWalkablePoint(x, y, radius = 20, maxDistance = 320) {
+          const r = this._bucketRadius(radius);
+          if (!this._isBlocked(x, y, r)) return { x, y };
+          const step = Math.max(this.gridSize, r);
+          for (let d = step; d <= maxDistance; d += step) {
+              const samples = Math.max(12, Math.ceil(Math.PI * 2 * d / step));
+              for (let i = 0; i < samples; i++) {
+                  const a = i / samples * Math.PI * 2;
+                  const px = x + Math.cos(a) * d;
+                  const py = y + Math.sin(a) * d;
+                  if (!this._isBlocked(px, py, r)) return { x: px, y: py };
+              }
+          }
+          return null;
       }
 
 
@@ -412,6 +507,7 @@ class PathFinder {
         this._hashValid = false;
         this._maxTreeRadius = 0;
         this._geometryVersion++;
+        this._reachabilityCache.clear();
         // RegionIndex：保持 markDirty 惰性重建（机制不变）
         regionIndex.markDirty();
     }
@@ -480,6 +576,16 @@ class PathFinder {
               const softR = o.radius + r * 2.0;
               if (d2 < softR * softR && cost < 3.0) cost = 3.0;
           }
+          if (!blocked) {
+              for (const o of this._entityFootprintObstacles) {
+                  if (x + r < o.minX || x - r > o.maxX
+                      || y + r < o.minY || y - r > o.maxY) continue;
+                  if (circleIntersectsIsoFootprint(x, y, r, o.entity)) {
+                      blocked = true;
+                      break;
+                  }
+              }
+          }
           return { blocked, cost };
       }
 
@@ -519,7 +625,7 @@ class PathFinder {
                           const ddx = x - t.x, ddy = y - t.y;
                         const distSq = ddx * ddx + ddy * ddy;
                         // 阻挡：与原 _isBlocked 同口径（视觉半径 + 实体半径）
-                        const blockR = t.radius + r;
+                        const blockR = (t.collisionRadius || t.radius * 0.6) + r;
                         if (distSq < blockR * blockR) {
                             blocked = true;
                             break outer;
@@ -563,20 +669,42 @@ class PathFinder {
     isReachable(startX, startY, endX, endY, entityRadius) {
         this._ensureHash();
         const step = this.gridSize;
+        const r = this._bucketRadius(entityRadius);
+        // 起点允许位于刚出生建筑/旧存档嵌入区内，以便 A* 从最近开放格离场；终点必须合法。
+        if (this._isBlocked(endX, endY, r)) return false;
+        const targetKey = `${this._geometryVersion}:${r}:${Math.floor(endX / step)},${Math.floor(endY / step)}`;
+        const startCellKey = Math.floor(startX / step) + Math.floor(startY / step) * CELL_STRIDE;
+        const cacheKey = `${targetKey}:${startCellKey}`;
+        const cached = this._reachabilityCache.get(cacheKey);
+        if (cached && Date.now() - cached.timestamp < 1000) return cached.value;
+        const visited = new Set();
+        const remember = (value, spreadVisited = false) => {
+            if (this._reachabilityCache.size >= 4096) this._reachabilityCache.clear();
+            const timestamp = Date.now();
+            if (spreadVisited) {
+                // 到达目标时，已访问格都与目标同连通分量；队形内其他单位可直接命中预读结论。
+                for (const cellKey of visited) {
+                    this._reachabilityCache.set(`${targetKey}:${cellKey}`, { value, timestamp });
+                }
+            } else {
+                this._reachabilityCache.set(cacheKey, { value, timestamp });
+            }
+            return value;
+        };
         const maxDist = Math.sqrt((endX - startX) ** 2 + (endY - startY) ** 2);
         // [FIX] 步数按 BFS 层数计算：每层 step 距离，给 3 倍冗余 + 20 保底
         const maxSteps = Math.ceil(maxDist / step) * 3 + 20;
-        const visited = new Set();
         const queue = [{ x: startX, y: startY }];
         // [PERF-2026-08-08] visited 整数 key（gx + gy*CELL_STRIDE），替代 "gx,gy" 字符串拼接
         visited.add(Math.floor(startX / step) + Math.floor(startY / step) * CELL_STRIDE);
         let steps = 0;
-        while (queue.length > 0 && steps < maxSteps) {
+        let queueIdx = 0;
+        while (queueIdx < queue.length && steps < maxSteps) {
             steps++;
-            const { x, y } = queue.shift();
+            const { x, y } = queue[queueIdx++];
             // 如果到达目标附近，认为可达
             if (Math.sqrt((x - endX) ** 2 + (y - endY) ** 2) < step * 2) {
-                return true;
+                return remember(true, true);
             }
             // 8方向扩展
             const dirs = [[-1,0],[1,0],[0,-1],[0,1],[-1,-1],[-1,1],[1,-1],[1,1]];
@@ -585,15 +713,15 @@ class PathFinder {
                 const ny = y + dc * step;
                 const key = Math.floor(nx / step) + Math.floor(ny / step) * CELL_STRIDE;
                 if (visited.has(key)) continue;
-                if (this._isBlocked(nx, ny, entityRadius)) continue;
+                if (this._isBlocked(nx, ny, r)) continue;
                 visited.add(key);
                 queue.push({ x: nx, y: ny });
             }
         }
         // 队列耗尽说明起点所在连通区已完整搜索，目标确实不可达。
-        if (queue.length === 0) return false;
+        if (queueIdx >= queue.length) return remember(false, true);
         // 只有步数预算用完时才让 A* 自己判断，避免 BFS 预算不足导致误判。
-        return true;
+        return remember(true);
     }
 
     // [NEW] 当目标不可达时，找到当前区域边界上离目标最近的出口
@@ -774,10 +902,11 @@ class PathFinder {
         const dx = x2 - x1;
         const dy = y2 - y1;
         const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < 1e-6) return this._isBlocked(x2, y2, radius);
         const steps = Math.ceil(dist / (this.gridSize * 0.5));
         const stepX = dx / steps;
         const stepY = dy / steps;
-        for (let i = 1; i < steps; i++) {
+        for (let i = 1; i <= steps; i++) {
             const x = x1 + stepX * i;
             const y = y1 + stepY * i;
             if (this._isBlocked(x, y, radius)) return true;
@@ -820,6 +949,14 @@ class PathFinder {
     }
 
     findPath(startX, startY, endX, endY, entityRadius) {
+        // 攻击建筑等语义目标会把中心点交给寻路；中心成为硬障碍后先投影到最近开放点，
+        // 让战斗继续以目标实体为准、路径只负责走到 footprint 外侧。
+        if (this._isBlocked(endX, endY, this._bucketRadius(entityRadius))) {
+            const projected = this.findNearestWalkablePoint(endX, endY, entityRadius, 360);
+            if (!projected) return null;
+            endX = projected.x;
+            endY = projected.y;
+        }
         // [ENHANCE] 尝试从缓存获取（含不可达负缓存）
         // 如果起点/终点附近有动态障碍，跳过缓存，避免使用过期的低成本路径
         const dynamicCostStart = dynamicObstacleMap.getCost(startX, startY);

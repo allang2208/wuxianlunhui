@@ -40,7 +40,7 @@ import { getSpriteFrameOffset } from '../../utils/sprite-offsets.js';
 import { EffectFactory } from '../../utils/effect-factory.js';
 import { PLAYER_DEFAULTS } from '../../config/player-defaults.js';
 import { playerTextureKey, getPlayerAnimDef, getPlayerAnimDurationMs } from '../../config/player-anim.js';
-import { AnimChannel, resolveAnimChannel, enterRecover, clearPose, nowMs,
+import { AnimChannel, resolveAnimChannel, enterRecover, clearPose, isPlayerRunVisual, nowMs,
     MELEE_STAGE_ANIM_KEYS, meleeStageCfgKey, meleeStageRecoverMs } from '../../entities/player/anim-state.js';
 import { PERSPECTIVE_SCALE_Y } from '../../config/perspective-config.js';
 import { getTorsoRect } from '../../physics/torso-hitbox.js';
@@ -573,6 +573,10 @@ export class GameScene extends Scene {
             sandstormActive: World122SandstormSystem.isActive(SceneManager.currentScene),
         });
         World125FogTideSystem.syncScene(SceneManager.currentScene);
+        World125FogTideSystem.syncPlayerShelter(
+            _game?.entities?.get?.('player') === _game?.player ? _game.player : null,
+            SceneManager.currentScene
+        );
         this._world125Atmosphere?.update({
             sceneId: SceneManager.currentScene,
             sceneConfig: currentSceneConfig,
@@ -1036,7 +1040,7 @@ export class GameScene extends Scene {
         ];
         const activeIds = new Set();
         const isMoving = !!player.isMoving;
-        const isSprinting = !!player._isSprinting;
+        const isSprinting = isPlayerRunVisual(player);
         const casting = !!(player._castState && player._castState !== 'idle');
         const facingRight = !this.playerSprite.flipX;
         for (const member of members) {
@@ -1164,10 +1168,13 @@ export class GameScene extends Scene {
                     }
                 } else if (st === 'mining' && anims.mining && this.textures.exists(miningKey)) {
                     // 采矿动画 = 攻击触发时播一次挥锄，其余攻击间隔定格 waitFrame（默认第 6 帧，索引 5）。
-                    // AI 每次命中置 _miningSwing；首次完整 1~19 帧，之后第 5~19 帧单次。
+                    // AI 每次有效命中递增 _miningSwingSeq；首次完整 1~19 帧，之后第 5~19 帧单次。
                     const miningStartKey = `${miningKey}_start`;
                     const miningWaitFrame = anims.mining.waitFrame ?? 5;
-                    if (member._miningSwing && !sprite.getData('miningSwing')) {
+                    const miningSwingSeq = Math.max(0, Number(member._miningSwingSeq) || 0);
+                    const playedMiningSwingSeq = Math.max(0, Number(sprite.getData('miningSwingSeq')) || 0);
+                    if (miningSwingSeq > playedMiningSwingSeq) {
+                        sprite.setData('miningSwingSeq', miningSwingSeq);
                         sprite.setData('miningSwing', true);
                         const firstSwing = !sprite.getData('hamsterMining');
                         sprite.setData('hamsterMining', true);
@@ -1180,7 +1187,6 @@ export class GameScene extends Scene {
                         sprite.once('animationcomplete', (anim) => {
                             if (anim && anim.key !== miningStartKey && anim.key !== miningKey) return;
                             sprite.setData('miningSwing', false);
-                            member._miningSwing = false;
                             // 挥完定格 waitFrame，直到下一次攻击
                             if (sprite.anims.isPlaying) sprite.anims.stop();
                             if (sprite.texture.key !== miningKey || sprite.frame.name !== miningWaitFrame) {
@@ -1465,7 +1471,6 @@ export class GameScene extends Scene {
                     sprite.setData('defPhase', null);
                     sprite.setData('explorerViewing', false);
                     sprite.setData('explorerDigging', false);
-                    if (member._miningSwing) member._miningSwing = false;
                     if (sprite.anims.isPlaying) sprite.anims.stop();
                     const idleKey = sprite.getData('companionIdleKey');
                     const idleFrame = sprite.getData('companionIdleFrame');
@@ -1564,13 +1569,11 @@ export class GameScene extends Scene {
                 this._spawnCompanionGhost(member.id, prevTexKey, prevFrameName,
                     prevDispW, prevDispH, sprite);
             }
-            // Tint 优先级：受击白闪 > 选中金色 > 常态。这样任何友军类型都不会因选中状态
-            // 覆盖受击反馈；仓鼠矿工仍只用脚下光圈表达选中。
+            // Tint 优先级：受击白闪 > 选中金色 > 常态。经济矿工不可选择，只保留受击反馈。
             const selected = PartySystem.isSelected(member.id);
             const hitFlashing = member.hitFlash > 0;
             if (member._isHamsterMiner) {
-                if (selected) this._showSelectionRing(member.id, member.x, member.y, size);
-                else if (this._selectionRings[member.id]) this._selectionRings[member.id].setVisible(false);
+                if (this._selectionRings[member.id]) this._selectionRings[member.id].setVisible(false);
                 if (hitFlashing) sprite.setTint(0xffffff);
                 else sprite.clearTint();
             } else {
@@ -1940,7 +1943,8 @@ export class GameScene extends Scene {
             this.playerSprite.setDepth(playerCorrected);
         }
 
-        // 2. 敌人 / 尸体
+        // 2. 敌人 / 尸体：与玩家、军事友军共用逻辑脚底 depth 档案和建筑仲裁，
+        // 禁止在敌人分支恢复 sprite.y + footOffsetY 作为自然深度。
         if (Game.entities) {
             Game.entities.forEach(e => {
                 if (!e || e === Game.player) return;
@@ -2401,9 +2405,11 @@ export class GameScene extends Scene {
      * 横向范围取当前帧 alpha 内容而不是整帧或固定碰撞半径，避免建筑前角漏仲裁。
      */
     _getDynamicDepthProfile(entity, sprite, footOffsetY) {
+        const logicalFootY = (Number(entity?.y) || 0) - (Number(entity?.z) || 0);
         return resolveSpriteDepthProfile(entity, sprite, {
             footOffsetY,
             logicalX: entity?.x,
+            logicalFootY,
             minFrontRange: 60,
             maxFrontRange: 280,
         });
@@ -3912,7 +3918,7 @@ export class GameScene extends Scene {
         // 持枪移动：腿层播走路/跑步腿动画（下半身裁片），躯干层保持（扭转继续由 _syncGunTwist 驱动）
         const gunWalkLegsKey = gunPose ? `${playerTextureKey(gunPose.poseKey)}_walklegs` : null;
         const gunRunLegsKey = gunPose ? `${playerTextureKey(gunPose.poseKey)}_runlegs` : null;
-        const useRunLegs = player._isSprinting && gunPose && gunPose.def.twist.runLegs
+        const useRunLegs = isPlayerRunVisual(player) && gunPose && gunPose.def.twist.runLegs
             && gunRunLegsKey && this.anims.exists(gunRunLegsKey);
         const legsAnimKey = useRunLegs ? gunRunLegsKey : gunWalkLegsKey;
         if (gunPose && gunPose.def.twist && gunPose.def.twist.walkLegs && player.isMoving && legsAnimKey && this.anims.exists(legsAnimKey)) {
@@ -3936,7 +3942,7 @@ export class GameScene extends Scene {
         }
 
         let key = 'idle';
-        if (player._isSprinting && player.isMoving) {
+        if (isPlayerRunVisual(player) && player.isMoving) {
             key = 'run';
         } else if (player.isMoving) {
             key = 'walk';
@@ -4073,7 +4079,7 @@ export class GameScene extends Scene {
                 
                 // 同步位置和旋转（与 Canvas 一致）
                 let animState = 'idle';
-                if (player._isSprinting) animState = 'running';
+                if (isPlayerRunVisual(player)) animState = 'running';
                 else if (player.isMoving) animState = 'walk';
                 const pos = WeaponTransform.getWeaponWorldPosition(player, wt, false, false, animState, {}, this._getVisualFacingRight(player));
                 const facingRight = this._getVisualFacingRight(player);
@@ -4263,7 +4269,7 @@ export class GameScene extends Scene {
         // 使用 WeaponTransform 统一计算位置和旋转
         // 按玩家状态推断动画状态
         let animState = 'idle';
-        if (player._isSprinting) animState = 'running';
+        if (isPlayerRunVisual(player)) animState = 'running';
         else if (player.isMoving) animState = 'walk';
         else if (weaponAnim.isAttacking && weaponAnim.state !== 'idle') animState = 'attack';
 
@@ -4601,7 +4607,7 @@ export class GameScene extends Scene {
         // 使用 WeaponTransform 统一计算副手位置和旋转
         // 按玩家状态推断动画状态（副手也可能为剑类）
         let offhandAnimState = 'idle';
-        if (player._isSprinting) offhandAnimState = 'running';
+        if (isPlayerRunVisual(player)) offhandAnimState = 'running';
         else if (player.isMoving) offhandAnimState = 'walk';
         // 近战武器使用固定 rotation（所有状态）；
         // 副手远程武器（双持手枪）同主手：武器位置 → 鼠标准心的精确连线角
@@ -8158,7 +8164,7 @@ export class GameScene extends Scene {
         }
 
         // 裂隙
-        if (SceneManager.currentScene === 'scene2' && RiftSystem && RiftSystem.rifts) {
+        if (SceneManager.isQuestInstance('scene9') && RiftSystem && RiftSystem.rifts) {
             const riftColor = this._parseColor(styles.rift || '#00008B', 0x00008B, 1);
             g.fillStyle(riftColor.color, riftColor.alpha);
             for (const rift of RiftSystem.rifts) {
@@ -9125,21 +9131,19 @@ export class GameScene extends Scene {
     _drawGridAndBorder(g, w, h) {
         const currentScene = SceneManager.currentScene;
         // 网格
-        if (currentScene !== 'scene3' && currentScene !== 'scene2') {
-            const gridCfg = GAME_CONFIG.grid || {};
-            const gridSize = gridCfg.size || CONFIG.GRID_SIZE || 64;
-            g.lineStyle(gridCfg.lineWidth || 1, 0x5a4d3f, 0.15);
-            g.beginPath();
-            for (let x = 0; x <= w; x += gridSize) {
-                g.moveTo(x, 0);
-                g.lineTo(x, h);
-            }
-            for (let y = 0; y <= h; y += gridSize) {
-                g.moveTo(0, y);
-                g.lineTo(w, y);
-            }
-            g.strokePath();
+        const gridCfg = GAME_CONFIG.grid || {};
+        const gridSize = gridCfg.size || CONFIG.GRID_SIZE || 64;
+        g.lineStyle(gridCfg.lineWidth || 1, 0x5a4d3f, 0.15);
+        g.beginPath();
+        for (let x = 0; x <= w; x += gridSize) {
+            g.moveTo(x, 0);
+            g.lineTo(x, h);
         }
+        for (let y = 0; y <= h; y += gridSize) {
+            g.moveTo(0, y);
+            g.lineTo(w, y);
+        }
+        g.strokePath();
         // 边界：地牢与世界-122 不画描边（122 边界自然显示为地板渐变边缘，2026-08-14）
         if (currentScene !== 'scene7' && currentScene !== 'scene8') {
             const borderCfg = GAME_CONFIG.worldBorder || {};

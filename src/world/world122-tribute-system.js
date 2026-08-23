@@ -7,13 +7,13 @@ import { renderBuildingDetailHeader } from '../ui/panels/building-detail-header.
 import { mountRightSidebarPanel } from '../ui/right-sidebar-panel-layer.js';
 import {
     activateWorld122Tributes,
-    deactivateWorld122Tributes,
     getWorld122TributeEntries,
     sacrificeWorld122Tribute,
     serializeWorld122Tributes,
     restoreWorld122Tributes,
 } from './world122-tribute-store.js';
 import { syncTributeBuffs } from '../config/tribute-effects.js';
+import { isDungeonKeyItem } from '../config/dungeon-key-config.js';
 
 const BUFF_NAME = '位面献祭';
 
@@ -54,19 +54,15 @@ export const World122TributeSystem = {
 
     teardown() {
         this.active = false;
-        deactivateWorld122Tributes();
         if (this._panel?.isOpen) this._panel.close();
-        this._clearStatus();
-        this._syncPausedStatus();
-        this._clearMoonshadow();
-        this._recalculate();
-        this.player = null;
+        // 仅解除位面祭坛交互；30分钟献祭状态跨主神空间/世界/地牢继续倒计时并生效。
         this.altar = null;
     },
 
-    update() {
+    update(player = null) {
+        if (player) this.player = player;
         if (this._panel?.isOpen && !isUsableAltar(this.altar)) this.closePanel();
-        if (this.active && Date.now() >= this._nextExpiry) this._sync();
+        if (Date.now() >= this._nextExpiry) this._sync();
     },
 
     serialize() {
@@ -75,11 +71,7 @@ export const World122TributeSystem = {
 
     restore(data) {
         restoreWorld122Tributes(data);
-        if (this.active) this._sync();
-        else {
-            this._clearStatus();
-            this._syncPausedStatus();
-        }
+        this._sync();
     },
 
     openFor(altar, player) {
@@ -139,12 +131,12 @@ export const World122TributeSystem = {
                     <div data-role="altar-detail"></div>
                     <section class="bp-panel-section altar-panel-protocol">
                         <h3 class="bp-panel-section-title bp-type-subtitle">献祭协议</h3>
-                        <p class="altar-panel-copy bp-type-body">将背包中的祭品献给位面意志，获得对应增益。所有增益在世界模式累计持续30分钟，进入主神空间或地牢时暂停；同名祭品再次献祭只刷新持续时间，不重复占用祭品栏。</p>
+                        <p class="altar-panel-copy bp-type-body">将背包中的祭品献给位面意志，获得全场景持续30分钟的对应增益。同一稀有度同时只能生效一件；新献祭会覆盖旧的同级祭品并重新计时。</p>
                     </section>
                     <section class="bp-panel-section altar-panel-active">
                         <div class="altar-panel-section-heading">
                             <h3 class="bp-panel-section-title bp-type-subtitle">生效中的献祭</h3>
-                            <span data-role="active-count" class="altar-panel-count bp-type-meta">0/10</span>
+                            <span data-role="active-count" class="altar-panel-count bp-type-meta">0/6</span>
                         </div>
                         <div data-role="active"></div>
                     </section>
@@ -197,7 +189,7 @@ export const World122TributeSystem = {
             this._notify(result.reason, '#ff6666');
             return;
         }
-        // 世界模式蟠桃次数只由新的世界献祭刷新，不与地牢的单次使用标记共用。
+        // 蟠桃次数属于这次全场景献祭；重新献祭时刷新一次使用机会。
         if ((Number(item.effects?.revivePercent) || 0) > 0 && this.player) {
             this.player._worldPeachReviveUsed = false;
         }
@@ -208,8 +200,10 @@ export const World122TributeSystem = {
         }
         EquipManager.updateInventorySlots?.();
         this._sync();
-        if (this.player) syncTributeBuffs(this.player); // 献祭集合变化：刷新特效 buff 图标与友军生命
-        this._notify(`${item.name} 已献祭：${result.refreshed ? '增益时长已刷新' : '获得30分钟增益'}`, '#7affc8');
+        const outcome = result.replaced
+            ? '已覆盖同稀有度祭品并刷新为30分钟'
+            : (result.refreshed ? '增益时长已刷新为30分钟' : '获得30分钟增益');
+        this._notify(`${item.name} 已献祭：${outcome}`, '#7affc8');
     },
 
     _sync() {
@@ -220,6 +214,7 @@ export const World122TributeSystem = {
         this._syncStatus(entries);
         this._syncMoonshadow(entries);
         this._recalculate();
+        if (this.player) syncTributeBuffs(this.player);
         if (this._panel?.isOpen) this._render();
     },
 
@@ -247,21 +242,6 @@ export const World122TributeSystem = {
     _clearStatus() {
         for (const id of this._statusIds.values()) StatusBar.removeEffect(id);
         this._statusIds.clear();
-    },
-
-    _syncPausedStatus() {
-        for (const entry of getWorld122TributeEntries()) {
-            const type = `world122TributePaused_${entry.key}`;
-            const remaining = Math.max(0, Number(entry.remainingMs) || 0);
-            const id = StatusBar.addEffect(type, 0, {
-                icon: entry.item.icon || '⏸️',
-                name: `${BUFF_NAME}·${entry.item.name}（已暂停）`,
-                color: '#7f8fa6',
-                persistent: true,
-                durationText: `暂停·剩余${remainingText(remaining)}`,
-            });
-            this._statusIds.set(type, id);
-        }
     },
 
     _syncMoonshadow(entries) {
@@ -318,7 +298,7 @@ export const World122TributeSystem = {
                         <div><span>状态</span><b class="is-operational">${state}</b></div>
                         <div><span>物理防御</span><b>${altar.def ?? altar.data?.def ?? 0}</b></div>
                         <div><span>魔法防御</span><b>${altar.mdef ?? altar.data?.mdef ?? 0}</b></div>
-                        <div><span>祭品槽位</span><b>10</b></div>
+                        <div><span>生效槽位</span><b>6（每种稀有度1件）</b></div>
                         <div><span>用途</span><b>献祭 / 位面祝福</b></div>
                     </div>
                 </section>`;
@@ -326,7 +306,7 @@ export const World122TributeSystem = {
 
         const entries = getWorld122TributeEntries();
         const count = el.querySelector('[data-role="active-count"]');
-        if (count) count.textContent = `${entries.length}/10`;
+        if (count) count.textContent = `${entries.length}/6`;
         const active = el.querySelector('[data-role="active"]');
         if (active) {
             active.innerHTML = entries.length
@@ -339,7 +319,8 @@ export const World122TributeSystem = {
         }
 
         const list = el.querySelector('[data-role="tributes"]');
-        const tributes = (EquipManager.backpackItems || []).filter((item) => item.category === 'tribute');
+        const tributes = (EquipManager.backpackItems || []).filter((item) =>
+            item.category === 'tribute' && !isDungeonKeyItem(item));
         if (list) {
             list.innerHTML = tributes.length
                 ? tributes.map((item) => `

@@ -65,6 +65,7 @@ export const DungeonConfig = {
     // 地牢类型 → 配置键映射（新增地牢在此登记）
     _keyFor(dungeonType) {
         if (dungeonType === 'zombieBeginner') return 'zombieDungeonBeginner';
+        if (dungeonType === 'frozenBeginner') return 'frozenDungeonBeginner';
         if (dungeonType === 'zombieMid') return 'zombieDungeonMid';
         if (dungeonType === 'swampBeginner') return 'swampDungeonBeginner';
         if (dungeonType === 'swampMid') return 'swampDungeonMid';

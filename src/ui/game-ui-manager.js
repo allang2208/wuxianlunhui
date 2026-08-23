@@ -25,6 +25,7 @@ import { EnvironmentLightingSystem } from '../world/environment-lighting-system.
 import { TroopLineSystem } from '../world/troop-line-system.js';
 import { TechnologySystem } from '../world/technology-system.js';
 import { WarehouseSystem } from './warehouse-system.js';
+import { QuestStore } from '../quest/quest-store.js';
 
 // Game UI Manager - Extracted from Game.js
 // Handles UI updates, save/load, timers, and menu operations
@@ -257,7 +258,7 @@ export const GameUIManager = {
             }
         });
     },
-    load() {
+    async load() {
         const save = localStorage.getItem('infiniteLoop_save');
         if (!save) { alert('没有找到存档'); return; }
         let data;
@@ -267,6 +268,7 @@ export const GameUIManager = {
             return;
         }
         if (!this.player) return;
+        const positionBeforeLoad = { x: this.player.x, y: this.player.y };
         // 恢复玩家数据与位置
         if (data.player) Object.assign(this.player.data, data.player);
         if (data.position && Number.isFinite(data.position.x) && Number.isFinite(data.position.y)) {
@@ -281,6 +283,7 @@ export const GameUIManager = {
         restoreAbilityLevels(data.world122?.abilityLevels);
         TechnologySystem.restore(data.technologyTree, { legacyUnlockAll: !data.technologyTree });
         WarehouseSystem.restore(data.warehouseStorage);
+        QuestStore.restore(data.quests);
         ResearchSystem.refreshWorld();
         EnergyManager.restoreStorage(data.world122?.energyStorage);
         World122TributeSystem.restore(data.world122?.tributeBuffs);
@@ -312,6 +315,32 @@ export const GameUIManager = {
         const curWeapon = (this.player.equipments && this.player.weaponMode) ? this.player.equipments[this.player.weaponMode] : null;
         if (this.player._applySkillOverrides) this.player._applySkillOverrides(curWeapon);
         if (this.player._initAmmoForSlot && this.player.weaponMode) this.player._initAmmoForSlot(this.player.weaponMode);
+        // 任务实例中的原地读档必须重建裂隙/返回门实体；若存档没有活动会话则安全退回主城。
+        // 非任务场景读到活动会话时不强制传送，仍由小鼠侍从入口继续该任务。
+        try {
+            const { SceneManager } = await import('../world/scene-manager.js');
+            const restoredQuestId = QuestStore.getActiveQuestId();
+            const inQuestInstance = SceneManager.isQuestInstance();
+            if (restoredQuestId && !inQuestInstance) {
+                // 任务中保存的坐标属于瞬态雪原；在主城/永久世界读档时保留当前落点，等待侍从续接。
+                this.player.x = positionBeforeLoad.x;
+                this.player.y = positionBeforeLoad.y;
+            }
+            if (inQuestInstance) {
+                let switched = false;
+                if (restoredQuestId) {
+                    const { QuestState } = await import('./quest-system.js');
+                    switched = await QuestState.startQuest(restoredQuestId, { forceReload: true });
+                } else {
+                    switched = await SceneManager.switchScene('main', this.player);
+                }
+                if (switched !== true) throw new Error('任务场景读档重建失败');
+            }
+        } catch (error) {
+            console.error('[GameUIManager] quest load reconciliation failed:', error);
+            alert('读档数据已恢复，但任务场景重建失败，请返回主神空间后重试');
+            return;
+        }
         if (this.updateUI) this.updateUI();
         alert(`读档成功: ${this.player.data?.name || '未知'} Lv.${this.player.data?.level || 1}`);
     },
@@ -326,6 +355,7 @@ export const GameUIManager = {
             gameTime: EnvironmentLightingSystem.serializeTime(),
             technologyTree: TechnologySystem.serialize(),
             warehouseStorage: WarehouseSystem.serialize(),
+            quests: QuestStore.serialize(),
             // 装备与背包一并持久化（附魔/强化/改造数据在物品字段上）
             equipments: this.player.equipments,
             backpack: (typeof EquipManager !== 'undefined') ? EquipManager.backpackItems : [],

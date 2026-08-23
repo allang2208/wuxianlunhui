@@ -27,15 +27,8 @@ import {
     setWorld122TributeRefreshHandler,
 } from '../world/world122-tribute-store.js';
 
-function _dungeonTributeItems() {
-    const carried = (DungeonMapSystem && DungeonMapSystem._carriedItems) || [];
-    return carried.map((entry) => entry && entry.item).filter(Boolean);
-}
-
 function _activeTributeItems() {
-    // 模式硬互斥：地牢运行态只读本次携带祭品；其他场景只可能读取已激活的世界祭坛。
-    // 不依赖两边都正确清空，避免异常切换时把两套效果叠加。
-    if (DungeonMapSystem?.active === true) return _dungeonTributeItems();
+    // 位面祭坛是唯一效果源：主神空间、世界和地牢共同读取同一份30分钟状态。
     return getActiveWorld122TributeItems();
 }
 
@@ -389,11 +382,10 @@ const SPECIAL_BUFFS = [
     { key: '_productionResource', id: 'tributeAstrolabe', icon: '🌟', name: '风调雨顺', color: '#e8d060' },
 ];
 
-/** 同步特效祭品的常驻 buff 图标（携带时显示；蟠桃复活用掉后不再显示） */
+/** 同步地牢中的特效祭品图标（效果与位面祭坛剩余时间同时结束）。 */
 export function syncTributeBuffs(player) {
     if (!player || !StatusBar) return;
-    // 地牢状态栏只表达本次出征携带的祭品；世界祭坛有独立的30分钟状态条。
-    const dungeonItems = DungeonMapSystem?.active === true ? _dungeonTributeItems() : [];
+    const dungeonItems = DungeonMapSystem?.active === true ? _activeTributeItems() : [];
     const e = _aggregateTributeEffects(dungeonItems);
     const specialValues = (key) => dungeonItems
         .map((item) => item?.special?.[key])
@@ -401,7 +393,7 @@ export function syncTributeBuffs(player) {
     const actives = {
         expPercent: (e.expPercent ?? 1) > 1,
         killMpHealPercent: (e.killMpHealPercent ?? 1) > 1,
-        revivePercent: (e.revivePercent ?? 1) > 1 && !player._peachReviveUsed,
+        revivePercent: (e.revivePercent ?? 1) > 1 && !player._worldPeachReviveUsed,
         _surviveCap: specialValues('surviveCapPercent').some((value) => Number(value) > 0),
         _moonshadow: specialValues('moonshadowDuration').length > 0,
         _oreUpgrade: specialValues('oreUpgrade').some(Boolean),
@@ -420,7 +412,7 @@ export function syncTributeBuffs(player) {
                 name: buff.name,
                 color: buff.color,
                 persistent: true,
-                durationText: '持续至本次地牢结束',
+                durationText: '跟随献祭倒计时',
             });
         } else if (!active && storedId) {
             StatusBar.removeEffect(storedId);
@@ -441,6 +433,5 @@ export function clearTributeBuffs(player) {
             player[`_${buff.id}EffectId`] = null;
         }
     }
-    player._peachReviveUsed = false;
     player._peachRevivePending = false;
 }

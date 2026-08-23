@@ -1788,7 +1788,7 @@
                     "value": "+25%"
                 }
             ],
-            "desc": "极寒绝壁上的圣药。特效：本次地牢经验获取 +25%。",
+            "desc": "极寒绝壁上的圣药。献祭生效期间经验获取 +25%。",
             "maxStack": 999,
             "iconImage": "assets/items/tributes/plants/天山雪莲.png",
             "dropImage": "assets/items/tributes/plants/天山雪莲.png"
@@ -1854,7 +1854,7 @@
                     "value": "30%生命×1次"
                 }
             ],
-            "desc": "三千年一熟的仙家上品。特效：本次地牢死亡 3 秒后以 30% 最大生命原地复活一次，生效后消失。",
+            "desc": "三千年一熟的仙家上品。献祭生效期间可在死亡 3 秒后以 30% 最大生命原地复活一次，重新献祭后刷新次数。",
             "maxStack": 999,
             "iconImage": "assets/items/tributes/plants/蟠桃.png",
             "dropImage": "assets/items/tributes/plants/蟠桃.png"
@@ -2365,7 +2365,7 @@
                     "value": "单次伤害≤15%生命"
                 }
             ],
-            "desc": "万物最坚。特效「金刚不坏」：单次受到的伤害不会超过最大生命值的 15%（本次地牢常驻）。",
+            "desc": "万物最坚。献祭生效期间，特效「金刚不坏」使单次伤害不超过最大生命值的 15%。",
             "maxStack": 999,
             "iconImage": "assets/items/tributes/ores/金刚石_.png",
             "dropImage": "assets/items/tributes/ores/金刚石_.png"
@@ -2499,7 +2499,7 @@
         },
         "anchorTokenF": {
             "name": "F 级时空锚点代币",
-            "type": "祭品",
+            "type": "地牢钥匙",
             "icon": "🌀",
             "category": "tribute",
             "rarity": "common",
@@ -2514,11 +2514,11 @@
                     "value": "F 级地牢钥匙"
                 }
             ],
-            "desc": "凝聚时空之力的锚点代币，可在祭坛作为 F 级地牢的出征凭证。无任何属性效果，仅能通过商店购买获得。"
+            "desc": "F 级地牢钥匙。出征时自动从背包或仓库消耗 1 枚，不能献祭；仅能通过商店购买获得。"
         },
         "anchorTokenE": {
             "name": "E 级时空锚点代币",
-            "type": "祭品",
+            "type": "地牢钥匙",
             "icon": "🌀",
             "category": "tribute",
             "rarity": "uncommon",
@@ -2533,11 +2533,11 @@
                     "value": "E 级地牢钥匙"
                 }
             ],
-            "desc": "凝聚时空之力的锚点代币，可在祭坛作为 E 级地牢的出征凭证。无任何属性效果，仅能通过商店购买获得。"
+            "desc": "E 级地牢钥匙。出征时自动从背包或仓库消耗 1 枚，不能献祭；仅能通过商店购买获得。"
         },
         "anchorTokenD": {
             "name": "D 级时空锚点代币",
-            "type": "祭品",
+            "type": "地牢钥匙",
             "icon": "🌀",
             "category": "tribute",
             "rarity": "rare",
@@ -2552,11 +2552,11 @@
                     "value": "D 级地牢钥匙"
                 }
             ],
-            "desc": "凝聚时空之力的锚点代币，可在祭坛作为 D 级地牢的出征凭证。无任何属性效果，仅能通过商店购买获得。"
+            "desc": "D 级地牢钥匙。出征时自动从背包或仓库消耗 1 枚，不能献祭；仅能通过商店购买获得。"
         },
         "anchorTokenC": {
             "name": "C 级时空锚点代币",
-            "type": "祭品",
+            "type": "地牢钥匙",
             "icon": "🌀",
             "category": "tribute",
             "rarity": "epic",
@@ -2571,11 +2571,11 @@
                     "value": "C 级地牢钥匙"
                 }
             ],
-            "desc": "凝聚时空之力的锚点代币，可在祭坛作为 C 级地牢的出征凭证。无任何属性效果，仅能通过商店购买获得。"
+            "desc": "C 级地牢钥匙。出征时自动从背包或仓库消耗 1 枚，不能献祭；仅能通过商店购买获得。"
         },
         "anchorTokenB": {
             "name": "B 级时空锚点代币",
-            "type": "祭品",
+            "type": "地牢钥匙",
             "icon": "🌀",
             "category": "tribute",
             "rarity": "mythic",
@@ -2590,11 +2590,11 @@
                     "value": "B 级地牢钥匙"
                 }
             ],
-            "desc": "凝聚时空之力的锚点代币，可在祭坛作为 B 级地牢的出征凭证。无任何属性效果，仅能通过商店购买获得。"
+            "desc": "B 级地牢钥匙。出征时自动从背包或仓库消耗 1 枚，不能献祭；仅能通过商店购买获得。"
         },
         "anchorTokenA": {
             "name": "A 级时空锚点代币",
-            "type": "祭品",
+            "type": "地牢钥匙",
             "icon": "🌀",
             "category": "tribute",
             "rarity": "legendary",
@@ -2609,7 +2609,7 @@
                     "value": "A 级地牢钥匙"
                 }
             ],
-            "desc": "凝聚时空之力的锚点代币，可在祭坛作为 A 级地牢的出征凭证。无任何属性效果，仅能通过商店购买获得。"
+            "desc": "A 级地牢钥匙。出征时自动从背包或仓库消耗 1 枚，不能献祭；仅能通过商店购买获得。"
         },
         "light_helmet": {
             "name": "疾风轻盔",

@@ -19,7 +19,11 @@ import SpatialPartitionSystem from './spatial-partition-system.js';
 import { distanceToEntityShape } from '../utils/collision-helpers.js';
 import { compareDefenseTargets, isDefenseTargetEligible } from '../ai/defense-target-priority.js';
 import { BuildingRoadSystem } from '../world/building-road-system.js';
-import { verticalRangesOverlap } from '../physics/elevation.js';
+import {
+    isFriendlyElevatedTrafficUnit,
+    shouldIgnoreFriendlyElevatedSeparation,
+    verticalRangesOverlap,
+} from '../physics/elevation.js';
 import { ElevatedNavigationController } from '../ai/elevated-navigation-controller.js';
 import { resolveRtsMoveDestination } from '../ai/rts-command-utils.js';
 import { getTributeFriendlyMoveSpeedMul, getFriendlyMoveSpeedAura } from '../config/tribute-effects.js';
@@ -63,6 +67,7 @@ const MovementSystem = {
             const now = Date.now();
             if (now - this._lastObstacleUpdate >= 250) {
                 dynamicObstacleMap.update(now);
+                pathFinder?.syncEntityFootprintObstacles?.(entities, now);
                 this._lastObstacleUpdate = now;
             }
         }
@@ -242,9 +247,11 @@ const moveData = this._computeMoveDirection(enemy, entities);
                 // 路径终点检查：如果路径终点与目标偏差 > 100px，路径已过时，需要重新计算
                 if (!shouldRecalc && enemy._pathManager.path) {
                     const pathEnd = enemy._pathManager.path[enemy._pathManager.path.length - 1];
-                    const endDx = pathEnd.x - targetX;
-                    const endDy = pathEnd.y - targetY;
-                    const endDist = Math.sqrt(endDx * endDx + endDy * endDy);
+                    // 建筑中心本身属于硬障碍，A* 会把终点投影到 footprint 外侧；
+                    // 此时按“路径终点到目标形状”的距离判断，避免每 500ms 对建筑中心重复重算。
+                    const endDist = moveGoal.collisionShape === 'iso_rect' || moveGoal.collisionShape === 'rect'
+                        ? distanceToEntityShape(moveGoal, pathEnd.x, pathEnd.y)
+                        : Math.hypot(pathEnd.x - targetX, pathEnd.y - targetY);
                     if (endDist > 100) {
                         shouldRecalc = true;
                     }
@@ -305,6 +312,11 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
             return enemy._searchTarget.searchPoints[0];
         }
         return null;
+    },
+
+    /** 路径重算与脱困共用的最终地面移动意图。 */
+    _resolveMovementIntent(enemy) {
+        return enemy._surfaceNavDestination || this._resolveSemanticMoveGoal(enemy);
     },
 
     /**
@@ -674,24 +686,19 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
                 // WallGate.setPassable splice 掉，下一次卡住检测自然恢复重算（无需事件）。
                 // 门闸不可攻击（WallGate 无 hp/伤害接口），故只做等待、不发明转火机制。
                 const waitAtGate = this._findBlockingGateHole(enemy);
-                // [FIX] 寻路目标与实际移动目标一致（优先级同 _computeMoveDirection）
-                let targetX = enemy.x, targetY = enemy.y;
-                if (enemy._specialTacticalTarget) {
-                    targetX = enemy._specialTacticalTarget.x;
-                    targetY = enemy._specialTacticalTarget.y;
-                } else if (enemy._tacticalTarget) {
-                    targetX = enemy._tacticalTarget.x;
-                    targetY = enemy._tacticalTarget.y;
-                } else if (enemy.target && enemy.target.active) {
-                    targetX = enemy.target.x;
-                    targetY = enemy.target.y;
-                }
+                // 寻路重算与正常移动共享同一意图源：出兵离场/RTS/探险/指挥官/追敌均覆盖。
+                const intentTarget = this._resolveMovementIntent(enemy);
+                const hasMoveIntent = !!(intentTarget
+                    && Number.isFinite(intentTarget.x) && Number.isFinite(intentTarget.y));
+                const targetX = hasMoveIntent ? intentTarget.x : enemy.x;
+                const targetY = hasMoveIntent ? intentTarget.y : enemy.y;
 
                 // [ENHANCE] 卡住时强制触发 PathManager 重算（绕过频率限制）
                 const stuckDist = Math.sqrt((targetX - enemy.x) ** 2 + (targetY - enemy.y) ** 2);
-                if (!waitAtGate && enemy._pathManager && pathFinder && stuckDist <= MAX_PATHFIND_RANGE) {
+                if (hasMoveIntent && !waitAtGate && enemy._pathManager && pathFinder
+                    && stuckDist <= MAX_PATHFIND_RANGE) {
                     enemy._pathManager.forceRecalc(pathFinder, targetX, targetY, true);
-                } else if (!waitAtGate && enemy._pathManager && pathFinder) {
+                } else if (hasMoveIntent && !waitAtGate && enemy._pathManager && pathFinder) {
                     // [RELAY] 超距卡住：对中继点重算而非放弃（沿用同一中继目标，避免抖动）
                     // 直冲型怪物卡死（500ms 无位移）时同样允许接力重算——正常冲锋不受影响
                     if (!enemy._relayTarget) {
@@ -702,7 +709,7 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
 
                 // [ENHANCE] 寻路失败时向目标切线方向设置临时战术目标，尝试绕过障碍/同伴
                 // 直冲型怪物仅在卡死（500ms 无位移）时才侧向 reposition——正常冲锋不受影响
-                if (!waitAtGate && !enemy._pathManager?.hasValidPath()) {
+                if (hasMoveIntent && !waitAtGate && !enemy._pathManager?.hasValidPath()) {
                     this._setStuckRepositionTarget(enemy, targetX, targetY);
                 } else {
                     // 寻路成功时清除旧的临时 reposition 目标
@@ -998,6 +1005,11 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
         if ((enemy.ai && enemy.ai.chargeStraight) && inCombatRange) {
             return { dx: 0, dy: 0 };
         }
+        // 高架交通阶段的友军不消费单位间排斥；实际墙/梯边界仍由 WallSystem 与
+        // ElevatedNavigationController 处理，入口外排队也不会因此被绕过。
+        if (isFriendlyElevatedTrafficUnit(enemy)) {
+            return { dx: 0, dy: 0 };
+        }
         const strength = inCombatRange ? 0.6 : 1.4;
 
         // [PERF-2026-08-03] 候选优先走空间分区（game.js 每帧重建），替代每怪每帧遍历全部实体；
@@ -1017,6 +1029,7 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
         for (const other of iter) {
             if (other === enemy || !other.active || other.hp <= 0) continue;
             if (other._faction !== enemy._faction) continue;
+            if (shouldIgnoreFriendlyElevatedSeparation(enemy, other)) continue;
             if (enemy._elevatedNavigationBridge || other._elevatedNavigationBridge) continue;
             if (!verticalRangesOverlap(enemy, other)) continue;
             const dx = enemy.x - other.x;
@@ -1499,12 +1512,14 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
             return;
         }
 
-        // 只有真正在尝试移动时才计数：有速度 或 有目标且距离大于攻击范围
-        const hasTarget = enemy.target && enemy.target.active;
+        // 统一读取“实际移动意图”，覆盖 RTS/探险/出生离场/高架落点，而不只看攻击目标。
+        const intentTarget = this._resolveMovementIntent(enemy);
+        const hasTarget = !!(intentTarget && Number.isFinite(intentTarget.x) && Number.isFinite(intentTarget.y));
         const distToTarget = hasTarget
-            ? Math.sqrt((enemy.target.x - enemy.x) ** 2 + (enemy.target.y - enemy.y) ** 2)
+            ? Math.hypot(intentTarget.x - enemy.x, intentTarget.y - enemy.y)
             : Infinity;
-        const isTryingToMove = enemy.isMoving || (hasTarget && distToTarget > (enemy.attackRange || 70));
+        const stopDistance = intentTarget === enemy.target ? (enemy.attackRange || 70) : 12;
+        const isTryingToMove = enemy.isMoving || (hasTarget && distToTarget > stopDistance);
         if (!isTryingToMove) {
             enemy._stuckFrames = 0;
             enemy._lastUnstuckX = enemy.x;
@@ -1527,6 +1542,7 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
         if (enemy._stuckFrames <= 30) return;
 
         const r = enemy.groundRadius;
+        const wallIgnore = WallSystem.ignoreForEntity ? WallSystem.ignoreForEntity(enemy) : null;
         // 卡死恢复改 resolve 小步滑移（玩家贴墙同口径），不再 45px 盲跳——
         // 旧版 8 方向 canMoveTo 瞬移是"贴墙周期性瞬移"的根因：跳完仍卡，500ms 后再跳。
         // 只在能缩短与目标距离时移动；移动量 ≤ 3 倍单帧步长，视觉上仍是连续移动
@@ -1541,8 +1557,10 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
                 const ty = enemy.y + Math.sin(angle) * step * mul;
                 const er = resolveWallFor(enemy, enemy.x, enemy.y, tx, ty, r);
                 const moved = Math.hypot(er.x - enemy.x, er.y - enemy.y);
-                if (moved < 1 || !WallSystem.canMoveTo(er.x, er.y, r)) continue;
-                const dd = hasTarget ? Math.hypot(enemy.target.x - er.x, enemy.target.y - er.y) : 0;
+                if (moved < 1
+                    || !WallSystem.canMoveTo(er.x, er.y, r, wallIgnore)
+                    || pathFinder?.isPointBlocked?.(er.x, er.y, r)) continue;
+                const dd = hasTarget ? Math.hypot(intentTarget.x - er.x, intentTarget.y - er.y) : 0;
                 if (dd < bestDist) { bestDist = dd; best = er; }
             }
         }

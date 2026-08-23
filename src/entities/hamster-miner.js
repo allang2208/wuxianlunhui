@@ -13,7 +13,6 @@ import { HamsterMinerAI } from '../ai/hamster-miner-ai.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
 import hamsterMinerConfig from '../../data/hamster-miner-config.json';
-import { EnergyManager } from '../systems/energy-manager.js';
 
 const DYING_DURATION_MS = 1000; // dying 11 帧 @12fps ≈ 917ms，留余量
 
@@ -30,7 +29,8 @@ export class HamsterMiner extends Companion {
         this._isHamsterMiner = true;
         // 自动矿工使用自身配置的经济倍率；玩家与普通队友仍回退全局采集倍率。
         this._energyGatherRatio = Number(this.aiConfig?.energyGatherRatio);
-        this._rtsCanAttack = false; // 矿工可移动/待命，但保持“只采矿不攻击敌人”口径
+        this._rtsCanAttack = false;
+        this._rtsSelectable = false; // 经济平民：保留实体采集/受击能力，但不进入玩家选取与指挥体系
         this.animId = 'hamster_miner'; // 多实例共用素材动画键（渲染按 animId 取键）
         this._skipNeutralSprite = true; // 由侍从渲染管线接管，禁止 _syncNeutralEntities 画兜底棕圆
         this._enemyTargetable = true; // 防守怪可锁定（露娜无此标记，保持不拉仇恨）
@@ -44,9 +44,11 @@ export class HamsterMiner extends Companion {
         this.size = Math.round(84 * 0.75);                        // 63（distanceToEntityShape 兜底）
         this.hittable = true;
         this.hitFlash = 0;
-        // 隐藏背包（2026-08-15）：采矿自动装填能量，默认 500，仓鼠小屋「背包扩容」每级 +100
+        // 经济背包：矿点产出先进入矿工背包，返回所属营地提交后才进入仓库。
         this._energyCarried = 0;
-        this._energyCapacity = this.aiConfig?.backpackCapacity || 500;
+        this._energyCapacity = this.aiConfig?.backpackCapacity || 300;
+        this._miningSwingSeq = 0;
+        this._retireRequested = false;
         this._dying = false;
         this._deathTimer = 0;
         this._ai = new HamsterMinerAI(this);
@@ -56,9 +58,17 @@ export class HamsterMiner extends Companion {
     get hp() { return this.data.hp; }
     get maxHp() { return this.data.maxHp; }
 
-    /** 兼容调用：挖矿能源直接进入仓库。 */
+    /** 矿点采集入口：只装入个人背包，返回矿工营地前不会改变仓库库存。 */
     addMinedEnergy(amount) {
-        return EnergyManager ? EnergyManager.depositEnergy(amount) : 0;
+        const requested = Math.max(0, Math.floor(Number(amount) || 0));
+        const free = Math.max(0, this._energyCapacity - this._energyCarried);
+        const added = Math.min(requested, free);
+        this._energyCarried += added;
+        return added;
+    }
+
+    getMinedEnergyFreeCapacity() {
+        return Math.max(0, this._energyCapacity - this._energyCarried);
     }
 
     /**

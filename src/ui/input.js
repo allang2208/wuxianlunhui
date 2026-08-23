@@ -22,6 +22,7 @@ import { TechnologyTreePanel } from './technology-tree-panel.js';
         export const Input = {
             keys: new Set(),
             mouse: { x: 0, y: 0, leftDown: false, rightDown: false, leftPressed: false, rightPressed: false },
+            _playerControlLocked: false,
             _droneKeyHeldCode: null, // 正在按住无人机技能键的 keyCode（长按检测）
             _chargeKeyHeldCode: null, // 正在按住雷枪蓄力键的 keyCode（长按蓄力检测）
             init() {
@@ -30,6 +31,12 @@ import { TechnologyTreePanel } from './technology-tree-panel.js';
         // 游戏按键集合或打开其他栏目。
         if (TechnologyTreePanel.isOpen) {
             this.keys.delete(e.code);
+            return;
+        }
+        if (this._playerControlLocked && this._isPlayerActionCode(e.code)) {
+            this.keys.delete(e.code);
+            e.preventDefault();
+            e.stopImmediatePropagation();
             return;
         }
         this.keys.add(e.code);
@@ -68,6 +75,7 @@ import { TechnologyTreePanel } from './technology-tree-panel.js';
                 window.addEventListener('mousedown', e => {
                     this.mouse.x = e.clientX;
                     this.mouse.y = e.clientY;
+                    if (this._playerControlLocked) return;
                     if (Game._wallEditMode || Game._collisionEditMode || Game._buildMode) return; // 墙壁/碰撞/建筑编辑模式：鼠标交给编辑器，不触发攻击
                     // DOM 覆盖层点击不进入世界点击（组队栏/队员面板/招募界面等）：
                     // 并行新增 BuildingSystem.tryInteract 后，漏拦截会误开建筑面板
@@ -81,7 +89,51 @@ import { TechnologyTreePanel } from './technology-tree-panel.js';
                 // keydown 到不了渲染进程）——等效于本地按 ESC，走完整 MENU 键处理链
                 window.addEventListener('electron-esc', () => this.handleKey(CONFIG.KEYS.MENU));
             },
+    _isPlayerActionCode(code) {
+                return code === CONFIG.KEYS.W || code === CONFIG.KEYS.A
+                    || code === CONFIG.KEYS.S || code === CONFIG.KEYS.D
+                    || code === CONFIG.KEYS.SHIFT || code === CONFIG.KEYS.SPACE
+                    || code === CONFIG.KEYS.SKILL_Q || code === CONFIG.KEYS.SKILL_E
+                    || code === CONFIG.KEYS.SKILL_R || code === CONFIG.KEYS.SKILL_C
+                    || code === CONFIG.KEYS.ITEM_1 || code === CONFIG.KEYS.ITEM_2
+                    || code === CONFIG.KEYS.ITEM_3 || code === CONFIG.KEYS.ITEM_4
+                    || code === 'KeyF' || code === 'KeyR' || code === 'KeyZ';
+            },
+    setPlayerControlLocked(locked) {
+                this._playerControlLocked = !!locked;
+                const actionCodes = [
+                    CONFIG.KEYS.W, CONFIG.KEYS.A, CONFIG.KEYS.S, CONFIG.KEYS.D,
+                    CONFIG.KEYS.SHIFT, CONFIG.KEYS.SPACE,
+                    CONFIG.KEYS.SKILL_Q, CONFIG.KEYS.SKILL_E, CONFIG.KEYS.SKILL_R, CONFIG.KEYS.SKILL_C,
+                    CONFIG.KEYS.ITEM_1, CONFIG.KEYS.ITEM_2, CONFIG.KEYS.ITEM_3, CONFIG.KEYS.ITEM_4,
+                    'KeyF', 'KeyR', 'KeyZ',
+                ];
+                for (const code of actionCodes) this.keys.delete(code);
+                this.mouse.leftDown = false;
+                this.mouse.rightDown = false;
+                this.mouse.leftPressed = false;
+                this.mouse.rightPressed = false;
+                if (!this._playerControlLocked) return;
+
+                this._droneKeyHeldCode = null;
+                this._chargeKeyHeldCode = null;
+                QuickBar._droneKeyCode = null;
+                const player = Game.player;
+                if (player) {
+                    player.vx = 0;
+                    player.vy = 0;
+                    player.isMoving = false;
+                    player._rtsRunVisual = false;
+                    player._burstLeft = 0;
+                    player._burstLeftOff = 0;
+                }
+                player?._rtsController?.hold?.();
+                player?.thunderLanceSystem?._cancelCharge?.();
+                if (player?.droneSystem?.controlling) player.droneSystem._exitControl?.();
+                if (player?.shieldSystem?.defending) player.shieldSystem.exitDefense?.();
+            },
     handleKey(code, altKey = false) {
+                if (this._playerControlLocked && this._isPlayerActionCode(code)) return;
                 // Electron ESC 可能直接调用 handleKey；保证科技树开启期间仍只有 ESC 能关闭，
                 // 其他全局快捷键一律不穿透到背包、任务、队伍或世界栏目。
                 if (TechnologyTreePanel.isOpen) {
@@ -186,6 +238,7 @@ import { TechnologyTreePanel } from './technology-tree-panel.js';
             update() { this.mouse.leftPressed = false; this.mouse.rightPressed = false; },
             isPressed(key) { return this.keys.has(key); },
             getMovement() {
+                if (this._playerControlLocked) return { x: 0, y: 0 };
                 let dx = 0, dy = 0;
                 if (this.isPressed(CONFIG.KEYS.W)) dy -= 1;
                 if (this.isPressed(CONFIG.KEYS.S)) dy += 1;
@@ -194,5 +247,5 @@ import { TechnologyTreePanel } from './technology-tree-panel.js';
                 if (dx !== 0 && dy !== 0) { const len = Math.sqrt(dx*dx + dy*dy); dx /= len; dy /= len; }
                 return { x: dx, y: dy };
             },
-            isSprint() { return this.isPressed(CONFIG.KEYS.SHIFT); }
+            isSprint() { return !this._playerControlLocked && this.isPressed(CONFIG.KEYS.SHIFT); }
         };

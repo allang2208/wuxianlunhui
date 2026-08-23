@@ -249,15 +249,13 @@ collision-grid / regressions）、vite build ✓。
 
 #### 地牢祭品生命周期（2026-08-22）
 
-- `ExpeditionSystem.depart()` 把本次携带祭品交给 `DungeonMapSystem._carriedItems`；它们不使用分钟倒计时，整个本次地牢持续生效。
-- `depart()` 是场景切换旁路：必须先 `World122TributeSystem.teardown()` 冻结世界祝福，再写 `_carriedItems`；等 `DungeonMapSystem.init()` 将 `active=true` 后才允许重算玩家属性和同步地牢祭品状态栏。
-- 特殊祭品状态栏必须使用 `StatusBar` 的 `persistent` 来源生命周期语义，并显示“持续至本次地牢结束”，禁止再用 `999999ms` 模拟永续。
-- `DungeonMapSystem.shutdown()` 是唯一结束点：先清空 `_carriedItems`，再 `clearTributeBuffs(player)` 并重算玩家属性；通关、安全撤离、放弃和异常退出都必须收敛到该清理链。
-- 地牢状态栏只读取 `_carriedItems`，不得把世界祭坛的激活祭品混入地牢常驻图标；世界祭坛状态条由 `World122TributeSystem` 独立管理。
-- 聚合器必须以 `DungeonMapSystem.active` 做硬互斥：true 时只返回 `_carriedItems`，否则只返回已激活世界 store。蟠桃使用次数同样分为地牢 `_peachReviveUsed` 与世界 `_worldPeachReviveUsed`，每次地牢 init/shutdown 只重置地牢标记。
+- `ExpeditionSystem.depart()` 不再携带祭品；它按地牢 `grade` 映射 `anchorTokenF~A`，自动从背包/仓库检测并消耗1枚对应钥匙后进入地牢。
+- `tribute-effects` 在所有场景只读取位面祭坛 store；地牢不再使用 `_carriedItems`，也不得在 `depart()` 中 teardown/冻结献祭状态。
+- 全部祭品默认持续30分钟，进入地牢后继续按同一绝对到期时间倒计时；`Game.update()` 必须在地牢地图/事件早退前推进 `World122TributeSystem.update()`，到期后立即重算玩家与友军属性。
+- `DungeonMapSystem.shutdown()` 只清理地牢专用特效图标，不清除或延长全局献祭；蟠桃使用次数统一由 `_worldPeachReviveUsed` 持有，只有重新献祭蟠桃才刷新。
 
 #### 1. 展示元数据（data/dungeon-config.json `dungeonList`）
-新增条目：`{ name, nodeCount, battleRatio, level, reward, grade }`——`grade`（F~A）驱动：事件池 ±1 匹配、通用事件奖励档、祭品掉落表（maxRarity/权重）、出征祭品门槛（对应稀有度）。出征界面选择器/说明栏全部自动读取，无需改 UI。
+新增条目：`{ name, nodeCount, battleRatio, level, reward, grade }`——`grade`（F~A）驱动：事件池 ±1 匹配、通用事件奖励档、祭品掉落表（maxRarity/权重）、出征钥匙门槛。出征界面选择器/说明栏全部自动读取，无需改 UI。
 
 #### 2. 地牢配置块（同文件，如 `zombieDungeonMid`）
 - `nodeCount.min/max`：房间数

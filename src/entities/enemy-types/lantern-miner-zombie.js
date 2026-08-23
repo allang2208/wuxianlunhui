@@ -77,8 +77,9 @@ export class LanternMinerZombie extends Enemy {
         super.update(dt, entities);
 
         // 冷却推进
-        if (this._slamCd > 0) this._slamCd -= dt;
-        if (this._lanternCd > 0) this._lanternCd -= dt;
+        const attackDt = this.getAttackIntervalDelta(dt);
+        if (this._slamCd > 0) this._slamCd -= attackDt;
+        if (this._lanternCd > 0) this._lanternCd -= attackDt;
 
         // 眩晕或冰冻时中断攻击动作
         if (this.hasStatusEffect && (this.hasStatusEffect('stun') || this.hasStatusEffect('frozen'))) {

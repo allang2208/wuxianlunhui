@@ -18,6 +18,15 @@
    "grade": "F",
    "recLevel": "1~10级"
   },
+  "frozenBeginner": {
+   "name": "❄ 冰封世界-初级",
+   "nodeCount": "22",
+   "battleRatio": "40%",
+   "level": "1级",
+   "reward": "800金币",
+   "grade": "F",
+   "recLevel": "1~10级"
+  },
   "zombieMid": {
    "name": "☠ 僵尸地牢-中级",
    "nodeCount": "30",
@@ -251,6 +260,104 @@
    "glow": false
   },
   "family": "zombie"
+ },
+ "frozenDungeonBeginner": {
+  "nodeCount": {
+   "min": 22,
+   "max": 27
+  },
+  "shortestCombatPath": 4,
+  "mainRowMinCombat": 3,
+  "typeRatios": {
+   "combat": 0.4,
+   "event": 0.6
+  },
+  "eliteCombatChance": 0,
+  "encounters": {
+   "normal": {
+    "combatWaves": 3,
+    "monstersPerWave": 5,
+    "poolKeys": [
+     "blackWolf"
+    ],
+    "tierWeights": {
+     "normal": 1,
+     "elite": 0
+    },
+    "guaranteeAtLeastOneElite": false
+   },
+   "elite": {
+    "combatWaves": 1,
+    "monstersPerWave": 6,
+    "poolKeys": [
+     "blackWolf"
+    ],
+    "monsterComposition": {
+     "elite": 1,
+     "normal": 5
+    },
+    "tierWeights": {
+     "normal": 0,
+     "elite": 1
+    },
+    "guaranteeAtLeastOneElite": false
+   }
+  },
+  "grid": {
+   "rows": 3,
+   "colSpacing": 160,
+   "rowSpacing": 140,
+   "mainRow": 1
+  },
+  "startRows": [
+   0,
+   1,
+   2
+  ],
+  "bossReward": {
+   "bossBeforeLastCol": true,
+   "rewardAfterBoss": true
+  },
+  "bossEncounter": {
+   "combatWaves": 3,
+   "monstersPerWave": 5,
+   "poolKeys": [
+    "blackWolf"
+   ],
+   "monsterComposition": {
+    "elite": 1,
+    "normal": 5
+   },
+   "waveComposition": [
+    {
+     "normal": 5
+    },
+    {
+     "normal": 5
+    },
+    {
+     "normal": 4,
+     "elite": 1
+    }
+   ]
+  },
+  "nodeDisplay": {
+   "unrevealedIcon": "?",
+   "completedCombatType": "empty"
+  },
+  "minRoomsToBoss": 6,
+  "floor": {
+   "tiles": [
+    "floor_snow_fresh_seamless"
+   ],
+   "glow": false,
+   "continuous": true,
+   "textureScaleY": 0.5774
+  },
+  "mapBackground": "assets/scenes/dungeon-map-bg.png",
+  "family": "zombie",
+  "eventScope": "frozen",
+  "wallStyle": "frozen"
  },
  "zombieDungeonMid": {
   "nodeCount": {

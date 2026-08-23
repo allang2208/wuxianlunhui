@@ -104,7 +104,7 @@
  },
  "attackSkills": {
   "howl": {
-   "comment": "红狼人嚎叫技能：3s 动画，释放后场上全体敌方怪物获得激励（移速×speedMul、物攻×atkMul，持续 buffDuration）",
+   "comment": "红狼王二阶段嚎叫技能：3s 狼形动画，释放后场上全体敌方怪物获得激励（移速×speedMul、物攻×atkMul，持续 buffDuration）",
    "duration": 3000,
    "frames": 12,
    "buffDuration": 30000,
@@ -115,6 +115,11 @@
  },
  "sounds": {
   "howl": "assets/sounds/enemies/red_wolf_king/howling.mp3"
+ },
+ "deathAnim": {
+  "duration": 2000,
+  "holdMs": 1000,
+  "lastFrame": 11
  },
  "transform": {
   "hpThreshold": 0.5,

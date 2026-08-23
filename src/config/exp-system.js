@@ -22,6 +22,7 @@ const GRADE_ORDER = ['F', 'E', 'D', 'C', 'B', 'A'];
 const DUNGEON_BLOCK_KEY = {
     zombie: 'zombieDungeon',
     zombieBeginner: 'zombieDungeonBeginner',
+    frozenBeginner: 'frozenDungeonBeginner',
     zombieMid: 'zombieDungeonMid',
     swampBeginner: 'swampDungeonBeginner',
     swampMid: 'swampDungeonMid',

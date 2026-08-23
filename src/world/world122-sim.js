@@ -506,7 +506,7 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
         const levelCfg = houseLevels.find((entry) => entry.level === level) || houseLevels[0];
         return sum + (Number(levelCfg?.populationCapacity) || 0);
     }, 0);
-    const assignedPopulation = economyStructures.reduce((sum, structure) => {
+    let assignedPopulation = economyStructures.reduce((sum, structure) => {
         const economyType = producerBuildingsJson[structure.cfgKey]?.economyType;
         const workerSlots = _economyWorkerSlots(structure, economyType);
         const assigned = Math.max(
@@ -516,6 +516,13 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
         structure.assignedWorkers = assigned;
         return sum + assigned;
     }, 0);
+    for (const camp of target.structures || []) {
+        if (camp.kind !== 'hut' || !(camp.hp > 0)) continue;
+        const slots = getMinerEconomyStats(camp.modules || {}).count;
+        const migrated = camp.assignedWorkers == null ? camp.miners : camp.assignedWorkers;
+        camp.assignedWorkers = Math.max(0, Math.min(slots, Math.floor(Number(migrated) || 0)));
+        assignedPopulation += camp.assignedWorkers;
+    }
     const laborEfficiency = assignedPopulation > 0
         ? Math.max(0, Math.min(1, populationCapacity / assignedPopulation))
         : 1;
@@ -678,12 +685,24 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
     const nodes = target.nodes || [];
     for (const s of target.structures || []) {
         if (s.kind !== 'hut') continue;
-        let miners = Math.max(0, Math.floor(Number(s.miners) || 0));
-        const desiredCount = Math.max(miners, getMinerEconomyStats(s.modules || {}).count);
+        const slotCount = getMinerEconomyStats(s.modules || {}).count;
+        const desiredCount = Math.max(0, Math.min(
+            slotCount,
+            Math.floor(Number(s.assignedWorkers == null ? s.miners : s.assignedWorkers) || 0)
+        ));
+        let miners = Math.min(desiredCount, Math.max(0, Math.floor(Number(s.miners) || 0)));
+        s.assignedWorkers = desiredCount;
+        if ((Number(s.carriedEnergy) || 0) > 0 && warehouseFree > 0) {
+            const moved = Math.min(Math.max(0, Number(s.carriedEnergy) || 0), warehouseFree);
+            s.carriedEnergy = Math.max(0, Number(s.carriedEnergy) - moved);
+            _depositToWarehouses(warehouses, moved);
+            warehouseFree = _energyStorableInWarehouses(warehouses);
+        }
         const wait = Math.min(Math.max(0, (s.respawnTimer || 0) / 1000), t);
         const mineSegment = (count, seconds) => {
             if (warehouseFree <= 0 || count <= 0 || seconds <= 0) return;
-            let want = getMinerEnergyPerSecond(s.modules || {}, count) * Math.max(0, seconds);
+            let want = getMinerEnergyPerSecond(s.modules || {}, count) * laborEfficiency
+                * Math.max(0, seconds);
             want = Math.min(want, warehouseFree);
             const mined = Math.min(_mineFromNodes(nodes, want), warehouseFree);
             if (mined > 0) {

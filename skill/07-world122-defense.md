@@ -13,10 +13,10 @@
 ### 位面传送门与献祭建筑拆分（2026-08-22）
 
 - `DefenseSystem.base` 在多位面常驻架构中是入侵目标传送门，只负责耐久、毁灭与入侵胜负；禁止再把它传给 `World122TributeSystem.openFor/setup`，否则 DefenseSystem 的高优先级点击会截走传送门旅行面板。
-- 献祭效果只区分“世界模式”和“地牢模式”：scene8~scene11 都由 `DefenseSystem.managedExternally` 启用同一份世界献祭，跨世界切换继续生效；进入主神空间或地牢模式后由 `DefenseSystem.teardown()` 停用。世界祭品的30分钟只在世界模式累计，离场时把 `expiresAt` 折算为 `remainingMs` 冻结，回到任意世界后恢复倒计时；主存档也只写剩余时长，离线与地牢期间都不得消耗。暂停期间状态栏保留每件世界祝福的“已暂停/剩余时间”常驻条，返回世界后切回正常倒计时。祭品过期、离开世界模式和清空都必须刷新友军 `updateMaxStats()`，避免最大生命倍率残留；刷新入口由 `tribute-effects` 向 store 单向注册，禁止两模块互相导入。
+- 位面祭坛 store 是主神空间、scene8~scene11 和地牢的唯一祭品效果源；每件祭品默认30分钟并跨场景连续倒计时，不再冻结。主存档写剩余时长供读档恢复，运行中到期必须刷新玩家面板和友军 `updateMaxStats()`；刷新入口继续由 `tribute-effects` 向 store 单向注册。
 - 献祭入口是 `producer-buildings.json.plane_altar`（显示名“位面祭坛”）：`panelMode:"tribute"`、仅 scene8、基础解锁、单座上限。它按普通 `ProducerBuilding` 参与建筑面板、2×2 占格、下沉清理和 `cfgKey` 快照恢复，不是防守目标，也不带 `_isWorldPortalCore`。
-- `ProducerBuildingSystem.tryInteract` 是祭坛详情的唯一点击分发入口；出售/被毁必须调用 `World122TributeSystem.detachAltar`，失效实体不得继续献祭。30分钟持续、同名刷新、10种上限、背包扣除、状态栏与主存档仍由既有 tribute store/system 负责。
-- 世界与地牢祭品不得依赖“双方恰好都清空”维持互斥：`tribute-effects` 在地牢 active 时只读携带祭品，否则只读世界 store；`ExpeditionSystem.depart()` 必须显式 teardown 世界献祭。世界蟠桃使用 `_worldPeachReviveUsed`，再次献祭同类祭品才重置，不得复用地牢 `_peachReviveUsed`。
+- `ProducerBuildingSystem.tryInteract` 是祭坛详情的唯一点击分发入口；出售/被毁必须调用 `World122TributeSystem.detachAltar`，失效实体不得继续献祭。同一稀有度只能生效一件，新祭品覆盖旧的同级效果并刷新为30分钟，因此最多6个生效槽；钥匙代币必须从献祭列表排除。
+- `World122TributeSystem.teardown()` 只解除祭坛交互，不得清状态、冻结时间或丢弃 player 引用；世界蟠桃统一使用 `_worldPeachReviveUsed`，重新献祭蟠桃才刷新次数。
 - 世界核心传送门使用稳定 id `world_portal_${sceneId}`，`portal` 配置单座上限；旧基础快照只允许按“出生点 + 零建造成本”迁移核心。核心及主城枢纽必须同时禁止详情出售和建筑回收旁路，普通 `cfgKey:"portal"` 不得仅凭数组顺序被提升为入侵目标。
 - 祭坛详情沿用 `renderBuildingDetailHeader`，外壳使用 `.world122-altar-panel.bp-right-column` 和通用 `.bp-panel-* / .bp-type-*` 冷钢组件；动态值只允许内联生命条宽度/语义状态色，禁止在业务模板重新硬编码字号和整套色板。
 
@@ -1573,6 +1573,9 @@
   才提升全局等级并同步存活单位；默认时长与铁匠铺/研究院一致为60秒。同一兵种同一模块跨当前场景
   与后台位面只能有一栋建筑推进。能力与模块卡统一复用 `building-upgrade-card.js`，项目名下必须直接显示下一等级所需金币/
   能源，禁止再显示“悬停查看说明”。模块读条随建筑快照保存，离开位面后由后台结算完成。
+- **双通道兵种升级（2026-08-22）**：`parallelProduction` 建筑的模块面板必须按兵种分组，并把目标
+  `unitType` 显式传入等级、费用、适用性、读条键与悬浮说明；不得借用建筑默认兵种隐式结算。模块级
+  `unitKinds` 同时负责隐藏和拒绝不适用项目，避免无普通攻击单位获得无效果的攻击强化。
 - **每栋建筑独立生产选择（2026-08-19）**：`unitType` 只属于建筑实例，通用产兵建筑
   构造时复制独立运行时配置，禁止写共享 `PRODUCER_BUILDINGS` 模板。相邻建筑命中盒重叠时，
   `tryInteract` 必须在全部命中候选中选择离点击点最近的实例，禁止数组第一项抢交互造成
@@ -1882,8 +1885,8 @@
   返回门；纯探索，不接世界-122防守/采矿/生产系统。
 - 地板：直接使用僵尸地牢高级 `blackbrick_7/blackbrick_8` 贴图池与随机等距拼砖口径，
   `glow=false`；不重新生成地砖、不启用连续平铺。
-- 环境：`world125-environment.js` 每次入场随机生成28根石柱、36座烛台和22组摆墙预制组合；
-  组合池取「火把墙」之后的纯障碍组合，保留组内变换/图层，统一走 footprint、碰撞、
+- 环境：`world125-environment.js` 每次入场随机生成28根石柱和22组不含烛台的摆墙预制组合；
+  组合池取「火把墙」之后的纯障碍组合并显式排除 `obstacle_candle`，保留组内变换/图层，统一走 footprint、碰撞、
   菱形内缩、出生点/返回门排除和最小间距。
 - 入口：世界切换面板、主神空间传送门、世界-122建筑传送门均登记 scene11；
   BGM复用 `dungeon_echo.mp3`。
@@ -1907,19 +1910,32 @@
   `camera.worldView + viewportMarginPx` 与世界菱形交集内生成，三个发射器均预留池并设置
   `maxAliveParticles`，不按12288×8192全图铺设。
 - **烛台复用口径**：现有 `obstacle_candle.png` 为317×640三烛台，运行时约89×180，俯视烛盘和
-  底脚符合当前黑砖等距视角，无需重新建模。枚举 `_world125Environment && tex==='obstacle_candle'`
-  同时覆盖36座单体与预制组合；中央/左/右火焰源图点分别为`(158,18)/(42,108)/(278,54)`，
-  必须通过 `WallSystem.texPointToWorld()` 应用缩放与flip。每座烛台只注册一枚呼吸光，全部烛台
-  共用一个手动发射火星的Emitter，禁止逐烛台创建Emitter。
-- **死寂雾潮开发触发态**：T键“位面”页只在scene11世界行展示状态和按钮，UI统一调用
-  `GameScene.getWorld125AtmosphereDebugModel/toggleWorld125FogTide` 公共门面，禁止直接访问
-  `_world125Atmosphere`。按钮仅在玩家当前已进入scene11时允许触发；激活后同一按钮改为结束，离场
-  `reset()` 自动清除。视觉档位以基础 `dungeonAtmosphere` 合并 `fogTide.visual`，只在模式切换时
-  重建三个共享Emitter；尸雾/腐化尘加量加速、冷绿覆盖增强、烛光衰弱，并以
-  `lockDirection:true` 锁定本次雾潮全程唯一气流。当前不随机、不计时、不存档、不修改视野或战斗。
-- **生命周期与玩法边界**：暂停时三个Emitter `timeScale=0` 且统一delta停止；加载、离开scene11或
-  `clearAllEntitySprites()` 时销毁粒子/冷色覆盖并注销所有烛光。常驻氛围不得修改单位视野、AI感知、
-  攻击距离、碰撞或探索记录；死寂雾潮若以后需要视野惩罚，必须另建天气状态与乘算修正链。
+  底脚符合当前黑砖等距视角，无需重新建模。该贴图只由可建造的 `dungeon_candle` 实体使用；
+  中央/左/右火焰源图点分别为`(158,18)/(42,108)/(278,54)`，通过建筑贴图尺寸、锚点与flip换算
+  为世界坐标。每座烛台只注册一枚呼吸光，全部烛台共用一个手动发射火星的Emitter，禁止逐烛台创建Emitter。
+- **死寂雾潮状态与视觉分层**：`World125FogTideSystem` 是scene11手动天气状态和玩法倍率真源，
+  `World125AtmosphereSystem` 只接收外部 `fogTideActive` 并切换视觉档位；T键“位面”页统一调用
+  `GameScene.getWorld125AtmosphereDebugModel/toggleWorld125FogTide`，禁止UI直接访问私有环境实例。
+  离开scene11立即清除手动态；视觉配置仍只在模式切换时重建共享Emitter，`lockDirection:true` 保证
+  整段雾潮全场同一气流。暂停时Emitter `timeScale=0`，加载、离场或清理场景时统一销毁视觉资源。
+- **视野乘算口径**：只对 `player/companion/military/scout/cavalry` 单位档案调用雾潮倍率，最终链保持
+  `基础半径 × 祭品 × 昼夜 × 沙尘暴 × 死寂雾潮 × 高地`。范围外雾潮 `×0.6`；存活守夜烛台范围内
+  白天 `×1`，夜间雾潮修正 `×0.9`，与全局夜晚 `×0.5` 相乘后分别得到 `0.3/0.45`。烛台自身使用
+  独立 `candle` 视野档案，照明半径不受黑夜和雾潮削减；不得修改攻击距离、AI感知或永久探索记录。
+- **场景中只保留玩法烛台**：`world125-environment.js` 的单体散布和预制组合池都必须排除烛台，
+  防止外观相同却不能受击、不能提供庇护的假烛台。玩家建造的 `dungeon_candle` 必须走
+  `ProducerBuilding` 实体、生命/碰撞/出售/销毁和位面快照链；只有 `CandleSanctuarySystem` 注册且
+  存活的实体参与260px庇护判定。玩家进出庇护区的提示只跟踪玩家，友军倍率仍逐单位计算。特殊建筑用
+  `allowedSceneIds:["scene11"]` 锁定建造位面，并由科技解锁，不在UI层单独伪造门禁。
+- **烛台单体升级闭环**：照明模块来自独立 `upgradeProject`，科技树的 `upgrade:<moduleId>` 必须纳入
+  `TechnologySystem` 已知升级ID校验。单体等级和读条要随建筑快照保存，离场时由 `world122-sim` 推进，
+  恢复后重新同步 `fogSightRadius`；支付与科技门禁留在已持有这些依赖的建筑面板，范围注册核心不得
+  反向依赖科技/快照系统形成循环模块链。同列父子科技需要科技树绘制纵向连接线，避免零宽折线路径。
+- **亡者猎场倍率口径**：用敌方配置 `family:"僵尸"` 识别全部僵尸，不按具体类名列白名单。移速
+  `×1.2` 只接入 `MovementSystem` 最终移动倍率；攻击间隔 `×0.85` 除 `CombatSystem` 的通用决策/普攻
+  冷却外，自管僵尸必须通过 `Enemy.getAttackIntervalDelta()` 推进技能冷却、接触/活体常驻伤害和攻击型召唤计时。
+  禁止改写 `speed/aiInterval/cooldown` 基值，也不加速动作动画、前摇、投射物、死亡计时、击退/技能位移
+  或扩大攻击距离。天气结束后倍率函数返回1，保证即时、无残留恢复。
 
 **建造清除障碍物与草（2026-08-17 用户口径：建造处有树/草类障碍物直接删除）**
 - **判定顺序铁律（2026-08-17 审计修复）**：不能先用普通 `canMoveTo` 拒绝落点、再在建造
@@ -2524,7 +2540,7 @@
 - **数值真源**：人口、岗位、风车粮食、银行与市场参数统一在 `data/population-economy.json`；建筑注册、造价、贴图和外围格类型仍由 `data/producer-buildings.json` 驱动。禁止把容量、岗位上限、产率或汇率复制到面板代码。
 - **基础建造费用**：矿工营地和仓鼠草屋各消耗 500 能源；方块墙沿用 C 级防御数值，但每块独立消耗 50 能源，不改变 4 格门的既有造价。房屋基础价仍为 300 金币，通过 `firstWhenNoneCost: 0` 为当前无活动房屋的位面提供首栋免费；建成后恢复基础价，并把实际支付额写入 `_buildCost`，确保免费房屋回收不返金。
 - **房屋升级反馈**：等级贴图、显示尺寸、脚点与完成音效路径由 `population-economy.json#house` 驱动，完成反馈只挂在 `_updateHouseUpgrade` 的唯一结算点。产品明确要求全局通知时使用 `SoundManager.playFile(..., 'ui')`，不按玩家与房屋距离衰减；烟尘复用 `BuildingSinkEffect` 同源的 footprint 采样和 `DustEffect` 参数，但必须通过非破坏性的 `BuildingFootprintDustEffect` 播放，禁止为升级创建沉陷特效、使实体失效或释放占地。
-- **人口语义**：人口上限只由房屋等级求和；风车、银行、市场和工坊在建筑实例上保存 `assignedWorkers` 数值，通过 `setAssignedWorkers/adjustAssignedWorkers` 占用全位面人口。岗位不是实体，不进入 `Game.entities` / `Game.friendlyUnits`，不寻路、不碰撞、不参与战斗；工坊的工程师升级决定岗位容量，实际分配人口决定上岗人数。
+- **人口语义**：人口上限只由房屋等级求和；风车、银行、市场、工坊和矿工营地在建筑实例上保存 `assignedWorkers` 数值，通过 `setAssignedWorkers/adjustAssignedWorkers` 占用全位面人口。普通岗位不创建实体；矿工营地是明确例外：每个已分配岗位物化一名不可选择的经济矿工实体，用于寻路、受击、背包携带与返营提交，但不接受 RTS 指令、不参与主动战斗。“矿工增援”只增加岗位容量，不能绕过人口直接生成矿工。
 - **风车农民视觉**：`HamsterFarmerVisualSystem` 只为当前位面、已有岗位的风车维护 Phaser Sprite，显示数不超过 `visualWorkerCap`（当前风车为 4，与 4 个岗位一一对应）。农民在 12 格田地环的相邻格间直线移动，循环 `idle → running → harvesting`；不创建物理体、碰撞体、寻路请求或存档对象。岗位归零、建筑出售/摧毁、位面离场时必须销毁 Sprite，回场按 `assignedWorkers` 重建。
 - **生产建筑分层动画（2026-08-22 风车首例）**：主体必须继续使用静态 `spriteCfg.idleKey`，运动部件由 `producer-buildings.json#<building>.animation` 配置为独立 overlay spritesheet；BootScene 加载并注册动画，中立建筑渲染链让 overlay 跟随主体的位置、尺寸、镜像、深度、雾可见性和销毁生命周期。主体与运动部件同源时应使用同一帧画布、原点和显示规格实现天然轴心重合；异源时必须分别测量主体转轴帽中心和运动部件源轴心，把运动部件轴心重排到自身帧中心，再用独立 `displayW/displayH` 保持既有视觉大小，并通过 `offsetX/offsetY` 把 overlay 帧中心精确放到主体轴承的世界位置。主体轴帽原像素应作为 overlay 前景遮挡，使扇叶根部位于轴帽后方。禁止为对轴强制统一主体与运动部件尺寸、按画布中心猜测轴心、用整栋动画贴图覆盖静态主体，或用后处理后的整栋合成帧修正位置。相邻 3D 关键帧可通过双向半角变换与预乘 alpha 混合补帧，但帧数和帧率必须等比例增加以维持循环时长；详情面板继续读取独立 `panelKey`，逻辑占格、建造预览和静态缩略图不变。
 - **建筑亮窗蒙版（2026-08-22）**：亮窗必须从当前正式主体提取为与原图尺寸、透明边和原点完全一致的 RGBA 蒙版，通过 `producer-buildings.json#<building>.windowGlow` 配置并由 BootScene 统一预载；禁止复制整栋贴图做高亮、重绘主体或用圆形泛光覆盖墙体。中立建筑渲染链以 `BlendModes.ADD` 将蒙版放在主体之上、运动 overlay 之下，并同步主体位置、显示尺寸、旋转、镜像、结构深度、地图模式、战争迷雾和销毁生命周期。亮度读取 `EnvironmentLightingSystem.getSun().daylight`，白天只保留弱光、夜间增强；每栋实例按稳定 ID 生成不同相位，用低幅平滑脉冲叠加双频微闪，禁止逐帧随机 alpha 造成跳闪。多级房屋按当前 `spriteCfg.idleKey` 解析 `windowGlow.variants`，升级换图时必须同步换蒙版；该层永远不进入实体、占格、碰撞、阴影或存档。

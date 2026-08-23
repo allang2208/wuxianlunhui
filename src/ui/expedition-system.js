@@ -2,14 +2,13 @@ import { Game } from '../game.js';
 import { SceneManager } from '../world/scene-manager.js';
 /**
  * ExpeditionSystem — 出征准备系统
- * 全黑背景覆盖，背包式物资管理（10格），3个队友槽位，支持任意物品拖入
- * 从背包拖入 = 真正从背包移出；关闭/取消 = 归还到背包
+ * 全黑背景覆盖，选择地牢和3个队友槽位；出征时自动从背包/仓库校验并消耗对应钥匙。
  */
 
 import { UIState } from './ui-state.js';
-import { queryAllElements, getElement } from '../utils/dom-utils.js';
+import { getElement } from '../utils/dom-utils.js';
 import { EquipManager } from './equip-manager.js';
-import { BackpackDialogManager } from './backpack-dialog-manager.js';
+import { WarehouseSystem } from './warehouse-system.js';
 import { SystemUI } from './system-ui.js';
 import { SoundManager } from './sound-manager.js';
 import { DungeonMapSystem } from '../world/dungeon-map-system.js';
@@ -19,19 +18,20 @@ import { RecruitUI } from './recruit-ui.js';
 import { CompanionPanel } from './companion-panel.js';
 import { EventBus } from '../core/event-bus.js';
 import { syncTributeBuffs } from '../config/tribute-effects.js';
-import { World122TributeSystem } from '../world/world122-tribute-system.js';
 import { RARITY_ORDER, RARITY_COLORS, RARITY_LABELS } from '../config/rarity.js';
 import { GRADE_ORDER, RESTRICTED_EVENT_META } from '../world/dungeon-event-definitions.js';
 import { COMBAT_FORMULAS } from '../config/combat-formulas.js';
 import { BOSS_REWARD_CONFIG } from '../world/boss-reward-system.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { CONFIG } from '../config/config.js';
+import {
+    countDungeonKeys,
+    getDungeonKeyRequirement,
+    isDungeonKeyItem,
+} from '../config/dungeon-key-config.js';
 
 export const ExpeditionSystem = {
     _isOpen: false,
-    _carriedItems: [], // 长度为 CAPACITY 的数组，每个元素 { item, count } 或 null
-    CAPACITY: 10,     // 携带容量（预留接口，后续可扩容）
-
     // 打开出征准备面板
     open(player) {
         if (UIState.isOpen('expedition')) return;
@@ -39,7 +39,6 @@ export const ExpeditionSystem = {
         this._isOpen = true;
         // 打开出征面板时关闭组队面板
         EventBus.emit('ui:panel-open', { panel: 'expedition' });
-        this._carriedItems = new Array(this.CAPACITY).fill(null);
         this.selectedDungeon = 'zombie'; // 默认选中僵尸地牢（可选列表见 dungeon-config.json dungeonList）
 
         // 打开面板时刷新玩家属性，确保没有残留祭品加成
@@ -47,18 +46,10 @@ export const ExpeditionSystem = {
             player.calculateCombatStats();
         }
 
-        // 清空旧的祭品统计 UI（死亡后重新打开时，上次的 DOM 可能还在）
-        this._updateTributeStats();
-        this._updateCapacityDisplay();
-
-        // 出征使用三栏布局：左侧说明、中部地牢与出征栏、右侧玩家背包。
+        // 出征使用两栏布局：左侧钥匙/奖励说明，中部地牢与队伍选择。
         // body 状态只控制显隐和点击层，不改变任何 HUD 的预设坐标。
+        if (SystemUI) SystemUI.close();
         document.body.classList.add('expedition-preparing');
-
-        // 打开出征界面时自动打开背包，供拖入祭品。
-        if (SystemUI) {
-            SystemUI.open('equip');
-        }
 
         // 显示全黑背景覆盖层
         const overlay = getElement('expeditionOverlay');
@@ -76,30 +67,18 @@ export const ExpeditionSystem = {
         // 出征条件说明弹窗（左侧）
         this._showRulePanel();
 
-        // 生成背包格子
-        this._renderInventoryGrid();
-
         // 更新UI
         this._subscribeParty();
         this._renderMemberBar(player);
-        this._setupDragDrop();
-        this._setupClickHandlers();
-        this._updateCapacityDisplay();
-        this._showMessage('请从背包拖入物品，点击已放入的格子可移除');
+        this._showMessage('出征时将自动从背包或仓库消耗对应等级钥匙');
 
     },
 
-    // 关闭出征准备面板 — 归还所有物品到背包
+    // 关闭出征准备面板
     close() {
         if (!UIState.isOpen('expedition')) return;
         UIState.close('expedition');
         this._isOpen = false;
-
-        // 移除点击/右键事件监听
-        this._removeClickHandlers();
-
-        // 归还所有已放入出征栏的物品到背包
-        this._returnAllItemsToBackpack();
 
         // 隐藏面板和覆盖层
         const panel = getElement('expeditionPanel');
@@ -108,404 +87,12 @@ export const ExpeditionSystem = {
         if (overlay) overlay.classList.remove('active');
         this._hideRulePanel();
         document.body.classList.remove('expedition-preparing');
-        if (SystemUI) SystemUI.close();
-
     },
 
     // 切换面板
     toggle(player) {
         if (UIState.isOpen('expedition')) this.close();
         else this.open(player);
-    },
-
-    // 渲染背包格子（10个空格子）
-    _renderInventoryGrid() {
-        const grid = getElement('expeditionInventoryGrid');
-        if (!grid) return;
-        grid.innerHTML = '';
-        for (let i = 0; i < this.CAPACITY; i++) {
-            const cell = document.createElement('div');
-            cell.className = 'expedition-inv-cell';
-            cell.dataset.slot = i;
-            cell.draggable = false;
-            grid.appendChild(cell);
-        }
-    },
-
-    // 设置拖放事件
-    _setupDragDrop() {
-        const cells = queryAllElements('.expedition-inv-cell');
-        cells.forEach(cell => {
-            cell.ondragover = (e) => {
-                e.preventDefault();
-                e.dataTransfer.dropEffect = 'move';
-                cell.classList.add('drag-over');
-            };
-            cell.ondragleave = (_e) => {
-                cell.classList.remove('drag-over');
-            };
-            cell.ondrop = (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                cell.classList.remove('drag-over');
-                this._handleDrop(cell);
-            };
-
-            // 点击已放入物品的格子：移除并归还到背包
-            cell.onclick = () => {
-                if (cell.dataset.occupied) {
-                    this._removeItemFromCell(cell);
-                }
-            };
-        });
-    },
-
-    // 设置双击/右键快捷操作（不破坏拖拽）
-    _setupClickHandlers() {
-        const backpackGrid = getElement('inventoryGrid');
-        const expeditionGrid = getElement('expeditionInventoryGrid');
-
-        this._backpackDblClick = (e) => {
-            const cell = e.target.closest('.inv-cell');
-            if (!cell) return;
-            const slot = parseInt(cell.dataset.slot);
-            const item = (EquipManager.backpackItems || []).find(i => i.slot === slot);
-            if (!item || item.category !== 'tribute') return;
-            e.preventDefault();
-            e.stopPropagation();
-            this._addTributeFromBackpack(item);
-        };
-        this._backpackContextMenu = (e) => {
-            const cell = e.target.closest('.inv-cell');
-            if (!cell) return;
-            const slot = parseInt(cell.dataset.slot);
-            const item = (EquipManager.backpackItems || []).find(i => i.slot === slot);
-            if (!item || item.category !== 'tribute') return;
-            e.preventDefault();
-            e.stopPropagation();
-            this._addTributeFromBackpack(item);
-        };
-        this._expeditionDblClick = (e) => {
-            const cell = e.target.closest('.expedition-inv-cell');
-            if (!cell || !cell.dataset.occupied) return;
-            e.preventDefault();
-            e.stopPropagation();
-            this._removeItemFromCell(cell);
-        };
-        this._expeditionContextMenu = (e) => {
-            const cell = e.target.closest('.expedition-inv-cell');
-            if (!cell || !cell.dataset.occupied) return;
-            e.preventDefault();
-            e.stopPropagation();
-            this._removeItemFromCell(cell);
-        };
-
-        if (backpackGrid) {
-            backpackGrid.addEventListener('dblclick', this._backpackDblClick);
-            backpackGrid.addEventListener('contextmenu', this._backpackContextMenu);
-        }
-        if (expeditionGrid) {
-            expeditionGrid.addEventListener('dblclick', this._expeditionDblClick);
-            expeditionGrid.addEventListener('contextmenu', this._expeditionContextMenu);
-        }
-    },
-
-    _removeClickHandlers() {
-        const backpackGrid = getElement('inventoryGrid');
-        const expeditionGrid = getElement('expeditionInventoryGrid');
-        if (backpackGrid) {
-            if (this._backpackDblClick) backpackGrid.removeEventListener('dblclick', this._backpackDblClick);
-            if (this._backpackContextMenu) backpackGrid.removeEventListener('contextmenu', this._backpackContextMenu);
-        }
-        if (expeditionGrid) {
-            if (this._expeditionDblClick) expeditionGrid.removeEventListener('dblclick', this._expeditionDblClick);
-            if (this._expeditionContextMenu) expeditionGrid.removeEventListener('contextmenu', this._expeditionContextMenu);
-        }
-        this._backpackDblClick = null;
-        this._backpackContextMenu = null;
-        this._expeditionDblClick = null;
-        this._expeditionContextMenu = null;
-    },
-
-    // 从背包快捷添加一个祭品到第一个空格
-    _addTributeFromBackpack(item) {
-        const freeSlot = this._getFreeSlot();
-        if (freeSlot === -1) {
-            this._showMessage('携带空间已满！', 'error');
-            return;
-        }
-        const expeditionGrid = getElement('expeditionInventoryGrid');
-        if (!expeditionGrid) return;
-        const cell = expeditionGrid.querySelector(`.expedition-inv-cell[data-slot="${freeSlot}"]`);
-        if (!cell) return;
-        this._placeItemInCell(cell, item);
-    },
-
-    // 是否已有同名祭品（出征栏不允许放入相同祭品）
-    _hasDuplicateTribute(item) {
-        return this._carriedItems.some(c => c && c.item && item && c.item.name === item.name);
-    },
-
-    // 处理拖放 — 从背包真正移出物品放入出征栏
-    _handleDrop(cell) {
-        const dragSrc = EquipManager._dragDropManager._dragSrc;
-        if (!dragSrc) return;
-        EquipManager._dragDropManager._dropHandled = true;
-
-        if (dragSrc.type === 'inventory') {
-            const bpSlot = parseInt(dragSrc.slot);
-            const bp = EquipManager.backpackItems || [];
-            const item = bp.find(i => i.slot === bpSlot);
-            if (!item) return;
-
-            // 祭品池限制：只能放入祭品（tribute）类别
-            if (item.category !== 'tribute') {
-                this._showMessage('祭品池只能放入祭品！', 'error');
-                return;
-            }
-
-            // 同名限制：不可放入相同祭品
-            if (this._hasDuplicateTribute(item)) {
-                this._showMessage('不可放入相同祭品！', 'error');
-                return;
-            }
-
-            // 检查是否还有空位
-            const freeSlot = this._getFreeSlot();
-            if (freeSlot === -1) {
-                this._showMessage('携带空间已满！', 'error');
-                return;
-            }
-
-            this._placeItemInCell(cell, item, bpSlot);
-        }
-        EquipManager._dragDropManager._dragSrc = null;
-    },
-
-    // 获取第一个空格子
-    _getFreeSlot() {
-        for (let i = 0; i < this.CAPACITY; i++) {
-            if (!this._carriedItems[i]) return i;
-        }
-        return -1;
-    },
-
-    // 放置物品到格子 — 从背包取 1 个放入（堆叠祭品只取一件，其余留背包）
-    _placeItemInCell(cell, item, _backpackSlot) {
-        const slotIdx = parseInt(cell.dataset.slot);
-
-        // 同名限制：不可放入相同祭品（替换场景先判断，避免误归还）
-        if (item && item.category === 'tribute' && this._hasDuplicateTribute(item)) {
-            this._showMessage('不可放入相同祭品！', 'error');
-            return;
-        }
-
-        // 如果格子已有物品，先移除并归还
-        if (this._carriedItems[slotIdx]) {
-            this._removeItemFromCell(cell);
-        }
-
-        // 从背包取 1 个：堆叠 >1 只减数量，=1 整件移出
-        const bp = EquipManager.backpackItems || [];
-        if ((item.stack || 1) > 1) {
-            item.stack -= 1;
-        } else {
-            const itemIdx = bp.indexOf(item);
-            if (itemIdx >= 0) bp.splice(itemIdx, 1);
-        }
-
-        // 记录携带物品（深拷贝，避免引用问题；堆叠只取 1 件）
-        const clone = JSON.parse(JSON.stringify(item));
-        clone.stack = 1;
-        this._carriedItems[slotIdx] = { item: clone, count: 1 };
-
-        // 更新格子显示
-        cell.dataset.occupied = 'true';
-        cell.classList.add('occupied');
-        cell.draggable = true;
-
-        const imgSrc = item.iconImage || item.slotImage;
-        const rarityKey = item.rarity || 'common';
-        const rarityColors = { common: '#6a5a4a', uncommon: '#7a9a6a', rare: '#5a8aaa', epic: '#a05aaa' };
-        const borderColor = rarityColors[rarityKey] || '#6a5a4a';
-        cell.style.borderColor = borderColor;
-
-        cell.innerHTML = `
-            ${imgSrc ? `<img src="${imgSrc}" style="width:28px;height:28px;object-fit:cover;border-radius:3px;">` : `<span style="font-size:20px;">${item.icon || '❓'}</span>`}
-            <span class="inv-name" style="pointer-events:none;">${item.name}</span>
-        `;
-
-        // 刷新背包显示（物品已移出，背包要更新）
-        if (EquipManager.updateInventorySlots) EquipManager.updateInventorySlots();
-
-        this._updateCapacityDisplay();
-        this._updateTributeStats();
-        this._showMessage(`${item.name} 已放入祭品栏`);
-    },
-
-    // 更新祭品效果统计面板
-    _updateTributeStats() {
-        const statsEl = getElement('expeditionTributeStats');
-        const listEl = getElement('expeditionTributeStatsList');
-        if (!statsEl || !listEl) return;
-
-        const tributes = this._carriedItems.filter(c => c !== null);
-        if (tributes.length === 0) {
-            statsEl.style.display = 'none';
-            return;
-        }
-
-        statsEl.style.display = 'block';
-
-        // 效果名称统一映射（不同名称但同一概念）
-        const NAME_NORMALIZE = {
-            '防御加成': '防御',
-            '防御力': '防御',
-        };
-
-        // 收集所有祭品效果
-        const effects = [];
-        tributes.forEach(c => {
-            const item = c.item;
-            if (!item) return;
-            const stats = item.stats || [];
-            stats.forEach(s => {
-                const value = String(s.value);
-                const _isPositive = value.includes('+');
-                const isNegative = value.includes('-');
-                const type = isNegative ? 'penalty' : 'benefit';
-                // 统一名称
-                const normalizedName = NAME_NORMALIZE[s.name] || s.name;
-                effects.push({
-                    name: normalizedName,
-                    rawName: s.name,
-                    value: s.value,
-                    type,
-                    source: item.name
-                });
-            });
-        });
-
-        // 合并同名效果（如多个相同祭品）
-        const merged = new Map();
-        effects.forEach(e => {
-            const key = e.name;
-            if (!merged.has(key)) {
-                merged.set(key, { ...e });
-            } else {
-                const existing = merged.get(key);
-                // 简单累加数值（如果都是百分比或都是数值）
-                const existingVal = parseFloat(existing.value);
-                const newVal = parseFloat(e.value);
-                if (!isNaN(existingVal) && !isNaN(newVal)) {
-                    const sum = existingVal + newVal;
-                    const sign = sum >= 0 ? '+' : '-';
-                    const suffix = existing.value.includes('%') ? '%' : '';
-                    existing.value = `${sign}${Math.abs(sum)}${suffix}`;
-                    existing.source += `, ${e.source}`;
-                }
-                // type: 如果任意一个是减益，合并后仍标记为减益（优先显示负面）
-                if (e.type === 'penalty') existing.type = 'penalty';
-            }
-        });
-
-        // 渲染
-        const items = Array.from(merged.values());
-        if (items.length === 0) {
-            statsEl.style.display = 'none';
-            return;
-        }
-
-        listEl.innerHTML = items.map(item => `
-            <div class="expedition-tribute-stat-item ${item.type}">
-                <span class="stat-label">${item.name}</span>
-                <span class="stat-value">${item.value}</span>
-                <span class="stat-source">${item.source}</span>
-            </div>
-        `).join('');
-    },
-
-    // 从格子移除物品 — 归还到背包（类似 EnhanceSystem._returnEquippedItem）
-    _removeItemFromCell(cell) {
-        const slotIdx = parseInt(cell.dataset.slot);
-        const carried = this._carriedItems[slotIdx];
-        if (!carried) return;
-
-        const itemName = carried.item.name;
-
-        // 归还到背包：找第一个空位
-        const usedSlots = new Set((EquipManager.backpackItems || []).map(i => i.slot));
-        let bpSlot = 0;
-        while (usedSlots.has(bpSlot) && bpSlot < EquipManager.maxBackpackSlots) bpSlot++;
-        if (bpSlot >= EquipManager.maxBackpackSlots) {
-            // 背包满，物品掉落在地上
-            if (Game.player && Game.dropItem) {
-                Game.dropItem(Game.player.x, Game.player.y, carried.item);
-            }
-            if (BackpackDialogManager._showBackpackFullNotice) {
-                BackpackDialogManager._showBackpackFullNotice();
-            }
-        } else {
-            const clone = JSON.parse(JSON.stringify(carried.item));
-            clone.slot = bpSlot;
-            if (!EquipManager.backpackItems) EquipManager.backpackItems = [];
-            EquipManager.backpackItems.push(clone);
-        }
-
-        // 清空出征栏数据
-        this._carriedItems[slotIdx] = null;
-        delete cell.dataset.occupied;
-        cell.classList.remove('occupied');
-        cell.draggable = false;
-        cell.style.borderColor = '';
-        cell.innerHTML = '';
-
-        // 刷新背包显示
-        if (EquipManager.updateInventorySlots) EquipManager.updateInventorySlots();
-
-        this._updateCapacityDisplay();
-        this._updateTributeStats();
-        this._showMessage(`${itemName} 已归还到背包`);
-    },
-
-    // 归还所有物品到背包（关闭/重置时调用）
-    _returnAllItemsToBackpack() {
-        const bp = EquipManager.backpackItems || [];
-
-        for (let slotIdx = 0; slotIdx < this.CAPACITY; slotIdx++) {
-            const carried = this._carriedItems[slotIdx];
-            if (!carried) continue;
-
-            // 找背包第一个空位
-            const usedSlots = new Set(bp.map(i => i.slot));
-            let bpSlot = 0;
-            while (usedSlots.has(bpSlot) && bpSlot < EquipManager.maxBackpackSlots) bpSlot++;
-            if (bpSlot >= EquipManager.maxBackpackSlots) {
-                // 背包满，掉地上
-                if (Game.player && Game.dropItem) {
-                    Game.dropItem(Game.player.x, Game.player.y, carried.item);
-                }
-            } else {
-                const clone = JSON.parse(JSON.stringify(carried.item));
-                clone.slot = bpSlot;
-                bp.push(clone);
-            }
-        }
-
-        // 清空所有出征栏数据
-        this._carriedItems = new Array(this.CAPACITY).fill(null);
-
-        // 刷新背包显示
-        if (EquipManager.updateInventorySlots) EquipManager.updateInventorySlots();
-    },
-
-    // 更新容量显示
-    _updateCapacityDisplay() {
-        const used = this._carriedItems.filter(c => c !== null).length;
-        const usedEl = getElement('expeditionCapacityUsed');
-        const maxEl = getElement('expeditionCapacityMax');
-        if (usedEl) usedEl.textContent = used;
-        if (maxEl) maxEl.textContent = this.CAPACITY;
     },
 
     // 出征面板打开期间跟随正式队伍变化刷新；只订阅一次，避免重复监听。
@@ -563,25 +150,6 @@ export const ExpeditionSystem = {
         el.className = 'expedition-message' + (type === 'error' ? ' error' : type === 'success' ? ' success' : '');
     },
 
-    // 重置按钮 — 归还所有物品到背包，清空出征栏
-    reset() {
-        this._returnAllItemsToBackpack();
-
-        // 清空所有格子视觉
-        const cells = queryAllElements('.expedition-inv-cell');
-        cells.forEach(cell => {
-            delete cell.dataset.occupied;
-            cell.classList.remove('occupied');
-            cell.draggable = false;
-            cell.style.borderColor = '';
-            cell.innerHTML = '';
-        });
-
-        this._updateCapacityDisplay();
-        this._updateTributeStats();
-        this._showMessage('已重置祭品栏，所有物品已归还');
-    },
-
     // 地牢选择变更
     onDungeonSelect(value) {
         this.selectedDungeon = value;
@@ -589,13 +157,29 @@ export const ExpeditionSystem = {
         this._updateRulePanelCurrent();
     },
 
-    /** 当前选择地牢需要的祭品稀有度（F→common E→uncommon D→rare C→epic B→mythic A→legendary） */
-    _getRequiredRarity() {
+    /** 当前选择地牢的配置等级。 */
+    _getSelectedGrade() {
         const list = DungeonConfig.getDungeonList();
         const d = list[this.selectedDungeon] || {};
-        const grade = d.grade || 'F';
-        const idx = Math.max(0, GRADE_ORDER.indexOf(grade));
-        return RARITY_ORDER[idx] || 'common';
+        return d.grade || 'F';
+    },
+
+    _getKeyCount(grade = this._getSelectedGrade()) {
+        return countDungeonKeys(EquipManager.backpackItems, grade)
+            + countDungeonKeys(WarehouseSystem.items, grade);
+    },
+
+    _consumeDungeonKey(grade) {
+        const backpack = EquipManager.backpackItems || [];
+        const bpIndex = backpack.findIndex((item) => isDungeonKeyItem(item, grade));
+        if (bpIndex >= 0) {
+            const item = backpack[bpIndex];
+            if ((item.stack || 1) > 1) item.stack -= 1;
+            else backpack.splice(bpIndex, 1);
+            EquipManager.updateInventorySlots?.();
+            return true;
+        }
+        return WarehouseSystem.consumeMaterial((item) => isDungeonKeyItem(item, grade), 1) === 1;
     },
 
     /** 出征条件说明弹窗：创建（一次）并显示 */
@@ -628,11 +212,12 @@ export const ExpeditionSystem = {
             const anchor = (expCfg.anchors || {})[g] ?? 3;
             const grace = expCfg.decay?.graceLevels ?? 5;
             const decayText = (playerLv - anchor > grace) ? ' <b style="color:#c0392b">⚠经验衰减</b>' : '';
-            return `<div class="rule-item" style="color:${color}">${g} 级地牢 — ${RARITY_LABELS[rarity] || rarity}祭品${bandText}${decayText}</div>`;
+            const key = getDungeonKeyRequirement(g);
+            return `<div class="rule-item" style="color:${color}">${g} 级地牢 — ${key.name}${bandText}${decayText}</div>`;
         }).join('');
         panel.innerHTML = `
             <div class="rule-title">⚠ 出征条件</div>
-            <div class="rule-desc">进入对应等级地牢，至少放入一件对应或更高稀有度祭品：</div>
+            <div class="rule-desc">进入地牢会自动检测并消耗背包或仓库中的对应等级钥匙：</div>
             ${rows}
             <div class="rule-current" id="expeditionRuleCurrent"></div>
             <div class="rule-rewards" id="expeditionRuleRewards"></div>
@@ -647,12 +232,13 @@ export const ExpeditionSystem = {
         const list = DungeonConfig.getDungeonList();
         const d = list[this.selectedDungeon] || {};
         const grade = d.grade || 'F';
-        const rarity = this._getRequiredRarity();
+        const rarity = RARITY_ORDER[Math.max(0, GRADE_ORDER.indexOf(grade))] || 'common';
         const color = RARITY_COLORS[rarity] || '#c0c0c0';
-        const zh = RARITY_LABELS[rarity] || rarity;
+        const key = getDungeonKeyRequirement(grade);
+        const keyCount = this._getKeyCount(grade);
         const band = (COMBAT_FORMULAS.enemy?.expValue?.bands || {})[grade];
         const bandText = band ? ` · 推荐等级 Lv.${band[0]}~${band[1] - 1}` : '';
-        el.innerHTML = `当前：<b style="color:#d4c5a9">${d.name || this.selectedDungeon}（${grade} 级）</b> 需要 <b style="color:${color}">${zh}及以上祭品</b>${bandText}`;
+        el.innerHTML = `当前：<b style="color:#d4c5a9">${d.name || this.selectedDungeon}（${grade} 级）</b> 需要 <b style="color:${color}">${key.name} ×1</b> · 持有 <b style="color:${keyCount > 0 ? '#7affc8' : '#ff6b6b'}">${keyCount}</b>${bandText}`;
         this._updateRulePanelRewards(grade);
     },
 
@@ -719,43 +305,31 @@ export const ExpeditionSystem = {
         if (rewardEl) rewardEl.textContent = d.reward || '';
     },
 
-    // 确认出征 — 物品已从背包真正移出，直接带走
+    // 确认出征 — 自动从背包优先、仓库其次消耗对应等级钥匙
     async depart() {
         if (SceneManager?.isLoading) return;
-        const carried = this._carriedItems.filter(c => c !== null);
-        if (carried.length === 0) {
-            this._showMessage('请至少放入一种祭品', 'error');
-            return;
-        }
-
-        // 等级准入检查：至少放入一件「对应或更高」稀有度祭品（C 级地牢需 ≥C 级/史诗）
-        const requiredRarity = this._getRequiredRarity();
-        const reqIdx = RARITY_ORDER.indexOf(requiredRarity);
-        const hasRequired = carried.some(c => c && c.item && RARITY_ORDER.indexOf(c.item.rarity || 'common') >= reqIdx);
-        if (!hasRequired) {
-            this._showMessage('请根据提示放入对应等级祭品', 'error');
+        const grade = this._getSelectedGrade();
+        const key = getDungeonKeyRequirement(grade);
+        if (this._getKeyCount(grade) <= 0) {
+            this._showMessage(`背包和仓库中都没有 ${key.name}`, 'error');
+            this._updateRulePanelCurrent();
             return;
         }
         const dungeonType = this.selectedDungeon || 'zombie';
+        if (!this._consumeDungeonKey(grade)) {
+            this._showMessage(`${key.name} 消耗失败，请重试`, 'error');
+            this._updateRulePanelCurrent();
+            return;
+        }
         SceneManager?.showLoadingScreen?.({ sceneId: 'scene7', dungeonType });
         SceneManager?.setProgress?.(10);
         // 先让浏览器绘制 loading，再执行地牢初始化；最短展示时间由 SceneManager 统一保证。
         if (SceneManager?.delay) await SceneManager.delay(50);
 
-        // depart() 绕过 SceneManager.switchScene：显式停用并冻结世界献祭，确保地牢只读携带祭品。
-        World122TributeSystem.teardown();
+        this._showMessage(`${key.name} 已消耗，准备出征...`, 'success');
 
-        // 保存携带物品到 DungeonMapSystem（物品已从背包移出，直接带走）
-        if (DungeonMapSystem) {
-            DungeonMapSystem._carriedItems = carried;
-        }
-
-        this._showMessage('准备出征...', 'success');
-
-        // 关闭面板和覆盖层（不归还物品，已确认带走）
+        // 关闭面板和覆盖层
         this._isOpen = false;
-        // 移除点击/右键事件监听（与 close() 同口径，防止出征后背包监听叠加/物品丢失）
-        this._removeClickHandlers();
         const panel = getElement('expeditionPanel');
         if (panel) panel.classList.remove('active');
         const overlay = getElement('expeditionOverlay');
@@ -764,13 +338,6 @@ export const ExpeditionSystem = {
         this._hideRulePanel(); // 出征后左侧条件栏一并隐藏（面板清理完整还原）
         document.body.classList.remove('expedition-preparing');
 
-        // 清空出征数据（物品已确认带走）
-        this._carriedItems = new Array(this.CAPACITY).fill(null);
-
-        // 关闭背包
-        if (SystemUI) {
-            SystemUI.close();
-        }
         SceneManager?.setProgress?.(55);
 
         // 初始化地牢（传入选中的地牢类型）+ 切换场景状态到 scene7
@@ -812,7 +379,7 @@ export const ExpeditionSystem = {
 
             DungeonMapSystem.init('scene7', player, dungeonType);
             SceneManager.currentScene = 'scene7';
-            // 地牢 active=true 后再切换效果源、重算面板并登记本次地牢常驻祭品图标。
+            // 地牢 active=true 后重算全局30分钟献祭效果，并登记地牢特效图标。
             if (player?.calculateCombatStats) player.calculateCombatStats();
             if (player) syncTributeBuffs(player);
             SceneManager.setProgress(90);
@@ -832,7 +399,7 @@ export const ExpeditionSystem = {
 
     // 从出征准备返回主神空间（保留，用于外部调用）
     returnToMain() {
-        this.close(); // 关闭时会归还所有物品
+        this.close();
         if (SystemUI) SystemUI.close();
         if (SceneManager) {
             SceneManager.switchScene('main', Game.player);

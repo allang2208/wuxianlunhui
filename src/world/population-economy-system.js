@@ -187,6 +187,9 @@ export const PopulationEconomySystem = {
         const delta = target - current;
         if (delta > this.getPopulationSnapshot().free) return { ok: false, reason: '空闲人口不足' };
         building._assignedWorkers = target;
+        if (target !== current && typeof building.onAssignedWorkersChanged === 'function') {
+            building.onAssignedWorkersChanged(current, target);
+        }
         return { ok: true, assigned: target, slots, delta };
     },
 

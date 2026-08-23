@@ -192,9 +192,8 @@ export const DungeonMapSystem = {
         this.player = player;
         this.dungeonType = dungeonType;
         this._runResultRecorded = false;
-        // 每次地牢独立计算蟠桃次数；世界模式使用另一份标记，二者不得互相继承。
+        // 蟠桃使用次数由全局30分钟献祭状态持有，进入新地牢不再重置。
         if (this.player) {
-            this.player._peachReviveUsed = false;
             this.player._peachRevivePending = false;
         }
         // 经验系统：注入当前地牢类型（exp-system 计算怪物经验/压级衰减的上下文）
@@ -306,9 +305,7 @@ export const DungeonMapSystem = {
         if (typeof CombatRoomSystem !== 'undefined' && CombatRoomSystem && CombatRoomSystem.active && typeof CombatRoomSystem.cleanupRoom === 'function') {
             CombatRoomSystem.cleanupRoom();
         }
-        // 清空携带的祭品，确保祭品效果只在当前地牢有效
-        this._carriedItems = [];
-        // 清除特效祭品 buff 图标（雪莲/人参/蟠桃）
+        // 地牢离场只清除地牢专用特效图标；位面祭坛的30分钟效果继续按全局时间生效。
         const tributePlayer = this.player || (typeof window !== 'undefined' && window.Game ? window.Game.player : null);
         if (tributePlayer) clearTributeBuffs(tributePlayer);
 

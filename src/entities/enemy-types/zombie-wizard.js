@@ -125,10 +125,11 @@ export class ZombieWizard extends Enemy {
     }
 
     update(dt, entities) {
+        const attackDt = this.getAttackIntervalDelta(dt);
         // 召唤/技能冷却
-        if (this._summonCooldown > 0) this._summonCooldown -= dt;
-        if (this._iceSpikeCooldown > 0) this._iceSpikeCooldown -= dt;
-        if (this._fireballCooldown > 0) this._fireballCooldown -= dt;
+        if (this._summonCooldown > 0) this._summonCooldown -= attackDt;
+        if (this._iceSpikeCooldown > 0) this._iceSpikeCooldown -= attackDt;
+        if (this._fireballCooldown > 0) this._fireballCooldown -= attackDt;
 
         // 眩晕/冻结/恐惧：强制中断召唤与施法状态机
         // （基类的受控检查在 super.update 内部，而本类状态机在其之前推进——不在此拦截会照常出招）
