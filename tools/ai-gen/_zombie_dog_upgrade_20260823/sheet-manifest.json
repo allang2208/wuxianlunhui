@@ -1,0 +1,251 @@
+{
+  "referenceCell": 512,
+  "referenceHeight": 561,
+  "targetHeight": 262,
+  "globalScale": 0.46702317290552586,
+  "actions": {
+    "idle": {
+      "file": "generated\\final\\idle.png",
+      "preview": "previews\\final\\idle.gif",
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "columns": 6,
+      "rows": 2,
+      "frameCount": 12,
+      "footY": 410,
+      "sourceFrames": [
+        0,
+        10,
+        20,
+        30,
+        40,
+        50,
+        60,
+        70,
+        80,
+        90,
+        100,
+        110
+      ],
+      "mode": "stabilized",
+      "alphaPixels": [
+        27454,
+        27628
+      ],
+      "feetRange": [
+        408,
+        409
+      ],
+      "torsoCenterRange": [
+        254.0,
+        256.0
+      ],
+      "blankFrames": [],
+      "edgeHitFrames": [],
+      "semiPixels": 0,
+      "transparentRgbPixels": 0,
+      "frameRate": 3,
+      "repeat": -1
+    },
+    "walk": {
+      "file": "generated\\final\\walk.png",
+      "preview": "previews\\final\\walk.gif",
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "columns": 5,
+      "rows": 4,
+      "frameCount": 19,
+      "footY": 410,
+      "sourceFrames": [
+        20,
+        22,
+        24,
+        26,
+        28,
+        30,
+        32,
+        34,
+        36,
+        38,
+        40,
+        42,
+        44,
+        46,
+        48,
+        50,
+        52,
+        54,
+        56
+      ],
+      "mode": "stabilized",
+      "alphaPixels": [
+        25783,
+        27485
+      ],
+      "feetRange": [
+        408,
+        409
+      ],
+      "torsoCenterRange": [
+        254.0,
+        256.0
+      ],
+      "blankFrames": [],
+      "edgeHitFrames": [],
+      "semiPixels": 0,
+      "transparentRgbPixels": 0,
+      "frameRate": 12,
+      "repeat": -1
+    },
+    "run": {
+      "file": "generated\\final\\run.png",
+      "preview": "previews\\final\\run.gif",
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "columns": 6,
+      "rows": 4,
+      "frameCount": 22,
+      "footY": 410,
+      "sourceFrames": [
+        24,
+        26,
+        28,
+        30,
+        32,
+        34,
+        36,
+        38,
+        40,
+        42,
+        44,
+        46,
+        48,
+        50,
+        52,
+        54,
+        56,
+        58,
+        60,
+        62,
+        64,
+        66
+      ],
+      "mode": "stabilized",
+      "alphaPixels": [
+        24530,
+        28817
+      ],
+      "feetRange": [
+        404,
+        409
+      ],
+      "torsoCenterRange": [
+        255.0,
+        260.0
+      ],
+      "blankFrames": [],
+      "edgeHitFrames": [],
+      "semiPixels": 0,
+      "transparentRgbPixels": 0,
+      "frameRate": 12,
+      "repeat": -1
+    },
+    "attack": {
+      "file": "generated\\final\\attack.png",
+      "preview": "previews\\final\\attack.gif",
+      "frameWidth": 640,
+      "frameHeight": 512,
+      "columns": 6,
+      "rows": 3,
+      "frameCount": 17,
+      "footY": 410,
+      "sourceFrames": [
+        10,
+        13,
+        16,
+        19,
+        22,
+        25,
+        28,
+        31,
+        34,
+        37,
+        40,
+        43,
+        46,
+        49,
+        52,
+        55,
+        58
+      ],
+      "mode": "source_motion",
+      "alphaPixels": [
+        25756,
+        27396
+      ],
+      "feetRange": [
+        408,
+        409
+      ],
+      "torsoCenterRange": [
+        295.0,
+        363.0
+      ],
+      "blankFrames": [],
+      "edgeHitFrames": [],
+      "semiPixels": 0,
+      "transparentRgbPixels": 0,
+      "duration": 700,
+      "repeat": 0
+    },
+    "death": {
+      "file": "generated\\final\\death.png",
+      "preview": "previews\\final\\death.gif",
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "columns": 6,
+      "rows": 3,
+      "frameCount": 18,
+      "footY": 410,
+      "sourceFrames": [
+        0,
+        3,
+        6,
+        9,
+        12,
+        15,
+        18,
+        21,
+        24,
+        27,
+        30,
+        33,
+        36,
+        39,
+        42,
+        45,
+        56,
+        78
+      ],
+      "mode": "source_motion_grounded",
+      "alphaPixels": [
+        17091,
+        27610
+      ],
+      "feetRange": [
+        406,
+        409
+      ],
+      "torsoCenterRange": [
+        252.0,
+        296.0
+      ],
+      "blankFrames": [],
+      "edgeHitFrames": [],
+      "semiPixels": 0,
+      "transparentRgbPixels": 0,
+      "duration": 1800,
+      "repeat": 0
+    }
+  }
+}

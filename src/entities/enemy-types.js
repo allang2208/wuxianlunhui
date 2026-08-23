@@ -1443,13 +1443,22 @@ class ZombieDogEnemy extends CircleEnemy {
             ...config
         });
         this._animState = 'idle';
+        this._animStateTimer = 0;
         this._lastHorizontalFacing = 'right';
-        // [FIX] 僵尸犬攻击动画时长，与 BootScene 中 zombie_dog_attack 动画匹配
-        // 6 帧 @ 10fps = 600ms
-        this._attackDuration = 600;
+        this._attackDuration = this._getFrameLayout('attack').duration ?? 700;
+
+        // 死亡动画播放完成后保留尸体 1 秒，再交给通用清理链销毁。
+        this._preserveCorpse = true;
+        this._deathStarted = false;
+        this._deathAnimTimer = 0;
+        this._corpseTimer = 0;
     }
 
     update(dt, entities) {
+        if (!this.active) {
+            this._updateDeathAnimation(dt);
+            return;
+        }
         super.update(dt, entities);
         // 递减攻击动画计时器；计时器归零后不再显示 attack 动画
         if (this._attackTimer > 0) {
@@ -1501,19 +1510,73 @@ class ZombieDogEnemy extends CircleEnemy {
 
     /**
      * 僵尸犬攻击动画触发入口。
-     * 只在 CombatSystem 真正触发攻击后调用；若当前仍处于上一段 attack 动画（600ms）中，
-     * 则忽略重复触发，因此不会以 600ms 为周期循环播放攻击动画。
+     * 只在 CombatSystem 真正触发攻击后调用；若当前仍处于上一段 attack 动画中，
+     * 则忽略重复触发，避免扑咬母版中途重播。
      */
     triggerWeaponAnim() {
         if (this._attackTimer > 0) return;
+        if (this.target?.active) {
+            this._lastHorizontalFacing = this.target.x < this.x ? 'left' : 'right';
+        }
         super.triggerWeaponAnim();
-        this._attackTimer = this._attackDuration || 600;
+        this._attackTimer = this._attackDuration || 700;
         this._animFrame = 0;
         this._animTimer = 0;
     }
 
+    _getFrameLayout(state = this._animState) {
+        const layouts = this.config?.textures?.frameLayouts || {};
+        return layouts[state] || layouts.idle || {
+            frameWidth: 512,
+            frameHeight: 512,
+            frameCount: 1,
+            footY: 410,
+        };
+    }
+
+    _getDeathConfig() {
+        return this.config?.deathAnim || {};
+    }
+
+    _updateDeathAnimation(dt) {
+        if (!this._deathStarted) return;
+        if (this._deathAnimTimer > 0) {
+            this._deathAnimTimer = Math.max(0, this._deathAnimTimer - dt);
+            if (this._deathAnimTimer <= 0) {
+                this._corpseTimer = this._getDeathConfig().holdMs ?? 1000;
+            }
+        } else if (this._corpseTimer > 0) {
+            this._corpseTimer = Math.max(0, this._corpseTimer - dt);
+            if (this._corpseTimer <= 0 && this._phaserSprite?.active) {
+                this._phaserSprite.destroy();
+                this._phaserSprite = null;
+            }
+        }
+    }
+
+    onDeath(source) {
+        if (this._deathStarted) return;
+        this._deathStarted = true;
+        this._attackTimer = 0;
+        this.vx = 0;
+        this.vy = 0;
+        this.isMoving = false;
+        this.target = null;
+        this._tacticalTarget = null;
+        this._animState = 'death';
+        this._animStateTimer = 0;
+        const death = this._getDeathConfig();
+        const duration = death.duration ?? 1800;
+        const holdMs = death.holdMs ?? 1000;
+        this._deathAnimTimer = duration;
+        this._corpseTimer = 0;
+        this._deathRemoveDelay = duration + holdMs + 500;
+        super.onDeath(source);
+    }
+
     _getTextureKey() {
         switch (this._animState) {
+            case 'death':  return 'enemy_zombie_dog_death';
             case 'attack': return 'enemy_zombie_dog_attack';
             case 'run':    return 'enemy_zombie_dog_run';
             case 'walk':   return 'enemy_zombie_dog_walk';
@@ -1523,12 +1586,24 @@ class ZombieDogEnemy extends CircleEnemy {
 
     _getPhaserOptions() {
         const renderCfg = this.config?.render || {};
-        const spriteSize = renderCfg.spriteSize || 90;
+        const layout = this._getFrameLayout();
+        const referenceCell = this.config?.textures?.referenceCell ?? 512;
+        const frameWidth = layout.frameWidth ?? referenceCell;
+        const frameHeight = layout.frameHeight ?? referenceCell;
+        const baseSpriteSize = renderCfg.spriteSize || 151;
+        const pixelScale = baseSpriteSize / referenceCell;
+        const spriteSize = Math.max(frameWidth, frameHeight) * pixelScale;
+        const footY = layout.footY ?? frameHeight;
+        this.footOffsetY = (footY - frameHeight / 2) * pixelScale;
         return {
             spriteSize,
-            textOffsetY: -spriteSize / 2 - 10,
+            collisionWidth: renderCfg.collisionWidth || 80,
+            collisionHeight: renderCfg.collisionHeight || 79,
+            textOffsetY: -baseSpriteSize / 2 - 10,
             flipX: this._lastHorizontalFacing === 'left',
-            animState: this._animState
+            animState: this._animState,
+            // 新母版已经统一脚底锚点；v2 动画键不套用旧素材的逐帧偏移表。
+            animKey: `enemy_zombie_dog_${this._animState}_v2`,
         };
     }
 }

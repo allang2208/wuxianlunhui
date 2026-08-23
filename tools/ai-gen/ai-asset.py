@@ -105,8 +105,8 @@ def monster_video(args):
 
 def monster_rebuild(args):
     out_dir = os.path.join(SCRATCH, f"{args.name}_anim", "sheets")
-    ensure_dir(out_dir)
-    out = os.path.join(out_dir, f"{args.name}_{args.kind}.png")
+    out = args.out or os.path.join(out_dir, f"{args.name}_{args.kind}.png")
+    ensure_dir(os.path.dirname(os.path.abspath(out)))
     cmd = ["PY", tool("quadruped-rebuild.py"), "--video", args.video,
            "--kind", args.kind, "--out", out]
     if args.bg_color:
@@ -335,6 +335,7 @@ def main():
     p.add_argument("--kind", choices=["run", "attack"], required=True)
     p.add_argument("--bg-color", default="#FFFFFF", help="视频背景色（生成时用了主体无色底必须传同色）")
     p.add_argument("--cell", type=int, default=None, help="格子尺寸（attack 前扑宽时用 640）")
+    p.add_argument("--out", default=None, help="显式输出路径；缺省仍写入统一 Y: scratch")
     p.set_defaults(func=monster_rebuild)
 
     p = msub.add_parser("status", parents=[common], help="列出该怪物的全部产物")
