@@ -1,0 +1,42 @@
+{
+  "source": "tools\\ai-gen\\_settlement_building_pack_20260821\\church_refactor\\refine_48step_seed122960\\church_refactor_refine48_seed122966_raw.png",
+  "output": "assets\\terrain\\church.png",
+  "sourceMode": "RGB",
+  "background": [
+    27,
+    236,
+    0
+  ],
+  "matteColor": null,
+  "matteEdgeWidth": 3.0,
+  "matteTolerance": 110.0,
+  "maskImage": null,
+  "maskDilate": null,
+  "fillAlphaHoles": false,
+  "fillHoleMatteDistance": null,
+  "removeEnclosedMatte": true,
+  "enclosedMatteChromaDistance": 0.06,
+  "maskAddRects": [],
+  "restoreAlphaRects": [],
+  "cropBox": [
+    95,
+    98,
+    951,
+    925
+  ],
+  "fileSize": [
+    856,
+    827
+  ],
+  "alphaBBox": [
+    4,
+    4,
+    852,
+    823
+  ],
+  "displayW": 480,
+  "displayH": 464,
+  "footOffsetY": 230,
+  "scaleX": 0.5607476635514018,
+  "scaleY": 0.5610640870616687
+}

@@ -173,10 +173,14 @@ function setCivilianVisualPosition(worker, x, y) {
 function reconcileCivilianVisualOccupancy(worker, context) {
     const sprite = worker?.sprite;
     if (!sprite?.active) return;
+    // 面包师等可选择只受城墙约束；深度仲裁仍读取完整建筑候选，因此穿楼不等于穿模显示。
+    const blockingContext = worker.civilianCollisionMode === 'walls_only'
+        ? { ...context, buildings: [] }
+        : context;
     const radius = getCivilianVisualGroundRadius();
     const x = Number.isFinite(worker.x) ? worker.x : (Number(sprite.x) || 0);
     const y = Number.isFinite(worker.y) ? worker.y : (Number(sprite.y) || 0);
-    const current = resolveCivilianAt(x, y, radius, context);
+    const current = resolveCivilianAt(x, y, radius, blockingContext);
     if (current.blocked) setCivilianVisualPosition(worker, current.x, current.y);
 
     // 新建筑或关闭的门也可能正好压住既有目标；目标一并投影，避免平民持续尝试走回阻挡区。
@@ -185,12 +189,12 @@ function reconcileCivilianVisualOccupancy(worker, context) {
             worker.destination.x,
             worker.destination.y,
             radius,
-            context
+            blockingContext
         );
         worker.destination = { ...worker.destination, x: destination.x, y: destination.y };
     }
     if (Number.isFinite(worker.targetX) && Number.isFinite(worker.targetY)) {
-        const target = resolveCivilianAt(worker.targetX, worker.targetY, radius, context);
+        const target = resolveCivilianAt(worker.targetX, worker.targetY, radius, blockingContext);
         worker.targetX = target.x;
         worker.targetY = target.y;
     }

@@ -686,23 +686,22 @@
       },
       "name": "仓库",
       "size": 20,
-      "collisionRadius": 72,
+      "footprintCells": 1,
       "color": "#8a6a3a",
       "npcType": "warehouse",
       "noSeparation": true,
-      "colliderOffsetY": -51.5,
       "sprite": {
-        "comment": "静态贴图（宝箱）：idleKey 为普通 image 纹理键（无动画）；noSeparation=true 固定不动、其他实体无法推动",
+        "comment": "主神空间仓库宝箱：视觉保持宝箱，物理按标准1×1建筑占格；idleKey 为普通 image 纹理键（无动画）",
         "idleKey": "npc_warehouse",
         "size": 180,
-        "footOffsetY": 64
+        "sizeH": 167,
+        "footOffsetY": 83
       },
       "clickArea": {
-        "comment": "点击交互区域（按贴图内容收窄：内容 400×367/512 × size180 ≈ 141×129，锚定脚底）",
-        "width": 141,
-        "height": 129
+        "comment": "紧裁宝箱的完整可见范围；碰撞仍由footprintCells独立控制",
+        "width": 180,
+        "height": 167
       },
-      "colliderOffsetX": 0,
       "height": 89.5
     },
     "altar": {
@@ -810,7 +809,8 @@
     "goldMaxStack": 999
   },
   "gameLoop": {
-    "maxDtMs": 100
+    "maxDtMs": 100,
+    "uiUpdateIntervalMs": 100
   },
   "enhance": {
     "maxLevel": 15,
@@ -882,6 +882,136 @@
     "centerDot": {
       "outerRadius": 1.5,
       "innerRadius": 0.8
+    }
+  },
+  "weatherEffects": {
+    "rain": {
+      "enabled": true,
+      "targetSceneIds": ["scene8", "scene9", "scene10", "scene11"],
+      "excludedSceneTypes": ["dungeon"],
+      "quality": "medium",
+      "defaultIntensity": "light",
+      "schedule": {
+        "enabled": true,
+        "intervalDays": { "min": 0.8, "max": 2.2 },
+        "durationDays": { "min": 0.25, "max": 0.6 },
+        "forcedIntensityBySceneId": { "scene8": "storm" },
+        "intensityWeights": { "light": 45, "moderate": 30, "heavy": 18, "storm": 7 }
+      },
+      "viewportMarginPx": 140,
+      "overlay": {
+        "enabled": true,
+        "color": "#173044",
+        "alpha": 0.14,
+        "pulseAmount": 0.018,
+        "pulsePeriodMs": 5200
+      },
+      "streaks": {
+        "enabled": true,
+        "frequencyMs": 18,
+        "quantity": 2,
+        "maxAliveParticles": 220,
+        "lifespanMs": { "min": 700, "max": 1100 },
+        "speedX": { "min": -125, "max": -70 },
+        "speedY": { "min": 980, "max": 1380 },
+        "scaleX": { "min": 0.6, "max": 1.0 },
+        "scaleY": { "min": 0.75, "max": 1.2 },
+        "alpha": { "start": 0.78, "end": 0.08 },
+        "tints": ["#d9f1ff", "#9dc6df", "#6f9fbe"]
+      },
+      "splashes": {
+        "enabled": true,
+        "frequencyMs": 46,
+        "quantity": 1,
+        "maxAliveParticles": 90,
+        "lifespanMs": { "min": 320, "max": 520 },
+        "scaleStart": 0.35,
+        "scaleEnd": 1.15,
+        "alpha": { "start": 0.7, "end": 0 },
+        "tints": ["#d9f1ff", "#9dc6df"]
+      },
+      "intensities": {
+        "light": {
+          "name": "小雨"
+        },
+        "moderate": {
+          "name": "中雨",
+          "overlay": { "alpha": 0.17 },
+          "streaks": {
+            "frequencyMs": 14,
+            "quantity": 2,
+            "maxAliveParticles": 300,
+            "lifespanMs": { "min": 650, "max": 950 },
+            "speedX": { "min": -155, "max": -85 },
+            "speedY": { "min": 1250, "max": 1700 },
+            "scaleY": { "min": 0.85, "max": 1.3 }
+          },
+          "splashes": {
+            "frequencyMs": 32,
+            "quantity": 2,
+            "maxAliveParticles": 130,
+            "lifespanMs": { "min": 300, "max": 500 },
+            "scaleStart": 0.4,
+            "scaleEnd": 1.25,
+            "alpha": { "start": 0.75, "end": 0 }
+          }
+        },
+        "heavy": {
+          "name": "大雨",
+          "overlay": { "alpha": 0.21, "pulseAmount": 0.024 },
+          "streaks": {
+            "frequencyMs": 9,
+            "quantity": 3,
+            "maxAliveParticles": 430,
+            "lifespanMs": { "min": 600, "max": 900 },
+            "speedX": { "min": -220, "max": -120 },
+            "speedY": { "min": 1600, "max": 2150 },
+            "scaleX": { "min": 0.75, "max": 1.15 },
+            "scaleY": { "min": 1.0, "max": 1.45 },
+            "alpha": { "start": 0.86, "end": 0.1 }
+          },
+          "splashes": {
+            "frequencyMs": 20,
+            "quantity": 2,
+            "maxAliveParticles": 190,
+            "lifespanMs": { "min": 280, "max": 470 },
+            "scaleStart": 0.46,
+            "scaleEnd": 1.38,
+            "alpha": { "start": 0.82, "end": 0 }
+          }
+        },
+        "storm": {
+          "name": "暴风雨",
+          "overlay": { "alpha": 0.28, "pulseAmount": 0.03, "pulsePeriodMs": 3500 },
+          "streaks": {
+            "frequencyMs": 6,
+            "quantity": 4,
+            "maxAliveParticles": 640,
+            "lifespanMs": { "min": 520, "max": 820 },
+            "speedX": { "min": -420, "max": -240 },
+            "speedY": { "min": 2000, "max": 2800 },
+            "scaleX": { "min": 0.85, "max": 1.25 },
+            "scaleY": { "min": 1.15, "max": 1.7 },
+            "alpha": { "start": 0.92, "end": 0.12 }
+          },
+          "splashes": {
+            "frequencyMs": 12,
+            "quantity": 3,
+            "maxAliveParticles": 280,
+            "lifespanMs": { "min": 260, "max": 440 },
+            "scaleStart": 0.52,
+            "scaleEnd": 1.55,
+            "alpha": { "start": 0.9, "end": 0 }
+          },
+          "thunder": {
+            "enabled": true,
+            "intervalMs": { "min": 8400, "max": 17000 },
+            "whiteHoldMs": 200,
+            "recoveryMs": 650,
+            "volume": 0.7
+          }
+        }
+      }
     }
   },
   "worldBorder": {

@@ -259,7 +259,11 @@ export function createHudPanelsMisc() {
         <div class="world-invasion-label"><span>⚠</span><span id="worldInvasionText">距离入侵 5.0 天</span></div>
         <div id="worldInvasionDetail" class="world-invasion-detail"></div>
         <button id="worldInvasionSupport" class="world-invasion-support" type="button">⚔ 前往支援</button>
-        <div class="world-invasion-track"><div id="worldInvasionBar" class="world-invasion-bar"></div></div>`;
+        <div class="world-invasion-track" role="img" aria-label="未来时间事件轴">
+            <div id="worldInvasionBar" class="world-invasion-bar"></div>
+            <div id="worldTimelineEvents" class="world-timeline-events"></div>
+            <div id="worldTimelineCursor" class="world-timeline-cursor"><span>现在</span></div>
+        </div>`;
     invasionHud.querySelector('#worldInvasionSupport')?.addEventListener('click', () => {
         WorldSwitchPanel.supportActiveInvasion();
     });

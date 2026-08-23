@@ -47,6 +47,8 @@ import { getTorsoRect } from '../../physics/torso-hitbox.js';
 import { entitySurfaceZ, isEntityStrictlyBelow } from '../../physics/elevation.js';
 import SpatialPartitionSystem from '../../systems/spatial-partition-system.js';
 import { FogOfWarSystem } from '../../world/fog-of-war-system.js';
+import performanceConfig from '../../../data/performance-config.json';
+import { PerformanceMonitor } from '../../systems/performance-monitor.js';
 
 import { DungeonMapSystem } from '../../world/dungeon-map-system.js';
 import { Camera } from '../../world/camera.js';
@@ -90,8 +92,11 @@ import {
 } from '../../world/sprite-depth-profile.js';
 import { syncAllCivilianVisualDepths } from '../../world/civilian-visual-utils.js';
 import { EnvironmentLightingSystem } from '../../world/environment-lighting-system.js';
+import { RainWeatherSystem } from '../../world/rain-weather-system.js';
 import { WindblownSandSystem } from '../../world/windblown-sand-system.js';
 import { World122SandstormSystem } from '../../world/world122-sandstorm-system.js';
+import { WorldWeatherSystem } from '../../world/world-weather-system.js';
+import { WorldDestructionChallengeSystem } from '../../world/world-destruction-challenge-system.js';
 import { World125AtmosphereSystem } from '../../world/world125-atmosphere-system.js';
 import { World125FogTideSystem } from '../../world/world125-fog-tide-system.js';
 import { resolveStructureShadowCaster } from '../../world/structure-shadow-caster.js';
@@ -152,8 +157,9 @@ export class GameScene extends Scene {
         // 创建玩家 Sprite（占位，后续由 Player 类接管）
         this._createPlayerSprite();
 
-        // 创建敌人组
-        this.enemies = this.physics.add.group();
+        // 敌人移动/碰撞由 Game + WallSystem 逻辑层统一处理；这里只保留普通渲染组。
+        // 禁止再给每只敌人创建 Arcade Body，否则空 overlap 与 body.reset 会重复消耗物理预算。
+        this.enemies = this.add.group();
 
         // 创建碰撞层（墙壁/障碍物）
         this.walls = this.physics.add.staticGroup();
@@ -210,6 +216,7 @@ export class GameScene extends Scene {
             (entity, hidden) => this._setFogEntityHidden(entity, hidden)
         );
         this._windblownSand = new WindblownSandSystem(this);
+        this._rainWeather = new RainWeatherSystem(this);
         this._world125Atmosphere = new World125AtmosphereSystem(this);
         // 局部亮光：短时（枪火/爆发）与常驻（火把/蓄力火球）分开管理。
         this._transientEnvironmentGlows = [];
@@ -306,6 +313,7 @@ export class GameScene extends Scene {
     }
 
     update(_time, _delta) {
+        const performanceStartedAt = PerformanceMonitor.begin();
         // Phaser 自动调用，每帧更新
         // 现有 Game 循环仍然运行，这里只做 Phaser 相关的更新
         // 世界时间是跨场景统一时钟：地牢探险与观察切换期间也持续推进；只受游戏暂停控制。
@@ -316,7 +324,9 @@ export class GameScene extends Scene {
         const worldTimeAfter = EnvironmentLightingSystem.serializeTime().elapsedMs || 0;
         const invasionDelta = Math.max(0, worldTimeAfter - worldTimeBefore);
         World122SandstormSystem.update(worldTimeAfter);
+        WorldWeatherSystem.update(worldTimeAfter);
         window.WorldInvasionSystem?.update?.(invasionDelta, SceneManager.currentScene);
+        WorldDestructionChallengeSystem.update(worldTimeAfter, SceneManager.currentScene);
 
         // 能源节点防叠图自愈（2026-08-16）：世界-122 每 ~1s 清一次同位置堆积节点
         // （旧会话/HMR/历史配置残留会叠出“门边一堆矿”，setup 清理覆盖不到已加载场景）
@@ -332,6 +342,7 @@ export class GameScene extends Scene {
 
         // 地牢模式：隐藏角色及武器贴图
         const _game = window.Game;
+        this._refreshRenderViewport();
         FogOfWarSystem.update(SceneManager.currentScene, _game, Date.now());
         this._syncFogOfWar(_delta);
         const _dms = DungeonMapSystem;
@@ -530,16 +541,17 @@ export class GameScene extends Scene {
         // 侍从普通攻击光球渲染（蓝色光球，CompanionAI 推进）
         this._syncCompanionBasics(_game);
         // 同步可移动实体脚底阴影（原在此处，2026-08-15 移到 _updateDynamicDepths 之后）
+        // 调试范围圈与阴影使用同一脚底坐标，避免错位
+        this._syncCollisionRadii(_game);
+        // Phase 4: 根据世界 Y 坐标统一动态实体深度
+        this._updateDynamicDepths();
+        // 所有单位附着层必须读取本帧最终仲裁 depth，不能在单位跨建筑前缘前预写上一帧深度。
         // 同步眩晕双星特效（眩晕持续时间内播放，结束消失）
         this._syncStunEffects(_game);
         // 同步冻结冰块特效（冻结持续时间内覆盖目标，结束消失）
         this._syncFreezeEffects(_game);
         // 同步激励 buff 白色环绕光晕（持续时间内跟随目标，结束消失）
         this._syncInspireEffects(_game);
-        // 调试范围圈与阴影使用同一脚底坐标，避免错位
-        this._syncCollisionRadii(_game);
-        // Phase 4: 根据世界 Y 坐标统一动态实体深度
-        this._updateDynamicDepths();
         // 玩家受击附着层必须在位置与动态深度更新后同步，避免移动时慢一帧或穿过遮挡层。
         this._syncPlayerAttachedHitFx(_game, _delta);
         // 红狼王变身红黑弥漫粒子必须在动态深度之后同步，才能继承本体本帧的墙体遮挡仲裁。
@@ -554,14 +566,21 @@ export class GameScene extends Scene {
         // 怪物跨过掩体/墙面线深度骤降时阴影会以旧深度盖在贴图上 1 帧——
         // 世界-122 毒蛆大椭圆阴影在基地掩体线反复压住虫身的根因；所有怪物适用）
         this._syncEntityShadows(_game);
-        this._syncStructureSunShadows(_game);
-        this._syncStaticSunShadows();
+        this._sunShadowSyncTimer = (this._sunShadowSyncTimer ?? 80) + _delta;
+        if (this._sunShadowSyncTimer >= 80) {
+            // 太阳角度和静态建筑拓扑不会按 60Hz 发生可见变化；12.5Hz 足够平滑，
+            // 同时避免每帧创建阴影任务、Set、签名及触发聚类检查。
+            this._sunShadowSyncTimer %= 80;
+            this._syncStructureSunShadows(_game);
+            this._syncStaticSunShadows();
+        }
         this._syncEnvironmentGlows(_delta, isMapMode);
         // X 光圆圈：被墙壁遮挡的实体以黑渐变圆圈透视显示
         this._syncXRayCircles(_game);
         // 要塞式压平视图最后接管建筑显示，避免前面的常规同步在同帧重新显示立面。
         // 这里只改 Phaser 可见性/占地投影，不改实体、碰撞、寻路或高度语义。
         FlatViewSystem.sync(this, _game, WallSystem);
+        if (!isMapMode) this._applyViewportEntityVisibility(_game);
         this._applyFogEntityVisibility(_game);
         // 雾可见性同步可能恢复此前隐藏的对象；压平态最后统一关闭建筑装饰层
         // （风车旋转层、窗户脉冲层及后续共用 overlay/windowGlow 的建筑特效）。
@@ -572,6 +591,16 @@ export class GameScene extends Scene {
         // 可能仍是不含新增 environmentEffects 的旧对象，导致系统每帧判定为未启用。
         const currentSceneConfig = GAME_CONFIG.scenes?.[SceneManager.currentScene]
             || SceneManager.scenes?.[SceneManager.currentScene];
+        const rainState = WorldWeatherSystem.getVisualState(SceneManager.currentScene, worldTimeAfter);
+        this._rainWeather?.update({
+            sceneId: SceneManager.currentScene,
+            sceneConfig: currentSceneConfig,
+            config: GAME_CONFIG.weatherEffects?.rain,
+            requestedIntensityId: rainState.active ? rainState.intensityId : null,
+            deltaMs: worldDelta,
+            running: worldClockRunning,
+            loading: SceneManager.isLoading,
+        });
         this._windblownSand?.update({
             sceneId: SceneManager.currentScene,
             sceneConfig: currentSceneConfig,
@@ -594,6 +623,7 @@ export class GameScene extends Scene {
             loading: SceneManager.isLoading,
             fogTideActive: World125FogTideSystem.isActive(SceneManager.currentScene),
         });
+        PerformanceMonitor.end('phaserSync', performanceStartedAt);
     }
 
     _syncFogOfWar(deltaMs = 16.67) {
@@ -622,7 +652,7 @@ export class GameScene extends Scene {
             enabled: false,
             visualModeActive: false,
             targetSceneId: 'scene11',
-            visualOnly: true,
+            gameplayAffects: false,
         };
         return {
             ...gameplayModel,
@@ -639,6 +669,36 @@ export class GameScene extends Scene {
         }
         const result = World125FogTideSystem.debugToggle(SceneManager.currentScene);
         return { ...result, model: this.getWorld125AtmosphereDebugModel() };
+    }
+
+    getRainWeatherDebugModel(sceneId = SceneManager.currentScene) {
+        const sceneConfig = GAME_CONFIG.scenes?.[sceneId]
+            || SceneManager.scenes?.[sceneId]
+            || null;
+        const visual = this._rainWeather?.getDebugModel(
+            sceneId,
+            SceneManager.currentScene,
+            SceneManager.isLoading,
+            GAME_CONFIG.weatherEffects?.rain,
+            sceneConfig
+        ) || {
+            sceneId,
+            enabled: false,
+            active: false,
+            available: false,
+            visualOnly: true,
+        };
+        return {
+            ...visual,
+            ...WorldWeatherSystem.getDebugModel(sceneId, SceneManager.currentScene, SceneManager.isLoading),
+        };
+    }
+
+    toggleRainWeather(sceneId = SceneManager.currentScene, intensityId = null) {
+        return WorldWeatherSystem.debugToggle(sceneId, intensityId, {
+            currentSceneId: SceneManager.currentScene,
+            loading: SceneManager.isLoading,
+        });
     }
 
     setFogDebugOptions(options = {}) {
@@ -679,6 +739,118 @@ export class GameScene extends Scene {
         const sceneId = SceneManager.currentScene;
         this._fogVisibilityController.sync(sceneId, _game, Date.now());
         this._fogVisibilityController.enforceHidden();
+    }
+
+    _refreshRenderViewport() {
+        const cfg = performanceConfig.renderCulling || {};
+        if (cfg.enabled === false) {
+            this._renderViewport = null;
+            return;
+        }
+        const view = this.cameras?.main?.worldView;
+        if (!view) return;
+        const padding = Math.max(0, Number(cfg.paddingPx) || 320);
+        this._renderViewport = {
+            left: view.x - padding,
+            right: view.right + padding,
+            top: view.y - padding,
+            bottom: view.bottom + padding,
+        };
+    }
+
+    _isEntityInRenderViewport(entity) {
+        const view = this._renderViewport;
+        if (!view || !entity || !Number.isFinite(entity.x) || !Number.isFinite(entity.y)) return true;
+        const sprite = entity._phaserSprite || this._neutralSprites?.get(entity)?.sprite
+            || this._defenseSprites?.get(entity)?.base || this._companionSprites?.[entity.id];
+        const radius = Math.max(
+            16,
+            Number(entity.groundRadius || entity.size || entity.collisionRadius) || 16,
+            (Number(sprite?.displayWidth) || 0) * 0.5,
+            (Number(sprite?.displayHeight) || 0) * 0.5,
+            (Number(entity.spriteCfg?.sizeH || entity.displaySize) || 0) * 0.5,
+        );
+        return entity.x + radius >= view.left && entity.x - radius <= view.right
+            && entity.y + radius >= view.top && entity.y - radius <= view.bottom;
+    }
+
+    _setViewportVisualHidden(visual, hidden) {
+        if (!visual) return;
+        if (Array.isArray(visual) || visual instanceof Set) {
+            for (const item of visual) this._setViewportVisualHidden(item, hidden);
+            return;
+        }
+        if (visual instanceof Map) {
+            for (const item of visual.values()) this._setViewportVisualHidden(item, hidden);
+            return;
+        }
+        if (typeof visual.setVisible !== 'function') return;
+        if (hidden) {
+            if (!Object.prototype.hasOwnProperty.call(visual, '_viewportRestoreVisible')) {
+                visual._viewportRestoreVisible = visual.visible !== false;
+            }
+            visual.setVisible(false);
+            return;
+        }
+        if (Object.prototype.hasOwnProperty.call(visual, '_viewportRestoreVisible')) {
+            visual.setVisible(visual._viewportRestoreVisible !== false);
+            delete visual._viewportRestoreVisible;
+        }
+    }
+
+    _setViewportEntityHidden(entity, hidden) {
+        this._setViewportVisualHidden(entity?._phaserSprite, hidden);
+        this._setViewportVisualHidden(entity?._phaserLabel, hidden);
+        this._setViewportVisualHidden(this._shadowSprites?.get(entity), hidden);
+        const neutral = this._neutralSprites?.get(entity);
+        if (neutral) Object.values(neutral).forEach((visual) => this._setViewportVisualHidden(visual, hidden));
+        const tower = this._defenseSprites?.get(entity);
+        if (tower) Object.values(tower).forEach((visual) => this._setViewportVisualHidden(visual, hidden));
+        const magic = this._magicSprites?.get(entity);
+        if (magic) Object.values(magic).forEach((visual) => this._setViewportVisualHidden(visual, hidden));
+        const xray = this._xrayMap?.get(entity);
+        if (xray) Object.values(xray).forEach((visual) => this._setViewportVisualHidden(visual, hidden));
+        this._setViewportVisualHidden(this._companionSprites?.[entity?.id], hidden);
+        this._setViewportVisualHidden(this._companionGhosts?.[entity?.id], hidden);
+        this._setViewportVisualHidden(this._selectionRings?.[entity?.id], hidden);
+        this._setViewportVisualHidden(this._freezeFx?.get(entity)?.block, hidden);
+        this._setViewportVisualHidden(this._inspireFx?.get(entity)?.gfx, hidden);
+        const stunFx = this._stunFx?.get(entity);
+        if (stunFx) Object.values(stunFx).forEach((visual) => this._setViewportVisualHidden(visual, hidden));
+        this._setViewportVisualHidden(this._redWolfTransformFx?.get(entity)?.emitters, hidden);
+        const damageFx = entity?._buildingDamageFx;
+        this._setViewportVisualHidden(damageFx?._flames, hidden);
+        this._setViewportVisualHidden(damageFx?._smoke, hidden);
+        for (const [key, text] of this._entityHudTexts || []) {
+            if (key.entity === entity) this._setViewportVisualHidden(text, hidden);
+        }
+    }
+
+    _applyViewportEntityVisibility(_game) {
+        if (!_game?.entities) return;
+        let visible = 0;
+        let culled = 0;
+        const seen = new Set();
+        const apply = (entity) => {
+            if (!entity || seen.has(entity) || entity === _game.player) return;
+            seen.add(entity);
+            const isCorpse = entity._preserveCorpse && !entity.active
+                && (entity._deathAnimTimer > 0 || entity._corpseTimer > 0);
+            if (!entity.active && !isCorpse) {
+                this._setViewportEntityHidden(entity, true);
+                return;
+            }
+            const inViewport = this._isEntityInRenderViewport(entity);
+            entity._viewportRenderVisible = inViewport;
+            this._setViewportEntityHidden(entity, !inViewport);
+            if (inViewport) visible++;
+            else culled++;
+        };
+        for (const entity of _game.entities.values()) apply(entity);
+        for (const entity of PartySystem.members || []) apply(entity);
+        for (const entity of _game.friendlyUnits || []) apply(entity);
+        PerformanceMonitor.setCounter('render.visibleEntities', visible);
+        PerformanceMonitor.setCounter('render.culledEntities', culled);
     }
 
     _setFogEntityHidden(entity, hidden) {
@@ -1007,6 +1179,7 @@ export class GameScene extends Scene {
             const wallNow = Date.now();
             _game.entities.forEach(e => {
                 if (!e || !e.active || e === player) return;
+                if (!this._isEntityInRenderViewport(e)) return;
                 // 掉落物：tint 由 DropItem 悬停高亮自管，不随受击闪白清空
                 if (e.itemData && e.noCollision) return;
                 const sprite = e._phaserSprite;
@@ -1097,7 +1270,7 @@ export class GameScene extends Scene {
         for (let i = list.length - 1; i >= 0; i--) {
             const fx = list[i];
             fx.remaining -= Math.max(0, Number(dt) || 0);
-            if (!fx.container?.active || fx.remaining <= 0 || !player || player._isDead) {
+            if (!fx.container?.active || fx.remaining <= 0 || !player) {
                 if (fx.container?.active) fx.container.destroy(true);
                 list.splice(i, 1);
                 continue;
@@ -1141,9 +1314,16 @@ export class GameScene extends Scene {
             const runKey = `companion_${animId}_run`;
             if (!anims.walk || !this.textures.exists(walkKey)) continue; // 无动作素材不渲染
             activeIds.add(member.id);
+            let sprite = this._companionSprites[member.id];
+            if (!this._isEntityInRenderViewport(member)) {
+                this._setViewportVisualHidden(sprite, true);
+                this._setViewportVisualHidden(this._selectionRings?.[member.id], true);
+                continue;
+            }
+            this._setViewportVisualHidden(sprite, false);
+            this._setViewportVisualHidden(this._selectionRings?.[member.id], false);
             // 显示基准：单位可配置 displaySize（仓鼠矿工略小于玩家），缺省与玩家一致
             const size = member.displaySize || PLAYER_DEFAULTS.physics.spriteSize;
-            let sprite = this._companionSprites[member.id];
             if (!sprite) {
                 const fw = anims.walk.frameWidth || 512;
                 const fh = anims.walk.frameHeight || 512;
@@ -2059,6 +2239,13 @@ export class GameScene extends Scene {
             const isCorpse = entity._preserveCorpse && !entity.active &&
                 (entity._deathAnimTimer > 0 || entity._corpseTimer > 0);
             if (!entity.active && !isCorpse) return;
+            const inViewport = this._isEntityInRenderViewport(entity);
+            entity._viewportRenderVisible = inViewport;
+            if (!inViewport) {
+                this._setViewportEntityHidden(entity, true);
+                return;
+            }
+            this._setViewportEntityHidden(entity, false);
             // 入侵特工（_faction === 'agent'）与敌人同口径创建精灵图——
             // 此前仅 'enemy'，入侵特工永远拿不到 sprite，只能画成 neutral_circle 占位圆（动画全消失）
             if ((entity._faction === 'enemy' || entity._faction === 'agent') && (!entity._phaserSprite || !entity._phaserSprite.active)) {
@@ -2174,9 +2361,13 @@ export class GameScene extends Scene {
                 if (!e || e === Game.player) return;
                 // 掉落物：深度自管（随浮动贴图），不参与实体深度覆写
                 if (e.itemData && e.noCollision) return;
+                // 静态结构已由 _syncStructureRenderOrder 按完整 footprint 拓扑落深度；
+                // 禁止再按动态单位的脚点 Y 覆写，否则房屋/官邸等高体量建筑会整栋错误压住单位。
+                if (e._structureDepthMode || e._isDefenseStructure || e._isGridBuilding) return;
                 const isCorpse = e._preserveCorpse && !e.active &&
                     (e._deathAnimTimer > 0 || e._corpseTimer > 0);
                 if (!e.active && !isCorpse) return;
+                if (e._viewportRenderVisible === false) return;
                 const sprite = e._phaserSprite;
                 if (!sprite || !sprite.active) return;
                 const footOffsetY = this._getFootOffsetY(e, sprite);
@@ -2207,43 +2398,73 @@ export class GameScene extends Scene {
             this.playerSprite.setDepth(playerCorrected);
         }
 
-        // 2.5 侍从跟随精灵：AI 队员按自身世界 Y 排序（墙后时应被墙遮挡，
-        // 不再固定跟随玩家深度导致"图层在墙壁之上"）；纯渲染队员保持玩家层
+        // 2.5 侍从跟随精灵：AI 队员按自身世界 Y 排序；纯渲染队员按实际显示脚线排序。
+        // 两者都必须参与建筑/墙体仲裁，不能固定跟随玩家 depth。
         if (this._companionSprites) {
+            const companionById = new Map();
+            for (const member of PartySystem.members || []) {
+                if (member?.id) companionById.set(member.id, member);
+            }
+            for (const friendly of Game.friendlyUnits || []) {
+                if (friendly?.id && !companionById.has(friendly.id)) {
+                    companionById.set(friendly.id, friendly);
+                }
+            }
             for (const [cid, sprite] of Object.entries(this._companionSprites)) {
                 if (!sprite || !sprite.active || !sprite.visible) continue;
-                const unit = PartySystem.members.find(m => m.id === cid)
-                    || (window.Game && Array.isArray(window.Game.friendlyUnits)
-                        ? window.Game.friendlyUnits.find(u => u.id === cid) : null);
-                if (!unit || !unit.aiConfig) continue;
+                const unit = companionById.get(cid);
+                if (!unit) continue;
                 // 与友军阴影同一锚点口径（2026-08-21）：footOffsetY 显式配置优先（仓鼠系），
                 // 无配置实测帧内容底边——v2 管线脚底基线在 0.9375×格高，格底兜底会偏深 ~14px
                 const cfgFootD = unit.footOffsetY ?? unit.config?.render?.footOffsetY;
                 const footOffsetY = (typeof cfgFootD === 'number')
                     ? cfgFootD
                     : sprite.displayHeight * (this._getVisibleFrameBottomRatio(sprite) - 0.5);
-                const depthProfile = this._getDynamicDepthProfile(unit, sprite, footOffsetY);
+                // AI 单位使用权威逻辑脚线；无 AI 的纯跟随队员没有独立世界坐标，必须按其
+                // 实际渲染脚线仲裁。旧代码直接跳过后者，使其永久停在 playerDepth+0.5，
+                // 与建筑前缘完全脱钩。
+                const worldAnchored = !!unit.aiConfig
+                    && Number.isFinite(unit.x) && Number.isFinite(unit.y);
+                const depthX = worldAnchored ? unit.x : sprite.x;
+                const depthY = worldAnchored ? unit.y : (sprite.y + footOffsetY);
+                const logicalFootY = worldAnchored
+                    ? unit.y - (Number(unit.z) || 0)
+                    : depthY;
+                const depthProfile = resolveSpriteDepthProfile(unit, sprite, {
+                    footOffsetY,
+                    logicalX: depthX,
+                    logicalFootY,
+                    minFrontRange: 60,
+                    maxFrontRange: 280,
+                });
                 let d = WallSystem.junctionCorrectedDepth(
-                    unit.x,
-                    unit.y,
+                    depthX,
+                    depthY,
                     depthProfile.naturalDepth,
                     depthProfile.frontRange,
                     depthProfile.sideRange,
                     structureCandidates
                 );
                 // 楼梯单位保证绘制在当前楼梯分段之上。
-                const staircase = unit._surfaceStaircase;
+                const staircase = worldAnchored ? unit._surfaceStaircase : null;
                 if (staircase && staircase._faceDepth != null && unit.z > 0) {
                     d = Math.max(d, staircase._faceDepth + 1);
                 }
                 const surfaceDepth = Number(unit._surfaceRenderDepth);
-                if ((unit._surfaceKind === 'wall_walk' || unit._surfaceKind === 'stairs')
+                if (worldAnchored
+                    && (unit._surfaceKind === 'wall_walk' || unit._surfaceKind === 'stairs')
                     && Number.isFinite(surfaceDepth)
                     && (Number(unit.z) || 0) > 0) {
                     d = Math.max(d, surfaceDepth + 1);
                 }
-                d = raiseElevatedAboveLowerUnits(unit, sprite, d);
+                if (worldAnchored) d = raiseElevatedAboveLowerUnits(unit, sprite, d);
                 sprite.setDepth(d);
+                const ghost = this._companionGhosts?.[cid];
+                if (ghost?.active) ghost.setDepth(d - 0.05);
+                const staffGlow = this._persistentEnvironmentGlows?.get(
+                    `desert-priest-staff:${cid}`
+                );
+                if (staffGlow) staffGlow.depth = d + 0.08;
                 // 选中光圈同帧跟随该队员最终深度（贴图之下 0.2，同时低于阴影）：
                 // 光圈必须低于该单位所有贴图，且随 Y 排序仲裁一起变化。
                 if (this._selectionRings && this._selectionRings[cid]) {
@@ -2274,6 +2495,14 @@ export class GameScene extends Scene {
         if (this.playerHandSprite && this.playerHandSprite.active) {
             const handOff = occluded ? 0.5 : 3;
             this.playerHandSprite.setDepth(playerDepth + handOff);
+        }
+        // 枪械姿态的躯干/手臂在动态仲裁前按上一帧 player depth 写入；这里必须跟随
+        // 本帧最终深度重落，否则跨建筑前缘时会出现身体已翻层、上半身仍被建筑遮住一帧。
+        if (this.playerTorsoSprite?.active && this.playerTorsoSprite.visible) {
+            this.playerTorsoSprite.setDepth(playerDepth + 0.01);
+        }
+        if (this.playerArmSprite?.active && this.playerArmSprite.visible) {
+            this.playerArmSprite.setDepth(playerDepth + 0.02);
         }
 
         // 4. 防御光环位于玩家下方
@@ -2848,6 +3077,10 @@ export class GameScene extends Scene {
                 const sprite = e._phaserSprite;
                 if (!sprite || !sprite.active) return;
                 active.add(e);
+                if (!this._isEntityInRenderViewport(e)) {
+                    this._setViewportVisualHidden(this._shadowSprites.get(e), true);
+                    return;
+                }
                 const depth = sprite.depth - 0.1; // 跟随本体仲裁后 depth（含墙体遮挡压下），始终略低于本体
                 ensureShadow(
                     e,
@@ -2873,6 +3106,10 @@ export class GameScene extends Scene {
             const sprite = this._companionSprites && this._companionSprites[e.id];
             if (!sprite || !sprite.active || !sprite.visible) continue;
             active.add(e);
+            if (!this._isEntityInRenderViewport(e)) {
+                this._setViewportVisualHidden(this._shadowSprites.get(e), true);
+                continue;
+            }
             // 友军、玩家及范围调试共用同一渲染脚点；尺寸仍只读 Collider.radius。
             const footprint = this._getUnitRenderFootprint(e, e.groundRadius || 10, _game);
             ensureShadow(
@@ -2893,6 +3130,10 @@ export class GameScene extends Scene {
                 if (e._isDefenseStructure || (e._isGridBuilding && e._structureDepthMode)) continue;
                 if (e._noShadow) continue; // 配置跳过阴影（如仓库宝箱，贴图自带底座）
                 active.add(e);
+                if (!this._isEntityInRenderViewport(e)) {
+                    this._setViewportVisualHidden(this._shadowSprites.get(e), true);
+                    continue;
+                }
                 // NPC/训练靶与玩家、怪物、友军使用同一 Collider footprint；阴影深度读取
                 // 本帧已经完成墙体/建筑遮挡仲裁的 Sprite，禁止回退旧 e.y + 9。
                 const depth = data.sprite.depth - 0.1;
@@ -3019,6 +3260,11 @@ export class GameScene extends Scene {
 
         const check = (e, sprite) => {
             const cur0 = this._xrayMap.get(e);
+            if (!this._isEntityInRenderViewport(e)) {
+                if (cur0) Object.values(cur0).forEach((visual) => this._setViewportVisualHidden(visual, true));
+                return;
+            }
+            if (cur0) Object.values(cur0).forEach((visual) => this._setViewportVisualHidden(visual, false));
             if (FogOfWarSystem.shouldHideEntity(SceneManager.currentScene, e)) {
                 if (cur0) {
                     for (const k of ['circle', 'clone', 'hole', 'weaponClone', 'offhandClone', 'shieldClone']) {
@@ -3389,65 +3635,10 @@ export class GameScene extends Scene {
     }
 
     _onEnemySpawn(data) {
-        const enemySprite = this.physics.add.sprite(data.x, data.y, data.texture || 'enemy_spider');
+        const enemySprite = this.add.sprite(data.x, data.y, data.texture || 'enemy_spider');
         enemySprite.setOrigin(0.5, 0.5);
         enemySprite.setData('enemyId', data.id);
-        this._configureEnemyBody(enemySprite, data.enemyRef || { size: 14, collisionRadius: 14 });
         this.enemies.add(enemySprite);
-    }
-
-    /**
-     * 统一配置敌人 Sprite 的显示尺寸与碰撞体，使碰撞体中心对齐贴图中心
-     * 碰撞体改为与贴图匹配的矩形（collisionShape='rect'），并用 collisionRadius 作为圆形回退。
-     */
-    _configureEnemyBody(sprite, enemy) {
-        const body = sprite.body;
-        if (!body) return;
-        body.setGravity(0, 0);
-        const options = typeof enemy._getPhaserOptions === 'function' ? enemy._getPhaserOptions() : {};
-        // 显示尺寸：优先使用 enemy.config.render 里的 spriteSize，其次按 size*4 兜底
-        const renderCfg = enemy.config?.render || {};
-        const spriteSize = options.spriteSize || renderCfg.spriteSize || (enemy.size || 14) * 4;
-        // 等比缩放：spriteSize 语义为"最长边像素"。方形帧与旧行为一致（宽=高=spriteSize）；
-        // 非方形帧（如手脑 walk 512×1024）按帧宽高比等比缩放，避免压扁变形
-        const frameW = (sprite.frame && sprite.frame.width) || 1;
-        const frameH = (sprite.frame && sprite.frame.height) || 1;
-        const longest = Math.max(frameW, frameH);
-        sprite.setDisplaySize(frameW * spriteSize / longest, frameH * spriteSize / longest);
-        sprite.setOrigin(0.5, 0.5);
-
-        // 逻辑碰撞体积：优先保留配置里已有的 gameplay 尺寸或 enemy 类型选项，
-        // 其次按 collisionRadius / size 推导，不再直接用 spriteSize 放大 footprint
-        const gameplayRadius = enemy.collisionRadius > 0 ? enemy.collisionRadius : (enemy.size || 14) * 0.6;
-        const fallbackSize = gameplayRadius * 2;
-        const collisionWidth = options.collisionWidth || enemy.collisionWidth || fallbackSize;
-        const collisionHeight = options.collisionHeight || enemy.collisionHeight || fallbackSize;
-        enemy.collisionShape = 'rect';
-        enemy.collisionWidth = collisionWidth;
-        enemy.collisionHeight = collisionHeight;
-        // footprint（阴影/分离/命中椭圆）以配置 collisionRadius 为准（强绑定唯一来源）；
-        // 仅在未配置（<=0）时回退矩形推导，不再无条件覆盖配置值
-        if (!(enemy.collisionRadius > 0)) {
-            enemy.collisionRadius = Math.max(collisionWidth, collisionHeight) / 2;
-        }
-
-        // Phaser 物理体改为矩形，大小与逻辑碰撞体积一致
-        body.setSize(collisionWidth, collisionHeight);
-        body.setImmovable(false);
-        // 碰撞字段已最终确定，重建统一 3D Collider（兜底对象可能没有该方法）
-        if (typeof enemy.rebuildCollider === 'function') {
-            enemy.rebuildCollider();
-        }
-        if (options.tint !== undefined) {
-            sprite.setTint(options.tint);
-        }
-        if (options.frame !== undefined) {
-            try {
-                sprite.setFrame(options.frame);
-            } catch (_e) {
-                // 帧索引无效时忽略
-            }
-        }
     }
 
     // ---- 公共 API（供外部系统调用） ----
@@ -5791,6 +5982,11 @@ export class GameScene extends Scene {
             if (!stunned) return;
             active.add(e);
             let fx = this._stunFx.get(e);
+            if (!this._isEntityInRenderViewport(e)) {
+                if (fx) Object.values(fx).forEach((visual) => this._setViewportVisualHidden(visual, true));
+                return;
+            }
+            if (fx) Object.values(fx).forEach((visual) => this._setViewportVisualHidden(visual, false));
             if (!fx) {
                 const s1 = this.add.sprite(0, 0, 'stun_star');
                 const s2 = this.add.sprite(0, 0, 'stun_star');
@@ -5876,6 +6072,11 @@ export class GameScene extends Scene {
             if (!frozen) return;
             active.add(e);
             let fx = this._freezeFx.get(e);
+            if (!this._isEntityInRenderViewport(e)) {
+                this._setViewportVisualHidden(fx?.block, true);
+                return;
+            }
+            this._setViewportVisualHidden(fx?.block, false);
             if (!fx) {
                 const block = this.add.sprite(0, 0, 'ice_block');
                 fx = { block };
@@ -6245,6 +6446,11 @@ export class GameScene extends Scene {
             if (!inspired) return;
             active.add(e);
             let fx = this._inspireFx.get(e);
+            if (!this._isEntityInRenderViewport(e)) {
+                this._setViewportVisualHidden(fx?.gfx, true);
+                return;
+            }
+            this._setViewportVisualHidden(fx?.gfx, false);
             if (!fx) {
                 const g = this.add.graphics();
                 fx = { gfx: g, angle: 0 };
@@ -6354,6 +6560,13 @@ export class GameScene extends Scene {
             if (!enemy?._isTransforming || !enemy.active || !sprite?.active) continue;
             active.add(enemy);
             let fx = this._redWolfTransformFx.get(enemy);
+            if (!this._isEntityInRenderViewport(enemy)) {
+                for (const emitter of fx?.emitters || []) {
+                    this._setViewportVisualHidden(emitter, true);
+                    if (emitter.emitting) emitter.stop();
+                }
+                continue;
+            }
             if (!fx) {
                 fx = this._createRedWolfTransformFx();
                 if (!fx) continue;
@@ -6769,28 +6982,9 @@ export class GameScene extends Scene {
         // [FIX] 敌人 vs 墙壁：移除此 collider，让 WallSystem.resolve() 成为唯一权威。
         // 双重碰撞系统会导致贴墙/墙角刷新的敌人被 Phaser 物理钉死，而手动解析又返回原坐标。
         // this.physics.add.collider(this.enemies, this.walls);
-        // 实体间碰撞：使用 overlap 检测但不自动响应，保持现有逻辑处理
-        this._setupEntityOverlap();
+        // 实体间碰撞只由 Game.resolveCollisions() 的空间宽相处理。
+        // 此处不注册空 overlap；空回调仍会让 Arcade Physics 枚举玩家/敌人和敌人/敌人碰撞对。
         this._collidersSet = true;
-        
-    }
-
-    /**
-     * 设置实体间 overlap 检测（玩家/敌人之间）
-     * 碰撞响应仍由 Game.resolveCollisions() 处理，这里只做检测标记
-     */
-    _setupEntityOverlap() {
-        if (this.playerSprite) {
-            this.physics.add.overlap(this.playerSprite, this.enemies, (_playerSprite, _enemySprite) => {
-                // 不自动响应，仅记录碰撞对
-                // 现有 Game.resolveCollisions() 仍负责实际的碰撞分离
-                // 未来可在此调用 Phaser 的物理响应，逐步替换
-            });
-        }
-        // 敌人 vs 敌人 overlap
-        this.physics.add.overlap(this.enemies, this.enemies, (_enemyA, _enemyB) => {
-            // 同上，不做自动响应
-        });
         
     }
 
@@ -6801,6 +6995,7 @@ export class GameScene extends Scene {
     // 清理所有实体 Sprite（场景切换时调用）
     clearAllEntitySprites() {
         this._windblownSand?.reset();
+        this._rainWeather?.reset();
         this._world125Atmosphere?.reset();
         // 销毁 enemies 组中的所有 Sprite
         if (this.enemies) {
@@ -6909,10 +7104,20 @@ export class GameScene extends Scene {
         gScreen.clear();
 
         const activeEntities = new Set();
+        let hudVisibleEntities = 0;
+        let hudCulledEntities = 0;
         // 实体血条与名字
         for (const entity of _game.entities.values()) {
             if (!entity || !entity.active || entity === _game.player) continue;
             if (typeof entity.x !== 'number' || typeof entity.y !== 'number') continue;
+            activeEntities.add(entity);
+            if (!this._isEntityInRenderViewport(entity)) {
+                hudCulledEntities++;
+                for (const [key, text] of this._entityHudTexts.entries()) {
+                    if (key.entity === entity) text.setVisible(false);
+                }
+                continue;
+            }
             const faction = entity._faction || entity.faction;
             const requiresLiveSight = faction === 'enemy' || faction === 'agent'
                 || !!entity.itemData || !!entity._fogRequiresVisibility;
@@ -6927,7 +7132,7 @@ export class GameScene extends Scene {
                 }
                 continue;
             }
-            activeEntities.add(entity);
+            hudVisibleEntities++;
             this._syncEntityHud(entity);
         }
         // 玩家血条/体力条
@@ -6946,6 +7151,8 @@ export class GameScene extends Scene {
         this._syncCrosshair(gScreen);
         // 小地图
         this._syncMinimap();
+        PerformanceMonitor.setCounter('hud.visibleEntities', hudVisibleEntities);
+        PerformanceMonitor.setCounter('hud.culledEntities', hudCulledEntities);
     }
 
     /**
@@ -8650,6 +8857,19 @@ export class GameScene extends Scene {
 
     _syncStructureRenderOrder(_game) {
         if (!_game?.entities) return;
+        const now = Number(this.time?.now) || 0;
+        const quickKey = [
+            _game.entities.size,
+            Number(WallSystem._collisionRevision) || 0,
+            WallSystem.isoVisuals?.length || 0,
+            DefenseSystem.gates?.length || 0,
+            this._neutralSprites?.size || 0,
+            this._defenseSprites?.size || 0,
+        ].join(':');
+        if (this._structureOrderCache?.quickKey === quickKey
+            && now < (this._structureOrderCache.nextCheckAt || 0)) {
+            return;
+        }
         const nodes = [];
         const seenGates = new Set();
         const addNode = (node) => {
@@ -8795,7 +9015,11 @@ export class GameScene extends Scene {
                 depths: resolveStructureRenderOrder(nodes),
             };
             WallSystem._faceSegCache = null;
+            WallSystem._faceSegColumnIndex = null;
         }
+        this._structureOrderCache.quickKey = quickKey;
+        // 静态拓扑无需每渲染帧重建节点、Set、闭包与长签名；数量/碰撞修订变化仍会立即触发。
+        this._structureOrderCache.nextCheckAt = now + 250;
         const depths = this._structureOrderCache.depths;
         for (const node of nodes) {
             const depth = depths.get(node.stableKey);
@@ -8955,6 +9179,11 @@ export class GameScene extends Scene {
             active.add(e);
 
             let data = this._neutralSprites.get(e);
+            if (!this._isEntityInRenderViewport(e)) {
+                if (data) this._setViewportEntityHidden(e, true);
+                continue;
+            }
+            if (data) this._setViewportEntityHidden(e, false);
             if (!data) {
                 // 贴图动画 NPC（config.sprite 配置 idle/walk 动画键）；无配置保持纯色圆
                 const sprCfg = (e.spriteCfg && e.spriteCfg.idleKey && this.textures.exists(e.spriteCfg.idleKey))
@@ -9225,6 +9454,11 @@ export class GameScene extends Scene {
             if (!e || !e._isDefenseTower || !e.active || e.hp <= 0) continue;
             active.add(e);
             let sp = this._defenseSprites.get(e);
+            if (!this._isEntityInRenderViewport(e)) {
+                if (sp) this._setViewportEntityHidden(e, true);
+                continue;
+            }
+            if (sp) this._setViewportEntityHidden(e, false);
             if (!sp) {
                 sp = {
                     base: this.add.sprite(0, 0, 'obstacle_defense_tower'),
@@ -9595,10 +9829,9 @@ export class GameScene extends Scene {
     getOrCreateEnemySprite(enemy, texture = 'enemy_circle') {
         const safeTexture = this.textures.exists(texture) ? texture : 'enemy_circle';
         if (!enemy._phaserSprite || !enemy._phaserSprite.active) {
-            const sprite = this.physics.add.sprite(enemy.x, enemy.y, safeTexture);
+            const sprite = this.add.sprite(enemy.x, enemy.y, safeTexture);
             sprite.setOrigin(0.5, 0.5);
             sprite.setData('enemyId', enemy.id || enemy.name);
-            this._configureEnemyBody(sprite, enemy);
             this.enemies.add(sprite);
             enemy._phaserSprite = sprite;
         } else if (enemy._phaserSprite.texture.key !== safeTexture) {

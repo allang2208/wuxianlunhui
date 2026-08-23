@@ -171,8 +171,8 @@ import { World125FogTideSystem } from '../world/world125-fog-tide-system.js';
                 // ===== 攻击预警（精英及以上：攻击前红色轮廓，配置 data/combat-config.json attackTelegraph）=====
                 this._attackTelegraphTimer = 0;   // >0 表示预警进行中
                 this._attackTelegraphFire = null; // 预警结束后真正执行的攻击函数
-                this._telegraphGlow = null;       // Phaser filters Glow 控制器
-                this._telegraphGlowSprite = null; // Glow 挂载的精灵（精灵重建后需重挂）
+                this._telegraphGlow = null;       // 无滤镜红色轮廓替身（避免每怪独立 filter camera）
+                this._telegraphGlowSprite = null; // 替身对应的本体精灵
                 this._showWeapon = config.showWeapon !== false; // 是否显示武器
                 this._color = config.color || '#8a4a4a'; // 怪物颜色
                 this._headColor = config.headColor || config.color || '#8a4a4a'; // 头部颜色（默认与身体同色）
@@ -545,7 +545,7 @@ import { World125FogTideSystem } from '../world/world125-fog-tide-system.js';
                     this._clearAttackTelegraph();
                     return;
                 }
-                // 精灵被重建时重挂 Glow（动画贴图切换不重建精灵，但生成/场景切换会）
+                // 精灵被重建时重挂预警替身（动画贴图切换不重建精灵，但生成/场景切换会）
                 this._setAttackTelegraphFx(true);
                 this._attackTelegraphTimer -= dt;
                 if (this._attackTelegraphTimer > 0) return;
@@ -560,39 +560,45 @@ import { World125FogTideSystem } from '../world/world125-fog-tide-system.js';
                 this._setAttackTelegraphFx(false);
             }
 
-            /** 红色轮廓发光（Phaser4：enableFilters().filters.internal.addGlow，与掉落物轮廓光晕同色系外发光） */
+            /** 红色预警替身：普通贴图绘制，不为每只精英创建独立滤镜相机/离屏缓冲。 */
             _setAttackTelegraphFx(on) {
                 const sprite = this._phaserSprite;
                 if (on) {
                     if (!sprite || !sprite.active) return;
-                    // Phaser4 滤镜需先 enableFilters（创建 filterCamera）；Canvas 渲染模式下不可用则静默跳过
-                    let filters = sprite.filters;
-                    if (!filters && typeof sprite.enableFilters === 'function') {
-                        // 滤镜创建失败（渲染上下文异常等）不阻断预警/攻击流程
-                        try { sprite.enableFilters(); } catch (_e) { /* 无滤镜降级 */ }
-                        filters = sprite.filters;
-                    }
-                    if (!filters || !filters.internal) return;
-                    if (this._telegraphGlow && this._telegraphGlowSprite === sprite) return;
-                    this._removeTelegraphGlow();
                     const cfg = this._getAttackTelegraphConfig();
-                    try {
-                        this._telegraphGlow = filters.internal.addGlow(cfg.color, cfg.outerStrength, cfg.innerStrength, 1, false, cfg.quality, cfg.distance);
+                    if (!this._telegraphGlow || this._telegraphGlowSprite !== sprite) {
+                        this._removeTelegraphGlow();
+                        const scene = sprite.scene;
+                        if (!scene?.add?.image || !sprite.texture?.key) return;
+                        const frame = sprite.frame?.name ?? sprite.frame?.index;
+                        this._telegraphGlow = scene.add.image(sprite.x, sprite.y, sprite.texture.key, frame);
+                        this._telegraphGlow.setOrigin(sprite.originX, sprite.originY);
+                        this._telegraphGlow.setTint(cfg.color);
+                        this._telegraphGlow.setBlendMode?.('ADD');
                         this._telegraphGlowSprite = sprite;
-                    } catch (_e) {
-                        this._telegraphGlow = null;
-                        this._telegraphGlowSprite = null;
+                        sprite.once?.('destroy', () => {
+                            if (this._telegraphGlowSprite === sprite) this._removeTelegraphGlow();
+                        });
                     }
+                    const overlay = this._telegraphGlow;
+                    const frame = sprite.frame?.name ?? sprite.frame?.index;
+                    if (overlay.texture?.key !== sprite.texture?.key) overlay.setTexture(sprite.texture.key, frame);
+                    else if (frame != null && overlay.frame?.name !== frame) overlay.setFrame(frame);
+                    const pulse = 1.04 + Math.sin(this._attackTelegraphTimer * 0.025) * 0.02;
+                    overlay.setPosition(sprite.x, sprite.y);
+                    overlay.setScale(sprite.scaleX * pulse, sprite.scaleY * pulse);
+                    overlay.setRotation(sprite.rotation);
+                    overlay.setFlip(sprite.flipX, sprite.flipY);
+                    overlay.setAlpha(0.2 + Math.sin(this._attackTelegraphTimer * 0.018) * 0.08);
+                    overlay.setDepth(sprite.depth - 0.01);
+                    overlay.setVisible(sprite.visible);
                 } else {
                     this._removeTelegraphGlow();
                 }
             }
 
             _removeTelegraphGlow() {
-                const sprite = this._telegraphGlowSprite;
-                if (this._telegraphGlow && sprite && sprite.filters && sprite.filters.internal) {
-                    try { sprite.filters.internal.remove(this._telegraphGlow); } catch (_e) { /* 精灵已销毁 */ }
-                }
+                this._telegraphGlow?.destroy?.();
                 this._telegraphGlow = null;
                 this._telegraphGlowSprite = null;
             }
@@ -638,12 +644,20 @@ import { World125FogTideSystem } from '../world/world125-fog-tide-system.js';
 
                 // 通用 pacing/chasing AI（狼类等启用 usePacingAI 的子类）
                 if (this._usePacingAI) {
-                    this._aiScanTimer += dt;
-                    if (this._aiScanTimer >= this._aiScanInterval) {
-                        this._aiScanTimer = 0;
-                        this._updateAIState(dt, entities);
+                    if (this._defenseMonster) {
+                        // 防守怪目标唯一由 PerceptionSystem 管理；禁止狼类 pacing AI 每200ms
+                        // 再把实体表转数组并执行第二套全量选目标。这里只保留追击运动姿态。
+                        this._aiState = 'chasing';
+                        this.maxSpeed = this._baseSpeed;
+                        this._tacticalTarget = null;
+                    } else {
+                        this._aiScanTimer += dt;
+                        if (this._aiScanTimer >= this._aiScanInterval) {
+                            this._aiScanTimer = 0;
+                            this._updateAIState(dt, entities);
+                        }
+                        this._executeAI(dt, entities);
                     }
-                    this._executeAI(dt, entities);
                 }
 
                 // [REFACTOR] 外部系统驱动：如果 game.js 已调用 MovementSystem/CombatSystem/PerceptionSystem，

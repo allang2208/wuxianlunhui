@@ -1,7 +1,10 @@
 import { WallSystem } from '../world/wall-system.js';
 import { Enemy } from './enemy.js';
 import { distanceToEntityShape } from '../utils/collision-helpers.js';
-import { canMeleeShareSurface } from '../combat/melee-surface.js';
+import {
+    straightMotionWasBlocked,
+    sweptMotionMeleeHits,
+} from '../combat/motion-melee-sweep.js';
 import {
     canImpactBasicMelee,
     canStartBasicMelee,
@@ -156,8 +159,9 @@ class BlackWolf extends Enemy {
                 this.isMoving = false;
                 this._animState = 'attack';
                 // 蓄力期间面向目标
-                if (this.target && this.target.active) {
-                    this._facing = this.target.x >= this.x ? 'right' : 'left';
+                const pounceTarget = this._pounceTarget;
+                if (pounceTarget && pounceTarget.active) {
+                    this._facing = pounceTarget.x >= this.x ? 'right' : 'left';
                     this._lastHorizontalFacing = this._facing;
                 }
                 if (this._pounceTimer <= 0) {
@@ -233,20 +237,35 @@ class BlackWolf extends Enemy {
         const distToEnd = this._pounceTargetPos
             ? Math.hypot(this._pounceTargetPos.x - this.x, this._pounceTargetPos.y - this.y)
             : 0;
+        const fromX = this.x;
+        const fromY = this.y;
+        let intendedX = fromX;
+        let intendedY = fromY;
         if (distToEnd > 10 && this._pounceSpeed > 0) {
             const step = Math.min(this._pounceSpeed * dtSec, distToEnd);
-            const nextX = this.x + this._pounceDir.x * step;
-            const nextY = this.y + this._pounceDir.y * step;
-            const resolved = WallSystem.resolve(this.x, this.y, nextX, nextY, this.groundRadius);
+            intendedX = fromX + this._pounceDir.x * step;
+            intendedY = fromY + this._pounceDir.y * step;
+            const resolved = WallSystem.resolve(fromX, fromY, intendedX, intendedY, this.groundRadius);
             this.x = resolved.x;
             this.y = resolved.y;
         }
+        const motionBlocked = straightMotionWasBlocked(
+            fromX, fromY, intendedX, intendedY, this.x, this.y
+        );
 
-        // 命中检测（飞扑专用判定距离 pounceHitDistance）
-        const hitTarget = this._pounceTarget && this._pounceTarget.active ? this._pounceTarget : this.target;
+        // 命中检测只认发动时锁定目标，并扫过本帧实际可达轨迹。
+        const hitTarget = this._pounceTarget;
         if (!this._pounceDamaged && hitTarget && hitTarget.active && hitTarget.hittable) {
-            if (this._isTargetInRange(hitTarget, this.config?.pounceHitDistance ?? 100)
-                && canMeleeShareSurface(this, hitTarget)) {
+            if (sweptMotionMeleeHits(
+                this,
+                hitTarget,
+                fromX,
+                fromY,
+                this.x,
+                this.y,
+                this.config?.pounceHitDistance ?? 100,
+                { blocked: motionBlocked, skill: '红狼王飞扑' }
+            )) {
                 this._dealPhysicalHit(hitTarget, this._getPounceDamage());
                 this._pounceDamaged = true;
                 // 盾牌弹反：不再眩晕，弹反本身已处理（参照 mutant-3）
@@ -269,6 +288,11 @@ class BlackWolf extends Enemy {
         if (this._pounceTrailTimer <= 0) {
             this._spawnPounceSmoke();
             this._pounceTrailTimer = 65;
+        }
+
+        if (motionBlocked || !hitTarget || !hitTarget.active || hitTarget._isDead) {
+            this._endPounce();
+            return;
         }
 
         this._pounceTimer -= dt;
@@ -447,8 +471,9 @@ class BlackWolf extends Enemy {
         this._pounceDamaged = false;
 
         const maxDist = this.config?.pounceMaxDist ?? 1000;
-        const target = this._pounceTarget && this._pounceTarget.active ? this._pounceTarget : this.target;
-        if (target && target.active) {
+        const target = this._pounceTarget;
+        if (target && target.active && !target._isDead
+            && (!Number.isFinite(target.hp) || target.hp > 0)) {
             const dx = target.x - this.x;
             const dy = target.y - this.y;
             const dist = Math.hypot(dx, dy);

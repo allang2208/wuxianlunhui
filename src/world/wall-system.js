@@ -23,6 +23,9 @@ const ISO_WALL_GEO = {
     // 冰封世界初级地牢：复用同一 Blender 城墙段几何，只替换冰块砌体材质。
     // prep-frozen-wall.py 标定：透明内容 684×659，底边拟合残差最大 0.9px。
     frozen_straight: { tex: 'frozen_wall_straight', w: 684, h: 659, base: [[0, 273], [683, 710]], face: [[83, 326], [601, 658]], wallH: 326, slope: 0.64, editor: '冰封砖墙' },
+    // 冰封初级竞技场单格墙：严格复用世界 1×1 方块墙的轮廓、砖块比例与显示几何。
+    // obstacle_block 显示为 260×259、脚线偏移 61px；换算回 1024 源图得到 groundCenter.y=753.1737。
+    frozen_block: { tex: 'frozen_wall_block', w: 1024, h: 1024, groundCenter: [512, 753.1737], displayW: 260, displayH: 259, wallH: 132, halfThick: 13, editor: '冰封单格墙' },
     // 恶魔洞窟铁闸门（路线 B：岩壁单块 + 铁栅独立渲染 → 程序化 16 帧升起；compose-demon-gate-B.py 标定：
     // 门洞平行四边形，底边与墙同斜率 0.6347，wallH 291；gateX = 门洞 [159,481]）
     demon_gate: { tex: 'demon_gate', w: 640, h: 576, frames: 16, base: [[0, 228], [639, 634]], face: [[77, 277], [563, 586]], gateX: [159, 481], wallH: 291, slope: 0.6347, editor: '恶魔铁闸', states: { open: { hole: [159, 481] }, closed: { hole: null } } },
@@ -1030,7 +1033,8 @@ const WallSystem = {
         sideRange = 0,
         structureCandidates = null
     ) {
-        const cache = this._getFaceSegCache();
+        this._getFaceSegCache();
+        const faceCandidates = this._faceSegCandidatesAtX(x);
         let occluderDepth = Infinity, frontDepth = -Infinity;
         const collectRelation = (segDepth, inFront) => {
             if (inFront) {
@@ -1056,15 +1060,17 @@ const WallSystem = {
                 // 遮挡源取最浅（min）：实体必须压到所有遮挡面线之下才真正被遮挡。
                 collectRelation(segDepth, y >= yLine);
         };
-        for (const it of cache) {
-            for (const [A, B] of it.segs) applySeg(A, B, it.depth);
+        for (const it of faceCandidates) {
+            applySeg(it.A, it.B, it.depth);
         }
         // 掩体墙段（DefenseCover）：动态实体（可增删），不进面线缓存，逐帧现取。
         // 与墙件同一套仲裁：实体脚线在掩体底边线（face line）前 → 抬到掩体之上，
         // 在线后 → 压到掩体之下。2026-08-05 实机复现修复（墙前怪被盖）。
         const dynamicStructures = structureCandidates
             || this.collectDynamicStructureDepthEntities();
-        for (const e of dynamicStructures) {
+        const nearbyStructures = this._structureDepthCandidatesAtX(
+            dynamicStructures, x, sideRange);
+        for (const e of nearbyStructures) {
             if (!e?.active || e._isCoverGate) continue;
             // 普通建筑按完整 iso footprint 的“当前 X 局部前缘”只判定一次。
             // sideRange 是移动精灵当前帧真实 alpha 半宽：覆盖“单位在前角、中心略出 footprint，
@@ -1131,7 +1137,72 @@ const WallSystem = {
             out.push({ segs: CH._gate.segs.map(s => [{ x: s.x1, y: s.y1 }, { x: s.x2, y: s.y2 }]), depth: CH._gate.sprite.depth });
         }
         this._faceSegCache = out;
+        const columns = new Map();
+        const cellSize = 256;
+        for (const it of out) {
+            for (const [A, B] of it.segs) {
+                if (!A || !B) continue;
+                const entry = { A, B, depth: it.depth };
+                const minColumn = Math.floor((Math.min(A.x, B.x) - 8) / cellSize);
+                const maxColumn = Math.floor((Math.max(A.x, B.x) + 8) / cellSize);
+                for (let column = minColumn; column <= maxColumn; column++) {
+                    let list = columns.get(column);
+                    if (!list) { list = []; columns.set(column, list); }
+                    list.push(entry);
+                }
+            }
+        }
+        this._faceSegColumnIndex = { cellSize, columns };
         return out;
+    },
+
+    _faceSegCandidatesAtX(x) {
+        const index = this._faceSegColumnIndex;
+        if (!index) return [];
+        return index.columns.get(Math.floor(x / index.cellSize)) || [];
+    },
+
+    /**
+     * 动态建筑按 X 列建立当前帧轻量索引。单位图层仲裁只依赖与自身可见横向范围相交的建筑，
+     * 不应让每只单位遍历整个位面的全部建筑。320px 扩张覆盖动态档案允许的最大 sideRange。
+     */
+    _structureDepthCandidatesAtX(structures, x, _sideRange = 0) {
+        if (!Array.isArray(structures)) return structures || [];
+        const cellSize = 256;
+        let cache = this._dynamicStructureDepthColumnCache;
+        if (!cache || cache.source !== structures) {
+            const columns = new Map();
+            for (const entity of structures) {
+                if (!entity) continue;
+                const lines = Array.isArray(entity._faceLines) && entity._faceLines.length
+                    ? entity._faceLines
+                    : (Array.isArray(entity._faceLine) ? [entity._faceLine] : []);
+                let minX = Infinity;
+                let maxX = -Infinity;
+                for (const line of lines) {
+                    for (const point of line || []) {
+                        if (!Number.isFinite(point?.x)) continue;
+                        minX = Math.min(minX, point.x);
+                        maxX = Math.max(maxX, point.x);
+                    }
+                }
+                if (!Number.isFinite(minX) || !Number.isFinite(maxX)) {
+                    const halfWidth = Math.max(1, Number(entity.collisionWidth) / 2 || 1);
+                    minX = (Number(entity.x) || 0) - halfWidth;
+                    maxX = (Number(entity.x) || 0) + halfWidth;
+                }
+                const minColumn = Math.floor((minX - 320) / cellSize);
+                const maxColumn = Math.floor((maxX + 320) / cellSize);
+                for (let column = minColumn; column <= maxColumn; column++) {
+                    let list = columns.get(column);
+                    if (!list) { list = []; columns.set(column, list); }
+                    list.push(entity);
+                }
+            }
+            cache = { source: structures, cellSize, columns };
+            this._dynamicStructureDepthColumnCache = cache;
+        }
+        return cache.columns.get(Math.floor(x / cache.cellSize)) || [];
     },
 
     /** 贴图内坐标 → 世界坐标（应用通用件的 origin/scale/flip 变换） */
@@ -1146,6 +1217,7 @@ const WallSystem = {
 
     /** 件底边线段（世界坐标，碰撞用）：直墙=正面墙底边(face，不含端帽)；转角=顶点→两臂尖；障碍物=无线段（碰撞走矩形 footprint） */
     _pieceBaseSegments(p) {
+        if (Array.isArray(p?._baseSegments)) return p._baseSegments;
         const key = Object.keys(ISO_WALL_GEO).find(k => ISO_WALL_GEO[k].tex === p.tex);
         const g = key ? ISO_WALL_GEO[key] : null;
         if (!g) return [];
@@ -1833,33 +1905,60 @@ const WallSystem = {
             const g = this._getCollisionGrid();
             if (!g) return this._linearBlocked(x1, y1, x2, y2, ignore);
             const { cell, cells, key, maxSegThick, maxTreeR } = g;
-            // 射线 AABB 按最大树半径/段半厚外扩，保证相交件必被候选捕获（保守超集）
-            const margin = Math.max(maxSegThick, maxTreeR);
-            const minX = Math.min(x1, x2) - margin;
-            const maxX = Math.max(x1, x2) + margin;
-            const minY = Math.min(y1, y2) - margin;
-            const maxY = Math.max(y1, y2) + margin;
-            const minCX = Math.floor(minX / cell), maxCX = Math.floor(maxX / cell);
-            const minCY = Math.floor(minY / cell), maxCY = Math.floor(maxY / cell);
-            for (let cy = minCY; cy <= maxCY; cy++) {
-                for (let cx = minCX; cx <= maxCX; cx++) {
-                    const arr = cells.get(key(cx, cy));
-                    if (!arr) continue;
-                    for (const item of arr) {
-                        if (item.type === 'wall') {
-                            const w = item.obj;
-                            if (ignore && ignore.rects && ignore.rects.has(w)) continue;
-                            if (this.lineRect(x1, y1, x2, y2, w)) return true;
-                        } else if (item.type === 'seg') {
-                            const s = item.obj;
-                            if (ignore && ignore.segs && ignore.segs.has(s)) continue;
-                            if (!this._segmentAppliesToMove(s, ignore)) continue;
-                            if (this._segSegIntersect(x1, y1, x2, y2, s.x1, s.y1, s.x2, s.y2)) return true;
-                        } else {
-                            const t = item.obj;
-                            if (this.lineCircle(x1, y1, x2, y2, t.x, t.y, t.collisionRadius || t.radius * 0.6)) return true;
-                        }
+            // 长距离 LOS 禁止遍历整条射线的二维 AABB（对角线会把空格查询放大为面积复杂度）。
+            // 使用 Amanatides-Woo DDA 只访问射线真正穿过的格；障碍物已按自身包围盒注册到网格，
+            // 再扩一圈厚度格用于边界/粗线容差，保持原相交谓词不变。
+            const seen = new Set();
+            const checkCell = (cx, cy) => {
+                const arr = cells.get(key(cx, cy));
+                if (!arr) return false;
+                for (const item of arr) {
+                    if (seen.has(item)) continue;
+                    seen.add(item);
+                    if (item.type === 'wall') {
+                        const w = item.obj;
+                        if (ignore?.rects?.has(w)) continue;
+                        if (this.lineRect(x1, y1, x2, y2, w)) return true;
+                    } else if (item.type === 'seg') {
+                        const s = item.obj;
+                        if (ignore?.segs?.has(s)) continue;
+                        if (!this._segmentAppliesToMove(s, ignore)) continue;
+                        if (this._segSegIntersect(x1, y1, x2, y2, s.x1, s.y1, s.x2, s.y2)) return true;
+                    } else {
+                        const t = item.obj;
+                        if (this.lineCircle(x1, y1, x2, y2, t.x, t.y,
+                            t.collisionRadius || t.radius * 0.6)) return true;
                     }
+                }
+                return false;
+            };
+
+            let cx = Math.floor(x1 / cell), cy = Math.floor(y1 / cell);
+            const endCX = Math.floor(x2 / cell), endCY = Math.floor(y2 / cell);
+            const dx = x2 - x1, dy = y2 - y1;
+            const stepX = Math.sign(dx), stepY = Math.sign(dy);
+            const tDeltaX = stepX === 0 ? Infinity : cell / Math.abs(dx);
+            const tDeltaY = stepY === 0 ? Infinity : cell / Math.abs(dy);
+            const boundaryX = stepX > 0 ? (cx + 1) * cell : cx * cell;
+            const boundaryY = stepY > 0 ? (cy + 1) * cell : cy * cell;
+            let tMaxX = stepX === 0 ? Infinity : (boundaryX - x1) / dx;
+            let tMaxY = stepY === 0 ? Infinity : (boundaryY - y1) / dy;
+            const neighborRange = Math.ceil(Math.max(maxSegThick, maxTreeR) / cell) + 1;
+            const maxSteps = Math.abs(endCX - cx) + Math.abs(endCY - cy) + 2;
+
+            for (let steps = 0; steps < maxSteps; steps++) {
+                for (let oy = -neighborRange; oy <= neighborRange; oy++) {
+                    for (let ox = -neighborRange; ox <= neighborRange; ox++) {
+                        if (checkCell(cx + ox, cy + oy)) return true;
+                    }
+                }
+                if (cx === endCX && cy === endCY) break;
+                if (tMaxX < tMaxY) {
+                    cx += stepX;
+                    tMaxX += tDeltaX;
+                } else {
+                    cy += stepY;
+                    tMaxY += tDeltaY;
                 }
             }
             return false;

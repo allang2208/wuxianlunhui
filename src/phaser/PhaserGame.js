@@ -32,6 +32,11 @@ export const PhaserGame = {
             height: window.innerHeight || 1080,
             transparent: true,         // 透明背景，让 HTML UI 层显示
             backgroundColor: 'rgba(0,0,0,0)',
+            render: {
+                // AUTO 仍保留 Canvas 回退；WebGL 可用时明确请求高性能 GPU，
+                // 避免 Electron/双显卡设备把大批量精灵与雾遮罩调度到低功耗适配器。
+                powerPreference: 'high-performance',
+            },
             scale: {
                 mode: Scale.RESIZE,
                 autoCenter: Scale.CENTER_BOTH,

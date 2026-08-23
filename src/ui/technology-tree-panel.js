@@ -27,6 +27,16 @@ function escapeHtml(value) {
     return div.innerHTML;
 }
 
+function renderTechnologyIcon(node, className) {
+    const fallback = escapeHtml(node?.icon || '◆');
+    const iconPath = String(node?.iconPath || '').trim();
+    if (!iconPath) return `<span class="${className}">${fallback}</span>`;
+    return `<span class="${className} has-image">
+        <span class="technology-icon-fallback" aria-hidden="true">${fallback}</span>
+        <img src="${escapeHtml(iconPath)}" alt="" draggable="false">
+    </span>`;
+}
+
 function formatEta(seconds) {
     if (seconds == null || !Number.isFinite(seconds)) return '无研究院';
     const total = Math.max(0, Math.ceil(seconds));
@@ -52,6 +62,11 @@ export const TechnologyTreePanel = {
     _open: false,
     _pausedByPanel: false,
     _sideMenuStates: [],
+    _progressTimer: null,
+    _lastProgressAt: 0,
+    _panState: null,
+    _suppressPanClick: false,
+    _panClickResetTimer: null,
 
     init() {
         if (this._initialized) return;
@@ -68,8 +83,10 @@ export const TechnologyTreePanel = {
             event.stopImmediatePropagation?.();
             this.close();
         }, true);
-        EventBus.on('technology:changed', () => {
-            if (this.isOpen) this.render();
+        EventBus.on('technology:changed', (payload) => {
+            if (!this.isOpen) return;
+            if (payload?.reason === 'progress') this._refreshLiveProgress();
+            else this.render();
         });
     },
 
@@ -96,6 +113,7 @@ export const TechnologyTreePanel = {
             TimerManager.pause();
             try { PhaserGame.game?.pause?.(); } catch (error) { console.error('[TechnologyTreePanel] pause failed:', error); }
         }
+        this._startProgressTicker();
         this._sideMenuStates = Array.from(document.querySelectorAll('.side-menu'))
             .map((menu) => ({ menu, wasHidden: menu.classList.contains('hidden') }));
         this._sideMenuStates.forEach(({ menu }) => menu.classList.add('hidden'));
@@ -114,6 +132,7 @@ export const TechnologyTreePanel = {
     close() {
         if (!this.isOpen) return;
         this._open = false;
+        this._stopProgressTicker();
         this._el.classList.remove('active');
         this._sideMenuStates.forEach(({ menu, wasHidden }) => {
             if (!wasHidden) menu.classList.remove('hidden');
@@ -125,6 +144,73 @@ export const TechnologyTreePanel = {
             TimerManager.resume();
             Game._paused = false;
             try { PhaserGame.game?.resume?.(); } catch (error) { console.error('[TechnologyTreePanel] resume failed:', error); }
+        }
+    },
+
+    _startProgressTicker() {
+        this._stopProgressTicker();
+        this._lastProgressAt = performance.now();
+        this._progressTimer = window.setInterval(() => {
+            if (!this.isOpen) return;
+            const now = performance.now();
+            const elapsedMs = Math.max(0, now - this._lastProgressAt);
+            this._lastProgressAt = now;
+            // 科技页会冻结战斗与世界计时；研究是显式被动例外，由本面板接管这一段时间，
+            // 避免 WorldSimDriver 停止后进度条看似实时、实际数值却不动。
+            if (this._pausedByPanel) {
+                const instituteCount = TechnologySystem.lastInstituteCount || this._countLiveInstitutes();
+                TechnologySystem.update(elapsedMs, instituteCount);
+            }
+            this._refreshLiveProgress();
+        }, 100);
+    },
+
+    _stopProgressTicker() {
+        if (this._progressTimer != null) window.clearInterval(this._progressTimer);
+        this._progressTimer = null;
+        this._lastProgressAt = 0;
+    },
+
+    _refreshLiveProgress() {
+        if (!this._el || !this.isOpen) return;
+        const active = TechnologySystem.getNode(TechnologySystem.state.activeTechId);
+        const renderedActive = this._el.querySelector('.technology-card.active-tech')?.dataset.techId || null;
+        const activeVisible = active && this._nodesForBranch(this._selectedBranch)
+            .some((node) => node.id === active.id);
+        if ((activeVisible ? active.id : null) !== renderedActive) {
+            this.render();
+            return;
+        }
+        const instituteCount = TechnologySystem.lastInstituteCount || this._countLiveInstitutes();
+        const rate = instituteCount * (Number(TechnologySystem.config.pointsPerInstitutePerSecond) || 0);
+        const queue = TechnologySystem.getResearchQueue();
+        const etaIds = queue.length ? queue : (active ? [active.id] : []);
+        const eta = TechnologySystem.getEstimatedSeconds(etaIds, instituteCount);
+        const setText = (role, value) => {
+            const element = this._el.querySelector(`[data-live-role="${role}"]`);
+            if (element) element.textContent = value;
+        };
+        setText('institute-count', `研究院 ${instituteCount}`);
+        setText('research-rate', `研究速度 +${rate.toFixed(1)}/秒`);
+        setText('research-mode', `模式 ${researchModeLabel(TechnologySystem.getResearchMode())}`);
+        setText('research-current', `${active ? `${active.name} ${Math.floor(TechnologySystem.getProgress(active.id))}/${active.researchCost}` : '等待自动选择'} · ETA ${formatEta(eta)}`);
+        if (active) {
+            const progress = TechnologySystem.getProgress(active.id);
+            const percent = Math.min(100, progress / Math.max(1, active.researchCost) * 100);
+            const card = this._el.querySelector(`[data-tech-id="${active.id}"]`);
+            const bar = card?.querySelector('[data-live-role="card-progress"]');
+            const state = card?.querySelector('[data-live-role="card-state"]');
+            if (bar) bar.style.width = `${percent}%`;
+            if (state) state.textContent = `研发中 · ${active.researchCost}`;
+        }
+        const selected = TechnologySystem.getNode(this._selectedId);
+        if (selected && selected.id === active?.id) {
+            const progress = TechnologySystem.getProgress(selected.id);
+            const percent = Math.min(100, progress / Math.max(1, selected.researchCost) * 100);
+            const detailBar = this._el.querySelector('[data-live-role="detail-progress-bar"]');
+            if (detailBar) detailBar.style.width = `${percent}%`;
+            setText('detail-progress-text', `${Math.floor(progress)} / ${selected.researchCost}`);
+            setText('detail-eta', `预计 ${formatEta(TechnologySystem.getEstimatedSeconds(TechnologySystem.getResearchPlan(selected.id), instituteCount))}`);
         }
     },
 
@@ -148,13 +234,81 @@ export const TechnologyTreePanel = {
             </header>
             <nav class="technology-tree-branch-tabs" data-role="branches" aria-label="科技分支"></nav>
             <div class="technology-tree-body">
-                <div class="technology-tree-viewport">
+                <div class="technology-tree-viewport" aria-label="科技树画布，按住鼠标左键拖动查看" title="按住鼠标左键拖动查看完整科技树">
                     <div class="technology-tree-canvas" data-role="canvas"></div>
                 </div>
                 <aside class="technology-tree-detail" data-role="detail"></aside>
             </div>`;
         panel.querySelector('.technology-tree-close')?.addEventListener('click', () => this.close());
+        this._bindViewportPanning(panel.querySelector('.technology-tree-viewport'));
         this._el = mountRightSidebarPanel(panel, 'modal', { bringToFront: true });
+    },
+
+    _bindViewportPanning(viewport) {
+        if (!viewport) return;
+        const dragThreshold = 6;
+        const finishPan = (event) => {
+            const pan = this._panState;
+            if (!pan || (event.pointerId != null && event.pointerId !== pan.pointerId)) return;
+            if (pan.dragging) {
+                this._suppressPanClick = true;
+                if (this._panClickResetTimer != null) window.clearTimeout(this._panClickResetTimer);
+                this._panClickResetTimer = window.setTimeout(() => {
+                    this._suppressPanClick = false;
+                    this._panClickResetTimer = null;
+                }, 0);
+            }
+            viewport.classList.remove('is-panning');
+            try {
+                if (pan.captureTarget?.hasPointerCapture?.(pan.pointerId)) {
+                    pan.captureTarget.releasePointerCapture(pan.pointerId);
+                }
+            } catch (_) { /* pointer capture may already be released */ }
+            this._panState = null;
+        };
+
+        viewport.addEventListener('pointerdown', (event) => {
+            if (event.button !== 0 || event.isPrimary === false) return;
+            if (event.target.closest?.('a, input, textarea, select, [contenteditable="true"]')) return;
+            if (this._panClickResetTimer != null) window.clearTimeout(this._panClickResetTimer);
+            this._panClickResetTimer = null;
+            this._suppressPanClick = false;
+            const captureTarget = event.target.closest?.('.technology-card') || viewport;
+            this._panState = {
+                pointerId: event.pointerId,
+                captureTarget,
+                startX: event.clientX,
+                startY: event.clientY,
+                scrollLeft: viewport.scrollLeft,
+                scrollTop: viewport.scrollTop,
+                dragging: false,
+            };
+            try { captureTarget.setPointerCapture?.(event.pointerId); } catch (_) { /* optional enhancement */ }
+        });
+
+        viewport.addEventListener('pointermove', (event) => {
+            const pan = this._panState;
+            if (!pan || event.pointerId !== pan.pointerId) return;
+            const deltaX = event.clientX - pan.startX;
+            const deltaY = event.clientY - pan.startY;
+            if (!pan.dragging && Math.hypot(deltaX, deltaY) < dragThreshold) return;
+            if (!pan.dragging) {
+                pan.dragging = true;
+                viewport.classList.add('is-panning');
+            }
+            event.preventDefault();
+            viewport.scrollLeft = pan.scrollLeft - deltaX;
+            viewport.scrollTop = pan.scrollTop - deltaY;
+        });
+
+        viewport.addEventListener('click', (event) => {
+            if (!this._suppressPanClick) return;
+            event.preventDefault();
+            event.stopImmediatePropagation();
+            this._suppressPanClick = false;
+        }, true);
+        window.addEventListener('pointerup', finishPan, true);
+        window.addEventListener('pointercancel', finishPan, true);
     },
 
     _nodesForBranch(branch) {
@@ -218,10 +372,10 @@ export const TechnologyTreePanel = {
                 ? `${escapeHtml(active.name)} ${Math.floor(TechnologySystem.getProgress(active.id))}/${active.researchCost}`
                 : '等待自动选择';
             summary.innerHTML = `
-                <span>研究院 ${instituteCount}</span>
-                <span>研究速度 +${rate.toFixed(1)}/秒</span>
-                <span>模式 ${researchModeLabel(mode)}</span>
-                <strong>${current} · ETA ${formatEta(eta)}</strong>`;
+                <span data-live-role="institute-count">研究院 ${instituteCount}</span>
+                <span data-live-role="research-rate">研究速度 +${rate.toFixed(1)}/秒</span>
+                <span data-live-role="research-mode">模式 ${researchModeLabel(mode)}</span>
+                <strong data-live-role="research-current">${current} · ETA ${formatEta(eta)}</strong>`;
         }
 
         const canvas = this._el.querySelector('[data-role="canvas"]');
@@ -278,9 +432,9 @@ export const TechnologyTreePanel = {
             return `<button type="button" class="technology-card ${stateClass}${worldMasked ? ' world-masked' : ''}${node.section === 'plane' ? ' plane-research' : ''}${crossPrerequisite ? ' cross-prerequisite' : ''}${this._selectedId === node.id ? ' selected' : ''}${pathClass}${targetClass}"
                 data-tech-id="${escapeHtml(node.id)}" style="left:${pos.x}px;top:${pos.y}px">
                 ${queuedAt ? `<span class="technology-card-queue-index">${queuedAt}</span>` : ''}
-                <span class="technology-card-icon">${node.icon || '◆'}</span>
-                <span class="technology-card-copy"><strong>${escapeHtml(node.name)}</strong><small>${stateText} · ${node.researchCost}</small></span>
-                <span class="technology-card-progress"><i style="width:${percent}%"></i></span>
+                ${renderTechnologyIcon(node, 'technology-card-icon')}
+                <span class="technology-card-copy"><strong>${escapeHtml(node.name)}</strong><small data-live-role="card-state">${stateText} · ${node.researchCost}</small></span>
+                <span class="technology-card-progress"><i data-live-role="card-progress" style="width:${percent}%"></i></span>
             </button>`;
         }).join('');
 
@@ -327,11 +481,11 @@ export const TechnologyTreePanel = {
             return;
         }
         detail.innerHTML = `
-            <div class="technology-detail-icon">${node.icon || '◆'}</div>
+            ${renderTechnologyIcon(node, 'technology-detail-icon')}
             <div class="technology-detail-branch">${escapeHtml(node.section === 'plane' ? '位面独特科技' : `${node.branch}科技`)}</div>
             <h3>${escapeHtml(node.name)}</h3>
             <p>${escapeHtml(node.description)}</p>
-            <div class="technology-detail-progress"><span><i style="width:${completed ? 100 : (progress / node.researchCost) * 100}%"></i></span><b>${completed ? '已完成' : `${Math.floor(progress)} / ${node.researchCost}`}</b></div>
+            <div class="technology-detail-progress"><span><i data-live-role="detail-progress-bar" style="width:${completed ? 100 : (progress / node.researchCost) * 100}%"></i></span><b data-live-role="detail-progress-text">${completed ? '已完成' : `${Math.floor(progress)} / ${node.researchCost}`}</b></div>
             <h4>前置科技</h4>
             <div class="technology-detail-prerequisites">${prerequisiteNames.length ? prerequisiteNames.map(escapeHtml).join('、') : (node.section === 'plane' ? '对应位面已解锁' : '无')}</div>
             <h4>解锁内容</h4>
@@ -340,7 +494,7 @@ export const TechnologyTreePanel = {
             <div class="technology-detail-plan">
                 ${completed
                     ? '该科技已经完成'
-                    : `${planNames.map(escapeHtml).join(' → ')}<b>预计 ${formatEta(eta)}</b>`}
+                    : `${planNames.map(escapeHtml).join(' → ')}<b data-live-role="detail-eta">预计 ${formatEta(eta)}</b>`}
             </div>
             <button class="technology-research-button${isTarget ? ' secondary' : ''}" type="button" ${completed ? 'disabled' : ''}>
                 ${completed ? '已完成' : isTarget ? '取消目标并恢复自动研究' : active && !TechnologySystem.state.targetTechId ? '转为研究目标' : '设为研究目标'}

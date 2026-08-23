@@ -1,0 +1,21 @@
+{
+  "sampling": {
+    "windowFrames": 120,
+    "historyFrames": 240,
+    "slowFrameMs": 33.34
+  },
+  "renderCulling": {
+    "enabled": true,
+    "paddingPx": 320
+  },
+  "pathQueue": {
+    "maxRecalculationsPerFrame": 2,
+    "maxValidationsPerFrame": 5,
+    "maxQueuedJobs": 256,
+    "drainBudgetMs": 3
+  },
+  "gatePursuit": {
+    "cacheTtlMs": 250,
+    "targetQueryRadiusPx": 1500
+  }
+}

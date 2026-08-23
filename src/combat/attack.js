@@ -134,7 +134,7 @@ function applyEnchantOnHit(weapon, target, source) {
                     if (slashShape.intersectsEntity(entity)) {
                         const baseDamage = source.getCurrentWeaponAtk ? source.getCurrentWeaponAtk() : Math.floor((this.config.damage.min + this.config.damage.max) / 2);
                         const damage = baseDamage;
-                        const { hit, killed } = DamagePipeline.applyHit(source, entity, {
+                        const { hit, killed, skillExpEligible } = DamagePipeline.applyHit(source, entity, {
                             damage,
                             damageType: 'physical',
                             knockback: this.config.knockback,
@@ -144,8 +144,10 @@ function applyEnchantOnHit(weapon, target, source) {
                             killCountRef
                         });
                         if (!hit) return;
-                        if (killed && !entity._summoned) killCount++;
-                        hitCount++;
+                        if (skillExpEligible) {
+                            if (killed && !entity._summoned) killCount++;
+                            hitCount++;
+                        }
                     }
                 });
                 // 剑精通经验（普通斩击命中）
@@ -284,7 +286,7 @@ function applyEnchantOnHit(weapon, target, source) {
                     if (isFriendlyFire(source, entity)
                         || (source._faction === 'enemy' && entity._faction === 'enemy')) return;
                     const baseDamage = Math.floor((pt.damage.min + pt.damage.max) / 2);
-                    const { hit, killed } = DamagePipeline.applyHit(source, entity, {
+                    const { hit, killed, skillExpEligible } = DamagePipeline.applyHit(source, entity, {
                         damage: baseDamage + pt.damageBonus,
                         damageType: pt.damageType || 'physical',
                         knockback: pt.knockback,
@@ -297,8 +299,10 @@ function applyEnchantOnHit(weapon, target, source) {
                     if (this.config.crippleDuration && entity.applyCripple) {
                         entity.applyCripple(this.config.crippleDuration);
                     }
-                    pt.totalHitCount += 1;
-                    if (killed && !entity._summoned) pt.totalKillCount += 1;
+                    if (skillExpEligible) {
+                        pt.totalHitCount += 1;
+                        if (killed && !entity._summoned) pt.totalKillCount += 1;
+                    }
                     return;
                 }
                 const isSword = currentWeapon && (currentWeapon.weaponType === 'sword' || currentWeapon.category === 'weapon_melee');
@@ -349,7 +353,7 @@ function applyEnchantOnHit(weapon, target, source) {
                     }
                     let baseDamage = Math.floor((pt.damage.min + pt.damage.max) / 2);
                     const damage = baseDamage + pt.damageBonus;
-                    const { hit, killed } = DamagePipeline.applyHit(source, entity, {
+                    const { hit, killed, skillExpEligible } = DamagePipeline.applyHit(source, entity, {
                         damage,
                         damageType: pt.damageType || 'physical',
                         knockback: pt.knockback,
@@ -361,8 +365,10 @@ function applyEnchantOnHit(weapon, target, source) {
                     if (this.config.crippleDuration && entity.applyCripple) {
                         entity.applyCripple(this.config.crippleDuration);
                     }
-                    if (killed && !entity._summoned) killCount++;
-                    hitCount++;
+                    if (skillExpEligible) {
+                        if (killed && !entity._summoned) killCount++;
+                        hitCount++;
+                    }
                 });
                 // 累计命中/击杀数（不直接给经验，经验在swing结束时统一发放）
                 pt.totalHitCount += hitCount;
@@ -421,7 +427,7 @@ function applyEnchantOnHit(weapon, target, source) {
                         const damage = Math.floor(baseDamage * damageMul);
                         // 击退方向：从玩家指向实体的径向
                         const radialAngle = Math.atan2(entity.y - ay, entity.x - ax);
-                        const { hit, killed } = DamagePipeline.applyHit(source, entity, {
+                        const { hit, killed, skillExpEligible } = DamagePipeline.applyHit(source, entity, {
                             damage,
                             damageType: pt.damageType || 'physical',
                             knockback,
@@ -430,8 +436,10 @@ function applyEnchantOnHit(weapon, target, source) {
                         });
                         if (!hit) return;
                         pt.hitSet.add(entity);
-                        if (killed && !entity._summoned) killCount++;
-                        hitCount++;
+                        if (skillExpEligible) {
+                            if (killed && !entity._summoned) killCount++;
+                            hitCount++;
+                        }
                         // 二段眩晕：仅普通类型怪物（rank 缺省视为 normal），时长配置 hitCheck.stunMs
                         if (typeof entity.applyStun === 'function' && (hitCheckCfg.stunMs || 0) > 0
                             && (entity.rank || 'normal') === 'normal') {
@@ -458,7 +466,7 @@ function applyEnchantOnHit(weapon, target, source) {
                         if (!rectShape.intersectsEntity(entity)) return;
                         const baseDamage = Math.floor((pt.damage.min + pt.damage.max) / 2);
                         const damage = baseDamage + pt.damageBonus;
-                        const { hit, killed } = DamagePipeline.applyHit(source, entity, {
+                        const { hit, killed, skillExpEligible } = DamagePipeline.applyHit(source, entity, {
                             damage,
                             damageType: pt.damageType || 'physical',
                             // 击退配置驱动（hitCheck.knockback 优先，缺省武器 attack.knockback）
@@ -468,8 +476,10 @@ function applyEnchantOnHit(weapon, target, source) {
                         });
                         if (!hit) return;
                         pt.hitSet.add(entity);
-                        if (killed && !entity._summoned) killCount++;
-                        hitCount++;
+                        if (skillExpEligible) {
+                            if (killed && !entity._summoned) killCount++;
+                            hitCount++;
+                        }
                         // 一段眩晕：仅普通类型怪物（rank 缺省视为 normal），时长配置 hitCheck.stunMs
                         if (typeof entity.applyStun === 'function' && (hitCheckCfg.stunMs || 0) > 0
                             && (entity.rank || 'normal') === 'normal') {

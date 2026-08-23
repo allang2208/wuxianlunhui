@@ -15,12 +15,13 @@ import { EffectManager } from '../effects/effect-manager.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
 import { clearRtsSurfaceRoute, finishRtsCommandAtHold, resolveRtsMoveDestination, RTS_DEFAULT_ACQUIRE_RANGE } from './rts-command-utils.js';
 import { canMeleeReachElevation } from './elevated-navigation-controller.js';
+import { queryNearbyEntities, stableAiPhase } from './friendly-spatial-query.js';
 
 export class HamsterWarriorAI {
     constructor(warrior) {
         this.m = warrior;
         this.cfg = warrior.aiConfig || {};
-        this._decisionTimer = 0;
+        this._decisionTimer = stableAiPhase(warrior, this.cfg.decisionMs ?? 120);
         this._attackTimer = 0;
         this._attackInterval = this.cfg.attackInterval ?? 2000;
         this._attackDamage = this.cfg.attackDamage ?? 50;
@@ -201,7 +202,7 @@ export class HamsterWarriorAI {
     _nearestEnemy(entities, m) {
         let best = null;
         let bestD = Infinity;
-        const iter = entities && entities.values ? entities.values() : entities || [];
+        const iter = queryNearbyEntities(entities, m, this._engageRange);
         for (const e of iter) {
             if (!e || !e.active || e.hp <= 0) continue;
             if (e._faction !== 'enemy') continue;

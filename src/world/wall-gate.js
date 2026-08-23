@@ -55,8 +55,9 @@ export const WallGate = {
      * @param {Object} B 线段下端点
      * @param {boolean} flip 是否为 "/" 方向
      * @param {number|null} depth 显式深度（继承被替换件的 depth）；null 按 max 规则
+     * @param {Object} options fitSpan=true 时把整段门闸精确映射到 A→B（单格墙环门洞）
      */
-    placeAt(A, B, flip, depth = null) {
+    placeAt(A, B, flip, depth = null, options = {}) {
         const scene = (typeof window !== 'undefined') ? window.__phaserScene : null;
         const geoKey = (WallSystem.getWallStyleGeos ? WallSystem.getWallStyleGeos().gate : 'gate');
         const g = ISO_WALL_GEO[geoKey] || ISO_WALL_GEO.gate;
@@ -67,7 +68,13 @@ export const WallGate = {
         // 底边起点锚定 A，门宽与被替换件的差距靠叠合吸收（只叠不缺）。
         // 僵尸素材恰好自洽（此尺度 == 旧线段反推值），行为不变
         const s = ISO_WALL_HEIGHT / g.wallH;
-        const sx = s, sy = s * slopeFixOf(g);
+        const fitSpan = options.fitSpan === true;
+        const sx = fitSpan
+            ? Math.abs(B.x - A.x) / Math.max(1, Math.abs(g.base[1][0] - g.base[0][0]))
+            : s;
+        const sy = fitSpan
+            ? Math.abs(B.y - A.y) / Math.max(1, Math.abs(g.base[1][1] - g.base[0][1]))
+            : s * slopeFixOf(g);
         let x0, y0;
         if (!flip) {
             x0 = A.x - p0[0] * sx;

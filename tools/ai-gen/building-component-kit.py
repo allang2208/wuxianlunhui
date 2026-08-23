@@ -170,6 +170,67 @@ def gabled_prism(collection, parent, name, length, width, roof_height, location,
     return obj
 
 
+def barrel_vault(collection, parent, name, length, width, height, location,
+                 end_mat, roof_mat, segments=28):
+    """Closed half-elliptic barrel vault with separate end and curved materials.
+
+    The vault runs along local X; ``width`` spans local Y and ``height`` rises
+    from the flat spring line.  It is suitable for compact storehouses, chapel
+    roofs and chest-like masonry caps while keeping every mesh editable.
+    """
+    half_l = float(length) / 2
+    half_w = float(width) / 2
+    height = float(height)
+    segment_count = max(8, int(segments))
+    vertices = []
+    left_ring = []
+    right_ring = []
+    for index in range(segment_count + 1):
+        angle = math.pi * index / segment_count
+        y = half_w * math.cos(angle)
+        z = height * math.sin(angle)
+        left_ring.append(len(vertices))
+        vertices.append((-half_l, y, z))
+        right_ring.append(len(vertices))
+        vertices.append((half_l, y, z))
+    left_center = len(vertices)
+    vertices.append((-half_l, 0, 0))
+    right_center = len(vertices)
+    vertices.append((half_l, 0, 0))
+
+    faces = []
+    material_indices = []
+    for index in range(segment_count):
+        nxt = index + 1
+        faces.append((left_ring[index], right_ring[index], right_ring[nxt], left_ring[nxt]))
+        material_indices.append(1)
+    for index in range(segment_count):
+        nxt = index + 1
+        faces.append((left_center, left_ring[nxt], left_ring[index]))
+        material_indices.append(0)
+        faces.append((right_center, right_ring[index], right_ring[nxt]))
+        material_indices.append(0)
+    faces.append((left_ring[0], left_ring[-1], right_ring[-1], right_ring[0]))
+    material_indices.append(0)
+
+    mesh = bpy.data.meshes.new(name + "_Mesh")
+    mesh.from_pydata(vertices, [], faces)
+    mesh.materials.append(end_mat)
+    mesh.materials.append(roof_mat)
+    for polygon, material_index in zip(mesh.polygons, material_indices):
+        polygon.material_index = material_index
+        if material_index == 1:
+            polygon.use_smooth = True
+    mesh.validate()
+    mesh.update()
+    obj = bpy.data.objects.new(name, mesh)
+    collection.objects.link(obj)
+    obj.parent = parent
+    obj.location = location
+    bevel(obj, 1.2, 2)
+    return obj
+
+
 def roof_rows(collection, parent, name, length, width, roof_height, base_z, mat, rows=11):
     """Add editable overlapping courses on both slopes of a gabled roof."""
     slope_angle = math.degrees(math.atan2(roof_height, width / 2))

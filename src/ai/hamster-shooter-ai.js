@@ -24,6 +24,7 @@ import {
     wallHitSupportsTarget,
 } from '../combat/elevated-ranged.js';
 import { hasRangedLineOfSight } from '../combat/ranged-line-of-sight.js';
+import { queryNearbyEntities, stableAiPhase } from './friendly-spatial-query.js';
 
 const PROJECTILE_HIT_RADIUS = 28; // 命中半径（瞄准中心，比露娜 30 略紧）
 
@@ -31,7 +32,7 @@ export class HamsterShooterAI {
     constructor(shooter) {
         this.m = shooter;
         this.cfg = shooter.aiConfig || {};
-        this._decisionTimer = 0;
+        this._decisionTimer = stableAiPhase(shooter, this.cfg.decisionMs ?? 120);
         this._attackTimer = 0;
         this._attackInterval = this.cfg.attackInterval ?? 2000;
         this._attackDamage = this.cfg.attackDamage ?? 60;
@@ -283,7 +284,7 @@ export class HamsterShooterAI {
         let bestShootable = null;
         let bestShootableD = Infinity;
         const attackRange = this._effectiveAttackRange();
-        const iter = entities && entities.values ? entities.values() : entities || [];
+        const iter = queryNearbyEntities(entities, m, this._engageRange);
         for (const e of iter) {
             if (!e || !e.active || e.hp <= 0) continue;
             if (e._faction !== 'enemy') continue;
@@ -391,7 +392,8 @@ export class HamsterShooterAI {
         } else {
             // 路径上经过的其他敌人也判定（与露娜同思路）
             const game = (typeof window !== 'undefined' && window.Game) || null;
-            for (const e of ((game && game.entities) ? game.entities.values() : [])) {
+            // 空间网格在本逻辑帧开始重建；额外 64px 覆盖目标本帧位移/跨格，精确 hits 仍用真实命中半径。
+            for (const e of queryNearbyEntities(game?.entities, b, PROJECTILE_HIT_RADIUS + 64)) {
                 if (!e || !e.active || e.hp <= 0 || e._faction !== 'enemy') continue;
                 if (e._isEnergyNode) continue;
                 if (hits(e)) {

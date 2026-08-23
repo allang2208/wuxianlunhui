@@ -211,7 +211,8 @@ export function isFriendlyFire(source, target) {
                     isCrit = typeof source._forcedHitCritical === 'boolean'
                         ? source._forcedHitCritical
                         : Math.random() * 100 < finalCritRate;
-                    if (isCrit && !this._summoned && source && source.skills && source.skills.criticalStrike) {
+                    if (isCrit && this._grantsSkillTrainingExp !== false
+                        && !this._summoned && source && source.skills && source.skills.criticalStrike) {
                         SkillManager.addCriticalStrikeExp(source, isCrit, false); // isKill 在下面计算
                     }
                 }
@@ -283,7 +284,8 @@ export function isFriendlyFire(source, target) {
                     this.onDeath(source);
                 }
                 // 武器精通技能经验（使用大类判定）；召唤物（_summoned 标签）不提供修炼值
-                if (!this._summoned && source && source.getCurrentWeapon && SkillManager) {
+                if (this._grantsSkillTrainingExp !== false
+                    && !this._summoned && source && source.getCurrentWeapon && SkillManager) {
                     const currentWpn = source.getCurrentWeapon();
                     if (currentWpn) {
                         const wt = currentWpn.weaponType;
@@ -301,7 +303,8 @@ export function isFriendlyFire(source, target) {
                     }
                 }
                 // 无人机技能经验：击杀被无人机影响的敌人（召唤物不提供修炼值）
-                if (!this._summoned && isKill && source && source.skills && SkillManager && SkillManager.addDroneExp) {
+                if (this._grantsSkillTrainingExp !== false
+                    && !this._summoned && isKill && source && source.skills && SkillManager && SkillManager.addDroneExp) {
                     SkillManager.addDroneExp(source, this);
                 }
             }

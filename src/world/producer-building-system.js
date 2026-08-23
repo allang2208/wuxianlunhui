@@ -1244,6 +1244,7 @@ class ProducerBuildingPanel extends BasePanel {
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
                 <div id="pbTitle" style="font-size:18px;font-weight:700;color:#ffd700;"></div>
                 <div style="display:flex;gap:8px;">
+                    <button id="pbPackedRebuild" type="button" style="display:none;background:#263b34;color:#a8ffd7;border:1px solid #4f8a72;border-radius:6px;padding:4px 10px;cursor:pointer;">打包重建</button>
                     <button id="pbSell" type="button" style="background:#3a2820;color:#ffc9a0;border:1px solid #6a4a2a;border-radius:6px;padding:4px 10px;cursor:pointer;">出售</button>
                     <button id="pbClose" type="button" aria-label="关闭建筑详情" style="background:#3a3228;color:#d4c5a9;border:1px solid #6a5a3a;border-radius:6px;padding:4px 12px;cursor:pointer;">关闭</button>
                 </div>
@@ -1717,6 +1718,19 @@ class ProducerBuildingPanel extends BasePanel {
                 : moduleAppliesToUnit(module, b.unitType));
         const upgradeSummary = applicableModules.map(([, module]) => module.name).join(' / ') || '无单位升级项目';
         el.querySelector('#pbTitle').textContent = '建筑详情';
+        const packedRebuildBtn = el.querySelector('#pbPackedRebuild');
+        if (packedRebuildBtn) {
+            const unlocked = TechnologySystem.isUnlocked('mechanic', 'building_relocation');
+            const protectedCore = b._isWorldPortalCore || b._isMainHubPortalBuilding;
+            packedRebuildBtn.style.display = unlocked && !protectedCore ? '' : 'none';
+            packedRebuildBtn.title = '保留建筑当前状态，免费迁移到新的合法位置';
+            packedRebuildBtn.onclick = () => {
+                const result = Game?.BuildingSystem?.beginPackedRebuild?.(b)
+                    || { ok: false, reason: '建筑系统当前不可用' };
+                if (!result.ok) this._notify(result.reason || '无法打包重建', '#ff5555');
+                else this.close();
+            };
+        }
         const detail = el.querySelector('#pbBuildingDetail');
         const functionTitle = el.querySelector('#pbFunctionTitle');
         const economyMode = {

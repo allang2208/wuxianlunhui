@@ -25,12 +25,13 @@ const GRID_CONFIG = {
     maxEntities: 2048,  // 最大支持实体数（预分配优化）
     maxQueryResults: 2048 // 单次查询最大返回结果数，与 maxEntities 对齐，避免密集场景漏命中
 };
+const CELL_KEY_STRIDE = 131072;
 
 class SpatialPartitionSystemImpl {
     constructor() {
         this.cellSize = GRID_CONFIG.cellSize;
         this.invCellSize = 1.0 / this.cellSize;
-        this.cells = new Map();       // 网格存储: key="x,y" -> Set<Entity>
+        this.cells = new Map();       // 网格存储: 数值 key -> Entity[]，避免热路径字符串拼接
         this.allEntities = [];        // 缓存所有活跃实体
         this._queryResults = [];      // 复用查询结果数组（减少GC）
         this._tempSet = new Set();    // 临时集合去重
@@ -107,7 +108,7 @@ class SpatialPartitionSystemImpl {
         // 查询 3x3 邻域（当前格 + 周围8格）
         for (let dy = -1; dy <= 1; dy++) {
             for (let dx = -1; dx <= 1; dx++) {
-                const key = (cx + dx) + ',' + (cy + dy);
+                const key = this._cellKey(cx + dx, cy + dy);
                 const cell = this.cells.get(key);
                 if (!cell) continue;
                 for (let i = 0; i < cell.length; i++) {
@@ -141,7 +142,7 @@ class SpatialPartitionSystemImpl {
 
         for (let cy = minCY; cy <= maxCY; cy++) {
             for (let cx = minCX; cx <= maxCX; cx++) {
-                const cell = this.cells.get(cx + ',' + cy);
+                const cell = this.cells.get(this._cellKey(cx, cy));
                 if (!cell) continue;
                 for (let i = 0; i < cell.length; i++) {
                     const entity = cell[i];
@@ -180,7 +181,7 @@ class SpatialPartitionSystemImpl {
 
         for (let cy = minCY; cy <= maxCY; cy++) {
             for (let cx = minCX; cx <= maxCX; cx++) {
-                const cell = this.cells.get(cx + ',' + cy);
+                const cell = this.cells.get(this._cellKey(cx, cy));
                 if (!cell) continue;
                 for (let i = 0; i < cell.length; i++) {
                     const entity = cell[i];
@@ -220,7 +221,7 @@ class SpatialPartitionSystemImpl {
 
         for (let cy = minCY; cy <= maxCY; cy++) {
             for (let cx = minCX; cx <= maxCX; cx++) {
-                const cell = this.cells.get(cx + ',' + cy);
+                const cell = this.cells.get(this._cellKey(cx, cy));
                 if (!cell) continue;
                 for (let i = 0; i < cell.length; i++) {
                     const entity = cell[i];
@@ -293,7 +294,7 @@ class SpatialPartitionSystemImpl {
 
         for (let cy = minCY; cy <= maxCY; cy++) {
             for (let cx = minCX; cx <= maxCX; cx++) {
-                const cell = this.cells.get(cx + ',' + cy);
+                const cell = this.cells.get(this._cellKey(cx, cy));
                 if (!cell) continue;
                 for (let i = 0; i < cell.length; i++) {
                     const entity = cell[i];
@@ -328,10 +329,17 @@ class SpatialPartitionSystemImpl {
      * 获取指定坐标处的网格键
      * @param {number} x — 世界坐标X
      * @param {number} y — 世界坐标Y
-     * @returns {string} — "cellX,cellY" 格式键
+     * @returns {number} — 当前世界范围内唯一的整数格键
      */
     _getCellKey(x, y) {
-        return Math.floor(x * this.invCellSize) + ',' + Math.floor(y * this.invCellSize);
+        return this._cellKey(
+            Math.floor(x * this.invCellSize),
+            Math.floor(y * this.invCellSize)
+        );
+    }
+
+    _cellKey(cx, cy) {
+        return cx + cy * CELL_KEY_STRIDE;
     }
 
     /**
@@ -383,7 +391,7 @@ class SpatialPartitionSystemImpl {
             for (let cx = startCX; cx <= endCX; cx++) {
                 const px = cx * this.cellSize - cameraX;
                 const py = cy * this.cellSize - cameraY;
-                const cell = this.cells.get(cx + ',' + cy);
+                const cell = this.cells.get(this._cellKey(cx, cy));
                 if (cell && cell.length > 0) {
                     ctx.fillStyle = `rgba(255, 0, 0, ${Math.min(cell.length * 0.1, 0.5)})`;
                     ctx.fillRect(px, py, this.cellSize, this.cellSize);

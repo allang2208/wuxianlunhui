@@ -4,6 +4,7 @@ import { QuickBar } from '../quick-bar.js';
 import { TechnologySystem } from '../../world/technology-system.js';
 import { GoldManager } from '../../systems/gold-manager.js';
 import { EnergyManager } from '../../systems/energy-manager.js';
+import { PerformanceMonitor } from '../../systems/performance-monitor.js';
 // src/ui/panels/dev-tools.js
 // 动态创建交互开发工具面板 (dev-tool-panel)
 
@@ -77,6 +78,16 @@ export function createDevToolPanel() {
     });
     tabFog.textContent = '迷雾';
     tabs.appendChild(tabFog);
+
+    const tabPerformance = document.createElement('div');
+    tabPerformance.className = 'dev-tool-tab';
+    tabPerformance.dataset.tab = 'performance';
+    tabPerformance.addEventListener('click', () => {
+        DevTool.switchTab('performance');
+        renderPerformanceDebug();
+    });
+    tabPerformance.textContent = '性能';
+    tabs.appendChild(tabPerformance);
 
     root.appendChild(tabs);
 
@@ -656,7 +667,7 @@ export function createDevToolPanel() {
     worldWrap.innerHTML = `
         <div class="collision-tab-desc">
             <p>🌐 位面生命周期调试：查看状态、世代、快照和真实入侵候选池。</p>
-            <p style="color:#d8a26a;">打通位面会按正式成功结算补齐地牢前置；推进时间会修改统一游戏时钟；模拟毁门会执行正式毁灭事务；荒漠位面可触发沙尘暴，僵尸地牢位面可触发死寂雾潮。</p>
+            <p style="color:#d8a26a;">打通位面会按正式成功结算补齐地牢前置；推进时间会修改统一游戏时钟；模拟毁门会执行正式毁灭事务；每个位面均可触发不会主动停止的毁灭挑战。</p>
         </div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin:8px 0;">
             <button id="devWorldRefresh" class="dev-tool-menu-btn">刷新</button>
@@ -736,6 +747,42 @@ export function createDevToolPanel() {
                         ${fogTide.enabled ? '' : 'disabled'} style="border-color:#557d68;color:#b9e4c8;">${actionText}</button>
                 </div>`;
             }
+            const rain = window.__phaserScene?.getRainWeatherDebugModel?.(world.sceneId);
+            let rainHtml = '';
+            if (rain?.enabled) {
+                const statusText = rain.active
+                    ? `${rain.intensityName}进行中 · ${rain.quality} 品质 · 无玩法影响`
+                    : (rain.available ? '待命 · 无玩法影响' : '待命 · 请先进入该位面');
+                const intensityButtons = (rain.intensities || []).map((intensity) => {
+                    const selected = rain.active && rain.intensityId === intensity.id;
+                    const label = selected ? `结束${intensity.name}` : intensity.name;
+                    return `<button type="button" class="dev-tool-menu-btn" data-dev-world-action="rain" data-scene-id="${world.sceneId}"
+                        data-rain-intensity="${intensity.id}" ${rain.available ? '' : 'disabled'}
+                        style="border-color:${selected ? '#83c9ee' : '#527c96'};color:${selected ? '#e1f5ff' : '#bde6ff'};">${label}</button>`;
+                }).join('');
+                rainHtml = `<div style="display:flex;align-items:center;gap:8px;margin-top:6px;padding-top:6px;border-top:1px solid #435868;">
+                    <span style="font-size:11px;color:#a9d6ee;flex:1;">🌧 降雨：${statusText}</span>
+                    <span style="display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end;">${intensityButtons}</span>
+                </div>`;
+            }
+            const destruction = window.WorldDestructionChallengeSystem?.getWorldModel?.(world.sceneId);
+            let destructionHtml = '';
+            if (destruction) {
+                const nextBatchSeconds = destruction.remainingMs === null
+                    ? null : Math.ceil(destruction.remainingMs / 1000);
+                const statusText = destruction.active
+                    ? `进行中 · 第 ${destruction.cycleNumber} 周期 · 普通 ${destruction.normalSpawned} / 精英 ${destruction.eliteSpawned} / 领主 ${destruction.lordSpawned}`
+                        + ` · 本周期精英×${destruction.eliteCountThisCycle} / 领主×${destruction.lordCountThisCycle}`
+                        + (destruction.aliveCount === null ? '' : ` · 存活 ${destruction.aliveCount}/${destruction.softMaxAlive}（硬上限${destruction.hardMaxAlive}）`)
+                        + (destruction.pendingSpawnCount > 0 ? ` · 待生成 ${destruction.pendingSpawnCount}` : '')
+                        + ` · 下批 ${nextBatchSeconds ?? '--'}s`
+                    : (destruction.canTrigger ? '待命' : '不可触发 · 需要存活的传送门');
+                destructionHtml = `<div style="display:flex;align-items:center;gap:8px;margin-top:6px;padding-top:6px;border-top:1px solid #633a3a;">
+                    <span style="font-size:11px;color:#f3a0a0;flex:1;">☄ 毁灭挑战：${statusText}</span>
+                    <button type="button" class="dev-tool-menu-btn" data-dev-world-action="destruction-challenge" data-scene-id="${world.sceneId}"
+                        ${destruction.canTrigger ? '' : 'disabled'} style="border-color:#9b4b43;color:#ffb4aa;">${destruction.active ? '挑战进行中' : '触发毁灭挑战'}</button>
+                </div>`;
+            }
             return `<div style="padding:8px;border:1px solid ${world.candidate ? '#5f9d77' : '#4a4238'};border-radius:6px;background:rgba(24,22,20,.72);">
                 <div><b>${world.name}</b> · ${world.status} · epoch ${world.worldEpoch} · HP ${Math.ceil(world.hp)}</div>
                 <div style="font-size:11px;color:#aeb6bf;margin-top:3px;">
@@ -746,6 +793,8 @@ export function createDevToolPanel() {
                 <div style="font-size:11px;color:#8fc2d2;margin-top:2px;">快照：${snapshot}</div>
                 ${sandstormHtml}
                 ${fogTideHtml}
+                ${rainHtml}
+                ${destructionHtml}
             </div>`;
         }).join('');
     };
@@ -768,6 +817,25 @@ export function createDevToolPanel() {
                 DevTool._showToast(result?.ok
                     ? (result.model?.active ? '☣ 世界125死寂雾潮已触发' : '✓ 世界125死寂雾潮已结束')
                     : `✕ ${result?.reason || '死寂雾潮系统尚未初始化'}`);
+            }
+        } else if (action === 'rain') {
+            const sceneId = button.dataset.sceneId;
+            const intensityId = button.dataset.rainIntensity || 'light';
+            const result = window.__phaserScene?.toggleRainWeather?.(sceneId, intensityId);
+            if (DevTool && typeof DevTool._showToast === 'function') {
+                DevTool._showToast(result?.ok
+                    ? (result.model?.active
+                        ? `🌧 ${sceneId} ${result.model.intensityName}已触发`
+                        : `✓ ${sceneId} 降雨已结束`)
+                    : `✕ ${result?.reason || '降雨系统尚未初始化'}`);
+            }
+        } else if (action === 'destruction-challenge') {
+            const sceneId = button.dataset.sceneId;
+            const result = window.WorldDestructionChallengeSystem?.trigger?.(sceneId);
+            if (DevTool && typeof DevTool._showToast === 'function') {
+                DevTool._showToast(result?.ok
+                    ? `☄ ${sceneId} 毁灭挑战已触发`
+                    : `✕ ${result?.reason || '毁灭挑战系统尚未初始化'}`);
             }
         }
         renderWorldDebug();
@@ -883,6 +951,68 @@ export function createDevToolPanel() {
         fogControl(id).addEventListener('change', applyFogDebug);
     }
     fogControl('devFogRefresh').addEventListener('click', renderFogDebug);
+
+    // ===== Tab 内容：性能采样 =====
+    const contentPerformance = document.createElement('div');
+    contentPerformance.className = 'dev-tool-tab-content';
+    contentPerformance.dataset.tabContent = 'performance';
+    contentPerformance.style.cssText = 'display:none;';
+    const performanceWrap = document.createElement('div');
+    performanceWrap.className = 'collision-tab-wrap';
+    performanceWrap.innerHTML = `
+        <div class="collision-tab-desc">
+            <p>📊 性能采样：定位主循环、Phaser 同步、DOM UI、寻路队列与视口裁切压力。</p>
+            <p style="color:#d8a26a;">本页只读，不修改战斗、AI、画质或游戏速度；数据为最近 120 帧滑动窗口。</p>
+        </div>
+        <div style="display:flex;gap:8px;margin:10px 0;">
+            <button id="devPerformanceRefresh" class="dev-tool-menu-btn">刷新</button>
+            <button id="devPerformanceReset" class="dev-tool-menu-btn">重置采样</button>
+        </div>
+        <div id="devPerformanceSummary" style="font-size:12px;color:#b8d8ff;line-height:1.75;"></div>
+        <div id="devPerformanceSections" style="margin-top:10px;font-size:11px;color:#d6dde7;line-height:1.65;"></div>
+        <div id="devPerformanceCounters" style="margin-top:10px;font-size:11px;color:#aeb6bf;line-height:1.65;max-height:260px;overflow:auto;"></div>`;
+    contentPerformance.appendChild(performanceWrap);
+    root.appendChild(contentPerformance);
+
+    const performanceControl = (id) => root.querySelector(`#${id}`);
+    const performanceLabels = {
+        gameUpdate: '逻辑主循环',
+        legacyRender: 'Canvas 渲染',
+        phaserSync: 'Phaser 同步',
+        domUi: 'DOM UI 刷新',
+    };
+    const renderPerformanceDebug = () => {
+        const model = PerformanceMonitor.getSnapshot();
+        const summary = performanceControl('devPerformanceSummary');
+        const sections = performanceControl('devPerformanceSections');
+        const counters = performanceControl('devPerformanceCounters');
+        if (!summary || !sections || !counters) return;
+        summary.innerHTML = `采样 ${model.sampleFrames} 帧 · 平均 ${model.averageFps.toFixed(1)} FPS<br>`
+            + `帧耗时 平均 ${model.averageFrameMs.toFixed(2)}ms · P95 ${model.p95FrameMs.toFixed(2)}ms`
+            + ` · 峰值 ${model.maxFrameMs.toFixed(2)}ms<br>`
+            + `帧间隔 P95 ${model.p95RawDtMs.toFixed(2)}ms · 累计慢帧 ${model.slowFrames}`;
+        sections.innerHTML = '<b>分系统耗时</b><br>' + Object.entries(model.sections)
+            .sort((a, b) => b[1].averageMs - a[1].averageMs)
+            .map(([name, value]) => `${performanceLabels[name] || name}：平均 ${value.averageMs.toFixed(2)}ms · 峰值 ${value.maxMs.toFixed(2)}ms`)
+            .join('<br>');
+        counters.innerHTML = '<b>运行计数器</b><br>' + Object.entries(model.counters)
+            .sort(([a], [b]) => a.localeCompare(b))
+            .map(([name, value]) => `${name}：${typeof value === 'number' ? value.toFixed(2).replace(/\.00$/, '') : value}`)
+            .join('<br>');
+    };
+    performanceControl('devPerformanceRefresh').addEventListener('click', renderPerformanceDebug);
+    performanceControl('devPerformanceReset').addEventListener('click', () => {
+        PerformanceMonitor.reset();
+        renderPerformanceDebug();
+    });
+    root._performanceRefreshTimer = window.setInterval(() => {
+        if (!root.isConnected) {
+            window.clearInterval(root._performanceRefreshTimer);
+            root._performanceRefreshTimer = null;
+            return;
+        }
+        if (DevTool._currentTab === 'performance') renderPerformanceDebug();
+    }, 500);
 
     // ===== 技能等级调试逻辑 =====
     const fillSkillSelect = () => {

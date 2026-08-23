@@ -65,11 +65,13 @@ export function resolveStructureRenderOrder(nodes, depthGap = STRUCTURE_ORDER_GA
         n && n.bounds && Number.isFinite(n.baseDepth) && n.stableKey !== undefined);
     const count = valid.length;
     const edges = Array.from({ length: count }, () => new Set());
+    const incoming = Array.from({ length: count }, () => new Set());
     const indegree = new Array(count).fill(0);
 
     const addEdge = (from, to) => {
         if (from === to || edges[from].has(to)) return;
         edges[from].add(to);
+        incoming[to].add(from);
         indegree[to]++;
     };
 
@@ -108,13 +110,25 @@ export function resolveStructureRenderOrder(nodes, depthGap = STRUCTURE_ORDER_GA
         ordered.push(...remaining);
     }
 
-    const result = new Map();
-    let cursor = -Infinity;
+    // 只沿真实拓扑依赖抬高后继。旧实现用一个全局 cursor 把所有节点串成总序，
+    // 结果是某个前景墙/建筑会把与它完全无关、甚至相隔很远的建筑整体抬到异常深度；
+    // 动态单位若没有横向命中那栋建筑的 footprint，便会被这个虚高 depth 错误遮挡。
+    // 无依赖节点保持自己的地面基准，Phaser 的稳定显示列表负责同 depth 的固定次序。
+    const resolvedDepths = new Array(count).fill(NaN);
     for (const index of ordered) {
         const node = valid[index];
-        const depth = Math.max(node.baseDepth, cursor + depthGap);
-        result.set(node.stableKey, depth);
-        cursor = depth;
+        let depth = node.baseDepth;
+        for (const predecessor of incoming[index]) {
+            const predecessorDepth = resolvedDepths[predecessor];
+            if (Number.isFinite(predecessorDepth)) {
+                depth = Math.max(depth, predecessorDepth + depthGap);
+            }
+        }
+        resolvedDepths[index] = depth;
+    }
+    const result = new Map();
+    for (let index = 0; index < count; index++) {
+        result.set(valid[index].stableKey, resolvedDepths[index]);
     }
     return result;
 }

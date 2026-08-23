@@ -41,6 +41,7 @@ import { TacticalSquadAI } from './ai/tactical-squad-ai.js';
 import { PerceptionSystem } from './systems/perception-system.js';
 import { MovementSystem } from './systems/movement-system.js';
 import { CombatSystem } from './systems/combat-system.js';
+import { PerformanceMonitor } from './systems/performance-monitor.js';
 import { CONFIG } from './config/config.js';
 import { TargetDummy } from './entities/target-dummy.js';
 import { Player } from './entities/player.js';
@@ -166,6 +167,8 @@ export const Game = {
             window.WorldProgressionSystem?.reset?.();
             window.WorldInvasionSystem?.reset?.();
             window.World122SandstormSystem?.reset?.();
+            window.WorldWeatherSystem?.reset?.();
+            window.WorldDestructionChallengeSystem?.reset?.();
             TroopLineSystem.reset();
             const menuLayer = getElement('menuLayer'); const uiLayer = getElement('uiLayer'); const gameLayer = getElement('gameLayer'); if (menuLayer) menuLayer.classList.add('hidden'); if (uiLayer) uiLayer.style.display = 'block'; if (gameLayer) gameLayer.style.display = 'block';
             // 先初始化场景管理器并标记主场景，保证 Renderer.generateWorld / spawnNPC 用 12288×8192 主神空间尺寸（2026-08-21 菱形化）
@@ -404,7 +407,7 @@ export const Game = {
             ]
         });
         this.entities.set('npc_attendant', attendant);
-        // 仓库 NPC（小鼠大王旁，实心圆替代贴图）
+        // 主神空间仓库：视觉保持宝箱与NPC交互身份，仅碰撞/遮挡按单格建筑处理。
         const whCfg = npcCfg.warehouse || { relativeTo: 'shopMouseKing', offset: { x: 100, y: 0 }, name: '仓库', size: 20, collisionRadius: 14, color: '#8a6a3a', npcType: 'warehouse' };
         const whX = whCfg.relativeTo === 'shopMouseKing' ? npcX + whCfg.offset.x : CONFIG.WORLD_WIDTH / 2 + whCfg.offset.x;
         const whY = whCfg.relativeTo === 'shopMouseKing' ? npcY + whCfg.offset.y : CONFIG.WORLD_HEIGHT / 2 + whCfg.offset.y;
@@ -427,6 +430,9 @@ export const Game = {
             clickArea: whCfg.clickArea,
             greetings: ['仓库为你敞开。']
         });
+        applyBuildingFootprint(warehouseNpc, Number(whCfg.footprintCells) || 1);
+        setupStructureDepth(warehouseNpc);
+        warehouseNpc.rebuildCollider();
         this.entities.set('npc_warehouse', warehouseNpc);
         // 祭坛 NPC（小鼠大王下方，大理石贴图；点击打开祭坛对话）
         const altarCfg = npcCfg.altar || { relativeTo: 'shopMouseKing', offset: { x: 20, y: 140 }, name: '祭坛', size: 24, collisionRadius: 16, color: '#6a4a8a', npcType: 'altar' };
@@ -1182,17 +1188,37 @@ export const Game = {
     loop(timestamp) {
         if (!this.isRunning) return;
         if (this._paused) { this.lastTime = timestamp; requestAnimationFrame(t => this.loop(t)); return; }
+        let performanceFrameStarted = false;
         try {
             const maxDt = GAME_CONFIG.gameLoop?.maxDtMs || 100;
             const rawDt = Math.max(0, Math.min(timestamp - this.lastTime, maxDt)); this.lastTime = timestamp;
+            PerformanceMonitor.beginFrame(rawDt);
+            performanceFrameStarted = true;
             // 枪械手感：hitstop（击杀冻结）期间世界 dt 缩放；GunFeel 自身按真实时间衰减
             GunFeel.update(rawDt);
             const dt = rawDt * GunFeel.timeScale();
             this.frameCount++; this.fpsTimer += rawDt;
             if (this.fpsTimer >= 1000) { this.fps = this.frameCount; this.frameCount = 0; this.fpsTimer = 0; }
-            this.update(dt); this.render(); GameUIManager.updateUI(); Input.update();
+            const updateStartedAt = PerformanceMonitor.begin();
+            this.update(dt);
+            PerformanceMonitor.end('gameUpdate', updateStartedAt);
+            const renderStartedAt = PerformanceMonitor.begin();
+            this.render();
+            PerformanceMonitor.end('legacyRender', renderStartedAt);
+            this._uiUpdateAccumulator = (this._uiUpdateAccumulator || 0) + rawDt;
+            const uiUpdateInterval = Math.max(16,
+                Number(GAME_CONFIG.gameLoop?.uiUpdateIntervalMs) || 100);
+            if (this._uiUpdateAccumulator >= uiUpdateInterval) {
+                this._uiUpdateAccumulator %= uiUpdateInterval;
+                const uiStartedAt = PerformanceMonitor.begin();
+                GameUIManager.updateUI();
+                PerformanceMonitor.end('domUi', uiStartedAt);
+            }
+            Input.update();
         } catch (e) {
             console.error('Game loop error:', e);
+        } finally {
+            if (performanceFrameStarted) PerformanceMonitor.endFrame();
         }
         requestAnimationFrame(t => this.loop(t));
     },
@@ -1479,6 +1505,11 @@ CombatSystem.update(e, dt, this.entities);
 }
             }
         }
+        if (MovementSystem && typeof MovementSystem.endFrame === 'function') {
+            MovementSystem.endFrame();
+        }
+        PerformanceMonitor.setCounter('entities.total', this.entities.size);
+        PerformanceMonitor.setCounter('entities.active', SpatialPartitionSystem?.allEntities?.length || 0);
         // === [REFACTOR-END] ===
 
         // 侍从 AI（跟随/施法/撤退）：在实体（敌人/玩家）更新后驱动，保证读到最新战场位置

@@ -461,6 +461,56 @@ export const WorldInvasionSystem = {
         };
     },
 
+    /** 顶部通用时间轴的五日袭击周期框架。 */
+    getTimelineFrame() {
+        const nowGameTimeMs = Math.max(0,
+            Number(EnvironmentLightingSystem.serializeTime().elapsedMs) || 0);
+        const total = intervalMs();
+        if (state.active) {
+            return {
+                nowGameTimeMs,
+                startAtGameTimeMs: Math.max(0, nowGameTimeMs - total),
+                endAtGameTimeMs: nowGameTimeMs,
+                durationMs: total,
+                progress: 1,
+            };
+        }
+        const progressMs = Math.max(0, Math.min(total, state.progressMs));
+        return {
+            nowGameTimeMs,
+            startAtGameTimeMs: Math.max(0, nowGameTimeMs - progressMs),
+            endAtGameTimeMs: nowGameTimeMs + Math.max(0, total - progressMs),
+            durationMs: total,
+            progress: Math.max(0, Math.min(1, progressMs / total)),
+        };
+    },
+
+    /** 袭击作为默认事件提供方；后续事件通过 WorldEventTimelineSystem 同接口接入。 */
+    getTimelineEvents() {
+        const frame = this.getTimelineFrame();
+        if (state.active) {
+            return [{
+                id: state.active.id,
+                type: 'invasion',
+                icon: '⚔',
+                iconPath: 'assets/ui/event-icons/invasion.png',
+                label: `${worldName(state.active.targetWorld)} · 入侵`,
+                atGameTimeMs: frame.nowGameTimeMs,
+                status: 'active',
+                sceneId: state.active.targetWorld,
+            }];
+        }
+        return [{
+            id: `invasion:next:${state.cycle + 1}`,
+            type: 'invasion',
+            icon: '⚔',
+            iconPath: 'assets/ui/event-icons/invasion.png',
+            label: '位面袭击',
+            atGameTimeMs: frame.endAtGameTimeMs,
+            status: 'upcoming',
+        }];
+    },
+
     getState() {
         return clone(state);
     },

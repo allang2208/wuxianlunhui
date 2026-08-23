@@ -37,6 +37,7 @@
 | 函数 | 参数契约/生成内容 | 当前使用建筑 |
 |---|---|---|
 | `gabled_prism(length, width, roof_height, location, gable_mat, roof_mat)` | 可编辑五面双坡屋顶主体，山墙和坡面分材质 | 风车、仓库、铁匠铺、靶场、骑兵学院、茅草屋 |
+| `barrel_vault(length, width, height, location, end_mat, roof_mat, segments)` | 沿局部 X 延伸的封闭半椭圆拱顶，端面与曲面分材质；可缩短为跨拱金属肋 | 主神空间仓库；后续小礼拜堂、拱顶库房可复用 |
 | `roof_rows(length, width, roof_height, base_z, mat, rows)` | 双坡屋顶两侧的重叠瓦行/草层；`rows` 控制层数 | 同上；茅草屋使用较少行数形成厚草顶 |
 | `half_timber_facade(width, height, y, base_z, timber, bays, include_braces)` | 正立面上下梁、立柱和交替斜撑 | 标准壳、风车上层、靶场屋、骑兵塔 |
 | `half_timber_side(depth, height, x, base_z, timber, bays)` | 侧立面梁柱和斜撑 | 标准壳、风车上层 |
@@ -45,7 +46,7 @@
 | `hipped_roof(length, width, height, location, mat)` | 四坡屋顶，自建 mesh；当前作为 `standard_shell(roof_kind='hipped')` 可选项 | 已注册，当前建筑包尚未正式使用 |
 | `cone(radius, height, location, mat, vertices)` | 圆锥/低边数尖顶；`vertices=4` 可做方锥塔顶 | 骑兵学院训练塔 |
 | `rough_boulder(size, location, mat, rotation, subdivisions)` | 独立可编辑低多边形自然岩块；尺寸、旋转与细分可控，适合重叠成矿堆或自然地基 | 能量矿石堆 |
-| `faceted_crystal_prism(height, radius, location, mat, highlight_mat, lean, sides, depth_scale, rotation_z)` | 带肩部与尖顶的多棱晶柱；支持水平倾斜、横截面纵深和交替高光分面，根部保持可嵌入结构 | 能量矿石堆四形态 |
+| `faceted_crystal_prism(height, radius, location, mat, highlight_mat, lean, sides, depth_scale, rotation_z)` | 带肩部与尖顶的多棱晶柱；支持水平倾斜、横截面纵深和交替高光分面，根部保持可嵌入结构 | 能量矿石堆四形态、位面谐振塔 |
 | `standard_shell(dims, roof_kind, thatch, bays)` | 组合 foundation、主体灰泥、低石墙、屋顶、正面/侧面木构；返回 frontY/sideX/roofBase 等锚点 | 仓库、铁匠铺、军械库、骑兵学院、茅草屋 |
 
 其中 `hipped_roof`、`cone`、`standard_shell` 当前定义在 `settlement-building-pack-blender.py`。当第二套建筑包也需要这些组件时，应移动到 `building-component-kit.py`，本表路径随代码一起更新。
@@ -104,6 +105,7 @@
 | 面包屋 | `Bakery_Oven*` / `Bakery_BroadOvenChimney` / `Bakery_FlourSack*` / `Bakery_WallFirewood*` | 侧墙内嵌拱形烤炉、单座粗大烤炉烟囱及全部贴墙的面粉袋/柴薪；不得拆成第二栋烤炉房或散落院落摊位 | `build_bakery()` / `portal_core()` / `portal_arch_ring()` |
 | 传送门 | `Portal_LeftPier*` / `Portal_RightPier*` / `Portal_MarbleArch` | 两根方形大理石门柱、柱脚/柱头、内嵌面板与单一道半圆拱；保持简洁单门轮廓 | `build_portal()` / `portal_arch_ring()` |
 | 传送门 | `Portal_CyanCore` / `Portal_BrassInnerInlay` / `Portal_Keystone` | 单片拱顶青蓝门芯、窄黄铜内嵌线、单块拱顶石与门槛；禁止扩展成多环祭坛群 | `build_portal()` / `portal_core()` |
+| 位面谐振塔 | `PlanarResonator_*` | 完整2×2双层地基、中央机座、四座承重轴承柱、三道相互正交的完整黄铜陀螺环和单一悬浮蓝紫晶核；环与晶核保持独立可编辑 | `build_planar_resonator()` / `resonator_torus_ring()` |
 | 丛林神庙 | `JungleTemple_*Terrace` / `JungleTemple_CentralStep_*` / `JungleTemple_Sanctuary*` | 完整方形地基、三层居中退台、唯一中央宽阶与后部封闭圣殿；保持单体功能建筑，不拆成遗迹群 | `build_jungle_temple()` |
 | 丛林神庙 | `JungleTemple_UpperLevel_*` / `JungleTemple_*Tower*` | 圣殿上方三层逐级收分的中央楼层，以及左右完全镜像并与主体相连的双塔台；塔台含塔身、平台、四角柱和石顶盖 | `build_jungle_temple()` |
 | 丛林神庙 | `JungleTemple_Crown*` / `JungleTemple_RoofComb` / `JungleTemple_SunMedallion*` / `JungleTemple_Vine*` | 顶层阶梯冠部、单一太阳徽记、左右镜像附墙苔藓藤蔓与唯一暗门；植被只能作为附着细节 | `build_jungle_temple()` |
@@ -117,6 +119,7 @@
 | 三级房屋增量 | `House_Level3OrnateBalcony*` / `House_Gilt*` / `House_FamilyCrest*` / `House_RidgeFinial*` | 在同一母体上增加雕花铜饰阳台、克制镀金木构、家徽、彩窗花饰和小型屋脊顶饰；不增加第三层、塔楼或第二屋顶 | `build_house_level(level=3)` |
 | 茅草屋 | `Cottage_*` | 厚草顶标准壳、门窗、烟囱、灯笼的住宅组合 | `build_thatch_hut()` |
 | 麦田风车 | `Mill_*` / `Sail_*` | 细高石基、木构上层、紧凑机房屋顶和四叶片 | `build_windmill()` / `add_windmill_sails()` |
+| 主神空间仓库 | `MainWarehouse_*` | 单格白石库房、半圆拱顶、金属跨拱肋、蓝晶双门与宝石封印；继承旧宝箱的白/金/蓝识别但不保留宝箱形体 | `build_main_space_warehouse()` / `barrel_vault()` |
 
 ## 建筑与组件使用矩阵
 
@@ -124,6 +127,7 @@
 |---|---|---|
 | 麦田风车 | 细高石基 + 木构上层 + 双坡顶 | 四叶片、谷仓门、前/侧窗 |
 | 仓库 | 四层标准壳 | 二层前阳台、四层侧阳台、箱桶、袋、吊梁 |
+| 主神空间仓库 | 单层白石库房 + 半圆拱顶 | 蓝晶双门、金色拱肋、宝石封印与侧窗；运行时为1×1建筑 |
 | 铁匠铺 | 低矮标准壳 | 左开门、内部工具/炉火、工作台、铁砧、烟囱 |
 | 靶场 | 后部小屋 + 一格围栏院落 | 前围栏靶子、檐下枪架、弓枪和火药袋 |
 | 骑兵学院 | 马厩标准壳 + 单训练塔 | 双马厩门、阁楼窗、徽记、双灯笼 |
@@ -135,6 +139,7 @@
 | 市场 | 石木交易厅 + 宽四坡顶 | 四正两侧固定摊位、相连 L 形条纹前檐、大型钱币广告牌、商品吊牌、固定秤与双灯 |
 | 面包屋 | 完整石基地基 + 两层半木烘焙铺 + 连续双坡瓦顶 | 附墙烤炉口、单座粗大烟囱、暖橱窗、固定面包陈列、无文字面包徽记、贴墙面粉袋与柴薪 |
 | 传送门 | 浅阶大理石地台 + 双方柱单圆拱 | 青蓝单门芯、窄黄铜内嵌线、单块拱顶石与门槛 |
+| 位面谐振塔 | 完整2×2双层石质地台 + 中央金属机座 + 四座轴承柱 | 三道黄铜陀螺环、十字导能槽、蓝紫发光轴承与单一悬浮晶核 |
 | 丛林神庙 | 完整方形地基 + 三层退台 + 后部封闭圣殿 + 三层收分上楼 | 单中央宽阶、唯一暗门、左右对称双塔台、顶层冠部、太阳徽记与镜像附墙藤蔓 |
 | 雪原城堡 | 完整矩形石垣 + 三层阶梯平台 + 四层日式天守 | 同轴三段宽阶、唯一前门楼、左右相连双橹塔、深色多重飞檐、独立覆雪面与暖窗 |
 | 沙漠官邸 | 完整矩形地基 + 三层阶梯式中央砂岩主厅 + 左右相连翼楼 | 一座中央大洋葱穹顶、两座翼楼小穹顶、两座镜像火炬状塔楼、唯一中央拱门、三级入口台阶与逐层成对窄窗 |

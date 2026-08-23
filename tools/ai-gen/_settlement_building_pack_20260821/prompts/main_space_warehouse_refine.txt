@@ -1,0 +1,9 @@
+Use case: stylized-concept
+Asset type: final material refinement for the accepted main-space warehouse treasure chest
+Input images: Image 1 is the accepted 12-step treasure chest and must retain its exact composition; Image 2 is the Blender depth control and must retain the exact geometry.
+Primary request: Refine only the existing surface quality of the same closed treasure chest. Add crisp hand-carved relief to the existing gold filigree, realistic polished-gold highlights with restrained age in recesses, subtle cool-gray veining and pearlescent depth in the existing white marble, and clean faceted royal-blue sapphire reflections with a restrained magical inner glow.
+Style/medium: highly detailed handcrafted realistic PBR strategy-game prop, ornate fantasy craftsmanship, clean readable isometric game asset.
+Lighting/mood: soft neutral studio lighting contained on the chest, strong material separation, no external cast shadow.
+Color palette: cool pearlescent white marble, rich polished gold, vivid royal-blue sapphire; preserve the accepted color balance.
+Composition: preserve the accepted strict 30-degree orthographic view, 44.8-degree ground orientation, crop, scale and placement.
+Constraints: change materials and micro-detail only; preserve the exact closed chest silhouette, lid seam, three lid ribs, four feet, all gold scrollwork, the central sapphire lock, every smaller sapphire inlay and the visible side ornament; keep the plain uniform vivid yellow background; no checkerboard, building, house, door, window, room, open lid, loose treasure, added or removed ornament, people, text, watermark, extra object, landscape, external cast shadow or perspective camera.

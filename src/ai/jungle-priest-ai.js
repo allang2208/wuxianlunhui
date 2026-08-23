@@ -11,6 +11,7 @@ import {
     finishRtsCommandAtHold,
     resolveRtsMoveDestination,
 } from './rts-command-utils.js';
+import { queryNearbyEntities, stableAiPhase } from './friendly-spatial-query.js';
 
 export class JunglePriestAI {
     constructor(priest) {
@@ -26,6 +27,8 @@ export class JunglePriestAI {
         this._pendingSpell = -1;
         this._releaseLeft = 0;
         this._castAnimLeft = 0;
+        this._decisionTimer = stableAiPhase(priest, this.cfg.decisionMs ?? 120);
+        this._cachedTarget = null;
     }
     cancelForCommand() {
         // 施法动作保持不可打断；新命令已经写在实体上，当前施法结束后立即接管。
@@ -69,7 +72,18 @@ export class JunglePriestAI {
             this._applyCommand(command, dt, entities);
             return;
         }
-        const target = this._nearestEnemy(entities);
+        const engageRange = this.cfg.engageRange || 950;
+        this._decisionTimer -= dt;
+        if (!this._isValidTarget(this._cachedTarget)
+            || Math.hypot(this._cachedTarget.x - m.x, this._cachedTarget.y - m.y) > engageRange) {
+            this._cachedTarget = null;
+            this._decisionTimer = 0;
+        }
+        if (this._decisionTimer <= 0) {
+            this._decisionTimer = this.cfg.decisionMs ?? 120;
+            this._cachedTarget = this._nearestEnemy(entities);
+        }
+        const target = this._cachedTarget;
         if (target) {
             if (this._cooldown <= 0 && this._canCastAt(target)) {
                 this._startCast(target, dt); return;
@@ -139,7 +153,7 @@ export class JunglePriestAI {
     }
     _nearestEnemy(entities) {
         let best = null; let bestDistance = this.cfg.engageRange || 950;
-        for (const entity of (entities?.values?.() || entities || [])) {
+        for (const entity of queryNearbyEntities(entities, this.m, bestDistance)) {
             if (!this._isValidTarget(entity)) continue;
             const distance = Math.hypot(entity.x - this.m.x, entity.y - this.m.y);
             if (distance < bestDistance) { best = entity; bestDistance = distance; }

@@ -43,6 +43,9 @@ export function refreshStructureDepth(entity) {
         entity._structureBackDepth = structureDepthAtY(byKey.back.y, bias);
         entity._structureFrontDepth = structureDepthAtY(byKey.front.y, bias);
         entity._faceDepth = entity._structureFrontDepth;
+        // footprint/位置变化必须同步刷新拓扑基准。此前只更新遮挡线，却保留首次渲染时
+        // 缓存的 _structureTopologyBaseDepth，移动、重建或运行时校正后的建筑会继续按旧位置排序。
+        entity._structureTopologyBaseDepth = entity._structureFrontDepth;
         return entity;
     }
 
@@ -58,6 +61,7 @@ export function refreshStructureDepth(entity) {
     entity._structureFrontY = y;
     entity._structureBackDepth = entity._faceDepth;
     entity._structureFrontDepth = entity._faceDepth;
+    entity._structureTopologyBaseDepth = entity._faceDepth;
     return entity;
 }
 

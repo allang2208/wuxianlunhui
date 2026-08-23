@@ -198,6 +198,11 @@ if (enemy._pathManager) {
    共享对象，原地改写是别名 bug。
 6. **缓存 LRU + 告警节流**：`_setCache` 满容量先清过期再淘汰最旧；A*/forceRecalc 失败告警
    1s 节流，避免卡住循环刷屏。
+7. **全局任务队列（2026-08-23）**：敌人的首次重算、目标变化、卡住强制重算和路径有效性
+   检查统一进入 `PathWorkScheduler`，按卡住紧急 > 过门追击 > 防守怪 > 普通怪排序；同一
+   `PathManager` 的重复任务必须合并，重算会吞并旧有效性检查。每帧最多执行 2 次重算、5 次
+   有效性检查；排空耗时达到 3ms 后不得再启动新任务。`PATH_DEFERRED` 必须保留任务到下一帧，不能当失败。
+   玩家 RTS 的 `PathManager` 保持同步直算，不进入敌人队列，避免输入响应增加一帧延迟。
 
 **2026-08-03 剩余清单已清（改代码前必读）**：
 1. **冰墙不得调 `pathFinder.invalidateCache()`**：冰墙只往 `WallSystem.isoSegments` 推段，

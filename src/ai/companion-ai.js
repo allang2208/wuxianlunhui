@@ -47,6 +47,7 @@ import {
     DEFAULT_MAGE_AI, decideCompanionAction, pickCompanionSpell, shouldUseRun,
     shouldWarriorDefend, shouldWarriorWhirlwind, pickPatrolPoint, pickNearestNode,
 } from './companion-ai-decision.js';
+import { queryNearbyEntities, stableAiPhase } from './friendly-spatial-query.js';
 
 const MELEE_THREAT_RANGE = 220; // 攻击距离低于此值视为近战威胁
 // 技能射程兜底（与技能系统默认一致；skills.json effectFormula 通常不含 maxRange）
@@ -67,7 +68,7 @@ export class CompanionAI {
         this.cfg = { ...DEFAULT_MAGE_AI, ...(companion.aiConfig || {}) };
         this.cfg.engageRange = RTS_DEFAULT_ACQUIRE_RANGE;
         this._systems = null;
-        this._decisionTimer = 0;
+        this._decisionTimer = stableAiPhase(companion, this.cfg.decisionMs || 120);
         this._castTimer = 0;
         this._initPos = false;
         this._lastAction = 'idle';
@@ -732,8 +733,7 @@ export class CompanionAI {
     _cmdPatrol(entities, player, cmd) {
         const c = this.c;
         const center = cmd.point || { x: c.x, y: c.y };
-        const enemies = this._activeEnemies(entities);
-        const near = enemies.filter((e) => Math.hypot(e.x - c.x, e.y - c.y) <= CMD_PATROL_SENSE);
+        const near = this._activeEnemies(entities, CMD_PATROL_SENSE);
         if (near.length) {
             // 遇敌：贴脸 flee（撤退点钳制在巡逻圈内），否则锁定最近者施法/追击
             const { threat, threatDist } = this._meleeThreat(near, c);
@@ -1374,7 +1374,7 @@ export class CompanionAI {
         const finalDamage = Math.max(1, Math.round((c.data.atk || 0) * damageMul));
         const shape = new GroundCircle(c.x, c.y, radius, surfaceEffectFromEntity(c));
         let hitCount = 0, killCount = 0;
-        for (const e of this._activeEnemies(entities)) {
+        for (const e of this._activeEnemies(entities, radius + 96)) {
             if (!e || this._whirlwindHitSet.has(e)) continue;
             if (!canMeleeReachElevation(c, e)) continue;
             if (!shape.intersectsEntity(e)) continue;
@@ -1679,7 +1679,9 @@ export class CompanionAI {
 
     _activeEnemies(entities, maxRange = Number.POSITIVE_INFINITY) {
         const out = [];
-        const iter = entities && entities.values ? entities.values() : entities || [];
+        const iter = Number.isFinite(maxRange)
+            ? queryNearbyEntities(entities, this.c, maxRange)
+            : (entities && entities.values ? entities.values() : entities || []);
         for (const e of iter) {
             if (!e || !e.active || e.hp <= 0) continue;
             if (e._faction !== 'enemy') continue;

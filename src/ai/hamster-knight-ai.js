@@ -11,12 +11,13 @@ import { SoundManager } from '../ui/sound-manager.js';
 import { EffectFactory } from '../utils/effect-factory.js';
 import { clearRtsSurfaceRoute, finishRtsCommandAtHold, resolveRtsMoveDestination, RTS_DEFAULT_ACQUIRE_RANGE } from './rts-command-utils.js';
 import { canMeleeReachElevation } from './elevated-navigation-controller.js';
+import { queryNearbyEntities, stableAiPhase } from './friendly-spatial-query.js';
 
 export class HamsterKnightAI {
     constructor(knight) {
         this.m = knight;
         this.cfg = knight.aiConfig || {};
-        this._decisionTimer = 0;
+        this._decisionTimer = stableAiPhase(knight, this.cfg.decisionMs ?? 120);
         this._attackTimer = 0;
         this._attackInterval = this.cfg.attackInterval ?? 2000;
         this._attackDamage = this.cfg.attackDamage ?? 100;
@@ -382,7 +383,7 @@ export class HamsterKnightAI {
     _nearestEnemy(entities) {
         let best = null;
         let bestDistance = Infinity;
-        const iterable = entities?.values ? entities.values() : entities || [];
+        const iterable = queryNearbyEntities(entities, this.m, this._engageRange);
         for (const entity of iterable) {
             if (!this._validEnemy(entity)) continue;
             const distance = Math.hypot(entity.x - this.m.x, entity.y - this.m.y);

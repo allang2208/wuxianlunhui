@@ -14,6 +14,7 @@ import {
 } from '../combat/elevated-ranged.js';
 import { hasRangedLineOfSight } from '../combat/ranged-line-of-sight.js';
 import { tryApplyMarkArrow } from '../combat/mark-arrow-effect.js';
+import { queryNearbyEntities, stableAiPhase } from './friendly-spatial-query.js';
 
 const HIT_RADIUS = 28;
 
@@ -21,7 +22,7 @@ export class HamsterMusketeerAI {
     constructor(unit) {
         this.m = unit;
         this.cfg = unit.aiConfig || {};
-        this._decisionTimer = 0;
+        this._decisionTimer = stableAiPhase(unit, this.cfg.decisionMs ?? 120);
         this._attackTimer = 0;
         this._attackInterval = this.cfg.attackInterval ?? 2500;
         this._attackDamage = this.cfg.attackDamage ?? 80;
@@ -186,7 +187,7 @@ export class HamsterMusketeerAI {
         let best = null, bestD = Infinity;
         let bestShootable = null, bestShootableD = Infinity;
         const attackRange = this._effectiveAttackRange();
-        const iter = entities?.values ? entities.values() : entities || [];
+        const iter = queryNearbyEntities(entities, m, this._engageRange);
         for (const e of iter) {
             if (!e || !e.active || e.hp <= 0 || e._faction !== 'enemy' || e._isEnergyNode) continue;
             const d = Math.hypot(e.x - this.m.x, e.y - this.m.y);
@@ -274,7 +275,7 @@ export class HamsterMusketeerAI {
             b.wallContext || projectileWallContext(m)
         );
         let hit = null;
-        for (const e of (entities?.values ? entities.values() : entities || [])) {
+        for (const e of queryNearbyEntities(entities, b, HIT_RADIUS + 64)) {
             if (!e || !e.active || e.hp <= 0 || e._faction !== 'enemy' || e._isEnergyNode) continue;
             const bottom = e.collider?.bottomZ ?? (Number(e.z) || 0);
             const top = e.collider?.topZ ?? (bottom + (e.bodyHeight || e.size || 80));

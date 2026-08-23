@@ -1687,6 +1687,43 @@
   minDist 150、count 80、随机 flipX），调用顺序铁律不变（DefenseSystem.setup 之前）。
 - 低矮荒漠植物点缀仍走 `deco_desert_1~4`（束草/蒿灌木/龙舌兰/风滚草，第 2 区地面节）。
 
+### 全位面通用 Phaser 降雨（2026-08-23）
+
+- **唯一入口**：`GameScene` 持有 `RainWeatherSystem`，统一读取双份
+  `game-config.json#weatherEffects.rain`；默认支持 scene8~scene11，并以 `excludedSceneTypes:["dungeon"]`
+  二次排除所有 `type:"dungeon"` 场景，不能只依赖目标 ID 白名单。`WorldWeatherSystem` 是跨场景排期与存档
+  真源，只用统一游戏时钟维护每个位面的开始/结束绝对时间；`RainWeatherSystem` 仍只接收当前档位并负责无玩法
+  影响的视听表现，不创建实体、物理体、AI或独立计时器，加载切场或天气结束时立即销毁。
+- **三层表现**：运行时用 Phaser CanvasTexture 生成纵向渐变雨丝和2:1地表水花；雨丝位于前景
+  depth 99976，冷色压暗覆盖位于99968，均低于战争迷雾99980和昼夜覆盖99990；水花使用
+  `GROUND_WEATHER + 0.01`，压在建筑/单位之下。禁止给单粒子增加 Filter/postFX。
+- **四档强度**：`defaultIntensity:light` 明确首版效果为小雨；中雨、大雨、暴风雨只通过
+  `intensities` 合并覆盖发射频率、单次数量、存活上限、寿命、横风与纵向落速、尺寸、水花和环境压暗。
+  档位切换必须销毁并按新上限重建两个 Emitter，禁止对既有池反复 `updateConfig()` 扩容。
+  位面强制档位必须配置在 `schedule.forcedIntensityBySceneId`；scene8 沙漠固定为 `storm`，排期、旧存档恢复、
+  天气预报和开发工具手动触发都必须归一为暴风雨，不能只修改随机权重。
+- **暴风雨雷电**：只有 `storm.thunder.enabled` 为真时创建纯白闪光矩形；触发后必须以 alpha 1
+  覆盖世界画面 `whiteHoldMs:200`，再在 `recoveryMs:650` 内线性衰减回0。闪光层高于战争迷雾和昼夜覆盖，
+  并覆盖整个 GameScene 摄像机输出；独立 HudScene 与 DOM UI 始终保留，形成射击游戏闪光弹式白屏。
+  禁止绘制分叉电弧，也禁止复用 `lightning-1/2.mp3` 电击声；雷声必须走 `SoundManager.playThunder()` 的
+  三套低通棕噪声与低频正弦合成变体并随机选择，服从 SFX/主音量。首次随机等待3.6~7.2秒，
+  后续每次等待8.4~17秒；调度只累计统一世界 delta，不引入独立计时器。
+- **相机与性能**：雨丝、水花只在 `camera.worldView + viewportMarginPx` 与当前位面菱形的交集内手动发射，
+  两个 Emitter 都必须预留粒子池并设置 `maxAliveParticles`；每帧每层最多补8次发射，暂停时只将
+  Emitter `timeScale` 设为0，不允许按12288×8192全图铺雨或另起 Phaser Timer。
+- **交互开发工具**：位面调整栏的每个位面行显示“降雨”状态并提供小雨/中雨/大雨/暴风雨四个按钮；
+  只有当前已进入位面的按钮可用；按钮通过 `WorldWeatherSystem` 的非存档调试覆盖切换强度或压制当前自动天气，
+  不能直接把视觉层当作天气状态真源。存在强制档位的位面只显示该档按钮，避免提供实际不会生效的选项。
+  雨天气默认不改视野、移速、战斗、地形含水量或昼夜时钟，后续玩法化必须另建状态真源，视觉系统只接收模式。
+- **预测门禁与事件接口**：`weather_forecasting` 科技只解锁建造，玩家仍须在对应位面保有存活的
+  `weather_forecast_tower` 才能看到该位面的天气预报。预测塔使用配置驱动功能建筑并随世界快照持久化；当前
+  是复用研究院贴图的明确占位。顶部条由 `WorldEventTimelineSystem.registerProvider(id, provider)` 聚合事件，
+  袭击和天气只是首批 provider；新增事件必须提供稳定 id、发生游戏时间、图标、标签与状态，不得耦合进 HUD。
+  正式事件图标使用 `assets/ui/event-icons/` 下的 256×256 透明冷钢六边形 PNG，provider 通过 `iconPath`
+  提供资源路径并保留 `icon` emoji 作为加载失败回退；HUD 只负责通用渲染，不按事件类型硬编码贴图。
+  四档降雨图标必须以 `rain-heavy.png` 为不可变视觉母版，共用同一云层、徽章边框、构图与透明轮廓；
+  小雨、中雨只逐档减少云下雨丝，大雨保持密集雨幕，暴风雨只在同一密集雨幕上增加单道无分叉闪电。
+
 ### 世界-122 风吹扬沙环境效果（2026-08-22 首版）
 
 - **唯一入口**：`GameScene` 持有 `WindblownSandSystem`，只读取
@@ -1741,6 +1778,28 @@
   `VisionSourceRegistry.radiusOf()` 最终半径链增加 scene8 专属 `×0.5`，传送门、塔与出兵建筑不受影响；
   与夜晚 `×0.5` 乘算后为 `×0.25`。不得修改 AI 感知、仇恨、攻击距离、相机或永久探索记录；
   战争迷雾会周期重读半径，天气切换无需重建迷雾网格。
+
+#### 全位面通用毁灭挑战（2026-08-23）
+
+- **状态真源**：`WorldDestructionChallengeSystem` 按 `sceneId + worldEpoch` 保存 scene8~scene11 的独立挑战记录，
+  主存档入口为 `worlds.destructionChallenges`。挑战只使用 `EnvironmentLightingSystem.elapsedMs` 推进，禁止使用
+  `Date.now()`、独立 Timer 或位面快照保存调度状态。传送门被毁、世代号失效或新游戏重置时删除记录；正常离场、
+  观察切换和存读档不得停止挑战。
+- **生成规则**：触发后等待5秒，每5秒在目标位面菱形地图右侧角落生成6只普通怪，以累计60只普通怪为一个周期。
+  每个周期中点（30、90、150……）生成精英，第N周期生成N只；周期终点（60、120、180……）以领主取代同批精英，
+  第1~2周期各1只领主、第3~4周期各2只，之后每2个周期再增加1只。离场期间保留
+  状态但不物化实体，回场后只生成下一批，禁止追补离场期间全部积压批次造成瞬时实体洪峰。
+- **生成背压与热路径契约**：普通怪达到 `softMaxAlive:36` 后保留待生成队列并等待空位，所有挑战怪不得突破
+  `hardMaxAlive:60`；每帧最多物化 `spawnPerFrame:2`，普通怪需为里程碑保留 `milestoneReserve:6` 个槽位。
+  待生成队列属于瞬态调度状态，不写入存档。防守怪生成时必须预置基地目标，感知与友军决策需错峰；远距离建筑目标
+  使用战略可达判断，只在接近攻击范围后做精确 LOS，禁止恢复逐怪逐帧全场建筑/敌人扫描。
+- **战斗复用**：怪物必须走 `DefenseSystem.spawnDestructionChallengeMonster()`，复用正式 normal/elite/lord 池、
+  `WallSystem.findSafeSpawn`、防守目标选择和沿途交战逻辑；禁止复制怪物工厂或另写 AI。挑战怪带独立标记，不能进入
+  五日入侵的存活数、清波和胜利判断，普通入侵结束也不得误删挑战怪。无尽挑战默认不结算防守金币，避免无限刷金。
+- **配置与工具**：参数真源为双份 `world-system.json#destructionChallenge`，默认 `spawnIntervalMs:5000`、
+  `normalPerBatch:6`、`eliteEveryNormals:30`、`lordEveryNormals:60`、`eliteIncreaseEveryCycles:1`、
+  `lordIncreaseEveryCycles:2`。交互开发工具“位面”页每一行都提供触发按钮；
+  未接通或传送门已毁时禁用，触发后只显示状态与累计数量，不提供提前停止入口。
 
 ### 世界-122 建筑与建造（2026-08-17）
 
@@ -2141,6 +2200,16 @@
   计时类语义不变（dt 累加）。塔/单位/怪物不打标（战斗响应不能降）。
 - **小地图动态层 100ms 降频**：`_syncMinimap` 入口 `_minimapNextAt` 节流（10Hz 足够）；
   静态层缓存键逻辑不变。
+- **运行时性能观测与视口裁切（2026-08-23）**：`PerformanceMonitor` 采集逻辑主循环、
+  Canvas、Phaser 同步、DOM UI 的最近 120 帧平均/P95/峰值，并在交互开发工具“性能”页显示
+  实体、HUD、寻路队列和门追击缓存计数。`GameScene` 只对 `camera.worldView + 320px` 外的
+  Sprite、名字/血条、阴影、X 光和友军动画做视觉隐藏与同步跳过；不得修改实体 `active`、AI、
+  物理、碰撞、寻路或小地图真源。视口隐藏使用独立恢复标记，并在恢复后继续由战争迷雾最终
+  执行可见性门禁，禁止用简单 `setVisible(true)` 绕过雾状态。
+- **开门追击共享缓存（2026-08-23）**：建造门和防御目标候选按实体表身份、数量与 250ms TTL
+  共享；门内目标优先从 `SpatialPartitionSystem.queryRadius` 取 1500px 局部候选，再执行原有
+  侧向、LOS 与目标优先级精判。门开关、存活和 hp 必须在消费缓存时重新校验，缓存只能减少
+  全表扫描，不能改变过门追击语义。
 
 ### 世界-122 后台活 tick 驱动（M2 阶段一，2026-08-19 落地）
 
@@ -2389,9 +2458,10 @@
   阶段提示支援或撤离；地牢探险中只允许世界面板观察指挥，玩家本体支援保持禁用。交互开发工具
   “位面”页签只调用系统公开调试入口：展示状态/世代/快照/候选池，
   推进时间必须同时推进 `EnvironmentLightingSystem` 统一时钟和入侵系统，模拟毁门必须复用正式毁灭事务。
-- **顶部入侵条颜色语义**：条宽继续读取 HUD 模型的 `progress`，但颜色读取归一化“危险度”。等待期
-  `danger=progress`，入侵期因 `progress` 表示传送门剩余耐久，必须使用 `danger=1-progress`；危险度按
-  0、1/3、2/3、1 四个锚点连续经过绿、蓝、黄、红，禁止把满耐久传送门显示成红色。
+- **顶部时间事件轴**：`WorldInvasionSystem.getTimelineFrame()` 提供当前五日袭击周期的起止时间和推进比例，
+  `WorldEventTimelineSystem` 把袭击、预测到的天气及后续 provider 事件换算到同一横轴。袭击文字仍读取
+  `getHudModel()` 并保留“距离入侵 N 天”；入侵发生后继续显示目标、波次、传送门耐久与支援按钮，时间轴不再
+  复用条宽表达传送门耐久。时间填充颜色仍按0、1/3、2/3、1连续经过绿、蓝、黄、红。
 - **世界栏目切换事务（2026-08-20 修复）**：`SceneManager.switchScene` 以布尔值报告是否真正完成；
   目标不存在、传送门未建成或已有切换进行中时必须拒绝且不得改写观察/RTS 状态。普通切换在任何状态写入前
   快照实体、特效、相机、当前场景、本体坐标、观察状态及 `_worldPlayerPos`，加载失败统一回滚；观察态回滚

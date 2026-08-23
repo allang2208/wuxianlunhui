@@ -7,6 +7,10 @@ import { SoundManager } from '../../ui/sound-manager.js';
 import enemyConfigData from '../../../data/enemy-config.json';
 import { canMeleeShareSurface } from '../../combat/melee-surface.js';
 import {
+    straightMotionWasBlocked,
+    sweptMotionMeleeHits,
+} from '../../combat/motion-melee-sweep.js';
+import {
     canImpactBasicMelee,
     canStartBasicMelee,
     createBasicMeleeSnapshot,
@@ -397,8 +401,11 @@ export class ArmoredKnight extends Enemy {
 
     _startCharge() {
         const cfg = this._getSkillConfigs().charge;
+        const target = this.target;
+        if (!target || !target.active || !target.hittable || target._isDead
+            || (Number.isFinite(target.hp) && target.hp <= 0)) return;
         this._animState = 'charge';
-        this._chargeTarget = this.target;
+        this._chargeTarget = target;
         this._chargeTraveled = 0;
         this._chargeDamaged = false;
         this._chargeCooldown = cfg.cooldown ?? 10000;
@@ -413,9 +420,9 @@ export class ArmoredKnight extends Enemy {
         this.noCollision = true;
         this.vx = 0;
         this.vy = 0;
-        if (this.target && this.target.active) {
-            const dx = this.target.x - this.x;
-            this.rotation = Math.atan2(this.target.y - this.y, dx);
+        if (target.active) {
+            const dx = target.x - this.x;
+            this.rotation = Math.atan2(target.y - this.y, dx);
             // 冲锋朝向初始锁定目标侧（死区更新，见 _updateCharge）
             if (Math.abs(dx) > 1e-3) this._chargeFaceDir = dx > 0 ? 1 : -1;
         }
@@ -446,7 +453,11 @@ export class ArmoredKnight extends Enemy {
             const backY = -Math.sin(this.rotation) * 12 + (Math.random() - 0.5) * 6;
             EffectFactory.createDustEffect(this.x + backX, this.y + backY + 10, 1.2);
         }
-        const t = this._chargeTarget && this._chargeTarget.active ? this._chargeTarget : this.target;
+        const t = this._chargeTarget;
+        const fromX = this.x;
+        const fromY = this.y;
+        let intendedX = fromX;
+        let intendedY = fromY;
 
         // 直接追踪目标单位
         if (t && t.active) {
@@ -462,22 +473,35 @@ export class ArmoredKnight extends Enemy {
                 const targetR = t.groundRadius || t.collisionRadius || 0;
                 const contactDist = (this.groundRadius || 0) + targetR;
                 const step = Math.min(speed * dtSec, Math.max(0, d - contactDist));
-                const nx = this.x + (dx / d) * step;
-                const ny = this.y + (dy / d) * step;
-                const r = WallSystem.resolve(this.x, this.y, nx, ny, this.groundRadius);
-                this._chargeTraveled += Math.hypot(r.x - this.x, r.y - this.y);
+                intendedX = fromX + (dx / d) * step;
+                intendedY = fromY + (dy / d) * step;
+                const r = WallSystem.resolve(fromX, fromY, intendedX, intendedY, this.groundRadius);
+                this._chargeTraveled += Math.hypot(r.x - fromX, r.y - fromY);
                 this.x = r.x;
                 this.y = r.y;
             }
         }
+        const motionBlocked = straightMotionWasBlocked(
+            fromX, fromY, intendedX, intendedY, this.x, this.y
+        );
 
-        // 命中判定：撞到目标立即结算并停止
-        if (!this._chargeDamaged && t && t.active && t.hittable && this._isTargetInRange(t, cfg.hitRange ?? 60)) {
+        // 命中判定只认发动时锁定目标，并扫过本帧实际可达轨迹。
+        if (!this._chargeDamaged && sweptMotionMeleeHits(
+            this,
+            t,
+            fromX,
+            fromY,
+            this.x,
+            this.y,
+            cfg.hitRange ?? 60,
+            { blocked: motionBlocked, skill: '铠甲骑士冲锋' }
+        )) {
             this._chargeDamaged = this._dealChargeHit(t);
         }
 
-        // 停止条件：命中 / 超出最大范围 / 超时未命中
-        if (this._chargeDamaged || this._chargeTraveled >= maxDist || this._chargeElapsed >= maxDur || !t || !t.active) {
+        // 停止条件：命中 / 撞墙偏离轨迹 / 超出最大范围 / 超时 / 锁定目标失效
+        if (this._chargeDamaged || motionBlocked || this._chargeTraveled >= maxDist
+            || this._chargeElapsed >= maxDur || !t || !t.active || t._isDead) {
             this._endCharge();
         }
     }

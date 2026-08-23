@@ -85,6 +85,22 @@
     "mdef": 90,
     "rebuildCost": { "gold": 1000, "energy": 2500 }
   },
+  "destructionChallenge": {
+    "spawnIntervalMs": 5000,
+    "normalPerBatch": 6,
+    "softMaxAlive": 36,
+    "hardMaxAlive": 60,
+    "spawnPerFrame": 2,
+    "milestoneReserve": 6,
+    "eliteEveryNormals": 30,
+    "lordEveryNormals": 60,
+    "eliteBaseCount": 1,
+    "eliteIncreaseEveryCycles": 1,
+    "lordBaseCount": 1,
+    "lordIncreaseEveryCycles": 2,
+    "rightCornerInsetPx": 180,
+    "spawnSpreadPx": 150
+  },
   "invasion": {
     "intervalDays": 5,
     "dungeonProgressByGrade": {

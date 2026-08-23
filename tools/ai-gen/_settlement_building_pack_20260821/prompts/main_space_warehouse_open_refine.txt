@@ -1,0 +1,7 @@
+Use case: low-denoise material and detail refinement of an already approved open-state game asset.
+
+Preserve the input image's composition and object identity exactly. Keep the same open treasure chest, lid angle, hinge connection, body proportions, camera, framing, white marble surfaces, three gold lid ribs, gold filigree layout, central sapphire lock, smaller sapphire inlays, four feet, dark empty interior, blue magical glow, and yellow background.
+
+Refine only surface quality: crisper engraved gold edges, cleaner marble veining, polished sapphire facets, coherent metal highlights, clean cavity rim, and precise anti-aliased silhouette. Maintain the exact existing placement and count of all ornaments. Keep the interior empty.
+
+Do not close or move the lid. Do not redesign, restyle, reshape, widen, narrow, stretch, crop, rotate, change the camera, change the palette, add treasure, add new gems, move the lock, rearrange filigree, add text, scenery, floor, shadow, border, transparency, checkerboard, white background, or black background.

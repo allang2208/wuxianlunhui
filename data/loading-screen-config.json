@@ -27,6 +27,32 @@
     "title": "冰封世界加载中...",
     "backgrounds": []
   },
+  "desertWorld": {
+    "sceneIds": [
+      "scene8"
+    ],
+    "minimumDurationMs": 1000,
+    "title": "世界-122·沙漠加载中...",
+    "backgrounds": [
+      "assets/scenes/loading/desert-1.png",
+      "assets/scenes/loading/desert-2.png",
+      "assets/scenes/loading/desert-3.png",
+      "assets/scenes/loading/desert-4.png",
+      "assets/scenes/loading/desert-5.png",
+      "assets/scenes/loading/desert-6.png"
+    ]
+  },
+  "snowfieldWorld": {
+    "sceneIds": [
+      "scene9"
+    ],
+    "minimumDurationMs": 1000,
+    "title": "世界-123·雪原加载中...",
+    "backgrounds": [
+      "assets/scenes/loading/snowfield-1.png",
+      "assets/scenes/loading/snowfield-2.png"
+    ]
+  },
   "swampForest": {
     "sceneIds": [
       "scene10"

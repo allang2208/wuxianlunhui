@@ -1,0 +1,23 @@
+Use case: precise identity-preserving object edit for a game asset.
+Asset type: an open-state variant of the exact same ornate treasure chest shown in Image 1.
+
+Image roles:
+- Image 1 is the accepted closed-state 48-step render. It is the absolute identity, materials, proportions, ornament placement, color, camera, scale, and lighting reference.
+- Image 2 is a Blender depth guide. It controls only the physical opening of the existing lid and the revealed cavity geometry.
+
+Primary edit:
+Rotate only the chest's existing domed lid backward around its rear gold hinges until it matches the open-lid angle in the depth guide. Reveal a dark, empty interior with a restrained sapphire-blue magical glow. Keep the lid mechanically connected to the same chest body. The cavity contains no coins, weapons, loose gems, or other objects.
+
+Identity invariants — preserve exactly from Image 1:
+- the same broad white-marble chest body, silhouette, width, depth, body height, and four short feet;
+- the same domed lid thickness and curvature, merely rotated open rather than redesigned;
+- the same three gold lid ribs and their spacing;
+- the same gold filigree panels, corner bands, central lock plate, and ornament placement on the front and sides;
+- the same large central blue sapphire lock gem and the same smaller sapphire inlays;
+- the same white marble veining, polished gold, saturated sapphire blue, and dark recess colors;
+- the same three-quarter isometric camera, focal length, object scale, centered composition, and yellow studio background.
+
+Quality target:
+High-end hand-painted fantasy strategy-game building sprite, physically coherent hinge construction, crisp readable silhouette, refined gold engraving, polished gemstone highlights, detailed marble veining, clean separation from the flat yellow background, no cast shadow outside the object.
+
+Do not redesign, restyle, widen, narrow, stretch, shorten, simplify, add towers, add architecture, add a pedestal, add treasure, change the camera, change the color palette, move the lock, rearrange ornaments, replace the lid, duplicate gems, detach the lid, or introduce text, logos, people, scenery, floor, frame, border, transparency, checkerboard, white background, or black background.

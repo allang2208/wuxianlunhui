@@ -520,6 +520,16 @@ class PathFinder {
         this._frameUsedMs = 0;
     }
 
+    getPerformanceStats() {
+        return {
+            frameBudgetMs: this.frameBudgetMs,
+            frameUsedMs: this._frameUsedMs,
+            budgetRemainingMs: Math.max(0, this.frameBudgetMs - this._frameUsedMs),
+            pathCacheEntries: this.pathCache?.size || 0,
+            reachabilityCacheEntries: this._reachabilityCache?.size || 0,
+        };
+    }
+
     _budgetAvailable() {
         return this._frameUsedMs < this.frameBudgetMs;
     }

@@ -278,6 +278,7 @@ export const GameUIManager = {
         }
         EnvironmentLightingSystem.restoreTime(data.gameTime);
         window.World122SandstormSystem?.restore?.(data.worlds?.sandstorm ?? data.world122?.sandstorm);
+        window.WorldWeatherSystem?.restore?.(data.worlds?.weather);
         // 恢复装备与背包（附魔/强化/改造数据随物品一并恢复）
         if (data.equipments) this.player.equipments = data.equipments;
         restoreUnitUpgrades(data.world122?.unitUpgrades);
@@ -293,6 +294,7 @@ export const GameUIManager = {
         window.WorldProgressionSystem?.restore?.(data.worlds?.progression);
         TroopLineSystem.restore(data.worlds?.troopLines);
         window.WorldInvasionSystem?.restore?.(data.worlds?.invasion);
+        window.WorldDestructionChallengeSystem?.restore?.(data.worlds?.destructionChallenges);
         if (Array.isArray(data.backpack) && typeof EquipManager !== 'undefined') {
             // 原地替换内容而非换数组：init 时旧数组引用已注入 EquipTooltipManager/
             // GoldManager/BackpackDialogManager/dragDropManager，换数组会让这些引用失效
@@ -372,6 +374,8 @@ export const GameUIManager = {
                 troopLines: TroopLineSystem.serialize(),
                 invasion: window.WorldInvasionSystem?.serialize?.() || null,
                 sandstorm: window.World122SandstormSystem?.serialize?.() || null,
+                weather: window.WorldWeatherSystem?.serialize?.() || null,
+                destructionChallenges: window.WorldDestructionChallengeSystem?.serialize?.() || null,
                 scenes: serializeWorldScenes(),
             },
         };
@@ -436,6 +440,9 @@ export const GameUIManager = {
         const invasionDetail = getElementIfExists('worldInvasionDetail');
         const invasionSupport = getElementIfExists('worldInvasionSupport');
         const invasionBar = getElementIfExists('worldInvasionBar');
+        const timelineEvents = getElementIfExists('worldTimelineEvents');
+        const timelineCursor = getElementIfExists('worldTimelineCursor');
+        const timeline = window.WorldEventTimelineSystem?.getHudModel?.();
         if (invasionHud && invasion) {
             invasionHud.classList.toggle('active', !!invasion.active);
             for (const severity of ['warning', 'critical', 'evacuation']) {
@@ -450,13 +457,48 @@ export const GameUIManager = {
         if (invasionSupport && invasion) {
             invasionSupport.style.display = invasion.active && invasion.canSupport ? '' : 'none';
         }
-        if (invasionBar && invasion) {
-            const progress = Math.max(0, Math.min(1, Number(invasion.progress) || 0));
-            // 倒计时越满越危险；入侵发生后 progress 改表示传送门剩余耐久，危险度方向相反。
-            const danger = invasion.active ? 1 - progress : progress;
+        if (invasionBar && timeline) {
+            const progress = Math.max(0, Math.min(1, Number(timeline.progress) || 0));
             invasionBar.style.width = `${Math.round(progress * 100)}%`;
-            invasionBar.style.setProperty('--invasion-gradient-start', invasionDangerColor(danger - 0.08));
-            invasionBar.style.setProperty('--invasion-gradient-end', invasionDangerColor(danger + 0.08));
+            invasionBar.style.setProperty('--invasion-gradient-start', invasionDangerColor(progress - 0.08));
+            invasionBar.style.setProperty('--invasion-gradient-end', invasionDangerColor(progress + 0.08));
+        }
+        if (timelineCursor && timeline) {
+            timelineCursor.style.left = `${Math.round(timeline.progress * 10000) / 100}%`;
+        }
+        if (timelineEvents && timeline) {
+            timelineEvents.replaceChildren();
+            timeline.events.forEach((event, index) => {
+                const marker = document.createElement('span');
+                marker.className = `world-timeline-event is-${event.type || 'generic'}${event.status === 'active' ? ' active' : ''}`;
+                marker.style.left = `${Math.round(event.position * 10000) / 100}%`;
+                marker.style.setProperty('--timeline-event-lane', String(index % 2));
+                marker.setAttribute('role', 'img');
+                marker.setAttribute('aria-label', `${event.label}，${event.timeLabel}`);
+                marker.title = `${event.label} · ${event.timeLabel}`;
+                const icon = document.createElement('span');
+                icon.className = 'world-timeline-event-icon';
+                const fallbackIcon = event.icon || '◆';
+                if (event.iconPath) {
+                    const image = document.createElement('img');
+                    image.src = event.iconPath;
+                    image.alt = '';
+                    image.draggable = false;
+                    image.decoding = 'async';
+                    image.addEventListener('error', () => {
+                        image.remove();
+                        icon.textContent = fallbackIcon;
+                    }, { once: true });
+                    icon.appendChild(image);
+                } else {
+                    icon.textContent = fallbackIcon;
+                }
+                const time = document.createElement('span');
+                time.className = 'world-timeline-event-time';
+                time.textContent = event.timeLabel;
+                marker.append(icon, time);
+                timelineEvents.appendChild(marker);
+            });
         }
     },
     setupWeaponSwitchButtons() {

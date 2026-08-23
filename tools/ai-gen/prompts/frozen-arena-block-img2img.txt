@@ -1,0 +1,13 @@
+Material-transfer edit of the provided game asset. Preserve the exact silhouette,
+camera, 30-degree orthographic isometric projection, 1x1 wall proportions, top
+face, two visible side faces, individual brick count, brick dimensions, mortar
+lines, chipped edges and every brick position from the input. Do not stretch,
+enlarge, merge, remove, split or rearrange any brick. Change material only: turn
+the existing irregular dark stone masonry into ancient glacial ice masonry. Each
+original stone becomes the same-sized solid ice brick with pale cyan and muted
+steel-blue variation, frosted edges, restrained internal cracks and trapped air.
+Keep the same dark narrow mortar gaps and the same readable small-to-medium brick
+scale as the reference wall. Detailed realistic PBR game asset, low saturation,
+strong readability over snow, neutral diffuse lighting. No snow, no icicles, no
+glow, no extra geometry, no pedestal, no floor, no cast shadow, no scenery, no
+text, no watermark. Keep the background plain black outside the original object.

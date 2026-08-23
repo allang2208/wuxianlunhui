@@ -28,6 +28,9 @@ import { ElevatedNavigationController } from '../ai/elevated-navigation-controll
 import { resolveRtsMoveDestination } from '../ai/rts-command-utils.js';
 import { getTributeFriendlyMoveSpeedMul, getFriendlyMoveSpeedAura } from '../config/tribute-effects.js';
 import { World125FogTideSystem } from '../world/world125-fog-tide-system.js';
+import performanceConfig from '../../data/performance-config.json';
+import { PathWorkScheduler } from '../ai/path-work-scheduler.js';
+import { PerformanceMonitor } from './performance-monitor.js';
 import {
     basicMeleeApproachRange,
     distanceToMeleeTarget,
@@ -35,6 +38,8 @@ import {
 
 /** 超出此距离不再进行 A* 寻路，直接朝目标移动 */
 const MAX_PATHFIND_RANGE = 800;
+const GATE_CACHE_TTL_MS = Math.max(50, Number(performanceConfig.gatePursuit?.cacheTtlMs) || 250);
+const GATE_TARGET_QUERY_RADIUS = Math.max(500, Number(performanceConfig.gatePursuit?.targetQueryRadiusPx) || 1500);
 const resolveWallFor = (entity, x, y, nx, ny, radius) => WallSystem.resolve(
     x, y, nx, ny, radius,
     WallSystem.ignoreForEntity ? WallSystem.ignoreForEntity(entity) : null
@@ -45,6 +50,7 @@ const resolveWallFor = (entity, x, y, nx, ny, radius) => WallSystem.resolve(
  */
 const MovementSystem = {
     _lastObstacleUpdate: 0,
+    _gatePursuitCache: { source: null, size: -1, builtAt: 0, gates: [], targets: [], rebuilds: 0 },
 
     /**
      * [PERF-2026-08-03] 每帧寻路预算重置：由 game.js 主循环每帧调用一次。
@@ -55,6 +61,45 @@ const MovementSystem = {
         if (pathFinder && typeof pathFinder.beginFrame === 'function') {
             pathFinder.beginFrame();
         }
+        PathWorkScheduler.beginFrame();
+    },
+
+    endFrame() {
+        const queueStats = PathWorkScheduler.drain();
+        PerformanceMonitor.setCounter('path.queueTotal', queueStats.queuedTotal);
+        PerformanceMonitor.setCounter('path.queuedRecalculations', queueStats.queuedRecalculations);
+        PerformanceMonitor.setCounter('path.queuedValidations', queueStats.queuedValidations);
+        PerformanceMonitor.setCounter('path.completedRecalculations', queueStats.completedRecalculations);
+        PerformanceMonitor.setCounter('path.completedValidations', queueStats.completedValidations);
+        PerformanceMonitor.setCounter('path.deferredJobs', queueStats.deferredJobs);
+        PerformanceMonitor.setCounter('path.droppedJobs', queueStats.droppedJobs);
+        PerformanceMonitor.setCounter('path.maxQueuedJobs', queueStats.maxQueuedJobs);
+        PerformanceMonitor.setCounter('path.drainMs', queueStats.drainMs);
+        const finderStats = pathFinder?.getPerformanceStats?.();
+        PerformanceMonitor.setCounter('path.finderUsedMs', finderStats?.frameUsedMs || 0);
+        PerformanceMonitor.setCounter('path.cacheEntries', finderStats?.pathCacheEntries || 0);
+        PerformanceMonitor.setCounter('gate.cacheRebuilds', this._gatePursuitCache.rebuilds);
+        PerformanceMonitor.setCounter('gate.cachedGates', this._gatePursuitCache.gates.length);
+        PerformanceMonitor.setCounter('gate.cachedTargets', this._gatePursuitCache.targets.length);
+    },
+
+    _pathPriority(enemy, urgent = false) {
+        if (urgent) return 100;
+        if (enemy?._gatePursuit) return 80;
+        if (enemy?._defenseMonster) return 50;
+        return 20;
+    },
+
+    _requestPathRecalc(enemy, targetX, targetY, bypassLimit = false, urgent = false) {
+        if (!enemy?._pathManager || !pathFinder) return false;
+        return PathWorkScheduler.enqueueRecalculation(
+            enemy._pathManager,
+            pathFinder,
+            targetX,
+            targetY,
+            bypassLimit,
+            this._pathPriority(enemy, urgent),
+        );
     },
 
     /**
@@ -262,14 +307,14 @@ const moveData = this._computeMoveDirection(enemy, entities);
                 }
 
                 if (shouldRecalc && (targetX !== enemy.x || targetY !== enemy.y)) {
-enemy._pathManager.forceRecalc(pathFinder, targetX, targetY);
+                    this._requestPathRecalc(enemy, targetX, targetY);
                 }
             }
         }
 
         // [ENHANCE] 每帧更新 PathManager：检查路径有效性 + 局部修复
         if (groundPathAllowed && enemy._pathManager && pathFinder) {
-enemy._pathManager.update(dt, pathFinder);
+            enemy._pathManager.update(dt, pathFinder, PathWorkScheduler, this._pathPriority(enemy));
         }
 
         // 卡住检测与寻路触发（保留原有逻辑，作为 fallback）
@@ -543,7 +588,7 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
 
         const next = this._pickRelayPoint(enemy, tx, ty);
         enemy._relayTarget = next;
-        pm.forceRecalc(pathFinder, next.x, next.y);
+        this._requestPathRecalc(enemy, next.x, next.y);
     },
 
     /**
@@ -701,14 +746,20 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
                 const stuckDist = Math.sqrt((targetX - enemy.x) ** 2 + (targetY - enemy.y) ** 2);
                 if (hasMoveIntent && !waitAtGate && enemy._pathManager && pathFinder
                     && stuckDist <= MAX_PATHFIND_RANGE) {
-                    enemy._pathManager.forceRecalc(pathFinder, targetX, targetY, true);
+                    this._requestPathRecalc(enemy, targetX, targetY, true, true);
                 } else if (hasMoveIntent && !waitAtGate && enemy._pathManager && pathFinder) {
                     // [RELAY] 超距卡住：对中继点重算而非放弃（沿用同一中继目标，避免抖动）
                     // 直冲型怪物卡死（500ms 无位移）时同样允许接力重算——正常冲锋不受影响
                     if (!enemy._relayTarget) {
                         enemy._relayTarget = this._pickRelayPoint(enemy, targetX, targetY);
                     }
-                    enemy._pathManager.forceRecalc(pathFinder, enemy._relayTarget.x, enemy._relayTarget.y, true);
+                    this._requestPathRecalc(
+                        enemy,
+                        enemy._relayTarget.x,
+                        enemy._relayTarget.y,
+                        true,
+                        true,
+                    );
                 }
 
                 // [ENHANCE] 寻路失败时向目标切线方向设置临时战术目标，尝试绕过障碍/同伴
@@ -740,6 +791,31 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
         }
     },
 
+    _getGatePursuitCache(now = Date.now()) {
+        const source = Game?.entities || null;
+        const size = source?.size ?? -1;
+        const cache = this._gatePursuitCache;
+        if (source === cache.source && size === cache.size && now - cache.builtAt < GATE_CACHE_TTL_MS) {
+            return cache;
+        }
+        cache.source = source;
+        cache.size = size;
+        cache.builtAt = now;
+        cache.gates.length = 0;
+        cache.targets.length = 0;
+        if (source?.values) {
+            for (const entity of source.values()) {
+                if (!entity || !entity.active) continue;
+                if (entity._isCoverGate && entity.hp > 0) cache.gates.push(entity);
+                if (isDefenseTargetEligible(entity) && (entity.hp === undefined || entity.hp > 0)) {
+                    cache.targets.push(entity);
+                }
+            }
+        }
+        cache.rebuilds++;
+        return cache;
+    },
+
     /**
      * [GATE-PURSUIT] 开门追击（2026-08-15 用户要求，世界-122 防守怪）：
      * 建造门（BuildableGate）敞开时，若高价值目标（基地 > 玩家 > 玩家单位）在门内侧
@@ -769,9 +845,10 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
         // 已与玩家/单位交战中不打扰
         if (enemy.target && enemy.target.active && !enemy.target._isDefenseStructure) return;
         if (!Game || !Game.entities) return;
+        const gateCache = this._getGatePursuitCache();
         // 最近的敞开建造门（900px 内；门洞段开门时已从 isoSegments 移除，寻路自然穿门）
         let gate = null, gd = Infinity;
-        for (const e of Game.entities.values()) {
+        for (const e of gateCache.gates) {
             if (!e || !e._isCoverGate || !e.active || e.hp <= 0 || e.state !== 'open') continue;
             const d = Math.hypot(e.x - enemy.x, e.y - enemy.y);
             if (d <= 900 && d < gd) { gate = e; gd = d; }
@@ -792,11 +869,14 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
             && WallSystem.blocked(enemy.x, enemy.y, sideOfProbe.x, sideOfProbe.y)) return; // 怪物→门口畅通
         // 门内候选复用统一优先级：距离档位 → 仓鼠 → 玩家队友 → 玩家 → 建筑 → 基地。
         const cands = [];
-        for (const e of Game.entities.values()) {
+        const localTargets = SpatialPartitionSystem?._sourceEntities === Game.entities
+            ? SpatialPartitionSystem.queryRadius(gx, gy, GATE_TARGET_QUERY_RADIUS)
+            : gateCache.targets;
+        for (const e of localTargets) {
             if (!isDefenseTargetEligible(e)) continue;
             if (e.hp !== undefined && e.hp <= 0) continue;
             if (sideOf(e.x, e.y) !== -eSide) continue;
-            if (Math.hypot(e.x - gx, e.y - gy) > 1500) continue;
+            if (Math.hypot(e.x - gx, e.y - gy) > GATE_TARGET_QUERY_RADIUS) continue;
             if (WallSystem && WallSystem.blocked
                 && WallSystem.blocked(inProbe.x, inProbe.y, e.x, e.y)) continue;
             cands.push(e);
@@ -808,7 +888,7 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
                 enemy._lastKnownTargetPos = { x: t.x, y: t.y };
                 enemy._lostSightTimer = 0;
                 if (enemy._pathManager && pathFinder) {
-                    enemy._pathManager.forceRecalc(pathFinder, t.x, t.y, true);
+                    this._requestPathRecalc(enemy, t.x, t.y, true, true);
                 }
             }
             enemy._gatePursuit = true;
@@ -888,7 +968,7 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
         if (enemy.target && enemy.target.active && enemy.target._isCoverGate) return;
         const touch = (enemy.groundRadius || 20) + 26 + 12; // 半径 + 墙半厚 + 余量
         let best = null, bestD = Infinity;
-        for (const e of Game.entities.values()) {
+        for (const e of this._getGatePursuitCache().gates) {
             if (!e || !e._isCoverGate || !e.active || e.hp <= 0 || !e._gateSeg) continue;
             const s = e._gateSeg;
             const d = this._pointSegDistance(enemy.x, enemy.y, s.x1, s.y1, s.x2, s.y2);
@@ -1142,7 +1222,7 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
                         enemy._pathManager._clearPath();
                         // 触发重新寻路到真正目标
                         if (enemy.target && enemy.target.active) {
-                            enemy._pathManager.forceRecalc(pathFinder, enemy.target.x, enemy.target.y);
+                            this._requestPathRecalc(enemy, enemy.target.x, enemy.target.y);
                         }
                     } else {
                         enemy._pathManager._clearPath();

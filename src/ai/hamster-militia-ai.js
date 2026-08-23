@@ -11,12 +11,13 @@ import { MovementSystem } from '../systems/movement-system.js';
 import { SoundManager } from '../ui/sound-manager.js';
 import { clearRtsSurfaceRoute, finishRtsCommandAtHold, resolveRtsMoveDestination, RTS_DEFAULT_ACQUIRE_RANGE } from './rts-command-utils.js';
 import { canMeleeReachElevation } from './elevated-navigation-controller.js';
+import { queryNearbyEntities, stableAiPhase } from './friendly-spatial-query.js';
 
 export class HamsterMilitiaAI {
     constructor(militia) {
         this.m = militia;
         this.cfg = militia.aiConfig || {};
-        this._decisionTimer = 0;
+        this._decisionTimer = stableAiPhase(militia, this.cfg.decisionMs ?? 120);
         this._attackTimer = 0;
         this._attackInterval = this.cfg.attackInterval ?? 2000;
         this._attackDamage = this.cfg.attackDamage ?? 20;
@@ -255,7 +256,7 @@ export class HamsterMilitiaAI {
     _nearestEnemy(entities, m) {
         let best = null;
         let bestD = Infinity;
-        const iter = entities && entities.values ? entities.values() : entities || [];
+        const iter = queryNearbyEntities(entities, m, this._engageRange);
         for (const e of iter) {
             if (!e || !e.active || e.hp <= 0) continue;
             if (e._faction !== 'enemy') continue;

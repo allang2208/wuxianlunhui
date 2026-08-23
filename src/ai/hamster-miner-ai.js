@@ -11,12 +11,13 @@
 import { MovementSystem } from '../systems/movement-system.js';
 import { pickNearestNode } from './companion-ai-decision.js';
 import { SoundManager } from '../ui/sound-manager.js';
+import { stableAiPhase } from './friendly-spatial-query.js';
 
 export class HamsterMinerAI {
     constructor(miner) {
         this.m = miner;
         this.cfg = miner.aiConfig || {};
-        this._decisionTimer = 0;
+        this._decisionTimer = stableAiPhase(miner, this.cfg.decisionMs ?? 120);
         this._attackTimer = 0;
         this._attackInterval = this.cfg.attackInterval ?? 2000;
         this._attackDamage = this.cfg.attackDamage ?? 100;

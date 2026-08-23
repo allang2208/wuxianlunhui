@@ -1615,6 +1615,7 @@ export const SceneManager = {
         FogOfWarSystem.resetScene(sceneId);
         TroopLineSystem.invalidateWorld(sceneId);
         const worldEpoch = WorldProgressionSystem.getWorldEpoch(sceneId);
+        window.WorldDestructionChallengeSystem?.onWorldDestroyed?.(sceneId, worldEpoch);
         const tx = this._beginWorldDestructionTransaction(sceneId, worldEpoch);
         if (WorldProgressionSystem.shouldClearWorldScope(sceneId, 'snapshot')) {
             resetWorldSnapshot(sceneId);
