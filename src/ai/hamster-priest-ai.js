@@ -6,7 +6,6 @@
 // - praying 动画第 8 帧实际结算圣光，移动复用 MovementSystem。
 // ============================================================
 import { MovementSystem } from '../systems/movement-system.js';
-import { WallSystem } from '../world/wall-system.js';
 import { HolyLightSystem } from '../entities/components/holy-light-system.js';
 import { getAbilityLevel, getAbilityValue } from '../world/ability-store.js';
 import { getBuildingUpgradeAbility } from '../world/building-upgrade-projects.js';
@@ -431,13 +430,7 @@ export class HamsterPriestAI {
         this._stuckStreak++;
         if (this._stuckStreak < 2) return;
         this._stuckStreak = 0;
-        if (WallSystem && typeof WallSystem.findSafeSpawn === 'function') {
-            const safe = WallSystem.findSafeSpawn(m.x, m.y, m.groundRadius || 20);
-            if (safe && Number.isFinite(safe.x) && Number.isFinite(safe.y)) {
-                m.x = safe.x;
-                m.y = safe.y;
-            }
-        }
+        // 不再使用 findSafeSpawn 改写运行中坐标；统一寻路负责合法的小步脱困。
         if (m._pathManager && typeof m._pathManager._clearPath === 'function') {
             m._pathManager._clearPath();
         }

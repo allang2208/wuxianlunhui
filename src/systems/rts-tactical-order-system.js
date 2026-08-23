@@ -33,6 +33,19 @@ function explorationLocked(unit) {
         && (unit._exploreActive || unit._command?.mode === 'explore'));
 }
 
+function isMilitaryGuard(unit) {
+    return !!(unit && unit._faction === 'companion' && unit._rtsCanAttack !== false
+        && (unit._isHamsterWarrior
+            || unit._isHamsterGuard
+            || unit._isHamsterMilitia
+            || unit._isHamsterShooter
+            || unit._isHamsterScout
+            || unit._isHamsterMusketeer
+            || unit._isHamsterPriest
+            || unit._isHamsterKnight
+            || unit._isHamsterLightCavalry));
+}
+
 export const RtsTacticalOrderSystem = {
     _seq: 0,
 
@@ -69,11 +82,30 @@ export const RtsTacticalOrderSystem = {
         const iter = entities?.values ? entities.values() : (entities || []);
         for (const entity of iter) {
             if (entity?._rtsTacticalOrder) units.add(entity);
+            else if (isMilitaryGuard(entity) && entity._command?.mode === 'hold') {
+                this._updateHoldGuard(entity, entities, sceneId);
+            }
         }
         for (const member of partyMembers || []) {
             if (member?._rtsTacticalOrder) units.add(member);
         }
         for (const unit of units) this._updateUnit(unit, entities, sceneId);
+    },
+
+    /** 默认/移动完成后的待命士兵保持原地，但会主动攻击进入统一索敌范围的敌军。 */
+    _updateHoldGuard(unit, entities, sceneId) {
+        if (unit.active === false || unit._dying || unit.data?.hp <= 0) return;
+        const now = Date.now();
+        if (now < (unit._rtsHoldGuardScanAt || 0)) return;
+        unit._rtsHoldGuardScanAt = now + 120;
+        const target = this._nearestEnemy(unit, entities, sceneId);
+        if (!target) return;
+        unit._command = {
+            mode: 'attack',
+            point: null,
+            target,
+            _guardFromHold: true,
+        };
     },
 
     _updateUnit(unit, entities, sceneId) {

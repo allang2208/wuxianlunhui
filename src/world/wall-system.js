@@ -1445,10 +1445,16 @@ const WallSystem = {
     },
     /** 高架表面单位只忽略其当前连接城墙；其它墙、门和楼梯侧边仍正常阻挡。 */
     ignoreForEntity(entity) {
+        const onElevatedSurface = entity?._surfaceKind === 'wall_walk'
+            || entity?._surfaceKind === 'stairs'
+            || (entity?._elevatedNavigationBridge && entity?._elevatedNavigationActive);
+        // _surfaceWalls 可能在表面提交前后短暂保留；只有已经取得高架身份的单位才能
+        // 忽略承载自己的墙体。地面单位即使残留旧引用，也必须继续执行完整墙体碰撞。
+        if (!onElevatedSurface || (Number(entity?.z) || 0) <= 1) return null;
         const walls = Array.isArray(entity?._surfaceWalls) && entity._surfaceWalls.length
             ? entity._surfaceWalls
             : (entity?._surfaceWall ? [entity._surfaceWall] : []);
-        if (!walls.length || (Number(entity.z) || 0) <= 1) return null;
+        if (!walls.length) return null;
         const segs = new Set();
         const rects = new Set();
         for (const wall of walls) {

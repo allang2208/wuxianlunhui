@@ -332,13 +332,7 @@ export class HamsterMusketeerAI {
         this._stuckStreak++;
         if (this._stuckStreak < 2) return;
         this._stuckStreak = 0;
-        const safe = WallSystem.findSafeSpawn?.(m.x, m.y, m.groundRadius || 20);
-        if (safe && Math.hypot(safe.x - m.x, safe.y - m.y) > 5) {
-            m.x = safe.x;
-            m.y = safe.y;
-        }
-        m.target = null;
-        m._tacticalTarget = null;
+        // 不再使用 findSafeSpawn 改写运行中坐标；保留目标，让统一寻路重新规划。
         m._pathManager?._clearPath?.();
     }
 }

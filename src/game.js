@@ -1912,12 +1912,9 @@ EffectManager.update(dt);
                     : ((b.collisionShape === 'iso_rect' && b.collisionWidth > 0) ? b : null);
                 if (isoEnt) {
                     const other = isoEnt === a ? b : a;
-                    const supportedByIsoWall = isoEnt._isDefenseCover
-                        && (Number(other.z) || 0) > 1
-                        && Array.isArray(other._surfaceWalls)
-                        && other._surfaceWalls.includes(isoEnt);
-                    if (supportedByIsoWall) continue;
-                    if (isoEnt._isDefenseCover && other._faction === 'companion') continue;
+                    // 防御墙体的权威碰撞是同几何生成的 WallSystem._coverSeg；所有阵营都
+                    // 只走该通道，避免实体 footprint 二次推出门洞或产生玩家/友军口径差异。
+                    if (isoEnt._isDefenseCover) continue;
                     const immIso = !!isoEnt.noSeparation;
                     const immOther = !!other.noSeparation;
                     if (!(immIso && immOther)) {
@@ -1963,11 +1960,9 @@ EffectManager.update(dt);
                 const rectEnt = (a.collisionShape === 'rect' && a.collisionWidth > 0) ? a : ((b.collisionShape === 'rect' && b.collisionWidth > 0) ? b : null);
                 if (rectEnt) {
                     const other = rectEnt === a ? b : a;
-                    // 掩体矩形只挡怪物/玩家，不推友方单位（2026-08-16 仓鼠矿工卡门根修）：
-                    // 基地门洞两侧掩体的墙段已按门跨度裁剪放行，但 198×133 实体矩形仍
-                    // 伸入门洞——友方单位过门洞被矩形推出卡死（矿工贴门来回摆动+寻路
-                    // 重算）。友方移动本由 WallSystem.resolve（墙段）管，矩形对友方冗余。
-                    if (rectEnt._isDefenseCover && other._faction === 'companion') continue;
+                    // 矩形墙体同样由 _coverSeg 统一阻挡；不再为 companion 保留单独豁免，
+                    // 也不让重复实体矩形把任何阵营从已裁剪放行的门洞中推出。
+                    if (rectEnt._isDefenseCover) continue;
                     const otherR = other.groundRadius;
                     const rcx = rectEnt.collider ? rectEnt.collider.x : rectEnt.x;
                     const rcy = rectEnt.collider ? rectEnt.collider.y : rectEnt.y;

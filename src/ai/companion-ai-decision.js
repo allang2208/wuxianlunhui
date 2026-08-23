@@ -20,8 +20,7 @@ export const DEFAULT_MAGE_AI = {
     // 移动动画切换（2026-08-14）：移动距离超过 runDist 用 run（长距离奔袭/逃避/站位），
     // 小范围调整用 walk；flee 永远 run。
     runDist: 260,
-    // 掉队瞬移理智判定：离玩家超过 teleportDist 且非正常远离（flee/站位/施法/追赶中）→ 瞬移回身边；
-    // 超过 teleportHardDist 无条件瞬移（彻底跑丢兜底）。
+    // 历史掉队阈值仅为旧存档/纯函数兼容保留；运行时已不再据此改写队友坐标。
     teleportDist: 700,
     teleportHardDist: 1100,
 };
@@ -156,7 +155,7 @@ export function shouldWarriorWhirlwind(input) {
 }
 
 /**
- * 掉队瞬移理智判定（2026-08-14 用户需求）：
+ * 历史掉队判定纯函数（兼容旧调用/回归数据；当前运行时不再执行坐标瞬移）：
  * 区分 被卡住/卡门外导致的距离过远（瞬移） 与 正常 AI 运作导致的距离过远（不瞬移）。
  * 正常远离（合法，不瞬移）：①flee 逃离近战威胁（retreat 点含朝玩家分量，会自动收敛）
  *                          ②advance 去战斗站位输出（站位点离玩家在 maxFollow 允许范围）
@@ -205,7 +204,7 @@ export function shouldRelocateCompanion(input) {
 // 指令模式：'follow' | 'aggressive' | 'patrol' | 'gather' | 'hold'
 // ============================================================
 
-/** 指令是否脱离默认跟随状态（脱离时禁用掉队瞬移，允许远离玩家执行任务） */
+/** 指令是否脱离默认跟随状态（脱离时允许远离玩家执行任务） */
 export function isCommandActive(command) {
     return !!(command && command.mode && command.mode !== 'follow');
 }
