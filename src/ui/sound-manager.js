@@ -8,6 +8,18 @@
         const FILE_AUDIO_MAX_PER_PATH = Math.max(1, Number(FILE_AUDIO_PERF.perPathVoiceLimit) || 4);
         const FILE_AUDIO_MAX_CACHED_PATHS = Math.max(1, Number(FILE_AUDIO_PERF.cachedPathLimit) || 64);
         const FILE_AUDIO_REPEAT_GUARD_MS = Math.max(0, Number(FILE_AUDIO_PERF.repeatGuardMs) || 35);
+        const FILE_AUDIO_RAPID_MAX_PER_PATH = Math.max(
+            FILE_AUDIO_MAX_PER_PATH,
+            Number(FILE_AUDIO_PERF.rapidFirePerPathVoiceLimit) || 24
+        );
+        const FILE_AUDIO_RAPID_MAX_VOICES = Math.max(
+            FILE_AUDIO_RAPID_MAX_PER_PATH,
+            Number(FILE_AUDIO_PERF.rapidFireVoiceLimit) || 32
+        );
+        const rapidRepeatGuard = Number(FILE_AUDIO_PERF.rapidFireRepeatGuardMs);
+        const FILE_AUDIO_RAPID_REPEAT_GUARD_MS = Number.isFinite(rapidRepeatGuard)
+            ? Math.max(0, rapidRepeatGuard)
+            : 0;
 
         // 三种程序合成滚雷：近雷短促、连续滚雷、远雷低沉。每次闪电随机选择一种。
         const THUNDER_VARIANTS = Object.freeze([
@@ -82,6 +94,12 @@
             _filePools: new Map(),
             _fileLastPlayedAt: new Map(),
             _activeFileVoices: 0,
+            // 高频枪声单独使用已解码 AudioBuffer。HTML Audio 池只承担首次解码前/解码失败兜底，
+            // 避免 55~60ms 连射反复触发 media element 的异步 play/seek 调度。
+            _gunshotBuffers: new Map(),
+            _gunshotBufferLoads: new Map(),
+            _gunshotBufferFailures: new Set(),
+            _gunshotVoices: [],
 
             init() {
                 if (this._initialized) return;
@@ -92,6 +110,7 @@
                         this.ctx = new AudioContext();
                         this._initialized = true;
                         this._loadSavedVolumes();
+                        this._preloadGunshotBuffers();
                     }
                 } catch (e) { console.warn('Web Audio API 不可用:', e); }
             },
@@ -177,17 +196,25 @@
                 }
             },
 
-            // 播放外部音频文件（.mp3, .wav 等）；channel 走声道音量（默认 sfx）
-            playFile(path, volume = 1.0, channel = 'sfx') {
+            // 播放外部音频文件（.mp3, .wav 等）；channel 走声道音量（默认 sfx）。
+            // options.rapidFire 只供逐发枪声使用：放宽同路径池并在池满时抢占最旧尾音，
+            // 确保每次击发的枪口瞬态都能播放，同时仍受全局 voice 上限约束。
+            playFile(path, volume = 1.0, channel = 'sfx', options = null) {
                 if (!this.enabled || !path) return;
                 const chVol = this.channelVolumes[channel] ?? this.channelVolumes.sfx ?? 1;
                 const finalVolume = Math.max(0, Math.min(1, volume * chVol * this.masterVolume));
                 if (finalVolume <= 0) return;
                 try {
                     const now = performance.now();
+                    const rapidFire = options?.rapidFire === true;
+                    const repeatGuardMs = rapidFire
+                        ? FILE_AUDIO_RAPID_REPEAT_GUARD_MS
+                        : FILE_AUDIO_REPEAT_GUARD_MS;
+                    const perPathLimit = rapidFire
+                        ? FILE_AUDIO_RAPID_MAX_PER_PATH
+                        : FILE_AUDIO_MAX_PER_PATH;
                     const lastPlayedAt = this._fileLastPlayedAt.get(path);
-                    if ((Number.isFinite(lastPlayedAt) && now - lastPlayedAt < FILE_AUDIO_REPEAT_GUARD_MS)
-                        || this._activeFileVoices >= FILE_AUDIO_MAX_VOICES) return;
+                    if (Number.isFinite(lastPlayedAt) && now - lastPlayedAt < repeatGuardMs) return;
 
                     let pool = this._filePools.get(path);
                     if (!pool) {
@@ -197,8 +224,23 @@
                         this._filePools.set(path, pool);
                     }
                     pool.lastUsedAt = now;
-                    let audio = pool.voices.find((voice) => !voice._smBusy);
-                    if (!audio && pool.voices.length < FILE_AUDIO_MAX_PER_PATH) {
+                    const oldestBusyVoice = () => pool.voices.reduce((oldest, voice) => {
+                        if (!voice._smBusy) return oldest;
+                        if (!oldest || (voice._smStartedAt || 0) < (oldest._smStartedAt || 0)) return voice;
+                        return oldest;
+                    }, null);
+
+                    let audio = null;
+                    let stealBusyVoice = false;
+                    // 全局池已满时，高速枪声只能替换本枪最旧尾音，绝不突破全局 voice 上限。
+                    if (rapidFire && this._activeFileVoices >= FILE_AUDIO_MAX_VOICES) {
+                        audio = oldestBusyVoice();
+                        stealBusyVoice = !!audio;
+                    } else {
+                        audio = pool.voices.find((voice) => !voice._smBusy);
+                    }
+                    if (!audio && this._activeFileVoices < FILE_AUDIO_MAX_VOICES
+                        && pool.voices.length < perPathLimit) {
                         audio = new Audio(path);
                         audio.preload = 'auto';
                         audio._smBusy = false;
@@ -211,16 +253,29 @@
                         audio.addEventListener('error', release);
                         pool.voices.push(audio);
                     }
+                    if (!audio && rapidFire) {
+                        audio = oldestBusyVoice();
+                        stealBusyVoice = !!audio;
+                    }
                     if (!audio) return;
+
+                    if (stealBusyVoice && audio._smBusy) {
+                        audio.pause();
+                        audio._smBusy = false;
+                        this._activeFileVoices = Math.max(0, this._activeFileVoices - 1);
+                    }
 
                     // 部分浏览器在媒体元数据尚未就绪时会拒绝 seek；首播从0开始，无需因此占住声道。
                     try { audio.currentTime = 0; } catch (_e) { /* 未加载时保持默认播放头 */ }
                     audio._smBusy = true;
+                    audio._smStartedAt = now;
+                    audio._smPlayToken = (audio._smPlayToken || 0) + 1;
+                    const playToken = audio._smPlayToken;
                     this._activeFileVoices++;
                     this._fileLastPlayedAt.set(path, now);
                     audio.volume = finalVolume;
                     audio.play().catch((e) => {
-                        if (audio._smBusy) {
+                        if (audio._smBusy && audio._smPlayToken === playToken) {
                             audio._smBusy = false;
                             this._activeFileVoices = Math.max(0, this._activeFileVoices - 1);
                         }
@@ -229,6 +284,110 @@
                 } catch (e) {
                     console.warn('SoundManager.playFile error:', path, e);
                 }
+            },
+
+            _loadGunshotBuffer(path) {
+                if (this._gunshotBuffers.has(path)) {
+                    return Promise.resolve(this._gunshotBuffers.get(path));
+                }
+                if (this._gunshotBufferFailures.has(path)) return Promise.resolve(null);
+                const pending = this._gunshotBufferLoads.get(path);
+                if (pending) return pending;
+                if (!this.ctx) this.init();
+                if (!this.ctx) return Promise.resolve(null);
+
+                const load = fetch(path)
+                    .then((response) => {
+                        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                        return response.arrayBuffer();
+                    })
+                    .then((data) => this.ctx.decodeAudioData(data))
+                    .then((buffer) => {
+                        this._gunshotBuffers.set(path, buffer);
+                        this._gunshotBufferLoads.delete(path);
+                        return buffer;
+                    })
+                    .catch((error) => {
+                        this._gunshotBufferLoads.delete(path);
+                        this._gunshotBufferFailures.add(path);
+                        console.warn('SoundManager gunshot decode failed; using HTML Audio fallback:', path, error.message);
+                        return null;
+                    });
+                this._gunshotBufferLoads.set(path, load);
+                return load;
+            },
+
+            _preloadGunshotBuffers() {
+                const paths = FILE_AUDIO_PERF.gunshotPreloadPaths;
+                if (!Array.isArray(paths)) return;
+                for (const path of new Set(paths)) {
+                    if (typeof path === 'string' && path) this._loadGunshotBuffer(path);
+                }
+            },
+
+            _releaseGunshotVoice(voice, stop = false) {
+                const index = this._gunshotVoices.indexOf(voice);
+                if (index >= 0) this._gunshotVoices.splice(index, 1);
+                if (!voice) return;
+                voice.source.onended = null;
+                if (stop) {
+                    try { voice.source.stop(); } catch (_e) { /* 已自然结束时忽略 */ }
+                }
+                try { voice.source.disconnect(); } catch (_e) { /* 忽略 */ }
+                try { voice.gain.disconnect(); } catch (_e) { /* 忽略 */ }
+            },
+
+            _playDecodedGunshot(path, buffer, finalVolume) {
+                if (!buffer || !this.ctx) return false;
+
+                const samePath = this._gunshotVoices
+                    .filter((voice) => voice.path === path)
+                    .sort((a, b) => a.startedAt - b.startedAt);
+                if (samePath.length >= FILE_AUDIO_RAPID_MAX_PER_PATH) {
+                    this._releaseGunshotVoice(samePath[0], true);
+                }
+                if (this._gunshotVoices.length >= FILE_AUDIO_RAPID_MAX_VOICES) {
+                    const oldest = this._gunshotVoices.reduce((candidate, voice) => (
+                        !candidate || voice.startedAt < candidate.startedAt ? voice : candidate
+                    ), null);
+                    if (oldest) this._releaseGunshotVoice(oldest, true);
+                }
+
+                const startedAt = this.ctx.currentTime;
+                const source = this.ctx.createBufferSource();
+                const gain = this.ctx.createGain();
+                source.buffer = buffer;
+                gain.gain.setValueAtTime(finalVolume, startedAt);
+                source.connect(gain).connect(this.ctx.destination);
+                const voice = { path, source, gain, startedAt };
+                source.onended = () => this._releaseGunshotVoice(voice);
+                this._gunshotVoices.push(voice);
+                try {
+                    source.start(startedAt);
+                } catch (error) {
+                    this._releaseGunshotVoice(voice);
+                    console.warn('SoundManager decoded gunshot start failed; using HTML Audio fallback:', path, error.message);
+                    return false;
+                }
+                return true;
+            },
+
+            /**
+             * 逐发枪声专用入口：缓存解码后的 AudioBuffer，每次击发创建轻量 one-shot source。
+             * 首次解码期间或格式解码失败时才退回 rapidFire HTML Audio 池。
+             */
+            playGunshot(path, volume = 1.0, channel = 'sfx') {
+                if (!this.enabled || !path) return;
+                const chVol = this.channelVolumes[channel] ?? this.channelVolumes.sfx ?? 1;
+                const finalVolume = Math.max(0, Math.min(1, volume * chVol * this.masterVolume));
+                if (finalVolume <= 0) return;
+
+                const buffer = this._gunshotBuffers.get(path);
+                if (buffer && this._ensureCtx() && this._playDecodedGunshot(path, buffer, finalVolume)) return;
+
+                // 不等待异步解码，保证第一次扣扳机仍立即有声；同一路径只会发起一次加载。
+                if (!this._gunshotBufferFailures.has(path)) this._loadGunshotBuffer(path);
+                this.playFile(path, volume, channel, { rapidFire: true });
             },
 
             _trimFilePools() {
@@ -355,13 +514,27 @@
                 this.playFile(path, volume * gain, channel);
             },
 
+            /** 带距离衰减的逐发枪声，供敌人/世界单位射击使用。 */
+            playGunshotAt(path, x, y, volume = 1.0, channel = 'sfx', opts = {}) {
+                if (!this.enabled) return;
+                const p = (typeof window !== 'undefined' && window.Game && window.Game.player) || null;
+                const d = (p && p.active) ? Math.hypot(p.x - x, p.y - y) : 0;
+                const effectiveOpts = (this._distance && this._distance.enabled === false)
+                    ? { nearDist: 0, maxDist: Infinity }
+                    : opts;
+                const gain = this.distanceGain(d, effectiveOpts);
+                if (gain <= 0) return;
+                this.playGunshot(path, volume * gain, channel);
+            },
+
             /**
              * 世界音效统一入口（距离衰减，2026-08-11）：
              * 按声源世界坐标与玩家的距离自动衰减——越近越大直到 100%（nearDist 内），
              * 远离逐步减小直到 0（超过 maxDist 不播）。默认传播距离读
              * data/audio-config.json distanceAttenuation.defaultMaxDist（默认 2000px）。
              * 单次调用可用 opts.maxDist 覆盖（如特殊音效传播更远/更近）。
-             * 注意：声源=玩家自身的声音（枪声/脚步/技能/UI）请用 playFile，不要走此入口。
+             * 注意：声源=玩家自身的脚步/技能/UI请用 playFile；逐发枪声使用
+             * playGunshot（世界坐标枪声使用 playGunshotAt），避免普通音效去重吞枪声。
              * @param {string} path 音频路径
              * @param {number} x 声源世界坐标 x
              * @param {number} y 声源世界坐标 y

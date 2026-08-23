@@ -17,8 +17,8 @@ const PARAMS_URL = '/data/npc-portrait-params.json';
 // 默认立绘参数：按NPC肖像路径匹配（首次打开时自动应用；x/y 为 2026-07-30 前
 // offsetX/bottom 旧模型的迁移值：x=offsetX，y=0，锚 bottom 保留为各 NPC 默认值）
 const DEFAULT_PORTRAIT_PARAMS = {
-    // 小鼠侍从：锚 bottom 200px
-    'mouse_attendant': { x: -1009, y: 0, scale: 2.04, rotation: 0, flipX: false, anchorBottom: 200 },
+    // 小鼠侍从：画布/主体/脚线已归一到小鼠大王，复用大王当前保存位置
+    'mouse_attendant': { x: -720, y: -92, scale: 1.56, rotation: 0, flipX: false, anchorBottom: 220 },
     // 小鼠大王：锚 bottom 220px
     'npc_portrait': { x: -1010, y: 0, scale: 1.56, rotation: 0, flipX: false, anchorBottom: 220 }
 };

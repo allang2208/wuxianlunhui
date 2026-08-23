@@ -44,7 +44,12 @@ check('主神空间传送门可进入世界-123',
 const sceneSrc = fs.readFileSync(path.join(ROOT, 'src/world/scene-manager.js'), 'utf8');
 const floorSrc = fs.readFileSync(path.join(ROOT, 'src/world/dungeon-floor-texture.js'), 'utf8');
 const bootSrc = fs.readFileSync(path.join(ROOT, 'src/phaser/scenes/BootScene.js'), 'utf8');
+const gameSceneSrc = fs.readFileSync(path.join(ROOT, 'src/phaser/scenes/GameScene.js'), 'utf8');
 const scene9Body = (sceneSrc.split('_loadScene9(player) {')[1] || '').split('_loadScene7(')[0];
+
+check('世界-123镜头缩放与世界-122一致为70%',
+    /ZOOMED_OUT_WORLD_SCENES = new Set\(\['scene8', 'scene9', 'scene10', 'scene11'\]\)/.test(gameSceneSrc)
+    && /const sceneBaseZoom = zoomedOutWorld \? 0\.7 : 1/.test(gameSceneSrc));
 
 check('世界-123使用分块连续地面与三张雪纹理',
     /applyDungeonFloorChunked\(w, h, 2048, diamond\)/.test(scene9Body)

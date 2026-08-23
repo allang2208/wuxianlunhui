@@ -53,6 +53,7 @@ ASSETS = [
     "wheat_windmill",
     "market",
     "bakery",
+    "planar_resonator",
     "portal",
     # 2026-08-19 墙壁/楼梯/门接入阴影系统
     "obstacle_block",

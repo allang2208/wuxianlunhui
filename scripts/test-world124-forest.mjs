@@ -14,6 +14,7 @@ const scene = cfg.scenes?.scene10;
 const sceneSrc = fs.readFileSync(path.join(ROOT, 'src/world/scene-manager.js'), 'utf8');
 const bootSrc = fs.readFileSync(path.join(ROOT, 'src/phaser/scenes/BootScene.js'), 'utf8');
 const wallSrc = fs.readFileSync(path.join(ROOT, 'src/world/wall-system.js'), 'utf8');
+const gameSceneSrc = fs.readFileSync(path.join(ROOT, 'src/phaser/scenes/GameScene.js'), 'utf8');
 let fail = 0;
 function check(name, ok) {
     console.log(`${ok ? '  ✓' : '  ✗'} ${name}`);
@@ -26,6 +27,9 @@ check('世界-124与世界-122同尺寸', scene?.width === 12288 && scene?.heigh
 check('世界-124已注册主神空间入口与菱形地块',
     scene?.diamondFloor?.enabled === true
     && cfg.portals?.mainHub?.entries?.some((entry) => entry.targetScene === 'scene10'));
+check('世界-124镜头缩放与世界-122一致为70%',
+    /ZOOMED_OUT_WORLD_SCENES = new Set\(\['scene8', 'scene9', 'scene10', 'scene11'\]\)/.test(gameSceneSrc)
+    && /const sceneBaseZoom = zoomedOutWorld \? 0\.7 : 1/.test(gameSceneSrc));
 check('场景十加载草地地板、草簇与林地树散布',
     /_loadScene10\(player\)/.test(sceneSrc)
     && /floor_grass_forest_seamless/.test(sceneSrc)
@@ -54,5 +58,5 @@ for (let i = 1; i <= 5; i++) {
     }
 }
 
-console.log(`\n结果: ${7 + 2 * 5 - fail} 通过, ${fail} 失败`);
+console.log(`\n结果: ${8 + 2 * 5 - fail} 通过, ${fail} 失败`);
 process.exit(fail ? 1 : 0);

@@ -127,6 +127,25 @@ _playSound(key) {
   `skills.json#fireball.sounds.hit`；直接命中、撞墙和最大射程空爆均在爆炸结算后用
   `playFile` 播放，同一颗火球只响一次。
 
+#### 高频枪声低延迟播放（2026-08-23）
+- 普通外部音效继续走 `playFile` 的同路径去重与4实例池；逐发枪声必须走
+  `playGunshot`，带世界坐标的敌人枪声走 `playGunshotAt`，禁止重新退回普通 `playFile`。
+- 玩家手枪、散弹与机枪/步枪在 `_fireRanged` 内必须全部汇合到 `_playFireSound`；尤其
+  `WEAPON_FX_CONFIG.lmg.soundMap` 只是分支音色真源，不能据此绕过 helper 直调 `playFile`。
+- `Combatant.fireProjectile` 默认负责一次开火声。复用它但另有整次击发枪口层的调用方（防御塔）
+  必须传 `suppressFireSound:true`，再由枪口层只播一次；散弹 pellet 循环禁止逐弹丸发声。
+- 敌对持枪者、防御塔、仓鼠火枪与赏金猎人的枪声走 `playGunshotAt`；弓箭、近战和普通动作音
+  继续走 `playWorld`。不得因为单位射速较慢就把枪声退回普通同路径去重池，多单位齐射仍会撞限流。
+- `gunshotPreloadPaths` 中的正式枪声在音频系统初始化时异步 `fetch + decodeAudioData`；未预载的新枪声
+  在首次触发时按同样方式解码，解码期间仍用 rapidFire HTML Audio 兜底；
+  缓存完成后每发创建轻量 `AudioBufferSourceNode`，不再对媒体元素反复执行 `play/seek`，
+  避免55~60ms射速下的异步启动抖动。解码失败的路径固定退回 HTML Audio，不会逐发重复请求。
+- 高速枪声读取 `rapidFireVoiceLimit/rapidFirePerPathVoiceLimit`，默认全局32、同路径24路；
+  24路可覆盖双持 G18 同周期两发与约600ms尾音。达到上限时只截断最旧尾音，始终保留新一发
+  枪口瞬态，同时避免无限叠加 Web Audio 节点。
+- `rapidFireRepeatGuardMs` 默认0，射速和双持同帧击发均不得被通用35ms重复保护吞掉；
+  普通 UI、环境、命中和怪物事件音仍保留原重复保护。
+
 #### 步骤5: 程序化合成音效（numpy 管线，2026-08-16 铁闸门开/关）
 > 素材优先级 = **用户提供 > 合成兜底**：世界-122 铁闸门音效一轮用合成（
 > `gen-gate-sounds.py`），二轮被用户素材 `D:\即时重放\1.mp3` 替换（`gate_iron.mp3`，

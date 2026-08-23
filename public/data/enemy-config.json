@@ -880,10 +880,10 @@
     ],
     "attackType": "骨爪撕咬",
     "render": {
-      "spriteSize": 90,
+      "spriteSize": 151,
       "collisionWidth": 80,
       "collisionHeight": 79,
-      "footOffsetY": 43,
+      "footOffsetY": 45.42,
       "projectileHitbox": {
         "width": 81,
         "height": 83,
@@ -891,8 +891,69 @@
         "bottom": 0
       }
     },
+    "deathAnim": {
+      "duration": 1800,
+      "holdMs": 1000
+    },
     "textures": {
-      "idle": "assets/enemies/zombie_dog_idle.png"
+      "idle": "assets/enemies/zombie_dog/v2/idle.png",
+      "walk": "assets/enemies/zombie_dog/v2/walking.png",
+      "run": "assets/enemies/zombie_dog/v2/running.png",
+      "attack": "assets/enemies/zombie_dog/v2/attacking.png",
+      "death": "assets/enemies/zombie_dog/v2/dying.png",
+      "referenceCell": 512,
+      "frameLayouts": {
+        "idle": {
+          "columns": 6,
+          "rows": 2,
+          "frameWidth": 512,
+          "frameHeight": 512,
+          "frameCount": 12,
+          "footY": 410,
+          "frameRate": 3,
+          "repeat": -1
+        },
+        "walk": {
+          "columns": 5,
+          "rows": 4,
+          "frameWidth": 512,
+          "frameHeight": 512,
+          "frameCount": 19,
+          "footY": 410,
+          "frameRate": 12,
+          "repeat": -1
+        },
+        "run": {
+          "columns": 6,
+          "rows": 4,
+          "frameWidth": 512,
+          "frameHeight": 512,
+          "frameCount": 22,
+          "footY": 410,
+          "frameRate": 12,
+          "repeat": -1
+        },
+        "attack": {
+          "columns": 6,
+          "rows": 3,
+          "frameWidth": 640,
+          "frameHeight": 512,
+          "frameCount": 17,
+          "footY": 410,
+          "duration": 700,
+          "repeat": 0
+        },
+        "death": {
+          "columns": 6,
+          "rows": 3,
+          "frameWidth": 512,
+          "frameHeight": 512,
+          "frameCount": 18,
+          "footY": 410,
+          "duration": 1800,
+          "repeat": 0
+        }
+      }
     }
   },
   "zombie": {

@@ -77,7 +77,8 @@
 - **用 `_attackAnimTimer` 锁住 `MovementSystem` 的朝向覆盖**：特殊冲刺/飞扑阶段把 `_attackAnimTimer` 设为非 0，`MovementSystem` 会提前返回，不会把 `enemy.rotation` 重新指向当前目标。
 - **Phaser 残影**：在特殊移动中每隔几十 ms 用当前 `textureKey`/`frame`/`displayWidth`/`displayHeight`/`flipX` 克隆一个 `scene.add.sprite()`，alpha 0.5，再用 tween 淡出销毁即可。对于侧视角精灵图，通常只需 flipX 表示左右，不需要设置 `rotation`，否则会倾斜。
 - **新精灵图先扫空白帧再注册动画**：4×8 切割的 sheet 尾部/多余格可能是全空帧，按满格注册循环动画会周期性播空白帧 = 贴图"时常消失"（毒液僵尸 idle 24 格仅帧 0 有内容的实证）。用 PIL 按格扫 alpha>10 像素数核对注册帧区间；静态待机就注册单帧（0..0）。
-- **`_getPhaserOptions` 不要硬编码 spriteSize/碰撞尺寸**：`_configureEnemyBody` 优先级 `options > config.render`，硬编码会让碰撞编辑器的调整完全不生效（突变体-3 教训）。统一 `const renderCfg = this.config?.render || {}; spriteSize: renderCfg.spriteSize || 默认值`。
+- **`_getPhaserOptions` 不要硬编码 spriteSize**：共享视觉初始化优先级为 `options > config.render > size×4`，硬编码会让碰撞编辑器的贴图尺寸调整完全不生效（突变体-3、僵尸犬教训）。统一 `const renderCfg = this.config?.render || {}; spriteSize: renderCfg.spriteSize || 默认值`。
+- **移除敌人 Phaser Arcade Body 时，必须把视觉初始化独立保留**：`getOrCreateEnemySprite` 首次创建时已经使用当前纹理，随后 `_syncEnemyAnimation` 的“纹理发生切换”分支不会执行；若把 `setDisplaySize`、非方形帧等比缩放、首帧与 tint 随旧物理配置函数一起删除，所有怪物首次出现都会按素材原始帧尺寸显示。正确做法是纯视觉 helper 在首次创建、外部 `enemySpawn` 和纹理切换三条路径共同调用；同纹理动态尺寸只给红狼王变身等显式 `dynamicSpriteSize` 特例。不要为此恢复 Arcade Body，动态实体 ground footprint 继续使用现有 Collider 圆形契约。
 - **黑色粒子特效必须 `blendMode: 'NORMAL'`**：`smoke_particle` 是白色软圆靠 tint 上色，ADD 加法混合下黑色 tint 完全不可见（矿洞绿烟用 ADD 是因为亮色发光；墓碑黑烟改用 NORMAL）。
 
 ## 11. 新增 Buff / Debuff 标准工作流

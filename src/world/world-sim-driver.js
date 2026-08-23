@@ -17,7 +17,7 @@ import { WarehouseSystem } from '../ui/warehouse-system.js';
 import {
     getWorldSnapshots, isWorldLive, isWorldSnapshotCurrent,
 } from './world122-snapshot.js';
-import { settleWorld122 } from './world122-sim.js';
+import { getWorld122ResearchSummary, settleWorld122 } from './world122-sim.js';
 import { EnvironmentLightingSystem } from './environment-lighting-system.js';
 import { TroopLineSystem } from './troop-line-system.js';
 import { TechnologySystem } from './technology-system.js';
@@ -25,6 +25,7 @@ import { applyGlobalUpgradesToKind } from './unit-upgrade-store.js';
 import { getUpgradeModulesForUnitKind } from './building-upgrade-projects.js';
 import { routeBakeryPlantTributes } from './bakery-tribute-routing.js';
 import { routeArmoryEnhancementStones } from './armory-reward-routing.js';
+import { PopulationEconomySystem } from './population-economy-system.js';
 
 const TICK_MS = 1000;
 
@@ -43,18 +44,17 @@ export const WorldSimDriver = {
         const nowGame = EnvironmentLightingSystem.serializeTime().elapsedMs || 0;
         const entries = Object.entries(getWorldSnapshots())
             .filter(([sceneId, snapshot]) => isWorldSnapshotCurrent(sceneId, snapshot));
-        const liveInstitutes = (Game.ProducerBuildingSystem?.buildings || []).filter((building) =>
-            building?.active !== false
-            && building?.cfgKey === 'research_institute'
-            && Number(building?.data?.hp ?? building?.hp ?? 1) > 0).length;
-        const backgroundInstitutes = entries.reduce((total, [sceneId, snapshot]) => {
+        const liveResearch = PopulationEconomySystem.getLiveResearchSummary();
+        const backgroundResearch = entries.reduce((total, [sceneId, snapshot]) => {
             if (isWorldLive(sceneId)) return total;
-            return total + (snapshot?.structures || []).filter((structure) =>
-                structure?.kind === 'producer'
-                && structure?.cfgKey === 'research_institute'
-                && Number(structure?.hp ?? 1) > 0).length;
-        }, 0);
-        TechnologySystem.update(TICK_MS, liveInstitutes + backgroundInstitutes);
+            const summary = getWorld122ResearchSummary(snapshot);
+            return { count: total.count + summary.count, rate: total.rate + summary.rate };
+        }, { count: 0, rate: 0 });
+        TechnologySystem.update(
+            TICK_MS,
+            liveResearch.count + backgroundResearch.count,
+            liveResearch.rate + backgroundResearch.rate
+        );
         const hasLiveWorld = entries.some(([sceneId]) => isWorldLive(sceneId));
         const background = entries.filter(([sceneId, snap]) => snap?.wave && !isWorldLive(sceneId));
         const passiveTarget = hasLiveWorld ? null : background.reduce((best, entry) => {
@@ -126,6 +126,9 @@ export const WorldSimDriver = {
         } else {
             if (report.unitsProduced > 0) lines.push([`${sceneId} 新兵 +${report.unitsProduced}`, '#8ad0ff']);
             if (report.energyMined > 0) lines.push([`${sceneId} 采集 +${Math.round(report.energyMined)} 能源`, '#7fd4ff']);
+            if (report.resonatorEnergyProduced > 0) {
+                lines.push([`${sceneId} 位面谐振 +${report.resonatorEnergyProduced} 能源`, '#a892ff']);
+            }
             if (report.goldProduced > 0) lines.push([`${sceneId} 银行服务 +${report.goldProduced} 金币`, '#ffd700']);
             if (report.foodProduced > 0) lines.push([`${sceneId} 风车 +${report.foodProduced} 粮食`, '#d9b84f']);
             if (report.enhancementStonesProduced > 0) {

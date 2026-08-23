@@ -1,0 +1,41 @@
+{
+  "source": "tools\\ai-gen\\_settlement_building_pack_20260821\\planar_resonator\\planar_resonator_seed1231713_cutout.png",
+  "output": "assets\\terrain\\planar_resonator.png",
+  "sourceMode": "RGBA",
+  "background": null,
+  "matteColor": null,
+  "matteEdgeWidth": null,
+  "matteTolerance": null,
+  "nearestOpaqueEdgeRgb": true,
+  "nearestOpaqueAlpha": 0.98,
+  "maskImage": null,
+  "maskDilate": null,
+  "fillAlphaHoles": false,
+  "fillHoleMatteDistance": null,
+  "removeEnclosedMatte": false,
+  "enclosedMatteChromaDistance": null,
+  "maskAddRects": [],
+  "restoreAlphaRects": [],
+  "removeMatteRects": [],
+  "cropBox": [
+    0,
+    0,
+    877,
+    702
+  ],
+  "fileSize": [
+    877,
+    702
+  ],
+  "alphaBBox": [
+    4,
+    4,
+    873,
+    698
+  ],
+  "displayW": 278,
+  "displayH": 223,
+  "footOffsetY": 110,
+  "scaleX": 0.3169897377423033,
+  "scaleY": 0.3176638176638177
+}

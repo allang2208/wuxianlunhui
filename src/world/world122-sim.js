@@ -113,11 +113,13 @@ function _economyModuleValue(structure, economyType, moduleId) {
     const project = buildingUpgradesJson[buildingCfg.upgradeProject];
     const module = project?.modules?.[moduleId];
     if (!module) return 0;
-    const savedModules = economyType === 'bank'
-        ? structure?.bankModules
-        : (economyType === 'bakery'
-            ? structure?.bakeryModules
-            : (economyType === 'armory' ? structure?.armoryModules : structure?.workshopModules));
+    const savedModules = {
+        bank: structure?.bankModules,
+        bakery: structure?.bakeryModules,
+        armory: structure?.armoryModules,
+        workshop: structure?.workshopModules,
+        planar_resonator: structure?.resonatorModules,
+    }[economyType];
     const level = Math.max(0, Math.min(
         Number(module.maxLevel) || 0,
         Math.floor(Number(savedModules?.[moduleId]) || 0)
@@ -169,6 +171,15 @@ function _bankOverlapMultiplier(bankCount) {
 
 function _economyWorkerSlots(structure, economyType) {
     const cfg = populationEconomyConfig[economyType] || {};
+    if (cfg.workerSlotsAbilityId) {
+        const ability = getBuildingUpgradeAbility(cfg.workerSlotsAbilityId);
+        if (ability) {
+            return Math.max(0, Math.floor(getAbilityValue(
+                ability,
+                getAbilityLevel(cfg.workerSlotsAbilityId)
+            )));
+        }
+    }
     if (cfg.workerSlotsModule) {
         const value = _economyModuleValue(structure, economyType, cfg.workerSlotsModule);
         return Math.max(0, Math.floor(value));
@@ -193,6 +204,75 @@ function _workshopEfficiencyMultiplier(target, economyStructures) {
         strongest = Math.max(strongest, configured * Math.min(1, engineers * share));
     }
     return 1 + strongest;
+}
+
+/**
+ * 只读计算一个后台位面的研究院总科研速率。科技树是跨位面全局系统，因此
+ * WorldSimDriver 会把所有后台快照与当前前台位面的结果相加后统一推进。
+ */
+export function getWorld122ResearchSummary(snapshot) {
+    const structures = Array.isArray(snapshot?.structures) ? snapshot.structures : [];
+    const economyStructures = structures.filter((structure) =>
+        structure?.kind === 'producer'
+        && Number(structure?.hp ?? 1) > 0
+        && producerBuildingsJson[structure?.cfgKey]?.economyType
+    );
+    const houseLevels = populationEconomyConfig.house?.levels || [];
+    const populationCapacity = economyStructures.reduce((sum, structure) => {
+        if (producerBuildingsJson[structure.cfgKey]?.economyType !== 'housing') return sum;
+        const level = Math.max(1, Math.floor(Number(structure.economyLevel) || 1));
+        const levelCfg = houseLevels.find((entry) => entry.level === level) || houseLevels[0];
+        return sum + Math.max(0, Number(levelCfg?.populationCapacity) || 0);
+    }, 0);
+    let assignedPopulation = economyStructures.reduce((sum, structure) => {
+        const economyType = producerBuildingsJson[structure.cfgKey]?.economyType;
+        const assigned = Math.max(0, Math.min(
+            _economyWorkerSlots(structure, economyType),
+            Math.floor(Number(structure.assignedWorkers) || 0)
+        ));
+        return sum + assigned;
+    }, 0);
+    for (const camp of structures) {
+        if (camp?.kind !== 'hut' || !(Number(camp.hp ?? 1) > 0)) continue;
+        const slots = getMinerEconomyStats(camp.modules || {}).count;
+        const migrated = camp.assignedWorkers == null ? camp.miners : camp.assignedWorkers;
+        assignedPopulation += Math.max(0, Math.min(
+            slots,
+            Math.floor(Number(migrated) || 0)
+        ));
+    }
+    const laborEfficiency = assignedPopulation > 0
+        ? Math.max(0, Math.min(1, populationCapacity / assignedPopulation))
+        : 1;
+    const researchCfg = populationEconomyConfig.research || {};
+    const researchLevels = researchCfg.levels || [];
+    const baseAbilityId = researchCfg.baseResearchAbilityId;
+    const baseBonus = baseAbilityId
+        ? Math.max(0, getAbilityValue(
+            getBuildingUpgradeAbility(baseAbilityId),
+            getAbilityLevel(baseAbilityId)
+        ))
+        : 0;
+    const workerShare = Math.max(0, Number(researchCfg.workerEfficiencyShare) || 0.2);
+    let count = 0;
+    let rate = 0;
+    for (const structure of economyStructures) {
+        if (producerBuildingsJson[structure.cfgKey]?.economyType !== 'research') continue;
+        count += 1;
+        const level = Math.max(1, Math.floor(Number(structure.economyLevel) || 1));
+        const levelCfg = researchLevels.find((entry) => entry.level === level)
+            || researchLevels[0] || {};
+        const baseRate = Math.max(0,
+            Number(levelCfg.baseResearchPointsPerSecond) || 0) + baseBonus;
+        const staffed = Math.min(
+            _economyWorkerSlots(structure, 'research'),
+            Math.max(0, Math.floor(Number(structure.assignedWorkers) || 0))
+        );
+        const staffFactor = Math.max(0, Math.min(1, staffed * workerShare));
+        rate += baseRate * staffFactor * laborEfficiency
+            * _workshopEfficiencyMultiplier(structure, economyStructures);
+    }
+    return { count, rate };
 }
 
 function _armoryResourceCostMultiplier(target, economyStructures) {
@@ -454,7 +534,8 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
     const commit = opts.commit !== false;
     const report = {
         elapsedMs, wavesCleared: [], victory: false, defeated: false,
-        energyMined: 0, passiveEnergy: 0, titheEnergy: 0, goldProduced: 0, foodProduced: 0, unitsProduced: 0,
+        energyMined: 0, passiveEnergy: 0, titheEnergy: 0, resonatorEnergyProduced: 0,
+        goldProduced: 0, foodProduced: 0, unitsProduced: 0,
         energySpentOnMiners: 0, foodSpentOnUnits: 0,
         abilitiesCompleted: [], modulesCompleted: [], structuresLost: 0, baseDamage: 0,
         explorerRewards: [], plantTributesProduced: 0, enhancementStonesProduced: 0,
@@ -532,7 +613,7 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
         legacyFoodPending,
     };
 
-    // ---- 人口经济：房屋容量、数值岗位、风车粮食、银行金币、市场压力回归。
+    // ---- 人口经济：房屋容量、数值岗位、风车粮食、谐振能源、银行金币、市场压力回归。
     // 玩家不在该位面时不物化平民，也不会产生逐单位寻路/动画开销。 ----
     const economyStructures = (target.structures || []).filter((structure) =>
         structure.kind === 'producer'
@@ -623,6 +704,25 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
                     );
                 }
                 structure.bakeryUpgrade = null;
+            }
+        }
+        if (structure.resonatorUpgrade) {
+            structure.resonatorUpgrade.remainMs = Math.max(
+                0,
+                (Number(structure.resonatorUpgrade.remainMs) || 0) - elapsedMs
+            );
+            if (structure.resonatorUpgrade.remainMs <= 0) {
+                const moduleId = structure.resonatorUpgrade.moduleId;
+                const module = buildingUpgradesJson.planar_resonator_economy?.modules?.[moduleId];
+                if (module) {
+                    structure.resonatorModules = structure.resonatorModules || {};
+                    structure.resonatorModules[moduleId] = Math.min(
+                        Number(module.maxLevel) || 0,
+                        Math.max(0,
+                            Math.floor(Number(structure.resonatorModules[moduleId]) || 0)) + 1
+                    );
+                }
+                structure.resonatorUpgrade = null;
             }
         }
     }
@@ -719,6 +819,36 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
             const stored = _depositFoodToWarehouses(warehouses, produced);
             structure.workProductionRemainder += Math.max(0, produced - stored);
             report.foodProduced += stored;
+        } else if (economyType === 'planar_resonator') {
+            const resonatorCfg = populationEconomyConfig.planar_resonator || {};
+            const cycleMs = Math.max(100,
+                _economyModuleValue(structure, economyType, 'resonator_frequency') || 10000);
+            const energyPerCycle = Math.max(0,
+                _economyModuleValue(structure, economyType, 'resonator_crystal_output'));
+            const conversionRate = Math.max(0, Math.min(1,
+                _economyModuleValue(structure, economyType, 'resonator_conversion')));
+            const staffCapacity = _economyWorkerSlots(structure, economyType);
+            const staffedCount = Math.min(
+                staffCapacity,
+                Math.max(0, Math.floor(assigned))
+            );
+            const workerShare = Math.max(0,
+                Number(resonatorCfg.workerEfficiencyShare) || 0.2);
+            const staffFactor = Math.max(0, Math.min(1, staffedCount * workerShare));
+            const energyPerEffectiveCycle = energyPerCycle * conversionRate * staffFactor
+                * laborEfficiency * _workshopEfficiencyMultiplier(structure, economyStructures);
+            const tickTotal = energyPerEffectiveCycle > 0
+                ? Math.max(0, Number(structure.economyTickMs) || 0) + elapsedMs
+                : 0;
+            const cycles = Math.floor(tickTotal / cycleMs);
+            structure.economyTickMs = tickTotal - cycles * cycleMs;
+            const total = Math.max(0, Number(structure.workProductionRemainder) || 0)
+                + energyPerEffectiveCycle * cycles * getProductionResourceMul();
+            const produced = Math.floor(total);
+            structure.workProductionRemainder = total - produced;
+            const stored = _depositToWarehouses(warehouses, produced);
+            structure.workProductionRemainder += Math.max(0, produced - stored);
+            report.resonatorEnergyProduced += stored;
         } else if (economyType === 'bakery') {
             const bakeryCfg = populationEconomyConfig.bakery || {};
             const inputFood = Math.max(1, Math.floor(Number(bakeryCfg.inputFoodPerBatch) || 50));

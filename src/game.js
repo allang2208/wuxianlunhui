@@ -393,6 +393,8 @@ export const Game = {
             color: attendantCfg.color,
             portrait: attendantCfg.portrait,
             npcType: attendantCfg.npcType,
+            sprite: attendantCfg.sprite,
+            clickArea: attendantCfg.clickArea,
             greetings: [
                 '主人正在处理事务，请问有什么可以帮您的吗？',
                 '听说最近发生了一些时空异常，请多加小心。',
@@ -418,7 +420,8 @@ export const Game = {
             collisionRadius: whCfg.collisionRadius,
             color: whCfg.color,
             npcType: whCfg.npcType,
-            sprite: whCfg.sprite,
+            // 仓库开/关状态会切换实体自己的贴图参数；克隆配置，避免污染全局 GAME_CONFIG。
+            sprite: whCfg.sprite ? { ...whCfg.sprite } : null,
             noSeparation: whCfg.noSeparation,
             noShadow: whCfg.noShadow,
             colliderOffsetX: whCfg.colliderOffsetX,
@@ -427,7 +430,7 @@ export const Game = {
             collisionWidth: whCfg.collisionWidth,
             collisionHeight: whCfg.collisionHeight,
             height: whCfg.height,
-            clickArea: whCfg.clickArea,
+            clickArea: whCfg.clickArea ? { ...whCfg.clickArea } : null,
             greetings: ['仓库为你敞开。']
         });
         applyBuildingFootprint(warehouseNpc, Number(whCfg.footprintCells) || 1);

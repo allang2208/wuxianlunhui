@@ -1087,6 +1087,12 @@ defend 持盾帧右偏 13px。**结论：武器弧远超身体宽的动作，格
 - walk：step 3 → 16 帧（4×4）覆盖完整周期；run：**step 1 连续 28 帧**
   （=视频原帧，4×7）。快速动作帧数宁多勿少：run 14 帧 step2 腿部 IoU 0.14
   僵硬，28 帧连续 0.45+ 顺滑。
+- **正式循环只保留一个检测出的真实周期**（2026-08-23 僵尸犬补充）：
+  `quadruped-rebuild.py` 默认 `P×2` 适合做周期候选/首尾诊断，不等于最终入库帧数；
+  两个重复周期会徒增贴图和解码成本。僵尸犬 walk 实测 `P=38,s=20`，取
+  `20..56 step2` = 19帧；run 实测 `P=44,s=24`，取 `24..66 step2` = 22帧，
+  两者均按 12 FPS 保持原视频周期时长。选帧后仍须扫空格和首尾相位，不能直接把
+  自动重建的双周期检测图入库。
 - 攻击：**保留水平位移**（以首帧 bbox 中心为参照，按 dx×scale 平移，不
   逐帧居中——否则前扑 reach 被抹掉）；`--fixed-scale 1`（首帧同比例）防
   蓄力压低帧被放大；飞扑 20 帧（4×5）、撕咬 6 帧（3×2）。
@@ -1120,11 +1126,15 @@ defend 持盾帧右偏 13px。**结论：武器弧远超身体宽的动作，格
 #### 5. 缩放/摆放
 - 高度统一：uniform-h target_h=262（黑狼/红狼王全部狼形态），宽度随姿态；
   攻击帧 fixed-scale 1（首帧同比例）防"忽大忽小"。
-- 脚底基线：512 格 feet-y 410（feet fraction 0.80）；格子放大按比例
-  （640 格 feet-y 513），保证与其它状态同世界高度。
-- 前扑伸展帧宽超 512（545~583px）→ 格子放大 640²（红狼王撕咬同款 576²），
-  BootScene frameWidth/Height 同步，canvas 按 naturalWidth/cols 自动切帧。
+- 脚底基线按**帧高**换算：`frameHeight=512 → footY=410`；只有帧高也扩大到
+  640 时才换成约513。不能因为横向内容变宽就把脚线按 frameWidth 放大。
+- 前扑伸展帧宽超 512（545~583px）时优先用 **640×512 非方形帧格**，只扩宽不扩高；
+  这样可保留前扑 reach，又不会为横向留白抬高整套运行时画布。确实上下也越界时才用
+  640²/更大帧高。BootScene 的 frameWidth/frameHeight 必须分别读取配置。
 - 显示 151×151、内容高 262/脚底 410/居中；碰撞体积不动。
+- 多动作必须共用 idle 首帧量出的**全局缩放**：idle/walk/run 可逐帧稳定躯干和脚线；
+  attack 保留相对首帧的 source-space X/Y 位移；dying 只把每帧落地，不逐帧放大倒地姿态。
+  僵尸犬五动作由同一 BiRefNet 实例批处理后，空帧/越格/半透明/透明区RGB均为0。
 
 #### 6. 验证（定量铁律，GLM 辅助）
 - CLEAN 判据：stray=0 / semi=0 / trans_nonblack=0 / edge_bright=0 /
@@ -1138,10 +1148,17 @@ defend 持盾帧右偏 13px。**结论：武器弧远超身体宽的动作，格
 - GLM 复核构图/动作；**黑狼图集锯齿会被误读为色块，以像素为准**。
 
 #### 7. 游戏接入
-- BootScene：spritesheet frameWidth/Height = 格子尺寸（512/640），
+- BootScene：spritesheet frameWidth/Height 分别读取当前动作帧格（可为 640×512），
   endFrame = 帧数-1；动画键与 `_getTextureKey()` 一致。
 - animation-config frameLayouts **双份同步**（data/ + public/data/）
   cols/rows/frames 与 sheet 严格一致。
+- 非方形动作运行时不能沿用固定正方形显示框：设 `referenceCell=512`，每帧统一
+  `pixelScale=baseSpriteSize/referenceCell`，显示框取
+  `max(frameWidth,frameHeight)×pixelScale`，脚偏移取
+  `(footY-frameHeight/2)×pixelScale`。这样 640×512 攻击与 512×512 idle 的主体像素比例一致，
+  切动作不会忽大忽小。
+- 新母版已完成脚线/位移对齐时，动画键加版本后缀（如 `*_v2`），隔离旧素材专用的
+  `sprite-offsets`；死亡动作同时接 `_preserveCorpse + deathAnim.duration/holdMs`，播完末帧再清理。
 - 黑狼走 Phaser setFrame 帧索引路径（无 anims 注册）；帧率 run 40ms/帧、
   walk 120ms/帧（28×40 与原 14×80 圈时一致）。
 - 多贴图混用纪律：同敌人新旧贴图画布尺寸必须统一（本项目 512²/640²），
@@ -1161,8 +1178,9 @@ defend 持盾帧右偏 13px。**结论：武器弧远超身体宽的动作，格
   - `monster idle --name X --ref 参考图 --prompt 提示词 [--bg-color auto|#hex]`：5080 生图候选
     → BiRefNet 抠图 → 512 归一化（自动选主体无色背景并注入提示词）；
   - `monster video --name X --kind run|attack --ref idle图 [--bg-color auto|#hex]`：5080 H3 生成动画视频；
-  - `monster rebuild --name X --video y.mp4 --kind run|attack [--bg-color 同色] [--cell 640]`：
+  - `monster rebuild --name X --video y.mp4 --kind run|attack [--bg-color 同色] [--cell 640] [--out 路径]`：
     视频 → 动画 sheet（周期/窗口检测 + BiRefNet 重建 + CLEAN 验证报告）；
+    缺省仍写统一 scratch；当前机器未挂载 scratch 盘或需要保留任务内证据时用 `--out` 显式落盘；
   - `monster status --name X`：列出该怪物全部产物（scratch/<name>_*）；
   - 通用子命令：`cutout --src --out`（抠图）、`bg-color --image`（选背景色）、
     `verify --sheet --cell`（CLEAN 验证）。

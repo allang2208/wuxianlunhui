@@ -105,11 +105,25 @@ import { resolveUnitGroundFootprint } from '../../world/unit-ground-footprint.js
 import lightingAssets from '../../../data/environment-lighting-assets.json';
 import '../../config/structure-ground-fit-config.js';
 
-// 共享结构阴影层：所有建筑/障碍物阴影多边形在同一 Graphics 内 alpha 1 填充、
-// 整层统一透明度——相邻阴影交叠与单影同深（杜绝重叠加深）；
+/**
+ * 保留 NPC/商店/对话业务身份的仓库、祭坛仍是格网建筑：物理、范围可视化、
+ * 结构阴影与主体图层必须共同识别同一个 iso footprint，禁止再叠单位圆柱体积。
+ */
+const usesBuildingFootprintVolume = (entity) => !!entity
+    && entity._isGridBuilding === true
+    && entity.collisionShape === 'iso_rect'
+    && Number(entity.collisionWidth) > 0
+    && Number(entity.collisionHeight) > 0;
+
+// 世界-122~125 共用大世界尺寸与广角镜头。集中登记，避免新位面已按
+// 12288×8192 构建却遗漏相机名单、仍以 1:1 放大显示。
+const ZOOMED_OUT_WORLD_SCENES = new Set(['scene8', 'scene9', 'scene10', 'scene11']);
+
+// 共享结构阴影层：所有建筑/障碍物阴影先合并，再在同一 Graphics 内向轮廓内部羽化；
+// 相邻阴影交叠与单影同深（杜绝重叠加深），中心透明度仍精确等于原始 opacity；
 // 深度由 WORLD_RENDER_LAYERS 统一分配：位于道路/地面铺装之上、压平投影之下。
 // 道路即地面，阴影压暗路面如压裸地；同层对象不再依赖显示列表创建顺序。
-// 根部轮廓必须原尺寸单次填充；整体放大或居中描边都会越过主体贴图的 alpha 接地边。
+// 最外层轮廓必须保持原尺寸；整体放大或居中描边都会越过主体贴图的 alpha 接地边。
 
 
 export class GameScene extends Scene {
@@ -229,6 +243,7 @@ export class GameScene extends Scene {
         this._structureShadowJobCount = -1;
         this._structureShadowLayerOpacity = -1;
         this._structureShadowOpacitySignature = '';
+        this._structureShadowEdgeFadeSignature = '';
         // 世界 HUD：缓存每个贴图帧的可见 alpha 顶部，血条按真实模型而非透明画布定位。
         this._installShadowConsoleTools();
 
@@ -486,7 +501,11 @@ export class GameScene extends Scene {
             if (this.screenHudGraphics) this.screenHudGraphics.setVisible(true);
             if (this._minimapStaticGraphics) this._minimapStaticGraphics.setVisible(!_dialogueOpen);
             if (this._minimapDynamicGraphics) this._minimapDynamicGraphics.setVisible(!_dialogueOpen);
-            this._fogMinimapLayer?.setVisible(!_dialogueOpen);
+            // GameScene 跨逻辑场景常驻，位面迷雾小地图 Image 也会保留上一场景纹理。
+            // 返回无迷雾的主神空间后，不能仅按 HUD 状态重新点亮该旧 Image；否则它会在
+            // 每帧 HUD 恢复与 100ms 小地图同步隐藏之间反复显隐，形成黑图频闪。
+            const _fogGridActive = !!FogOfWarSystem.getGrid(SceneManager.currentScene)?.active;
+            this._fogMinimapLayer?.setVisible(!_dialogueOpen && _fogGridActive);
             if (this.minimapTitle) this.minimapTitle.setVisible(!_dialogueOpen);
             this._syncHud(_game);
             this._updateBossHpBar(_delta);
@@ -2363,7 +2382,7 @@ export class GameScene extends Scene {
                 if (e.itemData && e.noCollision) return;
                 // 静态结构已由 _syncStructureRenderOrder 按完整 footprint 拓扑落深度；
                 // 禁止再按动态单位的脚点 Y 覆写，否则房屋/官邸等高体量建筑会整栋错误压住单位。
-                if (e._structureDepthMode || e._isDefenseStructure || e._isGridBuilding) return;
+                if (e._structureDepthMode || e._isDefenseStructure || usesBuildingFootprintVolume(e)) return;
                 const isCorpse = e._preserveCorpse && !e.active &&
                     (e._deathAnimTimer > 0 || e._corpseTimer > 0);
                 if (!e.active && !isCorpse) return;
@@ -2616,10 +2635,9 @@ export class GameScene extends Scene {
         if (!texture) return;
         const ctx = texture.context;
         const gradient = ctx.createRadialGradient(64, 64, 0, 64, 64, 64);
-        gradient.addColorStop(0, 'rgba(0, 0, 0, 0.96)');
-        gradient.addColorStop(0.42, 'rgba(0, 0, 0, 0.78)');
-        gradient.addColorStop(0.74, 'rgba(0, 0, 0, 0.30)');
-        gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        for (const stop of EnvironmentLightingSystem.getContactShadowGradientStops()) {
+            gradient.addColorStop(stop.offset, `rgba(0, 0, 0, ${stop.alpha})`);
+        }
         ctx.fillStyle = gradient;
         ctx.fillRect(0, 0, 128, 128);
         texture.refresh();
@@ -3127,7 +3145,7 @@ export class GameScene extends Scene {
             for (const [e, data] of this._neutralSprites.entries()) {
                 if (!e || !e.active || !data.sprite || !data.sprite.active) continue;
                 // 建筑由结构太阳投影链负责，不能再叠一层“单位接触椭圆”。
-                if (e._isDefenseStructure || (e._isGridBuilding && e._structureDepthMode)) continue;
+                if (e._isDefenseStructure || usesBuildingFootprintVolume(e)) continue;
                 if (e._noShadow) continue; // 配置跳过阴影（如仓库宝箱，贴图自带底座）
                 active.add(e);
                 if (!this._isEntityInRenderViewport(e)) {
@@ -3434,10 +3452,10 @@ export class GameScene extends Scene {
         // 震屏：旧随机震（Camera.shakeX/Y，此前 Phaser 路径未消费）+ GunFeel trauma² 平滑震叠加
         const shakeX = (Camera.shakeX || 0) + GunFeel.shakeX;
         const shakeY = (Camera.shakeY || 0) + GunFeel.shakeY;
-        // 场景基础缩放：世界-122/125 缩小到 70%（≈视野多 43%，用户校准：0.5 过小）；
-        // 其余场景 1:1。zoom punch 按基础缩放等比叠加，切换场景下一帧自动生效/还原。
+        // 场景基础缩放：世界-122~125统一缩小到70%（≈视野多43%，用户校准：0.5过小）；
+        // 主神空间与地牢保持1:1。zoom punch按基础缩放等比叠加，切场下一帧自动生效/还原。
         const zoomedOutWorld = SceneManager
-            && (SceneManager.currentScene === 'scene8' || SceneManager.currentScene === 'scene11');
+            && ZOOMED_OUT_WORLD_SCENES.has(SceneManager.currentScene);
         const sceneBaseZoom = zoomedOutWorld ? 0.7 : 1;
         // zoom punch：开火瞬间视角轻微推近（2D 等价 FOV punch），GunFeel 内指数回落
         const zoom = sceneBaseZoom * (1 + GunFeel.zoomPunch);
@@ -3635,9 +3653,13 @@ export class GameScene extends Scene {
     }
 
     _onEnemySpawn(data) {
-        const enemySprite = this.add.sprite(data.x, data.y, data.texture || 'enemy_spider');
+        const texture = data.texture || 'enemy_spider';
+        const safeTexture = this.textures.exists(texture) ? texture : 'enemy_circle';
+        const enemySprite = this.add.sprite(data.x, data.y, safeTexture);
         enemySprite.setOrigin(0.5, 0.5);
         enemySprite.setData('enemyId', data.id);
+        const enemy = data.enemyRef || { size: 14 };
+        this._applyEnemyVisualOptions(enemySprite, enemy);
         this.enemies.add(enemySprite);
     }
 
@@ -7185,6 +7207,9 @@ export class GameScene extends Scene {
         const drawEntity = (entity) => {
             if (!entity || !entity.active || drawnEntities.has(entity)) return;
             if (FogOfWarSystem.shouldHideEntity(SceneManager.currentScene, entity)) return;
+            // 仓库/祭坛等保留 NPC 交互身份的格网建筑只在下方建筑分支绘制 iso 棱柱；
+            // 这里若继续画单位圆柱，会让调试界面误报为两套碰撞同时生效。
+            if (usesBuildingFootprintVolume(entity)) return;
             // 跳过配置了 noFootprint 的实体（如矿洞，保留碰撞判定但不显示脚下椭圆晕影）
             if (entity.config?.noFootprint) return;
             drawnEntities.add(entity);
@@ -7252,7 +7277,7 @@ export class GameScene extends Scene {
         // 玩家
         if (_game.player) drawEntity(_game.player);
 
-        // 敌人 + NPC（祭坛/仓库等 ellipse footprint 统一显示；掉落物/传送门不画）
+        // 敌人 + 普通 NPC 显示单位椭圆；格网建筑 NPC 已在 drawEntity 内排除。
         for (const entity of _game.entities.values()) {
             if (!entity || !entity.active || entity === _game.player) continue;
             if (entity._faction !== 'enemy' && entity._faction !== 'agent' && !entity.npcType) continue;
@@ -8294,11 +8319,13 @@ export class GameScene extends Scene {
                 shadowJobs.push({ hull: capPts, cx: capCx, cy: capCy, opacity: profile.opacity, dirty: capDirty });
             }
         }
-        // 共享结构阴影层：全部阴影多边形在同一 Graphics 内原尺寸填充；互不相交的簇
-        // 保留各自透明度，相交簇先并集并取最大透明度。不得用外扩或描边破坏 alpha 接地边。
+        // 共享结构阴影层：全部阴影多边形在同一 Graphics 内保持原尺寸外轮廓并向内羽化；
+        // 互不相交的簇保留各自透明度，相交簇先并集并取最大透明度。不得外扩或描边。
         // 层深统一读取 WORLD_RENDER_LAYERS.STRUCTURE_SHADOW，禁止散落魔法数。
         const frameSun = EnvironmentLightingSystem.getSun();
         const frameTheta = Math.atan2(frameSun?.shadowY || 0, frameSun?.shadowX || 0);
+        const edgeFade = EnvironmentLightingSystem.getShadowEdgeFade();
+        const edgeFadeSignature = `${edgeFade.fadePx},${edgeFade.steps},${edgeFade.edgeAlphaRatio}`;
         const layer = this._structureShadowLayer;
         if (layer) {
             // 干净帧整体跳过重画（2026-08-19 审计性能修复）：Graphics 保留指令缓冲，
@@ -8316,6 +8343,7 @@ export class GameScene extends Scene {
             if (shadowJobs.length !== (this._structureShadowJobCount ?? -1)) layerDirty = true;
             if (Math.abs(layerOpacity - (this._structureShadowLayerOpacity ?? -1)) > 0.005) layerDirty = true;
             if (opacitySignature !== (this._structureShadowOpacitySignature || '')) layerDirty = true;
+            if (edgeFadeSignature !== (this._structureShadowEdgeFadeSignature || '')) layerDirty = true;
             if ((this._structureShadowVisibilityRevision || 0)
                 !== (this._structureShadowRenderedVisibilityRevision ?? -1)) layerDirty = true;
             if (layerDirty) {
@@ -8324,14 +8352,24 @@ export class GameScene extends Scene {
                 // 同一强度"）——不依赖任何混合幂等假设，从结构上杜绝重叠加深。
                 const drawJobs = this._mergeShadowJobsIntoClusters(shadowJobs, frameTheta);
                 for (const job of drawJobs) {
-                    layer.fillStyle(0x000000, job.opacity);
-                    layer.fillPoints(job.hull, true);
+                    // 先完成几何并集，再对最终外轮廓向内分层羽化。第 0 层不外扩，
+                    // 最内层复原原 opacity，因此接地边/重叠同深契约保持不变。
+                    const featherLayers = EnvironmentLightingSystem.getShadowFeatherLayers(
+                        job.hull,
+                        job.opacity,
+                        { centerX: job.cx, centerY: job.cy }
+                    );
+                    for (const feather of featherLayers) {
+                        layer.fillStyle(0x000000, feather.alpha);
+                        layer.fillPoints(feather.points, true);
+                    }
                 }
                 // 各个互不相交的簇可保留自己的透明度；相交簇在合并时取最大值。
                 layer.setAlpha(1);
                 this._structureShadowJobCount = shadowJobs.length;
                 this._structureShadowLayerOpacity = layerOpacity;
                 this._structureShadowOpacitySignature = opacitySignature;
+                this._structureShadowEdgeFadeSignature = edgeFadeSignature;
                 this._structureShadowRenderedVisibilityRevision = this._structureShadowVisibilityRevision || 0;
             }
             layer.setVisible(!isMapMode && layerOpacity > 0.001);
@@ -8340,13 +8378,13 @@ export class GameScene extends Scene {
 
     /**
      * 相交/相贴的阴影 job 聚簇 + 太阳帧包络合并（2026-08-19 重叠加深根治）。
-     * 判定：bbox 粗筛（外扩描边半宽）→ 顶点互含或边相交精判；互不相交的簇
-     * 保持独立（禁止桥接远处建筑）。合并后的多边形一次填充、统一强度。
+     * 判定：bbox 粗筛（邻接容差）→ 顶点互含或边相交精判；互不相交的簇
+     * 保持独立（禁止桥接远处建筑）。合并后的多边形作为一个整体羽化、统一强度。
      */
     _mergeShadowJobsIntoClusters(jobs, theta) {
         const n = jobs.length;
         if (n <= 1) return jobs;
-        const MARGIN = 8; // 描边半宽 + AA 余量
+        const MARGIN = 8; // 相贴聚簇容差 + AA 余量
         const boxes = jobs.map((job) => {
             let x0 = Infinity;
             let y0 = Infinity;
@@ -8689,7 +8727,7 @@ export class GameScene extends Scene {
             // 2026-08-19：方块墙/铁栅栏门也接入太阳阴影（不再因"贴图自带底座"排除掩体）；
             // 能源矿仍排除（矿点是发光体，贴图自带光效）。
             const isStructure = entity?._isDefenseStructure
-                || (entity?._isGridBuilding && entity?._structureDepthMode);
+                || (usesBuildingFootprintVolume(entity) && entity?._structureDepthMode);
             if (!entity || !entity.active || !isStructure || entity._isEnergyNode) continue;
             if (entity._isCoverGate) {
                 this._ensureGateSunShadow(entity, active);
@@ -8725,6 +8763,16 @@ export class GameScene extends Scene {
             this._minimapStaticGraphics?.visible !== false
             && this._minimapDynamicGraphics?.visible !== false
         );
+    }
+
+    /** 场景提交后的原子刷新：先应用目标场景相机缩放，再绕过 100ms 节流重画小地图。 */
+    refreshMinimapForSceneTransition() {
+        // 固定 HUD 的绘制坐标依赖 1/zoom；必须先让相机消费新 currentScene，
+        // 否则回城时会按离场位面的 0.7 zoom 画完，再被 1.0 zoom 放大到地图栏外。
+        this._updateCamera();
+        this._minimapStaticKey = null;
+        this._minimapNextAt = 0;
+        this._syncMinimap();
     }
 
     _syncMinimap() {
@@ -8928,7 +8976,7 @@ export class GameScene extends Scene {
             // 格网建筑身份与“可被敌人攻击的防御建筑”分离：主神空间祭坛保留 NPC 交互，
             // 但仍必须和墙、门、其他建筑进入同一 footprint 拓扑排序。
             if (!entity._isDefenseStructure
-                && !(entity._isGridBuilding && entity._structureDepthMode)) continue;
+                && !(usesBuildingFootprintVolume(entity) && entity._structureDepthMode)) continue;
             const bounds = structureIsoBounds(entity);
             if (!bounds) continue;
             const neutral = this._neutralSprites?.get(entity);
@@ -9400,7 +9448,7 @@ export class GameScene extends Scene {
             // 掩体带 _faceDepth（=墙段底边线 max 端点 y + 12，见 DefenseCover），
             // 不能用 e.y+12——e.y 是贴图显示框底边，比接地线深 22~137px，会把墙前
             // 实体错误排到墙后被盖（2026-08-05 实机复现）
-            if (e._isDefenseStructure || (e._isGridBuilding && e._structureDepthMode)) {
+            if (e._isDefenseStructure || (usesBuildingFootprintVolume(e) && e._structureDepthMode)) {
                 const dd = Number.isFinite(e._structureRenderDepth)
                     ? e._structureRenderDepth
                     : ((typeof e._faceDepth === 'number') ? e._faceDepth : e.y + 12);
@@ -9824,19 +9872,56 @@ export class GameScene extends Scene {
     }
 
     /**
+     * 应用敌人 Sprite 的纯视觉配置。敌人 Arcade Body 已移除，但首次显示尺寸、
+     * 非方形帧等比缩放与 tint 仍必须保留，不能再与物理体初始化绑定。
+     */
+    _applyEnemyVisualOptions(sprite, enemy, resolvedOptions = null) {
+        if (!sprite || !sprite.active) return;
+        const options = resolvedOptions
+            || ((typeof enemy?._getPhaserOptions === 'function') ? enemy._getPhaserOptions() : {});
+        const renderCfg = enemy?.config?.render || {};
+        const fallbackSize = (Number(enemy?.size) || 14) * 4;
+        const configuredSize = Number(options.spriteSize || renderCfg.spriteSize || fallbackSize);
+        const spriteSize = Number.isFinite(configuredSize) && configuredSize > 0
+            ? configuredSize
+            : fallbackSize;
+        const frameW = (sprite.frame && sprite.frame.width) || 1;
+        const frameH = (sprite.frame && sprite.frame.height) || 1;
+        const longest = Math.max(frameW, frameH);
+        const targetW = frameW * spriteSize / longest;
+        const targetH = frameH * spriteSize / longest;
+        if (Math.abs(sprite.displayWidth - targetW) > 0.01
+            || Math.abs(sprite.displayHeight - targetH) > 0.01) {
+            sprite.setDisplaySize(targetW, targetH);
+        }
+        sprite.setOrigin(0.5, 0.5);
+        if (options.tint !== undefined) {
+            sprite.setTint(options.tint);
+        }
+        if (options.frame !== undefined) {
+            try {
+                sprite.setFrame(options.frame);
+            } catch (_e) {
+                // 帧索引无效时由后续动画同步按当前纹理帧数钳制。
+            }
+        }
+    }
+
+    /**
      * 为敌人创建或获取 Phaser Sprite
      */
     getOrCreateEnemySprite(enemy, texture = 'enemy_circle') {
         const safeTexture = this.textures.exists(texture) ? texture : 'enemy_circle';
         if (!enemy._phaserSprite || !enemy._phaserSprite.active) {
             const sprite = this.add.sprite(enemy.x, enemy.y, safeTexture);
-            sprite.setOrigin(0.5, 0.5);
             sprite.setData('enemyId', enemy.id || enemy.name);
+            this._applyEnemyVisualOptions(sprite, enemy);
             this.enemies.add(sprite);
             enemy._phaserSprite = sprite;
         } else if (enemy._phaserSprite.texture.key !== safeTexture) {
             // 纹理变化时切换（如黑狼左右/上下精灵图切换）
             enemy._phaserSprite.setTexture(safeTexture);
+            this._applyEnemyVisualOptions(enemy._phaserSprite, enemy);
         }
         return enemy._phaserSprite;
     }
@@ -9885,24 +9970,12 @@ export class GameScene extends Scene {
             // 纹理切换后按当前帧尺寸重算显示大小：
             // 旧 250×215 贴图（黑狼 pacing/attack）与新 512² 贴图混用时，
             // 创建时一次性计算的 displaySize 会压扁/缩小（2026-08-06 黑狼 idle 小图根因）
-            const size = options.spriteSize || 151;
-            const fw = (sprite.frame && sprite.frame.width) || 1;
-            const fh = (sprite.frame && sprite.frame.height) || 1;
-            const longest = Math.max(fw, fh);
-            sprite.setDisplaySize(fw * size / longest, fh * size / longest);
+            this._applyEnemyVisualOptions(sprite, enemy, options);
         }
         // 红狼王变身表在同一纹理内按进度线性放大；纹理键不变时也要同步动态尺寸。
         // 脚底位置仍由 entity.footOffsetY 驱动，不在这里另加 Y 偏移。
         if (options.dynamicSpriteSize && options.spriteSize > 0) {
-            const fw = (sprite.frame && sprite.frame.width) || 1;
-            const fh = (sprite.frame && sprite.frame.height) || 1;
-            const longest = Math.max(fw, fh);
-            const targetW = fw * options.spriteSize / longest;
-            const targetH = fh * options.spriteSize / longest;
-            if (Math.abs(sprite.displayWidth - targetW) > 0.01
-                || Math.abs(sprite.displayHeight - targetH) > 0.01) {
-                sprite.setDisplaySize(targetW, targetH);
-            }
+            this._applyEnemyVisualOptions(sprite, enemy, options);
         }
         if (options.flipX !== undefined) {
             sprite.setFlipX(options.flipX);

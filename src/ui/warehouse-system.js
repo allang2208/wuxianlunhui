@@ -20,6 +20,8 @@ export const WarehouseSystem = {
     PAGE_SIZE: 20,        // 每页格子数
     currentPage: 0,
     _panel: null,         // BasePanel 实例（_getPanel 懒创建）
+    _anchorNPC: null,     // 主神空间中的仓库宝箱实体（由 game.js 在交互时绑定）
+    _closedVisual: null,  // 当前实体的关闭态视觉快照，避免开关状态污染全局配置
 
     // ==================== 基础存取 ====================
 
@@ -323,18 +325,68 @@ export const WarehouseSystem = {
             this._panel = new BasePanel({ id: 'warehousePanel', className: 'warehouse-panel', stateKey: 'warehouse' });
             this._panel.buildContent = (el) => this._buildPanelContent(el);
             this._panel.onOpen = () => {
+                this._setChestOpen(true);
                 this.currentPage = 0; // 默认打开第一页
                 // 同步打开装备/背包面板，方便双向搬运（与附魔/改造栏同模式）
                 SystemUI.open('equip');
                 this._refreshAll();
             };
+            this._panel.onClose = () => this._setChestOpen(false);
         }
         return this._panel;
     },
 
+    /** 面板生命周期只切换显示贴图；仓库物品、对话入口和单格碰撞保持原链。 */
+    _setChestOpen(isOpen) {
+        const npc = this._anchorNPC;
+        const sprite = npc?.spriteCfg;
+        if (!npc || !sprite) return;
+
+        if (!this._closedVisual || this._closedVisual.npc !== npc) {
+            this._closedVisual = {
+                npc,
+                idleKey: sprite.idleKey,
+                size: sprite.size,
+                sizeH: sprite.sizeH,
+                footOffsetY: npc.footOffsetY,
+                clickHeight: npc.clickAreaCfg?.height,
+                visualFootprint: sprite.visualFootprint,
+            };
+        }
+
+        const closed = this._closedVisual;
+        sprite.idleKey = isOpen && sprite.openKey ? sprite.openKey : closed.idleKey;
+        sprite.size = isOpen ? (sprite.openSize ?? closed.size) : closed.size;
+        sprite.sizeH = isOpen ? (sprite.openSizeH ?? closed.sizeH) : closed.sizeH;
+        const footOffsetY = isOpen
+            ? (sprite.openFootOffsetY ?? closed.footOffsetY)
+            : closed.footOffsetY;
+        sprite.footOffsetY = footOffsetY;
+        sprite.visualFootprint = isOpen
+            ? (sprite.openVisualFootprint ?? closed.visualFootprint)
+            : closed.visualFootprint;
+        npc.footOffsetY = footOffsetY;
+        if (npc.clickAreaCfg && Number.isFinite(Number(closed.clickHeight))) {
+            npc.clickAreaCfg.height = isOpen
+                ? (sprite.openClickHeight ?? sprite.openSizeH ?? closed.clickHeight)
+                : closed.clickHeight;
+        }
+
+        delete npc._structureVisualFitKey;
+        delete npc._structureVisualFit;
+        delete npc._visualGroundFitKey;
+    },
+
     open() { this._getPanel().open(); },
-    close() { this._getPanel().close(); },
-    toggle() { this._getPanel().toggle(); },
+    close() {
+        this._getPanel().close();
+        // BasePanel 在已关闭时不会触发 onClose；仍兜底恢复关闭贴图。
+        this._setChestOpen(false);
+    },
+    toggle() {
+        if (this._getPanel().isOpen) this.close();
+        else this.open();
+    },
 
     _buildPanelContent(panel) {
         panel.innerHTML = `

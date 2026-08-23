@@ -47,7 +47,8 @@ class NPC extends Entity {
         // footprint 椭圆偏移（如仓库底部判定上移）
         if (typeof config.colliderOffsetY === 'number') this.colliderOffsetY = config.colliderOffsetY;
         if (typeof config.colliderOffsetX === 'number') this.colliderOffsetX = config.colliderOffsetX;
-        // 矩形 footprint（祭坛/仓库等固定 NPC：匹配贴图底座，碰撞不再走 WallSystem 静态墙）
+        // 普通固定 NPC 可选矩形 footprint；仓库/祭坛等格网建筑会在创建后由
+        // applyBuildingFootprint 覆盖为唯一 iso_rect 建筑体积，不保留这套 NPC 形状。
         if (config.collisionShape) this.collisionShape = config.collisionShape;
         if (typeof config.collisionWidth === 'number') this.collisionWidth = config.collisionWidth;
         if (typeof config.collisionHeight === 'number') this.collisionHeight = config.collisionHeight;

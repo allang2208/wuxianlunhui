@@ -117,7 +117,10 @@
     "abilities": {
       "research_structure_hp": { "id": "research_structure_hp", "name": "防御结构强化", "icon": "🧱", "iconImage": "assets/ui/building-upgrades/structure-hp.png", "target": "方块墙与4格门", "base": 0, "per": 0.1, "displayMode": "percent", "maxLevel": 10, "desc": "方块墙与4格门最大生命 +{pct}%（每级 +10%）" },
       "research_passive_energy": { "id": "research_passive_energy", "name": "能源回收矩阵", "icon": "⚡", "iconImage": "assets/ui/building-upgrades/passive-energy.png", "target": "全局能源", "base": 0, "per": 1, "displayMode": "flat", "maxLevel": 10, "desc": "每秒被动获得 {value} 能源（每级 +1）" },
-      "research_recruit_speed": { "id": "research_recruit_speed", "name": "快速募兵", "icon": "🚀", "iconImage": "assets/ui/building-upgrades/recruit-speed.png", "target": "所有军事产兵建筑", "firstLevel": 0.1, "per": 0.02, "displayMode": "percent", "maxLevel": 10, "desc": "全局募兵速度 +{pct}（Lv.1 为 10%，之后每级 +2%）" }
+      "research_recruit_speed": { "id": "research_recruit_speed", "name": "快速募兵", "icon": "🚀", "iconImage": "assets/ui/building-upgrades/recruit-speed.png", "target": "所有军事产兵建筑", "firstLevel": 0.1, "per": 0.02, "displayMode": "percent", "maxLevel": 10, "desc": "全局募兵速度 +{pct}（Lv.1 为 10%，之后每级 +2%）" },
+      "research_staff": { "id": "research_staff", "name": "扩编研究员", "icon": "👥", "target": "所有研究院岗位", "base": 3, "per": 1, "displayMode": "flat", "maxLevel": 2, "desc": "每座研究院提供 {value} 个研究员岗位（基础 3 个，最高 5 个）" },
+      "research_base_points": { "id": "research_base_points", "name": "精密研究设备", "icon": "🔭", "target": "所有研究院基础科研", "base": 0, "per": 0.15, "displayMode": "decimal", "maxLevel": 10, "desc": "每座研究院基础科研点 +{value}/秒（每级 +0.15）" },
+      "research_institute_capacity": { "id": "research_institute_capacity", "name": "学术分院网络", "icon": "🏛️", "target": "每个位面研究院数量上限", "base": 1, "per": 1, "displayMode": "flat", "maxLevel": 2, "desc": "每个位面最多建设 {value} 座研究院（基础 1 座，最高 3 座）" }
     }
   },
   "warehouse_logistics": {
@@ -141,6 +144,15 @@
       "workshop_efficiency": { "name": "效率增幅", "icon": "⚙️", "iconImage": "assets/ui/building-upgrades/workshop-efficiency.png", "effect": "workshopEfficiency", "mode": "add", "base": 0.1, "per": 0.02, "maxLevel": 10, "desc": "满员时经济效率 +{pct}%" },
       "workshop_repair": { "name": "维修效率", "icon": "🔧", "iconImage": "assets/ui/building-upgrades/workshop-repair.png", "effect": "workshopRepair", "mode": "add", "base": 0.05, "per": 0.01, "maxLevel": 10, "desc": "每秒恢复目标最大生命 {pct}%" },
       "workshop_engineers": { "name": "工程师数量", "icon": "🐹", "iconImage": "assets/ui/building-upgrades/workshop-engineers.png", "effect": "workshopEngineerCount", "mode": "add", "base": 2, "per": 1, "maxLevel": 3, "goldByLevel": [900, 1500, 2400], "energyByLevel": [1200, 2000, 3200], "timeByLevel": [45000, 60000, 90000], "desc": "仓鼠工程师 {value} 名" }
+    }
+  },
+  "planar_resonator_economy": {
+    "moduleUpgrade": { "gold": 500, "energy": 750, "timeBaseMs": 30000, "timeGrowthMs": 5000 },
+    "modules": {
+      "resonator_frequency": { "name": "谐振频率", "icon": "⏱️", "effect": "resonatorCycleMs", "mode": "add", "base": 10000, "per": -400, "maxLevel": 10, "desc": "每轮谐振周期 {seconds} 秒（每级 -0.4 秒）" },
+      "resonator_crystal_output": { "name": "晶核增幅", "icon": "💠", "iconImage": "assets/items/energy.png", "effect": "resonatorEnergyPerCycle", "mode": "add", "base": 100, "per": 5, "maxLevel": 10, "desc": "晶核每轮产生 {value} 点原始能源（每级 +5）" },
+      "resonator_conversion": { "name": "导能回收", "icon": "♻️", "effect": "resonatorConversionRate", "mode": "add", "base": 0.8, "per": 0.02, "maxLevel": 10, "desc": "将晶核原始产能的 {pct}% 转化为可入库能源" },
+      "resonator_staff": { "name": "谐振技师", "icon": "🐹", "iconImage": "assets/ui/building-upgrades/workshop-engineers.png", "effect": "resonatorStaffCapacity", "mode": "add", "base": 2, "per": 1, "maxLevel": 3, "goldByLevel": [900, 1500, 2400], "energyByLevel": [1200, 2000, 3200], "timeByLevel": [45000, 60000, 90000], "desc": "谐振技师岗位 {value} 名" }
     }
   },
   "armory_economy": {

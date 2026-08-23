@@ -89,6 +89,8 @@ export const DungeonMapSystem = {
     dragStartOffsetY: 0,
     _mouseDownTime: 0,
     _mouseDownPos: { x: 0, y: 0 },
+    _routePointerRegion: null,
+    _pendingRouteClick: null,
     _eventListeners: [],
     _observerSuspended: false,
     _observerHiddenUi: null,
@@ -236,6 +238,8 @@ export const DungeonMapSystem = {
         this.isDragging = false;
         this.dragStartX = undefined;
         this.dragStartY = undefined;
+        this._routePointerRegion = null;
+        this._pendingRouteClick = null;
 
         const startNode = this.nodes.find(n => n.type === "start");
         if (startNode) {
@@ -266,6 +270,8 @@ export const DungeonMapSystem = {
         this.active = false;
         this.setWorldObservationSuspended(false);
         this.state = "idle";
+        this._routePointerRegion = null;
+        this._pendingRouteClick = null;
         // 经验系统：离开地牢，回退主神空间口径（F 档）
         setCurrentDungeonType(null);
         this.nodes = [];
@@ -340,6 +346,8 @@ export const DungeonMapSystem = {
             this.isDragging = false;
             this.dragStartX = undefined;
             this.dragStartY = undefined;
+            this._routePointerRegion = null;
+            this._pendingRouteClick = null;
             this._observerHiddenUi = new Map();
             const selector = '[id^="dungeon"], #abandonButton, #safeEvacButton, #invasionChanceLabel, #chestLeaveConfirm';
             document.querySelectorAll(selector).forEach((el) => {
@@ -382,12 +390,18 @@ export const DungeonMapSystem = {
 
         const onMouseDown = (e) => {
             if (this._observerSuspended || SceneManager.currentScene !== this.sceneId) return;
-            // 只有在下方地图选择区域内按下才允许拖动；上方背景图区域不可交互
-            if (this.state === "map" && !this._isInMapArea(e.clientX, e.clientY)) return;
+            if (e.button !== 0 || this.state !== "map") return;
+            const inMapArea = this._isInMapArea(e.clientX, e.clientY);
+            const exitButton = this._getExitButtonRect();
+            const inExitButton = e.clientX >= exitButton.x && e.clientX <= exitButton.x + exitButton.w
+                && e.clientY >= exitButton.y && e.clientY <= exitButton.y + exitButton.h;
+            // 路线节点与退出按钮使用地牢自己的点击边沿，不进入角色攻击/RTS 的全局 Input 链。
+            if (!inMapArea && !inExitButton) return;
+            this._routePointerRegion = inExitButton ? 'exit' : 'map';
             this.isDragging = false;
             this._dragMoved = false;
-            this.dragStartX = e.clientX;
-            this.dragStartY = e.clientY;
+            this.dragStartX = inMapArea ? e.clientX : undefined;
+            this.dragStartY = inMapArea ? e.clientY : undefined;
             this.dragStartOffsetX = this.mapOffsetX;
             this.dragStartOffsetY = this.mapOffsetY;
             this._mouseDownTime = Date.now();
@@ -403,6 +417,7 @@ export const DungeonMapSystem = {
                 this.isDragging = false;
                 this.dragStartX = undefined;
                 this.dragStartY = undefined;
+                this._routePointerRegion = null;
                 return;
             }
             const dx = e.clientX - this.dragStartX;
@@ -418,15 +433,27 @@ export const DungeonMapSystem = {
             }
         };
 
-        const onMouseUp = () => {
-            if (this._observerSuspended || SceneManager.currentScene !== this.sceneId) return;
+        const onMouseUp = (e) => {
+            const pointerRegion = this._routePointerRegion;
+            this._routePointerRegion = null;
+            if (e.button !== 0 || this._observerSuspended || SceneManager.currentScene !== this.sceneId) return;
+            const exitButton = this._getExitButtonRect();
+            const releasedOnExit = e.clientX >= exitButton.x && e.clientX <= exitButton.x + exitButton.w
+                && e.clientY >= exitButton.y && e.clientY <= exitButton.y + exitButton.h;
+            const releaseRegion = releasedOnExit ? 'exit'
+                : (this._isInMapArea(e.clientX, e.clientY) ? 'map' : null);
             // 如果发生了拖动，标记本次点击为拖动，避免触发节点选择
-            if (this.isDragging) {
+            const wasDragging = this.isDragging || this._dragMoved;
+            if (wasDragging) {
                 this._dragMoved = true;
             }
             this.isDragging = false;
             this.dragStartX = undefined;
             this.dragStartY = undefined;
+            // 只有同一区域内完成按下与松开、且没有拖动时，才排队一次路线点击。
+            if (this.state === "map" && pointerRegion && pointerRegion === releaseRegion && !wasDragging) {
+                this._pendingRouteClick = { x: e.clientX, y: e.clientY };
+            }
         };
 
         canvas.addEventListener("mousedown", onMouseDown);
@@ -780,9 +807,11 @@ export const DungeonMapSystem = {
         if (!this.active || this._observerSuspended || this.state !== "map") return;
         this._mapAnimT += _dt;
         this._setMapStatusBarVisible(true);
-        this._updateHover();
-        if (Input.mouse.leftPressed && !this._dragMoved) {
-            this._handleClick();
+        const routeClick = this._pendingRouteClick;
+        this._pendingRouteClick = null;
+        this._updateHover(routeClick || Input.mouse);
+        if (routeClick) {
+            this._handleClick(routeClick);
         }
         // 每帧重置拖动标记，避免拖动后的单次点击被误判
         this._dragMoved = false;
@@ -940,9 +969,9 @@ export const DungeonMapSystem = {
         };
     },
 
-    _updateHover() {
-        const mx = Input.mouse.x;
-        const my = Input.mouse.y;
+    _updateHover(pointer = Input.mouse) {
+        const mx = pointer.x;
+        const my = pointer.y;
         this.hoveredNodeId = null;
 
         const available = this.getAvailableNodes();
@@ -1008,9 +1037,8 @@ export const DungeonMapSystem = {
         if (el) el.remove();
     },
 
-    _handleClick() {
-        // 地图固定显示，鼠标点击始终有效（不再区分拖动和点击）
-        const mx = Input.mouse.x, my = Input.mouse.y;
+    _handleClick(pointer = Input.mouse) {
+        const mx = pointer.x, my = pointer.y;
         // 检测退出按钮点击（与绘制共用 _getExitButtonRect，随视口右对齐）
         const btn = this._getExitButtonRect();
         if (mx >= btn.x && mx <= btn.x + btn.w && my >= btn.y && my <= btn.y + btn.h) {
@@ -1467,10 +1495,15 @@ export const DungeonMapSystem = {
         const arenaRoomCount = CombatRoomSystem.getArenaRoomCount ? CombatRoomSystem.getArenaRoomCount() : 3;
         this._zombieCombat.forceArenaWaves(arenaRoomCount);
 
-        // 宝箱房：最后一房间中央（普通/精英都生成；倒计时等玩家进入末房才启动）
+        // 宝箱房：最后一房间中央（普通/精英都生成；倒计时等玩家进入末房才启动）。
+        // 世界单格冰墙竞技场使用开放式宝箱点，避免末房中央再次套入旧连续墙预制。
         if (typeof ChestRoomSystem !== 'undefined') {
             const lastRoomIdx = CombatRoomSystem.getArenaRoomCount();
-            ChestRoomSystem.setup(this.dungeonType, CombatRoomSystem.getArenaRoomBounds(lastRoomIdx), { deferCountdown: true, isElite: !!node.isElite });
+            ChestRoomSystem.setup(this.dungeonType, CombatRoomSystem.getArenaRoomBounds(lastRoomIdx), {
+                deferCountdown: true,
+                isElite: !!node.isElite,
+                openArena: crCfg.wallConstruction === 'worldBlock1x1',
+            });
         }
 
         // 陷阱：房间生成时逐房摆放（不再等玩家进房关门）；可达性锚点用本房内部参考点

@@ -4,7 +4,7 @@ import { isoLocalToWorldDelta } from '../physics/iso-footprint.js';
 
 const TAU = Math.PI * 2;
 // 2026-08-19：阴影深浅全局统一——颜色统一纯黑，透明度 0.1925
-//（0.55 → −30% → 再 −50%，用户口径），不随仰角变化、不分层叠加。
+//（0.55 → −30% → 再 −50%，用户口径），不随仰角变化、不因结构交叠加深。
 // 2026-08-21：单位（动态）阴影两轮各加深 25%，最终 0.30078125；静态仍为 0.1925。
 // 个体仍可用 shadow.opacity 覆盖。改深浅只调这两个常量。
 const STATIC_SHADOW_OPACITY = 0.1925;
@@ -21,12 +21,21 @@ const DEFAULTS = Object.freeze({
     startPhase: 0.25,
     dynamicMaxOffset: 16,
     staticMaxOffset: 72,
+    // 阴影边缘统一只向几何内部羽化：不外扩 footprint，不使用居中描边。
+    shadowEdgeFadePx: 8,
+    shadowEdgeFadeSteps: 5,
+    shadowEdgeAlphaRatio: 0.08,
+    contactShadowFadeStart: 0.58,
     // 环境阴影只衰减强度，不再在无太阳时彻底消失。
     nightShadowStrength: 0.4,
     dungeonShadowStrength: 0.55,
 });
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+const smoothstep = (value) => {
+    const t = clamp(value, 0, 1);
+    return t * t * (3 - 2 * t);
+};
 
 export const EnvironmentLightingSystem = {
     _config: { ...DEFAULTS },
@@ -78,6 +87,138 @@ export const EnvironmentLightingSystem = {
         return ['low', 'medium', 'high'].includes(this._config.quality)
             ? this._config.quality
             : 'high';
+    },
+
+    /**
+     * 所有实时阴影共用的边缘羽化参数。结构影消费像素宽度与分层数；
+     * 接触影消费同一分层数生成径向透明渐变，避免两条渲染链边缘口径分裂。
+     */
+    getShadowEdgeFade() {
+        const configuredFadePx = Number(this._config.shadowEdgeFadePx);
+        const configuredSteps = Number(this._config.shadowEdgeFadeSteps);
+        const configuredEdgeAlpha = Number(this._config.shadowEdgeAlphaRatio);
+        const configuredContactStart = Number(this._config.contactShadowFadeStart);
+        return {
+            fadePx: clamp(
+                Number.isFinite(configuredFadePx) ? configuredFadePx : DEFAULTS.shadowEdgeFadePx,
+                0,
+                32
+            ),
+            steps: Math.round(clamp(
+                Number.isFinite(configuredSteps) ? configuredSteps : DEFAULTS.shadowEdgeFadeSteps,
+                1,
+                8
+            )),
+            edgeAlphaRatio: clamp(
+                Number.isFinite(configuredEdgeAlpha) ? configuredEdgeAlpha : DEFAULTS.shadowEdgeAlphaRatio,
+                0.01,
+                0.5
+            ),
+            contactStartRatio: clamp(
+                Number.isFinite(configuredContactStart) ? configuredContactStart : DEFAULTS.contactShadowFadeStart,
+                0.43,
+                0.9
+            ),
+        };
+    },
+
+    /**
+     * 共享 entity_shadow 的径向透明度采样点。中心保留原有密度，外缘用
+     * smoothstep 平滑降到 0；纹理仍只创建/上传一次，不增加逐帧开销。
+     */
+    getContactShadowGradientStops() {
+        const { steps, contactStartRatio } = this.getShadowEdgeFade();
+        const stops = [
+            { offset: 0, alpha: 0.96 },
+            { offset: 0.42, alpha: 0.78 },
+        ];
+        const fadeStartAlpha = 0.58;
+        for (let index = 0; index <= steps; index++) {
+            const t = index / steps;
+            stops.push({
+                offset: contactStartRatio + (1 - contactStartRatio) * t,
+                alpha: fadeStartAlpha * (1 - smoothstep(t)),
+            });
+        }
+        return stops;
+    },
+
+    /**
+     * 把一个已完成并集的结构阴影轮廓转成由外到内的透明度层。
+     * 第 0 层严格使用原轮廓，后续层只朝轮廓中心收缩；各层 alpha 按
+     * source-over 反解，使最终内部仍精确达到原 opacity，边界则平滑趋近透明。
+     */
+    getShadowFeatherLayers(points, opacity, options = {}) {
+        const polygon = Array.isArray(points)
+            ? points.filter((point) => point && Number.isFinite(point.x) && Number.isFinite(point.y))
+            : [];
+        const targetOpacity = clamp(Number(opacity) || 0, 0, 1);
+        if (polygon.length < 3 || targetOpacity <= 0) return [];
+
+        const profile = this.getShadowEdgeFade();
+        const fadePx = clamp(Number(options.fadePx ?? profile.fadePx) || 0, 0, 32);
+        const steps = Math.round(clamp(Number(options.steps ?? profile.steps) || 1, 1, 8));
+        const edgeAlphaRatio = clamp(
+            Number(options.edgeAlphaRatio ?? profile.edgeAlphaRatio) || profile.edgeAlphaRatio,
+            0.01,
+            0.5
+        );
+        if (fadePx <= 0.01) return [{ points: polygon, alpha: targetOpacity }];
+
+        let centerX = Number(options.centerX);
+        let centerY = Number(options.centerY);
+        if (!Number.isFinite(centerX) || !Number.isFinite(centerY)) {
+            centerX = 0;
+            centerY = 0;
+            for (const point of polygon) {
+                centerX += point.x;
+                centerY += point.y;
+            }
+            centerX /= polygon.length;
+            centerY /= polygon.length;
+        }
+
+        let minX = Infinity;
+        let minY = Infinity;
+        let maxX = -Infinity;
+        let maxY = -Infinity;
+        for (const point of polygon) {
+            minX = Math.min(minX, point.x);
+            minY = Math.min(minY, point.y);
+            maxX = Math.max(maxX, point.x);
+            maxY = Math.max(maxY, point.y);
+        }
+        // 极窄投影不允许羽化层越过中心；正常建筑仍使用完整 8px 软边。
+        const safeFadePx = Math.min(fadePx, Math.min(maxX - minX, maxY - minY) * 0.24);
+        if (safeFadePx <= 0.01) return [{ points: polygon, alpha: targetOpacity }];
+
+        const layers = [];
+        let accumulatedAlpha = 0;
+        for (let index = 0; index <= steps; index++) {
+            const progress = index / steps;
+            const cumulativeTarget = targetOpacity
+                * (edgeAlphaRatio + (1 - edgeAlphaRatio) * smoothstep(progress));
+            const layerAlpha = clamp(
+                (cumulativeTarget - accumulatedAlpha) / Math.max(1e-6, 1 - accumulatedAlpha),
+                0,
+                1
+            );
+            const inset = safeFadePx * progress;
+            const layerPoints = index === 0 ? polygon : polygon.map((point) => {
+                const dx = centerX - point.x;
+                const dy = centerY - point.y;
+                const distance = Math.hypot(dx, dy);
+                if (distance <= 1e-6) return { x: point.x, y: point.y };
+                const inward = Math.min(inset, distance * 0.45);
+                return {
+                    x: point.x + dx / distance * inward,
+                    y: point.y + dy / distance * inward,
+                };
+            });
+            layers.push({ points: layerPoints, alpha: layerAlpha });
+            accumulatedAlpha = cumulativeTarget;
+        }
+        return layers;
     },
 
     getAmbient() {

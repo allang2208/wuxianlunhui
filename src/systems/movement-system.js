@@ -111,6 +111,10 @@ const MovementSystem = {
     update(enemy, dt, entities) {
         if (!enemy || !enemy.active) return;
 
+        // MovementSystem 是 AI 单位移动意图的唯一发布者；每帧先清空，避免死亡、施法、
+        // 排队等提前返回时把上一帧方向残留给墙梯接口。
+        enemy._surfaceInputIntent = null;
+
         // 统一刷新动态障碍图（每帧仅一次，内部有 250ms 节流）
         if (dynamicObstacleMap) {
             const now = Date.now();
@@ -1528,10 +1532,34 @@ this._updateStuckDetection(enemy, dt, dx, dy, dist);
             if (len > 0) { moveX /= len; moveY /= len; }
         }
 
+        // 玩家控制器每帧都会发布高架输入意图；AI 也必须把本帧实际采用的移动方向交给
+        // 统一表面导航。wall_walk 不安装 _surfaceMoveAxes，缺少该字段时墙顶→楼梯的
+        // Portal 永远不会接管，路线节点和楼梯方向预约都会卡住。
+        const surfaceIntentLength = Math.hypot(moveX, moveY);
+        if (!enemy._surfaceNavWaiting
+            && surfaceIntentLength > 1e-6
+            && (enemy._surfaceRouteActive
+                || enemy._surfaceKind === 'stairs'
+                || enemy._surfaceKind === 'wall_walk'
+                || enemy._elevatedNavigationBridge)) {
+            enemy._surfaceInputIntent = {
+                x: moveX / surfaceIntentLength,
+                y: moveY / surfaceIntentLength,
+            };
+        }
+
         enemy.vx += (moveX * maxSpd - enemy.vx) * (enemy.accel || 0.7);
         enemy.vy += (moveY * maxSpd - enemy.vy) * (enemy.accel || 0.7);
 
-        const sc = dt / 1000;
+        // 与玩家同口径：高架窄通道只限制位置积分，AI/动画/路线计时仍使用真实 dt。
+        // 避免浏览器长帧一步跨过墙梯连接面后被表面回夹，形成反复顶边。
+        const elevatedMoveDt = enemy._surfaceRouteActive
+            || enemy._surfaceKind === 'stairs'
+            || enemy._surfaceKind === 'wall_walk'
+            || enemy._elevatedNavigationBridge
+            ? Math.min(dt, 34)
+            : dt;
+        const sc = elevatedMoveDt / 1000;
         let nx = enemy.x + enemy.vx * sc;
         let ny = enemy.y + enemy.vy * sc;
         const maxStep = maxSpd * sc;

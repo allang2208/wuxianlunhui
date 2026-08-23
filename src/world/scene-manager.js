@@ -508,8 +508,9 @@ export const SceneManager = {
             // 主神空间会恢复离城坐标，该坐标常与原入口重合，单靠秒数冷却会自动弹回原世界。
             if (physicalPortalTravel) Game._portalArrivalLock = true;
             if (sceneId === 'main') this._finishWorldDestructionTransactions(opts.worldDestructionTx);
-            // 双保险：世界尺寸可能刚变化，强制小地图静态层按新尺寸重绘（避免放大墙层残留）
-            if (window.__phaserScene) window.__phaserScene._minimapStaticKey = null;
+            // 目标场景已经提交：在揭开加载层前同步新 zoom、世界尺寸并绕过小地图节流重画，
+            // 避免回城后短暂显示离场位面的缩放/坐标内容。
+            window.__phaserScene?.refreshMinimapForSceneTransition?.();
             this.hideLoadingScreen();
             // 显示场景名称
             this._showSceneLabel(scene.name);
@@ -782,7 +783,7 @@ export const SceneManager = {
 
         if (this._mainEntities) {
             // 主神空间使用固定大小，不随分辨率变化
-            Renderer.generateWorld();
+            Renderer.generateWorld('main');
             // 当前运行态与驻留快照必须分离，观察主城时删除玩家不能污染下次真实回城。
             Game.entities = new Map(this._mainEntities);
             // 防御：主城快照若含矿点（旧版本污染），恢复时剔除——
@@ -797,7 +798,7 @@ export const SceneManager = {
             }
         } else {
             // 兜底：如果主场景状态未保存（比如测试场景直接进入），重新生成主场景基础环境
-            Renderer.generateWorld();
+            Renderer.generateWorld('main');
             // 正常回城才生成玩家；观察主城时本体仍留在原世界。
             if (player && !observing) {
                 Game.entities.set('player', player);
@@ -982,6 +983,9 @@ export const SceneManager = {
             if (r.wavesCleared.length > 0) lines.push([`离线战报：击退第 ${r.wavesCleared.join('、')} 波`, '#8ad0ff']);
             if (r.victory) lines.push(['防守胜利！奖励已发放', '#ffd700']);
             if (r.energyMined > 0) lines.push([`矿工离线采集 +${Math.round(r.energyMined)} 能源`, '#7fd4ff']);
+            if (r.resonatorEnergyProduced > 0) {
+                lines.push([`位面谐振塔发电 +${r.resonatorEnergyProduced} 能源`, '#a892ff']);
+            }
             if (r.passiveEnergy > 0) lines.push([`能源回收矩阵 +${r.passiveEnergy} 能源`, '#7fd4ff']);
             if (r.titheEnergy > 0) lines.push([`牧师什一税 +${r.titheEnergy} 能源`, '#c9a0ff']);
             if (r.goldProduced > 0) lines.push([`银行服务结算 +${r.goldProduced} 金币`, '#ffd700']);

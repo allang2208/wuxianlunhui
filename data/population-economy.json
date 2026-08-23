@@ -1,5 +1,5 @@
 {
-  "_comment": "人口经济唯一数值源。房屋提供容量；风车和市场按数值岗位工作；银行按范围内房屋人口离散结算；同一前台位面的市场共享交易压力。",
+  "_comment": "人口经济唯一数值源。房屋提供容量；研究院、风车、市场和位面谐振塔按数值岗位工作；银行按范围内房屋人口离散结算；同一前台位面的市场共享交易压力。",
   "tickMs": 1000,
   "civilianVisual": {
     "fadeOutDurationMs": 320,
@@ -39,6 +39,48 @@
         "footOffsetY": 148,
         "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.781879, "widthRatio": 0.85906, "depthRatio": 0.42953, "scaleMode": "strict" },
         "upgradeCost": { "gold": 600, "energy": 1200, "timeMs": 30000 }
+      }
+    ]
+  },
+  "research": {
+    "upgradeCompleteSound": "assets/sounds/ui/house_upgrade_complete.mp3",
+    "workerSlots": 3,
+    "workerSlotsAbilityId": "research_staff",
+    "workerLabel": "研究员",
+    "workerEfficiencyShare": 0.2,
+    "fullEfficiencyWorkerCount": 5,
+    "baseResearchAbilityId": "research_base_points",
+    "levels": [
+      {
+        "level": 1,
+        "baseResearchPointsPerSecond": 1,
+        "tex": "research_institute",
+        "displayW": 256,
+        "displayH": 234,
+        "footOffsetY": 116,
+        "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.722222, "widthRatio": 1, "depthRatio": 0.547009, "scaleMode": "strict" }
+      },
+      {
+        "level": 2,
+        "technologyUnlockId": "research_institute_level_2",
+        "baseResearchPointsPerSecond": 1.5,
+        "tex": "research_institute",
+        "displayW": 256,
+        "displayH": 234,
+        "footOffsetY": 116,
+        "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.722222, "widthRatio": 1, "depthRatio": 0.547009, "scaleMode": "strict" },
+        "upgradeCost": { "gold": 1200, "energy": 2400, "timeMs": 60000 }
+      },
+      {
+        "level": 3,
+        "technologyUnlockId": "research_institute_level_3",
+        "baseResearchPointsPerSecond": 2,
+        "tex": "research_institute",
+        "displayW": 256,
+        "displayH": 234,
+        "footOffsetY": 116,
+        "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.722222, "widthRatio": 1, "depthRatio": 0.547009, "scaleMode": "strict" },
+        "upgradeCost": { "gold": 3000, "energy": 6000, "timeMs": 120000 }
       }
     ]
   },
@@ -241,6 +283,13 @@
         }
       }
     }
+  },
+  "planar_resonator": {
+    "workerSlots": 5,
+    "workerSlotsModule": "resonator_staff",
+    "workerLabel": "谐振技师",
+    "workerEfficiencyShare": 0.2,
+    "fullEfficiencyWorkerCount": 5
   },
   "armory": {
     "workerSlots": 5,

@@ -201,9 +201,11 @@
   },
   "research_institute": {
     "id": "research_institute",
-    "buildLimit": 3,
+    "buildLimit": 1,
+    "buildLimitAbilityId": "research_institute_capacity",
     "name": "研究院",
     "cost": 1000,
+    "currency": "energy",
     "hp": 2200,
     "radius": 128,
     "def": 70,
@@ -225,9 +227,10 @@
     "unitCap": 0,
     "defaultUnitType": "",
     "unitTypes": [],
+    "economyType": "research",
     "workshopType": "research",
     "workshopTitle": "🔬 研究院",
-    "workshopDesc": "研究成果全局强化世界-122的防御结构、能源产出与募兵速度",
+    "workshopDesc": "研究员积累科研点推动科技树，研究成果继续全局强化防御结构、能源产出与募兵速度",
     "upgradeProject": "research_standard"
   },
   "weather_forecast_tower": {
@@ -589,6 +592,28 @@
     "unitTypes": [],
     "economyType": "workshop",
     "upgradeProject": "economic_workshop"
+  },
+  "planar_resonator": {
+    "id": "planar_resonator",
+    "name": "位面谐振塔",
+    "cost": 6000,
+    "currency": "energy",
+    "hp": 3200,
+    "radius": 128,
+    "def": 85,
+    "mdef": 110,
+    "tex": "planar_resonator",
+    "assetPath": "assets/terrain/planar_resonator.png",
+    "thumbnailPath": "assets/ui/building-thumbnails/planar_resonator.png",
+    "displayW": 278,
+    "displayH": 223,
+    "footOffsetY": 110,
+    "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.706278, "widthRatio": 0.920863, "depthRatio": 0.573991, "scaleMode": "strict" },
+    "sellRefundRatio": 0.5,
+    "spawnEnabled": false,
+    "unitTypes": [],
+    "economyType": "planar_resonator",
+    "upgradeProject": "planar_resonator_economy"
   },
   "armory": {
     "id": "armory",

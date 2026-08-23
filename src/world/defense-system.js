@@ -2500,7 +2500,9 @@ class DefenseTower extends Combatant {
         EffectFactory.createShellCasing(mx, my, angle, this.y);
         const snd = TOWER_FIRE_SOUNDS[this.weaponItem ? this.weaponItem.weaponId : ''] || TOWER_FIRE_SOUNDS[this.weaponItem ? this.weaponItem.weaponType : ''];
         if (snd && SoundManager && typeof SoundManager.playFile === 'function') {
-            SoundManager.playFile(snd);
+            if (SoundManager.playGunshotAt) SoundManager.playGunshotAt(snd, this.x, this.y);
+            else if (SoundManager.playGunshot) SoundManager.playGunshot(snd);
+            else SoundManager.playFile(snd);
         }
     }
 
@@ -2519,6 +2521,8 @@ class DefenseTower extends Combatant {
             targetZ: aim.targetZ,
             aimDistance: Math.hypot(aim.groundX - mx, aim.groundY - p.groundY),
             wallContext: this._projectileWallIgnore(),
+            // 塔的枪口层在 _muzzleEffects 中按“一次击发”统一播声；避免基类先播一次后重复。
+            suppressFireSound: true,
         });
         if (!fired) return false;
         this._muzzleEffects(mx, my, aim.screenX, aim.screenY);
@@ -2549,6 +2553,8 @@ class DefenseTower extends Combatant {
                 targetZ: aim.targetZ,
                 aimDistance: Math.hypot(jx - mx, jGroundY - p.groundY),
                 wallContext,
+                // 散弹每颗 pellet 都复用 fireProjectile，但整次击发只能在 _muzzleEffects 播一次声。
+                suppressFireSound: true,
             })) fired = true;
         }
         if (!fired) return false;
