@@ -139,6 +139,21 @@ function moveWorker(worker, target, speed, dt) {
     return false;
 }
 
+function beginTimedMove(worker, target, speed) {
+    const distance = Math.hypot(target.x - worker.x, target.y - worker.y);
+    const duration = distance / Math.max(1, speed) * 1000;
+    const grace = Math.max(0, Number(visualConfig().moveGraceMs) || 5000);
+    worker.destination = { x: target.x, y: target.y };
+    worker.moveRemainMs = duration + grace;
+}
+
+function finishMove(worker) {
+    worker.destination = null;
+    worker.moveRemainMs = 0;
+    worker.vx = 0;
+    worker.vy = 0;
+}
+
 function syncSprite(worker) {
     if (worker?.sprite?.active) worker.sprite.setPosition(worker.x, worker.y);
 }
@@ -192,6 +207,7 @@ export const ArmoryMaintainerVisualSystem = {
                 visualState: '',
                 stateRemainMs: randomRange(visualConfig().idleDurationMs, 900, 2200),
                 jobCooldownMs: randomRange(visualConfig().jobCooldownMs, 800, 2200),
+                moveRemainMs: 0,
                 destination: null,
                 target: null,
                 lastTarget: null,
@@ -231,7 +247,7 @@ export const ArmoryMaintainerVisualSystem = {
         if (!worker) return;
         worker.lastTarget = worker.target || worker.lastTarget;
         worker.target = null;
-        worker.destination = null;
+        finishMove(worker);
         if (applyCooldown) {
             worker.jobCooldownMs = randomRange(visualConfig().jobCooldownMs, 800, 2200);
             worker.stateRemainMs = randomRange(visualConfig().idleDurationMs, 900, 2200);
@@ -257,8 +273,14 @@ export const ArmoryMaintainerVisualSystem = {
             const target = pool[pickIndex];
             const candidateIndex = candidates.indexOf(target);
             if (candidateIndex >= 0) candidates.splice(candidateIndex, 1);
+            const point = maintenancePoint(building, target, worker);
+            if (!point) continue;
             worker.target = target;
-            worker.destination = null;
+            beginTimedMove(
+                worker,
+                point,
+                Math.max(1, Number(visualConfig().moveSpeed) || 90)
+            );
             this._targetClaims.set(target, worker);
             setState(worker, 'to_target');
         }
@@ -268,23 +290,30 @@ export const ArmoryMaintainerVisualSystem = {
         const elapsed = Math.max(0, Number(dt) || 0);
         worker.jobCooldownMs = Math.max(0, worker.jobCooldownMs - elapsed);
         if (worker.state !== 'idle' && worker.state !== 'walking') {
-            worker.destination = null;
+            finishMove(worker);
             setState(worker, 'idle');
         }
         if (worker.state === 'idle') {
             worker.stateRemainMs -= elapsed;
             if (worker.stateRemainMs <= 0) {
-                worker.destination = randomActivityPoint(building);
+                const destination = randomActivityPoint(building);
+                beginTimedMove(
+                    worker,
+                    destination,
+                    Math.max(1, Number(visualConfig().wanderSpeed) || 70)
+                );
                 setState(worker, 'walking');
             }
             return;
         }
-        if (!worker.destination) worker.destination = randomActivityPoint(building);
+        const speed = Math.max(1, Number(visualConfig().wanderSpeed) || 70);
+        if (!worker.destination) beginTimedMove(worker, randomActivityPoint(building), speed);
         const dx = worker.destination.x - worker.x;
         if (worker.sprite?.active) worker.sprite.setFlipX(dx < 0);
-        const speed = Math.max(1, Number(visualConfig().wanderSpeed) || 70);
-        if (moveWorker(worker, worker.destination, speed, elapsed)) {
-            worker.destination = null;
+        const arrived = moveWorker(worker, worker.destination, speed, elapsed);
+        worker.moveRemainMs = Math.max(0, (Number(worker.moveRemainMs) || 0) - elapsed);
+        if (arrived || worker.moveRemainMs <= 0) {
+            finishMove(worker);
             worker.stateRemainMs = randomRange(visualConfig().idleDurationMs, 900, 2200);
             setState(worker, 'idle');
         }
@@ -294,10 +323,15 @@ export const ArmoryMaintainerVisualSystem = {
         const elapsed = Math.max(0, Number(dt) || 0);
         if (!isWithin(building, worker, ArmoryEconomySystem.getRange(building))) {
             this._releaseTarget(worker, false);
-            worker.destination = homePoint(
+            const destination = homePoint(
                 building,
                 worker.index,
                 Math.max(1, ArmoryEconomySystem.getStaffedCount(building))
+            );
+            beginTimedMove(
+                worker,
+                destination,
+                Math.max(1, Number(visualConfig().wanderSpeed) || 70)
             );
             setState(worker, 'walking');
         }
@@ -316,10 +350,16 @@ export const ArmoryMaintainerVisualSystem = {
             return;
         }
         if (worker.state !== 'maintaining') {
-            const dx = point.x - worker.x;
-            if (worker.sprite?.active) worker.sprite.setFlipX(dx < 0);
             const speed = Math.max(1, Number(visualConfig().moveSpeed) || 90);
-            if (moveWorker(worker, point, speed, elapsed)) {
+            if (!worker.destination) beginTimedMove(worker, point, speed);
+            const dx = worker.destination.x - worker.x;
+            if (worker.sprite?.active) worker.sprite.setFlipX(dx < 0);
+            const arrived = moveWorker(worker, worker.destination, speed, elapsed);
+            worker.moveRemainMs = Math.max(0, (Number(worker.moveRemainMs) || 0) - elapsed);
+            // 维护师与面包师一样不具备寻路；超过直线路程与宽限后从当前位置完成本次交互，
+            // 避免墙角或密集 footprint 让目标认领永久卡死。
+            if (arrived || worker.moveRemainMs <= 0) {
+                finishMove(worker);
                 worker.stateRemainMs = randomRange(
                     visualConfig().maintenanceDurationMs,
                     1800,

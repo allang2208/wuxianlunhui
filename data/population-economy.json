@@ -261,6 +261,7 @@
       "scanIntervalMs": 500,
       "moveSpeed": 90,
       "wanderSpeed": 70,
+      "moveGraceMs": 5000,
       "wanderRangeFactor": 0.82,
       "maintenanceDistance": 34,
       "idleDurationMs": [900, 2200],
