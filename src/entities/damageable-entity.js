@@ -27,6 +27,7 @@ import {
 } from './damageable-runtime.js';
 import { hasRangedLineOfSight } from '../combat/ranged-line-of-sight.js';
 import { canMeleeShareSurface } from '../combat/melee-surface.js';
+import { applyOutgoingDamageModifiers } from '../combat/outgoing-damage-modifiers.js';
 
 // 友方阵营组：玩家与友军互相免疫伤害（防御塔/基地/掩体/伙伴等，2026-08-14）
 const FRIENDLY_FACTIONS = new Set(['player', 'companion']);
@@ -214,6 +215,8 @@ export function isFriendlyFire(source, target) {
                 if (source && source._faction === 'player' && typeof window !== 'undefined' && window.Game && window.Game._oneHitKill) {
                     baseDamage = Math.max(baseDamage, this.hp);
                 }
+                // 来源侧减益在最终伤害链消费；不直接乘除敌人的基础攻击力。
+                baseDamage = applyOutgoingDamageModifiers(baseDamage, source);
                 // 重甲套自动格挡（最后乘法结算；强化不影响概率）：
                 // 壁垒（优质）= 30% 概率减少 80% 伤害；镇岳（稀有）= 40% 概率减少 85% 伤害；
                 // 天罡（史诗）= 50% 概率减少 90% 伤害；神域（神话重甲）= 60% 概率减少 90% 伤害
@@ -440,6 +443,7 @@ export function isFriendlyFire(source, target) {
                     flameArmor: { icon: '🔥', name: '灼锋焰甲', color: '#ff7a3a' },
                     electrified: { icon: '⚡', name: '感电', color: '#b98cff' },
                     marked: { icon: '🎯', name: '标记', color: '#ffd700' },
+                    camelFright: { icon: '🐪', name: '骆驼惊吓', color: '#c99b5d' },
                 };
                 const config = STATUS_CONFIG[type] || { icon: '❓', name: type, color: '#8a7d6b' };
 
@@ -479,6 +483,14 @@ export function isFriendlyFire(source, target) {
              */
             hasStatusEffect(type) {
                 return this.statusEffects.some(e => e.type === type && e.remaining > 0);
+            }
+
+            /** 骆驼骑兵持续光环：同类刷新取更强减伤，不叠加。 */
+            applyCamelFright(duration, reduction = 0.1) {
+                if (this.hasStatusEffect('statusImmune')) return null;
+                const value = Math.max(0, Math.min(0.9, Number(reduction) || 0));
+                if (!(value > 0)) return null;
+                return this.addStatusEffect('camelFright', duration, { value });
             }
             /**
              * 获取某类型状态效果的剩余时间

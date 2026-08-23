@@ -46,8 +46,10 @@ check('世界-124只由沼泽初级地牢完成状态解锁',
     config.worlds?.scene10?.constructionEnabled === true
     && config.worlds.scene10.requirements?.completedDungeons?.length === 1
     && config.worlds.scene10.requirements.completedDungeons[0] === 'swampBeginner');
-check('世界-123暂不进入传送门构造候选',
-    config.worlds?.scene9?.constructionEnabled === false);
+check('世界-123只由冰封世界初级地牢完成状态解锁',
+    config.worlds?.scene9?.constructionEnabled === true
+    && config.worlds.scene9.requirements?.completedDungeons?.length === 1
+    && config.worlds.scene9.requirements.completedDungeons[0] === 'frozenBeginner');
 check('五日周期、F-A进度和怪物扩展表均由配置提供',
     config.invasion?.intervalDays === 5
     && JSON.stringify(config.invasion.dungeonProgressByGrade) === JSON.stringify({
@@ -109,6 +111,19 @@ check('成功完成僵尸初级地牢后，世界-125成为唯一免费首建候
     && candidates[0].cost.gold === 0
     && candidates[0].cost.energy === 0);
 
+WorldProgressionSystem.recordDungeonRun('frozenBeginner', 'success');
+const snowCandidates = WorldProgressionSystem.getConstructableWorlds();
+check('成功完成冰封世界初级地牢后，世界-123雪原成为免费首建候选',
+    snowCandidates.some((entry) => entry.sceneId === 'scene9'
+        && entry.firstConstruction === true
+        && entry.cost.gold === 0
+        && entry.cost.energy === 0)
+    && WorldProgressionSystem.getPortalState('scene9').status === WORLD_LIFECYCLE_STATUS.AVAILABLE);
+const snowBuild = WorldProgressionSystem.constructPortal('scene9');
+check('世界-123首次构造免费并进入可传送列表',
+    snowBuild.ok && snowBuild.firstConstruction
+    && WorldProgressionSystem.getTravelWorlds().some((world) => world.sceneId === 'scene9'));
+
 const firstBuild = WorldProgressionSystem.constructPortal('scene11');
 check('世界-125首次构造免费并进入可传送列表',
     firstBuild.ok && firstBuild.firstConstruction
@@ -165,7 +180,9 @@ WorldProgressionSystem.reset();
 WorldProgressionSystem.restore(saved);
 check('地牢完成与传送门状态可序列化恢复',
     WorldProgressionSystem.hasCompletedDungeon('zombieBeginner')
+    && WorldProgressionSystem.hasCompletedDungeon('frozenBeginner')
     && WorldProgressionSystem.hasCompletedDungeon('swampBeginner')
+    && WorldProgressionSystem.isPortalConstructed('scene9')
     && WorldProgressionSystem.isPortalConstructed('scene11')
     && WorldProgressionSystem.getPortalState('scene10').status === WORLD_LIFECYCLE_STATUS.AVAILABLE
     && WorldProgressionSystem.getPortalState('scene11').status === WORLD_LIFECYCLE_STATUS.ACTIVE

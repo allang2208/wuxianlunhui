@@ -192,8 +192,9 @@ this._tacticalTarget = null;
   传送实体后必须重算锚线（真实场景不会发生）。
 - **坑④（友军脚线被贴图配置污染）**：移动单位参与建筑仲裁的自然深度应来自逻辑脚底
   `entity.y - entity.z + 10`；`spriteOffsetY`、跨动作 `feetCorr` 和贴图中心只负责显示，
-  不应成为排序真源。旧路径若仍用 `sprite.y + footOffsetY + 10`，必须锁定
-  `sprite.y + footOffsetY === entity.y - entity.z`；新增仓鼠兵种同时校验
+  不应成为排序真源。`GameScene._getDynamicDepthProfile()` 必须把 `logicalFootY = entity.y - entity.z`
+  显式传给 `sprite-depth-profile`，后者的 alpha 扫描只负责可见宽高；禁止恢复
+  `sprite.y + footOffsetY + 10` 作为自然 depth。新增仓鼠兵种同时校验
   `spriteOffsetY + footOffsetY === 0`，避免火枪手这类配置不配对造成建筑边缘错层。
 - **验证**：`tools/cdp-layer-occlusion.mjs`——合成 36 组合（塔/基地/矿/小屋 × 无墙/墙前/
   墙后 × 后/同/前）+ 真实基地 4 类建筑同线抽查。新增/修改友军时不能只测单一射手和建筑
@@ -686,6 +687,14 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
 - 击杀金币奖励与怪物本次正常掉落共用同一个随机底数：先算不含祭品加成的默认地牢金币，
   赏金猎人额外给玩家其 2 倍；怪物原本实际掉落及祭品金币倍率保持原结算顺序。
 - 作为正式世界战斗单位，必须登记到 troop-line 军事兵种白名单，保证跨位面编队可序列化和重建。
+
+#### 13.2 仓鼠兵种三分类与骆驼骑兵（2026-08-23）
+
+- 仓鼠军事单位分类的唯一入口为 `src/config/hamster-unit-categories.js`：步兵、骑兵、法术。矿工不是军事单位，非仓鼠特色友军不得为了凑齐三类而强行登记。
+- 只完成素材阶段的新单位使用独立 `data/<id>-visual.json`，允许 BootScene 预载并注册动画，但不得进入 `UNIT_KIND_CFG`、`PRODUCER_UNIT_CLASS`、生产建筑、后台模拟或存档兵种白名单；这些入口意味着已经存在属性和生命周期契约。
+- 骆驼骑兵正式兵种键为 `camel_cavalry`，配置真源为 `data/hamster-camel-cavalry-config.json`，实体为 `HamsterCamelCavalry`。待机24帧、行走16帧、攻击16帧、死亡16帧，均为8列、512×512帧格；复现脚本与源帧索引保存在 `tools/ai-gen/camel-cavalry-video-rebuild.py` 和成品目录 `report.json`。
+- 骆驼骑兵以仓鼠骑士为基准提高生命、伤害和物防15%：690生命、115普攻、45基础物防；基础移速按后续口径与仓鼠骑士保持一致为210。攻击间隔2秒，第9帧伤害结算；视频没有冲锋动作，所以复用轻骑的普通近战状态机但不登记骑士冲锋。
+- `desert_mansion` 是其唯一生产建筑，90秒/名、300粮食、上限5；独立升级项目 `desert_cavalry_standard` 提供伤害、生命、移速、防御四项通用倍率，并提供专属“骆驼惊吓”：600px持续光环，Lv.1降低敌方伤害输出10%，每级+2%，Lv.6为20%，同类不叠加。正式化时必须同步 BootScene、`PRODUCER_UNIT_CFG/CLASS/CONFIG_PATH`、`UNIT_KIND_CFG/getUnitKind`、troop-line 与世界后台模拟，避免出现前台可见但存档或离场结算丢失的半成品单位。
 
 #### 14. 仓鼠牧师、教堂与激励魔法（2026-08-18）
 

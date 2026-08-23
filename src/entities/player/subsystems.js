@@ -1,5 +1,5 @@
 import { DataLoader } from '../../systems/data-loader.js';
-import { nowMs } from './anim-state.js';
+import { isPlayerRunVisual, nowMs } from './anim-state.js';
 import { SoundManager } from '../../ui/sound-manager.js';
 import { WEAPON_ANIM } from '../../config/math-utils.js';
 
@@ -21,6 +21,7 @@ import { Easing } from '../../config/math-utils.js';
 import { EffectManager } from '../../effects/effect-manager.js';
 import { GunFeel } from '../../effects/gunfeel.js';
 import { canMeleeShareSurface } from '../../combat/melee-surface.js';
+import { applyOutgoingDamageModifiers } from '../../combat/outgoing-damage-modifiers.js';
 import { getElement } from '../../utils/dom-utils.js';
 import { TimerManager } from '../../utils/timer-manager.js';
 import { CONFIG } from '../../config/config.js';
@@ -158,6 +159,7 @@ takeDamage(damage, source, _damageType = 'physical', isMelee = false) {
                 if (source && source._faction === 'enemy') {
                     finalDamage = Math.floor(finalDamage * getTributeMonsterAtkDownMul());
                 }
+                finalDamage = applyOutgoingDamageModifiers(finalDamage, source);
                 // 金刚石「金刚不坏」：单次伤害不超过最大生命值的配置比例
                 const surviveCap = getSurviveCapRatio();
                 if (surviveCap > 0 && this.data) {
@@ -200,20 +202,19 @@ removeDroneVulnerability() {
 onDeath() {
                 this._isDead = true;
                 this._deathTimer = 3000; // 3秒后重生
-                // 蟠桃续命按模式分别记录使用状态，世界献祭与本次地牢互不消耗次数。
+                // 蟠桃续命跟随全场景献祭状态；只有重新献祭/覆盖为蟠桃才刷新使用次数。
                 const dungeonTributeMode = DungeonMapSystem?.active === true;
-                const reviveUsed = dungeonTributeMode ? this._peachReviveUsed : this._worldPeachReviveUsed;
+                const reviveUsed = this._worldPeachReviveUsed;
                 if (!reviveUsed && getTributeReviveRatio() > 0) {
-                    if (dungeonTributeMode) this._peachReviveUsed = true;
-                    else this._worldPeachReviveUsed = true;
+                    this._worldPeachReviveUsed = true;
                     this._peachRevivePending = true;
                     if (dungeonTributeMode) syncTributeBuffs(this);
                     EffectManager.add(new FloatingTextEffect(this.x, this.y - 60, '🍑 蟠桃续命生效：3秒后原地复活', '#e8a06a'));
                 }
                 // 显示死亡提示
                 EffectManager.add(new FloatingTextEffect(this.x, this.y - 40, '你死了！3秒后重生', '#ff4444'));
-                // 如果在任务模式中死亡，重置任务状态
-                if (QuestState && QuestState.isInQuest()) {
+                // 蟠桃会在原地续命；只有真正走常规重生时才判任务失败，避免清掉会话后困在任务实例。
+                if (QuestState && QuestState.isInQuest() && !this._peachRevivePending) {
                     QuestState.reset();
                     EffectManager.add(new FloatingTextEffect(this.x, this.y - 60, '任务失败，请重新与侍从对话', '#ff4444'));
                 }
@@ -2104,7 +2105,7 @@ _getWeaponAnimParams() {
                 // 武器缩放（如符文长剑的 +50%）
                 if (isMelee) {
                     let animState = 'idle';
-                    if (this._isSprinting) animState = 'running';
+                    if (isPlayerRunVisual(this)) animState = 'running';
                     else if (this.isMoving) animState = 'walk';
                     const swordCfg = getWeaponStateConfig('sword', animState);
                     if (swordCfg.idleScale && swordCfg.idleScale !== 1) {
@@ -2157,7 +2158,7 @@ _getOffhandWeaponAnimParams() {
                 // 副手缩放
                 if (isMelee) {
                     let animState = 'idle';
-                    if (this._isSprinting) animState = 'running';
+                    if (isPlayerRunVisual(this)) animState = 'running';
                     else if (this.isMoving) animState = 'walk';
                     const swordCfg = getWeaponStateConfig('sword', animState);
                     if (swordCfg.idleScale && swordCfg.idleScale !== 1) {
@@ -2421,7 +2422,7 @@ _updateSubsystems(dt, entities) {
                 if (_currentWep && _currentWep.weaponEffect === 'runeSword') {
                     const isAttacking = this.weaponAnim.state !== 'idle';
                     const isUsingSkill = this._isWhirlwind || this._isDashing || this._specialAttackActive || this._runeSwordSpecialActive;
-                    const animState = this._isSprinting ? 'running' : this.isMoving ? 'walk' : 'idle';
+                    const animState = isPlayerRunVisual(this) ? 'running' : this.isMoving ? 'walk' : 'idle';
                     const swordCfg = getWeaponStateConfig('sword', animState);
                     const wa = WEAPON_ANIM.sword;
                     const holdX = swordCfg.holdOffsetX ?? wa.holdX;

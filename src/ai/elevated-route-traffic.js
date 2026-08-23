@@ -23,8 +23,15 @@ function _validEntity(entity) {
     return entity && entity.active !== false;
 }
 
+function _friendlyUnit(entity) {
+    const faction = entity?._faction || entity?.faction;
+    return faction === 'player' || faction === 'companion';
+}
+
 /**
- * 单座窄楼梯保持单单位互斥和 FIFO，避免同向单位在踏步上互相推挤。
+ * 单座窄楼梯入口保持 FIFO；首个友军实际取得楼梯身份后，同方向友军可流水进入，
+ * 因高架阶段已关闭友军 unit-vs-unit 分离，不再需要用整段楼梯互斥防推挤。
+ * 反方向仍保持互斥，避免上下行在同一窄梯抢占表面控制权。
  * 相邻宽楼梯组由控制器识别后直接绕过本锁；宽入口不会退化成整组只允许一人使用。
  */
 export class ElevatedRouteTraffic {
@@ -174,10 +181,19 @@ export class ElevatedRouteTraffic {
                 this._grant(record, sid, entity, dir, now);
                 return this._result(record, true, entity);
             }
+            if (this._canShareFriendlyLane(record, sid, entity, dir)) {
+                record.queue.splice(queuedIndex, 1);
+                this._grant(record, sid, entity, dir, now);
+                return this._result(record, true, entity);
+            }
             return this._result(record, false, entity, queuedIndex + 1);
         }
 
         if (record.holders.size === 0) {
+            this._grant(record, sid, entity, dir, now);
+            return this._result(record, true, entity);
+        }
+        if (this._canShareFriendlyLane(record, sid, entity, dir)) {
             this._grant(record, sid, entity, dir, now);
             return this._result(record, true, entity);
         }
@@ -275,6 +291,20 @@ export class ElevatedRouteTraffic {
             && (entityGroupId === staircaseId
                 || entity._surfaceStaircase?.id === staircaseId
                 || entity._surfaceRef?.id === staircaseId);
+    }
+
+    _canShareFriendlyLane(record, staircaseId, entity, direction) {
+        if (!_friendlyUnit(entity) || !record || record.holders.size === 0) return false;
+        if (record.direction !== direction) return false;
+        if (record.queue.length > 0 && record.queue[0].entity !== entity) return false;
+        for (const holder of record.holders.values()) {
+            if (!_friendlyUnit(holder.entity)
+                || holder.direction !== direction
+                || !this._physicallyOccupies(holder.entity, staircaseId)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     _getRecord(staircaseId, create = false) {

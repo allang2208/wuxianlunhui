@@ -27,7 +27,7 @@
     "attackDamage": 100,
     "energyGatherRatio": 0.125,
     "expectedCritChance": 0.07,
-    "backpackCapacity": 500,
+    "backpackCapacity": 300,
     "decisionMs": 120,
     "followOffset": 150,
     "teleportDist": 999999,

@@ -497,6 +497,8 @@ setTimeout(() => console.log('触发后:', JSON.stringify(p.weaponAnim), '| rang
 祭品物品：`{ name, type: '祭品', icon, category: 'tribute', rarity, level, stack, price, effects: {...}, stats: [{name, value}], desc, special?: {...} }`
 - `effects` 为固定百分比数值（负数为减益），引擎最终乘算 `Π(1+p/100)`；`stats` 仅用于面板显示；`special` 为特效参数块（非百分比语义）。
 - 不写贴图时用 emoji 图标。
+- 献祭后统一持续30分钟，并在主神空间、世界和地牢中连续倒计时；同一稀有度同时只能生效一件，新祭品覆盖旧的同级效果并从30分钟重新计时。
+- `anchorTokenF~A` 虽为兼容代币合成保留 `category:'tribute'`，但语义是地牢钥匙；必须由 `isDungeonKeyItem()` 排除在献祭池外。
 
 #### 2. 效果键（config/tribute-effects.js 聚合）
 - 面板向：atkPercent/matkPercent/defPercent/mdefPercent/moveSpeedPercent/critPercent（calculateCombatStats 末尾乘算）
@@ -555,10 +557,13 @@ JSON 双份一致；lint / vite build / test-collider / test-craft-sync；CHANGE
   - 通用事件（女神像/恶魔雕像/宝箱/陷阱/补给堆）奖励分级：`combat-formulas.json universalEventRewards` 按地牢 grade 覆盖（祝福场次/粉尘/金币/恢复量等），陷阱/补给属性检定成功率每级 -2pp 下调（下限沿用 minSuccessRate）；宝箱 D 级起 10% 祭品彩蛋走 rollTributeDrop
   - 改名「僵尸地牢」→「僵尸地牢高级」全界面同步
 
-- v4.0 (2026-07-19) — 出征等级门槛
-  - 进对应等级地牢至少放入一件对应稀有度祭品：F↔普通、E↔优质、D↔稀有、C↔史诗、B↔神话、A↔传说（GRADE_ORDER 与 RARITY_ORDER 同序一一对应）
-  - `expedition-system.js` depart() 前置 `_getRequiredRarity()` 判定，缺则提示「请根据提示放入对应等级祭品」拦截
-  - 出征界面左侧固定说明面板 `.expedition-rule-panel`（fixed left:8px top:20vh，pointer-events:none）：F~A 对照表（RARITY_COLORS 上色）+ 当前选中地牢要求实时刷新
+- v4.0 (2026-07-19，已由 v4.1 替换) — 旧祭品准入方案
+  - “携带对应稀有度祭品才能进地牢”及 `_getRequiredRarity()` 已废止，不得恢复 `_carriedItems` 或出征祭品槽。
+
+- v4.1 (2026-08-22) — 地牢钥匙准入
+  - F~A 地牢严格对应 `anchorTokenF~A`；确认出征自动检测背包与仓库，优先背包、其次仓库消耗1枚对应钥匙，不接受更高等级钥匙替代。
+  - 出征面板不再挂载祭品填充栏、祭品效果栏或右侧背包；左侧条件栏显示当前钥匙名称和背包+仓库总持有量。
+  - 时空锚点仍允许同稀有度代币合成，但不能进入位面祭坛献祭列表。
   - **样式坑**：根 `game-style.css` 才是 index.html 加载的全局样式表；`src/ui/` 下新建 css 无任何引用会成为孤儿文件，全局样式一律追加到根 game-style.css
   - 修复 `getTributeHpRegenFlat` 缺失导出（引用先于实现，vite build 报 Missing export——引用配置函数前先确认导出存在）
 

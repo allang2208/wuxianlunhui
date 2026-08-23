@@ -18,6 +18,7 @@ import { EffectManager } from '../effects/effect-manager.js';
 import { loadImage } from '../utils/image-loader.js';
 import { canMeleeShareSurface } from '../combat/melee-surface.js';
 import { hasRangedLineOfSight } from '../combat/ranged-line-of-sight.js';
+import { World125FogTideSystem } from '../world/world125-fog-tide-system.js';
 
         class Enemy extends Combatant {
             constructor(x, y, config = {}) {
@@ -596,6 +597,15 @@ import { hasRangedLineOfSight } from '../combat/ranged-line-of-sight.js';
                 this._telegraphGlowSprite = null;
             }
 
+            /**
+             * 攻击频率专用时钟：只缩短攻击/技能冷却，不改动作动画、前摇、投射物或死亡计时。
+             * 自管攻击的僵尸子类统一通过此入口推进冷却，避免只覆盖 CombatSystem 普攻。
+             */
+            getAttackIntervalDelta(dt) {
+                const delta = Math.max(0, Number(dt) || 0);
+                return delta * World125FogTideSystem.getZombieAttackTimeScale(this);
+            }
+
             update(dt, entities) {
                 super.update(dt);
                 // FSM 阶段切换更新（始终执行，不因眩晕或目标丢失而跳过）
@@ -651,10 +661,11 @@ import { hasRangedLineOfSight } from '../combat/ranged-line-of-sight.js';
                     // 2. 移动系统（始终独立运行）
                     this._updateMovement(dx, dy, dist, dt);
                     // 3. 攻击系统（始终独立运行）
-                    this._updateAttack(dt, entities);
+                    const attackDt = this.getAttackIntervalDelta(dt);
+                    this._updateAttack(attackDt, entities);
                     // 4. 更新攻击冷却和武器动画
-                    if (this.attacks.melee) this.attacks.melee.update(dt);
-                    if (this.attacks.ranged) this.attacks.ranged.update(dt);
+                    if (this.attacks.melee) this.attacks.melee.update(attackDt);
+                    if (this.attacks.ranged) this.attacks.ranged.update(attackDt);
                     this.updateWeaponAnim(dt);
                 }
             }

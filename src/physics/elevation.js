@@ -36,6 +36,40 @@ export function verticalRangesOverlap(left, right, tolerance = 2) {
     return a.top > b.bottom + tolerance && b.top > a.bottom + tolerance;
 }
 
+const FRIENDLY_ELEVATED_FACTIONS = new Set(['player', 'companion']);
+
+function isFriendlyMobileUnit(entity) {
+    const faction = entity?._faction || entity?.faction;
+    return !!entity
+        && FRIENDLY_ELEVATED_FACTIONS.has(faction)
+        && (Number(entity.groundRadius) || Number(entity.collisionRadius) || 0) > 0
+        && !entity._isDefenseStructure
+        && !entity._isDefenseTower
+        && !entity._isDefenseCover
+        && !entity._isBuilding;
+}
+
+function hasEnteredElevatedTraffic(entity) {
+    return entity?._surfaceKind === 'stairs'
+        || entity?._surfaceKind === 'wall_walk'
+        || !!entity?._elevatedNavigationBridge;
+}
+
+export function isFriendlyElevatedTrafficUnit(entity) {
+    return isFriendlyMobileUnit(entity) && hasEnteredElevatedTraffic(entity);
+}
+
+/**
+ * 友方单位取得楼梯/城墙表面身份后，不再以各自 footprint 互相分离。
+ * 只豁免 unit-vs-unit：墙体、建筑、防坠线、Portal 入口排队和表面身份提交不受影响。
+ * 任一方已进入高架交通即可豁免，避免楼梯单位被入口外或墙顶单位反向推离窄通道。
+ */
+export function shouldIgnoreFriendlyElevatedSeparation(left, right) {
+    return isFriendlyMobileUnit(left)
+        && isFriendlyMobileUnit(right)
+        && (isFriendlyElevatedTrafficUnit(left) || isFriendlyElevatedTrafficUnit(right));
+}
+
 /** lower 是否完整处于 upper 下方。 */
 export function isEntityStrictlyBelow(lower, upper, tolerance = 2) {
     return entityVerticalRange(lower).top <= entityVerticalRange(upper).bottom + tolerance;

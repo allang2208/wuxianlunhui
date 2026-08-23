@@ -343,6 +343,10 @@ export function captureWorld(sceneId = 'scene8') {
             kind: 'hut', x: h.x, y: h.y, hp: Math.ceil(h.hp), mirror: !!h._facingLeft,
             modules: { ...(h.modules || {}) },
             storedEnergy: h._storedEnergy || 0,
+            carriedEnergy: (h.miners || []).reduce((sum, miner) =>
+                sum + Math.max(0, Number(miner?._energyCarried) || 0), 0)
+                + Math.max(0, Number(h._pendingMinerEnergy) || 0),
+            assignedWorkers: Math.max(0, Math.floor(Number(h._assignedWorkers) || 0)),
             miners: h.aliveMinerCount(),
             respawnTimer: h._respawnTimer || 0,
             rally: h._rallyPoint ? { x: h._rallyPoint.x, y: h._rallyPoint.y } : null,
@@ -749,18 +753,26 @@ function _restoreWallStaircase(s) {
 }
 
 function _restoreHut(s) {
+    const assignedWorkers = s.assignedWorkers == null
+        ? Math.max(0, Math.floor(Number(s.miners) || 0))
+        : Math.max(0, Math.floor(Number(s.assignedWorkers) || 0));
     const hut = new HamsterHut(s.x, s.y, {
         id: s.id || `built_hut_r${++_seq}`,
         skipInitialSpawn: true,
+        modules: s.modules,
+        storedEnergy: s.storedEnergy,
+        pendingMinerEnergy: s.carriedEnergy,
+        assignedWorkers,
     });
     _markRestored(hut, s);
-    hut.modules = { ...(s.modules || {}) };        // 先挂模块再补员，矿工吃到升级
-    hut._storedEnergy = Math.max(0, s.storedEnergy || 0);
     if (s.rally) hut._rallyPoint = { x: s.rally.x, y: s.rally.y };
     Game.entities.set(hut.id, hut);
     HamsterHutSystem.huts.push(hut);
     BuildingRoadSystem.attach(hut, { allowOverlap: true });
-    const want = Math.max(0, Math.min(s.miners || 0, hut.minerCount()));
+    const savedMinerCount = s.miners == null
+        ? assignedWorkers
+        : Math.max(0, Math.floor(Number(s.miners) || 0));
+    const want = Math.max(0, Math.min(savedMinerCount, hut.minerCount()));
     let spawned = 0;
     for (let i = 0; i < want; i++) if (hut.spawnMiner()) spawned++;
     // 出口槽位预约窗口 750ms，爆发生成会互撞——缺额走 _restoreTopUp 加速补齐（立即启动 800ms 节拍）

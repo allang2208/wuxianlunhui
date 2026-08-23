@@ -67,8 +67,9 @@ export class ForemanZombie extends Enemy {
 
         super.update(dt, entities);
 
-        if (this._whipCd > 0) this._whipCd -= dt;
-        if (this._howlCd > 0) this._howlCd -= dt;
+        const attackDt = this.getAttackIntervalDelta(dt);
+        if (this._whipCd > 0) this._whipCd -= attackDt;
+        if (this._howlCd > 0) this._howlCd -= attackDt;
 
         // 眩晕/冻结时中断攻击动作
         if (this.hasStatusEffect && (this.hasStatusEffect('stun') || this.hasStatusEffect('frozen'))) {

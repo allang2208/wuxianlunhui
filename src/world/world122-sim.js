@@ -32,6 +32,7 @@ import musketeerCfg from '../../data/hamster-musketeer-config.json';
 import priestCfg from '../../data/hamster-priest-config.json';
 import knightCfg from '../../data/hamster-knight-config.json';
 import lightCavalryCfg from '../../data/hamster-light-cavalry-config.json';
+import camelCavalryCfg from '../../data/hamster-camel-cavalry-config.json';
 import explorerCfg from '../../data/hamster-explorer-config.json';
 import bountyHunterCfg from '../../data/hamster-bounty-hunter-config.json';
 import jaguarWarriorCfg from '../../data/jaguar-warrior-config.json';
@@ -57,6 +58,7 @@ const UNIT_CFGS = {
     militia: militiaCfg, warrior: warriorCfg, shooter: shooterCfg,
     guard: guardCfg, scout: scoutCfg, musketeer: musketeerCfg, priest: priestCfg,
     knight: knightCfg, light_cavalry: lightCavalryCfg,
+    camel_cavalry: camelCavalryCfg,
     explorer: explorerCfg, bounty_hunter: bountyHunterCfg,
     jaguar_warrior: jaguarWarriorCfg, jungle_priest: junglePriestCfg,
 };
@@ -262,6 +264,18 @@ function _rosterDps(roster, levelOverrides = null) {
             + Math.max(0, Number(count) || 0) * _unitDps(kind, levelOverrides),
         0
     );
+}
+
+/** 后台无逐实体坐标：至少一名存活骆驼骑兵参战时，按当前惊吓等级折算怪群输出。 */
+function _camelFrightReduction(target) {
+    const hasCamel = (target.structures || []).some((structure) => (
+        structure?.hp > 0
+        && (structure.kind === 'barracks' || structure.kind === 'producer')
+        && (_normalizedRoster(structure).camel_cavalry || 0) > 0
+    ));
+    if (!hasCamel) return 0;
+    const mults = getUnitUpgradeMults('camel_cavalry', getUpgradeModulesForUnitKind('camel_cavalry'));
+    return Math.max(0, Math.min(0.9, Number(mults.camelFrightReduction) || 0));
 }
 
 /** 快速募兵倍率（与 research-system.getRecruitIntervalMs 同口径，读结算开始时的等级） */
@@ -506,7 +520,7 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
         const levelCfg = houseLevels.find((entry) => entry.level === level) || houseLevels[0];
         return sum + (Number(levelCfg?.populationCapacity) || 0);
     }, 0);
-    const assignedPopulation = economyStructures.reduce((sum, structure) => {
+    let assignedPopulation = economyStructures.reduce((sum, structure) => {
         const economyType = producerBuildingsJson[structure.cfgKey]?.economyType;
         const workerSlots = _economyWorkerSlots(structure, economyType);
         const assigned = Math.max(
@@ -516,6 +530,13 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
         structure.assignedWorkers = assigned;
         return sum + assigned;
     }, 0);
+    for (const camp of target.structures || []) {
+        if (camp.kind !== 'hut' || !(camp.hp > 0)) continue;
+        const slots = getMinerEconomyStats(camp.modules || {}).count;
+        const migrated = camp.assignedWorkers == null ? camp.miners : camp.assignedWorkers;
+        camp.assignedWorkers = Math.max(0, Math.min(slots, Math.floor(Number(migrated) || 0)));
+        assignedPopulation += camp.assignedWorkers;
+    }
     const laborEfficiency = assignedPopulation > 0
         ? Math.max(0, Math.min(1, populationCapacity / assignedPopulation))
         : 1;
@@ -678,12 +699,24 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
     const nodes = target.nodes || [];
     for (const s of target.structures || []) {
         if (s.kind !== 'hut') continue;
-        let miners = Math.max(0, Math.floor(Number(s.miners) || 0));
-        const desiredCount = Math.max(miners, getMinerEconomyStats(s.modules || {}).count);
+        const slotCount = getMinerEconomyStats(s.modules || {}).count;
+        const desiredCount = Math.max(0, Math.min(
+            slotCount,
+            Math.floor(Number(s.assignedWorkers == null ? s.miners : s.assignedWorkers) || 0)
+        ));
+        let miners = Math.min(desiredCount, Math.max(0, Math.floor(Number(s.miners) || 0)));
+        s.assignedWorkers = desiredCount;
+        if ((Number(s.carriedEnergy) || 0) > 0 && warehouseFree > 0) {
+            const moved = Math.min(Math.max(0, Number(s.carriedEnergy) || 0), warehouseFree);
+            s.carriedEnergy = Math.max(0, Number(s.carriedEnergy) - moved);
+            _depositToWarehouses(warehouses, moved);
+            warehouseFree = _energyStorableInWarehouses(warehouses);
+        }
         const wait = Math.min(Math.max(0, (s.respawnTimer || 0) / 1000), t);
         const mineSegment = (count, seconds) => {
             if (warehouseFree <= 0 || count <= 0 || seconds <= 0) return;
-            let want = getMinerEnergyPerSecond(s.modules || {}, count) * Math.max(0, seconds);
+            let want = getMinerEnergyPerSecond(s.modules || {}, count) * laborEfficiency
+                * Math.max(0, seconds);
             want = Math.min(want, warehouseFree);
             const mined = Math.min(_mineFromNodes(nodes, want), warehouseFree);
             if (mined > 0) {
@@ -1104,6 +1137,7 @@ function _settleWaves(target, cfg, defenseDps, timeSec, report) {
         }
         if (wave.phase === 'wave') {
             const pool = _wavePool(wave.wave, cfg);
+            const monsterDamageMul = 1 - _camelFrightReduction(target);
             // 防守 DPS 每波重算（结算过程中建筑可能被摧毁）
             const dps = (target.structures || []).reduce((sum, s) => {
                 if (!(s.hp > 0)) return sum;
@@ -1113,7 +1147,7 @@ function _settleWaves(target, cfg, defenseDps, timeSec, report) {
             }, 0);
             if (dps <= 0) {
                 // 无防守输出：怪群按实际时长推平防线与基地
-                _applyStructureDamage(target, pool.dps * WORLD122_SIM.contactFraction * t, report);
+                _applyStructureDamage(target, pool.dps * WORLD122_SIM.contactFraction * monsterDamageMul * t, report);
                 if ((target.base?.hp ?? 0) <= 0) { report.defeated = true; return; }
                 return; // 波次卡住（回场重打）
             }
@@ -1124,7 +1158,7 @@ function _settleWaves(target, cfg, defenseDps, timeSec, report) {
             wave.progressSec = (wave.progressSec || 0) + step;
             t -= step;
             // 怪物输出按本段交战时长结算（墙/门 → 建筑 → 基地）
-            _applyStructureDamage(target, pool.dps * WORLD122_SIM.contactFraction * step, report);
+            _applyStructureDamage(target, pool.dps * WORLD122_SIM.contactFraction * monsterDamageMul * step, report);
             if ((target.base?.hp ?? 0) <= 0) { report.defeated = true; return; }
             if (wave.progressSec < clearTime) return; // 波次仍在进行（时间用尽）
             // 清波

@@ -52,6 +52,7 @@ import {
 import { structureDepthAtY } from './structure-depth.js';
 import { TechnologySystem } from './technology-system.js';
 import {
+    resolveConfiguredVisualFootprint,
     resolveStructureGroundFit,
 } from './structure-visual-anchor.js';
 import '../config/structure-ground-fit-config.js';
@@ -191,6 +192,7 @@ export const BUILD_ITEMS = [
         tex: HAMSTER_CONFIG.hut.tex,
         thumbnailPath: `assets/ui/building-thumbnails/${HAMSTER_CONFIG.hut.id}.png`,
         kind: 'hamster_hut',
+        economyType: HAMSTER_CONFIG.hut.economyType,
         currency: 'energy'
     },
     {
@@ -422,8 +424,10 @@ export const BuildingSystem = {
     },
 
     _economyWarehouseBlockReason(item) {
-        const cfg = item?.kind === 'producer' ? PRODUCER_BUILDINGS[item.id] : null;
-        return cfg?.economyType && !EnergyManager?.hasWarehouse?.()
+        const economyType = item?.kind === 'producer'
+            ? PRODUCER_BUILDINGS[item.id]?.economyType
+            : item?.economyType;
+        return economyType && !EnergyManager?.hasWarehouse?.()
             ? '需要先在当前位面修建仓库'
             : '';
     },
@@ -745,6 +749,12 @@ export const BuildingSystem = {
                 this._ghost.setDisplaySize(BLOCK_VISUAL.w, BLOCK_VISUAL.h);
             } else {
                 this._ghost.setDisplaySize(260, Math.round(260 / (this._coverAspect(item) || 1)));
+            }
+            if (['hamster_hut', 'hamster_barracks', 'producer'].includes(item.kind)) {
+                const fit = this._ghostGroundFit();
+                if (fit?.prismConstrained && fit.displayWidth > 0 && fit.displayHeight > 0) {
+                    this._ghost.setDisplaySize(fit.displayWidth, fit.displayHeight);
+                }
             }
         }
         this._updateMirrorUi();
@@ -1184,11 +1194,13 @@ export const BuildingSystem = {
     },
 
     _ghostVisualOffsetX() {
-        const fitOffsetX = this._ghostGroundFit()?.visualOffsetX || 0;
+        const fit = this._ghostGroundFit();
+        const fitOffsetX = fit?.visualOffsetX || 0;
         const producerCfg = this._placing?.item.kind === 'producer'
             ? PRODUCER_BUILDINGS[this._placing.item.id]
             : null;
-        const offsetX = fitOffsetX + (Number(producerCfg?.anchorAdjustX) || 0);
+        const offsetX = fitOffsetX
+            + (fit?.prismConstrained ? 0 : (Number(producerCfg?.anchorAdjustX) || 0));
         return this._placing?.mirror ? -offsetX : offsetX;
     },
 
@@ -1198,6 +1210,22 @@ export const BuildingSystem = {
         if (this._placing.groundFit) return this._placing.groundFit;
         const scene = typeof window !== 'undefined' ? window.__phaserScene : null;
         if (!scene || !this._ghost?.texture?.key) return null;
+        const producerCfg = this._placing.item.kind === 'producer'
+            ? PRODUCER_BUILDINGS[this._placing.item.id]
+            : null;
+        const structureCfg = producerCfg || (
+            this._placing.item.kind === 'hamster_hut'
+                ? HAMSTER_CONFIG.hut
+                : (this._placing.item.kind === 'hamster_barracks'
+                    ? BARRACKS_CONFIG.barracks : null)
+        );
+        const visualFootprint = resolveConfiguredVisualFootprint(
+            structureCfg,
+            TWO_BY_TWO_BUILDING_FOOT.w,
+            TWO_BY_TWO_BUILDING_FOOT.d
+        );
+        // 建造幽灵与落地实体使用同一“prism-body”接地中心拟合口径；
+        // 建筑底部铺装由道路预览/BuildingRoadSystem 独立维护。
         const fit = resolveStructureGroundFit(
             scene,
             this._ghost.texture.key,
@@ -1207,6 +1235,12 @@ export const BuildingSystem = {
             {
                 nominalWidth: TWO_BY_TWO_BUILDING_FOOT.w,
                 nominalHeight: TWO_BY_TWO_BUILDING_FOOT.d,
+                constrainToPrism: structureCfg?.autoFootprint !== true,
+                centerAdjustX: structureCfg?.autoFootprint === true
+                    ? 0 : (Number(structureCfg?.anchorAdjustX) || 0),
+                centerAdjustY: structureCfg?.autoFootprint === true
+                    ? 0 : (Number(structureCfg?.anchorAdjustY) || 0),
+                visualFootprint,
             }
         );
         if (fit) this._placing.groundFit = fit;
@@ -1221,7 +1255,8 @@ export const BuildingSystem = {
             const producerCfg = this._placing.item.kind === 'producer'
                 ? PRODUCER_BUILDINGS[this._placing.item.id]
                 : null;
-            return fit.footOffsetY + (Number(producerCfg?.anchorAdjustY) || 0);
+            return fit.footOffsetY
+                + (fit.prismConstrained ? 0 : (Number(producerCfg?.anchorAdjustY) || 0));
         }
         if (this._placing.item.kind === 'hamster_hut') return HAMSTER_CONFIG.hut.footOffsetY;
         if (this._placing.item.kind === 'hamster_barracks') return BARRACKS_CONFIG.barracks.footOffsetY;

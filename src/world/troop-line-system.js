@@ -13,6 +13,7 @@ const VERSION = 3;
 const MODES = new Set(['follow', 'hold', 'rally']);
 const MILITARY_KINDS = new Set([
     'militia', 'warrior', 'shooter', 'guard', 'scout', 'musketeer', 'priest', 'knight', 'light_cavalry',
+    'camel_cavalry',
     'bounty_hunter',
 ]);
 const PERSISTENT_WORLDS = new Set(['scene8', 'scene9', 'scene10', 'scene11']);
@@ -368,6 +369,7 @@ export const TroopLineSystem = {
 
     update(sceneId) {
         if (!sceneId) return;
+        if (sceneManager()?.isQuestInstance?.(sceneId)) return;
         this.validateRally({ notify: true });
         const g = game();
         if (!g?.entities) return;
@@ -693,11 +695,15 @@ export const TroopLineSystem = {
         this.validateProducerRallies();
         this._pruneInvalidPending();
         const g = game();
+        const manager = sceneManager();
+        const inQuestInstance = manager?.isQuestInstance?.(manager.currentScene) === true;
         const residencyScene = g?._observerMode
             ? g._observerHomeScene
-            : sceneManager()?.currentScene;
-        for (const member of g?.PartySystem?.members || []) {
-            if (member?.active !== false) this._storeCompanionResidency(member, residencyScene);
+            : manager?.currentScene;
+        if (!inQuestInstance) {
+            for (const member of g?.PartySystem?.members || []) {
+                if (member?.active !== false) this._storeCompanionResidency(member, residencyScene);
+            }
         }
         const pending = clone(this._pendingByWorld);
         for (const unit of this._liveDetached) {
@@ -756,8 +762,10 @@ export const TroopLineSystem = {
         this.validateRally();
         this.validateProducerRallies();
         this._revision++;
-        const currentScene = sceneManager()?.currentScene;
-        if (currentScene) this.onSceneEntered(currentScene);
+        const manager = sceneManager();
+        const currentScene = manager?.currentScene;
+        // 瞬态任务实例不消费永久世界的待入场兵线；正式世界加载时再物化。
+        if (currentScene && !manager?.isQuestInstance?.(currentScene)) this.onSceneEntered(currentScene);
     },
 
     _snapshotIsTroopProducer(structure) {

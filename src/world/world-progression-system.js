@@ -237,10 +237,12 @@ export const WorldProgressionSystem = {
     ensureConstructedWorldSnapshots() {
         for (const [sceneId, portal] of Object.entries(state.portals)) {
             if (portal.constructed && !portal.destroyed) {
+                const worldConfig = this.getWorldConfig(sceneId);
                 ensureWorldBaseSnapshot(sceneId, {
                     portalHp: portal.hp,
                     worldEpoch: portal.worldEpoch,
                     generation: this.getWorldGenerationContext(sceneId),
+                    includeInitialFeatureBuilding: portal.worldEpoch === 1 && !!worldConfig?.featureBuilding,
                 });
             } else if (this.shouldClearWorldScope(sceneId, 'snapshot')) {
                 // 旧档若残留“未建门世界”的快照，也必须按当前生命周期契约清除。

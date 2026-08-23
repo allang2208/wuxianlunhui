@@ -69,12 +69,13 @@ export class BoltSkillSystem {
 
     _isHostile(entity) {
         if (!entity || entity === this.source) return false;
-        // 阵营分组（2026-08-14）：player/companion 互为友军，都只敌视 enemy；
-        // enemy 施法者敌视一切非 enemy。防止侍从（companion faction）施法误伤玩家。
+        // 阵营分组：player/companion 互为友军，共同敌视 enemy/agent；
+        // enemy 与 agent 分属敌对阵营，各自不伤同阵营单位。
         const sf = this.source._faction;
         const ef = entity._faction;
         if (sf === 'enemy') return ef !== 'enemy';
-        return ef === 'enemy';
+        if (sf === 'agent') return ef !== 'agent';
+        return ef === 'enemy' || ef === 'agent';
     }
 
     _isMagic() {

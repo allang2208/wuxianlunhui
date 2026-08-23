@@ -21,7 +21,7 @@ import { WallGate } from './wall-gate.js';
  * 
  * 职责：
  *   1. Boss 战管理：1024×1024 固定场地、集合体 Boss 生成与战斗
- *   2. 奖励节点管理：复用雪地场景 RewardSystem 界面
+ *   2. 奖励节点管理：复用通用 RewardSystem 界面
  * 
  * 集成点：
  *   - dungeon-map-system.js _enterBoss() → BossRewardSystem.enterBossBattle()
@@ -492,7 +492,7 @@ export class RewardNodeManager {
         this._originalCards = RewardSystem.CARDS ? [...RewardSystem.CARDS] : null;
 
         // 复用剧情模式 RewardSystem 的原始卡牌（不追加额外卡牌）
-        // 用户要求：复用剧情模式下雪地场景完成后奖励界面
+        // 复用剧情任务完成后的通用奖励界面
         // 因此不修改 CARDS，直接使用 RewardSystem 原有的三张卡牌
     }
 

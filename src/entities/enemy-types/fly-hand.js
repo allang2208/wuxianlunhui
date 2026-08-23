@@ -53,6 +53,7 @@ export class FlyHand extends Enemy {
     }
 
     update(dt, entities) {
+        const attackDt = this.getAttackIntervalDelta(dt);
         // 朝向驱动碰撞偏移（render.colliderOffsetFacing）：朝右 +N、朝左 -N（镜像），叠加在基础 offsetX 上
         const facing = this.config?.render?.colliderOffsetFacing || 0;
         if (facing) {
@@ -60,7 +61,7 @@ export class FlyHand extends Enemy {
             this.colliderOffsetX = (this.config.render.colliderOffsetX ?? 0) + faceDir * facing;
         }
         for (const k of Object.keys(this._cooldowns)) {
-            if (this._cooldowns[k] > 0) this._cooldowns[k] -= dt;
+            if (this._cooldowns[k] > 0) this._cooldowns[k] -= attackDt;
         }
         if (this._attackAnimTimer > 0) this._attackAnimTimer = Math.max(0, this._attackAnimTimer - dt);
 

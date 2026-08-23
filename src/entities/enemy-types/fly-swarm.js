@@ -85,7 +85,7 @@ export class FlySwarm extends Enemy {
         this._syncLoopSound();
 
         // 触碰伤害 tick：目标在任一三位一体子圆内时按间隔结算
-        this._contactTickTimer -= dt;
+        this._contactTickTimer -= this.getAttackIntervalDelta(dt);
         if (this._contactTickTimer <= 0) {
             const cfg = this.config?.contactDamage || {};
             this._contactTickTimer = cfg.intervalMs ?? 500;

@@ -15,11 +15,13 @@ import { TroopLineSystem } from '../world/troop-line-system.js';
 import { RtsTacticalOrderSystem } from '../systems/rts-tactical-order-system.js';
 import { pathFinder } from '../ai/pathfinder.js';
 import { TechnologySystem } from '../world/technology-system.js';
-import { isoFootprintVertices } from '../physics/iso-footprint.js';
+import { isoFootprintVertices, isoLocalToWorldDelta } from '../physics/iso-footprint.js';
 import { TechnologyGate } from './technology-gate.js';
 import { FogOfWarSystem } from '../world/fog-of-war-system.js';
 import { canExploreScene } from '../config/explorer-rewards.js';
 import { getHamsterUnitIcon } from '../config/hamster-unit-icons.js';
+import { getHamsterUnitCategoryLabel } from '../config/hamster-unit-categories.js';
+import { getUnitStatusRows, getUnitUpgradeRows } from './rts-unit-detail-model.js';
 
 const DRAG_THRESHOLD = 6; // 屏幕 px：超过判定为拖框
 const PERSISTENT_WORLDS = new Set(['scene8', 'scene9', 'scene10', 'scene11']);
@@ -140,9 +142,9 @@ export const RTSCommand = {
         }
         if (on) this._closeBuildingUI();
         this.enabled = !!on;
-        // 切换前清掉 Space，避免角色把同一次按键解释成翻滚。
+        // 指挥模式切换统一锁定/恢复玩家控制，并清除进入前遗留的按键与鼠标状态。
         const input = _game()?.Input || this._input();
-        input?.keys?.delete?.('Space');
+        input?.setPlayerControlLocked?.(this.enabled);
         if (this._btn) this._btn.classList.toggle('active', this.enabled);
         if (this._troopLinePanel) this._troopLinePanel.style.display = this.enabled ? '' : 'none';
         this._syncCommandBarVisibility();
@@ -156,6 +158,7 @@ export const RTSCommand = {
             this._clearDrag();
             // 退出指挥模式：镜头回归玩家（观察模式无玩家在场，不动镜头）
             const g = _game();
+            g?.player?._rtsController?.cancel?.();
             if (g && g.player && !g._observerMode && g.entities && g.entities.get('player') === g.player) {
                 Camera.follow(g.player);
             }
@@ -190,7 +193,7 @@ export const RTSCommand = {
         btn.id = 'rtsCommandBtn';
         btn.className = 'rts-command-btn';
         btn.textContent = '⚔ 指挥模式';
-        btn.title = '进入 RTS 指挥模式：左键选择/框选，右键移动/攻击，单击空地取消';
+        btn.title = 'F1 进入/退出指挥模式：左键选择/框选，右键移动/攻击，单击空地取消';
         btn.addEventListener('click', () => {
             btn.blur();
             this.setEnabled(!this.enabled);
@@ -428,8 +431,10 @@ export const RTSCommand = {
         if (!this._panel) return;
         const clock = document.querySelector('.game-time');
         const clockBottom = clock?.getBoundingClientRect?.().bottom || 84;
-        this._panel.style.top = `${clockBottom + 8}px`;
-        this._panel.style.right = '100px';
+        const top = clockBottom + 8;
+        this._panel.style.top = `${top}px`;
+        this._panel.style.right = window.innerWidth <= 720 ? '8px' : '100px';
+        this._panel.style.setProperty('--rts-panel-top', `${top}px`);
     },
 
     _cancelRallyPick() {
@@ -524,7 +529,8 @@ export const RTSCommand = {
     },
 
     _setSelection(list) {
-        this._selection = (list || []).filter((s) => s && s.ref && s.ref.active);
+        this._selection = (list || []).filter((s) => s && s.ref && s.ref.active
+            && (s.kind !== 'ally' || s.ref._rtsSelectable !== false));
         // 打开单位详情或复数选择面板时，关闭建筑选择界面。
         this._closeBuildingUI();
         this._syncPartySelection();
@@ -547,29 +553,46 @@ export const RTSCommand = {
     /** 友军选中同步至组队栏高亮与场景选中光圈。 */
     _syncPartySelection() {
         if (!PartySystem) return;
-        const allyIds = this._selection.filter((s) => s.kind === 'ally').map((s) => s.ref.id);
+        const allyIds = this._selection
+            .filter((s) => s.kind === 'ally' && PartySystem.members.includes(s.ref))
+            .map((s) => s.ref.id);
         PartySystem.setSelected(allyIds);
+    },
+
+    _isPlayerUnit(unit) {
+        const g = _game();
+        return !!(g && unit === g.player && !g._observerMode
+            && g.entities?.get?.('player') === g.player);
+    },
+
+    _commandUnitId(unit) {
+        return this._isPlayerUnit(unit) ? '__player__' : unit?.id;
     },
 
     // ==================== 命中 / 框选 ====================
 
-    /** 全部友军单位：PartySystem 侍从 + 场上 player/companion 阵营实体（仓鼠单位等），
-     * 排除玩家本人、建筑、掉落物、传送门、NPC 与能源节点。 */
+    /** 全部可指挥友军：本体世界玩家 + PartySystem 侍从 + 仓鼠等场上友军；
+     * 观察世界不注入异世界玩家本体。 */
     _collectAllies() {
         const allies = [];
         const seen = new Set();
         const g = _game();
         // 观察世界没有玩家本体及随行队员，不读取本体世界的 PartySystem 对象。
         if (!g?._observerMode) {
+            if (g?.player?.active && g.entities?.get?.('player') === g.player) {
+                allies.push(g.player);
+                seen.add(g.player);
+            }
             for (const m of PartySystem.members) {
-                if (!m || !m.active) continue;
+                if (!m || !m.active || m._rtsSelectable === false) continue;
                 allies.push(m);
                 seen.add(m);
             }
         }
         if (!g || !g.entities) return allies;
         for (const e of g.entities.values()) {
-            if (!e || !e.active || seen.has(e) || e === g.player) continue;
+            if (!e || !e.active || seen.has(e)) continue;
+            if (e._rtsSelectable === false) continue;
             const f = e._faction;
             if (f !== 'player' && f !== 'companion' && f !== 'ally' && f !== 'friendly') continue;
             if (e._isDefenseStructure || e._isWallStaircase || e._isEnergyNode) continue;
@@ -959,6 +982,15 @@ export const RTSCommand = {
 
     /** 编队键：Ctrl+数字编队，Shift+数字追加，数字选中。 */
     _onKeyDown(e) {
+        if (e.code === CONFIG.KEYS.RTS_COMMAND) {
+            if (!this.enabled && !this._isCommandable()) return;
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            if (!e.repeat && (this.enabled || this._isCommandable())) {
+                this.setEnabled(!this.enabled);
+            }
+            return;
+        }
         if (!this.enabled) {
             if (this._commandPicking && e.code === 'Escape') {
                 this._cancelCommandPick();
@@ -982,14 +1014,14 @@ export const RTSCommand = {
         const d = m[1];
         if (e.ctrlKey || e.metaKey) {
             const ids = this._selection.filter((s) => s.kind === 'ally')
-                .map((s) => s.ref?.id).filter(Boolean);
+                .map((s) => this._commandUnitId(s.ref)).filter(Boolean);
             if (!ids.length) return;
             this._groups.set(d, [...new Set(ids)]);
             this._groupNotify(d, ids.length, '编入');
             e.preventDefault(); e.stopImmediatePropagation();
         } else if (e.shiftKey) {
             const add = this._selection.filter((s) => s.kind === 'ally')
-                .map((s) => s.ref?.id).filter(Boolean);
+                .map((s) => this._commandUnitId(s.ref)).filter(Boolean);
             if (!add.length) return;
             const cur = (this._groups.get(d) || []).map((entry) => (
                 typeof entry === 'string' ? entry : entry?.id
@@ -1001,7 +1033,7 @@ export const RTSCommand = {
         } else {
             const grp = this._resolveGroupUnits(this._groups.get(d) || []);
             if (!grp.length) return;
-            this._groups.set(d, grp.map((unit) => unit.id));
+            this._groups.set(d, grp.map((unit) => this._commandUnitId(unit)).filter(Boolean));
             this._setSelection(grp.map((ref) => ({ kind: 'ally', ref })));
             this._groupNotify(d, grp.length, '选中');
             e.preventDefault(); e.stopImmediatePropagation();
@@ -1014,8 +1046,8 @@ export const RTSCommand = {
 
     _resolveGroupUnits(entries) {
         const allies = new Map(this._collectAllies()
-            .filter((unit) => unit?.active && unit.id)
-            .map((unit) => [unit.id, unit]));
+            .filter((unit) => unit?.active && this._commandUnitId(unit))
+            .map((unit) => [this._commandUnitId(unit), unit]));
         return entries.map((entry) => allies.get(typeof entry === 'string' ? entry : entry?.id))
             .filter(Boolean);
     },
@@ -1039,6 +1071,7 @@ export const RTSCommand = {
 
     /** 单位类型键：仓鼠兵种用全局登记表，队员回退档案 id */
     _unitTypeKey(u) {
+        if (this._isPlayerUnit(u)) return '__player__';
         return getUnitKind(u) || u.configId || u.id || u.name || null;
     },
 
@@ -1062,15 +1095,17 @@ export const RTSCommand = {
         let n = 0;
         const tacticalMode = mode === 'aggressive' ? 'attack_move' : mode;
         if (RtsTacticalOrderSystem.isOrderMode(tacticalMode)) {
+            const tacticalDirect = direct.filter((unit) => !this._isPlayerUnit(unit));
+            const moveSlots = this._formationMovePoints([...members, ...tacticalDirect], point);
             for (const member of members) {
-                const commandPoint = this._movePointForUnit(member, point);
+                const commandPoint = this._movePointForUnit(member, moveSlots.get(member) || point);
                 if (!commandPoint?.unreachable) {
                     n += PartySystem.setCommand(member.id, tacticalMode, commandPoint);
                 }
             }
-            for (const unit of direct) {
+            for (const unit of tacticalDirect) {
                 if (this._isExplorationLocked(unit)) continue;
-                const commandPoint = this._movePointForUnit(unit, point);
+                const commandPoint = this._movePointForUnit(unit, moveSlots.get(unit) || point);
                 if (commandPoint?.unreachable) continue;
                 unit._ai?.cancelForCommand?.();
                 if (RtsTacticalOrderSystem.issue(unit, tacticalMode, commandPoint)) {
@@ -1085,6 +1120,13 @@ export const RTSCommand = {
             n += PartySystem.setCommand(members.map((member) => member.id), mode, point);
         }
         for (const u of direct) {
+            if (this._isPlayerUnit(u)) {
+                if (mode === 'hold') {
+                    u._rtsController?.hold?.();
+                    n++;
+                }
+                continue;
+            }
             if (this._isExplorationLocked(u)) continue;
             const mapped = this._mapWheelModeForUnit(u, mode, point);
             if (!mapped) continue;
@@ -1270,9 +1312,16 @@ export const RTSCommand = {
         }
         let commanded = 0;
         this._lastCommandRejectReason = null;
+        const allUnits = [
+            ...memberIds.map((id) => PartySystem.getMember(id)).filter(Boolean),
+            ...directUnits,
+        ];
+        const moveSlots = mode === 'move' ? this._formationMovePoints(allUnits, point) : new Map();
         for (const memberId of memberIds) {
             const member = PartySystem.getMember(memberId);
-            const commandPoint = mode === 'move' ? this._movePointForUnit(member, point) : point;
+            const commandPoint = mode === 'move'
+                ? this._movePointForUnit(member, moveSlots.get(member) || point)
+                : point;
             if (commandPoint?.unreachable) {
                 this._lastCommandRejectReason ||= commandPoint.reason || '目标不可达';
                 continue;
@@ -1280,6 +1329,20 @@ export const RTSCommand = {
             commanded += PartySystem.setCommand(memberId, mode, commandPoint, target);
         }
         for (const u of directUnits) {
+            if (this._isPlayerUnit(u)) {
+                const commandPoint = mode === 'move'
+                    ? this._movePointForUnit(u, moveSlots.get(u) || point)
+                    : point;
+                if (commandPoint?.unreachable) {
+                    this._lastCommandRejectReason ||= commandPoint.reason || '目标不可达';
+                    continue;
+                }
+                const accepted = mode === 'attack'
+                    ? u._rtsController?.issueAttack?.(target)
+                    : u._rtsController?.issueMove?.(commandPoint);
+                if (accepted) commanded++;
+                continue;
+            }
             if (this._isExplorationLocked(u)) {
                 this._lastCommandRejectReason ||= '探险中，仅可使用停止探险指令';
                 continue;
@@ -1295,7 +1358,9 @@ export const RTSCommand = {
             if ((mode === 'move' || mode === 'hold') && u._ai && typeof u._ai.cancelForCommand === 'function') {
                 u._ai.cancelForCommand();
             }
-            const commandPoint = mode === 'move' ? this._movePointForUnit(u, point) : point;
+            const commandPoint = mode === 'move'
+                ? this._movePointForUnit(u, moveSlots.get(u) || point)
+                : point;
             if (commandPoint?.unreachable) {
                 this._lastCommandRejectReason ||= commandPoint.reason || '目标不可达';
                 continue;
@@ -1317,9 +1382,79 @@ export const RTSCommand = {
     },
 
     _movePointForUnit(unit, point) {
+        if (!point) return point;
+        let resolvedPoint = point;
+        const route = Array.isArray(point.route) ? point.route : [];
+        const isGroundPoint = route.length === 0
+            && (!point.surfaceKind || point.surfaceKind === 'ground')
+            && !(Number(point.z) > 0);
+        if (isGroundPoint && pathFinder?.findNearestWalkablePoint) {
+            pathFinder.syncEntityFootprintObstacles?.(_game()?.entities);
+            const radius = Number(unit?.groundRadius) || Number(unit?.collisionRadius) || 20;
+            const projected = pathFinder.findNearestWalkablePoint(point.x, point.y, radius, 360);
+            if (!projected) {
+                return { ...point, unreachable: true, reason: '目标附近没有可站立位置' };
+            }
+            resolvedPoint = { ...point, x: projected.x, y: projected.y, route: [] };
+        }
         const defenseSystem = _game()?.DefenseSystem;
-        if (!point || !defenseSystem?.routeSurfaceMoveForUnit) return point;
-        return defenseSystem.routeSurfaceMoveForUnit(unit, point);
+        if (!defenseSystem?.routeSurfaceMoveForUnit) return resolvedPoint;
+        return defenseSystem.routeSurfaceMoveForUnit(unit, resolvedPoint);
+    },
+
+    /**
+     * 多选移动使用等距地面槽位，避免所有单位争抢同一目标像素。
+     * 高架目标仍由统一高架导航逐单位规划，不在这里改写楼梯/墙顶路线。
+     */
+    _formationMovePoints(units, point) {
+        const result = new Map();
+        const validUnits = units.filter((unit) => unit?.active !== false);
+        if (!point || validUnits.length <= 1) return result;
+        const route = Array.isArray(point.route) ? point.route : [];
+        if (route.length > 0 || (point.surfaceKind && point.surfaceKind !== 'ground') || Number(point.z) > 0) {
+            return result;
+        }
+
+        pathFinder?.syncEntityFootprintObstacles?.(_game()?.entities);
+        const maxRadius = validUnits.reduce((max, unit) => Math.max(
+            max,
+            Number(unit.groundRadius) || Number(unit.collisionRadius) || 20
+        ), 20);
+        const spacing = Math.max(56, maxRadius * 2 + 16);
+        const candidates = [];
+        const goldenAngle = Math.PI * (3 - Math.sqrt(5));
+        const limit = Math.max(24, validUnits.length * 12);
+        for (let i = 0; i < limit && candidates.length < validUnits.length; i++) {
+            const ring = i === 0 ? 0 : spacing * Math.sqrt(i);
+            const delta = isoLocalToWorldDelta(Math.cos(i * goldenAngle) * ring, Math.sin(i * goldenAngle) * ring);
+            const raw = { x: point.x + delta.x, y: point.y + delta.y };
+            const projected = pathFinder?.findNearestWalkablePoint
+                ? pathFinder.findNearestWalkablePoint(raw.x, raw.y, maxRadius, spacing)
+                : raw;
+            if (!projected) continue;
+            if (candidates.some((slot) => Math.hypot(slot.x - projected.x, slot.y - projected.y) < spacing * 0.7)) {
+                continue;
+            }
+            candidates.push({ ...point, x: projected.x, y: projected.y, route: [] });
+        }
+        // 极端拥挤区槽位不足时保留原目标作为兜底；后续逐单位投影仍会做最终合法性检查。
+        while (candidates.length < validUnits.length) {
+            candidates.push({ ...point, route: [] });
+        }
+
+        const remaining = candidates.slice();
+        // 贪心选择离单位当前位置最近的空槽，减少大编队互相交叉。
+        for (const unit of validUnits) {
+            let bestIdx = 0;
+            let bestDist = Infinity;
+            for (let i = 0; i < remaining.length; i++) {
+                const d = Math.hypot(remaining[i].x - unit.x, remaining[i].y - unit.y);
+                if (d < bestDist) { bestDist = d; bestIdx = i; }
+            }
+            const slot = remaining.splice(bestIdx, 1)[0];
+            if (slot) result.set(unit, slot);
+        }
+        return result;
     },
 
     _selectedTroopProducer() {
@@ -1564,7 +1699,13 @@ export const RTSCommand = {
 
     _buildPanelDom() {
         if (!this._panel) return;
+        this._panel.classList.remove(
+            'rts-unit-panel--single',
+            'rts-unit-panel--multi',
+            'rts-unit-panel--producer'
+        );
         if (this._selection.length === 1 && this._selection[0].kind === 'producer') {
+            this._panel.classList.add('rts-unit-panel--producer');
             this._panel.innerHTML = `
                 <div class="rts-up-head">
                     <span class="rts-up-name" data-ref="name"></span>
@@ -1587,6 +1728,7 @@ export const RTSCommand = {
             return;
         }
         if (this._selection.length > 1) {
+            this._panel.classList.add('rts-unit-panel--multi');
             this._panel.innerHTML = `
                 <div class="rts-up-head rts-up-head--multi">
                     <div class="rts-up-heading-copy">
@@ -1605,8 +1747,9 @@ export const RTSCommand = {
             };
             return;
         }
+        this._panel.classList.add('rts-unit-panel--single');
         this._panel.innerHTML = `
-            <div class="rts-up-head rts-up-head--identity">
+            <header class="rts-up-head rts-up-head--identity">
                 <img class="rts-up-icon" data-ref="icon" alt="" draggable="false" hidden>
                 <div class="rts-up-heading-copy">
                     <div class="rts-up-title-line">
@@ -1615,45 +1758,82 @@ export const RTSCommand = {
                     </div>
                     <span class="rts-up-type" data-ref="type"></span>
                 </div>
-            </div>
-            <div class="rts-up-row"><span>HP</span><div class="rts-up-track"><div class="rts-up-fill" data-ref="hpFill" style="background:#e04a3a;"></div></div><span class="rts-up-num" data-ref="hp"></span></div>
-            <div class="rts-up-row"><span>MP</span><div class="rts-up-track"><div class="rts-up-fill" data-ref="mpFill" style="background:#3a7fe0;"></div></div><span class="rts-up-num" data-ref="mp"></span></div>
-            <div class="rts-up-grid">
-                <span data-ref="s:str"></span><span data-ref="s:dex"></span>
-                <span data-ref="s:int"></span><span data-ref="s:con"></span>
-                <span data-ref="s:wis"></span><span data-ref="s:luck"></span>
-            </div>
-            <div class="rts-up-stats">
-                <span data-ref="atk"></span> · <span data-ref="matk"></span> · <span data-ref="def"></span> · <span data-ref="spd"></span>
-            </div>`;
+            </header>
+            <section class="rts-up-section rts-up-section--overview" aria-label="单位属性">
+                <div class="rts-up-section-head">
+                    <span class="rts-up-section-title">作战数据</span>
+                    <span class="rts-up-section-meta">实时</span>
+                </div>
+                <div class="rts-up-vitals">
+                    <div class="rts-up-row"><span>HP</span><div class="rts-up-track"><div class="rts-up-fill rts-up-fill--hp" data-ref="hpFill"></div></div><span class="rts-up-num" data-ref="hp"></span></div>
+                    <div class="rts-up-row" data-ref="mpRow"><span>MP</span><div class="rts-up-track"><div class="rts-up-fill rts-up-fill--mp" data-ref="mpFill"></div></div><span class="rts-up-num" data-ref="mp"></span></div>
+                </div>
+                <div class="rts-up-grid">
+                    <div><span>力量</span><strong data-ref="s:str"></strong></div>
+                    <div><span>敏捷</span><strong data-ref="s:dex"></strong></div>
+                    <div><span>智力</span><strong data-ref="s:int"></strong></div>
+                    <div><span>体质</span><strong data-ref="s:con"></strong></div>
+                    <div><span>精神</span><strong data-ref="s:wis"></strong></div>
+                    <div><span>幸运</span><strong data-ref="s:luck"></strong></div>
+                </div>
+                <div class="rts-up-combat-grid">
+                    <div><span>攻击</span><strong data-ref="atk"></strong></div>
+                    <div><span>魔攻</span><strong data-ref="matk"></strong></div>
+                    <div><span>防御</span><strong data-ref="def"></strong></div>
+                    <div><span>基础移速</span><strong data-ref="spd"></strong></div>
+                </div>
+            </section>
+            <section class="rts-up-section" aria-label="兵种升级">
+                <div class="rts-up-section-head">
+                    <span class="rts-up-section-title">兵种升级</span>
+                    <span class="rts-up-section-meta" data-ref="upgradeCount"></span>
+                </div>
+                <div class="rts-up-upgrade-list" data-ref="upgradeList" role="list"></div>
+                <div class="rts-up-empty" data-ref="upgradeEmpty"></div>
+            </section>
+            <section class="rts-up-section" aria-label="Buff 与 Debuff">
+                <div class="rts-up-section-head">
+                    <span class="rts-up-section-title">BUFF / DEBUFF</span>
+                    <span class="rts-up-section-meta" data-ref="statusCount"></span>
+                </div>
+                <div class="rts-up-effect-list" data-ref="statusList" role="list"></div>
+                <div class="rts-up-empty" data-ref="statusEmpty">当前无状态影响</div>
+            </section>`;
         const q = (r) => this._panel.querySelector(r);
         const attr = (k) => q(`[data-ref="${k}"]`);
         this._dom = {
             identity: q('.rts-up-head--identity'),
             icon: attr('icon'), name: attr('name'), lv: attr('lv'), type: attr('type'),
             hpFill: attr('hpFill'), hp: attr('hp'),
-            mpFill: attr('mpFill'), mp: attr('mp'),
+            mpRow: attr('mpRow'), mpFill: attr('mpFill'), mp: attr('mp'),
             stats: {
                 str: attr('s:str'), dex: attr('s:dex'), int: attr('s:int'),
                 con: attr('s:con'), wis: attr('s:wis'), luck: attr('s:luck'),
             },
             atk: attr('atk'), matk: attr('matk'), def: attr('def'), spd: attr('spd'),
+            upgradeCount: attr('upgradeCount'),
+            upgradeList: attr('upgradeList'),
+            upgradeEmpty: attr('upgradeEmpty'),
+            upgradeNodes: new Map(),
+            upgradeSig: '',
+            statusCount: attr('statusCount'),
+            statusList: attr('statusList'),
+            statusEmpty: attr('statusEmpty'),
+            statusNodes: new Map(),
+            statusSig: '',
         };
     },
 
-    /** 实时数值提取：HP/MP 每帧读实体；友军（Companion）每帧重算战斗属性（幂等）；
-     *  攻击优先读单位实际攻击配置（仓鼠 ai.attackDamage），回落公式 atk */
+    /** 实时数值提取：只读实体当前值，不从 UI 触发属性重算；
+     *  攻击优先读单位实际攻击配置（仓鼠 ai.attackDamage），回落公式 atk。 */
     _readStats(e) {
         const d = e.data || {};
         const isEnemy = e._faction === 'enemy' || e._faction === 'agent';
-        // 友军每帧重算装备与等级加成；敌人保持当前战斗状态。
-        if (!isEnemy && typeof e.calculateCombatStats === 'function') {
-            try { e.calculateCombatStats(); } catch (_err) { /* 重算失败时读取旧值 */ }
-        }
-        const hp = Math.max(0, Math.round(e.hp ?? d.hp ?? 0));
-        const maxHp = Math.round(e.maxHp ?? d.maxHp ?? hp);
-        const mp = Math.max(0, Math.round(e.mp ?? d.mp ?? 0));
-        const maxMp = Math.round(e.maxMp ?? d.maxMp ?? mp);
+        const isPlayer = this._isPlayerUnit(e);
+        const hp = Math.max(0, Math.round(isPlayer ? (d.hp ?? e.hp ?? 0) : (e.hp ?? d.hp ?? 0)));
+        const maxHp = Math.round(isPlayer ? (d.maxHp ?? e.maxHp ?? hp) : (e.maxHp ?? d.maxHp ?? hp));
+        const mp = Math.max(0, Math.round(isPlayer ? (d.mp ?? e.mp ?? 0) : (e.mp ?? d.mp ?? 0)));
+        const maxMp = Math.round(isPlayer ? (d.maxMp ?? e.maxMp ?? mp) : (e.maxMp ?? d.maxMp ?? mp));
         const num = (k) => (typeof d[k] === 'number' ? d[k] : '—');
         let atk;
         const actualAttack = e._ai && typeof e._ai._attackDamage === 'number'
@@ -1671,11 +1851,13 @@ export const RTSCommand = {
         const configuredSpeed = e.aiConfig?.walkSpeed ?? e.ai?.walkSpeed ?? e.aiConfig?.runSpeed;
         const speed = Math.round(configuredSpeed ?? e.maxSpeed ?? e.speed ?? 0) || '—';
         const baseType = isEnemy ? (e.type || '敌人') : (e.title || '友军');
+        const categoryLabel = isEnemy ? '' : getHamsterUnitCategoryLabel(getUnitKind(e));
+        const classifiedType = categoryLabel ? `${baseType} · ${categoryLabel}` : baseType;
         const surface = this._surfaceLabel(e);
         return {
             name: e.name || d.name || (isEnemy ? '敌人' : '友军'),
             level: e.level ?? d.level ?? 1,
-            type: surface ? `${baseType} · ${surface}` : baseType,
+            type: surface ? `${classifiedType} · ${surface}` : classifiedType,
             hp, maxHp, mp, maxMp,
             str: num('str'), dex: num('dex'), int: num('int'),
             con: num('con'), wis: num('wis'), luck: num('luck'),
@@ -1833,18 +2015,165 @@ export const RTSCommand = {
         const mpPct = st.maxMp > 0 ? Math.round((st.mp / st.maxMp) * 100) : 0;
         d.hpFill.style.width = `${Math.max(0, Math.min(100, hpPct))}%`;
         d.mpFill.style.width = `${Math.max(0, Math.min(100, mpPct))}%`;
+        d.mpRow.hidden = st.maxMp <= 0;
         d.hp.textContent = `${st.hp}/${st.maxHp}`;
         d.mp.textContent = `${st.mp}/${st.maxMp}`;
-        d.stats.str.textContent = `力量 ${st.str}`;
-        d.stats.dex.textContent = `敏捷 ${st.dex}`;
-        d.stats.int.textContent = `智力 ${st.int}`;
-        d.stats.con.textContent = `体质 ${st.con}`;
-        d.stats.wis.textContent = `精神 ${st.wis}`;
-        d.stats.luck.textContent = `幸运 ${st.luck}`;
-        d.atk.textContent = `攻击 ${st.atk}`;
-        d.matk.textContent = `魔攻 ${st.matk}`;
-        d.def.textContent = `防御 ${st.def}`;
-        d.spd.textContent = `移速 ${st.speed}`;
+        d.stats.str.textContent = st.str;
+        d.stats.dex.textContent = st.dex;
+        d.stats.int.textContent = st.int;
+        d.stats.con.textContent = st.con;
+        d.stats.wis.textContent = st.wis;
+        d.stats.luck.textContent = st.luck;
+        d.atk.textContent = st.atk;
+        d.matk.textContent = st.matk;
+        d.def.textContent = st.def;
+        d.spd.textContent = st.speed;
+        this._syncUnitUpgradeRows(selected.ref);
+        this._syncUnitStatusRows(selected.ref);
+    },
+
+    _writePanelText(node, value) {
+        if (!node) return;
+        const text = String(value ?? '');
+        if (node.textContent !== text) node.textContent = text;
+    },
+
+    _createPanelListIcon(model, className) {
+        if (model.iconImage) {
+            const image = document.createElement('img');
+            image.className = className;
+            image.src = model.iconImage;
+            image.alt = '';
+            image.draggable = false;
+            image.addEventListener('error', () => {
+                if (!image.isConnected) return;
+                const fallback = document.createElement('span');
+                fallback.className = `${className} ${className}--fallback`;
+                fallback.textContent = model.icon || '◆';
+                fallback.setAttribute('aria-hidden', 'true');
+                image.replaceWith(fallback);
+            }, { once: true });
+            return image;
+        }
+        const fallback = document.createElement('span');
+        fallback.className = `${className} ${className}--fallback`;
+        fallback.textContent = model.icon || '◆';
+        fallback.setAttribute('aria-hidden', 'true');
+        return fallback;
+    },
+
+    _syncUnitUpgradeRows(entity) {
+        const d = this._dom;
+        if (!d?.upgradeList) return;
+        const rows = getUnitUpgradeRows(entity);
+        const signature = rows.map((row) => row.id).join('|');
+        if (signature !== d.upgradeSig) {
+            const fragment = document.createDocumentFragment();
+            const nodes = new Map();
+            for (const row of rows) {
+                const item = document.createElement('div');
+                item.className = 'rts-up-upgrade-item';
+                item.setAttribute('role', 'listitem');
+                item.appendChild(this._createPanelListIcon(row, 'rts-up-list-icon'));
+
+                const copy = document.createElement('div');
+                copy.className = 'rts-up-list-copy';
+                const title = document.createElement('div');
+                title.className = 'rts-up-list-title';
+                const name = document.createElement('strong');
+                name.textContent = row.name;
+                const source = document.createElement('span');
+                source.textContent = row.source;
+                title.append(name, source);
+                const detail = document.createElement('span');
+                detail.className = 'rts-up-list-detail';
+                copy.append(title, detail);
+
+                const level = document.createElement('span');
+                level.className = 'rts-up-list-level';
+                item.append(copy, level);
+                fragment.appendChild(item);
+                nodes.set(row.id, { detail, level });
+            }
+            d.upgradeList.replaceChildren(fragment);
+            d.upgradeNodes = nodes;
+            d.upgradeSig = signature;
+        }
+        for (const row of rows) {
+            const nodes = d.upgradeNodes.get(row.id);
+            if (!nodes) continue;
+            this._writePanelText(nodes.level, `Lv.${row.level}`);
+            this._writePanelText(nodes.detail, row.detail);
+        }
+        const hasRows = rows.length > 0;
+        d.upgradeList.hidden = !hasRows;
+        d.upgradeEmpty.hidden = hasRows;
+        this._writePanelText(d.upgradeCount, hasRows ? `已生效 ${rows.length}` : '未强化');
+        this._writePanelText(
+            d.upgradeEmpty,
+            entity?._isHamsterMiner
+                ? '暂无已生效的所属营地升级'
+                : (getUnitKind(entity) ? '暂无已生效的兵种升级' : '此目标不使用兵种升级')
+        );
+    },
+
+    _syncUnitStatusRows(entity) {
+        const d = this._dom;
+        if (!d?.statusList) return;
+        const rows = getUnitStatusRows(entity);
+        const signature = rows.map((row) => `${row.id}:${row.tone}`).join('|');
+        if (signature !== d.statusSig) {
+            const fragment = document.createDocumentFragment();
+            const nodes = new Map();
+            for (const row of rows) {
+                const item = document.createElement('div');
+                item.className = `rts-up-effect-item rts-up-effect-item--${row.tone}`;
+                item.setAttribute('role', 'listitem');
+
+                const icon = document.createElement('span');
+                icon.className = 'rts-up-effect-icon';
+                icon.textContent = row.icon;
+                icon.setAttribute('aria-hidden', 'true');
+                const copy = document.createElement('div');
+                copy.className = 'rts-up-list-copy';
+                const title = document.createElement('div');
+                title.className = 'rts-up-list-title';
+                const name = document.createElement('strong');
+                name.textContent = row.name;
+                const stacks = document.createElement('span');
+                stacks.className = 'rts-up-effect-stacks';
+                title.append(name, stacks);
+                const detail = document.createElement('span');
+                detail.className = 'rts-up-list-detail';
+                copy.append(title, detail);
+                const remaining = document.createElement('span');
+                remaining.className = 'rts-up-effect-time';
+                item.append(icon, copy, remaining);
+                fragment.appendChild(item);
+                nodes.set(row.id, { stacks, detail, remaining });
+            }
+            d.statusList.replaceChildren(fragment);
+            d.statusNodes = nodes;
+            d.statusSig = signature;
+        }
+        for (const row of rows) {
+            const nodes = d.statusNodes.get(row.id);
+            if (!nodes) continue;
+            this._writePanelText(nodes.stacks, row.stacks > 1 ? `×${row.stacks}` : '');
+            this._writePanelText(nodes.detail, row.detail);
+            this._writePanelText(nodes.remaining, row.remaining);
+        }
+        const buffCount = rows.filter((row) => row.tone === 'buff').length;
+        const debuffCount = rows.filter((row) => row.tone === 'debuff').length;
+        const neutralCount = rows.length - buffCount - debuffCount;
+        const counts = [];
+        if (buffCount) counts.push(`增益 ${buffCount}`);
+        if (debuffCount) counts.push(`减益 ${debuffCount}`);
+        if (neutralCount) counts.push(`状态 ${neutralCount}`);
+        const hasRows = rows.length > 0;
+        d.statusList.hidden = !hasRows;
+        d.statusEmpty.hidden = hasRows;
+        this._writePanelText(d.statusCount, counts.join(' · ') || '无状态');
     },
 
     _enemyAttackText(e) {

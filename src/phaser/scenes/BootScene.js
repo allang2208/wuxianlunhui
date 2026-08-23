@@ -23,6 +23,7 @@ import hamsterExplorerConfig from '../../../data/hamster-explorer-config.json';
 import hamsterBountyHunterConfig from '../../../data/hamster-bounty-hunter-config.json';
 import jaguarWarriorConfig from '../../../data/jaguar-warrior-config.json';
 import junglePriestConfig from '../../../data/jungle-priest-config.json';
+import hamsterCamelCavalryConfig from '../../../data/hamster-camel-cavalry-config.json';
 import populationEconomyConfig from '../../../data/population-economy.json';
 import producerBuildingsConfig from '../../../data/producer-buildings.json';
 
@@ -100,7 +101,7 @@ export class BootScene extends Scene {
         }
 
         // ---- 世界-122 友方单位（独立配置，不入招募池）----
-        for (const unitConfig of [hamsterMinerConfig, hamsterWarriorConfig, hamsterShooterConfig, hamsterGuardConfig, hamsterMilitiaConfig, hamsterScoutConfig, hamsterMusketeerConfig, hamsterPriestConfig, hamsterKnightConfig, hamsterLightCavalryConfig, hamsterExplorerConfig, hamsterBountyHunterConfig, jaguarWarriorConfig, junglePriestConfig]) {
+        for (const unitConfig of [hamsterMinerConfig, hamsterWarriorConfig, hamsterShooterConfig, hamsterGuardConfig, hamsterMilitiaConfig, hamsterScoutConfig, hamsterMusketeerConfig, hamsterPriestConfig, hamsterKnightConfig, hamsterLightCavalryConfig, hamsterExplorerConfig, hamsterBountyHunterConfig, jaguarWarriorConfig, junglePriestConfig, hamsterCamelCavalryConfig]) {
             for (const [animKey, def] of Object.entries(unitConfig.animations || {})) {
                 if (!def || !def.src) continue;
                 this.load.spritesheet(`companion_${unitConfig.id}_${animKey}`, def.src, {
@@ -245,6 +246,8 @@ export class BootScene extends Scene {
         this.load.image('demonbrick1', 'assets/terrain/demonbrick1.png');
         this.load.image('demon_wall_straight', 'assets/terrain/demon_wall_straight.png');
         this.load.spritesheet('demon_gate', 'assets/terrain/demon_gate.png', { frameWidth: 640, frameHeight: 576, endFrame: 15 });
+        // 冰封世界初级地牢：现有城墙段几何 + 冰块砌体材质渲染成品。
+        this.load.image('frozen_wall_straight', 'assets/terrain/frozen_wall_straight.png');
         // 主神空间地板砖（等距菱形贴图，运行时按 alpha 包围盒实测几何）
         this.load.image('hub_brick', 'assets/terrain/hub_brick.png');
         // 主神空间大理石直墙 + 大理石门（摆墙编辑器组件，tools/prep-hub-wall-gate.py 产出，几何见 ISO_WALL_GEO）
@@ -318,6 +321,7 @@ export class BootScene extends Scene {
         this.load.image('warehouse', 'assets/terrain/warehouse.png');
         this.load.image('shooting_range', 'assets/terrain/shooting_range.png');
         this.load.image('thatch_hut', 'assets/terrain/thatch_hut.png');
+        this.load.image('desert_mansion', 'assets/terrain/desert_mansion.png');
         this.load.image('explorer_camp', 'assets/terrain/explorer_camp.png');
         this.load.image('jungle_temple', 'assets/terrain/jungle_temple.png');
         this.load.image('cavalry_school', 'assets/terrain/cavalry_school.png');
@@ -379,21 +383,13 @@ export class BootScene extends Scene {
         this.load.spritesheet('enemy_black_wolf_walk', 'assets/enemies/black_wolf_walk.png', { frameWidth: 512, frameHeight: 512, endFrame: 15 });
         this.load.spritesheet('enemy_black_wolf_run', 'assets/enemies/black_wolf_run.png', { frameWidth: 512, frameHeight: 512, endFrame: 27 });
         this.load.spritesheet('enemy_black_wolf_bite', 'assets/enemies/black_wolf_bite_regular.png', { frameWidth: 512, frameHeight: 512, endFrame: 11 });
-        // 红狼王（2026-08-06 H3 全动作升级：狼形态 + 变身 + 红狼人形态，512 切帧 setFrame 路径）
-        this.load.image('enemy_red_wolf_king_idle', 'assets/enemies/red_wolf_king_idle.png');
-        this.load.spritesheet('enemy_red_wolf_king_pacing', 'assets/enemies/red_wolf_king_pacing.png', { frameWidth: 512, frameHeight: 512, endFrame: 13 });
-        this.load.spritesheet('enemy_red_wolf_king_run', 'assets/enemies/red_wolf_king_run.png', { frameWidth: 512, frameHeight: 512, endFrame: 15 });
-        this.load.spritesheet('enemy_red_wolf_king_pounce_claw', 'assets/enemies/red_wolf_king_pounce_claw.png', { frameWidth: 512, frameHeight: 512, endFrame: 11 });
-        // 撕咬贴图 2026-08-07 重建：扑咬爆发帧宽过 512 会裁切 → 用 576² 网格（12 帧 4×3）
-        this.load.spritesheet('enemy_red_wolf_king_pounce_bite', 'assets/enemies/red_wolf_king_pounce_bite.png', { frameWidth: 576, frameHeight: 576, endFrame: 11 });
-        this.load.spritesheet('enemy_red_wolf_king_change', 'assets/enemies/red_wolf_king_change.png', { frameWidth: 512, frameHeight: 512, endFrame: 11 });
-        this.load.spritesheet('enemy_red_wolf_king_howl', 'assets/enemies/red_wolf_king_howl.png', { frameWidth: 512, frameHeight: 512, endFrame: 11 });
-        this.load.image('enemy_red_wolf_king_transformed_idle', 'assets/enemies/red_wolf_king_transformed_idle.png');
-        // 红狼人 run/attack 4096² 画布（8列×4行=30帧，每帧 512×1024 竖条，2026-08-08 高清重做）
-        this.load.spritesheet('enemy_red_wolf_king_changed_run', 'assets/enemies/red_wolf_king_changed_run.png', { frameWidth: 512, frameHeight: 1024, endFrame: 29 });
-        this.load.spritesheet('enemy_red_wolf_king_changed_attack', 'assets/enemies/red_wolf_king_changed_attack.png', { frameWidth: 512, frameHeight: 1024, endFrame: 29 });
-        // 红狼人（两足）嚎叫技能动画（2026-08-08 重生成，原 howl 是四足狼形态）
-        this.load.spritesheet('enemy_red_wolf_king_changed_howl', 'assets/enemies/red_wolf_king_changed_howl.png', { frameWidth: 512, frameHeight: 512, endFrame: 11 });
+        // 红狼王母版六动作（2026-08-23）：唯一狼形态渲染源，手动 setFrame 路径。
+        this.load.spritesheet('enemy_red_wolf_king_idle', 'assets/enemies/red_wolf_king/idle.png', { frameWidth: 512, frameHeight: 512, endFrame: 11 });
+        this.load.spritesheet('enemy_red_wolf_king_run', 'assets/enemies/red_wolf_king/running.png', { frameWidth: 512, frameHeight: 512, endFrame: 15 });
+        this.load.spritesheet('enemy_red_wolf_king_attack', 'assets/enemies/red_wolf_king/attack.png', { frameWidth: 640, frameHeight: 640, endFrame: 11 });
+        this.load.spritesheet('enemy_red_wolf_king_pounce', 'assets/enemies/red_wolf_king/pounce.png', { frameWidth: 640, frameHeight: 640, endFrame: 11 });
+        this.load.spritesheet('enemy_red_wolf_king_dying', 'assets/enemies/red_wolf_king/dying.png', { frameWidth: 512, frameHeight: 512, endFrame: 11 });
+        this.load.spritesheet('enemy_red_wolf_king_howl', 'assets/enemies/red_wolf_king/howl.png', { frameWidth: 512, frameHeight: 512, endFrame: 11 });
 
         // 僵尸犬精灵图动画
         this.load.image('enemy_zombie_dog_idle', 'assets/enemies/zombie_dog_idle.png');
@@ -674,7 +670,7 @@ export class BootScene extends Scene {
         // 仓鼠民兵 attack = 15 帧单次（第 8 帧判定伤害由 AI 计时）；
         // 仓鼠斥候 attack = 18 帧单次（第 11 帧出膛由 AI 计时）+ projectile 单帧贴图；
         // 仓鼠牧师/丛林祭司 spell = 17 帧单次，第 8 帧由 AI 结算法术。
-        for (const unitConfig of [hamsterMinerConfig, hamsterWarriorConfig, hamsterShooterConfig, hamsterGuardConfig, hamsterMilitiaConfig, hamsterScoutConfig, hamsterMusketeerConfig, hamsterPriestConfig, hamsterKnightConfig, hamsterLightCavalryConfig, hamsterExplorerConfig, hamsterBountyHunterConfig, jaguarWarriorConfig, junglePriestConfig]) {
+        for (const unitConfig of [hamsterMinerConfig, hamsterWarriorConfig, hamsterShooterConfig, hamsterGuardConfig, hamsterMilitiaConfig, hamsterScoutConfig, hamsterMusketeerConfig, hamsterPriestConfig, hamsterKnightConfig, hamsterLightCavalryConfig, hamsterExplorerConfig, hamsterBountyHunterConfig, jaguarWarriorConfig, junglePriestConfig, hamsterCamelCavalryConfig]) {
             for (const [animKey, def] of Object.entries(unitConfig.animations || {})) {
                 if (!def || !def.src) continue;
                 const texKey = `companion_${unitConfig.id}_${animKey}`;
@@ -1645,19 +1641,6 @@ export class BootScene extends Scene {
             g.fillStyle(0x3da84e, 0.6);
             g.fillCircle(24, 28, 14);
         }, 64, 128);
-        generateEnemyTexture('tree_canopy_snow', (g) => {
-            g.fillStyle(0x5a3a1a, 1);
-            g.fillRect(30, 64, 4, 48);
-            g.fillStyle(0x4a2a0a, 1);
-            g.fillRect(30, 64, 2, 48);
-            g.fillStyle(0xe0e8f0, 1);
-            g.fillCircle(32, 36, 30);
-            g.fillStyle(0xffffff, 0.6);
-            g.fillCircle(24, 28, 14);
-            g.fillStyle(0x2d8a3e, 1);
-            g.fillCircle(32, 44, 22);
-        }, 64, 128);
-
         // ---- 投射物纹理 ----
         generateEnemyTexture('projectile_arrow', (g) => {
             g.fillStyle(0xd4c5a9, 1);

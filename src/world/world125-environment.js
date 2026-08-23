@@ -2,8 +2,9 @@
  * 世界-125 地牢遗迹环境散布。
  *
  * 复用僵尸地牢/摆墙系统的障碍物几何与预制组合：
- * - 石柱、烛台按 obstacle-defaults 的编辑器尺寸生成；
- * - 预制组合取 wall-prefabs 中「火把墙」之后的纯障碍物组合；
+ * - 石柱按 obstacle-defaults 的编辑器尺寸生成；
+ * - 预制组合取 wall-prefabs 中「火把墙」之后、不含烛台的纯障碍物组合；
+ * - 烛台只允许通过 dungeon_candle 建筑生成，保证每一座都可摧毁且受科技/费用约束；
  * - 所有落点走菱形边界、出生点/返回门排除、footprint 碰撞与组合间距校验。
  */
 import { WallSystem } from './wall-system.js';
@@ -12,7 +13,7 @@ import { getObstacleDefaults, getWallPrefabLibrary } from './wall-prefabs.js';
 const PREFAB_POOL_START = '火把墙';
 const DEFAULT_CONFIG = {
     pillarCount: 28,
-    candleCount: 36,
+    candleCount: 0,
     prefabCount: 22,
     minDist: 220,
     edgeInset: 180,
@@ -80,7 +81,8 @@ function _prefabPool() {
         return prefab && Array.isArray(prefab.pieces) && prefab.pieces.length > 0
             && prefab.pieces.every((piece) => {
                 const geo = WallSystem._geoForTex?.(piece.tex);
-                return geo && geo.category === 'obstacle';
+                return piece.tex !== 'obstacle_candle'
+                    && geo && geo.category === 'obstacle';
             });
     });
 }
@@ -228,14 +230,13 @@ export function scatterWorld125Environment(scene, diamond, player = null, { rand
     const pillars = _placeSingles(
         scene, diamond, player, portalY, cfg, 'pillar', cfg.pillarCount, placedRects, anchors, random
     );
-    const candles = _placeSingles(
-        scene, diamond, player, portalY, cfg, 'candle', cfg.candleCount, placedRects, anchors, random
-    );
+    // 世界-125 不再散布不可摧毁的装饰烛台；所有可见烛台均来自可建造实体。
+    const candles = 0;
     const prefabs = _placePrefabs(scene, diamond, player, portalY, cfg, placedRects, anchors, random);
 
     if (WallSystem.isoVisuals.length > before) WallSystem.rebuildIsoCollision?.();
     WallSystem._syncWallsToPhaser?.();
     const pieces = WallSystem.isoVisuals.length - before;
-    console.log(`[scene11] 地牢遗迹环境：石柱 ${pillars}、烛台 ${candles}、组合 ${prefabs}（共 ${pieces} 件）`);
+    console.log(`[scene11] 地牢遗迹环境：石柱 ${pillars}、无烛台组合 ${prefabs}（共 ${pieces} 件）`);
     return { pillars, candles, prefabs, pieces };
 }

@@ -88,8 +88,9 @@ export class Witch extends Enemy {
         }
 
         // 冷却推进
-        if (this._magicCd > 0) this._magicCd -= dt;
-        if (this._venomCd > 0) this._venomCd -= dt;
+        const attackDt = this.getAttackIntervalDelta(dt);
+        if (this._magicCd > 0) this._magicCd -= attackDt;
+        if (this._venomCd > 0) this._venomCd -= attackDt;
 
         // 眩晕时中断攻击动作
         if (this.hasStatusEffect && (this.hasStatusEffect('stun') || this.hasStatusEffect('frozen'))) {

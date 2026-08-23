@@ -43,7 +43,7 @@ export class PoisonMaggot extends Enemy {
         super.update(dt, entities);
 
         // 冷却推进
-        if (this._spitCooldown > 0) this._spitCooldown -= dt;
+        if (this._spitCooldown > 0) this._spitCooldown -= this.getAttackIntervalDelta(dt);
 
         // 眩晕时中断攻击
         if (this.hasStatusEffect && (this.hasStatusEffect('stun') || this.hasStatusEffect('frozen'))) {

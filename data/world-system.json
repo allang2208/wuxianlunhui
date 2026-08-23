@@ -33,6 +33,7 @@
       "initialPortal": true,
       "constructionEnabled": false,
       "portalSpawn": { "x": 4200, "y": 4096 },
+      "featureBuilding": { "cfgKey": "desert_mansion", "offsetX": -330, "offsetY": 180 },
       "coreVisual": {
         "texture": "portal",
         "displayW": 440,
@@ -47,8 +48,8 @@
       "name": "世界-123·雪原",
       "icon": "❄️",
       "description": "雪原位面",
-      "constructionEnabled": false,
-      "requirements": { "completedDungeons": [] },
+      "constructionEnabled": true,
+      "requirements": { "completedDungeons": ["frozenBeginner"] },
       "portalSpawn": { "x": 6144, "y": 4096 },
       "resetPolicy": { "baseSeed": 123009 }
     },

@@ -5,6 +5,8 @@ import { LightningBoltEffect } from '../effects/lightning-bolt.js';
 import { IceSpikeSystem } from '../entities/components/ice-spike-system.js';
 import { FireballSystem } from '../entities/components/fireball-system.js';
 import { hasRangedLineOfSight } from '../combat/ranged-line-of-sight.js';
+import { getMagicRangeMultiplier } from '../utils/magic-craft-helper.js';
+import { finishRtsCommandAtHold } from './rts-command-utils.js';
 
 export class JunglePriestAI {
     constructor(priest) {
@@ -39,11 +41,14 @@ export class JunglePriestAI {
         }
         const command = m._command;
         if (command?.mode === 'hold') { this._stop(dt); return; }
-        const target = command?.mode === 'attack' && command.target?.active
-            ? command.target : this._nearestEnemy(entities);
+        if (command?.mode === 'attack' && !this._isValidTarget(command.target)) {
+            finishRtsCommandAtHold(m);
+            this._stop(dt);
+            return;
+        }
+        const target = command?.mode === 'attack' ? command.target : this._nearestEnemy(entities);
         if (target) {
-            const distance = Math.hypot(target.x - m.x, target.y - m.y);
-            if (distance <= (this.cfg.castRange || 650) && this._cooldown <= 0) {
+            if (this._cooldown <= 0 && this._canCastAt(target)) {
                 this._startCast(target, dt); return;
             }
             m._tacticalTarget = { x: target.x, y: target.y };
@@ -67,12 +72,30 @@ export class JunglePriestAI {
     _nearestEnemy(entities) {
         let best = null; let bestDistance = this.cfg.engageRange || 950;
         for (const entity of (entities?.values?.() || entities || [])) {
-            if (!entity?.active || entity.hp <= 0 || entity._isEnergyNode) continue;
-            if (entity._faction !== 'enemy' && entity._faction !== 'agent') continue;
+            if (!this._isValidTarget(entity)) continue;
             const distance = Math.hypot(entity.x - this.m.x, entity.y - this.m.y);
             if (distance < bestDistance) { best = entity; bestDistance = distance; }
         }
         return best;
+    }
+    _isValidTarget(target) {
+        const hp = target?.hp ?? target?.data?.hp ?? 0;
+        return !!target
+            && target.active === true
+            && hp > 0
+            && target.hittable === true
+            && !target._isEnergyNode
+            && (target._faction === 'enemy' || target._faction === 'agent');
+    }
+    _castRange() {
+        const configured = Number(this.cfg.castRange);
+        const baseRange = Number.isFinite(configured) ? Math.max(0, configured) : 650;
+        return baseRange * getMagicRangeMultiplier(this.m);
+    }
+    _canCastAt(target) {
+        return this._isValidTarget(target)
+            && Math.hypot(target.x - this.m.x, target.y - this.m.y) <= this._castRange()
+            && hasRangedLineOfSight(this.m, target);
     }
     _startCast(target, dt) {
         const m = this.m;
@@ -132,10 +155,7 @@ export class JunglePriestAI {
     _releaseSpell() {
         const m = this.m;
         const target = this._pendingTarget;
-        const hp = target?.hp ?? target?.data?.hp ?? 0;
-        if (!target?.active || hp <= 0) return;
-        const distance = Math.hypot(target.x - m.x, target.y - m.y);
-        if (distance > (this.cfg.castRange || 650) || !hasRangedLineOfSight(m, target)) return;
+        if (!this._canCastAt(target)) return;
 
         m.target = target;
         const damage = Math.max(1, Math.round((this.cfg.attackDamage || 95) + (m.data?.matk || 0)));

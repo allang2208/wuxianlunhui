@@ -14,11 +14,44 @@ export const RiftSystem = {
     _progressBarFillEl: null,
     _activeRiftIndex: -1,
     _investigateTime: 10000, // 10秒（毫秒）
+    _expectedRiftCount: 3,
+    _placementValidator: null,
+    _clearPlacements: null,
+    _sceneWidth: 0,
+    _sceneHeight: 0,
 
-    // 在场景中生成3个时空裂隙
-    spawnRifts(sceneWidth, sceneHeight) {
+    // 在任务场景中生成时空裂隙；位置规则由场景注入，避免任务系统绑定具体地形。
+    spawnRifts(sceneWidth, sceneHeight, options = {}) {
         this.rifts = [];
-        const positions = this._generateRiftPositions(sceneWidth, sceneHeight);
+        this._sceneWidth = Math.max(0, Number(sceneWidth) || 0);
+        this._sceneHeight = Math.max(0, Number(sceneHeight) || 0);
+        const definition = QuestState?.getActiveDefinition?.();
+        const count = Math.max(1, Math.floor(Number(options.count)
+            || Number(definition?.runtime?.riftCount)
+            || 3));
+        this._expectedRiftCount = count;
+        this._investigateTime = Math.max(1000, Number(options.investigateMs)
+            || Number(definition?.runtime?.investigateMs)
+            || 10000);
+        this._placementValidator = typeof options.isValidPosition === 'function'
+            ? options.isValidPosition
+            : null;
+        this._clearPlacements = typeof options.clearPlacements === 'function'
+            ? options.clearPlacements
+            : null;
+        const savedPositions = Array.isArray(QuestState?.riftPositions)
+            ? QuestState.riftPositions.slice(0, count)
+            : [];
+        const canRestorePositions = savedPositions.length === count
+            && savedPositions.every((point) => Number.isFinite(point?.x) && Number.isFinite(point?.y)
+                && (!this._placementValidator || this._placementValidator(point.x, point.y)));
+        const positions = canRestorePositions
+            ? savedPositions
+            : this._generateRiftPositions(sceneWidth, sceneHeight, {
+                count,
+                isValidPosition: this._placementValidator,
+            });
+        if (QuestState) QuestState.riftPositions = positions;
         positions.forEach((pos, idx) => {
             this.rifts.push({
                 id: idx,
@@ -28,11 +61,8 @@ export const RiftSystem = {
                 completed: false,
                 active: false
             });
-            // 绿圈范围内（200px半径）摧毁障碍物（树木）
-            if (WallSystem && WallSystem.removeTreesInRadius) {
-                WallSystem.removeTreesInRadius(pos.x, pos.y, 200);
-            }
         });
+        if (this._clearPlacements && positions.length) this._clearPlacements(positions);
         // 加载保存的进度
         if (QuestState && QuestState.riftProgress) {
             this.rifts.forEach((rift, idx) => {
@@ -40,18 +70,25 @@ export const RiftSystem = {
                 rift.completed = QuestState.riftCompleted[idx] || false;
             });
         }
+        if (QuestState?.questCompleted) {
+            this._spawnReturnPortal({ restore: QuestState.returnPortalSpawned });
+        }
     },
 
-    // 生成3个相距≥2000px的随机位置
-    _generateRiftPositions(width, height) {
+    // 生成彼此分离、满足当前场景可行走规则的随机位置。
+    _generateRiftPositions(width, height, options = {}) {
         const positions = [];
-        const minDist = 1000;
-        const margin = 500; // 距离边界
+        const count = Math.max(1, Math.floor(Number(options.count) || 3));
+        const minDist = Math.max(0, Number(options.minDistance) || 1000);
+        const margin = Math.max(0, Number(options.margin) || 500);
+        const isValidPosition = typeof options.isValidPosition === 'function'
+            ? options.isValidPosition
+            : null;
         let attempts = 0;
-        while (positions.length < 3 && attempts < 1000) {
+        while (positions.length < count && attempts < 2000) {
             const x = margin + Math.random() * (width - margin * 2);
             const y = margin + Math.random() * (height - margin * 2);
-            let valid = true;
+            let valid = !isValidPosition || isValidPosition(x, y);
             for (const p of positions) {
                 const dx = p.x - x;
                 const dy = p.y - y;
@@ -65,7 +102,7 @@ export const RiftSystem = {
             }
             attempts++;
         }
-        // 如果无法生成3个，就返回已有的
+        // 极端情况下返回已找到的位置；任务目标不会被伪造为完成。
         return positions;
     },
 
@@ -93,10 +130,7 @@ export const RiftSystem = {
                     rift.completed = true;
                     this._onRiftComplete(i);
                 }
-                // 保存进度到QuestState
-                if (QuestState) {
-                    QuestState.riftProgress[i] = rift.progress;
-                }
+                if (QuestState) QuestState.setRiftProgress(i, rift.progress);
             }
         }
 
@@ -111,7 +145,7 @@ export const RiftSystem = {
         // 检查是否所有裂隙完成
         if (QuestState && !QuestState.questCompleted) {
             const allCompleted = this.rifts.every(r => r.completed);
-            if (allCompleted && this.rifts.length > 0) {
+            if (allCompleted && this.rifts.length === this._expectedRiftCount) {
                 QuestState.questCompleted = true;
                 this._onAllRiftsComplete();
             }
@@ -167,29 +201,47 @@ export const RiftSystem = {
     },
 
     // 生成返回传送门
-    _spawnReturnPortal() {
+    _spawnReturnPortal({ restore = false } = {}) {
         if (QuestState) {
-            if (QuestState.returnPortalSpawned) return;
+            if (QuestState.returnPortalSpawned && !restore) return;
+            if (Game.entities.has('quest_return_portal')) return;
             QuestState.returnPortalSpawned = true;
         }
         if (!Game.player) return;
         const scene = SceneManager.scenes[SceneManager.currentScene];
-        if (!scene) return;
-        // 在距离主角3000px+的随机位置
-        let px, py, dist;
+        const sceneWidth = this._sceneWidth || scene?.width;
+        const sceneHeight = this._sceneHeight || scene?.height;
+        if (!(sceneWidth > 0) || !(sceneHeight > 0)) return;
+        // 在距离主角3000px+且满足任务场景放置规则的位置生成。
+        const savedPosition = restore ? QuestState?.returnPortalPosition : null;
+        let px = savedPosition?.x;
+        let py = savedPosition?.y;
+        let dist = Number.isFinite(px) && Number.isFinite(py)
+            ? Math.hypot(px - Game.player.x, py - Game.player.y)
+            : 0;
         let attempts = 0;
-        do {
+        while ((!Number.isFinite(px) || !Number.isFinite(py)
+            || dist < 3000
+            || (this._placementValidator && !this._placementValidator(px, py)))
+            && attempts < 200) {
             const angle = Math.random() * Math.PI * 2;
             const radius = 3000 + Math.random() * 1000;
             px = Game.player.x + Math.cos(angle) * radius;
             py = Game.player.y + Math.sin(angle) * radius;
-            px = Math.max(100, Math.min(scene.width - 100, px));
-            py = Math.max(100, Math.min(scene.height - 100, py));
+            px = Math.max(100, Math.min(sceneWidth - 100, px));
+            py = Math.max(100, Math.min(sceneHeight - 100, py));
             const dx = px - Game.player.x;
             const dy = py - Game.player.y;
             dist = Math.sqrt(dx * dx + dy * dy);
             attempts++;
-        } while (dist < 3000 && attempts < 50);
+        }
+
+        if (this._placementValidator && !this._placementValidator(px, py)) {
+            px = Game.player.x;
+            py = Game.player.y;
+        }
+        if (this._clearPlacements) this._clearPlacements([{ x: px, y: py }]);
+        if (QuestState) QuestState.returnPortalPosition = { x: px, y: py };
 
         const portal = new Portal(px, py, 'main', '返回主神空间');
         portal._isQuestReturn = true; // 标记为任务返回传送门
@@ -201,6 +253,11 @@ export const RiftSystem = {
     // 清除所有裂隙
     clear() {
         this.rifts = [];
+        this._expectedRiftCount = 3;
+        this._placementValidator = null;
+        this._clearPlacements = null;
+        this._sceneWidth = 0;
+        this._sceneHeight = 0;
         this._hideProgressBar();
         const container = getElementIfExists('riftProgressBar');
         if (container && container.parentNode) container.remove();

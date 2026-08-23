@@ -23,6 +23,7 @@ import { MeteorSystem } from '../components/meteor-system.js';
 import { FlameArmorSystem } from '../components/flame-armor-system.js';
 import { DroneSystem } from '../components/drone-system.js';
 import { ShieldSystem } from '../components/shield-system.js';
+import { PlayerRtsController } from './rts-controller.js';
 
 import { baseMixin } from './base.js';
 import { updateMixin } from './update.js';
@@ -204,6 +205,8 @@ class Player extends Combatant {
             this.thunderLanceSystem = new ThunderLanceSystem(this); // 贯穿雷枪技能系统
             this.droneSystem = new DroneSystem(this); // 无人机技能系统
             this.shieldSystem = new ShieldSystem(this); // 盾防御系统
+            this._rtsController = new PlayerRtsController(this); // 指挥模式专用移动/普通攻击控制源
+            this._rtsRunVisual = false;
             // ===== 独头弹后坐力系统（Super90）=====
             this._slugRecoilLayers = 0; // 后坐力层数
             this._slugRecoilTimer = 0; // 后坐力恢复计时器

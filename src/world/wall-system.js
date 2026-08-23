@@ -20,6 +20,9 @@ const ISO_WALL_GEO = {
     // 恶魔洞窟岩壁（2026-08-11 路线 B：Blender box 几何 + AI 岩质材质 + 程序化裁切；
     // prep-demon-wall-B.py / calib-demon-straight.py 标定：内容 684×659，干净底边 slope=0.64，墙高 326）
     demon_straight: { tex: 'demon_wall_straight', w: 684, h: 659, base: [[0, 273], [683, 710]], face: [[83, 326], [601, 658]], wallH: 326, slope: 0.64, editor: '恶魔岩壁' },
+    // 冰封世界初级地牢：复用同一 Blender 城墙段几何，只替换冰块砌体材质。
+    // prep-frozen-wall.py 标定：透明内容 684×659，底边拟合残差最大 0.9px。
+    frozen_straight: { tex: 'frozen_wall_straight', w: 684, h: 659, base: [[0, 273], [683, 710]], face: [[83, 326], [601, 658]], wallH: 326, slope: 0.64, editor: '冰封砖墙' },
     // 恶魔洞窟铁闸门（路线 B：岩壁单块 + 铁栅独立渲染 → 程序化 16 帧升起；compose-demon-gate-B.py 标定：
     // 门洞平行四边形，底边与墙同斜率 0.6347，wallH 291；gateX = 门洞 [159,481]）
     demon_gate: { tex: 'demon_gate', w: 640, h: 576, frames: 16, base: [[0, 228], [639, 634]], face: [[77, 277], [563, 586]], gateX: [159, 481], wallH: 291, slope: 0.6347, editor: '恶魔铁闸', states: { open: { hole: [159, 481] }, closed: { hole: null } } },
@@ -95,6 +98,11 @@ const ISO_WALL_STYLES = {
     // 恶魔洞窟（C 级，2026-08-11）：矿洞岩壁 + 铁闸门。corners 待 demon 转角预制就绪后登记
     demonCavern: {
         straight: 'demon_straight', gate: 'demon_gate', chestPrefab: '宝箱房',
+        gateSound: 'assets/sounds/environment/gate.mp3',
+    },
+    // 冰封世界初级：直墙使用冰块墙；功能门暂复用现有门闸，四角由直墙程序化拼合。
+    frozen: {
+        straight: 'frozen_straight', gate: 'gate', chestPrefab: '宝箱房',
         gateSound: 'assets/sounds/environment/gate.mp3',
     },
     // 主神空间：大理石直墙 + 大理石门（不登记 corners → 程序化转角臂）
@@ -1380,9 +1388,7 @@ const WallSystem = {
             t.phaserBody = tree;
 
             if (phaserScene.visualTrees) {
-                const isSnow = t.sceneGroup === 'snow';
-                const key = isSnow ? 'tree_canopy_snow' : 'tree_canopy';
-                const sprite = phaserScene.add.sprite(t.x, t.y, key);
+                const sprite = phaserScene.add.sprite(t.x, t.y, 'tree_canopy');
                 sprite.setOrigin(0.5, 1);
                 const canopyR = t.canopyRadius || t.radius * 1.2;
                 const trunkH = t.trunkHeight || t.radius * 2;
@@ -1925,9 +1931,7 @@ const WallSystem = {
             treeData.phaserBody = tree;
 
             if (phaserScene.visualTrees) {
-                const isSnow = sceneGroup === 'snow';
-                const key = isSnow ? 'tree_canopy_snow' : 'tree_canopy';
-                const sprite = phaserScene.add.sprite(x, y, key);
+                const sprite = phaserScene.add.sprite(x, y, 'tree_canopy');
                 sprite.setOrigin(0.5, 1);
                 const displayW = treeData.canopyRadius * 2.2;
                 const displayH = treeData.trunkHeight + treeData.canopyRadius * 1.8;

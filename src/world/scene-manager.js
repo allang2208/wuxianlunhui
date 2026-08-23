@@ -2,8 +2,6 @@ import { Game } from '../game.js';
 import { WallSystem } from '../world/wall-system.js';
 import { Renderer } from '../world/renderer.js';
 import { Camera } from '../world/camera.js';
-import { Portal } from './portal.js';
-import { BlackWolf } from '../entities/enemy-types.js';
 
 import { ExpeditionSystem } from '../ui/expedition-system.js';
 import { GAME_CONFIG } from '../config/game-config.js';
@@ -45,6 +43,8 @@ import { TroopLineSystem } from './troop-line-system.js';
 import loadingScreenConfig from '../../data/loading-screen-config.json';
 import { FogOfWarSystem } from './fog-of-war-system.js';
 import { PopulationEconomySystem } from './population-economy-system.js';
+import { QuestRegistry } from '../quest/quest-registry.js';
+import { QuestStore } from '../quest/quest-store.js';
 
 export const SceneManager = {
     currentScene: null,
@@ -59,9 +59,12 @@ export const SceneManager = {
     _loadingMinimumDurationMs: 0,
     _loadingBackground: null,
     _loadingImageCache: [],
+    _activeQuestInstance: null,
+    _rollbackActiveQuestInstance: null,
 
     init() {
         this._worldDestructionTransactions.clear();
+        this._activeQuestInstance = null;
         this._dungeonParkedFriendlyUnits = null;
         this._dungeonObservationState = null;
         TroopLineSystem.configure({
@@ -103,10 +106,6 @@ export const SceneManager = {
         const cfg = GAME_CONFIG.scenes || {};
         this.scenes = {
             main: cfg.main || { name: '主神空间', type: 'main', label: '场景一', width: 12288, height: 8192, background: '#2a3520', diamondFloor: { enabled: true }, origin: { x: 6144, y: 4096 } },
-            scene2: cfg.scene2 || { name: '雪地', type: 'instance', label: '场景二', width: 9000, height: 9000, background: '#b8c0c8', origin: { x: 4500, y: 4500 } },
-            scene3: cfg.scene3 || { name: '列车上', type: 'instance', label: '场景三', width: 3000, height: 1200, background: '#4a4538', origin: { x: 1500, y: 600 } },
-            scene4: cfg.scene4 || { name: '古堡', type: 'instance', label: '场景四', width: 9000, height: 9000, background: '#000000', origin: { x: 4500, y: 4500 } },
-            scene5: cfg.scene5 || { name: 'AI测试场', type: 'instance', label: '场景五', width: 6120, height: 3040, background: '#3a3a3a', origin: { x: 3060, y: 1520 } },
             scene7: cfg.scene7 || { name: '僵尸地牢高级', type: 'dungeon', label: '场景七', width: 1024, height: 1024, background: '#000000', origin: { x: 512, y: 512 }, dungeonType: 'zombie' },
             scene8: cfg.scene8 || { name: '世界-122', type: 'instance', label: '场景八', width: 12288, height: 8192, background: '#0d1b0a', origin: { x: 6144, y: 4096 } },
             scene9: cfg.scene9 || { name: '世界-123·雪原', type: 'instance', label: '场景九', width: 12288, height: 8192, background: '#101a2b', origin: { x: 6144, y: 4096 } },
@@ -304,8 +303,23 @@ export const SceneManager = {
 
     async switchScene(sceneId, player, mode, opts = {}) {
         if (this.isLoading) return false;
-        if (this.currentScene === sceneId) return true;
-        if (this._isPersistentWorld(sceneId) && !WorldProgressionSystem.isPortalConstructed(sceneId)) {
+        const questDefinition = opts.questTravel ? QuestRegistry.get(opts.questId) : null;
+        const questInstanceEntry = !!questDefinition
+            && mode === 'quest'
+            && questDefinition.scene === sceneId
+            && QuestStore.getActiveQuestId() === questDefinition.id;
+        if (opts.questTravel && !questInstanceEntry) {
+            this.showTopNotification('任务通行状态无效，无法进入目标世界', { color: '#ff7766' });
+            return false;
+        }
+        if (this.currentScene === sceneId && !opts.forceReload) {
+            const alreadyInRequestedQuest = questInstanceEntry
+                && this._activeQuestInstance?.questId === questDefinition.id;
+            if (!opts.questTravel || alreadyInRequestedQuest) return true;
+        }
+        if (this._isPersistentWorld(sceneId)
+            && !WorldProgressionSystem.isPortalConstructed(sceneId)
+            && !questInstanceEntry) {
             this.showTopNotification('该世界位面尚未搭建传送门', { color: '#ff7766' });
             return false;
         }
@@ -316,11 +330,12 @@ export const SceneManager = {
             return false;
         }
         const departingSceneId = this.currentScene;
+        const departingQuestInstance = this._activeQuestInstance?.sceneId === departingSceneId;
         const suspendingDungeonView = departingSceneId === 'scene7' && !!opts.observer
             && this._captureDungeonObservationState();
         const resumingDungeonView = sceneId === 'scene7' && !!this._dungeonObservationState
             && this.isDungeonRunActive();
-        const physicalPortalTravel = opts.portalTravel && !Game._observerMode
+        const physicalPortalTravel = opts.portalTravel && !departingQuestInstance && !Game._observerMode
             && !!player && Game.entities?.get?.('player') === player;
         const portalTravel = physicalPortalTravel
             ? TroopLineSystem.preparePortalTravel(departingSceneId, sceneId)
@@ -338,7 +353,8 @@ export const SceneManager = {
                 && WorldProgressionSystem.getPortalState(this.currentScene).destroyed;
             if (departingWorldDestroyed) {
                 delete g._worldPlayerPos[this.currentScene];
-            } else if (player && g.entities && g.entities.get('player') === player && this.currentScene) {
+            } else if (!departingQuestInstance
+                && player && g.entities && g.entities.get('player') === player && this.currentScene) {
                 g._worldPlayerPos[this.currentScene] = { x: player.x, y: player.y };
             }
             if (opts.observer) {
@@ -362,17 +378,13 @@ export const SceneManager = {
                 this._saveMainSceneState();
             }
 
-            // 离开列车场景时解锁相机Y轴
-            if (this.currentScene === 'scene3') {
-                Camera.lockY = false;
-                Camera.yLockedValue = 0;
-            }
-
             this.setProgress(50);
             await this.delay(100);
 
             // 不隶属当地建筑的跨位面增援由兵线系统独立收纳，避免被场景 teardown 丢失。
-            TroopLineSystem.onSceneLeaving(departingSceneId);
+            if (!departingQuestInstance && !questInstanceEntry) {
+                TroopLineSystem.onSceneLeaving(departingSceneId);
+            }
 
             // 清理当前场景
             // 先清理 Phaser 视觉对象，再清空实体数组，避免残留 Sprite/文字
@@ -468,22 +480,14 @@ export const SceneManager = {
             await this.delay(100);
 
             // 加载新场景
-            if (sceneId === 'scene2') {
-                this._loadScene2(player, this._enterMode);
-            } else if (sceneId === 'scene3') {
-                this._loadScene3(player);
-            } else if (sceneId === 'scene4') {
-                this._loadScene4(player);
-            } else if (sceneId === 'scene5') {
-                this._loadScene5(player);
-            } else if (sceneId === 'scene7') {
+            if (sceneId === 'scene7') {
                 if (!resumingDungeonView || !this._restoreDungeonObservationState()) {
                     this._loadScene7(player, 'zombie');
                 }
             } else if (sceneId === 'scene8') {
                 this._loadScene8(player);
             } else if (sceneId === 'scene9') {
-                this._loadScene9(player);
+                this._loadScene9(player, this._enterMode, questDefinition);
             } else if (sceneId === 'scene10') {
                 this._loadScene10(player);
             } else if (sceneId === 'scene11') {
@@ -497,11 +501,14 @@ export const SceneManager = {
             await this.delay(200);
 
             this.currentScene = sceneId;
+            this._activeQuestInstance = questInstanceEntry
+                ? { questId: questDefinition.id, sceneId }
+                : null;
             this._inMainHub = (sceneId === 'main');
             if (sceneId === 'scene7' && resumingDungeonView) {
                 window.DungeonMapSystem?.setWorldObservationSuspended?.(false);
             }
-            TroopLineSystem.onSceneEntered(sceneId);
+            if (!questInstanceEntry) TroopLineSystem.onSceneEntered(sceneId);
             if (portalTravel) TroopLineSystem.completePortalTravel(portalTravel, sceneId, player);
             // 实体传送门落地后，必须先走出目标场景的门区才能再次触发传送。
             // 主神空间会恢复离城坐标，该坐标常与原入口重合，单靠秒数冷却会自动弹回原世界。
@@ -524,7 +531,9 @@ export const SceneManager = {
             else {
                 this._rollback(player);
                 if (portalTravel) TroopLineSystem.rollbackPortalTravel(portalTravel);
-                TroopLineSystem.onSceneEntered(departingSceneId);
+                if (!departingQuestInstance && !questInstanceEntry) {
+                    TroopLineSystem.onSceneEntered(departingSceneId);
+                }
                 if (suspendingDungeonView) {
                     this._restoreDungeonObservationState();
                     window.DungeonMapSystem?.setWorldObservationSuspended?.(false);
@@ -544,6 +553,7 @@ export const SceneManager = {
         this._rollbackObserverMode = null;
         this._rollbackObserverHomeScene = null;
         this._rollbackWorldPlayerPos = null;
+        this._rollbackActiveQuestInstance = null;
     },
 
     _handleWorldDestructionSwitchFailure(tx) {
@@ -588,6 +598,9 @@ export const SceneManager = {
         this._rollbackObserverMode = !!Game._observerMode;
         this._rollbackObserverHomeScene = Game._observerHomeScene || null;
         this._rollbackWorldPlayerPos = { ...(Game._worldPlayerPos || {}) };
+        this._rollbackActiveQuestInstance = this._activeQuestInstance
+            ? { ...this._activeQuestInstance }
+            : null;
     },
 
     _rollback(player) {
@@ -618,6 +631,9 @@ export const SceneManager = {
         Game._observerHomeScene = this._rollbackObserverHomeScene || null;
         Game._worldPlayerPos = { ...(this._rollbackWorldPlayerPos || {}) };
         this.currentScene = this._rollbackCurrentScene;
+        this._activeQuestInstance = this._rollbackActiveQuestInstance
+            ? { ...this._rollbackActiveQuestInstance }
+            : null;
         this._inMainHub = (this._rollbackCurrentScene === 'main');
         this._clearRollbackState();
     },
@@ -677,144 +693,6 @@ export const SceneManager = {
             width: cfg?.width || fallbackWidth,
             height: cfg?.height || fallbackHeight
         };
-    },
-
-    _loadScene2(player, mode) {
-        const scene = this.scenes.scene2;
-        const isQuestMode = mode === 'quest';
-        const worldSize = this._resolveWorldSize(scene);
-        CONFIG.WORLD_WIDTH = worldSize.width;
-        CONFIG.WORLD_HEIGHT = worldSize.height;
-
-        // 雪地地形纹理
-        const canvas = document.createElement('canvas');
-        canvas.width = scene.width;
-        canvas.height = scene.height;
-        const ctx = canvas.getContext('2d');
-        // 白色雪地背景（降低亮度）
-        ctx.fillStyle = '#b8c0c8';
-        ctx.fillRect(0, 0, scene.width, scene.height);
-        // 雪地纹理噪点
-        for (let i = 0; i < 20000; i++) {
-            const x = Math.random() * scene.width, y = Math.random() * scene.height;
-            const size = Math.random() * 2 + 1;
-            const alpha = Math.random() * 0.1 + 0.05;
-            ctx.fillStyle = Math.random() > 0.5 ? `rgba(200, 210, 220, ${alpha})` : `rgba(180, 190, 200, ${alpha})`;
-            ctx.fillRect(x, y, size, size);
-        }
-        // 雪地中的暗色区域（模仿阴影）
-        for (let i = 0; i < 500; i++) {
-            const x = Math.random() * scene.width, y = Math.random() * scene.height;
-            const rx = 20 + Math.random() * 60, ry = 10 + Math.random() * 30;
-            ctx.fillStyle = `rgba(160, 170, 180, ${Math.random() * 0.15 + 0.05})`;
-            ctx.beginPath(); ctx.ellipse(x, y, rx, ry, Math.random() * Math.PI, 0, Math.PI * 2); ctx.fill();
-        }
-        Renderer.terrainTexture = canvas;
-        if (window.__phaserScene) window.__phaserScene.syncTerrain();
-
-        // 重置墙壁系统并添加边界
-        WallSystem.init(scene.width, scene.height);
-        WallSystem.walls = [
-            { x: -10, y: -10, w: scene.width + 20, h: 10 },
-            { x: -10, y: scene.height, w: scene.width + 20, h: 10 },
-            { x: -10, y: -10, w: 10, h: scene.height + 20 },
-            { x: scene.width, y: -10, w: 10, h: scene.height + 20 }
-        ];
-
-        // 生成石块障碍物（墙壁） — 雪地场景已移除，改为树木
-        /* for (let i = 0; i < 60; i++) { ... } */
-        // 生成树枝/树干障碍物 — 雪地场景已移除
-        /* for (let i = 0; i < 40; i++) { ... } */
-
-        // 雪地场景：随机生成100棵雪地树木（最小距离500px，随机朝向）
-        const treeRadius = 25;
-        const snowTrees = [];
-        for (let i = 0; i < 100; i++) {
-            let tx, ty, distOk;
-            let attempts = 0;
-            do {
-                tx = 200 + Math.random() * (scene.width - 400);
-                ty = 200 + Math.random() * (scene.height - 400);
-                distOk = true;
-                for (const t of snowTrees) {
-                    const dx = t.x - tx, dy = t.y - ty;
-                    if (Math.sqrt(dx * dx + dy * dy) < 500) { distOk = false; break; }
-                }
-                const dxCenter = tx - scene.width / 2, dyCenter = ty - scene.height / 2;
-                if (Math.sqrt(dxCenter * dxCenter + dyCenter * dyCenter) < 800) distOk = false;
-                attempts++;
-            } while (!distOk && attempts < 50);
-            if (distOk) {
-                const treeType = Math.floor(Math.random() * 3);
-                const rotation = Math.random() * Math.PI * 2;
-                WallSystem.addTree(tx, ty, treeRadius, treeType, 'snow', rotation);
-                snowTrees.push({ x: tx, y: ty });
-            }
-        }
-
-        // 放置玩家到中心
-        if (player) {
-            player.x = scene.width / 2;
-            player.y = scene.height / 2;
-            Game.entities.set('player', player);
-            Camera.follow(player);
-        }
-
-        if (!isQuestMode) {
-            // 自由探索模式：添加返回传送门、生成所有怪物和区域BOSS
-            const portal = new Portal(scene.width / 2, scene.height - 100, 'main', '返回主神空间');
-            Game.entities.set('portal_return', portal);
-
-            const monsterTypes = [BlackWolf];
-            const typeNames = ['black_wolf'];
-            const playerX = player ? player.x : scene.width / 2;
-            const playerY = player ? player.y : scene.height / 2;
-            for (let t = 0; t < monsterTypes.length; t++) {
-                for (let i = 0; i < 20; i++) {
-                    let mx, my, distToPlayer;
-                    let attempts = 0;
-                    do {
-                        const angle = Math.random() * Math.PI * 2;
-                        const radius = 3000 + Math.random() * 1000;
-                        mx = playerX + Math.cos(angle) * radius;
-                        my = playerY + Math.sin(angle) * radius;
-                        mx = Math.max(100, Math.min(scene.width - 100, mx));
-                        my = Math.max(100, Math.min(scene.height - 100, my));
-                        const dx = mx - playerX;
-                        const dy = my - playerY;
-                        distToPlayer = Math.sqrt(dx * dx + dy * dy);
-                        attempts++;
-                    } while (distToPlayer < 2500 && attempts < 10);
-                    const monster = new monsterTypes[t](mx, my);
-                    Game.entities.set(`monster_${typeNames[t]}_${i}`, monster);
-                }
-            }
-
-            // 生成区域BOSS (BlackWolf)
-            const bigBossAngle = Math.random() * Math.PI * 2;
-            const bigBossDist = 2000;
-            let bbx = playerX + Math.cos(bigBossAngle) * bigBossDist;
-            let bby = playerY + Math.sin(bigBossAngle) * bigBossDist;
-            bbx = Math.max(100, Math.min(scene.width - 100, bbx));
-            bby = Math.max(100, Math.min(scene.height - 100, bby));
-            const bigBoss = new BlackWolf(bbx, bby);
-            Game.entities.set('big_boss', bigBoss);
-        } else {
-            // 任务模式：不生成传送门和怪物，生成时空裂隙
-            if (RiftSystem) {
-                RiftSystem.spawnRifts(scene.width, scene.height);
-            }
-            // 初始化任务模式怪物生成计时器
-            Game._questSpawnTimer = 0;
-            Game._questFirstSpawnDelay = 15000; // 15秒后首次生成
-            Game._questSpawnInterval = 15000; // 每15秒生成一次
-            Game._questSpawnCount = 5; // 每次5只
-        }
-
-        // 同步快捷栏特殊攻击图标
-        if (player) {
-            QuickBar.refreshSpecialAttack(player);
-        }
     },
 
     /** 主神空间地形统一入口：砖地烘焙 + 边界墙（Game.init 首启与 _loadMainScene 回城共用，禁止两套路径） */
@@ -990,356 +868,8 @@ export const SceneManager = {
         Game.syncMainHubWorldPortals?.();
     },
 
-    _loadScene3(player) {
-        const scene = this.scenes.scene3;
-        const carriageWidth = 500;
-        const carriageHeight = 300;
-        const numCarriages = 6;
-        const totalWidth = carriageWidth * numCarriages;
-        const wallThickness = 20;
-
-        const worldSize = this._resolveWorldSize(scene);
-        CONFIG.WORLD_WIDTH = worldSize.width || totalWidth;
-        CONFIG.WORLD_HEIGHT = worldSize.height || scene.height;
-
-        // 列车内部地形纹理（透明 outside，车内内容在中间）
-        const canvas = document.createElement('canvas');
-        canvas.width = CONFIG.WORLD_WIDTH;
-        canvas.height = CONFIG.WORLD_HEIGHT;
-        const ctx = canvas.getContext('2d');
-
-        const interiorTop = (CONFIG.WORLD_HEIGHT - carriageHeight) / 2;
-        const interiorBottom = interiorTop + carriageHeight;
-
-        // 地板
-        ctx.fillStyle = '#3d3528';
-        ctx.fillRect(0, interiorTop, CONFIG.WORLD_WIDTH, carriageHeight);
-
-        // 地板纹理
-        for (let x = 0; x < CONFIG.WORLD_WIDTH; x += 20) {
-            ctx.strokeStyle = 'rgba(80, 70, 55, 0.5)';
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            ctx.moveTo(x, interiorTop);
-            ctx.lineTo(x, interiorBottom);
-            ctx.stroke();
-        }
-
-        // 绘制每个车厢
-        for (let c = 0; c < numCarriages; c++) {
-            const cx = c * carriageWidth;
-
-            // 车厢分隔线
-            if (c > 0) {
-                ctx.strokeStyle = 'rgba(120, 110, 90, 0.6)';
-                ctx.lineWidth = 4;
-                ctx.beginPath();
-                ctx.moveTo(cx, interiorTop);
-                ctx.lineTo(cx, interiorBottom);
-                ctx.stroke();
-            }
-
-            // 车厢编号
-            ctx.fillStyle = 'rgba(180, 170, 140, 0.3)';
-            ctx.font = '20px SimHei, "Microsoft YaHei", sans-serif';
-            ctx.textAlign = 'center';
-            ctx.fillText(`第${c + 1}节车厢`, cx + carriageWidth / 2, interiorTop + 30);
-
-            // 两侧座椅
-            const seatColor = '#5a5040';
-            const seatW = 40, seatH = 25;
-            const seatSpacing = 80;
-            const seatMargin = 15;
-
-            for (let sx = cx + 30; sx < cx + carriageWidth - 30; sx += seatSpacing) {
-                // 上方座椅
-                ctx.fillStyle = seatColor;
-                ctx.fillRect(sx, interiorTop + seatMargin, seatW, seatH);
-                ctx.strokeStyle = 'rgba(100, 90, 75, 0.5)';
-                ctx.strokeRect(sx, interiorTop + seatMargin, seatW, seatH);
-
-                // 下方座椅
-                ctx.fillStyle = seatColor;
-                ctx.fillRect(sx, interiorBottom - seatMargin - seatH, seatW, seatH);
-                ctx.strokeStyle = 'rgba(100, 90, 75, 0.5)';
-                ctx.strokeRect(sx, interiorBottom - seatMargin - seatH, seatW, seatH);
-            }
-
-            // 中央过道虚线
-            ctx.strokeStyle = 'rgba(100, 90, 75, 0.2)';
-            ctx.lineWidth = 2;
-            ctx.setLineDash([10, 10]);
-            ctx.beginPath();
-            ctx.moveTo(cx + 20, CONFIG.WORLD_HEIGHT / 2);
-            ctx.lineTo(cx + carriageWidth - 20, CONFIG.WORLD_HEIGHT / 2);
-            ctx.stroke();
-            ctx.setLineDash([]);
-        }
-
-        // 车厢外壁
-        ctx.fillStyle = 'rgba(60, 55, 45, 0.3)';
-        ctx.fillRect(0, interiorTop - 10, CONFIG.WORLD_WIDTH, 10);
-        ctx.fillRect(0, interiorBottom, CONFIG.WORLD_WIDTH, 10);
-
-        Renderer.terrainTexture = canvas;
-        if (window.__phaserScene) window.__phaserScene.syncTerrain();
-
-        // 设置墙壁系统
-        WallSystem.init(CONFIG.WORLD_WIDTH, CONFIG.WORLD_HEIGHT);
-        WallSystem.walls = [];
-
-        // 车厢内壁（上下边界，防止走出车外）
-        WallSystem.walls.push({ x: 0, y: interiorTop - wallThickness, w: CONFIG.WORLD_WIDTH, h: wallThickness });
-        WallSystem.walls.push({ x: 0, y: interiorBottom, w: CONFIG.WORLD_WIDTH, h: wallThickness });
-
-        // 左右端墙
-        WallSystem.walls.push({ x: -wallThickness, y: 0, w: wallThickness, h: CONFIG.WORLD_HEIGHT });
-        WallSystem.walls.push({ x: CONFIG.WORLD_WIDTH, y: 0, w: wallThickness, h: CONFIG.WORLD_HEIGHT });
-
-        // 座椅碰撞体
-        const seatW = 40, seatH = 25;
-        const seatSpacing = 80;
-        const seatMargin = 15;
-        for (let c = 0; c < numCarriages; c++) {
-            const cx = c * carriageWidth;
-            for (let sx = cx + 30; sx < cx + carriageWidth - 30; sx += seatSpacing) {
-                WallSystem.walls.push({ x: sx, y: interiorTop + seatMargin, w: seatW, h: seatH });
-                WallSystem.walls.push({ x: sx, y: interiorBottom - seatMargin - seatH, w: seatW, h: seatH });
-            }
-        }
-
-        // 放置玩家到第一节车厢
-        if (player) {
-            player.x = carriageWidth / 2;
-            player.y = CONFIG.WORLD_HEIGHT / 2;
-            Game.entities.set('player', player);
-            Camera.follow(player);
-            // 列车场景锁定相机Y轴，只允许左右移动
-            Camera.lockY = true;
-            Camera.yLockedValue = CONFIG.WORLD_HEIGHT / 2;
-        }
-
-        // 返回传送门（在列车最后一节）
-        const portal = new Portal(CONFIG.WORLD_WIDTH - 50, CONFIG.WORLD_HEIGHT / 2, 'main', '返回主神空间');
-        Game.entities.set('portal_return', portal);
-
-        // 同步快捷栏
-        if (player) {
-            QuickBar.refreshSpecialAttack(player);
-        }
-
-        // 初始化列车滚动背景偏移
-        if (Game) Game._trainScrollOffset = 0;
-    },
-
-    _loadScene4(player) {
-        const scene = this.scenes.scene4;
-        const worldSize = this._resolveWorldSize(scene);
-        CONFIG.WORLD_WIDTH = worldSize.width;
-        CONFIG.WORLD_HEIGHT = worldSize.height;
-
-        // 古堡地形纹理：深灰色地板，黑色墙壁
-        const canvas = document.createElement('canvas');
-        canvas.width = scene.width;
-        canvas.height = scene.height;
-        const ctx = canvas.getContext('2d');
-
-        // 深灰色石质地板（默认可移动区域）
-        ctx.fillStyle = '#2a2a2a';
-        ctx.fillRect(0, 0, scene.width, scene.height);
-
-        // 石质纹理噪点
-        for (let i = 0; i < 30000; i++) {
-            const x = Math.random() * scene.width, y = Math.random() * scene.height;
-            const size = Math.random() * 3 + 1;
-            const alpha = Math.random() * 0.1 + 0.02;
-            ctx.fillStyle = Math.random() > 0.5 ? `rgba(60, 60, 60, ${alpha})` : `rgba(80, 80, 80, ${alpha})`;
-            ctx.fillRect(x, y, size, size);
-        }
-
-        // 墙壁（黑色不可移动区域）
-        ctx.fillStyle = '#000000';
-        const walls = [
-            // 外边界
-            { x: -50, y: -50, w: 9100, h: 50 },
-            { x: -50, y: 9000, w: 9100, h: 50 },
-            { x: -50, y: -50, w: 50, h: 9100 },
-            { x: 9000, y: -50, w: 50, h: 9100 },
-            // 中央大厅（3000x3000）上墙（门4000-5000）
-            { x: 3000, y: 3000, w: 1000, h: 100 },
-            { x: 5000, y: 3000, w: 1000, h: 100 },
-            // 中央大厅下墙（门4000-5000）
-            { x: 3000, y: 6000, w: 1000, h: 100 },
-            { x: 5000, y: 6000, w: 1000, h: 100 },
-            // 中央大厅左墙（门4000-5000）
-            { x: 3000, y: 3000, w: 100, h: 1000 },
-            { x: 3000, y: 5000, w: 100, h: 1000 },
-            // 中央大厅右墙（门4000-5000）
-            { x: 5900, y: 3000, w: 100, h: 1000 },
-            { x: 5900, y: 5000, w: 100, h: 1000 },
-            // 上方房间（3000x2500）
-            { x: 3000, y: 500, w: 3000, h: 100 },
-            { x: 3000, y: 500, w: 100, h: 2500 },
-            { x: 5900, y: 500, w: 100, h: 2500 },
-            // 下方房间（3000x2500）
-            { x: 3000, y: 8400, w: 3000, h: 100 },
-            { x: 3000, y: 6000, w: 100, h: 2500 },
-            { x: 5900, y: 6000, w: 100, h: 2500 },
-            // 左侧房间（2500x3000）
-            { x: 500, y: 3000, w: 2500, h: 100 },
-            { x: 500, y: 6000, w: 2500, h: 100 },
-            { x: 500, y: 3000, w: 100, h: 3000 },
-            // 右侧房间（2500x3000）
-            { x: 6000, y: 3000, w: 2500, h: 100 },
-            { x: 6000, y: 6000, w: 2500, h: 100 },
-            { x: 8400, y: 3000, w: 100, h: 3000 },
-            // 左上房间（2500x2500）
-            { x: 500, y: 500, w: 2500, h: 100 },
-            { x: 500, y: 500, w: 100, h: 2500 },
-            { x: 3000, y: 500, w: 100, h: 2500 },
-            // 左下房间（2500x2500）
-            { x: 500, y: 8400, w: 2500, h: 100 },
-            { x: 500, y: 6000, w: 100, h: 2500 },
-            { x: 3000, y: 6000, w: 100, h: 2500 },
-            // 右上房间（2500x2500）
-            { x: 6000, y: 500, w: 2500, h: 100 },
-            { x: 8400, y: 500, w: 100, h: 2500 },
-            { x: 6000, y: 500, w: 100, h: 2500 },
-            // 右下房间（2500x2500）
-            { x: 6000, y: 8400, w: 2500, h: 100 },
-            { x: 8400, y: 6000, w: 100, h: 2500 },
-            { x: 6000, y: 6000, w: 100, h: 2500 },
-        ];
-        for (const w of walls) {
-            ctx.fillRect(w.x, w.y, w.w, w.h);
-        }
-
-        Renderer.terrainTexture = canvas;
-        if (window.__phaserScene) window.__phaserScene.syncTerrain();
-
-        // 设置墙壁系统
-        WallSystem.init(scene.width, scene.height);
-        WallSystem.walls = walls;
-
-        // 放置玩家到中心
-        if (player) {
-            player.x = scene.width / 2;
-            player.y = scene.height / 2;
-            Game.entities.set('player', player);
-            Camera.follow(player);
-        }
-
-        // 添加返回传送门
-        const portal = new Portal(scene.width / 2, scene.height - 100, 'main', '返回主神空间');
-        Game.entities.set('portal_return', portal);
-
-        // 古堡怪物：以玩家为中心，半径3000~4000px环形区域随机生成，每种5个
-        const monsterTypes = [BlackWolf];
-        const typeNames = ['black_wolf'];
-        const playerX = player ? player.x : scene.width / 2;
-        const playerY = player ? player.y : scene.height / 2;
-        for (let t = 0; t < monsterTypes.length; t++) {
-            for (let i = 0; i < 25; i++) {
-                let mx, my, distToPlayer;
-                let attempts = 0;
-                do {
-                    const angle = Math.random() * Math.PI * 2;
-                    const radius = 3000 + Math.random() * 1000;
-                    mx = playerX + Math.cos(angle) * radius;
-                    my = playerY + Math.sin(angle) * radius;
-                    mx = Math.max(100, Math.min(scene.width - 100, mx));
-                    my = Math.max(100, Math.min(scene.height - 100, my));
-                    const dx = mx - playerX;
-                    const dy = my - playerY;
-                    distToPlayer = Math.sqrt(dx * dx + dy * dy);
-                    attempts++;
-                } while (distToPlayer < 2500 && attempts < 10);
-                const monster = new monsterTypes[t](mx, my);
-                Game.entities.set(`scene4_${typeNames[t]}_${i}`, monster);
-            }
-        }
-
-        // 同步快捷栏
-        if (player) {
-            QuickBar.refreshSpecialAttack(player);
-        }
-    },
-
     delay(ms) {
         return new Promise(resolve => TimerManager.setTimeout(resolve, ms));
-    },
-
-    _loadScene5(player) {
-        const scene = this.scenes.scene5;
-        const worldSize = this._resolveWorldSize(scene);
-        CONFIG.WORLD_WIDTH = worldSize.width;
-        CONFIG.WORLD_HEIGHT = worldSize.height;
-
-        // 灰色地形纹理
-        const canvas = document.createElement('canvas');
-        canvas.width = scene.width;
-        canvas.height = scene.height;
-        const ctx = canvas.getContext('2d');
-        ctx.fillStyle = '#3a3a3a';
-        ctx.fillRect(0, 0, scene.width, scene.height);
-        // 网格纹理
-        ctx.strokeStyle = 'rgba(100, 100, 100, 0.1)';
-        ctx.lineWidth = 1;
-        for (let x = 0; x < scene.width; x += 50) {
-            ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, scene.height); ctx.stroke();
-        }
-        for (let y = 0; y < scene.height; y += 50) {
-            ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(scene.width, y); ctx.stroke();
-        }
-        Renderer.terrainTexture = canvas;
-        if (window.__phaserScene) window.__phaserScene.syncTerrain();
-
-        // 墙壁系统
-        WallSystem.init(scene.width, scene.height);
-        WallSystem.walls = [
-            { x: -10, y: -10, w: scene.width + 20, h: 10 },
-            { x: -10, y: scene.height, w: scene.width + 20, h: 10 },
-            { x: -10, y: -10, w: 10, h: scene.height + 20 },
-            { x: scene.width, y: -10, w: 10, h: scene.height + 20 }
-        ];
-        // 添加一些障碍物（方块），数量随场景面积等比例增加
-        const obstacleCount = Math.floor(15 * (scene.width * scene.height) / (1530 * 760));
-        for (let i = 0; i < obstacleCount; i++) {
-            const wx = 200 + Math.random() * (scene.width - 400);
-            const wy = 100 + Math.random() * (scene.height - 200);
-            const ww = 40 + Math.random() * 80;
-            const wh = 40 + Math.random() * 80;
-            WallSystem.walls.push({ x: wx, y: wy, w: ww, h: wh });
-        }
-
-        // 放置玩家
-        if (player) {
-            let px = scene.width / 2;
-            let py = scene.height / 2;
-            // 检查玩家位置是否在墙壁内，如果是则重新选择
-            if (WallSystem && WallSystem.canMoveTo) {
-                const playerRadius = player.groundRadius;
-                let attempts = 0;
-                while (!WallSystem.canMoveTo(px, py, playerRadius) && attempts < 50) {
-                    px = 100 + Math.random() * (scene.width - 200);
-                    py = 100 + Math.random() * (scene.height - 200);
-                    attempts++;
-                }
-                if (attempts >= 50) {
-                    console.warn('[scene5] 无法为玩家找到安全位置，使用默认位置');
-                }
-            }
-            player.x = px;
-            player.y = py;
-            Game.entities.set('player', player);
-            Camera.follow(player);
-        }
-
-        // 返回传送门
-        const portal = new Portal(scene.width / 2, scene.height - 50, 'main', '返回主神空间');
-        Game.entities.set('portal_return', portal);
-
-        if (player) QuickBar.refreshSpecialAttack(player);
     },
 
     /** 世界-122（场景八）：12288×8192 全图泥地无缝纹理 + 菱形地块 + 可移动边界 */
@@ -1591,9 +1121,10 @@ export const SceneManager = {
         }
     },
 
-    /** 世界-123（场景九）：复用世界-122的尺寸、菱形边界与地面视角，只承载雪地地块。 */
-    _loadScene9(player) {
+    /** 世界-123（场景九）：普通进入为持久世界；任务进入仅复用雪原地形与碰撞。 */
+    _loadScene9(player, mode = 'explore', questDefinition = null) {
         clearDecoClearZones();
+        const isQuestInstance = mode === 'quest' && questDefinition?.scene === 'scene9';
         Camera.aimOffsetX = 0;
         Camera.aimOffsetY = 0;
         Camera.shakeX = 0;
@@ -1645,7 +1176,7 @@ export const SceneManager = {
         if (player && !Game._observerMode) {
             const entry = WorldProgressionSystem.getWorldConfig('scene9')?.portalSpawn
                 || { x: diamond ? diamond.cx : w / 2, y: diamond ? diamond.cy : h / 2 };
-            const savedPos = Game._worldPlayerPos?.scene9;
+            const savedPos = isQuestInstance ? null : Game._worldPlayerPos?.scene9;
             player.x = Number.isFinite(savedPos?.x) ? savedPos.x : entry.x + 228;
             player.y = Number.isFinite(savedPos?.y) ? savedPos.y : entry.y;
             Game.entities.set('player', player);
@@ -1660,7 +1191,37 @@ export const SceneManager = {
         this._scatterSnowPinesScene9(
             player, diamond, WorldProgressionSystem.createWorldRandom('scene9', 'obstacles')
         );
-        this._setupPersistentWorld('scene9', player, diamond);
+        if (isQuestInstance) {
+            const runtime = questDefinition.runtime || {};
+            const clearRadius = Math.max(200, Number(runtime.riftClearRadius) || 240);
+            const isValidPosition = (x, y) => {
+                if (!Number.isFinite(x) || !Number.isFinite(y)) return false;
+                if (Math.abs(x - diamond.cx) / diamond.rx + Math.abs(y - diamond.cy) / diamond.ry > 0.84) {
+                    return false;
+                }
+                if (player && Math.hypot(x - player.x, y - player.y) < 900) return false;
+                return WallSystem.canBuildAt?.(x, y, clearRadius) !== false;
+            };
+            const clearPlacements = (points) => {
+                const zones = (points || []).map((point) => ({
+                    x: point.x,
+                    y: point.y,
+                    radius: clearRadius,
+                }));
+                WallSystem.removeScatterObstaclesInZones?.(zones);
+                window.__phaserScene?.eraseDecoBatch?.(zones);
+            };
+            RiftSystem.spawnRifts(w, h, {
+                count: runtime.riftCount,
+                investigateMs: runtime.investigateMs,
+                isValidPosition,
+                clearPlacements,
+            });
+            Game._questSpawnTimer = 0;
+            Game._questFirstSpawnDelay = null;
+        } else {
+            this._setupPersistentWorld('scene9', player, diamond);
+        }
     },
 
     /** 世界-123高瘦雪松散布：五个姿态等概率取样，只落在雪原菱形内。 */
@@ -1869,6 +1430,10 @@ export const SceneManager = {
         return ['scene8', 'scene9', 'scene10', 'scene11'].includes(sceneId);
     },
 
+    isQuestInstance(sceneId = this.currentScene) {
+        return !!sceneId && this._activeQuestInstance?.sceneId === sceneId;
+    },
+
     /** scene8~scene11 共用的建筑、资源、快照与入侵运行时。 */
     _setupPersistentWorld(sceneId, player, diamond) {
         DefenseSystem.setup(player, { managedExternally: true, worldId: sceneId });
@@ -2069,7 +1634,7 @@ export const SceneManager = {
         // 后台位面失守时玩家可能正在主城：立即撤掉已断线的主城入口，
         // 不等下一次切场景才刷新传送网络。
         if (this.currentScene === 'main') Game.syncMainHubWorldPortals?.();
-        const occupied = this.currentScene === sceneId
+        const occupied = (this.currentScene === sceneId && !this.isQuestInstance(sceneId))
             || (Game?._observerMode && Game._observerHomeScene === sceneId);
         if (!occupied) {
             this._finishWorldDestructionTransactions(tx);

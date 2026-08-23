@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-/* 红狼王实机截图探针（简化版，2026-08-08）：
- * 加载 dev 页面 -> 等 window.Game -> 把红狼王强制生成到玩家旁 -> 变身 -> 截图狼形态与红狼人形态。
+/* 红狼王实机截图探针（六态版，2026-08-23）：
+ * 加载 dev 页面 -> 等 window.Game -> 把红狼王强制生成到玩家旁 -> 进入二阶段 -> 截图狼形态与阶段状态。
  * 前置：vite dev 已启动。用法：node tools/cdp-redwolf-shot.mjs
  */
 import { spawn } from 'node:child_process';
@@ -146,7 +146,7 @@ await evalJs(`(() => {
     if (e._transformCfg && e._transformCfg.hpThreshold) e._transformCfg.hpThreshold = 0.5;
 })()`).catch(() => {});
 await new Promise((r) => setTimeout(r, 7000));
-await shot('rw_shot_humanoid');
+await shot('rw_shot_phase_two');
 
 // 强制切到奔跑动画再截图
 await evalJs(`(() => {
@@ -157,7 +157,7 @@ await evalJs(`(() => {
     try { e._endPounce(); } catch (_) {}
 })()`).catch(() => {});
 await new Promise((r) => setTimeout(r, 1500));
-await shot('rw_shot_humanoid_run');
+await shot('rw_shot_phase_two_run');
 
 const state = await evalJs(`(() => {
     const e = window.Game.entities.get('enemy_main_red_wolf');

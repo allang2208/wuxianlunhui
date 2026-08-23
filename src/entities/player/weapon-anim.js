@@ -145,10 +145,15 @@ const weaponAnimMixin = {
                     // 弓在 recover 结束后射出箭矢
                     const currentItem = this.equipments[this.weaponMode];
                     if (currentItem && currentItem.weaponType === 'bow' && !this.rangedFired && this.rangedFireData) {
-                        const mouseWorldX = Input.mouse.x + Camera.x - CONFIG.VIEW_WIDTH / 2;
-                        const mouseWorldY = Input.mouse.y + Camera.y - CONFIG.VIEW_HEIGHT / 2;
-                        this.rangedFireData.targetX = mouseWorldX;
-                        this.rangedFireData.targetY = mouseWorldY;
+                        const rtsAttackLocked = !!(typeof window !== 'undefined'
+                            && window.Game?.RTSCommand?.enabled
+                            && this._rtsController?.command?.mode === 'attack');
+                        if (!rtsAttackLocked) {
+                            const mouseWorldX = Input.mouse.x + Camera.x - CONFIG.VIEW_WIDTH / 2;
+                            const mouseWorldY = Input.mouse.y + Camera.y - CONFIG.VIEW_HEIGHT / 2;
+                            this.rangedFireData.targetX = mouseWorldX;
+                            this.rangedFireData.targetY = mouseWorldY;
+                        }
                         SoundManager.playFile('assets/sounds/arrow_flyby_1s.mp3');
                         this._fireRanged('main');
                     }

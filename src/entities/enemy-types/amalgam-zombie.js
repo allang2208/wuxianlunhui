@@ -133,9 +133,10 @@ export class AmalgamZombie extends Enemy {
         this.y = this._anchorY;
 
         // 冷却推进
-        if (this._slamCd > 0) this._slamCd = Math.max(0, this._slamCd - dt);
-        if (this._throwCd > 0) this._throwCd = Math.max(0, this._throwCd - dt);
-        if (this._summonCd > 0) this._summonCd = Math.max(0, this._summonCd - dt);
+        const attackDt = this.getAttackIntervalDelta(dt);
+        if (this._slamCd > 0) this._slamCd = Math.max(0, this._slamCd - attackDt);
+        if (this._throwCd > 0) this._throwCd = Math.max(0, this._throwCd - attackDt);
+        if (this._summonCd > 0) this._summonCd = Math.max(0, this._summonCd - attackDt);
 
         // 投掷预备倒计时：音效已在决策时播放，到点后进入攻击动作
         if (this._throwPending > 0) {

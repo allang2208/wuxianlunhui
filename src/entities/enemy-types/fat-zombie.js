@@ -86,8 +86,8 @@ export class FatZombie extends Enemy {
             if (this._attackAnimTimer < 0) this._attackAnimTimer = 0;
         }
 
-        // 腐蚀区域伤害
-        this._updateAura(dt, entities);
+        // 活体腐蚀属于持续攻击节拍，接入雾潮攻击时钟；尸体残留在上方分支保持原速。
+        this._updateAura(this.getAttackIntervalDelta(dt), entities);
 
         // 腐蚀区域范围提示
         this._updateAuraRangeEffect();

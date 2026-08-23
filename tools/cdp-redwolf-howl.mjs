@@ -1,9 +1,9 @@
 #!/usr/bin/env node
-/* 红狼王变身+嚎叫技能实机探针（2026-08-08）：
- * 1) 生成红狼王 -> 压血触发变身；
- * 2) 变身完成后检查是否还自动嚎叫（_howlTimer 应为 0、纹理应为 idle/run 而非 howl）；
- * 3) 在红狼人形态下等待嚎叫技能冷却触发（配置 cooldown 30s，探针里手动把 _howlCd 置 0 加速），
- *    检查 _animState === 'howl'、纹理为 changed_howl、场上怪物获得 inspire。
+/* 红狼王二阶段+嚎叫技能实机探针（2026-08-23）：
+ * 1) 生成红狼王 -> 压血触发狼形阶段嚎叫；
+ * 2) 阶段强化完成后检查 _howlTimer 为 0、纹理恢复 idle/run；
+ * 3) 在二阶段等待主动嚎叫冷却触发（探针手动清零 _howlCd），
+ *    检查 _animState === 'howl'、纹理为 enemy_red_wolf_king_howl、怪物获得 inspire。
  * 前置：vite dev 已启动。用法：node tools/cdp-redwolf-howl.mjs
  */
 import { spawn } from 'node:child_process';

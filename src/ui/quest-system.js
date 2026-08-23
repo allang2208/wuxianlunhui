@@ -15,6 +15,41 @@ import { EquipManager } from './equip-manager.js';
 import { GameUIManager } from './game-ui-manager.js';
 import { BasePanel } from './panels/base-panel.js';
 import { mountRightSidebarPanel } from './right-sidebar-panel-layer.js';
+import { QuestRegistry } from '../quest/quest-registry.js';
+import { QuestStore } from '../quest/quest-store.js';
+
+function createLegacyQuestView(definition) {
+    const view = {
+        ...definition,
+        objectives: definition.objectives.map((objective) => {
+            const objectiveView = { ...objective };
+            Object.defineProperty(objectiveView, 'current', {
+                enumerable: true,
+                get: () => QuestStore.getObjectiveProgress(definition.id, objective.id),
+                set: (value) => QuestStore.setObjectiveProgress(definition.id, objective.id, value),
+            });
+            return objectiveView;
+        }),
+        rewards: definition.rewards.map((reward) => ({ ...reward })),
+    };
+    Object.defineProperties(view, {
+        accepted: {
+            enumerable: true,
+            get: () => QuestStore.getStatus(definition.id) !== 'available',
+            set: (value) => QuestStore.setQuestAccepted(definition.id, value),
+        },
+        completed: {
+            enumerable: true,
+            get: () => QuestStore.getStatus(definition.id) === 'completed',
+            set: (value) => QuestStore.setQuestCompleted(definition.id, value),
+        },
+    });
+    return view;
+}
+
+const LEGACY_QUEST_VIEWS = Object.fromEntries(
+    QuestRegistry.getAll().map((definition) => [definition.id, createLegacyQuestView(definition)])
+);
 
 export const QuestSystem = {
     _selectedQuest: 'explore_rift_1',
@@ -22,29 +57,8 @@ export const QuestSystem = {
     _panel: null,
     _lastFocusedElement: null,
 
-    // 任务数据库
-    QUESTS: {
-        'explore_rift_1': {
-            id: 'explore_rift_1',
-            name: '探索时空裂隙',
-            type: '主线任务',
-            giver: '小鼠侍从',
-            location: '181号世界 · 雪原裂隙',
-            desc: '根据线索，近期发现不同世界中出现了时空乱流和时空不稳定的裂隙，前往最近发生情况的181号世界，找到发生时空裂隙的地方，收集线索调查。',
-            objectives: [
-                { id: 'rift_1', text: '完成三个时空裂隙的线索收集', current: 0, target: 3 },
-                { id: 'evacuate', text: '成功从 181 世界中撤离', current: 0, target: 1 }
-            ],
-            rewards: [
-                { type: 'level', text: '提升一级' },
-                { type: 'gold', text: '500 金币' },
-                { type: 'weapon', text: '随机优质武器' }
-            ],
-            completed: false,
-            accepted: false,
-            scene: 'scene2'
-        }
-    },
+    // 兼容旧 UI/NPC 读取接口；定义来自 QuestRegistry，进度访问器落到 QuestStore。
+    QUESTS: LEGACY_QUEST_VIEWS,
 
     get _isOpen() { return UIState.isOpen('quest'); },
 
@@ -110,7 +124,7 @@ export const QuestSystem = {
     acceptQuest() {
         const quest = this.QUESTS[this._selectedQuest];
         if (quest) {
-            quest.accepted = true;
+            QuestStore.acceptQuest(quest.id);
             // 任务栏版本：不传送，仅更新任务状态
             this._render();
         }
@@ -122,10 +136,8 @@ export const QuestSystem = {
     acceptQuestAndTeleport() {
         const quest = this.QUESTS[this._selectedQuest];
         if (quest) {
-            quest.accepted = true;
-            if (QuestState) {
-                QuestState.startQuest(quest.scene, 'quest');
-            }
+            QuestStore.acceptQuest(quest.id);
+            if (QuestState) QuestState.startQuest(quest.id);
         }
         this.close();
         if (NPCDialogue.active) NPCDialogue.close();
@@ -347,86 +359,95 @@ export const QuestSystem = {
     }
 };
 
-// QuestState - 全局任务状态管理（运行时）
+// QuestState - 旧调用点兼容门面；唯一运行态由 QuestStore 持有。
 export const QuestState = {
-    activeQuest: null,
-    currentScene: null,
-    mode: null,
-    riftProgress: [0, 0, 0],
-    riftCompleted: [false, false, false],
-    questCompleted: false,
-    returnPortalSpawned: false,
-    _questDied: false,
+    get activeQuest() { return QuestStore.getActiveQuestId(); },
+    get currentScene() { return QuestStore.getSessionValue('sceneId') || null; },
+    get mode() { return QuestStore.getSessionValue('mode') || null; },
+    get riftPositions() { return QuestStore.getSessionArray('riftPositions'); },
+    set riftPositions(value) { QuestStore.replaceSessionArray('riftPositions', value); },
+    get riftProgress() { return QuestStore.getSessionArray('riftProgress'); },
+    set riftProgress(value) { QuestStore.replaceSessionArray('riftProgress', value); },
+    get riftCompleted() { return QuestStore.getSessionArray('riftCompleted'); },
+    set riftCompleted(value) { QuestStore.replaceSessionArray('riftCompleted', value); },
+    get questCompleted() {
+        return QuestStore.isActiveSession()
+            ? !!QuestStore.getSessionValue('riftsResolved')
+            : QuestStore.getStatus('explore_rift_1') === 'completed';
+    },
+    set questCompleted(value) { QuestStore.setSessionFlag('riftsResolved', value); },
+    get returnPortalSpawned() { return !!QuestStore.getSessionValue('returnPortalSpawned'); },
+    set returnPortalSpawned(value) { QuestStore.setSessionFlag('returnPortalSpawned', value); },
+    get returnPortalPosition() { return QuestStore.getSessionValue('returnPortalPosition') || null; },
+    set returnPortalPosition(value) { QuestStore.setReturnPortalPosition(value); },
+    get _questDied() { return QuestStore.wasLastFailure('death'); },
 
-    startQuest(sceneId, mode) {
-        this.activeQuest = 'explore_rift_1';
-        this.currentScene = sceneId;
-        this.mode = mode;
-        this.riftProgress = [0, 0, 0];
-        this.riftCompleted = [false, false, false];
-        this.questCompleted = false;
-        this.returnPortalSpawned = false;
-        this._questDied = false;
-        // 重置 QuestSystem 中的任务进度
-        const quest = QuestSystem.QUESTS['explore_rift_1'];
-        if (quest) {
-            quest.objectives.forEach(obj => obj.current = 0);
-            quest.completed = false;
-        }
-        QuestSystem.refresh();
-        SceneManager.switchScene(sceneId, Game.player, mode);
+    startQuest(questOrScene = 'explore_rift_1', options = {}) {
+        const definition = QuestRegistry.get(questOrScene)
+            || QuestRegistry.getAll().find((quest) => quest.scene === questOrScene)
+            || null;
+        if (!definition) return false;
+        const wasResuming = QuestStore.getActiveQuestId() === definition.id
+            && QuestStore.getActiveSession()?.questId === definition.id;
+        if (!QuestStore.startSession(definition.id, { resume: wasResuming })) return false;
+        Game._questSpawnTimer = 0;
+        Game._questFirstSpawnDelay = null;
+        const transition = SceneManager.switchScene(
+            definition.scene,
+            Game.player,
+            definition.mode || 'quest',
+            { questTravel: true, questId: definition.id, forceReload: options.forceReload === true }
+        );
+        Promise.resolve(transition).then((switched) => {
+            if (!switched && !wasResuming && QuestStore.getActiveQuestId() === definition.id) {
+                QuestStore.abortSession('travel_failed');
+            }
+        }).catch((error) => {
+            if (!wasResuming && QuestStore.getActiveQuestId() === definition.id) {
+                QuestStore.abortSession('travel_failed');
+            }
+            console.error('[QuestState] task travel failed:', error);
+        });
+        return transition;
     },
 
     manualStart(sceneId) {
-        this.startQuest(sceneId, 'quest');
+        return this.startQuest(sceneId);
     },
 
     reset() {
-        this.activeQuest = null;
-        this.currentScene = null;
-        this.mode = null;
-        this.riftProgress = [0, 0, 0];
-        this.riftCompleted = [false, false, false];
-        this.questCompleted = false;
-        this.returnPortalSpawned = false;
-        this._questDied = true;
-        QuestSystem.refresh();
+        QuestStore.abortSession('death');
     },
 
     // 检查是否在任务中
     isInQuest() {
-        return this.activeQuest !== null && this.mode === 'quest';
+        const sceneId = QuestStore.getSessionValue('sceneId');
+        return QuestStore.isActiveSession({ mode: 'quest' })
+            && SceneManager.isQuestInstance(sceneId);
+    },
+
+    getActiveDefinition() {
+        return QuestRegistry.get(QuestStore.getActiveQuestId());
+    },
+
+    setRiftProgress(index, progress) {
+        return QuestStore.setRiftProgress(index, progress);
     },
 
     // 完成一个裂隙调查
     completeRift(index) {
-        if (index >= 0 && index < 3 && !this.riftCompleted[index]) {
-            this.riftCompleted[index] = true;
-            this.riftProgress[index] = 1;
-            // 更新QuestSystem中的任务进度
-            if (QuestSystem.QUESTS['explore_rift_1']) {
-                QuestSystem.QUESTS['explore_rift_1'].objectives[0].current = this.riftCompleted.filter(Boolean).length;
-            }
-            QuestSystem.refresh();
-        }
+        return QuestStore.completeRift(index);
     },
 
     // 完成撤离
     completeEvacuation() {
-        this.returnPortalSpawned = true;
-        if (QuestSystem.QUESTS['explore_rift_1']) {
-            QuestSystem.QUESTS['explore_rift_1'].objectives[1].current = 1;
-        }
-        QuestSystem.refresh();
+        return QuestStore.markEvacuated();
     },
 
     // 完成任务
     finishQuest() {
-        this.questCompleted = true;
-        if (QuestSystem.QUESTS['explore_rift_1']) {
-            QuestSystem.QUESTS['explore_rift_1'].completed = true;
-        }
-        QuestSystem.refresh();
+        const questId = QuestStore.getActiveQuestId();
+        if (!questId || !QuestStore.completeQuest(questId)) return false;
         // 打开奖励结算界面（三选一）
         if (RewardSystem && RewardSystem.open) {
             // 延迟打开，确保场景切换完成
@@ -435,6 +456,7 @@ export const QuestState = {
             // 后备：直接发放奖励
             this._grantRewards();
         }
+        return true;
     },
 
     // 发放奖励
@@ -493,6 +515,8 @@ export const QuestState = {
         }
     }
 };
+
+QuestStore.subscribe(() => QuestSystem.refresh());
 
 // LevelUpSystem - 等级提升系统
 export const LevelUpSystem = {

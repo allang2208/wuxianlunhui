@@ -187,6 +187,9 @@ export const PopulationEconomySystem = {
         const delta = target - current;
         if (delta > this.getPopulationSnapshot().free) return { ok: false, reason: '空闲人口不足' };
         building._assignedWorkers = target;
+        if (target !== current && typeof building.onAssignedWorkersChanged === 'function') {
+            building.onAssignedWorkersChanged(current, target);
+        }
         return { ok: true, assigned: target, slots, delta };
     },
 
@@ -219,6 +222,8 @@ export const PopulationEconomySystem = {
         building.spriteCfg.size = cfg.displayW;
         building.spriteCfg.sizeH = cfg.displayH;
         building.spriteCfg.footOffsetY = cfg.footOffsetY;
+        building.spriteCfg.visualFootprint = cfg.visualFootprint
+            ? { ...cfg.visualFootprint } : null;
         building.footOffsetY = cfg.footOffsetY;
         building.size = cfg.displayW;
         return cfg;

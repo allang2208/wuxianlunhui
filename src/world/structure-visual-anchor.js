@@ -5,6 +5,12 @@ const FOOT_SCAN_MIN_U = 0.20;
 const FOOT_SCAN_MAX_U = 0.80;
 const FOOT_CONTACT_BAND_RATIO = 0.03;
 const FOOT_CONTACT_MAX_SPAN_RATIO = 0.12;
+const PRISM_ALPHA_THRESHOLD = 16;
+const PRISM_SIDE_OVERHANG_RATIO = 0.06;
+const PRISM_BOTTOM_OVERHANG_RATIO = 0.06;
+const PRISM_MAX_SIDE_OVERHANG = 20;
+const PRISM_MAX_BOTTOM_OVERHANG = 12;
+export const STRUCTURE_GROUND_FIT_ALGORITHM_VERSION = 8;
 const LEGACY_GROUND_SLOPE = PERSPECTIVE_SCALE_Y;
 const VISUAL_GROUND_SLOPE_30 = Math.tan(Math.PI / 6);
 const _footRatioCache = new Map();
@@ -27,7 +33,11 @@ function _groundFitKey(
     displayWidth,
     displayHeight,
     nominalWidth,
-    nominalHeight
+    nominalHeight,
+    fitMode = 'ground',
+    centerAdjustX = 0,
+    centerAdjustY = 0,
+    visualFootprint = null
 ) {
     const stableDimension = (value) => Math.round((Number(value) || 0) * 1000) / 1000;
     return [
@@ -36,11 +46,20 @@ function _groundFitKey(
         `${stableDimension(width)}x${stableDimension(height)}`,
         `${stableDimension(displayWidth)}x${stableDimension(displayHeight)}`,
         `${stableDimension(nominalWidth)}x${stableDimension(nominalHeight)}`,
+        fitMode,
+        `${stableDimension(centerAdjustX)},${stableDimension(centerAdjustY)}`,
+        [
+            visualFootprint?.centerXRatio,
+            visualFootprint?.centerYRatio,
+            visualFootprint?.widthRatio,
+            visualFootprint?.depthRatio,
+            visualFootprint?.scaleMode,
+        ].map((value) => typeof value === 'string' ? value : stableDimension(value)).join(','),
     ].join(':');
 }
 
 /**
- * 注册由离线工具从原图 alpha 轮廓标定出的接地结果。
+ * 注册由离线工具从显式 visualFootprint（或缺项时的 alpha 兜底）派生的接地结果。
  * manifest 只保存计算结果，不替代逻辑占格；幽灵、实体和阴影仍统一通过
  * resolveStructureGroundFit() 读取，避免三套锚点口径漂移。
  */
@@ -48,7 +67,8 @@ export function registerStructureGroundFitManifest(manifest) {
     const entries = Array.isArray(manifest?.entries) ? manifest.entries : [];
     let registered = 0;
     for (const entry of entries) {
-        if (!entry?.textureKey || !entry?.fit) continue;
+        if (!entry?.textureKey || !entry?.fit
+            || Number(entry.algorithmVersion) !== STRUCTURE_GROUND_FIT_ALGORITHM_VERSION) continue;
         const key = _groundFitKey(
             entry.textureKey,
             entry.frameName,
@@ -57,12 +77,535 @@ export function registerStructureGroundFitManifest(manifest) {
             entry.displayWidth,
             entry.displayHeight,
             entry.nominalWidth,
-            entry.nominalHeight
+            entry.nominalHeight,
+            entry.fit?.prismConstrained
+                ? (entry.fit?.explicitCalibration
+                    ? 'prism-explicit'
+                    : (entry.fit?.sourceRole === 'structure-body' ? 'prism-body' : 'prism'))
+                : 'ground',
+            entry.centerAdjustX,
+            entry.centerAdjustY,
+            entry.visualFootprint
         );
         _groundFitManifest.set(key, entry.fit);
         registered++;
     }
     return registered;
+}
+
+/**
+ * 以 8 邻接行程连通域识别真正的建筑主体。
+ *
+ * 抠图产物偶尔会在画布边缘留下几粒 alpha 噪点。旧逻辑把全部 alpha 的总 bbox
+ * 当成主体宽度，会让这些孤立像素抢走左右棱柱和接地点。这里保留最大主体、与主体
+ * 足够接近的有效附件，以及面积确实足够大的独立结构；远离主体的小碎屑不参与拟合。
+ */
+function _scanSignificantOpaqueComponents(
+    width,
+    height,
+    getAlpha,
+    threshold = PRISM_ALPHA_THRESHOLD,
+    options = {}
+) {
+    const w = Math.max(1, Math.floor(Number(width) || 1));
+    const h = Math.max(1, Math.floor(Number(height) || 1));
+    if (typeof getAlpha !== 'function') return null;
+
+    const runs = [];
+    const parent = [];
+    const area = [];
+    const minX = [];
+    const minY = [];
+    const maxX = [];
+    const maxY = [];
+    let previousRuns = [];
+    let rawMinX = w;
+    let rawMinY = h;
+    let rawMaxX = -1;
+    let rawMaxY = -1;
+    let rawOpaquePixels = 0;
+
+    const find = (index) => {
+        let root = index;
+        while (parent[root] !== root) root = parent[root];
+        while (parent[index] !== index) {
+            const next = parent[index];
+            parent[index] = root;
+            index = next;
+        }
+        return root;
+    };
+    const union = (leftIndex, rightIndex) => {
+        let leftRoot = find(leftIndex);
+        let rightRoot = find(rightIndex);
+        if (leftRoot === rightRoot) return leftRoot;
+        if (area[leftRoot] < area[rightRoot]) {
+            const swap = leftRoot;
+            leftRoot = rightRoot;
+            rightRoot = swap;
+        }
+        parent[rightRoot] = leftRoot;
+        area[leftRoot] += area[rightRoot];
+        minX[leftRoot] = Math.min(minX[leftRoot], minX[rightRoot]);
+        minY[leftRoot] = Math.min(minY[leftRoot], minY[rightRoot]);
+        maxX[leftRoot] = Math.max(maxX[leftRoot], maxX[rightRoot]);
+        maxY[leftRoot] = Math.max(maxY[leftRoot], maxY[rightRoot]);
+        return leftRoot;
+    };
+
+    for (let y = 0; y < h; y++) {
+        const currentRuns = [];
+        let x = 0;
+        while (x < w) {
+            while (x < w && (Number(getAlpha(x, y)) || 0) < threshold) x++;
+            if (x >= w) break;
+            const start = x;
+            while (x + 1 < w && (Number(getAlpha(x + 1, y)) || 0) >= threshold) x++;
+            const end = x;
+            const index = runs.length;
+            const pixels = end - start + 1;
+            runs.push({ start, end, y, index });
+            parent.push(index);
+            area.push(pixels);
+            minX.push(start);
+            minY.push(y);
+            maxX.push(end);
+            maxY.push(y);
+            rawOpaquePixels += pixels;
+            rawMinX = Math.min(rawMinX, start);
+            rawMinY = Math.min(rawMinY, y);
+            rawMaxX = Math.max(rawMaxX, end);
+            rawMaxY = Math.max(rawMaxY, y);
+
+            // 8 邻接：本行程与上一行程相差 1px 仍属于同一视觉组件。
+            for (const previous of previousRuns) {
+                if (previous.end < start - 1) continue;
+                if (previous.start > end + 1) break;
+                union(index, previous.index);
+            }
+            currentRuns.push(runs[index]);
+            x++;
+        }
+        previousRuns = currentRuns;
+    }
+    if (!runs.length) return null;
+
+    const roots = [];
+    for (let index = 0; index < runs.length; index++) {
+        if (find(index) === index) roots.push(index);
+    }
+    roots.sort((left, right) => area[right] - area[left]);
+    const largestRoot = roots[0];
+    const largestArea = area[largestRoot];
+    const minimumArea = Math.max(
+        8,
+        Math.floor(Number(options.prismMinComponentPixels) || 0),
+        Math.ceil(largestArea * (Number(options.prismMinComponentRatio) || 0.0001))
+    );
+    const proximity = Math.max(
+        3,
+        Math.round(Math.min(w, h) * (Number(options.prismComponentProximityRatio) || 0.035))
+    );
+    const componentGap = (root) => Math.hypot(
+        Math.max(0, minX[largestRoot] - maxX[root] - 1, minX[root] - maxX[largestRoot] - 1),
+        Math.max(0, minY[largestRoot] - maxY[root] - 1, minY[root] - maxY[largestRoot] - 1)
+    );
+    const selectedRoots = new Set(roots.filter((root) => (
+        root === largestRoot
+        || (area[root] >= minimumArea && (
+            area[root] >= largestArea * 0.01
+            || componentGap(root) <= proximity
+        ))
+    )));
+
+    let bodyMinX = w;
+    let bodyMinY = h;
+    let bodyMaxX = -1;
+    let bodyMaxY = -1;
+    let selectedPixels = 0;
+    for (const root of selectedRoots) {
+        bodyMinX = Math.min(bodyMinX, minX[root]);
+        bodyMinY = Math.min(bodyMinY, minY[root]);
+        bodyMaxX = Math.max(bodyMaxX, maxX[root]);
+        bodyMaxY = Math.max(bodyMaxY, maxY[root]);
+        selectedPixels += area[root];
+    }
+
+    const bottomByX = new Int32Array(w);
+    bottomByX.fill(-1);
+    const selectedRunsByY = Array.from({ length: h }, () => []);
+    for (const run of runs) {
+        if (!selectedRoots.has(find(run.index))) continue;
+        selectedRunsByY[run.y].push({ minX: run.start, maxX: run.end });
+        for (let px = run.start; px <= run.end; px++) bottomByX[px] = run.y;
+    }
+
+    return {
+        bounds: {
+            minX: bodyMinX,
+            minY: bodyMinY,
+            // 使用像素外边缘，供底座中心对齐后的整体轮廓外伸诊断。
+            maxX: bodyMaxX + 1,
+            maxY: bodyMaxY + 1,
+        },
+        rawBounds: {
+            minX: rawMinX,
+            minY: rawMinY,
+            maxX: rawMaxX + 1,
+            maxY: rawMaxY + 1,
+        },
+        bottomByX,
+        selectedRunsByY,
+        componentCount: roots.length,
+        selectedComponentCount: selectedRoots.size,
+        largestComponentArea: largestArea,
+        componentThresholdPixels: minimumArea,
+        selectedPixels,
+        discardedPixels: Math.max(0, rawOpaquePixels - selectedPixels),
+    };
+}
+
+/**
+ * 从主体下部寻找稳定底座横截面。最低像素经常只是门槛、台阶或单侧装饰，不能拿它
+ * 充当整栋建筑中心；这里在主体底部约 6%~30% 高度内寻找接近局部最大宽度的第一行，
+ * 用该横截面测量底座宽度和横向中心；纵向中心由前顶点与 footprint 宽深比另行反推。
+ */
+function _measurePrismGroundSection(components, options = {}) {
+    const bounds = components?.bounds;
+    if (!bounds) return null;
+    const bodyWidth = Math.max(1, bounds.maxX - bounds.minX);
+    const bodyHeight = Math.max(1, bounds.maxY - bounds.minY);
+    const centerMinX = bounds.minX + bodyWidth * 0.15;
+    const centerMaxX = bounds.maxX - bodyWidth * 0.15;
+    let bottomY = -1;
+    for (let x = Math.floor(centerMinX); x < Math.ceil(centerMaxX); x++) {
+        bottomY = Math.max(bottomY, components.bottomByX[x] ?? -1);
+    }
+    if (bottomY < 0) bottomY = bounds.maxY - 1;
+
+    const minRise = Math.max(2, Math.round(bodyHeight
+        * (Number(options.prismBaseMinRiseRatio) || 0.06)));
+    const maxRise = Math.max(minRise, Math.round(bodyHeight
+        * (Number(options.prismBaseMaxRiseRatio) || 0.30)));
+    const candidates = [];
+    for (let rise = minRise; rise <= maxRise; rise++) {
+        const y = bottomY - rise;
+        if (y < bounds.minY || y >= components.selectedRunsByY.length) continue;
+        const runs = components.selectedRunsByY[y] || [];
+        if (!runs.length) continue;
+        const minX = Math.max(bounds.minX, Math.min(...runs.map((run) => run.minX)));
+        const maxX = Math.min(bounds.maxX - 1, Math.max(...runs.map((run) => run.maxX)));
+        const width = maxX - minX + 1;
+        if (width < bodyWidth * 0.25) continue;
+        candidates.push({ y, minX, maxX, width });
+    }
+    if (!candidates.length) {
+        return {
+            centerX: (bounds.minX + bounds.maxX) * 0.5,
+            y: Math.max(bounds.minY, bottomY - Math.round(bodyHeight * 0.15)),
+            width: bodyWidth,
+            minX: bounds.minX,
+            maxX: bounds.maxX - 1,
+            bottomY,
+        };
+    }
+    const maxWidth = Math.max(...candidates.map((candidate) => candidate.width));
+    const stableRatio = Math.max(0.75, Math.min(1,
+        Number(options.prismBaseStableWidthRatio) || 0.90));
+    const selected = candidates.find((candidate) => candidate.width >= maxWidth * stableRatio)
+        || candidates[candidates.length - 1];
+    return {
+        ...selected,
+        centerX: (selected.minX + selected.maxX + 1) * 0.5,
+        bottomY,
+    };
+}
+
+function _normalizedVisualFootprint(value) {
+    if (!value || typeof value !== 'object') return null;
+    const centerXRatio = Number(value.centerXRatio);
+    const centerYRatio = Number(value.centerYRatio);
+    const widthRatio = Number(value.widthRatio);
+    const depthRatio = Number(value.depthRatio);
+    if (![centerXRatio, centerYRatio, widthRatio, depthRatio].every(Number.isFinite)
+        || widthRatio <= 0 || depthRatio <= 0) return null;
+    return {
+        centerXRatio,
+        centerYRatio,
+        widthRatio,
+        depthRatio,
+        scaleMode: value.scaleMode === 'uniform' ? 'uniform' : 'strict',
+    };
+}
+
+/**
+ * 普通建筑未显式填写 visualFootprint 时，从既有显示尺寸/脚线确定性派生。
+ * 这条路径只解释视觉变换，不读取 alpha，也不改变逻辑 footprint。
+ */
+export function resolveConfiguredVisualFootprint(config, nominalWidth = 256, nominalHeight = 128) {
+    const explicit = _normalizedVisualFootprint(config?.visualFootprint);
+    if (explicit) return explicit;
+    if (!config || config.autoFootprint === true) return null;
+    const displayWidth = Number(config.displayW ?? config.size);
+    const displayHeight = Number(config.displayH ?? config.sizeH);
+    const footOffsetY = Number(config.footOffsetY);
+    const targetWidth = Math.max(8, Number(nominalWidth) || 256);
+    const targetHeight = Math.max(4, Number(nominalHeight) || targetWidth * 0.5);
+    if (!(displayWidth > 0) || !(displayHeight > 0) || !Number.isFinite(footOffsetY)) return null;
+    return {
+        centerXRatio: 0.5,
+        centerYRatio: 0.5 + (footOffsetY - targetHeight * 0.5) / displayHeight,
+        widthRatio: targetWidth / displayWidth,
+        depthRatio: targetHeight / displayHeight,
+        scaleMode: 'strict',
+    };
+}
+
+/**
+ * 显式视觉 footprint：把素材中人工标定的中心与宽深直接映射到逻辑棱柱。
+ * strict 模式允许 X/Y 独立缩放，因此四个量都是确定约束；uniform 模式只严格匹配中心和宽度。
+ */
+export function fitExplicitVisualToPrism(width, height, options = {}) {
+    const w = Math.max(1, Math.floor(Number(width) || 1));
+    const h = Math.max(1, Math.floor(Number(height) || 1));
+    const calibration = _normalizedVisualFootprint(options.visualFootprint);
+    if (!calibration) return null;
+    const nominalWidth = Math.max(8, Number(options.nominalWidth) || 256);
+    const nominalHeight = Math.max(4, Number(options.nominalHeight) || nominalWidth * 0.5);
+    const halfWidth = nominalWidth * 0.5;
+    const halfHeight = nominalHeight * 0.5;
+    const sourceFootprintCenterX = calibration.centerXRatio * w;
+    const sourceFootprintCenterY = calibration.centerYRatio * h;
+    const sourceFootprintWidth = calibration.widthRatio * w;
+    const sourceFootprintDepth = calibration.depthRatio * h;
+    const scaleX = nominalWidth / sourceFootprintWidth;
+    const scaleY = calibration.scaleMode === 'uniform'
+        ? scaleX
+        : nominalHeight / sourceFootprintDepth;
+    const displayWidth = w * scaleX;
+    const displayHeight = h * scaleY;
+    const visualOffsetX = -(sourceFootprintCenterX - w * 0.5) * scaleX;
+    const rawGroundCenterY = (sourceFootprintCenterY - h * 0.5) * scaleY;
+    const footOffsetY = rawGroundCenterY + halfHeight;
+    const sourceFootprintFrontY = sourceFootprintCenterY + sourceFootprintDepth * 0.5;
+    const localVertices = [
+        { key: 'back', x: 0, y: -nominalHeight },
+        { key: 'right', x: halfWidth, y: -halfHeight },
+        { key: 'front', x: 0, y: 0 },
+        { key: 'left', x: -halfWidth, y: -halfHeight },
+    ];
+    return {
+        prismConstrained: true,
+        sourceRole: 'structure-body',
+        explicitCalibration: true,
+        displayWidth,
+        displayHeight,
+        scaleX,
+        scaleY,
+        uniformScale: scaleX,
+        nonUniformScale: Math.abs(scaleX - scaleY) > 1e-6,
+        visualOffsetX,
+        footOffsetY,
+        alignmentMode: 'explicit-footprint-center',
+        centerLocked: true,
+        sizeMatchedToFootprint: true,
+        sourceFootprintCenterX,
+        sourceFootprintCenterY,
+        sourceFootprintFrontY,
+        sourceFootprintHalfDepth: sourceFootprintDepth * 0.5,
+        sourceFootprintWidth,
+        sourceFootprintDepth,
+        mappedFootprintWidth: sourceFootprintWidth * scaleX,
+        mappedFootprintDepth: sourceFootprintDepth * scaleY,
+        centerAdjustX: 0,
+        centerAdjustY: 0,
+        groundCenterSourceX: sourceFootprintCenterX,
+        groundCenterSourceY: sourceFootprintCenterY,
+        groundSectionWidth: sourceFootprintWidth,
+        scaleLimitedByOuterBounds: false,
+        scaleLimitedByBottom: false,
+        contactX: sourceFootprintCenterX - 0.5,
+        bottomY: Math.max(0, Math.min(h - 1, sourceFootprintFrontY - 1)),
+        sideY: sourceFootprintCenterY,
+        leftX: -halfWidth,
+        rightX: halfWidth,
+        centerX: 0,
+        centerY: -halfHeight,
+        groundSlope: nominalHeight / nominalWidth,
+        groundAngleDeg: Math.atan(nominalHeight / nominalWidth) * 180 / Math.PI,
+        measuredSideCenter: 0,
+        measuredSideRise: halfHeight,
+        collisionWidth: nominalWidth,
+        collisionHeight: nominalHeight,
+        collisionRadius: nominalWidth * 0.5,
+        localVertices,
+        contactPolygon: localVertices,
+        frameWidth: w,
+        frameHeight: h,
+    };
+}
+
+/**
+ * 把建筑主体纹理的可见 alpha 等比装入现有矩形棱柱：
+ * - 调用方必须只传主体 sprite.texture；底部道路补片不属于采样输入；
+ * - 稳定底座横截面负责测量底座宽度与横向中心，中央底边负责定位 footprint 前顶点；
+ * - 根据 nominal footprint 宽深比反推源图中心，底座宽度优先贴合 footprint 宽度；
+ * - 整体轮廓和前侧底边允许小范围受控外伸；
+ * - 只返回视觉尺寸与锚点，不改变逻辑 footprint、Collider、占格或寻路。
+ */
+export function fitOpaqueVisualToPrism(
+    width,
+    height,
+    getAlpha,
+    options = {}
+) {
+    const w = Math.max(1, Math.floor(Number(width) || 1));
+    const h = Math.max(1, Math.floor(Number(height) || 1));
+    const nominalWidth = Math.max(8, Number(options.nominalWidth) || 256);
+    const nominalHeight = Math.max(4, Number(options.nominalHeight) || nominalWidth * 0.5);
+    const threshold = Number(options.prismAlphaThreshold) || PRISM_ALPHA_THRESHOLD;
+    const components = _scanSignificantOpaqueComponents(w, h, getAlpha, threshold, options);
+    if (!components) return null;
+    const bounds = components.bounds;
+
+    const groundSection = _measurePrismGroundSection(components, options);
+    if (!groundSection) return null;
+    const sideOverhang = Math.min(
+        PRISM_MAX_SIDE_OVERHANG,
+        nominalWidth * Math.max(0, Number(options.prismSideOverhangRatio)
+            || PRISM_SIDE_OVERHANG_RATIO)
+    );
+    const baseWidth = Math.max(1, groundSection.width);
+    const sourceLeftExtent = Math.max(0.5, groundSection.centerX - bounds.minX);
+    const sourceRightExtent = Math.max(0.5, bounds.maxX - groundSection.centerX);
+    const scaleByBase = nominalWidth / baseWidth;
+    const halfWidth = nominalWidth * 0.5;
+    const halfHeight = nominalHeight * 0.5;
+    const lowerSlope = nominalHeight / nominalWidth;
+    const sourceFootprintCenterX = groundSection.centerX;
+    const sourceFootprintFrontY = groundSection.bottomY + 1;
+    const sourceFootprintHalfDepth = baseWidth
+        * (nominalHeight / nominalWidth) * 0.5;
+    const sourceFootprintCenterY = sourceFootprintFrontY - sourceFootprintHalfDepth;
+    // 既有逐建筑 anchorAdjust 是经过实图/footprint 预览确认的中心测量校准量。
+    // 在棱柱模式里把它纳入拟合约束，而不是拟合完成后再无约束地移动 Sprite。
+    const centerAdjustX = Number(options.centerAdjustX) || 0;
+    const centerAdjustY = Number(options.centerAdjustY) || 0;
+    const bottomOverhangAllowance = Math.min(
+        PRISM_MAX_BOTTOM_OVERHANG,
+        nominalHeight * Math.max(0, Number(options.prismBottomOverhangRatio)
+            || PRISM_BOTTOM_OVERHANG_RATIO)
+    );
+
+    // footprint 中心和底座宽度共同构成视觉真源。旧限制会为了收住屋檐/台阶，
+    // 把部分 2×2 建筑的实际底座缩到约 190px；用户允许同步调尺寸后，最终比例必须
+    // 固定为 nominalWidth/baseWidth，外围附件越界只记录诊断，不再抢走缩放权。
+    const scale = Math.max(0.0001, scaleByBase);
+    const bottomOverhangAtScale = (candidateScale, captureSupport = false) => {
+        let maximum = -Infinity;
+        let supportX = 0;
+        let supportBottomY = bounds.maxY - 1;
+        for (let x = bounds.minX; x < bounds.maxX; x++) {
+            const bottomY = components.bottomByX[x];
+            if (bottomY < 0) continue;
+            const localX = centerAdjustX
+                + (x + 0.5 - sourceFootprintCenterX) * candidateScale;
+            const clampedX = Math.max(-halfWidth, Math.min(halfWidth, localX));
+            const lowerEdgeY = -Math.abs(clampedX) * lowerSlope;
+            const localBottomY = -halfHeight - centerAdjustY
+                + (bottomY + 1 - sourceFootprintCenterY) * candidateScale;
+            const overhang = localBottomY - lowerEdgeY;
+            if (overhang > maximum) {
+                maximum = overhang;
+                supportX = localX;
+                supportBottomY = bottomY;
+            }
+        }
+        return captureSupport
+            ? { maximum, supportX, supportBottomY }
+            : maximum;
+    };
+
+    const displayWidth = w * scale;
+    const displayHeight = h * scale;
+    const visualOffsetX = centerAdjustX
+        - (sourceFootprintCenterX - w * 0.5) * scale;
+    const rawGroundCenterY = (sourceFootprintCenterY - h * 0.5) * scale;
+    const footOffsetY = rawGroundCenterY + halfHeight + centerAdjustY;
+    const finalBottom = bottomOverhangAtScale(scale, true);
+    const maxBottomOverhang = finalBottom.maximum;
+    const supportX = finalBottom.supportX;
+    const supportBottomY = finalBottom.supportBottomY;
+    if (!Number.isFinite(maxBottomOverhang)) return null;
+    const actualSideOverhang = Math.max(
+        0,
+        sourceLeftExtent * scale - centerAdjustX - halfWidth,
+        sourceRightExtent * scale + centerAdjustX - halfWidth
+    );
+
+    const localVertices = [
+        { key: 'back', x: 0, y: -nominalHeight },
+        { key: 'right', x: halfWidth, y: -halfHeight },
+        { key: 'front', x: 0, y: 0 },
+        { key: 'left', x: -halfWidth, y: -halfHeight },
+    ];
+    return {
+        prismConstrained: true,
+        sourceRole: 'structure-body',
+        displayWidth,
+        displayHeight,
+        uniformScale: scale,
+        visualOffsetX,
+        footOffsetY,
+        alignmentMode: 'footprint-center-locked',
+        centerLocked: true,
+        sizeMatchedToFootprint: true,
+        sourceFootprintCenterX,
+        sourceFootprintCenterY,
+        sourceFootprintFrontY,
+        sourceFootprintHalfDepth,
+        centerAdjustX,
+        centerAdjustY,
+        groundCenterSourceX: groundSection.centerX,
+        groundCenterSourceY: sourceFootprintCenterY,
+        groundSectionWidth: groundSection.width,
+        sideOverhangAllowance: sideOverhang,
+        bottomOverhangAllowance,
+        actualSideOverhang,
+        actualBottomOverhang: Math.max(0, maxBottomOverhang),
+        unconstrainedScale: scale,
+        scaleLimitedByOuterBounds: false,
+        scaleLimitedByBottom: false,
+        exceedsSideAllowance: actualSideOverhang > sideOverhang,
+        exceedsBottomAllowance: maxBottomOverhang > bottomOverhangAllowance,
+        contactX: groundSection.centerX - 0.5,
+        supportLocalX: supportX,
+        supportBottomY,
+        bottomY: bounds.maxY - 1,
+        sideY: groundSection.y,
+        leftX: -halfWidth,
+        rightX: halfWidth,
+        centerX: 0,
+        centerY: -halfHeight,
+        groundSlope: lowerSlope,
+        groundAngleDeg: Math.atan(lowerSlope) * 180 / Math.PI,
+        measuredSideCenter: 0,
+        measuredSideRise: halfHeight,
+        collisionWidth: nominalWidth,
+        collisionHeight: nominalHeight,
+        collisionRadius: nominalWidth * 0.5,
+        localVertices,
+        contactPolygon: localVertices,
+        alphaBounds: bounds,
+        rawAlphaBounds: components.rawBounds,
+        componentCount: components.componentCount,
+        selectedComponentCount: components.selectedComponentCount,
+        largestComponentArea: components.largestComponentArea,
+        componentThresholdPixels: components.componentThresholdPixels,
+        discardedAlphaPixels: components.discardedPixels,
+        frameWidth: w,
+        frameHeight: h,
+    };
 }
 
 function _makeCanvas(width, height) {
@@ -547,6 +1090,10 @@ export function resolveStructureGroundFit(
     const width = frame.realWidth || frame.cutWidth || frame.width;
     const height = frame.realHeight || frame.cutHeight || frame.height;
     if (!(width > 0) || !(height > 0)) return null;
+    const explicitVisualFootprint = _normalizedVisualFootprint(options.visualFootprint);
+    const fitMode = options.constrainToPrism === true
+        ? (explicitVisualFootprint ? 'prism-explicit' : 'prism-body')
+        : 'ground';
     const cacheKey = _groundFitKey(
         textureKey,
         frameName ?? frame.name,
@@ -555,7 +1102,11 @@ export function resolveStructureGroundFit(
         displayWidth,
         displayHeight,
         options.nominalWidth,
-        options.nominalHeight
+        options.nominalHeight,
+        fitMode,
+        explicitVisualFootprint ? 0 : options.centerAdjustX,
+        explicitVisualFootprint ? 0 : options.centerAdjustY,
+        explicitVisualFootprint
     );
     if (_groundFitCache.has(cacheKey)) return _groundFitCache.get(cacheKey);
     const precomputed = _groundFitManifest.get(cacheKey);
@@ -563,24 +1114,40 @@ export function resolveStructureGroundFit(
         _groundFitCache.set(cacheKey, precomputed);
         return precomputed;
     }
-    const sampler = _frameAlphaSampler(scene, textureKey, frameName);
-    const scanWidth = sampler?.width || width;
-    const scanHeight = sampler?.height || height;
-    const alphaAt = sampler?.alphaAt
-        || ((x, y) => scene.textures.getPixelAlpha(x, y, textureKey, frameName));
-    const fit = fitOpaqueGroundFootprint(
-        scanWidth,
-        scanHeight,
-        alphaAt,
-        displayWidth,
-        displayHeight,
-        options
-    );
+    let fit = explicitVisualFootprint && options.constrainToPrism === true
+        ? fitExplicitVisualToPrism(width, height, {
+            ...options,
+            visualFootprint: explicitVisualFootprint,
+        })
+        : null;
+    if (!fit) {
+        const sampler = _frameAlphaSampler(scene, textureKey, frameName);
+        const scanWidth = sampler?.width || width;
+        const scanHeight = sampler?.height || height;
+        const alphaAt = sampler?.alphaAt
+            || ((x, y) => scene.textures.getPixelAlpha(x, y, textureKey, frameName));
+        fit = options.constrainToPrism === true
+            ? fitOpaqueVisualToPrism(scanWidth, scanHeight, alphaAt, options)
+            : fitOpaqueGroundFootprint(
+                scanWidth,
+                scanHeight,
+                alphaAt,
+                displayWidth,
+                displayHeight,
+                options
+            );
+    }
     if (!fit) return null;
     const rounded = {
         ...fit,
         visualOffsetX: Math.round(fit.visualOffsetX * 2) / 2,
         footOffsetY: Math.round(fit.footOffsetY * 2) / 2,
+        displayWidth: Number.isFinite(fit.displayWidth)
+            ? Math.round(fit.displayWidth * 2) / 2
+            : undefined,
+        displayHeight: Number.isFinite(fit.displayHeight)
+            ? Math.round(fit.displayHeight * 2) / 2
+            : undefined,
         leftX: Math.round(fit.leftX * 2) / 2,
         rightX: Math.round(fit.rightX * 2) / 2,
         centerX: Math.round(fit.centerX * 2) / 2,
@@ -787,7 +1354,8 @@ export function resolveStructureAlphaShadowSlices(
 export function shouldAutoAnchorStructure(entity) {
     return !!(
         entity
-        && entity._isDefenseStructure
+        // 格网建筑也可能保留 NPC/交互身份（主神空间祭坛），不能依赖战斗阵营字段判断。
+        && (entity._isDefenseStructure || entity._isGridBuilding)
         && entity._structureDepthMode === 'iso_footprint'
         && !entity._isDefenseCover
         && !entity._isCoverGate

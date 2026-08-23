@@ -69,13 +69,14 @@ export class Tombstone extends Enemy {
         }
 
         // 定时生成普通僵尸（默认每 10s）
-        this._spawnTimer -= dt;
+        const attackDt = this.getAttackIntervalDelta(dt);
+        this._spawnTimer -= attackDt;
         if (this._spawnTimer <= 0) {
             this._spawnTimer = this._spawnInterval;
             this._spawnSummoned(this._spawnFactory, 'zombie');
         }
         // 定时生成毒液僵尸（默认每 30s）
-        this._spitterSpawnTimer -= dt;
+        this._spitterSpawnTimer -= attackDt;
         if (this._spitterSpawnTimer <= 0) {
             this._spitterSpawnTimer = this._spitterSpawnInterval;
             this._spawnSummoned(this._spitterSpawnFactory, 'spitter');

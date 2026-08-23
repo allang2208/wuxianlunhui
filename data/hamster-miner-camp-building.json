@@ -15,5 +15,6 @@
   "respawnMs": 60000,
   "respawnEnergyCost": 0,
   "freeMinimumCount": 1,
+  "economyType": "minerCamp",
   "upgradeProject": "miner_economy"
 }

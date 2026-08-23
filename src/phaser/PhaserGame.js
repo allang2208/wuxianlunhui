@@ -64,6 +64,7 @@ export const PhaserGame = {
                 if (c.id !== 'gameCanvas') { phaserCanvas = c; break; }
             }
             if (phaserCanvas) {
+                phaserCanvas.classList.add('phaser-game-canvas');
                 phaserCanvas.style.position = 'fixed';
                 phaserCanvas.style.top = '0';
                 phaserCanvas.style.left = '0';

@@ -21,6 +21,14 @@
 - **人口经济岗位面板（2026-08-21）**：可安排岗位的经济建筑统一用 `.economy-workforce`、`.economy-progress` 与 `.economy-*-label/note`，第一根条固定显示“岗位安排百分比”；第二根条必须按建筑语义取权威数据——风车显示实际/基础产量，市场显示稳定的有效商人人效，工坊显示 `actualEfficiency / configuredEfficiency` 增效发挥率，银行显示本栋离散结算周期、剩余时间与本轮金币，禁止把共享 `_economyTickMs` 当成市场或工坊的生产进度。仓库不套岗位条语义：第一根“仓储容量”只显示当前仓库的压缩后物理占用率，紧随其后的“位面总容量”显示全部活动仓库聚合占用率，两条均从同一容量服务读取并随面板 tick 刷新。进度只以内联 `width` 表达动态值，外观和低→中→高语义渐变必须留在 `panel-theme-backpack.css`；禁止为各建筑复制色板和按钮样式。市场档案必须同时显示买价、卖价、压力、动态价差和固定交易损耗，按钮文案显示真实扣款/所得而非批次预算。经济工坊与银行的四项本栋升级继续调用 `renderBuildingUpgradeCard` 与共用 tooltip，状态区用两列数字档案，窄屏退化单列；选中对应建筑时覆盖圈必须同步显示并随范围升级刷新。带有布局惩罚等关键副作用的建筑，建造配置应提供 `buildWarning`，选择建筑后在 `#bpHints` 的 `.build-context-warning` 以危险红色显示，取消选择时清空，禁止把警告混进普通快捷键文案。
 - **右上基础资源栏（2026-08-22）**：资源栏与 `.game-time` 必须同挂在 `.top-right-hud` 弹性容器，资源栏在前、时间在后，禁止按时间文本宽度硬编码 `right` 偏移；容器与顶部状态栏共享 `top:12px` 基线并使用 `align-items:flex-start` 顶边对齐，资源栏固定为与顶部状态栏一致的 50px 高度，不跟随时间栏拉伸。金币读取 `GoldManager.getGold()`，能源和食物读取 `EnergyManager.getEnergy()/getFood()`；沿用 HUD 刷新入口，但只有数值变化时才改写 DOM。已初始化数值发生变化时，只重播对应数字的单次金色辉光动画，首次载入不触发；数值使用数字字体与资源语义色，外壳继续读取冷钢主题变量，并尊重 `prefers-reduced-motion`。
 
+### 任务系统数据与瞬态场景合同（2026-08-22）
+
+- `data/quests.json` 与 `public/data/quests.json` 是任务定义双份真源，必须同步；`QuestRegistry` 只提供深冻结定义，禁止把 `accepted/completed/current` 等运行字段写回定义。
+- `QuestStore` 是任务状态唯一真源：任务状态、逐项目标、活动会话、裂隙位置/进度与失败原因统一版本化序列化；主存档只保存 `quests: QuestStore.serialize()`，旧档缺字段时回到默认态，旧单例形状由 store 迁移入口清洗。
+- `QuestSystem.QUESTS` 与 `QuestState` 仅作为旧 UI/NPC/裂隙调用点的兼容门面；新增逻辑应调用 registry/store 命令，禁止再建立第四份进度状态。状态变化通过 store 订阅刷新已打开的任务档案。
+- 任务借用未解锁持久世界时，`switchScene(..., { questTravel:true, questId })` 必须同时校验活动任务、目标 scene 与 `mode:'quest'`；普通传送门建造/进入门禁保持不变。SceneManager 用独立的任务实例标记贯穿死亡和回城，不能在离场时临时读取已可能被重置的 `QuestState`。
+- 瞬态任务实例只复用目标世界地形、边界与障碍，不启动该世界的 Defense/资源/建筑/快照/迷雾/入侵/兵线，也不读写该世界永久坐标。裂隙、返回门和任务怪必须按菱形边界与可行走性采样，并清除落点重叠的 `_scatter` 障碍和地表装饰。
+
 ### 小地图（GameScene 静态层/动态层，2026-08-16 布局修复沉淀）
 
 - **结构**：静态层 `_minimapStaticGraphics`（背景/边框/墙壁，缓存重绘）+ 动态层
@@ -73,12 +81,21 @@
 
 已迁移范例：`warehouse-system.js`（仓库面板）。
 
-- **地牢出征准备三栏合同（2026-08-21）**：出征状态固定为最左侧条件说明、中部地牢选择、
-  正式队友选择与出征栏、右侧玩家装备背包。队友栏只读写 `PartySystem.members`（点击成员进入
-  管理/移出，点击空位招募替换），禁止把 `Game.friendlyUnits` 中的仓鼠兵种混入。右栏背包打开期间必须关闭
-  `#panelOverlay` 的点击捕获，只保留背包本体交互，否则其统一挂载层会盖住中部地牢选择。
+- **地牢出征准备钥匙合同（2026-08-22）**：出征状态固定为最左侧钥匙/奖励说明与中部地牢、
+  正式队友选择，不再挂载祭品填充栏、祭品效果栏或右侧装备背包。队友栏只读写 `PartySystem.members`（点击成员进入
+  管理/移出，点击空位招募替换），禁止把 `Game.friendlyUnits` 中的仓鼠兵种混入。左栏实时展示当前地牢对应
+  `anchorTokenF~A` 及背包+仓库总数；确认出征自动消耗，不允许手工拖入祭品。
   `body.expedition-preparing` 仅隐藏常驻 `.party-bar`、侧栏遮罩并在关闭/出征时清理，禁止移动
   组队栏或其他 HUD 的预设坐标。
+- **出征背景资源合同（2026-08-22）**：全屏出征界面统一引用 `assets/ui/expedition-bg.png`；
+  `game-style.css` 与 `ui/panel-theme-backpack.css` 必须继续共用该路径及 `center / cover no-repeat`，替换背景时直接覆盖此唯一资源，禁止再引入并行旧图或分叉路径。
+- **出征/路线双 Canvas 层级合同（2026-08-23）**：地牢路线背景、连线和节点由下层
+  `#gameCanvas` 绘制，Phaser 主画布平时位于其上。进入 `body.map-mode` 后必须通过专用
+  `.phaser-game-canvas` 类显式隐藏上层画布，不能只依赖相机 `rgba(0,0,0,0)`；相机/渲染器
+  的黑色清屏一旦未正确清除，会把已正常绘制的路线页整体遮成纯黑。路线模式同时兜底隐藏
+  `.expedition-overlay/.expedition-panel/.expedition-rule-panel`，退出路线模式移除 body class 后
+  Phaser 画布自然恢复。出征左侧说明栏与中部面板必须共享同一个宽度变量并都用
+  `box-sizing:border-box`，否则说明栏的 padding/border 会越过约定边界遮挡钥匙提示。
 - **地牢友军边界**：确认出征时把 `Game.friendlyUnits` 暂存到 `SceneManager` 并从地牢运行态清空，
   回到主神空间后按原对象和原坐标恢复；只允许独立注册在 `PartySystem.members` 的正式队友随行。
 
@@ -98,6 +115,8 @@
 - 文本框、下拉框和 `contenteditable` 保留浏览器的文字输入，但仍阻断事件进入角色输入链；
   `event.repeat` 不重复切换模式。
 - 模式快捷键只改变显示或指令状态，不能进入伤害、碰撞、寻路等逻辑真源。
+- **玩家纳入 RTS 时必须切换控制源（2026-08-23）**：F1 只负责模式状态与输入锁，玩家移动/普通攻击由专用控制器产生命令意图，再交给既有玩家速度、墙体、高架、武器和弹药链消费；禁止伪造 `Input.mouse`，也禁止把玩家塞进友军 `_command` 后交给单位 AI。玩家编组使用稳定保留键，PartySystem 选中同步仍只写正式队友 ID。
+- **指挥奔跑是表现态，不是冲刺态**：统一显示谓词可合并 `_isSprinting || _rtsRunVisual`，但耐力消耗、冲刺速度、冲刺攻击、尘土与双手枪打断仍只读取真实 `_isSprinting`。逐发装填枪在指挥攻击中不得走手动打断入口，保持 `reloading` 到满弹，再由持续攻击命令自动续射。
 
 #### 步骤4: 声道与 BGM（2026-07-21 新增）
 - **声道**：`playFile(path, volume, channel)` 第三参为声道（`sfx` 战斗音效默认 / `ui` 界面 / `music` 音乐），声道音量配置在 `data/audio-config.json` 的 `channels`（独立于 masterVolume 的二级调节）；运行时可 `SoundManager.setChannelVolume(channel, v)`。
@@ -164,15 +183,15 @@
   按世界 Y 每帧仲裁，光圈必须在仲裁段精灵 setDepth 后同帧覆盖（`_showSelectionRing`
   里读上一帧深度只是兜底），否则玩家/队友纵向移动后光圈会盖到贴图上。
   探针：`tools/cdp-ring-check.mjs`（参数 + 深度跟随 + Y 移动同步）。
-- **仓库能源唯一真源（2026-08-18）**：能源禁止再进入玩家/队友/矿工背包。
+- **仓库能源唯一真源（2026-08-23 矿工物流修订）**：玩家与普通队友采矿仍直接进入仓库；仓鼠矿工是唯一运输例外，矿点产出先进入个人经济背包，返抵所属矿工营地并提交后才写入仓库。矿工背包不是可操作物品栏，也不属于最终库存。
   `EnergyManager` 注册所有 `workshopType:'warehouse'` 建筑，`getEnergy/getCapacity`
   聚合每座仓库的 `storedEnergy/storageCapacity`；单仓默认5000，多仓容量与存量自动求和。
   玩家、仓鼠矿工、玩家队友攻击能源点时由 `EnergyNode.takeDamage` 直接
   `depositEnergy`，满仓时不扣矿点并提示“仓库已满，请修建更多的仓库”。
-- 满仓行为：仓鼠矿工进入 `storage_return→storage_wait`，回小屋待命，仓库腾出空间后
-  自动复工；被下达 gather 的正式队友改为 hold 并停止采矿，需重新下达采集指令。
-  小屋“背包扩容”模块与矿工背包展示已删除；旧背包能源/队友能源堆经
-  `importLegacyEnergy` 转为待入库，建仓后自动装入。
+- 矿工背包默认 300；矿工营地“背包扩容”每级 +100、最多 5 级。背包满后进入
+  `unload_return→storage_wait`，仓库放不下的部分继续留在矿工身上，腾出容量后在营地续交，
+  全部提交后自动复工。撤销矿工人口岗位时同样先返营提交再离岗。被下达 gather 的正式队友
+  改为 hold 并停止采矿，需重新下达采集指令。
 - 能源退款必须先 `EnergyManager.canStore(refund)`，禁止先拆建筑再因满仓丢退款；
   胜利奖励显示 `depositEnergy` 实际入库量。主存档写 `world122.energyStorage`。
   回归：`test-energy.mjs` + `test-warehouse-energy.mjs`。
@@ -201,9 +220,9 @@
   cmd.target)` / 法师 `_cmdWarriorAggressive(..., cmd.target)`，队友优先打指定目标。
   探针 `tools/cdp-party-rightmove.mjs` + 截图 `tools/verify-shots/rightmove_marker.png`。
 - **指挥模式审计终案（2026-08-18）**：
-  1. **能力边界不能靠“写了 `_command`”假装支持**：RTS `_collectAllies` 会收集仓鼠矿工，
-     因此矿工 AI 必须显式消费 move/hold；矿工保持“只采矿不攻击”，实体标
-     `_rtsCanAttack=false`，右键敌人对矿工降级为 hold，不能让它继续上一条移动命令。
+  1. **能力边界不能靠“写了 `_command`”假装支持**：经济矿工标记
+     `_rtsSelectable=false / _rtsCanAttack=false`，RTS 收集、点选、框选和编队入口必须统一过滤；
+     矿工 AI 还要清理旧档遗留命令，保证玩家不能用历史 `_command` 打断自动采矿物流。
   2. **指挥与建筑模式强制互斥**：启用 RTS 先 `_closeBuildingUI()`；`BuildingSystem.open`
      反向关闭 RTS；RTS 鼠标过滤必须包含 `.wall-editor-panel`。指挥模式点建筑后退出 RTS，
      掩体详情必须走 `BuildingSystem.open()+_showDetail`，禁止裸 `_buildPanel()+active=true`
@@ -216,6 +235,11 @@
      投影到客户区），不能只认脚底 `collisionRadius+6` 小圆；高大精灵点身体也能选中。
   6. **属性面板读真实数据源**：仓鼠攻击优先 `_ai._attackDamage` / `aiConfig.attackDamage`，
      移速优先 `aiConfig.walkSpeed`；运行时 `maxSpeed=0` 只表示当前站定，不是基础移速。
+  7. **详情查询必须只读（2026-08-22）**：`RTSCommand._readStats()` 不得为了刷新面板调用
+     `calculateCombatStats()`，否则会覆盖已经应用到 `data.def` 的兵种防御升级。升级栏分别读取
+     `unit-upgrade-store`、`ability-store`；矿工读取所属 `_hut.modules`。状态栏读取选中实体自己的
+     `statusEffects` 与旧式层数/计时字段，不得借用只代表玩家的 `StatusBar.effects`，也不得在 UI
+     创建第二套倒计时。状态列表仅在类型结构变化时重建，层数、效果值和剩余时间原地刷新。
   回归：`scripts/test-rts-command.mjs` + `scripts/test-party-system.mjs` 均已接入 `npm test`。
 - **能源簇位（2026-08-16）**：`ENERGY_CONFIG.clusters`——(2000,1300) 曾落在常见
   建屋区（小屋门口见既有矿点的观感来源），已东移至 **(3000,1500)**；新位置距基地

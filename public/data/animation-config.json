@@ -111,29 +111,17 @@
  },
  "redWolfKing": {
   "sprites": {
-   "side": "assets/enemies/red_wolf_king_run.png",
-   "front": "assets/enemies/red_wolf_king_run.png",
-   "back": "assets/enemies/red_wolf_king_run.png",
-   "pacing": "assets/enemies/red_wolf_king_pacing.png",
-   "idle": "assets/enemies/red_wolf_king_idle.png",
-   "transform": "assets/enemies/red_wolf_king_change.png",
-   "howl": "assets/enemies/red_wolf_king_howl.png",
-   "transformedIdle": "assets/enemies/red_wolf_king_transformed_idle.png",
-   "transformedRun": "assets/enemies/red_wolf_king_changed_run.png",
-   "walk": "assets/enemies/red_wolf_king_pacing.png",
-   "pounceClaw": "assets/enemies/red_wolf_king_pounce_claw.png",
-   "pounceBite": "assets/enemies/red_wolf_king_pounce_bite.png",
-   "transformedAttack": "assets/enemies/red_wolf_king_changed_attack.png",
-   "transformedHowl": "assets/enemies/red_wolf_king_howl.png"
-  },
-  "transformedSprites": {
-   "side": "assets/enemies/red_wolf_king_changed_run.png",
-   "front": "assets/enemies/red_wolf_king_changed_run.png",
-   "back": "assets/enemies/red_wolf_king_changed_run.png",
-   "idle": "assets/enemies/red_wolf_king_transformed_idle.png",
-   "attack": "assets/enemies/red_wolf_king_changed_attack.png",
-   "howl": "assets/enemies/red_wolf_king_changed_howl.png",
-   "run": "assets/enemies/red_wolf_king_changed_run.png"
+   "side": "assets/enemies/red_wolf_king/running.png",
+   "front": "assets/enemies/red_wolf_king/running.png",
+   "back": "assets/enemies/red_wolf_king/running.png",
+   "walk": "assets/enemies/red_wolf_king/running.png",
+   "pacing": "assets/enemies/red_wolf_king/running.png",
+   "run": "assets/enemies/red_wolf_king/running.png",
+   "idle": "assets/enemies/red_wolf_king/idle.png",
+   "attack": "assets/enemies/red_wolf_king/attack.png",
+   "pounce": "assets/enemies/red_wolf_king/pounce.png",
+   "dying": "assets/enemies/red_wolf_king/dying.png",
+   "howl": "assets/enemies/red_wolf_king/howl.png"
   },
   "transform": {
    "hpThreshold": 0.5,
@@ -144,20 +132,17 @@
    "damageReduction": 0.9
   },
   "animation": {
-   "attackDuration": 800,
    "frameLayout": {
-    "width": 250,
-    "height": 215,
-    "cols": 4,
-    "rows": 2
+    "width": 512,
+    "height": 512
    },
    "frameDurations": {
     "idle": 400,
-    "walk": 240,
-    "run": 160,
+    "walk": 80,
+    "run": 42,
     "attack": 100,
     "bite": 100,
-    "pacing": 320
+    "pacing": 100
    },
    "speedThresholds": {
     "run": 1.2,
@@ -196,16 +181,6 @@
     ]
    },
    "attackTypes": {
-    "pounceClaw": {
-     "range": 210,
-     "duration": 1100,
-     "dash": 220
-    },
-    "pounceBite": {
-     "range": 170,
-     "duration": 1000,
-     "dash": 60
-    },
     "bite": {
      "durationMs": 1200
     },
@@ -217,49 +192,75 @@
    },
    "frameLayouts": {
     "idle": {
-     "cols": 1,
-     "rows": 1,
-     "frames": 1
+     "cols": 4,
+     "rows": 3,
+     "frames": 12,
+     "frameWidth": 512,
+     "frameHeight": 512,
+     "footY": 410
     },
     "walk": {
      "cols": 4,
      "rows": 4,
-     "frames": 14
+     "frames": 16,
+     "frameWidth": 512,
+     "frameHeight": 512,
+     "footY": 410
     },
     "run": {
      "cols": 4,
      "rows": 4,
-     "frames": 16
+     "frames": 16,
+     "frameWidth": 512,
+     "frameHeight": 512,
+     "footY": 410
     },
     "pacing": {
      "cols": 4,
      "rows": 4,
-     "frames": 14
+     "frames": 16,
+     "frameWidth": 512,
+     "frameHeight": 512,
+     "footY": 410
     },
-    "pounceClaw": {
+    "attack": {
      "cols": 4,
      "rows": 3,
-     "frames": 12
+     "frames": 12,
+     "frameWidth": 640,
+     "frameHeight": 640,
+     "footY": 512
     },
-    "pounceBite": {
+    "pounce": {
      "cols": 4,
      "rows": 3,
-     "frames": 12
+     "frames": 12,
+     "frameWidth": 640,
+     "frameHeight": 640,
+     "footY": 513,
+     "contentScale": 1.15
     },
-    "transform": {
+    "dying": {
      "cols": 4,
      "rows": 3,
-     "frames": 12
+     "frames": 12,
+     "frameWidth": 512,
+     "frameHeight": 512,
+     "footY": 410
     },
     "howl": {
      "cols": 4,
      "rows": 3,
-     "frames": 12
+     "frames": 12,
+     "frameWidth": 512,
+     "frameHeight": 512,
+     "footY": 410
     }
    }
   },
   "render": {
    "spriteSize": 151,
+   "referenceCell": 512,
    "spriteOffset": -76,
    "healthBar": {
     "width": 28,
@@ -272,65 +273,27 @@
     "rxFactor": 1.0,
     "ryFactor": 0.35
    },
-   "howlOffset": {
-    "baseY": -16,
-    "frames": {
-     "6": {
-      "y": -12,
-      "x": 18
-     },
-     "7": {
-      "y": -4
-     }
-    }
-   },
-   "transformedFrameLayout": {
-    "idle": {
-     "cols": 1,
-     "rows": 1,
-     "frames": 1
-    },
-    "attack": {
-     "cols": 8,
-     "rows": 4,
-     "frames": 30,
-     "frameWidth": 512,
-     "frameHeight": 1024
-    },
-    "howl": {
-     "cols": 4,
-     "rows": 3,
-     "frames": 12
-    },
-    "run": {
-     "cols": 8,
-     "rows": 4,
-     "frames": 30,
-     "frameWidth": 512,
-     "frameHeight": 1024
-    }
-   },
    "body": {
     "attack": {
-     "duration": 300,
-     "scaleAmplitude": 0.15,
-     "bounceAmplitude": 5,
-     "leanAngle": 0.1
+     "duration": 1200,
+     "scaleAmplitude": 0,
+     "bounceAmplitude": 0,
+     "leanAngle": 0
     },
     "run": {
      "phaseSpeed": 2,
-     "bounceAmplitude": 4,
-     "leanAmplitude": 0.12,
-     "swayAmplitude": 2,
+     "bounceAmplitude": 0,
+     "leanAmplitude": 0,
+     "swayAmplitude": 0,
      "swayPhaseOffset": 0.7853981633974483,
-     "stretchAmplitude": 0.015,
-     "stretchYFactor": 0.3
+     "stretchAmplitude": 0,
+     "stretchYFactor": 0
     },
     "walk": {
-     "bounceAmplitude": 2
+     "bounceAmplitude": 0
     },
     "pacing": {
-     "bounceAmplitude": 2
+     "bounceAmplitude": 0
     }
    }
   }

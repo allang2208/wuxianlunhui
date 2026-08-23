@@ -193,6 +193,19 @@ function _collectTiles(profile) {
     return tiles;
 }
 
+/** 连续无缝纹理铺贴：按世界坐标锁定相位，并将纹理纵向压到30°等距观感。 */
+function _drawContinuousLayer(ctx, img, ox, oy, width, height, textureScaleY = 0.5774) {
+    const tileW = img.width;
+    const tileH = Math.max(1, Math.round(img.height * textureScaleY));
+    const phaseX = ((ox % tileW) + tileW) % tileW;
+    const phaseY = ((oy % tileH) + tileH) % tileH;
+    for (let x = -phaseX - tileW; x < width + tileW; x += tileW) {
+        for (let y = -phaseY - tileH; y < height + tileH; y += tileH) {
+            ctx.drawImage(img, x, y, tileW, tileH);
+        }
+    }
+}
+
 /** 分块等距平铺：按「全局行/列网格」绘制，块偏移 (ox,oy) 只做平移——
  *  相邻块在同一全局网格上取同一种子，砖纹/镜像完全一致，跨块无缝。 */
 function _drawIsoLayerChunk(ctx, tiles, ox, oy, w, h, overlapX = 0, overlapY = 0) {
@@ -468,16 +481,7 @@ export function bakeDungeonFloorChunk(ox, oy, cw, ch, mapW, mapH, fallbackTerrai
         if (profile.continuous) {
             // 连续铺贴：世界坐标对齐相位重复整张无缝纹理（跨块/跨方向无接缝）；
             // 纵向按 30° 等距投影压缩（0.5774），避免"垂直俯视"观感
-            const img = tiles[0].img;
-            const tw = img.width;
-            const th = Math.round(img.height * (profile.textureScaleY ?? 0.5774));
-            const startX = ox - (((ox % tw) + tw) % tw);
-            const startY = oy - (((oy % th) + th) % th);
-            for (let gx = startX - tw; gx < ox + cw + tw; gx += tw) {
-                for (let gy = startY - th; gy < oy + ch + th; gy += th) {
-                    ctx.drawImage(img, gx - ox, gy - oy, tw, th);
-                }
-            }
+            _drawContinuousLayer(ctx, tiles[0].img, ox, oy, cw, ch, profile.textureScaleY ?? 0.5774);
         } else {
             _drawIsoLayerChunk(ctx, tiles, ox, oy, cw, ch, profile.overlapX ?? 0, profile.overlapY ?? 0);
         }
@@ -489,7 +493,11 @@ export function bakeDungeonFloorChunk(ox, oy, cw, ch, mapW, mapH, fallbackTerrai
             }
             if (glowTiles.length > 0) {
                 ctx.globalCompositeOperation = 'lighter';
-                _drawIsoLayerChunk(ctx, glowTiles, ox, oy, cw, ch, profile.overlapX ?? 0, profile.overlapY ?? 0);
+                if (profile.continuous) {
+                    _drawContinuousLayer(ctx, glowTiles[0].img, ox, oy, cw, ch, profile.textureScaleY ?? 0.5774);
+                } else {
+                    _drawIsoLayerChunk(ctx, glowTiles, ox, oy, cw, ch, profile.overlapX ?? 0, profile.overlapY ?? 0);
+                }
                 ctx.globalCompositeOperation = 'source-over';
             }
         }
@@ -625,7 +633,11 @@ export function bakeDungeonFloor(size, fallbackTerrain) {
         ctx.beginPath();
         ctx.rect(0, 0, size, size);
         ctx.clip();
-        _drawIsoLayer(ctx, tiles, size, size, profile.overlapX ?? 0, profile.overlapY ?? 0);
+        if (profile.continuous) {
+            _drawContinuousLayer(ctx, tiles[0].img, 0, 0, size, size, profile.textureScaleY ?? 0.5774);
+        } else {
+            _drawIsoLayer(ctx, tiles, size, size, profile.overlapX ?? 0, profile.overlapY ?? 0);
+        }
 
         // 3. 发光层（机制保留）：profile.glow 开启且存在 <贴图键>_glow 时同位置 ADD 平铺
         if (profile.glow !== false) {
@@ -636,7 +648,11 @@ export function bakeDungeonFloor(size, fallbackTerrain) {
             }
             if (glowTiles.length > 0) {
                 ctx.globalCompositeOperation = 'lighter';
-                _drawIsoLayer(ctx, glowTiles, size, size, profile.overlapX ?? 0, profile.overlapY ?? 0);
+                if (profile.continuous) {
+                    _drawContinuousLayer(ctx, glowTiles[0].img, 0, 0, size, size, profile.textureScaleY ?? 0.5774);
+                } else {
+                    _drawIsoLayer(ctx, glowTiles, size, size, profile.overlapX ?? 0, profile.overlapY ?? 0);
+                }
                 ctx.globalCompositeOperation = 'source-over';
             }
         }
@@ -737,7 +753,11 @@ export function applyDiamondFloor(width, height, cx, cy, rx, ry, fallbackTerrain
         ctx.save();
         diamondPath(0);
         ctx.clip();
-        _drawIsoLayer(ctx, tiles, width, height, profile.overlapX ?? 0, profile.overlapY ?? 0);
+        if (profile.continuous) {
+            _drawContinuousLayer(ctx, tiles[0].img, 0, 0, width, height, profile.textureScaleY ?? 0.5774);
+        } else {
+            _drawIsoLayer(ctx, tiles, width, height, profile.overlapX ?? 0, profile.overlapY ?? 0);
+        }
         if (profile.glow !== false) {
             const glowTiles = [];
             for (const t of tiles) {
@@ -746,7 +766,11 @@ export function applyDiamondFloor(width, height, cx, cy, rx, ry, fallbackTerrain
             }
             if (glowTiles.length > 0) {
                 ctx.globalCompositeOperation = 'lighter';
-                _drawIsoLayer(ctx, glowTiles, width, height, profile.overlapX ?? 0, profile.overlapY ?? 0);
+                if (profile.continuous) {
+                    _drawContinuousLayer(ctx, glowTiles[0].img, 0, 0, width, height, profile.textureScaleY ?? 0.5774);
+                } else {
+                    _drawIsoLayer(ctx, glowTiles, width, height, profile.overlapX ?? 0, profile.overlapY ?? 0);
+                }
                 ctx.globalCompositeOperation = 'source-over';
             }
         }
@@ -845,7 +869,11 @@ export function applyArenaFloor(width, height, diamonds, corridors = [], patches
         ctx.save();
         arenaPath();
         ctx.clip();
-        _drawIsoLayer(ctx, tiles, width, height, profile.overlapX ?? 0, profile.overlapY ?? 0);
+        if (profile.continuous) {
+            _drawContinuousLayer(ctx, tiles[0].img, 0, 0, width, height, profile.textureScaleY ?? 0.5774);
+        } else {
+            _drawIsoLayer(ctx, tiles, width, height, profile.overlapX ?? 0, profile.overlapY ?? 0);
+        }
         if (profile.glow !== false) {
             const glowTiles = [];
             for (const t of tiles) {
@@ -854,7 +882,11 @@ export function applyArenaFloor(width, height, diamonds, corridors = [], patches
             }
             if (glowTiles.length > 0) {
                 ctx.globalCompositeOperation = 'lighter';
-                _drawIsoLayer(ctx, glowTiles, width, height, profile.overlapX ?? 0, profile.overlapY ?? 0);
+                if (profile.continuous) {
+                    _drawContinuousLayer(ctx, glowTiles[0].img, 0, 0, width, height, profile.textureScaleY ?? 0.5774);
+                } else {
+                    _drawIsoLayer(ctx, glowTiles, width, height, profile.overlapX ?? 0, profile.overlapY ?? 0);
+                }
                 ctx.globalCompositeOperation = 'source-over';
             }
         }

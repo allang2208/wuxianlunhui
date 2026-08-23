@@ -16,6 +16,17 @@
       "assets/scenes/loading/zombie-dungeon-3.png"
     ]
   },
+  "frozenDungeon": {
+    "sceneIds": [
+      "scene7"
+    ],
+    "dungeonTypes": [
+      "frozenBeginner"
+    ],
+    "minimumDurationMs": 1000,
+    "title": "冰封世界加载中...",
+    "backgrounds": []
+  },
   "swampForest": {
     "sceneIds": [
       "scene10"

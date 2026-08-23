@@ -1797,6 +1797,13 @@ class DefenseBase extends Combatant {
             size: 440,
             sizeH: 366,
             footOffsetY: 184,
+            visualFootprint: {
+                centerXRatio: 0.5,
+                centerYRatio: 0.653005,
+                widthRatio: 1,
+                depthRatio: 0.699454,
+                scaleMode: 'strict',
+            },
             autoFootprint: false,
         };
         this.footOffsetY = 184;

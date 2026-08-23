@@ -74,7 +74,7 @@ const NPCDialogue = {
         }
 
         // 检查是否是任务后对话
-        if (npc.npcType === 'quest' && QuestState && QuestState.questCompleted) {
+        if (npc.npcType === 'quest' && QuestSystem.QUESTS['explore_rift_1']?.completed) {
             this._startPostQuestDialogue();
             if (dialogueOptions) dialogueOptions.style.display = 'none';
         } else {
@@ -112,7 +112,7 @@ const NPCDialogue = {
         let closeText = '👋 再见';
         if (npcType === 'altar') {
             typeButtons = `
-                <button class="npc-option-btn" id="npcOptionExpedition" onclick="NPCDialogue.openExpedition()">⚔️ 献祭出征</button>
+                <button class="npc-option-btn" id="npcOptionExpedition" onclick="NPCDialogue.openExpedition()">⚔️ 钥匙出征</button>
                 <button class="npc-option-btn" id="npcOptionFusion" onclick="NPCDialogue.openFusion()">🔮 祭品合成</button>
             `;
             closeText = '👋 退出';
@@ -156,14 +156,14 @@ const NPCDialogue = {
             { speaker: 'player', text: '这活干不了，得加钱！' },
             { speaker: 'npc', text: '你不干有的是人干。为小鼠大王效力的机会，多少人都求之不得。再说了，刚才的任务行动中你不也缴获了很多战利品吗？我们就不需要你上贡了。' },
             { speaker: 'player', text: '可恶，我C......' },
-            { speaker: 'npc', text: '好了，废话少说，汇报工作吧。在世界 181 中遭遇了什么？' },
-            { speaker: 'player', text: '当地和谐友善的居民变成了袭击人的丧尸追着我咬。在我调查完时间裂隙赶往撤离路上的时候，有一个奇怪的家伙一直跟着我。不过他倒并未对我展示敌意。' },
+            { speaker: 'npc', text: '好了，废话少说，汇报工作吧。在世界-123雪原中遭遇了什么？' },
+            { speaker: 'player', text: '雪原里的黑狼一直围攻我。在我调查完时空裂隙赶往撤离点的时候，还有一个奇怪的家伙远远跟着，不过他没有直接出手。' },
             { speaker: 'npc', text: '奇怪的家伙？长什么样？' },
             { speaker: 'player', text: '被一团黑雾笼罩，我也看不清。' },
             { speaker: 'npc', text: '就是这一系列事件的始作俑者，下次见到他想办法多收集一些情报' },
             { speaker: 'player', text: '意思是这种狗屎任务还有下一次？' },
             { speaker: 'npc', text: '那当然了，我们别的有调查人员失联了，你赶快去排查一下情况，任务简报发你了。' },
-            { speaker: 'npc', text: '对了，刚才探索过的世界 181 裂隙稳定了，如果你漏了什么可以回去看看，不过去之前要跟我申请（出外勤-自由探索）。' },
+            { speaker: 'npc', text: '世界-123的裂隙暂时稳定了，但永久传送门尚未完成。在正式取得准入前，不要擅自返回雪原。' },
             { speaker: 'npc', text: '好了，没什么事就解散吧。' }
         ];
         this._dialogueIndex = 0;
@@ -313,21 +313,21 @@ const NPCDialogue = {
                 if (this._typewriter) this._typewriter.setText(this._currentText);
             return;
         }
-        QuestState.startQuest(quest.scene, 'quest');
+        QuestState.startQuest(quest.id);
     },
 
-    // 选择献祭出征（祭坛）
+    // 选择钥匙出征（祭坛）
     openExpedition() {
         const player = Game.player;
         if (!player) return;
         // 消费掉本次点击：防止 game.js 的 NPC 点击检测在下一帧再次触发（把小鼠商店对话重新打开）
         if (Input && Input.mouse) Input.mouse.leftPressed = false;
-        // 关闭互斥子页面（不动背包——出征界面需要拖入祭品）
+        // 关闭互斥子页面；出征界面会自动检测背包/仓库钥匙。
         if (UIState.isOpen('shop')) ShopSystem.close();
         if (UIState.isOpen('enhance')) EnhanceSystem.close();
         if (UIState.isOpen('craft')) CraftSystem.close();
         if (UIState.isOpen('enchant')) EnchantSystem.close();
-        // 不走 goodbye()：它会立即关闭背包，且 300ms 延迟 close() 二次强制关背包
+        // 不走 goodbye()：避免其300ms延迟关闭与新打开的出征工作区互相覆盖。
         if (this._currentNPC) ExpeditionSystem._anchorNPC = this._currentNPC; // 锚点供距离自动关闭
         this.close(true);
         ExpeditionSystem.open(player);

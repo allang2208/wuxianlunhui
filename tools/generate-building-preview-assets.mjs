@@ -1,5 +1,5 @@
 /**
- * Generate the derived building-panel thumbnails and the precomputed alpha-ground-fit manifest.
+ * Generate building-panel thumbnails and the precomputed visual-footprint manifest.
  *
  * Usage:
  *   node tools/generate-building-preview-assets.mjs
@@ -11,7 +11,13 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { PNG } from 'pngjs';
-import { fitOpaqueGroundFootprint } from '../src/world/structure-visual-anchor.js';
+import {
+    fitExplicitVisualToPrism,
+    fitOpaqueGroundFootprint,
+    fitOpaqueVisualToPrism,
+    resolveConfiguredVisualFootprint,
+    STRUCTURE_GROUND_FIT_ALGORITHM_VERSION,
+} from '../src/world/structure-visual-anchor.js';
 
 const ROOT = process.cwd();
 const TARGET_WIDTH = 128;
@@ -19,14 +25,13 @@ const TARGET_HEIGHT = 64;
 const THUMBNAIL_PADDING = 3;
 const NOMINAL_WIDTH = 256;
 const NOMINAL_HEIGHT = 128;
-const ALGORITHM_VERSION = 1;
+const ALGORITHM_VERSION = STRUCTURE_GROUND_FIT_ALGORITHM_VERSION;
 
 const readJson = (relativePath) => JSON.parse(
     fs.readFileSync(path.join(ROOT, relativePath), 'utf8')
 );
 const producerBuildings = readJson('data/producer-buildings.json');
 const minerCamp = readJson('data/hamster-miner-camp-building.json');
-const barracks = readJson('data/hamster-barracks-building.json');
 const population = readJson('data/population-economy.json');
 
 function terrainPath(textureKey) {
@@ -58,6 +63,38 @@ function roundFit(fit) {
         collisionWidth: roundHalf(fit.collisionWidth),
         collisionHeight: roundHalf(fit.collisionHeight),
         collisionRadius: roundHalf(fit.collisionRadius),
+        displayWidth: Number.isFinite(fit.displayWidth) ? roundHalf(fit.displayWidth) : undefined,
+        displayHeight: Number.isFinite(fit.displayHeight) ? roundHalf(fit.displayHeight) : undefined,
+        groundCenterSourceX: Number.isFinite(fit.groundCenterSourceX)
+            ? roundHalf(fit.groundCenterSourceX) : undefined,
+        groundCenterSourceY: Number.isFinite(fit.groundCenterSourceY)
+            ? roundHalf(fit.groundCenterSourceY) : undefined,
+        sourceFootprintCenterX: Number.isFinite(fit.sourceFootprintCenterX)
+            ? roundHalf(fit.sourceFootprintCenterX) : undefined,
+        sourceFootprintCenterY: Number.isFinite(fit.sourceFootprintCenterY)
+            ? roundHalf(fit.sourceFootprintCenterY) : undefined,
+        sourceFootprintFrontY: Number.isFinite(fit.sourceFootprintFrontY)
+            ? roundHalf(fit.sourceFootprintFrontY) : undefined,
+        sourceFootprintHalfDepth: Number.isFinite(fit.sourceFootprintHalfDepth)
+            ? roundHalf(fit.sourceFootprintHalfDepth) : undefined,
+        sourceFootprintWidth: Number.isFinite(fit.sourceFootprintWidth)
+            ? roundHalf(fit.sourceFootprintWidth) : undefined,
+        sourceFootprintDepth: Number.isFinite(fit.sourceFootprintDepth)
+            ? roundHalf(fit.sourceFootprintDepth) : undefined,
+        mappedFootprintWidth: Number.isFinite(fit.mappedFootprintWidth)
+            ? roundHalf(fit.mappedFootprintWidth) : undefined,
+        mappedFootprintDepth: Number.isFinite(fit.mappedFootprintDepth)
+            ? roundHalf(fit.mappedFootprintDepth) : undefined,
+        groundSectionWidth: Number.isFinite(fit.groundSectionWidth)
+            ? roundHalf(fit.groundSectionWidth) : undefined,
+        sideOverhangAllowance: Number.isFinite(fit.sideOverhangAllowance)
+            ? roundHalf(fit.sideOverhangAllowance) : undefined,
+        actualSideOverhang: Number.isFinite(fit.actualSideOverhang)
+            ? roundHalf(fit.actualSideOverhang) : undefined,
+        bottomOverhangAllowance: Number.isFinite(fit.bottomOverhangAllowance)
+            ? roundHalf(fit.bottomOverhangAllowance) : undefined,
+        actualBottomOverhang: Number.isFinite(fit.actualBottomOverhang)
+            ? roundHalf(fit.actualBottomOverhang) : undefined,
         localVertices: fit.localVertices.map((point) => ({
             ...point,
             x: roundHalf(point.x),
@@ -81,6 +118,12 @@ function groundFitTargets() {
             sourcePath: cfg.assetPath || terrainPath(cfg.tex),
             displayWidth: cfg.displayW,
             displayHeight: cfg.displayH,
+            nominalWidth: NOMINAL_WIDTH,
+            nominalHeight: NOMINAL_HEIGHT,
+            constrainToPrism: cfg.autoFootprint !== true,
+            centerAdjustX: Number(cfg.anchorAdjustX) || 0,
+            centerAdjustY: Number(cfg.anchorAdjustY) || 0,
+            visualFootprint: resolveConfiguredVisualFootprint(cfg, NOMINAL_WIDTH, NOMINAL_HEIGHT),
         });
     }
     targets.push(
@@ -90,13 +133,14 @@ function groundFitTargets() {
             sourcePath: terrainPath(minerCamp.tex),
             displayWidth: minerCamp.displayW,
             displayHeight: minerCamp.displayH,
-        },
-        {
-            id: barracks.id,
-            textureKey: barracks.tex,
-            sourcePath: terrainPath(barracks.tex),
-            displayWidth: barracks.displayW,
-            displayHeight: barracks.displayH,
+            nominalWidth: NOMINAL_WIDTH,
+            nominalHeight: NOMINAL_HEIGHT,
+            constrainToPrism: true,
+            centerAdjustX: Number(minerCamp.anchorAdjustX) || 0,
+            centerAdjustY: Number(minerCamp.anchorAdjustY) || 0,
+            visualFootprint: resolveConfiguredVisualFootprint(
+                minerCamp, NOMINAL_WIDTH, NOMINAL_HEIGHT
+            ),
         }
     );
     for (const level of population.house?.levels || []) {
@@ -106,16 +150,45 @@ function groundFitTargets() {
             sourcePath: terrainPath(level.tex),
             displayWidth: level.displayW,
             displayHeight: level.displayH,
+            nominalWidth: NOMINAL_WIDTH,
+            nominalHeight: NOMINAL_HEIGHT,
+            constrainToPrism: true,
+            centerAdjustX: Number(level.anchorAdjustX) || 0,
+            centerAdjustY: Number(level.anchorAdjustY) || 0,
+            visualFootprint: resolveConfiguredVisualFootprint(
+                level, NOMINAL_WIDTH, NOMINAL_HEIGHT
+            ),
         });
     }
+    targets.push({
+        id: 'defense_base_4x4',
+        textureKey: 'defense_base',
+        sourcePath: terrainPath('defense_base'),
+        displayWidth: 440,
+        displayHeight: 366,
+        nominalWidth: 512,
+        nominalHeight: 256,
+        constrainToPrism: true,
+        visualFootprint: {
+            centerXRatio: 0.5,
+            centerYRatio: 0.653005,
+            widthRatio: 1,
+            depthRatio: 0.699454,
+            scaleMode: 'strict',
+        },
+    });
     const seen = new Set();
     return targets.filter((target) => {
         const key = [
             target.textureKey,
             target.displayWidth,
             target.displayHeight,
-            NOMINAL_WIDTH,
-            NOMINAL_HEIGHT,
+            target.nominalWidth,
+            target.nominalHeight,
+            target.constrainToPrism ? 'prism-body' : 'ground',
+            target.visualFootprint ? 0 : (target.centerAdjustX || 0),
+            target.visualFootprint ? 0 : (target.centerAdjustY || 0),
+            target.visualFootprint ? JSON.stringify(target.visualFootprint) : '',
         ].join(':');
         if (seen.has(key)) return false;
         seen.add(key);
@@ -130,7 +203,6 @@ function thumbnailTargets() {
         { id: 'road', sourcePath: terrainPath('building_road') },
         { id: 'gate_4cell', sourcePath: terrainPath('gate_4cell') },
         { id: minerCamp.id, sourcePath: terrainPath(minerCamp.tex) },
-        { id: barracks.id, sourcePath: terrainPath(barracks.tex) },
         { id: 'wall_staircase', sourcePath: terrainPath('wall_stair_lower_e1_pos') },
     ];
     for (const cfg of Object.values(producerBuildings)) {
@@ -259,14 +331,27 @@ for (const target of groundFitTargets()) {
     const source = existingSource(target.sourcePath, target.id);
     const png = PNG.sync.read(fs.readFileSync(source.absolute));
     const alphaAt = (x, y) => png.data[(y * png.width + x) * 4 + 3];
-    const fit = fitOpaqueGroundFootprint(
-        png.width,
-        png.height,
-        alphaAt,
-        target.displayWidth,
-        target.displayHeight,
-        { nominalWidth: NOMINAL_WIDTH, nominalHeight: NOMINAL_HEIGHT }
-    );
+    const options = {
+        nominalWidth: target.nominalWidth,
+        nominalHeight: target.nominalHeight,
+        centerAdjustX: target.constrainToPrism && !target.visualFootprint
+            ? target.centerAdjustX : 0,
+        centerAdjustY: target.constrainToPrism && !target.visualFootprint
+            ? target.centerAdjustY : 0,
+        visualFootprint: target.constrainToPrism ? target.visualFootprint : null,
+    };
+    const fit = target.constrainToPrism
+        ? (target.visualFootprint
+            ? fitExplicitVisualToPrism(png.width, png.height, options)
+            : fitOpaqueVisualToPrism(png.width, png.height, alphaAt, options))
+        : fitOpaqueGroundFootprint(
+            png.width,
+            png.height,
+            alphaAt,
+            target.displayWidth,
+            target.displayHeight,
+            options
+        );
     if (!fit) throw new Error(`${target.id}: alpha ground fit unavailable`);
     manifestEntries.push({
         algorithmVersion: ALGORITHM_VERSION,
@@ -278,8 +363,13 @@ for (const target of groundFitTargets()) {
         sourceHeight: png.height,
         displayWidth: target.displayWidth,
         displayHeight: target.displayHeight,
-        nominalWidth: NOMINAL_WIDTH,
-        nominalHeight: NOMINAL_HEIGHT,
+        nominalWidth: target.nominalWidth,
+        nominalHeight: target.nominalHeight,
+        centerAdjustX: target.constrainToPrism && !target.visualFootprint
+            ? target.centerAdjustX : 0,
+        centerAdjustY: target.constrainToPrism && !target.visualFootprint
+            ? target.centerAdjustY : 0,
+        visualFootprint: target.constrainToPrism ? target.visualFootprint : null,
         fit: roundFit(fit),
     });
 }

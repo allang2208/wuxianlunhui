@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-/* 红狼王渲染诊断探针（2026-08-07）：
+/* 红狼王六态渲染诊断探针（2026-08-23）：
  * - 检查主神空间红狼王实体是否存在、Phaser sprite 是否创建、纹理键/可见性/尺寸
- * - 检查 10 个红狼王纹理键是否注册成功
+ * - 检查 6 个红狼王纹理键是否注册成功
  * - 截图（把红狼王临时拉到玩家旁边）
  * 前置：vite dev 已启动。用法：node tools/cdp-redwolf-probe.mjs
  */
@@ -173,11 +173,9 @@ const detail = await evalJs(`(() => {
     }
     const scene = window.__phaserScene;
     const keys = [
-        'enemy_red_wolf_king_idle', 'enemy_red_wolf_king_pacing', 'enemy_red_wolf_king_run',
-        'enemy_red_wolf_king_pounce_claw', 'enemy_red_wolf_king_pounce_bite',
-        'enemy_red_wolf_king_change', 'enemy_red_wolf_king_howl',
-        'enemy_red_wolf_king_transformed_idle', 'enemy_red_wolf_king_changed_run',
-        'enemy_red_wolf_king_changed_attack', 'enemy_circle'
+        'enemy_red_wolf_king_idle', 'enemy_red_wolf_king_run',
+        'enemy_red_wolf_king_attack', 'enemy_red_wolf_king_pounce',
+        'enemy_red_wolf_king_howl', 'enemy_red_wolf_king_dying', 'enemy_circle'
     ];
     out.textureExists = {};
     if (scene && scene.textures) {
@@ -231,7 +229,7 @@ const boot = await evalJs(`(() => {
 })()`);
 console.log('boot progress:', JSON.stringify(boot));
 
-// 攻击链路验证：近咬→pounceBite、飞扑→pounceClaw、贴图帧数/网格
+// 攻击链路验证：近咬→attack、飞扑→pounce、贴图帧数/网格
 const atk = await evalJs(`(async () => {
     const out = {};
     const scene = window.__phaserScene;
@@ -253,15 +251,17 @@ const atk = await evalJs(`(async () => {
         return { frameCount: names.length, srcW: src ? src.width : 0, srcH: src ? src.height : 0 };
     };
     out.tex = {
-        pounceBite: tex('enemy_red_wolf_king_pounce_bite'),
-        pounceClaw: tex('enemy_red_wolf_king_pounce_claw'),
-        pacing: tex('enemy_red_wolf_king_pacing'),
+        attack: tex('enemy_red_wolf_king_attack'),
+        pounce: tex('enemy_red_wolf_king_pounce'),
+        running: tex('enemy_red_wolf_king_run'),
+        dying: tex('enemy_red_wolf_king_dying'),
     };
     out.attackTypesKeys = e._attackTypes ? Object.keys(e._attackTypes) : null;
     out.attackTypesBite = e._attackTypes && e._attackTypes.bite;
     out.attackTypesPounce = e._attackTypes && e._attackTypes.pounce;
     out.frameLayoutKeys = e._frameLayouts ? Object.keys(e._frameLayouts) : null;
-    out.frameLayoutBite = e._frameLayouts && e._frameLayouts.pounceBite;
+    out.frameLayoutBite = e._frameLayouts && e._frameLayouts.attack;
+    out.frameLayoutPounce = e._frameLayouts && e._frameLayouts.pounce;
     out.frameDurBite = e._frameDurations && e._frameDurations.bite;
     try { e._endBite(); } catch (_) {}
     try { e._endPounce(); } catch (_) {}
@@ -290,7 +290,7 @@ await new Promise((r) => setTimeout(r, 700));
 await shot('redwolf_probe_bite');
 try { await evalJs(`(() => { const e = window.Game.entities.get('enemy_main_red_wolf'); try { e._endBite(); } catch (_) {} try { e._endPounce(); } catch (_) {} })()`); } catch (_) {}
 
-// 变身验证：压低 HP 触发变身 → 红狼人形态贴图
+// 二阶段验证：压低 HP 触发狼形嚎叫 → 数值强化，视觉保持狼形
 await evalJs(`(() => {
     const e = window.Game.entities.get('enemy_main_red_wolf');
     if (e) { e.hp = e.maxHp * 0.3; e._transformTriggered = false; e._isTransforming = false; e._isTransformed = false; }
@@ -339,13 +339,13 @@ const transf = await evalJs(`(async () => {
         displayH: sp ? sp.displayHeight : null,
         phaserOptionsSpriteSize: (typeof e._getPhaserOptions === 'function' && e._getPhaserOptions()) ? e._getPhaserOptions().spriteSize : null,
         animCfgRender: e._animCfg && e._animCfg.render ? Object.keys(e._animCfg.render) : null,
-        transformedSpriteSizeCfg: e._animCfg && e._animCfg.render ? e._animCfg.render.transformedSpriteSize : null,
+        currentSpriteDisplaySize: e._currentSpriteDisplaySize,
         moduleCheck,
         hpPct: e.maxHp ? Math.round(100 * e.hp / e.maxHp) : null,
     };
 })()`);
 console.log('transform state:', JSON.stringify(transf));
-await shot('redwolf_probe_transformed');
+await shot('redwolf_probe_phase_two');
 await evalJs(`(() => {
     const e = window.Game.entities.get('enemy_main_red_wolf');
     if (e) {
@@ -360,8 +360,8 @@ const idleTex = await evalJs(`(() => {
     const sp = e && e._phaserSprite;
     return { animState: e._animState, texKey: e._getTextureKey(), spriteTex: sp ? sp.texture.key : null };
 })()`);
-console.log('humanoid idle state:', JSON.stringify(idleTex));
-await shot('redwolf_probe_transformed_idle');
+console.log('phase-two idle state:', JSON.stringify(idleTex));
+await shot('redwolf_probe_phase_two_idle');
 
 // 尝试手动重启 GameScene，捕获 create 阶段异常
 const restart = await evalJs(`(async () => {

@@ -700,12 +700,11 @@ class BlackWolf extends Enemy {
 }
 
 /**
- * 红狼王（elite，2026-08-06 贴图升级重建，H3 视频→精灵图管线）：
- * - 狼形态：idle / walk / run + 双攻击（飞扑挥爪 pounceClaw / 飞扑撕咬 pounceBite）+ 变身 transform；
- * - HP ≤ 阈值（默认 0.5）触发变身：2s transform 动画 → 红狼人形态（伤害 ×2、回血），
- *   变身完成先仰天嚎叫（howl）；
- * - 红狼人形态：idle / run / 挥爪攻击 attack / 嚎叫 howl；
- * - 动画走 Phaser setFrame 帧索引路径（同黑狼），贴图/网格由 animation-config redWolfKing 驱动。
+ * 红狼王（elite，2026-08-23 母版六动作重构）：
+ * - 唯一视觉形态：idle / running / bite / pounce / howl / dying；
+ * - HP ≤ 阈值仍触发二阶段数值强化，但以狼形嚎叫呈现，不再切换旧人形贴图；
+ * - 攻击与飞扑使用 640 格，运行时按 512 基准归一化显示尺寸与脚底；
+ * - 动画继续走 Phaser setFrame 帧索引路径，死亡接入保尸生命周期。
  */
 class RedWolfKing extends BlackWolf {
     constructor(x, y, config = {}) {
@@ -718,10 +717,8 @@ class RedWolfKing extends BlackWolf {
         this._animCfg = getAnimConfig('redWolfKing');
         const anim = this._animCfg.animation || {};
         const spritePaths = this._animCfg.sprites || {};
-        const tPaths = this._animCfg.transformedSprites || {};
         // 帧网格/帧率必须重取红狼王自己的配置：BlackWolf 构造器已按 blackWolf 配置
-        // 填过 _frameLayouts/_frameDurations，不重取会导致 attack 帧数落回黑狼表
-        // （pounceClaw/pounceBite 键不存在 → 兜底 8 帧，撕咬只播前 8 帧、扑咬爆发段永远放不出来）。
+        // 填过 _frameLayouts/_frameDurations，不重取会让六套新动画落回黑狼帧表。
         const frameLayout = anim.frameLayout || {};
         this._frameW = frameLayout.width ?? 512;
         this._frameH = frameLayout.height ?? 512;
@@ -735,39 +732,32 @@ class RedWolfKing extends BlackWolf {
             attack: 100,
             pacing: 160
         };
-        // 狼形态贴图
+        // 六套母版狼形贴图；walk/pacing 共用 running，不再保留独立旧巡游素材。
+        const runningSprite = loadImage(spritePaths.run || spritePaths.side || 'assets/enemies/red_wolf_king/running.png');
         this._wolfSprites = {
-            side: loadImage(spritePaths.side || 'assets/enemies/red_wolf_king_run.png'),
-            walk: loadImage(spritePaths.walk || 'assets/enemies/red_wolf_king_pacing.png'),
-            run: loadImage(spritePaths.run || 'assets/enemies/red_wolf_king_run.png'),
-            pounceClaw: loadImage(spritePaths.pounceClaw || 'assets/enemies/red_wolf_king_pounce_claw.png'),
-            pounceBite: loadImage(spritePaths.pounceBite || 'assets/enemies/red_wolf_king_pounce_bite.png'),
-            pacing: loadImage(spritePaths.pacing || 'assets/enemies/red_wolf_king_pacing.png'),
-            idle: loadImage(spritePaths.idle || 'assets/enemies/red_wolf_king_idle.png'),
-            transform: loadImage(spritePaths.transform || 'assets/enemies/red_wolf_king_change.png'),
-            howl: loadImage(spritePaths.howl || 'assets/enemies/red_wolf_king_howl.png'),
-        };
-        // 红狼人形态贴图
-        this._humanSprites = {
-            idle: loadImage(tPaths.idle || 'assets/enemies/red_wolf_king_transformed_idle.png'),
-            run: loadImage(tPaths.run || tPaths.side || 'assets/enemies/red_wolf_king_changed_run.png'),
-            attack: loadImage(tPaths.attack || 'assets/enemies/red_wolf_king_changed_attack.png'),
-            howl: loadImage(tPaths.howl || 'assets/enemies/red_wolf_king_changed_howl.png'),
+            side: runningSprite,
+            front: runningSprite,
+            back: runningSprite,
+            walk: runningSprite,
+            pacing: runningSprite,
+            run: runningSprite,
+            idle: loadImage(spritePaths.idle || 'assets/enemies/red_wolf_king/idle.png'),
+            bite: loadImage(spritePaths.attack || 'assets/enemies/red_wolf_king/attack.png'),
+            pounce: loadImage(spritePaths.pounce || 'assets/enemies/red_wolf_king/pounce.png'),
+            dying: loadImage(spritePaths.dying || 'assets/enemies/red_wolf_king/dying.png'),
+            howl: loadImage(spritePaths.howl || 'assets/enemies/red_wolf_king/howl.png'),
         };
         this._sprites = this._wolfSprites;
-        // 变身配置
+        // 二阶段配置：保留原数值强化和减伤窗口，视觉始终为狼形。
         this._transformCfg = this._animCfg.transform || {};
         this._isTransforming = false;
         this._isTransformed = false;
         this._transformTriggered = false;
         this._transformTimer = 0;
         this._howlTimer = 0;
-        // 狼形态双攻击（近咬 / 中距离飞扑挥爪）
-        this._attackTypes = anim.attackTypes || {
-            pounceClaw: { range: 210, duration: 1100, dash: 220 },
-            pounceBite: { range: 170, duration: 1000, dash: 60 },
-        };
-        this._attackType = 'pounceBite';
+        // 双攻击：近距离撕咬 / 中距离飞扑。
+        this._attackTypes = anim.attackTypes || {};
+        this._attackType = 'bite';
         // 飞扑状态机由 BlackWolf 基类共享实现：红狼王启用，状态字段在基类已移除、这里补齐声明
         this._usesPounce = true;
         this._pounceState = 'idle'; // idle | prepare | charge
@@ -780,37 +770,48 @@ class RedWolfKing extends BlackWolf {
         this._pounceSpeed = 0;
         this._pounceDamaged = false;
         this._pounceGhostTimer = 0;
-        // 嚎叫技能（红狼人形态主动释放，给场上全体怪物激励 30s）
+        // 二阶段主动嚎叫，给场上全体怪物激励 30s。
         this._howlCd = 0;
+        // 死亡动画与短暂保尸；Game/GameScene 已识别同名计时字段。
+        this._preserveCorpse = true;
+        this._deathStarted = false;
+        this._deathAnimTimer = 0;
+        this._corpseTimer = 0;
+        this._visualStateKey = 'idle';
+        this._syncVisualFrameMetrics();
     }
 
     update(dt, entities) {
-        // 变身触发：HP 阈值
+        // active=false 的死亡实体由主循环保留更新；只推进 dying/尸体计时，绝不再跑 AI。
+        if (!this.active) {
+            this._updateDeathAnimation(dt);
+            return;
+        }
+
+        // 半血阶段强化：仍保留原数值契约，视觉改为狼形嚎叫，不再切换人形。
         if (!this._transformTriggered && this.maxHp > 0 && this.hp / this.maxHp <= (this._transformCfg.hpThreshold ?? 0.5)) {
             this._transformTriggered = true;
             this._isTransforming = true;
             this._transformTimer = this._transformCfg.duration ?? 2000;
+            this._animFrame = 0;
+            this._animTimer = 0;
         }
         if (this._isTransforming) {
             this.vx = 0;
             this.vy = 0;
-            // 变身期不可移动、不可攻击：先终止进行中的撕咬/飞扑（_endBite/_endPounce 会清
-            // _frozenForCast），再锁移动，避免变身期间边漂移边咬人。
+            this.isMoving = false;
             if (this._biteState === 'attacking') this._endBite();
             if (this._pounceState !== 'idle') this._endPounce();
             this._frozenForCast = true;
             this._transformTimer -= dt;
             if (this._transformTimer <= 0) {
+                this._transformTimer = 0;
                 this._isTransforming = false;
                 this._isTransformed = true;
                 this._frozenForCast = false;
                 this._applyTransform();
-                // 变身完成不再自动嚎叫（原逻辑自动接红狼嚎叫动画，用户反馈
-                // "变身有重复动画、变身完还有嚎叫"）——嚎叫改为独立技能，
-                // 由红狼人形态 AI 主动释放（见 _startHowl）。
                 this._howlTimer = 0;
-                // 首次嚎叫延迟：避免变身动画后立即接嚎叫（视觉重复），
-                // 先正常行动 5s 再释放技能；后续按 cooldown 30s 循环。
+                // 阶段切换本身已经播放嚎叫，主动技能延迟 5s 后才可再次释放。
                 this._howlCd = Math.min(this._getHowlConfig().cooldown ?? 30000, 5000);
             }
         }
@@ -818,34 +819,34 @@ class RedWolfKing extends BlackWolf {
             this._howlTimer -= dt;
             this.vx = 0;
             this.vy = 0;
-            // 嚎叫期同锁移动/禁攻击（变身流程的延续）
             if (this._biteState === 'attacking') this._endBite();
             if (this._pounceState !== 'idle') this._endPounce();
             this._frozenForCast = true;
-            if (this._howlTimer <= 0) this._frozenForCast = false;
+            if (this._howlTimer <= 0) {
+                this._howlTimer = 0;
+                this._frozenForCast = false;
+            }
         }
         super.update(dt, entities);
-        // 嚎叫技能冷却递减
         if (this._howlCd > 0) this._howlCd -= dt;
-        // 嚎叫技能触发：红狼人形态 + 冷却就绪 + 有目标 + 无进行中攻击/变身/嚎叫
-        // （_attackType 初始即 'pounceBite' 且不随咬/扑结束重置，不能用它判断空闲，
-        //   改看 _biteState/_pounceState）
+        // 二阶段主动嚎叫：只看真实攻击状态，_attackType 是最近一次攻击的视觉类型。
         if (this._isTransformed && this._howlCd <= 0 && this.target && this.target.active
             && this._biteState === 'idle' && this._pounceState === 'idle'
             && !this._isTransforming && this._howlTimer <= 0) {
             this._startHowl(entities);
         }
-        // 覆盖动画状态：变身/嚎叫期间锁定
+        // 阶段切换和主动嚎叫都完整使用同一套狼形 howl 12 帧。
         if (this._isTransforming) {
-            this._animState = 'transform';
+            this._animState = 'howl';
             this._animFrame = this._timerFrame(this._transformTimer, this._transformCfg.duration ?? 2000);
         } else if (this._howlTimer > 0) {
             this._animState = 'howl';
             const howlTotal = this._getHowlConfig().duration ?? 3000;
             this._animFrame = this._timerFrame(this._howlTimer, howlTotal);
         }
-        // 红狼人形态切换贴图组
-        this._sprites = this._isTransformed ? this._humanSprites : this._wolfSprites;
+        this._sprites = this._wolfSprites;
+        this._syncVisualState();
+        this._syncVisualFrameMetrics();
     }
 
     _getHowlConfig() {
@@ -855,6 +856,7 @@ class RedWolfKing extends BlackWolf {
     // 嚎叫技能：3s 动画 + 锁定，释放后场上全体敌方怪物获得激励 buff
     // （参照 foreman-zombie _startHowl；激励 = 移速×speedMul、物攻×atkMul）
     _startHowl(entities) {
+        if (!this.active || this._deathStarted || this._isTransforming) return;
         const cfg = this._getHowlConfig();
         const duration = cfg.duration ?? 3000;
         // 终止进行中的咬/扑，避免嚎叫动画与攻击重叠
@@ -863,6 +865,8 @@ class RedWolfKing extends BlackWolf {
         this._howlTimer = duration;
         this._howlCd = cfg.cooldown ?? 30000;
         this._animState = 'howl';
+        this._animFrame = 0;
+        this._animTimer = 0;
         this._frozenForCast = true;
         this.vx = 0; this.vy = 0; this.isMoving = false;
         const list = Array.isArray(entities) ? entities : (entities ? Array.from(entities.values()) : []);
@@ -915,21 +919,26 @@ class RedWolfKing extends BlackWolf {
         return super.takeDamage(damage, source, damageType, _isMelee);
     }
 
-    // 狼形态双攻击绑定：黑狼状态机的 _startBite/_startPounce 不会设置 _attackType，
-    // 导致 pounceClaw（远/飞扑挥爪）永远播不出来、近咬也错播成 pounce_bite。
-    // 这里把 近距离撕咬 → pounceBite、中距离飞扑 → pounceClaw，贴图/网格随之正确切换。
+    // 双攻击绑定：近距离撕咬和中距离飞扑分别选择独立母版 sheet。
     _startBite() {
-        // 嚎叫技能进行中禁止撕咬（避免嚎叫期黑狼 AI 又触发 bite）
-        if (this._howlTimer > 0) return;
-        this._attackType = 'pounceBite';
+        if (!this.active || this._deathStarted || this._isTransforming || this._howlTimer > 0) return;
+        this._attackType = 'bite';
         super._startBite();
     }
 
     _startPounce() {
-        // 嚎叫技能进行中禁止飞扑
-        if (this._howlTimer > 0) return;
-        this._attackType = 'pounceClaw';
+        if (!this.active || this._deathStarted || this._isTransforming || this._howlTimer > 0) return;
+        this._attackType = 'pounce';
         super._startPounce();
+    }
+
+    _startCharge() {
+        super._startCharge();
+        if (this._pounceState !== 'charge') return;
+        const total = this._getStateFrameCount();
+        const prepareFrames = this._attackTypes?.pounce?.prepareFrames ?? 4;
+        this._animFrame = Math.min(total - 1, prepareFrames);
+        this._animTimer = 0;
     }
 
     // 撕咬 1.2s（12 帧 @100ms/帧），伤害判定落在扑咬爆发段（约 42%~75% 时长，对应帧 5~9），
@@ -962,117 +971,188 @@ class RedWolfKing extends BlackWolf {
         }
     }
 
+    _getDeathConfig() {
+        return this.config?.deathAnim || {};
+    }
+
+    onDeath(source) {
+        if (this._deathStarted) return;
+        if (this._biteState === 'attacking') this._endBite();
+        if (this._pounceState !== 'idle') this._endPounce();
+        this._deathStarted = true;
+        this._isTransforming = false;
+        this._howlTimer = 0;
+        this._frozenForCast = true;
+        this._attackAnimTimer = 0;
+        this.vx = 0;
+        this.vy = 0;
+        this.isMoving = false;
+        this.target = null;
+        this._tacticalTarget = null;
+        this._animState = 'death';
+        this._animFrame = 0;
+        this._animTimer = 0;
+        this._visualStateKey = 'death';
+        const death = this._getDeathConfig();
+        const duration = death.duration ?? 2000;
+        const holdMs = death.holdMs ?? 1000;
+        this._deathAnimTimer = duration;
+        this._corpseTimer = 0;
+        this._preserveCorpse = true;
+        this._deathRemoveDelay = duration + holdMs + 500;
+        this._syncVisualFrameMetrics();
+        super.onDeath(source);
+    }
+
+    _updateDeathAnimation(dt) {
+        if (!this._deathStarted) return;
+        const death = this._getDeathConfig();
+        const duration = death.duration ?? 2000;
+        const holdMs = death.holdMs ?? 1000;
+        const layout = this._frameLayouts?.dying || { cols: 4, rows: 3, frames: 12 };
+        const lastFrame = Math.min(layout.frames - 1, death.lastFrame ?? (layout.frames - 1));
+        this._animState = 'death';
+        if (this._deathAnimTimer > 0) {
+            this._deathAnimTimer = Math.max(0, this._deathAnimTimer - dt);
+            const progress = 1 - this._deathAnimTimer / Math.max(1, duration);
+            this._animFrame = Math.min(lastFrame, Math.floor(progress * layout.frames));
+            if (this._deathAnimTimer <= 0) {
+                this._animFrame = lastFrame;
+                this._corpseTimer = holdMs;
+            }
+        } else if (this._corpseTimer > 0) {
+            this._animFrame = lastFrame;
+            this._corpseTimer = Math.max(0, this._corpseTimer - dt);
+            if (this._corpseTimer <= 0 && this._phaserSprite && this._phaserSprite.active) {
+                this._phaserSprite.destroy();
+                this._phaserSprite = null;
+            }
+        }
+        this._syncVisualFrameMetrics();
+    }
+
+    _isAnimationFrozen() {
+        return !!(this.hasStatusEffect && (this.hasStatusEffect('stun') || this.hasStatusEffect('frozen')));
+    }
+
     _getTextureKey() {
-        const frozen = this.hasStatusEffect && (this.hasStatusEffect('stun') || this.hasStatusEffect('frozen'));
-        if (this._isTransforming) return 'enemy_red_wolf_king_change';
-        if (this._isTransformed) {
-            if (frozen) return 'enemy_red_wolf_king_transformed_idle';
-            if (this._howlTimer > 0) return 'enemy_red_wolf_king_changed_howl';
-            if (this._animState === 'attack') return 'enemy_red_wolf_king_changed_attack';
-            if (this._animState === 'run') return 'enemy_red_wolf_king_changed_run';
-            return 'enemy_red_wolf_king_transformed_idle';
+        if (this._deathStarted) return 'enemy_red_wolf_king_dying';
+        if (this._isAnimationFrozen()) return 'enemy_red_wolf_king_idle';
+        if (this._isTransforming || this._howlTimer > 0 || this._animState === 'howl') {
+            return 'enemy_red_wolf_king_howl';
         }
-        if (frozen) return 'enemy_red_wolf_king_idle';
         if (this._animState === 'attack') {
-            return this._attackType === 'pounceClaw'
-                ? 'enemy_red_wolf_king_pounce_claw'
-                : 'enemy_red_wolf_king_pounce_bite';
+            return this._attackType === 'pounce'
+                ? 'enemy_red_wolf_king_pounce'
+                : 'enemy_red_wolf_king_attack';
         }
-        if (this._animState === 'pacing') return 'enemy_red_wolf_king_pacing';
-        if (this._animState === 'run') return 'enemy_red_wolf_king_run';
         if (this._animState === 'idle') return 'enemy_red_wolf_king_idle';
-        return 'enemy_red_wolf_king_pacing';
+        return 'enemy_red_wolf_king_run';
     }
 
     _getFrameLayout(state) {
         const layouts = this._frameLayouts || {};
-        if (this._isTransformed) {
-            const tf = this._animCfg?.render?.transformedFrameLayout || {};
-            const key = state === 'attack' ? 'attack' : state;
-            return tf[key] || { cols: 4, rows: 2, frames: 8 };
+        if (this._deathStarted || state === 'death') return layouts.dying || { cols: 4, rows: 3, frames: 12 };
+        if (this._isAnimationFrozen()) return layouts.idle || { cols: 4, rows: 3, frames: 12 };
+        if (this._isTransforming || this._howlTimer > 0 || this._animState === 'howl') {
+            return layouts.howl || { cols: 4, rows: 3, frames: 12 };
         }
-        if (this._animState === 'transform') return layouts.transform || { cols: 4, rows: 2, frames: 8 };
-        if (this._animState === 'howl') return layouts.howl || { cols: 4, rows: 2, frames: 8 };
         if (this._animState === 'attack') {
-            return layouts[this._attackType] || layouts.pounceBite || { cols: 4, rows: 2, frames: 8 };
+            return layouts[this._attackType] || layouts.attack || { cols: 4, rows: 3, frames: 12 };
         }
-        return super._getFrameLayout(state);
+        const key = state === 'walk' || state === 'pacing' ? state : this._animState;
+        return layouts[key] || layouts.run || { cols: 4, rows: 4, frames: 16 };
     }
 
     _getStateFrameCount() {
-        const layouts = this._frameLayouts || {};
-        if (this._isTransformed) {
-            const tf = this._animCfg?.render?.transformedFrameLayout || {};
-            const key = this._animState === 'attack' ? 'attack' : this._animState;
-            return (tf[key] && tf[key].frames) || (tf[key] && tf[key].cols * tf[key].rows) || 8;
-        }
-        if (this._animState === 'transform') return (layouts.transform && layouts.transform.frames) || 8;
-        if (this._animState === 'howl') return (layouts.howl && layouts.howl.frames) || 8;
-        if (this._animState === 'attack') {
-            return (layouts[this._attackType] && layouts[this._attackType].frames) || 8;
-        }
-        return super._getStateFrameCount();
+        const layout = this._getFrameLayout(this._animState);
+        return layout.frames || (layout.cols * layout.rows);
     }
 
-    // 红狼人形态独立显示尺寸：狼形态 151，红狼人按 render.transformedSpriteSize
-    // （默认 200，比狼更魁梧；Phaser 纹理切换时会按此重算 displaySize）。
+    _getVisualStateKey() {
+        if (this._deathStarted) return 'death';
+        if (this._isAnimationFrozen()) return 'idle';
+        if (this._isTransforming || this._howlTimer > 0 || this._animState === 'howl') return 'howl';
+        if (this._animState === 'attack') return `attack:${this._attackType}`;
+        if (this._animState === 'idle') return 'idle';
+        return 'locomotion';
+    }
+
+    _syncVisualState() {
+        const next = this._getVisualStateKey();
+        if (next === this._visualStateKey) return;
+        this._visualStateKey = next;
+        this._animFrame = 0;
+        this._animTimer = 0;
+    }
+
+    _syncVisualFrameMetrics() {
+        const layout = this._getFrameLayout(this._animState);
+        const render = this._animCfg?.render || {};
+        const referenceCell = render.referenceCell ?? 512;
+        const frameW = layout.frameWidth ?? referenceCell;
+        const frameH = layout.frameHeight ?? referenceCell;
+        const spriteSize = (render.spriteSize ?? 151) * Math.max(frameW, frameH) / referenceCell
+            * (layout.contentScale ?? 1);
+        const footY = layout.footY ?? frameH;
+        this._currentSpriteDisplaySize = spriteSize;
+        this.footOffsetY = (footY / frameH - 0.5) * spriteSize;
+    }
+
     _getPhaserOptions() {
+        this._syncVisualFrameMetrics();
         const opts = super._getPhaserOptions();
-        if (this._isTransformed) {
-            // 默认 200；JSON 里 render.transformedSpriteSize 可覆盖
-            // （vite 对 data/*.json 的模块缓存可能滞后，代码兜底保证生效）
-            opts.spriteSize = this._animCfg?.render?.transformedSpriteSize ?? 200;
-        }
+        opts.spriteSize = this._currentSpriteDisplaySize;
+        // 死亡后状态效果不再更新；若死前处于眩晕/冻结，不能让遗留状态把 dying 永久钉在第 0 帧。
+        opts.frame = (!this._deathStarted && this._isAnimationFrozen()) ? 0 : this._animFrame;
         return opts;
     }
 
+    // 新视频已经包含完整身体运动，不再叠加旧程序化弹跳/拉伸。
+    _getBodyAnimationParams() {
+        return { bounceY: 0, scaleX: 1, scaleY: 1, leanAngle: 0, swayX: 0 };
+    }
+
     _drawBody(ctx) {
-        if (this._isTransforming) {
-            this._drawSheetFrame(ctx, this._wolfSprites.transform, this._frameLayouts.transform);
-            return;
-        }
-        if (this._howlTimer > 0 && this._isTransformed) {
-            this._drawSheetFrame(ctx, this._humanSprites.howl, this._frameLayouts.howl);
-            return;
-        }
-        if (this._animState === 'attack') {
-            // Canvas 兜底路径：黑狼 _drawBody 只认 _sprites.bite/pounce（红狼王没有），
-            // 攻击态会掉成火柴人——这里按 _attackType 直接画撕咬/挥爪（狼形态），
-            // 红狼人形态画 changed_attack。
-            const img = this._isTransformed
-                ? this._humanSprites.attack
-                : (this._sprites[this._attackType] || this._sprites.pounceBite);
-            const layout = this._isTransformed
-                ? (this._animCfg?.render?.transformedFrameLayout || {}).attack
-                : (this._frameLayouts[this._attackType] || this._frameLayouts.pounceBite);
-            const shouldFlip = this._facing === 'left' ||
-                ((this._facing === 'up' || this._facing === 'down') && (
-                    (Math.abs(this.vx) > 0.1 && this.vx < 0) ||
-                    (Math.abs(this.vx) <= 0.1 && this._lastHorizontalFacing === 'left')
-                ));
-            ctx.save();
-            if (shouldFlip) ctx.scale(-1, 1);
-            this._drawSheetFrame(ctx, img, layout);
-            ctx.restore();
-            return;
-        }
-        super._drawBody(ctx);
+        let sprite = this._wolfSprites.run;
+        if (this._deathStarted) sprite = this._wolfSprites.dying;
+        else if (this._isAnimationFrozen() || this._animState === 'idle') sprite = this._wolfSprites.idle;
+        else if (this._isTransforming || this._howlTimer > 0 || this._animState === 'howl') sprite = this._wolfSprites.howl;
+        else if (this._animState === 'attack') sprite = this._attackType === 'pounce'
+            ? this._wolfSprites.pounce
+            : this._wolfSprites.bite;
+        else if (this._animState === 'pacing') sprite = this._wolfSprites.pacing;
+        else if (this._animState === 'walk') sprite = this._wolfSprites.walk;
+
+        const layout = this._getFrameLayout(this._animState);
+        const shouldFlip = this._facing === 'left' ||
+            ((this._facing === 'up' || this._facing === 'down') && (
+                (Math.abs(this.vx) > 0.1 && this.vx < 0) ||
+                (Math.abs(this.vx) <= 0.1 && this._lastHorizontalFacing === 'left')
+            ));
+        ctx.save();
+        if (shouldFlip) ctx.scale(-1, 1);
+        this._drawSheetFrame(ctx, sprite, layout);
+        ctx.restore();
     }
 
     _drawSheetFrame(ctx, img, layout) {
         if (!img || !img.complete || !img.naturalWidth) return;
-        const lay = layout || { cols: 4, rows: 2 };
+        const lay = layout || { cols: 4, rows: 3 };
         const frameW = img.naturalWidth / lay.cols;
         const frameH = img.naturalHeight / lay.rows;
-        const col = this._animFrame % lay.cols;
-        const row = Math.floor(this._animFrame / lay.cols);
-        const renderCfg = this._animCfg?.render || {};
-        const baseSize = renderCfg.spriteSize ?? 151;
-        const spriteSize = this._isTransformed
-            ? (renderCfg.transformedSpriteSize ?? 200)
-            : baseSize;
-        const spriteOffset = (renderCfg.spriteOffset ?? -76) * (spriteSize / baseSize);
-        ctx.drawImage(img, col * frameW, row * frameH, frameW, frameH, spriteOffset, spriteOffset, spriteSize, spriteSize);
+        const frameCount = lay.frames || lay.cols * lay.rows;
+        const frame = Math.max(0, Math.min(frameCount - 1, this._animFrame));
+        const col = frame % lay.cols;
+        const row = Math.floor(frame / lay.cols);
+        const render = this._animCfg?.render || {};
+        const referenceCell = render.referenceCell ?? 512;
+        const spriteSize = (render.spriteSize ?? 151) * Math.max(frameW, frameH) / referenceCell
+            * (lay.contentScale ?? 1);
+        const footY = lay.footY ?? frameH;
+        const drawX = -spriteSize * 0.5;
+        const drawY = -spriteSize * footY / frameH;
+        ctx.drawImage(img, col * frameW, row * frameH, frameW, frameH, drawX, drawY, spriteSize, spriteSize);
     }
 }
 

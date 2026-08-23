@@ -14,6 +14,7 @@ import musketeerCfg from '../../data/hamster-musketeer-config.json';
 import priestCfg from '../../data/hamster-priest-config.json';
 import knightCfg from '../../data/hamster-knight-config.json';
 import lightCavalryCfg from '../../data/hamster-light-cavalry-config.json';
+import camelCavalryCfg from '../../data/hamster-camel-cavalry-config.json';
 import explorerCfg from '../../data/hamster-explorer-config.json';
 import bountyHunterCfg from '../../data/hamster-bounty-hunter-config.json';
 import jaguarWarriorCfg from '../../data/jaguar-warrior-config.json';
@@ -63,6 +64,7 @@ export const UNIT_KIND_CFG = {
     priest: priestCfg,
     knight: knightCfg,
     light_cavalry: lightCavalryCfg,
+    camel_cavalry: camelCavalryCfg,
     explorer: explorerCfg,
     bounty_hunter: bountyHunterCfg,
     jaguar_warrior: jaguarWarriorCfg,
@@ -84,6 +86,7 @@ export function getUnitKind(unit) {
     if (unit._isHamsterMusketeer) return 'musketeer';
     if (unit._isHamsterPriest) return 'priest';
     if (unit._isHamsterKnight) return 'knight';
+    if (unit._isHamsterCamelCavalry) return 'camel_cavalry';
     if (unit._isHamsterLightCavalry) return 'light_cavalry';
     return null;
 }
@@ -116,6 +119,7 @@ export function getUpgradeMultsFromLevels(modulesCfg, levels = {}, kind = null) 
         miningMult: 1,
         attackRangeBonus: 0,
         defenseMult: 1,
+        camelFrightReduction: 0,
         holyLightRangeBonus: 0,
         titheEnergyPerTick: 0,
     };
@@ -128,7 +132,12 @@ export function getUpgradeMultsFromLevels(modulesCfg, levels = {}, kind = null) 
         const effect = module?.effect;
         const per = Number(module?.per);
         if (!level || !effect || !Number.isFinite(per) || !(effect in out)) continue;
-        if (module.mode === 'add') out[effect] += per * level;
+        if (module.mode === 'add') {
+            const firstLevel = Number(module.firstLevel);
+            out[effect] = Number.isFinite(firstLevel)
+                ? firstLevel + per * Math.max(0, level - 1)
+                : out[effect] + per * level;
+        }
         else out[effect] = 1 + per * level;
     }
     return out;
@@ -158,6 +167,7 @@ export function getUnitUpgradePatch(kind, modulesCfg) {
         chargeDamageMult: mults.chargeDamageMult,
         attackRangeBonus: mults.attackRangeBonus,
         defenseMult: mults.defenseMult,
+        camelFrightReduction: mults.camelFrightReduction,
         holyLightRangeBonus: mults.holyLightRangeBonus,
         titheEnergyPerTick: mults.titheEnergyPerTick,
         castRange: Math.max(0, Math.round((baseAi.castRange ?? 0) + mults.holyLightRangeBonus)),

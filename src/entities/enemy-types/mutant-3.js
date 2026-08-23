@@ -52,8 +52,9 @@ export class Mutant3 extends Enemy {
     }
 
     update(dt, entities) {
-        if (this._pounceCooldown > 0) this._pounceCooldown -= dt;
-        if (this._comboCooldown > 0) this._comboCooldown -= dt;
+        const attackDt = this.getAttackIntervalDelta(dt);
+        if (this._pounceCooldown > 0) this._pounceCooldown -= attackDt;
+        if (this._comboCooldown > 0) this._comboCooldown -= attackDt;
 
         // 基类链统一推进状态效果（中毒、流血、眩晕等，每帧一次）；
         // 原在此直接调 updateStatusEffects 会与基类 update 重复推进，导致眩晕/恐惧等双倍流速

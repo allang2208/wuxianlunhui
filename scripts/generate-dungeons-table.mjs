@@ -17,6 +17,7 @@ const OUT = path.join(ROOT, 'dungeons-table.md');
 const KEY_MAP = {
     zombie: 'zombieDungeon',
     zombieBeginner: 'zombieDungeonBeginner',
+    frozenBeginner: 'frozenDungeonBeginner',
     zombieMid: 'zombieDungeonMid',
     swampBeginner: 'swampDungeonBeginner',
     swampMid: 'swampDungeonMid',

@@ -5,6 +5,9 @@ import { EnvironmentLightingSystem } from './environment-lighting-system.js';
 const TARGET_SCENE_ID = 'scene11';
 let active = false;
 let currentSceneId = null;
+let trackedPlayer = null;
+let playerShelterSampled = false;
+let playerSheltered = false;
 
 function resolvedSceneId(sceneId) {
     if (sceneId) return sceneId;
@@ -22,15 +25,35 @@ function finiteMultiplier(value, fallback) {
     return Number.isFinite(parsed) && parsed >= 0 ? parsed : fallback;
 }
 
+function notify(text, options = {}) {
+    if (typeof window === 'undefined') return;
+    window.SceneManager?.showTopNotification?.(text, {
+        fontSize: '28px',
+        duration: 2600,
+        ...options,
+    });
+}
+
+function clearTrackedPlayer() {
+    if (trackedPlayer) trackedPlayer._world125CandleSheltered = false;
+    trackedPlayer = null;
+    playerShelterSampled = false;
+    playerSheltered = false;
+}
+
 export const World125FogTideSystem = {
     reset() {
         active = false;
         currentSceneId = null;
+        clearTrackedPlayer();
     },
 
     syncScene(sceneId) {
         currentSceneId = sceneId || null;
-        if (currentSceneId !== TARGET_SCENE_ID) active = false;
+        if (currentSceneId !== TARGET_SCENE_ID) {
+            active = false;
+            clearTrackedPlayer();
+        }
         return active;
     },
 
@@ -48,7 +71,18 @@ export const World125FogTideSystem = {
         const enabled = GAME_CONFIG.scenes?.[TARGET_SCENE_ID]
             ?.environmentEffects?.dungeonAtmosphere?.fogTide?.enabled !== false;
         if (!enabled) return { ok: false, reason: '死寂雾潮配置未启用', model: this.getDebugModel(sceneId) };
-        active = !!nextActive;
+        const next = !!nextActive;
+        const changed = next !== active;
+        active = next;
+        clearTrackedPlayer();
+        if (changed) {
+            notify(active
+                ? '☠ 死寂雾潮涌入：视野受限，亡者进入猎场状态'
+                : '死寂雾潮已经消散', {
+                color: active ? '#a9c2b3' : '#d7c99b',
+                duration: active ? 3600 : 2600,
+            });
+        }
         return { ok: true, active, model: this.getDebugModel(sceneId) };
     },
 
@@ -76,6 +110,32 @@ export const World125FogTideSystem = {
         return isNight
             ? finiteMultiplier(config.shelteredNightWeatherMultiplier, 0.9)
             : finiteMultiplier(config.shelteredDayWeatherMultiplier, 1);
+    },
+
+    /** 玩家进入/离开守夜烛台范围时给出一次明确反馈；友军的倍率仍由视野注册表逐单位计算。 */
+    syncPlayerShelter(entity, sceneId = TARGET_SCENE_ID) {
+        if (trackedPlayer && trackedPlayer !== entity) trackedPlayer._world125CandleSheltered = false;
+        trackedPlayer = entity || null;
+        const fogActive = this.isActive(sceneId);
+        const nextSheltered = !!entity && fogActive
+            && CandleSanctuarySystem.isSheltered(entity, sceneId);
+        if (entity) entity._world125CandleSheltered = nextSheltered;
+        if (!fogActive || !entity) {
+            playerShelterSampled = false;
+            playerSheltered = false;
+            return false;
+        }
+        const changed = playerShelterSampled && nextSheltered !== playerSheltered;
+        if ((!playerShelterSampled && nextSheltered) || changed) {
+            notify(nextSheltered
+                ? '🕯 获得「烛火庇护」：视野恢复'
+                : '离开「烛火庇护」：雾潮再次遮蔽视野', {
+                color: nextSheltered ? '#ffd07a' : '#9fb2a7',
+            });
+        }
+        playerShelterSampled = true;
+        playerSheltered = nextSheltered;
+        return nextSheltered;
     },
 
     getZombieMoveSpeedMultiplier(entity, sceneId) {
@@ -106,6 +166,7 @@ export const World125FogTideSystem = {
             zombieMoveSpeedMultiplier: finiteMultiplier(config.zombieMoveSpeedMultiplier, 1.2),
             zombieAttackIntervalMultiplier: finiteMultiplier(config.zombieAttackIntervalMultiplier, 0.85),
             candleCount: CandleSanctuarySystem.getBuildings().length,
+            playerSheltered,
         };
     },
 };

@@ -3097,6 +3097,20 @@ body.map-mode #weaponInfo {
   display: none !important;
 }
 
+/* 路线图由下层 #gameCanvas 独占绘制。Phaser 画布即使相机背景透明状态失效，
+   也不能在地图模式用黑色清屏覆盖路线、节点和地牢背景。 */
+body.map-mode #gameContainer > .phaser-game-canvas {
+  visibility: hidden !important;
+}
+
+/* 出征准备页退出后即使动画/异步流程留下瞬时 active，也不得盖住地牢路线页。 */
+body.map-mode :is(.expedition-overlay, .expedition-panel, .expedition-rule-panel) {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
 /* 地牢路线界面操作按钮：金色辉光直接附着在按钮贴图（图案）上——
    filter: drop-shadow 按贴图 alpha 形状发光（跟随圆角/异形边缘），
    不用 box-shadow（矩形框辉光会与贴图边缘之间露出缝隙/黑边）。

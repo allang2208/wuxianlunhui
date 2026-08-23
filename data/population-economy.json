@@ -99,6 +99,12 @@
       }
     }
   },
+  "minerCamp": {
+    "workerSlotsModule": "count",
+    "workerLabel": "矿工",
+    "visualWorkerCap": 3,
+    "visualMode": "physical_mining"
+  },
   "bank": {
     "workerSlotsModule": "bank_staff",
     "workerLabel": "职员",
