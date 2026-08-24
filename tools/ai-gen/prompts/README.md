@@ -11,6 +11,9 @@
 
 | 文件 | 适用 | 状态 |
 |---|---|---|
+| [world122-building-style.md](world122-building-style.md) | World-122 建筑12步/48步共享画风契约 | 正式唯一真源（world122-building-v2，半木石哥特 + 游戏化PBR） |
+| [cactus-obstacle-v2.md](cactus-obstacle-v2.md) | World-122 沙漠仙人掌4形态建模精修 | 正式固化（白模锁形 + 游戏化PBR + 柔和顶侧光） |
+| [snow-pine-obstacle-v2.md](snow-pine-obstacle-v2.md) | World-123 雪原松树5形态建模精修 | 正式固化（可编辑模型锁形 + 冷色游戏化PBR + 真透明） |
 | [skill-icon.md](skill-icon.md) | 魔法技能图标（六边形徽章系列） | 实战固化（暴风雪/陨星） |
 | [equipment-icon.md](equipment-icon.md) | 装备/首饰图标 | 实战固化（稀有三套+首饰） |
 | [obstacle.md](obstacle.md) | 障碍物/场景道具 | 实战固化（2026-08-03） |

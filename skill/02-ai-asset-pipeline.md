@@ -106,7 +106,9 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
 - `tools/ai-gen/building-component-kit.py`：跨建筑复用的参数化组件、材质、相机和 Depth 渲染函数，是组件实现真源。
 - `tools/ai-gen/settlement-building-pack-blender.py`：建筑组合与楼层/院落/阳台等装配逻辑；已出现第二次复用的组合件应提升到组件库，禁止复制粘贴两套坐标。
 - `tools/ai-gen/_settlement_building_pack_20260821/manifest.json`：相机、低饱和调色板、各建筑 foundation/body/roof/tower 尺寸真源。
-- `tools/ai-gen/_settlement_building_pack_20260821/prompts/<building>.txt`：每栋建筑的结构、细节和禁止项；提示词不能替代白模几何。
+- `tools/ai-gen/prompts/world122-building-style.md`：12步与48步共享的唯一 `world122-building-v2` 画风真源；强制半木石主体、克制哥特细节、游戏化PBR材质与柔和左上顶侧光。单栋建筑不得覆盖建筑语法、材质尺度、光照、边缘处理和渲染语言。
+- `tools/ai-gen/world122-building-candidate-manifest.json`：标准生图参数以及每栋建筑的结构、功能细节、局部配色和禁止项；提示词不能替代白模几何。
+- `tools/ai-gen/_settlement_building_pack_20260821/prompts/<building>.txt`：历史建模说明或人工审阅稿，不再作为正式候选的可执行提示词真源。
 - `tools/ai-gen/_settlement_building_pack_20260821/<building>/`：该建筑的 `.blend`、preview、depth、12/48 步候选和入库元数据。
 
 **强制顺序**：
@@ -114,11 +116,12 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
 1. **拆需求并查组件表**：把建筑拆成主体壳、屋顶、门窗、楼层、阳台/院墙和功能道具。能由现有组件组合的不得重写；仅当前建筑使用的复杂组合先留在 builder，第二次出现时提升为公共组件。
 2. **更新 manifest 与白模**：尺寸、相机、调色板写 manifest；几何写 Blender builder。所有对象保留有意义的英文名并保持独立可编辑，禁止为了省事把门窗、阳台、杂物全部 join 成不可拆网格。
 3. **先渲染 preview + depth**：固定正交相机、`elevation=30°`、建筑根节点 `rot.z=44.8°`、1024²、完整 foundation 可见。preview 用于人工查组件位置；depth 是 5080 ControlNet 的结构真源。若 preview 中楼层、门、院墙、靶子或阳台位置不对，必须先改模型，不能靠提示词赌修正。
-4. **提交 5080 12 步结构候选**：使用 `flux2-dev-depth`、同一 depth、`control-strength≈0.88`、CFG 3.5、Euler；提示词明确结构数量、组件归属和禁止项。先提交生图任务，等待时可以处理互不依赖的建模/配置工作，不空等。
+4. **提交 5080 12 步结构候选**：只走 `generate-world122-building-candidates.py`，默认每批5张；固定 `world122-building-v2`、`flux2-dev-depth`、1024²、同一 depth、Depth 0.78、CFG 3.5、Euler/simple。V2 强制中世纪欧洲半木石主体、尖拱彩色玻璃窗与克制立面雕花边饰，以及风化石材、磨损木构、自然氧化黄铜和柔和左上顶侧光；提示词明确结构数量、组件归属和禁止项，局部配色可以变化但公共画风块不可变化。确有需要时可用 `--variants` 显式覆盖数量。禁止为正式候选直接手写 `comfyui-gen.py` 命令。
 5. **12 步只验结构**：核对视角、完整地基、楼层数、屋顶是否连续、门窗/院落/阳台/功能组件的位置、组件是否离开主体，以及是否凭空增加物件。任何结构错位都回 Blender 改白模后重新 12 步，禁止直接用 48 步掩盖。
-6. **玩家确认后才进 48 步**：以通过的 12 步图作为 `--init-image`，继续使用同一 depth，默认 `denoise=0.30`、48 步低重绘。精修提示词只增加材质、磨损、小型杂物和灯光，不改变主体轮廓、层数、院落、屋顶或组件位置。局部错误用 mask 返修，不整图重抽。
+6. **玩家确认后才进 48 步**：仍走同一标准入口和同一 `world122-building-v2`，以通过的12步图作为 `--init-image`，继续使用同一 depth，固定 Depth 0.75、`denoise=0.30`、48步低重绘。精修提示词只增加材质、磨损、小型杂物和灯光，不改变主体轮廓、层数、院落、屋顶或组件位置。改变步数/denoise 必须显式 `--allow-nonstandard` 并留下生成元数据；局部错误用 mask 返修，不整图重抽。
 7. **真透明与 footprint 验收**：先查 RGBA、最大连通域、黄色/绿色残边、孤立像素和投影阴影；抠图不干净就暂停入库并向玩家汇报。正式图必须紧裁且等比缩放，`scaleX≈scaleY`；不能用固定宽高强拉。alpha 自动锚点若仍让贴图偏出地基，使用资产级 `anchorAdjustX/anchorAdjustY`，并保证建造幽灵与实体同源，禁止改全局 footprint 迁就一张贴图。
 8. **正式入库**：只有玩家明确接受的 48 步版本才能覆盖 `assets/terrain/<building>.png`。同步 `data/producer-buildings.json` 的 `displayW/displayH/footOffsetY` 和必要的 anchor 调整，并只重建该建筑的 lighting maps。未通过的 12 步候选不得导入。
+9. **定稿后立即瘦身归档**：先核对 `*_runtime_metadata.json.source` 仍指向准备保留的已接受源图，再清除其余候选。每个正式建筑只保留可编辑 `.blend`、模型预览、Depth/Body Depth、结构与精修提示/控制规格、被正式资产引用的 accepted raw + body/cutout + preview、入库元数据和总 manifest；删除未选 12/48 步 seed、`keyed/cleaned/anchored` 可再生中间层、联系表、`*_preview_48px.png`、`.blend1` 和 rejected/temp 目录。多形态环境物件若每个形态都已正式入库，则每个形态各保留一套最终 raw/cutout/模型，不能按“只留一张”误删；障碍物 raw 批量抠图统一使用通用 `finalize-isometric-obstacle-imagegen.py`，不得再复制道路等具体资产的专名脚本。清理不得触碰 `assets/terrain/` 正式图、lighting maps、运行时配置或其他任务目录。
 
 **标准命令骨架**：
 
@@ -129,14 +132,14 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
   tools\ai-gen\_settlement_building_pack_20260821\manifest.json `
   <building_id> <model.blend> <preview.png> <depth.png>
 
-& 'E:\无尽轮回\长期备份\2026-7-13-1\ComfyUI\.venv\Scripts\python.exe' `
-  tools\ai-gen\comfyui-gen.py `
-  --host 192.168.3.142 --model flux2-dev-depth `
-  --prompt-file <prompt.txt> --control-image <depth.png> `
-  --control-strength 0.88 --steps 12 --seed <seed> --out <s12_raw.png>
+python tools\ai-gen\generate-world122-building-candidates.py `
+  --stage structure --only <building_id> `
+  --out Y:\工作\无尽轮回\scratch\world122-buildings
 ```
 
-48 步在第二条命令上增加 `--init-image <accepted_s12_raw.png> --denoise 0.30` 并改为 `--steps 48`。若 5080 请求在沙箱内报 `WinError 10013`，这是网络权限问题，不代表 5080 离线；按授权流程重试，不擅自改用另一模型或绕过 Depth。
+48步仍使用同一脚本，改为 `--stage refine --init-image <accepted_s12_raw.png>`；标准参数由 manifest 注入，命令行不重复手写。每张候选旁必须保留 `_generation.json`，其 `styleVersion` 必须是 `world122-building-v2`、`styleTemplate` 必须是唯一正式模板且 `nonstandardOverride=false` 才能进入正式候选集；生成脚本会拒绝旧版或建筑私有画风入口。若5080请求在沙箱内报 `WinError 10013`，这是网络权限问题，不代表5080离线；按授权流程重试，不擅自改用另一模型或绕过 Depth。
+
+**接地过渡要求**：未来白模必须包含与墙体或扶壁相交的低矮勒脚石、门槛、柱脚压边等少量接地构件，避免垂直墙面直接切到道路；禁止用覆盖完整2×2的通用大地台掩盖。既有正式主体不重生成时，可单独建模渲染同相机、真透明的建筑专属接地覆盖层候选，用户确认后紧裁为与正式主体相同画布，并通过 `producer-buildings.json.groundContact` 登记 `textureKey/assetPath/displayW/displayH/footOffsetY`。运行时唯一层级是 `BuildingRoadSystem` 道路填充之上、建筑主体的 `rearFx` 之下；建造幽灵、镜像、战争迷雾、地图模式、压平视图和销毁必须同步。候选只使用门槛、墙脚石、扶壁脚块和少量贴墙碎石，不放独立箱桶、植被或高物件；覆盖层无碰撞、无占格、无寻路，不得参与主体 alpha 拟合、遮挡AABB或 `visualFootprint`。
 
 ##### World-122 建筑接地角验收：只测 Alpha 最外轮廓（2026-08-21）
 - **提示词、深度图和边缘图不是验收证据**：ImageGen 仍可能重建透视、改变多塔脚位置，或把“透明背景”画成不透明棋盘格；最终必须检查实际 PNG 像素。
@@ -144,7 +147,7 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
 - **唯一角度口径**：对真实 Alpha（建议 `alpha >= 128`）取最大外连通域，使用 `findContours(..., RETR_EXTERNAL)` + `approxPolyDP` 提取最下方接地折线；只测这条外轮廓的连续线段。标准 2×2 建筑的地面轴斜率为 `dy/dx = ±0.5`，即屏幕角 `±26.565°`，墙线必须垂直，所有塔脚/门槛必须位于同一地面。
 - **禁止用全图 Hough 线段判合格**：砖缝、窗框、屋檐或内部墙线常恰好接近 `±26°`，会掩盖真实塔脚回边达到 `+42°/+51°` 的错误；Hough 只能辅助找候选线，不能代替 Alpha 外轮廓验收。
 - **修正边界**：只有整栋建筑两组轴共享同一线性误差时才允许全局仿射；多塔脚各自漂移属于非线性透视，必须重抽、按白模表面投影，或在保持竖线垂直的前提下对实际外轮廓做分段几何映射，然后重新测量每一段。
-- **入库门槛**：背景必须是真实 RGBA；主体紧裁后等比缩放；稳定底座接地中心必须对齐固定 `256×128` footprint 中心，可见底边仅允许运行时契约规定的小范围外伸；`alpha>16` 主体应为单一主连通域且不能触碰画布边界。未确认候选不得覆盖 `assets/terrain/`，只有玩家明确接受的版本才能提升为稳定英文资产键；定稿入库后删除 raw、预览、控制图、遮罩和被否版本。
+- **入库门槛**：背景必须是真实 RGBA；主体紧裁后等比缩放；稳定底座接地中心必须对齐固定 `256×128` footprint 中心，可见底边仅允许运行时契约规定的小范围外伸；`alpha>16` 主体应为单一主连通域且不能触碰画布边界。未确认候选不得覆盖 `assets/terrain/`，只有玩家明确接受的版本才能提升为稳定英文资产键；定稿后按本节第9步保留最小可复现源集，删除被否版本和可再生中间层，不能把 accepted raw、最终 body/cutout 或运行时元数据一并误删。
 - **结构通过后的像素精修**：玩家已接受主体结构后，后续“降噪/提升饱和度”只改当前候选的 RGB，禁止重新生图改变窗户、阳台、底座或视角。处理必须锁住 alpha（输出 alpha 与输入逐像素一致），在主体 mask 内做边缘保护降噪与饱和度调整；每一轮百分比都以当轮输入为基准并保留可回退候选。安装时只覆盖稳定英文资产，逻辑 footprint、碰撞和道路衔接不得随像素处理改变。
 - **人工 RGBA 抠图优先保真**：玩家交回已经清理的 RGBA 时，先检查模式、alpha 范围和主体 bbox；alpha 合格就直接进入 `finalize-building-runtime.py`，禁止再次自动分割。若软边仍混有已知底色，用 `--matte-color '#RRGGBB'` 反推半透明边缘 RGB；若 alpha 内侧还有不透明底色细线，再增加 `--matte-edge-width <源图像素>` 与 `--matte-tolerance <RGB 距离>`。若半透明边缘 RGB 已被选择工具替换成纯蓝/纯色标记、无法按正常 matte 反推，则改用 `--nearest-opaque-edge-rgb`，以最近可靠不透明主体色修边；两种方式都只修 RGB，不改玩家 alpha。
 - **等比入库元数据契约**：`displayW` 由逻辑 footprint 和画面占比确定；`displayH` 必须按最终紧裁画布宽高比反算，`footOffsetY` 再从最终画布接地点计算。替换贴图时禁止沿用旧 `displayH` 强拉新图。alpha 自动拟合后若仍因厚地基或非对称画布偏移，才设置资产级 `anchorAdjustX/anchorAdjustY`；建造幽灵与正式实体必须同时消费这两个值。
@@ -1160,6 +1163,13 @@ defend 持盾帧右偏 13px。**结论：武器弧远超身体宽的动作，格
 - 多动作必须共用 idle 首帧量出的**全局缩放**：idle/walk/run 可逐帧稳定躯干和脚线；
   attack 保留相对首帧的 source-space X/Y 位移；dying 只把每帧落地，不逐帧放大倒地姿态。
   僵尸犬五动作由同一 BiRefNet 实例批处理后，空帧/越格/半透明/透明区RGB均为0。
+- **横向动作先做视频安全框参考图**：扑击、冲锋、前刺、长武器挥击不能直接把占画面
+  约80%的母图交给视频模型。用 `video-safe-reference.py` 将高幅横向动作主体宽度降至50%~55%，面向右时
+  主体中心放在画面35%~40%，峰值动作要求鼻尖/武器前方仍有至少20%空白、身后至少12%、
+  上下至少10%。提示词同时锁定 wide framing / never zoom or reframe。
+- **源视频边界是独立验收项**：必须逐帧检查生成视频主体 bbox；任一关键帧触碰原视频边界
+  就判失败并重生。BiRefNet 抠图后缩进更大 cell 得到 `edgeHitFrames=0`，只能证明精灵表没有
+  二次裁切，不能证明视频模型没有先切掉鼻、嘴、爪或武器；已经丢失的像素无法靠后处理恢复。
 
 #### 6. 验证（定量铁律，GLM 辅助）
 - CLEAN 判据：stray=0 / semi=0 / trans_nonblack=0 / edge_bright=0 /
@@ -1556,6 +1566,16 @@ defend 持盾帧右偏 13px。**结论：武器弧远超身体宽的动作，格
   不给 scaleX 会按贴图原尺寸放大数倍（实机探针实踩）。
 - 工具链：`gen-tree-iso2-assets.py` / `process-tree-iso2-assets.py` /
   `_blockout_specs/tree_iso2_*.json`；v1 等距卡通风版备份 `.bak-tree-iso1-20260815/`。
+
+**世界-123 雪原松树 V2（2026-08-24）**
+- 五个稳定键 `obstacle_snow_pine_01~05` 分别锁定直立密冠、左倾承雪、右倾断层、强风偏冠、
+  老龄疏枝；不得只换同一棵树的镜像来伪装形态差异。
+- 唯一正式入口为 `snow-pine-pack-blender.py` + `prompts/snow-pine-obstacle-v2.md`：可编辑模型先锁
+  树干曲线、枝层数量/缺口、风向和 44.8°/30° 相机，内置 ImageGen 只精修针叶、风化树皮与枝顶积雪，
+  再由 BiRefNet 重建真透明、紧身裁切并运行 `build-lighting-maps.py` 更新剪影。
+- 运行时统一 `obstacleH=390`，新图 w/h 写真实裁切尺寸；foot 按旧 foot×新 h÷旧 h 等比换算，
+  因此显示高度、碰撞、38 棵散布、360 最小间距、五形态等概率和 50% 随机镜像合同不变。
+- 模型、预览、正式母版、透明终稿与元数据保存在 `tools/ai-gen/_snow_pine_upgrade_20260824/`。
 
 ### ⭐ 地面无缝纹理统一入口：floor-asset.py（2026-08-16 定稿，泥/沙等平材质地面一律先走这里）
 

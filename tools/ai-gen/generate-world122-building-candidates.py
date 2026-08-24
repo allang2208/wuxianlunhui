@@ -19,16 +19,47 @@ DEFAULT_MANIFEST = REPO / "tools/ai-gen/world122-building-candidate-manifest.jso
 COMFY_PY = REPO.parent / "ComfyUI/.venv/Scripts/python.exe"
 BLENDER = Path("E:/Program Files/Blender Foundation/Blender 5.1/blender.exe")
 FOOTPRINT_FIT_SCALE = 1.42
+CANONICAL_STYLE_VERSION = "world122-building-v2"
+CANONICAL_STYLE_TEMPLATE = "tools/ai-gen/prompts/world122-building-style.md"
 
 
-def run(command: list[str], *, label: str) -> None:
+def run(command: list[str], *, label: str, timeout: int = 780) -> None:
     print(f"\n[{label}] {' '.join(command)}", flush=True)
-    result = subprocess.run(command, cwd=REPO, timeout=780)
+    result = subprocess.run(command, cwd=REPO, timeout=timeout)
     if result.returncode != 0:
         raise RuntimeError(f"{label} failed with exit code {result.returncode}")
 
 
-def prompt_for(asset: dict, stage: str = "legacy") -> str:
+def resolve_repo_file(value: str, *, label: str) -> Path:
+    path = Path(value)
+    if not path.is_absolute():
+        path = REPO / path
+    if not path.is_file():
+        raise FileNotFoundError(f"{label} missing: {path}")
+    return path
+
+
+def style_contract_for(manifest: dict) -> tuple[str, str, str]:
+    style_version = str(manifest.get("styleVersion", "")).strip()
+    style_template = str(manifest.get("styleTemplate", "")).strip()
+    if style_version != CANONICAL_STYLE_VERSION:
+        raise ValueError(
+            f"official building candidates require styleVersion={CANONICAL_STYLE_VERSION}; "
+            f"got {style_version or '<missing>'}"
+        )
+    if Path(style_template).as_posix() != CANONICAL_STYLE_TEMPLATE:
+        raise ValueError(
+            f"official building candidates require styleTemplate={CANONICAL_STYLE_TEMPLATE}; "
+            f"got {style_template or '<missing>'}"
+        )
+    style_path = resolve_repo_file(style_template, label="style template")
+    contract = style_path.read_text(encoding="utf-8").strip()
+    if not contract:
+        raise ValueError(f"style template is empty: {style_path}")
+    return style_version, style_template, contract
+
+
+def prompt_for(asset: dict, manifest: dict, stage: str = "legacy") -> str:
     if stage == "structure":
         request = asset.get("structureRequest", asset["primaryRequest"])
     elif stage == "refine":
@@ -49,11 +80,13 @@ Structure contract: preserve every major component indicated by the control silh
     palette_contract = ""
     if asset.get("paletteConstraint"):
         palette_contract = f"Palette lock: {asset['paletteConstraint']}\n"
+    style_version, _style_template, style_contract = style_contract_for(manifest)
     return f"""Use case: stylized-concept
 Asset type: World-122 RTS building body, previewed above the runtime 2x2 road-tile fill
+Pipeline/style version: {style_version}
 Primary request: exactly one {request}
 {stage_contract}
-{palette_contract}Style/medium: detailed but sober semi-realistic RTS building sprite matching the existing World-122 barracks; low-saturation realistic PBR materials; crisp readable roof tiles, stone courses and timber grain; no exaggerated fantasy ornament
+{palette_contract}{style_contract}
 Composition/framing: strictly follow the supplied depth-control silhouette and its orthographic 2.5D isometric view; centered; architecture ends exactly at the supplied ground line; all walls remain vertical; no perspective convergence
 Lighting/mood: evenly lit neutral studio lighting; no bloom; no cast shadow
 Scene/backdrop: perfectly uniform flat chroma-key green #00FF00 background filling the entire canvas; no horizon; no texture; no scenery
@@ -173,7 +206,9 @@ def generate_asset(asset: dict, manifest: dict, output_root: Path, variants: int
                    stage: str = "legacy", init_image: Path | None = None,
                    edge_image: Path | None = None, steps_override: int | None = None,
                    denoise_override: float | None = None, seed_override: int | None = None,
-                   use_edge_control: bool = False) -> None:
+                   use_edge_control: bool = False,
+                   generation_timeout: int | None = None,
+                   rebuild_derived: bool = False) -> None:
     asset_dir = output_root / asset["id"]
     asset_dir.mkdir(parents=True, exist_ok=True)
     prompt_suffix = "" if stage == "legacy" else f"_{stage}"
@@ -185,7 +220,7 @@ def generate_asset(asset: dict, manifest: dict, output_root: Path, variants: int
     control_edge = edge_image or generated_edge
     prompt = asset_dir / f"{asset['id']}{prompt_suffix}_prompt.txt"
     load_spec(asset, spec)
-    prompt.write_text(prompt_for(asset, stage), encoding="utf-8")
+    prompt.write_text(prompt_for(asset, manifest, stage), encoding="utf-8")
     if asset.get("controlImage"):
         source_depth = Path(asset["controlImage"])
         if not source_depth.is_absolute():
@@ -226,6 +261,17 @@ def generate_asset(asset: dict, manifest: dict, output_root: Path, variants: int
                    else float(manifest.get("refineDenoise", 0.30)))
         mask_edge_pad = int(manifest.get("maskEdgePad", 16))
 
+    request_timeout = int(generation_timeout or manifest.get("generationTimeout", 3600))
+    style_version, style_template, _style_contract = style_contract_for(manifest)
+    cfg = float(manifest.get("cfg", 3.5))
+    sampler = str(manifest.get("sampler", "euler"))
+    scheduler = str(manifest.get("scheduler", "simple"))
+    size = str(manifest.get("size", "1024x1024"))
+    standard_steps = int(manifest.get(
+        "structureSteps" if stage == "structure" else "refineSteps" if stage == "refine" else "steps",
+        12 if stage == "structure" else 48))
+    standard_denoise = float(manifest.get("refineDenoise", 0.30)) if stage == "refine" else None
+
     for variant in range(1, variants + 1):
         stage_tag = "" if stage == "legacy" else f"_{stage}"
         stem = f"{asset['id']}{stage_tag}_v{variant:02d}"
@@ -235,7 +281,8 @@ def generate_asset(asset: dict, manifest: dict, output_root: Path, variants: int
         anchored = asset_dir / f"{stem}_anchored.png"
         final = asset_dir / f"{stem}_body.png"
         preview = asset_dir / f"{stem}_preview.png"
-        if preview.exists():
+        generation_metadata = asset_dir / f"{stem}_generation.json"
+        if preview.exists() and not rebuild_derived:
             print(f"[{asset['id']} v{variant:02d}] already complete; skipping", flush=True)
             continue
         if seed_override is not None:
@@ -249,8 +296,11 @@ def generate_asset(asset: dict, manifest: dict, output_root: Path, variants: int
                 str(COMFY_PY), str(REPO / "tools/ai-gen/comfyui-gen.py"),
                 "--host", manifest["host"], "--model", manifest["model"],
                 "--steps", str(steps), "--control-image", str(depth),
+                "--cfg", str(cfg), "--sampler", sampler,
+                "--scheduler", scheduler, "--size", size,
                 "--bg-color", "#00FF00", "--seed", str(seed),
-                "--prompt-file", str(prompt), "--out", str(raw), "--timeout", "720",
+                "--prompt-file", str(prompt), "--out", str(raw),
+                "--timeout", str(request_timeout),
             ]
             if stage == "legacy" or not use_edge_control:
                 command.extend(["--strength", str(depth_strength)])
@@ -262,20 +312,54 @@ def generate_asset(asset: dict, manifest: dict, output_root: Path, variants: int
                 ])
             if stage == "refine":
                 command.extend(["--init-image", str(init_image), "--denoise", str(denoise)])
-            run(command, label=f"{asset['id']} {stage} v{variant:02d} generate")
-        if not keyed.exists():
-            run([str(COMFY_PY), str(REPO / "tools/ai-gen/key-world122-building-body.py"), str(raw), str(keyed)], label=f"{asset['id']} v{variant:02d} key")
-        if not cleaned.exists():
+            run(command, label=f"{asset['id']} {stage} v{variant:02d} generate",
+                timeout=request_timeout + 60)
+        generation_metadata.write_text(json.dumps({
+            "pipeline": "world122-building-candidates",
+            "styleVersion": style_version,
+            "styleTemplate": style_template,
+            "assetId": asset["id"],
+            "stage": stage,
+            "model": manifest["model"],
+            "size": size,
+            "steps": steps,
+            "cfg": cfg,
+            "sampler": sampler,
+            "scheduler": scheduler,
+            "depthStrength": depth_strength,
+            "edgeControl": bool(stage != "legacy" and use_edge_control),
+            "edgeStrength": edge_strength if stage != "legacy" and use_edge_control else None,
+            "denoise": denoise,
+            "seed": seed,
+            "promptFile": str(prompt.relative_to(REPO)) if prompt.is_relative_to(REPO) else str(prompt),
+            "depthImage": str(depth.relative_to(REPO)) if depth.is_relative_to(REPO) else str(depth),
+            "initImage": str(init_image) if init_image else None,
+            "nonstandardOverride": bool(
+                steps != standard_steps
+                or (stage == "refine" and abs(float(denoise) - standard_denoise) > 1e-9)
+            ),
+        }, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+        if rebuild_derived or not keyed.exists():
+            key_command = [str(COMFY_PY), str(REPO / "tools/ai-gen/key-world122-building-body.py"),
+                           str(raw), str(keyed)]
+            if asset.get("removeAllGreen"):
+                key_command.append("--remove-all-green")
+            run(key_command, label=f"{asset['id']} v{variant:02d} key")
+        if rebuild_derived or not cleaned.exists():
             run([str(COMFY_PY), str(REPO / "tools/ai-gen/remove-world122-building-pseudo-plinth.py"), str(keyed), str(cleaned)], label=f"{asset['id']} v{variant:02d} clean")
-        if not anchored.exists():
+        if rebuild_derived or not anchored.exists():
             run([str(COMFY_PY), str(REPO / "tools/ai-gen/anchor-world122-building-body.py"), str(cleaned), str(depth), str(anchored),
                  "--display-width", "256", "--display-height", "256", "--nominal-width", "256", "--nominal-height", "128"],
                 label=f"{asset['id']} v{variant:02d} anchor")
-        if not final.exists():
+        if rebuild_derived or not final.exists():
             run([str(COMFY_PY), str(REPO / "tools/ai-gen/mask-world122-building-body.py"),
                  str(anchored), str(depth), str(final), "--edge-pad", str(mask_edge_pad)],
                 label=f"{asset['id']} v{variant:02d} mask")
-        run([str(COMFY_PY), str(REPO / "tools/ai-gen/compose-world122-building-preview.py"), str(final), str(preview)], label=f"{asset['id']} v{variant:02d} preview")
+        preview_command = [str(COMFY_PY), str(REPO / "tools/ai-gen/compose-world122-building-preview.py"),
+                           str(final), str(preview)]
+        if asset.get("removeAllGreen"):
+            preview_command.append("--remove-all-green")
+        run(preview_command, label=f"{asset['id']} v{variant:02d} preview")
 
 
 def main() -> None:
@@ -295,11 +379,17 @@ def main() -> None:
     parser.add_argument("--steps", type=int, help="override the selected stage's step count")
     parser.add_argument("--denoise", type=float, help="override refine img2img denoise")
     parser.add_argument("--seed", type=int, help="first candidate seed; subsequent variants increment it")
+    parser.add_argument("--timeout", type=int,
+                        help="per-image ComfyUI wait timeout in seconds; default from manifest")
+    parser.add_argument("--rebuild-derived", action="store_true",
+                        help="rebuild keyed/cleaned/anchored/body/preview files from existing raw images")
+    parser.add_argument("--allow-nonstandard", action="store_true",
+                        help="allow step/denoise values outside the manifest contract; recorded in metadata")
     args = parser.parse_args()
     manifest = json.loads(args.manifest.read_text(encoding="utf-8"))
     output_root = args.out or Path(manifest["outputRoot"])
     if args.stage == "structure":
-        variants = args.variants or manifest.get("structureVariants", 10)
+        variants = args.variants or manifest.get("structureVariants", 5)
     elif args.stage == "refine":
         variants = args.variants or manifest.get("refineVariants", 3)
     else:
@@ -318,6 +408,19 @@ def main() -> None:
         parser.error("--denoise is valid only with --stage refine")
     if args.denoise is not None and not 0.0 < args.denoise <= 1.0:
         parser.error("--denoise must be in (0,1]")
+    expected_steps = (manifest.get("structureSteps", 12) if args.stage == "structure"
+                      else manifest.get("refineSteps", 48) if args.stage == "refine"
+                      else manifest.get("steps", 48))
+    if args.steps is not None and args.steps != int(expected_steps) and not args.allow_nonstandard:
+        parser.error(f"--steps {args.steps} breaks the standard {args.stage} contract "
+                     f"({expected_steps}); add --allow-nonstandard for an explicitly recorded experiment")
+    expected_denoise = float(manifest.get("refineDenoise", 0.30))
+    if (args.denoise is not None and abs(args.denoise - expected_denoise) > 1e-9
+            and not args.allow_nonstandard):
+        parser.error(f"--denoise {args.denoise} breaks the standard refine contract "
+                     f"({expected_denoise}); add --allow-nonstandard for an explicitly recorded experiment")
+    if args.timeout is not None and args.timeout < 60:
+        parser.error("--timeout must be at least 60 seconds")
     global list_index
     list_index = {a["id"]: i for i, a in enumerate(manifest["assets"])}
     if not COMFY_PY.exists():
@@ -335,6 +438,8 @@ def main() -> None:
             stage=args.stage, init_image=args.init_image, edge_image=args.edge_image,
             steps_override=args.steps, denoise_override=args.denoise, seed_override=args.seed,
             use_edge_control=args.edge_control or bool(manifest.get("useEdgeControl", False)),
+            generation_timeout=args.timeout,
+            rebuild_derived=args.rebuild_derived,
         )
     print("all requested candidates complete", flush=True)
 

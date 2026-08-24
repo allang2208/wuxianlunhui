@@ -1,0 +1,41 @@
+{
+  "source": "tools\\ai-gen\\_settlement_building_pack_20260821\\research_institute\\refine_48step_seed122215\\research_institute\\research_institute_refine_v02_body.png",
+  "output": "assets\\terrain\\research_institute.png",
+  "sourceMode": "RGBA",
+  "background": null,
+  "matteColor": null,
+  "matteEdgeWidth": null,
+  "matteTolerance": null,
+  "nearestOpaqueEdgeRgb": true,
+  "nearestOpaqueAlpha": 0.98,
+  "maskImage": null,
+  "maskDilate": null,
+  "fillAlphaHoles": false,
+  "fillHoleMatteDistance": null,
+  "removeEnclosedMatte": false,
+  "enclosedMatteChromaDistance": null,
+  "maskAddRects": [],
+  "restoreAlphaRects": [],
+  "removeMatteRects": [],
+  "cropBox": [
+    223,
+    242,
+    800,
+    858
+  ],
+  "fileSize": [
+    577,
+    616
+  ],
+  "alphaBBox": [
+    4,
+    4,
+    573,
+    612
+  ],
+  "displayW": 256,
+  "displayH": 273,
+  "footOffsetY": 135,
+  "scaleX": 0.4436741767764298,
+  "scaleY": 0.4431818181818182
+}

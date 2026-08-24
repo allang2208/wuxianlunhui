@@ -1,0 +1,25 @@
+{
+  "buildingId": "research_institute",
+  "candidateOnly": true,
+  "runtimeIntegrated": false,
+  "cameraContract": {
+    "elevation": 30.0,
+    "azimuth": 0.0,
+    "buildingRotationZ": 44.8,
+    "resolution": 1024,
+    "bottomY": 920,
+    "topMargin": 38,
+    "widthMargin": 0.742
+  },
+  "referenceCollection": "RESEARCH_INSTITUTE_ALIGNMENT_REFERENCE",
+  "overlayCollection": "RESEARCH_INSTITUTE_GROUND_CONTACT_EDITABLE_COMPONENTS",
+  "overlayObjectCount": 16,
+  "model": "tools\\ai-gen\\_settlement_building_pack_20260821\\research_institute_ground_contact\\research_institute_ground_contact_model.blend",
+  "modelPreview": "tools\\ai-gen\\_settlement_building_pack_20260821\\research_institute_ground_contact\\research_institute_ground_contact_model_preview.png",
+  "overlay1024": "tools\\ai-gen\\_settlement_building_pack_20260821\\research_institute_ground_contact\\research_institute_ground_contact_overlay_1024.png",
+  "notes": [
+    "No collision, occupancy, pathfinding or visualFootprint changes.",
+    "Overlay remains a candidate and is not loaded by runtime.",
+    "Reference building is retained only for editable alignment."
+  ]
+}

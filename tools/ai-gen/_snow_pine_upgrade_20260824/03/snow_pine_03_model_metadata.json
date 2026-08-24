@@ -1,0 +1,18 @@
+{
+  "id": "03",
+  "shape": "right_lean_broken_layers",
+  "styleVersion": "world123-obstacle-snow-pine-v2",
+  "camera": {
+    "elevation": 30,
+    "azimuth": 0,
+    "buildingRotationZ": 44.8,
+    "resolution": 1024,
+    "bottomY": 946,
+    "topMargin": 38,
+    "widthMargin": 0.8
+  },
+  "model": "tools\\ai-gen\\_snow_pine_upgrade_20260824\\03\\snow_pine_03.blend",
+  "preview": "tools\\ai-gen\\_snow_pine_upgrade_20260824\\03\\snow_pine_03_model_preview.png",
+  "runtimeTextureKey": "obstacle_snow_pine_03",
+  "collision": "preserve existing world footprint by resolution-ratio scaling after final alpha crop"
+}

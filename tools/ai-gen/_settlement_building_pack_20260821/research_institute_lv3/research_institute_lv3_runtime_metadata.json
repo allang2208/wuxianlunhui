@@ -1,0 +1,41 @@
+{
+  "source": "tools\\ai-gen\\_settlement_building_pack_20260821\\research_institute_lv3\\research_institute_lv3_refine_v02_body.png",
+  "output": "assets\\terrain\\research_institute_lv3.png",
+  "sourceMode": "RGBA",
+  "background": null,
+  "matteColor": null,
+  "matteEdgeWidth": null,
+  "matteTolerance": null,
+  "nearestOpaqueEdgeRgb": true,
+  "nearestOpaqueAlpha": 0.98,
+  "maskImage": null,
+  "maskDilate": null,
+  "fillAlphaHoles": false,
+  "fillHoleMatteDistance": null,
+  "removeEnclosedMatte": false,
+  "enclosedMatteChromaDistance": null,
+  "maskAddRects": [],
+  "restoreAlphaRects": [],
+  "removeMatteRects": [],
+  "cropBox": [
+    222,
+    74,
+    802,
+    858
+  ],
+  "fileSize": [
+    580,
+    784
+  ],
+  "alphaBBox": [
+    4,
+    4,
+    576,
+    780
+  ],
+  "displayW": 256,
+  "displayH": 346,
+  "footOffsetY": 171,
+  "scaleX": 0.4413793103448276,
+  "scaleY": 0.4413265306122449
+}

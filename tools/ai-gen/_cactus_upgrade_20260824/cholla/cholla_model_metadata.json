@@ -1,0 +1,18 @@
+{
+  "id": "cholla",
+  "styleVersion": "world122-obstacle-cactus-v2",
+  "sharedRenderContract": "world122-building-v2 material and lighting subset",
+  "camera": {
+    "elevation": 30,
+    "azimuth": 0,
+    "buildingRotationZ": 44.8,
+    "resolution": 1024,
+    "bottomY": 940,
+    "topMargin": 48,
+    "widthMargin": 0.78
+  },
+  "model": "tools\\ai-gen\\_cactus_upgrade_20260824\\cholla\\cholla.blend",
+  "preview": "tools\\ai-gen\\_cactus_upgrade_20260824\\cholla\\cholla_model_preview.png",
+  "runtimeTextureKey": "obstacle_cactus_cholla",
+  "collision": "preserve existing obstacle footprint contract until final alpha measurement"
+}
