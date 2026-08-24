@@ -195,9 +195,11 @@ export const StatusTooltipHelper = {
             }
             case 'mpRegen':
                 return `<div class="tt-title">魔法回复</div>
-                    <div class="tt-desc">每3秒自动恢复的魔法值。</div>
-                    ${formulaLine('当前回复', d.mpRegen || 0, '/3秒')}
-                    <div class="tt-note">精神与智力不直接影响魔法回复速率</div>`;
+                    <div class="tt-desc">战斗内外都会每秒自动恢复魔法值。</div>
+                    ${formulaLine('基础回复', 1, '/秒')}
+                    ${formulaLine('精神加成', (d.wis || 0) * 0.08, '/秒')}
+                    ${formulaLine('智力加成', (d.int || 0) * 0.02, '/秒')}
+                    ${formulaLine('当前回复', d.mpRegen || 0, '/秒')}`;
             case 'collisionRadius':
                 return `<div class="tt-title">碰撞体积</div>
                     <div class="tt-desc">角色与怪物、障碍物碰撞的有效半径。</div>

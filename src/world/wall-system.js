@@ -1255,8 +1255,11 @@ const WallSystem = {
         this.walls = this.walls.filter(w => !w._iso);
         // 门闸线段（_gate 房间门 / _chestGate 宝箱房门 / _arenaGate 竞技场通道门）由门实体自管生命周期，
         // 重建必须保留——此前全量清空会把入场门/宝箱房门的碰撞一并抹掉（门洞可穿的根因）；
-        // 世界-122 菱形地块边界段（_boundary，scene-manager._registerScene8Boundary）同样保留
-        this.isoSegments = (this.isoSegments || []).filter(s => s._gate || s._chestGate || s._arenaGate || s._boundary);
+        // 世界-122 菱形地块边界段（_boundary）与技能自管生命周期的临时冰墙（_iceWall）同样保留；
+        // 冰墙若被重建过程提前清掉，会出现视觉仍在但玩家/怪物/投射物突然穿墙。
+        this.isoSegments = (this.isoSegments || []).filter(
+            s => s._gate || s._chestGate || s._arenaGate || s._boundary || s._iceWall
+        );
         this._faceSegCache = null; // 衔接仲裁缓存随几何变更失效
         for (const p of this.isoVisuals) this._addPieceCollision(p);
     },

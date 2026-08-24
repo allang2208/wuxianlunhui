@@ -633,8 +633,12 @@ class Combatant extends DamageableEntity {
 
     // ==================== 受击 ====================
 
-    takeDamage(damage, source, damageType = 'physical', _isMelee = true) {
+    takeDamage(damage, source, damageType = 'physical', _isMelee = true, hitContext = null) {
         if (_isMelee && source && !canMeleeShareSurface(source, this)) return 0;
+        // 带施法快照的魔法由 DamageableEntity 统一掷暴击并应用倍率，避免本层与基类重复结算。
+        if ((damageType === 'magic' || damageType === 'electric') && hitContext) {
+            return super.takeDamage(damage, source, damageType, _isMelee, hitContext);
+        }
         // 计算暴击
         const critRate = (source && source.data && source.data.crit) || 0;
         const critRes = (this.data && this.data.critRes) || 0;
@@ -664,7 +668,7 @@ class Combatant extends DamageableEntity {
         }
 
         // 无人机易伤（伤害加成）由 DamageableEntity.takeDamage 统一应用，此处不再重复
-        super.takeDamage(finalDamage, source, damageType, _isMelee);
+        return super.takeDamage(finalDamage, source, damageType, _isMelee, hitContext);
     }
 }
 

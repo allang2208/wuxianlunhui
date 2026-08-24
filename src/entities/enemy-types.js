@@ -1058,12 +1058,12 @@ class RedWolfKing extends BlackWolf {
 
     // 变身期减伤（默认 90%，transform.damageReduction 可配）：
     // 在暴击计算前先砍掉伤害，让变身动画期间站着挨打也站得住。
-    takeDamage(damage, source, damageType = 'physical', _isMelee = true) {
+    takeDamage(damage, source, damageType = 'physical', _isMelee = true, hitContext = null) {
         if (this._isTransforming) {
             const reduction = this._transformCfg?.damageReduction ?? 0.9;
             damage = Math.max(0, Math.round(damage * (1 - reduction)));
         }
-        return super.takeDamage(damage, source, damageType, _isMelee);
+        return super.takeDamage(damage, source, damageType, _isMelee, hitContext);
     }
 
     // 双攻击绑定：近距离撕咬和中距离飞扑分别选择独立母版 sheet。

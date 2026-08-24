@@ -68,7 +68,11 @@ const DataLoader = {
         const rankMap = { normal: '普通', elite: '精英', boss: '首领' };
         for (const [id, data] of Object.entries(config)) {
             const families = getEnemyFamilies(data);
+            const idleLayout = data.textures?.frameLayouts?.idle || {};
             enemies[id] = {
+                // 保留 enemy-config.json 的完整条目，避免新增字段后图鉴转换层静默丢失。
+                // 下方字段只提供图鉴常用的规范化别名，不建立第二套数值真源。
+                ...this._cloneObject(data),
                 id,
                 name: data.name,
                 type: data.type || rankMap[data.rank] || '普通',
@@ -79,10 +83,10 @@ const DataLoader = {
                 size: data.size,
                 collisionRadius: data.collisionRadius,
                 hp: data.hp,
-                maxHp: data.maxHp,
+                maxHp: data.maxHp ?? data.hp,
                 speed: data.speed,
                 attackRange: data.attackRange,
-                attackCooldown: data.attack?.cooldown,
+                attackCooldown: data.attack?.cooldown ?? data.attackCooldown,
                 attackType: data.attackType || (data.attack?.type === 'thrust' ? '突刺' : data.attack?.type),
                 damageMin: data.attack?.damageMin,
                 damageMax: data.attack?.damageMax,
@@ -100,10 +104,10 @@ const DataLoader = {
                 equipShield: data.equipShield,
                 aiPhases: aiConfigData[id]?.phases,
                 idleTexture: data.textures?.idle || null,
-                idleFrameWidth: data.textures?.idleFrameWidth || null,
-                idleFrameHeight: data.textures?.idleFrameHeight || null,
-                idleFrameCount: data.textures?.idleFrameCount || null,
-                idleSheetColumns: data.textures?.idleSheetColumns || null,
+                idleFrameWidth: data.textures?.idleFrameWidth ?? idleLayout.frameWidth ?? null,
+                idleFrameHeight: data.textures?.idleFrameHeight ?? idleLayout.frameHeight ?? null,
+                idleFrameCount: data.textures?.idleFrameCount ?? idleLayout.frameCount ?? null,
+                idleSheetColumns: data.textures?.idleSheetColumns ?? idleLayout.columns ?? idleLayout.cols ?? null,
                 textures: data.textures || null,
                 render: data.render || null,
                 expValue: data.expValue ?? null,

@@ -9,6 +9,7 @@ import {
     getMagicMpCostMultiplier,
     getMagicCooldownMultiplier,
     getMagicDamageMultiplierWithChain,
+    createMagicCastContext,
     getMagicHealMultiplierWithChain,
     consumeChainSpellBonus,
     addChainSpellStack,
@@ -105,6 +106,7 @@ export class SanctuaryDomainSystem {
             return;
         }
         const chain = consumeChainSpellBonus(src);
+        this._castContext = createMagicCastContext(src, ce);
         if (!isSkillCheatEnabled() && this._isPlayer() && mpCost > 0) src.data.mp -= mpCost;
 
         const effect = { ...SANCTUARY_DEFAULTS, ...baseEffect, mpCost };
@@ -120,8 +122,8 @@ export class SanctuaryDomainSystem {
             }
             this._activateDomain(effect);
             EffectManager.add(new FloatingTextEffect(src.x, src.y - 40, '🌟 圣辉领域', '#ffd27a'));
-            addChainSpellStack(src);
-            applyCastHaste(src);
+            addChainSpellStack(src, this._castContext.craftEffects);
+            applyCastHaste(src, this._castContext.craftEffects);
         };
         if (this._isPlayer()) {
             this._startPlayerCast(doRelease);
@@ -163,7 +165,7 @@ export class SanctuaryDomainSystem {
         const effect = this._effect;
         if (!src || !src.active || !effect) return;
         const radius = effect.radius;
-        const d = src.data;
+        const d = this._castContext?.stats || src.data;
         const healAmount = Math.floor(
             ((effect.healBase ?? 0) + (d.wis ?? 0) * (effect.healWisMul ?? 0)) * this._healMul
         );
@@ -195,7 +197,7 @@ export class SanctuaryDomainSystem {
                 dmg = Math.floor(dmg * effect.zombieDamageMul);
             }
             const wasAlive = e.hp > 0;
-            e.takeDamage(dmg, src, 'magic', false);
+            e.takeDamage(dmg, src, 'magic', false, this._castContext);
             tickHits++;
             this._acc.hits++;
             if (wasAlive && e.hp <= 0 && !e._summoned) this._acc.kills++;
@@ -275,6 +277,7 @@ export class SanctuaryDomainSystem {
         this._tickTimer = 0;
         this._cleanseTimer = 0;
         this._effect = null;
+        this._castContext = null;
         this._acc = { hits: 0, kills: 0, heals: 0, multiHit: false };
     }
 
@@ -290,6 +293,7 @@ export class SanctuaryDomainSystem {
         this._tickTimer = 0;
         this._cleanseTimer = 0;
         this._effect = null;
+        this._castContext = null;
         this._acc = { hits: 0, kills: 0, heals: 0, multiHit: false };
     }
 }

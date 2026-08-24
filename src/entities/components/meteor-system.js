@@ -14,6 +14,7 @@ import {
     getMagicMpCostMultiplier,
     getMagicCooldownMultiplier,
     getMagicDamageMultiplierWithChain,
+    createMagicCastContext,
     consumeChainSpellBonus,
     addChainSpellStack,
     applyCastHaste,
@@ -107,6 +108,7 @@ export class MeteorSystem {
             return;
         }
         const chain = consumeChainSpellBonus(src);
+        const castContext = createMagicCastContext(src, ce);
         if (!isSkillCheatEnabled() && this._isPlayer() && mpCost > 0) src.data.mp -= mpCost;
         effect.mpCost = mpCost;
         effect.cooldown = effect.cooldown * getMagicCooldownMultiplier(src, ce);
@@ -119,10 +121,10 @@ export class MeteorSystem {
             if (castSounds && SoundManager && typeof SoundManager.playFile === 'function') {
                 (Array.isArray(castSounds) ? castSounds : [castSounds]).forEach(p => SoundManager.playFile(p));
             }
-            this._spawnStrike(aimX, aimY, effect, surfaceContext);
+            this._spawnStrike(aimX, aimY, effect, surfaceContext, castContext);
             EffectManager.add(new FloatingTextEffect(src.x, src.y - entitySurfaceZ(src) - 40, '☄ 陨星坠落', '#ff8f7a'));
-            addChainSpellStack(src);
-            applyCastHaste(src);
+            addChainSpellStack(src, castContext.craftEffects);
+            applyCastHaste(src, castContext.craftEffects);
         };
         if (this._isPlayer()) {
             this._startPlayerCast(doRelease);
@@ -131,10 +133,10 @@ export class MeteorSystem {
         }
     }
 
-    _spawnStrike(x, y, effect, surfaceContext = null) {
+    _spawnStrike(x, y, effect, surfaceContext = null, castContext = null) {
         const src = this.source;
         const acc = { hits: 0, kills: 0, multiHit: false };
-        const d = src.data;
+        const d = castContext?.stats || src.data;
         surfaceContext ||= surfaceEffectFromEntity(src);
 
         // 爆炸命中结算：范围伤害（中心全额→边缘 50% 距离衰减）+ 击退 + 叠灼伤
@@ -156,7 +158,7 @@ export class MeteorSystem {
                 const dist = Math.sqrt((e.x - ix) ** 2 + (e.y - iy) ** 2);
                 const distRatio = 1 - Math.min(dist / effect.explosionRadius, 1);
                 const finalDamage = Math.floor(damage * (0.5 + 0.5 * distRatio));
-                e.takeDamage(finalDamage, src, 'magic', false);
+                e.takeDamage(finalDamage, src, 'magic', false, castContext);
                 // 灼伤：爆炸固有 3 层（烈焰吊坠的增伤倍率走 applyBurn damageMul）
                 if (effect.burnStacks && typeof e.applyBurn === 'function') {
                     e.applyBurn(src, effect.burnStacks, effect.burnDurationMs, effect.burnDamageMul, 500);
@@ -194,7 +196,7 @@ export class MeteorSystem {
                 if (e._faction === src._faction) continue;
                 if (!shape.intersectsEntity(e)) continue;
                 const wasAlive = e.hp > 0;
-                e.takeDamage(tickDamage, src, 'magic', false);
+                e.takeDamage(tickDamage, src, 'magic', false, castContext);
                 if (effect.lavaBurnStacks && typeof e.applyBurn === 'function') {
                     e.applyBurn(src, effect.lavaBurnStacks, effect.lavaBurnDurationMs, effect.lavaBurnDamageMul, 500);
                 }

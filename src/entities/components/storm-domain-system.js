@@ -11,6 +11,7 @@ import {
     getMagicMpCostMultiplier,
     getMagicCooldownMultiplier,
     getMagicDamageMultiplierWithChain,
+    createMagicCastContext,
     consumeChainSpellBonus,
     addChainSpellStack,
     applyCastHaste,
@@ -94,6 +95,7 @@ export class StormDomainSystem {
             return;
         }
         const chain = consumeChainSpellBonus(src);
+        this._castContext = createMagicCastContext(src, ce);
         if (!isSkillCheatEnabled() && this._isPlayer() && mpCost > 0) src.data.mp -= mpCost;
 
         const effect = { ...STORM_DEFAULTS, ...baseEffect, mpCost };
@@ -108,8 +110,8 @@ export class StormDomainSystem {
             }
             this._activateCloud(effect);
             EffectManager.add(new FloatingTextEffect(src.x, src.y - 40, '🌩️ 雷暴领域', '#b98cff'));
-            addChainSpellStack(src);
-            applyCastHaste(src);
+            addChainSpellStack(src, this._castContext.craftEffects);
+            applyCastHaste(src, this._castContext.craftEffects);
         };
         if (this._isPlayer()) {
             this._startPlayerCast(doRelease);
@@ -140,7 +142,7 @@ export class StormDomainSystem {
         const effect = this._effect;
         if (!effect) return;
         const radius = effect.radius;
-        const d = src.data;
+        const d = this._castContext?.stats || src.data;
         const damageMul = this._magicDamageMul || 1;
         const baseDamage = Math.floor(
             effect.strikeDamageBase
@@ -192,7 +194,7 @@ export class StormDomainSystem {
                 jitter: 0.10,
             }));
             this._spawnHitFx(target, decayMul);
-            target.takeDamage(finalDamage, src, 'electric', false);
+            target.takeDamage(finalDamage, src, 'electric', false, this._castContext);
             if (typeof target.applyElectrified === 'function') {
                 target.applyElectrified(effect.electrifyStacks, effect.electrifyDurationMs, src);
             }
@@ -310,6 +312,7 @@ export class StormDomainSystem {
         this._remaining = 0;
         this._strikeTimer = 0;
         this._effect = null;
+        this._castContext = null;
         this._acc = { hits: 0, kills: 0, multiHit: false };
     }
 
@@ -324,6 +327,7 @@ export class StormDomainSystem {
         this._remaining = 0;
         this._strikeTimer = 0;
         this._effect = null;
+        this._castContext = null;
         this._acc = { hits: 0, kills: 0, multiHit: false };
     }
 }

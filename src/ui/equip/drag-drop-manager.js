@@ -439,13 +439,7 @@ export function createDragDropManager(EquipManager) {
                             const eKey = targetSlot;
                             const item = CraftSystem._equippedItem;
                             if (!item) return;
-                            const isWeaponSlot = (eKey === 'weapon' || eKey === 'weapon2');
-                            const isOffhandSlot = (eKey === 'offhand' || eKey === 'ring2');
-                            const isWeaponItem = item.weaponType || (item.category && item.category.includes('weapon')) || item.rangedType;
-                            if (isWeaponItem && !isWeaponSlot && !isOffhandSlot) return;
-                            if (isWeaponSlot && !isWeaponItem) return;
-                            if (!isWeaponSlot && !isOffhandSlot && item.equipSlot !== eKey) return;
-                            if (item.isTwoHanded && isOffhandSlot) return;
+                            if (!this._canEquipSlot(item, eKey)) return;
                             // 先确认背包有空位安置被替换的装备，再动改造槽/装备栏——
                             // 背包满时中止装备（物品留在改造槽），避免被换下装备无处可去而消失
                             const cur = this.player.equipments[eKey];
@@ -506,17 +500,7 @@ export function createDragDropManager(EquipManager) {
                             const sIdx = parseInt(src.slot);
                             const item = this.backpackItems.find(i => i.slot === sIdx);
                             if (!item) return;
-                            const isWeaponSlot = (targetSlot === 'weapon' || targetSlot === 'weapon2');
-                            const isOffhandSlot = (targetSlot === 'offhand' || targetSlot === 'ring2');
-                            const isWeaponItem = item.weaponType || (item.category && item.category.includes('weapon')) || item.rangedType;
-                            if (isWeaponItem && !isWeaponSlot && !isOffhandSlot) return;
-                            if (isWeaponSlot && !isWeaponItem) return;
-                            // 盾类只能装备到副手栏
-                            if (item.weaponType === 'shield' && !isOffhandSlot) return;
-                            // 双手武器不能装备到副手栏
-                            if (item.isTwoHanded && isOffhandSlot) return;
-                            if (!isWeaponSlot && !isOffhandSlot && item.equipSlot !== targetSlot) return;
-                            if (item.isTwoHanded && isOffhandSlot) return;
+                            if (!this._canEquipSlot(item, targetSlot)) return;
                             const cur = this.player.equipments[targetSlot];
                             const removeIdx = this.backpackItems.findIndex(i => i.slot === sIdx);
                             if (removeIdx !== -1) this.backpackItems.splice(removeIdx, 1);
@@ -707,15 +691,7 @@ export function createDragDropManager(EquipManager) {
                             if (!sellItem) return;
                             const item = sellItem.item;
                             const eKey = targetSlot;
-                            const isWeaponSlot = (eKey === 'weapon' || eKey === 'weapon2');
-                            const isOffhandSlot = (eKey === 'offhand' || eKey === 'ring2');
-                            const isWeaponItem = item.weaponType || (item.category && item.category.includes('weapon')) || item.rangedType;
-                            if (isWeaponItem && !isWeaponSlot && !isOffhandSlot) return;
-                            if (isWeaponSlot && !isWeaponItem) return;
-                            // 盾类只能装备到副手栏
-                            if (item.weaponType === 'shield' && !isOffhandSlot) return;
-                            if (!isWeaponSlot && !isOffhandSlot && item.equipSlot !== eKey) return;
-                            if (item.isTwoHanded && isOffhandSlot) return;
+                            if (!this._canEquipSlot(item, eKey)) return;
                             const cur = this.player.equipments[eKey];
                             if (cur && cur.name) {
                                 const usedSlots = new Set(this.backpackItems.map(i => i.slot));

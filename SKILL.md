@@ -14,8 +14,8 @@
 | `skill/01-core-rules.md` | 1. 项目总览与通用铁律 |
 | `skill/02-ai-asset-pipeline.md` | 2. AI 资产与出图管线 |
 | `skill/03-player-weapon-anim.md` | 3. 玩家角色与武器动画 |
-| `skill/04-weapons-equipment.md` | 4. 武器与装备系统 |
-| `skill/05-skills-combat.md` | 5. 技能与战斗系统 |
+| `skill/04-weapons-equipment.md` | 4. 武器与装备系统（含主副手/施法媒介契约） |
+| `skill/05-skills-combat.md` | 5. 技能与战斗系统（含魔法施法快照/统一结算） |
 | `skill/06-dungeon-scene.md` | 6. 地牢与场景构建 |
 | `skill/07-world122-defense.md` | 7. 世界-122 防守地图 |
 | `skill/08-pathfinding-movement.md` | 8. AI 寻路、碰撞与移动 |
@@ -30,6 +30,7 @@
 ## 维护规则（防膨胀）
 
 - 新教训/新管线：写进对应分卷（lessons 写 lessons.md），条目只写结论与参数，不写过程流水
+- 尚未实施的未来功能、延后优化和技术债：统一写入仓库根目录 `TODO.md`；完成后从 TODO 移除并在 `CHANGELOG.md` 记录结果，不把待办混入 SKILL 正文或伪装成已完成进度
 - 日期式进度总结：只进 CHANGELOG.md / skill/13-history-appendix.md，不进正文
 - 单分卷超 80KB 时再按小节拆
 
@@ -163,6 +164,7 @@
 
 **9. 怪物与 NPC** → `skill/09-monsters-npc.md`
 - 流水线流程（以后每个新角色/怪物都走这套）
+- 怪物配置、运行时与图鉴同源合同（基础属性、双等级语义、机制参数、贴图与删除闭环）
 - 新增两足人形怪体量基准（2026-08-23：统一以当前矿工僵尸的可见身高、脚线和 36.3px footprint 为准；不追溯旧怪）
 - 怪物共享基础件（2026-07-21 新增，新怪物优先复用）
 - 怪物 AI 状态机（BlackWolf 示例）
@@ -178,6 +180,7 @@
 
 **10. UI、面板与组队系统** → `skill/10-ui-party.md`
 - ⭐ 冷钢档案 UI 标准工作流（2026-08-21 定稿，新增或修改玩家 UI 一律先读）
+- 怪物图鉴冷钢响应式与滚动职责合同
 - HUD 状态安全区、地牢小地图规格与路线左侧信息栈顺序（2026-08-23：地牢150×150小地图、Buff/Debuff 四列避让区、全屏流程隐藏、奖励→入侵→当前地牢、属性点末位）
 - 常驻GameScene切场小地图合同（2026-08-23：附属层恢复先查场景资格，提交场景后先应用zoom再清节流原子重画）
 - 面板生命周期框架（2026-07-21 新增，新面板优先复用）

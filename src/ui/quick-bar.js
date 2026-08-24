@@ -6,7 +6,7 @@ import { TimerManager } from '../utils/timer-manager.js';
 import { GAME_CONFIG } from '../config/game-config.js';
 import { applyConsumableEffect } from '../config/consumable.js';
 import { getMagicCooldownMultiplier } from '../utils/magic-craft-helper.js';
-import { getSkillMagicTier, meetsMagicWeaponReq } from '../config/magic-categories.js';
+import { getSkillMagicCategory, getSkillMagicTier, meetsMagicWeaponReq } from '../config/magic-categories.js';
 import { isSkillCheatEnabled } from '../config/dev-cheats.js';
 
 export const QUICK_BAR_CONFIG = [
@@ -785,12 +785,10 @@ export const QuickBar = {
      */
     _getTotalCooldown(skillId, skill, effect) {
         const baseMs = (effect.cooldown || 0) * 1000;
-        if (!['iceSpike', 'fireball', 'lightningStrike', 'holyLight', 'iceWall', 'stormDomain', 'thunderLance', 'sanctuaryDomain', 'holyJudgment'].includes(skillId)) return baseMs;
+        if (!getSkillMagicCategory(skillId)) return baseMs;
         const player = Game.player;
         if (!player) return baseMs;
-        const currentWpn = player.equipments && player.equipments[player.weaponMode];
-        const ce = currentWpn && currentWpn._craftEffects;
-        return Math.max(0, baseMs * getMagicCooldownMultiplier(player, ce));
+        return Math.max(0, baseMs * getMagicCooldownMultiplier(player));
     },
 
     _flashAllCooldownSlots() {

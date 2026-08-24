@@ -8,8 +8,8 @@ import { createGroundWarning, destroyWarning } from '../../effects/combat-fx.js'
 /**
  * 胖子僵尸（FatZombie）
  * - 近战重击，移动缓慢
- * - 自带 50×25 腐蚀区域，敌对目标进入后每 0.5 秒受到 8 点魔法伤害
- * - 死亡后播放 melting 动画并保留最后一帧 6 秒
+ * - 腐蚀区域的伤害、节拍与尺寸统一读取 enemy-config.json
+ * - 死亡动画结束后，尸体会留下更大的持续伤害区域
  */
 export class FatZombie extends Enemy {
     constructor(x, y, config = {}) {
@@ -31,26 +31,28 @@ export class FatZombie extends Enemy {
         this._attackAnimTimer = 0;
         this._attackDuration = 1000; // 攻击动画持续 1s
 
+        const corrosionAura = this.config?.attackSkills?.corrosionAura || {};
+
         // 死亡动画/尸体保留
         this._preserveCorpse = true;
-        this._deathAnimDuration = 1500;
-        this._corpseDuration = 6000;
+        this._deathAnimDuration = corrosionAura.deathAnimMs ?? 1500;
+        this._corpseDuration = corrosionAura.corpseDuration ?? 6000;
         this._deathAnimTimer = 0;
         this._corpseTimer = 0;
         this._deathAnimPlayed = false;
 
         // 腐蚀区域
         this._auraTimer = 0;
-        this._auraInterval = 500; // 0.5s
-        this._auraWidth = 50;
-        this._auraHeight = 25;
-        this._auraDamage = 8;
+        this._auraInterval = corrosionAura.intervalMs ?? 500;
+        this._auraWidth = corrosionAura.width ?? 50;
+        this._auraHeight = corrosionAura.height ?? 25;
+        this._auraDamage = corrosionAura.damage ?? 8;
         // 尸体阶段腐蚀区域更大；中心对齐尸体脚底（entity.y），不再向下偏移，
         // 之前 offsetY=70 导致判定区域与尸体贴图错开。
         // 死亡后腐蚀半径增加一倍（rx=100, ry=25）。
-        this._corpseAuraWidth = 200;
-        this._corpseAuraHeight = 50;
-        this._corpseAuraOffsetY = 0;
+        this._corpseAuraWidth = corrosionAura.corpseWidth ?? 200;
+        this._corpseAuraHeight = corrosionAura.corpseHeight ?? 50;
+        this._corpseAuraOffsetY = corrosionAura.corpseOffsetY ?? 0;
 
         // 前倾/攻击时的 footprint 重心偏移（屏幕 X 方向），可在 enemy-config.json render 中覆盖
         const render = this.config?.render || {};
@@ -239,7 +241,7 @@ export class FatZombie extends Enemy {
         this._deathAnimTimer = this._deathAnimDuration;
         this._corpseTimer = 0;
         this._deathAnimPlayed = false;
-        // 延迟删除：动画 1.5s + 尸体 6s + 缓冲
+        // 延迟删除：死亡动画 + 尸体毒域持续时间 + 缓冲
         this._deathTime = Date.now();
         this._deathRemoveDelay = this._deathAnimDuration + this._corpseDuration + 500;
 

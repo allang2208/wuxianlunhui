@@ -59,6 +59,13 @@ const CodexManager = {
         this.renderMonsterCategoryTabs();
         this.renderMonsterGrid();
         this.renderAllyGrid();
+        if (this.detailItem && this.currentSection === 'monster') {
+            const current = this.getMonsterById(this.detailItem.id);
+            if (current) {
+                this.detailItem = current;
+                this.renderMonsterDetail(current);
+            }
+        }
     },
 
     syncEquipDatabase() {
@@ -90,8 +97,12 @@ const CodexManager = {
     renderMainTabs() {
         const tabs = queryAllElements('.codex-main-tab');
         tabs.forEach(tab => {
-            tab.classList.toggle('active', tab.dataset.section === this.currentSection);
+            const isActive = tab.dataset.section === this.currentSection;
+            tab.classList.toggle('active', isActive);
+            tab.setAttribute('aria-selected', String(isActive));
+            tab.tabIndex = 0;
             tab.onclick = () => {
+                if (this.currentSection !== tab.dataset.section) this.closeDetail();
                 this.currentSection = tab.dataset.section;
                 this.renderMainTabs();
                 this.showSection(this.currentSection);
@@ -100,8 +111,10 @@ const CodexManager = {
     },
 
     showSection(section) {
-        getElement('codexEquipLayout').classList.toggle('active', section === 'equipment');
-        getElement('codexMonsterLayout').classList.toggle('active', section === 'monster');
+        const equip = getElement('codexEquipLayout');
+        const monster = getElement('codexMonsterLayout');
+        if (equip) equip.classList.toggle('active', section === 'equipment');
+        if (monster) monster.classList.toggle('active', section === 'monster');
         const ally = getElement('codexAllyLayout');
         if (ally) ally.classList.toggle('active', section === 'ally');
     },
@@ -110,7 +123,7 @@ const CodexManager = {
         const container = getElement('codexCatTabs');
         if (!container) return;
         container.innerHTML = this.equipCategories.map(c =>
-            `<div class="codex-cat-tab ${c.key === this.currentEquipCategory ? 'active' : ''}" data-cat="${c.key}">${c.label}</div>`
+            `<button type="button" role="tab" aria-selected="${c.key === this.currentEquipCategory}" class="codex-cat-tab ${c.key === this.currentEquipCategory ? 'active' : ''}" data-cat="${this._escapeHtml(c.key)}">${this._escapeHtml(c.label)}</button>`
         ).join('');
         container.querySelectorAll('.codex-cat-tab').forEach(tab => {
             tab.addEventListener('click', () => {
@@ -125,22 +138,34 @@ const CodexManager = {
         const grid = getElement('codexGrid');
         if (!grid) return;
         const items = this.getEquipByCategory(this.currentEquipCategory);
+        if (!items.length) {
+            grid.innerHTML = '<div class="codex-empty-state">此分类暂无装备档案</div>';
+            return;
+        }
         grid.innerHTML = items.map(item => {
             const iconHtml = item.iconImage
-                ? `<img src="${item.iconImage}" alt="${item.icon}" onerror="this.style.display='none';this.parentElement.textContent='${item.icon}';">`
-                : item.icon;
-            return `<div class="codex-card" data-id="${item.name}" onclick="CodexManager.openEquipDetail('${item.name}')">
+                ? `<img src="${this._escapeHtml(item.iconImage)}" alt="${this._escapeHtml(item.icon || '')}">`
+                : this._escapeHtml(item.icon || '');
+            return `<button type="button" class="codex-card" data-id="${this._escapeHtml(item.name)}" aria-label="查看${this._escapeHtml(item.name)}详情">
                 <div class="cc-icon">${iconHtml}</div>
-                <div class="cc-name">${item.name}</div>
-                <div class="cc-type">${item.type}</div>
-            </div>`;
+                <div class="cc-name">${this._escapeHtml(item.name)}</div>
+                <div class="cc-type">${this._escapeHtml(item.type || '')}</div>
+            </button>`;
         }).join('');
+        grid.querySelectorAll('.cc-icon img').forEach(img => {
+            img.addEventListener('error', () => {
+                if (img.parentElement) img.parentElement.textContent = img.alt || '·';
+            }, { once: true });
+        });
+        grid.querySelectorAll('.codex-card').forEach(card => {
+            card.addEventListener('click', () => this.openEquipDetail(card.dataset.id));
+        });
     },
 
     _buildMonsterCategories() {
         const families = new Set();
-        if (ENEMY_DATA) {
-            Object.values(ENEMY_DATA).forEach(e => {
+        if (this.monsterDatabase) {
+            Object.values(this.monsterDatabase).forEach(e => {
                 for (const family of getEnemyFamilies(e)) families.add(family);
             });
         }
@@ -154,7 +179,7 @@ const CodexManager = {
         const container = getElement('codexMonsterCatTabs');
         if (!container) return;
         container.innerHTML = this.monsterCategories.map(c =>
-            `<div class="codex-cat-tab ${c.key === this.currentMonsterCategory ? 'active' : ''}" data-cat="${c.key}">${c.label}</div>`
+            `<button type="button" role="tab" aria-selected="${c.key === this.currentMonsterCategory}" class="codex-cat-tab ${c.key === this.currentMonsterCategory ? 'active' : ''}" data-cat="${this._escapeHtml(c.key)}">${this._escapeHtml(c.label)}</button>`
         ).join('');
         container.querySelectorAll('.codex-cat-tab').forEach(tab => {
             tab.addEventListener('click', () => {
@@ -169,14 +194,22 @@ const CodexManager = {
         const grid = getElement('codexMonsterGrid');
         if (!grid) return;
         const items = this.getMonsterByCategory(this.currentMonsterCategory);
+        if (!items.length) {
+            grid.innerHTML = '<div class="codex-empty-state">此分类暂无怪物档案</div>';
+            return;
+        }
         grid.innerHTML = items.map(item => {
             const iconHtml = this._renderCodexIcon(item, 36);
-            return `<div class="codex-card codex-monster-card" data-id="${item.id}" onclick="CodexManager.openMonsterDetail('${item.id}')">
+            const combatLevel = CodexFormulaHelper.calculateCombatStats(item).combatLevel;
+            return `<button type="button" class="codex-card codex-monster-card" data-id="${this._escapeHtml(item.id)}" aria-label="查看${this._escapeHtml(item.name)}详情">
                 <div class="cc-icon">${iconHtml}</div>
-                <div class="cc-name">${item.name}</div>
-                <div class="cc-type">${item.type}</div>
-            </div>`;
+                <div class="cc-name">${this._escapeHtml(item.name)}</div>
+                <div class="cc-type">${this._escapeHtml(item.type || '')} · 战力 Lv.${combatLevel}</div>
+            </button>`;
         }).join('');
+        grid.querySelectorAll('.codex-card').forEach(card => {
+            card.addEventListener('click', () => this.openMonsterDetail(card.dataset.id));
+        });
     },
 
     getMonsterByCategory(cat) {
@@ -225,17 +258,25 @@ const CodexManager = {
     renderAllyGrid() {
         const grid = getElement('codexAllyGrid');
         if (!grid) return;
-        grid.innerHTML = this._allyList().map((c) => {
+        const allies = this._allyList();
+        if (!allies.length) {
+            grid.innerHTML = '<div class="codex-empty-state">暂无友军档案</div>';
+            return;
+        }
+        grid.innerHTML = allies.map((c) => {
             const anim = c.animations && c.animations.idle;
             const iconHtml = anim
                 ? this._renderCodexIcon({ idleTexture: anim.src, idleFrameWidth: anim.frameWidth, idleSheetColumns: anim.cols, color: '#4a7a8a' }, 36)
-                : `<span>${c.avatar || '🐹'}</span>`;
-            return `<div class="codex-card codex-ally-card" data-id="${c.id}" onclick="CodexManager.openAllyDetail('${c.id}')">
+                : `<span>${this._escapeHtml(c.avatar || '🐹')}</span>`;
+            return `<button type="button" class="codex-card codex-ally-card" data-id="${this._escapeHtml(c.id)}" aria-label="查看${this._escapeHtml(c.name)}详情">
                 <div class="cc-icon">${iconHtml}</div>
-                <div class="cc-name">${c.name}</div>
-                <div class="cc-type">${c.title || '友军'}</div>
-            </div>`;
+                <div class="cc-name">${this._escapeHtml(c.name)}</div>
+                <div class="cc-type">${this._escapeHtml(c.title || '友军')}</div>
+            </button>`;
         }).join('');
+        grid.querySelectorAll('.codex-card').forEach(card => {
+            card.addEventListener('click', () => this.openAllyDetail(card.dataset.id));
+        });
     },
 
     openAllyDetail(id) {
@@ -245,13 +286,12 @@ const CodexManager = {
         const title = getElement('codexDetailTitle');
         if (title) title.textContent = c.name;
         this.renderAllyDetail(c);
+        this._openDetailShell();
     },
 
     renderAllyDetail(c) {
         const body = getElement('codexDetailBody');
         if (!body) return;
-        body.style.overflowY = 'auto';
-        body.style.maxHeight = 'calc(100vh - 200px)';
         const base = c.baseData || {};
         const ai = c.ai || {};
         const stats = CodexFormulaHelper.calculateCombatStats(base); // statFormula:'enemy' 同口径
@@ -310,6 +350,7 @@ const CodexManager = {
         const title = getElement('codexDetailTitle');
         if (title) title.textContent = item.name;
         this.renderEquipDetail(item);
+        this._openDetailShell();
     },
 
     openMonsterDetail(monsterId) {
@@ -319,14 +360,24 @@ const CodexManager = {
         const title = getElement('codexDetailTitle');
         if (title) title.textContent = item.name;
         this.renderMonsterDetail(item);
+        this._openDetailShell();
     },
 
     closeDetail() {
         this.detailItem = null;
         const body = getElement('codexDetailBody');
         const title = getElement('codexDetailTitle');
-        if (body) body.innerHTML = '<div style="color:#8a7d6b;text-align:center;padding:40px 20px;">点击左侧条目查看详情</div>';
+        const wrapper = getElement('codexWrapper');
+        if (wrapper) wrapper.classList.remove('is-detail-open');
+        if (body) body.innerHTML = '<div class="codex-empty-state">从左侧选择条目查看档案详情</div>';
         if (title) title.textContent = '详情';
+    },
+
+    _openDetailShell() {
+        const wrapper = getElement('codexWrapper');
+        if (wrapper) wrapper.classList.add('is-detail-open');
+        const body = getElement('codexDetailBody');
+        if (body) body.scrollTop = 0;
     },
 
     renderEquipDetail(item) {
@@ -571,34 +622,41 @@ const CodexManager = {
     renderMonsterDetail(item) {
         const body = getElement('codexDetailBody');
         if (!body) return;
-        body.style.overflowY = 'auto';
-        body.style.maxHeight = 'calc(100vh - 200px)';
 
-        const liveData = (ENEMY_DATA && item.id && ENEMY_DATA[item.id]) ? ENEMY_DATA[item.id] : {};
+        const liveData = (item.id && this.monsterDatabase[item.id]) ? this.monsterDatabase[item.id] : {};
         const d = { ...item, ...liveData };
+        const stats = CodexFormulaHelper.calculateCombatStats(d);
+        const combatLevel = CodexFormulaHelper.calculateCombatLevelBreakdown(d);
+        const movement = CodexFormulaHelper.calculateEffectiveSpeed(d);
 
         let html = '';
         const iconHtml = this._renderCodexIcon(d, 64);
         // 家族标签
         const familyTags = getEnemyFamilies(d)
-            .map(family => `<span class="cd-family-tag">${family}类</span>`)
+            .map(family => `<span class="cd-family-tag">${this._escapeHtml(family)}类</span>`)
             .join('');
         html += `<div class="cd-hero">
             <div class="cd-hero-icon">${iconHtml}</div>
             <div class="cd-hero-info">
-                <div class="cd-hero-name">${d.name || '-'}${familyTags}</div>
-                <div class="cd-hero-type">${d.type || '怪物'} · ${d.category === 'monster' ? '怪物' : '敌人'}</div>
-                <span class="cd-hero-rarity common">${d.type || '普通'}</span>
+                <div class="cd-hero-name">${this._escapeHtml(d.name || '-')}${familyTags}</div>
+                <div class="cd-hero-type">${this._escapeHtml(d.type || '怪物')} · ${d.category === 'monster' ? '怪物' : '敌人'}</div>
+                <span class="cd-hero-rarity common">${this._escapeHtml(d.type || '普通')}</span>
             </div>
         </div>`;
+        html += '<div class="codex-data-source"><span>DATA</span> enemy-config.json · combat-formulas.json · combat-config.json</div>';
 
         // 基本信息
         html += `<div class="cd-section"><h4>基本信息</h4>`;
         html += this.detailRow('名称', d.name);
         html += this.detailRow('类型', d.type);
-        html += this.detailRow('等级', d.level != null ? d.level : '-');
-        html += this.detailRow('生命值', `${d.hp || 0} / ${d.maxHp || 0}`);
-        html += this.detailRow('经验值', CodexFormulaHelper.calculateExpValue(d));
+        html += this.detailRow('配置等级（成长/经验）', d.level ?? 1);
+        html += this.detailRow('综合战斗等级', stats.combatLevel);
+        html += this.detailRow(
+            '战斗等级构成',
+            `基础 ${combatLevel.baseScore.toFixed(1)} + 六维 ${combatLevel.attributeScore.toFixed(1)} + 生命 ${combatLevel.hpScore.toFixed(1)} + 移速 ${combatLevel.speedScore.toFixed(1)} + 阶级 ${combatLevel.rankBonus.toFixed(1)}`
+        );
+        html += this.detailRow('生命值', `${d.hp ?? 0} / ${d.maxHp ?? d.hp ?? 0}`);
+        html += this.detailRow('经验结算', '按位面、阶级与等级差动态结算');
         if (d.render?.collisionWidth && d.render?.collisionHeight) {
             html += this.detailRow('碰撞体积', `${d.render.collisionWidth}×${d.render.collisionHeight}px`);
         } else if (d.collisionRadius) {
@@ -616,38 +674,54 @@ const CodexManager = {
         html += this.detailRow('幸运', d.luck || 0);
         html += `</div>`;
 
+        const ignoredConfigRows = [];
+        if (d.def != null && Number(d.def) !== stats.def) ignoredConfigRows.push(['def', d.def, stats.def]);
+        if (d.crit != null && Number(d.crit) !== stats.crit) ignoredConfigRows.push(['crit', d.crit, stats.crit]);
+        if (d.critRes != null && Number(d.critRes) !== stats.critRes) ignoredConfigRows.push(['critRes', d.critRes, stats.critRes]);
+        if (d.expValue != null) ignoredConfigRows.push(['expValue', d.expValue, '动态结算']);
+        if (ignoredConfigRows.length) {
+            html += `<details class="cd-config-warning"><summary><span>配置兼容提示</span><span>${ignoredConfigRows.length} 项旧字段</span></summary><div class="cd-config-warning-body"><div class="cd-config-note">下列旧字段当前不会直接覆盖怪物运行时结果；图鉴以实际运行时口径为准。</div>`;
+            for (const [key, configured, runtime] of ignoredConfigRows) {
+                html += this.detailRow(`${key} 配置值`, `${configured}（运行时 ${runtime}）`);
+            }
+            html += '</div></details>';
+        }
+
         // 战斗属性（使用与运行时一致的公式，避免硬编码）
         html += `<div class="cd-section"><h4>战斗属性</h4>`;
-        const stats = CodexFormulaHelper.calculateCombatStats(d);
         const attackType = (d.attack && d.attack.damageType) || 'physical';
         const normalDamage = attackType === 'magic' ? stats.matk : stats.atk;
+        const hitDistance = d.attackDistance ?? d.attack?.range ?? d.attackRange;
+        const attackCooldown = d.attackCooldown ?? d.attack?.cooldown;
+        const knockback = d.attack?.knockback ?? d.knockback ?? 0;
         html += this.detailRow('物理攻击', stats.atk);
         html += this.detailRow('物理防御', stats.def);
         html += this.detailRow('魔法攻击', stats.matk);
         html += this.detailRow('魔法防御', stats.mdef);
         html += this.detailRow('暴击率', stats.crit + '%');
         html += this.detailRow('暴击抵抗', stats.critRes + '%');
-        html += this.detailRow('攻击距离', `${d.attackRange || 0}px`);
-        html += this.detailRow('攻击冷却', `${d.attackCooldown || 0}ms`);
+        html += this.detailRow('AI 交战距离', `${d.attackRange ?? 0}px`);
+        html += this.detailRow('命中判定距离', hitDistance != null ? `${hitDistance}px` : '由技能配置决定');
+        html += this.detailRow('普攻冷却', attackCooldown != null ? `${attackCooldown}ms` : '由技能配置决定');
         html += this.detailRow('攻击方式', d.attackType || '-');
         html += this.detailRow(attackType === 'magic' ? '普攻魔法伤害' : '普攻物理伤害', normalDamage);
-        html += this.detailRow('击退', d.knockback ? `${d.knockback}px` : '无');
+        html += this.detailRow('击退', knockback ? `${knockback}px` : '无');
         if (d.rangedDamageReduction) html += this.detailRow('远程物理减伤', `${Math.round(d.rangedDamageReduction * 100)}%`);
         html += `</div>`;
 
         // 移动属性
         html += `<div class="cd-section"><h4>移动属性</h4>`;
-        html += this.detailRow('移动速度', d.speed || 0);
-        html += this.detailRow('体型', `${d.size || 0}px`);
+        html += this.detailRow('常规有效移速', movement.speed);
+        if (movement.configuredSpeed !== movement.speed) {
+            html += this.detailRow('配置基础移速', `${movement.configuredSpeed}（全局 ×${movement.globalMultiplier}）`);
+        }
+        html += this.detailRow('体型', `${d.size ?? 0}px`);
         html += `</div>`;
 
-        // 特殊机制（放在基础属性下面）
+        // 特殊机制说明来自配置；数值参数另行读取 attackSkills，避免说明文本随数值调整后失真。
         const mechanics = [];
         if (d.skills && d.skills.length > 0) {
             for (const skill of d.skills) mechanics.push(skill);
-        }
-        if (d.equipShield) {
-            mechanics.push({ name: '持盾防御', desc: '受到非魔法伤害时，有50%概率举起盾牌格挡，减少50%伤害' });
         }
         if (d.transform) {
             const t = d.transform;
@@ -678,15 +752,82 @@ const CodexManager = {
             mechanics.push({ name: '阶段转换', desc: phaseDesc });
         }
         if (mechanics.length > 0) {
-            html += `<div class="cd-section"><h4>特殊机制</h4>`;
+            html += `<div class="cd-section"><h4>机制说明</h4>`;
             for (const m of mechanics) {
                 html += this.detailRow(m.name, m.desc);
             }
             html += `</div>`;
         }
 
-        if (d.description) html += `<div class="cd-section"><h4>描述</h4><div class="cd-desc">${d.description}</div></div>`;
+        html += this._renderMonsterConfigParameters(d.attackSkills);
+
+        if (d.description) html += `<div class="cd-section"><h4>描述</h4><div class="cd-desc">${this._escapeHtml(d.description)}</div></div>`;
         body.innerHTML = html;
+    },
+
+    _renderMonsterConfigParameters(attackSkills) {
+        if (!attackSkills || typeof attackSkills !== 'object') return '';
+        const cards = Object.entries(attackSkills).map(([skillKey, config]) => {
+            const rows = this._flattenConfigParameters(config);
+            if (!rows.length) return '';
+            const rowHtml = rows.map(([path, value]) => this.detailRow(this._configLabel(path), this._formatConfigValue(path, value))).join('');
+            return `<details class="cd-config-skill">
+                <summary><span>${this._escapeHtml(this._configSkillLabel(skillKey))}</span><span>${rows.length} 项实时参数</span></summary>
+                <div class="cd-config-skill-body">${rowHtml}</div>
+            </details>`;
+        }).join('');
+        if (!cards) return '';
+        return `<div class="cd-section cd-config-section"><h4>技能配置参数</h4><div class="cd-config-note">以下数值直接读取 enemy-config.json；调整配置并重新载入游戏后会同步更新。</div>${cards}</div>`;
+    },
+
+    _flattenConfigParameters(value, prefix = '', depth = 0) {
+        if (!value || typeof value !== 'object' || depth > 3) return [];
+        const rows = [];
+        for (const [key, child] of Object.entries(value)) {
+            if (key === 'comment' || child == null || Array.isArray(child)) continue;
+            const path = prefix ? `${prefix}.${key}` : key;
+            if (typeof child === 'object') rows.push(...this._flattenConfigParameters(child, path, depth + 1));
+            else if (['string', 'number', 'boolean'].includes(typeof child)) rows.push([path, child]);
+        }
+        return rows;
+    },
+
+    _configSkillLabel(skillKey) {
+        const labels = {
+            howl: '嚎叫', corrosionAura: '腐蚀毒域', slam: '砸击', lantern: '提灯', whip: '鞭击',
+            spawn: '召唤', throw: '投掷', summon: '召唤增援', combo: '连击', charge: '冲锋', block: '格挡',
+            hammer: '重锤', grandSlam: '强力砸击', forms: '姿态', shoot: '射击', flashbang: '闪光弹',
+            axe: '战斧', bash: '盾击', defend: '防御', spit: '喷吐', magic: '远程魔法', venom: '毒液瓶',
+            bottle: '毒液泼洒'
+        };
+        return labels[skillKey] || skillKey;
+    },
+
+    _configLabel(path) {
+        const key = path.split('.').pop();
+        const labels = {
+            cooldown: '冷却', duration: '持续时间', intervalMs: '间隔', range: '范围', radius: '半径',
+            damageMultiplier: '伤害倍率', damageMul: '伤害倍率', speedMul: '移速倍率', attackSpeedMul: '攻速倍率',
+            atkMul: '物攻倍率', buffDuration: '增益持续', frames: '动画帧数',
+            hpThreshold: '生命阈值', hitFrame: '命中帧', launchFrame: '发射帧', knockback: '击退', count: '数量',
+            damage: '伤害', width: '宽度', height: '高度', deathAnimMs: '死亡动画时长',
+            corpseDuration: '尸体毒域持续', corpseWidth: '尸体毒域宽度', corpseHeight: '尸体毒域高度',
+            corpseOffsetY: '尸体毒域纵向偏移'
+        };
+        const label = labels[key] || key;
+        return path.includes('.') ? `${path.slice(0, path.lastIndexOf('.'))} · ${label}` : label;
+    },
+
+    _formatConfigValue(path, value) {
+        if (typeof value === 'boolean') return value ? '是' : '否';
+        if (typeof value !== 'number') return value;
+        const key = path.split('.').pop();
+        if (/(Ms|cooldown|duration|interval|delay|timeout|windup|recover|hold)$/i.test(key)) return `${value}ms`;
+        if (/(Multiplier|Mul)$/i.test(key)) return `×${value}`;
+        if (/(Chance|Threshold)$/i.test(key) && value >= 0 && value <= 1) return `${Math.round(value * 10000) / 100}%`;
+        if (/(Range|Radius|Distance|Width|Height|Knockback)$/i.test(key)) return `${value}px`;
+        if (/Frame$/i.test(key)) return `第 ${value} 帧`;
+        return value;
     },
 
     /**
@@ -694,7 +835,7 @@ const CodexManager = {
      */
     _renderCodexIcon(d, size) {
         if (!d.idleTexture) {
-            return `<div style="width:${size}px;height:${size}px;border-radius:50%;background:${d.color || '#8a4a4a'};box-shadow:0 0 8px ${d.color || '#8a4a4a'}80;"></div>`;
+            return `<div class="codex-icon-missing" style="width:${size}px;height:${size}px" title="缺少图鉴贴图" aria-label="缺少图鉴贴图">缺图</div>`;
         }
         const isSheet = d.idleFrameWidth && d.idleSheetColumns && d.idleSheetColumns > 0;
         if (!isSheet) {
@@ -708,7 +849,14 @@ const CodexManager = {
     },
 
     detailRow(label, value, cls = '') {
-        return `<div class="cd-stat-row"><span class="cd-stat-label">${label}</span><span class="cd-stat-val ${cls}">${value !== undefined && value !== null ? value : '-'}</span></div>`;
+        const safeClass = String(cls || '').replace(/[^a-z0-9_-]/gi, '');
+        const displayValue = value !== undefined && value !== null ? value : '-';
+        return `<div class="cd-stat-row"><span class="cd-stat-label">${this._escapeHtml(label)}</span><span class="cd-stat-val ${safeClass}">${this._escapeHtml(displayValue)}</span></div>`;
+    },
+    _escapeHtml(value) {
+        return String(value ?? '').replace(/[&<>"']/g, (char) => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+        })[char]);
     },
     slotLabel(slot) {
         const map = { weapon: '主手1', weapon2: '主手2', helmet: '头盔', armor: '盔甲', gloves: '手套', boots: '靴子', necklace: '项链', ring1: '戒指1', ring2: '副手2', earring: '耳环', cloak: '披风', belt: '腰带', offhand: '副手1', extra: '额外', backpack: '背包' };

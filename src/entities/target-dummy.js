@@ -24,7 +24,7 @@ import { EffectManager } from '../effects/effect-manager.js';
                 this._poisonEffectId = null;
                 this._poisonEffect = new PoisonEffect();
             }
-            takeDamage(damage, source) {
+            takeDamage(damage, source, damageType = 'physical', isMelee = true, hitContext = null) {
                 // DPS追踪：记录伤害
                 if (this._dpsTracking) {
                     const now = Date.now();
@@ -44,7 +44,7 @@ import { EffectManager } from '../effects/effect-manager.js';
                     // 不调用父类takeDamage，避免死亡和额外逻辑
                     return;
                 }
-                super.takeDamage(damage, source);
+                return super.takeDamage(damage, source, damageType, isMelee, hitContext);
             }
             update(dt = 16.67) {
                 // 更新中毒效果

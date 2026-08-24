@@ -114,6 +114,10 @@ const defense = shieldData.defense;  // 行81 ← 重复声明！
 - **当前实现**：`src/entities/damageable-runtime.js` 是 import-free 叶子桥；`src/main.js` 注入掉落、渲染、
   特效、队伍、技能与祭品服务；地牢类型读取已有叶子状态 `getCurrentDungeonType()`。静态复核应确认
   `DamageableEntity` 的每个直接依赖都无法再到达 `Game / Enemy / Combatant`。
+- **奖励配置回归案例（2026-08-24）**：`DamageableEntity → dungeon-rewards → DungeonConfig → tribute-effects
+  → Game → Enemy → Combatant` 会在 `class Combatant extends DamageableEntity` 触发 TDZ。奖励工具只需要
+  `dungeonList[dungeonType].grade` 时，应直接读取原始 `dungeon-config.json`，保持“JSON + 纯公式”叶子依赖；
+  禁止为了一个等级字段导入会执行祭品、场景或 Game 服务的高层 `DungeonConfig` 门面。
 
 ---
 

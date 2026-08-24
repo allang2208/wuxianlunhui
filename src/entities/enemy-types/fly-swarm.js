@@ -121,12 +121,12 @@ export class FlySwarm extends Enemy {
     }
 
     /** 远程减伤 50%（isMelee=false 的远程伤害按配置倍率削减；近战不受影响） */
-    takeDamage(damage, source, damageType = 'physical', isMelee = true) {
+    takeDamage(damage, source, damageType = 'physical', isMelee = true, hitContext = null) {
         if (!isMelee) {
             const mul = this.config?.rangedDamageTakenMul ?? 1;
             damage = Math.max(1, Math.round(damage * mul));
         }
-        super.takeDamage(damage, source, damageType, isMelee);
+        return super.takeDamage(damage, source, damageType, isMelee, hitContext);
     }
 
     /** 范围内敌对可击单位（与集合体 _hostiles 同语义） */

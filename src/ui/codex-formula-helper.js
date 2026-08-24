@@ -1,65 +1,35 @@
-import { COMBAT_FORMULAS } from '../config/combat-formulas.js';
-
-const DEFAULT_ENEMY_STATS = {
-    attack: { base: 0, strMultiplier: 0.5, dexMultiplier: 0.5, round: true },
-    defense: { conMultiplier: 1.5, strMultiplier: 0.3, round: 'floor' },
-    magicAttack: { base: 0, intMultiplier: 0.5, wisMultiplier: 0.5, round: 'floor' },
-    magicDefense: { wisMultiplier: 1.2, intMultiplier: 0.3, round: 'floor' },
-    crit: { base: 2, luckMultiplier: 1.0, round: 'floor' },
-    critResist: { conMultiplier: 1.0, round: 'floor' }
-};
-
-function applyRounding(value, method) {
-    if (method === 'round') return Math.round(value);
-    if (method === 'ceil') return Math.ceil(value);
-    return Math.floor(value);
-}
+import { COMBAT_CONFIG } from '../config/combat-config.js';
+import { deriveEnemyBaseStats, deriveEnemyCombatLevel } from '../config/enemy-base-stats.js';
 
 export const CodexFormulaHelper = {
     /**
      * 根据敌人六维与公式计算图鉴展示用的战斗属性
      * @param {Object} d - 敌人数据（从 data-loader 转换后的 ENEMY_DATA）
-     * @returns {{atk:number, def:number, matk:number, mdef:number, crit:number, critRes:number}}
+     * 与 Enemy.calculateCombatStats() 保持同一口径。
+     * Enemy 当前只允许 atk/matk/mdef 显式覆盖；def/crit/critRes 均由六维公式计算。
+     * @returns {{atk:number, def:number, matk:number, mdef:number, crit:number, critRes:number, level:number, combatLevel:number}}
      */
     calculateCombatStats(d = {}) {
-        const eform = COMBAT_FORMULAS.enemy?.calculateCombatStats || DEFAULT_ENEMY_STATS;
-        const str = d.str || 0;
-        const dex = d.dex || 0;
-        const con = d.con || 0;
-        const int = d.int || 0;
-        const wis = d.wis || 0;
-        const luck = d.luck || 0;
-
-        const calcFrom = (formula) => {
-            const f = formula || {};
-            let v = (f.base || 0)
-                + str * (f.strMultiplier || 0)
-                + dex * (f.dexMultiplier || 0)
-                + con * (f.conMultiplier || 0)
-                + int * (f.intMultiplier || 0)
-                + wis * (f.wisMultiplier || 0)
-                + luck * (f.luckMultiplier || 0);
-            return applyRounding(v, f.round);
-        };
-
-        return {
-            atk: d.atk ?? calcFrom(eform.attack || DEFAULT_ENEMY_STATS.attack),
-            def: d.def ?? calcFrom(eform.defense || DEFAULT_ENEMY_STATS.defense),
-            matk: d.matk ?? calcFrom(eform.magicAttack || DEFAULT_ENEMY_STATS.magicAttack),
-            mdef: d.mdef ?? calcFrom(eform.magicDefense || DEFAULT_ENEMY_STATS.magicDefense),
-            crit: d.crit ?? calcFrom(eform.crit || DEFAULT_ENEMY_STATS.crit),
-            critRes: d.critRes ?? calcFrom(eform.critResist || DEFAULT_ENEMY_STATS.critResist)
-        };
+        const stats = deriveEnemyBaseStats(d, d);
+        return { ...stats, combatLevel: deriveEnemyCombatLevel(d, d).combatLevel };
     },
 
-    /**
-     * 计算经验值
-     * @param {Object} d
-     */
-    calculateExpValue(d = {}) {
-        if (d.expValue != null) return d.expValue;
-        const formula = COMBAT_FORMULAS.enemy?.expValue || { base: 10, levelMultiplier: 5 };
-        return formula.base + (d.level || 1) * formula.levelMultiplier;
+    /** 图鉴综合战斗等级分项，和 deriveEnemyBaseStats.combatLevel 使用同一公式。 */
+    calculateCombatLevelBreakdown(d = {}) {
+        return deriveEnemyCombatLevel(d, d);
+    },
+
+    /** 与 Enemy 构造器的常规移动速度初始化保持一致（不含阶段/技能临时倍率）。 */
+    calculateEffectiveSpeed(d = {}) {
+        const defaults = COMBAT_CONFIG.enemyDefaults || {};
+        const defaultSpeed = (defaults.speed ?? 45) * (defaults.speedMultiplier ?? 1);
+        let speed = Number.isFinite(Number(d.speed)) ? Number(d.speed) : defaultSpeed;
+        if (speed > 0 && speed < 1) speed = 45;
+        const globalMultiplier = defaults.globalSpeedMultiplier ?? 1;
+        if (speed > 0 && globalMultiplier !== 1) {
+            speed = Math.round(speed * globalMultiplier * 100) / 100;
+        }
+        return { speed, configuredSpeed: Number(d.speed), globalMultiplier };
     }
 };
 

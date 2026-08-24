@@ -10,6 +10,7 @@ import { DungeonRunStats } from '../world/dungeon-run-stats.js';
 import { BloodMistEffect, DeathEffect } from '../effects/particle-effects.js';
 import { isMachineGun, isRifle, isPistolCategory, isShotgunCategory } from '../config/gun-ammo.js';
 import { COMBAT_FORMULAS } from '../config/combat-formulas.js';
+import { getDungeonRewardRule } from '../config/dungeon-rewards.js';
 import {
     DamageableGame as Game,
     DamageableRenderer as Renderer,
@@ -53,7 +54,8 @@ export function isFriendlyFire(source, target) {
 
             // 全局倍率
             const globalMul = cfg.globalMultiplier ?? 1;
-            baseAmount = Math.floor(baseAmount * globalMul);
+            const dungeonMul = getDungeonRewardRule(getCurrentDungeonType()).monsterGoldMultiplier;
+            baseAmount = Math.floor(baseAmount * globalMul * dungeonMul);
 
             // rank 金币倍率配置驱动（goldDrop.rankMultipliers，如 elite ×2 / lord ×3）
             const rankMultiplier = (cfg.rankMultipliers || {})[rank] || 1;
@@ -78,7 +80,7 @@ export function isFriendlyFire(source, target) {
                 // ===== 状态栏系统（每个实体独立） =====
                 this.statusEffects = []; // { type, duration, remaining, icon, name, color, stacks }
             }
-            takeDamage(damage, source, damageType = 'physical', isMelee = true) {
+            takeDamage(damage, source, damageType = 'physical', isMelee = true, hitContext = null) {
                 // 友方免伤：玩家/友军不能伤害同为友方的单位（防御塔/基地/掩体/伙伴）
                 if (isFriendlyFire(source, this)) return 0;
                 // 最终伤害保险与AI/攻击命中帧共用同一承载平面规则。
@@ -95,7 +97,9 @@ export function isFriendlyFire(source, target) {
                         atk = (damage > 0) ? damage : (source.data.matk || 0);
                         def = this.data.mdef || 0;
                         // 应用改造魔法防御穿透效果
-                        if (source && source.getCurrentWeapon) {
+                        if (hitContext && Number.isFinite(hitContext.magicPenetrationPercent)) {
+                            def = Math.floor(def * (1 - hitContext.magicPenetrationPercent));
+                        } else if (source && source.getCurrentWeapon) {
                             const currentWpn = source.getCurrentWeapon();
                             if (currentWpn && currentWpn._craftEffects && currentWpn._craftEffects.magicPenetrationPercent) {
                                 def = Math.floor(def * (1 - currentWpn._craftEffects.magicPenetrationPercent));
@@ -125,8 +129,11 @@ export function isFriendlyFire(source, target) {
                         }
                     }
                     // 法袍套「秘法」：玩家魔法伤害 +18%（三件齐穿，source 侧生效）
-                    if ((damageType === 'magic' || damageType === 'electric') && source && source._faction === 'player' && source._magicDamageBonus) {
-                        baseDamage = Math.floor(baseDamage * (1 + source._magicDamageBonus));
+                    const magicDamageBonus = hitContext
+                        ? (hitContext.magicDamageBonus || 0)
+                        : (source?._magicDamageBonus || 0);
+                    if ((damageType === 'magic' || damageType === 'electric') && source && source._faction === 'player' && magicDamageBonus) {
+                        baseDamage = Math.floor(baseDamage * (1 + magicDamageBonus));
                     }
                     // 应用魔力易伤：魔法伤害每层+5%
                     if ((damageType === 'magic' || damageType === 'electric') && this._magicVulnerabilityStacks > 0) {
@@ -174,8 +181,11 @@ export function isFriendlyFire(source, target) {
                             }
                         }
                     }
-                    // 暴击判定（仅用于精通技能经验，不额外应用伤害倍率——调用方已处理）
-                    let critRate = source.data.crit || 0;
+                    // 魔法命中优先读取施法快照；持续技能命中时不受后来切换武器影响。
+                    const isMagicDamage = damageType === 'magic' || damageType === 'electric';
+                    let critRate = isMagicDamage && hitContext?.stats
+                        ? (hitContext.stats.crit || 0)
+                        : (source.data.crit || 0);
                     if (source && source.getCurrentWeapon && source.skills && source.skills.rifleMastery) {
                         const currentWpn = source.getCurrentWeapon();
                         if (currentWpn && isRifle(currentWpn.weaponType)) {
@@ -183,7 +193,9 @@ export function isFriendlyFire(source, target) {
                         }
                     }
                     // 改造效果：暴击率加成
-                    if (source && source.getCurrentWeapon) {
+                    if (isMagicDamage && hitContext) {
+                        critRate += hitContext.magicCritBonusPercent || 0;
+                    } else if (source && source.getCurrentWeapon) {
                         const currentWpn = source.getCurrentWeapon();
                         if (currentWpn && currentWpn._craftEffects) {
                             if (currentWpn._craftEffects.critChancePercent) {
@@ -211,6 +223,10 @@ export function isFriendlyFire(source, target) {
                     isCrit = typeof source._forcedHitCritical === 'boolean'
                         ? source._forcedHitCritical
                         : Math.random() * 100 < finalCritRate;
+                    // 物理攻击仍由各自攻击管线预结算暴击；魔法在统一承伤入口实际应用倍率。
+                    if (isCrit && isMagicDamage && hitContext?.applyMagicCrit) {
+                        baseDamage = Math.floor(baseDamage * (1 + (hitContext.magicCritDamageBonus || 0)));
+                    }
                     if (isCrit && this._grantsSkillTrainingExp !== false
                         && !this._summoned && source && source.skills && source.skills.criticalStrike) {
                         SkillManager.addCriticalStrikeExp(source, isCrit, false); // isKill 在下面计算

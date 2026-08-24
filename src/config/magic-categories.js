@@ -4,7 +4,7 @@ import { isSkillCheatEnabled } from './dev-cheats.js';
  * 魔法分类体系
  * 把 skillId 映射到冰/火/电/光四大类，供改造效果、伤害结算、UI 提示统一使用。
  * MAGIC_SKILL_TIERS 为魔法等级体系（初级/中级/高级）：中级及以上魔法有装备门槛
- * （中级魔法需装备法杖才能释放，见 meetsMagicWeaponReq）。
+ * （中级魔法需当前主手装备法杖才能释放，见 meetsMagicWeaponReq）。
  */
 
 export const MAGIC_CATEGORIES = {
@@ -71,7 +71,8 @@ export function getSkillMagicTier(skillId) {
 }
 
 /**
- * 魔法释放装备门槛：中级及以上魔法需要装备法杖（当前武器组主手/副手其一）。
+ * 魔法释放装备门槛：中级及以上魔法需要当前主手装备法杖。
+ * 副手槽只承担盾牌/魔法书等支援物，不再作为施法焦点。
  * 返回 { ok, reason } — ok=false 时 reason 为玩家提示文案。
  */
 export function meetsMagicWeaponReq(player, skillId) {
@@ -79,11 +80,9 @@ export function meetsMagicWeaponReq(player, skillId) {
     if (isSkillCheatEnabled()) return { ok: true, reason: '' };
     const tier = getSkillMagicTier(skillId);
     if (tier < 2) return { ok: true, reason: '' };
-    if (!player || !player.equipments) return { ok: false, reason: `${MAGIC_TIER_NAMES[tier] || '中级魔法'}需要装备法杖才能释放` };
+    if (!player || !player.equipments) return { ok: false, reason: `${MAGIC_TIER_NAMES[tier] || '中级魔法'}需要主手装备法杖才能释放` };
     const currentWeapon = player.equipments[player.weaponMode];
-    const offhandSlot = player.weaponMode === 'weapon' ? 'offhand' : 'ring2';
-    const offhandWeapon = player.equipments[offhandSlot];
     const isStaff = (w) => !!(w && w.weaponType === 'staff');
-    if (isStaff(currentWeapon) || isStaff(offhandWeapon)) return { ok: true, reason: '' };
-    return { ok: false, reason: `${MAGIC_TIER_NAMES[tier] || '中级魔法'}需要装备法杖才能释放` };
+    if (isStaff(currentWeapon)) return { ok: true, reason: '' };
+    return { ok: false, reason: `${MAGIC_TIER_NAMES[tier] || '中级魔法'}需要主手装备法杖才能释放` };
 }

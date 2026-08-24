@@ -14,6 +14,7 @@ import { GameUIManager } from './game-ui-manager.js';
 export const RewardSystem = {
     _isOpen: false,
     _selected: null,
+    _baseGoldReward: 500,
 
     // 卡牌数据
     CARDS: [
@@ -49,9 +50,11 @@ export const RewardSystem = {
         }
     ],
 
-    open() {
+    open(options = {}) {
         this._isOpen = true;
         this._selected = null;
+        const configuredBase = Number(options.baseGold);
+        this._baseGoldReward = Number.isFinite(configuredBase) ? Math.max(0, Math.floor(configuredBase)) : 500;
         const panel = getElement('rewardPanel');
         if (panel) {
             panel.style.display = 'flex';
@@ -91,8 +94,8 @@ export const RewardSystem = {
     // 发放奖励
     _giveRewards(card) {
         if (!card || !card.rewards) return;
-        // 基础奖励：500金币 + 随机优质武器
-        this._giveGold(500);
+        // 基础奖励：按地牢等级成长的通关金币 + 随机优质武器；非地牢调用保留 500。
+        this._giveGold(this._baseGoldReward);
         this._giveRandomWeapon();
         for (const reward of card.rewards) {
             switch (reward.type) {

@@ -26,6 +26,7 @@ import {
     getMagicMpCostMultiplier,
     getMagicCooldownMultiplier,
     getMagicDamageMultiplierWithChain,
+    createMagicCastContext,
     consumeChainSpellBonus,
     addChainSpellStack,
     applyCastHaste,
@@ -166,6 +167,7 @@ export class BoltSkillSystem {
         if (!isSkillCheatEnabled() && this.source[this.kind.fields.cooldown] > 0) return;
 
         const effect = this._getEffect();
+        this._castCooldownMs = (effect.cooldown || 0) * 1000;
 
         // 玩家消耗魔法值；敌人不消耗
         if (this._isPlayer()) {
@@ -186,6 +188,7 @@ export class BoltSkillSystem {
             const chain = consumeChainSpellBonus(this.source);
             // 重新计算并缓存本次施法伤害倍率
             const ce = getCurrentWeaponCraftEffects(this.source);
+            this._castContext = createMagicCastContext(this.source, ce);
             this._magicDamageMul = getMagicDamageMultiplierWithChain(this.source, this.kind.skillKey, ce, chain.stacks);
         }
 
@@ -312,7 +315,7 @@ export class BoltSkillSystem {
         const src = this.source;
         const skill = src.skills && src.skills[this.kind.skillKey];
         const effect = this._getEffect();
-        const d = src.data;
+        const d = this._castContext?.stats || src.data;
         const baseDamage = Math.floor((effect.damageBase ?? 0) + (d.matk ?? 0) * (effect.magicMul ?? 0) + (d.int ?? 0) * (effect.intMul ?? 0));
         const damageMul = this._magicDamageMul || 1;
         const damage = Math.floor(baseDamage * damageMul);
@@ -452,7 +455,7 @@ export class BoltSkillSystem {
             radius,
             surfaceContext || surfaceEffectAtPoint(x, y, { impactZ: 0 })
         );
-        const ce = getCurrentWeaponCraftEffects(this.source);
+        const ce = this._castContext?.craftEffects || getCurrentWeaponCraftEffects(this.source);
         const burnMul = ce && ce.fireBurnDamageMul;
         const burnDuration = (ce && ce.fireBurnDuration) || 3000;
         const burnTickMs = (ce && ce.fireBurnTickMs) || 500;
@@ -464,7 +467,7 @@ export class BoltSkillSystem {
             const dist = Math.sqrt((entity.x - x) ** 2 + (entity.y - y) ** 2);
             const distRatio = 1 - Math.min(dist / radius, 1);
             const finalDamage = Math.floor(damage * (0.5 + 0.5 * distRatio));
-            entity.takeDamage(finalDamage, this.source, 'magic', false);
+            entity.takeDamage(finalDamage, this.source, 'magic', false, this._castContext);
             // 烈焰吊坠：火系魔法造成伤害附加灼伤
             if (burnMul && typeof entity.applyBurn === 'function') {
                 entity.applyBurn(this.source, 1, burnDuration, burnMul, burnTickMs);
@@ -490,14 +493,18 @@ export class BoltSkillSystem {
         src[this.kind.fields.timer] = 0;
         src[this.kind.fields.spikes] = this.kind.fields.spikesArrayEmptyIsNull ? null : [];
         if (this.kind.fields.alias) src[this.kind.fields.alias] = null;
-        // 法袍套「秘法」：技能冷却 -12%（source._cooldownReduction 由套装在 calculateCombatStats 设置）
-        src[this.kind.fields.cooldown] = effect.cooldown * 1000 * (1 - (src._cooldownReduction || 0));
+        // 冷却在第一次施法时已按当时法杖/法袍快照结算，飞行途中切武器不再二次乘算。
+        src[this.kind.fields.cooldown] = Number.isFinite(this._castCooldownMs)
+            ? this._castCooldownMs
+            : effect.cooldown * 1000;
         // 松木握柄：本次施法结束后添加 1 层链式强化；檀木握柄：施法后给自身加速
         if (this._isMagic()) {
-            addChainSpellStack(src);
-            applyCastHaste(src);
+            addChainSpellStack(src, this._castContext?.craftEffects);
+            applyCastHaste(src, this._castContext?.craftEffects);
         }
         // 清本次施法缓存
         this._magicDamageMul = 1;
+        this._castContext = null;
+        this._castCooldownMs = null;
     }
 }

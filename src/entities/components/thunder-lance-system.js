@@ -15,6 +15,7 @@ import {
     getMagicCooldownMultiplier,
     getMagicRangeMultiplier,
     getMagicDamageMultiplierWithChain,
+    createMagicCastContext,
     consumeChainSpellBonus,
     addChainSpellStack,
     applyCastHaste,
@@ -183,6 +184,7 @@ export class ThunderLanceSystem {
             return;
         }
         const chain = consumeChainSpellBonus(src);
+        const castContext = createMagicCastContext(src, ce);
         if (!isSkillCheatEnabled() && this._isPlayer() && mpCost > 0) src.data.mp -= mpCost;
 
         // 配置唯一真相：默认值集中收敛于 LANCE_DEFAULTS（skills.json 双份必有），代码不再散落魔法数字
@@ -198,10 +200,10 @@ export class ThunderLanceSystem {
             if (castSounds && SoundManager && typeof SoundManager.playFile === 'function') {
                 (Array.isArray(castSounds) ? castSounds : [castSounds]).forEach(p => SoundManager.playFile(p));
             }
-            this._startCharge(aimX, aimY, effect);
+            this._startCharge(aimX, aimY, effect, castContext);
             EffectManager.add(new FloatingTextEffect(src.x, src.y - 40, '⚡ 贯穿雷枪', '#b98cff'));
-            addChainSpellStack(src);
-            applyCastHaste(src);
+            addChainSpellStack(src, castContext.craftEffects);
+            applyCastHaste(src, castContext.craftEffects);
         };
         if (this._isPlayer()) {
             this._startPlayerCast(doRelease, true); // 蓄力定格：保持施法姿势中间帧
@@ -211,7 +213,7 @@ export class ThunderLanceSystem {
     }
 
     /** 开始蓄力：蓄力计时（无目标点提示特效；施法姿势已由 holdAtRelease 定格） */
-    _startCharge(aimX, aimY, effect) {
+    _startCharge(aimX, aimY, effect, castContext = null) {
         const src = this.source;
         this._charging = {
             remaining: effect.delayMs,
@@ -219,6 +221,7 @@ export class ThunderLanceSystem {
             aimX,
             aimY,
             effect,
+            castContext,
             acc: { hits: 0, kills: 0, multiHit: false },
             chargeParticleTimer: 0,
         };
@@ -313,7 +316,7 @@ export class ThunderLanceSystem {
 
         // 贯穿目标：锥形 + 视线 + 距离排序
         const targets = this._findPierceTargets(c.aimX, c.aimY, effect, entityList);
-        const d = src.data;
+        const d = c.castContext?.stats || src.data;
         const baseDamage = Math.floor(
             (effect.lanceDamageBase ?? 0)
             + (d.matk ?? 0) * (effect.lanceMagicMul ?? 0)
@@ -336,7 +339,7 @@ export class ThunderLanceSystem {
             const wasAlive = e.hp > 0;
             // 贯穿命中火花（直线光束已画，这里只做命中爆点）
             this._spawnHitFx(e.x, e.y, stacks);
-            e.takeDamage(damage, src, 'electric', false);
+            e.takeDamage(damage, src, 'electric', false, c.castContext);
             // 命中击退：沿光束方向，距离随等级（knockback 50→150px）
             if (effect.knockback && typeof e.applyKnockback === 'function') {
                 e.applyKnockback(knockAngle, effect.knockback);

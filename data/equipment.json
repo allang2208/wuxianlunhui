@@ -741,8 +741,8 @@
                 "intMul": 0.5,
                 "wisMul": 0.5,
                 "enhanceBase": 1,
-                "enhanceIntMul": 0.25,
-                "enhanceWisMul": 0.25
+                "enhanceIntMul": 0.2,
+                "enhanceWisMul": 0.2
             },
             "animation": {
                 "type": "swing（挥砍）",

@@ -572,7 +572,7 @@ export class ArmoredKnight extends Enemy {
 
     // ========== 格挡弹反（复制玩家盾系统语义） ==========
 
-    takeDamage(damage, source, damageType = 'physical', isMelee = true) {
+    takeDamage(damage, source, damageType = 'physical', isMelee = true, hitContext = null) {
         // 必须先于格挡/弹反副作用执行同承载面门禁；跨层攻击不构成一次有效命中。
         if (isMelee && source && !canMeleeShareSurface(source, this)) return;
         // 格挡期间（前摇结束后）：所有玩家来源伤害判定为弹反——免伤，近战攻击者被眩晕击退
@@ -582,7 +582,7 @@ export class ArmoredKnight extends Enemy {
             return;
         }
         if (this.shieldSystem) this.shieldSystem._lastParried = false;
-        super.takeDamage(damage, source, damageType, isMelee);
+        return super.takeDamage(damage, source, damageType, isMelee, hitContext);
     }
 
     _triggerBlockParry(attacker, isMelee) {

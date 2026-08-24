@@ -10,6 +10,7 @@ import { allocateOnLevelUp } from '../config/companion-growth.js';
 import { canEquipSlot, getEquipmentBonuses, isOneHandedItem } from '../ui/equip/equip-rules.js';
 import { buildSkillMap, restoreSkills, grantCompanionSkillExp } from '../systems/skill-system.js';
 import COMBAT_FORMULAS from '../../data/combat-formulas.json';
+import { deriveEnemyBaseStats } from '../config/enemy-base-stats.js';
 import companionConfigData from '../../data/companion-config.json';
 import { EnergyManager } from '../systems/energy-manager.js';
 import { getTributeFriendlyAtkMul, getTributeFriendlyMaxHpMul } from '../config/tribute-math.js';
@@ -564,23 +565,13 @@ export class Companion {
         // 与怪物实现逐项对齐——atk 用 round 标志，其余（def/matk/mdef/crit/critRes）
         // 按 floor 口径；HP/等级不走这里（HP 由 baseMaxHp/con 公式在 updateMaxStats 定）。
         if (this._enemyCombatStats) {
-            const ef = COMBAT_FORMULAS.enemy?.calculateCombatStats || {};
-            const atkF = ef.attack || { base: 0, strMultiplier: 0.5, dexMultiplier: 0.5, round: true };
-            const defF = ef.defense || { conMultiplier: 1.5, strMultiplier: 0.3, round: 'floor' };
-            const matkF = ef.magicAttack || { base: 0, intMultiplier: 0.5, wisMultiplier: 0.5, round: 'floor' };
-            const mdefF = ef.magicDefense || { wisMultiplier: 1.2, intMultiplier: 0.3, round: 'floor' };
-            const critF = ef.crit || { base: 2, luckMultiplier: 1.0, round: 'floor' };
-            const critResF = ef.critResist || { conMultiplier: 1.0, round: 'floor' };
-            const fl = (v) => Math.floor(v);
-            d.atk = atkF.round
-                ? Math.round((atkF.base ?? 0) + d.str * atkF.strMultiplier + d.dex * atkF.dexMultiplier)
-                : fl((atkF.base ?? 0) + d.str * atkF.strMultiplier + d.dex * atkF.dexMultiplier);
-            d.atk += Math.round(eq.atk || 0);
-            d.def = fl(d.con * defF.conMultiplier + d.str * defF.strMultiplier) + Math.round(eq.defense || 0);
-            d.matk = fl((matkF.base ?? 0) + d.int * matkF.intMultiplier + d.wis * matkF.wisMultiplier) + Math.round(eq.matk || 0);
-            d.mdef = fl(d.wis * mdefF.wisMultiplier + d.int * mdefF.intMultiplier);
-            d.crit = fl((critF.base ?? 2) + d.luck * critF.luckMultiplier);
-            d.critRes = fl(d.con * critResF.conMultiplier);
+            const derived = deriveEnemyBaseStats(d, {});
+            d.atk = derived.atk + Math.round(eq.atk || 0);
+            d.def = derived.def + Math.round(eq.defense || 0);
+            d.matk = derived.matk + Math.round(eq.matk || 0);
+            d.mdef = derived.mdef;
+            d.crit = derived.crit;
+            d.critRes = derived.critRes;
             return;
         }
         const formulas = COMBAT_FORMULAS.player || {};

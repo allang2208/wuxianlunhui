@@ -318,8 +318,8 @@ export const DEFENSE_CONFIG = {
         // - 金币费用逐级递增：round(baseCost × growth^(当前值 - base))
         chip: {
             base: 10,
-            max: 99,
-            upgrade: { baseCost: 60, costGrowth: 1.45 },
+            max: 30,
+            upgrade: { baseCost: 60, costGrowth: 1.28 },
             stats: {
                 str:  { name: '力量', icon: '💪' },
                 dex:  { name: '敏捷', icon: '💨' },
@@ -2248,7 +2248,7 @@ class DefenseTower extends Combatant {
         const baseVal = cfg.base ?? 10;
         const cur = this.chip[statKey] ?? baseVal;
         const base = cfg.upgrade && cfg.upgrade.baseCost != null ? cfg.upgrade.baseCost : 60;
-        const growth = cfg.upgrade && cfg.upgrade.costGrowth != null ? cfg.upgrade.costGrowth : 1.45;
+        const growth = cfg.upgrade && cfg.upgrade.costGrowth != null ? cfg.upgrade.costGrowth : 1.28;
         return Math.round(base * Math.pow(growth, Math.max(0, cur - baseVal)));
     }
 
@@ -2259,7 +2259,7 @@ class DefenseTower extends Combatant {
         if (!s) return { ok: false, reason: '未知属性' };
         const baseVal = cfg.base ?? 10;
         const cur = this.chip[statKey] ?? baseVal;
-        if (cur >= (cfg.max ?? 99)) return { ok: false, reason: `${s.name}已达上限` };
+        if (cur >= (cfg.max ?? 30)) return { ok: false, reason: `${s.name}已达上限` };
         const cost = this.getChipUpgradeCost(statKey);
         const payment = payBuildingUpgradeCost({ gold: cost });
         if (!payment.ok) return payment;
@@ -2977,7 +2977,7 @@ class DefenseTowerPanel extends BasePanel {
         const gold = GoldManager ? GoldManager.getGold() : 0;
         const chipCfg = DEFENSE_CONFIG.tower.chip || {};
         const chipStats = chipCfg.stats || {};
-        const maxVal = chipCfg.max ?? 99;
+        const maxVal = chipCfg.max ?? 30;
         const weaponItem = t.weaponItem;
         const mountedStat = t.getChipWeaponStat(weaponItem);
         const preview = t.getPreviewDamage();

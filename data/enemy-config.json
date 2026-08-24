@@ -78,6 +78,8 @@
     "wis": 10,
     "luck": 6,
     "rank": "elite",
+    "type": "精英",
+    "category": "monster",
     "family": "动物",
     "attackRange": 210,
     "aiInterval": 1000,
@@ -133,6 +135,14 @@
    "desc": "变身后嚎叫3秒，使场上全体敌方怪物的移动速度提升33%、物理攻击提升50%，持续30秒，冷却30秒。"
   }
  ],
+ "attackType": "撕咬与飞扑",
+ "textures": {
+  "idle": "assets/enemies/red_wolf_king/idle.png",
+  "idleFrameWidth": 512,
+  "idleFrameHeight": 512,
+  "idleFrameCount": 12,
+  "idleSheetColumns": 4
+ },
  "sounds": {
   "howl": "assets/sounds/enemies/red_wolf_king/howling.mp3"
  },
@@ -157,7 +167,6 @@
     "name": "胖子僵尸",
     "hp": 200,
     "maxHp": 200,
-    "def": 25,
     "size": 18,
     "collisionRadius": 30,
     "speed": 110,
@@ -216,11 +225,34 @@
       "width": 25,
       "knockback": 10
     },
+    "attackSkills": {
+      "corrosionAura": {
+        "comment": "活体与死亡后的持续腐蚀毒域参数；死亡动画结束后才进入尸体毒域阶段",
+        "intervalMs": 500,
+        "width": 50,
+        "height": 25,
+        "damage": 8,
+        "deathAnimMs": 1500,
+        "corpseDuration": 6000,
+        "corpseWidth": 200,
+        "corpseHeight": 50,
+        "corpseOffsetY": 0
+      }
+    },
     "type": "普通",
     "category": "monster",
     "family": "僵尸",
-    "description": "体型庞大的僵尸，行动缓慢但力大无穷。周身散发腐化肉瘤，50×25 范围内的敌对目标每 0.5 秒受到 8 点魔法伤害；受到远程物理伤害减少 50%。",
-    "skills": [],
+    "description": "体型庞大的僵尸，行动缓慢但力大无穷。存活与死亡后都会用腐蚀毒域封锁地面，且受到的远程物理伤害减少 50%。",
+    "skills": [
+      {
+        "name": "腐蚀毒域",
+        "desc": "存活时在 50×25 范围内每 0.5 秒造成 8 点魔法伤害；死亡动画结束后，尸体会在地面留下持续 6 秒的 200×50 腐蚀区域，同样每 0.5 秒造成 8 点魔法伤害。"
+      },
+      {
+        "name": "厚重腐肉",
+        "desc": "受到的远程物理伤害减少 50%。"
+      }
+    ],
     "attackType": "重击碾压"
   },
   "minerZombie": {
@@ -967,7 +999,6 @@
     "collisionRadius": 28,
     "hp": 120,
     "maxHp": 120,
-    "def": 7,
     "speed": 187.5,
     "level": 3,
     "rank": "normal",
@@ -1084,7 +1115,6 @@
     "collisionRadius": 37.1,
     "hp": 120,
     "maxHp": 120,
-    "def": 10,
     "speed": 100,
     "level": 5,
     "rank": "normal",
@@ -1200,325 +1230,6 @@
       "idleSheetColumns": 6
     },
     "height": 146
-  },
-  "babySpider": {
-    "id": "babySpider",
-    "name": "小蜘蛛",
-    "type": "次级",
-    "category": "monster",
-    "family": null,
-    "color": "#7a5a3a",
-    "size": 10,
-    "collisionRadius": 10,
-    "hp": 50,
-    "maxHp": 50,
-    "speed": 67.5,
-    "level": 2,
-    "rank": "minor",
-    "str": 5,
-    "dex": 8,
-    "con": 5,
-    "int": 2,
-    "wis": 2,
-    "luck": 4,
-    "attackRange": 55,
-    "aiInterval": 800,
-    "attack": {
-      "type": "thrust",
-      "cooldown": 500,
-      "dynamicRange": 55,
-      "width": 18,
-      "knockback": 8
-    },
-    "ai": {
-      "aggroRange": 9999,
-      "pacingRange": 100,
-      "loseTimeout": 3000
-    },
-    "description": "",
-    "skills": []
-  },
-  "spider": {
-    "id": "spider",
-    "name": "普通蜘蛛",
-    "type": "普通",
-    "category": "monster",
-    "family": null,
-    "color": "#6a3a5a",
-    "size": 16,
-    "collisionRadius": 10,
-    "hp": 180,
-    "maxHp": 180,
-    "speed": 40.5,
-    "level": 5,
-    "rank": "normal",
-    "str": 20,
-    "dex": 40,
-    "con": 22,
-    "int": 4,
-    "wis": 5,
-    "luck": 5,
-    "attackRange": 65,
-    "aiInterval": 1000,
-    "attack": {
-      "type": "thrust",
-      "cooldown": 800,
-      "dynamicRange": 65,
-      "width": 18,
-      "knockback": 10
-    },
-    "ai": {
-      "aggroRange": 9999,
-      "pacingRange": 100,
-      "loseTimeout": 3000
-    },
-    "description": "体型巨大的狼蛛，毒性猛烈。",
-    "skills": [
-      {
-        "name": "剧毒撕咬",
-        "desc": "命中目标时附加中毒效果，持续造成伤害"
-      }
-    ],
-    "render": {
-      "footOffsetY": 23
-    }
-  },
-  "wolfSpider": {
-    "id": "wolfSpider",
-    "name": "狼蛛",
-    "type": "精英",
-    "category": "monster",
-    "family": null,
-    "color": "#4a2a3a",
-    "size": 20,
-    "collisionRadius": 10,
-    "hp": 280,
-    "maxHp": 280,
-    "speed": 27,
-    "level": 7,
-    "rank": "elite",
-    "str": 40,
-    "dex": 60,
-    "con": 35,
-    "int": 4,
-    "wis": 6,
-    "luck": 4,
-    "attackRange": 95,
-    "aiInterval": 1200,
-    "attack": {
-      "type": "thrust",
-      "cooldown": 1000,
-      "dynamicRange": 95,
-      "width": 18,
-      "knockback": 20
-    },
-    "ai": {
-      "aggroRange": 9999,
-      "pacingRange": 100,
-      "loseTimeout": 3000
-    },
-    "description": "",
-    "skills": []
-  },
-  "broodmotherSpider": {
-    "id": "broodmotherSpider",
-    "name": "育母蜘蛛",
-    "type": "首领",
-    "category": "monster",
-    "family": null,
-    "color": "#2a1a2a",
-    "size": 35,
-    "collisionRadius": 10,
-    "hp": 550,
-    "maxHp": 550,
-    "speed": 33.75,
-    "level": 10,
-    "rank": "boss",
-    "str": 55,
-    "dex": 65,
-    "con": 60,
-    "int": 6,
-    "wis": 10,
-    "luck": 6,
-    "attackRange": 100,
-    "aiInterval": 1200,
-    "attack": {
-      "type": "thrust",
-      "cooldown": 1200,
-      "dynamicRange": 100,
-      "width": 18,
-      "knockback": 25
-    },
-    "ai": {
-      "aggroRange": 9999,
-      "pacingRange": 100,
-      "loseTimeout": 3000
-    },
-    "description": "由亡灵魔法复活的骷髅战士，骨骼坚硬。",
-    "skills": [
-      {
-        "name": "亡灵之躯",
-        "desc": "不受中毒和流血效果影响"
-      }
-    ]
-  },
-  "skeletonWarrior": {
-    "id": "skeletonWarrior",
-    "name": "骷髅兵",
-    "type": "次级",
-    "category": "monster",
-    "family": null,
-    "color": "#d0d0b0",
-    "size": 14,
-    "collisionRadius": 10,
-    "hp": 80,
-    "maxHp": 80,
-    "speed": 40.5,
-    "level": 3,
-    "rank": "minor",
-    "str": 10,
-    "dex": 18,
-    "con": 15,
-    "int": 3,
-    "wis": 3,
-    "luck": 4,
-    "attackRange": 60,
-    "aiInterval": 1000,
-    "attack": {
-      "type": "thrust",
-      "cooldown": 800,
-      "dynamicRange": 60,
-      "width": 18,
-      "knockback": 15
-    },
-    "ai": {
-      "aggroRange": 9999,
-      "pacingRange": 100,
-      "loseTimeout": 3000
-    },
-    "description": "骷髅射手，使用骨质弓箭进行远程攻击。",
-    "skills": [
-      {
-        "name": "骨箭齐射",
-        "desc": "远距离发射骨箭攻击目标"
-      }
-    ]
-  },
-  "skeletonArcher": {
-    "id": "skeletonArcher",
-    "name": "骷髅射手",
-    "type": "普通",
-    "category": "monster",
-    "family": null,
-    "color": "#c0c0a0",
-    "size": 14,
-    "collisionRadius": 10,
-    "hp": 180,
-    "maxHp": 180,
-    "speed": 67.5,
-    "level": 5,
-    "rank": "normal",
-    "str": 20,
-    "dex": 38,
-    "con": 18,
-    "int": 15,
-    "wis": 10,
-    "luck": 6,
-    "attackRange": 350,
-    "aiInterval": 2000,
-    "attack": {
-      "type": "thrust",
-      "cooldown": 1500,
-      "dynamicRange": 350,
-      "width": 18,
-      "knockback": 0
-    },
-    "ai": {
-      "aggroRange": 9999,
-      "pacingRange": 100,
-      "loseTimeout": 3000
-    },
-    "description": "",
-    "skills": []
-  },
-  "skeletonDog": {
-    "id": "skeletonDog",
-    "name": "骷髅犬",
-    "type": "普通",
-    "category": "monster",
-    "family": null,
-    "color": "#c0c0c0",
-    "size": 18,
-    "collisionRadius": 10,
-    "hp": 220,
-    "maxHp": 220,
-    "speed": 162,
-    "level": 6,
-    "rank": "normal",
-    "str": 30,
-    "dex": 48,
-    "con": 26,
-    "int": 5,
-    "wis": 5,
-    "luck": 6,
-    "attackRange": 88,
-    "aiInterval": 800,
-    "attack": {
-      "type": "thrust",
-      "cooldown": 312,
-      "dynamicRange": 88,
-      "width": 18,
-      "knockback": 19
-    },
-    "ai": {
-      "aggroRange": 9999,
-      "pacingRange": 100,
-      "loseTimeout": 3000
-    },
-    "description": "掌握亡灵魔法的精英法师，能够召唤骷髅作战。",
-    "skills": [
-      {
-        "name": "亡灵召唤",
-        "desc": "战斗中召唤骷髅战士协助作战"
-      }
-    ]
-  },
-  "necromancer": {
-    "id": "necromancer",
-    "name": "亡灵法师",
-    "type": "精英",
-    "category": "monster",
-    "family": null,
-    "color": "#3a2a5a",
-    "size": 22,
-    "collisionRadius": 10,
-    "hp": 350,
-    "maxHp": 350,
-    "speed": 27,
-    "level": 8,
-    "rank": "elite",
-    "str": 45,
-    "dex": 50,
-    "con": 45,
-    "int": 5,
-    "wis": 8,
-    "luck": 4,
-    "attackRange": 95,
-    "aiInterval": 1200,
-    "attack": {
-      "type": "thrust",
-      "cooldown": 1000,
-      "dynamicRange": 95,
-      "width": 18,
-      "knockback": 26
-    },
-    "ai": {
-      "aggroRange": 9999,
-      "pacingRange": 100,
-      "loseTimeout": 3000
-    },
-    "description": "",
-    "skills": []
   },
   "zombieWizard": {
     "id": "zombieWizard",
@@ -1890,10 +1601,8 @@
     "wis": 20,
     "luck": 10,
     "atk": 50,
-    "def": 66,
     "matk": 55,
     "mdef": 65,
-    "crit": 30,
     "attackRange": 300,
     "attackDistance": 300,
     "aiInterval": 1000,
@@ -2001,7 +1710,6 @@
     "luck": 10,
     "atk": 20,
     "mdef": 55,
-    "crit": 20,
     "rangedDamageTakenMul": 0.5,
     "attackRange": 60,
     "attackDistance": 60,
@@ -2101,9 +1809,7 @@
     "wis": 15,
     "luck": 10,
     "atk": 60,
-    "def": 75,
     "mdef": 30,
-    "crit": 25,
     "attackRange": 300,
     "attackDistance": 300,
     "aiInterval": 1000,
@@ -2304,7 +2010,6 @@
     "wis": 40,
     "luck": 23,
     "mdef": 45,
-    "crit": 25,
     "attackRange": 1600,
     "aiInterval": 500,
     "ai": {
@@ -2450,7 +2155,6 @@
     "wis": 30,
     "luck": 23,
     "mdef": 55,
-    "crit": 25,
     "attackRange": 800,
     "aiInterval": 500,
     "ai": {
@@ -2804,6 +2508,10 @@
       {
         "name": "投掷毒液瓶",
         "desc": "距离判定 800px，1.5s 播放 18 帧动画，第 9 帧掷出毒液瓶（1.5s 抛物线，空中每秒 360° 旋转，落点提前显示红色椭圆预警），落点 200px 椭圆毒液区持续 6s，每 0.5s 造成魔法攻击 ×0.75 伤害并叠加 1 层中毒，区域内目标致残减速、离开区域后仍持续 2s；冷却 8s，攻击时不可移动"
+      },
+      {
+        "name": "伴生煮锅",
+        "desc": "首次进入战斗时，会在附近可行走位置召唤一口独立煮锅；煮锅会持续向玩家泼洒毒液瓶。"
       }
     ],
     "attackType": "魔法",

@@ -377,7 +377,7 @@ export class TimeAgentShield extends Enemy {
 
     // ========== 格挡弹反（参考铠甲骑士：防御持续期间全部判定为弹反） ==========
 
-    takeDamage(damage, source, damageType = 'physical', isMelee = true) {
+    takeDamage(damage, source, damageType = 'physical', isMelee = true, hitContext = null) {
         if (isMelee && source && !canMeleeShareSurface(source, this)) return 0;
         // 防御持续阶段（defendHold）：玩家来源伤害判定为弹反——免伤，近战攻击者被眩晕击退
         if (this._formState === 'defendHold' && source && source._faction === 'player') {
@@ -393,7 +393,7 @@ export class TimeAgentShield extends Enemy {
             damage = Math.max(1, Math.floor(damage * 0.5));
         }
 
-        super.takeDamage(damage, source, damageType, isMelee);
+        return super.takeDamage(damage, source, damageType, isMelee, hitContext);
     }
 
     _triggerDefendParry(attacker, isMelee) {

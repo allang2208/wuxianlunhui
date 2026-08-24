@@ -155,7 +155,7 @@ export const EquipDataManager = {
         attackKey: 'melee', animConfigKey: 'sword', canvasImageProp: 'meleeImage',
         castAnimKey: 'staff_cast', // 装备法杖释放魔法时的施法动画（player-anim-config 键）
         attackFormula: { base: 3, enhanceFlat: 0.25, attrs: [{ key: 'dex', base: 0.25, perEnhance: 0.1 }, { key: 'str', base: 0.25, perEnhance: 0.15 }] },
-        matkFormula: { base: 5, intMul: 0.5, wisMul: 0.5, enhanceBase: 1, enhanceIntMul: 0.25, enhanceWisMul: 0.25 },
+        matkFormula: { base: 5, intMul: 0.5, wisMul: 0.5, enhanceBase: 1, enhanceIntMul: 0.2, enhanceWisMul: 0.2 },
         craftConfig: {
             weaponId: 'weapon20',
             slots: [
@@ -494,7 +494,7 @@ const COMPLETE_WEAPON_FIELDS = [
     'offhandAttackKey', 'canvasImageProp', 'specialAttackType',
     'sound', 'chargeAttack', 'pelletCount', 'equipSound', 'renderParams', 'fireSound',
     'isDarkGold', 'dropImage', 'equipImage', 'slotImage',
-    'spriteOffsetX', 'spriteOffsetY', 'aimSpriteOffsetX', 'aimSpriteOffsetY'
+    'spriteOffsetX', 'spriteOffsetY', 'aimSpriteOffsetX', 'aimSpriteOffsetY', 'castAnimKey'
 ];
 
 let _weaponConfigIndex = null;
@@ -534,6 +534,10 @@ export function completeWeaponFields(item) {
     if (!item || typeof item !== 'object') return item;
     const cfg = findWeaponConfig(item.weaponId, item.name);
     if (!cfg) return item;
+    // 法杖强化曲线属于版本平衡真值；旧存档只保留强化等级/改造，不保留过时倍率。
+    if (cfg.weaponType === 'staff' && cfg.matkFormula) {
+        item.matkFormula = cfg.matkFormula;
+    }
     for (const field of COMPLETE_WEAPON_FIELDS) {
         if (cfg[field] !== undefined && item[field] === undefined) {
             item[field] = cfg[field];

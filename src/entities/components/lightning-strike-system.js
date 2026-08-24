@@ -14,6 +14,7 @@ import {
     getMagicMpCostMultiplier,
     getMagicCooldownMultiplier,
     getMagicDamageMultiplierWithChain,
+    createMagicCastContext,
     consumeChainSpellBonus,
     addChainSpellStack,
     applyCastHaste,
@@ -142,6 +143,7 @@ export class LightningStrikeSystem {
         }
         // 门禁通过：正式消费链式强化并扣蓝（失败路径不再白丢层数）
         const chain = consumeChainSpellBonus(src);
+        const castContext = createMagicCastContext(src, ce);
         if (!isSkillCheatEnabled() && this._isPlayer() && mpCost > 0) src.data.mp -= mpCost;
         effect.mpCost = mpCost;
         effect.cooldown = effect.cooldown * getMagicCooldownMultiplier(src, ce);
@@ -180,7 +182,7 @@ export class LightningStrikeSystem {
             // 逐目标结算
             const stunMs = effect.stunMs;
             const baseDamage = Math.floor(
-                (effect.damageBase ?? 0) + (src.data.matk ?? 0) * (effect.magicMul ?? 0) + (src.data.int ?? 0) * (effect.intMul ?? 0)
+                (effect.damageBase ?? 0) + (castContext.stats.matk ?? 0) * (effect.magicMul ?? 0) + (castContext.stats.int ?? 0) * (effect.intMul ?? 0)
             );
             const stunExtend = (ce && ce.electricStunExtendMs) || 0;
             let hitCount = 0, killCount = 0;
@@ -196,7 +198,7 @@ export class LightningStrikeSystem {
                     jitter: effect.jitter,
                 }));
                 this._spawnImpact(target, decayMul);
-                target.takeDamage(finalDamage, src, 'electric', false);
+                target.takeDamage(finalDamage, src, 'electric', false, castContext);
                 // 电系专属：命中叠加感电（叠满 5 层触发过载）
                 if (typeof target.applyElectrified === 'function') {
                     target.applyElectrified(effect.electrifyStacks, effect.electrifyDurationMs, src);
@@ -214,8 +216,8 @@ export class LightningStrikeSystem {
             }
             EffectManager.add(new FloatingTextEffect(src.x, src.y - entitySurfaceZ(src) - 40, `⚡ 闪电 ×${hitCount}`, '#b48bff'));
             // 松木握柄：施法后添加 1 层链式强化；檀木握柄：施法后给自身加速
-            addChainSpellStack(src);
-            applyCastHaste(src);
+            addChainSpellStack(src, castContext.craftEffects);
+            applyCastHaste(src, castContext.craftEffects);
         };
         if (this._isPlayer()) {
             this._startPlayerCast(doRelease);
