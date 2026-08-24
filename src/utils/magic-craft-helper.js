@@ -6,11 +6,44 @@
 import { getSkillMagicCategory } from '../config/magic-categories.js';
 import { getElevatedRangedRangeMultiplier } from '../combat/elevated-ranged.js';
 
-/** 获取 source 当前主手武器的改造聚合效果 */
-export function getCurrentWeaponCraftEffects(source) {
+/** 获取当前启用主手的施法媒介。法杖不能从副手或未启用武器组借用。 */
+export function getCastingFocus(source) {
     if (!source || !source.equipments) return null;
-    const weapon = source.equipments[source.weaponMode];
-    return weapon?._craftEffects || null;
+    const focus = source.equipments[source.weaponMode];
+    return focus?.weaponType === 'staff' ? focus : null;
+}
+
+/** 获取当前主手法杖的改造聚合效果 */
+export function getCurrentWeaponCraftEffects(source) {
+    return getCastingFocus(source)?._craftEffects || null;
+}
+
+/**
+ * 创建一次施法的只读快照。持续伤害/飞行物命中时不再读取玩家后来切换的武器。
+ */
+export function createMagicCastContext(source, ce) {
+    const focus = getCastingFocus(source);
+    const craftEffects = { ...(ce || focus?._craftEffects || {}) };
+    const stats = {
+        matk: Number(source?.data?.matk) || 0,
+        int: Number(source?.data?.int) || 0,
+        wis: Number(source?.data?.wis) || 0,
+        crit: Number(source?.data?.crit) || 0,
+    };
+    const critSkill = source?.skills?.criticalStrike;
+    const critEffect = critSkill?.getEffect ? critSkill.getEffect(critSkill.level) : null;
+    return Object.freeze({
+        focus,
+        craftEffects: Object.freeze(craftEffects),
+        stats: Object.freeze(stats),
+        magicPenetrationPercent: Number(craftEffects.magicPenetrationPercent) || 0,
+        magicCritBonusPercent: ((Number(craftEffects.critChancePercent) || 0)
+            + (Number(craftEffects.magicCritPercent) || 0)
+            + (Number(focus?._enchantEffects?.critRate) || 0)) * 100,
+        magicCritDamageBonus: Number(critEffect?.damageBonus) || 0,
+        magicDamageBonus: Number(source?._magicDamageBonus) || 0,
+        applyMagicCrit: true,
+    });
 }
 
 /** 获取当前武器的杖头元素专精（ice/fire/electric/light），无则返回 null */
@@ -38,7 +71,7 @@ export function getMagicDamageMultiplier(source, skillId, ce) {
         if (category === 'ice' && ce.iceDamagePercent) mul += ce.iceDamagePercent;
         if (category === 'fire' && ce.fireDamagePercent) mul += ce.fireDamagePercent;
         if (category === 'electric' && ce.electricDamagePercent) mul += ce.electricDamagePercent;
-        if (category === 'light' && ce.lightHealPercent) mul += ce.lightHealPercent;
+        // 光系伤害不读取“治疗效果”词条；治疗在 getMagicHealMultiplier 单独结算。
     }
 
     return mul;
@@ -63,7 +96,6 @@ export function getMagicHealMultiplier(source, skillId, ce) {
     if (!ce || category !== 'light') return 1;
 
     let mul = 1;
-    if (ce.magicDamagePercent) mul += ce.magicDamagePercent;
     const specialty = ce.staffSpecialty;
     if (specialty === 'light' && ce.lightHealPercent) mul += ce.lightHealPercent;
     return mul;
@@ -71,12 +103,7 @@ export function getMagicHealMultiplier(source, skillId, ce) {
 
 /** 计算含链式强化的治疗倍率 */
 export function getMagicHealMultiplierWithChain(source, skillId, ce, chainStacks = 0) {
-    let mul = getMagicHealMultiplier(source, skillId, ce);
-    ce = ce || getCurrentWeaponCraftEffects(source);
-    if (chainStacks > 0 && ce?.chainSpellDamagePercent) {
-        mul *= 1 + chainStacks * ce.chainSpellDamagePercent;
-    }
-    return mul;
+    return getMagicHealMultiplier(source, skillId, ce);
 }
 
 /** 计算施法者到目标的最大射程倍率：武器改造 × 墙顶远程加成。 */
@@ -106,8 +133,9 @@ export function getMagicMpCostMultiplier(source, ce, chainSpellStacks = 0) {
 /** 计算魔法冷却倍率 */
 export function getMagicCooldownMultiplier(source, ce) {
     ce = ce || getCurrentWeaponCraftEffects(source);
-    if (!ce) return 1;
-    return 1 - (ce.magicCooldownPercent || 0);
+    const craftReduction = Number(ce?.magicCooldownPercent) || 0;
+    const armorReduction = Number(source?._cooldownReduction) || 0;
+    return Math.max(0.2, (1 - craftReduction) * (1 - armorReduction));
 }
 
 /** 获取魔法暴击率加成（百分比点数） */
@@ -132,8 +160,8 @@ export function consumeChainSpellBonus(source) {
     const stacks = source?._chainSpellStacks || 0;
     if (stacks <= 0) return { stacks: 0, damageMul: 0, mpCostMul: 0 };
     const ce = getCurrentWeaponCraftEffects(source);
-    const damageMul = stacks * (ce?.chainSpellDamagePercent || 0.02);
-    const mpCostMul = stacks * (ce?.chainSpellMpCostPercent || 0.05);
+    const damageMul = stacks * (ce?.chainSpellDamagePercent || 0);
+    const mpCostMul = stacks * (ce?.chainSpellMpCostPercent || 0);
     source._chainSpellStacks = 0;
     if (source.removeStatusEffect) source.removeStatusEffect('chainSpell');
     return { stacks, damageMul, mpCostMul };
@@ -143,8 +171,8 @@ export function consumeChainSpellBonus(source) {
  * 施法后给 source 添加檀木握柄的加速 buff（castHasteStacks / castHasteDuration）。
  * 任意魔法施法后调用。
  */
-export function applyCastHaste(source) {
-    const ce = getCurrentWeaponCraftEffects(source);
+export function applyCastHaste(source, ce) {
+    ce = ce || getCurrentWeaponCraftEffects(source);
     if (!ce || !ce.castHasteStacks || !source || typeof source.applyHaste !== 'function') return;
     for (let i = 0; i < ce.castHasteStacks; i++) {
         source.applyHaste(ce.castHasteDuration || 5000);
@@ -155,8 +183,13 @@ export function applyCastHaste(source) {
  * 给 source 添加链式强化层数（松木握柄用）。
  * 层数可叠加，持续时间按来源追加，到期全部清空。
  */
-export function addChainSpellStack(source, durationMs = 10000) {
+export function addChainSpellStack(source, durationOrEffects = 10000, effects = null) {
     if (!source) return;
+    const durationMs = typeof durationOrEffects === 'number' ? durationOrEffects : 10000;
+    const ce = (durationOrEffects && typeof durationOrEffects === 'object')
+        ? durationOrEffects
+        : (effects || getCurrentWeaponCraftEffects(source));
+    if (!ce?.chainSpellDamagePercent) return;
     // 状态免疫期间不获得链式强化：addStatusEffect 会拒绝入库，硬设 _chainSpellStacks
     // 会导致无状态条目驱动到期清理、层数永久滞留
     if (typeof source.hasStatusEffect === 'function' && source.hasStatusEffect('statusImmune')) return;

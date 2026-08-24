@@ -246,6 +246,16 @@ EffectManager.add(new LightningBoltEffect(source, target, {
 
 ---
 
+### 魔法施法快照与统一结算契约（2026-08-24）
+
+- 延迟释放、投射物和持续区域在通过目标/距离/资源门槛后创建 `createMagicCastContext()`；快照固定当前主手法杖制作效果、六维、穿透、暴击率、暴击伤害和法袍魔伤，命中时不得再读取玩家当前装备。
+- 所有 `takeDamage(amount, source, type, knockback, hitContext)` 覆写都必须透传第 5 参数。带快照时 `Combatant` 不再预掷一次魔法暴击，统一由 `DamageableEntity` 结算，避免双重暴击或倍率丢失。
+- 技能伤害/治疗公式读取 `context.stats`；`lightHeal` 只进入治疗，`magicDamage` 只进入伤害，连锁伤害不能污染治疗。制作词条的连锁、急速等尾段效果也读取施法快照，不能在命中时换杖套利。
+- 冷却统一按 `(1 - 法杖急速) × (1 - 法袍减冷却)` 乘一次，系统与快捷栏共用同一技能分类/冷却入口，禁止技能内部重复缩短。
+- MP 常态按秒恢复，权威公式来自 `data/combat-formulas.json`：`1.0 + 精神×0.08 + 智力×0.02`；战斗内外不分状态，HUD/属性面板/tooltip 必须统一显示“每秒”。
+
+---
+
 ### 魔法施法动作标准（2026-08-02 定稿：前摇/第 N 帧释放/倒放后摇/跨步）
 
 魔法类主动技能释放统一走施法动作（空手施法 cast / 法杖施法 staff_cast），规则：

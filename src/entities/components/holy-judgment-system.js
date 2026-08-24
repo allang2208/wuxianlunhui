@@ -15,6 +15,7 @@ import {
     getMagicCooldownMultiplier,
     getMagicRangeMultiplier,
     getMagicDamageMultiplierWithChain,
+    createMagicCastContext,
     getMagicHealMultiplierWithChain,
     consumeChainSpellBonus,
     addChainSpellStack,
@@ -163,6 +164,7 @@ export class HolyJudgmentSystem {
             return;
         }
         const chain = consumeChainSpellBonus(src);
+        const castContext = createMagicCastContext(src, ce);
         if (!isSkillCheatEnabled() && this._isPlayer() && mpCost > 0) src.data.mp -= mpCost;
 
         const effect = { ...JUDGMENT_DEFAULTS, ...baseEffect, mpCost };
@@ -178,10 +180,10 @@ export class HolyJudgmentSystem {
             if (castSounds && SoundManager && typeof SoundManager.playFile === 'function') {
                 (Array.isArray(castSounds) ? castSounds : [castSounds]).forEach(p => SoundManager.playFile(p));
             }
-            this._startCharge(aimX, aimY, effect);
+            this._startCharge(aimX, aimY, effect, castContext);
             EffectManager.add(new FloatingTextEffect(src.x, src.y - entitySurfaceZ(src) - 40, '☀️ 圣光审判', '#ffd27a'));
-            addChainSpellStack(src);
-            applyCastHaste(src);
+            addChainSpellStack(src, castContext.craftEffects);
+            applyCastHaste(src, castContext.craftEffects);
         };
         if (this._isPlayer()) {
             this._startPlayerCast(doRelease, true); // 蓄力定格：保持施法姿势中间帧
@@ -191,7 +193,7 @@ export class HolyJudgmentSystem {
     }
 
     /** 开始蓄力：蓄力计时 + 手部金色汇聚光球 */
-    _startCharge(aimX, aimY, effect) {
+    _startCharge(aimX, aimY, effect, castContext = null) {
         const src = this.source;
         this._charging = {
             remaining: effect.delayMs,
@@ -199,6 +201,7 @@ export class HolyJudgmentSystem {
             aimX,
             aimY,
             effect,
+            castContext,
             acc: { hits: 0, kills: 0, heals: 0, multiHit: false },
         };
         this._chargeOrb = new ChargeOrbFx(src, {
@@ -283,7 +286,7 @@ export class HolyJudgmentSystem {
         const chargeRatio = Math.min(1, Math.max(0.3, (c.elapsed || maxMs) / maxMs));
         const point = this._selfAim ? { x: src.x, y: src.y } : this._clampAim(c.aimX, c.aimY, effect);
         const radius = Math.floor(effect.radiusMin + (effect.radiusMax - effect.radiusMin) * chargeRatio);
-        const d = src.data;
+        const d = c.castContext?.stats || src.data;
         const baseDamage = Math.floor(
             ((effect.damageBase ?? 0)
             + (d.matk ?? 0) * (effect.damageMagicMul ?? 0)
@@ -338,13 +341,13 @@ export class HolyJudgmentSystem {
             const isZombie = hasEnemyFamily(e, '僵尸');
             if (isZombie) dmg = Math.floor(dmg * effect.zombieDamageMul);
             const wasAlive = e.hp > 0;
-            e.takeDamage(dmg, src, 'magic', false);
+            e.takeDamage(dmg, src, 'magic', false, c.castContext);
             c.acc.hits++;
             // 净化斩杀：非 Boss/领主不死单位，结算后血量仍 ≤ 阈值 → 直接净化即死
             if (e.hp > 0 && isZombie && !isPurifyImmune(e)) {
                 const maxHp = e.data?.maxHp || e.maxHp || 0;
                 if (maxHp > 0 && e.hp / maxHp <= effect.purifyThreshold) {
-                    e.takeDamage(Math.ceil(e.hp) * 10, src, 'magic', false);
+                    e.takeDamage(Math.ceil(e.hp) * 10, src, 'magic', false, c.castContext);
                     this._spawnPurifyFx(e);
                     EffectManager.add(new FloatingTextEffect(e.x, e.y - entitySurfaceZ(e) - 40, '净化', '#ffffff'));
                 }

@@ -14,8 +14,8 @@
 | `skill/01-core-rules.md` | 1. 项目总览与通用铁律 |
 | `skill/02-ai-asset-pipeline.md` | 2. AI 资产与出图管线 |
 | `skill/03-player-weapon-anim.md` | 3. 玩家角色与武器动画 |
-| `skill/04-weapons-equipment.md` | 4. 武器与装备系统 |
-| `skill/05-skills-combat.md` | 5. 技能与战斗系统 |
+| `skill/04-weapons-equipment.md` | 4. 武器与装备系统（含主副手/施法媒介契约） |
+| `skill/05-skills-combat.md` | 5. 技能与战斗系统（含魔法施法快照/统一结算） |
 | `skill/06-dungeon-scene.md` | 6. 地牢与场景构建 |
 | `skill/07-world122-defense.md` | 7. 世界-122 防守地图 |
 | `skill/08-pathfinding-movement.md` | 8. AI 寻路、碰撞与移动 |

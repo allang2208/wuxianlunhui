@@ -1021,13 +1021,9 @@ switchWeaponMode() {
                 // 如果目标栏位为空，且当前栏位有装备，则不允许切换（防止切换到空栏位）
                 // 但如果当前栏位为空，且目标栏位有装备，则允许切换
                 const currentItem = this.equipments[this.weaponMode];
-                // 检查目标栏位及其副手是否有武器
-                const nextOffhandSlot = nextMode === 'weapon' ? 'offhand' : 'ring2';
-                const nextOffhandItem = this.equipments[nextOffhandSlot];
-                const nextHasWeapon = (nextItem && nextItem.name) || (nextOffhandItem && nextOffhandItem.name);
-                const currentOffhandSlot = this.weaponMode === 'weapon' ? 'offhand' : 'ring2';
-                const currentOffhandItem = this.equipments[currentOffhandSlot];
-                const currentHasWeapon = (currentItem && currentItem.name) || (currentOffhandItem && currentOffhandItem.name);
+                // 副手仅承载盾牌/魔法书等支援装备，不能让空主手武器组变成“可切换武器组”。
+                const nextHasWeapon = !!(nextItem && nextItem.name);
+                const currentHasWeapon = !!(currentItem && currentItem.name);
                 if (!nextHasWeapon && !currentHasWeapon) {
                     // 两个栏位都为空，显示提示
                     const hint = document.createElement('div');
@@ -1049,6 +1045,8 @@ switchWeaponMode() {
                     return;
                 }
                 this.weaponMode = nextMode;
+                // 法杖魔攻只读取当前启用主手；切换后立即刷新，避免沿用上一武器组的 matk。
+                this.calculateCombatStats();
                 // 切换武器栏：立即中断所有槽位的换弹动作（含 Super90 单发装填）
                 for (const slot of ['weapon', 'offhand', 'weapon2', 'ring2']) {
                     const state = this._ammoState && this._ammoState[slot];

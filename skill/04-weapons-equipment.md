@@ -348,6 +348,15 @@ setTimeout(() => console.log('触发后:', JSON.stringify(p.weaponAnim), '| rang
 
 ---
 
+### 主副手与施法媒介契约（2026-08-24）
+
+- `weapon/weapon2` 是两套可切换的**主手武器组**；`offhand/ring2` 是与其配对的副手支援槽。单手武器不等于可放副手，所有拖拽、双击、商店与旧存档迁移统一委托 `equip-rules.js::canEquipSlot()`，禁止各入口复制类型判断。
+- 副手白名单目前只有 `shield | spellbook | magic_book`；枪械、法杖和普通近战武器都不能进入副手。未来魔法书沿 `bonusStats`/专属效果扩展，不复制法杖的 `matkFormula`，避免主副手双法杖叠成长。
+- 法杖施法媒介只认 `player.weaponMode` 对应的当前主手。魔攻公式、制作词条、施法动画和中高级魔法门槛都不得读取未激活武器组或副手。
+- 切换主手后必须立即 `calculateCombatStats()`；旧存档物品经 `completeWeaponFields()` 回填权威字段。规则迁移若卸下非法副手，要先尝试背包，背包已满再安全掉落，不能静默覆盖或丢失。
+
+---
+
 ### 装备/道具图标统一处理工作流（2026-08-02 定稿：装备图标放大 + 视觉居中沉淀）
 
 新增装备/道具图标（`iconImage` 类贴图）一律按此处理，保证与武器图标观感一致。

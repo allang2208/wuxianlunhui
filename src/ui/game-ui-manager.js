@@ -425,7 +425,7 @@ export const GameUIManager = {
                     el.textContent = (Math.round(regen * 100) / 100) + item.unit;
                     break;
                 }
-                case 'detailMpRegen': el.textContent = d.mpRegen + item.unit; break;
+                case 'detailMpRegen': el.textContent = `${Math.round((d.mpRegen || 0) * 100) / 100}/秒`; break;
                 case 'detailCollisionRadius': el.textContent = (p.collisionRadius || 10) + item.unit; break;
                 case 'detailMoveSpeed': {
                     const speed = p.maxSpeed || CONFIG.PLAYER_SPEED || 0;
@@ -503,6 +503,10 @@ export const GameUIManager = {
         }
         if (typeof EquipManager !== 'undefined' && Array.isArray(EquipManager.backpackItems)) {
             for (const item of EquipManager.backpackItems) completeWeaponFields(item);
+        }
+        // 旧存档副手迁移：现规则仅允许盾牌/魔法书，枪械、法杖等迁回背包或安全掉落。
+        if (typeof EquipManager !== 'undefined' && typeof EquipManager.enforceOffhandRules === 'function') {
+            EquipManager.enforceOffhandRules();
         }
         // 重算派生状态（属性/弹药/附魔攻击间隔/技能覆盖）
         if (this.player.calculateCombatStats) this.player.calculateCombatStats();

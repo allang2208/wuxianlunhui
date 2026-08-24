@@ -261,7 +261,7 @@ export function createHudPanelsSystemTabs() {
     const detailAttrs = [
         { name: '体力恢复', id: 'detailStaminaRegen', val: '0/秒', tooltipKey: 'staminaRegen' },
         { name: '生命回复', id: 'detailHpRegen', val: '1/秒', tooltipKey: 'hpRegen' },
-        { name: '魔法回复', id: 'detailMpRegen', val: '1/3秒', tooltipKey: 'mpRegen' },
+        { name: '魔法回复', id: 'detailMpRegen', val: '1/秒', tooltipKey: 'mpRegen' },
         { name: '碰撞体积', id: 'detailCollisionRadius', val: '0px', tooltipKey: 'collisionRadius' },
         { name: '移动速度', id: 'detailMoveSpeed', val: '0px/帧', tooltipKey: 'moveSpeedDetail' },
         { name: '闪避冷却', id: 'detailDodgeCooldown', val: '0ms', tooltipKey: 'dodgeCooldown' },

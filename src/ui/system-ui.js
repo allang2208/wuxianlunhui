@@ -51,7 +51,7 @@ export const UI_DATA_CONFIG = {
         detailAttrs: [
             { id: 'detailStaminaRegen', name: '体力恢复', unit: '/秒' },
             { id: 'detailHpRegen', name: '生命回复', unit: '/秒' },
-            { id: 'detailMpRegen', name: '魔法回复', unit: '/3秒' },
+            { id: 'detailMpRegen', name: '魔法回复', unit: '/秒' },
             { id: 'detailCollisionRadius', name: '碰撞体积', unit: 'px' },
             { id: 'detailMoveSpeed', name: '移动速度', unit: 'px/s' },
             { id: 'detailDodgeCooldown', name: '闪避冷却', unit: 'ms' },

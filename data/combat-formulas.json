@@ -69,6 +69,11 @@
       "base": 1.0,
       "dexMultiplier": 0.01
     },
+    "mpRegen": {
+      "base": 1.0,
+      "wisMultiplier": 0.08,
+      "intMultiplier": 0.02
+    },
     "initialStats": {
       "level": 1,
       "hp": 100,

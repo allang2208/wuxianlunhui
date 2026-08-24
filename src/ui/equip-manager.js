@@ -8,7 +8,7 @@ import { ItemDatabase } from '../items/item-database.js';
 import { BackpackDialogManager } from './backpack-dialog-manager.js';
 import { EquipTooltipManager } from './equip-tooltip-manager.js';
 import { EventBus } from '../core/event-bus.js';
-import { isOneHanded, isTwoHanded, getEquipSound } from '../config/gun-ammo.js';
+import { isTwoHanded, getEquipSound } from '../config/gun-ammo.js';
 import { CraftSystem } from './craft-system.js';
 import { WarehouseSystem } from './warehouse-system.js';
 import { FusionSystem } from './fusion-system.js';
@@ -20,6 +20,7 @@ import { TimerManager } from '../utils/timer-manager.js';
 import { QuickBar } from './quick-bar.js';
 import { createDragDropManager } from './equip/drag-drop-manager.js';
 import { updateEquipSlots as renderEquipSlots, updateInventorySlots as renderInventorySlots } from './equip/slot-renderer.js';
+import { canEquipSlot, isOffhandSupportItem } from './equip/equip-rules.js';
         export const EquipManager = {
             async init(player) {
                 this.player = player;
@@ -46,21 +47,8 @@ import { updateEquipSlots as renderEquipSlots, updateInventorySlots as renderInv
                     if (!Object.prototype.hasOwnProperty.call(player.equipments, 'weapon2')) {
                         player.equipments.weapon2 = null;
                     }
-                    // 初始化槽位验证：双手武器不能放在副手栏
-                    ['offhand', 'ring2'].forEach(slot => {
-                        const item = player.equipments[slot];
-                        if (item && item.isTwoHanded) {
-                            const used = new Set(this.backpackItems.map(i => i.slot));
-                            let freeSlot = 0;
-                            while (used.has(freeSlot) && freeSlot < this.maxBackpackSlots) freeSlot++;
-                            if (freeSlot < this.maxBackpackSlots) {
-                                const clone = JSON.parse(JSON.stringify(item));
-                                clone.slot = freeSlot;
-                                this.backpackItems.push(clone);
-                            }
-                            player.equipments[slot] = null;
-                        }
-                    });
+                    // 新副手契约：只允许盾牌/魔法书；旧档枪械、法杖等安全迁回背包。
+                    this.enforceOffhandRules();
                 }
                 // 加载 weapon2 槽的武器状态
                 const w2 = player.equipments && player.equipments.weapon2;
@@ -336,6 +324,37 @@ import { updateEquipSlots as renderEquipSlots, updateInventorySlots as renderInv
                 if (p && typeof p.updateMaxStats === 'function') p.updateMaxStats();
                 renderEquipSlots(this);
             },
+            /**
+             * 将旧档或旧规则遗留的非法副手装备迁回背包；背包满时优先掉落到玩家脚下。
+             * 若当前阶段尚无掉落入口，则保留原槽位并告警，绝不静默丢物。
+             */
+            enforceOffhandRules() {
+                const player = this.player;
+                if (!player || !player.equipments) return 0;
+                let moved = 0;
+                for (const slot of ['offhand', 'ring2']) {
+                    const item = player.equipments[slot];
+                    if (!item || canEquipSlot(item, slot)) continue;
+                    const freeSlot = this._findFirstEmptySlot ? this._findFirstEmptySlot() : -1;
+                    if (freeSlot >= 0) {
+                        const clone = JSON.parse(JSON.stringify(item));
+                        clone.slot = freeSlot;
+                        clone.backpackSlot = freeSlot;
+                        this.backpackItems.push(clone);
+                    } else {
+                        const game = typeof window !== 'undefined' ? window.Game : null;
+                        if (!game || typeof game.dropItem !== 'function') {
+                            console.warn(`[装备迁移] 副手槽 ${slot} 的 ${item.name || '物品'} 不再合法，但当前无法安全迁出`);
+                            continue;
+                        }
+                        game.dropItem(player.x, player.y, JSON.parse(JSON.stringify(item)));
+                    }
+                    player.equipments[slot] = null;
+                    this._clearWeaponState(slot);
+                    moved++;
+                }
+                return moved;
+            },
             unequip(slotKey) {
                 const equipped = this.player.equipments[slotKey];
                 if (!equipped || !equipped.name) return false;
@@ -521,62 +540,42 @@ import { updateEquipSlots as renderEquipSlots, updateInventorySlots as renderInv
                 let targetSlot = item.equipSlot;
                 // 判断是否是武器
                 const isWeapon = item.category === 'weapon_melee' || item.category === 'weapon_ranged'
-                    || item.weaponType || item.rangedType || item.weaponAsset || item.bowFrames;
-                // 武器类：统一按空槽位填充逻辑，忽略 equipSlot
-                // 栏1空 → 栏1，栏1有栏2空 → 栏2，都满 → 替换当前使用的武器栏
+                    || item.weaponType || item.rangedType || item.weaponAsset || item.bowFrames
+                    || isOffhandSupportItem(item);
+                // 主手武器只在 weapon/weapon2 间选择；副手只接受盾牌/魔法书。
                 if (isWeapon) {
-                    const isOneHandedWeapon = item && isOneHanded(item);
-                    if (isOneHandedWeapon) {
+                    if (isOffhandSupportItem(item)) {
                         const currentMainSlot = player.weaponMode; // 'weapon' 或 'weapon2'
                         const offhandSlot = currentMainSlot === 'weapon' ? 'offhand' : 'ring2';
                         const currentMainItem = player.equipments[currentMainSlot];
                         const currentMainIsTwoHanded = currentMainItem && currentMainItem.isTwoHanded === true;
-                        if (item.weaponType === 'shield') {
-                            // 盾类：始终装备到对应副手栏；若主手是双手武器则卸下主手
-                            if (currentMainIsTwoHanded) {
-                                const oldClone = JSON.parse(JSON.stringify(currentMainItem));
-                                const used = new Set(this.backpackItems.map(i => i.slot));
-                                let freeSlot = 0; while (used.has(freeSlot) && freeSlot < this.maxBackpackSlots) freeSlot++;
-                                oldClone.slot = freeSlot;
-                                this.backpackItems.push(oldClone);
-                                player.equipments[currentMainSlot] = null;
-                                this._clearWeaponState(currentMainSlot);
-                                if (currentMainSlot === player.weaponMode && player._clearSkillOverrides) {
-                                    player._clearSkillOverrides();
-                                }
-                            }
-                            targetSlot = offhandSlot;
-                        } else {
-                            // 单手武器（手枪等）：优先装当前主手栏；主手空则主手，主手满再看副手
-                            if (!currentMainItem || !currentMainItem.name) {
-                                targetSlot = currentMainSlot;
-                            } else {
-                                const offhandItem = player.equipments[offhandSlot];
-                                if (!offhandItem || !offhandItem.name) {
-                                    targetSlot = offhandSlot;
-                                } else if (currentMainIsTwoHanded) {
-                                    // 主手是双手武器，替换主手
-                                    targetSlot = currentMainSlot;
-                                } else {
-                                    // 主手单手且副手有装备，替换副手
-                                    targetSlot = offhandSlot;
-                                }
+                        // 盾牌/魔法书与双手主手互斥；沿用旧行为，装备副手时将双手主手迁回背包。
+                        if (currentMainIsTwoHanded) {
+                            const oldClone = JSON.parse(JSON.stringify(currentMainItem));
+                            const used = new Set(this.backpackItems.map(i => i.slot));
+                            let freeSlot = 0; while (used.has(freeSlot) && freeSlot < this.maxBackpackSlots) freeSlot++;
+                            // 背包满时不能为了装备副手而把双手主武器写入越界格，也不能静默丢失。
+                            if (freeSlot >= this.maxBackpackSlots) return;
+                            oldClone.slot = freeSlot;
+                            oldClone.backpackSlot = freeSlot;
+                            this.backpackItems.push(oldClone);
+                            player.equipments[currentMainSlot] = null;
+                            this._clearWeaponState(currentMainSlot);
+                            if (currentMainSlot === player.weaponMode && player._clearSkillOverrides) {
+                                player._clearSkillOverrides();
                             }
                         }
+                        targetSlot = offhandSlot;
                     } else {
-                        // 双手武器（机枪/步枪类）：只能装备到主手槽
-                        const w1Empty = !player.equipments.weapon || !player.equipments.weapon.name;
-                        const w2Empty = !player.equipments.weapon2 || !player.equipments.weapon2.name;
-                        if (w1Empty) {
-                            targetSlot = 'weapon';
-                        } else if (w2Empty) {
-                            targetSlot = 'weapon2';
-                        } else {
-                            targetSlot = player.weaponMode;
-                        }
+                        const currentMainSlot = player.weaponMode;
+                        const otherMainSlot = currentMainSlot === 'weapon' ? 'weapon2' : 'weapon';
+                        const currentEmpty = !player.equipments[currentMainSlot] || !player.equipments[currentMainSlot].name;
+                        const otherEmpty = !player.equipments[otherMainSlot] || !player.equipments[otherMainSlot].name;
+                        targetSlot = currentEmpty ? currentMainSlot : (otherEmpty ? otherMainSlot : currentMainSlot);
                     }
                 }
                 if (!targetSlot || !Object.prototype.hasOwnProperty.call(player.equipments, targetSlot)) return;
+                if (!canEquipSlot(item, targetSlot)) return;
 
                 const replacedItem = player.equipments[targetSlot];
                 // 先从背包移除原物品

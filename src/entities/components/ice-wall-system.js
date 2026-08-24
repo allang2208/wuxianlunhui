@@ -19,6 +19,7 @@ import {
     getMagicRangeMultiplier,
     getMagicMpCostMultiplier,
     getMagicCooldownMultiplier,
+    createMagicCastContext,
     consumeChainSpellBonus,
     addChainSpellStack,
     applyCastHaste,
@@ -148,6 +149,7 @@ export class IceWallSystem {
         }
         // 门禁通过：正式消费链式强化并扣蓝（与 bolt-skill-system 同口径：施法成功才消耗）
         const chain = consumeChainSpellBonus(src);
+        const castContext = createMagicCastContext(src, ce);
         if (!isSkillCheatEnabled() && this._isPlayer() && mpCost > 0) src.data.mp -= mpCost;
         this._chainDamageMul = chain.damageMul || 0;
         effect.mpCost = mpCost;
@@ -171,8 +173,8 @@ export class IceWallSystem {
             }
             EffectManager.add(new FloatingTextEffect(src.x, src.y - 40, '🧱 冰墙', '#a0d8ff'));
             // 松木握柄：施法后添加 1 层链式强化；檀木握柄：施法后给自身加速
-            addChainSpellStack(src);
-            applyCastHaste(src);
+            addChainSpellStack(src, castContext.craftEffects);
+            applyCastHaste(src, castContext.craftEffects);
         };
 
         if (this._isPlayer()) {

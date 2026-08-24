@@ -1,25 +1,35 @@
 // ============================================================
 // 共享装备规则（2026-08-12）
 // 玩家与侍从共用同一套装备判定/加成口径——队员装备不再各写一套。
-// canEquipSlot：从 drag-drop-manager 抽出（武器进武器槽/盾限副手/双手互斥/按 equipSlot）。
+// canEquipSlot：从 drag-drop-manager 抽出（主手武器/副手支援物/双手互斥/按 equipSlot）。
 // getEquipmentBonuses：从 player base._getEquipmentBonuses 抽出（bonusStats/bonusPerEnhance/defense）。
 // ============================================================
+
+const OFFHAND_SUPPORT_TYPES = new Set(['shield', 'spellbook', 'magic_book']);
+
+/**
+ * 副手支援物唯一口径：当前只实装盾牌，预留 spellbook/magic_book 给后续魔法书。
+ * 枪械、法杖、剑等主手武器一律不能进入 offhand/ring2。
+ */
+export function isOffhandSupportItem(item) {
+    if (!item) return false;
+    return OFFHAND_SUPPORT_TYPES.has(item.offhandType)
+        || OFFHAND_SUPPORT_TYPES.has(item.weaponType)
+        || item.category === 'magic_book';
+}
 
 /** 装备槽位判定（玩家/侍从通用） */
 export function canEquipSlot(item, slot) {
     if (!item || !slot) return true;
     const isWeaponSlot = (slot === 'weapon' || slot === 'weapon2');
     const isOffhandSlot = (slot === 'offhand' || slot === 'ring2');
+    const isOffhandSupport = isOffhandSupportItem(item);
     const isWeaponItem = item.weaponType || (item.category && item.category.includes('weapon')) || item.rangedType;
     if (isWeaponItem && !isWeaponSlot && !isOffhandSlot) return false;
-    if (isWeaponSlot && !isWeaponItem) return false;
-    // 盾类只能装备到副手栏
-    if (item.weaponType === 'shield' && !isOffhandSlot) return false;
-    // 所有武器都可以装备到 offhand/ring2（副手武器槽），但双手武器除外
-    if (isOffhandSlot && isWeaponItem) {
-        if (item.isTwoHanded) return false;
-        return true;
-    }
+    // 主手只接受武器，且盾牌/魔法书等副手支援物不能反装主手。
+    if (isWeaponSlot) return !!isWeaponItem && !isOffhandSupport;
+    // 副手只接受盾牌或魔法书；法杖、枪械、剑等即使是单手也禁止。
+    if (isOffhandSlot) return isOffhandSupport && !item.isTwoHanded;
     if (!isWeaponSlot && !isOffhandSlot && item.equipSlot !== slot) return false;
     return true;
 }
@@ -44,7 +54,7 @@ export function getEquipmentBonuses(equipments) {
     return totals;
 }
 
-/** 武器是否单手（供自动槽位选择：单手可进副手、双手只进主手） */
+/** 武器是否单手（只描述持握规格；副手资格由 isOffhandSupportItem 单独决定） */
 export function isOneHandedItem(item) {
     if (!item) return false;
     if (typeof item.isTwoHanded === 'boolean') return !item.isTwoHanded;

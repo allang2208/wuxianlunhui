@@ -14,6 +14,7 @@ import {
     getMagicMpCostMultiplier,
     getMagicCooldownMultiplier,
     getMagicDamageMultiplierWithChain,
+    createMagicCastContext,
     consumeChainSpellBonus,
     addChainSpellStack,
     applyCastHaste,
@@ -105,6 +106,7 @@ export class BlizzardSystem {
             return;
         }
         const chain = consumeChainSpellBonus(src);
+        const castContext = createMagicCastContext(src, ce);
         if (!isSkillCheatEnabled() && this._isPlayer() && mpCost > 0) src.data.mp -= mpCost;
         effect.mpCost = mpCost;
         effect.cooldown = effect.cooldown * getMagicCooldownMultiplier(src, ce);
@@ -117,10 +119,10 @@ export class BlizzardSystem {
             if (castSounds && SoundManager && typeof SoundManager.playFile === 'function') {
                 (Array.isArray(castSounds) ? castSounds : [castSounds]).forEach(p => SoundManager.playFile(p));
             }
-            this._spawnZone(aimX, aimY, effect, surfaceContext);
+            this._spawnZone(aimX, aimY, effect, surfaceContext, castContext);
             EffectManager.add(new FloatingTextEffect(src.x, src.y - entitySurfaceZ(src) - 40, '❄ 暴风雪', '#9fd8ff'));
-            addChainSpellStack(src);
-            applyCastHaste(src);
+            addChainSpellStack(src, castContext.craftEffects);
+            applyCastHaste(src, castContext.craftEffects);
         };
         if (this._isPlayer()) {
             this._startPlayerCast(doRelease);
@@ -129,7 +131,7 @@ export class BlizzardSystem {
         }
     }
 
-    _spawnZone(x, y, effect, surfaceContext = null) {
+    _spawnZone(x, y, effect, surfaceContext = null, castContext = null) {
         const src = this.source;
         const radiusX = effect.radiusX;
         const radiusY = effect.radiusY;
@@ -148,8 +150,8 @@ export class BlizzardSystem {
                 const shape = new GroundEllipse(z.x, z.y, radiusX, radiusY, z.surfaceContext);
                 const baseDamage = Math.floor(
                     (effect.damageBase ?? 0)
-                    + (src.data.matk ?? 0) * (effect.magicMul ?? 0)
-                    + (src.data.int ?? 0) * (effect.intMul ?? 0)
+                    + ((castContext?.stats || src.data).matk ?? 0) * (effect.magicMul ?? 0)
+                    + ((castContext?.stats || src.data).int ?? 0) * (effect.intMul ?? 0)
                 );
                 const damage = Math.floor(baseDamage * (this._magicDamageMul || 1));
                 const entityList = Array.from(entities.values ? entities.values() : entities);
@@ -159,7 +161,7 @@ export class BlizzardSystem {
                     if (e._faction === src._faction) continue;
                     if (!shape.intersectsEntity(e)) continue;
                     const wasAlive = e.hp > 0;
-                    e.takeDamage(damage, src, 'magic', false);
+                    e.takeDamage(damage, src, 'magic', false, castContext);
                     if (effect.chillStacks && typeof e.applyChill === 'function') {
                         e.applyChill(effect.chillStacks, effect.chillDurationMs, effect.chillSlowPercent);
                     }

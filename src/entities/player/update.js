@@ -566,7 +566,7 @@ update(dt, entities) {
                 // ===== 魔法回复 =====
                 if (this.data.mp < this.data.maxMp) {
                     // 祭品效果（数据驱动）：魔法恢复百分比加成
-                    this.data.mp = Math.min(this.data.maxMp, this.data.mp + (this.data.mpRegen / 3) * getTributeMpRegenMultiplier() * (dt / 1000));
+                    this.data.mp = Math.min(this.data.maxMp, this.data.mp + this.data.mpRegen * getTributeMpRegenMultiplier() * (dt / 1000));
                 }
                 Object.values(this.attacks).forEach(a => a.update(dt));
                 // ===== 枪类武器弹道扩散计时更新（主副手独立） =====

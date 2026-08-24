@@ -211,27 +211,23 @@ const baseMixin = {
     },
 
     /**
-     * 装备 matkFormula 魔法攻击加成（独立公式，含强化成长）。
-     * 任何装备只要配置了 matkFormula 即生效，不硬编码武器类型或具体数值。
+     * 当前主手法杖 matkFormula 魔法攻击加成（独立公式，含强化成长）。
+     * 未启用武器组、副手盾牌/魔法书不叠加法杖公式；魔法书走 bonusStats 等支援属性。
      * 公式：base + 强化等级×enhanceBase + (智力+技能加成)×(intMul + 强化等级×enhanceIntMul)
      *                            + (精神+技能加成)×(wisMul + 强化等级×enhanceWisMul)
      */
     _getEquipmentMatkBonus(bonusInt, bonusWis) {
-        let total = 0;
-        if (!this.equipments) return total;
-        for (const slotKey of Object.keys(this.equipments)) {
-            const it = this.equipments[slotKey];
-            if (!it || !it.matkFormula) continue;
-            const el = it.enhanceLevel || 0;
-            const f = it.matkFormula;
-            const flat = (f.base || 0) + el * (f.enhanceBase || 0);
-            const intMul = (f.intMul || 0) + el * (f.enhanceIntMul || 0);
-            const wisMul = (f.wisMul || 0) + el * (f.enhanceWisMul || 0);
-            const intTotal = (this.data.int || 0) + (bonusInt || 0);
-            const wisTotal = (this.data.wis || 0) + (bonusWis || 0);
-            total += flat + intTotal * intMul + wisTotal * wisMul;
-        }
-        return Math.round(total);
+        if (!this.equipments) return 0;
+        const focus = this.equipments[this.weaponMode];
+        if (!focus || focus.weaponType !== 'staff' || !focus.matkFormula) return 0;
+        const el = focus.enhanceLevel || 0;
+        const f = focus.matkFormula;
+        const flat = (f.base || 0) + el * (f.enhanceBase || 0);
+        const intMul = (f.intMul || 0) + el * (f.enhanceIntMul || 0);
+        const wisMul = (f.wisMul || 0) + el * (f.enhanceWisMul || 0);
+        const intTotal = (this.data.int || 0) + (bonusInt || 0);
+        const wisTotal = (this.data.wis || 0) + (bonusWis || 0);
+        return Math.round(flat + intTotal * intMul + wisTotal * wisMul);
     },
 
     /**
@@ -313,6 +309,7 @@ const baseMixin = {
         const hpFormula = formulas.maxHp || { base: 100, conMultiplier: 10 };
         const mpFormula = formulas.maxMp || { base: 100, wisMultiplier: 10, intMultiplier: 5 };
         const staminaFormula = formulas.staminaRegen || { base: 1.0, dexMultiplier: 0.01 };
+        const mpRegenFormula = formulas.mpRegen || { base: 1.0, wisMultiplier: 0.08, intMultiplier: 0.02 };
         const eq = this._getEquipmentBonuses();
 
         const oldMaxHp = d.maxHp;
@@ -325,6 +322,10 @@ const baseMixin = {
         d.maxHp = hpFormula.base + d.con * hpFormula.conMultiplier + eq.maxHp + lvlHp;
         d.maxMp = mpFormula.base + d.wis * mpFormula.wisMultiplier + d.int * mpFormula.intMultiplier + eq.maxMp + lvlMp;
         d.maxStamina = (CONFIG.STAMINA_MAX || 100) + eq.maxStamina;
+        // 魔法值始终按秒恢复，不区分战斗/非战斗状态。
+        d.mpRegen = Math.max(0, Math.round((mpRegenFormula.base
+            + d.wis * mpRegenFormula.wisMultiplier
+            + d.int * mpRegenFormula.intMultiplier) * 100) / 100);
 
         // HP/MP 按比例缩放，避免满血时增加属性反而掉血
         if (oldMaxHp > 0) d.hp = Math.min(d.maxHp, d.hp + (d.maxHp - oldMaxHp));

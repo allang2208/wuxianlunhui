@@ -399,7 +399,7 @@ this.ai = config.ai || {};
 - **弹开落点单位**：敌人走 `applyKnockback`；**玩家 knockback 字段无消费方**（Player.update 不调基类 update），必须直接位移过 `WallSystem.resolve`。站桩怪（煮锅/墓碑）覆写 applyKnockback 为空，天然弹不动。
 
 ### 魔法等级门槛 + 快捷栏灰化（新机制范式）
-- `magic-categories.js` 加 `MAGIC_SKILL_TIERS`（数据驱动，未登记=初级）+ `meetsMagicWeaponReq`（中级+需当前武器组主/副手 weaponType==='staff'）；释放入口（技能系统 trigger）拦截 + `SceneManager.showTopNotification` 提示（魔法系统惯例，**别学 pushStrike 手写红 div**）。
+- `magic-categories.js` 加 `MAGIC_SKILL_TIERS`（数据驱动，未登记=初级）+ `meetsMagicWeaponReq`（中级+只认当前武器组**主手** `weaponType==='staff'`，副手不允许法杖）；释放入口（技能系统 trigger）拦截 + `SceneManager.showTopNotification` 提示（魔法系统惯例，**别学 pushStrike 手写红 div**）。
 - 快捷栏灰化：`_renderSkillRequirements()` 挂 updateCooldowns 节拍，槽位切 `qb-skill-disabled` 类（CSS `grayscale(1) brightness(0.55)`）——换装即时生效，无需事件挂钩。
 
 ### 本轮坑

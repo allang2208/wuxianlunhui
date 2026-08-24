@@ -11,7 +11,11 @@ import {
     getCurrentWeaponCraftEffects,
     getMagicMpCostMultiplier,
     getMagicCooldownMultiplier,
-    getMagicDamageMultiplier,
+    getMagicDamageMultiplierWithChain,
+    createMagicCastContext,
+    consumeChainSpellBonus,
+    addChainSpellStack,
+    applyCastHaste,
 } from '../../utils/magic-craft-helper.js';
 import skillsData from '../../../data/skills.json';
 import { isSkillCheatEnabled } from '../../config/dev-cheats.js';
@@ -76,6 +80,9 @@ export class FlameArmorSystem {
             EffectManager.add(new FloatingTextEffect(src.x, src.y - 30, '魔法不足', '#ff6b35'));
             return;
         }
+        const chain = consumeChainSpellBonus(src);
+        this._castContext = createMagicCastContext(src, ce);
+        this._magicDamageMul = getMagicDamageMultiplierWithChain(src, 'flameArmor', ce, chain.stacks);
         if (!isSkillCheatEnabled()) src.data.mp -= mpCost;
 
         const effect = { ...FLAME_ARMOR_DEFAULTS, ...baseEffect, mpCost };
@@ -96,6 +103,8 @@ export class FlameArmorSystem {
         if (castSounds && SoundManager && typeof SoundManager.playFile === 'function') {
             (Array.isArray(castSounds) ? castSounds : [castSounds]).forEach(p => SoundManager.playFile(p));
         }
+        addChainSpellStack(src, this._castContext.craftEffects);
+        applyCastHaste(src, this._castContext.craftEffects);
     }
 
     _ensureWeaponFx() {
@@ -110,14 +119,14 @@ export class FlameArmorSystem {
         if (!target || !target.active || !target.hittable) return;
         if (target === src || target._faction === src._faction) return;
         const effect = this._getEffect();
-        const d = src.data;
-        const mul = getMagicDamageMultiplier(src, 'flameArmor', getCurrentWeaponCraftEffects(src));
+        const d = this._castContext?.stats || src.data;
+        const mul = this._magicDamageMul || 1;
         const damage = Math.floor(((effect.hitDamageBase ?? 0)
             + (d.matk ?? 0) * (effect.hitMagicMul ?? 0)
             + (d.int ?? 0) * (effect.hitIntMul ?? 0)) * (mul || 1));
         if (damage <= 0) return;
         const wasAlive = target.hp > 0;
-        target.takeDamage(damage, src, 'magic', false);
+        target.takeDamage(damage, src, 'magic', false, this._castContext);
         this._spawnSparks(target.x, target.y);
         this._acc.hits++;
         if (wasAlive && target.hp <= 0 && !target._summoned) this._acc.kills++;
@@ -128,8 +137,8 @@ export class FlameArmorSystem {
         const src = this.source;
         const radius = effect.auraRadius;
         const shape = new GroundCircle(src.x, src.y, radius, surfaceEffectFromEntity(src));
-        const d = src.data;
-        const mul = getMagicDamageMultiplier(src, 'flameArmor', getCurrentWeaponCraftEffects(src));
+        const d = this._castContext?.stats || src.data;
+        const mul = this._magicDamageMul || 1;
         const damage = Math.floor(((effect.auraDamageBase ?? 0)
             + (d.matk ?? 0) * (effect.auraMagicMul ?? 0)
             + (d.int ?? 0) * (effect.auraIntMul ?? 0)) * (mul || 1));
@@ -140,7 +149,7 @@ export class FlameArmorSystem {
             if (e._faction === src._faction) continue;
             if (!shape.intersectsEntity(e)) continue;
             const wasAlive = e.hp > 0;
-            e.takeDamage(damage, src, 'magic', false);
+            e.takeDamage(damage, src, 'magic', false, this._castContext);
             this._spawnSparks(e.x, e.y);
             tickHits++;
             this._acc.hits++;
@@ -202,6 +211,8 @@ export class FlameArmorSystem {
         }
         this._acc = { hits: 0, kills: 0, multiHit: false };
         this._auraTimer = 0;
+        this._castContext = null;
+        this._magicDamageMul = 1;
     }
 
     /** 死亡/场景切换统一清理（不结算经验，与暴风雪 clearZones 同口径） */
@@ -219,5 +230,7 @@ export class FlameArmorSystem {
         }
         this._acc = { hits: 0, kills: 0, multiHit: false };
         this._auraTimer = 0;
+        this._castContext = null;
+        this._magicDamageMul = 1;
     }
 }
