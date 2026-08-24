@@ -40,6 +40,7 @@ check('拓扑关系覆盖错误基础Y：后建筑 < 墙 < 前建筑',
 check('相邻结构保留内部特效通道间隔',
     ordered.get('middle-wall') - ordered.get('rear-building') >= STRUCTURE_ORDER_GAP
     && ordered.get('front-building') - ordered.get('middle-wall') >= STRUCTURE_ORDER_GAP);
+check('相邻结构为动态单位前后各0.5预留完整插入槽', STRUCTURE_ORDER_GAP > 1);
 
 const channels = structureDepthChannels(200);
 check('建筑渲染组内部顺序固定',
@@ -65,6 +66,24 @@ const ambiguous = resolveStructureRenderOrder([
 ]);
 check('斜向交叉关系按基础深度稳定兜底',
     ambiguous.get('side-a') < ambiguous.get('side-b'));
+
+const visualAmbiguous = resolveStructureRenderOrder([
+    {
+        stableKey: 'dense-side-a',
+        bounds: { minU: 0, maxU: 2, minV: 3, maxV: 5 },
+        visualBounds: { minX: 0, maxX: 120, minY: 0, maxY: 180 },
+        baseDepth: 100,
+    },
+    {
+        stableKey: 'dense-side-b',
+        bounds: { minU: 3, maxU: 5, minV: 0, maxV: 2 },
+        visualBounds: { minX: 80, maxX: 200, minY: 60, maxY: 220 },
+        baseDepth: 100.2,
+    },
+]);
+check('画面相交的斜向建筑固定基础顺序并保留单位插槽',
+    visualAmbiguous.get('dense-side-b') - visualAmbiguous.get('dense-side-a')
+        >= STRUCTURE_ORDER_GAP);
 
 console.log(`\n结果: ${pass} 通过, ${fail} 失败`);
 process.exit(fail ? 1 : 0);

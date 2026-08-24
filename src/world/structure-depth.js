@@ -1,15 +1,18 @@
 // ============================================================
 import { isoFootprintVertices } from '../physics/iso-footprint.js';
+import {
+    compareIsoBoundsOrder,
+    pointIsoBounds,
+    structureIsoBounds,
+    visualBoundsOverlap,
+} from './structure-render-order.js';
 // 建筑图层统一口径（2026-08-16，世界-122 全建筑共用）
 //
 // 唯一规则（与掩体/铁闸门/仓鼠小屋同一套）：
 // - iso_rect 建筑：以完整地面 footprint 的屏幕前缘为排序边界；
 // - 墙/门等线结构：以实际接地面线为排序边界；
 // - `_faceDepth`：统一由 `structureDepthAtY(前缘Y)` 生成；
-// - 单位（玩家/敌人/侍从/友方单位）每帧经 WallSystem.junctionCorrectedDepth
-//   仲裁：脚线在局部前缘之后（y < frontY）→ 压到建筑之下；在前/同线
-//   （y ≥ frontY）
-//   → 抬到建筑之上（+0.5，消除同线 z-fight）。
+// - 普通建筑与移动单位共用 u/v footprint 前后关系；墙/门仍走面线仲裁；
 //
 // 新建筑/新结构构造时调用一次 `setupStructureDepth(entity, halfWidth)` 即可，
 // 后续只要走 applyBuildingFootprint/rebuildCollider，深度几何会自动刷新；不需要再为
@@ -83,56 +86,212 @@ export function structureDepthSpan(entity) {
 }
 
 /**
- * 取得 iso 建筑在指定屏幕 X 位置的真实地面前缘 Y。
- * 只采样 footprint 两条前边。sideRange 表示移动精灵当前帧真实 alpha 可见半宽，
- * 并以接地/碰撞半径兜底；它不等于含透明留白的整帧宽度。当单位中心略越过前角、
- * 但人物可见像素仍与建筑相交时，仍以端点作为前缘，不能无限延长线段。
+ * 普通格网建筑主体的世界可见 AABB。
+ *
+ * 逻辑 footprint 只描述占格；贴图为了容纳屋檐、台阶或底座，画布通常会比 footprint
+ * 略宽。单位与这些外伸像素已经相交时也必须参加拓扑仲裁，否则左右前角会出现一条
+ * “画面重叠但算法未命中”的错层窄带。范围由统一 visualFootprint 反推，不为具体建筑
+ * 维护额外偏移；运行时已有最终视觉缩放/偏移时优先读取最终值。
  */
-export function structureFrontYAtX(entity, x, sideRange = 0) {
+export function structureOcclusionBounds(entity) {
     if (!entity || entity._structureDepthMode !== 'iso_footprint') return null;
-    if (!Array.isArray(entity._faceLines) || entity._faceLines.length !== 2) {
-        refreshStructureDepth(entity);
+    const vertices = isoFootprintVertices(entity);
+    let logicalMinX = Infinity;
+    let logicalMaxX = -Infinity;
+    let logicalMinY = Infinity;
+    let logicalMaxY = -Infinity;
+    for (const point of vertices) {
+        if (!Number.isFinite(point?.x) || !Number.isFinite(point?.y)) continue;
+        logicalMinX = Math.min(logicalMinX, point.x);
+        logicalMaxX = Math.max(logicalMaxX, point.x);
+        logicalMinY = Math.min(logicalMinY, point.y);
+        logicalMaxY = Math.max(logicalMaxY, point.y);
     }
-    let nearest = null;
-    for (const line of entity._faceLines || []) {
-        const [a, b] = line || [];
-        if (!a || !b) continue;
-        const minX = Math.min(a.x, b.x);
-        const maxX = Math.max(a.x, b.x);
-        const lateralReach = Math.max(0, Number(sideRange) || 0);
-        if (x < minX - lateralReach || x > maxX + lateralReach) continue;
-        const sampleX = Math.max(minX, Math.min(maxX, x));
-        const lateralDistance = Math.abs(x - sampleX);
-        const dx = b.x - a.x;
-        const t = Math.max(0, Math.min(1, (sampleX - a.x) / (Math.abs(dx) > 1e-6 ? dx : 1)));
-        const y = a.y + (b.y - a.y) * t;
-        // sideRange 只负责让单位身体能触及前缘，不得让菱形另一侧的无关斜边
-        // 通过“扩张后取最大 Y”抢走判定。前角外侧应采样离单位中心最近的那条真实边；
-        // 正前顶点两边距离相同时 Y 相等，取哪条都不会跳变。
-        if (!nearest || lateralDistance < nearest.lateralDistance - 1e-6
-            || (Math.abs(lateralDistance - nearest.lateralDistance) <= 1e-6 && y > nearest.y)) {
-            nearest = { lateralDistance, y };
-        }
+    if (!Number.isFinite(logicalMinX) || !Number.isFinite(logicalMaxX)
+        || !Number.isFinite(logicalMinY) || !Number.isFinite(logicalMaxY)) return null;
+
+    const runtimeMinX = Number(entity._structureOcclusionVisualMinX);
+    const runtimeMaxX = Number(entity._structureOcclusionVisualMaxX);
+    const runtimeMinY = Number(entity._structureOcclusionVisualMinY);
+    const runtimeMaxY = Number(entity._structureOcclusionVisualMaxY);
+    if (Number.isFinite(runtimeMinX) && Number.isFinite(runtimeMaxX)
+        && Number.isFinite(runtimeMinY) && Number.isFinite(runtimeMaxY)) {
+        return {
+            minX: Math.min(logicalMinX, runtimeMinX),
+            maxX: Math.max(logicalMaxX, runtimeMaxX),
+            minY: Math.min(logicalMinY, runtimeMinY),
+            maxY: Math.max(logicalMaxY, runtimeMaxY),
+            logicalMinX,
+            logicalMaxX,
+            logicalMinY,
+            logicalMaxY,
+        };
     }
-    return nearest?.y ?? null;
+
+    const cfg = entity.spriteCfg || {};
+    const calibration = cfg.visualFootprint;
+    const configuredWidth = Math.max(0, Number(cfg.size) || 0);
+    const configuredHeight = Math.max(0, Number(cfg.sizeH) || configuredWidth);
+    const runtimeScaleX = Number(entity._structureVisualScaleX ?? entity._structureVisualScale);
+    const runtimeScaleY = Number(entity._structureVisualScaleY ?? entity._structureVisualScale);
+    const calibratedWidthRatio = Number(calibration?.widthRatio);
+    const collisionWidth = Math.max(0, Number(entity.collisionWidth) || 0);
+    let displayWidth = Number.isFinite(runtimeScaleX) && runtimeScaleX > 0 && configuredWidth > 0
+        ? configuredWidth * runtimeScaleX
+        : 0;
+    if (!(displayWidth > 0) && calibratedWidthRatio > 0 && collisionWidth > 0) {
+        displayWidth = collisionWidth / calibratedWidthRatio;
+    }
+    if (!(displayWidth > 0)) displayWidth = configuredWidth;
+    if (!(displayWidth > 0)) {
+        return {
+            minX: logicalMinX,
+            maxX: logicalMaxX,
+            minY: logicalMinY,
+            maxY: logicalMaxY,
+            logicalMinX,
+            logicalMaxX,
+            logicalMinY,
+            logicalMaxY,
+        };
+    }
+    const displayHeight = Number.isFinite(runtimeScaleY) && runtimeScaleY > 0
+        ? configuredHeight * runtimeScaleY
+        : configuredHeight;
+
+    let visualOffsetX = Number(entity._visualFootOffsetX);
+    if (!Number.isFinite(visualOffsetX)) {
+        const centerXRatio = Number(calibration?.centerXRatio);
+        visualOffsetX = Number.isFinite(centerXRatio)
+            ? -(centerXRatio - 0.5) * displayWidth
+            : (Number(cfg.offsetX) || 0);
+    }
+    const visualCenterX = (Number(entity.x) || 0) + visualOffsetX;
+    let visualFootOffsetY = Number(entity._visualFootOffsetY);
+    if (!Number.isFinite(visualFootOffsetY)) {
+        visualFootOffsetY = (Number(cfg.footOffsetY) || configuredHeight * 0.5)
+            * (Number.isFinite(runtimeScaleY) && runtimeScaleY > 0 ? runtimeScaleY : 1);
+    }
+    const visualCenterY = (Number(entity.y) || 0) - visualFootOffsetY;
+    let visualMinX = visualCenterX - displayWidth * 0.5;
+    let visualMaxX = visualCenterX + displayWidth * 0.5;
+    let visualMinY = visualCenterY - displayHeight * 0.5;
+    let visualMaxY = visualCenterY + displayHeight * 0.5;
+    const overlay = cfg.overlayAnimation;
+    if (overlay) {
+        const scaleX = Number.isFinite(runtimeScaleX) && runtimeScaleX > 0 ? runtimeScaleX : 1;
+        const scaleY = Number.isFinite(runtimeScaleY) && runtimeScaleY > 0 ? runtimeScaleY : 1;
+        const overlayWidth = Number(overlay.displayW) > 0
+            ? Number(overlay.displayW) * scaleX
+            : displayWidth;
+        const overlayHeight = Number(overlay.displayH) > 0
+            ? Number(overlay.displayH) * scaleY
+            : displayHeight;
+        const overlayCenterX = visualCenterX + (Number(overlay.offsetX) || 0) * scaleX;
+        const overlayCenterY = visualCenterY + (Number(overlay.offsetY) || 0) * scaleY;
+        visualMinX = Math.min(visualMinX, overlayCenterX - overlayWidth * 0.5);
+        visualMaxX = Math.max(visualMaxX, overlayCenterX + overlayWidth * 0.5);
+        visualMinY = Math.min(visualMinY, overlayCenterY - overlayHeight * 0.5);
+        visualMaxY = Math.max(visualMaxY, overlayCenterY + overlayHeight * 0.5);
+    }
+    return {
+        minX: Math.min(logicalMinX, visualMinX),
+        maxX: Math.max(logicalMaxX, visualMaxX),
+        minY: Math.min(logicalMinY, visualMinY),
+        maxY: Math.max(logicalMaxY, visualMaxY),
+        logicalMinX,
+        logicalMaxX,
+        logicalMinY,
+        logicalMaxY,
+    };
 }
 
-/** 给 WallSystem 的无分支采样结果：null 表示单位可见横向范围不与该建筑前缘相交。 */
-export function structureDepthRelationAtPoint(entity, x, y, sideRange = 0) {
-    const frontY = structureFrontYAtX(entity, x, sideRange);
-    if (frontY === null) return null;
-    const inFront = y >= frontY;
-    const span = structureDepthSpan(entity);
-    const renderDepth = Number.isFinite(entity._structureRenderDepth)
-        ? entity._structureRenderDepth
-        : span?.frontDepth;
+/**
+ * 移动节点相对所有真实画面相交建筑的统一深度约束。
+ * lowerDepth：节点必须绘制在这些建筑之后；upperDepth：必须绘制在这些建筑之前。
+ */
+export function dynamicStructureDepthConstraints(
+    x,
+    y,
+    naturalDepth,
+    visualBounds,
+    structures,
+    epsilon = STRUCTURE_DEPTH_EPSILON
+) {
+    const px = Number(x) || 0;
+    const py = Number(y) || 0;
+    const baseDepth = Number(naturalDepth) || 0;
+    const unitVisualBounds = visualBounds && Number.isFinite(visualBounds.minX)
+        && Number.isFinite(visualBounds.maxX)
+        && Number.isFinite(visualBounds.minY)
+        && Number.isFinite(visualBounds.maxY)
+        ? visualBounds
+        : { minX: px, maxX: px, minY: py, maxY: py };
+    const unitGroundBounds = pointIsoBounds(px, py);
+    let lowerDepth = -Infinity;
+    let upperDepth = Infinity;
+    let matched = 0;
+
+    for (const structure of structures || []) {
+        if (!structure?.active || structure._structureDepthMode !== 'iso_footprint') continue;
+        const structureVisualBounds = structureOcclusionBounds(structure);
+        if (!visualBoundsOverlap(unitVisualBounds, structureVisualBounds)) continue;
+        const structureGroundBounds = structureIsoBounds(structure);
+        if (!structureGroundBounds) continue;
+
+        const renderDepth = Number.isFinite(structure._structureRenderDepth)
+            ? structure._structureRenderDepth
+            : (Number.isFinite(structure._structureFrontDepth)
+                ? structure._structureFrontDepth
+                : structureDepthAtY(structure.y, structure._structureDepthBias));
+        const structureBaseDepth = Number.isFinite(structure._structureTopologyBaseDepth)
+            ? structure._structureTopologyBaseDepth
+            : renderDepth;
+        let relation = compareIsoBoundsOrder(unitGroundBounds, structureGroundBounds);
+        if (relation === 0) {
+            // 斜向交叉/同角接触时，与静态结构的 stableNodeCompare 一样回退自然深度；
+            // 完全同深度时让移动节点居前，避免停在建筑边缘时被创建顺序随机压住。
+            relation = baseDepth < structureBaseDepth ? -1 : 1;
+        }
+        matched++;
+        if (relation < 0) upperDepth = Math.min(upperDepth, renderDepth - epsilon);
+        else lowerDepth = Math.max(lowerDepth, renderDepth + epsilon);
+    }
+
     return {
-        frontY,
-        depth: Number.isFinite(renderDepth)
-            ? renderDepth
-            : structureDepthAtY(frontY, entity._structureDepthBias),
-        inFront,
+        lowerDepth,
+        upperDepth,
+        matched,
+        conflict: lowerDepth > upperDepth,
     };
+}
+
+export function resolveDynamicStructureDepth(
+    x,
+    y,
+    naturalDepth,
+    visualBounds,
+    structures,
+    epsilon = STRUCTURE_DEPTH_EPSILON
+) {
+    const natural = Number(naturalDepth) || 0;
+    const constraints = dynamicStructureDepthConstraints(
+        x,
+        y,
+        natural,
+        visualBounds,
+        structures,
+        epsilon
+    );
+    if (constraints.matched === 0) return natural;
+    if (!constraints.conflict) {
+        return Math.max(constraints.lowerDepth, Math.min(constraints.upperDepth, natural));
+    }
+    // 理论上统一静态 gap 与同源 u/v 关系后不会进入此分支；旧存档中的异常重叠结构
+    // 仍按离自然脚线最近的稳定边界收敛，禁止在两条互斥分支间逐帧翻转。
+    const lowerDistance = Math.abs(constraints.lowerDepth - natural);
+    const upperDistance = Math.abs(natural - constraints.upperDepth);
+    return lowerDistance <= upperDistance ? constraints.lowerDepth : constraints.upperDepth;
 }
 
 /**

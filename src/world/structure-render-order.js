@@ -4,7 +4,8 @@ import {
     worldDeltaToIsoLocal,
 } from '../physics/iso-footprint.js';
 
-export const STRUCTURE_ORDER_GAP = 0.25;
+// 动态单位在结构前后各预留 0.5 depth；结构节点之间至少保留完整插入槽。
+export const STRUCTURE_ORDER_GAP = 1.25;
 
 /** 一个结构节点内部的稳定深度通道；相邻结构至少间隔 STRUCTURE_ORDER_GAP。 */
 export function structureDepthChannels(baseDepth) {
@@ -46,8 +47,41 @@ export function segmentIsoBounds(a, b, halfThickness = 8) {
     };
 }
 
-function definitelyBehind(a, b, epsilon = 0.001) {
+/** 世界脚点转为可参与结构排序的零面积 u/v 节点。 */
+export function pointIsoBounds(x, y) {
+    const point = worldDeltaToIsoLocal(Number(x) || 0, Number(y) || 0);
+    return {
+        minU: point.u,
+        maxU: point.u,
+        minV: point.v,
+        maxV: point.v,
+    };
+}
+
+export function definitelyBehind(a, b, epsilon = 0.001) {
     return a.maxU <= b.minU + epsilon || a.maxV <= b.minV + epsilon;
+}
+
+/**
+ * 共用的等距地面前后关系。-1 表示 a 在 b 后，1 表示 b 在 a 后，0 表示地面几何不唯一。
+ * 静态结构与动态单位必须消费同一判断，禁止再按屏幕 X 另建一套建筑前缘规则。
+ */
+export function compareIsoBoundsOrder(a, b) {
+    if (!a || !b) return 0;
+    const aBehindB = definitelyBehind(a, b);
+    const bBehindA = definitelyBehind(b, a);
+    if (aBehindB && !bBehindA) return -1;
+    if (bBehindA && !aBehindB) return 1;
+    return 0;
+}
+
+export function visualBoundsOverlap(a, b, padding = 0) {
+    if (!a || !b) return false;
+    const pad = Math.max(0, Number(padding) || 0);
+    return a.maxX + pad >= b.minX
+        && b.maxX + pad >= a.minX
+        && a.maxY + pad >= b.minY
+        && b.maxY + pad >= a.minY;
 }
 
 function stableNodeCompare(a, b) {
@@ -77,11 +111,15 @@ export function resolveStructureRenderOrder(nodes, depthGap = STRUCTURE_ORDER_GA
 
     for (let i = 0; i < count; i++) {
         for (let j = i + 1; j < count; j++) {
-            const aBehindB = definitelyBehind(valid[i].bounds, valid[j].bounds);
-            const bBehindA = definitelyBehind(valid[j].bounds, valid[i].bounds);
+            const relation = compareIsoBoundsOrder(valid[i].bounds, valid[j].bounds);
             // 只有单向关系明确时才建边；斜向交叉/重叠交给稳定基础深度兜底，避免环。
-            if (aBehindB && !bBehindA) addEdge(i, j);
-            else if (bBehindA && !aBehindB) addEdge(j, i);
+            if (relation < 0) addEdge(i, j);
+            else if (relation > 0) addEdge(j, i);
+            else if (visualBoundsOverlap(valid[i].visualBounds, valid[j].visualBounds)) {
+                // 只有画面确实相交的歧义节点才固定基础顺序；不把远处无关建筑串成全局链。
+                if (stableNodeCompare(valid[i], valid[j]) <= 0) addEdge(i, j);
+                else addEdge(j, i);
+            }
         }
     }
 
