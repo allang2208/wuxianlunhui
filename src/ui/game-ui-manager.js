@@ -545,6 +545,9 @@ export const GameUIManager = {
     },
     save() {
         if (!this.player) return;
+        // 存档是后台账本的权威读取边界：先一次性结算连续资源与到期队列，再序列化。
+        window.WorldSimDriver?.flushAll?.({ notify: false, reason: 'save' });
+        window.WorldInvasionSystem?.settleBackgroundNow?.();
         window.WorldInvasionSystem?.syncLivePortal?.();
         const saveData = {
             version: '1.0',

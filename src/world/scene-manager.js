@@ -1433,6 +1433,13 @@ export const SceneManager = {
 
     /** scene8~scene11 共用的建筑、资源、快照与入侵运行时。 */
     _setupPersistentWorld(sceneId, player, diamond) {
+        // 目标仍是后台账本时，先结算经济/出兵，再补齐不足一个入侵阶段窗；
+        // 随后才 setup 运行时，保证入侵读取的是最新军力摘要且不会在物化后改旧快照。
+        window.WorldSimDriver?.flushWorld?.(sceneId, {
+            notify: false,
+            reason: 'materialize',
+        });
+        window.WorldInvasionSystem?.settleBackgroundNow?.(sceneId);
         DefenseSystem.setup(player, { managedExternally: true, worldId: sceneId });
         const generation = WorldProgressionSystem.getWorldGenerationContext(sceneId);
         if (generation.resourceRule === 'none') EnergyNodeSystem.teardown();

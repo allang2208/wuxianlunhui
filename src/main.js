@@ -161,8 +161,9 @@ async function initModules() {
     GameMenu.init();
     // 世界切换面板（多世界并行 M1）：侧边菜单按钮由 hud-panels-misc 静态构建，这里仅挂全局
     window.WorldSwitchPanel = WorldSwitchPanel;
-    // 后台世界模拟驱动（M2 阶段一）：玩家不在 122 时 1Hz 增量结算快照
+    // 后台世界模拟驱动（M3）：1Hz 只推进全局科研，位面按事件/读取/保存/入场结算。
     WorldSimDriver.init();
+    window.WorldSimDriver = WorldSimDriver;
     // 快照/后台结算模块挂载（探针与控制台调试同口径，避免资源表 URL 逐出导致模块双实例）
     window.World122Snapshot = World122SnapshotModule;
     window.World122Sim = World122Sim;

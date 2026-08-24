@@ -125,6 +125,7 @@
     "atkGrowthPerWave": 0.06,
     "backgroundWaveSeconds": 35,
     "backgroundWaveMaxSeconds": 180,
+    "backgroundResolutionStepMs": 10000,
     "backgroundContactRatio": 0.45,
     "backgroundGarrisonAbsorbRatio": 0.35,
     "portalWarnings": [

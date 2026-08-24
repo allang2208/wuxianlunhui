@@ -90,6 +90,55 @@ function entityPosition(entity) {
     return Number.isFinite(x) && Number.isFinite(y) ? { x, y } : null;
 }
 
+function pointInPolygon(point, vertices) {
+    let inside = false;
+    for (let i = 0, j = vertices.length - 1; i < vertices.length; j = i++) {
+        const a = vertices[i];
+        const b = vertices[j];
+        const crosses = ((a.y > point.y) !== (b.y > point.y))
+            && point.x < (b.x - a.x) * (point.y - a.y) / ((b.y - a.y) || 1e-9) + a.x;
+        if (crosses) inside = !inside;
+    }
+    return inside;
+}
+
+function pointInRect(point, minX, minY, maxX, maxY) {
+    return point.x >= minX && point.x <= maxX && point.y >= minY && point.y <= maxY;
+}
+
+function segmentIntersects(a, b, c, d) {
+    const cross = (p, q, r) => (q.x - p.x) * (r.y - p.y) - (q.y - p.y) * (r.x - p.x);
+    const abC = cross(a, b, c);
+    const abD = cross(a, b, d);
+    const cdA = cross(c, d, a);
+    const cdB = cross(c, d, b);
+    const epsilon = 1e-7;
+    if (((abC > epsilon && abD < -epsilon) || (abC < -epsilon && abD > epsilon))
+        && ((cdA > epsilon && cdB < -epsilon) || (cdA < -epsilon && cdB > epsilon))) return true;
+    const onSegment = (p, q, r) => Math.abs(cross(p, q, r)) <= epsilon
+        && r.x >= Math.min(p.x, q.x) - epsilon && r.x <= Math.max(p.x, q.x) + epsilon
+        && r.y >= Math.min(p.y, q.y) - epsilon && r.y <= Math.max(p.y, q.y) + epsilon;
+    return onSegment(a, b, c) || onSegment(a, b, d)
+        || onSegment(c, d, a) || onSegment(c, d, b);
+}
+
+function polygonIntersectsRect(vertices, minX, minY, maxX, maxY) {
+    if (vertices.some((point) => pointInRect(point, minX, minY, maxX, maxY))) return true;
+    const corners = [
+        { x: minX, y: minY }, { x: maxX, y: minY },
+        { x: maxX, y: maxY }, { x: minX, y: maxY },
+    ];
+    if (corners.some((point) => pointInPolygon(point, vertices))) return true;
+    for (let i = 0; i < vertices.length; i++) {
+        const a = vertices[i];
+        const b = vertices[(i + 1) % vertices.length];
+        for (let j = 0; j < corners.length; j++) {
+            if (segmentIntersects(a, b, corners[j], corners[(j + 1) % corners.length])) return true;
+        }
+    }
+    return false;
+}
+
 function revealCircle(state, target, x, y, radius) {
     const cellSize = state.cellSize;
     const minColumn = Math.max(0, Math.floor((x - radius) / cellSize));
@@ -366,6 +415,84 @@ export const FogOfWarSystem = {
 
     isPointVisible(sceneId, x, y) {
         return this.getVisibilityAt(sceneId, x, y) === FOG_VISIBILITY.VISIBLE;
+    },
+
+    isPointExplored(sceneId, x, y) {
+        return this.getVisibilityAt(sceneId, x, y) !== FOG_VISIBILITY.UNEXPLORED;
+    },
+
+    /** 严格多边形门禁：多边形实际覆盖到的每个雾格都必须处于 VISIBLE。 */
+    isPolygonFullyVisible(sceneId, rawVertices) {
+        const state = this._states.get(sceneId);
+        if (!state || !state.active) return true;
+        const vertices = Array.isArray(rawVertices)
+            ? rawVertices.map((point) => ({ x: Number(point?.x), y: Number(point?.y) }))
+                .filter((point) => Number.isFinite(point.x) && Number.isFinite(point.y))
+            : [];
+        if (vertices.length < 3) {
+            return vertices.length > 0
+                && vertices.every((point) => this.isPointVisible(sceneId, point.x, point.y));
+        }
+        const minX = Math.min(...vertices.map((point) => point.x));
+        const maxX = Math.max(...vertices.map((point) => point.x));
+        const minY = Math.min(...vertices.map((point) => point.y));
+        const maxY = Math.max(...vertices.map((point) => point.y));
+        if (minX < 0 || minY < 0 || maxX > state.width || maxY > state.height) return false;
+
+        // 排除只在格线边界相触的相邻格；任何实际伸入盲格的正面积仍会被判定。
+        const epsilon = 1e-6;
+        const minColumn = Math.max(0, Math.floor((minX + epsilon) / state.cellSize));
+        const maxColumn = Math.min(state.columns - 1, Math.floor((maxX - epsilon) / state.cellSize));
+        const minRow = Math.max(0, Math.floor((minY + epsilon) / state.cellSize));
+        const maxRow = Math.min(state.rows - 1, Math.floor((maxY - epsilon) / state.cellSize));
+        for (let row = minRow; row <= maxRow; row++) {
+            for (let column = minColumn; column <= maxColumn; column++) {
+                const rectMinX = column * state.cellSize + epsilon;
+                const rectMinY = row * state.cellSize + epsilon;
+                const rectMaxX = Math.min(state.width, (column + 1) * state.cellSize) - epsilon;
+                const rectMaxY = Math.min(state.height, (row + 1) * state.cellSize) - epsilon;
+                if (!polygonIntersectsRect(vertices, rectMinX, rectMinY, rectMaxX, rectMaxY)) continue;
+                if (!state.visible[row * state.columns + column]) return false;
+            }
+        }
+        return true;
+    },
+
+    /** 建造探索门禁：多边形实际覆盖到的每个雾格都必须已经探索，允许暂时不在视野内。 */
+    isPolygonFullyExplored(sceneId, rawVertices) {
+        const state = this._states.get(sceneId);
+        if (!state || !state.active) return true;
+        const vertices = Array.isArray(rawVertices)
+            ? rawVertices.map((point) => ({ x: Number(point?.x), y: Number(point?.y) }))
+                .filter((point) => Number.isFinite(point.x) && Number.isFinite(point.y))
+            : [];
+        if (vertices.length < 3) {
+            return vertices.length > 0
+                && vertices.every((point) => this.isPointExplored(sceneId, point.x, point.y));
+        }
+        const minX = Math.min(...vertices.map((point) => point.x));
+        const maxX = Math.max(...vertices.map((point) => point.x));
+        const minY = Math.min(...vertices.map((point) => point.y));
+        const maxY = Math.max(...vertices.map((point) => point.y));
+        if (minX < 0 || minY < 0 || maxX > state.width || maxY > state.height) return false;
+
+        // 与严格可见门禁保持同一正面积相交口径，避免 footprint 跨进一格黑雾仍被放行。
+        const epsilon = 1e-6;
+        const minColumn = Math.max(0, Math.floor((minX + epsilon) / state.cellSize));
+        const maxColumn = Math.min(state.columns - 1, Math.floor((maxX - epsilon) / state.cellSize));
+        const minRow = Math.max(0, Math.floor((minY + epsilon) / state.cellSize));
+        const maxRow = Math.min(state.rows - 1, Math.floor((maxY - epsilon) / state.cellSize));
+        for (let row = minRow; row <= maxRow; row++) {
+            for (let column = minColumn; column <= maxColumn; column++) {
+                const rectMinX = column * state.cellSize + epsilon;
+                const rectMinY = row * state.cellSize + epsilon;
+                const rectMaxX = Math.min(state.width, (column + 1) * state.cellSize) - epsilon;
+                const rectMaxY = Math.min(state.height, (row + 1) * state.cellSize) - epsilon;
+                if (!polygonIntersectsRect(vertices, rectMinX, rectMinY, rectMaxX, rectMaxY)) continue;
+                if (!state.explored[row * state.columns + column]) return false;
+            }
+        }
+        return true;
     },
 
     isAreaVisible(sceneId, x, y, radius = 0) {
