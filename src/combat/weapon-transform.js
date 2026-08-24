@@ -533,19 +533,20 @@ class WeaponTransform {
     }
 
     /**
-     * 普通攻击·剑柄锚手（anchor='grip' 模式，2026-08-16，dashHand 同款思路移植）：
+     * 逐帧剑柄锚手（anchor='grip' 模式，2026-08-16，dashHand 同款思路移植）：
      * perFrame 块 anchor==='grip' 时，frames 的 offsetX/offsetY 直接是**握把点（拳头）**
      * 本地偏移（不再贴图中心），GameScene 把 weaponSprite.origin 设为剑柄——
      * 剑柄钉在手上，旋转绕剑柄（消除"中心 origin + 旋转大步长时帧间握把甩离手"的系统性偏差：
      * 中心 origin 模型下 f0→f1/f9→f10 帧间中点握把偏离实测可达 ~21~39 display px）。
-     * 位置插值与世界换算与 getInterpolatedPerFramePosition 同口径，仅追加 gripX/gripY。
+     * 位置插值与世界换算与 getInterpolatedPerFramePosition 同口径，仅追加 gripX/gripY；
+     * sizeState 用于让 walking 等姿态沿用自身的显示尺寸口径。
      */
-    static getInterpolatedGripPerFramePosition(player, weaponType, progress, facingRight = true, cfgKey = 'attack') {
+    static getInterpolatedGripPerFramePosition(player, weaponType, progress, facingRight = true, cfgKey = 'attack', sizeState = 'attack') {
         const pos = this.getInterpolatedPerFramePosition(player, weaponType, progress, facingRight, cfgKey);
         if (!pos) return null;
         const wac = WeaponAnimConfig[weaponType] || {};
         const gripOffset = typeof wac.gripOffset === 'number' ? wac.gripOffset : 40;
-        const size = this.getWeaponSize(weaponType, pos.scale, 'attack');
+        const size = this.getWeaponSize(weaponType, pos.scale, sizeState);
         return {
             ...pos,
             gripX: 0.5,

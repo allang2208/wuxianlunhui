@@ -210,13 +210,16 @@
 
 ---
 
-### 行走逐帧武器轨迹（walkFrames，2026-08-02）
+### 行走逐帧剑柄锚手与奔跑背负（walkFrames，2026-08-02；2026-08-24 修订）
 
-让剑类武器握把在 walking 时跟随右手摆动：`WeaponAnimConfig[wt].walkFrames`（`type:'perFrame'`，帧数与 walk 动画帧区间一一对应，如 sword 21 帧）。
-- **生成**：`tools/` 像素分析脚本从 `assets/character/walk.png` 提取每帧右手（列直方图定位右侧手部凸起 → 质心），按显示缩放（长边 144/516）换算 local offset；以现有 walk holdOffset 实际位置为基准对齐（平均手位 + 恒定 shift 保持原位附近）；`rotation` = 最终旋转角（baseRotation + idleRotation，sword=90°+20°=110°），`scale` = walk idleScale。
-- **游戏侧**：`GameScene.syncWeapon` walk 状态读 `walkFrames`，按 `playerSprite.anims.getProgress()` 插值；朝向同攻击分支（位置镜像 + 旋转取反 + flipX）。
-- **面板**：`_perFrameCfgKey('walk')`→`walkFrames`，存在配置时 walk 页即逐帧编辑；保存白名单含 walkFrames。
-- 新近战武器要加：复制 sword.walkFrames 结构，用同款脚本重测该武器贴图的手位/握把偏移。
+真实剑类 walking 使用 `WeaponAnimConfig.sword.walkFrames`（`type:'perFrame'`、`anchor:'grip'`），帧数必须与 walk 动画帧区间一一对应（当前为21帧）。`offsetX/offsetY` 表示拳头/剑柄世界锚点，不是武器贴图中心；运行时把 Sprite origin 移到 `gripOffset` 对应的剑柄位置，手层继续以 body+3 覆盖在武器 body+2 上。
+
+- **离散人物帧是位置真源**：用 `playerSprite.anims.currentFrame.index` 选择同号 `walkFrames`，不要再按 `getProgress()` 在相邻握点间连续插值。人物 sheet 在每个离散帧内不动，武器自行插值会在手层换帧前滑离拳头。读取 `currentAnim` 时必须同时校验 `anims.isPlaying`，并兼容 `player_walk` 与 handLayer 实际播放键 `player_walk_body`；停止后的陈旧 `currentAnim` 不能驱动握点。
+- **轨迹生成**：从当前 `walk_hand` 隔离层定位每帧拳头，按显示缩放换算 local offset，直接写握点；`rotation` 是最终显示角（sword 当前110°），`scale` 取 walk 尺寸。更换 walk 素材或持剑手后必须重测21帧拳头，不能只整体平移旧武器中心轨迹。
+- **复用键隔离**：staff 的 `animConfigKey` 也是 `sword`，所以是否启用剑柄锚手/背负必须判断 `currentItem.weaponType === 'sword'`，不能判断 `wt === 'sword'`。法杖继续读独立 `staffWalkFrames`、以杆身中段为中心平滑跟随；弓和枪械也不得进入剑分支。
+- **running 背负**：`sword.running` 保存稳定静态锚点并声明 `carryLayer:'back'`；GameScene 按人物动态 depth 每帧放到 body−1。进入 walking 时恢复 grip origin 与 body+2，退出 walking/running 到 idle/attack 时恢复中心 origin 与正常前景层，避免状态切换继承上一姿态的 origin/depth。
+- **开发面板同源**：walk 页预览、透明像素命中与拖拽都要识别 `anchor:'grip'`，按剑柄 origin 绘制；否则面板看似对齐、保存后游戏会偏一个 `gripOffset`。保存白名单继续使用 `walkFrames`。
+- **新剑接入**：可复制 sword.walkFrames 的结构，但只有在贴图护手/握柄基准与现有剑一致时才能共用 `gripOffset`；否则先量贴图内握柄位置，再同步游戏与面板锚点。交付时重点实测四把剑的21帧、左右镜像、walk↔run↔idle 切换和背负遮挡。
 
 ---
 

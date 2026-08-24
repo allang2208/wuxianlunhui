@@ -56,12 +56,6 @@ const SKILL_RANGE_FALLBACK = { fireball: 1200, iceSpike: 800, lightningStrike: 6
 const CMD_PATROL_RADIUS = 1200;   // 巡逻半径（用户口径）
 const CMD_PATROL_SENSE = 520;     // 巡逻遇敌感知距离
 const CMD_GATHER_PICKUP_RANGE = 80;  // 采集掉落自动拾取半径
-// 伊莉丝动作音效（2026-08-16 用户口径：复制铠甲骑士 attacking/defending 为新文件）
-const ELISE_SOUNDS = {
-    attacking: 'assets/sounds/companions/elise/attacking.mp3',
-    defending: 'assets/sounds/companions/elise/defending.mp3',
-};
-
 export class CompanionAI {
     constructor(companion) {
         this.c = companion;
@@ -1362,6 +1356,7 @@ export class CompanionAI {
         c._tacticalTarget = null;
         this._lastAction = 'whirlwind';
         c._lastAction = 'whirlwind';
+        this._playSound('whirlwind'); // 技能成功启动时只播放一次，不随逐帧命中重复触发
     }
 
     /** 风车命中结算：GroundCircle（地面 footprint 判定，与玩家风车同口径） */
@@ -1437,9 +1432,9 @@ export class CompanionAI {
         this._playSound('attacking'); // 铠甲骑士攻击音效（伊莉丝专属副本）
     }
 
-    /** 播放伊莉丝动作音效（世界空间音源；无 SoundManager/路径缺失时静默跳过） */
+    /** 播放配置化队员动作音效（世界空间音源；无 SoundManager/路径缺失时静默跳过） */
     _playSound(key) {
-        const path = ELISE_SOUNDS[key];
+        const path = this.c?.sounds?.[key];
         if (!path || !SoundManager) return;
         if (typeof SoundManager.playWorld === 'function') {
             SoundManager.playWorld(path, this.c.x, this.c.y);

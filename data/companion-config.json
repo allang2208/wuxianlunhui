@@ -50,23 +50,27 @@
         "teleportDist": 700,
         "teleportHardDist": 1100
       },
+      "sounds": {
+        "attacking": "assets/sounds/companions/elise/attacking.mp3",
+        "defending": "assets/sounds/companions/elise/defending.mp3",
+        "whirlwind": "assets/sounds/companions/elise/whirlwind.wav"
+      },
       "animations": {
         "idle": {
           "src": "assets/companions/elise/idle.png",
-          "frameWidth": 512, "frameHeight": 512, "cols": 1, "rows": 1,
-          "frameCount": 1, "frames": [0, 0], "frameRate": 1, "repeat": -1
+          "frameWidth": 512, "frameHeight": 512, "cols": 5, "rows": 8,
+          "frameCount": 38, "frames": [0, 37], "frameRate": 12, "repeat": -1
         },
         "walk": {
           "src": "assets/companions/elise/walking.png",
-          "frameWidth": 640, "frameHeight": 640, "cols": 5, "rows": 5,
-          "frameCount": 24, "frames": [0, 23], "frameRate": 28, "repeat": -1
+          "frameWidth": 640, "frameHeight": 640, "cols": 5, "rows": 7,
+          "frameCount": 31, "frames": [0, 30], "frameRate": 24, "repeat": -1
         },
         "run": {
           "src": "assets/companions/elise/running.png",
-          "frameWidth": 640, "frameHeight": 640, "cols": 5, "rows": 7,
-          "frameCount": 34, "frames": [0, 33],
-          "startFrames": [0, 9], "startFrameRate": 24, "startRepeat": 0,
-          "loopFrames": [10, 33], "frameRate": 24, "repeat": -1
+          "frameWidth": 640, "frameHeight": 640, "cols": 5, "rows": 4,
+          "frameCount": 19, "frames": [0, 18],
+          "frameRate": 24, "repeat": -1
         },
         "attack": {
           "src": "assets/companions/elise/attacking.png",

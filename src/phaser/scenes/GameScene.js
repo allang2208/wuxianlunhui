@@ -87,9 +87,11 @@ import {
 } from '../../world/structure-visual-anchor.js';
 import {
     getVisibleFrameBounds,
+    getVisibleSpriteWorldBounds,
     getVisibleSpriteTopY,
     resolveSpriteDepthProfile,
 } from '../../world/sprite-depth-profile.js';
+import { structureOcclusionBounds } from '../../world/structure-depth.js';
 import { syncAllCivilianVisualDepths } from '../../world/civilian-visual-utils.js';
 import { EnvironmentLightingSystem } from '../../world/environment-lighting-system.js';
 import { RainWeatherSystem } from '../../world/rain-weather-system.js';
@@ -2353,12 +2355,13 @@ export class GameScene extends Scene {
             );
             // 高架单位的自然深度与脚底 z 同步，墙顶面线继续参与仲裁。
             playerNatural = depthProfile.naturalDepth;
-            playerCorrected = WallSystem.junctionCorrectedDepth(
+            playerCorrected = WallSystem.resolveDynamicEntityDepth(
                 Game.player.x,
                 Game.player.y,
                 playerNatural,
                 depthProfile.frontRange,
                 depthProfile.sideRange,
+                depthProfile.visibleWorldBounds,
                 structureCandidates
             );
             // 楼梯单位最低保证绘制在当前楼梯分段之上。
@@ -2394,12 +2397,13 @@ export class GameScene extends Scene {
                 if (!sprite || !sprite.active) return;
                 const footOffsetY = this._getFootOffsetY(e, sprite);
                 const depthProfile = this._getDynamicDepthProfile(e, sprite, footOffsetY);
-                let d = WallSystem.junctionCorrectedDepth(
+                let d = WallSystem.resolveDynamicEntityDepth(
                     e.x,
                     e.y,
                     depthProfile.naturalDepth - (isCorpse ? 8 : 0),
                     depthProfile.frontRange,
                     depthProfile.sideRange,
+                    depthProfile.visibleWorldBounds,
                     structureCandidates
                 );
                 const surfaceDepth = Number(e._surfaceRenderDepth);
@@ -2459,12 +2463,13 @@ export class GameScene extends Scene {
                     minFrontRange: 60,
                     maxFrontRange: 280,
                 });
-                let d = WallSystem.junctionCorrectedDepth(
+                let d = WallSystem.resolveDynamicEntityDepth(
                     depthX,
                     depthY,
                     depthProfile.naturalDepth,
                     depthProfile.frontRange,
                     depthProfile.sideRange,
+                    depthProfile.visibleWorldBounds,
                     structureCandidates
                 );
                 // 楼梯单位保证绘制在当前楼梯分段之上。
@@ -2599,19 +2604,13 @@ export class GameScene extends Scene {
             for (const [e, data] of this._neutralSprites.entries()) {
                 if (!e || !e.active || !data.sprite || !data.sprite.active) continue;
                 if (e._isWallStaircase && Array.isArray(data.segmentSprites)) {
-                    let actualMax = -Infinity;
-                    data.segmentSprites.forEach((sprite, index) => {
-                        if (!sprite?.active) return;
-                        const depth = typeof e.renderDepthForSegment === 'function'
-                            ? e.renderDepthForSegment(index)
-                            : (Number(e._structureRenderDepth) || e.y + 12) + index * 0.01;
-                        sprite.setDepth(depth);
-                        actualMax = Math.max(actualMax, depth);
-                    });
-                    e._actualMaxRenderDepth = actualMax;
+                    // 分段楼梯已在 _syncWallStaircaseEntity 按各段承载面落深度。
                     if (data.label?.active) data.label.setVisible(false);
                     continue;
                 }
+                // 静态结构已在 _syncNeutralEntities 写入缓存深度，并由
+                // _syncStructureRenderOrder 在拓扑变化时覆盖最终值；动态单位阶段不得第三次重写。
+                if (e._structureDepthMode || e._isDefenseStructure || usesBuildingFootprintVolume(e)) continue;
                 const footOffsetY = this._getFootOffsetY(e, data.sprite);
                 // 掩体等带显式地面锚线深度（_faceDepth = 底边线 max y + 12）的实体
                 // 不能按“贴图中心 + footOffsetY + 10”（= e.y + 10）覆盖——e.y 是显示框
@@ -2872,6 +2871,35 @@ export class GameScene extends Scene {
             entity._structureVisualScale = 1;
         }
         return fit;
+    }
+
+    /** 缓存建筑本帧真实 alpha 世界 AABB，供二维候选与统一地面拓扑消费。 */
+    _syncStructureOcclusionVisualBounds(entity, sprites) {
+        if (!entity || entity._structureDepthMode !== 'iso_footprint') return;
+        let minX = Infinity;
+        let maxX = -Infinity;
+        let minY = Infinity;
+        let maxY = -Infinity;
+        for (const sprite of sprites || []) {
+            if (!sprite?.active || !sprite.visible) continue;
+            const bounds = getVisibleSpriteWorldBounds(sprite);
+            minX = Math.min(minX, bounds.minX);
+            maxX = Math.max(maxX, bounds.maxX);
+            minY = Math.min(minY, bounds.minY);
+            maxY = Math.max(maxY, bounds.maxY);
+        }
+        if (Number.isFinite(minX) && Number.isFinite(maxX)
+            && Number.isFinite(minY) && Number.isFinite(maxY)) {
+            entity._structureOcclusionVisualMinX = minX;
+            entity._structureOcclusionVisualMaxX = maxX;
+            entity._structureOcclusionVisualMinY = minY;
+            entity._structureOcclusionVisualMaxY = maxY;
+        } else {
+            delete entity._structureOcclusionVisualMinX;
+            delete entity._structureOcclusionVisualMaxX;
+            delete entity._structureOcclusionVisualMinY;
+            delete entity._structureOcclusionVisualMaxY;
+        }
     }
 
     /** 普通建筑按显式标定中心对齐 footprint；底部道路补片不参与，异形建筑保留旧校正。 */
@@ -4498,6 +4526,8 @@ export class GameScene extends Scene {
         // 动画/贴图配置键：animConfigKey 优先（R93 等新枪不再共用 G18 pistol 配置——副手翻转根因）
         const wt = currentItem.animConfigKey || currentItem.weaponType;
         const isMelee = wt === 'sword' || wt === 'bow';
+        // staff 也复用 sword 动画配置键；本次 walking 握柄与 running 背负只允许真实剑类进入。
+        const isSwordMelee = currentItem.weaponType === 'sword';
 
         // ===== 施法武器跟随（法杖举杖施法）=====
         // 施法期间（前摇 casting / 后摇 recover）法杖按 staff_cast 动画帧读取 staffCastFrames 逐帧轨迹——
@@ -4774,7 +4804,7 @@ export class GameScene extends Scene {
         else if (player.isMoving) animState = 'walk';
         else if (weaponAnim.isAttacking && weaponAnim.state !== 'idle') animState = 'attack';
 
-        // ===== 行走逐帧轨迹（walkFrames）：武器握把跟随行走动画右手摆动 =====
+        // ===== 行走逐帧轨迹（walkFrames）：真实剑类按人物当前帧把剑柄钉在手上 =====
         // 配置：WeaponAnimConfig[wt].walkFrames { type:'perFrame', frames:[21 帧，与 walk 动画帧一一对应] }
         // 法杖（staff，animConfigKey='sword' 复用剑配置）：独立 staffWalkFrames 块——
         // 剑柄在贴图中心下方 55px，法杖中段≈贴图中心，故法杖轨迹整体下移 55px 让中段对准手
@@ -4786,30 +4816,57 @@ export class GameScene extends Scene {
         if (animState === 'walk' && isMelee && walkFramesCfg
             && walkFramesCfg.type === 'perFrame' && walkFramesCfg.frames && walkFramesCfg.frames.length) {
             let walkProgress = 0;
-            const curAnim = this.playerSprite.anims.currentAnim;
+            let walkFrameIndex = 0;
+            const anims = this.playerSprite.anims;
+            const curAnim = anims.currentAnim;
             // 兼容手部分层：walk 实际播 player_walk_body（身体层去手），进度口径一致
             const walkBodyKey = `${playerTextureKey('walk')}_body`;
-            if (curAnim && (curAnim.key === playerTextureKey('walk') || curAnim.key === walkBodyKey)
-                && this.playerSprite.anims.getProgress) {
-                walkProgress = this.playerSprite.anims.getProgress();
+            const isActiveWalkAnim = !!(anims.isPlaying && curAnim
+                && (curAnim.key === playerTextureKey('walk') || curAnim.key === walkBodyKey));
+            if (isActiveWalkAnim) {
+                if (anims.getProgress) walkProgress = anims.getProgress();
+                // Phaser currentFrame.index 为 1-based。剑柄位置必须与当前人物帧一一对应，
+                // 不在离散人物帧之间自行滑动，否则手层尚未换帧时剑柄会短暂脱手。
+                walkFrameIndex = Math.max(0, Math.min(
+                    walkFramesCfg.frames.length - 1,
+                    (Number(anims.currentFrame?.index) || 1) - 1
+                ));
             }
             const facingRight = !this.playerSprite.flipX;
-            // 平滑轨迹：Catmull-Rom 闭合样条插值（消除相邻帧提取噪声导致的"瞬移/顿挫"，
-            // 首尾闭合保证循环动画无跳变）
-            const wfPos = WeaponTransform.getSmoothPerFramePosition(
-                player, wt, walkProgress, true, isStaffWeapon ? 'staffWalkFrames' : 'walkFrames'
-            );
+            const gripAnchor = isSwordMelee && walkFramesCfg.anchor === 'grip';
+            const walkCfgKey = isStaffWeapon ? 'staffWalkFrames' : 'walkFrames';
+            // 剑：人物当前帧就是握点真源；法杖保持原有平滑中段握持，不受本次修改影响。
+            const wfPos = gripAnchor
+                ? WeaponTransform.getInterpolatedGripPerFramePosition(
+                    player,
+                    wt,
+                    walkFrameIndex / Math.max(1, walkFramesCfg.frames.length - 1),
+                    true,
+                    walkCfgKey,
+                    'walk'
+                )
+                : WeaponTransform.getSmoothPerFramePosition(
+                    player, wt, walkProgress, true, walkCfgKey
+                );
             if (wfPos) {
+                if (gripAnchor) {
+                    this.weaponSprite.setOrigin(
+                        facingRight ? wfPos.gripX : 1 - wfPos.gripX,
+                        wfPos.gripY
+                    );
+                }
                 const wx = facingRight ? wfPos.x : 2 * player.x - wfPos.x;
                 const wrot = facingRight ? wfPos.rotation : -wfPos.rotation;
                 this.weaponSprite.setPosition(wx, wfPos.y);
                 this.weaponSprite.setRotation(wrot);
+                this.weaponSprite.setFlipY(false);
                 this.weaponSprite.setFlipX(!facingRight);
                 const wSize = WeaponTransform.getWeaponSize(wt, wfPos.scale, 'walk');
                 this.weaponSprite.setDisplaySize(
                     wSize.width * (wfPos.stretchX || 1),
                     wSize.height * (wfPos.stretchY || 1)
                 );
+                this.weaponSprite.setDepth(this.playerSprite.depth + 2);
                 this.weaponSprite.setVisible(!this._useCanvasWeapon);
                 this._hideWeaponGhosts();
                 return;
@@ -4934,6 +4991,11 @@ export class GameScene extends Scene {
             this.weaponSprite.setFlipY(false);
             this.weaponSprite.setFlipX(isMelee && !facingRight);
         }
+
+        // running 的剑使用静态背负锚点，并始终位于人物主体背层；staff/bow/枪械不进入该分支。
+        const carryLayer = WeaponAnimConfig[wt]?.[animState]?.carryLayer;
+        const swordOnBack = isSwordMelee && animState === 'running' && carryLayer === 'back';
+        this.weaponSprite.setDepth(this.playerSprite.depth + (swordOnBack ? -1 : 2));
     }
 
     /**
@@ -8991,11 +9053,13 @@ export class GameScene extends Scene {
             const sprite = entity._isDefenseTower ? tower?.base : neutral?.sprite;
             if (!sprite?.active) continue;
             if (entity._isDefenseCover
-                && Number.isFinite(entity._structureTopologyAppliedDepth)
                 && Number.isFinite(entity._faceDepth)
-                && Math.abs(entity._faceDepth - entity._structureTopologyAppliedDepth) > 0.001) {
-                // 建造系统刚修正了墙角 bias：把外部新值吸收为新的几何基础深度。
+                && (!Number.isFinite(entity._structureTopologyObservedFaceDepth)
+                    || Math.abs(entity._faceDepth - entity._structureTopologyObservedFaceDepth) > 0.001)) {
+                // _faceDepth 永远保留几何前缘；建造系统修正墙角 bias 后只更新拓扑基准，
+                // 最终渲染结果进入 _structureRenderDepth，不再反写并污染几何真源。
                 entity._structureTopologyBaseDepth = entity._faceDepth;
+                entity._structureTopologyObservedFaceDepth = entity._faceDepth;
             }
             if (!Number.isFinite(entity._structureTopologyBaseDepth)) {
                 entity._structureTopologyBaseDepth = Number.isFinite(entity._structureFrontDepth)
@@ -9005,6 +9069,7 @@ export class GameScene extends Scene {
             addNode({
                 stableKey: `entity:${entity.id || entity.name || entity.x + ',' + entity.y}`,
                 bounds,
+                visualBounds: structureOcclusionBounds(entity),
                 baseDepth: entity._structureTopologyBaseDepth,
                 apply: (depth) => {
                     const channels = entity._structureRenderDepth === depth
@@ -9019,9 +9084,8 @@ export class GameScene extends Scene {
                     if (neutral?.overlaySprite?.active) {
                         neutral.overlaySprite.setDepth(channels.sprite + 0.01);
                     }
-                    if (entity._isDefenseCover) {
-                        entity._faceDepth = depth;
-                        entity._structureTopologyAppliedDepth = depth;
+                    if (neutral?.workingEffectGraphics?.active) {
+                        neutral.workingEffectGraphics.setDepth(channels.sprite + 0.015);
                     }
                     if (neutral?.label?.active) neutral.label.setDepth(channels.label);
                     if (tower) {
@@ -9062,7 +9126,11 @@ export class GameScene extends Scene {
 
         const signature = nodes.map((node) => {
             const b = node.bounds;
-            return `${node.stableKey}:${b.minU.toFixed(2)},${b.maxU.toFixed(2)},${b.minV.toFixed(2)},${b.maxV.toFixed(2)}:${node.baseDepth.toFixed(2)}`;
+            const v = node.visualBounds;
+            const visualKey = v
+                ? `${v.minX.toFixed(1)},${v.maxX.toFixed(1)},${v.minY.toFixed(1)},${v.maxY.toFixed(1)}`
+                : '-';
+            return `${node.stableKey}:${b.minU.toFixed(2)},${b.maxU.toFixed(2)},${b.minV.toFixed(2)},${b.maxV.toFixed(2)}:${visualKey}:${node.baseDepth.toFixed(2)}`;
         }).join('|');
         if (!this._structureOrderCache || this._structureOrderCache.signature !== signature) {
             this._structureOrderCache = {
@@ -9324,13 +9392,6 @@ export class GameScene extends Scene {
             const { sprite, label, sprCfg, overlaySprite } = data;
             let windowGlowSprite = data.windowGlowSprite;
             if (this._syncWallStaircaseEntity(e, data)) continue;
-            // 从旧“双层裁剪”热更新迁移回完整单贴图，立即销毁遗留后层并解除 crop。
-            if (data.backSprite) {
-                data.backSprite.destroy();
-                data.backSprite = null;
-            }
-            if (sprite.isCropped) sprite.setCrop();
-            sprite._structureLayerCrop = null;
               const labelFontSize = (SceneManager && SceneManager.currentScene === 'scene8') ? '14px' : '11px';
               if (label.style && label.style.fontSize !== labelFontSize) {
                   label.setFontSize(labelFontSize);
@@ -9404,6 +9465,7 @@ export class GameScene extends Scene {
             } else {
                 sprite.setTint(this._parseColor(e.color || '#d4c5a9').color);
             }
+            this._syncStructureOcclusionVisualBounds(e, [sprite, overlaySprite]);
 
             const windowGlowCfg = this._resolveBuildingWindowGlowConfig(sprCfg);
             if (windowGlowCfg?.textureKey && this.textures.exists(windowGlowCfg.textureKey)) {
@@ -9534,12 +9596,6 @@ export class GameScene extends Scene {
             sp.base.setDisplaySize(V.base.w, V.base.h);
             sp.base.setFlipX(!!e._mirrored);
             sp.base.setVisible(true);
-            if (sp.backSprite) {
-                sp.backSprite.destroy();
-                sp.backSprite = null;
-            }
-            if (sp.base.isCropped) sp.base.setCrop();
-            sp.base._structureLayerCrop = null;
             // 统一遮挡锚线（2026-08-16 全建筑同口径）：塔深度 = _faceDepth（接地线 y + 12），
             // 与小屋/基地/能源矿一致；单位在其后被压到塔下、在前/同线被抬到塔上（+0.5）。
             // 旧实现用 e.y + 2：与中立建筑深度不一致，同线单位 z-fight（建筑遮挡仓鼠）。
@@ -9612,6 +9668,7 @@ export class GameScene extends Scene {
             } else {
                 sp.weapon.setVisible(false);
             }
+            this._syncStructureOcclusionVisualBounds(e, [sp.base, sp.arm, sp.weapon]);
             // 悬停金色轮廓（2026-08-15）：DefenseSystem.updateHover 每帧更新 _hoverTower，
             // 基座/机械臂/武器三层贴图同加同去金色外发光（敌人攻击预警同款 filters.internal.addGlow）
             this._setTowerHoverGlow(sp, DefenseSystem._hoverTower === e);

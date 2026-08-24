@@ -416,12 +416,13 @@ export function syncCivilianVisualDepth(worker, structureCandidates = null) {
         minSideRange: Number(populationEconomyConfig.civilianVisual?.depthSideRange) || 18,
     });
     const naturalDepth = y + 10;
-    sprite.setDepth(WallSystem.junctionCorrectedDepth(
+    sprite.setDepth(WallSystem.resolveDynamicEntityDepth(
         x,
         y,
         naturalDepth,
         depthProfile.frontRange,
         depthProfile.sideRange,
+        depthProfile.visibleWorldBounds,
         structureCandidates || WallSystem.collectDynamicStructureDepthEntities()
     ));
 }

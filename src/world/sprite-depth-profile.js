@@ -78,6 +78,66 @@ export function getVisibleSpriteTopY(sprite) {
     return sprite.y + (bounds.top - originY) * sprite.displayHeight;
 }
 
+/** 当前帧真实 alpha 包围盒应用 flip/rotation 后的世界 AABB。 */
+export function getVisibleSpriteWorldBounds(sprite, visibleBounds = null) {
+    if (!sprite) return { minX: 0, maxX: 0, minY: 0, maxY: 0 };
+    const bounds = visibleBounds || getVisibleFrameBounds(sprite);
+    const originX = Number.isFinite(sprite.originX) ? sprite.originX : 0.5;
+    const originY = Number.isFinite(sprite.originY) ? sprite.originY : 0.5;
+    let leftRatio = bounds.left;
+    let rightRatio = bounds.right;
+    let topRatio = bounds.top;
+    let bottomRatio = bounds.bottom;
+    if (sprite.flipX) {
+        leftRatio = 1 - bounds.right;
+        rightRatio = 1 - bounds.left;
+    }
+    if (sprite.flipY) {
+        topRatio = 1 - bounds.bottom;
+        bottomRatio = 1 - bounds.top;
+    }
+    const localXs = [
+        (leftRatio - originX) * sprite.displayWidth,
+        (rightRatio - originX) * sprite.displayWidth,
+    ];
+    const localYs = [
+        (topRatio - originY) * sprite.displayHeight,
+        (bottomRatio - originY) * sprite.displayHeight,
+    ];
+    const rotation = Number(sprite.rotation) || 0;
+    const cos = Math.cos(rotation);
+    const sin = Math.sin(rotation);
+    let minX = Infinity;
+    let maxX = -Infinity;
+    let minY = Infinity;
+    let maxY = -Infinity;
+    for (const localX of localXs) {
+        for (const localY of localYs) {
+            const worldX = sprite.x + localX * cos - localY * sin;
+            const worldY = sprite.y + localX * sin + localY * cos;
+            minX = Math.min(minX, worldX);
+            maxX = Math.max(maxX, worldX);
+            minY = Math.min(minY, worldY);
+            maxY = Math.max(maxY, worldY);
+        }
+    }
+    return Number.isFinite(minX) && Number.isFinite(maxX)
+        && Number.isFinite(minY) && Number.isFinite(maxY)
+        ? { minX, maxX, minY, maxY }
+        : {
+            minX: Number(sprite.x) || 0,
+            maxX: Number(sprite.x) || 0,
+            minY: Number(sprite.y) || 0,
+            maxY: Number(sprite.y) || 0,
+        };
+}
+
+/** 兼容只消费横向范围的 HUD/旧诊断入口。 */
+export function getVisibleSpriteXBounds(sprite, visibleBounds = null) {
+    const bounds = getVisibleSpriteWorldBounds(sprite, visibleBounds);
+    return { minX: bounds.minX, maxX: bounds.maxX };
+}
+
 /**
  * 动态人物参与墙/建筑遮挡所需的唯一几何档案。
  * sideRange 使用当前帧真实非透明横向范围，并以碰撞半径/配置值兜底；透明画布留白不再
@@ -88,7 +148,6 @@ export function resolveSpriteDepthProfile(entity, sprite, options = {}) {
         return { footOffsetY: 0, frontRange: 60, sideRange: 0, naturalDepth: 0 };
     }
     const bounds = getVisibleFrameBounds(sprite);
-    const originX = Number.isFinite(sprite.originX) ? sprite.originX : 0.5;
     const originY = Number.isFinite(sprite.originY) ? sprite.originY : 0.5;
     const logicalX = Number.isFinite(options.logicalX)
         ? options.logicalX
@@ -98,14 +157,10 @@ export function resolveSpriteDepthProfile(entity, sprite, options = {}) {
         ? configuredFoot
         : sprite.displayHeight * (bounds.bottom - originY);
 
-    let leftRatio = bounds.left;
-    let rightRatio = bounds.right;
-    if (sprite.flipX) {
-        leftRatio = 1 - bounds.right;
-        rightRatio = 1 - bounds.left;
-    }
-    const visibleLeftX = sprite.x + (leftRatio - originX) * sprite.displayWidth;
-    const visibleRightX = sprite.x + (rightRatio - originX) * sprite.displayWidth;
+    const visibleWorldBounds = getVisibleSpriteWorldBounds(sprite, bounds);
+    const visibleXBounds = visibleWorldBounds;
+    const visibleLeftX = visibleXBounds.minX;
+    const visibleRightX = visibleXBounds.maxX;
     const physicalRange = Math.max(
         0,
         Number(options.minSideRange) || 0,
@@ -139,6 +194,7 @@ export function resolveSpriteDepthProfile(entity, sprite, options = {}) {
         sideRange,
         visibleTopY,
         visibleFootY,
+        visibleWorldBounds,
         logicalFootY,
         naturalDepth: logicalFootY + naturalDepthOffset,
     };

@@ -449,6 +449,7 @@ check('伊莉丝 windmill 动画 23 帧（repeat 0）', elise.animations.windmil
     && elise.animations.windmill.frameCount === 23
     && elise.animations.windmill.frames[0] === 0 && elise.animations.windmill.frames[1] === 22
     && elise.animations.windmill.repeat === 0);
+check('伊莉丝风车使用配置化专属音效', elise.sounds?.whirlwind === 'assets/sounds/companions/elise/whirlwind.wav');
 check('风车 Lv1 数值（damageMul 1.6 / radius 125+80 / 冷却 9.8s / 时长 0.8s）', (() => {
     const e = elise.skills.whirlwind.getEffect(1);
     return Math.abs(e.damageMul - 1.6) < 1e-9

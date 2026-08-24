@@ -1,7 +1,10 @@
 import { CONFIG } from '../config/config.js';
 import { PERSPECTIVE_SCALE_Y } from '../config/perspective-config.js';
 import { getWallPrefabLibrary, loadWallGeoOverrides } from './wall-prefabs.js';
-import { structureDepthRelationAtPoint } from './structure-depth.js';
+import {
+    resolveDynamicStructureDepth,
+    structureOcclusionBounds,
+} from './structure-depth.js';
 import lightingAssets from '../../data/environment-lighting-assets.json';
 
 // ===== 等距斜墙贴图几何（贴图像素空间，wall-asset-prep.py 产出 + 拼装模拟器实测校准）=====
@@ -187,6 +190,7 @@ const WallSystem = {
         this.isoSegments = []; // 新场景全清（门闸线段由门实体放置后重新注册）
         this._faceSegCache = null; // 衔接仲裁缓存随场景重建失效
         this._dynamicStructureDepthFrameCache = null;
+        this._dynamicStructureDepthSpatialCache = null;
         this.trees = [];
         // 主神空间不再生成迷宫（开阔测试场地；maze-generator.js 保留备用）
         this.mazeEndY = 0;
@@ -1016,8 +1020,47 @@ const WallSystem = {
         return structures;
     },
 
+    /** 普通格网建筑走二维视觉粗筛 + u/v 地面拓扑；墙/门继续走下方线段仲裁。 */
+    resolveDynamicEntityDepth(
+        x,
+        y,
+        depth,
+        frontRange = 60,
+        sideRange = 0,
+        visualBounds = null,
+        structureCandidates = null
+    ) {
+        const structures = structureCandidates || this.collectDynamicStructureDepthEntities();
+        const fallbackBounds = {
+            minX: x - Math.max(0, Number(sideRange) || 0),
+            maxX: x + Math.max(0, Number(sideRange) || 0),
+            minY: y - Math.max(0, Number(frontRange) || 0),
+            maxY: y,
+        };
+        const entityVisualBounds = visualBounds || fallbackBounds;
+        const nearbyStructures = this._structureDepthCandidatesInBounds(
+            structures,
+            entityVisualBounds
+        );
+        const structureResolved = resolveDynamicStructureDepth(
+            x,
+            y,
+            depth,
+            entityVisualBounds,
+            nearbyStructures
+        );
+        return this.junctionCorrectedDepth(
+            x,
+            y,
+            structureResolved,
+            frontRange,
+            sideRange,
+            structures
+        );
+    },
+
     /**
-     * 实体级墙体遮挡仲裁（唯一规则）：
+     * 实体级墙/门/掩体线段遮挡仲裁：
      * 对实体脚线 (x, y)，收集墙/门面线分两侧判定：线后窗口 = 60 + 深度亏空；线前窗口 = frontRange（实体贴图脚底→头顶高度，默认 60）——
      * y < yLine（实体在线后）记为遮挡源，y ≥ yLine（在线前）记为前墙。
      * 有遮挡源 → 压到最浅遮挡面线之下（min depth − 0.5，即压到所有遮挡线之下）；
@@ -1026,7 +1069,7 @@ const WallSystem = {
      * 旧版只取最近一条面线，门洞深端会被错误放行（线上反馈）。
      * sideRange 必须传移动实体当前帧的真实 alpha 可见半宽，并以接地/碰撞半径兜底；
      * 禁止传整张 sprite.displayWidth/2（透明留白会制造假遮挡），也不能只传碰撞半径
-     * （人物身体已与建筑前角重叠时会漏掉仲裁）。
+     * （人物身体已与墙段相交时会漏掉仲裁）。普通格网建筑不得进入本方法。
      */
     junctionCorrectedDepth(
         x,
@@ -1075,23 +1118,17 @@ const WallSystem = {
             dynamicStructures, x, sideRange);
         for (const e of nearbyStructures) {
             if (!e?.active || e._isCoverGate) continue;
-            // 普通建筑按完整 iso footprint 的“当前 X 局部前缘”只判定一次。
-            // sideRange 是移动精灵当前帧真实 alpha 半宽：覆盖“单位在前角、中心略出 footprint，
-            // 但身体仍压在建筑前缘上”的情况；采样仍钳在端点，绝不外推菱形边。
-            // 不能把两条菱形前边分别当墙线收集：前顶点附近会同时得到一前一后，
-            // 建筑放大后还会把错误窗口放大，导致单位已经在建筑前方仍被压住。
-            if (e._structureDepthMode === 'iso_footprint') {
-                const relation = structureDepthRelationAtPoint(e, x, y, sideRange);
-                if (relation) collectRelation(relation.depth, relation.inFront);
-                continue;
-            }
+            if (e._structureDepthMode === 'iso_footprint') continue;
             const lines = Array.isArray(e._faceLines) && e._faceLines.length
                 ? e._faceLines
                 : (e._faceLine && e._faceLine.length === 2 ? [e._faceLine] : []);
             for (const line of lines) {
                 const [A, B] = line || [];
                 if (!A || !B || typeof A.x !== 'number' || typeof B.x !== 'number') continue;
-                applySeg(A, B, typeof e._faceDepth === 'number' ? e._faceDepth : e.y + 12);
+                const renderDepth = Number.isFinite(e._structureRenderDepth)
+                    ? e._structureRenderDepth
+                    : (typeof e._faceDepth === 'number' ? e._faceDepth : e.y + 12);
+                applySeg(A, B, renderDepth);
             }
         }
         // 铁栅栏门三段面线（左柱/栅栏/右柱，各自深度，2026-08-15）：
@@ -1172,47 +1209,113 @@ const WallSystem = {
         return index.columns.get(Math.floor(x / index.cellSize)) || [];
     },
 
-    /**
-     * 动态建筑按 X 列建立当前帧轻量索引。单位图层仲裁只依赖与自身可见横向范围相交的建筑，
-     * 不应让每只单位遍历整个位面的全部建筑。320px 扩张覆盖动态档案允许的最大 sideRange。
-     */
-    _structureDepthCandidatesAtX(structures, x, _sideRange = 0) {
+    /** 建筑可见 AABB 的二维可复用索引；同 X 但上下不相交的密集建筑不再参加仲裁。 */
+    _ensureStructureDepthSpatialIndex(structures) {
         if (!Array.isArray(structures)) return structures || [];
         const cellSize = 256;
-        let cache = this._dynamicStructureDepthColumnCache;
+        let cache = this._dynamicStructureDepthSpatialCache;
         if (!cache || cache.source !== structures) {
-            const columns = new Map();
+            const entries = [];
             for (const entity of structures) {
                 if (!entity) continue;
+                const occlusionBounds = structureOcclusionBounds(entity);
                 const lines = Array.isArray(entity._faceLines) && entity._faceLines.length
                     ? entity._faceLines
                     : (Array.isArray(entity._faceLine) ? [entity._faceLine] : []);
-                let minX = Infinity;
-                let maxX = -Infinity;
+                let minX = Number(occlusionBounds?.minX);
+                let maxX = Number(occlusionBounds?.maxX);
+                let minY = Number(occlusionBounds?.minY);
+                let maxY = Number(occlusionBounds?.maxY);
+                if (!Number.isFinite(minX)) minX = Infinity;
+                if (!Number.isFinite(maxX)) maxX = -Infinity;
+                if (!Number.isFinite(minY)) minY = Infinity;
+                if (!Number.isFinite(maxY)) maxY = -Infinity;
                 for (const line of lines) {
                     for (const point of line || []) {
-                        if (!Number.isFinite(point?.x)) continue;
+                        if (!Number.isFinite(point?.x) || !Number.isFinite(point?.y)) continue;
                         minX = Math.min(minX, point.x);
                         maxX = Math.max(maxX, point.x);
+                        minY = Math.min(minY, point.y);
+                        maxY = Math.max(maxY, point.y);
                     }
                 }
-                if (!Number.isFinite(minX) || !Number.isFinite(maxX)) {
+                if (!Number.isFinite(minX) || !Number.isFinite(maxX)
+                    || !Number.isFinite(minY) || !Number.isFinite(maxY)) {
                     const halfWidth = Math.max(1, Number(entity.collisionWidth) / 2 || 1);
                     minX = (Number(entity.x) || 0) - halfWidth;
                     maxX = (Number(entity.x) || 0) + halfWidth;
+                    minY = Number(entity.y) || 0;
+                    maxY = minY;
                 }
-                const minColumn = Math.floor((minX - 320) / cellSize);
-                const maxColumn = Math.floor((maxX + 320) / cellSize);
-                for (let column = minColumn; column <= maxColumn; column++) {
-                    let list = columns.get(column);
-                    if (!list) { list = []; columns.set(column, list); }
-                    list.push(entity);
+                entries.push({
+                    entity,
+                    bounds: { minX, maxX, minY, maxY },
+                    minColumn: Math.floor(minX / cellSize),
+                    maxColumn: Math.floor(maxX / cellSize),
+                    minRow: Math.floor(minY / cellSize),
+                    maxRow: Math.floor(maxY / cellSize),
+                });
+            }
+            const sameGeometry = !!cache
+                && cache.entries?.length === entries.length
+                && entries.every((entry, index) => {
+                    const previous = cache.entries[index];
+                    return previous?.entity === entry.entity
+                        && previous.minColumn === entry.minColumn
+                        && previous.maxColumn === entry.maxColumn
+                        && previous.minRow === entry.minRow
+                        && previous.maxRow === entry.maxRow;
+                });
+            if (sameGeometry) {
+                cache.source = structures;
+                cache.entries = entries;
+            } else {
+                const cells = new Map();
+                for (const { entity, minColumn, maxColumn, minRow, maxRow } of entries) {
+                    for (let column = minColumn; column <= maxColumn; column++) {
+                        for (let row = minRow; row <= maxRow; row++) {
+                            const key = `${column},${row}`;
+                            let list = cells.get(key);
+                            if (!list) { list = []; cells.set(key, list); }
+                            list.push(entity);
+                        }
+                    }
+                }
+                cache = { source: structures, entries, cellSize, cells };
+                this._dynamicStructureDepthSpatialCache = cache;
+            }
+        }
+        return cache;
+    },
+
+    _structureDepthCandidatesInBounds(structures, bounds) {
+        const cache = this._ensureStructureDepthSpatialIndex(structures);
+        if (!cache?.cells || !bounds) return structures || [];
+        const minColumn = Math.floor(bounds.minX / cache.cellSize);
+        const maxColumn = Math.floor(bounds.maxX / cache.cellSize);
+        const minRow = Math.floor(bounds.minY / cache.cellSize);
+        const maxRow = Math.floor(bounds.maxY / cache.cellSize);
+        const candidates = new Set();
+        for (let column = minColumn; column <= maxColumn; column++) {
+            for (let row = minRow; row <= maxRow; row++) {
+                for (const entity of cache.cells.get(`${column},${row}`) || []) {
+                    candidates.add(entity);
                 }
             }
-            cache = { source: structures, cellSize, columns };
-            this._dynamicStructureDepthColumnCache = cache;
         }
-        return cache.columns.get(Math.floor(x / cache.cellSize)) || [];
+        return [...candidates];
+    },
+
+    /** 墙/门线段兼容查询：只按 X 收集，随后仍由 applySeg 的 Y 窗口精确过滤。 */
+    _structureDepthCandidatesAtX(structures, x, sideRange = 0) {
+        const cache = this._ensureStructureDepthSpatialIndex(structures);
+        if (!cache?.entries) return structures || [];
+        const lateralReach = Math.max(0, Number(sideRange) || 0);
+        const minX = x - lateralReach;
+        const maxX = x + lateralReach;
+        return cache.entries
+            .filter((entry) => entry.bounds.maxX >= minX && entry.bounds.minX <= maxX)
+            .map((entry) => entry.entity);
     },
 
     /** 贴图内坐标 → 世界坐标（应用通用件的 origin/scale/flip 变换） */

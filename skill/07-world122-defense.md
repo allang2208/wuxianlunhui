@@ -1623,6 +1623,7 @@
   和4×4基地，并验证标定中心及映射宽深；素材或标定变化后运行
   `node tools/generate-building-preview-assets.mjs` 更新清单。算法版本8以前的派生清单不得注册。
 - **底部锁定铁律**：实体与建造幽灵必须共用 `resolveStructureGroundFit()` 的 `footOffsetY + visualOffsetX`。禁止实体走 `resolveStructureFootOffset()`、幽灵另走一套最低像素计算，否则预览贴地但落地后跳动。像素四边形物理仍只允许显式 `autoFootprint:true` 的异形建筑使用。
+- **建筑/单位统一图层拓扑**：建筑主体及运动叠加层当前帧真实 alpha 必须合并为完整世界 AABB（含 flip/rotation），Sprite 尚未创建时才由 `visualFootprint` 确定性回退；二维空间索引只让画面 X/Y 都相交的建筑参与仲裁，禁止退回仅按 X 列收集。视觉 AABB 只负责宽相位，前后关系必须由建筑逻辑 footprint 与单位脚点共用的 u/v 比较器决定；普通格网建筑不得再进入墙/门的面线仲裁，也不得恢复 `structureFrontYAtX` 或单栋 depth 补丁。静态结构 gap 必须大于动态单位前后各0.5所需的完整插槽。`_faceDepth` 永远保留几何前缘，拓扑最终值只写 `_structureRenderDepth`。
 - **接地拟合派生资产（2026-08-22）**：建筑贴图或 `displayW/displayH` 变化后必须运行
   `node tools/generate-building-preview-assets.mjs`，同步生成 `data/structure-ground-fits.json` 和
   `assets/ui/building-thumbnails/`。manifest 键包含 texture/frame、源尺寸、显示尺寸、nominal footprint
@@ -1858,13 +1859,10 @@
      对话等身份的建筑不得为了进图层链伪造 `_isDefenseStructure`；应保持业务身份不变，通过
      `applyBuildingFootprint + setupStructureDepth` 接入。建筑换图不得用创建顺序、固定 depth、
      `sprite.y + 常数` 或扩大 footprint 修遮挡。
-   - **前角遮挡契约**：动态单位深度必须调用 `WallSystem.junctionCorrectedDepth(...,
-     frontRange, sideRange)`，其中 `sideRange` 为该单位可见贴图半宽（同时不小于其地面/碰撞半径）。
-     普通格网建筑统一由 `structureDepthRelationAtPoint` 在前缘端点钳制采样：单位中心即使略在菱形
-     前角外、只要自身贴图仍与建筑前缘重叠，也必须提到建筑之上；禁止为单栋建筑手写 depth、
-     调整贴图锚点或外推建筑前缘来修遮挡。
-     横向范围同时触及两条前边时只采样离单位中心最近的真实边，禁止把扩张后的两边取最大 Y，
-     否则另一侧斜边会在左右前角制造假“在线后”区域。纯视觉平民的最终 depth 必须在
+   - **前角遮挡契约**：动态单位深度必须调用 `WallSystem.resolveDynamicEntityDepth(...)`；单位与建筑
+     当前帧真实 alpha 世界 AABB 只负责确认画面确实相交，随后以单位逻辑脚点和建筑逻辑 footprint
+     的共享 u/v 比较器建立前后约束。墙、门、掩体再由 `junctionCorrectedDepth` 做独立面线仲裁；
+     禁止把普通建筑重新混入墙线算法，或为单栋建筑手写 depth、调整贴图锚点修遮挡。纯视觉平民的最终 depth 必须在
      `GameScene._syncStructureRenderOrder()` 之后统一写入，业务系统只更新位置与动画。
     - **纯视觉平民占用契约**：不进入 `Game.entities` 的岗位平民仍必须通过
       `civilian-visual-utils` 的目标点投影与分段移动扫掠，使用配置化 `groundRadius` 对普通建筑

@@ -17,10 +17,16 @@ const {
 const { Entity } = await import('../src/entities/entity.js');
 const {
     STRUCTURE_DEPTH_OFFSET,
+    dynamicStructureDepthConstraints,
+    resolveDynamicStructureDepth,
     setupStructureDepth,
-    structureDepthRelationAtPoint,
+    structureOcclusionBounds,
     structureDepthSpan,
 } = await import('../src/world/structure-depth.js');
+const {
+    resolveStructureRenderOrder,
+    structureIsoBounds,
+} = await import('../src/world/structure-render-order.js');
 const {
     isoFootprintCenter,
     isoFootprintsOverlap,
@@ -29,6 +35,7 @@ const {
 } = await import('../src/physics/iso-footprint.js');
 const { default: producerCfg } = await import('../data/producer-buildings.json');
 const { WallSystem } = await import('../src/world/wall-system.js');
+const { getVisibleSpriteWorldBounds } = await import('../src/world/sprite-depth-profile.js');
 
 let pass = 0;
 let fail = 0;
@@ -96,13 +103,63 @@ check('建筑构造阶段不读取尚未重建的旧Collider中心',
     && constructorOrderSample._faceDepth === 200 + STRUCTURE_DEPTH_OFFSET
     && constructorOrderSample._faceLine[0].y === 136
     && constructorOrderSample._faceLine[1].y === 136);
-const localFront = structureDepthRelationAtPoint(constructorOrderSample, 40, 171);
-const localBehind = structureDepthRelationAtPoint(constructorOrderSample, 40, 169);
-check('建筑前后关系按当前X位置的footprint局部前缘判定',
-    localFront?.frontY === 170
-    && localFront.inFront === true
-    && localBehind?.frontY === 170
-    && localBehind.inFront === false);
+const visualOverhangSamples = [
+    { name: '矿工营地', cfg: (await import('../data/hamster-miner-camp-building.json')).default },
+    { name: '仓库', cfg: producerCfg.warehouse },
+];
+for (const { name, cfg } of visualOverhangSamples) {
+    const entity = new Entity(100, 200);
+    entity.spriteCfg = {
+        size: cfg.displayW,
+        sizeH: cfg.displayH,
+        visualFootprint: { ...cfg.visualFootprint },
+    };
+    applyBuildingFootprint(entity, 2);
+    setupStructureDepth(entity);
+    const bounds = structureOcclusionBounds(entity);
+    const sideRange = 12;
+    const x = bounds.logicalMaxX + sideRange + Math.min(4, bounds.maxX - bounds.logicalMaxX);
+    check(`${name}贴图外伸自动纳入左右前角遮挡`,
+        bounds.maxX > bounds.logicalMaxX
+        && x > bounds.logicalMaxX + sideRange);
+}
+const rotatedBounds = getVisibleSpriteWorldBounds({
+    active: true,
+    x: 100,
+    y: 200,
+    originX: 0.5,
+    originY: 0.5,
+    displayWidth: 100,
+    displayHeight: 40,
+    rotation: Math.PI / 2,
+    frame: { name: 'rotation-test', cutWidth: 100, cutHeight: 40 },
+    texture: { key: 'rotation-test' },
+});
+check('建筑真实 alpha 横向范围包含 Sprite 旋转变换',
+    Math.abs(rotatedBounds.minX - 80) < 0.001
+    && Math.abs(rotatedBounds.maxX - 120) < 0.001
+    && Math.abs(rotatedBounds.minY - 150) < 0.001
+    && Math.abs(rotatedBounds.maxY - 250) < 0.001);
+
+const wideUnitStructure = new Entity(100, 200);
+applyBuildingFootprint(wideUnitStructure, 2);
+setupStructureDepth(wideUnitStructure);
+const wideBounds = structureOcclusionBounds(wideUnitStructure);
+const previousStructureSpatialCache = WallSystem._dynamicStructureDepthSpatialCache;
+WallSystem._dynamicStructureDepthSpatialCache = null;
+const wideUnitX = wideBounds.maxX + 550;
+const wideCandidates = WallSystem._structureDepthCandidatesAtX(
+    [wideUnitStructure],
+    wideUnitX,
+    560
+);
+const firstCellMap = WallSystem._dynamicStructureDepthSpatialCache?.cells;
+WallSystem._structureDepthCandidatesAtX([wideUnitStructure], wideUnitX, 560);
+check('超宽单位按真实 sideRange 跨列取得建筑候选', wideCandidates.includes(wideUnitStructure));
+check('建筑几何未变化时跨帧数组复用既有二维索引',
+    WallSystem._dynamicStructureDepthSpatialCache?.cells === firstCellMap);
+WallSystem._dynamicStructureDepthSpatialCache = previousStructureSpatialCache;
+
 const previousWindow = globalThis.window;
 globalThis.window = {
     ...(previousWindow || {}),
@@ -111,15 +168,81 @@ globalThis.window = {
 };
 const previousFaceCache = WallSystem._faceSegCache;
 WallSystem._faceSegCache = [];
-const correctedFront = WallSystem.junctionCorrectedDepth(40, 171, 181, 60);
-const correctedBehind = WallSystem.junctionCorrectedDepth(40, 169, 500, 60);
+const correctedFront = WallSystem.resolveDynamicEntityDepth(
+    40, 171, 181, 60, 12,
+    { minX: 28, maxX: 52, minY: 111, maxY: 171 }
+);
+const correctedBehind = WallSystem.resolveDynamicEntityDepth(
+    40, 169, 179, 60, 12,
+    { minX: 28, maxX: 52, minY: 109, maxY: 169 }
+);
 const constructorDepthSpan = structureDepthSpan(constructorOrderSample);
 check('最终图层仲裁保证局部前方在建筑上、局部后方在建筑下',
     correctedFront === constructorDepthSpan.frontDepth + 0.5
-    && correctedBehind === constructorDepthSpan.frontDepth - 0.5);
+    && correctedBehind < constructorDepthSpan.frontDepth);
 WallSystem._faceSegCache = previousFaceCache;
 if (previousWindow === undefined) delete globalThis.window;
 else globalThis.window = previousWindow;
+
+const makeDenseBuilding = (id, cfg, x, y) => {
+    const entity = new Entity(x, y);
+    entity.id = id;
+    entity.spriteCfg = {
+        size: cfg.displayW,
+        sizeH: cfg.displayH,
+        footOffsetY: cfg.footOffsetY,
+        visualFootprint: { ...cfg.visualFootprint },
+    };
+    applyBuildingFootprint(entity, 2);
+    setupStructureDepth(entity);
+    return entity;
+};
+const denseBuildings = [
+    makeDenseBuilding('dense-warehouse', producerCfg.warehouse, 0, 200),
+    makeDenseBuilding('dense-bank', producerCfg.bank, 128, 264),
+    makeDenseBuilding('dense-workshop', producerCfg.economic_workshop, -128, 264),
+    makeDenseBuilding('dense-house', producerCfg.house, 0, 328),
+];
+const denseNodes = denseBuildings.map((entity) => ({
+    stableKey: entity.id,
+    bounds: structureIsoBounds(entity),
+    visualBounds: structureOcclusionBounds(entity),
+    baseDepth: entity._structureTopologyBaseDepth,
+}));
+const denseDepths = resolveStructureRenderOrder(denseNodes);
+for (const entity of denseBuildings) entity._structureRenderDepth = denseDepths.get(entity.id);
+const densePlayerVisual = { minX: -20, maxX: 20, minY: 164, maxY: 264 };
+const denseConstraints = dynamicStructureDepthConstraints(
+    0,
+    264,
+    274,
+    densePlayerVisual,
+    denseBuildings
+);
+const denseResolved = resolveDynamicStructureDepth(
+    0,
+    264,
+    274,
+    densePlayerVisual,
+    denseBuildings
+);
+check('仓库/银行/经济工房/房屋密集区的一名玩家约束可同时满足',
+    denseConstraints.matched === denseBuildings.length
+    && denseConstraints.conflict === false
+    && denseResolved >= denseConstraints.lowerDepth
+    && denseResolved <= denseConstraints.upperDepth);
+const farAlignedHouse = makeDenseBuilding('far-aligned-house', producerCfg.house, 0, 900);
+const previousDenseIndex = WallSystem._dynamicStructureDepthSpatialCache;
+WallSystem._dynamicStructureDepthSpatialCache = null;
+const denseCandidates = WallSystem._structureDepthCandidatesInBounds(
+    [...denseBuildings, farAlignedHouse],
+    densePlayerVisual
+);
+check('同一X列但画面上下不相交的建筑不进入单位仲裁',
+    denseCandidates.length === denseBuildings.length
+    && !denseCandidates.includes(farAlignedHouse));
+WallSystem._dynamicStructureDepthSpatialCache = previousDenseIndex;
+
 applyBuildingFootprint(constructorOrderSample, 4);
 check('后续调整建筑占地会自动刷新图层几何',
     constructorOrderSample._structureDepthHalfWidth === 256
@@ -226,9 +349,24 @@ check('放大建筑遮挡线改为读取footprint而非贴图宽度',
     && /setupStructureDepth\(this\)/.test(barracksSrc)
     && /setupStructureDepth\(this\)/.test(producerSrc)
     && /setupStructureDepth\(this\)/.test(defenseSrc));
-check('动态遮挡按完整建筑footprint判定，墙门线段端点禁止外推',
-    /structureDepthRelationAtPoint\(e, x, y/.test(wallSrc)
+check('普通建筑与单位走二维u-v排序，墙门线段端点禁止外推',
+    /resolveDynamicStructureDepth\(/.test(wallSrc)
+    && /_structureDepthCandidatesInBounds\(/.test(wallSrc)
+    && !/structureDepthRelationAtPoint\(e, x, y/.test(wallSrc)
     && /Math\.max\(0, Math\.min\(1, rawT\)\)/.test(wallSrc));
+check('动态建筑索引按完整二维范围查询且不再固定扩张320px',
+    /minY: y - Math\.max/.test(wallSrc)
+    && /maxY: y/.test(wallSrc)
+    && /x - lateralReach/.test(wallSrc)
+    && /x \+ lateralReach/.test(wallSrc)
+    && !/minX - 320/.test(wallSrc)
+    && !/maxX \+ 320/.test(wallSrc));
+check('几何前缘与拓扑最终深度分离，最终结果不反写 faceDepth',
+    /Number\.isFinite\(e\._structureRenderDepth\)/.test(wallSrc)
+    && !/entity\._faceDepth = depth/.test(gameSceneSrc));
+check('旧双层建筑裁剪残留已移除',
+    !/backSprite/.test(gameSceneSrc)
+    && !/_structureLayerCrop/.test(gameSceneSrc));
 check('墙、门与普通建筑共用唯一地面前缘深度公式',
     /structureDepthAtY/.test(defenseSrc)
     && /structureDepthAtY/.test(buildingSrc)
