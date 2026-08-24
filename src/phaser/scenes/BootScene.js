@@ -404,8 +404,7 @@ export class BootScene extends Scene {
         this.load.image('drone', 'assets/skills/drone.png');
 
         // ---- 敌人资源 ----
-        // 蜘蛛与黑狼保留，其它敌人使用程序化 enemy_circle
-        this.load.image('enemy_spider', 'assets/enemies/spider.png');
+        // 黑狼使用独立静态待机图；其余现役怪物资源在下方按各自配置加载。
         this.load.image('enemy_black_wolf_idle', 'assets/enemies/black_wolf_idle.png');
         // 黑狼 H3 视频管线新精灵图（2026-08-06 升级，512×512 帧）
         this.load.spritesheet('enemy_black_wolf_walk', 'assets/enemies/black_wolf_walk.png', { frameWidth: 512, frameHeight: 512, endFrame: 15 });
@@ -1803,108 +1802,6 @@ export class BootScene extends Scene {
             g.fillStyle(0xffffff, 1);
             g.fillRoundedRect(0, 26, 128, 12, 6);
         }, 128, 64);
-
-        // BabySpider
-        generateEnemyTexture('enemy_baby_spider', (g) => {
-            g.fillStyle(0x000000, 0.25);
-            g.fillEllipse(32, 40, 16, 8);
-            g.fillStyle(0x8B4513, 1);
-            g.fillCircle(32, 32, 14);
-            g.fillStyle(0xa07850, 0.3);
-            g.fillCircle(29, 29, 7);
-            g.fillStyle(0x1a1a1a, 1);
-            g.fillCircle(29, 30, 1.5);
-            g.fillCircle(35, 30, 1.5);
-        });
-
-        // WolfSpider
-        generateEnemyTexture('enemy_wolf_spider', (g) => {
-            g.fillStyle(0x000000, 0.25);
-            g.fillEllipse(32, 44, 24, 12);
-            g.fillStyle(0x4a2060, 1);
-            g.fillCircle(32, 32, 23);
-            g.fillStyle(0x783c50, 0.3);
-            g.fillCircle(28, 28, 11.5);
-            g.fillStyle(0xcc2222, 1);
-            g.fillCircle(27, 29, 2.5);
-            g.fillCircle(37, 29, 2.5);
-            g.fillStyle(0xaa5555, 1);
-            g.fillTriangle(29, 36, 31, 39, 27, 39);
-            g.fillTriangle(35, 36, 37, 39, 33, 39);
-        });
-
-        // BroodmotherSpider
-        generateEnemyTexture('enemy_broodmother_spider', (g) => {
-            g.fillStyle(0x000000, 0.25);
-            g.fillEllipse(32, 50, 36, 18);
-            g.fillStyle(0x1a1a1a, 1);
-            g.fillCircle(32, 32, 40);
-            g.fillStyle(0x502840, 0.3);
-            g.fillCircle(26, 26, 20);
-            g.fillStyle(0xcc0000, 1);
-            g.fillCircle(24, 27, 4);
-            g.fillCircle(40, 27, 4);
-            g.fillStyle(0xff3232, 0.5);
-            g.fillCircle(26, 25, 1.5);
-            g.fillCircle(42, 25, 1.5);
-        });
-
-        // SkeletonWarrior
-        generateEnemyTexture('enemy_skeleton_warrior', (g) => {
-            g.fillStyle(0x000000, 0.25);
-            g.fillEllipse(32, 42, 20, 10);
-            g.fillStyle(0xe0e0e0, 1);
-            g.fillCircle(32, 32, 16);
-            g.fillStyle(0xc8c8a0, 0.3);
-            g.fillCircle(29, 29, 8);
-            g.fillStyle(0xcc2222, 1);
-            g.fillCircle(28, 30, 2);
-            g.fillCircle(36, 30, 2);
-        });
-
-        // SkeletonArcher
-        generateEnemyTexture('enemy_skeleton_archer', (g) => {
-            g.fillStyle(0x000000, 0.25);
-            g.fillEllipse(32, 42, 18, 9);
-            g.fillStyle(0xe0e0d0, 1);
-            g.fillCircle(32, 32, 15);
-            g.fillStyle(0xb4b496, 0.3);
-            g.fillCircle(29, 29, 7.5);
-            g.fillStyle(0x00ff44, 1);
-            g.fillCircle(28, 30, 2);
-            g.fillCircle(36, 30, 2);
-        });
-
-        // SkeletonDog
-        generateEnemyTexture('enemy_skeleton_dog', (g) => {
-            g.fillStyle(0x000000, 0.25);
-            g.fillEllipse(32, 42, 20, 10);
-            g.fillStyle(0xd0d0d0, 1);
-            g.fillCircle(32, 32, 21);
-            g.fillStyle(0xb4b4b4, 0.3);
-            g.fillCircle(29, 29, 10.5);
-            g.fillStyle(0xff6600, 1);
-            g.fillCircle(28, 30, 2.5);
-            g.fillCircle(36, 30, 2.5);
-            g.lineStyle(2, 0xff6464, 0.4);
-            g.lineBetween(20, 28, 12, 30);
-            g.lineBetween(20, 34, 14, 35);
-        });
-
-        // Necromancer
-        generateEnemyTexture('enemy_necromancer', (g) => {
-            g.fillStyle(0x000000, 0.25);
-            g.fillEllipse(32, 44, 24, 12);
-            g.fillStyle(0x6a3090, 1);
-            g.fillCircle(32, 32, 25);
-            g.fillStyle(0x64508c, 0.3);
-            g.fillCircle(28, 28, 12.5);
-            g.fillStyle(0xcc2222, 1);
-            g.fillCircle(27, 29, 2.5);
-            g.fillCircle(37, 29, 2.5);
-            g.lineStyle(2, 0xaa55ff, 0.3);
-            g.strokeCircle(32, 32, 33);
-        });
 
         // 切换到主游戏场景
         this.scene.start('GameScene');

@@ -131,6 +131,37 @@
       "critResist": {
         "conMultiplier": 1.0,
         "floor": true
+      },
+      "combatLevel": {
+        "comment": "综合战斗等级仅用于图鉴战力对比，不覆盖配置等级，也不参与地牢成长或经验结算。六维为主体，生命/移速采用封顶的非线性补充，阶级补偿复杂机制威胁。",
+        "base": 1,
+        "strMultiplier": 0.08,
+        "dexMultiplier": 0.08,
+        "conMultiplier": 0.1,
+        "intMultiplier": 0.08,
+        "wisMultiplier": 0.08,
+        "luckMultiplier": 0.04,
+        "maxHpContribution": {
+          "divisor": 100,
+          "exponent": 0.5,
+          "multiplier": 1.5,
+          "cap": 8
+        },
+        "speedContribution": {
+          "baseline": 80,
+          "divisor": 40,
+          "multiplier": 1,
+          "min": 0,
+          "cap": 4
+        },
+        "rankBonus": {
+          "normal": 0,
+          "minor": 1,
+          "elite": 3,
+          "lord": 5,
+          "boss": 7
+        },
+        "round": "round"
       }
     },
     "expValue": {

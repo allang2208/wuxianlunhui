@@ -2,7 +2,7 @@
  * 配置完整性校验（scripts/test-config-integrity.mjs）
  *
  * 校验项目配置间的一致性，把"配置改了但引用断链"这类错误挡在运行前：
- * 1. enemy-config.json：rank 合法、贴图/音效路径存在、工厂键有配置、配置键有工厂
+ * 1. enemy-config.json：基础数值契约、rank 合法、贴图/音效路径存在、工厂键与配置对齐
  * 2. BootScene.js：所有 load.image/spritesheet 的贴图路径存在
  * 3. BootScene.js：anims.create 引用的贴图键已加载
  * 4. dungeon-config.json：floor 贴图键已加载、poolFamily 非空、等级合法、nodeCount 区间、minRoomsToBoss
@@ -17,6 +17,20 @@ import { fileURLToPath } from 'node:url';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const RANKS = new Set(['normal', 'minor', 'elite', 'lord', 'boss']);
 const GRADES = new Set(['F', 'E', 'D', 'C', 'B', 'A']);
+const ENEMY_REQUIRED_NUMBER_FIELDS = Object.freeze([
+    'hp', 'maxHp', 'str', 'dex', 'int', 'con', 'wis', 'luck'
+]);
+const ENEMY_OPTIONAL_NUMBER_FIELDS = Object.freeze([
+    'level', 'speed', 'attackRange', 'attackDistance', 'attackCooldown', 'aiInterval',
+    'atk', 'matk', 'mdef'
+]);
+const ENEMY_FORBIDDEN_DERIVED_FIELDS = Object.freeze({
+    def: '请通过 str/con 与 combat-formulas.json 调整',
+    crit: '请通过 luck 与 combat-formulas.json 调整',
+    critRes: '请通过 con 与 combat-formulas.json 调整',
+    combatLevel: '由六维、maxHp、speed、rank 与 combat-formulas.json 自动派生',
+    expValue: '经验由 exp-system.js 按位面、阶级和等级差动态结算'
+});
 
 const errors = [];
 const warnings = [];
@@ -68,7 +82,42 @@ while ((m = animTextureRe.exec(bootSrc)) !== null) {
 // ---------- 2. enemy-config.json ----------
 const enemyCfg = readJson('data/enemy-config.json');
 for (const [key, cfg] of Object.entries(enemyCfg)) {
+    if (cfg.id !== key) err(`enemy-config.json ${key}: id 必须与配置键一致（当前 '${cfg.id}'）`);
+    for (const field of ENEMY_REQUIRED_NUMBER_FIELDS) {
+        if (typeof cfg[field] !== 'number' || !Number.isFinite(cfg[field])) {
+            err(`enemy-config.json ${key}.${field} 必须是有限数字`);
+        }
+    }
+    for (const field of ENEMY_OPTIONAL_NUMBER_FIELDS) {
+        if (cfg[field] != null && (typeof cfg[field] !== 'number' || !Number.isFinite(cfg[field]))) {
+            err(`enemy-config.json ${key}.${field} 必须是有限数字`);
+        }
+    }
+    for (const [field, guidance] of Object.entries(ENEMY_FORBIDDEN_DERIVED_FIELDS)) {
+        if (Object.hasOwn(cfg, field)) {
+            err(`enemy-config.json ${key}.${field} 是运行时派生字段，不允许直配；${guidance}`);
+        }
+    }
+    if (cfg.attackSkills != null && (typeof cfg.attackSkills !== 'object' || Array.isArray(cfg.attackSkills))) {
+        err(`enemy-config.json ${key}.attackSkills 必须是以技能键组织的对象`);
+    }
+    for (const [skillKey, skillConfig] of Object.entries(cfg.attackSkills || {})) {
+        if (!skillConfig || typeof skillConfig !== 'object' || Array.isArray(skillConfig)) {
+            err(`enemy-config.json ${key}.attackSkills.${skillKey} 必须是参数对象`);
+        }
+    }
     if (cfg.rank && !RANKS.has(cfg.rank)) err(`enemy-config.json ${key}: 非法 rank '${cfg.rank}'`);
+    if ((cfg.category ?? 'monster') === 'monster' && !cfg.textures?.idle) {
+        err(`enemy-config.json ${key}: 图鉴怪物必须配置 textures.idle，禁止退回颜色圆圈占位`);
+    }
+    const idleLayout = cfg.textures?.frameLayouts?.idle;
+    if (idleLayout) {
+        for (const field of ['frameWidth', 'frameHeight', 'frameCount', 'columns']) {
+            if (typeof idleLayout[field] !== 'number' || !Number.isFinite(idleLayout[field]) || idleLayout[field] <= 0) {
+                err(`enemy-config.json ${key}.textures.frameLayouts.idle.${field} 必须是正数`);
+            }
+        }
+    }
     // 贴图路径
     for (const [tk, tv] of Object.entries(cfg.textures || {})) {
         if (typeof tv === 'string' && tv.startsWith('assets/') && !fileExists(tv)) {

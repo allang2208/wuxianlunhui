@@ -3653,7 +3653,7 @@ export class GameScene extends Scene {
     }
 
     _onEnemySpawn(data) {
-        const texture = data.texture || 'enemy_spider';
+        const texture = data.texture || 'enemy_circle';
         const safeTexture = this.textures.exists(texture) ? texture : 'enemy_circle';
         const enemySprite = this.add.sprite(data.x, data.y, safeTexture);
         enemySprite.setOrigin(0.5, 0.5);

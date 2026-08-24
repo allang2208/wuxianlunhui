@@ -22,8 +22,10 @@ export function createHudPanelsSystemTabs() {
     panelTitle.className = 'panel-title';
     panelTitle.id = 'panelTitle';
     panelTitle.textContent = '角色状态';
-    const panelClose = document.createElement('div');
+    const panelClose = document.createElement('button');
+    panelClose.type = 'button';
     panelClose.className = 'panel-close';
+    panelClose.setAttribute('aria-label', '关闭角色系统面板');
     panelClose.onclick = function() { SystemUI.close(); };
     panelClose.textContent = '✕';
     panelHeader.appendChild(panelTitle);
@@ -33,32 +35,46 @@ export function createHudPanelsSystemTabs() {
     // 面板标签页
     const panelTabs = document.createElement('div');
     panelTabs.className = 'panel-tabs';
+    panelTabs.setAttribute('role', 'tablist');
+    panelTabs.setAttribute('aria-label', '角色系统页面');
 
-    const btnStatus = document.createElement('div');
+    const btnStatus = document.createElement('button');
+    btnStatus.type = 'button';
     btnStatus.className = 'tab-btn panel-tab active';
     btnStatus.dataset.tab = 'status';
     btnStatus.id = 'btnStatus';
+    btnStatus.setAttribute('role', 'tab');
+    btnStatus.setAttribute('aria-controls', 'tab-status');
     btnStatus.onclick = function() { SystemUI.switchTab('status'); };
     btnStatus.textContent = '状态';
 
-    const btnEquip = document.createElement('div');
+    const btnEquip = document.createElement('button');
+    btnEquip.type = 'button';
     btnEquip.className = 'tab-btn panel-tab';
     btnEquip.dataset.tab = 'equip';
     btnEquip.id = 'btnEquip';
+    btnEquip.setAttribute('role', 'tab');
+    btnEquip.setAttribute('aria-controls', 'tab-equip');
     btnEquip.onclick = function() { SystemUI.switchTab('equip'); };
     btnEquip.textContent = '装备';
 
-    const btnSkill = document.createElement('div');
+    const btnSkill = document.createElement('button');
+    btnSkill.type = 'button';
     btnSkill.className = 'tab-btn panel-tab';
     btnSkill.dataset.tab = 'skill';
     btnSkill.id = 'btnSkill';
+    btnSkill.setAttribute('role', 'tab');
+    btnSkill.setAttribute('aria-controls', 'tab-skill');
     btnSkill.onclick = function() { SystemUI.switchTab('skill'); };
     btnSkill.textContent = '技能';
 
-    const btnCodex = document.createElement('div');
+    const btnCodex = document.createElement('button');
+    btnCodex.type = 'button';
     btnCodex.className = 'tab-btn panel-tab';
     btnCodex.dataset.tab = 'codex';
     btnCodex.id = 'btnCodex';
+    btnCodex.setAttribute('role', 'tab');
+    btnCodex.setAttribute('aria-controls', 'tab-codex');
     btnCodex.onclick = function() { SystemUI.switchTab('codex'); };
     btnCodex.textContent = '图鉴';
 
@@ -434,6 +450,7 @@ export function createHudPanelsSystemTabs() {
 
     const codexWrapper = document.createElement('div');
     codexWrapper.className = 'codex-wrapper';
+    codexWrapper.id = 'codexWrapper';
     const codexLayout = document.createElement('div');
     codexLayout.className = 'codex-layout';
     codexLayout.id = 'codexLayout';
@@ -447,18 +464,29 @@ export function createHudPanelsSystemTabs() {
     const codexMainTabs = document.createElement('div');
     codexMainTabs.className = 'codex-main-tabs';
     codexMainTabs.id = 'codexMainTabs';
-    const codexTabEquip = document.createElement('div');
+    codexMainTabs.setAttribute('role', 'tablist');
+    codexMainTabs.setAttribute('aria-label', '图鉴类型');
+    const codexTabEquip = document.createElement('button');
+    codexTabEquip.type = 'button';
     codexTabEquip.className = 'codex-main-tab active';
     codexTabEquip.dataset.section = 'equipment';
+    codexTabEquip.setAttribute('role', 'tab');
+    codexTabEquip.setAttribute('aria-controls', 'codexEquipLayout');
     codexTabEquip.textContent = '装备';
-    const codexTabMonster = document.createElement('div');
+    const codexTabMonster = document.createElement('button');
+    codexTabMonster.type = 'button';
     codexTabMonster.className = 'codex-main-tab';
     codexTabMonster.dataset.section = 'monster';
+    codexTabMonster.setAttribute('role', 'tab');
+    codexTabMonster.setAttribute('aria-controls', 'codexMonsterLayout');
     codexTabMonster.textContent = '怪物';
     // 友军栏目（2026-08-19）：近期友军单位（仓鼠部队）独立成栏
-    const codexTabAlly = document.createElement('div');
+    const codexTabAlly = document.createElement('button');
+    codexTabAlly.type = 'button';
     codexTabAlly.className = 'codex-main-tab';
     codexTabAlly.dataset.section = 'ally';
+    codexTabAlly.setAttribute('role', 'tab');
+    codexTabAlly.setAttribute('aria-controls', 'codexAllyLayout');
     codexTabAlly.textContent = '友军';
     codexMainTabs.appendChild(codexTabEquip);
     codexMainTabs.appendChild(codexTabMonster);
@@ -471,10 +499,14 @@ export function createHudPanelsSystemTabs() {
     const codexCatTabs = document.createElement('div');
     codexCatTabs.className = 'codex-category-tabs';
     codexCatTabs.id = 'codexCatTabs';
+    codexCatTabs.setAttribute('role', 'tablist');
+    codexCatTabs.setAttribute('aria-label', '装备分类');
     codexEquipLayout.appendChild(codexCatTabs);
     const codexGrid = document.createElement('div');
     codexGrid.className = 'codex-grid';
     codexGrid.id = 'codexGrid';
+    codexGrid.tabIndex = 0;
+    codexGrid.setAttribute('aria-label', '装备图鉴列表');
     codexEquipLayout.appendChild(codexGrid);
     codexLayout.appendChild(codexEquipLayout);
 
@@ -484,10 +516,14 @@ export function createHudPanelsSystemTabs() {
     const codexMonsterCatTabs = document.createElement('div');
     codexMonsterCatTabs.className = 'codex-category-tabs';
     codexMonsterCatTabs.id = 'codexMonsterCatTabs';
+    codexMonsterCatTabs.setAttribute('role', 'tablist');
+    codexMonsterCatTabs.setAttribute('aria-label', '怪物分类');
     codexMonsterLayout.appendChild(codexMonsterCatTabs);
     const codexMonsterGrid = document.createElement('div');
     codexMonsterGrid.className = 'codex-grid';
     codexMonsterGrid.id = 'codexMonsterGrid';
+    codexMonsterGrid.tabIndex = 0;
+    codexMonsterGrid.setAttribute('aria-label', '怪物图鉴列表');
     codexMonsterLayout.appendChild(codexMonsterGrid);
     codexLayout.appendChild(codexMonsterLayout);
     // 友军子布局（单列一行网格，数据驱动 hamster-*-config）
@@ -497,6 +533,8 @@ export function createHudPanelsSystemTabs() {
     const codexAllyGrid = document.createElement('div');
     codexAllyGrid.className = 'codex-grid codex-ally-grid';
     codexAllyGrid.id = 'codexAllyGrid';
+    codexAllyGrid.tabIndex = 0;
+    codexAllyGrid.setAttribute('aria-label', '友军图鉴列表');
     codexAllyLayout.appendChild(codexAllyGrid);
     codexLayout.appendChild(codexAllyLayout);
     codexWrapper.appendChild(codexLayout);
@@ -515,12 +553,16 @@ export function createHudPanelsSystemTabs() {
     const codexBackBtn = document.createElement('button');
     codexBackBtn.id = 'codexBackBtn';
     codexBackBtn.className = 'codex-back-btn';
+    codexBackBtn.type = 'button';
+    codexBackBtn.setAttribute('aria-label', '关闭图鉴详情');
     codexBackBtn.textContent = '✕ 返回';
     codexDetailHeader.appendChild(codexBackBtn);
     codexDetail.appendChild(codexDetailHeader);
     const codexDetailBody = document.createElement('div');
     codexDetailBody.className = 'codex-detail-body';
     codexDetailBody.id = 'codexDetailBody';
+    codexDetailBody.tabIndex = 0;
+    codexDetailBody.innerHTML = '<div class="codex-empty-state">从左侧选择条目查看档案详情</div>';
     codexDetail.appendChild(codexDetailBody);
     codexWrapper.appendChild(codexDetail);
 

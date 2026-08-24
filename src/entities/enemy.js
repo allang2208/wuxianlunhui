@@ -11,6 +11,7 @@ import aiConfigData from '../../data/ai-config.json';
 import { getTributeMonsterMoveSlowMul } from '../config/tribute-effects.js';
 import { COMBAT_CONFIG } from '../config/combat-config.js';
 import { COMBAT_FORMULAS } from '../config/combat-formulas.js';
+import { deriveEnemyBaseStats } from '../config/enemy-base-stats.js';
 import { getMonsterExp, getMonsterExpDetail, getMonsterEffectiveLevel, getCurrentDungeonType } from '../config/exp-system.js';
 import { Easing } from '../config/math-utils.js';
 import { EffectManager } from '../effects/effect-manager.js';
@@ -114,29 +115,7 @@ import { World125FogTideSystem } from '../world/world125-fog-tide-system.js';
                     maxStamina: config.maxStamina ?? defaults.maxStamina ?? 9999,
                     kills: 0
                 });
-                // 记录配置中的显式 HP，避免被六维公式覆盖
-                const explicitHp = config.hp;
-                const explicitMaxHp = config.maxHp;
-                // 记录配置中的显式战斗属性（atk/matk/mdef），避免被六维公式覆盖。
-                // 注：不含 def——现有 3 条配置的 def 字段一直未生效（公式驱动），
-                // 激活会改变现有怪物平衡，如需显式 def 请先评估旧值。
-                const explicitStats = {};
-                for (const k of ['atk', 'matk', 'mdef']) {
-                    if (config[k] !== undefined) explicitStats[k] = config[k];
-                }
                 this.calculateCombatStats();
-                if (explicitHp !== undefined) {
-                    this.hp = explicitHp;
-                    this.data.hp = explicitHp;
-                }
-                if (explicitMaxHp !== undefined) {
-                    this.maxHp = explicitMaxHp;
-                    this.data.maxHp = explicitMaxHp;
-                }
-                // 显式战斗属性覆盖六维公式结果（如首领 matk:0、mdef 与巫师对齐）
-                for (const [k, v] of Object.entries(explicitStats)) {
-                    this.data[k] = v;
-                }
                 // ===== 地牢锚定属性成长（2026-07-28 二期：成长直改派生属性，六维原值保留）=====
                 // ΔL = 有效等级（锚定+祭品加持）− 配置等级；系数读 combat-formulas monsterGrowth
                 const _growth = COMBAT_FORMULAS.enemy?.monsterGrowth || {};
@@ -833,47 +812,10 @@ import { World125FogTideSystem } from '../world/world125-fog-tide-system.js';
             // 计算怪物战斗属性（唯一入口）
             calculateCombatStats() {
                 const d = this.data;
-                const formulas = COMBAT_FORMULAS.enemy?.calculateCombatStats || {};
-
-                const hpFormula = formulas.maxHp || { base: 100, conMultiplier: 5 };
-                const atkFormula = formulas.attack || { base: 0, strMultiplier: 0.5, dexMultiplier: 0.5, round: true };
-                atkFormula.base = atkFormula.base ?? 0;
-                const defFormula = formulas.defense || { conMultiplier: 1.5, strMultiplier: 0.3, round: 'floor' };
-                const matkFormula = formulas.magicAttack || { base: 0, intMultiplier: 0.5, wisMultiplier: 0.5, round: 'floor' };
-                matkFormula.base = matkFormula.base ?? 0;
-                const mdefFormula = formulas.magicDefense || { wisMultiplier: 1.2, intMultiplier: 0.3, round: 'floor' };
-                const critFormula = formulas.crit || { base: 2, luckMultiplier: 1.0, round: 'floor' };
-                const critResFormula = formulas.critResist || { conMultiplier: 1.0, round: 'floor' };
-                const levelFormula = formulas.level || { base: 1, strMultiplier: 0.05, conMultiplier: 0.06, dexMultiplier: 0.04, intMultiplier: 0.02, wisMultiplier: 0.015, luckMultiplier: 0.015, round: 'floor' };
-
-                d.maxHp = hpFormula.base + d.con * hpFormula.conMultiplier;
-                d.hp = d.maxHp;
-                d.atk = atkFormula.round
-                    ? Math.round(atkFormula.base + d.str * atkFormula.strMultiplier + d.dex * atkFormula.dexMultiplier)
-                    : atkFormula.base + d.str * atkFormula.strMultiplier + d.dex * atkFormula.dexMultiplier;
-                d.def = this._applyRounding(d.con * defFormula.conMultiplier + d.str * defFormula.strMultiplier, defFormula.round);
-                d.matk = this._applyRounding(matkFormula.base + d.int * matkFormula.intMultiplier + d.wis * matkFormula.wisMultiplier, matkFormula.round);
-                d.mdef = this._applyRounding(d.wis * mdefFormula.wisMultiplier + d.int * mdefFormula.intMultiplier, mdefFormula.round);
-                d.crit = this._applyRounding(critFormula.base + d.luck * critFormula.luckMultiplier, critFormula.round);
-                d.critRes = this._applyRounding(d.con * critResFormula.conMultiplier, critResFormula.round);
-                d.level = this._applyRounding(
-                    levelFormula.base
-                    + d.str * levelFormula.strMultiplier
-                    + d.con * levelFormula.conMultiplier
-                    + d.dex * levelFormula.dexMultiplier
-                    + d.int * levelFormula.intMultiplier
-                    + d.wis * levelFormula.wisMultiplier
-                    + d.luck * levelFormula.luckMultiplier,
-                    levelFormula.round
-                );
+                Object.assign(d, deriveEnemyBaseStats(d, this.config));
                 this.maxHp = d.maxHp;
                 this.hp = d.hp;
                 this.level = d.level;
-            }
-            _applyRounding(value, method) {
-                if (method === 'round') return Math.round(value);
-                if (method === 'ceil') return Math.ceil(value);
-                return Math.floor(value);
             }
             // 新增：获取等级
             getLevel() { return this.data ? this.data.level : 1; }
