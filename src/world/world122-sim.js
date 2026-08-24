@@ -491,6 +491,27 @@ function _multiAbilityTimeline(initialLevels, completionTimes, totalMs, abilityI
     return segments;
 }
 
+/** 大段离线概率结算避免逐轮 Math.random；小样本保持精确伯努利，大样本用正态近似。 */
+function _sampleBinomial(trials, probability) {
+    const n = Math.max(0, Math.floor(Number(trials) || 0));
+    const p = Math.max(0, Math.min(1, Number(probability) || 0));
+    if (n <= 0 || p <= 0) return 0;
+    if (p >= 1) return n;
+    if (n <= 256) {
+        let successes = 0;
+        for (let index = 0; index < n; index++) {
+            if (Math.random() < p) successes++;
+        }
+        return successes;
+    }
+    const mean = n * p;
+    const deviation = Math.sqrt(n * p * (1 - p));
+    const u1 = Math.max(Number.EPSILON, Math.random());
+    const u2 = Math.random();
+    const normal = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+    return Math.max(0, Math.min(n, Math.round(mean + deviation * normal)));
+}
+
 function _applyStructureHpLevel(target, fromLevel, toLevel) {
     if (!(toLevel > fromLevel)) return;
     const ability = getBuildingUpgradeAbility('research_structure_hp');
@@ -967,10 +988,7 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
                 const totalMs = Math.max(0, Number(structure.armorySortElapsedMs) || 0) + elapsedMs;
                 const intervals = Math.floor(totalMs / intervalMs);
                 structure.armorySortElapsedMs = totalMs - intervals * intervalMs;
-                let successes = 0;
-                for (let index = 0; index < intervals && index < 100000; index++) {
-                    if (Math.random() < actualChance) successes += 1;
-                }
+                const successes = _sampleBinomial(intervals, actualChance);
                 if (successes > 0) {
                     let accepted = 0;
                     if (commit && typeof opts.grant === 'function') {
@@ -1130,13 +1148,26 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
         if ((s.respawnTimer || 0) <= elapsedMs) {
             const freeMinimum = Math.max(0, Number(MINER_CAMP_CONFIG.freeMinimumCount) || 0);
             const spawnCost = Math.max(0, Number(MINER_CAMP_CONFIG.respawnEnergyCost) || 0);
-            while (miners < desiredCount) {
-                const cost = miners < freeMinimum ? 0 : spawnCost;
-                if (cost > 0 && !_deductFromWarehouses(warehouses, cost)) break;
-                miners++;
-                warehouseFree = _energyStorableInWarehouses(warehouses);
-                report.energySpentOnMiners += cost;
+            const missing = Math.max(0, desiredCount - miners);
+            const freeCount = Math.min(missing, Math.max(0, freeMinimum - miners));
+            miners += freeCount;
+            const paidMissing = Math.max(0, desiredCount - miners);
+            const availableEnergy = (warehouses || []).reduce(
+                (sum, warehouse) => sum + Math.max(0, Number(warehouse.storedEnergy) || 0),
+                0
+            );
+            const affordable = spawnCost > 0
+                ? Math.floor(availableEnergy / spawnCost)
+                : paidMissing;
+            const paidCount = Math.min(paidMissing, affordable);
+            if (paidCount > 0) {
+                const totalCost = paidCount * spawnCost;
+                if (_deductFromWarehouses(warehouses, totalCost)) {
+                    miners += paidCount;
+                    report.energySpentOnMiners += totalCost;
+                }
             }
+            warehouseFree = _energyStorableInWarehouses(warehouses);
             s.miners = miners;
             s.respawnTimer = 0;
             mineSegment(miners, t - wait);
@@ -1196,28 +1227,55 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
                     if (previousInterval > 0 && interval !== previousInterval) {
                         timer = Math.max(0, timer * interval / previousInterval);
                     }
-                    let timeLeft = segment.durationMs;
-                    while (assigned < cap && producerAssigned < producerCap) {
-                        if (timeLeft < timer) { timer -= timeLeft; timeLeft = 0; break; }
-                        timeLeft -= timer;
-                        if (militaryPopulationUsed >= populationCapacity) {
-                            timer = 0; stop = true; queue.populationBlocked = true; break;
-                        }
-                        const spawnCost = Math.max(0, Math.ceil(
-                            (Number(unitCfg.spawnFoodCost) || 0)
-                                * _armoryResourceCostMultiplier(s, economyStructures)
-                        ));
-                        if (spawnCost > 0 && !_deductFoodFromWarehouses(warehouses, spawnCost)) {
-                            timer = 0; stop = true; queue.foodBlocked = true; break;
-                        }
+                    const timeLeft = Math.max(0, Number(segment.durationMs) || 0);
+                    if (timeLeft < timer) {
+                        timer -= timeLeft;
+                        previousInterval = interval;
+                        continue;
+                    }
+                    const ready = 1 + Math.floor(Math.max(0, timeLeft - timer) / interval);
+                    const producerRoom = Math.max(0, Math.min(
+                        cap - assigned,
+                        producerCap - producerAssigned
+                    ));
+                    const populationRoom = Math.max(0, populationCapacity - militaryPopulationUsed);
+                    const spawnCost = Math.max(0, Math.ceil(
+                        (Number(unitCfg.spawnFoodCost) || 0)
+                            * _armoryResourceCostMultiplier(s, economyStructures)
+                    ));
+                    const foodRoom = spawnCost > 0
+                        ? Math.floor(_foodInWarehouses(warehouses) / spawnCost)
+                        : Number.POSITIVE_INFINITY;
+                    const singleRoom = recruitMode === RECRUIT_MODE.SINGLE ? 1 : Number.POSITIVE_INFINITY;
+                    const produced = Math.max(0, Math.min(
+                        ready, producerRoom, populationRoom, foodRoom, singleRoom
+                    ));
+                    if (produced > 0) {
+                        const totalCost = produced * spawnCost;
+                        if (totalCost > 0) _deductFoodFromWarehouses(warehouses, totalCost);
                         warehouseFree = _energyStorableInWarehouses(warehouses);
-                        report.foodSpentOnUnits += spawnCost;
-                        localAlive++; assigned++; producerAssigned++; militaryPopulationUsed++;
-                        roster[kind] = localAlive; report.unitsProduced++;
+                        report.foodSpentOnUnits += totalCost;
+                        localAlive += produced;
+                        assigned += produced;
+                        producerAssigned += produced;
+                        militaryPopulationUsed += produced;
+                        roster[kind] = localAlive;
+                        report.unitsProduced += produced;
+                    }
+                    if (recruitMode === RECRUIT_MODE.SINGLE && produced > 0) {
+                        queue.recruitMode = RECRUIT_MODE.PAUSED;
                         timer = interval;
-                        if (recruitMode === RECRUIT_MODE.SINGLE) {
-                            queue.recruitMode = RECRUIT_MODE.PAUSED; stop = true; break;
-                        }
+                        stop = true;
+                    } else if (produced < ready && produced < producerRoom) {
+                        timer = 0;
+                        if (populationRoom <= produced) queue.populationBlocked = true;
+                        else if (foodRoom <= produced) queue.foodBlocked = true;
+                        stop = true;
+                    } else if (produced >= producerRoom) {
+                        timer = interval;
+                    } else {
+                        const consumedMs = timer + Math.max(0, produced - 1) * interval;
+                        timer = Math.max(0, interval - Math.max(0, timeLeft - consumedMs));
                     }
                     previousInterval = interval;
                     if (stop || assigned >= cap || producerAssigned >= producerCap) break;
@@ -1259,37 +1317,46 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
             if (previousInterval > 0 && interval !== previousInterval) {
                 timer = Math.max(0, timer * interval / previousInterval);
             }
-            let timeLeft = segment.durationMs;
-            while (alive < cap) {
-                if (timeLeft < timer) {
-                    timer -= timeLeft;
-                    timeLeft = 0;
-                    break;
-                }
-                timeLeft -= timer;
-                if (militaryPopulationUsed >= populationCapacity) {
-                    timer = 0;
-                    militaryPopulationBlocked = true;
-                    break;
-                }
-                const spawnCost = _unitSpawnFoodCost(s, economyStructures);
-                if (spawnCost > 0 && !_deductFoodFromWarehouses(warehouses, spawnCost)) {
-                    timer = 0;
-                    foodBlocked = true;
-                    break;
-                }
+            const timeLeft = Math.max(0, Number(segment.durationMs) || 0);
+            if (timeLeft < timer) {
+                timer -= timeLeft;
+                previousInterval = interval;
+                continue;
+            }
+            const ready = 1 + Math.floor(Math.max(0, timeLeft - timer) / interval);
+            const unitRoom = Math.max(0, cap - alive);
+            const populationRoom = Math.max(0, populationCapacity - militaryPopulationUsed);
+            const spawnCost = _unitSpawnFoodCost(s, economyStructures);
+            const foodRoom = spawnCost > 0
+                ? Math.floor(_foodInWarehouses(warehouses) / spawnCost)
+                : Number.POSITIVE_INFINITY;
+            const singleRoom = recruitMode === RECRUIT_MODE.SINGLE ? 1 : Number.POSITIVE_INFINITY;
+            const produced = Math.max(0, Math.min(
+                ready, unitRoom, populationRoom, foodRoom, singleRoom
+            ));
+            if (produced > 0) {
+                const totalCost = produced * spawnCost;
+                if (totalCost > 0) _deductFoodFromWarehouses(warehouses, totalCost);
                 warehouseFree = _energyStorableInWarehouses(warehouses);
-                report.foodSpentOnUnits += spawnCost;
-                alive++;
-                militaryPopulationUsed++;
-                roster[s.unitType] = (roster[s.unitType] || 0) + 1;
-                report.unitsProduced++;
+                report.foodSpentOnUnits += totalCost;
+                alive += produced;
+                militaryPopulationUsed += produced;
+                roster[s.unitType] = (roster[s.unitType] || 0) + produced;
+                report.unitsProduced += produced;
+            }
+            if (recruitMode === RECRUIT_MODE.SINGLE && produced > 0) {
+                s.recruitMode = RECRUIT_MODE.PAUSED;
                 timer = interval;
-                if (recruitMode === RECRUIT_MODE.SINGLE) {
-                    s.recruitMode = RECRUIT_MODE.PAUSED;
-                    singleCompleted = true;
-                    break;
-                }
+                singleCompleted = true;
+            } else if (produced < ready && produced < unitRoom) {
+                timer = 0;
+                if (populationRoom <= produced) militaryPopulationBlocked = true;
+                else if (foodRoom <= produced) foodBlocked = true;
+            } else if (produced >= unitRoom) {
+                timer = interval;
+            } else {
+                const consumedMs = timer + Math.max(0, produced - 1) * interval;
+                timer = Math.max(0, interval - Math.max(0, timeLeft - consumedMs));
             }
             previousInterval = interval;
             if (foodBlocked || militaryPopulationBlocked || singleCompleted) break;
@@ -1302,6 +1369,7 @@ export function settleWorld122(snap, elapsedMs, opts = {}) {
         s.unitRoster = roster;
         s.spawnTimer = timer;
         s.populationBlocked = militaryPopulationBlocked;
+        s.foodBlocked = foodBlocked;
         // 混编部队逐兵种结算，切换生产类型不会把旧兵种整体转换。
         s.unitDps = _rosterDps(roster);
     }

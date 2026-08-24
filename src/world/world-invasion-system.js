@@ -9,6 +9,10 @@ import { EffectManager } from '../effects/effect-manager.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
 import { TroopLineSystem } from './troop-line-system.js';
 import { DungeonConfig } from '../config/dungeon-config.js';
+import {
+    buildWorldCombatDigest,
+    refreshWorldBackgroundLedger,
+} from './world-background-ledger.js';
 
 const VERSION = 3;
 const cfg = worldSystemConfig.invasion || {};
@@ -106,14 +110,15 @@ function spawnPointsFor(diamond) {
 }
 
 function defenseDps(snapshot, sceneId, worldEpoch) {
-    const structureDps = (snapshot?.structures || []).reduce((sum, structure) => {
-        if (!(structure.hp > 0)) return sum;
-        if (structure.kind === 'tower') return sum + Math.max(0, structure.dps || 0);
-        if (structure.kind === 'barracks' || structure.kind === 'producer') {
-            return sum + Math.max(0, structure.unitDps || 0);
+    let combat = snapshot?.backgroundLedger?.combat;
+    if (!combat || snapshot.backgroundLedger?.dirty) {
+        combat = buildWorldCombatDigest(snapshot);
+        if (snapshot) {
+            snapshot.backgroundLedger = snapshot.backgroundLedger || {};
+            snapshot.backgroundLedger.combat = combat;
         }
-        return sum;
-    }, 0);
+    }
+    const structureDps = Math.max(0, Number(combat?.structureDps) || 0);
     return structureDps + TroopLineSystem.getBackgroundDefense(sceneId, worldEpoch).dps;
 }
 
@@ -128,12 +133,16 @@ function waveThreat(active) {
 function applyBackgroundDamage(snapshot, sceneId, damage, worldEpoch) {
     let left = Math.max(0, damage);
     const structures = snapshot?.structures || [];
-    const portal = structures.find((structure) => structure.kind === 'producer' && structure.cfgKey === 'portal');
-    const walls = structures.filter((structure) => structure !== portal
-        && (structure.kind === 'block' || structure.kind === 'gate4'));
-    const buildings = structures.filter((structure) => structure !== portal
-        && structure.kind !== 'block' && structure.kind !== 'gate4');
-    for (const structure of [...walls, ...buildings]) {
+    let combat = snapshot?.backgroundLedger?.combat;
+    if (!combat || !Array.isArray(combat.damageOrder)) combat = buildWorldCombatDigest(snapshot);
+    const portal = structures[combat.portalIndex]
+        || structures.find((structure) => structure.kind === 'producer' && structure.cfgKey === 'portal');
+    const damageOrder = Array.isArray(combat.damageOrder)
+        ? combat.damageOrder
+        : structures.map((_, index) => index);
+    for (const index of damageOrder) {
+        const structure = structures[index];
+        if (!structure || structure === portal) continue;
         if (left <= 0 || !(structure.hp > 0)) continue;
         const dealt = Math.min(structure.hp, left);
         structure.hp -= dealt;
@@ -144,6 +153,15 @@ function applyBackgroundDamage(snapshot, sceneId, damage, worldEpoch) {
     const nextHp = Math.max(0, portalHp - left);
     if (portal) portal.hp = nextHp;
     WorldProgressionSystem.syncPortalHp(sceneId, nextHp, { expectedEpoch: worldEpoch });
+    if (snapshot) {
+        const nowGame = EnvironmentLightingSystem.serializeTime().elapsedMs || 0;
+        refreshWorldBackgroundLedger(
+            snapshot,
+            nowGame,
+            snapshot.backgroundLedger?.research,
+            'invasion-damage'
+        );
+    }
     return nextHp;
 }
 
@@ -171,6 +189,7 @@ export const WorldInvasionSystem = {
 
     serialize() {
         this.syncLivePortal();
+        if (state.active?.targetWorld !== liveWorldId) this.settleBackgroundNow(state.active?.targetWorld);
         return clone(state);
     },
 
@@ -197,6 +216,8 @@ export const WorldInvasionSystem = {
             if (!(state.active.worldEpoch > 0)) state.active.worldEpoch = currentEpoch;
             state.active.portalWarningStage = Math.max(0,
                 Math.floor(Number(state.active.portalWarningStage) || 0));
+            state.active.backgroundAccumulatorMs = Math.max(0,
+                Number(state.active.backgroundAccumulatorMs) || 0);
             if (!WorldProgressionSystem.isWorldEpochCurrent(state.active.targetWorld, state.active.worldEpoch)
                 || !WorldProgressionSystem.isPortalConstructed(state.active.targetWorld)) {
                 state.active = null;
@@ -261,6 +282,7 @@ export const WorldInvasionSystem = {
             waveIndex: 1,
             waveCount: waves.length,
             waveElapsedMs: 0,
+            backgroundAccumulatorMs: 0,
             waves,
             day,
             portalWarningStage: 0,
@@ -343,43 +365,98 @@ export const WorldInvasionSystem = {
     _updateBackground(deltaMs) {
         const active = state.active;
         if (!active || !(deltaMs > 0)) return;
-        if (!WorldProgressionSystem.isWorldEpochCurrent(active.targetWorld, active.worldEpoch)) {
-            state.active = null;
-            return;
+        active.backgroundAccumulatorMs = Math.max(0,
+            Number(active.backgroundAccumulatorMs) || 0) + deltaMs;
+        const resolutionStepMs = Math.max(1000,
+            Number(cfg.backgroundResolutionStepMs) || 10000);
+        if (active.backgroundAccumulatorMs < resolutionStepMs) return;
+        const elapsedMs = active.backgroundAccumulatorMs;
+        active.backgroundAccumulatorMs = 0;
+        this._settleBackgroundWindow(elapsedMs);
+    },
+
+    /**
+     * 后台入侵按累计时间窗解析。单次最多跨过配置波次数，不随帧数或士兵数量增长。
+     * 同一窗口内若守军清波，会把剩余时间继续结算到下一波。
+     */
+    _settleBackgroundWindow(elapsedMs) {
+        let remainingMs = Math.max(0, Number(elapsedMs) || 0);
+        const targetWorld = state.active?.targetWorld;
+        if (targetWorld && typeof window !== 'undefined') {
+            // 同一时间点先完成经济、升级、出兵与增援，再锁定本次交战窗口的军力摘要。
+            window.WorldSimDriver?.flushWorld?.(targetWorld, {
+                nowGame: EnvironmentLightingSystem.serializeTime().elapsedMs || 0,
+                notify: false,
+                reason: 'invasion-boundary',
+            });
         }
-        const snapshot = getWorldSnapshot(active.targetWorld);
-        const threat = waveThreat(active);
-        const cycleMul = 1 + Math.max(0, active.cycle - 1) * (cfg.atkGrowthPerCycle || 0.08);
-        const attackDps = threat * 6 * cycleMul;
-        const defenders = defenseDps(snapshot, active.targetWorld, active.worldEpoch);
-        const mitigation = Math.max(0.18, 1 - defenders / Math.max(1, threat * 28));
-        const damage = attackDps * (cfg.backgroundContactRatio || 0.45) * mitigation * (deltaMs / 1000);
-        const garrisonExposure = Math.max(0, Math.min(1, Number(cfg.backgroundGarrisonAbsorbRatio) || 0));
-        const absorbed = TroopLineSystem.applyBackgroundAttrition(
-            active.targetWorld,
-            active.worldEpoch,
-            damage * garrisonExposure
-        );
-        const hp = applyBackgroundDamage(
-            snapshot,
-            active.targetWorld,
-            Math.max(0, damage - absorbed),
-            active.worldEpoch
-        );
-        this._checkPortalWarnings(active.targetWorld, hp);
-        if (hp <= 0) {
-            this._resolveActive(false);
-            return;
+        let safety = Math.max(2, Number(state.active?.waveCount) || Number(cfg.maxWaves) || 10) + 2;
+        while (remainingMs > 0 && state.active && safety-- > 0) {
+            const active = state.active;
+            if (!WorldProgressionSystem.isWorldEpochCurrent(active.targetWorld, active.worldEpoch)) {
+                state.active = null;
+                return;
+            }
+            const snapshot = getWorldSnapshot(active.targetWorld);
+            const threat = waveThreat(active);
+            const cycleMul = 1 + Math.max(0, active.cycle - 1) * (cfg.atkGrowthPerCycle || 0.08);
+            const attackDps = threat * 6 * cycleMul;
+            const defenders = defenseDps(snapshot, active.targetWorld, active.worldEpoch);
+            const mitigation = Math.max(0.18, 1 - defenders / Math.max(1, threat * 28));
+            const clearSeconds = Math.max(cfg.backgroundWaveSeconds || 35,
+                threat * 180 / Math.max(1, defenders));
+            const waveMs = Math.min(
+                (cfg.backgroundWaveMaxSeconds || 180) * 1000,
+                clearSeconds * 1000
+            );
+            const untilWaveEnd = defenders > 0
+                ? Math.max(1, waveMs - Math.max(0, Number(active.waveElapsedMs) || 0))
+                : remainingMs;
+            const windowMs = Math.min(remainingMs, untilWaveEnd);
+            const damage = attackDps * (cfg.backgroundContactRatio || 0.45)
+                * mitigation * (windowMs / 1000);
+            const garrisonExposure = Math.max(0, Math.min(1,
+                Number(cfg.backgroundGarrisonAbsorbRatio) || 0));
+            const absorbed = TroopLineSystem.applyBackgroundAttrition(
+                active.targetWorld,
+                active.worldEpoch,
+                damage * garrisonExposure
+            );
+            const hp = applyBackgroundDamage(
+                snapshot,
+                active.targetWorld,
+                Math.max(0, damage - absorbed),
+                active.worldEpoch
+            );
+            this._checkPortalWarnings(active.targetWorld, hp);
+            if (hp <= 0) {
+                this._resolveActive(false);
+                return;
+            }
+
+            active.waveElapsedMs = Math.max(0, Number(active.waveElapsedMs) || 0) + windowMs;
+            remainingMs -= windowMs;
+            // 无守军时不会清波；一次性消费剩余窗口，持续拆除防线与传送门。
+            if (defenders <= 0) return;
+            if (active.waveElapsedMs + 0.5 < waveMs) continue;
+            active.waveElapsedMs = 0;
+            if (active.waveIndex >= active.waveCount) {
+                this._resolveActive(true);
+                return;
+            }
+            active.waveIndex++;
         }
-        active.waveElapsedMs += deltaMs;
-        // 无守军时怪物不会凭空被“后台清波”，会持续拆建筑直到传送门毁坏。
-        if (defenders <= 0) return;
-        const clearSeconds = Math.max(cfg.backgroundWaveSeconds || 35, threat * 180 / defenders);
-        const waveMs = Math.min((cfg.backgroundWaveMaxSeconds || 180) * 1000, clearSeconds * 1000);
-        if (active.waveElapsedMs < waveMs) return;
-        active.waveElapsedMs = 0;
-        if (active.waveIndex >= active.waveCount) this._resolveActive(true);
-        else active.waveIndex++;
+    },
+
+    /** 切入目标位面或保存前补齐不足一个阶段窗的后台时间。 */
+    settleBackgroundNow(sceneId = state.active?.targetWorld) {
+        const active = state.active;
+        if (!active || active.targetWorld !== sceneId || active.targetWorld === liveWorldId) return false;
+        const pendingMs = Math.max(0, Number(active.backgroundAccumulatorMs) || 0);
+        if (!(pendingMs > 0)) return false;
+        active.backgroundAccumulatorMs = 0;
+        this._settleBackgroundWindow(pendingMs);
+        return true;
     },
 
     _resolveActive(victory, token = null) {

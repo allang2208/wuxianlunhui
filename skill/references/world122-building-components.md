@@ -87,10 +87,13 @@
 | 仓鼠军营 | `Barracks_MainHall_*` / `Barracks_MainGate_*` | 中央石砌操练厅、连续双坡屋顶、强化门框、双开军营门和暖光入口 | `build_hamster_barracks()` |
 | 仓鼠军营 | `Barracks_LeftWatchtower_*` / `Barracks_RightWatchtower_*` | 两座完整对称石砌瞭望塔、强化石带、箭窗、方锥顶与独立顶饰 | `build_hamster_barracks()` |
 | 仓鼠军营 | `Barracks_WeaponRack_*` / `Barracks_ShieldCrest` / `Barracks_GateLantern_*` | 附墙长矛架、盾徽与门灯；维持克制的军事识别，不生成独立院落 | `build_hamster_barracks()` |
-| 研究院 | `Research_CentralTower_*` / `Research_LeftTower_*` / `Research_RightTower_*` | 一座高中央塔与两座低侧塔；石砌塔身、半木图书室、暖窗和陡峭四坡顶 | `build_research_institute()` / `add_research_tower()` |
-| 研究院 | `Research_WingRoof_*` / `Research_Main*` / `Research_Astrolabe_*` | 两翼连续坡屋顶、连接式主厅与附墙星盘标识；保持三塔为单体建筑 | `build_research_institute()` / `research_pyramid_roof()` |
-| 研究院 LV2 | `Research_*Buttress*` / `Research_*AcademicCornice*` / `Research_*RoofFinial*` | 沿用 LV1 三塔单体与 2×2 基座，增加更高塔身、附墙扶壁、双层檐口、门灯和黄铜尖顶 | `build_research_institute_lv2()` / `build_research_institute_level(..., 2)` |
-| 研究院 LV3 | `Research_*ObservationGallery*` / `Research_Level3*` / `Research_*GiltPier*` | 终级高塔学府；在既有三塔上添加观测回廊、鎏金立柱、门廊、天文钟与翼顶饰件，不增加第四塔 | `build_research_institute_lv3()` / `build_research_institute_level(..., 3)` |
+| 研究院 LV1 | `ResearchLV1_CentralTower_*` | 唯一中央方塔；白色塔身、冷灰角扶壁、双层蓝色尖券窗、方锥蓝顶和克制顶饰，禁止增生侧塔、角塔或穹顶 | `build_research_institute()` / `research_pyramid_roof()` / `research_pointed_window()` |
+| 研究院 LV1 | `ResearchLV1_NorthWing_*` / `SouthWing_*` / `EastWing_*` / `WestWing_*` | 从中央塔向四面伸出的四座相连低矮裙楼；白墙、灰石裙与蓝色双坡顶共享同一方形 2×2 地基 | `build_research_institute()` / `gabled_prism()` |
+| 研究院 LV1 | `ResearchLV1_DiamondColumn_*` / `ResearchLV1_FlyingButtress_*` | 四根旋转45度的低矮菱形截面围柱，位于四翼之间并以双层飞扶壁接入中央塔；柱顶保持平阶，不得读成额外塔楼 | `build_research_institute()` / `research_diamond_column()` / `research_diagonal_beam()` |
+| 研究院 LV2 | `ResearchLV2_CentralTower_*` | 继承 LV1 唯一中央方塔并明显增高；双层塔身尖券窗、三道冷灰分层石带、相连学术回廊栏带、加强角扶壁、蓝顶肋与更高顶饰构成二级增量 | `build_research_institute_lv2()` / `build_research_institute_level(level=2)` |
+| 研究院 LV2 | `ResearchLV2_*Wing_*` / `ResearchLV2_DiamondColumn_*` / `ResearchLV2_FlyingButtress_*` | 四面裙楼、四根平顶菱形围柱、围柱位置和双层飞扶壁高度沿用 LV1；仅裙楼追加贴合墙顶的学术檐口，不增加塔楼或占地 | `build_research_institute_level(level=2)` |
+| 研究院 LV3 | `ResearchLV3_CentralTower_*` | 在 LV2 上继续增高唯一中央方塔；三层塔身尖券窗、四道冷灰分层石带、放大相连回廊与冠部、密集角柱、强化蓝顶肋和最高顶饰构成三级增量 | `build_research_institute_lv3()` / `build_research_institute_level(level=3)` |
+| 研究院 LV3 | `ResearchLV3_*Wing_*` / `ResearchLV3_DiamondColumn_*` / `ResearchLV3_FlyingButtress_*` | 保持 LV1/LV2 的固定四翼母体、方形 2×2 地基、四根平顶菱形围柱和低位飞扶壁；高等级变化集中于中央塔纵向层次 | `build_research_institute_level(level=3)` |
 | 教堂 | `Church_MainHall` / `Church_MainRoof*` / `Church_Narthex*` | 紧凑2×2石砌礼拜堂、连续深蓝双坡屋顶与中央入口门厅；承重墙直接落地，不生成独立地基或铺装 | `build_church()` |
 | 教堂 | `Church_BellTower_0` / `Church_Bell_0_*` / `Church_BelfryOpening_0_*` / `Church_Parapet*` | 仅保留画面左侧的一座相连平顶垛口钟塔，两可见钟室面内含独立铜钟几何；右侧必须维持完整礼拜堂屋顶，不生成第二塔、尖顶或塔基残留 | `build_church()` |
 | 教堂 | `Church_*Window*` / `Church_RoseWindow*` / `Church_*Buttress*` | 蓝色与琥珀色组合的侧墙琉璃窗、入口玫瑰窗和附墙石扶壁；所有窗与结构细节保持建筑内嵌 | `build_church()` |
@@ -105,9 +108,13 @@
 | 市场 | `Market_MainAdvertisement*` / `Market_Product*` / `Market_FixedScale*` | 大型钱币广告牌、四块商品图标吊牌与固定秤；仅使用无文字图标，所有招牌固定在交易厅或前檐 | `build_market()` |
 | 面包屋 | `Bakery_MainDoor` / `Bakery_Display*` / `Bakery_ShopCanopy*` / `Bakery_BreadSign*` | 标准壳上的单入口烘焙铺、附墙浅檐、暖色橱窗、固定陈列柜与无文字面包徽记；面包均由建筑级 `bakery_loaf()` 保持独立可编辑 | `build_bakery()` / `bakery_loaf()` |
 | 面包屋 | `Bakery_Oven*` / `Bakery_BroadOvenChimney` / `Bakery_FlourSack*` / `Bakery_WallFirewood*` | 侧墙内嵌拱形烤炉、单座粗大烤炉烟囱及全部贴墙的面粉袋/柴薪；不得拆成第二栋烤炉房或散落院落摊位 | `build_bakery()` / `portal_core()` / `portal_arch_ring()` |
+| 战地医院 | `FieldHospital_MainDoor` / `FieldHospital_Intake*` / `FieldHospital_Medical*` | 单体半木石医疗厅、附墙入口雨棚、无文字菱形药叶徽记和医疗窗；入口部件必须属于同一主体，不生成教堂钟塔或独立帐篷 | `build_field_hospital()` / `standard_shell()` |
+| 战地医院 | `FieldHospital_Treatment*` / `FieldHospital_FixedStretcher*` / `FieldHospital_Herb*` | 固定在可见侧墙的治疗雨棚、棚下固定担架床和贴墙药材柜；全部位于2×2地基内并保持独立可编辑，不生成院落散件 | `build_field_hospital()` |
 | 传送门 | `Portal_LeftPier*` / `Portal_RightPier*` / `Portal_MarbleArch` | 两根方形大理石门柱、柱脚/柱头、内嵌面板与单一道半圆拱；保持简洁单门轮廓 | `build_portal()` / `portal_arch_ring()` |
 | 传送门 | `Portal_CyanCore` / `Portal_BrassInnerInlay` / `Portal_Keystone` | 单片拱顶青蓝门芯、窄黄铜内嵌线、单块拱顶石与门槛；禁止扩展成多环祭坛群 | `build_portal()` / `portal_core()` |
 | 位面谐振塔 | `PlanarResonator_*` | 完整2×2双层地基、中央机座、四座承重轴承柱、三道相互正交的完整黄铜陀螺环和单一悬浮蓝紫晶核；环与晶核保持独立可编辑 | `build_planar_resonator()` / `resonator_torus_ring()` |
+| 天气预报塔 | `WeatherTower_Observation*` / `WeatherTower_BlueHippedRoof` | 完整2×2石基、低矮观测厅、与屋面贯通的单座八角观测塔和蓝灰屋顶；保持一体式承重轮廓，不拆成细塔或多栋附属建筑 | `build_weather_forecast_tower()` / `hipped_roof()` / `cone()` |
+| 天气预报塔 | `WeatherTower_Anemometer_*` / `WeatherTower_WindVane_*` / `WeatherTower_Radar*` / `WeatherTower_RainGauge_*` | 建筑级三杯风速仪、风向标、浅抛物雷达碟和双雨量筒；所有部件固定在塔顶或相连屋面基座并保持独立可编辑 | `build_weather_forecast_tower()` / `weather_anemometer()` / `weather_parabolic_dish()` |
 | 丛林神庙 | `JungleTemple_*Terrace` / `JungleTemple_CentralStep_*` / `JungleTemple_Sanctuary*` | 完整方形地基、三层居中退台、唯一中央宽阶与后部封闭圣殿；保持单体功能建筑，不拆成遗迹群 | `build_jungle_temple()` |
 | 丛林神庙 | `JungleTemple_UpperLevel_*` / `JungleTemple_*Tower*` | 圣殿上方三层逐级收分的中央楼层，以及左右完全镜像并与主体相连的双塔台；塔台含塔身、平台、四角柱和石顶盖 | `build_jungle_temple()` |
 | 丛林神庙 | `JungleTemple_Crown*` / `JungleTemple_RoofComb` / `JungleTemple_SunMedallion*` / `JungleTemple_Vine*` | 顶层阶梯冠部、单一太阳徽记、左右镜像附墙苔藓藤蔓与唯一暗门；植被只能作为附着细节 | `build_jungle_temple()` |
@@ -134,14 +141,18 @@
 | 靶场 | 后部小屋 + 一格围栏院落 | 前围栏靶子、檐下枪架、弓枪和火药袋 |
 | 骑兵学院 | 马厩标准壳 + 单训练塔 | 双马厩门、阁楼窗、徽记、双灯笼 |
 | 仓鼠军营 | 中央石砌操练厅 + 对称双瞭望塔 | 强化双开门、箭窗、附墙长矛架、盾徽与门灯 |
-| 研究院 | 石砌主厅 + 中央高塔 + 双侧低塔 | 图书室暖窗、双翼蓝灰坡顶、附墙星盘标识 |
+| 研究院 LV1 | 四面相连低矮裙楼 + 唯一中央哥特方塔 | 四根菱形截面围柱、双层飞扶壁、蓝色尖券窗、蓝顶与白灰石墙 |
+| 研究院 LV2 | 沿用 LV1 四面裙楼与固定占地 + 明显增高唯一中央塔 | 双层塔身窗、三道石带、相连回廊檐口、加强角扶壁、蓝顶肋与更高顶饰 |
+| 研究院 LV3 | 沿用 LV1/LV2 四面裙楼与固定占地 + 再次增高唯一中央塔 | 三层塔身窗、四道石带、放大相连回廊与冠部、密集角柱、强化蓝顶肋与最高顶饰 |
 | 教堂 | 紧凑石砌礼拜堂 + 左侧平顶垛口钟塔 + 连续深蓝坡顶 | 双面可见铜钟、中央拱门、玫瑰窗、蓝橙侧墙琉璃窗与附墙扶壁 |
 | 探险家营地 | 帆布指挥厅 + 单座相连瞭望塔 | 固定梯、补给雨棚、地图板、罗盘徽记与暖灯 |
 | 矿工营地 | 石木矿棚 + 一体式矿洞入口 | 拱券石、暖灯、附着卷扬架、卷筒、绳索与导轨矿笼 |
 | 市场 | 石木交易厅 + 宽四坡顶 | 四正两侧固定摊位、相连 L 形条纹前檐、大型钱币广告牌、商品吊牌、固定秤与双灯 |
 | 面包屋 | 完整石基地基 + 两层半木烘焙铺 + 连续双坡瓦顶 | 附墙烤炉口、单座粗大烟囱、暖橱窗、固定面包陈列、无文字面包徽记、贴墙面粉袋与柴薪 |
+| 战地医院 | 完整2×2石基 + 单体两层半木石治疗厅 + 连续青灰双坡顶 | 前部固定接诊雨棚、侧墙治疗雨棚、棚下固定担架、医疗窗、贴墙药材柜与无文字菱形药叶徽记 |
 | 传送门 | 浅阶大理石地台 + 双方柱单圆拱 | 青蓝单门芯、窄黄铜内嵌线、单块拱顶石与门槛 |
 | 位面谐振塔 | 完整2×2双层石质地台 + 中央金属机座 + 四座轴承柱 | 三道黄铜陀螺环、十字导能槽、蓝紫发光轴承与单一悬浮晶核 |
+| 天气预报塔 | 完整2×2石质地基 + 低矮观测厅 + 单座相连八角观测塔 | 蓝灰屋顶、三杯风速仪、风向标、浅雷达碟、双雨量筒与冷蓝观测窗 |
 | 丛林神庙 | 完整方形地基 + 三层退台 + 后部封闭圣殿 + 三层收分上楼 | 单中央宽阶、唯一暗门、左右对称双塔台、顶层冠部、太阳徽记与镜像附墙藤蔓 |
 | 雪原城堡 | 完整矩形石垣 + 三层阶梯平台 + 四层日式天守 | 同轴三段宽阶、唯一前门楼、左右相连双橹塔、深色多重飞檐、独立覆雪面与暖窗 |
 | 沙漠官邸 | 完整矩形地基 + 三层阶梯式中央砂岩主厅 + 左右相连翼楼 | 一座中央大洋葱穹顶、两座翼楼小穹顶、两座镜像火炬状塔楼、唯一中央拱门、三级入口台阶与逐层成对窄窗 |

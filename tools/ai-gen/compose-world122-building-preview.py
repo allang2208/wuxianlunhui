@@ -8,6 +8,7 @@ the four road tiles mirror BuildingRoadSystem's visual-only center fillers.
 import argparse
 from pathlib import Path
 
+import numpy as np
 from PIL import Image
 
 
@@ -24,6 +25,8 @@ def parse_args():
                         default=Path("assets/terrain/building_road_tiles.png"))
     parser.add_argument("--bottom-y", type=int, default=DEFAULT_BOTTOM_Y)
     parser.add_argument("--paving-width", type=int, default=DEFAULT_PAVING_WIDTH)
+    parser.add_argument("--remove-all-green", action="store_true",
+                        help="remove all visible HSV-green pixels from this approval preview")
     return parser.parse_args()
 
 
@@ -62,6 +65,16 @@ def main():
             round(center_y - tile_height / 2),
         ))
     preview.alpha_composite(body)
+    if args.remove_all_green:
+        rgba = np.asarray(preview).copy()
+        hsv = np.asarray(preview.convert("RGB").convert("HSV"))
+        hue = hsv[..., 0].astype(np.float32) * (179.0 / 255.0)
+        green = ((hue >= 35.0) & (hue <= 90.0)
+                 & (hsv[..., 1] >= 24) & (hsv[..., 2] >= 24)
+                 & (rgba[..., 3] > 0))
+        rgba[green] = (0, 0, 0, 0)
+        rgba[rgba[..., 3] == 0] = (0, 0, 0, 0)
+        preview = Image.fromarray(rgba, "RGBA")
     args.out.parent.mkdir(parents=True, exist_ok=True)
     preview.save(args.out)
     print(f"preview -> {args.out}")

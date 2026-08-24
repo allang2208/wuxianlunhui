@@ -110,52 +110,96 @@
       "lidOpenDegrees": 62
     },
     "research_institute": {
-      "paletteOverrides": {
-        "stone": [0.42, 0.40, 0.36, 1.0],
-        "plaster": [0.50, 0.42, 0.34, 1.0],
-        "roof": [0.10, 0.16, 0.28, 1.0],
-        "glass": [0.42, 0.16, 0.035, 1.0]
+      "cameraOverrides": {
+        "widthMargin": 0.742
       },
+      "paletteOverrides": {
+        "foundation": [0.24, 0.29, 0.35, 1.0],
+        "stone": [0.58, 0.64, 0.70, 1.0],
+        "plaster": [0.88, 0.91, 0.94, 1.0],
+        "timber": [0.075, 0.13, 0.20, 1.0],
+        "roof": [0.08, 0.25, 0.46, 1.0],
+        "iron": [0.055, 0.075, 0.11, 1.0],
+        "brass": [0.36, 0.42, 0.48, 1.0],
+        "glass": [0.045, 0.30, 0.62, 1.0],
+        "glow": [0.04, 0.38, 0.82, 1.0]
+      },
+      "bodyDepthExclude": [
+        "ResearchLV1_Foundation_Base",
+        "ResearchLV1_Foundation_Inset"
+      ],
       "dimensions": {
-        "foundation": [500, 430, 16],
-        "body": [390, 300, 190],
-        "roof": [430, 322, 96],
-        "centerTower": [100, 108, 330, 120, 128, 84, 142, 150, 112],
-        "sideTower": [86, 94, 238, 102, 110, 76, 126, 134, 92]
+        "foundation": [540, 540, 16],
+        "wingBody": [178, 190, 118],
+        "wingRoof": [206, 218, 72],
+        "wingOffset": 156,
+        "towerShaft": [150, 150, 276],
+        "towerChamber": [172, 172, 86],
+        "towerRoof": [210, 210, 150],
+        "diamondColumn": [30, 30, 142],
+        "diamondRadius": 188
       }
     },
     "research_institute_lv2": {
-      "paletteOverrides": {
-        "stone": [0.46, 0.44, 0.40, 1.0],
-        "plaster": [0.56, 0.48, 0.39, 1.0],
-        "roof": [0.085, 0.15, 0.29, 1.0],
-        "brass": [0.56, 0.34, 0.075, 1.0],
-        "glass": [0.52, 0.19, 0.035, 1.0]
+      "cameraOverrides": {
+        "widthMargin": 0.742
       },
-      "bodyDepthExclude": ["Research_Foundation"],
+      "paletteOverrides": {
+        "foundation": [0.24, 0.29, 0.35, 1.0],
+        "stone": [0.58, 0.64, 0.70, 1.0],
+        "plaster": [0.88, 0.91, 0.94, 1.0],
+        "timber": [0.075, 0.13, 0.20, 1.0],
+        "roof": [0.08, 0.25, 0.46, 1.0],
+        "iron": [0.055, 0.075, 0.11, 1.0],
+        "brass": [0.36, 0.42, 0.48, 1.0],
+        "glass": [0.045, 0.30, 0.62, 1.0],
+        "glow": [0.04, 0.38, 0.82, 1.0]
+      },
+      "bodyDepthExclude": [
+        "ResearchLV2_Foundation_Base",
+        "ResearchLV2_Foundation_Inset"
+      ],
       "dimensions": {
-        "foundation": [500, 430, 16],
-        "body": [400, 310, 205],
-        "roof": [440, 332, 102],
-        "centerTower": [110, 118, 370, 132, 140, 92, 156, 166, 126],
-        "sideTower": [92, 100, 260, 110, 118, 84, 136, 144, 102]
+        "foundation": [540, 540, 16],
+        "wingBody": [178, 190, 118],
+        "wingRoof": [206, 218, 72],
+        "wingOffset": 156,
+        "towerShaft": [150, 150, 336],
+        "towerChamber": [172, 172, 96],
+        "towerRoof": [210, 210, 166],
+        "diamondColumn": [30, 30, 142],
+        "diamondRadius": 188
       }
     },
     "research_institute_lv3": {
-      "paletteOverrides": {
-        "stone": [0.50, 0.48, 0.44, 1.0],
-        "plaster": [0.61, 0.52, 0.42, 1.0],
-        "roof": [0.065, 0.13, 0.27, 1.0],
-        "brass": [0.72, 0.44, 0.085, 1.0],
-        "glass": [0.62, 0.22, 0.035, 1.0]
+      "cameraOverrides": {
+        "widthMargin": 0.742
       },
-      "bodyDepthExclude": ["Research_Foundation"],
+      "paletteOverrides": {
+        "foundation": [0.24, 0.29, 0.35, 1.0],
+        "stone": [0.58, 0.64, 0.70, 1.0],
+        "plaster": [0.88, 0.91, 0.94, 1.0],
+        "timber": [0.075, 0.13, 0.20, 1.0],
+        "roof": [0.08, 0.25, 0.46, 1.0],
+        "iron": [0.055, 0.075, 0.11, 1.0],
+        "brass": [0.36, 0.42, 0.48, 1.0],
+        "glass": [0.045, 0.30, 0.62, 1.0],
+        "glow": [0.04, 0.38, 0.82, 1.0]
+      },
+      "bodyDepthExclude": [
+        "ResearchLV3_Foundation_Base",
+        "ResearchLV3_Foundation_Inset"
+      ],
       "dimensions": {
-        "foundation": [500, 430, 16],
-        "body": [410, 320, 220],
-        "roof": [452, 340, 108],
-        "centerTower": [120, 128, 410, 144, 152, 104, 170, 180, 142],
-        "sideTower": [98, 106, 282, 118, 126, 92, 146, 154, 114]
+        "foundation": [540, 540, 16],
+        "wingBody": [178, 190, 118],
+        "wingRoof": [206, 218, 72],
+        "wingOffset": 156,
+        "towerShaft": [150, 150, 396],
+        "towerChamber": [172, 172, 108],
+        "towerRoof": [210, 210, 184],
+        "diamondColumn": [30, 30, 142],
+        "diamondRadius": 188
       }
     },
     "church": {
@@ -286,6 +330,36 @@
           ["Inner", 86, 6, [0, 0, 0]]
         ],
         "crystal": [178, 44, 188]
+      }
+    },
+    "weather_forecast_tower": {
+      "cameraOverrides": {
+        "widthMargin": 0.79,
+        "bottomY": 924,
+        "topMargin": 34
+      },
+      "paletteOverrides": {
+        "foundation": [0.22, 0.24, 0.25, 1.0],
+        "stone": [0.42, 0.45, 0.46, 1.0],
+        "plaster": [0.69, 0.70, 0.68, 1.0],
+        "timber": [0.105, 0.075, 0.045, 1.0],
+        "roof": [0.075, 0.20, 0.32, 1.0],
+        "iron": [0.055, 0.065, 0.075, 1.0],
+        "brass": [0.43, 0.29, 0.085, 1.0],
+        "glass": [0.055, 0.28, 0.45, 1.0],
+        "glow": [0.06, 0.48, 0.72, 1.0]
+      },
+      "bodyDepthExclude": [
+        "WeatherTower_Foundation",
+        "WeatherTower_StonePlinth"
+      ],
+      "dimensions": {
+        "foundation": [500, 430, 18],
+        "plinth": [438, 368, 24],
+        "body": [332, 268, 172],
+        "roof": [388, 324, 98],
+        "observationTower": [88, 154],
+        "towerRoof": [108, 82]
       }
     },
     "jungle_temple": {
@@ -480,6 +554,25 @@
         "foundation": [430, 350, 16],
         "body": [316, 228, 170],
         "roof": [368, 282, 96]
+      }
+    },
+    "field_hospital": {
+      "paletteOverrides": {
+        "foundation": [0.27, 0.28, 0.26, 1.0],
+        "stone": [0.38, 0.40, 0.37, 1.0],
+        "plaster": [0.62, 0.61, 0.52, 1.0],
+        "timber": [0.13, 0.075, 0.045, 1.0],
+        "roof": [0.12, 0.27, 0.28, 1.0],
+        "iron": [0.07, 0.08, 0.075, 1.0],
+        "brass": [0.34, 0.27, 0.09, 1.0],
+        "glass": [0.08, 0.34, 0.31, 1.0],
+        "glow": [0.46, 0.70, 0.48, 1.0],
+        "straw": [0.46, 0.39, 0.21, 1.0]
+      },
+      "dimensions": {
+        "foundation": [460, 370, 18],
+        "body": [340, 240, 180],
+        "roof": [392, 294, 104]
       }
     },
     "shooting_range": { "dimensions": { "foundation": [526, 474, 16], "body": [270, 176, 142], "roof": [310, 220, 82] } },

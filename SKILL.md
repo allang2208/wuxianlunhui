@@ -26,6 +26,7 @@
 | `skill/11-audio.md` | 11. 音效系统 |
 | `skill/12-pitfalls-debug.md` | 12. 常见陷阱与调试手册 |
 | `skill/13-history-appendix.md` | 13. 历史记录与变更日志（附录） |
+| `skill/14-performance-optimization.md` | 14. 性能优化与采样 |
 
 ## 维护规则（防膨胀）
 
@@ -223,6 +224,13 @@
 - 阶段性进度总结（2026-07-13）
 - 阶段性进度总结（2026-07-12）
 - 阶段性进度总结（2026-07-11）
+
+**14. 性能优化与采样** → `skill/14-performance-optimization.md`
+- 性能面板、Markdown 报告与 A/B 判读规范
+- 视口纯视觉裁切、实时太阳结构阴影批处理与重建预算
+- AI/碰撞/寻路预算及 `PATH_DEFERRED` 正确性契约
+- 多位面后台数据化、聚合入侵与切回补结算
+- Phaser 4 filters、粒子、DOM UI 与后续优化升级条件
 
 ---
 

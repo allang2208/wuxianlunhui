@@ -1,0 +1,29 @@
+{
+  "version": 2,
+  "date": "2026-08-24",
+  "styleVersion": "world123-obstacle-snow-pine-v2",
+  "generationTool": "OpenAI built-in imagegen",
+  "pipeline": [
+    "Blender editable geometry",
+    "ImageGen material refinement",
+    "BiRefNet alpha reconstruction",
+    "tight transparent crop",
+    "runtime replacement",
+    "environment lighting maps"
+  ],
+  "prompt": "tools/ai-gen/prompts/snow-pine-obstacle-v2.md",
+  "runtimeContract": {
+    "obstacleH": 390,
+    "scatterCount": 38,
+    "minDist": 360,
+    "randomMirror": 0.5,
+    "collision": "old world-space footprint preserved by source-resolution ratio"
+  },
+  "assets": {
+    "01": { "shape": "upright_dense", "model": "tools/ai-gen/_snow_pine_upgrade_20260824/01/snow_pine_01.blend", "modelPreview": "tools/ai-gen/_snow_pine_upgrade_20260824/01/snow_pine_01_model_preview.png", "raw": "tools/ai-gen/_snow_pine_upgrade_20260824/imagegen_v2/raw/snow_pine_01_raw.png", "cutout": "tools/ai-gen/_snow_pine_upgrade_20260824/imagegen_v2/cutout/snow_pine_01_cutout.png", "runtime": "assets/terrain/obstacle_snow_pine_01.png", "size": [696, 1438], "foot": [150, 79] },
+    "02": { "shape": "left_lean_snowloaded", "model": "tools/ai-gen/_snow_pine_upgrade_20260824/02/snow_pine_02.blend", "modelPreview": "tools/ai-gen/_snow_pine_upgrade_20260824/02/snow_pine_02_model_preview.png", "raw": "tools/ai-gen/_snow_pine_upgrade_20260824/imagegen_v2/raw/snow_pine_02_raw.png", "cutout": "tools/ai-gen/_snow_pine_upgrade_20260824/imagegen_v2/cutout/snow_pine_02_cutout.png", "runtime": "assets/terrain/obstacle_snow_pine_02.png", "size": [707, 1525], "foot": [182, 88] },
+    "03": { "shape": "right_lean_broken_layers", "model": "tools/ai-gen/_snow_pine_upgrade_20260824/03/snow_pine_03.blend", "modelPreview": "tools/ai-gen/_snow_pine_upgrade_20260824/03/snow_pine_03_model_preview.png", "raw": "tools/ai-gen/_snow_pine_upgrade_20260824/imagegen_v2/raw/snow_pine_03_raw.png", "cutout": "tools/ai-gen/_snow_pine_upgrade_20260824/imagegen_v2/cutout/snow_pine_03_cutout.png", "runtime": "assets/terrain/obstacle_snow_pine_03.png", "size": [707, 1479], "foot": [220, 91] },
+    "04": { "shape": "windswept_flag_crown", "model": "tools/ai-gen/_snow_pine_upgrade_20260824/04/snow_pine_04.blend", "modelPreview": "tools/ai-gen/_snow_pine_upgrade_20260824/04/snow_pine_04_model_preview.png", "raw": "tools/ai-gen/_snow_pine_upgrade_20260824/imagegen_v2/raw/snow_pine_04_raw.png", "cutout": "tools/ai-gen/_snow_pine_upgrade_20260824/imagegen_v2/cutout/snow_pine_04_cutout.png", "runtime": "assets/terrain/obstacle_snow_pine_04.png", "size": [671, 1165], "foot": [189, 78] },
+    "05": { "shape": "old_sparse_exposed_trunk", "model": "tools/ai-gen/_snow_pine_upgrade_20260824/05/snow_pine_05.blend", "modelPreview": "tools/ai-gen/_snow_pine_upgrade_20260824/05/snow_pine_05_model_preview.png", "raw": "tools/ai-gen/_snow_pine_upgrade_20260824/imagegen_v2/raw/snow_pine_05_raw.png", "cutout": "tools/ai-gen/_snow_pine_upgrade_20260824/imagegen_v2/cutout/snow_pine_05_cutout.png", "runtime": "assets/terrain/obstacle_snow_pine_05.png", "size": [530, 1177], "foot": [180, 74] }
+  }
+}

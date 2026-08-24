@@ -23,6 +23,7 @@ import { CONFIG } from '../config/config.js';
 import { SceneManager } from './scene-manager.js';
 import { Renderer } from './renderer.js';
 import { World122TributeSystem } from './world122-tribute-system.js';
+import { FogOfWarSystem } from './fog-of-war-system.js';
 import {
     DefenseSystem, DefenseTower, DefenseCover, BuildableGate, WallStaircase,
     DEFENSE_CONFIG, COVER_FACE, COVER_FOOT, GATE_GEOM, GATE4_VISUAL,
@@ -44,6 +45,7 @@ import {
     chooseGate4Snap, isGate4OccupancyValid,
 } from './gate4-grid.js';
 import {
+    applyIsoFootprintFromSegment,
     circleIntersectsIsoFootprint,
     isoFootprintsOverlap,
     isoFootprintVertices,
@@ -105,6 +107,8 @@ const SNAP_RADIUS = 60;
 /** 建造警戒半径：拟放置锚点附近存在敌对单位时禁止施工。 */
 const BUILD_ENEMY_EXCLUSION_RADIUS = 200;
 const BUILD_HOSTILE_FACTIONS = new Set(['enemy', 'agent']);
+/** 单次迷雾 revision 内最多保留的精确 footprint 判定；达到上限整体清空，避免长时间悬停无界增长。 */
+const FOG_PLACEMENT_VISIBILITY_CACHE_LIMIT = 2048;
 /**
  * 门拼接重叠（世界像素，2026-08-16 一格门改版）：门已缩放到「一格 = 一堵墙」，
  * 端柱即墙的端帽，拼接口径与掩体墙一致（SNAP_OVERLAP=40，端帽完全叠合互盖）。
@@ -319,6 +323,12 @@ export const BuildingSystem = {
     _moveGeneration: 0,
     _pendingPointerClient: null,
     _lastPointerClient: null,
+    _fogPlacementVisibilityCache: {
+        sceneId: null,
+        grid: null,
+        revision: -1,
+        values: new Map(),
+    },
     _seq: 0,
     _refreshTimer: null,
 
@@ -2333,6 +2343,7 @@ export const BuildingSystem = {
     _canPlaceGate4(x, y, dir) {
         const cells = this._gate4Cells(x, y, dir);
         const item = this._placing && this._placing.item;
+        if (!item || !this._isPlacementFogBuildable(item, x, y, { dir })) return false;
         if (!item || this._violatesPlacementUnitRules(item, x, y, { dir })) return false;
         const occupied = [];
         const existingBlocks = [];
@@ -2357,6 +2368,7 @@ export const BuildingSystem = {
             const [cx, cy] = cells[k];
             if (!this._canPlaceBlock(cx, cy, {
                 ignoreSegs: connectedGateSegs,
+                skipFog: true,
             })) return false;
         }
         return true;
@@ -2642,6 +2654,109 @@ export const BuildingSystem = {
             || this._hasUnitInPlacementFootprint(item, x, y, context);
     },
 
+    _resetFogPlacementVisibilityCache() {
+        const cache = this._fogPlacementVisibilityCache;
+        if (!cache) return;
+        cache.sceneId = null;
+        cache.grid = null;
+        cache.revision = -1;
+        cache.values.clear();
+    },
+
+    /** grid 对象身份用于区分 reset/re-enter 后同为 revision=1 的新世界状态。 */
+    _syncFogPlacementVisibilityCache(grid) {
+        if (!grid?.active) {
+            this._resetFogPlacementVisibilityCache();
+            return null;
+        }
+        const sceneId = SceneManager.currentScene;
+        const revision = Number(grid.revision) || 0;
+        const cache = this._fogPlacementVisibilityCache;
+        if (cache.sceneId !== sceneId || cache.grid !== grid || cache.revision !== revision) {
+            cache.values.clear();
+            cache.sceneId = sceneId;
+            cache.grid = grid;
+            cache.revision = revision;
+        }
+        return cache.values;
+    },
+
+    /** 精确顶点键不按雾格或小数位量化，避免同格内跨入相邻盲格的 footprint 被错误复用。 */
+    _fogPolygonVisibilityKey(vertices) {
+        const points = [];
+        for (const point of Array.isArray(vertices) ? vertices : []) {
+            const x = Number(point?.x);
+            const y = Number(point?.y);
+            if (Number.isFinite(x) && Number.isFinite(y)) points.push(`${x},${y}`);
+        }
+        return `${points.length}:${points.join(';')}`;
+    },
+
+    _isFogPolygonBuildable(vertices, grid = FogOfWarSystem.getGrid(SceneManager.currentScene)) {
+        const values = this._syncFogPlacementVisibilityCache(grid);
+        if (!values) return true;
+        const key = this._fogPolygonVisibilityKey(vertices);
+        if (values.has(key)) return values.get(key);
+        const buildable = FogOfWarSystem.isPolygonFullyExplored(SceneManager.currentScene, vertices);
+        if (values.size >= FOG_PLACEMENT_VISIBILITY_CACHE_LIMIT) values.clear();
+        values.set(key, buildable);
+        return buildable;
+    },
+
+    /** 完整菱形占地必须避开战争黑雾；VISIBLE 与 EXPLORED 均可建造。 */
+    _isFogProbeBuildable(probe, grid = FogOfWarSystem.getGrid(SceneManager.currentScene)) {
+        if (!probe) return true;
+        return this._isFogPolygonBuildable(isoFootprintVertices(probe), grid);
+    },
+
+    /** 各建造类型复用真实占地；建筑自带的外围道路/田地也不能伸进未探索黑雾。 */
+    _isPlacementFogBuildable(item, x, y, { dir = null, snap = null } = {}) {
+        const grid = FogOfWarSystem.getGrid(SceneManager.currentScene);
+        if (!grid?.active || !item) return true;
+        const probeBuildable = (probe) => this._isFogProbeBuildable(probe, grid);
+
+        if (isTwoByTwoBuildItem(item)) {
+            if (usesBuildingRoads(item)) {
+                return buildingRoadLayout(x, y).reservationCells
+                    .every((cell) => probeBuildable(this._roadCellProbe(cell)));
+            }
+            return probeBuildable(this._buildingFootprintProbe(x, y));
+        }
+        if (item.kind === 'block' || item.kind === 'road') {
+            return probeBuildable(this._roadCellProbe({ x, y }));
+        }
+        if (item.kind === 'gate4') {
+            const gateDir = dir || snap?.dir || this._snapped?.dir || 'e2';
+            return this._gate4Cells(x, y, gateDir)
+                .every(([cellX, cellY]) => probeBuildable(this._roadCellProbe({ x: cellX, y: cellY })));
+        }
+        if (isWallStairBuildItem(item)) {
+            const stairSnap = snap || this._snapped;
+            const stairDir = stairSnap?.dir || dir || wallStairDir(!!this._placing?.mirror);
+            const segments = Array.isArray(stairSnap?.segments) && stairSnap.segments.length > 0
+                ? stairSnap.segments
+                : [{ x, y }];
+            return segments.every((segment) => probeBuildable(this._wallStairProbe(segment.x, segment.y, stairDir)));
+        }
+
+        if (item.kind === 'cover' || item.kind === 'gate') {
+            const orient = effOrient(item, !!this._placing?.mirror);
+            const segment = this._coverSeg(x, y, item.grade, orient);
+            const halfThickness = item.kind === 'gate'
+                ? GATE_GEOM.halfThick
+                : ((COVER_FOOT[orient] || COVER_FOOT[item.orient] || COVER_FOOT.v).thick ?? 26);
+            return probeBuildable(applyIsoFootprintFromSegment({ x, y }, segment[0], segment[1], halfThickness));
+        }
+
+        const radius = this._itemPlacementRadius(item);
+        const polygon = [];
+        for (let i = 0; i < 16; i++) {
+            const angle = i * Math.PI / 8;
+            polygon.push({ x: x + Math.cos(angle) * radius, y: y + Math.sin(angle) * radius });
+        }
+        return this._isFogPolygonBuildable(polygon, grid);
+    },
+
     /** 完整 footprint 必须留在世界内；不能只检查锚点离边缘 20px。 */
     _fitsPlacementBounds(item, x, y) {
         const pad = 20;
@@ -2699,6 +2814,7 @@ export const BuildingSystem = {
         }
         if (isWallStairBuildItem(item)) return this._canPlaceWallStairFootprint(x, y);
         if (isTwoByTwoBuildItem(item)) return this._canPlaceBuildingFootprint(x, y);
+        if (!this._isPlacementFogBuildable(item, x, y)) return false;
         if (this._violatesPlacementUnitRules(item, x, y)) return false;
         const radius = this._itemPlacementRadius(item);
         const canBuild = WallSystem && typeof WallSystem.canBuildAt === 'function'
@@ -2768,6 +2884,7 @@ export const BuildingSystem = {
     _canPlaceBuildingFootprint(x, y) {
         const item = this._placing && this._placing.item;
         if (!item) return false;
+        if (!this._isPlacementFogBuildable(item, x, y)) return false;
         if (this._violatesPlacementUnitRules(item, x, y)) {
             this._roadPlacementStatus = null;
             return false;
@@ -2880,6 +2997,7 @@ export const BuildingSystem = {
     _canPlaceWallStairFootprint(x, y, snap = this._snapped) {
         const item = this._placing && this._placing.item;
         if (!item || !snap || !snap.wall || !Array.isArray(snap.segments)) return false;
+        if (!this._isPlacementFogBuildable(item, x, y, { dir: snap.dir, snap })) return false;
         if (this._violatesPlacementUnitRules(item, x, y, { dir: snap.dir, snap })) return false;
         const attachedWalls = snap.walls?.length ? snap.walls : [snap.wall];
         // 实体重叠只忽略楼梯真正连接的目标墙。若忽略整条连通墙链，内层叠墙或
@@ -2978,6 +3096,7 @@ export const BuildingSystem = {
     _canPlaceRoad(x, y) {
         const item = this._placing && this._placing.item;
         if (!item || item.kind !== 'road' || !this._fitsPlacementBounds(item, x, y)) return false;
+        if (!this._isPlacementFogBuildable(item, x, y)) return false;
         if (this._violatesPlacementUnitRules(item, x, y)) return false;
         const [i, j] = this._blockCellOf(x, y);
         if (!BuildingRoadSystem.canPlaceManualRoadCell(i, j)) return false;
@@ -3000,6 +3119,7 @@ export const BuildingSystem = {
         const item = this._placing && this._placing.item;
         const boundsItem = item && item.kind === 'gate4' ? { kind: 'block' } : item;
         if (!boundsItem || !this._fitsPlacementBounds(boundsItem, x, y)) return false;
+        if (!options.skipFog && !this._isFogProbeBuildable(this._roadCellProbe({ x, y }))) return false;
         if (item?.kind !== 'gate4' && this._violatesPlacementUnitRules(item, x, y)) return false;
         const [ni, nj] = this._blockCellOf(x, y);
         const blockR = Math.hypot(BLOCK_FOOT.w / 2, BLOCK_FOOT.d / 2);
@@ -3732,6 +3852,13 @@ export const BuildingSystem = {
             this._notify(buildBlock, '#ffb35c');
             this._cancelPlacement();
             this._syncBuildItemCards();
+            return;
+        }
+        const fogContext = item.kind === 'gate4'
+            ? { dir: this._snapped?.dir || 'e2' }
+            : (isWallStairBuildItem(item) ? { dir: this._snapped?.dir, snap: this._snapped } : {});
+        if (!this._isPlacementFogBuildable(item, x, y, fogContext)) {
+            this._notify('战争黑雾覆盖区域无法建造', '#ff7777');
             return;
         }
         if (!this._canPlace(x, y)) {

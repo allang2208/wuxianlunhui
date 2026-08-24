@@ -413,6 +413,7 @@ export function captureWorld(sceneId = 'scene8') {
             troopProducer: !!p._isTroopProducer,
             unitType: p.unitType || '', spawnTimer: p._spawnTimer || 0, recruitMode: normalizeRecruitMode(p._recruitMode),
             populationBlocked: !!p._spawnPopulationBlocked,
+            foodBlocked: !!p._spawnFoodBlocked,
             parallelQueues: p._parallelProduction ? Object.fromEntries(
                 Object.entries(p._parallelQueues || {}).map(([kind, queue]) => [kind, {
                     recruitMode: normalizeRecruitMode(queue.recruitMode),
@@ -715,7 +716,10 @@ export function previewWorld122Report() {
     if (!stored || !isWorldSnapshotCurrent('scene8', stored)) return null;
     if (isWorld122Live()) return null;
     const nowGame = EnvironmentLightingSystem.serializeTime().elapsedMs || 0;
-    const elapsed = Math.max(0, nowGame - (stored.capturedGameTimeMs || nowGame));
+    const capturedGameTimeMs = Number(stored.capturedGameTimeMs);
+    const elapsed = Math.max(0, nowGame - (
+        Number.isFinite(capturedGameTimeMs) ? capturedGameTimeMs : nowGame
+    ));
     if (elapsed < 1000) return null;
     return settleWorld122(stored, elapsed, { commit: false, skipWaves: true });
 }
@@ -913,6 +917,7 @@ function _restoreProducer(s, sceneId) {
     producer._spawnTimer = Math.max(0, s.spawnTimer || 0);
     producer._recruitMode = normalizeRecruitMode(s.recruitMode);
     producer._spawnPopulationBlocked = !!s.populationBlocked;
+    producer._spawnFoodBlocked = !!s.foodBlocked;
     if (producer._parallelProduction) {
         for (const [kind, queue] of Object.entries(producer._parallelQueues || {})) {
             const savedQueue = s.parallelQueues?.[kind];
@@ -1058,7 +1063,10 @@ export function applyWorldSnapshot(sceneId = 'scene8', snap = _storedByWorld[sce
 
     // ---- M1 后台结算（离场 >1s 才结算，避免同场秒切空跑）----
     const nowGame = EnvironmentLightingSystem.serializeTime().elapsedMs || 0;
-    const elapsed = Math.max(0, nowGame - (snap.capturedGameTimeMs || nowGame));
+    const capturedGameTimeMs = Number(snap.capturedGameTimeMs);
+    const elapsed = Math.max(0, nowGame - (
+        Number.isFinite(capturedGameTimeMs) ? capturedGameTimeMs : nowGame
+    ));
     let report = null;
     if (elapsed > 1000) {
         report = settleWorld122(snap, elapsed, {

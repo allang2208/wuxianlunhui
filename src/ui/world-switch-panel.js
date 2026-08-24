@@ -39,6 +39,9 @@ export const WorldSwitchPanel = {
                 mountRightSidebarPanel(this._panel.el, 'panel');
                 EventBus.emit('ui:panel-open', { panel: 'worldSwitch' });
                 this._setPanelChrome(true);
+                // 打开面板时才把连续经济结算到“现在”；之后仅重绘到期事件推送后的快照。
+                window.WorldSimDriver?.flushAll?.({ notify: false, reason: 'world-panel-open' });
+                window.WorldInvasionSystem?.settleBackgroundNow?.();
                 this._render();
                 this._onOpenRefresh();
             };
@@ -149,7 +152,7 @@ export const WorldSwitchPanel = {
         el.querySelector('#wsClose').onclick = () => this.close();
     },
 
-    /** 打开期间 1.2s 自动刷新（后台驱动 tick 推进快照，面板实时反映） */
+    /** 打开期间 1.2s 只刷新显示；后台账本没有到期事件时不会为面板反复扫描位面。 */
     _onOpenRefresh() {
         this._clearRefresh();
         this._refreshTimer = setInterval(() => { if (this._panel?.isOpen) this._render(); }, 1200);

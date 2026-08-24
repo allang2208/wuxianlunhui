@@ -1,0 +1,57 @@
+{
+  "version": 2,
+  "date": "2026-08-24",
+  "styleVersion": "world122-obstacle-cactus-v2",
+  "generationTool": "OpenAI built-in imagegen",
+  "pipeline": [
+    "Blender editable geometry",
+    "ImageGen material refinement",
+    "BiRefNet alpha reconstruction",
+    "tight transparent crop",
+    "runtime replacement",
+    "environment lighting maps"
+  ],
+  "prompt": "tools/ai-gen/prompts/cactus-obstacle-v2.md",
+  "assets": {
+    "saguaro2arm": {
+      "model": "tools/ai-gen/_cactus_upgrade_20260824/saguaro2arm/saguaro2arm.blend",
+      "modelPreview": "tools/ai-gen/_cactus_upgrade_20260824/saguaro2arm/saguaro2arm_model_preview.png",
+      "raw": "tools/ai-gen/_cactus_upgrade_20260824/imagegen_v2/raw/saguaro2arm_raw.png",
+      "cutout": "tools/ai-gen/_cactus_upgrade_20260824/imagegen_v2/cutout/saguaro2arm_cutout.png",
+      "runtime": "assets/terrain/obstacle_cactus_saguaro2arm.png",
+      "size": [568, 1147],
+      "foot": [139, 49],
+      "obstacleH": 240
+    },
+    "saguaro1arm": {
+      "model": "tools/ai-gen/_cactus_upgrade_20260824/saguaro1arm/saguaro1arm.blend",
+      "modelPreview": "tools/ai-gen/_cactus_upgrade_20260824/saguaro1arm/saguaro1arm_model_preview.png",
+      "raw": "tools/ai-gen/_cactus_upgrade_20260824/imagegen_v2/raw/saguaro1arm_raw.png",
+      "cutout": "tools/ai-gen/_cactus_upgrade_20260824/imagegen_v2/cutout/saguaro1arm_cutout.png",
+      "runtime": "assets/terrain/obstacle_cactus_saguaro1arm.png",
+      "size": [395, 1046],
+      "foot": [147, 53],
+      "obstacleH": 230
+    },
+    "barrel": {
+      "model": "tools/ai-gen/_cactus_upgrade_20260824/barrel/barrel.blend",
+      "modelPreview": "tools/ai-gen/_cactus_upgrade_20260824/barrel/barrel_model_preview.png",
+      "raw": "tools/ai-gen/_cactus_upgrade_20260824/imagegen_v2/raw/barrel_raw.png",
+      "cutout": "tools/ai-gen/_cactus_upgrade_20260824/imagegen_v2/cutout/barrel_cutout.png",
+      "runtime": "assets/terrain/obstacle_cactus_barrel.png",
+      "size": [872, 888],
+      "foot": [382, 132],
+      "obstacleH": 105
+    },
+    "cholla": {
+      "model": "tools/ai-gen/_cactus_upgrade_20260824/cholla/cholla.blend",
+      "modelPreview": "tools/ai-gen/_cactus_upgrade_20260824/cholla/cholla_model_preview.png",
+      "raw": "tools/ai-gen/_cactus_upgrade_20260824/imagegen_v2/raw/cholla_raw.png",
+      "cutout": "tools/ai-gen/_cactus_upgrade_20260824/imagegen_v2/cutout/cholla_cutout.png",
+      "runtime": "assets/terrain/obstacle_cactus_cholla.png",
+      "size": [708, 1133],
+      "foot": [146, 53],
+      "obstacleH": 150
+    }
+  }
+}

@@ -111,18 +111,28 @@ python tools/ai-gen/comfyui-gen.py --host 192.168.3.142 --model flux2-dev-depth 
 
 ### 1.5.1 World-122 建筑两阶段工作流（结构粗筛 → 细节精修）
 
-建筑不再用一次 48 步同时赌结构和细节。标准流程拆成两段，并始终保持主体与地基分离：
+建筑不再用一次 48 步同时赌结构和细节。正式候选只有一个执行入口：
+`generate-world122-building-candidates.py`。该入口固定读取
+`prompts/world122-building-style.md`（`world122-building-v2`）作为12步和48步共享的不可变画风块；
+单栋建筑只在 manifest 中描述结构、功能细节和局部配色，不能覆盖共同的材质尺度、光照、边缘处理或渲染语言。
+禁止为正式建筑直接手写 `comfyui-gen.py` 命令；通用客户端只作为该入口的内部后端或明确标记的实验工具。
+生成脚本会同时校验版本号与模板路径：正式候选只接受 `world122-building-v2` 与
+`prompts/world122-building-style.md`。旧 `world122-building-v1`、天气塔实验用
+`world122-building-runtime-settlement-v2` 仅允许作为旧候选元数据中的历史版本标记；旧模板文件和任何建筑私有画风模板不得保留，不能继续提交正式候选。
+V2 强制所有新建筑主体使用中世纪欧洲半木石结构并融合克制的哥特细节（尖拱、彩色玻璃、立面雕花边饰），
+材质统一为游戏向PBR的风化石材、磨损木构与自然氧化黄铜，照明统一为柔和左上顶侧光和受控明暗。
+标准流程拆成两段，并始终保持主体与运行时道路铺地分离：
 
-1. **结构粗筛（12 步，每批 10 张）**：Blender 白模深度图锁定体块和视角；由同一深度图派生边缘图，用于检查屋脊、塔楼接缝和遮挡边界。远端插件确认支持 Hook 链后可加 `--edge-control` 启用第二路 ControlNet；当前默认只提交深度控制，避免旧版 `HooksContainer` 链式报错。提示词只描述主体、塔楼数量和封闭墙体，不生成望远镜、书架等小件。
+1. **结构粗筛（12 步，默认每批 5 张）**：Blender 白模深度图锁定体块和视角；由同一深度图派生边缘图，用于检查屋脊、塔楼接缝和遮挡边界。远端插件确认支持 Hook 链后可加 `--edge-control` 启用第二路 ControlNet；当前默认只提交深度控制，避免旧版 `HooksContainer` 链式报错。提示词只描述主体、塔楼数量和封闭墙体，不生成望远镜、书架等小件；确有需要时仍可用 `--variants` 显式覆盖数量。
 2. **人工选结构**：只看视角、底边、主体居中、塔楼数量、屋顶连续性和墙体是否完整。优先选择带纯绿背景的 `_raw.png` 作为精修初始图；透明 PNG 必须先压回纯绿底，避免透明区在 ComfyUI 中变黑。
 3. **细节精修（48 步，低重绘）**：选中的结构图作为 `--init-image`，默认 denoise=0.30，并继续使用同一深度控制。远端插件兼容时可额外启用边缘控制。提示词只添加石材、瓦片、窗户、望远镜、星象仪和书架等细节，不准改变主体轮廓、塔楼数量和底边。
-4. **局部返修**：仅在结构已合格、局部仍有洞口或错误组件时使用 mask；白色区域重绘，黑色区域保留。局部返修不替代结构粗筛。
+4. **局部返修**：仅在结构已合格、局部仍有洞口或错误组件时使用 mask；白色区域重绘，黑色区域保留。局部返修属于显式非标准实验，不替代结构粗筛，也不能晋级为新的全图画风入口。
 
 研究院结构粗筛：
 
 ```bash
 python tools/ai-gen/generate-world122-building-candidates.py \
-  --stage structure --only research_institute --variants 10 \
+  --stage structure --only research_institute \
   --out Y:/工作/无尽轮回/scratch/world122-buildings
 ```
 
@@ -135,7 +145,7 @@ python tools/ai-gen/generate-world122-building-candidates.py \
   --variants 3 --out Y:/工作/无尽轮回/scratch/world122-buildings
 ```
 
-通用客户端也支持重复 ControlNet、img2img 和局部 mask：
+通用客户端支持重复 ControlNet、img2img 和局部 mask，但下列命令只用于已经通过结构与画风验收后的局部修复，不得替代正式建筑候选入口：
 
 ```bash
 python tools/ai-gen/comfyui-gen.py --host 192.168.3.142 --model flux2-dev-depth \
@@ -145,7 +155,9 @@ python tools/ai-gen/comfyui-gen.py --host 192.168.3.142 --model flux2-dev-depth 
   --prompt-file refine-prompt.txt --out refined.png
 ```
 
-默认参数在 `world122-building-candidate-manifest.json`：结构阶段 12 步/10 张、精修阶段 48 步/3 张、精修 denoise 0.30、深度约束 0.75~0.78、边缘约束 0.38。结构不完整时先改白模体块或降低边缘强度，不能靠提高精修步数修复缺墙、断塔或错误屋顶。
+默认参数在 `world122-building-candidate-manifest.json`：`flux2-dev-depth`、1024²、CFG 3.5、Euler/simple；结构阶段 12 步/5 张、Depth 0.78；精修阶段 48 步/3 张、denoise 0.30、Depth 0.75；边缘约束登记为0.38但默认关闭。脚本会把画风版本、模板、模型和全部生成参数写入每张 raw 对应的 `_generation.json`。改变步数或 denoise 必须显式增加 `--allow-nonstandard`，并会在元数据中留下非标准记录；非标准实验不得和正式候选混放或直接入库。结构不完整时先改白模体块，不能靠提高精修步数修复缺墙、断塔或错误屋顶。
+
+**接地视觉规则**：新建筑在 Blender 阶段必须设计附着于主体墙脚的接地过渡，例如一层低矮勒脚石、门槛、扶壁脚块或极少量贴墙碎石；这些小件与主体相交且随 Body Depth 生成，不得扩展成覆盖完整2×2的独立地台。既有主体不重生成时，可以先另做同相机、真透明的建筑专属接地覆盖层候选；用户确认后把覆盖层裁成与正式主体相同画布，提升到 `assets/terrain/building-contact/`，并通过 `producer-buildings.json.groundContact` 配置接入。运行时必须使用 `rearFx` 作为主体下层、保持在道路填充上方，并同步建造幽灵、镜像、战争迷雾、地图模式、压平视图和销毁；不得参与主体alpha拟合、遮挡AABB、占格、碰撞、寻路或主体footprint，也不得重新启用已经取消的通用独立地基。
 
 ### 1.6 模型选择矩阵（内容 → 首选模型 → 规则，2026-08-04 定稿）
 

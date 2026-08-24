@@ -6,9 +6,11 @@ import importlib.util
 import json
 import math
 import os
+import subprocess
 import sys
 
 import bpy
+import mathutils
 
 
 def load_kit():
@@ -24,12 +26,16 @@ kit = load_kit()
 
 def parse_args():
     argv = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
+    body_only = bool(argv and argv[-1] == "--body-only")
+    if body_only:
+        argv = argv[:-1]
     if len(argv) not in (5, 6):
-        raise SystemExit("usage: blender --background --python settlement-building-pack-blender.py -- manifest.json id out.blend preview.png depth.png [body-depth.png]")
+        raise SystemExit("usage: blender --background --python settlement-building-pack-blender.py -- manifest.json id out.blend preview.png depth.png [body-depth.png] [--body-only]")
     manifest, building_id, blend, preview, depth = argv[:5]
     body_depth = os.path.abspath(argv[5]) if len(argv) == 6 else None
     return (os.path.abspath(manifest), building_id, os.path.abspath(blend),
-            os.path.abspath(preview), os.path.abspath(depth), body_depth)
+            os.path.abspath(preview), os.path.abspath(depth), body_depth,
+            body_only)
 
 
 def hipped_roof(collection, root, name, length, width, height, location, mat):
@@ -248,7 +254,7 @@ def standard_shell(collection, root, mats, dims, *, roof_kind="gable", thatch=Fa
 
 
 def research_pyramid_roof(collection, parent, name, length, width, height, location, mat):
-    """Four-sided tower roof with one apex, matching the current institute silhouette."""
+    """Four-sided Gothic tower roof with one apex."""
     half_l, half_w = length / 2, width / 2
     vertices = [
         (-half_l, -half_w, 0), (half_l, -half_w, 0),
@@ -267,254 +273,358 @@ def research_pyramid_roof(collection, parent, name, length, width, height, locat
     return obj
 
 
-def add_research_tower(collection, root, mats, name, location, shaft_size,
-                       shaft_height, chamber_size, chamber_height, roof_size,
-                       roof_height, detail_level=1):
-    """Research-institute tower: stone shaft, half-timber library chamber and steep cap."""
+def research_diagonal_beam(collection, root, name, start, end, width, depth, mat):
+    """Editable diagonal stone beam between two building-local points."""
+    start_v = mathutils.Vector(start)
+    end_v = mathutils.Vector(end)
+    direction = end_v - start_v
+    beam = kit.box(collection, root, name, (direction.length, width, depth),
+                   tuple((start_v + end_v) * 0.5), mat, bevel_width=1.5)
+    beam.rotation_mode = "QUATERNION"
+    beam.rotation_quaternion = direction.to_track_quat("X", "Z")
+    return beam
+
+
+def research_pointed_panel(collection, root, name, location, width, height, depth,
+                           mat, orientation="front"):
+    """Extruded five-sided lancet panel for one Gothic window or tympanum."""
+    half_w = width / 2
+    lower_z = -height / 2
+    spring_z = height * 0.18
+    apex_z = height / 2
+    profile = [(-half_w, lower_z), (half_w, lower_z), (half_w, spring_z),
+               (0, apex_z), (-half_w, spring_z)]
+    vertices = []
+    if orientation == "front":
+        for plane in (-depth / 2, depth / 2):
+            vertices.extend((u, plane, z) for u, z in profile)
+    else:
+        for plane in (-depth / 2, depth / 2):
+            vertices.extend((plane, u, z) for u, z in profile)
+    count = len(profile)
+    faces = [tuple(range(count)), tuple(reversed(range(count, count * 2)))]
+    for index in range(count):
+        nxt = (index + 1) % count
+        faces.append((index, nxt, count + nxt, count + index))
+    mesh = bpy.data.meshes.new(name + "_Mesh")
+    mesh.from_pydata(vertices, [], faces)
+    mesh.materials.append(mat)
+    mesh.validate()
+    mesh.update()
+    obj = bpy.data.objects.new(name, mesh)
+    collection.objects.link(obj)
+    obj.parent = root
+    obj.location = location
+    kit.bevel(obj, 1.2, 2)
+    return obj
+
+
+def research_pointed_window(collection, root, mats, name, location, width, height,
+                            orientation="front"):
+    """Blue lancet glass with individually editable cool-gray Gothic tracery."""
+    x, y, z = location
+    frame = max(6.0, width * 0.13)
+    depth = 7.0
+    lower_z = z - height / 2
+    spring_z = z + height * 0.18
+    apex_z = z + height / 2
+    jamb_h = spring_z - lower_z
+    research_pointed_panel(collection, root, name + "_BlueGlass", location,
+                           width, height, depth, mats["glass"], orientation)
+    if orientation == "front":
+        for side in (-1, 1):
+            kit.box(collection, root, f"{name}_Jamb_{side:+d}",
+                    (frame, depth + 4, jamb_h),
+                    (x + side * width / 2, y, lower_z + jamb_h / 2),
+                    mats["foundation"], bevel_width=1)
+            research_diagonal_beam(
+                collection, root, f"{name}_Arch_{side:+d}",
+                (x + side * width / 2, y, spring_z), (x, y, apex_z),
+                depth + 4, frame, mats["foundation"])
+        kit.box(collection, root, name + "_Sill", (width + frame * 2, depth + 4, frame),
+                (x, y, lower_z), mats["foundation"], bevel_width=1)
+        kit.box(collection, root, name + "_Transom", (width, depth + 5, frame * 0.58),
+                (x, y - 1, spring_z), mats["iron"], bevel_width=0.6)
+        kit.box(collection, root, name + "_Mullion", (frame * 0.48, depth + 5, height * 0.84),
+                (x, y - 1, z - height * 0.05), mats["iron"], bevel_width=0.6)
+    else:
+        for side in (-1, 1):
+            kit.box(collection, root, f"{name}_Jamb_{side:+d}",
+                    (depth + 4, frame, jamb_h),
+                    (x, y + side * width / 2, lower_z + jamb_h / 2),
+                    mats["foundation"], bevel_width=1)
+            research_diagonal_beam(
+                collection, root, f"{name}_Arch_{side:+d}",
+                (x, y + side * width / 2, spring_z), (x, y, apex_z),
+                depth + 4, frame, mats["foundation"])
+        kit.box(collection, root, name + "_Sill", (depth + 4, width + frame * 2, frame),
+                (x, y, lower_z), mats["foundation"], bevel_width=1)
+        kit.box(collection, root, name + "_Transom", (depth + 5, width, frame * 0.58),
+                (x - 1, y, spring_z), mats["iron"], bevel_width=0.6)
+        kit.box(collection, root, name + "_Mullion", (depth + 5, frame * 0.48, height * 0.84),
+                (x - 1, y, z - height * 0.05), mats["iron"], bevel_width=0.6)
+
+
+def research_diamond_column(collection, root, mats, name, location, dimensions):
+    """Low diamond-section perimeter column; deliberately not a second tower."""
     x, y, base_z = location
-    shaft_w, shaft_d = shaft_size
-    chamber_w, chamber_d = chamber_size
-    shaft_top = base_z + shaft_height
-    chamber_top = shaft_top + chamber_height
-
-    kit.box(collection, root, name + "_StoneShaft", (shaft_w, shaft_d, shaft_height),
-            (x, y, base_z + shaft_height / 2), mats["stone"], bevel_width=4)
-    kit.box(collection, root, name + "_ShaftFoot", (shaft_w + 12, shaft_d + 12, 14),
-            (x, y, base_z + 7), mats["foundation"], bevel_width=3)
-    kit.box(collection, root, name + "_StoneCrown", (shaft_w + 16, shaft_d + 16, 16),
-            (x, y, shaft_top - 3), mats["foundation"], bevel_width=3)
-    kit.box(collection, root, name + "_LibraryChamber", (chamber_w, chamber_d, chamber_height),
-            (x, y, shaft_top + chamber_height / 2), mats["plaster"], bevel_width=3)
-
-    if detail_level >= 2:
-        # LV2 keeps the same three-tower identity but strengthens every visible
-        # corner with attached buttresses and a two-step academic cornice.
-        buttress_h = shaft_height * 0.72
-        for index, offset in enumerate((-0.38, 0.38)):
-            kit.box(collection, root, f"{name}_FrontButtress_{index}",
-                    (14, 16, buttress_h),
-                    (x + shaft_w * offset, y - shaft_d / 2 - 5,
-                     base_z + buttress_h / 2), mats["foundation"], bevel_width=2)
-            kit.box(collection, root, f"{name}_SideButtress_{index}",
-                    (16, 14, buttress_h),
-                    (x - shaft_w / 2 - 5, y + shaft_d * offset,
-                     base_z + buttress_h / 2), mats["foundation"], bevel_width=2)
-        kit.box(collection, root, name + "_LowerAcademicCornice",
-                (shaft_w + 22, shaft_d + 22, 11),
-                (x, y, base_z + shaft_height * 0.43), mats["foundation"], bevel_width=2)
-        kit.box(collection, root, name + "_UpperAcademicCornice",
-                (shaft_w + 28, shaft_d + 28, 12),
-                (x, y, shaft_top - 18), mats["brass"], bevel_width=1.5)
-
-    front_y = y - chamber_d / 2 - 4
-    side_x = x - chamber_w / 2 - 4
-    kit.box(collection, root, name + "_FrontBottomBand", (chamber_w + 8, 8, 10),
-            (x, front_y, shaft_top + 5), mats["timber"], bevel_width=1)
-    kit.box(collection, root, name + "_FrontTopBand", (chamber_w + 8, 8, 10),
-            (x, front_y, chamber_top - 5), mats["timber"], bevel_width=1)
-    for index, offset in enumerate((-0.42, 0.0, 0.42)):
-        kit.box(collection, root, f"{name}_FrontPost_{index}", (8, 8, chamber_height),
-                (x + chamber_w * offset, front_y, shaft_top + chamber_height / 2),
-                mats["timber"], bevel_width=0.8)
-    kit.box(collection, root, name + "_SideBottomBand", (8, chamber_d + 8, 10),
-            (side_x, y, shaft_top + 5), mats["timber"], bevel_width=1)
-    kit.box(collection, root, name + "_SideTopBand", (8, chamber_d + 8, 10),
-            (side_x, y, chamber_top - 5), mats["timber"], bevel_width=1)
-    for index, offset in enumerate((-0.42, 0.0, 0.42)):
-        kit.box(collection, root, f"{name}_SidePost_{index}", (8, 8, chamber_height),
-                (side_x, y + chamber_d * offset, shaft_top + chamber_height / 2),
-                mats["timber"], bevel_width=0.8)
-
-    # Tall, warm library windows mark each tower as research space without
-    # changing the main silhouette that the later diffusion pass must retain.
-    window_h = chamber_height * 0.56
-    for index, offset in enumerate((-0.22, 0.22)):
-        kit.box(collection, root, f"{name}_FrontLibraryWindow_{index}",
-                (chamber_w * 0.28, 7, window_h),
-                (x + chamber_w * offset, front_y - 3, shaft_top + chamber_height * 0.52),
-                mats["glass"], bevel_width=2)
-    kit.box(collection, root, name + "_SideLibraryWindow", (7, chamber_d * 0.42, window_h),
-            (side_x - 3, y, shaft_top + chamber_height * 0.52), mats["glass"], bevel_width=2)
-
-    roof_w, roof_d = roof_size
-    research_pyramid_roof(collection, root, name + "_SteepSlateRoof", roof_w, roof_d,
-                          roof_height, (x, y, chamber_top - 2), mats["roof"])
-
-    roof_apex_z = chamber_top - 2 + roof_height
-    if detail_level >= 2:
-        kit.cylinder(collection, root, name + "_RoofFinialBase", 8, 13,
-                     (x, y, roof_apex_z + 6), mats["brass"],
-                     vertices=20, bevel_width=1)
-        cone(collection, root, name + "_RoofFinial", 9, 28,
-             (x, y, roof_apex_z + 26), mats["brass"], vertices=20)
-
-    if detail_level >= 3:
-        # LV3 adds a shallow observation gallery to each library chamber.  The
-        # central tower receives a deeper, gilded gallery but no extra tower or
-        # detached observatory, preserving the accepted silhouette contract.
-        central = "Central" in name
-        gallery_extra = 30 if central else 20
-        gallery_z = shaft_top + 11
-        kit.box(collection, root, name + "_ObservationGalleryDeck",
-                (chamber_w + gallery_extra, chamber_d + gallery_extra, 9),
-                (x, y, gallery_z), mats["foundation"], bevel_width=2)
-        rail_h = 26 if central else 20
-        rail_z = gallery_z + rail_h / 2 + 5
-        kit.box(collection, root, name + "_GalleryFrontRail",
-                (chamber_w + gallery_extra, 7, rail_h),
-                (x, y - (chamber_d + gallery_extra) / 2, rail_z),
-                mats["brass"], bevel_width=1)
-        kit.box(collection, root, name + "_GallerySideRail",
-                (7, chamber_d + gallery_extra, rail_h),
-                (x - (chamber_w + gallery_extra) / 2, y, rail_z),
-                mats["brass"], bevel_width=1)
-        for index, offset in enumerate((-0.38, 0.0, 0.38)):
-            kit.box(collection, root, f"{name}_FrontGiltPier_{index}",
-                    (5, 8, chamber_height * 0.78),
-                    (x + chamber_w * offset, y - chamber_d / 2 - 8,
-                     shaft_top + chamber_height * 0.53), mats["brass"], bevel_width=0.8)
-            kit.box(collection, root, f"{name}_SideGiltPier_{index}",
-                    (8, 5, chamber_height * 0.78),
-                    (x - chamber_w / 2 - 8, y + chamber_d * offset,
-                     shaft_top + chamber_height * 0.53), mats["brass"], bevel_width=0.8)
-
-    # Two tall stone-window recesses keep the tower readable below the chamber.
-    for level, ratio in enumerate((0.30, 0.62)):
-        z = base_z + shaft_height * ratio
-        kit.box(collection, root, f"{name}_FrontShaftWindow_{level}",
-                (shaft_w * 0.23, 6, shaft_height * 0.17),
-                (x, y - shaft_d / 2 - 4, z), mats["glass"], bevel_width=3)
-    return chamber_top + roof_height
+    shaft_w, shaft_d, shaft_h = dimensions
+    kit.box(collection, root, name + "_Foot", (shaft_w + 24, shaft_d + 24, 18),
+            (x, y, base_z + 9), mats["foundation"], rotation=(0, 0, 45), bevel_width=3)
+    kit.box(collection, root, name + "_LowerStep", (shaft_w + 12, shaft_d + 12, 24),
+            (x, y, base_z + 30), mats["stone"], rotation=(0, 0, 45), bevel_width=2)
+    kit.box(collection, root, name + "_Shaft", (shaft_w, shaft_d, shaft_h),
+            (x, y, base_z + 38 + shaft_h / 2), mats["plaster"],
+            rotation=(0, 0, 45), bevel_width=2)
+    kit.box(collection, root, name + "_MidBand", (shaft_w + 9, shaft_d + 9, 10),
+            (x, y, base_z + 38 + shaft_h * 0.52), mats["foundation"],
+            rotation=(0, 0, 45), bevel_width=1.5)
+    cap_z = base_z + 38 + shaft_h
+    kit.box(collection, root, name + "_Capital", (shaft_w + 18, shaft_d + 18, 16),
+            (x, y, cap_z), mats["stone"], rotation=(0, 0, 45), bevel_width=2)
+    kit.box(collection, root, name + "_FlatCap", (shaft_w + 28, shaft_d + 28, 10),
+            (x, y, cap_z + 13), mats["foundation"], rotation=(0, 0, 45), bevel_width=2)
+    return cap_z + 18
 
 
 def build_research_institute_level(building_id, spec, level):
+    """One Gothic institute family: fixed four-wing base, progressively taller single tower."""
+    if level not in (1, 2, 3):
+        raise ValueError(f"unsupported research institute level: {level}")
     collection, root, mats = common_context(building_id, spec)
-    fw, fd, fh = spec["dimensions"]["foundation"]
-    bw, bd, bh = spec["dimensions"]["body"]
-    rw, rd, rh = spec["dimensions"]["roof"]
-    center = spec["dimensions"]["centerTower"]
-    side = spec["dimensions"]["sideTower"]
+    prefix = f"ResearchLV{level}"
+    dims = spec["dimensions"]
+    fw, fd, fh = dims["foundation"]
+    wing_w, wing_l, wing_h = dims["wingBody"]
+    roof_w, roof_l, roof_h = dims["wingRoof"]
+    tower_w, tower_d, tower_h = dims["towerShaft"]
+    chamber_w, chamber_d, chamber_h = dims["towerChamber"]
+    tower_roof_w, tower_roof_d, tower_roof_h = dims["towerRoof"]
+    column_w, column_d, column_h = dims["diamondColumn"]
+    wing_offset = float(dims["wingOffset"])
+    column_radius = float(dims["diamondRadius"])
 
-    # One connected fortified library hall, matching the existing three-tower
-    # texture while remaining fully seated inside the fixed 2x2 foundation.
-    kit.box(collection, root, "Research_Foundation", (fw, fd, fh),
-            (0, 0, fh / 2), mats["foundation"], bevel_width=4)
-    kit.box(collection, root, "Research_MainStoneHall", (bw, bd, bh * 0.62),
-            (0, 0, fh + bh * 0.31), mats["stone"], bevel_width=5)
-    upper_base = fh + bh * 0.62
-    upper_h = bh * 0.38
-    kit.box(collection, root, "Research_MainLibraryFloor", (bw - 10, bd - 10, upper_h),
-            (0, 0, upper_base + upper_h / 2), mats["plaster"], bevel_width=4)
-    front_y = -(bd - 10) / 2 - 4
-    side_x = -(bw - 10) / 2 - 4
-    kit.half_timber_facade(collection, root, "Research_MainFrontTimber", bw - 10, upper_h,
-                           front_y, upper_base, mats["timber"], bays=6)
-    kit.half_timber_side(collection, root, "Research_MainSideTimber", bd - 10, upper_h,
-                         side_x, upper_base, mats["timber"], bays=4)
-    kit.double_doors(collection, root, "Research_MainDoor", (-110, -bd / 2 - 8, fh),
-                     76, 112, mats["timber"], mats["iron"], open_angle=0)
-    for index, x in enumerate((-132, -58, 32)):
-        kit.box(collection, root, f"Research_MainFrontStoneWindow_{index}",
-                (34, 7, 72), (x, -bd / 2 - 6, fh + 72), mats["glass"], bevel_width=4)
-        kit.box(collection, root, f"Research_MainFrontWindowSill_{index}",
-                (46, 11, 8), (x, -bd / 2 - 8, fh + 34), mats["foundation"], bevel_width=2)
-    for index, y in enumerate((-92, -18, 58, 112)):
-        kit.box(collection, root, f"Research_MainSideStoneWindow_{index}",
-                (7, 32, 70), (-bw / 2 - 6, y, fh + 72), mats["glass"], bevel_width=4)
-        kit.box(collection, root, f"Research_MainSideWindowSill_{index}",
-                (11, 44, 8), (-bw / 2 - 8, y, fh + 34), mats["foundation"], bevel_width=2)
+    # Every level shares the exact LV1 square footprint, four skirt wings and
+    # four perimeter columns. Only tower height and attached academic detail
+    # progress, so the upgrade always reads as the same building.
+    kit.box(collection, root, f"{prefix}_Foundation_Base", (fw, fd, fh),
+            (0, 0, fh / 2), mats["foundation"], bevel_width=5)
+    kit.box(collection, root, f"{prefix}_Foundation_Inset", (fw - 26, fd - 26, 10),
+            (0, 0, fh + 5), mats["stone"], bevel_width=4)
+    base_z = fh + 10
 
-    # Split roof volumes leave the dominant central tower exposed and reproduce
-    # the left/right sloped wings from the accepted texture.
-    wing_x = bw * 0.25
-    roof_base = fh + bh - 3
-    for side_index, x in enumerate((-wing_x, wing_x)):
-        kit.gabled_prism(collection, root, f"Research_WingRoof_{side_index}",
-                         rw * 0.52, rd, rh, (x, 0, roof_base), mats["timber"], mats["roof"])
+    wing_specs = (
+        ("North", (0, wing_offset), (wing_w, wing_l, wing_h), 90),
+        ("South", (0, -wing_offset), (wing_w, wing_l, wing_h), 90),
+        ("East", (wing_offset, 0), (wing_l, wing_w, wing_h), 0),
+        ("West", (-wing_offset, 0), (wing_l, wing_w, wing_h), 0),
+    )
+    roof_base = base_z + wing_h - 3
+    for wing_name, (x, y), body_size, roof_rotation in wing_specs:
+        kit.box(collection, root, f"{prefix}_{wing_name}Wing_WhiteHall", body_size,
+                (x, y, base_z + wing_h / 2), mats["plaster"], bevel_width=4)
+        kit.box(collection, root, f"{prefix}_{wing_name}Wing_GrayStoneSkirt",
+                (body_size[0] + 8, body_size[1] + 8, 34),
+                (x, y, base_z + 17), mats["stone"], bevel_width=3)
+        roof = kit.gabled_prism(collection, root,
+                                f"{prefix}_{wing_name}Wing_BlueGableRoof",
+                                roof_l, roof_w, roof_h, (x, y, roof_base),
+                                mats["plaster"], mats["roof"])
+        roof.rotation_euler.z = math.radians(roof_rotation)
+        ridge_size = (8, roof_l + 4, 9) if roof_rotation else (roof_l + 4, 8, 9)
+        kit.box(collection, root, f"{prefix}_{wing_name}Wing_BlueRidge", ridge_size,
+                (x, y, roof_base + roof_h + 1), mats["timber"], bevel_width=1)
+        if level >= 2:
+            kit.box(collection, root, f"{prefix}_{wing_name}Wing_AcademicCornice",
+                    (body_size[0] + 14, body_size[1] + 14, 10),
+                    (x, y, roof_base - 4), mats["foundation"],
+                    bevel_width=1.5)
 
-    # Put the side towers on opposite model corners that project to equal
-    # camera depth.  Their full stone shafts then remain visible at the two
-    # screen edges instead of collapsing into roof turrets.
-    add_research_tower(collection, root, mats, "Research_LeftTower",
-                       (-156, 92, fh), tuple(side[0:2]), side[2],
-                       tuple(side[3:5]), side[5], tuple(side[6:8]), side[8],
-                       detail_level=level)
-    add_research_tower(collection, root, mats, "Research_RightTower",
-                       (92, -156, fh), tuple(side[0:2]), side[2],
-                       tuple(side[3:5]), side[5], tuple(side[6:8]), side[8],
-                       detail_level=level)
-    # The central tower is pulled toward the camera so its stone shaft remains
-    # visible in front of the split roofs.  Matching x/y offsets compensate the
-    # 44.8-degree root rotation and keep it centered on screen.
-    add_research_tower(collection, root, mats, "Research_CentralTower",
-                       (-48, -48, fh), tuple(center[0:2]), center[2],
-                       tuple(center[3:5]), center[5], tuple(center[6:8]), center[8],
-                       detail_level=level)
+    south_face = -wing_offset - wing_l / 2 - 4
+    north_face = wing_offset + wing_l / 2 + 4
+    west_face = -wing_offset - wing_l / 2 - 4
+    east_face = wing_offset + wing_l / 2 + 4
+    window_z = base_z + 72
+    for index, x in enumerate((-55, 55)):
+        research_pointed_window(collection, root, mats,
+                                f"{prefix}_SouthWing_Lancet_{index}",
+                                (x, south_face, window_z), 30, 72)
+        research_pointed_window(collection, root, mats,
+                                f"{prefix}_NorthWing_Lancet_{index}",
+                                (x, north_face, window_z), 30, 72)
+    for index, y in enumerate((-55, 55)):
+        research_pointed_window(collection, root, mats,
+                                f"{prefix}_WestWing_Lancet_{index}",
+                                (west_face, y, window_z), 30, 72,
+                                orientation="side")
+        research_pointed_window(collection, root, mats,
+                                f"{prefix}_EastWing_Lancet_{index}",
+                                (east_face, y, window_z), 30, 72,
+                                orientation="side")
 
-    # Restrained observatory emblem on the front wall; later AI detail may turn
-    # this into an astrolabe, but it remains attached to the building.
-    kit.cylinder(collection, root, "Research_Astrolabe_Backplate", 24, 7,
-                 (58, -bd / 2 - 10, upper_base + upper_h * 0.57), mats["brass"],
-                 rotation=(90, 0, 0), vertices=40, bevel_width=1)
-    kit.cylinder(collection, root, "Research_Astrolabe_Hub", 8, 10,
-                 (58, -bd / 2 - 15, upper_base + upper_h * 0.57), mats["iron"],
-                 rotation=(90, 0, 0), vertices=28, bevel_width=0.8)
+    kit.double_doors(collection, root, f"{prefix}_SouthWing_MainDoor",
+                     (0, south_face - 5, base_z), 76, 92,
+                     mats["timber"], mats["iron"], open_angle=0)
+    research_pointed_window(collection, root, mats,
+                            f"{prefix}_SouthWing_DoorTympanum",
+                            (0, south_face - 2, base_z + 105), 54, 74)
+    kit.box(collection, root, f"{prefix}_SouthWing_BlueDiamondSeal",
+            (24, 7, 24), (0, south_face - 8, roof_base + 35), mats["roof"],
+            rotation=(0, 0, 45), bevel_width=2)
 
+    # The tower is the sole major silhouette upgrade: LV2 gains two readable
+    # window stages and a gallery band; LV3 gains three stages, denser courses
+    # and a taller crown while preserving the one-tower identity.
+    kit.box(collection, root, f"{prefix}_CentralTower_WhiteShaft",
+            (tower_w, tower_d, tower_h),
+            (0, 0, base_z + tower_h / 2), mats["plaster"], bevel_width=5)
+    kit.box(collection, root, f"{prefix}_CentralTower_GrayPlinth",
+            (tower_w + 18, tower_d + 18, 22),
+            (0, 0, base_z + 11), mats["foundation"], bevel_width=3)
+    band_ratios = {
+        1: (0.36, 0.72),
+        2: (0.26, 0.50, 0.75),
+        3: (0.20, 0.40, 0.60, 0.79),
+    }[level]
+    for band_index, z_ratio in enumerate(band_ratios):
+        kit.box(collection, root, f"{prefix}_CentralTower_GrayBand_{band_index}",
+                (tower_w + 14, tower_d + 14, 12),
+                (0, 0, base_z + tower_h * z_ratio), mats["stone"], bevel_width=2)
+    buttress_ratio = {1: 0.79, 2: 0.85, 3: 0.90}[level]
+    buttress_h = tower_h * buttress_ratio
+    for x_sign in (-1, 1):
+        for y_sign in (-1, 1):
+            kit.box(collection, root,
+                    f"{prefix}_CentralTower_CornerButtress_{x_sign:+d}_{y_sign:+d}",
+                    (18 + (level - 1) * 2, 18 + (level - 1) * 2, buttress_h),
+                    (x_sign * (tower_w / 2 + 4), y_sign * (tower_d / 2 + 4),
+                     base_z + buttress_h / 2), mats["foundation"],
+                    rotation=(0, 0, 45), bevel_width=2)
+
+    window_tiers = {
+        1: ((0.56, 116),),
+        2: ((0.34, 92), (0.68, 92)),
+        3: ((0.25, 84), (0.50, 84), (0.75, 84)),
+    }[level]
+    for tier, (ratio, window_h) in enumerate(window_tiers):
+        z = base_z + tower_h * ratio
+        research_pointed_window(collection, root, mats,
+                                f"{prefix}_CentralTower_ShaftTier_{tier}_FrontLancet",
+                                (0, -tower_d / 2 - 5, z), 40, window_h)
+        research_pointed_window(collection, root, mats,
+                                f"{prefix}_CentralTower_ShaftTier_{tier}_BackLancet",
+                                (0, tower_d / 2 + 5, z), 40, window_h)
+        research_pointed_window(collection, root, mats,
+                                f"{prefix}_CentralTower_ShaftTier_{tier}_LeftLancet",
+                                (-tower_w / 2 - 5, 0, z), 40, window_h,
+                                orientation="side")
+        research_pointed_window(collection, root, mats,
+                                f"{prefix}_CentralTower_ShaftTier_{tier}_RightLancet",
+                                (tower_w / 2 + 5, 0, z), 40, window_h,
+                                orientation="side")
+
+    shaft_top = base_z + tower_h
+    eaves_extra = {1: 22, 2: 38, 3: 54}[level]
+    gallery_w = chamber_w + eaves_extra
+    gallery_d = chamber_d + eaves_extra
+    kit.box(collection, root, f"{prefix}_CentralTower_ChamberEaves",
+            (gallery_w, gallery_d, 16),
+            (0, 0, shaft_top + 2), mats["foundation"], bevel_width=3)
     if level >= 2:
-        # Academic expansion: a stronger dressed-stone base, carved lintels,
-        # warm entrance lamps and attached facade buttresses add richness while
-        # the bearing footprint remains the exact LV1 2x2 foundation.
-        kit.box(collection, root, "Research_Level2FrontCornice", (bw + 22, 14, 16),
-                (0, -bd / 2 - 3, upper_base - 6), mats["foundation"], bevel_width=2)
-        kit.box(collection, root, "Research_Level2SideCornice", (14, bd + 22, 16),
-                (-bw / 2 - 3, 0, upper_base - 6), mats["foundation"], bevel_width=2)
-        for index, x in enumerate((-bw * 0.43, bw * 0.43)):
-            kit.box(collection, root, f"Research_Level2FrontButtress_{index}",
-                    (24, 30, bh * 0.66),
-                    (x, -bd / 2 - 8, fh + bh * 0.33), mats["foundation"], bevel_width=3)
-        for index, y in enumerate((-bd * 0.38, bd * 0.38)):
-            kit.box(collection, root, f"Research_Level2SideButtress_{index}",
-                    (30, 24, bh * 0.66),
-                    (-bw / 2 - 8, y, fh + bh * 0.33), mats["foundation"], bevel_width=3)
-        for index, x in enumerate((-132, -58, 32)):
-            kit.box(collection, root, f"Research_Level2WindowLintel_{index}",
-                    (48, 12, 11), (x, -bd / 2 - 9, fh + 111),
-                    mats["brass"], bevel_width=1.5)
-        kit.lantern(collection, root, "Research_Level2DoorLantern_Left",
-                    (-160, -bd / 2 - 21, fh + 78), mats["iron"], mats["glow"])
-        kit.lantern(collection, root, "Research_Level2DoorLantern_Right",
-                    (-60, -bd / 2 - 21, fh + 78), mats["iron"], mats["glow"])
+        rail_h = 18 if level == 2 else 24
+        rail_z = shaft_top + rail_h / 2 + 9
+        kit.box(collection, root, f"{prefix}_CentralTower_GalleryFrontRail",
+                (gallery_w, 7, rail_h), (0, -gallery_d / 2, rail_z),
+                mats["stone"], bevel_width=1)
+        kit.box(collection, root, f"{prefix}_CentralTower_GalleryBackRail",
+                (gallery_w, 7, rail_h), (0, gallery_d / 2, rail_z),
+                mats["stone"], bevel_width=1)
+        kit.box(collection, root, f"{prefix}_CentralTower_GalleryLeftRail",
+                (7, gallery_d, rail_h), (-gallery_w / 2, 0, rail_z),
+                mats["stone"], bevel_width=1)
+        kit.box(collection, root, f"{prefix}_CentralTower_GalleryRightRail",
+                (7, gallery_d, rail_h), (gallery_w / 2, 0, rail_z),
+                mats["stone"], bevel_width=1)
 
-    if level >= 3:
-        # High academy treatment: gilded facade courses, an ornate canopy and a
-        # larger attached astronomical clock make LV3 unmistakable without
-        # introducing a fourth tower or any detached prop.
-        for index, z in enumerate((upper_base + 12, fh + bh - 18)):
-            kit.box(collection, root, f"Research_Level3GiltFrontBand_{index}",
-                    (bw + 26, 8, 8), (0, -bd / 2 - 11, z),
-                    mats["brass"], bevel_width=1)
-            kit.box(collection, root, f"Research_Level3GiltSideBand_{index}",
-                    (8, bd + 26, 8), (-bw / 2 - 11, 0, z),
-                    mats["brass"], bevel_width=1)
-        kit.gabled_prism(collection, root, "Research_Level3EntranceCanopy",
-                         132, 62, 36, (-110, -bd / 2 - 38, fh + 112),
-                         mats["timber"], mats["roof"])
-        for index, x in enumerate((-164, -56)):
-            kit.box(collection, root, f"Research_Level3CanopyPost_{index}",
-                    (10, 10, 104), (x, -bd / 2 - 64, fh + 52),
-                    mats["brass"], bevel_width=1.5)
-        kit.gear(collection, root, "Research_Level3AstronomicalClockRing", 34,
-                 (58, -bd / 2 - 18, upper_base + upper_h * 0.57),
-                 mats["brass"], axis="Y", teeth=18)
-        kit.cylinder(collection, root, "Research_Level3AstronomicalClockFace", 21, 12,
-                     (58, -bd / 2 - 23, upper_base + upper_h * 0.57),
-                     mats["glass"], rotation=(90, 0, 0), vertices=36, bevel_width=1)
-        for index, x in enumerate((-rw * 0.40, rw * 0.40)):
-            kit.cylinder(collection, root, f"Research_Level3WingFinialBase_{index}",
-                         7, 12, (x, 0, roof_base + rh + 5), mats["brass"],
-                         vertices=18, bevel_width=0.8)
-            cone(collection, root, f"Research_Level3WingFinial_{index}", 8, 24,
-                 (x, 0, roof_base + rh + 23), mats["brass"], vertices=20)
+    kit.box(collection, root, f"{prefix}_CentralTower_WhiteCrownChamber",
+            (chamber_w, chamber_d, chamber_h),
+            (0, 0, shaft_top + chamber_h / 2 + 4), mats["stone"], bevel_width=4)
+    if level >= 2:
+        pier_h = chamber_h - 10
+        for x_sign in (-1, 1):
+            for y_sign in (-1, 1):
+                kit.box(collection, root,
+                        f"{prefix}_CentralTower_CrownPier_{x_sign:+d}_{y_sign:+d}",
+                        (12, 12, pier_h),
+                        (x_sign * (chamber_w / 2 + 3), y_sign * (chamber_d / 2 + 3),
+                         shaft_top + chamber_h / 2 + 4), mats["foundation"],
+                        rotation=(0, 0, 45), bevel_width=1.5)
+    chamber_window_z = shaft_top + chamber_h * 0.54
+    crown_window_w = {1: 48, 2: 52, 3: 56}[level]
+    crown_window_h = {1: 64, 2: 72, 3: 82}[level]
+    research_pointed_window(collection, root, mats,
+                            f"{prefix}_CentralTower_CrownFront",
+                            (0, -chamber_d / 2 - 5, chamber_window_z),
+                            crown_window_w, crown_window_h)
+    research_pointed_window(collection, root, mats,
+                            f"{prefix}_CentralTower_CrownBack",
+                            (0, chamber_d / 2 + 5, chamber_window_z),
+                            crown_window_w, crown_window_h)
+    research_pointed_window(collection, root, mats,
+                            f"{prefix}_CentralTower_CrownLeft",
+                            (-chamber_w / 2 - 5, 0, chamber_window_z),
+                            crown_window_w, crown_window_h, orientation="side")
+    research_pointed_window(collection, root, mats,
+                            f"{prefix}_CentralTower_CrownRight",
+                            (chamber_w / 2 + 5, 0, chamber_window_z),
+                            crown_window_w, crown_window_h, orientation="side")
+
+    chamber_top = shaft_top + chamber_h + 4
+    kit.box(collection, root, f"{prefix}_CentralTower_BlueRoofEaves",
+            (tower_roof_w + 10, tower_roof_d + 10, 12),
+            (0, 0, chamber_top), mats["timber"], bevel_width=2)
+    research_pyramid_roof(collection, root,
+                          f"{prefix}_CentralTower_BlueSteepRoof",
+                          tower_roof_w, tower_roof_d, tower_roof_h,
+                          (0, 0, chamber_top + 2), mats["roof"])
+    roof_apex = chamber_top + 2 + tower_roof_h
+    if level >= 2:
+        for x_sign in (-1, 1):
+            for y_sign in (-1, 1):
+                research_diagonal_beam(
+                    collection, root,
+                    f"{prefix}_CentralTower_RoofRib_{x_sign:+d}_{y_sign:+d}",
+                    (x_sign * tower_roof_w * 0.48,
+                     y_sign * tower_roof_d * 0.48, chamber_top + 5),
+                    (0, 0, roof_apex), 5 + level, 5 + level, mats["timber"])
+    finial_height = {1: 26, 2: 38, 3: 52}[level]
+    finial_radius = {1: 7, 2: 8, 3: 10}[level]
+    kit.cylinder(collection, root, f"{prefix}_CentralTower_FinialBase",
+                 finial_radius, 13 + level * 2, (0, 0, roof_apex + 7),
+                 mats["iron"], vertices=8, bevel_width=1)
+    cone(collection, root, f"{prefix}_CentralTower_Finial",
+         finial_radius, finial_height,
+         (0, 0, roof_apex + 15 + finial_height / 2),
+         mats["roof"], vertices=4)
+
+    tower_corner = tower_w / 2 - 3
+    for x_sign, y_sign, label in ((-1, -1, "SouthWest"), (1, -1, "SouthEast"),
+                                  (-1, 1, "NorthWest"), (1, 1, "NorthEast")):
+        x = x_sign * column_radius
+        y = y_sign * column_radius
+        name = f"{prefix}_DiamondColumn_{label}"
+        cap_z = research_diamond_column(collection, root, mats, name,
+                                        (x, y, base_z),
+                                        (column_w, column_d, column_h))
+        buttress_targets = (cap_z - 16, cap_z - 68)
+        for tier, (outer_drop, inner_z) in enumerate(((18, buttress_targets[0]),
+                                                       (46, buttress_targets[1]))):
+            research_diagonal_beam(
+                collection, root, f"{prefix}_FlyingButtress_{label}_{tier}",
+                (x - x_sign * 6, y - y_sign * 6, cap_z - outer_drop),
+                (x_sign * tower_corner, y_sign * tower_corner, inner_z),
+                13 if tier == 0 else 10, 15 if tier == 0 else 12,
+                mats["stone"] if tier == 0 else mats["foundation"])
     return root
 
 
@@ -1768,6 +1878,101 @@ def build_bakery(spec):
     return root
 
 
+def build_field_hospital(spec):
+    """Compact 2x2 field hospital with one connected intake and treatment frontage."""
+    collection, root, mats = common_context("field_hospital", spec)
+    g = standard_shell(collection, root, mats, spec["dimensions"], bays=3)
+    medical_cloth = kit.material(
+        "MAT_FieldHospital_Medical_Cloth", kit.rgba((0.12, 0.34, 0.31, 1.0)),
+        roughness=0.88, noise={"scale": 9, "detail": 2, "bump": 0.08})
+    linen = kit.material(
+        "MAT_FieldHospital_Linen", kit.rgba((0.62, 0.62, 0.53, 1.0)),
+        roughness=0.94, noise={"scale": 12, "detail": 2, "bump": 0.08})
+
+    # The front stays readable as a medical intake: one broad door, a fixed
+    # shelter and a restrained no-text diamond-and-leaf emblem.
+    door_x = -82
+    kit.double_doors(collection, root, "FieldHospital_MainDoor",
+                     (door_x, g["frontY"] - 5, g["fh"]), 72, 112,
+                     mats["timber"], mats["iron"], open_angle=0)
+    kit.box(collection, root, "FieldHospital_DoorStoneLintel", (96, 16, 16),
+            (door_x, g["frontY"] - 4, g["fh"] + 118), mats["stone"],
+            bevel_width=2)
+    intake_z = g["fh"] + 142
+    kit.box(collection, root, "FieldHospital_IntakeCanopy", (164, 88, 12),
+            (door_x, g["frontY"] - 37, intake_z), medical_cloth,
+            rotation=(8, 0, 0), bevel_width=3)
+    kit.box(collection, root, "FieldHospital_IntakeCanopyBeam", (170, 14, 16),
+            (door_x, g["frontY"] - 4, intake_z + 8), mats["timber"],
+            bevel_width=2)
+    for index, x in enumerate((door_x - 70, door_x + 70)):
+        kit.box(collection, root, f"FieldHospital_IntakePost_{index}",
+                (12, 12, 126), (x, g["frontY"] - 72, g["fh"] + 63),
+                mats["timber"], bevel_width=2)
+
+    kit.shutter_window(collection, root, "FieldHospital_FrontWindow",
+                       (74, g["frontY"] - 4, g["fh"] + 88),
+                       mats["glass"], mats["timber"], mats["iron"], scale=1.08)
+    kit.shutter_window(collection, root, "FieldHospital_SideWindow",
+                       (g["sideX"] - 3, 76, g["fh"] + 88),
+                       mats["glass"], mats["timber"], mats["iron"],
+                       orientation="side", scale=0.96)
+
+    sign_x = 63
+    sign_z = g["roofBase"] - 18
+    kit.box(collection, root, "FieldHospital_MedicalSignBoard", (82, 10, 70),
+            (sign_x, g["frontY"] - 16, sign_z), mats["timber"],
+            bevel_width=7)
+    kit.box(collection, root, "FieldHospital_MedicalDiamond", (38, 7, 38),
+            (sign_x, g["frontY"] - 23, sign_z + 2), medical_cloth,
+            rotation=(0, 0, 45), bevel_width=4)
+    kit.box(collection, root, "FieldHospital_MedicalLeaf", (11, 6, 34),
+            (sign_x, g["frontY"] - 28, sign_z + 2), linen,
+            rotation=(0, 0, -22), bevel_width=5)
+
+    # A covered treatment bay is bolted into the visible side wall. Every prop
+    # stays beneath the attached awning and inside the authored foundation.
+    bay_y = 22
+    bay_x = g["sideX"] - 32
+    bay_z = g["fh"] + 136
+    kit.box(collection, root, "FieldHospital_TreatmentAwning", (92, 176, 12),
+            (bay_x, bay_y, bay_z), medical_cloth,
+            rotation=(0, -8, 0), bevel_width=3)
+    kit.box(collection, root, "FieldHospital_TreatmentWallBeam", (14, 182, 16),
+            (g["sideX"] - 4, bay_y, bay_z + 8), mats["timber"],
+            bevel_width=2)
+    for index, y in enumerate((bay_y - 75, bay_y + 75)):
+        kit.box(collection, root, f"FieldHospital_TreatmentPost_{index}",
+                (12, 12, 118), (bay_x - 34, y, g["fh"] + 59),
+                mats["timber"], bevel_width=2)
+    kit.box(collection, root, "FieldHospital_FixedStretcherBed", (64, 128, 14),
+            (bay_x - 8, bay_y, g["fh"] + 40), linen, bevel_width=5)
+    for index, y in enumerate((bay_y - 49, bay_y + 49)):
+        kit.box(collection, root, f"FieldHospital_StretcherRail_{index}",
+                (76, 8, 8), (bay_x - 8, y, g["fh"] + 44),
+                mats["timber"], bevel_width=2)
+    for index, (x, y) in enumerate(((bay_x - 34, bay_y - 48),
+                                     (bay_x + 18, bay_y - 48),
+                                     (bay_x - 34, bay_y + 48),
+                                     (bay_x + 18, bay_y + 48))):
+        kit.box(collection, root, f"FieldHospital_StretcherLeg_{index}",
+                (8, 8, 34), (x, y, g["fh"] + 17), mats["iron"],
+                bevel_width=1.5)
+
+    # Medical storage is wall-mounted and intentionally sparse at game scale.
+    kit.box(collection, root, "FieldHospital_HerbCabinet", (18, 82, 68),
+            (g["sideX"] - 12, 98, g["fh"] + 74), mats["timber"],
+            bevel_width=3)
+    for index, z in enumerate((g["fh"] + 54, g["fh"] + 78, g["fh"] + 102)):
+        kit.box(collection, root, f"FieldHospital_HerbShelf_{index}",
+                (8, 76, 6), (g["sideX"] - 23, 98, z), mats["brass"],
+                bevel_width=1)
+    kit.lantern(collection, root, "FieldHospital_EntranceLantern",
+                (-18, g["frontY"] - 16, g["fh"] + 96),
+                mats["iron"], mats["glow"])
+    return root
+
+
 def build_portal(spec):
     collection, root, mats = common_context("portal", spec)
     fw, fd, fh = spec["dimensions"]["foundation"]
@@ -1953,6 +2158,224 @@ def build_planar_resonator(spec):
         crystal_height, crystal_radius, (0, 0, crystal_base_z),
         mats["crystal"], highlight_mat=mats["crystalHighlight"],
         lean=(7, -4), sides=6, depth_scale=0.78, rotation_z=8)
+    return root
+
+
+def weather_parabolic_dish(collection, root, name, radius, depth, location,
+                            tilt, reflector_mat, rim_mat):
+    """Editable shallow weather-radar dish facing local camera side (-Y)."""
+    ring_count = 6
+    segments = 32
+    vertices = [(0.0, 0.0, 0.0)]
+    rings = []
+    for ring_index in range(1, ring_count + 1):
+        ratio = ring_index / ring_count
+        ring_radius = radius * ratio
+        ring_y = -depth * ratio * ratio
+        ring = []
+        for segment_index in range(segments):
+            angle = math.tau * segment_index / segments
+            ring.append(len(vertices))
+            vertices.append((ring_radius * math.cos(angle), ring_y,
+                             ring_radius * math.sin(angle)))
+        rings.append(ring)
+    faces = []
+    for segment_index in range(segments):
+        faces.append((0, rings[0][(segment_index + 1) % segments],
+                      rings[0][segment_index]))
+    for inner, outer in zip(rings, rings[1:]):
+        for segment_index in range(segments):
+            nxt = (segment_index + 1) % segments
+            faces.append((inner[segment_index], inner[nxt],
+                          outer[nxt], outer[segment_index]))
+    mesh = bpy.data.meshes.new(name + "_Mesh")
+    mesh.from_pydata(vertices, [], faces)
+    mesh.materials.append(reflector_mat)
+    dish = bpy.data.objects.new(name, mesh)
+    collection.objects.link(dish)
+    dish.parent = root
+    dish.location = location
+    dish.rotation_euler.x = math.radians(tilt)
+    kit.bevel(dish, 1.0, 2)
+
+    bpy.ops.mesh.primitive_torus_add(
+        major_radius=radius, minor_radius=max(2.2, radius * 0.045),
+        major_segments=48, minor_segments=10)
+    rim = bpy.context.object
+    rim.name = name + "_Rim"
+    rim.parent = root
+    rim.location = (
+        location[0],
+        location[1] - depth * math.cos(math.radians(tilt)),
+        location[2] - depth * math.sin(math.radians(tilt)),
+    )
+    rim.rotation_euler.x = math.radians(90 + tilt)
+    rim.data.materials.append(rim_mat)
+    kit.move_to_collection(rim, collection)
+    return dish
+
+
+def weather_anemometer(collection, root, name, location, mats):
+    """Three-cup roof anemometer with individually editable arms and cups."""
+    x, y, z = location
+    kit.cylinder(collection, root, name + "_Axle", 4.5, 54,
+                 (x, y, z + 27), mats["iron"], vertices=16,
+                 bevel_width=0.8)
+    hub_z = z + 56
+    kit.cylinder(collection, root, name + "_Hub", 11, 10,
+                 (x, y, hub_z), mats["brass"], vertices=20,
+                 bevel_width=1.0)
+    for index, angle in enumerate((0, 120, 240), start=1):
+        radians = math.radians(angle)
+        arm_length = 58
+        arm_x = x + math.cos(radians) * arm_length * 0.5
+        arm_y = y + math.sin(radians) * arm_length * 0.5
+        kit.box(collection, root, f"{name}_Arm_{index:02d}",
+                (arm_length, 5, 5), (arm_x, arm_y, hub_z), mats["iron"],
+                rotation=(0, 0, angle), bevel_width=0.8)
+        cup_x = x + math.cos(radians) * arm_length
+        cup_y = y + math.sin(radians) * arm_length
+        bpy.ops.mesh.primitive_uv_sphere_add(
+            segments=20, ring_count=12, radius=10,
+            location=(cup_x, cup_y, hub_z))
+        cup = bpy.context.object
+        cup.name = f"{name}_Cup_{index:02d}"
+        cup.parent = root
+        cup.scale = (1.25, 0.72, 0.72)
+        cup.rotation_euler.z = radians + math.radians(90)
+        cup.data.materials.append(mats["brass"])
+        kit.move_to_collection(cup, collection)
+
+
+def build_weather_forecast_tower(spec):
+    """Connected 2x2 observatory with readable rooftop weather instruments."""
+    collection, root, mats = common_context("weather_forecast_tower", spec)
+    dims = spec["dimensions"]
+    fw, fd, fh = dims["foundation"]
+    pw, pd, ph = dims["plinth"]
+    bw, bd, bh = dims["body"]
+    rw, rd, rh = dims["roof"]
+    tower_radius, tower_height = dims["observationTower"]
+    tower_roof_radius, tower_roof_height = dims["towerRoof"]
+
+    kit.box(collection, root, "WeatherTower_Foundation", (fw, fd, fh),
+            (0, 0, fh / 2), mats["foundation"], bevel_width=4)
+    plinth_z = fh
+    kit.box(collection, root, "WeatherTower_StonePlinth", (pw, pd, ph),
+            (0, 0, plinth_z + ph / 2), mats["stone"], bevel_width=4)
+    body_z = plinth_z + ph
+    body_y = 12
+    kit.box(collection, root, "WeatherTower_ObservationHall", (bw, bd, bh),
+            (0, body_y, body_z + bh / 2), mats["plaster"], bevel_width=6)
+    kit.box(collection, root, "WeatherTower_LowerStoneCourse",
+            (bw + 8, bd + 8, 64), (0, body_y, body_z + 32),
+            mats["stone"], bevel_width=4)
+    kit.box(collection, root, "WeatherTower_Cornice",
+            (bw + 22, bd + 20, 16),
+            (0, body_y, body_z + bh - 8), mats["brass"], bevel_width=3)
+
+    roof_base = body_z + bh - 5
+    hipped_roof(collection, root, "WeatherTower_BlueHippedRoof",
+                rw, rd, rh, (0, body_y, roof_base), mats["roof"])
+
+    front_y = body_y - bd / 2 - 5
+    kit.double_doors(collection, root, "WeatherTower_MainDoor",
+                     (0, front_y, body_z + 55), 72, 108,
+                     mats["timber"], mats["iron"], open_angle=0)
+    for side, x in (("Left", -104), ("Right", 104)):
+        kit.shutter_window(collection, root, f"WeatherTower_{side}FrontWindow",
+                           (x, front_y - 1, body_z + 100),
+                           mats["glass"], mats["timber"], mats["iron"],
+                           scale=0.72)
+        kit.box(collection, root, f"WeatherTower_{side}CornerButtress",
+                (22, 28, bh + 12),
+                (x * 1.47, front_y + 12, body_z + (bh + 12) / 2),
+                mats["stone"], bevel_width=3)
+    side_x = -bw / 2 - 4
+    for y_index, window_y in enumerate((-54, 58), start=1):
+        kit.shutter_window(collection, root,
+                           f"WeatherTower_SideWindow_{y_index:02d}",
+                           (side_x, window_y, body_z + 102),
+                           mats["glass"], mats["timber"], mats["iron"],
+                           orientation="side", scale=0.68)
+
+    # The octagonal tower penetrates the roof and remains visibly fused to the
+    # hall. Its low, wide silhouette avoids a fragile radio-mast reading.
+    tower_base = body_z + bh - 12
+    kit.cylinder(collection, root, "WeatherTower_ObservationDrum",
+                 tower_radius, tower_height,
+                 (0, body_y + 18, tower_base + tower_height / 2),
+                 mats["stone"], vertices=8, bevel_width=4)
+    drum_top = tower_base + tower_height
+    kit.cylinder(collection, root, "WeatherTower_ObservationCornice",
+                 tower_radius + 11, 15,
+                 (0, body_y + 18, drum_top - 8), mats["brass"],
+                 vertices=8, bevel_width=2)
+    for index, angle in enumerate((225, 270, 315), start=1):
+        radians = math.radians(angle)
+        glass_x = math.cos(radians) * (tower_radius + 3)
+        glass_y = body_y + 18 + math.sin(radians) * (tower_radius + 3)
+        kit.box(collection, root, f"WeatherTower_PanoramicWindow_{index:02d}",
+                (38, 8, 58), (glass_x, glass_y, tower_base + 70),
+                mats["glass"], rotation=(0, 0, angle + 90),
+                bevel_width=8)
+    cone(collection, root, "WeatherTower_OctagonalBlueRoof",
+         tower_roof_radius, tower_roof_height,
+         (0, body_y + 18, drum_top + tower_roof_height / 2 - 4),
+         mats["roof"], vertices=8)
+    tower_roof_top = drum_top + tower_roof_height - 4
+
+    kit.cylinder(collection, root, "WeatherTower_InstrumentMast", 5.5, 116,
+                 (0, body_y + 18, tower_roof_top + 58), mats["iron"],
+                 vertices=16, bevel_width=0.8)
+    weather_anemometer(collection, root, "WeatherTower_Anemometer",
+                       (0, body_y + 18, tower_roof_top + 62), mats)
+    vane_z = tower_roof_top + 108
+    kit.box(collection, root, "WeatherTower_WindVane_Shaft", (106, 5, 5),
+            (0, body_y + 18, vane_z), mats["brass"], bevel_width=0.8)
+    arrow = cone(collection, root, "WeatherTower_WindVane_Arrow", 11, 28,
+                 (67, body_y + 18, vane_z), mats["brass"], vertices=4)
+    arrow.rotation_euler.y = math.radians(90)
+    kit.box(collection, root, "WeatherTower_WindVane_Tail_Upper",
+            (28, 4, 12), (-58, body_y + 18, vane_z + 8),
+            mats["brass"], rotation=(0, -24, 0), bevel_width=0.7)
+    kit.box(collection, root, "WeatherTower_WindVane_Tail_Lower",
+            (28, 4, 12), (-58, body_y + 18, vane_z - 8),
+            mats["brass"], rotation=(0, 24, 0), bevel_width=0.7)
+    kit.cylinder(collection, root, "WeatherTower_LightningRod", 2.3, 54,
+                 (0, body_y + 18, vane_z + 34), mats["iron"],
+                 vertices=12, bevel_width=0.4)
+
+    radar_x, radar_y = 128, -20
+    kit.box(collection, root, "WeatherTower_RadarAttachedPlatform",
+            (116, 104, 16), (radar_x, radar_y, roof_base + 54),
+            mats["stone"], bevel_width=4)
+    kit.cylinder(collection, root, "WeatherTower_RadarPedestal", 26, 62,
+                 (radar_x, radar_y, roof_base + 88), mats["iron"],
+                 vertices=8, bevel_width=3)
+    dish_center = (radar_x, radar_y - 2, roof_base + 143)
+    weather_parabolic_dish(collection, root, "WeatherTower_RadarDish",
+                           52, 18, dish_center, -16,
+                           mats["plaster"], mats["brass"])
+    kit.box(collection, root, "WeatherTower_RadarFeedArm", (6, 42, 6),
+            (radar_x, radar_y - 35, roof_base + 135), mats["iron"],
+            rotation=(-16, 0, 0), bevel_width=0.7)
+    kit.cylinder(collection, root, "WeatherTower_RadarFeedHorn", 7, 13,
+                 (radar_x, radar_y - 55, roof_base + 128), mats["brass"],
+                 rotation=(90 - 16, 0, 0), vertices=16, bevel_width=0.8)
+
+    gauge_x, gauge_y = -132, -18
+    kit.box(collection, root, "WeatherTower_GaugeAttachedPlatform",
+            (96, 86, 14), (gauge_x, gauge_y, roof_base + 48),
+            mats["stone"], bevel_width=4)
+    for index, x_offset in enumerate((-22, 22), start=1):
+        kit.cylinder(collection, root, f"WeatherTower_RainGauge_{index:02d}",
+                     13, 46, (gauge_x + x_offset, gauge_y, roof_base + 78),
+                     mats["brass"], vertices=20, bevel_width=1.4)
+        kit.cylinder(collection, root,
+                     f"WeatherTower_RainGauge_Rim_{index:02d}",
+                     17, 7, (gauge_x + x_offset, gauge_y, roof_base + 102),
+                     mats["iron"], vertices=20, bevel_width=1.0)
     return root
 
 
@@ -2907,8 +3330,10 @@ BUILDERS = {
     "miner_camp": build_miner_camp,
     "market": build_market,
     "bakery": build_bakery,
+    "field_hospital": build_field_hospital,
     "portal": build_portal,
     "planar_resonator": build_planar_resonator,
+    "weather_forecast_tower": build_weather_forecast_tower,
     "jungle_temple": build_jungle_temple,
     "snow_castle": build_snow_castle,
     "desert_mansion": build_desert_mansion,
@@ -2923,15 +3348,82 @@ BUILDERS = {
 }
 
 
+def body_depth_exclude_names(building_id, spec):
+    excluded_names = spec.get("bodyDepthExclude")
+    if excluded_names is None and building_id.startswith("research_institute"):
+        level = 3 if building_id.endswith("_lv3") else 2 if building_id.endswith("_lv2") else 1
+        excluded_names = [
+            f"ResearchLV{level}_Foundation_Base",
+            f"ResearchLV{level}_Foundation_Inset",
+        ]
+    if not excluded_names:
+        raise SystemExit(f"body-depth output requires bodyDepthExclude for {building_id}")
+    return excluded_names
+
+
+def render_saved_body_depth(building_id, spec, blend_path, body_depth_path):
+    """Render Body Depth from a clean Blender process to avoid 5.1 compositor reuse bugs."""
+    if not body_depth_path:
+        raise SystemExit("--body-only requires a body-depth output path")
+    bpy.ops.wm.open_mainfile(filepath=blend_path)
+    root_name = building_id.upper() + "_ROOT_ROT_Z_44_8"
+    root = bpy.data.objects.get(root_name)
+    camera = bpy.data.objects.get("World122_Ortho_Camera_30deg")
+    if root is None or camera is None:
+        raise SystemExit(f"body-depth scene objects missing for {building_id}")
+    bpy.context.scene.camera = camera
+    for object_name in body_depth_exclude_names(building_id, spec):
+        obj = bpy.data.objects.get(object_name)
+        if obj is None:
+            raise SystemExit(f"body-depth object not found: {object_name}")
+        obj.hide_render = True
+    bpy.context.view_layer.update()
+    kit.render_depth(
+        bpy.context.scene, root, camera, body_depth_path,
+        building_id + "_BodyFresh")
+
+
+def spawn_saved_body_depth(manifest_path, building_id, blend_path,
+                           preview_path, depth_path, body_depth_path):
+    command = [
+        bpy.app.binary_path,
+        "--background",
+        "--factory-startup",
+        "--python",
+        os.path.abspath(__file__),
+        "--",
+        manifest_path,
+        building_id,
+        blend_path,
+        preview_path,
+        depth_path,
+        body_depth_path,
+        "--body-only",
+    ]
+    completed = subprocess.run(command, check=False)
+    if completed.returncode != 0:
+        raise SystemExit(
+            f"isolated body-depth render failed for {building_id}: "
+            f"exit {completed.returncode}")
+
+
 def main():
-    manifest_path, building_id, blend_path, preview_path, depth_path, body_depth_path = parse_args()
+    (manifest_path, building_id, blend_path, preview_path, depth_path,
+     body_depth_path, body_only) = parse_args()
     with open(manifest_path, "r", encoding="utf-8-sig") as handle:
         manifest = json.load(handle)
     if building_id not in BUILDERS:
         raise SystemExit(f"unknown building id: {building_id}")
     spec = manifest["buildings"][building_id]
-    spec["camera"] = manifest["camera"]
+    camera_config = dict(manifest["camera"])
+    camera_config.update(spec.get("cameraOverrides", {}))
+    spec["camera"] = camera_config
     spec["palette"] = manifest["palette"]
+    if body_only:
+        render_saved_body_depth(building_id, spec, blend_path, body_depth_path)
+        print("building id ->", building_id)
+        print("body depth ->", body_depth_path)
+        return
     bpy.ops.object.select_all(action="SELECT")
     bpy.ops.object.delete(use_global=False)
     root = BUILDERS[building_id](spec)
@@ -2943,23 +3435,9 @@ def main():
     bpy.ops.render.render(write_still=True)
     kit.render_depth(bpy.context.scene, root, camera, depth_path, building_id)
     if body_depth_path:
-        excluded_names = spec.get("bodyDepthExclude")
-        if excluded_names is None and building_id.startswith("research_institute"):
-            excluded_names = ["Research_Foundation"]
-        if not excluded_names:
-            raise SystemExit(f"body-depth output requires bodyDepthExclude for {building_id}")
-        excluded = []
-        for object_name in excluded_names:
-            obj = bpy.data.objects.get(object_name)
-            if obj is None:
-                raise SystemExit(f"body-depth object not found: {object_name}")
-            excluded.append(obj)
-            obj.hide_render = True
-        try:
-            kit.render_depth(bpy.context.scene, root, camera, body_depth_path, building_id + "_Body")
-        finally:
-            for obj in excluded:
-                obj.hide_render = False
+        spawn_saved_body_depth(
+            manifest_path, building_id, blend_path, preview_path,
+            depth_path, body_depth_path)
     print("building id ->", building_id)
     print("model ->", blend_path)
     print("preview ->", preview_path)

@@ -25,6 +25,12 @@ import { FogMinimapLayer } from '../fog/fog-minimap-layer.js';
 import { FogDebugOverlay } from '../fog/fog-debug-overlay.js';
 import { FogVisibilityController } from '../fog/fog-visibility-controller.js';
 import {
+    appendTriangulatedShadow,
+    createStaticShadowHandle,
+    shadowCasterMayReachViewport,
+    shadowPolygonIntersectsViewport,
+} from '../shadows/static-shadow-render-cache.js';
+import {
     BuildingDamageFx,
     buildingDamageFlameCount,
     isBuildingDamageFxTarget,
@@ -142,6 +148,7 @@ export class GameScene extends Scene {
         // 标记场景就绪，通知外部系统（必须提前，因为后续代码依赖 window.__phaserScene）
         window.__phaserSceneReady = true;
         window.__phaserScene = this;
+        this._attachPerformanceRenderSampling();
 
         // 初始化标志（必须在 setupColliders 之前）
         this._collidersSet = false;
@@ -186,6 +193,7 @@ export class GameScene extends Scene {
         // 树木同步发生在下方 WallSystem._syncWallsToPhaser 内，注册表必须提前创建。
         this._staticSunShadows = new Map();
         this._structureSunShadows = new Map();
+        this._nextStaticShadowRegistrationId = 1;
         this._structureShadowVisibilityRevision = 0;
         this._structureShadowRenderedVisibilityRevision = -1;
 
@@ -246,6 +254,23 @@ export class GameScene extends Scene {
         this._structureShadowLayerOpacity = -1;
         this._structureShadowOpacitySignature = '';
         this._structureShadowEdgeFadeSignature = '';
+        this._structureShadowViewportSignature = '';
+        this._structureShadowRenderStats = {
+            visibleJobs: 0,
+            viewportCulled: 0,
+            preGeometryCulled: 0,
+            postGeometryCulled: 0,
+            viewportPaddingPx: 0,
+            clusters: 0,
+            rawContourVertices: 0,
+            contourVertices: 0,
+            featherPaths: 0,
+            triangles: 0,
+            sourceVertices: 0,
+            commandBufferLength: 0,
+            rebuilds: 0,
+            lastRebuildMs: 0,
+        };
         // 世界 HUD：缓存每个贴图帧的可见 alpha 顶部，血条按真实模型而非透明画布定位。
         this._installShadowConsoleTools();
 
@@ -329,8 +354,33 @@ export class GameScene extends Scene {
         this.scene.run('HudScene');
     }
 
+    _attachPerformanceRenderSampling() {
+        this.game?.events?.off('prerender', this._beginPerformanceRenderSample, this);
+        this.game?.events?.off('postrender', this._endPerformanceRenderSample, this);
+        this.game?.events?.on('prerender', this._beginPerformanceRenderSample, this);
+        this.game?.events?.on('postrender', this._endPerformanceRenderSample, this);
+        this.events.once('shutdown', this._detachPerformanceRenderSampling, this);
+        this.events.once('destroy', this._detachPerformanceRenderSampling, this);
+    }
+
+    _detachPerformanceRenderSampling() {
+        this.game?.events?.off('prerender', this._beginPerformanceRenderSample, this);
+        this.game?.events?.off('postrender', this._endPerformanceRenderSample, this);
+        this._performanceRenderStartedAt = null;
+    }
+
+    _beginPerformanceRenderSample() {
+        this._performanceRenderStartedAt = PerformanceMonitor.begin();
+    }
+
+    _endPerformanceRenderSample() {
+        if (this._performanceRenderStartedAt == null) return;
+        PerformanceMonitor.end('phaserRenderSubmit', this._performanceRenderStartedAt);
+        this._performanceRenderStartedAt = null;
+    }
+
     update(_time, _delta) {
-        const performanceStartedAt = PerformanceMonitor.begin();
+        let performancePhaseStartedAt = PerformanceMonitor.begin();
         // Phaser 自动调用，每帧更新
         // 现有 Game 循环仍然运行，这里只做 Phaser 相关的更新
         // 世界时间是跨场景统一时钟：地牢探险与观察切换期间也持续推进；只受游戏暂停控制。
@@ -344,6 +394,8 @@ export class GameScene extends Scene {
         WorldWeatherSystem.update(worldTimeAfter);
         window.WorldInvasionSystem?.update?.(invasionDelta, SceneManager.currentScene);
         WorldDestructionChallengeSystem.update(worldTimeAfter, SceneManager.currentScene);
+        PerformanceMonitor.end('phaserWorldSystems', performancePhaseStartedAt);
+        performancePhaseStartedAt = PerformanceMonitor.begin();
 
         // 能源节点防叠图自愈（2026-08-16）：世界-122 每 ~1s 清一次同位置堆积节点
         // （旧会话/HMR/历史配置残留会叠出“门边一堆矿”，setup 清理覆盖不到已加载场景）
@@ -362,6 +414,8 @@ export class GameScene extends Scene {
         this._refreshRenderViewport();
         FogOfWarSystem.update(SceneManager.currentScene, _game, Date.now());
         this._syncFogOfWar(_delta);
+        PerformanceMonitor.end('phaserTerrainFog', performancePhaseStartedAt);
+        performancePhaseStartedAt = PerformanceMonitor.begin();
         const _dms = DungeonMapSystem;
         const isMapMode = SceneManager.currentScene === 'scene7' && _dms && _dms.active && _dms.state === 'map';
         this._syncAmbientOverlay(isMapMode);
@@ -581,6 +635,8 @@ export class GameScene extends Scene {
           if (this._swordArcTrail) {
               this._swordArcTrail.update(_delta, this.weaponSprite ? this.weaponSprite.depth + 1 : 0);
           }
+        PerformanceMonitor.end('phaserEntityVisuals', performancePhaseStartedAt);
+        performancePhaseStartedAt = PerformanceMonitor.begin();
         // 同步可移动实体脚底阴影（必须在 _updateDynamicDepths 之后：阴影深度 =
         // 贴图当前帧仲裁后深度 − 0.1，保证贴图永远在阴影之上、任何情况下阴影
         // 都不能盖住贴图。2026-08-15 修复：旧顺序阴影先跑、读上一帧贴图深度，
@@ -608,6 +664,8 @@ export class GameScene extends Scene {
         FlatViewSystem.suppressBuildingEffects(this, _game);
         this._syncFogDebug();
         this._updateCamera();
+        PerformanceMonitor.end('phaserShadowsVisibility', performancePhaseStartedAt);
+        performancePhaseStartedAt = PerformanceMonitor.begin();
         // 环境效果直接读取配置真源；SceneManager.scenes 是 init 时快照，开发期 JSON 热更新后
         // 可能仍是不含新增 environmentEffects 的旧对象，导致系统每帧判定为未启用。
         const currentSceneConfig = GAME_CONFIG.scenes?.[SceneManager.currentScene]
@@ -631,6 +689,8 @@ export class GameScene extends Scene {
             daylight: EnvironmentLightingSystem.getSun()?.daylight ?? 1,
             sandstormActive: World122SandstormSystem.isActive(SceneManager.currentScene),
         });
+        PerformanceMonitor.end('phaserWeather', performancePhaseStartedAt);
+        performancePhaseStartedAt = PerformanceMonitor.begin();
         World125FogTideSystem.syncScene(SceneManager.currentScene);
         World125FogTideSystem.syncPlayerShelter(
             _game?.entities?.get?.('player') === _game?.player ? _game.player : null,
@@ -644,7 +704,12 @@ export class GameScene extends Scene {
             loading: SceneManager.isLoading,
             fogTideActive: World125FogTideSystem.isActive(SceneManager.currentScene),
         });
-        PerformanceMonitor.end('phaserSync', performanceStartedAt);
+        this._performanceCounterTimer = (this._performanceCounterTimer ?? 500) + _delta;
+        if (this._performanceCounterTimer >= 500) {
+            this._performanceCounterTimer %= 500;
+            this._syncPerformanceDebugCounters(currentSceneConfig, rainState);
+        }
+        PerformanceMonitor.end('phaserWorldAtmosphere', performancePhaseStartedAt);
     }
 
     _syncFogOfWar(deltaMs = 16.67) {
@@ -745,6 +810,115 @@ export class GameScene extends Scene {
             visibility: this._fogVisibilityController.getDebugModel(),
             options: { ...this._fogDebugOverlay.options },
         };
+    }
+
+    _getPerformanceRuntimeProfile() {
+        if (this._performanceRuntimeProfile) return this._performanceRuntimeProfile;
+        const renderer = this.game?.renderer;
+        const gl = renderer?.gl;
+        let gpuRenderer = '';
+        let gpuVendor = '';
+        if (gl) {
+            try {
+                const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+                gpuRenderer = String(gl.getParameter(
+                    debugInfo?.UNMASKED_RENDERER_WEBGL || gl.RENDERER
+                ) || '');
+                gpuVendor = String(gl.getParameter(
+                    debugInfo?.UNMASKED_VENDOR_WEBGL || gl.VENDOR
+                ) || '');
+            } catch (_error) {
+                // 某些浏览器隐私策略禁止读取调试扩展；保留空值即可。
+            }
+        }
+        const runtimeNavigator = globalThis.navigator;
+        this._performanceRuntimeProfile = {
+            renderer: gl ? 'WebGL' : 'Canvas',
+            gpuRenderer,
+            gpuVendor,
+            hardwareConcurrency: Number(runtimeNavigator?.hardwareConcurrency) || 0,
+            deviceMemoryGb: Number(runtimeNavigator?.deviceMemory) || 0,
+            userAgent: runtimeNavigator?.userAgent || '',
+        };
+        return this._performanceRuntimeProfile;
+    }
+
+    _syncPerformanceDebugCounters(sceneConfig, rainState) {
+        const sceneId = SceneManager.currentScene;
+        const renderer = this.game?.renderer;
+        const canvas = this.game?.canvas;
+        const camera = this.cameras?.main;
+        const displayList = this.children?.list || [];
+        const runtime = this._getPerformanceRuntimeProfile();
+        const rain = this._rainWeather;
+        const sand = this._windblownSand;
+        const fogGrid = FogOfWarSystem.getGrid(sceneId);
+        const countAlive = (emitter) => Number(emitter?.getAliveParticleCount?.()) || 0;
+
+        PerformanceMonitor.setCounter('scene.id', sceneId || 'unknown');
+        PerformanceMonitor.setCounter('scene.name', sceneConfig?.name || sceneId || 'unknown');
+        PerformanceMonitor.setCounter('scene.type', sceneConfig?.type || 'world');
+        PerformanceMonitor.setCounter('scene.loading', SceneManager.isLoading ? 1 : 0);
+        PerformanceMonitor.setCounter('sampling.rawDtCapMs', Number(GAME_CONFIG.gameLoop?.maxDtMs) || 100);
+        PerformanceMonitor.setCounter('sampling.uiUpdateIntervalMs', Number(GAME_CONFIG.gameLoop?.uiUpdateIntervalMs) || 100);
+        PerformanceMonitor.setCounter('runtime.renderer', runtime.renderer);
+        PerformanceMonitor.setCounter('runtime.gpuRenderer', runtime.gpuRenderer || 'unavailable');
+        PerformanceMonitor.setCounter('runtime.gpuVendor', runtime.gpuVendor || 'unavailable');
+        PerformanceMonitor.setCounter('runtime.hardwareConcurrency', runtime.hardwareConcurrency);
+        PerformanceMonitor.setCounter('runtime.deviceMemoryGb', runtime.deviceMemoryGb || 'unavailable');
+        PerformanceMonitor.setCounter('runtime.devicePixelRatio', globalThis.devicePixelRatio || 1);
+        PerformanceMonitor.setCounter('runtime.userAgent', runtime.userAgent);
+        PerformanceMonitor.setCounter('render.canvasWidth', Number(canvas?.width) || 0);
+        PerformanceMonitor.setCounter('render.canvasHeight', Number(canvas?.height) || 0);
+        PerformanceMonitor.setCounter('render.scaleWidth', Number(this.scale?.width) || 0);
+        PerformanceMonitor.setCounter('render.scaleHeight', Number(this.scale?.height) || 0);
+        PerformanceMonitor.setCounter('render.cameraZoom', Number(camera?.zoom) || 1);
+        PerformanceMonitor.setCounter('render.gameObjectsTotal', displayList.length);
+        PerformanceMonitor.setCounter('render.gameObjectsVisible', displayList.filter((item) => (
+            item?.active !== false && item?.visible !== false
+        )).length);
+        PerformanceMonitor.setCounter('render.visualWalls', this.visualWalls?.getLength?.() || 0);
+        PerformanceMonitor.setCounter('render.visualTrees', this.visualTrees?.getLength?.() || 0);
+        PerformanceMonitor.setCounter('render.terrainChunks', this._terrainChunkSprites?.size || 0);
+        const shadowStats = this._structureShadowRenderStats || {};
+        PerformanceMonitor.setCounter('shadow.staticCasters', this._staticSunShadows?.size || 0);
+        PerformanceMonitor.setCounter('shadow.structureCasters', this._structureSunShadows?.size || 0);
+        PerformanceMonitor.setCounter('shadow.drawJobs', this._structureShadowJobs?.length || 0);
+        PerformanceMonitor.setCounter('shadow.quality', EnvironmentLightingSystem.getShadowQuality());
+        PerformanceMonitor.setCounter('shadow.visibleJobs', Number(shadowStats.visibleJobs) || 0);
+        PerformanceMonitor.setCounter('shadow.viewportCulled', Number(shadowStats.viewportCulled) || 0);
+        PerformanceMonitor.setCounter('shadow.preGeometryCulled', Number(shadowStats.preGeometryCulled) || 0);
+        PerformanceMonitor.setCounter('shadow.postGeometryCulled', Number(shadowStats.postGeometryCulled) || 0);
+        PerformanceMonitor.setCounter('shadow.viewportPaddingPx', Number(shadowStats.viewportPaddingPx) || 0);
+        PerformanceMonitor.setCounter('shadow.clusters', Number(shadowStats.clusters) || 0);
+        PerformanceMonitor.setCounter('shadow.rawContourVertices', Number(shadowStats.rawContourVertices) || 0);
+        PerformanceMonitor.setCounter('shadow.contourVertices', Number(shadowStats.contourVertices) || 0);
+        PerformanceMonitor.setCounter('shadow.contourReductionPercent', Number(shadowStats.rawContourVertices) > 0
+            ? (1 - Number(shadowStats.contourVertices) / Number(shadowStats.rawContourVertices)) * 100
+            : 0);
+        PerformanceMonitor.setCounter('shadow.featherPaths', Number(shadowStats.featherPaths) || 0);
+        PerformanceMonitor.setCounter('shadow.triangles', Number(shadowStats.triangles) || 0);
+        PerformanceMonitor.setCounter('shadow.sourceVertices', Number(shadowStats.sourceVertices) || 0);
+        PerformanceMonitor.setCounter('shadow.commandBufferLength', Number(shadowStats.commandBufferLength) || 0);
+        PerformanceMonitor.setCounter('shadow.rebuilds', Number(shadowStats.rebuilds) || 0);
+        PerformanceMonitor.setCounter('shadow.lastRebuildMs', Number(shadowStats.lastRebuildMs) || 0);
+        PerformanceMonitor.setCounter('fog.enabled', fogGrid?.active ? 1 : 0);
+        PerformanceMonitor.setCounter('fog.revision', Number(fogGrid?.revision) || 0);
+        PerformanceMonitor.setCounter('fog.maskRenderMs', this._fogMaskRenderer?.lastRenderMs || 0);
+        PerformanceMonitor.setCounter('fog.maskChangedCells', this._fogMaskRenderer?.lastChangedCells || 0);
+        PerformanceMonitor.setCounter('fog.maskTransitioning', this._fogMaskRenderer?.transitioning ? 1 : 0);
+        PerformanceMonitor.setCounter('weather.rainActive', rain?._activeSceneId === sceneId ? 1 : 0);
+        PerformanceMonitor.setCounter('weather.rainIntensity', rainState?.intensityId || 'none');
+        PerformanceMonitor.setCounter('weather.rainStreakAlive', countAlive(rain?._streakEmitter));
+        PerformanceMonitor.setCounter('weather.rainStreakCap', rain?._streakEmitter?.maxAliveParticles || 0);
+        PerformanceMonitor.setCounter('weather.rainSplashAlive', countAlive(rain?._splashEmitter));
+        PerformanceMonitor.setCounter('weather.rainSplashCap', rain?._splashEmitter?.maxAliveParticles || 0);
+        PerformanceMonitor.setCounter('weather.sandActive', sand?._activeConfig ? 1 : 0);
+        PerformanceMonitor.setCounter('weather.sandstormActive', sand?._sandstormActive ? 1 : 0);
+        PerformanceMonitor.setCounter('weather.sandGroundAlive', countAlive(sand?._groundEmitter));
+        PerformanceMonitor.setCounter('weather.sandGroundCap', sand?._groundEmitter?.maxAliveParticles || 0);
+        PerformanceMonitor.setCounter('weather.sandForegroundAlive', countAlive(sand?._foregroundEmitter));
+        PerformanceMonitor.setCounter('weather.sandForegroundCap', sand?._foregroundEmitter?.maxAliveParticles || 0);
     }
 
     _syncFogDebug() {
@@ -8041,11 +8215,17 @@ export class GameScene extends Scene {
      */
     registerStaticSunShadow(options = {}) {
         if (!this._staticSunShadows) this._staticSunShadows = new Map();
+        const registrationId = this._nextStaticShadowRegistrationId++;
+        const handle = createStaticShadowHandle(
+            registrationId,
+            Number(options.x) || 0,
+            Number(options.y) || 0
+        );
         if (options.hull) {
-            // footprint 四边形凸包阴影（2026-08-19 七轮）：Graphics 逐帧直画，
-            // 无烘焙无分桶——太阳连续移动时阴影必然连续（跳动从构造上消除）。
-            const graphics = this.add.graphics();
-            this._staticSunShadows.set(graphics, {
+            // footprint 四边形凸包阴影：身份句柄不进入 display list；最终连续几何统一
+            // 写入共享层的预三角化命令缓冲，太阳移动仍走原 epsilon 脏检查。
+            this._staticSunShadows.set(handle, {
+                registrationId,
                 hull: true,
                 x: options.x || 0,
                 y: options.y || 0,
@@ -8073,17 +8253,13 @@ export class GameScene extends Scene {
                 sourceSprite: options.sourceSprite || null,
                 flipX: !!options.flipX,
             });
-            return graphics;
+            return handle;
         }
-        if (!this.textures.exists('entity_shadow')) this._ensureShadowTexture();
-        if (!this.textures.exists('entity_shadow')) return null;
         const radius = Math.max(1, options.radius || 10);
         const footprintWidth = Math.max(1, options.footprintWidth || radius * 2);
         const footprintHeight = Math.max(1, options.footprintHeight || radius * 2 * PERSPECTIVE_SCALE_Y);
-        // 胶囊接触影（树木/桶状仙人掌/墙件/单位）：柔边椭圆，无方向轮廓。
-        const sprite = this.add.sprite(options.x || 0, options.y || 0, 'entity_shadow');
-        sprite.setOrigin(0.5, 0.5);
-        this._staticSunShadows.set(sprite, {
+        this._staticSunShadows.set(handle, {
+            registrationId,
             x: options.x || 0,
             y: options.y || 0,
             radius,
@@ -8097,20 +8273,23 @@ export class GameScene extends Scene {
             depth: options.depth ?? 0,
             visible: options.visible !== false,
             fogHidden: !!options.fogHidden,
+            entity: options.entity || null,
         });
-        return sprite;
+        return handle;
     }
 
-    updateStaticSunShadow(sprite, options = {}) {
-        const data = this._staticSunShadows && this._staticSunShadows.get(sprite);
+    updateStaticSunShadow(handle, options = {}) {
+        const data = this._staticSunShadows && this._staticSunShadows.get(handle);
         if (!data) return;
         Object.assign(data, options);
+        if (Number.isFinite(Number(options.x))) handle.x = Number(options.x);
+        if (Number.isFinite(Number(options.y))) handle.y = Number(options.y);
     }
 
-    unregisterStaticSunShadow(sprite, destroy = true) {
-        if (!sprite) return;
-        this._staticSunShadows.delete(sprite);
-        if (destroy && sprite.active) sprite.destroy();
+    unregisterStaticSunShadow(handle, destroy = true) {
+        if (!handle) return;
+        this._staticSunShadows.delete(handle);
+        if (destroy && handle.active) handle.destroy();
     }
 
     /** 浏览器控制台阴影校准入口：window.ShadowDebug.inspect / setInset。 */
@@ -8250,9 +8429,31 @@ export class GameScene extends Scene {
         const isMapMode = isDungeon && dms && dms.active && dms.state === 'map';
         const shadowJobs = this._structureShadowJobs || [];
         shadowJobs.length = 0;
-        for (const [sprite, data] of this._staticSunShadows.entries()) {
-            if (!sprite || !sprite.active) {
-                this._staticSunShadows.delete(sprite);
+        let viewportCulled = 0;
+        let preGeometryCulled = 0;
+        let postGeometryCulled = 0;
+        const renderCulling = performanceConfig.renderCulling || {};
+        const cameraView = this.cameras?.main?.worldView;
+        const shadowViewportPadding = Math.max(0, Number(renderCulling.shadowPaddingPx) || 64);
+        const shadowViewport = renderCulling.enabled !== false && cameraView
+            ? {
+                left: cameraView.x - shadowViewportPadding,
+                right: cameraView.right + shadowViewportPadding,
+                top: cameraView.y - shadowViewportPadding,
+                bottom: cameraView.bottom + shadowViewportPadding,
+            }
+            : null;
+        const enqueueVisibleJob = (job) => {
+            if (!shadowPolygonIntersectsViewport(job.hull, shadowViewport)) {
+                viewportCulled += 1;
+                postGeometryCulled += 1;
+                return;
+            }
+            shadowJobs.push(job);
+        };
+        for (const [handle, data] of this._staticSunShadows.entries()) {
+            if (!handle || !handle.active) {
+                this._staticSunShadows.delete(handle);
                 continue;
             }
             // 共享 Graphics 无法直接隐藏单一建筑；绘制前读取战争迷雾真源，避免新注册
@@ -8268,7 +8469,13 @@ export class GameScene extends Scene {
                 dungeon: isDungeon,
             });
             if (!profile) {
-                sprite.setVisible(false);
+                handle.setVisible(false);
+                continue;
+            }
+            if (profile.opacity <= 0.001 || data.visible === false || data.fogHidden) continue;
+            if (!shadowCasterMayReachViewport(data, shadowViewport, profile.length)) {
+                viewportCulled += 1;
+                preGeometryCulled += 1;
                 continue;
             }
             if (data.hull) {
@@ -8325,7 +8532,7 @@ export class GameScene extends Scene {
                             frontY: data._silCache.frontY,
                             texCenterX: data._silCache.texCenterX,
                             flipX: data.flipX && !data._silCache.flipMirrored,
-                        groundLine: data._silCache.groundLine || null,
+                            groundLine: data._silCache.groundLine || null,
                             // 归一参考 = 实体自身阴影高度（与 profile.length 同源同单位）——
                             // 列高统计会被矮件稀释（仓库主屋位移被压扁的根因）。
                             maxHeight: Math.max(1, data.height || 1),
@@ -8342,23 +8549,31 @@ export class GameScene extends Scene {
                     cy /= Math.max(1, hull.length);
                     data._polyState = { theta, length: profile.length, sig, points: hull, cx, cy };
                 }
-                if (hull.length >= 3 && profile.opacity > 0.001
-                    && data.visible !== false && !data.fogHidden) {
-                    shadowJobs.push({ hull, cx, cy, opacity: profile.opacity, dirty });
+                if (hull.length >= 3) {
+                    enqueueVisibleJob({
+                        id: data.registrationId,
+                        hull,
+                        cx,
+                        cy,
+                        opacity: profile.opacity,
+                        dirty,
+                    });
                 }
                 continue;
             }
             const baseW = data.footprintWidth || data.radius * 2;
             const baseH = data.footprintHeight || data.radius * 2 * PERSPECTIVE_SCALE_Y;
+            const screenDiameter = Math.max(baseW, baseH) * Math.max(0.1, Number(this.cameras?.main?.zoom) || 1);
+            const capsuleSegments = screenDiameter >= 144 ? 16 : (screenDiameter >= 48 ? 12 : 8);
             // 静态胶囊（树木/桶状仙人掌/墙件）并入共享层：
             // 独立 Sprite 会与结构层跨系统叠加变深（0.19×0.19 合成≈0.35，肉眼可见）——
             // 基础 footprint 始终是水平 2:1 椭圆，只沿归一化太阳方向平移扫掠；
             // 禁止旋转基础椭圆，否则纵向影向会再次把脚底立成竖椭圆。
             // 这些注册体全静态（树/散布障碍），epsilon 脏检查与多边形同口径；
-            // 精灵仅保留为注册键（注销/回链用），不再直接渲染。
-            sprite.setVisible(false);
+            // 非渲染句柄仅保留为注册键（注销/回链用）。
+            handle.setVisible(false);
             const capTheta = Math.atan2(profile.offsetY, profile.offsetX);
-            const capSig = `${data.x.toFixed(1)},${data.y.toFixed(1)},${baseW.toFixed(1)},${baseH.toFixed(1)}`;
+            const capSig = `${data.x.toFixed(1)},${data.y.toFixed(1)},${baseW.toFixed(1)},${baseH.toFixed(1)},${capsuleSegments}`;
             const capState = data._polyState;
             const capDirty = !capState
                 || Math.abs(capState.theta - capTheta) > 0.002
@@ -8379,13 +8594,19 @@ export class GameScene extends Scene {
                     y: data.y,
                     width: baseW,
                     height: baseH,
-                    segments: 20,
+                    segments: capsuleSegments,
                 }, profile);
                 data._polyState = { theta: capTheta, length: profile.length, sig: capSig, points: capPts, cx: capCx, cy: capCy };
             }
-            if (capPts.length >= 3 && profile.opacity > 0.001
-                && data.visible !== false && !data.fogHidden) {
-                shadowJobs.push({ hull: capPts, cx: capCx, cy: capCy, opacity: profile.opacity, dirty: capDirty });
+            if (capPts.length >= 3) {
+                enqueueVisibleJob({
+                    id: data.registrationId,
+                    hull: capPts,
+                    cx: capCx,
+                    cy: capCy,
+                    opacity: profile.opacity,
+                    dirty: capDirty,
+                });
             }
         }
         // 共享结构阴影层：全部阴影多边形在同一 Graphics 内保持原尺寸外轮廓并向内羽化；
@@ -8395,11 +8616,12 @@ export class GameScene extends Scene {
         const frameTheta = Math.atan2(frameSun?.shadowY || 0, frameSun?.shadowX || 0);
         const edgeFade = EnvironmentLightingSystem.getShadowEdgeFade();
         const edgeFadeSignature = `${edgeFade.fadePx},${edgeFade.steps},${edgeFade.edgeAlphaRatio}`;
+        const viewportSignature = shadowJobs.map((job) => job.id).join(',');
         const layer = this._structureShadowLayer;
         if (layer) {
-            // 干净帧整体跳过重画（2026-08-19 审计性能修复）：Graphics 保留指令缓冲，
-            // 无阴影几何/数量/透明度变化时不清不重画，稳态开销≈0；
-            // 太阳连续移动时按 epsilon 脏检查驱动（0.11°/0.5px 子像素步进，无跳变）。
+            // 干净帧保留预三角化的 fillTriangle 命令；不再让 Phaser 4 在每次 render
+            // 对数百条 fillPoints 重跑 Earcut。太阳仍按原 epsilon 连续几何更新，
+            // 相机只在带 320px 缓冲的可见 caster 集合变化时触发重建。
             let layerOpacity = 0;
             let layerDirty = false;
             for (const job of shadowJobs) {
@@ -8413,14 +8635,29 @@ export class GameScene extends Scene {
             if (Math.abs(layerOpacity - (this._structureShadowLayerOpacity ?? -1)) > 0.005) layerDirty = true;
             if (opacitySignature !== (this._structureShadowOpacitySignature || '')) layerDirty = true;
             if (edgeFadeSignature !== (this._structureShadowEdgeFadeSignature || '')) layerDirty = true;
+            if (viewportSignature !== (this._structureShadowViewportSignature || '')) layerDirty = true;
             if ((this._structureShadowVisibilityRevision || 0)
                 !== (this._structureShadowRenderedVisibilityRevision ?? -1)) layerDirty = true;
+            const renderStats = this._structureShadowRenderStats;
+            renderStats.visibleJobs = shadowJobs.length;
+            renderStats.viewportCulled = viewportCulled;
+            renderStats.preGeometryCulled = preGeometryCulled;
+            renderStats.postGeometryCulled = postGeometryCulled;
+            renderStats.viewportPaddingPx = shadowViewport ? shadowViewportPadding : 0;
             if (layerDirty) {
+                const rebuildStartedAt = PerformanceMonitor.begin();
                 layer.clear();
                 // 相交阴影先几何并集再一次填充（2026-08-19 用户口径"重叠调成一整个、
                 // 同一强度"）——不依赖任何混合幂等假设，从结构上杜绝重叠加深。
                 const drawJobs = this._mergeShadowJobsIntoClusters(shadowJobs, frameTheta);
+                let rawContourVertices = 0;
+                let contourVertices = 0;
+                let featherPaths = 0;
+                let triangles = 0;
+                let sourceVertices = 0;
                 for (const job of drawJobs) {
+                    rawContourVertices += Number(job.hull?._shadowRawVertexCount) || job.hull.length;
+                    contourVertices += job.hull.length;
                     // 先完成几何并集，再对最终外轮廓向内分层羽化。第 0 层不外扩，
                     // 最内层复原原 opacity，因此接地边/重叠同深契约保持不变。
                     const featherLayers = EnvironmentLightingSystem.getShadowFeatherLayers(
@@ -8429,8 +8666,15 @@ export class GameScene extends Scene {
                         { centerX: job.cx, centerY: job.cy }
                     );
                     for (const feather of featherLayers) {
-                        layer.fillStyle(0x000000, feather.alpha);
-                        layer.fillPoints(feather.points, true);
+                        const appended = appendTriangulatedShadow(
+                            layer,
+                            feather.points,
+                            0x000000,
+                            feather.alpha
+                        );
+                        featherPaths += appended.paths;
+                        triangles += appended.triangles;
+                        sourceVertices += appended.sourceVertices;
                     }
                 }
                 // 各个互不相交的簇可保留自己的透明度；相交簇在合并时取最大值。
@@ -8439,7 +8683,17 @@ export class GameScene extends Scene {
                 this._structureShadowLayerOpacity = layerOpacity;
                 this._structureShadowOpacitySignature = opacitySignature;
                 this._structureShadowEdgeFadeSignature = edgeFadeSignature;
+                this._structureShadowViewportSignature = viewportSignature;
                 this._structureShadowRenderedVisibilityRevision = this._structureShadowVisibilityRevision || 0;
+                renderStats.clusters = drawJobs.length;
+                renderStats.rawContourVertices = rawContourVertices;
+                renderStats.contourVertices = contourVertices;
+                renderStats.featherPaths = featherPaths;
+                renderStats.triangles = triangles;
+                renderStats.sourceVertices = sourceVertices;
+                renderStats.commandBufferLength = layer.commandBuffer?.length || 0;
+                renderStats.rebuilds += 1;
+                renderStats.lastRebuildMs = Math.max(0, PerformanceMonitor.begin() - rebuildStartedAt);
             }
             layer.setVisible(!isMapMode && layerOpacity > 0.001);
         }
