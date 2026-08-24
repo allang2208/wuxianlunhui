@@ -394,8 +394,8 @@ this.ai = config.ai || {};
 - 接入三件套：BootScene 预加载（key 与程序生成同名，exists 守卫自动跳过回退）→ 等比缩放（高度按配置、宽随纵横比，别 setDisplaySize 硬压）→ 变体池映射（池内可剔除单张，variant 存池索引）。
 
 ### 临时碰撞（限时障碍物挡移动+挡投射物）
-- **一条通道全覆盖**：往 `WallSystem.isoSegments` push 线段（门闸同款），单位移动（MovementSystem/玩家 resolve）与投射物（Projectile.blocked / BoltSkillSystem.resolve）自动被挡，投射物系统零改动；到期 splice + `pathFinder.invalidateCache()`。
-- **不要打 `_iso` 标记**（`rebuildIsoCollision` 会清掉所有 `_iso` 矩形）；段间碰撞线两端多探 2px 消缝。
+- **逻辑单线、视觉分段**：一次施法只往 `WallSystem.isoSegments` push 一条连续 `_iceWall` 线（门闸同款）；单位移动、投射物和 A* 共用该线，视觉段数增长不再增加碰撞对象。到期/换场景按共享引用去重 splice，并用 `pathFinder.invalidateRegion(bbox)` 局部失效。
+- **不要打 `_iso` 标记**（`rebuildIsoCollision` 会清掉所有 `_iso` 矩形）；视觉段不进实体表，每段只提供独立水平 `_faceLine/_faceDepth` 给统一深度仲裁，避免整堵长墙用单一深度遮住墙前目标。
 - **弹开落点单位**：敌人走 `applyKnockback`；**玩家 knockback 字段无消费方**（Player.update 不调基类 update），必须直接位移过 `WallSystem.resolve`。站桩怪（煮锅/墓碑）覆写 applyKnockback 为空，天然弹不动。
 
 ### 魔法等级门槛 + 快捷栏灰化（新机制范式）

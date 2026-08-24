@@ -148,10 +148,9 @@ class SpatialHash {
     rebuild() {
         this.clear();
         if (!WallSystem) return;
-        // 注意：只建模 WallSystem.walls/trees（静态几何）。isoSegments 中**动态**段
-        // （门闸/冰墙等，无 _cover 标记）有意不纳入寻路——动态段由 MovementSystem 的
-        // WallSystem.resolve 实际挡停（撞墙即停），若纳入寻路会让敌人绕开冰墙/门闸，
-        // 削弱临时障碍的阻挡设计。**掩体墙段（_cover 标记）是静态实体**，必须纳入寻路
+        // 注意：常规动态门闸不作永久阻挡，只提供软成本；冰墙是短时但明确不可通行的
+        // 战术线障碍，必须进入寻路并在创建/销毁时由技能系统局部失效缓存，否则单位会
+        // 沿旧路径撞在墙根。**掩体墙段（_cover 标记）是静态实体**，同样必须纳入寻路
         // （2026-08-08 用户反馈：世界-122 怪物寻路把基地掩体墙当可通行，直线穿墙后在
         // 左右下夹角被 resolve 卡在墙根土块上抖动；纳入后怪物绕墙走、从门洞进入）。
         // 矩形墙壁
@@ -195,8 +194,8 @@ class SpatialHash {
         // 开门时门洞段已被 WallGate.setPassable 从 isoSegments splice 掉，成本自然归零
         if (WallSystem.isoSegments) {
             for (const s of WallSystem.isoSegments) {
-                if (!s._cover && !s._gate) continue; // 其余动态段（冰墙等）不纳入
-                const type = s._cover ? 'seg' : 'gate';
+                if (!s._cover && !s._gate && !s._iceWall) continue;
+                const type = (s._cover || s._iceWall) ? 'seg' : 'gate';
                 const minCX = Math.floor(Math.min(s.x1, s.x2) / this.cellSize);
                 const maxCX = Math.floor(Math.max(s.x1, s.x2) / this.cellSize);
                 const minCY = Math.floor(Math.min(s.y1, s.y2) / this.cellSize);

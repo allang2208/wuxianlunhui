@@ -254,6 +254,13 @@ EffectManager.add(new LightningBoltEffect(source, target, {
 - 冷却统一按 `(1 - 法杖急速) × (1 - 法袍减冷却)` 乘一次，系统与快捷栏共用同一技能分类/冷却入口，禁止技能内部重复缩短。
 - MP 常态按秒恢复，权威公式来自 `data/combat-formulas.json`：`1.0 + 精神×0.08 + 智力×0.02`；战斗内外不分状态，HUD/属性面板/tooltip 必须统一显示“每秒”。
 
+#### 临时线障碍法术（冰墙口径）
+
+- 逻辑阻挡与视觉段完全分离：一次施法只注册一条带 `_iceWall` 标记的连续 `WallSystem.isoSegments` 线，段数成长只增加冰晶视觉，不增加 Damageable 实体或碰撞对象。
+- `_iceWall` 线作为硬障碍进入 PathFinder SpatialHash；创建/销毁调用 `invalidateRegion(bbox)` 局部失效，禁止为短时墙做全图 `invalidateCache()`。场景清理必须按共享线引用去重注销。
+- 视觉冰晶不进入 `Game.entities`，但每段提供独立水平 `_faceLine/_faceDepth`，由 `junctionCorrectedDepth()` 与玩家、敌人、友军共用前后遮挡；不能用整堵长墙单一 depth。
+- 延迟生成必须携带施法快照与链式倍率，落点伤害读取 `castContext.stats`；禁止在 500ms 破土延迟后重新读取当前法杖或共享系统级临时倍率。
+
 ---
 
 ### 魔法施法动作标准（2026-08-02 定稿：前摇/第 N 帧释放/倒放后摇/跨步）

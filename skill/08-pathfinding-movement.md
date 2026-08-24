@@ -205,10 +205,9 @@ if (enemy._pathManager) {
    玩家 RTS 的 `PathManager` 保持同步直算，不进入敌人队列，避免输入响应增加一帧延迟。
 
 **2026-08-03 剩余清单已清（改代码前必读）**：
-1. **冰墙不得调 `pathFinder.invalidateCache()`**：冰墙只往 `WallSystem.isoSegments` 推段，
-   而 A* 网格只建模 walls/trees（isoSegments 有意排除）——清缓存是纯开销零收益，已删除
-   （ice-wall-system 头部有注释）。几何类失效只发生在真正改 walls/trees 的地方
-   （清房/场景切换/Boss 奖励恢复等）。
+1. **临时线障碍只做局部失效**：冰墙一次施法只往 `WallSystem.isoSegments` 推一条带
+   `_iceWall` 标记的连续线，PathFinder SpatialHash 将其作为硬 `seg` 建模；创建/销毁调用
+   `invalidateRegion(bbox)`，禁止调用全图 `invalidateCache()`。视觉段数增长不得增加寻路段数。
 2. **WallSystem 碰撞空间网格**：walls/isoSegments/trees 经访问器暴露惰性代理，任何
    push/splice/下标赋值自动标脏；`canMoveTo/blocked/_nearestBlockingSeg/resolve` 走 128px
    网格近邻查询（谓词与线性版逐行一致，`_collisionAccel=false` 可回退线性）。
@@ -603,7 +602,7 @@ _getDashOffset() {
 #### 背景（全量审计实测，2026-08-03）
 冷路径 findPath ≈ 10ms（`_buildGrid` 占 92%）；刷怪瞬间 15 只怪同帧冷寻路可达 50~115ms
 主线程卡顿；不可达目标每 500ms 卡住重算重复付冷 A*（20ms/次）；冰墙生成/破碎误调
-`invalidateCache()`（冰墙只改 isoSegments，A* 网格有意不建模——纯开销零收益）；
+`invalidateCache()`（临时冰墙改用 `_iceWall` 单线 + `invalidateRegion` 局部失效）；
 墙体碰撞对全部墙/线段/树线性扫描。
 
 #### 本次完成

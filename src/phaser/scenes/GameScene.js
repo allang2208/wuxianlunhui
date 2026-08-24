@@ -2310,7 +2310,10 @@ export class GameScene extends Scene {
         if (!Game) return;
         // 结构候选每帧只从实体表提取一次；此前玩家/每只敌人/每只友军都会各自
         // 重扫整张 Game.entities，单位和建筑越多，图层仲裁的重复开销越明显。
-        const structureCandidates = WallSystem.collectDynamicStructureDepthEntities(Game.entities);
+        const structureCandidates = [
+            ...WallSystem.collectDynamicStructureDepthEntities(Game.entities),
+            ...(Game.player?.iceWallSystem?.getDepthOccluders?.() || []),
+        ];
         // 纯视觉平民不在 Game.entities：其最终 depth 也必须在本帧建筑拓扑排序完成后
         // 统一落地，不能由风车/工坊/银行的业务 update 提前各写一遍旧结构深度。
         syncAllCivilianVisualDepths(structureCandidates);
@@ -6412,9 +6415,13 @@ export class GameScene extends Scene {
             // 主 sprite：晶簇屏幕朝上直立，底部锚定 scaleY 生长；半透明度 0.6
             s.setPosition(w.x + (warn ? (Math.random() - 0.5) * 2.5 : 0), w.y);
             s.setRotation(0);
-            // 段间图层：y 为主（南段压北段），同 y（横向墙）时中心段在前，堆叠成"冰脊"而非随机互压
+            // 每个视觉段按自己的接地面线落深度；动态单位消费同一面线做前后仲裁。
+            // 同 y（横向墙）仍用中心微偏移堆成冰脊，不让整堵长墙共用单一极端 depth。
             const centerIdx = (walls.length - 1) / 2;
-            s.setDepth(w.y + 1 + (walls.length - Math.abs(i - centerIdx)) * 0.01);
+            const faceDepth = Number.isFinite(w._structureRenderDepth)
+                ? w._structureRenderDepth
+                : (Number.isFinite(w._faceDepth) ? w._faceDepth : w.y + 1);
+            s.setDepth(faceDepth + (walls.length - Math.abs(i - centerIdx)) * 0.01);
             const scaleY = Math.max(0.001, grow);
             // 等比缩放：高度按技能配置 w.height×1.25，宽度随贴图纵横比自适应
             const texH = (s.frame && s.frame.height) || 320;

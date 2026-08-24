@@ -5,6 +5,7 @@ import { FloatingTextEffect } from '../../effects/floating-text.js';
 import { SceneManager } from '../../world/scene-manager.js';
 import { SoundManager } from '../../ui/sound-manager.js';
 import { WallSystem } from '../../world/wall-system.js';
+import { pathFinder } from '../../ai/pathfinder.js';
 import { burstParticles, fireGroundShockwave } from '../../effects/combat-fx.js';
 import { meetsMagicWeaponReq } from '../../config/magic-categories.js';
 import { isSkillCheatEnabled } from '../../config/dev-cheats.js';
@@ -57,11 +58,10 @@ let _shatterSoundCd = 0;
  * 冰墙技能系统（2026-08-02 新增；同日加碰撞与碎裂）
  *
  * 在鼠标/目标位置生成一列垂直于施法方向的冰墙障碍物：
- * - 碰撞：每段往 WallSystem.isoSegments 动态注册一条碰撞线段（门闸同款 push/splice），
+ * - 碰撞：每次施法只往 WallSystem.isoSegments 动态注册一条连续碰撞线（门闸同款 push/splice），
  *   挡单位移动（MovementSystem/玩家 resolve 通道）+ 挡投射物（Projectile.blocked /
- *   BoltSkillSystem.resolve 通道），到期 splice；
- *   [PERF-2026-08-03] 注意：冰墙只改 isoSegments，不进 A* 网格（网格只建模 walls/trees，
- *   门闸/冰墙有意排除）——**不得**再调 pathFinder.invalidateCache()，那是纯开销零收益；
+ *   BoltSkillSystem.resolve 通道），并作为临时线障碍进入 A*；创建/销毁只局部失效附近路径缓存；
+ * - 视觉：仍保留独立冰晶段，但每段仅提供一条水平脚线给统一深度仲裁，不进入实体表；
  * - 生成瞬间沿墙面法向弹开落点上的单位（敌人 knockback 通道，玩家直接位移——
  *   玩家 applyKnockback 无消费方）；
  * - 到期碎裂：冰屑四散 + 冰雾 + 地面冲击环（参考冰锥 onImpact 两层结构）。
@@ -69,7 +69,7 @@ let _shatterSoundCd = 0;
 export class IceWallSystem {
     constructor(source) {
         this.source = source;
-        // 当前存活的冰墙段：{ x, y, angle, width, height, duration, remaining, age, spawnDelay, variant, _colSeg }
+        // 当前存活的纯视觉冰墙段：逻辑碰撞由同一次施法共享的 _collisionSeg 承担。
         this._walls = [];
         // 待生成队列：施法释放后延迟 spawnDelayMs 毫秒才真正成墙 { src, aimX, aimY, effect, timer }
         this._pendingSpawns = [];
@@ -80,8 +80,6 @@ export class IceWallSystem {
         this._chillIntervalMs = 1000;
         this._chillSlowPercent = ICE_WALL_DEFAULTS.chillSlowPercent;
         this._chillDurationMs = ICE_WALL_DEFAULTS.chillDurationMs;
-        // 链式强化伤害加成（本次施法消费的层数对应倍率，_spawnWall 落点伤害乘算）
-        this._chainDamageMul = 0;
     }
 
     _isPlayer() {
@@ -90,6 +88,11 @@ export class IceWallSystem {
 
     /** 外部渲染层读取当前冰墙列表 */
     getWalls() {
+        return this._walls;
+    }
+
+    /** 动态深度仲裁读取；视觉段不是 Game.entities，但仍按各自脚线参与前后遮挡。 */
+    getDepthOccluders() {
         return this._walls;
     }
 
@@ -151,7 +154,6 @@ export class IceWallSystem {
         const chain = consumeChainSpellBonus(src);
         const castContext = createMagicCastContext(src, ce);
         if (!isSkillCheatEnabled() && this._isPlayer() && mpCost > 0) src.data.mp -= mpCost;
-        this._chainDamageMul = chain.damageMul || 0;
         effect.mpCost = mpCost;
         effect.cooldown = effect.cooldown * getMagicCooldownMultiplier(src, ce);
 
@@ -167,9 +169,13 @@ export class IceWallSystem {
             // 冰墙生成延迟（spawnDelayMs）：破土前有一个凝聚过程
             const delayMs = effect.spawnDelayMs;
             if (delayMs > 0) {
-                this._pendingSpawns.push({ src, aimX, aimY, effect, surfaceContext, timer: delayMs });
+                this._pendingSpawns.push({
+                    src, aimX, aimY, effect, surfaceContext, castContext,
+                    chainDamageMul: chain.damageMul || 0,
+                    timer: delayMs,
+                });
             } else {
-                this._spawnWall(src, aimX, aimY, effect, surfaceContext);
+                this._spawnWall(src, aimX, aimY, effect, surfaceContext, castContext, chain.damageMul || 0);
             }
             EffectManager.add(new FloatingTextEffect(src.x, src.y - 40, '🧱 冰墙', '#a0d8ff'));
             // 松木握柄：施法后添加 1 层链式强化；檀木握柄：施法后给自身加速
@@ -184,8 +190,8 @@ export class IceWallSystem {
         }
     }
 
-    /** 生成垂直于施法方向的冰墙段（含碰撞注册 + 落点单位弹开） */
-    _spawnWall(src, aimX, aimY, effect, surfaceContext) {
+    /** 生成垂直于施法方向的冰墙（单条逻辑阻挡线 + 纯视觉分段 + 落点单位弹开） */
+    _spawnWall(src, aimX, aimY, effect, surfaceContext, castContext, chainDamageMul = 0) {
         const count = effect.segmentCount;
         const width = effect.segmentWidth;
         const height = effect.segmentHeight;
@@ -209,18 +215,27 @@ export class IceWallSystem {
         const startX = aimX - perpX * totalLen / 2;
         const startY = aimY - perpY * totalLen / 2;
 
+        // 逻辑层只保留一条连续墙线，视觉段数增长不再线性增加碰撞/寻路对象。
+        const collisionHalfLength = totalLen / 2 + spacing / 2 + 2;
+        const collisionSeg = {
+            x1: aimX - perpX * collisionHalfLength,
+            y1: aimY - perpY * collisionHalfLength,
+            x2: aimX + perpX * collisionHalfLength,
+            y2: aimY + perpY * collisionHalfLength,
+            halfThick: 14,
+            _iceWall: true,
+            noVisual: true,
+        };
+        if (WallSystem && WallSystem.isoSegments) {
+            WallSystem.isoSegments.push(collisionSeg);
+            this._invalidatePathRegion(collisionSeg);
+        }
+
         const center = (count - 1) / 2;
         const spawned = [];
         for (let i = 0; i < count; i++) {
             const wx = startX + perpX * spacing * i;
             const wy = startY + perpY * spacing * i;
-            // 碰撞线段：沿墙向，两端各多探 2px 消除段间缝隙（门闸同款动态注册，到期 splice）
-            const seg = {
-                x1: wx - perpX * (spacing / 2 + 2), y1: wy - perpY * (spacing / 2 + 2),
-                x2: wx + perpX * (spacing / 2 + 2), y2: wy + perpY * (spacing / 2 + 2),
-                halfThick: 14, _iceWall: true, noVisual: true,
-            };
-            if (WallSystem && WallSystem.isoSegments) WallSystem.isoSegments.push(seg);
             this._walls.push({
                 x: wx,
                 y: wy,
@@ -235,7 +250,15 @@ export class IceWallSystem {
                 spawnDelay: Math.round(Math.abs(i - center) * 45),
                 variant: Math.floor(Math.random() * 4),
                 surfaceContext,
-                _colSeg: seg,
+                active: true,
+                // 每个冰晶簇按自身接地线参与深度，而不是让整堵长墙共用一个极端 depth。
+                _faceLine: [
+                    { x: wx - width / 2, y: wy },
+                    { x: wx + width / 2, y: wy },
+                ],
+                _faceDepth: wy + 1,
+                _structureRenderDepth: wy + 1,
+                _collisionSeg: collisionSeg,
             });
             spawned.push({ x: wx, y: wy });
         }
@@ -248,7 +271,9 @@ export class IceWallSystem {
             normalY,
             spacing,
             effect,
-            surfaceContext
+            surfaceContext,
+            castContext,
+            chainDamageMul
         );
         if (this._isPlayer() && (hits > 0 || kills > 0) && SkillManager && typeof SkillManager.addIceWallExp === 'function') {
             SkillManager.addIceWallExp(src, hits, kills);
@@ -282,15 +307,18 @@ export class IceWallSystem {
      * + 沿墙面法向弹开（pushDistanceMul 倍）；敌人走 knockback 通道，玩家直接位移
      * （玩家 knockback 无消费方）。返回 { hits, kills } 供技能经验结算。
      */
-    _applySpawnHit(segs, perpX, perpY, normalX, normalY, spacing, effect, surfaceContext) {
+    _applySpawnHit(
+        segs, perpX, perpY, normalX, normalY, spacing, effect, surfaceContext,
+        castContext, chainDamageMul = 0
+    ) {
         const targets = this._hostileTargets();
-        const d = this.source.data || {};
+        const d = castContext?.stats || this.source.data || {};
         // 伤害 = damageBase + 智力×damageIntMul + 精神×damageWisMul（公式见 skills.json，随等级解析）
         const damage = Math.floor(effect.damageBase
             + (d.int || 0) * effect.damageIntMul
             + (d.wis || 0) * effect.damageWisMul);
         // 链式强化伤害加成（消费了层数就必须吃到加成，与 bolt-skill-system 同口径）
-        const chainMul = 1 + (this._chainDamageMul || 0);
+        const chainMul = 1 + chainDamageMul;
         const kb = effect.hitKnockback;
         const pushMul = effect.pushDistanceMul;
         let hits = 0, kills = 0;
@@ -355,16 +383,30 @@ export class IceWallSystem {
      */
     breakdown() {
         if (this._walls.length === 0 && this._pendingSpawns.length === 0) return;
-        if (WallSystem && WallSystem.isoSegments) {
-            for (const w of this._walls) {
-                if (w._colSeg) {
-                    const si = WallSystem.isoSegments.indexOf(w._colSeg);
-                    if (si >= 0) WallSystem.isoSegments.splice(si, 1);
-                }
-            }
-        }
+        const segments = new Set(this._walls.map(w => w._collisionSeg).filter(Boolean));
+        for (const seg of segments) this._removeCollisionSegment(seg);
         this._walls.length = 0;
         this._pendingSpawns.length = 0;
+    }
+
+    _invalidatePathRegion(seg) {
+        if (!seg || !pathFinder || typeof pathFinder.invalidateRegion !== 'function') return;
+        const pad = (seg.halfThick || 0) + 4;
+        pathFinder.invalidateRegion(
+            Math.min(seg.x1, seg.x2) - pad,
+            Math.min(seg.y1, seg.y2) - pad,
+            Math.max(seg.x1, seg.x2) + pad,
+            Math.max(seg.y1, seg.y2) + pad
+        );
+    }
+
+    _removeCollisionSegment(seg) {
+        if (!seg || !WallSystem || !WallSystem.isoSegments) return false;
+        const index = WallSystem.isoSegments.indexOf(seg);
+        if (index < 0) return false;
+        WallSystem.isoSegments.splice(index, 1);
+        this._invalidatePathRegion(seg);
+        return true;
     }
 
     /** 玩家施法动作包装：播空手施法动画，第 8 帧触发 onRelease */
@@ -389,7 +431,10 @@ export class IceWallSystem {
             if (p.timer <= 0) {
                 this._pendingSpawns.splice(i, 1);
                 if (p.src && p.src.active !== false) {
-                    this._spawnWall(p.src, p.aimX, p.aimY, p.effect, p.surfaceContext);
+                    this._spawnWall(
+                        p.src, p.aimX, p.aimY, p.effect, p.surfaceContext,
+                        p.castContext, p.chainDamageMul
+                    );
                 }
             }
         }
@@ -399,11 +444,10 @@ export class IceWallSystem {
             w.age = (w.age || 0) + dt;
             if (w.remaining <= 0) {
                 this._shatter(w);
-                if (w._colSeg && WallSystem && WallSystem.isoSegments) {
-                    const si = WallSystem.isoSegments.indexOf(w._colSeg);
-                    if (si >= 0) WallSystem.isoSegments.splice(si, 1);
-                }
                 this._walls.splice(i, 1);
+                if (w._collisionSeg && !this._walls.some(other => other._collisionSeg === w._collisionSeg)) {
+                    this._removeCollisionSegment(w._collisionSeg);
+                }
                 continue;
             }
         }
