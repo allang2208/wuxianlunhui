@@ -16,6 +16,7 @@
 | [obstacle.md](obstacle.md) | 障碍物/场景道具 | 实战固化（2026-08-03） |
 | [monster-sprite.md](monster-sprite.md) | 怪物/角色贴图 | 初版（基于动画工作流，待实战补坑） |
 | [video.md](video.md) | MiniMax H3 视频 | 实战固化（陨星 VFX 2026-08-04） |
+| [doubao-character-action-standard.md](doubao-character-action-standard.md) | 豆包 Seedance 人物动作视频（多动作试样/单动作循环） | 实战固化（伊莉丝奔跑 2026-08-24） |
 | [transparent-subject.md](transparent-subject.md) | 透明主体（需透明 PNG 的图标/装备/怪物/道具） | 新增（2026-08-04 方案一固化） |
 | [cover.md](cover.md) | 掩体（世界-122 防守地图 F→A 六档 × 水平/垂直摆） | 新增（2026-08-04） |
 | [defense-tower.md](defense-tower.md) | 防御塔建筑（基座+机械臂挂载点） | 新增（2026-08-04） |

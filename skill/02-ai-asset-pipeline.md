@@ -328,7 +328,27 @@ python tools/ai-gen/build-lighting-maps.py <building_id>
   `Y:\工作\无尽轮回\scratch\backup\` 再替换；UI 是 `<img>` + CSS 48×48 object-fit:contain
   渲染，1024² 透明底直接可用，无需改代码。
 
-#### 视频生成（MiniMax H3，远程 5080，2026-08-04 落地）
+#### 视频生成（MiniMax H3 / 豆包 Seedance，2026-08-24）
+- **状态：已端到端打通。** 伊莉丝 running / walking / idle 实战已覆盖“参考图+提示词 → 安全启动本地豆包 → 选择 Seedance 2.0 Mini/画幅/时长 → 上传 → 提示词回读 → 单次提交 → 等待或恢复下载 → provenance JSON → BiRefNet 抠图/周期截取/锚点对齐 → 透明 spritesheet → 配置入库”。今后从 `tools/ai-gen/ai-asset.py ... --provider doubao` 进入，不再手工操作客户端页面。
+- 统一入口仍是 `tools/ai-gen/ai-asset.py`。默认 `--provider h3` 保持原 5080 行为；需要快速抽卡时用
+  `video generate --provider doubao`，或在 `monster video` / `humanoid video` 后追加
+  `--provider doubao --candidates N`。豆包后端固定复用本地客户端登录态，默认模型
+  `Seedance 2.0 Mini`，支持 4~15 秒与自动/3:4/4:3/9:16/16:9/1:1/21:9；`size` 自动映射最近比例。
+- 客户端自动化：`tools/ai-gen/doubao-seedance-gen.mjs` 只在 `127.0.0.1:9333` 开 CDP，
+  不读取/复制 Cookie、Token。首次使用若豆包已普通启动，须由用户完整退出一次；脚本不会杀进程，
+  之后会以自动化参数启动本地客户端；成功下载后关闭自己启动的客户端和调试端口。额度不足、内容拦截、人脸认证或提交状态不明时立即停，
+  禁止自动二次提交（防重复消耗）。每个 MP4 旁写同名 provenance JSON。
+- 页面已完成但自动监听超时时，先 `--inspect` 只读确认，再用
+  `--attach-only --download-latest --out <目标.mp4>` 恢复当前会话最后一个视频；恢复模式禁止进入编辑器或重新提交。
+- 豆包 Mini 是**快速候选源**：UI 没有 H3 的像素级 `last_frame` 锁定。循环动作只追加回首姿提示词，
+  必须继续经过现有 rebuild、首尾缝、空格与透明帧验收；不得因速度快跳过抽卡和最终 GIF 预览。
+- **提交前强制回读（伊莉丝 2026-08-24）**：先运行 `doubao-seedance-gen.mjs --fill-only`，用真实键盘输入写入后
+  逐字回读，字符数/哈希一致才准正式提交；空提示曾生成默认“女骑士英姿”战场运镜视频并浪费一次额度。
+  provenance JSON 必须带 `promptChars/promptSha256`。
+- **无影提示不是抠图保证**：纯白无影首帧 + 多次“无接触阴影”仍会被 Mini 重画成长软影；统一走
+  `prepare-video-character-reference.py` / `character-run-video-rebuild.py` 的 BiRefNet 最大主体连通域，清除灰底、
+  阴影和角标。方向约束写鼻尖/胸腔/骨盆/膝盖/脚尖沿水平轴，但三分之四参考图不能仅靠文字变成严格正侧面，
+  联系图/GIF 未人工确认不得覆盖运行时资产。重建器可用 `--stem running|walking|...` 直接产出对应动作文件名。
 - 模型：`fl2va`（文生/图生视频）+ `ref2va`（参考生视频）；Qwen3-VL 32B 编码器；视频+音频双 VAE——
   **音画同一轮扩散生成**（原生立体声，非后期配音），MP4 直出
 - 客户端：`tools/ai-gen/minimax-h3-gen.py`（--prompt / --duration / --size / --seed / --out）
@@ -989,6 +1009,11 @@ defend 持盾帧右偏 13px。**结论：武器弧远超身体宽的动作，格
 
 - **统一尺度铁律**：所有动作共用**同一个全局缩放 S**（伊莉丝 = 461/171，站立身体高 461 =
   露娜同款），不做每 sheet 独立缩放、不做逐帧拉高——跨动作身体大小一致，动作间切换无缩放跳变。
+- **跨来源动作补充口径（2026-08-24）**：当 walk/run 等动作来自不同视频生成批次，原始全局 S 已不再
+  同源，先用 `elise-state-scale-contact.py` 把各状态放到同脚线、同像素尺度联系图；只对确认整套偏大的
+  状态用 `elise-normalize-state-scale.py` 施加一个共享系数。缩放中心固定为逐帧躯干中心+脚底，禁止按
+  每帧 Alpha 高度单独拉齐。风车中段的下蹲、攻击跨步和奔跑伸展都是姿态，不是缩放误差；应以同动作
+  站起/站立帧对齐 461px 基准，再让整套动作共同缩放，以保留原始姿态比例。
 - **格规格按最大内容选型**：每 sheet 量出最大帧内容 w/h × S，格宽还要满足"质心对齐到格心
   不 clamp"（伊莉丝 attack 最宽帧质心在内容 34% 处 → 960 格；windmill 52% → 896 格）。
   帧格可非正方形（attack 960×1024：f5 举剑 898 高完整入格，**不再单独缩小**）。

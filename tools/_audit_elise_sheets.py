@@ -1,15 +1,25 @@
 # 伊莉丝精灵图审计：网格匹配 + 对齐三铁律（高度/脚底基线/水平中心）+ 空帧/贴边
-import sys, json
+from pathlib import Path
+import json
 from PIL import Image
 
-SHEETS = {
-    'idle':     ('assets/companions/elise/idle.png',      512, 512, 1, 1, 1),
-    'walk':     ('assets/companions/elise/walking.png',   640, 640, 4, 3, 12),
-    'run':      ('assets/companions/elise/running.png',   640, 640, 5, 5, 23),
-    'attack':   ('assets/companions/elise/attacking.png', 960, 1024, 5, 6, 28),
-    'windmill': ('assets/companions/elise/windmill.png',  896, 640, 5, 5, 23),
-    'defend':   ('assets/companions/elise/defending.png', 640, 640, 4, 5, 19),
-}
+ROOT = Path(__file__).resolve().parents[1]
+
+
+def load_sheets():
+    config = json.loads((ROOT / 'data' / 'companion-config.json').read_text(encoding='utf-8'))
+    elise = next(item for item in config['companions'] if item['id'] == 'warrior_bruno')
+    sheets = {}
+    for name, spec in elise['animations'].items():
+        sheets[name] = (
+            str(ROOT / spec['src']),
+            spec['frameWidth'], spec['frameHeight'],
+            spec['cols'], spec['rows'], spec['frameCount'],
+        )
+    return sheets
+
+
+SHEETS = load_sheets()
 
 def audit(name, path, fw, fh, cols, rows, frame_count):
     im = Image.open(path).convert('RGBA')
@@ -23,7 +33,9 @@ def audit(name, path, fw, fh, cols, rows, frame_count):
     for i in range(n):
         cx, cy = (i % cols) * fw, (i // cols) * fh
         cell = alpha.crop((cx, cy, cx + fw, cy + fh))
-        bbox = cell.getbbox()
+        # 项目统一度量口径为 alpha>16；不能把 Lanczos/羽化产生的极低 alpha
+        # 软边当成主体尺寸、脚线或贴边证据。
+        bbox = cell.point(lambda value: 255 if value > 16 else 0).getbbox()
         px = cell.load()
         if not bbox:
             empties.append(i); feet.append(None); centers.append(None); heights.append(None); widths.append(None)
@@ -65,9 +77,9 @@ def audit(name, path, fw, fh, cols, rows, frame_count):
     stats([centers[i] for i in used], '水平中心偏移 px')
     stats([heights[i] for i in used], '内容高度 px')
     stats([widths[i] for i in used], '内容宽度 px')
-    # 逐帧列出脚底与中心，看漂移形态
-    seq = ', '.join(f'{i}:{feet[i]}/{centers[i]:+.0f}' for i in used)
-    print('   逐帧 帧号:脚底线/中心偏移 →', seq)
+    # 逐帧列出脚底、中心与内容高度，区分真正的跨状态缩放错误与下蹲/挥剑等姿态变化。
+    seq = ', '.join(f'{i}:{feet[i]}/{centers[i]:+.0f}/{heights[i]}' for i in used)
+    print('   逐帧 帧号:脚底线/中心偏移/内容高 →', seq)
 
 for name, args in SHEETS.items():
     try:

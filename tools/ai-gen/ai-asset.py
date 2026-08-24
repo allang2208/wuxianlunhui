@@ -8,13 +8,15 @@
 用法（ComfyUI venv python）：
   # 怪物 idle：5080 生图候选（自动选背景色）→ BiRefNet 抠图 → 512 归一化
   python ai-asset.py monster idle --name bear --ref assets/enemies/bear_idle.png
-  # 怪物动画视频：5080 H3 生成（首帧=ref，自动注入主体无色背景）
+  # 怪物动画视频：默认 5080 H3；可切本地豆包 Seedance 2.0 Mini 快速抽候选
   python ai-asset.py monster video --name bear --kind run --ref assets/enemies/bear_idle.png
+  python ai-asset.py monster video --provider doubao --candidates 3 --name bear --kind run --ref assets/enemies/bear_idle.png
   # 怪物动画 sheet：视频 → 周期/窗口检测 → BiRefNet 重建 → CLEAN 验证
   python ai-asset.py monster rebuild --name bear --video Y:/.../bear_run.mp4 --kind run
   # 查看某怪物的全部产物
   python ai-asset.py monster status --name bear
   # 通用
+  python ai-asset.py video generate --provider doubao --ref first.png --prompt prompt.txt --out candidate.mp4
   python ai-asset.py cutout --src x.png --out x_alpha.png
   python ai-asset.py bg-color --image ref.png
   python ai-asset.py verify --sheet bear_run.png --cell 512
@@ -53,6 +55,72 @@ def ensure_dir(p):
     os.makedirs(p, exist_ok=True)
 
 
+def add_video_provider_args(parser):
+    parser.add_argument("--provider", choices=["h3", "doubao"], default="h3",
+                        help="视频后端：h3=远程 5080 MiniMax H3（默认）；doubao=本地豆包客户端")
+    parser.add_argument("--candidates", type=int, default=1,
+                        help="豆包连续抽取候选数；默认 1（每个候选都会消耗额度）")
+    parser.add_argument("--doubao-model", default="Seedance 2.0 Mini",
+                        help="豆包视频模型；默认 Seedance 2.0 Mini")
+    parser.add_argument("--doubao-cdp-port", type=int, default=9333,
+                        help="豆包客户端本地自动化端口")
+    parser.add_argument("--doubao-attach-only", action="store_true",
+                        help="只连接已用自动化端口启动的豆包，不自动启动客户端")
+
+
+def video_command(args, prompt, out, loop=False):
+    """Build one provider command while keeping downstream MP4 contracts identical."""
+    if args.provider == "doubao":
+        cmd = ["node", tool("doubao-seedance-gen.mjs"),
+               "--ref", args.ref, "--prompt-file", prompt,
+               "--duration", str(args.duration), "--size", args.size,
+               "--model", args.doubao_model,
+               "--candidates", str(args.candidates),
+               "--out", out, "--timeout", str(args.timeout),
+               "--cdp-port", str(args.doubao_cdp_port)]
+        if loop:
+            cmd += ["--loop"]
+        if args.doubao_attach_only:
+            cmd += ["--attach-only"]
+        return cmd
+
+    if args.candidates != 1:
+        raise ValueError("--candidates is currently supported only by --provider doubao")
+    cmd = ["PY", tool("minimax-h3-gen.py"), "--host", HOST,
+           "--first-frame", args.ref, "--prompt-file", prompt,
+           "--duration", str(args.duration), "--size", args.size,
+           "--steps", str(args.steps), "--out", out,
+           "--timeout", str(args.timeout)]
+    if loop:
+        cmd += ["--last-frame", args.ref]
+    if getattr(args, "seed", None) is not None:
+        cmd += ["--seed", str(args.seed)]
+    if getattr(args, "bg_color", None):
+        cmd += ["--bg-color", args.bg_color]
+    return cmd
+
+
+def prepare_doubao_background_prompt(args, prompt, out_dir):
+    """Mirror H3's solid-background injection before handing a prompt to Doubao."""
+    bg_color = getattr(args, "bg_color", None)
+    if args.provider != "doubao" or not bg_color:
+        return prompt
+    if bg_color.lower() == "auto":
+        pick = pick_bg_color.pick_bg_color_from_image(args.ref)
+        name, hexc = pick["name"], pick["hex"]
+    else:
+        hexc = bg_color.lstrip("#")
+        name = pick_bg_color.name_for_hex(hexc)
+    injected = os.path.join(out_dir, f"{os.path.splitext(os.path.basename(prompt))[0]}_doubao_bg.txt")
+    print(f"[ai-asset] doubao bg-color: {name} #{hexc}", flush=True)
+    if not args.dry_run:
+        with open(prompt, encoding="utf-8") as fh:
+            text = fh.read()
+        with open(injected, "w", encoding="utf-8") as fh:
+            fh.write(pick_bg_color.inject_background(text, name, hexc))
+    return injected
+
+
 def monster_idle(args):
     out_dir = os.path.join(SCRATCH, f"{args.name}_idle")
     ensure_dir(out_dir)
@@ -87,20 +155,35 @@ def monster_idle(args):
     print(f"[ai-asset] idle 候选 -> {out_dir}", flush=True)
 
 
+def generic_video_generate(args):
+    out = os.path.abspath(args.out)
+    ensure_dir(os.path.dirname(out))
+    prompt = prepare_doubao_background_prompt(args, args.prompt, os.path.dirname(out))
+    cmd = video_command(args, prompt, out, loop=args.loop)
+    run(cmd, args.dry_run)
+    if args.provider == "doubao" and args.candidates > 1:
+        stem, ext = os.path.splitext(out)
+        print(f"[ai-asset] video candidates -> {stem}_c01..c{args.candidates:02d}{ext}", flush=True)
+    else:
+        print(f"[ai-asset] video -> {out}", flush=True)
+
+
 def monster_video(args):
     out_dir = os.path.join(SCRATCH, f"{args.name}_anim")
     ensure_dir(out_dir)
     prompt = tool(f"prompts/{args.name}-{args.kind}.txt")
     out = os.path.join(out_dir, f"{args.name}_{args.kind}.mp4")
-    cmd = ["PY", tool("minimax-h3-gen.py"), "--host", HOST,
-           "--first-frame", args.ref, "--last-frame", args.ref,
-           "--prompt-file", prompt, "--duration", str(args.duration),
-           "--size", args.size, "--steps", str(args.steps),
-           "--out", out, "--timeout", str(args.timeout)]
-    if args.bg_color:
-        cmd += ["--bg-color", args.bg_color]
+    prompt = prepare_doubao_background_prompt(args, prompt, out_dir)
+    cmd = video_command(args, prompt, out, loop=True)
+    if args.provider == "doubao":
+        print("[ai-asset] 注意：豆包 Mini 仅用提示词要求回到首姿；不提供 H3 的像素级 last-frame 锁定，"
+              "循环候选仍须在 rebuild 后验缝。", flush=True)
     run(cmd, args.dry_run)
-    print(f"[ai-asset] video -> {out}", flush=True)
+    if args.provider == "doubao" and args.candidates > 1:
+        stem, ext = os.path.splitext(out)
+        print(f"[ai-asset] video candidates -> {stem}_c01..c{args.candidates:02d}{ext}", flush=True)
+    else:
+        print(f"[ai-asset] video -> {out}", flush=True)
 
 
 def monster_rebuild(args):
@@ -237,17 +320,15 @@ def humanoid_video(args):
     out = args.out or os.path.join(out_dir, f"{args.name}_{args.kind}.mp4")
     # Explicit project-local outputs must not depend on the optional Y: scratch drive.
     ensure_dir(os.path.dirname(os.path.abspath(out)))
-    cmd = ["PY", tool("minimax-h3-gen.py"), "--host", HOST,
-           "--first-frame", args.ref, "--prompt-file", prompt,
-           "--duration", str(args.duration), "--size", args.size,
-           "--steps", str(args.steps), "--out", out,
-           "--timeout", str(args.timeout)]
-    if not args.one_way:
-        cmd += ["--last-frame", args.ref]
-    if args.seed is not None:
-        cmd += ["--seed", str(args.seed)]
+    if args.provider == "doubao" and args.seed is not None:
+        print("[ai-asset] 豆包客户端不暴露 seed；已忽略 --seed。", flush=True)
+    cmd = video_command(args, prompt, out, loop=not args.one_way)
     run(cmd, args.dry_run)
-    print(f"[ai-asset] humanoid video -> {out}", flush=True)
+    if args.provider == "doubao" and args.candidates > 1:
+        stem, ext = os.path.splitext(out)
+        print(f"[ai-asset] humanoid video candidates -> {stem}_c01..c{args.candidates:02d}{ext}", flush=True)
+    else:
+        print(f"[ai-asset] humanoid video -> {out}", flush=True)
 
 
 def lora_prep(args):
@@ -303,6 +384,24 @@ def main():
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest="category", required=True)
 
+    # ===== provider-neutral reference image + prompt -> MP4 =====
+    vg = sub.add_parser("video", parents=[common], help="参考图 + 提示词 → MP4（H3 或本地豆包）")
+    vgsub = vg.add_subparsers(dest="action", required=True)
+    vp = vgsub.add_parser("generate", parents=[common], help="生成一个或多个视频候选")
+    vp.add_argument("--ref", required=True, help="参考图/首帧")
+    vp.add_argument("--prompt", required=True, help="提示词文件路径")
+    vp.add_argument("--out", required=True, help="MP4 输出路径；多个豆包候选自动加 _c01 后缀")
+    vp.add_argument("--duration", type=float, default=5.17)
+    vp.add_argument("--size", default="1024x576")
+    vp.add_argument("--steps", type=int, default=16, help="仅 H3 使用")
+    vp.add_argument("--seed", type=int, default=None, help="仅 H3 使用")
+    vp.add_argument("--bg-color", default=None, help="#RRGGBB 或 auto；两种后端均注入同色纯色底提示")
+    vp.add_argument("--timeout", type=int, default=1800)
+    vp.add_argument("--loop", action="store_true",
+                    help="要求回到首姿；H3 锁 last-frame，豆包仅追加循环提示词")
+    add_video_provider_args(vp)
+    vp.set_defaults(func=generic_video_generate)
+
     # ===== monster 大类 =====
     m = sub.add_parser("monster", parents=[common], help="四足怪物动画精灵图工作流")
     msub = m.add_subparsers(dest="action", required=True)
@@ -327,6 +426,7 @@ def main():
     p.add_argument("--steps", type=int, default=16)
     p.add_argument("--bg-color", default=None, help="#RRGGBB 或 auto（自动选主体无色）")
     p.add_argument("--timeout", type=int, default=1200)
+    add_video_provider_args(p)
     p.set_defaults(func=monster_video)
 
     p = msub.add_parser("rebuild", parents=[common], help="视频 → 动画 sheet（周期/窗口检测 + BiRefNet 重建 + 验证）")
@@ -425,6 +525,7 @@ def main():
     hp.add_argument("--timeout", type=int, default=1800)
     hp.add_argument("--one-way", action="store_true",
                     help="仅锁首帧，不回到参考站姿（死亡等不可逆动作）")
+    add_video_provider_args(hp)
     hp.set_defaults(func=humanoid_video)
 
     hp = hmsub.add_parser("loop", parents=[common], help="循环动画抽帧（无缝循环 sheet）")

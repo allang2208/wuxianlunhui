@@ -307,13 +307,49 @@ SDXL 的 style_prefix + 单件强制语法）→ BiRefNet 抠图 → 1536² 归�
 - 优先 img2img 参考既有投射物图（如 Meshy 冰锥）→ 抠图 → 随机抽取入库（冰锥 4 张范例）。
 - 纯色小物件（雪球等）直接运行时 `createCanvas` 生成纹理，不要 AI 出图再抠。
 
-### 3.6 视频（MiniMax H3）
+### 3.6 视频（MiniMax H3 / 本地豆包 Seedance）
 
-提示词模板：`prompts/video.md`；客户端 `python tools/ai-gen/minimax-h3-gen.py`；
+提示词模板：H3/VFX 用 `prompts/video.md`，豆包人物动作使用
+`prompts/doubao-character-action-standard.md`；客户端 `python tools/ai-gen/minimax-h3-gen.py`；
 输出 MP4 直入 `assets/videos/` 或 PyAV 抽帧转 sprite sheet（动作动画截帧路线）。
 主角攻击动画走关键帧→H3 两段式管线：`prep-player-attack-keyframes.py` →
 `run-player-attack-sword.py` → `analyze-player-attack-sword.py` →
 `build-player-attack-sheet.py`（详见 SKILL.md「主角一段攻击关键帧→H3 两段式挥砍重生」）。
+
+快速免费候选可走本地豆包客户端（默认 `Seedance 2.0 Mini`）：
+
+```powershell
+python tools/ai-gen/ai-asset.py video generate --provider doubao `
+  --ref Y:\素材库\first-frame.png --prompt tools\ai-gen\prompts\video.md `
+  --duration 5 --size 1024x576 --candidates 3 `
+  --out Y:\工作\无尽轮回\scratch\seedance_candidate.mp4
+```
+
+首次运行前完整退出普通启动的豆包一次；脚本会用 loopback CDP 启动客户端，绝不自动杀进程；成功下载后关闭自己启动的客户端与调试端口。
+多候选输出为 `_c01/_c02/...`，并各带 `.mp4.json` 来源记录。豆包端无像素级尾帧锁，循环动作
+仍须走原有抽帧、首尾缝、透明和 GIF 预览验收。额度不足、账号认证或一般风控提示出现即停止，不自动重投；
+若明确反馈“肖像保护/暂不支持真实人脸参考”，则按 `prompts/doubao-character-action-standard.md` 的肖像降级规则处理：
+删除提示词中的角色名和身份专名，统一改称“参考图中的原创游戏角色”、明确不涉及真人肖像，仅允许再提交一次；
+仍被拦截时停止图生视频，改走无专名文生视频或更换明显非真人风格的参考图。
+若页面已显示“你的视频生成好了”但自动等待超时，先用 `--inspect` 只读确认当前会话，再运行
+`--attach-only --download-latest --out <目标.mp4>` 恢复最后一个可播放结果；该恢复入口不上传、不提交、不消耗新额度。
+
+豆包人物动作提交与入库硬门槛（伊莉丝奔跑实测）：
+
+- 提交前必须先用 `--fill-only` 演练。自动化使用真实键盘输入写入提示词，并从编辑器逐字回读；
+  字符数/哈希不一致时禁止提交。MP4 provenance JSON 同步记录 `promptChars` 与 `promptSha256`。
+- “绝对无阴影/纯白底”提示对 Seedance Mini **不可靠**：即使纯白无影首帧和双最高优先级提示均正确，
+  模型仍可能重画浅灰底与长接触阴影。不得直接阈值抠底，统一以 BiRefNet 最大主体连通域清除背景、
+  阴影和豆包角标；提示词是减轻污染，不是验收证据。
+- 方向锁定必须同时使用接近目标侧向的动作关键帧和结构化方向约束（鼻尖/胸腔/骨盆/膝盖/脚尖沿水平轴）。
+  若参考帧仍为三分之四视角，文字只能减小偏差，不能保证变成严格正侧面；入库前必须人工查看联系图/GIF。
+- 动作参考帧可用 `prepare-video-character-reference.py` 从候选视频抽帧、BiRefNet 抠图后重铺纯白底；
+  循环候选用 `character-run-video-rebuild.py --start S --endpoint E --stem <动作名>`，其中 E 是与 S 同相的重复端点，
+  成品只保留 `[S,E)`。Idle 等慢动作可显式加 `--step 2` 降为源帧率的一半，脚本会同步写入成品帧率，
+  不允许改用逐帧不等比拉伸来压缩贴图。固定位置 Idle 使用 `--horizontal-anchor lower-body`，排除长剑、
+  盾牌和披风对水平中心的干扰，并在缩放落位后做整数像素二次纠偏；报告必须满足 0 空帧、0 贴边、
+  脚线固定、`lowerBodyOffsetSpan == 0px`、
+  接缝步幅比 `0.5~1.5`。
 
 ### 3.7 透明主体（需要透明 PNG 的图标/装备/怪物/道具）
 
