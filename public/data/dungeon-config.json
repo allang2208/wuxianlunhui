@@ -858,7 +858,32 @@
   }
  },
  "combatArena": {
-  "minGrade": "D",
+  "roomCountByGrade": {
+   "F": {
+    "normal": 1,
+    "elite": 1
+   },
+   "E": {
+    "normal": 1,
+    "elite": 3
+   },
+   "D": {
+    "normal": 3,
+    "elite": 5
+   },
+   "C": {
+    "normal": 3,
+    "elite": 5
+   },
+   "B": {
+    "normal": 3,
+    "elite": 5
+   },
+   "A": {
+    "normal": 3,
+    "elite": 5
+   }
+  },
   "passagePrefabs": {
    "default": {
     "v1": "左右通道",

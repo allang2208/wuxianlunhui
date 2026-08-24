@@ -22,6 +22,7 @@ import { pathFinder } from '../ai/pathfinder.js';
 import { CONFIG } from '../config/config.js';
 import { BlackWolf, CircleEnemy } from '../entities/enemy-types.js';
 import { DungeonConfig } from '../config/dungeon-config.js';
+import { rollDungeonBossGold, rollDungeonCombatGold } from '../config/dungeon-rewards.js';
 import { applyDungeonFloor, applyDiamondFloor, applyArenaFloor, getDungeonFloorProfile } from './dungeon-floor-texture.js';
 import { WallGate } from './wall-gate.js';
 import { TrapSystem } from './trap-system.js';
@@ -480,12 +481,11 @@ export const CombatRoomSystem = {
     /**
      * 获取战斗奖励金币数
      * @param {boolean} isBoss - 是否为 Boss 战
+     * @param {string|null} dungeonType - 当前地牢类型
      * @returns {number}
      */
-    getGoldReward(isBoss = false) {
-        const cfg = this.config.cleanup.goldReward;
-        if (isBoss) return cfg.boss;
-        return cfg.normal.min + Math.floor(Math.random() * (cfg.normal.max - cfg.normal.min));
+    getGoldReward(isBoss = false, dungeonType = null) {
+        return isBoss ? rollDungeonBossGold(dungeonType) : rollDungeonCombatGold(dungeonType);
     },
 
     /**
@@ -1011,7 +1011,7 @@ export const CombatRoomSystem = {
     /**
      * 进入多房间串联竞技场
      * @param {Object} player 玩家实体
-     * @param {Object} options { normalSize, eliteSize }
+     * @param {Object} options { normalSize, eliteSize, roomCount }
      * @returns {Object|false} 场地信息 { rooms, worldW, worldH }；预制缺失/轴向不符返回 false（调用方回退单房间）
      */
     enterCombatArena(player, options = {}) {
@@ -1042,8 +1042,9 @@ export const CombatRoomSystem = {
         const normalSize = options.normalSize || this.config.roomSize.normal;
         const eliteSize = options.eliteSize || this.config.roomSize.elite;
         const mazeCfg = arenaCfg.maze || {};
-        const mazeEnabled = mazeCfg.enabled !== false;
-        const roomCount = mazeEnabled ? (mazeCfg.roomCount || 3) : 3;
+        const configuredRoomCount = mazeCfg.enabled !== false ? (mazeCfg.roomCount || 3) : 3;
+        const roomCount = Math.max(2, Math.floor(Number(options.roomCount) || configuredRoomCount));
+        const mazeEnabled = roomCount >= 4 && mazeCfg.enabled !== false;
         let layout;
         if (worldBlockArena) {
             const sizes = [];
@@ -1061,6 +1062,7 @@ export const CombatRoomSystem = {
                 normalSize, eliteSize,
                 passageLen: analysisV1.len,
                 gap: arenaCfg.passageGap || 0,
+                roomCount,
             });
         } else {
             // 多房蛇形迷宫：除末房 elite（宝箱房）外全 normal

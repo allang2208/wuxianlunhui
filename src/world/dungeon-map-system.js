@@ -45,7 +45,7 @@ import { CombatRoomSystem } from './combat-room-system.js';
 import { ChestRoomSystem } from './chest-room-system.js';
 import { setDungeonFloorProfile } from './dungeon-floor-texture.js';
 import { WallSystem } from './wall-system.js';
-import { BossRewardSystem, BOSS_REWARD_CONFIG } from './boss-reward-system.js';
+import { BossRewardSystem } from './boss-reward-system.js';
 import { RARITY_ORDER, getRarityLabel } from '../config/rarity.js';
 import { COMBAT_FORMULAS } from '../config/combat-formulas.js';
 import { EffectManager } from '../effects/effect-manager.js';
@@ -56,6 +56,7 @@ import { DungeonRunStats } from './dungeon-run-stats.js';
 import { isWallPrefabsLoaded, loadWallPrefabs, whenWallPrefabsLoaded } from './wall-prefabs.js';
 
 import { GoldManager } from '../systems/gold-manager.js';
+import { getDungeonRewardRule } from '../config/dungeon-rewards.js';
 
 export const DungeonMapSystem = {
     active: false,
@@ -1168,18 +1169,18 @@ export const DungeonMapSystem = {
         // 战斗完成后消耗女神祝福层数
         this._consumeCombatBuffs(player);
 
+        // 节点清空前先保存类型；_markCurrentNodeCompleted 会把 boss 改成 empty。
+        const currentNode = this.getCurrentNode();
+        const isBoss = currentNode && currentNode.type === 'boss';
+
         // 统一标记当前节点已完成
         this._markCurrentNodeCompleted();
 
-        // 普通战斗奖励金币
-        const currentNode = this.getCurrentNode();
-        const isBoss = currentNode && currentNode.type === 'boss';
-        if (!isBoss) {
-            const gold = CombatRoomSystem.getGoldReward(false);
-            if (gold > 0 && GoldManager) {
-                GoldManager.addGold(gold);
-                EffectManager.add(new FloatingTextEffect(this.FLOAT_TEXT_X, this.FLOAT_TEXT_Y, `获得 ${gold} 金币`, '#ffd700'));
-            }
+        // 战斗节点清剿奖；独立 bossEncounter 也走同一等级 Boss 金币真源。
+        const gold = CombatRoomSystem.getGoldReward(isBoss, this.dungeonType);
+        if (gold > 0 && GoldManager) {
+            GoldManager.addGold(gold);
+            EffectManager.add(new FloatingTextEffect(this.FLOAT_TEXT_X, this.FLOAT_TEXT_Y, `获得 ${gold} 金币`, '#ffd700'));
         }
 
         // 清理战斗场地（怪物、传送门、掉落物、恢复原始地形）
@@ -1279,9 +1280,9 @@ export const DungeonMapSystem = {
     },
 
     _enterZombieCombat(node, options = {}) {
-        // D 级及以上地牢：三房间串联竞技场（入侵混合战同走竞技场，特工留到房间 3 随第 3 波刷新）
-        if (DungeonConfig.isCombatArenaEnabled(this.dungeonType)) {
-            return this._enterCombatArena(node);
+        const arenaRoomCount = DungeonConfig.getCombatArenaRoomCount(this.dungeonType, !!node.isElite);
+        if (DungeonConfig.isCombatArenaEnabled(this.dungeonType, !!node.isElite)) {
+            return this._enterCombatArena(node, arenaRoomCount);
         }
         this._zombieCombatNode = node;
         this._zombieWaveActive = true;
@@ -1443,13 +1444,13 @@ export const DungeonMapSystem = {
     },
 
     /**
-     * 三房间串联竞技场（D 级及以上战斗事件）：
-     * - 房间 1/2 = 普通战斗房大小，房间 3 = 精英战斗房大小（含宝箱房，普通/精英都生成）；
-     * - 房间 N 刷第 N 波；进入房间才关门刷怪，清完开门；房间 3 清完开出口门墙。
+     * 多房间竞技场：
+     * - 除末房外使用普通战斗房大小，末房使用精英房大小并生成宝箱；
+     * - 房间 N 刷第 N 波；进入房间才关门刷怪，清完开门，末房清完开出口门墙。
      * 墙预制库未就绪（BootScene 预载是 fire-and-forget，资源慢时可能还没拉完）时
      * 不再静默回退——等加载完成后重试；仍构建失败（通道预制缺失等）才回退原单房间流程。
      */
-    _enterCombatArena(node) {
+    _enterCombatArena(node, roomCount = 3) {
         // 预制库未就绪：延迟重试——等加载 Promise resolve 后再进战斗，期间给玩家短暂加载提示
         if (!isWallPrefabsLoaded()) {
             if (this._arenaPrefabsWaiting) return; // 已有等待在进行（防重入重复建场）
@@ -1460,7 +1461,7 @@ export const DungeonMapSystem = {
                 this._arenaPrefabsWaiting = false;
                 // 等待期间被其他流程接管（离开战斗 / 别的路径已建好战斗场地）则放弃重试
                 if (this.state !== 'combat' || CombatRoomSystem.state === 'combat') return;
-                this._enterCombatArena(node);
+                this._enterCombatArena(node, roomCount);
             });
             return;
         }
@@ -1474,6 +1475,7 @@ export const DungeonMapSystem = {
         const arenaInfo = CombatRoomSystem.enterCombatArena(this.player, {
             normalSize: crCfg.normalSize,
             eliteSize: crCfg.eliteSize,
+            roomCount,
             dungeonType: this.dungeonType, // 障碍物生成按地牢大类判定（僵尸/沼泽不同口径）
         });
         if (!arenaInfo) {
@@ -1929,7 +1931,7 @@ export const DungeonMapSystem = {
             }
             this._showVictory();
             this._returnToMap();
-        });
+        }, this.dungeonType);
     },
 
     _enterEvent(node) {
@@ -2401,9 +2403,9 @@ export const DungeonMapSystem = {
         const g = (DungeonConfig.getDungeonList() || {})[this.dungeonType] || {};
         const grade = g.grade || 'D';
         const chestPreview = ChestRoomSystem.getRewardPreview(this.dungeonType);
-        const bossBase = Math.max(0, Math.floor(Number(BOSS_REWARD_CONFIG.reward?.baseGold) || 0));
-        const bossVariance = Math.max(0, Math.floor(Number(BOSS_REWARD_CONFIG.reward?.goldVariance) || 0));
-        const bossMax = bossBase + Math.max(0, bossVariance - 1);
+        const rewardRule = getDungeonRewardRule(this.dungeonType);
+        const bossBase = rewardRule.bossGold.min;
+        const bossMax = rewardRule.bossGold.max;
         const tributeTable = ((COMBAT_FORMULAS.tributes || {}).dropTables || {})[grade] || {};
         const tributeCapIndex = RARITY_ORDER.indexOf(tributeTable.maxRarity);
         const tributeRarities = ['normal', 'elite', 'lord', 'boss']
@@ -2422,7 +2424,9 @@ export const DungeonMapSystem = {
             <div class="dungeon-route-panel-kicker">${g.name || this.dungeonName || '当前地牢'} · ${grade}级</div>
             <div class="dungeon-route-panel-title">预期奖励</div>
             <div class="dungeon-route-reward-row"><span>首领金币</span><strong>${fmt(bossBase)} ~ ${fmt(bossMax)}</strong></div>
-            <div class="dungeon-route-reward-row"><span>精英宝箱</span><strong>${getRarityLabel(chestPreview.equipmentRarity)}装备 · ${Math.round(chestPreview.equipmentChance * 100)}%</strong></div>
+            <div class="dungeon-route-reward-row"><span>通关金币</span><strong>${fmt(rewardRule.completionGold)} 起</strong></div>
+            <div class="dungeon-route-reward-row"><span>竞技场宝箱</span><strong>${Math.round(chestPreview.goldChance * 100)}% ${fmt(chestPreview.gold)}金 · 石${fmt(chestPreview.enhancementStone)}/券${fmt(chestPreview.reforgeTicket)}必得</strong></div>
+            <div class="dungeon-route-reward-row"><span>精英附加</span><strong>${getRarityLabel(chestPreview.equipmentRarity)}装备 · ${Math.round(chestPreview.equipmentChance * 100)}%</strong></div>
             <div class="dungeon-route-reward-row"><span>祭品范围</span><strong>${getRarityLabel(tributeLo)} ~ ${getRarityLabel(tributeHi)}</strong></div>
         `;
         stack.prepend(el);

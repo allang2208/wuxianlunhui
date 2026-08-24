@@ -265,7 +265,8 @@ export const ExpeditionSystem = {
         // 宝箱房奖励（精英战限时宝箱，按地牢等级读 universalEventRewards.treasureChest）
         const chestGrade = ((COMBAT_FORMULAS.universalEventRewards || {}).treasureChest || {})[grade];
         if (chestGrade) {
-            lines.push(`宝箱房(${grade}级)：金币 ${chestGrade.gold} / 强化石×${chestGrade.enhancementStone ?? 1} + 改造券×${chestGrade.reforgeTicket ?? 1} + 粉尘 ${chestGrade.materialDust}`);
+            lines.push(`宝箱房(${grade}级)：必得强化石×${chestGrade.enhancementStone ?? 1} + 改造券×${chestGrade.reforgeTicket ?? 1}`);
+            lines.push(`<span class="rule-sub">75% 金币 ${chestGrade.gold} / 25% 粉尘 ${chestGrade.materialDust}</span>`);
         }
         // Boss 奖励卡中的武器稀有度（boss-reward-system 配置）
         const bonusCards = (BOSS_REWARD_CONFIG.reward && BOSS_REWARD_CONFIG.reward.bonusCards) || [];

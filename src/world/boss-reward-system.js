@@ -12,6 +12,7 @@ import { AmalgamZombie } from '../entities/enemy-types.js';
 import enemyConfigData from '../../data/enemy-config.json';
 import { applyDiamondFloor } from './dungeon-floor-texture.js';
 import { DungeonConfig } from '../config/dungeon-config.js';
+import { getDungeonCompletionGold, getDungeonRewardRule, rollDungeonBossGold } from '../config/dungeon-rewards.js';
 import { pathFinder } from '../ai/pathfinder.js';
 import { CombatRoomSystem } from './combat-room-system.js';
 import { WallGate } from './wall-gate.js';
@@ -57,9 +58,12 @@ export const BOSS_REWARD_CONFIG = {
 
     // 奖励配置
     reward: {
-        // 基础奖励（击败 Boss 后）
-        baseGold: 2000,
-        goldVariance: 500,
+        // 兼容旧读取方；真实数值统一转发到当前地牢等级奖励表。
+        get baseGold() { return getDungeonRewardRule(_arenaDungeonType).bossGold.min; },
+        get goldVariance() {
+            const range = getDungeonRewardRule(_arenaDungeonType).bossGold;
+            return range.max - range.min + 1;
+        },
         // 奖励卡牌额外奖励（在 RewardSystem 基础上追加）
         bonusCards: [
             {
@@ -315,7 +319,7 @@ export class BossBattleManager {
         this._waitingForExit = true;
 
         // 发放基础奖励
-        const gold = BOSS_REWARD_CONFIG.reward.baseGold + Math.floor(Math.random() * BOSS_REWARD_CONFIG.reward.goldVariance);
+        const gold = rollDungeonBossGold(_arenaDungeonType);
         if (GoldManager) {
             GoldManager.addGold(gold);
         }
@@ -467,8 +471,9 @@ export class RewardNodeManager {
      * 进入奖励节点
      * @param {Object} player - 玩家实体
      * @param {Function} onComplete - 奖励选择完成回调
+     * @param {string|null} dungeonType - 当前地牢类型
      */
-    enterRewardNode(player, onComplete) {
+    enterRewardNode(player, onComplete, dungeonType = null) {
         if (this._isShowingReward) return;
 
         this._isShowingReward = true;
@@ -478,7 +483,7 @@ export class RewardNodeManager {
 
         // 打开奖励面板
         if (RewardSystem) {
-            RewardSystem.open();
+            RewardSystem.open({ baseGold: getDungeonCompletionGold(dungeonType) });
         }
 
         // 监听面板关闭
@@ -622,8 +627,8 @@ export const BossRewardSystem = {
      * 进入奖励节点
      * 由 DungeonMapSystem._enterNode() reward 类型调用
      */
-    enterRewardNode(player, onComplete) {
-        this.rewardNode.enterRewardNode(player, onComplete);
+    enterRewardNode(player, onComplete, dungeonType = null) {
+        this.rewardNode.enterRewardNode(player, onComplete, dungeonType);
     },
 
     /**

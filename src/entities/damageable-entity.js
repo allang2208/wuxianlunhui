@@ -10,6 +10,7 @@ import { DungeonRunStats } from '../world/dungeon-run-stats.js';
 import { BloodMistEffect, DeathEffect } from '../effects/particle-effects.js';
 import { isMachineGun, isRifle, isPistolCategory, isShotgunCategory } from '../config/gun-ammo.js';
 import { COMBAT_FORMULAS } from '../config/combat-formulas.js';
+import { getDungeonRewardRule } from '../config/dungeon-rewards.js';
 import {
     DamageableGame as Game,
     DamageableRenderer as Renderer,
@@ -53,7 +54,8 @@ export function isFriendlyFire(source, target) {
 
             // 全局倍率
             const globalMul = cfg.globalMultiplier ?? 1;
-            baseAmount = Math.floor(baseAmount * globalMul);
+            const dungeonMul = getDungeonRewardRule(getCurrentDungeonType()).monsterGoldMultiplier;
+            baseAmount = Math.floor(baseAmount * globalMul * dungeonMul);
 
             // rank 金币倍率配置驱动（goldDrop.rankMultipliers，如 elite ×2 / lord ×3）
             const rankMultiplier = (cfg.rankMultipliers || {})[rank] || 1;

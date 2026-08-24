@@ -116,7 +116,7 @@
 
 ### ⭐ 地牢迷宫自动生成关键参考（2026-08-11 定稿，新增地牢/迷宫必读）
 
-> 本节沉淀 D+ 级地牢竞技场（5 房蛇形迷宫）的完整自动生成体系：布局纯函数 → 房间
+> 本节沉淀分级竞技场（3 房直线 / 5 房蛇形迷宫）的完整自动生成体系：布局纯函数 → 房间
 > 菱形墙 → 通道预制放置 → 门墙/封口/补缝 → 波次门控。后续新增地牢、改布局、加
 > 通道方向，一律以本节为唯一参考；先读「铁律」再动手。
 
@@ -131,8 +131,10 @@
     通道轴）、`passageEdges(dir)` 方向→出入口边映射、`pointInDiamond`。
 - `src/world/combat-room-system.js`：布局消费端——菱形墙、通道放置、门墙、封口、补缝。
 - `src/world/dungeon-map-system.js`：竞技场入口（`_enterCombatArena`）、波次/门控编排。
-- 配置：`data/dungeon-config.json` → `combatArena.maze = { enabled, roomCount, rows }`；
+- 配置：`data/dungeon-config.json` → `combatArena.roomCountByGrade`（F 1/1、E 1/3、D+ 3/5，普通/精英）与 `combatArena.maze = { enabled, roomCount, rows }`；
   `passagePrefabs = { v1: '左右通道·样式', v2: '上下通道·样式' }`。
+- 房数契约：节点只负责传入本场 `roomCount`，实际波次、末房宝箱、门控、陷阱和出口一律读取
+  `arena.rooms.length`；禁止在这些消费端再次按等级推导房数，否则配置调整后会出现房数与波次脱节。
 
 #### 1. 菱形几何铁律
 - 四顶点 T(cx,cy−ry) R(cx+rx,cy) B(cx,cy+ry) L(cx−rx,cy)；四边斜率 ±0.5774。
@@ -353,13 +355,22 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
 #### 八、宝箱房系统（2026-07-25，精英战斗专属，`src/world/chest-room-system.js`）
 1. **生成**：精英节点入场（`_enterZombieCombat`/非僵尸 `_enterCombat` 的 `node.isElite` 分支）→ 按墙壁预制「宝箱房」（门墙×1+直墙×3，data/wall-prefabs.json）在场地中央拼小菱形房——**几何中心=全部件 face 线段端点外接框中心**（与编辑器 cx/cy 无关）；直墙推 isoVisuals（深度上臂 min/下臂 max 重算，预制存的是编辑器世界值不可直接沿用）；房内区域注册刷怪排除区（`spawnMonsters` 菱形拒绝采样 + 排除区判定）
 2. **门墙独立控制**：不进 isoVisuals——复刻 wall-gate placeAt 映射放 wall_gate 帧0（关门），碰撞=两侧常开+门洞启停；`onCombatComplete` 且未超时 → tween 播 0→15 帧开门 + 门洞碰撞移除
-3. **等级宝箱**：宝箱等级=地牢 grade（E/D/C/B/A，贴图 `chest_<grade>`，**素材库缺 A.png 暂用 B 兜底**）；奖励表=`combat-formulas.json universalEventRewards.treasureChest[grade]`（50% 金币 / 25% 材料组（强化石1+改造券1+粉尘） / 25% 宝箱怪位——**宝箱怪位当前按金币兜底**，要真宝箱怪再接）经 `BossRewardSystem.rewardNode.giveReward` 发放
+3. **等级宝箱**：宝箱等级=地牢 grade（E/D/C/B/A，贴图 `chest_<grade>`，**素材库缺 A.png 暂用 B 兜底**）；奖励表=`combat-formulas.json universalEventRewards.treasureChest[grade]`。竞技场宝箱房每箱必得该档强化石+改造券，另掷 50% 金币 / 25% 粉尘 / 25% 宝箱怪位（**宝箱怪位当前按金币兜底**）；随机事件宝箱仍按自身互斥结果处理
 4. **60s 倒计时**：Phaser text（**改色用 setBackgroundColor/setColor，禁用 setStyle——会整体覆盖丢失字号字体**）；白底黑字黑框（矩形垫底），≤10s 红底黑字；超时→宝箱 1s 淡出、房门不再开
 5. **开箱**：玩家靠近 60px → chest_open 精灵图（559×602×16，tools/chest-video-frames.py 从 宝箱打开-1.mp4 切帧+抠图，管线同门闸）1.5s 播完 + chest_open.mp3 音效
 6. **离场守卫**：`hasUnopenedLoot()` 时走出大门白区 → 弹确认框（是=正常离场 / 否=退回场内 160px+1s 冷却防连发）
 7. **已删旧制**：击杀精英刷 DungeonChest 靠近自开流程（dungeon-chest.js 已删）、`eliteChestReward` 配置（出征面板文案改读 treasureChest 表）；**F 级地牢岔路战斗固定普通**（zombie-dungeon.js 岔路 eliteChance 按 grade 判定，F=0）
 8. **清理**：`CombatRoomSystem.cleanupGate` 统一调 `ChestRoomSystem.cleanup()`（门墙/宝箱/倒计时销毁 + 门洞碰撞段移除；直墙件随 `_restoreSceneState` 自动还原）
 9. **门墙深度（2026-07-30 修复）**：`_placeGate` 深度 = **max(min(底边 y) − 显示墙高, gA 上端邻墙深度 + 0.1)**，不沿用预制保存值——宝箱房是低矮装饰围墙，实体应恒画在墙上；预制值（≈min 底边+5）下门墙贴图比直墙高，门区实体（脚线 3950~4101）会进入门框覆盖带被盖住（"门墙左侧挡实体、右边正常"根因：右侧直墙贴图矮够不着实体）。**邻墙搜索容差必须 40px**（预制手摆端点有 ~25px 间隙，2px 精确共享取不到 → 上墙裁切边压门墙的第二轮 bug）；只拉 gA 上端邻墙，gB 右侧"右件盖门墙"手调规则不动。X 光 occluders 在门打开后必须剔除门洞段（`cg.open ? [] : [cg.gateSeg]`），否则开门后门洞仍当墙透视
+
+#### 九、地牢金币收益审计边界（2026-08-24）
+
+- 主动地牢金币的唯一数值源是 `data/combat-formulas.json#dungeonRewards`；怪物倍率、战斗节点清剿奖、
+  Boss奖与通关基础奖必须按同一等级读取，宝箱成长继续由 `universalEventRewards.treasureChest` 管理。
+- 审计不能只看Boss或通关卡牌，必须按真实路线汇总普通战、精英战、怪物掉落、Boss、宝箱与通关奖，
+  再与同时间窗的银行等被动收益比较；目标是主动探索显著高于纯挂机，而不是只让单项数字看起来更大。
+- B/A级内容未完成前不得预设后期金币消耗项目、毕业总价或回收次数。待其路线、房间、怪物、Boss、
+  宝箱和失败成本稳定后，用实际完整通关样本重新审计，并在确认结论后再改配置与沉淀规则。
 10. **尸体清理（2026-07-30）**：`cleanupRoom`（离场拆房）**不跳过存活尸体**——地牢 map 状态实体更新暂停（game.js 地图分支早退），尸体计时器冻结，保留的尸体贴图会被带进下一场战斗房；`isPreservedCorpse` 跳过只用于 `cleanupMonstersOnly`（波次间同房保留，腐蚀光环继续生效）
 
 ---

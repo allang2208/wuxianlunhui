@@ -224,6 +224,45 @@
       "rarityCapStrength": 6
     }
   },
+  "dungeonRewards": {
+    "comment": "主动地牢金币成长真源：怪物倍率、战斗节点清剿奖、Boss奖与通关基础奖均按地牢等级读取；宝箱成长见 universalEventRewards.treasureChest。",
+    "F": {
+      "monsterGoldMultiplier": 1,
+      "combatClearGold": { "min": 100, "max": 160 },
+      "bossGold": { "min": 1200, "max": 1500 },
+      "completionGold": 2000
+    },
+    "E": {
+      "monsterGoldMultiplier": 1.35,
+      "combatClearGold": { "min": 180, "max": 280 },
+      "bossGold": { "min": 3000, "max": 4000 },
+      "completionGold": 3000
+    },
+    "D": {
+      "monsterGoldMultiplier": 1.8,
+      "combatClearGold": { "min": 300, "max": 450 },
+      "bossGold": { "min": 5500, "max": 6500 },
+      "completionGold": 5000
+    },
+    "C": {
+      "monsterGoldMultiplier": 2.4,
+      "combatClearGold": { "min": 500, "max": 750 },
+      "bossGold": { "min": 10000, "max": 12000 },
+      "completionGold": 8000
+    },
+    "B": {
+      "monsterGoldMultiplier": 3.2,
+      "combatClearGold": { "min": 800, "max": 1200 },
+      "bossGold": { "min": 16000, "max": 20000 },
+      "completionGold": 13000
+    },
+    "A": {
+      "monsterGoldMultiplier": 4.2,
+      "combatClearGold": { "min": 1200, "max": 1800 },
+      "bossGold": { "min": 24000, "max": 30000 },
+      "completionGold": 20000
+    }
+  },
   "universalEventRewards": {
     "checkRatePerGrade": -2,
     "goddessStatue": {
@@ -298,43 +337,43 @@
     },
   "treasureChest": {
     "F": {
-      "gold": 300,
+      "gold": 500,
       "materialDust": 100,
       "enhancementStone": 1,
       "reforgeTicket": 1,
       "tributeChance": 0
     },
     "E": {
-      "gold": 400,
-      "materialDust": 150,
+      "gold": 1000,
+      "materialDust": 180,
       "enhancementStone": 1,
       "reforgeTicket": 1,
       "tributeChance": 0
     },
     "D": {
-      "gold": 500,
-      "materialDust": 200,
+      "gold": 1800,
+      "materialDust": 300,
       "enhancementStone": 1,
       "reforgeTicket": 1,
       "tributeChance": 0.1
     },
     "C": {
-      "gold": 700,
-      "materialDust": 300,
+      "gold": 3000,
+      "materialDust": 500,
       "enhancementStone": 2,
       "reforgeTicket": 2,
       "tributeChance": 0.1
     },
     "B": {
-      "gold": 900,
-      "materialDust": 400,
+      "gold": 4800,
+      "materialDust": 800,
       "enhancementStone": 3,
       "reforgeTicket": 3,
       "tributeChance": 0.15
     },
     "A": {
-      "gold": 1200,
-      "materialDust": 500,
+      "gold": 7500,
+      "materialDust": 1200,
       "enhancementStone": 4,
       "reforgeTicket": 4,
       "tributeChance": 0.2

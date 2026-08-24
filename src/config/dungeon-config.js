@@ -147,13 +147,17 @@ export const DungeonConfig = {
         return (list[dungeonType] && list[dungeonType].grade) || 'D';
     },
 
-    /**
-     * 三房间串联竞技场配置（D 级及以上战斗事件）：
-     * { minGrade, passagePrefabs: { 墙样式名: 预制名, default: 预制名 }, passageGap }
-     */
+    /** 多房竞技场配置：等级/战斗类型房间数、通道预制与迷宫布局参数。 */
     getCombatArenaConfig() {
         const DEFAULT_ARENA = {
-            minGrade: 'D',
+            roomCountByGrade: {
+                F: { normal: 1, elite: 1 },
+                E: { normal: 1, elite: 3 },
+                D: { normal: 3, elite: 5 },
+                C: { normal: 3, elite: 5 },
+                B: { normal: 3, elite: 5 },
+                A: { normal: 3, elite: 5 },
+            },
             passagePrefabs: {
                 default: { v1: '左右通道', v2: '上下通道' },
             },
@@ -164,16 +168,26 @@ export const DungeonConfig = {
         return deepMerge(DEFAULT_ARENA, dungeonConfigData.combatArena || {});
     },
 
-    /** 该地牢战斗事件是否启用三房间串联竞技场（grade ≥ combatArena.minGrade） */
-    isCombatArenaEnabled(dungeonType) {
+    /** 普通/精英战的房间数真源；地牢级 normalRoomCount/eliteRoomCount 可个别覆盖。 */
+    getCombatArenaRoomCount(dungeonType, isElite = false) {
         const cfg = this.getCombatArenaConfig();
         const dungeonCfg = dungeonConfigData[this._keyFor(dungeonType)] || {};
-        if (typeof dungeonCfg.combatArena?.enabled === 'boolean') {
-            return dungeonCfg.combatArena.enabled;
+        const perDungeon = dungeonCfg.combatArena || {};
+        const explicit = isElite ? perDungeon.eliteRoomCount : perDungeon.normalRoomCount;
+        if (Number.isFinite(Number(explicit))) {
+            return Math.max(1, Math.floor(Number(explicit)));
         }
-        const gradeIdx = GRADE_ORDER_LOCAL.indexOf(this.getDungeonGrade(dungeonType));
-        const minIdx = Math.max(0, GRADE_ORDER_LOCAL.indexOf(cfg.minGrade || 'D'));
-        return gradeIdx >= minIdx;
+        const grade = this.getDungeonGrade(dungeonType);
+        const gradeRule = cfg.roomCountByGrade?.[grade] || {};
+        const count = isElite ? gradeRule.elite : gradeRule.normal;
+        return Math.max(1, Math.floor(Number(count) || 1));
+    },
+
+    /** 一房战斗走普通战斗房；两房及以上才建竞技场。enabled:false 保留为地牢级禁用门。 */
+    isCombatArenaEnabled(dungeonType, isElite = false) {
+        const dungeonCfg = dungeonConfigData[this._keyFor(dungeonType)] || {};
+        if (dungeonCfg.combatArena?.enabled === false) return false;
+        return this.getCombatArenaRoomCount(dungeonType, isElite) > 1;
     },
 
     getEventConfig(eventType) {

@@ -904,8 +904,9 @@ this.ai = config.ai || {};
 - **面板注释实时反显用真实公式差分**：`每点+X攻击力` = +10 区间均值
   `(dmg(stat+10) - dmg(stat)) / 10`，避免单点 ±1 的取整抖动显示 0/2；未挂钩显示「无影响」。
   强化 perEnhance 会直接体现在边际上，无需改面板。
-- **费用公式逐级递增**：`round(baseCost × growth^(当前值-base))` 放配置
-  （默认 60×1.45^n），面板/按钮只消费，不写死数值。
+- **费用公式逐级递增**：`round(baseCost × growth^(当前值-base))` 放配置；当前芯片为
+  `base=10 / max=30 / 60×1.28^n`，单项10→30累计约29652金币。面板/按钮只消费，
+  不写死数值；禁止把99级上限与高指数增长重新组合成实际不可达的后半段。
 - **面板武器贴图数据驱动**：`towerWeaponImagePath` 优先级
   item.iconImage/equipImage/slotImage → `findWeaponConfig` 全量源 → 弹丸贴图兜底，
   别用 emoji 占位。

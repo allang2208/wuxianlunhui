@@ -9,8 +9,8 @@
  * 3. 倒计时内完成精英战斗 → 打开宝箱房门墙（播门闸 16 帧开门动画，门洞碰撞启停）；
  *    超时未完成 → 宝箱 1s 淡出消失，房门不再打开
  * 4. 玩家靠近宝箱 → 播放开箱 16 帧动画（1.5s）+ 音效 → 按等级宝箱事件奖励表发放
- *   （combat-formulas.json universalEventRewards.treasureChest[grade]：50% 金币 /
- *    25% 材料组 / 25% 宝箱怪位——宝箱怪位当前按金币兜底发放）
+ *   （combat-formulas.json universalEventRewards.treasureChest[grade]：强化石+改造券必得；
+ *    50% 金币 / 25% 粉尘 / 25% 宝箱怪位——宝箱怪位当前按金币兜底发放）
  * 5. 离场守卫：场地内还有未开宝箱时走出大门白区，弹确认框（是/否）
  */
 import { WallSystem, ISO_WALL_GEO, isoGateHole, isoHalfThick } from './wall-system.js';
@@ -98,6 +98,8 @@ export const ChestRoomSystem = {
             materialDust: Math.max(0, Number(table.materialDust) || 0),
             enhancementStone: Math.max(0, Number(table.enhancementStone) || 0),
             reforgeTicket: Math.max(0, Number(table.reforgeTicket) || 0),
+            goldChance: 0.75,
+            guaranteedMaterials: true,
             equipmentRarity: _equipmentRarityForGrade(grade),
             equipmentChance: EQUIP_DROP_CHANCE,
         };
@@ -451,7 +453,8 @@ export const ChestRoomSystem = {
         this._giveRewards(player, chest.grade);
     },
 
-    /** 按等级宝箱事件奖励表发奖（50% 金币 / 25% 材料组 / 25% 宝箱怪位暂按金币兜底）——
+    /** 按等级宝箱事件奖励表发奖（强化石+改造券必得；50% 金币 / 25% 粉尘 /
+     *  25% 宝箱怪位暂按金币兜底）——
      *  奖励直接掉落到宝箱周围地上（DropItem，玩家拾取/金币自动拾取） */
     _giveRewards(player, grade) {
         const table = ((COMBAT_FORMULAS.universalEventRewards || {}).treasureChest) || {};
@@ -468,17 +471,20 @@ export const ChestRoomSystem = {
             dropIdx++;
         };
         const goldTemplate = () => ({ name: '金币', category: 'gold', stack: g.gold, rarity: 'mythic' });
+
+        // 宝箱房的成长核心：强化石与改造券不再参与 25% 材料分支，改为每箱必得。
+        if (EnhancementItems && EnhancementItems.enhance_stone && (g.enhancementStone ?? 0) > 0) {
+            drop({ ...EnhancementItems.enhance_stone, stack: g.enhancementStone });
+        }
+        if (EnhancementItems && EnhancementItems.modify_ticket && (g.reforgeTicket ?? 0) > 0) {
+            drop({ ...EnhancementItems.modify_ticket, stack: g.reforgeTicket });
+        }
+
         const roll = Math.random();
         if (roll < 0.5) {
             drop(goldTemplate());
         } else if (roll < 0.75) {
-            // 材料组：强化石 + 改造券 + 魔法晶尘（数量按地牢等级表：C 起强化石/改造券递增）
-            if (EnhancementItems && EnhancementItems.enhance_stone) {
-                drop({ ...EnhancementItems.enhance_stone, stack: g.enhancementStone ?? 1 });
-            }
-            if (EnhancementItems && EnhancementItems.modify_ticket) {
-                drop({ ...EnhancementItems.modify_ticket, stack: g.reforgeTicket ?? 1 });
-            }
+            // 粉尘分支：石/券已经作为宝箱房保底发放。
             if (MagicDustItem) {
                 drop({ ...MagicDustItem, stack: g.materialDust });
             }
