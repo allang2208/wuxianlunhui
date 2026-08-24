@@ -4526,6 +4526,8 @@ export class GameScene extends Scene {
         // 动画/贴图配置键：animConfigKey 优先（R93 等新枪不再共用 G18 pistol 配置——副手翻转根因）
         const wt = currentItem.animConfigKey || currentItem.weaponType;
         const isMelee = wt === 'sword' || wt === 'bow';
+        // staff 也复用 sword 动画配置键；本次 walking 握柄与 running 背负只允许真实剑类进入。
+        const isSwordMelee = currentItem.weaponType === 'sword';
 
         // ===== 施法武器跟随（法杖举杖施法）=====
         // 施法期间（前摇 casting / 后摇 recover）法杖按 staff_cast 动画帧读取 staffCastFrames 逐帧轨迹——
@@ -4802,7 +4804,7 @@ export class GameScene extends Scene {
         else if (player.isMoving) animState = 'walk';
         else if (weaponAnim.isAttacking && weaponAnim.state !== 'idle') animState = 'attack';
 
-        // ===== 行走逐帧轨迹（walkFrames）：武器握把跟随行走动画右手摆动 =====
+        // ===== 行走逐帧轨迹（walkFrames）：真实剑类按人物当前帧把剑柄钉在手上 =====
         // 配置：WeaponAnimConfig[wt].walkFrames { type:'perFrame', frames:[21 帧，与 walk 动画帧一一对应] }
         // 法杖（staff，animConfigKey='sword' 复用剑配置）：独立 staffWalkFrames 块——
         // 剑柄在贴图中心下方 55px，法杖中段≈贴图中心，故法杖轨迹整体下移 55px 让中段对准手
@@ -4814,30 +4816,57 @@ export class GameScene extends Scene {
         if (animState === 'walk' && isMelee && walkFramesCfg
             && walkFramesCfg.type === 'perFrame' && walkFramesCfg.frames && walkFramesCfg.frames.length) {
             let walkProgress = 0;
-            const curAnim = this.playerSprite.anims.currentAnim;
+            let walkFrameIndex = 0;
+            const anims = this.playerSprite.anims;
+            const curAnim = anims.currentAnim;
             // 兼容手部分层：walk 实际播 player_walk_body（身体层去手），进度口径一致
             const walkBodyKey = `${playerTextureKey('walk')}_body`;
-            if (curAnim && (curAnim.key === playerTextureKey('walk') || curAnim.key === walkBodyKey)
-                && this.playerSprite.anims.getProgress) {
-                walkProgress = this.playerSprite.anims.getProgress();
+            const isActiveWalkAnim = !!(anims.isPlaying && curAnim
+                && (curAnim.key === playerTextureKey('walk') || curAnim.key === walkBodyKey));
+            if (isActiveWalkAnim) {
+                if (anims.getProgress) walkProgress = anims.getProgress();
+                // Phaser currentFrame.index 为 1-based。剑柄位置必须与当前人物帧一一对应，
+                // 不在离散人物帧之间自行滑动，否则手层尚未换帧时剑柄会短暂脱手。
+                walkFrameIndex = Math.max(0, Math.min(
+                    walkFramesCfg.frames.length - 1,
+                    (Number(anims.currentFrame?.index) || 1) - 1
+                ));
             }
             const facingRight = !this.playerSprite.flipX;
-            // 平滑轨迹：Catmull-Rom 闭合样条插值（消除相邻帧提取噪声导致的"瞬移/顿挫"，
-            // 首尾闭合保证循环动画无跳变）
-            const wfPos = WeaponTransform.getSmoothPerFramePosition(
-                player, wt, walkProgress, true, isStaffWeapon ? 'staffWalkFrames' : 'walkFrames'
-            );
+            const gripAnchor = isSwordMelee && walkFramesCfg.anchor === 'grip';
+            const walkCfgKey = isStaffWeapon ? 'staffWalkFrames' : 'walkFrames';
+            // 剑：人物当前帧就是握点真源；法杖保持原有平滑中段握持，不受本次修改影响。
+            const wfPos = gripAnchor
+                ? WeaponTransform.getInterpolatedGripPerFramePosition(
+                    player,
+                    wt,
+                    walkFrameIndex / Math.max(1, walkFramesCfg.frames.length - 1),
+                    true,
+                    walkCfgKey,
+                    'walk'
+                )
+                : WeaponTransform.getSmoothPerFramePosition(
+                    player, wt, walkProgress, true, walkCfgKey
+                );
             if (wfPos) {
+                if (gripAnchor) {
+                    this.weaponSprite.setOrigin(
+                        facingRight ? wfPos.gripX : 1 - wfPos.gripX,
+                        wfPos.gripY
+                    );
+                }
                 const wx = facingRight ? wfPos.x : 2 * player.x - wfPos.x;
                 const wrot = facingRight ? wfPos.rotation : -wfPos.rotation;
                 this.weaponSprite.setPosition(wx, wfPos.y);
                 this.weaponSprite.setRotation(wrot);
+                this.weaponSprite.setFlipY(false);
                 this.weaponSprite.setFlipX(!facingRight);
                 const wSize = WeaponTransform.getWeaponSize(wt, wfPos.scale, 'walk');
                 this.weaponSprite.setDisplaySize(
                     wSize.width * (wfPos.stretchX || 1),
                     wSize.height * (wfPos.stretchY || 1)
                 );
+                this.weaponSprite.setDepth(this.playerSprite.depth + 2);
                 this.weaponSprite.setVisible(!this._useCanvasWeapon);
                 this._hideWeaponGhosts();
                 return;
@@ -4962,6 +4991,11 @@ export class GameScene extends Scene {
             this.weaponSprite.setFlipY(false);
             this.weaponSprite.setFlipX(isMelee && !facingRight);
         }
+
+        // running 的剑使用静态背负锚点，并始终位于人物主体背层；staff/bow/枪械不进入该分支。
+        const carryLayer = WeaponAnimConfig[wt]?.[animState]?.carryLayer;
+        const swordOnBack = isSwordMelee && animState === 'running' && carryLayer === 'back';
+        this.weaponSprite.setDepth(this.playerSprite.depth + (swordOnBack ? -1 : 2));
     }
 
     /**

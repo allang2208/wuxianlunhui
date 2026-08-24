@@ -432,19 +432,21 @@ const DevTool = {
         this._draw();
     },
 
-    // 根据当前 playProgress 平滑插值逐帧配置
+    // 根据当前动画帧/进度读取逐帧配置
     _getPerFrameTransform() {
         const wt = this._configKeyOf(this.state.weaponType);
         const anim = this.state.anim;
         const perFrame = this._getPerFrameFrames(wt, anim);
         if (!perFrame || !this._isPerFrameAnim(anim)) return null;
 
-        // walk（循环动画）走 Catmull-Rom 平滑样条（与游戏 syncWeapon 同口径，面板预览一致）；
-        // attack/attack2/dash 保持线性插值（与既有轨迹观感一致）
-        // 法杖（staff）：walk 逐帧读 staffWalkFrames（中段握持，轨迹整体下移 55px），与游戏 syncWeapon 同口径
+        // 剑类 walk 以当前人物帧读取 grip 锚点；法杖 walk 保持 Catmull-Rom 平滑中段握持；
+        // attack/attack2/dash 保持线性插值（与游戏 syncWeapon 同口径）。
         const isStaffSel = this.WEAPON_MAP[this.state.weaponType]?.configKey === 'sword'
             && this.state.weaponType === 'staff';
         const walkKey = anim === 'walk' ? (isStaffSel ? 'staffWalkFrames' : 'walkFrames') : null;
+        const perFrameBlock = WeaponAnimConfig[wt]?.[walkKey || this._perFrameCfgKey(anim)];
+        const isSwordWalkGrip = anim === 'walk' && !isStaffSel
+            && perFrameBlock?.anchor === 'grip';
         // 法杖施法（staff_cast）：按当前帧读 staffCastFrames（举杖轨迹，与游戏 syncWeapon 同口径）
         let pos = null;
         if (isStaffSel && (anim === 'staff_cast' || anim === 'cast')) {
@@ -460,18 +462,38 @@ const DevTool = {
             }
         }
         if (!pos) {
-            pos = (anim === 'walk')
+            if (isSwordWalkGrip) {
+                const index = Math.max(0, Math.min(perFrame.length - 1, this.state.frameIndex));
+                pos = WeaponTransform.getInterpolatedGripPerFramePosition(
+                    { x: 0, y: 0, rotation: 0 },
+                    wt,
+                    index / Math.max(1, perFrame.length - 1),
+                    true,
+                    walkKey,
+                    'walk'
+                );
+            } else {
+                pos = (anim === 'walk')
                 ? WeaponTransform.getSmoothPerFramePosition(
                     { x: 0, y: 0, rotation: 0 }, wt, this.state.playProgress || 0, true, walkKey
                 )
                 : WeaponTransform.getInterpolatedPerFramePosition(
                     { x: 0, y: 0, rotation: 0 }, wt, this.state.playProgress || 0, true, this._perFrameCfgKey(anim)
                 );
+            }
         }
         if (!pos) return null;
         const wSize = WeaponTransform.getWeaponSize(wt, pos.scale, anim);
         return {
-            local: { x: pos.x, y: pos.y, size: wSize.height / pos.scale, scale: pos.scale },
+            local: {
+                x: pos.x,
+                y: pos.y,
+                size: wSize.height / pos.scale,
+                scale: pos.scale,
+                gripAnchor: isSwordWalkGrip,
+                gripX: pos.gripX,
+                gripY: pos.gripY,
+            },
             rotation: pos.rotation,
             blurX: pos.blurX || 0,
             blurY: pos.blurY || 0,
@@ -1137,7 +1159,8 @@ const DevTool = {
         if (weaponType === 'melee') {
             w = local.size * 0.63 * drawScale;
             h = local.size * drawScale;
-            anchorX = -w / 2; anchorY = -h / 2;
+            anchorX = local.gripAnchor ? -(local.gripX ?? 0.5) * w : -w / 2;
+            anchorY = local.gripAnchor ? -(local.gripY ?? 0.5) * h : -h / 2;
         } else if (isGun) {
             const isPistol = weaponType === 'pistol';
             w = (isPistol ? s * 0.275 : s * 0.75) * drawScale;
@@ -1578,7 +1601,9 @@ const DevTool = {
             if (isMelee) {
                 const w = local.size * 0.63 * drawScale * stX;
                 const h = local.size * drawScale * stY;
-                ctx.drawImage(this.weaponImage, -w / 2, -h / 2, w, h);
+                const anchorX = local.gripAnchor ? -(local.gripX ?? 0.5) * w : -w / 2;
+                const anchorY = local.gripAnchor ? -(local.gripY ?? 0.5) * h : -h / 2;
+                ctx.drawImage(this.weaponImage, anchorX, anchorY, w, h);
             } else if (isGun) {
                 const isPistol = weaponType === 'pistol';
                 const w = (isPistol ? s * 0.275 : s * 0.75) * drawScale * stX;
