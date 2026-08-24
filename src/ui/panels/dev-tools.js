@@ -961,14 +961,25 @@ export function createDevToolPanel() {
     performanceWrap.className = 'collision-tab-wrap';
     performanceWrap.innerHTML = `
         <div class="collision-tab-desc">
-            <p>📊 性能采样：定位主循环、Phaser 同步、DOM UI、寻路队列与视口裁切压力。</p>
-            <p style="color:#d8a26a;">本页只读，不修改战斗、AI、画质或游戏速度；数据为最近 120 帧滑动窗口。</p>
+            <p>📊 性能采样：区分 JS/CPU 执行、帧调度缺口，并定位 Phaser 更新、天气、迷雾、阴影与实体视觉压力。</p>
+            <p style="color:#d8a26a;">本页只读，不修改战斗、AI、画质或游戏速度；Phaser 渲染提交的 CPU 耗时会单列，GPU 执行/合成与调度等待仍保留在“非 JS 采样间隔”中。</p>
         </div>
-        <div style="display:flex;gap:8px;margin:10px 0;">
+        <div style="display:flex;gap:8px;margin:10px 0;align-items:center;flex-wrap:wrap;">
+            <label style="display:flex;align-items:center;gap:6px;color:#b8c6d8;font-size:12px;">
+                统计周期
+                <select id="devPerformanceWindow" class="dev-tool-menu-btn" style="min-width:110px;">
+                    <option value="60">最近 60 帧</option>
+                    <option value="120" selected>最近 120 帧</option>
+                    <option value="240">最近 240 帧</option>
+                </select>
+            </label>
             <button id="devPerformanceRefresh" class="dev-tool-menu-btn">刷新</button>
             <button id="devPerformanceReset" class="dev-tool-menu-btn">重置采样</button>
+            <button id="devPerformanceCopy" class="dev-tool-menu-btn">📋 复制性能报告</button>
+            <span id="devPerformanceCopyStatus" style="font-size:11px;color:#7fcb9f;"></span>
         </div>
         <div id="devPerformanceSummary" style="font-size:12px;color:#b8d8ff;line-height:1.75;"></div>
+        <div id="devPerformanceDiagnostics" style="margin-top:10px;font-size:11px;color:#d8c6a0;line-height:1.65;"></div>
         <div id="devPerformanceSections" style="margin-top:10px;font-size:11px;color:#d6dde7;line-height:1.65;"></div>
         <div id="devPerformanceCounters" style="margin-top:10px;font-size:11px;color:#aeb6bf;line-height:1.65;max-height:260px;overflow:auto;"></div>`;
     contentPerformance.appendChild(performanceWrap);
@@ -978,32 +989,289 @@ export function createDevToolPanel() {
     const performanceLabels = {
         gameUpdate: '逻辑主循环',
         legacyRender: 'Canvas 渲染',
-        phaserSync: 'Phaser 同步',
+        phaserSync: 'Phaser 同步（旧总项）',
+        phaserWorldSystems: 'Phaser · 世界系统',
+        phaserTerrainFog: 'Phaser · 地形/迷雾',
+        phaserEntityVisuals: 'Phaser · 实体/特效同步',
+        phaserShadowsVisibility: 'Phaser · 阴影/可见性',
+        phaserWeather: 'Phaser · 天气粒子',
+        phaserWorldAtmosphere: 'Phaser · 位面氛围',
+        phaserRenderSubmit: 'Phaser · 渲染提交',
         domUi: 'DOM UI 刷新',
     };
+    const getPerformanceWindowFrames = () => (
+        Number(performanceControl('devPerformanceWindow')?.value) || 120
+    );
+    const getPerformanceRanking = (model) => Object.entries(model.sections)
+        .map(([name, value]) => ({ name, label: performanceLabels[name] || name, ...value }))
+        .sort((a, b) => b.averageMs - a.averageMs || b.maxMs - a.maxMs || a.name.localeCompare(b.name));
+    const formatPerformanceValue = (value, digits = 2) => {
+        const numeric = Number(value);
+        if (!Number.isFinite(numeric)) return String(value ?? '');
+        return numeric.toFixed(digits).replace(/\.00$/, '');
+    };
+    const escapePerformanceHtml = (value) => String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    const getPerformanceDiagnostics = (model) => {
+        if (!model.sampleFrames) return ['等待至少 30 帧采样后生成诊断线索。'];
+        const ranking = getPerformanceRanking(model);
+        const top = ranking[0];
+        const diagnostics = [];
+        if (model.averageRawDtMs >= model.slowFrameThresholdMs
+            && model.cpuFrameBudgetPercent < 60) {
+            diagnostics.push(
+                `平均帧间隔 ${model.averageRawDtMs.toFixed(2)}ms，但已测 JS/CPU 只占 ${model.cpuFrameBudgetPercent.toFixed(1)}%；`
+                + '优先排查 GPU/合成、垂直同步或浏览器调度，不要只按 CPU 分项占比下结论。'
+            );
+        }
+        if (model.windowIntervalSlowFrames > model.windowCpuSlowFrames) {
+            diagnostics.push(
+                `帧间隔慢帧 ${model.windowIntervalSlowFrames} 帧，高于 CPU 慢帧 ${model.windowCpuSlowFrames} 帧；`
+                + '卡顿主要发生在当前 JS 采样区间之外。'
+            );
+        }
+        if (top && (top.p95Ms >= 4 || top.maxMs >= 8)) {
+            diagnostics.push(
+                `当前最重 CPU 分项是“${top.label}”：P95 ${top.p95Ms.toFixed(2)}ms、峰值 ${top.maxMs.toFixed(2)}ms。`
+            );
+        }
+        if (model.p99FrameMs > Math.max(4, model.averageFrameMs * 2.5)) {
+            diagnostics.push(
+                `CPU 尾部抖动明显：平均 ${model.averageFrameMs.toFixed(2)}ms，P99 ${model.p99FrameMs.toFixed(2)}ms；`
+                + '结合异常帧样本查看是否由周期任务触发。'
+            );
+        }
+        const counters = model.counters || {};
+        const rainAlive = (Number(counters['weather.rainStreakAlive']) || 0)
+            + (Number(counters['weather.rainSplashAlive']) || 0);
+        const sandAlive = (Number(counters['weather.sandGroundAlive']) || 0)
+            + (Number(counters['weather.sandForegroundAlive']) || 0);
+        if (rainAlive > 0 || sandAlive > 0) {
+            diagnostics.push(
+                `天气粒子快照：雨 ${rainAlive}、扬沙 ${sandAlive}；`
+                + '可用同场景开/关天气的两份报告做 A/B 对比。'
+            );
+        }
+        if (Number(counters['fog.maskRenderMs']) >= 1) {
+            diagnostics.push(`迷雾遮罩最近一次同步耗时 ${Number(counters['fog.maskRenderMs']).toFixed(2)}ms。`);
+        }
+        const shadowVisibleJobs = Number(counters['shadow.visibleJobs']) || 0;
+        const shadowCulledJobs = Number(counters['shadow.viewportCulled']) || 0;
+        const shadowPreCulled = Number(counters['shadow.preGeometryCulled']) || 0;
+        const shadowPostCulled = Number(counters['shadow.postGeometryCulled']) || 0;
+        const shadowTriangles = Number(counters['shadow.triangles']) || 0;
+        const shadowRebuildMs = Number(counters['shadow.lastRebuildMs']) || 0;
+        const shadowRawVertices = Number(counters['shadow.rawContourVertices']) || 0;
+        const shadowContourVertices = Number(counters['shadow.contourVertices']) || 0;
+        const shadowReduction = Number(counters['shadow.contourReductionPercent']) || 0;
+        if (shadowVisibleJobs > 0 || shadowCulledJobs > 0) {
+            diagnostics.push(
+                `结构阴影快照：质量 ${counters['shadow.quality'] || 'unknown'}，`
+                + `可见 ${shadowVisibleJobs}、视口裁切 ${shadowCulledJobs}`
+                + `（几何前 ${shadowPreCulled} / 几何后 ${shadowPostCulled}）、`
+                + `裁切缓冲 ${Number(counters['shadow.viewportPaddingPx']) || 0}px、`
+                + `轮廓 ${shadowRawVertices}→${shadowContourVertices}（-${shadowReduction.toFixed(1)}%）、`
+                + `缓存三角形 ${shadowTriangles}、命令缓冲 ${Number(counters['shadow.commandBufferLength']) || 0}。`
+            );
+        }
+        if (shadowRebuildMs >= 2) {
+            diagnostics.push(
+                `结构阴影最近一次脏重建 ${shadowRebuildMs.toFixed(2)}ms；`
+                + `累计重建 ${Number(counters['shadow.rebuilds']) || 0} 次，`
+                + '请结合太阳移动开启/关闭报告判断重建尖峰，稳态提交则看 phaserRenderSubmit。'
+            );
+        }
+        if (!diagnostics.length) diagnostics.push('当前窗口未命中明显的启发式告警；仍应结合 CPU 排行、异常帧和运行计数器判断。');
+        return diagnostics;
+    };
+    const getPerformanceCounterGroups = (counters) => {
+        const groups = new Map();
+        for (const [name, value] of Object.entries(counters || {}).sort(([a], [b]) => a.localeCompare(b))) {
+            const separator = name.indexOf('.');
+            const group = separator > 0 ? name.slice(0, separator) : 'other';
+            if (!groups.has(group)) groups.set(group, []);
+            groups.get(group).push([name, value]);
+        }
+        return groups;
+    };
+    const buildPerformanceReport = (model) => {
+        const ranking = getPerformanceRanking(model);
+        const counterGroups = getPerformanceCounterGroups(model.counters);
+        const diagnostics = getPerformanceDiagnostics(model);
+        const markdownCell = (value) => String(value ?? '').replace(/\|/g, '\\|').replace(/[\r\n]+/g, ' ');
+        const frameSectionSummary = (frame) => Object.entries(frame.sections || {})
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 3)
+            .map(([name, value]) => `${performanceLabels[name] || name} ${Number(value).toFixed(2)}ms`)
+            .join('；') || '无分项';
+        const lines = [
+            '# 无限轮回性能采样报告',
+            '',
+            `- 导出时间：${new Date().toLocaleString('zh-CN', { hour12: false })}`,
+            `- 统计周期：最近 ${model.requestedFrames} 帧（实际 ${model.sampleFrames} 帧，约 ${(model.sampleDurationMs / 1000).toFixed(2)} 秒）`,
+            `- 平均 FPS：${model.averageFps.toFixed(1)}`,
+            `- 帧间隔：平均 ${model.averageRawDtMs.toFixed(2)}ms / P50 ${model.p50RawDtMs.toFixed(2)}ms / P95 ${model.p95RawDtMs.toFixed(2)}ms / P99 ${model.p99RawDtMs.toFixed(2)}ms / 峰值 ${model.maxRawDtMs.toFixed(2)}ms`,
+            `- 已测 JS/CPU：平均 ${model.averageFrameMs.toFixed(2)}ms / P95 ${model.p95FrameMs.toFixed(2)}ms / P99 ${model.p99FrameMs.toFixed(2)}ms / 峰值 ${model.maxFrameMs.toFixed(2)}ms`,
+            `- 非 JS 采样间隔：平均 ${model.averageFrameIntervalGapMs.toFixed(2)}ms / P95 ${model.p95FrameIntervalGapMs.toFixed(2)}ms / 峰值 ${model.maxFrameIntervalGapMs.toFixed(2)}ms`,
+            `- 已测 JS/CPU 占平均帧间隔：${model.cpuFrameBudgetPercent.toFixed(1)}%（未归入分项的 CPU 平均 ${model.unprofiledCpuAverageMs.toFixed(3)}ms）`,
+            `- CPU 慢帧：${model.windowCpuSlowFrames}/${model.sampleFrames}（${model.windowCpuSlowFramePercent.toFixed(1)}%）`,
+            `- 帧间隔慢帧：${model.windowIntervalSlowFrames}/${model.sampleFrames}（${model.windowIntervalSlowFramePercent.toFixed(1)}%）`,
+            `- 任一口径慢帧：${model.windowSlowFrames}/${model.sampleFrames}（${model.windowSlowFramePercent.toFixed(1)}%，阈值 ${model.slowFrameThresholdMs.toFixed(2)}ms）`,
+            '',
+            '## 自动诊断线索',
+            '',
+            ...diagnostics.map((message) => `- ${message}`),
+            '',
+            '## CPU 耗时排行',
+            '',
+            '> “占已测分项”用于比较 CPU 分项内部优先级；“占墙钟”按整个统计周期计算。渲染提交、GPU、合成与等待不包含在 CPU 分项中。',
+            '',
+            '| 排名 | 项目 | 占已测分项 | 占墙钟 | 平均 | P50 | P95 | P99 | 峰值 | 活跃帧 |',
+            '|---:|---|---:|---:|---:|---:|---:|---:|---:|---:|',
+        ];
+        if (ranking.length) {
+            ranking.forEach((item, index) => {
+                lines.push(`| ${index + 1} | ${markdownCell(item.label)} (${markdownCell(item.name)}) | ${item.sharePercent.toFixed(1)}% | ${item.wallSharePercent.toFixed(1)}% | ${item.averageMs.toFixed(3)}ms | ${item.p50Ms.toFixed(3)}ms | ${item.p95Ms.toFixed(3)}ms | ${item.p99Ms.toFixed(3)}ms | ${item.maxMs.toFixed(3)}ms | ${item.activeFrames}/${model.sampleFrames} |`);
+            });
+        } else {
+            lines.push('| - | 暂无采样 | 0% | 0% | 0ms | 0ms | 0ms | 0ms | 0ms | 0/0 |');
+        }
+        const appendFrameTable = (title, frames) => {
+            lines.push('', `## ${title}`, '');
+            lines.push('| 窗口帧序 | 帧间隔 | JS/CPU | 非 JS 间隔 | 最重分项 |');
+            lines.push('|---:|---:|---:|---:|---|');
+            if (!frames?.length) {
+                lines.push('| - | 0ms | 0ms | 0ms | 无样本 |');
+                return;
+            }
+            for (const frame of frames) {
+                lines.push(`| ${frame.sampleIndex}/${model.sampleFrames} | ${frame.rawDtMs.toFixed(2)}ms | ${frame.cpuMs.toFixed(2)}ms | ${frame.intervalGapMs.toFixed(2)}ms | ${markdownCell(frameSectionSummary(frame))} |`);
+            }
+        };
+        appendFrameTable('帧间隔最慢样本', model.slowestIntervalFrames);
+        appendFrameTable('JS/CPU 最慢样本', model.slowestCpuFrames);
+        lines.push('', '## 运行环境与计数器快照', '');
+        lines.push('> 以下是导出瞬间的快照，不是窗口平均值。', '');
+        if (counterGroups.size) {
+            for (const [group, entries] of counterGroups) {
+                lines.push(`### ${markdownCell(group)}`, '');
+                for (const [name, value] of entries) {
+                    lines.push(`- ${markdownCell(name)}：${markdownCell(formatPerformanceValue(value))}`);
+                }
+                lines.push('');
+            }
+        } else {
+            lines.push('- 暂无计数器数据', '');
+        }
+        lines.push(
+            '## 口径说明',
+            '',
+            '- “已测 JS/CPU”包含逻辑主循环、DOM/旧 Canvas 绘制、拆分后的 Phaser update 阶段及 Phaser 渲染提交的 CPU 区间。',
+            '- “非 JS 采样间隔”是帧间隔减去已测 JS/CPU 的剩余值，可能包含 GPU/合成、垂直同步、浏览器调度、空闲等待及尚未挂点的代码；它不是纯 GPU 耗时。',
+            '- 帧间隔来自逻辑循环 rawDt，并受 sampling.rawDtCapMs 上限约束；长于该上限的停顿会被截断。',
+            '- Phaser 子阶段为互斥分段，不再用总项与子项重复累计；旧版本采样中的 phaserSync 仅作兼容显示。',
+            '- 自动诊断是启发式线索，不等同于浏览器 Performance trace 或 GPU profiler 结论。'
+        );
+        return lines.join('\n');
+    };
+    const copyPerformanceReport = async (text) => {
+        try {
+            if (!navigator.clipboard?.writeText) throw new Error('clipboard unavailable');
+            await navigator.clipboard.writeText(text);
+            return;
+        } catch (_error) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.readOnly = true;
+            textarea.style.cssText = 'position:fixed;left:-9999px;top:0;opacity:0;';
+            document.body.appendChild(textarea);
+            let copied = false;
+            try {
+                textarea.select();
+                copied = document.execCommand('copy');
+            } finally {
+                textarea.remove();
+            }
+            if (!copied) throw new Error('copy failed');
+        }
+    };
     const renderPerformanceDebug = () => {
-        const model = PerformanceMonitor.getSnapshot();
+        const model = PerformanceMonitor.getSnapshot(getPerformanceWindowFrames());
         const summary = performanceControl('devPerformanceSummary');
+        const diagnostics = performanceControl('devPerformanceDiagnostics');
         const sections = performanceControl('devPerformanceSections');
         const counters = performanceControl('devPerformanceCounters');
-        if (!summary || !sections || !counters) return;
-        summary.innerHTML = `采样 ${model.sampleFrames} 帧 · 平均 ${model.averageFps.toFixed(1)} FPS<br>`
-            + `帧耗时 平均 ${model.averageFrameMs.toFixed(2)}ms · P95 ${model.p95FrameMs.toFixed(2)}ms`
-            + ` · 峰值 ${model.maxFrameMs.toFixed(2)}ms<br>`
-            + `帧间隔 P95 ${model.p95RawDtMs.toFixed(2)}ms · 累计慢帧 ${model.slowFrames}`;
-        sections.innerHTML = '<b>分系统耗时</b><br>' + Object.entries(model.sections)
-            .sort((a, b) => b[1].averageMs - a[1].averageMs)
-            .map(([name, value]) => `${performanceLabels[name] || name}：平均 ${value.averageMs.toFixed(2)}ms · 峰值 ${value.maxMs.toFixed(2)}ms`)
-            .join('<br>');
-        counters.innerHTML = '<b>运行计数器</b><br>' + Object.entries(model.counters)
-            .sort(([a], [b]) => a.localeCompare(b))
-            .map(([name, value]) => `${name}：${typeof value === 'number' ? value.toFixed(2).replace(/\.00$/, '') : value}`)
-            .join('<br>');
+        if (!summary || !diagnostics || !sections || !counters) return;
+        const ranking = getPerformanceRanking(model);
+        const topAverageMs = ranking[0]?.averageMs || 1;
+        summary.innerHTML = `周期 最近 ${model.requestedFrames} 帧 · 已采样 ${model.sampleFrames} 帧`
+            + ` · 约 ${(model.sampleDurationMs / 1000).toFixed(2)} 秒<br>`
+            + `<b>平均 ${model.averageFps.toFixed(1)} FPS</b><br>`
+            + `帧间隔 平均 ${model.averageRawDtMs.toFixed(2)}ms · P95 ${model.p95RawDtMs.toFixed(2)}ms`
+            + ` · P99 ${model.p99RawDtMs.toFixed(2)}ms · 峰值 ${model.maxRawDtMs.toFixed(2)}ms<br>`
+            + `已测 JS/CPU 平均 ${model.averageFrameMs.toFixed(2)}ms · P95 ${model.p95FrameMs.toFixed(2)}ms`
+            + ` · 占帧间隔 ${model.cpuFrameBudgetPercent.toFixed(1)}%<br>`
+            + `非 JS 采样间隔 平均 ${model.averageFrameIntervalGapMs.toFixed(2)}ms`
+            + ` · P95 ${model.p95FrameIntervalGapMs.toFixed(2)}ms<br>`
+            + `CPU 慢帧 ${model.windowCpuSlowFrames}/${model.sampleFrames}`
+            + `（${model.windowCpuSlowFramePercent.toFixed(1)}%）`
+            + ` · 帧间隔慢帧 ${model.windowIntervalSlowFrames}/${model.sampleFrames}`
+            + `（${model.windowIntervalSlowFramePercent.toFixed(1)}%）`;
+        diagnostics.innerHTML = '<b>自动诊断线索</b>'
+            + '<div style="margin-top:4px;padding:6px 8px;border-left:2px solid #b98748;background:rgba(91,63,31,.18);">'
+            + getPerformanceDiagnostics(model)
+                .map((message) => `• ${escapePerformanceHtml(message)}`)
+                .join('<br>')
+            + '</div>';
+        sections.innerHTML = '<b>CPU 耗时排行（平均耗时降序）</b>'
+            + '<div style="margin:3px 0 7px;color:#8f9baa;">占已测分项用于判断 CPU 优先级；占墙钟用于判断它对实际帧间隔的影响。</div>'
+            + (ranking.length ? ranking.map((item, index) => {
+                const barWidth = Math.max(2, item.averageMs / topAverageMs * 100);
+                return `<div style="position:relative;margin:5px 0;padding:5px 7px;border:1px solid rgba(116,146,178,.24);background:rgba(10,18,28,.54);overflow:hidden;">`
+                    + `<div style="position:absolute;left:0;top:0;bottom:0;width:${barWidth.toFixed(1)}%;background:rgba(71,126,174,.17);pointer-events:none;"></div>`
+                    + `<div style="position:relative;display:flex;justify-content:space-between;gap:8px;">`
+                    + `<span><b>#${index + 1} ${escapePerformanceHtml(item.label)}</b> <span style="color:#7f8b99;">${escapePerformanceHtml(item.name)}</span></span>`
+                    + `<span style="color:#e0b765;white-space:nowrap;">分项 ${item.sharePercent.toFixed(1)}% · 墙钟 ${item.wallSharePercent.toFixed(1)}%</span></div>`
+                    + `<div style="position:relative;color:#aebdca;">平均 ${item.averageMs.toFixed(3)}ms`
+                    + ` · P50 ${item.p50Ms.toFixed(3)}ms · P95 ${item.p95Ms.toFixed(3)}ms`
+                    + ` · P99 ${item.p99Ms.toFixed(3)}ms · 峰值 ${item.maxMs.toFixed(3)}ms`
+                    + ` · 活跃 ${item.activeFrames}/${model.sampleFrames} 帧</div></div>`;
+            }).join('') : '<div style="margin-top:6px;color:#8f9baa;">等待采样数据……</div>');
+        const counterGroups = getPerformanceCounterGroups(model.counters);
+        counters.innerHTML = '<b>运行环境与计数器快照</b>'
+            + '<div style="margin:3px 0 6px;color:#7f8b99;">每 500ms 更新一次；导出时记录当前值，不是周期平均。</div>'
+            + ([...counterGroups.entries()].map(([group, entries]) => (
+                `<div style="margin-top:7px;color:#91b6d8;"><b>${escapePerformanceHtml(group)}</b></div>`
+                + entries.map(([name, value]) => (
+                    `${escapePerformanceHtml(name)}：${escapePerformanceHtml(formatPerformanceValue(value))}`
+                )).join('<br>')
+            )).join('') || '<div style="color:#8f9baa;">暂无计数器数据</div>');
     };
+    performanceControl('devPerformanceWindow').addEventListener('change', renderPerformanceDebug);
     performanceControl('devPerformanceRefresh').addEventListener('click', renderPerformanceDebug);
     performanceControl('devPerformanceReset').addEventListener('click', () => {
         PerformanceMonitor.reset();
         renderPerformanceDebug();
+    });
+    performanceControl('devPerformanceCopy').addEventListener('click', async () => {
+        const button = performanceControl('devPerformanceCopy');
+        const status = performanceControl('devPerformanceCopyStatus');
+        const model = PerformanceMonitor.getSnapshot(getPerformanceWindowFrames());
+        try {
+            await copyPerformanceReport(buildPerformanceReport(model));
+            if (button) button.textContent = '✅ 已复制';
+            if (status) status.textContent = `已导出 ${model.sampleFrames} 帧数据`;
+        } catch (_error) {
+            if (button) button.textContent = '⚠️ 复制失败';
+            if (status) status.textContent = '剪贴板不可用，请重新打开面板后再试';
+        }
+        window.setTimeout(() => {
+            if (button?.isConnected) button.textContent = '📋 复制性能报告';
+            if (status?.isConnected) status.textContent = '';
+        }, 1800);
     });
     root._performanceRefreshTimer = window.setInterval(() => {
         if (!root.isConnected) {

@@ -37,6 +37,60 @@ const smoothstep = (value) => {
     return t * t * (3 - 2 * t);
 };
 
+const pointSegmentDistance = (point, start, end) => {
+    const dx = end.u - start.u;
+    const dy = end.v - start.v;
+    const lengthSq = dx * dx + dy * dy;
+    if (lengthSq <= 1e-12) return Math.hypot(point.u - start.u, point.v - start.v);
+    const t = clamp(((point.u - start.u) * dx + (point.v - start.v) * dy) / lengthSq, 0, 1);
+    return Math.hypot(
+        point.u - (start.u + dx * t),
+        point.v - (start.v + dy * t)
+    );
+};
+
+/**
+ * 扫描包络是一条 v 单调链；RDP 只删除距原链小于 tolerance 的中间行。
+ * 首尾和窄尖端强制保留，因此接地角/投影尖端不会被跨过去，输出仍保持 v 单调。
+ */
+const simplifyMonotoneEnvelope = (points, tolerance, opposite = null) => {
+    if (!Array.isArray(points) || points.length <= 2 || !(tolerance > 0)) {
+        return Array.isArray(points) ? points.slice() : [];
+    }
+    const keep = new Uint8Array(points.length);
+    keep[0] = 1;
+    keep[points.length - 1] = 1;
+    if (Array.isArray(opposite) && opposite.length === points.length) {
+        for (let index = 1; index < points.length - 1; index++) {
+            // 两侧包络在尖端收拢时不能让左右链分别跨越该行，否则可能产生细小自交。
+            if (Math.abs(opposite[index].u - points[index].u) <= tolerance * 4) keep[index] = 1;
+        }
+    }
+    const stack = [[0, points.length - 1]];
+    while (stack.length > 0) {
+        const [startIndex, endIndex] = stack.pop();
+        if (endIndex <= startIndex + 1) continue;
+        let splitIndex = -1;
+        let maxDistance = tolerance;
+        for (let index = startIndex + 1; index < endIndex; index++) {
+            if (keep[index]) {
+                splitIndex = index;
+                maxDistance = Infinity;
+                break;
+            }
+            const distance = pointSegmentDistance(points[index], points[startIndex], points[endIndex]);
+            if (distance > maxDistance) {
+                maxDistance = distance;
+                splitIndex = index;
+            }
+        }
+        if (splitIndex < 0) continue;
+        keep[splitIndex] = 1;
+        stack.push([startIndex, splitIndex], [splitIndex, endIndex]);
+    }
+    return points.filter((_, index) => keep[index] === 1);
+};
+
 export const EnvironmentLightingSystem = {
     _config: { ...DEFAULTS },
     _elapsedMs: 0,
@@ -89,6 +143,14 @@ export const EnvironmentLightingSystem = {
             : 'high';
     },
 
+    /** 并集输出轮廓的世界像素误差上限；只影响亚像素共线点，不改变扫描包络求值精度。 */
+    getShadowContourTolerance() {
+        const quality = this.getShadowQuality();
+        if (quality === 'low') return 1;
+        if (quality === 'medium') return 0.7;
+        return 0.35;
+    },
+
     /**
      * 所有实时阴影共用的边缘羽化参数。结构影消费像素宽度与分层数；
      * 接触影消费同一分层数生成径向透明渐变，避免两条渲染链边缘口径分裂。
@@ -98,16 +160,25 @@ export const EnvironmentLightingSystem = {
         const configuredSteps = Number(this._config.shadowEdgeFadeSteps);
         const configuredEdgeAlpha = Number(this._config.shadowEdgeAlphaRatio);
         const configuredContactStart = Number(this._config.contactShadowFadeStart);
+        const quality = this.getShadowQuality();
+        // high 保持当前 8px / 5 步视觉基线；medium/low 只减少内部羽化层，
+        // 不改变外轮廓、接地位置或太阳方向。low 的结构长投影仍由 getStaticShadow 关闭，
+        // 此处的低档参数供单位接触影共用，避免低档仍生成高密度渐变纹理。
+        const qualityCaps = quality === 'low'
+            ? { fadePx: 4, steps: 1 }
+            : (quality === 'medium'
+                ? { fadePx: 6, steps: 2 }
+                : { fadePx: 32, steps: 8 });
         return {
             fadePx: clamp(
                 Number.isFinite(configuredFadePx) ? configuredFadePx : DEFAULTS.shadowEdgeFadePx,
                 0,
-                32
+                qualityCaps.fadePx
             ),
             steps: Math.round(clamp(
                 Number.isFinite(configuredSteps) ? configuredSteps : DEFAULTS.shadowEdgeFadeSteps,
                 1,
-                8
+                qualityCaps.steps
             )),
             edgeAlphaRatio: clamp(
                 Number.isFinite(configuredEdgeAlpha) ? configuredEdgeAlpha : DEFAULTS.shadowEdgeAlphaRatio,
@@ -367,7 +438,7 @@ export const EnvironmentLightingSystem = {
         const cy = Number(options.y) || 0;
         const rx = Math.max(1, (Number(options.width) || 2) * 0.5);
         const ry = Math.max(1, (Number(options.height) || 2) * 0.5);
-        const segments = Math.max(12, Math.floor(Number(options.segments) || 20));
+        const segments = Math.max(8, Math.floor(Number(options.segments) || 20));
         const base = [];
         for (let index = 0; index < segments; index++) {
             const angle = (index / segments) * TAU;
@@ -608,13 +679,26 @@ export const EnvironmentLightingSystem = {
             if (uMin !== Infinity) rows.push({ v, uMin, uMax });
         }
         if (rows.length < 2) return [];
-        // 左缘（uMin 随 v）+ 右缘（uMax 随 v 反序）→ 单调闭合边界
-        const boundary = rows.map((r) => ({ u: r.uMin, v: r.v }))
-            .concat(rows.slice().reverse().map((r) => ({ u: r.uMax, v: r.v })));
-        return boundary.map((p) => ({
+        // 扫描仍保留固定步长和全部输入顶点行来精确求包络；输出阶段才压缩近共线行。
+        // 这样接地角不会再承受旧版最多 2px 的重采样漂移，同时避免把数百扫描行
+        // 原样复制到每一层羽化和 Phaser 命令缓冲。
+        const leftRaw = rows.map((r) => ({ u: r.uMin, v: r.v }));
+        const rightRaw = rows.map((r) => ({ u: r.uMax, v: r.v }));
+        const tolerance = Math.max(0, Number(
+            options.simplifyTolerance ?? this.getShadowContourTolerance()
+        ) || 0);
+        const left = simplifyMonotoneEnvelope(leftRaw, tolerance, rightRaw);
+        const right = simplifyMonotoneEnvelope(rightRaw, tolerance, leftRaw);
+        const boundary = left.concat(right.slice().reverse());
+        const result = boundary.map((p) => ({
             x: p.u * dirX + p.v * perpX,
             y: p.u * dirY + p.v * perpY,
         }));
+        Object.defineProperties(result, {
+            _shadowRawVertexCount: { value: leftRaw.length + rightRaw.length },
+            _shadowSimplifiedVertexCount: { value: result.length },
+        });
+        return result;
     },
 
     /** 多边形在 v 行的 u 跨度（扫描线交点；与多边形无交返回 null）。 */

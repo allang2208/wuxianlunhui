@@ -6,7 +6,8 @@
   },
   "renderCulling": {
     "enabled": true,
-    "paddingPx": 320
+    "paddingPx": 320,
+    "shadowPaddingPx": 64
   },
   "pathQueue": {
     "maxRecalculationsPerFrame": 2,
