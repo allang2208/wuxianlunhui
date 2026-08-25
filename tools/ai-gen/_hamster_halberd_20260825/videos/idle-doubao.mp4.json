@@ -1,0 +1,19 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "modelSelection": "explicit",
+  "ratio": "16:9",
+  "duration": 5,
+  "parameterSelection": "explicit",
+  "loopRequested": true,
+  "reference": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_halberd_20260825\\references\\hamster-halberdier-v04-white.png",
+  "promptFile": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_halberd_20260825\\prompts\\idle-doubao.txt",
+  "promptChars": 1884,
+  "promptSha256": "126b2a030188bfa46fd4afe1a076f5fc17a4fe5c5e3c795318c4228e6942e2e4",
+  "candidate": 1,
+  "candidateCount": 1,
+  "submissionConfirmedByInspection": true,
+  "recoveredFromConversation": true,
+  "recoveredAt": "2026-08-25T13:36:38.176Z",
+  "sourceUrlScheme": "https"
+}

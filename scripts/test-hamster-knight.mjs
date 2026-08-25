@@ -1,6 +1,6 @@
 /**
  * 仓鼠骑士契约测试：
- * - 配置：六维/HP/普攻 31 帧 1.5 秒第 16 帧/冲刺 30 帧第 15~22 帧窗口；
+ * - 配置：六维/HP/普攻插帧后61帧、第31帧命中/冲刺59帧、第29~44帧窗口；
  * - 素材：重采样后无空白帧，且每个动作锚定 running 的稳定脚底线；
  * - 接线：世界-122 通用产兵、全局升级、BootScene、GameScene 和后台结算。
  *
@@ -32,7 +32,8 @@ function alphaFrames(name) {
     const file = path.join(ROOT, 'assets/companions/hamster_knight', name);
     const png = PNG.sync.read(fs.readFileSync(file));
     const frames = [];
-    for (let index = 0; index < 32; index++) {
+    const capacity = (png.width / 512) * (png.height / 512);
+    for (let index = 0; index < capacity; index++) {
         const ox = (index % 8) * 512;
         const oy = Math.floor(index / 8) * 512;
         let minY = 512;
@@ -63,24 +64,24 @@ check('移动速度 = 210px/s',
     cfg.ai.walkSpeed === 210 && cfg.ai.runSpeed === 210);
 check('显示尺寸放大 30%，脚底与 HUD 偏移同步',
     cfg.displaySize === 390 && cfg.spriteOffsetY === -74);
-check('普攻 = 100 物理伤害 / 2 秒 / 第 16 帧',
+check('普攻 = 100 物理伤害 / 2 秒 / 插帧后第31帧',
     cfg.ai.attackDamage === 100 && cfg.ai.attackInterval === 2000
-    && cfg.ai.attackDamageFrame === 16 && Math.abs(cfg.ai.attackAnimFps - 31 / 1.5) < 1e-6);
-check('攻击动画 = 31 帧单次播放 / 1.5 秒',
-    cfg.animations.attack.frameCount === 31 && cfg.animations.attack.frames[1] === 30
-    && cfg.animations.attack.repeat === 0 && Math.abs(cfg.animations.attack.frameRate - 31 / 1.5) < 1e-6);
+    && cfg.ai.attackDamageFrame === 31 && Math.abs(cfg.ai.attackAnimFps - 2 * 31 / 1.5) < 1e-6);
+check('攻击动画插帧后 = 61 帧单次播放',
+    cfg.animations.attack.frameCount === 61 && cfg.animations.attack.frames[1] === 60
+    && cfg.animations.attack.repeat === 0 && Math.abs(cfg.animations.attack.frameRate - 2 * 31 / 1.5) < 1e-6);
 check('冲刺配置复用铠甲骑士参数，冷却 15 秒',
     cfg.ai.charge.cooldown === 15000 && cfg.ai.charge.maxSpeed === 700
     && cfg.ai.charge.accelDuration === 1500 && cfg.ai.charge.maxDuration === 4500
     && cfg.ai.charge.maxDistance === 1800 && cfg.ai.charge.triggerRange === 550
     && cfg.ai.charge.hitRange === 60 && cfg.ai.charge.damageMul === 2
     && cfg.ai.charge.knockback === 200 && cfg.ai.charge.stunMs === 2500);
-check('冲刺伤害窗口 = 第 15~22 帧',
-    cfg.ai.charge.frames === 30 && cfg.ai.charge.hitStartFrame === 15
-    && cfg.ai.charge.hitEndFrame === 22 && cfg.ai.charge.frameRate === 12);
+check('冲刺插帧后伤害窗口 = 第 29~44 帧，墙钟不变',
+    cfg.ai.charge.frames === 59 && cfg.ai.charge.hitStartFrame === 29
+    && cfg.ai.charge.hitEndFrame === 44 && cfg.ai.charge.frameRate === 24);
 
 const expectedFrames = {
-    'idle.png': 11, 'running.png': 12, 'attacking.png': 31, 'dying.png': 14, 'charging.png': 30,
+    'idle.png': 22, 'running.png': 24, 'attacking.png': 61, 'dying.png': 27, 'charging.png': 59,
 };
 for (const [file, expected] of Object.entries(expectedFrames)) {
     const frames = alphaFrames(file);
@@ -100,10 +101,10 @@ check('静态/攻击脚底与 running 基线统一',
 
 const aiSrc = fs.readFileSync(path.join(ROOT, 'src/ai/hamster-knight-ai.js'), 'utf-8');
 check('AI 仅攻击 enemy 且跳过矿点', /_faction === 'enemy'/.test(aiSrc) && /!entity\._isEnergyNode/.test(aiSrc));
-check('普攻延迟按第 16 帧计算且走物理近战伤害（经六维属性换算）',
+check('普攻延迟按插帧后第31帧计算且走物理近战伤害（经六维属性换算）',
     /_attackHitDelay = Math\.max\(0, \(attackFrame - 1\) \/ attackFps \* 1000\)/.test(aiSrc)
     && /target\.takeDamage\(m\.getPhysicalAttackDamage\(this\._attackDamage, target\), m, 'physical', true\)/.test(aiSrc));
-check('冲刺只在第 15~22 帧窗口结算一次双倍伤害',
+check('冲刺只在插帧后第29~44帧窗口结算一次双倍伤害',
     /hitStartFrame/.test(aiSrc) && /hitEndFrame/.test(aiSrc)
     && /this\._chargeDamaged = true/.test(aiSrc)
     && /this\._attackDamage \* \(cfg\.damageMul \?\? 2\)/.test(aiSrc));

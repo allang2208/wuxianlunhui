@@ -48,27 +48,34 @@ check('移动速度 = 150', militiaCfg.ai.walkSpeed === 150 && militiaCfg.ai.run
     `walkSpeed=${militiaCfg.ai.walkSpeed}`);
 check('攻击间隔 = 2000ms / 伤害 = 20 物理', militiaCfg.ai.attackInterval === 2000
     && militiaCfg.ai.attackDamage === 20);
-check('攻击第 8 帧判定伤害：attackDamageFrame=8 / attackAnimFps=12 → 延迟 583ms',
-    militiaCfg.ai.attackDamageFrame === 8 && militiaCfg.ai.attackAnimFps === 12
+check('插帧后第15帧判定伤害：attackDamageFrame=15 / attackAnimFps=24 → 延迟583ms',
+    militiaCfg.ai.attackDamageFrame === 15 && militiaCfg.ai.attackAnimFps === 24
     && Math.abs((militiaCfg.ai.attackDamageFrame - 1) / militiaCfg.ai.attackAnimFps * 1000 - 583.3333) < 1e-3);
 check('近战攻击距离 / 交战半径配置存在',
     typeof militiaCfg.ai.attackRange === 'number' && typeof militiaCfg.ai.engageRange === 'number');
-check('idle 动画 = 1 帧', militiaCfg.animations.idle.frameCount === 1
-    && militiaCfg.animations.idle.frames[0] === 0);
-check('walk（移动）动画 = 12 帧 [0,11] 循环', militiaCfg.animations.walk.frameCount === 12
-    && militiaCfg.animations.walk.frames[0] === 0 && militiaCfg.animations.walk.frames[1] === 11
+check('idle 插帧后 = 48 帧 [0,47] @24fps 循环', militiaCfg.animations.idle.frameCount === 48
+    && militiaCfg.animations.idle.frames[0] === 0 && militiaCfg.animations.idle.frames[1] === 47
+    && militiaCfg.animations.idle.frameRate === 24 && militiaCfg.animations.idle.repeat === -1);
+check('walk 插帧后 = 24 帧 [0,23] @24fps 循环', militiaCfg.animations.walk.frameCount === 24
+    && militiaCfg.animations.walk.frames[0] === 0 && militiaCfg.animations.walk.frames[1] === 23
+    && militiaCfg.animations.walk.frameRate === 24
     && militiaCfg.animations.walk.repeat === -1);
-check('attack 动画 = 15 帧 [0,14]，单次播放（repeat 0）@12fps = 1.25s',
-    militiaCfg.animations.attack.frameCount === 15
-    && militiaCfg.animations.attack.frames[0] === 0 && militiaCfg.animations.attack.frames[1] === 14
-    && militiaCfg.animations.attack.frameRate === 12 && militiaCfg.animations.attack.repeat === 0);
-check('dying 动画 = 14 帧 [0,13]，只播一次', militiaCfg.animations.dying.frameCount === 14
-    && militiaCfg.animations.dying.frames[0] === 0 && militiaCfg.animations.dying.frames[1] === 13
+check('attack 插帧后 = 29 帧 [0,28]，单次 @24fps',
+    militiaCfg.animations.attack.frameCount === 29
+    && militiaCfg.animations.attack.frames[0] === 0 && militiaCfg.animations.attack.frames[1] === 28
+    && militiaCfg.animations.attack.frameRate === 24 && militiaCfg.animations.attack.repeat === 0);
+check('dying 插帧后 = 27 帧 [0,26]，只播一次', militiaCfg.animations.dying.frameCount === 27
+    && militiaCfg.animations.dying.frames[0] === 0 && militiaCfg.animations.dying.frames[1] === 26
+    && militiaCfg.animations.dying.frameRate === 24
     && militiaCfg.animations.dying.repeat === 0);
-check('帧布局 512×512 / 8列4行', Object.values(militiaCfg.animations).every(a =>
-    a.frameWidth === 512 && a.frameHeight === 512 && a.cols === 8 && a.rows === 4));
+check('帧布局保持 512×512 / 8列', Object.values(militiaCfg.animations).every(a =>
+    a.frameWidth === 512 && a.frameHeight === 512 && a.cols === 8));
 check('素材帧脚底非 480，带 spriteOffsetY 补偿',
     typeof militiaCfg.spriteOffsetY === 'number' && militiaCfg.spriteOffsetY < 0);
+check('草叉不计入主体体量，民兵按仓鼠牧师可见躯干高度标定',
+    Math.abs(militiaCfg.displaySize - 247.603834) < 1e-6
+    && Math.abs(militiaCfg.spriteOffsetY + 45.458516) < 1e-6
+    && Math.abs(militiaCfg.render.footOffsetY - 45.458516) < 1e-6);
 check('攻击音效挂接（与战士/盾卫共用鼠鼠战士音效）',
     militiaCfg.sounds && militiaCfg.sounds.attack === 'assets/sounds/friendly/hamster_melee_attack.mp3');
 

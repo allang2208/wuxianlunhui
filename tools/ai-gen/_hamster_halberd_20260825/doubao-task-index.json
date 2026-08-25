@@ -1,0 +1,59 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "ratio": "16:9",
+  "durationSeconds": 5,
+  "referenceMode": "first-frame image",
+  "identityMother": "mother/hamster-halberdier-mother-v04-ear-armor-plume.png",
+  "reference": "references/hamster-halberdier-v04-white.png",
+  "assetStatus": "reserved_art_only",
+  "runtimeIntegrationActive": false,
+  "producerBuildingIntegration": false,
+  "reservationNote": "保留母图、视频、正式精灵表与预览；未经用户另行明确指示，不创建单位配置、实体、AI，也不接入任何出兵建筑。",
+  "tasks": [
+    {
+      "motion": "idle",
+      "prompt": "prompts/idle-doubao.txt",
+      "promptSha256": "126b2a030188bfa46fd4afe1a076f5fc17a4fe5c5e3c795318c4228e6942e2e4",
+      "loopRequested": true,
+      "status": "completed_candidate",
+      "video": "videos/idle-doubao.mp4",
+      "provenance": "videos/idle-doubao.mp4.json",
+      "contact": "previews/videos/idle-contact.jpg",
+      "previewGif": "previews/videos/idle-preview.gif"
+    },
+    {
+      "motion": "running",
+      "prompt": "prompts/running-doubao.txt",
+      "promptSha256": "1748dfbc2a73663a9c7ea1c8cacb7767cc869fc9911acc47dfbbc45a496754f7",
+      "loopRequested": true,
+      "status": "completed_candidate",
+      "video": "videos/running-doubao.mp4",
+      "provenance": "videos/running-doubao.mp4.json",
+      "contact": "previews/videos/running-contact.jpg",
+      "previewGif": "previews/videos/running-preview.gif"
+    },
+    {
+      "motion": "attacking",
+      "prompt": "prompts/attacking-doubao.txt",
+      "promptSha256": "4628ed00a9574da7c452afd8ce93fd6166f8a4d1fcb295adf8d20e41d5792561",
+      "loopRequested": false,
+      "status": "completed_candidate",
+      "video": "videos/attacking-doubao.mp4",
+      "provenance": "videos/attacking-doubao.mp4.json",
+      "contact": "previews/videos/attacking-contact.jpg",
+      "previewGif": "previews/videos/attacking-preview.gif"
+    },
+    {
+      "motion": "dying",
+      "prompt": "prompts/dying-doubao.txt",
+      "promptSha256": "57c05a6be3002b9d724c2337027382c15c6e2e705a5a57b81206bb9250f9d46b",
+      "loopRequested": false,
+      "status": "completed_candidate",
+      "video": "videos/dying-doubao.mp4",
+      "provenance": "videos/dying-doubao.mp4.json",
+      "contact": "previews/videos/dying-contact.jpg",
+      "previewGif": "previews/videos/dying-preview.gif"
+    }
+  ]
+}

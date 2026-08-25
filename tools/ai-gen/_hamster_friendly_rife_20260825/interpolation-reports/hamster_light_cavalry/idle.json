@@ -1,0 +1,51 @@
+{
+  "name": "hamster_light_cavalry-idle",
+  "sourceSheet": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_friendly_rife_20260825\\source-sheets-pre-interpolation\\hamster_light_cavalry\\idle.png",
+  "outputSheet": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_friendly_rife_20260825\\staged-assets\\hamster_light_cavalry\\idle.png",
+  "interpolation": "RIFE v4.6 RGB/alpha split with nearest-color bleed",
+  "pipelineVersion": "rife-v4.6-rgba-v2-temporal-dark-repair",
+  "mode": "loop",
+  "loopStartSourceIndex": 0,
+  "sourceFrameCount": 8,
+  "outputFrameCount": 16,
+  "frameWidth": 512,
+  "frameHeight": 512,
+  "cols": 8,
+  "rows": 2,
+  "sourceFrameRate": 8.0,
+  "outputFrameRate": 16.0,
+  "durationPreserved": true,
+  "keyFrameIndexMapping": "outputIndex = sourceIndex * 2",
+  "validation": {
+    "emptyFrames": [],
+    "touchingFrames": [],
+    "alphaBottomMin": 370,
+    "alphaBottomMax": 370,
+    "middleFrameFootShifts": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "middleFrameVisibleDarkPixelsRepaired": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "middleFrameHeldSourceKeyFallbacks": [],
+    "visibleDarkOutlierFrames": {},
+    "originalKeyFramesPreservedAtEvenIndices": true,
+    "nonzeroRgbInTransparentPixels": 0,
+    "adjacentDeltaMeanBefore": 9.890004754066467,
+    "adjacentDeltaMeanAfter": 5.347550176084042
+  }
+}

@@ -2,7 +2,7 @@
 // HamsterMilitiaAI — 仓鼠民兵 AI（2026-08-17）
 // 玩家友方近战单位：在世界-122 自动寻找最近敌人攻击。
 // - 只认 _faction==='enemy' 的单位，能源矿点（_isEnergyNode）一律不攻击；
-// - 攻击动画 15 帧 @12fps 单次播（1.25s），**第 8 帧判定伤害**（用户口径）：
+// - 插帧后攻击动画 29 帧 @24fps 单次播，**第 15 帧判定伤害**：
 //   伤害延迟 = (attackDamageFrame-1)/fps = 583ms，每挥一次 20 物理伤害，间隔 2s；
 // - 无敌人时跟随玩家（保持 followOffset 站位，到位清路径/归零速度防滑步）；
 // - 移动复用 MovementSystem（寻路/墙碰撞/避障），挥击中站定（不移动）。
@@ -26,11 +26,11 @@ export class HamsterMilitiaAI {
         this._followOffset = this.cfg.followOffset ?? 140;
         this._followArriveDist = this.cfg.followArriveDist ?? 40;
         // 攻击动画第 N 帧伤害判定（用户口径）：整段 15 帧 @12fps = 1.25s，
-        // 第 8 帧（索引 7）→ 伤害延迟 = (8-1)/12 × 1000 = 583ms
+        // 插帧后第 15 帧（索引 14）→ 伤害延迟 = (15-1)/24 × 1000 = 583ms
         const animCfg = (militia.animations && militia.animations.attack) || {};
         const fps = this.cfg.attackAnimFps ?? animCfg.frameRate ?? 12;
-        const damageFrame = this.cfg.attackDamageFrame ?? 8;
-        const frameCount = animCfg.frameCount || 15;
+        const damageFrame = this.cfg.attackDamageFrame ?? 15;
+        const frameCount = animCfg.frameCount || 29;
         this._damageDelayMs = Math.max(0, (damageFrame - 1) / fps * 1000);
         this._swingAnimMs = frameCount / fps * 1000 + 60; // +60ms 余量：动画播完再切 idle，防攻击动画被打断
         // 挥击状态：_swingActive=true 期间站定播攻击动画（单次），到伤害延迟出伤，动画播完回 idle

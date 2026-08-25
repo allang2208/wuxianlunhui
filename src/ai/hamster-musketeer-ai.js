@@ -32,7 +32,7 @@ export class HamsterMusketeerAI {
         this._followOffset = this.cfg.followOffset ?? 160;
         const anim = unit.animations?.attack || {};
         const fps = this.cfg.attackAnimFps ?? anim.frameRate ?? 12;
-        const launchFrame = this.cfg.attackLaunchFrame ?? 10;
+        const launchFrame = this.cfg.attackLaunchFrame ?? 19;
         this._launchDelayMs = (launchFrame - 1) / fps * 1000;
         this._shotAnimMs = this.cfg.attackAnimDurationMs
             ?? ((anim.frameCount || 21) / fps * 1000 + 60);

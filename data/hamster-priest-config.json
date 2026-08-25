@@ -10,21 +10,30 @@
   "baseLevel": 1,
   "baseExp": 0,
   "baseMaxHp": 100,
-  "baseData": { "str": 5, "dex": 5, "int": 20, "con": 5, "wis": 15, "luck": 5 },
+  "baseData": {
+    "str": 5,
+    "dex": 5,
+    "int": 20,
+    "con": 5,
+    "wis": 15,
+    "luck": 5
+  },
   "statFormula": "enemy",
   "groundRadius": 20,
   "collisionRadius": 20,
   "bodyHeight": 100,
   "size": 64,
-  "skills": ["holyLight"],
+  "skills": [
+    "holyLight"
+  ],
   "ai": {
     "role": "holy_priest",
     "walkSpeed": 120,
     "runSpeed": 120,
     "castRange": 600,
     "engageRange": 900,
-    "castAnimFps": 12,
-    "castReleaseFrame": 8,
+    "castAnimFps": 24.0,
+    "castReleaseFrame": 15,
     "followOffset": 150,
     "followArriveDist": 40,
     "decisionMs": 120,
@@ -42,23 +51,59 @@
   "animations": {
     "idle": {
       "src": "assets/companions/hamster_priest/idle.png",
-      "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 4,
-      "frameCount": 10, "frames": [0, 9], "frameRate": 6, "repeat": -1
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 8,
+      "rows": 3,
+      "frameCount": 20,
+      "frames": [
+        0,
+        19
+      ],
+      "frameRate": 12.0,
+      "repeat": -1
     },
     "walk": {
       "src": "assets/companions/hamster_priest/running.png",
-      "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 4,
-      "frameCount": 13, "frames": [0, 12], "frameRate": 12, "repeat": -1
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 8,
+      "rows": 4,
+      "frameCount": 26,
+      "frames": [
+        0,
+        25
+      ],
+      "frameRate": 24.0,
+      "repeat": -1
     },
     "spell": {
       "src": "assets/companions/hamster_priest/praying.png",
-      "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 4,
-      "frameCount": 17, "frames": [0, 16], "frameRate": 12, "repeat": 0
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 8,
+      "rows": 5,
+      "frameCount": 33,
+      "frames": [
+        0,
+        32
+      ],
+      "frameRate": 24.0,
+      "repeat": 0
     },
     "dying": {
       "src": "assets/companions/hamster_priest/dying.png",
-      "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 4,
-      "frameCount": 16, "frames": [0, 15], "frameRate": 12, "repeat": 0
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 8,
+      "rows": 4,
+      "frameCount": 31,
+      "frames": [
+        0,
+        30
+      ],
+      "frameRate": 24.0,
+      "repeat": 0
     }
   }
 }

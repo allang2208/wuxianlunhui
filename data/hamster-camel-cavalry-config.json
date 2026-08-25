@@ -11,7 +11,14 @@
   "baseExp": 0,
   "baseMaxHp": 690,
   "baseDefenseMult": 1.15,
-  "baseData": { "str": 30, "dex": 15, "int": 5, "con": 20, "wis": 3, "luck": 5 },
+  "baseData": {
+    "str": 30,
+    "dex": 15,
+    "int": 5,
+    "con": 20,
+    "wis": 3,
+    "luck": 5
+  },
   "statFormula": "enemy",
   "skills": [],
   "sounds": {
@@ -25,8 +32,8 @@
     "attackDamage": 115,
     "attackRange": 55,
     "engageRange": 900,
-    "attackAnimFps": 12,
-    "attackDamageFrame": 9,
+    "attackAnimFps": 24.0,
+    "attackDamageFrame": 17,
     "camelFrightRadius": 600,
     "camelFrightRefreshMs": 200,
     "camelFrightDurationMs": 350,
@@ -45,23 +52,59 @@
   "animations": {
     "idle": {
       "src": "assets/companions/camel_cavalry/idle.png",
-      "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 3,
-      "frameCount": 24, "frames": [0, 23], "frameRate": 12, "repeat": -1
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 8,
+      "rows": 6,
+      "frameCount": 48,
+      "frames": [
+        0,
+        47
+      ],
+      "frameRate": 24.0,
+      "repeat": -1
     },
     "walk": {
       "src": "assets/companions/camel_cavalry/walking.png",
-      "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 2,
-      "frameCount": 16, "frames": [0, 15], "frameRate": 12, "repeat": -1
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 8,
+      "rows": 4,
+      "frameCount": 32,
+      "frames": [
+        0,
+        31
+      ],
+      "frameRate": 24.0,
+      "repeat": -1
     },
     "attack": {
       "src": "assets/companions/camel_cavalry/attacking.png",
-      "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 2,
-      "frameCount": 16, "frames": [0, 15], "frameRate": 12, "repeat": 0
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 8,
+      "rows": 4,
+      "frameCount": 31,
+      "frames": [
+        0,
+        30
+      ],
+      "frameRate": 24.0,
+      "repeat": 0
     },
     "dying": {
       "src": "assets/companions/camel_cavalry/dying.png",
-      "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 2,
-      "frameCount": 16, "frames": [0, 15], "frameRate": 12, "repeat": 0
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 8,
+      "rows": 4,
+      "frameCount": 31,
+      "frames": [
+        0,
+        30
+      ],
+      "frameRate": 24.0,
+      "repeat": 0
     }
   }
 }

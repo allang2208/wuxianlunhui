@@ -1632,10 +1632,10 @@ export class GameScene extends Scene {
                         sprite.play(diggingKey, true);
                     }
                 } else if (st === 'mining' && anims.mining && this.textures.exists(miningKey)) {
-                    // 采矿动画 = 攻击触发时播一次挥锄，其余攻击间隔定格 waitFrame（默认第 6 帧，索引 5）。
-                    // AI 每次有效命中递增 _miningSwingSeq；首次完整 1~19 帧，之后第 5~19 帧单次。
+                    // 采矿动画 = 攻击触发时播一次挥锄，其余攻击间隔定格 waitFrame（插帧后默认索引 10）。
+                    // AI 每次有效命中递增 _miningSwingSeq；插帧后首次完整 0~36，之后 8~36 单次。
                     const miningStartKey = `${miningKey}_start`;
-                    const miningWaitFrame = anims.mining.waitFrame ?? 5;
+                    const miningWaitFrame = anims.mining.waitFrame ?? 10;
                     const miningSwingSeq = Math.max(0, Number(member._miningSwingSeq) || 0);
                     const playedMiningSwingSeq = Math.max(0, Number(sprite.getData('miningSwingSeq')) || 0);
                     if (miningSwingSeq > playedMiningSwingSeq) {

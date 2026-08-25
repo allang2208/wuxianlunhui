@@ -1,0 +1,63 @@
+{
+  "name": "hamster_bounty_hunter-attack",
+  "sourceSheet": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_friendly_rife_20260825\\source-sheets-pre-interpolation\\hamster_bounty_hunter\\attacking.png",
+  "outputSheet": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_friendly_rife_20260825\\staged-assets\\hamster_bounty_hunter\\attacking.png",
+  "interpolation": "RIFE v4.6 RGB/alpha split with nearest-color bleed",
+  "pipelineVersion": "rife-v4.6-rgba-v2-temporal-dark-repair",
+  "mode": "one-shot",
+  "loopStartSourceIndex": null,
+  "sourceFrameCount": 13,
+  "outputFrameCount": 25,
+  "frameWidth": 512,
+  "frameHeight": 512,
+  "cols": 8,
+  "rows": 4,
+  "sourceFrameRate": 10.4,
+  "outputFrameRate": 20.8,
+  "durationPreserved": true,
+  "keyFrameIndexMapping": "outputIndex = sourceIndex * 2",
+  "validation": {
+    "emptyFrames": [],
+    "touchingFrames": [
+      16,
+      17,
+      18
+    ],
+    "alphaBottomMin": 453,
+    "alphaBottomMax": 456,
+    "middleFrameFootShifts": [
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      -1,
+      0
+    ],
+    "middleFrameVisibleDarkPixelsRepaired": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "middleFrameHeldSourceKeyFallbacks": [],
+    "visibleDarkOutlierFrames": {},
+    "originalKeyFramesPreservedAtEvenIndices": true,
+    "nonzeroRgbInTransparentPixels": 0,
+    "adjacentDeltaMeanBefore": 12.54326089223226,
+    "adjacentDeltaMeanAfter": 7.21617600073417
+  }
+}

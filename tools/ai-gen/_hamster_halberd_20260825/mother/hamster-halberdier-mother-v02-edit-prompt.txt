@@ -1,0 +1,8 @@
+Use case: precise-object-edit
+Asset type: production identity mother frame for a Phaser game friendly-unit animation pipeline
+
+Primary request: Keep the exact same hamster halberdier identity, armor design, fur colors, face, Chinese ji halberd, materials, pose, camera angle, pure white background, and soft diffuse lighting. Change only the framing: uniformly scale down and recenter the complete hamster plus halberd so the entire combined silhouette occupies about 72% of the canvas height, with generous white safety margin above the spear point, below the butt cap and boots, and on both sides.
+
+Constraints: preserve exactly one hamster and exactly one halberd; preserve all anatomy, both hands gripping the shaft, both planted feet, armor details, weapon blade shape and neutral guard stance; complete full silhouette; no cropping; no floor, horizon, shadow, reflection, text, logo, or watermark.
+
+Avoid: redesign, identity drift, new equipment, extra limbs, altered armor, altered face, altered weapon, changed pose, changed camera, perspective distortion, backdrop panel, scenery.

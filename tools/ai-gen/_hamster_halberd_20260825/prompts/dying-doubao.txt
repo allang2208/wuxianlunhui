@@ -1,0 +1,13 @@
+The exact armored hamster halberdier from the first frame performs one irreversible non-graphic death fall and settles into a complete motionless corpse pose. He never attacks and never recovers.
+
+Action phases: a single invisible impact causes a brief loss of strength; his knees buckle, grip weakens and the armored body collapses naturally down and slightly backward-left. The same long Chinese ji halberd leaves the upright guard with him and falls as one rigid intact weapon beside the body, remaining clearly visible without crossing the frame edges. Armor plates, dark red cloth and the deep crimson plume follow the fall with believable weight. He reaches the ground, makes one small natural settling motion, then remains fully still in the final corpse pose for the rest of the shot.
+
+Motion physics: one-way loss of balance, continuous connected anatomy, believable joint limits and gravity, no rubber motion, floating, explosion or body shrink. Both feet leave standing support naturally; the body and weapon remain on a consistent ground plane. No blood, gore, dismemberment or weapon penetration.
+
+Identity locks: preserve the exact hamster face, proportions, golden-brown cheek fur, fully enclosed steel ear housings, helmet plume, cold-gray plate armor, dark red cloth and exactly one intact Chinese ji halberd. The ears remain completely covered throughout.
+
+Camera and framing: static locked orthographic low three-quarter view, no pan, zoom, tilt, crop, reframing or tracking. Keep the complete fallen body, plume and full halberd inside the frame with generous white margins. Pure white background, soft diffuse light, no floor line, cast shadow, scenery, particles or text.
+
+One-shot ending: do not loop, reverse, stand back up, return to the first pose or fade away. Hold the final corpse pose naturally.
+
+Avoid: exposed ears, identity drift, extra or broken limbs, detached head, disappearing body, duplicated or bent weapon, recovery, repeated falling, bouncing, camera movement, cropping, gore, text, logo or watermark.

@@ -29,7 +29,8 @@ function validAlphaFrames(file) {
         ROOT, 'assets/companions/hamster_light_cavalry', file
     )));
     const frames = [];
-    for (let index = 0; index < 32; index++) {
+    const capacity = (png.width / 512) * (png.height / 512);
+    for (let index = 0; index < capacity; index++) {
         const ox = (index % 8) * 512;
         const oy = Math.floor(index / 8) * 512;
         let found = false;
@@ -55,21 +56,21 @@ check('六维使用怪物公式',
     cfg.statFormula === 'enemy' && unit.data.atk === 18 && unit.data.def === 36
     && unit.data.matk === 3 && unit.data.mdef === 4 && unit.data.crit === 7
     && unit.data.critRes === 20);
-check('近战参数 = 230移速 / 60物伤 / 2秒 / 第9帧',
+check('近战参数 = 230移速 / 60物伤 / 2秒 / 插帧后第17帧',
     cfg.ai.walkSpeed === 230 && cfg.ai.runSpeed === 230
     && cfg.ai.attackDamage === 60 && cfg.ai.attackInterval === 2000
-    && cfg.ai.attackDamageFrame === 9 && cfg.ai.attackAnimFps === 12);
+    && cfg.ai.attackDamageFrame === 17 && cfg.ai.attackAnimFps === 24);
 
-for (const [file, count] of Object.entries({
-    'idle.png': 8,
-    'running.png': 11,
-    'attacking.png': 12,
-    'dying.png': 11,
+for (const [file, expected] of Object.entries({
+    'idle.png': { count: 16, height: 1024 },
+    'running.png': { count: 22, height: 1536 },
+    'attacking.png': { count: 23, height: 1536 },
+    'dying.png': { count: 21, height: 1536 },
 })) {
     const sheet = validAlphaFrames(file);
-    check(`${file} 为8×4透明表且有效帧=${count}`,
-        sheet.width === 4096 && sheet.height === 2048
-        && sheet.frames.length === count
+    check(`${file} 为8列透明插帧表且有效帧=${expected.count}`,
+        sheet.width === 4096 && sheet.height === expected.height
+        && sheet.frames.length === expected.count
         && sheet.frames.every((frame, index) => frame === index),
     `frames=${sheet.frames.join(',')}`);
 }

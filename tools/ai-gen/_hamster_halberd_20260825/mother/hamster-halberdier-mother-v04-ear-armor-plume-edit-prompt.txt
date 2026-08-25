@@ -1,0 +1,12 @@
+Use case: precise-object-edit
+Asset type: production identity mother frame for a Phaser game friendly-unit animation pipeline
+
+Primary request: Upgrade only the existing helmet. Fully enclose and protect both hamster ears inside anatomically fitted rounded steel armor housings integrated into the helmet; no ear skin, ear fur, ear opening, or exposed ear tip may remain visible. Add a compact armored feather crest on top: a dark forged-steel crest rail with a disciplined fan of layered deep crimson and dark burgundy feathers swept slightly backward, matching the existing red cloth accents. The plume should read as a military helmet ornament, sturdy and restrained, not oversized.
+
+Change only: helmet ear protection and the new top feather crest, plus physically necessary contact and occlusion around the head.
+
+Preserve exactly: the hamster's same face, eye, muzzle, whiskers, golden-brown cheek fur, expression and head size; all armor below the helmet; both hands and grip; exact Chinese ji halberd; pose, proportions, camera angle, subject scale and position, full silhouette and safety margins; pure white background and soft diffuse lighting.
+
+Constraints: exactly one hamster, one helmet, one plume crest and one halberd; ear armor must visibly cover the complete ear regions while staying compact and believable; plume must remain clearly separated from the halberd and inside the frame; face stays fully open and readable.
+
+Avoid: any exposed ears, ear holes, visible ear tips, face mask, closed visor, horns, wings, crown, huge carnival plume, loose feathers around the image, samurai helmet, identity drift, extra gear, changed weapon, changed pose, changed framing, cropping, cast shadow, scenery, text, logo, watermark.

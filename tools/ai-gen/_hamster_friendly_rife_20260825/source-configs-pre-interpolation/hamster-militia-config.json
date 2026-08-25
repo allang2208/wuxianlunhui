@@ -1,0 +1,69 @@
+{
+  "id": "hamster_militia",
+  "name": "仓鼠民兵",
+  "title": "基地近战民兵",
+  "desc": "手持草叉的仓鼠民兵，在世界-122 自动寻找最近的敌人近战输出，攻击动画第 8 帧判定伤害，帮助玩家防守基地。",
+  "role": "militia",
+  "growthRule": "warrior",
+  "avatar": "🐹🔱",
+  "weaponType": "pitchfork",
+  "baseLevel": 1,
+  "baseExp": 0,
+  "baseMaxHp": 125,
+  "baseData": { "str": 8, "dex": 10, "int": 3, "con": 6, "wis": 3, "luck": 7 },
+  "statFormula": "enemy",
+  "groundRadius": 20,
+  "collisionRadius": 20,
+  "bodyHeight": 100,
+  "size": 64,
+  "skills": [],
+  "sounds": {
+    "attack": "assets/sounds/friendly/hamster_melee_attack.mp3"
+  },
+  "ai": {
+    "role": "melee_militia",
+    "walkSpeed": 150,
+    "runSpeed": 150,
+    "attackInterval": 2000,
+    "attackDamage": 20,
+    "attackRange": 55,
+    "engageRange": 900,
+    "attackAnimFps": 12,
+    "attackDamageFrame": 8,
+    "followOffset": 140,
+    "followArriveDist": 40,
+    "decisionMs": 120,
+    "teleportDist": 999999,
+    "teleportHardDist": 9999999
+  },
+  "displaySize": 313.664397,
+  "spriteOffsetY": -58.199449,
+  "render": {
+    "footOffsetY": 58.199449,
+    "hudOffsetY": 119,
+    "collisionWidth": 40,
+    "collisionHeight": 100
+  },
+  "animations": {
+    "idle": {
+      "src": "assets/companions/hamster_militia/idle.png",
+      "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 3,
+      "frameCount": 24, "frames": [0, 23], "frameRate": 12, "repeat": -1
+    },
+    "walk": {
+      "src": "assets/companions/hamster_militia/running.png",
+      "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 4,
+      "frameCount": 12, "frames": [0, 11], "frameRate": 12, "repeat": -1
+    },
+    "attack": {
+      "src": "assets/companions/hamster_militia/attacking.png",
+      "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 4,
+      "frameCount": 15, "frames": [0, 14], "frameRate": 12, "repeat": 0
+    },
+    "dying": {
+      "src": "assets/companions/hamster_militia/dying.png",
+      "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 4,
+      "frameCount": 14, "frames": [0, 13], "frameRate": 12, "repeat": 0
+    }
+  }
+}

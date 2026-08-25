@@ -250,8 +250,8 @@ export class HamsterPriestAI {
         const m = this.m;
         const spell = m.animations?.spell || {};
         const fps = this.cfg.castAnimFps ?? spell.frameRate ?? 12;
-        const releaseFrame = this.cfg.castReleaseFrame ?? 8;
-        const frameCount = spell.frameCount ?? 17;
+        const releaseFrame = this.cfg.castReleaseFrame ?? 15;
+        const frameCount = spell.frameCount ?? 33;
         this._castActive = true;
         this._castKind = kind;
         this._releaseDone = false;

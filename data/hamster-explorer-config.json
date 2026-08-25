@@ -48,22 +48,72 @@
     "magicDustPerPlayerLevel": 10,
     "pools": {
       "scene11": [
-        "craft_salt_jar", "craft_vine_anklet", "craft_grass_nest", "craft_rune_plaque",
-        "craft_soup_bowl", "craft_bone_mask", "craft_wax_candle", "craft_march_drum",
-        "craft_jade_mantis", "craft_twin_dolls", "craft_flint_striker", "craft_general_figurine",
-        "craft_gilded_pitcher", "craft_bear_skull", "craft_vine_harp", "craft_command_podium",
-        "craft_wolf_banner", "craft_bloodvine_staff", "craft_jade_twins", "craft_gold_astrolabe"
+        "craft_salt_jar",
+        "craft_vine_anklet",
+        "craft_grass_nest",
+        "craft_rune_plaque",
+        "craft_soup_bowl",
+        "craft_bone_mask",
+        "craft_wax_candle",
+        "craft_march_drum",
+        "craft_jade_mantis",
+        "craft_twin_dolls",
+        "craft_flint_striker",
+        "craft_general_figurine",
+        "craft_gilded_pitcher",
+        "craft_bear_skull",
+        "craft_vine_harp",
+        "craft_command_podium",
+        "craft_wolf_banner",
+        "craft_bloodvine_staff",
+        "craft_jade_twins",
+        "craft_gold_astrolabe"
       ],
       "scene10": [
-        "potato", "corn", "carrot", "cabbage", "pumpkin", "tomato", "cucumber",
-        "onion", "garlic", "apple", "strawberry", "grape", "watermelon", "chili",
-        "matsutake", "blueberry", "dragonFruit", "snowLotus", "ginseng", "flatPeach", "wheat"
+        "potato",
+        "corn",
+        "carrot",
+        "cabbage",
+        "pumpkin",
+        "tomato",
+        "cucumber",
+        "onion",
+        "garlic",
+        "apple",
+        "strawberry",
+        "grape",
+        "watermelon",
+        "chili",
+        "matsutake",
+        "blueberry",
+        "dragonFruit",
+        "snowLotus",
+        "ginseng",
+        "flatPeach",
+        "wheat"
       ],
       "scene8": [
-        "ironOre", "copperOre", "coalOre", "limestone", "quartz", "silverOre",
-        "aluminumOre", "tinOre", "leadOre", "sulfurOre", "goldOre", "tungstenOre",
-        "obsidian", "magnetite", "titaniumOre", "mithrilOre", "starSapphire", "diamond",
-        "moonstone", "philosopherStone", "marble"
+        "ironOre",
+        "copperOre",
+        "coalOre",
+        "limestone",
+        "quartz",
+        "silverOre",
+        "aluminumOre",
+        "tinOre",
+        "leadOre",
+        "sulfurOre",
+        "goldOre",
+        "tungstenOre",
+        "obsidian",
+        "magnetite",
+        "titaniumOre",
+        "mithrilOre",
+        "starSapphire",
+        "diamond",
+        "moonstone",
+        "philosopherStone",
+        "marble"
       ]
     }
   },
@@ -78,28 +128,73 @@
   "animations": {
     "idle": {
       "src": "assets/companions/hamster_explorer/idle.png",
-      "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 4,
-      "frameCount": 10, "frames": [0, 9], "frameRate": 8, "repeat": -1
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 8,
+      "rows": 3,
+      "frameCount": 20,
+      "frames": [
+        0,
+        19
+      ],
+      "frameRate": 16.0,
+      "repeat": -1
     },
     "walk": {
       "src": "assets/companions/hamster_explorer/running.png",
-      "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 4,
-      "frameCount": 16, "frames": [0, 15], "frameRate": 12, "repeat": -1
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 8,
+      "rows": 4,
+      "frameCount": 32,
+      "frames": [
+        0,
+        31
+      ],
+      "frameRate": 24.0,
+      "repeat": -1
     },
     "viewing": {
       "src": "assets/companions/hamster_explorer/viewing.png",
-      "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 4,
-      "frameCount": 18, "frames": [0, 17], "frameRate": 12, "repeat": 0
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 8,
+      "rows": 5,
+      "frameCount": 35,
+      "frames": [
+        0,
+        34
+      ],
+      "frameRate": 24.0,
+      "repeat": 0
     },
     "digging": {
       "src": "assets/companions/hamster_explorer/digging.png",
-      "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 4,
-      "frameCount": 13, "frames": [0, 12], "frameRate": 12, "repeat": 0
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 8,
+      "rows": 4,
+      "frameCount": 25,
+      "frames": [
+        0,
+        24
+      ],
+      "frameRate": 24.0,
+      "repeat": 0
     },
     "dying": {
       "src": "assets/companions/hamster_explorer/dying.png",
-      "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 4,
-      "frameCount": 13, "frames": [0, 12], "frameRate": 12, "repeat": 0
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 8,
+      "rows": 4,
+      "frameCount": 25,
+      "frames": [
+        0,
+        24
+      ],
+      "frameRate": 24.0,
+      "repeat": 0
     }
   }
 }

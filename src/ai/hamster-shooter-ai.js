@@ -45,8 +45,8 @@ export class HamsterShooterAI {
         // 发射延迟 = (launchFrame-1) / fps；整段动画时长 = frameCount / fps
         const animCfg = (shooter.animations && shooter.animations.attack) || {};
         const fps = this.cfg.attackAnimFps ?? animCfg.frameRate ?? 12;
-        const launchFrame = this.cfg.attackLaunchFrame ?? 10;
-        const frameCount = animCfg.frameCount || 13;
+        const launchFrame = this.cfg.attackLaunchFrame ?? 19;
+        const frameCount = animCfg.frameCount || 25;
         this._launchDelayMs = Math.max(0, (launchFrame - 1) / fps * 1000);
         this._shotAnimMs = frameCount / fps * 1000 + 60; // +60ms 余量：动画播完再切 idle，防攻击动画被打断
         // 射击状态：_shotActive=true 期间站定（站到动画播完回 idle）

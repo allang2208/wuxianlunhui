@@ -51,27 +51,30 @@ check('攻击间隔 = 2500ms / 伤害 = 25 物理', scoutCfg.ai.attackInterval =
     && scoutCfg.ai.attackDamage === 25);
 check('射程 600 / 交战半径 900 / 投射物速度 600', scoutCfg.ai.attackRange === 600
     && scoutCfg.ai.engageRange === 900 && scoutCfg.ai.projectileSpeed === 600);
-check('攻击第 11 帧出膛：attackLaunchFrame=11 / attackAnimFps=12 → 延迟 833ms',
-    scoutCfg.ai.attackLaunchFrame === 11 && scoutCfg.ai.attackAnimFps === 12
+check('插帧后第 21 帧出膛：attackLaunchFrame=21 / attackAnimFps=24 → 延迟 833ms',
+    scoutCfg.ai.attackLaunchFrame === 21 && scoutCfg.ai.attackAnimFps === 24
     && Math.abs((scoutCfg.ai.attackLaunchFrame - 1) / scoutCfg.ai.attackAnimFps * 1000 - 833.3333) < 1e-3);
-check('idle 动画 = 6 帧 [0,5] 循环（呼吸待机）', scoutCfg.animations.idle.frameCount === 6
-    && scoutCfg.animations.idle.frames[0] === 0 && scoutCfg.animations.idle.frames[1] === 5
+check('idle 插帧后 = 12 帧 [0,11] @12fps 循环', scoutCfg.animations.idle.frameCount === 12
+    && scoutCfg.animations.idle.frames[0] === 0 && scoutCfg.animations.idle.frames[1] === 11
+    && scoutCfg.animations.idle.frameRate === 12
     && scoutCfg.animations.idle.repeat === -1);
-check('walk（移动）动画 = 13 帧 [0,12] 循环（实盘帧13/14为空，2026-08-17修正）',
-    scoutCfg.animations.walk.frameCount === 13
-    && scoutCfg.animations.walk.frames[0] === 0 && scoutCfg.animations.walk.frames[1] === 12
+check('walk 插帧后 = 26 帧 [0,25] @24fps 循环',
+    scoutCfg.animations.walk.frameCount === 26
+    && scoutCfg.animations.walk.frames[0] === 0 && scoutCfg.animations.walk.frames[1] === 25
+    && scoutCfg.animations.walk.frameRate === 24
     && scoutCfg.animations.walk.repeat === -1);
-check('attack 动画 = 18 帧 [0,17]，单次播放（repeat 0）@12fps = 1.5s',
-    scoutCfg.animations.attack.frameCount === 18
-    && scoutCfg.animations.attack.frames[0] === 0 && scoutCfg.animations.attack.frames[1] === 17
-    && scoutCfg.animations.attack.frameRate === 12 && scoutCfg.animations.attack.repeat === 0);
-check('dying 动画 = 11 帧 [0,10]，只播一次', scoutCfg.animations.dying.frameCount === 11
-    && scoutCfg.animations.dying.frames[0] === 0 && scoutCfg.animations.dying.frames[1] === 10
+check('attack 插帧后 = 35 帧 [0,34]，单次 @24fps',
+    scoutCfg.animations.attack.frameCount === 35
+    && scoutCfg.animations.attack.frames[0] === 0 && scoutCfg.animations.attack.frames[1] === 34
+    && scoutCfg.animations.attack.frameRate === 24 && scoutCfg.animations.attack.repeat === 0);
+check('dying 插帧后 = 21 帧 [0,20] @24fps，只播一次', scoutCfg.animations.dying.frameCount === 21
+    && scoutCfg.animations.dying.frames[0] === 0 && scoutCfg.animations.dying.frames[1] === 20
+    && scoutCfg.animations.dying.frameRate === 24
     && scoutCfg.animations.dying.repeat === 0);
 check('projectile 投射物贴图 = 1 帧', scoutCfg.animations.projectile.frameCount === 1
     && scoutCfg.animations.projectile.frames[0] === 0);
-check('帧布局 512×512 / 8列4行', Object.values(scoutCfg.animations).every(a =>
-    a.frameWidth === 512 && a.frameHeight === 512 && a.cols === 8 && a.rows === 4));
+check('帧布局保持 512×512 / 8列', Object.values(scoutCfg.animations).every(a =>
+    a.frameWidth === 512 && a.frameHeight === 512 && a.cols === 8));
 check('素材帧脚底非 480，带 spriteOffsetY 补偿',
     typeof scoutCfg.spriteOffsetY === 'number' && scoutCfg.spriteOffsetY < 0);
 check('出膛音效挂接（复用射手出膛素材）',

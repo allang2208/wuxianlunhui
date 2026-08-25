@@ -39,23 +39,25 @@ check('贴图显示尺寸 = 99（132 × 75%）', hamsterCfg.displaySize === 99, 
 check('隐藏背包默认容量 = 300（2026-08-23 矿工营地口径）', hamsterCfg.ai.backpackCapacity === 300,
     `capacity=${hamsterCfg.ai.backpackCapacity}`);
 check('idle 动画 = 1 帧', hamsterCfg.animations.idle.frameCount === 1 && hamsterCfg.animations.idle.frames[0] === 0);
-check('walking 两段式 = 起步完整 [0,11] + 循环第3~12帧 [2,11]',
-    hamsterCfg.animations.walk.frameCount === 12
-    && hamsterCfg.animations.walk.startFrames[0] === 0 && hamsterCfg.animations.walk.startFrames[1] === 11
+check('walking 插帧后两段式 = 起步 [0,22] + 循环 [4,23] @24fps',
+    hamsterCfg.animations.walk.frameCount === 24
+    && hamsterCfg.animations.walk.startFrames[0] === 0 && hamsterCfg.animations.walk.startFrames[1] === 22
     && hamsterCfg.animations.walk.startRepeat === 0
-    && hamsterCfg.animations.walk.loopFrames[0] === 2 && hamsterCfg.animations.walk.loopFrames[1] === 11
+    && hamsterCfg.animations.walk.loopFrames[0] === 4 && hamsterCfg.animations.walk.loopFrames[1] === 23
+    && hamsterCfg.animations.walk.frameRate === 24
     && hamsterCfg.animations.walk.repeat === -1);
-check('mining 动画 = 19 帧，起步 [0,18] 完整循环 → 单次 [4,18]（第5~19帧，repeat 0）',
-    hamsterCfg.animations.mining.frameCount === 19
-    && hamsterCfg.animations.mining.startFrames[0] === 0 && hamsterCfg.animations.mining.startFrames[1] === 18
-    && hamsterCfg.animations.mining.loopFrames[0] === 4 && hamsterCfg.animations.mining.loopFrames[1] === 18
+check('mining 插帧后 = 37 帧，起步 [0,36] → 单次 [8,36]，waitFrame=10',
+    hamsterCfg.animations.mining.frameCount === 37
+    && hamsterCfg.animations.mining.startFrames[0] === 0 && hamsterCfg.animations.mining.startFrames[1] === 36
+    && hamsterCfg.animations.mining.loopFrames[0] === 8 && hamsterCfg.animations.mining.loopFrames[1] === 36
     && hamsterCfg.animations.mining.startRepeat === 0 && hamsterCfg.animations.mining.repeat === 0
-    && hamsterCfg.animations.mining.waitFrame === 5);
-check('dying 动画 = 11 帧 [0,10]，只播一次', hamsterCfg.animations.dying.frameCount === 11
-    && hamsterCfg.animations.dying.frames[0] === 0 && hamsterCfg.animations.dying.frames[1] === 10
+    && hamsterCfg.animations.mining.frameRate === 40 && hamsterCfg.animations.mining.waitFrame === 10);
+check('dying 插帧后 = 21 帧 [0,20] @24fps，只播一次', hamsterCfg.animations.dying.frameCount === 21
+    && hamsterCfg.animations.dying.frames[0] === 0 && hamsterCfg.animations.dying.frames[1] === 20
+    && hamsterCfg.animations.dying.frameRate === 24
     && hamsterCfg.animations.dying.repeat === 0);
-check('帧布局 512×512 / 8列4行', Object.values(hamsterCfg.animations).every(a =>
-    a.frameWidth === 512 && a.frameHeight === 512 && a.cols === 8 && a.rows === 4));
+check('帧布局保持 512×512 / 8列', Object.values(hamsterCfg.animations).every(a =>
+    a.frameWidth === 512 && a.frameHeight === 512 && a.cols === 8));
 
 // ---- 2. 寻最近能源节点（纯函数） ----
 const nodes = [
@@ -171,9 +173,9 @@ check('满仓后矿工停在营地等待，容量恢复后继续提交并自动�
 const gsSrc = fs.readFileSync(path.join(ROOT, 'src/phaser/scenes/GameScene.js'), 'utf-8');
 check('GameScene 渲染友方单位（friendlyUnits）', /_game\.friendlyUnits/.test(gsSrc));
 check('GameScene 支持 mining/dying 动画状态', /st === 'mining'/.test(gsSrc) && /st === 'dying'/.test(gsSrc));
-check('GameScene 采矿 = 挥锄序号触发播放、间隔定格 waitFrame（第 6 帧）',
+check('GameScene 采矿 = 挥锄序号触发播放、间隔定格插帧后 waitFrame=10',
     /member\._miningSwingSeq/.test(gsSrc) && /miningStartKey/.test(gsSrc)
-    && /anims\.mining\.waitFrame \?\? 5/.test(gsSrc) && /setTexture\(miningKey, miningWaitFrame\)/.test(gsSrc));
+    && /anims\.mining\.waitFrame \?\? 10/.test(gsSrc) && /setTexture\(miningKey, miningWaitFrame\)/.test(gsSrc));
 check('GameScene 行走两段式 = 起步完整 walking → 循环第 3~12 帧',
     /hamsterWalk/.test(gsSrc) && /walkStartKey/.test(gsSrc));
 check('GameScene 移动始终朝向移动方向（walk 按 vx，不倒退）',

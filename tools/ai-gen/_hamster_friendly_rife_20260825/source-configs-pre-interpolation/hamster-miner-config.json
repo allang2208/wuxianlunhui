@@ -1,0 +1,64 @@
+{
+  "id": "hamster_miner",
+  "name": "仓鼠矿工",
+  "title": "挖矿好帮手",
+  "desc": "头戴探照灯矿盔、腰挂工具袋的仓鼠矿工，在世界-122 帮玩家自动采集能源矿点。",
+  "role": "miner",
+  "growthRule": "balanced",
+  "avatar": "🐹",
+  "weaponType": "pickaxe",
+  "baseLevel": 1,
+  "baseExp": 0,
+  "baseMaxHp": 100,
+  "baseData": { "str": 6, "dex": 6, "int": 5, "con": 10, "wis": 5, "luck": 5 },
+  "statFormula": "enemy",
+  "skills": [],
+  "sounds": {
+    "mining": "assets/sounds/friendly/hamster_miner_mining.mp3"
+  },
+  "ai": {
+    "role": "miner",
+    "walkSpeed": 80,
+    "runSpeed": 80,
+    "miningRange": 50,
+    "engageRange": 340,
+    "attackRange": 48,
+    "attackInterval": 2000,
+    "attackDamage": 100,
+    "energyGatherRatio": 0.125,
+    "expectedCritChance": 0.07,
+    "backpackCapacity": 300,
+    "decisionMs": 120,
+    "followOffset": 150,
+    "teleportDist": 999999,
+    "teleportHardDist": 9999999
+  },
+  "displaySize": 99,
+  "animations": {
+    "idle": {
+      "src": "assets/companions/hamster_miner/idle.png",
+      "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 4,
+      "frameCount": 1, "frames": [0, 0], "frameRate": 1, "repeat": -1
+    },
+    "walk": {
+      "src": "assets/companions/hamster_miner/walking.png",
+      "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 4,
+      "frameCount": 12,
+      "startFrames": [0, 11], "startFrameRate": 12, "startRepeat": 0,
+      "loopFrames": [2, 11], "frameRate": 12, "repeat": -1
+    },
+    "mining": {
+      "src": "assets/companions/hamster_miner/mining.png",
+      "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 4,
+      "frameCount": 19,
+      "startFrames": [0, 18], "startFrameRate": 20, "startRepeat": 0,
+      "loopFrames": [4, 18], "frameRate": 20, "repeat": 0,
+      "waitFrame": 5
+    },
+    "dying": {
+      "src": "assets/companions/hamster_miner/dying.png",
+      "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 4,
+      "frameCount": 11, "frames": [0, 10], "frameRate": 12, "repeat": 0
+    }
+  }
+}
