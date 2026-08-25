@@ -174,9 +174,14 @@ function reconcileCivilianVisualOccupancy(worker, context) {
     const sprite = worker?.sprite;
     if (!sprite?.active) return;
     // 面包师等可选择只受城墙约束；深度仲裁仍读取完整建筑候选，因此穿楼不等于穿模显示。
+    const ignoredStructures = Array.isArray(worker.civilianIgnoredStructures)
+        ? new Set(worker.civilianIgnoredStructures)
+        : null;
     const blockingContext = worker.civilianCollisionMode === 'walls_only'
         ? { ...context, buildings: [] }
-        : context;
+        : (ignoredStructures?.size
+            ? { ...context, buildings: context.buildings.filter((entry) => !ignoredStructures.has(entry)) }
+            : context);
     const radius = getCivilianVisualGroundRadius();
     const x = Number.isFinite(worker.x) ? worker.x : (Number(sprite.x) || 0);
     const y = Number.isFinite(worker.y) ? worker.y : (Number(sprite.y) || 0);
@@ -404,6 +409,26 @@ export function getCivilianVisualDebugSnapshot() {
 export function syncCivilianVisualDepth(worker, structureCandidates = null) {
     const sprite = worker?.sprite;
     if (!sprite?.active) return;
+
+    // 牧场内部奶牛按设计固定显示在本栋完整复合建筑之上；它仍只在安全草地内活动，
+    // 但不再参与牛棚、工作间或前景栅栏的前后遮挡。牛与牛之间继续按脚点 Y 排序：
+    // 靠前（屏幕 Y 更大）的牛覆盖靠后的牛，极小 slot 偏移只负责同脚线时稳定次序。
+    const internalOwner = worker.internalStructureOwner;
+    if (internalOwner?.active) {
+        const ownerFrontDepth = Number(internalOwner._structureRenderChannels?.frontFx);
+        const ownerDepth = Number(internalOwner._structureRenderChannels?.sprite);
+        const fallbackDepth = Number(internalOwner._structureRenderDepth
+            ?? internalOwner._faceDepth ?? internalOwner.y) || 0;
+        const compoundTopDepth = Number.isFinite(ownerFrontDepth)
+            ? ownerFrontDepth
+            : (Number.isFinite(ownerDepth) ? ownerDepth + 0.04 : fallbackDepth + 0.04);
+        const footY = Number.isFinite(worker.y) ? worker.y : (Number(sprite.y) || 0);
+        const ownerY = Number(internalOwner.y) || 0;
+        const footOrderOffset = Math.max(-0.009, Math.min(0.009, (footY - ownerY) * 0.00005));
+        const stableTieBreak = Math.max(0, Number(worker.slot) || 0) * 0.00000001;
+        sprite.setDepth(compoundTopDepth + 0.02 + footOrderOffset + stableTieBreak);
+        return;
+    }
 
     const x = Number.isFinite(worker.x) ? worker.x : sprite.x;
     const y = Number.isFinite(worker.y) ? worker.y : sprite.y;

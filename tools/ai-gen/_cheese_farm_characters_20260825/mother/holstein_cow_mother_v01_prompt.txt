@@ -1,0 +1,10 @@
+Use case: stylized-concept
+Asset type: production identity mother frame for a World-122 Phaser game quadruped civilian animation pipeline
+
+Create exactly one ordinary adult black-and-white Holstein dairy cow as a production-ready identity model in a calm animation-friendly neutral standing pose.
+
+One healthy adult female Holstein cow with a broad natural dairy-cow torso, realistic shoulder and hip structure, four sturdy cloven-hoof legs, anatomically restrained udder, long tail with black tuft, short cream horns, pale pink muzzle and dark gentle eyes. Lock an asymmetrical patch map: one large black shoulder patch, one black mid-flank patch, black patch around the far eye, mostly white lower legs and black tail tuft.
+
+Use physically plausible bovine anatomy, believable weight through all four hooves, high-detail short hair, restrained roughness, and a non-glossy muzzle. Calm low three-quarter side view facing screen-right, all four legs separated and readable, all hooves on one baseline. Locked orthographic-style camera, complete silhouette, generous margins. High-detail realistic PBR 3D game render with controlled saturation. Pure white #FFFFFF background, no horizon, floor, cast shadow or reflection.
+
+Avoid extra cattle, calf or bull anatomy, extra or missing legs, fused hooves, broken joints, duplicate head, split tail, giant udder, oversized horns, buffalo or yak traits, collar, bell, rope, harness, saddle, armor, magic, grass, barn, fence, scenery, text, logo, watermark, perspective distortion, cropping, motion blur, glossy plastic, cartoon, anime or low-poly toy.

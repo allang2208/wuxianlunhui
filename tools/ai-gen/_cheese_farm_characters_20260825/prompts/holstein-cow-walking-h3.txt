@@ -1,0 +1,9 @@
+Create one continuous 5.17-second seamless in-place walking loop intended for game sprite-frame extraction.
+
+Use the exact same single adult black-and-white Holstein dairy cow shown in the first frame. Preserve her realistic anatomy, black-and-white marking layout, head, horns, ears, eyes, muzzle, udder, legs, hooves, tail, body proportions, PBR hair detail, colors, and three-quarter side view facing screen right. Do not add a collar, bell, rope, harness, saddle, tag, blanket, milking equipment, food, scenery, or another animal.
+
+The cow walks calmly in place without travelling across the image. Her torso center and root X position remain fixed. Show at least two steady complete walking cycles with natural four-leg coordination, clear alternating hoof steps, gentle shoulder and hip motion, restrained head bob, and a small natural tail sway. No trotting, running, sliding, leg swapping, duplicated legs, turning, jumping, grazing, lying down, or horizontal drift.
+
+The camera is completely locked and orthographic with wide framing: no pan, tracking, rotation, zoom, crop, reframing, or shake. The complete horns, muzzle, tail, udder, legs, and hooves remain visible with generous space on every side. Begin and end in the same walking pose, position, scale, direction, and gait phase for a clean loop, with no slowdown, stop, freeze, reverse, bounce, or end pause.
+
+The entire background is a perfectly uniform flat chroma green #00FF00 in every pixel for every frame. Absolutely no grass, floor, horizon, contact shadow, cast shadow, reflection, gradient, texture, particles, dust, text, logo, border, watermark, extra subject, or sprite-sheet grid.

@@ -1,0 +1,112 @@
+{
+  "cell": 256,
+  "feetY": 236,
+  "actions": {
+    "cowherd_idle": {
+      "source": "videos/cowherd-idle-h3-v02.mp4",
+      "sourceIndices": [
+        78,
+        89,
+        101,
+        112,
+        123,
+        11,
+        22,
+        34
+      ],
+      "frameCount": 8,
+      "endFrame": 7,
+      "frameWidth": 256,
+      "frameHeight": 256,
+      "cols": 4,
+      "rows": 2,
+      "frameRate": 8,
+      "footRatio": 0.921875,
+      "fixedScale": 0.47186147186147187,
+      "sheet": "tools/ai-gen/_cheese_farm_characters_20260825/sheets/cowherd_idle.png",
+      "previewGif": "tools/ai-gen/_cheese_farm_characters_20260825/previews/sheets/cowherd_idle.gif",
+      "previewContact": "tools/ai-gen/_cheese_farm_characters_20260825/previews/sheets/cowherd_idle-contact.jpg",
+      "validation": {
+        "alphaPixelsMin": 15082,
+        "alphaPixelsMax": 15397,
+        "emptyFrames": [],
+        "touchingFrames": [],
+        "feetMin": 235,
+        "feetMax": 235,
+        "adjacentDeltaMean": 8.113494123731341,
+        "loopSeamDelta": 16.606639862060547
+      }
+    },
+    "cowherd_empty_running": {
+      "source": "videos/cowherd-empty-running-h3-v01.mp4",
+      "sourceIndices": [
+        12,
+        14,
+        16,
+        18,
+        20,
+        22,
+        24,
+        26,
+        28
+      ],
+      "frameCount": 9,
+      "endFrame": 8,
+      "frameWidth": 256,
+      "frameHeight": 256,
+      "cols": 4,
+      "rows": 3,
+      "frameRate": 12,
+      "footRatio": 0.921875,
+      "fixedScale": 0.513215859030837,
+      "sheet": "tools/ai-gen/_cheese_farm_characters_20260825/sheets/cowherd_empty_running.png",
+      "previewGif": "tools/ai-gen/_cheese_farm_characters_20260825/previews/sheets/cowherd_empty_running.gif",
+      "previewContact": "tools/ai-gen/_cheese_farm_characters_20260825/previews/sheets/cowherd_empty_running-contact.jpg",
+      "validation": {
+        "alphaPixelsMin": 15234,
+        "alphaPixelsMax": 16885,
+        "emptyFrames": [],
+        "touchingFrames": [],
+        "feetMin": 235,
+        "feetMax": 235,
+        "adjacentDeltaMean": 49.55431938171387,
+        "loopSeamDelta": 32.223331451416016
+      }
+    },
+    "cowherd_carrying_cheese_running": {
+      "source": "videos/cowherd-carrying-cheese-running-h3-v01.mp4",
+      "sourceIndices": [
+        12,
+        14,
+        16,
+        18,
+        20,
+        22,
+        24,
+        26
+      ],
+      "frameCount": 8,
+      "endFrame": 7,
+      "frameWidth": 256,
+      "frameHeight": 256,
+      "cols": 4,
+      "rows": 2,
+      "frameRate": 12,
+      "footRatio": 0.921875,
+      "fixedScale": 0.5010752688172043,
+      "sheet": "tools/ai-gen/_cheese_farm_characters_20260825/sheets/cowherd_carrying_cheese_running.png",
+      "previewGif": "tools/ai-gen/_cheese_farm_characters_20260825/previews/sheets/cowherd_carrying_cheese_running.gif",
+      "previewContact": "tools/ai-gen/_cheese_farm_characters_20260825/previews/sheets/cowherd_carrying_cheese_running-contact.jpg",
+      "validation": {
+        "alphaPixelsMin": 14655,
+        "alphaPixelsMax": 16162,
+        "emptyFrames": [],
+        "touchingFrames": [],
+        "feetMin": 235,
+        "feetMax": 235,
+        "adjacentDeltaMean": 41.42998204912458,
+        "loopSeamDelta": 38.206817626953125
+      }
+    }
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "source": "tools\\ai-gen\\_settlement_building_pack_20260821\\cheese_farm\\structure_12step_seed123260\\cheese_farm\\cheese_farm_structure_v02.png",
+  "output": "assets\\terrain\\cheese_farm.png",
+  "sourceMode": "RGBA",
+  "background": null,
+  "matteColor": [
+    255,
+    255,
+    255
+  ],
+  "matteEdgeWidth": 0.0,
+  "matteTolerance": 110.0,
+  "nearestOpaqueEdgeRgb": false,
+  "nearestOpaqueAlpha": null,
+  "defringeInnerPixels": 0,
+  "minComponentPixels": 0,
+  "removedComponents": 0,
+  "removedComponentPixels": 0,
+  "maskImage": null,
+  "maskDilate": null,
+  "fillAlphaHoles": false,
+  "fillHoleMatteDistance": null,
+  "removeEnclosedMatte": false,
+  "enclosedMatteChromaDistance": null,
+  "maskAddRects": [],
+  "restoreAlphaRects": [],
+  "removeMatteRects": [],
+  "cropBox": [
+    62,
+    413,
+    960,
+    927
+  ],
+  "fileSize": [
+    898,
+    514
+  ],
+  "alphaBBox": [
+    4,
+    4,
+    894,
+    510
+  ],
+  "displayW": 512,
+  "displayH": 293,
+  "footOffsetY": 144,
+  "scaleX": 0.5701559020044543,
+  "scaleY": 0.5700389105058365
+}

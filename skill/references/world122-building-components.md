@@ -60,6 +60,7 @@
 | `lantern(location, iron, glow, orientation)` | 支架、灯笼笼体、发光芯、上下盖 | 仓库、铁匠铺、骑兵学院、茅草屋 |
 | `workbench(location, timber, iron)` | 台面、四腿和台钳 | 铁匠铺 |
 | `anvil(location, iron)` | 底脚、腰、砧面和砧角 | 铁匠铺 |
+| `post_and_rail_enclosure(width, front_y, back_y, base_z, gate_width, rail_offsets, post_height, post_spacing, include_back, gate_leaves, gate_open_angle)` | 参数化木桩横栏围界；支持居中门洞、可选双扇开启门、后围栏开关及栏杆/立柱密度 | 靶场、奶酪农场 |
 | `add_windmill_sails(y, hub_z, blade_length, radius, blade_width)` | 四组中心梁、双导轨、格栅叶片与前后轮毂 | 麦田风车 |
 
 `add_windmill_sails` 当前仍在建筑包脚本中；第二栋建筑需要风车/水车叶片时再提炼成 kit 公共函数，并补充轴向参数。
@@ -79,7 +80,7 @@
 | 军械库 | `Armory_LowerStoneVault` / `Armory_*Buttress*` / `Armory_Main*Door*` / `Armory_Upper*` | 单体加固石砌下层、铁箍扶壁、唯一重型双开门与附墙上层装卸门；保持完整2×2石基和连续双坡屋顶 | `build_armory()` |
 | 军械库 | `Armory_ShieldRack_*` / `Armory_Shield_*` / `Armory_PolearmRack_*` / `Armory_Polearm_*` | 由建筑级 `armory_round_shield()` 与 `armory_wall_spear()` 组装的附墙盾牌及长柄武器陈列；所有子件独立可编辑，不得散落为院落道具 | `build_armory()` / `armory_round_shield()` / `armory_wall_spear()` |
 | 军械库 | `Armory_Crest*` / `Armory_WallCrate*` / `Armory_DoorLantern` | 无文字盾剑徽记、紧贴正墙的军备箱与单灯；用于军事仓储识别，不生成塔楼、锻炉或独立棚屋 | `build_armory()` |
-| 靶场 | `Range_Yard_*` | 一格院落的侧/前栏杆、门洞和立柱 | `build_shooting_range()` |
+| 靶场 | `Range_Yard_*` | 一格院落的侧/前栏杆、门洞和立柱；已改由公共 `post_and_rail_enclosure()` 装配 | `build_shooting_range()` / `building-component-kit.py` |
 | 靶场 | `Range_Target_*` | 靠近前围栏的靶柱、底脚、草靶与铁心 | `build_shooting_range()` |
 | 靶场 | `Range_Armory_Rack_*` / `Visible_Bow_*` / `Visible_Gun*` / `Powder*` | 檐下实体枪架、弓枪、火药架和袋；屋顶必须为空 | `build_shooting_range()` |
 | 骑兵学院 | `Cavalry_Training_Tower*` / `Cavalry_Tower_Timber` | 单座训练塔、木构立面和方锥顶 | `build_cavalry_school()` |
@@ -127,6 +128,8 @@
 | 二级房屋增量 | `House_DoorCanopy*` / `House_Level2Balcony*` / `House_*FlowerBox*` / `House_Supply*` | 在共用母体上增加附墙门廊、小型木阳台、花箱和贴墙生活物资；不得生成独立院落或附属房 | `build_house_level(level=2)` |
 | 三级房屋增量 | `House_Level3OrnateBalcony*` / `House_Gilt*` / `House_FamilyCrest*` / `House_RidgeFinial*` | 在同一母体上增加雕花铜饰阳台、克制镀金木构、家徽、彩窗花饰和小型屋脊顶饰；不增加第三层、塔楼或第二屋顶 | `build_house_level(level=3)` |
 | 茅草屋 | `Cottage_*` | 厚草顶标准壳、门窗、烟囱、灯笼的住宅组合 | `build_thatch_hut()` |
+| 奶酪农场 | `CheeseFarm_MainHall_*` / `CheeseFarm_Cowshed_*` / `CheeseFarm_Workshop_*` | 4×4宽阔平地上的中央奶酪主厅、左侧开敞牛棚与右侧相连工作间；牛棚槽位、奶酪压榨机、熟成架和奶酪轮均保持独立可编辑，人物与奶牛不烘入建筑模型 | `build_cheese_farm()` / `cheese_farm_wheel()` |
+| 奶酪农场 | `CheeseFarm_PerimeterFence_*` / `CheeseFarm_Pasture_*` | 完整边界木栅栏、居中开启双门、低矮牧场地面与两座固定水槽；围栏复用公共组件，宽阔前场保持少杂物 | `build_cheese_farm()` / `post_and_rail_enclosure()` |
 | 麦田风车 | `Mill_*` / `Sail_*` | 细高石基、木构上层、紧凑机房屋顶和四叶片 | `build_windmill()` / `add_windmill_sails()` |
 | 主神空间仓库 | `MainWarehouse_*` | 单格白石库房、半圆拱顶、金属跨拱肋、蓝晶双门与宝石封印；继承旧宝箱的白/金/蓝识别但不保留宝箱形体 | `build_main_space_warehouse()` / `barrel_vault()` |
 
@@ -161,6 +164,7 @@
 | 三级房屋 | 与一二级相同的两层母体 | 雕花铜饰阳台、家徽、镀金木构、更多花饰、屋脊顶饰与华丽灯具 |
 | 能量矿石堆 | `EnergyNode_Rock_*` + `EnergyNode_Crystal_*` | 四种运行时形态共享一体化自然岩块矿堆；双尖、三冠、斜晶与密集晶群分别由 manifest 晶柱数组装配，正常/枯竭态复用同一 Depth |
 | 茅草屋 | 厚茅草标准壳 | 门窗、烟囱、灯笼 |
+| 奶酪农场 | 完整4×4低矮牧场 + 中央奶酪主厅 + 左侧开敞牛棚 + 右侧相连工作间 | 完整木栅栏边界、居中开启双门、牛棚槽位与饲料槽、奶酪压榨机、熟成架、奶酪轮和两座固定水槽；牛倌与奶牛为独立动画资产 |
 
 本表只记录组件覆盖关系。实际完成度、导入状态和验收结果统一查 `git log` 与 `CHANGELOG.md`，不写入 skill。
 

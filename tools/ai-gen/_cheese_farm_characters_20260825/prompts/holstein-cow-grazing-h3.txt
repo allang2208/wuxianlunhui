@@ -1,0 +1,9 @@
+Create one continuous 5.17-second seamless grazing loop intended for game sprite-frame extraction.
+
+Use the exact same single adult black-and-white Holstein dairy cow shown in the first frame. Preserve her realistic anatomy, exact black-and-white marking layout, horns, ears, eyes, muzzle, udder, legs, hooves, tail, body proportions, PBR hair detail, colors, and three-quarter side view facing screen right. Do not add a collar, bell, rope, harness, tag, blanket, grass, hay, trough, milking equipment, scenery, or another animal.
+
+The cow stays planted at the same root position. She calmly lowers her head toward the invisible ground, makes a few small natural grazing and chewing motions with the muzzle, lightly flicks one ear and the tail, then smoothly raises her head back to the exact starting pose. All four hooves remain planted; only tiny weight adjustments are allowed. No walking, travelling, sliding, turning, kneeling, lying down, jumping, or horizontal drift.
+
+The camera is completely locked and orthographic with wide framing: no pan, tracking, rotation, zoom, crop, reframing, or shake. The complete horns, muzzle at its lowest point, tail, udder, legs, and hooves remain visible with generous empty space. Begin and end in exactly the same standing pose, position, scale, direction, and expression for a clean loop, with no freeze, reverse, bounce, or end pause.
+
+The entire background is a perfectly uniform flat chroma green #00FF00 in every pixel for every frame. Absolutely no grass, floor, horizon, contact shadow, cast shadow, reflection, gradient, texture, particles, dust, text, logo, border, watermark, extra subject, or sprite-sheet grid.

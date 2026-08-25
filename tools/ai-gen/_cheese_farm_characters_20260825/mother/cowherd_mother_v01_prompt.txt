@@ -1,0 +1,10 @@
+Use case: stylized-concept
+Asset type: production identity mother frame for a World-122 Phaser game civilian animation pipeline
+
+Create exactly one anthropomorphic hamster cowherd based on the supplied hamster worker only for species, body proportions, low three-quarter camera, realistic PBR game-render style, and framing. Redesign the clothing for a medieval dairy farm worker.
+
+One friendly adult golden-brown and cream hamster with rounded realistic head, small round ears, glossy dark eyes, short muzzle, subtle whiskers and a thin natural tail. Wear a weathered dark olive-green work apron over a rolled-sleeve muted cream linen shirt, loose dark brown work trousers, simple brown leather gloves, and a low charcoal-brown flat work cap. No weapon, farming tool, sack, food or cheese in this identity frame.
+
+Calm neutral standing idle, low three-quarter view facing screen-right, arms relaxed but slightly forward with clear separation from the torso so the same identity can later hold cheese against the chest; both feet on one baseline; full body and tail visible. High-detail realistic PBR 3D game render matching the supplied worker, with believable fur, worn linen, rough apron cloth and matte leather. Pure white #FFFFFF background, no horizon, floor, cast shadow or reflection.
+
+Avoid duplicate characters, extra or missing limbs, human face, rat-like long snout, oversized head, armor, weapon, pitchfork, sickle, bag, basket, vegetables, cheese, text, logo, watermark, scenery, dramatic lighting, cropping, glossy plastic, anime, cartoon or flat illustration.
