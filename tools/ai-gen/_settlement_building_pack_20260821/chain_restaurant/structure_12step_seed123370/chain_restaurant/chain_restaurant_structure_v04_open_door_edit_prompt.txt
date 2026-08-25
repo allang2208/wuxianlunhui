@@ -1,0 +1,6 @@
+Use case: precise-object-edit
+Asset type: World-122 isometric game building structure candidate on green-screen background
+Input image: chain_restaurant_structure_v04_raw.png is the sole edit target.
+Primary request: Change only the central arched main entrance on the ground floor. Open the existing double wooden door, replace the closed panels inside the arch with a deep dark interior doorway, and show exactly two matching heavy timber leaves swung outward in the same isometric perspective.
+Hard invariants: Preserve the three floors, roof, exactly two chimneys, every window, timber framing, stone walls, circular plate-and-cutlery emblem, lamps, pickup counter and canopy, paved foundation, camera, framing, lighting, textures, colors and green background.
+Avoid: Closed main door, single door leaf, extra entrances, altered roof or chimneys, people, animals, text, extra props, crop or perspective changes.

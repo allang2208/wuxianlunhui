@@ -1,0 +1,125 @@
+{
+  "status": "candidate-only; RIFE interpolation and user acceptance still required",
+  "cell": 512,
+  "feetY": 479,
+  "targetHeight": 312,
+  "fixedScale": 0.5909090909090909,
+  "actions": {
+    "empty_running": {
+      "source": "videos/delivery-worker-empty-running-doubao-v2.mp4",
+      "window": [
+        48,
+        72
+      ],
+      "duplicateEndpointExcluded": 72,
+      "sourceIndices": [
+        48,
+        50,
+        52,
+        54,
+        56,
+        58,
+        60,
+        62,
+        64,
+        66,
+        68,
+        70
+      ],
+      "sourceFrameStep": 2,
+      "frameCount": 12,
+      "endFrame": 11,
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 4,
+      "rows": 3,
+      "frameRate": 12,
+      "tailPixelsRemoved": [
+        2119,
+        2311,
+        2392,
+        2611,
+        2975,
+        2001,
+        2535,
+        2693,
+        2668,
+        2762,
+        2746,
+        2092
+      ],
+      "validation": {
+        "alphaPixelsMin": 38768,
+        "alphaPixelsMax": 41449,
+        "emptyFrames": [],
+        "touchingFrames": [],
+        "feetMin": 479,
+        "feetMax": 479,
+        "adjacentDeltaMean": 26.184316114945844,
+        "loopSeamDelta": 19.763336181640625
+      }
+    },
+    "loaded_running": {
+      "source": "videos/delivery-worker-loaded-running-doubao-v1-source-tail-cleanup.mp4",
+      "window": [
+        52,
+        84
+      ],
+      "duplicateEndpointExcluded": 84,
+      "sourceIndices": [
+        52,
+        54,
+        56,
+        58,
+        60,
+        62,
+        64,
+        66,
+        68,
+        70,
+        72,
+        74,
+        76,
+        78,
+        80,
+        82
+      ],
+      "sourceFrameStep": 2,
+      "frameCount": 16,
+      "endFrame": 15,
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 4,
+      "rows": 4,
+      "frameRate": 12,
+      "tailPixelsRemoved": [
+        520,
+        1426,
+        1998,
+        2338,
+        2205,
+        0,
+        1467,
+        2106,
+        2381,
+        1924,
+        1574,
+        1509,
+        1682,
+        2446,
+        2503,
+        1528
+      ],
+      "validation": {
+        "alphaPixelsMin": 44444,
+        "alphaPixelsMax": 48715,
+        "emptyFrames": [],
+        "touchingFrames": [],
+        "feetMin": 479,
+        "feetMax": 479,
+        "adjacentDeltaMean": 26.634241104125977,
+        "loopSeamDelta": 25.36775779724121
+      }
+    }
+  }
+}
