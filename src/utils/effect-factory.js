@@ -4,9 +4,7 @@
  */
 
 import { EffectManager } from '../effects/effect-manager.js';
-import { MuzzleFlashEffect } from '../effects/muzzle-flash.js';
-import { ShellCasingEffect } from '../effects/shell-casing.js';
-import { DodgeEffect, DustEffect } from '../effects/particle-effects.js';
+import { DodgeEffect } from '../effects/particle-effects.js';
 
 export const EffectFactory = {
     /**
@@ -15,17 +13,12 @@ export const EffectFactory = {
      * @param {number} y
      * @param {number} angle
      * @param {number} [scale=1.0]
-     * @returns {MuzzleFlashEffect}
+     * @returns {MuzzleFlashEffect|null}
      */
     createMuzzleFlash(x, y, angle, scale = 1.0) {
-        let e = EffectManager._acquire('MuzzleFlashEffect');
-        if (e) {
-            e.reset(x, y, angle, scale);
-        } else {
-            e = new MuzzleFlashEffect(x, y, angle, scale);
-        }
-        EffectManager.add(e);
-        return e;
+        return EffectManager.spawnPooledCosmetic(
+            'muzzleFlash', 'MuzzleFlashEffect', x, y, x, y, angle, scale
+        );
     },
 
     /**
@@ -34,17 +27,12 @@ export const EffectFactory = {
      * @param {number} y 弹出位置 Y
      * @param {number} angle 开火方向
      * @param {number} [groundY] 落地的脚底 Y（从枪械贴图中心弹出并落下时传入）
-     * @returns {ShellCasingEffect}
+     * @returns {ShellCasingEffect|null}
      */
     createShellCasing(x, y, angle, groundY) {
-        let e = EffectManager._acquire('ShellCasingEffect');
-        if (e) {
-            e.reset(x, y, angle, groundY);
-        } else {
-            e = new ShellCasingEffect(x, y, angle, groundY);
-        }
-        EffectManager.add(e);
-        return e;
+        return EffectManager.spawnPooledCosmetic(
+            'shellCasing', 'ShellCasingEffect', x, y, x, y, angle, groundY
+        );
     },
 
     /**
@@ -72,16 +60,25 @@ export const EffectFactory = {
      * @param {number} y
      * @param {number} intensity
      * @param {{scale?:number,lifeMul?:number,depth?:number}} [options]
-     * @returns {DustEffect}
+     * @returns {DustEffect|null}
      */
     createDustEffect(x, y, intensity, options = {}) {
-        let e = EffectManager._acquire('DustEffect');
-        if (e) {
-            e.reset(x, y, intensity, options);
-        } else {
-            e = new DustEffect(x, y, intensity, options);
-        }
-        EffectManager.add(e);
-        return e;
+        return EffectManager.spawnPooledCosmetic(
+            'dust', 'DustEffect', x, y, x, y, intensity, options
+        );
+    },
+
+    createHitEffect(x, y) {
+        return EffectManager.spawnPooledCosmetic('impact', 'HitEffect', x, y, x, y);
+    },
+
+    createSmokeEffect(x, y) {
+        return EffectManager.spawnPooledCosmetic('smoke', 'SmokeEffect', x, y, x, y);
+    },
+
+    createBloodMistEffect(x, y, angle = 0) {
+        return EffectManager.spawnPooledCosmetic(
+            'bloodMist', 'BloodMistEffect', x, y, x, y, angle
+        );
     }
 };

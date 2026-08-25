@@ -4,11 +4,11 @@
  * 流程：
  * 1. 精英战斗入场：按墙壁预制「宝箱房」（门墙×1 + 直墙×3，data/wall-prefabs.json）
  *    在场地正中央拼一间小菱形房，门墙常闭；房间区域注册为刷怪排除区
- * 2. 房间中央生成对应地牢等级的宝箱（F/E/D/C/B/A，统一贴图 chest_closed，192px）+ 上方 60s 倒计时
+ * 2. 房间中央生成对应地牢等级的宝箱（F/E/D/C/B/A，统一闭合贴图 chest_closed，192px）+ 上方 60s 倒计时
  *    （白字黑描边无底色，最后 10s 同款）
  * 3. 倒计时内完成精英战斗 → 打开宝箱房门墙（播门闸 16 帧开门动画，门洞碰撞启停）；
  *    超时未完成 → 宝箱 1s 淡出消失，房门不再打开
- * 4. 玩家靠近宝箱 → 播放开箱 16 帧动画（1.5s）+ 音效 → 按等级宝箱事件奖励表发放
+ * 4. 玩家靠近宝箱 → 同一 Sprite 淡出闭合态、切换 chest_opened 后淡入 + 音效 → 按等级宝箱事件奖励表发放
  *   （combat-formulas.json universalEventRewards.treasureChest[grade]：强化石+改造券必得；
  *    50% 金币 / 25% 粉尘 / 25% 宝箱怪位——宝箱怪位当前按金币兜底发放）
  * 5. 离场守卫：场地内还有未开宝箱时走出大门白区，弹确认框（是/否）
@@ -25,6 +25,14 @@ import { SoundManager } from '../ui/sound-manager.js';
 const COUNTDOWN_SEC = 60;
 const OPEN_RANGE = 120; // 与放大一倍的宝箱贴图匹配（原 60）
 const GATE_ANIM_MS = 900;
+// 两态原图的箱体占画布比例不同：开启态底座横向跨度 325px，闭合态 408px。
+// 分态显示规格让开箱前后的实体箱体等宽；origin Y 同时锁住 Alpha 底边，避免底座跳动。
+const CHEST_CLOSED_DISPLAY_WIDTH = 192;
+const CHEST_OPENED_DISPLAY_WIDTH = 241;
+const CHEST_CLOSED_ORIGIN_Y = 0.75;
+const CHEST_OPENED_ORIGIN_Y = 0.78015;
+const CHEST_FADE_OUT_MS = 140;
+const CHEST_FADE_IN_MS = 260;
 const CHEST_SOUND = 'assets/sounds/environment/chest_open.mp3';
 const GRADES = ['F', 'E', 'D', 'C', 'B', 'A']; // 由低到高，F 级地牢可被事件强制精英战
 // 地牢等级 → 稀有度档（与出征祭品门槛同序：F=普通、E=优质、D=稀有、C=史诗、B=神话、A=传说）
@@ -45,6 +53,15 @@ function _equipmentPool() {
         (it.category === 'armor' || it.category === 'accessory') &&
         !it.weaponType && !it.weaponId
     );
+}
+
+function _fitChestSprite(sprite, state = 'closed') {
+    const sourceWidth = Math.max(1, Number(sprite.width) || 1);
+    const sourceHeight = Math.max(1, Number(sprite.height) || sourceWidth);
+    const opened = state === 'opened';
+    const displayWidth = opened ? CHEST_OPENED_DISPLAY_WIDTH : CHEST_CLOSED_DISPLAY_WIDTH;
+    sprite.setOrigin(0.5, opened ? CHEST_OPENED_ORIGIN_Y : CHEST_CLOSED_ORIGIN_Y);
+    sprite.setDisplaySize(displayWidth, displayWidth * (sourceHeight / sourceWidth));
 }
 
 function _equipmentRarityForGrade(grade) {
@@ -72,7 +89,7 @@ export const ChestRoomSystem = {
     active: false,
     _pieces: [],        // 推入 isoVisuals 的直墙件（清理时移除）
     _gate: null,        // { sprite, segs, gateSeg, frame, animCounter }
-    _chest: null,       // { sprite, x, y, opened, openAnim }
+    _chest: null,       // { sprite, x, y, opened, grade, openAnim }
     _timerText: null,
     _timerFrame: null,
     _timeLeft: 0,
@@ -240,15 +257,13 @@ export const ChestRoomSystem = {
         const exRx = (maxX - minX) / 2 + 60, exRy = (maxY - minY) / 2 + 60;
         this._exclusion = { cx: bounds.cx, cy: bounds.cy, rx: exRx, ry: exRy };
 
-        // 4. 宝箱（未打开 = chest_open_anim 第 0 帧；开箱播 1~8 帧；grade 仅用于奖励表）
+        // 4. 宝箱（未打开 = chest_closed；开箱后同一 Sprite 切换 chest_opened；grade 仅用于奖励表）
         const grade = this._gradeFor(dungeonType);
         const chestX = bounds.cx, chestY = bounds.cy;
-        const chestTex = scene.textures.exists('chest_open_anim') ? 'chest_open_anim' : 'chest_closed';
-        const sprite = scene.add.sprite(chestX, chestY, chestTex, 0);
-        sprite.setOrigin(0.5, 0.75);
-        sprite.setDisplaySize(192, 192 * (sprite.height / sprite.width)); // 宽 192 等比
+        const sprite = scene.add.sprite(chestX, chestY, 'chest_closed');
+        _fitChestSprite(sprite, 'closed');
         sprite.setDepth(chestY);
-        this._chest = { sprite, x: chestX, y: chestY, opened: false, grade };
+        this._chest = { sprite, x: chestX, y: chestY, opened: false, grade, openAnim: null };
 
         // 5. 倒计时（白字黑描边，无底色；最后 10s 同款样式）
         this._timeLeft = COUNTDOWN_SEC;
@@ -279,12 +294,10 @@ export const ChestRoomSystem = {
 
         const grade = this._gradeFor(dungeonType);
         const chestX = bounds.cx, chestY = bounds.cy;
-        const chestTex = scene.textures.exists('chest_open_anim') ? 'chest_open_anim' : 'chest_closed';
-        const sprite = scene.add.sprite(chestX, chestY, chestTex, 0);
-        sprite.setOrigin(0.5, 0.75);
-        sprite.setDisplaySize(192, 192 * (sprite.height / sprite.width));
+        const sprite = scene.add.sprite(chestX, chestY, 'chest_closed');
+        _fitChestSprite(sprite, 'closed');
         sprite.setDepth(chestY);
-        this._chest = { sprite, x: chestX, y: chestY, opened: false, grade };
+        this._chest = { sprite, x: chestX, y: chestY, opened: false, grade, openAnim: null };
 
         this._timeLeft = COUNTDOWN_SEC;
         this._countdownArmed = !opts.deferCountdown;
@@ -419,7 +432,7 @@ export const ChestRoomSystem = {
         }
     },
 
-    /** 开箱：播 9 帧开箱动画 + 音效 + 发奖（chest_open_anim 精灵图，停在开启帧） */
+    /** 开箱：闭合态淡出、切换开启态后淡入 + 音效 + 发奖。 */
     _openChest(player) {
         const chest = this._chest;
         if (!chest || chest.opened) return;
@@ -433,19 +446,29 @@ export const ChestRoomSystem = {
             SoundManager.playFile(CHEST_SOUND);
         }
 
-        // 开箱动画：播放第 1~8 帧（第 0 帧 = 未打开态，开箱后停在全开帧）
+        // 双贴图过渡：只复用当前 Sprite，避免额外显示对象逃逸清理生命周期。
         const scene = (typeof window !== 'undefined') ? window.__phaserScene : null;
-        if (scene && chest.sprite && chest.sprite.texture.key === 'chest_open_anim') {
-            const src = scene.textures.get('chest_open_anim').getSourceImage();
-            const fw = src.width / 9, fh = src.height;
-            chest.sprite.setDisplaySize(192, 192 * (fh / fw));
-            chest.sprite.setFrame(1);
-            scene.tweens.addCounter({
-                from: 1, to: 8, duration: 900, ease: 'Linear',
-                onUpdate: (tw) => {
-                    if (chest.sprite && chest.sprite.active) {
-                        chest.sprite.setFrame(Math.round(tw.getValue()));
-                    }
+        if (scene && chest.sprite && chest.sprite.active && scene.textures.exists('chest_opened')) {
+            const sprite = chest.sprite;
+            if (chest.openAnim) chest.openAnim.stop();
+            chest.openAnim = scene.tweens.add({
+                targets: sprite,
+                alpha: 0,
+                duration: CHEST_FADE_OUT_MS,
+                ease: 'Sine.easeIn',
+                onComplete: () => {
+                    if (!sprite.active || this._chest !== chest) return;
+                    sprite.setTexture('chest_opened');
+                    _fitChestSprite(sprite, 'opened');
+                    chest.openAnim = scene.tweens.add({
+                        targets: sprite,
+                        alpha: 1,
+                        duration: CHEST_FADE_IN_MS,
+                        ease: 'Sine.easeOut',
+                        onComplete: () => {
+                            if (this._chest === chest) chest.openAnim = null;
+                        },
+                    });
                 },
             });
         }
@@ -519,6 +542,10 @@ export const ChestRoomSystem = {
             this._gate = null;
         }
         if (this._chest) {
+            if (this._chest.openAnim) {
+                this._chest.openAnim.stop();
+                this._chest.openAnim = null;
+            }
             if (this._chest.sprite && this._chest.sprite.active) this._chest.sprite.destroy();
             this._chest = null;
         }

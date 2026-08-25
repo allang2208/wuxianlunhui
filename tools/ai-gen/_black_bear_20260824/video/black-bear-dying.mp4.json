@@ -1,0 +1,15 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "ratio": "1:1",
+  "duration": 5,
+  "loopRequested": false,
+  "reference": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_black_bear_20260824\\video\\black-bear-reference-white.png",
+  "promptFile": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_black_bear_20260824\\prompts\\black-bear-dying.txt",
+  "promptChars": 1373,
+  "promptSha256": "2f938f50a55cb293595fd7373327ba51067876e1f06710dea10e2807b8ff4f54",
+  "candidate": 1,
+  "candidateCount": 1,
+  "generatedAt": "2026-08-24T13:00:17.423Z",
+  "sourceUrlScheme": "https"
+}

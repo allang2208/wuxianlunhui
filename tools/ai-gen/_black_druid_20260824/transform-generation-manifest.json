@@ -1,0 +1,55 @@
+{
+  "date": "2026-08-24",
+  "pipeline": "MiniMax H3 ImageToVideo via tools/ai-gen/minimax-h3-gen.py",
+  "endpointContract": {
+    "preparationScript": "prepare-transform-references.py",
+    "bearSource": "../_black_bear_20260824/mother/black-bear-mother-512.png",
+    "druidSource": "mother/black-druid-mother-angle-v2.png",
+    "bearEndpoint": "transform/references/black-bear-transform-endpoint.png",
+    "druidEndpoint": "transform/references/black-druid-transform-endpoint.png",
+    "canvas": "1344x768",
+    "centreX": 672,
+    "footY": 700,
+    "bearHeight": 341,
+    "druidHeight": 520,
+    "note": "Relative endpoint sizes reproduce the current in-game visible-height ratio."
+  },
+  "generations": {
+    "transformToDruid": {
+      "firstFrame": "transform/references/black-bear-transform-endpoint.png",
+      "lastFrame": "transform/references/black-druid-transform-endpoint.png",
+      "prompt": "prompts/black-bear-to-druid-transform-h3.txt",
+      "video": "transform/video/black-bear-to-druid-h3.mp4",
+      "seed": 824001,
+      "durationSeconds": 5.17,
+      "frames": 124,
+      "steps": 20,
+      "size": "1344x768",
+      "sampler": "res_multistep",
+      "scheduler": "simple",
+      "endpointMae": {
+        "first": 0.621,
+        "last": 0.441
+      },
+      "accepted": true
+    },
+    "transformToBear": {
+      "firstFrame": "transform/references/black-druid-transform-endpoint.png",
+      "lastFrame": "transform/references/black-bear-transform-endpoint.png",
+      "prompt": "prompts/black-druid-to-bear-transform-h3.txt",
+      "video": "transform/video/black-druid-to-bear-h3.mp4",
+      "seed": 824002,
+      "durationSeconds": 5.17,
+      "frames": 124,
+      "steps": 20,
+      "size": "1344x768",
+      "sampler": "res_multistep",
+      "scheduler": "simple",
+      "endpointMae": {
+        "first": 0.446,
+        "last": 0.634
+      },
+      "accepted": true
+    }
+  }
+}

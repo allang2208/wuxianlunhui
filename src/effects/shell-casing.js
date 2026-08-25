@@ -7,7 +7,7 @@ class ShellCasingEffect {
      * @param {number} angle 开火方向（决定向后的抛壳方向）
      * @param {number} [groundY] 落地的脚底 Y（不传则退化为旧行为：出生高度 + 随机少量）
      */
-    constructor(x, y, angle, groundY) {
+    constructor(x, y, angle, groundY, deferVisuals = false) {
         this.x = x; this.y = y; this.angle = angle;
         // 弹壳落地留存 3s（含末尾 ~0.2s 淡出，alpha 由 life/200 驱动）
         this.life = 3000; this.maxLife = 3000; this.active = true;
@@ -15,7 +15,7 @@ class ShellCasingEffect {
         this.image = ShellCasingEffect._sharedImage;
         this._sprite = null;
         this._initPhysics(angle, groundY);
-        this._ensureSprite();
+        if (!deferVisuals) this._ensureSprite();
     }
 
     _initPhysics(angle, groundY) {
@@ -43,6 +43,7 @@ class ShellCasingEffect {
         this.life = this.maxLife; this.active = true;
         this._initPhysics(angle, groundY);
         this._ensureSprite();
+        this._syncSprite();
     }
 
     _ensureSprite() {

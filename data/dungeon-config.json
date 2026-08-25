@@ -1,7 +1,14 @@
 {
  "dungeonList": {
   "zombie": {
-   "name": "☠ 僵尸地牢高级",
+   "name": "☠ 僵尸地牢-高级",
+   "series": "zombie",
+   "seriesName": "僵尸地牢",
+   "seriesIcon": "☠",
+   "seriesOrder": 10,
+   "tier": "高级",
+   "tierOrder": 3,
+   "unlockAfter": "zombieMid",
    "nodeCount": "45~50",
    "battleRatio": "50%",
    "level": "1级",
@@ -11,6 +18,12 @@
   },
   "zombieBeginner": {
    "name": "☠ 僵尸地牢-初级",
+   "series": "zombie",
+   "seriesName": "僵尸地牢",
+   "seriesIcon": "☠",
+   "seriesOrder": 10,
+   "tier": "初级",
+   "tierOrder": 1,
    "nodeCount": "22",
    "battleRatio": "40%",
    "level": "1级",
@@ -20,6 +33,12 @@
   },
   "frozenBeginner": {
    "name": "❄ 冰封世界-初级",
+   "series": "frozen",
+   "seriesName": "冰封世界",
+   "seriesIcon": "❄",
+   "seriesOrder": 20,
+   "tier": "初级",
+   "tierOrder": 1,
    "nodeCount": "22",
    "battleRatio": "40%",
    "level": "1级",
@@ -29,6 +48,13 @@
   },
   "zombieMid": {
    "name": "☠ 僵尸地牢-中级",
+   "series": "zombie",
+   "seriesName": "僵尸地牢",
+   "seriesIcon": "☠",
+   "seriesOrder": 10,
+   "tier": "中级",
+   "tierOrder": 2,
+   "unlockAfter": "zombieBeginner",
    "nodeCount": "30",
    "battleRatio": "50%",
    "level": "1级",
@@ -37,7 +63,14 @@
    "recLevel": "10~25级"
   },
   "swamp": {
-   "name": "☠ 沼泽地-高级",
+   "name": "☠ 沼泽地牢-高级",
+   "series": "swamp",
+   "seriesName": "沼泽地牢",
+   "seriesIcon": "☠",
+   "seriesOrder": 30,
+   "tier": "高级",
+   "tierOrder": 3,
+   "unlockAfter": "swampMid",
    "nodeCount": "55~60",
    "battleRatio": "50%",
    "level": "1级",
@@ -46,7 +79,13 @@
    "recLevel": "40~55级"
   },
   "swampBeginner": {
-   "name": "☠ 沼泽地-初级",
+   "name": "☠ 沼泽地牢-初级",
+   "series": "swamp",
+   "seriesName": "沼泽地牢",
+   "seriesIcon": "☠",
+   "seriesOrder": 30,
+   "tier": "初级",
+   "tierOrder": 1,
    "nodeCount": "30~35",
    "battleRatio": "50%",
    "level": "1级",
@@ -55,7 +94,14 @@
    "recLevel": "10~25级"
   },
   "swampMid": {
-   "name": "☠ 沼泽地-中级",
+   "name": "☠ 沼泽地牢-中级",
+   "series": "swamp",
+   "seriesName": "沼泽地牢",
+   "seriesIcon": "☠",
+   "seriesOrder": 30,
+   "tier": "中级",
+   "tierOrder": 2,
+   "unlockAfter": "swampBeginner",
    "nodeCount": "45~50",
    "battleRatio": "50%",
    "level": "1级",
@@ -65,6 +111,12 @@
   },
   "demonCavern": {
    "name": "☠ 恶魔洞窟",
+   "series": "demon",
+   "seriesName": "恶魔洞窟",
+   "seriesIcon": "☠",
+   "seriesOrder": 40,
+   "tier": "标准",
+   "tierOrder": 1,
    "nodeCount": "55~60",
    "battleRatio": "50%",
    "level": "1级",
@@ -470,8 +522,12 @@
     "combatWaves": 3,
     "monstersPerWave": 5,
     "poolKeys": [
-     "blackWolf"
+     "blackWolf",
+     "redWolfKing",
+     "brownBear",
+     "blackBear"
     ],
+    "matchPoolRanks": true,
     "tierWeights": {
      "normal": 1,
      "elite": 0
@@ -494,8 +550,12 @@
     "combatWaves": 3,
     "monstersPerWave": 5,
     "poolKeys": [
-     "blackWolf"
+     "blackWolf",
+     "redWolfKing",
+     "brownBear",
+     "blackBear"
     ],
+    "matchPoolRanks": true,
     "monsterComposition": {
      "elite": 1,
      "normal": 5
@@ -523,8 +583,12 @@
    "combatWaves": 3,
    "monstersPerWave": 5,
    "poolKeys": [
-    "blackWolf"
+    "blackWolf",
+    "redWolfKing",
+    "brownBear",
+    "blackBear"
    ],
+   "matchPoolRanks": true,
    "waveComposition": [
     {
      "normal": 5
@@ -594,8 +658,12 @@
     "combatWaves": 3,
     "monstersPerWave": 5,
     "poolKeys": [
-     "blackWolf"
+     "blackWolf",
+     "redWolfKing",
+     "brownBear",
+     "blackBear"
     ],
+    "matchPoolRanks": true,
     "tierWeights": {
      "normal": 1,
      "elite": 0
@@ -618,8 +686,12 @@
     "combatWaves": 3,
     "monstersPerWave": 5,
     "poolKeys": [
-     "blackWolf"
+     "blackWolf",
+     "redWolfKing",
+     "brownBear",
+     "blackBear"
     ],
+    "matchPoolRanks": true,
     "monsterComposition": {
      "elite": 1,
      "normal": 5
@@ -662,8 +734,12 @@
    "combatWaves": 3,
    "monstersPerWave": 5,
    "poolKeys": [
-    "blackWolf"
+    "blackWolf",
+    "redWolfKing",
+    "brownBear",
+    "blackBear"
    ],
+   "matchPoolRanks": true,
    "waveComposition": [
     {
      "normal": 5
@@ -717,8 +793,12 @@
     "combatWaves": 3,
     "monstersPerWave": 5,
     "poolKeys": [
-     "blackWolf"
+     "blackWolf",
+     "redWolfKing",
+     "brownBear",
+     "blackBear"
     ],
+    "matchPoolRanks": true,
     "tierWeights": {
      "normal": 1,
      "elite": 0
@@ -741,8 +821,12 @@
     "combatWaves": 3,
     "monstersPerWave": 5,
     "poolKeys": [
-     "blackWolf"
+     "blackWolf",
+     "redWolfKing",
+     "brownBear",
+     "blackBear"
     ],
+    "matchPoolRanks": true,
     "monsterComposition": {
      "elite": 1,
      "normal": 5
@@ -786,8 +870,12 @@
    "combatWaves": 3,
    "monstersPerWave": 5,
    "poolKeys": [
-    "blackWolf"
+    "blackWolf",
+    "redWolfKing",
+    "brownBear",
+    "blackBear"
    ],
+   "matchPoolRanks": true,
    "waveComposition": [
     {
      "normal": 5

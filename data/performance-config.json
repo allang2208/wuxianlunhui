@@ -7,7 +7,38 @@
   "renderCulling": {
     "enabled": true,
     "paddingPx": 320,
-    "shadowPaddingPx": 64
+    "shadowPaddingPx": 64,
+    "reuseVisibilityWithinFrame": true,
+    "skipStableVisibleWrites": true
+  },
+  "floatingText": {
+    "maxActive": 48,
+    "viewPaddingPx": 160,
+    "damageAggregation": {
+      "enabled": true,
+      "mergeGapMs": 360,
+      "maxBucketMs": 900,
+      "fallbackRadiusPx": 32,
+      "showHitCount": true
+    }
+  },
+  "effectBudget": {
+    "enabled": true,
+    "viewPaddingPx": 240,
+    "cameraSweep": { "enabled": true, "lookAheadMs": 120 },
+    "profiles": {
+      "default": { "viewPaddingPx": 240, "maxCameraLeadPx": 240, "perFrameMultiplier": 1, "activeMultiplier": 1 },
+      "dungeon": { "viewPaddingPx": 320, "maxCameraLeadPx": 320, "perFrameMultiplier": 1.5, "activeMultiplier": 1.5 },
+      "plane": { "viewPaddingPx": 160, "maxCameraLeadPx": 220, "perFrameMultiplier": 0.65, "activeMultiplier": 0.7 }
+    },
+    "cosmetic": {
+      "muzzleFlash": { "maxPerFrame": 24, "maxActive": 48 },
+      "shellCasing": { "maxPerFrame": 12, "maxActive": 64 },
+      "dust": { "maxPerFrame": 12, "maxActive": 32 },
+      "impact": { "maxPerFrame": 20, "maxActive": 48 },
+      "smoke": { "maxPerFrame": 8, "maxActive": 20 },
+      "bloodMist": { "maxPerFrame": 8, "maxActive": 16 }
+    }
   },
   "pathQueue": {
     "maxRecalculationsPerFrame": 2,

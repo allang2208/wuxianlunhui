@@ -1,0 +1,15 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "ratio": "1:1",
+  "duration": 5,
+  "loopRequested": true,
+  "reference": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_black_bear_20260824\\video\\black-bear-reference-white.png",
+  "promptFile": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_black_bear_20260824\\prompts\\black-bear-idle.txt",
+  "promptChars": 1477,
+  "promptSha256": "b2cf659d78bf32ec712e384cbfc30c12fffb8bdff2e060c9266840a340417698",
+  "candidate": 1,
+  "candidateCount": 1,
+  "generatedAt": "2026-08-24T12:31:47.868Z",
+  "sourceUrlScheme": "https"
+}

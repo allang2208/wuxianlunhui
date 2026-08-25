@@ -1,0 +1,15 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "ratio": "1:1",
+  "duration": 5,
+  "loopRequested": true,
+  "reference": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_black_druid_20260824\\video\\black-druid-reference-angle-v2-white.png",
+  "promptFile": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_black_druid_20260824\\prompts\\black-druid-idle.txt",
+  "promptChars": 1526,
+  "promptSha256": "d1ce785fd7e495a24ea7a125427746e772e8b8e7c790ab116b01ab94c0b9efef",
+  "candidate": 1,
+  "candidateCount": 1,
+  "generatedAt": "2026-08-24T13:50:25.457Z",
+  "sourceUrlScheme": "https"
+}

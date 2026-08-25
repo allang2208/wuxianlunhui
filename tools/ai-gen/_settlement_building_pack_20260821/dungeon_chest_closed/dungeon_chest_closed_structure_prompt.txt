@@ -1,0 +1,23 @@
+Use case: stylized-concept
+Asset type: World-122 dungeon chest-room portable treasure chest, closed state, previewed above the runtime 1x1 isometric footprint
+Pipeline/style version: world122-building-v2
+Primary request: exactly one preserve the exact Blender prop massing: one compact chest body only, one domed lid fully closed against the body, exactly four short grounded feet, exactly two broad lid ribs, one centered lid medallion, one centered front lock plate, attached frame bands and one side drop handle; no detached pieces, no extra box, no open cavity, no platform and no scenery beyond the supplied silhouette
+Generation stage: structural prop draft only
+Structure contract: preserve the supplied treasure-chest body, domed lid, four feet, frame, lock and authored open-or-closed lid state as one portable object; every hardware component remains attached to the same chest
+Detail budget: use broad readable metal panels, frame bands, lock plate, medallion and handle shapes so the chest silhouette and lid state can be judged; omit tiny engraving that would collapse at game scale
+Palette lock: low-saturation charcoal-blackened steel panels and naturally aged antique brass only, with a nearly black interior. No white marble, ivory, blue gemstone, cyan glow, bright yellow gold, saturated orange, verdigris green or painted wood.
+Canonical World-122 portable-prop rendering subset:
+Style/medium: sober semi-realistic handcrafted strategy-game prop with physically plausible game-ready PBR materials and slightly stylized solid proportions.
+Material grammar: charcoal-blackened steel panels show broad subtle wear and restrained value variation; aged brass frame, lock, hinges, medallion, filigree and handle show subdued tarnish and readable bevels, never glossy yellow gold. The empty interior is matte nearly black.
+Color treatment: deliberately low saturation and controlled neutral contrast; charcoal, dark neutral steel and old brass only.
+Lighting: soft neutral upper-left top-side illumination with broad gentle highlights and restrained contact occlusion; no bloom, colored grading, rim light, glow haze or cast shadow.
+Detail scale: prioritize medium and large prop details that remain legible at 48 pixels: continuous frame bands, domed lid ribs, one lock plate, one lid medallion, broad embossed relief, hinges and one side handle. Avoid hairline ornament and photographic grime.
+Shape treatment: crisp but not razor-sharp silhouette, restrained bevels and modest edge wear; no toy plastic, painterly brushwork, cel shading or cartoon outline.
+Absolute class lock: this object is a portable metal treasure chest, not architecture. Use no masonry, plaster, timber framing, stained glass, windows, doors, walls, roofs, towers, buttresses, rooms or building foundations.
+Asset-specific style scope: apply the shared rendering language only to the physically plausible blackened metal panels, aged brass frame, lock, hinges, medallion, filigree and side handle. This is a portable treasure chest prop, never architecture.
+
+Composition/framing: strictly follow the supplied depth-control silhouette and orthographic 2.5D isometric view; centered; all four authored feet remain grounded; preserve the exact open-or-closed lid state; no perspective convergence
+Lighting/mood: evenly lit neutral studio lighting; no bloom; no cast shadow
+Scene/backdrop: perfectly uniform flat chroma-key green #00FF00 background filling the entire canvas; no horizon; no texture; no scenery
+Negative constraints: one portable treasure chest only; no house, no building facade, no roof reinterpretation, no tower, no room, no wall, no window, no door, no platform, no pedestal, no floor tile, no terrain, no cast shadow, no treasure pile, no coins, no weapons, no people, no animals, no text and no watermark
+Asset-specific absolute exclusions: keep the lid completely closed and seated on the body. Do not open, lift, split or detach the lid. Do not add treasure, coins, gems, weapons, smoke, magic glow, floor, pedestal, room dressing or background scenery.

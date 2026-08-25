@@ -14,6 +14,7 @@ export class WeaponEffect {
         this._hiltX = 0;
         this._hiltY = 0;
         this._rotation = 0;
+        this._depth = 0;
     }
 
     getFogPosition() {
@@ -26,15 +27,16 @@ export class WeaponEffect {
 
     _ensureGraphics() {
         const scene = window.__phaserScene;
+        if (this._graphics && !this._graphics.active) this._graphics = null;
         if (this._graphics || !scene) return;
         this._graphics = scene.add.graphics();
-        this._graphics.setDepth(this._hiltY + 55);
+        this._graphics.setDepth(this._depth);
         if (scene.worldEffectsGroup) scene.worldEffectsGroup.add(this._graphics);
     }
 
     _destroyGraphics() {
         if (this._graphics) {
-            this._graphics.destroy();
+            if (this._graphics.active) this._graphics.destroy();
             this._graphics = null;
         }
     }
@@ -92,10 +94,11 @@ export class WeaponEffect {
             params = dt;
             dt = params.dt || 16.67;
         }
-        const { isMoving, isInCombat, hiltX, hiltY, rotation } = params || {};
-        this._hiltX = hiltX || params.x || 0;
-        this._hiltY = hiltY || params.y || 0;
-        this._rotation = rotation || 0;
+        const { isMoving, isInCombat, hiltX, hiltY, rotation, depth } = params || {};
+        this._hiltX = Number.isFinite(hiltX) ? hiltX : (params.x || 0);
+        this._hiltY = Number.isFinite(hiltY) ? hiltY : (params.y || 0);
+        this._rotation = Number.isFinite(rotation) ? rotation : 0;
+        this._depth = Number.isFinite(depth) ? depth : this._hiltY + 55;
         this._ensureGraphics();
 
         if (this._glowLastState !== isMoving) {
@@ -144,7 +147,7 @@ export class WeaponEffect {
         const g = this._graphics;
         g.clear();
         g.setPosition(this._hiltX, this._hiltY);
-        g.setDepth(this._hiltY + 55);
+        g.setDepth(this._depth);
         g.setRotation(this._rotation + Math.PI / 2);
 
         this.particles.forEach(p => {
@@ -174,6 +177,13 @@ export class WeaponEffect {
         this.particles = [];
         this._glowLastState = false;
         this._glowTransitionStart = 0;
+        this._depth = 0;
         this._destroyGraphics();
+    }
+
+    deactivate() {
+        if (!this._graphics && this.particles.length === 0
+            && !this._glowLastState && this._glowTransitionStart === 0) return;
+        this.reset();
     }
 }

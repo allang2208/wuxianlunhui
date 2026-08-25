@@ -109,6 +109,53 @@
       },
       "lidOpenDegrees": 62
     },
+    "dungeon_chest_closed": {
+      "cameraOverrides": {
+        "widthMargin": 0.84,
+        "bottomY": 920,
+        "topMargin": 46
+      },
+      "paletteOverrides": {
+        "foundation": [0.12, 0.105, 0.085, 1.0],
+        "stone": [0.18, 0.16, 0.13, 1.0],
+        "plaster": [0.15, 0.145, 0.13, 1.0],
+        "timber": [0.075, 0.055, 0.04, 1.0],
+        "roof": [0.085, 0.082, 0.075, 1.0],
+        "iron": [0.055, 0.052, 0.048, 1.0],
+        "brass": [0.48, 0.30, 0.10, 1.0],
+        "glass": [0.13, 0.085, 0.035, 1.0],
+        "glow": [0.65, 0.31, 0.055, 1.0]
+      },
+      "dimensions": {
+        "body": [190, 142, 78],
+        "lid": [202, 152, 62],
+        "feet": [24, 22, 16]
+      }
+    },
+    "dungeon_chest_open": {
+      "cameraOverrides": {
+        "widthMargin": 0.84,
+        "bottomY": 920,
+        "topMargin": 46
+      },
+      "paletteOverrides": {
+        "foundation": [0.12, 0.105, 0.085, 1.0],
+        "stone": [0.18, 0.16, 0.13, 1.0],
+        "plaster": [0.15, 0.145, 0.13, 1.0],
+        "timber": [0.075, 0.055, 0.04, 1.0],
+        "roof": [0.085, 0.082, 0.075, 1.0],
+        "iron": [0.055, 0.052, 0.048, 1.0],
+        "brass": [0.48, 0.30, 0.10, 1.0],
+        "glass": [0.13, 0.085, 0.035, 1.0],
+        "glow": [0.65, 0.31, 0.055, 1.0]
+      },
+      "dimensions": {
+        "body": [190, 142, 78],
+        "lid": [202, 152, 62],
+        "feet": [24, 22, 16]
+      },
+      "lidOpenDegrees": 58
+    },
     "research_institute": {
       "cameraOverrides": {
         "widthMargin": 0.742

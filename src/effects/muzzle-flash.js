@@ -1,20 +1,23 @@
 import { loadImage } from '../utils/image-loader.js';
 
 class MuzzleFlashEffect {
-    constructor(x, y, angle, scale = 1.0) {
+    constructor(x, y, angle, scale = 1.0, deferVisuals = false) {
         this.x = x; this.y = y; this.angle = angle; this.scale = scale;
         this.life = 80; this.maxLife = 80; this.active = true;
         if (!MuzzleFlashEffect._sharedImage) { MuzzleFlashEffect._sharedImage = loadImage('assets/effects/muzzle_flash_01.png'); }
         this.image = MuzzleFlashEffect._sharedImage;
         this._sprite = null;
-        this._createPhaserSprite();
-        this._spawnEnvironmentGlow();
+        if (!deferVisuals) {
+            this._createPhaserSprite();
+            this._spawnEnvironmentGlow();
+        }
     }
 
     reset(x, y, angle, scale = 1.0) {
         this.x = x; this.y = y; this.angle = angle; this.scale = scale;
         this.life = this.maxLife; this.active = true;
-        this._syncSprite();
+        if (!this._sprite || !this._sprite.active) this._createPhaserSprite();
+        else this._syncSprite();
         this._spawnEnvironmentGlow();
     }
 

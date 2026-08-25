@@ -7,10 +7,17 @@ function _parseHexColor(hex) {
 }
 
 class BloodHitEffect {
-    constructor(x, y, angle = null) {
+    constructor(x, y, angle = null, deferVisuals = false) {
         this.x = x; this.y = y;
-        this.life = 600; this.maxLife = 600; this.active = true;
+        this.life = 0; this.maxLife = 600; this.active = !deferVisuals;
         this.particles = [];
+        this.splash = { size: 0, life: 0, maxLife: 200 };
+        this._graphics = null;
+        if (!deferVisuals) this.reset(x, y, angle);
+    }
+
+    _initParticles(angle = null) {
+        this.particles.length = 0;
         const particleCount = 12 + Math.floor(Math.random() * 8);
         for (let i = 0; i < particleCount; i++) {
             const pAngle = (angle !== null)
@@ -31,8 +38,18 @@ class BloodHitEffect {
             });
         }
         this.splash = { size: 8 + Math.random() * 6, life: 200, maxLife: 200 };
-        this._graphics = null;
+    }
+
+    reset(x, y, angle = null) {
+        this.x = x; this.y = y;
+        this.life = this.maxLife; this.active = true;
+        this._initParticles(angle);
         this._ensureGraphics();
+        if (this._graphics) {
+            this._graphics.clear();
+            this._graphics.setActive(true);
+            this._graphics.setVisible(true);
+        }
     }
 
     _randomBloodColor() {
@@ -57,19 +74,25 @@ class BloodHitEffect {
         this.life -= dt;
         if (this.life <= 0) {
             this.active = false;
-            if (this._graphics) { this._graphics.destroy(); this._graphics = null; }
+            if (this._graphics) {
+                this._graphics.clear();
+                this._graphics.setActive(false);
+                this._graphics.setVisible(false);
+            }
             return;
         }
         this.splash.life -= dt;
-        this.particles.forEach(p => {
+        let writeIndex = 0;
+        for (const p of this.particles) {
             p.life -= dt;
             p.x += p.vx * (dt / 1000);
             p.y += p.vy * (dt / 1000);
             p.vy += p.gravity;
             p.vx *= 0.96;
             p.size *= 0.995;
-        });
-        this.particles = this.particles.filter(p => p.life > 0);
+            if (p.life > 0) this.particles[writeIndex++] = p;
+        }
+        this.particles.length = writeIndex;
         this._redraw();
     }
 

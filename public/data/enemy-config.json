@@ -60,6 +60,400 @@
     },
     "height": 68.4
   },
+  "brownBear": {
+    "id": "brownBear",
+    "name": "棕熊",
+    "hp": 360,
+    "maxHp": 360,
+    "size": 16,
+    "collisionRadius": 46,
+    "speed": 300,
+    "level": 6,
+    "color": "#6b452c",
+    "highlightColor": "rgba(139, 92, 58, 0.3)",
+    "str": 36,
+    "dex": 32,
+    "con": 36,
+    "int": 7,
+    "wis": 8,
+    "luck": 11,
+    "rank": "normal",
+    "attackRange": 170,
+    "attackDistance": 170,
+    "aiInterval": 1600,
+    "rangedDamageReduction": 0.5,
+    "ai": {
+      "aggroRange": 2600,
+      "pacingRange": 200,
+      "loseTimeout": 2500
+    },
+    "attack": {
+      "type": "thrust",
+      "cooldown": 950,
+      "dynamicRange": 180,
+      "width": 36,
+      "knockback": 24
+    },
+    "type": "普通",
+    "category": "monster",
+    "family": "动物",
+    "description": "栖息在林地与湿地边缘的成年棕熊，体魄、力量与机动性全面强于黑狼，厚实皮毛还能削弱远程物理攻击。",
+    "skills": [
+      {
+        "name": "厚实皮毛",
+        "desc": "受到的远程物理伤害减少 50%。"
+      }
+    ],
+    "attackType": "撕咬重拍",
+    "render": {
+      "spriteSize": 190,
+      "collisionWidth": 140,
+      "collisionHeight": 90,
+      "footOffsetY": 57.15,
+      "projectileHitbox": {
+        "width": 140,
+        "height": 90,
+        "offsetX": 0,
+        "bottom": 0
+      }
+    },
+    "deathAnim": {
+      "duration": 1800,
+      "holdMs": 1200
+    },
+    "textures": {
+      "idle": "assets/enemies/brown_bear/idle.png",
+      "walk": "assets/enemies/brown_bear/walking.png",
+      "attack": "assets/enemies/brown_bear/attacking.png",
+      "death": "assets/enemies/brown_bear/dying.png",
+      "referenceCell": 512,
+      "frameLayouts": {
+        "idle": {
+          "columns": 6,
+          "rows": 2,
+          "frameWidth": 512,
+          "frameHeight": 512,
+          "frameCount": 12,
+          "footY": 410,
+          "frameRate": 3,
+          "repeat": -1
+        },
+        "walk": {
+          "columns": 6,
+          "rows": 4,
+          "frameWidth": 640,
+          "frameHeight": 512,
+          "frameCount": 22,
+          "footY": 410,
+          "frameRate": 12,
+          "repeat": -1
+        },
+        "attack": {
+          "columns": 6,
+          "rows": 4,
+          "frameWidth": 896,
+          "frameHeight": 512,
+          "frameCount": 21,
+          "footY": 410,
+          "duration": 950,
+          "repeat": 0
+        },
+        "death": {
+          "columns": 6,
+          "rows": 4,
+          "frameWidth": 640,
+          "frameHeight": 512,
+          "frameCount": 21,
+          "footY": 410,
+          "duration": 1800,
+          "repeat": 0
+        }
+      }
+    }
+  },
+  "blackBear": {
+    "id": "blackBear",
+    "name": "熊德鲁伊",
+    "hp": 1400,
+    "maxHp": 1400,
+    "size": 20,
+    "collisionRadius": 45,
+    "speed": 300,
+    "level": 12,
+    "color": "#17191c",
+    "highlightColor": "rgba(74, 80, 88, 0.3)",
+    "str": 68,
+    "dex": 42,
+    "con": 58,
+    "int": 32,
+    "wis": 42,
+    "luck": 16,
+    "rank": "lord",
+    "basicMeleeResolver": true,
+    "attackRange": 220,
+    "attackDistance": 220,
+    "aiInterval": 900,
+    "ai": {
+      "aggroRange": 2500,
+      "pacingRange": 200,
+      "loseTimeout": 2300
+    },
+    "attack": {
+      "type": "thrust",
+      "cooldown": 900,
+      "dynamicRange": 230,
+      "width": 38,
+      "knockback": 30
+    },
+    "type": "领主",
+    "category": "monster",
+    "family": "动物",
+    "attackSkills": {
+      "spellcasting": {
+        "comment": "德鲁伊初始形态依次用攻击动画施放冰锥、闪电、火球。",
+        "cycle": [
+          "iceSpike",
+          "lightningStrike",
+          "fireball"
+        ],
+        "castRange": 720,
+        "castDuration": 1000,
+        "releaseRatio": 0.56,
+        "cooldown": 1800
+      },
+      "iceSpike": {
+        "damageBase": 45,
+        "magicMul": 1.4,
+        "intMul": 0.8,
+        "cooldown": 4.5,
+        "mpCost": 25,
+        "spikeCount": 3,
+        "duration": 30,
+        "flySpeed": 1600,
+        "maxRange": 800,
+        "castRange": 720
+      },
+      "lightningStrike": {
+        "damageBase": 80,
+        "magicMul": 1.8,
+        "intMul": 1,
+        "cooldown": 4.5,
+        "mpCost": 30,
+        "aimRadius": 160,
+        "maxRange": 720,
+        "chainRange": 220,
+        "chainTargets": 3,
+        "chainDecay": 0.15,
+        "stunMs": 600,
+        "duration": 0.5,
+        "fadeMs": 250,
+        "segments": 10,
+        "jitter": 0.09,
+        "electrifyStacks": 1,
+        "electrifyDurationMs": 4000
+      },
+      "fireball": {
+        "damageBase": 120,
+        "magicMul": 2.2,
+        "intMul": 1.2,
+        "explosionRadius": 110,
+        "cooldown": 4.5,
+        "mpCost": 40,
+        "duration": 30,
+        "flySpeed": 1600,
+        "maxRange": 1000,
+        "castRange": 720
+      }
+    },
+    "transform": {
+      "hpThreshold": 0.5,
+      "duration": 2000,
+      "statMultiplier": 1.5,
+      "healToFull": true,
+      "damageReduction": 0.9,
+      "criticalChance": 0.5,
+      "criticalDamageMultiplier": 2.5,
+      "druidRender": {
+        "spriteSize": 167.3,
+        "collisionRadius": 30,
+        "collisionWidth": 57.5,
+        "collisionHeight": 158.8
+      },
+      "druidDeath": {
+        "duration": 1600,
+        "holdMs": 1200
+      }
+    },
+    "description": "凌驾于红狼王之上的两阶段林地领主：以黑袍德鲁伊形态登场，轮流施放冰锥、闪电和火球；半血后化为黑熊并回满强化。",
+    "skills": [
+      {
+        "name": "暗林变身",
+        "desc": "德鲁伊形态生命值不高于50%时变熊2秒；期间受到的伤害减少90%，完成后恢复至满生命，最大生命、六维、攻防与移动属性提升50%。"
+      },
+      {
+        "name": "三系魔法",
+        "desc": "德鲁伊形态依次用攻击动作施放3枚冰锥、可传导3个目标的闪电和110范围爆炸火球。"
+      },
+      {
+        "name": "熊王暴击",
+        "desc": "变熊后每次普通攻击有50%概率暴击，造成2.5倍伤害。"
+      }
+    ],
+    "attackType": "三系魔法与熊王重拍",
+    "render": {
+      "spriteSize": 180,
+      "collisionWidth": 132,
+      "collisionHeight": 82,
+      "footOffsetY": 54.14,
+      "capsuleHudAnchor": true,
+      "projectileHitbox": {
+        "width": 132,
+        "height": 82,
+        "offsetX": 0,
+        "bottom": 0
+      }
+    },
+    "deathAnim": {
+      "duration": 1800,
+      "holdMs": 1200
+    },
+    "textures": {
+      "idle": "assets/enemies/black_bear/idle.png",
+      "walk": "assets/enemies/black_bear/walking.png",
+      "attack": "assets/enemies/black_bear/attacking.png",
+      "death": "assets/enemies/black_bear/dying.png",
+      "referenceCell": 512,
+      "frameLayouts": {
+        "idle": {
+          "columns": 6,
+          "rows": 2,
+          "frameWidth": 640,
+          "frameHeight": 512,
+          "frameCount": 12,
+          "footY": 410,
+          "frameRate": 3,
+          "repeat": -1
+        },
+        "walk": {
+          "columns": 6,
+          "rows": 4,
+          "frameWidth": 640,
+          "frameHeight": 512,
+          "frameCount": 22,
+          "footY": 410,
+          "frameRate": 12,
+          "repeat": -1
+        },
+        "attack": {
+          "columns": 6,
+          "rows": 4,
+          "frameWidth": 1152,
+          "frameHeight": 512,
+          "frameCount": 21,
+          "footY": 410,
+          "duration": 950,
+          "repeat": 0
+        },
+        "death": {
+          "columns": 6,
+          "rows": 4,
+          "frameWidth": 640,
+          "frameHeight": 512,
+          "frameCount": 21,
+          "footY": 410,
+          "duration": 1800,
+          "repeat": 0
+        }
+      },
+      "transformations": {
+        "toDruid": "assets/enemies/black_druid/transform_to_druid.png",
+        "toBear": "assets/enemies/black_druid/transform_to_bear.png",
+        "referenceCell": 512,
+        "frameLayouts": {
+          "toDruid": {
+            "columns": 5,
+            "rows": 4,
+            "frameWidth": 768,
+            "frameHeight": 512,
+            "frameCount": 20,
+            "footY": 500,
+            "duration": 2000,
+            "repeat": 0
+          },
+          "toBear": {
+            "columns": 5,
+            "rows": 4,
+            "frameWidth": 768,
+            "frameHeight": 512,
+            "frameCount": 20,
+            "footY": 500,
+            "duration": 2000,
+            "repeat": 0
+          }
+        }
+      },
+      "druid": {
+        "idle": "assets/enemies/black_druid/idle.png",
+        "walking": "assets/enemies/black_druid/walking.png",
+        "attacking": "assets/enemies/black_druid/attacking.png",
+        "ritual": "assets/enemies/black_druid/ritual.png",
+        "dying": "assets/enemies/black_druid/dying.png",
+        "referenceCell": 512,
+        "frameLayouts": {
+          "idle": {
+            "columns": 5,
+            "rows": 3,
+            "frameWidth": 512,
+            "frameHeight": 512,
+            "frameCount": 15,
+            "footY": 489,
+            "frameRate": 6,
+            "repeat": -1
+          },
+          "walking": {
+            "columns": 5,
+            "rows": 4,
+            "frameWidth": 512,
+            "frameHeight": 512,
+            "frameCount": 19,
+            "footY": 489,
+            "frameRate": 12,
+            "repeat": -1
+          },
+          "attacking": {
+            "columns": 5,
+            "rows": 5,
+            "frameWidth": 768,
+            "frameHeight": 512,
+            "frameCount": 25,
+            "footY": 489,
+            "duration": 1000,
+            "repeat": 0
+          },
+          "ritual": {
+            "columns": 5,
+            "rows": 5,
+            "frameWidth": 512,
+            "frameHeight": 512,
+            "frameCount": 25,
+            "footY": 489,
+            "duration": 3000,
+            "repeat": 0
+          },
+          "dying": {
+            "columns": 5,
+            "rows": 3,
+            "frameWidth": 768,
+            "frameHeight": 512,
+            "frameCount": 14,
+            "footY": 489,
+            "duration": 1600,
+            "repeat": 0
+          }
+        }
+      }
+    }
+  },
   "redWolfKing": {
     "id": "redWolfKing",
     "name": "红狼王",

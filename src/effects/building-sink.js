@@ -161,9 +161,22 @@ class BuildingSinkEffect {
             } else {
                 const data = scene?._neutralSprites?.get(e);
                 if (data?.sprite) {
-                    this._sprites = (data.segmentSprites && data.segmentSprites.length)
+                    const bodySprites = (data.segmentSprites && data.segmentSprites.length)
                         ? data.segmentSprites.filter((s) => s && s.active)
                         : [data.sprite];
+                    // 接地层与风车转子等附加 Sprite 必须随主体一起沉降并由本特效
+                    // 回收；中立实体记录随后会被删除，留在表外会形成永久残影。
+                    this._sprites = [...new Set([
+                        ...bodySprites,
+                        data.groundContactSprite,
+                        data.overlaySprite,
+                    ].filter((s) => s && s.active))];
+                    if (data.workingEffectGraphics?.active) {
+                        data.workingEffectGraphics.destroy();
+                    }
+                    if (data.staffingWarningGraphics?.active) {
+                        data.staffingWarningGraphics.destroy();
+                    }
                     this._label = data.label || null;
                     scene._neutralSprites.delete(e);
                 } else {

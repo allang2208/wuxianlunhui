@@ -8,7 +8,7 @@
  * 事件分布：按配置 typeRatios（默认 combat 70% / event 30%）
  */
 
-import { BlackWolf, CircleEnemy, createZombieDog as createZombieDogBase, ZombieWizard, Mutant3, SpitterZombie, FatZombie, Zombie, ArmoredKnight, Shounao, FlySwarm, FlyHand, TimeAgentAssault, TimeAgentShield, PoisonMaggot, MinerZombie, LanternMinerZombie, ForemanZombie, MineCave, Tombstone, OreSpider, Witch, Cauldron } from '../entities/enemy-types.js';
+import { BlackWolf, RedWolfKing, CircleEnemy, createZombieDog as createZombieDogBase, createBrownBear as createBrownBearBase, createBlackBear as createBlackBearBase, ZombieWizard, Mutant3, SpitterZombie, FatZombie, Zombie, ArmoredKnight, Shounao, FlySwarm, FlyHand, TimeAgentAssault, TimeAgentShield, PoisonMaggot, MinerZombie, LanternMinerZombie, ForemanZombie, MineCave, Tombstone, OreSpider, Witch, Cauldron } from '../entities/enemy-types.js';
 import { UIState } from '../ui/ui-state.js';
 import { NPCDialogue } from '../ui/npc-dialogue.js';
 
@@ -23,6 +23,18 @@ export function createBlackWolf(x, y) {
         showWeapon: false,
         ai: {
             ...(enemyConfigData.blackWolf?.ai || {}),
+            aggroRange: 9999,
+            loseTimeout: 999999,
+            alertRange: 9999
+        }
+    });
+}
+
+function createRedWolfKing(x, y) {
+    return new RedWolfKing(x, y, {
+        showWeapon: false,
+        ai: {
+            ...(enemyConfigData.redWolfKing?.ai || {}),
             aggroRange: 9999,
             loseTimeout: 999999,
             alertRange: 9999
@@ -52,6 +64,18 @@ export function createBasicZombie(x, y) {
 // （配置合并在类构造器 + createZombieDog 一处），本地只传场景 AI 覆盖。
 function createZombieDog(x, y) {
     return createZombieDogBase(x, y, {
+        ai: { aggroRange: 9999, loseTimeout: 999999, alertRange: 9999 }
+    });
+}
+
+function createBrownBear(x, y) {
+    return createBrownBearBase(x, y, {
+        ai: { aggroRange: 9999, loseTimeout: 999999, alertRange: 9999 }
+    });
+}
+
+function createBlackBear(x, y) {
+    return createBlackBearBase(x, y, {
         ai: { aggroRange: 9999, loseTimeout: 999999, alertRange: 9999 }
     });
 }
@@ -394,6 +418,9 @@ export function createTimeAgentShield(x, y) {
 // 导出供碰撞体积编辑器（src/ui/collision-editor.js）按配置键生成预览怪
 export const ZOMBIE_FACTORY_MAP = {
     blackWolf: createBlackWolf,
+    redWolfKing: createRedWolfKing,
+    brownBear: createBrownBear,
+    blackBear: createBlackBear,
     zombie: createBasicZombie,
     zombieDog: createZombieDog,
     spitterZombie: createSpitterZombie,
@@ -888,15 +915,28 @@ export class ZombieDungeonCombat {
         const composition = waveComp || this._encounter.monsterComposition;
         const classes = [];
 
-        // 怪物池白名单优先（配置 encounter.poolKeys，如沼泽占位期只刷黑狼）；
+        // 怪物池白名单优先。matchPoolRanks=true 时，白名单仍按 enemy-config rank
+        // 匹配 normal/elite/lord/boss 槽位；未开启时保留旧版跨阶级占位池语义。
         // 其次按 family 限定（如中级 Boss 只刷僵尸类领主），无匹配时退回原池兜底。
         const poolKeys = Array.isArray(this._encounter.poolKeys)
             ? this._encounter.poolKeys.filter(key => ZOMBIE_FACTORY_MAP[key])
             : [];
+        const matchPoolRanks = this._encounter.matchPoolRanks === true;
         const poolFamily = this._encounter.poolFamily || null;
         const getPool = (tier) => {
             const pool = monsterPool[tier] || monsterPool.normal;
-            if (poolKeys.length > 0) return poolKeys.map(key => ZOMBIE_FACTORY_MAP[key]);
+            if (poolKeys.length > 0) {
+                const matchedKeys = matchPoolRanks
+                    ? poolKeys.filter(key => {
+                        const rank = enemyConfigData[key]?.rank;
+                        if (tier === 'elite' || tier === 'lord' || tier === 'boss') return rank === tier;
+                        return rank !== 'elite' && rank !== 'lord' && rank !== 'boss';
+                    })
+                    : poolKeys;
+                if (matchedKeys.length > 0) {
+                    return matchedKeys.map(key => ZOMBIE_FACTORY_MAP[key]);
+                }
+            }
             if (!poolFamily) return pool;
             const filtered = Object.keys(ZOMBIE_FACTORY_MAP)
                 .filter(key => {

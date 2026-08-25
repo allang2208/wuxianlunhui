@@ -1,0 +1,990 @@
+{
+  "transform_to_druid": {
+    "video": "transform\\video\\black-bear-to-druid-h3.mp4",
+    "sheet": "generated\\final\\transform_to_druid.png",
+    "preview": "previews\\final\\transform_to_druid.gif",
+    "sourceFrameCount": 124,
+    "endpointStart": 72,
+    "endpointMaeThreshold": 1.0,
+    "endpointMaeAtStart": 0.9586788762814153,
+    "sampleIndexes": [
+      0,
+      4,
+      8,
+      11,
+      15,
+      19,
+      23,
+      27,
+      30,
+      34,
+      38,
+      42,
+      45,
+      49,
+      53,
+      57,
+      61,
+      64,
+      68,
+      123
+    ],
+    "frameWidth": 768,
+    "frameHeight": 512,
+    "columns": 5,
+    "rows": 4,
+    "frameCount": 20,
+    "footY": 500,
+    "duration": 2000,
+    "repeat": 0,
+    "fixedScale": 0.7683284457478006,
+    "alphaPixels": [
+      33973,
+      61647
+    ],
+    "feetRange": [
+      499,
+      507
+    ],
+    "edgeHitFrames": [],
+    "transparentRgbMax": 0,
+    "bboxes": [
+      [
+        173,
+        236,
+        595,
+        499
+      ],
+      [
+        173,
+        237,
+        595,
+        500
+      ],
+      [
+        183,
+        243,
+        603,
+        499
+      ],
+      [
+        195,
+        253,
+        613,
+        499
+      ],
+      [
+        217,
+        260,
+        629,
+        500
+      ],
+      [
+        238,
+        257,
+        637,
+        500
+      ],
+      [
+        256,
+        257,
+        638,
+        501
+      ],
+      [
+        267,
+        259,
+        629,
+        502
+      ],
+      [
+        273,
+        239,
+        621,
+        504
+      ],
+      [
+        282,
+        201,
+        601,
+        504
+      ],
+      [
+        293,
+        158,
+        578,
+        505
+      ],
+      [
+        304,
+        117,
+        550,
+        506
+      ],
+      [
+        313,
+        91,
+        530,
+        505
+      ],
+      [
+        323,
+        73,
+        506,
+        506
+      ],
+      [
+        329,
+        71,
+        478,
+        506
+      ],
+      [
+        322,
+        80,
+        462,
+        507
+      ],
+      [
+        319,
+        90,
+        456,
+        506
+      ],
+      [
+        320,
+        100,
+        452,
+        504
+      ],
+      [
+        322,
+        100,
+        447,
+        501
+      ],
+      [
+        324,
+        100,
+        442,
+        499
+      ]
+    ],
+    "placements": [
+      {
+        "cell": 0,
+        "sourceFrame": 0,
+        "sourceBox": [
+          397,
+          357,
+          947,
+          701
+        ],
+        "placedBox": [
+          173,
+          236,
+          596,
+          500
+        ]
+      },
+      {
+        "cell": 1,
+        "sourceFrame": 4,
+        "sourceBox": [
+          398,
+          358,
+          948,
+          701
+        ],
+        "placedBox": [
+          173,
+          237,
+          596,
+          501
+        ]
+      },
+      {
+        "cell": 2,
+        "sourceFrame": 8,
+        "sourceBox": [
+          410,
+          366,
+          958,
+          701
+        ],
+        "placedBox": [
+          183,
+          243,
+          604,
+          500
+        ]
+      },
+      {
+        "cell": 3,
+        "sourceFrame": 11,
+        "sourceBox": [
+          426,
+          379,
+          971,
+          701
+        ],
+        "placedBox": [
+          195,
+          253,
+          614,
+          500
+        ]
+      },
+      {
+        "cell": 4,
+        "sourceFrame": 15,
+        "sourceBox": [
+          454,
+          387,
+          991,
+          701
+        ],
+        "placedBox": [
+          217,
+          260,
+          630,
+          501
+        ]
+      },
+      {
+        "cell": 5,
+        "sourceFrame": 19,
+        "sourceBox": [
+          482,
+          384,
+          1003,
+          702
+        ],
+        "placedBox": [
+          238,
+          257,
+          638,
+          501
+        ]
+      },
+      {
+        "cell": 6,
+        "sourceFrame": 23,
+        "sourceBox": [
+          505,
+          384,
+          1003,
+          703
+        ],
+        "placedBox": [
+          256,
+          257,
+          639,
+          502
+        ]
+      },
+      {
+        "cell": 7,
+        "sourceFrame": 27,
+        "sourceBox": [
+          520,
+          386,
+          993,
+          704
+        ],
+        "placedBox": [
+          267,
+          259,
+          630,
+          503
+        ]
+      },
+      {
+        "cell": 8,
+        "sourceFrame": 30,
+        "sourceBox": [
+          527,
+          360,
+          981,
+          706
+        ],
+        "placedBox": [
+          273,
+          239,
+          622,
+          505
+        ]
+      },
+      {
+        "cell": 9,
+        "sourceFrame": 34,
+        "sourceBox": [
+          539,
+          311,
+          956,
+          707
+        ],
+        "placedBox": [
+          282,
+          201,
+          602,
+          505
+        ]
+      },
+      {
+        "cell": 10,
+        "sourceFrame": 38,
+        "sourceBox": [
+          553,
+          255,
+          925,
+          708
+        ],
+        "placedBox": [
+          293,
+          158,
+          579,
+          506
+        ]
+      },
+      {
+        "cell": 11,
+        "sourceFrame": 42,
+        "sourceBox": [
+          568,
+          201,
+          890,
+          708
+        ],
+        "placedBox": [
+          304,
+          117,
+          551,
+          507
+        ]
+      },
+      {
+        "cell": 12,
+        "sourceFrame": 45,
+        "sourceBox": [
+          580,
+          168,
+          864,
+          708
+        ],
+        "placedBox": [
+          313,
+          91,
+          531,
+          506
+        ]
+      },
+      {
+        "cell": 13,
+        "sourceFrame": 49,
+        "sourceBox": [
+          592,
+          144,
+          831,
+          709
+        ],
+        "placedBox": [
+          323,
+          73,
+          507,
+          507
+        ]
+      },
+      {
+        "cell": 14,
+        "sourceFrame": 53,
+        "sourceBox": [
+          600,
+          142,
+          795,
+          710
+        ],
+        "placedBox": [
+          329,
+          71,
+          479,
+          507
+        ]
+      },
+      {
+        "cell": 15,
+        "sourceFrame": 57,
+        "sourceBox": [
+          591,
+          153,
+          775,
+          710
+        ],
+        "placedBox": [
+          322,
+          80,
+          463,
+          508
+        ]
+      },
+      {
+        "cell": 16,
+        "sourceFrame": 61,
+        "sourceBox": [
+          587,
+          167,
+          767,
+          710
+        ],
+        "placedBox": [
+          319,
+          90,
+          457,
+          507
+        ]
+      },
+      {
+        "cell": 17,
+        "sourceFrame": 64,
+        "sourceBox": [
+          589,
+          180,
+          762,
+          707
+        ],
+        "placedBox": [
+          320,
+          100,
+          453,
+          505
+        ]
+      },
+      {
+        "cell": 18,
+        "sourceFrame": 68,
+        "sourceBox": [
+          591,
+          179,
+          755,
+          702
+        ],
+        "placedBox": [
+          322,
+          100,
+          448,
+          502
+        ]
+      },
+      {
+        "cell": 19,
+        "sourceFrame": 123,
+        "sourceBox": [
+          594,
+          180,
+          749,
+          700
+        ],
+        "placedBox": [
+          324,
+          100,
+          443,
+          500
+        ]
+      }
+    ]
+  },
+  "transform_to_bear": {
+    "video": "transform\\video\\black-druid-to-bear-h3.mp4",
+    "sheet": "generated\\final\\transform_to_bear.png",
+    "preview": "previews\\final\\transform_to_bear.gif",
+    "sourceFrameCount": 124,
+    "endpointStart": 103,
+    "endpointMaeThreshold": 1.0,
+    "endpointMaeAtStart": 0.8569775132275133,
+    "sampleIndexes": [
+      0,
+      5,
+      11,
+      16,
+      22,
+      27,
+      33,
+      38,
+      43,
+      49,
+      54,
+      60,
+      65,
+      70,
+      76,
+      81,
+      87,
+      92,
+      98,
+      123
+    ],
+    "frameWidth": 768,
+    "frameHeight": 512,
+    "columns": 5,
+    "rows": 4,
+    "frameCount": 20,
+    "footY": 500,
+    "duration": 2000,
+    "repeat": 0,
+    "fixedScale": 0.7683284457478006,
+    "alphaPixels": [
+      33994,
+      62057
+    ],
+    "feetRange": [
+      495,
+      507
+    ],
+    "edgeHitFrames": [],
+    "transparentRgbMax": 0,
+    "bboxes": [
+      [
+        324,
+        100,
+        442,
+        499
+      ],
+      [
+        324,
+        100,
+        443,
+        499
+      ],
+      [
+        324,
+        103,
+        448,
+        499
+      ],
+      [
+        324,
+        112,
+        451,
+        495
+      ],
+      [
+        255,
+        140,
+        455,
+        496
+      ],
+      [
+        232,
+        143,
+        468,
+        505
+      ],
+      [
+        232,
+        256,
+        486,
+        505
+      ],
+      [
+        210,
+        287,
+        509,
+        507
+      ],
+      [
+        179,
+        276,
+        527,
+        507
+      ],
+      [
+        151,
+        259,
+        533,
+        507
+      ],
+      [
+        149,
+        267,
+        530,
+        506
+      ],
+      [
+        144,
+        263,
+        538,
+        502
+      ],
+      [
+        147,
+        263,
+        552,
+        501
+      ],
+      [
+        156,
+        262,
+        569,
+        501
+      ],
+      [
+        166,
+        255,
+        586,
+        501
+      ],
+      [
+        171,
+        250,
+        593,
+        500
+      ],
+      [
+        173,
+        245,
+        596,
+        500
+      ],
+      [
+        174,
+        242,
+        596,
+        500
+      ],
+      [
+        173,
+        239,
+        595,
+        500
+      ],
+      [
+        173,
+        236,
+        595,
+        499
+      ]
+    ],
+    "placements": [
+      {
+        "cell": 0,
+        "sourceFrame": 0,
+        "sourceBox": [
+          594,
+          180,
+          749,
+          700
+        ],
+        "placedBox": [
+          324,
+          100,
+          443,
+          500
+        ]
+      },
+      {
+        "cell": 1,
+        "sourceFrame": 5,
+        "sourceBox": [
+          594,
+          180,
+          750,
+          700
+        ],
+        "placedBox": [
+          324,
+          100,
+          444,
+          500
+        ]
+      },
+      {
+        "cell": 2,
+        "sourceFrame": 11,
+        "sourceBox": [
+          594,
+          183,
+          757,
+          700
+        ],
+        "placedBox": [
+          324,
+          103,
+          449,
+          500
+        ]
+      },
+      {
+        "cell": 3,
+        "sourceFrame": 16,
+        "sourceBox": [
+          594,
+          195,
+          761,
+          695
+        ],
+        "placedBox": [
+          324,
+          112,
+          452,
+          496
+        ]
+      },
+      {
+        "cell": 4,
+        "sourceFrame": 22,
+        "sourceBox": [
+          504,
+          231,
+          766,
+          696
+        ],
+        "placedBox": [
+          255,
+          140,
+          456,
+          497
+        ]
+      },
+      {
+        "cell": 5,
+        "sourceFrame": 27,
+        "sourceBox": [
+          474,
+          236,
+          782,
+          708
+        ],
+        "placedBox": [
+          232,
+          143,
+          469,
+          506
+        ]
+      },
+      {
+        "cell": 6,
+        "sourceFrame": 33,
+        "sourceBox": [
+          474,
+          382,
+          806,
+          708
+        ],
+        "placedBox": [
+          232,
+          256,
+          487,
+          506
+        ]
+      },
+      {
+        "cell": 7,
+        "sourceFrame": 38,
+        "sourceBox": [
+          446,
+          423,
+          836,
+          711
+        ],
+        "placedBox": [
+          210,
+          287,
+          510,
+          508
+        ]
+      },
+      {
+        "cell": 8,
+        "sourceFrame": 43,
+        "sourceBox": [
+          405,
+          409,
+          859,
+          711
+        ],
+        "placedBox": [
+          179,
+          276,
+          528,
+          508
+        ]
+      },
+      {
+        "cell": 9,
+        "sourceFrame": 49,
+        "sourceBox": [
+          369,
+          386,
+          868,
+          710
+        ],
+        "placedBox": [
+          151,
+          259,
+          534,
+          508
+        ]
+      },
+      {
+        "cell": 10,
+        "sourceFrame": 54,
+        "sourceBox": [
+          366,
+          397,
+          863,
+          710
+        ],
+        "placedBox": [
+          149,
+          267,
+          531,
+          507
+        ]
+      },
+      {
+        "cell": 11,
+        "sourceFrame": 60,
+        "sourceBox": [
+          359,
+          391,
+          873,
+          704
+        ],
+        "placedBox": [
+          144,
+          263,
+          539,
+          503
+        ]
+      },
+      {
+        "cell": 12,
+        "sourceFrame": 65,
+        "sourceBox": [
+          364,
+          391,
+          893,
+          702
+        ],
+        "placedBox": [
+          147,
+          263,
+          553,
+          502
+        ]
+      },
+      {
+        "cell": 13,
+        "sourceFrame": 70,
+        "sourceBox": [
+          375,
+          390,
+          914,
+          702
+        ],
+        "placedBox": [
+          156,
+          262,
+          570,
+          502
+        ]
+      },
+      {
+        "cell": 14,
+        "sourceFrame": 76,
+        "sourceBox": [
+          388,
+          381,
+          936,
+          702
+        ],
+        "placedBox": [
+          166,
+          255,
+          587,
+          502
+        ]
+      },
+      {
+        "cell": 15,
+        "sourceFrame": 81,
+        "sourceBox": [
+          395,
+          374,
+          946,
+          701
+        ],
+        "placedBox": [
+          171,
+          250,
+          594,
+          501
+        ]
+      },
+      {
+        "cell": 16,
+        "sourceFrame": 87,
+        "sourceBox": [
+          398,
+          368,
+          950,
+          701
+        ],
+        "placedBox": [
+          173,
+          245,
+          597,
+          501
+        ]
+      },
+      {
+        "cell": 17,
+        "sourceFrame": 92,
+        "sourceBox": [
+          399,
+          364,
+          950,
+          701
+        ],
+        "placedBox": [
+          174,
+          242,
+          597,
+          501
+        ]
+      },
+      {
+        "cell": 18,
+        "sourceFrame": 98,
+        "sourceBox": [
+          398,
+          360,
+          949,
+          701
+        ],
+        "placedBox": [
+          173,
+          239,
+          596,
+          501
+        ]
+      },
+      {
+        "cell": 19,
+        "sourceFrame": 123,
+        "sourceBox": [
+          397,
+          357,
+          947,
+          701
+        ],
+        "placedBox": [
+          173,
+          236,
+          596,
+          500
+        ]
+      }
+    ]
+  }
+}
