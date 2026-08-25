@@ -127,8 +127,8 @@ export class FatZombie extends Enemy {
         }
 
         // 朝向
-        if (this._attackTimer > 0 && this.target && this.target.active) {
-            this.rotation = Math.atan2(this.target.y - this.y, this.target.x - this.x);
+        if (this._attackTimer > 0 && this._pendingThrust?.basicMeleeSnapshot) {
+            this.rotation = this._pendingThrust.basicMeleeSnapshot.worldAngle;
         } else if (speed > 0.1) {
             this.rotation = Math.atan2(this.vy, this.vx);
         }
@@ -147,10 +147,12 @@ export class FatZombie extends Enemy {
         if (this.target && this.target.active) {
             this.rotation = Math.atan2(this.target.y - this.y, this.target.x - this.x);
         }
-        // 攻击音效（配置 sounds.attack）
-        playSoundFrom(this, 'attack');
         // 必须触发通用武器动画状态机，才能在 swing 阶段执行 ThrustAttack.checkTriangleHit
         super.triggerWeaponAnim();
+    }
+
+    onBasicMeleeContact() {
+        playSoundFrom(this, 'attack');
     }
 
     _getAuraDimensions() {

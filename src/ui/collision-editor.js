@@ -690,8 +690,11 @@ export const CollisionEditor = {
         }
         if (trace.phase) {
             const phase = trace.phase === 'start' ? '普通攻击起手' : '普通攻击命中帧';
+            const timelineFrame = trace.snapshot.timelineFrame !== null
+                ? `　动画帧：${trace.snapshot.timelineFrame}`
+                : '';
             this._motionDebugInfoEl.innerHTML = `<div>${phase}：${trace.reason}</div>`
-                + `<div>锁定：${trace.targetName}　总前伸：${Math.round(trace.snapshot.reach * 10) / 10}px</div>`;
+                + `<div>锁定：${trace.targetName}　总前伸：${Math.round(trace.snapshot.reach * 10) / 10}px${timelineFrame}</div>`;
             return;
         }
         const result = trace.hit ? '命中' : trace.reason;

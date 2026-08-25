@@ -19,6 +19,7 @@ import { loadImage } from '../utils/image-loader.js';
 import { canMeleeShareSurface } from '../combat/melee-surface.js';
 import { hasRangedLineOfSight } from '../combat/ranged-line-of-sight.js';
 import { World125FogTideSystem } from '../world/world125-fog-tide-system.js';
+import { stepBasicMeleeTimeline } from '../combat/melee-attack-resolver.js';
 
         class Enemy extends Combatant {
             constructor(x, y, config = {}) {
@@ -92,11 +93,15 @@ import { World125FogTideSystem } from '../world/world125-fog-tide-system.js';
                 } else {
                     this.attacks = { melee: new ThrustAttack({
                         cooldown: attackConfig.cooldown ?? thrustCfg.cooldown ?? 600,
-                        range: attackConfig.range ?? thrustCfg.range ?? 80,
+                        range: attackConfig.range ?? config.attackDistance
+                            ?? config.attackRange ?? thrustCfg.range ?? 80,
                         width: attackConfig.width ?? thrustCfg.width ?? 20,
                         damage: attackConfig.damage || (attackConfig.damageMin !== undefined && attackConfig.damageMax !== undefined ? { min: attackConfig.damageMin, max: attackConfig.damageMax } : (thrustCfg.damage || { min: 8, max: 15 })),
                         knockback: attackConfig.knockback ?? thrustCfg.knockback ?? 15,
-                        dynamicRange: attackConfig.dynamicRange !== undefined ? attackConfig.dynamicRange : (attackConfig.range ?? thrustCfg.range ?? 80),
+                        dynamicRange: attackConfig.dynamicRange !== undefined
+                            ? attackConfig.dynamicRange
+                            : (attackConfig.range ?? config.attackDistance
+                                ?? config.attackRange ?? thrustCfg.range ?? 80),
                         ...attackConfig
                     }) };
                     this.weaponMode = 'melee';
@@ -245,6 +250,51 @@ import { World125FogTideSystem } from '../world/world125-fog-tide-system.js';
             }
             updateWeaponAnim(dt) {
                 const wa = WEAPON_ANIM, anim = this.weaponAnim;
+                const pending = this._pendingThrust;
+                if (pending?.active && pending.basicMeleeTimeline) {
+                    const step = stepBasicMeleeTimeline(pending, dt);
+                    if (!step) return;
+                    const timeline = pending.basicMeleeTimeline;
+                    if (pending.basicMeleeSnapshot) {
+                        pending.basicMeleeSnapshot.timelineFrame = step.frameIndex;
+                    }
+                    anim.state = step.phase;
+                    anim.timer = step.elapsedMs;
+                    if (step.phase === 'windup') {
+                        const t = timeline.activeStartMs > 0
+                            ? Math.min(1, step.elapsedMs / timeline.activeStartMs)
+                            : 1;
+                        anim.angle = wa.idleAngle
+                            + (wa.windupAngle - wa.idleAngle) * Easing.easeInQuad(t);
+                    } else if (step.phase === 'swing') {
+                        const span = Math.max(1, timeline.activeEndMs - timeline.activeStartMs);
+                        const t = Math.min(1, (step.elapsedMs - timeline.activeStartMs) / span);
+                        anim.angle = wa.windupAngle
+                            + (wa.swingAngle - wa.windupAngle) * Easing.easeOutQuad(t);
+                    } else {
+                        const span = Math.max(1, timeline.durationMs - timeline.activeEndMs);
+                        const t = Math.min(1, (step.elapsedMs - timeline.activeEndMs) / span);
+                        anim.angle = wa.swingAngle
+                            + (wa.idleAngle - wa.swingAngle) * Easing.easeInOutCubic(t);
+                    }
+                    if (step.shouldCheckImpact && this.attacks.melee) {
+                        this.attacks.melee.checkTriangleHit(this);
+                    }
+                    if (step.shouldEmitContactCue && !pending.contactCuePlayed) {
+                        pending.contactCuePlayed = true;
+                        if (typeof this.onBasicMeleeContact === 'function') {
+                            this.onBasicMeleeContact();
+                        }
+                    }
+                    if (step.completed) {
+                        pending.active = false;
+                        if (this.attacks.melee) this.attacks.melee.giveExp(this);
+                        anim.state = 'idle';
+                        anim.timer = 0;
+                        anim.angle = wa.idleAngle;
+                    }
+                    return;
+                }
                 switch (anim.state) {
                     case 'idle': anim.angle = wa.idleAngle + Math.sin(Date.now() / 400) * 0.06; break;
                     case 'windup':

@@ -1468,6 +1468,10 @@ class ZombieDogEnemy extends CircleEnemy {
             this._attackTimer -= dt;
             if (this._attackTimer < 0) this._attackTimer = 0;
         }
+        if (this._attackAnimTimer > 0) {
+            this._attackAnimTimer -= dt;
+            if (this._attackAnimTimer < 0) this._attackAnimTimer = 0;
+        }
         const speed = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
         if (this._attackTimer <= 0 && Math.abs(this.vx) >= 0.1) {
             this._lastHorizontalFacing = this.vx > 0 ? 'right' : 'left';
@@ -1523,6 +1527,7 @@ class ZombieDogEnemy extends CircleEnemy {
         }
         super.triggerWeaponAnim();
         this._attackTimer = this._attackDuration || 700;
+        this._attackAnimTimer = this._attackTimer;
         this._animFrame = 0;
         this._animTimer = 0;
     }

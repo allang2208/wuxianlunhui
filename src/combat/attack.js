@@ -23,6 +23,8 @@ import {
     canImpactBasicMelee,
     canStartBasicMelee,
     createBasicMeleeSnapshot,
+    createBasicMeleeTimeline,
+    rebaseBasicMeleeSnapshot,
 } from './melee-attack-resolver.js';
 
 // ===== 通用附魔命中效果系统 =====
@@ -188,6 +190,9 @@ function applyEnchantOnHit(weapon, target, source) {
                 const basicMeleeSnapshot = primaryTarget
                     ? createBasicMeleeSnapshot(source, primaryTarget, this.config)
                     : null;
+                const basicMeleeTimeline = basicMeleeSnapshot
+                    ? createBasicMeleeTimeline(source)
+                    : null;
                 const attackAngle = basicMeleeSnapshot?.angle
                     ?? ((targetX >= source.x) ? 0 : Math.PI);
                 let staminaCost = CONFIG.STAMINA_MELEE_COST;
@@ -260,6 +265,9 @@ function applyEnchantOnHit(weapon, target, source) {
                     // 自定义攻击继续保留原 dynamicRange 行为。
                     dynamicRange: basicMeleeSnapshot ? 0 : (this.config.dynamicRange || 0),
                     basicMeleeSnapshot,
+                    basicMeleeTimeline,
+                    timelineElapsedMs: 0,
+                    contactCuePlayed: false,
                     primaryTarget,
                     expGiven: false                // 是否已发放经验
                 };
@@ -271,7 +279,10 @@ function applyEnchantOnHit(weapon, target, source) {
                 if (!pt || !pt.active) return;
                 // 攻击判定持续时间：覆盖 windup + swing 阶段
                 const hitDurationMs = this.config.hitDurationMs || 500;
-                if (nowMs() - pt.startTime > hitDurationMs) { pt.active = false; return; }
+                if (!pt.basicMeleeTimeline && nowMs() - pt.startTime > hitDurationMs) {
+                    pt.active = false;
+                    return;
+                }
                 const range = pt.range, width = pt.width, angle = pt.angle;
                 const ax = pt.x, ay = pt.y; // 使用攻击起始时的固定位置
                 let hitCount = 0, killCount = 0;
@@ -281,6 +292,11 @@ function applyEnchantOnHit(weapon, target, source) {
                 // 方向形状、承载面和墙体。普通攻击默认不再是 360° 多目标半径伤害。
                 if (pt.basicMeleeSnapshot) {
                     const entity = pt.primaryTarget;
+                    if (pt.basicMeleeTimeline?.rebaseOnImpact) {
+                        pt.basicMeleeSnapshot = rebaseBasicMeleeSnapshot(source, pt.basicMeleeSnapshot);
+                        pt.x = pt.basicMeleeSnapshot.originX;
+                        pt.y = pt.basicMeleeSnapshot.originY;
+                    }
                     if (!entity || pt.hitSet.has(entity)
                         || !canImpactBasicMelee(source, entity, pt.basicMeleeSnapshot)) return;
                     if (isFriendlyFire(source, entity)
