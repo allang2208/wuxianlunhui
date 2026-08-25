@@ -254,6 +254,21 @@ EffectManager.add(new LightningBoltEffect(source, target, {
 - 冷却统一按 `(1 - 法杖急速) × (1 - 法袍减冷却)` 乘一次，系统与快捷栏共用同一技能分类/冷却入口，禁止技能内部重复缩短。
 - MP 常态按秒恢复，权威公式来自 `data/combat-formulas.json`：`1.0 + 精神×0.08 + 智力×0.02`；战斗内外不分状态，HUD/属性面板/tooltip 必须统一显示“每秒”。
 
+### 持续直线魔法束去线条化模板（2026-08-25，夜与火之剑定稿）
+
+适用于夜与火之剑这类持续数秒、随释放者锚点移动、但方向与长度锁定的直线魔法束。不要照搬旧版“定时生成大量细直线”的做法，也不要直接复用雷枪的一次性 tween；持续束应由独立 Effect 类在 `EffectManager` 中按 `dt` 驱动。
+
+- **主体只填面、不描边**：NORMAL Graphics 画暗色承托，ADD Graphics 画外辉光、主色层和青白核心；用多段不规则 ribbon polygon 表现宽度起伏与边缘柔化，禁止用一排 `lineTo/strokePath` 冒充体积。
+- **雷枪语言只复用去线条化部分**：沿束轴推进固定参数的色块圆点流，首尾用 `sin(tπ)` 淡化；夜与火另加两侧柔软火舌色块，不复制雷枪加速环，保留技能辨识度。
+- **随机参数创建时固定**：mote/wisp 的 phase、速度、偏移、大小只在构造时生成，逐帧仅推进位置；禁止每 100ms 重新分配一批线段数组，避免密集闪烁与持续 GC。
+- **起落节奏**：前约 240ms 用 ease-out 把束长从 0 展开，前约 180ms 渐入，结束前约 380ms 渐隐；剑尖与射束末端分别用多层圆形色块形成汇聚和散逸，不使用 per-object filter。
+- **逻辑与视觉同源**：System 先完成墙体截断，`NightFlameBeamEffect.length`、持续伤害 `VerticalRect.length` 与调试范围提示必须消费同一个 `clampedLength`；特效类只画画面，不读取目标或结算伤害。
+- **跟随与迷雾**：每帧只更新 effect 的 `x/y` 跟随武器释放点，锁定 `angle/length`；NORMAL/ADD 两个 Graphics 都加入 `worldEffectsGroup`，`getFogVisuals()` 必须同时返回两层，结束时成对 destroy。
+
+参考实现：`src/effects/nightflame-effect.js` + `src/entities/components/special-attack-system.js`。
+
+---
+
 #### 临时线障碍法术（冰墙口径）
 
 - 逻辑阻挡与视觉段完全分离：一次施法只注册一条带 `_iceWall` 标记的连续 `WallSystem.isoSegments` 线，段数成长只增加冰晶视觉，不增加 Damageable 实体或碰撞对象。

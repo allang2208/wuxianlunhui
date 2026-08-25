@@ -59,7 +59,7 @@ class SpecialAttackSystem {
             }
         }
         this.player._specialAttackClampedLength = clampedLength;
-        // 创建脉冲式蓝色线条射波特效（使用截断后的长度）
+        // 创建多层填充蓝焰射束（使用截断后的长度，视觉与伤害判定仍共用同一长度）
         const beamDuration = effect.beamDuration + specialDurationBonus;
         const beam = new NightFlameBeamEffect(centerX, centerY, this.player._specialAttackAngle, effect.beamWidth, clampedLength, beamDuration);
         this.player._specialAttackBeam = beam;

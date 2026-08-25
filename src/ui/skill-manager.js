@@ -577,8 +577,9 @@ export const SkillManager = {
                     card.classList.add('dragging');
                     // 只拖动图标作为 drag image
                     const icon = card.querySelector('.skill-icon');
-                    if (icon) {
-                        e.dataTransfer.setDragImage(icon, icon.offsetWidth / 2, icon.offsetHeight / 2);
+                    const dragVisual = icon?.querySelector('img') || icon;
+                    if (dragVisual) {
+                        e.dataTransfer.setDragImage(dragVisual, dragVisual.offsetWidth / 2, dragVisual.offsetHeight / 2);
                     }
                     TimerManager.setTimeout(() => SystemUI.close(), 50);
                 };
