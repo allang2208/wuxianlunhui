@@ -120,6 +120,7 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
 5. **12 步只验结构**：核对视角、完整地基、楼层数、屋顶是否连续、门窗/院落/阳台/功能组件的位置、组件是否离开主体，以及是否凭空增加物件。任何结构错位都回 Blender 改白模后重新 12 步，禁止直接用 48 步掩盖。
 6. **玩家确认后才进 48 步**：仍走同一标准入口和同一 `world122-building-v2`，以通过的12步图作为 `--init-image`，继续使用同一 depth，固定 Depth 0.75、`denoise=0.30`、48步低重绘。精修提示词只增加材质、磨损、小型杂物和灯光，不改变主体轮廓、层数、院落、屋顶或组件位置。改变步数/denoise 必须显式 `--allow-nonstandard` 并留下生成元数据；局部错误用 mask 返修，不整图重抽。
 7. **真透明与 footprint 验收**：先查 RGBA、最大连通域、黄色/绿色残边、孤立像素和投影阴影；抠图不干净就暂停入库并向玩家汇报。正式图必须紧裁且等比缩放，`scaleX≈scaleY`；不能用固定宽高强拉。alpha 自动锚点若仍让贴图偏出地基，使用资产级 `anchorAdjustX/anchorAdjustY`，并保证建造幽灵与实体同源，禁止改全局 footprint 迁就一张贴图。
+   - 封闭在模型轮廓内部的局部绿幕细线不得使用全图 `removeAllGreen`，否则灰色钢板和暗部材质会被误删成针孔。先把修复范围限制在人工确认的小矩形，再用 `repair-local-green-spill.py <input> <output> --rect x0,y0,x1,y1` 仅替换绿色主导 RGB 为最近的不透明非绿主体色；修复前后 Alpha 必须逐像素一致，原始 body 必须保留供回退。
 8. **正式入库**：只有玩家明确接受的 48 步版本才能覆盖 `assets/terrain/<building>.png`。同步 `data/producer-buildings.json` 的 `displayW/displayH/footOffsetY` 和必要的 anchor 调整，并只重建该建筑的 lighting maps。未通过的 12 步候选不得导入。
 9. **定稿后立即瘦身归档**：先核对 `*_runtime_metadata.json.source` 仍指向准备保留的已接受源图，再清除其余候选。每个正式建筑只保留可编辑 `.blend`、模型预览、Depth/Body Depth、结构与精修提示/控制规格、被正式资产引用的 accepted raw + body/cutout + preview、入库元数据和总 manifest；删除未选 12/48 步 seed、`keyed/cleaned/anchored` 可再生中间层、联系表、`*_preview_48px.png`、`.blend1` 和 rejected/temp 目录。多形态环境物件若每个形态都已正式入库，则每个形态各保留一套最终 raw/cutout/模型，不能按“只留一张”误删；障碍物 raw 批量抠图统一使用通用 `finalize-isometric-obstacle-imagegen.py`，不得再复制道路等具体资产的专名脚本。清理不得触碰 `assets/terrain/` 正式图、lighting maps、运行时配置或其他任务目录。
 

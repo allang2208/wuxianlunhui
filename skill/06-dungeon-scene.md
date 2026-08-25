@@ -359,9 +359,9 @@ JSON 校验；lint / vite build / test-collider / test-craft-sync；`node script
 #### 八、宝箱房系统（2026-07-25，精英战斗专属，`src/world/chest-room-system.js`）
 1. **生成**：精英节点入场（`_enterZombieCombat`/非僵尸 `_enterCombat` 的 `node.isElite` 分支）→ 按墙壁预制「宝箱房」（门墙×1+直墙×3，data/wall-prefabs.json）在场地中央拼小菱形房——**几何中心=全部件 face 线段端点外接框中心**（与编辑器 cx/cy 无关）；直墙推 isoVisuals（深度上臂 min/下臂 max 重算，预制存的是编辑器世界值不可直接沿用）；房内区域注册刷怪排除区（`spawnMonsters` 菱形拒绝采样 + 排除区判定）
 2. **门墙独立控制**：不进 isoVisuals——复刻 wall-gate placeAt 映射放 wall_gate 帧0（关门），碰撞=两侧常开+门洞启停；`onCombatComplete` 且未超时 → tween 播 0→15 帧开门 + 门洞碰撞移除
-3. **等级宝箱**：宝箱等级=地牢 grade（E/D/C/B/A，贴图 `chest_<grade>`，**素材库缺 A.png 暂用 B 兜底**）；奖励表=`combat-formulas.json universalEventRewards.treasureChest[grade]`。竞技场宝箱房每箱必得该档强化石+改造券，另掷 50% 金币 / 25% 粉尘 / 25% 宝箱怪位（**宝箱怪位当前按金币兜底**）；随机事件宝箱仍按自身互斥结果处理
+3. **等级宝箱**：宝箱等级=地牢 grade（F/E/D/C/B/A），视觉统一使用 `chest_closed` / `chest_opened` 双状态贴图，grade 只驱动奖励表=`combat-formulas.json universalEventRewards.treasureChest[grade]`。竞技场宝箱房每箱必得该档强化石+改造券，另掷 50% 金币 / 25% 粉尘 / 25% 宝箱怪位（**宝箱怪位当前按金币兜底**）；随机事件宝箱仍按自身互斥结果处理
 4. **60s 倒计时**：Phaser text（**改色用 setBackgroundColor/setColor，禁用 setStyle——会整体覆盖丢失字号字体**）；白底黑字黑框（矩形垫底），≤10s 红底黑字；超时→宝箱 1s 淡出、房门不再开
-5. **开箱**：玩家靠近 60px → chest_open 精灵图（559×602×16，tools/chest-video-frames.py 从 宝箱打开-1.mp4 切帧+抠图，管线同门闸）1.5s 播完 + chest_open.mp3 音效
+5. **开箱**：玩家靠近120px → 同一 Sprite 先用140ms淡出 `chest_closed`，切换 `chest_opened` 后用260ms淡入，并播放 `chest_open.mp3`；两个状态固定512×512方形画布，但必须按实体底座而非整幅 Alpha 外框归一：闭合态底座跨度408px、显示宽192px、origin(0.5,0.75)，开启态底座跨度325px、显示宽241px、origin(0.5,0.78015)，两态可见底边相对逻辑点均为约26.625px。禁止为追求同一画布宽度而让开启态箱体缩小；过渡不得创建未登记的第二个 Sprite，`cleanup()` 必须停止当前 `openAnim` 后再销毁宝箱，避免离场残留。
 6. **离场守卫**：`hasUnopenedLoot()` 时走出大门白区 → 弹确认框（是=正常离场 / 否=退回场内 160px+1s 冷却防连发）
 7. **已删旧制**：击杀精英刷 DungeonChest 靠近自开流程（dungeon-chest.js 已删）、`eliteChestReward` 配置（出征面板文案改读 treasureChest 表）；**F 级地牢岔路战斗固定普通**（zombie-dungeon.js 岔路 eliteChance 按 grade 判定，F=0）
 8. **清理**：`CombatRoomSystem.cleanupGate` 统一调 `ChestRoomSystem.cleanup()`（门墙/宝箱/倒计时销毁 + 门洞碰撞段移除；直墙件随 `_restoreSceneState` 自动还原）

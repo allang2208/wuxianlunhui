@@ -1,0 +1,53 @@
+{
+  "pipeline": "dungeon-chest-two-state-runtime",
+  "layout": "per-state display width normalizes lower chest body; per-state origin locks visible bottom",
+  "transition": "single-sprite fade-out, texture swap, fade-in",
+  "states": {
+    "closed": {
+      "source": "tools/ai-gen/_settlement_building_pack_20260821/dungeon_chest_closed/dungeon_chest_closed_refine_v02_body_islands_cleaned.png",
+      "output": "assets/terrain/chest_closed.png",
+      "displayWidth": 192,
+      "origin": [
+        0.5,
+        0.75
+      ],
+      "baseSpanSourcePx": 408,
+      "visibleBottomOffsetY": 26.625,
+      "size": [
+        512,
+        512
+      ],
+      "alphaBbox": [
+        50,
+        71,
+        462,
+        455
+      ],
+      "alphaPixels": 107054,
+      "touchesBorder": false
+    },
+    "opened": {
+      "source": "tools/ai-gen/_settlement_building_pack_20260821/dungeon_chest_open/dungeon_chest_open_refine_v02_body_seam_cleaned.png",
+      "output": "assets/terrain/chest_opened.png",
+      "displayWidth": 241,
+      "origin": [
+        0.5,
+        0.78015
+      ],
+      "baseSpanSourcePx": 325,
+      "visibleBottomOffsetY": 26.624,
+      "size": [
+        512,
+        512
+      ],
+      "alphaBbox": [
+        84,
+        58,
+        428,
+        456
+      ],
+      "alphaPixels": 87362,
+      "touchesBorder": false
+    }
+  }
+}

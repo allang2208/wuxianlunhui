@@ -908,9 +908,8 @@ def build_warehouse(spec):
     return root
 
 
-def _build_main_space_warehouse_chest(spec, open_lid=False):
-    """Shared closed/open marble treasure chest for the warehouse NPC."""
-    asset_id = "main_space_warehouse_open" if open_lid else "main_space_warehouse"
+def _build_treasure_chest(asset_id, spec, open_lid=False, dungeon_style=False):
+    """Shared editable chest assembly for warehouse and dungeon variants."""
     collection, root, mats = common_context(asset_id, spec)
     dims = spec["dimensions"]
     bw, bd, bh = dims["body"]
@@ -920,8 +919,12 @@ def _build_main_space_warehouse_chest(spec, open_lid=False):
     body_top = body_base + bh
     front_y = -bd / 2 - 4
     side_x = -bw / 2 - 4
+    prefix = "DungeonChest" if dungeon_style else "WarehouseChest"
+    body_mat = mats["iron"] if dungeon_style else mats["plaster"]
+    lid_end_mat = mats["iron"] if dungeon_style else mats["plaster"]
+    lid_roof_mat = mats["iron"] if dungeon_style else mats["roof"]
 
-    def filigree(name, points, bevel_depth=2.2):
+    def filigree(name, points, parent=root, bevel_depth=2.2):
         curve_data = bpy.data.curves.new(name + "_Curve", type="CURVE")
         curve_data.dimensions = "3D"
         curve_data.resolution_u = 3
@@ -930,13 +933,13 @@ def _build_main_space_warehouse_chest(spec, open_lid=False):
         curve_data.use_fill_caps = True
         spline = curve_data.splines.new("BEZIER")
         spline.bezier_points.add(len(points) - 1)
-        for point, (x, z) in zip(spline.bezier_points, points):
-            point.co = (x, front_y - 8, z)
+        for point, coordinates in zip(spline.bezier_points, points):
+            point.co = coordinates
             point.handle_left_type = "AUTO"
             point.handle_right_type = "AUTO"
         obj = bpy.data.objects.new(name, curve_data)
         collection.objects.link(obj)
-        obj.parent = root
+        obj.parent = parent
         obj.data.materials.append(mats["brass"])
         return obj
 
@@ -957,100 +960,169 @@ def _build_main_space_warehouse_chest(spec, open_lid=False):
                                     (bw / 2 - 17, -bd / 2 + 15),
                                     (-bw / 2 + 17, bd / 2 - 15),
                                     (bw / 2 - 17, bd / 2 - 15))):
-        kit.box(collection, root, f"WarehouseChest_GoldFoot_{index}", (fw, fd, fh),
+        kit.box(collection, root, f"{prefix}_GoldFoot_{index}", (fw, fd, fh),
                 (x, y, fh / 2), mats["brass"], bevel_width=5)
-    kit.box(collection, root, "WarehouseChest_MarbleBody", (bw, bd, bh),
-            (0, 0, body_base + bh / 2), mats["plaster"], bevel_width=8)
+    kit.box(collection, root, f"{prefix}_Body", (bw, bd, bh),
+            (0, 0, body_base + bh / 2), body_mat, bevel_width=8)
 
     # Gold frame, corner guards and the strong lid seam are physical chest hardware.
     for index, z in enumerate((body_base + 8, body_top - 8)):
-        kit.box(collection, root, f"WarehouseChest_FrontBand_{index}",
+        kit.box(collection, root, f"{prefix}_FrontBand_{index}",
                 (bw + 12, 9, 10), (0, front_y, z), mats["brass"], bevel_width=2)
-        kit.box(collection, root, f"WarehouseChest_SideBand_{index}",
+        kit.box(collection, root, f"{prefix}_SideBand_{index}",
                 (9, bd + 12, 10), (side_x, 0, z), mats["brass"], bevel_width=2)
     for x in (-bw / 2 - 2, bw / 2 + 2):
-        kit.box(collection, root, f"WarehouseChest_FrontCorner_{int(x)}",
+        kit.box(collection, root, f"{prefix}_FrontCorner_{int(x)}",
                 (11, 10, bh + 4), (x, front_y, body_base + bh / 2),
                 mats["brass"], bevel_width=2.5)
     for y in (-bd / 2 - 2, bd / 2 + 2):
-        kit.box(collection, root, f"WarehouseChest_SideCorner_{int(y)}",
+        kit.box(collection, root, f"{prefix}_SideCorner_{int(y)}",
                 (10, 11, bh + 4), (side_x, y, body_base + bh / 2),
                 mats["brass"], bevel_width=2.5)
-    kit.box(collection, root, "WarehouseChest_LidSeam", (lw + 10, ld + 10, 12),
+    kit.box(collection, root, f"{prefix}_LidSeam", (lw + 10, ld + 10, 12),
             (0, 0, body_top + 2), mats["brass"], bevel_width=3)
 
     # One domed lid is parented to its rear hinge, so the open state changes only
     # that assembly and preserves the exact body, gems and filigree.
     lid_base = body_top + 7
-    lid_pivot = bpy.data.objects.new("WarehouseChest_RearHingePivot", None)
+    lid_pivot = bpy.data.objects.new(f"{prefix}_RearHingePivot", None)
     collection.objects.link(lid_pivot)
     lid_pivot.parent = root
     lid_pivot.location = (0, ld / 2, lid_base)
     lid_pivot.rotation_euler.x = math.radians(-float(spec.get("lidOpenDegrees", 0)) if open_lid else 0)
-    kit.barrel_vault(collection, lid_pivot, "WarehouseChest_DomedLid", lw, ld, lh,
-                     (0, -ld / 2, 0), mats["plaster"], mats["roof"], segments=32)
-    for index, x in enumerate((-lw * 0.42, 0, lw * 0.42)):
+    kit.barrel_vault(collection, lid_pivot, f"{prefix}_DomedLid", lw, ld, lh,
+                     (0, -ld / 2, 0), lid_end_mat, lid_roof_mat, segments=32)
+    rib_positions = (-lw * 0.43, lw * 0.43) if dungeon_style else (-lw * 0.42, 0, lw * 0.42)
+    for index, x in enumerate(rib_positions):
         rib_width = 11 if index == 1 else 9
-        kit.barrel_vault(collection, lid_pivot, f"WarehouseChest_GoldLidRib_{index}",
+        kit.barrel_vault(collection, lid_pivot, f"{prefix}_GoldLidRib_{index}",
                          rib_width, ld + 8, lh + 4, (x, -ld / 2, -1),
                          mats["brass"], mats["brass"], segments=28)
-    kit.box(collection, lid_pivot, "WarehouseChest_LidLatch", (18, 10, 48),
+    kit.box(collection, lid_pivot, f"{prefix}_LidLatch", (18, 10, 48),
             (0, -ld - 1, -9), mats["brass"], bevel_width=4)
 
     if open_lid:
         # Dark lining under the raised lid and one empty magical storage cavity.
         # No loose treasure is modeled, so the result remains the warehouse prop.
-        kit.box(collection, lid_pivot, "WarehouseChest_InnerLidLining",
+        kit.box(collection, lid_pivot, f"{prefix}_InnerLidLining",
                 (lw - 24, ld - 20, 6), (0, -ld / 2, -5),
                 mats["iron"], bevel_width=5)
-        kit.box(collection, root, "WarehouseChest_OpenInterior",
+        kit.box(collection, root, f"{prefix}_OpenInterior",
                 (bw - 24, bd - 24, 7), (0, 0, body_top + 9),
                 mats["iron"], bevel_width=6)
-        kit.box(collection, root, "WarehouseChest_OpenInteriorBlueGlow",
-                (bw - 42, bd - 42, 4), (0, -2, body_top + 13),
-                mats["glow"], bevel_width=7)
+        if not dungeon_style:
+            kit.box(collection, root, f"{prefix}_OpenInteriorBlueGlow",
+                    (bw - 42, bd - 42, 4), (0, -2, body_top + 13),
+                    mats["glow"], bevel_width=7)
         for index, x in enumerate((-lw * 0.31, lw * 0.31)):
-            kit.cylinder(collection, root, f"WarehouseChest_GoldHinge_{index}",
+            kit.cylinder(collection, root, f"{prefix}_GoldHinge_{index}",
                          8, 44, (x, bd / 2 + 3, body_top + 8), mats["brass"],
                          rotation=(0, 90, 0), vertices=24, bevel_width=1.5)
 
     # Central sapphire lock with a deep gold sunburst frame.
     lock_z = body_base + bh * 0.56
-    kit.gear(collection, root, "WarehouseChest_GoldLockRosette", 27,
+    kit.gear(collection, root, f"{prefix}_GoldLockRosette", 27,
              (0, front_y - 10, lock_z), mats["brass"], axis="Y", teeth=16)
-    sapphire("WarehouseChest_MainSapphire",
-             (0, front_y - 17, lock_z), (31, 11, 42))
+    if dungeon_style:
+        kit.box(collection, root, f"{prefix}_LockPlate", (34, 9, 44),
+                (0, front_y - 18, lock_z - 2), mats["brass"], bevel_width=6)
+        kit.cylinder(collection, root, f"{prefix}_KeyholeRound", 5.5, 4,
+                     (0, front_y - 24, lock_z + 2), mats["iron"],
+                     rotation=(90, 0, 0), vertices=24, bevel_width=0.5)
+        kit.box(collection, root, f"{prefix}_KeyholeStem", (5, 4, 13),
+                (0, front_y - 24, lock_z - 7), mats["iron"], bevel_width=1)
+    else:
+        sapphire(f"{prefix}_MainSapphire",
+                 (0, front_y - 17, lock_z), (31, 11, 42))
 
     # Raised symmetrical scrollwork makes the gold carving readable in Depth.
     scroll_z = body_base + bh * 0.50
-    left_scroll = [(-27, scroll_z), (-40, scroll_z + 17), (-62, scroll_z + 20),
-                   (-76, scroll_z + 8), (-67, scroll_z - 2), (-52, scroll_z + 3)]
-    lower_left = [(-28, scroll_z - 7), (-43, scroll_z - 22), (-67, scroll_z - 20),
-                  (-78, scroll_z - 7), (-64, scroll_z - 3)]
-    filigree("WarehouseChest_Filigree_LeftUpper", left_scroll, 2.6)
-    filigree("WarehouseChest_Filigree_LeftLower", lower_left, 2.3)
-    filigree("WarehouseChest_Filigree_RightUpper", [(-x, z) for x, z in left_scroll], 2.6)
-    filigree("WarehouseChest_Filigree_RightLower", [(-x, z) for x, z in lower_left], 2.3)
-    for index, x in enumerate((-78, -50, 50, 78)):
-        sapphire(f"WarehouseChest_SapphireInlay_{index}",
-                 (x, front_y - 13, body_base + 23), (12, 7, 15))
+    left_scroll = [(-27, front_y - 8, scroll_z), (-40, front_y - 8, scroll_z + 17),
+                   (-62, front_y - 8, scroll_z + 20), (-76, front_y - 8, scroll_z + 8),
+                   (-67, front_y - 8, scroll_z - 2), (-52, front_y - 8, scroll_z + 3)]
+    lower_left = [(-28, front_y - 8, scroll_z - 7), (-43, front_y - 8, scroll_z - 22),
+                  (-67, front_y - 8, scroll_z - 20), (-78, front_y - 8, scroll_z - 7),
+                  (-64, front_y - 8, scroll_z - 3)]
+    filigree(f"{prefix}_Filigree_LeftUpper", left_scroll, bevel_depth=2.6)
+    filigree(f"{prefix}_Filigree_LeftLower", lower_left, bevel_depth=2.3)
+    filigree(f"{prefix}_Filigree_RightUpper", [(-x, y, z) for x, y, z in left_scroll], bevel_depth=2.6)
+    filigree(f"{prefix}_Filigree_RightLower", [(-x, y, z) for x, y, z in lower_left], bevel_depth=2.3)
+    if not dungeon_style:
+        for index, x in enumerate((-78, -50, 50, 78)):
+            sapphire(f"{prefix}_SapphireInlay_{index}",
+                     (x, front_y - 13, body_base + 23), (12, 7, 15))
 
     # One decorated side panel reinforces that this is a portable container, not a house.
-    kit.gear(collection, root, "WarehouseChest_SideGoldRosette", 23,
-             (side_x - 9, 12, body_base + bh * 0.50), mats["brass"], axis="X", teeth=14)
-    side_gem = kit.cylinder(collection, root, "WarehouseChest_SideSapphire", 12, 8,
-                            (side_x - 14, 12, body_base + bh * 0.50), mats["glow"],
-                            rotation=(0, 90, 0), vertices=8, bevel_width=1)
-    side_gem.scale.z = 1.25
+    if dungeon_style:
+        handle_mount_z = body_base + bh * 0.60
+        for index, y in enumerate((-21, 43)):
+            kit.cylinder(collection, root, f"{prefix}_SideHandleMount_{index}", 7, 7,
+                         (side_x - 17, y, handle_mount_z), mats["brass"],
+                         rotation=(0, 90, 0), vertices=24, bevel_width=1)
+        handle_x = side_x - 19
+        filigree(f"{prefix}_SideDropHandle", [
+            (handle_x, -21, handle_mount_z),
+            (handle_x, -15, handle_mount_z - 17),
+            (handle_x, 11, handle_mount_z - 27),
+            (handle_x, 37, handle_mount_z - 17),
+            (handle_x, 43, handle_mount_z),
+        ], bevel_depth=4.2)
+
+        medallion_y = -ld / 2
+        medallion_z = lh + 4
+        kit.cylinder(collection, lid_pivot, f"{prefix}_LidMedallionOuter", 31, 5,
+                     (0, medallion_y, medallion_z), mats["brass"],
+                     vertices=48, bevel_width=1.2)
+        kit.cylinder(collection, lid_pivot, f"{prefix}_LidMedallionInset", 18, 7,
+                     (0, medallion_y, medallion_z + 1), mats["iron"],
+                     vertices=40, bevel_width=1)
+        for index in range(12):
+            angle = index * 30
+            radians = math.radians(angle)
+            kit.box(collection, lid_pivot, f"{prefix}_LidMedallionPetal_{index:02d}",
+                    (10, 25, 4),
+                    (math.sin(radians) * 31,
+                     medallion_y + math.cos(radians) * 31,
+                     medallion_z - 1), mats["brass"],
+                    rotation=(0, 0, -angle), bevel_width=3)
+        for side in (-1, 1):
+            end_x = side * (lw / 2 + 3)
+            lid_scroll = [
+                (end_x, -ld * 0.70, lh * 0.18),
+                (end_x, -ld * 0.56, lh * 0.40),
+                (end_x, -ld * 0.39, lh * 0.32),
+                (end_x, -ld * 0.34, lh * 0.16),
+                (end_x, -ld * 0.47, lh * 0.12),
+            ]
+            filigree(f"{prefix}_LidEndFiligree_{side:+d}", lid_scroll,
+                     parent=lid_pivot, bevel_depth=2.3)
+    else:
+        kit.gear(collection, root, f"{prefix}_SideGoldRosette", 23,
+                 (side_x - 9, 12, body_base + bh * 0.50), mats["brass"],
+                 axis="X", teeth=14)
+        side_gem = kit.cylinder(collection, root, f"{prefix}_SideSapphire", 12, 8,
+                                (side_x - 14, 12, body_base + bh * 0.50), mats["glow"],
+                                rotation=(0, 90, 0), vertices=8, bevel_width=1)
+        side_gem.scale.z = 1.25
     return root
 
 
 def build_main_space_warehouse(spec):
-    return _build_main_space_warehouse_chest(spec, open_lid=False)
+    return _build_treasure_chest("main_space_warehouse", spec, open_lid=False)
 
 
 def build_main_space_warehouse_open(spec):
-    return _build_main_space_warehouse_chest(spec, open_lid=True)
+    return _build_treasure_chest("main_space_warehouse_open", spec, open_lid=True)
+
+
+def build_dungeon_chest_closed(spec):
+    return _build_treasure_chest("dungeon_chest_closed", spec,
+                                 open_lid=False, dungeon_style=True)
+
+
+def build_dungeon_chest_open(spec):
+    return _build_treasure_chest("dungeon_chest_open", spec,
+                                 open_lid=True, dungeon_style=True)
 
 
 def build_blacksmith(spec):
@@ -3317,6 +3389,8 @@ BUILDERS = {
     "warehouse": build_warehouse,
     "main_space_warehouse": build_main_space_warehouse,
     "main_space_warehouse_open": build_main_space_warehouse_open,
+    "dungeon_chest_closed": build_dungeon_chest_closed,
+    "dungeon_chest_open": build_dungeon_chest_open,
     "research_institute": build_research_institute,
     "research_institute_lv2": build_research_institute_lv2,
     "research_institute_lv3": build_research_institute_lv3,

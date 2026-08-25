@@ -60,16 +60,34 @@ def style_contract_for(manifest: dict) -> tuple[str, str, str]:
 
 
 def prompt_for(asset: dict, manifest: dict, stage: str = "legacy") -> str:
+    natural_structure = asset.get("assetClass") == "natural_structure"
+    prop_asset = asset.get("assetClass") == "prop"
     if stage == "structure":
         request = asset.get("structureRequest", asset["primaryRequest"])
     elif stage == "refine":
         request = asset.get("detailRequest", asset["primaryRequest"])
     else:
         request = asset["primaryRequest"]
-    if stage == "structure":
+    if stage == "structure" and prop_asset:
+        stage_contract = """Generation stage: structural prop draft only
+Structure contract: preserve the supplied treasure-chest body, domed lid, four feet, frame, lock and authored open-or-closed lid state as one portable object; every hardware component remains attached to the same chest
+Detail budget: use broad readable metal panels, frame bands, lock plate, medallion and handle shapes so the chest silhouette and lid state can be judged; omit tiny engraving that would collapse at game scale"""
+    elif stage == "structure" and natural_structure:
+        stage_contract = """Generation stage: structural massing draft only
+Structure contract: create one low connected natural rock mound with exactly one authored cave opening; preserve the supplied support frame, arch and rails without adding any inhabited architecture; all rock masses remain solid and mutually intersecting
+Detail budget: use plain readable rock, timber and iron materials so the single opening, mound silhouette and attached supports can be judged; omit windows, doors, roofs, rooms, towers, signs and ornament"""
+    elif stage == "structure":
         stage_contract = """Generation stage: structural massing draft only
 Structure contract: create closed, continuous, solid architecture; preserve the exact count and placement of the main hall, roof masses and towers from the supplied controls; every tower wall must intersect the supporting roof or hall; all tower corners, roof faces and lower walls must be complete; windows are shallow closed recesses, never open holes
 Detail budget: omit telescopes, armillary spheres, books, signs, pipes, furniture and small ornaments; use plain readable stone, timber and roof materials so structural completeness can be judged"""
+    elif stage == "refine" and prop_asset:
+        stage_contract = """Generation stage: detail refinement of the supplied initial prop image
+Structure contract: preserve the initial image's exact chest proportions, lid angle, lock placement, medallion, handle, camera, center and ground-contact points; do not add, move, merge or remove any major chest component
+Detail budget: improve only blackened metal response, aged brass relief, restrained filigree, edge wear, hinges and dark interior lining"""
+    elif stage == "refine" and natural_structure:
+        stage_contract = """Generation stage: detail refinement of the supplied initial image
+Structure contract: preserve the initial image's exact single cave opening, natural rock silhouette, support frame, rails, camera, center and ground-contact edge; do not add, move or reinterpret any rock mass as architecture
+Detail budget: improve only rock weathering, arch masonry, timber grain, iron wear, rails and the specifically requested embedded crystals"""
     elif stage == "refine":
         stage_contract = """Generation stage: detail refinement of the supplied initial image
 Structure contract: preserve the initial image's exact building silhouette, tower count, tower placement, roofline, camera, center and ground-contact edge; do not rebuild, move, merge, remove or add any major architectural mass
@@ -80,17 +98,53 @@ Structure contract: preserve every major component indicated by the control silh
     palette_contract = ""
     if asset.get("paletteConstraint"):
         palette_contract = f"Palette lock: {asset['paletteConstraint']}\n"
+    style_scope = ""
+    if asset.get("styleScopeRequest"):
+        style_scope = f"Asset-specific style scope: {asset['styleScopeRequest']}\n"
+    negative_request = ""
+    if asset.get("negativeRequest"):
+        negative_request = f"Asset-specific absolute exclusions: {asset['negativeRequest']}\n"
+    footprint_cells = int(asset.get("footprintCells", 2))
+    footprint_contract = (
+        f"runtime {footprint_cells}x{footprint_cells} isometric footprint"
+        if footprint_cells != 2 else "runtime 2x2 road-tile fill"
+    )
+    asset_type = asset.get("assetType", "World-122 RTS building body")
+    if prop_asset:
+        composition_contract = "strictly follow the supplied depth-control silhouette and orthographic 2.5D isometric view; centered; all four authored feet remain grounded; preserve the exact open-or-closed lid state; no perspective convergence"
+        negative_contract = "one portable treasure chest only; no house, no building facade, no roof reinterpretation, no tower, no room, no wall, no window, no door, no platform, no pedestal, no floor tile, no terrain, no cast shadow, no treasure pile, no coins, no weapons, no people, no animals, no text and no watermark"
+    elif natural_structure:
+        composition_contract = "strictly follow the supplied depth-control silhouette and orthographic 2.5D isometric view; centered; the rock mound ends exactly at the supplied ground line; attached timber posts remain vertical; no perspective convergence"
+        negative_contract = "one natural rock structure only; exactly one cave opening and one entrance arch; no house, no tower, no upper floor, no roof, no facade, no window, no stained glass, no door, no chapel, no gatehouse, no second entrance, no extra arch, no detached building, no square floor, no paving, no road slab, no plinth, no pedestal, no cast shadow, no grass, no trees, no people, no animals, no flags, no text and no watermark"
+    else:
+        composition_contract = "strictly follow the supplied depth-control silhouette and its orthographic 2.5D isometric view; centered; architecture ends exactly at the supplied ground line; all walls remain vertical; no perspective convergence"
+        negative_contract = "no plumbing, pipes, water tubes, steam pipes, laboratory tubing, modern utilities, contemporary fixtures, industrial conduits, antennas, satellite dishes, exposed machinery, futuristic parts; no flat rooftop terrace, elevated deck, raised square platform, roof plaza, or detached upper block; the upper tower must sit directly on the supplied roof mass; one building only; building body only; absolutely no separate foundation; no plinth; no raised stone slab; no floor; no baked paving; no terrain; no grass; no trees; no stairs; no fence; no props outside the architecture; no people; no animals; no flags; no text; no watermark; at the ground line the lower wall material must continue unchanged to the bottom edge; render architecture only with transparent pixels outside the supplied silhouette; absolutely no platform, pavement, steps, curb, pedestal, foundation slab, floor tile, white marble skirt, pale stone band, or contrasting base strip (runtime road tiles are added only by the separate review composite)"
     style_version, _style_template, style_contract = style_contract_for(manifest)
+    if prop_asset:
+        # Portable props keep the canonical material/lighting finish without
+        # receiving any of the building-only half-timber/Gothic vocabulary.
+        # Sending both vocabularies and trying to negate architecture later is
+        # not reliable: the model will often turn a chest panel into a facade.
+        style_contract = """Canonical World-122 portable-prop rendering subset:
+Style/medium: sober semi-realistic handcrafted strategy-game prop with physically plausible game-ready PBR materials and slightly stylized solid proportions.
+Material grammar: charcoal-blackened steel panels show broad subtle wear and restrained value variation; aged brass frame, lock, hinges, medallion, filigree and handle show subdued tarnish and readable bevels, never glossy yellow gold. The empty interior is matte nearly black.
+Color treatment: deliberately low saturation and controlled neutral contrast; charcoal, dark neutral steel and old brass only.
+Lighting: soft neutral upper-left top-side illumination with broad gentle highlights and restrained contact occlusion; no bloom, colored grading, rim light, glow haze or cast shadow.
+Detail scale: prioritize medium and large prop details that remain legible at 48 pixels: continuous frame bands, domed lid ribs, one lock plate, one lid medallion, broad embossed relief, hinges and one side handle. Avoid hairline ornament and photographic grime.
+Shape treatment: crisp but not razor-sharp silhouette, restrained bevels and modest edge wear; no toy plastic, painterly brushwork, cel shading or cartoon outline.
+Absolute class lock: this object is a portable metal treasure chest, not architecture. Use no masonry, plaster, timber framing, stained glass, windows, doors, walls, roofs, towers, buttresses, rooms or building foundations."""
     return f"""Use case: stylized-concept
-Asset type: World-122 RTS building body, previewed above the runtime 2x2 road-tile fill
+Asset type: {asset_type}, previewed above the {footprint_contract}
 Pipeline/style version: {style_version}
 Primary request: exactly one {request}
 {stage_contract}
 {palette_contract}{style_contract}
-Composition/framing: strictly follow the supplied depth-control silhouette and its orthographic 2.5D isometric view; centered; architecture ends exactly at the supplied ground line; all walls remain vertical; no perspective convergence
+{style_scope}
+Composition/framing: {composition_contract}
 Lighting/mood: evenly lit neutral studio lighting; no bloom; no cast shadow
 Scene/backdrop: perfectly uniform flat chroma-key green #00FF00 background filling the entire canvas; no horizon; no texture; no scenery
-Negative constraints: no plumbing, pipes, water tubes, steam pipes, laboratory tubing, modern utilities, contemporary fixtures, industrial conduits, antennas, satellite dishes, exposed machinery, futuristic parts; no flat rooftop terrace, elevated deck, raised square platform, roof plaza, or detached upper block; the upper tower must sit directly on the supplied roof mass; one building only; building body only; absolutely no separate foundation; no plinth; no raised stone slab; no floor; no baked paving; no terrain; no grass; no trees; no stairs; no fence; no props outside the architecture; no people; no animals; no flags; no text; no watermark; at the ground line the lower wall material must continue unchanged to the bottom edge; render architecture only with transparent pixels outside the supplied silhouette; absolutely no platform, pavement, steps, curb, pedestal, foundation slab, floor tile, white marble skirt, pale stone band, or contrasting base strip (runtime road tiles are added only by the separate review composite)
+Negative constraints: {negative_contract}
+{negative_request}
 """
 
 
@@ -235,6 +289,13 @@ def generate_asset(asset: dict, manifest: dict, output_root: Path, variants: int
             str(BLENDER), "--background", "--factory-startup", "--python",
             str(REPO / "tools/ai-gen/blender-depth-render.py"), "--", str(spec), str(depth),
         ], label=f"{asset['id']} depth")
+    postprocess_depth = depth
+    if asset.get("postprocessDepthImage"):
+        postprocess_depth = Path(asset["postprocessDepthImage"])
+        if not postprocess_depth.is_absolute():
+            postprocess_depth = REPO / postprocess_depth
+        if not postprocess_depth.is_file():
+            raise FileNotFoundError(f"postprocess depth image missing: {postprocess_depth}")
     if stage != "legacy" and not control_edge.exists():
         run([
             str(COMFY_PY), str(REPO / "tools/ai-gen/make-world122-building-edge-control.py"),
@@ -260,6 +321,7 @@ def generate_asset(asset: dict, manifest: dict, output_root: Path, variants: int
         denoise = (denoise_override if denoise_override is not None
                    else float(manifest.get("refineDenoise", 0.30)))
         mask_edge_pad = int(manifest.get("maskEdgePad", 16))
+    mask_edge_pad = int(asset.get("maskEdgePad", mask_edge_pad))
 
     request_timeout = int(generation_timeout or manifest.get("generationTimeout", 3600))
     style_version, style_template, _style_contract = style_contract_for(manifest)
@@ -333,6 +395,8 @@ def generate_asset(asset: dict, manifest: dict, output_root: Path, variants: int
             "seed": seed,
             "promptFile": str(prompt.relative_to(REPO)) if prompt.is_relative_to(REPO) else str(prompt),
             "depthImage": str(depth.relative_to(REPO)) if depth.is_relative_to(REPO) else str(depth),
+            "postprocessDepthImage": (str(postprocess_depth.relative_to(REPO))
+                                      if postprocess_depth.is_relative_to(REPO) else str(postprocess_depth)),
             "initImage": str(init_image) if init_image else None,
             "nonstandardOverride": bool(
                 steps != standard_steps
@@ -342,21 +406,53 @@ def generate_asset(asset: dict, manifest: dict, output_root: Path, variants: int
         if rebuild_derived or not keyed.exists():
             key_command = [str(COMFY_PY), str(REPO / "tools/ai-gen/key-world122-building-body.py"),
                            str(raw), str(keyed)]
+            if asset.get("keyThreshold") is not None:
+                key_command.extend(["--threshold", str(float(asset["keyThreshold"]))])
+            if asset.get("preserveHiddenKeyRgb"):
+                key_command.append("--preserve-hidden-rgb")
             if asset.get("removeAllGreen"):
                 key_command.append("--remove-all-green")
             run(key_command, label=f"{asset['id']} v{variant:02d} key")
         if rebuild_derived or not cleaned.exists():
             run([str(COMFY_PY), str(REPO / "tools/ai-gen/remove-world122-building-pseudo-plinth.py"), str(keyed), str(cleaned)], label=f"{asset['id']} v{variant:02d} clean")
         if rebuild_derived or not anchored.exists():
-            run([str(COMFY_PY), str(REPO / "tools/ai-gen/anchor-world122-building-body.py"), str(cleaned), str(depth), str(anchored),
-                 "--display-width", "256", "--display-height", "256", "--nominal-width", "256", "--nominal-height", "128"],
+            footprint_cells = int(asset.get("generationFootprintCells", asset.get("footprintCells", 2)))
+            nominal_width = float(asset.get("nominalFootprintWidth", 128 * footprint_cells))
+            nominal_height = float(asset.get("nominalFootprintHeight", 64 * footprint_cells))
+            display_width = float(asset.get("previewDisplayWidth", nominal_width))
+            display_height = float(asset.get("previewDisplayHeight", display_width))
+            run([str(COMFY_PY), str(REPO / "tools/ai-gen/anchor-world122-building-body.py"), str(cleaned), str(postprocess_depth), str(anchored),
+                 "--display-width", str(display_width), "--display-height", str(display_height),
+                 "--nominal-width", str(nominal_width), "--nominal-height", str(nominal_height),
+                 "--edge-pad", str(mask_edge_pad)],
                 label=f"{asset['id']} v{variant:02d} anchor")
         if rebuild_derived or not final.exists():
-            run([str(COMFY_PY), str(REPO / "tools/ai-gen/mask-world122-building-body.py"),
-                 str(anchored), str(depth), str(final), "--edge-pad", str(mask_edge_pad)],
+            footprint_cells = int(asset.get("footprintCells", 2))
+            generation_cells = int(asset.get("generationFootprintCells", footprint_cells))
+            mask_command = [str(COMFY_PY), str(REPO / "tools/ai-gen/mask-world122-building-body.py"),
+                            str(anchored), str(postprocess_depth), str(final), "--edge-pad", str(mask_edge_pad)]
+            if asset.get("restoreModeledAlpha"):
+                mask_command.append("--restore-modeled-alpha")
+            if asset.get("restoreDeltaDepthImage"):
+                restore_delta_depth = Path(asset["restoreDeltaDepthImage"])
+                if not restore_delta_depth.is_absolute():
+                    restore_delta_depth = REPO / restore_delta_depth
+                if not restore_delta_depth.is_file():
+                    raise FileNotFoundError(f"restore delta depth image missing: {restore_delta_depth}")
+                mask_command.extend(["--restore-delta-depth", str(restore_delta_depth)])
+            if asset.get("removeGreenOutsideRestore"):
+                mask_command.append("--remove-green-outside-restore")
+                if asset.get("restoreHalo") is not None:
+                    mask_command.extend(["--restore-halo", str(int(asset["restoreHalo"]))])
+            if generation_cells != footprint_cells:
+                mask_command.extend(["--post-scale", str(footprint_cells / generation_cells)])
+            if int(asset.get("minComponentPixels", 0)) > 0:
+                mask_command.extend(["--min-component-pixels", str(int(asset["minComponentPixels"]))])
+            run(mask_command,
                 label=f"{asset['id']} v{variant:02d} mask")
         preview_command = [str(COMFY_PY), str(REPO / "tools/ai-gen/compose-world122-building-preview.py"),
-                           str(final), str(preview)]
+                           str(final), str(preview),
+                           "--footprint-cells", str(int(asset.get("footprintCells", 2)))]
         if asset.get("removeAllGreen"):
             preview_command.append("--remove-all-green")
         run(preview_command, label=f"{asset['id']} v{variant:02d} preview")
