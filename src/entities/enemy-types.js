@@ -40,6 +40,9 @@ import { Tombstone } from './enemy-types/tombstone.js';
 import { OreSpider } from './enemy-types/ore-spider.js';
 import { Witch } from './enemy-types/witch.js';
 import { Cauldron } from './enemy-types/cauldron.js';
+import { IceSpikeSystem } from './components/ice-spike-system.js';
+import { FireballSystem } from './components/fireball-system.js';
+import { LightningStrikeSystem } from './components/lightning-strike-system.js';
 
 function getAnimConfig(key) {
     return ANIMATION_CONFIG[key] || {};
@@ -1624,4 +1627,508 @@ function createZombieDog(x, y, overrides = {}) {
     });
 }
 
-export { BlackWolf, RedWolfKing, CircleEnemy, ZombieDogEnemy, createZombieDog, ZombieWizard, Mutant3, SpitterZombie, FatZombie, Zombie, AmalgamZombie, ArmoredKnight, Shounao, FlySwarm, FlyHand, TimeAgentAssault, TimeAgentShield, PoisonMaggot, MinerZombie, LanternMinerZombie, ForemanZombie, MineCave, Tombstone, OreSpider, Witch, Cauldron };
+/**
+ * 普通棕熊复用已验证的四足普通近战/死亡保尸时序，但拥有独立配置和动画键。
+ * 棕熊只有 walking 素材；逻辑进入 run 状态时仍播放同一套纯步态动画。
+ */
+class BrownBearEnemy extends ZombieDogEnemy {
+    constructor(x, y, config = {}) {
+        super(x, y, {
+            showWeapon: false,
+            ...enemyConfigData.brownBear,
+            ...config,
+        });
+    }
+
+    _getBrownBearVisualState(state = this._animState) {
+        return state === 'run' ? 'walk' : state;
+    }
+
+    _getFrameLayout(state = this._animState) {
+        return super._getFrameLayout(this._getBrownBearVisualState(state));
+    }
+
+    _getTextureKey() {
+        return `enemy_brown_bear_${this._getBrownBearVisualState()}`;
+    }
+
+    _getPhaserOptions() {
+        const options = super._getPhaserOptions();
+        const visualState = this._getBrownBearVisualState();
+        options.animState = visualState;
+        options.animKey = `enemy_brown_bear_${visualState}_v1`;
+        return options;
+    }
+}
+
+function createBrownBear(x, y, overrides = {}) {
+    const base = enemyConfigData.brownBear || {};
+    const baseTextures = base.textures || {};
+    const overrideTextures = overrides.textures || {};
+    return new BrownBearEnemy(x, y, {
+        ...overrides,
+        ai: { ...(base.ai || {}), ...(overrides.ai || {}) },
+        textures: {
+            ...baseTextures,
+            ...overrideTextures,
+            frameLayouts: {
+                ...(baseTextures.frameLayouts || {}),
+                ...(overrideTextures.frameLayouts || {}),
+            },
+        },
+    });
+}
+
+/**
+ * 黑熊领主：初始为黑袍德鲁伊，轮流施放冰锥、闪电与火球；半血后
+ * 播放人变熊动画并进入强化四足近战阶段。两种形态共用同一生命链，
+ * 只在变熊完成时应用一次既有属性倍率。
+ */
+class BlackBearEnemy extends ZombieDogEnemy {
+    constructor(x, y, config = {}) {
+        super(x, y, {
+            showWeapon: false,
+            ...enemyConfigData.blackBear,
+            ...config,
+        });
+        this._transformCfg = this.config?.transform || {};
+        this._isTransforming = false;
+        this._isTransformed = false;
+        this._transformTriggered = false;
+        this._transformTimer = 0;
+        this._spellCfg = this.config?.attackSkills?.spellcasting || {};
+        this._spellCycle = Array.isArray(this._spellCfg.cycle) && this._spellCfg.cycle.length
+            ? this._spellCfg.cycle.slice()
+            : ['iceSpike', 'lightningStrike', 'fireball'];
+        this._spellIndex = 0;
+        this._spellCooldown = 0;
+        this._castActive = false;
+        this._castTimer = 0;
+        this._castReleased = false;
+        this._pendingSpell = null;
+        this._pendingSpellTarget = null;
+
+        this._iceSpikeActive = false;
+        this._iceSpikeCooldown = 0;
+        this._iceSpikeTimer = 0;
+        this._iceSpikeSpikes = [];
+        this._iceSpikeImg = null;
+        this._fireballActive = false;
+        this._fireballCooldown = 0;
+        this._fireballTimer = 0;
+        this._fireballSpikes = [];
+        this._fireball = null;
+        this._fireballImg = null;
+        this._lightningStrikeCooldown = 0;
+
+        const configuredSkills = this.config?.attackSkills || {};
+        if (!this.skills || Array.isArray(this.skills)) this.skills = {};
+        const makeSkill = (id, name) => ({
+            id,
+            name,
+            level: 1,
+            getEffect: () => ({ ...(configuredSkills[id] || {}) }),
+        });
+        this.skills.iceSpike = makeSkill('iceSpike', '冰锥');
+        this.skills.lightningStrike = makeSkill('lightningStrike', '闪电');
+        this.skills.fireball = makeSkill('fireball', '火球');
+        this._iceSpikeSystem = new IceSpikeSystem(this);
+        this._lightningStrikeSystem = new LightningStrikeSystem(this);
+        this._fireballSystem = new FireballSystem(this);
+
+        // 德鲁伊阶段由自管施法链负责攻击；保留原 ThrustAttack 实例，变熊后原样恢复。
+        const melee = this.attacks?.melee;
+        if (melee && typeof melee.canUse === 'function') {
+            const canUseBearMelee = melee.canUse.bind(melee);
+            melee.canUse = () => this._isTransformed && canUseBearMelee();
+        }
+        this._applyDruidBody();
+    }
+
+    _getBlackBearVisualState(state = this._animState) {
+        return state === 'run' ? 'walk' : state;
+    }
+
+    _getBlackDruidVisualState(state = this._animState) {
+        if (state === 'death') return 'dying';
+        if (state === 'attack') return 'attacking';
+        if (state === 'ritual') return 'ritual';
+        if (state === 'run' || state === 'walk' || state === 'pacing') return 'walking';
+        return 'idle';
+    }
+
+    _cancelPhaseActions() {
+        this._cancelDruidCast();
+        this._attackTimer = 0;
+        this._attackAnimTimer = 0;
+        this._lungeActive = false;
+        if (this._pendingThrust) this._pendingThrust.active = false;
+        if (this.weaponAnim) {
+            this.weaponAnim.state = 'idle';
+            this.weaponAnim.timer = 0;
+        }
+        if (typeof this._clearAttackTelegraph === 'function') this._clearAttackTelegraph();
+        delete this._forcedHitCritical;
+        this.vx = 0;
+        this.vy = 0;
+        this.isMoving = false;
+    }
+
+    update(dt, entities) {
+        if (!this.active) {
+            super.update(dt, entities);
+            return;
+        }
+
+        const attackDt = this.getAttackIntervalDelta(dt);
+        this._iceSpikeSystem.update(dt, entities);
+        this._lightningStrikeSystem.update(attackDt);
+        this._fireballSystem.update(dt, entities);
+        if (this._spellCooldown > 0) {
+            this._spellCooldown = Math.max(0, this._spellCooldown - attackDt);
+        }
+
+        if (!this._transformTriggered && this.maxHp > 0
+            && this.hp / this.maxHp <= (this._transformCfg.hpThreshold ?? 0.5)) {
+            this._transformTriggered = true;
+            this._isTransforming = true;
+            this._transformTimer = this._transformCfg.duration ?? 2000;
+            this._cancelPhaseActions();
+            this._frozenForCast = true;
+            this._animState = 'idle';
+        }
+
+        if (this._isTransforming) {
+            this._cancelPhaseActions();
+            this._frozenForCast = true;
+            this._transformTimer = Math.max(0, this._transformTimer - dt);
+            if (this._transformTimer <= 0) {
+                this._isTransforming = false;
+                this._isTransformed = true;
+                this._frozenForCast = false;
+                this._applyBearTransform();
+            }
+        }
+
+        const controlled = this.hasStatusEffect
+            && (this.hasStatusEffect('stun') || this.hasStatusEffect('frozen') || this.hasStatusEffect('fear'));
+        if (controlled && this._castActive) {
+            this._cancelDruidCast();
+        } else if (this._castActive && !this._isTransforming && !this._isTransformed) {
+            this._updateDruidCast(dt, entities);
+        }
+
+        super.update(dt, entities);
+
+        if (!this._isTransformed && !this._isTransforming && !this._castActive
+            && !controlled && this._spellCooldown <= 0 && this._canCastAt(this.target)) {
+            this._startDruidCast(this.target);
+        }
+
+        // ZombieDog 的速度状态机不认识施法态；基类更新后重新锁回攻击母版。
+        if (this._castActive) this._animState = 'attack';
+        else if (this._isTransforming) this._animState = 'idle';
+
+        // 普攻命中/失效后立即清掉一次性暴击结果，绝不污染下一次攻击。
+        if (this._forcedHitCritical !== undefined && !this._pendingThrust?.active) {
+            delete this._forcedHitCritical;
+        }
+    }
+
+    _applyDruidBody() {
+        const druidRender = this._transformCfg.druidRender || {};
+        this.collisionRadius = druidRender.collisionRadius ?? 30;
+        this.groundRadius = this.collisionRadius;
+        this.collisionWidth = druidRender.collisionWidth ?? 57.5;
+        this.collisionHeight = druidRender.collisionHeight ?? 158.8;
+        this.collisionBodyHeight = this.collisionHeight;
+        this._hitboxOverride = {
+            width: this.collisionWidth,
+            height: this.collisionHeight,
+            offsetX: 0,
+            bottom: 0,
+        };
+        if (this.collider) {
+            this.collider.radius = this.collisionRadius;
+            this.collider.height = this.collisionHeight;
+            this.collider.syncPosition();
+        }
+        const body = this._phaserSprite?.body;
+        if (body && typeof body.setSize === 'function') {
+            body.setSize(this.collisionWidth, this.collisionHeight);
+        }
+        const castRange = this._spellCfg.castRange ?? 720;
+        this.attackRange = castRange;
+        this.attackDistance = castRange;
+        this._usesDirectedBasicMelee = false;
+        this._attackDuration = this.config?.textures?.druid?.frameLayouts?.attacking?.duration ?? 1000;
+    }
+
+    _applyBearTransform() {
+        const multiplier = this._transformCfg.statMultiplier ?? 1.5;
+        for (const key of ['str', 'dex', 'con', 'int', 'wis', 'luck', 'atk', 'def', 'matk', 'mdef', 'crit', 'critRes']) {
+            if (typeof this.data?.[key] === 'number') {
+                this.data[key] = Math.round(this.data[key] * multiplier);
+            }
+        }
+        this.maxHp = Math.max(1, Math.round(this.maxHp * multiplier));
+        this.data.maxHp = this.maxHp;
+        if (this._transformCfg.healToFull !== false) this.hp = this.maxHp;
+        this.data.hp = this.hp;
+        for (const key of ['speed', 'maxSpeed', '_baseSpeed']) {
+            if (typeof this[key] === 'number' && this[key] > 0) this[key] *= multiplier;
+        }
+        this.data.crit = (this._transformCfg.criticalChance ?? 0.5) * 100;
+
+        const bearRender = this.config?.render || {};
+        this.collisionRadius = this.config?.collisionRadius ?? 45;
+        this.groundRadius = this.collisionRadius;
+        this.collisionWidth = bearRender.collisionWidth ?? 132;
+        this.collisionHeight = bearRender.collisionHeight ?? 82;
+        this.collisionBodyHeight = this.collisionHeight;
+        this._hitboxOverride = {
+            width: this.collisionWidth,
+            height: this.collisionHeight,
+            offsetX: 0,
+            bottom: 0,
+        };
+        if (this.collider) {
+            this.collider.radius = this.collisionRadius;
+            this.collider.height = this.collisionHeight;
+            this.collider.syncPosition();
+        }
+        const body = this._phaserSprite?.body;
+        if (body && typeof body.setSize === 'function') {
+            body.setSize(this.collisionWidth, this.collisionHeight);
+        }
+        this.attackRange = this.config?.attackRange ?? 220;
+        this.attackDistance = this.config?.attackDistance ?? this.attackRange;
+        this._usesDirectedBasicMelee = true;
+        this._attackDuration = this.config?.textures?.frameLayouts?.attack?.duration ?? 950;
+        this._animState = 'idle';
+        this._animStateTimer = 0;
+    }
+
+    _canCastAt(target) {
+        if (!target?.active || !target.hittable || target._faction === 'enemy') return false;
+        const range = this._spellCfg.castRange ?? 720;
+        return Math.hypot(target.x - this.x, target.y - this.y) <= range
+            && hasRangedLineOfSight(this, target);
+    }
+
+    _selectNextDruidSpell() {
+        const cooldownFields = {
+            iceSpike: '_iceSpikeCooldown',
+            lightningStrike: '_lightningStrikeCooldown',
+            fireball: '_fireballCooldown',
+        };
+        for (let offset = 0; offset < this._spellCycle.length; offset++) {
+            const index = (this._spellIndex + offset) % this._spellCycle.length;
+            const spell = this._spellCycle[index];
+            const field = cooldownFields[spell];
+            if (!field || (Number(this[field]) || 0) > 0) continue;
+            this._spellIndex = (index + 1) % this._spellCycle.length;
+            return spell;
+        }
+        return null;
+    }
+
+    _startDruidCast(target) {
+        const spell = this._selectNextDruidSpell();
+        if (!spell) return;
+        const duration = this._spellCfg.castDuration ?? 1000;
+        this._castActive = true;
+        this._castTimer = duration;
+        this._castReleased = false;
+        this._pendingSpell = spell;
+        this._pendingSpellTarget = target;
+        this._spellCooldown = this._spellCfg.cooldown ?? 1800;
+        this._frozenForCast = true;
+        this._animState = 'attack';
+        this._animStateTimer = 0;
+        this._attackTimer = duration;
+        this._animFrame = 0;
+        this._animTimer = 0;
+        this.vx = 0;
+        this.vy = 0;
+        this.isMoving = false;
+        this.target = target;
+        this.rotation = Math.atan2(target.y - this.y, target.x - this.x);
+        this._lastHorizontalFacing = target.x < this.x ? 'left' : 'right';
+    }
+
+    _updateDruidCast(dt, entities) {
+        const duration = this._spellCfg.castDuration ?? 1000;
+        this._castTimer = Math.max(0, this._castTimer - dt);
+        const releaseRatio = Math.max(0, Math.min(1, this._spellCfg.releaseRatio ?? 0.56));
+        if (!this._castReleased && duration - this._castTimer >= duration * releaseRatio) {
+            this._castReleased = true;
+            this._releaseDruidSpell(entities);
+        }
+        this._frozenForCast = true;
+        this.vx = 0;
+        this.vy = 0;
+        this.isMoving = false;
+        if (this._castTimer <= 0) {
+            this._cancelDruidCast();
+        }
+    }
+
+    _releaseDruidSpell(_entities) {
+        const target = this._pendingSpellTarget;
+        if (!this._canCastAt(target)) return;
+        this.target = target;
+        if (this._pendingSpell === 'iceSpike') {
+            this._iceSpikeSystem.trigger();
+            this._iceSpikeSystem.trigger();
+        } else if (this._pendingSpell === 'lightningStrike') {
+            this._lightningStrikeSystem.trigger();
+        } else if (this._pendingSpell === 'fireball') {
+            this._fireballSystem.trigger();
+            this._fireballSystem.trigger();
+        }
+    }
+
+    _cancelDruidCast() {
+        this._castActive = false;
+        this._castTimer = 0;
+        this._castReleased = false;
+        this._pendingSpell = null;
+        this._pendingSpellTarget = null;
+        this._frozenForCast = false;
+        if (!this._isTransforming) this._animState = 'idle';
+    }
+
+    triggerWeaponAnim() {
+        if (this._isTransforming || !this._isTransformed) {
+            if (this._pendingThrust) this._pendingThrust.active = false;
+            return;
+        }
+        const attackAlreadyPlaying = this._attackTimer > 0;
+        super.triggerWeaponAnim();
+        if (attackAlreadyPlaying) return;
+        if (!this._pendingThrust?.active) {
+            delete this._forcedHitCritical;
+            return;
+        }
+        const isCritical = Math.random() < (this._transformCfg.criticalChance ?? 0.5);
+        this._forcedHitCritical = isCritical;
+        if (!isCritical) return;
+        const multiplier = this._transformCfg.criticalDamageMultiplier ?? 2.5;
+        this._pendingThrust.damage.min *= multiplier;
+        this._pendingThrust.damage.max *= multiplier;
+    }
+
+    takeDamage(damage, source, damageType = 'physical', isMelee = true, hitContext = null) {
+        if (this._isTransforming) {
+            const reduction = this._transformCfg.damageReduction ?? 0.9;
+            damage = Math.max(0, Math.round(damage * (1 - reduction)));
+        }
+        return super.takeDamage(damage, source, damageType, isMelee, hitContext);
+    }
+
+    _getDeathConfig() {
+        if (!this._isTransformed) return this._transformCfg.druidDeath || {};
+        return super._getDeathConfig();
+    }
+
+    onDeath(source) {
+        this._isTransforming = false;
+        this._transformTimer = 0;
+        this._frozenForCast = true;
+        this._cancelPhaseActions();
+        this._frozenForCast = true;
+        super.onDeath(source);
+    }
+
+    _getFrameLayout(state = this._animState) {
+        if (this._isTransforming) {
+            const layouts = this.config?.textures?.transformations?.frameLayouts || {};
+            return layouts.toBear || {
+                frameWidth: 768,
+                frameHeight: 512,
+                frameCount: 20,
+                footY: 500,
+            };
+        }
+        if (this._isTransformed) {
+            return super._getFrameLayout(this._getBlackBearVisualState(state));
+        }
+        {
+            const layouts = this.config?.textures?.druid?.frameLayouts || {};
+            const visualState = this._getBlackDruidVisualState(state);
+            return layouts[visualState] || layouts.idle || {
+                frameWidth: 512,
+                frameHeight: 512,
+                frameCount: 1,
+                footY: 489,
+            };
+        }
+    }
+
+    _getTextureKey() {
+        if (this._isTransforming) {
+            return 'enemy_black_bear_transform_toBear';
+        }
+        if (this._isTransformed) {
+            return `enemy_black_bear_${this._getBlackBearVisualState()}`;
+        }
+        return `enemy_black_druid_${this._getBlackDruidVisualState()}`;
+    }
+
+    _getPhaserOptions() {
+        const options = super._getPhaserOptions();
+        if (this._isTransforming) {
+            options.animState = 'toBear';
+            options.animKey = 'enemy_black_bear_transform_toBear_v1';
+            options.dynamicSpriteSize = true;
+            return options;
+        }
+        if (this._isTransformed) {
+            const visualState = this._getBlackBearVisualState();
+            options.animState = visualState;
+            options.animKey = `enemy_black_bear_${visualState}_v1`;
+            return options;
+        }
+        {
+            const visualState = this._getBlackDruidVisualState();
+            const layout = this._getFrameLayout();
+            const druidTextures = this.config?.textures?.druid || {};
+            const referenceCell = druidTextures.referenceCell ?? 512;
+            const frameWidth = layout.frameWidth ?? referenceCell;
+            const frameHeight = layout.frameHeight ?? referenceCell;
+            const render = this._transformCfg.druidRender || {};
+            const baseSpriteSize = render.spriteSize ?? 167.3;
+            const pixelScale = baseSpriteSize / referenceCell;
+            options.spriteSize = Math.max(frameWidth, frameHeight) * pixelScale;
+            options.collisionWidth = render.collisionWidth ?? 57.5;
+            options.collisionHeight = render.collisionHeight ?? 158.8;
+            options.textOffsetY = -baseSpriteSize / 2 - 10;
+            options.animState = this._animState;
+            options.animKey = `enemy_black_druid_${visualState}_v1`;
+            options.dynamicSpriteSize = true;
+            this.footOffsetY = ((layout.footY ?? frameHeight) - frameHeight / 2) * pixelScale;
+            return options;
+        }
+    }
+}
+
+function createBlackBear(x, y, overrides = {}) {
+    const base = enemyConfigData.blackBear || {};
+    const baseTextures = base.textures || {};
+    const overrideTextures = overrides.textures || {};
+    return new BlackBearEnemy(x, y, {
+        ...overrides,
+        ai: { ...(base.ai || {}), ...(overrides.ai || {}) },
+        textures: {
+            ...baseTextures,
+            ...overrideTextures,
+            frameLayouts: {
+                ...(baseTextures.frameLayouts || {}),
+                ...(overrideTextures.frameLayouts || {}),
+            },
+        },
+    });
+}
+
+export { BlackWolf, RedWolfKing, CircleEnemy, ZombieDogEnemy, createZombieDog, BrownBearEnemy, createBrownBear, BlackBearEnemy, createBlackBear, ZombieWizard, Mutant3, SpitterZombie, FatZombie, Zombie, AmalgamZombie, ArmoredKnight, Shounao, FlySwarm, FlyHand, TimeAgentAssault, TimeAgentShield, PoisonMaggot, MinerZombie, LanternMinerZombie, ForemanZombie, MineCave, Tombstone, OreSpider, Witch, Cauldron };

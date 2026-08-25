@@ -1,0 +1,213 @@
+{
+  "referenceCell": 512,
+  "referenceHeight": 352,
+  "targetHeight": 262,
+  "actionScales": {
+    "idle": 0.7443181818181818,
+    "walking": 0.7528735632183908,
+    "attacking": 1.1801801801801801,
+    "dying": 0.7422096317280453
+  },
+  "actions": {
+    "idle": {
+      "file": "generated\\final\\idle.png",
+      "preview": "previews\\final\\idle.gif",
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "columns": 6,
+      "rows": 2,
+      "frameCount": 12,
+      "footY": 410,
+      "sourceFrames": [
+        0,
+        11,
+        22,
+        33,
+        44,
+        55,
+        65,
+        76,
+        87,
+        98,
+        106,
+        120
+      ],
+      "mode": "stabilized",
+      "alphaPixels": [
+        68212,
+        71035
+      ],
+      "feetRange": [
+        408,
+        409
+      ],
+      "torsoCenterRange": [
+        253.0,
+        255.0
+      ],
+      "blankFrames": [],
+      "edgeHitFrames": [],
+      "semiPixels": 0,
+      "transparentRgbPixels": 0,
+      "frameRate": 3,
+      "repeat": -1
+    },
+    "walking": {
+      "file": "generated\\final\\walking.png",
+      "preview": "previews\\final\\walking.gif",
+      "frameWidth": 640,
+      "frameHeight": 512,
+      "columns": 6,
+      "rows": 4,
+      "frameCount": 22,
+      "footY": 410,
+      "sourceFrames": [
+        11,
+        13,
+        15,
+        17,
+        19,
+        21,
+        23,
+        25,
+        27,
+        29,
+        31,
+        33,
+        35,
+        37,
+        39,
+        41,
+        43,
+        45,
+        47,
+        49,
+        51,
+        53
+      ],
+      "mode": "stabilized",
+      "alphaPixels": [
+        69801,
+        74903
+      ],
+      "feetRange": [
+        408,
+        409
+      ],
+      "torsoCenterRange": [
+        315.0,
+        318.0
+      ],
+      "blankFrames": [],
+      "edgeHitFrames": [],
+      "semiPixels": 0,
+      "transparentRgbPixels": 0,
+      "frameRate": 12,
+      "repeat": -1
+    },
+    "attacking": {
+      "file": "generated\\final\\attacking.png",
+      "preview": "previews\\final\\attacking.gif",
+      "frameWidth": 896,
+      "frameHeight": 512,
+      "columns": 6,
+      "rows": 4,
+      "frameCount": 21,
+      "footY": 410,
+      "sourceFrames": [
+        8,
+        12,
+        16,
+        20,
+        24,
+        28,
+        32,
+        36,
+        40,
+        44,
+        48,
+        52,
+        56,
+        62,
+        64,
+        68,
+        72,
+        76,
+        80,
+        84,
+        88
+      ],
+      "mode": "source_motion",
+      "alphaPixels": [
+        64207,
+        74332
+      ],
+      "feetRange": [
+        408,
+        412
+      ],
+      "torsoCenterRange": [
+        439.0,
+        627.0
+      ],
+      "blankFrames": [],
+      "edgeHitFrames": [],
+      "semiPixels": 0,
+      "transparentRgbPixels": 0,
+      "duration": 950,
+      "repeat": 0
+    },
+    "dying": {
+      "file": "generated\\final\\dying.png",
+      "preview": "previews\\final\\dying.gif",
+      "frameWidth": 640,
+      "frameHeight": 512,
+      "columns": 6,
+      "rows": 4,
+      "frameCount": 21,
+      "footY": 410,
+      "sourceFrames": [
+        8,
+        11,
+        14,
+        17,
+        20,
+        23,
+        26,
+        29,
+        32,
+        35,
+        38,
+        41,
+        44,
+        47,
+        50,
+        53,
+        56,
+        59,
+        62,
+        76,
+        104
+      ],
+      "mode": "source_motion_grounded",
+      "alphaPixels": [
+        48254,
+        69945
+      ],
+      "feetRange": [
+        407,
+        409
+      ],
+      "torsoCenterRange": [
+        319.0,
+        342.0
+      ],
+      "blankFrames": [],
+      "edgeHitFrames": [],
+      "semiPixels": 0,
+      "transparentRgbPixels": 0,
+      "duration": 1800,
+      "repeat": 0
+    }
+  }
+}

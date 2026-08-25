@@ -1,6 +1,7 @@
 /**
  * 生成地牢要素一览表（dungeons-table.md）
  * 数据源：data/dungeon-config.json（展示元数据 + 各地牢配置块）
+ *        + data/enemy-config.json（白名单阶级匹配说明）
  *        + src/config/dungeon-config.js 的 DEFAULTS（遭遇兜底，文本提取，不引依赖）
  * 用法：node scripts/generate-dungeons-table.mjs
  */
@@ -54,6 +55,21 @@ function nodeCountDesc(cfg, info) {
     return info.nodeCount || '—';
 }
 
+function poolKeysDesc(enc) {
+    if (!Array.isArray(enc?.poolKeys) || enc.poolKeys.length === 0) return '';
+    if (enc.matchPoolRanks !== true) return `仅${enc.poolKeys.join('/')}`;
+    const groups = { normal: [], elite: [], lord: [], boss: [] };
+    for (const key of enc.poolKeys) {
+        const rank = ENEMY_DATA[key]?.rank;
+        const tier = rank === 'elite' || rank === 'lord' || rank === 'boss' ? rank : 'normal';
+        groups[tier].push(key);
+    }
+    const parts = Object.entries(groups)
+        .filter(([, keys]) => keys.length > 0)
+        .map(([tier, keys]) => `${tier}=${keys.join('/')}`);
+    return `按阶级匹配：${parts.join('，')}`;
+}
+
 function encounterDesc(enc) {
     if (!enc) return '—';
     const waves = enc.combatWaves ?? '—';
@@ -66,7 +82,7 @@ function encounterDesc(enc) {
         comp = parts.length ? `（${parts.join(' / ')}）` : '';
     }
     if (Array.isArray(enc.poolKeys) && enc.poolKeys.length) {
-        comp += `（仅${enc.poolKeys.join('/')}）`;
+        comp += `（${poolKeysDesc(enc)}）`;
     }
     return `${waves} 波×${per}${comp}`;
 }
@@ -78,7 +94,7 @@ function bossDesc(cfg) {
     let desc = parts.length ? `独立遭遇（${parts.join(' + ')}）` : '独立遭遇';
     if (cfg.bossEncounter.poolFamily) desc += `，限定${cfg.bossEncounter.poolFamily}类`;
     if (Array.isArray(cfg.bossEncounter.poolKeys) && cfg.bossEncounter.poolKeys.length) {
-        desc += `，仅${cfg.bossEncounter.poolKeys.join('/')}`;
+        desc += `，${poolKeysDesc(cfg.bossEncounter)}`;
     }
     return desc;
 }
@@ -96,6 +112,7 @@ function invasionDesc(grade, inv) {
 }
 
 const data = JSON.parse(fs.readFileSync(SRC, 'utf-8'));
+const ENEMY_DATA = JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'enemy-config.json'), 'utf-8'));
 const DEFAULTS = loadDefaults();
 const INVASION = JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'agent-invasion.json'), 'utf-8'));
 const FORMULAS = JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'combat-formulas.json'), 'utf-8'));

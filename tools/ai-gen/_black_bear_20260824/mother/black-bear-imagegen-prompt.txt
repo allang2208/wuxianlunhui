@@ -1,0 +1,10 @@
+Use case: stylized-concept
+Asset type: production identity mother frame for a Phaser game monster animation pipeline
+Primary request: Create exactly one ordinary adult American black bear as a new monster identity, standing naturally at idle on all four paws.
+Subject: true black bear anatomy, leaner and more compact than a brown/grizzly bear, long tapered muzzle, larger rounded ears, subtly high rump, short tail, glossy layered jet-black fur with restrained charcoal and cool blue-black highlights, dark muzzle, dark eyes, visible claws; ordinary wildlife creature, not elite, not armored, not magical.
+Style/medium: high-detail realistic PBR 3D game render, physically plausible fur and anatomy, clean production asset.
+Composition/framing: strict exact side profile facing right, orthographic-style locked view, complete full body including nose, ears, tail, all four paws and claws; subject occupies at most 72% of canvas width and 58% of canvas height, centered slightly left, generous empty margin on every side, all paws on one horizontal baseline.
+Scene/backdrop: flat solid pure white #FFFFFF background with no horizon or floor.
+Lighting/mood: soft flat diffuse ambient studio illumination only, readable separation within black fur, no directional cast shadow.
+Constraints: one bear only; preserve an animation-friendly neutral idle stance; clearly distinct from a brown/grizzly bear; no cropped anatomy; no shadow, ground contact shadow, reflection, scenery, props, text, logo, or watermark.
+Avoid: brown fur, grizzly shoulder hump, open mouth, roaring, rearing, three-quarter view, front view, perspective distortion, camera tilt, extra limbs, duplicate paws, blur, gradient background.

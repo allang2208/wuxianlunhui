@@ -441,6 +441,70 @@ export class BootScene extends Scene {
         loadZombieDogSheet('attack', 'enemy_zombie_dog_attack', 'assets/enemies/zombie_dog/v2/attacking.png', 640);
         loadZombieDogSheet('death', 'enemy_zombie_dog_death', 'assets/enemies/zombie_dog/v2/dying.png');
 
+        // 棕熊四动作母版：walking 同时承担普通移动与逻辑 run 状态的视觉播放。
+        const brownBearTextures = enemyConfigData.brownBear?.textures || {};
+        const brownBearLayouts = brownBearTextures.frameLayouts || {};
+        const loadBrownBearSheet = (state, textureKey, fallbackPath) => {
+            const layout = brownBearLayouts[state] || {};
+            this.load.spritesheet(textureKey, brownBearTextures[state] || fallbackPath, {
+                frameWidth: layout.frameWidth || 512,
+                frameHeight: layout.frameHeight || 512,
+                endFrame: Math.max(0, (layout.frameCount || 1) - 1),
+            });
+        };
+        loadBrownBearSheet('idle', 'enemy_brown_bear_idle', 'assets/enemies/brown_bear/idle.png');
+        loadBrownBearSheet('walk', 'enemy_brown_bear_walk', 'assets/enemies/brown_bear/walking.png');
+        loadBrownBearSheet('attack', 'enemy_brown_bear_attack', 'assets/enemies/brown_bear/attacking.png');
+        loadBrownBearSheet('death', 'enemy_brown_bear_death', 'assets/enemies/brown_bear/dying.png');
+
+        // 黑熊四动作母版：攻击使用加宽帧格保留扑击位移与镜头安全区。
+        const blackBearTextures = enemyConfigData.blackBear?.textures || {};
+        const blackBearLayouts = blackBearTextures.frameLayouts || {};
+        const loadBlackBearSheet = (state, textureKey, fallbackPath) => {
+            const layout = blackBearLayouts[state] || {};
+            this.load.spritesheet(textureKey, blackBearTextures[state] || fallbackPath, {
+                frameWidth: layout.frameWidth || 512,
+                frameHeight: layout.frameHeight || 512,
+                endFrame: Math.max(0, (layout.frameCount || 1) - 1),
+            });
+        };
+        loadBlackBearSheet('idle', 'enemy_black_bear_idle', 'assets/enemies/black_bear/idle.png');
+        loadBlackBearSheet('walk', 'enemy_black_bear_walk', 'assets/enemies/black_bear/walking.png');
+        loadBlackBearSheet('attack', 'enemy_black_bear_attack', 'assets/enemies/black_bear/attacking.png');
+        loadBlackBearSheet('death', 'enemy_black_bear_death', 'assets/enemies/black_bear/dying.png');
+
+        // 黑熊与黑袍德鲁伊的双向形态过渡；当前战斗阶段使用 toDruid，
+        // toBear 同步注册给后续返祖/复原机制复用，不反向播放前一张表。
+        const blackTransformTextures = blackBearTextures.transformations || {};
+        const blackTransformLayouts = blackTransformTextures.frameLayouts || {};
+        const loadBlackTransformSheet = (state, fallbackPath) => {
+            const layout = blackTransformLayouts[state] || {};
+            this.load.spritesheet(`enemy_black_bear_transform_${state}`, blackTransformTextures[state] || fallbackPath, {
+                frameWidth: layout.frameWidth || 768,
+                frameHeight: layout.frameHeight || 512,
+                endFrame: Math.max(0, (layout.frameCount || 1) - 1),
+            });
+        };
+        loadBlackTransformSheet('toDruid', 'assets/enemies/black_druid/transform_to_druid.png');
+        loadBlackTransformSheet('toBear', 'assets/enemies/black_druid/transform_to_bear.png');
+
+        // 黑熊半血后的黑袍德鲁伊五动作；非方形攻击/死亡格由运行时等比缩放。
+        const blackDruidTextures = blackBearTextures.druid || {};
+        const blackDruidLayouts = blackDruidTextures.frameLayouts || {};
+        const loadBlackDruidSheet = (state, fallbackPath) => {
+            const layout = blackDruidLayouts[state] || {};
+            this.load.spritesheet(`enemy_black_druid_${state}`, blackDruidTextures[state] || fallbackPath, {
+                frameWidth: layout.frameWidth || 512,
+                frameHeight: layout.frameHeight || 512,
+                endFrame: Math.max(0, (layout.frameCount || 1) - 1),
+            });
+        };
+        loadBlackDruidSheet('idle', 'assets/enemies/black_druid/idle.png');
+        loadBlackDruidSheet('walking', 'assets/enemies/black_druid/walking.png');
+        loadBlackDruidSheet('attacking', 'assets/enemies/black_druid/attacking.png');
+        loadBlackDruidSheet('ritual', 'assets/enemies/black_druid/ritual.png');
+        loadBlackDruidSheet('dying', 'assets/enemies/black_druid/dying.png');
+
         // 僵尸巫师精灵图动画（3×8 网格）
         this.load.spritesheet('enemy_zombie_wizard_idle', 'assets/enemies/zombie_wizard/idle.png', { frameWidth: 512, frameHeight: 512, endFrame: 0 });
         this.load.spritesheet('enemy_zombie_wizard_walk', 'assets/enemies/zombie_wizard/walking.png', { frameWidth: 512, frameHeight: 512, endFrame: 9 });
@@ -1015,6 +1079,75 @@ export class BootScene extends Scene {
         createZombieDogAnim('run', 'enemy_zombie_dog_run');
         createZombieDogAnim('attack', 'enemy_zombie_dog_attack');
         createZombieDogAnim('death', 'enemy_zombie_dog_death');
+
+        // 棕熊动画：idle/walk 循环，attack/death 各播放一次并停在末帧。
+        const brownBearLayouts = enemyConfigData.brownBear?.textures?.frameLayouts || {};
+        const createBrownBearAnim = (state, textureKey) => {
+            const layout = brownBearLayouts[state] || {};
+            const frameCount = layout.frameCount || 1;
+            const animation = {
+                key: `enemy_brown_bear_${state}_v1`,
+                frames: this.anims.generateFrameNumbers(textureKey, { start: 0, end: frameCount - 1 }),
+                repeat: layout.repeat ?? (state === 'idle' || state === 'walk' ? -1 : 0),
+            };
+            if (layout.duration) animation.duration = layout.duration;
+            else animation.frameRate = layout.frameRate || 8;
+            this.anims.create(animation);
+        };
+        createBrownBearAnim('idle', 'enemy_brown_bear_idle');
+        createBrownBearAnim('walk', 'enemy_brown_bear_walk');
+        createBrownBearAnim('attack', 'enemy_brown_bear_attack');
+        createBrownBearAnim('death', 'enemy_brown_bear_death');
+
+        // 黑熊动画：walking 由实体映射给 walk/run，攻击与死亡只播放一次。
+        const blackBearLayouts = enemyConfigData.blackBear?.textures?.frameLayouts || {};
+        const createBlackBearAnim = (state, textureKey) => {
+            const layout = blackBearLayouts[state] || {};
+            const frameCount = layout.frameCount || 1;
+            const animation = {
+                key: `enemy_black_bear_${state}_v1`,
+                frames: this.anims.generateFrameNumbers(textureKey, { start: 0, end: frameCount - 1 }),
+                repeat: layout.repeat ?? (state === 'idle' || state === 'walk' ? -1 : 0),
+            };
+            if (layout.duration) animation.duration = layout.duration;
+            else animation.frameRate = layout.frameRate || 8;
+            this.anims.create(animation);
+        };
+        createBlackBearAnim('idle', 'enemy_black_bear_idle');
+        createBlackBearAnim('walk', 'enemy_black_bear_walk');
+        createBlackBearAnim('attack', 'enemy_black_bear_attack');
+        createBlackBearAnim('death', 'enemy_black_bear_death');
+
+        const blackTransformLayouts = enemyConfigData.blackBear?.textures?.transformations?.frameLayouts || {};
+        for (const state of ['toDruid', 'toBear']) {
+            const layout = blackTransformLayouts[state] || {};
+            this.anims.create({
+                key: `enemy_black_bear_transform_${state}_v1`,
+                frames: this.anims.generateFrameNumbers(`enemy_black_bear_transform_${state}`, {
+                    start: 0,
+                    end: Math.max(0, (layout.frameCount || 1) - 1),
+                }),
+                duration: layout.duration || 2000,
+                repeat: layout.repeat ?? 0,
+            });
+        }
+
+        // 黑袍德鲁伊：idle/walking 循环，其余动作严格单次播放。
+        const blackDruidLayouts = enemyConfigData.blackBear?.textures?.druid?.frameLayouts || {};
+        for (const state of ['idle', 'walking', 'attacking', 'ritual', 'dying']) {
+            const layout = blackDruidLayouts[state] || {};
+            const animation = {
+                key: `enemy_black_druid_${state}_v1`,
+                frames: this.anims.generateFrameNumbers(`enemy_black_druid_${state}`, {
+                    start: 0,
+                    end: Math.max(0, (layout.frameCount || 1) - 1),
+                }),
+                repeat: layout.repeat ?? (state === 'idle' || state === 'walking' ? -1 : 0),
+            };
+            if (layout.duration) animation.duration = layout.duration;
+            else animation.frameRate = layout.frameRate || 8;
+            this.anims.create(animation);
+        }
 
         // 僵尸巫师动画
         this.anims.create({

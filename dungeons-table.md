@@ -4,13 +4,13 @@
 
 | 地牢 | 等级 | 房间数 | 起始路线 | 战斗/事件 | 精英战斗 | 最短路径战斗 | 主通道强制战斗 | 到Boss最少房间 | 宝箱岔路 | 普通战斗构成 | 精英战斗构成 | Boss | 精英宝箱 | 时空特工入侵 |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| ☠ 僵尸地牢高级 | D | 45~50 | 4 条 | 50% / 50% | 35% | 5 场 | 全部列 | 7 间 | 6 条（2~3 节点，1 战斗 50% 精英，尽头宝箱） | 3 波×5（normal 100%） | 3 波×5（elite×1+normal×5） | 专属 Boss（BossRewardSystem 集合体） | — | 25% 起，每 2 回合 +5%，特工×1 |
+| ☠ 僵尸地牢-高级 | D | 45~50 | 4 条 | 50% / 50% | 35% | 5 场 | 全部列 | 7 间 | 6 条（2~3 节点，1 战斗 50% 精英，尽头宝箱） | 3 波×5（normal 100%） | 3 波×5（elite×1+normal×5） | 专属 Boss（BossRewardSystem 集合体） | — | 25% 起，每 2 回合 +5%，特工×1 |
 | ☠ 僵尸地牢-初级 | F | 22~27 | 3 条 | 40% / 60% | 0% | 4 场 | 3 列 | 6 间 | 2 条（2~3 节点，1 战斗 50% 精英，尽头宝箱） | 3 波×5（normal 100%） | —（不刷） | 独立遭遇（elite×1 + normal×5） | — | — |
 | ❄ 冰封世界-初级 | F | 22~27 | 3 条 | 40% / 60% | 0% | 4 场 | 3 列 | 6 间 | 2 条（2~3 节点，1 战斗 50% 精英，尽头宝箱） | 3 波×5（normal 100%）（仅blackWolf） | —（不刷） | 独立遭遇（elite×1 + normal×5），仅blackWolf | — | — |
 | ☠ 僵尸地牢-中级 | E | 30~35 | 3 条 | 50% / 50% | 40% | 4 场 | 全部列 | 6 间 | 4 条（2~3 节点，1 战斗 50% 精英，尽头宝箱） | 3 波×5（normal 100%） | 1 波×6（elite×1+normal×5） | 独立遭遇（lord×1），限定僵尸类 | — | — |
-| ☠ 沼泽地-高级 | C | 55~60 | 4 条 | 50% / 50% | 35% | 5 场 | 全部列 | 7 间 | 8 条（2~3 节点，1 战斗 50% 精英，尽头宝箱） | 3 波×5（normal 100%）（仅blackWolf） | 3 波×5（elite×1+normal×5）（仅blackWolf） | 独立遭遇，仅blackWolf | — | 25% 起，每 2 回合 +5%，特工×2 |
-| ☠ 沼泽地-初级 | E | 30~35 | 3 条 | 50% / 50% | 40% | 4 场 | 全部列 | 6 间 | 4 条（2~3 节点，1 战斗 50% 精英，尽头宝箱） | 3 波×5（normal 100%）（仅blackWolf） | 3 波×5（elite×1+normal×5）（仅blackWolf） | 独立遭遇，仅blackWolf | — | — |
-| ☠ 沼泽地-中级 | D | 45~50 | 4 条 | 50% / 50% | 35% | 5 场 | 全部列 | 7 间 | 6 条（2~3 节点，1 战斗 50% 精英，尽头宝箱） | 3 波×5（normal 100%）（仅blackWolf） | 3 波×5（elite×1+normal×5）（仅blackWolf） | 独立遭遇，仅blackWolf | — | 25% 起，每 2 回合 +5%，特工×1 |
+| ☠ 沼泽地牢-高级 | C | 55~60 | 4 条 | 50% / 50% | 35% | 5 场 | 全部列 | 7 间 | 8 条（2~3 节点，1 战斗 50% 精英，尽头宝箱） | 3 波×5（normal 100%）（按阶级匹配：normal=blackWolf/brownBear，elite=redWolfKing，lord=blackBear） | 3 波×5（elite×1+normal×5）（按阶级匹配：normal=blackWolf/brownBear，elite=redWolfKing，lord=blackBear） | 独立遭遇，按阶级匹配：normal=blackWolf/brownBear，elite=redWolfKing，lord=blackBear | — | 25% 起，每 2 回合 +5%，特工×2 |
+| ☠ 沼泽地牢-初级 | E | 30~35 | 3 条 | 50% / 50% | 40% | 4 场 | 全部列 | 6 间 | 4 条（2~3 节点，1 战斗 50% 精英，尽头宝箱） | 3 波×5（normal 100%）（按阶级匹配：normal=blackWolf/brownBear，elite=redWolfKing，lord=blackBear） | 3 波×5（elite×1+normal×5）（按阶级匹配：normal=blackWolf/brownBear，elite=redWolfKing，lord=blackBear） | 独立遭遇，按阶级匹配：normal=blackWolf/brownBear，elite=redWolfKing，lord=blackBear | — | — |
+| ☠ 沼泽地牢-中级 | D | 45~50 | 4 条 | 50% / 50% | 35% | 5 场 | 全部列 | 7 间 | 6 条（2~3 节点，1 战斗 50% 精英，尽头宝箱） | 3 波×5（normal 100%）（按阶级匹配：normal=blackWolf/brownBear，elite=redWolfKing，lord=blackBear） | 3 波×5（elite×1+normal×5）（按阶级匹配：normal=blackWolf/brownBear，elite=redWolfKing，lord=blackBear） | 独立遭遇，按阶级匹配：normal=blackWolf/brownBear，elite=redWolfKing，lord=blackBear | — | 25% 起，每 2 回合 +5%，特工×1 |
 | ☠ 恶魔洞窟 | C | 55~60 | 4 条 | 50% / 50% | 35% | 5 场 | 全部列 | 7 间 | 8 条（2~3 节点，1 战斗 50% 精英，尽头宝箱） | 3 波×5（normal 100%） | 3 波×5（elite×1+normal×5） | 专属 Boss（BossRewardSystem 集合体） | — | 25% 起，每 2 回合 +5%，特工×2 |
 
 ## 等级公共要素（按地牢 grade 自动获得）

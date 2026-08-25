@@ -289,6 +289,10 @@ collision-grid / regressions）、vite build ✓。
 #### 4. 怪物池（src/world/zombie-dungeon.js `monsterPool`）
 normal/elite/lord 三个 getter，按 family+rank 从 enemy-config.json 筛；新怪物需先注册 `ZOMBIE_FACTORY_MAP` + create 工厂。事件/奖励对应关系由 grade 驱动（见 dungeon-event-definitions.js RESTRICTED_EVENT_META 的 scope/grade）。
 
+- `encounter.poolKeys` 是遭遇级白名单，缺省保持旧版“白名单内跨阶级随机”语义；需要让同一白名单按波次槽位匹配阶级时，显式声明 `matchPoolRanks: true`。
+- 阶级匹配口径以双份 `enemy-config.json#<key>.rank` 为真源：normal 槽排除 `elite/lord/boss`，elite、lord、boss 槽只接受同名 rank。普通、精英、领主工厂仍必须全部登记到 `ZOMBIE_FACTORY_MAP`，不能只写配置键。
+- 某槽位在白名单内找不到对应阶级时会继续走 `poolFamily` / 默认池兜底；因此启用 `matchPoolRanks` 的遭遇必须覆盖 `waveComposition`、`monsterComposition` 实际使用的每一种阶级，否则会漏入白名单外怪物。修改后同步 `data/`、`public/data/`，并让 `scripts/generate-dungeons-table.mjs` 输出真实分池，避免总表仍显示扁平白名单。
+
 #### 5. 验证
 JSON 校验；lint / vite build / test-collider / test-craft-sync；`node scripts/generate-dungeons-table.mjs` 刷新 dungeons-table.md；CHANGELOG 记录。
 
