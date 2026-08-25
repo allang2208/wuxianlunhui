@@ -36,10 +36,10 @@
     "teleportDist": 999999,
     "teleportHardDist": 9999999
   },
-  "displaySize": 460,
-  "spriteOffsetY": -84,
+  "displaySize": 313.664397,
+  "spriteOffsetY": -58.199449,
   "render": {
-    "footOffsetY": 84,
+    "footOffsetY": 58.199449,
     "hudOffsetY": 119,
     "collisionWidth": 40,
     "collisionHeight": 100
@@ -47,8 +47,8 @@
   "animations": {
     "idle": {
       "src": "assets/companions/hamster_militia/idle.png",
-      "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 4,
-      "frameCount": 1, "frames": [0, 0], "frameRate": 1, "repeat": -1
+      "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 3,
+      "frameCount": 24, "frames": [0, 23], "frameRate": 12, "repeat": -1
     },
     "walk": {
       "src": "assets/companions/hamster_militia/running.png",

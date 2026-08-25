@@ -19,7 +19,7 @@ import json
 import statistics
 from pathlib import Path
 
-from PIL import Image
+from PIL import Image, ImageFilter
 
 
 def _reject_duplicate_keys(pairs: list[tuple[str, object]]) -> dict[str, object]:
@@ -31,12 +31,17 @@ def _reject_duplicate_keys(pairs: list[tuple[str, object]]) -> dict[str, object]
     return result
 
 
-def measure_config(root: Path, config_path: Path) -> dict[str, float | str]:
+def measure_config(
+    root: Path,
+    config_path: Path,
+    animation: str = "walk",
+    morphology: int = 0,
+) -> dict[str, float | str]:
     config = json.loads(
         config_path.read_text(encoding="utf-8"),
         object_pairs_hook=_reject_duplicate_keys,
     )
-    walk = config["animations"]["walk"]
+    walk = config["animations"][animation]
     frame_width = int(walk.get("frameWidth", 512))
     frame_height = int(walk.get("frameHeight", 512))
     frame_count = int(walk.get("frameCount", 1))
@@ -55,16 +60,20 @@ def measure_config(root: Path, config_path: Path) -> dict[str, float | str]:
             )
         )
         alpha = cell.getchannel("A").point(lambda value: 255 if value > 16 else 0)
+        if morphology >= 3:
+            alpha = alpha.filter(ImageFilter.MinFilter(morphology))
+            alpha = alpha.filter(ImageFilter.MaxFilter(morphology))
         bbox = alpha.getbbox()
         if not bbox:
             continue
         heights.append(bbox[3] - bbox[1])
         bottoms.append(bbox[3] - 1)
     if not heights:
-        raise RuntimeError(f"No alpha-bearing walk frames: {config_path}")
+        raise RuntimeError(f"No alpha-bearing {animation} frames: {config_path}")
     return {
         "id": config["id"],
         "config": str(config_path).replace("\\", "/"),
+        "animation": animation,
         "frameHeight": frame_height,
         "medianHeight": float(statistics.median(heights)),
         "medianBottom": float(statistics.median(bottoms)),
@@ -78,9 +87,13 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("reference", type=Path)
     parser.add_argument("configs", nargs="+", type=Path)
+    parser.add_argument("--animation", default="walk")
+    parser.add_argument("--morphology", type=int, default=0)
     args = parser.parse_args()
+    if args.morphology and (args.morphology < 3 or args.morphology % 2 == 0):
+        parser.error("--morphology must be an odd integer >= 3")
     root = Path.cwd()
-    reference = measure_config(root, args.reference)
+    reference = measure_config(root, args.reference, args.animation, args.morphology)
     target_height = (
         reference["medianHeight"]
         * reference["currentDisplaySize"]
@@ -92,7 +105,7 @@ def main() -> None:
     )
     print("advisory=full-alpha proposals require manual body-silhouette review for long weapons or crouched poses")
     for config_path in args.configs:
-        row = measure_config(root, config_path)
+        row = measure_config(root, config_path, args.animation, args.morphology)
         display_size = target_height * row["frameHeight"] / row["medianHeight"]
         foot_offset = (
             row["medianBottom"] - row["frameHeight"] / 2
