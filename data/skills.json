@@ -221,12 +221,16 @@
       "id": "pushStrike",
       "name": "推击",
       "icon": "💥",
-      "description": "使用远程武器向前方扇形区域释放强力推击，击退并眩晕敌人",
+      "iconImage": "assets/skills/推击.png",
+      "description": "以双手长枪的枪托顶开贴身敌人，短暂硬直并创造脱身空间",
+      "hidden": true,
+      "disabled": true,
+      "shelvedReason": "暂时搁置：枪械推击动画待重新设计",
       "maxLevel": 20,
       "tags": [
         {
-          "name": "远程",
-          "type": "ranged"
+          "name": "近战钝击",
+          "type": "melee"
         },
         {
           "name": "主动",
@@ -234,16 +238,17 @@
         }
       ],
       "effectFormula": {
-        "damageMul": "0.5 + level * 0.1",
-        "cooldown": "8 - level * 0.1",
-        "staminaCost": "15 + level * 0.5",
-        "radius": "100 + level * 1",
-        "knockback": "70",
-        "hitArc": "2 * Math.PI / 3",
-        "hitCheckDelay": 50,
-        "animationDuration": 300,
-        "stunDuration": 1500,
-        "rangeEffectLife": 200,
+        "baseDamage": "3 + level * 0.35",
+        "strengthRatio": "0.35 + level * 0.015",
+        "cooldown": "8 - level * 0.12",
+        "staminaCost": "18 - level * 0.2",
+        "radius": "90 + level",
+        "knockback": "130 + level * 6",
+        "hitArc": "Math.PI / 2",
+        "hitCheckDelay": 400,
+        "animationDuration": 800,
+        "stunDuration": "220 + level * 14",
+        "rangeEffectLife": 800,
         "rangeEffectAlpha": 0.5
       },
       "expFormula": "100 + (level - 1) * 100",

@@ -68,6 +68,14 @@
 - `sounds`：`{ hit: '路径' }` 或 `{ cast: [p1, p2] }`（数组=同时播放，闪电首例）。
 - **双份必须字节一致**（test-regressions 断言，npm test 会查）。
 
+##### 技能暂时搁置的可逆合同（2026-08-25）
+
+- 搁置不等于删除：在双份 `skills.json` 的技能定义上同时设置 `hidden: true` 与 `disabled: true`，可增加 `shelvedReason` 说明原因。`hidden` 只负责不展示，`disabled` 负责不执行，不能只从 `skillList` 数组删掉名称。
+- `buildSkillFromJSON` 和玩家 fallback 必须传递三个字段；否则 JSON 已标记，运行时技能对象却仍是可见/可用。
+- 展示门禁覆盖玩家技能网格、直接详情入口、通用技能列表与开发调试下拉框；快捷栏同时拒绝新绑定并清理热更/旧会话遗留绑定。
+- 执行门禁必须放在技能组件 `trigger()` 最前面，并让玩家/通用经验入口忽略搁置技能，防止旧快捷键、调试命令或直接调用绕过 UI。
+- 恢复时先完成原实现的验收，再同步移除双份 JSON 与 fallback 的 `hidden/disabled/shelvedReason`；不得只恢复界面或只恢复触发层。
+
 #### 2. 系统组件（src/entities/components/xxx-system.js）
 
 - `trigger()`：冷却检查 → 耗蓝 → 目标/方向判定 → 失败提示（`SceneManager.showTopNotification`）→ 结算（`takeDamage` + `applyKnockback(angle,px)` + `applyStun(ms)`）→ 特效 → 经验。

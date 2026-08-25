@@ -9,6 +9,8 @@ import { getMagicCooldownMultiplier } from '../utils/magic-craft-helper.js';
 import { getSkillMagicCategory, getSkillMagicTier, meetsMagicWeaponReq } from '../config/magic-categories.js';
 import { isSkillCheatEnabled } from '../config/dev-cheats.js';
 
+const isUnavailableSkill = (skill) => !skill || skill.hidden === true || skill.disabled === true;
+
 export const QUICK_BAR_CONFIG = [
     { id: 'slotSkillQ', type: 'skill', key: 'Q', keyCode: 'KeyQ', label: 'Q', icon: '?', placeholder: '技能占位' },
     { id: 'slotSkillE', type: 'skill', key: 'E', keyCode: 'KeyE', label: 'E', icon: '?', placeholder: '技能占位' },
@@ -230,6 +232,7 @@ export const QuickBar = {
             // Try skill drop (skill ID string from backpack or skill tree)
             if (player.skills[data]) {
                 const skill = player.skills[data];
+                if (isUnavailableSkill(skill)) return;
                 if (!skill.tags || !skill.tags.find(t => t.type === 'active')) return;
                 // 技能唯一性：如果已绑定到别的快捷键，处理原位置
                 const existingKeyCode = Object.keys(this.skillAssignments).find(kc =>
@@ -320,6 +323,15 @@ export const QuickBar = {
         };
     },
     _updateSlot(slot, skill) {
+        if (isUnavailableSkill(skill)) {
+            // 热更或旧会话若仍绑定已搁置技能，立即清空可见槽位。
+            delete this.skillAssignments[slot.dataset.keyCode];
+            slot.classList.add('empty');
+            slot.classList.remove('qb-skill-disabled');
+            slot.draggable = false;
+            slot.innerHTML = `<span style="font-size:20px">?</span><span class="key-hint">${slot.dataset.key}</span>`;
+            return;
+        }
         slot.classList.remove('empty');
         const iconHtml = skill.iconImage
             ? `<img src="${skill.iconImage}" style="width:48px;height:48px;object-fit:contain;" onerror="this.style.display='none';this.parentElement.textContent='${skill.icon}';this.parentElement.style.fontSize='20px';">`
@@ -391,6 +403,12 @@ export const QuickBar = {
         if (skillId) {
             if (!player.skills[skillId]) return;
             const skill = player.skills[skillId];
+            if (isUnavailableSkill(skill)) {
+                const assignedSlot = this.slots.find(slot => slot.config.keyCode === keyCode);
+                if (assignedSlot) this._updateSlot(assignedSlot.element, skill);
+                else delete this.skillAssignments[keyCode];
+                return;
+            }
             const effect = skill.getEffect(skill.level);
             // Check cooldown
             if (!isSkillCheatEnabled() && this.cooldowns[skillId] > 0) return;
@@ -771,6 +789,11 @@ export const QuickBar = {
             const skillId = this.skillAssignments && this.skillAssignments[slot.config.keyCode];
             if (!skillId) {
                 slot.element.classList.remove('qb-skill-disabled');
+                return;
+            }
+            const assignedSkill = player?.skills?.[skillId];
+            if (isUnavailableSkill(assignedSkill)) {
+                this._updateSlot(slot.element, assignedSkill);
                 return;
             }
             let disabled = false;
