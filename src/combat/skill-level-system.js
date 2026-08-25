@@ -8,7 +8,7 @@ import { SystemUI } from '../ui/system-ui.js';
 export const SkillLevelSystem = {
     // Add experience to a skill and check for level-ups
     addExp(skill, amount, player) {
-        if (!skill || skill.level >= skill.maxLevel || amount <= 0) return false;
+        if (!skill || skill.hidden === true || skill.disabled === true || skill.level >= skill.maxLevel || amount <= 0) return false;
         skill.exp += amount;
         let leveledUp = false;
         while (skill.exp >= skill.maxExp && skill.level < skill.maxLevel) {

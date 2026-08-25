@@ -77,7 +77,7 @@ export function getSkillEffect(owner, skillId, level) {
  */
 export function grantSkillExp(owner, skillId, amount, opts = {}) {
     const skill = getSkill(owner, skillId);
-    if (!skill || amount <= 0) return false;
+    if (!skill || skill.hidden === true || skill.disabled === true || amount <= 0) return false;
     // 升级逻辑与 combat/skill-level-system.js SkillLevelSystem.addExp 同源（内联保持本模块纯净，
     // 无 Phaser 依赖可 node 单测；玩家路径仍走 SkillLevelSystem，行为一致）
     if (skill.level >= skill.maxLevel) return false;
@@ -153,7 +153,7 @@ export function onSkillLevelUp(owner, skill) {
  */
 export function renderSkillList(container, skills, opts = {}) {
     if (!container) return;
-    const list = Object.values(skills || {});
+    const list = Object.values(skills || {}).filter(skill => skill && skill.hidden !== true && skill.disabled !== true);
     if (!list.length) {
         container.innerHTML = `<div class="companion-skill-placeholder">${opts.placeholder || '技能栏占位（后续按指令添加技能）'}</div>`;
         return;

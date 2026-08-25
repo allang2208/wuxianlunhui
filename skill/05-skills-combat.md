@@ -68,6 +68,14 @@
 - `sounds`：`{ hit: '路径' }` 或 `{ cast: [p1, p2] }`（数组=同时播放，闪电首例）。
 - **双份必须字节一致**（test-regressions 断言，npm test 会查）。
 
+##### 技能暂时搁置的可逆合同（2026-08-25）
+
+- 搁置不等于删除：在双份 `skills.json` 的技能定义上同时设置 `hidden: true` 与 `disabled: true`，可增加 `shelvedReason` 说明原因。`hidden` 只负责不展示，`disabled` 负责不执行，不能只从 `skillList` 数组删掉名称。
+- `buildSkillFromJSON` 和玩家 fallback 必须传递三个字段；否则 JSON 已标记，运行时技能对象却仍是可见/可用。
+- 展示门禁覆盖玩家技能网格、直接详情入口、通用技能列表与开发调试下拉框；快捷栏同时拒绝新绑定并清理热更/旧会话遗留绑定。
+- 执行门禁必须放在技能组件 `trigger()` 最前面，并让玩家/通用经验入口忽略搁置技能，防止旧快捷键、调试命令或直接调用绕过 UI。
+- 恢复时先完成原实现的验收，再同步移除双份 JSON 与 fallback 的 `hidden/disabled/shelvedReason`；不得只恢复界面或只恢复触发层。
+
 #### 2. 系统组件（src/entities/components/xxx-system.js）
 
 - `trigger()`：冷却检查 → 耗蓝 → 目标/方向判定 → 失败提示（`SceneManager.showTopNotification`）→ 结算（`takeDamage` + `applyKnockback(angle,px)` + `applyStun(ms)`）→ 特效 → 经验。
@@ -253,6 +261,21 @@ EffectManager.add(new LightningBoltEffect(source, target, {
 - 技能伤害/治疗公式读取 `context.stats`；`lightHeal` 只进入治疗，`magicDamage` 只进入伤害，连锁伤害不能污染治疗。制作词条的连锁、急速等尾段效果也读取施法快照，不能在命中时换杖套利。
 - 冷却统一按 `(1 - 法杖急速) × (1 - 法袍减冷却)` 乘一次，系统与快捷栏共用同一技能分类/冷却入口，禁止技能内部重复缩短。
 - MP 常态按秒恢复，权威公式来自 `data/combat-formulas.json`：`1.0 + 精神×0.08 + 智力×0.02`；战斗内外不分状态，HUD/属性面板/tooltip 必须统一显示“每秒”。
+
+### 持续直线魔法束去线条化模板（2026-08-25，夜与火之剑定稿）
+
+适用于夜与火之剑这类持续数秒、随释放者锚点移动、但方向与长度锁定的直线魔法束。不要照搬旧版“定时生成大量细直线”的做法，也不要直接复用雷枪的一次性 tween；持续束应由独立 Effect 类在 `EffectManager` 中按 `dt` 驱动。
+
+- **主体只填面、不描边**：NORMAL Graphics 画暗色承托，ADD Graphics 画外辉光、主色层和青白核心；用多段不规则 ribbon polygon 表现宽度起伏与边缘柔化，禁止用一排 `lineTo/strokePath` 冒充体积。
+- **雷枪语言只复用去线条化部分**：沿束轴推进固定参数的色块圆点流，首尾用 `sin(tπ)` 淡化；夜与火另加两侧柔软火舌色块，不复制雷枪加速环，保留技能辨识度。
+- **随机参数创建时固定**：mote/wisp 的 phase、速度、偏移、大小只在构造时生成，逐帧仅推进位置；禁止每 100ms 重新分配一批线段数组，避免密集闪烁与持续 GC。
+- **起落节奏**：前约 240ms 用 ease-out 把束长从 0 展开，前约 180ms 渐入，结束前约 380ms 渐隐；剑尖与射束末端分别用多层圆形色块形成汇聚和散逸，不使用 per-object filter。
+- **逻辑与视觉同源**：System 先完成墙体截断，`NightFlameBeamEffect.length`、持续伤害 `VerticalRect.length` 与调试范围提示必须消费同一个 `clampedLength`；特效类只画画面，不读取目标或结算伤害。
+- **跟随与迷雾**：每帧只更新 effect 的 `x/y` 跟随武器释放点，锁定 `angle/length`；NORMAL/ADD 两个 Graphics 都加入 `worldEffectsGroup`，`getFogVisuals()` 必须同时返回两层，结束时成对 destroy。
+
+参考实现：`src/effects/nightflame-effect.js` + `src/entities/components/special-attack-system.js`。
+
+---
 
 #### 临时线障碍法术（冰墙口径）
 

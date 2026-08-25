@@ -6,7 +6,7 @@ import { playSoundFrom } from './_shared/enemy-utils.js';
  * 普通僵尸（Zombie）
  * - 近战突刺，行动迟缓
  * - 精灵图：idle / walking / attacking / dying 四动作（v2）
- * - 攻击动画持续 1s，攻击间隔 2s（attack.cooldown），攻击距离判定 100px（attackDistance）
+ * - 攻击动画持续 1s，攻击间隔 2s（attack.cooldown），92px内起手、80px接触帧前向判定
  */
 export class Zombie extends Enemy {
     constructor(x, y, config = {}) {
@@ -92,8 +92,8 @@ export class Zombie extends Enemy {
         }
 
         // 朝向
-        if (this._attackTimer > 0 && this.target && this.target.active) {
-            this.rotation = Math.atan2(this.target.y - this.y, this.target.x - this.x);
+        if (this._attackTimer > 0 && this._pendingThrust?.basicMeleeSnapshot) {
+            this.rotation = this._pendingThrust.basicMeleeSnapshot.worldAngle;
         } else if (speed > 0.1) {
             this.rotation = Math.atan2(this.vy, this.vx);
         }

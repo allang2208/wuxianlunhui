@@ -377,6 +377,94 @@ def anvil(collection, parent, name, location, iron):
         rotation=(0, -8, 0), bevel_width=3)
 
 
+def post_and_rail_enclosure(collection, parent, name, width, front_y, back_y,
+                            base_z, timber, *, gate_width=0,
+                            rail_offsets=(30, 66), post_height=82,
+                            post_spacing=120, include_back=True,
+                            gate_leaves=False, gate_open_angle=58):
+    """Editable wooden perimeter fence with an optional centered front gate."""
+    half_width = float(width) / 2
+    front_y, back_y = sorted((float(front_y), float(back_y)))
+    depth = back_y - front_y
+    rail_size = 8.0
+    post_size = 11.0
+
+    for side, label in ((-1, "Left"), (1, "Right")):
+        x = side * half_width
+        for index, offset in enumerate(rail_offsets):
+            box(collection, parent, f"{name}_{label}Rail_{index}",
+                (rail_size, depth, rail_size),
+                (x, (front_y + back_y) / 2, base_z + offset), timber,
+                bevel_width=1)
+        segments = max(1, int(math.ceil(depth / max(1.0, post_spacing))))
+        for index in range(segments + 1):
+            y = front_y + depth * index / segments
+            box(collection, parent, f"{name}_{label}Post_{index:02d}",
+                (post_size, post_size, post_height),
+                (x, y, base_z + post_height / 2), timber,
+                bevel_width=1.5)
+
+    if include_back:
+        for index, offset in enumerate(rail_offsets):
+            box(collection, parent, f"{name}_BackRail_{index}",
+                (width, rail_size, rail_size),
+                (0, back_y, base_z + offset), timber, bevel_width=1)
+        segments = max(1, int(math.ceil(width / max(1.0, post_spacing))))
+        for index in range(1, segments):
+            x = -half_width + width * index / segments
+            box(collection, parent, f"{name}_BackPost_{index:02d}",
+                (post_size, post_size, post_height),
+                (x, back_y, base_z + post_height / 2), timber,
+                bevel_width=1.5)
+
+    gate_width = max(0.0, min(float(gate_width), width - post_size * 4))
+    front_segments = ((-half_width, -gate_width / 2),
+                      (gate_width / 2, half_width)) if gate_width else ((-half_width, half_width),)
+    for segment_index, (start_x, end_x) in enumerate(front_segments):
+        length = end_x - start_x
+        center_x = (start_x + end_x) / 2
+        for rail_index, offset in enumerate(rail_offsets):
+            box(collection, parent,
+                f"{name}_FrontRail_{segment_index}_{rail_index}",
+                (length, rail_size, rail_size),
+                (center_x, front_y, base_z + offset), timber,
+                bevel_width=1)
+        segments = max(1, int(math.ceil(length / max(1.0, post_spacing))))
+        for index in range(1, segments):
+            x = start_x + length * index / segments
+            box(collection, parent,
+                f"{name}_FrontPost_{segment_index}_{index:02d}",
+                (post_size, post_size, post_height),
+                (x, front_y, base_z + post_height / 2), timber,
+                bevel_width=1.5)
+
+    if gate_width:
+        for side, label in ((-1, "Left"), (1, "Right")):
+            hinge_x = side * gate_width / 2
+            box(collection, parent, f"{name}_GatePost_{label}",
+                (post_size + 4, post_size + 4, post_height + 16),
+                (hinge_x, front_y, base_z + (post_height + 16) / 2), timber,
+                bevel_width=2)
+            if not gate_leaves:
+                continue
+            gate_parent = bpy.data.objects.new(f"{name}_GateLeaf_{label}_Hinge", None)
+            collection.objects.link(gate_parent)
+            gate_parent.parent = parent
+            gate_parent.location = (hinge_x, front_y, base_z)
+            gate_parent.rotation_euler.z = math.radians(side * gate_open_angle)
+            leaf_length = gate_width / 2 - 7
+            local_center_x = -side * leaf_length / 2
+            for rail_index, offset in enumerate(rail_offsets):
+                box(collection, gate_parent,
+                    f"{name}_GateLeaf_{label}_Rail_{rail_index}",
+                    (leaf_length, rail_size + 2, rail_size + 2),
+                    (local_center_x, 0, offset), timber, bevel_width=1)
+            box(collection, gate_parent, f"{name}_GateLeaf_{label}_Brace",
+                (leaf_length * 0.88, rail_size, rail_size),
+                (local_center_x, 0, sum(rail_offsets) / len(rail_offsets)), timber,
+                rotation=(0, -28 * side, 0), bevel_width=1)
+
+
 def setup_scene(spec, preview_path):
     scene = bpy.context.scene
     try:

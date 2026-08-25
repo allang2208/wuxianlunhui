@@ -1,0 +1,9 @@
+Create one continuous 5.17-second seamless in-place running loop intended for game sprite-frame extraction.
+
+Use the exact same single anthropomorphic hamster cowherd shown in the first frame. Preserve every identity, facial, body, clothing, material, and color detail. He remains at the same three-quarter angle facing screen right. Both gloved hands stay completely empty in every frame. Never add cheese, tools, weapons, buckets, rope, bags, boxes, or accessories.
+
+The cowherd runs energetically in place without travelling across the image. His root and torso center X position remain fixed. Show at least two steady complete running cycles with natural left-right leg alternation, each leg completing a full stride before switching. Arms swing naturally, the torso leans slightly forward, and vertical bounce is restrained. No sliding, foot swapping, twitching, attack, jump, fall, work action, turn, or horizontal drift.
+
+The camera is completely locked and orthographic with wide framing: no pan, tracking, rotation, zoom, crop, reframing, or shake. Keep the complete cap, ears, hands, tail, legs, and feet visible with ample empty space. Begin and end in the same running pose, root position, scale, direction, and gait phase for a clean loop, with no slowdown, stop, freeze, reverse, bounce, or end pause.
+
+The entire background is a perfectly uniform flat chroma green #00FF00 in every pixel for every frame. Absolutely no floor, horizon, contact shadow, cast shadow, reflection, gradient, texture, motion lines, particles, dust, text, logo, border, watermark, extra subject, or sprite-sheet grid.

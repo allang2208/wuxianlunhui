@@ -104,7 +104,7 @@ export const SkillManager = {
     addPushStrikeExp(player, hitCount, killCount) {
         if (!player || !player.skills) return;
         const ps = player.skills.pushStrike;
-        if (!ps || ps.level >= ps.maxLevel) return;
+        if (!ps || ps.hidden === true || ps.disabled === true || ps.level >= ps.maxLevel) return;
         const rw = ps.expRewards || {};
         let gained = 0;
         gained += hitCount * (rw.hit || 0);
@@ -542,6 +542,8 @@ export const SkillManager = {
         } else {
             skillList = [player.skills.swordMastery, player.skills.dashAttack, player.skills.whirlwind, player.skills.pushStrike, player.skills.criticalStrike, player.skills.machineGunMastery, player.skills.rifleMastery, player.skills.pistolMastery, player.skills.shotgunMastery, player.skills.bowMastery, player.skills.droneSkill, player.skills.iceSpike, player.skills.lightningStrike, player.skills.stormDomain, player.skills.thunderLance, player.skills.holyLight, player.skills.shieldDefense, player.skills.fireball, player.skills.iceWall, player.skills.blizzard, player.skills.meteor, player.skills.flameArmor, player.skills.sanctuaryDomain, player.skills.holyJudgment];
         }
+        // 搁置技能保留数据和资产，但不出现在技能网格或进入详情链。
+        skillList = skillList.filter(skill => skill && skill.hidden !== true && skill.disabled !== true);
         // 筛选
         if (this._currentFilter !== 'all') {
             skillList = skillList.filter(skill => {
@@ -577,8 +579,9 @@ export const SkillManager = {
                     card.classList.add('dragging');
                     // 只拖动图标作为 drag image
                     const icon = card.querySelector('.skill-icon');
-                    if (icon) {
-                        e.dataTransfer.setDragImage(icon, icon.offsetWidth / 2, icon.offsetHeight / 2);
+                    const dragVisual = icon?.querySelector('img') || icon;
+                    if (dragVisual) {
+                        e.dataTransfer.setDragImage(dragVisual, dragVisual.offsetWidth / 2, dragVisual.offsetHeight / 2);
                     }
                     TimerManager.setTimeout(() => SystemUI.close(), 50);
                 };
@@ -590,6 +593,13 @@ export const SkillManager = {
         });
     },
     renderSkillDetail(skill) {
+        if (!skill || skill.hidden === true || skill.disabled === true) {
+            this._currentDetailSkillId = null;
+            const shelvedDetail = getElement('skillDetail');
+            if (shelvedDetail) shelvedDetail.style.display = 'none';
+            this.renderSkillGrid();
+            return;
+        }
         this._currentDetailSkillId = skill.id;
         const detail = getElement('skillDetail');
         const body = getElement('sdBody');

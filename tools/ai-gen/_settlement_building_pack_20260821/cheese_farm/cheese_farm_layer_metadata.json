@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "assetId": "cheese_farm",
+  "composition": "base -> structure_occluder -> foreground_occluder -> cow_visuals",
+  "sourceSize": [898, 514],
+  "runtimeDisplaySize": [512, 293],
+  "runtimeFootOffsetY": 144,
+  "layers": [
+    {
+      "id": "base",
+      "textureKey": "cheese_farm_base",
+      "path": "assets/terrain/cheese_farm_base.png",
+      "depthRole": "below_internal_cows",
+      "recommendedDepth": "structureBackDepth - 0.04"
+    },
+    {
+      "id": "structure_occluder",
+      "textureKey": "cheese_farm_structure_occluder",
+      "path": "assets/terrain/cheese_farm_structure_occluder.png",
+      "depthRole": "below_internal_cows",
+      "recommendedDepth": "structureFrontDepth"
+    },
+    {
+      "id": "foreground_occluder",
+      "textureKey": "cheese_farm_foreground_occluder",
+      "path": "assets/terrain/cheese_farm_foreground_occluder.png",
+      "depthRole": "below_internal_cows",
+      "recommendedDepth": "structureFrontDepth + 0.04"
+    }
+  ],
+  "cowActivity": {
+    "coordinateSpace": "source_image_foot_point",
+    "zones": [
+      {
+        "id": "right_main",
+        "role": "primary_grazing",
+        "polygon": [[686, 159], [782, 203], [817, 231], [810, 258], [753, 287], [690, 314], [646, 297], [628, 274], [644, 247], [667, 219]]
+      },
+      {
+        "id": "front_pasture",
+        "role": "secondary_grazing_idle_and_walking",
+        "polygon": [[326, 376], [391, 363], [456, 344], [521, 333], [563, 351], [548, 375], [496, 398], [425, 425], [361, 414], [315, 395]]
+      }
+    ],
+    "corridors": [
+      {
+        "from": "front_pasture",
+        "to": "right_main",
+        "waypoints": [[535, 356], [570, 331], [607, 307], [646, 287], [685, 271]],
+        "requiresFinalBodyClearance": true
+      }
+    ],
+    "movementRule": "Choose targets inside the cow's current zone. Cross-zone travel between front_pasture and right_main must follow the listed waypoints in order; never steer directly through the building cluster, troughs or gate. Erode both polygons and validate corridor clearance against the final animation frame's foot-relative body padding. Do not register the farm's own 4x4 footprint as an internal cow blocker.",
+    "visualOnly": true,
+    "combatEntity": false,
+    "depthRule": "All internal cows render above the complete farm compound. Cows sort against one another by their logical foot-point Y every render frame; larger screen Y is in front, with stable slot order only for exact ties."
+  },
+  "sourceScript": "tools/ai-gen/build-cheese-farm-layers.py",
+  "preview": "tools/ai-gen/_settlement_building_pack_20260821/cheese_farm/layer_pack/cheese_farm_layer_preview.png"
+}

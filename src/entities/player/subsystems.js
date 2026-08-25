@@ -30,6 +30,7 @@ import { SkillManager } from '../../ui/skill-manager.js';
 import { QuickBar } from '../../ui/quick-bar.js';
 import { GameUIManager } from '../../ui/game-ui-manager.js';
 import { SystemUI } from '../../ui/system-ui.js';
+import { getPushStrikeValues } from '../../config/skill-formulas.js';
 
 // 默认技能经验公式与辅助函数（应用全局技能经验倍率）
 const DEFAULT_SKILL_EXP_FORMULA = '100 + (level - 1) * 100';
@@ -436,6 +437,9 @@ applyPoison(stacks) {
                                 icon: data.icon || '✦',
                                 iconImage: data.iconImage || '',
                                 description: data.description || '',
+                                hidden: data.hidden === true,
+                                disabled: data.disabled === true,
+                                shelvedReason: data.shelvedReason || '',
                                 level: 1,
                                 maxLevel: data.maxLevel || 20,
                                 exp: 0,
@@ -679,12 +683,14 @@ applyPoison(stacks) {
                         getEffect(level) { return { damageMul: 1.5 + level * 0.10, strBonus: level, cooldown: 10 - level * 0.2, staminaCost: 20 + level * 1, radius: 120 + level * 5, swordRadiusBonus: 80, knockback: 250, stunDuration: 2500, duration: 800 }; },
                         getExpForNext: getDefaultSkillExpForNext,
                     },
+                    // TEMP SHELVED (2026-08-25): 保留推击逻辑与美术资产，待枪械动画重做后移除 hidden/disabled 恢复。
                     pushStrike: {
-                        id: 'pushStrike', name: '推击', icon: '💥',
-                        description: '使用远程武器向前方扇形区域释放强力推击，击退并眩晕敌人',
+                        id: 'pushStrike', name: '推击', icon: '💥', iconImage: 'assets/skills/推击.png',
+                        description: '以双手长枪的枪托顶开贴身敌人，短暂硬直并创造脱身空间',
+                        hidden: true, disabled: true, shelvedReason: '暂时搁置：枪械推击动画待重新设计',
                         level: 1, maxLevel: 20, exp: 0, maxExp: getDefaultSkillMaxExp(),
-                        tags: [{ name: '远程', type: 'ranged' }, { name: '主动', type: 'active' }],
-                        getEffect(level) { return { damageMul: 0.5 + level * 0.1, cooldown: 8 - level * 0.1, staminaCost: 15 + level * 0.5, radius: 100 + level * 1, knockback: 70, hitArc: 2 * Math.PI / 3, hitCheckDelay: 50, animationDuration: 300, stunDuration: 1500, rangeEffectLife: 200, rangeEffectAlpha: 0.5 }; },
+                        tags: [{ name: '近战钝击', type: 'melee' }, { name: '主动', type: 'active' }],
+                        getEffect(level) { return getPushStrikeValues(level, 0); },
                         getExpForNext: getDefaultSkillExpForNext,
                     },
                     criticalStrike: {

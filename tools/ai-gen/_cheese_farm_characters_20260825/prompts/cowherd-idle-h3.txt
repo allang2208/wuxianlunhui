@@ -1,0 +1,11 @@
+Create one continuous 5.17-second seamless natural idle loop intended for game sprite-frame extraction.
+
+Use the exact same single anthropomorphic hamster cowherd shown in the first frame. Preserve his natural golden-brown hamster face and proportions, small realistic eyes, dark brown flat cap, rolled cream linen shirt, weathered olive-brown leather apron, brown trousers, simple leather gloves, bare hamster feet, tail, materials, colors, and restrained realistic fantasy-game rendering. He remains at the same three-quarter angle facing screen right. Both hands remain completely empty. Do not add cheese, tools, weapons, buckets, rope, jewelry, extra clothing, boots, or accessories. Keep his mouth naturally closed.
+
+HIGHEST PRIORITY FACIAL LOCK: his lips stay gently sealed and his jaw stays closed from the first frame through the last frame. The muzzle and cheeks keep the same relaxed neutral shape. He never opens his mouth for any reason. No yawn, speech, singing, sigh through the mouth, chewing, smile, grin, teeth, tongue, lip movement, or jaw movement. Facial motion is limited to one quick blink and extremely small whisker motion only.
+
+The camera is completely locked and orthographic: no pan, tracking, rotation, zoom, crop, reframing, focus change, or shake. The complete body stays centered at exactly the same scale and position with ample empty space on every side. His planted feet and root position remain fixed with no stepping, sliding, turning, squatting, jumping, or side-to-side body drift.
+
+Motion is subtle but clearly alive below the neck: gentle breathing in the chest and shoulders, one tiny ear twitch, slight whisker motion, one quick natural blink, and minimal arm response to breathing. No waving, speaking, yawning, chewing, dancing, working, or exaggerated acting. Begin and end in exactly the same pose, position, scale, expression, and breathing phase for a clean seamless loop. Do not freeze, reverse, bounce, or pause at the end.
+
+The entire background is a perfectly uniform flat chroma green #00FF00 in every pixel for every frame. Absolutely no floor, horizon, contact shadow, cast shadow, reflection, gradient, texture, particles, dust, text, logo, border, watermark, extra subject, or sprite-sheet grid.

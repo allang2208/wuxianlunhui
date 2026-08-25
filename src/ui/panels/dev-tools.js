@@ -1290,6 +1290,7 @@ export function createDevToolPanel() {
         const current = sel.value;
         sel.innerHTML = '';
         for (const [id, sk] of Object.entries(player.skills)) {
+            if (!sk || sk.hidden === true || sk.disabled === true) continue;
             const opt = document.createElement('option');
             opt.value = id;
             opt.textContent = `${sk.name || id}（Lv.${sk.level}/${sk.maxLevel || 20}）`;

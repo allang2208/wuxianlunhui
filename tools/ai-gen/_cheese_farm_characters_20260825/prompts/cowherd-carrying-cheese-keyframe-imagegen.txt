@@ -1,0 +1,10 @@
+Use case: identity-preserve
+Asset type: transparent game-character animation keyframe for MiniMax H3 image-to-video
+Primary request: Edit the supplied cowherd character so he securely carries one modest round golden-yellow cheese wheel with both arms at the lower chest/upper abdomen, ready to run while holding it.
+Input image: Image 1 is the edit target and exact identity/style reference.
+Subject: exactly the same anthropomorphic hamster cowherd, same face, fur, cap, cream rolled-sleeve shirt, olive-brown apron, brown trousers, gloves, feet, tail, body proportions and three-quarter view.
+Composition/framing: full body entirely visible, centered, generous clear margin on every side, feet visible, no crop. Keep nearly the same standing orientation and scale as the input.
+Object: one believable farm cheese wheel, round and compact, warm golden yellow with a few subtle holes, held firmly by both forearms/hands; the wheel must remain clearly visible and not cover the face.
+Background: genuinely transparent alpha background, no floor, no cast shadow.
+Constraints: change only the arm/hand pose and add the single cheese wheel; preserve identity, costume, textures, lighting, camera angle and realistic stylized 3D-render quality. Exactly two arms and two hands. No text, no watermark.
+Avoid: extra cheese, cheese wedge, basket, tools, weapons, bag, altered clothing, altered face, open mouth, missing limbs, extra fingers, background scenery, ground plane, shadows.

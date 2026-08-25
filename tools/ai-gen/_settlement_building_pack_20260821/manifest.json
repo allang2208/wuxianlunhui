@@ -624,6 +624,39 @@
     },
     "shooting_range": { "dimensions": { "foundation": [526, 474, 16], "body": [270, 176, 142], "roof": [310, 220, 82] } },
     "cavalry_school": { "dimensions": { "foundation": [480, 374, 16], "body": [360, 248, 154], "roof": [406, 300, 104], "tower": [76, 76, 220] } },
-    "thatch_hut": { "dimensions": { "foundation": [420, 340, 16], "body": [318, 236, 136], "roof": [372, 292, 116] } }
+    "thatch_hut": { "dimensions": { "foundation": [420, 340, 16], "body": [318, 236, 136], "roof": [372, 292, 116] } },
+    "cheese_farm": {
+      "cameraOverrides": {
+        "widthMargin": 0.9,
+        "bottomY": 930,
+        "topMargin": 42
+      },
+      "paletteOverrides": {
+        "foundation": [0.25, 0.23, 0.17, 1.0],
+        "stone": [0.37, 0.35, 0.29, 1.0],
+        "plaster": [0.62, 0.55, 0.39, 1.0],
+        "timber": [0.135, 0.075, 0.035, 1.0],
+        "roof": [0.29, 0.105, 0.045, 1.0],
+        "thatch": [0.43, 0.30, 0.105, 1.0],
+        "iron": [0.065, 0.07, 0.064, 1.0],
+        "brass": [0.46, 0.29, 0.075, 1.0],
+        "glass": [0.15, 0.30, 0.26, 1.0],
+        "glow": [0.92, 0.31, 0.035, 1.0],
+        "straw": [0.55, 0.40, 0.15, 1.0]
+      },
+      "bodyDepthExclude": ["CheeseFarm_PastureFoundation"],
+      "dimensions": {
+        "foundation": [820, 680, 14],
+        "mainHall": [300, 220, 162],
+        "mainRoof": [348, 268, 96],
+        "cowShed": [230, 190, 118],
+        "cowShedRoof": [258, 220, 78],
+        "workshop": [220, 184, 136],
+        "workshopRoof": [252, 214, 84],
+        "structureScale": 0.72,
+        "structurePivotY": 100,
+        "fenceInset": 22
+      }
+    }
   }
 }

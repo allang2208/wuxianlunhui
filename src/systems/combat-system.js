@@ -8,6 +8,7 @@ import { World125FogTideSystem } from '../world/world125-fog-tide-system.js';
 import {
     basicMeleeApproachRange,
     canStartBasicMelee,
+    stepBasicMeleeTimeline,
 } from '../combat/melee-attack-resolver.js';
 
 /**
@@ -200,6 +201,51 @@ class CombatSystemImpl {
         if (!wa) return;
         const anim = enemy.weaponAnim;
         if (!anim) return;
+        const pending = enemy._pendingThrust;
+        if (pending?.active && pending.basicMeleeTimeline) {
+            const step = stepBasicMeleeTimeline(pending, dt);
+            if (!step) return;
+            const timeline = pending.basicMeleeTimeline;
+            if (pending.basicMeleeSnapshot) {
+                pending.basicMeleeSnapshot.timelineFrame = step.frameIndex;
+            }
+            anim.state = step.phase;
+            anim.timer = step.elapsedMs;
+            if (step.phase === 'windup') {
+                const t = timeline.activeStartMs > 0
+                    ? Math.min(1, step.elapsedMs / timeline.activeStartMs)
+                    : 1;
+                anim.angle = wa.idleAngle
+                    + (wa.windupAngle - wa.idleAngle) * Easing.easeInQuad(t);
+            } else if (step.phase === 'swing') {
+                const span = Math.max(1, timeline.activeEndMs - timeline.activeStartMs);
+                const t = Math.min(1, (step.elapsedMs - timeline.activeStartMs) / span);
+                anim.angle = wa.windupAngle
+                    + (wa.swingAngle - wa.windupAngle) * Easing.easeOutQuad(t);
+            } else {
+                const span = Math.max(1, timeline.durationMs - timeline.activeEndMs);
+                const t = Math.min(1, (step.elapsedMs - timeline.activeEndMs) / span);
+                anim.angle = wa.swingAngle
+                    + (wa.idleAngle - wa.swingAngle) * Easing.easeInOutCubic(t);
+            }
+            if (step.shouldCheckImpact && enemy.attacks.melee) {
+                enemy.attacks.melee.checkTriangleHit(enemy);
+            }
+            if (step.shouldEmitContactCue && !pending.contactCuePlayed) {
+                pending.contactCuePlayed = true;
+                if (typeof enemy.onBasicMeleeContact === 'function') {
+                    enemy.onBasicMeleeContact();
+                }
+            }
+            if (step.completed) {
+                pending.active = false;
+                if (enemy.attacks.melee) enemy.attacks.melee.giveExp(enemy);
+                anim.state = 'idle';
+                anim.timer = 0;
+                anim.angle = wa.idleAngle;
+            }
+            return;
+        }
         switch (anim.state) {
             case 'idle':
                 anim.angle = wa.idleAngle + Math.sin(Date.now() / 400) * 0.06;

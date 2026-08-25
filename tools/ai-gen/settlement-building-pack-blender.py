@@ -1296,23 +1296,11 @@ def build_shooting_range(spec):
     yard_back = house_front - 10
     yard_center = (yard_front + yard_back) / 2
     yard_depth = yard_back - yard_front
-    for side in (-1, 1):
-        x = side * (fw / 2 - 14)
-        for z in (fh + 30, fh + 67):
-            kit.box(collection, root, f"Range_Yard_SideRail_{side}_{int(z)}", (8, yard_depth, 8),
-                    (x, yard_center, z), mats["timber"], bevel_width=1)
-        for y in (yard_front, yard_center, yard_back):
-            kit.box(collection, root, f"Range_Yard_SidePost_{side}_{int(y)}", (11, 11, 82),
-                    (x, y, fh + 41), mats["timber"], bevel_width=1.5)
-    for side in (-1, 1):
-        segment_w = (fw - 92) / 2
-        x = side * (46 + segment_w / 2)
-        for z in (fh + 30, fh + 67):
-            kit.box(collection, root, f"Range_Yard_FrontRail_{side}_{int(z)}", (segment_w, 8, 8),
-                    (x, yard_front, z), mats["timber"], bevel_width=1)
-    for x in (-fw / 2 + 14, -46, 46, fw / 2 - 14):
-        kit.box(collection, root, f"Range_Yard_FrontPost_{int(x)}", (11, 11, 82),
-                (x, yard_front, fh + 41), mats["timber"], bevel_width=1.5)
+    kit.post_and_rail_enclosure(
+        collection, root, "Range_Yard", fw - 28, yard_front, yard_back, fh,
+        mats["timber"], gate_width=92, rail_offsets=(30, 67),
+        post_height=82, post_spacing=max(1, yard_depth / 2),
+        include_back=False, gate_leaves=False)
     for index, x in enumerate((-92, 0, 92)):
         # Targets belong to the perimeter firing line, not against the house.
         # Keep them just inside the front fence so the yard reads as a real
@@ -3384,6 +3372,227 @@ def build_thatch_hut(spec):
     return root
 
 
+def cheese_farm_wheel(collection, root, name, location, radius, depth,
+                      cheese_mat, rind_mat, rotation=(90, 0, 0)):
+    """One readable cheese wheel with a darker editable rind and center."""
+    kit.cylinder(collection, root, name + "_Rind", radius, depth, location,
+                 rind_mat, rotation=rotation, vertices=40, bevel_width=1.2)
+    x, y, z = location
+    axis_offset = depth * 0.54
+    if rotation == (90, 0, 0):
+        face_location = (x, y - axis_offset, z)
+    else:
+        face_location = (x - axis_offset, y, z)
+    kit.cylinder(collection, root, name + "_Face", radius * 0.82,
+                 max(2.5, depth * 0.12), face_location, cheese_mat,
+                 rotation=rotation, vertices=40, bevel_width=0.7)
+
+
+def build_cheese_farm(spec):
+    """Broad 4x4 dairy compound with a central hall, cowshed and workshop."""
+    collection, root, mats = common_context("cheese_farm", spec)
+    dims = spec["dimensions"]
+    fw, fd, fh = dims["foundation"]
+    main_w, main_d, main_h = dims["mainHall"]
+    main_rw, main_rd, main_rh = dims["mainRoof"]
+    shed_w, shed_d, shed_h = dims["cowShed"]
+    shed_rw, shed_rd, shed_rh = dims["cowShedRoof"]
+    work_w, work_d, work_h = dims["workshop"]
+    work_rw, work_rd, work_rh = dims["workshopRoof"]
+
+    pasture = kit.material(
+        "MAT_CheeseFarm_FlatPasture", kit.rgba((0.225, 0.245, 0.145, 1.0)),
+        roughness=0.98, noise={"scale": 14, "detail": 3, "bump": 0.08})
+    cheese = kit.material(
+        "MAT_CheeseFarm_Cheese", kit.rgba((0.72, 0.47, 0.105, 1.0)),
+        roughness=0.76, noise={"scale": 8, "detail": 2, "bump": 0.08})
+    rind = kit.material(
+        "MAT_CheeseFarm_Rind", kit.rgba((0.44, 0.245, 0.055, 1.0)),
+        roughness=0.84, noise={"scale": 7, "detail": 3, "bump": 0.12})
+    dark_interior = kit.material(
+        "MAT_CheeseFarm_CowshedInterior", kit.rgba((0.055, 0.038, 0.024, 1.0)),
+        roughness=0.96)
+
+    # The shallow 4x4 pasture is the compound's complete visual ground. It is
+    # intentionally broad and low, not a raised universal stone plinth.
+    kit.box(collection, root, "CheeseFarm_PastureFoundation", (fw, fd, fh),
+            (0, 0, fh / 2), pasture, bevel_width=6)
+
+    main_y = 126
+    main_front = main_y - main_d / 2 - 4
+    main_roof_base = fh + main_h - 3
+    kit.box(collection, root, "CheeseFarm_MainHall_ConnectedShell",
+            (main_w, main_d, main_h), (0, main_y, fh + main_h / 2),
+            mats["plaster"], bevel_width=5)
+    kit.box(collection, root, "CheeseFarm_MainHall_StoneSkirt",
+            (main_w + 10, main_d + 10, 54),
+            (0, main_y, fh + 27), mats["stone"], bevel_width=4)
+    kit.half_timber_facade(collection, root, "CheeseFarm_MainHall_FrontTimber",
+                           main_w, main_h, main_front, fh, mats["timber"], bays=4)
+    kit.half_timber_side(collection, root, "CheeseFarm_MainHall_SideTimber",
+                         main_d, main_h, -main_w / 2 - 4, fh,
+                         mats["timber"], bays=3)
+    kit.gabled_prism(collection, root, "CheeseFarm_MainHall_ContinuousRoof",
+                     main_rw, main_rd, main_rh, (0, main_y, main_roof_base),
+                     mats["timber"], mats["roof"])
+    kit.roof_rows(collection, root, "CheeseFarm_MainHall_RoofCourse",
+                  main_rw, main_rd, main_rh, main_roof_base,
+                  mats["roof"], rows=11)
+    kit.double_doors(collection, root, "CheeseFarm_MainHall_DoubleDoor",
+                     (0, main_front - 5, fh), 92, 112,
+                     mats["timber"], mats["iron"], open_angle=12)
+    for x in (-102, 102):
+        kit.shutter_window(collection, root,
+                           f"CheeseFarm_MainHall_Window_{'L' if x < 0 else 'R'}",
+                           (x, main_front - 3, fh + 88), mats["glass"],
+                           mats["timber"], mats["iron"], scale=0.72)
+    # No-text cheese-wheel sign makes the economic function legible at game scale.
+    kit.box(collection, root, "CheeseFarm_MainHall_CheeseSignBoard",
+            (70, 10, 70), (104, main_front - 14, fh + 136),
+            mats["timber"], bevel_width=10)
+    cheese_farm_wheel(collection, root, "CheeseFarm_MainHall_CheeseEmblem",
+                      (104, main_front - 22, fh + 136), 27, 8, cheese, rind)
+    kit.lantern(collection, root, "CheeseFarm_MainHall_Lantern",
+                (-62, main_front - 17, fh + 91), mats["iron"], mats["glow"])
+
+    # Left connected open cowshed: a real roofed shelter with visible stalls,
+    # feed trough and dark rear wall, but no cow baked into the building asset.
+    shed_x, shed_y = -256, 91
+    shed_back = shed_y + shed_d / 2
+    shed_front = shed_y - shed_d / 2
+    kit.box(collection, root, "CheeseFarm_Cowshed_RearDarkInterior",
+            (shed_w - 20, 12, shed_h - 26),
+            (shed_x, shed_back - 7, fh + (shed_h - 26) / 2),
+            dark_interior, bevel_width=2)
+    kit.box(collection, root, "CheeseFarm_Cowshed_RearStoneWall",
+            (shed_w, 20, 64), (shed_x, shed_back, fh + 32),
+            mats["stone"], bevel_width=3)
+    for side, label in ((-1, "Left"), (1, "Right")):
+        x = shed_x + side * (shed_w / 2 - 10)
+        kit.box(collection, root, f"CheeseFarm_Cowshed_{label}LowWall",
+                (20, shed_d, 48), (x, shed_y, fh + 24),
+                mats["stone"], bevel_width=3)
+        for y, position in ((shed_front + 11, "Front"),
+                            (shed_back - 11, "Back")):
+            kit.box(collection, root,
+                    f"CheeseFarm_Cowshed_{label}{position}Post",
+                    (18, 18, shed_h), (x, y, fh + shed_h / 2),
+                    mats["timber"], bevel_width=2)
+    kit.gabled_prism(collection, root, "CheeseFarm_Cowshed_ContinuousRoof",
+                     shed_rw, shed_rd, shed_rh,
+                     (shed_x, shed_y, fh + shed_h - 3),
+                     mats["timber"], mats["thatch"])
+    kit.roof_rows(collection, root, "CheeseFarm_Cowshed_ThatchCourse",
+                  shed_rw, shed_rd, shed_rh, fh + shed_h - 3,
+                  mats["thatch"], rows=8)
+    for index, local_x in enumerate((-55, 0, 55)):
+        x = shed_x + local_x
+        kit.box(collection, root, f"CheeseFarm_Cowshed_StallDivider_{index}",
+                (9, 112, 54), (x, shed_y - 12, fh + 27),
+                mats["timber"], bevel_width=1.5)
+    kit.box(collection, root, "CheeseFarm_Cowshed_FeedTrough",
+            (shed_w - 54, 34, 30), (shed_x, shed_front + 34, fh + 15),
+            mats["timber"], bevel_width=5)
+    kit.box(collection, root, "CheeseFarm_Cowshed_FeedTroughHay",
+            (shed_w - 68, 23, 12), (shed_x, shed_front + 34, fh + 34),
+            mats["straw"], bevel_width=4)
+
+    # Right connected workshop: enclosed processing room plus fixed cheese press
+    # and aging shelf. Every production prop remains attached to the structure.
+    work_x, work_y = 260, 94
+    work_front = work_y - work_d / 2 - 4
+    work_roof_base = fh + work_h - 3
+    kit.box(collection, root, "CheeseFarm_Workshop_ConnectedShell",
+            (work_w, work_d, work_h),
+            (work_x, work_y, fh + work_h / 2), mats["plaster"], bevel_width=4)
+    kit.box(collection, root, "CheeseFarm_Workshop_StoneSkirt",
+            (work_w + 8, work_d + 8, 48),
+            (work_x, work_y, fh + 24), mats["stone"], bevel_width=3)
+    kit.half_timber_facade(collection, root, "CheeseFarm_Workshop_FrontTimber",
+                           work_w, work_h, work_front, fh, mats["timber"], bays=3)
+    kit.gabled_prism(collection, root, "CheeseFarm_Workshop_ContinuousRoof",
+                     work_rw, work_rd, work_rh,
+                     (work_x, work_y, work_roof_base),
+                     mats["timber"], mats["roof"])
+    kit.roof_rows(collection, root, "CheeseFarm_Workshop_RoofCourse",
+                  work_rw, work_rd, work_rh, work_roof_base,
+                  mats["roof"], rows=9)
+    kit.double_doors(collection, root, "CheeseFarm_Workshop_Door",
+                     (work_x - 47, work_front - 5, fh), 58, 94,
+                     mats["timber"], mats["iron"], open_angle=0)
+    kit.shutter_window(collection, root, "CheeseFarm_Workshop_Window",
+                       (work_x + 48, work_front - 3, fh + 72), mats["glass"],
+                       mats["timber"], mats["iron"], scale=0.68)
+    press_x, press_y = work_x + 49, work_front - 31
+    kit.box(collection, root, "CheeseFarm_Workshop_CheesePress_Base",
+            (72, 44, 15), (press_x, press_y, fh + 8),
+            mats["timber"], bevel_width=3)
+    for side in (-1, 1):
+        kit.box(collection, root,
+                f"CheeseFarm_Workshop_CheesePress_Post_{side:+d}",
+                (11, 11, 82), (press_x + side * 25, press_y,
+                               fh + 49), mats["timber"], bevel_width=1.5)
+    kit.box(collection, root, "CheeseFarm_Workshop_CheesePress_TopBeam",
+            (78, 16, 15), (press_x, press_y, fh + 88),
+            mats["timber"], bevel_width=2)
+    kit.cylinder(collection, root, "CheeseFarm_Workshop_CheesePress_Screw",
+                 6, 54, (press_x, press_y, fh + 64), mats["iron"],
+                 vertices=20, bevel_width=1)
+    kit.cylinder(collection, root, "CheeseFarm_Workshop_CheesePress_Plate",
+                 25, 7, (press_x, press_y, fh + 38), mats["iron"],
+                 vertices=32, bevel_width=1)
+    shelf_x, shelf_y = work_x + work_w / 2 - 18, work_y + 20
+    kit.box(collection, root, "CheeseFarm_Workshop_AgingShelf_Back",
+            (15, 112, 92), (shelf_x, shelf_y, fh + 48),
+            mats["timber"], bevel_width=2)
+    for index, z in enumerate((fh + 24, fh + 55, fh + 86)):
+        kit.box(collection, root, f"CheeseFarm_Workshop_AgingShelf_{index}",
+                (40, 118, 8), (shelf_x - 10, shelf_y, z),
+                mats["timber"], bevel_width=1)
+        for wheel_index, y in enumerate((shelf_y - 36, shelf_y, shelf_y + 36)):
+            cheese_farm_wheel(
+                collection, root,
+                f"CheeseFarm_Workshop_AgingWheel_{index}_{wheel_index}",
+                (shelf_x - 34, y, z + 10), 12, 8, cheese, rind,
+                rotation=(0, 90, 0))
+
+    # Uniformly shrink only the three-building cluster around its ground-level
+    # center. The 4x4 pasture, fence, gate and troughs keep their original size.
+    structure_scale = float(dims.get("structureScale", 1.0))
+    if abs(structure_scale - 1.0) > 1e-6:
+        pivot_y = float(dims.get("structurePivotY", 100))
+        prefixes = ("CheeseFarm_MainHall_", "CheeseFarm_Cowshed_",
+                    "CheeseFarm_Workshop_")
+        for obj in list(root.children):
+            if not obj.name.startswith(prefixes):
+                continue
+            obj.location.x *= structure_scale
+            obj.location.y = pivot_y + (obj.location.y - pivot_y) * structure_scale
+            obj.location.z = fh + (obj.location.z - fh) * structure_scale
+            obj.scale = tuple(value * structure_scale for value in obj.scale)
+
+    # Shared perimeter component keeps the 4x4 boundary editable and leaves a
+    # clear centered entrance aligned to the central dairy hall.
+    fence_inset = float(dims.get("fenceInset", 22))
+    kit.post_and_rail_enclosure(
+        collection, root, "CheeseFarm_PerimeterFence", fw - fence_inset * 2,
+        -fd / 2 + fence_inset, fd / 2 - fence_inset, fh,
+        mats["timber"], gate_width=126, rail_offsets=(31, 68),
+        post_height=88, post_spacing=118, include_back=True,
+        gate_leaves=True, gate_open_angle=62)
+
+    # Sparse fixed troughs preserve the broad pasture instead of filling it
+    # with loose props; animated cows and cowherds will be separate runtime art.
+    for index, x in enumerate((-142, 144)):
+        kit.box(collection, root, f"CheeseFarm_Pasture_WaterTrough_{index}",
+                (104, 36, 28), (x, -166, fh + 14),
+                mats["foundation"], bevel_width=7)
+        kit.box(collection, root, f"CheeseFarm_Pasture_WaterSurface_{index}",
+                (88, 23, 5), (x, -166, fh + 29),
+                mats["glass"], bevel_width=5)
+    return root
+
+
 BUILDERS = {
     "wheat_windmill": build_windmill,
     "warehouse": build_warehouse,
@@ -3419,6 +3628,7 @@ BUILDERS = {
     "house_lv2": build_house_lv2,
     "house_lv3": build_house_lv3,
     "thatch_hut": build_thatch_hut,
+    "cheese_farm": build_cheese_farm,
 }
 
 
