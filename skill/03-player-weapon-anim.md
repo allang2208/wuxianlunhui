@@ -66,7 +66,8 @@
 
 - **挥砍特效 A+B（2026-07-27 落地，2026-07-29 改残影实现）**：perFrame 帧数据可加 `blurX/blurY` 与 `stretchX/stretchY`（乘 displaySize）——插值/面板输入/保存直写全链路支持；播种用帧间位移推导（峰值帧最强，端点为零）。**游戏内运动模糊 = 残影（afterimage）**：`GameScene._syncWeaponGhosts` 沿 perFrame 轨迹回放 3 道历史姿态武器副本（透明度 0.34/0.23/0.11 递减，步长 0.035~0.085 进度随强度伸缩，强度=max(blurX,blurY) 归一到峰值 12，<1.5 不出残影）——攻击/冲刺两分支共用，攻击结束/弓分支/Tween 分支/地图模式各兜底隐藏。**旧高斯滤镜方案已废弃**：`filters.internal.addBlur` 链路实测"激活但观感失败"——高斯模糊对 3px 宽细剑是能量摊薄，峰值帧剑身近乎消失（CDP 像素级对比取证），且面板大尺寸慢放预览放大了"生效"的错觉。面板预览模糊仍是 canvas filter 近似。
 - **📍固定点工具（2026-07-27）**：武器参数区下方按钮——点击进入放置模式后点画布武器即标记（存武器局部坐标，逆变换：平移→反向旋转→÷缩放），红点刚性跟随武器跨帧显示（校准握把/刃尖用）；有标记时点按钮=清除。**面板 DOM 改动注意**：真实面板 DOM 由 `src/ui/panels/dev-tools.js` 程序化构建，`ui/components/dev-tool-panel.html` 是无引用的死文件，勿改。**攻击输入全锁**：`weaponAnim.isAttacking` 期间移动/闪避/新攻击/切武器/冲刺/右键特殊攻击/风车/推击全部无效（注意：闪避不再能取消攻击）。
-- **近战连段与收势（2026-07-27；三段已落地 2026-08-13）**：perFrame 攻击 Tween 结束时记 `_lastMeleeAttackEnd` 并设 `_attackHoldUntil`（=连段窗口）——窗口内定格末帧等待连段；窗口内再攻击派生下一段；无输入则播 `recover` 收势动画回 idle；移动立即取消定格/收势。攻击期输入全锁（见 📍固定点工具条目）。**三段连段（挥击×2+突刺×1，2026-08-13）**：stage 1 过顶下劈 `attack_sword`（12帧/600ms）→ 2 肩高快劈 `attack_sword_2`（12帧/600ms）→ 3 弓步突刺 `attack_sword_3`（16帧/800ms，终结段）→ 回 1；段数映射/定格/收势梯度收口 `src/entities/player/anim-state.js`（`MELEE_STAGE_ANIM_KEYS`/`meleeStageCfgKey`/`meleeStageHoldMs`/`meleeStageRecoverMs`，纹理/轨迹块缺失逐级回退 stage3→2→1），时长配置 `data/combat-config.json` `meleeCombo.stageN{HoldMs,RecoverMs}`（500/200/**0** + -/300/400；2026-08-16 用户指定：终结段播完直接收势回 idle，不留定格窗口——三连击严格 1→2→3→收势，无 3→1 回环，想恢复回环改回 300）；武器轨迹块 `sword.attack/attack2/attack3`（12/12/16 点，attack3=rect 判定 damageMul 2.0，初始种子值待 DevTool 逐帧精调）。新 sheet 格 512×512（管线 `tools/prep-melee3-sheets.py`，色偏中性化+留档），frameWeights 口径已退役统一 frameDurations。
+- **近战连段与收势（2026-07-27；三段已落地 2026-08-13）**：perFrame 攻击 Tween 结束时记 `_lastMeleeAttackEnd` 并设 `_attackHoldUntil`（=连段窗口）——窗口内定格末帧等待连段；窗口内再攻击派生下一段；无输入则播 `recover` 收势动画回 idle；移动立即取消定格/收势。攻击期输入全锁（见 📍固定点工具条目）。**三段连段（挥击×2+突刺×1，2026-08-13）**：stage 1 过顶下劈 `attack_sword`（12帧/600ms）→ 2 肩高快劈 `attack_sword_2`（12帧/600ms）→ 3 弓步突刺 `attack_sword_3`（16帧/800ms，终结段）→ 回 1；段数映射/定格/收势梯度收口 `src/entities/player/anim-state.js`（`MELEE_STAGE_ANIM_KEYS`/`meleeStageCfgKey`/`meleeStageHoldMs`/`meleeStageRecoverMs`，纹理/轨迹块缺失逐级回退 stage3→2→1），时长配置 `data/combat-config.json` `meleeCombo.stageN{HoldMs,RecoverMs}`（500/200/**0** + -/300/400；2026-08-16 用户指定：终结段播完直接收势回 idle，不留定格窗口——三连击严格 1→2→3→收势，无 3→1 回环，想恢复回环改回 300）；武器轨迹块 `sword.attack/attack2/attack3`（12/12/16 点，attack3=sector、125°、damageMul 2.0，初始种子值待 DevTool 逐帧精调）。新 sheet 格 512×512（管线 `tools/prep-melee3-sheets.py`，色偏中性化+留档），frameWeights 口径已退役统一 frameDurations。
+- **三段收势曲线（2026-08-24）**：`sword.attack/attack2/attack3.recover` 分别配置 `outX/outY/inX/inY` 与 `outRotationDeg/inRotationDeg`；位置和角度走三次贝塞尔，端点严格继承攻击末帧与 idle，控制点维持各段末帧运动方向并随左右朝向镜像。第二段用较大的回撤弧消除“大位移小转角”的横向平移感，第三段先延续突刺末帧转向再回正，缩放使用 `easeInOutCubic`。三段仍复用同一人物 `recover` sheet 与既有 330/300/400ms 时长；冲刺及无 recover 配置的武器保留原线性兜底。
 
 - **逐帧导出交接（2026-07-27 改为直写）**：💾保存 = 内存生效 + **直接合并进 `public/data/weapon-anim-config.json`**（保留 attack 下 trail 等字段，写前滚动备份 `weapon-frames/weapon-anim-config.backup.json`）+ 覆盖写 `weapon-frames/latest.js`（仅记录/回滚参考）+ 剪贴板。**保存即永久生效，无需通知助手合并**；Vite 走 `/__save-weapon-frames` 中间件（改中间件需重启 dev server），Electron 走 `save-weapon-frames` IPC。需回滚时用 backup.json 还原或叫助手处理。**多段轨迹（2026-07-27）**：`attack`/`attack2` 块各存一段轨迹，面板切对应动画页调整即按块保存；运行时连段按 `_meleeComboStage` 选块；`WeaponTransform.getInterpolatedPerFramePosition(..., cfgKey)` 支持选块。
 - **静态姿态**（gun_idle 等）：面板拖武器到手上 → 💾保存（每状态 `holdOffsetX/Y + idleRotation/idleScale`）。
@@ -218,8 +219,10 @@
 - **轨迹生成**：从当前 `walk_hand` 隔离层定位每帧拳头，按显示缩放换算 local offset，直接写握点；`rotation` 是最终显示角（sword 当前110°），`scale` 取 walk 尺寸。更换 walk 素材或持剑手后必须重测21帧拳头，不能只整体平移旧武器中心轨迹。
 - **复用键隔离**：staff 的 `animConfigKey` 也是 `sword`，所以是否启用剑柄锚手/背负必须判断 `currentItem.weaponType === 'sword'`，不能判断 `wt === 'sword'`。法杖继续读独立 `staffWalkFrames`、以杆身中段为中心平滑跟随；弓和枪械也不得进入剑分支。
 - **running 背负**：`sword.running` 保存稳定静态锚点并声明 `carryLayer:'back'`；GameScene 按人物动态 depth 每帧放到 body−1。进入 walking 时恢复 grip origin 与 body+2，退出 walking/running 到 idle/attack 时恢复中心 origin 与正常前景层，避免状态切换继承上一姿态的 origin/depth。
+- **专用持剑奔跑的准入门槛**：复用原版跑姿另叠 `handLayer` 时，不能按“画面左/右”或单帧清晰度猜解剖学持剑手；手臂横穿躯干的帧必须沿肩—肘—腕连续追踪同一条骨链。握点接入前要用运行时同口径的 `textureGrips/origin/displaySize/flip` 分别合成四把剑、左右镜像和完整循环，慢速 GIF 只能检查节奏，单把锈剑的离线合成不能证明游戏内跟手。未经用户确认不得把候选 `sword_run`、专用 `swordRunFrames` 或开发面板入口接入正式配置；实机出现系统性脱手时，稳定回退是移除这三处专用入口，恢复共用 `run` 与 `sword.running carryLayer:'back'`，不要继续在错误轨迹上整体平移。
 - **开发面板同源**：walk 页预览、透明像素命中与拖拽都要识别 `anchor:'grip'`，按剑柄 origin 绘制；否则面板看似对齐、保存后游戏会偏一个 `gripOffset`。保存白名单继续使用 `walkFrames`。
 - **新剑接入**：可复制 sword.walkFrames 的结构，但只有在贴图护手/握柄基准与现有剑一致时才能共用 `gripOffset`；否则先量贴图内握柄位置，再同步游戏与面板锚点。交付时重点实测四把剑的21帧、左右镜像、walk↔run↔idle 切换和背负遮挡。
+- **符文长剑附着粒子（2026-08-24）**：常驻 `WeaponEffect` 禁止在 Player 逻辑更新中用玩家坐标、朝向和通用 `holdOffset` 猜剑柄。必须在 `GameScene.syncWeapon()` 与 `_updateDynamicDepths()` 完成后读取真实 `weaponSprite` 的 `x/y/rotation/origin/displaySize/flip/depth`：中心 origin 以 `sword.gripOffset` 反推握柄，攻击、行走、冲刺等 grip origin 分支直接使用 Sprite 锚点；Graphics 深度紧贴最终武器深度，保证 idle、walk、run 背负、三段攻击、dash、recover 和左右镜像均绑定同一贴图姿态并继承遮挡。
 
 ---
 
@@ -382,7 +385,11 @@
 
 ### 冲刺攻击（dash_attack）跟手优化（2026-08-03 初版；2026-08-16 dashHand 剑柄锚手定稿）
 
-- **动画**：dash_attack 17 帧（24fps），"从后往前 180° 大回砍"；配置 sword.dash 30 点。
+- **2026-08-24 骑士长剑专属动画**：MiniMax H3 双端约束生成的 `dash_attack_thrust` 只保留源视频 `f66~f80` 连续15帧突刺，25FPS/600ms 播放，相对24FPS原片仅约4%加速；废弃“奔跑11帧+稀疏突刺6帧压进600ms”的僵硬版本。仅 `activeSkillId === 'dashAttackThrust'` 播放，通用 `dash_attack` 仍为原上劈下砍。
+- **突刺体量归一（2026-08-24 修订）**：用户确认原始最终突刺与奔跑体量接近，只需微调；禁止再按 `idle=54px` / `running=64px` 的头高均值把低姿态动作强压到59px。以不含武器的有效身体高度为准：原方案末段约418px，运行时目标400px（仅收约4%），脚线对齐 `y=492`；专属 recover 首帧必须读取当前突刺末帧实际头高，再平滑收敛到 idle 54px，避免切换瞬间二次缩小。人物缩放后必须重新烘焙 `sword.dashThrust` 15帧握把轨迹。
+- **黑白校色与头部 Alpha 修整（2026-08-24）**：攻击15帧与 recover 14帧必须走同一确定性像素处理：以亮度保持为主去除 H3 源片的红/洋红偏色，所有可见像素收敛到 `R=G=B`，透明区 RGB 清零，仅删除 `alpha<=6` 的抠图尘点以保留正常抗锯齿；逐帧识别上半身白色头骨连通域，只在头部原剪影外增加约2px黑色轮廓。禁止用生成模型输出直接覆盖运行时 sheet，避免动作、帧格或体量漂移。
+- **角色/武器分层**：人物 sheet 不烘焙武器；`sword.dashThrust` 15点逐帧记录前手握把位置，独立 `dashThrustHand { type:'perFrameGrip', trackKey:'dashThrust' }` 只供骑士长剑突刺分支读取。通用 `dashHand` 保持 `gripArc`，继续驱动 `sword.dash` 30点挥砍轨迹。
+- **专属收势**：`dash_recover_thrust` 14帧首帧与突刺末帧同姿势，沿胸前水平线收手、回腿、站起；武器从 `dashThrust` 末帧中心连续出发，读取其 `recover` 三次贝塞尔回 idle。通用 `dash_recover` 和其他武器原退回流程不变。
 - **手部识别技能适用性结论（2026-08-16）**：
   1. **GLM-4.6V / deepseek-vision-skill 不适合像素级绑手**——坐标误差 50~150px，
      同图两次回答会矛盾，只能做"是否在手上"的粗验收；不要拿它生成 dash 轨迹点。
@@ -394,19 +401,17 @@
      `握把点 = 中心 − R(rot)·(0, -gripOffset)` 反推手位；GameScene 把
      `weaponSprite.origin` 设为剑柄点（`gripX=0.5`，`gripY=0.5 + gripOffset/显示高`），
      剑柄钉在手上，剑身绕剑柄转。
-- **180° 扇形扫击**：`sword.dashHand { type:'gripArc', fromRotation:-90, toRotation:90,
+- **旧版 180° 扇形扫击回退**：`sword.dashHand { type:'gripArc', fromRotation:-90, toRotation:90,
   gripX:0.5 }`——角度按 progress 线性插值，从身后 -90° 扫到身前 +90°，全程 180°；
   位置仍逐帧沿旧中心轨迹反推的握把路径走，因此不是只绑首尾两点。
-- **触发链路**：`dashSystem.trigger` 播放 `dash_attack` 并写 `_dashTotalMs`；
-  `GameScene._syncSpecialWeaponAnim` 的 dashHand 分支按同一 progress 同步剑柄；
-  末帧定格 `_dashRecoverAt` 也停在 progress=1，收势再走近战同款滑回。
+- **触发链路**：`dashSystem.trigger` 按技能选择人物动画并写 `_dashTotalMs`：通用冲刺播 `dash_attack`，骑士长剑突刺播15帧 `dash_attack_thrust`；`GameScene._syncSpecialWeaponAnim` 对专属分支读取 `dashThrustHand.trackKey=dashThrust`，按同一600ms progress同步剑柄，结束后进入独立 `dash_recover_thrust` 与贝塞尔武器收势。
 - **修改文件**：`src/combat/weapon-transform.js`（getDashHandPosition）、
   `src/phaser/scenes/GameScene.js`（dashHand 分支，优先于旧 dashLerp）、
   `public/data/weapon-anim-config.json`（sword.dashHand）、
   `tools/prep-sword-attack-hand.py`（dash 分支改为生成/校验 dashHand，不再用旧误检点）。
 - **旧 dashLerp 保留为回退**：无 `dashHand` 配置时仍走双端点 lerp，端点/角度已同步为
   -90°→+90° 与剑柄 origin（grip 0.5,0.782）；不要删代码。
-- **实机验收（2026-08-16 用户确认成功）**：剑柄全程贴手，剑身从后 -90° 扫到前 +90°，
+- **旧版实机验收（2026-08-16，当时方案）**：剑柄全程贴手，剑身从后 -90° 扫到前 +90°，
   末帧定格 → dash_recover 收势无跳变。
 - **关键经验（可迁移到后续近战动作）**：
   1. 手部定位先分“粗验收”和“像素绑手”两条路：GLM 只判 ON/OFF；绑手一律用
@@ -419,6 +424,24 @@
      剑身会跳回旧轨迹角度（本次已通过 `getDashRecoverStartPosition` 解决）。
   4. 测试守卫只锁配置契约（dashHand 180° / dashLerp 180°），不锁具体轨迹点，
      后续 DevTool 微调不被测试卡死。
+
+### 冲刺技能随武器替换、修炼与动作快照合同（2026-08-24）
+
+- **武器映射**：生锈长剑、符文剑使用 `dashAttack`；骑士长剑通过当前装备的 `skillOverrides.dashAttackThrust` 使用 `dashAttackThrust`；夜与火之剑通过 `skillOverrides.dashAttackFire` 使用 `dashAttackFire`。只认 `equipments[weaponMode]` 当前槽位物品为真源，`player._skillOverrides` 只能同步镜像，禁止由刚拖动但未激活的物品反向覆盖当前技能。
+- **动作快照**：冲刺起手必须锁定 `_dashSkillId / _dashWeaponItem / _dashSkillOverrides`，冲刺主体的动画、位移、判定、伤害和剑精通均读取该快照；冲刺、末帧定格和 recover 期间禁止 `F` 切换武器，避免同一次动作中途从突刺变成挥砍、换伤害或丢失修炼。冲刺主体结束、撞墙中止、眩晕、复活和重生必须清空快照，后续定格/recover 由武器切换锁继续保护。
+- **共享修炼、独立效果**：`dashAttack` 是三种冲刺形态唯一的等级/经验真源；突刺与火焰变体只提供各自 `getEffect(sharedLevel)`。技能面板显示共享等级和经验，但伤害、范围、击退等必须套用当前变体公式，升级刷新需要同时刷新三张卡及当前打开的变体详情。
+- **突刺统计口径**：三段持续突刺用 `_dashThrustPhase.totalHitCount / totalKillCount` 发放冲刺与剑精通经验；同一目标被三段命中按三次有效伤害计数，击杀也必须保留，禁止退化成唯一目标数或固定 `killCount=0`。
+- **数值公式合同**：若 `skills.json#getEffect` 已返回含等级的平伤字段（如 `thrustLevelBonusEarly/Late`），运行时只加一次该字段，不得再次乘技能等级，否则会形成平方成长。
+
+---
+
+### 骑士长剑冲刺突击白线汇聚特效（2026-08-24）
+
+- **适用边界**：只在 `player._isDashing && player._dashVisualStyle === 'thrust'` 时启用，不作用于通用冲刺挥砍、末帧定格或 recover，也不参与位移、命中和伤害。突刺阶段只能保留这套剑尖汇聚效果，禁止再从 `player.x / player.y` 创建旧 `GoldenConvergeEffect`，否则玩家脚下会叠出同款汇聚扇面。
+- **剑尖真源**：运行时读取 `weaponSprite` 当前 `origin / displaySize / rotation`，以竖向源贴图的局部顶部中心作为剑尖，再转换为世界坐标；禁止用玩家中心加固定偏移猜剑尖，否则逐帧握把轨迹、左右镜像或武器尺寸调整后必然错位。
+- **表现结构（2026-08-24 Phaser 审计修订）**：`DashThrustConvergenceFx` 使用7条确定性错峰二次短尾流。每次动作首次可见帧把线源固定在身后世界位置，线头追随逐帧真实剑尖，线尾以 `trailSpan` 限长并在汇聚段继续推进；禁止只让线头抵达剑尖而把线尾停在固定曲线比例，旧版因此在72%进度仍留下平均229.12px的大扇面。正式173px位移模拟的72%线尾均距已收至82.05px，末段继续缩短淡出。
+- **可见性**：白色线芯使用 NORMAL，线芯下先画细暗色承托保证亮地面轮廓，外层才使用弱 ADD 泛光；剑尖只作为线条汇聚终点，禁止额外绘制圆形光核、白点或光球，以免遮盖剑尖轮廓。特效在 `_updateDynamicDepths()` 之后更新，深度固定继承 `weaponSprite.depth - 0.01`，玩家被墙体或建筑压层时不得越过遮挡。地图模式、武器隐藏、技能结束和场景 shutdown 必须立即清除。
+- **配置真源与审计**：`public/data/weapon-anim-config.json#sword.dashThrustConvergence`；线数、后向长度、扩散、曲率、汇聚、尾长、淡出、暗色承托和四层线宽/透明度只在该节点调节。位置/观感改动必须用 `tools/cdp-dash-thrust-fx-audit.mjs` 在右向12/30/50/72%及左向50%采样，至少记录线头到剑尖误差、线尾均距、特效/武器深度和截图。
 
 ---
 
