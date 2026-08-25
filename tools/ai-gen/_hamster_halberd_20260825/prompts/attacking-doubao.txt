@@ -1,0 +1,11 @@
+The exact armored hamster halberdier from the first frame performs exactly one powerful two-handed halberd attack toward the right, then recovers to the original neutral guard stance.
+
+Action phases: first he tightens both hands, lowers his center of gravity and draws the long Chinese ji halberd slightly back and upward for a short readable anticipation. Then he takes one compact forward step and drives a single heavy diagonal cleaving strike down and across the space in front of him using the legs, hips, torso, shoulders and both arms as one connected kinetic chain. At the contact pose the crescent blade is clearly leading through the target plane. Finally the weapon follows through naturally, he regains balance, steps back and returns to the exact starting guard. One attack only; no second swing, spin, combo, jump, projectile, magic or impact effect.
+
+Motion physics: believable armor weight, rigid wooden shaft, continuous two-handed grip, clear blade trajectory and restrained plume follow-through. Preserve the natural short forward lunge during the strike; do not recenter each frame. Keep the entire hamster and full halberd visible throughout, including blade, hook and butt cap.
+
+Identity locks: exact same face, proportions, fully enclosed steel ear guards, helmet and deep crimson feather crest, cold-gray armor, dark red cloth and exactly one Chinese ji halberd. The ears remain fully protected and never become visible.
+
+Camera and framing: static locked orthographic low three-quarter view facing right, no camera move, zoom, crop, reframing or tracking. Pure white background, soft diffuse light, no floor line, cast shadow, scenery, particles, blood, text, logo or watermark.
+
+Avoid: exposed ears, extra limbs, broken hands, weapon duplication, shaft bending, blade morphing, identity drift, spinning attack, multiple hits, floating, sliding, camera motion, cropping, motion-blur-erased silhouette, cuts or dramatic lighting.

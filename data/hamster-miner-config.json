@@ -10,7 +10,14 @@
   "baseLevel": 1,
   "baseExp": 0,
   "baseMaxHp": 100,
-  "baseData": { "str": 6, "dex": 6, "int": 5, "con": 10, "wis": 5, "luck": 5 },
+  "baseData": {
+    "str": 6,
+    "dex": 6,
+    "int": 5,
+    "con": 10,
+    "wis": 5,
+    "luck": 5
+  },
   "statFormula": "enemy",
   "skills": [],
   "sounds": {
@@ -37,28 +44,72 @@
   "animations": {
     "idle": {
       "src": "assets/companions/hamster_miner/idle.png",
-      "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 4,
-      "frameCount": 1, "frames": [0, 0], "frameRate": 1, "repeat": -1
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 8,
+      "rows": 4,
+      "frameCount": 1,
+      "frames": [
+        0,
+        0
+      ],
+      "frameRate": 1,
+      "repeat": -1
     },
     "walk": {
       "src": "assets/companions/hamster_miner/walking.png",
-      "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 4,
-      "frameCount": 12,
-      "startFrames": [0, 11], "startFrameRate": 12, "startRepeat": 0,
-      "loopFrames": [2, 11], "frameRate": 12, "repeat": -1
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 8,
+      "rows": 3,
+      "frameCount": 24,
+      "startFrames": [
+        0,
+        22
+      ],
+      "startFrameRate": 24.0,
+      "startRepeat": 0,
+      "loopFrames": [
+        4,
+        23
+      ],
+      "frameRate": 24.0,
+      "repeat": -1
     },
     "mining": {
       "src": "assets/companions/hamster_miner/mining.png",
-      "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 4,
-      "frameCount": 19,
-      "startFrames": [0, 18], "startFrameRate": 20, "startRepeat": 0,
-      "loopFrames": [4, 18], "frameRate": 20, "repeat": 0,
-      "waitFrame": 5
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 8,
+      "rows": 5,
+      "frameCount": 37,
+      "startFrames": [
+        0,
+        36
+      ],
+      "startFrameRate": 40.0,
+      "startRepeat": 0,
+      "loopFrames": [
+        8,
+        36
+      ],
+      "frameRate": 40.0,
+      "repeat": 0,
+      "waitFrame": 10
     },
     "dying": {
       "src": "assets/companions/hamster_miner/dying.png",
-      "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 4,
-      "frameCount": 11, "frames": [0, 10], "frameRate": 12, "repeat": 0
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 8,
+      "rows": 3,
+      "frameCount": 21,
+      "frames": [
+        0,
+        20
+      ],
+      "frameRate": 24.0,
+      "repeat": 0
     }
   }
 }

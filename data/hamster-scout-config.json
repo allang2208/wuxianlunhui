@@ -10,7 +10,14 @@
   "baseLevel": 1,
   "baseExp": 0,
   "baseMaxHp": 100,
-  "baseData": { "str": 8, "dex": 13, "int": 3, "con": 7, "wis": 3, "luck": 10 },
+  "baseData": {
+    "str": 8,
+    "dex": 13,
+    "int": 3,
+    "con": 7,
+    "wis": 3,
+    "luck": 10
+  },
   "statFormula": "enemy",
   "groundRadius": 20,
   "collisionRadius": 20,
@@ -29,8 +36,8 @@
     "attackRange": 600,
     "engageRange": 900,
     "projectileSpeed": 600,
-    "attackAnimFps": 12,
-    "attackLaunchFrame": 11,
+    "attackAnimFps": 24.0,
+    "attackLaunchFrame": 21,
     "followOffset": 140,
     "followArriveDist": 40,
     "decisionMs": 120,
@@ -48,28 +55,73 @@
   "animations": {
     "idle": {
       "src": "assets/companions/hamster_scout/idle.png",
-      "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 4,
-      "frameCount": 6, "frames": [0, 5], "frameRate": 6, "repeat": -1
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 8,
+      "rows": 2,
+      "frameCount": 12,
+      "frames": [
+        0,
+        11
+      ],
+      "frameRate": 12.0,
+      "repeat": -1
     },
     "walk": {
       "src": "assets/companions/hamster_scout/running.png",
-      "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 4,
-      "frameCount": 13, "frames": [0, 12], "frameRate": 12, "repeat": -1
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 8,
+      "rows": 4,
+      "frameCount": 26,
+      "frames": [
+        0,
+        25
+      ],
+      "frameRate": 24.0,
+      "repeat": -1
     },
     "attack": {
       "src": "assets/companions/hamster_scout/attacking.png",
-      "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 4,
-      "frameCount": 18, "frames": [0, 17], "frameRate": 12, "repeat": 0
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 8,
+      "rows": 5,
+      "frameCount": 35,
+      "frames": [
+        0,
+        34
+      ],
+      "frameRate": 24.0,
+      "repeat": 0
     },
     "dying": {
       "src": "assets/companions/hamster_scout/dying.png",
-      "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 4,
-      "frameCount": 11, "frames": [0, 10], "frameRate": 12, "repeat": 0
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 8,
+      "rows": 3,
+      "frameCount": 21,
+      "frames": [
+        0,
+        20
+      ],
+      "frameRate": 24.0,
+      "repeat": 0
     },
     "projectile": {
       "src": "assets/companions/hamster_scout/projective.png",
-      "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 4,
-      "frameCount": 1, "frames": [0, 0], "frameRate": 1, "repeat": 0
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 8,
+      "rows": 4,
+      "frameCount": 1,
+      "frames": [
+        0,
+        0
+      ],
+      "frameRate": 1,
+      "repeat": 0
     }
   }
 }

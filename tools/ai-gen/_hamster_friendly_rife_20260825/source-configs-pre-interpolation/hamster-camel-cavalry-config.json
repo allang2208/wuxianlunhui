@@ -1,0 +1,67 @@
+{
+  "id": "hamster_camel_cavalry",
+  "name": "骆驼骑兵",
+  "title": "荒漠骆驼骑士",
+  "desc": "沙漠官邸训练的重装骆驼骑兵。生命、普通攻击和物理防御比仓鼠骑士提高15%，基础移动速度同为210。",
+  "role": "camel_cavalry",
+  "growthRule": "warrior",
+  "avatar": "🐹🐪",
+  "weaponType": "sword",
+  "baseLevel": 1,
+  "baseExp": 0,
+  "baseMaxHp": 690,
+  "baseDefenseMult": 1.15,
+  "baseData": { "str": 30, "dex": 15, "int": 5, "con": 20, "wis": 3, "luck": 5 },
+  "statFormula": "enemy",
+  "skills": [],
+  "sounds": {
+    "attack": "assets/sounds/friendly/hamster_melee_attack.mp3"
+  },
+  "ai": {
+    "role": "melee_camel_cavalry",
+    "walkSpeed": 210,
+    "runSpeed": 210,
+    "attackInterval": 2000,
+    "attackDamage": 115,
+    "attackRange": 55,
+    "engageRange": 900,
+    "attackAnimFps": 12,
+    "attackDamageFrame": 9,
+    "camelFrightRadius": 600,
+    "camelFrightRefreshMs": 200,
+    "camelFrightDurationMs": 350,
+    "followOffset": 155,
+    "followArriveDist": 40,
+    "decisionMs": 120,
+    "teleportDist": 999999,
+    "teleportHardDist": 9999999
+  },
+  "displaySize": 296.425121,
+  "spriteOffsetY": -129.7,
+  "render": {
+    "footOffsetY": 129.7,
+    "hudOffsetY": 190
+  },
+  "animations": {
+    "idle": {
+      "src": "assets/companions/camel_cavalry/idle.png",
+      "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 3,
+      "frameCount": 24, "frames": [0, 23], "frameRate": 12, "repeat": -1
+    },
+    "walk": {
+      "src": "assets/companions/camel_cavalry/walking.png",
+      "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 2,
+      "frameCount": 16, "frames": [0, 15], "frameRate": 12, "repeat": -1
+    },
+    "attack": {
+      "src": "assets/companions/camel_cavalry/attacking.png",
+      "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 2,
+      "frameCount": 16, "frames": [0, 15], "frameRate": 12, "repeat": 0
+    },
+    "dying": {
+      "src": "assets/companions/camel_cavalry/dying.png",
+      "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 2,
+      "frameCount": 16, "frames": [0, 15], "frameRate": 12, "repeat": 0
+    }
+  }
+}

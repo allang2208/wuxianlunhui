@@ -44,26 +44,28 @@ check('攻击间隔 = 2000ms / 伤害 = 60 物理', shooterCfg.ai.attackInterval
 check('远程配置：射程 600 / 交战 900 / 弹速 600',
     shooterCfg.ai.attackRange === 600 && shooterCfg.ai.engageRange === 900
     && shooterCfg.ai.projectileSpeed === 600);
-check('第 10 帧出膛：延迟 = (10-1)/12fps = 750ms < 2s 间隔',
-    shooterCfg.ai.attackLaunchFrame === 10 && shooterCfg.ai.attackAnimFps === 12
+check('插帧后第 19 帧出膛：延迟 = (19-1)/24fps = 750ms < 2s 间隔',
+    shooterCfg.ai.attackLaunchFrame === 19 && shooterCfg.ai.attackAnimFps === 24
     && Math.abs((shooterCfg.ai.attackLaunchFrame - 1) / shooterCfg.ai.attackAnimFps * 1000
         - 750) < 1e-6);
 check('idle 动画 = 1 帧', shooterCfg.animations.idle.frameCount === 1
     && shooterCfg.animations.idle.frames[0] === 0);
-check('walk（移动）动画 = 11 帧 [1,10] 循环', shooterCfg.animations.walk.frameCount === 11
-    && shooterCfg.animations.walk.frames[0] === 1 && shooterCfg.animations.walk.frames[1] === 10
+check('walk 插帧后 = 22 帧，播放 [2,21] @24fps 循环', shooterCfg.animations.walk.frameCount === 22
+    && shooterCfg.animations.walk.frames[0] === 2 && shooterCfg.animations.walk.frames[1] === 21
+    && shooterCfg.animations.walk.frameRate === 24
     && shooterCfg.animations.walk.repeat === -1);
-check('attack 动画 = 13 帧 [0,12] 单次 @12fps',
-    shooterCfg.animations.attack.frameCount === 13
-    && shooterCfg.animations.attack.frames[0] === 0 && shooterCfg.animations.attack.frames[1] === 12
-    && shooterCfg.animations.attack.frameRate === 12 && shooterCfg.animations.attack.repeat === 0);
-check('dying 动画 = 10 个有效帧 [0,9]，只播一次', shooterCfg.animations.dying.frameCount === 10
-    && shooterCfg.animations.dying.frames[0] === 0 && shooterCfg.animations.dying.frames[1] === 9
+check('attack 插帧后 = 25 帧 [0,24] 单次 @24fps',
+    shooterCfg.animations.attack.frameCount === 25
+    && shooterCfg.animations.attack.frames[0] === 0 && shooterCfg.animations.attack.frames[1] === 24
+    && shooterCfg.animations.attack.frameRate === 24 && shooterCfg.animations.attack.repeat === 0);
+check('dying 插帧后 = 19 帧 [0,18]，只播一次', shooterCfg.animations.dying.frameCount === 19
+    && shooterCfg.animations.dying.frames[0] === 0 && shooterCfg.animations.dying.frames[1] === 18
+    && shooterCfg.animations.dying.frameRate === 24
     && shooterCfg.animations.dying.repeat === 0);
 check('projectile 贴图 = 1 帧', shooterCfg.animations.projectile.frameCount === 1
     && shooterCfg.animations.projectile.frames[0] === 0);
-check('帧布局 512×512 / 8列4行', Object.values(shooterCfg.animations).every(a =>
-    a.frameWidth === 512 && a.frameHeight === 512 && a.cols === 8 && a.rows === 4));
+check('帧布局保持 512×512 / 8列', Object.values(shooterCfg.animations).every(a =>
+    a.frameWidth === 512 && a.frameHeight === 512 && a.cols === 8));
 
 // ---- 2. 源码接线：AI 远程提前量 / 只打敌人 / 不攻击矿点 ----
 const aiSrc = fs.readFileSync(path.join(ROOT, 'src/ai/hamster-shooter-ai.js'), 'utf-8');

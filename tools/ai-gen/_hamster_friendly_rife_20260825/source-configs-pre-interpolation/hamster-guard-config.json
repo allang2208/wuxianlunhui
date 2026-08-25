@@ -1,0 +1,69 @@
+{
+  "id": "hamster_guard",
+  "name": "仓鼠盾卫",
+  "title": "基地近战盾卫",
+  "desc": "手持盾牌的仓鼠盾卫，在世界-122 自动寻找最近的敌人近战输出，攻击动画第 10 帧判定伤害，帮助玩家防守基地。",
+  "role": "guard",
+  "growthRule": "warrior",
+  "avatar": "🐹🛡️",
+  "weaponType": "shield",
+  "baseLevel": 1,
+  "baseExp": 0,
+  "baseMaxHp": 300,
+  "baseData": { "str": 13, "dex": 10, "int": 3, "con": 25, "wis": 3, "luck": 3 },
+  "statFormula": "enemy",
+  "groundRadius": 20,
+  "collisionRadius": 20,
+  "bodyHeight": 100,
+  "size": 64,
+  "skills": [],
+  "sounds": {
+    "attack": "assets/sounds/friendly/hamster_melee_attack.mp3"
+  },
+  "ai": {
+    "role": "melee_guard",
+    "walkSpeed": 100,
+    "runSpeed": 100,
+    "attackInterval": 2000,
+    "attackDamage": 30,
+    "attackRange": 55,
+    "engageRange": 900,
+    "attackAnimFps": 12,
+    "attackDamageFrame": 10,
+    "followOffset": 140,
+    "followArriveDist": 40,
+    "decisionMs": 120,
+    "teleportDist": 999999,
+    "teleportHardDist": 9999999
+  },
+  "displaySize": 220.170455,
+  "spriteOffsetY": -43.862083,
+  "render": {
+    "footOffsetY": 43.862083,
+    "hudOffsetY": 119,
+    "collisionWidth": 40,
+    "collisionHeight": 100
+  },
+  "animations": {
+    "idle": {
+      "src": "assets/companions/hamster_guard/idle.png",
+      "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 4,
+      "frameCount": 1, "frames": [0, 0], "frameRate": 1, "repeat": -1
+    },
+    "walk": {
+      "src": "assets/companions/hamster_guard/running.png",
+      "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 4,
+      "frameCount": 17, "frames": [0, 16], "frameRate": 12, "repeat": -1
+    },
+    "attack": {
+      "src": "assets/companions/hamster_guard/attacking.png",
+      "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 4,
+      "frameCount": 12, "frames": [0, 11], "frameRate": 12, "repeat": 0
+    },
+    "dying": {
+      "src": "assets/companions/hamster_guard/dying.png",
+      "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 4,
+      "frameCount": 15, "frames": [0, 14], "frameRate": 12, "repeat": 0
+    }
+  }
+}

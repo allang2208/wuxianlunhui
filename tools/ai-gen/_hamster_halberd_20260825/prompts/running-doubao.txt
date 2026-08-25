@@ -1,0 +1,11 @@
+The exact armored hamster halberdier from the first frame performs one complete energetic running cycle in place toward the right. He transitions naturally from the starting guard into a forward-leaning armored run, carries the same long Chinese ji halberd in a stable two-handed diagonal position close to the body, completes a clear alternating left-right foot cycle, and returns to the exact starting guard pose at the end.
+
+Motion physics: compact powerful strides appropriate for a small armored hamster; knees lift and compress, feet alternate cleanly on one fixed ground baseline, hips and shoulders counter-rotate subtly, armor plates respond with restrained weight, and the deep crimson plume trails and rebounds naturally. The root remains fixed for a sprite animation: no travel across the canvas, no skating, floating, hopping in place with both feet together, or treadmill sliding. Keep the long halberd rigid and controlled; its blade, hook and butt cap stay fully visible and never cross the frame edges.
+
+Identity locks: preserve the exact hamster face, proportions, golden-brown cheek fur, fully enclosed steel ear housings, cold-gray plate armor, dark red cloth, helmet plume, both hands and exactly one Chinese ji halberd. The ears remain completely covered throughout.
+
+Camera and framing: static locked orthographic low three-quarter view facing right, no pan, zoom, tilt, crop, reframing or tracking. Same subject scale and center, generous margins, pure white background and soft diffuse light; no floor line, shadow, scenery, particles or text.
+
+Loop: one natural gait cycle ending in the exact same pose, position, scale, orientation and motion phase as the first frame, with no freeze or snap.
+
+Avoid: exposed ears, extra limbs, hand or weapon fusion, weapon duplication, bent shaft, changing armor, identity drift, root drift, foot sliding, camera motion, cropping, silhouette-erasing blur, cuts, text, logo or watermark.

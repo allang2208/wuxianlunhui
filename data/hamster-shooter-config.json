@@ -10,7 +10,14 @@
   "baseLevel": 1,
   "baseExp": 0,
   "baseMaxHp": 150,
-  "baseData": { "str": 12, "dex": 20, "int": 3, "con": 10, "wis": 3, "luck": 10 },
+  "baseData": {
+    "str": 12,
+    "dex": 20,
+    "int": 3,
+    "con": 10,
+    "wis": 3,
+    "luck": 10
+  },
   "statFormula": "enemy",
   "groundRadius": 20,
   "collisionRadius": 20,
@@ -29,8 +36,8 @@
     "attackRange": 600,
     "engageRange": 900,
     "projectileSpeed": 600,
-    "attackAnimFps": 12,
-    "attackLaunchFrame": 10,
+    "attackAnimFps": 24.0,
+    "attackLaunchFrame": 19,
     "followOffset": 140,
     "followArriveDist": 40,
     "decisionMs": 120,
@@ -48,28 +55,73 @@
   "animations": {
     "idle": {
       "src": "assets/companions/hamster_shooter/idle.png",
-      "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 4,
-      "frameCount": 1, "frames": [0, 0], "frameRate": 1, "repeat": -1
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 8,
+      "rows": 4,
+      "frameCount": 1,
+      "frames": [
+        0,
+        0
+      ],
+      "frameRate": 1,
+      "repeat": -1
     },
     "walk": {
       "src": "assets/companions/hamster_shooter/running.png",
-      "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 4,
-      "frameCount": 11, "frames": [1, 10], "frameRate": 12, "repeat": -1
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 8,
+      "rows": 3,
+      "frameCount": 22,
+      "frames": [
+        2,
+        21
+      ],
+      "frameRate": 24.0,
+      "repeat": -1
     },
     "attack": {
       "src": "assets/companions/hamster_shooter/attacking.png",
-      "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 4,
-      "frameCount": 13, "frames": [0, 12], "frameRate": 12, "repeat": 0
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 8,
+      "rows": 4,
+      "frameCount": 25,
+      "frames": [
+        0,
+        24
+      ],
+      "frameRate": 24.0,
+      "repeat": 0
     },
     "dying": {
       "src": "assets/companions/hamster_shooter/dying.png",
-      "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 4,
-      "frameCount": 10, "frames": [0, 9], "frameRate": 12, "repeat": 0
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 8,
+      "rows": 3,
+      "frameCount": 19,
+      "frames": [
+        0,
+        18
+      ],
+      "frameRate": 24.0,
+      "repeat": 0
     },
     "projectile": {
       "src": "assets/companions/hamster_shooter/projective.png",
-      "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 4,
-      "frameCount": 1, "frames": [0, 0], "frameRate": 1, "repeat": 0
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 8,
+      "rows": 4,
+      "frameCount": 1,
+      "frames": [
+        0,
+        0
+      ],
+      "frameRate": 1,
+      "repeat": 0
     }
   }
 }

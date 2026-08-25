@@ -313,6 +313,11 @@ SDXL 的 style_prefix + 单件强制语法）→ BiRefNet 抠图 → 1536² 归�
 
 提示词模板：`prompts/monster-sprite.md`；统一基准图 + 同首帧 img2video 保证跨动作一致；
 入库前过 `tools/sprite-normalizer.py`（内容高 477px、脚底基线 y=492、帧尺寸严格）。
+所有怪物/友军角色逐帧表在关键姿态验收后，还必须过
+`tools/ai-gen/rife-spritesheet-interpolate.py` 的 2× RIFE 门禁：循环含尾首缝、一次性动作禁回绕，
+帧率同步×2保持墙钟不变；报告须满足无空帧、透明区 RGB 为零、偶数位关键帧保真且
+`visibleDarkOutlierFrames={}`。长武器只决定格宽，不参与主体缩放；具体映射见
+`skill/02-ai-asset-pipeline.md`“新增怪物/友军正式动画强制门禁”。
 
 ### 3.5 投射物贴图
 

@@ -1,0 +1,21 @@
+Use case: stylized-concept
+Asset type: production identity mother frame for a Phaser game friendly-unit animation pipeline
+Input image: style, camera angle, scale, and anthropomorphic hamster proportion reference only; do not copy its clothing, pitchfork, or exact pose.
+
+Primary request: Create exactly one adult anthropomorphic golden hamster halberdier, fully dressed in practical medieval armor and holding one long Chinese ji halberd, as a production-ready game-unit identity mother image.
+
+Subject identity: golden-brown and cream hamster fur; round hamster ears, glossy dark eyes, short muzzle and visible whiskers; compact believable hamster body. Practical cold-gray articulated plate armor over fine chainmail, dark red padded cloth and waist sash, brown leather straps and boots, restrained brass fittings. Exactly one long Chinese ji halberd with a straight dark wooden shaft, steel spear point, one readable crescent side blade and a small opposite hook; no fantasy glow.
+
+Anatomy and materials: physically plausible anthropomorphic biped anatomy, correct hands and feet, believable weight distribution; detailed layered fur, brushed steel with mild wear, fine chain links, woven cloth, worn leather and polished wood; realistic roughness and restrained color variation, no toy-like plastic.
+
+Style and medium: high-detail realistic PBR 3D game render, grounded dark-fantasy production-asset polish, controlled saturation, clean readable silhouette; not a photograph and not a cartoon illustration.
+
+Pose: calm animation-friendly neutral guard stance, low three-quarter view facing right; both feet planted on one baseline, knees relaxed, torso upright; both hands naturally grip the halberd shaft in front of the body, halberd held mostly vertical with a slight diagonal so the full blade and butt cap remain clearly separated from the silhouette; calm alert expression.
+
+Composition and camera: orthographic-style locked low three-quarter camera matching the reference; complete single subject; full armor, both feet, tail if visible, and the entire halberd including blade and butt cap inside frame; hamster body about 50% of canvas height and full weapon no more than 72% of canvas height; centered with generous safe margins on every side; no cropping.
+
+Scene and lighting: flat pure white #FFFFFF background, no horizon or floor, soft flat diffuse studio light only, no directional shadow.
+
+Identity locks: exactly one hamster, exactly one halberd, full silhouette, clean edges, no shield, no secondary weapon.
+
+Avoid: extra or missing limbs or fingers, duplicated weapon parts, fork or trident, spear-only weapon, oversized weapon hiding the body, broken or fused hands, cropped blade or feet, front or top view, strong perspective, cinematic lighting, rim halo, cast shadow, reflection, scenery, particles, text, logo, watermark, anime, chibi, flat illustration, low-poly toy, glossy plastic.

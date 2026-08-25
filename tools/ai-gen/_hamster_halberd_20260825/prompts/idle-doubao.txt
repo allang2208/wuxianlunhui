@@ -1,0 +1,11 @@
+The exact armored hamster halberdier from the first frame performs a calm idle cycle in place. He remains in the same neutral guard stance facing right, with both feet planted on the same baseline and both hands maintaining the same secure grip on the upright Chinese ji halberd.
+
+Motion: subtle believable breathing through the chest and shoulders, a very small relaxed weight shift, slight whisker movement, and a restrained secondary sway of the deep crimson helmet plume. The heavy armor and long halberd have realistic inertia and remain controlled. The halberd blade, shaft, butt cap, helmet, enclosed steel ear guards, face, hands, feet and full silhouette remain visible at all times. No step, no attack, no weapon flourish.
+
+Identity locks: preserve the exact hamster face, eye, muzzle, cheek fur, proportions, closed armored ear housings, cold-gray plate armor, dark red cloth, feather crest, one Chinese ji halberd and all material details. The ears remain completely enclosed and never appear through the helmet.
+
+Camera and framing: static locked orthographic low three-quarter view, no camera motion, zoom, crop, reframing or tracking. Keep the character centered at the same scale with generous white margins. Pure white background, soft flat diffuse light, no floor line, cast shadow, reflection, scenery, particles or text.
+
+Loop: complete one natural idle cycle and return to the exact starting pose, root position, scale, weapon orientation and motion phase without freezing, snapping or slowing artificially.
+
+Avoid: exposed ears, identity drift, extra or broken limbs, changing armor or weapon, loose hands, shaft bending, duplicated blade, foot sliding, root drift, morphing, motion blur, cuts, dramatic lighting, text, logo or watermark.

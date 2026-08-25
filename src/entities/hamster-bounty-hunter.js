@@ -42,8 +42,8 @@ export class HamsterBountyHunter extends HamsterMusketeer {
     _startDying() {
         super._startDying();
         const dying = this.animations?.dying || {};
-        const frames = Math.max(1, Number(dying.frameCount) || 11);
-        const fps = Math.max(1, Number(dying.frameRate) || 12);
+        const frames = Math.max(1, Number(dying.frameCount) || 21);
+        const fps = Math.max(1, Number(dying.frameRate) || 24);
         this._deathTimer = frames / fps * 1000 + 60;
     }
 }

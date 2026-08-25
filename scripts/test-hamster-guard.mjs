@@ -51,25 +51,27 @@ check('派生数值挂钩：暴抗 = floor(25×1) = 25（怪物公式）',
 check('移动速度 = 100', guardCfg.ai.walkSpeed === 100 && guardCfg.ai.runSpeed === 100,
     `walkSpeed=${guardCfg.ai.walkSpeed}`);
 check('攻击间隔 = 2000ms / 伤害 = 30', guardCfg.ai.attackInterval === 2000 && guardCfg.ai.attackDamage === 30);
-check('攻击第 10 帧判定伤害：attackDamageFrame=10 / attackAnimFps=12 → 延迟 750ms',
-    guardCfg.ai.attackDamageFrame === 10 && guardCfg.ai.attackAnimFps === 12
+check('插帧后第19帧判定伤害：attackDamageFrame=19 / attackAnimFps=24 → 延迟750ms',
+    guardCfg.ai.attackDamageFrame === 19 && guardCfg.ai.attackAnimFps === 24
     && Math.abs((guardCfg.ai.attackDamageFrame - 1) / guardCfg.ai.attackAnimFps * 1000 - 750) < 1e-6);
 check('近战攻击距离 / 交战半径配置存在',
     typeof guardCfg.ai.attackRange === 'number' && typeof guardCfg.ai.engageRange === 'number');
 check('idle 动画 = 1 帧', guardCfg.animations.idle.frameCount === 1
     && guardCfg.animations.idle.frames[0] === 0);
-check('walk（移动）动画 = 17 帧 [0,16] 循环', guardCfg.animations.walk.frameCount === 17
-    && guardCfg.animations.walk.frames[0] === 0 && guardCfg.animations.walk.frames[1] === 16
+check('walk 插帧后 = 34 帧 [0,33] @24fps 循环', guardCfg.animations.walk.frameCount === 34
+    && guardCfg.animations.walk.frames[0] === 0 && guardCfg.animations.walk.frames[1] === 33
+    && guardCfg.animations.walk.frameRate === 24
     && guardCfg.animations.walk.repeat === -1);
-check('attack 动画 = 12 帧 [0,11]，单次播放（repeat 0）@12fps = 1.0s',
-    guardCfg.animations.attack.frameCount === 12
-    && guardCfg.animations.attack.frames[0] === 0 && guardCfg.animations.attack.frames[1] === 11
-    && guardCfg.animations.attack.frameRate === 12 && guardCfg.animations.attack.repeat === 0);
-check('dying 动画 = 15 帧 [0,14]，只播一次', guardCfg.animations.dying.frameCount === 15
-    && guardCfg.animations.dying.frames[0] === 0 && guardCfg.animations.dying.frames[1] === 14
+check('attack 插帧后 = 23 帧 [0,22]，单次 @24fps',
+    guardCfg.animations.attack.frameCount === 23
+    && guardCfg.animations.attack.frames[0] === 0 && guardCfg.animations.attack.frames[1] === 22
+    && guardCfg.animations.attack.frameRate === 24 && guardCfg.animations.attack.repeat === 0);
+check('dying 插帧后 = 29 帧 [0,28]，只播一次', guardCfg.animations.dying.frameCount === 29
+    && guardCfg.animations.dying.frames[0] === 0 && guardCfg.animations.dying.frames[1] === 28
+    && guardCfg.animations.dying.frameRate === 24
     && guardCfg.animations.dying.repeat === 0);
-check('帧布局 512×512 / 8列4行', Object.values(guardCfg.animations).every(a =>
-    a.frameWidth === 512 && a.frameHeight === 512 && a.cols === 8 && a.rows === 4));
+check('帧布局保持 512×512 / 8列', Object.values(guardCfg.animations).every(a =>
+    a.frameWidth === 512 && a.frameHeight === 512 && a.cols === 8));
 check('素材帧脚底非 480，带 spriteOffsetY 补偿',
     typeof guardCfg.spriteOffsetY === 'number' && guardCfg.spriteOffsetY < 0);
 

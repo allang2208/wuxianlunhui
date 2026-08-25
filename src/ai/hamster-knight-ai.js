@@ -28,9 +28,9 @@ export class HamsterKnightAI {
 
         const attack = knight.animations?.attack || {};
         const attackFps = this.cfg.attackAnimFps ?? attack.frameRate ?? 12;
-        const attackFrame = this.cfg.attackDamageFrame ?? 16;
+        const attackFrame = this.cfg.attackDamageFrame ?? 31;
         this._attackHitDelay = Math.max(0, (attackFrame - 1) / attackFps * 1000);
-        this._attackAnimMs = (attack.frameCount ?? 31) / attackFps * 1000 + 60;
+        this._attackAnimMs = (attack.frameCount ?? 61) / attackFps * 1000 + 60;
         this._swingActive = false;
         this._swingHitLeft = 0;
         this._swingAnimLeft = 0;
@@ -326,9 +326,9 @@ export class HamsterKnightAI {
             }
         }
 
-        const fps = cfg.frameRate ?? 12;
-        const hitStart = ((cfg.hitStartFrame ?? 15) - 1) / fps * 1000;
-        const hitEnd = (cfg.hitEndFrame ?? 22) / fps * 1000;
+        const fps = cfg.frameRate ?? 24;
+        const hitStart = ((cfg.hitStartFrame ?? 29) - 1) / fps * 1000;
+        const hitEnd = (cfg.hitEndFrame ?? 44) / fps * 1000;
         const inHitWindow = this._chargeElapsed >= hitStart && this._chargeElapsed <= hitEnd;
         if (!this._chargeDamaged && inHitWindow && this._validEnemy(target) && this._inRange(target, cfg.hitRange ?? 60)) {
             this._chargeDamaged = true;

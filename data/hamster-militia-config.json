@@ -10,7 +10,14 @@
   "baseLevel": 1,
   "baseExp": 0,
   "baseMaxHp": 125,
-  "baseData": { "str": 8, "dex": 10, "int": 3, "con": 6, "wis": 3, "luck": 7 },
+  "baseData": {
+    "str": 8,
+    "dex": 10,
+    "int": 3,
+    "con": 6,
+    "wis": 3,
+    "luck": 7
+  },
   "statFormula": "enemy",
   "groundRadius": 20,
   "collisionRadius": 20,
@@ -28,8 +35,8 @@
     "attackDamage": 20,
     "attackRange": 55,
     "engageRange": 900,
-    "attackAnimFps": 12,
-    "attackDamageFrame": 8,
+    "attackAnimFps": 24.0,
+    "attackDamageFrame": 15,
     "followOffset": 140,
     "followArriveDist": 40,
     "decisionMs": 120,
@@ -46,24 +53,60 @@
   },
   "animations": {
     "idle": {
-      "src": "assets/companions/hamster_militia/idle.png",
-      "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 3,
-      "frameCount": 24, "frames": [0, 23], "frameRate": 12, "repeat": -1
+      "src": "assets/companions/hamster_militia/idle_rife.png",
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 8,
+      "rows": 6,
+      "frameCount": 48,
+      "frames": [
+        0,
+        47
+      ],
+      "frameRate": 24.0,
+      "repeat": -1
     },
     "walk": {
-      "src": "assets/companions/hamster_militia/running.png",
-      "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 4,
-      "frameCount": 12, "frames": [0, 11], "frameRate": 12, "repeat": -1
+      "src": "assets/companions/hamster_militia/running_rife.png",
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 8,
+      "rows": 3,
+      "frameCount": 24,
+      "frames": [
+        0,
+        23
+      ],
+      "frameRate": 24.0,
+      "repeat": -1
     },
     "attack": {
-      "src": "assets/companions/hamster_militia/attacking.png",
-      "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 4,
-      "frameCount": 15, "frames": [0, 14], "frameRate": 12, "repeat": 0
+      "src": "assets/companions/hamster_militia/attacking_rife.png",
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 8,
+      "rows": 4,
+      "frameCount": 29,
+      "frames": [
+        0,
+        28
+      ],
+      "frameRate": 24.0,
+      "repeat": 0
     },
     "dying": {
-      "src": "assets/companions/hamster_militia/dying.png",
-      "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 4,
-      "frameCount": 14, "frames": [0, 13], "frameRate": 12, "repeat": 0
+      "src": "assets/companions/hamster_militia/dying_rife.png",
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 8,
+      "rows": 4,
+      "frameCount": 27,
+      "frames": [
+        0,
+        26
+      ],
+      "frameRate": 24.0,
+      "repeat": 0
     }
   }
 }

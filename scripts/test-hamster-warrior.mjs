@@ -44,29 +44,31 @@ check('近战攻击距离 / 交战半径配置存在',
     typeof warriorCfg.ai.attackRange === 'number' && typeof warriorCfg.ai.engageRange === 'number');
 check('idle 动画 = 1 帧', warriorCfg.animations.idle.frameCount === 1
     && warriorCfg.animations.idle.frames[0] === 0);
-check('walk（移动）动画 = 15 帧 [0,14] 循环', warriorCfg.animations.walk.frameCount === 15
-    && warriorCfg.animations.walk.frames[0] === 0 && warriorCfg.animations.walk.frames[1] === 14
+check('walk（移动）动画插帧后 = 30 帧 [0,29] @24fps 循环', warriorCfg.animations.walk.frameCount === 30
+    && warriorCfg.animations.walk.frames[0] === 0 && warriorCfg.animations.walk.frames[1] === 29
+    && warriorCfg.animations.walk.frameRate === 24
     && warriorCfg.animations.walk.repeat === -1);
-check('attack 动画 = 24 帧，两段式：起步完整 [0,23] 播一次 → 第 6~24 帧 [5,23] 循环',
-    warriorCfg.animations.attack.frameCount === 24
-    && warriorCfg.animations.attack.startFrames[0] === 0 && warriorCfg.animations.attack.startFrames[1] === 23
+check('attack 插帧后 = 48 帧，两段式：起步 [0,46] → 循环 [10,47]',
+    warriorCfg.animations.attack.frameCount === 48
+    && warriorCfg.animations.attack.startFrames[0] === 0 && warriorCfg.animations.attack.startFrames[1] === 46
     && warriorCfg.animations.attack.startRepeat === 0
-    && warriorCfg.animations.attack.loopFrames[0] === 5 && warriorCfg.animations.attack.loopFrames[1] === 23
+    && warriorCfg.animations.attack.loopFrames[0] === 10 && warriorCfg.animations.attack.loopFrames[1] === 47
     && warriorCfg.animations.attack.repeat === -1);
-check('attack 动画与 2s 攻击间隔对齐：完整 24 帧 @12fps = 2.0s、循环 19 帧 @9.5fps = 2.0s',
-    warriorCfg.animations.attack.startFrameRate === 12
-    && warriorCfg.animations.attack.frameRate === 9.5
-    && Math.abs(24 / warriorCfg.animations.attack.startFrameRate
+check('attack 插帧与 2s 间隔对齐：起步 48采样位 @24fps、循环38帧 @19fps',
+    warriorCfg.animations.attack.startFrameRate === 24
+    && warriorCfg.animations.attack.frameRate === 19
+    && Math.abs(48 / warriorCfg.animations.attack.startFrameRate
         - warriorCfg.ai.attackInterval / 1000) < 1e-6
     && Math.abs((warriorCfg.animations.attack.loopFrames[1] - warriorCfg.animations.attack.loopFrames[0] + 1)
         / warriorCfg.animations.attack.frameRate
         - warriorCfg.ai.attackInterval / 1000) < 1e-6,
-    `start=${24 / warriorCfg.animations.attack.startFrameRate}s loop=${(warriorCfg.animations.attack.loopFrames[1] - warriorCfg.animations.attack.loopFrames[0] + 1) / warriorCfg.animations.attack.frameRate}s interval=${warriorCfg.ai.attackInterval / 1000}s`);
-check('dying 动画 = 12 帧 [0,11]，只播一次', warriorCfg.animations.dying.frameCount === 12
-    && warriorCfg.animations.dying.frames[0] === 0 && warriorCfg.animations.dying.frames[1] === 11
+    `start=${48 / warriorCfg.animations.attack.startFrameRate}s loop=${(warriorCfg.animations.attack.loopFrames[1] - warriorCfg.animations.attack.loopFrames[0] + 1) / warriorCfg.animations.attack.frameRate}s interval=${warriorCfg.ai.attackInterval / 1000}s`);
+check('dying 插帧后 = 23 帧 [0,22] @24fps，只播一次', warriorCfg.animations.dying.frameCount === 23
+    && warriorCfg.animations.dying.frames[0] === 0 && warriorCfg.animations.dying.frames[1] === 22
+    && warriorCfg.animations.dying.frameRate === 24
     && warriorCfg.animations.dying.repeat === 0);
-check('帧布局 512×512 / 8列4行', Object.values(warriorCfg.animations).every(a =>
-    a.frameWidth === 512 && a.frameHeight === 512 && a.cols === 8 && a.rows === 4));
+check('帧布局保持 512×512 / 8列，行数按插帧后有效帧扩展', Object.values(warriorCfg.animations).every(a =>
+    a.frameWidth === 512 && a.frameHeight === 512 && a.cols === 8));
 check('素材帧脚底非 480，带 spriteOffsetY 补偿',
     typeof warriorCfg.spriteOffsetY === 'number' && warriorCfg.spriteOffsetY < 0);
 

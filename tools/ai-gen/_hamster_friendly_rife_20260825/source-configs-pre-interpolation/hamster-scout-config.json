@@ -1,0 +1,75 @@
+{
+  "id": "hamster_scout",
+  "name": "仓鼠斥候",
+  "title": "基地远程斥候",
+  "desc": "手持短弓的仓鼠斥候，在世界-122 自动寻找最近的敌人远程输出，瞄准目标贴图中心并带提前量预判，攻击动画第 11 帧发射投射物，帮助玩家防守基地。",
+  "role": "scout",
+  "growthRule": "ranger",
+  "avatar": "🐹🎯",
+  "weaponType": "bow",
+  "baseLevel": 1,
+  "baseExp": 0,
+  "baseMaxHp": 100,
+  "baseData": { "str": 8, "dex": 13, "int": 3, "con": 7, "wis": 3, "luck": 10 },
+  "statFormula": "enemy",
+  "groundRadius": 20,
+  "collisionRadius": 20,
+  "bodyHeight": 100,
+  "size": 64,
+  "skills": [],
+  "sounds": {
+    "attack": "assets/sounds/friendly/hamster_shooter_attack.mp3"
+  },
+  "ai": {
+    "role": "ranged_scout",
+    "walkSpeed": 150,
+    "runSpeed": 150,
+    "attackInterval": 2500,
+    "attackDamage": 25,
+    "attackRange": 600,
+    "engageRange": 900,
+    "projectileSpeed": 600,
+    "attackAnimFps": 12,
+    "attackLaunchFrame": 11,
+    "followOffset": 140,
+    "followArriveDist": 40,
+    "decisionMs": 120,
+    "teleportDist": 999999,
+    "teleportHardDist": 9999999
+  },
+  "displaySize": 460,
+  "spriteOffsetY": -23,
+  "render": {
+    "footOffsetY": 23,
+    "hudOffsetY": 119,
+    "collisionWidth": 40,
+    "collisionHeight": 100
+  },
+  "animations": {
+    "idle": {
+      "src": "assets/companions/hamster_scout/idle.png",
+      "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 4,
+      "frameCount": 6, "frames": [0, 5], "frameRate": 6, "repeat": -1
+    },
+    "walk": {
+      "src": "assets/companions/hamster_scout/running.png",
+      "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 4,
+      "frameCount": 13, "frames": [0, 12], "frameRate": 12, "repeat": -1
+    },
+    "attack": {
+      "src": "assets/companions/hamster_scout/attacking.png",
+      "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 4,
+      "frameCount": 18, "frames": [0, 17], "frameRate": 12, "repeat": 0
+    },
+    "dying": {
+      "src": "assets/companions/hamster_scout/dying.png",
+      "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 4,
+      "frameCount": 11, "frames": [0, 10], "frameRate": 12, "repeat": 0
+    },
+    "projectile": {
+      "src": "assets/companions/hamster_scout/projective.png",
+      "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 4,
+      "frameCount": 1, "frames": [0, 0], "frameRate": 1, "repeat": 0
+    }
+  }
+}

@@ -1,0 +1,12 @@
+Use case: precise-object-edit
+Asset type: production identity mother frame for a Phaser game friendly-unit animation pipeline
+
+Primary request: Add one practical medieval open-face helmet to the hamster halberdier. The helmet must match the existing cold-gray worn plate armor: a compact rounded steel skull cap with a reinforced brow, short rear neck guard, small articulated cheek guards, restrained brass rivets, and two carefully fitted openings that allow the hamster ears to remain naturally visible. No plume, crest, horns, crown, visor, mask, or fantasy glow.
+
+Change only: add the helmet and the physically necessary contact/occlusion around the head fur and ears.
+
+Preserve exactly: the same hamster identity and face, visible glossy eyes, muzzle, whiskers, ear shapes and golden-brown fur; the complete armor below the neck; both hands and their grip; the exact Chinese ji halberd; the neutral guard pose; body proportions; camera angle; subject scale and position; generous safety margins; pure white background; soft diffuse lighting.
+
+Constraints: exactly one hamster, one helmet, and one halberd; helmet must sit securely and plausibly on the head without enlarging or deforming it; face remains fully readable; complete silhouette remains inside the frame.
+
+Avoid: identity drift, closed visor, face covering, hidden ears, oversized helmet, samurai helmet, Roman crest, Viking horns, plume, crown, hood, extra armor, extra weapons, changed pose, changed framing, cropping, cast shadow, scenery, text, logo, watermark.

@@ -10,7 +10,14 @@
   "baseLevel": 1,
   "baseExp": 0,
   "baseMaxHp": 300,
-  "baseData": { "str": 13, "dex": 10, "int": 3, "con": 25, "wis": 3, "luck": 3 },
+  "baseData": {
+    "str": 13,
+    "dex": 10,
+    "int": 3,
+    "con": 25,
+    "wis": 3,
+    "luck": 3
+  },
   "statFormula": "enemy",
   "groundRadius": 20,
   "collisionRadius": 20,
@@ -28,8 +35,8 @@
     "attackDamage": 30,
     "attackRange": 55,
     "engageRange": 900,
-    "attackAnimFps": 12,
-    "attackDamageFrame": 10,
+    "attackAnimFps": 24.0,
+    "attackDamageFrame": 19,
     "followOffset": 140,
     "followArriveDist": 40,
     "decisionMs": 120,
@@ -47,23 +54,59 @@
   "animations": {
     "idle": {
       "src": "assets/companions/hamster_guard/idle.png",
-      "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 4,
-      "frameCount": 1, "frames": [0, 0], "frameRate": 1, "repeat": -1
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 8,
+      "rows": 4,
+      "frameCount": 1,
+      "frames": [
+        0,
+        0
+      ],
+      "frameRate": 1,
+      "repeat": -1
     },
     "walk": {
-      "src": "assets/companions/hamster_guard/running.png",
-      "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 4,
-      "frameCount": 17, "frames": [0, 16], "frameRate": 12, "repeat": -1
+      "src": "assets/companions/hamster_guard/running_rife.png",
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 8,
+      "rows": 5,
+      "frameCount": 34,
+      "frames": [
+        0,
+        33
+      ],
+      "frameRate": 24.0,
+      "repeat": -1
     },
     "attack": {
-      "src": "assets/companions/hamster_guard/attacking.png",
-      "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 4,
-      "frameCount": 12, "frames": [0, 11], "frameRate": 12, "repeat": 0
+      "src": "assets/companions/hamster_guard/attacking_rife.png",
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 8,
+      "rows": 3,
+      "frameCount": 23,
+      "frames": [
+        0,
+        22
+      ],
+      "frameRate": 24.0,
+      "repeat": 0
     },
     "dying": {
-      "src": "assets/companions/hamster_guard/dying.png",
-      "frameWidth": 512, "frameHeight": 512, "cols": 8, "rows": 4,
-      "frameCount": 15, "frames": [0, 14], "frameRate": 12, "repeat": 0
+      "src": "assets/companions/hamster_guard/dying_rife.png",
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 8,
+      "rows": 4,
+      "frameCount": 29,
+      "frames": [
+        0,
+        28
+      ],
+      "frameRate": 24.0,
+      "repeat": 0
     }
   }
 }

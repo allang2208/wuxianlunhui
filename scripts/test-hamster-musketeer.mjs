@@ -25,12 +25,12 @@ check('生命150与六维配置', unit.maxHp === 150
 check('怪物公式派生数值', unit.data.atk === 19 && unit.data.def === 20
     && unit.data.matk === 3 && unit.data.mdef === 4
     && unit.data.crit === 18 && unit.data.critRes === 12);
-check('AI数值：120移速/80伤害/2.5秒/第10帧/1248弹速',
+check('AI数值：120移速/80伤害/2.5秒/插帧后第19帧/1248弹速',
     cfg.ai.walkSpeed === 120 && cfg.ai.attackDamage === 80 && cfg.ai.attackInterval === 2500
-    && cfg.ai.attackLaunchFrame === 10 && cfg.ai.projectileSpeed === 1248);
-check('动画帧数9/11/21/15',
-    cfg.animations.idle.frameCount === 9 && cfg.animations.walk.frameCount === 11
-    && cfg.animations.attack.frameCount === 21 && cfg.animations.dying.frameCount === 15);
+    && cfg.ai.attackLaunchFrame === 19 && cfg.ai.attackAnimFps === 24 && cfg.ai.projectileSpeed === 1248);
+check('动画插帧后帧数18/22/41/29',
+    cfg.animations.idle.frameCount === 18 && cfg.animations.walk.frameCount === 22
+    && cfg.animations.attack.frameCount === 41 && cfg.animations.dying.frameCount === 29);
 check('火枪音效路径正确', cfg.sounds.attack === 'assets/companions/hamster_musketeer/fire.mp3');
 check('火枪模型按仓鼠牧师 Alpha 实体高度标定',
     Math.abs(cfg.displaySize - 205.026455) < 1e-6
@@ -45,8 +45,8 @@ check('铁匠铺穿甲弹：Lv1 25%，之后每级 +2.5%（覆盖火枪与赏金
     && getAbilityValue(piercing, 1) === 0.25
     && Math.abs(getAbilityValue(piercing, 2) - 0.275) < 1e-9);
 
-for (const [name, expected] of [['idle.png', [4096, 2048]], ['running.png', [4096, 2048]],
-    ['attacking.png', [4096, 2048]], ['dying.png', [4096, 2048]]]) {
+for (const [name, expected] of [['idle.png', [4096, 1536]], ['running.png', [4096, 1536]],
+    ['attacking.png', [4096, 3072]], ['dying.png', [4096, 2048]]]) {
     const png = fs.readFileSync(path.join(ROOT, 'assets/companions/hamster_musketeer', name));
     check(`${name} 8×4帧表`, png.readUInt32BE(16) === expected[0] && png.readUInt32BE(20) === expected[1]);
 }
@@ -62,7 +62,7 @@ const barracksSrc = fs.readFileSync(path.join(ROOT, 'src/world/hamster-barracks-
 check('AI只攻击最近enemy并跳过矿点', /e\._faction !== 'enemy' \|\| e\._isEnergyNode/.test(aiSrc));
 check('AimHelper提前量瞄准目标贴图中心', /AimHelper\.lead/.test(aiSrc)
     && /target\._phaserSprite/.test(aiSrc));
-check('第10帧出膛同步播放fire音效', /attackLaunchFrame \?\? 10/.test(aiSrc)
+check('插帧后第19帧出膛同步播放fire音效', /attackLaunchFrame \?\? 19/.test(aiSrc)
     && /m\.sounds\?\.attack/.test(aiSrc) && /SoundManager\?\.playWorld/.test(aiSrc));
 check('黄色Phaser曳光弹', /musketTracer: true/.test(aiSrc)
     && /0xffd34d/.test(gameSceneSrc) && /add\.rectangle/.test(gameSceneSrc));
