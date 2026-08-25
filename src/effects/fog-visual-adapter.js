@@ -65,6 +65,8 @@ export const FogVisualAdapter = {
     _tracked: new Set(),
     _hiddenTracked: new Set(),
     _descriptors: new WeakMap(),
+    _visibilityWrites: 0,
+    _visibilityRedundantSkips: 0,
 
     register(effect, descriptor = null) {
         if (!effect || (typeof effect !== 'object' && typeof effect !== 'function')) return effect;
@@ -92,9 +94,20 @@ export const FogVisualAdapter = {
                 if (!Object.prototype.hasOwnProperty.call(value, '_fogRestoreVisible')) {
                     value._fogRestoreVisible = value.visible !== false;
                 }
-                value.setVisible(false);
+                if (value.visible !== false) {
+                    value.setVisible(false);
+                    this._visibilityWrites += 1;
+                } else {
+                    this._visibilityRedundantSkips += 1;
+                }
             } else if (Object.prototype.hasOwnProperty.call(value, '_fogRestoreVisible')) {
-                value.setVisible(value._fogRestoreVisible);
+                const restoreVisible = value._fogRestoreVisible !== false;
+                if (value.visible !== restoreVisible) {
+                    value.setVisible(restoreVisible);
+                    this._visibilityWrites += 1;
+                } else {
+                    this._visibilityRedundantSkips += 1;
+                }
                 delete value._fogRestoreVisible;
             }
             return;
@@ -157,7 +170,14 @@ export const FogVisualAdapter = {
             if (descriptor || typeof effect?.getFogVisuals === 'function') explicit += 1;
             else legacy += 1;
         }
-        return { tracked: this._tracked.size, explicit, legacy };
+        return {
+            tracked: this._tracked.size,
+            hiddenTracked: this._hiddenTracked.size,
+            explicit,
+            legacy,
+            visibilityWrites: this._visibilityWrites,
+            visibilityRedundantSkips: this._visibilityRedundantSkips,
+        };
     },
 };
 

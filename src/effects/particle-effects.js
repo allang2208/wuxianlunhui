@@ -148,10 +148,14 @@ class BloodEffect {
     }}
 
 class BloodMistEffect {
-    constructor(x, y, angle) {
-        this.x = x; this.y = y; this.life = 600; this.maxLife = 600; this.active = true;
+    constructor(x, y, angle, deferVisuals = false) {
+        this.x = x; this.y = y; this.life = 0; this.maxLife = 600; this.active = !deferVisuals;
         this.particles = [];
         this._graphics = null;
+        if (!deferVisuals) this.reset(x, y, angle);
+    }
+    _initParticles(angle) {
+        this.particles.length = 0;
         for (let i = 0; i < 35; i++) {
             const spreadAngle = angle + (Math.random() - 0.5) * Math.PI * 0.9;
             const speed = 62.4 + Math.random() * 280.8;
@@ -164,7 +168,16 @@ class BloodMistEffect {
                 color: _randomMistColor()
             });
         }
+    }
+    reset(x, y, angle = 0) {
+        this.x = x; this.y = y; this.life = this.maxLife; this.active = true;
+        this._initParticles(angle);
         this._ensureGraphics();
+        if (this._graphics) {
+            this._graphics.clear();
+            this._graphics.setActive(true);
+            this._graphics.setVisible(true);
+        }
     }
     _ensureGraphics() {
         const scene = window.__phaserScene;
@@ -177,7 +190,11 @@ class BloodMistEffect {
         this.life -= dt;
         if (this.life <= 0) {
             this.active = false;
-            if (this._graphics) { this._graphics.destroy(); this._graphics = null; }
+            if (this._graphics) {
+                this._graphics.clear();
+                this._graphics.setActive(false);
+                this._graphics.setVisible(false);
+            }
             return;
         }
         this.particles.forEach(p => {

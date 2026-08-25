@@ -1,10 +1,21 @@
 
 class SmokeEffect {
-    constructor(x, y, size = 60) {
+    constructor(x, y, size = 60, deferVisuals = false) {
         this.x = x; this.y = y; this.size = size;
-        this.life = 3000; this.maxLife = 3000; this.active = true;
+        this.life = 0; this.maxLife = 3000; this.active = !deferVisuals;
         this._graphics = null;
+        if (!deferVisuals) this.reset(x, y, size);
+    }
+
+    reset(x, y, size = 60) {
+        this.x = x; this.y = y; this.size = size;
+        this.life = this.maxLife; this.active = true;
         this._ensureGraphics();
+        if (this._graphics) {
+            this._graphics.clear();
+            this._graphics.setActive(true);
+            this._graphics.setVisible(true);
+        }
     }
 
     _ensureGraphics() {
@@ -21,7 +32,11 @@ class SmokeEffect {
         this.life -= dt;
         if (this.life <= 0) {
             this.active = false;
-            if (this._graphics) { this._graphics.destroy(); this._graphics = null; }
+            if (this._graphics) {
+                this._graphics.clear();
+                this._graphics.setActive(false);
+                this._graphics.setVisible(false);
+            }
             return;
         }
         this._redraw();
