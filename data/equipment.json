@@ -1173,13 +1173,13 @@
             "name": "能量轻机枪",
             "type": "机枪",
             "icon": "🔫",
-            "iconImage": "assets/icons/devotion-icon.png",
+            "iconImage": "assets/icons/firearms/energy-lmg.png",
             "category": "weapon_ranged",
             "rarity": "epic",
             "level": 15,
             "dropImage": "assets/icons/devotion-icon.png",
             "equipImage": "assets/icons/devotion-icon.png",
-            "slotImage": "assets/icons/devotion-icon.png",
+            "slotImage": "assets/icons/firearms/energy-lmg.png",
             "weaponCategory": "mainhand",
             "weaponType": "energy_lmg",
             "weaponTypeTag": "远程武器",
@@ -4735,6 +4735,745 @@
                 "special": {
                         "productionResourcePercent": 50
                 }
+        },
+        "rpd": {
+            "weaponId": "weapon31",
+            "name": "RPD",
+            "type": "机枪",
+            "icon": "🔫",
+            "iconImage": "assets/icons/rpd-equip.png",
+            "slotImage": "assets/icons/rpd-equip.png",
+            "dropImage": "assets/weapons/rpd-equip.png",
+            "equipImage": "assets/weapons/rpd-equip.png",
+            "category": "weapon_ranged",
+            "rarity": "common",
+            "level": 4,
+            "price": 100,
+            "weaponCategory": "mainhand",
+            "weaponType": "rpd",
+            "weaponTypeTag": "远程武器",
+            "isTwoHanded": true,
+            "weaponAsset": {
+                "image": "assets/weapons/rpd-equip.png",
+                "muzzleImage": "assets/effects/muzzle_flash_01.png"
+            },
+            "stats": [
+                {
+                    "name": "物理攻击",
+                    "value": "5+力量×0.23+精神×0.20"
+                },
+                {
+                    "name": "射程",
+                    "value": "1450"
+                }
+            ],
+            "desc": "RPD轻机枪，600发/分钟，100发弹鼓供弹；持续火力稳定，但换弹与散布恢复较慢",
+            "equipSlot": "weapon",
+            "attack": {
+                "range": 1450,
+                "knockback": 3,
+                "attackInterval": 100,
+                "hitType": "亮金色曳光弹（直线弹道）",
+                "damageType": "物理",
+                "projectileSpeed": 1180,
+                "damageFalloff": {
+                    "start": 580,
+                    "minMultiplier": 0.28
+                }
+            },
+            "heatParams": {
+                "overheatTime": 7000,
+                "overheatRecoverTime": 2200,
+                "overheatCooldownTime": 2800
+            },
+            "attackKey": "rpd",
+            "animConfigKey": "rpd",
+            "fireSound": "assets/sounds/weapons/rpd_fire.wav",
+            "equipSound": "assets/sounds/weapons/rpd_equip.wav",
+            "canvasImageProp": "rpdImage",
+            "ammoConfig": {
+                "max": 100,
+                "reloadTime": 4500,
+                "reloadSound": "assets/sounds/weapons/rpd_reload.wav"
+            },
+            "fireMode": "fullAuto",
+            "attackFormula": {
+                "base": 5,
+                "enhanceFlat": 0.3,
+                "attrs": [
+                    {
+                        "key": "str",
+                        "base": 0.23,
+                        "perEnhance": 0.035
+                    },
+                    {
+                        "key": "wis",
+                        "base": 0.2,
+                        "perEnhance": 0.025
+                    }
+                ]
+            },
+            "spreadParams": {
+                "startShots": 4,
+                "maxShots": 18,
+                "recoveryMs": 650,
+                "maxAngle": 32
+            }
+        },
+        "m249": {
+            "weaponId": "weapon32",
+            "name": "M249 SAW",
+            "type": "机枪",
+            "icon": "🔫",
+            "iconImage": "assets/icons/m249-equip.png",
+            "slotImage": "assets/icons/m249-equip.png",
+            "dropImage": "assets/weapons/m249-equip.png",
+            "equipImage": "assets/weapons/m249-equip.png",
+            "category": "weapon_ranged",
+            "rarity": "uncommon",
+            "level": 8,
+            "price": 200,
+            "weaponCategory": "mainhand",
+            "weaponType": "m249",
+            "weaponTypeTag": "远程武器",
+            "isTwoHanded": true,
+            "weaponAsset": {
+                "image": "assets/weapons/m249-equip.png",
+                "muzzleImage": "assets/effects/muzzle_flash_01.png"
+            },
+            "stats": [
+                {
+                    "name": "物理攻击",
+                    "value": "5+力量×0.19+精神×0.18"
+                },
+                {
+                    "name": "射程",
+                    "value": "1500"
+                }
+            ],
+            "desc": "M249班用自动武器，800发/分钟，100发弹袋供弹；高射速与快换枪管兼顾持续压制",
+            "equipSlot": "weapon",
+            "attack": {
+                "range": 1500,
+                "knockback": 1,
+                "attackInterval": 75,
+                "hitType": "亮金色曳光弹（直线弹道）",
+                "damageType": "物理",
+                "projectileSpeed": 1260,
+                "damageFalloff": {
+                    "start": 650,
+                    "minMultiplier": 0.34
+                }
+            },
+            "heatParams": {
+                "overheatTime": 5200,
+                "overheatRecoverTime": 2000,
+                "overheatCooldownTime": 2200
+            },
+            "attackKey": "m249",
+            "animConfigKey": "m249",
+            "fireSound": "assets/sounds/weapons/m249_fire.wav",
+            "equipSound": "assets/sounds/weapons/m249_equip.wav",
+            "canvasImageProp": "m249Image",
+            "ammoConfig": {
+                "max": 100,
+                "reloadTime": 3200,
+                "reloadSound": "assets/sounds/weapons/m249_reload.wav"
+            },
+            "fireMode": "fullAuto",
+            "attackFormula": {
+                "base": 5,
+                "enhanceFlat": 0.25,
+                "attrs": [
+                    {
+                        "key": "str",
+                        "base": 0.19,
+                        "perEnhance": 0.029
+                    },
+                    {
+                        "key": "wis",
+                        "base": 0.18,
+                        "perEnhance": 0.028
+                    }
+                ]
+            },
+            "spreadParams": {
+                "startShots": 7,
+                "maxShots": 22,
+                "recoveryMs": 450,
+                "maxAngle": 25
+            }
+        },
+        "ultimax100": {
+            "weaponId": "weapon33",
+            "name": "Ultimax 100 Mk8",
+            "type": "机枪",
+            "icon": "🔫",
+            "iconImage": "assets/icons/ultimax100-equip.png",
+            "slotImage": "assets/icons/ultimax100-equip.png",
+            "dropImage": "assets/weapons/ultimax100-equip.png",
+            "equipImage": "assets/weapons/ultimax100-equip.png",
+            "category": "weapon_ranged",
+            "rarity": "uncommon",
+            "level": 8,
+            "price": 200,
+            "weaponCategory": "mainhand",
+            "weaponType": "ultimax100",
+            "weaponTypeTag": "远程武器",
+            "isTwoHanded": true,
+            "weaponAsset": {
+                "image": "assets/weapons/ultimax100-equip.png",
+                "muzzleImage": "assets/effects/muzzle_flash_01.png"
+            },
+            "stats": [
+                {
+                    "name": "物理攻击",
+                    "value": "6+力量×0.26+精神×0.25"
+                },
+                {
+                    "name": "射程",
+                    "value": "1550"
+                }
+            ],
+            "desc": "Ultimax 100 Mk8轻机枪，600发/分钟，100发弹鼓供弹；恒定后坐结构带来优秀连续射击精度",
+            "equipSlot": "weapon",
+            "attack": {
+                "range": 1550,
+                "knockback": 2,
+                "attackInterval": 100,
+                "hitType": "亮金色曳光弹（直线弹道）",
+                "damageType": "物理",
+                "projectileSpeed": 1280,
+                "damageFalloff": {
+                    "start": 720,
+                    "minMultiplier": 0.4
+                }
+            },
+            "heatParams": {
+                "overheatTime": 6000,
+                "overheatRecoverTime": 1600,
+                "overheatCooldownTime": 3000
+            },
+            "attackKey": "ultimax100",
+            "animConfigKey": "ultimax100",
+            "fireSound": "assets/sounds/weapons/ultimax100_fire.wav",
+            "equipSound": "assets/sounds/weapons/ultimax100_equip.wav",
+            "canvasImageProp": "ultimax100Image",
+            "ammoConfig": {
+                "max": 100,
+                "reloadTime": 3600,
+                "reloadSound": "assets/sounds/weapons/ultimax100_reload.wav"
+            },
+            "fireMode": "fullAuto",
+            "attackFormula": {
+                "base": 6,
+                "enhanceFlat": 0.3,
+                "attrs": [
+                    {
+                        "key": "str",
+                        "base": 0.26,
+                        "perEnhance": 0.038
+                    },
+                    {
+                        "key": "wis",
+                        "base": 0.25,
+                        "perEnhance": 0.037
+                    }
+                ]
+            },
+            "spreadParams": {
+                "startShots": 12,
+                "maxShots": 30,
+                "recoveryMs": 300,
+                "maxAngle": 15
+            }
+        },
+        "mg42": {
+            "weaponId": "weapon34",
+            "name": "MG42",
+            "type": "机枪",
+            "icon": "🔫",
+            "iconImage": "assets/icons/mg42-equip.png",
+            "slotImage": "assets/icons/mg42-equip.png",
+            "dropImage": "assets/weapons/mg42-equip.png",
+            "equipImage": "assets/weapons/mg42-equip.png",
+            "category": "weapon_ranged",
+            "rarity": "common",
+            "level": 4,
+            "price": 100,
+            "weaponCategory": "mainhand",
+            "weaponType": "mg42",
+            "weaponTypeTag": "远程武器",
+            "isTwoHanded": true,
+            "weaponAsset": {
+                "image": "assets/weapons/mg42-equip.png",
+                "muzzleImage": "assets/effects/muzzle_flash_01.png"
+            },
+            "stats": [
+                {
+                    "name": "物理攻击",
+                    "value": "3.5+力量×0.13+精神×0.13"
+                },
+                {
+                    "name": "射程",
+                    "value": "1400"
+                }
+            ],
+            "desc": "MG42通用机枪，1200发/分钟，100发弹箱供弹；极高射速换来快速过热与猛烈散布",
+            "equipSlot": "weapon",
+            "attack": {
+                "range": 1400,
+                "knockback": 1,
+                "attackInterval": 50,
+                "hitType": "亮金色曳光弹（直线弹道）",
+                "damageType": "物理",
+                "projectileSpeed": 1330,
+                "damageFalloff": {
+                    "start": 520,
+                    "minMultiplier": 0.22
+                }
+            },
+            "heatParams": {
+                "overheatTime": 3200,
+                "overheatRecoverTime": 1900,
+                "overheatCooldownTime": 2600
+            },
+            "attackKey": "mg42",
+            "animConfigKey": "mg42",
+            "fireSound": "assets/sounds/weapons/mg42_fire.wav",
+            "equipSound": "assets/sounds/weapons/mg42_equip.wav",
+            "canvasImageProp": "mg42Image",
+            "ammoConfig": {
+                "max": 100,
+                "reloadTime": 3600,
+                "reloadSound": "assets/sounds/weapons/mg42_reload.wav"
+            },
+            "fireMode": "fullAuto",
+            "attackFormula": {
+                "base": 3.5,
+                "enhanceFlat": 0.25,
+                "attrs": [
+                    {
+                        "key": "str",
+                        "base": 0.13,
+                        "perEnhance": 0.02
+                    },
+                    {
+                        "key": "wis",
+                        "base": 0.13,
+                        "perEnhance": 0.02
+                    }
+                ]
+            },
+            "spreadParams": {
+                "startShots": 2,
+                "maxShots": 12,
+                "recoveryMs": 1000,
+                "maxAngle": 40
+            }
+        },
+        "fusion_core_lmg": {
+            "weaponId": "weapon35",
+            "name": "熔核轻机枪",
+            "type": "机枪",
+            "icon": "🔫",
+            "iconImage": "assets/icons/fusion-core-lmg-equip.png",
+            "slotImage": "assets/icons/fusion-core-lmg-equip.png",
+            "dropImage": "assets/weapons/fusion-core-lmg-equip.png",
+            "equipImage": "assets/weapons/fusion-core-lmg-equip.png",
+            "category": "weapon_ranged",
+            "rarity": "epic",
+            "level": 15,
+            "price": 800,
+            "weaponCategory": "mainhand",
+            "weaponType": "fusion_core_lmg",
+            "weaponTypeTag": "远程武器",
+            "isTwoHanded": true,
+            "weaponAsset": {
+                "image": "assets/weapons/fusion-core-lmg-equip.png",
+                "muzzleImage": "assets/effects/muzzle_flash_01.png"
+            },
+            "stats": [
+                {
+                    "name": "物理攻击",
+                    "value": "14+力量×0.55+精神×0.50"
+                },
+                {
+                    "name": "射程",
+                    "value": "1750"
+                }
+            ],
+            "desc": "熔核轻机枪以重型弹药进行中远距离压制；第20发进入红热增压，过热后仍可持续射击并提升60%伤害",
+            "equipSlot": "weapon",
+            "attack": {
+                "range": 1750,
+                "knockback": 4,
+                "attackInterval": 240,
+                "hitType": "橙红重型曳光弹（红热增压）",
+                "damageType": "物理",
+                "projectileSpeed": 1450,
+                "damageFalloff": {
+                    "start": 900,
+                    "minMultiplier": 0.52
+                }
+            },
+            "heatParams": {
+                "overheatTime": 4800,
+                "overheatRecoverTime": 2600,
+                "overheatCooldownTime": 3200
+            },
+            "overdriveHeatParams": {
+                "shotsToOverheat": 20,
+                "continueFiring": true,
+                "damageMultiplier": 1.6
+            },
+            "attackKey": "fusion_core_lmg",
+            "animConfigKey": "fusion_core_lmg",
+            "fireSound": "assets/sounds/weapons/fusion_core_lmg_fire.wav",
+            "equipSound": "assets/sounds/weapons/fusion_core_lmg_equip.wav",
+            "canvasImageProp": "fusionCoreLmgImage",
+            "ammoConfig": {
+                "max": 40,
+                "reloadTime": 3100,
+                "reloadSound": "assets/sounds/weapons/fusion_core_lmg_reload.wav"
+            },
+            "fireMode": "fullAuto",
+            "attackFormula": {
+                "base": 14,
+                "enhanceFlat": 0.9,
+                "attrs": [
+                    {
+                        "key": "str",
+                        "base": 0.55,
+                        "perEnhance": 0.085
+                    },
+                    {
+                        "key": "wis",
+                        "base": 0.5,
+                        "perEnhance": 0.08
+                    }
+                ]
+            },
+            "spreadParams": {
+                "startShots": 8,
+                "maxShots": 24,
+                "recoveryMs": 450,
+                "maxAngle": 18
+            }
+        },
+        "singularity_loom_lmg": {
+            "weaponId": "weapon36",
+            "name": "奇点织机",
+            "type": "机枪",
+            "icon": "🔫",
+            "iconImage": "assets/icons/singularity-loom-lmg-equip.png",
+            "slotImage": "assets/icons/singularity-loom-lmg-equip.png",
+            "dropImage": "assets/weapons/singularity-loom-lmg-equip.png",
+            "equipImage": "assets/weapons/singularity-loom-lmg-equip.png",
+            "category": "weapon_ranged",
+            "rarity": "mythic",
+            "level": 18,
+            "price": 1600,
+            "weaponCategory": "mainhand",
+            "weaponType": "singularity_loom_lmg",
+            "weaponTypeTag": "远程武器",
+            "isTwoHanded": true,
+            "weaponAsset": {
+                "image": "assets/weapons/singularity-loom-lmg-equip.png",
+                "muzzleImage": "assets/effects/muzzle_flash_01.png"
+            },
+            "stats": [
+                {
+                    "name": "物理攻击",
+                    "value": "12+力量×0.42+精神×0.42"
+                },
+                {
+                    "name": "射程",
+                    "value": "1800"
+                }
+            ],
+            "desc": "神话轻机枪“奇点织机”；主弹命中后会以青白引力弧弹射至400像素内最近的另一个目标，造成65%伤害，弹射不会递归。",
+            "equipSlot": "weapon",
+            "attack": {
+                "range": 1800,
+                "knockback": 2,
+                "attackInterval": 120,
+                "hitType": "青白奇点曳光弹（最近目标弹射）",
+                "damageType": "物理",
+                "projectileSpeed": 1500,
+                "damageFalloff": {
+                    "start": 900,
+                    "minMultiplier": 0.52
+                }
+            },
+            "animation": {
+                "type": "recoil（引力缓冲）",
+                "totalMs": "120ms（固定射击间隔）",
+                "windupMs": "≈22",
+                "swingMs": "≈38",
+                "recoveryMs": "≈60",
+                "holdOffset": "(-64, -6)",
+                "weaponSize": 104,
+                "timingMul": "0.12x",
+                "recoilAmount": "0.075rad",
+                "description": "主弹命中后产生一次青白引力弧，向最近的另一个目标弹射。"
+            },
+            "heatParams": {
+                "overheatTime": 7200,
+                "overheatRecoverTime": 2200,
+                "overheatCooldownTime": 3000
+            },
+            "ricochetParams": {
+                "range": 400,
+                "damageMultiplier": 0.65,
+                "knockback": 2
+            },
+            "attackKey": "singularity_loom_lmg",
+            "animConfigKey": "singularity_loom_lmg",
+            "fireSound": "assets/sounds/weapons/singularity_loom_lmg_fire.wav",
+            "equipSound": "assets/sounds/weapons/singularity_loom_lmg_equip.wav",
+            "canvasImageProp": "singularityLoomLmgImage",
+            "ammoConfig": {
+                "max": 70,
+                "reloadTime": 3500,
+                "reloadSound": "assets/sounds/weapons/singularity_loom_lmg_reload.wav"
+            },
+            "fireMode": "fullAuto",
+            "attackFormula": {
+                "base": 12,
+                "enhanceFlat": 0.9,
+                "attrs": [
+                    {
+                        "key": "str",
+                        "base": 0.42,
+                        "perEnhance": 0.065
+                    },
+                    {
+                        "key": "wis",
+                        "base": 0.42,
+                        "perEnhance": 0.065
+                    }
+                ]
+            },
+            "spreadParams": {
+                "startShots": 10,
+                "maxShots": 28,
+                "recoveryMs": 360,
+                "maxAngle": 17
+            }
+        },
+        "celestial_cartographer_lmg": {
+            "weaponId": "weapon37",
+            "name": "天穹测绘者",
+            "type": "机枪",
+            "icon": "🔫",
+            "iconImage": "assets/icons/celestial-cartographer-lmg-equip.png",
+            "slotImage": "assets/icons/celestial-cartographer-lmg-equip.png",
+            "dropImage": "assets/weapons/celestial-cartographer-lmg-equip.png",
+            "equipImage": "assets/weapons/celestial-cartographer-lmg-equip.png",
+            "category": "weapon_ranged",
+            "rarity": "legendary",
+            "level": 21,
+            "price": 3200,
+            "weaponCategory": "mainhand",
+            "weaponType": "celestial_cartographer_lmg",
+            "weaponTypeTag": "远程武器",
+            "isTwoHanded": true,
+            "weaponAsset": {
+                "image": "assets/weapons/celestial-cartographer-lmg-equip.png",
+                "muzzleImage": "assets/effects/muzzle_flash_01.png"
+            },
+            "stats": [
+                {
+                    "name": "物理攻击",
+                    "value": "13+力量×0.46+精神×0.46"
+                },
+                {
+                    "name": "射程",
+                    "value": "1850"
+                }
+            ],
+            "desc": "传说轻机枪“天穹测绘者”；连续有效命中第4次建立星图锚点，第8次完成测绘：命中另一目标会拉出经纬线扫过沿线敌人，继续压制锚点则降下天顶坠击。停火700ms后序列重置。",
+            "equipSlot": "weapon",
+            "attack": {
+                "range": 1850,
+                "knockback": 3,
+                "attackInterval": 105,
+                "hitType": "蓝金星图弹（经纬线/天顶坠击）",
+                "damageType": "物理",
+                "projectileSpeed": 1540,
+                "damageFalloff": {
+                    "start": 940,
+                    "minMultiplier": 0.55
+                }
+            },
+            "animation": {
+                "type": "recoil（星盘稳像）",
+                "totalMs": "105ms（固定射击间隔）",
+                "windupMs": "≈20",
+                "swingMs": "≈35",
+                "recoveryMs": "≈50",
+                "holdOffset": "(-64, -6)",
+                "weaponSize": 104,
+                "timingMul": "0.105x",
+                "recoilAmount": "0.07rad",
+                "description": "蓝金星图弹以连续有效命中建立锚点，并在终段绘制经纬线或降下天顶坠击。"
+            },
+            "heatParams": {
+                "overheatTime": 7600,
+                "overheatRecoverTime": 2100,
+                "overheatCooldownTime": 2900
+            },
+            "constellationParams": {
+                "anchorHit": 4,
+                "resolveHit": 8,
+                "resetMs": 700,
+                "lineWidth": 58,
+                "lineMaxTargets": 6,
+                "lineDamageMultiplier": 0.6,
+                "focusDamageMultiplier": 1.05,
+                "focusSplashRadius": 110,
+                "focusSplashMultiplier": 0.35,
+                "focusSplashMaxTargets": 4,
+                "knockback": 2
+            },
+            "attackKey": "celestial_cartographer_lmg",
+            "animConfigKey": "celestial_cartographer_lmg",
+            "fireSound": "assets/sounds/weapons/celestial_cartographer_lmg_fire.wav",
+            "equipSound": "assets/sounds/weapons/celestial_cartographer_lmg_equip.wav",
+            "canvasImageProp": "celestialCartographerLmgImage",
+            "ammoConfig": {
+                "max": 80,
+                "reloadTime": 3400,
+                "reloadSound": "assets/sounds/weapons/celestial_cartographer_lmg_reload.wav"
+            },
+            "fireMode": "fullAuto",
+            "attackFormula": {
+                "base": 13,
+                "enhanceFlat": 1,
+                "attrs": [
+                    {
+                        "key": "str",
+                        "base": 0.46,
+                        "perEnhance": 0.07
+                    },
+                    {
+                        "key": "wis",
+                        "base": 0.46,
+                        "perEnhance": 0.07
+                    }
+                ]
+            },
+            "spreadParams": {
+                "startShots": 11,
+                "maxShots": 30,
+                "recoveryMs": 340,
+                "maxAngle": 16
+            }
+        },
+        "grave_covenant_cantor_lmg": {
+            "weaponId": "weapon38",
+            "name": "冥约颂炮",
+            "type": "机枪",
+            "icon": "🔫",
+            "iconImage": "assets/icons/grave-covenant-cantor-lmg-equip.png",
+            "slotImage": "assets/icons/grave-covenant-cantor-lmg-equip.png",
+            "dropImage": "assets/weapons/grave-covenant-cantor-lmg-equip.png",
+            "equipImage": "assets/weapons/grave-covenant-cantor-lmg-equip.png",
+            "category": "weapon_ranged",
+            "rarity": "legendary",
+            "level": 21,
+            "price": 3200,
+            "weaponCategory": "mainhand",
+            "weaponType": "grave_covenant_cantor_lmg",
+            "weaponTypeTag": "远程武器",
+            "isTwoHanded": true,
+            "weaponAsset": {
+                "image": "assets/weapons/grave-covenant-cantor-lmg-equip.png",
+                "muzzleImage": "assets/effects/muzzle_flash_01.png"
+            },
+            "stats": [
+                {
+                    "name": "物理攻击",
+                    "value": "15+力量×0.50+精神×0.48"
+                },
+                {
+                    "name": "射程",
+                    "value": "1750"
+                }
+            ],
+            "desc": "传说轻机枪“冥约颂炮”；有效命中依次刻下血、骨、烬三印，同一目标在5秒内集齐三印会触发黑弥撒，对130像素内最多5名敌人造成75%伤害。裁决伤害不会再次刻印。",
+            "equipSlot": "weapon",
+            "attack": {
+                "range": 1750,
+                "knockback": 4,
+                "attackInterval": 135,
+                "hitType": "赤金冥约弹（血骨烬三印裁决）",
+                "damageType": "物理",
+                "projectileSpeed": 1470,
+                "damageFalloff": {
+                    "start": 860,
+                    "minMultiplier": 0.54
+                }
+            },
+            "animation": {
+                "type": "recoil（圣咏重拍）",
+                "totalMs": "135ms（固定射击间隔）",
+                "windupMs": "≈25",
+                "swingMs": "≈45",
+                "recoveryMs": "≈65",
+                "holdOffset": "(-64, -6)",
+                "weaponSize": 104,
+                "timingMul": "0.135x",
+                "recoilAmount": "0.09rad",
+                "description": "赤金弹按血、骨、烬三拍轮转刻印，三印齐备后释放黑弥撒裁决。"
+            },
+            "heatParams": {
+                "overheatTime": 7800,
+                "overheatRecoverTime": 2400,
+                "overheatCooldownTime": 3200
+            },
+            "runeLitanyParams": {
+                "markDurationMs": 5000,
+                "verdictRadius": 130,
+                "verdictMaxTargets": 5,
+                "verdictDamageMultiplier": 0.75,
+                "inheritanceRange": 360,
+                "knockback": 3
+            },
+            "attackKey": "grave_covenant_cantor_lmg",
+            "animConfigKey": "grave_covenant_cantor_lmg",
+            "fireSound": "assets/sounds/weapons/grave_covenant_cantor_lmg_fire.wav",
+            "equipSound": "assets/sounds/weapons/grave_covenant_cantor_lmg_equip.wav",
+            "canvasImageProp": "graveCovenantCantorLmgImage",
+            "ammoConfig": {
+                "max": 72,
+                "reloadTime": 3600,
+                "reloadSound": "assets/sounds/weapons/grave_covenant_cantor_lmg_reload.wav"
+            },
+            "fireMode": "fullAuto",
+            "attackFormula": {
+                "base": 15,
+                "enhanceFlat": 1.05,
+                "attrs": [
+                    {
+                        "key": "str",
+                        "base": 0.5,
+                        "perEnhance": 0.075
+                    },
+                    {
+                        "key": "wis",
+                        "base": 0.48,
+                        "perEnhance": 0.072
+                    }
+                ]
+            },
+            "spreadParams": {
+                "startShots": 8,
+                "maxShots": 24,
+                "recoveryMs": 430,
+                "maxAngle": 20
+            }
         }
     }
 }

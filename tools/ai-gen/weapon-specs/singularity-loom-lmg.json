@@ -1,0 +1,92 @@
+{
+  "weaponId": "weapon36",
+  "weaponType": "singularity_loom_lmg",
+  "key": "singularity-loom-lmg",
+  "name": "奇点织机",
+  "type": "机枪",
+  "icon": "🔫",
+  "category": "weapon_ranged",
+  "rarity": "mythic",
+  "rarityLabel": "神话",
+  "level": 18,
+  "price": 1600,
+  "weaponCategory": "mainhand",
+  "weaponTypeTag": "远程武器",
+  "isTwoHanded": true,
+  "equipSlot": "weapon",
+  "desc": "神话轻机枪“奇点织机”；主弹命中后会以青白引力弧弹射至400像素内最近的另一个目标，造成65%伤害，弹射不会递归。",
+  "statsDisplay": [
+    { "name": "物理攻击", "value": "12+力量×0.42+精神×0.42" },
+    { "name": "射程", "value": "1800" }
+  ],
+  "statsJson": [
+    { "name": "物理攻击", "value": "12+力量×0.42+精神×0.42" },
+    { "name": "射程", "value": "1800" }
+  ],
+  "attack": {
+    "range": 1800,
+    "knockback": 2,
+    "attackInterval": 120,
+    "hitType": "青白奇点曳光弹（最近目标弹射）",
+    "damageType": "物理",
+    "projectileSpeed": 1500,
+    "damageFalloff": { "start": 900, "minMultiplier": 0.52 }
+  },
+  "attackKey": "singularity_loom_lmg",
+  "animConfigKey": "singularity_loom_lmg",
+  "canvasImageProp": "singularityLoomLmgImage",
+  "fireMode": "fullAuto",
+  "ammoConfig": { "max": 70, "reloadTime": 3500, "reloadSound": "assets/sounds/weapons/singularity_loom_lmg_reload.wav" },
+  "attackFormula": {
+    "base": 12,
+    "enhanceFlat": 0.9,
+    "attrs": [
+      { "key": "str", "base": 0.42, "perEnhance": 0.065 },
+      { "key": "wis", "base": 0.42, "perEnhance": 0.065 }
+    ]
+  },
+  "spreadParams": { "startShots": 10, "maxShots": 28, "recoveryMs": 360, "maxAngle": 17 },
+  "heatParams": { "overheatTime": 7200, "overheatRecoverTime": 2200, "overheatCooldownTime": 3000 },
+  "ricochetParams": { "range": 400, "damageMultiplier": 0.65, "knockback": 2 },
+  "fireSound": "assets/sounds/weapons/singularity_loom_lmg_fire.wav",
+  "equipSound": "assets/sounds/weapons/singularity_loom_lmg_equip.wav",
+  "animation": {
+    "type": "recoil（引力缓冲）",
+    "totalMs": "120ms（固定射击间隔）",
+    "windupMs": "≈22",
+    "swingMs": "≈38",
+    "recoveryMs": "≈60",
+    "holdOffset": "(-64, -6)",
+    "weaponSize": 104,
+    "timingMul": "0.12x",
+    "recoilAmount": "0.075rad",
+    "description": "主弹命中后产生一次青白引力弧，向最近的另一个目标弹射。"
+  },
+  "assets": {
+    "equipImage": "assets/weapons/singularity-loom-lmg-equip.png",
+    "iconImage": "assets/icons/singularity-loom-lmg-equip.png",
+    "slotImage": "assets/icons/singularity-loom-lmg-equip.png",
+    "dropImage": "assets/weapons/singularity-loom-lmg-equip.png",
+    "weaponAssetImage": "assets/weapons/singularity-loom-lmg-equip.png"
+  },
+  "craftTemplateWeaponId": "weapon6",
+  "animTemplateWeaponType": "pkm",
+  "layout": { "canvas": 2048, "contentWidthFrac": 0.915, "centerX": 0.5, "centerY": 0.543 },
+  "sounds": {
+    "fire": "assets/sounds/weapons/singularity_loom_lmg_fire.wav",
+    "reload": "assets/sounds/weapons/singularity_loom_lmg_reload.wav",
+    "equip": "assets/sounds/weapons/singularity_loom_lmg_equip.wav"
+  },
+  "imagePrompts": {
+    "icon": [
+      "production-ready original mythic light machine gun named Singularity Loom, strict orthographic right-facing side profile, complete weapon, genuine transparent background",
+      "matte obsidian receiver, cold silver structural ribs, restrained ivory ceramic panels, cyan-white luminous seams, mechanically connected gravitational containment ring around the mid-barrel, dark box magazine, no foregrip, no bipod, no scope",
+      "perfectly horizontal barrel, muzzle shown only as a flat side silhouette with no visible front bore, original non-infringing design, no person, no text, no logo, no watermark, no border"
+    ],
+    "video": [
+      "original obsidian silver and cyan mythic light machine gun alone on an armory pedestal, slow product turntable",
+      "close-up on the mechanically connected gravitational containment ring, then a firing demonstration where a cyan-white shot arcs from the first target to the nearest second target",
+      "audio: measured heavy automatic reports with a short crystalline gravitational snap after each hit"
+    ]
+  }
+}

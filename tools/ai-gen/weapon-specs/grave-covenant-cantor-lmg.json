@@ -1,0 +1,53 @@
+{
+  "weaponId": "weapon38",
+  "weaponType": "grave_covenant_cantor_lmg",
+  "key": "grave-covenant-cantor-lmg",
+  "name": "冥约颂炮",
+  "type": "机枪",
+  "icon": "🔫",
+  "category": "weapon_ranged",
+  "rarity": "legendary",
+  "rarityLabel": "传说",
+  "level": 21,
+  "price": 3200,
+  "weaponCategory": "mainhand",
+  "weaponTypeTag": "远程武器",
+  "isTwoHanded": true,
+  "equipSlot": "weapon",
+  "desc": "传说轻机枪“冥约颂炮”；有效命中依次刻下血、骨、烬三印，同一目标在5秒内集齐三印会触发黑弥撒，对130像素内最多5名敌人造成75%伤害。裁决伤害不会再次刻印。",
+  "statsDisplay": [{ "name": "物理攻击", "value": "15+力量×0.50+精神×0.48" }, { "name": "射程", "value": "1750" }],
+  "attack": { "range": 1750, "knockback": 4, "attackInterval": 135, "hitType": "赤金冥约弹（血骨烬三印裁决）", "damageType": "物理", "projectileSpeed": 1470, "damageFalloff": { "start": 860, "minMultiplier": 0.54 } },
+  "attackKey": "grave_covenant_cantor_lmg",
+  "animConfigKey": "grave_covenant_cantor_lmg",
+  "canvasImageProp": "graveCovenantCantorLmgImage",
+  "fireMode": "fullAuto",
+  "ammoConfig": { "max": 72, "reloadTime": 3600, "reloadSound": "assets/sounds/weapons/grave_covenant_cantor_lmg_reload.wav" },
+  "attackFormula": { "base": 15, "enhanceFlat": 1.05, "attrs": [{ "key": "str", "base": 0.50, "perEnhance": 0.075 }, { "key": "wis", "base": 0.48, "perEnhance": 0.072 }] },
+  "spreadParams": { "startShots": 8, "maxShots": 24, "recoveryMs": 430, "maxAngle": 20 },
+  "heatParams": { "overheatTime": 7800, "overheatRecoverTime": 2400, "overheatCooldownTime": 3200 },
+  "runeLitanyParams": { "markDurationMs": 5000, "verdictRadius": 130, "verdictMaxTargets": 5, "verdictDamageMultiplier": 0.75, "inheritanceRange": 360, "knockback": 3 },
+  "fireSound": "assets/sounds/weapons/grave_covenant_cantor_lmg_fire.wav",
+  "equipSound": "assets/sounds/weapons/grave_covenant_cantor_lmg_equip.wav",
+  "assets": {
+    "equipImage": "assets/weapons/grave-covenant-cantor-lmg-equip.png",
+    "iconImage": "assets/icons/grave-covenant-cantor-lmg-equip.png",
+    "slotImage": "assets/icons/grave-covenant-cantor-lmg-equip.png",
+    "dropImage": "assets/weapons/grave-covenant-cantor-lmg-equip.png",
+    "weaponAssetImage": "assets/weapons/grave-covenant-cantor-lmg-equip.png"
+  },
+  "craftTemplateWeaponId": "weapon6",
+  "animTemplateWeaponType": "pkm",
+  "layout": { "canvas": 2048, "contentWidthFrac": 0.915, "centerX": 0.5, "centerY": 0.543 },
+  "sounds": {
+    "fire": "assets/sounds/weapons/grave_covenant_cantor_lmg_fire.wav",
+    "reload": "assets/sounds/weapons/grave_covenant_cantor_lmg_reload.wav",
+    "equip": "assets/sounds/weapons/grave_covenant_cantor_lmg_equip.wav"
+  },
+  "imagePrompts": {
+    "icon": [
+      "production-ready original legendary occult-industrial light machine gun named Grave Covenant Cantor, strict orthographic right-facing side profile, complete weapon, genuine transparent background",
+      "blackened iron receiver shaped like a compact mechanical reliquary, dark oxblood enamel, aged bone-white ceramic inlays with three abstract non-alphabetic rune seals, ember-orange seams, bronze bell-like resonance chamber integrated into the rear receiver, heavy dark box magazine, no exposed skulls, no religious logo, no foregrip, no bipod, no scope",
+      "perfectly horizontal barrel, flat side-view muzzle with no visible front bore, original non-infringing silhouette, no person, no text, no logo, no watermark, no border, no recognizable franchise design"
+    ]
+  }
+}

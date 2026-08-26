@@ -393,7 +393,7 @@ export class BootScene extends Scene {
         // 世界-122 防御塔机械臂（预渲染 3D 旋转帧，48 帧等距透视，按 aimAngle 选帧）
         this.load.spritesheet('obstacle_defense_tower_arm_frames', 'assets/terrain/obstacle_defense_tower_arm_frames.png', { frameWidth: 261, frameHeight: 164 });
         // 防御塔武器枪管（预裁剪独立贴图："枪插进机械臂"假象；2026-08-14）
-        for (const wid of ['weapon6', 'weapon7', 'weapon21', 'weapon8', 'weapon11', 'weapon12', 'weapon13', 'weapon15']) {
+        for (const wid of ['weapon6', 'weapon31', 'weapon32', 'weapon33', 'weapon34', 'weapon35', 'weapon36', 'weapon37', 'weapon38', 'weapon7', 'weapon23', 'weapon21', 'weapon24', 'weapon25', 'weapon26', 'weapon27', 'weapon28', 'weapon29', 'weapon30', 'weapon8', 'weapon11', 'weapon12', 'weapon13', 'weapon15']) {
             this.load.image(`tower_barrel_${wid}`, `assets/terrain/tower_barrel_${wid}.png`);
         }
         // 防御塔挂载弓（玩家弓走箭矢帧，塔用单张弓贴图）

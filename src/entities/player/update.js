@@ -8,7 +8,8 @@ import { Input } from '../../ui/input.js';
 import { StatusBar } from '../../ui/status-bar.js';
 import { DashConvergeEffect } from '../../effects/dash-effects.js';
 import { FloatingTextEffect } from '../../effects/floating-text.js';
-import { isGunWeapon, isOneHanded, isTwoHanded } from '../../config/gun-ammo.js';
+import { isGunWeapon, isMachineGun, isOneHanded, isTwoHanded } from '../../config/gun-ammo.js';
+import { AUTO_GUN_FAMILY } from '../../config/weapon-families.js';
 import { EffectManager } from '../../effects/effect-manager.js';
 import { EffectFactory } from '../../utils/effect-factory.js';
 import { CONFIG } from '../../config/config.js';
@@ -303,7 +304,7 @@ update(dt, entities) {
                     // 防御状态：移动速度减慢 50%
                     if (this.shieldSystem && this.shieldSystem.defending) targetSpeed *= 0.5;
                     const currentEquip = this.equipments[this.weaponMode];
-                    const isPkmEquipped = currentEquip && (currentEquip.weaponType === 'pkm' || currentEquip.weaponType === 'qjb201' || currentEquip.weaponType === 'energy_lmg');
+                    const isPkmEquipped = currentEquip && isMachineGun(currentEquip.weaponType);
                     const isPistolEquipped = currentEquip && (currentEquip.weaponType === 'pistol' || currentEquip.rangedType === 'pistol');
                     if (isPkmEquipped) {
                         let moveSpeedReduction = 0.50; // Base reduction 50%
@@ -471,7 +472,7 @@ update(dt, entities) {
                             EffectFactory.createDustEffect(this.x + offsetX, this.y + offsetY - 5, dInt);
                             // PKM 装备时奔跑额外生成更浓密的烟尘
                             const currentItem = this.equipments[this.weaponMode];
-                            if (currentItem && (currentItem.weaponType === 'pkm' || currentItem.weaponType === 'akm' || currentItem.weaponType === 'qbz191' || currentItem.weaponType === 'qjb201' || currentItem.weaponType === 'energy_lmg')) {
+                            if (currentItem && AUTO_GUN_FAMILY.includes(currentItem.weaponType)) {
                                 const pkmDInt = sprint ? 2.2 : 1.2;
                                 EffectFactory.createDustEffect(this.x + offsetX * 0.7, this.y + offsetY * 0.7 - 5, pkmDInt);
                             }
@@ -739,57 +740,73 @@ update(dt, entities) {
                     }
                 }
                 // ===== 机枪类武器过热系统更新（PKM、QJB-201、能量轻机枪） =====
-                if (_currentWep2 && (_currentWep2.weaponType === 'pkm' || _currentWep2.weaponType === 'qjb201' || _currentWep2.weaponType === 'energy_lmg')) {
-                    this._overheatWeaponType = _currentWep2.weaponType;
-                    const ce = _currentWep2._craftEffects;
-                    const ohDelta = (ce && ce.overheatTimeDelta) || 0;
-                    const ohRecDelta = (ce && ce.overheatRecoverDelta) || 0;
-                    const elp = _currentWep2.weaponType === 'energy_lmg' ? this._getEnergyLMGParams() : null;
-                    const hp = _currentWep2.heatParams || {};
-                    if (this._overheatOverheated) {
-                        // 过热恢复中
-                        this._overheatRecoverTimer -= dt;
-                        let recoverTime = _currentWep2.weaponType === 'energy_lmg'
-                            ? (elp ? elp.overheatRecoverTime : 2500)
-                            : (hp.overheatRecoverTime || 1500);
-                        if (_currentWep2.weaponType === 'energy_lmg') recoverTime += ohRecDelta;
-                        const ohPct = _currentWep2._craftEffects && _currentWep2._craftEffects.overheatRecoverPercent;
-                        if (ohPct) recoverTime = recoverTime * (1 + ohPct);
-                        if (recoverTime < 500) recoverTime = 500; // 最小0.5秒
-                        this._lastOverheatRecoverMs = recoverTime;
-                        this._overheatValue = Math.max(0, this._overheatValue - (dt / recoverTime));
-                        if (this._overheatRecoverTimer <= 0 || this._overheatValue <= 0) {
-                            this._overheatOverheated = false;
-                            this._overheatRecoverTimer = 0;
-                            this._overheatValue = 0;
-                            this._overheatActive = false;
+                const isHeatWeapon = item => item && isMachineGun(item.weaponType);
+                if (!this._overheatStates) this._overheatStates = {};
+                for (const slot of ['weapon', 'weapon2']) {
+                    const item = this.equipments[slot];
+                    if (!isHeatWeapon(item)) {
+                        delete this._overheatStates[slot];
+                        continue;
+                    }
+                    let state = this._overheatStates[slot];
+                    if (!state || state.weapon !== item) {
+                        state = this._overheatStates[slot] = {
+                            weapon: item, value: 0, overheated: false, recoverTimer: 0,
+                            active: false, lastCoolMs: 1500, lastRecoverMs: 1500
+                        };
+                    }
+                    const ce = item._craftEffects || {};
+                    const elp = item.weaponType === 'energy_lmg'
+                        ? (item.energyLMGParams || (slot === this.weaponMode ? this._getEnergyLMGParams() : null))
+                        : null;
+                    const hp = item.heatParams || {};
+                    const overheatTime = Math.max(1000,
+                        (item.weaponType === 'energy_lmg' ? (elp?.overheatTime || 4000) : (hp.overheatTime || 5000))
+                        + (Number(ce.overheatTimeDelta) || 0));
+                    const recoverPercent = 1 + (Number(ce.overheatRecoverPercent) || 0);
+                    const recoverTime = Math.max(500,
+                        ((item.weaponType === 'energy_lmg' ? (elp?.overheatRecoverTime || 2500) : (hp.overheatRecoverTime || 1500))
+                        + (Number(ce.overheatRecoverDelta) || 0)) * recoverPercent);
+                    const coolTime = Math.max(500,
+                        ((item.weaponType === 'energy_lmg' ? (elp?.overheatCooldownTime || 4000) : (hp.overheatCooldownTime || 1500))
+                        + (Number(ce.overheatRecoverDelta) || 0)) * recoverPercent);
+                    state.lastRecoverMs = recoverTime;
+                    state.lastCoolMs = coolTime;
+                    const isCurrent = slot === this.weaponMode;
+                    const isOverdrive = !!item.overdriveHeatParams;
+                    const holdingTrigger = isCurrent
+                        && primaryDown
+                        && !this._isReloading(slot)
+                        && this.weaponSwitchCooldown <= 0
+                        && this._hasAmmo(slot);
+                    if (isOverdrive && state.overheated && holdingTrigger) {
+                        // 红热增压期间允许继续射击；只要仍在有效连射就保持满热。
+                        state.value = 1;
+                        state.active = true;
+                        state.recoverTimer = coolTime;
+                    } else if (state.overheated) {
+                        state.recoverTimer -= dt;
+                        state.value = Math.max(0, state.value - dt / recoverTime);
+                        if (state.recoverTimer <= 0 || state.value <= 0) {
+                            state.overheated = false;
+                            state.recoverTimer = 0;
+                            state.value = 0;
+                            state.active = false;
                         }
-                    } else if (primaryDown && !this._isReloading(this.weaponMode)) {
-                        // 持续开火
-                        this._overheatActive = true;
-                        let overheatTime = _currentWep2.weaponType === 'energy_lmg'
-                            ? (elp ? elp.overheatTime : 4000)
-                            : (hp.overheatTime || 5000);
-                        if (_currentWep2.weaponType === 'energy_lmg') overheatTime += ohDelta;
-                        if (overheatTime < 1000) overheatTime = 1000; // 最小1秒
-                        this._overheatValue = Math.min(1, this._overheatValue + (dt / overheatTime));
-                        if (this._overheatValue >= 1) {
-                            this._overheatOverheated = true;
-                            let recoverTimer = _currentWep2.weaponType === 'energy_lmg'
-                                ? (elp ? elp.overheatCooldownTime : 4000)
-                                : (hp.overheatCooldownTime || 1500);
-                            if (_currentWep2.weaponType === 'energy_lmg') recoverTimer += ohRecDelta;
-                            const ohPct2 = _currentWep2._craftEffects && _currentWep2._craftEffects.overheatRecoverPercent;
-                            if (ohPct2) recoverTimer = recoverTimer * (1 + ohPct2);
-                            if (recoverTimer < 500) recoverTimer = 500;
-                            this._overheatRecoverTimer = recoverTimer;
-                            // 过热音效
+                    } else if (isOverdrive) {
+                        // 红热增压只由实际成功出膛的弹丸累计；按住扳机不再按时间加热。
+                        if (!holdingTrigger) state.value = Math.max(0, state.value - dt / coolTime);
+                        state.active = state.value > 0;
+                    } else if (isCurrent && primaryDown && !this._isReloading(slot)) {
+                        state.active = true;
+                        state.value = Math.min(1, state.value + dt / overheatTime);
+                        if (state.value >= 1) {
+                            state.overheated = true;
+                            state.recoverTimer = coolTime;
                             if (SoundManager) {
-                                // 配置驱动：heatParams.overheatSound 优先（新机枪可配置专属过热音），
-                                // 缺失回退现有类型硬编码（2026-08-08 去硬编码）
                                 if (hp.overheatSound) {
                                     SoundManager.playFile(hp.overheatSound);
-                                } else if (_currentWep2.weaponType === 'energy_lmg') {
+                                } else if (item.weaponType === 'energy_lmg') {
                                     SoundManager.playFile('assets/sounds/weapons/pkm_ammo_steam_mixed.wav');
                                     SoundManager.playFile('assets/sounds/weapons/apex_reload_4s_raw.mp3');
                                 } else {
@@ -955,7 +972,7 @@ update(dt, entities) {
                     // 判断当前有效武器的类型
                     const isPistol = effectiveItem && (effectiveItem.weaponType === 'pistol' || effectiveItem.rangedType === 'pistol');
                     const isBow = effectiveItem && effectiveItem.weaponType === 'bow';
-                    const isPkm = effectiveItem && (effectiveItem.weaponType === 'pkm' || effectiveItem.weaponType === 'akm' || effectiveItem.weaponType === 'm416' || effectiveItem.weaponType === 'qbz191' || effectiveItem.weaponType === 'qjb201' || effectiveItem.weaponType === 'energy_lmg');
+                    const isPkm = effectiveItem && AUTO_GUN_FAMILY.includes(effectiveItem.weaponType);
                     const isShotgun = effectiveItem && effectiveItem.weaponType === 'shotgun';
                     const isMelee = effectiveItem && (effectiveItem.category === 'weapon_melee' || effectiveItem.weaponType === 'sword');
                     const isGun = effectiveItem && isGunWeapon(effectiveItem);

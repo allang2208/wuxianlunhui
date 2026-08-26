@@ -1,0 +1,91 @@
+{
+  "weaponId": "weapon31",
+  "weaponType": "rpd",
+  "key": "rpd",
+  "name": "RPD",
+  "type": "机枪",
+  "icon": "🔫",
+  "category": "weapon_ranged",
+  "rarity": "common",
+  "rarityLabel": "普通",
+  "level": 4,
+  "price": 100,
+  "weaponCategory": "mainhand",
+  "weaponTypeTag": "远程武器",
+  "isTwoHanded": true,
+  "equipSlot": "weapon",
+  "desc": "RPD轻机枪，600发/分钟，100发弹鼓供弹；持续火力稳定，但换弹与散布恢复较慢",
+  "statsDisplay": [
+    { "name": "物理攻击", "value": "5+力量×0.23+精神×0.20" },
+    { "name": "射程", "value": "1450" }
+  ],
+  "statsJson": [
+    { "name": "物理攻击", "value": "5+力量×0.23+精神×0.20" },
+    { "name": "射程", "value": "1450" }
+  ],
+  "attack": {
+    "range": 1450,
+    "knockback": 3,
+    "attackInterval": 100,
+    "hitType": "亮金色曳光弹（直线弹道）",
+    "damageType": "物理",
+    "projectileSpeed": 1180,
+    "damageFalloff": { "start": 580, "minMultiplier": 0.28 }
+  },
+  "attackKey": "rpd",
+  "animConfigKey": "rpd",
+  "canvasImageProp": "rpdImage",
+  "fireMode": "fullAuto",
+  "ammoConfig": { "max": 100, "reloadTime": 4500, "reloadSound": "assets/sounds/weapons/rpd_reload.wav" },
+  "attackFormula": {
+    "base": 5,
+    "enhanceFlat": 0.3,
+    "attrs": [
+      { "key": "str", "base": 0.23, "perEnhance": 0.035 },
+      { "key": "wis", "base": 0.2, "perEnhance": 0.025 }
+    ]
+  },
+  "spreadParams": { "startShots": 4, "maxShots": 18, "recoveryMs": 650, "maxAngle": 32 },
+  "heatParams": { "overheatTime": 7000, "overheatRecoverTime": 2200, "overheatCooldownTime": 2800 },
+  "fireSound": "assets/sounds/weapons/rpd_fire.wav",
+  "equipSound": "assets/sounds/weapons/rpd_equip.wav",
+  "animation": {
+    "type": "recoil（后坐力抖动）",
+    "totalMs": "100ms (约)",
+    "windupMs": "≈20",
+    "swingMs": "≈30",
+    "recoveryMs": "≈50",
+    "holdOffset": "(-64, -6)",
+    "weaponSize": 104,
+    "timingMul": "0.1x",
+    "recoilAmount": "0.12rad",
+    "description": "RPD 以600RPM连续射击，采用机枪后坐与过热系统。"
+  },
+  "assets": {
+    "equipImage": "assets/weapons/rpd-equip.png",
+    "iconImage": "assets/icons/rpd-equip.png",
+    "slotImage": "assets/icons/rpd-equip.png",
+    "dropImage": "assets/weapons/rpd-equip.png",
+    "weaponAssetImage": "assets/weapons/rpd-equip.png"
+  },
+  "craftTemplateWeaponId": "weapon6",
+  "animTemplateWeaponType": "pkm",
+  "layout": { "canvas": 2048, "contentWidthFrac": 0.915, "centerX": 0.5, "centerY": 0.543 },
+  "sounds": {
+    "fire": "assets/sounds/weapons/rpd_fire.wav",
+    "reload": "assets/sounds/weapons/rpd_reload.wav",
+    "equip": "assets/sounds/weapons/rpd_equip.wav"
+  },
+  "imagePrompts": {
+    "icon": [
+      "single photorealistic RPD light machine gun, complete right-facing orthographic side profile, genuine transparent background",
+      "wood stock and foregrip, blued steel receiver, long barrel, folded bipod, 100-round belt drum",
+      "no hands, no person, no text, no logo, no border, no duplicate"
+    ],
+    "video": [
+      "RPD light machine gun alone on an armory pedestal, slow product turntable",
+      "close-up on the 100-round drum and gas system, short controlled burst",
+      "audio: heavy 7.62 rifle report, metallic action, short indoor tail"
+    ]
+  }
+}

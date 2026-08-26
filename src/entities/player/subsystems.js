@@ -13,8 +13,11 @@ import { FloatingTextEffect } from '../../effects/floating-text.js';
 import { LevelUpEffectQueue } from '../../effects/level-up-queue.js';
 import { EffectFactory } from '../../utils/effect-factory.js';
 import { ProjectileFactory } from '../../utils/projectile-factory.js';
+import { createWeaponRicochetHandler } from '../../combat/weapon-ricochet.js';
+import { createLegendaryLmgHitHandler } from '../../combat/weapon-legendary-lmg.js';
 import { loadImage } from '../../utils/image-loader.js';
-import { isGunWeapon, isTwoHanded, getAmmoConfig, getEquipSound } from '../../config/gun-ammo.js';
+import { isGunWeapon, isTwoHanded, getAmmoConfig, getEquipSound, resolveGunAttackInterval } from '../../config/gun-ammo.js';
+import { AUTO_GUN_FAMILY } from '../../config/weapon-families.js';
 import { WeaponAnimConfig, getWeaponStateConfig } from '../../items/weapon-anim-config.js';
 import { WEAPON_FX_CONFIG } from '../../config/weapon-fx-config.js';
 import { Easing } from '../../config/math-utils.js';
@@ -30,6 +33,7 @@ import { SkillManager } from '../../ui/skill-manager.js';
 import { QuickBar } from '../../ui/quick-bar.js';
 import { GameUIManager } from '../../ui/game-ui-manager.js';
 import { SystemUI } from '../../ui/system-ui.js';
+import { findWeaponConfig } from '../../ui/equip-data-manager.js';
 import { getPushStrikeValues } from '../../config/skill-formulas.js';
 
 // 默认技能经验公式与辅助函数（应用全局技能经验倍率）
@@ -813,9 +817,36 @@ _applyEnchantAttackInterval(item) {
                     if (wType === 'bow' && item.attack && item.attack.attackInterval) {
                         baseCooldown = item.attack.attackInterval;
                     }
-                    // 基础冷却 × 附魔倍率 + 改造间隔变化
-                    atk.maxCooldown = Math.round(baseCooldown * intervalMul + attackIntervalDelta);
+                    // 枪械统一走带40ms下限的真值解析器；近战/弓保留原附魔与改造叠加口径。
+                    if (isGunWeapon(item)) {
+                        atk.maxCooldown = resolveGunAttackInterval(item, baseCooldown);
+                    } else {
+                        const intervalMul = Number(item._enchantEffects?.attackIntervalMul) || 1;
+                        const attackIntervalDelta = Number(item._craftEffects?.attackIntervalDelta) || 0;
+                        atk.maxCooldown = Math.round(baseCooldown * intervalMul + attackIntervalDelta);
+                    }
                 }
+            },
+
+_getEffectiveGunAttackInterval(item, attackKey) {
+                const attack = attackKey ? this.attacks?.[attackKey] : null;
+                const canonical = findWeaponConfig(item?.weaponId, item?.name);
+                const base = Number(canonical?.attack?.attackInterval)
+                    || Number(item?.attack?.attackInterval)
+                    || Number(attack?.baseMaxCooldown)
+                    || Number(attack?.maxCooldown)
+                    || 250;
+                const baseInterval = resolveGunAttackInterval(item, base);
+                const ramp = canonical?.rampFireParams || item?.rampFireParams;
+                if (!ramp) return baseInterval;
+                const state = this._gunRampStates?.weapon?.weapon === item
+                    ? this._gunRampStates.weapon
+                    : (this._gunRampStates?.weapon2?.weapon === item ? this._gunRampStates.weapon2 : null);
+                const progress = Math.max(0, Math.min(1, Number(state?.progress) || 0));
+                const minCooldown = Math.max(40,
+                    (Number(ramp.minCooldown) || base) + (Number(item?._craftEffects?.rampMinCooldownDelta) || 0));
+                const peakInterval = resolveGunAttackInterval(item, minCooldown);
+                return Math.round(baseInterval + (peakInterval - baseInterval) * progress);
             },
 
 _applySkillOverrides(item) {
@@ -823,12 +854,10 @@ _applySkillOverrides(item) {
                 this._applyEnchantAttackInterval(item);
 
                 if (!item || !item.skillOverrides) {
-                    
                     this._clearSkillOverrides();
                     return;
                 }
                 this._skillOverrides = JSON.parse(JSON.stringify(item.skillOverrides));
-                
             },
 
 _clearSkillOverrides() {
@@ -1070,7 +1099,7 @@ switchWeaponMode() {
                     this._chargeFlashTimer = 0;
                 }
                 // G18 切换保护：切换到 pistol 后 300ms 内不能开火
-                if (nextItem && (nextItem.weaponType === 'pistol' || nextItem.rangedType === 'pistol' || nextItem.weaponType === 'pkm' || nextItem.weaponType === 'akm' || nextItem.weaponType === 'm416' || nextItem.weaponType === 'qbz191' || nextItem.weaponType === 'qjb201')) {
+                if (nextItem && (nextItem.weaponType === 'pistol' || nextItem.rangedType === 'pistol' || AUTO_GUN_FAMILY.includes(nextItem.weaponType))) {
                     this.weaponSwitchCooldown = 300;
                 }
                 // 视觉反馈：屏幕中央显示切换提示
@@ -1084,7 +1113,7 @@ switchWeaponMode() {
                 let modeIcon = '⚔';
                 if (nextItem) {
                     if (nextItem.weaponType === 'pistol' || nextItem.rangedType === 'pistol') modeIcon = '🔫';
-                    else if (nextItem.weaponType === 'pkm' || nextItem.weaponType === 'akm' || nextItem.weaponType === 'm416' || nextItem.weaponType === 'qjb201') modeIcon = '🔥';
+                    else if (AUTO_GUN_FAMILY.includes(nextItem.weaponType)) modeIcon = '🔥';
                     else if (nextItem.weaponType === 'bow') modeIcon = '🏹';
                 }
                 hint.textContent = `${modeIcon} ${modeName}`;
@@ -1139,20 +1168,11 @@ switchWeaponMode() {
                     if (nextItem.weaponAsset && nextItem.weaponAsset.muzzleImage) {
                         this.muzzleFlashImg = loadImage(nextItem.weaponAsset.muzzleImage);
                     }
-                } else if (nextItem && (nextItem.weaponType === 'pkm' || nextItem.weaponType === 'akm' || nextItem.weaponType === 'm416' || nextItem.weaponType === 'qbz191' || nextItem.weaponType === 'qjb201')) {
+                } else if (nextItem && AUTO_GUN_FAMILY.includes(nextItem.weaponType)) {
                     this.equippedRangedType = nextItem.weaponType;
                     if (nextItem.equipImage) {
-                        if (nextItem.weaponType === 'pkm') {
-                            this.pkmImage = loadImage(nextItem.equipImage);
-                        } else if (nextItem.weaponType === 'qbz191') {
-                            this.qbz191Image = loadImage(nextItem.equipImage);
-                        } else if (nextItem.weaponType === 'qjb201') {
-                            this.qjb201Image = loadImage(nextItem.equipImage);
-                        } else if (nextItem.weaponType === 'm416') {
-                            this.m416Image = loadImage(nextItem.equipImage);
-                        } else {
-                            this.akmImage = loadImage(nextItem.weaponAsset?.image || nextItem.equipImage);
-                        }
+                        const canvasImageProp = nextItem.canvasImageProp;
+                        if (canvasImageProp) this[canvasImageProp] = loadImage(nextItem.weaponAsset?.image || nextItem.equipImage);
                     }
                 } else if (nextItem && nextItem.weaponType === 'shotgun') {
                     this.equippedRangedType = 'shotgun';
@@ -1546,7 +1566,7 @@ _getOffhandAnimMs(offhandItem, baseMs) {
                 if (!offhandItem) return baseMs;
                 let cfgKey = 'sword';
                 if (offhandItem.weaponType === 'pistol' || offhandItem.rangedType === 'pistol') cfgKey = offhandItem.animConfigKey || 'pistol';
-                else if (offhandItem.weaponType === 'pkm' || offhandItem.weaponType === 'akm' || offhandItem.weaponType === 'm416' || offhandItem.weaponType === 'qbz191' || offhandItem.weaponType === 'qjb201') cfgKey = offhandItem.weaponType;
+                else if (AUTO_GUN_FAMILY.includes(offhandItem.weaponType)) cfgKey = offhandItem.weaponType;
                 else if (offhandItem.weaponType === 'bow') cfgKey = 'bow';
                 const cfg = WeaponAnimConfig[cfgKey];
                 const mul = (cfg ? cfg.timingMul : 1) * (this.animTimingMul || 1);
@@ -1773,7 +1793,7 @@ _fireRanged(hand = 'main') {
                 const currentItem = this.equipments[mainSlot];
                 const isPistol = currentItem && (currentItem.weaponType === 'pistol' || currentItem.rangedType === 'pistol');
                 const isBow = currentItem && currentItem.weaponType === 'bow';
-                const isPkmOrAkm = currentItem && (currentItem.weaponType === 'pkm' || currentItem.weaponType === 'akm' || currentItem.weaponType === 'm416' || currentItem.weaponType === 'qbz191' || currentItem.weaponType === 'qjb201' || currentItem.weaponType === 'energy_lmg');
+                const isPkmOrAkm = currentItem && AUTO_GUN_FAMILY.includes(currentItem.weaponType);
                 const isShotgun = currentItem && currentItem.weaponType === 'shotgun';
                 const wac = WeaponAnimConfig[isPistol ? 'pistol' : (isBow ? 'bow' : (isPkmOrAkm ? currentItem.weaponType : (isShotgun ? 'shotgun' : 'sword')))];
                 const _holdX = wac ? wac.holdOffsetX : WEAPON_ANIM.holdX;
@@ -1843,6 +1863,19 @@ _fireRanged(hand = 'main') {
                                 this._consumeAmmo(mainSlot);
                             }
                         }
+                        const overdriveShot = this._registerOverdriveHeatShot(currentItem, mainSlot);
+                        const rhythmShot = this._prepareRhythmBurstShot(currentItem);
+                        const convergenceShot = this._prepareConvergenceShot(currentItem);
+                        const energyParams = isEnergyLMG ? this._getEnergyLMGParams() : null;
+                        const energyAtPeak = !!(energyParams
+                            && this._energyLMGFireTime >= energyParams.rampUpTime);
+                        const energyPeakDamageMultiplier = energyAtPeak
+                            ? Math.max(1, 1 + (Number(craftEffects?.energyPeakDamageMultiplierDelta) || 0))
+                            : 1;
+                        const energyPeakPiercingBonus = energyAtPeak
+                            ? Math.max(0, Math.round(Number(craftEffects?.energyPeakPiercingBonus) || 0))
+                            : 0;
+                        this._registerGunSpreadShot('main', currentItem);
 
                         const lmgCfg = WEAPON_FX_CONFIG.lmg;
                         const gunLX = this.size + lmgCfg.gunLX, gunLY = holdY;
@@ -1850,22 +1883,14 @@ _fireRanged(hand = 'main') {
                         if (!spawnPos) spawnPos = this._getMuzzlePosition(gunLX, gunLY, lmgCfg.muzzleForward);
                         const baseAngle = Math.atan2(d.targetY - spawnPos.y, d.targetX - spawnPos.x);
 
-                        // 散布：能量轻机枪从配置读取，其他使用统一散布系统
-                        let spreadFactor, maxSpreadAngle, spreadRad, angle;
-                        if (isEnergyLMG) {
-                            const elp = this._getEnergyLMGParams();
-                            maxSpreadAngle = elp.maxSpreadAngle + (craftEffects?.maxSpreadAngleDelta || 0);
-                            if (maxSpreadAngle < 0) maxSpreadAngle = 0;
-                            // 能量轻机枪散布即时开始，从配置读取达到最大时间
-                            const spreadProgress = Math.min(1, this._gunSpreadTimer / elp.spreadMaxTime);
-                            spreadRad = (Math.random() - 0.5) * 2 * (maxSpreadAngle * Math.PI / 180) * spreadProgress;
-                            angle = baseAngle + spreadRad;
-                        } else {
-                            spreadFactor = this._currentSpreadFactor;
-                            maxSpreadAngle = this._currentSpreadMaxAngle || WEAPON_FX_CONFIG.defaultMaxSpreadAngle;
-                            spreadRad = (Math.random() - 0.5) * 2 * (maxSpreadAngle * Math.PI / 180) * spreadFactor;
-                            angle = baseAngle + spreadRad;
-                        }
+                        // 所有自动武器统一消费按实际发数累计的散布，能量机枪不再另走按住时间分支。
+                        const spreadFactor = this._currentSpreadFactor;
+                        const maxSpreadAngle = this._currentSpreadMaxAngle || WEAPON_FX_CONFIG.defaultMaxSpreadAngle;
+                        const spreadRad = (Math.random() - 0.5) * 2 * (maxSpreadAngle * Math.PI / 180) * spreadFactor;
+                        const angle = baseAngle + spreadRad
+                            * (rhythmShot?.spreadMultiplier || 1)
+                            * (convergenceShot?.spreadMultiplier || 1)
+                            * overdriveShot.spreadMultiplier;
 
                         const pc = this.attacks[attackKey].config;
                         // 动态计算伤害（优先使用 getCurrentWeaponAtk，包含强化和改造加成）
@@ -1877,7 +1902,14 @@ _fireRanged(hand = 'main') {
                             // 原 weapon-damage-formulas.js 硬编码第二套公式已删除，统一公式源为 attack-formula.js
                             weaponDamage = 0;
                         }
-                        const damage = { min: weaponDamage, max: weaponDamage };
+                        const calibrationShot = this._prepareCalibrationShot(currentItem);
+                        const shotDamage = Math.round(weaponDamage
+                            * (calibrationShot?.damageMultiplier || 1)
+                            * (rhythmShot?.damageMultiplier || 1)
+                            * (convergenceShot?.damageMultiplier || 1)
+                            * energyPeakDamageMultiplier
+                            * overdriveShot.damageMultiplier);
+                        const damage = { min: shotDamage, max: shotDamage };
 
                         // 屏幕抖动
                         Camera.triggerShake(isEnergyLMG ? lmgCfg.cameraShakeEnergy : lmgCfg.cameraShake);
@@ -1887,28 +1919,49 @@ _fireRanged(hand = 'main') {
                         this._playFireSound(currentItem, lmgCfg.defaultSound, lmgCfg.soundMap[attackKey]);
 
                         // 应用改造效果
-                        let effectiveRange = pc.projectileRange;
+                        const ballistics = this._getGunBallistics(currentItem, pc.projectileRange);
+                        const effectiveRange = ballistics.maxRange;
                         let effectiveKnockback = pc.knockback || 0;
                         let effectiveProjectileSpeed = pc.projectileSpeed;
                         if (craftEffects) {
-                            effectiveRange += craftEffects.rangeDelta || 0;
                             effectiveKnockback += craftEffects.knockbackDelta || 0;
                             if (craftEffects.projectileSpeedPercent) {
                                 effectiveProjectileSpeed *= (1 + craftEffects.projectileSpeedPercent);
                             }
-                            if (effectiveRange < 100) effectiveRange = 100;
                         }
+                        effectiveProjectileSpeed *= overdriveShot.projectileSpeedMultiplier;
+
+                        const ricochetOnHit = createWeaponRicochetHandler(this, currentItem, d.entities);
+                        const legendaryLmgOnHit = createLegendaryLmgHitHandler(this, currentItem, d.entities);
 
                         // 创建弹丸
                         ProjectileFactory.create({
                             x: spawnPos.x, y: spawnPos.y, angle: angle,
                             ...this._projectileAim3D(spawnPos, d.targetX, d.targetY, 24, angle, d.entities),
                             speed: effectiveProjectileSpeed, maxRange: effectiveRange, size: pc.projectileSize,
-                            damage: damage, piercing: this._getEffectivePiercing(pc.piercing, currentItem),
-                            source: this, entities: d.entities, image: null,
+                            damage: damage,
+                            piercing: this._getEffectivePiercing(pc.piercing, currentItem)
+                                + (calibrationShot?.piercingBonus || 0)
+                                + energyPeakPiercingBonus
+                                + overdriveShot.piercingBonus,
+                            source: this, effectWeapon: currentItem, entities: d.entities, image: null,
                             isGold: !isEnergyLMG, isGreen: isEnergyLMG,
+                            isPurple: calibrationShot?.charged === true,
+                            isCrimson: rhythmShot?.sweet === true
+                                || overdriveShot.overheated
+                                || !!currentItem.runeLitanyParams,
+                            isCyan: energyAtPeak
+                                || (convergenceShot?.stack || 0) > 0
+                                || !!currentItem.ricochetParams
+                                || !!currentItem.constellationParams,
                             damageType: isEnergyLMG ? 'magic' : 'physical',
-                            knockback: effectiveKnockback
+                            knockback: effectiveKnockback,
+                            damageFalloff: ballistics.damageFalloff,
+                            playerGunWallSparks: true,
+                            onFirstHit: calibrationShot?.onFirstHit || ricochetOnHit || legendaryLmgOnHit,
+                            hitContext: currentItem.overdriveHeatParams
+                                ? { critChanceBonusPercent: overdriveShot.critChanceBonusPercent }
+                                : null,
                         });
 
                         // 枪口火焰特效
@@ -2072,7 +2125,7 @@ _getWeaponAnimParams() {
                 if (!currentItem || !currentItem.name) return params;
 
                 const isPistol = currentItem.weaponType === 'pistol' || currentItem.rangedType === 'pistol';
-                const isPkmOrAkm = currentItem.weaponType === 'pkm' || currentItem.weaponType === 'akm' || currentItem.weaponType === 'm416' || currentItem.weaponType === 'qbz191' || currentItem.weaponType === 'qjb201' || currentItem.weaponType === 'energy_lmg';
+                const isPkmOrAkm = AUTO_GUN_FAMILY.includes(currentItem.weaponType);
                 const isShotgun = currentItem.weaponType === 'shotgun';
                 const isMelee = currentItem.category === 'weapon_melee' || currentItem.weaponType === 'sword';
                 const s = wa.size;
@@ -2170,7 +2223,7 @@ _getOffhandWeaponAnimParams() {
 
                 const offhandAnim = this.offhandWeaponAnim || { state: 'idle', timer: 0, angle: WEAPON_ANIM.idleAngle };
                 const isPistol = offhandItem.weaponType === 'pistol' || offhandItem.rangedType === 'pistol';
-                const _isPkmOrAkm = offhandItem.weaponType === 'pkm' || offhandItem.weaponType === 'akm' || offhandItem.weaponType === 'm416' || offhandItem.weaponType === 'qbz191' || offhandItem.weaponType === 'qjb201';
+                const _isPkmOrAkm = AUTO_GUN_FAMILY.includes(offhandItem.weaponType);
                 const _isShotgun = offhandItem.weaponType === 'shotgun';
                 const isMelee = offhandItem.category === 'weapon_melee' || offhandItem.weaponType === 'sword';
                 const s = wa.size;

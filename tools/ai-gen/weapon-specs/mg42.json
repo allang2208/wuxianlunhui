@@ -1,0 +1,91 @@
+{
+  "weaponId": "weapon34",
+  "weaponType": "mg42",
+  "key": "mg42",
+  "name": "MG42",
+  "type": "机枪",
+  "icon": "🔫",
+  "category": "weapon_ranged",
+  "rarity": "common",
+  "rarityLabel": "普通",
+  "level": 4,
+  "price": 100,
+  "weaponCategory": "mainhand",
+  "weaponTypeTag": "远程武器",
+  "isTwoHanded": true,
+  "equipSlot": "weapon",
+  "desc": "MG42通用机枪，1200发/分钟，100发弹箱供弹；极高射速换来快速过热与猛烈散布",
+  "statsDisplay": [
+    { "name": "物理攻击", "value": "3.5+力量×0.13+精神×0.13" },
+    { "name": "射程", "value": "1400" }
+  ],
+  "statsJson": [
+    { "name": "物理攻击", "value": "3.5+力量×0.13+精神×0.13" },
+    { "name": "射程", "value": "1400" }
+  ],
+  "attack": {
+    "range": 1400,
+    "knockback": 1,
+    "attackInterval": 50,
+    "hitType": "亮金色曳光弹（直线弹道）",
+    "damageType": "物理",
+    "projectileSpeed": 1330,
+    "damageFalloff": { "start": 520, "minMultiplier": 0.22 }
+  },
+  "attackKey": "mg42",
+  "animConfigKey": "mg42",
+  "canvasImageProp": "mg42Image",
+  "fireMode": "fullAuto",
+  "ammoConfig": { "max": 100, "reloadTime": 3600, "reloadSound": "assets/sounds/weapons/mg42_reload.wav" },
+  "attackFormula": {
+    "base": 3.5,
+    "enhanceFlat": 0.25,
+    "attrs": [
+      { "key": "str", "base": 0.13, "perEnhance": 0.02 },
+      { "key": "wis", "base": 0.13, "perEnhance": 0.02 }
+    ]
+  },
+  "spreadParams": { "startShots": 2, "maxShots": 12, "recoveryMs": 1000, "maxAngle": 40 },
+  "heatParams": { "overheatTime": 3200, "overheatRecoverTime": 1900, "overheatCooldownTime": 2600 },
+  "fireSound": "assets/sounds/weapons/mg42_fire.wav",
+  "equipSound": "assets/sounds/weapons/mg42_equip.wav",
+  "animation": {
+    "type": "recoil（后坐力抖动）",
+    "totalMs": "50ms (约)",
+    "windupMs": "≈10",
+    "swingMs": "≈15",
+    "recoveryMs": "≈25",
+    "holdOffset": "(-64, -6)",
+    "weaponSize": 104,
+    "timingMul": "0.05x",
+    "recoilAmount": "0.16rad",
+    "description": "MG42 以1200RPM连续射击，采用高散布、短过热窗口的机枪后坐系统。"
+  },
+  "assets": {
+    "equipImage": "assets/weapons/mg42-equip.png",
+    "iconImage": "assets/icons/mg42-equip.png",
+    "slotImage": "assets/icons/mg42-equip.png",
+    "dropImage": "assets/weapons/mg42-equip.png",
+    "weaponAssetImage": "assets/weapons/mg42-equip.png"
+  },
+  "craftTemplateWeaponId": "weapon6",
+  "animTemplateWeaponType": "pkm",
+  "layout": { "canvas": 2048, "contentWidthFrac": 0.915, "centerX": 0.5, "centerY": 0.543 },
+  "sounds": {
+    "fire": "assets/sounds/weapons/mg42_fire.wav",
+    "reload": "assets/sounds/weapons/mg42_reload.wav",
+    "equip": "assets/sounds/weapons/mg42_equip.wav"
+  },
+  "imagePrompts": {
+    "icon": [
+      "single photorealistic MG42 general-purpose machine gun, complete right-facing orthographic side profile, genuine transparent background",
+      "dark stamped-steel receiver, perforated barrel shroud, wood or bakelite stock, folded bipod, compact 100-round belt box",
+      "no hands, no person, no text, no logo, no insignia, no political symbols, no border, no duplicate"
+    ],
+    "video": [
+      "MG42 machine gun alone on an armory pedestal, slow product turntable",
+      "close-up on stamped receiver, roller action and quick-change barrel, short controlled burst",
+      "audio: extremely rapid 7.92 automatic fire, hard metallic action, short indoor tail"
+    ]
+  }
+}

@@ -3765,101 +3765,84 @@
             ],
             "barrel": [
                 {
-                    "id": "long_barrel",
-                    "name": "长枪管",
-                    "icon": "assets/icons/craft-cold-steel/long_barrel.png",
-                    "desc": "射程 +200px，子弹速度 +20%，散布开始 +1秒，最大散布 +1秒",
+                    "id": "energy_phase_spool",
+                    "name": "瞬相转子",
+                    "icon": "assets/icons/craft-cold-steel/energy_phase_spool.png",
+                    "desc": "达到峰值射速快0.9秒，但峰值攻击间隔+15ms、最大散布+3°",
+                    "specialModification": true,
+                    "ticketCost": 4,
                     "effects": {
-                        "rangeDelta": 200,
-                        "projectileSpeedPercent": 0.2,
-                        "spreadStartDelta": 1000,
-                        "spreadTimeDelta": 1000
+                        "energyRampUpTimeDelta": -900,
+                        "energyPeakCooldownDelta": 15,
+                        "maxSpreadAngleDelta": 3
                     }
                 },
                 {
-                    "id": "short_barrel",
-                    "name": "短枪管",
-                    "icon": "assets/icons/craft-cold-steel/short_barrel.png",
-                    "desc": "射程 -200px，散布开始 +0.5秒，移动速度 +10%",
+                    "id": "energy_superconducting_rotor",
+                    "name": "超导深速线圈",
+                    "icon": "assets/icons/craft-cold-steel/energy_superconducting_rotor.png",
+                    "desc": "峰值攻击间隔-10ms，但达到峰值慢1.2秒、过热时间-0.5秒",
+                    "specialModification": true,
+                    "ticketCost": 5,
                     "effects": {
-                        "rangeDelta": -200,
-                        "spreadStartDelta": 500,
-                        "moveSpeedPercent": 0.1
+                        "energyPeakCooldownDelta": -10,
+                        "energyRampUpTimeDelta": 1200,
+                        "overheatTimeDelta": -500
                     }
                 }
             ],
             "magazine": [
                 {
-                    "id": "energy_extended",
-                    "name": "能量扩容弹箱",
-                    "icon": "assets/icons/craft-cold-steel/energy_extended.png",
-                    "desc": "过热时间 +2秒，移动速度 -10%",
+                    "id": "energy_phase_change_bank",
+                    "name": "相变储能体",
+                    "icon": "assets/icons/craft-cold-steel/energy_phase_change_bank.png",
+                    "desc": "过热时间+2秒，但过热恢复+0.8秒、移动速度-5%",
+                    "specialModification": true,
+                    "ticketCost": 5,
                     "effects": {
                         "overheatTimeDelta": 2000,
-                        "moveSpeedPercent": -0.1
+                        "overheatRecoverDelta": 800,
+                        "moveSpeedPercent": -0.05
                     }
                 },
                 {
-                    "id": "energy_fast",
-                    "name": "快速能量弹夹",
-                    "icon": "assets/icons/craft-cold-steel/energy_fast.png",
-                    "desc": "过热时间 -1秒，移动速度 +10%",
+                    "id": "energy_pulse_cooling_array",
+                    "name": "脉冲散热阵",
+                    "icon": "assets/icons/craft-cold-steel/energy_pulse_cooling_array.png",
+                    "desc": "过热时间-1.2秒、过热恢复-1.8秒，但最大散布+2°",
+                    "specialModification": true,
+                    "ticketCost": 4,
                     "effects": {
-                        "overheatTimeDelta": -1000,
-                        "moveSpeedPercent": 0.1
-                    }
-                },
-                {
-                    "id": "overload_cell",
-                    "name": "过载能量电池",
-                    "icon": "assets/icons/craft-cold-steel/overload_cell.png",
-                    "desc": "伤害+15%，过热时间-1.5秒",
-                    "effects": {
-                        "damagePercent": 0.15,
-                        "overheatTimeDelta": -1500
-                    }
-                },
-                {
-                    "id": "cooling_fin",
-                    "name": "散热鳍片",
-                    "icon": "assets/icons/craft-cold-steel/cooling_fin.png",
-                    "desc": "过热恢复-2000ms，移动速度-3%",
-                    "effects": {
-                        "overheatRecoverDelta": -2000,
-                        "moveSpeedPercent": -0.03
+                        "overheatTimeDelta": -1200,
+                        "overheatRecoverDelta": -1800,
+                        "maxSpreadAngleDelta": 2
                     }
                 }
             ],
             "bullet": [
                 {
-                    "id": "high_energy",
-                    "name": "高能量子弹",
-                    "icon": "assets/icons/craft-cold-steel/high_energy.png",
-                    "desc": "射程 +200px，伤害 +5%，散布开始 -0.5秒",
+                    "id": "energy_peak_lance",
+                    "name": "临界贯流束",
+                    "icon": "assets/icons/craft-cold-steel/energy_peak_lance.png",
+                    "desc": "达到峰值射速后穿透目标+2，但射程-150px",
+                    "specialModification": true,
+                    "ticketCost": 5,
                     "effects": {
-                        "rangeDelta": 200,
-                        "damagePercent": 0.05,
-                        "spreadStartDelta": -500
+                        "energyPeakPiercingBonus": 2,
+                        "rangeDelta": -150
                     }
                 },
                 {
-                    "id": "piercing_ammo",
-                    "name": "强穿透子弹",
-                    "icon": "assets/icons/craft-cold-steel/piercing_ammo.png",
-                    "desc": "穿透目标 +2",
+                    "id": "energy_peak_collapse",
+                    "name": "峰值聚束核",
+                    "icon": "assets/icons/craft-cold-steel/energy_peak_collapse.png",
+                    "desc": "达到峰值射速后伤害+30%，但过热时间-0.9秒、最大散布+3°",
+                    "specialModification": true,
+                    "ticketCost": 5,
                     "effects": {
-                        "piercingBonus": 2
-                    }
-                },
-                {
-                    "id": "focus_lens",
-                    "name": "聚焦镜片",
-                    "icon": "assets/icons/craft-cold-steel/focus_lens.png",
-                    "desc": "最大散布角度-5°，散布开始+0.5秒，伤害+5%",
-                    "effects": {
-                        "maxSpreadAngleDelta": -5,
-                        "spreadStartDelta": 500,
-                        "damagePercent": 0.05
+                        "energyPeakDamageMultiplierDelta": 0.3,
+                        "overheatTimeDelta": -900,
+                        "maxSpreadAngleDelta": 3
                     }
                 }
             ],
@@ -4445,6 +4428,439 @@
                     "desc": "导魔管线采用直流通道，所有魔法的MP消耗-30%",
                     "effects": {
                         "magicMpCostPercent": -0.3
+                    }
+                }
+            ]
+        }
+    },
+    "weapon31": {
+        "templateWeaponId": "weapon6",
+        "options": {
+            "barrel": [
+                {
+                    "id": "rpd_field_gas_regulator",
+                    "name": "战场导气调节器",
+                    "icon": "assets/icons/craft-cold-steel/cooling_barrel.png",
+                    "desc": "攻击间隔-8ms；持续射击更快过热，最大散布角度+4°",
+                    "specialModification": true,
+                    "ticketCost": 2,
+                    "effects": {
+                        "attackIntervalDelta": -8,
+                        "overheatTimeDelta": -900,
+                        "maxSpreadAngleDelta": 4
+                    }
+                }
+            ]
+        }
+    },
+    "weapon32": {
+        "templateWeaponId": "weapon6",
+        "options": {
+            "barrel": [
+                {
+                    "id": "m249_quick_change_barrel_assembly",
+                    "name": "快换枪管组件",
+                    "icon": "assets/icons/craft-cold-steel/quick_change_barrel.png",
+                    "desc": "过热时间+1500ms；换弹时间+400ms，移动速度-5%",
+                    "specialModification": true,
+                    "ticketCost": 3,
+                    "effects": {
+                        "overheatTimeDelta": 1500,
+                        "reloadTimeDelta": 400,
+                        "moveSpeedPercent": -0.05
+                    }
+                }
+            ]
+        }
+    },
+    "weapon33": {
+        "templateWeaponId": "weapon11",
+        "options": {
+            "stock": [
+                {
+                    "id": "ultimax_constant_recoil_tune",
+                    "name": "恒定后坐缓冲调校",
+                    "icon": "assets/icons/craft-cold-steel/sustained_fire.png",
+                    "desc": "稳定射击窗口+4发，最大散布角度-3°；攻击间隔+12ms",
+                    "specialModification": true,
+                    "ticketCost": 3,
+                    "effects": {
+                        "spreadStartDelta": 400,
+                        "maxSpreadAngleDelta": -3,
+                        "attackIntervalDelta": 12
+                    }
+                }
+            ]
+        }
+    },
+    "weapon34": {
+        "templateWeaponId": "weapon6",
+        "options": {
+            "stock": [
+                {
+                    "id": "mg42_heavy_bolt_buffer_assembly",
+                    "name": "重型枪机缓冲总成",
+                    "icon": "assets/icons/craft-cold-steel/sustained_fire.png",
+                    "desc": "攻击间隔+15ms；过热时间+1200ms，稳定射击窗口+220ms，最大散布角度-7°",
+                    "specialModification": true,
+                    "ticketCost": 2,
+                    "effects": {
+                        "attackIntervalDelta": 15,
+                        "overheatTimeDelta": 1200,
+                        "spreadStartDelta": 220,
+                        "maxSpreadAngleDelta": -7
+                    }
+                }
+            ]
+        }
+    },
+    "weapon35": {
+        "templateWeaponId": "weapon6",
+        "options": {
+            "barrel": [
+                {
+                    "id": "fusion_core_redline_chamber",
+                    "name": "红线膛压器",
+                    "icon": "assets/icons/craft-cold-steel/fusion_core_redline_chamber.png",
+                    "desc": "红热伤害倍率额外+0.25（1.60→1.85），但红热散布+30%",
+                    "specialModification": true,
+                    "ticketCost": 5,
+                    "effects": {
+                        "overheatDamageMultiplierDelta": 0.25,
+                        "overheatSpreadPercent": 0.3
+                    }
+                },
+                {
+                    "id": "fusion_core_thermal_stabilizer",
+                    "name": "热稳导流罩",
+                    "icon": "assets/icons/craft-cold-steel/fusion_core_thermal_stabilizer.png",
+                    "desc": "红热散布-45%、弹速+20%，但红热伤害倍率-0.20（1.60→1.40）",
+                    "specialModification": true,
+                    "ticketCost": 4,
+                    "effects": {
+                        "overheatSpreadPercent": -0.45,
+                        "overheatProjectileSpeedPercent": 0.2,
+                        "overheatDamageMultiplierDelta": -0.2
+                    }
+                }
+            ],
+            "bullet": [
+                {
+                    "id": "fusion_core_molten_chain",
+                    "name": "熔穿弹链",
+                    "icon": "assets/icons/craft-cold-steel/fusion_core_molten_chain.png",
+                    "desc": "红热增压状态下，弹丸额外穿透2个目标",
+                    "specialModification": true,
+                    "ticketCost": 5,
+                    "effects": {
+                        "overheatPiercingBonus": 2
+                    }
+                },
+                {
+                    "id": "fusion_core_critical_fire_control",
+                    "name": "临界火控芯片",
+                    "icon": "assets/icons/craft-cold-steel/fusion_core_critical_fire_control.png",
+                    "desc": "红热增压状态下，暴击率提高50个百分点",
+                    "specialModification": true,
+                    "ticketCost": 5,
+                    "effects": {
+                        "overheatCritChancePercent": 0.5
+                    }
+                }
+            ],
+            "magazine": [
+                {
+                    "id": "fusion_core_flash_igniter",
+                    "name": "闪燃点火器",
+                    "icon": "assets/icons/craft-cold-steel/fusion_core_flash_igniter.png",
+                    "desc": "连续14发即进入红热，但红热伤害倍率-0.20（1.60→1.40）",
+                    "specialModification": true,
+                    "ticketCost": 4,
+                    "effects": {
+                        "overheatShotsRequiredDelta": -6,
+                        "overheatDamageMultiplierDelta": -0.2
+                    }
+                },
+                {
+                    "id": "fusion_core_pressure_reservoir",
+                    "name": "临界蓄压鼓",
+                    "icon": "assets/icons/craft-cold-steel/fusion_core_pressure_reservoir.png",
+                    "desc": "连续28发才进入红热，红热伤害倍率+0.25（1.60→1.85），但换弹+0.5秒",
+                    "specialModification": true,
+                    "ticketCost": 5,
+                    "effects": {
+                        "overheatShotsRequiredDelta": 8,
+                        "overheatDamageMultiplierDelta": 0.25,
+                        "reloadTimeDelta": 500
+                    }
+                }
+            ]
+        }
+    },
+    "weapon36": {
+        "templateWeaponId": "weapon6",
+        "options": {
+            "barrel": [
+                {
+                    "id": "singularity_bifurcation_prism",
+                    "name": "双生分岔器",
+                    "icon": "assets/icons/craft-cold-steel/focus_lens.png",
+                    "desc": "【轨迹二选一】首段弹射同时分岔至两名协议选定目标；每路伤害45%，最大散布+3°",
+                    "specialModification": true,
+                    "ticketCost": 5,
+                    "effects": {
+                        "ricochetExtraTargets": 1,
+                        "ricochetDamageMultiplierDelta": -0.2,
+                        "maxSpreadAngleDelta": 3
+                    }
+                },
+                {
+                    "id": "singularity_closed_loop_relay",
+                    "name": "闭环回授器",
+                    "icon": "assets/icons/craft-cold-steel/overload_cell.png",
+                    "desc": "【轨迹二选一】首段弹射命中后折返原目标，再造成35%伤害；攻击间隔+15ms",
+                    "specialModification": true,
+                    "ticketCost": 5,
+                    "effects": {
+                        "ricochetReturnDamageMultiplier": 0.35,
+                        "attackIntervalDelta": 15
+                    }
+                }
+            ],
+            "bullet": [
+                {
+                    "id": "singularity_cull_arbitrator",
+                    "name": "猎弱裁决芯",
+                    "icon": "assets/icons/craft-cold-steel/terminal_convergence_core.png",
+                    "desc": "【协议二选一】首段弹射优先锁定范围内生命比例最低的目标；搜索范围-120px",
+                    "specialModification": true,
+                    "ticketCost": 5,
+                    "effects": {
+                        "ricochetTargetMode": "lowestHp",
+                        "ricochetRangeDelta": -120
+                    }
+                },
+                {
+                    "id": "singularity_harvest_repeater",
+                    "name": "断链收割器",
+                    "icon": "assets/icons/craft-cold-steel/muzzle_brake.png",
+                    "desc": "【协议二选一】每条首段弹射击杀后，该分支获得1次45%伤害续跳；弹匣-10发",
+                    "specialModification": true,
+                    "ticketCost": 4,
+                    "effects": {
+                        "ricochetKillChainCount": 1,
+                        "ricochetChainDamageMultiplier": 0.45,
+                        "magazineDelta": -10
+                    }
+                }
+            ],
+            "grip": [
+                {
+                    "id": "singularity_collapse_aftershock",
+                    "name": "星坍余震匣",
+                    "icon": "assets/icons/craft-cold-steel/terminal_singularity_mag.png",
+                    "desc": "【增幅二选一】每个首段弹射落点向90px内最多3名其他敌人释放25%余震；换弹时间+700ms",
+                    "specialModification": true,
+                    "ticketCost": 5,
+                    "effects": {
+                        "ricochetSplashRadius": 90,
+                        "ricochetSplashDamageMultiplier": 0.25,
+                        "ricochetSplashMaxTargets": 3,
+                        "reloadTimeDelta": 700
+                    }
+                },
+                {
+                    "id": "singularity_temporal_anchor",
+                    "name": "时滞锚定器",
+                    "icon": "assets/icons/craft-cold-steel/terminal_feedback_grip.png",
+                    "desc": "【增幅二选一】同一目标每累计5次首段弹射命中，束缚0.4秒；移动速度-5%",
+                    "specialModification": true,
+                    "ticketCost": 5,
+                    "effects": {
+                        "ricochetAnchorHitsRequired": 5,
+                        "ricochetAnchorDurationMs": 400,
+                        "moveSpeedPercent": -0.05
+                    }
+                }
+            ]
+        }
+    },
+    "weapon37": {
+        "templateWeaponId": "weapon6",
+        "options": {
+            "barrel": [
+                {
+                    "id": "celestial_snapshot_astrolabe",
+                    "name": "快照星盘",
+                    "icon": "assets/icons/craft-cold-steel/celestial_snapshot_astrolabe.png",
+                    "desc": "【观测二选一】第3次命中建立锚点、第6次结算；星图结算威力-22%，最大散布+2°",
+                    "specialModification": true,
+                    "ticketCost": 5,
+                    "effects": {
+                        "constellationAnchorHitDelta": -1,
+                        "constellationResolveHitDelta": -2,
+                        "constellationPowerMultiplierDelta": -0.22,
+                        "maxSpreadAngleDelta": 2
+                    }
+                },
+                {
+                    "id": "celestial_deep_exposure_dial",
+                    "name": "深空长曝仪",
+                    "icon": "assets/icons/craft-cold-steel/celestial_deep_exposure_dial.png",
+                    "desc": "【观测二选一】第5次命中建立锚点、第10次结算；星图结算威力+35%，攻击间隔+12ms",
+                    "specialModification": true,
+                    "ticketCost": 6,
+                    "effects": {
+                        "constellationAnchorHitDelta": 1,
+                        "constellationResolveHitDelta": 2,
+                        "constellationPowerMultiplierDelta": 0.35,
+                        "attackIntervalDelta": 12
+                    }
+                }
+            ],
+            "bullet": [
+                {
+                    "id": "celestial_wide_meridian_prism",
+                    "name": "广角经纬棱镜",
+                    "icon": "assets/icons/craft-cold-steel/celestial_wide_meridian_prism.png",
+                    "desc": "【几何二选一】经纬线宽度+34px、目标上限+3，天顶余波半径+40px/目标+2；经纬线伤害倍率-0.16",
+                    "specialModification": true,
+                    "ticketCost": 5,
+                    "effects": {
+                        "constellationLineWidthDelta": 34,
+                        "constellationLineMaxTargetsDelta": 3,
+                        "constellationLineDamageMultiplierDelta": -0.16,
+                        "constellationFocusRadiusDelta": 40,
+                        "constellationFocusMaxTargetsDelta": 2
+                    }
+                },
+                {
+                    "id": "celestial_zenith_pinhole",
+                    "name": "针孔天顶仪",
+                    "icon": "assets/icons/craft-cold-steel/celestial_zenith_pinhole.png",
+                    "desc": "【几何二选一】经纬线宽度-26px、目标上限-3，天顶余波半径-30px/目标-2；经纬线伤害倍率+0.42",
+                    "specialModification": true,
+                    "ticketCost": 6,
+                    "effects": {
+                        "constellationLineWidthDelta": -26,
+                        "constellationLineMaxTargetsDelta": -3,
+                        "constellationLineDamageMultiplierDelta": 0.42,
+                        "constellationFocusRadiusDelta": -30,
+                        "constellationFocusMaxTargetsDelta": -2
+                    }
+                }
+            ],
+            "grip": [
+                {
+                    "id": "celestial_cold_afterglow_brake",
+                    "name": "冷辉滞留器",
+                    "icon": "assets/icons/craft-cold-steel/celestial_cold_afterglow_brake.png",
+                    "desc": "【余辉二选一】经纬线与天顶坠击命中的目标减速0.9秒；换弹时间+450ms",
+                    "specialModification": true,
+                    "ticketCost": 5,
+                    "effects": {
+                        "constellationSlowDurationMs": 900,
+                        "reloadTimeDelta": 450
+                    }
+                },
+                {
+                    "id": "celestial_parallax_carry_relay",
+                    "name": "视差续算器",
+                    "icon": "assets/icons/craft-cold-steel/celestial_parallax_carry_relay.png",
+                    "desc": "【余辉二选一】每次星图结算后保留2次连续命中进度；弹匣-12发",
+                    "specialModification": true,
+                    "ticketCost": 6,
+                    "effects": {
+                        "constellationCarryHits": 2,
+                        "magazineDelta": -12
+                    }
+                }
+            ]
+        }
+    },
+    "weapon38": {
+        "templateWeaponId": "weapon6",
+        "options": {
+            "barrel": [
+                {
+                    "id": "litany_double_inscription_needle",
+                    "name": "速诵双刻针",
+                    "icon": "assets/icons/craft-cold-steel/litany_double_inscription_needle.png",
+                    "desc": "【刻印二选一】每次有效命中连续刻下2种轮转符文；黑弥撒伤害倍率-0.28，最大散布+3°",
+                    "specialModification": true,
+                    "ticketCost": 6,
+                    "effects": {
+                        "runeMarksPerHit": 2,
+                        "runeVerdictDamageMultiplierDelta": -0.28,
+                        "maxSpreadAngleDelta": 3
+                    }
+                },
+                {
+                    "id": "litany_gravestone_burin",
+                    "name": "墓碑深铭针",
+                    "icon": "assets/icons/craft-cold-steel/litany_gravestone_burin.png",
+                    "desc": "【刻印二选一】符文记忆+3.5秒，黑弥撒伤害倍率+0.38；攻击间隔+18ms",
+                    "specialModification": true,
+                    "ticketCost": 6,
+                    "effects": {
+                        "runeMemoryDurationDelta": 3500,
+                        "runeVerdictDamageMultiplierDelta": 0.38,
+                        "attackIntervalDelta": 18
+                    }
+                }
+            ],
+            "bullet": [
+                {
+                    "id": "litany_congregation_dome",
+                    "name": "会众穹顶",
+                    "icon": "assets/icons/craft-cold-steel/litany_congregation_dome.png",
+                    "desc": "【裁决二选一】黑弥撒半径+70px、目标上限+4；伤害倍率-0.18",
+                    "specialModification": true,
+                    "ticketCost": 5,
+                    "effects": {
+                        "runeVerdictRadiusDelta": 70,
+                        "runeVerdictMaxTargetsDelta": 4,
+                        "runeVerdictDamageMultiplierDelta": -0.18
+                    }
+                },
+                {
+                    "id": "litany_execution_clapper",
+                    "name": "处刑钟舌",
+                    "icon": "assets/icons/craft-cold-steel/litany_execution_clapper.png",
+                    "desc": "【裁决二选一】黑弥撒半径-75px、目标上限-3；伤害倍率+0.55",
+                    "specialModification": true,
+                    "ticketCost": 6,
+                    "effects": {
+                        "runeVerdictRadiusDelta": -75,
+                        "runeVerdictMaxTargetsDelta": -3,
+                        "runeVerdictDamageMultiplierDelta": 0.55
+                    }
+                }
+            ],
+            "grip": [
+                {
+                    "id": "litany_soul_migration_tract",
+                    "name": "亡魂迁经",
+                    "icon": "assets/icons/craft-cold-steel/litany_soul_migration_tract.png",
+                    "desc": "【传承二选一】直击击杀时，未完成的血骨烬符文迁移至400px内最多3名敌人；弹匣-10发。迁移裁决不会再次迁移",
+                    "specialModification": true,
+                    "ticketCost": 6,
+                    "effects": {
+                        "runeInheritanceTargets": 3,
+                        "runeInheritanceRangeDelta": 40,
+                        "magazineDelta": -10
+                    }
+                },
+                {
+                    "id": "litany_ember_gospel",
+                    "name": "余烬福音",
+                    "icon": "assets/icons/craft-cold-steel/litany_ember_gospel.png",
+                    "desc": "【传承二选一】黑弥撒的幸存目标继承触发裁决时的最后一印；继承不会立即再次裁决，换弹时间+600ms",
+                    "specialModification": true,
+                    "ticketCost": 6,
+                    "effects": {
+                        "runeVerdictSeedMarks": true,
+                        "reloadTimeDelta": 600
                     }
                 }
             ]

@@ -252,6 +252,12 @@
     burst_trigger/carbon_fiber_mag/drum_mag 等），无需生成新图。
   - 验证：三份 JSON hash 一致、聚合逻辑运行时确认 3 新键生效、测试全绿。
 
+#### 可组合高稀有机枪机制合同（2026-08-27）
+
+- **独立二选一组**：同一机制维度内二选一，跨维度允许完整组合；强收益通过射速、散布、弹匣、换弹、射程或机动代价显式平衡，不用隐藏互斥或共享预算暗中削减组合收益。
+- **弹射与追加结算**：主弹命中回调只负责启动一次机制；每条弹射分支携带独立的已访问目标集合与明确次数上限，余震、星图线伤、天顶坠击、符文裁决等追加伤害直接进入伤害管线，不重新挂载主弹回调。防无限循环应限制事件来源和递归代数，而不是禁止合理组合。
+- **玩家/塔载同源**：神话与传说机枪的命中机制必须由共享处理器统一目标过滤、视线、伤害和特效；玩家状态按武器实例保存，防御塔按塔实例保存。序列机制要有停火超时、失活目标清理和对象池回调重置，避免跨战斗或跨弹丸继承陈旧状态。
+
 - **分工约定**：本工具只写 JSON 数据（bulk rewrite）+ 生成二进制资产；JS 源码按 scaffold 输出的锚点清单用 apply_patch 落盘
   （EDM / shop / gun-ammo / craft-default-slots / weapon-texture-map / weapon-attack-config / weapon-fx-config /
   attack-formula / weapon-anim / update / subsystems / game.js / dev-tool / defense-system）。

@@ -1,0 +1,95 @@
+{
+  "createdAt": "2026-08-26",
+  "generator": "OpenAI built-in image_gen",
+  "assetClass": "epic-lmg-modification-icons",
+  "rawSize": "1254x1254",
+  "runtimeSize": "209x209",
+  "commonPrompt": "Semi-realistic 3D PBR game inventory icon; cold-steel industrial design; centered machine component on a dark gunmetal square frame with beveled edges, four corner bolts, and circular recessed backing; controlled studio lighting; no text, logo, watermark, hands, people or scenery; full outer frame visible.",
+  "items": [
+    {
+      "id": "energy_phase_spool",
+      "name": "瞬相转子",
+      "subjectPrompt": "Compact high-speed rotor and spool assembly with concentric titanium rings, precision bearings and restrained cyan phase arc.",
+      "raw": "raw/energy_phase_spool_raw.png",
+      "runtime": "assets/icons/craft-cold-steel/energy_phase_spool.png"
+    },
+    {
+      "id": "energy_superconducting_rotor",
+      "name": "超导深速线圈",
+      "subjectPrompt": "Elongated precision rotor spindle wrapped in dense silver superconducting windings with cyan cooling channels and magnetic bearings.",
+      "raw": "raw/energy_superconducting_rotor_raw.png",
+      "runtime": "assets/icons/craft-cold-steel/energy_superconducting_rotor.png"
+    },
+    {
+      "id": "energy_phase_change_bank",
+      "name": "相变储能体",
+      "subjectPrompt": "Rugged armored power bank containing three visible cyan phase-change cells, protective ribs, thermal reservoir and insulated connectors.",
+      "raw": "raw/energy_phase_change_bank_raw.png",
+      "runtime": "assets/icons/craft-cold-steel/energy_phase_change_bank.png"
+    },
+    {
+      "id": "energy_pulse_cooling_array",
+      "name": "脉冲散热阵",
+      "subjectPrompt": "Compact radial heat-sink module with six black cooling fins around a cyan pulse chamber and two insulated coolant couplings.",
+      "raw": "raw/energy_pulse_cooling_array_raw.png",
+      "runtime": "assets/icons/craft-cold-steel/energy_pulse_cooling_array.png"
+    },
+    {
+      "id": "energy_peak_lance",
+      "name": "临界贯流束",
+      "subjectPrompt": "Elongated cyan energy-lance emitter cartridge with spear-like crystal core, titanium focusing collars and rear capacitor.",
+      "raw": "raw/energy_peak_lance_raw.png",
+      "runtime": "assets/icons/craft-cold-steel/energy_peak_lance.png"
+    },
+    {
+      "id": "energy_peak_collapse",
+      "name": "峰值聚束核",
+      "subjectPrompt": "Dense spherical cyan compression core held by four inward magnetic clamps and concentric collapsing rings.",
+      "raw": "raw/energy_peak_collapse_raw.png",
+      "runtime": "assets/icons/craft-cold-steel/energy_peak_collapse.png"
+    },
+    {
+      "id": "fusion_core_redline_chamber",
+      "name": "红线膛压器",
+      "subjectPrompt": "Heavy graphite pressure chamber with copper reinforcement hoops, amber thermal window and compact pressure valve.",
+      "raw": "raw/fusion_core_redline_chamber_raw.png",
+      "runtime": "assets/icons/craft-cold-steel/fusion_core_redline_chamber.png"
+    },
+    {
+      "id": "fusion_core_thermal_stabilizer",
+      "name": "热稳导流罩",
+      "subjectPrompt": "Low-profile curved graphite heat shroud with layered copper spreaders, symmetrical fins and restrained amber indicator.",
+      "raw": "raw/fusion_core_thermal_stabilizer_raw.png",
+      "runtime": "assets/icons/craft-cold-steel/fusion_core_thermal_stabilizer.png"
+    },
+    {
+      "id": "fusion_core_molten_chain",
+      "name": "熔穿弹链",
+      "subjectPrompt": "Short curved chain of four sealed graphite thermal cells linked by aged copper claws with narrow amber energy windows.",
+      "raw": "raw/fusion_core_molten_chain_raw.png",
+      "runtime": "assets/icons/craft-cold-steel/fusion_core_molten_chain.png"
+    },
+    {
+      "id": "fusion_core_critical_fire_control",
+      "name": "临界火控芯片",
+      "subjectPrompt": "Hexagonal black ceramic control processor in a copper shock cage with central amber optical lens and radial sensor traces.",
+      "raw": "raw/fusion_core_critical_fire_control_raw.png",
+      "runtime": "assets/icons/craft-cold-steel/fusion_core_critical_fire_control.png"
+    },
+    {
+      "id": "fusion_core_flash_igniter",
+      "name": "闪燃点火器",
+      "subjectPrompt": "Compact copper-and-graphite activation module with twin ceramic contacts, contained amber energy arc and fast-discharge capacitor.",
+      "raw": "raw/fusion_core_flash_igniter_raw.png",
+      "runtime": "assets/icons/craft-cold-steel/fusion_core_flash_igniter.png"
+    },
+    {
+      "id": "fusion_core_pressure_reservoir",
+      "name": "临界蓄压鼓",
+      "subjectPrompt": "Heavy cylindrical energy accumulator with graphite shell, copper hoops, broad amber thermal window and unlabeled status dial.",
+      "raw": "raw/fusion_core_pressure_reservoir_raw.png",
+      "runtime": "assets/icons/craft-cold-steel/fusion_core_pressure_reservoir.png"
+    }
+  ],
+  "preview": "epic_lmg_mod_icons_contact.png"
+}

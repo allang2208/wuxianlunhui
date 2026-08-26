@@ -23,6 +23,7 @@ import {
  * @property {{min:number, max:number}} damage
  * @property {boolean} piercing
  * @property {Object} source
+ * @property {Object|null} [effectWeapon] 发射瞬间实际使用的武器（双持副手不能回退主手）
  * @property {Map|Array} entities
  * @property {HTMLImageElement|null} [image]
  * @property {boolean} [isTracer]
@@ -42,6 +43,13 @@ import {
  * @property {number} [groundY] 枪口视觉Y还原后的地面平面Y
  * @property {number} [groundAngle] 地面平面内弹道角
  * @property {Object|null} [wallContext] 调用方追加的墙体忽略上下文
+ * @property {{start:number,minMultiplier:number}|null} [damageFalloff] 远距伤害衰减配置
+ * @property {boolean} [playerGunWallSparks] 仅由玩家枪械分支显式开启的障碍物命中火花
+ * @property {Function|null} [onFirstHit] 弹丸首次有效命中后的回调（对象池复用前必须清空）
+ * @property {boolean} [isPurple] 洋红相位曳光弹
+ * @property {boolean} [isCrimson] 赤金日冕曳光弹
+ * @property {boolean} [isCyan] 青白收束曳光弹
+ * @property {Object|null} [hitContext] 发射瞬间的单发伤害上下文快照
  */
 
 export const ProjectileFactory = {
@@ -54,6 +62,7 @@ export const ProjectileFactory = {
         const {
             x, y, angle, speed, maxRange, size,
             damage, piercing, source, entities,
+            effectWeapon = null,
             image = null,
             isTracer = false,
             isGold = false,
@@ -72,7 +81,14 @@ export const ProjectileFactory = {
             aimDistance = null,
             groundY = null,
             groundAngle = null,
-            wallContext = null
+            wallContext = null,
+            damageFalloff = null,
+            playerGunWallSparks = false,
+            onFirstHit = null,
+            isPurple = false,
+            isCrimson = false,
+            isCyan = false,
+            hitContext = null,
         } = options;
         const effectiveMaxRange = applyElevatedRangedRange(source, maxRange);
         const sourceHeight = source?.collider?.height || source?.collisionHeight || source?.size || 40;
@@ -137,6 +153,9 @@ export const ProjectileFactory = {
             p.isGold = isGold;
             p.isDarkGold = isDarkGold;
             p.isGreen = isGreen;
+            p.isPurple = isPurple;
+            p.isCrimson = isCrimson;
+            p.isCyan = isCyan;
             p.isSpit = isSpit;
             p.damageType = damageType;
             p._noRender = noRender;
@@ -146,10 +165,18 @@ export const ProjectileFactory = {
             p.textureKey = textureKey;
             p.depthBonus = depthBonus;
             p.knockback = knockback ?? 0;
+            p.damageFalloff = damageFalloff ? { ...damageFalloff } : null;
+            p.playerGunWallSparks = playerGunWallSparks === true;
+            p._onFirstHit = typeof onFirstHit === 'function' ? onFirstHit : null;
+            p._hitContext = hitContext && typeof hitContext === 'object' ? { ...hitContext } : null;
+            p._firstHitTriggered = false;
             p._onBeforeDestroy = null;
             p.traveled = 0;
             p.active = true;
-            p.hitTargets = new Set();
+            if (!p.hitTargets) p.hitTargets = new Set();
+            else p.hitTargets.clear();
+            if (!Array.isArray(p._candidateEntities)) p._candidateEntities = [];
+            else p._candidateEntities.length = 0;
             p._embeddedWalls = embeddedWalls;
             p._wallContext = projectileWallContext(source, wallContext, {
                 x,
@@ -169,6 +196,14 @@ export const ProjectileFactory = {
             );
             p.depthBonus = depthBonus;
             p.knockback = knockback ?? 0;
+            p.damageFalloff = damageFalloff ? { ...damageFalloff } : null;
+            p.playerGunWallSparks = playerGunWallSparks === true;
+            p.isPurple = isPurple;
+            p.isCrimson = isCrimson;
+            p.isCyan = isCyan;
+            p._onFirstHit = typeof onFirstHit === 'function' ? onFirstHit : null;
+            p._hitContext = hitContext && typeof hitContext === 'object' ? { ...hitContext } : null;
+            p._firstHitTriggered = false;
             p._embeddedWalls = embeddedWalls;
             p._wallContext = projectileWallContext(source, wallContext, {
                 x,
@@ -183,11 +218,12 @@ export const ProjectileFactory = {
             p.syncPhaserSprite();
         }
         // 快照发射瞬间武器的附魔/改造效果：命中时按快照判定，防止弹道飞行中切枪改变命中效果
-        const snapWeapon = source ? (source.getCurrentWeapon ? source.getCurrentWeapon() : (source.equipments && source.weaponMode ? source.equipments[source.weaponMode] : null)) : null;
+        const snapWeapon = effectWeapon || (source ? (source.getCurrentWeapon ? source.getCurrentWeapon() : (source.equipments && source.weaponMode ? source.equipments[source.weaponMode] : null)) : null);
         p._effectSnapshot = {
             enchant: snapWeapon && snapWeapon._enchantEffects ? { ...snapWeapon._enchantEffects } : null,
             craft: snapWeapon && snapWeapon._craftEffects ? { ...snapWeapon._craftEffects } : null
         };
+        p._onHitSpeedBuffTriggered = false;
         EffectManager.add(p);
         return p;
     }

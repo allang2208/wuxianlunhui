@@ -34,7 +34,15 @@
       "assets/sounds/weapons/revolver357_fire.mp3",
       "assets/sounds/enemies/time_agent_shield/gunshot.mp3",
       "assets/companions/hamster_musketeer/fire.mp3",
-      "assets/sounds/friendly/hamster_bounty_hunter_attack.mp3"
+      "assets/sounds/friendly/hamster_bounty_hunter_attack.mp3",
+      "assets/sounds/weapons/rpd_fire.wav",
+      "assets/sounds/weapons/m249_fire.wav",
+      "assets/sounds/weapons/ultimax100_fire.wav",
+      "assets/sounds/weapons/mg42_fire.wav",
+      "assets/sounds/weapons/fusion_core_lmg_fire.wav",
+      "assets/sounds/weapons/singularity_loom_lmg_fire.wav",
+      "assets/sounds/weapons/celestial_cartographer_lmg_fire.wav",
+      "assets/sounds/weapons/grave_covenant_cantor_lmg_fire.wav"
     ],
     "cachedPathLimit": 64,
     "repeatGuardMs": 35

@@ -8,7 +8,7 @@ import { EventBus } from '../core/event-bus.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { getElement } from '../utils/dom-utils.js';
 import { TimerManager } from '../utils/timer-manager.js';
-import { completeWeaponFields } from './equip-data-manager.js';
+import { completeWeaponFields, EquipDataManager } from './equip-data-manager.js';
 import { EquipManager } from './equip-manager.js';
 import { EquipTooltipManager } from './equip-tooltip-manager.js';
 import { SystemUI } from './system-ui.js';
@@ -36,6 +36,14 @@ const ShopSystem = {
     // 新增商店 = 在此加一个键（如 'armory'）+ 对应 NPC 配置里设 shopId。
     SHOP_CATALOGS: {
         main: [
+        { id: 'rpd', ...EquipDataManager.RPD_ITEM, price: 100 },
+        { id: 'm249', ...EquipDataManager.M249_ITEM, price: 200 },
+        { id: 'ultimax100', ...EquipDataManager.ULTIMAX100_ITEM, price: 200 },
+        { id: 'mg42', ...EquipDataManager.MG42_ITEM, price: 100 },
+        { id: 'fusion_core_lmg', ...EquipDataManager.FUSION_CORE_LMG_ITEM, price: 800 },
+        { id: 'singularity_loom_lmg', ...EquipDataManager.SINGULARITY_LOOM_LMG_ITEM, price: 1600 },
+        { id: 'celestial_cartographer_lmg', ...EquipDataManager.CELESTIAL_CARTOGRAPHER_LMG_ITEM, price: 3200 },
+        { id: 'grave_covenant_cantor_lmg', ...EquipDataManager.GRAVE_COVENANT_CANTOR_LMG_ITEM, price: 3200 },
         { id: 'rusty_sword', weaponId: 'weapon1', name: '生锈的长剑', icon: '⚔', iconImage: 'assets/icons/1-rusty_sword_macro.png', category: 'weapon_melee', rarity: 'common', type: '单手剑', price: 100, equipSlot: 'weapon', weaponType: 'sword', weaponCategory: 'mainhand', weaponTypeTag: '近战武器', equipImage: 'assets/weapons/1-rusty_sword_euip.png', stats: [{ name: '物理攻击', value: '12-18' }, { name: '暴击率', value: '+3%' }], desc: '一把锈迹斑斑的旧剑', level: 1, attack: { range: 124, knockback: 6, attackInterval: 500, hitType: '突刺（扇形判定）', damageType: '物理' }, animation: { type: 'thrust（突刺）', totalMs: '1100ms (200+500+400)', windupMs: 200, swingMs: 500, recoveryMs: 400, idleAngle: '0°', windupAngle: '+30°', swingAngle: '-30°', holdOffset: '(-20, 11)', weaponSize: 63, timingMul: '1.0x (标准)', description: '三段式突刺动画：预备→前刺→回位。 windup 阶段剑身向后上方扬起，swing 阶段快速向前突刺，recover 阶段回到待机姿态。' } },
         { id: 'knights_sword', weaponId: 'weapon2', name: '骑士长剑', icon: '⚔', iconImage: 'assets/icons/knights_sword_v3_macro.png', category: 'weapon_melee', rarity: 'uncommon', type: '单手剑', price: 100, equipSlot: 'weapon2', weaponType: 'sword', weaponCategory: 'mainhand', weaponTypeTag: '近战武器', equipImage: 'assets/weapons/knights_sword_v3_equip.png', stats: [{ name: '物理攻击', value: '18-23' }], desc: '骑士团的标准制式长剑，剑身修长，锋利且坚韧。适合有一定基础的剑士使用。', level: 5, attack: { range: 155, rangeBonus: 50, knockback: 8, attackInterval: 500, hitType: '突刺（扇形判定）', damageType: '物理' }, skillOverrides: { dashAttackThrust: { animation: { totalMs: 600, dashDist: 173, chargeMs: 0, thrustMs: 600, recoverMs: 0 }, hitCheck: { shape: 'rectangle', width: 75, length: 350, hitArc: 0, lengthBonus: 50, backOffset: -30 } } } },
         { id: 'rune_sword', weaponId: 'weapon4', name: '符文长剑', icon: '⚔', iconImage: 'assets/icons/EXsword_icon.png', category: 'weapon_melee', rarity: 'uncommon', type: '单手剑', price: 100, equipSlot: 'weapon', weaponType: 'sword', weaponCategory: 'mainhand', weaponTypeTag: '近战武器', equipImage: 'assets/weapons/EXsword_equipped_v2_.png', stats: [{ name: '物理攻击', value: '45-55' }, { name: '暴击率', value: '+5%' }], desc: '剑身上铭刻着上古符文的传奇长剑，符文之力蕴含其中，持有者能感受到符文中流淌的力量。剑刃在挥动时会留下淡蓝色的符文残影，威力远超凡铁。', level: 5, attack: { range: 124, knockback: 6, attackInterval: 500, hitType: '突刺（扇形判定）', damageType: '物理' }, animation: { type: 'thrust（突刺）', totalMs: '1100ms (200+500+400)', windupMs: 200, swingMs: 500, recoveryMs: 400, idleAngle: '0°', windupAngle: '+30°', swingAngle: '-30°', holdOffset: '(-20, 11)', weaponSize: 63, timingMul: '1.0x (标准)', description: '三段式突刺动画：预备→前刺→回位。符文长剑的刺击带有符文残影，威力远超凡铁。' } },
