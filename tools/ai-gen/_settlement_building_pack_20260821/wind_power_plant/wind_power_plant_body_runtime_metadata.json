@@ -1,0 +1,26 @@
+{
+  "source": "tools\\ai-gen\\_settlement_building_pack_20260821\\wind_power_plant\\wind_power_plant_body_user.png",
+  "output": "assets\\terrain\\wind_power_plant_body.png",
+  "method": "user-supplied RGBA alpha preserved; deterministic tight crop only",
+  "cropBox": [
+    39,
+    124,
+    990,
+    982
+  ],
+  "fileSize": [
+    951,
+    858
+  ],
+  "alphaBBox": [
+    4,
+    4,
+    947,
+    854
+  ],
+  "displayW": 512,
+  "displayH": 462,
+  "footOffsetY": 229,
+  "scaleX": 0.5383806519453207,
+  "scaleY": 0.5384615384615384
+}
