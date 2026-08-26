@@ -11,6 +11,7 @@ import { DamageableEntity } from '../entities/damageable-entity.js';
 import { HamsterWarrior } from '../entities/hamster-warrior.js';
 import { HamsterShooter } from '../entities/hamster-shooter.js';
 import { HamsterGuard } from '../entities/hamster-guard.js';
+import { HamsterPhalanx } from '../entities/hamster-phalanx.js';
 import { HamsterMilitia } from '../entities/hamster-militia.js';
 import { HamsterScout } from '../entities/hamster-scout.js';
 import { HamsterMusketeer } from '../entities/hamster-musketeer.js';
@@ -53,6 +54,7 @@ import producerBuildings from '../../data/producer-buildings.json';
 import warriorCfg from '../../data/hamster-warrior-config.json';
 import shooterCfg from '../../data/hamster-shooter-config.json';
 import guardCfg from '../../data/hamster-guard-config.json';
+import phalanxCfg from '../../data/hamster-phalanx-config.json';
 import militiaCfg from '../../data/hamster-militia-config.json';
 import scoutCfg from '../../data/hamster-scout-config.json';
 import musketeerCfg from '../../data/hamster-musketeer-config.json';
@@ -116,6 +118,7 @@ const ABILITY_TARGET_NAMES = Object.freeze({
     warrior: '仓鼠战士',
     shooter: '仓鼠射手',
     guard: '仓鼠盾卫',
+    phalanx: '仓鼠方阵',
     militia: '仓鼠民兵',
     scout: '仓鼠斥候',
     musketeer: '仓鼠火枪',
@@ -197,6 +200,7 @@ const PRODUCER_UNIT_CFG = {
     warrior: warriorCfg,
     shooter: shooterCfg,
     guard: guardCfg,
+    phalanx: phalanxCfg,
     militia: militiaCfg,
     scout: scoutCfg,
     musketeer: musketeerCfg,
@@ -216,6 +220,7 @@ const PRODUCER_UNIT_CLASS = {
     warrior: HamsterWarrior,
     shooter: HamsterShooter,
     guard: HamsterGuard,
+    phalanx: HamsterPhalanx,
     militia: HamsterMilitia,
     scout: HamsterScout,
     musketeer: HamsterMusketeer,
@@ -234,6 +239,7 @@ const PRODUCER_UNIT_CONFIG_PATH = Object.freeze({
     warrior: 'data/hamster-warrior-config.json',
     shooter: 'data/hamster-shooter-config.json',
     guard: 'data/hamster-guard-config.json',
+    phalanx: 'data/hamster-phalanx-config.json',
     militia: 'data/hamster-militia-config.json',
     scout: 'data/hamster-scout-config.json',
     musketeer: 'data/hamster-musketeer-config.json',

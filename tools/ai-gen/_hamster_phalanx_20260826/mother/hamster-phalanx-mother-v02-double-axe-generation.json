@@ -1,0 +1,32 @@
+{
+  "asset": "hamster_phalanx",
+  "stage": "identity_mother_candidate",
+  "version": 2,
+  "generatedAt": "2026-08-26",
+  "generator": "built-in ImageGen precise-object-edit",
+  "editTarget": "hamster-phalanx-mother-v01.png",
+  "editScope": "replace the short spear with one double-bladed battle axe only",
+  "prompt": "hamster-phalanx-mother-v02-double-axe-edit-prompt.txt",
+  "promptSha256": "85cef6732b71aad2f1519f2ab6b0eab6587aa6612164c1d201de08410e4e1d66",
+  "output": "hamster-phalanx-mother-v02-double-axe.png",
+  "outputSha256": "865cf68edbe06f3fdf24438b049f484197340f0c1bfcd7ca01310d4f4bc75266",
+  "canvas": {
+    "width": 1672,
+    "height": 941,
+    "format": "PNG",
+    "pixelFormat": "RGB24"
+  },
+  "identityLocks": [
+    "one golden-brown hamster legionary",
+    "one tall rectangular tower shield",
+    "one symmetrical double-bladed battle axe",
+    "dark segmented heavy armor",
+    "restrained deep-red crest and cloth accents",
+    "full-body right-facing three-quarter stance",
+    "pure white shadowless background"
+  ],
+  "supersedes": "hamster-phalanx-mother-v01.png",
+  "status": "ready_for_user_approval",
+  "runtimeIntegrationActive": false,
+  "notes": "Identity mother image only. The v01 source remains available for rollback; no runtime files or recruitment-tier placeholders were changed."
+}

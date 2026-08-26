@@ -1,0 +1,129 @@
+{
+  "unitId": "hamster_phalanx",
+  "unitName": "仓鼠方阵",
+  "provider": "MiniMax",
+  "model": "H3",
+  "size": "1024x576",
+  "durationSeconds": 5.17,
+  "referenceMode": "first-frame image",
+  "identityMother": "mother/hamster-phalanx-mother-v02-double-axe.png",
+  "acceptedWalkingReference": "references/walking-v02/hamster-phalanx-double-axe-white-1024x576.png",
+  "assetStatus": "complete_runtime_registered_pending_recruitment_commit",
+  "runtimeIntegrationActive": true,
+  "producerBuildingIntegration": false,
+  "runtimeAssets": "assets/companions/hamster_phalanx",
+  "runtimeIcon": "assets/ui/unit-icons/hamster-phalanx.png",
+  "runtimeConfig": "data/hamster-phalanx-config.json",
+  "recruitmentGate": "normal recruitment config is retained in the shared working tree and must be committed with the separately owned whole-tier recruitment framework; this commit does not expose phalanx through legacy unitTypes",
+  "rejectedAttempts": [
+    {
+      "name": "mother-v01",
+      "reason": "superseded by the user-requested double-bladed axe mother with a stable forward-facing axe head"
+    },
+    {
+      "name": "running-v01",
+      "reason": "tower shield appeared grounded and rigid during running"
+    },
+    {
+      "name": "running-v02",
+      "reason": "shield carry direction did not communicate the intended defensive guard"
+    },
+    {
+      "name": "running-v03",
+      "reason": "horizontal side-shield concept was cancelled before generation after the defensive intent was corrected"
+    },
+    {
+      "name": "running-v04",
+      "reason": "defensive running was replaced by the final slow walking direction"
+    },
+    {
+      "name": "walking-v01",
+      "reason": "double-bladed axe was held backwards"
+    }
+  ],
+  "cleanup": {
+    "policy": "retain final mother/reference/video/prompt/source sheet/RIFE sheet/report/GIF/contact evidence and reproducible scripts; remove rejected binaries, derived previews and regenerable frame caches",
+    "completed": true
+  },
+  "identityLocks": [
+    "large golden hamster legionary in refined bronze and red armor",
+    "one tall rectangular tower shield held in a defensive marching guard",
+    "one double-bladed axe with the axe head facing screen-right and haft butt behind",
+    "slow steady shield-wall advance instead of running"
+  ],
+  "tasks": [
+    {
+      "motion": "idle",
+      "kind": "idle",
+      "prompt": "prompts/idle-h3.txt",
+      "video": "videos/hamster_phalanx_idle_h3.mp4",
+      "videoSha256": "6bf3ebc7a62d663d3b20224706574c2598366bf0176685147229d94e39939b10",
+      "loop": true,
+      "sourceSheet": "source-sheets-pre-interpolation/idle.png",
+      "finalSheet": "sheets/interpolated/idle.png",
+      "finalPreview": "previews/interpolated/idle-interpolated.gif",
+      "finalContact": "previews/interpolated/idle-interpolated-contact.png",
+      "frameCount": 24,
+      "frameRate": 16
+    },
+    {
+      "motion": "walking",
+      "kind": "walk",
+      "prompt": "prompts/walking-v02-corrected-axe-h3.txt",
+      "video": "videos/hamster_phalanx_walking_h3_v02.mp4",
+      "videoSha256": "549dd1fe92080fa6319072a94591a2fe300fb34b16b05579d1b47b5cb8d0c84f",
+      "loop": true,
+      "acceptedByUser": true,
+      "selectionNote": "final accepted movement; rebuilt from every fourth native frame across the complete 5.17-second loop so the original slow leg trajectory and corrected forward-facing double-bladed axe are preserved",
+      "rejectedMovementType": "running",
+      "sourceSheet": "source-sheets-pre-interpolation/walking.png",
+      "finalSheet": "sheets/interpolated/walking.png",
+      "finalPreview": "previews/interpolated/walking-interpolated.gif",
+      "finalContact": "previews/interpolated/walking-interpolated-contact.png",
+      "frameCount": 62,
+      "frameRate": 12,
+      "sourceFrameCount": 31,
+      "sourceFrameRate": 6,
+      "nativeDurationSeconds": 5.166666666666667,
+      "samplingPolicy": "native frames 0..120 at step 4; RIFE supplies one midpoint per interval including the loop wrap"
+    },
+    {
+      "motion": "attacking",
+      "kind": "attack",
+      "prompt": "prompts/attacking-h3.txt",
+      "video": "videos/hamster_phalanx_attacking_h3.mp4",
+      "videoSha256": "ba922c4b29ab80954f81f12b1d3a557887c708a99e3e89fe0c96616cf96ce966",
+      "loop": false,
+      "sourceSheet": "source-sheets-pre-interpolation/attacking.png",
+      "finalSheet": "sheets/interpolated/attacking.png",
+      "finalPreview": "previews/interpolated/attacking-interpolated.gif",
+      "finalContact": "previews/interpolated/attacking-interpolated-contact.png",
+      "frameCount": 41,
+      "frameRate": 24
+    },
+    {
+      "motion": "dying",
+      "kind": "die",
+      "prompt": "prompts/dying-h3.txt",
+      "video": "videos/hamster_phalanx_dying_h3.mp4",
+      "videoSha256": "e6284d3e4507a125ffb1c8bce0dbf968982ea9b75d5ecc1f4246b26c94e1d7e6",
+      "loop": false,
+      "sourceSheet": "source-sheets-pre-interpolation/dying.png",
+      "finalSheet": "sheets/interpolated/dying.png",
+      "finalPreview": "previews/interpolated/dying-interpolated.gif",
+      "finalContact": "previews/interpolated/dying-interpolated-contact.png",
+      "frameCount": 31,
+      "frameRate": 20
+    }
+  ],
+  "postprocess": {
+    "backgroundRemoval": "BiRefNet-general",
+    "cellSize": "512x512",
+    "effectiveBodyHeightTarget": 129,
+    "footLine": "350-351",
+    "fixedScaleAcrossAllActions": true,
+    "interpolation": "RIFE v4.6 2x with RGB/alpha split, nearest-color bleed and intermediate-frame footline correction",
+    "sourceReport": "source-sheet-report.json",
+    "interpolationReport": "interpolation-report.json"
+  }
+}

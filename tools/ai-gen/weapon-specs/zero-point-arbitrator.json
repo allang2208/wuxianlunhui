@@ -1,0 +1,16 @@
+{
+  "weaponId": "weapon28",
+  "weaponType": "zero_point_rifle",
+  "name": "零点仲裁",
+  "rarity": "mythic",
+  "role": "中远距离精准持续命中与纵列穿透",
+  "balance": {
+    "attackIntervalMs": 82,
+    "magazine": 30,
+    "reloadMs": 1100,
+    "baseCycleVsFrontierAtPerfectAccuracy": 1.047,
+    "normalShotFormula": "round(6 + 强化×0.55 + 智力×(0.28+强化×0.045) + 精神×(0.28+强化×0.045))"
+  },
+  "calibrationShot": { "hitsRequired": 8, "damageMultiplier": 1.8, "piercingBonus": 2 },
+  "art": { "runtime": "assets/weapons/zero-point-arbitrator-equip.png", "icon": "assets/icons/firearms/zero-point-arbitrator.png", "towerBarrel": "assets/terrain/tower_barrel_weapon28.png" }
+}

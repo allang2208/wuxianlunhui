@@ -30,6 +30,7 @@ import militiaCfg from '../../data/hamster-militia-config.json';
 import warriorCfg from '../../data/hamster-warrior-config.json';
 import shooterCfg from '../../data/hamster-shooter-config.json';
 import guardCfg from '../../data/hamster-guard-config.json';
+import phalanxCfg from '../../data/hamster-phalanx-config.json';
 import scoutCfg from '../../data/hamster-scout-config.json';
 import musketeerCfg from '../../data/hamster-musketeer-config.json';
 import priestCfg from '../../data/hamster-priest-config.json';
@@ -62,7 +63,7 @@ export const WORLD122_SIM = {
 
 const UNIT_CFGS = {
     militia: militiaCfg, warrior: warriorCfg, shooter: shooterCfg,
-    guard: guardCfg, scout: scoutCfg, musketeer: musketeerCfg, priest: priestCfg,
+    guard: guardCfg, phalanx: phalanxCfg, scout: scoutCfg, musketeer: musketeerCfg, priest: priestCfg,
     knight: knightCfg, light_cavalry: lightCavalryCfg,
     camel_cavalry: camelCavalryCfg,
     explorer: explorerCfg, bounty_hunter: bountyHunterCfg,

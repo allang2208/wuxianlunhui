@@ -40,6 +40,8 @@ ASSETS = [
     "defense_base",
     "obstacle_defense_tower",
     "barracks",
+    "hamster_barracks_lv2",
+    "hamster_barracks_lv3",
     "mine",
     "blacksmith",
     "church",

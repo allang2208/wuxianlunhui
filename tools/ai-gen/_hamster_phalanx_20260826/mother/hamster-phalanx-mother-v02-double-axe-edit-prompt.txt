@@ -1,0 +1,11 @@
+Use case: precise-object-edit
+Asset type: World-122 hamster phalanx friendly-unit identity mother image
+Input image: hamster-phalanx-mother-v01.png, used as the edit target and identity/layout source
+
+Primary request: Change only the weapon. Remove the existing short spear completely and replace it with exactly one high-quality double-bladed battle axe held upright in the same visible hand.
+
+Double-bladed axe specification: one straight dark hardwood haft with reinforced leather grip and restrained bronze/blackened-steel fittings; one complete symmetrical double axe head at the top, with two broad opposing crescent-shaped steel blades, both blades clearly visible and firmly attached to the same central socket. The axe should look like an elite legionary heavy weapon, practical and battle-worn, sized to the hamster soldier without cropping. Keep the full axe head safely inside the canvas.
+
+Invariants: preserve the same golden-brown hamster identity and face, realistic anatomy, helmet, red transverse crest, segmented heavy armor, red cloth, straps, greaves, boots, enormous rectangular tower shield, shield ornament, shield position, full-body three-quarter pose facing right, camera, scale, composition, white seamless background, lighting, materials, ground line and safe margins. Do not redesign or recolor the character or shield.
+
+Constraints: exactly one hamster, exactly one rectangular tower shield, exactly one double-bladed axe, exactly one haft, exactly two opposing axe blades, two arms and two legs. No spear remains anywhere. No extra weapon, duplicate axe, sword, round shield, floating parts, text, logo, watermark, scenery, floor or cast shadow.

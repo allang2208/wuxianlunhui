@@ -1,0 +1,88 @@
+{
+  "weaponId": "weapon25",
+  "weaponType": "frontier_rifle",
+  "key": "frontier-rifle",
+  "name": "边境突击步枪",
+  "type": "自动步枪",
+  "icon": "🔫",
+  "category": "weapon_ranged",
+  "rarity": "epic",
+  "rarityLabel": "史诗",
+  "level": 15,
+  "price": 800,
+  "weaponCategory": "mainhand",
+  "weaponTypeTag": "远程武器",
+  "isTwoHanded": true,
+  "equipSlot": "weapon",
+  "desc": "边境突击步枪，约770发/分钟；轻量化机匣与配重枪托让连续射击兼具速度、精度和恢复。",
+  "statsDisplay": [
+    { "name": "物理攻击", "value": "6+智力×0.28+精神×0.28" },
+    { "name": "射程", "value": "1650" }
+  ],
+  "statsJson": [
+    { "name": "物理攻击", "value": "6+智力×0.28+精神×0.28" },
+    { "name": "射程", "value": "1650" }
+  ],
+  "attack": {
+    "range": 1650,
+    "knockback": 1,
+    "attackInterval": 78,
+    "hitType": "亮金色曳光弹（直线弹道）",
+    "damageType": "物理",
+    "projectileSpeed": 1360,
+    "damageFalloff": { "start": 760, "minMultiplier": 0.46 }
+  },
+  "attackKey": "frontier_rifle",
+  "animConfigKey": "frontier_rifle",
+  "canvasImageProp": "frontierRifleImage",
+  "fireMode": "fullAuto",
+  "ammoConfig": { "max": 32, "reloadTime": 1150, "reloadSound": "assets/sounds/weapons/m416_reload.wav" },
+  "attackFormula": {
+    "base": 6,
+    "enhanceFlat": 0.55,
+    "attrs": [
+      { "key": "int", "base": 0.28, "perEnhance": 0.045 },
+      { "key": "wis", "base": 0.28, "perEnhance": 0.045 }
+    ]
+  },
+  "spreadParams": {
+    "startShots": 9,
+    "maxShots": 24,
+    "recoveryMs": 280,
+    "maxAngle": 18
+  },
+  "fireSound": "assets/sounds/weapons/m416_fire.wav",
+  "equipSound": "assets/sounds/weapons/m416_equip.wav",
+  "animation": {
+    "type": "recoil（后坐力抖动）",
+    "totalMs": "78ms (约)",
+    "windupMs": "≈16",
+    "swingMs": "≈23",
+    "recoveryMs": "≈39",
+    "holdOffset": "(0, 6)",
+    "weaponSize": 96,
+    "timingMul": "0.08x (高速)",
+    "recoilAmount": "0.08rad",
+    "description": "边境突击步枪以约770RPM连续射击，强调快速恢复和中距离稳定压制。"
+  },
+  "assets": {
+    "equipImage": "assets/weapons/frontier-rifle-equip.png",
+    "iconImage": "assets/icons/firearms/frontier-rifle.png",
+    "slotImage": "assets/icons/firearms/frontier-rifle.png",
+    "dropImage": "assets/weapons/frontier-rifle-equip.png",
+    "weaponAssetImage": "assets/weapons/frontier-rifle-equip.png"
+  },
+  "craftTemplateWeaponId": "weapon21",
+  "animTemplateWeaponType": "m416",
+  "layout": {
+    "canvas": 2048,
+    "contentWidthFrac": 0.915,
+    "centerX": 0.5,
+    "centerY": 0.543
+  },
+  "sounds": {
+    "fire": "assets/sounds/weapons/m416_fire.wav",
+    "reload": "assets/sounds/weapons/m416_reload.wav",
+    "equip": "assets/sounds/weapons/m416_equip.wav"
+  }
+}

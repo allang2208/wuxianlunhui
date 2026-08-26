@@ -1,0 +1,50 @@
+{
+  "source": "tools\\ai-gen\\_settlement_building_pack_20260821\\hamster_barracks_lv3\\klein_v02_dev_foundation_restore\\hamster_barracks_lv3_klein_v02_dev_foundation_body_rekeyed.png",
+  "output": "assets\\terrain\\hamster_barracks_lv3.png",
+  "sourceMode": "RGBA",
+  "background": null,
+  "matteColor": null,
+  "matteEdgeWidth": null,
+  "matteTolerance": null,
+  "nearestOpaqueEdgeRgb": true,
+  "nearestOpaqueAlpha": 0.98,
+  "defringeInnerPixels": 0,
+  "minComponentPixels": 0,
+  "removedComponents": 0,
+  "removedComponentPixels": 0,
+  "preserveAlphaExact": true,
+  "maskImage": null,
+  "maskDilate": null,
+  "fillAlphaHoles": false,
+  "fillHoleMatteDistance": null,
+  "removeEnclosedMatte": false,
+  "enclosedMatteChromaDistance": null,
+  "maskAddRects": [],
+  "restoreAlphaRects": [],
+  "removeMatteRects": [],
+  "clearGreenRects": [],
+  "greenHueRange": null,
+  "greenSaturationMin": null,
+  "greenValueMin": null,
+  "cropBox": [
+    67,
+    125,
+    957,
+    925
+  ],
+  "fileSize": [
+    890,
+    800
+  ],
+  "alphaBBox": [
+    4,
+    4,
+    886,
+    796
+  ],
+  "displayW": 300,
+  "displayH": 270,
+  "footOffsetY": 133,
+  "scaleX": 0.33707865168539325,
+  "scaleY": 0.3375
+}

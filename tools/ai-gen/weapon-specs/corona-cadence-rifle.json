@@ -1,0 +1,17 @@
+{
+  "weaponId": "weapon29",
+  "weaponType": "corona_cadence_rifle",
+  "name": "日冕裁律",
+  "rarity": "legendary",
+  "role": "中距离节律点放与稳定窗口爆发",
+  "balance": {
+    "attackIntervalMs": 76,
+    "magazine": 32,
+    "reloadMs": 1100,
+    "perfectCycleVsEpicFrontier": 1.1046,
+    "perfectCycleVsMythicZeroPoint": 1.0548,
+    "normalShotFormula": "round(6 + 强化×0.55 + 智力×(0.28+强化×0.045) + 精神×(0.28+强化×0.045))"
+  },
+  "rhythmBurst": { "startShot": 5, "endShot": 12, "damageMultiplier": 1.28, "spreadMultiplier": 0.45, "resetMs": 450 },
+  "art": { "runtime": "assets/weapons/corona-cadence-rifle-equip.png", "icon": "assets/icons/firearms/corona-cadence-rifle.png", "towerBarrel": "assets/terrain/tower_barrel_weapon29.png" }
+}

@@ -9,6 +9,7 @@ import militiaCfg from '../../data/hamster-militia-config.json';
 import warriorCfg from '../../data/hamster-warrior-config.json';
 import shooterCfg from '../../data/hamster-shooter-config.json';
 import guardCfg from '../../data/hamster-guard-config.json';
+import phalanxCfg from '../../data/hamster-phalanx-config.json';
 import scoutCfg from '../../data/hamster-scout-config.json';
 import musketeerCfg from '../../data/hamster-musketeer-config.json';
 import priestCfg from '../../data/hamster-priest-config.json';
@@ -60,6 +61,7 @@ export const UNIT_KIND_CFG = {
     warrior: warriorCfg,
     shooter: shooterCfg,
     guard: guardCfg,
+    phalanx: phalanxCfg,
     scout: scoutCfg,
     musketeer: musketeerCfg,
     priest: priestCfg,
@@ -84,6 +86,8 @@ export function getUnitKind(unit) {
     if (unit._isDesertPriest) return 'desert_priest';
     if (unit._isHamsterWarrior) return 'warrior';
     if (unit._isHamsterShooter) return 'shooter';
+    // 方阵继承盾卫，必须先于 _isHamsterGuard 判断。
+    if (unit._isHamsterPhalanx) return 'phalanx';
     if (unit._isHamsterGuard) return 'guard';
     if (unit._isHamsterScout) return 'scout';
     if (unit._isHamsterMusketeer) return 'musketeer';

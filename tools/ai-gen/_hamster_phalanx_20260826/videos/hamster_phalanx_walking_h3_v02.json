@@ -1,0 +1,17 @@
+{
+  "name": "walking-v02",
+  "status": "visual-review-passed",
+  "provider": "MiniMax H3 ImageToVideo",
+  "seed": 2026082629,
+  "durationSeconds": 5.17,
+  "frameCount": 124,
+  "fps": 24,
+  "size": "1024x576",
+  "steps": 16,
+  "loopLocked": true,
+  "reference": "../references/walking-v02/hamster-phalanx-double-axe-white-1024x576.png",
+  "prompt": "../prompts/walking-v02-corrected-axe-h3.txt",
+  "output": "hamster_phalanx_walking_h3_v02.mp4",
+  "intent": "slow grounded shield-wall advance; axe head remains ahead of the gripping paw toward screen right, haft butt trails to screen left",
+  "supersedes": "hamster_phalanx_walking_h3_v01.mp4"
+}

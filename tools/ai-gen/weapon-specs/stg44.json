@@ -1,0 +1,96 @@
+{
+  "weaponId": "weapon23",
+  "weaponType": "stg44",
+  "key": "stg44",
+  "name": "STG-44",
+  "type": "自动步枪",
+  "icon": "🔫",
+  "category": "weapon_ranged",
+  "rarity": "common",
+  "rarityLabel": "普通",
+  "level": 6,
+  "price": 100,
+  "weaponCategory": "mainhand",
+  "weaponTypeTag": "远程武器",
+  "isTwoHanded": true,
+  "equipSlot": "weapon",
+  "desc": "STG-44自动步枪，500发/分钟，亮金色曳光弹；单发沉重、后坐明显的早期突击步枪",
+  "statsDisplay": [
+    { "name": "物理攻击", "value": "6+智力×0.20+精神×0.20" },
+    { "name": "射程", "value": "1400" }
+  ],
+  "statsJson": [
+    { "name": "物理攻击", "value": "6+智力×0.20+精神×0.20" },
+    { "name": "射程", "value": "1400" }
+  ],
+  "attack": {
+    "range": 1400,
+    "knockback": 3,
+    "attackInterval": 120,
+    "hitType": "亮金色曳光弹（直线弹道）",
+    "damageType": "物理",
+    "projectileSpeed": 1180,
+    "damageFalloff": { "start": 620, "minMultiplier": 0.38 }
+  },
+  "attackKey": "stg44",
+  "animConfigKey": "stg44",
+  "canvasImageProp": "stg44Image",
+  "fireMode": "fullAuto",
+  "ammoConfig": { "max": 30, "reloadTime": 1600, "reloadSound": "assets/sounds/weapons/stg44_reload.wav" },
+  "attackFormula": {
+    "base": 6,
+    "enhanceFlat": 0.45,
+    "attrs": [
+      { "key": "int", "base": 0.2, "perEnhance": 0.035 },
+      { "key": "wis", "base": 0.2, "perEnhance": 0.035 }
+    ]
+  },
+  "spreadParams": {
+    "startShots": 4,
+    "maxShots": 14,
+    "recoveryMs": 520,
+    "maxAngle": 30
+  },
+  "fireSound": "assets/sounds/weapons/stg44_fire.wav",
+  "equipSound": "assets/sounds/weapons/stg44_equip.wav",
+  "animation": {
+    "type": "recoil（后坐力抖动）",
+    "totalMs": "120ms (约)",
+    "windupMs": "≈24",
+    "swingMs": "≈36",
+    "recoveryMs": "≈60",
+    "holdOffset": "(0, 6)",
+    "weaponSize": 96,
+    "timingMul": "0.12x (中速)",
+    "recoilAmount": "0.14rad",
+    "description": "STG-44以500RPM连续射击，120ms开火周期和较明显后坐力换取稳定的单发压制感。"
+  },
+  "assets": {
+    "equipImage": "assets/weapons/stg44-equip.png",
+    "iconImage": "assets/icons/firearms/stg44.png",
+    "slotImage": "assets/icons/firearms/stg44.png",
+    "dropImage": "assets/weapons/stg44-equip.png",
+    "weaponAssetImage": "assets/weapons/stg44-equip.png"
+  },
+  "craftTemplateWeaponId": "weapon7",
+  "animTemplateWeaponType": "akm",
+  "layout": {
+    "canvas": 2048,
+    "contentWidthFrac": 0.915,
+    "centerX": 0.5,
+    "centerY": 0.543
+  },
+  "sounds": {
+    "fire": "assets/sounds/weapons/stg44_fire.wav",
+    "reload": "assets/sounds/weapons/stg44_reload.wav",
+    "equip": "assets/sounds/weapons/stg44_equip.wav"
+  },
+  "imagePrompts": {
+    "icon": [
+      "production game equipment sprite, realistic high-detail isolated weapon render, transparent background, no cast shadow",
+      "exactly one historically recognizable STG-44 in strict left-side profile, fixed dark walnut stock on the left, muzzle pointing right, stamped steel receiver, ribbed fore-end, strongly curved 30-round 7.92x33 Kurz magazine, low iron sights, no modern rails",
+      "perfectly level and centered with generous transparent margin; complete stock, magazine and muzzle inside frame",
+      "no text, insignia, swastika, logo, watermark, hands, person, ammunition, sling, bayonet, optics, scenery, detached parts or second weapon"
+    ]
+  }
+}
