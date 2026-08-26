@@ -1,0 +1,92 @@
+{
+  "weaponId": "weapon35",
+  "weaponType": "fusion_core_lmg",
+  "key": "fusion-core-lmg",
+  "name": "熔核轻机枪",
+  "type": "机枪",
+  "icon": "🔫",
+  "category": "weapon_ranged",
+  "rarity": "epic",
+  "rarityLabel": "史诗",
+  "level": 15,
+  "price": 800,
+  "weaponCategory": "mainhand",
+  "weaponTypeTag": "远程武器",
+  "isTwoHanded": true,
+  "equipSlot": "weapon",
+  "desc": "熔核轻机枪以重型弹药进行中远距离压制；基础射速较慢，持续开火会推动铜制热芯进入高速状态",
+  "statsDisplay": [
+    { "name": "物理攻击", "value": "14+力量×0.55+精神×0.50" },
+    { "name": "射程", "value": "1750" }
+  ],
+  "statsJson": [
+    { "name": "物理攻击", "value": "14+力量×0.55+精神×0.50" },
+    { "name": "射程", "value": "1750" }
+  ],
+  "attack": {
+    "range": 1750,
+    "knockback": 4,
+    "attackInterval": 240,
+    "hitType": "橙红重型曳光弹（红热增压）",
+    "damageType": "物理",
+    "projectileSpeed": 1450,
+    "damageFalloff": { "start": 900, "minMultiplier": 0.52 }
+  },
+  "attackKey": "fusion_core_lmg",
+  "animConfigKey": "fusion_core_lmg",
+  "canvasImageProp": "fusionCoreLmgImage",
+  "fireMode": "fullAuto",
+  "ammoConfig": { "max": 40, "reloadTime": 3100, "reloadSound": "assets/sounds/weapons/fusion_core_lmg_reload.wav" },
+  "attackFormula": {
+    "base": 14,
+    "enhanceFlat": 0.9,
+    "attrs": [
+      { "key": "str", "base": 0.55, "perEnhance": 0.085 },
+      { "key": "wis", "base": 0.5, "perEnhance": 0.08 }
+    ]
+  },
+  "spreadParams": { "startShots": 8, "maxShots": 24, "recoveryMs": 450, "maxAngle": 18 },
+  "heatParams": { "overheatTime": 4800, "overheatRecoverTime": 2600, "overheatCooldownTime": 3200 },
+  "overdriveHeatParams": { "shotsToOverheat": 20, "continueFiring": true, "damageMultiplier": 1.6 },
+  "fireSound": "assets/sounds/weapons/fusion_core_lmg_fire.wav",
+  "equipSound": "assets/sounds/weapons/fusion_core_lmg_equip.wav",
+  "animation": {
+    "type": "recoil（重型后坐）",
+    "totalMs": "240ms（固定射击间隔）",
+    "windupMs": "≈45",
+    "swingMs": "≈75",
+    "recoveryMs": "≈120",
+    "holdOffset": "(-64, -6)",
+    "weaponSize": 104,
+    "timingMul": "0.24x",
+    "recoilAmount": "0.11rad",
+    "description": "熔核轻机枪第20发进入红热增压；红热后仍可持续射击，每发伤害提高60%。"
+  },
+  "assets": {
+    "equipImage": "assets/weapons/fusion-core-lmg-equip.png",
+    "iconImage": "assets/icons/fusion-core-lmg-equip.png",
+    "slotImage": "assets/icons/fusion-core-lmg-equip.png",
+    "dropImage": "assets/weapons/fusion-core-lmg-equip.png",
+    "weaponAssetImage": "assets/weapons/fusion-core-lmg-equip.png"
+  },
+  "craftTemplateWeaponId": "weapon6",
+  "animTemplateWeaponType": "pkm",
+  "layout": { "canvas": 2048, "contentWidthFrac": 0.915, "centerX": 0.5, "centerY": 0.543 },
+  "sounds": {
+    "fire": "assets/sounds/weapons/fusion_core_lmg_fire.wav",
+    "reload": "assets/sounds/weapons/fusion_core_lmg_reload.wav",
+    "equip": "assets/sounds/weapons/fusion_core_lmg_equip.wav"
+  },
+  "imagePrompts": {
+    "icon": [
+      "single original photorealistic heavy sci-fi light machine gun, complete right-facing orthographic side profile, genuine transparent background",
+      "solid triangular stock, centered box magazine, graphite curved receiver with amber heat windows, exposed copper thermal coil, smooth low-profile underside heat shield with no foregrip, and a strict side-profile vented muzzle brake with no front-facing bore",
+      "legally distinct silhouette, no hands, no person, no text, no logo, no serial, no watermark, no border, no duplicate"
+    ],
+    "video": [
+      "original graphite-and-copper sci-fi LMG alone on an armory pedestal, slow product turntable",
+      "close-up on the exposed copper thermal coil and amber heat windows, transition into a sustained red-hot overdrive burst",
+      "audio: steady heavy automatic reports with an intensifying thermal core hum"
+    ]
+  }
+}

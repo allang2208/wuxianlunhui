@@ -1139,3 +1139,41 @@ export const CRAFT_DEFAULT_SLOTS = {
     }
   ]
 };
+
+// 新突击步枪沿用同族七槽布局；瞄具槽通用，QBZ-95 仅保留后托/尾垫语义。
+CRAFT_DEFAULT_SLOTS.weapon23 = CRAFT_DEFAULT_SLOTS.weapon7.map((slot) => ({ ...slot, lineTarget: { ...slot.lineTarget } }));
+CRAFT_DEFAULT_SLOTS.weapon24 = CRAFT_DEFAULT_SLOTS.weapon8.map((slot) => ({
+  ...slot,
+  name: slot.id === 'stock' ? '后托/尾垫' : slot.name,
+  lineTarget: { ...slot.lineTarget },
+}));
+CRAFT_DEFAULT_SLOTS.weapon25 = CRAFT_DEFAULT_SLOTS.weapon21.map((slot) => ({ ...slot, lineTarget: { ...slot.lineTarget } }));
+CRAFT_DEFAULT_SLOTS.weapon26 = CRAFT_DEFAULT_SLOTS.weapon7.map((slot) => ({ ...slot, lineTarget: { ...slot.lineTarget } }));
+CRAFT_DEFAULT_SLOTS.weapon27 = CRAFT_DEFAULT_SLOTS.weapon21.map((slot) => ({
+  ...slot,
+  name: slot.id === 'barrel' ? '枪管/线圈' : slot.name,
+  lineTarget: { ...slot.lineTarget },
+}));
+CRAFT_DEFAULT_SLOTS.weapon28 = CRAFT_DEFAULT_SLOTS.weapon21.map((slot) => ({
+  ...slot,
+  name: slot.id === 'barrel' ? '枪管/棱镜' : slot.name,
+  lineTarget: { ...slot.lineTarget },
+}));
+CRAFT_DEFAULT_SLOTS.weapon29 = CRAFT_DEFAULT_SLOTS.weapon21.map((slot) => ({
+  ...slot,
+  name: slot.id === 'barrel' ? '枪管/日冕环' : slot.name,
+  lineTarget: { ...slot.lineTarget },
+}));
+CRAFT_DEFAULT_SLOTS.weapon30 = CRAFT_DEFAULT_SLOTS.weapon21.map((slot) => ({
+  ...slot,
+  name: slot.id === 'barrel' ? '枪管/收束线圈' : slot.name,
+  lineTarget: { ...slot.lineTarget },
+}));
+CRAFT_DEFAULT_SLOTS.weapon31 = CRAFT_DEFAULT_SLOTS.weapon6.map((slot) => ({ ...slot, lineTarget: { ...slot.lineTarget } }));
+CRAFT_DEFAULT_SLOTS.weapon32 = CRAFT_DEFAULT_SLOTS.weapon6.map((slot) => ({ ...slot, lineTarget: { ...slot.lineTarget } }));
+CRAFT_DEFAULT_SLOTS.weapon33 = CRAFT_DEFAULT_SLOTS.weapon11.map((slot) => ({ ...slot, lineTarget: { ...slot.lineTarget } }));
+CRAFT_DEFAULT_SLOTS.weapon34 = CRAFT_DEFAULT_SLOTS.weapon6.map((slot) => ({ ...slot, lineTarget: { ...slot.lineTarget } }));
+CRAFT_DEFAULT_SLOTS.weapon35 = CRAFT_DEFAULT_SLOTS.weapon6.map((slot) => ({ ...slot, lineTarget: { ...slot.lineTarget } }));
+CRAFT_DEFAULT_SLOTS.weapon36 = CRAFT_DEFAULT_SLOTS.weapon6.map((slot) => ({ ...slot, lineTarget: { ...slot.lineTarget } }));
+CRAFT_DEFAULT_SLOTS.weapon37 = CRAFT_DEFAULT_SLOTS.weapon6.map((slot) => ({ ...slot, lineTarget: { ...slot.lineTarget } }));
+CRAFT_DEFAULT_SLOTS.weapon38 = CRAFT_DEFAULT_SLOTS.weapon6.map((slot) => ({ ...slot, lineTarget: { ...slot.lineTarget } }));

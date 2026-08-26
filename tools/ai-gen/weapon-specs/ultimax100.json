@@ -1,0 +1,91 @@
+{
+  "weaponId": "weapon33",
+  "weaponType": "ultimax100",
+  "key": "ultimax100",
+  "name": "Ultimax 100 Mk8",
+  "type": "机枪",
+  "icon": "🔫",
+  "category": "weapon_ranged",
+  "rarity": "uncommon",
+  "rarityLabel": "优质",
+  "level": 8,
+  "price": 200,
+  "weaponCategory": "mainhand",
+  "weaponTypeTag": "远程武器",
+  "isTwoHanded": true,
+  "equipSlot": "weapon",
+  "desc": "Ultimax 100 Mk8轻机枪，600发/分钟，100发弹鼓供弹；恒定后坐结构带来优秀连续射击精度",
+  "statsDisplay": [
+    { "name": "物理攻击", "value": "6+力量×0.26+精神×0.25" },
+    { "name": "射程", "value": "1550" }
+  ],
+  "statsJson": [
+    { "name": "物理攻击", "value": "6+力量×0.26+精神×0.25" },
+    { "name": "射程", "value": "1550" }
+  ],
+  "attack": {
+    "range": 1550,
+    "knockback": 2,
+    "attackInterval": 100,
+    "hitType": "亮金色曳光弹（直线弹道）",
+    "damageType": "物理",
+    "projectileSpeed": 1280,
+    "damageFalloff": { "start": 720, "minMultiplier": 0.4 }
+  },
+  "attackKey": "ultimax100",
+  "animConfigKey": "ultimax100",
+  "canvasImageProp": "ultimax100Image",
+  "fireMode": "fullAuto",
+  "ammoConfig": { "max": 100, "reloadTime": 3600, "reloadSound": "assets/sounds/weapons/ultimax100_reload.wav" },
+  "attackFormula": {
+    "base": 6,
+    "enhanceFlat": 0.3,
+    "attrs": [
+      { "key": "str", "base": 0.26, "perEnhance": 0.038 },
+      { "key": "wis", "base": 0.25, "perEnhance": 0.037 }
+    ]
+  },
+  "spreadParams": { "startShots": 12, "maxShots": 30, "recoveryMs": 300, "maxAngle": 15 },
+  "heatParams": { "overheatTime": 6000, "overheatRecoverTime": 1600, "overheatCooldownTime": 3000 },
+  "fireSound": "assets/sounds/weapons/ultimax100_fire.wav",
+  "equipSound": "assets/sounds/weapons/ultimax100_equip.wav",
+  "animation": {
+    "type": "recoil（恒定后坐）",
+    "totalMs": "100ms (约)",
+    "windupMs": "≈20",
+    "swingMs": "≈30",
+    "recoveryMs": "≈50",
+    "holdOffset": "(-64, -6)",
+    "weaponSize": 100,
+    "timingMul": "0.1x",
+    "recoilAmount": "0.06rad",
+    "description": "Ultimax 100 Mk8 以600RPM连续射击，恒定后坐结构提供更长稳定窗。"
+  },
+  "assets": {
+    "equipImage": "assets/weapons/ultimax100-equip.png",
+    "iconImage": "assets/icons/ultimax100-equip.png",
+    "slotImage": "assets/icons/ultimax100-equip.png",
+    "dropImage": "assets/weapons/ultimax100-equip.png",
+    "weaponAssetImage": "assets/weapons/ultimax100-equip.png"
+  },
+  "craftTemplateWeaponId": "weapon11",
+  "animTemplateWeaponType": "qjb201",
+  "layout": { "canvas": 2048, "contentWidthFrac": 0.915, "centerX": 0.5, "centerY": 0.543 },
+  "sounds": {
+    "fire": "assets/sounds/weapons/ultimax100_fire.wav",
+    "reload": "assets/sounds/weapons/ultimax100_reload.wav",
+    "equip": "assets/sounds/weapons/ultimax100_equip.wav"
+  },
+  "imagePrompts": {
+    "icon": [
+      "single photorealistic Ultimax 100 Mk8, complete right-facing orthographic side profile, genuine transparent background",
+      "matte black receiver, modern rail, retractable stock, folded bipod, large 100-round drum",
+      "no hands, no person, no text, no logo, no border, no duplicate"
+    ],
+    "video": [
+      "Ultimax 100 Mk8 alone on an armory pedestal, slow product turntable",
+      "close-up on drum magazine and constant-recoil receiver, controlled automatic burst",
+      "audio: smooth 5.56 automatic fire, restrained action clack, short indoor tail"
+    ]
+  }
+}

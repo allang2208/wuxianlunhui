@@ -13,7 +13,7 @@ import { WallSystem } from './wall-system.js';
 import { setupStructureDepth, structureDepthAtY } from './structure-depth.js';
 import { pathFinder } from '../ai/pathfinder.js';
 import { Combatant } from '../entities/combatant.js';
-import { getAmmoConfig } from '../config/gun-ammo.js';
+import { getAmmoConfig, resolveGunAttackInterval } from '../config/gun-ammo.js';
 import {
     BlackWolf, ZombieDogEnemy, ZombieWizard, Mutant3, SpitterZombie, FatZombie,
     Zombie, ArmoredKnight, Shounao, FlySwarm, FlyHand, PoisonMaggot, MinerZombie,
@@ -24,6 +24,8 @@ import { GoldManager } from '../systems/gold-manager.js';
 import { EquipManager } from '../ui/equip-manager.js';
 import { EffectManager } from '../effects/effect-manager.js';
 import { EffectFactory } from '../utils/effect-factory.js';
+import { createWeaponRicochetHandler } from '../combat/weapon-ricochet.js';
+import { createLegendaryLmgHitHandler } from '../combat/weapon-legendary-lmg.js';
 import { FloatingTextEffect } from '../effects/floating-text.js';
 import { SoundManager } from '../ui/sound-manager.js';
 import { EnergyManager } from '../systems/energy-manager.js';
@@ -334,10 +336,26 @@ export const DEFENSE_CONFIG = {
         // 强化/改造/附魔自动计入，禁止硬编码数值。
         chipWeaponStat: {
             pkm: 'str',
+            rpd: 'str',
+            m249: 'str',
+            ultimax100: 'str',
+            mg42: 'str',
+            fusion_core_lmg: 'str',
+            singularity_loom_lmg: 'str',
+            celestial_cartographer_lmg: 'str',
+            grave_covenant_cantor_lmg: 'str',
             qjb201: 'str',
             energy_lmg: 'str',
             akm: 'int',
+            stg44: 'int',
             m416: 'int',
+            qbz95: 'int',
+            frontier_rifle: 'int',
+            vengeance_rifle: 'int',
+            astral_tide_rifle: 'int',
+            zero_point_rifle: 'int',
+            corona_cadence_rifle: 'int',
+            terminal_echo_rifle: 'int',
             qbz191: 'int',
             shotgun: 'con',
             bow: 'dex',
@@ -438,7 +456,7 @@ export const DEFENSE_CONFIG = {
 };
 
 /** 防御塔可装载武器（远程武器，手枪除外） */
-const TOWER_WEAPON_TYPES = ['bow', 'pkm', 'akm', 'm416', 'qbz191', 'qjb201', 'shotgun', 'energy_lmg'];
+const TOWER_WEAPON_TYPES = ['bow', 'pkm', 'rpd', 'm249', 'ultimax100', 'mg42', 'fusion_core_lmg', 'singularity_loom_lmg', 'celestial_cartographer_lmg', 'grave_covenant_cantor_lmg', 'akm', 'stg44', 'm416', 'qbz95', 'frontier_rifle', 'vengeance_rifle', 'astral_tide_rifle', 'zero_point_rifle', 'corona_cadence_rifle', 'terminal_echo_rifle', 'qbz191', 'qjb201', 'shotgun', 'energy_lmg'];
 
 /**
  * 防御塔命中盒（世界坐标，相对塔脚）：覆盖原始 170×262 塔身与挂载武器。
@@ -456,7 +474,23 @@ function pointHitsTower(wx, wy, t) {
 /** 弹丸贴图直接复用现有武器贴图（无映射则默认曳光弹） */
 const WEAPON_IMAGE_PATHS = {
     pkm: 'assets/icons/pkm_side_clean.png',
+    rpd: 'assets/weapons/rpd-equip.png',
+    m249: 'assets/weapons/m249-equip.png',
+    ultimax100: 'assets/weapons/ultimax100-equip.png',
+    mg42: 'assets/weapons/mg42-equip.png',
+    fusion_core_lmg: 'assets/weapons/fusion-core-lmg-equip.png',
+    singularity_loom_lmg: 'assets/weapons/singularity-loom-lmg-equip.png',
+    celestial_cartographer_lmg: 'assets/weapons/celestial-cartographer-lmg-equip.png',
+    grave_covenant_cantor_lmg: 'assets/weapons/grave-covenant-cantor-lmg-equip.png',
     akm: 'assets/weapons/akm-equip.png',
+    stg44: 'assets/weapons/stg44-equip.png',
+    qbz95: 'assets/weapons/qbz95-equip.png',
+    frontier_rifle: 'assets/weapons/frontier-rifle-equip.png',
+    vengeance_rifle: 'assets/weapons/vengeance-rifle-equip.png',
+    astral_tide_rifle: 'assets/weapons/astral-tide-rifle-equip.png',
+    zero_point_rifle: 'assets/weapons/zero-point-arbitrator-equip.png',
+    corona_cadence_rifle: 'assets/weapons/corona-cadence-rifle-equip.png',
+    terminal_echo_rifle: 'assets/weapons/terminal-echo-rifle-equip.png',
     qbz191: 'assets/icons/191icon.png',
     qjb201: 'assets/icons/201-icon.png',
     energy_lmg: 'assets/icons/devotion-icon.png',
@@ -482,7 +516,23 @@ function towerWeaponImagePath(item) {
 /** 防御塔开火音效（按武器类型；无则静音） */
 const TOWER_FIRE_SOUNDS = {
     pkm: 'assets/sounds/weapons/pkm_half_sec.wav',
+    rpd: 'assets/sounds/weapons/rpd_fire.wav',
+    m249: 'assets/sounds/weapons/m249_fire.wav',
+    ultimax100: 'assets/sounds/weapons/ultimax100_fire.wav',
+    mg42: 'assets/sounds/weapons/mg42_fire.wav',
+    fusion_core_lmg: 'assets/sounds/weapons/fusion_core_lmg_fire.wav',
+    singularity_loom_lmg: 'assets/sounds/weapons/singularity_loom_lmg_fire.wav',
+    celestial_cartographer_lmg: 'assets/sounds/weapons/celestial_cartographer_lmg_fire.wav',
+    grave_covenant_cantor_lmg: 'assets/sounds/weapons/grave_covenant_cantor_lmg_fire.wav',
     akm: 'assets/sounds/weapons/akm_burst.mp3',
+    stg44: 'assets/sounds/weapons/stg44_fire.wav',
+    qbz95: 'assets/sounds/weapons/qbz95_fire.wav',
+    frontier_rifle: 'assets/sounds/weapons/m416_fire.wav',
+    vengeance_rifle: 'assets/sounds/weapons/qbz191_shot6_valley.mp3',
+    astral_tide_rifle: 'assets/sounds/weapons/m416_fire.wav',
+    zero_point_rifle: 'assets/sounds/weapons/qbz191_shot6_valley.mp3',
+    corona_cadence_rifle: 'assets/sounds/weapons/m416_fire.wav',
+    terminal_echo_rifle: 'assets/sounds/weapons/m416_fire.wav',
     qbz191: 'assets/sounds/weapons/qbz191_shot6_valley.mp3',
     qjb201: 'assets/sounds/weapons/qjb201_single_600ms.wav',
     m416: 'assets/sounds/weapons/m416_fire.wav',
@@ -1734,7 +1784,7 @@ export const DEFENSE_TOWER_VISUAL = {
     weapon: {
         // 挂载武器显示高度（按高度等比缩放，与玩家枪械 setScale 口径一致；朝左 flipY）
         // 2026-08-14：按新短臂（70px 高）等比缩小约 40%
-        heights: { bow: 48, pkm: 40, akm: 38, m416: 38, qbz191: 37, qjb201: 40, shotgun: 42, energy_lmg: 40 },
+        heights: { bow: 48, pkm: 40, rpd: 40, m249: 40, ultimax100: 40, mg42: 40, fusion_core_lmg: 40, singularity_loom_lmg: 40, celestial_cartographer_lmg: 40, grave_covenant_cantor_lmg: 40, akm: 38, stg44: 38, m416: 38, qbz95: 37, frontier_rifle: 38, vengeance_rifle: 40, astral_tide_rifle: 40, zero_point_rifle: 40, corona_cadence_rifle: 40, terminal_echo_rifle: 40, qbz191: 37, qjb201: 40, shotgun: 42, energy_lmg: 40 },
         defaultHeight: 36,
         // 枪管裁剪（"枪插进机械臂"假象，2026-08-14）：武器贴图只取前 1/3 枪管段，
         // 切口端（origin x=0）对齐臂尖，看起来枪管从机械臂/钩子里伸出。
@@ -1743,8 +1793,24 @@ export const DEFENSE_TOWER_VISUAL = {
         // 未配置的武器（如弓）退回整枪渲染（heights）。
         barrel: {
             weapon6:  { x: 1326, y: 950,  w: 619, h: 149, height: 11 }, // PKM
+            weapon31: { x: 1336, y: 863,  w: 624, h: 498, height: 12 }, // RPD
+            weapon32: { x: 1336, y: 832,  w: 624, h: 560, height: 12 }, // M249 SAW
+            weapon33: { x: 1336, y: 876,  w: 624, h: 472, height: 12 }, // Ultimax 100 Mk8
+            weapon34: { x: 1336, y: 999,  w: 624, h: 150, height: 12 }, // MG42
+            weapon35: { x: 1336, y: 803,  w: 624, h: 618, height: 12 }, // 熔核轻机枪
+            weapon36: { x: 1335, y: 925,  w: 625, h: 300, height: 12 }, // 奇点织机
+            weapon37: { x: 1335, y: 900,  w: 625, h: 300, height: 12 }, // 天穹测绘者
+            weapon38: { x: 1335, y: 900,  w: 625, h: 300, height: 12 }, // 冥约颂炮
             weapon7:  { x: 1337, y: 884,  w: 623, h: 183, height: 11 }, // AKM
+            weapon23: { x: 1336, y: 818,  w: 624, h: 588, height: 11 }, // STG-44
             weapon21: { x: 1334, y: 828,  w: 623, h: 193, height: 11 }, // M416
+            weapon24: { x: 1336, y: 754,  w: 624, h: 716, height: 12 }, // QBZ-95
+            weapon25: { x: 1336, y: 870,  w: 625, h: 310, height: 12 }, // 边境突击步枪
+            weapon26: { x: 1335, y: 900,  w: 625, h: 300, height: 13 }, // 复仇之神
+            weapon27: { x: 1335, y: 900,  w: 625, h: 300, height: 13 }, // 星潮协议
+            weapon28: { x: 1335, y: 900,  w: 625, h: 300, height: 13 }, // 零点仲裁
+            weapon29: { x: 1335, y: 900,  w: 625, h: 300, height: 13 }, // 日冕裁律
+            weapon30: { x: 1335, y: 900,  w: 625, h: 300, height: 13 }, // 终末回声
             weapon8:  { x: 1335, y: 586,  w: 625, h: 251, height: 12 }, // QBZ-191
             weapon11: { x: 1325, y: 916,  w: 619, h: 151, height: 11 }, // QJB-201
             weapon12: { x: 1335, y: 1010, w: 625, h: 175, height: 12 }, // Super90
@@ -2470,6 +2536,46 @@ class DefenseTower extends Combatant {
         }
     }
 
+    /** 挂载升速枪械消费各自的升速参数；目标存在等价于玩家持续按住扳机。 */
+    _updateRampFire(dt, isFiring) {
+        const item = this.weaponItem;
+        const ramp = item?.rampFireParams;
+        const energy = item?.energyLMGParams;
+        const attack = this._attackKey ? this.attacks[this._attackKey] : null;
+        if ((!ramp && !energy) || !attack) {
+            this._rampProgress = 0;
+            this._rampDecayDelay = 0;
+            return;
+        }
+        const ce = item._craftEffects || {};
+        const rampUpTime = Math.max(400,
+            (Number(energy?.rampUpTime ?? ramp?.rampUpTime) || 2000)
+            + (Number(energy ? ce.energyRampUpTimeDelta : ce.rampUpTimeDelta) || 0));
+        const decayDelay = energy ? 0 : Math.max(0, Number(ramp?.decayDelay) || 0);
+        const decayTime = energy ? Math.max(1, dt) : Math.max(250, Number(ramp?.decayTime) || 1500);
+        if (isFiring) {
+            this._rampProgress = Math.min(1, this._rampProgress + dt / rampUpTime);
+            this._rampDecayDelay = decayDelay;
+        } else if (this._rampDecayDelay > 0) {
+            this._rampDecayDelay = Math.max(0, this._rampDecayDelay - dt);
+        } else {
+            this._rampProgress = Math.max(0, this._rampProgress - dt / decayTime);
+        }
+        const attackSpeedMul = this.moduleMults().attackInterval;
+        const baseSource = energy?.baseCooldown ?? item.attack?.attackInterval;
+        const baseInterval = Math.max(40, Math.round(
+            resolveGunAttackInterval(item, baseSource) * attackSpeedMul));
+        const minCooldown = Math.max(40,
+            (Number(energy?.maxCooldown ?? ramp?.minCooldown) || item.attack?.attackInterval || 80)
+            + (Number(energy ? ce.energyPeakCooldownDelta : ce.rampMinCooldownDelta) || 0));
+        const peakInterval = Math.max(40, Math.round(
+            resolveGunAttackInterval(item, minCooldown) * attackSpeedMul));
+        const interval = Math.round(baseInterval + (peakInterval - baseInterval) * this._rampProgress);
+        attack.config.cooldown = interval;
+        attack.maxCooldown = interval;
+        attack.baseMaxCooldown = baseInterval;
+    }
+
     /** 枪口点 = 屏幕枪口 + 对应的地面平面坐标和真实发射高度。 */
     _muzzlePoint() {
         const V = DEFENSE_TOWER_VISUAL;
@@ -2511,6 +2617,88 @@ class DefenseTower extends Combatant {
         if (!this._attackKey || !this.attacks[this._attackKey]) return false;
         const p = this._muzzlePoint();
         const mx = p.mx, my = p.my;
+        const params = this.weaponItem?.calibrationShotParams;
+        let calibration = null;
+        if (params) {
+            if (!this._calibrationShotState) this._calibrationShotState = { hits: 0, charged: false };
+            const ce = this.weaponItem?._craftEffects || {};
+            const required = Math.max(2, Math.round((Number(params.hitsRequired) || 8) + (Number(ce.calibrationHitsRequiredDelta) || 0)));
+            const multiplier = Math.max(1, (Number(params.damageMultiplier) || 1.8) + (Number(ce.calibrationDamageMultiplierDelta) || 0));
+            const bonus = Math.max(0, Math.round((Number(params.piercingBonus) || 2) + (Number(ce.calibrationPiercingBonusDelta) || 0)));
+            const charged = this._calibrationShotState.charged;
+            if (charged) {
+                this._calibrationShotState.charged = false;
+                this._calibrationShotState.hits = 0;
+            }
+            calibration = {
+                damageMultiplier: charged ? multiplier : 1,
+                piercingBonus: charged ? bonus : 0,
+                onFirstHit: charged ? null : () => {
+                    if (this._calibrationShotState.charged) return;
+                    this._calibrationShotState.hits += 1;
+                    if (this._calibrationShotState.hits >= required) {
+                        this._calibrationShotState.hits = 0;
+                        this._calibrationShotState.charged = true;
+                    }
+                }
+            };
+        }
+        const rhythmParams = this.weaponItem?.rhythmBurstParams;
+        let rhythm = null;
+        if (rhythmParams) {
+            if (!this._rhythmBurstState) this._rhythmBurstState = { shot: 0, lastShotAt: 0 };
+            const ce = this.weaponItem?._craftEffects || {};
+            const resetMs = Math.max(100, (Number(rhythmParams.resetMs) || 450) + (Number(ce.rhythmResetMsDelta) || 0));
+            const now = Date.now();
+            if (now - this._rhythmBurstState.lastShotAt > resetMs) this._rhythmBurstState.shot = 0;
+            this._rhythmBurstState.lastShotAt = now;
+            this._rhythmBurstState.shot += 1;
+            const startShot = Math.max(1, Math.round((Number(rhythmParams.startShot) || 5) + (Number(ce.rhythmStartShotDelta) || 0)));
+            const endShot = Math.max(startShot, Math.round((Number(rhythmParams.endShot) || 12) + (Number(ce.rhythmEndShotDelta) || 0)));
+            const multiplier = Math.max(1, (Number(rhythmParams.damageMultiplier) || 1.28) + (Number(ce.rhythmDamageMultiplierDelta) || 0));
+            const sweet = this._rhythmBurstState.shot >= startShot && this._rhythmBurstState.shot <= endShot;
+            rhythm = { sweet, damageMultiplier: sweet ? multiplier : 1 };
+        }
+        const convergenceParams = this.weaponItem?.convergenceParams;
+        const convergenceStateBefore = convergenceParams && this._convergenceState
+            ? { ...this._convergenceState }
+            : null;
+        let convergence = null;
+        if (convergenceParams) {
+            if (!this._convergenceState) this._convergenceState = { shot: 0, lastShotAt: 0 };
+            const ce = this.weaponItem?._craftEffects || {};
+            const resetMs = Math.max(100, (Number(convergenceParams.resetMs) || 320) + (Number(ce.convergenceResetMsDelta) || 0));
+            const now = Date.now();
+            if (now - this._convergenceState.lastShotAt > resetMs) this._convergenceState.shot = 0;
+            this._convergenceState.lastShotAt = now;
+            this._convergenceState.shot += 1;
+            const startShot = Math.max(2, Math.round((Number(convergenceParams.startShot) || 6) + (Number(ce.convergenceStartShotDelta) || 0)));
+            const maxStacks = Math.max(1, Math.round((Number(convergenceParams.maxStacks) || 10) + (Number(ce.convergenceMaxStacksDelta) || 0)));
+            const stack = Math.min(maxStacks, Math.max(0, this._convergenceState.shot - startShot + 1));
+            const damagePerStack = Math.max(0, (Number(convergenceParams.damagePerStack) || 0.02) + (Number(ce.convergenceDamagePerStackDelta) || 0));
+            const spreadPerStack = Math.max(0, (Number(convergenceParams.spreadPerStack) || 0.035) + (Number(ce.convergenceSpreadPerStackDelta) || 0));
+            convergence = {
+                stack,
+                damageMultiplier: 1 + stack * damagePerStack,
+                spreadMultiplier: Math.max(0.35, 1 - stack * spreadPerStack),
+            };
+        }
+        const attackCfg = this.attacks[this._attackKey].config;
+        const rawDamage = attackCfg.damage || { min: 1, max: 1 };
+        const craftEffects = this.weaponItem?._craftEffects || {};
+        const energyAtPeak = !!(this.weaponItem?.energyLMGParams && this._rampProgress >= 0.999);
+        const energyPeakDamageMultiplier = energyAtPeak
+            ? Math.max(1, 1 + (Number(craftEffects.energyPeakDamageMultiplierDelta) || 0))
+            : 1;
+        const energyPeakPiercingBonus = energyAtPeak
+            ? Math.max(0, Math.round(Number(craftEffects.energyPeakPiercingBonus) || 0))
+            : 0;
+        const damageOverride = (calibration || rhythm || convergence || energyPeakDamageMultiplier > 1) ? {
+            min: Number(rawDamage.min ?? rawDamage) * (calibration?.damageMultiplier || 1) * (rhythm?.damageMultiplier || 1) * (convergence?.damageMultiplier || 1) * energyPeakDamageMultiplier,
+            max: Number(rawDamage.max ?? rawDamage) * (calibration?.damageMultiplier || 1) * (rhythm?.damageMultiplier || 1) * (convergence?.damageMultiplier || 1) * energyPeakDamageMultiplier,
+        } : null;
+        const ricochetOnHit = createWeaponRicochetHandler(this, this.weaponItem, entities);
+        const legendaryLmgOnHit = createLegendaryLmgHitHandler(this, this.weaponItem, entities);
         const fired = this.fireProjectile(aim.screenX, aim.screenY, entities, {
             slot: 'weapon',
             spawnX: mx,
@@ -2523,8 +2711,23 @@ class DefenseTower extends Combatant {
             wallContext: this._projectileWallIgnore(),
             // 塔的枪口层在 _muzzleEffects 中按“一次击发”统一播声；避免基类先播一次后重复。
             suppressFireSound: true,
+            damageOverride,
+            piercingOverride: (typeof attackCfg.piercing === 'number' ? attackCfg.piercing : 0)
+                + (calibration?.piercingBonus || 0)
+                + energyPeakPiercingBonus,
+            onFirstHit: calibration?.onFirstHit || ricochetOnHit || legendaryLmgOnHit,
+            isPurple: calibration?.damageMultiplier > 1,
+            isCrimson: rhythm?.sweet === true || !!this.weaponItem?.runeLitanyParams,
+            isCyan: energyAtPeak
+                || (convergence?.stack || 0) > 0
+                || !!this.weaponItem?.ricochetParams
+                || !!this.weaponItem?.constellationParams,
+            spreadMultiplier: (rhythm?.sweet ? 0.45 : 1) * (convergence?.spreadMultiplier || 1),
         });
-        if (!fired) return false;
+        if (!fired) {
+            if (convergenceParams) this._convergenceState = convergenceStateBefore;
+            return false;
+        }
         this._muzzleEffects(mx, my, aim.screenX, aim.screenY);
         return true;
     }

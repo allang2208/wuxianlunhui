@@ -363,10 +363,92 @@ class Combatant extends DamageableEntity {
 
     // ==================== 过热系统 ====================
 
+    /**
+     * 记录一次已经确认出膛的红热增压武器射击，并返回这一发的状态快照。
+     * 玩家使用按槽位隔离的 _overheatStates；防御塔等通用战斗者沿用旧字段。
+     */
+    _registerOverdriveHeatShot(weapon, slot = this.weaponMode) {
+        const params = weapon && weapon.overdriveHeatParams;
+        const neutral = {
+            overheated: false,
+            damageMultiplier: 1,
+            piercingBonus: 0,
+            critChanceBonusPercent: 0,
+            spreadMultiplier: 1,
+            projectileSpeedMultiplier: 1,
+        };
+        if (!params) return neutral;
+
+        const hp = weapon.heatParams || {};
+        const ce = weapon._craftEffects || {};
+        const shotsToOverheat = Math.max(1, Math.round(
+            (Number(params.shotsToOverheat) || 20) + (Number(ce.overheatShotsRequiredDelta) || 0)
+        ));
+        const coolTime = Math.max(500,
+            (Number(hp.overheatCooldownTime) || Number(hp.overheatRecoverTime) || 1500)
+            + (Number(ce.overheatRecoverDelta) || 0));
+
+        let state = this._overheatStates && this._overheatStates[slot];
+        const usesSlotState = !!this._overheatStates;
+        if (!state || state.weapon !== weapon) {
+            state = {
+                weapon,
+                value: usesSlotState ? 0 : (Number(this._overheatValue) || 0),
+                overheated: usesSlotState ? false : !!this._overheatOverheated,
+                recoverTimer: usesSlotState ? 0 : (Number(this._overheatRecoverTimer) || 0),
+                active: usesSlotState ? false : !!this._overheatActive,
+                lastCoolMs: coolTime,
+                lastRecoverMs: coolTime,
+            };
+            if (usesSlotState) this._overheatStates[slot] = state;
+        }
+
+        const wasOverheated = state.overheated;
+        if (!state.overheated) {
+            state.value = Math.min(1, (Number(state.value) || 0) + 1 / shotsToOverheat);
+            state.active = state.value > 0;
+            if (state.value >= 1) {
+                state.value = 1;
+                state.overheated = true;
+                state.recoverTimer = coolTime;
+            }
+        } else {
+            state.value = 1;
+            state.active = true;
+            state.recoverTimer = coolTime;
+        }
+        state.lastCoolMs = coolTime;
+
+        // 旧字段仍是 HUD、开火闸门和防御塔遥测的公共读取口径。
+        if (!usesSlotState || slot === this.weaponMode) {
+            this._overheatValue = state.value;
+            this._overheatOverheated = state.overheated;
+            this._overheatRecoverTimer = state.recoverTimer;
+            this._overheatActive = state.active;
+            this._overheatWeaponType = weapon.weaponType;
+        }
+
+        if (!wasOverheated && state.overheated && SoundManager) {
+            const overheatSound = hp.overheatSound || 'assets/sounds/weapons/pkm_ammo_steam_mixed.wav';
+            if (typeof SoundManager.playFile === 'function') SoundManager.playFile(overheatSound);
+        }
+
+        if (!state.overheated) return neutral;
+        return {
+            overheated: true,
+            damageMultiplier: Math.max(1,
+                (Number(params.damageMultiplier) || 1) + (Number(ce.overheatDamageMultiplierDelta) || 0)),
+            piercingBonus: Math.max(0, Math.round(Number(ce.overheatPiercingBonus) || 0)),
+            critChanceBonusPercent: Math.max(0, Number(ce.overheatCritChancePercent) || 0) * 100,
+            spreadMultiplier: Math.max(0.1, 1 + (Number(ce.overheatSpreadPercent) || 0)),
+            projectileSpeedMultiplier: Math.max(0.1, 1 + (Number(ce.overheatProjectileSpeedPercent) || 0)),
+        };
+    }
+
     /** 更新过热值（供子类调用） */
     _updateOverheat(dt, isFiring) {
         const weapon = this.getCurrentWeapon();
-        if (!weapon || weapon.weaponType !== 'pkm' && weapon.weaponType !== 'qjb201' && weapon.weaponType !== 'energy_lmg') {
+        if (!weapon || !isMachineGun(weapon.weaponType)) {
             this._overheatValue = 0;
             this._overheatOverheated = false;
             this._overheatActive = false;
@@ -466,19 +548,29 @@ class Combatant extends DamageableEntity {
         // 检查开火条件（弹药、换弹、过热）
         if (!this.canFire(slot, true)) return false;
 
+        // 只有通过开火闸门后才登记实际出弹；第 shotsToOverheat 发立即按红热弹结算。
+        const overdriveShot = this._registerOverdriveHeatShot(item, slot);
+
         // 获取散布参数
         let spreadAngle = 0;
         if (isGunWeapon(item)) {
             const isOffhand = slot === 'offhand' || slot === 'ring2';
             const factor = isOffhand ? this._currentSpreadFactorOff : this._currentSpreadFactor;
             const maxAngle = isOffhand ? this._currentSpreadMaxAngleOff : this._currentSpreadMaxAngle;
-            spreadAngle = (Math.random() - 0.5) * 2 * factor * maxAngle * (Math.PI / 180);
+            spreadAngle = (Math.random() - 0.5) * 2 * factor * maxAngle * (Math.PI / 180)
+                * (Number(config.spreadMultiplier) || 1) * overdriveShot.spreadMultiplier;
         }
 
         // 获取武器配置
         const weaponType = item.weaponType;
-        const damage = attack.config.damage || { min: 1, max: 3 };
-        const speed = attack.config.projectileSpeed || 1248;
+        const rawDamage = config.damageOverride || attack.config.damage || { min: 1, max: 3 };
+        const damage = typeof rawDamage === 'object'
+            ? {
+                min: Number(rawDamage.min ?? 1) * overdriveShot.damageMultiplier,
+                max: Number(rawDamage.max ?? rawDamage.min ?? 1) * overdriveShot.damageMultiplier,
+            }
+            : Number(rawDamage) * overdriveShot.damageMultiplier;
+        const speed = (attack.config.projectileSpeed || 1248) * overdriveShot.projectileSpeedMultiplier;
         const range = attack.config.projectileRange || 800;
         const size = attack.config.projectileSize || 4;
 
@@ -493,7 +585,9 @@ class Combatant extends DamageableEntity {
             aimX = lead.x; aimY = lead.y;
         }
         const angle = Math.atan2(aimY - spawnY, aimX - spawnX) + spreadAngle;
-        const piercing = attack.config.piercing || false;
+        const basePiercing = config.piercingOverride ?? attack.config.piercing ?? false;
+        const piercing = (typeof basePiercing === 'number' ? basePiercing : (basePiercing ? 1 : 0))
+            + overdriveShot.piercingBonus;
 
         // 获取弹丸贴图（默认绿色曳光弹）
         let projectileImage = null;
@@ -537,9 +631,19 @@ class Combatant extends DamageableEntity {
             isTracer: isEnemy,
             isGold: isMachineGun(weaponType),
             isDarkGold: weaponType === 'deagle',
+            isPurple: config.isPurple === true,
+            isCrimson: config.isCrimson === true || overdriveShot.overheated,
+            isCyan: config.isCyan === true,
             damageType: 'physical',
             // 命中击退（attack.config.knockback 驱动，如时空特工 25px）
-            knockback: attack.config.knockback || 0
+            knockback: attack.config.knockback || 0,
+            onFirstHit: config.onFirstHit || null,
+            hitContext: (item.overdriveHeatParams || config.hitContext)
+                ? {
+                    ...(config.hitContext && typeof config.hitContext === 'object' ? config.hitContext : {}),
+                    critChanceBonusPercent: overdriveShot.critChanceBonusPercent,
+                }
+                : null,
         });
 
         // 触发武器动画

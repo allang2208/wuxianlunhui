@@ -100,6 +100,42 @@ export const CRAFT_EFFECT_REGISTRY = {
         display: (v) => `${v >= 0 ? '+' : ''}${v}ms攻击间隔`,
         tooltip: '改变攻击间隔',
     },
+    rampMinCooldownDelta: {
+        category: 'mobility',
+        applyMode: 'add',
+        display: (v) => `升速峰值间隔${v >= 0 ? '+' : ''}${v}ms`,
+        tooltip: '改变持续射击升速机制的峰值攻击间隔',
+    },
+    rampUpTimeDelta: {
+        category: 'mobility',
+        applyMode: 'add',
+        display: (v) => `升速时间${v >= 0 ? '+' : ''}${v}ms`,
+        tooltip: '改变持续射击达到峰值射速所需时间',
+    },
+    energyPeakCooldownDelta: {
+        category: 'mobility',
+        applyMode: 'add',
+        display: (v) => `能量峰值间隔${v >= 0 ? '+' : ''}${v}ms`,
+        tooltip: '改变能量轻机枪达到峰值后的攻击间隔',
+    },
+    energyRampUpTimeDelta: {
+        category: 'mobility',
+        applyMode: 'add',
+        display: (v) => `能量升速时间${v >= 0 ? '+' : ''}${v}ms`,
+        tooltip: '改变能量轻机枪达到峰值射速所需时间',
+    },
+    energyPeakDamageMultiplierDelta: {
+        category: 'damage',
+        applyMode: 'add',
+        display: (v) => `峰值弹束伤害${v >= 0 ? '+' : ''}${Math.round(v * 100)}%`,
+        tooltip: '仅在能量轻机枪达到峰值射速后提高单发伤害',
+    },
+    energyPeakPiercingBonus: {
+        category: 'damage',
+        applyMode: 'add',
+        display: (v) => `峰值弹束穿透+${v}`,
+        tooltip: '仅在能量轻机枪达到峰值射速后增加穿透目标数',
+    },
 
     // ========== 弹夹/换弹类 ==========
     magazineDelta: {
@@ -496,6 +532,216 @@ export const CRAFT_EFFECT_REGISTRY = {
         applyMode: 'add',
         display: (v) => `灼伤持续${(v / 1000).toFixed(1)}s`,
         tooltip: '烈焰吊坠灼伤 debuff 的持续时间',
+    },
+    calibrationHitsRequiredDelta: {
+        category: 'special', applyMode: 'add',
+        display: (v) => `仲裁校准命中${v >= 0 ? '+' : ''}${v}发`,
+        tooltip: '调整零点仲裁触发下一发相位弹所需的首次命中数',
+    },
+    calibrationDamageMultiplierDelta: {
+        category: 'special', applyMode: 'add',
+        display: (v) => `仲裁弹倍率${v >= 0 ? '+' : ''}${v.toFixed(2)}`,
+        tooltip: '调整零点仲裁相位弹的伤害倍率',
+    },
+    calibrationPiercingBonusDelta: {
+        category: 'special', applyMode: 'add',
+        display: (v) => `仲裁弹额外穿透${v >= 0 ? '+' : ''}${v}`,
+        tooltip: '调整零点仲裁相位弹额外穿透的目标数',
+    },
+    rhythmStartShotDelta: {
+        category: 'special', applyMode: 'add',
+        display: (v) => `稳定窗起始${v >= 0 ? '+' : ''}${v}发`,
+        tooltip: '调整日冕裁律稳定窗开始的射击序号',
+    },
+    rhythmEndShotDelta: {
+        category: 'special', applyMode: 'add',
+        display: (v) => `稳定窗结束${v >= 0 ? '+' : ''}${v}发`,
+        tooltip: '调整日冕裁律稳定窗结束的射击序号',
+    },
+    rhythmDamageMultiplierDelta: {
+        category: 'special', applyMode: 'add',
+        display: (v) => `稳定窗伤害倍率${v >= 0 ? '+' : ''}${v.toFixed(2)}`,
+        tooltip: '调整日冕裁律稳定窗内的伤害倍率',
+    },
+    rhythmResetMsDelta: {
+        category: 'special', applyMode: 'add',
+        display: (v) => `节律重置${v >= 0 ? '+' : ''}${v}ms`,
+        tooltip: '调整停火后射击节律重置所需时间',
+    },
+    convergenceStartShotDelta: {
+        category: 'special', applyMode: 'add',
+        display: (v) => `收束起始${v >= 0 ? '+' : ''}${v}发`,
+        tooltip: '调整终末回声开始积累收束层数的射击序号',
+    },
+    convergenceMaxStacksDelta: {
+        category: 'special', applyMode: 'add',
+        display: (v) => `收束上限${v >= 0 ? '+' : ''}${v}层`,
+        tooltip: '调整终末回声收束机制的最大层数',
+    },
+    convergenceDamagePerStackDelta: {
+        category: 'special', applyMode: 'add',
+        display: (v) => `每层伤害${v >= 0 ? '+' : ''}${(v * 100).toFixed(1)}%`,
+        tooltip: '调整终末回声每层收束提供的伤害倍率',
+    },
+    convergenceSpreadPerStackDelta: {
+        category: 'special', applyMode: 'add',
+        display: (v) => `每层散布收束${v >= 0 ? '+' : ''}${(v * 100).toFixed(1)}%`,
+        tooltip: '调整终末回声每层收束降低的散布比例',
+    },
+    convergenceResetMsDelta: {
+        category: 'special', applyMode: 'add',
+        display: (v) => `收束重置${v >= 0 ? '+' : ''}${v}ms`,
+        tooltip: '调整终末回声停火后清空收束层数的等待时间',
+    },
+    ricochetRangeDelta: {
+        category: 'special', applyMode: 'add',
+        display: (v) => `弹射范围${v >= 0 ? '+' : ''}${v}px`,
+        tooltip: '调整奇点织机主弹命中后搜索最近弹射目标的范围',
+    },
+    ricochetDamageMultiplierDelta: {
+        category: 'special', applyMode: 'add',
+        display: (v) => `弹射伤害倍率${v >= 0 ? '+' : ''}${v.toFixed(2)}`,
+        tooltip: '调整奇点织机弹射命中的伤害倍率',
+    },
+    ricochetExtraTargets: {
+        category: 'special', applyMode: 'add',
+        display: (v) => `弹射分岔+${v}个目标`,
+        tooltip: '让奇点织机从首个命中目标同时分岔至更多合法目标',
+    },
+    ricochetReturnDamageMultiplier: {
+        category: 'special', applyMode: 'add',
+        display: (v) => `折返伤害${Math.round(v * 100)}%`,
+        tooltip: '弹射命中后折返首个命中目标，并按该倍率追加一次伤害',
+    },
+    ricochetTargetMode: {
+        category: 'special', applyMode: 'override',
+        display: (v) => v === 'lowestHp' ? '弹射优先：最低生命比例' : `弹射优先：${v}`,
+        tooltip: '覆盖奇点织机的弹射目标选择规则',
+    },
+    ricochetKillChainCount: {
+        category: 'special', applyMode: 'add',
+        display: (v) => `弹射击杀续跳+${v}次`,
+        tooltip: '弹射击杀目标后，继续跳向附近另一合法目标的次数',
+    },
+    ricochetChainDamageMultiplier: {
+        category: 'special', applyMode: 'add',
+        display: (v) => `续跳伤害${Math.round(v * 100)}%`,
+        tooltip: '奇点织机击杀续跳造成的伤害倍率',
+    },
+    ricochetSplashRadius: {
+        category: 'special', applyMode: 'add',
+        display: (v) => `弹射余震半径${v}px`,
+        tooltip: '奇点织机首段弹射落点释放余震的搜索半径',
+    },
+    ricochetSplashDamageMultiplier: {
+        category: 'special', applyMode: 'add',
+        display: (v) => `弹射余震伤害${Math.round(v * 100)}%`,
+        tooltip: '奇点织机弹射余震造成的伤害倍率',
+    },
+    ricochetSplashMaxTargets: {
+        category: 'special', applyMode: 'add',
+        display: (v) => `每个落点余震目标上限${v}`,
+        tooltip: '每条首段弹射落点各自可命中的余震目标上限',
+    },
+    ricochetAnchorHitsRequired: {
+        category: 'special', applyMode: 'add',
+        display: (v) => `同目标第${v}次弹射触发锚定`,
+        tooltip: '同一目标累计多少次首段弹射命中后触发时滞锚定',
+    },
+    ricochetAnchorDurationMs: {
+        category: 'special', applyMode: 'add',
+        display: (v) => `时滞锚定${(v / 1000).toFixed(2)}s`,
+        tooltip: '时滞锚定触发后束缚目标的持续时间',
+    },
+    constellationAnchorHitDelta: {
+        category: 'special', applyMode: 'add',
+        display: (v) => `星图锚点命中序号${v >= 0 ? '+' : ''}${v}`,
+        tooltip: '调整天穹测绘者建立星图锚点所需的连续有效命中数',
+    },
+    constellationResolveHitDelta: {
+        category: 'special', applyMode: 'add',
+        display: (v) => `星图结算命中序号${v >= 0 ? '+' : ''}${v}`,
+        tooltip: '调整天穹测绘者触发经纬线或天顶坠击所需的连续有效命中数',
+    },
+    constellationPowerMultiplierDelta: {
+        category: 'special', applyMode: 'add',
+        display: (v) => `星图结算威力${v >= 0 ? '+' : ''}${Math.round(v * 100)}%`,
+        tooltip: '同时调整经纬线、天顶坠击与坠击余波的威力',
+    },
+    constellationLineWidthDelta: {
+        category: 'special', applyMode: 'add',
+        display: (v) => `经纬线宽度${v >= 0 ? '+' : ''}${v}px`,
+        tooltip: '调整星图锚点与终段目标之间的经纬线判定宽度',
+    },
+    constellationLineMaxTargetsDelta: {
+        category: 'special', applyMode: 'add',
+        display: (v) => `经纬线目标上限${v >= 0 ? '+' : ''}${v}`,
+        tooltip: '调整一次经纬线能够结算的最大目标数',
+    },
+    constellationLineDamageMultiplierDelta: {
+        category: 'special', applyMode: 'add',
+        display: (v) => `经纬线伤害倍率${v >= 0 ? '+' : ''}${v.toFixed(2)}`,
+        tooltip: '调整经纬线对沿线目标造成的伤害倍率',
+    },
+    constellationFocusRadiusDelta: {
+        category: 'special', applyMode: 'add',
+        display: (v) => `天顶余波半径${v >= 0 ? '+' : ''}${v}px`,
+        tooltip: '调整同目标结算天顶坠击后的余波范围',
+    },
+    constellationFocusMaxTargetsDelta: {
+        category: 'special', applyMode: 'add',
+        display: (v) => `天顶余波目标上限${v >= 0 ? '+' : ''}${v}`,
+        tooltip: '调整天顶坠击余波能够命中的最大目标数',
+    },
+    constellationSlowDurationMs: {
+        category: 'special', applyMode: 'add',
+        display: (v) => `星图迟滞${(v / 1000).toFixed(2)}s`,
+        tooltip: '让星图结算命中的目标短暂减速',
+    },
+    constellationCarryHits: {
+        category: 'special', applyMode: 'override',
+        display: (v) => `星图结算后保留${v}次命中进度`,
+        tooltip: '星图结算后让下一轮观测序列从指定命中进度继续',
+    },
+    runeMarksPerHit: {
+        category: 'special', applyMode: 'override',
+        display: (v) => `每次命中刻下${v}种轮转符文`,
+        tooltip: '调整冥约颂炮每次有效命中刻下的轮转符文数量',
+    },
+    runeMemoryDurationDelta: {
+        category: 'special', applyMode: 'add',
+        display: (v) => `符文记忆${v >= 0 ? '+' : ''}${(v / 1000).toFixed(1)}s`,
+        tooltip: '调整目标身上未完成符文组合的保留时间',
+    },
+    runeVerdictRadiusDelta: {
+        category: 'special', applyMode: 'add',
+        display: (v) => `黑弥撒半径${v >= 0 ? '+' : ''}${v}px`,
+        tooltip: '调整集齐血骨烬三印后黑弥撒裁决的范围',
+    },
+    runeVerdictMaxTargetsDelta: {
+        category: 'special', applyMode: 'add',
+        display: (v) => `黑弥撒目标上限${v >= 0 ? '+' : ''}${v}`,
+        tooltip: '调整一次黑弥撒裁决能够命中的最大目标数',
+    },
+    runeVerdictDamageMultiplierDelta: {
+        category: 'special', applyMode: 'add',
+        display: (v) => `黑弥撒伤害倍率${v >= 0 ? '+' : ''}${v.toFixed(2)}`,
+        tooltip: '调整黑弥撒裁决的伤害倍率',
+    },
+    runeInheritanceTargets: {
+        category: 'special', applyMode: 'add',
+        display: (v) => `未完成符文迁移至${v}个目标`,
+        tooltip: '直击击杀时把未完成的符文分配给附近目标；迁移最多只产生一代裁决',
+    },
+    runeInheritanceRangeDelta: {
+        category: 'special', applyMode: 'add',
+        display: (v) => `符文迁移范围${v >= 0 ? '+' : ''}${v}px`,
+        tooltip: '调整直击击杀后搜索符文继承目标的范围',
+    },
+    runeVerdictSeedMarks: {
+        category: 'special', applyMode: 'flag',
+        display: () => '裁决幸存者继承末印',
+        tooltip: '黑弥撒的幸存目标继承触发裁决时的最后一枚符文；不会立即再次裁决',
     },
     magicDamagePercent: {
         category: 'damage',

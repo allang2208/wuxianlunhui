@@ -13,24 +13,31 @@ import {
     wallHitSupportsTarget,
 } from './elevated-ranged.js';
 import { entityVerticalRange } from '../physics/elevation.js';
+import { spawnPlayerBulletImpactSparks } from '../effects/player-bullet-impact-fx.js';
 
 class Projectile {
     constructor(x, y, angle, speed, maxRange, size, damage, piercing, source, entities, image, isTracer = false, isGold = false, isDarkGold = false, damageType = 'physical', _noRender = false, isGreen = false, isSpit = false, poisonChance = 0, poisonStacks = 1, textureKey = null) {
         this.x = x; this.y = y; this.angle = angle; this.speed = speed; this.maxRange = maxRange; this.size = size;
         this.damage = damage; this.piercing = piercing; this.source = source; this.entities = entities;
         this.traveled = 0; this.active = true; this.hitTargets = new Set(); this.image = image;
+        this._candidateEntities = [];
         this.textureKey = textureKey; // 显式 Phaser 纹理键（优先于 image 的箭头回退）
         this.isTracer = isTracer; // 是否为曳光弹（G18手枪）
         this.isSpit = isSpit || false; // 是否为毒液投射物（SpitterZombie）
         this.isGold = isGold; // 是否为亮金色曳光弹（PKM）
         this.isDarkGold = isDarkGold; // 是否为深黄色曳光弹（沙漠之鹰）
         this.isGreen = isGreen; // 是否为亮绿色曳光弹（能量轻机枪）
+        this.isPurple = false; // 是否为洋红相位曳光弹（零点仲裁特殊弹）
+        this.isCrimson = false; // 是否为赤金日冕曳光弹（日冕裁律稳定窗）
+        this.isCyan = false; // 是否为青白收束曳光弹（终末回声收束层）
         this.damageType = damageType; // 伤害类型：physical 或 magic
         this._noRender = _noRender;
         this.poisonChance = poisonChance; // 命中时附加中毒的概率（0~1）
         this.poisonStacks = poisonStacks; // 附加中毒层数
         this._embeddedWalls = null; // 出膛嵌墙记录（ProjectileFactory 创建时检测；"只出不进"判定用）
         this._lastWallHit = null;
+        this.damageFalloff = null;
+        this.playerGunWallSparks = false;
 
         // 伪3D直线弹道：z/vz 与 x/y 同步积分，命中走3D胶囊体。
         this.z = 0;
@@ -78,6 +85,15 @@ class Projectile {
                     this.damage,
                     this.damageType || 'ranged'
                 );
+                if (this.playerGunWallSparks) {
+                    spawnPlayerBulletImpactSparks({
+                        x: this._lastWallHit?.x ?? this.x,
+                        y: this._lastWallHit?.y ?? this.y,
+                        z: this._lastWallHit?.z
+                            ?? (((Number(this.prevZ) || 0) + (Number(this.z) || 0)) * 0.5),
+                        incomingAngle: this.visualAngle ?? this.angle,
+                    });
+                }
                 this.active = false;
             } else {
                 // 清理已失效目标的命中记录
@@ -95,7 +111,8 @@ class Projectile {
                     if (!this._canHitEntity(entity)) continue;
                     if (this._isHittingEntity(entity, prevX, prevY)) {
                         this.hitTargets.add(entity);
-                        const damage = typeof this.damage === 'object' ? Math.floor(this.damage.min + Math.random() * (this.damage.max - this.damage.min + 1)) : this.damage;
+                        const rolledDamage = typeof this.damage === 'object' ? Math.floor(this.damage.min + Math.random() * (this.damage.max - this.damage.min + 1)) : this.damage;
+                        const damage = this._applyDistanceFalloff(rolledDamage);
                         // 毒液/中毒投射物：命中后按概率给目标叠加中毒
                         if ((this.isSpit || this.poisonChance > 0) && typeof entity.applyPoison === 'function') {
                             const chance = this.isSpit && this.poisonChance === 0 ? 1 : this.poisonChance;
@@ -112,11 +129,16 @@ class Projectile {
                             damage,
                             damageType: this.damageType || 'ranged',
                             currentWeapon: weapon,
+                            effectContext: this,
                             isMelee: false,
                             // 投射物击退（工厂 create 的 knockback 选项驱动；无配置时为 0 不生效）
                             knockback: this.knockback || 0,
                             angle: this.angle
                         });
+                        if (!this._firstHitTriggered && typeof this._onFirstHit === 'function') {
+                            this._firstHitTriggered = true;
+                            this._onFirstHit(entity, this);
+                        }
                         if (this.piercing) { this.piercing--; if (this.piercing <= 0) this.active = false; }
                         else { this.active = false; }
                         if (!this.active) break;
@@ -126,6 +148,17 @@ class Projectile {
         }
         this._updatePhaserSprite();
         if (!this.active) this._destroyPhaserSprite();
+    }
+
+    _applyDistanceFalloff(rawDamage) {
+        const cfg = this.damageFalloff;
+        if (!cfg || !Number.isFinite(rawDamage)) return rawDamage;
+        const start = Math.max(0, Number(cfg.start) || 0);
+        if (this.traveled <= start || this.maxRange <= start) return rawDamage;
+        const t = Math.max(0, Math.min(1, (this.traveled - start) / (this.maxRange - start)));
+        const smooth = t * t * (3 - 2 * t);
+        const minimum = Math.max(0.05, Math.min(1, Number(cfg.minMultiplier) || 0.4));
+        return Math.max(1, Math.round(rawDamage * (1 - (1 - minimum) * smooth)));
     }
 
     /**
@@ -257,8 +290,14 @@ class Projectile {
      * 如果空间网格不可用，回退到全量遍历。
      */
     _getCandidateEntities(prevX, prevY) {
-        if (!SpatialPartitionSystem || typeof SpatialPartitionSystem.queryRadius !== 'function') {
-            return this.entities ? Array.from(this.entities.values()) : [];
+        const candidates = this._candidateEntities;
+        candidates.length = 0;
+        if (!SpatialPartitionSystem || typeof SpatialPartitionSystem.queryRadiusInto !== 'function') {
+            if (this.entities) {
+                const source = this.entities.values ? this.entities.values() : this.entities;
+                for (const entity of source) candidates.push(entity);
+            }
+            return candidates;
         }
 
         const midX = (prevX + this.x) * 0.5;
@@ -266,7 +305,9 @@ class Projectile {
         // 查询半径覆盖本帧飞行距离 + 最大常见实体半径余量，确保不遗漏
         const stepLen = Math.hypot(this.x - prevX, this.y - prevY);
         const queryR = Math.max(128, stepLen + 160);
-        return SpatialPartitionSystem.queryRadius(midX, midY, queryR, this.source);
+        return SpatialPartitionSystem.queryRadiusInto(
+            midX, midY, queryR, this.source, candidates
+        );
     }
 
     /**
@@ -370,7 +411,7 @@ class Projectile {
     _getProjectileTextureKey() {
         if (this.textureKey) return this.textureKey;
         if (this.isSpit) return 'projectile_poison';
-        if (this.isGreen || this.isGold || this.isDarkGold || this.isTracer) return 'projectile_tracer';
+        if (this.isGreen || this.isPurple || this.isCrimson || this.isCyan || this.isGold || this.isDarkGold || this.isTracer) return 'projectile_tracer';
         if (this.image) return 'projectile_arrow';
         return 'projectile_bullet';
     }
@@ -380,6 +421,9 @@ class Projectile {
         if (this.isSpit) return undefined;
         // 短粗圆柱弹配色（2026-07-28）：色相不变，亮度提升更鲜艳
         if (this.isGreen) return 0xc8ffd8;
+        if (this.isPurple) return 0xff70ef;
+        if (this.isCrimson) return 0xff6a2a;
+        if (this.isCyan) return 0x65efff;
         if (this.isGold) return 0xffffcc;
         if (this.isDarkGold) return 0xffe080;
         if (this.isTracer) return 0xfff5cc;
@@ -421,10 +465,10 @@ class Projectile {
         } else if (this.isSpit) {
             const s = this.size * 2.5;
             this._phaserSprite.setDisplaySize(s, s);
-        } else if (this.isGreen || this.isGold || this.isDarkGold || this.isTracer) {
+        } else if (this.isGreen || this.isPurple || this.isCrimson || this.isCyan || this.isGold || this.isDarkGold || this.isTracer) {
             // 短粗圆柱弹：长度较原长条减半、粗 1.5 倍（贴图为两头椭圆胶囊）
-            const tailLen = this.isGreen ? 27 : this.isGold ? 25 : this.isDarkGold ? 22 : 20;
-            const thickness = this.isGreen ? 15 : this.isGold ? 15 : this.isDarkGold ? 13.5 : 12;
+            const tailLen = this.isGreen ? 27 : this.isPurple ? 31 : this.isCrimson ? 29 : this.isCyan ? 30 : this.isGold ? 25 : this.isDarkGold ? 22 : 20;
+            const thickness = this.isGreen ? 15 : this.isPurple ? 16 : this.isCrimson ? 15.5 : this.isCyan ? 15.5 : this.isGold ? 15 : this.isDarkGold ? 13.5 : 12;
             this._phaserSprite.setDisplaySize(tailLen, thickness);
         } else if (this.image) {
             const s = this.size * 10;
@@ -445,6 +489,28 @@ class Projectile {
             this._phaserSprite.destroy();
             this._phaserSprite = null;
         }
+    }
+
+    /** 进入对象池前断开旧场景对象图，避免池长期保留实体、墙体和纹理引用。 */
+    releaseToPool() {
+        this.active = false;
+        this.source = null;
+        this.entities = null;
+        this.image = null;
+        this.hitTargets.clear();
+        this._candidateEntities.length = 0;
+        this._embeddedWalls = null;
+        this._wallContext = null;
+        this._lastWallHit = null;
+        this._effectSnapshot = null;
+        this._hitContext = null;
+        this._onFirstHit = null;
+        this._firstHitTriggered = false;
+        this.isPurple = false;
+        this.isCrimson = false;
+        this.isCyan = false;
+        this._onBeforeDestroy = null;
+        this.damageFalloff = null;
     }
 
     syncPhaserSprite() {

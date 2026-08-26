@@ -57,7 +57,7 @@ const EnchantConfig = {
             type: 'suffix',
             cost: 400,
             restrictions: {
-                weaponTypes: ['pistol', 'pkm', 'akm', 'm416', 'qbz191', 'qjb201', 'shotgun'], // 枪械类
+                weaponTypes: ['pistol', 'pkm', 'rpd', 'm249', 'ultimax100', 'mg42', 'fusion_core_lmg', 'singularity_loom_lmg', 'celestial_cartographer_lmg', 'grave_covenant_cantor_lmg', 'akm', 'stg44', 'm416', 'qbz95', 'frontier_rifle', 'vengeance_rifle', 'astral_tide_rifle', 'zero_point_rifle', 'corona_cadence_rifle', 'terminal_echo_rifle', 'qbz191', 'qjb201', 'shotgun'], // 枪械类
             },
             effects: {
                 piercingBonus: 2, // 穿透目标+2

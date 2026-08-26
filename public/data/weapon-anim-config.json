@@ -1718,5 +1718,333 @@
       "offhandOffsetY": 2
     },
     "bobWeaponScale": 2
+  },
+  "rpd": {
+    "preciseAds": true,
+    "holdOffsetX": -64,
+    "holdOffsetY": -6,
+    "timingMul": 0.1,
+    "animType": "recoil",
+    "recoilAmount": 0.12,
+    "renderParams": {
+      "gunLXOffset": 24,
+      "gunLY": 0,
+      "muzzleOffset": 30,
+      "flashOffset": 38,
+      "shellCasingOffset": -10,
+      "recoilWindup": 0.03,
+      "recoilSwing": 0.08,
+      "recoilRecover": 0.03,
+      "shakeIntensity": 4
+    },
+    "idleRotation": 0,
+    "idleScale": 1,
+    "grip": {
+      "x": 0.24,
+      "y": 0.57
+    },
+    "idle": {
+      "holdOffsetX": -64,
+      "holdOffsetY": -6,
+      "idleRotation": 0,
+      "idleScale": 1
+    },
+    "walk": {
+      "holdOffsetX": -64,
+      "holdOffsetY": -6,
+      "idleRotation": 0,
+      "idleScale": 1
+    },
+    "muzzle": {
+      "x": 0.96,
+      "y": 0.49
+    }
+  },
+  "m249": {
+    "preciseAds": true,
+    "holdOffsetX": -64,
+    "holdOffsetY": -6,
+    "timingMul": 0.075,
+    "animType": "recoil",
+    "recoilAmount": 0.1,
+    "renderParams": {
+      "gunLXOffset": 24,
+      "gunLY": 0,
+      "muzzleOffset": 30,
+      "flashOffset": 38,
+      "shellCasingOffset": -10,
+      "recoilWindup": 0.03,
+      "recoilSwing": 0.08,
+      "recoilRecover": 0.03,
+      "shakeIntensity": 4
+    },
+    "idleRotation": 0,
+    "idleScale": 1,
+    "grip": {
+      "x": 0.31,
+      "y": 0.57
+    },
+    "idle": {
+      "holdOffsetX": -64,
+      "holdOffsetY": -6,
+      "idleRotation": 0,
+      "idleScale": 1
+    },
+    "walk": {
+      "holdOffsetX": -64,
+      "holdOffsetY": -6,
+      "idleRotation": 0,
+      "idleScale": 1
+    },
+    "muzzle": {
+      "x": 0.96,
+      "y": 0.49
+    }
+  },
+  "ultimax100": {
+    "preciseAds": true,
+    "holdOffsetX": -64,
+    "holdOffsetY": -6,
+    "timingMul": 0.1,
+    "animType": "recoil",
+    "recoilAmount": 0.06,
+    "renderParams": {
+      "gunLXOffset": 24,
+      "gunLY": 0,
+      "muzzleOffset": 30,
+      "flashOffset": 38,
+      "shellCasingOffset": -10,
+      "recoilWindup": 0.025,
+      "recoilSwing": 0.06,
+      "recoilRecover": 0.025,
+      "shakeIntensity": 3
+    },
+    "idleRotation": 0,
+    "idleScale": 1,
+    "grip": {
+      "x": 0.27,
+      "y": 0.56
+    },
+    "idle": {
+      "holdOffsetX": -64,
+      "holdOffsetY": -6,
+      "idleRotation": 0,
+      "idleScale": 1
+    },
+    "walk": {
+      "holdOffsetX": -64,
+      "holdOffsetY": -6,
+      "idleRotation": 0,
+      "idleScale": 1
+    },
+    "muzzle": {
+      "x": 0.96,
+      "y": 0.49
+    }
+  },
+  "mg42": {
+    "preciseAds": true,
+    "holdOffsetX": -64,
+    "holdOffsetY": -6,
+    "timingMul": 0.05,
+    "animType": "recoil",
+    "recoilAmount": 0.16,
+    "renderParams": {
+      "gunLXOffset": 24,
+      "gunLY": 0,
+      "muzzleOffset": 30,
+      "flashOffset": 38,
+      "shellCasingOffset": -10,
+      "recoilWindup": 0.02,
+      "recoilSwing": 0.05,
+      "recoilRecover": 0.02,
+      "shakeIntensity": 5
+    },
+    "idleRotation": 0,
+    "idleScale": 1,
+    "grip": {
+      "x": 0.29,
+      "y": 0.56
+    },
+    "idle": {
+      "holdOffsetX": -64,
+      "holdOffsetY": -6,
+      "idleRotation": 0,
+      "idleScale": 1
+    },
+    "walk": {
+      "holdOffsetX": -64,
+      "holdOffsetY": -6,
+      "idleRotation": 0,
+      "idleScale": 1
+    },
+    "muzzle": {
+      "x": 0.96,
+      "y": 0.53
+    }
+  },
+  "fusion_core_lmg": {
+    "preciseAds": true,
+    "holdOffsetX": -64,
+    "holdOffsetY": -6,
+    "timingMul": 0.24,
+    "animType": "recoil",
+    "recoilAmount": 0.11,
+    "renderParams": {
+      "gunLXOffset": 24,
+      "gunLY": 0,
+      "muzzleOffset": 30,
+      "flashOffset": 38,
+      "shellCasingOffset": -10,
+      "recoilWindup": 0.04,
+      "recoilSwing": 0.09,
+      "recoilRecover": 0.05,
+      "shakeIntensity": 4
+    },
+    "idleRotation": 0,
+    "idleScale": 1,
+    "grip": {
+      "x": 0.32,
+      "y": 0.56
+    },
+    "idle": {
+      "holdOffsetX": -64,
+      "holdOffsetY": -6,
+      "idleRotation": 0,
+      "idleScale": 1
+    },
+    "walk": {
+      "holdOffsetX": -64,
+      "holdOffsetY": -6,
+      "idleRotation": 0,
+      "idleScale": 1
+    },
+    "muzzle": {
+      "x": 0.957,
+      "y": 0.504
+    }
+  },
+  "singularity_loom_lmg": {
+    "preciseAds": true,
+    "holdOffsetX": -64,
+    "holdOffsetY": -6,
+    "timingMul": 0.12,
+    "animType": "recoil",
+    "recoilAmount": 0.075,
+    "renderParams": {
+      "gunLXOffset": 24,
+      "gunLY": 0,
+      "muzzleOffset": 30,
+      "flashOffset": 38,
+      "shellCasingOffset": -10,
+      "recoilWindup": 0.03,
+      "recoilSwing": 0.08,
+      "recoilRecover": 0.03,
+      "shakeIntensity": 4
+    },
+    "idleRotation": 0,
+    "idleScale": 1,
+    "grip": {
+      "x": 0.32,
+      "y": 0.56
+    },
+    "idle": {
+      "holdOffsetX": -64,
+      "holdOffsetY": -6,
+      "idleRotation": 0,
+      "idleScale": 1
+    },
+    "walk": {
+      "holdOffsetX": -64,
+      "holdOffsetY": -6,
+      "idleRotation": 0,
+      "idleScale": 1
+    },
+    "muzzle": {
+      "x": 0.957,
+      "y": 0.51
+    }
+  },
+  "celestial_cartographer_lmg": {
+    "preciseAds": true,
+    "holdOffsetX": -64,
+    "holdOffsetY": -6,
+    "timingMul": 0.105,
+    "animType": "recoil",
+    "recoilAmount": 0.07,
+    "renderParams": {
+      "gunLXOffset": 24,
+      "gunLY": 0,
+      "muzzleOffset": 30,
+      "flashOffset": 38,
+      "shellCasingOffset": -10,
+      "recoilWindup": 0.03,
+      "recoilSwing": 0.07,
+      "recoilRecover": 0.03,
+      "shakeIntensity": 4
+    },
+    "idleRotation": 0,
+    "idleScale": 1,
+    "grip": {
+      "x": 0.31,
+      "y": 0.56
+    },
+    "idle": {
+      "holdOffsetX": -64,
+      "holdOffsetY": -6,
+      "idleRotation": 0,
+      "idleScale": 1
+    },
+    "walk": {
+      "holdOffsetX": -64,
+      "holdOffsetY": -6,
+      "idleRotation": 0,
+      "idleScale": 1
+    },
+    "muzzle": {
+      "x": 0.958,
+      "y": 0.5
+    }
+  },
+  "grave_covenant_cantor_lmg": {
+    "preciseAds": true,
+    "holdOffsetX": -64,
+    "holdOffsetY": -6,
+    "timingMul": 0.135,
+    "animType": "recoil",
+    "recoilAmount": 0.09,
+    "renderParams": {
+      "gunLXOffset": 24,
+      "gunLY": 0,
+      "muzzleOffset": 30,
+      "flashOffset": 38,
+      "shellCasingOffset": -10,
+      "recoilWindup": 0.04,
+      "recoilSwing": 0.09,
+      "recoilRecover": 0.04,
+      "shakeIntensity": 5
+    },
+    "idleRotation": 0,
+    "idleScale": 1,
+    "grip": {
+      "x": 0.3,
+      "y": 0.57
+    },
+    "idle": {
+      "holdOffsetX": -64,
+      "holdOffsetY": -6,
+      "idleRotation": 0,
+      "idleScale": 1
+    },
+    "walk": {
+      "holdOffsetX": -64,
+      "holdOffsetY": -6,
+      "idleRotation": 0,
+      "idleScale": 1
+    },
+    "muzzle": {
+      "x": 0.956,
+      "y": 0.51
+    }
   }
 }

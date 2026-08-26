@@ -1,0 +1,53 @@
+{
+  "weaponId": "weapon37",
+  "weaponType": "celestial_cartographer_lmg",
+  "key": "celestial-cartographer-lmg",
+  "name": "天穹测绘者",
+  "type": "机枪",
+  "icon": "🔫",
+  "category": "weapon_ranged",
+  "rarity": "legendary",
+  "rarityLabel": "传说",
+  "level": 21,
+  "price": 3200,
+  "weaponCategory": "mainhand",
+  "weaponTypeTag": "远程武器",
+  "isTwoHanded": true,
+  "equipSlot": "weapon",
+  "desc": "传说轻机枪“天穹测绘者”；连续有效命中第4次建立星图锚点，第8次完成测绘：命中另一目标会拉出经纬线扫过沿线敌人，继续压制锚点则降下天顶坠击。停火700ms后序列重置。",
+  "statsDisplay": [{ "name": "物理攻击", "value": "13+力量×0.46+精神×0.46" }, { "name": "射程", "value": "1850" }],
+  "attack": { "range": 1850, "knockback": 3, "attackInterval": 105, "hitType": "蓝金星图弹（经纬线/天顶坠击）", "damageType": "物理", "projectileSpeed": 1540, "damageFalloff": { "start": 940, "minMultiplier": 0.55 } },
+  "attackKey": "celestial_cartographer_lmg",
+  "animConfigKey": "celestial_cartographer_lmg",
+  "canvasImageProp": "celestialCartographerLmgImage",
+  "fireMode": "fullAuto",
+  "ammoConfig": { "max": 80, "reloadTime": 3400, "reloadSound": "assets/sounds/weapons/celestial_cartographer_lmg_reload.wav" },
+  "attackFormula": { "base": 13, "enhanceFlat": 1, "attrs": [{ "key": "str", "base": 0.46, "perEnhance": 0.07 }, { "key": "wis", "base": 0.46, "perEnhance": 0.07 }] },
+  "spreadParams": { "startShots": 11, "maxShots": 30, "recoveryMs": 340, "maxAngle": 16 },
+  "heatParams": { "overheatTime": 7600, "overheatRecoverTime": 2100, "overheatCooldownTime": 2900 },
+  "constellationParams": { "anchorHit": 4, "resolveHit": 8, "resetMs": 700, "lineWidth": 58, "lineMaxTargets": 6, "lineDamageMultiplier": 0.6, "focusDamageMultiplier": 1.05, "focusSplashRadius": 110, "focusSplashMultiplier": 0.35, "focusSplashMaxTargets": 4, "knockback": 2 },
+  "fireSound": "assets/sounds/weapons/celestial_cartographer_lmg_fire.wav",
+  "equipSound": "assets/sounds/weapons/celestial_cartographer_lmg_equip.wav",
+  "assets": {
+    "equipImage": "assets/weapons/celestial-cartographer-lmg-equip.png",
+    "iconImage": "assets/icons/celestial-cartographer-lmg-equip.png",
+    "slotImage": "assets/icons/celestial-cartographer-lmg-equip.png",
+    "dropImage": "assets/weapons/celestial-cartographer-lmg-equip.png",
+    "weaponAssetImage": "assets/weapons/celestial-cartographer-lmg-equip.png"
+  },
+  "craftTemplateWeaponId": "weapon6",
+  "animTemplateWeaponType": "pkm",
+  "layout": { "canvas": 2048, "contentWidthFrac": 0.915, "centerX": 0.5, "centerY": 0.543 },
+  "sounds": {
+    "fire": "assets/sounds/weapons/celestial_cartographer_lmg_fire.wav",
+    "reload": "assets/sounds/weapons/celestial_cartographer_lmg_reload.wav",
+    "equip": "assets/sounds/weapons/celestial_cartographer_lmg_equip.wav"
+  },
+  "imagePrompts": {
+    "icon": [
+      "production-ready original legendary light machine gun named Celestial Cartographer, strict orthographic right-facing side profile, complete weapon, genuine transparent background",
+      "deep midnight-blue receiver, ivory ceramic star-map plates, restrained antique gold longitude rings mechanically integrated around the receiver, cyan luminous coordinate lines, compact dark box magazine, original silhouette, no foregrip, no bipod, no scope",
+      "perfectly horizontal barrel, flat side-view muzzle with no visible front bore, no person, no text, no logo, no watermark, no border, no recognizable franchise design"
+    ]
+  }
+}

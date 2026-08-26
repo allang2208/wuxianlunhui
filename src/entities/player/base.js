@@ -285,16 +285,19 @@ const baseMixin = {
             spreadMaxTime: energyCfg.spreadMaxTime ?? hardDefaults.spreadMaxTime,
             maxSpreadAngle: energyCfg.maxSpreadAngle ?? hardDefaults.maxSpreadAngle
         };
-        if (!params) return defaults;
+        const source = params || defaults;
+        const ce = currentWpn?._craftEffects || {};
         return {
-            baseCooldown: params.baseCooldown ?? defaults.baseCooldown,
-            maxCooldown: params.maxCooldown ?? defaults.maxCooldown,
-            rampUpTime: params.rampUpTime ?? defaults.rampUpTime,
-            overheatTime: params.overheatTime ?? defaults.overheatTime,
-            overheatRecoverTime: params.overheatRecoverTime ?? defaults.overheatRecoverTime,
-            overheatCooldownTime: params.overheatCooldownTime ?? defaults.overheatCooldownTime,
-            spreadMaxTime: params.spreadMaxTime ?? defaults.spreadMaxTime,
-            maxSpreadAngle: params.maxSpreadAngle ?? defaults.maxSpreadAngle
+            baseCooldown: source.baseCooldown ?? defaults.baseCooldown,
+            maxCooldown: Math.max(40, (source.maxCooldown ?? defaults.maxCooldown)
+                + (Number(ce.energyPeakCooldownDelta) || 0)),
+            rampUpTime: Math.max(400, (source.rampUpTime ?? defaults.rampUpTime)
+                + (Number(ce.energyRampUpTimeDelta) || 0)),
+            overheatTime: source.overheatTime ?? defaults.overheatTime,
+            overheatRecoverTime: source.overheatRecoverTime ?? defaults.overheatRecoverTime,
+            overheatCooldownTime: source.overheatCooldownTime ?? defaults.overheatCooldownTime,
+            spreadMaxTime: source.spreadMaxTime ?? defaults.spreadMaxTime,
+            maxSpreadAngle: source.maxSpreadAngle ?? defaults.maxSpreadAngle
         };
     },
 

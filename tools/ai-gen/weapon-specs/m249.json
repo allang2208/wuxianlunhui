@@ -1,0 +1,91 @@
+{
+  "weaponId": "weapon32",
+  "weaponType": "m249",
+  "key": "m249",
+  "name": "M249 SAW",
+  "type": "机枪",
+  "icon": "🔫",
+  "category": "weapon_ranged",
+  "rarity": "uncommon",
+  "rarityLabel": "优质",
+  "level": 8,
+  "price": 200,
+  "weaponCategory": "mainhand",
+  "weaponTypeTag": "远程武器",
+  "isTwoHanded": true,
+  "equipSlot": "weapon",
+  "desc": "M249班用自动武器，800发/分钟，100发弹袋供弹；高射速与快换枪管兼顾持续压制",
+  "statsDisplay": [
+    { "name": "物理攻击", "value": "5+力量×0.19+精神×0.18" },
+    { "name": "射程", "value": "1500" }
+  ],
+  "statsJson": [
+    { "name": "物理攻击", "value": "5+力量×0.19+精神×0.18" },
+    { "name": "射程", "value": "1500" }
+  ],
+  "attack": {
+    "range": 1500,
+    "knockback": 1,
+    "attackInterval": 75,
+    "hitType": "亮金色曳光弹（直线弹道）",
+    "damageType": "物理",
+    "projectileSpeed": 1260,
+    "damageFalloff": { "start": 650, "minMultiplier": 0.34 }
+  },
+  "attackKey": "m249",
+  "animConfigKey": "m249",
+  "canvasImageProp": "m249Image",
+  "fireMode": "fullAuto",
+  "ammoConfig": { "max": 100, "reloadTime": 3200, "reloadSound": "assets/sounds/weapons/m249_reload.wav" },
+  "attackFormula": {
+    "base": 5,
+    "enhanceFlat": 0.25,
+    "attrs": [
+      { "key": "str", "base": 0.19, "perEnhance": 0.029 },
+      { "key": "wis", "base": 0.18, "perEnhance": 0.028 }
+    ]
+  },
+  "spreadParams": { "startShots": 7, "maxShots": 22, "recoveryMs": 450, "maxAngle": 25 },
+  "heatParams": { "overheatTime": 5200, "overheatRecoverTime": 2000, "overheatCooldownTime": 2200 },
+  "fireSound": "assets/sounds/weapons/m249_fire.wav",
+  "equipSound": "assets/sounds/weapons/m249_equip.wav",
+  "animation": {
+    "type": "recoil（后坐力抖动）",
+    "totalMs": "75ms (约)",
+    "windupMs": "≈15",
+    "swingMs": "≈23",
+    "recoveryMs": "≈37",
+    "holdOffset": "(-64, -6)",
+    "weaponSize": 102,
+    "timingMul": "0.075x",
+    "recoilAmount": "0.10rad",
+    "description": "M249 以800RPM连续射击，采用机枪后坐与过热系统。"
+  },
+  "assets": {
+    "equipImage": "assets/weapons/m249-equip.png",
+    "iconImage": "assets/icons/m249-equip.png",
+    "slotImage": "assets/icons/m249-equip.png",
+    "dropImage": "assets/weapons/m249-equip.png",
+    "weaponAssetImage": "assets/weapons/m249-equip.png"
+  },
+  "craftTemplateWeaponId": "weapon6",
+  "animTemplateWeaponType": "pkm",
+  "layout": { "canvas": 2048, "contentWidthFrac": 0.915, "centerX": 0.5, "centerY": 0.543 },
+  "sounds": {
+    "fire": "assets/sounds/weapons/m249_fire.wav",
+    "reload": "assets/sounds/weapons/m249_reload.wav",
+    "equip": "assets/sounds/weapons/m249_equip.wav"
+  },
+  "imagePrompts": {
+    "icon": [
+      "single photorealistic M249 SAW, complete right-facing orthographic side profile, genuine transparent background",
+      "matte black receiver, fixed stock, carry handle, folded bipod, 100-round soft ammunition pouch",
+      "no hands, no person, no text, no logo, no border, no duplicate"
+    ],
+    "video": [
+      "M249 SAW alone on an armory pedestal, slow product turntable",
+      "close-up on feed cover and quick-change barrel, short controlled burst",
+      "audio: rapid 5.56 automatic fire, crisp feed mechanism, short indoor tail"
+    ]
+  }
+}

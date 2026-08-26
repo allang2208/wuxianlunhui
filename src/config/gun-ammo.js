@@ -1,31 +1,49 @@
 // Gun ammo configuration
-export const GUN_AMMO_CAP = {
-    weapon9:  { max: 12, reloadTime: 1000 },
-    weapon10: { max: 6,  reloadTime: 1750 },
-    weapon22: { max: 6, reloadTime: 900, singleReloadMode: true, reloadSound: 'assets/sounds/weapons/revolver357_reload.wav', reloadFinishSound: 'assets/sounds/weapons/revolver357_reload_last.wav' },
-    weapon19: { max: 9,  reloadTime: 1500 },
-    weapon18: { max: 12, reloadTime: 1200 },
-    weapon6:  { max: 75, reloadTime: 3500 },
-    weapon7:  { max: 30, reloadTime: 1150 },
-    weapon8:  { max: 30, reloadTime: 1000 },
-    weapon11: { max: 60, reloadTime: 2000 },
-    weapon12: { max: 7, reloadTime: 400, singleReloadMode: true, reloadSound: 'assets/sounds/weapons/Super90-reload.mp3' },
-    weapon13: { max: 12, reloadTime: 2000 },
-    weapon15: { max: Infinity, reloadTime: 0 },
-    weapon21: { max: 30, reloadTime: 1200, reloadSound: 'assets/sounds/weapons/m416_reload.wav' },
-};
+import { EquipDataManager, findWeaponConfig } from '../ui/equip-data-manager.js';
+
+function _allCanonicalWeapons() {
+    const result = [];
+    const add = (value) => {
+        if (value && typeof value === 'object' && value.weaponId) result.push(value);
+    };
+    for (const value of Object.values(EquipDataManager)) {
+        add(value);
+        if (value && typeof value === 'object' && !value.weaponId) {
+            for (const nested of Object.values(value)) add(nested);
+        }
+    }
+    return result;
+}
+
+const CANONICAL_WEAPONS = _allCanonicalWeapons();
+
+// 保留旧导出名供既有调用方使用，但内容直接由 EquipDataManager 派生，不再维护第二张弹匣表。
+export const GUN_AMMO_CAP = Object.freeze(Object.fromEntries(
+    CANONICAL_WEAPONS
+        .filter((weapon) => weapon.ammoConfig)
+        .map((weapon) => [weapon.weaponId, weapon.ammoConfig])
+));
+
+// 枪械射速唯一口径：运行时、主副手、准星/散布与 tooltip 都必须调用同一解析器。
+// 40ms（25发/秒）是硬下限，防止旧配置中的大额负增量生成负冷却并退化为逐帧开火。
+export const MIN_GUN_ATTACK_INTERVAL = 40;
+export function resolveGunAttackInterval(item, baseInterval = null) {
+    const base = Number(baseInterval ?? item?.attack?.attackInterval);
+    if (!Number.isFinite(base) || base <= 0) return MIN_GUN_ATTACK_INTERVAL;
+    const enchantMul = Number(item?._enchantEffects?.attackIntervalMul) || 1;
+    const craftDelta = Number(item?._craftEffects?.attackIntervalDelta) || 0;
+    return Math.max(MIN_GUN_ATTACK_INTERVAL, Math.round(base * enchantMul + craftDelta));
+}
 
 export function isGunWeapon(item) {
     if (!item) return false;
-    // 判定统一：实例 ammoConfig 或 weaponId 回退映射或枪械 weaponType。
-    // equipment.json 多数枪械无 ammoConfig 字段，仅靠实例字段会把 PKM/AKM/霰弹等漏判为“非枪”，
-    // 导致瞄准模式（以及地牢掉落枪的弹药初始化）对它们失效。
-    return !!item.ammoConfig || !!GUN_AMMO_CAP[item.weaponId] ||
+    const canonical = findWeaponConfig(item.weaponId, item.name);
+    return !!item.ammoConfig || !!canonical?.ammoConfig ||
         GUN_WEAPON_TYPES.includes(item.weaponType) || item.rangedType === 'pistol';
 }
 
 // 枪械 weaponType 合集（isGunWeapon 的第三级判定）
-const GUN_WEAPON_TYPES = ['pistol', 'pkm', 'akm', 'm416', 'qbz191', 'qjb201', 'shotgun', 'energy_lmg'];
+const GUN_WEAPON_TYPES = ['pistol', 'pkm', 'rpd', 'm249', 'ultimax100', 'mg42', 'fusion_core_lmg', 'singularity_loom_lmg', 'celestial_cartographer_lmg', 'grave_covenant_cantor_lmg', 'akm', 'stg44', 'm416', 'qbz95', 'frontier_rifle', 'vengeance_rifle', 'astral_tide_rifle', 'zero_point_rifle', 'corona_cadence_rifle', 'terminal_echo_rifle', 'qbz191', 'qjb201', 'shotgun', 'energy_lmg'];
 
 export function isCraftableWeapon(item) {
     if (!item) return false;
@@ -34,8 +52,8 @@ export function isCraftableWeapon(item) {
 
 // 武器大类合集（已弃用：优先使用 item.isTwoHanded / item.ammoConfig / item.fireMode 判断）
 export const WEAPON_CATEGORIES = {
-    machineGun: ['pkm', 'qjb201', 'energy_lmg'],
-    rifle: ['akm', 'qbz191', 'm416'],
+    machineGun: ['pkm', 'rpd', 'm249', 'ultimax100', 'mg42', 'fusion_core_lmg', 'singularity_loom_lmg', 'celestial_cartographer_lmg', 'grave_covenant_cantor_lmg', 'qjb201', 'energy_lmg'],
+    rifle: ['akm', 'stg44', 'm416', 'qbz95', 'frontier_rifle', 'vengeance_rifle', 'astral_tide_rifle', 'zero_point_rifle', 'corona_cadence_rifle', 'terminal_echo_rifle', 'qbz191'],
     pistol: ['pistol'],
     shotgun: ['shotgun'],
     sword: ['sword'],
@@ -47,11 +65,11 @@ export const isPistolCategory = (weaponType) => WEAPON_CATEGORIES.pistol.include
 export const isShotgunCategory = (weaponType) => WEAPON_CATEGORIES.shotgun.includes(weaponType);
 export const isSwordCategory = (weaponType) => WEAPON_CATEGORIES.sword.includes(weaponType);
 
-// ===== 射击模式分类（已弃用：优先使用 item.fireMode） =====
-export const FIRE_MODES = {
-    semiAuto: ['weapon10', 'weapon12', 'weapon19'],
-    fullAuto: ['weapon6', 'weapon7', 'weapon8', 'weapon9', 'weapon11', 'weapon13', 'weapon15', 'weapon21'],
-};
+// ===== 射击模式分类（兼容旧接口；内容由权威武器定义派生） =====
+export const FIRE_MODES = Object.freeze({
+    semiAuto: CANONICAL_WEAPONS.filter((weapon) => weapon.fireMode === 'semiAuto').map((weapon) => weapon.weaponId),
+    fullAuto: CANONICAL_WEAPONS.filter((weapon) => weapon.fireMode === 'fullAuto').map((weapon) => weapon.weaponId),
+});
 
 export const isSemiAuto = (weaponId) => FIRE_MODES.semiAuto.includes(weaponId);
 export const isFullAuto = (weaponId) => FIRE_MODES.fullAuto.includes(weaponId);
@@ -71,7 +89,7 @@ export const getFireMode = (item) => {
 // 单手武器：可以双持，也可以装备到副手槽
 export const ONE_HANDED_WEAPONS = ['pistol', 'shield'];
 // 双手武器：不可双持，只能装备到主手槽（weapon/weapon2）
-export const TWO_HANDED_WEAPONS = ['pkm', 'akm', 'm416', 'qbz191', 'qjb201', 'shotgun', 'energy_lmg'];
+export const TWO_HANDED_WEAPONS = ['pkm', 'rpd', 'm249', 'ultimax100', 'mg42', 'fusion_core_lmg', 'singularity_loom_lmg', 'celestial_cartographer_lmg', 'grave_covenant_cantor_lmg', 'akm', 'stg44', 'm416', 'qbz95', 'frontier_rifle', 'vengeance_rifle', 'astral_tide_rifle', 'zero_point_rifle', 'corona_cadence_rifle', 'terminal_echo_rifle', 'qbz191', 'qjb201', 'shotgun', 'energy_lmg'];
 
 export const isOneHanded = (arg) => {
     if (typeof arg === 'string') return ONE_HANDED_WEAPONS.includes(arg); // 旧接口兼容
@@ -127,8 +145,24 @@ export const GUN_FIRE_SOUND = {
     p4040: 'assets/sounds/weapons/apex2_shot_1s.wav',
     beretta93r: 'assets/sounds/weapons/beretta93r_fire.mp3',
     pkm: 'assets/sounds/weapons/pkm_half_sec.wav',
+    rpd: 'assets/sounds/weapons/rpd_fire.wav',
+    m249: 'assets/sounds/weapons/m249_fire.wav',
+    ultimax100: 'assets/sounds/weapons/ultimax100_fire.wav',
+    mg42: 'assets/sounds/weapons/mg42_fire.wav',
+    fusion_core_lmg: 'assets/sounds/weapons/fusion_core_lmg_fire.wav',
+    singularity_loom_lmg: 'assets/sounds/weapons/singularity_loom_lmg_fire.wav',
+    celestial_cartographer_lmg: 'assets/sounds/weapons/celestial_cartographer_lmg_fire.wav',
+    grave_covenant_cantor_lmg: 'assets/sounds/weapons/grave_covenant_cantor_lmg_fire.wav',
     akm: 'assets/sounds/weapons/akm_burst.mp3',
+    stg44: 'assets/sounds/weapons/stg44_fire.wav',
     m416: 'assets/sounds/weapons/m416_fire.wav',
+    qbz95: 'assets/sounds/weapons/qbz95_fire.wav',
+    frontier_rifle: 'assets/sounds/weapons/m416_fire.wav',
+    vengeance_rifle: 'assets/sounds/weapons/qbz191_shot6_valley.mp3',
+    astral_tide_rifle: 'assets/sounds/weapons/m416_fire.wav',
+    zero_point_rifle: 'assets/sounds/weapons/qbz191_shot6_valley.mp3',
+    corona_cadence_rifle: 'assets/sounds/weapons/m416_fire.wav',
+    terminal_echo_rifle: 'assets/sounds/weapons/m416_fire.wav',
     qbz191: 'assets/sounds/weapons/qbz191_shot6_valley.mp3',
     qjb201: 'assets/sounds/weapons/qjb201_single_600ms.wav',
     shotgun: 'assets/sounds/weapons/gunshot_600ms_clean.wav',

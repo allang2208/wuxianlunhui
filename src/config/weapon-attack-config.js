@@ -146,34 +146,146 @@ export const WEAPON_ATTACK_CONFIG = {
         type: 'RangedAttack',
         cooldown: 92,
         projectileSpeed: 1248,
-        projectileRange: 1200,
+        projectileRange: 1550,
         projectileSize: 5,
         damage: { min: 1, max: 1 },
         piercing: false
+    },
+    rpd: {
+        type: 'RangedAttack', cooldown: 100, projectileSpeed: 1180, projectileRange: 1450,
+        projectileSize: 5, damage: { min: 1, max: 1 }, piercing: false, knockback: 3
+    },
+    m249: {
+        type: 'RangedAttack', cooldown: 75, projectileSpeed: 1260, projectileRange: 1500,
+        projectileSize: 5, damage: { min: 1, max: 1 }, piercing: false, knockback: 1
+    },
+    ultimax100: {
+        type: 'RangedAttack', cooldown: 100, projectileSpeed: 1280, projectileRange: 1550,
+        projectileSize: 5, damage: { min: 1, max: 1 }, piercing: false, knockback: 2
+    },
+    mg42: {
+        type: 'RangedAttack', cooldown: 50, projectileSpeed: 1330, projectileRange: 1400,
+        projectileSize: 5, damage: { min: 1, max: 1 }, piercing: false, knockback: 1
+    },
+    fusion_core_lmg: {
+        type: 'RangedAttack', cooldown: 240, projectileSpeed: 1450, projectileRange: 1750,
+        projectileSize: 5, damage: { min: 1, max: 1 }, piercing: false, knockback: 4
+    },
+    singularity_loom_lmg: {
+        type: 'RangedAttack', cooldown: 120, projectileSpeed: 1500, projectileRange: 1800,
+        projectileSize: 5, damage: { min: 1, max: 1 }, piercing: false, knockback: 2
+    },
+    celestial_cartographer_lmg: {
+        type: 'RangedAttack', cooldown: 105, projectileSpeed: 1540, projectileRange: 1850,
+        projectileSize: 5, damage: { min: 1, max: 1 }, piercing: false, knockback: 3
+    },
+    grave_covenant_cantor_lmg: {
+        type: 'RangedAttack', cooldown: 135, projectileSpeed: 1470, projectileRange: 1750,
+        projectileSize: 6, damage: { min: 1, max: 1 }, piercing: false, knockback: 4
     },
     akm: {
         type: 'RangedAttack',
         cooldown: 100,
         projectileSpeed: 1248,
-        projectileRange: 1200,
+        projectileRange: 1550,
         projectileSize: 5,
         damage: { min: 1, max: 1 },
         piercing: false
+    },
+    stg44: {
+        type: 'RangedAttack',
+        cooldown: 120,
+        projectileSpeed: 1180,
+        projectileRange: 1400,
+        projectileSize: 5,
+        damage: { min: 1, max: 1 },
+        piercing: false,
+        knockback: 3
     },
     m416: {
         type: 'RangedAttack',
         cooldown: 110,
         projectileSpeed: 1248,
-        projectileRange: 1150,
+        projectileRange: 1500,
         projectileSize: 5,
         damage: { min: 1, max: 1 },
         piercing: false
+    },
+    qbz95: {
+        type: 'RangedAttack',
+        cooldown: 92,
+        projectileSpeed: 1248,
+        projectileRange: 1480,
+        projectileSize: 5,
+        damage: { min: 1, max: 1 },
+        piercing: false,
+        knockback: 2
+    },
+    frontier_rifle: {
+        type: 'RangedAttack',
+        cooldown: 78,
+        projectileSpeed: 1360,
+        projectileRange: 1650,
+        projectileSize: 5,
+        damage: { min: 1, max: 1 },
+        piercing: false,
+        knockback: 1
+    },
+    vengeance_rifle: {
+        type: 'RangedAttack',
+        cooldown: 300,
+        projectileSpeed: 1440,
+        projectileRange: 1850,
+        projectileSize: 5,
+        damage: { min: 1, max: 1 },
+        piercing: false,
+        knockback: 4
+    },
+    astral_tide_rifle: {
+        type: 'RangedAttack',
+        cooldown: 88,
+        projectileSpeed: 1400,
+        projectileRange: 1700,
+        projectileSize: 5,
+        damage: { min: 1, max: 1 },
+        piercing: false,
+        knockback: 2
+    },
+    zero_point_rifle: {
+        type: 'RangedAttack',
+        cooldown: 82,
+        projectileSpeed: 1500,
+        projectileRange: 1800,
+        projectileSize: 5,
+        damage: { min: 1, max: 1 },
+        piercing: false,
+        knockback: 1
+    },
+    corona_cadence_rifle: {
+        type: 'RangedAttack',
+        cooldown: 76,
+        projectileSpeed: 1480,
+        projectileRange: 1750,
+        projectileSize: 5,
+        damage: { min: 1, max: 1 },
+        piercing: false,
+        knockback: 2
+    },
+    terminal_echo_rifle: {
+        type: 'RangedAttack',
+        cooldown: 82,
+        projectileSpeed: 1500,
+        projectileRange: 1700,
+        projectileSize: 5,
+        damage: { min: 1, max: 1 },
+        piercing: false,
+        knockback: 1
     },
     qbz191: {
         type: 'RangedAttack',
         cooldown: 70,
         projectileSpeed: 1248,
-        projectileRange: 1200,
+        projectileRange: 1600,
         projectileSize: 5,
         damage: { min: 1, max: 1 },
         piercing: false
