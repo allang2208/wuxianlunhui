@@ -541,6 +541,10 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
   持续堆积。
 - **手动兵种名单必须覆盖全登记表**：仇恨分类、移动朝向、烟尘等若仍使用显式
   `_isHamsterXxx` 列表，新增兵种时必须同步；优先逐步收敛到 `getUnitKind()`。
+- **高阶兵种继承低阶实体时先判子类身份（仓鼠方阵 2026-08-26）**：子类会同时持有父类标记，例如
+  `HamsterPhalanx extends HamsterGuard` 同时满足`_isHamsterPhalanx`与`_isHamsterGuard`；`getUnitKind()`必须先判
+  `phalanx`再判`guard`，否则升级、兵线、快照和后台编制都会静默记成低阶兵种。可复用父类AI、RTS、承伤和解绑，
+  但动画时长不同的死亡流程应在子类调用`super._startDying()`后覆盖计时，避免父类常量提前删尸体。
 
 #### 0. 六维属性公式源（2026-08-16：仓鼠单位一律怪物公式）
 - 仓鼠友军单位 `statFormula: 'enemy'` → `Companion._enemyCombatStats` 分支：派生数值

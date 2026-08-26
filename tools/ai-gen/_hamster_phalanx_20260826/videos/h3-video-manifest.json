@@ -1,0 +1,50 @@
+[
+  {
+    "name": "idle",
+    "provider": "MiniMax H3 ImageToVideo",
+    "seed": 2026082621,
+    "durationSeconds": 5.17,
+    "size": "1024x576",
+    "steps": 16,
+    "loopLocked": true,
+    "reference": "../references/hamster-phalanx-double-axe-white-1024x576.png",
+    "prompt": "../prompts/idle-h3.txt",
+    "output": "hamster_phalanx_idle_h3.mp4"
+  },
+  {
+    "name": "walking",
+    "provider": "MiniMax H3 ImageToVideo",
+    "seed": 2026082629,
+    "durationSeconds": 5.17,
+    "size": "1024x576",
+    "steps": 16,
+    "loopLocked": true,
+    "reference": "../references/walking-v02/hamster-phalanx-double-axe-white-1024x576.png",
+    "prompt": "../prompts/walking-v02-corrected-axe-h3.txt",
+    "output": "hamster_phalanx_walking_h3_v02.mp4"
+  },
+  {
+    "name": "attacking",
+    "provider": "MiniMax H3 ImageToVideo",
+    "seed": 2026082623,
+    "durationSeconds": 5.17,
+    "size": "1024x576",
+    "steps": 16,
+    "loopLocked": true,
+    "reference": "../references/hamster-phalanx-double-axe-white-1024x576.png",
+    "prompt": "../prompts/attacking-h3.txt",
+    "output": "hamster_phalanx_attacking_h3.mp4"
+  },
+  {
+    "name": "dying",
+    "provider": "MiniMax H3 ImageToVideo",
+    "seed": 2026082624,
+    "durationSeconds": 5.17,
+    "size": "1024x576",
+    "steps": 16,
+    "loopLocked": false,
+    "reference": "../references/hamster-phalanx-double-axe-white-1024x576.png",
+    "prompt": "../prompts/dying-h3.txt",
+    "output": "hamster_phalanx_dying_h3.mp4"
+  }
+]
