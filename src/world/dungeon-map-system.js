@@ -225,9 +225,16 @@ export const DungeonMapSystem = {
         AgentInvasionSystem.init(this);
         // 单局统计（通关结算面板数据源）：击杀/经验/节点清理
         DungeonRunStats.reset();
-        // 地板贴图组（按地牢类型配置：随机选图+镜像+发光层开关；离开时恢复默认）
+        // 连续地貌配置：僵尸/沼泽三档每次入场刷新视觉小件 seed；同一次入场重烘焙保持稳定。
         const dungeonCfg = DungeonConfig.getZombieDungeonConfig(dungeonType);
-        setDungeonFloorProfile(DungeonConfig.getDungeonFloorProfile(dungeonType));
+        const floorProfile = DungeonConfig.getDungeonFloorProfile(dungeonType);
+        if (floorProfile?.deco) {
+            floorProfile.deco = {
+                ...floorProfile.deco,
+                seed: Math.floor(Math.random() * 0x100000000) >>> 0,
+            };
+        }
+        setDungeonFloorProfile(floorProfile);
         // 墙样式（按地牢类型：僵尸砖墙 / 沼泽柴墙+藤门；离开时恢复默认）
         WallSystem.setWallStyle(dungeonCfg.wallStyle || dungeonType);
         // 墙预制库加载补发（BootScene 已 fire-and-forget 预载；此处幂等补发，
@@ -1498,13 +1505,22 @@ export const DungeonMapSystem = {
         this._zombieCombat.forceArenaWaves(arenaRoomCount);
 
         // 宝箱房：最后一房间中央（普通/精英都生成；倒计时等玩家进入末房才启动）。
-        // 世界单格冰墙竞技场使用开放式宝箱点，避免末房中央再次套入旧连续墙预制。
+        // 僵尸系世界单格竞技场使用同标准黑砖实体宝箱房；冰封系仍保持开放式宝箱点，
+        // 避免在已封闭末房中央重复套入另一层冰墙。
         if (typeof ChestRoomSystem !== 'undefined') {
             const lastRoomIdx = CombatRoomSystem.getArenaRoomCount();
-            ChestRoomSystem.setup(this.dungeonType, CombatRoomSystem.getArenaRoomBounds(lastRoomIdx), {
+            const lastRoomBounds = CombatRoomSystem.getArenaRoomBounds(lastRoomIdx);
+            const dungeonCfg = DungeonConfig.getZombieDungeonConfig(this.dungeonType) || {};
+            const usePhysicalTreasureRoom = crCfg.wallConstruction === 'worldBlock1x1'
+                && dungeonCfg.wallStyle === 'zombie';
+            const worldBlockRoom = usePhysicalTreasureRoom
+                ? CombatRoomSystem.appendWorldBlockTreasureRoom(lastRoomBounds)
+                : null;
+            ChestRoomSystem.setup(this.dungeonType, lastRoomBounds, {
                 deferCountdown: true,
                 isElite: !!node.isElite,
-                openArena: crCfg.wallConstruction === 'worldBlock1x1',
+                worldBlockRoom,
+                openArena: crCfg.wallConstruction === 'worldBlock1x1' && !worldBlockRoom,
             });
         }
 

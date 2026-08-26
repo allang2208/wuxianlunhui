@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "base": {
+    "key": "floor_dungeon_black_bricks_seamless",
+    "src": "assets/terrain/floor_dungeon_black_bricks_seamless.png",
+    "continuous": true,
+    "backgroundColor": "#050505",
+    "textureScaleY": 1.0
+  },
+  "detailLayer": null,
+  "deco": {
+    "placementMode": "world-grid",
+    "cellSize": 220,
+    "density": 0.56,
+    "jitterMin": 0.18,
+    "jitterMax": 0.82,
+    "scaleJitter": 0.12,
+    "edgeInset": 104,
+    "seedSalt": 41911,
+    "assets": [
+      { "key": "dungeon_prop_loose_cobbles", "src": "assets/terrain/dungeon-props/dungeon_prop_loose_cobbles.png", "weight": 1.25, "size": 80, "originY": 0.875 },
+      { "key": "dungeon_prop_brick_fragments", "src": "assets/terrain/dungeon-props/dungeon_prop_brick_fragments.png", "weight": 1.05, "size": 82, "originY": 0.875 },
+      { "key": "dungeon_prop_mortar_rubble", "src": "assets/terrain/dungeon-props/dungeon_prop_mortar_rubble.png", "weight": 1.15, "size": 76, "originY": 0.875 },
+      { "key": "dungeon_prop_broken_chain", "src": "assets/terrain/dungeon-props/dungeon_prop_broken_chain.png", "weight": 0.62, "size": 82, "originY": 0.875 },
+      { "key": "dungeon_prop_iron_nails", "src": "assets/terrain/dungeon-props/dungeon_prop_iron_nails.png", "weight": 0.66, "size": 76, "originY": 0.875 },
+      { "key": "dungeon_prop_broken_shackles", "src": "assets/terrain/dungeon-props/dungeon_prop_broken_shackles.png", "weight": 0.38, "size": 84, "originY": 0.875 },
+      { "key": "dungeon_prop_bone_splinters", "src": "assets/terrain/dungeon-props/dungeon_prop_bone_splinters.png", "weight": 0.72, "size": 78, "originY": 0.875 },
+      { "key": "dungeon_prop_skull_shards", "src": "assets/terrain/dungeon-props/dungeon_prop_skull_shards.png", "weight": 0.28, "size": 80, "originY": 0.875 },
+      { "key": "dungeon_prop_torn_cloth", "src": "assets/terrain/dungeon-props/dungeon_prop_torn_cloth.png", "weight": 0.52, "size": 82, "originY": 0.875 },
+      { "key": "dungeon_prop_rope_coil", "src": "assets/terrain/dungeon-props/dungeon_prop_rope_coil.png", "weight": 0.46, "size": 78, "originY": 0.875 },
+      { "key": "dungeon_prop_wax_drips", "src": "assets/terrain/dungeon-props/dungeon_prop_wax_drips.png", "weight": 0.58, "size": 72, "originY": 0.875 },
+      { "key": "dungeon_prop_broken_pottery", "src": "assets/terrain/dungeon-props/dungeon_prop_broken_pottery.png", "weight": 0.46, "size": 82, "originY": 0.875 },
+      { "key": "dungeon_prop_rusty_plate", "src": "assets/terrain/dungeon-props/dungeon_prop_rusty_plate.png", "weight": 0.42, "size": 84, "originY": 0.875 },
+      { "key": "dungeon_prop_key_ring", "src": "assets/terrain/dungeon-props/dungeon_prop_key_ring.png", "weight": 0.30, "size": 76, "originY": 0.875 },
+      { "key": "dungeon_prop_coin_scatter", "src": "assets/terrain/dungeon-props/dungeon_prop_coin_scatter.png", "weight": 0.32, "size": 74, "originY": 0.875 },
+      { "key": "dungeon_prop_torn_parchment", "src": "assets/terrain/dungeon-props/dungeon_prop_torn_parchment.png", "weight": 0.36, "size": 82, "originY": 0.875 },
+      { "key": "dungeon_prop_damp_moss", "src": "assets/terrain/dungeon-props/dungeon_prop_damp_moss.png", "weight": 0.50, "size": 78, "originY": 0.875 },
+      { "key": "dungeon_prop_rat_bones", "src": "assets/terrain/dungeon-props/dungeon_prop_rat_bones.png", "weight": 0.24, "size": 80, "originY": 0.875 }
+    ]
+  }
+}

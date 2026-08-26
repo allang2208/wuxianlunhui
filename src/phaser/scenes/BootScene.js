@@ -28,6 +28,7 @@ import desertPriestConfig from '../../../data/desert-priest-config.json';
 import hamsterCamelCavalryConfig from '../../../data/hamster-camel-cavalry-config.json';
 import populationEconomyConfig from '../../../data/population-economy.json';
 import producerBuildingsConfig from '../../../data/producer-buildings.json';
+import dungeonTerrainConfig from '../../../data/dungeon-terrain.json';
 import enemyConfigData from '../../../data/enemy-config.json';
 
 export class BootScene extends Scene {
@@ -198,6 +199,14 @@ export class BootScene extends Scene {
         this.load.image('blackbrick6', 'assets/terrain/blackbrick6.png');
         this.load.image('blackbrick_7', 'assets/terrain/blackbrick-7.png');
         this.load.image('blackbrick_8', 'assets/terrain/blackbrick-8.png');
+        const dungeonBase = dungeonTerrainConfig.base || {};
+        if (dungeonBase.key && dungeonBase.src) this.load.image(dungeonBase.key, dungeonBase.src);
+        const loadedDungeonDeco = new Set();
+        for (const asset of dungeonTerrainConfig.deco?.assets || []) {
+            if (!asset?.key || !asset?.src || loadedDungeonDeco.has(asset.key)) continue;
+            loadedDungeonDeco.add(asset.key);
+            this.load.image(asset.key, asset.src);
+        }
         // 世界-125 遗迹大石板地砖（2:1 菱形，砖缝与建筑底边同口径）
         this.load.image('ruinslab_1', 'assets/terrain/ruinslab-1.png');
         this.load.image('ruinslab_2', 'assets/terrain/ruinslab-2.png');
@@ -273,6 +282,9 @@ export class BootScene extends Scene {
         this.load.image('frozen_wall_straight', 'assets/terrain/frozen_wall_straight.png');
         this.load.image('frozen_wall_block', 'assets/terrain/frozen_wall_block.png');
         this.load.spritesheet('frozen_gate', 'assets/terrain/frozen_gate.png', { frameWidth: 640, frameHeight: 640, endFrame: 15 });
+        // 僵尸地牢：Blender 黑方砖单格墙 + 16 帧锈铁升降闸（整数格墙合同）。
+        this.load.image('zombie_wall_block', 'assets/terrain/zombie_wall_block.png');
+        this.load.spritesheet('zombie_gate', 'assets/terrain/zombie_gate.png', { frameWidth: 640, frameHeight: 640, endFrame: 15 });
         // 主神空间地板砖（等距菱形贴图，运行时按 alpha 包围盒实测几何）
         this.load.image('hub_brick', 'assets/terrain/hub_brick.png');
         // 主神空间大理石直墙 + 大理石门（摆墙编辑器组件，tools/prep-hub-wall-gate.py 产出，几何见 ISO_WALL_GEO）

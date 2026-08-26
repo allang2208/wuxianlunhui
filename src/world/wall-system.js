@@ -32,6 +32,11 @@ const ISO_WALL_GEO = {
     // 冰封竞技场功能门：整段门洞由13枚冰锥构成，帧0完全升起、帧15沉入地面。
     // base 与 gateX 同跨度，开门后整段6格门洞放行；不附带会被横向拉伸的门框/砖墙。
     frozen_gate: { tex: 'frozen_gate', w: 640, h: 640, frames: 16, base: [[32, 300], [608, 588]], face: [[32, 300], [608, 588]], gateX: [32, 608], wallH: 288, slope: 0.5, halfThick: 13, editor: '冰封冰锥门', states: { open: { hole: [32, 608] }, closed: { hole: null } } },
+    // 僵尸地牢战斗房：Blender 黑方砖单格墙 + 锈铁升降闸。
+    // 模型、透明渲染和投影标定均保存在 _zombie_dungeon_walls_20260826；
+    // 与冰封墙共享 260×259 显示盒、13px 碰撞半厚和六格门洞合同。
+    zombie_block: { tex: 'zombie_wall_block', w: 1024, h: 1024, groundCenter: [512, 761.9959], displayW: 260, displayH: 259, wallH: 132, halfThick: 13, editor: '僵尸黑砖单格墙' },
+    zombie_gate: { tex: 'zombie_gate', w: 640, h: 640, frames: 16, base: [[79.709, 354.8495], [560.2913, 595.1414]], face: [[79.709, 354.8495], [560.2913, 595.1414]], gateX: [80, 560], wallH: 294.295, slope: 0.5, halfThick: 13, depthSlices: 3, editor: '僵尸锈铁升降闸', states: { open: { hole: [80, 560] }, closed: { hole: null } } },
     // 恶魔洞窟铁闸门（路线 B：岩壁单块 + 铁栅独立渲染 → 程序化 16 帧升起；compose-demon-gate-B.py 标定：
     // 门洞平行四边形，底边与墙同斜率 0.6347，wallH 291；gateX = 门洞 [159,481]）
     demon_gate: { tex: 'demon_gate', w: 640, h: 576, frames: 16, base: [[0, 228], [639, 634]], face: [[77, 277], [563, 586]], gateX: [159, 481], wallH: 291, slope: 0.6347, editor: '恶魔铁闸', states: { open: { hole: [159, 481] }, closed: { hole: null } } },
@@ -100,6 +105,10 @@ const ISO_WALL_GEO = {
 // corners（可选）：四顶点夹角预制名（摆墙编辑器手工拼装）——登记后菱形房间四角用预制构建，缺省回退程序化转角臂
 const ISO_WALL_STYLES = {
     default: { straight: 'straight', gate: 'gate', chestPrefab: '宝箱房', gateSound: 'assets/sounds/environment/gate.mp3' },
+    zombie: {
+        straight: 'straight', block: 'zombie_block', gate: 'zombie_gate', chestPrefab: '宝箱房',
+        gateSound: 'assets/sounds/environment/gate.mp3',
+    },
     swamp: {
         straight: 'swamp_straight', gate: 'swamp_gate', chestPrefab: '沼泽宝箱房', gateSound: 'assets/sounds/environment/swamp_gate.mp3',
         corners: { top: '沼泽墙上夹角', bottom: '沼泽下夹角', left: '沼泽墙左夹角', right: '沼泽墙右夹角' },
@@ -111,7 +120,7 @@ const ISO_WALL_STYLES = {
     },
     // 冰封世界初级：单格冰墙环 + 全门洞冰锥升降门。
     frozen: {
-        straight: 'frozen_straight', gate: 'frozen_gate', chestPrefab: '宝箱房',
+        straight: 'frozen_straight', block: 'frozen_block', gate: 'frozen_gate', chestPrefab: '宝箱房',
         gateSound: 'assets/sounds/skills/icewall.mp3',
     },
     // 主神空间：大理石直墙 + 大理石门（不登记 corners → 程序化转角臂）

@@ -1,0 +1,70 @@
+{
+  "pipeline": "Blender geometry -> transparent render -> spritesheet assembly",
+  "editableModel": "zombie_dungeon_wall_kit.blend",
+  "geometry": {
+    "wall": {
+      "canvas": [
+        1024,
+        1024
+      ],
+      "groundCenter": [
+        512.0,
+        761.9959
+      ],
+      "display": [
+        260,
+        259
+      ],
+      "wallH": 132,
+      "halfThick": 13
+    },
+    "gate": {
+      "canvas": [
+        640,
+        640
+      ],
+      "frames": 16,
+      "base": [
+        [
+          79.709,
+          354.8495
+        ],
+        [
+          560.2913,
+          595.1414
+        ]
+      ],
+      "gateX": [
+        80,
+        560
+      ],
+      "wallH": 294.295,
+      "slope": 0.500002,
+      "halfThick": 13,
+      "depthSlices": 3
+    }
+  },
+  "runtimeAssets": {
+    "zombie_wall_block.png": {
+      "size": [
+        1024,
+        1024
+      ],
+      "sha256": "236dbe5c9ec9ef4b4ac199bd2b77779e63d81e05c3070752a8c1d7e1416c83c9"
+    },
+    "zombie_gate.png": {
+      "size": [
+        2560,
+        2560
+      ],
+      "frameSize": [
+        640,
+        640
+      ],
+      "frames": 16,
+      "sha256": "fd490cdb36fc71080384a1fa9095a6a5043738044de5003a43aab6842259a528"
+    }
+  },
+  "preview": "preview.png",
+  "diamondPreview": "diamond-preview.png"
+}

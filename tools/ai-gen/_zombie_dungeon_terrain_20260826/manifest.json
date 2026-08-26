@@ -1,0 +1,35 @@
+{
+  "version": 1,
+  "camera": {
+    "projection": "orthographic",
+    "elevation": 30.0,
+    "modelRootRotationZ": 44.8,
+    "tileProjection": "removed: no high-frequency rubble detail atlas",
+    "propOrthoScale": 6.4,
+    "propBottomRatio": 0.875
+  },
+  "baseContract": "mathematically seamless 30-degree projected black square paver grid; 128x74 brick period and 1024x592 texture period",
+  "collisionContract": "all 18 props are floor-baked visual-only decorations",
+  "tiles": [],
+  "props": [
+    "dungeon_prop_loose_cobbles",
+    "dungeon_prop_brick_fragments",
+    "dungeon_prop_mortar_rubble",
+    "dungeon_prop_broken_chain",
+    "dungeon_prop_iron_nails",
+    "dungeon_prop_broken_shackles",
+    "dungeon_prop_bone_splinters",
+    "dungeon_prop_skull_shards",
+    "dungeon_prop_torn_cloth",
+    "dungeon_prop_rope_coil",
+    "dungeon_prop_wax_drips",
+    "dungeon_prop_broken_pottery",
+    "dungeon_prop_rusty_plate",
+    "dungeon_prop_key_ring",
+    "dungeon_prop_coin_scatter",
+    "dungeon_prop_torn_parchment",
+    "dungeon_prop_damp_moss",
+    "dungeon_prop_rat_bones"
+  ],
+  "model": "tools/ai-gen/_zombie_dungeon_terrain_20260826/zombie_dungeon_terrain.blend"
+}

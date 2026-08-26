@@ -131,6 +131,8 @@ export const ChestRoomSystem = {
      *   但 60s 倒计时等玩家进入末房 startCountdown() 后才走字）
      * @param {boolean} [opts.openArena] 开放式竞技场宝箱点：不套旧预制墙，
      *   仅保留刷怪排除区、宝箱、倒计时与奖励生命周期
+     * @param {Object} [opts.worldBlockRoom] CombatRoomSystem 预建的单格墙实体宝箱房；
+     *   本系统为其安装独立门闸、宝箱、倒计时和刷怪排除区
      */
     setup(dungeonType, bounds, opts = {}) {
         const scene = (typeof window !== 'undefined') ? window.__phaserScene : null;
@@ -138,6 +140,9 @@ export const ChestRoomSystem = {
         if (!scene || !bounds) {
             console.warn('[ChestRoomSystem] setup 失败：场景或房间边界未就绪', { hasScene: !!scene, hasBounds: !!bounds });
             return false;
+        }
+        if (opts.worldBlockRoom) {
+            return this._setupWorldBlockChest(scene, dungeonType, bounds, opts);
         }
         // 世界单格冰墙竞技场已经由房间外墙完整围合；若再放历史「宝箱房」预制，
         // 会在末房中央混入 frozen_straight 连续墙。开放式宝箱点保留完整事件逻辑，
@@ -282,16 +287,67 @@ export const ChestRoomSystem = {
         return true;
     },
 
-    /**
-     * 世界单格竞技场的开放式宝箱点。末房本身就是封闭战斗空间，因此不重复生成
-     * 历史宝箱房墙；战斗完成前仍不能开箱，超时、奖励和离场守卫均复用原状态机。
-     */
-    _setupOpenArenaChest(scene, dungeonType, bounds, opts) {
-        this._pieces = [];
+    /** 把当前样式门贴图的整段底边精确映射到单格墙门洞 A→B。 */
+    _gatePieceForSpan(span) {
+        if (!span) return null;
+        const geoKey = WallSystem.getWallStyleGeos ? WallSystem.getWallStyleGeos().gate : 'gate';
+        const g = ISO_WALL_GEO[geoKey] || ISO_WALL_GEO.gate;
+        const A = span.a, B = span.b;
+        const flip = !!span.flip;
+        const p0 = g.base[0];
+        const sx = Math.abs(B.x - A.x) / Math.max(1, Math.abs(g.base[1][0] - g.base[0][0]));
+        const sy = Math.abs(B.y - A.y) / Math.max(1, Math.abs(g.base[1][1] - g.base[0][1]));
+        let x0, y0;
+        if (!flip) {
+            x0 = A.x - p0[0] * sx;
+            y0 = A.y - p0[1] * sy;
+        } else {
+            x0 = A.x - (g.w - p0[0]) * sx;
+            y0 = A.y - p0[1] * sy;
+        }
+        return {
+            tex: g.tex,
+            x: x0 + g.w * sx / 2,
+            y: y0 + g.h * sy / 2,
+            scaleX: sx,
+            scaleY: sy,
+            flipX: flip,
+            flipY: false,
+            depth: span.depth,
+        };
+    },
+
+    /** 僵尸竞技场实体宝箱房：黑砖单格墙环 + 六格独立闸门。 */
+    _setupWorldBlockChest(scene, dungeonType, bounds, opts) {
+        const room = opts.worldBlockRoom;
+        const opening = room && room.opening;
+        if (!opening) return false;
+        this._pieces = Array.isArray(room.pieces) ? [...room.pieces] : [];
         this._gate = null;
         this._shadowGfx = null;
-        this._exclusion = { cx: bounds.cx, cy: bounds.cy, rx: 260, ry: 150 };
 
+        const gatePiece = this._gatePieceForSpan(opening);
+        if (gatePiece) this._placeGate(scene, gatePiece, 0, 0);
+        if (!this._gate) {
+            // 门资源异常时回填预留六格，保证宝箱房仍是闭合实体边界。
+            const fillPieces = (opening.fillPieces || []).filter(Boolean);
+            WallSystem.isoVisuals.push(...fillPieces);
+            this._pieces.push(...fillPieces);
+        }
+        WallSystem.rebuildIsoCollision();
+        if (WallSystem._syncWallsToPhaser) WallSystem._syncWallsToPhaser();
+
+        return this._setupArenaChestLifecycle(scene, dungeonType, bounds, opts, {
+            cx: room.cx,
+            cy: room.cy,
+            rx: room.rx + 60,
+            ry: room.ry + 60,
+        });
+    },
+
+    /** 开放式与实体单格墙宝箱房共用的宝箱、倒计时和事件状态机。 */
+    _setupArenaChestLifecycle(scene, dungeonType, bounds, opts, exclusion) {
+        this._exclusion = exclusion;
         const grade = this._gradeFor(dungeonType);
         const chestX = bounds.cx, chestY = bounds.cy;
         const sprite = scene.add.sprite(chestX, chestY, 'chest_closed');
@@ -312,6 +368,19 @@ export const ChestRoomSystem = {
         this._combatDone = false;
         this._failed = false;
         return true;
+    },
+
+    /**
+     * 世界单格竞技场的开放式宝箱点。末房本身就是封闭战斗空间，因此不重复生成
+     * 历史宝箱房墙；战斗完成前仍不能开箱，超时、奖励和离场守卫均复用原状态机。
+     */
+    _setupOpenArenaChest(scene, dungeonType, bounds, opts) {
+        this._pieces = [];
+        this._gate = null;
+        this._shadowGfx = null;
+        return this._setupArenaChestLifecycle(scene, dungeonType, bounds, opts, {
+            cx: bounds.cx, cy: bounds.cy, rx: 260, ry: 150,
+        });
     },
 
     /**

@@ -127,7 +127,22 @@
  },
  "zombieDungeon": {
   "combatRoom": {
-   "bossSize": 1024
+   "normalSize": 1152,
+   "eliteSize": 1664,
+   "bossSize": 2048,
+   "wallConstruction": "worldBlock1x1",
+   "gateCells": 6,
+   "passageCells": 8
+  },
+  "combatArena": {
+   "enabled": true,
+   "normalRoomCount": 3,
+   "eliteRoomCount": 5,
+   "maze": {
+    "enabled": true,
+    "roomCount": 5,
+    "rows": 2
+   }
   },
   "nodeCount": {
    "min": 45,
@@ -209,11 +224,7 @@
   },
   "minRoomsToBoss": 7,
   "floor": {
-   "tiles": [
-    "blackbrick5",
-    "blackbrick6"
-   ],
-   "glow": false
+   "terrainProfile": "zombieDungeonStone"
   },
   "traps": {
    "count": 3,
@@ -226,9 +237,28 @@
    "damagePercent": 0.1,
    "hitFrame": 6
   },
-  "family": "zombie"
+  "family": "zombie",
+  "wallStyle": "zombie"
  },
  "zombieDungeonBeginner": {
+  "combatRoom": {
+   "normalSize": 896,
+   "eliteSize": 1280,
+   "bossSize": 1536,
+   "wallConstruction": "worldBlock1x1",
+   "gateCells": 6,
+   "passageCells": 8
+  },
+  "combatArena": {
+   "enabled": true,
+   "normalRoomCount": 1,
+   "eliteRoomCount": 1,
+   "maze": {
+    "enabled": false,
+    "roomCount": 1,
+    "rows": 1
+   }
+  },
   "nodeCount": {
    "min": 22,
    "max": 27
@@ -305,13 +335,10 @@
   },
   "minRoomsToBoss": 6,
   "floor": {
-   "tiles": [
-    "blackbrick_7",
-    "blackbrick_8"
-   ],
-   "glow": false
+   "terrainProfile": "zombieDungeonStone"
   },
-  "family": "zombie"
+  "family": "zombie",
+  "wallStyle": "zombie"
  },
  "frozenDungeonBeginner": {
   "combatRoom": {
@@ -420,6 +447,24 @@
   "wallStyle": "frozen"
  },
  "zombieDungeonMid": {
+  "combatRoom": {
+   "normalSize": 1024,
+   "eliteSize": 1536,
+   "bossSize": 1792,
+   "wallConstruction": "worldBlock1x1",
+   "gateCells": 6,
+   "passageCells": 8
+  },
+  "combatArena": {
+   "enabled": true,
+   "normalRoomCount": 1,
+   "eliteRoomCount": 3,
+   "maze": {
+    "enabled": false,
+    "roomCount": 3,
+    "rows": 1
+   }
+  },
   "nodeCount": {
    "min": 30,
    "max": 35
@@ -495,13 +540,10 @@
   },
   "minRoomsToBoss": 6,
   "floor": {
-   "tiles": [
-    "blackbrick_7",
-    "blackbrick_8"
-   ],
-   "glow": false
+   "terrainProfile": "zombieDungeonStone"
   },
-  "family": "zombie"
+  "family": "zombie",
+  "wallStyle": "zombie"
  },
  "swampDungeon": {
   "combatRoom": {
@@ -921,29 +963,7 @@
    "monsterMargin": 40,
    "minWallDistance": 150
   },
-  "obstacles": {
-   "prefabCompositions": {
-    "comment": "后墙(LT/RT)附近的障碍物组合：每槽位从预制库「火把墙」之后的组合随机抽一组整体摆放（烛台不单独生成，「烛台+铁链」等含烛台的组合仍在池内）；countByRoom = 各房间组合数（房间1/2各3组、房间3八组只贴后墙；无 roomIndex 的单房间路径按房间1取值）；wallDist = 组合锚点离后墙边线的距离区间(px)",
-    "countByRoom": {
-     "1": 3,
-     "2": 3,
-     "3": 8
-    },
-    "wallDist": [
-     50,
-     130
-    ],
-    "targetH": 180
-   },
-   "centerPillar": {
-    "comment": "竞技场房间1/2可移动地面中央的石柱（scale 走 obstacle-defaults 编辑器预设，targetH 仅兜底）",
-    "targetH": 180
-   },
-   "passageTorches": {
-    "comment": "竞技场通道右手侧墙的均布火把（固定间隔、无碰撞，复用「火把墙」锚定机制）",
-    "interval": 350
-   }
-  }
+  "obstacles": false
  },
  "combatArena": {
   "roomCountByGrade": {
