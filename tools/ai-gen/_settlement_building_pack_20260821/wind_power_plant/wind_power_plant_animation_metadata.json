@@ -1,0 +1,34 @@
+{
+  "textureKey": "wind_power_plant_rotor",
+  "assetPath": "assets/terrain/wind_power_plant_rotor.png",
+  "frameWidth": 512,
+  "frameHeight": 512,
+  "frameCount": 24,
+  "columns": 6,
+  "rows": 4,
+  "displayW": 276,
+  "displayH": 276,
+  "offsetX": 2.9610935856992637,
+  "offsetY": -157.20715036803364,
+  "frameRate": 12,
+  "repeat": -1,
+  "sourceHub": {
+    "x": 520,
+    "y": 261
+  },
+  "sourceFrameCount": 24,
+  "rotationDegreesPerFrame": 15.0,
+  "body": {
+    "textureKey": "wind_power_plant_body",
+    "assetPath": "assets/terrain/wind_power_plant_body.png",
+    "displayW": 512,
+    "displayH": 462,
+    "footOffsetY": 229
+  },
+  "panel": {
+    "textureKey": "wind_power_plant",
+    "assetPath": "assets/terrain/wind_power_plant.png",
+    "displayW": 512,
+    "displayH": 490
+  }
+}
