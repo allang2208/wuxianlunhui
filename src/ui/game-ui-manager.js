@@ -27,6 +27,7 @@ import { TechnologySystem } from '../world/technology-system.js';
 import { WarehouseSystem } from './warehouse-system.js';
 import { QuestStore } from '../quest/quest-store.js';
 import { MilitaryPopulationSystem } from '../world/military-population-system.js';
+import { EconomyHudSystem } from '../world/economy-hud-system.js';
 
 // Game UI Manager - Extracted from Game.js
 // Handles UI updates, save/load, timers, and menu operations
@@ -245,6 +246,9 @@ export const GameUIManager = {
     player: null,
     showAttackRange: false,
     _timelineFilterType: 'all',
+    _economyRateSamples: [],
+    _economyRates: { gold: 0, energy: 0, food: 0 },
+    _economyStorageSignature: '',
 
     init(player) {
         this.player = player;
@@ -581,11 +585,65 @@ export const GameUIManager = {
         try { localStorage.setItem('infiniteLoop_save', JSON.stringify(saveData)); alert('已保存至主神空间'); } catch (e) { console.error('Save failed:', e); alert('存档失败: 存储空间不足'); }
     },
     showHelp() { alert('WASD移动 | 鼠标瞄准 | 左键攻击 | F切换武器\nC打开装备栏 | 空格闪避 | Shift冲刺'); },
+    _sampleEconomyRates(values, storageSignature) {
+        const now = globalThis.performance?.now?.() ?? Date.now();
+        if (storageSignature !== this._economyStorageSignature) {
+            this._economyStorageSignature = storageSignature;
+            this._economyRateSamples = [];
+            this._economyRates = { gold: 0, energy: 0, food: 0 };
+        }
+        this._economyRateSamples.push({ at: now, ...values });
+        const cutoff = now - 5000;
+        while (this._economyRateSamples.length > 2 && this._economyRateSamples[1].at <= cutoff) {
+            this._economyRateSamples.shift();
+        }
+        const oldest = this._economyRateSamples[0];
+        const elapsedSeconds = Math.max(0, (now - oldest.at) / 1000);
+        if (elapsedSeconds < 1) return;
+        this._economyRates = {
+            gold: (values.gold - oldest.gold) / elapsedSeconds,
+            energy: (values.energy - oldest.energy) / elapsedSeconds,
+            food: (values.food - oldest.food) / elapsedSeconds,
+        };
+    },
+    _updateEconomyCapacityMeter(prefix, currentRaw, capacityRaw, freeRaw) {
+        const current = Math.max(0, Number(currentRaw) || 0);
+        const capacity = Math.max(0, Number(capacityRaw) || 0);
+        const free = Math.max(0, Number(freeRaw) || 0);
+        const format = (value) => {
+            const rounded = Math.round(value * 10) / 10;
+            return rounded.toLocaleString('zh-CN', { maximumFractionDigits: 1 });
+        };
+        const text = getElementIfExists(`economy${prefix}CapacityText`);
+        if (text) text.textContent = `${format(current)} / ${format(capacity)} · 余 ${format(free)}`;
+        const track = getElementIfExists(`economy${prefix}CapacityTrack`);
+        if (track) {
+            track.setAttribute('aria-valuenow', String(Math.min(current, capacity)));
+            track.setAttribute('aria-valuemax', String(capacity));
+            track.setAttribute('aria-valuetext', `${format(current)} / ${format(capacity)}，剩余 ${format(free)}`);
+        }
+        const fill = getElementIfExists(`economy${prefix}CapacityFill`);
+        if (fill) fill.style.width = `${capacity > 0 ? Math.min(100, current / capacity * 100) : 0}%`;
+    },
+    _updateEconomyRate(id, valueRaw) {
+        const numeric = Number(valueRaw) || 0;
+        const value = Math.abs(numeric) < 0.005 ? 0 : numeric;
+        const el = getElementIfExists(id);
+        if (!el) return;
+        el.textContent = `${value > 0 ? '+' : ''}${value.toFixed(2)}/秒`;
+        el.classList.toggle('is-positive', value > 0);
+        el.classList.toggle('is-negative', value < 0);
+    },
     refreshBasicResources() {
+        const values = {
+            gold: Math.max(0, Number(GoldManager?.getGold?.()) || 0),
+            energy: Math.max(0, Number(EnergyManager?.getEnergy?.()) || 0),
+            food: Math.max(0, Number(EnergyManager?.getFood?.()) || 0),
+        };
         const totals = {
-            resourceGoldTotal: GoldManager?.getGold?.() || 0,
-            resourceEnergyTotal: EnergyManager?.getEnergy?.() || 0,
-            resourceFoodTotal: EnergyManager?.getFood?.() || 0,
+            resourceGoldTotal: values.gold,
+            resourceEnergyTotal: values.energy,
+            resourceFoodTotal: values.food,
         };
         for (const [id, rawValue] of Object.entries(totals)) {
             const el = getElementIfExists(id);
@@ -601,6 +659,33 @@ export const GameUIManager = {
                 el.classList.add('is-resource-changing');
             }
         }
+
+        const warehouses = EnergyManager?.getWarehouses?.() || [];
+        const storageCapacity = Math.max(0, Number(EnergyManager?.getCapacity?.()) || 0);
+        const storageFree = Math.max(0, Number(EnergyManager?.getFreeCapacity?.()) || 0);
+        const storageUsed = Math.max(0, storageCapacity - storageFree);
+        const storageSignature = warehouses
+            .map((warehouse) => `${warehouse?.id ?? ''}:${Number(warehouse?.storageCapacity) || 0}`)
+            .sort()
+            .join('|');
+        this._sampleEconomyRates(values, storageSignature);
+
+        const energyFree = warehouses.reduce((sum, warehouse) => sum + Math.floor(
+            EnergyManager.getWarehouseFreeCapacity(warehouse)
+                / EnergyManager.getWarehouseEnergyFactor(warehouse)
+        ), 0);
+        const foodFree = warehouses.reduce((sum, warehouse) => sum + Math.floor(
+            EnergyManager.getWarehouseFreeCapacity(warehouse)
+                / EnergyManager.getWarehouseFoodFactor(warehouse)
+        ), 0);
+        this._updateEconomyCapacityMeter('Storage', storageUsed, storageCapacity, storageFree);
+        this._updateEconomyCapacityMeter('Energy', values.energy, values.energy + energyFree, energyFree);
+        this._updateEconomyCapacityMeter('Food', values.food, values.food + foodFree, foodFree);
+        const goldCapacity = getElementIfExists('economyGoldCapacityText');
+        if (goldCapacity) goldCapacity.textContent = `${Math.floor(values.gold).toLocaleString('zh-CN')} · 无上限`;
+        const warehouseCount = getElementIfExists('economyWarehouseCount');
+        if (warehouseCount) warehouseCount.textContent = `${warehouses.length}座`;
+
         const military = MilitaryPopulationSystem.getSnapshot();
         const militaryEl = getElementIfExists('resourceMilitaryPopulation');
         if (militaryEl) {
@@ -616,6 +701,26 @@ export const GameUIManager = {
                 }
             }
         }
+        const working = EconomyHudSystem.getPopulationSnapshot();
+        const workingEl = getElementIfExists('resourceWorkingPopulation');
+        if (workingEl) {
+            const value = `${working.used}/${working.capacity}`;
+            if (workingEl.dataset.value !== value) {
+                const initialized = workingEl.dataset.value !== undefined;
+                workingEl.dataset.value = value;
+                workingEl.textContent = value;
+                if (initialized) {
+                    workingEl.classList.remove('is-resource-changing');
+                    void workingEl.offsetWidth;
+                    workingEl.classList.add('is-resource-changing');
+                }
+            }
+        }
+        this._updateEconomyCapacityMeter('Military', military.used, military.capacity, military.free);
+        this._updateEconomyCapacityMeter('Working', working.used, working.capacity, working.free);
+        this._updateEconomyRate('economyGoldRate', this._economyRates.gold);
+        this._updateEconomyRate('economyEnergyRate', this._economyRates.energy);
+        this._updateEconomyRate('economyFoodRate', this._economyRates.food);
     },
     refreshGameTime() {
         this.refreshBasicResources();

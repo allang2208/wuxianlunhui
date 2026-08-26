@@ -1473,16 +1473,21 @@
 /* Right-top economy panel and world clock: shared archive instruments. */
 .basic-resource-bar {
     gap: 0;
-    height: var(--top-right-instrument-height, 74px);
-    min-height: 0;
+    height: auto;
+    min-height: var(--top-right-instrument-height, 74px);
     box-sizing: border-box;
     padding: 5px 7px;
     border: 1px solid var(--bp-ui-line-accent);
     border-radius: 10px;
 }
 
+.basic-resource-bar.is-expanded {
+    border-color: var(--bp-ui-line-strong) !important;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.58), inset 0 1px 0 rgba(220, 234, 240, 0.08) !important;
+}
+
 .basic-resource-item {
-    min-width: 82px;
+    min-width: 0;
     padding: 2px 8px;
     column-gap: 6px;
     border-right: 1px solid var(--bp-ui-line);
@@ -1496,27 +1501,46 @@
     border-right: 0;
 }
 
-.basic-resource-item--military-population {
-    min-width: 0;
-    padding: 1px 8px;
-    column-gap: 6px;
+.economy-panel-population-row {
     border-top: 1px solid var(--bp-ui-line);
+}
+
+.basic-resource-item--military-population,
+.basic-resource-item--working-population {
+    min-width: 0;
+    padding: 1px 6px;
+    column-gap: 4px;
+}
+
+.basic-resource-item--military-population {
+    border-right: 1px solid var(--bp-ui-line);
+}
+
+.basic-resource-item--working-population {
     border-right: 0;
 }
 
-.basic-resource-item--military-population .basic-resource-icon {
+:is(.basic-resource-item--military-population, .basic-resource-item--working-population) .basic-resource-icon {
     width: 18px;
     height: 18px;
 }
 
-.basic-resource-item--military-population .basic-resource-label {
+:is(.basic-resource-item--military-population, .basic-resource-item--working-population) .basic-resource-label {
     align-self: center;
 }
 
-.basic-resource-item--military-population .basic-resource-value {
+:is(.basic-resource-item--military-population, .basic-resource-item--working-population) .basic-resource-value {
     align-self: center;
-    min-width: 7ch;
+    min-width: 5ch;
+    font-size: 11px;
+}
+
+.basic-resource-item--military-population .basic-resource-value {
     color: #c7a7ff;
+}
+
+.basic-resource-item--working-population .basic-resource-value {
+    color: #e0c68c;
 }
 
 .basic-resource-icon {
@@ -1551,6 +1575,180 @@
 .basic-resource-item--gold .basic-resource-value { color: #f1c45f; }
 .basic-resource-item--energy .basic-resource-value { color: #7fd4ff; }
 .basic-resource-item--food .basic-resource-value { color: #a9d36e; }
+
+.economy-panel-detail-content {
+    margin: 5px 0 2px;
+    padding: 7px 2px 4px;
+    border-top: 1px solid var(--bp-ui-line-accent);
+}
+
+.economy-detail-heading {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+    margin: 6px 4px 5px;
+    color: var(--bp-ui-text);
+    font-size: var(--bp-type-meta);
+    font-weight: 700;
+    letter-spacing: var(--bp-tracking-label);
+}
+
+.economy-detail-heading:first-child {
+    margin-top: 0;
+}
+
+.economy-detail-heading strong,
+.economy-detail-heading small {
+    color: var(--bp-ui-text-dim);
+    font-family: var(--bp-font-number);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0;
+}
+
+.economy-capacity-list {
+    display: grid;
+    gap: 6px;
+}
+
+.economy-capacity-list--population {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.economy-capacity-row {
+    min-width: 0;
+    padding: 5px 6px 6px;
+    border: 1px solid var(--bp-ui-line);
+    border-radius: 6px;
+    background: rgba(7, 10, 13, 0.48);
+}
+
+.economy-capacity-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    margin-bottom: 4px;
+    color: var(--bp-ui-text-muted);
+    font-size: 10px;
+}
+
+.economy-capacity-meta strong {
+    overflow: hidden;
+    color: var(--bp-ui-white-soft);
+    font-family: var(--bp-font-number);
+    font-size: 10px;
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.economy-capacity-list--population .economy-capacity-meta {
+    display: block;
+}
+
+.economy-capacity-list--population .economy-capacity-meta strong {
+    display: block;
+    margin-top: 2px;
+}
+
+.economy-capacity-track {
+    position: relative;
+    height: 7px;
+    overflow: hidden;
+    border: 1px solid rgba(181, 205, 217, 0.16);
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.58);
+}
+
+.economy-capacity-track--unbounded > span {
+    display: block;
+    width: 100%;
+    height: 100%;
+    opacity: 0.46;
+    background: repeating-linear-gradient(135deg, #9b7a37 0 6px, #d4b765 6px 12px);
+}
+
+.economy-capacity-fill {
+    display: block;
+    width: 0;
+    height: 100%;
+    border-radius: inherit;
+    transition: width 180ms ease;
+}
+
+.economy-capacity-fill--storage {
+    background: linear-gradient(90deg,
+        #62b97b 0%,
+        #62b97b 24%,
+        #62c9c8 45%,
+        #d8bd55 72%,
+        #d8645b 100%);
+}
+.economy-capacity-fill--energy { background: linear-gradient(90deg, #397ea1, #7fd4ff); }
+.economy-capacity-fill--food { background: linear-gradient(90deg, #5f8438, #a9d36e); }
+.economy-capacity-fill--military { background: linear-gradient(90deg, #7957ad, #c7a7ff); }
+.economy-capacity-fill--working { background: linear-gradient(90deg, #8b6f35, #e0c68c); }
+
+.economy-rate-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 5px;
+}
+
+.economy-rate-grid > div {
+    min-width: 0;
+    padding: 5px 4px;
+    border: 1px solid var(--bp-ui-line);
+    border-radius: 5px;
+    background: rgba(7, 10, 13, 0.42);
+    text-align: center;
+}
+
+.economy-rate-grid span,
+.economy-rate-grid strong {
+    display: block;
+}
+
+.economy-rate-grid span {
+    color: var(--bp-ui-text-muted);
+    font-size: 10px;
+}
+
+.economy-rate-grid strong {
+    margin-top: 2px;
+    color: var(--bp-ui-white-soft);
+    font-family: var(--bp-font-number);
+    font-size: 10px;
+    font-variant-numeric: tabular-nums;
+}
+
+.economy-rate-grid strong.is-positive { color: #9bd58e; }
+.economy-rate-grid strong.is-negative { color: #e39086; }
+
+.economy-panel-mode-toggle {
+    border: 1px solid var(--bp-ui-line);
+    border-top: 0;
+    border-radius: 0 0 7px 7px;
+    background: var(--bp-ui-shell);
+    color: var(--bp-ui-text-muted);
+    font: 700 15px/1 var(--bp-font-ui);
+    transition: color 160ms ease, border-color 160ms ease, background-color 160ms ease;
+}
+
+.economy-panel-mode-toggle:hover,
+.economy-panel-mode-toggle:focus-visible {
+    border-color: var(--bp-ui-line-accent);
+    background: var(--bp-ui-graphite);
+    color: var(--bp-ui-text);
+}
+
+.economy-panel-mode-toggle:focus-visible {
+    outline: 2px solid var(--bp-ui-accent-bright);
+    outline-offset: 2px;
+}
 
 .basic-resource-value.is-resource-changing {
     animation: basic-resource-value-gold-flash 620ms cubic-bezier(0.2, 0.78, 0.22, 1);
@@ -1589,6 +1787,15 @@
 @media (prefers-reduced-motion: reduce) {
     .basic-resource-value.is-resource-changing {
         animation: none;
+    }
+
+    .economy-capacity-fill,
+    .basic-resource-bar,
+    .economy-panel-expanded-details,
+    .economy-panel-mode-toggle,
+    .economy-panel-mode-toggle > span,
+    .economy-panel-mode-toggle > span::before {
+        transition: none;
     }
 }
 

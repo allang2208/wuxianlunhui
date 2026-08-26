@@ -13,6 +13,7 @@ import { BankEconomySystem } from './bank-economy-system.js';
 import { CrossPlaneResourceSystem } from './cross-plane-resource-system.js';
 import { TechnologySystem } from './technology-system.js';
 import { MilitaryPopulationSystem } from './military-population-system.js';
+import { EconomyHudSystem } from './economy-hud-system.js';
 import { getAbilityLevel, getAbilityValue } from './ability-store.js';
 import {
     getBuildingModuleUpgradeCost,
@@ -853,5 +854,6 @@ export const PopulationEconomySystem = {
 
 // 军事人口与经济人口只共享房屋容量；岗位占用和军事单位占用彼此独立。
 MilitaryPopulationSystem.setCapacityProvider(() => PopulationEconomySystem.getPopulationCapacity());
+EconomyHudSystem.setPopulationProvider(() => PopulationEconomySystem.getPopulationSnapshot());
 
 export { populationEconomyConfig };

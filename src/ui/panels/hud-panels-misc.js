@@ -171,19 +171,27 @@ export function createHudPanelsMisc() {
     // basic-resource-bar 保留为既有兼容类；玩家可见命名统一为“经济面板”。
     resourceBar.className = 'basic-resource-bar economy-panel';
     resourceBar.dataset.panelName = '经济面板';
-    resourceBar.setAttribute('role', 'group');
+    resourceBar.setAttribute('role', 'region');
     resourceBar.setAttribute('aria-label', '经济面板');
+
+    const resourceSummary = document.createElement('div');
+    resourceSummary.className = 'economy-panel-summary';
+    const populationRow = document.createElement('div');
+    populationRow.className = 'economy-panel-population-row';
     [
         { key: 'gold', label: '金币', iconSrc: 'assets/ui/resource-icons/gold.png', valueId: 'resourceGoldTotal' },
         { key: 'energy', label: '能源', iconSrc: 'assets/ui/resource-icons/energy.png', valueId: 'resourceEnergyTotal' },
         { key: 'food', label: '食物', iconSrc: 'assets/ui/resource-icons/food.png', valueId: 'resourceFoodTotal' },
         { key: 'military-population', label: '兵力', iconSrc: 'assets/ui/unit-icons/hamster-warrior.png', valueId: 'resourceMilitaryPopulation' },
+        { key: 'working-population', label: '工作', iconSrc: 'assets/ui/unit-icons/hamster-explorer.png', valueId: 'resourceWorkingPopulation' },
     ].forEach((resource) => {
         const item = document.createElement('div');
         item.className = `basic-resource-item basic-resource-item--${resource.key}`;
         item.title = resource.key === 'military-population'
             ? '军事人口：已出兵数 / 房屋提供的人口上限（不占用经济岗位人口）'
-            : `${resource.label}总量`;
+            : resource.key === 'working-population'
+                ? '工作人口：已分配岗位数 / 房屋提供的可用人口上限（不含军事单位）'
+                : `${resource.label}总量`;
 
         const icon = document.createElement('img');
         icon.className = 'basic-resource-icon';
@@ -199,11 +207,77 @@ export function createHudPanelsMisc() {
         const value = document.createElement('strong');
         value.id = resource.valueId;
         value.className = 'basic-resource-value';
-        value.textContent = resource.key === 'military-population' ? '0/0' : '0';
+        value.textContent = resource.key.endsWith('population') ? '0/0' : '0';
 
         item.append(icon, label, value);
-        resourceBar.appendChild(item);
+        if (resource.key.endsWith('population')) populationRow.appendChild(item);
+        else resourceSummary.appendChild(item);
     });
+    resourceSummary.appendChild(populationRow);
+
+    const economyDetails = document.createElement('div');
+    economyDetails.id = 'economyPanelExpandedDetails';
+    economyDetails.className = 'economy-panel-expanded-details';
+    economyDetails.innerHTML = `
+      <div class="economy-panel-detail-content">
+        <div class="economy-detail-heading">
+            <span>仓库容量</span>
+            <strong id="economyWarehouseCount">0座</strong>
+        </div>
+        <div class="economy-capacity-list">
+            <div class="economy-capacity-row economy-capacity-row--unbounded">
+                <div class="economy-capacity-meta"><span>金币</span><strong id="economyGoldCapacityText">0 · 无上限</strong></div>
+                <div class="economy-capacity-track economy-capacity-track--unbounded" role="status" aria-label="金币无限堆叠"><span></span></div>
+            </div>
+            <div class="economy-capacity-row">
+                <div class="economy-capacity-meta"><span>总占用</span><strong id="economyStorageCapacityText">0 / 0 · 余 0</strong></div>
+                <div id="economyStorageCapacityTrack" class="economy-capacity-track" role="progressbar" aria-label="仓库总容量" aria-valuemin="0" aria-valuemax="0" aria-valuenow="0"><span id="economyStorageCapacityFill" class="economy-capacity-fill economy-capacity-fill--storage"></span></div>
+            </div>
+            <div class="economy-capacity-row">
+                <div class="economy-capacity-meta"><span>能源</span><strong id="economyEnergyCapacityText">0 / 0 · 余 0</strong></div>
+                <div id="economyEnergyCapacityTrack" class="economy-capacity-track" role="progressbar" aria-label="能源可存容量" aria-valuemin="0" aria-valuemax="0" aria-valuenow="0"><span id="economyEnergyCapacityFill" class="economy-capacity-fill economy-capacity-fill--energy"></span></div>
+            </div>
+            <div class="economy-capacity-row">
+                <div class="economy-capacity-meta"><span>食物</span><strong id="economyFoodCapacityText">0 / 0 · 余 0</strong></div>
+                <div id="economyFoodCapacityTrack" class="economy-capacity-track" role="progressbar" aria-label="食物可存容量" aria-valuemin="0" aria-valuemax="0" aria-valuenow="0"><span id="economyFoodCapacityFill" class="economy-capacity-fill economy-capacity-fill--food"></span></div>
+            </div>
+        </div>
+        <div class="economy-detail-heading"><span>人口容量</span><small>经济与军事独立占用</small></div>
+        <div class="economy-capacity-list economy-capacity-list--population">
+            <div class="economy-capacity-row">
+                <div class="economy-capacity-meta"><span>兵力</span><strong id="economyMilitaryCapacityText">0 / 0 · 余 0</strong></div>
+                <div id="economyMilitaryCapacityTrack" class="economy-capacity-track" role="progressbar" aria-label="军事人口容量" aria-valuemin="0" aria-valuemax="0" aria-valuenow="0"><span id="economyMilitaryCapacityFill" class="economy-capacity-fill economy-capacity-fill--military"></span></div>
+            </div>
+            <div class="economy-capacity-row">
+                <div class="economy-capacity-meta"><span>工作</span><strong id="economyWorkingCapacityText">0 / 0 · 余 0</strong></div>
+                <div id="economyWorkingCapacityTrack" class="economy-capacity-track" role="progressbar" aria-label="工作人口容量" aria-valuemin="0" aria-valuemax="0" aria-valuenow="0"><span id="economyWorkingCapacityFill" class="economy-capacity-fill economy-capacity-fill--working"></span></div>
+            </div>
+        </div>
+        <div class="economy-detail-heading"><span>每秒产出</span><small>近5秒净值</small></div>
+        <div class="economy-rate-grid">
+            <div><span>金币</span><strong id="economyGoldRate">0.00/秒</strong></div>
+            <div><span>能源</span><strong id="economyEnergyRate">0.00/秒</strong></div>
+            <div><span>食物</span><strong id="economyFoodRate">0.00/秒</strong></div>
+        </div>
+      </div>`;
+
+    const economyModeToggle = document.createElement('button');
+    economyModeToggle.id = 'economyPanelModeToggle';
+    economyModeToggle.className = 'economy-panel-mode-toggle';
+    economyModeToggle.type = 'button';
+    economyModeToggle.setAttribute('aria-controls', economyDetails.id);
+    economyModeToggle.setAttribute('aria-expanded', 'false');
+    economyModeToggle.setAttribute('aria-label', '展开经济面板详情');
+    economyModeToggle.title = '展开详细经济面板';
+    economyModeToggle.innerHTML = '<span aria-hidden="true">⌄</span>';
+    economyModeToggle.addEventListener('click', () => {
+        const expanded = resourceBar.classList.toggle('is-expanded');
+        economyModeToggle.setAttribute('aria-expanded', String(expanded));
+        economyModeToggle.setAttribute('aria-label', expanded ? '收起经济面板详情' : '展开经济面板详情');
+        economyModeToggle.title = expanded ? '收起经济面板详情' : '展开详细经济面板';
+        economyModeToggle.blur();
+    });
+    resourceBar.append(resourceSummary, economyDetails, economyModeToggle);
 
     // 游戏内时间与 EnvironmentLightingSystem 昼夜相位同源。
     const gameTime = document.createElement('div');

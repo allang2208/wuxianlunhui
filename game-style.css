@@ -1375,6 +1375,7 @@
         /* ===== 右上角经济面板与游戏内时间 ===== */
         .top-right-hud {
             --top-right-instrument-height: 74px;
+            --top-right-instrument-width: 250px;
             position: fixed;
             top: 12px;
             right: 100px;
@@ -1386,12 +1387,43 @@
             pointer-events: none;
         }
         .basic-resource-bar {
-            display: grid;
-            grid-template-columns: repeat(3, minmax(82px, 1fr));
-            grid-template-rows: 38px 24px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            width: var(--top-right-instrument-width);
+            min-width: var(--top-right-instrument-width);
+            max-width: var(--top-right-instrument-width);
             align-items: stretch;
             flex: 0 0 auto;
-            height: var(--top-right-instrument-height);
+            height: auto;
+            min-height: var(--top-right-instrument-height);
+            max-height: var(--top-right-instrument-height);
+            pointer-events: auto;
+            overflow: visible;
+            transition:
+                max-height 240ms cubic-bezier(0.4, 0, 0.2, 1),
+                border-color 160ms ease,
+                box-shadow 160ms ease;
+        }
+        .basic-resource-bar.is-expanded {
+            height: auto;
+            min-height: var(--top-right-instrument-height);
+            max-height: 460px;
+        }
+        .economy-panel-summary {
+            display: grid;
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            grid-template-rows: 38px 24px;
+            align-items: stretch;
+            flex: 0 0 62px;
+        }
+        .economy-panel-population-row {
+            grid-column: 1 / -1;
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
         }
         .basic-resource-item {
             display: grid;
@@ -1404,16 +1436,90 @@
         .basic-resource-icon { grid-area: icon; }
         .basic-resource-label { grid-area: label; }
         .basic-resource-value { grid-area: value; }
-        .basic-resource-item--military-population {
-            grid-column: 1 / -1;
+        .basic-resource-item--military-population,
+        .basic-resource-item--working-population {
             grid-template-columns: auto 1fr auto;
             grid-template-areas: "icon label value";
+        }
+        .economy-panel-expanded-details {
+            display: grid;
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
+            grid-template-rows: 0fr;
+            min-height: 0;
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transform: translateY(-6px);
+            transition:
+                grid-template-rows 220ms cubic-bezier(0.4, 0, 0.2, 1),
+                opacity 160ms ease,
+                transform 220ms cubic-bezier(0.4, 0, 0.2, 1),
+                visibility 0s linear 220ms;
+        }
+        .economy-panel-detail-content {
+            width: 100%;
+            max-width: 100%;
+            min-height: 0;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+        .basic-resource-bar.is-expanded .economy-panel-expanded-details {
+            grid-template-rows: 1fr;
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+            transform: translateY(0);
+            transition-delay: 0s;
+        }
+        .economy-panel-mode-toggle {
+            position: absolute;
+            top: calc(100% - 1px);
+            left: 50%;
+            z-index: 2;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 42px;
+            height: 18px;
+            padding: 0;
+            transform: translateX(-50%);
+            pointer-events: auto;
+            cursor: pointer;
+        }
+        .economy-panel-mode-toggle > span {
+            display: inline-flex;
+            width: 100%;
+            height: 100%;
+            align-items: center;
+            justify-content: center;
+            box-sizing: border-box;
+            font-size: 0;
+            line-height: 1;
+        }
+        .economy-panel-mode-toggle > span::before {
+            width: 7px;
+            height: 7px;
+            box-sizing: border-box;
+            border-right: 2px solid currentColor;
+            border-bottom: 2px solid currentColor;
+            content: '';
+            transform: rotate(45deg);
+            transform-origin: 50% 50%;
+            transition: transform 160ms ease;
+        }
+        .basic-resource-bar.is-expanded .economy-panel-mode-toggle > span::before {
+            transform: rotate(225deg);
         }
         .game-time {
             position: static;
             display: flex;
             align-items: center;
             flex: 0 0 auto;
+            width: var(--top-right-instrument-width);
+            min-width: var(--top-right-instrument-width);
+            max-width: var(--top-right-instrument-width);
             height: var(--top-right-instrument-height);
             box-sizing: border-box;
             gap: 8px;
@@ -1480,11 +1586,13 @@
             fill: #d4c5a9;
         }
         .game-time .time-text {
+            min-width: 0;
             font-size: 14px;
             font-weight: 700;
             color: #d4c5a9;
             letter-spacing: 1px;
             text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+            white-space: nowrap;
         }
 
         .world-invasion-hud {
@@ -1647,11 +1755,27 @@
             transition: color 0.16s ease, border-color 0.16s ease, background-color 0.16s ease;
         }
         .world-timeline-mode-toggle > span {
-            display: block;
+            display: inline-flex;
+            width: 100%;
+            height: 100%;
+            align-items: center;
+            justify-content: center;
+            box-sizing: border-box;
+            font-size: 0;
+            line-height: 1;
+        }
+        .world-timeline-mode-toggle > span::before {
+            width: 7px;
+            height: 7px;
+            box-sizing: border-box;
+            border-right: 2px solid currentColor;
+            border-bottom: 2px solid currentColor;
+            content: '';
+            transform: rotate(45deg);
             transform-origin: 50% 50%;
             transition: transform 0.16s ease;
         }
-        .world-invasion-hud:not(.is-compact) .world-timeline-mode-toggle > span { transform: rotate(180deg); }
+        .world-invasion-hud:not(.is-compact) .world-timeline-mode-toggle > span::before { transform: rotate(225deg); }
         .world-timeline-mode-toggle:hover,
         .world-timeline-mode-toggle:focus-visible {
             border-color: var(--bp-ui-line-accent, rgba(162, 188, 200, 0.56));
@@ -2066,6 +2190,7 @@
             .world-timeline-event-tooltip,
             .world-timeline-mode-toggle,
             .world-timeline-mode-toggle > span,
+            .world-timeline-mode-toggle > span::before,
             .world-timeline-filter {
                 transition: none;
             }
