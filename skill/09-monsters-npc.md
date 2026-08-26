@@ -5,6 +5,83 @@
 
 ### 流水线流程（以后每个新角色/怪物都走这套）
 
+#### 步骤-1：怪物默认偏真实美术合同与提示词模板（2026-08-25）
+
+以后新增或重做怪物美术时，除非用户明确指定像素、卡通、手绘、低多边形等其他方向，默认采用棕蛇这一批确立的**偏真实游戏资产风格**：解剖和运动可信，高细节 PBR 材质，色彩克制，轮廓清楚，画面是干净的生产级 3D 游戏渲染，而不是带环境的写实照片。
+
+- **解剖可信**：骨骼、关节、肢体数量、身体连续性、重心和接地点符合该物种；不能靠夸张变形制造“动感”。
+- **材质可信**：皮肤、毛发、鳞片、甲壳、布料和金属分别描述粗糙度、细微色差与表面结构，避免塑料玩具感。
+- **设计克制**：普通动物默认写明 `ordinary non-magical`，不擅自增加盔甲、发光纹路、角、翅膀或魔法特效；奇幻怪物只保留需求明确的超自然特征，但身体重量、受力和材质仍要可信。
+- **资产导向**：纯白无影背景、正交感锁定镜头、完整单体、安全留边、同一地面线，优先保证后续视频、抠图、切帧和运行时缩放稳定。
+- **身份一致**：头部结构、眼睛、比例、花纹、材质和装备选取 3～6 个身份锚点；状态视频只能让同一个身份运动，不能重新设计怪物。
+- **例外优先级**：用户对具体怪物明确指定的风格、体型和超自然特征高于本默认合同。本合同约束真实感与制作完整度，不要求所有怪物长成相似外形。
+
+##### 母图提示词模板（先锁身份，再做状态）
+
+将方括号内容替换为该怪物的真实需求；不要只写“realistic”，要把真实感拆成解剖、材质、重量与光照约束。
+
+```text
+Use case: stylized-concept
+Asset type: production identity mother frame for a Phaser game monster animation pipeline
+
+Primary request: Create exactly one [life stage] [monster/species] as a production-ready game monster identity, holding a calm, animation-friendly neutral [idle pose].
+
+Subject identity: [ordinary/fantasy/undead] [species/body type]; [main and secondary colors]; [required head, eyes, fur/scales/chitin, clothing or equipment]; [forbidden unrelated organs or decorations].
+
+Anatomy and material: physically plausible [biped/quadruped/reptile/insectoid/flying] anatomy, correct joint placement and continuous body topology, believable weight distribution, high-detail [skin/fur/scales/chitin/fabric/metal], realistic roughness and restrained color variation; no toy-like plastic surface.
+
+Style and medium: high-detail realistic PBR 3D game render, grounded dark-fantasy production-asset polish, readable silhouette, controlled saturation, physically believable materials; not a photograph and not a cartoon illustration.
+
+Pose: [exact body-segment relationships, facing direction, contact points and center of gravity]; calm neutral expression; all required limbs, tail, wings, equipment and contacts readable and ready to animate.
+
+Composition and camera: [strict side / low three-quarter] facing [left/right], orthographic-style locked camera, [slight elevation only if required]; complete subject; at most [55–65]% of canvas width and [45–70]% of canvas height; centered or safely offset with generous margins; all contacts on one baseline.
+
+Scene and lighting: flat pure white #FFFFFF background, no horizon or floor; soft flat diffuse ambient studio light only, no directional shadow.
+
+Identity locks: exactly one subject; preserve [3–6 identity anchors]; correct continuous anatomy; full silhouette; clean edges.
+
+Avoid: extra or missing limbs/heads, split tail, broken/fused/tangled anatomy, duplicate gear, cropping, front/top view, perspective distortion, cinematic lighting, rim halo, cast shadow, reflection, scenery, particles, text, logo, watermark, cartoon, anime, chibi, flat illustration, low-poly toy, glossy plastic.
+```
+
+提示词取舍：使用 `realistic PBR 3D game render` 比单独写 `photorealistic` 更稳定，后者容易生成摄影背景、强景深和电影光。参考图若只用于风格或构图，必须写明 `style/framing reference only; do not copy anatomy`。中立姿态要描述身体各段的拓扑关系，例如蛇的盘绕圈数、身体从哪一侧离开盘圈和腹部接地线，不能只写 `idle`。
+
+##### 状态视频提示词模板（只让同一身份运动）
+
+```text
+The exact [monster identity] from the first frame performs exactly one [action] [cycle/action] [in place/toward right], then [returns to the starting pose / settles into the final corpse pose].
+
+Action phases: first [anticipation]; then [the complete shared kinetic chain]; at contact [precise contact pose and body part]; finally [recovery or settling]. One action only.
+
+Motion physics: believable body weight, joint limits, muscle compression and follow-through for this [body type]; every body segment remains connected; preserve the required contacts and root anchor; no skating, floating, rubber motion, body knots or morphing.
+
+Identity locks: exact same head, eyes, proportions, markings, materials, gear and scale as the first frame; no identity drift.
+
+Camera and framing: static locked orthographic [view]; no camera move, pan, zoom, tilt, rotation, crop, reframing or tracking; keep generous margins and the full silhouette visible.
+
+Background: pure white, same soft diffuse light; no ground line, shadow, reflection, scenery, particles or text.
+
+[Looping state] End in the exact same pose, position, scale, orientation and motion phase as the first frame; no freeze, snap or artificial slowdown.
+[One-shot state] Do not loop or reverse; finish the intended recovery or final pose and hold it naturally.
+
+Avoid: extra/broken anatomy, duplicated parts, scale change, root drift, camera motion, silhouette-erasing motion blur, cuts, dramatic lighting, cropping or background change.
+```
+
+状态动作补充合同：
+
+- `idle`：只做呼吸、肌肉张力、耳尾或一次吐信等微动作；中心和 footprint 固定。蛇类必须锁定盘绕圈数、盘圈出口和向上伸出的身体段，不能在循环中打结或换拓扑。
+- `walk/run`：完成一个符合物种的完整步态、波动或振翅周期；原地精灵图锁定根节点。走与跑应在步幅、腾空、身体压缩和受力上有真实区别，不能只改播放速度。
+- `attack`：明确“预备 → 全身动力链 → 接触 → 回收”，接触姿态和实际伤害部位对应玩法；只攻击一次。保留源视频中的自然突进轨迹，用更宽帧格承接位移，禁止逐帧居中把攻击拉直。
+- `dying`：单向失衡、倒地、松弛并稳定停尸；不回弹、不逆放、不恢复站姿，完整尸体始终在画面内。除非用户明确要求，不添加血腥内容。
+
+美术验收顺序：
+
+1. 先让用户确认母图的风格、身份、视角、姿态和安全构图，再生成状态视频；母图未确认不得批量扩状态。
+2. 保存获准母图、实际提示词、参考图、视频、模型/种子等生成参数、接触表和 GIF；废弃候选不得冒充正式溯源。
+3. 视频逐帧检查解剖、身份、背景、镜头、裁切和动作是否唯一；一处明显增肢、断体、变脸或镜头漂移即可退回。
+4. 归一化按身体类别选尺度证据：两足看有效身体高度，四足看躯干体量与足线，蛇/长虫等细长体看局部身体粗细与腹部线；不得让武器、尾巴、盘圈宽度或极端姿势污染 Alpha 外框后统一缩放。
+5. 循环动作只截一个自然真周期；攻击保留源位移；死亡逐帧贴地但不逐帧缩放。最终检查空白帧、边缘触碰、Alpha、透明 RGB、`frameCount` 和 `endFrame`。
+6. 视频下载、去背、切帧、接触表、GIF、表单验收和 provenance 的技术命令继续以 `skill/02-ai-asset-pipeline.md` 为准；本节只定义怪物的默认美术与动作质量合同。
+
 #### 步骤0: 新增两足人形怪先套矿工僵尸体量基准（2026-08-23）
 
 从本规则生效后，所有**新添加的双脚站立人形怪物**，默认以当前正式 `minerZombie` 为统一导入基准；除非用户对该怪物明确指定巨型、矮小或其他特殊体型，不再按原图画布大小或每个怪物的主观观感各自定标。
@@ -84,6 +161,26 @@
 5. **确认专属技能边界**：扑击、冲锋、连击和AOE各自保留专用距离、轨迹和范围，不能因为怪物已有 `basicMelee` 就静默继承普通攻击参数。
 
 交付前必须使用碰撞编辑器“近战判定”观察起手框、命中框、失败原因与实际动画帧，并由运行时检查六种场景：贴脸、极限接敌距离、横向擦边、目标后撤空挥、墙/门/建筑隔断、一次长帧跨过有效窗口。验收目标是伤害发生在可见接触姿态附近，目标退出范围后不吸附命中，不伤害身后单位，不因低帧率漏判或重复结算。未完成这套配置与验收的近战怪物，不视为攻击系统接入完成。
+
+##### 动画驱动的扇形近战 AOE 合同（2026-08-25，美杜莎甩尾）
+
+当攻击动画明确表现横扫、甩尾或大范围挥砍时，应继续复用普通近战的起手、锁向、逐帧时长和接触帧，但伤害结算必须升级为专属地面扇形，不能让通用解析器静默退回单一 `primaryTarget`：
+
+- 双份怪物配置在 `basicMelee.area` 写明 `shape: "sector"`、`range`、`arcDegrees`、`damageMultiplier` 和可选 `knockback`；`timeline.contactFrame/activeFrames/frameDurations` 仍以正式精灵表的真实扫掠姿态为准，配置、运行时和碰撞编辑器消费同一组范围与时序。
+- 起手时快照 Collider footprint 中心与攻击方向，接触帧只结算一次；目标移动可以导致空挥或擦边，但攻击中途不得重新瞄准。每次动作维护命中集合，同一目标最多命中一次，长帧跨过接触帧也不得重复结算。
+- 用 `GroundSector` 加目标 footprint 半径做扇形相交，并同时执行承载面高度与墙体/门 LOS 门禁；防御结构可沿用已定义的贴身例外，但不能因此穿透普通墙段。
+- 每个命中目标单独通过 `DamagePipeline`，保留 `isMelee: true`、弹反、受击、死亡和经验口径；径向击退按“AOE 中心 → 当前目标”计算。范围攻击不是把单体伤害循环简单复制给所有实体，阵营、可命中状态和死亡门禁仍须逐目标检查。
+- 调试扇形、技能说明和实际命中必须显示同一 `range/arcDegrees`。验收重点为：扇形两侧边缘、多目标同帧、身后不命中、隔墙不命中、盾牌弹反、长帧只触发一次。
+
+##### 延迟警告后强制连招的动作预留合同（2026-08-26，紫蚀古树藤牢→投石）
+
+当技能流程是“施法释放预警区 → 延迟结算 → 命中后等待一小段时间 → 强制衔接下一动作”时，预警和连招等待都属于同一业务动作，不能只在下一动作可开始时提高选择优先级：
+
+- 从预警区生成到结算前，动作选择器必须保留该技能的控制权；施法动画可以按自身时长回到待机，但不得在预警未结算时插入普通攻击。预警落空后应在当帧解除预留。
+- 命中后建立显式连招队列并锁住普通动作选择，倒计时结束才强制启动后续动作；若目标死亡、失效或不再可命中，应清空队列并恢复普通决策。死亡/场景清理必须同时销毁预警、投射物、特效和连招队列。
+- 每帧先更新旧连招倒计时，再结算可能新建队列的预警，避免新队列在创建帧立即吃掉一个 `dt`。长帧跨过阈值时仍只启动一次后续动作。
+- 强制后续动作可以无视“当前冷却是否可用”，但真正起手时必须按该次动作重新写入完整冷却，避免组合技后立刻再投一次。控制状态可以延后起手，不能让普通技能绕过队列抢占。
+- 施法、预警生成和投射物脱手分别使用正式精灵表的 0-based `releaseFrame`；人工逐帧复核覆盖自动插帧映射时，要在 manifest 记录覆盖原因，配置、运行时和说明统一消费最终帧号。
 
 #### 步骤1: 制作原始精灵图
 
@@ -225,6 +322,8 @@ this._tacticalTarget = null;
 **配套校准**：`render.collisionHeight` 只影响绿色矩形（近战判定），不影响 HUD 锚点；`render.hudOffsetY` 语义不变（在锚点基础上的额外偏移，默认为 0 即可）。
 **常见陷阱：`colliderOffsetY/X` 必须写在 `render` 块内**——`enemy.js` 基类只读 `config.render.colliderOffsetY`；写在配置顶层是死配置不生效（2026-07-25 工头顶层 -75 一直未生效的根因；手脑/骑士也曾踩过，见 enemy.js:168 注释）。NPC 类相反，读顶层（npc.js:48）。
 
+**Sprite 脚线与 footprint 中心必须同源（2026-08-24 普通僵尸）**：素材 Alpha 底线稳定但仍显得悬空时，先核对地面 footprint 是否以带 `colliderOffsetY/X` 的 Collider 中心绘制。Sprite 的脚点偏移需要扣除同轴 Collider 偏移，使双脚落到 footprint 中心；禁止反过来移动 Collider 迁就贴图，否则近战、投射物、寻路和调试体积会一起漂移。该校正只属于渲染锚点，不得改变碰撞半径、身体高度或攻击范围。
+
 ---
 
 ### 怪物 HUD（名字/血条）定位规则
@@ -313,6 +412,9 @@ this._tacticalTarget = null;
 - 生产建筑统一调用 `SpawnPlacement.findAndReserve`：固定出口槽位检查墙、建筑 footprint、
   动态单位和750ms预约。无出口时保持生产100%、每500ms重试，禁止使用未经校验的固定
   右侧 fallback；生成后先走 `_spawnEgress` 再恢复正常AI。
+- 占格怪物生成器（如标准1×1矿洞）复用同一出口协议：探测半径必须覆盖实际召唤物
+  footprint，调用端确认洞体外安全点后跳过共享召唤器从建筑中心再次 `WallSystem.resolve`；
+  暂时无安全出口时延迟重试，禁止把单位强塞在洞体边缘或墙角死袋。
 - 面板外点击使用捕获阶段 `mousedown`；空白处关闭主面板/详情，正在放置或点击建筑本体时
   不关闭，避免“能关闭但无法落地/无法点详情”的事件冲突。
 - 回归运行 `test-world122-building-footprint.mjs`、`test-spawn-placement.mjs`、
@@ -413,7 +515,9 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
 - **全 Alpha 高度的例外**：长柄武器、竖向法杖、旗帜会把武器长度算进身高，低伏/前倾奔跑又会
   把姿态压缩误判成矮个；这两类素材必须按头部—躯干—脚部主体轮廓与基准同屏比较，已经由用户确认
   的人工体量优先，Alpha 工具只用于脚线和异常帧诊断。仓鼠民兵的草叉与仓鼠斥候的前倾跑姿属于
-  明确例外，不能再用整框中位高度覆盖其 `displaySize:460`。
+  明确例外。民兵旧 running 用 5px 形态学开运算仍会残留较粗杆件；2026-08-24 结合新 idle 复核后，
+  使用 11px 开运算才完整剔除草叉，站立主体中位高度约 129px。对齐仓鼠战士约 79.029 世界像素的
+  站立可见高度，标定为 `displaySize:313.664397`，不得回退到计入武器后的全 Alpha 高度算法。
 - **脚线同步**：`footOffsetY = (Alpha中位底线-frameHeight/2)×displaySize/frameHeight`，
   `spriteOffsetY = -footOffsetY`。`render.hudOffsetY` 默认119；换尺寸时三项必须同批修改，
   禁止只缩贴图造成脚底、深度线和血条分离。
@@ -729,8 +833,8 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
   RTS 命令、`_isEnergyNode` 矿点不攻击）；dying 14 帧 @12fps = 1167ms。
 - **渲染**：GameScene `_isHamsterMilitia` 并入射手/盾卫"单次播放 + 定格末帧"分支
   （`_attackSwing` 触发），移动朝向 vx、受击白闪同款；草叉显著拉高整框 Alpha，不能按整框
-  身高归一，当前恢复主体轮廓确认过的 `displaySize:460 / spriteOffsetY:-84 /
-  footOffsetY:84 / hudOffsetY:119`。碰撞统一为20×100，攻击范围与数值不随贴图缩放。
+  身高归一，也不能把草叉长度算入主体。当前主体轮廓标定为 `displaySize:313.664397 /
+  spriteOffsetY:-58.199449 / footOffsetY:58.199449 / hudOffsetY:119`。碰撞统一为20×100，攻击范围与数值不随贴图缩放。
 - **生成**：草屋专属（`producer-buildings.json` unitTypes + PRODUCER_UNIT_CFG/CLASS/
   unitKindOf）；2026-08-18 兵营死注册已清理（unit.militia/导入/生成分支移除，
   旧档兵营 unitType 由 spawnUnit 纠正为战士）；升级同步走 `applyBarracksUpgrades`（复用战士/盾卫模块口径）。
