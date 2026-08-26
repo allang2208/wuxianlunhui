@@ -1,0 +1,49 @@
+{
+  "source": "tools\\ai-gen\\_settlement_building_pack_20260821\\explorer_camp\\accepted_48step_20260825\\explorer_camp_refine_v01.png",
+  "output": "tools\\ai-gen\\_settlement_building_pack_20260821\\explorer_camp\\accepted_48step_20260825\\explorer_camp_4x4_runtime_manual.png",
+  "sourceMode": "RGBA",
+  "background": null,
+  "matteColor": [
+    255,
+    255,
+    255
+  ],
+  "matteEdgeWidth": 0.0,
+  "matteTolerance": 110.0,
+  "nearestOpaqueEdgeRgb": false,
+  "nearestOpaqueAlpha": null,
+  "defringeInnerPixels": 0,
+  "minComponentPixels": 0,
+  "removedComponents": 0,
+  "removedComponentPixels": 0,
+  "maskImage": null,
+  "maskDilate": null,
+  "fillAlphaHoles": false,
+  "fillHoleMatteDistance": null,
+  "removeEnclosedMatte": false,
+  "enclosedMatteChromaDistance": null,
+  "maskAddRects": [],
+  "restoreAlphaRects": [],
+  "removeMatteRects": [],
+  "cropBox": [
+    78,
+    150,
+    954,
+    919
+  ],
+  "fileSize": [
+    876,
+    769
+  ],
+  "alphaBBox": [
+    4,
+    4,
+    872,
+    765
+  ],
+  "displayW": 512,
+  "displayH": 449,
+  "footOffsetY": 222,
+  "scaleX": 0.5844748858447488,
+  "scaleY": 0.5838751625487646
+}

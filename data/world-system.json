@@ -34,13 +34,6 @@
       "constructionEnabled": false,
       "portalSpawn": { "x": 4200, "y": 4096 },
       "featureBuilding": { "cfgKey": "desert_mansion", "offsetX": -330, "offsetY": 180 },
-      "coreVisual": {
-        "texture": "portal",
-        "displayW": 440,
-        "displayH": 439,
-        "footOffsetY": 220,
-        "footprintCells": 4
-      },
       "resetPolicy": { "baseSeed": 122008 }
     },
     "scene9": {

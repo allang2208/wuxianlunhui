@@ -18,6 +18,7 @@
 - `ProducerBuildingSystem.tryInteract` 是祭坛详情的唯一点击分发入口；出售/被毁必须调用 `World122TributeSystem.detachAltar`，失效实体不得继续献祭。同一稀有度只能生效一件，新祭品覆盖旧的同级效果并刷新为30分钟，因此最多6个生效槽；钥匙代币必须从献祭列表排除。
 - `World122TributeSystem.teardown()` 只解除祭坛交互，不得清状态、冻结时间或丢弃 player 引用；世界蟠桃统一使用 `_worldPeachReviveUsed`，重新献祭蟠桃才刷新次数。
 - 世界核心传送门使用稳定 id `world_portal_${sceneId}`，`portal` 配置单座上限；旧基础快照只允许按“出生点 + 零建造成本”迁移核心。核心及主城枢纽必须同时禁止详情出售和建筑回收旁路，普通 `cfgKey:"portal"` 不得仅凭数组顺序被提升为入侵目标。
+- **核心传送门视觉唯一真源（2026-08-26）**：scene8~scene11 与主城枢纽共用 `producer-buildings.json#portal` 的 `radius/footprintCells/displayW/displayH/footOffsetY/visualFootprint`；全位面统一换图或改尺寸时只改这组共享配置，不再给单一世界复制 `world-system.json#worlds.*.coreVisual`，否则会留下不同位面尺寸漂移或旧 `visualFootprint`。构造器继续统一执行 `applyBuildingFootprint + setupStructureDepth`；`generate-building-preview-assets.mjs` 会为不可建造核心更新接地拟合清单，但因 `playerBuildable:false` 不生成建筑栏缩略图。只有某个位面确需不同贴图时才允许 `coreVisual`，并须让覆盖链完整同步 `visualFootprint` 后再启用。
 - 祭坛详情沿用 `renderBuildingDetailHeader`，外壳使用 `.world122-altar-panel.bp-right-column` 和通用 `.bp-panel-* / .bp-type-*` 冷钢组件；动态值只允许内联生命条宽度/语义状态色，禁止在业务模板重新硬编码字号和整套色板。
 
 ### 世界-122 防守地图（雏形，2026-08-04）
