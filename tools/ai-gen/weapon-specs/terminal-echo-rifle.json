@@ -1,0 +1,25 @@
+{
+  "weaponId": "weapon30",
+  "weaponType": "terminal_echo_rifle",
+  "name": "终末回声",
+  "rarity": "legendary",
+  "rarityLabel": "传说",
+  "level": 21,
+  "price": 3200,
+  "role": "持续压制与长弹匣追击；前段偏弱，连续射击进入收束后反超",
+  "attack": { "range": 1700, "knockback": 1, "attackInterval": 82, "projectileSpeed": 1500, "damageType": "physical" },
+  "ammoConfig": { "max": 34, "reloadTime": 1250 },
+  "fireMode": "fullAuto",
+  "attackFormula": { "base": 7, "enhanceFlat": 0.5, "attrs": [{ "key": "int", "base": 0.27, "perEnhance": 0.045 }, { "key": "wis", "base": 0.27, "perEnhance": 0.045 }] },
+  "spreadParams": { "startShots": 6, "maxShots": 22, "recoveryMs": 320, "maxAngle": 19 },
+  "convergence": { "startShot": 6, "maxStacks": 10, "damagePerStack": 0.02, "spreadPerStack": 0.035, "resetMs": 320 },
+  "balance": {
+    "normalShotFormula": "round(7 + 强化×0.50 + 智力×(0.27+强化×0.045) + 精神×(0.27+强化×0.045))",
+    "attributes50Plus0": 34,
+    "attributes50Plus10": 84,
+    "fullConvergenceMultiplier": 1.2,
+    "sustainedCycleDpsPlus0": 327.5,
+    "sustainedCycleDpsPlus10": 809.0
+  },
+  "art": { "runtime": "assets/weapons/terminal-echo-rifle-equip.png", "icon": "assets/icons/firearms/terminal-echo-rifle.png", "towerBarrel": "assets/terrain/tower_barrel_weapon30.png" }
+}

@@ -1,0 +1,89 @@
+{
+  "weaponId": "weapon26",
+  "weaponType": "vengeance_rifle",
+  "key": "vengeance-rifle",
+  "name": "复仇之神",
+  "type": "自动步枪",
+  "icon": "🔫",
+  "category": "weapon_ranged",
+  "rarity": "epic",
+  "rarityLabel": "史诗",
+  "level": 15,
+  "price": 800,
+  "weaponCategory": "mainhand",
+  "weaponTypeTag": "远程武器",
+  "isTwoHanded": true,
+  "equipSlot": "weapon",
+  "desc": "复仇之神三连发突击步枪；重型谐振机匣用短促齐射换取远距离精度与强击退。",
+  "statsDisplay": [
+    { "name": "物理攻击", "value": "12+智力×0.50+精神×0.50" },
+    { "name": "射程", "value": "1850" }
+  ],
+  "statsJson": [
+    { "name": "物理攻击", "value": "12+智力×0.50+精神×0.50" },
+    { "name": "射程", "value": "1850" }
+  ],
+  "attack": {
+    "range": 1850,
+    "knockback": 4,
+    "attackInterval": 300,
+    "hitType": "深红曳光弹（三连发直线弹道）",
+    "damageType": "物理",
+    "projectileSpeed": 1440,
+    "damageFalloff": { "start": 900, "minMultiplier": 0.55 }
+  },
+  "attackKey": "vengeance_rifle",
+  "animConfigKey": "vengeance_rifle",
+  "canvasImageProp": "vengeanceRifleImage",
+  "fireMode": "semiAuto",
+  "burstMode": 3,
+  "ammoConfig": { "max": 24, "reloadTime": 1450, "reloadSound": "assets/sounds/weapons/qbz95_reload.wav" },
+  "attackFormula": {
+    "base": 12,
+    "enhanceFlat": 1.0,
+    "attrs": [
+      { "key": "int", "base": 0.5, "perEnhance": 0.08 },
+      { "key": "wis", "base": 0.5, "perEnhance": 0.08 }
+    ]
+  },
+  "spreadParams": {
+    "startShots": 6,
+    "maxShots": 18,
+    "recoveryMs": 460,
+    "maxAngle": 14
+  },
+  "fireSound": "assets/sounds/weapons/qbz191_shot6_valley.mp3",
+  "equipSound": "assets/sounds/weapons/qbz95_equip.wav",
+  "animation": {
+    "type": "recoil（后坐力抖动）",
+    "totalMs": "300ms + 2×60ms burst",
+    "windupMs": "≈35",
+    "swingMs": "≈70",
+    "recoveryMs": "≈195",
+    "holdOffset": "(0, 6)",
+    "weaponSize": 100,
+    "timingMul": "0.30x (三连发)",
+    "recoilAmount": "0.16rad",
+    "description": "复仇之神每次扣动扳机发射三发，发内间隔60ms，随后进入300ms射击周期。"
+  },
+  "assets": {
+    "equipImage": "assets/weapons/vengeance-rifle-equip.png",
+    "iconImage": "assets/icons/firearms/vengeance-rifle.png",
+    "slotImage": "assets/icons/firearms/vengeance-rifle.png",
+    "dropImage": "assets/weapons/vengeance-rifle-equip.png",
+    "weaponAssetImage": "assets/weapons/vengeance-rifle-equip.png"
+  },
+  "craftTemplateWeaponId": "weapon7",
+  "animTemplateWeaponType": "akm",
+  "layout": {
+    "canvas": 2048,
+    "contentWidthFrac": 0.915,
+    "centerX": 0.5,
+    "centerY": 0.543
+  },
+  "sounds": {
+    "fire": "assets/sounds/weapons/qbz191_shot6_valley.mp3",
+    "reload": "assets/sounds/weapons/qbz95_reload.wav",
+    "equip": "assets/sounds/weapons/qbz95_equip.wav"
+  }
+}

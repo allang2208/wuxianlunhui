@@ -1,0 +1,96 @@
+{
+  "weaponId": "weapon24",
+  "weaponType": "qbz95",
+  "key": "qbz95",
+  "name": "QBZ-95",
+  "type": "自动步枪",
+  "icon": "🔫",
+  "category": "weapon_ranged",
+  "rarity": "uncommon",
+  "rarityLabel": "优质",
+  "level": 9,
+  "price": 200,
+  "weaponCategory": "mainhand",
+  "weaponTypeTag": "远程武器",
+  "isTwoHanded": true,
+  "equipSlot": "weapon",
+  "desc": "QBZ-95自动步枪，约650发/分钟，亮金色曳光弹；紧凑无托结构兼顾射速、操控与恢复",
+  "statsDisplay": [
+    { "name": "物理攻击", "value": "6+智力×0.22+精神×0.22" },
+    { "name": "射程", "value": "1480" }
+  ],
+  "statsJson": [
+    { "name": "物理攻击", "value": "6+智力×0.22+精神×0.22" },
+    { "name": "射程", "value": "1480" }
+  ],
+  "attack": {
+    "range": 1480,
+    "knockback": 2,
+    "attackInterval": 92,
+    "hitType": "亮金色曳光弹（直线弹道）",
+    "damageType": "物理",
+    "projectileSpeed": 1248,
+    "damageFalloff": { "start": 660, "minMultiplier": 0.4 }
+  },
+  "attackKey": "qbz95",
+  "animConfigKey": "qbz95",
+  "canvasImageProp": "qbz95Image",
+  "fireMode": "fullAuto",
+  "ammoConfig": { "max": 30, "reloadTime": 1250, "reloadSound": "assets/sounds/weapons/qbz95_reload.wav" },
+  "attackFormula": {
+    "base": 6,
+    "enhanceFlat": 0.4,
+    "attrs": [
+      { "key": "int", "base": 0.22, "perEnhance": 0.035 },
+      { "key": "wis", "base": 0.22, "perEnhance": 0.035 }
+    ]
+  },
+  "spreadParams": {
+    "startShots": 7,
+    "maxShots": 19,
+    "recoveryMs": 360,
+    "maxAngle": 23
+  },
+  "fireSound": "assets/sounds/weapons/qbz95_fire.wav",
+  "equipSound": "assets/sounds/weapons/qbz95_equip.wav",
+  "animation": {
+    "type": "recoil（后坐力抖动）",
+    "totalMs": "92ms (约)",
+    "windupMs": "≈18",
+    "swingMs": "≈28",
+    "recoveryMs": "≈46",
+    "holdOffset": "(0, 6)",
+    "weaponSize": 96,
+    "timingMul": "0.09x (高速)",
+    "recoilAmount": "0.10rad",
+    "description": "QBZ-95以约650RPM连续射击，无托结构提供较快散布恢复，定位在M416与QBZ-191之间。"
+  },
+  "assets": {
+    "equipImage": "assets/weapons/qbz95-equip.png",
+    "iconImage": "assets/icons/firearms/qbz-95.png",
+    "slotImage": "assets/icons/firearms/qbz-95.png",
+    "dropImage": "assets/weapons/qbz95-equip.png",
+    "weaponAssetImage": "assets/weapons/qbz95-equip.png"
+  },
+  "craftTemplateWeaponId": "weapon8",
+  "animTemplateWeaponType": "qbz191",
+  "layout": {
+    "canvas": 2048,
+    "contentWidthFrac": 0.915,
+    "centerX": 0.5,
+    "centerY": 0.543
+  },
+  "sounds": {
+    "fire": "assets/sounds/weapons/qbz95_fire.wav",
+    "reload": "assets/sounds/weapons/qbz95_reload.wav",
+    "equip": "assets/sounds/weapons/qbz95_equip.wav"
+  },
+  "imagePrompts": {
+    "icon": [
+      "production game equipment sprite, realistic high-detail isolated weapon render, transparent background, no cast shadow",
+      "exactly one original QBZ-95 Type 95 bullpup rifle in strict left-side profile, compact black polymer butt on the left, muzzle pointing right, magazine and action behind the grip, integrated thumbhole grip, prominent arched carry handle, triangular front sight, smooth fore-end, no telescoping stock and no full-length rail",
+      "perfectly level and centered with generous transparent margin; complete butt, magazine and muzzle inside frame",
+      "no text, Chinese characters, logo, watermark, hands, person, ammunition, sling, bayonet, optic, suppressor, scenery, detached parts or second weapon"
+    ]
+  }
+}

@@ -1,0 +1,94 @@
+{
+  "weaponId": "weapon27",
+  "weaponType": "astral_tide_rifle",
+  "key": "astral-tide-rifle",
+  "name": "星潮协议",
+  "type": "自动步枪",
+  "icon": "🔫",
+  "category": "weapon_ranged",
+  "rarity": "mythic",
+  "rarityLabel": "神话",
+  "level": 18,
+  "price": 1600,
+  "weaponCategory": "mainhand",
+  "weaponTypeTag": "远程武器",
+  "isTwoHanded": true,
+  "equipSlot": "weapon",
+  "desc": "神话自动步枪“星潮协议”；相位线圈会在持续开火中逐步缩短攻击间隔，短战起步克制，长战进入高速压制。",
+  "statsDisplay": [
+    { "name": "物理攻击", "value": "6+智力×0.26+精神×0.26" },
+    { "name": "射程", "value": "1700" }
+  ],
+  "statsJson": [
+    { "name": "物理攻击", "value": "6+智力×0.26+精神×0.26" },
+    { "name": "射程", "value": "1700" }
+  ],
+  "attack": {
+    "range": 1700,
+    "knockback": 2,
+    "attackInterval": 88,
+    "hitType": "青金相位曳光弹（持续射击升速）",
+    "damageType": "物理",
+    "projectileSpeed": 1400,
+    "damageFalloff": { "start": 800, "minMultiplier": 0.48 }
+  },
+  "attackKey": "astral_tide_rifle",
+  "animConfigKey": "astral_tide_rifle",
+  "canvasImageProp": "astralTideRifleImage",
+  "fireMode": "fullAuto",
+  "ammoConfig": { "max": 36, "reloadTime": 1100, "reloadSound": "assets/sounds/weapons/m416_reload.wav" },
+  "attackFormula": {
+    "base": 6,
+    "enhanceFlat": 0.5,
+    "attrs": [
+      { "key": "int", "base": 0.26, "perEnhance": 0.043 },
+      { "key": "wis", "base": 0.26, "perEnhance": 0.043 }
+    ]
+  },
+  "spreadParams": {
+    "startShots": 8,
+    "maxShots": 22,
+    "recoveryMs": 320,
+    "maxAngle": 20
+  },
+  "rampFireParams": {
+    "minCooldown": 60,
+    "rampUpTime": 2000,
+    "decayDelay": 450,
+    "decayTime": 1600
+  },
+  "fireSound": "assets/sounds/weapons/m416_fire.wav",
+  "equipSound": "assets/sounds/weapons/m416_equip.wav",
+  "animation": {
+    "type": "recoil（持续射击升速）",
+    "totalMs": "88ms→60ms",
+    "windupMs": "≈14",
+    "swingMs": "≈22",
+    "recoveryMs": "≈52→24",
+    "holdOffset": "(0, 6)",
+    "weaponSize": 100,
+    "timingMul": "0.09x→0.06x（升速）",
+    "recoilAmount": "0.10rad",
+    "description": "星潮协议从约682RPM线性升至1000RPM，约2秒达到峰值；松开扳机450ms后用1.6秒衰减。"
+  },
+  "assets": {
+    "equipImage": "assets/weapons/astral-tide-rifle-equip.png",
+    "iconImage": "assets/icons/firearms/astral-tide-rifle.png",
+    "slotImage": "assets/icons/firearms/astral-tide-rifle.png",
+    "dropImage": "assets/weapons/astral-tide-rifle-equip.png",
+    "weaponAssetImage": "assets/weapons/astral-tide-rifle-equip.png"
+  },
+  "craftTemplateWeaponId": "weapon25",
+  "animTemplateWeaponType": "frontier_rifle",
+  "layout": {
+    "canvas": 2048,
+    "contentWidthFrac": 0.915,
+    "centerX": 0.5,
+    "centerY": 0.543
+  },
+  "sounds": {
+    "fire": "assets/sounds/weapons/m416_fire.wav",
+    "reload": "assets/sounds/weapons/m416_reload.wav",
+    "equip": "assets/sounds/weapons/m416_equip.wav"
+  }
+}

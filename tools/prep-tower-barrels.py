@@ -7,21 +7,37 @@
 """
 from PIL import Image
 import os
+import sys
 
-OUT = r'E:\无尽轮回\长期备份\2026-7-13-1\game-dev\assets\terrain'
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+OUT = os.path.join(ROOT, 'assets', 'terrain')
 WEAPONS = {
     # weaponId: (贴图路径, 裁剪框 x,y,w,h)
-    'weapon6':  (r'E:\无尽轮回\长期备份\2026-7-13-1\game-dev\assets\icons\pkm_side_clean.png', (1326, 950, 619, 149)),
-    'weapon7':  (r'E:\无尽轮回\长期备份\2026-7-13-1\game-dev\assets\weapons\akm-equip.png', (1337, 884, 623, 183)),
-    'weapon21': (r'E:\无尽轮回\长期备份\2026-7-13-1\game-dev\assets\weapons\m416-equip.png', (1334, 828, 623, 193)),
-    'weapon8':  (r'E:\无尽轮回\长期备份\2026-7-13-1\game-dev\assets\icons\191icon.png', (1335, 586, 625, 251)),
-    'weapon11': (r'E:\无尽轮回\长期备份\2026-7-13-1\game-dev\assets\icons\201-icon.png', (1325, 916, 619, 151)),
-    'weapon12': (r'E:\无尽轮回\长期备份\2026-7-13-1\game-dev\assets\icons\M4s90_icon.png', (1335, 1010, 625, 175)),
-    'weapon13': (r'E:\无尽轮回\长期备份\2026-7-13-1\game-dev\assets\icons\S12k-icon.png', (1335, 500, 625, 283)),
-    'weapon15': (r'E:\无尽轮回\长期备份\2026-7-13-1\game-dev\assets\icons\devotion-icon.png', (1335, 886, 625, 381)),
+    'weapon6':  (os.path.join(ROOT, 'assets', 'icons', 'pkm_side_clean.png'), (1326, 950, 619, 149)),
+    'weapon7':  (os.path.join(ROOT, 'assets', 'weapons', 'akm-equip.png'), (1337, 884, 623, 183)),
+    'weapon23': (os.path.join(ROOT, 'assets', 'weapons', 'stg44-equip.png'), (1336, 818, 624, 588)),
+    'weapon21': (os.path.join(ROOT, 'assets', 'weapons', 'm416-equip.png'), (1334, 828, 623, 193)),
+    'weapon24': (os.path.join(ROOT, 'assets', 'weapons', 'qbz95-equip.png'), (1336, 754, 624, 716)),
+    'weapon25': (os.path.join(ROOT, 'assets', 'weapons', 'frontier-rifle-equip.png'), (1336, 870, 625, 310)),
+    'weapon26': (os.path.join(ROOT, 'assets', 'weapons', 'vengeance-rifle-equip.png'), (1335, 900, 625, 300)),
+    'weapon27': (os.path.join(ROOT, 'assets', 'weapons', 'astral-tide-rifle-equip.png'), (1335, 900, 625, 300)),
+    'weapon28': (os.path.join(ROOT, 'assets', 'weapons', 'zero-point-arbitrator-equip.png'), (1335, 900, 625, 300)),
+    'weapon29': (os.path.join(ROOT, 'assets', 'weapons', 'corona-cadence-rifle-equip.png'), (1335, 900, 625, 300)),
+    'weapon30': (os.path.join(ROOT, 'assets', 'weapons', 'terminal-echo-rifle-equip.png'), (1335, 900, 625, 300)),
+    'weapon8':  (os.path.join(ROOT, 'assets', 'icons', '191icon.png'), (1335, 586, 625, 251)),
+    'weapon11': (os.path.join(ROOT, 'assets', 'icons', '201-icon.png'), (1325, 916, 619, 151)),
+    'weapon12': (os.path.join(ROOT, 'assets', 'icons', 'M4s90_icon.png'), (1335, 1010, 625, 175)),
+    'weapon13': (os.path.join(ROOT, 'assets', 'icons', 'S12k-icon.png'), (1335, 500, 625, 283)),
+    'weapon15': (os.path.join(ROOT, 'assets', 'icons', 'devotion-icon.png'), (1335, 886, 625, 381)),
 }
 
-for wid, (src, box) in WEAPONS.items():
+selected = sys.argv[1:] or list(WEAPONS)
+unknown = [wid for wid in selected if wid not in WEAPONS]
+if unknown:
+    raise SystemExit(f'unknown weapon ids: {", ".join(unknown)}')
+
+for wid in selected:
+    src, box = WEAPONS[wid]
     im = Image.open(src).convert('RGBA')
     x, y, w, h = box
     crop = im.crop((x, y, x + w, y + h))
