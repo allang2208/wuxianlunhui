@@ -1,0 +1,111 @@
+{
+  "assetId": "warehouse_lv2",
+  "label": "仓库 LV2 · 扩建仓库",
+  "status": "refine_v01_selected_and_integrated",
+  "sourceFamily": "warehouse_v3",
+  "sourceModel": "tools/ai-gen/_settlement_building_pack_20260821/warehouse/warehouse_v3_model.blend",
+  "assetClass": "building",
+  "footprintCells": 2,
+  "cameraElevationDegrees": 30,
+  "rootRotationZDegrees": 44.8,
+  "dimensions": {
+    "foundation": [500, 414, 16],
+    "body": [382, 286, 424],
+    "roof": [434, 338, 116]
+  },
+  "outputs": {
+    "blend": "tools/ai-gen/_settlement_building_pack_20260821/warehouse_lv2/warehouse_lv2_model.blend",
+    "preview": "tools/ai-gen/_settlement_building_pack_20260821/warehouse_lv2/warehouse_lv2_model_preview.png",
+    "depth": "tools/ai-gen/_settlement_building_pack_20260821/warehouse_lv2/warehouse_lv2_depth.png",
+    "bodyDepth": "tools/ai-gen/_settlement_building_pack_20260821/warehouse_lv2/warehouse_lv2_body_depth.png",
+    "structureCandidateRoot": "tools/ai-gen/_settlement_building_pack_20260821/warehouse_lv2/candidates/warehouse_lv2",
+    "selectedStructureRaw": "tools/ai-gen/_settlement_building_pack_20260821/warehouse_lv2/candidates/warehouse_lv2/warehouse_lv2_structure_v03_raw.png",
+    "userCutout": "tools/ai-gen/_settlement_building_pack_20260821/warehouse_lv2/candidates/warehouse_lv2/warehouse_lv2_refine_v01.png",
+    "greenCleanedCutout": "tools/ai-gen/_settlement_building_pack_20260821/warehouse_lv2/candidates/warehouse_lv2/warehouse_lv2_refine_v01_green_cleaned.png",
+    "runtimeAsset": "assets/terrain/warehouse_lv2.png",
+    "runtimeMetadata": "tools/ai-gen/_settlement_building_pack_20260821/warehouse_lv2/warehouse_lv2_runtime_metadata.json"
+  },
+  "structureGeneration": {
+    "pipeline": "world122-building-candidates",
+    "styleVersion": "world122-building-v2",
+    "model": "flux2-dev-depth",
+    "size": "1024x1024",
+    "steps": 12,
+    "depthStrength": 0.78,
+    "cfg": 3.5,
+    "sampler": "euler",
+    "scheduler": "simple",
+    "edgeControl": false,
+    "nonstandardOverride": false,
+    "seeds": [122461, 122462, 122463]
+  },
+  "structureReview": {
+    "selected": "v03",
+    "recommended": "v03",
+    "viableAlternative": "v02",
+    "rejected": {
+      "v01": "adds a second front gable roof and loses large facade regions in the transparent body derivative"
+    },
+    "v02": "complete four-storey single-roof body; heavier stone gatehouse reading",
+    "v03": "complete four-storey single-roof body; clearest attached buttresses, two loading doors and expanded cargo decks"
+  },
+  "refineGeneration": {
+    "pipeline": "world122-building-candidates",
+    "styleVersion": "world122-building-v2",
+    "model": "flux2-dev-depth",
+    "initStructure": "v03",
+    "size": "1024x1024",
+    "steps": 48,
+    "depthStrength": 0.75,
+    "denoise": 0.3,
+    "cfg": 3.5,
+    "sampler": "euler",
+    "scheduler": "simple",
+    "edgeControl": false,
+    "nonstandardOverride": false,
+    "seeds": [122461, 122462]
+  },
+  "refineReview": {
+    "selected": "v01",
+    "recommended": "v01",
+    "viableAlternative": "v02",
+    "v01": "preserves the selected structure and gives the strongest weathered stone, roof-tile depth, cargo use and restrained warm lighting",
+    "v02": "preserves the selected structure with a cleaner, more restrained material pass"
+  },
+  "inheritedStructure": [
+    "exactly four connected storeys",
+    "one continuous steep gable roof",
+    "second-floor front loading balcony",
+    "perpendicular fourth-floor side loading balcony",
+    "half-timber facade rhythm",
+    "manual loft hoist beam and pulley"
+  ],
+  "lv2Structure": [
+    "slightly thicker connected shell within the same foundation",
+    "exactly two reinforced ground loading bays",
+    "four attached stone corner buttresses with grounded feet",
+    "front and side blackened-iron lower reinforcement bands",
+    "one attached stone loading dock",
+    "orderly attached crate and sack storage"
+  ],
+  "reservedForLaterLevels": [
+    "powered cargo lift",
+    "steam engine or powered winch",
+    "automated sorting enclosure",
+    "phase vault core or energy ring"
+  ],
+  "negativeConstraints": [
+    "no fifth floor",
+    "no second building or detached annex",
+    "no second roof, tower or chimney",
+    "no machinery, conveyor, crane or vehicle",
+    "no readable text or oversized foundation"
+  ],
+  "archive": {
+    "status": "minimal_reproducible_source_set",
+    "keptFiles": 24,
+    "deletedFiles": 31,
+    "releasedMiB": 25.68
+  },
+  "nextStage": "LV2 runtime asset integrated; continue with LV3 modeling when requested"
+}

@@ -1,0 +1,49 @@
+{
+  "source": "tools\\ai-gen\\_settlement_building_pack_20260821\\warehouse_lv4\\candidates\\refine_48step_doorfix_depth_from_v01_seed122501\\warehouse_lv4\\warehouse_lv4_refine_v02_body.png",
+  "output": "assets\\terrain\\warehouse_lv4.png",
+  "sourceMode": "RGBA",
+  "background": null,
+  "matteColor": null,
+  "matteEdgeWidth": null,
+  "matteTolerance": null,
+  "nearestOpaqueEdgeRgb": false,
+  "nearestOpaqueAlpha": null,
+  "defringeInnerPixels": 0,
+  "minComponentPixels": 0,
+  "removedComponents": 0,
+  "removedComponentPixels": 0,
+  "maskImage": null,
+  "maskDilate": null,
+  "fillAlphaHoles": false,
+  "fillHoleMatteDistance": null,
+  "removeEnclosedMatte": false,
+  "enclosedMatteChromaDistance": null,
+  "maskAddRects": [],
+  "restoreAlphaRects": [],
+  "removeMatteRects": [],
+  "clearGreenRects": [],
+  "greenHueRange": null,
+  "greenSaturationMin": null,
+  "greenValueMin": null,
+  "cropBox": [
+    180,
+    96,
+    811,
+    873
+  ],
+  "fileSize": [
+    631,
+    777
+  ],
+  "alphaBBox": [
+    4,
+    4,
+    627,
+    773
+  ],
+  "displayW": 294,
+  "displayH": 362,
+  "footOffsetY": 179,
+  "scaleX": 0.4659270998415214,
+  "scaleY": 0.46589446589446587
+}
