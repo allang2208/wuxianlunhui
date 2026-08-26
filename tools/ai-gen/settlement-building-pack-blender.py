@@ -1360,8 +1360,9 @@ def build_cavalry_school(spec):
     return root
 
 
-def build_hamster_barracks(spec):
-    collection, root, mats = common_context("hamster_barracks", spec)
+def build_hamster_barracks_level(building_id, spec, level=1):
+    """Connected two-tower barracks family with tier-specific attached upgrades."""
+    collection, root, mats = common_context(building_id, spec)
     dims = spec["dimensions"]
     fw, fd, fh = dims["foundation"]
     bw, bd, bh = dims["body"]
@@ -1425,6 +1426,494 @@ def build_hamster_barracks(spec):
              (x + (-4 if x < 0 else 4), front_y - 13, fh + 107), mats["iron"], vertices=4)
     kit.lantern(collection, root, "Barracks_GateLantern_Left", (-76, front_y - 18, fh + 98), mats["iron"], mats["glow"])
     kit.lantern(collection, root, "Barracks_GateLantern_Right", (76, front_y - 18, fh + 98), mats["iron"], mats["glow"])
+
+    if level >= 2:
+        # LV2 reads as the same barracks hardened for champion and phalanx
+        # training: all additions remain attached to the hall or its two towers.
+        for side_name, sign in (("Left", -1), ("Right", 1)):
+            buttress_x = sign * (bw / 2 - 13)
+            kit.box(collection, root, f"BarracksLV2_{side_name}GateButtress",
+                    (26, 38, 138), (buttress_x, front_y - 2, fh + 69),
+                    mats["foundation"], bevel_width=4)
+            kit.box(collection, root, f"BarracksLV2_{side_name}GateButtressFoot",
+                    (38, 50, 18), (buttress_x, front_y - 2, fh + 9),
+                    mats["foundation"], bevel_width=3)
+
+            tower_center_x = sign * tower_x
+            tower_front_y = tower_y - td / 2 - 5
+            for band_index, band_z in enumerate((fh + 116, fh + 224)):
+                kit.box(collection, root,
+                        f"BarracksLV2_{side_name}TowerIronBand_{band_index}",
+                        (tw + 16, 9, 10),
+                        (tower_center_x, tower_front_y, band_z),
+                        mats["iron"], bevel_width=2)
+
+            shoulder_z = fh + th - 34
+            kit.box(collection, root, f"BarracksLV2_{side_name}TowerShoulder",
+                    (tw + 28, td + 28, 16),
+                    (tower_center_x, tower_y, shoulder_z),
+                    mats["foundation"], bevel_width=3)
+            for merlon_index, (dx, dy) in enumerate((
+                    (-tw * 0.36, -td * 0.36), (tw * 0.36, -td * 0.36),
+                    (-tw * 0.36, td * 0.36), (tw * 0.36, td * 0.36))):
+                kit.box(collection, root,
+                        f"BarracksLV2_{side_name}TowerMerlon_{merlon_index}",
+                        (24, 24, 30),
+                        (tower_center_x + dx, tower_y + dy, shoulder_z + 20),
+                        mats["foundation"], bevel_width=2)
+
+        wall_walk_z = fh + bh - 24
+        kit.box(collection, root, "BarracksLV2_GateWallWalkDeck",
+                (bw - 38, 42, 14), (0, front_y - 5, wall_walk_z),
+                mats["foundation"], bevel_width=3)
+        for post_index, x in enumerate((-108, -54, 0, 54, 108)):
+            kit.box(collection, root, f"BarracksLV2_GateWallWalkMerlon_{post_index}",
+                    (30, 22, 34), (x, front_y - 13, wall_walk_z + 22),
+                    mats["foundation"], bevel_width=2)
+        for bar_index, x in enumerate((-34, -17, 0, 17, 34)):
+            kit.box(collection, root, f"BarracksLV2_RaisedPortcullisBar_{bar_index}",
+                    (5, 7, 58), (x, front_y - 11, fh + 128),
+                    mats["iron"], bevel_width=1)
+            cone(collection, root, f"BarracksLV2_RaisedPortcullisSpike_{bar_index}",
+                 5, 16, (x, front_y - 11, fh + 95), mats["iron"], vertices=4)
+
+        # Ordered shield racks stay wall-mounted and leave the gate clear.
+        for side_name, sign in (("Left", -1), ("Right", 1)):
+            rack_x = sign * (tower_x + 2)
+            rack_y = tower_y - td / 2 - 12
+            kit.box(collection, root, f"BarracksLV2_{side_name}ShieldRackBack",
+                    (74, 8, 76), (rack_x, rack_y, fh + 92),
+                    mats["timber"], bevel_width=2)
+            for shield_index, dx in enumerate((-23, 0, 23)):
+                kit.cylinder(collection, root,
+                             f"BarracksLV2_{side_name}Shield_{shield_index}",
+                             18, 7, (rack_x + dx, rack_y - 7, fh + 92),
+                             mats["iron"], rotation=(90, 0, 0),
+                             vertices=24, bevel_width=1.5)
+                kit.box(collection, root,
+                        f"BarracksLV2_{side_name}ShieldBoss_{shield_index}",
+                        (7, 6, 7), (rack_x + dx, rack_y - 13, fh + 92),
+                        mats["brass"], bevel_width=2)
+
+    return root
+
+
+def build_hamster_barracks(spec):
+    return build_hamster_barracks_level("hamster_barracks", spec, level=1)
+
+
+def build_hamster_barracks_lv2(spec):
+    """Compact medieval Roman legion barracks with flags and crenellations."""
+    collection, root, mats = common_context("hamster_barracks_lv2", spec)
+    dims = spec["dimensions"]
+    fw, fd, fh = dims["foundation"]
+    bw, bd, bh = dims["body"]
+    flat_roof_w, flat_roof_d, flat_roof_h = dims["flatRoof"]
+    tw, td, th = dims["tower"]
+    gate_w, gate_d, gate_h = dims["gatehouse"]
+    curtain_w, curtain_d, curtain_h = dims["curtainWall"]
+
+    roman_red = kit.material(
+        "MAT_BarracksLV2_LegionCrimson", kit.rgba((0.34, 0.055, 0.035, 1.0)),
+        roughness=0.88, noise={"scale": 11, "detail": 3, "bump": 0.09})
+    roman_red_dark = kit.material(
+        "MAT_BarracksLV2_LegionCrimsonDark", kit.rgba((0.19, 0.028, 0.02, 1.0)),
+        roughness=0.92)
+
+    def add_merlon(name, x, y, z, size=(25, 24, 32)):
+        kit.box(collection, root, name, size, (x, y, z),
+                mats["foundation"], bevel_width=2)
+
+    def add_legion_standard(name, x, y, base_z, height=118):
+        """Roman vexillum: vertical pole, crossbar, cloth, edging and finial."""
+        pole_top = base_z + height
+        kit.cylinder(collection, root, f"{name}_Pole", 4, height,
+                     (x, y, base_z + height / 2), mats["iron"],
+                     vertices=18, bevel_width=1)
+        kit.cylinder(collection, root, f"{name}_Crossbar", 4, 62,
+                     (x, y - 1, pole_top - 25), mats["brass"],
+                     rotation=(0, 90, 0), vertices=18, bevel_width=1)
+        kit.box(collection, root, f"{name}_CrimsonCloth", (48, 6, 58),
+                (x, y - 4, pole_top - 57), roman_red,
+                rotation=(0, 0, -2 if x < 0 else 2), bevel_width=2)
+        kit.box(collection, root, f"{name}_GoldTopTrim", (50, 7, 7),
+                (x, y - 5, pole_top - 31), mats["brass"], bevel_width=1)
+        kit.box(collection, root, f"{name}_DarkLowerTrim", (48, 7, 6),
+                (x, y - 5, pole_top - 84), roman_red_dark, bevel_width=1)
+        cone(collection, root, f"{name}_SpearFinial", 7, 22,
+             (x, y, pole_top + 11), mats["brass"], vertices=4)
+
+    kit.box(collection, root, "Barracks_Foundation", (fw, fd, fh),
+            (0, 0, fh / 2), mats["foundation"], bevel_width=4)
+
+    # A low, connected Roman barracks hall remains the dominant horizontal mass.
+    hall_y = 36
+    kit.box(collection, root, "BarracksLV2_RomanHall_StoneBase",
+            (bw, bd, 92), (0, hall_y, fh + 46), mats["stone"],
+            bevel_width=5)
+    kit.box(collection, root, "BarracksLV2_RomanHall_WarmPlaster",
+            (bw + 2, bd + 2, bh - 88),
+            (0, hall_y, fh + 92 + (bh - 88) / 2), mats["plaster"],
+            bevel_width=3)
+    flat_roof_z = fh + bh
+    kit.box(collection, root, "BarracksLV2_RomanHall_FlatRoofDeck",
+            (flat_roof_w, flat_roof_d, flat_roof_h),
+            (0, hall_y, flat_roof_z + flat_roof_h / 2),
+            mats["foundation"], bevel_width=4)
+    parapet_z = flat_roof_z + flat_roof_h + 12
+    kit.box(collection, root, "BarracksLV2_RomanHall_RearParapet",
+            (flat_roof_w, 12, 24),
+            (0, hall_y + flat_roof_d / 2 - 6, parapet_z),
+            mats["stone"], bevel_width=2)
+    for side_name, sign in (("Left", -1), ("Right", 1)):
+        kit.box(collection, root, f"BarracksLV2_RomanHall_{side_name}Parapet",
+                (12, flat_roof_d - 24, 24),
+                (sign * (flat_roof_w / 2 - 6), hall_y, parapet_z),
+                mats["stone"], bevel_width=2)
+
+    # Twin flat-topped corner towers replace the previous generic pointed roofs.
+    tower_x, tower_y = 155, -34
+    tower_top = fh + th
+    for side_name, sign in (("Left", -1), ("Right", 1)):
+        x = sign * tower_x
+        prefix = f"BarracksLV2_Roman{side_name}Tower"
+        kit.box(collection, root, f"{prefix}_Shaft", (tw, td, th),
+                (x, tower_y, fh + th / 2), mats["stone"], bevel_width=5)
+        kit.box(collection, root, f"{prefix}_StonePlinth", (tw + 14, td + 14, 18),
+                (x, tower_y, fh + 9), mats["foundation"], bevel_width=3)
+        for band_index, band_z in enumerate((fh + 78, fh + 156, tower_top - 18)):
+            kit.box(collection, root, f"{prefix}_CourseBand_{band_index}",
+                    (tw + 12, td + 12, 11), (x, tower_y, band_z),
+                    mats["foundation"], bevel_width=2)
+        kit.box(collection, root, f"{prefix}_FrontArrowSlit", (13, 8, 54),
+                (x, tower_y - td / 2 - 4, fh + 142), mats["glass"],
+                bevel_width=5)
+        kit.box(collection, root, f"{prefix}_ParapetDeck", (tw + 24, td + 24, 16),
+                (x, tower_y, tower_top), mats["foundation"], bevel_width=3)
+
+        merlon_z = tower_top + 23
+        for index, dx in enumerate((-34, 0, 34)):
+            add_merlon(f"{prefix}_FrontMerlon_{index}", x + dx,
+                       tower_y - td / 2 - 7, merlon_z)
+            add_merlon(f"{prefix}_RearMerlon_{index}", x + dx,
+                       tower_y + td / 2 + 7, merlon_z)
+        for edge_name, edge_x in (("Outer", x + sign * (tw / 2 + 7)),
+                                  ("Inner", x - sign * (tw / 2 + 7))):
+            add_merlon(f"{prefix}_{edge_name}SideMerlon", edge_x, tower_y,
+                       merlon_z, size=(24, 28, 32))
+
+        # One Roman scutum identifies each tower without adding loose weapons.
+        shield_y = tower_y - td / 2 - 9
+        kit.box(collection, root, f"{prefix}_CrimsonScutum", (46, 8, 64),
+                (x, shield_y, fh + 92), roman_red, bevel_width=10)
+        kit.box(collection, root, f"{prefix}_ScutumSpine", (8, 9, 54),
+                (x, shield_y - 4, fh + 92), mats["brass"], bevel_width=2)
+        kit.cylinder(collection, root, f"{prefix}_ScutumBoss", 9, 8,
+                     (x, shield_y - 7, fh + 92), mats["brass"],
+                     rotation=(90, 0, 0), vertices=20, bevel_width=1)
+
+        add_legion_standard(f"{prefix}_LegionStandard", x,
+                            tower_y + 10, tower_top + 8)
+
+    # A connected front curtain and central arched gatehouse form one compact fort.
+    curtain_y = -82
+    gate_opening_w = 84
+    wall_segment_w = (curtain_w - gate_opening_w) / 2
+    for side_name, sign in (("Left", -1), ("Right", 1)):
+        segment_x = sign * (gate_opening_w / 2 + wall_segment_w / 2)
+        kit.box(collection, root, f"BarracksLV2_RomanCurtain_{side_name}Wall",
+                (wall_segment_w, curtain_d, curtain_h),
+                (segment_x, curtain_y, fh + curtain_h / 2), mats["stone"],
+                bevel_width=4)
+        for merlon_index, dx in enumerate((-48, 0, 48)):
+            add_merlon(f"BarracksLV2_RomanCurtain_{side_name}Merlon_{merlon_index}",
+                       segment_x + dx, curtain_y - 4,
+                       fh + curtain_h + 18, size=(24, 25, 32))
+
+    gate_front = curtain_y - gate_d / 2 - 4
+    kit.box(collection, root, "BarracksLV2_RomanGatehouse_Body",
+            (gate_w, gate_d, gate_h),
+            (0, curtain_y, fh + gate_h / 2), mats["stone"], bevel_width=5)
+    portal_core(collection, root, "BarracksLV2_RomanGatehouse_DarkPortal",
+                42, fh + 2, fh + 74, 8, gate_front - 4, roman_red_dark)
+    portal_arch_ring(collection, root, "BarracksLV2_RomanGatehouse_StoneArch",
+                     55, 42, 12, fh + 74, gate_front - 6,
+                     mats["foundation"], segments=28)
+    for side_name, sign in (("Left", -1), ("Right", 1)):
+        kit.box(collection, root, f"BarracksLV2_RomanGatehouse_{side_name}Jamb",
+                (18, 18, 92), (sign * 49, gate_front - 5, fh + 47),
+                mats["foundation"], bevel_width=3)
+        kit.box(collection, root, f"BarracksLV2_RomanGatehouse_{side_name}Pilaster",
+                (20, 18, 148), (sign * 66, gate_front - 2, fh + 74),
+                mats["plaster"], bevel_width=3)
+    kit.box(collection, root, "BarracksLV2_RomanGatehouse_WallWalk",
+            (gate_w + 20, gate_d + 16, 16),
+            (0, curtain_y, fh + gate_h), mats["foundation"], bevel_width=3)
+    for merlon_index, x in enumerate((-64, -32, 0, 32, 64)):
+        add_merlon(f"BarracksLV2_RomanGatehouse_FrontMerlon_{merlon_index}",
+                   x, gate_front - 2, fh + gate_h + 22,
+                   size=(22, 24, 32))
+
+    kit.box(collection, root, "BarracksLV2_RomanGatehouse_GoldEaglePlaque",
+            (42, 8, 30), (0, gate_front - 9, fh + 148),
+            mats["brass"], bevel_width=10)
+    kit.box(collection, root, "BarracksLV2_RomanGatehouse_PlaqueWingLeft",
+            (28, 7, 9), (-26, gate_front - 10, fh + 148),
+            mats["brass"], rotation=(0, 0, -15), bevel_width=3)
+    kit.box(collection, root, "BarracksLV2_RomanGatehouse_PlaqueWingRight",
+            (28, 7, 9), (26, gate_front - 10, fh + 148),
+            mats["brass"], rotation=(0, 0, 15), bevel_width=3)
+    kit.lantern(collection, root, "BarracksLV2_RomanGatehouse_LeftLantern",
+                (-68, gate_front - 15, fh + 96), mats["iron"], mats["glow"])
+    kit.lantern(collection, root, "BarracksLV2_RomanGatehouse_RightLantern",
+                (68, gate_front - 15, fh + 96), mats["iron"], mats["glow"])
+    return root
+
+
+def build_hamster_barracks_lv3(spec):
+    """Modern infantry field barracks: compact tent, lookout tower and kit zones."""
+    collection, root, mats = common_context("hamster_barracks_lv3", spec)
+    dims = spec["dimensions"]
+    fw, fd, fh = dims["foundation"]
+    tent_w, tent_d, tent_wall_h = dims["tentWall"]
+    tent_roof_w, tent_roof_d, tent_roof_h = dims["tentRoof"]
+    tower_w, tower_d, tower_h = dims["watchtower"]
+    tower_roof_w, tower_roof_d, tower_roof_h = dims["watchtowerRoof"]
+
+    concrete = kit.material(
+        "MAT_BarracksLV3_FieldConcrete", kit.rgba((0.24, 0.25, 0.225, 1.0)),
+        roughness=0.96, noise={"scale": 10, "detail": 3, "bump": 0.11})
+    olive_canvas = kit.material(
+        "MAT_BarracksLV3_OliveCanvas", kit.rgba((0.18, 0.215, 0.125, 1.0)),
+        roughness=0.98, noise={"scale": 14, "detail": 4, "bump": 0.16})
+    dark_canvas = kit.material(
+        "MAT_BarracksLV3_DarkCanvas", kit.rgba((0.075, 0.105, 0.06, 1.0)),
+        roughness=0.99, noise={"scale": 12, "detail": 3, "bump": 0.12})
+    webbing = kit.material(
+        "MAT_BarracksLV3_CanvasWebbing", kit.rgba((0.11, 0.125, 0.07, 1.0)),
+        roughness=0.94)
+    sandbag = kit.material(
+        "MAT_BarracksLV3_Sandbag", kit.rgba((0.34, 0.31, 0.21, 1.0)),
+        roughness=0.99, noise={"scale": 16, "detail": 4, "bump": 0.18})
+    ammo_olive = kit.material(
+        "MAT_BarracksLV3_AmmoOlive", kit.rgba((0.12, 0.145, 0.075, 1.0)),
+        metallic=0.22, roughness=0.88,
+        noise={"scale": 18, "detail": 3, "bump": 0.08})
+    equipment_dark = kit.material(
+        "MAT_BarracksLV3_EquipmentDark", kit.rgba((0.075, 0.082, 0.065, 1.0)),
+        metallic=0.48, roughness=0.8)
+
+    def add_ammo_crate(name, x, y, z, rotation=0):
+        """One editable, closed military crate with structural bands and handles."""
+        kit.box(collection, root, f"{name}_Body", (56, 38, 28),
+                (x, y, z + 14), ammo_olive, rotation=(0, 0, rotation),
+                bevel_width=3)
+        kit.box(collection, root, f"{name}_Lid", (58, 40, 5),
+                (x, y, z + 29), equipment_dark,
+                rotation=(0, 0, rotation), bevel_width=1.5)
+        for band_index, offset in enumerate((-18, 18)):
+            kit.box(collection, root, f"{name}_Band_{band_index}", (5, 41, 32),
+                    (x + offset, y, z + 15), equipment_dark,
+                    rotation=(0, 0, rotation), bevel_width=1)
+        kit.box(collection, root, f"{name}_Handle", (22, 6, 8),
+                (x, y - 22, z + 17), equipment_dark,
+                rotation=(0, 0, rotation), bevel_width=2)
+
+    def add_jerry_can(name, x, y, rotation=0):
+        """Compact fuel/water can used only as fixed barracks dressing."""
+        kit.box(collection, root, f"{name}_Body", (24, 17, 38),
+                (x, y, fh + 19), ammo_olive, rotation=(0, 0, rotation),
+                bevel_width=4)
+        kit.box(collection, root, f"{name}_TopHandle", (14, 7, 8),
+                (x, y, fh + 42), equipment_dark,
+                rotation=(0, 0, rotation), bevel_width=2)
+        kit.cylinder(collection, root, f"{name}_Cap", 4, 7,
+                     (x + 7, y, fh + 44), equipment_dark,
+                     rotation=(90, 0, 0), vertices=16, bevel_width=1)
+
+    kit.box(collection, root, "BarracksLV3_FieldFoundation", (fw, fd, fh),
+            (0, 0, fh / 2), concrete, bevel_width=5)
+
+    # One complete modern infantry tent is the dominant mass.
+    tent_x, tent_y = -48, 34
+    tent_front = tent_y - tent_d / 2 - 4
+    kit.box(collection, root, "BarracksLV3_InfantryTent_LowCanvasWall",
+            (tent_w, tent_d, tent_wall_h),
+            (tent_x, tent_y, fh + tent_wall_h / 2), olive_canvas,
+            bevel_width=4)
+    kit.box(collection, root, "BarracksLV3_InfantryTent_ConcreteSkirt",
+            (tent_w + 10, tent_d + 10, 18),
+            (tent_x, tent_y, fh + 9), concrete, bevel_width=3)
+    tent_roof_base = fh + tent_wall_h - 3
+    kit.gabled_prism(collection, root, "BarracksLV3_InfantryTent_CanvasRoof",
+                     tent_roof_w, tent_roof_d, tent_roof_h,
+                     (tent_x, tent_y, tent_roof_base),
+                     dark_canvas, olive_canvas)
+    kit.box(collection, root, "BarracksLV3_InfantryTent_RidgeWebbing",
+            (tent_roof_w + 8, 9, 9),
+            (tent_x, tent_y, tent_roof_base + tent_roof_h + 2),
+            webbing, bevel_width=2)
+
+    # The open entrance and tied-back flaps are part of the authored Body Depth.
+    kit.box(collection, root, "BarracksLV3_InfantryTent_DarkEntrance",
+            (96, 8, 76), (tent_x, tent_front - 2, fh + 39),
+            dark_canvas, bevel_width=5)
+    for side_name, sign in (("Left", -1), ("Right", 1)):
+        flap_x = tent_x + sign * 54
+        kit.box(collection, root,
+                f"BarracksLV3_InfantryTent_{side_name}TiedFlap",
+                (42, 8, 82), (flap_x, tent_front - 8, fh + 43),
+                olive_canvas, rotation=(0, 0, sign * 10), bevel_width=5)
+        kit.box(collection, root,
+                f"BarracksLV3_InfantryTent_{side_name}FlapTie",
+                (12, 11, 9),
+                (tent_x + sign * 70, tent_front - 13, fh + 41),
+                webbing, bevel_width=3)
+    for post_index, x in enumerate((tent_x - 63, tent_x + 63)):
+        kit.box(collection, root, f"BarracksLV3_InfantryTent_EntrancePost_{post_index}",
+                (10, 10, tent_wall_h + 18),
+                (x, tent_front - 3, fh + (tent_wall_h + 18) / 2),
+                mats["iron"], bevel_width=1.5)
+    kit.box(collection, root, "BarracksLV3_InfantryTent_EntranceHeader",
+            (136, 11, 10), (tent_x, tent_front - 3, fh + tent_wall_h + 12),
+            mats["iron"], bevel_width=1.5)
+
+    # Rolled canvas windows make the tent read as a present-day field barracks.
+    for side_name, sign in (("Left", -1), ("Right", 1)):
+        window_x = tent_x + sign * 92
+        kit.box(collection, root,
+                f"BarracksLV3_InfantryTent_{side_name}Window",
+                (44, 7, 28), (window_x, tent_front - 6, fh + 44),
+                mats["glass"], bevel_width=4)
+        kit.cylinder(collection, root,
+                     f"BarracksLV3_InfantryTent_{side_name}RolledWindowCover",
+                     7, 48, (window_x, tent_front - 11, fh + 67),
+                     dark_canvas, rotation=(0, 90, 0), vertices=20,
+                     bevel_width=1.5)
+
+    # A low sandbag breastwork stays beside the entrance without becoming a wall.
+    for side_name, sign in (("Left", -1), ("Right", 1)):
+        base_x = tent_x + sign * 108
+        for row_index, z in enumerate((fh + 10, fh + 27)):
+            count = 3 if row_index == 0 else 2
+            for bag_index in range(count):
+                offset = (bag_index - (count - 1) / 2) * 39
+                kit.box(collection, root,
+                        f"BarracksLV3_{side_name}Sandbag_R{row_index}_{bag_index}",
+                        (43, 25, 17),
+                        (base_x + sign * offset, tent_front - 24, z),
+                        sandbag, rotation=(0, 0, sign * 3), bevel_width=8)
+
+    # Exactly one open lookout tower touches the tent's right side.
+    tower_x, tower_y = 160, 58
+    post_inset_x, post_inset_y = tower_w * 0.34, tower_d * 0.34
+    for x_sign, x_label in ((-1, "Left"), (1, "Right")):
+        for y_sign, y_label in ((-1, "Front"), (1, "Rear")):
+            px = tower_x + x_sign * post_inset_x
+            py = tower_y + y_sign * post_inset_y
+            kit.box(collection, root,
+                    f"BarracksLV3_Watchtower_{x_label}{y_label}Post",
+                    (14, 14, tower_h), (px, py, fh + tower_h / 2),
+                    mats["iron"], bevel_width=2)
+    brace_z = fh + tower_h * 0.46
+    for face_name, y in (("Front", tower_y - post_inset_y),
+                         ("Rear", tower_y + post_inset_y)):
+        for brace_index, angle in enumerate((-34, 34)):
+            kit.box(collection, root,
+                    f"BarracksLV3_Watchtower_{face_name}Brace_{brace_index}",
+                    (10, 10, tower_h * 0.72),
+                    (tower_x, y, brace_z), mats["iron"],
+                    rotation=(0, angle, 0), bevel_width=1.2)
+    for face_name, x in (("Left", tower_x - post_inset_x),
+                         ("Right", tower_x + post_inset_x)):
+        for brace_index, angle in enumerate((-34, 34)):
+            kit.box(collection, root,
+                    f"BarracksLV3_Watchtower_{face_name}Brace_{brace_index}",
+                    (10, 10, tower_h * 0.72),
+                    (x, tower_y, brace_z), mats["iron"],
+                    rotation=(angle, 0, 0), bevel_width=1.2)
+
+    deck_z = fh + tower_h
+    kit.box(collection, root, "BarracksLV3_Watchtower_Deck",
+            (tower_w + 24, tower_d + 24, 16),
+            (tower_x, tower_y, deck_z), concrete, bevel_width=4)
+    rail_z = deck_z + 36
+    for x_sign, x_label in ((-1, "Left"), (1, "Right")):
+        for y_sign, y_label in ((-1, "Front"), (1, "Rear")):
+            kit.box(collection, root,
+                    f"BarracksLV3_Watchtower_RailPost_{x_label}{y_label}",
+                    (9, 9, 58),
+                    (tower_x + x_sign * (tower_w / 2 + 7),
+                     tower_y + y_sign * (tower_d / 2 + 7), rail_z),
+                    mats["iron"], bevel_width=1)
+    for side_name, dx, dy, sx, sy in (
+            ("Front", 0, -tower_d / 2 - 7, tower_w + 22, 8),
+            ("Rear", 0, tower_d / 2 + 7, tower_w + 22, 8),
+            ("Left", -tower_w / 2 - 7, 0, 8, tower_d + 22),
+            ("Right", tower_w / 2 + 7, 0, 8, tower_d + 22)):
+        for rail_index, dz in enumerate((16, 42)):
+            kit.box(collection, root,
+                    f"BarracksLV3_Watchtower_{side_name}Rail_{rail_index}",
+                    (sx, sy, 7), (tower_x + dx, tower_y + dy, deck_z + dz),
+                    mats["iron"], bevel_width=1)
+    canopy_base = deck_z + 56
+    kit.gabled_prism(collection, root, "BarracksLV3_Watchtower_CanvasCanopy",
+                     tower_roof_w, tower_roof_d, tower_roof_h,
+                     (tower_x, tower_y, canopy_base), dark_canvas, olive_canvas)
+    kit.box(collection, root, "BarracksLV3_Watchtower_CanopyRidge",
+            (tower_roof_w + 6, 8, 8),
+            (tower_x, tower_y, canopy_base + tower_roof_h + 2),
+            webbing, bevel_width=1.5)
+
+    # Fixed ladder and short landing make the tower part of the same barracks.
+    ladder_y = tower_y - tower_d / 2 - 13
+    for side in (-1, 1):
+        kit.box(collection, root, f"BarracksLV3_Watchtower_LadderRail_{side:+d}",
+                (8, 8, tower_h - 18),
+                (tower_x + side * 22, ladder_y, fh + (tower_h - 18) / 2),
+                mats["iron"], bevel_width=1)
+    for rung_index, z in enumerate(range(int(fh + 22), int(deck_z - 10), 22)):
+        kit.box(collection, root, f"BarracksLV3_Watchtower_LadderRung_{rung_index}",
+                (52, 9, 6), (tower_x, ladder_y - 1, z),
+                mats["iron"], bevel_width=1)
+    tent_right = tent_x + tent_w / 2
+    tower_left = tower_x - tower_w / 2
+    connector_w = max(24, tower_left - tent_right + 36)
+    kit.box(collection, root, "BarracksLV3_TentTowerConnectorLanding",
+            (connector_w, 68, 12),
+            ((tent_right + tower_left) / 2, tower_y, fh + 66),
+            mats["iron"], bevel_width=3)
+    kit.lantern(collection, root, "BarracksLV3_EntranceLantern",
+                (tent_x - 72, tent_front - 18, fh + 74),
+                mats["iron"], mats["glow"])
+
+    # Three deliberate equipment zones use the space released by the smaller tent.
+    # They stay clear of the open entrance and the tower's fixed front ladder.
+    add_ammo_crate("BarracksLV3_LeftAmmoStack_LowerA", -202, 92, fh, rotation=-4)
+    add_ammo_crate("BarracksLV3_LeftAmmoStack_LowerB", -151, 99, fh, rotation=-4)
+    add_ammo_crate("BarracksLV3_LeftAmmoStack_Upper", -177, 96, fh + 32,
+                   rotation=-4)
+
+    add_ammo_crate("BarracksLV3_RightSupplyCrate_A", 74, -145, fh, rotation=5)
+    add_ammo_crate("BarracksLV3_RightSupplyCrate_B", 125, -139, fh, rotation=5)
+    add_jerry_can("BarracksLV3_RightSupplyJerryCan_A", 73, -109, rotation=-4)
+    add_jerry_can("BarracksLV3_RightSupplyJerryCan_B", 102, -108, rotation=4)
+
+    kit.box(collection, root, "BarracksLV3_TowerService_FieldRadio",
+            (44, 28, 46), (215, 15, fh + 23), ammo_olive,
+            rotation=(0, 0, -5), bevel_width=3)
+    kit.box(collection, root, "BarracksLV3_TowerService_RadioFace",
+            (30, 5, 22), (215, -1, fh + 26), mats["glass"],
+            rotation=(0, 0, -5), bevel_width=2)
+    kit.cylinder(collection, root, "BarracksLV3_TowerService_CableSpoolLeft",
+                 17, 7, (220, 51, fh + 19), equipment_dark,
+                 rotation=(90, 0, 0), vertices=20, bevel_width=2)
+    kit.cylinder(collection, root, "BarracksLV3_TowerService_CableSpoolRight",
+                 17, 7, (220, 70, fh + 19), equipment_dark,
+                 rotation=(90, 0, 0), vertices=20, bevel_width=2)
+    kit.cylinder(collection, root, "BarracksLV3_TowerService_CableSpoolAxle",
+                 6, 26, (220, 60, fh + 19), ammo_olive,
+                 rotation=(90, 0, 0), vertices=16, bevel_width=1)
     return root
 
 
@@ -3609,6 +4098,8 @@ BUILDERS = {
     "shooting_range": build_shooting_range,
     "cavalry_school": build_cavalry_school,
     "hamster_barracks": build_hamster_barracks,
+    "hamster_barracks_lv2": build_hamster_barracks_lv2,
+    "hamster_barracks_lv3": build_hamster_barracks_lv3,
     "explorer_camp": build_explorer_camp,
     "miner_camp": build_miner_camp,
     "market": build_market,

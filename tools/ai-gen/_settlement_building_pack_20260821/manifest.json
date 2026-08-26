@@ -285,6 +285,50 @@
         "towerRoof": [78, 76]
       }
     },
+    "hamster_barracks_lv2": {
+      "cameraOverrides": { "widthMargin": 0.90, "bottomY": 925, "topMargin": 42 },
+      "paletteOverrides": {
+        "foundation": [0.24, 0.235, 0.22, 1.0],
+        "stone": [0.31, 0.30, 0.28, 1.0],
+        "plaster": [0.42, 0.36, 0.30, 1.0],
+        "timber": [0.105, 0.06, 0.035, 1.0],
+        "roof": [0.27, 0.075, 0.04, 1.0],
+        "iron": [0.075, 0.08, 0.085, 1.0],
+        "brass": [0.34, 0.22, 0.075, 1.0],
+        "glass": [0.29, 0.10, 0.025, 1.0]
+      },
+      "bodyDepthExclude": ["Barracks_Foundation"],
+      "dimensions": {
+        "foundation": [480, 392, 16],
+        "body": [270, 220, 150],
+        "flatRoof": [294, 244, 16],
+        "tower": [100, 110, 230],
+        "gatehouse": [156, 62, 178],
+        "curtainWall": [370, 34, 104]
+      }
+    },
+    "hamster_barracks_lv3": {
+      "cameraOverrides": { "widthMargin": 0.90, "bottomY": 925, "topMargin": 42 },
+      "paletteOverrides": {
+        "foundation": [0.23, 0.235, 0.22, 1.0],
+        "stone": [0.28, 0.285, 0.27, 1.0],
+        "plaster": [0.30, 0.33, 0.25, 1.0],
+        "timber": [0.085, 0.07, 0.045, 1.0],
+        "roof": [0.14, 0.18, 0.11, 1.0],
+        "iron": [0.055, 0.062, 0.058, 1.0],
+        "brass": [0.24, 0.22, 0.105, 1.0],
+        "glass": [0.10, 0.18, 0.14, 1.0],
+        "glow": [0.52, 0.44, 0.18, 1.0]
+      },
+      "bodyDepthExclude": ["BarracksLV3_FieldFoundation"],
+      "dimensions": {
+        "foundation": [480, 392, 16],
+        "tentWall": [270, 190, 68],
+        "tentRoof": [300, 220, 90],
+        "watchtower": [104, 104, 210],
+        "watchtowerRoof": [132, 122, 54]
+      }
+    },
     "explorer_camp": {
       "paletteOverrides": {
         "foundation": [0.23, 0.22, 0.20, 1.0],

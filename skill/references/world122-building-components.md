@@ -88,6 +88,12 @@
 | 仓鼠军营 | `Barracks_MainHall_*` / `Barracks_MainGate_*` | 中央石砌操练厅、连续双坡屋顶、强化门框、双开军营门和暖光入口 | `build_hamster_barracks()` |
 | 仓鼠军营 | `Barracks_LeftWatchtower_*` / `Barracks_RightWatchtower_*` | 两座完整对称石砌瞭望塔、强化石带、箭窗、方锥顶与独立顶饰 | `build_hamster_barracks()` |
 | 仓鼠军营 | `Barracks_WeaponRack_*` / `Barracks_ShieldCrest` / `Barracks_GateLantern_*` | 附墙长矛架、盾徽与门灯；维持克制的军事识别，不生成独立院落 | `build_hamster_barracks()` |
+| 仓鼠军营 LV2 | `BarracksLV2_RomanHall_*` / `Roman*Tower_*` | 独立的紧凑罗马军团营母体：唯一低矮石灰石/灰泥营房、完整石质平屋顶与克制的侧/后低女儿墙，以及左右各一座相连平顶方塔；废弃此前二级坡顶/尖顶塔语法，不增加第三塔、第二营房或占地 | `build_hamster_barracks_lv2()` |
+| 仓鼠军营 LV2 | `BarracksLV2_RomanCurtain_*` / `RomanGatehouse_*` | 与双塔和营房相交的单段前幕墙、唯一中央拱门楼、暗门洞及塔/幕墙/门楼成组宽城垛；保持完整2×2地基与清晰中央入口 | `build_hamster_barracks_lv2()` / `portal_core()` / `portal_arch_ring()` |
+| 仓鼠军营 LV2 | `*LegionStandard_*` / `*CrimsonScutum*` | 两座塔各固定一面深红罗马军团旗和一面深红罗马盾，统一使用暗红布、氧化黄铜、黑铁与风化石材；旗、横杆、饰边、矛尖及盾件全部独立可编辑，禁止额外旗帜、文字或散落武器 | `build_hamster_barracks_lv2()` |
+| 仓鼠军营 LV3 | `BarracksLV3_InfantryTent_*` / `*Sandbag*` | 一顶略收小的完整现代军用双坡帐篷作为唯一主体，含敞开系束门帘、两扇卷帘窗、脊带、入口框和两组低矮沙袋；不继承LV2石厅、红瓦、双塔或垛口 | `build_hamster_barracks_lv3()` |
+| 仓鼠军营 LV3 | `BarracksLV3_Watchtower_*` / `TentTowerConnectorLanding` | 一座四柱开放式钢制瞭望塔，含交叉撑、观测台、栏杆、固定梯和小型帆布顶，并以短落地连接台贴合帐篷侧；不增加第二塔、围栏、铁丝网、雷达或车辆 | `build_hamster_barracks_lv3()` |
+| 仓鼠军营 LV3 | `BarracksLV3_LeftAmmoStack_*` / `RightSupply*` / `TowerService_*` | 缩小帐篷后释放的营地空间固定为三组有序道具：左侧三只弹药箱叠放、右侧两只补给箱加两只油水桶、塔侧一台野战电台加一只线缆盘；不得堵门、挡梯或随机散落额外箱桶 | `build_hamster_barracks_lv3()` |
 | 研究院 LV1 | `ResearchLV1_CentralTower_*` | 唯一中央方塔；白色塔身、冷灰角扶壁、双层蓝色尖券窗、方锥蓝顶和克制顶饰，禁止增生侧塔、角塔或穹顶 | `build_research_institute()` / `research_pyramid_roof()` / `research_pointed_window()` |
 | 研究院 LV1 | `ResearchLV1_NorthWing_*` / `SouthWing_*` / `EastWing_*` / `WestWing_*` | 从中央塔向四面伸出的四座相连低矮裙楼；白墙、灰石裙与蓝色双坡顶共享同一方形 2×2 地基 | `build_research_institute()` / `gabled_prism()` |
 | 研究院 LV1 | `ResearchLV1_DiamondColumn_*` / `ResearchLV1_FlyingButtress_*` | 四根旋转45度的低矮菱形截面围柱，位于四翼之间并以双层飞扶壁接入中央塔；柱顶保持平阶，不得读成额外塔楼 | `build_research_institute()` / `research_diamond_column()` / `research_diagonal_beam()` |
