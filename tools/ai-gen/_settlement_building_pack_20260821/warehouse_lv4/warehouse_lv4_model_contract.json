@@ -1,0 +1,106 @@
+{
+  "assetId": "warehouse_lv4",
+  "label": "仓库 LV4 · 自动化仓库",
+  "status": "refine_v02_selected_and_integrated",
+  "sourceFamily": "warehouse_lv3",
+  "sourceModel": "tools/ai-gen/_settlement_building_pack_20260821/warehouse_lv3/warehouse_lv3_model.blend",
+  "assetClass": "building",
+  "footprintCells": 2,
+  "cameraElevationDegrees": 30,
+  "rootRotationZDegrees": 44.8,
+  "dimensions": {
+    "foundation": [500, 414, 16],
+    "body": [382, 286, 424],
+    "roof": [434, 338, 116]
+  },
+  "outputs": {
+    "blend": "tools/ai-gen/_settlement_building_pack_20260821/warehouse_lv4/warehouse_lv4_model.blend",
+    "preview": "tools/ai-gen/_settlement_building_pack_20260821/warehouse_lv4/warehouse_lv4_model_preview.png",
+    "approvalPreview": "tools/ai-gen/_settlement_building_pack_20260821/warehouse_lv4/warehouse_lv4_model_approval_preview.png",
+    "depth": "tools/ai-gen/_settlement_building_pack_20260821/warehouse_lv4/warehouse_lv4_depth.png",
+    "bodyDepth": "tools/ai-gen/_settlement_building_pack_20260821/warehouse_lv4/warehouse_lv4_body_depth.png",
+    "refineDoorDepth": "tools/ai-gen/_settlement_building_pack_20260821/warehouse_lv4/warehouse_lv4_refine_door_depth.png",
+    "refineCorrectionMask": "tools/ai-gen/_settlement_building_pack_20260821/warehouse_lv4/warehouse_lv4_door_shadow_correction_mask.png",
+    "selectedRefineRaw": "tools/ai-gen/_settlement_building_pack_20260821/warehouse_lv4/candidates/refine_48step_doorfix_depth_from_v01_seed122501/warehouse_lv4/warehouse_lv4_refine_v02_raw.png",
+    "selectedRefineBody": "tools/ai-gen/_settlement_building_pack_20260821/warehouse_lv4/candidates/refine_48step_doorfix_depth_from_v01_seed122501/warehouse_lv4/warehouse_lv4_refine_v02_body.png",
+    "runtimeAsset": "assets/terrain/warehouse_lv4.png",
+    "runtimeMetadata": "tools/ai-gen/_settlement_building_pack_20260821/warehouse_lv4/warehouse_lv4_runtime_metadata.json"
+  },
+  "structureGeneration": {
+    "pipeline": "world122-building-candidates",
+    "styleVersion": "world122-building-v2",
+    "styleTemplate": "tools/ai-gen/prompts/world122-building-style.md",
+    "model": "flux2-dev-depth",
+    "size": "1024x1024",
+    "steps": 12,
+    "depthStrength": 0.78,
+    "cfg": 3.5,
+    "sampler": "euler",
+    "scheduler": "simple",
+    "edgeControl": false,
+    "nonstandardOverride": false,
+    "seeds": [122481, 122482, 122483],
+    "keyThreshold": 40,
+    "removeEnclosedKey": true
+  },
+  "selectedStructure": "tools/ai-gen/_settlement_building_pack_20260821/warehouse_lv4/candidates/warehouse_lv4/warehouse_lv4_structure_v02_raw.png",
+  "refineSelection": {
+    "selected": "v02",
+    "selectedBy": "user",
+    "selectedAt": "2026-08-26",
+    "source": "tools/ai-gen/_settlement_building_pack_20260821/warehouse_lv4/candidates/refine_48step_doorfix_depth_from_v01_seed122501/warehouse_lv4/warehouse_lv4_refine_v02_body.png",
+    "review": "approved after the user confirmed the corrected v02 cutout was already valid; both loading doors remain readable and the erroneous lower machine and external backdrop shadow are absent"
+  },
+  "refineCorrection": {
+    "steps": 48,
+    "depthStrength": 0.75,
+    "denoise": 0.85,
+    "maskChannel": "red",
+    "seeds": [122501, 122502],
+    "nonstandardOverride": true,
+    "removeAllGreen": true,
+    "purpose": "remove the lower machine blocking the right loading door and exclude the generated backdrop shadow"
+  },
+  "inheritedStructure": [
+    "exactly four connected storeys",
+    "one continuous steep gable roof",
+    "exactly two reinforced ground loading bays",
+    "attached stone buttresses, lower iron bands and front loading dock",
+    "second-floor front loading balcony and perpendicular fourth-floor side balcony",
+    "exactly one exterior cargo lift with two rails, one cage, one pulley and one powered winch"
+  ],
+  "lv4Structure": [
+    "one enclosed automatic sorter bolted to the visible side wall",
+    "one short brass-roller conveyor bridge directly joining the inherited cargo lift to the sorter",
+    "one inspection window exposing a single indexing drum",
+    "one compact attached routing manifold",
+    "exactly two enclosed vertical routing chutes",
+    "exactly two grounded receiving bins inside the original 2x2 foundation"
+  ],
+  "reservedForLaterLevels": [
+    "LV5 phase vault core",
+    "LV5 energy ring and cross-dimensional reserve hardware"
+  ],
+  "negativeConstraints": [
+    "no fifth floor",
+    "no second building, detached annex or engine house",
+    "no second roof, tower, chimney or smokestack",
+    "no second cargo lift or long exterior conveyor network",
+    "no robot arm, robot or vehicle",
+    "no phase core, energy ring, futuristic machinery or neon",
+    "no people, readable text or oversized foundation"
+  ],
+  "archive": {
+    "status": "minimal_reproducible_source_set",
+    "keptFiles": 31,
+    "deletedFiles": 67,
+    "releasedMiB": 50.34,
+    "reproductionChain": [
+      "warehouse_lv4_structure_v02_raw.png",
+      "warehouse_lv4_refine_v01_raw.png",
+      "warehouse_lv4_refine_v02_raw.png",
+      "warehouse_lv4_refine_v02_body.png"
+    ]
+  },
+  "nextStage": "LV4 runtime asset integrated; continue with LV5 modeling when requested"
+}

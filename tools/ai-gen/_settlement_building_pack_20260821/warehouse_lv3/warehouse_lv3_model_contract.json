@@ -1,0 +1,121 @@
+{
+  "assetId": "warehouse_lv3",
+  "label": "仓库 LV3 · 机械仓库",
+  "status": "refine_v02_selected_and_integrated",
+  "sourceFamily": "warehouse_lv2",
+  "sourceModel": "tools/ai-gen/_settlement_building_pack_20260821/warehouse_lv2/warehouse_lv2_model.blend",
+  "assetClass": "building",
+  "footprintCells": 2,
+  "cameraElevationDegrees": 30,
+  "rootRotationZDegrees": 44.8,
+  "dimensions": {
+    "foundation": [500, 414, 16],
+    "body": [382, 286, 424],
+    "roof": [434, 338, 116]
+  },
+  "outputs": {
+    "blend": "tools/ai-gen/_settlement_building_pack_20260821/warehouse_lv3/warehouse_lv3_model.blend",
+    "preview": "tools/ai-gen/_settlement_building_pack_20260821/warehouse_lv3/warehouse_lv3_model_preview.png",
+    "depth": "tools/ai-gen/_settlement_building_pack_20260821/warehouse_lv3/warehouse_lv3_depth.png",
+    "bodyDepth": "tools/ai-gen/_settlement_building_pack_20260821/warehouse_lv3/warehouse_lv3_body_depth.png",
+    "structureCandidateRoot": "tools/ai-gen/_settlement_building_pack_20260821/warehouse_lv3/candidates/warehouse_lv3",
+    "selectedStructureRaw": "tools/ai-gen/_settlement_building_pack_20260821/warehouse_lv3/candidates/warehouse_lv3/warehouse_lv3_structure_v02_raw.png",
+    "userCutout": "tools/ai-gen/_settlement_building_pack_20260821/warehouse_lv3/candidates/warehouse_lv3/warehouse_lv3_refine_v02.png",
+    "greenCleanedCutout": "tools/ai-gen/_settlement_building_pack_20260821/warehouse_lv3/candidates/warehouse_lv3/warehouse_lv3_refine_v02_green_cleaned.png",
+    "runtimeAsset": "assets/terrain/warehouse_lv3.png",
+    "runtimeMetadata": "tools/ai-gen/_settlement_building_pack_20260821/warehouse_lv3/warehouse_lv3_runtime_metadata.json"
+  },
+  "structureGeneration": {
+    "pipeline": "world122-building-candidates",
+    "styleVersion": "world122-building-v2",
+    "styleTemplate": "tools/ai-gen/prompts/world122-building-style.md",
+    "model": "flux2-dev-depth",
+    "size": "1024x1024",
+    "steps": 12,
+    "depthStrength": 0.78,
+    "cfg": 3.5,
+    "sampler": "euler",
+    "scheduler": "simple",
+    "edgeControl": false,
+    "nonstandardOverride": false,
+    "seeds": [122471, 122472, 122473],
+    "keyThreshold": 40,
+    "removeEnclosedKey": true
+  },
+  "structureReview": {
+    "recommended": "v02",
+    "viableAlternative": "v01",
+    "rejected": {
+      "v03": "adds a second facade hoist chain and a projecting secondary roof mass, violating the single attached lift and one continuous roof contract"
+    },
+    "v01": "complete four-storey single-roof body with one full-height lift and open lower freight cage; the oversized hanging drum reads slightly more ornamental",
+    "v02": "clearest complete four-storey single-roof body; one consolidated wall-mounted lift, visible guide rails, gears and grounded drive housing remain attached to the inherited balconies"
+  },
+  "structureSelection": {
+    "selected": "v02",
+    "selectedBy": "user",
+    "selectedAt": "2026-08-26",
+    "source": "tools/ai-gen/_settlement_building_pack_20260821/warehouse_lv3/candidates/warehouse_lv3/warehouse_lv3_structure_v02_raw.png"
+  },
+  "refineGeneration": {
+    "pipeline": "world122-building-candidates",
+    "styleVersion": "world122-building-v2",
+    "styleTemplate": "tools/ai-gen/prompts/world122-building-style.md",
+    "model": "flux2-dev-depth",
+    "size": "1024x1024",
+    "steps": 48,
+    "depthStrength": 0.75,
+    "denoise": 0.3,
+    "cfg": 3.5,
+    "sampler": "euler",
+    "scheduler": "simple",
+    "edgeControl": false,
+    "nonstandardOverride": false,
+    "seeds": [122471, 122472],
+    "keyThreshold": 40,
+    "removeEnclosedKey": true
+  },
+  "refineReview": {
+    "selected": "v02",
+    "recommended": "v02",
+    "viableAlternative": "v01",
+    "v01": "preserves the selected four-storey single-roof silhouette and one attached lift; material weathering is complete, but the three bright brass gear faces read slightly more ornamental and visually busy",
+    "v02": "preserves the selected four-storey single-roof silhouette and one attached lift; the rail, open cage, pulley, grounded drive housing and restrained weathered materials read most clearly as one practical mechanised warehouse system"
+  },
+  "inheritedStructure": [
+    "exactly four connected storeys",
+    "one continuous steep gable roof",
+    "exactly two reinforced ground loading bays",
+    "attached corner buttresses and lower iron reinforcement bands",
+    "second-floor front loading balcony",
+    "perpendicular fourth-floor side loading balcony",
+    "manual cargo, loft doors, shutter windows and half-timber rhythm"
+  ],
+  "lv3Structure": [
+    "one attached exterior cargo lift aligned to the fourth-floor side loading balcony",
+    "two wall-anchored vertical guide rails and one open freight cage",
+    "one top crossbeam, brass pulley and visible hoist cable",
+    "one grounded powered winch with exposed large and small drive gears",
+    "one compact sealed drive drum, transmission shaft and open iron safety guard",
+    "all machinery remains inside the original 2x2 foundation and touches the warehouse wall"
+  ],
+  "reservedForLaterLevels": [
+    "LV4 enclosed automated sorting machinery and conveyor routing",
+    "LV5 phase vault, energy ring or cross-dimensional reserve hardware"
+  ],
+  "negativeConstraints": [
+    "no fifth floor",
+    "no second building or detached engine house",
+    "no second roof, tower, chimney or smokestack",
+    "no crane boom, conveyor or automated sorting line",
+    "no phase core, energy ring, futuristic machinery or neon",
+    "no people, vehicle, readable text or oversized foundation"
+  ],
+  "archive": {
+    "status": "minimal_reproducible_source_set",
+    "keptFiles": 24,
+    "deletedFiles": 31,
+    "releasedMiB": 25.32
+  },
+  "nextStage": "LV3 runtime asset integrated; continue with LV4 modeling when requested"
+}

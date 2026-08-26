@@ -115,7 +115,7 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
 
 1. **拆需求并查组件表**：把建筑拆成主体壳、屋顶、门窗、楼层、阳台/院墙和功能道具。能由现有组件组合的不得重写；仅当前建筑使用的复杂组合先留在 builder，第二次出现时提升为公共组件。
 2. **更新 manifest 与白模**：尺寸、相机、调色板写 manifest；几何写 Blender builder。所有对象保留有意义的英文名并保持独立可编辑，禁止为了省事把门窗、阳台、杂物全部 join 成不可拆网格。
-3. **先渲染 preview + depth**：固定正交相机、`elevation=30°`、建筑根节点 `rot.z=44.8°`、1024²、完整 foundation 可见。preview 用于人工查组件位置；depth 是 5080 ControlNet 的结构真源。多层建筑必须用逐层独立命名的承重壳锁死层数、逐层宽深和对齐关系；要求三层对接时，一层不得缩进、二三层不得漂移或额外挑出。敞开门扇、暖暗门洞和无文字功能招牌属于建筑身份结构，必须在白模中建模并进入 Body Depth，禁止只依赖精修提示词生成。若 preview 中楼层、门、院墙、靶子或阳台位置不对，必须先改模型，不能靠提示词赌修正。
+3. **先渲染 preview + depth**：固定正交相机、`elevation=30°`、建筑根节点 `rot.z=44.8°`、1024²、完整 foundation 可见。preview 用于人工查组件位置；depth 是 5080 ControlNet 的结构真源。标准 Blender builder 在普通建模模式下必须同时派生独立的 `*_approval_preview.png`，并在控制台打印可直接粘贴的 Codex Markdown。提交白模验收前必须用图像查看工具实际打开该文件，并在 Codex 中将它打开到文件面板；最终回复必须再次以内嵌图片展示，Windows 路径统一改为正斜杠、用尖括号包裹绝对路径，例如 `![building model approval preview](<E:/path/to/building_model_approval_preview.png>)`。禁止使用反斜杠路径、相对路径或只给纯文本文件名；用户没有实际看到图片时不得视为已经提交白模验收，也不得进入12步。多层建筑必须用逐层独立命名的承重壳锁死层数、逐层宽深和对齐关系；要求三层对接时，一层不得缩进、二三层不得漂移或额外挑出。敞开门扇、暖暗门洞和无文字功能招牌属于建筑身份结构，必须在白模中建模并进入 Body Depth，禁止只依赖精修提示词生成。若 preview 中楼层、门、院墙、靶子或阳台位置不对，必须先改模型，不能靠提示词赌修正。
 4. **提交 5080 12 步结构候选**：只走 `generate-world122-building-candidates.py`，默认每批3张；固定 `world122-building-v2`、`flux2-dev-depth`、1024²、同一 depth、Depth 0.78、CFG 3.5、Euler/simple。V2 强制中世纪欧洲半木石主体、尖拱彩色玻璃窗与克制立面雕花边饰，以及风化石材、磨损木构、自然氧化黄铜和柔和左上顶侧光；提示词明确结构数量、组件归属和禁止项，局部配色可以变化但公共画风块不可变化。只有用户明确要求更多/更少参考或开展已标记实验时，才可用 `--variants` 显式覆盖数量。禁止为正式候选直接手写 `comfyui-gen.py` 命令。
    - 单格矿洞等自然结构在候选 manifest 中使用 `assetClass: "natural_structure"`、`footprintCells: 1` 与 `generationFootprintCells: 2`：仍以满画布 Depth 生成，保留结构像素密度，再在候选后处理阶段等比缩到 1×1；禁止把小型 Depth 直接交给模型后再用遮罩硬裁。共享画风只作用于石拱、木支护和材质渲染语言，天然岩体不得被解释成房屋、塔楼、窗户或第二入口。
    - 自然结构若洞内允许使用与绿幕同色系的暗部、晶体或光效，生成控制继续锁定 `Body Depth`，最终透明裁切另登记 `postprocessDepthImage`。Cutout Depth 只排除地台，保留洞内建模件；低阈值抠出连续岩体后，仅恢复 Cutout/Body Depth 差集并清理恢复区外的绿主导像素。禁止恢复整张 Cutout 遮罩，否则会把隐藏绿幕或细杆周边底色重新写成不透明。
@@ -127,6 +127,7 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
    - 围栏、拱门等会把纯绿幕封闭在主体轮廓内部，但建筑本身又含茅草、灰绿石材、橄榄色或庭院植被时，使用资产级 `removeEnclosedKey:true`：它只在全画布删除落入背景 RGB 距离阈值的键色，不启用宽泛 HSV 绿色清理。此类资产禁止用 `removeAllGreen:true`，否则会把屋顶、墙面和地面打成透明孔，使下层道路在预览中看似覆盖主体。
 6. **玩家确认后才进 48 步**：仍走同一标准入口和同一 `world122-building-v2`，默认每批2张，以通过的12步图作为 `--init-image`，继续使用同一 depth，固定 Depth 0.75、`denoise=0.30`、48步低重绘。两张候选都必须继续完整注入公共画风块；精修提示词只增加同一画风下的材质、磨损、小型杂物和灯光，不得另起画风，也不得改变主体轮廓、层数、院落、屋顶或组件位置。只有用户明确要求或已标记实验才可用 `--variants` 覆盖候选数；改变步数/denoise 必须显式 `--allow-nonstandard` 并留下生成元数据；局部错误用 mask 返修，不整图重抽。
    - 已通过整体48步但仍有局部错件时，继续使用 `generate-world122-building-candidates.py --stage refine --mask-image <mask.png>`，以待修48步raw为init、同一Depth为控制，只让白色/红色蒙版区重绘；生成器会把`maskImage/maskChannel`写入元数据。若局部结构替换必须提高denoise，必须同时使用`--allow-nonstandard`并保留原标准48步raw，审阅联系图只收入修正达标版本。蒙版外不得改变楼层、塔冠、花园或地基；入口返修继续禁止开放门洞、发光坡道、桥、楼梯和额外平台。
+   - **验收纠错以最新明确确认定稿**：玩家若在拒稿、索取 raw 或准备人工处理后，明确说明此前判断有误并确认既有候选可直接使用，则该最新确认覆盖此前拒稿状态；回到该候选的原始生成路径核对身份并直接按既有 Alpha 收口，禁止再次生图、重新抠图或继续等待人工文件。为方便玩家处理而复制到建筑根目录的同内容 raw 只是交付副本，不能覆盖候选目录中的生成真源；定稿后删除该重复副本，manifest、运行元数据和模型合同统一指向唯一 accepted raw/body。
 7. **真透明与 footprint 验收**：先查 RGBA、最大连通域、黄色/绿色残边、孤立像素和投影阴影；抠图不干净就暂停入库并向玩家汇报。正式图必须紧裁且等比缩放，`scaleX≈scaleY`；不能用固定宽高强拉。alpha 自动锚点若仍让贴图偏出地基，使用资产级 `anchorAdjustX/anchorAdjustY`，并保证建造幽灵与实体同源，禁止改全局 footprint 迁就一张贴图。
    - 封闭在模型轮廓内部的局部绿幕细线不得使用全图 `removeAllGreen`，否则灰色钢板和暗部材质会被误删成针孔。先把修复范围限制在人工确认的小矩形，再用 `repair-local-green-spill.py <input> <output> --rect x0,y0,x1,y1` 仅替换绿色主导 RGB 为最近的不透明非绿主体色；修复前后 Alpha 必须逐像素一致，原始 body 必须保留供回退。
 8. **正式入库**：只有玩家明确接受的 48 步版本才能覆盖 `assets/terrain/<building>.png`。同步 `data/producer-buildings.json` 的 `displayW/displayH/footOffsetY` 和必要的 anchor 调整，并只重建该建筑的 lighting maps。未通过的 12 步候选不得导入。
@@ -150,6 +151,9 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
   --python tools\ai-gen\settlement-building-pack-blender.py -- `
   tools\ai-gen\_settlement_building_pack_20260821\manifest.json `
   <building_id> <model.blend> <preview.png> <depth.png>
+
+# builder 会自动在 preview 同目录生成 *_approval_preview.png，
+# 并打印 Windows/Codex 可直接内嵌的正斜杠绝对路径 Markdown。
 
 python tools\ai-gen\generate-world122-building-candidates.py `
   --stage structure --only <building_id> `

@@ -48,7 +48,8 @@ def main() -> None:
     per_page = 8
     for page_start in range(0, len(entries), per_page):
         page_entries = entries[page_start:page_start + per_page]
-        page = Image.new("RGB", (tile_w * 2, tile_h * 4), (20, 20, 20))
+        page_rows = max(1, (len(page_entries) + 1) // 2)
+        page = Image.new("RGB", (tile_w * 2, tile_h * page_rows), (20, 20, 20))
         draw = ImageDraw.Draw(page)
         for idx, (building, path) in enumerate(page_entries):
             x = (idx % 2) * tile_w
