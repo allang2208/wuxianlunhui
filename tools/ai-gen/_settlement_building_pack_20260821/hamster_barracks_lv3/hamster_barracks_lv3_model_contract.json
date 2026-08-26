@@ -1,0 +1,186 @@
+{
+  "assetId": "hamster_barracks_lv3",
+  "label": "仓鼠军营 LV3 · 现代步兵军营",
+  "status": "accepted_runtime_imported",
+  "sourceFamily": "modern_infantry_field_barracks",
+  "referenceModel": "tools/ai-gen/_settlement_building_pack_20260821/thatch_hut_lv3/thatch_hut_lv3_model.blend",
+  "assetClass": "modern_field_barracks",
+  "footprintCells": 2,
+  "cameraElevationDegrees": 30,
+  "rootRotationZDegrees": 44.8,
+  "dimensions": {
+    "foundation": [480, 392, 16],
+    "tentWall": [270, 190, 68],
+    "tentRoof": [300, 220, 90],
+    "watchtower": [104, 104, 210],
+    "watchtowerRoof": [132, 122, 54]
+  },
+  "outputs": {
+    "blend": "tools/ai-gen/_settlement_building_pack_20260821/hamster_barracks_lv3/hamster_barracks_lv3_model.blend",
+    "preview": "tools/ai-gen/_settlement_building_pack_20260821/hamster_barracks_lv3/hamster_barracks_lv3_model_preview.png",
+    "approvalPreview": "tools/ai-gen/_settlement_building_pack_20260821/hamster_barracks_lv3/hamster_barracks_lv3_model_approval_preview.png",
+    "depth": "tools/ai-gen/_settlement_building_pack_20260821/hamster_barracks_lv3/hamster_barracks_lv3_depth.png",
+    "bodyDepth": "tools/ai-gen/_settlement_building_pack_20260821/hamster_barracks_lv3/hamster_barracks_lv3_body_depth.png"
+  },
+  "designIntent": [
+    "replace the rejected medieval-industrial LV3 white model with a present-day infantry field barracks",
+    "keep the stable runtime 2x2 footprint while changing only the authored visual model",
+    "use one slightly reduced military tent as the dominant mass and one lookout tower as the only vertical landmark",
+    "use the released ground for three organized equipment zones rather than random field clutter"
+  ],
+  "lv3Structure": [
+    "exactly one complete olive-drab ridge tent with one continuous canvas roof",
+    "one open tied-back tent entrance and exactly two rolled canvas windows",
+    "exactly one open four-post steel lookout tower with cross braces",
+    "one observation deck, complete railings, fixed ladder and small canvas canopy",
+    "one short connector landing joining the tower side to the tent compound",
+    "exactly two short low sandbag stacks beside the entrance",
+    "one left-side stack of exactly three ammunition crates",
+    "one right-side supply group of exactly two crates and two jerry cans",
+    "one tower-side service group with one field radio and one cable spool",
+    "the open entrance and fixed tower ladder remain unobstructed",
+    "all components remain inside the original 2x2 foundation"
+  ],
+  "negativeConstraints": [
+    "no medieval stone hall, half-timber facade, red tile roof or castle battlements",
+    "no second tent, second tower, detached hut or bunker",
+    "no perimeter fence, chain-link fence, barbed wire, camouflage-net canopy or obstacle course",
+    "no radar, antenna mast, flag, soldiers, hamsters, weapons or turret",
+    "no tank, armored vehicle, truck, helicopter, neon, sci-fi machinery or readable text",
+    "no random scattered clutter, extra crates or extra fuel cans"
+  ],
+  "modelReview": {
+    "reviewedAt": "2026-08-26",
+    "approvalPreviewOpened": true,
+    "result": "the reduced olive ridge tent leaves a clearer perimeter while remaining the dominant barracks mass; the left ammunition stack and right supply group read as deliberate low equipment zones, the tower-side radio remains visible beside the tower base, and both the open entrance and fixed ladder remain unobstructed"
+  },
+  "promptAudit": {
+    "auditedAt": "2026-08-26",
+    "styleVersion": "world122-building-v2",
+    "styleTemplate": "tools/ai-gen/prompts/world122-building-style.md",
+    "assetClassSubset": "modern_field_barracks",
+    "generationPath": "tools/ai-gen/generate-world122-building-candidates.py",
+    "result": "the executable prompt uses the dedicated present-day field-barracks subset rather than medieval half-timber or Gothic geometry. Revision 2 elevates game-optimized next-generation PBR response, natural mineral weathering on authored concrete or stone, visible grain and handling wear on authored wood, naturally oxidized aged brass on sparse fittings, and soft neutral upper-left top-side lighting with readable forms and controlled contrast as the primary style lock"
+  },
+  "pbrDevV4Generation": {
+    "generatedAt": "2026-08-26",
+    "pipeline": "world122-building-candidates",
+    "model": "flux2-dev-depth",
+    "controlImage": "tools/ai-gen/_settlement_building_pack_20260821/hamster_barracks_lv3/hamster_barracks_lv3_depth.png",
+    "materialPromptPriority": "next-generation game-optimized PBR is the primary style lock: worn olive canvas, weathered charcoal steel, naturally weathered mineral concrete or stone, visible wood grain and handling wear, sparse naturally oxidized aged brass, and soft neutral upper-left top-side light with controlled contrast",
+    "steps": 12,
+    "cfg": 3.5,
+    "sampler": "euler",
+    "scheduler": "simple",
+    "depthStrength": 0.78,
+    "size": "1024x1024",
+    "seeds": [124531, 124532, 124533],
+    "outputRoot": "tools/ai-gen/_settlement_building_pack_20260821/hamster_barracks_lv3/dev_pbr_v4_12step_seed124531",
+    "keying": {
+      "threshold": 60,
+      "removeEnclosedKey": true,
+      "result": "historical structure-preview setting only; the accepted composite later required full-canvas soft RGB-distance re-keying after opaque green blocks were found inside the open tower"
+    },
+    "selectionSourcePolicy": "the full raw green-background candidates remain authoritative for 12-step structure selection; transparent previews are auxiliary and no candidate is a runtime asset",
+    "review": {
+      "v01": "recommended: strongest readable worn-canvas weave and seams, weathered steel tower, mineral concrete footing, visible wooden crate grain, restrained aged-brass fittings and the cleanest overall modern infantry-camp identity; equipment exceeds the exact white-model count but remains organized",
+      "v02": "stable viewpoint and clean material response, but invents a side wooden door and a bright stacked brass disc prop, weakening the exact equipment contract",
+      "v03": "stable viewpoint and convincing canvas or steel response, but overpopulates the radio service zone with extra drums, antenna equipment and containers",
+      "recommendedCandidate": "hamster_barracks_lv3_structure_v01_raw.png"
+    }
+  },
+  "userSelection": {
+    "selectedAt": "2026-08-26",
+    "selectedCandidate": "tools/ai-gen/_settlement_building_pack_20260821/hamster_barracks_lv3/dev_pbr_v4_12step_seed124531/hamster_barracks_lv3/hamster_barracks_lv3_structure_v03_raw.png",
+    "selectionNote": "the user judged V03 positively and requested a Klein attempt that remains visually the same",
+    "editInvariant": "treat Dev V03 as the image-edit identity source; preserve its exact camera, foundation, tent, lookout tower, ladder, openings, equipment layout, scale, silhouette, lighting direction and green backdrop"
+  },
+  "plannedKleinV03Edit": {
+    "model": "flux2-klein-4b-world122-building-depth",
+    "initImage": "tools/ai-gen/_settlement_building_pack_20260821/hamster_barracks_lv3/dev_pbr_v4_12step_seed124531/hamster_barracks_lv3/hamster_barracks_lv3_structure_v03_raw.png",
+    "controlImage": "tools/ai-gen/_settlement_building_pack_20260821/hamster_barracks_lv3/hamster_barracks_lv3_depth.png",
+    "steps": 24,
+    "denoise": 0.20,
+    "depthStrength": 0.90,
+    "variants": 2,
+    "purpose": "test whether the Klein building LoRA can reinterpret only the PBR surface response while retaining the selected Dev V03 composition and geometry"
+  },
+  "kleinFromDevV03Generation": {
+    "generatedAt": "2026-08-26",
+    "pipeline": "world122-building-candidates",
+    "manifest": "tools/ai-gen/_settlement_building_pack_20260821/hamster_barracks_lv3/klein_from_dev_v03_manifest.json",
+    "model": "flux2-klein-4b-world122-building-depth",
+    "initImage": "tools/ai-gen/_settlement_building_pack_20260821/hamster_barracks_lv3/dev_pbr_v4_12step_seed124531/hamster_barracks_lv3/hamster_barracks_lv3_structure_v03_raw.png",
+    "controlImage": "tools/ai-gen/_settlement_building_pack_20260821/hamster_barracks_lv3/hamster_barracks_lv3_depth.png",
+    "steps": 24,
+    "cfg": 1.0,
+    "sampler": "euler",
+    "scheduler": "simple",
+    "denoise": 0.20,
+    "depthStrength": 0.90,
+    "size": "1024x1024",
+    "seeds": [125531, 125532],
+    "nonstandardExperiment": true,
+    "outputRoot": "tools/ai-gen/_settlement_building_pack_20260821/hamster_barracks_lv3/klein_from_dev_v03_24step_d020_seed125531",
+    "shapeComparisonAgainstDevV03": {
+      "v01ForegroundMaskIoU": 0.9818,
+      "v02ForegroundMaskIoU": 0.9810,
+      "v01ForegroundRgbMae": 18.73,
+      "v02ForegroundRgbMae": 16.44,
+      "result": "both candidates retain the selected Dev V03 camera and silhouette; the foreground bounding box differs by at most three pixels"
+    },
+    "review": {
+      "v01": "preserves the selected V03 structure and layout while showing slightly stronger canvas wear, mineral weathering and PBR surface variation",
+      "v02": "closest overall match to the selected V03 color and pixel appearance while preserving the same structure and equipment layout",
+      "recommendation": "choose v02 when sameness to Dev V03 is the primary criterion; choose v01 when stronger visible PBR texture is preferred"
+    }
+  },
+  "foundationMaterialCorrection": {
+    "generatedAt": "2026-08-26",
+    "targetCandidate": "tools/ai-gen/_settlement_building_pack_20260821/hamster_barracks_lv3/klein_from_dev_v03_24step_d020_seed125531/hamster_barracks_lv3/hamster_barracks_lv3_refine_v02_raw.png",
+    "materialDonor": "tools/ai-gen/_settlement_building_pack_20260821/hamster_barracks_lv3/dev_pbr_v4_12step_seed124531/hamster_barracks_lv3/hamster_barracks_lv3_structure_v03_raw.png",
+    "visibleFoundationMask": "tools/ai-gen/_settlement_building_pack_20260821/hamster_barracks_lv3/foundation_visible_mask.png",
+    "maskSource": "the Blender white model renders BarracksLV3_FieldFoundation as white while all other authored objects remain black occluders",
+    "method": "deterministic local material restoration with zero donor translation and 1.5-pixel feathering; no generative model call",
+    "protectedComponents": "tent, tower, canopy, ladder, sandbags, crates, radio equipment, cables, containers and green backdrop remain sourced from Klein v02 outside the visible-foundation mask",
+    "outputRaw": "tools/ai-gen/_settlement_building_pack_20260821/hamster_barracks_lv3/klein_v02_dev_foundation_restore/hamster_barracks_lv3_klein_v02_dev_foundation_raw.png",
+    "outputBody": "tools/ai-gen/_settlement_building_pack_20260821/hamster_barracks_lv3/klein_v02_dev_foundation_restore/hamster_barracks_lv3_klein_v02_dev_foundation_body_rekeyed.png",
+    "outputPreview": "tools/ai-gen/_settlement_building_pack_20260821/hamster_barracks_lv3/klein_v02_dev_foundation_restore/hamster_barracks_lv3_klein_v02_dev_foundation_preview_rekeyed.png",
+    "result": "the Klein v02 building is preserved while the visible foundation returns to the Dev V03 warm-gray naturally weathered concrete response without a second model pass"
+  },
+  "userAcceptance": {
+    "acceptedAt": "2026-08-26",
+    "acceptedSource": "tools/ai-gen/_settlement_building_pack_20260821/hamster_barracks_lv3/klein_v02_dev_foundation_restore/hamster_barracks_lv3_klein_v02_dev_foundation_raw.png",
+    "acceptedBody": "tools/ai-gen/_settlement_building_pack_20260821/hamster_barracks_lv3/klein_v02_dev_foundation_restore/hamster_barracks_lv3_klein_v02_dev_foundation_body_rekeyed.png",
+    "approvalNote": "the user explicitly approved this foundation-restored Klein v02 result for runtime import",
+    "workflowException": "accepted nonstandard 24-step Klein low-denoise experimental refinement; no claim that this source is a standard 48-step candidate"
+  },
+  "runtimeImport": {
+    "source": "tools/ai-gen/_settlement_building_pack_20260821/hamster_barracks_lv3/klein_v02_dev_foundation_restore/hamster_barracks_lv3_klein_v02_dev_foundation_body_rekeyed.png",
+    "asset": "assets/terrain/hamster_barracks_lv3.png",
+    "metadata": "tools/ai-gen/_settlement_building_pack_20260821/hamster_barracks_lv3/hamster_barracks_lv3_runtime_metadata.json",
+    "displayW": 300,
+    "displayH": 270,
+    "footOffsetY": 133,
+    "preserveAlphaExact": true,
+    "lightingManifest": "data/environment-lighting-assets.json#assets.hamster_barracks_lv3",
+    "configEntry": "data/producer-buildings.json#hamster_barracks.recruitmentTiers[level=3].visual"
+  },
+  "cutoutCorrection": {
+    "correctedAt": "2026-08-26",
+    "reportedProblem": "the first imported body retained opaque green backdrop blocks inside the open lookout tower and clipped part of the olive tower canopy",
+    "method": "recomputed Alpha directly from the accepted raw with a full-canvas soft RGB-distance key measured from the image border; inner distance 45 and outer distance 90; enclosed tower openings are removed globally and semi-transparent edge RGB is replaced by the nearest opaque subject color",
+    "depthDecision": "full Depth was inspected but is not force-restored because dilation around tower rails can reintroduce green backdrop; the soft key alone preserves the complete canopy while keeping open tower cells transparent",
+    "sourceRaw": "tools/ai-gen/_settlement_building_pack_20260821/hamster_barracks_lv3/klein_v02_dev_foundation_restore/hamster_barracks_lv3_klein_v02_dev_foundation_raw.png",
+    "correctedBody": "tools/ai-gen/_settlement_building_pack_20260821/hamster_barracks_lv3/klein_v02_dev_foundation_restore/hamster_barracks_lv3_klein_v02_dev_foundation_body_rekeyed.png",
+    "checkerPreview": "tools/ai-gen/_settlement_building_pack_20260821/hamster_barracks_lv3/klein_v02_dev_foundation_restore/hamster_barracks_lv3_klein_v02_dev_foundation_preview_rekeyed.png",
+    "runtimeSize": [890, 800],
+    "displaySize": [300, 270],
+    "footOffsetY": 133
+  },
+  "artifactRetention": {
+    "acceptedArtifacts": "model, approval preview, full Depth, Body Depth, Dev v03 structure source, Klein v02 low-denoise source, visible-foundation mask and restoration scripts, accepted raw/body/preview and runtime metadata are retained",
+    "rejectedCandidates": "51 rejected or regenerable artifacts totaling 62.54 MB were removed after explicit user authorization; no runtime asset or accepted provenance source was deleted"
+  },
+  "nextStage": "runtime import complete; user runtime review remains"
+}

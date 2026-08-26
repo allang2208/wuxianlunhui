@@ -1,0 +1,125 @@
+{
+  "assetId": "hamster_barracks_lv2",
+  "label": "仓鼠军营 LV2 · 罗马军团营",
+  "status": "runtime_asset_installed",
+  "sourceFamily": "medieval_roman_legion_barracks",
+  "sourceModel": "tools/ai-gen/_settlement_building_pack_20260821/hamster_barracks/hamster_barracks_model.blend",
+  "assetClass": "roman_barracks",
+  "footprintCells": 2,
+  "cameraElevationDegrees": 30,
+  "rootRotationZDegrees": 44.8,
+  "dimensions": {
+    "foundation": [480, 392, 16],
+    "body": [270, 220, 150],
+    "flatRoof": [294, 244, 16],
+    "tower": [100, 110, 230],
+    "gatehouse": [156, 62, 178],
+    "curtainWall": [370, 34, 104]
+  },
+  "outputs": {
+    "blend": "tools/ai-gen/_settlement_building_pack_20260821/hamster_barracks_lv2/hamster_barracks_lv2_model.blend",
+    "preview": "tools/ai-gen/_settlement_building_pack_20260821/hamster_barracks_lv2/hamster_barracks_lv2_model_preview.png",
+    "approvalPreview": "tools/ai-gen/_settlement_building_pack_20260821/hamster_barracks_lv2/hamster_barracks_lv2_model_approval_preview.png",
+    "depth": "tools/ai-gen/_settlement_building_pack_20260821/hamster_barracks_lv2/hamster_barracks_lv2_depth.png",
+    "bodyDepth": "tools/ai-gen/_settlement_building_pack_20260821/hamster_barracks_lv2/hamster_barracks_lv2_body_depth.png"
+  },
+  "designIntent": [
+    "replace the generic pointed-roof medieval guardhouse silhouette with a compact Roman legion barracks",
+    "keep the stable runtime 2x2 footprint while changing only the authored LV2 visual model",
+    "unify the fort through one restrained stone, crimson and aged-brass material family"
+  ],
+  "romanStructure": [
+    "exactly one low connected rectangular stone-and-plaster barracks hall",
+    "one complete flat stone roof deck with low continuous side and rear parapets",
+    "exactly two attached symmetric flat-topped square corner towers",
+    "one connected crenellated front curtain wall",
+    "one centered arched gatehouse with a visible dark portal",
+    "complete broad battlement groups on the towers, curtain and gatehouse",
+    "exactly two tower-mounted crimson Roman legion standards",
+    "exactly two tower-mounted crimson scuta with aged-brass fittings",
+    "all structural components remain inside the original 2x2 foundation"
+  ],
+  "styleContract": [
+    "weathered limestone and darker fieldstone with warm earth mineral plaster",
+    "flat weathered stone roof edging, dark oak, blackened iron and naturally aged brass",
+    "deep crimson flags and shields form the single restrained military accent family",
+    "no readable Latin text, numerals, runes or modern national insignia"
+  ],
+  "negativeConstraints": [
+    "no pitched roof, gable roof, red tiled roof, pointed tower roof, conical turret, Gothic spire or half-timber facade",
+    "no third tower, second hall, second roof, detached wall or expanded courtyard",
+    "no temple, palace, amphitheater, aqueduct or giant colonnade",
+    "no siege engine, ballista, catapult, vehicle or modern machinery",
+    "no soldiers, hamsters, people, animals, loose weapons or extra flags",
+    "no readable text, oversized foundation, neon or sci-fi machinery"
+  ],
+  "modelReview": {
+    "reviewedAt": "2026-08-26",
+    "approvalPreviewOpened": true,
+    "result": "the hall now has one complete low flat stone roof with restrained side and rear parapets and no remaining pitched or tiled roof mass; the two crenellated towers, gatehouse, standards and scuta retain the same unified Roman fortified silhouette"
+  },
+  "structureCandidateReview": {
+    "generatedAt": "2026-08-26",
+    "workflow": "world122-building-v2 standard structure pass",
+    "steps": 12,
+    "depthStrength": 0.78,
+    "variants": [
+      {
+        "id": "v01",
+        "seed": 122511,
+        "result": "rejected: added two unauthorized ground standards and a paved forecourt beyond the compact structure"
+      },
+      {
+        "id": "v02",
+        "seed": 122512,
+        "result": "recommended: clean flat-roof Roman silhouette, two crenellated towers, two standards, centered gate and intact derived body preview"
+      },
+      {
+        "id": "v03",
+        "seed": 122513,
+        "result": "secondary only: strong cast shadow and damaged derived body preview"
+      }
+    ],
+    "recommendation": "v02",
+    "selection": "v02 selected by the user on 2026-08-26"
+  },
+  "refineCandidateReview": {
+    "generatedAt": "2026-08-26",
+    "sourceStructure": "v02",
+    "workflow": "world122-building-v2 standard refine pass",
+    "steps": 48,
+    "depthStrength": 0.75,
+    "denoise": 0.3,
+    "variants": [
+      {
+        "id": "v01",
+        "seed": 122521,
+        "result": "recommended: sober non-luminous brass gate medallion, restrained warm gate light, intact flat-roof Roman silhouette and complete body preview"
+      },
+      {
+        "id": "v02",
+        "seed": 122522,
+        "result": "secondary: structurally intact but changes the gate medallion into a conspicuous orange luminous focal point"
+      }
+    ],
+    "recommendation": "v01",
+    "selection": "v01 selected by the user on 2026-08-26"
+  },
+  "runtime": {
+    "source": "tools/ai-gen/_settlement_building_pack_20260821/hamster_barracks_lv2/refine_48step_from_v02_seed122521/hamster_barracks_lv2/hamster_barracks_lv2_refine_v01_body.png",
+    "asset": "assets/terrain/hamster_barracks_lv2.png",
+    "metadata": "tools/ai-gen/_settlement_building_pack_20260821/hamster_barracks_lv2/hamster_barracks_lv2_runtime_metadata.json",
+    "fileSize": [661, 695],
+    "displayW": 290,
+    "displayH": 305,
+    "footOffsetY": 151,
+    "alphaPreserved": true,
+    "lightingManifest": "data/environment-lighting-assets.json#assets.hamster_barracks_lv2",
+    "configEntry": "data/producer-buildings.json#hamster_barracks.recruitmentTiers[level=2].visual"
+  },
+  "artifactRetention": {
+    "retained": "editable model and previews; full Depth and Body Depth; selected structure v02 and refine v01 raw/body sources; prompt, Depth-control and edge-control inputs; model contract and runtime metadata",
+    "removed": "34 rejected or reproducible artifacts (about 19.70 MB): unselected structure v01/v03, unselected refine v02, contact sheets, keyed/cleaned/anchored intermediates and .blend1"
+  },
+  "nextStage": "user runtime review; keep the separately authored technology badge unchanged until a dedicated icon candidate is approved"
+}
