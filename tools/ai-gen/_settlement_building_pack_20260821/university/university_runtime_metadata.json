@@ -1,0 +1,49 @@
+{
+  "source": "tools\\ai-gen\\_settlement_building_pack_20260821\\university\\refine_48step_from_v05_seed123510\\university\\university_refine_v02.png",
+  "output": "assets\\terrain\\university.png",
+  "sourceMode": "RGBA",
+  "background": null,
+  "matteColor": null,
+  "matteEdgeWidth": null,
+  "matteTolerance": null,
+  "nearestOpaqueEdgeRgb": false,
+  "nearestOpaqueAlpha": null,
+  "defringeInnerPixels": 0,
+  "minComponentPixels": 0,
+  "removedComponents": 0,
+  "removedComponentPixels": 0,
+  "maskImage": null,
+  "maskDilate": null,
+  "fillAlphaHoles": false,
+  "fillHoleMatteDistance": null,
+  "removeEnclosedMatte": false,
+  "enclosedMatteChromaDistance": null,
+  "maskAddRects": [],
+  "restoreAlphaRects": [],
+  "removeMatteRects": [],
+  "clearGreenRects": [],
+  "greenHueRange": null,
+  "greenSaturationMin": null,
+  "greenValueMin": null,
+  "cropBox": [
+    50,
+    275,
+    976,
+    914
+  ],
+  "fileSize": [
+    926,
+    639
+  ],
+  "alphaBBox": [
+    4,
+    4,
+    922,
+    635
+  ],
+  "displayW": 512,
+  "displayH": 353,
+  "footOffsetY": 174,
+  "scaleX": 0.5529157667386609,
+  "scaleY": 0.5524256651017214
+}
