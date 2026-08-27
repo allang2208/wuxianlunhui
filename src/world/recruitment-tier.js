@@ -11,6 +11,37 @@ function configuredUnitByKey(config) {
         .map((unit) => [unit.key, unit]));
 }
 
+function mergeUniqueUnits(...groups) {
+    const merged = [];
+    const seen = new Set();
+    for (const unit of groups.flat()) {
+        if (!unit?.key || seen.has(unit.key)) continue;
+        seen.add(unit.key);
+        merged.push(unit);
+    }
+    return merged;
+}
+
+/**
+ * 独立科技已完成、但所属整级仍因另一条兵种占位而未启用时，允许该单位作为补充选项出现。
+ * 一旦所属整级或更高整级正式启用，继续服从正常槽位换代，不永久保留旧兵种。
+ */
+function getSupplementalUnlockedUnits(config, activeTier, isUnitUnlocked) {
+    const supplementalKeys = new Set(Array.isArray(config?.supplementalUnitUnlocks)
+        ? config.supplementalUnitUnlocks : []);
+    if (!supplementalKeys.size) return [];
+    const tiers = sortedRecruitmentTiers(config);
+    const units = configuredUnitByKey(config);
+    const activeLevel = Math.max(0, Number(activeTier?.level) || 0);
+    return [...supplementalKeys].map((unitKey) => {
+        if (!isUnitUnlocked(unitKey)) return null;
+        const sourceTier = tiers.find((tier) => (tier.lines || [])
+            .some((line) => line?.unitKey === unitKey));
+        if (!sourceTier || activeLevel >= Number(sourceTier.level)) return null;
+        return units.get(unitKey) || null;
+    }).filter(Boolean);
+}
+
 /** 只有整级两条兵种线都已开发并登记运行时单位时，建筑等级才允许真正启用。 */
 export function isRecruitmentTierImplemented(config, tier) {
     const lines = Array.isArray(tier?.lines) ? tier.lines : [];
@@ -49,20 +80,31 @@ export function getActiveRecruitmentTier(config, isTierUnlocked = () => false) {
  * 当前版本在首个完整高阶编制落地前保留既有可玩阵容；一旦高阶科技完成，
  * 同一兵种槽位会切换为该等级的单位，旧等级不再出现在招募按钮中。
  */
-export function getRecruitableUnitTypes(config, isTierUnlocked = () => false) {
+export function getRecruitableUnitTypes(
+    config,
+    isTierUnlocked = () => false,
+    isUnitUnlocked = () => false
+) {
     const configured = Array.isArray(config?.unitTypes) ? config.unitTypes : [];
     const active = getActiveRecruitmentTier(config, isTierUnlocked);
     const units = configuredUnitByKey(config);
     if (!active) return configured;
+    const supplemental = getSupplementalUnlockedUnits(config, active, isUnitUnlocked);
     if (Number(active.level) <= 1) {
         const baseline = (active.lines || []).map((line) => units.get(line.unitKey)).filter(Boolean);
-        return baseline.length ? baseline : configured;
+        return mergeUniqueUnits(baseline.length ? baseline : configured, supplemental);
     }
-    return (active.lines || []).map((line) => units.get(line.unitKey)).filter(Boolean);
+    const tierUnits = (active.lines || []).map((line) => units.get(line.unitKey)).filter(Boolean);
+    return mergeUniqueUnits(tierUnits, supplemental);
 }
 
-export function resolveRecruitmentUnitType(config, currentUnitType, isTierUnlocked = () => false) {
-    const available = getRecruitableUnitTypes(config, isTierUnlocked);
+export function resolveRecruitmentUnitType(
+    config,
+    currentUnitType,
+    isTierUnlocked = () => false,
+    isUnitUnlocked = () => false
+) {
+    const available = getRecruitableUnitTypes(config, isTierUnlocked, isUnitUnlocked);
     if (!available.length) return currentUnitType || '';
     if (available.some((unit) => unit.key === currentUnitType)) return currentUnitType;
 

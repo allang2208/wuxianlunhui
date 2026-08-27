@@ -1,0 +1,27 @@
+{
+  "source": "tools/ai-gen/_hamster_longbow_20260827/projectile/hamster-longbow-projectile-v02-transparent-candidate.png",
+  "cleanSource": "tools/ai-gen/_hamster_longbow_20260827/projectile/hamster-longbow-projectile-v04-clean-transparent-source.png",
+  "output": "tools/ai-gen/_hamster_longbow_20260827/projectile/hamster-longbow-projectile-final-512.png",
+  "canvasSize": [
+    512,
+    512
+  ],
+  "sourceContentBounds": [
+    45,
+    245,
+    2118,
+    479
+  ],
+  "outputContentBounds": [
+    32,
+    230,
+    480,
+    281
+  ],
+  "projectileContentWidth": 448,
+  "projectileTipDirection": "right",
+  "transparentPixelCount": 254631,
+  "semiTransparentPixelCount": 1349,
+  "opaquePixelCount": 6164,
+  "transparentRgbNonzeroPixelCount": 0
+}

@@ -12,10 +12,12 @@ import shooterCfg from '../../data/hamster-shooter-config.json';
 import guardCfg from '../../data/hamster-guard-config.json';
 import phalanxCfg from '../../data/hamster-phalanx-config.json';
 import riotSquadCfg from '../../data/hamster-riot-squad-config.json';
+import specialForcesCfg from '../../data/hamster-special-forces-config.json';
 import halberdierCfg from '../../data/hamster-halberdier-config.json';
 import scoutCfg from '../../data/hamster-scout-config.json';
 import rangerCfg from '../../data/hamster-ranger-config.json';
 import crossbowCfg from '../../data/hamster-crossbow-config.json';
+import longbowCfg from '../../data/hamster-longbow-config.json';
 import assaultCfg from '../../data/hamster-assault-config.json';
 import heavyMachineGunnerCfg from '../../data/hamster-heavy-machine-gunner-config.json';
 import sniperCfg from '../../data/hamster-sniper-config.json';
@@ -78,10 +80,12 @@ export const UNIT_KIND_CFG = {
     guard: guardCfg,
     phalanx: phalanxCfg,
     riot_special: riotSquadCfg,
+    special_forces: specialForcesCfg,
     halberd: halberdierCfg,
     scout: scoutCfg,
     ranger: rangerCfg,
     crossbow: crossbowCfg,
+    longbow: longbowCfg,
     assault: assaultCfg,
     heavy_machine_gunner: heavyMachineGunnerCfg,
     sniper: sniperCfg,
@@ -128,10 +132,12 @@ export function getUnitKind(unit) {
     if (unit._isHamsterHalberdier) return 'halberd';
     if (unit._isHamsterRanger) return 'ranger';
     if (unit._isHamsterCrossbow) return 'crossbow';
+    if (unit._isHamsterLongbow) return 'longbow';
     if (unit._isHamsterAntiVehicle) return 'anti_vehicle';
     if (unit._isHamsterSniper) return 'sniper';
     if (unit._isHamsterScout) return 'scout';
-    // 防暴队、突击兵与重机枪手都继承火枪实体，必须先于 _isHamsterMusketeer 判断。
+    // 特战、防暴队、突击兵与重机枪手都继承火枪实体，必须先于 _isHamsterMusketeer 判断。
+    if (unit._isHamsterSpecialForces) return 'special_forces';
     if (unit._isHamsterRiotSquad) return 'riot_special';
     if (unit._isHamsterAssault) return 'assault';
     if (unit._isHamsterHeavyMachineGunner) return 'heavy_machine_gunner';

@@ -21,13 +21,13 @@
     }
   },
   "cavalry_charge": {
-    "unitKinds": ["knight", "light_cavalry"],
+    "unitKinds": ["knight", "light_cavalry", "cavalry", "winged_hussar"],
     "moduleUpgrade": { "goldByLevel": [500, 700, 900, 1200, 1500, 1900, 2400, 3000, 3800, 4800], "energy": 500, "timeBaseMs": 60000, "timeGrowthMs": 0 },
     "modules": {
       "attackSpd": { "name": "攻击加速", "icon": "⚡", "iconImage": "assets/ui/building-upgrades/attack-speed.png", "effect": "attackIntervalMult", "per": -0.025, "maxLevel": 10, "desc": "攻击间隔 -{pct}%" },
       "damage": { "name": "攻击强化", "icon": "⚔️", "iconImage": "assets/ui/building-upgrades/attack-damage.png", "effect": "attackDamageMult", "per": 0.025, "maxLevel": 10, "desc": "每次攻击伤害 +{pct}%" },
-      "chargeDamage": { "name": "冲锋强化", "icon": "🛡️", "iconImage": "assets/ui/building-upgrades/charge-damage.png", "effect": "chargeDamageMult", "per": 0.15, "maxLevel": 10, "unitKinds": ["knight"], "desc": "冲锋伤害 +{pct}%" },
-      "moveSpd": { "name": "轻骑机动", "icon": "🐎", "iconImage": "assets/ui/building-upgrades/light-cavalry-mobility.png", "effect": "moveSpeedMult", "per": 0.015, "maxLevel": 10, "unitKinds": ["light_cavalry"], "desc": "移动速度 +{pct}%" },
+      "chargeDamage": { "name": "冲锋强化", "icon": "🛡️", "iconImage": "assets/ui/building-upgrades/charge-damage.png", "effect": "chargeDamageMult", "per": 0.15, "maxLevel": 10, "unitKinds": ["knight", "winged_hussar"], "desc": "冲锋伤害 +{pct}%" },
+      "moveSpd": { "name": "轻骑机动", "icon": "🐎", "iconImage": "assets/ui/building-upgrades/light-cavalry-mobility.png", "effect": "moveSpeedMult", "per": 0.015, "maxLevel": 10, "unitKinds": ["light_cavalry", "cavalry"], "desc": "移动速度 +{pct}%" },
       "hp": { "name": "生命强化", "icon": "❤️", "iconImage": "assets/ui/building-upgrades/health.png", "effect": "hpMult", "per": 0.05, "maxLevel": 10, "desc": "单位生命 +{pct}%" }
     }
   },
@@ -43,7 +43,7 @@
     }
   },
   "shooting_range_special": {
-    "unitKinds": ["crossbow", "musketeer", "shooter", "heavy_machine_gunner"],
+    "unitKinds": ["crossbow", "musketeer", "shooter", "longbow", "assault", "heavy_machine_gunner"],
     "moduleUpgrade": { "goldByLevel": [500, 700, 900, 1200, 1500, 1900, 2400, 3000, 3800, 4800], "energy": 500, "timeBaseMs": 60000, "timeGrowthMs": 0 },
     "modules": {
       "attackSpd": { "name": "攻击加速", "icon": "⚡", "iconImage": "assets/ui/building-upgrades/attack-speed.png", "effect": "attackIntervalMult", "per": -0.025, "maxLevel": 10, "desc": "攻击间隔 -{pct}%" },
@@ -53,7 +53,7 @@
     }
   },
   "barracks_defense": {
-    "unitKinds": ["warrior", "champion", "guard", "phalanx", "riot_special"],
+    "unitKinds": ["warrior", "champion", "special_forces", "guard", "phalanx", "riot_special"],
     "moduleUpgrade": { "goldByLevel": [500, 700, 900, 1200, 1500, 1900, 2400, 3000, 3800, 4800], "energy": 500, "timeBaseMs": 60000, "timeGrowthMs": 0 },
     "modules": {
       "attackSpd": { "name": "攻击加速", "icon": "⚡", "iconImage": "assets/ui/building-upgrades/attack-speed.png", "effect": "attackIntervalMult", "per": -0.025, "maxLevel": 10, "desc": "攻击间隔 -{pct}%" },

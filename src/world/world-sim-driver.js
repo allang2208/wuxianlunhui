@@ -179,6 +179,7 @@ export const WorldSimDriver = {
                 gameTimeMs: nowGame,
                 isRecruitmentTierUnlocked: (id) =>
                     TechnologySystem.isUnlocked('recruitmentTier', id),
+                isUnitUnlocked: (id) => TechnologySystem.isUnlocked('unit', id),
                 getPlayerTotalGold: () => getPlayerTotalGold(),
                 grant: (reward) => this._grantReward(reward),
             });

@@ -667,7 +667,7 @@ export function createDevToolPanel() {
 
     // ===== 测试按钮：一次性解锁全部科技与受控功能 =====
     const technologyRow = document.createElement('div');
-    technologyRow.style.cssText = 'display:flex;gap:8px;align-items:center;padding:6px 0;border-top:1px solid #3a3a3a;margin-top:6px;';
+    technologyRow.style.cssText = 'display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:6px 0;border-top:1px solid #3a3a3a;margin-top:6px;';
     const unlockTechnologyBtn = document.createElement('button');
     unlockTechnologyBtn.id = 'devToolUnlockAllTechnology';
     unlockTechnologyBtn.className = 'dev-tool-menu-btn';
@@ -689,10 +689,31 @@ export function createDevToolPanel() {
             : '全部科技已经解锁（含位面专项科技）');
     });
     syncTechnologyBtn();
+    const instantTechnologyBtn = document.createElement('button');
+    instantTechnologyBtn.id = 'devToolInstantTechnologyResearch';
+    instantTechnologyBtn.className = 'dev-tool-menu-btn';
+    const syncInstantTechnologyBtn = () => {
+        const on = !!(window.Game && window.Game._devInstantTechnologyResearch);
+        instantTechnologyBtn.textContent = `⚡ 瞬间研发：${on ? '开' : '关'}`;
+        instantTechnologyBtn.style.background = on ? '#3a6b3a' : '';
+    };
+    instantTechnologyBtn.addEventListener('click', () => {
+        if (!window.Game?.isRunning) {
+            DevTool?._showToast?.('❌ 请先进入游戏');
+            return;
+        }
+        const next = !window.Game._devInstantTechnologyResearch;
+        window.Game._devInstantTechnologyResearch = next;
+        syncInstantTechnologyBtn();
+        DevTool?._showToast?.(next
+            ? '✅ 瞬间研发已开启：在科技树详情中完成所选科技'
+            : '瞬间研发已关闭');
+    });
+    syncInstantTechnologyBtn();
     const technologyHint = document.createElement('span');
-    technologyHint.textContent = '测试用：立即启用全部科技，未开放位面的专项科技也会直接完成';
+    technologyHint.textContent = '测试用：解锁全部科技，或开启后在科技树详情中瞬间完成所选科技及其前置';
     technologyHint.style.cssText = 'color:#9aa5b1;font-size:11px;';
-    technologyRow.append(unlockTechnologyBtn, technologyHint);
+    technologyRow.append(unlockTechnologyBtn, instantTechnologyBtn, technologyHint);
     skillRow.appendChild(technologyRow);
 
     // ===== 测试开关：友军伤害（开启后玩家可对友方单位造成伤害） =====

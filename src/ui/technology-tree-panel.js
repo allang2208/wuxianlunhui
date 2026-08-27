@@ -3,6 +3,7 @@ import { PhaserGame } from '../phaser/PhaserGame.js';
 import { EventBus } from '../core/event-bus.js';
 import { TimerManager } from '../utils/timer-manager.js';
 import { TechnologySystem } from '../world/technology-system.js';
+import { isInstantTechnologyResearchEnabled } from '../config/dev-cheats.js';
 import { UIState } from './ui-state.js';
 import { mountRightSidebarPanel } from './right-sidebar-panel-layer.js';
 
@@ -18,12 +19,12 @@ const ECONOMY_BRANCH = '经济与位面';
 const MILITARY_CARD_ORIGIN_X = 210;
 const ECONOMY_CARD_ORIGIN_X = 180;
 const MILITARY_SUB_BRANCH_ROWS = Object.freeze([
-    Object.freeze({ label: '指挥', lane: 0, span: 1 }),
-    Object.freeze({ label: '草屋→特战', lane: 1, span: 1 }),
-    Object.freeze({ label: '军营', lane: 2, span: 1 }),
-    Object.freeze({ label: '靶场', lane: 3, span: 1 }),
-    Object.freeze({ label: '骑兵学院', lane: 4, span: 1 }),
-    Object.freeze({ label: '教堂', lane: 5, span: 1 }),
+    Object.freeze({ label: '草屋→特战', lane: 0, span: 1 }),
+    Object.freeze({ label: '军营', lane: 1, span: 1 }),
+    Object.freeze({ label: '靶场', lane: 2, span: 1 }),
+    Object.freeze({ label: '骑兵学院', lane: 3, span: 1 }),
+    Object.freeze({ label: '教堂', lane: 4, span: 1 }),
+    Object.freeze({ label: '指挥', lane: 5, span: 1 }),
     Object.freeze({ label: '军事支援', lane: 6, span: 2 }),
 ]);
 const ECONOMY_SUB_BRANCH_ROWS = Object.freeze([
@@ -32,6 +33,17 @@ const ECONOMY_SUB_BRANCH_ROWS = Object.freeze([
     Object.freeze({ label: '金币', lane: 3, span: 2 }),
     Object.freeze({ label: '能源', lane: 5, span: 2 }),
 ]);
+const PREREQUISITE_ROUTE_COLORS = Object.freeze([
+    '#69d4dc',
+    '#e4b45d',
+    '#b58be3',
+    '#76c98f',
+]);
+
+function prerequisiteRouteColor(index, total) {
+    if (total <= 1) return '';
+    return PREREQUISITE_ROUTE_COLORS[index % PREREQUISITE_ROUTE_COLORS.length];
+}
 
 function cardOriginX(branch) {
     if (branch === MILITARY_BRANCH) return MILITARY_CARD_ORIGIN_X;
@@ -99,6 +111,27 @@ function renderRecruitmentTierLines(plan) {
         const profile = line.profile ? ` · ${line.profile}` : '';
         return `<li><b>${escapeHtml(line.role || '兵种')}</b>：${escapeHtml(route)}${escapeHtml(profile)} <span>${status}</span></li>`;
     }).join('');
+}
+
+function renderPrerequisiteRequirements(node, emptyLabel = '无') {
+    const status = TechnologySystem.getPrerequisiteStatus(node.id);
+    if (!status.totalCount) {
+        return `<div class="technology-detail-prerequisites">${escapeHtml(emptyLabel)}</div>`;
+    }
+    const rule = status.totalCount > 1
+        ? `<div class="technology-prerequisite-rule"><b>AND</b><span>全部完成后解锁 · ${status.completedCount}/${status.totalCount}</span></div>`
+        : '';
+    const items = status.requiredIds.map((requiredId, index) => {
+        const required = TechnologySystem.getNode(requiredId);
+        const completed = TechnologySystem.isCompleted(requiredId);
+        const routeColor = prerequisiteRouteColor(index, status.totalCount) || '#69d4dc';
+        return `<div class="technology-prerequisite-item ${completed ? 'completed' : 'pending'}" style="--technology-route-color:${routeColor}">
+            <span class="technology-prerequisite-route-index">${index + 1}</span>
+            <span>${escapeHtml(required?.name || requiredId)}</span>
+            <small>${completed ? '已完成' : '待研发'}</small>
+        </div>`;
+    }).join('');
+    return `${rule}<div class="technology-prerequisite-list">${items}</div>`;
 }
 
 export const TechnologyTreePanel = {
@@ -452,29 +485,46 @@ export const TechnologyTreePanel = {
         canvas.style.width = `${originX + (maxColumn + 1) * (CARD_W + COL_GAP) + 48}px`;
         canvas.style.height = `${Math.max(420, CARD_ORIGIN_Y + (maxLane + 1) * (CARD_H + LANE_GAP) + 40)}px`;
 
-        const lines = nodes.flatMap((node) => (node.prerequisites || []).map((requiredId) => {
-            if (!visibleIds.has(requiredId)) return '';
-            const from = TechnologySystem.getNode(requiredId);
-            if (!from) return '';
-            const a = positionOf(from);
-            const b = positionOf(node);
-            const done = TechnologySystem.isCompleted(requiredId) && TechnologySystem.isCompleted(node.id);
-            const selected = selectedPath.has(requiredId) && selectedPath.has(node.id);
-            const linkClass = `technology-link${done ? ' completed' : ''}${selected ? ' selected-path' : ''}`;
-            if ((Number(from.column) || 0) === (Number(node.column) || 0)) {
-                const x = a.x + CARD_W / 2;
-                const targetBelow = b.y >= a.y;
-                const y1 = targetBelow ? a.y + CARD_H : a.y;
-                const y2 = targetBelow ? b.y : b.y + CARD_H;
-                return `<path class="${linkClass}" d="M ${x} ${y1} V ${y2}" />`;
-            }
-            const x1 = a.x + CARD_W;
-            const y1 = a.y + CARD_H / 2;
-            const x2 = b.x;
-            const y2 = b.y + CARD_H / 2;
-            const mid = (x1 + x2) / 2;
-            return `<path class="${linkClass}" d="M ${x1} ${y1} H ${mid} V ${y2} H ${x2}" />`;
-        })).join('');
+        const lines = nodes.flatMap((node) => {
+            const prerequisites = node.prerequisites || [];
+            return prerequisites.map((requiredId, prerequisiteIndex) => {
+                if (!visibleIds.has(requiredId)) return '';
+                const from = TechnologySystem.getNode(requiredId);
+                if (!from) return '';
+                const a = positionOf(from);
+                const b = positionOf(node);
+                const prerequisiteSatisfied = TechnologySystem.isCompleted(requiredId);
+                const selected = selectedPath.has(requiredId) && selectedPath.has(node.id);
+                const multiPrerequisite = prerequisites.length > 1;
+                const routeColor = prerequisiteRouteColor(prerequisiteIndex, prerequisites.length);
+                const linkClass = `technology-link${multiPrerequisite ? ' multi-prerequisite' : ''}${prerequisiteSatisfied ? ' prerequisite-satisfied' : ''}${selected ? ' selected-path' : ''}`;
+                const linkStyle = routeColor ? ` style="--technology-link-color:${routeColor}"` : '';
+                let path = '';
+                let targetPort = null;
+                if ((Number(from.column) || 0) === (Number(node.column) || 0)) {
+                    const targetBelow = b.y >= a.y;
+                    const x1 = a.x + CARD_W / 2;
+                    const x2 = b.x + CARD_W * (prerequisiteIndex + 1) / (prerequisites.length + 1);
+                    const y1 = targetBelow ? a.y + CARD_H : a.y;
+                    const y2 = targetBelow ? b.y : b.y + CARD_H;
+                    const midY = (y1 + y2) / 2;
+                    path = `M ${x1} ${y1} V ${midY} H ${x2} V ${y2}`;
+                    targetPort = { x: x2, y: y2 + (targetBelow ? 5 : -5) };
+                } else {
+                    const x1 = a.x + CARD_W;
+                    const y1 = a.y + CARD_H / 2;
+                    const x2 = b.x;
+                    const y2 = b.y + CARD_H * (prerequisiteIndex + 1) / (prerequisites.length + 1);
+                    const mid = (x1 + x2) / 2;
+                    path = `M ${x1} ${y1} H ${mid} V ${y2} H ${x2}`;
+                    targetPort = { x: x2 - 5, y: y2 };
+                }
+                const port = multiPrerequisite
+                    ? `<circle class="technology-link-port${prerequisiteSatisfied ? ' prerequisite-satisfied' : ''}" cx="${targetPort.x}" cy="${targetPort.y}" r="4"${linkStyle} />`
+                    : '';
+                return `<path class="${linkClass}" d="${path}"${linkStyle} />${port}`;
+            });
+        }).join('');
 
         const cards = nodes.map((node) => {
             const pos = positionOf(node);
@@ -483,6 +533,8 @@ export const TechnologyTreePanel = {
             const completed = TechnologySystem.isCompleted(node.id);
             const activeNode = TechnologySystem.state.activeTechId === node.id;
             const available = TechnologySystem.isAvailable(node.id);
+            const prerequisiteStatus = TechnologySystem.getPrerequisiteStatus(node.id);
+            const convergenceTech = prerequisiteStatus.totalCount > 1;
             // 已完成状态优先于位面遮蔽：开发工具/旧档可以在位面尚未开放时
             // 合法写入位面专项科技完成项，不能再被 UI 伪装成“未知科技”。
             const worldRequirementLocked = !completed
@@ -490,25 +542,29 @@ export const TechnologyTreePanel = {
             const worldMasked = worldRequirementLocked && !!node.requiredWorldId;
             const worldCountLocked = worldRequirementLocked
                 && Math.max(0, Number(node.requiredWorldCount) || 0) > 0;
-            const stateClass = baseline ? 'baseline' : placeholder ? 'planned'
-                : completed ? 'completed' : activeNode ? 'active-tech' : available ? 'available' : 'locked';
+            const stateClass = completed ? 'completed' : baseline ? 'baseline' : placeholder ? 'planned'
+                : activeNode ? 'active-tech' : available ? 'available' : 'locked';
             const progress = TechnologySystem.getProgress(node.id);
             const percent = completed ? 100 : Math.min(100, (progress / node.researchCost) * 100);
             const queuedAt = queueIndex.get(node.id);
-            const stateText = baseline ? '现役一级'
+            const stateText = completed ? (node.initiallyCompleted === true ? '初始解锁' : '已完成')
+                : baseline ? '现役一级'
                 : placeholder ? `规划占位 · ${node.researchCost}`
                 : worldMasked ? '未知位面科技'
                 : worldCountLocked ? `需要${node.requiredWorldCount}个位面`
-                : completed ? '已完成' : activeNode ? '研发中'
-                : queuedAt ? `队列 ${queuedAt}` : available ? '可研究' : '前置未满足';
+                : activeNode ? '研发中'
+                : queuedAt ? `队列 ${queuedAt}` : available ? '可研究'
+                : convergenceTech ? `前置 ${prerequisiteStatus.completedCount}/${prerequisiteStatus.totalCount}`
+                : '前置未满足';
             const pathClass = selectedPath.has(node.id) ? ' path-node' : '';
             const targetClass = TechnologySystem.state.targetTechId === node.id ? ' path-target' : '';
             const crossPrerequisite = (node.prerequisites || []).some((id) => !visibleIds.has(id));
-            return `<button type="button" class="technology-card ${stateClass}${worldMasked ? ' world-masked' : ''}${node.section === 'plane' ? ' plane-research' : ''}${crossPrerequisite ? ' cross-prerequisite' : ''}${this._selectedId === node.id ? ' selected' : ''}${pathClass}${targetClass}"
+            return `<button type="button" class="technology-card ${stateClass}${convergenceTech ? ' convergence-tech' : ''}${node.militaryTrunk === true ? ' military-trunk' : ''}${worldMasked ? ' world-masked' : ''}${node.section === 'plane' ? ' plane-research' : ''}${crossPrerequisite ? ' cross-prerequisite' : ''}${this._selectedId === node.id ? ' selected' : ''}${pathClass}${targetClass}"
                 data-tech-id="${escapeHtml(node.id)}" style="left:${pos.x}px;top:${pos.y}px">
                 ${queuedAt ? `<span class="technology-card-queue-index">${queuedAt}</span>` : ''}
+                ${convergenceTech ? `<span class="technology-card-prerequisite-gate" aria-label="全部前置完成后解锁，已完成 ${prerequisiteStatus.completedCount} 项，共 ${prerequisiteStatus.totalCount} 项"><b>AND</b>${prerequisiteStatus.completedCount}/${prerequisiteStatus.totalCount}</span>` : ''}
                 ${renderTechnologyIcon(node, 'technology-card-icon')}
-                <span class="technology-card-copy"><strong>${escapeHtml(node.name)}</strong><small data-live-role="card-state">${stateText}${placeholder ? '' : ` · ${node.researchCost}`}</small></span>
+                <span class="technology-card-copy"><strong>${escapeHtml(node.name)}</strong><small data-live-role="card-state">${stateText}${placeholder || node.initiallyCompleted === true ? '' : ` · ${node.researchCost}`}</small></span>
                 <span class="technology-card-progress"><i data-live-role="card-progress" style="width:${percent}%"></i></span>
             </button>`;
         }).join('');
@@ -525,7 +581,10 @@ export const TechnologyTreePanel = {
                 return `<div class="technology-subbranch-label row-label" style="left:28px;top:${top}px;width:${originX - 64}px;height:${height}px">${escapeHtml(row.label)}</div>`;
             }).join('')
             : '';
-        canvas.innerHTML = `<svg class="technology-links" width="100%" height="100%">${lines}</svg>${label}${subBranchLabels}${cards}`;
+        const prerequisiteLegend = nodes.some((node) => (node.prerequisites || []).length > 1)
+            ? `<div class="technology-prerequisite-legend"><b>AND 汇合</b><span><i></i>实线已完成</span><span><i class="pending"></i>虚线待研发</span>${this._selectedBranch === MILITARY_BRANCH ? '<span><i class="trunk"></i>纵向建筑骨架</span>' : ''}</div>`
+            : '';
+        canvas.innerHTML = `<svg class="technology-links" width="100%" height="100%">${lines}</svg>${label}${prerequisiteLegend}${subBranchLabels}${cards}`;
         canvas.querySelectorAll('[data-tech-id]').forEach((card) => {
             card.addEventListener('click', () => {
                 this._selectedId = card.dataset.techId;
@@ -553,10 +612,18 @@ export const TechnologyTreePanel = {
         const active = TechnologySystem.state.activeTechId === node.id;
         const isTarget = TechnologySystem.state.targetTechId === node.id;
         const progress = TechnologySystem.getProgress(node.id);
-        const prerequisiteNames = (node.prerequisites || []).map((id) => TechnologySystem.getNode(id)?.name || id);
+        const prerequisiteStatus = TechnologySystem.getPrerequisiteStatus(node.id);
+        const prerequisiteHeading = prerequisiteStatus.totalCount > 1
+            ? '前置科技 · 全部完成后解锁'
+            : '前置科技';
         const plan = completed ? [] : TechnologySystem.getResearchPlan(node.id);
+        const instantResearch = isInstantTechnologyResearchEnabled();
         const eta = TechnologySystem.getEstimatedSeconds(plan, TechnologySystem.lastResearchRate);
         const planNames = plan.map((id) => TechnologySystem.getNode(id)?.name || id);
+        const planMarkup = prerequisiteStatus.totalCount > 1
+            ? `<div class="technology-detail-plan-rule"><b>AND</b><span>系统会先完成所有未满足前置，再研究目标科技</span></div>
+                <div class="technology-detail-plan-queue">${planNames.map((name, index) => `<span><b>${index + 1}</b>${escapeHtml(name)}</span>`).join('')}</div>`
+            : planNames.map(escapeHtml).join(' → ');
         const recruitmentTierPlan = TechnologySystem.getRecruitmentTierPlan(
             node.recruitmentTierId
         );
@@ -576,8 +643,8 @@ export const TechnologyTreePanel = {
                 <div class="technology-detail-branch">${escapeHtml(`${node.branch}科技 · ${node.subBranch || '规划'}`)}</div>
                 <h3>${escapeHtml(node.name)}</h3>
                 <p>${escapeHtml(node.description)}</p>
-                <h4>前置科技</h4>
-                <div class="technology-detail-prerequisites">${prerequisiteNames.map(escapeHtml).join('、') || '无'}</div>
+                <h4>${prerequisiteHeading}</h4>
+                ${renderPrerequisiteRequirements(node)}
                 <h4>${baseline ? '一级现役路线' : '升级替换路线'}</h4>
                 <ul class="technology-tier-route">${renderRecruitmentTierLines(recruitmentTierPlan)}</ul>
                 <h4>科研预算</h4>
@@ -595,28 +662,35 @@ export const TechnologyTreePanel = {
             <div class="technology-detail-branch">${escapeHtml(node.section === 'plane' ? '位面独特科技' : `${node.branch}科技`)}</div>
             <h3>${escapeHtml(node.name)}</h3>
             <p>${escapeHtml(node.description)}</p>
-            <div class="technology-detail-progress"><span><i data-live-role="detail-progress-bar" style="width:${completed ? 100 : (progress / node.researchCost) * 100}%"></i></span><b data-live-role="detail-progress-text">${completed ? '已完成' : `${Math.floor(progress)} / ${node.researchCost}`}</b></div>
-            <h4>前置科技</h4>
-            <div class="technology-detail-prerequisites">${[
-                ...(prerequisiteNames.length ? prerequisiteNames.map(escapeHtml) : []),
-                ...(node.requiredWorldCount ? [`控制至少${node.requiredWorldCount}个位面`] : []),
-            ].join('、') || (node.section === 'plane' ? '对应位面已解锁' : '无')}</div>
+            <div class="technology-detail-progress"><span><i data-live-role="detail-progress-bar" style="width:${completed ? 100 : (progress / node.researchCost) * 100}%"></i></span><b data-live-role="detail-progress-text">${completed ? (node.initiallyCompleted === true ? '初始解锁' : '已完成') : `${Math.floor(progress)} / ${node.researchCost}`}</b></div>
+            <h4>${prerequisiteHeading}</h4>
+            ${renderPrerequisiteRequirements(node, node.section === 'plane' ? '对应位面已解锁' : '无')}
+            ${node.requiredWorldCount ? `<div class="technology-world-requirement ${worldCountLocked ? 'pending' : 'completed'}">控制至少${node.requiredWorldCount}个位面 · ${worldCountLocked ? '未满足' : '已满足'}</div>` : ''}
             <h4>解锁内容</h4>
             <ul>${(node.unlocks || []).map((unlock) => `<li>${escapeHtml(unlock.label || unlock.id)}</li>`).join('')}</ul>
             ${recruitmentTierPlan ? `
-                <h4>升级替换路线</h4>
+                <h4>${node.baseline === true ? '一级现役路线' : '升级替换路线'}</h4>
                 <ul class="technology-tier-route">${renderRecruitmentTierLines(recruitmentTierPlan)}</ul>
-                <p>建筑名称与贴图在科研完成后立即升级；本级两条兵种线全部开发并登记后，后续招募自动换代，已经出兵的旧单位不变。</p>` : ''}
+                <p>${node.baseline === true
+                    ? '一级编制随游戏开始直接生效；各兵种仍分别服从自己的科技解锁。'
+                    : '建筑名称与贴图在科研完成后立即升级；本级两条兵种线全部开发并登记后，后续招募自动换代，已经出兵的旧单位不变。'}</p>` : ''}
             <h4>研究计划</h4>
             <div class="technology-detail-plan">
                 ${completed
-                    ? '该科技已经完成'
-                    : `${planNames.map(escapeHtml).join(' → ')}<b data-live-role="detail-eta">预计 ${formatEta(eta)}</b>`}
+                    ? (node.initiallyCompleted === true ? '该科技为新游戏与旧存档默认完成的初始节点' : '该科技已经完成')
+                    : `${planMarkup}<b data-live-role="detail-eta">预计 ${formatEta(eta)}</b>`}
             </div>
-            <button class="technology-research-button${isTarget ? ' secondary' : ''}" type="button" ${completed || worldCountLocked ? 'disabled' : ''}>
-                ${completed ? '已完成' : worldCountLocked ? `需要控制${node.requiredWorldCount}个位面` : isTarget ? '取消目标并恢复自动研究' : active && !TechnologySystem.state.targetTechId ? '转为研究目标' : '设为研究目标'}
+            <button class="technology-research-button${isTarget && !instantResearch ? ' secondary' : ''}" type="button" ${completed || worldCountLocked ? 'disabled' : ''}>
+                ${completed ? (node.initiallyCompleted === true ? '初始解锁' : '已完成') : worldCountLocked ? `需要控制${node.requiredWorldCount}个位面`
+                    : instantResearch ? (plan.length > 1 ? `瞬间研发该科技（含 ${plan.length - 1} 项前置）` : '瞬间研发该科技')
+                    : isTarget ? '取消目标并恢复自动研究' : active && !TechnologySystem.state.targetTechId ? '转为研究目标' : '设为研究目标'}
             </button>`;
         detail.querySelector('.technology-research-button')?.addEventListener('click', () => {
+            if (instantResearch) {
+                TechnologySystem.completeResearchNow(node.id);
+                this.render();
+                return;
+            }
             const changed = isTarget
                 ? TechnologySystem.clearResearchTarget()
                 : TechnologySystem.setResearchTarget(node.id);
