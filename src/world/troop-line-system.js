@@ -13,7 +13,7 @@ import { MilitaryPopulationSystem } from './military-population-system.js';
 const VERSION = 4;
 const MODES = new Set(['follow', 'hold', 'rally']);
 const MILITARY_KINDS = new Set([
-    'militia', 'halberd', 'anti_vehicle', 'warrior', 'champion', 'shooter', 'guard', 'phalanx', 'riot_special', 'scout', 'ranger', 'heavy_machine_gunner', 'sniper', 'musketeer', 'priest', 'knight', 'light_cavalry', 'ninja',
+    'militia', 'halberd', 'anti_vehicle', 'warrior', 'champion', 'shooter', 'guard', 'phalanx', 'riot_special', 'scout', 'ranger', 'assault', 'heavy_machine_gunner', 'sniper', 'musketeer', 'priest', 'knight', 'light_cavalry', 'cavalry', 'winged_hussar', 'ninja',
     'camel_cavalry',
     'explorer',
     'bounty_hunter',

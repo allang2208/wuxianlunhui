@@ -38,6 +38,7 @@ import halberdierCfg from '../../data/hamster-halberdier-config.json';
 import scoutCfg from '../../data/hamster-scout-config.json';
 import rangerCfg from '../../data/hamster-ranger-config.json';
 import crossbowCfg from '../../data/hamster-crossbow-config.json';
+import assaultCfg from '../../data/hamster-assault-config.json';
 import heavyMachineGunnerCfg from '../../data/hamster-heavy-machine-gunner-config.json';
 import sniperCfg from '../../data/hamster-sniper-config.json';
 import musketeerCfg from '../../data/hamster-musketeer-config.json';
@@ -45,6 +46,8 @@ import antiVehicleCfg from '../../data/hamster-anti-vehicle-config.json';
 import priestCfg from '../../data/hamster-priest-config.json';
 import knightCfg from '../../data/hamster-knight-config.json';
 import lightCavalryCfg from '../../data/hamster-light-cavalry-config.json';
+import cavalryCfg from '../../data/hamster-cavalry-config.json';
+import wingedHussarCfg from '../../data/hamster-winged-hussar-config.json';
 import ninjaCfg from '../../data/hamster-ninja-config.json';
 import samuraiCfg from '../../data/hamster-samurai-config.json';
 import camelCavalryCfg from '../../data/hamster-camel-cavalry-config.json';
@@ -83,8 +86,9 @@ export const WORLD122_SIM = {
 
 const UNIT_CFGS = {
     militia: militiaCfg, warrior: warriorCfg, champion: championCfg, shooter: shooterCfg,
-    guard: guardCfg, phalanx: phalanxCfg, riot_special: riotSquadCfg, halberd: halberdierCfg, scout: scoutCfg, ranger: rangerCfg, crossbow: crossbowCfg, heavy_machine_gunner: heavyMachineGunnerCfg, sniper: sniperCfg, musketeer: musketeerCfg, anti_vehicle: antiVehicleCfg, priest: priestCfg,
-    knight: knightCfg, light_cavalry: lightCavalryCfg, ninja: ninjaCfg,
+    guard: guardCfg, phalanx: phalanxCfg, riot_special: riotSquadCfg, halberd: halberdierCfg, scout: scoutCfg, ranger: rangerCfg, crossbow: crossbowCfg, assault: assaultCfg, heavy_machine_gunner: heavyMachineGunnerCfg, sniper: sniperCfg, musketeer: musketeerCfg, anti_vehicle: antiVehicleCfg, priest: priestCfg,
+    knight: knightCfg, light_cavalry: lightCavalryCfg,
+    cavalry: cavalryCfg, winged_hussar: wingedHussarCfg, ninja: ninjaCfg,
     samurai: samuraiCfg,
     camel_cavalry: camelCavalryCfg,
     explorer: explorerCfg, bounty_hunter: bountyHunterCfg,
@@ -766,7 +770,7 @@ function _unitDps(kind, levelOverrides = null) {
     if (kind === 'jungle_priest') {
         dps *= _junglePriestMagicDamageMult(mults.jungleMagicLevel);
     }
-    if (kind === 'knight' && cfg.ai.charge) {
+    if ((kind === 'knight' || kind === 'winged_hussar') && cfg.ai.charge) {
         const charge = cfg.ai.charge;
         const chargeMult = mults.chargeDamageMult || 1;
         dps += dmg * (charge.damageMul ?? 2) * chargeMult

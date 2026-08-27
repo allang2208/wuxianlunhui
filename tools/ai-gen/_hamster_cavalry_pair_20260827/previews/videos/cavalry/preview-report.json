@@ -1,0 +1,46 @@
+{
+  "idle": {
+    "source": "videos/cavalry/idle-doubao-v01.mp4",
+    "frameCount": 121,
+    "fps": 24.0,
+    "size": [
+      1280,
+      720
+    ],
+    "gif": "previews/videos/cavalry/idle-preview.gif",
+    "contact": "previews/videos/cavalry/idle-contact-24.png"
+  },
+  "running": {
+    "source": "videos/cavalry/running-doubao-v01.mp4",
+    "frameCount": 121,
+    "fps": 24.0,
+    "size": [
+      1280,
+      720
+    ],
+    "gif": "previews/videos/cavalry/running-preview.gif",
+    "contact": "previews/videos/cavalry/running-contact-24.png"
+  },
+  "attacking": {
+    "source": "videos/cavalry/attacking-doubao-v01.mp4",
+    "frameCount": 121,
+    "fps": 24.0,
+    "size": [
+      1280,
+      720
+    ],
+    "gif": "previews/videos/cavalry/attacking-preview.gif",
+    "contact": "previews/videos/cavalry/attacking-contact-24.png"
+  },
+  "dying": {
+    "source": "videos/cavalry/dying-doubao-v01.mp4",
+    "frameCount": 121,
+    "fps": 24.0,
+    "size": [
+      1280,
+      720
+    ],
+    "gif": "previews/videos/cavalry/dying-preview.gif",
+    "contact": "previews/videos/cavalry/dying-contact-24.png"
+  }
+}

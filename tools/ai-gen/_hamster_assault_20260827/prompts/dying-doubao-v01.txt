@@ -1,0 +1,11 @@
+Keep the exact compact hamster assault trooper identity from the reference image: the same broad short golden-and-white hamster, face, ears, clear amber goggles, open high-cut helmet, sand-and-olive ripstop uniform, coyote plate carrier and pouches, backpack, knee pads, gloves, boots, holster, and the exact same compact black assault rifle with one barrel, one curved magazine, one red-dot optic and one stock.
+
+This is a short-tailed hamster. Its tiny natural tail stays completely hidden behind the uniform and backpack. Never generate a visible long tail, rat tail, mouse tail, rope-like appendage, or extra appendage. Both feet stay fully enclosed in the same boots through the collapse; no toes, claws, bare paws, sandals, or missing boot fronts.
+
+The intentionally compact full-body scale and wide empty framing of the reference image are mandatory. Keep the hamster at exactly this small scale. Never enlarge, zoom, crop, reframe, track, pan, or move the camera. The complete standing pose, complete fallen body, attached equipment and complete rifle must remain visible with very large white margins during the entire collapse.
+
+Animate one grounded death while facing screen right. Begin in the original low-ready stance. The hamster suddenly loses strength, the short thick knees buckle, the torso slumps and turns only slightly, and the compact body collapses onto one side. The same rifle slips from the hands and falls beside the body without bouncing away, breaking, or duplicating. End fully motionless in a stable corpse pose. The backpack, helmet, goggles, pouches, holster and magazine remain present. The complete body and complete fallen rifle remain visible and inside frame for the entire action.
+
+Preserve the same compact hamster proportions, face, ears, helmet, goggles, uniform, armor, pouches, backpack, gloves, knee pads, boots and rifle topology. Static locked wide camera, fixed scale and position, pure white background, soft even light. This is a one-way action and must not recover or loop.
+
+No visible tail, rat anatomy, bare feet, firing, muzzle flash, smoke, reloading, gore, dismemberment, detached body parts, exploding weapon, weapon duplication, weapon morphing, missing equipment, extra limbs, standing back up, crossfade, teleport, camera movement, zoom, crop, floor, shadow, scenery, text, logo, or watermark.

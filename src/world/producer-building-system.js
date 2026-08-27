@@ -19,6 +19,7 @@ import { HamsterHalberdier } from '../entities/hamster-halberdier.js';
 import { HamsterScout } from '../entities/hamster-scout.js';
 import { HamsterRanger } from '../entities/hamster-ranger.js';
 import { HamsterCrossbow } from '../entities/hamster-crossbow.js';
+import { HamsterAssault } from '../entities/hamster-assault.js';
 import { HamsterHeavyMachineGunner } from '../entities/hamster-heavy-machine-gunner.js';
 import { HamsterSniper } from '../entities/hamster-sniper.js';
 import { HamsterMusketeer } from '../entities/hamster-musketeer.js';
@@ -26,6 +27,8 @@ import { HamsterAntiVehicle } from '../entities/hamster-anti-vehicle.js';
 import { HamsterPriest } from '../entities/hamster-priest.js';
 import { HamsterKnight } from '../entities/hamster-knight.js';
 import { HamsterLightCavalry } from '../entities/hamster-light-cavalry.js';
+import { HamsterCavalry } from '../entities/hamster-cavalry.js';
+import { HamsterWingedHussar } from '../entities/hamster-winged-hussar.js';
 import { HamsterNinja } from '../entities/hamster-ninja.js';
 import { HamsterSamurai } from '../entities/hamster-samurai.js';
 import { HamsterCamelCavalry } from '../entities/hamster-camel-cavalry.js';
@@ -73,6 +76,7 @@ import halberdierCfg from '../../data/hamster-halberdier-config.json';
 import scoutCfg from '../../data/hamster-scout-config.json';
 import rangerCfg from '../../data/hamster-ranger-config.json';
 import crossbowCfg from '../../data/hamster-crossbow-config.json';
+import assaultCfg from '../../data/hamster-assault-config.json';
 import heavyMachineGunnerCfg from '../../data/hamster-heavy-machine-gunner-config.json';
 import sniperCfg from '../../data/hamster-sniper-config.json';
 import musketeerCfg from '../../data/hamster-musketeer-config.json';
@@ -80,6 +84,8 @@ import antiVehicleCfg from '../../data/hamster-anti-vehicle-config.json';
 import priestCfg from '../../data/hamster-priest-config.json';
 import knightCfg from '../../data/hamster-knight-config.json';
 import lightCavalryCfg from '../../data/hamster-light-cavalry-config.json';
+import cavalryCfg from '../../data/hamster-cavalry-config.json';
+import wingedHussarCfg from '../../data/hamster-winged-hussar-config.json';
 import ninjaCfg from '../../data/hamster-ninja-config.json';
 import samuraiCfg from '../../data/hamster-samurai-config.json';
 import camelCavalryCfg from '../../data/hamster-camel-cavalry-config.json';
@@ -173,6 +179,7 @@ const ABILITY_TARGET_NAMES = Object.freeze({
     scout: '仓鼠斥候',
     ranger: '仓鼠游侠',
     crossbow: '仓鼠弩手',
+    assault: '仓鼠突击',
     heavy_machine_gunner: '仓鼠重机枪',
     sniper: '仓鼠狙击手',
     musketeer: '仓鼠火枪',
@@ -180,6 +187,8 @@ const ABILITY_TARGET_NAMES = Object.freeze({
     priest: '仓鼠牧师',
     knight: '仓鼠骑士',
     light_cavalry: '仓鼠轻骑',
+    cavalry: '仓鼠骑兵',
+    winged_hussar: '仓鼠翼骑兵',
     ninja: '仓鼠忍者',
     samurai: '仓鼠武士',
     camel_cavalry: '骆驼骑兵',
@@ -277,6 +286,7 @@ const PRODUCER_UNIT_CFG = {
     scout: scoutCfg,
     ranger: rangerCfg,
     crossbow: crossbowCfg,
+    assault: assaultCfg,
     heavy_machine_gunner: heavyMachineGunnerCfg,
     sniper: sniperCfg,
     musketeer: musketeerCfg,
@@ -284,6 +294,8 @@ const PRODUCER_UNIT_CFG = {
     priest: priestCfg,
     knight: knightCfg,
     light_cavalry: lightCavalryCfg,
+    cavalry: cavalryCfg,
+    winged_hussar: wingedHussarCfg,
     ninja: ninjaCfg,
     samurai: samuraiCfg,
     camel_cavalry: camelCavalryCfg,
@@ -307,6 +319,7 @@ const PRODUCER_UNIT_CLASS = {
     scout: HamsterScout,
     ranger: HamsterRanger,
     crossbow: HamsterCrossbow,
+    assault: HamsterAssault,
     heavy_machine_gunner: HamsterHeavyMachineGunner,
     sniper: HamsterSniper,
     musketeer: HamsterMusketeer,
@@ -314,6 +327,8 @@ const PRODUCER_UNIT_CLASS = {
     priest: HamsterPriest,
     knight: HamsterKnight,
     light_cavalry: HamsterLightCavalry,
+    cavalry: HamsterCavalry,
+    winged_hussar: HamsterWingedHussar,
     ninja: HamsterNinja,
     samurai: HamsterSamurai,
     camel_cavalry: HamsterCamelCavalry,
@@ -336,6 +351,7 @@ const PRODUCER_UNIT_CONFIG_PATH = Object.freeze({
     scout: 'data/hamster-scout-config.json',
     ranger: 'data/hamster-ranger-config.json',
     crossbow: 'data/hamster-crossbow-config.json',
+    assault: 'data/hamster-assault-config.json',
     heavy_machine_gunner: 'data/hamster-heavy-machine-gunner-config.json',
     sniper: 'data/hamster-sniper-config.json',
     musketeer: 'data/hamster-musketeer-config.json',
@@ -343,6 +359,8 @@ const PRODUCER_UNIT_CONFIG_PATH = Object.freeze({
     priest: 'data/hamster-priest-config.json',
     knight: 'data/hamster-knight-config.json',
     light_cavalry: 'data/hamster-light-cavalry-config.json',
+    cavalry: 'data/hamster-cavalry-config.json',
+    winged_hussar: 'data/hamster-winged-hussar-config.json',
     ninja: 'data/hamster-ninja-config.json',
     samurai: 'data/hamster-samurai-config.json',
     camel_cavalry: 'data/hamster-camel-cavalry-config.json',

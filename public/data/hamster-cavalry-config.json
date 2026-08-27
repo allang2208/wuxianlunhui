@@ -1,0 +1,100 @@
+{
+  "id": "hamster_cavalry",
+  "name": "仓鼠骑兵",
+  "title": "骑兵学院二级轻骑",
+  "desc": "仓鼠轻骑的二级进阶单位。保持高速近战定位，以更坚固的圆盾、长枪和更高基础伤害持续冲击敌阵。",
+  "role": "cavalry",
+  "growthRule": "warrior",
+  "avatar": "🐹🐈",
+  "weaponType": "lance",
+  "baseLevel": 1,
+  "baseExp": 0,
+  "baseMaxHp": 330,
+  "baseData": {
+    "str": 24,
+    "dex": 18,
+    "int": 3,
+    "con": 22,
+    "wis": 3,
+    "luck": 6
+  },
+  "statFormula": "enemy",
+  "groundRadius": 24,
+  "collisionRadius": 24,
+  "bodyHeight": 112,
+  "size": 72,
+  "skills": [],
+  "sounds": {
+    "attack": "assets/sounds/friendly/hamster_melee_attack.mp3"
+  },
+  "ai": {
+    "role": "melee_cavalry",
+    "walkSpeed": 245,
+    "runSpeed": 245,
+    "attackInterval": 2000,
+    "attackDamage": 82,
+    "attackRange": 68,
+    "engageRange": 900,
+    "attackAnimFps": 24,
+    "attackDamageFrame": 21,
+    "followOffset": 155,
+    "followArriveDist": 40,
+    "decisionMs": 120,
+    "teleportDist": 999999,
+    "teleportHardDist": 9999999
+  },
+  "displaySize": 380.363636,
+  "spriteOffsetY": -88.367188,
+  "render": {
+    "footOffsetY": 88.367188,
+    "hudOffsetY": 200,
+    "collisionWidth": 48,
+    "collisionHeight": 112
+  },
+  "animations": {
+    "idle": {
+      "src": "assets/companions/hamster_cavalry/idle.png",
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 8,
+      "rows": 6,
+      "frameCount": 48,
+      "frames": [0, 47],
+      "frameRate": 24,
+      "repeat": -1
+    },
+    "walk": {
+      "src": "assets/companions/hamster_cavalry/running.png",
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 8,
+      "rows": 4,
+      "frameCount": 32,
+      "frames": [0, 31],
+      "frameRate": 24,
+      "repeat": -1
+    },
+    "attack": {
+      "src": "assets/companions/hamster_cavalry/attacking.png",
+      "frameWidth": 896,
+      "frameHeight": 512,
+      "cols": 8,
+      "rows": 5,
+      "frameCount": 39,
+      "frames": [0, 38],
+      "frameRate": 24,
+      "repeat": 0
+    },
+    "dying": {
+      "src": "assets/companions/hamster_cavalry/dying.png",
+      "frameWidth": 768,
+      "frameHeight": 512,
+      "cols": 8,
+      "rows": 5,
+      "frameCount": 39,
+      "frames": [0, 38],
+      "frameRate": 24,
+      "repeat": 0
+    }
+  }
+}

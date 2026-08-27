@@ -16,6 +16,7 @@ import halberdierCfg from '../../data/hamster-halberdier-config.json';
 import scoutCfg from '../../data/hamster-scout-config.json';
 import rangerCfg from '../../data/hamster-ranger-config.json';
 import crossbowCfg from '../../data/hamster-crossbow-config.json';
+import assaultCfg from '../../data/hamster-assault-config.json';
 import heavyMachineGunnerCfg from '../../data/hamster-heavy-machine-gunner-config.json';
 import sniperCfg from '../../data/hamster-sniper-config.json';
 import musketeerCfg from '../../data/hamster-musketeer-config.json';
@@ -23,6 +24,8 @@ import antiVehicleCfg from '../../data/hamster-anti-vehicle-config.json';
 import priestCfg from '../../data/hamster-priest-config.json';
 import knightCfg from '../../data/hamster-knight-config.json';
 import lightCavalryCfg from '../../data/hamster-light-cavalry-config.json';
+import cavalryCfg from '../../data/hamster-cavalry-config.json';
+import wingedHussarCfg from '../../data/hamster-winged-hussar-config.json';
 import ninjaCfg from '../../data/hamster-ninja-config.json';
 import samuraiCfg from '../../data/hamster-samurai-config.json';
 import camelCavalryCfg from '../../data/hamster-camel-cavalry-config.json';
@@ -79,6 +82,7 @@ export const UNIT_KIND_CFG = {
     scout: scoutCfg,
     ranger: rangerCfg,
     crossbow: crossbowCfg,
+    assault: assaultCfg,
     heavy_machine_gunner: heavyMachineGunnerCfg,
     sniper: sniperCfg,
     musketeer: musketeerCfg,
@@ -86,6 +90,8 @@ export const UNIT_KIND_CFG = {
     priest: priestCfg,
     knight: knightCfg,
     light_cavalry: lightCavalryCfg,
+    cavalry: cavalryCfg,
+    winged_hussar: wingedHussarCfg,
     ninja: ninjaCfg,
     samurai: samuraiCfg,
     camel_cavalry: camelCavalryCfg,
@@ -125,11 +131,15 @@ export function getUnitKind(unit) {
     if (unit._isHamsterAntiVehicle) return 'anti_vehicle';
     if (unit._isHamsterSniper) return 'sniper';
     if (unit._isHamsterScout) return 'scout';
-    // 防暴队继承火枪实体，必须先于 _isHamsterMusketeer 判断。
+    // 防暴队、突击兵与重机枪手都继承火枪实体，必须先于 _isHamsterMusketeer 判断。
     if (unit._isHamsterRiotSquad) return 'riot_special';
+    if (unit._isHamsterAssault) return 'assault';
     if (unit._isHamsterHeavyMachineGunner) return 'heavy_machine_gunner';
     if (unit._isHamsterMusketeer) return 'musketeer';
     if (unit._isHamsterPriest) return 'priest';
+    // 二级骑兵继承一级实体，必须先于基础骑士/轻骑判断。
+    if (unit._isHamsterWingedHussar) return 'winged_hussar';
+    if (unit._isHamsterCavalry) return 'cavalry';
     if (unit._isHamsterKnight) return 'knight';
     if (unit._isHamsterCamelCavalry) return 'camel_cavalry';
     if (unit._isHamsterLightCavalry) return 'light_cavalry';

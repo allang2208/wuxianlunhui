@@ -1,0 +1,60 @@
+{
+  "source": "sheets/interpolated",
+  "pipeline": "BiRefNet-general + RIFE v4.6 RGBA 2x",
+  "units": {
+    "cavalry": {
+      "assets": {
+        "idle": {
+          "source": "tools/ai-gen/_hamster_cavalry_pair_20260827/sheets/interpolated/cavalry/idle.png",
+          "destination": "assets/companions/hamster_cavalry/idle.png",
+          "sha256": "63ed3d893b366b4f3bde7548862d51f33748a3779076ab0bfbcb4d5e69d4cc23"
+        },
+        "running": {
+          "source": "tools/ai-gen/_hamster_cavalry_pair_20260827/sheets/interpolated/cavalry/running.png",
+          "destination": "assets/companions/hamster_cavalry/running.png",
+          "sha256": "219f5455f9b531ea3651e1b42a96870484f0d69589c5b5a8f2585ae801956089"
+        },
+        "attacking": {
+          "source": "tools/ai-gen/_hamster_cavalry_pair_20260827/sheets/interpolated/cavalry/attacking.png",
+          "destination": "assets/companions/hamster_cavalry/attacking.png",
+          "sha256": "c6f298a01457098c02929c82e058438377ac62fede7f433e90b25bb960ad2469"
+        },
+        "dying": {
+          "source": "tools/ai-gen/_hamster_cavalry_pair_20260827/sheets/interpolated/cavalry/dying.png",
+          "destination": "assets/companions/hamster_cavalry/dying.png",
+          "sha256": "9aaa43f3821deb8e1dfcf80642c773db7e50c38c61be8b5d4f4214ef4fb8e172"
+        }
+      },
+      "icon": "assets/ui/unit-icons/hamster-cavalry.png",
+      "iconSha256": "ca07c3501ccce58b84a272f0df6b2b4a46ec6f659ec3cea604c8d2fab8248181",
+      "configCopiesIdentical": true
+    },
+    "winged_hussar": {
+      "assets": {
+        "idle": {
+          "source": "tools/ai-gen/_hamster_cavalry_pair_20260827/sheets/interpolated/winged_hussar/idle.png",
+          "destination": "assets/companions/hamster_winged_hussar/idle.png",
+          "sha256": "26a3a0a2f1c37f217d63b2751b76b773326fe53b2415be3f674b45f1194207b0"
+        },
+        "running": {
+          "source": "tools/ai-gen/_hamster_cavalry_pair_20260827/sheets/interpolated/winged_hussar/running.png",
+          "destination": "assets/companions/hamster_winged_hussar/running.png",
+          "sha256": "5e3997aa0cece6b37c6e9007c472f42c9812eaacf2c70f092b7010d33f9ed0ca"
+        },
+        "attacking": {
+          "source": "tools/ai-gen/_hamster_cavalry_pair_20260827/sheets/interpolated/winged_hussar/attacking.png",
+          "destination": "assets/companions/hamster_winged_hussar/attacking.png",
+          "sha256": "22d1790cf05b982c0fbaafee9635d907a66e72aa18d2627d949e040ef28d82ba"
+        },
+        "dying": {
+          "source": "tools/ai-gen/_hamster_cavalry_pair_20260827/sheets/interpolated/winged_hussar/dying.png",
+          "destination": "assets/companions/hamster_winged_hussar/dying.png",
+          "sha256": "1d9ec3360286e436a975fa3f470b6300942a80e799b4a6b01bf568a506d1f810"
+        }
+      },
+      "icon": "assets/ui/unit-icons/hamster-winged-hussar.png",
+      "iconSha256": "368b60a1d318950a874cde0d4cf232255d920c699d20d5d1f7cd67868c858084",
+      "configCopiesIdentical": true
+    }
+  }
+}

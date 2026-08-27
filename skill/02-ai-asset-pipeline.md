@@ -696,6 +696,10 @@ python tools/ai-gen/build-lighting-maps.py <building_id>
 - 一律 512×512 格子；工头 walk 旧规格：15 帧 8×4 网格 → 新版 20 帧 5×4 网格。
 - BootScene：`load.spritesheet` 的 `endFrame = 帧数-1`；`anims.create` frames 0..N-1、
   walk 用 `repeat:-1`；frameRate 按观感调（工头 20 帧 8fps=2.5s/圈，10fps 偏快）。
+- **友军动画必须同时通过“贴图预载 + 动画创建”两张名单**：把单位配置加入
+  `load.spritesheet` 遍历只会让 `textures.exists(key)` 为真，不会自动生成 Phaser 动画键；还必须加入
+  `anims.create` 遍历，并逐状态核对 `this.anims.exists(companion_<id>_<state>)`。同一张源表复用为
+  `attack/charge` 时也要分别注册两个纹理键和动画键，否则 AI 状态与命中效果正常、画面却不会播放对应动作。
 - `_getTextureKey()` 必须与动画源 spritesheet 一致；换素材前先备份旧图到
   `Y:\工作\无尽轮回\scratch\backup\`（git 里也有历史版本，可放心清）。
 

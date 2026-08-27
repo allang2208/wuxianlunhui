@@ -1,0 +1,104 @@
+{
+  "task": "hamster_cavalry_pair_four_action_doubao_video",
+  "date": "2026-08-27",
+  "sourceApproval": "../_hamster_missing_mothers_20260826/task-index.json#cavalry,winged_hussar",
+  "provider": "doubao-desktop",
+  "modelRequested": "Seedance 2.0 Mini",
+  "rawDurationSeconds": 5,
+  "sizeRequested": "1024x576",
+  "runtimeIntegrationActive": true,
+  "status": "accepted_and_runtime_integrated",
+  "units": [
+    {
+      "unitKey": "cavalry",
+      "unitName": "仓鼠骑兵",
+      "sourceMother": "../_hamster_missing_mothers_20260826/mother/hamster-cavalry-mother-v04-line-rider-white.png",
+      "reference": "references/hamster-cavalry-safe-white-1024x576.png",
+      "runtimeAssets": "assets/companions/hamster_cavalry",
+      "runtimeConfig": "data/hamster-cavalry-config.json",
+      "preview": "previews/interpolated/cavalry/hamster-cavalry-running-interpolated.gif",
+      "identityContract": "light-cavalry rider lineage, orange tabby cat, round shield, navy cape, blue-plumed helmet and one complete lance",
+      "tasks": [
+        {
+          "motion": "idle",
+          "prompt": "prompts/cavalry/idle-doubao-v01.txt",
+          "loopRequested": true,
+          "status": "accepted_integrated",
+          "video": "videos/cavalry/idle-doubao-v01.mp4",
+          "provenance": "videos/cavalry/idle-doubao-v01.mp4.json"
+        },
+        {
+          "motion": "running",
+          "prompt": "prompts/cavalry/running-doubao-v01.txt",
+          "loopRequested": true,
+          "status": "accepted_integrated",
+          "video": "videos/cavalry/running-doubao-v01.mp4",
+          "provenance": "videos/cavalry/running-doubao-v01.mp4.json"
+        },
+        {
+          "motion": "attacking",
+          "prompt": "prompts/cavalry/attacking-doubao-v01.txt",
+          "loopRequested": false,
+          "status": "accepted_integrated",
+          "video": "videos/cavalry/attacking-doubao-v01.mp4",
+          "provenance": "videos/cavalry/attacking-doubao-v01.mp4.json"
+        },
+        {
+          "motion": "dying",
+          "prompt": "prompts/cavalry/dying-doubao-v01.txt",
+          "loopRequested": false,
+          "status": "accepted_integrated",
+          "video": "videos/cavalry/dying-doubao-v01.mp4",
+          "provenance": "videos/cavalry/dying-doubao-v01.mp4.json"
+        }
+      ]
+    },
+    {
+      "unitKey": "winged_hussar",
+      "unitName": "仓鼠翼骑兵",
+      "sourceMother": "../_hamster_missing_mothers_20260826/mother/hamster-winged-hussar-mother-v04-line-rider-white.png",
+      "reference": "references/hamster-winged-hussar-safe-white-1024x576.png",
+      "runtimeAssets": "assets/companions/hamster_winged_hussar",
+      "runtimeConfig": "data/hamster-winged-hussar-config.json",
+      "preview": "previews/interpolated/winged_hussar/hamster-winged-hussar-running-interpolated.gif",
+      "identityContract": "knight rider lineage, silver-gray tabby cat, red-and-silver plate, exactly two rigid feather wing racks and one complete lance",
+      "tasks": [
+        {
+          "motion": "idle",
+          "prompt": "prompts/winged_hussar/idle-doubao-v01.txt",
+          "loopRequested": true,
+          "status": "accepted_integrated",
+          "video": "videos/winged_hussar/idle-doubao-v01.mp4",
+          "provenance": "videos/winged_hussar/idle-doubao-v01.mp4.json"
+        },
+        {
+          "motion": "running",
+          "prompt": "prompts/winged_hussar/running-doubao-v01.txt",
+          "loopRequested": true,
+          "status": "accepted_integrated_natural_loop_reselected",
+          "sourceWindow": { "start": 62, "endInclusive": 78, "step": 2, "samePhaseEndpoint": 80 },
+          "sourceKeyFrameCount": 9,
+          "finalFrameCount": 18,
+          "video": "videos/winged_hussar/running-doubao-v01.mp4",
+          "provenance": "videos/winged_hussar/running-doubao-v01.mp4.json"
+        },
+        {
+          "motion": "attacking",
+          "prompt": "prompts/winged_hussar/attacking-doubao-v01.txt",
+          "loopRequested": false,
+          "status": "accepted_integrated",
+          "video": "videos/winged_hussar/attacking-doubao-v01.mp4",
+          "provenance": "videos/winged_hussar/attacking-doubao-v01.mp4.json"
+        },
+        {
+          "motion": "dying",
+          "prompt": "prompts/winged_hussar/dying-doubao-v01.txt",
+          "loopRequested": false,
+          "status": "accepted_integrated",
+          "video": "videos/winged_hussar/dying-doubao-v01.mp4",
+          "provenance": "videos/winged_hussar/dying-doubao-v01.mp4.json"
+        }
+      ]
+    }
+  ]
+}

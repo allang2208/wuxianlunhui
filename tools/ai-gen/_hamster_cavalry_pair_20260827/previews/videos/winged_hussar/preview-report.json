@@ -1,0 +1,46 @@
+{
+  "idle": {
+    "source": "videos/winged_hussar/idle-doubao-v01.mp4",
+    "frameCount": 121,
+    "fps": 24.0,
+    "size": [
+      1280,
+      720
+    ],
+    "gif": "previews/videos/winged_hussar/idle-preview.gif",
+    "contact": "previews/videos/winged_hussar/idle-contact-24.png"
+  },
+  "running": {
+    "source": "videos/winged_hussar/running-doubao-v01.mp4",
+    "frameCount": 121,
+    "fps": 24.0,
+    "size": [
+      1280,
+      720
+    ],
+    "gif": "previews/videos/winged_hussar/running-preview.gif",
+    "contact": "previews/videos/winged_hussar/running-contact-24.png"
+  },
+  "attacking": {
+    "source": "videos/winged_hussar/attacking-doubao-v01.mp4",
+    "frameCount": 121,
+    "fps": 24.0,
+    "size": [
+      1280,
+      720
+    ],
+    "gif": "previews/videos/winged_hussar/attacking-preview.gif",
+    "contact": "previews/videos/winged_hussar/attacking-contact-24.png"
+  },
+  "dying": {
+    "source": "videos/winged_hussar/dying-doubao-v01.mp4",
+    "frameCount": 121,
+    "fps": 24.0,
+    "size": [
+      1280,
+      720
+    ],
+    "gif": "previews/videos/winged_hussar/dying-preview.gif",
+    "contact": "previews/videos/winged_hussar/dying-contact-24.png"
+  }
+}

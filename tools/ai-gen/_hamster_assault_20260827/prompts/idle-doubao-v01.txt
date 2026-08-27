@@ -1,0 +1,11 @@
+Keep the exact compact hamster assault trooper identity from the reference image: the same broad short golden-and-white hamster, face, ears, clear amber goggles, open high-cut helmet, sand-and-olive ripstop uniform, coyote plate carrier and pouches, backpack, knee pads, gloves, boots, holster, and the exact same compact black assault rifle with one barrel, one curved magazine, one red-dot optic and one stock.
+
+This is a short-tailed hamster. Its tiny natural tail stays completely hidden behind the uniform and backpack. Never generate a visible long tail, rat tail, mouse tail, rope-like appendage, or extra appendage. Both feet stay fully enclosed in the same boots in every frame; no toes, claws, bare paws, sandals, or missing boot fronts.
+
+The intentionally compact full-body scale and wide empty framing of the reference image are mandatory. Keep the hamster at exactly this small size and left-side position. Never enlarge, zoom, crop, reframe, track, pan, or move the camera. Both boots, the backpack, and every part of the rifle must remain visible with very large white margins in every frame.
+
+Animate only a restrained combat idle while facing screen right in the same three-quarter view. Both feet remain planted. Add subtle breathing, minimal natural whisker movement, one tiny blink, and a very small weight shift. The mouth stays closed. Both hands continuously support the same rifle in the same low-ready pose: right paw on the pistol grip, left paw on the handguard, trigger finger controlled. The rifle stays unloaded visually except for the same inserted magazine; no loose ammunition appears. Helmet, goggles, ears, face, uniform, armor, pouches, backpack, holster, gloves, knee pads, boots and rifle remain rigidly coherent.
+
+Static locked wide camera, fixed scale, fixed position, pure white background, soft even light. Begin and finish in exactly the same neutral pose and breathing phase for a seamless loop.
+
+No walking, running, aiming, firing, muzzle flash, smoke, reloading, talking, open mouth, visible tail, weapon morphing, duplicate magazine, extra weapon, extra limbs, turning toward camera, camera motion, zoom, crop, floor, shadow, scenery, text, logo, or watermark.

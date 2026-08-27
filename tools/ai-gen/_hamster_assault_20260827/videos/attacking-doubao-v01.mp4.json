@@ -1,0 +1,17 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "modelSelection": "explicit",
+  "ratio": "16:9",
+  "duration": 5,
+  "parameterSelection": "prompt",
+  "loopRequested": false,
+  "reference": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_assault_20260827\\references\\hamster-assault-compact-white-1024x576.png",
+  "promptFile": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_assault_20260827\\prompts\\attacking-doubao-v01.txt",
+  "promptChars": 2443,
+  "promptSha256": "8ac7db3ac372ed612df85558639725e1a4b3f89ecb326adee13bdd56fa07a7b2",
+  "candidate": 1,
+  "candidateCount": 1,
+  "generatedAt": "2026-08-27T02:59:15.584Z",
+  "sourceUrlScheme": "https"
+}

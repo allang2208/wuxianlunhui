@@ -525,6 +525,7 @@
       { "key": "crossbow", "name": "仓鼠弩手", "roleLabel": "重弩 · 贯穿与穿甲", "spawnIntervalMs": 55000, "spawnFoodCost": 150 },
       { "key": "musketeer", "name": "仓鼠火枪", "roleLabel": "远程", "spawnIntervalMs": 60000, "spawnFoodCost": 180 },
       { "key": "shooter", "name": "仓鼠射手", "roleLabel": "远程", "spawnIntervalMs": 45000, "spawnFoodCost": 120 },
+      { "key": "assault", "name": "仓鼠突击", "roleLabel": "突击步枪 · 高机动单发压制", "spawnIntervalMs": 65000, "spawnFoodCost": 220 },
       { "key": "heavy_machine_gunner", "name": "仓鼠重机枪", "roleLabel": "重机枪 · 三连击、贯穿与穿甲", "spawnIntervalMs": 80000, "spawnFoodCost": 280 }
     ],
     "recruitmentTiers": [
@@ -537,7 +538,7 @@
         { "slot": "heavy_fire", "role": "重火力", "fromUnitName": "仓鼠弩手", "unitKey": "musketeer", "unitName": "仓鼠火枪" }
       ] },
       { "id": "shooting_range_level_3", "level": 3, "name": "靶场三级编制", "plannedEffectiveResearchCost": 9900, "lines": [
-        { "slot": "mobile_ranged", "role": "射手", "fromUnitName": "仓鼠长弓", "unitKey": "assault", "unitName": "仓鼠突击", "profile": "突击步枪单位", "placeholder": true },
+        { "slot": "mobile_ranged", "role": "射手", "fromUnitName": "仓鼠长弓", "unitKey": "assault", "unitName": "仓鼠突击", "profile": "高机动突击步枪射手；稳定单发压制、720px 射程" },
         { "slot": "heavy_fire", "role": "重火力", "fromUnitName": "仓鼠火枪", "unitKey": "heavy_machine_gunner", "unitName": "仓鼠重机枪", "profile": "弹链重机枪三连击；每发贯穿两个目标，固定 25% 物理护甲穿透" }
       ] }
     ],
@@ -562,7 +563,9 @@
     "defaultUnitType": "knight",
     "unitTypes": [
       { "key": "knight", "name": "仓鼠骑士", "roleLabel": "骑兵", "spawnIntervalMs": 90000, "spawnFoodCost": 300 },
-      { "key": "light_cavalry", "name": "仓鼠轻骑", "roleLabel": "骑兵", "spawnIntervalMs": 60000, "spawnFoodCost": 220 }
+      { "key": "light_cavalry", "name": "仓鼠轻骑", "roleLabel": "骑兵", "spawnIntervalMs": 60000, "spawnFoodCost": 220 },
+      { "key": "cavalry", "name": "仓鼠骑兵", "roleLabel": "二级轻骑 · 高速长枪近战", "spawnIntervalMs": 70000, "spawnFoodCost": 260 },
+      { "key": "winged_hussar", "name": "仓鼠翼骑兵", "roleLabel": "二级重骑 · 长枪冲锋", "spawnIntervalMs": 100000, "spawnFoodCost": 360 }
     ],
     "recruitmentTiers": [
       { "id": "cavalry_school_level_1", "level": 1, "name": "骑兵学院一级编制", "baseline": true, "lines": [
@@ -570,8 +573,8 @@
         { "slot": "heavy_cavalry", "role": "重骑兵", "unitKey": "knight", "unitName": "仓鼠骑士", "profile": "中高机动、高耐久、高抗性、高伤害、高造价" }
       ] },
       { "id": "cavalry_school_level_2", "level": 2, "name": "骑兵学院二级编制", "plannedEffectiveResearchCost": 1500, "lines": [
-        { "slot": "light_cavalry", "role": "轻骑兵", "fromUnitName": "仓鼠轻骑", "unitKey": "cavalry", "unitName": "仓鼠骑兵", "placeholder": true },
-        { "slot": "heavy_cavalry", "role": "重骑兵", "fromUnitName": "仓鼠骑士", "unitKey": "winged_hussar", "unitName": "仓鼠翼骑兵", "placeholder": true }
+        { "slot": "light_cavalry", "role": "轻骑兵", "fromUnitName": "仓鼠轻骑", "unitKey": "cavalry", "unitName": "仓鼠骑兵", "profile": "245 移速的圆盾长枪骑兵；更高生命与近战伤害" },
+        { "slot": "heavy_cavalry", "role": "重骑兵", "fromUnitName": "仓鼠骑士", "unitKey": "winged_hussar", "unitName": "仓鼠翼骑兵", "profile": "银甲翼架重骑；强化长枪普攻与冲锋" }
       ] },
       { "id": "cavalry_school_level_3", "level": 3, "name": "骑兵学院三级编制", "plannedEffectiveResearchCost": 9900, "lines": [
         { "slot": "light_cavalry", "role": "轻骑兵", "fromUnitName": "仓鼠骑兵", "unitKey": "scout_vehicle", "unitName": "仓鼠侦察车", "placeholder": true },
