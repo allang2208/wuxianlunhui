@@ -1,5 +1,14 @@
 {
-  "version": 1,
+  "version": 2,
+  "baseStyle": {
+    "style": "continuous wet mud with source-derived broad shallow ponds",
+    "projection": "runtime textureScaleY 0.5774 / continuous-wall 30 degrees",
+    "pondFieldBlurRadius": 38,
+    "pondDarkThreshold": 168,
+    "pondMaskGain": 14,
+    "artificialCracks": false,
+    "artificialGeometricPonds": false
+  },
   "assets": [
     {
       "path": "assets/terrain/floor_swamp_wet_seamless.png",
