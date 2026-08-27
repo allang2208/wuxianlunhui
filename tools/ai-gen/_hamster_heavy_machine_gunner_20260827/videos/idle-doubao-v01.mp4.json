@@ -1,0 +1,17 @@
+{
+  "provider": "doubao-desktop",
+  "model": "Seedance 2.0 Mini",
+  "modelSelection": "explicit",
+  "ratio": "16:9",
+  "duration": 5,
+  "parameterSelection": "explicit",
+  "loopRequested": true,
+  "reference": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_heavy_machine_gunner_20260827\\references\\hamster-heavy-machine-gunner-safe-1024x576.png",
+  "promptFile": "E:\\无尽轮回\\长期备份\\2026-7-13-1\\game-dev\\tools\\ai-gen\\_hamster_heavy_machine_gunner_20260827\\prompts\\idle-doubao-v01.txt",
+  "promptChars": 2100,
+  "promptSha256": "252b7b95d809dbbbdf885ee685a5a420f091b2d15179c6ddc1603b819021755e",
+  "candidate": 1,
+  "candidateCount": 1,
+  "generatedAt": "2026-08-27T03:10:21.644Z",
+  "sourceUrlScheme": "https"
+}

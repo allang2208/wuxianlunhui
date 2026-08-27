@@ -16,6 +16,7 @@ import halberdierCfg from '../../data/hamster-halberdier-config.json';
 import scoutCfg from '../../data/hamster-scout-config.json';
 import rangerCfg from '../../data/hamster-ranger-config.json';
 import crossbowCfg from '../../data/hamster-crossbow-config.json';
+import heavyMachineGunnerCfg from '../../data/hamster-heavy-machine-gunner-config.json';
 import sniperCfg from '../../data/hamster-sniper-config.json';
 import musketeerCfg from '../../data/hamster-musketeer-config.json';
 import antiVehicleCfg from '../../data/hamster-anti-vehicle-config.json';
@@ -78,6 +79,7 @@ export const UNIT_KIND_CFG = {
     scout: scoutCfg,
     ranger: rangerCfg,
     crossbow: crossbowCfg,
+    heavy_machine_gunner: heavyMachineGunnerCfg,
     sniper: sniperCfg,
     musketeer: musketeerCfg,
     anti_vehicle: antiVehicleCfg,
@@ -125,6 +127,7 @@ export function getUnitKind(unit) {
     if (unit._isHamsterScout) return 'scout';
     // 防暴队继承火枪实体，必须先于 _isHamsterMusketeer 判断。
     if (unit._isHamsterRiotSquad) return 'riot_special';
+    if (unit._isHamsterHeavyMachineGunner) return 'heavy_machine_gunner';
     if (unit._isHamsterMusketeer) return 'musketeer';
     if (unit._isHamsterPriest) return 'priest';
     if (unit._isHamsterKnight) return 'knight';

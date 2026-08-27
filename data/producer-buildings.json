@@ -524,7 +524,8 @@
     "unitTypes": [
       { "key": "crossbow", "name": "仓鼠弩手", "roleLabel": "重弩 · 贯穿与穿甲", "spawnIntervalMs": 55000, "spawnFoodCost": 150 },
       { "key": "musketeer", "name": "仓鼠火枪", "roleLabel": "远程", "spawnIntervalMs": 60000, "spawnFoodCost": 180 },
-      { "key": "shooter", "name": "仓鼠射手", "roleLabel": "远程", "spawnIntervalMs": 45000, "spawnFoodCost": 120 }
+      { "key": "shooter", "name": "仓鼠射手", "roleLabel": "远程", "spawnIntervalMs": 45000, "spawnFoodCost": 120 },
+      { "key": "heavy_machine_gunner", "name": "仓鼠重机枪", "roleLabel": "重机枪 · 三连击、贯穿与穿甲", "spawnIntervalMs": 80000, "spawnFoodCost": 280 }
     ],
     "recruitmentTiers": [
       { "id": "shooting_range_level_1", "level": 1, "name": "靶场一级编制", "baseline": true, "lines": [
@@ -537,7 +538,7 @@
       ] },
       { "id": "shooting_range_level_3", "level": 3, "name": "靶场三级编制", "plannedEffectiveResearchCost": 9900, "lines": [
         { "slot": "mobile_ranged", "role": "射手", "fromUnitName": "仓鼠长弓", "unitKey": "assault", "unitName": "仓鼠突击", "profile": "突击步枪单位", "placeholder": true },
-        { "slot": "heavy_fire", "role": "重火力", "fromUnitName": "仓鼠火枪", "unitKey": "heavy_machine_gunner", "unitName": "仓鼠重机枪", "placeholder": true }
+        { "slot": "heavy_fire", "role": "重火力", "fromUnitName": "仓鼠火枪", "unitKey": "heavy_machine_gunner", "unitName": "仓鼠重机枪", "profile": "弹链重机枪三连击；每发贯穿两个目标，固定 25% 物理护甲穿透" }
       ] }
     ],
     "upgradeProject": "shooting_range_special"

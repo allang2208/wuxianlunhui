@@ -1,0 +1,11 @@
+The exact golden hamster heavy machine gunner from the first frame performs one calm idle cycle in place. He remains in the same low-ready stance facing screen right, with both boots planted on one baseline and both paws maintaining the correct grip on the same belt-fed light machine gun.
+
+Motion: subtle believable breathing through the chest and shoulders, a tiny relaxed weight shift, slight whisker and ear movement, minute vibration in the hanging ammunition belt and box, and restrained fabric movement. The heavy weapon, folded bipod, ammunition belt, box magazine, helmet, goggles, pouches, knee pads, paws, boots and full silhouette remain visible and mechanically coherent. No step, no firing, no muzzle flash and no weapon flourish.
+
+Identity locks: preserve the exact broad short golden hamster body, face, cheeks, muzzle, eyes, clear goggles, open tactical helmet, olive-and-tan uniform, reinforced plate carrier, pouches, gloves, knee pads, boots and exactly one coherent belt-fed machine gun. Keep one receiver, one barrel and muzzle, one folded bipod, one short ammunition belt feeding from one box magazine; right paw on pistol grip and left paw supporting the fore-end.
+
+Camera and framing: static locked orthographic three-quarter front view facing right, no camera motion, zoom, crop, reframing, tracking, tilt or rotation. Keep the full character centered at the same scale with generous pure-white margins. Flat solid pure white background, soft neutral diffuse light, no floor line, shadow, reflection, scenery, particles or text.
+
+Loop: complete one natural idle cycle and return to the exact starting pose, root position, scale, weapon orientation and motion phase without freezing, snapping or slowing artificially.
+
+Avoid: identity drift, extra or broken limbs, duplicated barrel, floating ammunition, detached belt, loose hands, bent weapon, changing equipment, foot sliding, root drift, morphing, cuts, dramatic lighting, text, logo or watermark.

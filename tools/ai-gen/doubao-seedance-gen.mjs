@@ -57,6 +57,8 @@ Usage:
   node doubao-seedance-gen.mjs --attach-only --cdp-port 9333
     --download-latest --out output.mp4
   node doubao-seedance-gen.mjs --attach-only --cdp-port 9333
+    --play-latest --completed-offset 1 --download-latest --out previous.mp4
+  node doubao-seedance-gen.mjs --attach-only --cdp-port 9333
     --submit-filled --confirm-paid --out output.mp4
 
 Notes:
@@ -65,6 +67,8 @@ Notes:
     uploads, submits, downloads, or consumes quota.
   - --download-latest downloads the last ready video already visible in the
     current conversation. It never uploads, submits, or consumes quota.
+  - --play-latest may use --completed-offset N to open the Nth earlier completed
+    card before recovery (0 = newest). Verify the recovered file is unique.
   - --submit-filled submits the already-filled composer once, waits for a
     genuinely new video URL, and never uploads or rewrites the prompt.
 `);
@@ -1164,11 +1168,12 @@ async function main() {
       await sleep(1200);
     }
     if (args['play-latest']) {
+      const completedOffset = Math.max(0, Number.parseInt(args['completed-offset'] || '0', 10) || 0);
       await session.evaluate(`(() => {
         document.querySelector('#to-bottom-button')?.click();
         const cards=[...document.querySelectorAll('[data-container-type="block-v1"]')]
           .filter(el=>String(el.innerText||'').includes('你的视频生成好了'));
-        const card=cards.at(-1); card?.scrollIntoView({block:'end'});
+        const card=cards.at(-1-${completedOffset}); card?.scrollIntoView({block:'end'});
         card?.querySelector('[class*="block-video-"]')?.click(); return !!card;
       })()`);
       await sleep(1500);

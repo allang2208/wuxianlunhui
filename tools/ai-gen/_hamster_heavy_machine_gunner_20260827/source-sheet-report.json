@@ -1,0 +1,602 @@
+{
+  "assetOnly": true,
+  "runtimeIntegration": false,
+  "frameWidth": 512,
+  "frameHeight": 512,
+  "feetY": 351,
+  "targetEffectiveBodyHeight": 129,
+  "bodyScaleReference": "approved hamster crossbow infantry body",
+  "referenceSourceBodyHeightMedian": 491.0,
+  "fixedScaleAcrossAllActions": 0.26272912423625255,
+  "cleanup": {
+    "model": "BiRefNet-general",
+    "matteAlphaCutoff": 24,
+    "nearestReliableAlpha": 224,
+    "runningTail": "approved natural tail and rear-leg silhouette preserved",
+    "attackSmoke": "low-chroma pixels only ahead of muzzle; warm muzzle flash retained",
+    "removedAlphaPixelsBySourceFrame": {
+      "idle": {
+        "31": {
+          "components": 0,
+          "tail": 0,
+          "attackSmoke": 0
+        },
+        "35": {
+          "components": 0,
+          "tail": 0,
+          "attackSmoke": 0
+        },
+        "39": {
+          "components": 0,
+          "tail": 0,
+          "attackSmoke": 0
+        },
+        "43": {
+          "components": 0,
+          "tail": 0,
+          "attackSmoke": 0
+        },
+        "47": {
+          "components": 0,
+          "tail": 0,
+          "attackSmoke": 0
+        },
+        "51": {
+          "components": 0,
+          "tail": 0,
+          "attackSmoke": 0
+        },
+        "55": {
+          "components": 0,
+          "tail": 0,
+          "attackSmoke": 0
+        },
+        "59": {
+          "components": 0,
+          "tail": 0,
+          "attackSmoke": 0
+        },
+        "63": {
+          "components": 0,
+          "tail": 0,
+          "attackSmoke": 0
+        },
+        "67": {
+          "components": 0,
+          "tail": 0,
+          "attackSmoke": 0
+        },
+        "71": {
+          "components": 0,
+          "tail": 0,
+          "attackSmoke": 0
+        },
+        "75": {
+          "components": 0,
+          "tail": 0,
+          "attackSmoke": 0
+        },
+        "79": {
+          "components": 0,
+          "tail": 0,
+          "attackSmoke": 0
+        }
+      },
+      "running": {
+        "40": {
+          "components": 0,
+          "tail": 0,
+          "attackSmoke": 0
+        },
+        "42": {
+          "components": 0,
+          "tail": 0,
+          "attackSmoke": 0
+        },
+        "44": {
+          "components": 523,
+          "tail": 0,
+          "attackSmoke": 0
+        },
+        "46": {
+          "components": 0,
+          "tail": 0,
+          "attackSmoke": 0
+        },
+        "48": {
+          "components": 289,
+          "tail": 0,
+          "attackSmoke": 0
+        },
+        "50": {
+          "components": 725,
+          "tail": 0,
+          "attackSmoke": 0
+        },
+        "52": {
+          "components": 0,
+          "tail": 0,
+          "attackSmoke": 0
+        },
+        "54": {
+          "components": 0,
+          "tail": 0,
+          "attackSmoke": 0
+        },
+        "56": {
+          "components": 387,
+          "tail": 0,
+          "attackSmoke": 0
+        },
+        "58": {
+          "components": 0,
+          "tail": 0,
+          "attackSmoke": 0
+        },
+        "60": {
+          "components": 0,
+          "tail": 0,
+          "attackSmoke": 0
+        }
+      },
+      "attacking": {
+        "0": {
+          "components": 0,
+          "tail": 0,
+          "attackSmoke": 68
+        },
+        "4": {
+          "components": 0,
+          "tail": 0,
+          "attackSmoke": 77
+        },
+        "8": {
+          "components": 0,
+          "tail": 0,
+          "attackSmoke": 174
+        },
+        "12": {
+          "components": 0,
+          "tail": 0,
+          "attackSmoke": 608
+        },
+        "16": {
+          "components": 0,
+          "tail": 0,
+          "attackSmoke": 474
+        },
+        "20": {
+          "components": 0,
+          "tail": 0,
+          "attackSmoke": 559
+        },
+        "24": {
+          "components": 0,
+          "tail": 0,
+          "attackSmoke": 557
+        },
+        "28": {
+          "components": 0,
+          "tail": 0,
+          "attackSmoke": 481
+        },
+        "32": {
+          "components": 0,
+          "tail": 0,
+          "attackSmoke": 495
+        },
+        "36": {
+          "components": 0,
+          "tail": 0,
+          "attackSmoke": 520
+        },
+        "40": {
+          "components": 0,
+          "tail": 0,
+          "attackSmoke": 500
+        },
+        "44": {
+          "components": 0,
+          "tail": 0,
+          "attackSmoke": 2614
+        },
+        "48": {
+          "components": 0,
+          "tail": 0,
+          "attackSmoke": 328
+        },
+        "52": {
+          "components": 0,
+          "tail": 0,
+          "attackSmoke": 273
+        },
+        "56": {
+          "components": 0,
+          "tail": 0,
+          "attackSmoke": 299
+        },
+        "60": {
+          "components": 0,
+          "tail": 0,
+          "attackSmoke": 278
+        },
+        "64": {
+          "components": 0,
+          "tail": 0,
+          "attackSmoke": 245
+        },
+        "68": {
+          "components": 0,
+          "tail": 0,
+          "attackSmoke": 237
+        },
+        "72": {
+          "components": 0,
+          "tail": 0,
+          "attackSmoke": 205
+        },
+        "76": {
+          "components": 0,
+          "tail": 0,
+          "attackSmoke": 229
+        },
+        "80": {
+          "components": 0,
+          "tail": 0,
+          "attackSmoke": 427
+        },
+        "84": {
+          "components": 0,
+          "tail": 0,
+          "attackSmoke": 383
+        },
+        "88": {
+          "components": 0,
+          "tail": 0,
+          "attackSmoke": 363
+        },
+        "92": {
+          "components": 0,
+          "tail": 0,
+          "attackSmoke": 394
+        },
+        "96": {
+          "components": 0,
+          "tail": 0,
+          "attackSmoke": 505
+        },
+        "100": {
+          "components": 0,
+          "tail": 0,
+          "attackSmoke": 360
+        },
+        "104": {
+          "components": 0,
+          "tail": 0,
+          "attackSmoke": 159
+        },
+        "108": {
+          "components": 0,
+          "tail": 0,
+          "attackSmoke": 139
+        },
+        "112": {
+          "components": 0,
+          "tail": 0,
+          "attackSmoke": 147
+        },
+        "116": {
+          "components": 0,
+          "tail": 0,
+          "attackSmoke": 133
+        },
+        "120": {
+          "components": 0,
+          "tail": 0,
+          "attackSmoke": 152
+        }
+      },
+      "dying": {
+        "0": {
+          "components": 0,
+          "tail": 0,
+          "attackSmoke": 0
+        },
+        "4": {
+          "components": 0,
+          "tail": 0,
+          "attackSmoke": 0
+        },
+        "8": {
+          "components": 0,
+          "tail": 0,
+          "attackSmoke": 0
+        },
+        "12": {
+          "components": 0,
+          "tail": 0,
+          "attackSmoke": 0
+        },
+        "16": {
+          "components": 0,
+          "tail": 0,
+          "attackSmoke": 0
+        },
+        "20": {
+          "components": 0,
+          "tail": 0,
+          "attackSmoke": 0
+        },
+        "24": {
+          "components": 0,
+          "tail": 0,
+          "attackSmoke": 0
+        },
+        "28": {
+          "components": 0,
+          "tail": 0,
+          "attackSmoke": 0
+        },
+        "32": {
+          "components": 0,
+          "tail": 0,
+          "attackSmoke": 0
+        },
+        "36": {
+          "components": 0,
+          "tail": 0,
+          "attackSmoke": 0
+        },
+        "40": {
+          "components": 0,
+          "tail": 0,
+          "attackSmoke": 0
+        },
+        "44": {
+          "components": 0,
+          "tail": 0,
+          "attackSmoke": 0
+        },
+        "48": {
+          "components": 0,
+          "tail": 0,
+          "attackSmoke": 0
+        },
+        "52": {
+          "components": 0,
+          "tail": 0,
+          "attackSmoke": 0
+        },
+        "56": {
+          "components": 0,
+          "tail": 0,
+          "attackSmoke": 0
+        },
+        "60": {
+          "components": 0,
+          "tail": 0,
+          "attackSmoke": 0
+        },
+        "72": {
+          "components": 0,
+          "tail": 0,
+          "attackSmoke": 0
+        },
+        "120": {
+          "components": 0,
+          "tail": 0,
+          "attackSmoke": 0
+        }
+      }
+    }
+  },
+  "actions": {
+    "idle": {
+      "source": "videos/idle-doubao-v01.mp4",
+      "sourceFrameRate": 24.0,
+      "sourceIndices": [
+        31,
+        35,
+        39,
+        43,
+        47,
+        51,
+        55,
+        59,
+        63,
+        67,
+        71,
+        75,
+        79
+      ],
+      "frameCount": 13,
+      "endFrame": 12,
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 8,
+      "rows": 2,
+      "sourceSheetFrameRate": 6.0,
+      "expectedRifeFrameCount": 26,
+      "expectedRifeFrameRate": 12.0,
+      "repeat": -1,
+      "horizontalMode": "center-body",
+      "verticalMode": "body-feet",
+      "validation": {
+        "alphaPixelsMin": 7952,
+        "alphaPixelsMax": 8093,
+        "emptyFrames": [],
+        "touchingFrames": [],
+        "feetMin": 350,
+        "feetMax": 351,
+        "adjacentDeltaMean": 12.977166136105856,
+        "loopSeamDelta": 7.08516788482666,
+        "effectiveBodyHeightMin": 128,
+        "effectiveBodyHeightMedian": 129.0,
+        "effectiveBodyHeightMax": 131,
+        "effectiveBodyBottomMin": 350,
+        "effectiveBodyBottomMax": 351,
+        "nonzeroRgbInTransparentPixels": 0
+      }
+    },
+    "running": {
+      "source": "videos/running-doubao-v01.mp4",
+      "sourceFrameRate": 24.0,
+      "sourceIndices": [
+        40,
+        42,
+        44,
+        46,
+        48,
+        50,
+        52,
+        54,
+        56,
+        58,
+        60
+      ],
+      "frameCount": 11,
+      "endFrame": 10,
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 8,
+      "rows": 2,
+      "sourceSheetFrameRate": 12.0,
+      "expectedRifeFrameCount": 22,
+      "expectedRifeFrameRate": 24.0,
+      "repeat": -1,
+      "horizontalMode": "center-body",
+      "verticalMode": "body-feet",
+      "validation": {
+        "alphaPixelsMin": 9151,
+        "alphaPixelsMax": 10578,
+        "emptyFrames": [],
+        "touchingFrames": [],
+        "feetMin": 350,
+        "feetMax": 351,
+        "adjacentDeltaMean": 34.22956562042236,
+        "loopSeamDelta": 29.80277442932129,
+        "effectiveBodyHeightMin": 136,
+        "effectiveBodyHeightMedian": 138.0,
+        "effectiveBodyHeightMax": 141,
+        "effectiveBodyBottomMin": 350,
+        "effectiveBodyBottomMax": 351,
+        "nonzeroRgbInTransparentPixels": 0
+      }
+    },
+    "attacking": {
+      "source": "videos/attacking-doubao-v01.mp4",
+      "sourceFrameRate": 24.0,
+      "sourceIndices": [
+        0,
+        4,
+        8,
+        12,
+        16,
+        20,
+        24,
+        28,
+        32,
+        36,
+        40,
+        44,
+        48,
+        52,
+        56,
+        60,
+        64,
+        68,
+        72,
+        76,
+        80,
+        84,
+        88,
+        92,
+        96,
+        100,
+        104,
+        108,
+        112,
+        116,
+        120
+      ],
+      "frameCount": 31,
+      "endFrame": 30,
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 8,
+      "rows": 4,
+      "sourceSheetFrameRate": 12.0,
+      "expectedRifeFrameCount": 61,
+      "expectedRifeFrameRate": 24.0,
+      "repeat": 0,
+      "horizontalMode": "preserve-source",
+      "verticalMode": "body-feet",
+      "validation": {
+        "alphaPixelsMin": 7398,
+        "alphaPixelsMax": 7943,
+        "emptyFrames": [],
+        "touchingFrames": [],
+        "feetMin": 350,
+        "feetMax": 351,
+        "adjacentDeltaMean": 14.061291031042735,
+        "effectiveBodyHeightMin": 121,
+        "effectiveBodyHeightMedian": 122.0,
+        "effectiveBodyHeightMax": 130,
+        "effectiveBodyBottomMin": 350,
+        "effectiveBodyBottomMax": 351,
+        "nonzeroRgbInTransparentPixels": 0
+      }
+    },
+    "dying": {
+      "source": "videos/dying-doubao-v01.mp4",
+      "sourceFrameRate": 24.0,
+      "sourceIndices": [
+        0,
+        4,
+        8,
+        12,
+        16,
+        20,
+        24,
+        28,
+        32,
+        36,
+        40,
+        44,
+        48,
+        52,
+        56,
+        60,
+        72,
+        120
+      ],
+      "frameCount": 18,
+      "endFrame": 17,
+      "frameWidth": 512,
+      "frameHeight": 512,
+      "cols": 8,
+      "rows": 3,
+      "sourceSheetFrameRate": 10.0,
+      "expectedRifeFrameCount": 35,
+      "expectedRifeFrameRate": 20.0,
+      "repeat": 0,
+      "horizontalMode": "preserve-source",
+      "verticalMode": "content-ground",
+      "validation": {
+        "alphaPixelsMin": 6678,
+        "alphaPixelsMax": 7970,
+        "emptyFrames": [],
+        "touchingFrames": [],
+        "feetMin": 350,
+        "feetMax": 351,
+        "adjacentDeltaMean": 40.382740203072046,
+        "effectiveBodyHeightMin": 63,
+        "effectiveBodyHeightMedian": 109.5,
+        "effectiveBodyHeightMax": 138,
+        "effectiveBodyBottomMin": 345,
+        "effectiveBodyBottomMax": 351,
+        "nonzeroRgbInTransparentPixels": 0
+      }
+    }
+  }
+}

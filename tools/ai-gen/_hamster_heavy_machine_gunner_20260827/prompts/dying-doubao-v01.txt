@@ -1,0 +1,13 @@
+The exact golden hamster heavy machine gunner from the first frame performs one irreversible non-graphic death fall and settles into a complete motionless corpse pose. He never fires and never recovers.
+
+Action phases: a single invisible impact causes a brief loss of strength; his knees buckle, grip weakens and the heavily equipped body collapses naturally down and slightly backward-left. The same belt-fed machine gun falls with him as one rigid intact weapon and settles beside or across the body, remaining fully visible without crossing the frame edges. The short ammunition belt and box magazine remain connected; pouches, fabric and equipment follow the fall with believable weight. He reaches the ground, makes one small natural settling motion, then remains fully still for the rest of the shot.
+
+Motion physics: one-way loss of balance, connected anatomy, believable joint limits and gravity, no rubber motion, floating, explosion or body shrink. The body and weapon remain on one consistent ground plane. No blood, gore, dismemberment or weapon penetration.
+
+Identity locks: preserve the exact broad short golden hamster, face, clear goggles, open tactical helmet, olive-and-tan uniform, reinforced plate carrier, pouches, gloves, knee pads, boots and exactly one intact belt-fed machine gun with one receiver, one barrel, folded bipod, short belt and attached box magazine.
+
+Camera and framing: static locked orthographic three-quarter front view, no pan, zoom, tilt, crop, reframing, tracking or rotation. Keep the complete fallen body, weapon and equipment inside the frame with generous pure-white margins. Flat solid pure white background, soft neutral diffuse light, no floor line, cast shadow, scenery, particles or text.
+
+One-shot ending: do not loop, reverse, stand back up, return to the first pose or fade away. Hold the final corpse pose naturally.
+
+Avoid: firing, recovery, repeated falling, extra or broken limbs, detached head, disappearing body, duplicated or bent weapon, loose ammunition floating in air, camera movement, cropping, gore, text, logo or watermark.

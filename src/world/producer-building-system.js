@@ -19,6 +19,7 @@ import { HamsterHalberdier } from '../entities/hamster-halberdier.js';
 import { HamsterScout } from '../entities/hamster-scout.js';
 import { HamsterRanger } from '../entities/hamster-ranger.js';
 import { HamsterCrossbow } from '../entities/hamster-crossbow.js';
+import { HamsterHeavyMachineGunner } from '../entities/hamster-heavy-machine-gunner.js';
 import { HamsterSniper } from '../entities/hamster-sniper.js';
 import { HamsterMusketeer } from '../entities/hamster-musketeer.js';
 import { HamsterAntiVehicle } from '../entities/hamster-anti-vehicle.js';
@@ -72,6 +73,7 @@ import halberdierCfg from '../../data/hamster-halberdier-config.json';
 import scoutCfg from '../../data/hamster-scout-config.json';
 import rangerCfg from '../../data/hamster-ranger-config.json';
 import crossbowCfg from '../../data/hamster-crossbow-config.json';
+import heavyMachineGunnerCfg from '../../data/hamster-heavy-machine-gunner-config.json';
 import sniperCfg from '../../data/hamster-sniper-config.json';
 import musketeerCfg from '../../data/hamster-musketeer-config.json';
 import antiVehicleCfg from '../../data/hamster-anti-vehicle-config.json';
@@ -171,6 +173,7 @@ const ABILITY_TARGET_NAMES = Object.freeze({
     scout: '仓鼠斥候',
     ranger: '仓鼠游侠',
     crossbow: '仓鼠弩手',
+    heavy_machine_gunner: '仓鼠重机枪',
     sniper: '仓鼠狙击手',
     musketeer: '仓鼠火枪',
     anti_vehicle: '仓鼠反载',
@@ -274,6 +277,7 @@ const PRODUCER_UNIT_CFG = {
     scout: scoutCfg,
     ranger: rangerCfg,
     crossbow: crossbowCfg,
+    heavy_machine_gunner: heavyMachineGunnerCfg,
     sniper: sniperCfg,
     musketeer: musketeerCfg,
     anti_vehicle: antiVehicleCfg,
@@ -303,6 +307,7 @@ const PRODUCER_UNIT_CLASS = {
     scout: HamsterScout,
     ranger: HamsterRanger,
     crossbow: HamsterCrossbow,
+    heavy_machine_gunner: HamsterHeavyMachineGunner,
     sniper: HamsterSniper,
     musketeer: HamsterMusketeer,
     anti_vehicle: HamsterAntiVehicle,
@@ -331,6 +336,7 @@ const PRODUCER_UNIT_CONFIG_PATH = Object.freeze({
     scout: 'data/hamster-scout-config.json',
     ranger: 'data/hamster-ranger-config.json',
     crossbow: 'data/hamster-crossbow-config.json',
+    heavy_machine_gunner: 'data/hamster-heavy-machine-gunner-config.json',
     sniper: 'data/hamster-sniper-config.json',
     musketeer: 'data/hamster-musketeer-config.json',
     anti_vehicle: 'data/hamster-anti-vehicle-config.json',

@@ -913,6 +913,11 @@ lint / vite build / test-collider / test-config-integrity；实机验证 idle/wa
   AimHelper.lead瞄目标贴图中心，第10帧出膛并播放fire.mp3。
 - 投射物不依赖图片，GameScene以Phaser Rectangle绘制54×4黄色ADD曳光弹，
   弹速1248（P4040同口径），AI负责飞行/墙阻挡/命中。
+- **同一攻击动作的多发弹道（仓鼠重机枪 2026-08-27）**：配置用 1-based
+  `attackLaunchFrames` 对齐动画中每个枪口闪光，兼容字段 `attackLaunchFrame` 固定等于首发帧，供攻击状态总时序使用。
+  AI 在首发时锁定本轮射击方向，并为每一发创建独立投射物放入单位专属数组；每发分别维护墙阻挡、命中集合、
+  穿透次数、伤害衰减与生命周期，禁止连续覆盖单一 `_basic` 投射物。GameScene 只同步数组内曳光弹的显示和销毁，
+  不承担命中或伤害；这样三连击可同时保留三条在途弹道，帧率波动也不会吞掉中间一发。
 - 靶场配置在producer-buildings `shooting_range`：按兵种区分产出速度——
   musketeer 60s / shooter 45s（unitTypes 条目 spawnIntervalMs 覆盖建筑级，
   `ProducerBuilding._unitSpawnIntervalMs` 查询）、上限5，复用通用升级和进度条；

@@ -2883,8 +2883,38 @@ export class GameScene extends Scene {
                 spr.setVisible(false);
             }
         }
+        this._syncHeavyMachineGunTracers(members);
         this._syncDiscardedAntiVehicleLaunchers(members);
         this._syncAntiVehicleExplosions(members);
+    }
+
+    /** 重机枪并行曳光弹：逻辑由专属 AI 维护，Phaser 只同步短条视觉。 */
+    _syncHeavyMachineGunTracers(members) {
+        if (!this._heavyMachineGunTracerSprites) this._heavyMachineGunTracerSprites = {};
+        const liveKeys = new Set();
+        for (const member of members) {
+            if (!member?._isHamsterHeavyMachineGunner || member.active === false) continue;
+            for (const bullet of member._machineGunProjectiles || []) {
+                if (!bullet?.active) continue;
+                const key = `${member.id}:${bullet.id}`;
+                liveKeys.add(key);
+                let tracer = this._heavyMachineGunTracerSprites[key];
+                if (!tracer) {
+                    tracer = this.add.rectangle(bullet.x, bullet.y, 48, 3, 0xffd34d, 1);
+                    tracer.setBlendMode(BlendModes.ADD);
+                    this._heavyMachineGunTracerSprites[key] = tracer;
+                }
+                tracer.setPosition(bullet.x, Number.isFinite(bullet.z) ? bullet.y - bullet.z : bullet.y);
+                tracer.setRotation(bullet.visualAngle ?? bullet.angle);
+                tracer.setDepth((bullet.y || 0) + 500);
+                tracer.setVisible(true);
+            }
+        }
+        for (const [key, tracer] of Object.entries(this._heavyMachineGunTracerSprites)) {
+            if (liveKeys.has(key)) continue;
+            tracer.destroy();
+            delete this._heavyMachineGunTracerSprites[key];
+        }
     }
 
     /** 一次性火箭筒发射后的空筒抛弃视觉；逻辑位置与寿命由单位 AI 驱动。 */
