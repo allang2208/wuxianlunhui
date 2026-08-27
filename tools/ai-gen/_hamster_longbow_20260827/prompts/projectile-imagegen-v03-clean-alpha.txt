@@ -1,0 +1,6 @@
+Edit this exact right-facing horizontal longbow arrow asset. Preserve the arrow's silhouette, proportions, placement, wood shaft, white-and-brown feather fletching, leather bindings, dark forged metal broadhead, lighting, and strictly horizontal left-to-right orientation.
+
+Change only the transparency and edge cleanup: make the entire solid arrow interior fully opaque, preserve only a clean 1-2 pixel antialiased transition at the outer silhouette, remove every red, green, cyan, magenta, or rainbow fringe and any color halo, and replace edge colors with natural nearby wood, feather, leather, or iron colors.
+
+Background must be genuinely transparent RGBA. No checkerboard pattern, no shadow, no glow, no outline, no extra object, no text, no cropping, no rotation, no scale or composition change.
+

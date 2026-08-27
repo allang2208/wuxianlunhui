@@ -1,5 +1,5 @@
 {
-  "version": 32,
+  "version": 33,
   "pointsPerInstitutePerSecond": 1,
   "researchCostCurve": {
     "roundTo": 10,
@@ -231,12 +231,12 @@
       "prerequisites": ["gunpowder"], "description": "一级编制基线：仓鼠射手负责高机动毒箭输出，仓鼠弩手负责低射速贯穿与穿甲重击。", "unlocks": []
     },
     {
-      "id": "shooting_range_level_2", "name": "靶场·II级", "icon": "🏹", "iconPath": "assets/ui/technology-icons/shooting_range_level_2.png", "branch": "军事指挥", "subBranch": "靶场", "column": 4, "lane": 3, "researchCost": 500, "placeholder": true, "recruitmentTierId": "shooting_range_level_2",
-      "prerequisites": ["gunpowder"], "description": "规划科研：二级编制完成后，射手与重火力生产槽自动替换为仓鼠长弓与仓鼠火枪。", "unlocks": [{ "type": "recruitmentTier", "id": "shooting_range_level_2", "label": "靶场二级编制" }]
+      "id": "shooting_range_level_2", "name": "长弓整编", "icon": "🏹", "iconPath": "assets/ui/technology-icons/shooting_range_level_2.png", "branch": "军事指挥", "subBranch": "靶场", "column": 4, "lane": 3, "researchCost": 500, "recruitmentTierId": "shooting_range_level_2",
+      "prerequisites": ["gunpowder"], "description": "完成黑火药门槛后，将一级机动射手换代为高单发远射的仓鼠长弓，并与仓鼠火枪组成靶场二级编制；已经出兵的旧单位不变。", "unlocks": [{ "type": "recruitmentTier", "id": "shooting_range_level_2", "label": "靶场二级编制" }, { "type": "unit", "id": "longbow", "label": "仓鼠长弓" }]
     },
     {
       "id": "shooting_range_level_3", "name": "靶场·III级", "icon": "🏹", "iconPath": "assets/ui/technology-icons/shooting_range_level_3.png", "branch": "军事指挥", "subBranch": "靶场", "column": 5, "lane": 3, "researchCost": 2200, "recruitmentTierId": "shooting_range_level_3",
-      "prerequisites": ["shooting_range_level_2"], "description": "三级编制：射手与重火力生产槽替换为仓鼠突击与仓鼠重机枪。", "unlocks": [{ "type": "recruitmentTier", "id": "shooting_range_level_3", "label": "靶场三级编制" }, { "type": "unit", "id": "assault", "label": "仓鼠突击" }, { "type": "unit", "id": "heavy_machine_gunner", "label": "仓鼠重机枪" }]
+      "prerequisites": ["shooting_range_level_2", "gunpowder"], "description": "完成长弓整编与黑火药后，射手与重火力生产槽替换为仓鼠突击与仓鼠重机枪；已经出兵的旧单位不变。", "unlocks": [{ "type": "recruitmentTier", "id": "shooting_range_level_3", "label": "靶场三级编制" }, { "type": "unit", "id": "assault", "label": "仓鼠突击" }, { "type": "unit", "id": "heavy_machine_gunner", "label": "仓鼠重机枪" }]
     },
     {
       "id": "cavalry_training", "name": "骑兵学", "icon": "🐎", "iconPath": "assets/ui/technology-icons/cavalry_training.png", "branch": "军事指挥", "subBranch": "骑兵学院", "column": 1, "lane": 4, "researchCost": 140,

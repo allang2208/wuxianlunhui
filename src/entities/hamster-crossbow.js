@@ -15,6 +15,8 @@ export class HamsterCrossbow extends HamsterScout {
         super(x, y, archive);
         this._isHamsterCrossbow = true;
         this.animId = 'hamster_crossbow';
+        // 重弩仅复用斥候实体/AI；仍按普通靶场军事单位视野处理。
+        this.fogVisionProfile = 'military';
         this._ai = new HamsterScoutAI(this);
     }
 

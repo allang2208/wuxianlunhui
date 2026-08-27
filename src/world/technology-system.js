@@ -5,7 +5,7 @@ import populationEconomy from '../../data/population-economy.json';
 import { EventBus } from '../core/event-bus.js';
 import { WorldProgressionSystem } from './world-progression-system.js';
 
-const VERSION = 32;
+const VERSION = 33;
 const RESEARCH_COST_CURVE_VERSION = 19;
 const RESEARCH_NODE_COST_MIGRATION_VERSION = 30;
 const PREVIOUS_RESEARCH_COSTS_BY_VERSION = Object.freeze([

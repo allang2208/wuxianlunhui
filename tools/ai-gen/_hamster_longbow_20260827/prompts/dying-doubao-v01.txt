@@ -1,0 +1,9 @@
+Keep the exact approved hamster longbow archer identity from the reference image: the same adult golden Syrian hamster, broad short body, cream muzzle, forest-green hooded mantle, brown leather brigandine, muted green clothing, bracers, belt pouches, trousers, practical leather boots, one back quiver with long arrows, and exactly one tall English-style yew longbow with two continuous limbs and one intact string.
+
+The intentionally small full-body scale and wide empty framing are mandatory. Keep exactly this scale. Never enlarge, zoom, crop, reframe, track, or pan. The complete standing figure, fallen body, both boots, quiver, arrows, both bow tips, grip, and full string remain visible with very large white margins throughout.
+
+Animate one irreversible grounded death in the same right-facing three-quarter infantry view. Begin in the supplied stance. The hamster loses strength, knees buckle, torso slumps, and the body collapses down and slightly toward screen left onto one side. The same longbow slips from the grip and settles beside the body without bouncing away, breaking, duplicating, or leaving the frame. The quiver remains attached and its arrows remain contained. End fully grounded and motionless. Do not stand up, recover, reverse, or loop.
+
+Keep one fixed global scale and preserve the natural fall trajectory; do not recenter or stretch the body frame by frame. Static locked camera, flat solid pure white background, soft even light, no floor or shadow.
+
+No gore, blood, dismemberment, projectile, firing, visible long tail, rat tail, bare feet, missing boots, extra limbs, fused hands, extra bow, crossbow, firearm, broken bow, missing string, disappearing quiver, weapon morphing, identity drift, camera motion, blur, crossfade, cuts, scenery, text, logo, watermark, or revival.

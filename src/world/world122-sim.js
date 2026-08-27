@@ -38,6 +38,7 @@ import halberdierCfg from '../../data/hamster-halberdier-config.json';
 import scoutCfg from '../../data/hamster-scout-config.json';
 import rangerCfg from '../../data/hamster-ranger-config.json';
 import crossbowCfg from '../../data/hamster-crossbow-config.json';
+import longbowCfg from '../../data/hamster-longbow-config.json';
 import assaultCfg from '../../data/hamster-assault-config.json';
 import heavyMachineGunnerCfg from '../../data/hamster-heavy-machine-gunner-config.json';
 import sniperCfg from '../../data/hamster-sniper-config.json';
@@ -86,7 +87,7 @@ export const WORLD122_SIM = {
 
 const UNIT_CFGS = {
     militia: militiaCfg, warrior: warriorCfg, champion: championCfg, shooter: shooterCfg,
-    guard: guardCfg, phalanx: phalanxCfg, riot_special: riotSquadCfg, halberd: halberdierCfg, scout: scoutCfg, ranger: rangerCfg, crossbow: crossbowCfg, assault: assaultCfg, heavy_machine_gunner: heavyMachineGunnerCfg, sniper: sniperCfg, musketeer: musketeerCfg, anti_vehicle: antiVehicleCfg, priest: priestCfg,
+    guard: guardCfg, phalanx: phalanxCfg, riot_special: riotSquadCfg, halberd: halberdierCfg, scout: scoutCfg, ranger: rangerCfg, crossbow: crossbowCfg, longbow: longbowCfg, assault: assaultCfg, heavy_machine_gunner: heavyMachineGunnerCfg, sniper: sniperCfg, musketeer: musketeerCfg, anti_vehicle: antiVehicleCfg, priest: priestCfg,
     knight: knightCfg, light_cavalry: lightCavalryCfg,
     cavalry: cavalryCfg, winged_hussar: wingedHussarCfg, ninja: ninjaCfg,
     samurai: samuraiCfg,

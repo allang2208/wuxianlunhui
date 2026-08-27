@@ -19,6 +19,7 @@ import { HamsterHalberdier } from '../entities/hamster-halberdier.js';
 import { HamsterScout } from '../entities/hamster-scout.js';
 import { HamsterRanger } from '../entities/hamster-ranger.js';
 import { HamsterCrossbow } from '../entities/hamster-crossbow.js';
+import { HamsterLongbow } from '../entities/hamster-longbow.js';
 import { HamsterAssault } from '../entities/hamster-assault.js';
 import { HamsterHeavyMachineGunner } from '../entities/hamster-heavy-machine-gunner.js';
 import { HamsterSniper } from '../entities/hamster-sniper.js';
@@ -76,6 +77,7 @@ import halberdierCfg from '../../data/hamster-halberdier-config.json';
 import scoutCfg from '../../data/hamster-scout-config.json';
 import rangerCfg from '../../data/hamster-ranger-config.json';
 import crossbowCfg from '../../data/hamster-crossbow-config.json';
+import longbowCfg from '../../data/hamster-longbow-config.json';
 import assaultCfg from '../../data/hamster-assault-config.json';
 import heavyMachineGunnerCfg from '../../data/hamster-heavy-machine-gunner-config.json';
 import sniperCfg from '../../data/hamster-sniper-config.json';
@@ -179,6 +181,7 @@ const ABILITY_TARGET_NAMES = Object.freeze({
     scout: '仓鼠斥候',
     ranger: '仓鼠游侠',
     crossbow: '仓鼠弩手',
+    longbow: '仓鼠长弓',
     assault: '仓鼠突击',
     heavy_machine_gunner: '仓鼠重机枪',
     sniper: '仓鼠狙击手',
@@ -286,6 +289,7 @@ const PRODUCER_UNIT_CFG = {
     scout: scoutCfg,
     ranger: rangerCfg,
     crossbow: crossbowCfg,
+    longbow: longbowCfg,
     assault: assaultCfg,
     heavy_machine_gunner: heavyMachineGunnerCfg,
     sniper: sniperCfg,
@@ -319,6 +323,7 @@ const PRODUCER_UNIT_CLASS = {
     scout: HamsterScout,
     ranger: HamsterRanger,
     crossbow: HamsterCrossbow,
+    longbow: HamsterLongbow,
     assault: HamsterAssault,
     heavy_machine_gunner: HamsterHeavyMachineGunner,
     sniper: HamsterSniper,
@@ -351,6 +356,7 @@ const PRODUCER_UNIT_CONFIG_PATH = Object.freeze({
     scout: 'data/hamster-scout-config.json',
     ranger: 'data/hamster-ranger-config.json',
     crossbow: 'data/hamster-crossbow-config.json',
+    longbow: 'data/hamster-longbow-config.json',
     assault: 'data/hamster-assault-config.json',
     heavy_machine_gunner: 'data/hamster-heavy-machine-gunner-config.json',
     sniper: 'data/hamster-sniper-config.json',

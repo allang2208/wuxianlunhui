@@ -43,7 +43,7 @@
     }
   },
   "shooting_range_special": {
-    "unitKinds": ["crossbow", "musketeer", "shooter", "heavy_machine_gunner"],
+    "unitKinds": ["crossbow", "musketeer", "shooter", "longbow", "assault", "heavy_machine_gunner"],
     "moduleUpgrade": { "goldByLevel": [500, 700, 900, 1200, 1500, 1900, 2400, 3000, 3800, 4800], "energy": 500, "timeBaseMs": 60000, "timeGrowthMs": 0 },
     "modules": {
       "attackSpd": { "name": "攻击加速", "icon": "⚡", "iconImage": "assets/ui/building-upgrades/attack-speed.png", "effect": "attackIntervalMult", "per": -0.025, "maxLevel": 10, "desc": "攻击间隔 -{pct}%" },

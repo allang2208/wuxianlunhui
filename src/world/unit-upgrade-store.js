@@ -16,6 +16,7 @@ import halberdierCfg from '../../data/hamster-halberdier-config.json';
 import scoutCfg from '../../data/hamster-scout-config.json';
 import rangerCfg from '../../data/hamster-ranger-config.json';
 import crossbowCfg from '../../data/hamster-crossbow-config.json';
+import longbowCfg from '../../data/hamster-longbow-config.json';
 import assaultCfg from '../../data/hamster-assault-config.json';
 import heavyMachineGunnerCfg from '../../data/hamster-heavy-machine-gunner-config.json';
 import sniperCfg from '../../data/hamster-sniper-config.json';
@@ -82,6 +83,7 @@ export const UNIT_KIND_CFG = {
     scout: scoutCfg,
     ranger: rangerCfg,
     crossbow: crossbowCfg,
+    longbow: longbowCfg,
     assault: assaultCfg,
     heavy_machine_gunner: heavyMachineGunnerCfg,
     sniper: sniperCfg,
@@ -128,6 +130,7 @@ export function getUnitKind(unit) {
     if (unit._isHamsterHalberdier) return 'halberd';
     if (unit._isHamsterRanger) return 'ranger';
     if (unit._isHamsterCrossbow) return 'crossbow';
+    if (unit._isHamsterLongbow) return 'longbow';
     if (unit._isHamsterAntiVehicle) return 'anti_vehicle';
     if (unit._isHamsterSniper) return 'sniper';
     if (unit._isHamsterScout) return 'scout';

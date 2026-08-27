@@ -525,6 +525,7 @@
       { "key": "crossbow", "name": "仓鼠弩手", "roleLabel": "重弩 · 贯穿与穿甲", "spawnIntervalMs": 55000, "spawnFoodCost": 150 },
       { "key": "musketeer", "name": "仓鼠火枪", "roleLabel": "远程", "spawnIntervalMs": 60000, "spawnFoodCost": 180 },
       { "key": "shooter", "name": "仓鼠射手", "roleLabel": "远程", "spawnIntervalMs": 45000, "spawnFoodCost": 120 },
+      { "key": "longbow", "name": "仓鼠长弓", "roleLabel": "长弓 · 远射高单发", "spawnIntervalMs": 65000, "spawnFoodCost": 200 },
       { "key": "assault", "name": "仓鼠突击", "roleLabel": "突击步枪 · 高机动单发压制", "spawnIntervalMs": 65000, "spawnFoodCost": 220 },
       { "key": "heavy_machine_gunner", "name": "仓鼠重机枪", "roleLabel": "重机枪 · 三连击、贯穿与穿甲", "spawnIntervalMs": 80000, "spawnFoodCost": 280 }
     ],
@@ -534,7 +535,7 @@
         { "slot": "heavy_fire", "role": "重火力", "unitKey": "crossbow", "unitName": "仓鼠弩手", "profile": "重型弩箭贯穿两个目标，固定 25% 物理护甲穿透" }
       ] },
       { "id": "shooting_range_level_2", "level": 2, "name": "靶场二级编制", "plannedEffectiveResearchCost": 1500, "lines": [
-        { "slot": "mobile_ranged", "role": "射手", "fromUnitName": "仓鼠射手", "unitKey": "longbow", "unitName": "仓鼠长弓", "placeholder": true },
+        { "slot": "mobile_ranged", "role": "射手", "fromUnitName": "仓鼠射手", "unitKey": "longbow", "unitName": "仓鼠长弓", "profile": "英格兰长弓远射；高单发、长拉弓周期、900px基础射程" },
         { "slot": "heavy_fire", "role": "重火力", "fromUnitName": "仓鼠弩手", "unitKey": "musketeer", "unitName": "仓鼠火枪" }
       ] },
       { "id": "shooting_range_level_3", "level": 3, "name": "靶场三级编制", "plannedEffectiveResearchCost": 9900, "lines": [

@@ -1,0 +1,30 @@
+{
+  "idle": {
+    "source": "videos/idle-doubao-v01.mp4",
+    "sourceFrames": 121,
+    "sourceFps": 24.0,
+    "previewGif": "previews/videos/idle-preview.gif",
+    "contact": "previews/videos/idle-contact.png"
+  },
+  "moving": {
+    "source": "videos/moving-doubao-v01.mp4",
+    "sourceFrames": 121,
+    "sourceFps": 24.0,
+    "previewGif": "previews/videos/moving-preview.gif",
+    "contact": "previews/videos/moving-contact.png"
+  },
+  "attacking": {
+    "source": "videos/attacking-doubao-v01.mp4",
+    "sourceFrames": 121,
+    "sourceFps": 24.0,
+    "previewGif": "previews/videos/attacking-preview.gif",
+    "contact": "previews/videos/attacking-contact.png"
+  },
+  "dying": {
+    "source": "videos/dying-doubao-v01.mp4",
+    "sourceFrames": 121,
+    "sourceFps": 24.0,
+    "previewGif": "previews/videos/dying-preview.gif",
+    "contact": "previews/videos/dying-contact.png"
+  }
+}
