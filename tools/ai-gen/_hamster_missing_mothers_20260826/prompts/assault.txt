@@ -1,0 +1,9 @@
+Use case: stylized-concept
+Asset type: production identity mother frame for a Phaser friendly-unit animation pipeline
+Primary request: Create exactly one modern hamster assault trooper, the tier-three mobile ranged soldier called “仓鼠突击”.
+Subject identity: golden Syrian hamster with a very large round head, cream muzzle, broad round torso, thick waist, short stout limbs, and low center of gravity; lightweight sand-and-olive combat uniform, compact coyote plate carrier, knee pads, gloves, boots, open high-cut helmet with both ears visible, clear amber ballistic goggles; carries exactly one realistic compact black assault rifle with a simple red-dot optic and curved magazine. This is the fast rifle unit, not the shotgun special-forces hamster and not the shield-bearing riot unit.
+Style and materials: high-detail realistic PBR 3D game render matching the grounded hamster military asset family, believable fur, ripstop fabric, matte polymer, worn metal, controlled saturation; not a photograph and not a cartoon.
+Pose and camera: calm animation-friendly low-ready pose, low three-quarter view facing screen right, both feet planted on one baseline, two anatomically correct hands on pistol grip and handguard, muzzle angled safely down-right; orthographic-style locked camera.
+Composition: complete full-body subject and rifle fully inside frame; at most 60% canvas width and 72% canvas height with generous action margins.
+Scene: genuinely transparent background, no backdrop, no floor, no horizon, no cast shadow, soft flat diffuse studio light.
+Avoid: shotgun, riot shield, machine gun, rocket launcher, exoskeleton, power armor, science-fiction weapon, duplicate weapon, human proportions, slim waist, long legs, chibi, anime, toy plastic, scenery, muzzle flash, text, logo, watermark, cropping.

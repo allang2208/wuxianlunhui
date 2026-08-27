@@ -1,0 +1,19 @@
+Use case: stylized-concept
+Asset type: tier-3 friendly-unit character mother image
+Input images: Image 1 is the branch reference, the approved tier-2 hamster cavalry and orange tabby cat. It defines the rider identity, cat lineage, teal/navy cavalry colors, camera and realistic game-character style. Image 2 is a technology/material reference for the project's contemporary hamster firearms, ballistic helmet, goggles, body armor, pouches and compact carbine. Do not copy Image 2's standing pose or generic orange hamster identity.
+
+Primary request: Create one full-body "hamster carbine skirmisher" as the modern tier-3 evolution of Image 1. Preserve cavalry identity and the cat mount while advancing the rider into the same hot-weapons era as the project's assault troops.
+
+Subject: one lean warm gray-brown hamster rider with a cream-white muzzle, restrained cheeks, small proportional head and alert veteran expression, clearly descended from Image 1's rider. The rider sits securely on one athletic orange-gold tabby war cat with darker stripes, cream muzzle/chest/paws, feline head, triangular ears, whiskers, four natural cat legs, rounded paws and one curved striped tail. The cat should look swift and fit, not obese, horse-like or oversized in the torso.
+
+Rider equipment: brown and dark-teal cavalry uniform upgraded with a compact sand/tan ballistic vest, reinforced shoulder and forearm protection, gloves, riding boots, a fitted modern ballistic cavalry helmet between the ears, clear protective goggles, a small navy plume preserving the old cavalry lineage, compact radio and short antenna, ammunition pouches and a dark navy half-cape that does not obscure the weapon. Materials and construction should match Image 2's grounded contemporary military gear while retaining Image 1's brown leather and teal/navy visual ancestry.
+
+Weapon and pose: a believable compact black carbine with short barrel, box magazine, compact optic and sling, held correctly with both hands in a calm mounted low-ready position pointing diagonally toward screen right. Keep trigger discipline. The reins are clipped/looped safely to the saddle harness and do not pass through the firearm or hands. No firing, muzzle flash or spent cases in the mother pose.
+
+Mount equipment: lightweight dark leather and teal composite saddle harness, teal-and-ivory saddle blanket, compact ammo saddlebags, radio pack and restrained bronze fittings, shaped naturally to the cat without hiding its face or all tabby markings.
+
+Composition: orthographic three-quarter-front view, facing screen right, approximately 35-degree yaw and 8-degree downward elevation, zero roll. Centered single-unit composition, readable silhouette, same apparent scale and polished painterly-realistic 3D game render as the references. Entire helmet/plume, carbine, cat ears, tail and all four paws inside the canvas.
+
+Scene/backdrop: pure solid white #FFFFFF, evenly lit catalog-style character mother image. No floor, contact shadow, cast shadow, gradient or scenery.
+
+Avoid: vehicles, scout car, motorcycle, wheels, tracks, engine, horse anatomy, lance, shield, sword, extra riders, extra animals, duplicate weapons, extra limbs, malformed paws, floating gear, text, logo or watermark.

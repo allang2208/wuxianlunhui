@@ -1,0 +1,7 @@
+Use case: identity-preserve and precise-object-edit.
+Input image role: edit target; preserve this exact hamster crossbowman and change only the face contour.
+Primary request: Refine only the hamster's face so it appears less puffy and more compact. Reduce the outward bulge of both cheeks by about 12%, tighten the lower cheek and jaw contour, and make the cream muzzle slightly narrower and cleaner while keeping the same friendly golden hamster identity, large head, eyes, nose, ears and expression.
+Absolute invariants: keep the entire body shape, torso width, belly, shoulders, arms, thighs, short legs, stance, clothing fit and coat skirt exactly as in the input image. Do not slim, stretch, shorten or reshape the body. Keep the sallet helmet, olive quilted gambeson, brown leather brigandine, gloves, boots, bolt case, exact heavy windlass crossbow, two-hand grip, camera angle, subject scale and framing unchanged.
+Helmet fit: preserve helmet size and ear openings; adjust only the fur and face contour beneath it without changing the helmet geometry.
+Style and scene: identical high-detail realistic PBR 3D game asset, neutral 5200K flat diffuse lighting, restrained colors, flat solid pure white #FFFFFF background with no shadow.
+Avoid: changing body proportions, slimmer waist, thinner limbs, longer legs, smaller head, sharp canine muzzle, rat-like face, redesigning armor or weapon, extra limbs, text, logo, watermark, cropping, cartoon, anime, chibi, glossy toy surface.

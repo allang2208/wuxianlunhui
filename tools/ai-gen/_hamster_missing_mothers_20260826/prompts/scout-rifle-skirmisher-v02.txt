@@ -1,0 +1,15 @@
+Use case: precise-object-edit
+Asset type: tier-3 friendly-unit character mother image
+Input image: Image 1 is the edit target, the approved mounted hamster carbine skirmisher v01.
+
+Primary request: Make exactly two equipment changes to Image 1. First, replace the compact carbine with a modern semi-automatic scout rifle. Second, remove the blue feather plume completely and replace it with a tactical communications headset. Preserve the rider, orange tabby cat, pose, camera and all other equipment.
+
+Weapon replacement: the new scout rifle has a medium-length precision barrel, slim free-float handguard, compact muzzle brake, adjustable stock, detachable 10-to-20-round magazine, two-point sling and a practical low-to-medium magnification optic. It must read as a lightweight general-purpose scout rifle for mobile reconnaissance—longer and more precise than the former carbine, but shorter and lighter than a dedicated sniper rifle. The hamster holds it correctly with both hands in the same calm mounted low-ready direction toward screen right. Trigger discipline. Keep the complete stock, magazine, barrel and muzzle inside frame. No bipod, suppressor, oversized sniper scope, drum magazine, muzzle flash or firing effects.
+
+Headgear replacement: remove every blue plume and feather from the helmet. Keep the existing tan ballistic helmet and clear protective goggles. Add a realistic low-profile tactical electronic hearing-protection / radio headset fitted around the hamster's ears, with two padded ear cups, a slim overhead/helmet-mounted band, short boom microphone near the muzzle, protected cable and connection to the existing radio. Do not hide or deform the hamster ears and face.
+
+Absolute invariants: preserve the same warm gray-brown hamster identity, narrow face, cream muzzle, body proportions, tactical armor, dark navy cape, gloves, riding boots, radio, pouches and saddle bags. Preserve the orange-gold tabby cat exactly: same face, eyes, ears, stripes, body proportions, walking stance, four paws and tail. Preserve reins, harness, teal saddle blanket, framing, orthographic three-quarter-front screen-right view, scale and pure white background.
+
+Style: polished painterly-realistic 3D game-character render with crisp fur, fabric, polymer and metal detail.
+
+Avoid: blue feathers, plume, carbine, sniper rifle, medieval weapon, vehicle, horse anatomy, changing the cat, changing the pose, extra weapons, extra limbs, shadows, scenery, text, logo or watermark.

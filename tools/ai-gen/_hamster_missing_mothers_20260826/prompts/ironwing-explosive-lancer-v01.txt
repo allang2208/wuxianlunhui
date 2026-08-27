@@ -1,0 +1,21 @@
+Use case: stylized-concept
+Asset type: tier-3 friendly-unit character mother image
+Input images: Image 1 is the branch reference, the approved tier-2 hamster winged hussar and silver-gray armored tabby cat. It defines rider identity, cat lineage, red-white paired wing racks, camera and realistic game-character style. Image 2 is a technology/material reference for the project's contemporary hamster firearms, ballistic armor, helmet components, pouches and grounded military construction. Do not copy Image 2's standing pose, orange hamster identity or assault rifle.
+
+Primary request: Create one full-body "hamster ironwing explosive lancer" as the modern tier-3 evolution of Image 1. Preserve heavy cavalry, cat mount and winged-hussar ancestry while advancing the rider into the same hot-weapons era as the project's modern troops.
+
+Subject: one compact warm gray-brown / taupe hamster rider with a cream-white muzzle, restrained cheeks, small proportional head and composed veteran-knight expression, clearly descended from Image 1's rider. The rider sits securely on one powerful silver-gray tabby war cat with darker stripes, white muzzle/chest/belly/paws, feline head, triangular ears, whiskers, four natural cat legs, rounded paws and one long striped tail. The cat must remain unmistakably feline, strong but not horse-shaped or grossly obese.
+
+Rider equipment: a believable hybrid of polished silver cavalry plate and modern dark-steel composite ballistic armor, with a deep red armored coat, white fur trim, reinforced gauntlets, riding boots, ammunition/propellant pouches, and a fitted ballistic cavalry helmet carrying the established deep-red crest. Include a compact large-caliber sidearm in a closed thigh/saddle holster as the backup hot weapon. Keep restrained blue-steel ancestry accents and brass fittings.
+
+Signature wing equipment: exactly two matched rigid feather wing racks behind the rider, mechanically attached to the saddle/rider harness, preserving Image 1's red, white and black feathers and curved dark-red frames. They are equipment, not biological wings on the hamster or cat. Keep both racks distinct, symmetrical in design and fully visible.
+
+Primary weapon: one long rocket-assisted explosive cavalry lance held securely with both hands, aimed diagonally toward the upper screen-right. It has a reinforced dark composite/steel shaft, heavy armor-piercing spear warhead, a clearly engineered sealed explosive collar and small vented rocket-assist module directly behind the warhead, protected cables and red-white identification bands. It must read as a modern explosive charge weapon rather than a medieval wooden spear, but still retain the unmistakable silhouette of a cavalry lance. Mother pose only: rocket inactive, no flame, smoke, sparks, explosion or muzzle flash.
+
+Mount equipment: modernized dark-steel and composite cat barding with red trim, articulated shoulder/chest plates, dark leather harness, red saddle cloth with white fur trim, compact propellant/ammunition saddlebags, tassels and brass fittings. Armor fits the cat's feline anatomy and leaves its face, ears, paws and enough stripes visible.
+
+Composition: orthographic three-quarter-front view, facing screen right, approximately 35-degree yaw and 8-degree downward elevation, zero roll. Centered single-unit composition, readable silhouette, same apparent scale and polished painterly-realistic 3D game render as the references. Entire explosive lance warhead, both wing racks, cat ears, tail and all four paws inside the canvas.
+
+Scene/backdrop: pure solid white #FFFFFF, evenly lit catalog-style character mother image. No floor, contact shadow, cast shadow, gradient or scenery.
+
+Avoid: tank, armored vehicle, motorcycle, wheels, tracks, engine, horse anatomy, assault rifle, machine gun, active explosion, active rocket exhaust, extra riders, extra animals, extra wing racks, duplicate weapons, extra limbs, malformed paws, floating gear, text, logo or watermark.

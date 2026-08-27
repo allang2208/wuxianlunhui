@@ -1,0 +1,8 @@
+Use case: style-transfer and precise-object-edit.
+Input image role: edit target and identity reference for the hamster longbow archer.
+Primary request: Re-render this exact hamster longbow archer as a refined production mother frame while preserving the golden hamster identity, broad short body, green hooded mantle, leather brigandine, bracers, boots, back quiver and tall yew longbow.
+Unified camera contract: orthographic three-quarter front view; subject faces screen right; camera sees the front and left side at approximately 35-degree yaw and 8-degree downward elevation; zero roll, no perspective distortion. Both feet share one baseline. Center the complete subject at about 68% canvas height with the entire bow and at least 10% margin visible.
+Detail corrections: exactly one intact English-style longbow with continuous limbs and one taut string, one quiver with correctly seated arrows, anatomically plausible grip, no tangled string, no floating arrows, no crossbow or firearm.
+Unified style: high-detail realistic PBR 3D game asset, believable golden fur, woven green cloth, aged brown leather, yew wood and restrained iron fittings; neutral 5200K flat diffuse lighting, restrained saturation, crisp natural edges, consistent material roughness.
+Background: flat solid pure white #FFFFFF, no floor, horizon, vignette, gradient, cast shadow or contact shadow.
+Avoid: redesigning equipment, extra weapons or limbs, text, emblem, logo, watermark, cropping, cartoon, anime, chibi, glossy toy surface.
