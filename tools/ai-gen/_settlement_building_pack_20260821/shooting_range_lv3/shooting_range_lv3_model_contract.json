@@ -1,0 +1,123 @@
+{
+  "assetId": "shooting_range_lv3",
+  "label": "靶场 LV3 · 现代战术步枪与重机枪训练场",
+  "status": "approved_and_installed",
+  "sourceFamily": "modern_military_firing_range",
+  "referenceModels": [
+    "tools/ai-gen/_settlement_building_pack_20260821/shooting_range_lv2/shooting_range_lv2_model.blend",
+    "tools/ai-gen/_settlement_building_pack_20260821/shooting_range/shooting_range_v4_model.blend"
+  ],
+  "assetClass": "modern_military_training_range",
+  "footprintCells": 2,
+  "cameraElevationDegrees": 30,
+  "rootRotationZDegrees": 44.8,
+  "outputs": {
+    "blend": "tools/ai-gen/_settlement_building_pack_20260821/shooting_range_lv3/shooting_range_lv3_model.blend",
+    "preview": "tools/ai-gen/_settlement_building_pack_20260821/shooting_range_lv3/shooting_range_lv3_model_preview.png",
+    "approvalPreview": "tools/ai-gen/_settlement_building_pack_20260821/shooting_range_lv3/shooting_range_lv3_model_approval_preview.png",
+    "depth": "tools/ai-gen/_settlement_building_pack_20260821/shooting_range_lv3/shooting_range_lv3_depth.png",
+    "bodyDepth": "tools/ai-gen/_settlement_building_pack_20260821/shooting_range_lv3/shooting_range_lv3_body_depth.png"
+  },
+  "designIntent": [
+    "advance the established shooting-range family from the accepted medieval level-2 compound to a present-day tactical rifle and heavy-machine-gun training facility",
+    "retain one uninterrupted roof shared by the attached control room and the open firing stations",
+    "keep exactly three readable firing lanes and three fixed steel silhouette targets",
+    "add ordered modern ammunition storage and spent-case handling around the facility without blocking any firing lane",
+    "retain the stable 2x2 logical footprint and change only the authored visual model"
+  ],
+  "structure": [
+    "one attached low control building and four firing-line posts under one continuous flat roof",
+    "three concrete firing benches separated into exactly three lanes",
+    "exactly three fixed steel silhouette targets on one shared target-carrier rail",
+    "one connected reinforced-concrete backstop with two short side wings",
+    "three attached ammunition lockers, four perimeter supply groups containing exactly eight reinforced ammunition crates, four ammunition cans and three spent-case bins",
+    "all components remain inside one complete reinforced-concrete 2x2 foundation"
+  ],
+  "negativeConstraints": [
+    "no second roof, second building, extra floor, tower, guard post or expanded compound",
+    "no fourth target, extra lane, detached bunker, chain-link perimeter, barbed wire, vehicle, radar or antenna",
+    "no soldiers, hamsters, people, animals, loose firearms, national insignia, readable text, neon or sci-fi machinery"
+  ],
+  "modelReview": {
+    "reviewedAt": "2026-08-27",
+    "approvalPreviewOpened": true,
+    "result": "the single flat roof, attached control room, three firing lanes, three steel targets, connected backstop and ordered ammunition groups are all readable; the complete reinforced-concrete foundation remains visible and no second building, tower or enlarged footprint is present"
+  },
+  "userModelApproval": {
+    "approvedAt": "2026-08-27",
+    "scope": "approved the displayed LV3 model preview for the standard three-image 12-step FLUX.2 Dev Depth structure pass; no runtime installation or level-2 replacement was authorized"
+  },
+  "structureCandidateReview": {
+    "batch": "tools/ai-gen/_settlement_building_pack_20260821/shooting_range_lv3/structure_12step_seed128291",
+    "model": "flux2-dev-depth",
+    "styleVersion": "world122-building-v5",
+    "foundationStyle": "worn_concrete",
+    "steps": 12,
+    "depthStrength": 0.78,
+    "cfg": 3.5,
+    "sampler": "euler",
+    "scheduler": "simple",
+    "seeds": [128291, 128292, 128293],
+    "nonstandardOverride": false,
+    "recommendation": "V03 most clearly preserves the approved single roof, three separated lanes, exactly three steel silhouette targets, connected backstop and ordered ammunition storage; V01 has the strongest control-room detail but an overly dominant front carrier assembly, while V02 has the weakest three-target readability",
+    "selectedCandidate": "tools/ai-gen/_settlement_building_pack_20260821/shooting_range_lv3/structure_12step_seed128291/shooting_range_lv3/shooting_range_lv3_structure_v01_raw.png",
+    "result": "all three standard raw candidates completed successfully and the user explicitly selected V01 for standard 48-step refinement; rejected V02/V03 candidates and reproducible derived layers were removed after installation"
+  },
+  "userStructureApproval": {
+    "approvedAt": "2026-08-27",
+    "selectedCandidate": "V01",
+    "scope": "approved the complete original V01 raw as the sole init image for the standard two-image 48-step FLUX.2 Dev Depth refinement; no runtime installation was authorized"
+  },
+  "refinementCandidateReview": {
+    "batch": "tools/ai-gen/_settlement_building_pack_20260821/shooting_range_lv3/refine_48step_from_v01_raw_seed128301",
+    "initImage": "tools/ai-gen/_settlement_building_pack_20260821/shooting_range_lv3/structure_12step_seed128291/shooting_range_lv3/shooting_range_lv3_structure_v01_raw.png",
+    "model": "flux2-dev-depth",
+    "styleVersion": "world122-building-v5",
+    "foundationStyle": "worn_concrete",
+    "steps": 48,
+    "depthStrength": 0.75,
+    "denoise": 0.3,
+    "cfg": 3.5,
+    "sampler": "euler",
+    "scheduler": "simple",
+    "seeds": [128301, 128302],
+    "nonstandardOverride": false,
+    "recommendation": "refine V01 because it retains the approved single roof and three targets while giving the control panels, ammunition crates and safety hardware slightly richer readable detail; refine V02 is marginally cleaner and more restrained",
+    "selectedCandidate": "tools/ai-gen/_settlement_building_pack_20260821/shooting_range_lv3/refine_48step_from_v01_raw_seed128301/shooting_range_lv3/shooting_range_lv3_refine_v01_raw.png",
+    "result": "both standard 48-step candidates preserved the selected structure V01; the user accepted refine V01 for Alpha finalization and runtime installation, and rejected refine V02 was removed after installation"
+  },
+  "userRefinementApproval": {
+    "approvedAt": "2026-08-27",
+    "selectedCandidate": "refine V01",
+    "scope": "accepted the recommended refine V01 and authorized continuing through Alpha finalization and LV3 runtime installation"
+  },
+  "runtimeInstallation": {
+    "installedAt": "2026-08-27",
+    "processedCandidate": "tools/ai-gen/_settlement_building_pack_20260821/shooting_range_lv3/refine_48step_from_v01_raw_seed128301/shooting_range_lv3/shooting_range_lv3_refine_v01_alpha_defringed.png",
+    "runtimeAsset": "assets/terrain/shooting_range_lv3.png",
+    "runtimeMetadata": "tools/ai-gen/_settlement_building_pack_20260821/shooting_range_lv3/shooting_range_lv3_runtime_metadata.json",
+    "displayW": 290,
+    "displayH": 186,
+    "footOffsetY": 92,
+    "visualFootprint": {
+      "centerXRatio": 0.5,
+      "centerYRatio": 0.650538,
+      "widthRatio": 0.882759,
+      "depthRatio": 0.688172,
+      "scaleMode": "strict"
+    },
+    "alphaProcessing": "the edge-spill repair changed only RGB and preserved Alpha byte-for-byte; finalization then removed one isolated 1-pixel Alpha component and otherwise retained the authored depth-limited silhouette",
+    "logicalFootprintChanged": false,
+    "collisionChanged": false,
+    "pathfindingChanged": false,
+    "productionBehaviorChanged": false,
+    "lightingMaps": {
+      "silhouette": "assets/terrain/lighting/shooting_range_lv3_silhouette.png",
+      "projection": "assets/terrain/lighting/shooting_range_lv3_projection.png",
+      "height": "assets/terrain/lighting/shooting_range_lv3_height.png",
+      "normal": "assets/terrain/lighting/shooting_range_lv3_normal.png"
+    }
+  },
+  "archiveCleanup": "retained the editable model, previews, Depth/Body Depth, structure/refine control specifications, accepted structure V01 raw, accepted refine V01 raw/Alpha/preview, generation metadata and runtime metadata; removed rejected seeds, contact sheets, temporary lighting snapshot, .blend1 and reproducible intermediate layers",
+  "nextStage": "user runtime verification of the level-2 to level-3 visual switch, three-target readability, front-rail occlusion, footline alignment and day/night contact shadow"
+}

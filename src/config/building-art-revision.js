@@ -16,6 +16,8 @@ const BUILDING_ART_REVISION_KEYS = new Set([
     'warehouse_lv5',
     'barracks',
     'hamster_barracks_lv2',
+    'shooting_range_lv2',
+    'shooting_range_lv3',
     'thatch_hut',
     'thatch_hut_lv2',
     'armory',

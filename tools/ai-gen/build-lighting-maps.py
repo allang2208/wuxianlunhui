@@ -60,6 +60,8 @@ ASSETS = [
     "warehouse_lv4",
     "warehouse_lv5",
     "shooting_range",
+    "shooting_range_lv2",
+    "shooting_range_lv3",
     "thatch_hut",
     "thatch_hut_lv2",
     "thatch_hut_lv3",

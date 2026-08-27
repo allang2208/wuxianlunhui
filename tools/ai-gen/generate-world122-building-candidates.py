@@ -90,6 +90,7 @@ FOUNDATIONLESS_ASSET_CLASSES = {
 }
 FOUNDATION_STYLE_BY_ASSET_CLASS = {
     "modern_field_barracks": "worn_concrete",
+    "modern_military_training_range": "worn_concrete",
     "modern_office": "fair_faced_concrete",
     "modern_residential": "fair_faced_concrete",
     "solar_power_station": "fair_faced_concrete",
@@ -152,6 +153,7 @@ def prompt_for(asset: dict, manifest: dict, stage: str = "legacy",
     solar_power_station = asset.get("assetClass") == "solar_power_station"
     modern_data_center = asset.get("assetClass") == "modern_data_center"
     modern_field_barracks = asset.get("assetClass") == "modern_field_barracks"
+    modern_military_training_range = asset.get("assetClass") == "modern_military_training_range"
     roman_barracks = asset.get("assetClass") == "roman_barracks"
     agricultural_compound = asset.get("assetClass") == "agricultural_compound"
     modern_office = asset.get("assetClass") == "modern_office"
@@ -166,6 +168,7 @@ def prompt_for(asset: dict, manifest: dict, stage: str = "legacy",
             or asset.get("detailRequest", asset["primaryRequest"])
     else:
         request = asset["primaryRequest"]
+    request_prefix = "" if modern_military_training_range else "exactly one "
     if stage == "structure" and prop_asset:
         stage_contract = """Generation stage: structural prop draft only
 Structure contract: preserve the supplied treasure-chest body, domed lid, four feet, frame, lock and authored open-or-closed lid state as one portable object; every hardware component remains attached to the same chest
@@ -182,6 +185,10 @@ Detail budget: use broad readable concrete, mineral plaster, charcoal steel, dee
         stage_contract = """Generation stage: structural modern-data-center draft only
 Structure contract: preserve one complete 4x4 foundation, one exact four-storey central operations core, exactly two attached symmetric two-storey server wings, exactly two roof cooling banks with three radiator cassettes each, exactly two wall-mounted coolant tanks, paired low wide coolant trunks and one attached low central roof manifold; every floor stays a closed load-bearing mass and every cooling device remains bolted to the same connected facility
 Detail budget: use broad readable weathered concrete, mineral panels, charcoal steel, deep blue-green server glazing, aged brass and restrained cyan coolant so the exact floor counts, server wings, cooling banks, tanks, trunks, lobby and processor emblem can be judged; omit office furniture, loose server racks, people, vehicles, lettering and tiny sci-fi greebles"""
+    elif stage == "structure" and modern_military_training_range:
+        stage_contract = """Generation stage: structural modern-military-training-range draft only
+Structure contract: preserve one complete 2x2 foundation, exactly one low attached control building and one open four-post firing line under one uninterrupted flat roof, exactly three separated concrete firing lanes, exactly three fixed steel silhouette targets on one shared carrier rail, one connected reinforced backstop with two short side wings, three attached ammunition lockers and the authored ordered ammunition groups; every component stays grounded inside the same compact facility
+Detail budget: use broad readable worn concrete, dark olive painted metal, charcoal steel, restrained blue-green glass and muted safety hardware so the single roof, control room, three lanes, three targets, backstop and organized supplies can be judged; omit troops, firearms, vehicles, perimeter fencing, towers, lettering and random loose clutter"""
     elif stage == "structure" and modern_field_barracks:
         stage_contract = """Generation stage: structural modern-field-barracks draft only
 Structure contract: preserve one complete 2x2 foundation, exactly one compact connected olive ridge tent with one open tied-back entrance and two rolled windows, exactly one attached open four-post steel lookout tower with cross braces, observation deck, railings, fixed ladder and one small canvas canopy, exactly two short low sandbag stacks, one short connector landing, one three-crate ammunition stack, one two-crate and two-jerry-can supply group, and one tower-side radio and cable-spool service group; every tower component and equipment group remains grounded and physically joined to the same compact field compound
@@ -247,6 +254,10 @@ Detail budget: improve only weathered concrete and mineral plaster, charcoal fra
         stage_contract = """Generation stage: detail refinement of the supplied modern-data-center image
 Structure contract: preserve the initial image's exact full 4x4 foundation, four-storey central core, two attached two-storey server wings, two three-cassette roof cooling banks, two wall-mounted coolant tanks, paired low cooling trunks, central manifold, lobby, processor emblem, camera, center and ground-contact corners; do not add, remove, move, merge or reinterpret any floor, wing or cooling component
 Detail budget: improve only weathered concrete and mineral panels, charcoal steel, server glazing, intake grilles, aged brass, restrained coolant surfaces and dim interior light"""
+    elif stage == "refine" and modern_military_training_range:
+        stage_contract = """Generation stage: detail refinement of the supplied modern-military-training-range image
+Structure contract: preserve the initial image's exact 2x2 footprint, single attached control building, one uninterrupted flat roof, four firing-line posts, exactly three concrete lanes, exactly three steel silhouette targets, shared carrier rail, connected backstop with two short wings, three ammunition lockers, four authored perimeter supply groups, camera, center and ground-contact corners; do not add, remove, duplicate, move, merge or reinterpret any major component or equipment group
+Detail budget: improve only worn concrete, dark olive paint, charcoal steel, restrained blue-green glazing, muted safety hardware, reinforced ammunition crates and subtle service wear"""
     elif stage == "refine" and modern_field_barracks:
         stage_contract = """Generation stage: detail refinement of the supplied modern-field-barracks image
 Structure contract: preserve the initial image's exact 2x2 footprint, single compact ridge tent, one tied-back entrance, two rolled windows, single four-post lookout tower, cross braces, deck, railings, ladder, canvas canopy, two low sandbag stacks, connector landing, authored three-crate ammunition stack, two-crate and two-jerry-can supply group, tower-side radio and cable spool, camera, center and ground-contact corners; do not add, remove, duplicate, move, merge or reinterpret any major component or equipment group
@@ -328,6 +339,9 @@ Structure contract: preserve every major component indicated by the control silh
     elif modern_data_center:
         composition_contract = "strictly follow the supplied full 4x4 depth-control silhouette and orthographic 2.5D isometric view; centered; all four foundation corners remain visible; preserve one exact four-storey central operations core, exactly two attached symmetric two-storey server wings, exactly two roof cooling banks with three radiator cassettes each, exactly two wall-mounted coolant tanks, paired low wide coolant trunks and one attached low central roof manifold; no perspective convergence"
         negative_contract = "one connected modern computing facility only; no fifth floor, no third wing floor, no antenna, satellite dish, tower, spire, dome, pitched roof, detached annex, second building, cooling tower, smokestack, solar panels, wind turbine, floating machinery, loose server cabinets, road, cars, plaza furniture, trees, people, readable text, numbers, logos or watermark; the processor sign stays one geometric nine-node emblem"
+    elif modern_military_training_range:
+        composition_contract = "strictly follow the supplied full 2x2 depth-control silhouette and orthographic 2.5D isometric view; centered; all four foundation corners remain visible; preserve one low attached control room and one open four-post firing line under one uninterrupted flat roof, exactly three separated concrete lanes, exactly three fixed steel silhouette targets, one shared carrier rail, one connected backstop and the authored ordered ammunition groups; no perspective convergence"
+        negative_contract = "one compact present-day military firing range only; no second roof, second building, extra floor, tower, guard post, fourth target, extra lane, detached bunker, chain-link perimeter, barbed wire, vehicle, radar, antenna, soldiers, hamsters, people, animals, loose firearms, national insignia, readable text, neon, sci-fi machinery, road, terrain, trees, cast shadow, ground shadow, backdrop shadow, green-screen shadow gradient or watermark"
     elif modern_field_barracks:
         composition_contract = "strictly follow the supplied full 2x2 depth-control silhouette and orthographic 2.5D isometric view; centered; all four foundation corners remain visible; preserve exactly one compact military ridge tent, exactly one attached open four-post lookout tower with its authored deck, canopy and ladder, and exactly three organized equipment zones: a three-crate ammunition stack, a two-crate and two-jerry-can supply group, and a tower-side radio with cable spool; the entrance and ladder remain clear and every component stays connected to the same compact compound; no perspective convergence"
         negative_contract = "one compact present-day infantry field barracks only; no medieval stone hall, half-timber facade, red tile roof, castle battlements, second tent, second tower, detached hut, bunker, perimeter fence, chain-link fence, barbed wire, camouflage-net canopy, obstacle course, radar, antenna mast, flag, soldiers, hamsters, people, guns, turret, tank, armored vehicle, truck, helicopter, national insignia, readable text, neon, sci-fi machinery, random or scattered clutter, extra crates or extra fuel cans, road, terrain, trees or watermark"
@@ -364,7 +378,15 @@ Structure contract: preserve every major component indicated by the control silh
     style_version, _style_template, canonical_style_contract = style_contract_for(manifest)
     foundation_style, foundation_contract = foundation_contract_for(asset)
     class_style_contract = ""
-    if solar_power_station:
+    if modern_military_training_range:
+        class_style_contract = """Canonical World-122 modern-military-training-range rendering subset:
+Style/medium: sober semi-realistic present-day tactical training facility with physically plausible game-ready PBR materials and clean readable engineering.
+Material grammar: worn reinforced concrete, dark olive painted equipment, charcoal structural steel, restrained blue-green control glass, dull aged brass hardware and small muted safety indicators.
+Color treatment: deliberately low saturation and controlled neutral contrast; safety accents remain small and functional, never neon or insignia-like.
+Lighting: soft neutral upper-left top-side illumination with restrained contact occlusion only; absolutely no cast shadow outside the body or foundation.
+Detail scale: prioritize the single uninterrupted roof, attached control room, three lanes, three steel targets, connected backstop and ordered ammunition storage; avoid tiny controls, loose clutter and photographic micro-scratches.
+Absolute class lock: this is one compact modern firing range, not a bunker complex, barracks, checkpoint, vehicle yard, radar site or futuristic weapons facility."""
+    elif solar_power_station:
         class_style_contract = """Canonical World-122 photovoltaic-station rendering subset:
 Style/medium: sober semi-realistic handcrafted modern renewable-energy facility with physically plausible game-ready PBR materials, clean readable engineering and the established World-122 isometric finish.
 Material grammar: weathered light-gray concrete and mineral plaster, charcoal structural steel and panel frames, restrained deep navy-blue photovoltaic glass with broad visible cell divisions, subdued blue-green office glass, naturally aged brass for the geometric sun emblem and tiny cyan status lights limited to the attached inverter cabinets.
@@ -500,7 +522,7 @@ Absolute class lock: this object is a portable metal treasure chest, not archite
     return f"""Use case: stylized-concept
 Asset type: {asset_type}, previewed above the {footprint_contract}
 Pipeline/style version: {style_version}
-Primary request: exactly one {request}
+Primary request: {request_prefix}{request}
 {stage_contract}
 {local_refine_contract}{palette_contract}{canonical_style_contract}
 Foundation style id: {foundation_style}

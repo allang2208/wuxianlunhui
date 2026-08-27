@@ -1,0 +1,110 @@
+{
+  "assetId": "shooting_range_lv2",
+  "label": "靶场 LV2 · 中世纪长弓与火绳枪训练场",
+  "status": "refine_48step_v02_approved_and_installed",
+  "sourceFamily": "medieval_fortified_shooting_range",
+  "referenceModels": [
+    "tools/ai-gen/_settlement_building_pack_20260821/shooting_range/shooting_range_v4_model.blend",
+    "tools/ai-gen/_settlement_building_pack_20260821/hamster_barracks_lv2/hamster_barracks_lv2_model.blend",
+    "tools/ai-gen/_settlement_building_pack_20260821/thatch_hut_lv2/thatch_hut_lv2_model.blend"
+  ],
+  "assetClass": "medieval_military_training_range",
+  "footprintCells": 2,
+  "cameraElevationDegrees": 30,
+  "rootRotationZDegrees": 44.8,
+  "outputs": {
+    "blend": "tools/ai-gen/_settlement_building_pack_20260821/shooting_range_lv2/shooting_range_lv2_model.blend",
+    "preview": "tools/ai-gen/_settlement_building_pack_20260821/shooting_range_lv2/shooting_range_lv2_model_preview.png",
+    "approvalPreview": "tools/ai-gen/_settlement_building_pack_20260821/shooting_range_lv2/shooting_range_lv2_model_approval_preview.png",
+    "depth": "tools/ai-gen/_settlement_building_pack_20260821/shooting_range_lv2/shooting_range_lv2_depth.png",
+    "bodyDepth": "tools/ai-gen/_settlement_building_pack_20260821/shooting_range_lv2/shooting_range_lv2_body_depth.png"
+  },
+  "designIntent": [
+    "preserve the established shooting-range courtyard identity while advancing from an ancient range to a medieval military training compound",
+    "use exactly one continuous gabled roof shared by the rear armory and the front firing line",
+    "combine longbow and early matchlock training in one readable organized facility",
+    "add ordered ammunition, powder and arrow supply groups around the yard without blocking circulation",
+    "retain the stable 2x2 logical footprint and change only the authored visual model"
+  ],
+  "structure": [
+    "exactly one rear stone-and-timber armory hall and front firing line under one continuous gabled roof",
+    "exactly one square roofless crenellated stone watchtower accepted from structure V02 as the LV2 level marker",
+    "one low crenellated boundary with a centered front entrance",
+    "one four-post firing line supporting the same main roof, with two benches and a clear center aisle",
+    "exactly three detailed round straw targets on the target line",
+    "one attached organized rack containing longbows and matchlocks",
+    "exactly six ordered ammunition crates in two side supply groups, with two powder kegs and two arrow bundles",
+    "all components remain inside the original 2x2 foundation"
+  ],
+  "negativeConstraints": [
+    "no second tower, tower roof, second hall, detached hut or expanded courtyard",
+    "no modern concrete bunker, chain-link fence, vehicle, radar or electric target carrier",
+    "no soldiers, hamsters, loose weapons, readable text, neon or sci-fi machinery"
+  ],
+  "modelReview": {
+    "reviewedAt": "2026-08-27",
+    "approvalPreviewOpened": true,
+    "result": "the rear armory and four-post firing line now share one continuous gabled roof; no detached canopy roof or offset roof-course mass remains. The three targets and centered entrance stay readable, while ordered ammunition crates, powder kegs, arrow bundles and lanterns add detail without blocking the firing lanes"
+  },
+  "userModelApproval": {
+    "approvedAt": "2026-08-27",
+    "scope": "approved the LV2 model for the standard 12-step structure pass, explicitly selected structure V02, accepted its square watchtower and authorized standard 48-step refinement from the complete original V02 raw; LV3 remains out of scope"
+  },
+  "structureCandidateReview": {
+    "batch": "tools/ai-gen/_settlement_building_pack_20260821/shooting_range_lv2/structure_12step_seed128271",
+    "model": "flux2-dev-depth",
+    "steps": 12,
+    "depthStrength": 0.78,
+    "cfg": 3.5,
+    "sampler": "euler",
+    "scheduler": "simple",
+    "seeds": [128271, 128272, 128273],
+    "recommendation": "v01 was the initial assistant recommendation, superseded by the user's explicit V02 selection",
+    "selectedCandidate": "tools/ai-gen/_settlement_building_pack_20260821/shooting_range_lv2/structure_12step_seed128271/shooting_range_lv2/shooting_range_lv2_structure_v02_raw.png",
+    "selectedCandidateIdentity": "user-supplied 1024x1024 RGBA cutout derived from V02; inspection found 717739 fully transparent pixels and only 328706 fully opaque pixels, with major portions of the building incorrectly transparent",
+    "result": "the user explicitly selected V02 on 2026-08-27 and accepted its square roofless crenellated stone watchtower. The invalid manual cutout and rejected V01/V03 candidates were removed after installation; the complete original V02 raw is the sole retained standard-refinement init image."
+  },
+  "refinementCandidateReview": {
+    "batch": "tools/ai-gen/_settlement_building_pack_20260821/shooting_range_lv2/refine_48step_from_v02_raw_seed128281",
+    "initImage": "tools/ai-gen/_settlement_building_pack_20260821/shooting_range_lv2/structure_12step_seed128271/shooting_range_lv2/shooting_range_lv2_structure_v02_raw.png",
+    "model": "flux2-dev-depth",
+    "steps": 48,
+    "depthStrength": 0.75,
+    "denoise": 0.3,
+    "cfg": 3.5,
+    "sampler": "euler",
+    "scheduler": "simple",
+    "seeds": [128281, 128282],
+    "nonstandardOverride": false,
+    "recommendation": "refine v02",
+    "selectedCandidate": "tools/ai-gen/_settlement_building_pack_20260821/shooting_range_lv2/refine_48step_from_v02_raw_seed128281/shooting_range_lv2/shooting_range_lv2_refine_v02_raw.png",
+    "result": "both candidates preserved the accepted square watchtower, continuous gabled roof, three targets, boundary and main equipment layout. The user explicitly approved refine V02 on 2026-08-27; rejected refine V01 and all review-contact duplicates were removed after installation."
+  },
+  "runtimeInstallation": {
+    "installedAt": "2026-08-27",
+    "textureKey": "shooting_range_lv2",
+    "runtimeAsset": "assets/terrain/shooting_range_lv2.png",
+    "runtimeMetadata": "tools/ai-gen/_settlement_building_pack_20260821/shooting_range_lv2/shooting_range_lv2_runtime_metadata.json",
+    "sourceKeyedCandidate": "tools/ai-gen/_settlement_building_pack_20260821/shooting_range_lv2/refine_48step_from_v02_raw_seed128281/shooting_range_lv2/shooting_range_lv2_refine_v02_keyed.png",
+    "cutoutPolicy": "threshold-40 building key preserved the full subject; two bounded HSV-green cleanup rectangles removed only the external right and bottom green cast-shadow residue; full-canvas remove-all-green and direct RGB soft extraction trials were rejected because they damaged stone and dark timber",
+    "displayW": 290,
+    "displayH": 253,
+    "footOffsetY": 125,
+    "visualFootprint": {
+      "centerXRatio": 0.5,
+      "centerYRatio": 0.741107,
+      "widthRatio": 0.882759,
+      "depthRatio": 0.505929,
+      "scaleMode": "strict"
+    },
+    "logicalFootprintChanged": false,
+    "lightingMaps": [
+      "assets/terrain/lighting/shooting_range_lv2_silhouette.png",
+      "assets/terrain/lighting/shooting_range_lv2_projection.png",
+      "assets/terrain/lighting/shooting_range_lv2_height.png",
+      "assets/terrain/lighting/shooting_range_lv2_normal.png"
+    ]
+  },
+  "archiveCleanup": "retained the editable model, previews, Depth/Body Depth, structure/refine control specifications, accepted structure V02 raw, accepted refine V02 raw/keyed/preview, generation metadata and runtime metadata; removed rejected seeds, review contact sheets, invalid cutout diagnostics, runtime trials and reproducible intermediate layers",
+  "nextStage": "user performs in-game visual verification of the level-1 to level-2 shooting-range upgrade, footline, target readability and day/night projection"
+}

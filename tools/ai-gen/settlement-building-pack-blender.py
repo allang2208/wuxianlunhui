@@ -1805,6 +1805,447 @@ def build_shooting_range(spec):
     return root
 
 
+def range_straw_target(collection, root, mats, name, location, radius=27):
+    """Editable medieval round target shared by the shooting-range tiers."""
+    x, y, base_z = location
+    kit.box(collection, root, f"{name}_Post", (10, 10, 86),
+            (x, y + 8, base_z + 43), mats["timber"], bevel_width=1)
+    kit.box(collection, root, f"{name}_Foot", (58, 28, 8),
+            (x, y + 10, base_z + 4), mats["timber"], bevel_width=1.5)
+    kit.cylinder(collection, root, f"{name}_Outer", radius, 9,
+                 (x, y, base_z + 73), mats["straw"],
+                 rotation=(90, 0, 0), vertices=48)
+    kit.cylinder(collection, root, f"{name}_MiddleRing", radius * 0.62, 10,
+                 (x, y - 5, base_z + 73), mats["timber"],
+                 rotation=(90, 0, 0), vertices=40)
+    kit.cylinder(collection, root, f"{name}_Center", radius * 0.34, 11,
+                 (x, y - 10, base_z + 73), mats["iron"],
+                 rotation=(90, 0, 0), vertices=32)
+
+
+def range_steel_silhouette(collection, root, mats, name, location):
+    """Modern torso-and-head target with a separate rail foot and support post."""
+    x, y, base_z = location
+    kit.box(collection, root, f"{name}_RailFoot", (72, 24, 9),
+            (x, y + 10, base_z + 4.5), mats["iron"], bevel_width=2)
+    kit.box(collection, root, f"{name}_Post", (8, 10, 64),
+            (x, y + 5, base_z + 36), mats["iron"], bevel_width=1)
+    kit.box(collection, root, f"{name}_Torso", (42, 7, 50),
+            (x, y - 2, base_z + 72), mats["iron"], bevel_width=8)
+    kit.cylinder(collection, root, f"{name}_Head", 14, 8,
+                 (x, y - 3, base_z + 110), mats["iron"],
+                 rotation=(90, 0, 0), vertices=24, bevel_width=1)
+    kit.box(collection, root, f"{name}_CenterPlate", (13, 5, 18),
+            (x, y - 7, base_z + 77), mats["brass"], bevel_width=3)
+
+
+def build_shooting_range_lv2(spec):
+    """Medieval longbow and early-firearm range on the stable 2x2 footprint."""
+    collection, root, mats = common_context("shooting_range_lv2", spec)
+    dims = spec["dimensions"]
+    fw, fd, fh = dims["foundation"]
+    bw, bd, bh = dims["armory"]
+    rw, rd, rh = dims["roof"]
+    canopy_w, _canopy_d, canopy_h = dims["firingCanopy"]
+
+    crimson = kit.material(
+        "MAT_ShootingRangeLV2_Crimson", kit.rgba((0.30, 0.045, 0.028, 1.0)),
+        roughness=0.90, noise={"scale": 12, "detail": 3, "bump": 0.08})
+
+    kit.box(collection, root, "ShootingRangeLV2_FortifiedFoundation",
+            (fw, fd, fh), (0, 0, fh / 2), mats["foundation"], bevel_width=5)
+
+    armory_y = 92
+    armory_front = armory_y - bd / 2 - 4
+    kit.box(collection, root, "ShootingRangeLV2_Armory_StoneHall",
+            (bw, bd, bh), (0, armory_y, fh + bh / 2),
+            mats["stone"], bevel_width=5)
+    kit.box(collection, root, "ShootingRangeLV2_Armory_PlasterUpper",
+            (bw + 3, bd + 3, 66), (0, armory_y, fh + bh - 33),
+            mats["plaster"], bevel_width=3)
+    roof_base = fh + bh - 3
+    roof_y = 30
+    kit.gabled_prism(collection, root, "ShootingRangeLV2_Armory_Roof",
+                     rw, rd, rh, (0, roof_y, roof_base),
+                     mats["timber"], mats["roof"])
+    kit.box(collection, root, "ShootingRangeLV2_SingleRoof_Ridge",
+            (rw + 8, 10, 10), (0, roof_y, roof_base + rh + 2),
+            mats["timber"], bevel_width=2)
+    for side, label in ((-1, "Front"), (1, "Rear")):
+        kit.box(collection, root, f"ShootingRangeLV2_SingleRoof_{label}Fascia",
+                (rw + 6, 10, 14),
+                (0, roof_y + side * (rd / 2 - 4), roof_base + 6),
+                mats["timber"], bevel_width=2)
+    kit.half_timber_facade(collection, root, "ShootingRangeLV2_Armory_Timber",
+                           bw, 66, armory_front, fh + bh - 66,
+                           mats["timber"], bays=4)
+    kit.double_doors(collection, root, "ShootingRangeLV2_Armory_Door",
+                     (88, armory_front - 6, fh), 74, 104,
+                     mats["timber"], mats["iron"], open_angle=8)
+    kit.shutter_window(collection, root, "ShootingRangeLV2_Armory_Window",
+                       (-72, armory_front - 4, fh + 76), mats["glass"],
+                       mats["timber"], mats["iron"], scale=0.72)
+
+    wall_h = 54
+    wall_z = fh + wall_h / 2
+    side_x = fw / 2 - 18
+    front_y = -fd / 2 + 18
+    rear_y = armory_front - 12
+    kit.box(collection, root, "ShootingRangeLV2_LeftBoundaryWall",
+            (24, rear_y - front_y, wall_h),
+            (-side_x, (front_y + rear_y) / 2, wall_z),
+            mats["stone"], bevel_width=3)
+    kit.box(collection, root, "ShootingRangeLV2_RightBoundaryWall",
+            (24, rear_y - front_y, wall_h),
+            (side_x, (front_y + rear_y) / 2, wall_z),
+            mats["stone"], bevel_width=3)
+    gate_half = 52
+    segment_w = side_x - gate_half
+    for side, label in ((-1, "Left"), (1, "Right")):
+        center_x = side * (gate_half + segment_w / 2)
+        kit.box(collection, root, f"ShootingRangeLV2_FrontBoundary_{label}",
+                (segment_w, 24, wall_h), (center_x, front_y, wall_z),
+                mats["stone"], bevel_width=3)
+    for side, label in ((-1, "Left"), (1, "Right")):
+        for index, y in enumerate((front_y + 22, front_y + 84, front_y + 146)):
+            kit.box(collection, root,
+                    f"ShootingRangeLV2_{label}WallMerlon_{index}",
+                    (34, 30, 28), (side * side_x, y, fh + wall_h + 14),
+                    mats["foundation"], bevel_width=2)
+    for side, label in ((-1, "Left"), (1, "Right")):
+        for index, x in enumerate((gate_half + 24, gate_half + 76, gate_half + 128)):
+            kit.box(collection, root,
+                    f"ShootingRangeLV2_Front{label}Merlon_{index}",
+                    (30, 32, 28), (side * x, front_y, fh + wall_h + 14),
+                    mats["foundation"], bevel_width=2)
+
+    canopy_y = -26
+    for x, label in ((-canopy_w / 2 + 18, "LeftOuter"),
+                     (-42, "LeftInner"), (42, "RightInner"),
+                     (canopy_w / 2 - 18, "RightOuter")):
+        kit.box(collection, root, f"ShootingRangeLV2_FiringPost_{label}",
+                (14, 14, canopy_h), (x, canopy_y, fh + canopy_h / 2),
+                mats["timber"], bevel_width=2)
+        kit.box(collection, root, f"ShootingRangeLV2_FiringPost_{label}_Bracket",
+                (38, 16, 12), (x, canopy_y, fh + canopy_h - 5),
+                mats["timber"], bevel_width=2)
+    for x, label in ((-102, "Left"), (102, "Right")):
+        kit.box(collection, root, f"ShootingRangeLV2_FiringBench_{label}",
+                (96, 28, 12), (x, canopy_y - 18, fh + 38),
+                mats["timber"], bevel_width=3)
+        for leg in (-32, 32):
+            kit.box(collection, root,
+                    f"ShootingRangeLV2_FiringBench_{label}_Leg_{leg:+d}",
+                    (12, 18, 32), (x + leg, canopy_y - 18, fh + 16),
+                    mats["timber"], bevel_width=2)
+
+    target_y = front_y + 47
+    for index, x in enumerate((-112, 0, 112)):
+        range_straw_target(collection, root, mats,
+                           f"ShootingRangeLV2_Target_{index}",
+                           (x, target_y, fh), radius=29)
+
+    rack_y = armory_front - 16
+    kit.box(collection, root, "ShootingRangeLV2_WeaponRack_Back",
+            (194, 12, 104), (-28, rack_y + 4, fh + 68),
+            mats["timber"], bevel_width=2)
+    for rail_z in (fh + 38, fh + 96):
+        kit.box(collection, root, f"ShootingRangeLV2_WeaponRack_Rail_{int(rail_z)}",
+                (202, 14, 8), (-28, rack_y - 2, rail_z),
+                mats["iron"], bevel_width=1)
+    for index, x in enumerate((-96, -70)):
+        kit.box(collection, root, f"ShootingRangeLV2_Longbow_{index}_Upper",
+                (5, 7, 52), (x, rack_y - 5, fh + 82), mats["timber"],
+                rotation=(0, -17 if index == 0 else 17, 0), bevel_width=1)
+        kit.box(collection, root, f"ShootingRangeLV2_Longbow_{index}_Lower",
+                (5, 7, 52), (x + 10, rack_y - 5, fh + 42), mats["timber"],
+                rotation=(0, 17 if index == 0 else -17, 0), bevel_width=1)
+    for index, x in enumerate((-26, 2, 30)):
+        kit.box(collection, root, f"ShootingRangeLV2_Matchlock_{index}_Stock",
+                (14, 8, 35), (x, rack_y - 7, fh + 37), mats["timber"],
+                rotation=(0, -7, 0), bevel_width=2)
+        kit.box(collection, root, f"ShootingRangeLV2_Matchlock_{index}_Barrel",
+                (6, 7, 62), (x - 4, rack_y - 8, fh + 79), mats["iron"],
+                rotation=(0, -7, 0), bevel_width=1)
+    kit.box(collection, root, "ShootingRangeLV2_CrimsonRangeBanner",
+            (54, 6, 64), (96, rack_y - 6, fh + 84), crimson,
+            bevel_width=2)
+    kit.box(collection, root, "ShootingRangeLV2_BannerCrossbar",
+            (68, 7, 7), (96, rack_y - 6, fh + 118), mats["brass"],
+            bevel_width=1)
+
+    def add_ammo_crate(name, location, size=(50, 40, 36)):
+        x, y, z = location
+        w, d, h = size
+        kit.box(collection, root, name, size, (x, y, z + h / 2),
+                mats["timber"], bevel_width=3)
+        for band_index, band_x in enumerate((-w * 0.28, w * 0.28)):
+            kit.box(collection, root, f"{name}_IronBand_{band_index}",
+                    (5, d + 3, h - 5), (x + band_x, y, z + h / 2),
+                    mats["iron"], bevel_width=0.7)
+        kit.box(collection, root, f"{name}_LidRail",
+                (w - 8, d + 4, 6), (x, y, z + h - 3),
+                mats["foundation"], bevel_width=1)
+        kit.box(collection, root, f"{name}_Latch",
+                (10, 5, 13), (x, y - d / 2 - 3, z + h * 0.58),
+                mats["brass"], bevel_width=1)
+
+    # Two ordered supply groups add ammunition density without blocking the
+    # target line, firing benches or centered entrance.
+    add_ammo_crate("ShootingRangeLV2_LeftAmmoCrate_Base",
+                   (-198, 64, fh), (56, 44, 38))
+    add_ammo_crate("ShootingRangeLV2_LeftAmmoCrate_Upper",
+                   (-198, 64, fh + 38), (46, 38, 31))
+    add_ammo_crate("ShootingRangeLV2_LeftAmmoCrate_Front",
+                   (-184, 18, fh), (48, 38, 34))
+    add_ammo_crate("ShootingRangeLV2_RightAmmoCrate_Base",
+                   (194, 70, fh), (58, 44, 40))
+    add_ammo_crate("ShootingRangeLV2_RightAmmoCrate_Upper",
+                   (194, 70, fh + 40), (44, 36, 30))
+    add_ammo_crate("ShootingRangeLV2_RightAmmoCrate_Front",
+                   (180, 20, fh), (50, 38, 34))
+
+    # Powder kegs and arrow bundles remain grouped with the ammunition crates.
+    for index, (x, y) in enumerate(((154, 72), (158, 32))):
+        kit.cylinder(collection, root, f"ShootingRangeLV2_PowderKeg_{index}",
+                     18, 42, (x, y, fh + 21), mats["timber"],
+                     vertices=20, bevel_width=3)
+        for hoop_index, z in enumerate((fh + 8, fh + 34)):
+            kit.cylinder(collection, root,
+                         f"ShootingRangeLV2_PowderKeg_{index}_Hoop_{hoop_index}",
+                         20, 5, (x, y, z), mats["iron"],
+                         vertices=20, bevel_width=1)
+    for group_index, x in enumerate((-154, 154)):
+        kit.cylinder(collection, root, f"ShootingRangeLV2_ArrowQuiver_{group_index}",
+                     12, 42, (x, canopy_y - 4, fh + 25), mats["timber"],
+                     vertices=16, bevel_width=2)
+        for arrow_index, dx in enumerate((-6, -2, 2, 6)):
+            kit.cylinder(collection, root,
+                         f"ShootingRangeLV2_ArrowBundle_{group_index}_{arrow_index}",
+                         1.3, 66, (x + dx, canopy_y - 4, fh + 58),
+                         mats["timber"], vertices=8, bevel_width=0.3)
+            cone(collection, root,
+                 f"ShootingRangeLV2_ArrowHead_{group_index}_{arrow_index}",
+                 2.8, 8, (x + dx, canopy_y - 4, fh + 95),
+                 mats["iron"], vertices=4)
+    kit.lantern(collection, root, "ShootingRangeLV2_FiringLantern_Left",
+                (-42, canopy_y - 9, fh + 104), mats["iron"], mats["glow"])
+    kit.lantern(collection, root, "ShootingRangeLV2_FiringLantern_Right",
+                (42, canopy_y - 9, fh + 104), mats["iron"], mats["glow"])
+    return root
+
+
+def build_shooting_range_lv3(spec):
+    """Present-day three-lane military firing range on the same 2x2 plot."""
+    collection, root, mats = common_context("shooting_range_lv3", spec)
+    dims = spec["dimensions"]
+    fw, fd, fh = dims["foundation"]
+    control_w, control_d, control_h = dims["controlBuilding"]
+    roof_w, roof_d, roof_h = dims["singleRoof"]
+    support_post_h = dims["supportPostHeight"]
+    backstop_w, backstop_d, backstop_h = dims["backstop"]
+
+    concrete = kit.material(
+        "MAT_ShootingRangeLV3_Concrete", kit.rgba((0.255, 0.27, 0.25, 1.0)),
+        roughness=0.96, noise={"scale": 9, "detail": 3, "bump": 0.10})
+    olive = kit.material(
+        "MAT_ShootingRangeLV3_Olive", kit.rgba((0.16, 0.19, 0.12, 1.0)),
+        roughness=0.86, metallic=0.10,
+        noise={"scale": 10, "detail": 3, "bump": 0.08})
+
+    kit.box(collection, root, "ShootingRangeLV3_ReinforcedFoundation",
+            (fw, fd, fh), (0, 0, fh / 2), concrete, bevel_width=5)
+
+    control_y = 126
+    control_front = control_y - control_d / 2 - 4
+    kit.box(collection, root, "ShootingRangeLV3_ControlBuilding_Shell",
+            (control_w, control_d, control_h),
+            (0, control_y, fh + control_h / 2), olive, bevel_width=4)
+    kit.box(collection, root, "ShootingRangeLV3_ControlBuilding_Skirt",
+            (control_w + 10, control_d + 10, 28),
+            (0, control_y, fh + 14), concrete, bevel_width=3)
+    kit.double_doors(collection, root, "ShootingRangeLV3_ControlBuilding_Door",
+                     (100, control_front - 7, fh), 68, 82,
+                     olive, mats["iron"], open_angle=6)
+    for index, x in enumerate((-92, -38, 16)):
+        kit.box(collection, root, f"ShootingRangeLV3_ControlWindow_{index}",
+                (42, 7, 32), (x, control_front - 5, fh + 58),
+                mats["glass"], bevel_width=4)
+        kit.box(collection, root, f"ShootingRangeLV3_ControlWindowFrame_{index}",
+                (47, 9, 5), (x, control_front - 9, fh + 58),
+                mats["iron"], bevel_width=1)
+    canopy_y = 18
+    post_span = roof_w - 42
+    for x, label in ((-post_span / 2, "LeftOuter"), (-62, "LeftInner"),
+                     (62, "RightInner"), (post_span / 2, "RightOuter")):
+        kit.box(collection, root, f"ShootingRangeLV3_CanopyPost_{label}",
+                (13, 13, support_post_h),
+                (x, canopy_y, fh + support_post_h / 2),
+                mats["iron"], bevel_width=2)
+        kit.box(collection, root, f"ShootingRangeLV3_CanopyPost_{label}_TopBracket",
+                (42, 18, 12),
+                (x, canopy_y, fh + support_post_h - 5),
+                mats["iron"], bevel_width=2)
+
+    # The control room and firing stations share one uninterrupted flat roof.
+    # A short attached collar closes the height difference without becoming a
+    # second roof or an additional storey.
+    roof_y = 86
+    roof_z = fh + support_post_h + roof_h / 2
+    kit.box(collection, root, "ShootingRangeLV3_SingleRoof_ControlCollar",
+            (control_w + 10, control_d + 8,
+             max(12, fh + support_post_h - (fh + control_h))),
+            (0, control_y,
+             (fh + control_h + fh + support_post_h) / 2),
+            olive, bevel_width=3)
+    kit.box(collection, root, "ShootingRangeLV3_SingleRoof_Slab",
+            (roof_w, roof_d, roof_h), (0, roof_y, roof_z),
+            mats["iron"], bevel_width=6)
+    for side, label in ((-1, "Front"), (1, "Rear")):
+        kit.box(collection, root, f"ShootingRangeLV3_SingleRoof_{label}Fascia",
+                (roof_w + 5, 10, roof_h + 8),
+                (0, roof_y + side * (roof_d / 2 - 4), roof_z),
+                olive, bevel_width=2)
+    for side, label in ((-1, "Left"), (1, "Right")):
+        gutter_x = side * (roof_w / 2 - 3)
+        kit.box(collection, root, f"ShootingRangeLV3_SingleRoof_{label}Gutter",
+                (9, roof_d - 12, 9), (gutter_x, roof_y, roof_z - 2),
+                mats["iron"], bevel_width=2)
+        kit.cylinder(collection, root,
+                     f"ShootingRangeLV3_SingleRoof_{label}Downspout",
+                     4.5, 102,
+                     (gutter_x, control_y + control_d / 2 - 12, fh + 51),
+                     mats["iron"], vertices=16, bevel_width=1)
+
+    roof_top = roof_z + roof_h / 2
+    kit.box(collection, root, "ShootingRangeLV3_VentHousing",
+            (72, 42, 22), (-92, control_y + 15, roof_top + 11),
+            mats["iron"], bevel_width=4)
+    for index in range(4):
+        kit.box(collection, root, f"ShootingRangeLV3_VentSlat_{index}",
+                (54, 5, 3), (-92, control_y - 8, roof_top + 3 + index * 5),
+                mats["foundation"], bevel_width=0.5)
+
+    lane_centers = (-118, 0, 118)
+    lane_front = -182
+    lane_rear = canopy_y - 29
+    for index, x in enumerate(lane_centers):
+        kit.box(collection, root, f"ShootingRangeLV3_FiringBench_{index}",
+                (86, 34, 12), (x, canopy_y - 16, fh + 42),
+                concrete, bevel_width=3)
+        kit.box(collection, root, f"ShootingRangeLV3_FiringBenchLeg_{index}",
+                (66, 24, 34), (x, canopy_y - 14, fh + 17),
+                concrete, bevel_width=3)
+        kit.box(collection, root, f"ShootingRangeLV3_TargetLift_{index}",
+                (58, 24, 52), (x, lane_front + 28, fh + 26),
+                mats["iron"], bevel_width=3)
+        range_steel_silhouette(collection, root, mats,
+                               f"ShootingRangeLV3_Target_{index}",
+                               (x, lane_front + 18, fh + 52))
+    divider_depth = lane_rear - lane_front
+    for index, x in enumerate((-59, 59)):
+        kit.box(collection, root, f"ShootingRangeLV3_LaneDivider_{index}",
+                (12, divider_depth, 34),
+                (x, (lane_front + lane_rear) / 2, fh + 17),
+                concrete, bevel_width=3)
+    kit.box(collection, root, "ShootingRangeLV3_TargetCarrier_MainRail",
+            (360, 14, 14), (0, lane_front + 30, fh + 66),
+            mats["iron"], bevel_width=2)
+    for index, x in enumerate(lane_centers):
+        kit.box(collection, root, f"ShootingRangeLV3_TargetCarrier_Stop_{index}",
+                (10, 22, 32), (x, lane_front + 30, fh + 66),
+                mats["brass"], bevel_width=2)
+
+    backstop_y = -fd / 2 + backstop_d / 2 + 16
+    kit.box(collection, root, "ShootingRangeLV3_MainBackstop",
+            (backstop_w, backstop_d, backstop_h),
+            (0, backstop_y, fh + backstop_h / 2), concrete,
+            rotation=(0, -4, 0), bevel_width=5)
+    for side, label in ((-1, "Left"), (1, "Right")):
+        kit.box(collection, root, f"ShootingRangeLV3_BackstopWing_{label}",
+                (44, 74, backstop_h - 18),
+                (side * (backstop_w / 2 - 12), backstop_y + 25,
+                 fh + (backstop_h - 18) / 2), concrete,
+                bevel_width=4)
+    kit.box(collection, root, "ShootingRangeLV3_BackstopCap",
+            (backstop_w + 14, backstop_d + 8, 14),
+            (0, backstop_y, fh + backstop_h + 1), mats["iron"],
+            bevel_width=3)
+
+    for index, x in enumerate((50, 88, 126)):
+        kit.box(collection, root, f"ShootingRangeLV3_AmmoLocker_{index}",
+                (30, 24, 66), (x, control_front - 18, fh + 33),
+                olive, bevel_width=3)
+        kit.box(collection, root, f"ShootingRangeLV3_AmmoLocker_Handle_{index}",
+                (3, 5, 14), (x + 8, control_front - 31, fh + 34),
+                mats["brass"], bevel_width=1)
+    kit.box(collection, root, "ShootingRangeLV3_SafetyPanel",
+            (50, 6, 38), (-137, control_front - 8, fh + 70),
+            mats["brass"], bevel_width=4)
+    kit.box(collection, root, "ShootingRangeLV3_SafetyPanel_DarkCore",
+            (32, 7, 20), (-137, control_front - 12, fh + 70),
+            mats["iron"], bevel_width=3)
+
+    def add_modern_ammo_crate(name, location, size=(52, 40, 34)):
+        x, y, z = location
+        w, d, h = size
+        kit.box(collection, root, name, size, (x, y, z + h / 2),
+                olive, bevel_width=4)
+        kit.box(collection, root, f"{name}_ReinforcedLid",
+                (w - 5, d + 3, 7), (x, y, z + h - 3),
+                mats["iron"], bevel_width=2)
+        for band_index, band_x in enumerate((-w * 0.30, w * 0.30)):
+            kit.box(collection, root, f"{name}_SideRib_{band_index}",
+                    (5, d + 2, h - 7), (x + band_x, y, z + h / 2),
+                    mats["iron"], bevel_width=1)
+        kit.box(collection, root, f"{name}_FrontLatch",
+                (12, 5, 13), (x, y - d / 2 - 3, z + h * 0.58),
+                mats["brass"], bevel_width=1)
+
+    # Four supply zones frame the facility while keeping all three lanes open.
+    add_modern_ammo_crate("ShootingRangeLV3_LeftAmmoCrate_Base",
+                          (-184, 102, fh), (58, 44, 38))
+    add_modern_ammo_crate("ShootingRangeLV3_LeftAmmoCrate_Upper",
+                          (-184, 102, fh + 38), (46, 36, 30))
+    add_modern_ammo_crate("ShootingRangeLV3_LeftAmmoCrate_Forward",
+                          (-176, -64, fh), (52, 40, 34))
+    add_modern_ammo_crate("ShootingRangeLV3_LeftAmmoCrate_ForwardTop",
+                          (-176, -64, fh + 34), (42, 32, 27))
+    add_modern_ammo_crate("ShootingRangeLV3_RightAmmoCrate_Base",
+                          (184, 102, fh), (58, 44, 38))
+    add_modern_ammo_crate("ShootingRangeLV3_RightAmmoCrate_Upper",
+                          (184, 102, fh + 38), (46, 36, 30))
+    add_modern_ammo_crate("ShootingRangeLV3_RightAmmoCrate_Forward",
+                          (176, -64, fh), (52, 40, 34))
+    add_modern_ammo_crate("ShootingRangeLV3_RightAmmoCrate_ForwardTop",
+                          (176, -64, fh + 34), (42, 32, 27))
+
+    for index, (x, y) in enumerate(((-148, 66), (-112, 66),
+                                    (112, 66), (148, 66))):
+        kit.box(collection, root, f"ShootingRangeLV3_AmmoCan_{index}",
+                (30, 20, 23), (x, y, fh + 11.5), olive,
+                bevel_width=3)
+        kit.box(collection, root, f"ShootingRangeLV3_AmmoCan_Handle_{index}",
+                (14, 5, 6), (x, y, fh + 27), mats["iron"],
+                bevel_width=1)
+
+    for index, x in enumerate(lane_centers):
+        bin_x = x + 35
+        kit.box(collection, root, f"ShootingRangeLV3_SpentCaseBin_{index}",
+                (24, 26, 30), (bin_x, canopy_y - 32, fh + 15),
+                mats["iron"], bevel_width=3)
+        kit.box(collection, root, f"ShootingRangeLV3_SpentCaseBin_{index}_Slot",
+                (13, 10, 4), (bin_x, canopy_y - 32, fh + 31),
+                mats["brass"], bevel_width=1)
+
+    for x, label in ((-62, "Left"), (62, "Right")):
+        kit.cylinder(collection, root, f"ShootingRangeLV3_LaneSignal_{label}",
+                     8, 7, (x, canopy_y - 10, fh + 94), mats["glow"],
+                     rotation=(90, 0, 0), vertices=20, bevel_width=1)
+        kit.box(collection, root, f"ShootingRangeLV3_LaneSignal_{label}_Housing",
+                (25, 9, 25), (x, canopy_y - 6, fh + 94),
+                mats["iron"], bevel_width=3)
+    return root
 def build_cavalry_school(spec):
     collection, root, mats = common_context("cavalry_school", spec)
     g = standard_shell(collection, root, mats, spec["dimensions"], bays=4)
@@ -8942,6 +9383,8 @@ BUILDERS = {
     "blacksmith": build_blacksmith,
     "armory": build_armory,
     "shooting_range": build_shooting_range,
+    "shooting_range_lv2": build_shooting_range_lv2,
+    "shooting_range_lv3": build_shooting_range_lv3,
     "cavalry_school": build_cavalry_school,
     "hamster_barracks": build_hamster_barracks,
     "hamster_barracks_lv2": build_hamster_barracks_lv2,

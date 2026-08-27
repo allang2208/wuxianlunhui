@@ -1,0 +1,59 @@
+{
+  "source": "tools\\ai-gen\\_settlement_building_pack_20260821\\shooting_range_lv2\\refine_48step_from_v02_raw_seed128281\\shooting_range_lv2\\shooting_range_lv2_refine_v02_keyed.png",
+  "output": "assets\\terrain\\shooting_range_lv2.png",
+  "sourceMode": "RGBA",
+  "background": null,
+  "matteColor": null,
+  "matteEdgeWidth": null,
+  "matteTolerance": null,
+  "nearestOpaqueEdgeRgb": true,
+  "nearestOpaqueAlpha": 0.98,
+  "defringeInnerPixels": 1,
+  "minComponentPixels": 0,
+  "removedComponents": 0,
+  "removedComponentPixels": 0,
+  "preserveAlphaExact": false,
+  "maskImage": null,
+  "maskDilate": null,
+  "fillAlphaHoles": false,
+  "fillHoleMatteDistance": null,
+  "removeEnclosedMatte": false,
+  "enclosedMatteChromaDistance": null,
+  "maskAddRects": [],
+  "restoreAlphaRects": [],
+  "removeMatteRects": [],
+  "clearMatteOutsidePolygons": [],
+  "clearGreenRects": [
+    "720,450,1024,850",
+    "400,750,850,1024"
+  ],
+  "clearAlphaRects": [],
+  "clearAlphaPolygons": [],
+  "greenHueRange": [
+    35.0,
+    90.0
+  ],
+  "greenSaturationMin": 100,
+  "greenValueMin": 20,
+  "cropBox": [
+    62,
+    140,
+    959,
+    923
+  ],
+  "fileSize": [
+    897,
+    783
+  ],
+  "alphaBBox": [
+    4,
+    4,
+    893,
+    779
+  ],
+  "displayW": 290,
+  "displayH": 253,
+  "footOffsetY": 125,
+  "scaleX": 0.3232998885172798,
+  "scaleY": 0.3231162196679438
+}

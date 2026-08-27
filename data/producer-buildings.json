@@ -540,11 +540,11 @@
         { "slot": "mobile_ranged", "role": "射手", "unitKey": "shooter", "unitName": "仓鼠射手", "profile": "叠加毒液、相对重火力、高机动" },
         { "slot": "heavy_fire", "role": "重火力", "unitKey": "crossbow", "unitName": "仓鼠弩手", "profile": "重型弩箭贯穿两个目标，固定 25% 物理护甲穿透" }
       ] },
-      { "id": "shooting_range_level_2", "level": 2, "name": "靶场二级编制", "plannedEffectiveResearchCost": 1560, "lines": [
+      { "id": "shooting_range_level_2", "level": 2, "name": "靶场二级编制", "plannedEffectiveResearchCost": 1560, "visual": { "tex": "shooting_range_lv2", "assetPath": "assets/terrain/shooting_range_lv2.png", "displayW": 290, "displayH": 253, "footOffsetY": 125, "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.741107, "widthRatio": 0.882759, "depthRatio": 0.505929, "scaleMode": "strict" } }, "lines": [
         { "slot": "mobile_ranged", "role": "射手", "fromUnitName": "仓鼠射手", "unitKey": "longbow", "unitName": "仓鼠长弓", "profile": "英格兰长弓远射；高单发、长拉弓周期、900px基础射程" },
         { "slot": "heavy_fire", "role": "重火力", "fromUnitName": "仓鼠弩手", "unitKey": "musketeer", "unitName": "仓鼠火枪" }
       ] },
-      { "id": "shooting_range_level_3", "level": 3, "name": "靶场三级编制", "plannedEffectiveResearchCost": 4140, "lines": [
+      { "id": "shooting_range_level_3", "level": 3, "name": "靶场三级编制", "plannedEffectiveResearchCost": 4140, "visual": { "tex": "shooting_range_lv3", "assetPath": "assets/terrain/shooting_range_lv3.png", "displayW": 290, "displayH": 186, "footOffsetY": 92, "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.650538, "widthRatio": 0.882759, "depthRatio": 0.688172, "scaleMode": "strict" } }, "lines": [
         { "slot": "mobile_ranged", "role": "射手", "fromUnitName": "仓鼠长弓", "unitKey": "assault", "unitName": "仓鼠突击", "profile": "高机动突击步枪射手；稳定单发压制、720px 射程" },
         { "slot": "heavy_fire", "role": "重火力", "fromUnitName": "仓鼠火枪", "unitKey": "heavy_machine_gunner", "unitName": "仓鼠重机枪", "profile": "弹链重机枪三连击；每发贯穿两个目标，固定 25% 物理护甲穿透" }
       ] }

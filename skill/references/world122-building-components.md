@@ -96,6 +96,10 @@
 | 靶场 | `Range_Yard_*` | 一格院落的侧/前栏杆、门洞和立柱；已改由公共 `post_and_rail_enclosure()` 装配 | `build_shooting_range()` / `building-component-kit.py` |
 | 靶场 | `Range_Target_*` | 靠近前围栏的靶柱、底脚、草靶与铁心 | `build_shooting_range()` |
 | 靶场 | `Range_Armory_Rack_*` / `Visible_Bow_*` / `Visible_Gun*` / `Powder*` | 檐下实体枪架、弓枪、火药架和袋；屋顶必须为空 | `build_shooting_range()` |
+| 靶场 LV2 | `ShootingRangeLV2_Armory_*` / `SingleRoof_*` / `FiringPost_*` / `*Boundary*` | 2×2 中世纪石木靶场母体：后置军械厅与前部射击位共用唯一一座前后贯通双坡屋顶，四柱只承托同一主屋顶；低矮城垛边墙和居中入口不遮挡三座前置草靶，所有构件留在原地基内 | `build_shooting_range_lv2()` |
+| 靶场 LV2 | `ShootingRangeLV2_Target_*` / `WeaponRack_*` / `Longbow_*` / `Matchlock_*` / `*AmmoCrate*` / `*PowderKeg*` / `*Arrow*` | 三座带中圈的圆形草靶、附墙长弓/火绳枪混合枪架，以及左右各一组成组弹药箱、火药桶、箭筒和箭束；补给细节沿院墙有序布置，不堵靶线、射击台或中央入口 | `build_shooting_range_lv2()` / `range_straw_target()` |
+| 靶场 LV3 | `ShootingRangeLV3_ControlBuilding_*` / `SingleRoof_*` / `CanopyPost_*` / `LaneDivider_*` / `*Backstop*` | 2×2 现代军用靶场：控制室与四柱射击位共用唯一一块前后贯通平屋顶，屋面含连续檐口、双侧排水槽和落水管；三条混凝土射击巷与相连挡弹墙保持独立可读，禁止第二屋顶、第二建筑、塔楼、车辆或扩大占地 | `build_shooting_range_lv3()` |
+| 靶场 LV3 | `ShootingRangeLV3_Target_*` / `TargetCarrier_*` / `AmmoLocker_*` / `*AmmoCrate*` / `AmmoCan_*` / `SpentCaseBin_*` / `SafetyPanel*` | 三座钢制升降人形靶、共用目标载轨、附墙弹药柜、左右四组共八只金属弹药箱、四只弹药罐和三只弹壳回收箱；所有补给与训练细节沿设施外围有序布置并避开三条实弹射击巷 | `build_shooting_range_lv3()` / `range_steel_silhouette()` |
 | 骑兵学院 | `Cavalry_Training_Tower*` / `Cavalry_Tower_Timber` | 单座训练塔、木构立面和方锥顶 | `build_cavalry_school()` |
 | 骑兵学院 | `Stable_Door_*` / `Stable_Loft_Window` / `Cavalry_Crest` | 马厩门组、阁楼窗和马蹄徽记 | `build_cavalry_school()` |
 | 仓鼠军营 | `Barracks_MainHall_*` / `Barracks_MainGate_*` | 中央石砌操练厅、连续双坡屋顶、强化门框、双开军营门和暖光入口 | `build_hamster_barracks()` |
