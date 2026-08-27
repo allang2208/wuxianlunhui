@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """从参考图提取深度图（Depth-Anything-V2，ComfyUI venv 运行）。
 
-用途：给 flux2-klein-4b-depth ControlNet 提供"固定视角/朝向"的深度模板——
+用途：给 flux2-dev-depth ControlNet 提供"固定视角/朝向"的深度模板——
 从已定稿同风格道具图提深度，锁住构图/视角，主体由提示词换新。
 
 用法（用 ComfyUI venv 的 python）：

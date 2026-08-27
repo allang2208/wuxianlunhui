@@ -17,7 +17,7 @@ Reuses item/prompt definitions from gen-world122-assets.py.
 
 Usage:
   python auto-gen-world122.py --auto --keys cover_B_v cover_D_v \
-      --model flux2-klein-4b-nolora --glm-gate --retries 4
+      --model flux2-dev-fp8 --glm-gate --retries 4
 """
 
 import argparse
@@ -193,7 +193,7 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--keys", nargs="*", default=None, help="item keys, e.g. cover_B_v cover_D_v")
-    ap.add_argument("--model", default=None, help="models.json model (default: flux2-klein-4b-nolora)")
+    ap.add_argument("--model", default=None, help="models.json model (default: flux2-dev-fp8)")
     ap.add_argument("--host", default=None, help="ComfyUI host (default: 192.168.3.142)")
     ap.add_argument("--timeout", type=int, default=900, help="per-generation timeout")
     ap.add_argument("--bg", choices=["solid", "white"], default="solid",

@@ -53,9 +53,9 @@
 `models.json` 注册：`sdxl` / `flux2-klein-4b`（当前挂 `klein-skillicon-v2.safetensors` LoRA）/
 `flux2-dev-fp8` / `flux2-dev-depth` / `flux2-dev-mesh`。
 
-- **Klein 4B = 生产主力**：热图 ~2 秒/张，商用无限制；
-- **Dev fp8 = 高质量/研发**：单卡预估 40-90 秒/张，mesh 8 步 turbo 实测 ~82 秒/张；
-- 触发词 `wuxianlunhui magic skill icon` 已随 LoRA 生效。
+- **Dev fp8 / Dev Depth = 生产主力**：自由构图使用`flux2-dev-fp8`，锁视角/结构使用`flux2-dev-depth`；
+- **Klein 4B / Klein LoRA / Mesh = 历史复现或对照**：只有调用者显式指定时启用，不参与默认路由；
+- 历史触发词`wuxianlunhui magic skill icon`仅随对应Klein LoRA生效，默认Dev工作流不挂载该LoRA。
 
 ## 5. 训练环境快照（5080）
 

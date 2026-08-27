@@ -2,7 +2,7 @@
 """地砖参考图 → ControlNet 深度/剪影控制图（add-weapon.py 同款做法）
 
 把现有菱形地砖的 alpha 剪影放大到方形画布（黑底白形），喂给
-`flux2-klein-4b-depth --control-image` 锁住菱形构图，模型按提示词重绘材质。
+`flux2-dev-depth --control-image` 锁住菱形构图，模型按提示词重绘材质。
 
 用法：
   python tools/ai-gen/make-tile-depth.py <参考地砖.png> <输出深度图.png> [画布尺寸]

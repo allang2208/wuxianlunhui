@@ -73,7 +73,7 @@ game equipment icon
 
 ## 深度图锁视角/方向（2026-08-04 新增，推荐）
 
-- 装备件（盔甲/法袍/靴子）易出"正侧视角漂移、多视图"；用 `--model flux2-klein-4b-depth` +
+- 装备件（盔甲/法袍/靴子）易出"正侧视角漂移、多视图"；用 `--model flux2-dev-depth` +
   `--control-image` 传**同系列已定稿件的深度图**（或手绘摆好的剪影深度），
   把正面/朝右/构图锁死，主题材质照常换。
 - 靴子仍保留文字 `a single right-facing boot, one boot only` 作第二道保险 +

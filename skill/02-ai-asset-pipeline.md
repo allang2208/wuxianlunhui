@@ -82,27 +82,27 @@ node "...\describe-image.js" --latest
 obstacle / monster-sprite / video / cover / defense-tower / transparent-subject）。
 > 本节约为摘要速查，细则以 WORKFLOW.md 为准；提示词一律从 prompts/ 库取用，禁止现场自由发挥。
 >
-> **入口优先级（2026-08-26 更新）**：双机 ComfyUI 自建生图系统（远程 5080 主力 +
+> **入口优先级（2026-08-27 更新）**：双机 ComfyUI 自建生图系统（远程 5080 主力 +
 > 本机 3080 Ti 兜底）→ **本地零成本**；智谱 API 为第三兜底。凡使用 FLUX，默认模型统一为
-> **FLUX.2 Klein 4B**；自由生图使用 `flux2-klein-4b-nolora`，固定视角、方向或结构使用
-> `flux2-klein-4b-depth` + Blender Depth ControlNet。Dev/Mesh 只在任务明确指定时使用，不参与自动默认路由。
+> **FLUX.2 Dev**；自由生图使用 `flux2-dev-fp8`，固定视角、方向或结构使用
+> `flux2-dev-depth` + Blender Depth ControlNet。Klein/Klein Depth/Mesh只保留为明确指定的历史复现或对照入口，不参与自动默认路由。
 
 新技能贴图/图标/素材一律**优先走双机 ComfyUI**（本地零成本、不限量）：
-远程 5080 默认使用 FLUX.2 Klein 4B（需要锁结构时复用 Fun-Controlnet-Union + Blender Depth），本机 3080 Ti 兜底；
+远程 5080 默认使用 FLUX.2 Dev（需要锁结构时复用 Fun-Controlnet-Union + Blender Depth），本机 3080 Ti 兜底；
 智谱 API 作为第三兜底（双机不可用 / 特殊场景，有免费额度）。出图后必须过 GLM-4.6V 验收再入库。
 
 #### 生图入口（优先：双机 ComfyUI；智谱 API 第三兜底，2026-08-04 调整）
-- **远程 5080 主力（默认）**：`python tools/ai-gen/comfyui-gen.py --host 192.168.3.142 --model flux2-klein-4b-nolora --prompt "..." --out out.png`（命令相对 game-dev/ 仓库根目录执行）
-- **固定视角/方向/结构**：`--model flux2-klein-4b-depth --control-image <深度图> --prompt "..."`（见 WORKFLOW §1.5）
+- **远程 5080 主力（默认）**：`python tools/ai-gen/comfyui-gen.py --host 192.168.3.142 --model flux2-dev-fp8 --prompt "..." --out out.png`（命令相对 game-dev/ 仓库根目录执行）
+- **固定视角/方向/结构**：`--model flux2-dev-depth --control-image <深度图> --prompt "..."`（见 WORKFLOW §1.5）
 - **World-122 建筑**：采用“12 步结构粗筛 → 人工选纯绿底结构图 → 48 步低重绘精修”的两阶段管线；两阶段使用 Blender 深度图锁定结构，并派生边缘图辅助检查。远端插件确认支持 Hook 链后才加 `--edge-control` 启用第二路控制。结构提示词只管封闭体块和塔楼数量，细节提示词只管材质与时代组件；命令与参数见 WORKFLOW §1.5.1。
 
 ##### World-122 建筑非默认模型的实验边界（HiDream / Z-Image）
 
-- **生产路由不因通用榜单成绩自动切换**：建筑任务以同一白模 Depth、同一参考 raw、同尺寸的任务内 A/B 为准，重点比较结构偏差、主体外投影/暗光晕、表面高频细节和最终透明裁切。HiDream 或 Z-Image 的通用偏好榜、写实或文字能力不能替代这组验收；未同时胜过当前 Klein 4B 结果前，只能留在研发目录，不能进入正式候选集。
+- **生产路由不因通用榜单成绩自动切换**：建筑任务以同一白模 Depth、同一参考 raw、同尺寸的任务内 A/B 为准，重点比较结构偏差、主体外投影/暗光晕、表面高频细节和最终透明裁切。HiDream 或 Z-Image 的通用偏好榜、写实或文字能力不能替代这组验收；未同时胜过当前 FLUX.2 Dev 结果前，只能留在研发目录，不能进入正式候选集。
 - **Z-Image Turbo + Union 只作显式研发对照**：Turbo 是 8 步蒸馏生成模型，不按标准 CFG 负面提示词合同工作；Union 的 Depth 负责几何约束，不负责复制参考图的材质、明暗和细节。把整张旧 raw 同时作为 inpaint 参考仍不等于精确材质迁移，可能与 Depth 争夺控制权，并产生暗光晕、外部投影和细节简化。
 - **固定兼容性禁区**：`z_image_int8_convrot` 单独生图可用，但与 `Z-Image-Turbo-Fun-Controlnet-Union-2.1-2602-8steps` 组合会输出噪声，禁止自动路由。只有用户明确要求实验时才可换 NVFP4/BF16，保持官方 8 步链（CFG 1、`res_multistep`、`simple`、AuraFlow shift 3，Union strength/control context 0.65~1.0）；这些参数不写回 Klein 标准工作流。
 - **止损条件**：出现“结构约 80% 可还原，但主体偏暗、阴影增多、纹理明显少于 Klein/旧 raw”时，不再用盲增步数、strength、精度或 seed 数解决。实测 strength 1.0 和 BF16 都没有恢复丢失细节；完整 Blender Depth 可以在后处理阶段确定性清除 Depth 外投影，却不能修复主体内部烘焙暗光和缺失材质，后两项仍存在就判该候选不合格。
-- **HiDream-O1-Image-Dev 也不自动兜底**：其多参考能力可用于显式对照，但军营建筑实验仍出现灰色摄影棚背景、错误投影和主体偏糊；参考注入不能替代完整 Blender Depth，也不能改变默认 Klein 4B 的 12/48 两阶段入口。以后若重启该方向，先做独立的结构、材质两阶段研发并通过上述 A/B 门槛，不直接改生产配置。
+- **HiDream-O1-Image-Dev 也不自动兜底**：其多参考能力可用于显式对照，但军营建筑实验仍出现灰色摄影棚背景、错误投影和主体偏糊；参考注入不能替代完整 Blender Depth，也不能改变默认 FLUX.2 Dev 的 12/48 两阶段入口。以后若重启该方向，先做独立的结构、材质两阶段研发并通过上述 A/B 门槛，不直接改生产配置。
 
 ##### World-122 建筑最高优先级管线：组件化白模 → 12 步 → 48 步
 
@@ -125,7 +125,7 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
 1. **拆需求并查组件表**：把建筑拆成主体壳、屋顶、门窗、楼层、阳台/院墙和功能道具。能由现有组件组合的不得重写；仅当前建筑使用的复杂组合先留在 builder，第二次出现时提升为公共组件。
 2. **更新 manifest 与白模**：尺寸、相机、调色板写 manifest；几何写 Blender builder。所有对象保留有意义的英文名并保持独立可编辑，禁止为了省事把门窗、阳台、杂物全部 join 成不可拆网格。
 3. **先渲染 preview + depth**：固定正交相机、`elevation=30°`、建筑根节点 `rot.z=44.8°`、1024²、完整 foundation 可见。preview 用于人工查组件位置；depth 是 5080 ControlNet 的结构真源。标准 Blender builder 在普通建模模式下必须同时派生独立的 `*_approval_preview.png`，并在控制台打印可直接粘贴的 Codex Markdown。提交白模验收前必须用图像查看工具实际打开该文件，并在 Codex 中将它打开到文件面板；最终回复必须再次以内嵌图片展示，Windows 路径统一改为正斜杠、用尖括号包裹绝对路径，例如 `![building model approval preview](<E:/path/to/building_model_approval_preview.png>)`。禁止使用反斜杠路径、相对路径或只给纯文本文件名；用户没有实际看到图片时不得视为已经提交白模验收，也不得进入12步。多层建筑必须用逐层独立命名的承重壳锁死层数、逐层宽深和对齐关系；要求三层对接时，一层不得缩进、二三层不得漂移或额外挑出。敞开门扇、暖暗门洞和无文字功能招牌属于建筑身份结构，必须在白模中建模并进入 Body Depth，禁止只依赖精修提示词生成。若 preview 中楼层、门、院墙、靶子或阳台位置不对，必须先改模型，不能靠提示词赌修正。
-4. **提交 5080 12 步结构候选**：只走 `generate-world122-building-candidates.py`，默认每批3张；固定 `world122-building-v4`、`flux2-klein-4b-depth`、1024²、同一 depth、Depth 0.88、CFG 1.0、Euler/simple。V4 把次世代PBR游戏化材质、柔和顶侧光和年代化地台路由放在最高优先级：石材自然风化、木构使用磨损、黄铜做旧氧化；非现代建筑使用毛石地台，现代建筑使用清水混凝土地台，建筑语法完全服从白模和资产级 manifest。只有用户明确要求更多/更少参考或开展已标记实验时，才可用 `--variants` 显式覆盖数量。禁止为正式候选直接手写 `comfyui-gen.py` 命令。
+4. **提交 5080 12 步结构候选**：只走 `generate-world122-building-candidates.py`，默认每批3张；固定 `world122-building-v4`、`flux2-dev-depth`、1024²、同一 depth、Depth 0.78、CFG 3.5、Euler/simple。V4 把次世代PBR游戏化材质、柔和顶侧光和年代化地台路由放在最高优先级：石材自然风化、木构使用磨损、黄铜做旧氧化；非现代建筑使用毛石地台，现代建筑使用清水混凝土地台，建筑语法完全服从白模和资产级 manifest。只有用户明确要求更多/更少参考或开展已标记实验时，才可用 `--variants` 显式覆盖数量。禁止为正式候选直接手写 `comfyui-gen.py` 命令。
    - 单格矿洞等自然结构在候选 manifest 中使用 `assetClass: "natural_structure"`、`footprintCells: 1` 与 `generationFootprintCells: 2`：仍以满画布 Depth 生成，保留结构像素密度，再在候选后处理阶段等比缩到 1×1；禁止把小型 Depth 直接交给模型后再用遮罩硬裁。共享画风只作用于石拱、木支护和材质渲染语言，天然岩体不得被解释成房屋、塔楼、窗户或第二入口。
    - 自然结构若洞内允许使用与绿幕同色系的暗部、晶体或光效，生成控制继续锁定 `Body Depth`，最终透明裁切另登记 `postprocessDepthImage`。Cutout Depth 只排除地台，保留洞内建模件；低阈值抠出连续岩体后，仅恢复 Cutout/Body Depth 差集并清理恢复区外的绿主导像素。禁止恢复整张 Cutout 遮罩，否则会把隐藏绿幕或细杆周边底色重新写成不透明。
    - 单格裸露矿脉、碎石矿床等贴地物件使用 `assetClass: "surface_deposit"`，白模先锁完整 1×1 菱形浅床，不能套用矿洞的开口、石拱和支护合同。12步选图与48步 `--init-image` 都保留纯绿底 raw；透明 body 只用于预览和最终入库，禁止作为精修 init，否则透明区会被模型填成黑洞。暗色碎石床可按资产登记较低 `keyThreshold`；候选后处理现在默认保留白模中的浅床，无需旧`skipPseudoPlinthRemoval`反向开关。最终去绿边只替换不透明边界环 RGB，不改变 Alpha。
@@ -136,7 +136,7 @@ obstacle / monster-sprite / video / cover / defense-tower / transparent-subject�
    - **旧 Depth 与新 raw 不一致时禁止参与 Alpha**：模型+原图低重绘可能保留或新增旧 Depth 没有的烟管、玻璃顶、门廊和地台；也可能误拿到另一个旧等级/旧模型的 Depth。抠图前必须并排查看 raw 与 Depth，逐项核对屋顶、外轮廓、地台和附属构件。Depth 不完整或主体不同就只用于判定“不可用”，不得通过膨胀、全轮廓相乘或手工回填继续使用；改走边缘连通绿幕安全阈值，并只在确认完全位于主体/地台外的区域用 `finalize-building-runtime.py --clear-alpha-rect/--clear-alpha-polygon` 定点裁除投影和幕布残留。矩形/多边形不得穿过主体，不能用扩大 HSV 绿色范围替代空间裁切，否则会误伤绿植、绿色玻璃、门窗和石材抗锯齿边缘。
    - 围栏、拱门等会把纯绿幕封闭在主体轮廓内部，但建筑本身又含茅草、灰绿石材、橄榄色或庭院植被时，使用资产级 `removeEnclosedKey:true`：它只在全画布删除落入背景 RGB 距离阈值的键色，不启用宽泛 HSV 绿色清理。此类资产禁止用 `removeAllGreen:true`，否则会把屋顶、墙面和地面打成透明孔，使下层道路在预览中看似覆盖主体。
    - **开放钢架 + 橄榄材质软抠图**：瞭望塔、桁架等开放结构若在封闭开口内残留整块绿幕，同时硬 `keyThreshold` 又误切橄榄帆布顶棚，不得继续继承错误 body 的 Alpha，也不得改用全图 HSV `removeAllGreen`。回到已接受 raw，用 `key-world122-building-body.py --soft-key-inner <起始距离> --soft-key-outer <完全保留距离> --nearest-opaque-edge-rgb`：键色取四角/边框中位数，软距离必须作用于全画布以删除塔架内部封闭绿幕，半透明边缘 RGB 取最近不透明主体色。45/90 只是一栋军营的实测值，其他资产必须按 raw 的背景/主体距离分布另测；完整 Depth 先用于核对主体是否确实被误切，禁止默认膨胀回填，因为钢架附近的 Depth 偏差会把绿幕重新保成实体。只有软距离仍缺件时，才允许用 `--protect-depth + --protect-rect` 对人工确认的小矩形保护，且保护结果必须再次在高对比棋盘底检查。正式验收至少量化：开放区域“键色距离≤inner但 Alpha>0”为0、明确主体色（距离≥outer）误删为0、透明像素 RGB 非零为0，并同步重建运行时紧裁与 lighting maps。
-6. **玩家确认后才进 48 步**：仍走同一 Klein 标准入口和同一 `world122-building-v4`，默认每批2张，以通过的12步图作为 `--init-image`，继续使用同一 depth，固定 Depth 0.82、`denoise=0.30`、48步低重绘。两张候选都必须继续完整注入公共PBR材质、柔和顶侧光和同一`foundationStyle`；精修只增强既有表面的风化石材、磨损木构、氧化黄铜及已建模地台，不得另起画风，也不得改变主体轮廓、层数、院落、屋顶、地台边界或组件位置。只有用户明确要求或已标记实验才可用 `--variants` 覆盖候选数；改变步数/denoise 必须显式 `--allow-nonstandard` 并留下生成元数据；局部错误用 mask 返修，不整图重抽。
+6. **玩家确认后才进 48 步**：仍走同一Dev Depth标准入口和同一`world122-building-v4`，默认每批2张，以通过的12步图作为`--init-image`，继续使用同一depth，固定Depth 0.75、`denoise=0.30`、48步低重绘。两张候选都必须继续完整注入公共PBR材质、柔和顶侧光和同一`foundationStyle`；精修只增强既有表面的风化石材、磨损木构、氧化黄铜及已建模地台，不得另起画风，也不得改变主体轮廓、层数、院落、屋顶、地台边界或组件位置。只有用户明确要求或已标记实验才可用`--variants`覆盖候选数；改变步数/denoise必须显式`--allow-nonstandard`并留下生成元数据；局部错误用mask返修，不整图重抽。
    - **Dev/旧正式图替换为 Klein 的高保真低重绘实验**：只有玩家明确要求“模型+原图”并指定单张重抽时，才允许以已接受的完整纯绿底 raw 为 `--init-image`、以同角度 Blender Depth 为控制，采用单张36步、Depth 0.90、`denoise=0.20`和`--allow-nonstandard`。它借鉴仓鼠军营 LV3 的 Klein-from-Dev 方法，只改善现有PBR表面，不得改镜头、层数、门窗、机械构件或地台。提交前必须并排核对原raw、Depth和新raw的可见侧、屋脊方向、阳台/升降机侧与四角地台；若旧`*_depth.png`只含局部纠错件，必须改用经查看确认覆盖完整主体的`*_body_depth.png`，禁止用残缺Depth冒充锁角度控制。该例外不改变新建筑默认12/48步标准。
    - **提示词零投影阴影合同**：公共画风、类别提示和资产负面词都必须明确要求“absolutely no cast shadow of any kind”，同时排除 ground shadow、backdrop shadow、green-screen shadow gradient 和模型/地台外的 detached ambient shadow；`contact occlusion`只允许存在于构件接触处。raw出现外部投影阴影时不得直接入库；结构已确认且阴影完全位于Depth外时，可在专用抠绿后用完整Depth约束Alpha清除，不能把阴影当地台或材质保留。
    - **正式抠绿只走建筑专用工具**：禁止把通用GrabCut、BiRefNet或临时HSV脚本作为建筑正式Alpha真源。统一从已接受raw运行`key-world122-building-body.py`，再运行`mask-world122-building-body.py`以完整Depth/Body Depth限制模型外Alpha，最后用`finalize-building-runtime.py --preserve-alpha-exact --nearest-opaque-edge-rgb`紧裁。含植被、橄榄帆布或绿色玻璃时使用边缘连通RGB抠绿并保留封闭主体色；确认主体没有任何绿色材质的纯绿幕资产才可显式`--remove-all-green`。阈值或软抠区间必须按该张raw实测，不继承其他建筑常数；正式前必须在高对比棋盘底检查绿边、透明孔、模型外阴影和透明像素脏RGB。
@@ -178,7 +178,7 @@ python tools\ai-gen\generate-world122-building-candidates.py `
   --out Y:\工作\无尽轮回\scratch\world122-buildings
 ```
 
-12步结构阶段不写 `--variants` 时固定读取默认3张；48步仍使用同一脚本，改为 `--stage refine --init-image <accepted_s12_raw.png>`，不写 `--variants` 时固定读取默认2张。标准参数与唯一公共画风模板均由 manifest 注入，命令行不重复手写。每张候选旁必须保留 `_generation.json`，其 `styleVersion` 必须是 `world122-building-v4`、`styleTemplate` 必须是唯一正式模板、`model`必须是`flux2-klein-4b-depth`且`foundationStyle`必须与资产分类路由一致，同时 `nonstandardOverride=false` 才能进入正式候选集；生成脚本会拒绝旧版画风入口。若5080请求在沙箱内报 `WinError 10013`，这是网络权限问题，不代表5080离线；按授权流程重试，不擅自切换到Dev或绕过Depth。
+12步结构阶段不写 `--variants` 时固定读取默认3张；48步仍使用同一脚本，改为 `--stage refine --init-image <accepted_s12_raw.png>`，不写 `--variants` 时固定读取默认2张。标准参数与唯一公共画风模板均由 manifest 注入，命令行不重复手写。每张候选旁必须保留 `_generation.json`，其 `styleVersion` 必须是 `world122-building-v4`、`styleTemplate` 必须是唯一正式模板、`model`必须是`flux2-dev-depth`且`foundationStyle`必须与资产分类路由一致，同时 `nonstandardOverride=false` 才能进入正式候选集；生成脚本会拒绝旧版画风入口。若5080请求在沙箱内报 `WinError 10013`，这是网络权限问题，不代表5080离线；按授权流程重试，不擅自切换到Klein或绕过Depth。
 
 **地台与接地要求**：未来中型功能建筑白模必须包含一个完整、低矮、位于已登记可视占格内部的等距地台，并让门槛、墙脚、柱脚和扶壁与其真实相交；地台与主体一同进入Body Depth，不再依赖运行时另叠通用覆盖层。非现代建筑使用`rubble_stone`：2.5D等距毛石地台/中世纪不规则毛石干垒基底，表面是不规则毛石切型、随机磨损倒角、天然填缝和风化毛石手工拼贴做旧，外缘统一斜切。现代城市建筑使用`fair_faced_concrete`：清水混凝土现浇拼缝、细气孔、平整收光、轻雨蚀与局部返碱；工业/末世使用`worn_concrete`增加克制磕碰、浅裂、浮尘污渍；近未来使用`precast_concrete`增加精确预制拼缝、克制金属包边、预埋槽和非镜面轻抛光。`natural_structure/surface_deposit/prop/agricultural_compound`默认`foundationStyle:none`，其他未分类建筑默认`rubble_stone`；manifest可显式覆盖但不得静默漏掉建筑地台。候选后处理默认保留地台，只有显式`removePseudoPlinth:true`才允许调用旧伪地台清理器。地台是主体纯视觉结构，不得改变逻辑占格、碰撞、寻路、遮挡AABB或`visualFootprint`。
 
@@ -246,8 +246,8 @@ python tools/ai-gen/build-lighting-maps.py <building_id>
 - **多模型切换客户端**：`tools/ai-gen/comfyui-gen.py`（`--model` / `--host` / `--list-models`，
   模型登记表 `tools/ai-gen/models.json`，每模型独立工作流+默认参数）
   ```bash
-  python tools/ai-gen/comfyui-gen.py --host 192.168.3.142 --model flux2-klein-4b-nolora --prompt "..." --out out.png
-  python tools/ai-gen/comfyui-gen.py --host 192.168.3.142 --model flux2-klein-4b-depth --control-image depth.png --prompt "..." --out out.png
+  python tools/ai-gen/comfyui-gen.py --host 192.168.3.142 --model flux2-dev-fp8 --prompt "..." --out out.png
+  python tools/ai-gen/comfyui-gen.py --host 192.168.3.142 --model flux2-dev-depth --control-image depth.png --prompt "..." --out out.png
   python tools/ai-gen/comfyui-gen.py --host 192.168.3.142 --model sdxl --prompt "..." --out out.png
   ```
 - **兼容修复已应用（2026-08-04）**：flux2fun-controlnet v1.1.0 两处补丁
@@ -257,7 +257,7 @@ python tools/ai-gen/build-lighting-maps.py <building_id>
   本机 3080 Ti 跑后端 4 块（Daedalus @192.168.3.153:7777，n_blocks=4，Turbo LoRA 两端本地加载）。
   用法：`--model flux2-dev-mesh`（8 步 turbo，服务端每步约 0.8s）。前提：本机 Daedalus 已启动
   （`tools/ai-gen/start-daedalus.ps1 -SkipSmoke`）；客户端崩溃遗留会话会卡死 Daedalus，重启即可。
-- **模型选择矩阵（2026-08-26 更新）**：只要选择 FLUX，入库、候选和探索统一默认 Klein 4B；自由生图用 `flux2-klein-4b-nolora`，锁结构用 `flux2-klein-4b-depth`，资产专用 LoRA 通过专用 Klein 配置显式启用。Dev/Mesh 不再自动选择；
+- **模型选择矩阵（2026-08-27 更新）**：只要选择 FLUX，入库、候选和探索统一默认 FLUX.2 Dev；自由生图用 `flux2-dev-fp8`，锁结构用 `flux2-dev-depth`。Klein与专用Klein LoRA配置只保留为显式历史复现或对照入口；
   完整矩阵（含各资产子流程的规则/参数）见 `game-dev/tools/ai-gen/WORKFLOW.md §1.6`。
 - **类目路由（2026-08-05 定稿）**：中大型物件（建筑/道具/植被/家具）默认从 Blender 白模
   深度起步（`tools/ai-gen/blender-depth-render.py` + `_blockout_specs/`，锁视角/朝向/比例）；
@@ -288,7 +288,7 @@ python tools/ai-gen/build-lighting-maps.py <building_id>
 1. **定风格**：先看项目现有同类素材（魔法技能图标=紫色六边形徽章+金描边+底部浮雕方块底座），新贴图必须同系列
    → 同系列内容框基准（2026-08-04 陨星教训）：fireball=788×939、宽高比 0.84、占比~70%、偏下构图(cy≈+29)，
    用 `tools/ai-gen/check-icon-sizes.py` 量化对齐
-2. **生成**：默认 `flux2-klein-4b-nolora`（5080）；**固定视角/方向走 `flux2-klein-4b-depth` +
+2. **生成**：默认 `flux2-dev-fp8`（5080）；**固定视角/方向走 `flux2-dev-depth` +
    `--control-image` 深度图**（同系列复用已定稿图深度，见 WORKFLOW §1.5）；
    白底 sticker 提示 + 强负面词（gradient/dark/frame/hexagon）；img2img 以现有同系列图为参考；
    **模板锁定 img2img**：参考图先压白底再上传（透明角直传会被合成黑底→出黑角图），
@@ -363,7 +363,7 @@ python tools/ai-gen/build-lighting-maps.py <building_id>
 
 #### 技能图标重出沉淀（2026-08-06：雷暴领域/贯穿雷枪 v2 定稿）
 
-- **当前统一规则（2026-08-26）**：正式出图、候选和探索只要使用FLUX都默认Klein 4B；需要锁定构图时使用Klein + Depth。旧的“入库=Dev、探索=Klein”结论已删除，不再作为模型路由依据。
+- **当前统一规则（2026-08-27）**：正式出图、候选和探索只要使用FLUX都默认FLUX.2 Dev；需要锁定构图时使用Dev + Depth。Klein及其专用LoRA只在调用者明确指定的历史复现或对照任务中使用。
 - **控制图首选"原图 alpha 剪影"（hf 深度模型被墙时的零依赖替代）**：定稿图标透明底 alpha>10
   填白 + 3px 高斯羽化 → `tools/ai-gen/_depth_templates/<名>_sil.png`，锁原图构图/主体占比/位置；
   实测无需 DepthAnything 权重（hf-mirror 404、hf.co 超时）。
@@ -375,9 +375,9 @@ python tools/ai-gen/build-lighting-maps.py <building_id>
   （~790×930 / 0.85 / fill70% / cy+28）再验收。
 - **验收对照原图而非只看模板**：像素统计（bbox/aspect/fill/cy）+ GLM 单张，主体色调与占比逐项
   对照原图（雷云亮部浅蓝 vs 浅紫、占比 60~70% vs 80% 都是肉眼可辨的偏差）。
-- **流程纪律**：被否后先诊断“模板没锁住 vs 风格没对上 vs 没归一化”，别盲目换模型或 seed 重跑；模型保持Klein默认，通过控制图、提示词合同和归一化解决问题。
+- **流程纪律**：被否后先诊断“模板没锁住 vs 风格没对上 vs 没归一化”，别盲目换模型或seed重跑；模型保持Dev默认，通过控制图、提示词合同和归一化解决问题。
 - **并行会话注意**：`models.json` 的 LoRA 版本（klein-skillicon-v3 / klein-equipment-v1）由并行
-  会话更新，本地Klein需同步对应LoRA；资产不需要专用LoRA时必须使用`flux2-klein-4b-nolora`，避免误挂技能图标风格。
+  会话更新；默认资产生成必须使用`flux2-dev-fp8`或`flux2-dev-depth`，Klein专用LoRA不得被通用流程自动挂载。
 
 #### 武器精通图标系列 v2（2026-08-07 定稿：蓝宝石切割徽章 + 原武器主体）
 
@@ -529,7 +529,7 @@ python tools/ai-gen/build-lighting-maps.py <building_id>
   图生 3D 直接用 5080 的 ComfyUI-Trellis2 节点，无需再装；`tools/ai-gen/trellis-gen.py` 是 API 客户端备用。
 - 视频：MiniMax H3 开源权重（`minimax_h3_fl2va/ref2va_pruned_int8_convrot` 各 19.5GB + qwen3vl-32b
   nvfp4 awq 14.6GB + 音视频 VAE）。
-- 2D：FLUX.2 Klein 4B fp8（3.8GB，生产主力）+ FLUX.2 Dev fp8（33GB）+ FLUX.2-dev-Fun-Controlnet-Union
+- 2D：FLUX.2 Dev fp8（33GB，生产主力）+ FLUX.2-dev-Fun-Controlnet-Union + FLUX.2 Klein 4B fp8（3.8GB，历史复现/对照）
   （7.7GB）+ Mistral3 Small 文本编码器（11.4GB）+ Qwen3-4B（7.5GB）+ flux2-vae。另有研发对照用
   Z-Image Turbo INT8 ConvRot（约6.2GB）/NVFP4（约4.5GB）/BF16（约12.3GB）与
   `Z-Image-Turbo-Fun-Controlnet-Union-2.1-2602-8steps`（约6.7GB）；INT8 ConvRot + Union 会输出噪声，
@@ -1695,7 +1695,7 @@ defend 持盾帧右偏 13px。**结论：武器弧远超身体宽的动作，格
 
 **管线（白模深度锁视角 → 生图 → 抠图入库）**
 - 白模：在`_blockout_specs/<asset>.json`中用trunk圆柱和树冠球/层叠圆柱建立新规格；现有`snow_pine_01_upright.json`等雪松规格可作为结构参考，但不得直接覆盖。**elevation 30**用于等距障碍树木并与防御塔/掩体统一视角；纯billboard资产建议≤12°。随后用`blender-depth-render.py`输出深度图（输出走%TEMP% ASCII路径）。
-- 生图：远程5080使用 `comfyui-gen.py --model flux2-klein-4b-depth --control-image <depth>`；视角/树形/株型由白模Depth锁定。Dev/Dev Depth只在任务明确指定的研发或对照实验中使用，不得作为新树木/植被的默认路由。
+- 生图：远程5080使用 `comfyui-gen.py --model flux2-dev-depth --control-image <depth>`；视角/树形/株型由白模Depth锁定。Klein/Klein Depth只在任务明确指定的历史复现或对照实验中使用，不得作为新树木/植被的默认路由。
 - **画风锚定**：写实 = `photograph of a real tree` + 自然低饱和 + 树皮/枝叶细节
   （flux2 类型不吃 negative 词，全靠正向锁定；v1 卡通风被用户退回——卡通/写实分歧
   必须首轮小样验收）。5 变体用**树种区分法**（白杨/橡树/白桦/枯树/松树）——同一形态族
@@ -1739,7 +1739,7 @@ road-stone 0.48）。建筑外围道路不能直接使用方形无缝图：继�
 `make-seamless.py`后必须实际量首尾边差。若任一方向仍明显不连续，使用
 `enforce-seamless-edges.py --band 128`在边缘带内融合对应像素，验收要求H/V seam均为0。
 远程5080被其它会话长任务占用时，不中断对方队列；本机已有Klein 4B/Qwen/Flux2 VAE，
-可在独立端口用`flux2-klein-4b-nolora`兜底，完成后只关闭本轮精确PID。
+可在独立端口用`flux2-dev-fp8`兜底，完成后只关闭本轮精确PID。
 
 **楼梯白灰砖（2026-08-19）**：提示词`stair-brick-whitegray-seamless.txt`，
 本机Klein 4B无LoRA、seed 122820、1024×1024、12步；原图均值约204，经0.95亮度校正、
@@ -1770,7 +1770,7 @@ perChunk:6, size:760}, deco:{textures:['deco_grass_1','deco_grass_2'], perChunk:
 
 #### World-122 旧“固定地基 + AI主体”方案（2026-08-20，已废弃，不得执行）
 
-旧方案使用Dev Depth手写48步命令、只生成建筑主体、再裁掉AI地台并尝试叠加独立运行时地基；该方案已被本分卷前部“World-122建筑最高优先级管线”完整替代。新建或重做建筑只走 `generate-world122-building-candidates.py`：`world122-building-v4` + `flux2-klein-4b-depth`，12步默认3张、48步默认2张；年代化视觉地台必须在Blender白模中建模，与主体一同进入Body Depth和最终贴图，并记录一致的 `foundationStyle`。视觉地台不改变逻辑占格、碰撞、寻路或 `visualFootprint`。
+旧方案使用Dev Depth手写48步命令、只生成建筑主体、再裁掉AI地台并尝试叠加独立运行时地基；该旧手写方案已被本分卷前部“World-122建筑最高优先级管线”完整替代。新建或重做建筑只走 `generate-world122-building-candidates.py`：`world122-building-v4` + `flux2-dev-depth`，12步默认3张、48步默认2张；年代化视觉地台必须在Blender白模中建模，与主体一同进入Body Depth和最终贴图，并记录一致的 `foundationStyle`。视觉地台不改变逻辑占格、碰撞、寻路或 `visualFootprint`。
 
 `key-world122-building-body.py`、`mask-world122-building-body.py` 和 `compose-world122-building-preview.py` 仅可用于已标记的旧资产恢复或专门实验，不得作为正式建筑候选入口，也不得用来移除V4已经建模并通过路由验证的视觉地台。
 

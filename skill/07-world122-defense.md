@@ -1005,11 +1005,11 @@
   精英/领主生成有飘字+音效提示；等级成长沿用波次 HP/攻击倍率。
 
 #### ControlNet 深度锁视角（2026-08-04 实测定稿）
-- **当前入口（2026-08-26路由更新）**：`flux2-klein-4b-depth` + `--control-image <深度图>`（单卡5080，不依赖mesh）；旧`flux2-dev-depth`只保留为明确指定的研发/对照入口。
+- **当前入口（2026-08-27路由更新）**：`flux2-dev-depth` + `--control-image <深度图>`（单卡5080，不依赖mesh）；Klein/Klein Depth/Mesh只保留为明确指定的历史复现或对照入口。
 - **铁律：FLUX.2 非 mesh 路径必须用引导采样**（FluxGuidance+BasicGuider+
   SamplerCustomAdvanced+RandomNoise）；旧 SamplerCustom+cfg 出**全黑图**
   （2026-08-04 已修进 comfyui-gen.py）。
-- **LoRA 归属**：Klein训练的LoRA（3072维）只能挂对应Klein配置；挂到Dev主模型（6144维）会因`double_blocks.*.txt_attn.proj`形状不匹配报错。通用`flux2-klein-4b-depth`默认不挂LoRA，资产专用LoRA只能通过已登记的专用Klein模型名显式启用。
+- **LoRA归属**：Klein训练的LoRA（3072维）只能挂对应Klein配置；挂到Dev主模型（6144维）会因`double_blocks.*.txt_attn.proj`形状不匹配报错。因此默认Dev工作流禁止自动挂载Klein LoRA；历史复现或对照任务只能通过已登记的专用Klein模型名显式启用。
 - **深度模板**：手绘剪影（`_depth_templates/`）即可稳定锁"正面 billboard、平底、居中"；
   实测 10 组件 9/10 视角稳定；**宽扁平地类（农田）需模板加前景高度**，否则会被读成俯视。
 - **复用**：`gen-depth-test-assets.py`（批量）+ `make-depth-templates.py`（模板生成）
@@ -2051,7 +2051,7 @@
   30° 等距连续地板；主神空间传送门进入，底部返回门离开；不接防守、建造或刷怪系统。
 - 镜头：`scene10` 必须与世界-122、雪原共同登记在 `ZOOMED_OUT_WORLD_SCENES`，基础缩放为
   `0.7`；不得因林地树木较高而单独恢复 `1.0`，否则同规格世界的可视范围会不一致。
-- **生图模型边界**：下列FLUX.2 Dev/Dev Depth只记录现有世界-124资产的历史产出来源，不是新任务入口；任何新生成或替换的草地、植物、树木都统一遵循第2分卷当前路由，自由生图使用`flux2-klein-4b-nolora`，锁视角/株型使用`flux2-klein-4b-depth`。
+- **生图模型边界**：下列既有资产的模型字段只记录各自产出时的历史来源，不得改写；任何新生成或替换的草地、植物、树木都统一遵循第2分卷当前路由，自由生图使用`flux2-dev-fp8`，锁视角/株型使用`flux2-dev-depth`。Klein只用于明确指定的历史复现或对照任务。
 - 草地：`floor_grass_forest_seamless.png` 走 `floor-asset.py grass-forest`（FLUX.2 Dev →
   make-seamless → 降饱和）产出，游戏内连续铺贴 `textureScaleY=0.5774`；
   林地点缀使用 `deco_forest_grass_1~4.png`：FLUX.2 Dev 单株生成 → 非白纯色底 →

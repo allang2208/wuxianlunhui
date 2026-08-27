@@ -99,7 +99,10 @@ def video_command(args, prompt, out, loop=False):
            "--duration", str(args.duration), "--size", args.size,
            "--steps", str(args.steps), "--out", out,
            "--timeout", str(args.timeout)]
-    if loop:
+    last_frame = getattr(args, "last_frame", None)
+    if last_frame:
+        cmd += ["--last-frame", last_frame]
+    elif loop:
         cmd += ["--last-frame", args.ref]
     if getattr(args, "seed", None) is not None:
         cmd += ["--seed", str(args.seed)]
@@ -397,6 +400,7 @@ def main():
     vgsub = vg.add_subparsers(dest="action", required=True)
     vp = vgsub.add_parser("generate", parents=[common], help="生成一个或多个视频候选")
     vp.add_argument("--ref", required=True, help="参考图/首帧")
+    vp.add_argument("--last-frame", help="H3 独立尾帧；用于变身等首尾身份双锁动作")
     vp.add_argument("--prompt", required=True, help="提示词文件路径")
     vp.add_argument("--out", required=True, help="MP4 输出路径；多个豆包候选自动加 _c01 后缀")
     vp.add_argument("--duration", type=float, default=5.17)
@@ -418,7 +422,7 @@ def main():
     p.add_argument("--name", required=True)
     p.add_argument("--ref", required=True, help="参考图（首帧锁体型，也是自动选背景色的依据）")
     p.add_argument("--prompt", required=True, help="提示词文件路径")
-    p.add_argument("--model", default="flux2-klein-4b-nolora")
+    p.add_argument("--model", default="flux2-dev-fp8")
     p.add_argument("--seeds", default="1001,1002,1003,1004,1005",
                    help="逗号分隔 seed 列表")
     p.add_argument("--bg-color", default=None, help="#RRGGBB 或 auto（默认参考图自动选）")
@@ -464,7 +468,7 @@ def main():
     wp = wsub.add_parser("gen-image", parents=[common], help="批量出候选图（comfyui-gen.py）")
     wp.add_argument("--spec", default=_weapon_spec_default())
     wp.add_argument("--host", default="192.168.3.142")
-    wp.add_argument("--model", default="flux2-klein-4b")
+    wp.add_argument("--model", default="flux2-dev-fp8")
     wp.add_argument("--seeds", default="1,2,3")
     wp.add_argument("--timeout", type=int, default=900)
     wp.add_argument("--ref-image", default=None, help="真实参考图（白底完整侧视，自动抠剪影锁形）")
