@@ -1,0 +1,9 @@
+Use case: stylized-concept
+Asset type: production identity mother frame for a Phaser friendly-unit animation pipeline
+Primary request: Create exactly one elite hamster longbow archer, the tier-two mobile ranged soldier called “仓鼠长弓”.
+Subject identity: golden Syrian hamster with a very large round head, cream muzzle, broad round torso, short stout limbs, and low center of gravity; forest-green hooded mantle that leaves both ears and face visible, brown leather brigandine over muted green cloth, bracers, practical boots, one back quiver of long arrows; carries exactly one tall English-style yew longbow. No crossbow and no firearm.
+Style and materials: high-detail realistic PBR 3D game render, believable fur, woven cloth, aged leather, yew wood and iron fittings, restrained natural palette, clean readable silhouette; not a photograph and not a cartoon.
+Pose and camera: calm animation-friendly neutral ready pose, low three-quarter view facing screen right, both feet planted on one baseline; left hand holds the longbow upright but slightly diagonal, right hand rests near the quiver belt, bowstring clearly intact; orthographic-style locked camera.
+Composition: complete full-body subject and entire bow from tip to tip inside frame, all equipment visible; subject plus bow at most 60% of canvas width and 74% of canvas height with generous margins.
+Scene: genuinely transparent background, no backdrop, no floor, no horizon, no cast shadow, soft flat diffuse studio light.
+Avoid: crossbow, short bow, gun, shield, extra arrows floating, duplicate gear, tangled bowstring, human proportions, slim waist, long legs, chibi, anime, flat illustration, toy plastic, scenery, particles, text, logo, watermark, cropping.

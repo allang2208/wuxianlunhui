@@ -1,0 +1,8 @@
+Use case: style-transfer and precise-object-edit.
+Input image role: edit target and identity reference for the hamster crossbowman.
+Primary request: Re-render this exact hamster heavy crossbowman as a refined production mother frame while preserving the golden hamster identity, broad short body, sallet helmet, olive gambeson, leather brigandine, bolt case and heavy windlass crossbow.
+Unified camera contract: orthographic three-quarter front view; subject faces screen right; camera sees the front and left side at approximately 35-degree yaw and 8-degree downward elevation; zero roll, no perspective distortion. Both feet share one baseline. Center the complete subject at about 68% canvas height with at least 10% margin around the weapon.
+Detail corrections: one mechanically coherent two-handed crossbow with a single straight stock and rail, one centered bolt, symmetrical steel prod, continuous taut bowstring and readable windlass; two anatomically plausible paws gripping stock and fore-end; no intersecting strings or floating parts.
+Unified style: high-detail realistic PBR 3D game asset, believable golden fur, coarse quilted cloth, worn brown leather and darkened steel; neutral 5200K flat diffuse lighting, restrained saturation, crisp natural edges, consistent material roughness.
+Background: flat solid pure white #FFFFFF, no floor, horizon, vignette, gradient, cast shadow or contact shadow.
+Avoid: redesigning equipment, extra weapons or limbs, hand crossbow, gun, text, emblem, logo, watermark, cropping, cartoon, anime, chibi, glossy toy surface.

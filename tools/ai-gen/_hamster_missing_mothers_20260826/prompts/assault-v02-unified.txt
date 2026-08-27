@@ -1,0 +1,8 @@
+Use case: style-transfer and precise-object-edit.
+Input image role: edit target and identity reference for the hamster assault trooper.
+Primary request: Re-render this exact hamster assault trooper as a refined production mother frame while preserving the golden hamster identity, broad short body, sand-and-olive uniform, coyote plate carrier, open high-cut helmet, clear amber goggles and compact black assault rifle.
+Unified camera contract: orthographic three-quarter front view; subject faces screen right; camera sees the front and left side at approximately 35-degree yaw and 8-degree downward elevation; zero roll, no perspective distortion. Both boots share one baseline. Center the complete subject at about 68% canvas height with the entire rifle and at least 10% margin visible.
+Detail corrections: exactly one mechanically coherent assault rifle with one barrel, one curved magazine, one red-dot optic and continuous stock; right paw on pistol grip, left paw on handguard, no fused fingers, no duplicate muzzle or accessories.
+Unified style: high-detail realistic PBR 3D game asset, believable golden fur, matte ripstop fabric, woven nylon, worn dark metal and polymer; neutral 5200K flat diffuse lighting, restrained sand/olive palette, crisp natural edges, consistent material roughness.
+Background: flat solid pure white #FFFFFF, no floor, horizon, vignette, gradient, cast shadow or contact shadow.
+Avoid: shotgun, machine gun, riot shield, power armor, science-fiction weapon, extra limbs or weapons, text, emblem, logo, watermark, cropping, cartoon, anime, chibi, glossy toy surface.

@@ -1,0 +1,15 @@
+Use case: precise-object-edit
+Asset type: friendly-unit character mother image
+Input images: Image 1 is the edit target, the current high-tier winged hussar on a silver-gray tabby cat. Image 2 is the established knight branch reference and defines the rider's species identity, face shape, body proportions, helmet lineage, armor lineage, and overall silhouette.
+
+Primary request: Redesign only the hamster rider in Image 1 so it is clearly the elite upgraded evolution of the knight hamster rider in Image 2, rather than a generic round orange hamster.
+
+Rider identity and proportions: use the same warm gray-brown / taupe hamster fur family as Image 2, with a cream-white muzzle, lower cheeks, chin and throat. Give the rider Image 2's narrower tapered face, restrained cheek volume, smaller proportional head, compact armored torso, alert dark eyes, and composed veteran-knight expression. The rider must remain recognizably a hamster, but not have an oversized spherical head, inflated cheeks, or a bulky pear-shaped body.
+
+Upgrade-line equipment: evolve Image 2's polished silver plate armor, blue tabard/cape with restrained gold heraldic trim, blue-plumed steel helmet and knightly silhouette into an elite winged-hussar design. Preserve Image 1's red coat and mantle as the high-tier accent, red crest, fur trim, sword, gauntlets and boots, while adding readable blue-steel lineage accents rather than replacing the red hussar identity. Preserve the exact riding pose, hand placement, long red-brown lance, spearhead and red-and-white pennant from Image 1.
+
+Absolute invariants: do not change the silver-gray tabby cat mount at all—same cat face, ears, eyes, muzzle, stripes, white chest, body proportions, legs, paws, tail, stance and expression. Preserve the cat barding, bridle, reins, saddle, red saddle cloth, tassels and all fittings. Preserve both rigid feathered wing racks behind the rider as exactly two matched equipment racks attached to the rider/saddle, with the same feathers, placement and scale. Preserve the orthographic three-quarter-front camera, screen-right direction, full composition, object placement and pure white background. Keep the lance tip, wing racks, cat tail and all paws inside frame.
+
+Style: polished painterly-realistic 3D game-character render with crisp fur, feather, leather, cloth and metal detail, matching Image 1.
+
+Avoid: horse anatomy, changing the mount, biological wings on the cat, changing the weapon, changing the camera, extra limbs, extra riders, duplicated equipment, cropped elements, shadows, floor, scenery, text, logo or watermark.

@@ -1,0 +1,42 @@
+{
+  "task": "missing_hamster_recruitment_mother_frames",
+  "date": "2026-08-26",
+  "provider": "codex_builtin_imagegen",
+  "assetStatus": "all_active_mothers_user_approved_for_future_plan",
+  "approvalStatus": "user_approved_for_future_plan",
+  "approvalDate": "2026-08-27",
+  "futurePlanOnly": true,
+  "acceptedPreview": "previews/hamster-missing-mothers-unified-tier3-refined-v02-contact.png",
+  "lineagePreview": "previews/hamster-cavalry-tier1-tier3-hot-weapon-lineage-v02.png",
+  "lineageReferences": [
+    "references/hamster-light-cavalry-existing-cat-frame0.png",
+    "references/hamster-light-cavalry-line-reference-enlarged.png",
+    "references/hamster-knight-existing-cat-frame0.png",
+    "references/hamster-knight-line-reference-enlarged.png"
+  ],
+  "archivePolicy": "keep approved outputs, their direct editable source outputs, active/source prompts, exact lineage references and final previews only; rejected drafts and superseded contacts removed after approval",
+  "approvedTaskKeys": [
+    "crossbow", "longbow", "assault", "heavy_machine_gunner",
+    "cavalry", "winged_hussar", "scout_rifle_skirmisher", "powered_eod_explosive_lancer"
+  ],
+  "style": "realistic_pbr_3d_game_asset",
+  "background": "pure_white_no_shadow",
+  "unifiedViewContract": "orthographic three-quarter front view, facing screen right, approximately 35-degree yaw and 8-degree downward elevation, zero roll",
+  "unifiedRevision": "v02 for user-refined tier-3 hot-weapon cavalry replacements and soldiers; v04 for tier-2 cavalry branch riders on cat mounts; v05 for crossbow face refinement",
+  "runtimeIntegrationActive": false,
+  "excludedExisting": [
+    "militia", "scout", "halberd", "ranger", "anti_vehicle", "sniper",
+    "warrior", "guard", "champion", "phalanx", "power_armor_art_candidate",
+    "riot_special", "priest", "shooter", "musketeer", "light_cavalry", "knight"
+  ],
+  "tasks": [
+    { "unitKey": "crossbow", "unitName": "仓鼠弩手", "sourceOutput": "mother/hamster-crossbow-mother-v02-unified-white.png", "sourcePrompt": "prompts/crossbow-v02-unified.txt", "prompt": "prompts/crossbow-v05-face-refined.txt", "output": "mother/hamster-crossbow-mother-v05-face-refined-white.png", "background": "pure_white", "status": "face_refined_body_preserved_and_visually_checked", "note": "active revision preserves the v02 body and only tightens cheeks, jaw and muzzle; rejected body-slimming drafts were removed after approval" },
+    { "unitKey": "longbow", "unitName": "仓鼠长弓", "sourceOutput": "mother/hamster-longbow-mother-v01.png", "sourcePrompt": "prompts/longbow.txt", "prompt": "prompts/longbow-v02-unified.txt", "output": "mother/hamster-longbow-mother-v02-unified-white.png", "background": "pure_white", "status": "unified_and_visually_checked" },
+    { "unitKey": "assault", "unitName": "仓鼠突击", "sourceOutput": "mother/hamster-assault-mother-v01.png", "sourcePrompt": "prompts/assault.txt", "prompt": "prompts/assault-v02-unified.txt", "output": "mother/hamster-assault-mother-v02-unified-white.png", "background": "pure_white", "status": "unified_and_visually_checked" },
+    { "unitKey": "heavy_machine_gunner", "unitName": "仓鼠重机枪", "sourceOutput": "mother/hamster-heavy-machine-gunner-mother-v01.png", "sourcePrompt": "prompts/heavy-machine-gunner.txt", "prompt": "prompts/heavy-machine-gunner-v02-unified.txt", "output": "mother/hamster-heavy-machine-gunner-mother-v02-unified-white.png", "background": "pure_white", "status": "unified_and_visually_checked" },
+    { "unitKey": "cavalry", "unitName": "仓鼠骑兵", "sourceOutput": "mother/hamster-cavalry-mother-v03-cat-mount-white.png", "sourcePrompt": "prompts/cavalry-v03-cat-mount.txt", "prompt": "prompts/cavalry-v04-line-rider.txt", "output": "mother/hamster-cavalry-mother-v04-line-rider-white.png", "background": "pure_white", "status": "cat_mount_and_light_cavalry_line_rider_matched_and_visually_checked", "note": "orange tabby cat mount preserved; rider now inherits the light-cavalry line's gray-brown narrow face, brown leather armor, navy cape and blue-plumed cavalry helmet" },
+    { "unitKey": "winged_hussar", "unitName": "仓鼠翼骑兵", "sourceOutput": "mother/hamster-winged-hussar-mother-v03-cat-mount-white.png", "sourcePrompt": "prompts/winged-hussar-v03-cat-mount.txt", "prompt": "prompts/winged-hussar-v04-line-rider.txt", "output": "mother/hamster-winged-hussar-mother-v04-line-rider-white.png", "background": "pure_white", "status": "cat_mount_and_knight_line_rider_matched_and_visually_checked", "note": "silver-gray tabby cat and paired wing racks preserved; rider now inherits the knight line's gray-brown narrow face and silver plate silhouette while retaining red hussar identity" },
+    { "unitKey": "scout_rifle_skirmisher", "unitName": "仓鼠侦察游骑兵", "replacesPlaceholderUnitKey": "scout_vehicle", "sourceOutput": "mother/hamster-carbine-skirmisher-mother-v01-white.png", "sourcePrompt": "prompts/carbine-skirmisher-v01.txt", "prompt": "prompts/scout-rifle-skirmisher-v02.txt", "output": "mother/hamster-scout-rifle-skirmisher-mother-v02-white.png", "background": "pure_white", "status": "mother_user_approved_for_future_runtime_integration", "note": "tier-3 light cavalry keeps the orange tabby, rider identity, radio and mobile posture; the compact carbine is replaced by a semi-automatic scout rifle and the blue plume is replaced by a helmet-compatible communications headset; rejected scout-vehicle drafts were removed after approval" },
+    { "unitKey": "powered_eod_explosive_lancer", "unitName": "仓鼠动力爆矛重骑兵", "replacesPlaceholderUnitKey": "tank", "sourceOutput": "mother/hamster-ironwing-explosive-lancer-mother-v01-white.png", "sourcePrompt": "prompts/ironwing-explosive-lancer-v01.txt", "prompt": "prompts/powered-eod-explosive-lancer-v02.txt", "output": "mother/hamster-powered-eod-explosive-lancer-mother-v02-white.png", "background": "pure_white", "status": "mother_user_approved_for_future_runtime_integration", "note": "tier-3 heavy cavalry retains the silver-gray tabby, rocket-assisted explosive lance and sidearm; rider armor is replaced with an unmarked Russian-style heavy EOD suit, cat armor uses matching Kevlar carriers with ballistic inserts, and feather wing racks are replaced by two powered charge-assist boosters; rejected tank drafts were removed after approval" }
+  ]
+}

@@ -1,0 +1,8 @@
+Use case: style-transfer and precise-object-edit.
+Input image role: edit target and identity reference for the hamster heavy machine gunner.
+Primary request: Re-render this exact hamster heavy machine gunner as a refined production mother frame while preserving the golden hamster identity, broad short heavy body, olive-and-tan uniform, reinforced plate carrier, open helmet, clear goggles and belt-fed machine gun.
+Unified camera contract: orthographic three-quarter front view; subject faces screen right; camera sees the front and left side at approximately 35-degree yaw and 8-degree downward elevation; zero roll, no perspective distortion. Both boots share one baseline. Center the complete subject at about 68% canvas height with the entire gun and at least 10% margin visible.
+Detail corrections: exactly one coherent belt-fed light machine gun with one receiver, one single barrel and muzzle, one folded bipod beneath the barrel, one short ammunition belt feeding correctly from one box magazine; right paw on pistol grip and left paw supporting fore-end; remove any duplicated barrel or floating ammunition.
+Unified style: high-detail realistic PBR 3D game asset, believable golden fur, matte ripstop fabric, woven nylon, worn dark gunmetal and polymer; neutral 5200K flat diffuse lighting, restrained sand/olive palette, crisp natural edges, consistent material roughness.
+Background: flat solid pure white #FFFFFF, no floor, horizon, vignette, gradient, cast shadow or contact shadow.
+Avoid: minigun, assault rifle, shotgun, rocket launcher, power armor, science-fiction weapon, extra limbs or weapons, text, emblem, logo, watermark, cropping, cartoon, anime, chibi, glossy toy surface.
