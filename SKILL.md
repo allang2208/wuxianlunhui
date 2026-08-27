@@ -27,6 +27,7 @@
 | `skill/12-pitfalls-debug.md` | 12. 常见陷阱与调试手册 |
 | `skill/13-history-appendix.md` | 13. 历史记录与变更日志（附录） |
 | `skill/14-performance-optimization.md` | 14. 性能优化与采样 |
+| `skill/15-git-workflow.md` | 15. Git 分支、worktree 与标准提交工作流 |
 
 ## 维护规则（防膨胀）
 
@@ -272,6 +273,9 @@
 - AI/碰撞/寻路预算及 `PATH_DEFERRED` 正确性契约
 - 多位面后台数据化、聚合入侵与切回补结算
 - Phaser 4 filters、粒子、DOM UI 与后续优化升级条件
+
+**15. Git 分支、worktree 与标准提交工作流** → `skill/15-git-workflow.md`
+- 多人物/多任务并行隔离、提交粒度、精确暂存、主线 squash 合并与历史重写边界
 
 ---
 
