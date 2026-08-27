@@ -1,0 +1,71 @@
+{
+  "version": 1,
+  "acceptedAt": "2026-08-27",
+  "pipeline": "world122-building-candidates",
+  "styleVersion": "world122-building-v4",
+  "model": "flux2-dev-depth",
+  "structure": {
+    "steps": 12,
+    "depthStrength": 0.78,
+    "cfg": 3.5
+  },
+  "refine": {
+    "steps": 48,
+    "depthStrength": 0.75,
+    "denoise": 0.3,
+    "cfg": 3.5
+  },
+  "assets": [
+    {
+      "id": "research_institute",
+      "level": 1,
+      "model": "tools/ai-gen/_settlement_building_pack_20260821/research_institute/research_institute_model.blend",
+      "modelPreview": "tools/ai-gen/_settlement_building_pack_20260821/research_institute/research_institute_model_preview.png",
+      "bodyDepth": "tools/ai-gen/_settlement_building_pack_20260821/research_institute/research_institute_body_depth.png",
+      "acceptedStructure": "research_institute/research_institute_structure_v03_raw.png",
+      "acceptedRefineRaw": "research_institute/research_institute_refine_v02_raw.png",
+      "acceptedBody": "research_institute/research_institute_refine_v02_body.png",
+      "acceptedPreview": "research_institute/research_institute_refine_v02_preview.png",
+      "runtimeMetadata": "research_institute/research_institute_runtime_metadata.json",
+      "runtimeAsset": "assets/terrain/research_institute.png",
+      "runtimeSha256": "469DA350249931CC34034F85B1121B901F9D9617F932C78EE435B4932026F4FF",
+      "displayW": 256,
+      "displayH": 265,
+      "footOffsetY": 131
+    },
+    {
+      "id": "research_institute_lv2",
+      "level": 2,
+      "model": "tools/ai-gen/_settlement_building_pack_20260821/research_institute_lv2/research_institute_lv2_model.blend",
+      "modelPreview": "tools/ai-gen/_settlement_building_pack_20260821/research_institute_lv2/research_institute_lv2_model_preview.png",
+      "bodyDepth": "tools/ai-gen/_settlement_building_pack_20260821/research_institute_lv2/research_institute_lv2_body_depth.png",
+      "acceptedStructure": "research_institute_lv2/research_institute_lv2_structure_v01_raw.png",
+      "acceptedRefineRaw": "research_institute_lv2/research_institute_lv2_refine_v02_raw.png",
+      "acceptedBody": "research_institute_lv2/research_institute_lv2_refine_v02_body.png",
+      "acceptedPreview": "research_institute_lv2/research_institute_lv2_refine_v02_preview.png",
+      "runtimeMetadata": "research_institute_lv2/research_institute_lv2_runtime_metadata.json",
+      "runtimeAsset": "assets/terrain/research_institute_lv2.png",
+      "runtimeSha256": "BE1CA54CD6C80EC54CF328DBC1FA7A5438DC4AB12786B6B716ECE5F3512206D1",
+      "displayW": 256,
+      "displayH": 299,
+      "footOffsetY": 148
+    },
+    {
+      "id": "research_institute_lv3",
+      "level": 3,
+      "model": "tools/ai-gen/_settlement_building_pack_20260821/research_institute_lv3/research_institute_lv3_model.blend",
+      "modelPreview": "tools/ai-gen/_settlement_building_pack_20260821/research_institute_lv3/research_institute_lv3_model_preview.png",
+      "bodyDepth": "tools/ai-gen/_settlement_building_pack_20260821/research_institute_lv3/research_institute_lv3_body_depth.png",
+      "acceptedStructure": "research_institute_lv3/research_institute_lv3_structure_v01_raw.png",
+      "acceptedRefineRaw": "research_institute_lv3/research_institute_lv3_refine_v02_raw.png",
+      "acceptedBody": "research_institute_lv3/research_institute_lv3_refine_v02_body.png",
+      "acceptedPreview": "research_institute_lv3/research_institute_lv3_refine_v02_preview.png",
+      "runtimeMetadata": "research_institute_lv3/research_institute_lv3_runtime_metadata.json",
+      "runtimeAsset": "assets/terrain/research_institute_lv3.png",
+      "runtimeSha256": "B3259EEB83012473ADFD9B098CBC004F44DB0AB7E8E7E2AEC07D69F2C50103DB",
+      "displayW": 256,
+      "displayH": 337,
+      "footOffsetY": 167
+    }
+  ]
+}

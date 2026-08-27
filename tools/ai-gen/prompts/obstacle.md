@@ -21,8 +21,8 @@ no text, no watermark
 - 默认正面：`frontal view, straight-on, slight three-quarter perspective, facing the camera`
 - 若需等距：`2:1 diamond isometric view, elevated camera, top surfaces visible and foreshortened`
 
-> **2026-08-26 规则**：视角块之外，默认用 FLUX.2 Klein 4B + Depth ControlNet
-> （`--model flux2-klein-4b-depth --control-image <深度图>`）把视角/构图物理锁死——
+> **2026-08-27规则**：视角块之外，默认用FLUX.2 Dev + Depth ControlNet
+> （`--model flux2-dev-depth --control-image <深度图>`）把视角/构图物理锁死——
 > 同视角的已定稿道具深度图或手绘剪影深度即可；文字视角块保留作第二道保险。
 
 ## 负面词（固定共用）

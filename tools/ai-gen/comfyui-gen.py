@@ -7,17 +7,17 @@ workflow type and default parameters, so you can switch with --model.
 Usage examples:
     python comfyui-gen.py --list-models
     python comfyui-gen.py --host 192.168.3.142 --model sdxl --prompt "zombie sprite, full body" -o out.png
-    python comfyui-gen.py --host 192.168.3.142 --model flux2-klein-4b-nolora --prompt "..." --out out.png
-    python comfyui-gen.py --host 192.168.3.142 --model flux2-klein-4b-depth --control-image depth.png --prompt "..." --out out.png
-    python comfyui-gen.py --host 192.168.3.142 --model flux2-klein-4b-depth \
+    python comfyui-gen.py --host 192.168.3.142 --model flux2-dev-fp8 --prompt "..." --out out.png
+    python comfyui-gen.py --host 192.168.3.142 --model flux2-dev-depth --control-image depth.png --prompt "..." --out out.png
+    python comfyui-gen.py --host 192.168.3.142 --model flux2-dev-depth \
         --control-image depth.png --control-image edges.png \
         --control-strength 0.75 --control-strength 0.40 \
         --init-image selected.png --denoise 0.30 --prompt "..." --out refined.png
-    python comfyui-gen.py --host 192.168.3.142 --model flux2-klein-4b-depth \
+    python comfyui-gen.py --host 192.168.3.142 --model flux2-dev-depth \
         --control-image depth.png --init-image selected.png --mask-image mask.png \
         --denoise 0.40 --prompt "..." --out inpainted.png
     python comfyui-gen.py --host 192.168.3.142 --model flux2-dev-mesh --prompt "..." --out out.png
-    python comfyui-gen.py --host 192.168.3.142 --model flux2-klein-4b-nolora --transparent \
+    python comfyui-gen.py --host 192.168.3.142 --model flux2-dev-fp8 --transparent \
         --prompt "a white knight armor with gold trim" --out hero.png   # 透明主体：AI 选纯色底 + 自动抠图
     python comfyui-gen.py --model sdxl --prompt "..." --size 832x1216 --steps 25 --seed 123
 
@@ -338,7 +338,7 @@ def print_registry(registry):
 
 def main():
     ap = argparse.ArgumentParser(description="Generate images through ComfyUI (local or remote), model registry driven.")
-    ap.add_argument("--model", default=None, help="model name from tools/models.json (default: flux2-klein-4b-nolora)")
+    ap.add_argument("--model", default=None, help="model name from tools/models.json (default: flux2-dev-fp8)")
     ap.add_argument("--list-models", action="store_true", help="list registered models and exit")
     ap.add_argument("--prompt", help="positive prompt text")
     ap.add_argument("--prompt-file", help="read prompt from a text file")
@@ -383,7 +383,7 @@ def main():
         print_registry(registry)
         return
 
-    model_name = args.model or "flux2-klein-4b-nolora"
+    model_name = args.model or "flux2-dev-fp8"
     if model_name not in registry:
         ap.error(f"--model '{model_name}' not in {REGISTRY_FILE}; run --list-models to see options")
     entry = registry[model_name]

@@ -1005,11 +1005,11 @@
   精英/领主生成有飘字+音效提示；等级成长沿用波次 HP/攻击倍率。
 
 #### ControlNet 深度锁视角（2026-08-04 实测定稿）
-- **当前入口（2026-08-26路由更新）**：`flux2-klein-4b-depth` + `--control-image <深度图>`（单卡5080，不依赖mesh）；旧`flux2-dev-depth`只保留为明确指定的研发/对照入口。
+- **当前入口（2026-08-27路由更新）**：`flux2-dev-depth` + `--control-image <深度图>`（单卡5080，不依赖mesh）；Klein/Klein Depth/Mesh只保留为明确指定的历史复现或对照入口。
 - **铁律：FLUX.2 非 mesh 路径必须用引导采样**（FluxGuidance+BasicGuider+
   SamplerCustomAdvanced+RandomNoise）；旧 SamplerCustom+cfg 出**全黑图**
   （2026-08-04 已修进 comfyui-gen.py）。
-- **LoRA 归属**：Klein训练的LoRA（3072维）只能挂对应Klein配置；挂到Dev主模型（6144维）会因`double_blocks.*.txt_attn.proj`形状不匹配报错。通用`flux2-klein-4b-depth`默认不挂LoRA，资产专用LoRA只能通过已登记的专用Klein模型名显式启用。
+- **LoRA归属**：Klein训练的LoRA（3072维）只能挂对应Klein配置；挂到Dev主模型（6144维）会因`double_blocks.*.txt_attn.proj`形状不匹配报错。因此默认Dev工作流禁止自动挂载Klein LoRA；历史复现或对照任务只能通过已登记的专用Klein模型名显式启用。
 - **深度模板**：手绘剪影（`_depth_templates/`）即可稳定锁"正面 billboard、平底、居中"；
   实测 10 组件 9/10 视角稳定；**宽扁平地类（农田）需模板加前景高度**，否则会被读成俯视。
 - **复用**：`gen-depth-test-assets.py`（批量）+ `make-depth-templates.py`（模板生成）
@@ -1563,7 +1563,7 @@
 ### 建筑派生道路、独立升级项目与 alpha-ground-fit 闭环（2026-08-19）
 
 - **道路生命周期**：`BuildingRoadSystem.detach(entity, { preserveRoads:true })` 用于建筑沉陷和主动拆除：释放中央 2×2/4×4 预约，同时把外围自动道路转为独立道路；道路不随建筑消失，原位可直接重建。场景 teardown/普通重挂仍走默认 detach，避免遗留预约。
-- **外围格配置例外（2026-08-21；2026-08-25）**：配置型建筑用 `producer-buildings.json#perimeterTile` 声明外围格；`"field"` 生成田地，缺省生成道路，`"none"` 只保留中央 2×2。`none` 必须同时关闭建造预览、4×4 预约、实际派生 tile，并由 `BuildingRoadSystem.attach()` 在快照恢复路径再次兜底，禁止只隐藏道路 Sprite 却继续占住外围 12 格。传送门、房屋、`explorer_camp`（探险家/侦查营地）及 `deep_drill`（深钻井）使用 `none`，周围不得自动产生道路。
+- **外围格配置例外（2026-08-21；2026-08-25；2026-08-27）**：配置型建筑用 `producer-buildings.json#perimeterTile` 声明外围格；`"field"` 生成田地，缺省或 `"road"` 生成道路，`"none"` 只保留中央主体 footprint。`none` 必须同时关闭建造预览、外围预约、实际派生 tile，并由 `BuildingRoadSystem.attach()` 在快照恢复路径再次兜底，禁止只隐藏道路 Sprite 却继续占住外围格。传送门、`explorer_camp`（探险家/侦查营地）及 `deep_drill`（深钻井）使用 `none`，周围不得自动产生道路；房屋明确使用 `road`，标准 2×2 主体外自动预约并生成 12 格道路环。
 - **升级项目唯一源**：`data/building-upgrades.json` 定义项目、费用、模块 `effect` 与能力；建筑只在 `producer-buildings.json` 或固定建筑配置中声明 `upgradeProject`。`building-upgrade-projects.js` 负责解析，`unit-upgrade-store.js` 按 `effect` 生成统一补丁，禁止再按 `attackSpd/damage/moveSpd` 等模块 ID 写分支。模块首级效果与后续增量不同时使用 `firstLevel + per × (level-1)`，面板当前/下一级预览与实际补丁必须消费同一口径。
 - **升级支付事务（2026-08-19）**：矿场/兵营/通用产兵与铁匠铺、研究院能力升级统一走
   `payBuildingUpgradeCost()`；升级永远消耗真实金币与能源，`_devInfiniteResources`
@@ -1911,11 +1911,16 @@
      对话等身份的建筑不得为了进图层链伪造 `_isDefenseStructure`；应保持业务身份不变，通过
      `applyBuildingFootprint + setupStructureDepth` 接入。建筑换图不得用创建顺序、固定 depth、
      `sprite.y + 常数` 或扩大 footprint 修遮挡。
-   - **前角遮挡契约**：动态单位深度必须调用 `WallSystem.resolveDynamicEntityDepth(...)`；单位与建筑
-     当前帧真实 alpha 世界 AABB 只负责确认画面确实相交，随后以单位逻辑脚点和建筑逻辑 footprint
-     的共享 u/v 比较器建立前后约束。墙、门、掩体再由 `junctionCorrectedDepth` 做独立面线仲裁；
-     禁止把普通建筑重新混入墙线算法，或为单栋建筑手写 depth、调整贴图锚点修遮挡。纯视觉平民的最终 depth 必须在
-     `GameScene._syncStructureRenderOrder()` 之后统一写入，业务系统只更新位置与动画。
+    - **前角遮挡契约**：动态单位深度必须调用 `WallSystem.resolveDynamicEntityDepth(...)`；单位与建筑
+      当前帧真实 alpha 世界 AABB 只负责确认画面确实相交，随后以单位逻辑脚点和建筑逻辑 footprint
+      的共享 u/v 比较器建立前后约束。墙、门、掩体再由 `junctionCorrectedDepth` 做独立面线仲裁；
+      禁止把普通建筑重新混入墙线算法，或为单栋建筑手写 depth、调整贴图锚点修遮挡。纯视觉平民的最终 depth 必须在
+      `GameScene._syncStructureRenderOrder()` 之后统一写入，业务系统只更新位置与动画。
+    - **升级换图缓存与多等级拟合（2026-08-27）**：建筑升级切换主体、运动层或前景层的纹理、最终显示尺寸、
+      位置、翻转或旋转时，必须用不含动画帧和迷雾显隐的固定视觉几何签名，在同一帧使结构拓扑快速缓存失效，
+      并先完成 `_syncStructureRenderOrder()` 再更新动态单位深度；禁止等周期性全量重建后才修正遮挡。多等级建筑即使
+      已由显式 `visualFootprint` 严格映射到统一逻辑占格，也必须同步维护各等级 `displayW/displayH/footOffsetY`
+      与 ground-fit manifest，避免回退路径、附着层或后续换图审计读取陈旧几何。
     - **纯视觉平民占用契约**：不进入 `Game.entities` 的岗位平民仍必须通过
       `civilian-visual-utils` 的目标点投影与分段移动扫掠，使用配置化 `groundRadius` 对普通建筑
       `iso_rect` footprint 做推出/沿边滑行；禁止在业务系统中直接累加坐标穿过建筑后，再用提高
@@ -2046,7 +2051,7 @@
   30° 等距连续地板；主神空间传送门进入，底部返回门离开；不接防守、建造或刷怪系统。
 - 镜头：`scene10` 必须与世界-122、雪原共同登记在 `ZOOMED_OUT_WORLD_SCENES`，基础缩放为
   `0.7`；不得因林地树木较高而单独恢复 `1.0`，否则同规格世界的可视范围会不一致。
-- **生图模型边界**：下列FLUX.2 Dev/Dev Depth只记录现有世界-124资产的历史产出来源，不是新任务入口；任何新生成或替换的草地、植物、树木都统一遵循第2分卷当前路由，自由生图使用`flux2-klein-4b-nolora`，锁视角/株型使用`flux2-klein-4b-depth`。
+- **生图模型边界**：下列既有资产的模型字段只记录各自产出时的历史来源，不得改写；任何新生成或替换的草地、植物、树木都统一遵循第2分卷当前路由，自由生图使用`flux2-dev-fp8`，锁视角/株型使用`flux2-dev-depth`。Klein只用于明确指定的历史复现或对照任务。
 - 草地：`floor_grass_forest_seamless.png` 走 `floor-asset.py grass-forest`（FLUX.2 Dev →
   make-seamless → 降饱和）产出，游戏内连续铺贴 `textureScaleY=0.5774`；
   林地点缀使用 `deco_forest_grass_1~4.png`：FLUX.2 Dev 单株生成 → 非白纯色底 →
@@ -2706,6 +2711,10 @@
   实际支付成本，因此免费首仓回收为0；仓库被毁后世界再次无仓库时可重新获得冷启动保障。每个位面生命周期
   首次成功落地冷启动仓库时向该仓直接存入1000能源和500食物，领取标记必须随位面快照保存；出售、普通摧毁
   或读档恢复不得重复发放，只有新游戏或位面生命周期彻底重置后才能再次领取。
+- **仓库详情实时刷新边界（2026-08-27）**：仓库同时声明 `economyType:"warehouse"` 与
+  `workshopType:"warehouse"`，详情渲染和100ms实时刷新都必须在通用经济分支之前识别仓库，或显式将
+  `_isEnergyWarehouse` 排除出通用经济分支；等级扩建/独立升级完成后，仓库专用分支负责重建按钮状态，禁止
+  被通用经济分支提前 `return`，造成必须关闭再打开面板才能继续升级。
 - **持续消耗**：军事单位生产粮食费配置为民兵50、斥候75、战士125、盾卫150、射手120、火枪180、
   牧师240、轻骑220、骑士300，配置字段统一为 `spawnFoodCost` / `unitSpawnFoodCost`。矿工不属于军事出兵，死亡补员费用固定为0，前后台补员均免费。军事单位前后台都在真正生成时扣粮；
   快照恢复只物化已保存单位不收费；余额不足时计时归零等待，不凭空补员。开发工具 `_devInfiniteResources`
@@ -2971,11 +2980,11 @@
 - **研究院三级视觉真源**：LV1/LV2/LV3 分别使用稳定键 `research_institute`、`research_institute_lv2`、`research_institute_lv3`；三档共用蓝色屋顶、白灰石墙、哥特尖拱、四面裙楼与菱形围柱语言，只通过塔楼高度和细节密度递进，禁止重新抽图造成配色或建筑语法漂移。三档正式源分别锁定 LV1 refine v02、LV2 refine v01、LV3 refine v02；运行时元数据必须继续指向对应 accepted body，模型、Depth、提示词和最小可复现源集按 AI 资产分卷的定稿瘦身规则保留。升级只切换贴图、显示高度、脚点和派生光照图，不改变标准2×2逻辑 footprint、碰撞、道路预约或寻路占格。
 - **气象科研汇总口径（2026-08-24；2026-08-26重平衡）**：气象科研每级 +0.25、满级0.75点/秒，与研究院原始速率共同进入 `WorldSimDriver` 的单次全局科技推进和同一科研软阈值，但不计入科技树面板的“研究院数量”。前台读取 `PopulationEconomySystem.getWeatherForecastResearchSnapshot()`，后台读取同一模块等级、1岗位、全局人口效率和最强经济工坊增效；岗位与 `weatherModules` 随快照恢复，禁止只在当前位面加科研或把天气塔数量误显示成研究院数量。
 - **位面谐振塔发电口径（2026-08-23）**：`producer-buildings.json#planar_resonator` 只登记结构、6000 能源造价与升级项目，岗位比例读取 `population-economy.json#planar_resonator`，四项本栋等级读取 `building-upgrades.json#planar_resonator_economy`。单轮可入库能源 = 晶核原始产能 × 导能回收率 × `min(1, 上岗技师 × 20%)` × 全局人口效率 × 最强工坊增效 × 生产祭品倍率；基础 10 秒/轮、100 原始能源、80% 回收、2 岗，岗位升级至 5 后满效。未入库整数继续保存在本栋 `_workProductionRemainder`，禁止满仓时丢失或写入脱离仓库的全局能源。建筑由“位面谐振”解锁，四升级共同由后继“谐振校准”解锁；UI 门禁与 `startResonatorUpgrade()` 业务校验必须并存。`resonatorModules`、`resonatorUpgrade`、岗位、周期和余量必须进入快照，`world122-sim` 用同一离散周期公式推进后台发电与升级。
-- **风力电站发电口径**：`producer-buildings.json#wind_power_plant` 登记标准4×4逻辑占格、静态主体/面板/独立叶轮和科技门禁，岗位参数读取 `population-economy.json#wind_power_plant`，四项本栋升级读取 `building-upgrades.json#wind_power_plant_economy`。发电按固定周期把“基础产能 × 岗位效率 × 全局人口效率 × 最强工坊倍率 × 酒馆倍率 × 全局生产倍率”写入本位面仓库；满仓余量保留在本栋，禁止写入顶层全局能源或跨位面借仓。建筑解锁与升级标准化必须分别由连续两个科技节点控制，UI门禁和业务入口双重校验；岗位、模块、升级读条、生产周期与余量进入建筑快照，当前位面和离场位面复用同一公式，后台不创建叶轮 Sprite。
+- **风力电站发电口径（2026-08-27调整）**：`producer-buildings.json#wind_power_plant` 登记标准2×2逻辑占格、静态主体/面板/独立叶轮和科技门禁；逻辑 footprint、碰撞与寻路按2×2处理，静态主体换图不得改动已经确认的24帧叶轮图集，只能根据新主体轮毂重新标定 overlay 偏移。岗位参数读取 `population-economy.json#wind_power_plant`，四项本栋升级读取 `building-upgrades.json#wind_power_plant_economy`。发电按固定周期把“基础产能 × 岗位效率 × 全局人口效率 × 最强工坊倍率 × 酒馆倍率 × 全局生产倍率”写入本位面仓库；满仓余量保留在本栋，禁止写入顶层全局能源或跨位面借仓。建筑解锁与升级标准化必须分别由连续两个科技节点控制，UI门禁和业务入口双重校验；岗位、模块、升级读条、生产周期与余量进入建筑快照，当前位面和离场位面复用同一公式，后台不创建叶轮 Sprite。
 - **光伏电站发电口径（2026-08-26）**：`producer-buildings.json#solar_power_plant` 登记标准4×4结构、每位面2座上限、`upgradeProject`与`perimeterTile:"road"`；放置预览、黑雾校验、占地预约、正式落地、打包重建和拆除必须共用四周外围道路口径。岗位容量与每人20%效率读取`population-economy.json#solar_power_plant`，追日周期、阵列原始产能、储能转换率和岗位扩编统一读取`building-upgrades.json#solar_power_plant_economy`。基础3岗时为`600 × 90% ÷ 4秒 × 60% = 81能源/秒`，四项满级并扩至5岗时为`800 × 100% ÷ 3秒 = 266.67能源/秒`，再统一乘人口效率、最强工坊、酒馆与全局生产倍率。建筑与四升级分别由`solar_power`、`solar_power_standardization`连续双门禁控制；前台/后台必须复用同一离散周期、满仓余量、岗位、模块和升级读条快照。四张升级图标固定使用256方形冷钢四铆钉徽章，两项科技使用1024六边形冷钢徽章，Emoji仅作加载失败回退。
 - **建筑面板经济与募兵归类（2026-08-26）**：经济建筑默认排序固定为仓库、房屋置顶，其后按“农业建筑 → 能源建筑 → 金币建筑 → 科研与功能建筑”分段，并在各段内由低阶到高阶排列；仅玩家主动选择能源排序时临时改用原有能源优先规则。军械库与战地医院属于军事支援，固定进入募兵建筑页。分段标题必须复用冷钢面板字体层级和主题变量，分类只改变标题与排列，不改变科技门禁、费用或建造业务。
 - **位面谐振塔晶尖工作特效（2026-08-24）**：`producer-buildings.json#planar_resonator.workingEffect` 以主体贴图归一坐标登记晶体尖端、半径、周期和蓝/青/金色序列；中立建筑渲染链使用一层 `BlendModes.ADD` Graphics 平滑绘制呼吸光晕、闪星与确定性上升光屑。启停只读 `PopulationEconomySystem` 由 `actualEnergyPerSecond > 0` 产生的瞬时 `_economyWorking`，无人上岗、建筑沉没、销毁时必须立即熄灭；特效同步主体最终缩放、镜像、结构深度、地图模式、视口裁剪、战争迷雾与销毁生命周期，不进入实体、占格、碰撞、寻路、阴影或存档，也禁止用逐帧随机造成跳闪。
-- **仓库等级、独立升级与容量口径（2026-08-26）**：仓库等级由 `population-economy.json#warehouse.levels` 保存，本栋 `_economyLevel/_economyUpgrade` 负责 LV1—LV5 扩建；基础容量依次为 15000/45000/120000/300000/750000。`warehouse_logistics` 仍独立保存每栋 `warehouseModules/warehouseUpgrade`，最终物理容量固定为“当前等级基础容量 + 立体货架固定附加值”，禁止等级扩建重置旧模块、把货架倍率乘到等级容量或把两条成长线互相覆盖。能源与粮食压缩分别改变对应资源占用系数，因此共享占用必须按 `storedEnergy × energyFactor + storedFood × foodFactor` 计算；压缩只能释放容量，不能修改或凭空增加库存。前台入库/满仓/面板、后台快照和跨位面退款必须复用同一等级加货架公式；详情面板的“仓储容量”显示当前选中仓库压缩后物理占用率，“位面总容量”显示当前位面全部活动仓库总占用率。LV2—LV5 使用稳定独立纹理键，正式贴图未入选前只能显式复用 LV1 占位，替换贴图不得改变标准2×2逻辑 footprint、碰撞、道路预约或寻路占格。
+- **仓库等级、独立升级与容量口径（2026-08-26；2026-08-27 UI补图）**：仓库等级由 `population-economy.json#warehouse.levels` 保存，本栋 `_economyLevel/_economyUpgrade` 负责 LV1—LV5 扩建；基础容量依次为 15000/45000/120000/300000/750000。`warehouse_logistics` 仍独立保存每栋 `warehouseModules/warehouseUpgrade`，最终物理容量固定为“当前等级基础容量 + 立体货架固定附加值”，禁止等级扩建重置旧模块、把货架倍率乘到等级容量或把两条成长线互相覆盖。能源与粮食压缩分别改变对应资源占用系数，因此共享占用必须按 `storedEnergy × energyFactor + storedFood × foodFactor` 计算；压缩只能释放容量，不能修改或凭空增加库存。前台入库/满仓/面板、后台快照和跨位面退款必须复用同一等级加货架公式；详情面板的“仓储容量”显示当前选中仓库压缩后物理占用率，“位面总容量”显示当前位面全部活动仓库总占用率。等级扩建卡固定使用 `assets/ui/building-upgrades/warehouse-level-expansion.png` 表达建筑向上扩建，`warehouse-capacity.png` 继续只用于立体货架容量项目，Emoji 仅作图片加载失败回退。LV2—LV5 使用稳定独立纹理键，替换贴图不得改变标准2×2逻辑 footprint、碰撞、道路预约或寻路占格。
 - **跨位面资源协议**：消费发生的当前位面有活动仓库时，建造、出兵和升级只按本地库存与原价结算；当前位面无仓库、其他位面存在仓库网络时才进入跨位面事务，Lv.0 统一额外消耗 50%，`warehouse_cross_plane` 每级降低 5%，Lv.10 为 0%，多座远端仓库取最高协议等级。报价、可支付检查、实际扣除与失败回滚必须由同一事务给出，禁止 UI 显示基础价而扣除跨位面价；市场兑换、生产入库、出售退款和维修不套用该协议。远端能源/粮食必须直接扣对应位面快照逐仓库存，不能在当前位面创建虚假仓库或脱离仓库存成全局资源。
 - **经济岗位第二进度条真源**：研究院、天气预测塔、工坊、市场、风车、位面谐振塔、深钻井、银行、皇家铸币局和大商场必须显示稳定的业务发挥率，禁止绑定共享 `_economyTickMs` 或循环结算余数。研究院、气象科研、风车与谐振塔取当前实际/配置产出，天气塔无气象科研时显示岗位监测；市场显示有效商人人效，工坊显示实际/配置增效；银行、大商场显示稳定收益效率和真实金币/秒，皇家铸币局显示稳定铸币效率以及金币/能源/食物每秒速率，资源不足时归零但业务层仍只保留一个就绪批次。单一物流状态机的面包屋和酒馆可以显示当前阶段进度，但标题必须随取货、返程、加工、送仓或服务切换；多锅炉工并行的蒸汽电站不得汇总最大任务进度，统一显示稳定运行效率。矿工营地不再伪造矿工就绪条；其岗位增减与出口阻塞由岗位条和状态提示表达。
 - **市场语义**：市场是解决短期资源短缺的应急流动性，不是套利或资源增殖系统。市场至少需要配置数量的商人才能交易；报价必须满足“买入金币成本 ≥ 基准价 × (1 + `minimumTradeLossRate`)”“卖出金币收入 ≤ 基准价 × (1 - `minimumTradeLossRate`)”，压力和动态 spread 只能让当前方向的价格继续恶化，不能穿透固定亏损底线。商人可缩小动态 spread 并略微加快压力回归，但不能降低固定损耗；交易按钮必须显示按整数金币舍入后的真实扣款，而不是预算上限。交易前同时验证付出资源与目标仓储容量，失败时回滚；同一前台位面的市场继续共享交易压力，后台使用相同的配置恢复速度。
@@ -2987,7 +2996,7 @@
 - **军械库减耗与整理口径（2026-08-23）**：军械库由 `population-economy.json#armory`、`building-upgrades.json#armory_economy` 与 `ArmoryEconomySystem` 驱动，属于仓库前置的标准2×2经济建筑，不产兵。基础服务半径600px、满员减耗10%、维护师岗位2个；实际效果 = 配置值 × `上岗维护师数量 × 20%`，5名满效，多栋军械库覆盖同一出兵建筑时只取最强减耗。装备护理/服务范围/资源整理/增加人员是每栋独立等级，统一由“军需标准化”科技门禁；资源整理未升级时即有1%满员分钟概率，每次升级+1%，按模块Lv.0起算经过9次升级后满级10%，强化石自动堆叠进主神空间仓库，满仓时数量保存在本栋快照。前台报价、实际扣粮、后台位面招募必须读取同一减耗倍率并按整数向上取整，禁止只改面板价格或只改当前位面。
 - **军械库维护师视觉口径（2026-08-23）**：`ArmoryMaintainerVisualSystem` 只按本栋当前上岗人数物化纯视觉维护师，动作与体量读取 `population-economy.json#armory.workerVisual`。空闲时在本栋当前服务半径内切换 idle/walking 并随机活动，定期从同一范围内选择未被其他维护师认领的活动建筑，贴近建筑外缘后循环 maintenance，再释放目标继续巡检。每段移动统一按“直线路程 ÷ 当前速度 + `moveGraceMs`”设置防卡死计时；巡游超时放弃目的地重新待机，赴维护目标超时则从当前位置完成本次维护动画并释放认领，禁止永久占住目标。维护动画不回血、不额外修改减耗或资源整理概率；岗位归零、建筑出售/摧毁、位面离场与系统重置必须通过通用平民淡出入口清理。维护师不进入实体、战斗、物理、寻路或独立存档链，移动与遮挡统一复用 `civilian-visual-utils` 的轻量占用和脚线深度。
 - **纯视觉平民通用生命周期**：农民、工程师、银行家及以后新增的岗位平民统一通过 `civilian-visual-utils.js` 注册；岗位减少、建筑出售/摧毁、位面离场或系统重置时必须先从平民目标池注销，再按 `population-economy.json#civilianVisual.fadeOutDurationMs` 淡出并销毁 Sprite，禁止各系统直接 `sprite.destroy()`。平民始终不进入 `Game.entities` / `Game.friendlyUnits`，不创建物理体、碰撞体、寻路请求或独立存档对象。
-- **房屋居民周边活动与道路接入（2026-08-25）**：1/2/3级房屋继续按稳定建筑标识派生2/3/4名纯视觉居民；没有道路时也要在 `residentVisual.localActivityRadius` 内从房屋外缘生成、待机和随机漫步。房屋不自动铺路；若 `roadDetectionRadius` 内存在真实道路，居民从当前脚点经轻量建筑/墙门扫掠寻找道路入口，进入后绑定该入口所属四向道路连通分量并只在该分量内复用BFS路线随机活动，允许离开原房屋周边范围。道路/墙门拓扑变化时只按版本重绑当前道路格；道路消失或当前分量不再与房屋探测入口相连时退回周边活动。离路接入不创建通用AI、PathManager、实体、物理体或存档；入口被建筑/墙门阻挡时轮换有限候选并错峰重试，禁止逐帧全图寻路。
+- **房屋居民周边活动与道路接入（2026-08-25；2026-08-27）**：房屋继续按稳定建筑标识派生配置数量的纯视觉居民；标准 2×2 房屋落地时通过 `perimeterTile:"road"` 自动预约并生成外围 12 格道路，升级到 Lv.2—Lv.7 时沿用同一建筑实例与道路归属，不重复铺设。居民从当前脚点经轻量建筑/墙门扫掠寻找道路入口，进入后绑定该入口所属四向道路连通分量并只在该分量内复用BFS路线随机活动，允许离开原房屋周边范围。若旧快照或异常恢复暂时没有道路，仍在 `residentVisual.localActivityRadius` 内从房屋外缘生成、待机和随机漫步；道路/墙门拓扑变化时只按版本重绑当前道路格，道路消失或当前分量不再与房屋探测入口相连时退回周边活动。离路接入不创建通用AI、PathManager、实体、物理体或存档；入口被建筑/墙门阻挡时轮换有限候选并错峰重试，禁止逐帧全图寻路。
 - **面包屋离散搬运生产（2026-08-23；2026-08-25 道路路线复用）**：`producer-buildings.json#bakery` 只登记结构/贴图/造价，岗位与基础批次参数读取 `population-economy.json#bakery`，四项本栋等级与费用读取 `building-upgrades.json#bakery_economy`。每栋固定 1 名面包师，按“到指定仓库取 50 粮食 → 回面包屋加工 → 把整批成品送回有容量仓库”推进；取粮与交货必须调用 `EnergyManager` 的指定仓库事务，仓库不足、被毁或满仓时等待，禁止用全局粮食加减伪造搬运行程。面包师业务记录挂在建筑上并随建筑快照保存，但不进入实体/物理/战斗或通用 AI/PathManager；Sprite 只读取这条记录的位置和阶段，并注册到通用平民视觉入口。连接仓库后复用 `BuildingRoadSystem` 按道路/墙门版本缓存的 BFS 规范路线，取货/交货正向消费、返店反向消费，每帧只推进航点；派生路线不进快照，只在读档、目标仓库或拓扑变化时从当前道路格重算。服务半径只在道路航点走完后接受交互；当前脚点因断路落入孤立分量时冻结原阶段，重新连通后续走，禁止隔空完成或传送。
 - **面包师视觉阶段映射（2026-08-23）**：`HamsterBakerVisualSystem` 只能读取 `_bakeryJob`，不得反向推进经济阶段或另存坐标；`idle` 显示待机，`to_pickup/to_bakery` 播放未装载奔跑，`processing` 必须把 Sprite 退出可见平民集合并隐藏，`waiting_deposit/to_deposit` 播放抱面包奔跑。三组动作统一走 `population-economy.json#bakery.workerVisual`、`worker_` 动画前缀、`applyCivilianAnimSize` 和通用平民注册/销毁入口；岗位归零、出售、摧毁、离场与系统重置都必须清除视觉记录。视频截取要保留透明联系图/GIF与逐格 Alpha 报告，循环帧数等于有效内容帧，禁止把转场、触边帧或网格空格注册进动画；跑步必须先确认完整左右脚双步相位，不能为了压低像素接缝而截成只有一次抬腿的短片段。
 - **面包屋升级与祭品边界**：基础处理 10 秒、产出 5 倍、植物祭品 1%、移速 80px/s；快速烹饪/美食家/食材处理/小步快跑每级分别 `-0.5s / +0.5倍 / +0.2pp / +5%`，均为 10 级本栋升级。建筑由“面包烘焙”科技解锁，四升级共同由后继“烘焙工艺”解锁，UI 隐藏/禁用与 `BakeryEconomySystem.startUpgrade()` 业务校验必须同时存在。祭品只从既有植物祭品 ID 池抽取，直接进入主神空间 `WarehouseSystem`；满仓时在建筑/后台快照保留待入库 ID，不能掉落到错误位面或静默丢弃。后台只做同参数的距离+处理周期聚合、粮食仓储和概率结算，不创建面包师 Sprite。

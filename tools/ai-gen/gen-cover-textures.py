@@ -67,8 +67,8 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--grades", default="FEDCBA", help="要生成的级别")
     ap.add_argument("--seed", type=int, default=4001)
-    ap.add_argument("--model", default="flux2-klein-4b-nolora",
-                    help="ComfyUI 模型（默认 Klein 4B；其他模型仅在命令行显式指定）")
+    ap.add_argument("--model", default="flux2-dev-fp8",
+                    help="ComfyUI 模型（默认 FLUX.2 Dev；其他模型仅在命令行显式指定）")
     ap.add_argument("--steps", type=int, default=48, help="生成步数（fp8 48 步细节饱满）")
     ap.add_argument("--variants", type=int, default=5, help="每级变体数（v1=定稿主题）")
     ap.add_argument("--from-variant", type=int, default=1, help="起始变体号（批量续跑/跳过 v1）")

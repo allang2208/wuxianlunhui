@@ -919,7 +919,7 @@ def main():
     sub.add_parser("scaffold")
     g = sub.add_parser("gen-image")
     g.add_argument("--host", default="127.0.0.1")
-    g.add_argument("--model", default="flux2-klein-4b")
+    g.add_argument("--model", default="flux2-dev-fp8")
     g.add_argument("--seeds", default="1,2,3")
     g.add_argument("--timeout", type=int, default=900)
     g.add_argument("--ref-image", default=None,

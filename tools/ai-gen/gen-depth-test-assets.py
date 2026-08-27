@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """ControlNet 固定视角 + 水平/垂直双方向稳定性测试——防守组件库批量生图 v2（2026-08-04）。
 
-模型：flux2-klein-4b-depth（FLUX.2 Klein 4B + Fun-Controlnet-Union 深度控制）。
+模型：flux2-dev-depth（FLUX.2 Dev + Fun-Controlnet-Union 深度控制）。
 深度模板：tools/ai-gen/_depth_templates/depth_<shape>_<h|v>.png（手绘剪影，镜像非对称），
 同一形状 h/v 提示词完全一致、只换模板——验证 ControlNet 能否稳定锁住视角与朝向。
 产出：Y:\\工作\\无尽轮回\\scratch\\world122\\depth-test\\raw\\*.png。
@@ -20,7 +20,7 @@ DIR = os.path.dirname(os.path.abspath(__file__))
 GEN = os.path.join(DIR, "comfyui-gen.py")
 TEMPLATES = os.path.join(DIR, "_depth_templates")
 HOST = "192.168.3.142"
-MODEL = "flux2-klein-4b-depth"
+MODEL = "flux2-dev-depth"
 OUT_DIR = r"Y:\工作\无尽轮回\scratch\world122\depth-test\raw"
 
 STYLE = (

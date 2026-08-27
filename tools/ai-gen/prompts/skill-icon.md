@@ -18,7 +18,7 @@ isolated on a plain pure white background
 
 > 2026-08-04 v2 固化：系列形态统一为**火球式干净六边形徽章 + 紫色浮雕 + 均匀金边**，
 > 明确移除 "embossed translucent crystal block base"（旧模板导致 LoRA 输出底座时有时无）。
-> LoRA 触发词：`wuxianlunhui magic skill icon`（klein-skillicon-v2）。
+> 历史Klein LoRA触发词：`wuxianlunhui magic skill icon`（klein-skillicon-v2）；仅在明确复现旧结果时启用，不参与默认Dev工作流。
 
 ## 负面词（ComfyUI 用 --negative；智谱并入正向）
 
@@ -53,7 +53,7 @@ glowing icy blue highlights`
 
 ## 深度图锁徽章视角（2026-08-04 新增，推荐）
 
-- 六边形徽章系列最容易"每次视角/大小漂移"；用 `--model flux2-klein-4b-depth` +
+- 六边形徽章系列最容易"每次视角/大小漂移"；用 `--model flux2-dev-depth` +
   `--control-image` 传**已定稿同系列图标（fireball）的深度图**，主题块照常换，
   徽章模板/视角/底座位置由深度图锁死，内容框偏差显著减小。
 - 强度 0.6~0.8（默认 0.75）；锁太死主体换不动就降到 0.6。

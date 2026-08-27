@@ -3679,6 +3679,25 @@ export class GameScene extends Scene {
     /** 缓存建筑本帧真实 alpha 世界 AABB，供二维候选与统一地面拓扑消费。 */
     _syncStructureOcclusionVisualBounds(entity, sprites) {
         if (!entity || entity._structureDepthMode !== 'iso_footprint') return;
+        // 升级换图可能同时改变主体尺寸、脚点和外伸轮廓。结构拓扑的快速缓存不能只看
+        // 实体数量/碰撞 revision，否则放大的新贴图最多会沿用 250ms 的旧视觉交叠关系。
+        // 这里只记录固定视觉几何，不包含动画帧和雾显隐，避免风车叶轮等每帧使缓存失效。
+        const visualGeometryKey = (sprites || [])
+            .filter((sprite) => sprite?.active)
+            .map((sprite) => [
+                sprite.texture?.key || '',
+                Number(sprite.displayWidth) || 0,
+                Number(sprite.displayHeight) || 0,
+                Number(sprite.x) || 0,
+                Number(sprite.y) || 0,
+                sprite.flipX ? 1 : 0,
+                Number(sprite.rotation) || 0,
+            ].join(':'))
+            .join('|');
+        if (entity._structureOcclusionVisualGeometryKey !== visualGeometryKey) {
+            entity._structureOcclusionVisualGeometryKey = visualGeometryKey;
+            this._structureOrderCache = null;
+        }
         let minX = Infinity;
         let maxX = -Infinity;
         let minY = Infinity;

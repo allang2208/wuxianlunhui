@@ -32,7 +32,7 @@ hard lighting, directional light, rim light, glow behind subject, frame, border
 ## 命令
 
 ```bash
-python tools/ai-gen/comfyui-gen.py --host 192.168.3.142 --model flux2-klein-4b-depth \
+python tools/ai-gen/comfyui-gen.py --host 192.168.3.142 --model flux2-dev-depth \
   --control-image depth.png --transparent \
   --prompt "a white knight armor with gold trim, game equipment icon" \
   --out final.png
@@ -52,7 +52,7 @@ python tools/ai-gen/transparent_cutout.py --input final_raw.png --out final.png 
 - 模型不按 hex 渲染（SDXL 常出浅灰/渐变底）→ 脚本自动检测背景均匀性，
   非均匀时自动切 **GrabCut 主导**（`tools/ai-gen/grabcut-alpha.py`：边框必为背景 + 中心必为
   主体，GMM 颜色建模，实测残留清零）；GrabCut 失败再回退 BiRefNet，无需人工介入；
-- 实际渲染色可能偏离指定 hex（FLUX.2 klein 实测 #0000FF → #0046FF）→ 抠图以
+- 实际渲染色可能偏离指定hex（不同FLUX.2模型均可能发生）→ 抠图以
   **检测到的实际背景色**为阈值基准，偏差只打印提示不阻断；
 - 透明主体提示词**不要写 rim lighting / studio lighting / dramatic lighting**（会诱导
   背景打光渐变，进一步放大抠图难度）；背景一律 "flat, evenly lit, uniform"；

@@ -43,5 +43,11 @@
     "review_sheets_raw/page_01.png",
     "review_sheets_raw/page_02.png"
   ],
+  "formalCutoutArchive": {
+    "root": "formal_cutouts_20260827",
+    "acceptedFilename": "accepted_cutout.png",
+    "runtimeMetadataPattern": "<asset_id>/<asset_id>_runtime.json",
+    "cleanup": "Threshold comparisons, checkers, probes, mismatched Depth masks, and failed previews were removed after approval."
+  },
   "note": "Earlier model-only 12-step and model-only 36-step experiments are rejected. The approved install uses seven original model-plus-original candidates plus the three accepted rerolls. Formal cutouts use per-asset edge-connected green keying, complete matching Depth where valid, and tightly authored alpha cleanup outside the building/plinth silhouette; warehouse_lv2 explicitly does not use its mismatched legacy Depth."
 }

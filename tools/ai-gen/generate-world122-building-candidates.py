@@ -144,7 +144,11 @@ def prompt_for(asset: dict, manifest: dict, stage: str = "legacy",
     natural_structure = asset.get("assetClass") == "natural_structure"
     surface_deposit = asset.get("assetClass") == "surface_deposit"
     prop_asset = asset.get("assetClass") == "prop"
-    industrial_structure = asset.get("assetClass") == "industrial_structure"
+    wind_power_station = asset.get("assetClass") == "wind_power_station"
+    # The industrial class includes several unrelated buildings.  The open
+    # derrick/bore vocabulary is specific to deep_drill and must never leak
+    # into wind, steam or other industrial assets.
+    deep_drill = asset.get("id") == "deep_drill"
     solar_power_station = asset.get("assetClass") == "solar_power_station"
     modern_data_center = asset.get("assetClass") == "modern_data_center"
     modern_field_barracks = asset.get("assetClass") == "modern_field_barracks"
@@ -186,7 +190,11 @@ Detail budget: use broad readable canvas, webbing, weathered steel, dusty concre
         stage_contract = """Generation stage: structural Roman-barracks draft only
 Structure contract: preserve one complete 2x2 foundation, exactly one low connected rectangular barracks hall with one complete flat stone roof deck and low side and rear parapets, exactly two attached symmetric flat-topped square corner towers, one connected front curtain wall, one centered arched gatehouse, complete authored crenellated parapets and exactly two matching crimson Roman legion standards; the gate opening remains visible and every tower, wall and gatehouse intersects the same compact fort
 Detail budget: use broad readable weathered stone, warm mineral plaster, dark timber, blackened iron, aged brass and crimson cloth so the Roman military silhouette, flat roof, battlements, arch, two scuta and two standards can be judged; omit roof tiles, people, siege engines, loose weapons, lettering and tiny ornament"""
-    elif stage == "structure" and industrial_structure:
+    elif stage == "structure" and wind_power_station:
+        stage_contract = """Generation stage: structural wind-power-station body draft only
+Structure contract: preserve one complete 2x2 foundation, one connected low rectangular stone-and-half-timber generator hall, one continuous gabled roof, one short four-post open iron lattice tower with complete cross braces, one horizontal fixed nacelle facing the authored front direction, one exposed fixed axle collar with no rotor blades, one attached side generator flywheel, one transfer shaft and exactly two attached cyan energy buffers; every component remains physically joined to the same compact station
+Detail budget: use broad readable stone, plaster, timber, blue-gray slate, blackened iron, oxidized brass and restrained cyan energy materials so the hall, tower, nacelle, axle, flywheel and two buffers can be judged; omit blades, sails, tiny gauges, lettering and decorative filigree"""
+    elif stage == "structure" and deep_drill:
         stage_contract = """Generation stage: structural open-machine building draft only
 Structure contract: preserve one connected open four-post derrick, its cross braces and roof canopy, the central bore and drill shaft, one attached side winch, one attached extraction manifold and the authored maintenance clutter; the spaces between the posts remain visibly open and every machine stays bolted to the same deck
 Detail budget: use broad readable timber, iron, brass, stone and energy-flow materials so the derrick, bore, winch, manifold, tool chest, spare pipes and spare drill bits can be judged; omit tiny gauges, lettering and decorative filigree"""
@@ -247,7 +255,11 @@ Detail budget: improve only olive canvas weave and seams, dark webbing, weathere
         stage_contract = """Generation stage: detail refinement of the supplied Roman-barracks image
 Structure contract: preserve the initial image's exact 2x2 footprint, one low connected barracks hall, one complete flat stone roof deck with low side and rear parapets, two flat-topped square corner towers, connected front curtain wall, centered arched gatehouse, all authored battlements, exactly two tower scuta, exactly two crimson legion standards, camera, center and ground-contact corners; do not add, remove, duplicate, move, merge or reinterpret any major component, flag or crenellation group
 Detail budget: improve only weathered limestone and fieldstone, warm mineral plaster, dark timber, blackened iron, aged brass, crimson cloth, shield surfaces and restrained amber gate light"""
-    elif stage == "refine" and industrial_structure:
+    elif stage == "refine" and wind_power_station:
+        stage_contract = """Generation stage: detail refinement of the supplied wind-power-station static body
+Structure contract: preserve the initial image's exact complete 2x2 foundation, connected low generator hall, continuous gabled roof, short open four-post lattice tower, horizontal nacelle direction, exposed fixed axle collar, absent rotor blades, attached side flywheel, transfer shaft, exactly two energy buffers, camera, center and ground-contact points; do not add, remove, duplicate, move, rotate, merge or reinterpret any major component
+Detail budget: improve only weathered stone, aged plaster, worn timber, muted blue-gray slate, blackened iron, oxidized brass and restrained cyan energy surfaces"""
+    elif stage == "refine" and deep_drill:
         stage_contract = """Generation stage: detail refinement of the supplied initial open-machine building image
 Structure contract: preserve the initial image's exact four-post derrick, open sides, roof canopy, central bore and shaft, side winch, extraction manifold, maintenance clutter, camera, center and ground-contact points; do not enclose the frame or add, move, merge or remove any major machine component
 Detail budget: improve only weathered timber, blackened iron, oxidized brass, worn stone, restrained cyan energy flow and practical maintenance-tool surfaces"""
@@ -322,7 +334,10 @@ Structure contract: preserve every major component indicated by the control silh
     elif roman_barracks:
         composition_contract = "strictly follow the supplied full 2x2 depth-control silhouette and orthographic 2.5D isometric view; centered; all four foundation corners remain visible; preserve exactly one low Roman barracks hall with one complete flat stone roof deck and low side and rear parapets, exactly two symmetric flat-topped crenellated corner towers, one connected front curtain, one centered arched gatehouse and exactly two matching crimson legion standards; the gate remains readable and every fortified element stays physically joined; no perspective convergence"
         negative_contract = "one compact medieval Roman legion barracks only; no pitched roof, gable roof, red tiled roof, pointed tower roof, conical turret, Gothic spire, half-timber facade, cathedral window, third tower, second hall, second roof, detached wall, detached gate, courtyard expansion, amphitheater, palace, temple, aqueduct, colonnade forest, siege engine, ballista, catapult, vehicle, modern machinery, soldiers, hamsters, people, animals, loose weapons, extra flag, national flag, readable Latin letters, words, numerals, runes, neon, road, terrain, trees or watermark"
-    elif industrial_structure:
+    elif wind_power_station:
+        composition_contract = "strictly follow the supplied full 2x2 depth-control silhouette and orthographic 2.5D isometric view; centered; all four foundation corners remain visible; preserve one low generator hall, one short open four-post tower with vertical posts and complete cross braces, one horizontal nacelle facing the authored front direction and one exposed fixed circular axle collar; the axle is empty and carries no rotor blades; every structural and mechanical component stays connected; no perspective convergence"
+        negative_contract = "one compact medieval magitech wind power station static body only; no rotor blade, turbine blade, propeller, sail, windmill sail, wheel mounted on the top axle, second rotor, extra turbine, wind farm, tall tower, modern tubular mast, detached machinery, second building, chimney, cooling tower, solar panel, road, terrain, grass, people, animals, signs, text, watermark, cast shadow, ground shadow, backdrop shadow or green-screen shadow gradient; the required plinth must remain fully visible inside the supplied footprint and must not become a detached slab or oversized podium"
+    elif deep_drill:
         composition_contract = "strictly follow the supplied depth-control silhouette and orthographic 2.5D isometric view; centered; all four derrick feet remain grounded on the same machine deck; posts remain vertical and open spaces remain open; every machine and maintenance object stays attached to the authored structure; no perspective convergence"
         negative_contract = "one connected open medieval deep-drilling building on exactly one routed low rubble-stone plinth only; no enclosed house, no factory hall, no solid walls between the derrick posts, no second building, no second tower, no oil pumpjack, no oil well, no modern steel lattice tower, no crane boom, no smokestack, no cooling tower, no extra roof, no second platform, no detached machinery, no pipes extending beyond the supplied silhouette, no road, no stairs, no terrain, no grass, no trees, no people, no animals, no signs, no text and no watermark; the required plinth must remain inside the supplied footprint and must not become a detached slab, oversized podium or cast shadow"
     elif surface_deposit:
@@ -424,7 +439,16 @@ Lighting: soft neutral upper-left top-side illumination with broad gentle highli
 Detail scale: prioritize medium and large compound details that remain legible at game scale: complete fence rails and posts, open gate, three small roof masses, cowshed stall opening and trough, workshop press and aging rack, and the broad open pasture.
 Shape treatment: preserve the authored low 4x4 ground plane and exact small-building proportions; fences stay thin and continuous, roofs stay complete, all structures remain grounded and separated from the open grazing area.
 Absolute class lock: this object is one medieval cheese-farm compound, not a compact single building, castle, industrial facility, village cluster or scenery illustration. Do not invent animals, workers, vehicles, fields, trees or extra architecture."""
-    elif industrial_structure:
+    elif wind_power_station:
+        class_style_contract = """Canonical World-122 wind-power-station static-body rendering subset:
+Style/medium: sober semi-realistic handcrafted medieval magitech strategy-game industrial architecture with physically plausible game-ready PBR materials, readable compact massing and the established World-122 isometric finish.
+Material grammar: weathered cool-gray fieldstone, aged taupe mineral plaster, worn very dark oak framing, muted blue-gray slate, charcoal-blackened riveted iron lattice, naturally oxidized old brass machinery and restrained cyan-blue energy visible only inside exactly two attached buffers.
+Color treatment: deliberately low saturation and controlled neutral contrast; cyan-blue and old brass are limited functional accents, never neon or glossy.
+Lighting: soft neutral upper-left top-side illumination with broad gentle highlights and restrained contact occlusion only; absolutely no cast shadow, ground shadow, backdrop shadow or green-screen shadow gradient.
+Detail scale: prioritize the low hall, short open tower, complete cross braces, horizontal nacelle, empty fixed axle collar, side flywheel, transfer shaft and two energy buffers; keep every component broad enough for RTS scale.
+Shape treatment: preserve the exact compact 2x2 Blender silhouette and fixed isometric camera; the low generator hall remains the dominant mass and the short tower is the only vertical landmark.
+Absolute class lock: this object is one static wind power station body prepared for a separate approved animated rotor layer. The top axle must remain empty: generate no blade, rotor, propeller, sail or wheel on it."""
+    elif deep_drill:
         class_style_contract = """Canonical World-122 open industrial-building rendering subset:
 Style/medium: sober semi-realistic handcrafted medieval strategy-game building with physically plausible game-ready PBR materials and slightly stylized readable proportions.
 Material grammar: heavy weathered dark oak derrick posts and braces, charcoal-blackened wrought iron machinery, cool-gray worn stone machine deck, naturally oxidized old brass collars and gears, muted blue-gray roof covering and restrained cyan-blue energy visible only inside the bore and attached extraction cells.
@@ -606,7 +630,8 @@ def generate_asset(asset: dict, manifest: dict, output_root: Path, variants: int
                    denoise_override: float | None = None, seed_override: int | None = None,
                    use_edge_control: bool = False,
                    generation_timeout: int | None = None,
-                   rebuild_derived: bool = False) -> None:
+                   rebuild_derived: bool = False,
+                   raw_only: bool = False) -> None:
     asset_dir = output_root / asset["id"]
     asset_dir.mkdir(parents=True, exist_ok=True)
     prompt_suffix = "" if stage == "legacy" else f"_{stage}"
@@ -755,11 +780,19 @@ def generate_asset(asset: dict, manifest: dict, output_root: Path, variants: int
             "maskImage": str(mask_image) if mask_image else None,
             "maskChannel": mask_channel if mask_image else None,
             "localMaskedRefine": bool(mask_image),
+            "rawOnly": bool(raw_only),
             "nonstandardOverride": bool(
                 steps != standard_steps
                 or (stage == "refine" and abs(float(denoise) - standard_denoise) > 1e-9)
             ),
         }, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+        if raw_only:
+            print(
+                f"[{asset['id']} v{variant:02d}] raw-only handoff; "
+                "skipping key/anchor/mask/preview derivation",
+                flush=True,
+            )
+            continue
         if rebuild_derived or not keyed.exists():
             key_command = [str(COMFY_PY), str(REPO / "tools/ai-gen/key-world122-building-body.py"),
                            str(raw), str(keyed)]
@@ -849,6 +882,10 @@ def main() -> None:
                         help="per-image ComfyUI wait timeout in seconds; default from manifest")
     parser.add_argument("--rebuild-derived", action="store_true",
                         help="rebuild keyed/cleaned/anchored/body/preview files from existing raw images")
+    parser.add_argument(
+        "--raw-only", action="store_true",
+        help="generate raw green-screen candidates and metadata only; skip all cutout/alpha derivation",
+    )
     parser.add_argument("--allow-nonstandard", action="store_true",
                         help="allow step/denoise values outside the manifest contract; recorded in metadata")
     args = parser.parse_args()
@@ -911,6 +948,7 @@ def main() -> None:
             use_edge_control=args.edge_control or bool(manifest.get("useEdgeControl", False)),
             generation_timeout=args.timeout,
             rebuild_derived=args.rebuild_derived,
+            raw_only=args.raw_only,
         )
     print("all requested candidates complete", flush=True)
 

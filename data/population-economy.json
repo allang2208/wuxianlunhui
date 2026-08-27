@@ -113,9 +113,9 @@
         "populationCapacity": 34,
         "tex": "house_lv5",
         "displayW": 330,
-        "displayH": 401,
-        "footOffsetY": 200,
-        "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.8533333333333334, "widthRatio": 0.7757575757575758, "depthRatio": 0.28444444444444444, "scaleMode": "strict" },
+        "displayH": 395,
+        "footOffsetY": 196,
+        "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.8341772151898734, "widthRatio": 0.7757575757575758, "depthRatio": 0.3240506329113924, "scaleMode": "strict" },
         "upgradeCost": { "gold": 2400, "energy": 4800, "timeMs": 90000 }
       },
       {
@@ -123,10 +123,10 @@
         "technologyUnlockId": "house_level_6",
         "populationCapacity": 46,
         "tex": "house_lv6",
-        "displayW": 340,
-        "displayH": 483,
-        "footOffsetY": 239,
-        "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.8623188405797102, "widthRatio": 0.7529411764705882, "depthRatio": 0.2650103519668737, "scaleMode": "strict" },
+        "displayW": 320,
+        "displayH": 454,
+        "footOffsetY": 225,
+        "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.854625550660793, "widthRatio": 0.8, "depthRatio": 0.28193832599118945, "scaleMode": "strict" },
         "upgradeCost": { "gold": 4800, "energy": 9600, "timeMs": 180000 }
       },
       {
@@ -135,9 +135,9 @@
         "populationCapacity": 60,
         "tex": "house_lv7",
         "displayW": 360,
-        "displayH": 482,
-        "footOffsetY": 241,
-        "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.8698630136986302, "widthRatio": 0.7111111111111111, "depthRatio": 0.25048923679060664, "scaleMode": "strict" },
+        "displayH": 464,
+        "footOffsetY": 230,
+        "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.8577586206896551, "widthRatio": 0.7111111111111111, "depthRatio": 0.27586206896551724, "scaleMode": "strict" },
         "upgradeCost": { "gold": 9600, "energy": 19200, "timeMs": 300000 }
       }
     ]
@@ -224,9 +224,9 @@
         "baseResearchPointsPerSecond": 1,
         "tex": "research_institute",
         "displayW": 256,
-        "displayH": 273,
-        "footOffsetY": 135,
-        "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.760073, "widthRatio": 1, "depthRatio": 0.468864, "scaleMode": "strict" }
+        "displayH": 265,
+        "footOffsetY": 131,
+        "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.75283, "widthRatio": 1, "depthRatio": 0.483019, "scaleMode": "strict" }
       },
       {
         "level": 2,
@@ -234,9 +234,9 @@
         "baseResearchPointsPerSecond": 1.25,
         "tex": "research_institute_lv2",
         "displayW": 256,
-        "displayH": 304,
-        "footOffsetY": 150,
-        "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.782895, "widthRatio": 1, "depthRatio": 0.421053, "scaleMode": "strict" },
+        "displayH": 299,
+        "footOffsetY": 148,
+        "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.780936, "widthRatio": 1, "depthRatio": 0.428094, "scaleMode": "strict" },
         "upgradeCost": { "gold": 2000, "energy": 4000, "timeMs": 90000 }
       },
       {
@@ -245,9 +245,9 @@
         "baseResearchPointsPerSecond": 1.5,
         "tex": "research_institute_lv3",
         "displayW": 256,
-        "displayH": 346,
-        "footOffsetY": 171,
-        "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.809249, "widthRatio": 1, "depthRatio": 0.369942, "scaleMode": "strict" },
+        "displayH": 337,
+        "footOffsetY": 167,
+        "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.805638, "widthRatio": 1, "depthRatio": 0.379822, "scaleMode": "strict" },
         "upgradeCost": { "gold": 5000, "energy": 10000, "timeMs": 180000 }
       }
     ]

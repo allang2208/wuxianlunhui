@@ -114,9 +114,9 @@
 | 研究院 LV2 | `ResearchLV2_*Wing_*` / `ResearchLV2_DiamondColumn_*` / `ResearchLV2_FlyingButtress_*` | 四面裙楼、四根平顶菱形围柱、围柱位置和双层飞扶壁高度沿用 LV1；仅裙楼追加贴合墙顶的学术檐口，不增加塔楼或占地 | `build_research_institute_level(level=2)` |
 | 研究院 LV3 | `ResearchLV3_CentralTower_*` | 在 LV2 上继续增高唯一中央方塔；三层塔身尖券窗、四道冷灰分层石带、放大相连回廊与冠部、密集角柱、强化蓝顶肋和最高顶饰构成三级增量 | `build_research_institute_lv3()` / `build_research_institute_level(level=3)` |
 | 研究院 LV3 | `ResearchLV3_*Wing_*` / `ResearchLV3_DiamondColumn_*` / `ResearchLV3_FlyingButtress_*` | 保持 LV1/LV2 的固定四翼母体、方形 2×2 地基、四根平顶菱形围柱和低位飞扶壁；高等级变化集中于中央塔纵向层次 | `build_research_institute_level(level=3)` |
-| 教堂 | `Church_MainHall` / `Church_MainRoof*` / `Church_Narthex*` | 紧凑2×2石砌礼拜堂、连续深蓝双坡屋顶与中央入口门厅；承重墙直接落地，不生成独立地基或铺装 | `build_church()` |
-| 教堂 | `Church_BellTower_0` / `Church_Bell_0_*` / `Church_BelfryOpening_0_*` / `Church_Parapet*` | 仅保留画面左侧的一座相连平顶垛口钟塔，两可见钟室面内含独立铜钟几何；右侧必须维持完整礼拜堂屋顶，不生成第二塔、尖顶或塔基残留 | `build_church()` |
-| 教堂 | `Church_*Window*` / `Church_RoseWindow*` / `Church_*Buttress*` | 蓝色与琥珀色组合的侧墙琉璃窗、入口玫瑰窗和附墙石扶壁；所有窗与结构细节保持建筑内嵌 | `build_church()` |
+| 教堂 | `Church_Foundation` / `Church_MainHall` / `Church_MainRoof*` / `Church_Narthex*` | 完整2×2毛石视觉地台上的紧凑石砌礼拜堂、连续深蓝双坡主顶与中央入口门厅；视觉地台不得改变逻辑占格、碰撞或寻路 | `build_church()` |
+| 教堂 | `Church_SideChapel_Left*` / `Church_SideChapel_Right*` | 主厅左右各一座等尺寸、等高度、等屋顶的相连附属礼拜翼；所有体块、扶壁和窗必须严格成对镜像，不生成钟塔、尖塔、塔楼、穹顶、屋顶灯塔或不对称附楼 | `build_church()` |
+| 教堂 | `Church_FrontLancet_*` / `Church_SideLancet_*` / `Church_RoseWindow*` / `Church_*Buttress*` | 蓝色与琥珀色组合的成对琉璃窗、居中入口玫瑰窗和镜像附墙石扶壁；所有窗与结构细节保持建筑内嵌 | `build_church()` |
 | 探险家营地 | `ExplorerCamp_CommandHall_*` / `ExplorerCamp_CartographyCupola*` / `ExplorerCamp_ArchiveWing_*` | 完整4×4地基上的大型帆布石木指挥厅、屋脊制图阁楼与相连地图档案翼；三部分保持连续承重关系，禁止拆成帐篷群 | `build_explorer_camp()` |
 | 探险家营地 | `ExplorerCamp_Lookout*` / `ExplorerCamp_Signal*` / `ExplorerCamp_TowerConnector` | 与主厅相连的高位瞭望塔、四面栏台、信号桅杆、观察舱、固定梯与连接廊 | `build_explorer_camp()` |
 | 探险家营地 | `ExplorerCamp_Supply*` / `ExplorerCamp_ExpeditionGate*` / `ExplorerCamp_Map*` / `ExplorerCamp_Compass*` | 连体补给廊、双柱远征门、无文字罗盘徽记、地图板与结构内储物柜；不得拆成独立帐篷或散落道具 | `build_explorer_camp()` |
@@ -176,7 +176,7 @@
 | 四级房屋小洋楼 | `HouseLV4_Level*_BearingShell` / `HouseLV4_*Timber` / `HouseLV4_Level2OrnateBalcony*` / `HouseLV4_Level3Juliet*` / `HouseLV4_RoofDormer*` | 在同一标准2×2住宅家族上增加一层完整且上下对齐的承重壳，形成三层半木石小洋楼；延续暖色灰泥、深木构、赤陶瓦、花箱、家徽和克制黄铜装饰，以侧阳台、三层朱丽叶阳台和单个附着式老虎窗提升精致度，禁止塔楼、独立翼楼、宫殿体量或第二主屋顶 | `build_house_lv4()` |
 | 五级房屋蒸汽公馆 | `HouseLV5_Level*_BearingShell` / `HouseLV5_BayWindow_*` / `HouseLV5_*Steam*` / `HouseLV5_PressureGauge_*` / `HouseLV5_*Mansard*` | 标准2×2家族上的四层维多利亚城市公馆；砖石立面、附着式两层凸窗、铁艺阳台、单根家用蒸汽立管/压力表、连续青灰四坡屋顶和单老虎窗共同完成蒸汽时代过渡，机械不得扩张为锅炉厂或独立附楼 | `build_house_lv5()` / `stacked_bearing_shells()` |
 | 六级房屋现代公寓 | `HouseLV6_Level*_BearingShell` / `HouseLV6_Lobby_*` / `HouseLV6_Level*GlassBalcony*` / `HouseLV6_Roof*` | 标准2×2家族上的五层现代城市住宅；真实五层承重壳、混凝土/暖灰外墙、深钢楼板带、宽玻璃门厅、交错附着阳台、花槽、平顶女儿墙和低矮屋顶设备间构成住宅语义，禁止办公塔、通信塔或独立广场 | `build_house_lv6()` / `stacked_bearing_shells()` / `framed_glass_panel()` |
-| 七级房屋未来生态塔 | `HouseLV7_Level*_ArcBearingShell` / `HouseLV7_Level*_CurvedGlassRibbon` / `HouseLV7_SkyGarden_*` / `HouseLV7_CentralTower_*` | 标准2×2家族上的六层弧形未来住宅塔；六个独立椭圆承重壳逐层收分、左右错位并小角度错转，连续中央椭圆塔芯贯通各层并在屋顶形成玻璃观景冠部；二、四、六层使用真正的月牙环扇露台、弧形种植床和随弧栏杆盘旋上升，禁止退回直筒公寓、矩形贴墙花槽、浮空舱、飞行器、武器或额外第七层 | `build_house_lv7()` / `house_lv7_elliptical_shell()` / `house_lv7_arc_band()` / `house_lv7_arc_railing()` |
+| 七级房屋未来生态塔 | `HouseLV7_Level*_ArcBearingShell` / `HouseLV7_Level*_CurvedGlassRibbon` / `HouseLV7_SkyGarden_*` / `HouseLV7_CentralTower_*` | 标准2×2家族上的六层弧形未来住宅塔；六个独立椭圆承重壳逐层收分、左右错位并小角度错转，连续中央椭圆塔芯贯通各层并在屋顶形成玻璃观景冠部；二、四、六层使用真正的月牙环扇露台、弧形种植床和随弧栏杆盘旋上升，冠部必须使用无柱、无孔、无断口的连续实心椭圆女儿墙，禁止会封存绿幕的顶部镂空栏杆、退回直筒公寓、矩形贴墙花槽、浮空舱、飞行器、武器或额外第七层 | `build_house_lv7()` / `house_lv7_elliptical_shell()` / `house_lv7_arc_band()` / `house_lv7_arc_railing()` |
 | 茅草屋 | `Cottage_*` | 厚草顶标准壳、门窗、烟囱、灯笼的住宅组合 | `build_thatch_hut()` |
 | 奶酪农场 | `CheeseFarm_MainHall_*` / `CheeseFarm_Cowshed_*` / `CheeseFarm_Workshop_*` | 4×4宽阔平地上的中央奶酪主厅、左侧开敞牛棚与右侧相连工作间；牛棚槽位、奶酪压榨机、熟成架和奶酪轮均保持独立可编辑，人物与奶牛不烘入建筑模型 | `build_cheese_farm()` / `cheese_farm_wheel()` |
 | 奶酪农场 | `CheeseFarm_PerimeterFence_*` / `CheeseFarm_Pasture_*` | 完整边界木栅栏、居中开启双门、低矮牧场地面与两座固定水槽；围栏复用公共组件，宽阔前场保持少杂物 | `build_cheese_farm()` / `post_and_rail_enclosure()` |
@@ -197,7 +197,7 @@
 | 研究院 LV1 | 四面相连低矮裙楼 + 唯一中央哥特方塔 | 四根菱形截面围柱、双层飞扶壁、蓝色尖券窗、蓝顶与白灰石墙 |
 | 研究院 LV2 | 沿用 LV1 四面裙楼与固定占地 + 明显增高唯一中央塔 | 双层塔身窗、三道石带、相连回廊檐口、加强角扶壁、蓝顶肋与更高顶饰 |
 | 研究院 LV3 | 沿用 LV1/LV2 四面裙楼与固定占地 + 再次增高唯一中央塔 | 三层塔身窗、四道石带、放大相连回廊与冠部、密集角柱、强化蓝顶肋与最高顶饰 |
-| 教堂 | 紧凑石砌礼拜堂 + 左侧平顶垛口钟塔 + 连续深蓝坡顶 | 双面可见铜钟、中央拱门、玫瑰窗、蓝橙侧墙琉璃窗与附墙扶壁 |
+| 教堂 | 完整2×2毛石视觉地台 + 对称石砌礼拜堂 + 中央门厅 + 左右镜像附属礼拜翼 + 连续深蓝坡顶 | 居中双开拱门与玫瑰窗、成对蓝橙琉璃窗和镜像附墙扶壁；无任何塔楼、钟室、尖塔、穹顶或不对称附楼 |
 | 探险家营地 | 完整4×4远征总部 + 制图阁楼 + 相连档案翼 + 单座高位信号塔 | 固定梯、信号旗、补给廊、纪念性远征门、地图板、罗盘徽记与暖灯 |
 | 矿工营地 | 石木矿棚 + 一体式矿洞入口 | 拱券石、暖灯、附着卷扬架、卷筒、绳索与导轨矿笼 |
 | 矿洞 | 单格自然岩体 + 内嵌拱形洞口 | 绿光深处、石拱、木支护、铁带、短轨与贴地碎石；Body Depth 控生成、Cutout Depth 保留洞内件并排除地台；运行时碰撞独立使用标准1×1建筑 footprint |
@@ -226,7 +226,7 @@
 | 四级房屋 | 同一2×2家族的三层半木石小洋楼 + 连续赤陶双坡主顶 | 对齐新增的完整第三层、双层木构节奏、侧阳台、三层朱丽叶阳台、单个附着式老虎窗、家徽、花箱与克制黄铜细节；不得长成塔楼或宫殿 |
 | 五级房屋 | 同一2×2家族的四层维多利亚蒸汽公馆 + 连续青灰四坡顶 | 砖石立面、两层附着凸窗、铁艺阳台、家用蒸汽立管和压力表、单老虎窗与烟囱；不得长成工厂或独立翼楼 |
 | 六级房屋 | 同一2×2家族的五层现代城市公寓 + 平顶女儿墙 | 宽玻璃门厅、现代框架窗、交错附着玻璃阳台、花槽、屋顶设备间与太阳能板；不得变成办公楼或通信塔 |
-| 七级房屋 | 同一2×2家族的六层错转椭圆生态塔 + 贯通中央塔芯与玻璃观景冠部 | 每层楼面和外墙均为真实圆弧，逐层收分并交替偏移；二、四、六层月牙空中花园沿塔体盘旋，配弧形种植床、随弧栏杆、曲面玻璃带和屋顶小型能源环；无直筒公寓、矩形贴墙花槽、浮空舱、武器或第七层 |
+| 七级房屋 | 同一2×2家族的六层错转椭圆生态塔 + 贯通中央塔芯与玻璃观景冠部 | 每层楼面和外墙均为真实圆弧，逐层收分并交替偏移；二、四、六层月牙空中花园沿塔体盘旋，配弧形种植床、随弧栏杆、曲面玻璃带和屋顶连续实心椭圆女儿墙；顶部不得使用镂空栏杆或半圈能量环，无直筒公寓、矩形贴墙花槽、浮空舱、武器或第七层 |
 | 裸露能量矿脉 | 标准1×1 footprint 式断续碎石带 | 三形态分别为横向裂隙、环状碎石矿窝与Y形分叉矿带；能量块始终宽于高度并嵌入地表，不得生成尖塔晶簇 |
 | 茅草屋 | 厚茅草标准壳 | 门窗、烟囱、灯笼 |
 | 奶酪农场 | 完整4×4低矮牧场 + 中央奶酪主厅 + 左侧开敞牛棚 + 右侧相连工作间 | 完整木栅栏边界、居中开启双门、牛棚槽位与饲料槽、奶酪压榨机、熟成架、奶酪轮和两座固定水槽；牛倌与奶牛为独立动画资产 |

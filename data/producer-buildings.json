@@ -270,10 +270,10 @@
       "footOffsetY": 135
     },
     "displayW": 256,
-    "displayH": 273,
-    "footOffsetY": 135,
-    "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.760073, "widthRatio": 1, "depthRatio": 0.468864, "scaleMode": "strict" },
-    "assetCutoutHash": "4A7BD42617EB6CAFF11BA3B7D5663999F939A48586BF6A1F938C5D11C1314883",
+    "displayH": 265,
+    "footOffsetY": 131,
+    "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.75283, "widthRatio": 1, "depthRatio": 0.483019, "scaleMode": "strict" },
+    "assetCutoutHash": "469DA350249931CC34034F85B1121B901F9D9617F932C78EE435B4932026F4FF",
     "sellRefundRatio": 0.5,
     "spawnEnabled": false,
     "spawnIntervalMs": 10000,
@@ -600,7 +600,7 @@
     "displayH": 260,
     "footOffsetY": 129,
     "visualFootprint": { "centerXRatio": 0.5, "centerYRatio": 0.75, "widthRatio": 0.948148, "depthRatio": 0.492308, "scaleMode": "strict" },
-    "perimeterTile": "none",
+    "perimeterTile": "road",
     "sellRefundRatio": 0.5,
     "spawnEnabled": false,
     "unitTypes": [],
@@ -1099,8 +1099,8 @@
     "cost": 9000,
     "currency": "energy",
     "hp": 4200,
-    "radius": 256,
-    "footprintCells": 4,
+    "radius": 128,
+    "footprintCells": 2,
     "def": 95,
     "mdef": 90,
     "tex": "wind_power_plant_body",
@@ -1138,7 +1138,7 @@
     "economyType": "wind_power_plant",
     "upgradeProject": "wind_power_plant_economy",
     "panelDescription": "风机技师维持叶轮与发电机稳定运转，无需燃料即可持续向本位面能源仓库供能。",
-    "buildWarning": "占地 4×4，不自动生成外围道路；每个位面最多建造 2 座，必须先建造能源仓库才能接收电力。"
+    "buildWarning": "占地 2×2，不自动生成外围道路；每个位面最多建造 2 座，必须先建造能源仓库才能接收电力。"
   },
   "solar_power_plant": {
     "id": "solar_power_plant",
